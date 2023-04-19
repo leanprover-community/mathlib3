@@ -10,6 +10,9 @@ import linear_algebra.affine_space.affine_subspace
 /-!
 # Convex sets and functions in vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a 𝕜-vector space, we define the following objects and properties.
 * `convex 𝕜 s`: A set `s` is convex if for any two points `x y ∈ s` it includes `segment 𝕜 x y`.
 * `std_simplex 𝕜 ι`: The standard simplex in `ι → 𝕜` (currently requires `fintype ι`). It is the
@@ -278,8 +281,7 @@ end ordered_cancel_add_comm_monoid
 section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid β] [module 𝕜 β] [ordered_smul 𝕜 β]
 
-lemma convex_interval (r s : β) : convex 𝕜 (interval r s) :=
-convex_Icc _ _
+lemma convex_uIcc (r s : β) : convex 𝕜 (uIcc r s) := convex_Icc _ _
 
 end linear_ordered_add_comm_monoid
 end module
@@ -513,7 +515,7 @@ hs.convex_of_chain $ is_chain_of_trichotomous s
 
 lemma convex_iff_ord_connected [linear_ordered_field 𝕜] {s : set 𝕜} :
   convex 𝕜 s ↔ s.ord_connected :=
-by simp_rw [convex_iff_segment_subset, segment_eq_interval, ord_connected_iff_interval_subset]
+by simp_rw [convex_iff_segment_subset, segment_eq_uIcc, ord_connected_iff_uIcc_subset]
 
 alias convex_iff_ord_connected ↔ convex.ord_connected _
 

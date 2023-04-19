@@ -68,7 +68,7 @@ begin
   let s := basis.of_vector_space F K,
   refine ⟨∏ x, minpoly F (s x),
     splits_prod _ $ λ x hx, h.splits (s x),
-    subalgebra.to_submodule_injective _⟩,
+    subalgebra.to_submodule.injective _⟩,
   rw [algebra.top_to_submodule, eq_top_iff, ← s.span_eq, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
     (mem_roots $ mt (polynomial.map_eq_zero $ algebra_map F K).1 $
@@ -86,7 +86,7 @@ lemma normal.tower_top_of_normal [h : normal F E] : normal K E :=
 normal_iff.2 $ λ x, begin
   cases h.out x with hx hhx,
   rw algebra_map_eq F K E at hhx,
-  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
+  exact ⟨is_integral_of_is_scalar_tower hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
     (polynomial.map_ne_zero (minpoly.ne_zero hx))
     ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
     (minpoly.dvd_map_of_is_scalar_tower F K x)⟩,
@@ -97,7 +97,7 @@ lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.
 { letI : algebra E K := ϕ.to_ring_hom.to_algebra,
   obtain ⟨h1, h2⟩ := h.out (algebra_map K E x),
   cases minpoly.mem_range_of_degree_eq_one E x (h2.def.resolve_left (minpoly.ne_zero h1)
-    (minpoly.irreducible (is_integral_of_is_scalar_tower x
+    (minpoly.irreducible (is_integral_of_is_scalar_tower
       ((is_integral_algebra_map_iff (algebra_map K E).injective).mp h1)))
     (minpoly.dvd E x ((algebra_map K E).injective (by
     { rw [ring_hom.map_zero, aeval_map_algebra_map, ← aeval_algebra_map_apply],
@@ -109,7 +109,7 @@ variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
 normal_iff.2 $ λ x, begin
   cases h.out (f.symm x) with hx hhx,
-  have H := is_integral_alg_hom f.to_alg_hom hx,
+  have H := map_is_integral f.to_alg_hom hx,
   rw [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, alg_equiv.apply_symm_apply] at H,
   use H,
   apply polynomial.splits_of_splits_of_dvd (algebra_map F E') (minpoly.ne_zero hx),
@@ -245,11 +245,12 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
     rintros x ⟨y, ⟨z, hy⟩, hx⟩,
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
-    exact or.resolve_left (h.splits z).def (minpoly.ne_zero (h.is_integral z))
-      (minpoly.irreducible $ is_integral_of_is_scalar_tower _ $
-        is_integral_alg_hom ϕ $ is_integral_alg_hom _ $ h.is_integral z)
-      (minpoly.dvd E _ $ by rw [aeval_map_algebra_map, aeval_alg_hom_apply, aeval_alg_hom_apply,
-        minpoly.aeval, alg_hom.map_zero, alg_hom.map_zero]) }⟩,
+    refine or.resolve_left (h.splits z).def (minpoly.ne_zero (h.is_integral z))
+      (minpoly.irreducible _) (minpoly.dvd E _ (by simp [aeval_alg_hom_apply])),
+    simp only [alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom],
+    suffices : is_integral F _,
+    { exact is_integral_of_is_scalar_tower this },
+    exact map_is_integral ϕ (map_is_integral (to_alg_hom F E K₁) (h.is_integral z)) }⟩,
   map_zero' := subtype.ext ϕ.map_zero,
   map_one' := subtype.ext ϕ.map_one,
   map_add' := λ x y, subtype.ext (ϕ.map_add x y),
@@ -330,7 +331,7 @@ noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
   @intermediate_field.alg_hom_mk_adjoin_splits' _ _ _ _ _ _ _
   ((is_scalar_tower.to_alg_hom F K₂ E).comp ϕ).to_ring_hom.to_algebra _
   (intermediate_field.adjoin_univ _ _)
-  (λ x hx, ⟨is_integral_of_is_scalar_tower x (h.out x).1,
+  (λ x hx, ⟨is_integral_of_is_scalar_tower (h.out x).1,
     splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
     (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h.out x).2 })
     (minpoly.dvd_map_of_is_scalar_tower F K₁ x)⟩)
@@ -402,7 +403,7 @@ begin
   { rintros f _ ⟨x, rfl⟩,
     refine le_supr (λ x, adjoin F ((minpoly F x).root_set L)) x
       (subset_adjoin F ((minpoly F x).root_set L) _),
-    rw [polynomial.mem_root_set, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
+    rw [mem_root_set_of_ne, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
         polynomial.aeval_alg_hom_apply, minpoly.aeval, map_zero],
     exact minpoly.ne_zero ((is_integral_algebra_map_iff (algebra_map K L).injective).mp
       (h.is_integral (algebra_map K L x))) },

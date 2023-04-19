@@ -3,13 +3,16 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.tower
+import algebra.algebra.operations
+import algebra.algebra.subalgebra.tower
 import linear_algebra.prod
 import linear_algebra.finsupp
-import algebra.algebra.operations
 
 /-!
 # Adjoining elements to form subalgebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basic theory of subalgebras of an R-algebra generated
 by a set of elements. A basic interface for `adjoin` is set up.
@@ -268,6 +271,16 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
+end
+
+lemma adjoin_adjoin_of_tower [semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  (s : set B) : adjoin A (adjoin R s : set B) = adjoin A s :=
+begin
+  apply le_antisymm (adjoin_le _),
+  { exact adjoin_mono subset_adjoin },
+  { change adjoin R s ≤ (adjoin A s).restrict_scalars R,
+    refine adjoin_le _,
+    exact subset_adjoin }
 end
 
 variable {R}

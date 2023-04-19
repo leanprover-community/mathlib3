@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import order.bounds
+import order.bounds.basic
 
 /-!
 # Intervals in Lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we provide instances of lattice structures on intervals within lattices.
 Some of them depend on the order of the endpoints of the interval, and thus are not made

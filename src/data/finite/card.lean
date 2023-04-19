@@ -3,12 +3,14 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.finite.basic
 import set_theory.cardinal.finite
 
 /-!
 
 # Cardinality of finite types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The cardinality of a finite type `α` is given by `nat.card α`. This function has
 the "junk value" of `0` for infinite types, but to ensure the function has valid
@@ -61,6 +63,9 @@ lemma finite.card_pos [finite α] [h : nonempty α] : 0 < nat.card α :=
 finite.card_pos_iff.mpr h
 
 namespace finite
+
+lemma cast_card_eq_mk {α : Type*} [finite α] : ↑(nat.card α) = cardinal.mk α :=
+cardinal.cast_to_nat_of_lt_aleph_0 (cardinal.lt_aleph_0_of_finite α)
 
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }
@@ -137,12 +142,33 @@ card_eq_zero_of_injective f.2 h
 lemma card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
 
-end finite
+lemma card_image_le {s : set α} [finite s] (f : α → β) : nat.card (f '' s) ≤ nat.card s :=
+card_le_of_surjective _ set.surjective_onto_image
 
-theorem finite.card_subtype_le [finite α] (p : α → Prop) :
+lemma card_range_le [finite α] (f : α → β) : nat.card (set.range f) ≤ nat.card α :=
+card_le_of_surjective _ set.surjective_onto_range
+
+theorem card_subtype_le [finite α] (p : α → Prop) :
   nat.card {x // p x} ≤ nat.card α :=
 by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_le p }
 
-theorem finite.card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p x) :
+theorem card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p x) :
   nat.card {x // p x} < nat.card α :=
 by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }
+
+end finite
+
+namespace set
+
+lemma card_union_le (s t : set α) : nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
+begin
+  casesI _root_.finite_or_infinite ↥(s ∪ t) with h h,
+  { rw [finite_coe_iff, finite_union, ←finite_coe_iff, ←finite_coe_iff] at h,
+    casesI h,
+    rw [←cardinal.nat_cast_le, nat.cast_add,
+        finite.cast_card_eq_mk, finite.cast_card_eq_mk, finite.cast_card_eq_mk],
+    exact cardinal.mk_union_le s t },
+  { exact nat.card_eq_zero_of_infinite.trans_le (zero_le _) },
+end
+
+end set

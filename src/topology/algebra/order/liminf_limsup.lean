@@ -3,16 +3,22 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import algebra.big_operators.intervals
+import algebra.big_operators.order
+import algebra.indicator_function
 import order.liminf_limsup
-import topology.algebra.order.basic
 import order.filter.archimedean
+import topology.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter
-open_locale topological_space classical
+open_locale topology classical
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -151,18 +157,18 @@ theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α} [ne_bot f], f ≤ �
 
 /-- If a function has a limit, then its limsup coincides with its limit. -/
 theorem filter.tendsto.limsup_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
-  (h : tendsto u f (𝓝 a)) : limsup f u = a :=
+  (h : tendsto u f (𝓝 a)) : limsup u f = a :=
 Limsup_eq_of_le_nhds h
 
 /-- If a function has a limit, then its liminf coincides with its limit. -/
 theorem filter.tendsto.liminf_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
-  (h : tendsto u f (𝓝 a)) : liminf f u = a :=
+  (h : tendsto u f (𝓝 a)) : liminf u f = a :=
 Liminf_eq_of_le_nhds h
 
 /-- If the liminf and the limsup of a function coincide, then the limit of the function
 exists and has the same value -/
 theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
-  (hinf : liminf f u = a) (hsup : limsup f u = a)
+  (hinf : liminf u f = a) (hsup : limsup u f = a)
   (h : f.is_bounded_under (≤) u . is_bounded_default)
   (h' : f.is_bounded_under (≥) u . is_bounded_default) :
   tendsto u f (𝓝 a) :=
@@ -171,7 +177,7 @@ le_nhds_of_Limsup_eq_Liminf h h' hsup hinf
 /-- If a number `a` is less than or equal to the `liminf` of a function `f` at some filter
 and is greater than or equal to the `limsup` of `f`, then `f` tends to `a` along this filter. -/
 theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : α}
-  (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a)
+  (hinf : a ≤ liminf u f) (hsup : limsup u f ≤ a)
   (h : f.is_bounded_under (≤) u . is_bounded_default)
   (h' : f.is_bounded_under (≥) u . is_bounded_default) :
   tendsto u f (𝓝 a) :=
@@ -193,7 +199,7 @@ lemma tendsto_of_no_upcrossings [densely_ordered α]
 begin
   by_cases hbot : f = ⊥, { rw hbot, exact ⟨Inf ∅, tendsto_bot⟩ },
   haveI : ne_bot f := ⟨hbot⟩,
-  refine ⟨limsup f u, _⟩,
+  refine ⟨limsup u f, _⟩,
   apply tendsto_of_le_liminf_of_limsup_le _ le_rfl h h',
   by_contra' hlt,
   obtain ⟨a, ⟨⟨la, au⟩, as⟩⟩ : ∃ a, (f.liminf u < a ∧ a < f.limsup u) ∧ a ∈ s :=
@@ -319,12 +325,52 @@ f_incr.map_Liminf_of_continuous_at f_cont
 
 end monotone
 
+section infi_and_supr
+
+open_locale topology
+
+open filter set
+
+variables {ι : Type*} {R : Type*} [complete_linear_order R] [topological_space R] [order_topology R]
+
+lemma infi_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}
+  (x_le : ∀ i, x ≤ as i) {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⨅ i, as i) = x :=
+begin
+  refine infi_eq_of_forall_ge_of_forall_gt_exists_lt (λ i, x_le i) _,
+  apply λ w x_lt_w, ‹filter.ne_bot F›.nonempty_of_mem (eventually_lt_of_tendsto_lt x_lt_w as_lim),
+end
+
+lemma supr_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}
+  (le_x : ∀ i, as i ≤ x) {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⨆ i, as i) = x :=
+@infi_eq_of_forall_le_of_tendsto ι (order_dual R) _ _ _ x as le_x F _ as_lim
+
+lemma Union_Ici_eq_Ioi_of_lt_of_tendsto {ι : Type*} (x : R) {as : ι → R} (x_lt : ∀ i, x < as i)
+  {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⋃ (i : ι), Ici (as i)) = Ioi x :=
+begin
+  have obs : x ∉ range as,
+  { intro maybe_x_is,
+    rcases mem_range.mp maybe_x_is with ⟨i, hi⟩,
+    simpa only [hi, lt_self_iff_false] using x_lt i, } ,
+  rw ← infi_eq_of_forall_le_of_tendsto (λ i, (x_lt i).le) as_lim at *,
+  exact Union_Ici_eq_Ioi_infi obs,
+end
+
+lemma Union_Iic_eq_Iio_of_lt_of_tendsto {ι : Type*} (x : R) {as : ι → R} (lt_x : ∀ i, as i < x)
+  {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⋃ (i : ι), Iic (as i)) = Iio x :=
+@Union_Ici_eq_Ioi_of_lt_of_tendsto (order_dual R) _ _ _ ι x as lt_x F _ as_lim
+
+end infi_and_supr
+
 section indicator
 
 open_locale big_operators
 
 lemma limsup_eq_tendsto_sum_indicator_nat_at_top (s : ℕ → set α) :
-  limsup at_top s =
+  limsup s at_top =
     {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → ℕ) ω) at_top at_top} :=
 begin
   ext ω,
@@ -382,8 +428,8 @@ begin
 end
 
 lemma limsup_eq_tendsto_sum_indicator_at_top
-  (R : Type*) [strict_ordered_semiring R] [nontrivial R] [archimedean R] (s : ℕ → set α) :
-  limsup at_top s =
+  (R : Type*) [strict_ordered_semiring R] [archimedean R] (s : ℕ → set α) :
+  limsup s at_top =
     {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → R) ω) at_top at_top} :=
 begin
   rw limsup_eq_tendsto_sum_indicator_nat_at_top s,

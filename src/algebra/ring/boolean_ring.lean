@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen, Yaël Dillies
 -/
 import algebra.punit_instances
-import order.heyting.hom
 import tactic.abel
 import tactic.ring
+import order.hom.lattice
 
 /-!
 # Boolean rings
@@ -63,7 +63,7 @@ calc -a = -a + 0      : by rw add_zero
     ... = -a + -a + a : by rw [←neg_add_self, add_assoc]
     ... = a           : by rw [add_self, zero_add]
 
-lemma add_eq_zero : a + b = 0 ↔ a = b :=
+lemma add_eq_zero' : a + b = 0 ↔ a = b :=
 calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
            ... ↔ a = b  : by rw neg_eq
 
@@ -82,7 +82,7 @@ by rw [sub_eq_add_neg, add_right_inj, neg_eq]
 
 @[priority 100] -- Note [lower instance priority]
 instance boolean_ring.to_comm_ring : comm_ring α :=
-{ mul_comm := λ a b, by rw [←add_eq_zero, mul_add_mul],
+{ mul_comm := λ a b, by rw [←add_eq_zero', mul_add_mul],
   .. (infer_instance : boolean_ring α) }
 
 end boolean_ring

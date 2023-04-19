@@ -9,6 +9,9 @@ import category_theory.abelian.basic
 /-!
 # Idempotent complete categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the notion of idempotent complete categories
 (also known as Karoubian categories, or pseudoabelian in the case of
 preadditive categories).

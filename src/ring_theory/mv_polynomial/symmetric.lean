@@ -3,13 +3,15 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang, Johan Commelin
 -/
-import data.fintype.card
 import data.mv_polynomial.rename
 import data.mv_polynomial.comm_ring
 import algebra.algebra.subalgebra.basic
 
 /-!
 # Symmetric Polynomials and Elementary Symmetric Polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines symmetric `mv_polynomial`s and elementary symmetric `mv_polynomial`s.
 We also prove some basic facts about them.
@@ -180,10 +182,10 @@ begin
   rw esymm_eq_sum_monomial,
   simp only [← single_eq_monomial],
   convert finsupp.support_sum_eq_bUnion (powerset_len n (univ : finset σ)) _,
-  intros s t hst d,
-  simp only [finsupp.support_single_ne_zero _ one_ne_zero, and_imp, inf_eq_inter, mem_inter,
-             mem_singleton],
-  rintro h rfl,
+  intros s t hst,
+  rw finset.disjoint_left,
+  simp only [finsupp.support_single_ne_zero _ one_ne_zero, mem_singleton],
+  rintro a h rfl,
   have := congr_arg finsupp.support h,
   rw [finsupp.support_sum_eq_bUnion, finsupp.support_sum_eq_bUnion] at this,
   { simp only [finsupp.support_single_ne_zero _ one_ne_zero, bUnion_singleton_eq_self] at this,

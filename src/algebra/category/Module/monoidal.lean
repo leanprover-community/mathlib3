@@ -307,6 +307,9 @@ instance : monoidal_closed (Module.{u} R) :=
       adj := adjunction.mk_of_hom_equiv
       { hom_equiv := λ N P, monoidal_closed_hom_equiv M N P, } } } }
 
+lemma ihom_map_apply {M N P : Module.{u} R} (f : N ⟶ P) (g : Module.of R (M ⟶ N)) :
+  (ihom M).map f g = g ≫ f := rfl
+
 -- I can't seem to express the function coercion here without writing `@coe_fn`.
 @[simp]
 lemma monoidal_closed_curry {M N P : Module.{u} R} (f : M ⊗ N ⟶ P) (x : M) (y : N) :
@@ -318,6 +321,27 @@ rfl
 lemma monoidal_closed_uncurry {M N P : Module.{u} R}
   (f : N ⟶ (M ⟶[Module.{u} R] P)) (x : M) (y : N) :
   monoidal_closed.uncurry f (x ⊗ₜ[R] y) = (@coe_fn _ _ linear_map.has_coe_to_fun (f y)) x :=
-by { simp only [monoidal_closed.uncurry, ihom.adjunction, is_left_adjoint.adj], simp, }
+rfl
+
+/-- Describes the counit of the adjunction `M ⊗ - ⊣ Hom(M, -)`. Given an `R`-module `N` this
+should give a map `M ⊗ Hom(M, N) ⟶ N`, so we flip the order of the arguments in the identity map
+`Hom(M, N) ⟶ (M ⟶ N)` and uncurry the resulting map `M ⟶ Hom(M, N) ⟶ N.` -/
+lemma ihom_ev_app (M N : Module.{u} R) :
+  (ihom.ev M).app N = tensor_product.uncurry _ _ _ _ linear_map.id.flip :=
+begin
+  ext,
+  exact Module.monoidal_closed_uncurry _ _ _,
+end
+
+/-- Describes the unit of the adjunction `M ⊗ - ⊣ Hom(M, -)`. Given an `R`-module `N` this should
+define a map `N ⟶ Hom(M, M ⊗ N)`, which is given by flipping the arguments in the natural
+`R`-bilinear map `M ⟶ N ⟶ M ⊗ N`. -/
+lemma ihom_coev_app (M N : Module.{u} R) :
+  (ihom.coev M).app N = (tensor_product.mk _ _ _).flip :=
+rfl
+
+lemma monoidal_closed_pre_app {M N : Module.{u} R} (P : Module.{u} R) (f : N ⟶ M) :
+  (monoidal_closed.pre f).app P = linear_map.lcomp R _ f :=
+rfl
 
 end Module

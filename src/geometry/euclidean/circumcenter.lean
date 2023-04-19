@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import geometry.euclidean.basic
+import geometry.euclidean.sphere.basic
 import linear_algebra.affine_space.finite_dimensional
 import tactic.derive_fintype
 
@@ -30,15 +30,12 @@ the circumcenter.
 noncomputable theory
 open_locale big_operators
 open_locale classical
-open_locale real
 open_locale real_inner_product_space
 
 namespace euclidean_geometry
 
-open inner_product_geometry
-
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 open affine_subspace
@@ -191,10 +188,11 @@ end
 /-- Given a finite nonempty affinely independent family of points,
 there is a unique (circumcenter, circumradius) pair for those points
 in the affine subspace they span. -/
-lemma _root_.affine_independent.exists_unique_dist_eq {ι : Type*} [hne : nonempty ι] [fintype ι]
+lemma _root_.affine_independent.exists_unique_dist_eq {ι : Type*} [hne : nonempty ι] [finite ι]
     {p : ι → P} (ha : affine_independent ℝ p) :
   ∃! cs : sphere P, cs.center ∈ affine_span ℝ (set.range p) ∧ set.range p ⊆ (cs : set P) :=
 begin
+  casesI nonempty_fintype ι,
   unfreezingI { induction hn : fintype.card ι with m hm generalizing ι },
   { exfalso,
     have h := fintype.card_pos_iff.2 hne,
@@ -228,7 +226,7 @@ begin
         { simp } },
       haveI : nonempty ι2 := fintype.card_pos_iff.1 (hc.symm ▸ nat.zero_lt_succ _),
       have ha2 : affine_independent ℝ (λ i2 : ι2, p i2) := ha.subtype _,
-      replace hm := hm ha2 hc,
+      replace hm := hm ha2 _ hc,
       have hr : set.range p = insert (p i) (set.range (λ i2 : ι2, p i2)),
       { change _ = insert _ (set.range (λ i2 : {x | x ≠ i}, p i2)),
         rw [←set.image_eq_range, ←set.image_univ, ←set.image_insert_eq],
@@ -254,8 +252,8 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The circumsphere of a simplex. -/
@@ -298,6 +296,11 @@ circumradius. -/
 @[simp] lemma dist_circumcenter_eq_circumradius {n : ℕ} (s : simplex ℝ P n) (i : fin (n + 1)) :
   dist (s.points i) s.circumcenter = s.circumradius :=
 dist_of_mem_subset_sphere (set.mem_range_self _) s.circumsphere_unique_dist_eq.1.2
+
+/-- All points lie in the circumsphere. -/
+lemma mem_circumsphere {n : ℕ} (s : simplex ℝ P n) (i : fin (n + 1)) :
+  s.points i ∈ s.circumsphere :=
+s.dist_circumcenter_eq_circumradius i
 
 /-- All points have distance to the circumcenter equal to the
 circumradius. -/
@@ -377,6 +380,25 @@ begin
           (centroid_mem_affine_span_of_card_eq_add_one ℝ _ (finset.card_fin 2))
           (λ i, hr i (set.mem_univ _))).symm
 end
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumsphere. -/
+@[simp] lemma circumsphere_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumsphere = s.circumsphere :=
+begin
+  refine s.circumsphere_unique_dist_eq.2 _ ⟨_, _⟩; rw ←s.reindex_range_points e,
+  { exact (s.reindex e).circumsphere_unique_dist_eq.1.1 },
+  { exact (s.reindex e).circumsphere_unique_dist_eq.1.2 }
+end
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumcenter. -/
+@[simp] lemma circumcenter_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumcenter = s.circumcenter :=
+by simp_rw [←circumcenter, circumsphere_reindex]
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumradius. -/
+@[simp] lemma circumradius_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumradius = s.circumradius :=
+by simp_rw [←circumradius, circumsphere_reindex]
 
 local attribute [instance] affine_subspace.to_add_torsor
 
@@ -561,7 +583,7 @@ include V
 lemma point_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (i : fin (n + 1)) :
   s.points i =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (point_weights_with_circumcenter i) :=
 begin
   rw ←points_with_circumcenter_point,
@@ -605,7 +627,7 @@ include V
 lemma centroid_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (fs : finset (fin (n + 1))) :
   fs.centroid ℝ s.points =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (centroid_weights_with_circumcenter fs) :=
 begin
   simp_rw [centroid_def, affine_combination_apply,
@@ -644,7 +666,7 @@ include V
 `points_with_circumcenter`. -/
 lemma circumcenter_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P n) :
-  s.circumcenter = (univ : finset (points_with_circumcenter_index n)).affine_combination
+  s.circumcenter = (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
     s.points_with_circumcenter (circumcenter_weights_with_circumcenter n) :=
 begin
   rw ←points_with_circumcenter_eq_circumcenter,
@@ -680,7 +702,7 @@ terms of `points_with_circumcenter`. -/
 lemma reflection_circumcenter_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P n) {i₁ i₂ : fin (n + 1)} (h : i₁ ≠ i₂) :
   reflection (affine_span ℝ (s.points '' {i₁, i₂})) s.circumcenter =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (reflection_circumcenter_weights_with_circumcenter i₁ i₂) :=
 begin
   have hc : card ({i₁, i₂} : finset (fin (n + 1))) = 2,
@@ -713,8 +735,8 @@ namespace euclidean_geometry
 
 open affine affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- Given a nonempty affine subspace, whose direction is complete,
@@ -849,6 +871,53 @@ lemma circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional 
   sx₁.circumcenter = sx₂.circumcenter :=
 begin
   rcases exists_circumcenter_eq_of_cospherical hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in an n-dimensional
+subspace have the same circumsphere. -/
+lemma exists_circumsphere_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) :
+  ∃ c : sphere P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumsphere = c :=
+begin
+  obtain ⟨r, hr⟩ := exists_circumradius_eq_of_cospherical_subset h hd hc,
+  obtain ⟨c, hc⟩ := exists_circumcenter_eq_of_cospherical_subset h hd hc,
+  exact ⟨⟨c, r⟩, λ sx hsx, sphere.ext _ _ (hc sx hsx) (hr sx hsx)⟩
+end
+
+/-- Two n-simplices among cospherical points in an n-dimensional
+subspace have the same circumsphere. -/
+lemma circumsphere_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumsphere = sx₂.circumsphere :=
+begin
+  rcases exists_circumsphere_eq_of_cospherical_subset h hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in n-space have the same
+circumsphere. -/
+lemma exists_circumsphere_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : finrank ℝ V = n) (hc : cospherical ps) :
+  ∃ c : sphere P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumsphere = c :=
+begin
+  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
+  rw [←finrank_top, ←direction_top ℝ V P] at hd,
+  refine exists_circumsphere_eq_of_cospherical_subset _ hd hc,
+  exact set.subset_univ _
+end
+
+/-- Two n-simplices among cospherical points in n-space have the same
+circumsphere. -/
+lemma circumsphere_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : finrank ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumsphere = sx₂.circumsphere :=
+begin
+  rcases exists_circumsphere_eq_of_cospherical hd hc with ⟨r, hr⟩,
   rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
 end
 

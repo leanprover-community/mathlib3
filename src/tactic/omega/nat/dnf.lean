@@ -43,7 +43,7 @@ begin
     rw list.forall_mem_singleton,
     simp only [val_canonize (h0.left), val_canonize (h0.right),
       term.val_sub, preform.holds, sub_eq_add_neg] at *,
-    rw [←sub_eq_add_neg, le_sub, sub_zero, int.coe_nat_le],
+    rw [←sub_eq_add_neg, le_sub_comm, sub_zero, int.coe_nat_le],
     assumption },
   { cases h1 },
   { cases h2 with h2 h2;

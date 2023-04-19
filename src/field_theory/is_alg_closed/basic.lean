@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import field_theory.splitting_field
+import field_theory.normal
 import field_theory.perfect_closure
-import field_theory.separable
+import ring_theory.localization.integral
 
 /-!
 # Algebraically Closed Field
@@ -168,6 +168,19 @@ class is_alg_closure (R : Type u) (K : Type v) [comm_ring R]
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
+@[priority 100]
+instance is_alg_closure.normal (R K : Type*) [field R] [field K] [algebra R K] [is_alg_closure R K]:
+  normal R K :=
+⟨is_alg_closure.algebraic, λ _,
+  @is_alg_closed.splits_codomain _ _ _ (is_alg_closure.alg_closed R) _ _ _⟩
+
+@[priority 100]
+instance is_alg_closure.separable (R K : Type*) [field R] [field K] [algebra R K]
+[is_alg_closure R K] [char_zero R] :
+  is_separable R K :=
+⟨λ _, is_algebraic_iff_is_integral.mp (is_alg_closure.algebraic _), λ _, (minpoly.irreducible
+  (is_algebraic_iff_is_integral.mp (is_alg_closure.algebraic _))).separable⟩
 
 namespace lift
 
@@ -495,7 +508,7 @@ lemma algebra.is_algebraic.range_eval_eq_root_set_minpoly {F K} (A) [field F] [f
   set.range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
 begin
   have := algebra.is_algebraic_iff_is_integral.1 hK,
-  ext a, rw mem_root_set_iff (minpoly.ne_zero $ this x) a,
+  ext a, rw [mem_root_set_of_ne (minpoly.ne_zero (this x))]; [skip, apply_instance],
   refine ⟨_, λ ha, _⟩,
   { rintro ⟨ψ, rfl⟩, rw [aeval_alg_hom_apply ψ x, minpoly.aeval, map_zero] },
   let Fx := adjoin_root (minpoly F x),

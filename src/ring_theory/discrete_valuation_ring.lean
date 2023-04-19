@@ -5,7 +5,6 @@ Authors: Kevin Buzzard
 -/
 
 import ring_theory.principal_ideal_domain
-import order.conditionally_complete_lattice
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
@@ -60,6 +59,10 @@ variables (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
+/-- A discrete valuation ring `R` is not a field. -/
+lemma not_is_field : ¬ is_field R :=
+local_ring.is_field_iff_maximal_ideal_eq.not.mpr (not_a_field R)
+
 variable {R}
 
 open principal_ideal_ring
@@ -110,7 +113,7 @@ theorem iff_pid_with_one_nonzero_prime (R : Type u) [comm_ring R] [is_domain R] 
 begin
   split,
   { intro RDVR,
-    rcases id RDVR with ⟨RPID, Rlocal, Rnotafield⟩,
+    rcases id RDVR with ⟨Rlocal⟩,
     split, assumption,
     resetI,
     use local_ring.maximal_ideal R,
@@ -189,10 +192,10 @@ let p := classical.some hR in
 let spec := classical.some_spec hR in
 unique_factorization_monoid.of_exists_prime_factors $ λ x hx,
 begin
-  use multiset.repeat p (classical.some (spec.2 hx)),
+  use multiset.replicate (classical.some (spec.2 hx)) p,
   split,
   { intros q hq,
-    have hpq := multiset.eq_of_mem_repeat hq,
+    have hpq := multiset.eq_of_mem_replicate hq,
     rw hpq,
     refine ⟨spec.1.ne_zero, spec.1.not_unit, _⟩,
     intros a b h,
@@ -207,7 +210,7 @@ begin
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
     rw pow_succ,
     apply dvd_mul_of_dvd_left dvd_rfl _ },
-  { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
+  { rw [multiset.prod_replicate], exact (classical.some_spec (spec.2 hx)), }
 end
 
 omit hR
@@ -224,10 +227,10 @@ begin
   refine ⟨fx.card, _⟩,
   have H := hfx.2,
   rw ← associates.mk_eq_mk_iff_associated at H ⊢,
-  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
+  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_replicate],
   congr' 1,
   symmetry,
-  rw multiset.eq_repeat,
+  rw multiset.eq_replicate,
   simp only [true_and, and_imp, multiset.card_map, eq_self_iff_true,
     multiset.mem_map, exists_imp_distrib],
   rintros _ q hq rfl,
@@ -326,9 +329,9 @@ begin
   unfreezingI { use fx.card },
   have H := hfx.2,
   rw ← associates.mk_eq_mk_iff_associated at H ⊢,
-  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
+  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_replicate],
   congr' 1,
-  rw multiset.eq_repeat,
+  rw multiset.eq_replicate,
   simp only [true_and, and_imp, multiset.card_map, eq_self_iff_true,
              multiset.mem_map, exists_imp_distrib],
   rintros _ _ _ rfl,
@@ -365,16 +368,16 @@ lemma unit_mul_pow_congr_pow {p q : R} (hp : irreducible p) (hq : irreducible q)
   (u v : Rˣ) (m n : ℕ) (h : ↑u * p ^ m = v * q ^ n) :
   m = n :=
 begin
-  have key : associated (multiset.repeat p m).prod (multiset.repeat q n).prod,
-  { rw [multiset.prod_repeat, multiset.prod_repeat, associated],
+  have key : associated (multiset.replicate m p).prod (multiset.replicate n q).prod,
+  { rw [multiset.prod_replicate, multiset.prod_replicate, associated],
     refine ⟨u * v⁻¹, _⟩,
     simp only [units.coe_mul],
     rw [mul_left_comm, ← mul_assoc, h, mul_right_comm, units.mul_inv, one_mul], },
   have := multiset.card_eq_card_of_rel (unique_factorization_monoid.factors_unique _ _ key),
-  { simpa only [multiset.card_repeat] },
+  { simpa only [multiset.card_replicate] },
   all_goals
   { intros x hx,
-    unfreezingI { obtain rfl := multiset.eq_of_mem_repeat hx, assumption } },
+    unfreezingI { obtain rfl := multiset.eq_of_mem_replicate hx, assumption } },
 end
 
 lemma unit_mul_pow_congr_unit {ϖ : R} (hirr : irreducible ϖ) (u v : Rˣ) (m n : ℕ)

@@ -6,10 +6,15 @@ Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 
 import data.fin.vec_notation
 import group_theory.abelianization
+import group_theory.perm.via_embedding
+import group_theory.subgroup.simple
 import set_theory.cardinal.basic
 
 /-!
 # Solvable Groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we introduce the notion of a solvable group. We define a solvable group as one whose
 derived series is eventually trivial. This requires defining the commutator of two subgroups and
@@ -136,7 +141,7 @@ lemma solvable_of_solvable_injective (hf : function.injective f) [h : is_solvabl
 solvable_of_ker_le_range (1 : G' →* G) f ((f.ker_eq_bot_iff.mpr hf).symm ▸ bot_le)
 
 instance subgroup_solvable_of_solvable (H : subgroup G) [h : is_solvable G] : is_solvable H :=
-solvable_of_solvable_injective (show function.injective (subtype H), from subtype.val_injective)
+solvable_of_solvable_injective H.subtype_injective
 
 lemma solvable_of_surjective (hf : function.surjective f) [h : is_solvable G] :
   is_solvable G' :=

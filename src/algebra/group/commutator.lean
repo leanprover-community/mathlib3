@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2014 Jeremy Avigad. All rights reserved.
+Copyright (c) 2022 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
+Authors: Thomas Browning
 -/
 
 import algebra.group.defs
@@ -9,6 +9,9 @@ import data.bracket
 
 /-!
 # The bracket on a group given by commutator.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 /-- The commutator of two elements `g₁` and `g₂`. -/

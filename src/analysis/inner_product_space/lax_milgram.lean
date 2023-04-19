@@ -16,7 +16,7 @@ We consider an Hilbert space `V` over `ℝ`
 equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
 
 Recall that a bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ` is *coercive*
-iff `∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
+iff `∃ C, (0 < C) ∧ ∀ u, C * ‖u‖ * ‖u‖ ≤ B u u`.
 Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
 that is, the map `inner_product_space.continuous_linear_map_of_bilin` from
@@ -40,23 +40,23 @@ open_locale real_inner_product_space nnreal
 universe u
 
 namespace is_coercive
-variables {V : Type u} [inner_product_space ℝ V] [complete_space V]
+variables {V : Type u} [normed_add_comm_group V] [inner_product_space ℝ V] [complete_space V]
 variables {B : V →L[ℝ] V →L[ℝ] ℝ}
 
-local postfix `♯`:1025 := @continuous_linear_map_of_bilin ℝ V _ _ _
+local postfix `♯`:1025 := @continuous_linear_map_of_bilin ℝ V _ _ _ _
 
 lemma bounded_below (coercive : is_coercive B) :
-  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥B♯ v∥ :=
+  ∃ C, 0 < C ∧ ∀ v, C * ‖v‖ ≤ ‖B♯ v‖ :=
 begin
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   refine ⟨C, C_ge_0, _⟩,
   intro v,
-  by_cases h : 0 < ∥v∥,
+  by_cases h : 0 < ‖v‖,
   { refine (mul_le_mul_right h).mp _,
-    calc C * ∥v∥ * ∥v∥
+    calc C * ‖v‖ * ‖v‖
         ≤ B v v : coercivity v
     ... = ⟪B♯ v, v⟫_ℝ : (continuous_linear_map_of_bilin_apply ℝ B v v).symm
-    ... ≤ ∥B♯ v∥ * ∥v∥ : real_inner_le_norm (B♯ v) v, },
+    ... ≤ ‖B♯ v‖ * ‖v‖ : real_inner_le_norm (B♯ v) v, },
   { have : v = 0 := by simpa using h,
     simp [this], }
 end
@@ -96,12 +96,12 @@ begin
   obtain rfl : w = 0,
   { rw [←norm_eq_zero, ←mul_self_eq_zero, ←mul_right_inj' C_pos.ne', mul_zero, ←mul_assoc],
     apply le_antisymm,
-    { calc C * ∥w∥ * ∥w∥
+    { calc C * ‖w‖ * ‖w‖
           ≤ B w w : coercivity w
       ... = ⟪B♯ w, w⟫_ℝ : (continuous_linear_map_of_bilin_apply ℝ B w w).symm
       ... = 0 : mem_w_orthogonal _ ⟨w, rfl⟩ },
     { exact mul_nonneg (mul_nonneg C_pos.le (norm_nonneg w)) (norm_nonneg w) } },
-  exact inner_zero_left,
+  exact inner_zero_left _,
 end
 
 /--

@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joël Riou
 -/
 
-import category_theory.limits.types
-import category_theory.morphism_property
+import category_theory.limits.shapes.regular_mono
+import category_theory.limits.shapes.zero_morphisms
 
 /-!
 
 # Categories where inclusions into coproducts are monomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 If `C` is a category, the class `mono_coprod C` expresses that left
 inclusions `A ⟶ A ⨿ B` are monomorphisms when `has_coproduct A B`

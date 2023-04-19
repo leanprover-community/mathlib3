@@ -7,11 +7,13 @@ import category_theory.full_subcategory
 import category_theory.products.basic
 import category_theory.pi.basic
 import category_theory.category.basic
-import tactic.nth_rewrite
 import combinatorics.quiver.connected_component
 
 /-!
 # Groupoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define `groupoid` as a typeclass extending `category`,
 asserting that all morphisms have inverses.
@@ -43,6 +45,11 @@ class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
 restate_axiom groupoid.inv_comp'
 restate_axiom groupoid.comp_inv'
 
+
+initialize_simps_projections groupoid (-to_category_to_category_struct_to_quiver_hom,
+  to_category_to_category_struct_comp → comp, to_category_to_category_struct_id → id,
+  -to_category_to_category_struct, -to_category)
+
 /--
 A `large_groupoid` is a groupoid
 where the objects live in `Type (u+1)` while the morphisms live in `Type u`.
@@ -71,8 +78,16 @@ is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
 
 @[priority 100]
 instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
-{ reverse' := λ X Y f, groupoid.inv f
-, inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
+{ reverse' := λ X Y f, groupoid.inv f,
+  inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
+
+@[simp] lemma groupoid.reverse_eq_inv (f : X ⟶ Y) : quiver.reverse f = groupoid.inv f := rfl
+
+instance functor_map_reverse {D : Type*} [groupoid D] (F : C ⥤ D) :
+  F.to_prefunctor.map_reverse :=
+{ map_reverse' := λ X Y f, by
+  simp only [quiver.reverse, quiver.has_reverse.reverse', groupoid.inv_eq_inv,
+               functor.to_prefunctor_map, functor.map_inv], }
 
 variables (X Y)
 

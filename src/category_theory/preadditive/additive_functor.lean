@@ -5,11 +5,14 @@ Authors: Adam Topaz, Scott Morrison
 -/
 import category_theory.limits.exact_functor
 import category_theory.limits.preserves.finite
-import category_theory.limits.preserves.shapes.biproducts
+import category_theory.preadditive.biproducts
 import category_theory.preadditive.functor_category
 
 /-!
 # Additive Functors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A functor between two preadditive categories is called *additive*
 provided that the induced map on hom types is a morphism of abelian
@@ -98,6 +101,10 @@ instance induced_functor_additive : functor.additive (induced_functor F) := {}
 
 end induced_category
 
+instance full_subcategory_inclusion_additive
+  {C : Type*} [category C] [preadditive C] (Z : C → Prop) :
+  (full_subcategory_inclusion Z).additive := {}
+
 section
 -- To talk about preservation of biproducts we need to specify universes explicitly.
 
@@ -154,7 +161,7 @@ full_subcategory (λ (F : C ⥤ D), F.additive)
 infixr ` ⥤+ `:26 := AdditiveFunctor
 
 instance : preadditive (C ⥤+ D) :=
-preadditive.induced_category.category _
+preadditive.induced_category _
 
 /-- An additive functor is in particular a functor. -/
 @[derive full, derive faithful]

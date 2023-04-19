@@ -38,8 +38,7 @@ TODO: Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a g
 
 -/
 
-open_locale unit_interval topological_space
-open homeomorph
+open_locale unit_interval topology
 
 noncomputable theory
 

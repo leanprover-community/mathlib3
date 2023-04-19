@@ -12,6 +12,9 @@ import linear_algebra.free_module.basic
 
 # Projective modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a definition of a projective module, the proof that
 our definition is equivalent to a lifting property, and the
 proof that all free modules are projective.
@@ -121,8 +124,7 @@ begin
   use coprod (lmap_domain R R (inl R P Q)) (lmap_domain R R (inr R P Q)) ∘ₗ sP.prod_map sQ,
   ext; simp only [coe_inl, coe_inr, coe_comp, function.comp_app, prod_map_apply, map_zero,
     coprod_apply, lmap_domain_apply, map_domain_zero, add_zero, zero_add, id_comp,
-    total_map_domain R _ (prod.mk.inj_right (0 : Q)),
-    total_map_domain R _ (prod.mk.inj_left (0 : P))],
+    total_map_domain],
 
   { rw [←fst_apply _, apply_total R], exact hsP x, },
   { rw [←snd_apply _, apply_total R], exact finsupp.total_zero_apply _ (sP x), },
@@ -148,7 +150,7 @@ begin
   use dfinsupp.coprod_map f ∘ₗ dfinsupp.map_range.linear_map s,
 
   ext i x j,
-  simp only [dfinsupp.coprod_map, direct_sum.lof, total_map_domain R _ dfinsupp.single_injective,
+  simp only [dfinsupp.coprod_map, direct_sum.lof, total_map_domain,
     coe_comp, coe_lsum, id_coe, linear_equiv.coe_to_linear_map, finsupp_lequiv_dfinsupp_symm_apply,
     function.comp_app, dfinsupp.lsingle_apply, dfinsupp.map_range.linear_map_apply,
     dfinsupp.map_range_single, lmap_domain_apply, dfinsupp.to_finsupp_single,

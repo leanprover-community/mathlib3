@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.polish
 import measure_theory.constructions.borel_space
+import topology.perfect
 
 /-!
 # The Borel sigma-algebra on Polish spaces
@@ -707,5 +708,23 @@ begin
     measurable_set.bInter (to_countable (u N)) (λ j _,
     measurable_set_lt (measurable.dist (hf i) (hf j)) measurable_const)),
 end
+
+section borel_isomorphism
+
+variables [borel_space γ] [topological_space β] [polish_space β] [borel_space β]
+
+noncomputable
+def borel_schroeder_bernstein
+  {f : γ → β} {g : β → γ}
+  (fmeas : measurable f) (finj : function.injective f)
+  (gmeas : measurable g) (ginj : function.injective g) :
+  γ ≃ᵐ β :=
+begin
+  have hf' := fmeas.measurable_embedding finj,
+  have hg' := gmeas.measurable_embedding ginj,
+  exact hf'.schroeder_bernstein hg',
+end
+
+end borel_isomorphism
 
 end measure_theory

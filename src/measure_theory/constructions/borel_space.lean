@@ -258,6 +258,15 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
   opens_measurable_space s :=
 ⟨by { rw [borel_comap], exact comap_mono h.1 }⟩
 
+instance borel_space.countable_generated {α : Type*} [topological_space α] [measurable_space α]
+  [borel_space α] [second_countable_topology α] : countable_generated α :=
+begin
+  obtain ⟨b, bct, -, hb⟩ := exists_countable_basis α,
+  refine ⟨⟨b, bct, _⟩⟩,
+  borelize α,
+  exact hb.borel_eq_generate_from,
+end
+
 theorem _root_.measurable_set.induction_on_open [topological_space α] [measurable_space α]
   [borel_space α] {C : set α → Prop} (h_open : ∀ U, is_open U → C U)
   (h_compl : ∀ t, measurable_set t → C t → C tᶜ)

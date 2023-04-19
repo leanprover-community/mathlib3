@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.set.intervals.basic
+import data.set.intervals.unordered_interval
 import data.set.lattice
 
 /-!
@@ -104,6 +105,14 @@ begin
 end
 
 end pi_preorder
+
+section pi_lattice
+variables [Π i, lattice (α i)]
+
+@[simp] lemma set.pi_univ_uIcc (a b : Π i, α i) : pi univ (λ i, uIcc (a i) (b i)) = uIcc a b :=
+by { ext, simp [set.uIcc, pi.le_def] }
+
+end pi_lattice
 
 variables [decidable_eq ι] [Π i, linear_order (α i)]
 

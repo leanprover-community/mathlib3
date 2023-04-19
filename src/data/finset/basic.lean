@@ -1490,10 +1490,6 @@ by simp_rw [erase_eq, union_sdiff_distrib]
 lemma insert_inter_distrib (s t : finset α) (a : α) : insert a (s ∩ t) = insert a s ∩ insert a t :=
 by simp_rw [insert_eq, union_distrib_left]
 
-lemma cons_inter_distrib (hs : a ∉ s) (ht : a ∉ t) :
-  cons a (s ∩ t) (not_mem_mono (inter_subset_left _ _) hs) = cons a s hs ∩ cons a t ht :=
-by simp_rw [cons_eq_insert, insert_inter_distrib]
-
 lemma erase_sdiff_distrib (s t : finset α) (a : α) : (s \ t).erase a = s.erase a \ t.erase a :=
 by simp_rw [erase_eq, sdiff_sdiff, sup_sdiff_eq_sup le_rfl, sup_comm]
 

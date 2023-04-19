@@ -260,7 +260,7 @@ universes u
 for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (with the correct coercions),
 then `f` is defined on the whole `localization S`. -/
 @[elab_as_eliminator, to_additive
-"Dependent recursion principle for `add_localizations`: given elements `f a b : p (mk a b)`
+"Dependent recursion principle for `add_localization`s: given elements `f a b : p (mk a b)`
 for all `a b`, such that `r S (a, b) (c, d)` implies `f a b = f c d` (with the correct coercions),
 then `f` is defined on the whole `add_localization S`."]
 def rec {p : localization S → Sort u}
@@ -270,6 +270,16 @@ def rec {p : localization S → Sort u}
   (x) : p x :=
 quot.rec (λ y, eq.rec (f y.1 y.2) (prod.mk.eta : (y.1, y.2) = y))
   (λ y z h, by { cases y, cases z, exact H h }) x
+
+/-- Copy of `quotient.rec_on_subsingleton₂` for `localization` -/
+@[elab_as_eliminator, to_additive "Copy of `quotient.rec_on_subsingleton₂` for `add_localization`"]
+def rec_on_subsingleton₂ {r : localization S → localization S → Sort u}
+  [h : ∀ (a c : M) (b d : S), subsingleton (r (mk a b) (mk c d))]
+  (x y : localization S)
+  (f : Π (a c : M) (b d : S), r (mk a b) (mk c d)) : r x y :=
+@quotient.rec_on_subsingleton₂' _ _ _ _ r
+  (prod.rec $ by exact λ _ _, prod.rec $ by exact λ _ _, h _ _ _ _) x y
+  (prod.rec $ by exact λ _ _, prod.rec $ by exact λ _ _, f _ _ _ _)
 
 attribute [irreducible] localization
 
@@ -1445,10 +1455,16 @@ end submonoid
 end comm_monoid_with_zero
 
 namespace localization
-variables {α : Type*} [cancel_comm_monoid α] {s : submonoid α}
+variables {α : Type*} [cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a₂ b₂ : s}
 
 @[to_additive] lemma mk_left_injective (b : s) : injective (λ a, mk a b) :=
 λ c d h, by simpa [-mk_eq_monoid_of_mk', mk_eq_mk_iff, r_iff_exists] using h
+
+@[to_additive] lemma mk_eq_mk_iff' : mk a₁ a₂ = mk b₁ b₂ ↔ ↑b₂ * a₁ = a₂ * b₁ :=
+by simp_rw [mk_eq_mk_iff, r_iff_exists, mul_left_cancel_iff, exists_const]
+
+@[to_additive] instance decidable_eq [decidable_eq α] : decidable_eq (localization s) :=
+λ a b, localization.rec_on_subsingleton₂ a b $ λ a₁ a₂ b₁ b₂, decidable_of_iff' _ mk_eq_mk_iff'
 
 end localization
 
@@ -1516,6 +1532,14 @@ variables [ordered_cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a
     end,
   ..localization.comm_monoid _, ..localization.has_le, ..localization.has_lt }
 
+@[to_additive] instance decidable_le [decidable_rel ((≤) : α → α → Prop)] :
+  decidable_rel ((≤) : localization s → localization s → Prop) :=
+λ a b, localization.rec_on_subsingleton₂ a b $ λ a₁ a₂ b₁ b₂, decidable_of_iff' _ mk_le_mk
+
+@[to_additive] instance decidable_lt [decidable_rel ((<) : α → α → Prop)] :
+  decidable_rel ((<) : localization s → localization s → Prop) :=
+λ a b, localization.rec_on_subsingleton₂ a b $ λ a₁ a₂ b₁ b₂, decidable_of_iff' _ mk_lt_mk
+
 /-- An ordered cancellative monoid injects into its localization by sending `a` to `a / b`. -/
 @[to_additive "An ordered cancellative monoid injects into its localization by sending `a` to
 `a - b`.", simps] def mk_order_embedding (b : s) : α ↪o localization s :=
@@ -1529,12 +1553,9 @@ end ordered_cancel_comm_monoid
   linear_ordered_cancel_comm_monoid (localization s) :=
 { le_total := λ a b, localization.induction_on₂ a b $ λ _ _,
     by { simp_rw mk_le_mk, exact le_total _ _ },
-  decidable_le := λ a b, begin
-    induction a with a₁ a₂,
-    induction b with b₁ b₂,
-    exact decidable_of_iff' _ mk_le_mk,
-    all_goals { simp },
-  end,
+  decidable_le := @localization.decidable_le α _ _ has_le.le.decidable,
+  decidable_lt := @localization.decidable_lt α _ _ has_lt.lt.decidable,
+  decidable_lt := localization.decidable_eq,
   ..localization.ordered_cancel_comm_monoid }
 
 end localization

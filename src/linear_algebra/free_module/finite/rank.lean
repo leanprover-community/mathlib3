@@ -12,6 +12,9 @@ import linear_algebra.free_module.finite.basic
 
 # Rank of finite free modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This is a basic API for the rank of finite free modules.
 
 -/
@@ -30,6 +33,18 @@ namespace finite_dimensional
 open module.free
 
 section ring
+variables [ring R]
+variables [add_comm_group M] [module R M]
+variables [add_comm_group N] [module R N]
+
+@[simp]
+lemma submodule.finrank_map_subtype_eq (p : submodule R M) (q : submodule R p) :
+  finrank R (q.map p.subtype) = finrank R q :=
+(submodule.equiv_subtype_map p q).symm.finrank_eq
+
+end ring
+
+section ring_finite
 
 variables [ring R] [strong_rank_condition R]
 variables [add_comm_group M] [module R M] [module.finite R M]
@@ -49,7 +64,7 @@ end
 @[simp] lemma finrank_eq_rank : ↑(finrank R M) = module.rank R M :=
 by { rw [finrank, cast_to_nat_of_lt_aleph_0 (rank_lt_aleph_0 R M)] }
 
-end ring
+end ring_finite
 
 section ring_free
 
@@ -104,6 +119,25 @@ lemma finrank_matrix (m n : Type*) [fintype m] [fintype n] :
   finrank R (matrix m n R) = (card m) * (card n) :=
 by { simp [finrank] }
 
+variables {R M N}
+
+/-- Two finite and free modules are isomorphic if they have the same (finite) rank. -/
+theorem nonempty_linear_equiv_of_finrank_eq
+  (cond : finrank R M = finrank R N) : nonempty (M ≃ₗ[R] N) :=
+nonempty_linear_equiv_of_lift_rank_eq $ by simp only [← finrank_eq_rank, cond, lift_nat_cast]
+
+/-- Two finite and free modules are isomorphic if and only if they have the same (finite) rank. -/
+theorem nonempty_linear_equiv_iff_finrank_eq :
+  nonempty (M ≃ₗ[R] N) ↔ finrank R M = finrank R N :=
+⟨λ ⟨h⟩, h.finrank_eq, λ h, nonempty_linear_equiv_of_finrank_eq h⟩
+
+variables (M N)
+
+/-- Two finite and free modules are isomorphic if they have the same (finite) rank. -/
+noncomputable def _root_.linear_equiv.of_finrank_eq (cond : finrank R M = finrank R N) :
+  M ≃ₗ[R] N :=
+classical.choice $ nonempty_linear_equiv_of_finrank_eq cond
+
 end ring_free
 
 section comm_ring
@@ -115,7 +149,7 @@ variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
 /-- The finrank of `M ⊗[R] N` is `(finrank R M) * (finrank R N)`. -/
 @[simp] lemma finrank_tensor_product (M : Type v) (N : Type w) [add_comm_group M] [module R M]
   [module.free R M] [add_comm_group N] [module R N] [module.free R N] :
-finrank R (M ⊗[R] N) = (finrank R M) * (finrank R N) :=
+  finrank R (M ⊗[R] N) = (finrank R M) * (finrank R N) :=
 by { simp [finrank] }
 
 end comm_ring
@@ -150,5 +184,16 @@ lemma submodule.finrank_quotient_le [module.finite R M] (s : submodule R M) :
   finrank R (M ⧸ s) ≤ finrank R M :=
 by simpa only [cardinal.to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0
   (rank_lt_aleph_0 _ _) ((submodule.mkq s).rank_le_of_surjective (surjective_quot_mk _))
+
+/-- Pushforwards of finite submodules have a smaller finrank. -/
+lemma submodule.finrank_map_le (f : M →ₗ[R] N) (p : submodule R M) [module.finite R p] :
+  finrank R (p.map f) ≤ finrank R p :=
+finrank_le_finrank_of_rank_le_rank (lift_rank_map_le _ _) (rank_lt_aleph_0 _ _)
+
+lemma submodule.finrank_le_finrank_of_le {s t : submodule R M} [module.finite R t]
+  (hst : s ≤ t) : finrank R s ≤ finrank R t :=
+calc finrank R s = finrank R (s.comap t.subtype)
+      : (submodule.comap_subtype_equiv_of_le hst).finrank_eq.symm
+... ≤ finrank R t : submodule.finrank_le _
 
 end

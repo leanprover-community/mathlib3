@@ -456,6 +456,14 @@ structure spectrum_restricts {R S : Type*} {A : Type*} [comm_semiring R] [comm_s
 (right_inv_on : (spectrum S a).right_inv_on f (algebra_map R S))
 (left_inv : function.left_inverse f (algebra_map R S))
 
+lemma spectrum_restricts_of_subset_range_algebra_map {R S : Type*} {A : Type*} [comm_semiring R]
+  [comm_semiring S] [ring A] [algebra R S] [algebra R A] [algebra S A] (a : A) (f : S → R)
+  (hf : function.left_inverse f (algebra_map R S))
+  (h : spectrum S a ⊆ set.range (algebra_map R S)) :
+  spectrum_restricts a f :=
+{ right_inv_on := λ s hs, by { obtain ⟨r, rfl⟩ := h hs, rw hf r },
+  left_inv := hf }
+
 lemma spectrum_restricts.algebra_map_image {R S : Type*} {A : Type*} [comm_semiring R]
   [comm_semiring S] [ring A] [algebra R S] [algebra R A] [algebra S A] [is_scalar_tower R S A]
   {a : A} {f : S → R} (h : spectrum_restricts a f) :

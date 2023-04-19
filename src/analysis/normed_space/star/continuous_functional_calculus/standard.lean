@@ -73,6 +73,66 @@ in a C⋆-algebra over `ℂ`. -/
 noncomputable instance standard_cfc.complex_to_real (a : self_adjoint A) :
   continuous_functional_calculus_spectrum_class ℝ (a : A) :=
 a.prop.spectrum_restricts.cfc_spectrum continuous_map.complex_re
+variable {A}
+
+lemma self_adjoint.cfc₂_is_self_adjoint (a : self_adjoint A) (f : C(ℝ, ℝ)) :
+  is_self_adjoint (cfc₂ (a : A) f) :=
+show star _ = _, by rw [←map_star, star_trivial]
+
+-- composition still works as long as we have propositinal equality of the intermediate elements.
+lemma self_adjoint.cfc₂_comp (a b : self_adjoint A) (f g : C(ℝ, ℝ)) (h : cfc₂ (a : A) f = b) :
+  cfc₂ (a : A) (g.comp f) = cfc₂ (b : A) g :=
+begin
+  letI : continuous_functional_calculus_spectrum_class ℝ (cfc₂ (a : A) f),
+   from cast (by rw h) (standard_cfc.complex_to_real A b),
+  rw cfc₂_comp (a : A) f g,
+  congr' 3,
+  simp only [cast_heq],
+end
+
+lemma self_adjoint.cfc₂_comp_coe_mk (a : self_adjoint A) (f g : C(ℝ, ℝ))
+  (h := self_adjoint.cfc₂_is_self_adjoint a f) :
+  cfc₂ (a : A) (g.comp f) = cfc₂ ((⟨cfc₂ (a : A) f, h⟩ : self_adjoint A) : A) g :=
+self_adjoint.cfc₂_comp a _ f g rfl
+
+open_locale polynomial
+
+lemma self_adjoint.comp_neg (a : self_adjoint A) (f : C(ℝ, ℝ)) :
+  cfc₂ (↑-a : A) f = cfc₂ (a : A) (f.comp (-(X : ℝ[X]).to_continuous_map)) :=
+begin
+  have := self_adjoint.cfc₂_comp a (-a) (-X : ℝ[X]).to_continuous_map_alg_hom f
+    (by rw [map_neg, map_neg, to_continuous_map_alg_hom_apply, cfc₂_map_X, add_subgroup.coe_neg]),
+  rw ← this,
+  refine fun_like.congr_arg _ (continuous_map.ext $ λ x, _),
+  simp only [to_continuous_map_alg_hom_apply, continuous_map.comp_apply, to_continuous_map_apply, eval_neg,
+  continuous_map.neg_apply],
+end
+
+noncomputable instance selfadjoint.has_pos_part : has_pos_part (self_adjoint A) :=
+{ pos := λ a, ⟨cfc₂ (a : A) (continuous_map.id ℝ ⊔ 0), self_adjoint.cfc₂_is_self_adjoint a _⟩ }
+
+lemma self_adjoint.pos_part_def (a : self_adjoint A) (h := self_adjoint.cfc₂_is_self_adjoint a _) :
+  a⁺ = ⟨cfc₂ (a : A) (continuous_map.id ℝ ⊔ 0), h⟩ := rfl
+
+lemma self_adjoint.coe_pos_part (a : self_adjoint A) :
+  (↑(a⁺) : A) = cfc₂ (a : A) (continuous_map.id ℝ ⊔ 0) :=
+rfl
+
+noncomputable instance selfadjoint.has_neg_part : has_neg_part (self_adjoint A) :=
+{ neg := λ a, (-a)⁺ }
+
+lemma self_adjoint.neg_part_def (a : self_adjoint A) : a⁻ = (-a)⁺ := rfl
+
+lemma self_adjoint.coe_neg_part (a : self_adjoint A) :
+  (↑(a⁻) : A) = cfc₂ (↑-a : A) (continuous_map.id ℝ ⊔ 0) := rfl
+
+lemma self_adjoint.neg_part_neg (a : self_adjoint A) : (-a)⁻ = a⁺ :=
+by rw [self_adjoint.neg_part_def, neg_neg]
+
+lemma self_adjoint.pos_part_sub_neg_part (a : self_adjoint A) : a⁺ - a⁻ = a :=
+sorry
+
+#exit
 
 -- this lemma is probably not necessary, but it's useful to show how this works.
 -- It is significantly more important for positive elements.
@@ -80,19 +140,28 @@ lemma self_adjoint.cfc_spectrum_restricts (a : self_adjoint A) (g : C(spectrum �
   spectrum_restricts (cfc₁ g) continuous_map.complex_re :=
 a.prop.spectrum_restricts.cfc_spectrum_restricts _ g
 
-/-- This is a hack to make it so that we can apply the continuous functional calculus iteratively.
-Maybe it's not so useful, but I would expect it could be. -/
-noncomputable instance standard_cfc.complex_to_real_comp (a : self_adjoint A) (f : C(ℝ, ℝ)) :
-  continuous_functional_calculus_spectrum_class ℝ (cfc₂ (a : A) f) :=
-begin
-  refine cast _ (standard_cfc.complex_to_real A ⟨_, (is_self_adjoint_star_hom_apply (cfc₂ (a : A)) f : is_self_adjoint (cfc₂ (a : A) f))⟩),
-  by rw subtype.coe_mk,
-end
+/-- `to_nnreal` as a bundled continuous map. -/
+noncomputable def continuous_map.to_nnreal : C(ℝ, ℝ≥0) :=
+⟨real.to_nnreal,
+ (@continuous_induced_rng ℝ≥0 ℝ _ coe real.to_nnreal _ _).mpr (continuous_id'.max continuous_const)⟩
 
--- composition still works
-example (a : self_adjoint A) (f g : C(ℝ, ℝ)) : cfc₂ (a : A) (g.comp f) = cfc₂ (cfc₂ (a : A) f) g :=
-cfc₂_comp (a : A) f g
+@[protect_proj]
+structure is_positive (a : A) : Prop :=
+(is_self_adjoint : is_self_adjoint a)
+(spectrum_subset : spectrum ℝ a ⊆ set.range (algebra_map ℝ≥0 ℝ))
+
+protected lemma is_positive.spectrum_restricts {a : A} (ha : is_positive a) :
+  spectrum_restricts a continuous_map.to_nnreal :=
+spectrum_restricts_of_subset_range_algebra_map a continuous_map.to_nnreal
+  (λ r, real.to_nnreal_coe) ha.spectrum_subset
 
 
+
+variable (A)
+def positive := {a : A // is_positive a}
+
+
+
+#exit
 
 end standard_cfc

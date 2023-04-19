@@ -190,18 +190,16 @@ end
 
 lemma well_founded.is_Sup_finite_compact (h : well_founded ((>) : α → α → Prop)) :
   is_Sup_finite_compact α :=
-begin
-  intros s,
-  let p : set α := { x | ∃ (t : finset α), ↑t ⊆ s ∧ t.sup id = x },
-  have hp : p.nonempty, { use [⊥, ∅], simp, },
-  obtain ⟨m, ⟨t, ⟨ht₁, ht₂⟩⟩, hm⟩ := well_founded.well_founded_iff_has_max'.mp h p hp,
-  use t, simp only [ht₁, ht₂, true_and], apply le_antisymm,
-  { apply Sup_le, intros y hy, classical,
-    have hy' : (insert y t).sup id ∈ p,
-    { use insert y t, simp, rw set.insert_subset, exact ⟨hy, ht₁⟩, },
-    have hm' : m ≤ (insert y t).sup id, { rw ← ht₂, exact finset.sup_mono (t.subset_insert y), },
-    rw ← hm _ hy' hm', simp, },
-  { rw [← ht₂, finset.sup_id_eq_Sup], exact Sup_le_Sup ht₁, },
+λ s, begin
+  obtain ⟨m, ⟨t, ⟨ht₁, rfl⟩⟩, hm⟩ := well_founded.well_founded_iff_has_min.mp h
+    {x | ∃ t : finset α, ↑t ⊆ s ∧ t.sup id = x} ⟨⊥, ∅, by simp⟩,
+  refine ⟨t, ht₁, (Sup_le (λ y hy, _)).antisymm _⟩,
+  { classical,
+    rw eq_of_le_of_not_lt (finset.sup_mono (t.subset_insert y))
+      (hm _ ⟨insert y t, by simp [set.insert_subset, hy, ht₁]⟩),
+    simp },
+  { rw finset.sup_id_eq_Sup,
+    exact Sup_le_Sup ht₁ },
 end
 
 lemma is_Sup_finite_compact.is_sup_closed_compact (h : is_Sup_finite_compact α) :

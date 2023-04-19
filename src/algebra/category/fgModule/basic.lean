@@ -6,6 +6,7 @@ Authors: Jakob von Raumer
 import category_theory.monoidal.rigid.basic
 import category_theory.monoidal.subcategory
 import linear_algebra.coevaluation
+import linear_algebra.free_module.finite.matrix
 import algebra.category.Module.monoidal
 
 /-!
@@ -131,7 +132,7 @@ instance (V W : fgModule K) : module.finite K (V ⟶ W) :=
 
 instance closed_predicate_module_finite :
   monoidal_category.closed_predicate (λ V : Module.{u} K, module.finite K V) :=
-{ prop_ihom' := λ X Y hX hY, by exactI @linear_map.finite_dimensional K _ X _ _ hX Y _ _ hY }
+{ prop_ihom' := λ X Y hX hY, by exactI @module.finite.linear_map K X Y _ _ _ _ _ _ _ hX hY }
 
 instance : monoidal_closed (fgModule K) := by dsimp_result { dsimp [fgModule], apply_instance, }
 

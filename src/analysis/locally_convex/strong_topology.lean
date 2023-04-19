@@ -27,25 +27,30 @@ locally convex, bounded convergence
 
 open_locale topology uniform_convergence
 
-variables {E F : Type*}
+variables {R 𝕜₁ 𝕜₂ E F : Type*}
 
 namespace continuous_linear_map
 
+variables [add_comm_group E] [topological_space E]
+  [add_comm_group F] [topological_space F] [topological_add_group F]
+
 section general
 
-variables [add_comm_group E] [module ℝ E] [topological_space E]
-  [add_comm_group F] [module ℝ F] [topological_space F] [topological_add_group F]
-  [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
+variables (R)
+variables [ordered_semiring R]
+variables [normed_field 𝕜₁] [normed_field 𝕜₂] [module 𝕜₁ E] [module 𝕜₂ F] {σ : 𝕜₁ →+* 𝕜₂}
+variables [module R F] [has_continuous_const_smul R F] [locally_convex_space R F]
+  [smul_comm_class 𝕜₂ R F]
 
 lemma strong_topology.locally_convex_space (𝔖 : set (set E)) (h𝔖₁ : 𝔖.nonempty)
   (h𝔖₂ : directed_on (⊆) 𝔖) :
-  @locally_convex_space ℝ (E →L[ℝ] F) _ _ _ (strong_topology (ring_hom.id ℝ) F 𝔖) :=
+  @locally_convex_space R (E →SL[σ] F) _ _ _ (strong_topology σ F 𝔖) :=
 begin
-  letI : topological_space (E →L[ℝ] F) := strong_topology (ring_hom.id ℝ) F 𝔖,
-  haveI : topological_add_group (E →L[ℝ] F) := strong_topology.topological_add_group _ _ _,
+  letI : topological_space (E →SL[σ] F) := strong_topology σ F 𝔖,
+  haveI : topological_add_group (E →SL[σ] F) := strong_topology.topological_add_group _ _ _,
   refine locally_convex_space.of_basis_zero _ _ _ _
     (strong_topology.has_basis_nhds_zero_of_basis _ _ _ h𝔖₁ h𝔖₂
-      (locally_convex_space.convex_basis_zero ℝ F)) _,
+      (locally_convex_space.convex_basis_zero R F)) _,
   rintros ⟨S, V⟩ ⟨hS, hVmem, hVconvex⟩ f hf g hg a b ha hb hab x hx,
   exact hVconvex (hf x hx) (hg x hx) ha hb hab,
 end
@@ -54,12 +59,13 @@ end general
 
 section bounded_sets
 
-variables [add_comm_group E] [module ℝ E] [topological_space E]
-  [add_comm_group F] [module ℝ F] [topological_space F] [topological_add_group F]
-  [has_continuous_const_smul ℝ F] [locally_convex_space ℝ F]
+variables [ordered_semiring R]
+variables [normed_field 𝕜₁] [normed_field 𝕜₂] [module 𝕜₁ E] [module 𝕜₂ F] {σ : 𝕜₁ →+* 𝕜₂}
+variables [module R F] [has_continuous_const_smul R F] [locally_convex_space R F]
+  [smul_comm_class 𝕜₂ R F]
 
-instance : locally_convex_space ℝ (E →L[ℝ] F) :=
-strong_topology.locally_convex_space _ ⟨∅, bornology.is_vonN_bounded_empty ℝ E⟩
+instance : locally_convex_space R (E →SL[σ] F) :=
+strong_topology.locally_convex_space R _ ⟨∅, bornology.is_vonN_bounded_empty 𝕜₁ E⟩
   (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union)
 
 end bounded_sets

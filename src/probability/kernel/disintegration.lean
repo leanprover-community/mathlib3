@@ -456,8 +456,8 @@ lemma pre_cdf_le_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, ∀ r, pre_cdf ρ r a ≤ 1 :=
 begin
   rw ae_all_iff,
-  refine λ r, ae_le_of_forall_set_lintegral_le_of_sigma_finite measurable_pre_cdf measurable_const _,
-  intros s hs hs_fin,
+  refine λ r, ae_le_of_forall_set_lintegral_le_of_sigma_finite measurable_pre_cdf
+    measurable_const (λ s hs hs_fin, _),
   rw set_lintegral_pre_cdf_fst ρ r hs,
   simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
   exact measure.Iic_snd_le_fst ρ r s hs,

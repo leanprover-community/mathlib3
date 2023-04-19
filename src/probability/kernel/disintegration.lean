@@ -422,8 +422,8 @@ begin
   exact_mod_cast hrr',
 end
 
-lemma set_lintegral_infi_gt_pre_cdf (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
-  [is_finite_measure ρ] :
+lemma set_lintegral_infi_gt_pre_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (t : ℚ)
+  {s : set α} (hs : measurable_set s) :
   ∫⁻ x in s, ⨅ r : Ioi t, pre_cdf ρ r x ∂ρ.fst = ρ.Iic_snd t s :=
 begin
   refine le_antisymm _ _,
@@ -551,17 +551,15 @@ end
 lemma tendsto_pre_cdf_at_bot_zero (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 0) :=
 begin
+  suffices : ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 0),
+  { filter_upwards [this] with a ha,
+    have h_eq_neg : (λ (r : ℚ), pre_cdf ρ r a) = (λ (r : ℚ), pre_cdf ρ (- -r) a),
+    { simp_rw neg_neg, },
+    rw h_eq_neg,
+    exact ha.comp tendsto_neg_at_bot_at_top, },
   have h_mono := monotone_pre_cdf ρ,
-  have h_exists : ∀ᵐ a ∂ρ.fst, ∃ l, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 l),
-  { suffices : ∀ᵐ a ∂ρ.fst, ∃ l, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 l),
-    { filter_upwards [this] with a ha,
-      obtain ⟨l, hal⟩ := ha,
-      refine ⟨l, _⟩,
-      have h_eq_neg : (λ (r : ℚ), pre_cdf ρ r a) = (λ (r : ℚ), pre_cdf ρ (- -r) a),
-      { simp_rw neg_neg, },
-      rw h_eq_neg,
-      exact hal.comp tendsto_neg_at_bot_at_top, },
-    filter_upwards [h_mono] with a ha,
+  have h_exists : ∀ᵐ a ∂ρ.fst, ∃ l, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 l),
+  { filter_upwards [h_mono] with a ha,
     have h_anti : antitone (λ r, pre_cdf ρ (-r) a) := λ p q hpq, ha (neg_le_neg hpq),
     have h_tendsto : tendsto (λ r, pre_cdf ρ (-r) a) at_top at_bot
       ∨ ∃ l, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 l) := tendsto_of_antitone h_anti,
@@ -570,14 +568,14 @@ begin
     { exact h_tendsto, }, },
   classical,
   let F : α → ℝ≥0∞ := λ a,
-    if h : ∃ l, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 l) then h.some else 0,
-  have h_tendsto_ℚ : ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 (F a)),
+    if h : ∃ l, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 l) then h.some else 0,
+  have h_tendsto_ℚ : ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 (F a)),
   { filter_upwards [h_exists] with a ha,
     simp_rw [F, dif_pos ha],
     exact ha.some_spec, },
   have h_tendsto_ℕ : ∀ᵐ a ∂ρ.fst, tendsto (λ n : ℕ, pre_cdf ρ (-n) a) at_top (𝓝 (F a)),
   { filter_upwards [h_tendsto_ℚ] with a ha,
-    exact (ha.comp tendsto_neg_at_top_at_bot).comp tendsto_coe_nat_at_top_at_top, },
+    exact ha.comp tendsto_coe_nat_at_top_at_top, },
   have hF_ae_meas : ae_measurable F ρ.fst,
   { refine ae_measurable_of_tendsto_metrizable_ae' (λ n, _) h_tendsto_ℕ,
     exact measurable_pre_cdf.ae_measurable, },

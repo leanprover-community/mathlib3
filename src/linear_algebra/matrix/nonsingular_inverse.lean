@@ -3,7 +3,6 @@ Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
-import data.matrix.basic
 import linear_algebra.matrix.adjugate
 
 /-!
@@ -452,6 +451,8 @@ begin
   rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
 end
 
+section diagonal
+
 /-- `diagonal v` is invertible if `v` is -/
 def diagonal_invertible {α} [non_assoc_semiring α] (v : n → α) [invertible v] :
   invertible (diagonal v) :=
@@ -509,6 +510,8 @@ begin
     rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero, ring.inverse_non_unit _ this] }
 end
 
+end diagonal
+
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=
 begin
   by_cases h : is_unit A.det,
@@ -543,6 +546,69 @@ end
   A.det • A⁻¹.vec_mul b = cramer Aᵀ b :=
 by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_inv, ← det_transpose,
     Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
+
+/-! ### Inverses of permutated matrices. -/
+
+section submatrix
+variables [fintype m]
+variables [decidable_eq m]
+
+/-- `A.submatrix e₁ e₂` is invertible if `A` is -/
+def submatrix_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m) [invertible A] :
+  invertible (A.submatrix e₁ e₂) :=
+invertible_of_right_inverse _ ((⅟A).submatrix e₂ e₁) $
+  by rw [matrix.submatrix_mul_equiv, matrix.mul_inv_of_self, submatrix_one_equiv]
+
+/-- `A` is invertible if `A.submatrix e₁ e₂` is -/
+def invertible_of_submatrix_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m)
+  [invertible (A.submatrix e₁ e₂)] : invertible A :=
+invertible_of_right_inverse _ ((⅟(A.submatrix e₁ e₂)).submatrix e₂.symm e₁.symm) $ begin
+  have : A = (A.submatrix e₁ e₂).submatrix e₁.symm e₂.symm := by simp,
+  conv in (_ ⬝ _) { congr, rw this },
+  rw [matrix.submatrix_mul_equiv, matrix.mul_inv_of_self, submatrix_one_equiv]
+end
+
+lemma inv_of_submatrix_equiv_eq (A : matrix m m α) (e₁ e₂ : n ≃ m)
+  [invertible A] [invertible (A.submatrix e₁ e₂)] :
+  ⅟(A.submatrix e₁ e₂) = (⅟A).submatrix e₂ e₁ :=
+begin
+  letI := submatrix_equiv_invertible A e₁ e₂,
+  haveI := invertible.subsingleton (A.submatrix e₁ e₂),
+  convert (rfl : ⅟(A.submatrix e₁ e₂) = _),
+end
+
+/-- Together `matrix.diagonal_invertible` and `matrix.invertible_of_diagonal_invertible` form an
+equivalence, although both sides of the equiv are subsingleton anyway. -/
+@[simps]
+def submatrix_equiv_invertible_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m) :
+  invertible (A.submatrix e₁ e₂) ≃ invertible A :=
+{ to_fun := λ _, by exactI invertible_of_submatrix_equiv_invertible A e₁ e₂,
+  inv_fun := λ _, by exactI submatrix_equiv_invertible A e₁ e₂,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- When lowered to a prop, `matrix.invertible_of_submatrix_equiv_invertible` forms an `iff`. -/
+@[simp] lemma is_unit_submatrix_equiv {A : matrix m m α} (e₁ e₂ : n ≃ m) :
+  is_unit (A.submatrix e₁ e₂) ↔ is_unit A :=
+by simp only [← nonempty_invertible_iff_is_unit,
+  (submatrix_equiv_invertible_equiv_invertible A _ _).nonempty_congr]
+
+@[simp] lemma inv_submatrix_equiv (A : matrix m m α) (e₁ e₂ : n ≃ m) :
+  (A.submatrix e₁ e₂)⁻¹ = (A⁻¹).submatrix e₂ e₁ :=
+begin
+  by_cases h : is_unit A,
+  { casesI h.nonempty_invertible,
+    letI := submatrix_equiv_invertible A e₁ e₂,
+    rw [←inv_of_eq_nonsing_inv, ←inv_of_eq_nonsing_inv, inv_of_submatrix_equiv_eq] },
+  { have := (is_unit_submatrix_equiv e₁ e₂).not.mpr h,
+    simp_rw [nonsing_inv_eq_ring_inverse, ring.inverse_non_unit _ h, ring.inverse_non_unit _ this,
+      submatrix_zero, pi.zero_apply] }
+end
+
+lemma inv_reindex (e₁ e₂ : n ≃ m) (A : matrix n n α) : (reindex e₁ e₂ A)⁻¹ = reindex e₂ e₁ (A⁻¹) :=
+inv_submatrix_equiv A e₁.symm e₂.symm
+
+end submatrix
 
 /-! ### More results about determinants -/
 
@@ -623,22 +689,5 @@ by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_
        matrix.row_mul_col_apply]
 
 end det
-
-variables [fintype m]
-variables [decidable_eq m]
-
-@[simp] lemma inv_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) :
-  (A.submatrix e e)⁻¹ = (A⁻¹).submatrix e e :=
-begin
-  rw [matrix.inv_def, matrix.inv_def,
-      det_submatrix_equiv_self,
-      adjugate_submatrix_equiv_self,
-      submatrix_smul],
-  simp only [pi.smul_apply],
-end
-
-lemma inv_reindex (e : n ≃ m) (A : matrix n n α) :
-  (reindex e e A)⁻¹ = reindex e e (A⁻¹) :=
-  inv_submatrix_equiv_self _ _
 
 end matrix

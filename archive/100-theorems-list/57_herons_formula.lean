@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Matt Kempster
 -/
 import geometry.euclidean.triangle
-import analysis.special_functions.trigonometric
 
 /-!
 # Freek № 57: Heron's Formula
@@ -24,8 +23,8 @@ open_locale real euclidean_geometry
 
 local notation `√` := real.sqrt
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-  [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 
 include V
 

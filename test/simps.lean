@@ -1,21 +1,21 @@
+import algebra.hom.group
+import data.sum.basic
 import tactic.simps
-import algebra.group.hom
 
-universe variables v u w
+universes v u w
 -- set_option trace.simps.verbose true
 -- set_option trace.simps.debug true
 -- set_option trace.app_builder true
 
 open function tactic expr
 
-
-structure equiv (α : Sort*) (β : Sort*) :=
+structure equiv' (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-local infix ` ≃ `:25 := equiv
+local infix (name := equiv') ` ≃ `:25 := equiv'
 
 /- Since `prod` and `pprod` are a special case for `@[simps]`, we define a new structure to test
   the basic functionality.-/
@@ -34,7 +34,9 @@ run_cmd do
   e.get `foo.rfl_to_fun,
   e.get `foo.rfl_inv_fun,
   success_if_fail (e.get `foo.rfl_left_inv),
-  success_if_fail (e.get `foo.rfl_right_inv)
+  success_if_fail (e.get `foo.rfl_right_inv),
+  p ← simps_aux.get_param `foo.rfl,
+  guard $ p = [`foo.rfl_to_fun, `foo.rfl_inv_fun]
 
 example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
 example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
@@ -86,7 +88,7 @@ end
 end foo
 
 /- we reduce the type when applying [simps] -/
-def my_equiv := equiv
+def my_equiv := equiv'
 @[simps] def baz : my_equiv ℕ ℕ := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 
 /- test name clashes -/
@@ -146,7 +148,7 @@ def refl_with_data {α} : equiv_plus_data α α :=
 def refl_with_data' {α} : equiv_plus_data α α :=
 { P := λ f, f = id,
   data := rfl,
-  to_equiv := foo.rfl }
+  to_equiv' := foo.rfl }
 
 /- test whether eta expansions are reduced correctly -/
 @[simps]
@@ -166,8 +168,8 @@ def test_sneaky {α} : automorphism_plus_data α :=
 
 run_cmd do
   e ← get_env,
-  e.get `refl_with_data_to_equiv,
-  e.get `refl_with_data'_to_equiv,
+  e.get `refl_with_data_to_equiv',
+  e.get `refl_with_data'_to_equiv',
   e.get `test_extra,
   e.get `test_sneaky_extra_fst,
   success_if_fail (e.get `refl_with_data_to_equiv_to_fun),
@@ -256,7 +258,9 @@ Note: these projection names might not correspond to the projection names of the
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
-  classical.choice specify.specify5._proof_1"
+  classical.choice specify.specify5._proof_1",
+    p ← simps_aux.get_param `specify.specify4,
+    guard $ p = [`specify.specify4_snd, `specify.specify4_snd_snd]
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/
@@ -269,15 +273,15 @@ run_cmd do
   skip
 
 /- check simp_rhs option -/
-@[simps {simp_rhs := tt}] def equiv.trans {α β γ} (f : α ≃ β) (g : β ≃ γ) : α ≃ γ :=
+@[simps {simp_rhs := tt}] def equiv'.trans {α β γ} (f : α ≃ β) (g : β ≃ γ) : α ≃ γ :=
 ⟨g.to_fun ∘ f.to_fun, f.inv_fun ∘ g.inv_fun,
-  by { intro x, simp [equiv.left_inv _ _] }, by { intro x, simp [equiv.right_inv _ _] }⟩
+  by { intro x, simp [equiv'.left_inv _ _] }, by { intro x, simp [equiv'.right_inv _ _] }⟩
 
 
 example {α β γ : Type} (f : α ≃ β) (g : β ≃ γ) (x : α) :
   (f.trans g).to_fun x = (f.trans g).to_fun x :=
 begin
-  dsimp only [equiv.trans_to_fun],
+  dsimp only [equiv'.trans_to_fun],
   guard_target g.to_fun (f.to_fun x) = g.to_fun (f.to_fun x),
   refl,
 end
@@ -286,8 +290,8 @@ local attribute [simp] nat.zero_add nat.one_mul nat.mul_one
 @[simps {simp_rhs := tt}] def my_nat_equiv : ℕ ≃ ℕ :=
 ⟨λ n, 0 + n, λ n, 1 * n * 1, by { intro n, simp }, by { intro n, simp }⟩
 
-run_cmd success_if_fail (has_attribute `_refl_lemma `my_nat_equiv_to_fun) >>
-  has_attribute `_refl_lemma `equiv.trans_to_fun
+run_cmd success_if_fail (has_attribute `_refl_lemma `my_nat_equiv'_to_fun) >>
+  has_attribute `_refl_lemma `equiv'.trans_to_fun
 
 example (n : ℕ) : my_nat_equiv.to_fun (my_nat_equiv.to_fun $ my_nat_equiv.inv_fun n) = n :=
 by { success_if_fail { refl }, simp only [my_nat_equiv_to_fun, my_nat_equiv_inv_fun] }
@@ -354,7 +358,7 @@ structure foo_str :=
  (c : Type)
  (x : c)
 
-instance : has_coe_to_sort foo_str := ⟨_, foo_str.c⟩
+instance : has_coe_to_sort foo_str Type := ⟨foo_str.c⟩
 
 @[simps] def foo : foo_str := ⟨ℕ, 3⟩
 @[simps] def foo2 : foo_str := ⟨ℕ, 34⟩
@@ -366,7 +370,7 @@ structure voo_str (n : ℕ) :=
  (c : Type)
  (x : c)
 
-instance has_coe_voo_str (n : ℕ) : has_coe_to_sort (voo_str n) := ⟨_, voo_str.c⟩
+instance has_coe_voo_str (n : ℕ) : has_coe_to_sort (voo_str n) Type := ⟨voo_str.c⟩
 
 @[simps] def voo : voo_str 7 := ⟨ℕ, 3⟩
 @[simps] def voo2 : voo_str 4 := ⟨ℕ, 34⟩
@@ -380,7 +384,7 @@ structure equiv2 (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-instance {α β} : has_coe_to_fun $ equiv2 α β := ⟨_, equiv2.to_fun⟩
+instance {α β} : has_coe_to_fun (equiv2 α β) (λ _, α → β) := ⟨equiv2.to_fun⟩
 
 @[simps] protected def rfl2 {α} : equiv2 α α :=
 ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
@@ -395,9 +399,7 @@ example {α} (x : α) : coercing.rfl2.inv_fun x = x := by simp
 @[simps] protected def equiv2.symm2 {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f.to_fun, f.right_inv, f.left_inv⟩
 
-/- we can use the `md` attribute to not unfold the `has_coe_to_fun` attribute, so that `@[simps]`
-  doesn't recognize that the type of `⇑f` is still a function type. -/
-@[simps {type_md := reducible}] protected def equiv2.symm3 {α β} (f : equiv2 α β) : equiv2 β α :=
+@[simps {fully_applied := ff}] protected def equiv2.symm3 {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
 
 example {α β} (f : equiv2 α β) (y : β) : f.symm y = f.inv_fun y := by simp
@@ -423,12 +425,12 @@ example {α β} [semigroup α] [semigroup β] (x y : α × β) : (x * y).1 = x.1
 structure Semigroup :=
   (G : Type*)
   (op : G → G → G)
-  (infix * := op)
+  (infix (name := op) ` * ` := op)
   (op_assoc : ∀ (x y z : G), (x * y) * z = x * (y * z))
 
 namespace Group
 
-instance : has_coe_to_sort Semigroup := ⟨_, Semigroup.G⟩
+instance : has_coe_to_sort Semigroup Type* := ⟨Semigroup.G⟩
 -- We could try to generate lemmas with this `has_mul` instance, but it is unused in mathlib.
 -- Therefore, this is ignored.
 instance (G : Semigroup) : has_mul G := ⟨G.op⟩
@@ -483,11 +485,11 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_coercion.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_coercion.equiv
 
 variables {α β γ : Sort*}
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -509,14 +511,15 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := faulty_manual_coercion.equiv
+local infix (name := equiv) ` ≃ `:25 := faulty_manual_coercion.equiv
 
 variables {α β γ : Sort*}
 
 /-- See Note [custom simps projection] -/
 noncomputable def equiv.simps.inv_fun (e : α ≃ β) : β → α := classical.choice ⟨e.inv_fun⟩
 
-run_cmd do e ← get_env, success_if_fail_with_msg (simps_get_raw_projections e `faulty_manual_coercion.equiv)
+run_cmd do e ← get_env, success_if_fail_with_msg
+  (simps_get_raw_projections e `faulty_manual_coercion.equiv)
 "Invalid custom projection:
   λ {α : Sort u_1} {β : Sort u_2} (e : α ≃ β), classical.choice _
 Expression is not definitionally equal to
@@ -532,9 +535,9 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_initialize.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_initialize.equiv
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -560,9 +563,9 @@ structure equiv (α : Sort u) (β : Sort v) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := faulty_universes.equiv
+local infix (name := equiv) ` ≃ `:25 := faulty_universes.equiv
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -576,7 +579,7 @@ run_cmd do e ← get_env,
 "Invalid custom projection:
   λ {α : Type u} {β : Type v} (e : α ≃ β), ⇑(e.symm)
 Expression has different type than faulty_universes.equiv.inv_fun. Given type:
-  Π {α : Type u} {β : Type v} (e : α ≃ β), has_coe_to_fun.F e.symm
+  Π {α : Type u} {β : Type v} (e : α ≃ β), (λ (_x : β ≃ α), β → α) e.symm
 Expected type:
   Π (α : Sort u) (β : Sort v), α ≃ β → β → α"
 
@@ -590,9 +593,9 @@ structure equiv (α : Sort u) (β : Sort v) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_universes.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_universes.equiv
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -611,11 +614,11 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_projection_names.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_projection_names.equiv
 
 variables {α β γ : Sort*}
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -651,11 +654,11 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := prefix_projection_names.equiv
+local infix (name := equiv) ` ≃ `:25 := prefix_projection_names.equiv
 
 variables {α β γ : Sort*}
 
-instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
@@ -728,7 +731,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := nested_non_fully_applied.equiv
+local infix (name := equiv) ` ≃ `:25 := nested_non_fully_applied.equiv
 
 variables {α β γ : Sort*}
 
@@ -774,7 +777,7 @@ structure needs_prop_class (n : ℕ) [prop_class n] :=
 structure alg_hom (R A B : Type*) :=
 (to_fun : A → B)
 
-instance (R A B : Type*) : has_coe_to_fun (alg_hom R A B) := ⟨_, λ f, f.to_fun⟩
+instance (R A B : Type*) : has_coe_to_fun (alg_hom R A B) (λ _, A → B) := ⟨λ f, f.to_fun⟩
 
 @[simps] def my_alg_hom : alg_hom unit bool bool :=
 { to_fun := id }
@@ -784,7 +787,7 @@ example (x : bool) : my_alg_hom x = id x := by simp only [my_alg_hom_to_fun]
 structure ring_hom (A B : Type*) :=
 (to_fun : A → B)
 
-instance (A B : Type*) : has_coe_to_fun (ring_hom A B) := ⟨_, λ f, f.to_fun⟩
+instance (A B : Type*) : has_coe_to_fun (ring_hom A B) (λ _, A → B) := ⟨λ f, f.to_fun⟩
 
 @[simps] def my_ring_hom : ring_hom bool bool :=
 { to_fun := id }
@@ -878,19 +881,19 @@ end
 
 section comp_projs
 
-instance {α β} : has_coe_to_fun (α ≃ β) := ⟨λ _, α → β, equiv.to_fun⟩
+instance {α β} : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv'.to_fun⟩
 
-@[simps] protected def equiv.symm {α β} (f : α ≃ β) : β ≃ α :=
+@[simps] protected def equiv'.symm {α β} (f : α ≃ β) : β ≃ α :=
 ⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
 
-structure decorated_equiv (α : Sort*) (β : Sort*) extends equiv α β :=
+structure decorated_equiv (α : Sort*) (β : Sort*) extends equiv' α β :=
 (P_to_fun    : function.injective to_fun )
 (P_inv_fun   : function.injective inv_fun)
 
-instance {α β} : has_coe_to_fun (decorated_equiv α β) := ⟨λ _, α → β, λ f, f.to_equiv⟩
+instance {α β} : has_coe_to_fun (decorated_equiv α β) (λ _, α → β) := ⟨λ f, f.to_equiv'⟩
 
 def decorated_equiv.symm {α β : Sort*} (e : decorated_equiv α β) : decorated_equiv β α :=
-{ to_equiv := e.to_equiv.symm,
+{ to_equiv' := e.to_equiv'.symm,
   P_to_fun := e.P_inv_fun,
   P_inv_fun := e.P_to_fun }
 
@@ -898,7 +901,7 @@ def decorated_equiv.simps.apply {α β : Sort*} (e : decorated_equiv α β) : α
 def decorated_equiv.simps.symm_apply {α β : Sort*} (e : decorated_equiv α β) : β → α := e.symm
 
 initialize_simps_projections decorated_equiv
-  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, -to_equiv)
+  (to_equiv'_to_fun → apply, to_equiv'_inv_fun → symm_apply, -to_equiv')
 
 @[simps] def foo (α : Type) : decorated_equiv α α :=
 { to_fun    := λ x, x,
@@ -911,11 +914,11 @@ initialize_simps_projections decorated_equiv
 example {α : Type} (x : α) : (foo α).symm x = x :=
 by { dsimp, guard_target (x = x), refl }
 
-@[simps to_equiv apply symm_apply] def foo2 (α : Type) : decorated_equiv α α :=
+@[simps to_equiv' apply symm_apply] def foo2 (α : Type) : decorated_equiv α α :=
 { P_to_fun  := λ x y h, h,
   P_inv_fun := λ x y h, h, ..foo.rfl }
 
-example {α : Type} (x : α) : (foo2 α).to_equiv x = x :=
+example {α : Type} (x : α) : (foo2 α).to_equiv' x = x :=
 by { dsimp, guard_target (foo.rfl x = x), refl }
 
 example {α : Type} (x : α) : foo2 α x = x :=
@@ -925,8 +928,8 @@ structure further_decorated_equiv (α : Sort*) (β : Sort*) extends decorated_eq
 (Q_to_fun    : function.surjective to_fun )
 (Q_inv_fun   : function.surjective inv_fun )
 
-instance {α β} : has_coe_to_fun (further_decorated_equiv α β) :=
-⟨λ _, α → β, λ f, f.to_decorated_equiv⟩
+instance {α β} : has_coe_to_fun (further_decorated_equiv α β) (λ _, α → β) :=
+⟨λ f, f.to_decorated_equiv⟩
 
 def further_decorated_equiv.symm {α β : Sort*} (e : further_decorated_equiv α β) :
   further_decorated_equiv β α :=
@@ -939,8 +942,8 @@ def further_decorated_equiv.simps.symm_apply {α β : Sort*} (e : further_decora
   β → α := e.symm
 
 initialize_simps_projections further_decorated_equiv
-  (to_decorated_equiv_to_equiv_to_fun → apply, to_decorated_equiv_to_equiv_inv_fun → symm_apply,
-  -to_decorated_equiv, to_decorated_equiv_to_equiv → to_equiv, -to_equiv)
+  (to_decorated_equiv_to_equiv'_to_fun → apply, to_decorated_equiv_to_equiv'_inv_fun → symm_apply,
+  -to_decorated_equiv, to_decorated_equiv_to_equiv' → to_equiv', -to_equiv')
 
 @[simps] def ffoo (α : Type) : further_decorated_equiv α α :=
 { to_fun    := λ x, x,
@@ -958,14 +961,14 @@ by { dsimp, guard_target (x = x), refl }
 @[simps] def ffoo3 (α : Type) : further_decorated_equiv α α :=
 { Q_to_fun  := λ y, ⟨y, rfl⟩, Q_inv_fun  := λ y, ⟨y, rfl⟩, .. foo α }
 
-@[simps apply to_equiv_to_fun to_decorated_equiv_apply]
+@[simps apply to_equiv'_to_fun to_decorated_equiv_apply]
 def ffoo4 (α : Type) : further_decorated_equiv α α :=
 { Q_to_fun  := λ y, ⟨y, rfl⟩, Q_inv_fun  := λ y, ⟨y, rfl⟩, to_decorated_equiv := foo α }
 
 structure one_more (α : Sort*) (β : Sort*) extends further_decorated_equiv α β
 
-instance {α β} : has_coe_to_fun (one_more α β) :=
-⟨λ _, α → β, λ f, f.to_further_decorated_equiv⟩
+instance {α β} : has_coe_to_fun (one_more α β) (λ _, α → β) :=
+⟨λ f, f.to_further_decorated_equiv⟩
 
 def one_more.symm {α β : Sort*} (e : one_more α β) :
   one_more β α :=
@@ -975,8 +978,8 @@ def one_more.simps.apply {α β : Sort*} (e : one_more α β) : α → β := e
 def one_more.simps.symm_apply {α β : Sort*} (e : one_more α β) : β → α := e.symm
 
 initialize_simps_projections one_more
-  (to_further_decorated_equiv_to_decorated_equiv_to_equiv_to_fun → apply,
-   to_further_decorated_equiv_to_decorated_equiv_to_equiv_inv_fun → symm_apply,
+  (to_further_decorated_equiv_to_decorated_equiv_to_equiv'_to_fun → apply,
+   to_further_decorated_equiv_to_decorated_equiv_to_equiv'_inv_fun → symm_apply,
   -to_further_decorated_equiv, to_further_decorated_equiv_to_decorated_equiv → to_dequiv,
   -to_dequiv)
 
@@ -1017,7 +1020,7 @@ something2.mul x y
 
 initialize_simps_projections something2 (mul → mul', mul_to_fun_to_fun → mul, -mul')
 
-attribute [ext] equiv
+attribute [ext] equiv'
 
 @[simps]
 def thing (h : bool ≃ (bool ≃ bool)) : something2 (λ x : ℕ, bool) :=

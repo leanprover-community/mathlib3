@@ -257,7 +257,7 @@ do hyps ← hyps.mmap $ λ e, i_to_expr e >>= note_anon none,
      else fail "linarith failed: target is not a valid comparison",
    let cfg := cfg.update_reducibility reduce_semi,
    let (pref_type, new_var) :=
-     pref_type_and_new_var_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
+     pref_type_and_new_var_from_tgt.elim (none, none) (prod.map some some),
    -- set up the list of hypotheses, considering the `only_on` and `restrict_type` options
    hyps ← if only_on then return (new_var.elim [] singleton ++ hyps)
           else (++ hyps) <$> local_context,

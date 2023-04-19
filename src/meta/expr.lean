@@ -3,8 +3,8 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
+import data.option.defs
 import data.string.defs
-import meta.rb_map
 import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
@@ -18,10 +18,9 @@ This file is mostly for non-tactics. Tactics should generally be placed in `tact
 expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
-attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
+open tactic
 
-@[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
-⟨λ b, pexpr.of_expr (reflect b)⟩
+attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
 namespace binder_info
 
@@ -122,12 +121,6 @@ meta def head : name → string
 meta def is_private (n : name) : bool :=
 n.head = "_private"
 
-/-- Get the last component of a name, and convert it to a string. -/
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
-
 /-- Returns the number of characters used to print all the string components of a name,
   including periods between name segments. Ignores numerical parts of a name. -/
 meta def length : name → ℕ
@@ -153,6 +146,19 @@ def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/-- Like `++`, except that if the right argument starts with `_root_` the namespace will be
+ignored.
+```
+append_namespace `a.b `c.d = `a.b.c.d
+append_namespace `a.b `_root_.c.d = `c.d
+```
+-/
+meta def append_namespace (ns : name) : name → name
+| (mk_string s anonymous) := if s = "_root_" then anonymous else mk_string s ns
+| (mk_string s p)         := mk_string s (append_namespace p)
+| (mk_numeral n p)        := mk_numeral n (append_namespace p)
+| anonymous               := ns
 
 /--
 Constructs a (non-simple) name from a string.
@@ -275,7 +281,6 @@ protected meta def to_string (b : binder) : string :=
 let (l, r) := b.info.brackets in
 l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
 
-open tactic
 meta instance : has_to_string binder := ⟨ binder.to_string ⟩
 meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
 meta instance : has_to_tactic_format binder :=
@@ -326,6 +331,16 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
+
+/--
+`int.to_pexpr n` creates a `pexpr` that will evaluate to `n`.
+The `pexpr` does not hold any typing information:
+`to_expr ``((%%(int.to_pexpr (-5)) : ℚ))` will create a native `ℚ` numeral `(-5 : ℚ)`.
+-/
+meta def int.to_pexpr : ℤ → pexpr
+| (int.of_nat k) := k.to_pexpr
+| (int.neg_succ_of_nat k) := ``(-%%((k+1).to_pexpr))
+
 namespace expr
 
 /--
@@ -372,10 +387,51 @@ meta def is_num_eq : expr → expr → bool
 
 end expr
 
+/-! ### Declarations about `pexpr` -/
+
+namespace pexpr
+
+/--
+If `e` is an annotation of `frozen_name` to `expr.const n`,
+`e.get_frozen_name` returns `n`.
+Otherwise, returns `name.anonymous`.
+-/
+meta def get_frozen_name (e : pexpr) : name :=
+match e.is_annotation with
+| some (`frozen_name, expr.const n _) := n
+| _ := name.anonymous
+end
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_fn_args` returns `(f, [e₁, ... eₙ])`.
+See also `expr.get_app_fn_args`.
+-/
+meta def get_app_fn_args : pexpr → opt_param (list pexpr) [] → pexpr × list pexpr
+| (expr.app e1 e2) r := get_app_fn_args e1 (e2::r)
+| e1 r := (e1, r)
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_fn` returns `f`.
+See also `expr.get_app_fn`.
+-/
+meta def get_app_fn : pexpr → list pexpr :=
+prod.snd ∘ get_app_fn_args
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_args` returns `[e₁, ... eₙ]`.
+See also `expr.get_app_args`.
+-/
+meta def get_app_args : pexpr → list pexpr :=
+prod.snd ∘ get_app_fn_args
+
+end pexpr
+
 /-! ### Declarations about `expr` -/
 
 namespace expr
-open tactic
 
 /-- List of names removed by `clean`. All these names must resolve to functions defeq `id`. -/
 meta def clean_ids : list name :=
@@ -464,8 +520,8 @@ meta def match_app {elab} : expr elab → option (expr elab × expr elab)
 | _ := none
 
 /-- Match an application of `coe_fn`. -/
-meta def match_app_coe_fn : expr → option (expr × expr × expr × expr)
-| (app `(@coe_fn %%α %%inst %%fexpr) x) := some (α, inst, fexpr, x)
+meta def match_app_coe_fn : expr → option (expr × expr × expr × expr × expr)
+| (app `(@coe_fn %%α %%β %%inst %%fexpr) x) := some (α, β, inst, fexpr, x)
 | _ := none
 
 /-- Match an abstraction. -/
@@ -542,9 +598,14 @@ meta def list_local_const_unique_names (e : expr) : name_set :=
 e.fold mk_name_set
   (λ e' _ es, if e'.is_local_constant then es.insert e'.local_uniq_name else es)
 
-/-- Returns a name_set of all constants in an expression. -/
+/-- Returns a `name_set` of all constants in an expression. -/
 meta def list_constant (e : expr) : name_set :=
 e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)
+
+/-- Returns a `list name` containing the constant names of an `expr` in the same order
+  that `expr.fold` traverses it. -/
+meta def list_constant' (e : expr) : list name :=
+(e.fold [] (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)).reverse
 
 /-- Returns a list of all meta-variables in an expression (without duplicates). -/
 meta def list_meta_vars (e : expr) : list expr :=
@@ -572,7 +633,7 @@ meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
 -- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
 ¬ t.list_meta_vars.empty ∨ e.occurs t
 
-/-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
+/-- Returns a `name_set` of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
 e.fold mk_name_set $ λ e' _ l,
   match e' with
@@ -587,6 +648,7 @@ e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /--
 Returns true if `e` contains a `sorry`.
+See also `name.contains_sorry`.
 -/
 meta def contains_sorry (e : expr) : bool :=
 e.fold ff (λ e' _ b, if (is_sorry e').is_some then tt else b)
@@ -759,7 +821,7 @@ e.has_local_in $ mk_name_set.insert l.local_uniq_name
 /-- Turns a local constant into a binder -/
 meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
-| _                       := default binder
+| _                       := default
 
 /-- Strip-away the context-dependent unique id for the given local const and return: its friendly
 `name`, its `binder_info`, and its `type : expr`. -/
@@ -832,6 +894,19 @@ private meta def all_implicitly_included_variables_aux
 meta def all_implicitly_included_variables (es vs : list expr) : list expr :=
 all_implicitly_included_variables_aux es vs [] ff
 
+/-- Get the list of explicit arguments of a function. -/
+meta def list_explicit_args (f : expr) : tactic (list expr) :=
+tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
+
+/--  `replace_explicit_args f parg` assumes that `f` is an expression corresponding to a function
+application.  It replaces the explicit arguments of `f`, in succession, by the elements of `parg`.
+The implicit arguments of `f` remain unchanged. -/
+meta def replace_explicit_args (f : expr) (parg : list expr) : tactic expr :=
+do finf ← (get_fun_info f.get_app_fn),
+  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
+  let nargs := list.replace_if f.get_app_args is_ex_arg parg,
+  return $ expr.mk_app f.get_app_fn nargs
+
 /-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
 This also works if `x1, ... xn` contain free variables. -/
 protected meta def simple_infer_type (env : environment) (e : expr) : exceptional expr := do
@@ -871,41 +946,33 @@ protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) :
 (inductive type, defined function etc) in an expression, unless
 * The identifier occurs in an application with first argument `arg`; and
 * `test arg` is false.
-* Reorder contains the information about what arguments to reorder:
-  e.g. `g x₁ x₂ x₃ ... xₙ` becomes `g x₂ x₁ x₃ ... xₙ` if `reorder.find g = some [1]`.
-  We assume that all functions where we want to reorder arguments are fully applied.
-  This can be done by applying `expr.eta_expand` first.
+However, if `f` is in the dictionary `relevant`, then the argument `relevant.find f`
+is tested, instead of the first argument.
+
+Reorder contains the information about what arguments to reorder:
+e.g. `g x₁ x₂ x₃ ... xₙ` becomes `g x₂ x₁ x₃ ... xₙ` if `reorder.find g = some [1]`.
+We assume that all functions where we want to reorder arguments are fully applied.
+This can be done by applying `expr.eta_expand` first.
 -/
 protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) : expr → expr
+  (relevant : name_map ℕ) (reorder : name_map $ list ℕ) : expr → expr
 | e := e.replace $ λ e _,
   match e with
   | const n ls := some $ const (f n) $
       -- if the first two arguments are reordered, we also reorder the first two universe parameters
       if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
   | app g x :=
-    let l := (reorder.find g.get_app_fn.const_name).iget in -- this might be inefficient
-    if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
+    let f := g.get_app_fn,
+        nm := f.const_name,
+        n_args := g.get_app_num_args in -- this might be inefficient
+    if n_args ∈ (reorder.find nm).iget ∧ test g.get_app_args.head then
     -- interchange `x` and the last argument of `g`
     some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
       apply_replacement_fun g.app_arg else
-    if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
+    if n_args = (relevant.find nm).lhoare 0 ∧ f.is_constant ∧ ¬ test x then
+      some $ (f.mk_app $ g.get_app_args.map apply_replacement_fun) (apply_replacement_fun x) else
+      none
   | _ := none
-  end
-
-open native
-/--
-  `univ_params_grouped e` computes for each `level` `u` of `e` the parameters that occur in `u`,
-  and returns the corresponding set of lists of parameters.
-  In pseudo-mathematical form, this returns `{ { p : parameter | p ∈ u } | (u : level) ∈ e }`
-  We use `list name` instead of `name_set`, since `name_set` does not have an order.
--/
-meta def univ_params_grouped (e : expr) : rb_set (list name) :=
-e.fold mk_rb_set $ λ e n l,
-  match e with
-  | e@(sort u) := l.insert u.params.to_list
-  | e@(const nm us) := l.union $ rb_set.of_list $ us.map $ λ u : level, u.params.to_list
-  | _ := l
   end
 
 end expr
@@ -983,8 +1050,6 @@ end environment
 
 namespace expr
 
-open tactic
-
 /-- `is_eta_expansion_of args univs l` checks whether for all elements `(nm, pr)` in `l` we have
   `pr = nm.{univs} args`.
   Used in `is_eta_expansion`, where `l` consists of the projections and the fields of the value we
@@ -1045,7 +1110,6 @@ end expr
 /-! ### Declarations about `declaration` -/
 
 namespace declaration
-open tactic
 
 /--
 `declaration.update_with_fun f test tgt decl`
@@ -1053,11 +1117,13 @@ sets the name of the given `decl : declaration` to `tgt`, and applies both `expr
 `expr.apply_replacement_fun` to the value and type of `decl`.
 -/
 protected meta def update_with_fun (env : environment) (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
+  (relevant : name_map ℕ) (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) :
+  declaration :=
 let decl := decl.update_name $ tgt in
 let decl := decl.update_type $
-  (decl.type.eta_expand env reorder).apply_replacement_fun f test reorder in
-decl.update_value $ (decl.value.eta_expand env reorder).apply_replacement_fun f test reorder
+  (decl.type.eta_expand env reorder).apply_replacement_fun f test relevant reorder in
+decl.update_value $
+  (decl.value.eta_expand env reorder).apply_replacement_fun f test relevant reorder
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`
@@ -1147,3 +1213,9 @@ end declaration
 meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=
 unchecked_cast
 expr.has_decidable_eq
+
+section
+local attribute [semireducible] reflected
+meta instance {α} [has_reflect α] : has_reflect (thunk α) | a :=
+expr.lam `x binder_info.default (reflect unit) (reflect $ a ())
+end

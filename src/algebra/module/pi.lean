@@ -6,110 +6,41 @@ Authors: Simon Hudon, Patrick Massot
 import algebra.module.basic
 import algebra.regular.smul
 import algebra.ring.pi
+import group_theory.group_action.pi
 
 /-!
-# Pi instances for module and multiplicative actions
+# Pi instances for modules
 
-This file defines instances for module, mul_action and related structures on Pi Types
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file defines instances for module and related structures on Pi Types
 -/
 
-namespace pi
 universes u v w
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
-instance has_scalar {α : Type*} [Π i, has_scalar α $ f i] :
-  has_scalar α (Π i : I, f i) :=
-⟨λ s x, λ i, s • (x i)⟩
+namespace pi
 
-lemma smul_def {α : Type*} [Π i, has_scalar α $ f i] (s : α) : s • x = λ i, s • x i := rfl
-@[simp] lemma smul_apply {α : Type*} [Π i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
-
-instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
-  has_scalar (Π i, f i) (Π i : I, g i) :=
-⟨λ s x, λ i, (s i) • (x i)⟩
-
-@[simp]
-lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
-  (s • x) i = s i • x i :=
-rfl
-
-lemma _root_.is_smul_regular.pi {α : Type*} [Π i, has_scalar α $ f i] {k : α}
+lemma _root_.is_smul_regular.pi {α : Type*} [Π i, has_smul α $ f i] {k : α}
   (hk : Π i, is_smul_regular (f i) k) : is_smul_regular (Π i, f i) k :=
 λ _ _ h, funext $ λ i, hk i (congr_fun h i : _)
-
-instance is_scalar_tower {α β : Type*}
-  [has_scalar α β] [Π i, has_scalar β $ f i] [Π i, has_scalar α $ f i]
-  [Π i, is_scalar_tower α β (f i)] : is_scalar_tower α β (Π i : I, f i) :=
-⟨λ x y z, funext $ λ i, smul_assoc x y (z i)⟩
-
-instance is_scalar_tower' {g : I → Type*} {α : Type*}
-  [Π i, has_scalar α $ f i] [Π i, has_scalar (f i) (g i)] [Π i, has_scalar α $ g i]
-  [Π i, is_scalar_tower α (f i) (g i)] : is_scalar_tower α (Π i : I, f i) (Π i : I, g i) :=
-⟨λ x y z, funext $ λ i, smul_assoc x (y i) (z i)⟩
-
-instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
-  [Π i, has_scalar (f i) (g i)] [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
-  [Π i, is_scalar_tower (f i) (g i) (h i)] : is_scalar_tower (Π i, f i) (Π i, g i) (Π i, h i) :=
-⟨λ x y z, funext $ λ i, smul_assoc (x i) (y i) (z i)⟩
-
-instance smul_comm_class {α β : Type*}
-  [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [∀ i, smul_comm_class α β (f i)] :
-  smul_comm_class α β (Π i : I, f i) :=
-⟨λ x y z, funext $ λ i, smul_comm x y (z i)⟩
-
-instance smul_comm_class' {g : I → Type*} {α : Type*}
-  [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [∀ i, smul_comm_class α (f i) (g i)] :
-  smul_comm_class α (Π i : I, f i) (Π i : I, g i) :=
-⟨λ x y z, funext $ λ i, smul_comm x (y i) (z i)⟩
-
-instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
-  [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
-  [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
-⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
-
-/-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is
-not an instance as `i` cannot be inferred. -/
-lemma has_faithful_scalar_at {α : Type*}
-  [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_scalar α (f i)] :
-  has_faithful_scalar α (Π i, f i) :=
-⟨λ x y h, eq_of_smul_eq_smul $ λ a : f i, begin
-  classical,
-  have := congr_fun (h $ function.update (λ j, classical.choice (‹Π i, nonempty (f i)› j)) i a) i,
-  simpa using this,
-end⟩
-
-instance has_faithful_scalar {α : Type*}
-  [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_scalar α (f i)] :
-  has_faithful_scalar α (Π i, f i) :=
-let ⟨i⟩ := ‹nonempty I› in has_faithful_scalar_at i
 
 instance smul_with_zero (α) [has_zero α]
   [Π i, has_zero (f i)] [Π i, smul_with_zero α (f i)] :
   smul_with_zero α (Π i, f i) :=
-{ smul_zero := λ _, funext $ λ _, smul_zero' (f _) _,
+{ smul_zero := λ _, funext $ λ _, smul_zero _,
   zero_smul := λ _, funext $ λ _, zero_smul _ _,
-  ..pi.has_scalar }
+  ..pi.has_smul }
 
 instance smul_with_zero' {g : I → Type*} [Π i, has_zero (g i)]
   [Π i, has_zero (f i)] [Π i, smul_with_zero (g i) (f i)] :
   smul_with_zero (Π i, g i) (Π i, f i) :=
-{ smul_zero := λ _, funext $ λ _, smul_zero' (f _) _,
+{ smul_zero := λ _, funext $ λ _, smul_zero _,
   zero_smul := λ _, funext $ λ _, zero_smul _ _,
-  ..pi.has_scalar' }
-
-instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
-  @mul_action α (Π i : I, f i) m :=
-{ smul := (•),
-  mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
-  one_smul := λ f, funext $ λ i, one_smul α _ }
-
-instance mul_action' {g : I → Type*} {m : Π i, monoid (f i)} [Π i, mul_action (f i) (g i)] :
-  @mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) :=
-{ smul := (•),
-  mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
-  one_smul := λ f, funext $ λ i, one_smul _ _ }
+  ..pi.has_smul' }
 
 instance mul_action_with_zero (α) [monoid_with_zero α]
   [Π i, has_zero (f i)] [Π i, mul_action_with_zero α (f i)] :
@@ -123,29 +54,6 @@ instance mul_action_with_zero' {g : I → Type*} [Π i, monoid_with_zero (g i)]
 { ..pi.mul_action',
   ..pi.smul_with_zero' }
 
-instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i}
-  [∀ i, distrib_mul_action α $ f i] :
-  @distrib_mul_action α (Π i : I, f i) m (@pi.add_monoid I f n) :=
-{ smul_zero := λ c, funext $ λ i, smul_zero _,
-  smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
-  ..pi.mul_action _ }
-
-instance distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π i, add_monoid $ g i}
-  [Π i, distrib_mul_action (f i) (g i)] :
-  @distrib_mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) (@pi.add_monoid I g n) :=
-{ smul_add := by { intros, ext x, apply smul_add },
-  smul_zero := by { intros, ext x, apply smul_zero } }
-
-lemma single_smul {α} [monoid α] [Π i, add_monoid $ f i]
-  [Π i, distrib_mul_action α $ f i] [decidable_eq I] (i : I) (r : α) (x : f i) :
-  single i (r • x) = r • single i x :=
-single_op (λ i : I, ((•) r : f i → f i)) (λ j, smul_zero _) _ _
-
-lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
-  [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
-  single i (r • x) = single i r • single i x :=
-single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
-
 variables (I f)
 
 instance module (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
@@ -154,6 +62,20 @@ instance module (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }
+
+/- Extra instance to short-circuit type class resolution.
+For unknown reasons, this is necessary for certain inference problems. E.g., for this to succeed:
+```lean
+example (β X : Type*) [normed_add_comm_group β] [normed_space ℝ β] : module ℝ (X → β) :=
+infer_instance
+```
+See: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/281296989
+-/
+/-- A special case of `pi.module` for non-dependent types. Lean struggles to elaborate
+definitions elsewhere in the library without this. -/
+instance _root_.function.module (α β : Type*) [semiring α] [add_comm_monoid β] [module α β] :
+  module α (I → β) :=
+pi.module _ _ _
 
 variables {I f}
 
@@ -168,5 +90,12 @@ instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
   no_zero_smul_divisors α (Π i : I, f i) :=
 ⟨λ c x h, or_iff_not_imp_left.mpr (λ hc, funext
   (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩
+
+/-- A special case of `pi.no_zero_smul_divisors` for non-dependent types. Lean struggles to
+synthesize this instance by itself elsewhere in the library. -/
+instance _root_.function.no_zero_smul_divisors {ι α β : Type*} {r : semiring α}
+  {m : add_comm_monoid β} [module α β] [no_zero_smul_divisors α β] :
+  no_zero_smul_divisors α (ι → β) :=
+pi.no_zero_smul_divisors _
 
 end pi

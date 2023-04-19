@@ -5,10 +5,13 @@ Authors: Joe Hendrix, Sebastian Ullrich
 -/
 
 import data.vector.basic
-import data.nat.basic
+import data.nat.pow
 
 /-!
 # Basic operations on bitvectors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This is a work-in-progress, and contains additions to other theories.
 
@@ -26,12 +29,12 @@ open vector
 local infix `++ₜ`:65 := vector.append
 
 /-- Create a zero bitvector -/
-@[reducible] protected def zero (n : ℕ) : bitvec n := repeat ff n
+@[reducible] protected def zero (n : ℕ) : bitvec n := replicate n ff
 
 /-- Create a bitvector of length `n` whose `n-1`st entry is 1 and other entries are 0. -/
 @[reducible] protected def one : Π (n : ℕ), bitvec n
 | 0        := nil
-| (succ n) := repeat ff n ++ₜ tt::ᵥnil
+| (succ n) := replicate n ff ++ₜ tt::ᵥnil
 
 /-- Create a bitvector from another with a provably equal length. -/
 protected def cong {a b : ℕ} (h : a = b) : bitvec a → bitvec b
@@ -49,7 +52,7 @@ variable {n : ℕ}
 If `x.length < i` then this will return the all-`ff`s bitvector. -/
 def shl (x : bitvec n) (i : ℕ) : bitvec n :=
 bitvec.cong (by simp) $
-  drop i x ++ₜ repeat ff (min n i)
+  drop i x ++ₜ replicate (min n i) ff
 
 /-- `fill_shr x i fill` is the bitvector obtained by right-shifting `x` `i` times and then
 padding with `fill : bool`. If `x.length < i` then this will return the constant `fill`
@@ -60,11 +63,11 @@ bitvec.cong
     by_cases (i ≤ n),
     { have h₁ := nat.sub_le n i,
       rw [min_eq_right h],
-      rw [min_eq_left h₁, ← nat.add_sub_assoc h, nat.add_comm, nat.add_sub_cancel] },
+      rw [min_eq_left h₁, ← add_tsub_assoc_of_le h, nat.add_comm, add_tsub_cancel_right] },
     { have h₁ := le_of_not_ge h,
-      rw [min_eq_left h₁, nat.sub_eq_zero_of_le h₁, nat.zero_min, nat.add_zero] }
+      rw [min_eq_left h₁, tsub_eq_zero_iff_le.mpr h₁, zero_min, nat.add_zero] }
   end $
-  repeat fill (min n i) ++ₜ take (n-i) x
+  replicate (min n i) fill ++ₜ take (n-i) x
 
 /-- unsigned shift right -/
 def ushr (x : bitvec n) (i : ℕ) : bitvec n :=
@@ -240,8 +243,7 @@ theorem to_nat_of_nat {k n : ℕ}
 begin
   induction k with k ih generalizing n,
   { simp [nat.mod_one], refl },
-  { have h : 0 < 2, { apply le_succ },
-    rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ h, nat.mul_comm] }
+  { rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ, nat.mul_comm] }
 end
 
 /-- Return the integer encoded by the input bitvector -/

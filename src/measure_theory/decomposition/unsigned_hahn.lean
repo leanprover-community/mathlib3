@@ -22,16 +22,11 @@ Hahn decomposition
 -/
 
 open set filter
-open_locale classical topological_space ennreal
+open_locale classical topology ennreal
 
 namespace measure_theory
 
 variables {α : Type*} [measurable_space α] {μ ν : measure α}
-
--- suddenly this is necessary?!
-private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
-  γ - 2 * (1 / 2) ^ m + (1 / 2) ^ m ≤ d :=
-by linarith
 
 /-- **Hahn decomposition theorem** -/
 lemma hahn_decomposition [is_finite_measure μ] [is_finite_measure ν] :
@@ -43,31 +38,32 @@ begin
   let c : set ℝ := d '' {s | measurable_set s },
   let γ : ℝ := Sup c,
 
-  have hμ : ∀s, μ s < ∞ := measure_lt_top μ,
-  have hν : ∀s, ν s < ∞ := measure_lt_top ν,
+  have hμ : ∀ s, μ s ≠ ∞ := measure_ne_top μ,
+  have hν : ∀ s, ν s ≠ ∞ := measure_ne_top ν,
   have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ℝ≥0∞) = μ s :=
-    (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hμ _),
+    (assume s, ennreal.coe_to_nnreal $ hμ _),
   have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ℝ≥0∞) = ν s :=
-    (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hν _),
+    (assume s, ennreal.coe_to_nnreal $ hν _),
 
-  have d_empty : d ∅ = 0, { simp [d], rw [measure_empty, measure_empty], simp },
+  have d_empty : d ∅ = 0,
+  { change _ - _ = _, rw [measure_empty, measure_empty, sub_self] },
 
   have d_split : ∀s t, measurable_set s → measurable_set t →
     d s = d (s \ t) + d (s ∩ t),
   { assume s t hs ht,
     simp only [d],
-    rw [measure_eq_inter_diff hs ht, measure_eq_inter_diff hs ht,
+    rw [← measure_inter_add_diff s ht, ← measure_inter_add_diff s ht,
       ennreal.to_nnreal_add (hμ _) (hμ _), ennreal.to_nnreal_add (hν _) (hν _),
       nnreal.coe_add, nnreal.coe_add],
     simp only [sub_eq_add_neg, neg_add],
-    ac_refl },
+    abel },
 
-  have d_Union : ∀(s : ℕ → set α), (∀n, measurable_set (s n)) → monotone s →
+  have d_Union : ∀(s : ℕ → set α), monotone s →
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋃n, s n))),
-  { assume s hs hm,
+  { assume s hm,
     refine tendsto.sub _ _;
-      refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Union hs hm),
+      refine (nnreal.tendsto_coe.2 $ (ennreal.tendsto_to_nnreal _).comp $
+        tendsto_measure_Union hm),
     exact hμ _,
     exact hν _ },
 
@@ -75,12 +71,9 @@ begin
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋂n, s n))),
   { assume s hs hm,
     refine tendsto.sub _ _;
-      refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Inter hs hm _),
-    exact hμ _,
-    exact ⟨0, hμ _⟩,
-    exact hν _,
-    exact ⟨0, hν _⟩ },
+      refine (nnreal.tendsto_coe.2 $ (ennreal.tendsto_to_nnreal $ _).comp $
+        tendsto_measure_Inter hs hm _),
+    exacts [hμ _, ⟨0, hμ _⟩, hν _, ⟨0, hν _⟩] },
 
   have bdd_c : bdd_above c,
   { use (μ univ).to_nnreal,
@@ -108,22 +101,19 @@ begin
   have hf : ∀n m, measurable_set (f n m),
   { assume n m,
     simp only [f, finset.inf_eq_infi],
-    exact measurable_set.bInter (countable_encodable _) (assume i _, he₁ _) },
+    exact measurable_set.bInter (to_countable _) (assume i _, he₁ _) },
 
   have f_subset_f : ∀{a b c d}, a ≤ b → c ≤ d → f a d ⊆ f b c,
   { assume a b c d hab hcd,
     dsimp only [f],
     rw [finset.inf_eq_infi, finset.inf_eq_infi],
-    refine bInter_subset_bInter_left _,
-    simp,
-    rintros j ⟨hbj, hjc⟩,
-    exact ⟨le_trans hab hbj, lt_of_lt_of_le hjc $ add_le_add_right hcd 1⟩ },
+    exact bInter_subset_bInter_left (finset.Ico_subset_Ico hab $ nat.succ_le_succ hcd) },
 
   have f_succ : ∀n m, n ≤ m → f n (m + 1) = f n m ∩ e (m + 1),
   { assume n m hnm,
     have : n ≤ m + 1 := le_of_lt (nat.succ_le_succ hnm),
     simp only [f],
-    rw [finset.Ico.succ_top this, finset.inf_insert, set.inter_comm],
+    rw [nat.Ico_succ_right_eq_insert_Ico this, finset.inf_insert, set.inter_comm],
     refl },
 
   have le_d_f : ∀n m, m ≤ n → γ - 2 * ((1 / 2) ^ m) + (1 / 2) ^ n ≤ d (f m n),
@@ -131,8 +121,8 @@ begin
     refine nat.le_induction _ _ n h,
     { have := he₂ m,
       simp only [f],
-      rw [finset.Ico.succ_singleton, finset.inf_singleton],
-      exact aux this },
+      rw [nat.Ico_succ_singleton, finset.inf_singleton],
+      linarith },
     { assume n (hmn : m ≤ n) ih,
       have : γ + (γ - 2 * (1 / 2)^m + (1 / 2) ^ (n + 1)) ≤ γ + d (f m (n + 1)),
       { calc γ + (γ - 2 * (1 / 2)^m + (1 / 2) ^ (n+1)) ≤
@@ -143,7 +133,7 @@ begin
             linarith
           end
           ... = (γ - (1 / 2)^(n+1)) + (γ - 2 * (1 / 2)^m + (1 / 2)^n) :
-            by simp only [sub_eq_add_neg]; ac_refl
+            by simp only [sub_eq_add_neg]; abel
           ... ≤ d (e (n + 1)) + d (f m n) : add_le_add (le_of_lt $ he₂ _) ih
           ... ≤ d (e (n + 1)) + d (f m n \ e (n + 1)) + d (f m (n + 1)) :
             by rw [f_succ _ _ hmn, d_split (f m n) (e (n + 1)) (hf _ _) (he₁ _), add_assoc]
@@ -151,7 +141,7 @@ begin
             begin
               rw [d_split (e (n + 1) ∪ f m n) (e (n + 1)),
                 union_diff_left, union_inter_cancel_left],
-              ac_refl,
+              abel,
               exact (he₁ _).union (hf _ _),
               exact (he₁ _)
             end
@@ -162,24 +152,24 @@ begin
   let s := ⋃ m, ⋂n, f m n,
   have γ_le_d_s : γ ≤ d s,
   { have hγ : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 γ),
-    { suffices : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 (γ - 2 * 0)), { simpa },
+    { suffices : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 (γ - 2 * 0)),
+      { simpa only [mul_zero, tsub_zero] },
       exact (tendsto_const_nhds.sub $ tendsto_const_nhds.mul $
         tendsto_pow_at_top_nhds_0_of_lt_1
           (le_of_lt $ half_pos $ zero_lt_one) (half_lt_self zero_lt_one)) },
     have hd : tendsto (λm, d (⋂n, f m n)) at_top (𝓝 (d (⋃ m, ⋂ n, f m n))),
-    { refine d_Union _ _ _,
-      { assume n, exact measurable_set.Inter (assume m, hf _ _) },
-      { exact assume n m hnm, subset_Inter
-          (assume i, subset.trans (Inter_subset (f n) i) $ f_subset_f hnm $ le_refl _) } },
+    { refine d_Union _ _,
+      exact assume n m hnm, subset_Inter
+        (assume i, subset.trans (Inter_subset (f n) i) $ f_subset_f hnm $ le_rfl) },
     refine le_of_tendsto_of_tendsto' hγ hd (assume m, _),
     have : tendsto (λn, d (f m n)) at_top (𝓝 (d (⋂ n, f m n))),
     { refine d_Inter _ _ _,
       { assume n, exact hf _ _ },
-      { assume n m hnm, exact f_subset_f (le_refl _) hnm } },
+      { assume n m hnm, exact f_subset_f le_rfl hnm } },
     refine ge_of_tendsto this (eventually_at_top.2 ⟨m, assume n hmn, _⟩),
     change γ - 2 * (1 / 2) ^ m ≤ d (f m n),
     refine le_trans _ (le_d_f _ _ hmn),
-    exact le_add_of_le_of_nonneg (le_refl _) (pow_nonneg (le_of_lt $ half_pos $ zero_lt_one) _) },
+    exact le_add_of_le_of_nonneg le_rfl (pow_nonneg (le_of_lt $ half_pos $ zero_lt_one) _) },
 
   have hs : measurable_set s :=
     measurable_set.Union (assume n, measurable_set.Inter (assume m, hf _ _)),
@@ -188,19 +178,16 @@ begin
     have : 0 ≤ d t := ((add_le_add_iff_left γ).1 $
       calc γ + 0 ≤ d s : by rw [add_zero]; exact γ_le_d_s
         ... = d (s \ t) + d t : by rw [d_split _ _ hs ht, inter_eq_self_of_subset_right hts]
-        ... ≤ γ + d t : add_le_add (d_le_γ _ (hs.diff ht)) (le_refl _)),
+        ... ≤ γ + d t : add_le_add (d_le_γ _ (hs.diff ht)) le_rfl),
     rw [← to_nnreal_μ, ← to_nnreal_ν, ennreal.coe_le_coe, ← nnreal.coe_le_coe],
     simpa only [d, le_sub_iff_add_le, zero_add] using this },
   { assume t ht hts,
     have : d t ≤ 0,
     exact ((add_le_add_iff_left γ).1 $
-      calc γ + d t ≤ d s + d t : add_le_add γ_le_d_s (le_refl _)
+      calc γ + d t ≤ d s + d t : add_le_add γ_le_d_s le_rfl
         ... = d (s ∪ t) :
-        begin
-          rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
-            diff_eq_self.2],
-          exact assume a ⟨hat, has⟩, hts hat has
-        end
+          by rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
+            (subset_compl_iff_disjoint_left.1 hts).sdiff_eq_left]
         ... ≤ γ + 0 : by rw [add_zero]; exact d_le_γ _ (hs.union ht)),
     rw [← to_nnreal_μ, ← to_nnreal_ν, ennreal.coe_le_coe, ← nnreal.coe_le_coe],
     simpa only [d, sub_le_iff_le_add, zero_add] using this }

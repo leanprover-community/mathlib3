@@ -6,10 +6,12 @@ Authors: Johannes Hölzl
 import algebra.direct_sum.finsupp
 import linear_algebra.finsupp
 import linear_algebra.direct_sum.tensor_product
-import data.finsupp.to_dfinsupp
 
 /-!
 # Results on finitely supported functions.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The tensor product of ι →₀ M and κ →₀ N is linearly equivalent to (ι × κ) →₀ (M ⊗ N).
 -/
@@ -32,11 +34,9 @@ open_locale tensor_product classical
 def finsupp_tensor_finsupp (R M N ι κ : Sort*) [comm_ring R]
   [add_comm_group M] [module R M] [add_comm_group N] [module R N] :
   (ι →₀ M) ⊗[R] (κ →₀ N) ≃ₗ[R] (ι × κ) →₀ (M ⊗[R] N) :=
-linear_equiv.trans
-  (tensor_product.congr (finsupp_lequiv_direct_sum R M ι) (finsupp_lequiv_direct_sum R N κ)) $
-linear_equiv.trans
-  (tensor_product.direct_sum R ι κ (λ _, M) (λ _, N))
-  (finsupp_lequiv_direct_sum R (M ⊗[R] N) (ι × κ)).symm
+(tensor_product.congr (finsupp_lequiv_direct_sum R M ι) (finsupp_lequiv_direct_sum R N κ))
+  ≪≫ₗ ((tensor_product.direct_sum R (λ _ : ι, M) (λ _ : κ, N))
+  ≪≫ₗ (finsupp_lequiv_direct_sum R (M ⊗[R] N) (ι × κ)).symm)
 
 @[simp] theorem finsupp_tensor_finsupp_single (R M N ι κ : Sort*) [comm_ring R]
   [add_comm_group M] [module R M] [add_comm_group N] [module R N]
@@ -59,8 +59,13 @@ begin
     { intros g₁ g₂ hg₁ hg₂, simp [tmul_add, hg₁, hg₂], },
     { intros k' n,
       simp only [finsupp_tensor_finsupp_single],
-      simp only [finsupp.single, finsupp.coe_mk],
-      split_ifs; finish, } }
+      simp only [finsupp.single_apply],
+      -- split_ifs; finish can close the goal from here
+      by_cases h1 : (i', k') = (i, k),
+      { simp only [prod.mk.inj_iff] at h1, simp [h1] },
+      { simp only [h1, if_false],
+        simp only [prod.mk.inj_iff, not_and_distrib] at h1,
+        cases h1; simp [h1] } } }
 end
 
 @[simp] theorem finsupp_tensor_finsupp_symm_single (R M N ι κ : Sort*) [comm_ring R]
@@ -86,6 +91,6 @@ by simp [finsupp_tensor_finsupp']
 @[simp] lemma finsupp_tensor_finsupp'_single_tmul_single (a : α) (b : β) (r₁ r₂ : S) :
   finsupp_tensor_finsupp' S α β (finsupp.single a r₁ ⊗ₜ[S] finsupp.single b r₂) =
     finsupp.single (a, b) (r₁ * r₂) :=
-by { ext ⟨a', b'⟩, simp [finsupp.single], split_ifs; finish }
+by { ext ⟨a', b'⟩, simp [finsupp.single_apply, ite_and] }
 
 end tensor_product

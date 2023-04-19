@@ -3,7 +3,8 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.integral.lebesgue
+import measure_theory.measure.measure_space
+import analysis.complex.basic
 
 /-!
 
@@ -41,7 +42,7 @@ vector measure, signed measure, complex measure
 
 noncomputable theory
 
-open_locale classical big_operators nnreal ennreal
+open_locale classical big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -73,8 +74,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
 include m
 
-instance : has_coe_to_fun (vector_measure α M) :=
-⟨λ _, set α → M, vector_measure.measure_of'⟩
+instance : has_coe_to_fun (vector_measure α M) (λ _, set α → M) :=
+⟨vector_measure.measure_of'⟩
 
 initialize_simps_projections vector_measure (measure_of' → apply)
 
@@ -122,13 +123,14 @@ end
 
 variables [t2_space M] {v : vector_measure α M} {f : ℕ → set α}
 
-lemma has_sum_of_disjoint_Union [encodable β] {f : β → set α}
+lemma has_sum_of_disjoint_Union [countable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   has_sum (λ i, v (f i)) (v (⋃ i, f i)) :=
 begin
+  casesI nonempty_encodable β,
   set g := λ i : ℕ, ⋃ (b : β) (H : b ∈ encodable.decode₂ β i), f b with hg,
   have hg₁ : ∀ i, measurable_set (g i),
-  { exact λ _, measurable_set.Union (λ b, measurable_set.Union_Prop $ λ _, hf₁ b) },
+  { exact λ _, measurable_set.Union (λ b, measurable_set.Union $ λ _, hf₁ b) },
   have hg₂ : pairwise (disjoint on g),
   { exact encodable.Union_decode₂_disjoint_on hf₂ },
   have := v.of_disjoint_Union_nat hg₁ hg₂,
@@ -156,7 +158,7 @@ begin
       exact false.elim ((hx i) ((encodable.decode₂_is_partial_inv _ _).1 hi)) } }
 end
 
-lemma of_disjoint_Union [encodable β] {f : β → set α}
+lemma of_disjoint_Union [countable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   v (⋃ i, f i) = ∑' i, v (f i) :=
 (has_sum_of_disjoint_Union hf₁ hf₂).tsum_eq.symm
@@ -172,7 +174,7 @@ end
 lemma of_add_of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v A + v (B \ A) = v B :=
 begin
-  rw [← of_union disjoint_diff hA (hB.diff hA), union_diff_cancel h],
+  rw [← of_union disjoint_sdiff_right hA (hB.diff hA), union_diff_cancel h],
   apply_instance,
 end
 
@@ -194,12 +196,12 @@ begin
        ... = v (A \ B) + v (A ∩ B) :
   by { rw of_union,
        { rw disjoint.comm,
-         exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_diff },
+         exact set.disjoint_of_subset_left (A.inter_subset_right B) disjoint_sdiff_self_right },
        { exact hA.diff hB },
        { exact hA.inter hB } }
        ... = v (A \ B) + v (A ∩ B ∪ B \ A) :
   by { rw [of_union, h', add_zero],
-       { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_diff },
+       { exact set.disjoint_of_subset_left (A.inter_subset_left B) disjoint_sdiff_self_right },
        { exact hA.inter hB },
        { exact hB.diff hA } }
        ... = v (A \ B) + v B :
@@ -242,6 +244,28 @@ end
 
 end
 
+section has_smul
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
+
+include m
+
+/-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
+measure corresponding to the function `r • s`. -/
+def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
+{ measure_of' := r • v,
+  empty' := by rw [pi.smul_apply, empty, smul_zero],
+  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
+  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul _ (v.m_Union hf₁ hf₂) }
+
+instance : has_smul R (vector_measure α M) := ⟨smul⟩
+
+@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
+lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
+  (r • v) i = r • v i := rfl
+
+end has_smul
+
 section add_comm_monoid
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
@@ -270,10 +294,10 @@ def add (v w : vector_measure α M) : vector_measure α M :=
 instance : has_add (vector_measure α M) := ⟨add⟩
 
 @[simp] lemma coe_add (v w : vector_measure α M) : ⇑(v + w) = v + w := rfl
-lemma add_apply (v w : vector_measure α M) (i : set α) :(v + w) i = v i + w i := rfl
+lemma add_apply (v w : vector_measure α M) (i : set α) : (v + w) i = v i + w i := rfl
 
 instance : add_comm_monoid (vector_measure α M) :=
-function.injective.add_comm_monoid _ coe_injective coe_zero coe_add
+function.injective.add_comm_monoid _ coe_injective coe_zero coe_add (λ _ _, coe_smul _ _)
 
 /-- `coe_fn` is an `add_monoid_hom`. -/
 @[simps]
@@ -317,30 +341,15 @@ lemma sub_apply (v w : vector_measure α M) (i : set α) : (v - w) i = v i - w i
 
 instance : add_comm_group (vector_measure α M) :=
 function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_sub
+  (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 end add_comm_group
 
 section distrib_mul_action
-
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {R : Type*} [semiring R] [distrib_mul_action R M]
-variables [topological_space R] [has_continuous_smul R M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
 
 include m
-
-/-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
-measure corresponding to the function `r • s`. -/
-def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
-{ measure_of' := r • v,
-  empty' := by rw [pi.smul_apply, empty, smul_zero],
-  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
-  m_Union' := λ _ hf₁ hf₂, has_sum.smul (v.m_Union hf₁ hf₂) }
-
-instance : has_scalar R (vector_measure α M) := ⟨smul⟩
-
-@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
-lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
-  (r • v) i = r • v i := rfl
 
 instance [has_continuous_add M] : distrib_mul_action R (vector_measure α M) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
@@ -350,8 +359,7 @@ end distrib_mul_action
 section module
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {R : Type*} [semiring R] [module R M]
-variables [topological_space R] [has_continuous_smul R M]
+variables {R : Type*} [semiring R] [module R M] [has_continuous_const_smul R M]
 
 include m
 
@@ -380,9 +388,9 @@ def to_signed_measure (μ : measure α) [hμ : is_finite_measure μ] : signed_me
     { congr, ext n, rw if_pos (hf₁ n) },
     { refine @summable_of_nonneg_of_le _ (ennreal.to_real ∘ μ ∘ f) _ _ _ _,
       { intro, split_ifs,
-        exacts [ennreal.to_real_nonneg, le_refl _] },
+        exacts [ennreal.to_real_nonneg, le_rfl] },
       { intro, split_ifs,
-        exacts [le_refl _, ennreal.to_real_nonneg] },
+        exacts [le_rfl, ennreal.to_real_nonneg] },
         exact summable_measure_to_real hf₁ hf₂ },
     { intros a ha,
       apply ne_of_lt hμ.measure_univ_lt_top,
@@ -395,6 +403,12 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [is_finite_measure μ
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
+-- Without this lemma, `singular_part_neg` in `measure_theory.decomposition.lebesgue` is
+-- extremely slow
+lemma to_signed_measure_congr {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
+  (h : μ = ν) : μ.to_signed_measure = ν.to_signed_measure :=
+by { congr, exact h }
+
 lemma to_signed_measure_eq_to_signed_measure_iff
   {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν] :
   μ.to_signed_measure = ν.to_signed_measure ↔ μ = ν :=
@@ -405,7 +419,7 @@ begin
     { rw h },
     rwa [to_signed_measure_apply_measurable hi, to_signed_measure_apply_measurable hi,
         ennreal.to_real_eq_to_real] at this;
-    { exact measure_lt_top _ _ } },
+    { exact measure_ne_top _ _ } },
   { congr, assumption }
 end
 
@@ -429,7 +443,7 @@ end
 begin
   ext i hi,
   rw [to_signed_measure_apply_measurable hi, vector_measure.smul_apply,
-      to_signed_measure_apply_measurable hi, coe_nnreal_smul, pi.smul_apply,
+      to_signed_measure_apply_measurable hi, coe_smul, pi.smul_apply,
       ennreal.to_real_smul],
 end
 
@@ -516,9 +530,9 @@ if hf : measurable f then
   m_Union' :=
   begin
     intros g hg₁ hg₂,
-    convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij x hx, hg₂ i j hij hx),
+    convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij, (hg₂ hij).preimage _),
     { ext i, rw if_pos (hg₁ i) },
-    { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] }
+    { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] },
   end } else 0
 
 lemma map_not_measurable {f : α → β} (hf : ¬ measurable f) : v.map f = 0 :=
@@ -537,6 +551,64 @@ begin
   { ext i hi,
     rw [map_apply _ hf hi, zero_apply, zero_apply] },
   { exact dif_neg hf }
+end
+
+section
+
+variables {N : Type*} [add_comm_monoid N] [topological_space N]
+
+/-- Given a vector measure `v` on `M` and a continuous add_monoid_hom `f : M → N`, `f ∘ v` is a
+vector measure on `N`. -/
+def map_range (v : vector_measure α M) (f : M →+ N) (hf : continuous f) : vector_measure α N :=
+{ measure_of' := λ s, f (v s),
+  empty' := by rw [empty, add_monoid_hom.map_zero],
+  not_measurable' := λ i hi, by rw [not_measurable v hi, add_monoid_hom.map_zero],
+  m_Union' := λ g hg₁ hg₂, has_sum.map (v.m_Union hg₁ hg₂) f hf }
+
+@[simp] lemma map_range_apply {f : M →+ N} (hf : continuous f) {s : set α} :
+  v.map_range f hf s = f (v s) :=
+rfl
+
+@[simp] lemma map_range_id :
+  v.map_range (add_monoid_hom.id M) continuous_id = v :=
+by { ext, refl }
+
+@[simp] lemma map_range_zero {f : M →+ N} (hf : continuous f) :
+  map_range (0 : vector_measure α M) f hf = 0 :=
+by { ext, simp }
+
+section has_continuous_add
+
+variables [has_continuous_add M] [has_continuous_add N]
+
+@[simp] lemma map_range_add {v w : vector_measure α M} {f : M →+ N} (hf : continuous f) :
+  (v + w).map_range f hf = v.map_range f hf + w.map_range f hf :=
+by { ext, simp }
+
+/-- Given a continuous add_monoid_hom `f : M → N`, `map_range_hom` is the add_monoid_hom mapping the
+vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
+def map_range_hom (f : M →+ N) (hf : continuous f) : vector_measure α M →+ vector_measure α N :=
+{ to_fun := λ v, v.map_range f hf,
+  map_zero' := map_range_zero hf,
+  map_add' := λ _ _, map_range_add hf }
+
+end has_continuous_add
+
+section module
+
+variables {R : Type*} [semiring R] [module R M] [module R N]
+variables [has_continuous_add M] [has_continuous_add N]
+  [has_continuous_const_smul R M] [has_continuous_const_smul R N]
+
+/-- Given a continuous linear map `f : M → N`, `map_rangeₗ` is the linear map mapping the
+vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
+def map_rangeₗ (f : M →ₗ[R] N) (hf : continuous f) : vector_measure α M →ₗ[R] vector_measure α N :=
+{ to_fun := λ v, v.map_range f.to_add_monoid_hom hf,
+  map_add' := λ _ _, map_range_add hf,
+  map_smul' := by { intros, ext, simp } }
+
+end module
+
 end
 
 /-- The restriction of a vector measure on some set. -/
@@ -623,8 +695,7 @@ section
 
 variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {R : Type*} [semiring R] [distrib_mul_action R M]
-variables [topological_space R] [has_continuous_smul R M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
 
 include m
 
@@ -657,7 +728,7 @@ section
 variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [module R M]
-variables [topological_space R] [has_continuous_smul R M] [has_continuous_add M]
+  [has_continuous_const_smul R M] [has_continuous_add M]
 
 include m
 
@@ -686,7 +757,7 @@ include m
 This definition is consistent with `measure.partial_order`. -/
 instance : partial_order (vector_measure α M) :=
 { le          := λ v w, ∀ i, measurable_set i → v i ≤ w i,
-  le_refl     := λ v i hi, le_refl _,
+  le_refl     := λ v i hi, le_rfl,
   le_trans    := λ u v w h₁ h₂ i hi, le_trans (h₁ i hi) (h₂ i hi),
   le_antisymm := λ v w h₁ h₂, ext (λ i hi, le_antisymm (h₁ i hi) (h₂ i hi)) }
 
@@ -705,9 +776,9 @@ end
 
 end
 
-localized "notation v ` ≤[`:50 i:50 `] `:0 w:50 :=
-measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
-in measure_theory
+localized "notation (name := vector_measure.restrict) v ` ≤[`:50 i:50 `] `:0 w:50 :=
+  measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
+  in measure_theory
 
 section
 
@@ -735,7 +806,7 @@ begin
   by_cases hi : measurable_set i,
   { exact (restrict_le_restrict_iff _ _ hi).2 h },
   { rw [restrict_not_measurable v hi, restrict_not_measurable w hi],
-    exact le_refl _ },
+    exact le_rfl },
 end
 
 lemma restrict_le_restrict_subset {i j : set α}
@@ -812,10 +883,11 @@ begin
   { exact λ n, ha₁.inter (measurable_set.disjointed hf₁ n) }
 end
 
-lemma restrict_le_restrict_encodable_Union [encodable β] {f : β → set α}
+lemma restrict_le_restrict_countable_Union [countable β] {f : β → set α}
   (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v ≤[f b] w) :
   v ≤[⋃ b, f b] w :=
 begin
+  casesI nonempty_encodable β,
   rw ← encodable.Union_decode₂,
   refine restrict_le_restrict_Union v w _ _,
   { intro n, measurability },
@@ -831,7 +903,7 @@ lemma restrict_le_restrict_union
   v ≤[i ∪ j] w :=
 begin
   rw union_eq_Union,
-  refine restrict_le_restrict_encodable_Union v w _ _,
+  refine restrict_le_restrict_countable_Union v w _ _,
   { measurability },
   { rintro (_ | _); simpa }
 end
@@ -863,14 +935,14 @@ lemma zero_le_restrict_not_measurable (hi : ¬ measurable_set i) :
   0 ≤[i] v :=
 begin
   rw [restrict_zero, restrict_not_measurable _ hi],
-  exact le_refl _,
+  exact le_rfl,
 end
 
 lemma restrict_le_zero_of_not_measurable (hi : ¬ measurable_set i) :
   v ≤[i] 0 :=
 begin
   rw [restrict_zero, restrict_not_measurable _ hi],
-  exact le_refl _,
+  exact le_rfl,
 end
 
 lemma measurable_of_not_zero_le_restrict (hi : ¬ 0 ≤[i] v) : measurable_set i :=
@@ -936,13 +1008,18 @@ include m
 def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
 ∀ ⦃s : set α⦄, w s = 0 → v s = 0
 
-infix ` ≪ `:50 := absolutely_continuous
+
+localized "infix (name := vector_measure.absolutely_continuous)
+  ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
+  in measure_theory
+
+open_locale measure_theory
 
 namespace absolutely_continuous
 
 variables {v : vector_measure α M} {w : vector_measure α N}
 
-lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ w :=
+lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ᵥ w :=
 begin
   intros s hs,
   by_cases hmeas : measurable_set s,
@@ -950,17 +1027,47 @@ begin
   { exact not_measurable v hmeas }
 end
 
-lemma eq {w : vector_measure α M} (h : v = w) : v ≪ w :=
+lemma eq {w : vector_measure α M} (h : v = w) : v ≪ᵥ w :=
 λ s hs, h.symm ▸ hs
 
-@[refl] lemma refl (v : vector_measure α M) : v ≪ v :=
+@[refl] lemma refl (v : vector_measure α M) : v ≪ᵥ v :=
 eq rfl
 
-@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ v) (hvw : v ≪ w) : u ≪ w :=
+@[trans] lemma trans {u : vector_measure α L} {v : vector_measure α M} {w : vector_measure α N}
+  (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
 λ _ hs, huv $ hvw hs
 
-lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
-  v.map f ≪ w.map f :=
+lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ᵥ v :=
+λ s _, vector_measure.zero_apply s
+
+lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) : -v ≪ᵥ w :=
+λ s hs, by { rw [neg_apply, h hs, neg_zero] }
+
+lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) : v ≪ᵥ -w :=
+begin
+  intros s hs,
+  rw [neg_apply, neg_eq_zero] at hs,
+  exact h hs
+end
+
+lemma add [has_continuous_add M] {v₁ v₂ : vector_measure α M} {w : vector_measure α N}
+  (hv₁ : v₁ ≪ᵥ w) (hv₂ : v₂ ≪ᵥ w) : v₁ + v₂ ≪ᵥ w :=
+λ s hs, by { rw [add_apply, hv₁ hs, hv₂ hs, zero_add] }
+
+lemma sub {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v₁ v₂ : vector_measure α M} {w : vector_measure α N} (hv₁ : v₁ ≪ᵥ w) (hv₂ : v₂ ≪ᵥ w) :
+  v₁ - v₂ ≪ᵥ w :=
+λ s hs, by { rw [sub_apply, hv₁ hs, hv₂ hs, zero_sub, neg_zero] }
+
+lemma smul {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
+  {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) :
+  r • v ≪ᵥ w :=
+λ s hs, by { rw [smul_apply, h hs, smul_zero] }
+
+lemma map [measure_space β] (h : v ≪ᵥ w) (f : α → β) :
+  v.map f ≪ᵥ w.map f :=
 begin
   by_cases hf : measurable f,
   { refine mk (λ s hs hws, _),
@@ -971,7 +1078,7 @@ begin
 end
 
 lemma ennreal_to_measure {μ : vector_measure α ℝ≥0∞} :
-  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ μ :=
+  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ᵥ μ :=
 begin
   split; intro h,
   { refine mk (λ s hmeas hs, h _),
@@ -984,6 +1091,154 @@ begin
 end
 
 end absolutely_continuous
+
+/-- Two vector measures `v` and `w` are said to be mutually singular if there exists a measurable
+set `s`, such that for all `t ⊆ s`, `v t = 0` and for all `t ⊆ sᶜ`, `w t = 0`.
+
+We note that we do not require the measurability of `t` in the definition since this makes it easier
+to use. This is equivalent to the definition which requires measurability. To prove
+`mutually_singular` with the measurability condition, use
+`measure_theory.vector_measure.mutually_singular.mk`. -/
+def mutually_singular (v : vector_measure α M) (w : vector_measure α N) : Prop :=
+∃ (s : set α), measurable_set s ∧ (∀ t ⊆ s, v t = 0) ∧ (∀ t ⊆ sᶜ, w t = 0)
+
+localized "infix (name := vector_measure.mutually_singular)
+  ` ⟂ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
+
+namespace mutually_singular
+
+variables {v v₁ v₂ : vector_measure α M} {w w₁ w₂ : vector_measure α N}
+
+lemma mk (s : set α) (hs : measurable_set s)
+  (h₁ : ∀ t ⊆ s, measurable_set t → v t = 0)
+  (h₂ : ∀ t ⊆ sᶜ, measurable_set t → w t = 0) : v ⟂ᵥ w :=
+begin
+  refine ⟨s, hs, λ t hst, _, λ t hst, _⟩;
+  by_cases ht : measurable_set t,
+  { exact h₁ t hst ht },
+  { exact not_measurable v ht },
+  { exact h₂ t hst ht },
+  { exact not_measurable w ht }
+end
+
+lemma symm (h : v ⟂ᵥ w) : w ⟂ᵥ v :=
+let ⟨s, hmeas, hs₁, hs₂⟩ := h in
+  ⟨sᶜ, hmeas.compl, hs₂, λ t ht, hs₁ _ (compl_compl s ▸ ht : t ⊆ s)⟩
+
+lemma zero_right : v ⟂ᵥ (0 : vector_measure α N) :=
+⟨∅, measurable_set.empty, λ t ht, (subset_empty_iff.1 ht).symm ▸ v.empty, λ _ _, zero_apply _⟩
+
+lemma zero_left : (0 : vector_measure α M) ⟂ᵥ w :=
+zero_right.symm
+
+lemma add_left [t2_space N] [has_continuous_add M] (h₁ : v₁ ⟂ᵥ w) (h₂ : v₂ ⟂ᵥ w) : v₁ + v₂ ⟂ᵥ w :=
+begin
+  obtain ⟨u, hmu, hu₁, hu₂⟩ := h₁,
+  obtain ⟨v, hmv, hv₁, hv₂⟩ := h₂,
+  refine mk (u ∩ v) (hmu.inter hmv) (λ t ht hmt, _) (λ t ht hmt, _),
+  { rw [add_apply, hu₁ _ (subset_inter_iff.1 ht).1, hv₁ _ (subset_inter_iff.1 ht).2, zero_add] },
+  { rw compl_inter at ht,
+    rw [(_ : t = (uᶜ ∩ t) ∪ (vᶜ \ uᶜ ∩ t)),
+        of_union _ (hmu.compl.inter hmt) ((hmv.compl.diff hmu.compl).inter hmt),
+        hu₂, hv₂, add_zero],
+    { exact subset.trans (inter_subset_left _ _) (diff_subset _ _) },
+    { exact inter_subset_left _ _ },
+    { apply_instance },
+    { exact disjoint_sdiff_self_right.mono (inter_subset_left _ _) (inter_subset_left _ _) },
+    { apply subset.antisymm;
+      intros x hx,
+      { by_cases hxu' : x ∈ uᶜ,
+        { exact or.inl ⟨hxu', hx⟩ },
+        rcases ht hx with (hxu | hxv),
+        exacts [false.elim (hxu' hxu), or.inr ⟨⟨hxv, hxu'⟩, hx⟩] },
+      { rcases hx; exact hx.2 } } },
+end
+
+lemma add_right [t2_space M] [has_continuous_add N] (h₁ : v ⟂ᵥ w₁) (h₂ : v ⟂ᵥ w₂) : v ⟂ᵥ w₁ + w₂ :=
+(add_left h₁.symm h₂.symm).symm
+
+lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [has_continuous_const_smul R N]
+  (r : R) (h : v ⟂ᵥ w) : v ⟂ᵥ r • w :=
+let ⟨s, hmeas, hs₁, hs₂⟩ := h in
+  ⟨s, hmeas, hs₁, λ t ht, by simp only [coe_smul, pi.smul_apply, hs₂ t ht, smul_zero]⟩
+
+lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
+  (r : R) (h : v ⟂ᵥ w) : r • v ⟂ᵥ w :=
+(smul_right r h.symm).symm
+
+lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⟂ᵥ w) : -v ⟂ᵥ w :=
+begin
+  obtain ⟨u, hmu, hu₁, hu₂⟩ := h,
+  refine ⟨u, hmu, λ s hs, _, hu₂⟩,
+  rw [neg_apply v s, neg_eq_zero],
+  exact hu₁ s hs
+end
+
+lemma neg_right {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} (h : v ⟂ᵥ w) : v ⟂ᵥ -w :=
+h.symm.neg_left.symm
+
+@[simp]
+lemma neg_left_iff {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+  {v : vector_measure α M} {w : vector_measure α N} :
+  -v ⟂ᵥ w ↔ v ⟂ᵥ w :=
+⟨λ h, neg_neg v ▸ h.neg_left, neg_left⟩
+
+@[simp]
+lemma neg_right_iff {N : Type*} [add_comm_group N] [topological_space N] [topological_add_group N]
+  {v : vector_measure α M} {w : vector_measure α N} :
+  v ⟂ᵥ -w ↔ v ⟂ᵥ w :=
+⟨λ h, neg_neg w ▸ h.neg_right, neg_right⟩
+
+end mutually_singular
+
+section trim
+
+omit m
+
+/-- Restriction of a vector measure onto a sub-σ-algebra. -/
+@[simps] def trim {m n : measurable_space α} (v : vector_measure α M) (hle : m ≤ n) :
+  @vector_measure α m M _ _ :=
+{ measure_of' := λ i, if measurable_set[m] i then v i else 0,
+  empty' := by rw [if_pos measurable_set.empty, v.empty],
+  not_measurable' := λ i hi, by rw if_neg hi,
+  m_Union' := λ f hf₁ hf₂,
+  begin
+    have hf₁' : ∀ k, measurable_set[n] (f k) := λ k, hle _ (hf₁ k),
+    convert v.m_Union hf₁' hf₂,
+    { ext n, rw if_pos (hf₁ n) },
+    { rw if_pos (@measurable_set.Union _ _ m _ _ hf₁) }
+  end }
+
+variables {n : measurable_space α} {v : vector_measure α M}
+
+lemma trim_eq_self : v.trim le_rfl = v :=
+begin
+  ext1 i hi,
+  exact if_pos hi,
+end
+
+@[simp] lemma zero_trim (hle : m ≤ n) :
+  (0 : vector_measure α M).trim hle = 0 :=
+begin
+  ext1 i hi,
+  exact if_pos hi,
+end
+
+lemma trim_measurable_set_eq (hle : m ≤ n) {i : set α} (hi : measurable_set[m] i) :
+  v.trim hle i = v i :=
+if_pos hi
+
+lemma restrict_trim (hle : m ≤ n) {i : set α} (hi : measurable_set[m] i) :
+  @vector_measure.restrict α m M _ _ (v.trim hle) i = (v.restrict i).trim hle :=
+begin
+  ext j hj,
+  rw [restrict_apply, trim_measurable_set_eq hle hj, restrict_apply, trim_measurable_set_eq],
+  all_goals { measurability }
+end
+
+end trim
 
 end
 
@@ -1013,8 +1268,8 @@ measure.of_measurable (s.to_measure_of_zero_le' i hi₂)
     intros f hf₁ hf₂,
     have h₁ : ∀ n, measurable_set (i ∩ f n) := λ n, hi₁.inter (hf₁ n),
     have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
-    { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
-      exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
+    { intros n m hnm,
+      exact (((hf₂ hnm).inf_left' i).inf_right' i) },
     simp only [to_measure_of_zero_le', s.restrict_apply hi₁ (measurable_set.Union hf₁),
                set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
                ennreal.some_eq_coe, id.def],

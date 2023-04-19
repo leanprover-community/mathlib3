@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.reflexive
-import category_theory.adjunction
 import category_theory.monad.adjunction
 import category_theory.monad.coequalizer
 
@@ -200,10 +199,9 @@ noncomputable def monadic_adjoint_triangle_lift (U : B ⥤ C) [monadic_right_adj
   is_right_adjoint R :=
 begin
   let R' : A ⥤ _ := R ⋙ monad.comparison (adjunction.of_right_adjoint U),
-  suffices : is_right_adjoint R',
+  rsufficesI : is_right_adjoint R',
   { let : is_right_adjoint (R' ⋙ (monad.comparison (adjunction.of_right_adjoint U)).inv),
-    { resetI,
-      apply_instance },
+    { apply_instance },
     { let : R' ⋙ (monad.comparison (adjunction.of_right_adjoint U)).inv ≅ R :=
         (iso_whisker_left R (monad.comparison _).as_equivalence.unit_iso.symm : _) ≪≫
           R.right_unitor,

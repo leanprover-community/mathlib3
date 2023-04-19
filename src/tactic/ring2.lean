@@ -475,7 +475,7 @@ namespace interactive
 open interactive interactive.types lean.parser
 open tactic.ring2
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /-- `ring2` solves equations in the language of rings.
 

@@ -139,6 +139,15 @@ by exactI computable (λ a, to_bool (p a))
 def re_pred {α} [primcodable α] (p : α → Prop) :=
 partrec (λ a, part.assert (p a) (λ _, part.some ()))
 
+theorem re_pred.of_eq {α} [primcodable α]
+  {p q : α → Prop}
+  (hp : re_pred p) (H : ∀ a, p a ↔ q a) : re_pred q :=
+(funext (λ a, propext (H a)) : p = q) ▸ hp
+
+theorem partrec.dom_re {α β} [primcodable α] [primcodable β]
+  {f : α →. β} (h : partrec f) : re_pred (λ a, (f a).dom) :=
+(h.map (computable.const ()).to₂).of_eq $ λ n, part.ext $ λ _, by simp [part.dom_iff_mem]
+
 theorem computable_pred.of_eq {α} [primcodable α]
   {p q : α → Prop}
   (hp : computable_pred p) (H : ∀ a, p a ↔ q a) : computable_pred q :=
@@ -194,13 +203,16 @@ have hC : ∀ f, f ∈ C ↔ eval f ∈ eval '' C,
 from λ f, ⟨set.mem_image_of_mem _, λ ⟨g, hg, e⟩, (H _ _ e).1 hg⟩,
 ⟨λ h, or_iff_not_imp_left.2 $ λ C0,
   set.eq_univ_of_forall $ λ cg,
-  let ⟨cf, fC⟩ := set.ne_empty_iff_nonempty.1 C0 in
+  let ⟨cf, fC⟩ := set.nonempty_iff_ne_empty.2 C0 in
   (hC _).2 $ rice (eval '' C) (h.of_eq hC)
     (partrec.nat_iff.1 $ eval_part.comp (const cf) computable.id)
     (partrec.nat_iff.1 $ eval_part.comp (const cg) computable.id)
     ((hC _).1 fC),
-λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_eq];
+λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_iff_false];
   exact ⟨by apply_instance, computable.const _⟩⟩
+
+theorem halting_problem_re (n) : re_pred (λ c, (eval c n).dom) :=
+(eval_part.comp computable.id (computable.const _)).dom_re
 
 theorem halting_problem (n) : ¬ computable_pred (λ c, (eval c n).dom)
 | h := rice {f | (f n).dom} h nat.partrec.zero nat.partrec.none trivial
@@ -219,6 +231,13 @@ theorem computable_iff_re_compl_re {p : α → Prop} [decidable_pred p] :
     rw hk, simp, apply decidable.em },
   { intros a x hx y hy, simp at hx hy, cases hy.1 hx.1 }
 end⟩⟩
+
+theorem computable_iff_re_compl_re' {p : α → Prop} :
+  computable_pred p ↔ re_pred p ∧ re_pred (λ a, ¬ p a) :=
+by classical; exact computable_iff_re_compl_re
+
+theorem halting_problem_not_re (n) : ¬ re_pred (λ c, ¬ (eval c n).dom)
+| h := halting_problem _ $ computable_iff_re_compl_re'.2 ⟨halting_problem_re _, h⟩
 
 end computable_pred
 
@@ -243,10 +262,10 @@ theorem to_part {n f} (pf : @partrec' n f) : partrec f :=
 begin
   induction pf,
   case nat.partrec'.prim : n f hf { exact hf.to_prim.to_comp },
-  case nat.partrec'.comp : m n f g _ _ hf hg {
-    exact (vector_m_of_fn (λ i, hg i)).bind (hf.comp snd) },
-  case nat.partrec'.rfind : n f _ hf {
-    have := ((primrec.eq.comp primrec.id (primrec.const 0)).to_comp.comp
+  case nat.partrec'.comp : m n f g _ _ hf hg
+  { exact (vector_m_of_fn (λ i, hg i)).bind (hf.comp snd) },
+  case nat.partrec'.rfind : n f _ hf
+  { have := ((primrec.eq.comp primrec.id (primrec.const 0)).to_comp.comp
       (hf.comp (vector_cons.comp snd fst))).to₂.partrec₂,
     exact this.rfind },
 end
@@ -282,6 +301,8 @@ protected theorem map {n f} {g : vector ℕ (n+1) → ℕ}
 by simp [(part.bind_some_eq_map _ _).symm];
    exact hf.bind hg
 
+local attribute [-instance] part.has_zero
+
 /-- Analogous to `nat.partrec'` for `ℕ`-valued functions, a predicate for partial recursive
   vector-valued functions.-/
 def vec {n m} (f : vector ℕ n → vector ℕ m) :=
@@ -315,13 +336,14 @@ theorem rfind_opt {n} {f : vector ℕ (n+1) → ℕ}
    .comp₁ (λ n, part.some (1 - n)) hf)
    .bind ((prim nat.primrec'.pred).comp₁ nat.pred hf)).of_eq $
 λ v, part.ext $ λ b, begin
-  simp [nat.rfind_opt, -nat.mem_rfind],
+  simp only [nat.rfind_opt, exists_prop, tsub_eq_zero_iff_le, pfun.coe_val,
+    part.mem_bind_iff, part.mem_some_iff, option.mem_def, part.mem_coe],
   refine exists_congr (λ a,
     (and_congr (iff_of_eq _) iff.rfl).trans (and_congr_right (λ h, _))),
-  { congr; funext n,
-    simp, cases f (n ::ᵥ v); simp [nat.succ_ne_zero]; refl },
+  { congr, funext n,
+    simp only [part.some_inj, pfun.coe_val], cases f (n ::ᵥ v); simp [nat.succ_le_succ]; refl },
   { have := nat.rfind_spec h,
-    simp at this,
+    simp only [pfun.coe_val, part.mem_some_iff] at this,
     cases f (a ::ᵥ v) with c, {cases this},
     rw [← option.some_inj, eq_comm], refl }
 end

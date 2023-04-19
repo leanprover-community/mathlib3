@@ -3,10 +3,14 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
+import order.complete_lattice
 import order.galois_connection
 
 /-!
 # Relations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines bundled relations. A relation between `α` and `β` is a function `α → β → Prop`.
 Relations are also known as set-valued functions, or partial multifunctions.
@@ -30,7 +34,7 @@ Relations are also known as set-valued functions, or partial multifunctions.
 
 variables {α β γ : Type*}
 
-/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction --/
+/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction -/
 @[derive complete_lattice, derive inhabited]
 def rel (α β : Type*) := α → β → Prop
 
@@ -48,6 +52,9 @@ lemma inv_inv : inv (inv r) = r := by { ext x y, reflexivity }
 /-- Domain of a relation -/
 def dom := {x | ∃ y, r x y}
 
+lemma dom_mono {r s : rel α β} (h : r ≤ s) : dom r ⊆ dom s :=
+λ a ⟨b, hx⟩, ⟨b, h a b hx⟩
+
 /-- Codomain aka range of a relation -/
 def codom := {y | ∃ x, r x y}
 
@@ -59,7 +66,7 @@ lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
 λ x z, ∃ y, r x y ∧ s y z
 
-local infixr ` ∘ ` := rel.comp
+local infixr (name := rel.comp) ` ∘ ` := rel.comp
 
 lemma comp_assoc (r : rel α β) (s : rel β γ) (t : rel γ δ) :
   (r ∘ s) ∘ t = r ∘ s ∘ t :=
@@ -108,7 +115,7 @@ by { ext x, simp [mem_image] }
 
 lemma image_comp (s : rel β γ) (t : set α) : image (r ∘ s) t = image s (image r t) :=
 begin
-  ext z, simp only [mem_image, comp], split,
+  ext z, simp only [mem_image], split,
   { rintros ⟨x, xt, y, rxy, syz⟩, exact ⟨y, ⟨x, xt, rxy⟩, syz⟩ },
   rintros ⟨y, ⟨x, xt, rxy⟩, syz⟩, exact ⟨x, xt, y, rxy, syz⟩
 end

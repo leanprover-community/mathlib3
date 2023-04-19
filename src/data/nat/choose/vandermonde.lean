@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import data.polynomial.coeff
 import data.nat.choose.basic
-import ring_theory.polynomial.basic
 
 /-!
 
 # Vandermonde's identity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove Vandermonde's identity (`nat.add_choose_eq`):
 `(m + n).choose k = ∑ (ij : ℕ × ℕ) in antidiagonal k, m.choose ij.1 * n.choose ij.2`

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.constructions.prod
+import measure_theory.group.measure
+import topology.constructions
 
 /-!
 # Product measures
@@ -16,6 +18,13 @@ In this file we define and prove properties about finite products of measures
 * `measure_theory.measure.pi`: The product of finitely many σ-finite measures.
   Given `μ : Π i : ι, measure (α i)` for `[fintype ι]` it has type `measure (Π i : ι, α i)`.
 
+To apply Fubini along some subset of the variables, use
+`measure_theory.measure_preserving_pi_equiv_pi_subtype_prod` to reduce to the situation of a product
+of two measures: this lemma states that the bijection
+`measurable_equiv.pi_equiv_pi_subtype_prod α p` between `(Π i : ι, α i)` and
+`(Π i : {i // p i}, α i) × (Π i : {i // ¬ p i}, α i)` maps a product measure to a direct product of
+product measures, to which one can apply the usual Fubini for direct product of measures.
+
 ## Implementation Notes
 
 We define `measure_theory.outer_measure.pi`, the product of finitely many outer measures, as the
@@ -25,12 +34,12 @@ where `pi univ s` is the product of the sets `{s i | i : ι}`.
 We then show that this induces a product of measures, called `measure_theory.measure.pi`.
 For a collection of σ-finite measures `μ` and a collection of measurable sets `s` we show that
 `measure.pi μ (pi univ s) = ∏ i, m i (s i)`. To do this, we follow the following steps:
-* We know that there is some ordering on `ι`, given by an element of `[encodable ι]`.
+* We know that there is some ordering on `ι`, given by an element of `[countable ι]`.
 * Using this, we have an equivalence `measurable_equiv.pi_measurable_equiv_tprod` between
   `Π ι, α i` and an iterated product of `α i`, called `list.tprod α l` for some list `l`.
 * On this iterated product we can easily define a product measure `measure_theory.measure.tprod`
   by iterating `measure_theory.measure.prod`
-* Using the previous two steps we construct `measure_theory.measure.pi'` on `Π ι, α i` for encodable
+* Using the previous two steps we construct `measure_theory.measure.pi'` on `Π ι, α i` for countable
   `ι`.
 * We know that `measure_theory.measure.pi'` sends products of sets to products of measures, and
   since `measure_theory.measure.pi` is the maximal such measure (or at least, it comes from an outer
@@ -45,7 +54,9 @@ finitary product measure
 
 noncomputable theory
 open function set measure_theory.outer_measure filter measurable_space encodable
-open_locale classical big_operators topological_space ennreal
+open_locale classical big_operators topology ennreal
+
+universes u v
 
 variables {ι ι' : Type*} {α : ι → Type*}
 
@@ -55,9 +66,9 @@ variables {ι ι' : Type*} {α : ι → Type*}
 lemma is_pi_system.pi {C : Π i, set (set (α i))} (hC : ∀ i, is_pi_system (C i)) :
   is_pi_system (pi univ '' pi univ C) :=
 begin
-  rintro _ _ ⟨s₁, hs₁, rfl⟩ ⟨s₂, hs₂, rfl⟩ hst,
+  rintro _ ⟨s₁, hs₁, rfl⟩ _ ⟨s₂, hs₂, rfl⟩ hst,
   rw [← pi_inter_distrib] at hst ⊢, rw [univ_pi_nonempty_iff] at hst,
-  exact mem_image_of_mem _ (λ i _, hC i _ _ (hs₁ i (mem_univ i)) (hs₂ i (mem_univ i)) (hst i))
+  exact mem_image_of_mem _ (λ i _, hC i _ (hs₁ i (mem_univ i)) _ (hs₂ i (mem_univ i)) (hst i))
 end
 
 /-- Boxes form a π-system. -/
@@ -65,7 +76,8 @@ lemma is_pi_system_pi [Π i, measurable_space (α i)] :
   is_pi_system (pi univ '' pi univ (λ i, {s : set (α i) | measurable_set s})) :=
 is_pi_system.pi (λ i, is_pi_system_measurable_set)
 
-variables [fintype ι] [fintype ι']
+section finite
+variables [finite ι] [finite ι']
 
 /-- Boxes of countably spanning sets are countably spanning. -/
 lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
@@ -73,7 +85,7 @@ lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
   is_countably_spanning (pi univ '' pi univ C) :=
 begin
   choose s h1s h2s using hC,
-  haveI := fintype.encodable ι,
+  casesI nonempty_encodable (ι → ℕ),
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, s i (e n i)), λ n, mem_image_of_mem _ (λ i _, h1s i _), _⟩,
   simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, s i (x i))),
@@ -86,7 +98,7 @@ lemma generate_from_pi_eq {C : Π i, set (set (α i))}
   (hC : ∀ i, is_countably_spanning (C i)) :
   @measurable_space.pi _ _ (λ i, generate_from (C i)) = generate_from (pi univ '' pi univ C) :=
 begin
-  haveI := fintype.encodable ι,
+  casesI nonempty_encodable ι,
   apply le_antisymm,
   { refine supr_le _, intro i, rw [comap_generate_from],
     apply generate_from_le, rintro _ ⟨s, hs, rfl⟩, dsimp,
@@ -115,16 +127,18 @@ lemma generate_from_eq_pi [h : Π i, measurable_space (α i)]
   generate_from (pi univ '' pi univ C) = measurable_space.pi :=
 by rw [← funext hC, generate_from_pi_eq h2C]
 
-/-- The product σ-algebra is generated from boxes, i.e. `s.prod t` for sets `s : set α` and
+/-- The product σ-algebra is generated from boxes, i.e. `s ×ˢ t` for sets `s : set α` and
   `t : set β`. -/
 lemma generate_from_pi [Π i, measurable_space (α i)] :
   generate_from (pi univ '' pi univ (λ i, { s : set (α i) | measurable_set s})) =
   measurable_space.pi :=
 generate_from_eq_pi (λ i, generate_from_measurable_set) (λ i, is_countably_spanning_measurable_set)
 
+end finite
+
 namespace measure_theory
 
-variables {m : Π i, outer_measure (α i)}
+variables [fintype ι] {m : Π i, outer_measure (α i)}
 
 /-- An upper bound for the measure in a finite product space.
   It is defined to by taking the image of the set under all projections, and taking the product
@@ -137,9 +151,11 @@ lemma pi_premeasure_pi {s : Π i, set (α i)} (hs : (pi univ s).nonempty) :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 by simp [hs]
 
-lemma pi_premeasure_pi' [nonempty ι] {s : Π i, set (α i)} :
+lemma pi_premeasure_pi' {s : Π i, set (α i)} :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 begin
+  casesI is_empty_or_nonempty ι,
+  { simp, },
   cases (pi univ s).eq_empty_or_nonempty with h h,
   { rcases univ_pi_eq_empty_iff.mp h with ⟨i, hi⟩,
     have : ∃ i, m i (s i) = 0 := ⟨i, by simp [hi]⟩,
@@ -152,7 +168,7 @@ lemma pi_premeasure_pi_mono {s t : set (Π i, α i)} (h : s ⊆ t) :
   pi_premeasure m s ≤ pi_premeasure m t :=
 finset.prod_le_prod' (λ i _, (m i).mono' (image_subset _ h))
 
-lemma pi_premeasure_pi_eval [nonempty ι] {s : set (Π i, α i)} :
+lemma pi_premeasure_pi_eval {s : set (Π i, α i)} :
   pi_premeasure m (pi univ (λ i, eval i '' s)) = pi_premeasure m s :=
 by simp [pi_premeasure_pi']
 
@@ -211,20 +227,11 @@ begin
 end
 
 lemma tprod_tprod (l : list δ) (μ : Π i, measure (π i)) [∀ i, sigma_finite (μ i)]
-  {s : Π i, set (π i)} (hs : ∀ i, measurable_set (s i)) :
+  (s : Π i, set (π i)) :
   measure.tprod l μ (set.tprod l s) = (l.map (λ i, (μ i) (s i))).prod :=
 begin
   induction l with i l ih, { simp },
-  simp_rw [tprod_cons, set.tprod, prod_prod (hs i) (measurable_set.tprod l hs), map_cons,
-    prod_cons, ih]
-end
-
-lemma tprod_tprod_le (l : list δ) (μ : Π i, measure (π i)) [∀ i, sigma_finite (μ i)]
-  (s : Π i, set (π i)) : measure.tprod l μ (set.tprod l s) ≤ (l.map (λ i, (μ i) (s i))).prod :=
-begin
-  induction l with i l ih, { simp [le_refl] },
-  simp_rw [tprod_cons, set.tprod, map_cons, prod_cons],
-  refine (prod_prod_le _ _).trans _, exact ennreal.mul_left_mono ih
+  rw [tprod_cons, set.tprod, prod_prod, map_cons, prod_cons, ih]
 end
 
 end tprod
@@ -240,28 +247,10 @@ variables [encodable ι]
 def pi' : measure (Π i, α i) :=
 measure.map (tprod.elim' mem_sorted_univ) (measure.tprod (sorted_univ ι) μ)
 
-lemma pi'_pi [∀ i, sigma_finite (μ i)] {s : Π i, set (α i)}
-  (hs : ∀ i, measurable_set (s i)) : pi' μ (pi univ s) = ∏ i, μ i (s i) :=
-begin
-  have hl := λ i : ι, mem_sorted_univ i,
-  have hnd := @sorted_univ_nodup ι _ _,
-  rw [pi', map_apply (measurable_tprod_elim' hl) (measurable_set.pi_fintype (λ i _, hs i)),
-    elim_preimage_pi hnd, tprod_tprod _ μ hs, ← list.prod_to_finset _ hnd],
-  congr' with i, simp [hl]
-end
-
-lemma pi'_pi_le [∀ i, sigma_finite (μ i)] {s : Π i, set (α i)} :
-  pi' μ (pi univ s) ≤ ∏ i, μ i (s i) :=
-begin
-  have hl := λ i : ι, mem_sorted_univ i,
-  have hnd := @sorted_univ_nodup ι _ _,
-  apply ((pi_measurable_equiv_tprod hnd hl).symm.map_apply (pi univ s)).trans_le,
-  dsimp only [pi_measurable_equiv_tprod, tprod.pi_equiv_tprod, coe_symm_mk, equiv.coe_fn_symm_mk],
-  rw [elim_preimage_pi hnd],
-  refine (tprod_tprod_le _ _ _).trans_eq _,
-  rw [← list.prod_to_finset _ hnd],
-  congr' with i, simp [hl]
-end
+lemma pi'_pi [∀ i, sigma_finite (μ i)] (s : Π i, set (α i)) : pi' μ (pi univ s) = ∏ i, μ i (s i) :=
+by rw [pi', ← measurable_equiv.pi_measurable_equiv_tprod_symm_apply, measurable_equiv.map_apply,
+  measurable_equiv.pi_measurable_equiv_tprod_symm_apply, elim_preimage_pi, tprod_tprod _ μ,
+  ← list.prod_to_finset, sorted_univ_to_finset]; exact sorted_univ_nodup ι
 
 end encodable
 
@@ -276,7 +265,7 @@ begin
   intro t,
   simp_rw [pi_premeasure],
   refine finset.prod_add_prod_le' (finset.mem_univ i) _ _ _,
-  { simp [image_inter_preimage, image_diff_preimage, (μ i).caratheodory hs, le_refl] },
+  { simp [image_inter_preimage, image_diff_preimage, measure_inter_add_diff _ hs, le_refl] },
   { rintro j - hj, apply mono', apply image_subset, apply inter_subset_left },
   { rintro j - hj, apply mono', apply image_subset, apply diff_subset }
 end
@@ -286,63 +275,57 @@ end
 @[irreducible] protected def pi : measure (Π i, α i) :=
 to_measure (outer_measure.pi (λ i, (μ i).to_outer_measure)) (pi_caratheodory μ)
 
-lemma pi_pi [∀ i, sigma_finite (μ i)] (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
+lemma pi_pi_aux [∀ i, sigma_finite (μ i)] (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
   measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
   refine le_antisymm _ _,
-  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i))],
+  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi countable_univ (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
-  { haveI : encodable ι := fintype.encodable ι,
-    rw [← pi'_pi μ hs],
-    simp_rw [← pi'_pi μ hs, measure.pi,
-      to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
+  { haveI : encodable ι := fintype.to_encodable ι,
+    rw [← pi'_pi μ s],
+    simp_rw [← pi'_pi μ s, measure.pi, to_measure_apply _ _ (measurable_set.pi countable_univ
+      (λ i _, hs i)), ← to_outer_measure_apply],
     suffices : (pi' μ).to_outer_measure ≤ outer_measure.pi (λ i, (μ i).to_outer_measure),
     { exact this _ },
     clear hs s,
     rw [outer_measure.le_pi],
     intros s hs,
     simp_rw [to_outer_measure_apply],
-    exact pi'_pi_le μ }
-end
-
-lemma pi_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
-  (x : Π i, α i) {r : ℝ} (hr : 0 < r) :
-  measure.pi μ (metric.ball x r) = ∏ i, μ i (metric.ball (x i) r) :=
-begin
-  rw [ball_pi _ hr, pi_pi],
-  exact λ i, measurable_set_ball
-end
-
-lemma pi_closed_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
-  (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
-  measure.pi μ (metric.closed_ball x r) = ∏ i, μ i (metric.closed_ball (x i) r) :=
-begin
-  rw [closed_ball_pi _ hr, pi_pi],
-  exact λ i, measurable_set_closed_ball
+    exact (pi'_pi μ s).le }
 end
 
 variable {μ}
 
-/-- `μ.prod ν` has finite spanning sets in rectangles of finite spanning sets. -/
+/-- `measure.pi μ` has finite spanning sets in rectangles of finite spanning sets. -/
 def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
-  (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) (hC : ∀ i (s ∈ C i), measurable_set s) :
+  (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) :
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
-  haveI := λ i, (hμ i).sigma_finite (hC i),
-  haveI := fintype.encodable ι,
+  haveI := λ i, (hμ i).sigma_finite,
+  haveI := fintype.to_encodable ι,
+  refine ⟨λ n, pi univ (λ i, (hμ i).set ((decode (ι → ℕ) n).iget i)), λ n, _, λ n, _, _⟩;
+  -- TODO (kmill) If this let comes before the refine, while the noncomputability checker
+  -- correctly sees this definition is computable, the Lean VM fails to see the binding is
+  -- computationally irrelevant. The `noncomputable theory` doesn't help because all it does
+  -- is insert `noncomputable` for you when necessary.
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
-  refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
   { refine mem_image_of_mem _ (λ i _, (hμ i).set_mem _) },
-  { simp_rw [pi_pi μ (λ i, (hμ i).set (e n i)) (λ i, hC i _ ((hμ i).set_mem _))],
-    exact ennreal.prod_lt_top (λ i _, (hμ i).finite _) },
+  { calc measure.pi μ (pi univ (λ i, (hμ i).set (e n i)))
+        ≤ measure.pi μ (pi univ (λ i, to_measurable (μ i) ((hμ i).set (e n i)))) :
+      measure_mono (pi_mono $ λ i hi, subset_to_measurable _ _)
+    ... = ∏ i, μ i (to_measurable (μ i) ((hμ i).set (e n i))) :
+      pi_pi_aux μ _ (λ i, measurable_set_to_measurable _ _)
+    ... = ∏ i, μ i ((hμ i).set (e n i)) :
+      by simp only [measure_to_measurable]
+    ... < ∞ : ennreal.prod_lt_top (λ i hi, ((hμ i).finite _).ne) },
   { simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, (hμ i).set (x i))),
-      Union_univ_pi (λ i, (hμ i).set), (hμ _).spanning, pi_univ] }
+      Union_univ_pi (λ i, (hμ i).set), (hμ _).spanning, set.pi_univ] }
 end
 
 /-- A measure on a finite product space equals the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
 lemma pi_eq_generate_from {C : Π i, set (set (α i))}
-  (hC : ∀ i, generate_from (C i) = _inst_3 i)
+  (hC : ∀ i, generate_from (C i) = by apply_assumption)
   (h2C : ∀ i, is_pi_system (C i))
   (h3C : ∀ i, (μ i).finite_spanning_sets_in (C i))
   {μν : measure (Π i, α i)}
@@ -351,13 +334,13 @@ lemma pi_eq_generate_from {C : Π i, set (set (α i))}
 begin
   have h4C : ∀ i (s : set (α i)), s ∈ C i → measurable_set s,
   { intros i s hs, rw [← hC], exact measurable_set_generate_from hs },
-  refine (finite_spanning_sets_in.pi h3C h4C).ext
+  refine (finite_spanning_sets_in.pi h3C).ext
     (generate_from_eq_pi hC (λ i, (h3C i).is_countably_spanning)).symm
     (is_pi_system.pi h2C) _,
   rintro _ ⟨s, hs, rfl⟩,
   rw [mem_univ_pi] at hs,
-  haveI := λ i, (h3C i).sigma_finite (h4C i),
-  simp_rw [h₁ s hs, pi_pi μ s (λ i, h4C i _ (hs i))]
+  haveI := λ i, (h3C i).sigma_finite,
+  simp_rw [h₁ s hs, pi_pi_aux μ s (λ i, h4C i _ (hs i))]
 end
 
 variables [∀ i, sigma_finite (μ i)]
@@ -371,11 +354,41 @@ pi_eq_generate_from (λ i, generate_from_measurable_set)
   (λ i, is_pi_system_measurable_set)
   (λ i, (μ i).to_finite_spanning_sets_in) h
 
-variable (μ)
+variables (μ)
+
+lemma pi'_eq_pi [encodable ι] : pi' μ = measure.pi μ :=
+eq.symm $ pi_eq $ λ s hs, pi'_pi μ s
+
+@[simp] lemma pi_pi (s : Π i, set (α i)) : measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
+begin
+  haveI : encodable ι := fintype.to_encodable ι,
+  rw [← pi'_eq_pi, pi'_pi]
+end
+
+lemma pi_univ : measure.pi μ univ = ∏ i, μ i univ := by rw [← pi_univ, pi_pi μ]
+
+lemma pi_ball [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ}
+  (hr : 0 < r) :
+  measure.pi μ (metric.ball x r) = ∏ i, μ i (metric.ball (x i) r) :=
+by rw [ball_pi _ hr, pi_pi]
+
+lemma pi_closed_ball [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ}
+  (hr : 0 ≤ r) :
+  measure.pi μ (metric.closed_ball x r) = ∏ i, μ i (metric.closed_ball (x i) r) :=
+by rw [closed_ball_pi _ hr, pi_pi]
 
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
-⟨⟨(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).mono $
-  by { rintro _ ⟨s, hs, rfl⟩, exact measurable_set.pi_fintype hs }⟩⟩
+(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in)).sigma_finite
+
+lemma pi_of_empty {α : Type*} [is_empty α] {β : α → Type*} {m : Π a, measurable_space (β a)}
+  (μ : Π a : α, measure (β a)) (x : Π a, β a := is_empty_elim) :
+  measure.pi μ = dirac x :=
+begin
+  haveI : ∀ a, sigma_finite (μ a) := is_empty_elim,
+  refine pi_eq (λ s hs, _),
+  rw [fintype.prod_empty, dirac_apply_of_mem],
+  exact is_empty_elim
+end
 
 lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=
@@ -387,9 +400,8 @@ begin
   clear_dependent s,
   /- Now rewrite it as `set.pi`, and apply `pi_pi` -/
   rw [← univ_pi_update_univ, pi_pi],
-  { apply finset.prod_eq_zero (finset.mem_univ i), simp [hμt] },
-  { intro j,
-    rcases em (j = i) with rfl | hj; simp * }
+  apply finset.prod_eq_zero (finset.mem_univ i),
+  simp [hμt]
 end
 
 lemma pi_hyperplane (i : ι) [has_no_atoms (μ i)] (x : α i) :
@@ -406,9 +418,7 @@ variable {μ}
 lemma tendsto_eval_ae_ae {i : ι} : tendsto (eval i) (measure.pi μ).ae (μ i).ae :=
 λ s hs, pi_eval_preimage_null μ hs
 
--- TODO: should we introduce `filter.pi` and prove some basic facts about it?
--- The same combinator appears here and in `nhds_pi`
-lemma ae_pi_le_infi_comap : (measure.pi μ).ae ≤ ⨅ i, filter.comap (eval i) (μ i).ae :=
+lemma ae_pi_le_pi : (measure.pi μ).ae ≤ filter.pi (λ i, (μ i).ae) :=
 le_infi $ λ i, tendsto_eval_ae_ae.le_comap
 
 lemma ae_eq_pi {β : ι → Type*} {f f' : Π i, α i → β i} (h : ∀ i, f i =ᵐ[μ i] f' i) :
@@ -422,7 +432,7 @@ lemma ae_le_pi {β : ι → Type*} [Π i, preorder (β i)] {f f' : Π i, α i �
 
 lemma ae_le_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i ≤ᵐ[μ i] t i) :
   (set.pi I s) ≤ᵐ[measure.pi μ] (set.pi I t) :=
-((eventually_all_finite (finite.of_fintype I)).2
+((eventually_all_finite I.to_finite).2
   (λ i hi, tendsto_eval_ae_ae.eventually (h i hi))).mono $
     λ x hst hx i hi, hst i hi $ hx i hi
 
@@ -453,6 +463,10 @@ by { rw ← pi_univ_Ici, exact pi_Ioi_ae_eq_pi_Ici }
 lemma pi_Ioo_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
   pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
 ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Icc
+
+lemma pi_Ioo_ae_eq_pi_Ioc {s : set ι} {f g : Π i, α i} :
+  pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Ioc (f i) (g i)) :=
+ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Ioc
 
 lemma univ_pi_Ioo_ae_eq_Icc {f g : Π i, α i} :
   pi univ (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
@@ -485,19 +499,78 @@ lemma pi_has_no_atoms (i : ι) [has_no_atoms (μ i)] :
 instance [h : nonempty ι] [∀ i, has_no_atoms (μ i)] : has_no_atoms (measure.pi μ) :=
 h.elim $ λ i, pi_has_no_atoms i
 
-instance [Π i, topological_space (α i)] [∀ i, opens_measurable_space (α i)]
-  [∀ i, is_locally_finite_measure (μ i)] :
+instance [Π i, topological_space (α i)] [∀ i, is_locally_finite_measure (μ i)] :
   is_locally_finite_measure (measure.pi μ) :=
 begin
   refine ⟨λ x, _⟩,
   choose s hxs ho hμ using λ i, (μ i).exists_is_open_measure_lt_top (x i),
   refine ⟨pi univ s, set_pi_mem_nhds finite_univ (λ i hi, is_open.mem_nhds (ho i) (hxs i)), _⟩,
   rw [pi_pi],
-  exacts [ennreal.prod_lt_top (λ i _, hμ i), λ i, (ho i).measurable_set]
+  exact ennreal.prod_lt_top (λ i _, (hμ i).ne)
 end
 
-end measure
+variable (μ)
 
+@[to_additive] instance pi.is_mul_left_invariant [∀ i, group (α i)] [∀ i, has_measurable_mul (α i)]
+  [∀ i, is_mul_left_invariant (μ i)] : is_mul_left_invariant (measure.pi μ) :=
+begin
+  refine ⟨λ v, (pi_eq $ λ s hs, _).symm⟩,
+  rw [map_apply (measurable_const_mul _) (measurable_set.univ_pi hs),
+    (show (*) v ⁻¹' univ.pi s = univ.pi (λ i, (*) (v i) ⁻¹' s i), by refl), pi_pi],
+  simp_rw measure_preimage_mul,
+end
+
+@[to_additive] instance pi.is_mul_right_invariant [Π i, group (α i)] [∀ i, has_measurable_mul (α i)]
+  [∀ i, is_mul_right_invariant (μ i)] : is_mul_right_invariant (measure.pi μ) :=
+begin
+  refine ⟨λ v, (pi_eq $ λ s hs, _).symm⟩,
+  rw [map_apply (measurable_mul_const _) (measurable_set.univ_pi hs),
+    (show (* v)  ⁻¹' univ.pi s = univ.pi (λ i, (* v i) ⁻¹' s i), by refl), pi_pi],
+  simp_rw measure_preimage_mul_right,
+end
+
+@[to_additive] instance pi.is_inv_invariant [∀ i, group (α i)] [∀ i, has_measurable_inv (α i)]
+  [∀ i, is_inv_invariant (μ i)] : is_inv_invariant (measure.pi μ) :=
+begin
+  refine ⟨(measure.pi_eq (λ s hs, _)).symm⟩,
+  have A : has_inv.inv ⁻¹' (pi univ s) = set.pi univ (λ i, has_inv.inv ⁻¹' s i),
+  { ext, simp },
+  simp_rw [measure.inv, measure.map_apply measurable_inv (measurable_set.univ_pi hs), A,
+    pi_pi, measure_preimage_inv]
+end
+
+instance pi.is_open_pos_measure [Π i, topological_space (α i)] [Π i, is_open_pos_measure (μ i)] :
+  is_open_pos_measure (measure_theory.measure.pi μ) :=
+begin
+  constructor,
+  rintros U U_open ⟨a, ha⟩,
+  obtain ⟨s, ⟨hs, hsU⟩⟩ := is_open_pi_iff'.1 U_open a ha,
+  refine ne_of_gt (lt_of_lt_of_le _ (measure_mono hsU)),
+  simp only [pi_pi],
+  rw canonically_ordered_comm_semiring.prod_pos,
+  intros i _,
+  apply ((hs i).1.measure_pos (μ i) ⟨a i, (hs i).2⟩),
+end
+
+instance pi.is_finite_measure_on_compacts [Π i, topological_space (α i)]
+  [Π i, is_finite_measure_on_compacts (μ i)] :
+  is_finite_measure_on_compacts (measure_theory.measure.pi μ) :=
+begin
+  constructor,
+  intros K hK,
+  suffices : measure.pi μ (set.univ.pi ( λ j, (function.eval j) '' K)) < ⊤,
+  { exact lt_of_le_of_lt (measure_mono (univ.subset_pi_eval_image K)) this, },
+  rw measure.pi_pi,
+  refine with_top.prod_lt_top _,
+  exact λ i _, ne_of_lt (is_compact.measure_lt_top (is_compact.image hK (continuous_apply i))),
+end
+
+@[to_additive]
+instance pi.is_haar_measure [Π i, group (α i)] [Π i, topological_space (α i)]
+  [Π i, is_haar_measure (μ i)] [Π i, has_measurable_mul (α i)] :
+  is_haar_measure (measure.pi μ) := {}
+
+end measure
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=
 ⟨measure.pi (λ i, volume)⟩
 
@@ -506,19 +579,161 @@ lemma volume_pi [Π i, measure_space (α i)] :
 rfl
 
 lemma volume_pi_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
-  (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
+  (s : Π i, set (α i)) :
   volume (pi univ s) = ∏ i, volume (s i) :=
-measure.pi_pi (λ i, volume) s hs
+measure.pi_pi (λ i, volume) s
 
 lemma volume_pi_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
-  [∀ i, metric_space (α i)] [∀ i, borel_space (α i)] (x : Π i, α i) {r : ℝ} (hr : 0 < r) :
+  [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ} (hr : 0 < r) :
   volume (metric.ball x r) = ∏ i, volume (metric.ball (x i) r) :=
 measure.pi_ball _ _ hr
 
 lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
-  [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
-  (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
+  [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
   volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
 measure.pi_closed_ball _ _ hr
+
+open measure
+/-- We intentionally restrict this only to the nondependent function space, since type-class
+inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
+@[to_additive "We intentionally restrict this only to the nondependent function space, since
+type-class inference cannot find an instance for `ι → ℝ` when this is stated for dependent function
+spaces."]
+instance pi.is_mul_left_invariant_volume {α} [group α] [measure_space α]
+  [sigma_finite (volume : measure α)]
+  [has_measurable_mul α] [is_mul_left_invariant (volume : measure α)] :
+  is_mul_left_invariant (volume : measure (ι → α)) :=
+pi.is_mul_left_invariant _
+
+/-- We intentionally restrict this only to the nondependent function space, since type-class
+inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
+@[to_additive "We intentionally restrict this only to the nondependent function space, since
+type-class inference cannot find an instance for `ι → ℝ` when this is stated for dependent function
+spaces."]
+instance pi.is_inv_invariant_volume {α} [group α] [measure_space α]
+  [sigma_finite (volume : measure α)]
+  [has_measurable_inv α] [is_inv_invariant (volume : measure α)] :
+  is_inv_invariant (volume : measure (ι → α)) :=
+pi.is_inv_invariant _
+
+/-!
+### Measure preserving equivalences
+
+In this section we prove that some measurable equivalences (e.g., between `fin 1 → α` and `α` or
+between `fin 2 → α` and `α × α`) preserve measure or volume. These lemmas can be used to prove that
+measures of corresponding sets (images or preimages) have equal measures and functions `f ∘ e` and
+`f` have equal integrals, see lemmas in the `measure_theory.measure_preserving` prefix.
+-/
+
+section measure_preserving
+
+lemma measure_preserving_pi_equiv_pi_subtype_prod {ι : Type u} {α : ι → Type v} [fintype ι]
+  {m : Π i, measurable_space (α i)} (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)]
+  (p : ι → Prop) [decidable_pred p] :
+  measure_preserving (measurable_equiv.pi_equiv_pi_subtype_prod α p) (measure.pi μ)
+    ((measure.pi $ λ i : subtype p, μ i).prod (measure.pi $ λ i, μ i)) :=
+begin
+  set e := (measurable_equiv.pi_equiv_pi_subtype_prod α p).symm,
+  refine measure_preserving.symm e _,
+  refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
+  have : e ⁻¹' (pi univ s) =
+    (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)),
+    from equiv.preimage_pi_equiv_pi_subtype_prod_symm_pi p s,
+  rw [e.map_apply, this, prod_prod, pi_pi, pi_pi],
+  exact fintype.prod_subtype_mul_prod_subtype p (λ i, μ i (s i))
+end
+
+lemma volume_preserving_pi_equiv_pi_subtype_prod {ι : Type*} (α : ι → Type*) [fintype ι]
+  [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  (p : ι → Prop) [decidable_pred p] :
+  measure_preserving (measurable_equiv.pi_equiv_pi_subtype_prod α p) :=
+measure_preserving_pi_equiv_pi_subtype_prod (λ i, volume) p
+
+lemma measure_preserving_pi_fin_succ_above_equiv {n : ℕ} {α : fin (n + 1) → Type u}
+  {m : Π i, measurable_space (α i)} (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)]
+  (i : fin (n + 1)) :
+  measure_preserving (measurable_equiv.pi_fin_succ_above_equiv α i) (measure.pi μ)
+    ((μ i).prod $ measure.pi $ λ j, μ (i.succ_above j)) :=
+begin
+  set e := (measurable_equiv.pi_fin_succ_above_equiv α i).symm,
+  refine measure_preserving.symm e _,
+  refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
+  rw [e.map_apply, i.prod_univ_succ_above _, ← pi_pi, ← prod_prod],
+  congr' 1 with ⟨x, f⟩,
+  simp [i.forall_iff_succ_above]
+end
+
+lemma volume_preserving_pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type u)
+  [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))] (i : fin (n + 1)) :
+  measure_preserving (measurable_equiv.pi_fin_succ_above_equiv α i) :=
+measure_preserving_pi_fin_succ_above_equiv (λ _, volume) i
+
+lemma measure_preserving_fun_unique {β : Type u} {m : measurable_space β} (μ : measure β)
+  (α : Type v) [unique α] :
+  measure_preserving (measurable_equiv.fun_unique α β) (measure.pi (λ a : α, μ)) μ :=
+begin
+  set e := measurable_equiv.fun_unique α β,
+  have : pi_premeasure (λ _ : α, μ.to_outer_measure) = measure.map e.symm μ,
+  { ext1 s,
+    rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
+    congr' 1, exact e.to_equiv.image_eq_preimage s },
+  simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
+  exact (e.symm.measurable.measure_preserving _).symm e.symm
+end
+
+lemma volume_preserving_fun_unique (α : Type u) (β : Type v) [unique α] [measure_space β] :
+  measure_preserving (measurable_equiv.fun_unique α β) volume volume :=
+measure_preserving_fun_unique volume α
+
+lemma measure_preserving_pi_fin_two {α : fin 2 → Type u} {m : Π i, measurable_space (α i)}
+  (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)] :
+  measure_preserving (measurable_equiv.pi_fin_two α) (measure.pi μ) ((μ 0).prod (μ 1)) :=
+begin
+  refine ⟨measurable_equiv.measurable _, (measure.prod_eq $ λ s t hs ht, _).symm⟩,
+  rw [measurable_equiv.map_apply, measurable_equiv.pi_fin_two_apply, fin.preimage_apply_01_prod,
+    measure.pi_pi, fin.prod_univ_two],
+  refl
+end
+
+lemma volume_preserving_pi_fin_two (α : fin 2 → Type u) [Π i, measure_space (α i)]
+  [∀ i, sigma_finite (volume : measure (α i))] :
+  measure_preserving (measurable_equiv.pi_fin_two α) volume volume :=
+measure_preserving_pi_fin_two _
+
+lemma measure_preserving_fin_two_arrow_vec {α : Type u} {m : measurable_space α}
+  (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
+  measure_preserving measurable_equiv.fin_two_arrow (measure.pi ![μ, ν]) (μ.prod ν) :=
+begin
+  haveI : ∀ i, sigma_finite (![μ, ν] i) := fin.forall_fin_two.2 ⟨‹_›, ‹_›⟩,
+  exact measure_preserving_pi_fin_two _
+end
+
+lemma measure_preserving_fin_two_arrow {α : Type u} {m : measurable_space α}
+  (μ : measure α) [sigma_finite μ] :
+  measure_preserving measurable_equiv.fin_two_arrow (measure.pi (λ _, μ)) (μ.prod μ) :=
+by simpa only [matrix.vec_single_eq_const, matrix.vec_cons_const]
+  using measure_preserving_fin_two_arrow_vec μ μ
+
+lemma volume_preserving_fin_two_arrow (α : Type u) [measure_space α]
+  [sigma_finite (volume : measure α)] :
+  measure_preserving (@measurable_equiv.fin_two_arrow α _) volume volume :=
+measure_preserving_fin_two_arrow volume
+
+lemma measure_preserving_pi_empty {ι : Type u} {α : ι → Type v} [is_empty ι]
+  {m : Π i, measurable_space (α i)} (μ : Π i, measure (α i)) :
+  measure_preserving (measurable_equiv.of_unique_of_unique (Π i, α i) unit)
+    (measure.pi μ) (measure.dirac ()) :=
+begin
+  set e := (measurable_equiv.of_unique_of_unique (Π i, α i) unit),
+  refine ⟨e.measurable, _⟩,
+  rw [measure.pi_of_empty, measure.map_dirac e.measurable], refl
+end
+
+lemma volume_preserving_pi_empty {ι : Type u} (α : ι → Type v) [is_empty ι]
+  [Π i, measure_space (α i)] :
+  measure_preserving (measurable_equiv.of_unique_of_unique (Π i, α i) unit) volume volume :=
+measure_preserving_pi_empty (λ _, volume)
+
+end measure_preserving
 
 end measure_theory

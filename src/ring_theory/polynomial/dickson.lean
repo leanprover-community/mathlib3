@@ -3,12 +3,11 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-
-import ring_theory.polynomial.chebyshev
-import ring_theory.localization
-import data.zmod.basic
 import algebra.char_p.invertible
-
+import data.zmod.basic
+import ring_theory.localization.fraction_ring
+import ring_theory.polynomial.chebyshev
+import ring_theory.ideal.local_ring
 
 /-!
 # Dickson polynomials
@@ -49,12 +48,13 @@ When `a=0` they are just the family of monomials `X ^ n`.
 noncomputable theory
 
 namespace polynomial
+open_locale polynomial
 
 variables {R S : Type*} [comm_ring R] [comm_ring S] (k : ℕ) (a : R)
 
 /-- `dickson` is the `n`the (generalised) Dickson polynomial of the `k`-th kind associated to the
 element `a ∈ R`. -/
-noncomputable def dickson : ℕ → polynomial R
+noncomputable def dickson : ℕ → R[X]
 | 0       := 3 - k
 | 1       := X
 | (n + 2) := X * dickson (n + 1) - (C a) * dickson n
@@ -79,11 +79,12 @@ variables {R S k a}
 
 lemma map_dickson (f : R →+* S) :
   ∀ (n : ℕ), map f (dickson k a n) = dickson k (f a) n
-| 0       := by simp only [dickson_zero, map_sub, map_nat_cast, bit1, bit0, map_add, map_one]
+| 0       := by simp only [dickson_zero, polynomial.map_sub, polynomial.map_nat_cast,
+                            bit1, bit0, polynomial.map_add, polynomial.map_one]
 | 1       := by simp only [dickson_one, map_X]
 | (n + 2) :=
 begin
-  simp only [dickson_add_two, map_sub, map_mul, map_X, map_C],
+  simp only [dickson_add_two, polynomial.map_sub, polynomial.map_mul, map_X, map_C],
   rw [map_dickson, map_dickson]
 end
 
@@ -102,12 +103,12 @@ end
 section dickson
 /-!
 
-### A Lambda structure on `polynomial ℤ`
+### A Lambda structure on `ℤ[X]`
 
 Mathlib doesn't currently know what a Lambda ring is.
-But once it does, we can endow `polynomial ℤ` with a Lambda structure
+But once it does, we can endow `ℤ[X]` with a Lambda structure
 in terms of the `dickson 1 1` polynomials defined below.
-There is exactly one other Lambda structure on `polynomial ℤ` in terms of binomial polynomials.
+There is exactly one other Lambda structure on `ℤ[X]` in terms of binomial polynomials.
 
 -/
 
@@ -155,12 +156,12 @@ lemma dickson_one_one_mul (m n : ℕ) :
   dickson 1 (1 : R) (m * n) = (dickson 1 1 m).comp (dickson 1 1 n) :=
 begin
   have h : (1 : R) = int.cast_ring_hom R (1),
-    simp only [ring_hom.eq_int_cast, int.cast_one],
+    simp only [eq_int_cast, int.cast_one],
   rw h,
   simp only [← map_dickson (int.cast_ring_hom R), ← map_comp],
   congr' 1,
   apply map_injective (int.cast_ring_hom ℚ) int.cast_injective,
-  simp only [map_dickson, map_comp, ring_hom.eq_int_cast, int.cast_one,
+  simp only [map_dickson, map_comp, eq_int_cast, int.cast_one,
     dickson_one_one_eq_chebyshev_T, chebyshev.T_mul, two_mul, ← add_comp],
   simp only [← two_mul, ← comp_assoc],
   apply eval₂_congr rfl rfl,
@@ -182,7 +183,7 @@ begin
   -- Since `X ^ p` also satisfies this property in characteristic `p`,
   -- we can use a variant on `polynomial.funext` to conclude that these polynomials are equal.
   -- For this argument, we need an arbitrary infinite field of characteristic `p`.
-  obtain ⟨K, _, _, H⟩ : ∃ (K : Type) [field K], by exactI ∃ [char_p K p], infinite K,
+  obtain ⟨K, _, _, H⟩ : ∃ (K : Type) (_ : field K), by exactI ∃ (_ : char_p K p), infinite K,
   { let K := fraction_ring (polynomial (zmod p)),
     let f : zmod p →+* K := (algebra_map _ (fraction_ring _)).comp C,
     haveI : char_p K p, { rw ← f.char_p_iff_char_p, apply_instance },
@@ -192,13 +193,13 @@ begin
     refine ⟨K, _, _, _⟩; apply_instance },
   resetI,
   apply map_injective (zmod.cast_hom (dvd_refl p) K) (ring_hom.injective _),
-  rw [map_dickson, map_pow, map_X],
+  rw [map_dickson, polynomial.map_pow, map_X],
   apply eq_of_infinite_eval_eq,
   -- The two polynomials agree on all `x` of the form `x = y + y⁻¹`.
-  apply @set.infinite_mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
+  apply @set.infinite.mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
   { rintro _ ⟨x, rfl, hx⟩,
     simp only [eval_X, eval_pow, set.mem_set_of_eq, @add_pow_char K _ p,
-      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow', zmod.cast_hom_apply,
+      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow, zmod.cast_hom_apply,
       zmod.cast_one'] },
   -- Now we need to show that the set of such `x` is infinite.
   -- If the set is finite, then we will show that `K` is also finite.
@@ -214,7 +215,7 @@ begin
     { rw this, clear this,
       refine h.bUnion (λ x hx, _),
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
-      let φ : polynomial K := X ^ 2 - C x * X + 1,
+      let φ : K[X] := X ^ 2 - C x * X + 1,
       have hφ : φ ≠ 0,
       { intro H,
         have : φ.eval 0 = 0, by rw [H, eval_zero],
@@ -248,7 +249,8 @@ lemma dickson_one_one_char_p (p : ℕ) [fact p.prime] [char_p R p] :
 begin
   have h : (1 : R) = zmod.cast_hom (dvd_refl p) R (1),
     simp only [zmod.cast_hom_apply, zmod.cast_one'],
-  rw [h, ← map_dickson (zmod.cast_hom (dvd_refl p) R), dickson_one_one_zmod_p, map_pow, map_X]
+  rw [h, ← map_dickson (zmod.cast_hom (dvd_refl p) R), dickson_one_one_zmod_p,
+      polynomial.map_pow, map_X]
 end
 
 end dickson

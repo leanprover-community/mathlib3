@@ -3,11 +3,58 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
-import data.equiv.basic
+import data.set.basic
+import logic.equiv.defs
 
 /-!
 # Partial values of a type
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file defines `part α`, the partial values of a type.
+
+`o : part α` carries a proposition `o.dom`, its domain, along with a function `get : o.dom → α`, its
+value. The rule is then that every partial value has a value but, to access it, you need to provide
+a proof of the domain.
+
+`part α` behaves the same as `option α` except that `o : option α` is decidably `none` or `some a`
+for some `a : α`, while the domain of `o : part α` doesn't have to be decidable. That means you can
+translate back and forth between a partial value with a decidable domain and an option, and
+`option α` and `part α` are classically equivalent. In general, `part α` is bigger than `option α`.
+
+In current mathlib, `part ℕ`, aka `part_enat`, is used to move decidability of the order to
+decidability of `part_enat.find` (which is the smallest natural satisfying a predicate, or `∞` if
+there's none).
+
+## Main declarations
+
+`option`-like declarations:
+* `part.none`: The partial value whose domain is `false`.
+* `part.some a`: The partial value whose domain is `true` and whose value is `a`.
+* `part.of_option`: Converts an `option α` to a `part α` by sending `none` to `none` and `some a` to
+  `some a`.
+* `part.to_option`: Converts a `part α` with a decidable domain to an `option α`.
+* `part.equiv_option`: Classical equivalence between `part α` and `option α`.
+
+Monadic structure:
+* `part.bind`: `o.bind f` has value `(f (o.get _)).get _` (`f o` morally) and is defined when `o`
+  and `f (o.get _)` are defined.
+* `part.map`: Maps the value and keeps the same domain.
+
+Other:
+* `part.restrict`: `part.restrict p o` replaces the domain of `o : part α` by `p : Prop` so long as
+  `p → o.dom`.
+* `part.assert`: `assert p f` appends `p` to the domains of the values of a partial function.
+* `part.unwrap`: Gets the value of a partial value regardless of its domain. Unsound.
+
+## Notation
+
+For `a : α`, `o : part α`, `a ∈ o` means that `o` is defined and equal to `a`. Formally, it means
+`o.dom` and `o.get _ = a`.
 -/
+
+open function
 
 /-- `part α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
@@ -22,6 +69,14 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 /-- Convert a `part α` with a decidable domain to an option -/
 def to_option (o : part α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
+
+@[simp] lemma to_option_is_some (o : part α) [decidable o.dom] :
+  o.to_option.is_some ↔ o.dom :=
+by by_cases o.dom; simp [h, part.to_option]
+
+@[simp] lemma to_option_is_none (o : part α) [decidable o.dom] :
+  o.to_option.is_none ↔ ¬o.dom :=
+by by_cases o.dom; simp [h, part.to_option]
 
 /-- `part` extensionality -/
 theorem ext' : ∀ {o p : part α}
@@ -42,10 +97,12 @@ instance : has_mem α (part α) := ⟨part.mem⟩
 theorem mem_eq (a : α) (o : part α) : (a ∈ o) = (∃ h, o.get h = a) :=
 rfl
 
-theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃y, y ∈ o
+theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃ y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
 
 theorem get_mem {o : part α} (h) : get o h ∈ o := ⟨_, rfl⟩
+
+@[simp] lemma mem_mk_iff {p : Prop} {o : p → α} {a : α} : a ∈ part.mk p o ↔ ∃ h, o h = a := iff.rfl
 
 /-- `part` extensionality -/
 @[ext]
@@ -65,14 +122,19 @@ instance : inhabited (part α) := ⟨none⟩
   function returns `a`. -/
 def some (a : α) : part α := ⟨true, λ_, a⟩
 
+@[simp] lemma some_dom (a : α) : (some a).dom := trivial
+
 theorem mem_unique : ∀ {a b : α} {o : part α}, a ∈ o → b ∈ o → a = b
 | _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → part α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem get_eq_of_mem {o : part α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
+
+protected theorem subsingleton (o : part α) : set.subsingleton {a | a ∈ o} :=
+λ a ha b hb, mem_unique ha hb
 
 @[simp] theorem get_some {a : α} (ha : (some a).dom) : get (some a) ha = a := rfl
 
@@ -86,34 +148,33 @@ theorem eq_some_iff {a : α} {o : part α} : o = some a ↔ a ∈ o :=
  λ ⟨h, e⟩, e ▸ ext' (iff_true_intro h) (λ _ _, rfl)⟩
 
 theorem eq_none_iff {o : part α} : o = none ↔ ∀ a, a ∉ o :=
-⟨λ e, e.symm ▸ not_mem_none,
- λ h, ext (by simpa [not_mem_none])⟩
+⟨λ e, e.symm ▸ not_mem_none, λ h, ext (by simpa)⟩
 
 theorem eq_none_iff' {o : part α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
 
-lemma some_ne_none (x : α) : some x ≠ none :=
+@[simp] lemma not_none_dom : ¬ (none : part α).dom := id
+
+@[simp] lemma some_ne_none (x : α) : some x ≠ none :=
 by { intro h, change none.dom, rw [← h], trivial }
 
-lemma ne_none_iff {o : part α} : o ≠ none ↔ ∃x, o = some x :=
+@[simp] lemma none_ne_some (x : α) : none ≠ some x :=
+(some_ne_none x).symm
+
+lemma ne_none_iff {o : part α} : o ≠ none ↔ ∃ x, o = some x :=
 begin
   split,
-  { rw [ne, eq_none_iff], intro h, push_neg at h, cases h with x hx, use x, rwa [eq_some_iff] },
+  { rw [ne, eq_none_iff', not_not], exact λ h, ⟨o.get h, eq_some_iff.2 (get_mem h)⟩ },
   { rintro ⟨x, rfl⟩, apply some_ne_none }
 end
 
 lemma eq_none_or_eq_some (o : part α) : o = none ∨ ∃ x, o = some x :=
-begin
-  classical,
-  by_cases h : o.dom,
-  { rw dom_iff_mem at h, right,
-    apply exists_imp_exists _ h,
-    simp [eq_some_iff] },
-  { rw eq_none_iff', exact or.inl h },
-end
+or_iff_not_imp_left.2 ne_none_iff.1
 
-@[simp] lemma some_inj {a b : α} : part.some a = some b ↔ a = b :=
-function.injective.eq_iff (λ a b h, congr_fun (eq_of_heq (part.mk.inj h).2) trivial)
+lemma some_injective : injective (@part.some α) :=
+λ a b h, congr_fun (eq_of_heq (part.mk.inj h).2) trivial
+
+@[simp] lemma some_inj {a b : α} : part.some a = some b ↔ a = b := some_injective.eq_iff
 
 @[simp] lemma some_get {a : part α} (ha : a.dom) :
   part.some (part.get a ha) = a :=
@@ -127,6 +188,19 @@ lemma get_eq_get_of_eq (a : part α) (ha : a.dom) {b : part α} (h : a = b) :
   a.get ha = b.get (h ▸ ha) :=
 by { congr, exact h }
 
+lemma get_eq_iff_mem {o : part α} {a : α} (h : o.dom) : o.get h = a ↔ a ∈ o :=
+⟨λ H, ⟨h, H⟩, λ ⟨h', H⟩, H⟩
+
+lemma eq_get_iff_mem {o : part α} {a : α} (h : o.dom) : a = o.get h ↔ a ∈ o :=
+eq_comm.trans (get_eq_iff_mem h)
+
+@[simp] lemma none_to_option [decidable (@none α).dom] : (none : part α).to_option = option.none :=
+dif_neg id
+
+@[simp] lemma some_to_option (a : α) [decidable (some a).dom] :
+  (some a).to_option = option.some a :=
+dif_pos trivial
+
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true
 
@@ -135,11 +209,17 @@ otherwise. -/
 def get_or_else (a : part α) [decidable a.dom] (d : α) :=
 if ha : a.dom then a.get ha else d
 
-@[simp] lemma get_or_else_none (d : α) : get_or_else none d = d :=
-dif_neg id
+lemma get_or_else_of_dom (a : part α) (h : a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = a.get h := dif_pos h
 
-@[simp] lemma get_or_else_some (a : α) (d : α) : get_or_else (some a) d = a :=
-dif_pos trivial
+lemma get_or_else_of_not_dom (a : part α) (h : ¬ a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = d := dif_neg h
+
+@[simp] lemma get_or_else_none (d : α) [decidable (none : part α).dom] : get_or_else none d = d :=
+none.get_or_else_of_not_dom not_none_dom d
+
+@[simp] lemma get_or_else_some (a : α) (d : α) [decidable (some a).dom] :
+  get_or_else (some a) d = a := (some a).get_or_else_of_dom (some_dom a) d
 
 @[simp] theorem mem_to_option {o : part α} [decidable o.dom] {a : α} :
   a ∈ to_option o ↔ a ∈ o :=
@@ -148,6 +228,22 @@ begin
   by_cases h : o.dom; simp [h],
   { exact ⟨λ h, ⟨_, h⟩, λ ⟨_, h⟩, h⟩ },
   { exact mt Exists.fst h }
+end
+
+protected lemma dom.to_option {o : part α} [decidable o.dom] (h : o.dom) : o.to_option = o.get h :=
+dif_pos h
+
+lemma to_option_eq_none_iff {a : part α} [decidable a.dom] : a.to_option = option.none ↔ ¬ a.dom :=
+ne.dite_eq_right_iff $ λ h, option.some_ne_none _
+
+@[simp] lemma elim_to_option {α β : Type*} (a : part α) [decidable a.dom] (b : β) (f : α → β) :
+  a.to_option.elim b f = if h : a.dom then f (a.get h) else b :=
+begin
+  split_ifs,
+  { rw h.to_option,
+    refl },
+  { rw part.to_option_eq_none_iff.2 h,
+    refl }
 end
 
 /-- Converts an `option α` into a `part α`. -/
@@ -198,16 +294,15 @@ by haveI := classical.dec; exact
  λ o, eq.trans (by dsimp; congr) (to_of_option o)⟩
 
 /-- We give `part α` the order where everything is greater than `none`. -/
-instance : order_bot (part α) :=
+instance : partial_order (part α) :=
 { le := λ x y, ∀ i, i ∈ x → i ∈ y,
   le_refl := λ x y, id,
   le_trans := λ x y z f g i, g _ ∘ f _,
-  le_antisymm := λ x y f g, part.ext $ λ z, ⟨f _, g _⟩,
-  bot := none,
-  bot_le := by { introv x, rintro ⟨⟨_⟩,_⟩, } }
+  le_antisymm := λ x y f g, part.ext $ λ z, ⟨f _, g _⟩ }
 
-instance : preorder (part α) :=
-by apply_instance
+instance : order_bot (part α) :=
+{ bot := none,
+  bot_le := by { introv x, rintro ⟨⟨_⟩,_⟩, } }
 
 lemma le_total_of_le_of_le {x y : part α} (z : part α) (hx : x ≤ z) (hy : y ≤ z) :
   x ≤ y ∨ y ≤ x :=
@@ -224,7 +319,7 @@ end
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
 def assert (p : Prop) (f : p → part α) : part α :=
-⟨∃h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
+⟨∃ h : p, (f h).dom, λha, (f ha.fst).get ha.snd⟩
 
 /-- The bind operation has value `g (f.get)`, and is defined when all the
   parts are defined. -/
@@ -232,7 +327,7 @@ protected def bind (f : part α) (g : α → part β) : part β :=
 assert (dom f) (λb, g (f.get b))
 
 /-- The map operation for `part` just maps the value and maintains the same domain. -/
-def map (f : α → β) (o : part α) : part β :=
+@[simps] def map (f : α → β) (o : part α) : part β :=
 ⟨o.dom, f ∘ o.get⟩
 
 theorem mem_map (f : α → β) {o : part α} :
@@ -266,7 +361,7 @@ begin
   cases h' : f h,
   simp only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
   apply function.hfunext,
-  { simp only [h,h',exists_prop_of_true] },
+  { simp only [h, h', exists_prop_of_true] },
   { cc }
 end
 
@@ -289,15 +384,41 @@ theorem mem_bind {f : part α} {g : α → part β} :
 ⟨match b with _, ⟨⟨h₁, h₂⟩, rfl⟩ := ⟨_, ⟨_, rfl⟩, ⟨_, rfl⟩⟩ end,
  λ ⟨a, h₁, h₂⟩, mem_bind h₁ h₂⟩
 
+protected lemma dom.bind {o : part α} (h : o.dom) (f : α → part β) : o.bind f = f (o.get h) :=
+begin
+  ext b,
+  simp only [part.mem_bind_iff, exists_prop],
+  refine ⟨_, λ hb, ⟨o.get h, part.get_mem _, hb⟩⟩,
+  rintro ⟨a, ha, hb⟩,
+  rwa part.get_eq_of_mem ha,
+end
+
+lemma dom.of_bind {f : α → part β} {a : part α} (h : (a.bind f).dom) : a.dom := h.some
+
 @[simp] theorem bind_none (f : α → part β) :
   none.bind f = none := eq_none_iff.2 $ λ a, by simp
 
 @[simp] theorem bind_some (a : α) (f : α → part β) :
   (some a).bind f = f a := ext $ by simp
 
+theorem bind_of_mem {o : part α} {a : α} (h : a ∈ o) (f : α → part β) :
+  o.bind f = f a :=
+by rw [eq_some_iff.2 h, bind_some]
+
 theorem bind_some_eq_map (f : α → β) (x : part α) :
   x.bind (some ∘ f) = map f x :=
 ext $ by simp [eq_comm]
+
+lemma bind_to_option (f : α → part β) (o : part α) [decidable o.dom] [Π a, decidable (f a).dom]
+  [decidable (o.bind f).dom] :
+  (o.bind f).to_option = o.to_option.elim option.none (λ a, (f a).to_option) :=
+begin
+  by_cases o.dom,
+  { simp_rw [h.to_option, h.bind],
+    refl },
+  { rw part.to_option_eq_none_iff.2 h,
+    exact part.to_option_eq_none_iff.2 (λ ho, h ho.of_bind) }
+end
 
 theorem bind_assoc {γ} (f : part α) (g : α → part β) (k : β → part γ) :
   (f.bind g).bind k = f.bind (λ x, (g x).bind k) :=
@@ -360,14 +481,14 @@ instance : monad_fail part :=
 
 /-- `restrict p o h` replaces the domain of `o` with `p`, and is well defined when
   `p` implies `o` is defined. -/
-def restrict (p : Prop) : ∀ (o : part α), (p → o.dom) → part α
-| ⟨d, f⟩ H := ⟨p, λh, f (H h)⟩
+def restrict (p : Prop) (o : part α) (H : p → o.dom) : part α :=
+⟨p, λh, o.get (H h)⟩
 
 @[simp]
 theorem mem_restrict (p : Prop) (o : part α) (h : p → o.dom) (a : α) :
   a ∈ restrict p o h ↔ p ∧ a ∈ o :=
 begin
-  cases o, dsimp [restrict, mem_eq], split,
+  dsimp [restrict, mem_eq], split,
   { rintro ⟨h₀, h₁⟩, exact ⟨h₀, ⟨_, h₁⟩⟩ },
   rintro ⟨h₀, h₁, h₂⟩, exact ⟨h₀, h₂⟩
 end
@@ -383,5 +504,150 @@ theorem bind_defined {f : part α} {g : α → part β} :
 
 @[simp] theorem bind_dom {f : part α} {g : α → part β} :
   (f.bind g).dom ↔ ∃ h : f.dom, (g (f.get h)).dom := iff.rfl
+
+section instances
+
+/- We define several instances for constants and operations on `part α` inherited from `α`. -/
+
+@[to_additive] instance [has_one α] : has_one (part α) := { one := pure 1 }
+@[to_additive] instance [has_mul α] : has_mul (part α) := { mul := λ a b, (*) <$> a <*> b }
+@[to_additive] instance [has_inv α] : has_inv (part α) := { inv := map has_inv.inv }
+@[to_additive] instance [has_div α] : has_div (part α) := { div := λ a b, (/) <$> a <*> b }
+instance [has_mod α] : has_mod (part α) := { mod := λ a b, (%) <$> a <*> b }
+instance [has_append α] : has_append (part α) := { append := λ a b, (++) <$> a <*> b }
+instance [has_inter α] : has_inter (part α) := { inter := λ a b, (∩) <$> a <*> b }
+instance [has_union α] : has_union (part α) := { union := λ a b, (∪) <$> a <*> b }
+instance [has_sdiff α] : has_sdiff (part α) := { sdiff := λ a b, (\) <$> a <*> b }
+
+@[to_additive]
+lemma one_mem_one [has_one α] : (1 : α) ∈ (1 : part α) := ⟨trivial, rfl⟩
+
+@[to_additive]
+lemma mul_mem_mul [has_mul α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma * mb ∈ a * b := by tidy
+
+@[to_additive]
+lemma left_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
+  a.dom := by tidy
+
+@[to_additive]
+lemma right_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
+  b.dom := by tidy
+
+@[simp, to_additive]
+lemma mul_get_eq [has_mul α] (a b : part α) (hab : dom (a * b)) :
+  (a * b).get hab = a.get (left_dom_of_mul_dom hab) * b.get (right_dom_of_mul_dom hab) :=
+by tidy
+
+@[to_additive]
+lemma some_mul_some [has_mul α] (a b : α) : some a * some b = some (a * b) := by tidy
+
+@[to_additive]
+lemma inv_mem_inv [has_inv α] (a : part α) (ma : α) (ha : ma ∈ a) : ma⁻¹ ∈ a⁻¹ := by tidy
+
+@[to_additive]
+lemma inv_some [has_inv α] (a : α) : (some a)⁻¹ = some (a⁻¹) := rfl
+
+@[to_additive]
+lemma div_mem_div [has_div α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma / mb ∈ a / b := by tidy
+
+@[to_additive]
+lemma left_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
+  a.dom := by tidy
+
+@[to_additive]
+lemma right_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
+  b.dom := by tidy
+
+@[simp, to_additive]
+lemma div_get_eq [has_div α] (a b : part α) (hab : dom (a / b)) :
+  (a / b).get hab = a.get (left_dom_of_div_dom hab) / b.get (right_dom_of_div_dom hab) :=
+by tidy
+
+@[to_additive]
+lemma some_div_some [has_div α] (a b : α) : some a / some b = some (a / b) := by tidy
+
+lemma mod_mem_mod [has_mod α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma % mb ∈ a % b := by tidy
+
+lemma left_dom_of_mod_dom [has_mod α] {a b : part α} (hab : dom (a % b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_mod_dom [has_mod α] {a b : part α} (hab : dom (a % b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma mod_get_eq [has_mod α] (a b : part α) (hab : dom (a % b)) :
+  (a % b).get hab = a.get (left_dom_of_mod_dom hab) % b.get (right_dom_of_mod_dom hab) :=
+by tidy
+
+lemma some_mod_some [has_mod α] (a b : α) : some a % some b = some (a % b) := by tidy
+
+lemma append_mem_append [has_append α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ++ mb ∈ a ++ b := by tidy
+
+lemma left_dom_of_append_dom [has_append α] {a b : part α} (hab : dom (a ++ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_append_dom [has_append α] {a b : part α} (hab : dom (a ++ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma append_get_eq [has_append α] (a b : part α) (hab : dom (a ++ b)) :
+  (a ++ b).get hab = a.get (left_dom_of_append_dom hab) ++ b.get (right_dom_of_append_dom hab) :=
+by tidy
+
+lemma some_append_some [has_append α] (a b : α) : some a ++ some b = some (a ++ b) := by tidy
+
+lemma inter_mem_inter [has_inter α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ∩ mb ∈ a ∩ b := by tidy
+
+lemma left_dom_of_inter_dom [has_inter α] {a b : part α} (hab : dom (a ∩ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_inter_dom [has_inter α] {a b : part α} (hab : dom (a ∩ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma inter_get_eq [has_inter α] (a b : part α) (hab : dom (a ∩ b)) :
+  (a ∩ b).get hab = a.get (left_dom_of_inter_dom hab) ∩ b.get (right_dom_of_inter_dom hab) :=
+by tidy
+
+lemma some_inter_some [has_inter α] (a b : α) : some a ∩ some b = some (a ∩ b) := by tidy
+
+lemma union_mem_union [has_union α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ∪ mb ∈ a ∪ b := by tidy
+
+lemma left_dom_of_union_dom [has_union α] {a b : part α} (hab : dom (a ∪ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_union_dom [has_union α] {a b : part α} (hab : dom (a ∪ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma union_get_eq [has_union α] (a b : part α) (hab : dom (a ∪ b)) :
+  (a ∪ b).get hab = a.get (left_dom_of_union_dom hab) ∪ b.get (right_dom_of_union_dom hab) :=
+by tidy
+
+lemma some_union_some [has_union α] (a b : α) : some a ∪ some b = some (a ∪ b) := by tidy
+
+lemma sdiff_mem_sdiff [has_sdiff α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma \ mb ∈ a \ b := by tidy
+
+lemma left_dom_of_sdiff_dom [has_sdiff α] {a b : part α} (hab : dom (a \ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_sdiff_dom [has_sdiff α] {a b : part α} (hab : dom (a \ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma sdiff_get_eq [has_sdiff α] (a b : part α) (hab : dom (a \ b)) :
+  (a \ b).get hab = a.get (left_dom_of_sdiff_dom hab) \ b.get (right_dom_of_sdiff_dom hab) :=
+by tidy
+
+lemma some_sdiff_some [has_sdiff α] (a b : α) : some a \ some b = some (a \ b) := by tidy
+
+end instances
 
 end part

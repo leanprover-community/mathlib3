@@ -8,6 +8,9 @@ import data.matrix.block
 /-!
 # Symmetric matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and basic results about symmetric matrices.
 
 ## Main definition
@@ -47,7 +50,7 @@ lemma is_symm_mul_transpose_self [fintype n] [comm_semiring α] (A : matrix n n 
 transpose_mul _ _
 
 lemma is_symm_transpose_mul_self [fintype n] [comm_semiring α] (A : matrix n n α) :
-  (A ⬝ Aᵀ).is_symm :=
+  (Aᵀ ⬝ A).is_symm :=
 transpose_mul _ _
 
 lemma is_symm_add_transpose_self [add_comm_semigroup α] (A : matrix n n α) :
@@ -90,13 +93,13 @@ h.transpose.map _
   (A - B).is_symm :=
 (transpose_sub _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 
-@[simp] lemma is_symm.smul [has_scalar R α] {A : matrix n n α} (h : A.is_symm) (k : R) :
+@[simp] lemma is_symm.smul [has_smul R α] {A : matrix n n α} (h : A.is_symm) (k : R) :
   (k • A).is_symm :=
 (transpose_smul _ _).trans (congr_arg _ h)
 
-@[simp] lemma is_symm.minor {A : matrix n n α} (h : A.is_symm) (f : m → n) :
-  (A.minor f f).is_symm :=
-(transpose_minor _ _ _).trans (h.symm ▸ rfl)
+@[simp] lemma is_symm.submatrix {A : matrix n n α} (h : A.is_symm) (f : m → n) :
+  (A.submatrix f f).is_symm :=
+(transpose_submatrix _ _ _).trans (h.symm ▸ rfl)
 
 /-- The diagonal matrix `diagonal v` is symmetric. -/
 @[simp] lemma is_symm_diagonal [decidable_eq n] [has_zero α] (v : n → α) :
@@ -121,8 +124,8 @@ end
 lemma is_symm_from_blocks_iff
   {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} :
   (A.from_blocks B C D).is_symm ↔ A.is_symm ∧ Bᵀ = C ∧ Cᵀ = B ∧ D.is_symm :=
-⟨λ h, ⟨congr_arg to_blocks₁₁ h, congr_arg to_blocks₂₁ h,
-       congr_arg to_blocks₁₂ h, congr_arg to_blocks₂₂ h⟩,
+⟨λ h, ⟨(congr_arg to_blocks₁₁ h : _), (congr_arg to_blocks₂₁ h : _),
+       (congr_arg to_blocks₁₂ h : _), (congr_arg to_blocks₂₂ h : _)⟩,
  λ ⟨hA, hBC, hCB, hD⟩, is_symm.from_blocks hA hBC hD⟩
 
 end matrix

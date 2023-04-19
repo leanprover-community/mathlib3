@@ -25,6 +25,9 @@ directed iff each pair of elements has a shared upper bound.
   unbundled relation classes such as `is_total`.
 * `scott_continuous`: Prop-valued definition stating that a function between preorders preserves
   `is_lub` on directed sets.
+
+## References
+* [Gierz et al, *A Compendium of Continuous Lattices*][GierzEtAl1980]
 -/
 
 open function

@@ -34,7 +34,7 @@ protected def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 
 @[simp, norm_cast] lemma coe_closure (K : convex_cone ℝ E) : (K.closure : set E) = _root_.closure K := rfl
 
-@[simp] protected lemma mem_closure {K : convex_cone ℝ E} {a : E} :
+protected lemma mem_closure {K : convex_cone ℝ E} {a : E} :
   a ∈ K.closure ↔ a ∈ closure K) :=
 iff.rfl
 

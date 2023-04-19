@@ -584,37 +584,37 @@ begin
   suffices : ∀ᵐ a ∂ρ.fst, F a = 0,
   { filter_upwards [h_tendsto_ℚ, this] with a ha_tendsto ha_eq,
     rwa ha_eq at ha_tendsto, },
-  have h_lintegral_eq : ∫⁻ a, F a ∂ρ.fst = 0,
-  { have h_lintegral : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) at_top
-      (𝓝 (∫⁻ a, F a ∂ρ.fst)),
-    { refine tendsto_lintegral_of_dominated_convergence (λ _, 1) (λ _, measurable_pre_cdf) (λ _, _)
-        _ h_tendsto_ℕ,
-      { filter_upwards [pre_cdf_le_one ρ] with a ha using ha _, },
-      { rw lintegral_one,
-        exact measure_ne_top _ _, }, },
-    have h_lintegral' : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) at_top
-      (𝓝 0),
-    { have h_lintegral_eq : (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) = λ r, ρ (univ ×ˢ Iic (-r)),
-      { ext1 n,
-        rw [← set_lintegral_univ, set_lintegral_pre_cdf_fst ρ _ measurable_set.univ,
-          measure.Iic_snd_univ],
-        norm_cast, },
-      rw h_lintegral_eq,
-      have h_zero_eq_measure_Inter : (0 : ℝ≥0∞) = ρ (⋂ r : ℕ, univ ×ˢ Iic (-r)),
-      { suffices : (⋂ r : ℕ, univ ×ˢ Iic (-(r : ℝ))) = ∅, by rwa [this, measure_empty],
-        ext1 x,
-        simp only [mem_Inter, mem_prod, mem_univ, mem_Iic, true_and, mem_empty_iff_false, iff_false,
-          not_forall, not_le],
-        simp_rw neg_lt,
-        exact exists_nat_gt _, },
-      rw h_zero_eq_measure_Inter,
-      refine tendsto_measure_Inter (λ n, measurable_set.univ.prod measurable_set_Iic)
-        (λ i j hij x, _) ⟨0, measure_ne_top ρ _⟩,
-      simp only [mem_prod, mem_univ, mem_Iic, true_and],
-      refine λ hxj, hxj.trans (neg_le_neg _),
-      exact_mod_cast hij, },
-    exact tendsto_nhds_unique h_lintegral h_lintegral', },
-  rwa [lintegral_eq_zero_iff' hF_ae_meas] at h_lintegral_eq,
+  suffices h_lintegral_eq : ∫⁻ a, F a ∂ρ.fst = 0,
+  { rwa [lintegral_eq_zero_iff' hF_ae_meas] at h_lintegral_eq, },
+  have h_lintegral : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) at_top
+    (𝓝 (∫⁻ a, F a ∂ρ.fst)),
+  { refine tendsto_lintegral_of_dominated_convergence (λ _, 1) (λ _, measurable_pre_cdf) (λ _, _)
+      _ h_tendsto_ℕ,
+    { filter_upwards [pre_cdf_le_one ρ] with a ha using ha _, },
+    { rw lintegral_one,
+      exact measure_ne_top _ _, }, },
+  have h_lintegral' : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) at_top
+    (𝓝 0),
+  { have h_lintegral_eq : (λ r : ℕ, ∫⁻ a, pre_cdf ρ (-r) a ∂ρ.fst) = λ r, ρ (univ ×ˢ Iic (-r)),
+    { ext1 n,
+      rw [← set_lintegral_univ, set_lintegral_pre_cdf_fst ρ _ measurable_set.univ,
+        measure.Iic_snd_univ],
+      norm_cast, },
+    rw h_lintegral_eq,
+    have h_zero_eq_measure_Inter : (0 : ℝ≥0∞) = ρ (⋂ r : ℕ, univ ×ˢ Iic (-r)),
+    { suffices : (⋂ r : ℕ, univ ×ˢ Iic (-(r : ℝ))) = ∅, by rwa [this, measure_empty],
+      ext1 x,
+      simp only [mem_Inter, mem_prod, mem_univ, mem_Iic, true_and, mem_empty_iff_false, iff_false,
+        not_forall, not_le],
+      simp_rw neg_lt,
+      exact exists_nat_gt _, },
+    rw h_zero_eq_measure_Inter,
+    refine tendsto_measure_Inter (λ n, measurable_set.univ.prod measurable_set_Iic)
+      (λ i j hij x, _) ⟨0, measure_ne_top ρ _⟩,
+    simp only [mem_prod, mem_univ, mem_Iic, true_and],
+    refine λ hxj, hxj.trans (neg_le_neg _),
+    exact_mod_cast hij, },
+  exact tendsto_nhds_unique h_lintegral h_lintegral',
 end
 
 lemma inf_gt_pre_cdf_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
@@ -633,8 +633,8 @@ open_locale classical
 
 section rnd_prop
 
-/-- A product measure on `α × ℝ` is said to have a conditional cdf at `a : α` if `pre_cdf` is monotone
-with limit 0 at -∞ and 1 at +∞, and is right continuous. -/
+/-- A product measure on `α × ℝ` is said to have a conditional cdf at `a : α` if `pre_cdf` is
+monotone with limit 0 at -∞ and 1 at +∞, and is right continuous. -/
 def has_cond_cdf (ρ : measure (α × ℝ)) (a : α) : Prop :=
 monotone (λ r, pre_cdf ρ r a) ∧ (∀ r, pre_cdf ρ r a ≤ 1)
   ∧ (tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 1)) ∧ (tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 0))
@@ -899,7 +899,7 @@ lemma continuous_within_at_cond_cdf (ρ : measure (α × ℝ)) (a : α) (x : ℝ
   continuous_within_at (cond_cdf ρ a) (Ici x) x :=
 by { rw ← continuous_within_at_Ioi_iff_Ici, exact tendsto_cond_cdf_Ioi ρ a x, }
 
-/-- Conditional cdf as a stieltjes function. -/
+/-- Conditional cdf as a Stieltjes function. -/
 noncomputable
 def cond_cdf_stieltjes (ρ : measure (α × ℝ)) (a : α) : stieltjes_function :=
 { to_fun := cond_cdf ρ a,

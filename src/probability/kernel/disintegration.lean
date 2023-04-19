@@ -39,7 +39,7 @@ Equivalently, for any measurable space `γ`,
 
 open measure_theory set filter
 
-open_locale ennreal measure_theory topology probability_theory
+open_locale nnreal ennreal measure_theory topology probability_theory
 
 section aux_lemmas_to_be_moved
 

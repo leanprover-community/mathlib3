@@ -51,9 +51,7 @@ begin
   simp only [map_one, mul_one, derivative_one, sub_zero]
 end
 
-@[simp] lemma hermite_zero_zero : coeff (hermite 0) 0 = 1 := coeff_one_zero
-@[simp] lemma hermite_one_zero : coeff (hermite 1) 0 = 0 := by rw [hermite_one, coeff_X_zero]
-@[simp] lemma hermite_one_one : coeff (hermite 1) 1 = 1 := by rw [hermite_one, coeff_X_one]
+section coeff
 
 lemma hermite_coeff_recur_zero (n : ℕ) :
   coeff (hermite (n + 1)) 0 = -(coeff (hermite n) 1) := by simp [coeff_derivative]
@@ -119,4 +117,5 @@ begin
         exact (nat.odd_add.mp hnk).mpr even_two }}}
 end
 
+end coeff
 end polynomial

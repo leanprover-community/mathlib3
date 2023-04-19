@@ -26,16 +26,16 @@ variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
 /-- The closure of a convex cone inside a real inner product space is a convex cone. This
 construction is mainly used for defining maps between proper cones. -/
-def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
+protected def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 { carrier := closure ↑K,
   smul_mem' :=
     λ c hc _ h₁, map_mem_closure (continuous_id'.const_smul c) h₁ (λ _ h₂, K.smul_mem hc h₂),
   add_mem' := λ _ h₁ _ h₂, map_mem_closure₂ continuous_add h₁ h₂ K.add_mem }
 
-@[simp] lemma coe_closure {K : convex_cone ℝ E} : (K.closure : set E) = _root_.closure K := rfl
+@[simp, norm_cast] lemma coe_closure (K : convex_cone ℝ E) : (K.closure : set E) = _root_.closure K := rfl
 
-lemma mem_closure_iff_seq_limit {K : convex_cone ℝ E} {a : E} :
-  a ∈ K.closure ↔ ∃ x : ℕ → E, (∀ n : ℕ, x n ∈ K) ∧ tendsto x at_top (nhds a) :=
-by simp_rw [← set_like.mem_coe, coe_closure, mem_closure_iff_seq_limit]
+@[simp] protected lemma mem_closure {K : convex_cone ℝ E} {a : E} :
+  a ∈ K.closure ↔ a ∈ closure K) :=
+iff.rfl
 
 end convex_cone

@@ -713,6 +713,7 @@ section borel_isomorphism
 
 variables [borel_space γ] [topological_space β] [polish_space β] [borel_space β]
 
+
 noncomputable
 def borel_schroeder_bernstein
   {f : γ → β} {g : β → γ}
@@ -720,6 +721,8 @@ def borel_schroeder_bernstein
   (gmeas : measurable g) (ginj : function.injective g) :
   γ ≃ᵐ β :=
 begin
+  haveI : second_countable_topology γ := _inst_2.second_countable, --!!!!
+  haveI : second_countable_topology β := _inst_9.second_countable,
   have hf' := fmeas.measurable_embedding finj,
   have hg' := gmeas.measurable_embedding ginj,
   exact hf'.schroeder_bernstein hg',

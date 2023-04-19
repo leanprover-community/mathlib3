@@ -37,6 +37,13 @@ lemma mem_col_neighbor_finset' [decidable_eq K] {χ : top_edge_labelling V K} {x
   y ∈ col_neighbor_finset χ k x ↔ ∃ (H : y ≠ x), χ.get y x = k :=
 by rw [col_neighbor_finset, mem_neighbor_finset, adj_comm, top_edge_labelling.label_graph_adj]
 
+lemma mem_col_neighbor_finset_comm [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
+  y ∈ col_neighbor_finset χ k x ↔ x ∈ col_neighbor_finset χ k y :=
+begin
+  rw mem_col_neighbor_finset,
+  rw mem_col_neighbor_finset',
+end
+
 lemma not_mem_red_neighbors {χ : top_edge_labelling V (fin 2)} {x : V} :
   x ∉ red_neighbors χ x := not_mem_neighbor_finset_self _ _
 

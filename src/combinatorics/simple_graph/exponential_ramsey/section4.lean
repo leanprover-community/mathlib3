@@ -585,6 +585,31 @@ begin
   rwa nat.cast_pos,
 end
 
+def common_blues (χ : top_edge_labelling V (fin 2)) (S : finset V) :
+  finset V := univ.filter (λ i, ∀ j ∈ S, i ∈ blue_neighbors χ j)
+
+lemma four_one_part_five (χ : top_edge_labelling V (fin 2)) {m b : ℕ} {X U : finset V}
+  (hXU : U ⊆ X) (hU : U.card = m) :
+  ∑ S in powerset_len b U, ((common_blues χ S ∩ (X \ U)).card : ℝ) =
+    ∑ v in X \ U, (blue_neighbors χ v ∩ U).card.choose b :=
+begin
+  have : ∀ S, ((common_blues χ S ∩ (X \ U)).card : ℝ) =
+    ∑ v in X \ U, if v ∈ common_blues χ S then 1 else 0,
+  { intro S,
+    rw [sum_boole, filter_mem_eq_inter, inter_comm] },
+  simp_rw this,
+  rw sum_comm,
+  refine sum_congr rfl _,
+  intros v hv,
+  rw [sum_boole, ←card_powerset_len],
+  congr' 2,
+  ext S,
+  simp only [mem_powerset_len, mem_filter, common_blues, mem_univ, true_and, subset_inter_iff],
+
+end
+
+#exit
+
 -- lemma 4.1
 -- (9)
 lemma four_one (hμ₀ : 0 < μ) (hμ₁ : μ < 1) : ∀ᶠ (l : ℕ) in filter.at_top, ∀ k, l ≤ k →

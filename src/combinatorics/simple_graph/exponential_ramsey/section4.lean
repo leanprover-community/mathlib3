@@ -1,4 +1,5 @@
 import combinatorics.simple_graph.exponential_ramsey.basic
+import combinatorics.simple_graph.exponential_ramsey.constructive
 
 lemma convex_on.mul {f g : ℝ → ℝ} {s : set ℝ} (hf : convex_on ℝ s f) (hg : convex_on ℝ s g)
   (hf' : monotone_on f s) (hg' : monotone_on g s)
@@ -388,29 +389,22 @@ end
 open filter finset real
 
 namespace simple_graph
-variables {V : Type*} [decidable_eq V] [fintype V] (χ : top_edge_labelling V (fin 2)) (μ : ℝ)
-
-example {V : Type*} (p : V → Prop) : subtype p ↪ V :=
-begin
-  refine function.embedding.subtype p,
-end
+variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)} (μ : ℝ)
 
 lemma four_one_part_one (l k : ℕ) (C : book_config χ)
   (hC : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ)
   (hR : ¬ (∃ m : finset V, χ.monochromatic_of m 0 ∧ k ≤ m.card)) :
-  ∃ U : finset V, χ.monochromatic_of U 1 ∧ (l : ℝ) ^ (2 / 3 : ℝ) ≤ U.card ∧
+  ∃ U : finset V, χ.monochromatic_of U 1 ∧ U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊ ∧
     U ⊆ C.X ∧ ∀ x ∈ U, μ * C.X.card ≤ (blue_neighbors χ x ∩ C.X).card :=
 begin
   let W := (C.X.filter (λ x, μ * C.X.card ≤ (blue_neighbors χ x ∩ C.X).card)),
   have : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ W.card := hC,
-  rw [←fintype.card_coe W, ramsey_number_le_iff] at this,
+  rw [←fintype.card_coe W, ramsey_number_le_iff, is_ramsey_valid_iff_eq] at this,
   obtain ⟨U, hU⟩ := this (χ.pullback (function.embedding.subtype _)),
-  rw [fin.exists_fin_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
-    nat.ceil_le] at hU,
+  rw [fin.exists_fin_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons] at hU,
   replace hU := hU.resolve_left _,
   { refine ⟨U.map (function.embedding.subtype _), hU.1.map, _, _⟩,
-    { rw [card_map],
-      exact hU.2 },
+    { rw [card_map, hU.2] },
     simp only [finset.subset_iff, finset.mem_map, mem_filter, function.embedding.coe_subtype,
       forall_exists_index, exists_prop, finset.exists_coe, subtype.coe_mk, exists_and_distrib_right,
       exists_eq_right],
@@ -422,7 +416,7 @@ begin
   rintro ⟨hU', hU''⟩,
   refine hR ⟨U.map (function.embedding.subtype _), _, _⟩,
   { exact hU'.map },
-  rwa [card_map],
+  rw [card_map, hU''],
 end
 
 lemma interedges_card_eq_sum {V : Type*} [decidable_eq V] [fintype V] {G : simple_graph V}
@@ -463,9 +457,9 @@ lemma blue_density_eq_sum {A B : finset V} :
 col_density_eq_sum
 
 -- (10)
-lemma four_one_part_two (k l : ℕ) (C : book_config χ) (U : finset V)
+lemma four_one_part_two {l : ℕ} {C : book_config χ} {U : finset V}
   (hl : l ≠ 0)
-  (hU : (l : ℝ) ^ (2 / 3 : ℝ) ≤ U.card)
+  (hU : U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊)
   (hU' : U ⊆ C.X) (hU'' : ∀ x ∈ U, μ * C.X.card ≤ (blue_neighbors χ x ∩ C.X).card) :
   (μ * C.X.card - U.card) / (C.X.card - U.card) ≤ blue_density χ U (C.X \ U) :=
 begin
@@ -482,25 +476,119 @@ begin
     exact card_le_card_sdiff_add_card },
   refine this.trans_eq' _,
   { rw [nsmul_eq_mul, mul_comm] },
-  refine hU.trans_lt' _,
+  rw hU,
   positivity
 end
 
 -- (10)
-lemma four_one_part_three (k l : ℕ) (C : book_config χ) (U : finset V)
-  (hl : l ≠ 0)
-  (hU : (l : ℝ) ^ (2 / 3 : ℝ) ≤ U.card) (hU' : U ⊆ C.X)
+lemma four_one_part_three {k l : ℕ} {C : book_config χ} {U : finset V}
+  (hμ : 0 ≤ μ) (hk₆ : 6 ≤ k) (hl : 3 ≤ l)
+  (hU : U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊) (hU' : U ⊆ C.X)
   (hX : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.X.card) :
-  μ - 1 / k ≤ (μ * C.X.card - U.card) / (C.X.card - U.card) :=
+  μ - 2 / k ≤ (μ * C.X.card - U.card) / (C.X.card - U.card) :=
 begin
-
+  set m : ℕ := ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊,
+  have hm₃ : 3 ≤ m,
+  { rw [nat.add_one_le_ceil_iff, nat.cast_two, div_eq_mul_inv, rpow_mul (nat.cast_nonneg _),
+      ←rpow_lt_rpow_iff, ←rpow_mul, inv_mul_cancel, rpow_one],
+    { norm_cast,
+      rw ←nat.succ_le_iff,
+      exact (pow_le_pow_of_le_left (by norm_num1) hl 2).trans_eq' (by norm_num1) },
+    { norm_num1 },
+    { exact rpow_nonneg_of_nonneg (nat.cast_nonneg _) _ },
+    { norm_num1 },
+    { exact rpow_nonneg_of_nonneg (rpow_nonneg_of_nonneg (nat.cast_nonneg _) _) _ },
+    { norm_num1 } },
+  have hm₂ : 2 ≤ m := hm₃.trans' (by norm_num1),
+  have hk₀ : 0 < (k : ℝ),
+  { rw nat.cast_pos,
+    exact (hk₆.trans_lt' (by norm_num1)) },
+  have hk₃ : 3 ≤ k := hk₆.trans' (by norm_num1),
+  have := (right_lt_ramsey_number hk₃ hm₂).trans_le hX,
+  have : (0 : ℝ) < C.X.card - U.card,
+  { rwa [hU, sub_pos, nat.cast_lt] },
+  rw [sub_div' _ _ _ hk₀.ne', div_le_div_iff hk₀ this, sub_mul, sub_mul, mul_sub, mul_sub, hU,
+    sub_sub, mul_right_comm, sub_le_sub_iff_left],
+  suffices : (m : ℝ) * (k / 2 * (1 - μ) + 1) ≤ C.X.card,
+  { linarith },
+  have : (m : ℝ) * (k / 2 * (1 - μ) + 1) ≤ (m : ℝ) * (k / 2 + 1),
+  { refine mul_le_mul_of_nonneg_left (add_le_add_right _ _) (nat.cast_nonneg _),
+    refine mul_le_of_le_one_right (half_pos hk₀).le _,
+    rwa sub_le_self_iff },
+  refine this.trans _,
+  rw ramsey_number_pair_swap at hX,
+  replace hX := (mul_sub_two_le_ramsey_number hm₃).trans hX,
+  rw ←@nat.cast_le ℝ at hX,
+  refine hX.trans' _,
+  rw [nat.cast_mul, nat.cast_sub, nat.cast_two],
+  swap,
+  { exact hk₃.trans' (by norm_num1) },
+  refine mul_le_mul_of_nonneg_left _ (nat.cast_nonneg _),
+  rw [←@nat.cast_le ℝ, nat.cast_bit0, nat.cast_bit1, nat.cast_one] at hk₆,
+  linarith only [hk₆],
 end
 
-#exit
+variables {k l : ℕ} {C : book_config χ} {U : finset V}
+
+lemma ceil_le_two_mul {x : ℝ} (hx : 1 / 2 ≤ x) : (⌈x⌉₊ : ℝ) ≤ 2 * x :=
+begin
+  cases lt_or_le x 1,
+  { have : ⌈x⌉₊ = 1,
+    { rw nat.ceil_eq_iff,
+      { rw [nat.sub_self, nat.cast_zero, nat.cast_one],
+        split;
+        linarith },
+      norm_num },
+    rw [this, nat.cast_one],
+    linarith },
+  refine (nat.ceil_lt_add_one _).le.trans _;
+  linarith
+end
+
+open filter
+
+lemma four_one_part_four (hμ : 0 < μ) :
+  ∀ᶠ (l : ℕ) in at_top, ∀ (k : ℕ), l ≤ k →
+    ∀ (σ : ℝ), μ - 2 / k ≤ σ →
+    (⌈(l : ℝ) ^ (1 / 4 : ℝ)⌉₊ : ℝ) ≤ σ * ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊ / 2 :=
+begin
+  have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
+  have h3 : (0 : ℝ) < 2 / 3 - 1 / 4, { norm_num1 },
+  have h4 : (0 : ℝ) < 1 / 4, { norm_num1 },
+  filter_upwards
+    [((tendsto_rpow_at_top h4).comp t).eventually_ge_at_top (1 / 2),
+    ((tendsto_rpow_at_top h3).comp t).eventually_ge_at_top (4 * 2 / μ),
+    t.eventually_ge_at_top (4 / μ),
+    eventually_gt_at_top 0]
+    with l hl hl'' hl' hl₀ k hlk σ hσ,
+  have hk : 4 / μ ≤ k,
+  { refine hl'.trans _, rwa nat.cast_le },
+  have : μ / 2 ≤ σ,
+  { refine hσ.trans' _,
+    rw [le_sub_comm, sub_half],
+    refine (div_le_div_of_le_left (by norm_num1) _ hk).trans _,
+    { positivity },
+    rw [div_div_eq_mul_div, bit0_eq_two_mul (2 : ℝ), mul_div_mul_left],
+    norm_num1 },
+  rw [mul_div_assoc],
+  refine (mul_le_mul_of_nonneg_right this (by positivity)).trans' _,
+  rw [div_mul_div_comm, ←bit0_eq_two_mul],
+  refine (ceil_le_two_mul hl).trans _,
+  rw [le_div_iff', ←mul_assoc, ←div_le_iff' hμ],
+  rotate,
+  { norm_num1 },
+  refine (nat.le_ceil _).trans' _,
+  rw [mul_div_assoc, mul_div_left_comm, ←le_div_iff', ←rpow_sub],
+  { exact hl'' },
+  { rwa nat.cast_pos },
+  refine rpow_pos_of_pos _ _,
+  rwa nat.cast_pos,
+end
 
 -- lemma 4.1
 -- (9)
-lemma four_one : ∀ᶠ (l : ℕ) in filter.at_top, ∀ k, l ≤ k → ∀ C : book_config χ,
+lemma four_one (hμ₀ : 0 < μ) (hμ₁ : μ < 1) : ∀ᶠ (l : ℕ) in filter.at_top, ∀ k, l ≤ k →
+  ∀ C : book_config χ,
   ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ →
   ¬ (∃ m : finset V, χ.monochromatic_of m 0 ∧ k ≤ m.card) →
   ∃ s t : finset V,
@@ -509,11 +597,21 @@ lemma four_one : ∀ᶠ (l : ℕ) in filter.at_top, ∀ k, l ≤ k → ∀ C : b
     (l : ℝ) ^ (1 / 4 : ℝ) ≤ s.card ∧
     μ ^ s.card * C.X.card / 2 ≤ t.card :=
 begin
-  filter_upwards with l --
+  -- have := eventually_ge_at_top 6,
+  filter_upwards [eventually_ge_at_top 6,
+    four_one_part_four μ hμ₀] with l hl hl' --
     k hlk C hC hR,
-  have := four_one_part_one χ μ l k C hC hR,
-  -- let W := (C.X.filter (λ x, μ * C.X.card ≤ (blue_neighbors χ x ∩ C.X).card)),
-  -- have : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ W.card := hC,
+  obtain ⟨U, Ublue, Usize, UX, Uneigh⟩ := four_one_part_one μ l k C hC hR,
+  set m := ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊,
+  have hC' : ramsey_number ![k, m] ≤ C.X.card := hC.trans (card_le_of_subset (filter_subset _ _)),
+  let σ := blue_density χ U (C.X \ U),
+  have : μ - 2 / k ≤ σ,
+  { exact (four_one_part_three μ hμ₀.le (hl.trans hlk) (hl.trans' (by norm_num1)) Usize UX
+      hC').trans (four_one_part_two μ (hl.trans_lt' (by norm_num1)).ne' Usize UX Uneigh) },
+  simp only [←nat.ceil_le],
+  specialize hl' k hlk σ this,
+  set b := ⌈(l : ℝ) ^ (1 / 4 : ℝ)⌉₊,
+
 end
 
 end simple_graph

@@ -254,6 +254,16 @@ begin
   exact product.ramsey_product_bound k l,
 end
 
+lemma sub_one_mul_sub_one_le_ramsey_number {k l : ℕ} :
+  (k - 1) * (l - 1) ≤ ramsey_number ![k, l] :=
+begin
+  cases k,
+  { simp },
+  cases l,
+  { simp },
+  refine (sub_one_mul_sub_one_lt_ramsey_number _ _).le; simp
+end
+
 lemma mul_sub_two_lt_ramsey_number {k l : ℕ} (hk : 3 ≤ k) (hl : l ≠ 0) :
   k * (l - 2) < ramsey_number ![k, l] :=
 begin
@@ -265,5 +275,35 @@ begin
     simp },
   exact product.ramsey_product_bound' k l,
 end
+
+lemma mul_sub_two_le_ramsey_number {k l : ℕ} (hk : 3 ≤ k) :
+  k * (l - 2) ≤ ramsey_number ![k, l] :=
+begin
+  cases l,
+  { simp },
+  refine (mul_sub_two_lt_ramsey_number hk _).le,
+  simp
+end
+
+lemma left_lt_ramsey_number_three {k : ℕ} (hk : 2 ≤ k) : k < ramsey_number ![k, 3] :=
+begin
+  cases k,
+  { simpa using hk },
+  cases k,
+  { norm_num at hk },
+  cases k,
+  { norm_num },
+  refine (mul_sub_two_lt_ramsey_number _ _).trans_le' _,
+  { simp only [nat.succ_le_succ_iff],
+    exact nat.zero_le _ },
+  { norm_num },
+  { simp }
+end
+
+lemma left_lt_ramsey_number {k l : ℕ} (hk : 2 ≤ k) (hl : 3 ≤ l) : k < ramsey_number ![k, l] :=
+(left_lt_ramsey_number_three hk).trans_le (ramsey_number.mono_two le_rfl hl)
+
+lemma right_lt_ramsey_number {k l : ℕ} (hk : 3 ≤ k) (hl : 2 ≤ l) : l < ramsey_number ![k, l] :=
+by { rw ramsey_number_pair_swap, exact left_lt_ramsey_number hl hk }
 
 end simple_graph

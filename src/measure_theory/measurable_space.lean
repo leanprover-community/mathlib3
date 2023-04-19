@@ -1387,8 +1387,6 @@ variable (α)
 class countable_generated [m : measurable_space α] : Prop :=
   (is_countable_generated : ∃ b : set (set α), b.countable ∧ m = generate_from b)
 
-#check set.countable.exists_eq_range
-
 open_locale classical
 
 theorem measurable_inj_cantor_of_countable_generated

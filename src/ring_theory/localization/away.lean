@@ -238,8 +238,9 @@ begin
   use [n, (multiplicity_eq_count_normalized_factors hx h)],
 end
 
-theorem exists_reduced_fraction {b : B} (hb : b ≠ 0) : ∃ (a : R) (n : ℤ), ¬ x ∣ a ∧
-  (((self_as_unit x B)^n : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b :=
+theorem exists_reduced_fraction {b : B} (hb : b ≠ 0) :
+  ∃ (a : R) (n : ℤ), ¬ x ∣ a ∧
+    (((self_as_unit x B)^n : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b :=
 begin
   obtain ⟨⟨a₀, y⟩, H⟩ := surj (submonoid.powers x) b,
   obtain ⟨d, hy⟩ := (submonoid.mem_powers_iff y.1 x).mp y.2,

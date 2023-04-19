@@ -7,12 +7,16 @@ import analysis.inner_product_space.adjoint
 
 /-!
 
-We define the closure of the convex cone over a real inner product space as a convex cone.
+We define a proper cone as a nonempty, closed, convex cone. Proper cones are used in defining conic
+programs which generalize linear programs. A linear program is a conic program for the positive
+cone. We then prove Farkas' lemma for conic programs following the proof in the reference below.
+Farkas' lemma is equivalent to strong duality. So, once have the definitions of conic programs and
+linear programs, the results from this file can be used to prove duality theorems.
+
+## References
+- [B. Gartner and J. Matousek, Cone Programming ][gartnerMatousek]
 
 -/
-
--- TODO: add proper cones and farkas' lemma
-
 
 open continuous_linear_map filter
 

@@ -8,12 +8,15 @@ import analysis.asymptotics.asymptotics
 /-!
 # Asymptotic equivalence up to a constant
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `asymptotics.is_Theta l f g` (notation: `f =Θ[l] g`) as
 `f =O[l] g ∧ g =O[l] f`, then prove basic properties of this equivalence relation.
 -/
 
 open filter
-open_locale topological_space
+open_locale topology
 
 namespace asymptotics
 

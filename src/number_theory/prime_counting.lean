@@ -53,7 +53,7 @@ localized "notation (name := prime_counting') `π'` := nat.prime_counting'" in n
 lemma monotone_prime_counting' : monotone prime_counting' := count_monotone prime
 
 lemma monotone_prime_counting : monotone prime_counting :=
-λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
+monotone_prime_counting'.comp (monotone_id.add_const _)
 
 @[simp] lemma prime_counting'_nth_eq (n : ℕ) : π' (nth prime n) = n :=
 count_nth_of_infinite _ infinite_set_of_prime _

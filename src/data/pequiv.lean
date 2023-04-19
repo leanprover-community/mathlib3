@@ -10,7 +10,6 @@ import data.set.basic
 # Partial Equivalences
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/1008
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define partial equivalences `pequiv`, which are a bijection between a subset of `α`
@@ -57,30 +56,22 @@ namespace pequiv
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 open function option
 
-instance : has_coe_to_fun (α ≃. β) (λ _, α → option β) := ⟨to_fun⟩
+instance fun_like : fun_like (α ≃. β) α (λ _, option β) :=
+{ coe := to_fun,
+  coe_injective' :=
+    begin
+      rintro ⟨f₁, f₂, hf⟩ ⟨g₁, g₂, hg⟩ (rfl : f₁ = g₁),
+      congr' with y x,
+      simp only [hf, hg]
+    end }
 
 @[simp] lemma coe_mk_apply (f₁ : α → option β) (f₂ : β → option α) (h) (x : α) :
   (pequiv.mk f₁ f₂ h : α → option β) x = f₁ x := rfl
 
-@[ext] lemma ext : ∀ {f g : α ≃. β} (h : ∀ x, f x = g x), f = g
-| ⟨f₁, f₂, hf⟩ ⟨g₁, g₂, hg⟩ h :=
-have h : f₁ = g₁, from funext h,
-have ∀ b, f₂ b = g₂ b,
-  begin
-    subst h,
-    assume b,
-    have hf := λ a, hf a b,
-    have hg := λ a, hg a b,
-    cases h : g₂ b with a,
-    { simp only [h, option.not_mem_none, false_iff] at hg,
-      simp only [hg, iff_false] at hf,
-      rwa [option.eq_none_iff_forall_not_mem] },
-    { rw [← option.mem_def, hf, ← hg, h, option.mem_def] }
-  end,
-by simp [*, funext_iff]
+@[ext] lemma ext {f g : α ≃. β} (h : ∀ x, f x = g x) : f = g :=
+fun_like.ext f g h
 
-lemma ext_iff {f g : α ≃. β} : f = g ↔ ∀ x, f x = g x :=
-⟨congr_fun ∘ congr_arg _, ext⟩
+lemma ext_iff {f g : α ≃. β} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
 /-- The identity map as a partial equivalence. -/
 @[refl] protected def refl (α : Type*) : α ≃. α :=

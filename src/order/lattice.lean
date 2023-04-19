@@ -11,7 +11,6 @@ import tactic.pi_instances
 # (Semi-)lattices
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/642
 > Any changes to this file require a corresponding PR to mathlib4.
 
 Semilattices are partially ordered sets with join (greatest lower bound, or `sup`) or

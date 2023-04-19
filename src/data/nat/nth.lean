@@ -83,7 +83,7 @@ begin
   apply finset.card_erase_of_mem,
   rw [nth, set.finite.mem_to_finset],
   apply Inf_mem,
-  rwa [←hp''.nonempty_to_finset, ←finset.card_pos, hk],
+  rwa [←hp''.to_finset_nonempty, ←finset.card_pos, hk],
 end
 
 lemma nth_set_card {n : ℕ} (hp : (set_of p).finite)
@@ -93,10 +93,10 @@ begin
   obtain hn | hn := le_or_lt n hp.to_finset.card,
   { exact nth_set_card_aux p hp _ hn },
   rw nat.sub_eq_zero_of_le hn.le,
-  simp only [finset.card_eq_zero, set.finite_to_finset_eq_empty_iff, ←set.subset_empty_iff],
+  simp only [finset.card_eq_zero, set.finite.to_finset_eq_empty, ←set.subset_empty_iff],
   convert_to _ ⊆ {i : ℕ | p i ∧ ∀ (k : ℕ), k < hp.to_finset.card → nth p k < i},
   { symmetry,
-    rw [←set.finite_to_finset_eq_empty_iff, ←finset.card_eq_zero,
+    rw [←set.finite.to_finset_eq_empty, ←finset.card_eq_zero,
         ←nat.sub_self hp.to_finset.card],
     { apply nth_set_card_aux p hp _ le_rfl },
     { exact hp.subset (λ x hx, hx.1) } },
@@ -108,7 +108,7 @@ lemma nth_set_nonempty_of_lt_card {n : ℕ} (hp : (set_of p).finite) (hlt: n < h
 begin
   have hp': {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i}.finite,
   { exact hp.subset (λ x hx, hx.1) },
-  rw [←hp'.nonempty_to_finset, ←finset.card_pos, nth_set_card p hp],
+  rw [←hp'.to_finset_nonempty, ←finset.card_pos, nth_set_card p hp],
   exact nat.sub_pos_of_lt hlt,
 end
 
@@ -150,6 +150,7 @@ lemma nth_injective_of_infinite (hp : (set_of p).infinite) : function.injective 
 begin
   intros m n h,
   wlog h' : m ≤ n,
+  { exact (this p hp h.symm (le_of_not_le h')).symm },
   rw le_iff_lt_or_eq at h',
   obtain (h' | rfl) := h',
   { simpa [h] using nth_strict_mono p hp h' },

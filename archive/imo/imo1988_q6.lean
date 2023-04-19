@@ -70,7 +70,8 @@ lemma constant_descent_vieta_jumping (x y : ℕ) {claim : Prop} {H : ℕ → ℕ
 begin
   -- First of all, we may assume that x ≤ y.
   -- We justify this using H_symm.
-  wlog hxy : x ≤ y, swap, { rw H_symm at h₀, solve_by_elim },
+  wlog hxy : x ≤ y,
+  { rw H_symm at h₀, apply this y x h₀ B C base _ _ _ _ _ _ (le_of_not_le hxy), assumption' },
   -- In fact, we can easily deal with the case x = y.
   by_cases x_eq_y : x = y, {subst x_eq_y, exact H_diag h₀},
   -- Hence we may assume that x < y.
@@ -265,7 +266,7 @@ begin
     have x_sq_dvd : x*x ∣ x*x*k := dvd_mul_right (x*x) k,
     rw ← hx at x_sq_dvd,
     obtain ⟨y, hy⟩ : x * x ∣ 1 := by simpa only [nat.dvd_add_self_left, add_assoc] using x_sq_dvd,
-    obtain ⟨rfl,rfl⟩ : x = 1 ∧ y = 1 := by simpa [nat.mul_eq_one_iff] using hy.symm,
+    obtain ⟨rfl,rfl⟩ : x = 1 ∧ y = 1 := by simpa [mul_eq_one] using hy.symm,
     simpa using hx.symm, },
   { -- Show the descent step.
     intros x y x_lt_y hx h_base h z h_root hV₁ hV₀,
@@ -292,6 +293,6 @@ begin
     { simp only [mul_one, one_mul, add_comm, zero_add] at h,
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
-      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply nat.eq_of_mul_eq_mul_left,
-      exacts [zero_lt_one, h.symm, zero_lt_two, h.symm] } }
+      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply mul_left_cancel₀,
+      exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end

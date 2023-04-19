@@ -11,6 +11,9 @@ import category_theory.bicategory.strict
 /-!
 # Category of categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of the category `Cat` of all categories.
 In this category objects are categories and
 morphisms are functors between these categories.

@@ -9,6 +9,9 @@ import data.enat.basic
 /-!
 # Extended natural numbers form a complete linear order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This instance is not in `data.enat.basic` to avoid dependency on `finset`s.
 -/
 

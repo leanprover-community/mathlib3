@@ -9,6 +9,9 @@ import data.set.intervals.monoid
 /-!
 # Intervals as finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic results about all the `finset.Ixx`, which are defined in
 `order.locally_finite`.
 
@@ -22,13 +25,6 @@ Complete the API. See
 https://github.com/leanprover-community/mathlib/pull/14448#discussion_r906109235
 for some ideas.
 -/
-
-namespace int
-
--- TODO: Swap name with `coe_nat_abs`
-@[simp, norm_cast] lemma abs_coe_nat (n : ℤ) : (n.nat_abs : ℤ) = |n| := (abs_eq_nat_abs n).symm
-
-end int
 
 open function order_dual
 open_locale big_operators finset_interval
@@ -336,11 +332,21 @@ end decidable_eq
 
 -- Those lemmas are purposefully the other way around
 
+/-- `finset.cons` version of `finset.Ico_insert_right`. -/
 lemma Icc_eq_cons_Ico (h : a ≤ b) : Icc a b = (Ico a b).cons b right_not_mem_Ico :=
 by { classical, rw [cons_eq_insert, Ico_insert_right h] }
 
+/-- `finset.cons` version of `finset.Ioc_insert_left`. -/
 lemma Icc_eq_cons_Ioc (h : a ≤ b) : Icc a b = (Ioc a b).cons a left_not_mem_Ioc :=
 by { classical, rw [cons_eq_insert, Ioc_insert_left h] }
+
+/-- `finset.cons` version of `finset.Ioo_insert_right`. -/
+lemma Ioc_eq_cons_Ioo (h : a < b) : Ioc a b = (Ioo a b).cons b right_not_mem_Ioo :=
+by { classical, rw [cons_eq_insert, Ioo_insert_right h], }
+
+/-- `finset.cons` version of `finset.Ioo_insert_left`. -/
+lemma Ico_eq_cons_Ioo (h : a < b) : Ico a b = (Ioo a b).cons a left_not_mem_Ioo :=
+by { classical, rw [cons_eq_insert, Ioo_insert_left h] }
 
 lemma Ico_filter_le_left {a b : α} [decidable_pred (≤ a)] (hab : a < b) :
   (Ico a b).filter (λ x, x ≤ a) = {a} :=
@@ -354,7 +360,7 @@ lemma card_Ico_eq_card_Icc_sub_one (a b : α) : (Ico a b).card = (Icc a b).card 
 begin
   classical,
   by_cases h : a ≤ b,
-  { rw [←Ico_insert_right h, card_insert_of_not_mem right_not_mem_Ico],
+  { rw [Icc_eq_cons_Ico h, card_cons],
     exact (nat.add_sub_cancel _ _).symm },
   { rw [Ico_eq_empty (λ h', h h'.le), Icc_eq_empty h, card_empty, zero_tsub] }
 end
@@ -365,12 +371,10 @@ lemma card_Ioc_eq_card_Icc_sub_one (a b : α) : (Ioc a b).card = (Icc a b).card 
 lemma card_Ioo_eq_card_Ico_sub_one (a b : α) : (Ioo a b).card = (Ico a b).card - 1 :=
 begin
   classical,
-  by_cases h : a ≤ b,
-  { obtain rfl | h' := h.eq_or_lt,
-    { rw [Ioo_self, Ico_self, card_empty] },
-    rw [←Ioo_insert_left h', card_insert_of_not_mem left_not_mem_Ioo],
+  by_cases h : a < b,
+  { rw [Ico_eq_cons_Ioo h, card_cons],
     exact (nat.add_sub_cancel _ _).symm },
-  { rw [Ioo_eq_empty (λ h', h h'.le), Ico_eq_empty (λ h', h h'.le), card_empty, zero_tsub] }
+  { rw [Ioo_eq_empty h, Ico_eq_empty h, card_empty, zero_tsub] }
 end
 
 lemma card_Ioo_eq_card_Ioc_sub_one (a b : α) : (Ioo a b).card = (Ioc a b).card - 1 :=
@@ -395,6 +399,7 @@ by { ext, simp_rw [finset.mem_insert, mem_Ici, mem_Ioi, le_iff_lt_or_eq, or_comm
 @[simp] lemma not_mem_Ioi_self {b : α} : b ∉ Ioi b := λ h, lt_irrefl _ (mem_Ioi.1 h)
 
 -- Purposefully written the other way around
+/-- `finset.cons` version of `finset.Ioi_insert`. -/
 lemma Ici_eq_cons_Ioi (a : α) : Ici a = (Ioi a).cons a not_mem_Ioi_self :=
 by { classical, rw [cons_eq_insert, Ioi_insert] }
 
@@ -414,6 +419,7 @@ by { ext, simp_rw [finset.mem_insert, mem_Iic, mem_Iio, le_iff_lt_or_eq, or_comm
 @[simp] lemma not_mem_Iio_self {b : α} : b ∉ Iio b := λ h, lt_irrefl _ (mem_Iio.1 h)
 
 -- Purposefully written the other way around
+/-- `finset.cons` version of `finset.Iio_insert`. -/
 lemma Iic_eq_cons_Iio (b : α) : Iic b = (Iio b).cons b not_mem_Iio_self :=
 by { classical, rw [cons_eq_insert, Iio_insert] }
 
@@ -509,69 +515,69 @@ end linear_order
 section lattice
 variables [lattice α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c x : α}
 
-lemma interval_to_dual (a b : α) : [to_dual a, to_dual b] = [a, b].map to_dual.to_embedding :=
+lemma uIcc_to_dual (a b : α) : [to_dual a, to_dual b] = [a, b].map to_dual.to_embedding :=
 Icc_to_dual _ _
 
-@[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
-by rw [interval, inf_eq_left.2 h, sup_eq_right.2 h]
+@[simp] lemma uIcc_of_le (h : a ≤ b) : [a, b] = Icc a b :=
+by rw [uIcc, inf_eq_left.2 h, sup_eq_right.2 h]
 
-@[simp] lemma interval_of_ge (h : b ≤ a) : [a, b] = Icc b a :=
-by rw [interval, inf_eq_right.2 h, sup_eq_left.2 h]
+@[simp] lemma uIcc_of_ge (h : b ≤ a) : [a, b] = Icc b a :=
+by rw [uIcc, inf_eq_right.2 h, sup_eq_left.2 h]
 
-lemma interval_swap (a b : α) : [a, b] = [b, a] := by rw [interval, interval, inf_comm, sup_comm]
+lemma uIcc_swap (a b : α) : [a, b] = [b, a] := by rw [uIcc, uIcc, inf_comm, sup_comm]
 
-@[simp] lemma interval_self : [a, a] = {a} := by simp [interval]
+@[simp] lemma uIcc_self : [a, a] = {a} := by simp [uIcc]
 
-@[simp] lemma nonempty_interval : finset.nonempty [a, b] := nonempty_Icc.2 inf_le_sup
+@[simp] lemma nonempty_uIcc : finset.nonempty [a, b] := nonempty_Icc.2 inf_le_sup
 
-lemma Icc_subset_interval : Icc a b ⊆ [a, b] := Icc_subset_Icc inf_le_left le_sup_right
-lemma Icc_subset_interval' : Icc b a ⊆ [a, b] := Icc_subset_Icc inf_le_right le_sup_left
+lemma Icc_subset_uIcc : Icc a b ⊆ [a, b] := Icc_subset_Icc inf_le_left le_sup_right
+lemma Icc_subset_uIcc' : Icc b a ⊆ [a, b] := Icc_subset_Icc inf_le_right le_sup_left
 
-@[simp] lemma left_mem_interval : a ∈ [a, b] := mem_Icc.2 ⟨inf_le_left, le_sup_left⟩
-@[simp] lemma right_mem_interval : b ∈ [a, b] := mem_Icc.2 ⟨inf_le_right, le_sup_right⟩
+@[simp] lemma left_mem_uIcc : a ∈ [a, b] := mem_Icc.2 ⟨inf_le_left, le_sup_left⟩
+@[simp] lemma right_mem_uIcc : b ∈ [a, b] := mem_Icc.2 ⟨inf_le_right, le_sup_right⟩
 
-lemma mem_interval_of_le (ha : a ≤ x) (hb : x ≤ b) : x ∈ [a, b] :=
-Icc_subset_interval $ mem_Icc.2 ⟨ha, hb⟩
+lemma mem_uIcc_of_le (ha : a ≤ x) (hb : x ≤ b) : x ∈ [a, b] :=
+Icc_subset_uIcc $ mem_Icc.2 ⟨ha, hb⟩
 
-lemma mem_interval_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
-Icc_subset_interval' $ mem_Icc.2 ⟨hb, ha⟩
+lemma mem_uIcc_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
+Icc_subset_uIcc' $ mem_Icc.2 ⟨hb, ha⟩
 
-lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
-by { rw mem_interval at h₁ h₂, exact Icc_subset_Icc (le_inf h₁.1 h₂.1) (sup_le h₁.2 h₂.2) }
+lemma uIcc_subset_uIcc (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
+by { rw mem_uIcc at h₁ h₂, exact Icc_subset_Icc (le_inf h₁.1 h₂.1) (sup_le h₁.2 h₂.2) }
 
-lemma interval_subset_Icc (ha : a₁ ∈ Icc a₂ b₂) (hb : b₁ ∈ Icc a₂ b₂) : [a₁, b₁] ⊆ Icc a₂ b₂ :=
+lemma uIcc_subset_Icc (ha : a₁ ∈ Icc a₂ b₂) (hb : b₁ ∈ Icc a₂ b₂) : [a₁, b₁] ⊆ Icc a₂ b₂ :=
 by { rw mem_Icc at ha hb, exact Icc_subset_Icc (le_inf ha.1 hb.1) (sup_le ha.2 hb.2) }
 
-lemma interval_subset_interval_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
-⟨λ h, ⟨h left_mem_interval, h right_mem_interval⟩, λ h, interval_subset_interval h.1 h.2⟩
+lemma uIcc_subset_uIcc_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
+⟨λ h, ⟨h left_mem_uIcc, h right_mem_uIcc⟩, λ h, uIcc_subset_uIcc h.1 h.2⟩
 
-lemma interval_subset_interval_iff_le' :
+lemma uIcc_subset_uIcc_iff_le' :
   [a₁, b₁] ⊆ [a₂, b₂] ↔ a₂ ⊓ b₂ ≤ a₁ ⊓ b₁ ∧ a₁ ⊔ b₁ ≤ a₂ ⊔ b₂ :=
 Icc_subset_Icc_iff inf_le_sup
 
-lemma interval_subset_interval_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] :=
-interval_subset_interval h right_mem_interval
+lemma uIcc_subset_uIcc_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] :=
+uIcc_subset_uIcc h right_mem_uIcc
 
-lemma interval_subset_interval_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] :=
-interval_subset_interval left_mem_interval h
+lemma uIcc_subset_uIcc_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] :=
+uIcc_subset_uIcc left_mem_uIcc h
 
 end lattice
 
 section distrib_lattice
 variables [distrib_lattice α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c x : α}
 
-lemma eq_of_mem_interval_of_mem_interval : a ∈ [b, c] → b ∈ [a, c] → a = b :=
-by { simp_rw mem_interval, exact set.eq_of_mem_interval_of_mem_interval }
+lemma eq_of_mem_uIcc_of_mem_uIcc : a ∈ [b, c] → b ∈ [a, c] → a = b :=
+by { simp_rw mem_uIcc, exact set.eq_of_mem_uIcc_of_mem_uIcc }
 
-lemma eq_of_mem_interval_of_mem_interval' : b ∈ [a, c] → c ∈ [a, b] → b = c :=
-by { simp_rw mem_interval, exact set.eq_of_mem_interval_of_mem_interval' }
+lemma eq_of_mem_uIcc_of_mem_uIcc' : b ∈ [a, c] → c ∈ [a, b] → b = c :=
+by { simp_rw mem_uIcc, exact set.eq_of_mem_uIcc_of_mem_uIcc' }
 
-lemma interval_injective_right (a : α) : injective (λ b, [b, a]) :=
+lemma uIcc_injective_right (a : α) : injective (λ b, [b, a]) :=
 λ b c h, by { rw ext_iff at h,
-  exact eq_of_mem_interval_of_mem_interval ((h _).1 left_mem_interval) ((h _).2 left_mem_interval) }
+  exact eq_of_mem_uIcc_of_mem_uIcc ((h _).1 left_mem_uIcc) ((h _).2 left_mem_uIcc) }
 
-lemma interval_injective_left (a : α) : injective (interval a) :=
-by simpa only [interval_swap] using interval_injective_right a
+lemma uIcc_injective_left (a : α) : injective (uIcc a) :=
+by simpa only [uIcc_swap] using uIcc_injective_right a
 
 end distrib_lattice
 
@@ -580,27 +586,27 @@ variables [linear_order α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c
 
 lemma Icc_min_max : Icc (min a b) (max a b) = [a, b] := rfl
 
-lemma interval_of_not_le (h : ¬ a ≤ b) : [a, b] = Icc b a := interval_of_ge $ le_of_not_ge h
-lemma interval_of_not_ge (h : ¬ b ≤ a) : [a, b] = Icc a b := interval_of_le $ le_of_not_ge h
+lemma uIcc_of_not_le (h : ¬ a ≤ b) : [a, b] = Icc b a := uIcc_of_ge $ le_of_not_ge h
+lemma uIcc_of_not_ge (h : ¬ b ≤ a) : [a, b] = Icc a b := uIcc_of_le $ le_of_not_ge h
 
-lemma interval_eq_union : [a, b] = Icc a b ∪ Icc b a :=
-coe_injective $ by { push_cast, exact set.interval_eq_union }
+lemma uIcc_eq_union : [a, b] = Icc a b ∪ Icc b a :=
+coe_injective $ by { push_cast, exact set.uIcc_eq_union }
 
-lemma mem_interval' : a ∈ [b, c] ↔ b ≤ a ∧ a ≤ c ∨ c ≤ a ∧ a ≤ b := by simp [interval_eq_union]
+lemma mem_uIcc' : a ∈ [b, c] ↔ b ≤ a ∧ a ≤ c ∨ c ≤ a ∧ a ≤ b := by simp [uIcc_eq_union]
 
-lemma not_mem_interval_of_lt : c < a → c < b → c ∉ [a, b] :=
-by { rw mem_interval, exact set.not_mem_interval_of_lt }
+lemma not_mem_uIcc_of_lt : c < a → c < b → c ∉ [a, b] :=
+by { rw mem_uIcc, exact set.not_mem_uIcc_of_lt }
 
-lemma not_mem_interval_of_gt : a < c → b < c → c ∉ [a, b] :=
-by { rw mem_interval, exact set.not_mem_interval_of_gt }
+lemma not_mem_uIcc_of_gt : a < c → b < c → c ∉ [a, b] :=
+by { rw mem_uIcc, exact set.not_mem_uIcc_of_gt }
 
-lemma interval_subset_interval_iff_le :
+lemma uIcc_subset_uIcc_iff_le :
   [a₁, b₁] ⊆ [a₂, b₂] ↔ min a₂ b₂ ≤ min a₁ b₁ ∧ max a₁ b₁ ≤ max a₂ b₂ :=
-interval_subset_interval_iff_le'
+uIcc_subset_uIcc_iff_le'
 
 /-- A sort of triangle inequality. -/
-lemma interval_subset_interval_union_interval : [a, c] ⊆ [a, b] ∪ [b, c] :=
-coe_subset.1 $ by { push_cast, exact set.interval_subset_interval_union_interval }
+lemma uIcc_subset_uIcc_union_uIcc : [a, c] ⊆ [a, b] ∪ [b, c] :=
+coe_subset.1 $ by { push_cast, exact set.uIcc_subset_uIcc_union_uIcc }
 
 end linear_order
 

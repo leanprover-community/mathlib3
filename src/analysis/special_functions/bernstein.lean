@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.order.field.basic
+import analysis.specific_limits.basic
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
 import topology.continuous_function.compact
@@ -192,7 +193,8 @@ lemma le_of_mem_S_compl
   (1 : ℝ) ≤ (δ f ε h)^(-2 : ℤ) * (x - k/ₙ) ^ 2 :=
 begin
   simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
-  erw [zpow_neg, ← div_eq_inv_mul, one_le_div (pow_pos δ_pos 2), sq_le_sq, abs_of_pos δ_pos],
+  rw [zpow_neg, ← div_eq_inv_mul, zpow_two, ←pow_two, one_le_div (pow_pos δ_pos 2), sq_le_sq,
+    abs_of_pos δ_pos],
   rwa [dist_comm] at m
 end
 
@@ -202,7 +204,7 @@ open bernstein_approximation
 open bounded_continuous_function
 open filter
 
-open_locale topological_space
+open_locale topology
 
 /--
 The Bernstein approximations
@@ -226,7 +228,7 @@ begin
   have npos : 0 < (n:ℝ) := by exact_mod_cast npos',
   -- Two easy inequalities we'll need later:
   have w₁ : 0 ≤ 2 * ‖f‖ := mul_nonneg (by norm_num) (norm_nonneg f),
-  have w₂ : 0 ≤ 2 * ‖f‖ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
+  have w₂ : 0 ≤ 2 * ‖f‖ * δ^(-2 : ℤ) := mul_nonneg w₁ (zpow_neg_two_nonneg _),
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
   rw (continuous_map.norm_lt_iff _ h),
   intro x,
@@ -291,7 +293,7 @@ begin
                                   : mul_le_mul_of_nonneg_left
                                       (finset.sum_le_univ_sum_of_nonneg
                                         (λ k, mul_nonneg
-                                          (mul_nonneg pow_minus_two_nonneg (sq_nonneg _))
+                                          (mul_nonneg (zpow_neg_two_nonneg _) (sq_nonneg _))
                                           bernstein_nonneg)) w₁
         ... = (2 * ‖f‖) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
                                   : by conv_rhs

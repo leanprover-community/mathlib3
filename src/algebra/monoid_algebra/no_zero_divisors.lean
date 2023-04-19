@@ -8,6 +8,9 @@ import algebra.monoid_algebra.support
 /-!
 # Variations on non-zero divisors in `add_monoid_algebra`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file studies the interaction between typeclass assumptions on two Types `R` and `A` and
 whether `add_monoid_algebra R A` has non-zero zero-divisors.  For some background on related
 questions, see [Kaplansky's Conjectures](https://en.wikipedia.org/wiki/Kaplansky%27s_conjectures),

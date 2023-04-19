@@ -9,7 +9,6 @@ import group_theory.group_action.defs
 # Sum instances for additive and multiplicative actions
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/882
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines instances for additive and multiplicative actions on the binary `sum` type.

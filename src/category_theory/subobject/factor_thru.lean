@@ -9,6 +9,9 @@ import category_theory.preadditive.basic
 /-!
 # Factoring through subobjects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The predicate `h : P.factors f`, for `P : subobject Y` and `f : X ⟶ Y`
 asserts the existence of some `P.factor_thru f : X ⟶ (P : C)` making the obvious diagram commute.
 

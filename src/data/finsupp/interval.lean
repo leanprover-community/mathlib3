@@ -10,6 +10,9 @@ import data.finsupp.order
 /-!
 # Finite intervals of finitely supported functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the `locally_finite_order` instance for `ι →₀ α` when `α` itself is locally
 finite and calculates the cardinality of its finite intervals.
 
@@ -53,7 +56,7 @@ variables [has_zero α] [partial_order α] [locally_finite_order α] {f g : ι �
 /-- Pointwise `finset.Icc` bundled as a `finsupp`. -/
 @[simps to_fun] def range_Icc (f g : ι →₀ α) : ι →₀ finset α :=
 { to_fun := λ i, Icc (f i) (g i),
-  support := f.support ∪ g.support,
+  support := by haveI := classical.dec_eq ι; exact f.support ∪ g.support,
   mem_support_to_fun := λ i, begin
     rw [mem_union, ←not_iff_not, not_or_distrib, not_mem_support_iff, not_mem_support_iff,
       not_ne_iff],
@@ -72,6 +75,7 @@ section partial_order
 variables [partial_order α] [has_zero α] [locally_finite_order α] (f g : ι →₀ α)
 
 instance : locally_finite_order (ι →₀ α) :=
+by haveI := classical.dec_eq ι; haveI := classical.dec_eq α; exact
 locally_finite_order.of_Icc (ι →₀ α)
   (λ f g, (f.support ∪ g.support).finsupp $ f.range_Icc g)
   (λ f g x, begin
@@ -117,8 +121,11 @@ variables [canonically_ordered_add_monoid α] [locally_finite_order α]
 variables (f : ι →₀ α)
 
 lemma card_Iic : (Iic f).card = ∏ i in f.support, (Iic (f i)).card :=
-by simp_rw [Iic_eq_Icc, card_Icc, finsupp.bot_eq_zero, support_zero, empty_union, zero_apply,
-  bot_eq_zero]
+begin
+  classical,
+  simp_rw [Iic_eq_Icc, card_Icc, finsupp.bot_eq_zero, support_zero, empty_union, zero_apply,
+    bot_eq_zero]
+end
 
 lemma card_Iio : (Iio f).card = ∏ i in f.support, (Iic (f i)).card - 1 :=
 by rw [card_Iio_eq_card_Iic_sub_one, card_Iic]

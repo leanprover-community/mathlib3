@@ -10,6 +10,9 @@ import category_theory.concrete_category.basic
 import tactic.fresh_names
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide various simp lemmas in its elementwise form via `tactic.elementwise`.
 -/
 

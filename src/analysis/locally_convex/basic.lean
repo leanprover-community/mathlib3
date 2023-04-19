@@ -10,6 +10,9 @@ import analysis.normed_space.basic
 /-!
 # Local convexity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines absorbent and balanced sets.
 
 An absorbent set is one that "surrounds" the origin. The idea is made precise by requiring that any
@@ -37,7 +40,7 @@ absorbent, balanced, locally convex, LCTVS
 -/
 
 open set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {𝕜 𝕝 E  : Type*} {ι : Sort*} {κ : ι → Sort*}
 

@@ -176,7 +176,7 @@ combinations (with sum of weights 1) that evaluate to the same point
 have equal `set.indicator`. -/
 lemma affine_independent_iff_indicator_eq_of_affine_combination_eq (p : ι → P) :
   affine_independent k p ↔ ∀ (s1 s2 : finset ι) (w1 w2 : ι → k), ∑ i in s1, w1 i = 1 →
-    ∑ i in s2, w2 i = 1 → s1.affine_combination p w1 = s2.affine_combination p w2 →
+    ∑ i in s2, w2 i = 1 → s1.affine_combination k p w1 = s2.affine_combination k p w2 →
       set.indicator ↑s1 w1 = set.indicator ↑s2 w2 :=
 begin
   classical,
@@ -199,13 +199,13 @@ begin
     let w1 : ι → k := function.update (function.const ι 0) i0 1,
     have hw1 : ∑ i in s, w1 i = 1,
     { rw [finset.sum_update_of_mem hi0, finset.sum_const_zero, add_zero] },
-    have hw1s : s.affine_combination p w1 = p i0 :=
+    have hw1s : s.affine_combination k p w1 = p i0 :=
       s.affine_combination_of_eq_one_of_eq_zero w1 p hi0 (function.update_same _ _ _)
                                                 (λ _ _ hne, function.update_noteq hne _ _),
     let w2 := w + w1,
     have hw2 : ∑ i in s, w2 i = 1,
     { simp [w2, finset.sum_add_distrib, hw, hw1] },
-    have hw2s : s.affine_combination p w2 = p i0,
+    have hw2s : s.affine_combination k p w2 = p i0,
     { simp [w2, ←finset.weighted_vsub_vadd_affine_combination, hs, hw1s] },
     replace ha := ha s s w2 w1 hw2 hw1 (hw1s.symm ▸ hw2s),
     have hws : w2 i0 - w1 i0 = 0,
@@ -218,7 +218,7 @@ end
 combinations (with sum of weights 1) that evaluate to the same point are equal. -/
 lemma affine_independent_iff_eq_of_fintype_affine_combination_eq [fintype ι] (p : ι → P) :
   affine_independent k p ↔ ∀ (w1 w2 : ι → k), ∑ i, w1 i = 1 → ∑ i, w2 i = 1 →
-    finset.univ.affine_combination p w1 = finset.univ.affine_combination p w2 → w1 = w2 :=
+    finset.univ.affine_combination k p w1 = finset.univ.affine_combination k p w2 → w1 = w2 :=
 begin
   rw affine_independent_iff_indicator_eq_of_affine_combination_eq,
   split,
@@ -252,7 +252,7 @@ end
 
 lemma affine_independent.indicator_eq_of_affine_combination_eq {p : ι → P}
   (ha : affine_independent k p) (s₁ s₂ : finset ι) (w₁ w₂ : ι → k) (hw₁ : ∑ i in s₁, w₁ i = 1)
-  (hw₂ : ∑ i in s₂, w₂ i = 1) (h : s₁.affine_combination p w₁ = s₂.affine_combination p w₂) :
+  (hw₂ : ∑ i in s₂, w₂ i = 1) (h : s₁.affine_combination k p w₁ = s₂.affine_combination k p w₂) :
   set.indicator ↑s₁ w₁ = set.indicator ↑s₂ w₂ :=
 (affine_independent_iff_indicator_eq_of_affine_combination_eq k p).1 ha s₁ s₂ w₁ w₂ hw₁ hw₂ h
 
@@ -365,7 +365,7 @@ begin
   rw affine_independent_iff_linear_independent_vsub k p i at hai,
   simp_rw [affine_independent_iff_linear_independent_vsub k (f ∘ p) i, function.comp_app,
     ← f.linear_map_vsub],
-  have hf' : f.linear.ker = ⊥, { rwa [linear_map.ker_eq_bot, f.injective_iff_linear_injective], },
+  have hf' : f.linear.ker = ⊥, { rwa [linear_map.ker_eq_bot, f.linear_injective_iff], },
   exact linear_independent.map' hai f.linear hf',
 end
 
@@ -479,7 +479,7 @@ lemma weighted_vsub_mem_vector_span_pair {p : ι → P} (h : affine_independent 
   {w w₁ w₂ : ι → k} {s : finset ι} (hw : ∑ i in s, w i = 0) (hw₁ : ∑ i in s, w₁ i = 1)
   (hw₂ : ∑ i in s, w₂ i = 1) :
   s.weighted_vsub p w ∈
-    vector_span k ({s.affine_combination p w₁, s.affine_combination p w₂} : set P) ↔
+    vector_span k ({s.affine_combination k p w₁, s.affine_combination k p w₂} : set P) ↔
     ∃ r : k, ∀ i ∈ s, w i = r * (w₁ i - w₂ i) :=
 begin
   rw mem_vector_span_pair,
@@ -509,11 +509,11 @@ two points. -/
 lemma affine_combination_mem_affine_span_pair {p : ι → P} (h : affine_independent k p)
   {w w₁ w₂ : ι → k} {s : finset ι} (hw : ∑ i in s, w i = 1) (hw₁ : ∑ i in s, w₁ i = 1)
   (hw₂ : ∑ i in s, w₂ i = 1) :
-  s.affine_combination p w ∈
-    line[k, s.affine_combination p w₁, s.affine_combination p w₂] ↔
+  s.affine_combination k p w ∈
+    line[k, s.affine_combination k p w₁, s.affine_combination k p w₂] ↔
     ∃ r : k, ∀ i ∈ s, w i = r * (w₂ i - w₁ i) + w₁ i :=
 begin
-  rw [←vsub_vadd (s.affine_combination p w) (s.affine_combination p w₁),
+  rw [←vsub_vadd (s.affine_combination k p w) (s.affine_combination k p w₁),
       affine_subspace.vadd_mem_iff_mem_direction _ (left_mem_affine_span_pair _ _ _),
       direction_affine_span, s.affine_combination_vsub, set.pair_comm,
       weighted_vsub_mem_vector_span_pair h _ hw₂ hw₁],
@@ -719,7 +719,8 @@ sign. -/
 lemma sign_eq_of_affine_combination_mem_affine_span_pair {p : ι → P} (h : affine_independent k p)
   {w w₁ w₂ : ι → k} {s : finset ι} (hw : ∑ i in s, w i = 1) (hw₁ : ∑ i in s, w₁ i = 1)
   (hw₂ : ∑ i in s, w₂ i = 1)
-  (hs : s.affine_combination p w ∈ line[k, s.affine_combination p w₁, s.affine_combination p w₂])
+  (hs : s.affine_combination k p w ∈
+    line[k, s.affine_combination k p w₁, s.affine_combination k p w₂])
   {i j : ι} (hi : i ∈ s) (hj : j ∈ s) (hi0 : w₁ i = 0) (hj0 : w₁ j = 0)
   (hij : sign (w₂ i) = sign (w₂ j)) : sign (w i) = sign (w j) :=
 begin
@@ -737,7 +738,7 @@ lemma sign_eq_of_affine_combination_mem_affine_span_single_line_map {p : ι → 
   (h : affine_independent k p) {w : ι → k} {s : finset ι} (hw : ∑ i in s, w i = 1)
   {i₁ i₂ i₃ : ι} (h₁ : i₁ ∈ s) (h₂ : i₂ ∈ s) (h₃ : i₃ ∈ s) (h₁₂ : i₁ ≠ i₂) (h₁₃ : i₁ ≠ i₃)
   (h₂₃ : i₂ ≠ i₃) {c : k} (hc0 : 0 < c) (hc1 : c < 1)
-  (hs : s.affine_combination p w ∈ line[k, p i₁, affine_map.line_map (p i₂) (p i₃) c]) :
+  (hs : s.affine_combination k p w ∈ line[k, p i₁, affine_map.line_map (p i₂) (p i₃) c]) :
   sign (w i₂) = sign (w i₃) :=
 begin
   classical,

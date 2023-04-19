@@ -9,6 +9,9 @@ import linear_algebra.matrix.trace
 /-!
 # Matrices with a single non-zero element.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `matrix.std_basis_matrix`. The matrix `matrix.std_basis_matrix i j c` has `c`
 at position `(i, j)`, and zeroes elsewhere.
 -/

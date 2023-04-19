@@ -10,6 +10,9 @@ import data.finset.locally_finite
 /-!
 # Finite intervals of integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that `ℤ` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.
 -/

@@ -8,6 +8,9 @@ import data.dfinsupp.basic
 /-!
 # Pointwise order on finitely supported dependent functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file lifts order structures on the `α i` to `Π₀ i, α i`.
 
 ## Main declarations

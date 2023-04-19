@@ -6,6 +6,7 @@ Authors: Joseph Myers
 import data.set.intervals.group
 import analysis.convex.segment
 import linear_algebra.affine_space.finite_dimensional
+import linear_algebra.affine_space.midpoint_zero
 import tactic.field_simp
 
 /-!
@@ -24,6 +25,8 @@ This file defines notions of a point in an affine space being between two given 
 variables (R : Type*) {V V' P P' : Type*}
 
 open affine_equiv affine_map
+
+open_locale big_operators
 
 section ordered_ring
 
@@ -452,6 +455,33 @@ lemma sbtw.trans_wbtw_right_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ :
   (h₂ : wbtw R x y z) : w ≠ y :=
 h₁.wbtw.trans_right_ne h₂ h₁.left_ne
 
+lemma sbtw.affine_combination_of_mem_affine_span_pair [no_zero_divisors R]
+  [no_zero_smul_divisors R V] {ι : Type*} {p : ι → P} (ha : affine_independent R p)
+  {w w₁ w₂ : ι → R} {s : finset ι} (hw : ∑ i in s, w i = 1) (hw₁ : ∑ i in s, w₁ i = 1)
+  (hw₂ : ∑ i in s, w₂ i = 1)
+  (h : s.affine_combination R p w ∈
+    line[R, s.affine_combination R p w₁, s.affine_combination R p w₂])
+  {i : ι} (his : i ∈ s) (hs : sbtw R (w₁ i) (w i) (w₂ i)) :
+  sbtw R (s.affine_combination R p w₁) (s.affine_combination R p w) (s.affine_combination R p w₂) :=
+begin
+  rw affine_combination_mem_affine_span_pair ha hw hw₁ hw₂ at h,
+  rcases h with ⟨r, hr⟩,
+  dsimp only at hr,
+  rw [hr i his, sbtw_mul_sub_add_iff] at hs,
+  change ∀ i ∈ s, w i = ((r • (w₂ - w₁) + w₁) i) at hr,
+  rw s.affine_combination_congr hr (λ _ _, rfl),
+  dsimp only,
+  rw [←s.weighted_vsub_vadd_affine_combination, s.weighted_vsub_const_smul,
+      ←s.affine_combination_vsub, ←line_map_apply, sbtw_line_map_iff, and_iff_left hs.2,
+      ←@vsub_ne_zero V, s.affine_combination_vsub],
+  intro hz,
+  have hw₁w₂ : ∑ i in s, (w₁ - w₂) i = 0,
+  { simp_rw [pi.sub_apply, finset.sum_sub_distrib, hw₁, hw₂, sub_self] },
+  refine hs.1 _,
+  have ha' := ha s (w₁ - w₂) hw₁w₂ hz i his,
+  rwa [pi.sub_apply, sub_eq_zero] at ha'
+end
+
 end ordered_ring
 
 section strict_ordered_comm_ring
@@ -486,6 +516,81 @@ begin
 end
 
 end strict_ordered_comm_ring
+
+section linear_ordered_ring
+
+variables [linear_ordered_ring R] [add_comm_group V] [module R V] [add_torsor V P]
+
+include V
+
+variables {R}
+
+/-- Suppose lines from two vertices of a triangle to interior points of the opposite side meet at
+`p`. Then `p` lies in the interior of the first (and by symmetry the other) segment from a
+vertex to the point on the opposite side. -/
+lemma sbtw_of_sbtw_of_sbtw_of_mem_affine_span_pair [no_zero_smul_divisors R V]
+  {t : affine.triangle R P} {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂) {p₁ p₂ p : P}
+  (h₁ : sbtw R (t.points i₂) p₁ (t.points i₃)) (h₂ : sbtw R (t.points i₁) p₂ (t.points i₃))
+  (h₁' : p ∈ line[R, t.points i₁, p₁]) (h₂' : p ∈ line[R, t.points i₂, p₂]) :
+  sbtw R (t.points i₁) p p₁ :=
+begin
+  -- Should not be needed; see comments on local instances in `data.sign`.
+  letI : decidable_rel ((<) : R → R → Prop) := linear_ordered_ring.decidable_lt,
+  have h₁₃ : i₁ ≠ i₃, { rintro rfl, simpa using h₂ },
+  have h₂₃ : i₂ ≠ i₃, { rintro rfl, simpa using h₁ },
+  have h3 : ∀ i : fin 3, i = i₁ ∨ i = i₂ ∨ i = i₃, { clear h₁ h₂ h₁' h₂', dec_trivial! },
+  have hu : (finset.univ : finset (fin 3)) = {i₁, i₂, i₃}, { clear h₁ h₂ h₁' h₂', dec_trivial! },
+  have hp : p ∈ affine_span R (set.range t.points),
+  { have hle : line[R, t.points i₁, p₁] ≤ affine_span R (set.range t.points),
+    { refine affine_span_pair_le_of_mem_of_mem (mem_affine_span _ (set.mem_range_self _)) _,
+      have hle : line[R, t.points i₂, t.points i₃] ≤ affine_span R (set.range t.points),
+      { refine affine_span_mono _ _, simp [set.insert_subset] },
+      rw affine_subspace.le_def' at hle,
+      exact hle _ h₁.wbtw.mem_affine_span },
+    rw affine_subspace.le_def' at hle,
+    exact hle _ h₁' },
+  have h₁i := h₁.mem_image_Ioo,
+  have h₂i := h₂.mem_image_Ioo,
+  rw set.mem_image at h₁i h₂i,
+  rcases h₁i with ⟨r₁, ⟨hr₁0, hr₁1⟩, rfl⟩,
+  rcases h₂i with ⟨r₂, ⟨hr₂0, hr₂1⟩, rfl⟩,
+  rcases eq_affine_combination_of_mem_affine_span_of_fintype hp with ⟨w, hw, rfl⟩,
+  have h₁s := sign_eq_of_affine_combination_mem_affine_span_single_line_map t.independent hw
+    (finset.mem_univ _) (finset.mem_univ _) (finset.mem_univ _) h₁₂ h₁₃ h₂₃ hr₁0 hr₁1 h₁',
+  have h₂s := sign_eq_of_affine_combination_mem_affine_span_single_line_map t.independent hw
+    (finset.mem_univ _) (finset.mem_univ _) (finset.mem_univ _) h₁₂.symm h₂₃ h₁₃ hr₂0 hr₂1 h₂',
+  dsimp only at h₁s h₂s,
+  rw [←finset.univ.affine_combination_affine_combination_single_weights R t.points
+        (finset.mem_univ i₁),
+      ←finset.univ.affine_combination_affine_combination_line_map_weights t.points
+        (finset.mem_univ _) (finset.mem_univ _)] at ⊢ h₁',
+  refine sbtw.affine_combination_of_mem_affine_span_pair t.independent hw
+    (finset.univ.sum_affine_combination_single_weights R (finset.mem_univ _))
+    (finset.univ.sum_affine_combination_line_map_weights (finset.mem_univ _) (finset.mem_univ _) _)
+    h₁' (finset.mem_univ i₁) _,
+  rw [finset.affine_combination_single_weights_apply_self,
+      finset.affine_combination_line_map_weights_apply_of_ne h₁₂ h₁₃, sbtw_one_zero_iff],
+  have hs : ∀ i : fin 3, sign (w i) = sign (w i₃),
+  { intro i,
+    rcases h3 i with rfl | rfl | rfl,
+    { exact h₂s },
+    { exact h₁s },
+    { refl } },
+  have hss : sign (∑ i, w i) = 1, { simp [hw] },
+  have hs' := sign_sum (finset.univ_nonempty) (sign (w i₃)) (λ i _, hs i),
+  rw hs' at hss,
+  simp_rw [hss, sign_eq_one_iff] at hs,
+  refine ⟨hs i₁, _⟩,
+  rw hu at hw,
+  rw [finset.sum_insert, finset.sum_insert, finset.sum_singleton] at hw,
+  { by_contra hle,
+    rw not_lt at hle,
+    exact (hle.trans_lt (lt_add_of_pos_right _ (left.add_pos (hs i₂) (hs i₃)))).ne' hw },
+  { simp [h₂₃] },
+  { simp [h₁₂, h₁₃] }
+end
+
+end linear_ordered_ring
 
 section linear_ordered_field
 

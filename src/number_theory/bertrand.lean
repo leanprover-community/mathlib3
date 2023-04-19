@@ -156,7 +156,7 @@ begin
   rw [central_binom_factorization_small n n_big no_prime, ← this,
     ← finset.prod_filter_mul_prod_filter_not S (≤ sqrt (2 * n))],
   apply mul_le_mul',
-  { refine (finset.prod_le_prod'' (λ p hp, (_ : f p ≤ 2 * n))).trans _,
+  { refine (finset.prod_le_prod' (λ p hp, (_ : f p ≤ 2 * n))).trans _,
     { exact pow_factorization_choose_le (mul_pos two_pos n_pos) },
     have : (finset.Icc 1 (sqrt (2 * n))).card = sqrt (2 * n),
     { rw [card_Icc, nat.add_sub_cancel] },

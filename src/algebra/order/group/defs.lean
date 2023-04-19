@@ -11,7 +11,6 @@ import algebra.order.monoid.cancel.defs
 # Ordered groups
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/869
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basics of ordered groups.

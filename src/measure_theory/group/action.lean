@@ -17,7 +17,7 @@ typeclass for measures invariant under action of an (additive or multiplicative)
 some basic properties of such measures.
 -/
 
-open_locale ennreal nnreal pointwise topological_space
+open_locale ennreal nnreal pointwise topology
 open measure_theory measure_theory.measure set function
 
 namespace measure_theory
@@ -147,6 +147,8 @@ variable {μ}
   null_measurable_set (c • s) μ :=
 by simpa only [← preimage_smul_inv]
   using hs.preimage (measure_preserving_smul _ _).quasi_measure_preserving
+
+lemma measure_smul_null {s} (h : μ s = 0) (c : G) : μ (c • s) = 0 := by rwa measure_smul
 
 section is_minimal
 

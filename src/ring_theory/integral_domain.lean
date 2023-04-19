@@ -156,6 +156,29 @@ end
 
 end
 
+section euclidean_division
+
+namespace polynomial
+
+open_locale polynomial
+
+variables (K : Type) [field K] [algebra R[X] K] [is_fraction_ring R[X] K]
+
+lemma div_eq_quo_add_rem_div (f : R[X]) {g : R[X]} (hg : g.monic) :
+  ∃ q r : R[X], r.degree < g.degree ∧ (↑f : K) / ↑g = ↑q + ↑r / ↑g :=
+begin
+  refine ⟨f /ₘ g, f %ₘ g, _, _⟩,
+  { exact degree_mod_by_monic_lt _ hg },
+  { have hg' : (↑g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
+    field_simp [hg'],
+    norm_cast,
+    rw [add_comm, mul_comm, mod_by_monic_add_div f hg] },
+end
+
+end polynomial
+
+end euclidean_division
+
 variables [fintype G]
 
 lemma card_fiber_eq_of_mem_range {H : Type*} [group H] [decidable_eq H]

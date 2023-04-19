@@ -1447,24 +1447,15 @@ by simp only [basis.restrict_scalars, basis.span_apply]
 lemma basis.restrict_scalars_repr_apply (m : span R (set.range b)) (i : ι) :
   algebra_map R K ((b.restrict_scalars R).repr m i) = b.repr m i :=
 begin
-  classical,
-  let s := (b.repr m).support ∪ ((b.restrict_scalars R).repr m).support,
-  by_cases hi : i ∈ s,
-  { have h := (congr_arg (coe : _ → V) ((b.restrict_scalars R).total_repr m)).trans
-      (b.total_repr m).symm,
-    rw @finsupp.total_apply_of_mem_supported _ _ K _ _ _ _ _ s (finset.subset_union_left _ _) at h,
-    rw @finsupp.total_apply_of_mem_supported _ _ R _ _ _ _ _ s (finset.subset_union_right _ _) at h,
-    rw ← sub_eq_zero at h ⊢,
-    revert i,
-    have : ∀ i x, x • b i = (algebra_map R K) x • b i := by
-      { intros _ _, rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul], },
-    simpa only [this, coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply,  ← sub_smul,
-      ← finset.sum_sub_distrib, ← basis.forall_coord_eq_zero_iff b, basis.coord_apply,
-      linear_equiv.map_sum, b.repr.map_smul, basis.repr_self, finsupp.smul_single, smul_eq_mul,
-      mul_one, finset.sum_apply', finsupp.single_apply, finset.sum_ite_eq', ite_eq_right_iff]
-      using h, },
-  { rw [finsupp.not_mem_support_iff.mp (finset.not_mem_union.mp hi).left,
-      finsupp.not_mem_support_iff.mp (finset.not_mem_union.mp hi).right, _root_.map_zero], },
+  suffices : finsupp.map_range.linear_map (algebra.linear_map R K) ∘ₗ
+      (b.restrict_scalars R).repr.to_linear_map
+      = ((b.repr : V →ₗ[K] (ι →₀ K)).restrict_scalars R).dom_restrict _,
+  { exact finsupp.congr_fun (linear_map.congr_fun this m) i, },
+  refine basis.ext (b.restrict_scalars R) (λ _, _),
+  simp only [linear_map.coe_comp, linear_equiv.coe_to_linear_map, function.comp_app, map_one,
+    basis.repr_self, finsupp.map_range.linear_map_apply, finsupp.map_range_single,
+    algebra.linear_map_apply, linear_map.dom_restrict_apply, linear_equiv.coe_coe,
+    basis.restrict_scalars_apply, linear_map.coe_restrict_scalars_eq_coe],
 end
 
 lemma basis.restrict_scalars_mem_span_iff (m : V) :

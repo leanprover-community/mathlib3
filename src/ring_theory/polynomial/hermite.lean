@@ -106,7 +106,7 @@ end
 
 lemma hermite_monic {n : ℕ} : (hermite n).monic := hermite_leading_coeff
 
-lemma hermite_coeff_odd_zero (n k : ℕ) (hnk : odd (n + k)) : coeff (hermite n) k = 0 :=
+lemma hermite_coeff_parity_zero (n k : ℕ) (hnk : odd (n + k)) : coeff (hermite n) k = 0 :=
 begin
   induction n with n ih generalizing k,
   { rw zero_add at hnk,

@@ -1427,7 +1427,8 @@ end division_ring
 
 section restrict_scalars
 
-variables [division_ring K] [add_comm_group V] [module K V] [comm_ring R] [module R V] [algebra R K]
+variables [comm_ring R] [ring K] [nontrivial K] [add_comm_group V]
+variables [algebra R K] [module K V] [module R V]
 variables [is_scalar_tower R K V] [no_zero_smul_divisors R K] (b : basis ι K V)
 variable (R)
 
@@ -1436,11 +1437,11 @@ open submodule
 /-- Let `b` be a `K`-basis of `V`. Let `R` be a comm_ring such that `algebra R K` with no zero
 smul divisors, then the submodule of `V` spanned by `b` over `R` admits `b` as a `R`-basis. -/
 noncomputable def basis.restrict_scalars : basis ι R (span R (set.range b)) :=
-basis.span (b.linear_independent.restrict_scalars (smul_left_injective R (ne_zero.ne 1)))
+basis.span (b.linear_independent.restrict_scalars (smul_left_injective R one_ne_zero))
 
 @[simp]
 lemma basis.restrict_scalars_apply (i : ι) : (b.restrict_scalars R i : V) = b i :=
-  by simp only [basis.restrict_scalars, basis.span_apply]
+by simp only [basis.restrict_scalars, basis.span_apply]
 
 @[simp]
 lemma basis.restrict_scalars_repr_apply (m : span R (set.range b)) (i : ι) :

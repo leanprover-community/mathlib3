@@ -547,7 +547,11 @@ end
 by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_inv, ← det_transpose,
     Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
 
-/-! ### Inverses of permutated matrices. -/
+/-! ### Inverses of permutated matrices
+
+Note that the simp-normal form of `matrix.reindex` is `matrix.submatrix`, so we prove most of these
+results about only the latter.
+-/
 
 section submatrix
 variables [fintype m]
@@ -577,8 +581,9 @@ begin
   convert (rfl : ⅟(A.submatrix e₁ e₂) = _),
 end
 
-/-- Together `matrix.diagonal_invertible` and `matrix.invertible_of_diagonal_invertible` form an
-equivalence, although both sides of the equiv are subsingleton anyway. -/
+/-- Together `matrix.submatrix_equiv_invertible` and
+`matrix.invertible_of_submatrix_equiv_invertible` form an equivalence, although both sides of the
+equiv are subsingleton anyway. -/
 @[simps]
 def submatrix_equiv_invertible_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m) :
   invertible (A.submatrix e₁ e₂) ≃ invertible A :=

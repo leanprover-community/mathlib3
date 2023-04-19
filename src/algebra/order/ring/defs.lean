@@ -327,19 +327,19 @@ lemma mul_le_mul_of_nonpos_of_nonpos' (hca : c ≤ a) (hdb : d ≤ b) (ha : a �
   a * b ≤ c * d :=
 (mul_le_mul_of_nonpos_left hdb ha).trans $ mul_le_mul_of_nonpos_right hca hd
 
-/-- Variant of `mul_le_of_le_one_left` -/
+/-- Variant of `mul_le_of_le_one_left` for `b` non-positive instead of non-negative.  -/
 lemma le_mul_of_le_one_left (hb : b ≤ 0) (h : a ≤ 1) : b ≤ a * b :=
 by simpa only [one_mul] using mul_le_mul_of_nonpos_right h hb
 
-/-- Variant of `le_mul_of_one_le_left` -/
+/-- Variant of `le_mul_of_one_le_left` for `b` non-positive instead of non-negative. -/
 lemma mul_le_of_one_le_left (hb : b ≤ 0) (h : 1 ≤ a) : a * b ≤ b :=
 by simpa only [one_mul] using mul_le_mul_of_nonpos_right h hb
 
-/-- Variant of `mul_le_of_le_one_right` -/
+/-- Variant of `mul_le_of_le_one_right` for `a` non-positive instead of non-negative. -/
 lemma le_mul_of_le_one_right (ha : a ≤ 0) (h : b ≤ 1) : a ≤ a * b :=
 by simpa only [mul_one] using mul_le_mul_of_nonpos_left h ha
 
-/-- Variant of `le_mul_of_one_le_right` -/
+/-- Variant of `le_mul_of_one_le_right` for `a` non-positive instead of non-negative. -/
 lemma mul_le_of_one_le_right (ha : a ≤ 0) (h : 1 ≤ b) : a * b ≤ a :=
 by simpa only [mul_one] using mul_le_mul_of_nonpos_left h ha
 
@@ -584,19 +584,19 @@ by simpa only [mul_neg, neg_lt_neg_iff] using mul_lt_mul_of_pos_right h (neg_pos
 lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
 by simpa only [zero_mul] using mul_lt_mul_of_neg_right ha hb
 
-/-- Variant of `mul_lt_of_lt_one_left` -/
+/-- Variant of `mul_lt_of_lt_one_left` for `b` negative instead of positive. -/
 lemma lt_mul_of_lt_one_left (hb : b < 0) (h : a < 1) : b < a * b :=
 by simpa only [one_mul] using mul_lt_mul_of_neg_right h hb
 
-/-- Variant of `lt_mul_of_one_lt_left` -/
+/-- Variant of `lt_mul_of_one_lt_left` for `b` negative instead of positive. -/
 lemma mul_lt_of_one_lt_left (hb : b < 0) (h : 1 < a) : a * b < b :=
 by simpa only [one_mul] using mul_lt_mul_of_neg_right h hb
 
-/-- Variant of `mul_lt_of_lt_one_right` -/
+/-- Variant of `mul_lt_of_lt_one_right` for `a` negative instead of positive. -/
 lemma lt_mul_of_lt_one_right (ha : a < 0) (h : b < 1) : a < a * b :=
 by simpa only [mul_one] using mul_lt_mul_of_neg_left h ha
 
-/-- Variant of `lt_mul_of_lt_one_right` -/
+/-- Variant of `lt_mul_of_lt_one_right` for `a` negative instead of positive. -/
 lemma mul_lt_of_one_lt_right (ha : a < 0) (h : 1 < b) : a * b < a :=
 by simpa only [mul_one] using mul_lt_mul_of_neg_left h ha
 

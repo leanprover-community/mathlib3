@@ -262,7 +262,9 @@ Scott topology.
 
 The dual notion
 
+```lean
 ∀ ⦃d : set α⦄, d.nonempty → directed_on (≥) d → ∀ ⦃a⦄, is_glb d a → is_glb (f '' d) (f a)
+```
 
 does not appear to play a significant role in the literature, so is omitted here.
 -/

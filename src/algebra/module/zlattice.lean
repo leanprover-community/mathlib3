@@ -3,7 +3,7 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-import analysis.normed.order.basic
+import analysis.normed.order.lattice
 import linear_algebra.finite_dimensional
 import measure_theory.group.fundamental_domain
 

@@ -8,6 +8,9 @@ import ring_theory.ideal.quotient_operations
 
 /-!
 # Nilpotent elements in quotient rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 lemma ideal.is_radical_iff_quotient_reduced {R : Type*} [comm_ring R] (I : ideal R) :

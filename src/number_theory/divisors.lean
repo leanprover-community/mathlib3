@@ -185,7 +185,7 @@ lemma divisors_antidiagonal_zero : divisors_antidiagonal 0 = ∅ := by { ext, si
 
 @[simp]
 lemma divisors_antidiagonal_one : divisors_antidiagonal 1 = {(1,1)} :=
-by { ext, simp [nat.mul_eq_one_iff, prod.ext_iff], }
+by { ext, simp [mul_eq_one, prod.ext_iff], }
 
 @[simp] lemma swap_mem_divisors_antidiagonal {x : ℕ × ℕ} :
   x.swap ∈ divisors_antidiagonal n ↔ x ∈ divisors_antidiagonal n :=

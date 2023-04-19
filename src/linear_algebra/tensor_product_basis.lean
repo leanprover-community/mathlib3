@@ -9,6 +9,9 @@ import linear_algebra.finsupp_vector_space
 /-!
 # Bases and dimensionality of tensor products of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These can not go into `linear_algebra.tensor_product` since they depend on
 `linear_algebra.finsupp_vector_space` which in turn imports `linear_algebra.tensor_product`.
 

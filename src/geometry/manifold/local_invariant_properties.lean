@@ -8,6 +8,9 @@ import geometry.manifold.charted_space
 /-!
 # Local properties invariant under a groupoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We study properties of a triple `(g, s, x)` where `g` is a function between two spaces `H` and `H'`,
 `s` is a subset of `H` and `x` is a point of `H`. Our goal is to register how such a property
 should behave to make sense in charted spaces modelled on `H` and `H'`.

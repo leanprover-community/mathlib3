@@ -11,6 +11,9 @@ import set_theory.cardinal.ordinal
 
 /-! # Encodings and Cardinality of First-Order Syntax
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * `first_order.language.term.encoding` encodes terms as lists.
 * `first_order.language.bounded_formula.encoding` encodes bounded formulas as lists.

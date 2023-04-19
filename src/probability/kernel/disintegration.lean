@@ -209,7 +209,7 @@ end aux_lemmas_to_be_moved
 
 namespace measure_theory.measure
 
-variables {α β ι : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+variables {α β ι : Type*} {mα : measurable_space α} {mβ : measurable_space β} {ρ : measure (α × β)}
 
 include mα mβ
 
@@ -224,10 +224,9 @@ by rw [fst, measure.map_apply measurable_fst hs]
 lemma fst_univ (ρ : measure (α × β)) : ρ.fst univ = ρ univ :=
 by rw [fst_apply ρ measurable_set.univ, preimage_univ]
 
-instance {ρ : measure (α × β)} [is_finite_measure ρ] : is_finite_measure ρ.fst :=
-by { rw fst, apply_instance, }
+instance [is_finite_measure ρ] : is_finite_measure ρ.fst := by { rw fst, apply_instance, }
 
-instance {ρ : measure (α × β)} [is_probability_measure ρ] : is_probability_measure ρ.fst :=
+instance [is_probability_measure ρ] : is_probability_measure ρ.fst :=
 { measure_univ := by { rw fst_univ, exact measure_univ, } }
 
 /-- Marginal measure on `β` obtained from a measure on `α × β`. -/
@@ -241,10 +240,9 @@ by rw [snd, measure.map_apply measurable_snd hs]
 lemma snd_univ (ρ : measure (α × β)) : ρ.snd univ = ρ univ :=
 by rw [snd_apply ρ measurable_set.univ, preimage_univ]
 
-instance {ρ : measure (α × β)} [is_finite_measure ρ] : is_finite_measure ρ.snd :=
-by { rw snd, apply_instance, }
+instance [is_finite_measure ρ] : is_finite_measure ρ.snd := by { rw snd, apply_instance, }
 
-instance {ρ : measure (α × β)} [is_probability_measure ρ] : is_probability_measure ρ.snd :=
+instance [is_probability_measure ρ] : is_probability_measure ρ.snd :=
 { measure_univ := by { rw snd_univ, exact measure_univ, } }
 
 end measure_theory.measure

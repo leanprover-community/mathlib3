@@ -109,7 +109,7 @@ end pi_preorder
 section pi_lattice
 variables [Π i, lattice (α i)]
 
-@[simp] lemma set.pi_univ_uIcc (a b : Π i, α i) : pi univ (λ i, uIcc (a i) (b i)) = uIcc a b :=
+@[simp] lemma pi_univ_uIcc (a b : Π i, α i) : pi univ (λ i, uIcc (a i) (b i)) = uIcc a b :=
 pi_univ_Icc _ _
 
 end pi_lattice

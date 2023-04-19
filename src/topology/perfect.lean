@@ -325,13 +325,14 @@ end
 
 end cantor_inj_metric
 
-/-
---set_option pp.implicit true
+/-- Any closed uncountable subset of a Polish space admits a continuous injection
+from the Cantor space `ℕ → bool`.-/
 theorem is_closed.exists_nat_bool_injection_of_uncountable {α : Type*}
   [topological_space α] [polish_space α] {C : set α} (hC : is_closed C) (hunc : ¬ C.countable) :
   ∃ f : (ℕ → bool) → α, (range f) ⊆ C ∧ continuous f ∧ function.injective f :=
 begin
   letI := upgrade_polish_space α,
   obtain ⟨D, hD, Dnonempty, hDC⟩ := exists_perfect_nonempty_of_is_closed_of_not_countable hC hunc,
-  obtain ⟨f, hf⟩ := hD.exists_nat_bool_injection Dnonempty,
-end -/
+  obtain ⟨f, hfD, hf⟩ := hD.exists_nat_bool_injection Dnonempty,
+  exact ⟨f, hfD.trans hDC, hf⟩,
+end

@@ -713,7 +713,8 @@ section borel_isomorphism
 
 variables [borel_space γ] [topological_space β] [polish_space β] [borel_space β]
 
-
+/-- If two polish spaces admit Borel measurable injections to one another,
+then they are Borel isomorphic-/
 noncomputable
 def borel_schroeder_bernstein
   {f : γ → β} {g : β → γ}
@@ -721,10 +722,6 @@ def borel_schroeder_bernstein
   (gmeas : measurable g) (ginj : function.injective g) :
   γ ≃ᵐ β :=
 begin
-  letI γ_pol : polish_space γ := infer_instance,
-  letI β_pol : polish_space β := infer_instance,
-  haveI : second_countable_topology γ := γ_pol.second_countable, --!!!!
-  haveI : second_countable_topology β := β_pol.second_countable,
   have hf' := fmeas.measurable_embedding finj,
   have hg' := gmeas.measurable_embedding ginj,
   exact hf'.schroeder_bernstein hg',

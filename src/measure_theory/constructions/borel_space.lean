@@ -258,6 +258,7 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
   opens_measurable_space s :=
 ⟨by { rw [borel_comap], exact comap_mono h.1 }⟩
 
+@[priority 100]
 instance borel_space.countable_generated {α : Type*} [topological_space α] [measurable_space α]
   [borel_space α] [second_countable_topology α] : countable_generated α :=
 begin

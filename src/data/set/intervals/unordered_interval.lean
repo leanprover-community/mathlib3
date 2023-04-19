@@ -100,7 +100,7 @@ section prod
 
 @[simp] lemma uIcc_prod_uIcc (a₁ a₂ : α) (b₁ b₂ : β) :
   [a₁, a₂] ×ˢ [b₁, b₂] = [(a₁, b₁), (a₂, b₂)] :=
-by { ext ⟨x, y⟩, simp [uIcc, and.assoc, and_comm, and.left_comm] }
+uIcc_prod_uIcc _ _ _ _
 
 lemma uIcc_prod_eq (a b : α × β) : [a, b] = [a.1, b.1] ×ˢ [a.2, b.2] := by simp
 

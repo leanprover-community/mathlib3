@@ -202,7 +202,7 @@ lemma is_formal_adjoint.le_adjoint (h : T.is_formal_adjoint S) : S ≤ T† :=
 ⟨λ x hx, mem_adjoint_domain_of_exists _ ⟨S ⟨x, hx⟩, h.symm ⟨x, hx⟩⟩,
   -- Equality on `S.domain` follows from equality
   -- `⟪v, S x⟫ = ⟪v, T.adjoint y⟫` for all `v : T.domain`:
-  λ _ _ hxy, hT.eq_of_inner_right (λ _, by rw [← h, hxy, ← (adjoint_is_formal_adjoint hT).symm])⟩
+  λ _ _ hxy, (adjoint_apply_eq hT _ (λ _, by rw [h.symm, hxy])).symm⟩
 
 end linear_pmap
 
@@ -216,13 +216,12 @@ as taking the `continuous_linear_map.adjoint` interpreted as a `linear_pmap`. -/
 lemma to_pmap_adjoint_eq_adjoint_to_pmap_of_dense (hp : dense (p : set E)) :
   (A.to_pmap p).adjoint = A.adjoint.to_pmap ⊤ :=
 begin
-  have hp' : dense ((A.to_pmap p).domain : set E) := hp,
   ext,
   { simp only [to_linear_map_eq_coe, linear_map.to_pmap_domain, submodule.mem_top, iff_true,
       linear_pmap.mem_adjoint_domain_iff, linear_map.coe_comp, innerₛₗ_apply_coe],
     exact ((innerSL 𝕜 x).comp $ A.comp $ submodule.subtypeL _).cont },
   intros x y hxy,
-  refine linear_pmap.adjoint_apply_eq hp' _ (λ v, _),
+  refine linear_pmap.adjoint_apply_eq hp _ (λ v, _),
   simp only [adjoint_inner_left, hxy, linear_map.to_pmap_apply, to_linear_map_eq_coe, coe_coe],
 end
 

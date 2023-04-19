@@ -138,6 +138,23 @@ begin
     ⟨smul_mem _ _ hx', H2 r _ _ hx⟩)
 end
 
+/-- Two linear maps from a span are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]-/
+@[ext] lemma _root_.linear_map.span_ext {s : set M} ⦃f g : span R s →ₛₗ[σ₁₂] M₂⦄
+  (h : f ∘ set.inclusion subset_span = g ∘ set.inclusion subset_span) : f = g :=
+begin
+  ext ⟨x, hx⟩,
+  refine span_induction' _ _ _ _ hx,
+  { intros x hx,
+    exact (congr_fun h ⟨x, hx⟩ : _) },
+  { exact f.map_zero.trans g.map_zero.symm },
+  { intros x hx y hy hfgx hfgy,
+    exact (map_add f _ _).trans ((congr_arg2 (+) hfgx hfgy).trans (map_add g _ _).symm) },
+  { intros a x hx hfg,
+    exact (map_smulₛₗ f _ _).trans ((congr_arg ((•) (σ₁₂ a)) hfg).trans (map_smulₛₗ g _ _).symm) },
+end
+
 @[simp] lemma span_span_coe_preimage : span R ((coe : span R s → M) ⁻¹' s) = ⊤ :=
 eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   refine span_induction' (λ x hx, _) _ (λ x y _ _, _) (λ r x _, _) hx,

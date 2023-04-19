@@ -787,6 +787,27 @@ begin
     (λ x ⟨hx', hx⟩, ⟨_, Hinv _ _ hx⟩),
 end
 
+/-- Two group morphisms from a closure are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]-/
+@[ext, to_additive "Two additive group morphisms from a closure are equal if they agree on the
+generators.
+
+See note [partially-applied ext lemmas]"]
+lemma _root_.monoid_hom.closure_ext {s : set G} ⦃f g : closure s →* G'⦄
+  (h : f ∘ set.inclusion subset_closure = g ∘ set.inclusion subset_closure) : f = g :=
+begin
+  ext ⟨x, hx⟩,
+  refine closure_induction' _ _ _ _ hx,
+  { intros x hx,
+    exact (congr_fun h ⟨x, hx⟩ : _) },
+  { exact f.map_one.trans g.map_one.symm },
+  { intros x hx y hy hfgx hfgy,
+    exact (map_mul f _ _).trans ((congr_arg2 (*) hfgx hfgy).trans (map_mul g _ _).symm) },
+  { intros x hx hfg,
+    exact (map_inv f _).trans ((congr_arg (has_inv.inv) hfg).trans (map_inv g _).symm) },
+end
+
 /-- An induction principle for closure membership for predicates with two arguments. -/
 @[elab_as_eliminator, to_additive "An induction principle for additive closure membership, for
 predicates with two arguments."]

@@ -109,6 +109,24 @@ subtype.rec_on x $ λ x hx, begin
     exists.elim hy $ λ hy' hy, ⟨subalgebra.mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
 end
 
+/-- Two algebra morphisms from `algebra.adjoin` are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]-/
+@[ext] lemma _root_.alg_hom.adjoin_ext {s : set A} ⦃f g : adjoin R s →ₐ[R] B⦄
+  (h : f ∘ set.inclusion subset_adjoin = g ∘ set.inclusion subset_adjoin) : f = g :=
+begin
+  ext x,
+  refine adjoin_induction' _ _ _ _ x,
+  { intros x hx,
+    exact (congr_fun h ⟨x, hx⟩ : _) },
+  { intro r,
+    exact (f.commutes _).trans (g.commutes _).symm },
+  { intros x y hfgx hfgy,
+    exact (map_add f _ _).trans ((congr_arg2 (+) hfgx hfgy).trans (map_add g _ _).symm) },
+  { intros x y hfgx hfgy,
+    exact (map_mul f _ _).trans ((congr_arg2 (*) hfgx hfgy).trans (map_mul g _ _).symm) },
+end
+
 @[simp] lemma adjoin_adjoin_coe_preimage {s : set A} :
   adjoin R ((coe : adjoin R s → A) ⁻¹' s) = ⊤ :=
 begin

@@ -617,6 +617,25 @@ noncomputable def equiv_map_of_injective
   (f : M →* N) (hf : function.injective f) (x : S) :
   (equiv_map_of_injective S f hf x : N) = f x := rfl
 
+/-- Two monoid morphisms from a closure are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]-/
+@[ext, to_additive "Two additive monoid morphisms from a closure are equal if they agree on the
+generators.
+
+See note [partially-applied ext lemmas]"]
+lemma _root_.monoid_hom.mclosure_ext {s : set M} ⦃f g : closure s →* N⦄
+  (h : f ∘ set.inclusion subset_closure = g ∘ set.inclusion subset_closure) : f = g :=
+begin
+  ext ⟨x, hx⟩,
+  refine closure_induction' _ _ _ _ hx,
+  { intros x hx,
+    exact (congr_fun h ⟨x, hx⟩ : _) },
+  { exact f.map_one.trans g.map_one.symm },
+  { intros x hx y hy hfgx hfgy,
+    exact (map_mul f _ _).trans ((congr_arg2 (*) hfgx hfgy).trans (map_mul g _ _).symm) },
+end
+
 @[simp, to_additive]
 lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=
 eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin

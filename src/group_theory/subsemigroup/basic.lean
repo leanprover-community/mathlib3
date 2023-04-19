@@ -53,7 +53,7 @@ variables {M : Type*} {N : Type*}
 variables {A : Type*}
 
 section non_assoc
-variables [has_mul M] {s : set M}
+variables [has_mul M] [has_mul N] {s : set M}
 variables [has_add A] {t : set A}
 
 /-- `mul_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(*)` -/

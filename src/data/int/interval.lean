@@ -92,8 +92,7 @@ lemma Ioc_eq_finset_map :
 lemma Ioo_eq_finset_map :
   Ioo a b = (finset.range (b - a - 1).to_nat).map
     (nat.cast_embedding.trans $ add_left_embedding (a + 1)) := rfl
-lemma interval_eq_finset_map :
-  interval a b = (range (max a b + 1 - min a b).to_nat).map
+lemma uIcc_eq_finset_map : uIcc a b = (range (max a b + 1 - min a b).to_nat).map
     (nat.cast_embedding.trans $ add_left_embedding $ min a b) := rfl
 
 @[simp] lemma card_Icc : (Icc a b).card = (b + 1 - a).to_nat := (card_map _).trans $ card_range _
@@ -101,7 +100,7 @@ lemma interval_eq_finset_map :
 @[simp] lemma card_Ioc : (Ioc a b).card = (b - a).to_nat := (card_map _).trans $ card_range _
 @[simp] lemma card_Ioo : (Ioo a b).card = (b - a - 1).to_nat := (card_map _).trans $ card_range _
 
-@[simp] lemma card_interval : (interval a b).card = (b - a).nat_abs + 1 :=
+@[simp] lemma card_uIcc : (uIcc a b).card = (b - a).nat_abs + 1 :=
 (card_map _).trans $ int.coe_nat_inj $ by rw [card_range, sup_eq_max, inf_eq_min,
   int.to_nat_of_nonneg (sub_nonneg_of_le $ le_add_one min_le_max), int.coe_nat_add, int.abs_coe_nat,
   add_comm, add_sub_assoc, max_sub_min_eq_abs, add_comm, int.coe_nat_one]
@@ -130,8 +129,8 @@ by rw [←card_Ioc, fintype.card_of_finset]
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = (b - a - 1).to_nat :=
 by rw [←card_Ioo, fintype.card_of_finset]
 
-@[simp] lemma card_fintype_interval : fintype.card (set.interval a b) = (b - a).nat_abs + 1 :=
-by rw [←card_interval, fintype.card_of_finset]
+@[simp] lemma card_fintype_uIcc : fintype.card (set.uIcc a b) = (b - a).nat_abs + 1 :=
+by rw [←card_uIcc, fintype.card_of_finset]
 
 lemma card_fintype_Icc_of_le (h : a ≤ b + 1) : (fintype.card (set.Icc a b) : ℤ) = b + 1 - a :=
 by rw [card_fintype_Icc, to_nat_sub_of_le h]

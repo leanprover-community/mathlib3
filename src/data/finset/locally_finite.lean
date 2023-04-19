@@ -524,7 +524,7 @@ by rw [uIcc, inf_eq_left.2 h, sup_eq_right.2 h]
 @[simp] lemma uIcc_of_ge (h : b ≤ a) : [a, b] = Icc b a :=
 by rw [uIcc, inf_eq_right.2 h, sup_eq_left.2 h]
 
-lemma uIcc_swap (a b : α) : [a, b] = [b, a] := by rw [uIcc, uIcc, inf_comm, sup_comm]
+lemma uIcc_comm (a b : α) : [a, b] = [b, a] := by rw [uIcc, uIcc, inf_comm, sup_comm]
 
 @[simp] lemma uIcc_self : [a, a] = {a} := by simp [uIcc]
 
@@ -577,7 +577,7 @@ lemma uIcc_injective_right (a : α) : injective (λ b, [b, a]) :=
   exact eq_of_mem_uIcc_of_mem_uIcc ((h _).1 left_mem_uIcc) ((h _).2 left_mem_uIcc) }
 
 lemma uIcc_injective_left (a : α) : injective (uIcc a) :=
-by simpa only [uIcc_swap] using uIcc_injective_right a
+by simpa only [uIcc_comm] using uIcc_injective_right a
 
 end distrib_lattice
 

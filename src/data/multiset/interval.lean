@@ -45,11 +45,11 @@ lemma Icc_eq :
     (finset.Icc s.to_dfinsupp t.to_dfinsupp).map
       (multiset.equiv_dfinsupp.to_equiv.symm.to_embedding) := rfl
 
-lemma interval_eq :
-  interval s t =
-    (interval s.to_dfinsupp t.to_dfinsupp).map
+lemma uIcc_eq :
+  uIcc s t =
+    (uIcc s.to_dfinsupp t.to_dfinsupp).map
       (multiset.equiv_dfinsupp.to_equiv.symm.to_embedding) :=
-(Icc_eq _ _).trans $ by simp [interval]
+(Icc_eq _ _).trans $ by simp [uIcc]
 
 lemma card_Icc  :
   (finset.Icc s t).card = ∏ i in s.to_finset ∪ t.to_finset, (t.count i + 1 - s.count i) :=
@@ -68,11 +68,10 @@ lemma card_Ioo :
   (finset.Ioo s t).card = ∏ i in s.to_finset ∪ t.to_finset, (t.count i + 1 - s.count i) - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
-lemma card_interval  :
-  (interval s t).card =
-    ∏ i in s.to_finset ∪ t.to_finset, ((t.count i - s.count i : ℤ).nat_abs + 1) :=
+lemma card_uIcc :
+  (uIcc s t).card = ∏ i in s.to_finset ∪ t.to_finset, ((t.count i - s.count i : ℤ).nat_abs + 1) :=
 begin
-  rw [interval, card_Icc, union_eq_right_iff_subset.2 (to_finset_subset.2 $ subset_of_le $
+  rw [uIcc, card_Icc, union_eq_right_iff_subset.2 (to_finset_subset.2 $ subset_of_le $
     @inf_le_sup _ _ s t), sup_eq_union, inf_eq_inter, to_finset_union],
   congr,
   ext a,

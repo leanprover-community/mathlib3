@@ -495,10 +495,10 @@ end order_bot
 section lattice
 variables [lattice α] [locally_finite_order α] (a b : α)
 
-instance fintype_interval : fintype (interval a b) :=
-fintype.of_finset (finset.interval a b) $ λ x, finset.mem_interval
+instance fintype_uIcc : fintype (uIcc a b) :=
+fintype.of_finset (finset.uIcc a b) $ λ x, finset.mem_uIcc
 
-lemma finite_interval : (interval a b).finite := (interval _ _).to_finite
+@[simp] lemma finite_interval : (uIcc a b).finite := (uIcc _ _).to_finite
 
 end lattice
 end set

@@ -109,8 +109,8 @@ end partial_order
 section lattice
 variables [lattice α] [has_zero α] [locally_finite_order α] (f g : ι →₀ α)
 
-lemma card_interval [decidable_eq ι] :
-  (interval f g).card = ∏ i in f.support ∪ g.support, (interval (f i) (g i)).card :=
+lemma card_uIcc [decidable_eq ι] :
+  (uicc f g).card = ∏ i in f.support ∪ g.support, (uicc (f i) (g i)).card :=
 by { rw ←support_inf_union_support_sup, exact card_Icc _ _ }
 
 end lattice

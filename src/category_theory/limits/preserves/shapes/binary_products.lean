@@ -9,6 +9,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Preserving binary products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructions to relate the notions of preserving binary products and reflecting binary products
 to concrete binary fans.
 
@@ -18,12 +21,12 @@ the product of `X` and `Y`.
 
 noncomputable theory
 
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 
 namespace category_theory.limits

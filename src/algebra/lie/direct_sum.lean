@@ -3,15 +3,15 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.basic
-import algebra.lie.submodule
+import algebra.direct_sum.module
 import algebra.lie.of_associative
-import linear_algebra.direct_sum.finsupp
+import algebra.lie.submodule
+import algebra.lie.basic
 
 /-!
 # Direct sums of Lie algebras and Lie modules
 
-Direct sums of Lie algebras and Lie modules carry natural algbebra and module structures.
+Direct sums of Lie algebras and Lie modules carry natural algebra and module structures.
 
 ## Tags
 
@@ -164,14 +164,16 @@ then this map is a morphism of Lie algebras. -/
         non-zero component. -/
       suffices : ∀ (i : ι) (y : L i), to_module R ι L' f' ⁅x, of L i y⁆ =
         ⁅to_module R ι L' f' x, to_module R ι L' f' (of L i y)⁆,
-      { simp only [← lie_algebra.ad_apply R, ← linear_map.comp_apply],
+      { simp only [← lie_algebra.ad_apply R],
+        rw [← linear_map.comp_apply, ← linear_map.comp_apply],
         congr, clear y, ext i y, exact this i y, },
       /- Similarly, we can reduce to the case that `x` has only one non-zero component. -/
       suffices : ∀ i j (y : L i) (x : L j), to_module R ι L' f' ⁅of L j x, of L i y⁆ =
         ⁅to_module R ι L' f' (of L j x), to_module R ι L' f' (of L i y)⁆,
       { intros i y,
         rw [← lie_skew x, ← lie_skew (to_module R ι L' f' x)],
-        simp only [linear_map.map_neg, neg_inj, ← lie_algebra.ad_apply R, ← linear_map.comp_apply],
+        simp only [linear_map.map_neg, neg_inj, ← lie_algebra.ad_apply R],
+        rw [← linear_map.comp_apply, ← linear_map.comp_apply],
         congr, clear x, ext j x, exact this j i x y, },
       /- Tidy up and use `lie_of`. -/
       intros i j y x,
@@ -191,14 +193,6 @@ end algebras
 section ideals
 
 variables {L : Type w} [lie_ring L] [lie_algebra R L] (I : ι → lie_ideal R L)
-
-/-- Given a Lie algebra `L` and a family of ideals `I i ⊆ L`, informally this definition is the
-statement that `L = ⨁ i, I i`.
-
-More formally, the inclusions give a natural map from the (external) direct sum to the enclosing Lie
-algebra: `(⨁ i, I i) → L`, and this definition is the proposition that this map is bijective. -/
-def lie_algebra_is_internal [decidable_eq ι] : Prop :=
-function.bijective $ to_module R ι L $ λ i, ((I i).incl : I i →ₗ[R] L)
 
 /-- The fact that this instance is necessary seems to be a bug in typeclass inference. See
 [this Zulip thread](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/

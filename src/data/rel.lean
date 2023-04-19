@@ -3,10 +3,14 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import data.set.lattice
+import order.complete_lattice
+import order.galois_connection
 
 /-!
 # Relations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines bundled relations. A relation between `α` and `β` is a function `α → β → Prop`.
 Relations are also known as set-valued functions, or partial multifunctions.
@@ -30,7 +34,7 @@ Relations are also known as set-valued functions, or partial multifunctions.
 
 variables {α β γ : Type*}
 
-/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction --/
+/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction -/
 @[derive complete_lattice, derive inhabited]
 def rel (α β : Type*) := α → β → Prop
 
@@ -48,6 +52,9 @@ lemma inv_inv : inv (inv r) = r := by { ext x y, reflexivity }
 /-- Domain of a relation -/
 def dom := {x | ∃ y, r x y}
 
+lemma dom_mono {r s : rel α β} (h : r ≤ s) : dom r ⊆ dom s :=
+λ a ⟨b, hx⟩, ⟨b, h a b hx⟩
+
 /-- Codomain aka range of a relation -/
 def codom := {y | ∃ x, r x y}
 
@@ -59,7 +66,7 @@ lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
 λ x z, ∃ y, r x y ∧ s y z
 
-local infixr ` ∘ ` := rel.comp
+local infixr (name := rel.comp) ` ∘ ` := rel.comp
 
 lemma comp_assoc (r : rel α β) (s : rel β γ) (t : rel γ δ) :
   (r ∘ s) ∘ t = r ∘ s ∘ t :=
@@ -108,7 +115,7 @@ by { ext x, simp [mem_image] }
 
 lemma image_comp (s : rel β γ) (t : set α) : image (r ∘ s) t = image s (image r t) :=
 begin
-  ext z, simp only [mem_image, comp], split,
+  ext z, simp only [mem_image], split,
   { rintros ⟨x, xt, y, rxy, syz⟩, exact ⟨y, ⟨x, xt, rxy⟩, syz⟩ },
   rintros ⟨y, ⟨x, xt, rxy⟩, syz⟩, exact ⟨x, xt, y, rxy, syz⟩
 end
@@ -116,9 +123,9 @@ end
 lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, codom] }
 
 /-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.inv` -/
-def preimage (s : set β) : set α := image (inv r) s
+def preimage (s : set β) : set α := r.inv.image s
 
-lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
+lemma mem_preimage (x : α) (s : set β) : x ∈ r.preimage s ↔ ∃ y ∈ s, r x y :=
 iff.rfl
 
 lemma preimage_def (s : set β) : preimage r s = {x | ∃ y ∈ s, r x y} :=
@@ -144,10 +151,10 @@ lemma preimage_univ : r.preimage set.univ = r.dom :=
 by { rw [preimage, image_univ, codom_inv] }
 
 /-- Core of a set `s : set β` w.r.t `r : rel α β` is the set of `x : α` that are related *only*
-to elements of `s`. -/
+to elements of `s`. Other generalization of `function.preimage`. -/
 def core (s : set β) := {x | ∀ y, r x y → y ∈ s}
 
-lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
+lemma mem_core (x : α) (s : set β) : x ∈ r.core s ↔ ∀ y, r x y → y ∈ s :=
 iff.rfl
 
 lemma core_subset : ((⊆) ⇒ (⊆)) r.core r.core :=
@@ -170,8 +177,8 @@ lemma core_comp (s : rel β γ) (t : set γ) :
   core (r ∘ s) t = core r (core s t) :=
 begin
   ext x, simp [core, comp], split,
-  { intros h y rxy z syz, exact h z y rxy syz },
-  intros h z y rzy syz, exact h y rzy z syz
+  { exact λ h y rxy z, h z y rxy },
+  { exact λ h z y rzy, h y rzy z }
 end
 
 /-- Restrict the domain of a relation to a subtype. -/
@@ -183,7 +190,7 @@ iff.intro
   (λ h x xs y rxy, h ⟨x, xs, rxy⟩)
   (λ h y ⟨x, xs, rxy⟩, h xs y rxy)
 
-theorem core_preimage_gc : galois_connection (image r) (core r) :=
+theorem image_core_gc : galois_connection r.image r.core :=
 image_subset_iff _
 
 end rel

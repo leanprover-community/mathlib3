@@ -114,6 +114,26 @@ iff.rfl
 instance : is_trivial L (max_triv_submodule R L M) :=
 { trivial := λ x m, subtype.ext (m.property x), }
 
+@[simp] lemma ideal_oper_max_triv_submodule_eq_bot (I : lie_ideal R L) :
+  ⁅I, max_triv_submodule R L M⁆ = ⊥ :=
+begin
+  rw [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.lie_ideal_oper_eq_linear_span,
+    lie_submodule.bot_coe_submodule, submodule.span_eq_bot],
+  rintros m ⟨⟨x, hx⟩, ⟨⟨m, hm⟩, rfl⟩⟩,
+  exact hm x,
+end
+
+lemma le_max_triv_iff_bracket_eq_bot {N : lie_submodule R L M} :
+  N ≤ max_triv_submodule R L M ↔ ⁅(⊤ : lie_ideal R L), N⁆ = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h m hm, _⟩,
+  { rw [← le_bot_iff, ← ideal_oper_max_triv_submodule_eq_bot R L M ⊤],
+    exact lie_submodule.mono_lie_right _ _ ⊤ h, },
+  { rw mem_max_triv_submodule,
+    rw lie_submodule.lie_eq_bot_iff at h,
+    exact λ x, h x (lie_submodule.mem_top x) m hm, },
+end
+
 lemma trivial_iff_le_maximal_trivial (N : lie_submodule R L M) :
   is_trivial L N ↔ N ≤ max_triv_submodule R L M :=
 ⟨ λ h m hm x, is_trivial.dcases_on h (λ h, subtype.ext_iff.mp (h x ⟨m, hm⟩)),
@@ -172,10 +192,10 @@ on it is trivial. -/
 def max_triv_linear_map_equiv_lie_module_hom :
   (max_triv_submodule R L (M →ₗ[R] N)) ≃ₗ[R] (M →ₗ⁅R,L⁆ N) :=
 { to_fun    := λ f,
-    { map_lie' := λ x m, by
+    { to_linear_map := f.val,
+      map_lie' := λ x m, by
       { have hf : ⁅x, f.val⁆ m = 0, { rw [f.property x, linear_map.zero_apply], },
-        rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, },
-      ..f.val, },
+        rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, }, },
   map_add'  := λ f g, by { ext, simp, },
   map_smul' := λ F G, by { ext, simp, },
   inv_fun   := λ F, ⟨F, λ x, by { ext, simp, }⟩,
@@ -213,7 +233,9 @@ abbreviation center : lie_ideal R L := lie_module.max_triv_submodule R L L
 
 instance : is_lie_abelian (center R L) := infer_instance
 
-lemma center_eq_adjoint_kernel : center R L = lie_module.ker R L L :=
+@[simp] lemma ad_ker_eq_self_module_ker : (ad R L).ker = lie_module.ker R L L := rfl
+
+@[simp] lemma self_module_ker_eq_center : lie_module.ker R L L = center R L :=
 begin
   ext y,
   simp only [lie_module.mem_max_triv_submodule, lie_module.mem_ker, ← lie_skew _ y, neg_eq_zero],
@@ -252,9 +274,9 @@ lemma lie_submodule.lie_abelian_iff_lie_self_eq_bot : is_lie_abelian I ↔ ⁅I,
 begin
   simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_submodule.lie_span_le,
     lie_submodule.bot_coe, set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
-  refine ⟨λ h z x y hz, hz.symm.trans ((lie_subalgebra.coe_bracket _ _ _).symm.trans
+  refine ⟨λ h z x y hz, hz.symm.trans (((I : lie_subalgebra R L).coe_bracket x y).symm.trans
     ((coe_zero_iff_zero _ _).mpr (by apply h.trivial))),
-    λ h, ⟨λ x y, (coe_zero_iff_zero _ _).mp (h _ x y rfl)⟩⟩,
+    λ h, ⟨λ x y, ((I : lie_subalgebra R L).coe_zero_iff_zero _).mp (h _ x y rfl)⟩⟩,
 end
 
 end ideal_operations

@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky, Chris Hughes
 -/
 import data.list.nodup
-import data.fin
 
 /-!
 # List duplicates
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -127,7 +129,7 @@ lemma duplicate.not_nodup (h : x ∈+ l) : ¬ nodup l :=
 λ H, nodup_iff_forall_not_duplicate.mp H _ h
 
 lemma duplicate_iff_two_le_count [decidable_eq α] : (x ∈+ l) ↔ 2 ≤ count x l :=
-by simp [duplicate_iff_sublist, le_count_iff_repeat_sublist]
+by simp [duplicate_iff_sublist, le_count_iff_replicate_sublist]
 
 instance decidable_duplicate [decidable_eq α] (x : α) : ∀ (l : list α), decidable (x ∈+ l)
 | []       := is_false (not_duplicate_nil x)

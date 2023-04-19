@@ -5,9 +5,8 @@ Authors: Bhavik Mehta
 -/
 
 import category_theory.limits.shapes.reflexive
-import category_theory.limits.preserves.shapes.equalizers
-import category_theory.limits.preserves.limits
-import category_theory.monad.adjunction
+import category_theory.limits.shapes.split_coequalizer
+import category_theory.monad.algebra
 
 /-!
 # Special coequalizers associated to a monad
@@ -102,13 +101,18 @@ def beck_split_coequalizer : is_split_coequalizer (T.map X.a) (T.μ.app _) X.a :
 ⟨T.η.app _, T.η.app _, X.assoc.symm, X.unit, T.left_unit _, (T.η.naturality _).symm⟩
 
 /-- This is the Beck cofork. It is a split coequalizer, in particular a coequalizer. -/
-@[simps]
+@[simps X]
 def beck_cofork : cofork (T.map X.a) (T.μ.app _) :=
 (beck_split_coequalizer X).as_cofork
+
+@[simp] lemma beck_cofork_π : (beck_cofork X).π = X.a := rfl
 
 /-- The Beck cofork is a coequalizer. -/
 def beck_coequalizer : is_colimit (beck_cofork X) :=
 (beck_split_coequalizer X).is_coequalizer
+
+@[simp] lemma beck_coequalizer_desc (s : cofork (T.to_functor.map X.a) (T.μ.app X.A)) :
+  (beck_coequalizer X).desc s = T.η.app _ ≫ s.π := rfl
 
 end monad
 end category_theory

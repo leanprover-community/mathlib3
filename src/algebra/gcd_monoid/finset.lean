@@ -9,6 +9,9 @@ import algebra.gcd_monoid.multiset
 /-!
 # GCD and LCM operations on finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 - `finset.gcd` - the greatest common denominator of a `finset` of elements of a `gcd_monoid`
@@ -31,7 +34,7 @@ variables {α β γ : Type*}
 namespace finset
 open multiset
 
-variables [comm_cancel_monoid_with_zero α] [nontrivial α] [gcd_monoid α]
+variables [cancel_comm_monoid_with_zero α] [normalized_gcd_monoid α]
 
 /-! ### lcm -/
 section lcm
@@ -57,7 +60,7 @@ lemma lcm_dvd {a : α} : (∀b ∈ s, f b ∣ a) → s.lcm f ∣ a :=
 lcm_dvd_iff.2
 
 lemma dvd_lcm {b : β} (hb : b ∈ s) : f b ∣ s.lcm f :=
-lcm_dvd_iff.1 (dvd_refl _) _ hb
+lcm_dvd_iff.1 dvd_rfl _ hb
 
 @[simp] lemma lcm_insert [decidable_eq β] {b : β} :
   (insert b s : finset β).lcm f = gcd_monoid.lcm (f b) (s.lcm f) :=
@@ -82,10 +85,19 @@ theorem lcm_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a ∈ s₂, f a
 by { subst hs, exact finset.fold_congr hfg }
 
 lemma lcm_mono_fun {g : β → α} (h : ∀ b ∈ s, f b ∣ g b) : s.lcm f ∣ s.lcm g :=
-lcm_dvd (λ b hb, dvd_trans (h b hb) (dvd_lcm hb))
+lcm_dvd (λ b hb, (h b hb).trans (dvd_lcm hb))
 
 lemma lcm_mono (h : s₁ ⊆ s₂) : s₁.lcm f ∣ s₂.lcm f :=
 lcm_dvd $ assume b hb, dvd_lcm (h hb)
+
+lemma lcm_image [decidable_eq β] {g : γ → β} (s : finset γ) : (s.image g).lcm f = s.lcm (f ∘ g) :=
+by { classical, induction s using finset.induction with c s hc ih; simp [*] }
+
+lemma lcm_eq_lcm_image [decidable_eq α] : s.lcm f = (s.image f).lcm id := eq.symm $ lcm_image _
+
+theorem lcm_eq_zero_iff [nontrivial α] : s.lcm f = 0 ↔ 0 ∈ f '' s :=
+by simp only [multiset.mem_map, lcm_def, multiset.lcm_eq_zero_iff, set.mem_image, mem_coe,
+  ← finset.mem_def]
 
 end lcm
 
@@ -110,7 +122,7 @@ begin
 end
 
 lemma gcd_dvd {b : β} (hb : b ∈ s) : s.gcd f ∣ f b :=
-dvd_gcd_iff.1 (dvd_refl _) _ hb
+dvd_gcd_iff.1 dvd_rfl _ hb
 
 lemma dvd_gcd {a : α} : (∀b ∈ s, a ∣ f b) → a ∣ s.gcd f :=
 dvd_gcd_iff.2
@@ -138,11 +150,15 @@ theorem gcd_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a ∈ s₂, f a
 by { subst hs, exact finset.fold_congr hfg }
 
 lemma gcd_mono_fun {g : β → α} (h : ∀ b ∈ s, f b ∣ g b) : s.gcd f ∣ s.gcd g :=
-dvd_gcd (λ b hb, dvd_trans (gcd_dvd hb) (h b hb))
+dvd_gcd (λ b hb, (gcd_dvd hb).trans (h b hb))
 
 lemma gcd_mono (h : s₁ ⊆ s₂) : s₂.gcd f ∣ s₁.gcd f :=
 dvd_gcd $ assume b hb, gcd_dvd (h hb)
 
+lemma gcd_image [decidable_eq β] {g : γ → β} (s : finset γ) : (s.image g).gcd f = s.gcd (f ∘ g) :=
+by { classical, induction s using finset.induction with c s hc ih; simp [*] }
+
+lemma gcd_eq_gcd_image [decidable_eq α] : s.gcd f = (s.image f).gcd id := eq.symm $ gcd_image _
 
 theorem gcd_eq_zero_iff : s.gcd f = 0 ↔ ∀ (x : β), x ∈ s → f x = 0 :=
 begin
@@ -182,9 +198,7 @@ begin
   { simp },
   intros b t hbt h,
   rw [gcd_insert, gcd_insert, h, ← gcd_mul_left],
-  apply gcd_eq_of_associated_right,
-  apply associated_mul_mul _ (associated.refl _),
-  apply normalize_associated,
+  apply ((normalize_associated a).mul_right _).gcd_eq_right
 end
 
 lemma gcd_mul_right {a : α} : s.gcd (λ x, f x * a) = s.gcd f * normalize a :=
@@ -194,18 +208,35 @@ begin
   { simp },
   intros b t hbt h,
   rw [gcd_insert, gcd_insert, h, ← gcd_mul_right],
-  apply gcd_eq_of_associated_right,
-  apply associated_mul_mul (associated.refl _),
-  apply normalize_associated,
+  apply ((normalize_associated a).mul_left _).gcd_eq_right
+end
+
+lemma extract_gcd' (f g : β → α) (hs : ∃ x, x ∈ s ∧ f x ≠ 0)
+  (hg : ∀ b ∈ s, f b = s.gcd f * g b) : s.gcd g = 1 :=
+((@mul_right_eq_self₀ _ _ (s.gcd f) _).1 $
+  by conv_lhs { rw [← normalize_gcd, ← gcd_mul_left, ← gcd_congr rfl hg] }).resolve_right $
+  by {contrapose! hs, exact gcd_eq_zero_iff.1 hs}
+
+lemma extract_gcd (f : β → α) (hs : s.nonempty) :
+  ∃ g : β → α, (∀ b ∈ s, f b = s.gcd f * g b) ∧ s.gcd g = 1 :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ s, f x = (0 : α),
+  { refine ⟨λ b, 1, λ b hb, by rw [h b hb, gcd_eq_zero_iff.2 h, mul_one], _⟩,
+    rw [gcd_eq_gcd_image, image_const hs, gcd_singleton, id, normalize_one] },
+  { choose g' hg using @gcd_dvd _ _ _ _ s f,
+    have := λ b hb, _, push_neg at h,
+    refine ⟨λ b, if hb : b ∈ s then g' hb else 0, this, extract_gcd' f _ h this⟩,
+    rw [dif_pos hb, hg hb] },
 end
 
 end gcd
 end finset
 
 namespace finset
-section integral_domain
+section is_domain
 
-variables [nontrivial β] [integral_domain α] [gcd_monoid α]
+variables [comm_ring α] [is_domain α] [normalized_gcd_monoid α]
 
 lemma gcd_eq_of_dvd_sub {s : finset β} {f g : β → α} {a : α}
   (h : ∀ x : β, x ∈ s → a ∣ f x - g x) :
@@ -219,10 +250,9 @@ begin
   rw [gcd_insert, gcd_insert, gcd_comm (f b), ← gcd_assoc, hi (λ x hx, h _ (mem_insert_of_mem hx)),
       gcd_comm a, gcd_assoc, gcd_comm a (gcd_monoid.gcd _ _),
       gcd_comm (g b), gcd_assoc _ _ a, gcd_comm _ a],
-  refine congr rfl _,
-  apply gcd_eq_of_dvd_sub_right (h _ (mem_insert_self _ _)),
+  exact congr_arg _ (gcd_eq_of_dvd_sub_right (h _ (mem_insert_self _ _)))
 end
 
-end integral_domain
+end is_domain
 
 end finset

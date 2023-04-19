@@ -5,11 +5,14 @@ Authors: Mario Carneiro
 -/
 import tactic.doc_commands
 
+open interactive
+open interactive.types
+
 namespace tactic
 namespace interactive
-open interactive interactive.types expr lean.parser
+open expr lean.parser
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 This is a "finishing" tactic modification of `simp`. It has two forms.
@@ -34,8 +37,8 @@ let simp_at lc (close_tac : tactic unit) := focus1 $
 match tgt with
 | none := get_local `this >> simp_at [some `this, none] assumption <|> simp_at [none] assumption
 | some e := focus1 $ do
-  e ← i_to_expr e <|> do {
-    ty ← target,
+  e ← i_to_expr e <|> do
+  { ty ← target,
     -- for positional error messages, we don't care about the result
     e ← i_to_expr_strict ``(%%e : %%ty),
     pty ← pp ty, ptgt ← pp e,

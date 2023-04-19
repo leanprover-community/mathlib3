@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Adam Topaz
 -/
 import algebraic_topology.simplex_category
-import topology.category.Top
+import topology.category.Top.basic
 import topology.instances.nnreal
 
 /-!
 # Topological simplices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the natural functor from `simplex_category` to `Top` sending `[n]` to the
 topological `n`-simplex.
@@ -29,8 +32,8 @@ local attribute [instance]
   This is the object part of the functor `simplex_category.to_Top`. -/
 def to_Top_obj (x : simplex_category) := { f : x → ℝ≥0 | ∑ i, f i = 1 }
 
-instance (x : simplex_category) : has_coe_to_fun x.to_Top_obj :=
-⟨_, λ f, (f : x → ℝ≥0)⟩
+instance (x : simplex_category) : has_coe_to_fun x.to_Top_obj (λ _, x → ℝ≥0) :=
+⟨λ f, (f : x → ℝ≥0)⟩
 
 @[ext]
 lemma to_Top_obj.ext {x : simplex_category} (f g : x.to_Top_obj) :
@@ -40,15 +43,16 @@ lemma to_Top_obj.ext {x : simplex_category} (f g : x.to_Top_obj) :
 def to_Top_map {x y : simplex_category} (f : x ⟶ y) : x.to_Top_obj → y.to_Top_obj :=
 λ g, ⟨λ i, ∑ j in (finset.univ.filter (λ k, f k = i)), g j,
 begin
-  dsimp [to_Top_obj],
-  simp only [finset.filter_congr_decidable, finset.sum_congr],
+  simp only [finset.filter_congr_decidable, finset.sum_congr, to_Top_obj, set.mem_set_of],
   rw ← finset.sum_bUnion,
   convert g.2,
   { rw finset.eq_univ_iff_forall,
     intros i,
     rw finset.mem_bUnion,
     exact ⟨f i, by simp, by simp⟩ },
-  { intros i hi j hj h e he,
+  { intros i hi j hj h,
+    rw [function.on_fun, disjoint_iff_inf_le],
+    intros e he,
     apply h,
     simp only [true_and, finset.inf_eq_inter,
       finset.mem_univ, finset.mem_filter, finset.mem_inter] at he,
@@ -62,8 +66,8 @@ lemma coe_to_Top_map {x y : simplex_category} (f : x ⟶ y) (g : x.to_Top_obj) (
 @[continuity]
 lemma continuous_to_Top_map {x y : simplex_category} (f : x ⟶ y) :
   continuous (to_Top_map f) :=
-continuous_subtype_mk _ $ continuous_pi $ λ i, continuous_finset_sum _ $
-  λ j hj, continuous.comp (continuous_apply _) continuous_subtype_val
+continuous.subtype_mk (continuous_pi $ λ i, continuous_finset_sum _ $
+  λ j hj, (continuous_apply _).comp continuous_subtype_val) _
 
 /-- The functor associating the topological `n`-simplex to `[n] : simplex_category`. -/
 @[simps]
@@ -84,7 +88,9 @@ def to_Top : simplex_category ⥤ Top :=
     apply finset.sum_congr,
     { exact finset.ext (λ j, ⟨λ hj, by simpa using hj, λ hj, by simpa using hj⟩) },
     { tauto },
-    { intros j hj k hk h e he,
+    { intros j hj k hk h,
+      rw [function.on_fun, disjoint_iff_inf_le],
+      intros e he,
       apply h,
       simp only [true_and, finset.inf_eq_inter,
         finset.mem_univ, finset.mem_filter, finset.mem_inter] at he,

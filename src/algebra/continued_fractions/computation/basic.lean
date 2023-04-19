@@ -3,9 +3,9 @@ Copyright (c) 2020 Kevin Kappelmann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
+import algebra.order.floor
 import algebra.continued_fractions.basic
-import algebra.ordered_field
-import algebra.archimedean
+
 /-!
 # Computable Continued Fractions
 
@@ -14,9 +14,9 @@ import algebra.archimedean
 We formalise the standard computation of (regular) continued fractions for linear ordered floor
 fields. The algorithm is rather simple. Here is an outline of the procedure adapted from Wikipedia:
 
-Take a value `v`. We call `⌊v⌋` the *integer part* of `v` and `v − ⌊v⌋` the *fractional part* of
+Take a value `v`. We call `⌊v⌋` the *integer part* of `v` and `v - ⌊v⌋` the *fractional part* of
 `v`.  A continued fraction representation of `v` can then be given by `[⌊v⌋; b₀, b₁, b₂,...]`, where
-`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v − ⌊v⌋)`.  This
+`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v - ⌊v⌋)`.  This
 process stops when the fractional part hits 0.
 
 In other words: to calculate a continued fraction representation of a number `v`, write down the
@@ -31,8 +31,7 @@ For an example, refer to `int_fract_pair.stream`.
 - `generalized_continued_fraction.int_fract_pair.stream`: computes the stream of integer and
   fractional parts of a given value as described in the summary.
 - `generalized_continued_fraction.of`: computes the generalised continued fraction of a value `v`.
-  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational
-  (those proofs will be added in a future commit).
+  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational.
 
 ## Implementation Notes
 
@@ -61,7 +60,6 @@ numerics, number theory, approximations, fractions
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
 
 -- Fix a carrier `K`.
 variable (K : Type*)
@@ -81,7 +79,7 @@ namespace int_fract_pair
 instance [has_repr K] : has_repr (int_fract_pair K) :=
 ⟨λ p, "(b : " ++ (repr p.b) ++ ", fract : " ++ (repr p.fr) ++ ")"⟩
 
-instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, (default _)⟩⟩
+instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, default⟩⟩
 
 /--
 Maps a function `f` on the fractional components of a given pair.
@@ -111,7 +109,7 @@ end coe
 variables [linear_ordered_field K] [floor_ring K]
 
 /-- Creates the integer and fractional part of a value `v`, i.e. `⟨⌊v⌋, v - ⌊v⌋⟩`. -/
-protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, fract v⟩
+protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, int.fract v⟩
 
 /--
 Creates the stream of integer and fractional parts of a value `v` needed to obtain the continued
@@ -130,8 +128,9 @@ For example, let `(v : ℚ) := 3.4`. The process goes as follows:
 -/
 protected def stream (v : K) : stream $ option (int_fract_pair K)
 | 0 := some (int_fract_pair.of v)
-| (n + 1) := do ap_n ← stream n,
-  if ap_n.fr = 0 then none else int_fract_pair.of ap_n.fr⁻¹
+| (n + 1) := (stream n).bind $ λ ap_n,
+  if ap_n.fr = 0 then none else some (int_fract_pair.of ap_n.fr⁻¹)
+
 
 /--
 Shows that `int_fract_pair.stream` has the sequence property, that is once we return `none` at
@@ -149,10 +148,11 @@ This is just an intermediate representation and users should not (need to) direc
 it. The setup of rewriting/simplification lemmas that make the definitions easy to use is done in
 `algebra.continued_fractions.computation.translations`.
 -/
-protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
+protected def seq1 (v : K) : stream.seq1 $ int_fract_pair K :=
 ⟨ int_fract_pair.of v,--the head
-  seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in the
-  -- head create a sequence from `int_fract_pair.stream`
+  stream.seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in
+  -- the head
+  -- create a sequence from `int_fract_pair.stream`
   ⟨ int_fract_pair.stream v, -- the underlying stream
     @stream_is_seq _ _ _ v ⟩ ⟩ -- the proof that the stream is a sequence
 
@@ -164,13 +164,14 @@ a `continued_fraction` that terminates if and only if `v` is rational (those pro
 added in a future commit).
 
 The continued fraction representation of `v` is given by `[⌊v⌋; b₀, b₁, b₂,...]`, where
-`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v − ⌊v⌋)`. This
+`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v - ⌊v⌋)`. This
 process stops when the fractional part `v - ⌊v⌋` hits 0 at some step.
 
 The implementation uses `int_fract_pair.stream` to obtain the partial denominators of the continued
 fraction. Refer to said function for more details about the computation process.
 -/
-protected def of [linear_ordered_field K] [floor_ring K] (v : K) : gcf K :=
+protected def of [linear_ordered_field K] [floor_ring K] (v : K) :
+  generalized_continued_fraction K :=
 let ⟨h, s⟩ := int_fract_pair.seq1 v in -- get the sequence of integer and fractional parts.
 ⟨ h.b, -- the head is just the first integer part
   s.map (λ p, ⟨1, p.b⟩) ⟩ -- the sequence consists of the remaining integer parts as the partial

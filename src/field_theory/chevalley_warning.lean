@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.mv_polynomial
 import field_theory.finite.basic
 
 /-!
@@ -19,8 +18,8 @@ and `q` is notation for the cardinality of `K`.
 1. Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)
    such that the total degree of `f` is less than `(q-1)` times the cardinality of `σ`.
    Then the evaluation of `f` on all points of `σ → K` (aka `K^σ`) sums to `0`.
-   (`sum_mv_polynomial_eq_zero`)
-2. The Chevalley–Warning theorem (`char_dvd_card_solutions`).
+   (`sum_eval_eq_zero`)
+2. The Chevalley–Warning theorem (`char_dvd_card_solutions_of_sum_lt`).
    Let `f i` be a finite family of multivariate polynomials
    in finitely many variables (`X s`, `s : σ`) such that
    the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
@@ -42,12 +41,12 @@ open_locale big_operators
 section finite_field
 open mv_polynomial function (hiding eval) finset finite_field
 
-variables {K : Type*} {σ : Type*} [fintype K] [field K] [fintype σ]
+variables {K σ ι : Type*} [fintype K] [field K] [fintype σ] [decidable_eq σ]
 local notation `q` := fintype.card K
 
-lemma mv_polynomial.sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
+lemma mv_polynomial.sum_eval_eq_zero (f : mv_polynomial σ K)
   (h : f.total_degree < (q - 1) * fintype.card σ) :
-  (∑ x, eval x f) = 0 :=
+  ∑ x, eval x f = 0 :=
 begin
   haveI : decidable_eq K := classical.dec_eq K,
   calc (∑ x, eval x f)
@@ -87,19 +86,18 @@ begin
     rw equiv.subtype_equiv_codomain_symm_apply_ne, }
 end
 
-variables [decidable_eq K] [decidable_eq σ]
+variables [decidable_eq K] (p : ℕ) [char_p K p]
 
-/-- The Chevalley–Warning theorem.
+/-- The **Chevalley–Warning theorem**, finitary version.
 Let `(f i)` be a finite family of multivariate polynomials
 in finitely many variables (`X s`, `s : σ`) over a finite field of characteristic `p`.
 Assume that the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
 Then the number of common solutions of the `f i` is divisible by `p`. -/
-theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
-  {ι : Type*} {s : finset ι} {f : ι → mv_polynomial σ K}
+theorem char_dvd_card_solutions_of_sum_lt {s : finset ι} {f : ι → mv_polynomial σ K}
   (h : (∑ i in s, (f i).total_degree) < fintype.card σ) :
   p ∣ fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0} :=
 begin
-  have hq : 0 < q - 1, { rw [← card_units, fintype.card_pos_iff], exact ⟨1⟩ },
+  have hq : 0 < q - 1, { rw [← fintype.card_units, fintype.card_pos_iff], exact ⟨1⟩ },
   let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, eval x (f i) = 0 },
   have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
   { intros x, simp only [S, true_and, sep_def, mem_filter, mem_univ], },
@@ -132,7 +130,7 @@ begin
   rw [← char_p.cast_eq_zero_iff K, ← key],
   show ∑ x, eval x F = 0,
   -- We are now ready to apply the main machine, proven before.
-  apply F.sum_mv_polynomial_eq_zero,
+  apply F.sum_eval_eq_zero,
   -- It remains to verify the crucial assumption of this machine
   show F.total_degree < (q - 1) * fintype.card σ,
   calc F.total_degree ≤ ∑ i in s, (1 - (f i)^(q - 1)).total_degree : total_degree_finset_prod s _
@@ -148,22 +146,43 @@ begin
     ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end
 
-/-- The Chevalley–Warning theorem.
+/-- The **Chevalley–Warning theorem**, fintype version.
+Let `(f i)` be a finite family of multivariate polynomials
+in finitely many variables (`X s`, `s : σ`) over a finite field of characteristic `p`.
+Assume that the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
+Then the number of common solutions of the `f i` is divisible by `p`. -/
+theorem char_dvd_card_solutions_of_fintype_sum_lt [fintype ι] {f : ι → mv_polynomial σ K}
+  (h : (∑ i, (f i).total_degree) < fintype.card σ) :
+  p ∣ fintype.card {x : σ → K // ∀ i, eval x (f i) = 0} :=
+by simpa using char_dvd_card_solutions_of_sum_lt p h
+
+/-- The **Chevalley–Warning theorem**, unary version.
 Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)
 over a finite field of characteristic `p`.
 Assume that the total degree of `f` is less than the cardinality of `σ`.
 Then the number of solutions of `f` is divisible by `p`.
-See `char_dvd_card_solutions_family` for a version that takes a family of polynomials `f i`. -/
-theorem char_dvd_card_solutions (p : ℕ) [char_p K p]
-  {f : mv_polynomial σ K} (h : f.total_degree < fintype.card σ) :
+See `char_dvd_card_solutions_of_sum_lt` for a version that takes a family of polynomials `f i`. -/
+theorem char_dvd_card_solutions {f : mv_polynomial σ K} (h : f.total_degree < fintype.card σ) :
   p ∣ fintype.card {x : σ → K // eval x f = 0} :=
 begin
   let F : unit → mv_polynomial σ K := λ _, f,
-  have : ∑ i : unit, (F i).total_degree < fintype.card σ,
-  { simpa only [fintype.univ_punit, sum_singleton] using h, },
-  have key := char_dvd_card_solutions_family p this,
-  simp only [F, fintype.univ_punit, forall_eq, mem_singleton] at key,
-  convert key,
+  have : ∑ i : unit, (F i).total_degree < fintype.card σ := h,
+  simpa only [F, fintype.univ_punit, forall_eq, mem_singleton] using
+    char_dvd_card_solutions_of_sum_lt p this,
+end
+
+/-- The **Chevalley–Warning theorem**, binary version.
+Let `f₁`, `f₂` be two multivariate polynomials in finitely many variables (`X s`, `s : σ`) over a
+finite field of characteristic `p`.
+Assume that the sum of the total degrees of `f₁` and `f₂` is less than the cardinality of `σ`.
+Then the number of common solutions of the `f₁` and `f₂` is divisible by `p`. -/
+theorem char_dvd_card_solutions_of_add_lt {f₁ f₂ : mv_polynomial σ K}
+  (h : f₁.total_degree + f₂.total_degree < fintype.card σ) :
+  p ∣ fintype.card {x : σ → K // eval x f₁ = 0 ∧ eval x f₂ = 0} :=
+begin
+  let F : bool → mv_polynomial σ K := λ b, cond b f₂ f₁,
+  have : ∑ b : bool, (F b).total_degree < fintype.card σ := (add_comm _ _).trans_lt h,
+  simpa only [F, bool.forall_bool] using char_dvd_card_solutions_of_fintype_sum_lt p this,
 end
 
 end finite_field

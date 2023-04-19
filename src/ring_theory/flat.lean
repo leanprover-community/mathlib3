@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import linear_algebra.dimension
 import ring_theory.noetherian
-import ring_theory.algebra_tower
 
 /-!
 # Flat modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A module `M` over a commutative ring `R` is *flat*
 if for all finitely generated ideals `I` of `R`,
@@ -40,11 +41,13 @@ This result is not yet formalised.
   For base change, it will be very useful to have a "characteristic predicate"
   instead of relying on the construction `A ⊗ B`.
   Indeed, such a predicate should allow us to treat both
-  `polynomial A` and `A ⊗ polynomial R` as the base change of `polynomial R` to `A`.
+  `A[X]` and `A ⊗ R[X]` as the base change of `R[X]` to `A`.
   (Similar examples exist with `fin n → R`, `R × R`, `ℤ[i] ⊗ ℝ`, etc...)
 * Generalize flatness to noncommutative rings.
 
 -/
+
+universes u v
 
 namespace module
 open function (injective)
@@ -54,14 +57,14 @@ open_locale tensor_product
 
 /-- An `R`-module `M` is flat if for all finitely generated ideals `I` of `R`,
 the canonical map `I ⊗ M →ₗ M` is injective. -/
-class flat (R M : Type*) [comm_ring R] [add_comm_group M] [module R M] : Prop :=
+class flat (R : Type u) (M : Type v) [comm_ring R] [add_comm_group M] [module R M] : Prop :=
 (out : ∀ ⦃I : ideal R⦄ (hI : I.fg), injective (tensor_product.lift ((lsmul R M).comp I.subtype)))
 
 namespace flat
 
-open tensor_product linear_map submodule
+open tensor_product linear_map _root_.submodule
 
-instance self (R : Type*) [comm_ring R] : flat R R :=
+instance self (R : Type u) [comm_ring R] : flat R R :=
 ⟨begin
   intros I hI,
   rw ← equiv.injective_comp (tensor_product.rid R I).symm.to_equiv,

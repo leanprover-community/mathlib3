@@ -3,12 +3,15 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Aaron Anderson, Yakov Pechersky
 -/
-import data.finset.sort
+import data.finset.card
 import data.fintype.basic
 import group_theory.perm.basic
 
 /-!
 # Support of a permutation
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -40,6 +43,8 @@ by simp only [disjoint, or.comm, imp_self]
 
 lemma disjoint.symmetric : symmetric (@disjoint α) :=
 λ _ _, disjoint.symm
+
+instance : is_symm (perm α) disjoint := ⟨disjoint.symmetric⟩
 
 lemma disjoint_comm : disjoint f g ↔ disjoint g f :=
 ⟨disjoint.symm, disjoint.symm⟩
@@ -122,10 +127,10 @@ lemma pow_apply_eq_self_of_apply_eq_self {x : α} (hfx : f x = x) :
 | 0     := rfl
 | (n+1) := by rw [pow_succ', mul_apply, hfx, pow_apply_eq_self_of_apply_eq_self]
 
-lemma gpow_apply_eq_self_of_apply_eq_self {x : α} (hfx : f x = x) :
+lemma zpow_apply_eq_self_of_apply_eq_self {x : α} (hfx : f x = x) :
   ∀ n : ℤ, (f ^ n) x = x
 | (n : ℕ) := pow_apply_eq_self_of_apply_eq_self hfx n
-| -[1+ n] := by rw [gpow_neg_succ_of_nat, inv_eq_iff_eq, pow_apply_eq_self_of_apply_eq_self hfx]
+| -[1+ n] := by rw [zpow_neg_succ_of_nat, inv_eq_iff_eq, pow_apply_eq_self_of_apply_eq_self hfx]
 
 lemma pow_apply_eq_of_apply_apply_eq_self {x : α} (hffx : f (f x) = x) :
   ∀ n : ℕ, (f ^ n) x = x ∨ (f ^ n) x = f x
@@ -134,10 +139,10 @@ lemma pow_apply_eq_of_apply_apply_eq_self {x : α} (hffx : f (f x) = x) :
   (λ h, or.inr (by rw [pow_succ, mul_apply, h]))
   (λ h, or.inl (by rw [pow_succ, mul_apply, h, hffx]))
 
-lemma gpow_apply_eq_of_apply_apply_eq_self {x : α} (hffx : f (f x) = x) :
+lemma zpow_apply_eq_of_apply_apply_eq_self {x : α} (hffx : f (f x) = x) :
   ∀ i : ℤ, (f ^ i) x = x ∨ (f ^ i) x = f x
 | (n : ℕ) := pow_apply_eq_of_apply_apply_eq_self hffx n
-| -[1+ n] := by { rw [gpow_neg_succ_of_nat, inv_eq_iff_eq, ← f.injective.eq_iff, ← mul_apply,
+| -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_eq_iff_eq, ← f.injective.eq_iff, ← mul_apply,
     ← pow_succ, eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm],
   exact pow_apply_eq_of_apply_apply_eq_self hffx _ }
 
@@ -154,14 +159,14 @@ lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
   σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
 by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
 
-lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+lemma disjoint.zpow_disjoint_zpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
   disjoint (σ ^ m) (τ ^ n) :=
-λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
-  (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
+λ x, or.imp (λ h, zpow_apply_eq_self_of_apply_eq_self h m)
+  (λ h, zpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
 
 lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
   disjoint (σ ^ m) (τ ^ n) :=
-hστ.gpow_disjoint_gpow m n
+hστ.zpow_disjoint_zpow m n
 
 end disjoint
 
@@ -172,16 +177,28 @@ variable [decidable_eq α]
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
 
+@[simp] lemma of_subtype_swap_eq {p : α → Prop} [decidable_pred p]
+  (x y : subtype p) :
+  (equiv.swap x y).of_subtype = equiv.swap ↑x ↑y :=
+equiv.ext $ λ z, begin
+  by_cases hz : p z,
+  { rw [swap_apply_def, of_subtype_apply_of_mem _ hz],
+    split_ifs with hzx hzy,
+    { simp_rw [hzx, subtype.coe_eta, swap_apply_left], },
+    { simp_rw [hzy, subtype.coe_eta, swap_apply_right], },
+    { rw swap_apply_of_ne_of_ne, refl,
+      intro h, apply hzx, rw ← h, refl,
+      intro h, apply hzy, rw ← h, refl, } },
+  { rw [of_subtype_apply_of_not_mem _ hz, swap_apply_of_ne_of_ne],
+    intro h, apply hz, rw h, exact subtype.prop x,
+    intro h, apply hz, rw h, exact subtype.prop y, }
+end
+
 lemma is_swap.of_subtype_is_swap {p : α → Prop} [decidable_pred p]
   {f : perm (subtype p)} (h : f.is_swap) : (of_subtype f).is_swap :=
 let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
 ⟨x, y, by { simp only [ne.def] at hxy, exact hxy.1 },
-  equiv.ext $ λ z, begin
-    rw [hxy.2, of_subtype],
-    simp only [swap_apply_def, coe_fn_mk, swap_inv, subtype.mk_eq_mk, monoid_hom.coe_mk],
-    split_ifs;
-    rw subtype.coe_mk <|> cc,
-  end⟩
+  by { simp only [hxy.2, of_subtype_swap_eq], refl, }⟩
 
 lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}
   (hy : (swap x (f x) * f) y ≠ y) : f y ≠ y ∧ y ≠ x :=
@@ -196,6 +213,42 @@ end is_swap
 
 section support
 
+section set
+
+variables (p q : perm α)
+
+lemma set_support_inv_eq :
+  {x | p⁻¹ x ≠ x} = {x | p x ≠ x} :=
+begin
+  ext x,
+  simp only [set.mem_set_of_eq, ne.def],
+  rw [inv_def, symm_apply_eq, eq_comm]
+end
+
+lemma set_support_apply_mem {p : perm α} {a : α} :
+  p a ∈ {x | p x ≠ x} ↔ a ∈ {x | p x ≠ x} :=
+by simp
+
+lemma set_support_zpow_subset (n : ℤ) :
+  {x | (p ^ n) x ≠ x} ⊆ {x | p x ≠ x} :=
+begin
+  intros x,
+  simp only [set.mem_set_of_eq, ne.def],
+  intros hx H,
+  simpa [zpow_apply_eq_self_of_apply_eq_self H] using hx
+end
+
+lemma set_support_mul_subset :
+  {x | (p * q) x ≠ x} ⊆ {x | p x ≠ x} ∪ {x | q x ≠ x} :=
+begin
+  intro x,
+  simp only [perm.coe_mul, function.comp_app, ne.def, set.mem_union, set.mem_set_of_eq],
+  by_cases hq : q x = x;
+  simp [hq]
+end
+
+end set
+
 variables [decidable_eq α] [fintype α] {f g : perm α}
 
 /-- The `finset` of nonfixed points of a permutation. -/
@@ -205,6 +258,10 @@ def support (f : perm α) : finset α := univ.filter (λ x, f x ≠ x)
 by rw [support, mem_filter, and_iff_right (mem_univ x)]
 
 lemma not_mem_support {x : α} : x ∉ f.support ↔ f x = x := by simp
+
+lemma coe_support_eq_set_support (f : perm α) :
+  (f.support : set α) = {x | f x ≠ x} :=
+by { ext, simp }
 
 @[simp] lemma support_eq_empty_iff {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
 by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,
@@ -268,12 +325,12 @@ begin
 end
 
 @[simp]
-lemma gpow_apply_mem_support {n : ℤ} {x : α} :
+lemma zpow_apply_mem_support {n : ℤ} {x : α} :
   (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
 begin
   cases n,
-  { rw [int.of_nat_eq_coe, gpow_coe_nat, pow_apply_mem_support] },
-  { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
+  { rw [int.of_nat_eq_coe, zpow_coe_nat, pow_apply_mem_support] },
+  { rw [zpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
 end
 
 lemma pow_eq_on_of_mem_support (h : ∀ (x ∈ f.support ∩ g.support), f x = g x)
@@ -320,20 +377,20 @@ begin
   { simp },
   { rw [list.prod_cons, list.map_cons, list.foldr_cons],
     refine (support_mul_le hd tl.prod).trans _,
-    exact sup_le_sup (le_refl _) hl }
+    exact sup_le_sup le_rfl hl }
 end
 
-lemma support_gpow_le (σ : perm α) (n : ℤ) :
+lemma support_zpow_le (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
-λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (zpow_apply_eq_self_of_apply_eq_self h2 n))
 
 @[simp] lemma support_swap {x y : α} (h : x ≠ y) : support (swap x y) = {x, y} :=
 begin
   ext z,
-  by_cases hx : z = x;
-  by_cases hy : z = y,
-  any_goals { simpa [hx, hy] using h.symm },
-  { simp [swap_apply_of_ne_of_ne, hx, hy] }
+  by_cases hx : z = x,
+  any_goals { simpa [hx] using h.symm },
+  by_cases hy : z = y;
+  { simp [swap_apply_of_ne_of_ne, hx, hy]; cc }
 end
 
 lemma support_swap_iff (x y : α) :
@@ -341,10 +398,10 @@ lemma support_swap_iff (x y : α) :
 begin
   refine ⟨λ h H, _, support_swap⟩,
   subst H,
-  simp only [swap_self, support_refl, insert_singleton_self_eq] at h,
+  simp only [swap_self, support_refl, pair_eq_singleton] at h,
   have : x ∈ ∅,
-    { rw h,
-      exact mem_singleton.mpr rfl },
+  { rw h,
+    exact mem_singleton.mpr rfl },
   simpa
 end
 
@@ -404,7 +461,7 @@ end
 
 lemma disjoint.mem_imp (h : disjoint f g) {x : α} (hx : x ∈ f.support) :
   x ∉ g.support :=
-λ H, h.disjoint_support (mem_inter_of_mem hx H)
+disjoint_left.mp h.disjoint_support hx
 
 lemma eq_on_support_mem_disjoint {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
   ∀ (x ∈ f.support), f x = l.prod x :=
@@ -427,8 +484,7 @@ lemma disjoint.mono {x y : perm α} (h : disjoint f g)
   disjoint x y :=
 begin
   rw disjoint_iff_disjoint_support at h ⊢,
-  intros a ha,
-  exact h (mem_inter_of_mem (hf (mem_of_mem_inter_left ha)) (hg (mem_of_mem_inter_right ha)))
+  exact h.mono hf hg,
 end
 
 lemma support_le_prod_of_mem {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
@@ -499,7 +555,7 @@ begin
 end
 
 @[simp] lemma card_support_le_one {f : perm α} : f.support.card ≤ 1 ↔ f = 1 :=
-by rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, card_support_eq_zero,
+by rw [le_iff_lt_or_eq, nat.lt_succ_iff, le_zero_iff, card_support_eq_zero,
   or_iff_not_imp_right, imp_iff_right f.card_support_ne_one]
 
 lemma two_le_card_support_of_ne_one {f : perm α} (h : f ≠ 1) :
@@ -561,5 +617,9 @@ end
 end card
 
 end support
+
+@[simp] lemma support_subtype_perm [decidable_eq α] {s : finset α} (f : perm α) (h) :
+  (f.subtype_perm h : perm {x // x ∈ s}).support = s.attach.filter (λ x, f x ≠ x) :=
+by { ext, simp [subtype.ext_iff] }
 
 end equiv.perm

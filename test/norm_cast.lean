@@ -98,7 +98,7 @@ end
 example (k : ℕ) {x y : ℕ} (h : ((x + y + k : ℕ) : ℤ) = 0) : x + y + k = 0 :=
 begin
   push_cast at h,
-  guard_hyp h : (x : ℤ) + y + k = 0,
+  guard_hyp_mod_implicit h : (x : ℤ) + y + k = 0,
   assumption_mod_cast
 end
 
@@ -119,10 +119,19 @@ lemma half_lt_self_bis {a : ℝ≥0∞} (hz : a ≠ 0) (ht : a ≠ ⊤) : a / 2 
 begin
   lift a to nnreal using ht,
   have h : (2 : ℝ≥0∞) = ((2 : nnreal) : ℝ≥0∞), from rfl,
-  have h' : (2 : nnreal) ≠ 0, from _root_.two_ne_zero',
+  have h' : (2 : nnreal) ≠ 0, from two_ne_zero' _,
   rw [h, ← coe_div h', coe_lt_coe], -- `norm_cast` fails to apply `coe_div`
   norm_cast at hz,
   exact nnreal.half_lt_self hz
 end
 
 end ennreal
+
+lemma b (h g : true) : true ∧ true :=
+begin
+ split,
+ assumption_mod_cast,
+ assumption_mod_cast,
+end
+
+example (n : ℤ) (h : n = -1) : (n : ℝ) = -1 := by exact_mod_cast h

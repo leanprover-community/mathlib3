@@ -5,6 +5,13 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.products.basic
 
+/-!
+# Lemmas about functors out of product categories.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+-/
+
 open category_theory
 
 namespace category_theory.bifunctor

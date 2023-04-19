@@ -14,7 +14,8 @@ Farkas' lemma is equivalent to strong duality. So, once have the definitions of 
 linear programs, the results from this file can be used to prove duality theorems.
 
 ## References
-- [B. Gartner and J. Matousek, Cone Programming ][gartnerMatousek]
+
+- [B. Gartner and J. Matousek, Cone Programming][gartnerMatousek]
 
 -/
 
@@ -32,7 +33,7 @@ protected def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
     λ c hc _ h₁, map_mem_closure (continuous_id'.const_smul c) h₁ (λ _ h₂, K.smul_mem hc h₂),
   add_mem' := λ _ h₁ _ h₂, map_mem_closure₂ continuous_add h₁ h₂ K.add_mem }
 
-@[simp, norm_cast] lemma coe_closure (K : convex_cone ℝ E) : (K.closure : set E) = _root_.closure K := rfl
+@[simp, norm_cast] lemma coe_closure (K : convex_cone ℝ E) : (K.closure : set E) = closure K := rfl
 
 protected lemma mem_closure {K : convex_cone ℝ E} {a : E} :
   a ∈ K.closure ↔ a ∈ closure (K : set E) :=

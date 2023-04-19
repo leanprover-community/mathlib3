@@ -219,8 +219,9 @@ lemma self_as_unit_pow_sub (a : R) (b : B) (m d : ℤ) :
 by simp only [zpow_sub, units.coe_mul, mul_comm (((self_as_unit x B ^ m) : Bˣ) : B) _,  mul_assoc,
   units.inv_mul_eq_iff_eq_mul]
 
-lemma pow_eq_algebra_map (d : ℕ) : (((self_as_unit x B)^(d : ℤ) : Bˣ) : B) =
-  (algebra_map R B x)^d := by {simp only [self_as_unit, zpow_coe_nat, units.coe_pow, units.coe_mk]}
+lemma pow_eq_algebra_map (d : ℕ) :
+  (((self_as_unit x B)^(d : ℤ) : Bˣ) : B) = (algebra_map R B x)^d :=
+by simp only [self_as_unit, zpow_coe_nat, units.coe_pow, units.coe_mk]
 
 variables [is_domain R] [normalization_monoid R] [unique_factorization_monoid R]
 include hx

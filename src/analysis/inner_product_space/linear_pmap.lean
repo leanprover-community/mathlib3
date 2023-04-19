@@ -132,13 +132,17 @@ lemma adjoint_elem_spec (y : T.adjoint_domain) (x : T.domain) :
   ⟪adjoint_elem hT y, x⟫ = ⟪(y : F), T x⟫ :=
 (exists_unique_adjoint_elem hT y).exists.some_spec _
 
+lemma adjoint_elem_unique (y : T.adjoint_domain) {x₀ : E}
+  (hx₀ : ∀ x : T.domain, ⟪x₀, x⟫ = ⟪(y : F), T x⟫) : adjoint_elem hT y = x₀ :=
+(exists_unique_adjoint_elem hT y).unique (λ _, adjoint_elem_spec hT _ _) hx₀
+
 /-- The adjoint as a linear map from its domain to `E`.
 
 This is an auxiliary definition needed to define the adjoint operator as a `linear_pmap` without
 the assumption that `T.domain` is dense. -/
 def adjoint_aux : T.adjoint_domain →ₗ[𝕜] E :=
 { to_fun := adjoint_elem hT,
-  map_add' := λ _ _, hT.eq_of_inner_left $ λ _,
+  map_add' := λ x y, hT.eq_of_inner_left $ λ _,
     by simp only [inner_add_left, adjoint_elem_spec, submodule.coe_add],
   map_smul' := λ _ _, hT.eq_of_inner_left $ λ _,
     by simp only [inner_smul_left, adjoint_elem_spec, submodule.coe_smul_of_tower,
@@ -184,13 +188,13 @@ begin
   simp only [hT, adjoint_aux, dif_pos, linear_map.coe_mk],
 end
 
+lemma adjoint_apply_eq (y : T†.domain) {x₀ : E}
+  (hx₀ : ∀ x : T.domain, ⟪x₀, x⟫ = ⟪(y : F), T x⟫) : T† y = x₀ :=
+(adjoint_apply_of_dense hT y).symm ▸ adjoint_elem_unique hT _ hx₀
+
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_is_formal_adjoint : T†.is_formal_adjoint T :=
-begin
-  intros x y,
-  rw adjoint_apply_of_dense hT,
-  exact adjoint_elem_spec hT x y,
-end
+λ x, (adjoint_apply_of_dense hT x).symm ▸ adjoint_elem_spec hT x
 
 /-- The adjoint is maximal in the sense that it contains every formal adjoint. -/
 lemma is_formal_adjoint.le_adjoint (h : T.is_formal_adjoint S) : S ≤ T† :=
@@ -218,9 +222,8 @@ begin
       linear_pmap.mem_adjoint_domain_iff, linear_map.coe_comp, innerₛₗ_apply_coe],
     exact ((innerSL 𝕜 x).comp $ A.comp $ submodule.subtypeL _).cont },
   intros x y hxy,
-  refine hp'.eq_of_inner_left (λ v, _),
-  simp only [linear_pmap.adjoint_is_formal_adjoint hp' x v, adjoint_inner_left, hxy,
-    linear_map.to_pmap_apply, to_linear_map_eq_coe, coe_coe],
+  refine linear_pmap.adjoint_apply_eq hp' _ (λ v, _),
+  simp only [adjoint_inner_left, hxy, linear_map.to_pmap_apply, to_linear_map_eq_coe, coe_coe],
 end
 
 end continuous_linear_map

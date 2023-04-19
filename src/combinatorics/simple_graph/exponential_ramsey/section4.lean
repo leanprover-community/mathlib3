@@ -604,8 +604,14 @@ begin
   rw [sum_boole, ←card_powerset_len],
   congr' 2,
   ext S,
-  simp only [mem_powerset_len, mem_filter, common_blues, mem_univ, true_and, subset_inter_iff],
-
+  simp only [mem_powerset_len, mem_filter, common_blues, mem_univ, true_and, subset_inter_iff,
+    blue_neighbors, and_assoc],
+  rw ←and_rotate,
+  refine and_congr_left' _,
+  rw subset_iff,
+  refine ball_congr _,
+  intros x hx,
+  rw [mem_col_neighbor_finset_comm],
 end
 
 #exit

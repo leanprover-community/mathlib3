@@ -23,6 +23,8 @@ directed iff each pair of elements has a shared upper bound.
 * `directed_on r s`: Predicate stating that the set `s` is `r`-directed.
 * `is_directed α r`: Prop-valued mixin stating that `α` is `r`-directed. Follows the style of the
   unbundled relation classes such as `is_total`.
+* `scott_continuous`: Prop-valued definition stating that a function between preorders preserves
+  `is_lub` on directed sets.
 -/
 
 open function

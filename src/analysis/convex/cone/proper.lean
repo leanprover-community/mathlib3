@@ -13,15 +13,18 @@ cone. We then prove Farkas' lemma for conic programs following the proof in the 
 Farkas' lemma is equivalent to strong duality. So, once have the definitions of conic programs and
 linear programs, the results from this file can be used to prove duality theorems.
 
-## References
-
-- [B. Gartner and J. Matousek, Cone Programming][gartnerMatousek]
+## TODO
 
 In the next few PRs (already sorry-free), we will add the definition and prove several properties
 of proper cones and finally prove the cone version of Farkas' lemma (2.3.4 in the reference).
 
-- TODO: The next step is to define primal and dual cone programs and prove weak duality.
-- TODO: Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
+- The next step is to define primal and dual cone programs and prove weak duality.
+- Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
+
+## References
+
+- [B. Gartner and J. Matousek, Cone Programming][gartnerMatousek]
+
 -/
 
 open continuous_linear_map filter

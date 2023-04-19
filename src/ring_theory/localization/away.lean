@@ -208,8 +208,9 @@ variable (hx : irreducible x)
 
 /-- `self_as_unit` is the element `x` at which `B` is a localization away, bundled as a unit in `B`
 -/
-noncomputable def self_as_unit : Bˣ := ⟨algebra_map _ _ x, away.inv_self x, away.mul_inv_self _,
-    by {rw mul_comm, exact away.mul_inv_self _}⟩
+noncomputable def self_as_unit : Bˣ :=
+⟨algebra_map _ _ x, away.inv_self x, away.mul_inv_self _,
+  by { rw mul_comm, exact away.mul_inv_self _ }⟩
 
 lemma self_as_unit_pow_sub (a : R) (b : B) (m d : ℤ) :
   (((self_as_unit x B ^ (m - d)) : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b ↔

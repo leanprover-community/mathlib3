@@ -39,6 +39,7 @@ TODO: Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a g
 -/
 
 open_locale unit_interval topology
+open homeomorph
 
 noncomputable theory
 
@@ -73,8 +74,10 @@ lemma one_char (f : I^1) : f = λ _, f 0 := eq_const_of_unique f
 section
 variable [decidable_eq N]
 
-lemma insert_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
-  (fun_split_at I i).symm ⟨t₀, t⟩ ∈ boundary N :=
+abbreviation split_at (i : N) := (fun_split_at I i).symm
+
+lemma split_in_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
+  split_at i ⟨t₀, t⟩ ∈ boundary N :=
 begin
   cases H, { use i, rwa [fun_split_at_symm_apply, dif_pos rfl] },
   cases H with j H,
@@ -141,11 +144,11 @@ variable [decidable_eq N]
 
 /-- Path from a generalized loop by `insert`-ing into `I^(n+1)`. -/
 @[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
-{ to_fun := λ t, ⟨(p.val.comp (fun_split_at I i).symm.to_continuous_map).curry t,
-    λ y yH, p.property ((fun_split_at I i).symm (t, y)) (cube.insert_boundary i $ or.inr yH)⟩,
+{ to_fun := λ t, ⟨(p.val.comp (cube.split_at i).to_continuous_map).curry t,
+    λ y yH, p.property (cube.split_at i (t, y)) (cube.split_in_boundary i $ or.inr yH)⟩,
   continuous_to_fun := by continuity,
-  source' := by { ext t, refine p.property ((fun_split_at I i).symm (0, t)) ⟨i, or.inl _⟩, simp },
-  target' := by { ext t, refine p.property ((fun_split_at I i).symm (1, t)) ⟨i, or.inr _⟩, simp } }
+  source' := by { ext t, refine p.property (cube.split_at i (0, t)) ⟨i, or.inl _⟩, simp },
+  target' := by { ext t, refine p.property (cube.split_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
 /-- Generalized loop from a path by `extrac`-ing of `I×I^n`. -/
 @[simps] def from_path (i : N) : Ω (gen_loop {j // j ≠ i} x) const → gen_loop N x :=
@@ -175,7 +178,7 @@ end
   right_inv := to_from i }
 
 lemma to_path_apply (i : N) {p : gen_loop N x} {t} {tn} :
-  to_path i p t tn = p ((fun_split_at I i).symm ⟨t, tn⟩) := rfl
+  to_path i p t tn = p (cube.split_at i ⟨t, tn⟩) := rfl
 
 lemma from_path_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : cube N} :
   from_path i p t = p (t i) (fun_split_at I i t).snd := rfl
@@ -191,8 +194,8 @@ variable [decidable_eq N]
 
 /-- Composition with insert as a continuous map.-/
 abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i}, X)) :=
-⟨λ f, f.comp (fun_split_at I i).symm.to_continuous_map,
-  (fun_split_at I i).symm.to_continuous_map.continuous_comp_left⟩
+⟨λ f, f.comp (cube.split_at i).to_continuous_map,
+  (cube.split_at i).to_continuous_map.continuous_comp_left⟩
 
 /--Homotopy of generalized loops to `C(I × I, C(cube {j // j ≠ i}, X))`. -/
 @[simps] def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
@@ -206,7 +209,7 @@ begin
   refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩, _⟩, _, _⟩, _⟩),
   { rintros y ⟨i,iH⟩,
     rw homotopy_to_apply_apply, rw H.eq_fst, rw p.2,
-    all_goals { apply cube.insert_boundary, right, exact ⟨i,iH⟩} },
+    all_goals { apply cube.split_in_boundary, right, exact ⟨i,iH⟩} },
   { continuity },
   show ∀ _ _ _, _,
   { intros t y yH,
@@ -360,6 +363,10 @@ begin
   all_goals { congr' 1, ext, rw [to_continuous_map_apply, fun_split_at_symm_apply], refl },
 end
 
+lemma from_path_symm_to_path {p : gen_loop N x} (i : N) {t} :
+  (path_equiv i).symm (path_equiv i p).symm t = p (cube.split_at i ⟨σ (t i), λ j, t j⟩) :=
+by { dsimp only [path.symm, from_path, path.coe_mk], refl }
+
 /-- Characterization for the multiplication on `gen_loop`;
   TODO: do the same for const/base point (easy) and reverse/path.symm? -/
 lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
@@ -367,6 +374,10 @@ lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
     then q (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0) else t j)
     else p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
 ⟨_, rfl, λ _, from_path_trans_to_path 0⟩
+
+lemma symm_spec { p : gen_loop (fin (n+1)) x} :
+  ∃ q, (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦q⟧ ∧ ∀ t, q t = p ((fun_split_at I ↑0).symm (σ (t 0), λ j, t ↑j)) :=
+⟨_, rfl, λ _, from_path_symm_to_path _⟩
 
 /-- Multiplication on `π_(n+2}` is commutative. -/
 instance comm_group : comm_group (π_(n+2) X x) :=
@@ -377,11 +388,9 @@ begin
   simp only [equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
   ext, iterate 6 { rw from_path_trans_to_path },
   simp_rw [if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
-  split_ifs; { congr, ext1, apply ite_ite_comm, sorry },
+  split_ifs; { congr, ext1, apply ite_ite_comm,
+  intros h0 h1, rw h0 at h1, exact zero_ne_one (fin.veq_of_eq h1) },
 end
-
-/- should we add this instance? -/
-instance add_comm_group : add_comm_group (additive $ π_(n+2) X x) := additive.add_comm_group
 
 end
 

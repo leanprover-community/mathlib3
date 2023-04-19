@@ -4,14 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Yury Kudryashov
 -/
 import topology.algebra.order.intermediate_value
+import topology.local_extr
 
 /-!
 # Compactness of a closed interval
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a closed interval in a conditionally complete linear ordered type with
-order topology (or a product of such types) is compact. We also prove the extreme value theorem
-(`is_compact.exists_forall_le`, `is_compact.exists_forall_ge`): a continuous function on a compact
-set takes its minimum and maximum values.
+order topology (or a product of such types) is compact.
+
+We prove the extreme value theorem (`is_compact.exists_forall_le`, `is_compact.exists_forall_ge`):
+a continuous function on a compact set takes its minimum and maximum values. We provide many
+variations of this theorem.
 
 We also prove that the image of a closed interval under a continuous map is a closed interval, see
 `continuous_on.image_Icc`.
@@ -22,7 +28,7 @@ compact, extreme value theorem
 -/
 
 open filter order_dual topological_space function set
-open_locale filter topological_space
+open_locale filter topology
 
 /-!
 ### Compactness of a closed interval
@@ -105,8 +111,8 @@ instance {α β : Type*} [preorder α] [topological_space α] [compact_Icc_space
 ⟨λ a b, (Icc_prod_eq a b).symm ▸ is_compact_Icc.prod is_compact_Icc⟩
 
 /-- An unordered closed interval is compact. -/
-lemma is_compact_interval {α : Type*} [linear_order α] [topological_space α] [compact_Icc_space α]
-  {a b : α} : is_compact (interval a b) :=
+lemma is_compact_uIcc {α : Type*} [linear_order α] [topological_space α] [compact_Icc_space α]
+  {a b : α} : is_compact (uIcc a b) :=
 is_compact_Icc
 
 /-- A complete linear order is a compact space.
@@ -140,9 +146,8 @@ lemma is_compact.Inf_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   Inf s ∈ s :=
 hs.is_closed.cInf_mem ne_s hs.bdd_below
 
-lemma is_compact.Sup_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
-  Sup s ∈ s :=
-@is_compact.Inf_mem (order_dual α) _ _ _ _ hs ne_s
+lemma is_compact.Sup_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) : Sup s ∈ s :=
+@is_compact.Inf_mem αᵒᵈ _ _ _ _ hs ne_s
 
 lemma is_compact.is_glb_Inf {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   is_glb s (Inf s) :=
@@ -150,7 +155,7 @@ is_glb_cInf ne_s hs.bdd_below
 
 lemma is_compact.is_lub_Sup {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   is_lub s (Sup s) :=
-@is_compact.is_glb_Inf (order_dual α) _ _ _ _ hs ne_s
+@is_compact.is_glb_Inf αᵒᵈ _ _ _ _ hs ne_s
 
 lemma is_compact.is_least_Inf {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   is_least s (Inf s) :=
@@ -158,7 +163,7 @@ lemma is_compact.is_least_Inf {s : set α} (hs : is_compact s) (ne_s : s.nonempt
 
 lemma is_compact.is_greatest_Sup {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   is_greatest s (Sup s) :=
-@is_compact.is_least_Inf (order_dual α) _ _ _ _ hs ne_s
+@is_compact.is_least_Inf αᵒᵈ _ _ _ _ hs ne_s
 
 lemma is_compact.exists_is_least {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   ∃ x, is_least s x :=
@@ -186,7 +191,7 @@ in ⟨x, hxs, hx.symm, λ y hy,
 lemma is_compact.exists_Sup_image_eq_and_ge {s : set β} (hs : is_compact s) (ne_s : s.nonempty)
   {f : β → α} (hf : continuous_on f s) :
   ∃ x ∈ s, Sup (f '' s) = f x ∧ ∀ y ∈ s, f y ≤ f x :=
-@is_compact.exists_Inf_image_eq_and_le (order_dual α) _ _ _ _ _ _ hs ne_s _ hf
+@is_compact.exists_Inf_image_eq_and_le αᵒᵈ _ _ _ _ _ _ hs ne_s _ hf
 
 lemma is_compact.exists_Inf_image_eq {s : set β} (hs : is_compact s) (ne_s : s.nonempty)
   {f : β → α} (hf : continuous_on f s) :
@@ -195,8 +200,8 @@ let ⟨x, hxs, hx, _⟩ := hs.exists_Inf_image_eq_and_le ne_s hf in ⟨x, hxs, h
 
 lemma is_compact.exists_Sup_image_eq :
   ∀ {s : set β}, is_compact s → s.nonempty → ∀ {f : β → α}, continuous_on f s →
-  ∃ x ∈ s,  Sup (f '' s) = f x :=
-@is_compact.exists_Inf_image_eq (order_dual α) _ _ _ _ _
+  ∃ x ∈ s, Sup (f '' s) = f x :=
+@is_compact.exists_Inf_image_eq αᵒᵈ _ _ _ _ _
 
 lemma eq_Icc_of_connected_compact {s : set α} (h₁ : is_connected s) (h₂ : is_compact s) :
   s = Icc (Inf s) (Sup s) :=
@@ -220,7 +225,7 @@ end
 lemma is_compact.exists_forall_ge :
   ∀ {s : set β}, is_compact s → s.nonempty → ∀ {f : β → α}, continuous_on f s →
   ∃x∈s, ∀y∈s, f y ≤ f x :=
-@is_compact.exists_forall_le (order_dual α) _ _ _ _ _
+@is_compact.exists_forall_le αᵒᵈ _ _ _ _ _
 
 /-- The **extreme value theorem**: if a function `f` is continuous on a closed set `s` and it is
 larger than a value in its image away from compact sets, then it has a minimum on this set. -/
@@ -231,7 +236,7 @@ begin
   rcases (has_basis_cocompact.inf_principal _).eventually_iff.1 hc with ⟨K, hK, hKf⟩,
   have hsub : insert x₀ (K ∩ s) ⊆ s, from insert_subset.2 ⟨h₀, inter_subset_right _ _⟩,
   obtain ⟨x, hx, hxf⟩ : ∃ x ∈ insert x₀ (K ∩ s), ∀ y ∈ insert x₀ (K ∩ s), f x ≤ f y :=
-    ((hK.inter_right hsc).insert x₀).exists_forall_le (nonempty_insert _ _) (hf.mono hsub),
+    ((hK.inter_right hsc).insert x₀).exists_forall_le (insert_nonempty _ _) (hf.mono hsub),
   refine ⟨x, hsub hx, λ y hy, _⟩,
   by_cases hyK : y ∈ K,
   exacts [hxf _ (or.inr ⟨hyK, hy⟩), (hxf _ (or.inl rfl)).trans (hKf ⟨hyK, hy⟩)]
@@ -242,7 +247,7 @@ smaller than a value in its image away from compact sets, then it has a maximum 
 lemma continuous_on.exists_forall_ge' {s : set β} {f : β → α} (hf : continuous_on f s)
   (hsc : is_closed s) {x₀ : β} (h₀ : x₀ ∈ s) (hc : ∀ᶠ x in cocompact β ⊓ 𝓟 s, f x ≤ f x₀) :
   ∃ x ∈ s, ∀ y ∈ s, f y ≤ f x :=
-@continuous_on.exists_forall_le' (order_dual α) _ _ _ _ _ _ _ hf hsc _ h₀ hc
+@continuous_on.exists_forall_le' αᵒᵈ _ _ _ _ _ _ _ hf hsc _ h₀ hc
 
 /-- The **extreme value theorem**: if a continuous function `f` is larger than a value in its range
 away from compact sets, then it has a global minimum. -/
@@ -256,7 +261,7 @@ in ⟨x, λ y, hx y (mem_univ y)⟩
 away from compact sets, then it has a global maximum. -/
 lemma _root_.continuous.exists_forall_ge' {f : β → α} (hf : continuous f) (x₀ : β)
   (h : ∀ᶠ x in cocompact β, f x ≤ f x₀) : ∃ (x : β), ∀ (y : β), f y ≤ f x :=
-@continuous.exists_forall_le' (order_dual α) _ _ _ _ _ _ hf x₀ h
+@continuous.exists_forall_le' αᵒᵈ _ _ _ _ _ _ hf x₀ h
 
 /-- The **extreme value theorem**: if a continuous function `f` tends to infinity away from compact
 sets, then it has a global minimum. -/
@@ -270,7 +275,7 @@ compact sets, then it has a global maximum. -/
 lemma continuous.exists_forall_ge [nonempty β] {f : β → α}
   (hf : continuous f) (hlim : tendsto f (cocompact β) at_bot) :
   ∃ x, ∀ y, f y ≤ f x :=
-@continuous.exists_forall_le (order_dual α) _ _ _ _ _ _ _ hf hlim
+@continuous.exists_forall_le αᵒᵈ _ _ _ _ _ _ _ hf hlim
 
 lemma is_compact.Sup_lt_iff_of_continuous {f : β → α}
   {K : set β} (hK : is_compact K) (h0K : K.nonempty) (hf : continuous_on f K) (y : α) :
@@ -287,47 +292,25 @@ lemma is_compact.lt_Inf_iff_of_continuous {α β : Type*}
   [order_topology α] [topological_space β] {f : β → α}
   {K : set β} (hK : is_compact K) (h0K : K.nonempty) (hf : continuous_on f K) (y : α) :
   y < Inf (f '' K) ↔ ∀ x ∈ K, y < f x :=
-@is_compact.Sup_lt_iff_of_continuous (order_dual α) β _ _ _ _ _ _ hK h0K hf y
+@is_compact.Sup_lt_iff_of_continuous αᵒᵈ β _ _ _ _ _ _ hK h0K hf y
 
 /-- A continuous function with compact support has a global minimum. -/
-@[to_additive]
-lemma _root_.continuous.exists_forall_le_of_has_compact_mul_support [nonempty β] [has_one α]
+@[to_additive "A continuous function with compact support has a global minimum."]
+lemma continuous.exists_forall_le_of_has_compact_mul_support [nonempty β] [has_one α]
   {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
   ∃ (x : β), ∀ (y : β), f x ≤ f y :=
 begin
-  -- Proof sketch: we use `continuous.exists_forall_le'` with as `x₀` any element outside the
-  -- support of `f`, if such an element exists (and otherwise an arbitrary element).
-  refine hf.exists_forall_le' (classical.epsilon $ λ x, f x = 1)
-    (eventually_of_mem h.compl_mem_cocompact $ λ x hx, _),
-  have : f x = 1 := nmem_mul_support.mp (mt (λ h2x, subset_closure h2x) hx),
-  exact ((classical.epsilon_spec ⟨x, this⟩).trans this.symm).le
+  obtain ⟨_, ⟨x, rfl⟩, hx⟩ := (h.is_compact_range hf).exists_is_least (range_nonempty _),
+  rw [mem_lower_bounds, forall_range_iff] at hx,
+  exact ⟨x, hx⟩,
 end
 
 /-- A continuous function with compact support has a global maximum. -/
-@[to_additive]
+@[to_additive "A continuous function with compact support has a global maximum."]
 lemma continuous.exists_forall_ge_of_has_compact_mul_support [nonempty β] [has_one α]
   {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
   ∃ (x : β), ∀ (y : β), f y ≤ f x :=
-@continuous.exists_forall_le_of_has_compact_mul_support (order_dual α) _ _ _ _ _ _ _ _ hf h
-
-/-- A continuous function with compact support is bounded below. -/
-@[to_additive]
-lemma continuous.bdd_below_range_of_has_compact_mul_support [has_one α]
-  {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
-  bdd_below (range f) :=
-begin
-  casesI is_empty_or_nonempty β with hβ hβ,
-  { rw range_eq_empty_iff.mpr, exact bdd_below_empty, exact hβ },
-  obtain ⟨x, hx⟩ := hf.exists_forall_le_of_has_compact_mul_support h,
-  refine ⟨f x, _⟩, rintro _ ⟨x', rfl⟩, exact hx x'
-end
-
-/-- A continuous function with compact support is bounded above. -/
-@[to_additive]
-lemma continuous.bdd_above_range_of_has_compact_mul_support [has_one α]
-  {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
-  bdd_above (range f) :=
-@continuous.bdd_below_range_of_has_compact_mul_support (order_dual α) _ _ _ _ _ _ _ hf h
+@continuous.exists_forall_le_of_has_compact_mul_support αᵒᵈ _ _ _ _ _ _ _ _ hf h
 
 lemma is_compact.continuous_Sup {f : γ → β → α}
   {K : set β} (hK : is_compact K) (hf : continuous ↿f) :
@@ -359,7 +342,7 @@ end
 lemma is_compact.continuous_Inf {f : γ → β → α}
   {K : set β} (hK : is_compact K) (hf : continuous ↿f) :
     continuous (λ x, Inf (f x '' K)) :=
-@is_compact.continuous_Sup (order_dual α) β γ _ _ _ _ _ _ _ hK hf
+@is_compact.continuous_Sup αᵒᵈ β γ _ _ _ _ _ _ _ hK hf
 
 namespace continuous_on
 /-!
@@ -376,19 +359,19 @@ lemma image_Icc (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
   (is_compact_Icc.image_of_continuous_on h)
 
-lemma image_interval_eq_Icc (h : continuous_on f $ [a, b]) :
+lemma image_uIcc_eq_Icc (h : continuous_on f $ [a, b]) :
   f '' [a, b] = Icc (Inf (f '' [a, b])) (Sup (f '' [a, b])) :=
 begin
   cases le_total a b with h2 h2,
-  { simp_rw [interval_of_le h2] at h ⊢, exact h.image_Icc h2 },
-  { simp_rw [interval_of_ge h2] at h ⊢, exact h.image_Icc h2 },
+  { simp_rw [uIcc_of_le h2] at h ⊢, exact h.image_Icc h2 },
+  { simp_rw [uIcc_of_ge h2] at h ⊢, exact h.image_Icc h2 },
 end
 
-lemma image_interval (h : continuous_on f $ [a, b]) :
+lemma image_uIcc (h : continuous_on f $ [a, b]) :
   f '' [a, b] = [Inf (f '' [a, b]), Sup (f '' [a, b])] :=
 begin
-  refine h.image_interval_eq_Icc.trans (interval_of_le _).symm,
-  refine cInf_le_cSup _ _ (nonempty_interval.image _); rw h.image_interval_eq_Icc,
+  refine h.image_uIcc_eq_Icc.trans (uIcc_of_le _).symm,
+  refine cInf_le_cSup _ _ (nonempty_uIcc.image _); rw h.image_uIcc_eq_Icc,
   exacts [bdd_below_Icc, bdd_above_Icc]
 end
 
@@ -409,3 +392,24 @@ begin
 end
 
 end continuous_on
+
+lemma is_compact.exists_local_min_on_mem_subset {f : β → α} {s t : set β} {z : β}
+  (ht : is_compact t) (hf : continuous_on f t) (hz : z ∈ t) (hfz : ∀ z' ∈ t \ s, f z < f z') :
+  ∃ x ∈ s, is_local_min_on f t x :=
+begin
+  obtain ⟨x, hx, hfx⟩ : ∃ x ∈ t, ∀ y ∈ t, f x ≤ f y := ht.exists_forall_le ⟨z, hz⟩ hf,
+  have key : ∀ ⦃y⦄, y ∈ t → (∀ z' ∈ t \ s, f y < f z') → y ∈ s := λ y hy hfy,
+    by { by_contra; simpa using ((hfy y ((mem_diff y).mpr ⟨hy,h⟩))) },
+  have h1 : ∀ z' ∈ t \ s, f x < f z' := λ z' hz', (hfx z hz).trans_lt (hfz z' hz'),
+  have h2 : x ∈ s := key hx h1,
+  refine ⟨x, h2, eventually_nhds_within_of_forall hfx⟩
+end
+
+lemma is_compact.exists_local_min_mem_open {f : β → α} {s t : set β} {z : β} (ht : is_compact t)
+  (hst : s ⊆ t) (hf : continuous_on f t) (hz : z ∈ t) (hfz : ∀ z' ∈ t \ s, f z < f z')
+  (hs : is_open s) :
+  ∃ x ∈ s, is_local_min f x :=
+begin
+  obtain ⟨x, hx, hfx⟩ := ht.exists_local_min_on_mem_subset hf hz hfz,
+  exact ⟨x, hx, hfx.is_local_min (filter.mem_of_superset (hs.mem_nhds hx) hst)⟩
+end

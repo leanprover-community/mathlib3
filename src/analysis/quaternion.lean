@@ -1,10 +1,12 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Eric Wieser
 -/
 import algebra.quaternion
 import analysis.inner_product_space.basic
+import analysis.inner_product_space.pi_L2
+import topology.algebra.algebra
 
 /-!
 # Quaternions as a normed algebra
@@ -14,6 +16,8 @@ In this file we define the following structures on the space `ℍ := ℍ[ℝ]` o
 * inner product space;
 * normed ring;
 * normed space over `ℝ`.
+
+We show that the norm on `ℍ[ℝ]` agrees with the euclidean norm of its components.
 
 ## Notation
 
@@ -26,10 +30,8 @@ The following notation is available with `open_locale quaternion`:
 quaternion, normed ring, normed space, normed algebra
 -/
 
-localized "notation `ℍ` := quaternion ℝ" in quaternion
+localized "notation (name := quaternion.real) `ℍ` := quaternion ℝ" in quaternion
 open_locale real_inner_product_space
-
-noncomputable theory
 
 namespace quaternion
 
@@ -39,35 +41,47 @@ lemma inner_self (a : ℍ) : ⟪a, a⟫ = norm_sq a := rfl
 
 lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * b.conj).re := rfl
 
-instance : inner_product_space ℝ ℍ :=
-inner_product_space.of_core
+noncomputable instance : normed_add_comm_group ℍ :=
+@inner_product_space.of_core.to_normed_add_comm_group ℝ ℍ _ _ _
 { inner := has_inner.inner,
-  conj_sym := λ x y, by simp [inner_def, mul_comm],
+  conj_symm := λ x y, by simp [inner_def, mul_comm],
   nonneg_re := λ x, norm_sq_nonneg,
   definite := λ x, norm_sq_eq_zero.1,
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
   smul_left := λ x y r, by simp [inner_def] }
 
-lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
+noncomputable instance : inner_product_space ℝ ℍ :=
+inner_product_space.of_core _
+
+lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ‖a‖ * ‖a‖ :=
 by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
 
 instance : norm_one_class ℍ :=
 ⟨by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_one, real.sqrt_one]⟩
 
-@[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
+@[simp, norm_cast] lemma norm_coe (a : ℝ) : ‖(a : ℍ)‖ = ‖a‖ :=
 by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
-@[simp, norm_cast] lemma nnorm_coe (a : ℝ) : ∥(a : ℍ)∥₊ = ∥a∥₊ :=
+@[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ‖(a : ℍ)‖₊ = ‖a‖₊ :=
 subtype.ext $ norm_coe a
+
+@[simp] lemma norm_conj (a : ℍ) : ‖conj a‖ = ‖a‖ :=
+by simp_rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_conj]
+
+@[simp] lemma nnnorm_conj (a : ℍ) : ‖conj a‖₊ = ‖a‖₊ :=
+subtype.ext $ norm_conj a
 
 noncomputable instance : normed_division_ring ℍ :=
 { dist_eq := λ _ _, rfl,
   norm_mul' := λ a b, by { simp only [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_mul],
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
-noncomputable instance : normed_algebra ℝ ℍ :=
-{ norm_algebra_map_eq := norm_coe,
-  to_algebra := quaternion.algebra }
+instance : normed_algebra ℝ ℍ :=
+{ norm_smul_le := norm_smul_le,
+  to_algebra := (quaternion.algebra : algebra ℝ ℍ) }
+
+instance : cstar_ring ℍ :=
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ‖x‖) (norm_conj x) }
 
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩
 
@@ -94,5 +108,81 @@ def of_complex : ℂ →ₐ[ℝ] ℍ :=
   commutes' := λ x, rfl }
 
 @[simp] lemma coe_of_complex : ⇑of_complex = coe := rfl
+
+/-- The norm of the components as a euclidean vector equals the norm of the quaternion. -/
+lemma norm_pi_Lp_equiv_symm_equiv_tuple (x : ℍ) :
+  ‖(pi_Lp.equiv 2 (λ _ : fin 4, _)).symm (equiv_tuple ℝ x)‖ = ‖x‖ :=
+begin
+  rw [norm_eq_sqrt_real_inner, norm_eq_sqrt_real_inner, inner_self, norm_sq_def', pi_Lp.inner_apply,
+    fin.sum_univ_four],
+  simp_rw [is_R_or_C.inner_apply, star_ring_end_apply, star_trivial, ←sq],
+  refl,
+end
+
+/-- `quaternion_algebra.linear_equiv_tuple` as a `linear_isometry_equiv`. -/
+@[simps apply symm_apply]
+noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin 4) :=
+{ to_fun := λ a, (pi_Lp.equiv _ (λ _ : fin 4, _)).symm ![a.1, a.2, a.3, a.4],
+  inv_fun := λ a, ⟨a 0, a 1, a 2, a 3⟩,
+  norm_map' := norm_pi_Lp_equiv_symm_equiv_tuple,
+  ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
+      (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
+
+@[continuity] lemma continuous_conj : continuous (conj : ℍ → ℍ) :=
+continuous_star
+
+@[continuity] lemma continuous_coe : continuous (coe : ℝ → ℍ) :=
+continuous_algebra_map ℝ ℍ
+
+@[continuity] lemma continuous_norm_sq : continuous (norm_sq : ℍ → ℝ) :=
+by simpa [←norm_sq_eq_norm_sq]
+  using (continuous_norm.mul continuous_norm : continuous (λ q : ℍ, ‖q‖ * ‖q‖))
+
+@[continuity] lemma continuous_re : continuous (λ q : ℍ, q.re) :=
+(continuous_apply 0).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_i : continuous (λ q : ℍ, q.im_i) :=
+(continuous_apply 1).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_j : continuous (λ q : ℍ, q.im_j) :=
+(continuous_apply 2).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im_k : continuous (λ q : ℍ, q.im_k) :=
+(continuous_apply 3).comp linear_isometry_equiv_tuple.continuous
+
+@[continuity] lemma continuous_im : continuous (λ q : ℍ, q.im) :=
+by simpa only [←sub_self_re] using continuous_id.sub (continuous_coe.comp continuous_re)
+
+instance : complete_space ℍ :=
+begin
+  have : uniform_embedding linear_isometry_equiv_tuple.to_linear_equiv.to_equiv.symm :=
+    linear_isometry_equiv_tuple.to_continuous_linear_equiv.symm.uniform_embedding,
+  exact (complete_space_congr this).1 (by apply_instance)
+end
+
+section infinite_sum
+variables {α : Type*}
+
+@[simp, norm_cast] lemma has_sum_coe {f : α → ℝ} {r : ℝ} :
+  has_sum (λ a, (f a : ℍ)) (↑r : ℍ) ↔ has_sum f r :=
+⟨λ h, by simpa only using
+  h.map (show ℍ →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _) continuous_re,
+  λ h, by simpa only using h.map (algebra_map ℝ ℍ) (continuous_algebra_map _ _)⟩
+
+@[simp, norm_cast]
+lemma summable_coe {f : α → ℝ} : summable (λ a, (f a : ℍ)) ↔ summable f :=
+by simpa only using summable.map_iff_of_left_inverse (algebra_map ℝ ℍ)
+  (show ℍ →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _)
+  (continuous_algebra_map _ _) continuous_re coe_re
+
+@[norm_cast] lemma tsum_coe (f : α → ℝ) : ∑' a, (f a : ℍ) = ↑(∑' a, f a) :=
+begin
+  by_cases hf : summable f,
+  { exact (has_sum_coe.mpr hf.has_sum).tsum_eq, },
+  { simp [tsum_eq_zero_of_not_summable hf,
+      tsum_eq_zero_of_not_summable (summable_coe.not.mpr hf)] },
+end
+
+end infinite_sum
 
 end quaternion

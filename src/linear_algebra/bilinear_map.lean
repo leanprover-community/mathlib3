@@ -5,10 +5,12 @@ Authors: Kenny Lau, Mario Carneiro
 -/
 
 import linear_algebra.basic
-import linear_algebra.basis
 
 /-!
 # Basics on bilinear maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides basics on bilinear maps. The most general form considered are maps that are
 semilinear in both arguments. They are of type `M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P`, where `M` and `N`
@@ -30,7 +32,6 @@ commuting actions, and `ρ₁₂ : R →+* R₂` and `σ₁₂ : S →+* S₂`.
 bilinear
 -/
 
-variables {ι₁ ι₂ : Type*}
 
 namespace linear_map
 
@@ -148,7 +149,7 @@ def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : sub
   M →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P :=
 { to_fun := λ m, (f m).dom_restrict q,
   map_add' := λ m₁ m₂, linear_map.ext $ λ _, by simp only [map_add, dom_restrict_apply, add_apply],
-  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [map_smulₛₗ, dom_restrict_apply,
+  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [f.map_smulₛₗ, dom_restrict_apply,
     smul_apply]}
 
 lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
@@ -216,6 +217,9 @@ variables {R Pₗ}
 @[simp] theorem lcomp_apply (f : M →ₗ[R] Nₗ) (g : Nₗ →ₗ[R] Pₗ) (x : M) :
   lcomp R Pₗ f g x = g (f x) := rfl
 
+theorem lcomp_apply' (f : M →ₗ[R] Nₗ) (g : Nₗ →ₗ[R] Pₗ) :
+  lcomp R Pₗ f g = g ∘ₗ f := rfl
+
 variables (P σ₂₃)
 /-- Composing a semilinear map `M → N` and a semilinear map `N → P` to form a semilinear map
 `M → P` is itself a linear map. -/
@@ -239,6 +243,9 @@ variables {R M Nₗ Pₗ}
 section
 @[simp] theorem llcomp_apply (f : Nₗ →ₗ[R] Pₗ) (g : M →ₗ[R] Nₗ) (x : M) :
   llcomp R M Nₗ Pₗ f g x = f (g x) := rfl
+
+theorem llcomp_apply' (f : Nₗ →ₗ[R] Pₗ) (g : M →ₗ[R] Nₗ) :
+  llcomp R M Nₗ Pₗ f g = f ∘ₗ g := rfl
 end
 
 /-- Composing a linear map `Q → N` and a bilinear map `M → N → P` to
@@ -250,6 +257,9 @@ include σ₄₃
   f.compl₂ g m q = f m (g q) := rfl
 omit σ₄₃
 
+@[simp] theorem compl₂_id : f.compl₂ linear_map.id = f :=
+by { ext, rw [compl₂_apply, id_coe, id.def] }
+
 /-- Composing linear maps `Q → M` and `Q' → N` with a bilinear map `M → N → P` to
 form a bilinear map `Q → Q' → P`. -/
 def compl₁₂ (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ) :
@@ -258,6 +268,10 @@ def compl₁₂ (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] M�
 
 @[simp] theorem compl₁₂_apply (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ)
   (x : Qₗ) (y : Qₗ') : f.compl₁₂ g g' x y = f (g x) (g' y) := rfl
+
+@[simp] theorem compl₁₂_id_id (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) :
+  f.compl₁₂ (linear_map.id) (linear_map.id) = f :=
+by { ext, simp_rw [compl₁₂_apply, id_coe, id.def] }
 
 lemma compl₁₂_inj {f₁ f₂ : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ} {g : Qₗ →ₗ[R] Mₗ} {g' : Qₗ' →ₗ[R] Nₗ}
   (hₗ : function.surjective g) (hᵣ : function.surjective g') :
@@ -295,12 +309,13 @@ end comm_semiring
 section comm_ring
 
 variables {R R₂ S S₂ M N P : Type*}
+variables {Mₗ Nₗ Pₗ : Type*}
 variables [comm_ring R] [comm_ring S] [comm_ring R₂] [comm_ring S₂]
+
+section add_comm_group
+
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P]
 variables [module R M] [module S N] [module R₂ P] [module S₂ P]
-variables [smul_comm_class S₂ R₂ P]
-variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}
-variables (b₁ : basis ι₁ R M) (b₂ : basis ι₂ S N)
 
 lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
@@ -310,21 +325,7 @@ lemma ker_lsmul [no_zero_smul_divisors R M] {a : R} (ha : a ≠ 0) :
   (linear_map.lsmul R M a).ker = ⊥ :=
 linear_map.ker_eq_bot_of_injective (linear_map.lsmul_injective ha)
 
-
-/-- Two bilinear maps are equal when they are equal on all basis vectors. -/
-lemma ext_basis {B B' : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P}
-  (h : ∀ i j, B (b₁ i) (b₂ j) = B' (b₁ i) (b₂ j)) : B = B' :=
-b₁.ext $ λ i, b₂.ext $ λ j, h i j
-
-/-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis. -/
-lemma sum_repr_mul_repr_mul {B : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} (x y) :
-  (b₁.repr x).sum (λ i xi, (b₂.repr y).sum (λ j yj, (ρ₁₂ xi) • (σ₁₂ yj) • B (b₁ i) (b₂ j))) =
-  B x y :=
-begin
-  conv_rhs { rw [← b₁.total_repr x, ← b₂.total_repr y] },
-  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum, map_smulₛₗ₂, map_smulₛₗ],
-end
-
+end add_comm_group
 
 end comm_ring
 

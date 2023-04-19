@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
 import combinatorics.derangements.basic
-import data.fintype.card
+import data.fintype.big_operators
 import tactic.delta_instance
 import tactic.ring
 
 /-!
 # Derangements on fintypes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains lemmas that describe the cardinality of `derangements α` when `α` is a fintype.
 

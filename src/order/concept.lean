@@ -8,6 +8,9 @@ import data.set.lattice
 /-!
 # Formal concept analysis
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines concept lattices. A concept of a relation `r : α → β → Prop` is a pair of sets
 `s : set α` and `t : set β` such that `s` is the set of all `a : α` that are related to all elements
 of `t`, and `t` is the set of all `b : β` that are related to all elements of `s`.
@@ -255,7 +258,7 @@ instance : inhabited (concept α β r) := ⟨⊥⟩
 @[simp] lemma swap_lt_swap_iff : c.swap < d.swap ↔ d < c := snd_ssubset_snd_iff
 
 /-- The dual of a concept lattice is isomorphic to the concept lattice of the dual context. -/
-@[simps] def swap_equiv : order_dual (concept α β r) ≃o concept β α (function.swap r) :=
+@[simps] def swap_equiv : (concept α β r)ᵒᵈ ≃o concept β α (function.swap r) :=
 { to_fun := swap ∘ of_dual,
   inv_fun := to_dual ∘ swap,
   left_inv := swap_swap,

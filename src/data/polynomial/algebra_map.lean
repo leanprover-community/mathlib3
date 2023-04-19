@@ -3,13 +3,17 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import algebra.algebra.pi
 import ring_theory.adjoin.basic
 import data.polynomial.eval
 
 /-!
 # Theory of univariate polynomials
 
-We show that `polynomial A` is an R-algebra when `A` is an R-algebra.
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+We show that `A[X]` is an R-algebra when `A` is an R-algebra.
 We promote `eval₂` to an algebra hom in `aeval`.
 -/
 
@@ -28,7 +32,7 @@ variables [comm_semiring R] {p q r : R[X]}
 variables [semiring A] [algebra R A]
 
 /-- Note that this instance also provides `algebra R R[X]`. -/
-instance algebra_of_algebra : algebra R (polynomial A) :=
+instance algebra_of_algebra : algebra R A[X] :=
 { smul_def' := λ r p, to_finsupp_injective $ begin
     dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply],
     rw [to_finsupp_smul, to_finsupp_mul, to_finsupp_C],
@@ -42,19 +46,19 @@ instance algebra_of_algebra : algebra R (polynomial A) :=
   to_ring_hom := C.comp (algebra_map R A) }
 
 lemma algebra_map_apply (r : R) :
-  algebra_map R (polynomial A) r = C (algebra_map R A r) :=
+  algebra_map R A[X] r = C (algebra_map R A r) :=
 rfl
 
 @[simp] lemma to_finsupp_algebra_map (r : R) :
-  (algebra_map R (polynomial A) r).to_finsupp = algebra_map R _ r :=
+  (algebra_map R A[X] r).to_finsupp = algebra_map R _ r :=
 show to_finsupp (C (algebra_map _ _ r)) = _, by { rw to_finsupp_C, refl }
 
 lemma of_finsupp_algebra_map (r : R) :
-  (⟨algebra_map R _ r⟩ : A[X]) = algebra_map R (polynomial A) r :=
+  (⟨algebra_map R _ r⟩ : A[X]) = algebra_map R A[X] r :=
 to_finsupp_injective (to_finsupp_algebra_map _).symm
 
 /--
-When we have `[comm_ring R]`, the function `C` is the same as `algebra_map R R[X]`.
+When we have `[comm_semiring R]`, the function `C` is the same as `algebra_map R R[X]`.
 
 (But note that `C` is defined when `R` is not necessarily commutative, in which case
 `algebra_map` is not available.)
@@ -66,19 +70,19 @@ rfl
 variables {R}
 
 /--
-  Extensionality lemma for algebra maps out of `polynomial A'` over a smaller base ring than `A'`
+  Extensionality lemma for algebra maps out of `A'[X]` over a smaller base ring than `A'`
 -/
 @[ext] lemma alg_hom_ext' [algebra R A'] [algebra R B']
   {f g : A'[X] →ₐ[R] B'}
-  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')) =
-        g.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')))
+  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A' A'[X]) =
+        g.comp (is_scalar_tower.to_alg_hom R A' A'[X]))
   (h₂ : f X = g X) : f = g :=
 alg_hom.coe_ring_hom_injective (polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
 
 variable (R)
 
-/-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
+/-- Algebra isomorphism between `R[X]` and `add_monoid_algebra R ℕ`. This is just an
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
 @[simps]
 def to_finsupp_iso_alg : R[X] ≃ₐ[R] add_monoid_algebra R ℕ :=
@@ -91,7 +95,7 @@ def to_finsupp_iso_alg : R[X] ≃ₐ[R] add_monoid_algebra R ℕ :=
 
 variable {R}
 
-instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
+instance [nontrivial A] : nontrivial (subalgebra R A[X]) :=
 ⟨⟨⊥, ⊤, begin
   rw [ne.def, set_like.ext_iff, not_forall],
   refine ⟨X, _⟩,
@@ -110,7 +114,7 @@ lemma alg_hom_eval₂_algebra_map
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
   dsimp [eval₂, sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast,
+  simp only [f.map_sum, f.map_mul, f.map_pow, eq_int_cast, map_int_cast,
     alg_hom.commutes],
 end
 
@@ -119,9 +123,9 @@ lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebr
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
-  conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
+  conv_rhs { rw [←polynomial.sum_C_mul_X_pow_eq p], },
   dsimp [eval₂, sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast],
+  simp only [f.map_sum, f.map_mul, f.map_pow, eq_int_cast, map_int_cast],
   simp [polynomial.C_eq_algebra_map],
 end
 
@@ -160,7 +164,7 @@ variables {R A}
 begin
   refine top_unique (λ p hp, _),
   set S := algebra.adjoin R ({X} : set R[X]),
-  rw [← sum_monomial_eq p], simp only [monomial_eq_smul_X, sum],
+  rw [← sum_monomial_eq p], simp only [← smul_X_eq_monomial, sum],
   exact S.sum_mem (λ n hn, S.smul_mem (S.pow_mem (algebra.subset_adjoin rfl) _) _)
 end
 
@@ -204,42 +208,42 @@ lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
   aeval x (p.comp q) = (aeval (aeval x q) p) :=
 eval₂_comp (algebra_map R A)
 
-@[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
-  [is_scalar_tower R A B] (b : B) (p : R[X]) :
-  aeval b (p.map (algebra_map R A)) = aeval b p :=
-by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
-
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
 alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
 
 @[simp] theorem aeval_X_left : aeval (X : R[X]) = alg_hom.id R R[X] :=
 alg_hom_ext $ aeval_X X
 
+theorem aeval_X_left_apply (p : R[X]) : aeval X p = p :=
+alg_hom.congr_fun (@aeval_X_left R _) p
+
 theorem eval_unique (φ : R[X] →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=
 by rw [← aeval_def, aeval_alg_hom, aeval_X_left, alg_hom.comp_id]
 
-theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : R[X]) :
+theorem aeval_alg_hom_apply {F : Type*} [alg_hom_class F R A B] (f : F) (x : A) (p : R[X]) :
   aeval (f x) p = f (aeval x p) :=
-alg_hom.ext_iff.1 (aeval_alg_hom f x) p
+begin
+  refine polynomial.induction_on p (by simp) (λ p q hp hq, _) (by simp),
+  rw [map_add, hp, hq, ← map_add, ← map_add]
+end
 
 theorem aeval_alg_equiv (f : A ≃ₐ[R] B) (x : A) : aeval (f x) = (f : A →ₐ[R] B).comp (aeval x) :=
 aeval_alg_hom (f : A →ₐ[R] B) x
 
-theorem aeval_alg_equiv_apply (f : A ≃ₐ[R] B) (x : A) (p : R[X]) :
-  aeval (f x) p = f (aeval x p) :=
-aeval_alg_hom_apply (f : A →ₐ[R] B) x p
-
-lemma aeval_algebra_map_apply (x : R) (p : R[X]) :
+lemma aeval_algebra_map_apply_eq_algebra_map_eval (x : R) (p : R[X]) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p
 
-@[simp] lemma coe_aeval_eq_eval (r : R) :
-  (aeval r : R[X] → R) = eval r := rfl
+@[simp] lemma coe_aeval_eq_eval (r : R) : (aeval r : R[X] → R) = eval r := rfl
+
+@[simp] lemma coe_aeval_eq_eval_ring_hom (x : R) :
+  ((aeval x : R[X] →ₐ[R] R) : R[X] →+* R) = eval_ring_hom x :=
+rfl
 
 @[simp] lemma aeval_fn_apply {X : Type*} (g : R[X]) (f : X → R) (x : X) :
   ((aeval f) g) x = aeval (f x) g :=
-(aeval_alg_hom_apply (pi.eval_alg_hom _ _ x) f g).symm
+(aeval_alg_hom_apply (pi.eval_alg_hom R (λ _, R) x) f g).symm
 
 @[norm_cast] lemma aeval_subalgebra_coe
   (g : R[X]) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
@@ -253,6 +257,22 @@ lemma coeff_zero_eq_aeval_zero' (p : R[X]) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
 by simp [aeval_def]
 
+lemma map_aeval_eq_aeval_map {S T U : Type*} [comm_semiring S] [comm_semiring T] [semiring U]
+  [algebra R S] [algebra T U] {φ : R →+* T} {ψ : S →+* U}
+  (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) (p : R[X]) (a : S) :
+  ψ (aeval a p) = aeval (ψ a) (p.map φ) :=
+begin
+  conv_rhs {rw [aeval_def, ← eval_map]},
+  rw [map_map, h, ← map_map, eval_map, eval₂_at_apply, aeval_def, eval_map],
+end
+
+lemma aeval_eq_zero_of_dvd_aeval_eq_zero [comm_semiring S] [comm_semiring T] [algebra S T]
+  {p q : S[X]} (h₁ : p ∣ q) {a : T} (h₂ : aeval a p = 0) : aeval a q = 0 :=
+begin
+  rw [aeval_def, ← eval_map] at h₂ ⊢,
+  exact eval_eq_zero_of_dvd_of_eval_eq_zero (polynomial.map_dvd (algebra_map S T) h₁) h₂,
+end
+
 variable (R)
 
 theorem _root_.algebra.adjoin_singleton_eq_range_aeval (x : A) :
@@ -261,9 +281,9 @@ by rw [← algebra.map_top, ← adjoin_X, alg_hom.map_adjoin, set.image_singleto
 
 variable {R}
 
-section comm_semiring
+section semiring
 
-variables [comm_semiring S] {f : R →+* S}
+variables [semiring S] {f : R →+* S}
 
 lemma aeval_eq_sum_range [algebra R S] {p : R[X]} (x : S) :
   aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
@@ -286,11 +306,15 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : R[X]}
   {r : R} (hr : aeval (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
+end semiring
+
+section comm_semiring
+
 section aeval_tower
 
-variables [algebra S R] [algebra S A'] [algebra S B']
+variables [comm_semiring S] [algebra S R] [algebra S A'] [algebra S B']
 
-/-- Version of `aeval` for defining algebra homs out of `polynomial R` over a smaller base ring
+/-- Version of `aeval` for defining algebra homs out of `R[X]` over a smaller base ring
   than `R`. -/
 def aeval_tower (f : R →ₐ[S] A') (x : A') : R[X] →ₐ[S] A' :=
 { commutes' := λ r, by simp [algebra_map_apply],
@@ -375,7 +399,7 @@ begin
   have bound := calc
     (p * (X - C r)).nat_degree
          ≤ p.nat_degree + (X - C r).nat_degree : nat_degree_mul_le
-     ... ≤ p.nat_degree + 1 : add_le_add_left nat_degree_X_sub_C_le _
+     ... ≤ p.nat_degree + 1 : add_le_add_left (nat_degree_X_sub_C_le _) _
      ... < p.nat_degree + 2 : lt_add_one _,
   rw sum_over_range' _ _ (p.nat_degree + 2) bound,
   swap,
@@ -388,7 +412,7 @@ begin
 end
 
 theorem not_is_unit_X_sub_C [nontrivial R] (r : R) : ¬ is_unit (X - C r) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, zero_ne_one' R $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
 
 end ring
 

@@ -8,6 +8,9 @@ import set_theory.cardinal.basic
 /-!
 # Denumerability of ℚ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that ℚ is infinite, denumerable, and deduces that it has cardinality `omega`.
 -/
 
@@ -35,10 +38,6 @@ end
 
 end rat
 
-namespace cardinal
-
 open_locale cardinal
 
-@[simp] lemma mk_rat : #ℚ = ω := mk_denumerable ℚ
-
-end cardinal
+lemma cardinal.mk_rat : #ℚ = ℵ₀ := by simp

@@ -9,6 +9,9 @@ import linear_algebra.matrix.trace
 /-!
 # Matrices with a single non-zero element.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `matrix.std_basis_matrix`. The matrix `matrix.std_basis_matrix i j c` has `c`
 at position `(i, j)`, and zeroes elsewhere.
 -/
@@ -121,15 +124,17 @@ section
 
 variables (i j : n) (c : α) (i' j' : n)
 
-@[simp] lemma diag_zero (h : j ≠ i) : diag n α α (std_basis_matrix i j c) = 0 :=
+@[simp] lemma diag_zero (h : j ≠ i) : diag (std_basis_matrix i j c) = 0 :=
 funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
 
-@[simp] lemma diag_same : diag n α α (std_basis_matrix i i c) = pi.single i c :=
+@[simp] lemma diag_same : diag (std_basis_matrix i i c) = pi.single i c :=
 by { ext j, by_cases hij : i = j; try {rw hij}; simp [hij] }
 
 variable [fintype n]
 
-lemma trace_zero (h : j ≠ i) : trace n α α (std_basis_matrix i j c) = 0 := by simp [h]
+@[simp] lemma trace_zero (h : j ≠ i) : trace (std_basis_matrix i j c) = 0 := by simp [trace, h]
+
+@[simp] lemma trace_eq : trace (std_basis_matrix i i c) = c := by simp [trace]
 
 @[simp] lemma mul_left_apply_same (b : n) (M : matrix n n α) :
   (std_basis_matrix i j c ⬝ M) i b = c * M j b :=

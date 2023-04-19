@@ -3,16 +3,16 @@ Copyright (c) 2022 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-
-import data.fin.vec_notation
-import algebra.big_operators.basic
-import data.list.nat_antidiagonal
-import data.multiset.nat_antidiagonal
+import algebra.big_operators.fin
 import data.finset.nat_antidiagonal
+import data.fin.vec_notation
 import logic.equiv.fin
 
 /-!
 # Collections of tuples of naturals with the same sum
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file generalizes `list.nat.antidiagonal n`, `multiset.nat.antidiagonal n`, and
 `finset.nat.antidiagonal n` from the pair of elements `x : ℕ × ℕ` such that `n = x.1 + x.2`, to
@@ -71,19 +71,17 @@ def antidiagonal_tuple : Π k, ℕ → list (fin k → ℕ)
 lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} {x : fin k → ℕ} :
   x ∈ antidiagonal_tuple k n ↔ ∑ i, x i = n :=
 begin
-  induction k with k ih generalizing n,
-  { cases n,
+  revert n,
+  refine fin.cons_induction _ _ x,
+  { intro n,
+    cases n,
     { simp },
-    { simp [eq_comm] }, },
-  { refine fin.cons_induction (λ x₀ x, _) x,
-    have : (0 : fin k.succ) ∉ finset.image fin.succ (finset.univ : finset (fin k)) := by simp,
-    simp_rw [antidiagonal_tuple, list.mem_bind, list.mem_map, list.nat.mem_antidiagonal,
-      fin.univ_succ, finset.sum_insert this, fin.cons_zero,
-      finset.sum_image (λ x hx y hy h, fin.succ_injective _ h), fin.cons_succ, fin.cons_eq_cons,
-      exists_eq_right_right, ih, prod.exists],
-    split,
-    { rintros ⟨a, b, rfl, rfl, rfl⟩, refl },
-    { rintro rfl, exact ⟨_, _, rfl, rfl, rfl⟩, } },
+    { simp [eq_comm] } },
+  { intros k x₀ x ih n,
+    simp_rw [fin.sum_cons, antidiagonal_tuple, list.mem_bind, list.mem_map,
+      list.nat.mem_antidiagonal, fin.cons_eq_cons, exists_eq_right_right, ih,
+      @eq_comm _ _ (prod.snd _), and_comm (prod.snd _ = _), ←prod.mk.inj_iff, prod.mk.eta,
+      exists_prop, exists_eq_right] },
 end
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/

@@ -61,7 +61,7 @@ namespace prop_form
 
 private def constructors (α : Type*) := α ⊕ unit ⊕ unit ⊕ unit
 
-local notation `cvar` a := sum.inl a
+local notation `cvar ` a := sum.inl a
 local notation `cnot`   := sum.inr (sum.inl unit.star)
 local notation `cand`   := sum.inr (sum.inr (sum.inr unit.star))
 local notation `cor`    := sum.inr (sum.inr (sum.inl unit.star))

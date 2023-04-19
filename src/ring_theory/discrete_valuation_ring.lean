@@ -5,7 +5,6 @@ Authors: Kevin Buzzard
 -/
 
 import ring_theory.principal_ideal_domain
-import order.conditionally_complete_lattice
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
@@ -30,7 +29,7 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 ### Definitions
 
-* `add_val R : add_valuation R enat` : the additive valuation on a DVR.
+* `add_val R : add_valuation R part_enat` : the additive valuation on a DVR.
 
 ## Implementation notes
 
@@ -60,17 +59,17 @@ variables (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
+/-- A discrete valuation ring `R` is not a field. -/
+lemma not_is_field : ¬ is_field R :=
+local_ring.is_field_iff_maximal_ideal_eq.not.mpr (not_a_field R)
+
 variable {R}
 
 open principal_ideal_ring
 
-/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
-  maximal ideal of R -/
-theorem irreducible_iff_uniformizer (ϖ : R) :
-  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
-⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm,
+theorem irreducible_of_span_eq_maximal_ideal {R : Type*} [comm_ring R] [local_ring R] [is_domain R]
+  (ϖ : R) (hϖ : ϖ ≠ 0) (h : maximal_ideal R = ideal.span {ϖ}) : irreducible ϖ :=
 begin
-  intro h,
   have h2 : ¬(is_unit ϖ) := show ϖ ∈ maximal_ideal R,
     from h.symm ▸ submodule.mem_span_singleton_self ϖ,
   refine ⟨h2, _⟩,
@@ -81,11 +80,17 @@ begin
   rcases ha with ⟨a, rfl⟩,
   rcases hb with ⟨b, rfl⟩,
   rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
-  have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
-  { apply not_a_field R,
-    simp [h, h3] },
-  { exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩) }
-end⟩
+  apply hϖ,
+  apply eq_zero_of_mul_eq_self_right _ hab.symm,
+  exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩)
+end
+
+/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
+  maximal ideal of R -/
+theorem irreducible_iff_uniformizer (ϖ : R) :
+  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
+⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm, λ h,
+  irreducible_of_span_eq_maximal_ideal ϖ (λ e, not_a_field R $ by rwa [h, span_singleton_eq_bot]) h⟩
 
 lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :
   maximal_ideal R = ideal.span {ϖ} :=
@@ -108,7 +113,7 @@ theorem iff_pid_with_one_nonzero_prime (R : Type u) [comm_ring R] [is_domain R] 
 begin
   split,
   { intro RDVR,
-    rcases id RDVR with ⟨RPID, Rlocal, Rnotafield⟩,
+    rcases id RDVR with ⟨Rlocal⟩,
     split, assumption,
     resetI,
     use local_ring.maximal_ideal R,
@@ -187,10 +192,10 @@ let p := classical.some hR in
 let spec := classical.some_spec hR in
 unique_factorization_monoid.of_exists_prime_factors $ λ x hx,
 begin
-  use multiset.repeat p (classical.some (spec.2 hx)),
+  use multiset.replicate (classical.some (spec.2 hx)) p,
   split,
   { intros q hq,
-    have hpq := multiset.eq_of_mem_repeat hq,
+    have hpq := multiset.eq_of_mem_replicate hq,
     rw hpq,
     refine ⟨spec.1.ne_zero, spec.1.not_unit, _⟩,
     intros a b h,
@@ -205,7 +210,7 @@ begin
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
     rw pow_succ,
     apply dvd_mul_of_dvd_left dvd_rfl _ },
-  { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
+  { rw [multiset.prod_replicate], exact (classical.some_spec (spec.2 hx)), }
 end
 
 omit hR
@@ -222,10 +227,10 @@ begin
   refine ⟨fx.card, _⟩,
   have H := hfx.2,
   rw ← associates.mk_eq_mk_iff_associated at H ⊢,
-  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
+  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_replicate],
   congr' 1,
   symmetry,
-  rw multiset.eq_repeat,
+  rw multiset.eq_replicate,
   simp only [true_and, and_imp, multiset.card_map, eq_self_iff_true,
     multiset.mem_map, exists_imp_distrib],
   rintros _ q hq rfl,
@@ -324,9 +329,9 @@ begin
   unfreezingI { use fx.card },
   have H := hfx.2,
   rw ← associates.mk_eq_mk_iff_associated at H ⊢,
-  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
+  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_replicate],
   congr' 1,
-  rw multiset.eq_repeat,
+  rw multiset.eq_replicate,
   simp only [true_and, and_imp, multiset.card_map, eq_self_iff_true,
              multiset.mem_map, exists_imp_distrib],
   rintros _ _ _ rfl,
@@ -363,16 +368,16 @@ lemma unit_mul_pow_congr_pow {p q : R} (hp : irreducible p) (hq : irreducible q)
   (u v : Rˣ) (m n : ℕ) (h : ↑u * p ^ m = v * q ^ n) :
   m = n :=
 begin
-  have key : associated (multiset.repeat p m).prod (multiset.repeat q n).prod,
-  { rw [multiset.prod_repeat, multiset.prod_repeat, associated],
+  have key : associated (multiset.replicate m p).prod (multiset.replicate n q).prod,
+  { rw [multiset.prod_replicate, multiset.prod_replicate, associated],
     refine ⟨u * v⁻¹, _⟩,
     simp only [units.coe_mul],
     rw [mul_left_comm, ← mul_assoc, h, mul_right_comm, units.mul_inv, one_mul], },
   have := multiset.card_eq_card_of_rel (unique_factorization_monoid.factors_unique _ _ key),
-  { simpa only [multiset.card_repeat] },
+  { simpa only [multiset.card_replicate] },
   all_goals
-  { intros x hx, replace hx := multiset.eq_of_mem_repeat hx,
-    unfreezingI { subst hx, assumption } },
+  { intros x hx,
+    unfreezingI { obtain rfl := multiset.eq_of_mem_replicate hx, assumption } },
 end
 
 lemma unit_mul_pow_congr_unit {ϖ : R} (hirr : irreducible ϖ) (u v : Rˣ) (m n : ℕ)
@@ -393,10 +398,10 @@ end
 
 open multiplicity
 
-/-- The `enat`-valued additive valuation on a DVR -/
+/-- The `part_enat`-valued additive valuation on a DVR -/
 noncomputable def add_val
   (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
-  add_valuation R enat :=
+  add_valuation R part_enat :=
 add_valuation (classical.some_spec (exists_prime R))
 
 lemma add_val_def (r : R) (u : Rˣ) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
@@ -441,7 +446,7 @@ begin
     obtain ⟨n, ha⟩ := associated_pow_irreducible h hi,
     obtain ⟨u, rfl⟩ := ha.symm,
     rw [mul_comm, add_val_def' u hi n],
-    exact enat.coe_ne_top _ },
+    exact part_enat.coe_ne_top _ },
   { rintro rfl,
     exact add_val_zero }
 end
@@ -476,7 +481,7 @@ instance (R : Type*) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
     simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.zero,
       hϖ.maximal_ideal_eq, ideal.span_singleton_pow, ideal.mem_span_singleton,
       ← add_val_le_iff_dvd, hϖ.add_val_pow] at hx,
-    rwa [← add_val_eq_top_iff, enat.eq_top_iff_forall_le],
+    rwa [← add_val_eq_top_iff, part_enat.eq_top_iff_forall_le],
   end }
 
 end discrete_valuation_ring

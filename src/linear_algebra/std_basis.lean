@@ -10,6 +10,9 @@ import linear_algebra.pi
 /-!
 # The standard basis
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the standard basis `pi.basis (s : ∀ j, basis (ι j) R (M j))`,
 which is the `Σ j, ι j`-indexed basis of Π j, M j`. The basis vectors are given by
 `pi.basis s ⟨j, i⟩ j' = linear_map.std_basis R M j' (s j) i = if j = j' then s i else 0`.
@@ -34,7 +37,6 @@ this is a basis over `fin 3 → R`.
 
 open function submodule
 open_locale big_operators
-open_locale big_operators
 
 namespace linear_map
 
@@ -47,14 +49,21 @@ def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
 rfl
 
+@[simp] lemma std_basis_apply' (i i' : ι) : (std_basis R (λ (_x : ι), R) i) 1 i' =
+  ite (i = i') 1 0  :=
+begin
+  rw [linear_map.std_basis_apply, function.update_apply, pi.zero_apply],
+  congr' 1, rw [eq_iff_iff, eq_comm],
+end
+
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
-funext $ std_basis_apply R φ i
+rfl
 
 @[simp] lemma std_basis_same (i : ι) (b : φ i) : std_basis R φ i b i = b :=
-by rw [std_basis_apply, update_same]
+pi.single_eq_same i b
 
 lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis R φ i b j = 0 :=
-by rw [std_basis_apply, update_noteq h]; refl
+pi.single_eq_of_ne h b
 
 lemma std_basis_eq_pi_diag (i : ι) : std_basis R φ i = pi (diag i) :=
 begin
@@ -64,32 +73,30 @@ begin
 end
 
 lemma ker_std_basis (i : ι) : ker (std_basis R φ i) = ⊥ :=
-ker_eq_bot_of_injective $ assume f g hfg,
-  have std_basis R φ i f i = std_basis R φ i g i := hfg ▸ rfl,
-  by simpa only [std_basis_same]
+ker_eq_bot_of_injective $ pi.single_injective _ _
 
 lemma proj_comp_std_basis (i j : ι) : (proj i).comp (std_basis R φ j) = diag j i :=
 by rw [std_basis_eq_pi_diag, proj_pi]
 
 lemma proj_std_basis_same (i : ι) : (proj i).comp (std_basis R φ i) = id :=
-by ext b; simp
+linear_map.ext $ std_basis_same R φ i
 
 lemma proj_std_basis_ne (i j : ι) (h : i ≠ j) : (proj i).comp (std_basis R φ j) = 0 :=
-by ext b; simp [std_basis_ne R φ _ _ h]
+linear_map.ext $ std_basis_ne R φ _ _ h
 
 lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
-  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) :=
 begin
   refine (supr_le $ λ i, supr_le $ λ hi, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
   rintro b - j hj,
   rw [proj_std_basis_ne R φ j i, zero_apply],
   rintro rfl,
-  exact h ⟨hi, hj⟩
+  exact h.le_bot ⟨hi, hj⟩
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
-  (⨅ i∈J, ker (proj i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
+  (⨅ i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
 set_like.le_def.2
 begin
   assume b hb,
@@ -101,13 +108,12 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
-    (std_basis R φ i).mem_range_self (b i))
+  exact sum_mem_bsupr (λ i hi, mem_range_self (std_basis R φ i) (b i))
 end
 
 lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) (hI : set.finite I) :
-  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) :=
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
   have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
@@ -116,13 +122,12 @@ begin
   exact le_rfl
 end
 
-lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis R φ i)) = ⊤ :=
-have (set.univ : set ι) ⊆ ↑(finset.univ : finset ι) ∪ ∅ := by rw [finset.coe_univ, set.union_empty],
+lemma supr_range_std_basis [finite ι] : (⨆ i, range (std_basis R φ i)) = ⊤ :=
 begin
-  apply top_unique,
-  convert (infi_ker_proj_le_supr_range_std_basis R φ this),
-  exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, range (std_basis R φ i)) $ finset.mem_univ i).symm)
+  casesI nonempty_fintype ι,
+  convert top_unique (infi_emptyset.ge.trans $ infi_ker_proj_le_supr_range_std_basis R φ _),
+  { exact funext (λ i, (@supr_pos _ _ _ (λ h, range $ std_basis R φ i) $ finset.mem_univ i).symm) },
+  { rw [finset.coe_univ, set.union_empty] }
 end
 
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
@@ -131,26 +136,20 @@ begin
   refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right) _,
-  simp only [disjoint, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
+  simp only [disjoint_iff_inf_le, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,
   classical,
   by_cases hiI : i ∈ I,
   { by_cases hiJ : i ∈ J,
-    { exact (h ⟨hiI, hiJ⟩).elim },
+    { exact (h.le_bot ⟨hiI, hiJ⟩).elim },
     { exact hJ i hiJ } },
   { exact hI i hiI }
 end
 
 lemma std_basis_eq_single {a : R} :
   (λ (i : ι), (std_basis R (λ _ : ι, R) i) a) = λ (i : ι), (finsupp.single i a) :=
-begin
-  ext i j,
-  rw [std_basis_apply, finsupp.single_apply],
-  split_ifs,
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h)], refl },
-end
+funext $ λ i, (finsupp.single_eq_pi_single i a).symm
 
 end linear_map
 
@@ -199,7 +198,10 @@ section
 open linear_equiv
 
 /-- `pi.basis (s : ∀ j, basis (ιs j) R (Ms j))` is the `Σ j, ιs j`-indexed basis on `Π j, Ms j`
-given by `s j` on each component. -/
+given by `s j` on each component.
+
+For the standard basis over `R` on the finite-dimensional space `η → R` see `pi.basis_fun`.
+-/
 protected noncomputable def basis (s : ∀ j, basis (ιs j) R (Ms j)) :
   basis (Σ j, ιs j) R (Π j, Ms j) :=
 -- The `add_comm_monoid (Π j, Ms j)` instance was hard to find.
@@ -216,7 +218,7 @@ begin
     simp only [pi.basis, linear_equiv.trans_apply, basis.repr_self, std_basis_same,
         linear_equiv.Pi_congr_right_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply],
     symmetry,
-    exact basis.finsupp.single_apply_left
+    exact finsupp.single_apply_left
       (λ i i' (h : (⟨j, i⟩ : Σ j, ιs j) = ⟨j, i'⟩), eq_of_heq (sigma.mk.inj h).2) _ _ _ },
   simp only [pi.basis, linear_equiv.trans_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply,
       linear_equiv.Pi_congr_right_apply],
@@ -247,8 +249,7 @@ basis.of_equiv_fun (linear_equiv.refl _ _)
 @[simp] lemma basis_fun_apply [decidable_eq η] (i) :
   basis_fun R η i = std_basis R (λ (i : η), R) i 1 :=
 by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
-                linear_equiv.refl_apply, std_basis_apply],
-     congr /- Get rid of a `decidable_eq` mismatch. -/ }
+                linear_equiv.refl_apply, std_basis_apply] }
 
 @[simp] lemma basis_fun_repr (x : η → R) (i : η) :
   (pi.basis_fun R η).repr x i = x i :=

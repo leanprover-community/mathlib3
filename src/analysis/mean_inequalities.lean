@@ -340,7 +340,7 @@ begin
   let f' := λ i, (f i) / (∑ i in s, (f i) ^ p) ^ (1 / p),
   let g' := λ i, (g i) / (∑ i in s, (g i) ^ q) ^ (1 / q),
   suffices : ∑ i in s, f' i * g' i ≤ 1,
-  { simp_rw [f', g', div_mul_div_comm₀, ← sum_div] at this,
+  { simp_rw [f', g', div_mul_div_comm, ← sum_div] at this,
     rwa [div_le_iff, one_mul] at this,
     refine mul_ne_zero _ _,
     { rw [ne.def, rpow_eq_zero_iff, not_and_distrib], exact or.inl hF_zero, },

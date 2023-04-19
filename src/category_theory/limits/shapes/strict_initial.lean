@@ -6,10 +6,12 @@ Authors: Bhavik Mehta
 
 import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
-import category_theory.epi_mono
 
 /-!
 # Strict initial objects
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file sets up the basic theory of strict initial objects: initial objects where every morphism
 to it is an isomorphism. This generalises a property of the empty set in the category of sets:
@@ -203,7 +205,7 @@ begin
   { exact λ j, dite (j = i) (λ h, eq_to_hom (by { cases h, refl })) (λ h, (H _ h).from _) },
   { intros j k f,
     split_ifs,
-    { cases h, cases h_1, have : f = 𝟙 _ := subsingleton.elim _ _, subst this, simpa },
+    { cases h, cases h_1, obtain rfl : f = 𝟙 _ := subsingleton.elim _ _, simpa },
     { cases h, erw category.comp_id,
       haveI : is_iso (F.map f) := (H _ h_1).is_iso_from _,
       rw ← is_iso.comp_inv_eq,

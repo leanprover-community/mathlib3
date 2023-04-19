@@ -5,10 +5,13 @@ Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra.basic
 import topology.algebra.module.basic
-import topology.algebra.field
+import ring_theory.adjoin.basic
 
 /-!
 # Topological (sub)algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A topological algebra over a topological semiring `R` is a topological semiring with a compatible
 continuous scalar multiplication by elements of `R`. We reuse typeclass `has_continuous_smul` for
@@ -28,11 +31,11 @@ open_locale classical
 universes u v w
 
 section topological_algebra
-variables (R : Type*) [topological_space R] [comm_semiring R]
-variables (A : Type u) [topological_space A]
-variables [semiring A]
+variables (R : Type*) (A : Type u)
+variables [comm_semiring R] [semiring A] [algebra R A]
+variables [topological_space R] [topological_space A] [topological_semiring A]
 
-lemma continuous_algebra_map_iff_smul [algebra R A] [topological_semiring A] :
+lemma continuous_algebra_map_iff_smul :
   continuous (algebra_map R A) ↔ continuous (λ p : R × A, p.1 • p.2) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -41,43 +44,56 @@ begin
 end
 
 @[continuity]
-lemma continuous_algebra_map [algebra R A] [topological_semiring A] [has_continuous_smul R A] :
+lemma continuous_algebra_map [has_continuous_smul R A] :
   continuous (algebra_map R A) :=
 (continuous_algebra_map_iff_smul R A).2 continuous_smul
 
-lemma has_continuous_smul_of_algebra_map [algebra R A] [topological_semiring A]
-  (h : continuous (algebra_map R A)) :
+lemma has_continuous_smul_of_algebra_map (h : continuous (algebra_map R A)) :
   has_continuous_smul R A :=
 ⟨(continuous_algebra_map_iff_smul R A).1 h⟩
+
+variables [has_continuous_smul R A]
+
+/-- The inclusion of the base ring in a topological algebra as a continuous linear map. -/
+@[simps]
+def algebra_map_clm : R →L[R] A :=
+{ to_fun := algebra_map R A,
+  cont := continuous_algebra_map R A,
+  .. algebra.linear_map R A }
+
+lemma algebra_map_clm_coe : ⇑(algebra_map_clm R A) = algebra_map R A := rfl
+
+lemma algebra_map_clm_to_linear_map :
+  (algebra_map_clm R A).to_linear_map = algebra.linear_map R A := rfl
 
 end topological_algebra
 
 section topological_algebra
 variables {R : Type*} [comm_semiring R]
 variables {A : Type u} [topological_space A]
-variables [semiring A]
-variables [algebra R A] [topological_semiring A]
+variables [semiring A] [algebra R A]
+
+instance subalgebra.has_continuous_smul [topological_space R] [has_continuous_smul R A]
+  (s : subalgebra R A) :
+  has_continuous_smul R s :=
+s.to_submodule.has_continuous_smul
+
+variables [topological_semiring A]
 
 /-- The closure of a subalgebra in a topological algebra as a subalgebra. -/
 def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
 { carrier := closure (s : set A),
-  algebra_map_mem' := λ r, s.to_subsemiring.subring_topological_closure (s.algebra_map_mem r),
+  algebra_map_mem' := λ r, s.to_subsemiring.le_topological_closure (s.algebra_map_mem r),
   .. s.to_subsemiring.topological_closure }
 
 @[simp] lemma subalgebra.topological_closure_coe (s : subalgebra R A) :
   (s.topological_closure : set A) = closure (s : set A) :=
 rfl
 
-instance subalgebra.topological_closure_topological_semiring (s : subalgebra R A) :
-  topological_semiring (s.topological_closure) :=
-s.to_subsemiring.topological_closure_topological_semiring
+instance subalgebra.topological_semiring (s : subalgebra R A) : topological_semiring s :=
+s.to_subsemiring.topological_semiring
 
-instance subalgebra.topological_closure_topological_algebra
-  [topological_space R] [has_continuous_smul R A] (s : subalgebra R A) :
-  has_continuous_smul R (s.topological_closure) :=
-s.to_submodule.topological_closure_has_continuous_smul
-
-lemma subalgebra.subalgebra_topological_closure (s : subalgebra R A) :
+lemma subalgebra.le_topological_closure (s : subalgebra R A) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -102,11 +118,11 @@ but we don't have those, so we use the clunky approach of talking about
 an algebra homomorphism, and a separate homeomorphism,
 along with a witness that as functions they are the same.
 -/
-lemma subalgebra.topological_closure_comap'_homeomorph
+lemma subalgebra.topological_closure_comap_homeomorph
   (s : subalgebra R A)
   {B : Type*} [topological_space B] [ring B] [topological_ring B] [algebra R B]
   (f : B →ₐ[R] A) (f' : B ≃ₜ A) (w : (f : B → A) = f') :
-  s.topological_closure.comap' f = (s.comap' f).topological_closure :=
+  s.topological_closure.comap f = (s.comap f).topological_closure :=
 begin
   apply set_like.ext',
   simp only [subalgebra.topological_closure_coe],
@@ -136,7 +152,7 @@ def algebra.elemental_algebra (x : A) : subalgebra R A :=
 (algebra.adjoin R ({x} : set A)).topological_closure
 
 lemma algebra.self_mem_elemental_algebra (x : A) : x ∈ algebra.elemental_algebra R x :=
-set_like.le_def.mp (subalgebra.subalgebra_topological_closure (algebra.adjoin R ({x} : set A))) $
+set_like.le_def.mp (subalgebra.le_topological_closure (algebra.adjoin R ({x} : set A))) $
   algebra.self_mem_adjoin_singleton R x
 
 variables {R}
@@ -157,6 +173,6 @@ section division_ring
 instance division_ring.has_continuous_const_smul_rat
   {A} [division_ring A] [topological_space A] [has_continuous_mul A] [char_zero A] :
   has_continuous_const_smul ℚ A :=
-⟨λ r, continuous_const.mul continuous_id⟩
+⟨λ r, by { simpa only [algebra.smul_def] using continuous_const.mul continuous_id }⟩
 
 end division_ring

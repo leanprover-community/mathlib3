@@ -11,6 +11,9 @@ import topology.basic
 /-!
 # Tactics for topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Currently we have one domain-specific tactic for topology: `continuity`.
 
 -/
@@ -68,8 +71,8 @@ meta def apply_continuous.comp : tactic unit :=
 meta def continuity_tactics (md : transparency := reducible) : list (tactic string) :=
 [
   intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
-  apply_rules [``(continuity)] 50 { md := md }
-                        >> pure "apply_rules continuity",
+  apply_rules [] [``continuity] 50 { md := md }
+                        >> pure "apply_rules with continuity",
   apply_continuous.comp >> pure "refine continuous.comp _ _"
 ]
 

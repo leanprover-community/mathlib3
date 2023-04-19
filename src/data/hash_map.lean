@@ -6,7 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import data.array.lemmas
 import data.list.join
 import data.list.range
-import data.pnat.basic
+import data.pnat.defs
 
 /-!
 # Hash maps
@@ -262,7 +262,7 @@ section
     { by_cases bidx = i,
       { subst i, rw [bkts', array.read_write, hfl],
         have := @valid.idx _ _ _ v bidx a,
-        simp only [hl, list.mem_append, or_imp_distrib, forall_and_distrib] at this ⊢,
+        simp only [hl, list.mem_append, or_imp_distrib] at this ⊢,
         exact ⟨⟨this.1.1, hal _⟩, this.2⟩ },
       { rw [bkts', array.read_write_of_ne _ _ h], apply v.idx } },
     { by_cases bidx = i,
@@ -616,12 +616,12 @@ theorem mem_erase : Π (m : hash_map α β) (a a' b'),
       { simp [eq_comm, not_and_self_iff, and_iff_right_of_imp this] },
       simpa [hl, show bkts'.as_list = _, from hfl, and_or_distrib_left,
              and_comm, and.left_comm, or.left_comm] },
-    intros m e, subst a', revert m, apply not_or_distrib.2,
+    rintro m rfl, revert m, apply not_or_distrib.2,
     have nd' := v.as_list_nodup _,
     simp [hl, list.nodup_append] at nd', simp [nd'] },
   { suffices : ∀_:sigma.mk a' b' ∈ bucket_array.as_list bkts, a ≠ a',
     { simp [erase, @dif_neg (contains_aux a bkt) _ Hc, entries, and_iff_right_of_imp this] },
-    intros m e, subst a',
+    rintro m rfl,
     exact Hc ((v.contains_aux_iff _ _).2 (list.mem_map_of_mem sigma.fst m)) }
 end
 

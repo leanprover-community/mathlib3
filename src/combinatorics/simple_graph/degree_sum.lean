@@ -11,6 +11,9 @@ import data.zmod.parity
 /-!
 # Degree-sum formula and handshaking lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The degree-sum formula is that the sum of the degrees of the vertices in
 a finite graph is equal to twice the number of edges.  The handshaking lemma,
 a corollary, is that the number of odd-degree vertices is even.
@@ -119,8 +122,7 @@ begin
     rw ←zmod.eq_zero_iff_even,
     convert h,
     ext v,
-    rw ←zmod.ne_zero_iff_odd,
-    congr' },
+    rw ←zmod.ne_zero_iff_odd, },
   { intros v,
     simp only [true_and, mem_filter, mem_univ, ne.def],
     rw [zmod.eq_zero_iff_even, zmod.eq_one_iff_odd, nat.odd_iff_not_even, imp_self],

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Johan Commelin
 -/
 
-import topology.category.Top
 import ring_theory.graded_algebra.homogeneous_ideal
+import topology.category.Top.basic
+import topology.sets.opens
 
 /-!
 # Projective spectrum of a graded ring
@@ -31,8 +32,7 @@ It is naturally endowed with a topology: the Zariski topology.
   `projective_spectrum 𝒜` is the intersection of points in `t` (viewed as relevant homogeneous prime
   ideals).
 * `projective_spectrum.Top`: the topological space of `projective_spectrum 𝒜` endowed with the
-  Zariski topology
-
+  Zariski topology.
 -/
 
 noncomputable theory
@@ -43,41 +43,24 @@ variables {R A: Type*}
 variables [comm_semiring R] [comm_ring A] [algebra R A]
 variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 
-/--
-The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals that
-are prime and do not contain the irrelevant ideal.
--/
-@[nolint has_inhabited_instance]
-def projective_spectrum :=
-{I : homogeneous_ideal 𝒜 // I.to_ideal.is_prime ∧ ¬(homogeneous_ideal.irrelevant 𝒜 ≤ I)}
+/-- The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals
+that are prime and do not contain the irrelevant ideal. -/
+@[ext, nolint has_nonempty_instance] structure projective_spectrum :=
+(as_homogeneous_ideal : homogeneous_ideal 𝒜)
+(is_prime : as_homogeneous_ideal.to_ideal.is_prime)
+(not_irrelevant_le : ¬(homogeneous_ideal.irrelevant 𝒜 ≤ as_homogeneous_ideal))
+
+attribute [instance] projective_spectrum.is_prime
 
 namespace projective_spectrum
 
-
-variable {𝒜}
-/-- A method to view a point in the projective spectrum of a graded ring
-as a homogeneous ideal of that ring. -/
-abbreviation as_homogeneous_ideal (x : projective_spectrum 𝒜) : homogeneous_ideal 𝒜 := x.1
-
-lemma as_homogeneous_ideal_def (x : projective_spectrum 𝒜) :
-  x.as_homogeneous_ideal = x.1 := rfl
-
-instance is_prime (x : projective_spectrum 𝒜) :
-  x.as_homogeneous_ideal.to_ideal.is_prime := x.2.1
-
-@[ext] lemma ext {x y : projective_spectrum 𝒜} :
-  x = y ↔ x.as_homogeneous_ideal = y.as_homogeneous_ideal :=
-subtype.ext_iff_val
-
-variable (𝒜)
-/-- The zero locus of a set `s` of elements of a commutative ring `A`
-is the set of all relevant homogeneous prime ideals of the ring that contain the set `s`.
+/-- The zero locus of a set `s` of elements of a commutative ring `A` is the set of all relevant
+homogeneous prime ideals of the ring that contain the set `s`.
 
 An element `f` of `A` can be thought of as a dependent function on the projective spectrum of `𝒜`.
-At a point `x` (a homogeneous prime ideal)
-the function (i.e., element) `f` takes values in the quotient ring `A` modulo the prime ideal `x`.
-In this manner, `zero_locus s` is exactly the subset of `projective_spectrum 𝒜`
-where all "functions" in `s` vanish simultaneously. -/
+At a point `x` (a homogeneous prime ideal) the function (i.e., element) `f` takes values in the
+quotient ring `A` modulo the prime ideal `x`. In this manner, `zero_locus s` is exactly the subset
+of `projective_spectrum 𝒜` where all "functions" in `s` vanish simultaneously. -/
 def zero_locus (s : set A) : set (projective_spectrum 𝒜) :=
 {x | s ⊆ x.as_homogeneous_ideal}
 
@@ -89,15 +72,13 @@ def zero_locus (s : set A) : set (projective_spectrum 𝒜) :=
 by { ext x, exact (submodule.gi _ _).gc s x.as_homogeneous_ideal.to_ideal }
 
 variable {𝒜}
-/-- The vanishing ideal of a set `t` of points
-of the prime spectrum of a commutative ring `R`
-is the intersection of all the prime ideals in the set `t`.
+/-- The vanishing ideal of a set `t` of points of the projective spectrum of a commutative ring `R`
+is the intersection of all the relevant homogeneous prime ideals in the set `t`.
 
 An element `f` of `A` can be thought of as a dependent function on the projective spectrum of `𝒜`.
-At a point `x` (a homogeneous prime ideal)
-the function (i.e., element) `f` takes values in the quotient ring `A` modulo the prime ideal `x`.
-In this manner, `vanishing_ideal t` is exactly the ideal of `A`
-consisting of all "functions" that vanish on all of `t`. -/
+At a point `x` (a homogeneous prime ideal) the function (i.e., element) `f` takes values in the
+quotient ring `A` modulo the prime ideal `x`. In this manner, `vanishing_ideal t` is exactly the
+ideal of `A` consisting of all "functions" that vanish on all of `t`. -/
 def vanishing_ideal (t : set (projective_spectrum 𝒜)) : homogeneous_ideal 𝒜 :=
 ⨅ (x : projective_spectrum 𝒜) (h : x ∈ t), x.as_homogeneous_ideal
 
@@ -130,19 +111,19 @@ lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (projective_spectrum �
 variable (𝒜)
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_ideal : @galois_connection
-  (ideal A) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (ideal A) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t).to_ideal) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_set : @galois_connection
-  (set A) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (set A) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ s, zero_locus 𝒜 s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi A _).gc,
 by simpa [zero_locus_span, function.comp] using galois_connection.compose ideal_gc (gc_ideal 𝒜)
 
 lemma gc_homogeneous_ideal : @galois_connection
-  (homogeneous_ideal 𝒜) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (homogeneous_ideal 𝒜) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t)) :=
 λ I t, by simpa [show I.to_ideal ≤ (vanishing_ideal t).to_ideal ↔ I ≤ (vanishing_ideal t),
   from iff.rfl] using subset_zero_locus_iff_le_vanishing_ideal t I.to_ideal
@@ -252,7 +233,7 @@ by convert (gc_ideal 𝒜).u_infi; exact homogeneous_ideal.to_ideal_infi _
 
 lemma zero_locus_inf (I J : ideal A) :
   zero_locus 𝒜 ((I ⊓ J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.inf_le
+set.ext $ λ x, x.is_prime.inf_le
 
 lemma union_zero_locus (s s' : set A) :
   zero_locus 𝒜 s ∪ zero_locus 𝒜 s' = zero_locus 𝒜 ((ideal.span s) ⊓ (ideal.span s'): ideal A) :=
@@ -260,19 +241,19 @@ by { rw zero_locus_inf, simp }
 
 lemma zero_locus_mul_ideal (I J : ideal A) :
   zero_locus 𝒜 ((I * J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.mul_le
+set.ext $ λ x, x.is_prime.mul_le
 
 lemma zero_locus_mul_homogeneous_ideal (I J : homogeneous_ideal 𝒜) :
   zero_locus 𝒜 ((I * J : homogeneous_ideal 𝒜) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.mul_le
+set.ext $ λ x, x.is_prime.mul_le
 
 lemma zero_locus_singleton_mul (f g : A) :
   zero_locus 𝒜 ({f * g} : set A) = zero_locus 𝒜 {f} ∪ zero_locus 𝒜 {g} :=
-set.ext $ λ x, by simpa using x.2.1.mul_mem_iff_mem_or_mem
+set.ext $ λ x, by simpa using x.is_prime.mul_mem_iff_mem_or_mem
 
 @[simp] lemma zero_locus_singleton_pow (f : A) (n : ℕ) (hn : 0 < n) :
   zero_locus 𝒜 ({f ^ n} : set A) = zero_locus 𝒜 {f} :=
-set.ext $ λ x, by simpa using x.2.1.pow_mem_iff_mem n hn
+set.ext $ λ x, by simpa using x.is_prime.pow_mem_iff_mem n hn
 
 lemma sup_vanishing_ideal_le (t t' : set (projective_spectrum 𝒜)) :
   vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
@@ -287,11 +268,10 @@ end
 
 lemma mem_compl_zero_locus_iff_not_mem {f : A} {I : projective_spectrum 𝒜} :
   I ∈ (zero_locus 𝒜 {f} : set (projective_spectrum 𝒜))ᶜ ↔ f ∉ I.as_homogeneous_ideal :=
-by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
+by rw [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]; refl
 
-/-- The Zariski topology on the prime spectrum of a commutative ring
-is defined via the closed sets of the topology:
-they are exactly those sets that are the zero locus of a subset of the ring. -/
+/-- The Zariski topology on the prime spectrum of a commutative ring is defined via the closed sets
+of the topology: they are exactly those sets that are the zero locus of a subset of the ring. -/
 instance zariski_topology : topological_space (projective_spectrum 𝒜) :=
 topological_space.of_closed (set.range (projective_spectrum.zero_locus 𝒜))
   (⟨set.univ, by simp⟩)
@@ -305,9 +285,7 @@ topological_space.of_closed (set.range (projective_spectrum.zero_locus 𝒜))
   end
   (by { rintros _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus 𝒜 s t).symm⟩ })
 
-/--
-The underlying topology of `Proj` is the projective spectrum of graded ring `A`.
--/
+/-- The underlying topology of `Proj` is the projective spectrum of graded ring `A`. -/
 def Top : Top := Top.of (projective_spectrum 𝒜)
 
 lemma is_open_iff (U : set (projective_spectrum 𝒜)) :
@@ -349,8 +327,8 @@ section basic_open
 
 /-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
 def basic_open (r : A) : topological_space.opens (projective_spectrum 𝒜) :=
-{ val := { x | r ∉ x.as_homogeneous_ideal },
-  property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
+{ carrier := { x | r ∉ x.as_homogeneous_ideal },
+  is_open' := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
 @[simp] lemma mem_basic_open (f : A) (x : projective_spectrum 𝒜) :
   x ∈ basic_open 𝒜 f ↔ f ∉ x.as_homogeneous_ideal := iff.rfl
@@ -360,11 +338,11 @@ lemma mem_coe_basic_open (f : A) (x : projective_spectrum 𝒜) :
 
 lemma is_open_basic_open {a : A} : is_open ((basic_open 𝒜 a) :
   set (projective_spectrum 𝒜)) :=
-(basic_open 𝒜 a).property
+(basic_open 𝒜 a).is_open
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : A) :
   (basic_open 𝒜 r : set (projective_spectrum 𝒜)) = (zero_locus 𝒜 {r})ᶜ :=
-set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+set.ext $ λ x, by simpa only [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open 𝒜 (1 : A) = ⊤ :=
 topological_space.opens.ext $ by simp
@@ -392,8 +370,8 @@ topological_space.opens.ext $ set.ext $ λ z, begin
   split; intros hz,
   { rcases show ∃ i, graded_algebra.proj 𝒜 i f ∉ z.as_homogeneous_ideal, begin
       contrapose! hz with H,
-      haveI : Π (i : ℕ) (x : 𝒜 i), decidable (x ≠ 0) := λ _, classical.dec_pred _,
-      rw ←graded_algebra.sum_support_decompose 𝒜 f,
+      classical,
+      rw ←direct_sum.sum_support_decompose 𝒜 f,
       apply ideal.sum_mem _ (λ i hi, H i)
     end with ⟨i, hi⟩,
     exact ⟨basic_open 𝒜 (graded_algebra.proj 𝒜 i f), ⟨i, rfl⟩, by rwa mem_basic_open⟩ },
@@ -408,7 +386,7 @@ begin
   { rintros _ ⟨r, rfl⟩,
     exact is_open_basic_open 𝒜 },
   { rintros p U hp ⟨s, hs⟩,
-    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    rw [← compl_compl U, set.mem_compl_iff, ← hs, mem_zero_locus, set.not_subset] at hp,
     obtain ⟨f, hfs, hfp⟩ := hp,
     refine ⟨basic_open 𝒜 f, ⟨f, rfl⟩, hfp, _⟩,
     rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],
@@ -427,15 +405,15 @@ where `x ≤ y` if and only if `y ∈ closure {x}`.
 -/
 
 instance : partial_order (projective_spectrum 𝒜) :=
-subtype.partial_order _
+partial_order.lift as_homogeneous_ideal $ λ ⟨_, _, _⟩ ⟨_, _, _⟩, mk.inj_eq.mpr
 
 @[simp] lemma as_ideal_le_as_ideal (x y : projective_spectrum 𝒜) :
   x.as_homogeneous_ideal ≤ y.as_homogeneous_ideal ↔ x ≤ y :=
-subtype.coe_le_coe
+iff.rfl
 
 @[simp] lemma as_ideal_lt_as_ideal (x y : projective_spectrum 𝒜) :
   x.as_homogeneous_ideal < y.as_homogeneous_ideal ↔ x < y :=
-subtype.coe_lt_coe
+iff.rfl
 
 lemma le_iff_mem_closure (x y : projective_spectrum 𝒜) :
   x ≤ y ↔ y ∈ closure ({x} : set (projective_spectrum 𝒜)) :=

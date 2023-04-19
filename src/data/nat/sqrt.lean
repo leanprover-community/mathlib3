@@ -3,10 +3,14 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import data.int.basic
+import data.int.order.basic
+import data.nat.size
 
 /-!
 # Square root of natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines an efficient binary implementation of the square root function that returns the
 unique `r` such that `r * r ≤ n < (r + 1) * (r + 1)`. It takes advantage of the binary
@@ -79,9 +83,8 @@ private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
     is_sqrt n (sqrt_aux m' ((r + 2^m) * 2^m) (n - (r + 2^m) * (r + 2^m)))) :
   is_sqrt n (sqrt_aux (2^m * 2^m) ((2*r)*2^m) (n - r*r)) :=
 begin
-  have b0 :=
-    have b0:_, from ne_of_gt (pow_pos (show 0 < 2, from dec_trivial) m),
-    nat.mul_ne_zero b0 b0,
+  have b0 : 2 ^ m * 2 ^ m ≠ 0,
+    from mul_self_ne_zero.2 (pow_ne_zero m two_ne_zero),
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m),
   { rw [tsub_lt_iff_right h₁],

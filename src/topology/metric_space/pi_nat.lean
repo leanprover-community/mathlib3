@@ -9,6 +9,9 @@ import topology.metric_space.hausdorff_distance
 /-!
 # Topological study of spaces `Π (n : ℕ), E n`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `E n` are topological spaces, the space `Π (n : ℕ), E n` is naturally a topological space
 (with the product topology). When `E n` are uniform spaces, it also inherits a uniform structure.
 However, it does not inherit a canonical metric space structure of the `E n`. Nevertheless, one
@@ -49,7 +52,7 @@ in general), and `ι` is countable.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open topological_space set metric filter function
 
 local attribute [simp] pow_le_pow_iff one_lt_two inv_le_inv
@@ -193,6 +196,60 @@ lemma update_mem_cylinder (x : Π n, E n) (n : ℕ) (y : E n) :
   update x n y ∈ cylinder x n :=
 mem_cylinder_iff.2 (λ i hi, by simp [hi.ne])
 
+section res
+
+variable {α : Type*}
+open list
+
+/-- In the case where `E` has constant value `α`,
+the cylinder `cylinder x n` can be identified with the element of `list α`
+consisting of the first `n` entries of `x`. See `cylinder_eq_res`.
+We call this list `res x n`, the restriction of `x` to `n`.-/
+def res (x : ℕ → α) : ℕ → list α
+| 0            := nil
+| (nat.succ n) := x n :: res n
+
+@[simp] lemma res_zero (x : ℕ → α) : res x 0 = @nil α := rfl
+@[simp] lemma res_succ (x : ℕ → α) (n : ℕ) : res x n.succ = x n :: res x n := rfl
+
+@[simp] lemma res_length (x : ℕ → α) (n : ℕ) : (res x n).length = n :=
+by induction n; simp [*]
+
+/-- The restrictions of `x` and `y` to `n` are equal if and only if `x m = y m` for all `m < n`.-/
+lemma res_eq_res {x y : ℕ → α} {n : ℕ} : res x n = res y n ↔ ∀ ⦃m⦄, m < n → x m = y m :=
+begin
+  split; intro h; induction n with n ih, { simp },
+  { intros m hm,
+    rw nat.lt_succ_iff_lt_or_eq at hm,
+    simp only [res_succ] at h,
+    cases hm with hm hm,
+    { exact ih h.2 hm },
+    rw hm,
+    exact h.1, },
+  { simp },
+  simp only [res_succ],
+  refine ⟨h (nat.lt_succ_self _), ih (λ m hm, _)⟩,
+  exact h (hm.trans (nat.lt_succ_self _)),
+end
+
+lemma res_injective : injective (@res α) :=
+begin
+  intros x y h,
+  ext n,
+  apply (res_eq_res).mp _ (nat.lt_succ_self _),
+  rw h,
+end
+
+/-- `cylinder x n` is equal to the set of sequences `y` with the same restriction to `n` as `x`.-/
+theorem cylinder_eq_res (x : ℕ → α) (n : ℕ) : cylinder x n = {y | res y n = res x n} :=
+begin
+  ext y,
+  dsimp [cylinder],
+  rw res_eq_res,
+end
+
+end res
+
 /-!
 ### A distance function on `Π n, E n`
 
@@ -236,7 +293,7 @@ begin
   { simp },
   rcases eq_or_ne y z with rfl|hyz,
   { simp },
-  simp only [dist_eq_of_ne, hxz, hxy, hyz, inv_le_inv, one_div, inv_pow₀, zero_lt_bit0,
+  simp only [dist_eq_of_ne, hxz, hxy, hyz, inv_le_inv, one_div, inv_pow, zero_lt_bit0,
     ne.def, not_false_iff, le_max_iff, zero_lt_one, pow_le_pow_iff, one_lt_two, pow_pos,
     min_le_iff.1 (min_first_diff_le x y z hxz)],
 end
@@ -302,13 +359,18 @@ end
 
 variables (E) [∀ n, topological_space (E n)] [∀ n, discrete_topology (E n)]
 
-lemma is_topological_basis_cylinders  :
+lemma is_open_cylinder (x : Π n, E n) (n : ℕ) : is_open (cylinder x n) :=
+begin
+  rw pi_nat.cylinder_eq_pi,
+  exact is_open_set_pi (finset.range n).finite_to_set (λ a ha, is_open_discrete _),
+end
+
+lemma is_topological_basis_cylinders :
   is_topological_basis {s : set (Π n, E n) | ∃ (x : Π n, E n) (n : ℕ), s = cylinder x n} :=
 begin
   apply is_topological_basis_of_open_of_nhds,
   { rintros u ⟨x, n, rfl⟩,
-    rw cylinder_eq_pi,
-    exact is_open_set_pi (finset.range n).finite_to_set (λ a ha, is_open_discrete _) },
+    apply is_open_cylinder, },
   { assume x u hx u_open,
     obtain ⟨v, ⟨U, F, hUF, rfl⟩, xU, Uu⟩ : ∃ (v : set (Π (i : ℕ), E i))
       (H : v ∈ {S : set (Π (i : ℕ), E i) | ∃ (U : Π (i : ℕ), set (E i)) (F : finset ℕ),
@@ -357,7 +419,7 @@ but it does not take care of a possible uniformity. If the `E n` have a uniform 
 there will be two non-defeq uniform structures on `Π n, E n`, the product one and the one coming
 from the metric structure. In this case, use `metric_space_of_discrete_uniformity` instead. -/
 protected def metric_space : metric_space (Π n, E n) :=
-metric_space.of_metrizable dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
+metric_space.of_dist_topology dist pi_nat.dist_self pi_nat.dist_comm pi_nat.dist_triangle
   is_open_iff_dist pi_nat.eq_of_dist_eq_zero
 
 /-- Metric space structure on `Π (n : ℕ), E n` when the spaces `E n` have the discrete uniformity,
@@ -393,7 +455,7 @@ begin
       { simp only [le_infi_iff, le_principal_iff],
         assume n,
         refine mem_infi_of_mem ((1/2)^n) _,
-        refine mem_infi_of_mem (by norm_num) _,
+        refine mem_infi_of_mem (by positivity) _,
         simp only [mem_principal, set_of_subset_set_of, prod.forall],
         assume x y hxy,
         exact apply_eq_of_dist_lt hxy le_rfl }
@@ -669,7 +731,7 @@ begin
   { assume x,
     apply subtype.coe_injective.eq_iff.1,
     simpa only using fs x.val x.property },
-  exact ⟨cod_restrict f s A, B, λ x, ⟨x, B x⟩, continuous_subtype_mk _ f_cont⟩,
+  exact ⟨cod_restrict f s A, B, λ x, ⟨x, B x⟩, f_cont.subtype_mk _⟩,
 end
 
 end pi_nat
@@ -709,6 +771,7 @@ begin
       apply apply_first_diff_ne hne',
       rw [le_zero_iff.1 h],
       apply apply_eq_of_dist_lt _ le_rfl,
+      rw pow_zero,
       exact hxy },
     have hn : first_diff x.1 y.1 = n + 1 := (nat.succ_pred_eq_of_pos diff_pos).symm,
     rw [dist', dist_eq_of_ne hne', hn],
@@ -800,7 +863,7 @@ lemma dist_le_dist_pi_of_dist_lt {x y : Π i, F i} {i : ι} (h : dist x y < (1/2
   dist (x i) (y i) ≤ dist x y :=
 by simpa only [not_le.2 h, false_or] using min_le_iff.1 (min_dist_le_dist_pi x y i)
 
-open_locale big_operators topological_space
+open_locale big_operators topology
 open filter
 
 open_locale nnreal

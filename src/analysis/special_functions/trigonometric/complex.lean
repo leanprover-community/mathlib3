@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import algebra.quadratic_discriminant
-import analysis.complex.polynomial
-import field_theory.is_alg_closed.basic
 import analysis.special_functions.trigonometric.basic
 import analysis.convex.specific_functions
 
@@ -30,13 +28,13 @@ open_locale real
 theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
   have h : (exp (θ * I) + exp (-θ * I)) / 2 = 0 ↔ exp (2 * θ * I) = -1,
-  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 two_ne_zero', zero_mul,
+  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 two_ne_zero, zero_mul,
       add_eq_zero_iff_eq_neg, neg_eq_neg_one_mul, ← div_eq_iff (exp_ne_zero _), ← exp_sub],
     field_simp only, congr' 3, ring },
   rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int, mul_right_comm],
   refine exists_congr (λ x, _),
-  refine (iff_of_eq $ congr_arg _ _).trans (mul_right_inj' $ mul_ne_zero two_ne_zero' I_ne_zero),
-  ring,
+  refine (iff_of_eq $ congr_arg _ _).trans (mul_right_inj' $ mul_ne_zero two_ne_zero I_ne_zero),
+  field_simp, ring,
 end
 
 theorem cos_ne_zero_iff {θ : ℂ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
@@ -65,7 +63,7 @@ begin
   have h := (sin_two_mul θ).symm,
   rw mul_assoc at h,
   rw [tan, div_eq_zero_iff, ← mul_eq_zero, ← zero_mul ((1/2):ℂ), mul_one_div,
-      cancel_factors.cancel_factors_eq_div h two_ne_zero', mul_comm],
+      cancel_factors.cancel_factors_eq_div h two_ne_zero, mul_comm],
   simpa only [zero_div, zero_mul, ne.def, not_false_iff] with field_simps using sin_eq_zero_iff,
 end
 
@@ -107,7 +105,7 @@ begin
         ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
             (mul_ne_zero (cos_ne_zero_iff.mpr h1) (cos_ne_zero_iff.mpr h2)),
         add_div, sub_div],
-    simp only [←div_mul_div_comm₀, ←tan, mul_one, one_mul,
+    simp only [←div_mul_div_comm, ←tan, mul_one, one_mul,
               div_self (cos_ne_zero_iff.mpr h1), div_self (cos_ne_zero_iff.mpr h2)] },
   { obtain ⟨t, hx, hy, hxy⟩ := ⟨tan_int_mul_pi_div_two, t (2*k+1), t (2*l+1), t (2*k+1+(2*l+1))⟩,
     simp only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, hx, hy] at hx hy hxy,
@@ -140,7 +138,7 @@ lemma tan_eq {z : ℂ}
   tan z = (tan z.re + tanh z.im * I) / (1 - tan z.re * tanh z.im * I) :=
 by convert tan_add_mul_I h; exact (re_add_im z).symm
 
-open_locale topological_space
+open_locale topology
 
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 continuous_on_sin.div continuous_on_cos $ λ x, id
@@ -162,8 +160,8 @@ lemma cos_surjective : function.surjective cos :=
 begin
   intro x,
   obtain ⟨w, w₀, hw⟩ : ∃ w ≠ 0, 1 * w * w + (-2 * x) * w + 1 = 0,
-  { rcases exists_quadratic_eq_zero (@one_ne_zero ℂ _ _) (is_alg_closed.exists_eq_mul_self _)
-      with ⟨w, hw⟩,
+  { rcases exists_quadratic_eq_zero one_ne_zero
+      ⟨_, ((cpow_nat_inv_pow _ two_ne_zero).symm.trans $ pow_two _)⟩ with ⟨w, hw⟩,
     refine ⟨w, _, hw⟩,
     rintro rfl,
     simpa only [zero_add, one_ne_zero, mul_zero] using hw },
@@ -217,7 +215,7 @@ by simpa [mul_comm x] using strict_concave_on_sin_Icc.concave_on.2 ⟨le_rfl, pi
 lemma mul_lt_sin {x : ℝ} (hx : 0 < x) (hx' : x < π / 2) : (2 / π) * x < sin x :=
 begin
   rw [←inv_div],
-  simpa [pi_div_two_pos.ne', mul_nonneg, inv_nonneg] using @lt_sin_mul ((π / 2)⁻¹ * x) _ _,
+  simpa [-inv_div, pi_div_two_pos.ne'] using @lt_sin_mul ((π / 2)⁻¹ * x) _ _,
   { exact mul_pos (inv_pos.2 pi_div_two_pos) hx },
   { rwa [←div_eq_inv_mul, div_lt_one pi_div_two_pos] },
 end
@@ -227,7 +225,7 @@ of Jordan's inequality, the other half is `real.sin_lt` -/
 lemma mul_le_sin {x : ℝ} (hx : 0 ≤ x) (hx' : x ≤ π / 2) : (2 / π) * x ≤ sin x :=
 begin
   rw [←inv_div],
-  simpa [pi_div_two_pos.ne', mul_nonneg, inv_nonneg] using @le_sin_mul ((π / 2)⁻¹ * x) _ _,
+  simpa [-inv_div, pi_div_two_pos.ne'] using @le_sin_mul ((π / 2)⁻¹ * x) _ _,
   { exact mul_nonneg (inv_nonneg.2 pi_div_two_pos.le) hx },
   { rwa [←div_eq_inv_mul, div_le_one pi_div_two_pos] },
 end

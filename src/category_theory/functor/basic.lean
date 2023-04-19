@@ -9,6 +9,9 @@ import category_theory.category.basic
 /-!
 # Functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines a functor between categories, extending a `prefunctor` between quivers.
 
 Introduces notation `C ⥤ D` for the type of all functors from `C` to `D`.
@@ -33,7 +36,7 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 The axiom `map_id` expresses preservation of identities, and
 `map_comp` expresses functoriality.
 
-See https://stacks.math.columbia.edu/tag/001B.
+See <https://stacks.math.columbia.edu/tag/001B>.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
   extends prefunctor C D : Type (max v₁ v₂ u₁ u₂) :=
@@ -60,6 +63,7 @@ section
 variables (C : Type u₁) [category.{v₁} C]
 
 /-- `𝟭 C` is the identity functor on a category `C`. -/
+-- We don't use `@[simps]` here because we want `C` implicit for the simp lemmas.
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
@@ -72,6 +76,7 @@ variable {C}
 
 @[simp] lemma id_obj (X : C) : (𝟭 C).obj X = X := rfl
 @[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (𝟭 C).map f = f := rfl
+
 end
 
 section
@@ -82,13 +87,12 @@ variables {C : Type u₁} [category.{v₁} C]
 /--
 `F ⋙ G` is the composition of a functor `F` and a functor `G` (`F` first, then `G`).
 -/
-def comp (F : C ⥤ D) (G : D ⥤ E) : C ⥤ E :=
+@[simps obj] def comp (F : C ⥤ D) (G : D ⥤ E) : C ⥤ E :=
 { obj := λ X, G.obj (F.obj X),
   map := λ _ _ f, G.map (F.map f) }
 
 infixr ` ⋙ `:80 := comp
 
-@[simp] lemma comp_obj (F : C ⥤ D) (G : D ⥤ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) {X Y : C} (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
 
@@ -102,6 +106,16 @@ protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
   (f : P → (X ⟶ Y)) (g : ¬P → (X ⟶ Y)) :
   F.map (if h : P then f h else g h) = if h : P then F.map (f h) else F.map (g h) :=
 by { split_ifs; refl, }
+
+@[simp] lemma to_prefunctor_obj (F : C ⥤ D) (X : C) :
+  F.to_prefunctor.obj X = F.obj X := rfl
+
+@[simp] lemma to_prefunctor_map (F : C ⥤ D)
+  {X Y : C} (f : X ⟶ Y) : F.to_prefunctor.map f = F.map f := rfl
+
+@[simp] lemma to_prefunctor_comp (F : C ⥤ D) (G : D ⥤ E) :
+  F.to_prefunctor.comp G.to_prefunctor = (F ⋙ G).to_prefunctor := rfl
+
 
 end
 

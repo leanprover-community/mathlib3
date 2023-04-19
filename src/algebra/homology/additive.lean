@@ -35,10 +35,10 @@ instance : has_zero (C ⟶ D) := ⟨{ f := λ i, 0 }⟩
 instance : has_add (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i + g.f i, }⟩
 instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i) }⟩
 instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
-instance has_nat_scalar : has_scalar ℕ (C ⟶ D) := ⟨λ n f,
+instance has_nat_scalar : has_smul ℕ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
     comm' := λ i j h, by simp [preadditive.nsmul_comp, preadditive.comp_nsmul] }⟩
-instance has_int_scalar : has_scalar ℤ (C ⟶ D) := ⟨λ n f,
+instance has_int_scalar : has_smul ℤ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
     comm' := λ i j h, by simp [preadditive.zsmul_comp, preadditive.comp_zsmul] }⟩
 
@@ -66,8 +66,6 @@ end homological_complex
 namespace homological_complex
 
 instance eval_additive (i : ι) : (eval V c i).additive := {}
-
-variables [has_zero_object V]
 
 instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
@@ -109,8 +107,30 @@ def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shap
   { f := λ i, F.map (f.f i),
     comm' := λ i j h, by { dsimp,  rw [←F.map_comp, ←F.map_comp, f.comm], }, }, }.
 
+variable (V)
+
+/-- The functor on homological complexes induced by the identity functor is
+isomorphic to the identity functor. -/
+@[simps]
+def functor.map_homological_complex_id_iso (c : complex_shape ι) :
+  (𝟭 V).map_homological_complex c ≅ 𝟭 _ :=
+nat_iso.of_components (λ K, hom.iso_of_components (λ i, iso.refl _) (by tidy)) (by tidy)
+
+variable {V}
+
 instance functor.map_homogical_complex_additive
   (F : V ⥤ W) [F.additive] (c : complex_shape ι) : (F.map_homological_complex c).additive := {}
+
+instance functor.map_homological_complex_reflects_iso
+  (F : V ⥤ W) [F.additive] [reflects_isomorphisms F] (c : complex_shape ι) :
+  reflects_isomorphisms (F.map_homological_complex c) :=
+⟨λ X Y f, begin
+  introI,
+  haveI : ∀ (n : ι), is_iso (F.map (f.f n)) := λ n, is_iso.of_iso
+    ((homological_complex.eval W c n).map_iso (as_iso ((F.map_homological_complex c).map f))),
+  haveI := λ n, is_iso_of_reflects_iso (f.f n) F,
+  exact homological_complex.hom.is_iso_of_components f,
+end⟩
 
 /--
 A natural transformation between functors induces a natural transformation
@@ -138,6 +158,32 @@ by tidy
     (nat_trans.map_homological_complex α c).app C ≫ (G.map_homological_complex c).map f :=
 by tidy
 
+/--
+A natural isomorphism between functors induces a natural isomorphism
+between those functors applied to homological complexes.
+-/
+@[simps]
+def nat_iso.map_homological_complex {F G : V ⥤ W} [F.additive] [G.additive]
+  (α : F ≅ G) (c : complex_shape ι) : F.map_homological_complex c ≅ G.map_homological_complex c :=
+{ hom := α.hom.map_homological_complex c,
+  inv := α.inv.map_homological_complex c,
+  hom_inv_id' := by simpa only [← nat_trans.map_homological_complex_comp, α.hom_inv_id],
+  inv_hom_id' := by simpa only [← nat_trans.map_homological_complex_comp, α.inv_hom_id], }
+
+/--
+An equivalence of categories induces an equivalences between the respective categories
+of homological complex.
+-/
+@[simps]
+def equivalence.map_homological_complex (e : V ≌ W) [e.functor.additive] (c : complex_shape ι):
+  homological_complex V c ≌ homological_complex W c :=
+{ functor := e.functor.map_homological_complex c,
+  inverse := e.inverse.map_homological_complex c,
+  unit_iso := (functor.map_homological_complex_id_iso V c).symm ≪≫
+    nat_iso.map_homological_complex e.unit_iso c,
+  counit_iso := nat_iso.map_homological_complex e.counit_iso c ≪≫
+    functor.map_homological_complex_id_iso W c, }
+
 end category_theory
 
 namespace chain_complex
@@ -151,13 +197,10 @@ lemma map_chain_complex_of (F : V ⥤ W) [F.additive] (X : α → V) (d : Π n, 
   chain_complex.of (λ n, F.obj (X n))
     (λ n, F.map (d n)) (λ n, by rw [ ← F.map_comp, sq n, functor.map_zero]) :=
 begin
-  apply homological_complex.ext,
-  intros i j hij,
-  { have h : j+1=i := hij,
-    subst h,
-    simp only [category_theory.functor.map_homological_complex_obj_d, of_d,
-      eq_to_hom_refl, comp_id, id_comp], },
-  { refl, }
+  refine homological_complex.ext rfl _,
+  rintro i j (rfl : j + 1 = i),
+  simp only [category_theory.functor.map_homological_complex_obj_d, of_d,
+    eq_to_hom_refl, comp_id, id_comp],
 end
 
 end chain_complex
@@ -165,6 +208,8 @@ end chain_complex
 variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero_object W]
 
 namespace homological_complex
+
+local attribute [simp] eq_to_hom_map
 
 /--
 Turning an object into a complex supported at `j` then applying a functor is

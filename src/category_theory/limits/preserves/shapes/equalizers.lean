@@ -9,6 +9,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Preserving (co)equalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructions to relate the notions of preserving (co)equalizers and reflecting (co)equalizers
 to concrete (co)forks.
 
@@ -18,12 +21,12 @@ the limit of the parallel pair `f,g`, as well as the dual result.
 
 noncomputable theory
 
-universes v u₁ u₂
+universes w v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 
 namespace category_theory.limits
@@ -38,8 +41,8 @@ essentially lets us commute `fork.of_ι` with `functor.map_cone`.
 def is_limit_map_cone_fork_equiv :
   is_limit (G.map_cone (fork.of_ι h w)) ≃
   is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g)) :=
-(is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair.{v} _) _).symm.trans
-  (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp)))
+(is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair _) _).symm.trans
+  (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by { simp [fork.ι] })))
 
 /-- The property of preserving equalizers expressed in terms of forks. -/
 def is_limit_fork_map_of_is_limit [preserves_limit (parallel_pair f g) G]
@@ -115,8 +118,12 @@ This essentially lets us commute `cofork.of_π` with `functor.map_cocone`.
 def is_colimit_map_cocone_cofork_equiv :
   is_colimit (G.map_cocone (cofork.of_π h w)) ≃
   is_colimit (cofork.of_π (G.map h) (by simp only [←G.map_comp, w]) : cofork (G.map f) (G.map g)) :=
-(is_colimit.precompose_inv_equiv (diagram_iso_parallel_pair.{v} _) _).symm.trans
-  (is_colimit.equiv_iso_colimit (cofork.ext (iso.refl _) (by { dsimp, simp })))
+(is_colimit.precompose_inv_equiv (diagram_iso_parallel_pair _) _).symm.trans $
+is_colimit.equiv_iso_colimit $ cofork.ext (iso.refl _) $
+begin
+  dsimp only [cofork.π, cofork.of_π_ι_app],
+  dsimp, rw [category.comp_id, category.id_comp]
+end
 
 /-- The property of preserving coequalizers expressed in terms of coforks. -/
 def is_colimit_cofork_map_of_is_colimit [preserves_colimit (parallel_pair f g) G]
@@ -177,6 +184,47 @@ instance : is_iso (coequalizer_comparison f g G) :=
 begin
   rw ← preserves_coequalizer.iso_hom,
   apply_instance
+end
+
+instance map_π_epi : epi (G.map (coequalizer.π f g)) :=
+⟨λ W h k, by { rw ←ι_comp_coequalizer_comparison, apply (cancel_epi _).1, apply epi_comp }⟩
+
+@[reassoc]
+lemma map_π_preserves_coequalizer_inv :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv =
+  coequalizer.π (G.map f) (G.map g) :=
+begin
+  rw [←ι_comp_coequalizer_comparison_assoc, ←preserves_coequalizer.iso_hom,
+      iso.hom_inv_id, comp_id],
+end
+
+@[reassoc]
+lemma map_π_preserves_coequalizer_inv_desc
+  {W : D} (k : G.obj Y ⟶ W) (wk : G.map f ≫ k = G.map g ≫ k) :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫ coequalizer.desc k wk = k :=
+by rw [←category.assoc, map_π_preserves_coequalizer_inv, coequalizer.π_desc]
+
+@[reassoc]
+lemma map_π_preserves_coequalizer_inv_colim_map
+  {X' Y' : D} (f' g' : X' ⟶ Y') [has_coequalizer f' g'] (p : G.obj X ⟶ X') (q : G.obj Y ⟶ Y')
+  (wf : (G.map f) ≫ q = p ≫ f') (wg : (G.map g) ≫ q = p ≫ g') :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫
+  colim_map (parallel_pair_hom (G.map f) (G.map g) f' g' p q wf wg) =
+  q ≫ coequalizer.π f' g' :=
+by rw [←category.assoc, map_π_preserves_coequalizer_inv, ι_colim_map, parallel_pair_hom_app_one]
+
+@[reassoc]
+lemma map_π_preserves_coequalizer_inv_colim_map_desc
+  {X' Y' : D} (f' g' : X' ⟶ Y') [has_coequalizer f' g'] (p : G.obj X ⟶ X') (q : G.obj Y ⟶ Y')
+  (wf : (G.map f) ≫ q = p ≫ f') (wg : (G.map g) ≫ q = p ≫ g')
+  {Z' : D} (h : Y' ⟶ Z') (wh : f' ≫ h = g' ≫ h) :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫
+  colim_map (parallel_pair_hom (G.map f) (G.map g) f' g' p q wf wg) ≫
+  coequalizer.desc h wh =
+  q ≫ h :=
+begin
+  slice_lhs 1 3 { rw map_π_preserves_coequalizer_inv_colim_map },
+  slice_lhs 2 3 { rw coequalizer.π_desc },
 end
 
 /-- Any functor preserves coequalizers of split pairs. -/

@@ -3,10 +3,13 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.filter.basic
+import order.filter.prod
 
 /-!
 # N-ary maps of filter
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the binary and ternary maps of filters. This is mostly useful to define pointwise
 operations on filters.
@@ -18,7 +21,8 @@ operations on filters.
 
 ## Notes
 
-This file is very similar to the n-ary section of `data.set.basic`. Please keep them in sync.
+This file is very similar to `data.set.n_ary`, `data.finset.n_ary` and `data.option.n_ary`. Please
+keep them in sync.
 -/
 
 open function set
@@ -54,26 +58,15 @@ lemma map_prod_eq_map₂ (m : α → β → γ) (f : filter α) (g : filter β) 
   filter.map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
 begin
   ext s,
-  split,
-  { intro hmem,
-    rw filter.mem_map_iff_exists_image at hmem,
-    obtain ⟨s', hs', hsub⟩ := hmem,
-    rw filter.mem_prod_iff at hs',
-    obtain ⟨t, ht, t', ht', hsub'⟩ := hs',
-    refine ⟨t, t', ht, ht', _⟩,
-    rw ← set.image_prod,
-    exact subset_trans (set.image_subset (λ (p : α × β), m p.fst p.snd) hsub') hsub },
-  { intro hmem,
-    rw mem_map₂_iff at hmem,
-    obtain ⟨t, t', ht, ht', hsub⟩ := hmem,
-    rw ← set.image_prod at hsub,
-    rw filter.mem_map_iff_exists_image,
-    exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩ },
+  simp [mem_prod_iff, prod_subset_iff]
 end
 
 lemma map_prod_eq_map₂' (m : α × β → γ) (f : filter α) (g : filter β) :
   filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
-by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simp }
+(congr_arg2 _ (uncurry_curry m).symm rfl).trans (map_prod_eq_map₂ _ _ _)
+
+@[simp] lemma map₂_mk_eq_prod (f : filter α) (g : filter β) : map₂ prod.mk f g = f ×ᶠ g :=
+by simp only [← map_prod_eq_map₂, prod.mk.eta, map_id']
 
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
 -- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
@@ -112,6 +105,9 @@ by { simp_rw ne_bot_iff, exact map₂_eq_bot_iff.not.trans not_or_distrib }
 
 lemma ne_bot.map₂ (hf : f.ne_bot) (hg : g.ne_bot) : (map₂ m f g).ne_bot :=
 map₂_ne_bot_iff.2 ⟨hf, hg⟩
+
+lemma ne_bot.of_map₂_left (h : (map₂ m f g).ne_bot) : f.ne_bot := (map₂_ne_bot_iff.1 h).1
+lemma ne_bot.of_map₂_right (h : (map₂ m f g).ne_bot) : g.ne_bot := (map₂_ne_bot_iff.1 h).2
 
 lemma map₂_sup_left : map₂ m (f₁ ⊔ f₂) g = map₂ m f₁ g ⊔ map₂ m f₂ g :=
 begin
@@ -220,24 +216,26 @@ begin
 end
 
 lemma map_map₂ (m : α → β → γ) (n : γ → δ) : (map₂ m f g).map n = map₂ (λ a b, n (m a b)) f g :=
-filter.ext $ λ u, exists₂_congr $ λ s t, by rw [←image_subset_iff, image_image2]
+by rw [← map_prod_eq_map₂, ← map_prod_eq_map₂, map_map]
 
 lemma map₂_map_left (m : γ → β → δ) (n : α → γ) :
   map₂ m (f.map n) g = map₂ (λ a b, m (n a) b) f g :=
 begin
-  ext u,
-  split,
-  { rintro ⟨s, t, hs, ht, hu⟩,
-    refine ⟨_, t, hs, ht, _⟩,
-    rw ←image2_image_left,
-    exact (image2_subset_right $ image_preimage_subset _ _).trans hu },
-  { rintro ⟨s, t, hs, ht, hu⟩,
-    exact ⟨_, t, image_mem_map hs, ht, by rwa image2_image_left⟩ }
+  rw [← map_prod_eq_map₂, ← map_prod_eq_map₂, ← @map_id _ g, prod_map_map_eq, map_map, map_id],
+  refl
 end
 
 lemma map₂_map_right (m : α → γ → δ) (n : β → γ) :
   map₂ m f (g.map n) = map₂ (λ a b, m a (n b)) f g :=
 by rw [map₂_swap, map₂_map_left, map₂_swap]
+
+@[simp] lemma map₂_curry (m : α × β → γ) (f : filter α) (g : filter β) :
+  map₂ (curry m) f g = (f ×ᶠ g).map m :=
+(map_prod_eq_map₂' _  _ _).symm
+
+@[simp] lemma map_uncurry_prod (m : α → β → γ) (f : filter α) (g : filter β) :
+  (f ×ᶠ g).map (uncurry m) = map₂ m f g :=
+by rw [←map₂_curry, curry_uncurry]
 
 /-!
 ### Algebraic replacement rules
@@ -272,57 +270,93 @@ lemma map_map₂_distrib {n : γ → δ} {m' : α' → β' → δ} {n₁ : α �
   (map₂ m f g).map n = map₂ m' (f.map n₁) (g.map n₂) :=
 by simp_rw [map_map₂, map₂_map_left, map₂_map_right, h_distrib]
 
-/-- Symmetric of `filter.map₂_map_left_comm`. -/
+/-- Symmetric statement to `filter.map₂_map_left_comm`. -/
 lemma map_map₂_distrib_left {n : γ → δ} {m' : α' → β → δ} {n' : α → α'}
   (h_distrib : ∀ a b, n (m a b) = m' (n' a) b) :
   (map₂ m f g).map n = map₂ m' (f.map n') g :=
 map_map₂_distrib h_distrib
 
-/-- Symmetric of `filter.map_map₂_right_comm`. -/
+/-- Symmetric statement to `filter.map_map₂_right_comm`. -/
 lemma map_map₂_distrib_right {n : γ → δ} {m' : α → β' → δ} {n' : β → β'}
   (h_distrib : ∀ a b, n (m a b) = m' a (n' b)) :
   (map₂ m f g).map n = map₂ m' f (g.map n') :=
 map_map₂_distrib h_distrib
 
-/-- Symmetric of `filter.map_map₂_distrib_left`. -/
+/-- Symmetric statement to `filter.map_map₂_distrib_left`. -/
 lemma map₂_map_left_comm {m : α' → β → γ} {n : α → α'} {m' : α → β → δ} {n' : δ → γ}
   (h_left_comm : ∀ a b, m (n a) b = n' (m' a b)) :
   map₂ m (f.map n) g = (map₂ m' f g).map n' :=
 (map_map₂_distrib_left $ λ a b, (h_left_comm a b).symm).symm
 
-/-- Symmetric of `filter.map_map₂_distrib_right`. -/
+/-- Symmetric statement to `filter.map_map₂_distrib_right`. -/
 lemma map_map₂_right_comm {m : α → β' → γ} {n : β → β'} {m' : α → β → δ} {n' : δ → γ}
   (h_right_comm : ∀ a b, m a (n b) = n' (m' a b)) :
   map₂ m f (g.map n) = (map₂ m' f g).map n' :=
 (map_map₂_distrib_right $ λ a b, (h_right_comm a b).symm).symm
+
+/-- The other direction does not hold because of the `f`-`f` cross terms on the RHS. -/
+lemma map₂_distrib_le_left {m : α → δ → ε} {n : β → γ → δ} {m₁ : α → β → β'} {m₂ : α → γ → γ'}
+  {n' : β' → γ' → ε} (h_distrib : ∀ a b c, m a (n b c) = n' (m₁ a b) (m₂ a c)) :
+  map₂ m f (map₂ n g h) ≤ map₂ n' (map₂ m₁ f g) (map₂ m₂ f h) :=
+begin
+  rintro s ⟨t₁, t₂, ⟨u₁, v, hu₁, hv, ht₁⟩, ⟨u₂, w, hu₂, hw, ht₂⟩, hs⟩,
+  refine ⟨u₁ ∩ u₂, _, inter_mem hu₁ hu₂, image2_mem_map₂ hv hw, _⟩,
+  refine (image2_distrib_subset_left h_distrib).trans ((image2_subset _ _).trans hs),
+  { exact (image2_subset_right $ inter_subset_left _ _).trans ht₁ },
+  { exact (image2_subset_right $ inter_subset_right _ _).trans ht₂ }
+end
+
+/-- The other direction does not hold because of the `h`-`h` cross terms on the RHS. -/
+lemma map₂_distrib_le_right {m : δ → γ → ε} {n : α → β → δ} {m₁ : α → γ → α'}
+  {m₂ : β → γ → β'} {n' : α' → β' → ε} (h_distrib : ∀ a b c, m (n a b) c = n' (m₁ a c) (m₂ b c)) :
+  map₂ m (map₂ n f g) h ≤ map₂ n' (map₂ m₁ f h) (map₂ m₂ g h) :=
+begin
+  rintro s ⟨t₁, t₂, ⟨u, w₁, hu, hw₁, ht₁⟩, ⟨v, w₂, hv, hw₂, ht₂⟩, hs⟩,
+  refine ⟨_, w₁ ∩ w₂, image2_mem_map₂ hu hv, inter_mem hw₁ hw₂, _⟩,
+  refine (image2_distrib_subset_right h_distrib).trans ((image2_subset _ _).trans hs),
+  { exact (image2_subset_left $ inter_subset_left _ _).trans ht₁ },
+  { exact (image2_subset_left $ inter_subset_right _ _).trans ht₂ }
+end
 
 lemma map_map₂_antidistrib {n : γ → δ} {m' : β' → α' → δ} {n₁ : β → β'} {n₂ : α → α'}
   (h_antidistrib : ∀ a b, n (m a b) = m' (n₁ b) (n₂ a)) :
   (map₂ m f g).map n = map₂ m' (g.map n₁) (f.map n₂) :=
 by { rw map₂_swap m, exact map_map₂_distrib (λ _ _, h_antidistrib _ _) }
 
-/-- Symmetric of `filter.map₂_map_left_anticomm`. -/
+/-- Symmetric statement to `filter.map₂_map_left_anticomm`. -/
 lemma map_map₂_antidistrib_left {n : γ → δ} {m' : β' → α → δ} {n' : β → β'}
   (h_antidistrib : ∀ a b, n (m a b) = m' (n' b) a) :
   (map₂ m f g).map n = map₂ m' (g.map n') f :=
 map_map₂_antidistrib h_antidistrib
 
-/-- Symmetric of `filter.map_map₂_right_anticomm`. -/
+/-- Symmetric statement to `filter.map_map₂_right_anticomm`. -/
 lemma map_map₂_antidistrib_right {n : γ → δ} {m' : β → α' → δ} {n' : α → α'}
   (h_antidistrib : ∀ a b, n (m a b) = m' b (n' a)) :
   (map₂ m f g).map n = map₂ m' g (f.map n') :=
 map_map₂_antidistrib h_antidistrib
 
-/-- Symmetric of `filter.map_map₂_antidistrib_left`. -/
+/-- Symmetric statement to `filter.map_map₂_antidistrib_left`. -/
 lemma map₂_map_left_anticomm {m : α' → β → γ} {n : α → α'} {m' : β → α → δ} {n' : δ → γ}
   (h_left_anticomm : ∀ a b, m (n a) b = n' (m' b a)) :
   map₂ m (f.map n) g = (map₂ m' g f).map n' :=
 (map_map₂_antidistrib_left $ λ a b, (h_left_anticomm b a).symm).symm
 
-/-- Symmetric of `filter.map_map₂_antidistrib_right`. -/
+/-- Symmetric statement to `filter.map_map₂_antidistrib_right`. -/
 lemma map_map₂_right_anticomm {m : α → β' → γ} {n : β → β'} {m' : β → α → δ} {n' : δ → γ}
   (h_right_anticomm : ∀ a b, m a (n b) = n' (m' b a)) :
   map₂ m f (g.map n) = (map₂ m' g f).map n' :=
 (map_map₂_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
+
+/-- If `a` is a left identity for `f : α → β → β`, then `pure a` is a left identity for
+`filter.map₂ f`. -/
+lemma map₂_left_identity {f : α → β → β} {a : α} (h : ∀ b, f a b = b) (l : filter β) :
+  map₂ f (pure a) l = l :=
+by rw [map₂_pure_left, show f a = id, from funext h, map_id]
+
+/-- If `b` is a right identity for `f : α → β → α`, then `pure b` is a right identity for
+`filter.map₂ f`. -/
+lemma map₂_right_identity {f : α → β → α} {b : β} (h : ∀ a, f a b = a) (l : filter α) :
+  map₂ f l (pure b) = l :=
+by rw [map₂_pure_right, funext h, map_id']
 
 end filter

@@ -8,10 +8,12 @@ import algebra.big_operators.basic
 import algebra.module.basic
 import data.nat.interval
 import tactic.linarith
-import tactic.abel
 
 /-!
 # Results about big operators over intervals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove results about big operators over intervals (mostly the `ℕ`-valued `Ico m n`).
 -/
@@ -33,10 +35,7 @@ variables [comm_monoid β]
 lemma prod_Ico_add' [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
   [locally_finite_order α] (f : α → β) (a b c : α) :
   (∏ x in Ico a b, f (x + c)) = (∏ x in Ico (a + c) (b + c), f x) :=
-begin
-  classical,
-  rw [←image_add_right_Ico, prod_image (λ x hx y hy h, add_right_cancel h)],
-end
+by { rw [← map_add_right_Ico, prod_map], refl }
 
 @[to_additive]
 lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
@@ -70,6 +69,20 @@ lemma prod_eq_prod_Ico_succ_bot {a b : ℕ} (hab : a < b) (f : ℕ → β) :
 lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
   (∏ i in Ico m n, f i) * (∏ i in Ico n k, f i) = (∏ i in Ico m k, f i) :=
 Ico_union_Ico_eq_Ico hmn hnk ▸ eq.symm $ prod_union $ Ico_disjoint_Ico_consecutive m n k
+
+@[to_additive]
+lemma prod_Ioc_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
+  (∏ i in Ioc m n, f i) * (∏ i in Ioc n k, f i) = (∏ i in Ioc m k, f i) :=
+begin
+  rw [← Ioc_union_Ioc_eq_Ioc hmn hnk, prod_union],
+  apply disjoint_left.2 (λ x hx h'x, _),
+  exact lt_irrefl _ ((mem_Ioc.1 h'x).1.trans_le (mem_Ioc.1 hx).2),
+end
+
+@[to_additive]
+lemma prod_Ioc_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
+  (∏ k in Ioc a (b + 1), f k) = (∏ k in Ioc a b, f k) * f (b + 1) :=
+by rw [← prod_Ioc_consecutive _ hab (nat.le_succ b), nat.Ioc_succ_singleton, prod_singleton]
 
 @[to_additive]
 lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :
@@ -220,7 +233,7 @@ section module
 variables {R M : Type*} [ring R] [add_comm_group M] [module R M] (f : ℕ → R) (g : ℕ → M) {m n : ℕ}
 open finset
 -- The partial sum of `g`, starting from zero
-local notation `G` n:80 := ∑ i in range n, g i
+local notation `G ` n:80 := ∑ i in range n, g i
 
 /-- **Summation by parts**, also known as **Abel's lemma** or an **Abel transformation** -/
 theorem sum_Ico_by_parts (hmn : m < n) :

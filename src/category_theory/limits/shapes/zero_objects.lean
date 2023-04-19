@@ -3,12 +3,13 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.images
-import category_theory.isomorphism_classes
+import category_theory.limits.shapes.terminal
 
 /-!
 # Zero objects
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A category "has a zero object" if it has an object which is both initial and terminal. Having a
 zero object provides zero morphisms, as the unique morphisms factoring through the zero object;
@@ -26,10 +27,12 @@ universes v u v' u'
 open category_theory
 open category_theory.category
 
-namespace category_theory.limits
-
 variables {C : Type u} [category.{v} C]
 variables {D : Type u'} [category.{v'} D]
+
+namespace category_theory
+
+namespace limits
 
 /-- An object `X` in a category is a *zero object* if for every object `Y`
 there is a unique morphism `to : X → Y` and a unique morphism `from : Y → X`.
@@ -99,27 +102,48 @@ begin
   { rw ← cancel_mono e.hom, apply hY.eq_of_tgt, },
 end
 
+lemma op (h : is_zero X) : is_zero (opposite.op X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_src _ _)⟩⟩⟩
+
+lemma unop {X : Cᵒᵖ} (h : is_zero X) : is_zero (opposite.unop X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_src _ _)⟩⟩⟩
+
 end is_zero
+
+end limits
+
+open category_theory.limits
 
 lemma iso.is_zero_iff {X Y : C} (e : X ≅ Y) :
   is_zero X ↔ is_zero Y :=
 ⟨λ h, h.of_iso e.symm, λ h, h.of_iso e⟩
 
+lemma functor.is_zero (F : C ⥤ D) (hF : ∀ X, is_zero (F.obj X)) :
+  is_zero F :=
+begin
+  split; intros G; refine ⟨⟨⟨_⟩, _⟩⟩,
+  { refine { app := λ X, (hF _).to _, naturality' := _ },
+    intros, exact (hF _).eq_of_src _ _ },
+  { intro f, ext, apply (hF _).eq_of_src _ _ },
+  { refine { app := λ X, (hF _).from _, naturality' := _ },
+    intros, exact (hF _).eq_of_tgt _ _ },
+  { intro f, ext, apply (hF _).eq_of_tgt _ _ },
+end
+
+namespace limits
+
 variables (C)
 
 /-- A category "has a zero object" if it has an object which is both initial and terminal. -/
-class has_zero_object :=
-(zero : C)
-(unique_to : Π X : C, unique (zero ⟶ X))
-(unique_from : Π X : C, unique (X ⟶ zero))
+class has_zero_object : Prop :=
+(zero : ∃ X : C, is_zero X)
 
 instance has_zero_object_punit : has_zero_object (discrete punit) :=
-{ zero := punit.star,
-  unique_to := by tidy,
-  unique_from := by tidy, }
+{ zero := ⟨⟨⟨⟩⟩, by tidy, by tidy⟩, }
 
-
-namespace has_zero_object
+section
 
 variables [has_zero_object C]
 
@@ -127,22 +151,53 @@ variables [has_zero_object C]
 Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
 -/
-protected def has_zero : has_zero C :=
-{ zero := has_zero_object.zero }
+protected def has_zero_object.has_zero : has_zero C :=
+{ zero := has_zero_object.zero.some }
 
 localized "attribute [instance] category_theory.limits.has_zero_object.has_zero" in zero_object
-localized "attribute [instance] category_theory.limits.has_zero_object.unique_to" in zero_object
-localized "attribute [instance] category_theory.limits.has_zero_object.unique_from" in zero_object
 
 lemma is_zero_zero : is_zero (0 : C) :=
-{ unique_to :=   λ Y, ⟨has_zero_object.unique_to Y⟩,
-  unique_from := λ Y, ⟨has_zero_object.unique_from Y⟩ }
+has_zero_object.zero.some_spec
 
-/-- Every zero object is isomorphic to *the* zero object. -/
-def is_zero.iso_zero {X : C} (hX : is_zero X) : X ≅ 0 :=
-hX.iso (is_zero_zero C)
+instance has_zero_object_op : has_zero_object Cᵒᵖ := ⟨⟨opposite.op 0, is_zero.op (is_zero_zero C)⟩⟩
+
+end
+
+open_locale zero_object
+
+lemma has_zero_object_unop [has_zero_object Cᵒᵖ] : has_zero_object C :=
+⟨⟨opposite.unop 0, is_zero.unop (is_zero_zero Cᵒᵖ)⟩⟩
 
 variables {C}
+
+lemma is_zero.has_zero_object {X : C} (hX : is_zero X) : has_zero_object C := ⟨⟨X, hX⟩⟩
+
+/-- Every zero object is isomorphic to *the* zero object. -/
+def is_zero.iso_zero [has_zero_object C] {X : C} (hX : is_zero X) : X ≅ 0 :=
+hX.iso (is_zero_zero C)
+
+lemma is_zero.obj [has_zero_object D] {F : C ⥤ D} (hF : is_zero F) (X : C) :
+  is_zero (F.obj X) :=
+begin
+  let G : C ⥤ D := (category_theory.functor.const C).obj 0,
+  have hG : is_zero G := functor.is_zero _ (λ X, is_zero_zero _),
+  let e : F ≅ G := hF.iso hG,
+  exact (is_zero_zero _).of_iso (e.app X),
+end
+
+namespace has_zero_object
+variables [has_zero_object C]
+
+/-- There is a unique morphism from the zero object to any object `X`. -/
+protected def unique_to (X : C) : unique (0 ⟶ X) :=
+((is_zero_zero C).unique_to X).some
+
+/-- There is a unique morphism from any object `X` to the zero object. -/
+protected def unique_from (X : C) : unique (X ⟶ 0) :=
+((is_zero_zero C).unique_from X).some
+
+localized "attribute [instance] category_theory.limits.has_zero_object.unique_to" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.unique_from" in zero_object
 
 @[ext]
 lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
@@ -160,13 +215,17 @@ instance {X : C} (f : 0 ⟶ X) : mono f :=
 instance {X : C} (f : X ⟶ 0) : epi f :=
 { left_cancellation := λ Z g h w, by ext, }
 
+instance zero_to_zero_is_iso (f : (0 : C) ⟶ 0) :
+  is_iso f :=
+by convert (show is_iso (𝟙 (0 : C)), by apply_instance)
+
 /-- A zero object is in particular initial. -/
 def zero_is_initial : is_initial (0 : C) :=
-is_initial.of_unique 0
+(is_zero_zero C).is_initial
 
 /-- A zero object is in particular terminal. -/
 def zero_is_terminal : is_terminal (0 : C) :=
-is_terminal.of_unique 0
+(is_zero_zero C).is_terminal
 
 /-- A zero object is in particular initial. -/
 @[priority 10]
@@ -198,8 +257,15 @@ zero_is_terminal.unique_up_to_iso terminal_is_terminal
 instance has_strict_initial : initial_mono_class C :=
 initial_mono_class.of_is_initial zero_is_initial (λ X, category_theory.mono _)
 
-open_locale zero_object
-
 end has_zero_object
 
-end category_theory.limits
+end limits
+
+open category_theory.limits
+open_locale zero_object
+
+lemma functor.is_zero_iff [has_zero_object D] (F : C ⥤ D) :
+  is_zero F ↔ ∀ X, is_zero (F.obj X) :=
+⟨λ hF X, hF.obj X, functor.is_zero _⟩
+
+end category_theory

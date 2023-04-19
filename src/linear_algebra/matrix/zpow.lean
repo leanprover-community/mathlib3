@@ -123,12 +123,11 @@ lemma is_unit_det_zpow_iff {A : M} {z : ℤ} :
 begin
   induction z using int.induction_on with z IH z IH,
   { simp },
-  { rw [←int.coe_nat_succ, zpow_coe_nat, det_pow, is_unit_pos_pow_iff (z.zero_lt_succ),
-        ←int.coe_nat_zero, int.coe_nat_eq_coe_nat_iff],
-    simp },
-  { rw [←neg_add', ←int.coe_nat_succ, zpow_neg_coe_nat, is_unit_nonsing_inv_det_iff,
-        det_pow, is_unit_pos_pow_iff (z.zero_lt_succ), neg_eq_zero, ←int.coe_nat_zero,
+  { rw [←int.coe_nat_succ, zpow_coe_nat, det_pow, is_unit_pow_succ_iff, ←int.coe_nat_zero,
         int.coe_nat_eq_coe_nat_iff],
+    simp },
+  { rw [←neg_add', ←int.coe_nat_succ, zpow_neg_coe_nat, is_unit_nonsing_inv_det_iff, det_pow,
+        is_unit_pow_succ_iff, neg_eq_zero, ←int.coe_nat_zero, int.coe_nat_eq_coe_nat_iff],
     simp }
 end
 
@@ -144,7 +143,7 @@ lemma inv_zpow' {A : M} (h : is_unit A.det) (n : ℤ) :
 by rw [zpow_neg h, inv_zpow]
 
 lemma zpow_add_one {A : M} (h : is_unit A.det) : ∀ n : ℤ, A ^ (n + 1) = A ^ n * A
-| (n : ℕ)        := by simp [← int.coe_nat_succ, pow_succ']
+| (n : ℕ)        := by simp only [← nat.cast_succ, pow_succ', zpow_coe_nat]
 | -((n : ℕ) + 1) :=
 calc  A ^ (-(n + 1) + 1 : ℤ)
     = (A ^ n)⁻¹ : by rw [neg_add, neg_add_cancel_right, zpow_neg h, zpow_coe_nat]
@@ -239,7 +238,7 @@ begin
 end
 
 lemma zpow_add_one_of_ne_neg_one {A : M} : ∀ (n : ℤ), n ≠ -1 → A ^ (n + 1) = A ^ n * A
-| (n : ℕ) _ := by simp [← int.coe_nat_succ, pow_succ']
+| (n : ℕ) _ := by simp only [pow_succ', ← nat.cast_succ, zpow_coe_nat]
 | (-1) h := absurd rfl h
 | (-((n : ℕ) + 2)) _ := begin
   rcases nonsing_inv_cancel_or_zero A with ⟨h, h'⟩ | h,
@@ -311,6 +310,16 @@ by simp only [one_div, inv_pow']
 theorem one_div_zpow {A : M} (n : ℤ) :
   (1 / A) ^ n = 1 / A ^ n :=
 by simp only [one_div, inv_zpow]
+
+@[simp] theorem transpose_zpow (A : M) : ∀ (n : ℤ), (A ^ n)ᵀ = Aᵀ ^ n
+| (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, transpose_pow]
+| -[1+ n] := by
+  rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, transpose_nonsing_inv, transpose_pow]
+
+@[simp] theorem conj_transpose_zpow [star_ring R] (A : M) : ∀ (n : ℤ), (A ^ n)ᴴ = Aᴴ ^ n
+| (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, conj_transpose_pow]
+| -[1+ n] := by
+  rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, conj_transpose_nonsing_inv, conj_transpose_pow]
 
 end zpow
 

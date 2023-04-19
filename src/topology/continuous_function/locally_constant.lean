@@ -36,7 +36,7 @@ def to_continuous_map_monoid_hom [monoid Y] [has_continuous_mul Y] :
 
 /-- The inclusion of locally-constant functions into continuous functions as an algebra map. -/
 @[simps] def to_continuous_map_alg_hom (R : Type*) [comm_semiring R]
-  [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_const_smul R Y] :
+  [semiring Y] [algebra R Y] [topological_semiring Y] :
   locally_constant X Y →ₐ[R] C(X, Y) :=
 { to_fun    := coe,
   map_one'  := by { ext, simp, },

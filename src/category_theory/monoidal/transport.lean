@@ -8,6 +8,9 @@ import category_theory.monoidal.natural_transformation
 /-!
 # Transport a monoidal structure along an equivalence.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `C` and `D` are equivalent as categories,
 we can transport a monoidal structure on `C` along the equivalence,
 obtaining a monoidal structure on `D`.
@@ -32,7 +35,7 @@ variables {D : Type u₂} [category.{v₂} D]
 /--
 Transport a monoidal structure along an equivalence of (plain) categories.
 -/
-@[simps]
+@[simps {attrs := [`_refl_lemma]}] -- We just want these simp lemmas locally
 def transport (e : C ≌ D) : monoidal_category.{v₂} D :=
 { tensor_obj := λ X Y, e.functor.obj (e.inverse.obj X ⊗ e.inverse.obj Y),
   tensor_hom := λ W X Y Z f g, e.functor.map (e.inverse.map f ⊗ e.inverse.map g),
@@ -137,6 +140,13 @@ def transported (e : C ≌ D) := D
 instance (e : C ≌ D) : monoidal_category (transported e) := transport e
 instance (e : C ≌ D) : inhabited (transported e) := ⟨𝟙_ _⟩
 
+section
+local attribute [simp] transport_tensor_unit
+
+section
+local attribute [simp] transport_tensor_hom transport_associator
+  transport_left_unitor transport_right_unitor
+
 /--
 We can upgrade `e.functor` to a lax monoidal functor from `C` to `D` with the transported structure.
 -/
@@ -170,8 +180,8 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
     conv_rhs { rw [←id_tensor_comp_tensor_id _ (e.unit_inv.app X)], },
     dsimp only [functor.comp_obj],
     slice_rhs 3 4 { rw [←id_tensor_comp, iso.hom_inv_id_app], dsimp, rw [tensor_id] },
-    simp only [id_comp],
-    simp [associator_naturality],
+    simp only [associator_conjugation, ←tensor_id, ←tensor_comp, iso.inv_hom_id,
+      iso.inv_hom_id_assoc, category.assoc, category.id_comp, category.comp_id],
   end,
   left_unitality' := λ X,
   begin
@@ -180,8 +190,7 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
     rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
-    rw [←left_unitor_naturality],
-    simp,
+    simp only [←left_unitor_naturality, id_comp, ←tensor_comp_assoc, comp_id],
   end,
   right_unitality' := λ X,
   begin
@@ -190,9 +199,9 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
     rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
-    rw [←right_unitor_naturality],
-    simp,
+    simp only [←right_unitor_naturality, id_comp, ←tensor_comp_assoc, comp_id],
   end, }.
+end
 
 /--
 We can upgrade `e.functor` to a monoidal functor from `C` to `D` with the transported structure.
@@ -202,6 +211,7 @@ def to_transported (e : C ≌ D) : monoidal_functor C (transported e) :=
 { to_lax_monoidal_functor := lax_to_transported e,
   ε_is_iso := by { dsimp, apply_instance, },
   μ_is_iso := λ X Y, by { dsimp, apply_instance, }, }
+end
 
 instance (e : C ≌ D) : is_equivalence (to_transported e).to_functor :=
 by { dsimp, apply_instance, }

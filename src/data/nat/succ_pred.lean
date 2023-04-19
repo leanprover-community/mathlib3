@@ -3,15 +3,19 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import data.fin.basic
 import order.succ_pred.basic
 
 /-!
 # Successors and predecessors of naturals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we show that `ℕ` is both an archimedean `succ_order` and an archimedean `pred_order`.
 -/
 
-open function
+open function order
 
 namespace nat
 
@@ -57,4 +61,13 @@ instance : is_succ_archimedean ℕ :=
 instance : is_pred_archimedean ℕ :=
 ⟨λ a b h, ⟨b - a, by rw [pred_eq_pred, pred_iterate, tsub_tsub_cancel_of_le h]⟩⟩
 
+/-! ### Covering relation -/
+
+protected lemma covby_iff_succ_eq {m n : ℕ} : m ⋖ n ↔ m + 1 = n := succ_eq_iff_covby.symm
+
 end nat
+
+@[simp, norm_cast] lemma fin.coe_covby_iff {n : ℕ} {a b : fin n} : (a : ℕ) ⋖ b ↔ a ⋖ b :=
+and_congr_right' ⟨λ h c hc, h hc, λ h c ha hb, @h ⟨c, hb.trans b.prop⟩ ha hb⟩
+
+alias fin.coe_covby_iff ↔ _ covby.coe_fin

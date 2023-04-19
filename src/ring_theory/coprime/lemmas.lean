@@ -11,6 +11,9 @@ import ring_theory.coprime.basic
 /-!
 # Additional lemmas about elements of a ring satisfying `is_coprime`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These lemmas are in a separate file to the definition of `is_coprime` as they require more imports.
 
 Notably, this includes lemmas about `finset.prod` as this requires importing big_operators, and
@@ -22,7 +25,9 @@ universes u v
 
 variables {R : Type u} {I : Type v} [comm_semiring R] {x y z : R} {s : I → R} {t : finset I}
 
-open_locale big_operators classical
+open_locale big_operators
+section
+open_locale classical
 
 theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.coprime m n :=
 ⟨λ ⟨a, b, H⟩, nat.eq_one_of_dvd_one $ int.coe_nat_dvd.1 $ by { rw [int.coe_nat_one, ← H],
@@ -30,6 +35,8 @@ theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.
     (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_right m n) _) },
 λ H, ⟨nat.gcd_a m n, nat.gcd_b m n, by rw [mul_comm _ (m : ℤ), mul_comm _ (n : ℤ),
     ← nat.gcd_eq_gcd_ab, show _ = _, from H, int.coe_nat_one]⟩⟩
+
+alias nat.is_coprime_iff_coprime ↔ is_coprime.nat_coprime nat.coprime.is_coprime
 
 theorem is_coprime.prod_left : (∀ i ∈ t, is_coprime (s i) x) → is_coprime (∏ i in t, s i) x :=
 finset.induction_on t (λ _, is_coprime_one_left) $ λ b t hbt ih H,
@@ -71,9 +78,11 @@ theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s)
   (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
 finset.prod_dvd_of_coprime (Hs.set_pairwise _) (λ i _, Hs1 i)
 
+end
+
 open finset
 
-lemma exists_sum_eq_one_iff_pairwise_coprime (h : t.nonempty) :
+lemma exists_sum_eq_one_iff_pairwise_coprime [decidable_eq I] (h : t.nonempty) :
   (∃ μ : I → R, ∑ i in t, μ i * ∏ j in t \ {i}, s j = 1) ↔ pairwise (is_coprime on λ i : t, s i) :=
 begin
   refine h.cons_induction _ _; clear' t h,
@@ -92,7 +101,7 @@ begin
     refine ⟨ih.mp ⟨pi.single h.some (μ a * s h.some) + μ * λ _, s a, _⟩, λ b hb, _⟩,
     { rw [prod_eq_mul_prod_diff_singleton h.some_spec, ← mul_assoc,
         ← @if_pos _ _ h.some_spec R (_ * _) 0, ← sum_pi_single', ← sum_add_distrib] at hμ,
-      rw [← hμ, sum_congr rfl], intros x hx, convert add_mul _ _ _ using 2,
+      rw [← hμ, sum_congr rfl], intros x hx, convert @add_mul R _ _ _ _ _ _ using 2,
       { by_cases hx : x = h.some,
         { rw [hx, pi.single_eq_same, pi.single_eq_same] },
         { rw [pi.single_eq_of_ne hx, pi.single_eq_of_ne hx, zero_mul] } },
@@ -118,7 +127,7 @@ begin
     convert sdiff_sdiff_comm, rw [sdiff_singleton_eq_erase, erase_insert hat] }
 end
 
-lemma exists_sum_eq_one_iff_pairwise_coprime' [fintype I] [nonempty I] :
+lemma exists_sum_eq_one_iff_pairwise_coprime' [fintype I] [nonempty I] [decidable_eq I] :
   (∃ μ : I → R, ∑ (i : I), μ i * ∏ j in {i}ᶜ, s j = 1) ↔ pairwise (is_coprime on s) :=
 begin
   convert exists_sum_eq_one_iff_pairwise_coprime finset.univ_nonempty using 1,
@@ -126,13 +135,13 @@ begin
   assumption
 end
 
-lemma pairwise_coprime_iff_coprime_prod :
+lemma pairwise_coprime_iff_coprime_prod [decidable_eq I] :
   pairwise (is_coprime on λ i : t, s i) ↔ ∀ i ∈ t, is_coprime (s i) (∏ j in t \ {i}, (s j)) :=
 begin
   refine ⟨λ hp i hi, is_coprime.prod_right_iff.mpr (λ j hj, _), λ hp, _⟩,
   { rw [finset.mem_sdiff, finset.mem_singleton] at hj,
     obtain ⟨hj, ji⟩ := hj,
-    exact hp ⟨i, hi⟩ ⟨j, hj⟩ (λ h, ji (congr_arg coe h).symm) },
+    exact @hp ⟨i, hi⟩ ⟨j, hj⟩ (λ h, ji (congr_arg coe h).symm) },
   { rintro ⟨i, hi⟩ ⟨j, hj⟩ h,
     apply is_coprime.prod_right_iff.mp (hp i hi),
     exact finset.mem_sdiff.mpr ⟨hj, λ f, h $ subtype.ext (finset.mem_singleton.mp f).symm⟩ }

@@ -7,10 +7,13 @@ import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.normal_mono.equalizers
 import category_theory.abelian.images
-import category_theory.preadditive
+import category_theory.preadditive.basic
 
 /-!
 # Every non_preadditive_abelian category is preadditive
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In mathlib, we define an abelian category as a preadditive category with a zero object,
 kernels and cokernels, products and coproducts and in which every monomorphism and epimorphis is
@@ -230,7 +233,7 @@ begin
     { intros s m h,
       haveI : mono (prod.lift (𝟙 A) (0 : A ⟶ A)) := mono_of_mono_fac (prod.lift_fst _ _),
       apply (cancel_mono (prod.lift (𝟙 A) (0 : A ⟶ A))).1,
-      convert h walking_parallel_pair.zero,
+      convert h,
       ext; simp } },
   let hp2 : is_colimit (cokernel_cofork.of_π (limits.prod.snd : A ⨯ A ⟶ A) hlp),
   { exact epi_is_cokernel_of_kernel _ hp1 },

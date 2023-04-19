@@ -17,7 +17,7 @@ noncomputable theory
 namespace real
 
 open set filter
-open_locale topological_space real
+open_locale topology real
 
 lemma tan_add {x y : ℝ}
   (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)
@@ -106,6 +106,9 @@ tan_order_iso.apply_symm_apply x
 lemma arctan_mem_Ioo (x : ℝ) : arctan x ∈ Ioo (-(π / 2)) (π / 2) :=
 subtype.coe_prop _
 
+@[simp] lemma range_arctan : range arctan = Ioo (-(π / 2)) (π / 2) :=
+((equiv_like.surjective _).range_comp _).trans subtype.range_coe
+
 lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan (tan x) = x :=
 subtype.ext_iff.1 $ tan_order_iso.symm_apply_apply ⟨x, hx₁, hx₂⟩
 
@@ -133,7 +136,7 @@ eq.symm $ arcsin_eq_of_sin_eq (sin_arctan x) (mem_Icc_of_Ioo $ arctan_mem_Ioo x)
 lemma arcsin_eq_arctan {x : ℝ} (h : x ∈ Ioo (-(1:ℝ)) 1) :
   arcsin x = arctan (x / sqrt (1 - x ^ 2)) :=
 begin
-  rw [arctan_eq_arcsin, div_pow, sq_sqrt, one_add_div, div_div_eq_div_mul,
+  rw [arctan_eq_arcsin, div_pow, sq_sqrt, one_add_div, div_div,
       ← sqrt_mul, mul_div_cancel', sub_add_cancel, sqrt_one, div_one];
   nlinarith [h.1, h.2],
 end
@@ -150,6 +153,25 @@ arctan_eq_of_tan_eq tan_pi_div_four $ by split; linarith [pi_pos]
 
 @[simp] lemma arctan_neg (x : ℝ) : arctan (-x) = - arctan x :=
 by simp [arctan_eq_arcsin, neg_div]
+
+lemma arctan_eq_arccos {x : ℝ} (h : 0 ≤ x) : arctan x = arccos ((sqrt (1 + x ^ 2))⁻¹) :=
+begin
+  rw [arctan_eq_arcsin, arccos_eq_arcsin], swap, { exact inv_nonneg.2 (sqrt_nonneg _) },
+  congr' 1,
+  rw [←sqrt_inv, sq_sqrt, ←one_div, one_sub_div, add_sub_cancel', sqrt_div, sqrt_sq h],
+  all_goals { positivity }
+end
+
+-- The junk values for `arccos` and `sqrt` make this true even for `1 < x`.
+lemma arccos_eq_arctan {x : ℝ} (h : 0 < x) :
+  arccos x = arctan (sqrt (1 - x ^ 2) / x) :=
+begin
+  rw [arccos, eq_comm],
+  refine arctan_eq_of_tan_eq _ ⟨_, _⟩,
+  { rw [tan_pi_div_two_sub, tan_arcsin, inv_div] },
+  { linarith only [arcsin_le_pi_div_two x, pi_pos] },
+  { linarith only [arcsin_pos.2 h] }
+end
 
 @[continuity]
 lemma continuous_arctan : continuous arctan :=

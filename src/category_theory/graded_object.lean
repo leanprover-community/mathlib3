@@ -3,14 +3,16 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.int.basic
 import algebra.group_power.lemmas
 import category_theory.pi.basic
-import category_theory.shift
+import category_theory.shift.basic
 import category_theory.concrete_category.basic
 
 /-!
 # The category of graded objects
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For any type `β`, a `β`-graded object over some category `C` is just
 a function `β → C` into the objects of `C`.
@@ -53,7 +55,7 @@ namespace graded_object
 
 variables {C : Type u} [category.{v} C]
 
-instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
+instance category_of_graded_objects (β : Type w) : category.{max w v} (graded_object β C) :=
 category_theory.pi (λ _, C)
 
 /-- The projection of a graded object to its `i`-th component. -/
@@ -107,11 +109,12 @@ instance has_shift {β : Type*} [add_comm_group β] (s : β) :
   has_shift (graded_object_with_shift s C) ℤ :=
 has_shift_mk _ _
 { F := λ n, comap (λ _, C) $ λ (b : β), b + n • s,
-  ε := (comap_id β (λ _, C)).symm ≪≫ (comap_eq C (by { ext, simp })),
-  μ := λ m n, comap_comp _ _ _ ≪≫ comap_eq C (by { ext, simp [add_zsmul, add_comm] }),
-  left_unitality := by { introv, ext, dsimp, simpa },
-  right_unitality := by { introv, ext, dsimp, simpa },
-  associativity := by { introv, ext, dsimp, simp } }
+  zero := comap_eq C (by { ext, simp }) ≪≫ comap_id β (λ _, C),
+  add := λ m n,  comap_eq C (by { ext, simp [add_zsmul, add_comm], }) ≪≫
+    (comap_comp _ _ _).symm,
+  assoc_hom_app := λ m₁ m₂ m₃ X, by { ext, dsimp, simp, },
+  zero_add_hom_app := λ n X, by { ext, dsimp, simpa, },
+  add_zero_hom_app := λ n X, by { ext, dsimp, simpa, }, }
 
 @[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
   (s : β) (X : β → C) (t : β) (n : ℤ) :
@@ -124,7 +127,7 @@ rfl
 rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
-  has_zero_morphisms.{(max w v)} (graded_object β C) :=
+  has_zero_morphisms.{max w v} (graded_object β C) :=
 { has_zero := λ X Y,
   { zero := λ b, 0 } }
 
@@ -136,10 +139,8 @@ section
 open_locale zero_object
 
 instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
-  has_zero_object.{(max w v)} (graded_object β C) :=
-{ zero := λ b, (0 : C),
-  unique_to := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩,
-  unique_from := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩, }
+  has_zero_object.{max w v} (graded_object β C) :=
+by { refine ⟨⟨λ b, 0, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩⟩⟩; ext, }
 end
 
 end graded_object
@@ -150,14 +151,19 @@ namespace graded_object
 -- If you're grading by things in higher universes, have fun!
 variables (β : Type)
 variables (C : Type u) [category.{v} C]
-variables [has_coproducts C]
+variables [has_coproducts.{0} C]
+
+section
+local attribute [tidy] tactic.discrete_cases
 
 /--
 The total object of a graded object is the coproduct of the graded components.
 -/
 noncomputable def total : graded_object β C ⥤ C :=
-{ obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
-  map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
+{ obj := λ X, ∐ (λ i : β, X i),
+  map := λ X Y f, limits.sigma.map (λ i, f i) }.
+
+end
 
 variables [has_zero_morphisms C]
 
@@ -171,8 +177,9 @@ instance : faithful (total β C) :=
   begin
     classical,
     ext i,
-    replace w := sigma.ι (λ i : ulift.{v} β, X i.down) ⟨i⟩ ≫= w,
+    replace w := sigma.ι (λ i : β, X i) i ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
+    simp at *,
     exact mono.right_cancellation _ _ w,
   end }
 
@@ -184,7 +191,7 @@ noncomputable theory
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]
-  [has_coproducts C] [has_zero_morphisms C]
+  [has_coproducts.{0} C] [has_zero_morphisms C]
 
 instance : concrete_category (graded_object β C) :=
 { forget := total β C ⋙ forget C }

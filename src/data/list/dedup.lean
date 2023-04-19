@@ -8,6 +8,9 @@ import data.list.nodup
 /-!
 # Erasure of duplicates in a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic results about `list.dedup` (definition in `data.list.defs`).
 `dedup l` returns `l` without its duplicates. It keeps the earliest (that is, rightmost)
 occurrence of each.
@@ -35,7 +38,7 @@ pw_filter_cons_of_pos $ by simpa only [forall_mem_ne] using h
 
 @[simp] theorem mem_dedup {a : α} {l : list α} : a ∈ dedup l ↔ a ∈ l :=
 by simpa only [dedup, forall_mem_ne, not_not] using not_congr (@forall_mem_pw_filter α (≠) _
-  (λ x y z xz, not_and_distrib.1 $ mt (and.rec eq.trans) xz) a l)
+  (λ x y z xz, not_and_distrib.1 $ mt (λ h, eq.trans h.1 h.2) xz) a l)
 
 @[simp] theorem dedup_cons_of_mem {a : α} {l : list α} (h : a ∈ l) :
   dedup (a :: l) = dedup l :=
@@ -70,5 +73,42 @@ begin
   [ rw [dedup_cons_of_mem' h, insert_of_mem h],
     rw [dedup_cons_of_not_mem' h, insert_of_not_mem h]]
 end
+
+lemma replicate_dedup {x : α} : ∀ {k}, k ≠ 0 → (replicate k x).dedup = [x]
+| 0 h := (h rfl).elim
+| 1 _ := rfl
+| (n+2) _ := by rw [replicate_succ, dedup_cons_of_mem (mem_replicate.2 ⟨n.succ_ne_zero, rfl⟩),
+    replicate_dedup n.succ_ne_zero]
+
+lemma count_dedup (l : list α) (a : α) :
+  l.dedup.count a = if a ∈ l then 1 else 0 :=
+by simp_rw [count_eq_of_nodup $ nodup_dedup l, mem_dedup]
+
+/-- Summing the count of `x` over a list filtered by some `p` is just `countp` applied to `p` -/
+lemma sum_map_count_dedup_filter_eq_countp (p : α → Prop) [decidable_pred p]
+  (l : list α) : ((l.dedup.filter p).map $ λ x, l.count x).sum = l.countp p :=
+begin
+  induction l with a as h,
+  { simp },
+  { simp_rw [list.countp_cons, list.count_cons', list.sum_map_add],
+    congr' 1,
+    { refine trans _ h,
+      by_cases ha : a ∈ as,
+      { simp [dedup_cons_of_mem ha] },
+      { simp only [dedup_cons_of_not_mem ha, list.filter],
+        split_ifs with hp; simp [list.map_cons, list.sum_cons,
+          list.count_eq_zero.2 ha, zero_add] } },
+    { by_cases hp : p a,
+      { refine trans (sum_map_eq_nsmul_single a _ (λ _ h _, by simp [h])) _,
+        simp [hp, count_dedup] },
+      { refine trans (list.sum_eq_zero $ λ n hn, _) (by simp [hp]),
+        obtain ⟨a', ha'⟩ := list.mem_map.1 hn,
+        simp only [(λ h, hp (h ▸ (list.mem_filter.1 ha'.1).2) : a' ≠ a), if_false] at ha',
+        exact ha'.2.symm } } },
+end
+
+lemma sum_map_count_dedup_eq_length (l : list α) :
+  (l.dedup.map $ λ x, l.count x).sum = l.length :=
+by simpa using sum_map_count_dedup_filter_eq_countp (λ _, true) l
 
 end list

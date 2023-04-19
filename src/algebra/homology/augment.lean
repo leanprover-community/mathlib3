@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.single
-import tactic.linarith
 
 /-!
 # Augmentation and truncation of `ℕ`-indexed (co)chain complexes.
 -/
+
+noncomputable theory
 
 open category_theory
 open category_theory.limits

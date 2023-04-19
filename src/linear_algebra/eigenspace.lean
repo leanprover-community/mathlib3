@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import linear_algebra.charpoly.basic
-import linear_algebra.finsupp
-import linear_algebra.matrix.to_lin
 import algebra.algebra.spectrum
 import order.hom.basic
+import linear_algebra.free_module.finite.basic
+import linear_algebra.general_linear_group
 
 /-!
 # Eigenvectors and eigenvalues
@@ -55,6 +54,9 @@ variables {K R : Type v} {V M : Type w}
     such that `f x = μ • x`. (Def 5.36 of [axler2015])-/
 def eigenspace (f : End R M) (μ : R) : submodule R M :=
 (f - algebra_map R (End R M) μ).ker
+
+@[simp] lemma eigenspace_zero (f : End R M) : f.eigenspace 0 = f.ker :=
+by simp [eigenspace]
 
 /-- A nonzero element of an eigenspace is an eigenvector. (Def 5.7 of [axler2015]) -/
 def has_eigenvector (f : End R M) (μ : R) (x : M) : Prop :=
@@ -124,7 +126,7 @@ calc
   ... = (aeval f (C q.leading_coeff * X + C (q.coeff 0))).ker
     : by { rw [C_mul', aeval_def], simp [algebra_map, algebra.to_ring_hom], }
   ... = (aeval f q).ker
-     : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
+    : by rwa ← eq_X_add_C_of_degree_eq_one
 
 lemma ker_aeval_ring_hom'_unit_polynomial
   (f : End K V) (c : (K[X])ˣ) :
@@ -323,7 +325,7 @@ lemma eigenvectors_linear_independent (f : End K V) (μs : set K) (xs : μs → 
   (h_eigenvec : ∀ μ : μs, f.has_eigenvector μ (xs μ)) :
   linear_independent K xs :=
 complete_lattice.independent.linear_independent _
-  (f.eigenspaces_independent.comp (coe : μs → K) subtype.coe_injective)
+  (f.eigenspaces_independent.comp subtype.coe_injective)
   (λ μ, (h_eigenvec μ).1) (λ μ, (h_eigenvec μ).2)
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
@@ -341,6 +343,10 @@ def generalized_eigenspace (f : End R M) (μ : R) : ℕ →o submodule R M :=
 @[simp] lemma mem_generalized_eigenspace (f : End R M) (μ : R) (k : ℕ) (m : M) :
   m ∈ f.generalized_eigenspace μ k ↔ ((f - μ • 1)^k) m = 0 :=
 iff.rfl
+
+@[simp] lemma generalized_eigenspace_zero (f : End R M) (k : ℕ) :
+  f.generalized_eigenspace 0 k = (f^k).ker :=
+by simp [module.End.generalized_eigenspace]
 
 /-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
     (Def 8.9 of [axler2015])-/
@@ -490,8 +496,8 @@ begin
         by { rw ←pow_add, refl }
   ... = f.generalized_eigenspace μ (finrank K V) :
         by { rw generalized_eigenspace_eq_generalized_eigenspace_finrank_of_le, linarith },
-  rw [disjoint, generalized_eigenrange, linear_map.range_eq_map, submodule.map_inf_eq_map_inf_comap,
-    top_inf_eq, h],
+  rw [disjoint_iff_inf_le, generalized_eigenrange, linear_map.range_eq_map,
+    submodule.map_inf_eq_map_inf_comap, top_inf_eq, h],
   apply submodule.map_comap_le
 end
 
@@ -503,7 +509,7 @@ lemma eigenspace_restrict_eq_bot {f : End R M} {p : submodule R M}
 begin
   rw eq_bot_iff,
   intros x hx,
-  simpa using hμp ⟨eigenspace_restrict_le_eigenspace f hfp μ ⟨x, hx, rfl⟩, x.prop⟩,
+  simpa using hμp.le_bot ⟨eigenspace_restrict_le_eigenspace f hfp μ ⟨x, hx, rfl⟩, x.prop⟩,
 end
 
 /-- The generalized eigenspace of an eigenvalue has positive dimension for positive exponents. -/
@@ -535,7 +541,7 @@ begin
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,
-    simp only [finrank_eq_zero.1 (eq.trans finrank_top h_dim), bot_le] },
+    simp only [finrank_eq_zero.1 (eq.trans (finrank_top _ _) h_dim), bot_le] },
   -- Otherwise the vector space is nontrivial.
   { haveI : nontrivial V := finrank_pos_iff.1 (by { rw h_dim, apply nat.zero_lt_succ }),
     -- Hence, `f` has an eigenvalue `μ₀`.

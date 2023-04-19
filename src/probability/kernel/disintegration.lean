@@ -631,7 +631,7 @@ end
 open_locale classical
 
 
-section rnd_prop
+section has_cond_cdf
 
 /-- A product measure on `α × ℝ` is said to have a conditional cdf at `a : α` if `pre_cdf` is
 monotone with limit 0 at -∞ and 1 at +∞, and is right continuous. -/
@@ -656,7 +656,7 @@ def cond_cdf_set (ρ : measure (α × ℝ)) : set α :=
 lemma measurable_set_cond_cdf_set (ρ : measure (α × ℝ)) : measurable_set (cond_cdf_set ρ) :=
 (measurable_set_to_measurable _ _).compl
 
-lemma rnd_prop_of_mem_cond_cdf_set {ρ : measure (α × ℝ)} {a : α} (h : a ∈ cond_cdf_set ρ) :
+lemma has_cond_cdf_of_mem_cond_cdf_set {ρ : measure (α × ℝ)} {a : α} (h : a ∈ cond_cdf_set ρ) :
   has_cond_cdf ρ a :=
 begin
   rw [cond_cdf_set, mem_compl_iff] at h,
@@ -667,7 +667,7 @@ end
 
 lemma cond_cdf_set_subset (ρ : measure (α × ℝ)) :
   cond_cdf_set ρ ⊆ {a | has_cond_cdf ρ a} :=
-λ x, rnd_prop_of_mem_cond_cdf_set
+λ x, has_cond_cdf_of_mem_cond_cdf_set
 
 lemma fst_compl_cond_cdf_set (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ρ.fst (cond_cdf_set ρ)ᶜ = 0 :=
@@ -677,7 +677,7 @@ lemma mem_cond_cdf_set_ae (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, a ∈ cond_cdf_set ρ :=
 fst_compl_cond_cdf_set ρ
 
-end rnd_prop
+end has_cond_cdf
 
 
 /-- Conditional cdf of the measure on the `ℝ` given the value on `α`. It is defined to be `pre_cdf`
@@ -686,11 +686,11 @@ noncomputable
 def cond_cdf_rat (ρ : measure (α × ℝ)) : α → ℚ → ℝ :=
 λ a, if a ∈ cond_cdf_set ρ then (λ r, (pre_cdf ρ r a).to_real) else (λ r, if r < 0 then 0 else 1)
 
-lemma cond_cdf_rat_of_not_rnd_prop (ρ : measure (α × ℝ)) (a : α) (h : a ∉ cond_cdf_set ρ) {r : ℚ} :
+lemma cond_cdf_rat_of_not_mem (ρ : measure (α × ℝ)) (a : α) (h : a ∉ cond_cdf_set ρ) {r : ℚ} :
   cond_cdf_rat ρ a r = if r < 0 then 0 else 1 :=
 by simp only [cond_cdf_rat, h, if_false]
 
-lemma cond_cdf_rat_of_rnd_prop (ρ : measure (α × ℝ)) (a : α) (h : a ∈ cond_cdf_set ρ) (r : ℚ) :
+lemma cond_cdf_rat_of_mem (ρ : measure (α × ℝ)) (a : α) (h : a ∈ cond_cdf_set ρ) (r : ℚ) :
   cond_cdf_rat ρ a r = (pre_cdf ρ r a).to_real :=
 by simp only [cond_cdf_rat, h, if_true]
 
@@ -700,7 +700,7 @@ begin
   by_cases h : a ∈ cond_cdf_set ρ,
   { simp only [cond_cdf_rat, h, if_true, forall_const, and_self],
     intros r r' hrr',
-    have h' := rnd_prop_of_mem_cond_cdf_set h,
+    have h' := has_cond_cdf_of_mem_cond_cdf_set h,
     have h_ne_top : ∀ r, pre_cdf ρ r a ≠ ∞ := λ r, ((h'.2.1 r).trans_lt ennreal.one_lt_top).ne,
     rw ennreal.to_real_le_to_real (h_ne_top _) (h_ne_top _),
     exact h'.1 hrr', },
@@ -724,9 +724,9 @@ lemma cond_cdf_rat_nonneg (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   0 ≤ cond_cdf_rat ρ a r :=
 begin
   by_cases h : a ∈ cond_cdf_set ρ,
-  { rw cond_cdf_rat_of_rnd_prop _ _ h,
+  { rw cond_cdf_rat_of_mem _ _ h,
     exact ennreal.to_real_nonneg, },
-  { rw cond_cdf_rat_of_not_rnd_prop _ _ h,
+  { rw cond_cdf_rat_of_not_mem _ _ h,
     split_ifs,
     { refl, },
     { exact zero_le_one, }, },
@@ -736,12 +736,12 @@ lemma cond_cdf_rat_le_one (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   cond_cdf_rat ρ a r ≤ 1 :=
 begin
   by_cases h : a ∈ cond_cdf_set ρ,
-  { have h' := rnd_prop_of_mem_cond_cdf_set h,
-    rw cond_cdf_rat_of_rnd_prop _ _ h,
+  { have h' := has_cond_cdf_of_mem_cond_cdf_set h,
+    rw cond_cdf_rat_of_mem _ _ h,
     refine ennreal.to_real_le_of_le_of_real zero_le_one _,
     rw ennreal.of_real_one,
     exact h'.2.1 r, },
-  { rw cond_cdf_rat_of_not_rnd_prop _ _ h,
+  { rw cond_cdf_rat_of_not_mem _ _ h,
     split_ifs,
     exacts [zero_le_one, le_rfl], },
 end
@@ -752,8 +752,8 @@ begin
   by_cases h : a ∈ cond_cdf_set ρ,
   { simp only [cond_cdf_rat, h, if_true],
     rw [← ennreal.zero_to_real, ennreal.tendsto_to_real_iff],
-    { exact (rnd_prop_of_mem_cond_cdf_set h).2.2.2.1, },
-    { have h' := rnd_prop_of_mem_cond_cdf_set h,
+    { exact (has_cond_cdf_of_mem_cond_cdf_set h).2.2.2.1, },
+    { have h' := has_cond_cdf_of_mem_cond_cdf_set h,
       exact λ r, ((h'.2.1 r).trans_lt ennreal.one_lt_top).ne, },
     { exact ennreal.zero_ne_top, }, },
   { simp only [cond_cdf_rat, h, if_false],
@@ -771,8 +771,8 @@ begin
   by_cases h : a ∈ cond_cdf_set ρ,
   { simp only [cond_cdf_rat, h, if_true],
     rw [← ennreal.one_to_real, ennreal.tendsto_to_real_iff],
-    { exact (rnd_prop_of_mem_cond_cdf_set h).2.2.1, },
-    { have h' := rnd_prop_of_mem_cond_cdf_set h,
+    { exact (has_cond_cdf_of_mem_cond_cdf_set h).2.2.1, },
+    { have h' := has_cond_cdf_of_mem_cond_cdf_set h,
       exact λ r, ((h'.2.1 r).trans_lt ennreal.one_lt_top).ne, },
     { exact ennreal.one_ne_top, }, },
   { simp only [cond_cdf_rat, h, if_false],
@@ -785,7 +785,7 @@ end
 
 lemma cond_cdf_rat_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ) :
   (λ a, cond_cdf_rat ρ a r) =ᵐ[ρ.fst] λ a, (pre_cdf ρ r a).to_real :=
-by filter_upwards [mem_cond_cdf_set_ae ρ] with a ha using cond_cdf_rat_of_rnd_prop ρ a ha r
+by filter_upwards [mem_cond_cdf_set_ae ρ] with a ha using cond_cdf_rat_of_mem ρ a ha r
 
 lemma of_real_cond_cdf_rat_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ) :
   (λ a, ennreal.of_real (cond_cdf_rat ρ a r)) =ᵐ[ρ.fst] pre_cdf ρ r :=
@@ -799,13 +799,13 @@ lemma cond_cdf_rat_eq_inf_gt (ρ : measure (α × ℝ)) (a : α) (t : ℚ) :
   (⨅ r : Ioi t, cond_cdf_rat ρ a r) = cond_cdf_rat ρ a t :=
 begin
   by_cases ha : a ∈ cond_cdf_set ρ,
-  { simp_rw cond_cdf_rat_of_rnd_prop ρ a ha,
-    have ha' := rnd_prop_of_mem_cond_cdf_set ha,
+  { simp_rw cond_cdf_rat_of_mem ρ a ha,
+    have ha' := has_cond_cdf_of_mem_cond_cdf_set ha,
     rw ← to_real_infi,
     { suffices : (⨅ (i : ↥(Ioi t)), pre_cdf ρ ↑i a) = pre_cdf ρ t a, by rw this,
       rw ← ha'.2.2.2.2, },
     { exact λ r, ((ha'.2.1 r).trans_lt ennreal.one_lt_top).ne, }, },
-  { simp_rw cond_cdf_rat_of_not_rnd_prop ρ a ha,
+  { simp_rw cond_cdf_rat_of_not_mem ρ a ha,
     have h_bdd : bdd_below (range (λ (r : ↥(Ioi t)), ite ((r : ℚ) < 0) (0 : ℝ) 1)),
     { refine ⟨0, λ x hx, _⟩,
       obtain ⟨y, rfl⟩ := mem_range.mpr hx,
@@ -983,15 +983,15 @@ begin
   { rintros S ⟨u, rfl⟩,
     simp_rw cond_measure_Iic ρ _ u,
     exact (measurable_cond_cdf_rat ρ u).ennreal_of_real, },
-  { intros t ht ht_rnd,
+  { intros t ht ht_cd_meas,
     have : (λ a, cond_measure ρ a tᶜ) = (λ a, cond_measure ρ a univ) - (λ a, cond_measure ρ a t),
     { ext1 a,
       rw [measure_compl ht (measure_ne_top (cond_measure ρ a) _), pi.sub_apply], },
     simp_rw [this, cond_measure_univ ρ],
-    exact measurable.sub measurable_const ht_rnd, },
-  { intros f hf_disj hf_meas hf_rnd,
+    exact measurable.sub measurable_const ht_cd_meas, },
+  { intros f hf_disj hf_meas hf_cd_meas,
     simp_rw measure_Union hf_disj hf_meas,
-    exact measurable.ennreal_tsum hf_rnd, },
+    exact measurable.ennreal_tsum hf_cd_meas, },
 end
 
 noncomputable

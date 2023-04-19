@@ -8,6 +8,9 @@ import category_theory.subobject.lattice
 /-!
 # Specific subobjects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `equalizer_subobject`, `kernel_subobject` and `image_subobject`, which are the subobjects
 represented by the equalizer, kernel and image of (a pair of) morphism(s) and provide conditions
 for `P.factors f`, where `P` is one of these special subobjects.

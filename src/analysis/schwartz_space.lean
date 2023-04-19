@@ -23,7 +23,7 @@ smooth functions `f : E → F`, where `E` and `F` are real normed vector spaces 
 natural numbers `k` and `n` we have uniform bounds `‖x‖^k * ‖iterated_fderiv ℝ n f x‖ < C`.
 This approach completely avoids using partial derivatives as well as polynomials.
 We construct the topology on the Schwartz space by a family of seminorms, which are the best
-constants in the above estimates, which is by abstract theory from
+constants in the above estimates. The abstract theory of topological vector spaces developed in
 `seminorm_family.module_filter_basis` and `with_seminorms.to_locally_convex_space` turns the
 Schwartz space into a locally convex topological vector space.
 
@@ -41,6 +41,8 @@ decay faster than any power of `‖x‖`.
 
 * `schwartz_map.uniform_add_group` and `schwartz_map.locally_convex`: The Schwartz space is a
 locally convex topological vector space.
+* `schwartz_map.one_add_le_sup_seminorm_apply`: For a Schwartz function `f` there is a uniform bound
+on `(1 + ‖x‖) ^ k * ‖iterated_fderiv ℝ n f x‖`.
 
 ## Implementation details
 
@@ -430,6 +432,47 @@ begin
   rwa [pow_zero, one_mul] at this,
 end
 
+variables (𝕜 E F)
+
+/-- The family of Schwartz seminorms. -/
+def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
+λ m, seminorm 𝕜 m.1 m.2
+
+@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
+  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
+
+@[simp] lemma schwartz_seminorm_family_apply_zero :
+  schwartz_seminorm_family 𝕜 E F 0 = schwartz_map.seminorm 𝕜 0 0 := rfl
+
+variables {𝕜 E F}
+
+/-- A more convenient version of `le_sup_seminorm_apply`.
+
+The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`.
+Note that the constant is far from optimal. -/
+lemma one_add_le_sup_seminorm_apply {m : ℕ × ℕ} {k n : ℕ} (hk : k ≤ m.1) (hn : n ≤ m.2)
+  (f : 𝓢(E, F)) (x : E) :
+  (1 + ‖x‖) ^ k * ‖iterated_fderiv ℝ n f x‖
+    ≤ 2^m.1 * (finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2) f :=
+begin
+  rw [add_comm, add_pow],
+  simp only [one_pow, mul_one, finset.sum_congr, finset.sum_mul],
+  norm_cast,
+  rw ← nat.sum_range_choose m.1,
+  push_cast,
+  rw [finset.sum_mul],
+  have hk' : finset.range (k + 1) ⊆ finset.range (m.1 + 1) :=
+  by rwa [finset.range_subset, add_le_add_iff_right],
+  refine le_trans (finset.sum_le_sum_of_subset_of_nonneg hk' (λ _ _ _, by positivity)) _,
+  refine finset.sum_le_sum (λ i hi, _),
+  rw [mul_comm (‖x‖^i), mul_assoc],
+  refine mul_le_mul _ _ (by positivity) (by positivity),
+  { norm_cast,
+    exact i.choose_le_choose hk },
+  exact (le_seminorm 𝕜 i n f x).trans (seminorm.le_def.1 (finset.le_sup_of_le
+    (finset.mem_Iic.2 $ prod.mk_le_mk.2 ⟨finset.mem_range_succ_iff.mp hi, hn⟩) le_rfl) _),
+end
+
 end seminorms
 
 section topology
@@ -438,16 +481,6 @@ section topology
 
 variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 variables (𝕜 E F)
-
-/-- The family of Schwartz seminorms. -/
-def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
-λ n, seminorm 𝕜 n.1 n.2
-
-@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
-  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
-
-@[simp] lemma schwartz_seminorm_family_apply_zero :
-  schwartz_seminorm_family 𝕜 E F 0 = schwartz_map.seminorm 𝕜 0 0 := rfl
 
 instance : topological_space 𝓢(E, F) :=
 (schwartz_seminorm_family ℝ E F).module_filter_basis.topology'

@@ -11,6 +11,9 @@ import topology.sets.compacts
 /-!
 # Baire theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a complete metric space, a countable intersection of dense open subsets is dense.
 
 The good concept underlying the theorem is that of a Gδ set, i.e., a countable intersection

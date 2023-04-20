@@ -17,7 +17,7 @@ that `L` spans `E` over `K`.
 The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
 * As `L : add_subgroup E` with the additional properties:
-  `(∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite`, that is `L` is discrete
+  `∀ r : ℝ, (L ∩ metric.closed_ball 0 r).finite`, that is `L` is discrete
   `submodule.span ℝ (L : set E) = ⊤`, that is `L` spans `E` over `K`.
 
 ## Main result

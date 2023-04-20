@@ -71,14 +71,6 @@ begin
   exact exists_rat_lt x,
 end
 
-lemma real.Union_Iic_nat : (⋃ r : ℕ, Iic (r : ℝ)) = univ :=
-begin
-  ext1,
-  simp only [mem_Union, mem_Iic, mem_univ, iff_true],
-  obtain ⟨r, hr⟩ := exists_nat_gt x,
-  exact ⟨r, hr.le⟩,
-end
-
 lemma infi_Ioi_eq_infi_rat_gt {f : ℝ → ℝ} (x : ℝ) (hf : bdd_below (f '' Ioi x))
   (hf_mono : monotone f) :
   (⨅ r : Ioi x, f r) = ⨅ q : {q' : ℚ // x < q'}, f q :=
@@ -130,20 +122,6 @@ lemma tendsto_of_antitone {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : antitone f) :
   tendsto f at_top at_bot ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
 @tendsto_of_monotone ι αᵒᵈ _ _ _ _ _ h_mono
-
-lemma tendsto_at_top_at_bot_iff_of_antitone [nonempty α] [semilattice_sup α] [preorder β]
-  {f : α → β} (hf : antitone f) :
-  tendsto f at_top at_bot ↔ ∀ b : β, ∃ a : α, f a ≤ b :=
-@tendsto_at_top_at_top_iff_of_monotone α βᵒᵈ _ _ _ _ hf
-
-lemma image_fst_prod (s : set α) (t : set β) (ht : t.nonempty) :
-  prod.fst '' s ×ˢ t = s :=
-begin
-  ext1 x,
-  simp only [mem_image, mem_prod, prod.exists, exists_and_distrib_right,
-    exists_and_distrib_left, exists_eq_right, and_iff_left_iff_imp],
-  exact λ _, ht,
-end
 
 lemma to_real_infi (f : α → ℝ≥0∞) (hf : ∀ a, f a ≠ ∞) :
   (⨅ i, f i).to_real = ⨅ i, (f i).to_real :=

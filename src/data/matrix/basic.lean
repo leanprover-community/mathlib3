@@ -62,43 +62,14 @@ variables {R : Type*} {S : Type*} {α : Type v} {β : Type w} {γ : Type*}
 
 namespace matrix
 
-instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
-instance [has_add α] : has_add (matrix m n α) := pi.has_add
-instance [add_semigroup α] : add_semigroup (matrix m n α) := pi.add_semigroup
-instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) := pi.add_comm_semigroup
-instance [has_zero α] : has_zero (matrix m n α) := pi.has_zero
-instance [add_zero_class α] : add_zero_class (matrix m n α) := pi.add_zero_class
-instance [add_monoid α] : add_monoid (matrix m n α) := pi.add_monoid
-instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) := pi.add_comm_monoid
-instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
-instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
-instance [add_group α] : add_group (matrix m n α) := pi.add_group
-instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
-instance [unique α] : unique (matrix m n α) := pi.unique
-instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
-instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
-function.nontrivial
-
-instance [has_scalar R α] : has_scalar R (matrix m n α) := pi.has_scalar
-instance [has_scalar R α] [has_scalar S α] [smul_comm_class R S α] :
-  smul_comm_class R S (matrix m n α) := pi.smul_comm_class
-instance [has_scalar R S] [has_scalar R α] [has_scalar S α] [is_scalar_tower R S α] :
-  is_scalar_tower R S (matrix m n α) := pi.is_scalar_tower
-instance [monoid R] [mul_action R α] :
-  mul_action R (matrix m n α) := pi.mul_action _
-instance [monoid R] [add_monoid α] [distrib_mul_action R α] :
-  distrib_mul_action R (matrix m n α) := pi.distrib_mul_action _
-instance [semiring R] [add_comm_monoid α] [module R α] :
-  module R (matrix m n α) := pi.module _ _ _
-
 section ext
-
 variables {M N : matrix m n α}
 
 theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
 ⟨λ h, funext $ λ i, funext $ h i, λ h, by simp [h]⟩
 
-@[ext] theorem ext : (∀ i j, M i j = N i j) → M = N := ext_iff.mp
+@[ext] theorem ext : (∀ i j, M i j = N i j) → M = N :=
+ext_iff.mp
 
 end ext
 
@@ -1356,13 +1327,7 @@ by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
 lemma mul_vec_one (A : matrix m n α) : mul_vec A 1 = λ i, ∑ j, A i j :=
 by ext; simp [mul_vec, dot_product]
 
-lemma mul_vec_one' (A : matrix m n α) : mul_vec A (λ i, 1) = λ i, ∑ j, A i j :=
-by ext; simp [mul_vec, dot_product]
-
 lemma vec_one_mul (A : matrix m n α) : vec_mul 1 A = λ j, ∑ i, A i j :=
-by ext; simp [vec_mul, dot_product]
-
-lemma vec_one_mul' (A : matrix m n α) : vec_mul (λ j, 1 : m → α) A = λ j, ∑ i, A i j :=
 by ext; simp [vec_mul, dot_product]
 
 end non_assoc_semiring

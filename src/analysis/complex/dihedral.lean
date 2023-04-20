@@ -3,8 +3,8 @@ Copyright (c) 2021 Shadman Sakib. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shadman Sakib
 -/
+import analysis.special_functions.trigonometric.complex
 import group_theory.specific_groups.dihedral
-import analysis.special_functions.trigonometric
 
 /-! # Realization of the dihedral group as isometries of ℂ
 

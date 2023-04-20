@@ -12,7 +12,8 @@ import analysis.inner_product_space.basic
 # Inner product space derived from a norm
 
 This file defines an `inner_product_space` instance from a norm that respects the
-parallellogram identity.
+parallellogram identity. The parallelogram identity is a way to express the inner product of `x` and
+`y` in terms of the norms of `x`, `y`, `x + y`, `x - y`.
 
 ## Main results
 

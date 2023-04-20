@@ -152,6 +152,18 @@ lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : 
   ∏ (i : ι) in s, ({I i} : set M) = {∏ (i : ι) in s, I i} :=
 (map_prod (singleton_monoid_hom : M →* set M) _ _).symm
 
+/-- The n-ary version of `set.image_mul_prod`. -/
+@[to_additive "The n-ary version of `set.add_image_prod`. "]
+lemma set.image_finset_prod_pi (l : finset ι) (S : ι → set α) :
+  (λ f : ι → α, ∏ i in l, f i) '' (l : set ι).pi S = (∏ i in l, S i) :=
+by { ext, simp_rw [set.mem_finset_prod, set.mem_image, set.mem_pi, exists_prop, finset.mem_coe] }
+
+/-- A special case of `set.image_finset_prod_pi` for `finset.univ`. -/
+@[to_additive "A special case of `set.image_finset_sum_pi` for `finset.univ`. "]
+lemma set.image_fintype_prod_pi [fintype ι] (S : ι → set α) :
+  (λ f : ι → α, ∏ i, f i) '' set.univ.pi S = (∏ i, S i) :=
+by simpa only [finset.coe_univ] using set.image_finset_prod_pi finset.univ S
+
 end comm_monoid
 
 /-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/

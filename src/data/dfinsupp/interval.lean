@@ -175,7 +175,7 @@ section lattice
 variables [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i, lattice (α i)] [Π i, has_zero (α i)]
   [Π i, locally_finite_order (α i)] (f g : Π₀ i, α i)
 
-lemma card_uicc : (uicc f g).card = ∏ i in f.support ∪ g.support, (uicc (f i) (g i)).card :=
+lemma card_uIcc : (uIcc f g).card = ∏ i in f.support ∪ g.support, (uIcc (f i) (g i)).card :=
 by { rw ←support_inf_union_support_sup, exact card_Icc _ _ }
 
 end lattice

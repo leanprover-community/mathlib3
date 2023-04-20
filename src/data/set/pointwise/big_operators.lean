@@ -15,11 +15,36 @@ import data.set.pointwise.basic
 
 namespace set
 
-section big_operators
 open_locale big_operators pointwise
 open function
 
-variables {α : Type*} {ι : Type*} [comm_monoid α]
+variables {ι : Type*} {α : Type*} {β : Type*} {F : Type*}
+
+section monoid
+variables [monoid α] [monoid β] [monoid_hom_class F α β]
+
+@[to_additive]
+lemma set.image_list_prod (f : F) : ∀ (l : list (set α)),
+  (f : α → β) '' l.prod = (l.map (λ s, f '' s)).prod
+| [] := set.image_one.trans $ congr_arg singleton (map_one f)
+| (a :: as) := by rw [list.map_cons, list.prod_cons, list.prod_cons, set.image_mul,
+  set.image_list_prod]
+
+end monoid
+
+section comm_monoid
+variables [comm_monoid α] [comm_monoid β] [monoid_hom_class F α β]
+
+@[to_additive]
+lemma set.image_multiset_prod (f : F) : ∀ (m : multiset (set α)),
+  (f : α → β) '' m.prod = (m.map (λ s, f '' s)).prod :=
+quotient.ind $ by simpa only [multiset.quot_mk_to_coe, multiset.coe_prod, multiset.coe_map]
+                 using set.image_list_prod f
+
+@[to_additive]
+lemma set.image_finset_prod (f : F) (m : finset ι) (s : ι → set α) :
+  (f : α → β) '' (∏ i in m, s i) = (∏ i in m, f '' s i) :=
+(set.image_multiset_prod f _).trans $ congr_arg multiset.prod $ multiset.map_map _ _ _
 
 /-- The n-ary version of `set.mem_mul`. -/
 @[to_additive /-" The n-ary version of `set.mem_add`. "-/]
@@ -127,8 +152,8 @@ lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : 
   ∏ (i : ι) in s, ({I i} : set M) = {∏ (i : ι) in s, I i} :=
 (map_prod (singleton_monoid_hom : M →* set M) _ _).symm
 
-/-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
+end comm_monoid
 
-end big_operators
+/-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
 
 end set

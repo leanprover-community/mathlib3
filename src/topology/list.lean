@@ -8,9 +8,12 @@ import topology.algebra.monoid
 /-!
 # Topology on lists and vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 open topological_space set filter
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
@@ -21,7 +24,7 @@ lemma nhds_list (as : list α) : 𝓝 as = traverse 𝓝 as :=
 begin
   refine nhds_mk_of_nhds _ _ _ _,
   { assume l, induction l,
-    case list.nil { exact le_refl _ },
+    case list.nil { exact le_rfl },
     case list.cons : a l ih
     { suffices : list.cons <$> pure a <*> pure l ≤ list.cons <$> 𝓝 a <*> traverse 𝓝 l,
       { simpa only [] with functor_norm using this },
@@ -34,7 +37,7 @@ begin
         { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
       case list.forall₂.cons : a s as ss ht h ih t hts
       { rcases mem_nhds_iff.1 ht with ⟨u, hut, hu⟩,
-        rcases ih (subset.refl _) with ⟨v, hv, hvss⟩,
+        rcases ih _ subset.rfl with ⟨v, hv, hvss⟩,
         exact ⟨u::v, list.forall₂.cons hu hv,
           subset.trans (set.seq_mono (set.image_subset _ hut) hvss) hts⟩ } },
     rcases this with ⟨v, hv, hvs⟩,
@@ -60,7 +63,7 @@ by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
 
 lemma list.tendsto_cons {a : α} {l : list α} :
   tendsto (λp:α×list α, list.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
-by rw [nhds_cons, tendsto, map_prod]; exact le_refl _
+by rw [nhds_cons, tendsto, filter.map_prod]; exact le_rfl
 
 lemma filter.tendsto.cons {α : Type*} {f : α → β} {g : α → list β}
   {a : _root_.filter α} {b : β} {l : list β} (hf : tendsto f a (𝓝 b)) (hg : tendsto g a (𝓝 l)) :

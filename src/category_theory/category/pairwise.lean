@@ -3,12 +3,15 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-
+import order.complete_lattice
 import category_theory.category.preorder
 import category_theory.limits.is_limit
 
 /-!
 # The category of "pairwise intersections".
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given `ι : Type v`, we build the diagram category `pairwise ι`
 with objects `single i` and `pair i j`, for `i j : ι`,
@@ -43,7 +46,7 @@ variables {ι : Type v}
 
 namespace pairwise
 
-instance pairwise_inhabited [inhabited ι] : inhabited (pairwise ι) := ⟨single (default ι)⟩
+instance pairwise_inhabited [inhabited ι] : inhabited (pairwise ι) := ⟨single default⟩
 
 /--
 Morphisms in the category `pairwise ι`. The only non-identity morphisms are
@@ -57,8 +60,8 @@ inductive hom : pairwise ι → pairwise ι → Type v
 
 open hom
 
-instance hom_inhabited [inhabited ι] : inhabited (hom (single (default ι)) (single (default ι))) :=
-⟨id_single (default ι)⟩
+instance hom_inhabited [inhabited ι] : inhabited (hom (single (default : ι)) (single default)) :=
+⟨id_single default⟩
 
 /--
 The identity morphism in `pairwise ι`.

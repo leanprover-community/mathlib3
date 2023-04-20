@@ -12,6 +12,9 @@ import category_theory.types
 
 # Convert from `monad` (i.e. Lean's `Type`-based monads) to `category_theory.monad`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This allows us to use these monads in category theory.
 
 -/

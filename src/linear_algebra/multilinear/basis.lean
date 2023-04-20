@@ -9,6 +9,9 @@ import linear_algebra.multilinear.basic
 /-!
 # Multilinear maps in relation to bases.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves lemmas about the action of multilinear maps on basis vectors.
 
 ## TODO
@@ -51,8 +54,8 @@ end
 are basis vectors. Unlike `basis.ext_multilinear_fin`, this only uses a single basis; a
 dependently-typed version would still be true, but the proof would need a dependently-typed
 version of `dom_dom_congr`. -/
-lemma basis.ext_multilinear [decidable_eq ι] [fintype ι] {f g : multilinear_map R (λ i : ι, M₂) M₃}
+lemma basis.ext_multilinear [finite ι] {f g : multilinear_map R (λ i : ι, M₂) M₃}
   {ι₁ : Type*} (e : basis ι₁ R M₂) (h : ∀ v : ι → ι₁, f (λ i, e (v i)) = g (λ i, e (v i))) :
   f = g :=
-(dom_dom_congr_eq_iff (fintype.equiv_fin ι) f g).mp $
-  basis.ext_multilinear_fin (λ i, e) (λ i, h (i ∘ _))
+by { casesI nonempty_fintype ι, exact (dom_dom_congr_eq_iff (fintype.equiv_fin ι) f g).mp
+    (basis.ext_multilinear_fin (λ i, e) $ λ i, h (i ∘ _)) }

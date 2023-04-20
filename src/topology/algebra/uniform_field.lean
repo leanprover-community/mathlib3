@@ -5,9 +5,13 @@ Authors: Patrick Massot
 -/
 import topology.algebra.uniform_ring
 import topology.algebra.field
+import field_theory.subfield
 
 /-!
 # Completion of topological fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The goal of this file is to prove the main part of Proposition 7 of Bourbaki GT III 6.8 :
 
@@ -26,24 +30,20 @@ zero which is an ideal. Hence it's either zero (and the field is separated) or t
 which implies one is sent to zero and the completion ring is trivial.
 
 The main definition is `completable_top_field` which packages the assumptions as a Prop-valued
-type class and the main results are the instances `field_completion` and
-`topological_division_ring_completion`.
+type class and the main results are the instances `uniform_space.completion.field` and
+`uniform_space.completion.topological_division_ring`.
 -/
 
 
 noncomputable theory
 
-open_locale classical uniformity topological_space
+open_locale classical uniformity topology
 
 open set uniform_space uniform_space.completion filter
 
 variables (K : Type*) [field K]  [uniform_space K]
 
 local notation `hat` := completion
-
-@[priority 100]
-instance [separated_space K] : nontrivial (hat K) :=
-⟨⟨0, 1, λ h, zero_ne_one $ (uniform_embedding_coe K).inj h⟩⟩
 
 /--
 A topological field is completable if it is separated and the image under
@@ -55,6 +55,13 @@ a field.
 class completable_top_field extends separated_space K : Prop :=
 (nice : ∀ F : filter K, cauchy F → 𝓝 0 ⊓ F = ⊥ → cauchy (map (λ x, x⁻¹) F))
 
+namespace uniform_space
+namespace completion
+
+@[priority 100]
+instance [separated_space K] : nontrivial (hat K) :=
+⟨⟨0, 1, λ h, zero_ne_one $ (uniform_embedding_coe K).inj h⟩⟩
+
 variables {K}
 
 /-- extension of inversion to the completion of a field. -/
@@ -63,7 +70,7 @@ def hat_inv : hat K → hat K := dense_inducing_coe.extend (λ x : K, (coe x⁻�
 lemma continuous_hat_inv [completable_top_field K] {x : hat K} (h : x ≠ 0) :
   continuous_at hat_inv x :=
 begin
-  haveI : regular_space (hat K) := completion.regular_space K,
+  haveI : t3_space (hat K) := completion.t3_space K,
   refine dense_inducing_coe.continuous_at_extend _,
   apply mem_of_superset (compl_singleton_mem_nhds h),
   intros y y_ne,
@@ -79,7 +86,7 @@ begin
   { have eq_bot : 𝓝 (0 : hat K) ⊓ 𝓝 y = ⊥,
     { by_contradiction h,
       exact y_ne (eq_of_nhds_ne_bot $ ne_bot_iff.mpr h).symm },
-    erw [dense_inducing_coe.nhds_eq_comap (0 : K), ← comap_inf,  eq_bot],
+    erw [dense_inducing_coe.nhds_eq_comap (0 : K), ← filter.comap_inf, eq_bot],
     exact comap_bot },
 end
 
@@ -87,13 +94,13 @@ end
 The value of `hat_inv` at zero is not really specified, although it's probably zero.
 Here we explicitly enforce the `inv_zero` axiom.
 -/
-instance completion.has_inv : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else hat_inv x⟩
+instance : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else hat_inv x⟩
 
 variables [topological_division_ring K]
 
 lemma hat_inv_extends {x : K} (h : x ≠ 0) : hat_inv (x : hat K) = coe (x⁻¹ : K) :=
 dense_inducing_coe.extend_eq_at
-    ((continuous_coe K).continuous_at.comp (topological_division_ring.continuous_inv x h))
+    ((continuous_coe K).continuous_at.comp (continuous_at_inv₀ h))
 
 variables [completable_top_field K]
 
@@ -104,9 +111,8 @@ begin
   { rw [h, inv_zero],
     dsimp [has_inv.inv],
     norm_cast,
-    simp [if_pos] },
+    simp },
   { conv_lhs { dsimp [has_inv.inv] },
-    norm_cast,
     rw if_neg,
     { exact hat_inv_extends h },
     { exact λ H, h (dense_embedding_coe.inj H) } }
@@ -141,13 +147,12 @@ begin
     dsimp [c, f],
     rw hat_inv_extends z_ne,
     norm_cast,
-    rw mul_inv_cancel z_ne,
-    norm_cast },
+    rw mul_inv_cancel z_ne, },
   replace fxclo := closure_mono this fxclo,
   rwa [closure_singleton, mem_singleton_iff] at fxclo
 end
 
-instance field_completion : field (hat K) :=
+instance : field (hat K) :=
 { exists_pair_ne := ⟨0, 1, λ h, zero_ne_one ((uniform_embedding_coe K).inj h)⟩,
   mul_inv_cancel := λ x x_ne, by { dsimp [has_inv.inv],
                                    simp [if_neg x_ne, mul_hat_inv_cancel x_ne], },
@@ -155,8 +160,8 @@ instance field_completion : field (hat K) :=
   ..completion.has_inv,
   ..(by apply_instance : comm_ring (hat K)) }
 
-instance topological_division_ring_completion : topological_division_ring (hat K) :=
-{ continuous_inv := begin
+instance : topological_division_ring (hat K) :=
+{ continuous_at_inv₀ := begin
     intros x x_ne,
     have : {y | hat_inv y = y⁻¹ } ∈ 𝓝 x,
     { have : {(0 : hat K)}ᶜ ⊆ {y : hat K | hat_inv y = y⁻¹ },
@@ -168,3 +173,36 @@ instance topological_division_ring_completion : topological_division_ring (hat K
     exact continuous_at.congr (continuous_hat_inv x_ne) this
   end,
   ..completion.top_ring_compl }
+
+end completion
+end uniform_space
+
+variables (L : Type*) [field L]  [uniform_space L] [completable_top_field L]
+
+instance subfield.completable_top_field (K : subfield L) : completable_top_field K :=
+{ nice := begin
+    intros F F_cau inf_F,
+    let i : K →+* L := K.subtype,
+    have hi : uniform_inducing i, from uniform_embedding_subtype_coe.to_uniform_inducing,
+    rw ← hi.cauchy_map_iff at F_cau ⊢,
+    rw [map_comm (show (i ∘ λ x, x⁻¹) = (λ x, x⁻¹) ∘ i, by {ext, refl})],
+    apply completable_top_field.nice _ F_cau,
+    rw [← filter.push_pull', ← map_zero i, ← hi.inducing.nhds_eq_comap, inf_F, filter.map_bot]
+  end,
+  ..subtype.separated_space (K : set L) }
+
+@[priority 100]
+instance completable_top_field_of_complete (L : Type*) [field L]
+  [uniform_space L] [topological_division_ring L] [separated_space L] [complete_space L] :
+  completable_top_field L :=
+{ nice := λ F cau_F hF, begin
+    haveI : ne_bot F := cau_F.1,
+    rcases complete_space.complete cau_F with ⟨x, hx⟩,
+    have hx' : x ≠ 0,
+    { rintro rfl,
+      rw inf_eq_right.mpr hx at hF,
+      exact cau_F.1.ne hF },
+    exact filter.tendsto.cauchy_map (calc map (λ x, x⁻¹) F ≤ map (λ x, x⁻¹) (𝓝 x) : map_mono hx
+                                                       ... ≤ 𝓝 (x⁻¹) : continuous_at_inv₀ hx')
+  end,
+  ..‹separated_space L›}

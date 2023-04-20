@@ -34,7 +34,7 @@ Liouville number, irrational, irrationality exponent
 -/
 
 open filter metric real set
-open_locale filter topological_space
+open_locale filter topology
 
 /-- We say that a real number `x` is a Liouville number with exponent `p : ℝ` if there exists a real
 number `C` such that for infinitely many denominators `n` there exists a numerator `m` such that
@@ -111,7 +111,7 @@ begin
   refine ⟨r.denom ^ p * (|r| * C), (tendsto_id.nsmul_at_top r.pos).frequently (hC.mono _)⟩,
   rintro n ⟨hn, m, hne, hlt⟩,
   have A : (↑(r.num * m) : ℝ) / ↑(r.denom • id n) = (m / n) * r,
-    by simp [← div_mul_div, ← r.cast_def, mul_comm],
+    by simp [← div_mul_div_comm, ← r.cast_def, mul_comm],
   refine ⟨r.num * m, _, _⟩,
   { rw A, simp [hne, hr] },
   { rw [A, ← sub_mul, abs_mul],
@@ -286,9 +286,7 @@ begin
   rcases H with ⟨N, hN⟩,
   have : ∀ b > (1 : ℕ), ∀ᶠ m : ℕ in at_top, ∀ a : ℤ, (1 / b ^ m : ℝ) ≤ |x - a / b|,
   { intros b hb,
-    have hb0' : (b : ℚ) ≠ 0 := (zero_lt_one.trans (nat.one_lt_cast.2 hb)).ne',
     replace hb : (1 : ℝ) < b := nat.one_lt_cast.2 hb,
-    have hb0 : (0 : ℝ) < b := zero_lt_one.trans hb,
     have H : tendsto (λ m, 1 / b ^ m : ℕ → ℝ) at_top (𝓝 0),
     { simp only [one_div],
       exact tendsto_inv_at_top_zero.comp (tendsto_pow_at_top_at_top_of_one_lt hb) },

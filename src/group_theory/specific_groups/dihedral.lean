@@ -3,9 +3,8 @@ Copyright (c) 2020 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
-import data.fintype.card
 import data.zmod.basic
-import group_theory.order_of_element
+import group_theory.exponent
 
 /-!
 # Dihedral Groups
@@ -106,20 +105,20 @@ private def fintype_helper : (zmod n ⊕ zmod n) ≃ dihedral_group n :=
 /--
 If `0 < n`, then `dihedral_group n` is a finite group.
 -/
-instance [fact (0 < n)] : fintype (dihedral_group n) := fintype.of_equiv _ fintype_helper
+instance [ne_zero n] : fintype (dihedral_group n) := fintype.of_equiv _ fintype_helper
 
 instance : nontrivial (dihedral_group n) := ⟨⟨r 0, sr 0, dec_trivial⟩⟩
 
 /--
 If `0 < n`, then `dihedral_group n` has `2n` elements.
 -/
-lemma card [fact (0 < n)] : fintype.card (dihedral_group n) = 2 * n :=
+lemma card [ne_zero n] : fintype.card (dihedral_group n) = 2 * n :=
 by rw [← fintype.card_eq.mpr ⟨fintype_helper⟩, fintype.card_sum, zmod.card, two_mul]
 
 @[simp] lemma r_one_pow (k : ℕ) : (r 1 : dihedral_group n) ^ k = r k :=
 begin
   induction k with k IH,
-  { refl },
+  { rw nat.cast_zero, refl },
   { rw [pow_succ, IH, r_mul_r],
     congr' 1,
     norm_cast,
@@ -128,11 +127,9 @@ end
 
 @[simp] lemma r_one_pow_n : (r (1 : zmod n))^n = 1 :=
 begin
-  cases n,
-  { rw pow_zero },
-  { rw [r_one_pow, one_def],
-    congr' 1,
-    exact zmod.nat_cast_self _, }
+  rw [r_one_pow, one_def],
+  congr' 1,
+  exact zmod.nat_cast_self _,
 end
 
 @[simp] lemma sr_mul_self (i : zmod n) : sr i * sr i = 1 := by rw [sr_mul_sr, sub_self, one_def]
@@ -153,44 +150,51 @@ If `0 < n`, then `r 1` has order `n`.
 -/
 @[simp] lemma order_of_r_one : order_of (r 1 : dihedral_group n) = n :=
 begin
-  by_cases hnpos : 0 < n,
-  { haveI : fact (0 < n) := ⟨hnpos⟩,
-    cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n)))
-      with h h,
-    { have h1 : (r 1 : dihedral_group n)^(order_of (r 1)) = 1,
-      { exact pow_order_of_eq_one _ },
-      rw r_one_pow at h1,
-      injection h1 with h2,
-      rw [← zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
-      apply absurd h2.symm,
-      apply ne_of_lt,
-      exact absurd h2.symm (ne_of_lt (order_of_pos _)) },
-    { exact h } },
-  { simp only [not_lt, nonpos_iff_eq_zero] at hnpos,
-    rw hnpos,
-    apply order_of_eq_zero,
-    rw is_of_fin_order_iff_pow_eq_one,
-    push_neg,
-    intros m hm,
+  rcases eq_zero_or_ne_zero n with rfl | hn,
+  { rw order_of_eq_zero_iff',
+    intros n hn,
     rw [r_one_pow, one_def],
-    by_contradiction h,
-    have h' : (m : zmod 0) = 0,
-    { exact r.inj h, },
-    have h'' : m = 0,
-    { simp only [int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat] at h',
-      exact h', },
-    rw h'' at hm,
-    apply nat.lt_irrefl,
-    exact hm },
+    apply mt r.inj,
+    simpa using hn.ne' },
+  { resetI,
+    apply (nat.le_of_dvd (ne_zero.pos n) $ order_of_dvd_of_pow_eq_one $ @r_one_pow_n n)
+      .lt_or_eq.resolve_left,
+    intro h,
+    have h1 : (r 1 : dihedral_group n)^(order_of (r 1)) = 1,
+    { exact pow_order_of_eq_one _ },
+    rw r_one_pow at h1,
+    injection h1 with h2,
+    rw [← zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
+    exact absurd h2.symm (order_of_pos _).ne },
 end
 
 /--
 If `0 < n`, then `i : zmod n` has order `n / gcd n i`.
 -/
-lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
+lemma order_of_r [ne_zero n] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
 begin
   conv_lhs { rw ←zmod.nat_cast_zmod_val i },
   rw [←r_one_pow, order_of_pow, order_of_r_one]
+end
+
+lemma exponent : monoid.exponent (dihedral_group n) = lcm n 2 :=
+begin
+  rcases eq_zero_or_ne_zero n with rfl | hn,
+  { exact monoid.exponent_eq_zero_of_order_zero order_of_r_one },
+  resetI,
+  apply nat.dvd_antisymm,
+  { apply monoid.exponent_dvd_of_forall_pow_eq_one,
+    rintro (m | m),
+    { rw [←order_of_dvd_iff_pow_eq_one, order_of_r],
+      refine nat.dvd_trans ⟨gcd n m.val, _⟩ (dvd_lcm_left n 2),
+      { exact (nat.div_mul_cancel (nat.gcd_dvd_left n m.val)).symm } },
+    { rw [←order_of_dvd_iff_pow_eq_one, order_of_sr],
+      exact dvd_lcm_right n 2 } },
+  { apply lcm_dvd,
+    { convert monoid.order_dvd_exponent (r 1),
+      exact order_of_r_one.symm },
+    { convert monoid.order_dvd_exponent (sr 0),
+      exact (order_of_sr 0).symm } }
 end
 
 end dihedral_group

@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
 import combinatorics.derangements.basic
-import data.fintype.card
+import data.fintype.big_operators
 import tactic.delta_instance
 import tactic.ring
 
 /-!
 # Derangements on fintypes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains lemmas that describe the cardinality of `derangements α` when `α` is a fintype.
 
@@ -47,7 +50,8 @@ begin
   have h1 : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = card (fin n),
   { intro a,
     simp only [fintype.card_fin, finset.card_fin, fintype.card_of_finset, finset.filter_ne' _ a,
-      set.mem_compl_singleton_iff, finset.card_erase_of_mem (finset.mem_univ a), nat.pred_succ] },
+      set.mem_compl_singleton_iff, finset.card_erase_of_mem (finset.mem_univ a),
+      add_tsub_cancel_right] },
   have h2 : card (fin (n+2)) = card (option (fin (n+1))),
   { simp only [card_fin, card_option] },
   -- rewrite the LHS and substitute in our fintype-level equivalence

@@ -26,8 +26,8 @@ tactic unit := do
       then do
         user_attr_const ← (get_user_attribute_name attr_name >>= mk_const),
         tac ← eval_pexpr (tactic unit)
-        ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
-          λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
+        ``(user_attribute.get_param_untyped %%user_attr_const %%`(src) >>=
+          λ x, user_attribute.set_untyped %%user_attr_const %%`(tgt) x %%`(p) %%`(prio)),
         tac
       else fail msg
 

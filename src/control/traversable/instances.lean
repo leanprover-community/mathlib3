@@ -5,10 +5,13 @@ Authors: Simon Hudon
 -/
 import control.applicative
 import data.list.forall2
-import data.set.lattice
+import data.set.functor
 
 /-!
 # Traversable instances
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides instances of `traversable` for types from the core library: `option`, `list` and
 `sum`.
@@ -60,8 +63,7 @@ variables [applicative F] [applicative G]
 section
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
-open applicative functor
-open list (cons)
+open applicative functor list
 
 protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=

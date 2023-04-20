@@ -3,7 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.fintype.basic
+import data.fintype.option
+import data.fintype.prod
+import data.fintype.pi
+import data.vector.basic
 import data.pfun
 import logic.function.iterate
 import order.basic
@@ -11,6 +14,9 @@ import tactic.apply_fun
 
 /-!
 # Turing machines
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a sequence of simple machine languages, starting with Turing machines and working
 up to more complex languages based on Wang B-machines.
@@ -62,24 +68,24 @@ open function (update iterate_succ iterate_succ_apply iterate_succ'
 namespace turing
 
 /-- The `blank_extends` partial order holds of `l₁` and `l₂` if `l₂` is obtained by adding
-blanks (`default Γ`) to the end of `l₁`. -/
+blanks (`default : Γ`) to the end of `l₁`. -/
 def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
-∃ n, l₂ = l₁ ++ list.repeat (default Γ) n
+∃ n, l₂ = l₁ ++ list.replicate n default
 
 @[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
 ⟨0, by simp⟩
 
 @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
-by rintro ⟨i, rfl⟩ ⟨j, rfl⟩; exact ⟨i+j, by simp [list.repeat_add]⟩
+by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.replicate_add]⟩ }
 
 theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
   blank_extends l l₁ → blank_extends l l₂ →
   l₁.length ≤ l₂.length → blank_extends l₁ l₂ :=
 begin
   rintro ⟨i, rfl⟩ ⟨j, rfl⟩ h, use j - i,
-  simp only [list.length_append, add_le_add_iff_left, list.length_repeat] at h,
-  simp only [← list.repeat_add, add_tsub_cancel_of_le h, list.append_assoc],
+  simp only [list.length_append, add_le_add_iff_left, list.length_replicate] at h,
+  simp only [← list.replicate_add, add_tsub_cancel_of_le h, list.append_assoc],
 end
 
 /-- Any two extensions by blank `l₁,l₂` of `l` have a common join (which can be taken to be the
@@ -98,9 +104,9 @@ theorem blank_extends.above_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
 begin
   rintro ⟨i, rfl⟩ ⟨j, e⟩ h, use i - j,
   refine list.append_right_cancel (e.symm.trans _),
-  rw [list.append_assoc, ← list.repeat_add, tsub_add_cancel_of_le],
+  rw [list.append_assoc, ← list.replicate_add, tsub_add_cancel_of_le],
   apply_fun list.length at e,
-  simp only [list.length_append, list.length_repeat] at e,
+  simp only [list.length_append, list.length_replicate] at e,
   rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
 end
 
@@ -238,11 +244,11 @@ theorem list_blank.exists_cons {Γ} [inhabited Γ] (l : list_blank Γ) :
 def list_blank.nth {Γ} [inhabited Γ] (l : list_blank Γ) (n : ℕ) : Γ :=
 l.lift_on (λ l, list.inth l n) begin
   rintro l _ ⟨i, rfl⟩,
-  simp only [list.inth],
-  cases lt_or_le _ _ with h h, {rw list.nth_append h},
-  rw list.nth_len_le h,
-  cases le_or_lt _ _ with h₂ h₂, {rw list.nth_len_le h₂},
-  rw [list.nth_le_nth h₂, list.nth_le_append_right h, list.nth_le_repeat]
+  simp only,
+  cases lt_or_le _ _ with h h, {rw list.inth_append _ _ _ h},
+  rw list.inth_eq_default _ h,
+  cases le_or_lt _ _ with h₂ h₂, {rw list.inth_eq_default _ h₂},
+  rw [list.inth_eq_nth_le _ h₂, list.nth_le_append_right h, list.nth_le_replicate]
 end
 
 @[simp] theorem list_blank.nth_mk {Γ} [inhabited Γ] (l : list Γ) (n : ℕ) :
@@ -265,17 +271,18 @@ end
   (∀ i, L₁.nth i = L₂.nth i) → L₁ = L₂ :=
 list_blank.induction_on L₁ $ λ l₁, list_blank.induction_on L₂ $ λ l₂ H,
 begin
-  wlog h : l₁.length ≤ l₂.length using l₁ l₂,
-  swap, { exact (this $ λ i, (H i).symm).symm },
+  wlog h : l₁.length ≤ l₂.length,
+  { cases le_total l₁.length l₂.length; [skip, symmetry]; apply_assumption; try {assumption},
+    intro, rw H },
   refine quotient.sound' (or.inl ⟨l₂.length - l₁.length, _⟩),
   refine list.ext_le _ (λ i h h₂, eq.symm _),
-  { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_repeat] },
-  simp at H,
+  { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_replicate] },
+  simp only [list_blank.nth_mk] at H,
   cases lt_or_le i l₁.length with h' h',
-  { simpa only [list.nth_le_append _ h',
-      list.nth_le_nth h, list.nth_le_nth h', option.iget] using H i },
-  { simpa only [list.nth_le_append_right h', list.nth_le_repeat,
-      list.nth_le_nth h, list.nth_len_le h', option.iget] using H i },
+  { simp only [list.nth_le_append _ h', list.nth_le_nth h, list.nth_le_nth h',
+               ←list.inth_eq_nth_le _ h, ←list.inth_eq_nth_le _ h', H] },
+  { simp only [list.nth_le_append_right h', list.nth_le_replicate, list.nth_le_nth h,
+               list.nth_len_le h', ←list.inth_eq_default _ h', H, list.inth_eq_nth_le _ h] }
 end
 
 /-- Apply a function to a value stored at the nth position of the list. -/
@@ -293,17 +300,16 @@ begin
   { cases i,
     { rw if_neg (nat.succ_ne_zero _).symm,
       simp only [list_blank.nth_zero, list_blank.head_cons, list_blank.modify_nth] },
-    { simp only [IH, list_blank.modify_nth, list_blank.nth_succ, list_blank.tail_cons],
-      congr } }
+    { simp only [IH, list_blank.modify_nth, list_blank.nth_succ, list_blank.tail_cons] } }
 end
 
 /-- A pointed map of `inhabited` types is a map that sends one default value to the other. -/
 structure {u v} pointed_map (Γ : Type u) (Γ' : Type v)
   [inhabited Γ] [inhabited Γ'] : Type (max u v) :=
-(f : Γ → Γ') (map_pt' : f (default _) = default _)
+(f : Γ → Γ') (map_pt' : f default = default)
 
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : inhabited (pointed_map Γ Γ') :=
-⟨⟨λ _, default _, rfl⟩⟩
+⟨⟨default, rfl⟩⟩
 
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') (λ _, Γ → Γ') :=
 ⟨pointed_map.f⟩
@@ -312,7 +318,7 @@ instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map �
   (f : Γ → Γ') (pt) : (pointed_map.mk f pt : Γ → Γ') = f := rfl
 
 @[simp] theorem pointed_map.map_pt {Γ Γ'} [inhabited Γ] [inhabited Γ']
-  (f : pointed_map Γ Γ') : f (default _) = default _ := pointed_map.map_pt' _
+  (f : pointed_map Γ Γ') : f default = default := pointed_map.map_pt' _
 
 @[simp] theorem pointed_map.head_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : pointed_map Γ Γ') (l : list Γ) : (l.map f).head = f l.head :=
@@ -324,7 +330,7 @@ def list_blank.map {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : pointed_map Γ Γ') (l : list_blank Γ) : list_blank Γ' :=
 l.lift_on (λ l, list_blank.mk (list.map f l)) begin
   rintro l _ ⟨i, rfl⟩, refine quotient.sound' (or.inl ⟨i, _⟩),
-  simp only [pointed_map.map_pt, list.map_append, list.map_repeat],
+  simp only [pointed_map.map_pt, list.map_append, list.map_replicate],
 end
 
 @[simp] theorem list_blank.map_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
@@ -354,7 +360,7 @@ end
 @[simp] theorem list_blank.nth_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : pointed_map Γ Γ') (l : list_blank Γ) (n : ℕ) : (l.map f).nth n = f (l.nth n) :=
 l.induction_on begin
-  intro l, simp only [list.nth_map, list_blank.map_mk, list_blank.nth_mk, list.inth],
+  intro l, simp only [list.nth_map, list_blank.map_mk, list_blank.nth_mk, list.inth_eq_iget_nth],
   cases l.nth n, {exact f.2.symm}, {refl}
 end
 
@@ -391,12 +397,12 @@ l₃.induction_on $ by intro; simp only [list_blank.append_mk, list.append_assoc
 is sent to a sequence of default elements. -/
 def list_blank.bind {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (l : list_blank Γ) (f : Γ → list Γ')
-  (hf : ∃ n, f (default _) = list.repeat (default _) n) : list_blank Γ' :=
+  (hf : ∃ n, f default = list.replicate n default) : list_blank Γ' :=
 l.lift_on (λ l, list_blank.mk (list.bind l f)) begin
   rintro l _ ⟨i, rfl⟩, cases hf with n e, refine quotient.sound' (or.inl ⟨i * n, _⟩),
   rw [list.bind_append, mul_comm], congr,
   induction i with i IH, refl,
-  simp only [IH, e, list.repeat_add, nat.mul_succ, add_comm, list.repeat_succ, list.cons_bind],
+  simp only [IH, e, list.replicate_add, nat.mul_succ, add_comm, list.replicate_succ, list.cons_bind]
 end
 
 @[simp] lemma list_blank.bind_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']
@@ -664,8 +670,8 @@ holds of any point where `eval f a` evaluates to `b`. This formalizes the notion
 @[elab_as_eliminator] def eval_induction {σ}
   {f : σ → option σ} {b : σ} {C : σ → Sort*} {a : σ} (h : b ∈ eval f a)
   (H : ∀ a, b ∈ eval f a →
-    (∀ a', b ∈ eval f a' → f a = some a' → C a') → C a) : C a :=
-pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' hb' e, h' _ hb' $
+    (∀ a', f a = some a' → C a') → C a) : C a :=
+pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' e, h' _ $
   part.mem_some_iff.2 $ by rw e; refl)
 
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
@@ -676,9 +682,9 @@ theorem mem_eval {σ} {f : σ → option σ} {a b} :
   { rw part.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
       part.mem_some_iff.2 $ by rw e; refl),
     exact ⟨refl_trans_gen.refl, e⟩ },
-  { rcases pfun.mem_fix_iff.1 h with h | ⟨_, h, h'⟩;
+  { rcases pfun.mem_fix_iff.1 h with h | ⟨_, h, _⟩;
       rw e at h; cases part.mem_some_iff.1 h,
-    cases IH a' h' (by rwa e) with h₁ h₂,
+    cases IH a' (by rwa e) with h₁ h₂,
     exact ⟨refl_trans_gen.head e h₁, h₂⟩ }
 end, λ ⟨h₁, h₂⟩, begin
   refine refl_trans_gen.head_induction_on h₁ _ (λ a a' h _ IH, _),
@@ -841,7 +847,7 @@ The initial state takes a `list Γ` and produces a `tape Γ` where the head of t
 of the tape and the rest of the list extends to the right, with the left side all blank. The final
 state takes the entire right side of the tape right or equal to the current position of the
 machine. (This is actually a `list_blank Γ`, not a `list Γ`, because we don't know, at this level
-of generality, where the output ends. If equality to `default Γ` is decidable we can trim the list
+of generality, where the output ends. If equality to `default : Γ` is decidable we can trim the list
 to remove the infinite tail of blanks.)
 -/
 
@@ -857,7 +863,7 @@ inductive stmt
 | move : dir → stmt
 | write : Γ → stmt
 
-instance stmt.inhabited : inhabited stmt := ⟨stmt.write (default _)⟩
+instance stmt.inhabited : inhabited stmt := ⟨stmt.write default⟩
 
 /-- A Post-Turing machine with symbol type `Γ` and label type `Λ`
   is a function which, given the current state `q : Λ` and
@@ -882,7 +888,7 @@ structure cfg :=
 (q : Λ)
 (tape : tape Γ)
 
-instance cfg.inhabited : inhabited cfg := ⟨⟨default _, default _⟩⟩
+instance cfg.inhabited : inhabited cfg := ⟨⟨default, default⟩⟩
 
 parameters {Γ Λ}
 /-- Execution semantics of the Turing machine. -/
@@ -900,7 +906,7 @@ refl_trans_gen (λ a b, b ∈ step M a)
 
 /-- The initial configuration. -/
 def init (l : list Γ) : cfg :=
-⟨default Λ, tape.mk₁ l⟩
+⟨default, tape.mk₁ l⟩
 
 /-- Evaluate a Turing machine on initial input to a final state,
   if it terminates. -/
@@ -915,7 +921,7 @@ def eval (M : machine) (l : list Γ) : part (list_blank Γ) :=
   supports a Turing machine `M` if `S` is closed under the
   transition function and contains the initial state. -/
 def supports (M : machine) (S : set Λ) :=
-default Λ ∈ S ∧ ∀ {q a q' s}, (q', s) ∈ M q a → q ∈ S → q' ∈ S
+default ∈ S ∧ ∀ {q a q' s}, (q', s) ∈ M q a → q ∈ S → q' ∈ S
 
 theorem step_supports (M : machine) {S}
   (ss : supports M S) : ∀ {c c' : cfg},
@@ -1058,7 +1064,7 @@ structure cfg :=
 (var : σ)
 (tape : tape Γ)
 
-instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default _, default _, default _⟩⟩
+instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default, default, default⟩⟩
 
 parameters {Γ Λ σ}
 /-- The semantics of TM1 evaluation. -/
@@ -1149,7 +1155,7 @@ variable [inhabited Λ]
   statements in the functions in `S` refer only to other functions
   in `S`. -/
 def supports (M : Λ → stmt) (S : finset Λ) :=
-default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
+default ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
 theorem stmts_supports_stmt {M : Λ → stmt} {S q}
   (ss : supports M S) : some q ∈ stmts M S → supports_stmt S q :=
@@ -1179,7 +1185,7 @@ variable [inhabited σ]
 /-- The initial state, given a finite input that is placed on the tape starting at the TM head and
 going to the right. -/
 def init (l : list Γ) : cfg :=
-⟨some (default _), default _, tape.mk₁ l⟩
+⟨some default, default, tape.mk₁ l⟩
 
 /-- Evaluate a TM to completion, resulting in an output list on the tape (with an indeterminate
 number of blanks on the end). -/
@@ -1231,7 +1237,7 @@ reachable. -/
 -- because of the inhabited instance, but we could avoid the inhabited instances on Λ and σ here.
 -- But they are parameters so we cannot easily skip them for just this definition.
 def Λ' := option stmt₁ × σ
-instance : inhabited Λ' := ⟨(some (M (default _)), default _)⟩
+instance : inhabited Λ' := ⟨(some (M default), default)⟩
 
 open TM0.stmt
 
@@ -1285,8 +1291,7 @@ end
 variables [fintype σ]
 /-- Given a finite set of accessible `Λ` machine states, there is a finite set of accessible
 machine states in the target (even though the type `Λ'` is infinite). -/
-noncomputable def tr_stmts (S : finset Λ) : finset Λ' :=
-(TM1.stmts M S).product finset.univ
+noncomputable def tr_stmts (S : finset Λ) : finset Λ' := TM1.stmts M S ×ˢ finset.univ
 
 open_locale classical
 local attribute [simp] TM1.stmts₁_self
@@ -1364,7 +1369,7 @@ parameters {Γ : Type*} [inhabited Γ]
 
 theorem exists_enc_dec [fintype Γ] :
   ∃ n (enc : Γ → vector bool n) (dec : vector bool n → Γ),
-    enc (default _) = vector.repeat ff n ∧ ∀ a, dec (enc a) = a :=
+    enc default = vector.replicate n ff ∧ ∀ a, dec (enc a) = a :=
 begin
   letI := classical.dec_eq Γ,
   let n := fintype.card Γ,
@@ -1374,7 +1379,7 @@ begin
   let H := (F.to_embedding.trans G).trans
     (equiv.vector_equiv_fin _ _).symm.to_embedding,
   classical,
-  let enc := H.set_value (default _) (vector.repeat ff n),
+  let enc := H.set_value default (vector.replicate n ff),
   exact ⟨_, enc, function.inv_fun enc,
     H.set_value_eq _ _, function.left_inverse_inv_fun enc.2⟩
 end
@@ -1389,7 +1394,7 @@ local notation `cfg₁` := cfg Γ Λ σ
 inductive Λ' : Type (max u_1 u_2 u_3)
 | normal : Λ → Λ'
 | write : Γ → stmt₁ → Λ'
-instance : inhabited Λ' := ⟨Λ'.normal (default _)⟩
+instance : inhabited Λ' := ⟨Λ'.normal default⟩
 
 local notation `stmt'` := stmt bool Λ' σ
 local notation `cfg'` := cfg bool Λ' σ
@@ -1456,7 +1461,7 @@ from λ f hf, this n _ (by intro; simp only [supports_stmt_move, hf]),
   split; apply IH; intro; apply hf,
 end
 
-parameter (enc0 : enc (default _) = vector.repeat ff n)
+parameter (enc0 : enc default = vector.replicate n ff)
 
 section
 parameter {enc}
@@ -1468,8 +1473,8 @@ begin
   refine tape.mk'
     (L.bind (λ x, (enc x).to_list.reverse) ⟨n, _⟩)
     (R.bind (λ x, (enc x).to_list) ⟨n, _⟩);
-  simp only [enc0, vector.repeat,
-    list.reverse_repeat, bool.default_bool, vector.to_list_mk]
+  simp only [enc0, vector.replicate,
+    list.reverse_replicate, bool.default_bool, vector.to_list_mk]
 end
 
 /-- The low level tape corresponding to the given tape over alphabet `Γ`. -/
@@ -1713,7 +1718,7 @@ followed by the action and a jump to the next `normal` state.  -/
 inductive Λ'
 | normal : Λ → Λ'
 | act : TM0.stmt Γ → Λ → Λ'
-instance : inhabited Λ' := ⟨Λ'.normal (default _)⟩
+instance : inhabited Λ' := ⟨Λ'.normal default⟩
 
 local notation `cfg₀` := TM0.cfg Γ Λ
 local notation `stmt₁` := TM1.stmt Γ Λ' unit
@@ -1728,7 +1733,7 @@ def tr : Λ' → stmt₁
 | (Λ'.normal q) :=
   branch (λ a _, (M q a).is_none) halt $
   goto (λ a _, match M q a with
-  | none := default _ -- unreachable
+  | none := default -- unreachable
   | some (q', s) := Λ'.act s q'
   end)
 | (Λ'.act (TM0.stmt.move d) q) := move d $ goto (λ _ _, Λ'.normal q)
@@ -1823,7 +1828,7 @@ structure cfg :=
 (var : σ)
 (stk : ∀ k, list (Γ k))
 
-instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default _, default _, default _⟩⟩
+instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default, default, default⟩⟩
 
 parameters {Γ Λ σ K}
 /-- The step function for the TM2 model. -/
@@ -1920,7 +1925,7 @@ variable [inhabited Λ]
 /-- Given a TM2 machine `M` and a set `S` of states, `supports M S` means that all states in
 `S` jump only to other states in `S`. -/
 def supports (M : Λ → stmt) (S : finset Λ) :=
-default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
+default ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
 theorem stmts_supports_stmt {M : Λ → stmt} {S q}
   (ss : supports M S) : some q ∈ stmts M S → supports_stmt S q :=
@@ -1948,7 +1953,7 @@ end
 variable [inhabited σ]
 /-- The initial state of the TM2 model. The input is provided on a designated stack. -/
 def init (k) (L : list (Γ k)) : cfg :=
-⟨some (default _), default _, update (λ _, []) k L⟩
+⟨some default, default, update (λ _, []) k L⟩
 
 /-- Evaluates a TM2 program to completion, with the output on the same stack as the input. -/
 def eval (M : Λ → stmt) (k) (L : list (Γ k)) : part (list (Γ k)) :=
@@ -2003,7 +2008,7 @@ theorem stk_nth_val {K : Type*} {Γ : K → Type*} {L : list_blank (∀ k, optio
   (hL : list_blank.map (proj k) L = list_blank.mk (list.map some S).reverse) :
   L.nth n k = S.reverse.nth n :=
 begin
-  rw [← proj_map_nth, hL, ← list.map_reverse, list_blank.nth_mk, list.inth, list.nth_map],
+  rw [←proj_map_nth, hL, ←list.map_reverse, list_blank.nth_mk, list.inth_eq_iget_nth, list.nth_map],
   cases S.reverse.nth n; refl
 end
 
@@ -2121,7 +2126,7 @@ inductive Λ' : Type (max u_1 u_2 u_3 u_4)
 | go (k) : st_act k → stmt₂ → Λ'
 | ret : stmt₂ → Λ'
 open Λ'
-instance Λ'.inhabited : inhabited Λ' := ⟨normal (default _)⟩
+instance Λ'.inhabited : inhabited Λ' := ⟨normal default⟩
 
 local notation `stmt₁` := TM1.stmt Γ' Λ' σ
 local notation `cfg₁` := TM1.cfg Γ' Λ' σ
@@ -2208,15 +2213,15 @@ begin
     rw [list_blank.nth_map, list_blank.nth_modify_nth, proj, pointed_map.mk_val],
     by_cases h' : k' = k,
     { subst k', split_ifs; simp only [list.reverse_cons,
-        function.update_same, list_blank.nth_mk, list.inth, list.map],
-      { rw [list.nth_le_nth, list.nth_le_append_right];
+        function.update_same, list_blank.nth_mk, list.map],
+      { rw [list.inth_eq_nth_le, list.nth_le_append_right];
         simp only [h, list.nth_le_singleton, list.length_map, list.length_reverse, nat.succ_pos',
           list.length_append, lt_add_iff_pos_right, list.length] },
-      rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth],
+      rw [← proj_map_nth, hL, list_blank.nth_mk],
       cases lt_or_gt_of_ne h with h h,
-      { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
+      { rw list.inth_append, simpa only [list.length_map, list.length_reverse] using h },
       { rw gt_iff_lt at h,
-        rw [list.nth_len_le, list.nth_len_le];
+        rw [list.inth_eq_default, list.inth_eq_default];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
@@ -2246,12 +2251,12 @@ begin
     rw [list_blank.nth_map, list_blank.nth_modify_nth, proj, pointed_map.mk_val],
     by_cases h' : k' = k,
     { subst k', split_ifs; simp only [
-        function.update_same, list_blank.nth_mk, list.tail, list.inth],
-      { rw [list.nth_len_le], {refl}, rw [h, list.length_reverse, list.length_map] },
-      rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth, e, list.map, list.reverse_cons],
+        function.update_same, list_blank.nth_mk, list.tail],
+      { rw [list.inth_eq_default], {refl}, rw [h, list.length_reverse, list.length_map] },
+      rw [← proj_map_nth, hL, list_blank.nth_mk, e, list.map, list.reverse_cons],
       cases lt_or_gt_of_ne h with h h,
-      { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
-      { rw gt_iff_lt at h, rw [list.nth_len_le, list.nth_len_le];
+      { rw list.inth_append, simpa only [list.length_map, list.length_reverse] using h },
+      { rw gt_iff_lt at h, rw [list.inth_eq_default, list.inth_eq_default];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
@@ -2316,7 +2321,7 @@ theorem tr_respects_aux {q v T k} {S : Π k, list (Γ k)}
       v (tape.mk' ∅ (add_bottom T))) b :=
 begin
   simp only [tr_normal_run, step_run],
-  have hgo := tr_respects_aux₁ M o q v (hT k) _ (le_refl _),
+  have hgo := tr_respects_aux₁ M o q v (hT k) _ le_rfl,
   obtain ⟨T', hT', hrun⟩ := tr_respects_aux₂ hT o,
   have hret := tr_respects_aux₃ M _,
   have := hgo.tail' rfl,
@@ -2336,8 +2341,8 @@ theorem tr_respects : respects (TM2.step M) (TM1.step tr) tr_cfg :=
   cases h with l v S L hT, clear h,
   cases l, {constructor},
   simp only [TM2.step, respects, option.map_some'],
-  suffices : ∃ b, _ ∧ reaches (TM1.step (tr M)) _ _,
-  from let ⟨b, c, r⟩ := this in ⟨b, c, trans_gen.head' rfl r⟩,
+  rsuffices ⟨b, c, r⟩ : ∃ b, _ ∧ reaches (TM1.step (tr M)) _ _,
+  { exact ⟨b, c, trans_gen.head' rfl r⟩ },
   rw [tr],
   revert v S L hT, refine stmt_st_rec _ _ _ _ _ (M l); intros,
   { exact tr_respects_aux M hT s @IH },
@@ -2352,15 +2357,15 @@ theorem tr_cfg_init (k) (L : list (Γ k)) :
   tr_cfg (TM2.init k L) (TM1.init (tr_init k L)) :=
 begin
   rw (_ : TM1.init _ = _),
-  { refine ⟨list_blank.mk (L.reverse.map $ λ a, update (default _) k (some a)), λ k', _⟩,
+  { refine ⟨list_blank.mk (L.reverse.map $ λ a, update default k (some a)), λ k', _⟩,
     refine list_blank.ext (λ i, _),
-    rw [list_blank.map_mk, list_blank.nth_mk, list.inth, list.map_map, (∘),
+    rw [list_blank.map_mk, list_blank.nth_mk, list.inth_eq_iget_nth, list.map_map, (∘),
        list.nth_map, proj, pointed_map.mk_val],
     by_cases k' = k,
     { subst k', simp only [function.update_same],
-      rw [list_blank.nth_mk, list.inth, ← list.map_reverse, list.nth_map] },
+      rw [list_blank.nth_mk, list.inth_eq_iget_nth, ← list.map_reverse, list.nth_map] },
     { simp only [function.update_noteq h],
-      rw [list_blank.nth_mk, list.inth, list.map, list.reverse_nil, list.nth],
+      rw [list_blank.nth_mk, list.inth_eq_iget_nth, list.map, list.reverse_nil, list.nth],
       cases L.reverse.nth i; refl } },
   { rw [tr_init, TM1.init], dsimp only, congr; cases L.reverse; try {refl},
     simp only [list.map_map, list.tail_cons, list.map], refl }
@@ -2380,9 +2385,9 @@ theorem tr_eval (k) (L : list (Γ k)) {L₁ L₂}
 begin
   obtain ⟨c₁, h₁, rfl⟩ := (part.mem_map_iff _).1 H₁,
   obtain ⟨c₂, h₂, rfl⟩ := (part.mem_map_iff _).1 H₂,
-  obtain ⟨_, ⟨q, v, S, L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
+  obtain ⟨_, ⟨L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
   cases part.mem_unique h₁ h₃,
-  exact ⟨S, L', by simp only [tape.mk'_right₀], hT, rfl⟩
+  exact ⟨_, L', by simp only [tape.mk'_right₀], hT, rfl⟩
 end
 
 /-- The support of a set of TM2 states in the TM2 emulator. -/

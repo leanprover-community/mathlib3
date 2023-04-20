@@ -10,9 +10,12 @@ import topology.homeomorph
 /-!
 # Topological group with zero
 
-In this file we define `has_continuous_inv'` to be a mixin typeclass a type with `has_inv` and
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+In this file we define `has_continuous_inv₀` to be a mixin typeclass a type with `has_inv` and
 `has_zero` (e.g., a `group_with_zero`) such that `λ x, x⁻¹` is continuous at all nonzero points. Any
-normed (semi)field has this property. Currently the only example of `has_continuous_inv'` in
+normed (semi)field has this property. Currently the only example of `has_continuous_inv₀` in
 `mathlib` which is not a normed field is the type `nnnreal` (a.k.a. `ℝ≥0`) of nonnegative real
 numbers.
 
@@ -22,14 +25,14 @@ and `continuous`. As a special case, we provide `*.div_const` operations that re
 `group_with_zero` and `has_continuous_mul` instances.
 
 All lemmas about `(⁻¹)` use `inv'` in their names because lemmas without `'` are used for
-`topological_group`s. We also use `'` in the typeclass name `has_continuous_inv'` for the sake of
+`topological_group`s. We also use `'` in the typeclass name `has_continuous_inv₀` for the sake of
 consistency of notation.
 
 On a `group_with_zero` with continuous multiplication, we also define left and right multiplication
 as homeomorphisms.
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open filter function
 
 /-!
@@ -48,24 +51,24 @@ section div_const
 variables [group_with_zero G₀] [topological_space G₀] [has_continuous_mul G₀]
   {f : α → G₀} {s : set α} {l : filter α}
 
-lemma filter.tendsto.div_const {x y : G₀} (hf : tendsto f l (𝓝 x)) :
+lemma filter.tendsto.div_const {x : G₀} (hf : tendsto f l (𝓝 x)) (y : G₀) :
   tendsto (λa, f a / y) l (𝓝 (x / y)) :=
 by simpa only [div_eq_mul_inv] using hf.mul tendsto_const_nhds
 
 variables [topological_space α]
 
-lemma continuous_at.div_const {a : α} (hf : continuous_at f a) {y : G₀} :
+lemma continuous_at.div_const {a : α} (hf : continuous_at f a) (y : G₀) :
   continuous_at (λ x, f x / y) a :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_at_const
 
-lemma continuous_within_at.div_const {a} (hf : continuous_within_at f s a) {y : G₀} :
+lemma continuous_within_at.div_const {a} (hf : continuous_within_at f s a) (y : G₀) :
   continuous_within_at (λ x, f x / y) s a :=
-hf.div_const
+hf.div_const _
 
-lemma continuous_on.div_const (hf : continuous_on f s) {y : G₀} : continuous_on (λ x, f x / y) s :=
+lemma continuous_on.div_const (hf : continuous_on f s) (y : G₀) : continuous_on (λ x, f x / y) s :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_on_const
 
-@[continuity] lemma continuous.div_const (hf : continuous f) {y : G₀} :
+@[continuity] lemma continuous.div_const (hf : continuous f) (y : G₀) :
   continuous (λ x, f x / y) :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_const
 
@@ -73,7 +76,7 @@ end div_const
 
 /-- A type with `0` and `has_inv` such that `λ x, x⁻¹` is continuous at all nonzero points. Any
 normed (semi)field has this property. -/
-class has_continuous_inv₀ (G₀ : Type*) [has_zero G₀] [has_inv G₀] [topological_space G₀] :=
+class has_continuous_inv₀ (G₀ : Type*) [has_zero G₀] [has_inv G₀] [topological_space G₀] : Prop :=
 (continuous_at_inv₀ : ∀ ⦃x : G₀⦄, x ≠ 0 → continuous_at has_inv.inv x)
 
 export has_continuous_inv₀ (continuous_at_inv₀)
@@ -125,6 +128,12 @@ lemma continuous_on.inv₀ (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0
 
 end inv₀
 
+/-- If `G₀` is a group with zero with topology such that `x ↦ x⁻¹` is continuous at all nonzero
+points. Then the coercion `Mˣ → M` is a topological embedding. -/
+theorem units.embedding_coe₀ [group_with_zero G₀] [topological_space G₀] [has_continuous_inv₀ G₀] :
+  embedding (coe : G₀ˣ → G₀) :=
+units.embedding_coe_mk $ continuous_on_inv₀.mono $ λ x, is_unit.ne_zero
+
 /-!
 ### Continuity of division
 
@@ -141,6 +150,17 @@ lemma filter.tendsto.div {l : filter α} {a b : G₀} (hf : tendsto f l (𝓝 a)
   (hg : tendsto g l (𝓝 b)) (hy : b ≠ 0) :
   tendsto (f / g) l (𝓝 (a / b)) :=
 by simpa only [div_eq_mul_inv] using hf.mul (hg.inv₀ hy)
+
+lemma filter.tendsto_mul_iff_of_ne_zero [t1_space G₀]
+  {f g : α → G₀} {l : filter α} {x y : G₀}
+  (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
+  tendsto (λ n, f n * g n) l (𝓝 $ x * y) ↔ tendsto f l (𝓝 x) :=
+begin
+  refine ⟨λ hfg, _, λ hf, hf.mul hg⟩,
+  rw ←mul_div_cancel x hy,
+  refine tendsto.congr' _ (hfg.div hg hy),
+  refine eventually.mp (hg.eventually_ne hy) (eventually_of_forall (λ n hn, mul_div_cancel _ hn)),
+end
 
 variables [topological_space α] [topological_space β] {s : set α} {a : α}
 
@@ -235,7 +255,7 @@ section zpow
 variables [group_with_zero G₀] [topological_space G₀] [has_continuous_inv₀ G₀]
   [has_continuous_mul G₀]
 
-lemma continuous_at_zpow (x : G₀) (m : ℤ) (h : x ≠ 0 ∨ 0 ≤ m) : continuous_at (λ x, x ^ m) x :=
+lemma continuous_at_zpow₀ (x : G₀) (m : ℤ) (h : x ≠ 0 ∨ 0 ≤ m) : continuous_at (λ x, x ^ m) x :=
 begin
   cases m,
   { simpa only [zpow_of_nat] using continuous_at_pow x m },
@@ -244,30 +264,30 @@ begin
     exact (continuous_at_pow x (m + 1)).inv₀ (pow_ne_zero _ hx) }
 end
 
-lemma continuous_on_zpow (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
-λ x hx, (continuous_at_zpow _ _ (or.inl hx)).continuous_within_at
+lemma continuous_on_zpow₀ (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
+λ x hx, (continuous_at_zpow₀ _ _ (or.inl hx)).continuous_within_at
 
-lemma filter.tendsto.zpow {f : α → G₀} {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (m : ℤ)
+lemma filter.tendsto.zpow₀ {f : α → G₀} {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (m : ℤ)
   (h : a ≠ 0 ∨ 0 ≤ m) :
   tendsto (λ x, (f x) ^ m) l (𝓝 (a ^ m)) :=
-(continuous_at_zpow _ m h).tendsto.comp hf
+(continuous_at_zpow₀ _ m h).tendsto.comp hf
 
 variables {X : Type*} [topological_space X] {a : X} {s : set X} {f : X → G₀}
 
-lemma continuous_at.zpow (hf : continuous_at f a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_at.zpow₀ (hf : continuous_at f a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
   continuous_at (λ x, (f x) ^ m) a :=
-hf.zpow m h
+hf.zpow₀ m h
 
-lemma continuous_within_at.zpow (hf : continuous_within_at f s a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_within_at.zpow₀ (hf : continuous_within_at f s a) (m : ℤ) (h : f a ≠ 0 ∨ 0 ≤ m) :
   continuous_within_at (λ x, f x ^ m) s a :=
-hf.zpow m h
+hf.zpow₀ m h
 
-lemma continuous_on.zpow (hf : continuous_on f s) (m : ℤ) (h : ∀ a ∈ s, f a ≠ 0 ∨ 0 ≤ m) :
+lemma continuous_on.zpow₀ (hf : continuous_on f s) (m : ℤ) (h : ∀ a ∈ s, f a ≠ 0 ∨ 0 ≤ m) :
   continuous_on (λ x, f x ^ m) s :=
-λ a ha, (hf a ha).zpow m (h a ha)
+λ a ha, (hf a ha).zpow₀ m (h a ha)
 
-@[continuity] lemma continuous.zpow (hf : continuous f) (m : ℤ) (h0 : ∀ a, f a ≠ 0 ∨ 0 ≤ m) :
+@[continuity] lemma continuous.zpow₀ (hf : continuous f) (m : ℤ) (h0 : ∀ a, f a ≠ 0 ∨ 0 ≤ m) :
   continuous (λ x, (f x) ^ m) :=
-continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).zpow m (h0 x)
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).zpow₀ m (h0 x)
 
 end zpow

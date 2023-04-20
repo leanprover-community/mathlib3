@@ -3,10 +3,13 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import data.equiv.list
+import logic.equiv.list
 
 /-!
 # W types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given `α : Type` and `β : α → Type`, the W type determined by this data, `W_type β`, is the
 inductively defined type of trees where the nodes are labeled by elements of `α` and the children of
@@ -60,7 +63,7 @@ def of_sigma : (Σ a : α, β a → W_type β) → W_type β
 variable (β)
 
 /-- The canonical bijection with the sigma type, showing that `W_type` is a fixed point of
-  the polynomial `Σ a : α, β a → W_type β`.  -/
+  the polynomial functor `X ↦ Σ a : α, β a → X`. -/
 @[simps] def equiv_sigma : W_type β ≃ Σ a : α, β a → W_type β :=
 { to_fun := to_sigma,
   inv_fun := of_sigma,
@@ -90,7 +93,7 @@ lemma infinite_of_nonempty_of_is_empty (a b : α) [ha : nonempty (β a)]
 ⟨begin
   introsI hf,
   have hba : b ≠ a, from λ h, ha.elim (is_empty.elim' (show is_empty (β a), from h ▸ he)),
-  refine not_injective_infinite_fintype
+  refine not_injective_infinite_finite
     (λ n : ℕ, show W_type β, from nat.rec_on n
       ⟨b, is_empty.elim' he⟩
       (λ n ih, ⟨a, λ _, ih⟩)) _,
@@ -116,8 +119,6 @@ lemma depth_lt_depth_mk (a : α) (f : β a → W_type β) (i : β a) :
   depth (f i) < depth ⟨a, f⟩ :=
 nat.lt_succ_of_le (finset.le_sup (finset.mem_univ i))
 
-end W_type
-
 /-
 Show that W types are encodable when `α` is an encodable fintype and for every `a : α`, `β a` is
 encodable.
@@ -127,13 +128,11 @@ induction on `n` that these are all encodable. These auxiliary constructions are
 and of themselves, so we mark them as `private`.
 -/
 
-namespace encodable
-
 @[reducible] private def W_type' {α : Type*} (β : α → Type*)
     [Π a : α, fintype (β a)] [Π a : α, encodable (β a)] (n : ℕ) :=
 { t : W_type β // t.depth ≤ n}
 
-variables {α : Type*} {β : α → Type*} [Π a : α, fintype (β a)] [Π a : α, encodable (β a)]
+variables [Π a : α, encodable (β a)]
 
 private def encodable_zero : encodable (W_type' β 0) :=
 let f    : W_type' β 0 → empty := λ ⟨x, h⟩, false.elim $ not_lt_of_ge h (W_type.depth_pos _),
@@ -170,10 +169,10 @@ instance : encodable (W_type β) :=
 begin
   haveI h' : Π n, encodable (W_type' β n) :=
     λ n, nat.rec_on n encodable_zero encodable_succ,
-  let f    : W_type β → Σ n, W_type' β n   := λ t, ⟨t.depth, ⟨t, le_refl _⟩⟩,
+  let f    : W_type β → Σ n, W_type' β n   := λ t, ⟨t.depth, ⟨t, le_rfl⟩⟩,
   let finv : (Σ n, W_type' β n) → W_type β := λ p, p.2.1,
   have : ∀ t, finv (f t) = t, from λ t, rfl,
   exact encodable.of_left_inverse f finv this
 end
 
-end encodable
+end W_type

@@ -10,6 +10,9 @@ import ring_theory.ideal.operations
 /-!
 # Nilpotent elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
   * `is_nilpotent`
@@ -23,7 +26,7 @@ import ring_theory.ideal.operations
 
 universes u v
 
-variables {R : Type u} {x y : R}
+variables {R S : Type u} {x y : R}
 
 /-- An element is said to be nilpotent if some natural-number-power of it equals zero.
 
@@ -31,6 +34,9 @@ Note that we require only the bare minimum assumptions for the definition to mak
 `monoid_with_zero` is too strong since nilpotency is important in the study of rings that are only
 power-associative. -/
 def is_nilpotent [has_zero R] [has_pow R ℕ] (x : R) : Prop := ∃ (n : ℕ), x^n = 0
+
+lemma is_nilpotent.mk [has_zero R] [has_pow R ℕ] (x : R) (n : ℕ)
+  (e : x ^ n = 0) : is_nilpotent x := ⟨n, e⟩
 
 lemma is_nilpotent.zero [monoid_with_zero R] : is_nilpotent (0 : R) := ⟨1, pow_one 0⟩
 
@@ -44,8 +50,13 @@ end
 @[simp] lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
+lemma is_nilpotent.map [monoid_with_zero R] [monoid_with_zero S] {r : R}
+  {F : Type*} [monoid_with_zero_hom_class F R S] (hr : is_nilpotent r) (f : F) :
+    is_nilpotent (f r) :=
+by { use hr.some, rw [← map_pow, hr.some_spec, map_zero] }
+
 /-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
-class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
+@[mk_iff] class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
 (eq_zero : ∀ (x : R), is_nilpotent x → x = 0)
 
 @[priority 900]
@@ -63,6 +74,46 @@ is_reduced.eq_zero x h
 @[simp] lemma is_nilpotent_iff_eq_zero [monoid_with_zero R] [is_reduced R] :
   is_nilpotent x ↔ x = 0 :=
 ⟨λ h, h.eq_zero, λ h, h.symm ▸ is_nilpotent.zero⟩
+
+lemma is_reduced_of_injective [monoid_with_zero R] [monoid_with_zero S]
+  {F : Type*} [monoid_with_zero_hom_class F R S] (f : F)
+  (hf : function.injective f) [_root_.is_reduced S] : _root_.is_reduced R :=
+begin
+  constructor,
+  intros x hx,
+  apply hf,
+  rw map_zero,
+  exact (hx.map f).eq_zero,
+end
+
+lemma ring_hom.ker_is_radical_iff_reduced_of_surjective {S F} [comm_semiring R] [comm_ring S]
+  [ring_hom_class F R S] {f : F} (hf : function.surjective f) :
+  (ring_hom.ker f).is_radical ↔ is_reduced S :=
+by simp_rw [is_reduced_iff, hf.forall, is_nilpotent, ← map_pow, ← ring_hom.mem_ker]; refl
+
+/-- An element `y` in a monoid is radical if for any element `x`, `y` divides `x` whenever it
+  divides a power of `x`. -/
+def is_radical [has_dvd R] [has_pow R ℕ] (y : R) : Prop := ∀ (n : ℕ) x, y ∣ x ^ n → y ∣ x
+
+lemma zero_is_radical_iff [monoid_with_zero R] : is_radical (0 : R) ↔ is_reduced R :=
+by { simp_rw [is_reduced_iff, is_nilpotent, exists_imp_distrib, ← zero_dvd_iff], exact forall_swap }
+
+lemma is_radical_iff_span_singleton [comm_semiring R] :
+  is_radical y ↔ (ideal.span ({y} : set R)).is_radical :=
+begin
+  simp_rw [is_radical, ← ideal.mem_span_singleton],
+  exact forall_swap.trans (forall_congr $ λ r, exists_imp_distrib.symm),
+end
+
+lemma is_radical_iff_pow_one_lt [monoid_with_zero R] (k : ℕ) (hk : 1 < k) :
+  is_radical y ↔ ∀ x, y ∣ x ^ k → y ∣ x :=
+⟨λ h x, h k x, λ h, k.cauchy_induction_mul
+  (λ n h x hd, h x $ (pow_succ' x n).symm ▸ hd.mul_right x) 0 hk
+  (λ x hd, pow_one x ▸ hd) (λ n _ hn x hd, h x $ hn _ $ (pow_mul x k n).subst hd)⟩
+
+lemma is_reduced_iff_pow_one_lt [monoid_with_zero R] (k : ℕ) (hk : 1 < k) :
+  is_reduced R ↔ ∀ x : R, x ^ k = 0 → x = 0 :=
+by simp_rw [← zero_is_radical_iff, is_radical_iff_pow_one_lt k hk, zero_dvd_iff]
 
 namespace commute
 
@@ -127,7 +178,7 @@ lemma mem_nilradical : x ∈ nilradical R ↔ is_nilpotent x := iff.rfl
 
 lemma nilradical_eq_Inf (R : Type*) [comm_semiring R] :
   nilradical R = Inf { J : ideal R | J.is_prime } :=
-by { convert ideal.radical_eq_Inf 0, simp }
+(ideal.radical_eq_Inf ⊥).trans $ by simp_rw and_iff_right bot_le
 
 lemma nilpotent_iff_mem_prime : is_nilpotent x ↔ ∀ (J : ideal R), J.is_prime → x ∈ J :=
 by { rw [← mem_nilradical, nilradical_eq_Inf, submodule.mem_Inf], refl }
@@ -140,24 +191,38 @@ ideal.ext $ λ _, is_nilpotent_iff_eq_zero
 
 end comm_semiring
 
-namespace algebra
+namespace linear_map
 
 variables (R) {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
 
-@[simp] lemma is_nilpotent_lmul_left_iff (a : A) :
-  is_nilpotent (lmul_left R a) ↔ is_nilpotent a :=
+@[simp] lemma is_nilpotent_mul_left_iff (a : A) :
+  is_nilpotent (mul_left R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_left_eq_zero_iff, pow_lmul_left] at ⊢ hn;
+  simp only [mul_left_eq_zero_iff, pow_mul_left] at ⊢ hn;
   exact hn,
 end
 
-@[simp] lemma is_nilpotent_lmul_right_iff (a : A) :
-  is_nilpotent (lmul_right R a) ↔ is_nilpotent a :=
+@[simp] lemma is_nilpotent_mul_right_iff (a : A) :
+  is_nilpotent (mul_right R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_right_eq_zero_iff, pow_lmul_right] at ⊢ hn;
+  simp only [mul_right_eq_zero_iff, pow_mul_right] at ⊢ hn;
   exact hn,
 end
 
-end algebra
+end linear_map
+
+namespace module.End
+
+variables {M : Type v} [ring R] [add_comm_group M] [module R M]
+variables {f : module.End R M} {p : submodule R M} (hp : p ≤ p.comap f)
+
+lemma is_nilpotent.mapq (hnp : is_nilpotent f) : is_nilpotent (p.mapq p f hp) :=
+begin
+  obtain ⟨k, hk⟩ := hnp,
+  use k,
+  simp [← p.mapq_pow, hk],
+end
+
+end module.End

@@ -3,12 +3,15 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Simon Hudon, Kenny Lau
 -/
-import data.multiset.basic
+import data.multiset.bind
 import control.traversable.lemmas
 import control.traversable.instances
 
 /-!
 # Functoriality of `multiset`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u

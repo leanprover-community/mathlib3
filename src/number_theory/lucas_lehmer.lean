@@ -14,6 +14,9 @@ import tactic.ring_exp
 /-!
 # The Lucas-Lehmer test for Mersenne primes.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `lucas_lehmer_residue : Π p : ℕ, zmod (2^p - 1)`, and
 prove `lucas_lehmer_residue p = 0 → prime (mersenne p)`.
 
@@ -94,7 +97,7 @@ end
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
-  { exact sup_eq_left.mp rfl },
+  { exact sup_eq_right.mp rfl },
   { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 
@@ -122,7 +125,7 @@ end
 lemma int.coe_nat_pow_pred (b p : ℕ) (w : 0 < b) : ((b^p - 1 : ℕ) : ℤ) = (b^p - 1 : ℤ) :=
 begin
   have : 1 ≤ b^p := nat.one_le_pow p b w,
-  push_cast [this],
+  norm_cast
 end
 
 lemma int.coe_nat_two_pow_pred (p : ℕ) : ((2^p - 1 : ℕ) : ℤ) = (2^p - 1 : ℤ) :=
@@ -146,9 +149,7 @@ begin
     simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
     apply int.eq_zero_of_dvd_of_nonneg_of_lt _ _ h; clear h,
     apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
-    convert s_mod_lt _ (nat.lt_of_succ_lt w) (p-2),
-    push_cast [nat.one_le_two_pow p],
-    refl, },
+    exact s_mod_lt _ (nat.lt_of_succ_lt w) (p-2) },
   { intro h, rw h, simp, },
 end
 
@@ -161,9 +162,6 @@ def lucas_lehmer_test (p : ℕ) : Prop := lucas_lehmer_residue p = 0
 
 /-- `q` is defined as the minimum factor of `mersenne p`, bundled as an `ℕ+`. -/
 def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (mersenne p), nat.min_fac_pos (mersenne p)⟩
-
-local attribute [instance]
-lemma fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) := ⟨q.2⟩
 
 /-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
 -- It would be nice to define this as (ℤ/qℤ)[x] / (x^2 - 3),
@@ -214,6 +212,15 @@ instance : monoid (X q) :=
   mul_one := λ x, by { ext; simp, },
   ..(infer_instance : has_mul (X q)) }
 
+instance : add_group_with_one (X q) :=
+{ nat_cast := λ n, ⟨n, 0⟩,
+  nat_cast_zero := by simp,
+  nat_cast_succ := by simp [nat.cast, monoid.one],
+  int_cast := λ n, ⟨n, 0⟩,
+  int_cast_of_nat := λ n, by simp; refl,
+  int_cast_neg_succ_of_nat := λ n, by ext; simp; refl,
+  .. X.monoid, .. X.add_comm_group _ }
+
 lemma left_distrib (x y z : X q) : x * (y + z) = x * y + x * z :=
 by { ext; { dsimp, ring }, }
 
@@ -223,6 +230,7 @@ by { ext; { dsimp, ring }, }
 instance : ring (X q) :=
 { left_distrib := left_distrib,
   right_distrib := right_distrib,
+  .. X.add_group_with_one,
   ..(infer_instance : add_comm_group (X q)),
   ..(infer_instance : monoid (X q)) }
 
@@ -233,27 +241,11 @@ instance : comm_ring (X q) :=
 instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 ⟨⟨0, 1, λ h, by { injection h with h1 _, exact zero_ne_one h1 } ⟩⟩
 
-@[simp]
-lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) :=
-begin
-  induction n,
-  { refl, },
-  { dsimp, simp only [add_left_inj], exact n_ih, }
-end
-@[simp]
-lemma nat_coe_snd (n : ℕ) : (n : X q).snd = (0 : zmod q) :=
-begin
-  induction n,
-  { refl, },
-  { dsimp, simp only [add_zero], exact n_ih, }
-end
+@[simp] lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) := rfl
+@[simp] lemma nat_coe_snd (n : ℕ) : (n : X q).snd = (0 : zmod q) := rfl
 
-@[simp]
-lemma int_coe_fst (n : ℤ) : (n : X q).fst = (n : zmod q) :=
-by { induction n; simp, }
-@[simp]
-lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) :=
-by { induction n; simp, }
+@[simp] lemma int_coe_fst (n : ℤ) : (n : X q).fst = (n : zmod q) := rfl
+@[simp] lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) := rfl
 
 @[norm_cast]
 lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
@@ -272,7 +264,7 @@ begin
 end
 
 /-- There are strictly fewer than `q^2` units, since `0` is not a unit. -/
-lemma units_card (w : 1 < q) : fintype.card (units (X q)) < q^2 :=
+lemma units_card (w : 1 < q) : fintype.card ((X q)ˣ) < q^2 :=
 begin
   haveI : fact (1 < (q:ℕ)) := ⟨w⟩,
   convert card_units_lt (X q),
@@ -324,7 +316,7 @@ Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction i
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   by_contradiction H,
   simp at H,
-  interval_cases q (p'+2); clear H,
+  interval_cases q (p'+2), clear H,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
     simp [mersenne] at h',
@@ -357,6 +349,7 @@ begin
   rw [mul_comm, coe_mul] at h,
   rw [mul_comm _ (k : X (q (p'+2)))] at h,
   replace h := eq_sub_of_add_eq h,
+  have : 1 ≤ 2 ^ (p' + 2) := nat.one_le_pow _ _ dec_trivial,
   exact_mod_cast h,
 end
 
@@ -396,7 +389,7 @@ theorem order_ω (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   order_of (ω_unit (p'+2)) = 2^(p'+2) :=
 begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
-  { norm_num, },
+  { exact nat.prime_two, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
     replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :
@@ -414,7 +407,7 @@ end
 
 lemma order_ineq (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) : 2^(p'+2) < (q (p'+2) : ℕ)^2 :=
 calc 2^(p'+2) = order_of (ω_unit (p'+2)) : (order_ω p' h).symm
-     ... ≤ fintype.card (units (X _))    : order_of_le_card_univ
+     ... ≤ fintype.card ((X _)ˣ)    : order_of_le_card_univ
      ... < (q (p'+2) : ℕ)^2              : units_card (nat.lt_of_succ_lt (two_lt_q _))
 
 end lucas_lehmer
@@ -445,9 +438,6 @@ example : (mersenne 5).prime := lucas_lehmer_sufficiency 5 (by norm_num) dec_tri
 namespace lucas_lehmer
 open tactic
 
-meta instance nat_pexpr : has_to_pexpr ℕ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
-meta instance int_pexpr : has_to_pexpr ℤ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
-
 lemma s_mod_succ {p a i b c}
   (h1 : (2^p - 1 : ℤ) = a)
   (h2 : s_mod p i = b)
@@ -466,16 +456,12 @@ do `(lucas_lehmer_test %%p) ← target,
    p ← eval_expr ℕ p,
    -- Calculate the candidate Mersenne prime
    let M : ℤ := 2^p - 1,
-   t ← to_expr ``(2^%%p - 1 = %%M),
-   v ← to_expr ``(by norm_num : 2^%%p - 1 = %%M),
+   t ← to_expr ``(2^%%`(p) - 1 = %%`(M)),
+   v ← to_expr ``(by norm_num : 2^%%`(p) - 1 = %%`(M)),
    w ← assertv `w t v,
-   -- Unfortunately this creates something like `w : 2^5 - 1 = int.of_nat 31`.
-   -- We could make a better `has_to_pexpr ℤ` instance, or just:
-   `[simp only [int.coe_nat_zero, int.coe_nat_succ,
-       int.of_nat_eq_coe, zero_add, int.coe_nat_bit1] at w],
    -- base case
-   t ← to_expr ``(s_mod %%p 0 = 4),
-   v ← to_expr ``(by norm_num [lucas_lehmer.s_mod] : s_mod %%p 0 = 4),
+   t ← to_expr ``(s_mod %%`(p) 0 = 4),
+   v ← to_expr ``(by norm_num [lucas_lehmer.s_mod] : s_mod %%`(p) 0 = 4),
    h ← assertv `h t v,
    -- step case, repeated p-2 times
    iterate_exactly (p-2) `[replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl })],
@@ -499,7 +485,9 @@ is out of reach with the current implementation.
 
 There's still low hanging fruit available to do faster computations
 based on the formula
-  n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
+```
+n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
+```
 and the fact that `% 2^p` and `/ 2^p` can be very efficient on the binary representation.
 Someone should do this, too!
 -/
@@ -510,7 +498,7 @@ begin
   conv in k { rw ← nat.div_add_mod k (2^n) },
   refine nat.modeq.add_right _ _,
   conv { congr, skip, skip, rw ← one_mul (k/2^n) },
-  exact (nat.modeq_sub $ pow_pos (by norm_num : 0 < 2) _).mul_right _,
+  exact (nat.modeq_sub $ nat.succ_le_of_lt $ pow_pos zero_lt_two _).mul_right _,
 end
 
 -- It's hard to know what the limiting factor for large Mersenne primes would be.

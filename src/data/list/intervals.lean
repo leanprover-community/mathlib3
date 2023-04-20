@@ -9,6 +9,9 @@ import data.list.range
 /-!
 # Intervals in ℕ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines intervals of naturals. `list.Ico m n` is the list of integers greater than `m`
 and strictly less than `n`.
 
@@ -167,7 +170,7 @@ end
 @[simp] lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = [n] :=
 begin
   rw ←filter_lt_of_succ_bot hnm,
-  exact filter_congr (λ _ _, lt_succ_iff.symm),
+  exact filter_congr' (λ _ _, lt_succ_iff.symm),
 end
 
 /--

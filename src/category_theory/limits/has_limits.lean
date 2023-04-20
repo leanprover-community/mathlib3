@@ -9,6 +9,9 @@ import category_theory.category.ulift
 /-!
 # Existence of limits and colimits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In `category_theory.limits.is_limit` we defined `is_limit c`,
 the data showing that a cone `c` is a limit cone.
 
@@ -69,7 +72,7 @@ variables {F : J ⥤ C}
 section limit
 
 /-- `limit_cone F` contains a cone over `F` together with the information that it is a limit. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure limit_cone (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
@@ -189,6 +192,10 @@ is_limit.cone_point_unique_up_to_iso_hom_comp _ _ _
   (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) hc).inv ≫ limit.π F j = c.π.app j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
 
+lemma limit.exists_unique {F : J ⥤ C} [has_limit F] (t : cone F) :
+  ∃! (l : t.X ⟶ limit F), ∀ j, l ≫ limit.π F j = t.π.app j :=
+(limit.is_limit F).exists_unique _
+
 /--
 Given any other limit cone for `F`, the chosen `limit F` is isomorphic to the cone point.
 -/
@@ -289,11 +296,24 @@ lemma has_limit.iso_of_nat_iso_hom_π {F G : J ⥤ C} [has_limit F] [has_limit G
 is_limit.cone_points_iso_of_nat_iso_hom_comp _ _ _ _
 
 @[simp, reassoc]
+lemma has_limit.iso_of_nat_iso_inv_π {F G : J ⥤ C} [has_limit F] [has_limit G]
+  (w : F ≅ G) (j : J) :
+  (has_limit.iso_of_nat_iso w).inv ≫ limit.π F j = limit.π G j ≫ w.inv.app j :=
+is_limit.cone_points_iso_of_nat_iso_inv_comp _ _ _ _
+
+@[simp, reassoc]
 lemma has_limit.lift_iso_of_nat_iso_hom {F G : J ⥤ C} [has_limit F] [has_limit G] (t : cone F)
   (w : F ≅ G) :
   limit.lift F t ≫ (has_limit.iso_of_nat_iso w).hom =
     limit.lift G ((cones.postcompose w.hom).obj _) :=
 is_limit.lift_comp_cone_points_iso_of_nat_iso_hom _ _ _
+
+@[simp, reassoc]
+lemma has_limit.lift_iso_of_nat_iso_inv {F G : J ⥤ C} [has_limit F] [has_limit G] (t : cone G)
+  (w : F ≅ G) :
+  limit.lift G t ≫ (has_limit.iso_of_nat_iso w).inv =
+    limit.lift F ((cones.postcompose w.inv).obj _) :=
+is_limit.lift_comp_cone_points_iso_of_nat_iso_inv _ _ _
 
 /--
 The limits of `F : J ⥤ C` and `G : K ⥤ C` are isomorphic,
@@ -471,7 +491,31 @@ def lim_yoneda : lim ⋙ yoneda ⋙ (whiskering_right _ _ _).obj ulift_functor.{
 nat_iso.of_components (λ F, nat_iso.of_components (λ W, limit.hom_iso F (unop W)) (by tidy))
   (by tidy)
 
+/--The constant functor and limit functor are adjoint to each other-/
+def const_lim_adj : (const J : C ⥤ (J ⥤ C)) ⊣ lim :=
+{ hom_equiv := λ c g,
+  { to_fun := λ f, limit.lift _ ⟨c, f⟩,
+    inv_fun := λ f, { app := λ j, f ≫ limit.π _ _ , naturality' := by tidy },
+    left_inv := λ _, nat_trans.ext _ _ $ funext $ λ j, limit.lift_π _ _,
+    right_inv := λ α, limit.hom_ext $ λ j, limit.lift_π _ _ },
+  unit := { app := λ c, limit.lift _ ⟨_, 𝟙 _⟩, naturality' := λ _ _ _, by tidy },
+  counit :=
+  { app := λ g, { app := limit.π _, naturality' := by tidy },
+    naturality' := λ _ _ _, by tidy },
+  hom_equiv_unit' := λ c g f, limit.hom_ext $ λ j, by simp,
+  hom_equiv_counit' := λ c g f, nat_trans.ext _ _ $ funext $ λ j, rfl }
+
+instance : is_right_adjoint (lim : (J ⥤ C) ⥤ C) := ⟨_, const_lim_adj⟩
+
 end lim_functor
+
+instance lim_map_mono' {F G : J ⥤ C} [has_limits_of_shape J C] (α : F ⟶ G)
+  [mono α] : mono (lim_map α) :=
+(lim : (J ⥤ C) ⥤ C).map_mono α
+
+instance lim_map_mono {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G)
+  [∀ j, mono (α.app j)] : mono (lim_map α) :=
+⟨λ Z u v h, limit.hom_ext $ λ j, (cancel_mono (α.app j)).1 $ by simpa using h =≫ limit.π _ j⟩
 
 /--
 We can transport limits of shape `J` along an equivalence `J ≌ J'`.
@@ -483,7 +527,7 @@ by { constructor, intro F, apply has_limit_of_equivalence_comp e, apply_instance
 variable (C)
 
 /--
-`has_limits_of_size.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
+`has_limits_of_size_shrink.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
 from some other `has_limits_of_size C`.
 -/
 lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
@@ -502,7 +546,7 @@ section colimit
 
 /-- `colimit_cocone F` contains a cocone over `F` together with the information that it is a
     colimit. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure colimit_cocone (F : J ⥤ C) :=
 (cocone : cocone F)
 (is_colimit : is_colimit cocone)
@@ -537,9 +581,9 @@ class has_colimits_of_size (C : Type u) [category.{v} C] : Prop :=
 -/
 abbreviation has_colimits (C : Type u) [category.{v} C] : Prop := has_colimits_of_size.{v v} C
 
-lemma has_colimits.has_limits_of_shape {C : Type u} [category.{v} C] [has_limits C]
+lemma has_colimits.has_colimits_of_shape {C : Type u} [category.{v} C] [has_colimits C]
   (J : Type v) [category.{v} J] :
-  has_limits_of_shape J C := has_limits_of_size.has_limits_of_shape J
+  has_colimits_of_shape J C := has_colimits_of_size.has_colimits_of_shape J
 
 variables {J C}
 
@@ -636,6 +680,10 @@ is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _
   colimit.ι F j ≫ (is_colimit.cocone_point_unique_up_to_iso hc (colimit.is_colimit _)).inv =
     c.ι.app j :=
 is_colimit.comp_cocone_point_unique_up_to_iso_inv _ _ _
+
+lemma colimit.exists_unique {F : J ⥤ C} [has_colimit F] (t : cocone F) :
+  ∃! (d : colimit F ⟶ t.X), ∀ j, colimit.ι F j ≫ d = t.ι.app j :=
+(colimit.is_colimit F).exists_unique _
 
 /--
 Given any other colimit cocone for `F`, the chosen `colimit F` is isomorphic to the cocone point.
@@ -736,11 +784,24 @@ lemma has_colimit.iso_of_nat_iso_ι_hom {F G : J ⥤ C} [has_colimit F] [has_col
 is_colimit.comp_cocone_points_iso_of_nat_iso_hom _ _ _ _
 
 @[simp, reassoc]
+lemma has_colimit.iso_of_nat_iso_ι_inv {F G : J ⥤ C} [has_colimit F] [has_colimit G]
+  (w : F ≅ G) (j : J) :
+  colimit.ι G j ≫ (has_colimit.iso_of_nat_iso w).inv = w.inv.app j ≫ colimit.ι F j :=
+is_colimit.comp_cocone_points_iso_of_nat_iso_inv _ _ _ _
+
+@[simp, reassoc]
 lemma has_colimit.iso_of_nat_iso_hom_desc {F G : J ⥤ C} [has_colimit F] [has_colimit G]
   (t : cocone G) (w : F ≅ G) :
   (has_colimit.iso_of_nat_iso w).hom ≫ colimit.desc G t =
     colimit.desc F ((cocones.precompose w.hom).obj _) :=
 is_colimit.cocone_points_iso_of_nat_iso_hom_desc _ _ _
+
+@[simp, reassoc]
+lemma has_colimit.iso_of_nat_iso_inv_desc {F G : J ⥤ C} [has_colimit F] [has_colimit G]
+  (t : cocone F) (w : F ≅ G) :
+  (has_colimit.iso_of_nat_iso w).inv ≫ colimit.desc F t =
+    colimit.desc G ((cocones.precompose w.inv).obj _) :=
+is_colimit.cocone_points_iso_of_nat_iso_inv_desc _ _ _
 
 /--
 The colimits of `F : J ⥤ C` and `G : K ⥤ C` are isomorphic,
@@ -938,7 +999,30 @@ def colim_coyoneda : colim.op ⋙ coyoneda ⋙ (whiskering_right _ _ _).obj ulif
 nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso (unop F)) (by tidy))
   (by tidy)
 
+/--
+The colimit functor and constant functor are adjoint to each other
+-/
+def colim_const_adj : (colim : (J ⥤ C) ⥤ C) ⊣ const J :=
+{ hom_equiv := λ f c,
+  { to_fun := λ g, { app := λ _, colimit.ι _ _ ≫ g, naturality' := by tidy },
+    inv_fun := λ g, colimit.desc _ ⟨_, g⟩,
+    left_inv := λ _, colimit.hom_ext $ λ j, colimit.ι_desc _ _,
+    right_inv := λ _, nat_trans.ext _ _ $ funext $ λ j, colimit.ι_desc _ _ },
+  unit := { app := λ g, { app := colimit.ι _, naturality' := by tidy }, naturality' := by tidy },
+  counit := { app := λ c, colimit.desc _ ⟨_, 𝟙 _⟩, naturality' := by tidy },
+  hom_equiv_unit' := λ _ _ _, nat_trans.ext _ _ $ funext $ λ _ , rfl,
+  hom_equiv_counit' := λ _ _ _, colimit.hom_ext $ λ _, by simp }
+
+instance : is_left_adjoint (colim : (J ⥤ C) ⥤ C) := ⟨_, colim_const_adj⟩
+
 end colim_functor
+
+instance colim_map_epi' {F G : J ⥤ C} [has_colimits_of_shape J C] (α : F ⟶ G) [epi α] :
+  epi (colim_map α) := (colim : (J ⥤ C) ⥤ C).map_epi α
+
+instance colim_map_epi {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G)
+  [∀ j, epi (α.app j)] : epi (colim_map α) :=
+⟨λ Z u v h, colimit.hom_ext $ λ j, (cancel_epi (α.app j)).1 $ by simpa using colimit.ι _ j ≫= h⟩
 
 /--
 We can transport colimits of shape `J` along an equivalence `J ≌ J'`.
@@ -950,7 +1034,7 @@ by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instan
 variable (C)
 
 /--
-`has_colimits_of_size.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
+`has_colimits_of_size_shrink.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
 from some other `has_colimits_of_size C`.
 -/
 lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :

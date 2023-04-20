@@ -3,13 +3,17 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import algebra.tropical.lattice
 import algebra.big_operators.basic
 import data.list.min_max
+import algebra.tropical.basic
+import order.conditionally_complete_lattice.finset
 
 /-!
 
 # Tropicalization of finitary operations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides the "big-op" or notation-based finitary operations on tropicalized types.
 This allows easy conversion between sums to Infs and prods to sums. Results here are important
@@ -105,11 +109,7 @@ lemma trop_Inf_image [conditionally_complete_linear_order R] (s : finset S)
 begin
   rcases s.eq_empty_or_nonempty with rfl|h,
   { simp only [set.image_empty, coe_empty, sum_empty, with_top.cInf_empty, trop_top] },
-  rw [←inf'_eq_cInf_image _ h, inf'_eq_inf],
-  convert s.trop_inf f,
-  refine lattice.ext _,
-  intros,
-  exact iff.rfl
+  rw [←inf'_eq_cInf_image _ h, inf'_eq_inf, s.trop_inf],
 end
 
 lemma trop_infi [conditionally_complete_linear_order R] [fintype S] (f : S → with_top R) :
@@ -138,11 +138,7 @@ lemma untrop_sum_eq_Inf_image [conditionally_complete_linear_order R] (s : finse
 begin
   rcases s.eq_empty_or_nonempty with rfl|h,
   { simp only [set.image_empty, coe_empty, sum_empty, with_top.cInf_empty, untrop_zero] },
-  rw [←inf'_eq_cInf_image _ h, inf'_eq_inf],
-  convert s.untrop_sum' f,
-  refine lattice.ext _,
-  intros,
-  exact iff.rfl
+  rw [←inf'_eq_cInf_image _ h, inf'_eq_inf, finset.untrop_sum'],
 end
 
 lemma untrop_sum [conditionally_complete_linear_order R] [fintype S]

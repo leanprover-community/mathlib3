@@ -3,9 +3,14 @@ Copyright (c) 2018 Guy Leroy. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
 -/
-import data.nat.prime
+import data.nat.gcd.basic
+import tactic.norm_num
+
 /-!
 # Extended GCD and divisibility over ℤ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -158,30 +163,11 @@ begin
     ... = nat_abs a / nat_abs b : by rw int.div_mul_cancel H,
 end
 
-lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : nat.prime p) {m n : ℤ} {k l : ℕ}
-      (hpm : ↑(p ^ k) ∣ m)
-      (hpn : ↑(p ^ l) ∣ n) (hpmn : ↑(p ^ (k+l+1)) ∣ m*n) : ↑(p ^ (k+1)) ∣ m ∨ ↑(p ^ (l+1)) ∣ n :=
-have hpm' : p ^ k ∣ m.nat_abs, from int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpm,
-have hpn' : p ^ l ∣ n.nat_abs, from int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpn,
-have hpmn' : (p ^ (k+l+1)) ∣ m.nat_abs*n.nat_abs,
-  by rw ←int.nat_abs_mul; apply (int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpmn),
-let hsd := nat.succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul p_prime hpm' hpn' hpmn' in
-hsd.elim
-  (λ hsd1, or.inl begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd1 end)
-  (λ hsd2, or.inr begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd2 end)
-
 theorem dvd_of_mul_dvd_mul_left {i j k : ℤ} (k_non_zero : k ≠ 0) (H : k * i ∣ k * j) : i ∣ j :=
 dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel₀ k_non_zero H1⟩)
 
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
-
-lemma prime.dvd_nat_abs_of_coe_dvd_sq {p : ℕ} (hp : p.prime) (k : ℤ) (h : ↑p ∣ k ^ 2) :
-  p ∣ k.nat_abs :=
-begin
-  apply @nat.prime.dvd_of_dvd_pow _ _ 2 hp,
-  rwa [sq, ← nat_abs_mul, ← coe_nat_dvd_left, ← sq]
-end
 
 /-- ℤ specific version of least common multiple. -/
 def lcm (i j : ℤ) : ℕ := nat.lcm (nat_abs i) (nat_abs j)
@@ -216,17 +202,23 @@ theorem gcd_assoc (i j k : ℤ) : gcd (gcd i j) k = gcd i (gcd j k) := nat.gcd_a
 
 @[simp] theorem gcd_one_right (i : ℤ) : gcd i 1 = 1 := nat.gcd_one_right _
 
+@[simp] lemma gcd_neg_right {x y : ℤ} : gcd x (-y) = gcd x y :=
+by rw [int.gcd, int.gcd, nat_abs_neg]
+
+@[simp] lemma gcd_neg_left {x y : ℤ} : gcd (-x) y = gcd x y :=
+by rw [int.gcd, int.gcd, nat_abs_neg]
+
 theorem gcd_mul_left (i j k : ℤ) : gcd (i * j) (i * k) = nat_abs i * gcd j k :=
 by { rw [int.gcd, int.gcd, nat_abs_mul, nat_abs_mul], apply nat.gcd_mul_left }
 
 theorem gcd_mul_right (i j k : ℤ) : gcd (i * j) (k * j) = gcd i k * nat_abs j :=
 by { rw [int.gcd, int.gcd, nat_abs_mul, nat_abs_mul], apply nat.gcd_mul_right }
 
-theorem gcd_pos_of_non_zero_left {i : ℤ} (j : ℤ) (i_non_zero : i ≠ 0) : 0 < gcd i j :=
-nat.gcd_pos_of_pos_left (nat_abs j) (nat_abs_pos_of_ne_zero i_non_zero)
+theorem gcd_pos_of_ne_zero_left {i : ℤ} (j : ℤ) (hi : i ≠ 0) : 0 < gcd i j :=
+nat.gcd_pos_of_pos_left _ $ nat_abs_pos_of_ne_zero hi
 
-theorem gcd_pos_of_non_zero_right (i : ℤ) {j : ℤ} (j_non_zero : j ≠ 0) : 0 < gcd i j :=
-nat.gcd_pos_of_pos_right (nat_abs i) (nat_abs_pos_of_ne_zero j_non_zero)
+theorem gcd_pos_of_ne_zero_right (i : ℤ) {j : ℤ} (hj : j ≠ 0) : 0 < gcd i j :=
+nat.gcd_pos_of_pos_right _ $ nat_abs_pos_of_ne_zero hj
 
 theorem gcd_eq_zero_iff {i j : ℤ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
 begin
@@ -238,6 +230,9 @@ begin
   { intro h, rw [nat_abs_eq_zero.mpr h.left, nat_abs_eq_zero.mpr h.right],
     apply nat.gcd_zero_left }
 end
+
+theorem gcd_pos_iff {i j : ℤ} : 0 < gcd i j ↔ i ≠ 0 ∨ j ≠ 0 :=
+pos_iff_ne_zero.trans $ gcd_eq_zero_iff.not.trans not_and_distrib
 
 theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
   gcd (i / k) (j / k) = gcd i j / nat_abs k :=
@@ -302,6 +297,23 @@ begin
   exact int.nat_abs_dvd_iff_dvd.mpr h
 end
 
+lemma gcd_dvd_iff {a b : ℤ} {n : ℕ} : gcd a b ∣ n ↔ ∃ x y : ℤ, ↑n = a * x + b * y :=
+begin
+  split,
+  { intro h,
+    rw [← nat.mul_div_cancel' h, int.coe_nat_mul, gcd_eq_gcd_ab, add_mul, mul_assoc, mul_assoc],
+    refine ⟨_, _, rfl⟩, },
+  { rintro ⟨x, y, h⟩,
+    rw [←int.coe_nat_dvd, h],
+    exact dvd_add (dvd_mul_of_dvd_left (gcd_dvd_left a b) _)
+      (dvd_mul_of_dvd_left (gcd_dvd_right a b) y) }
+end
+
+lemma gcd_greatest {a b d : ℤ} (hd_pos : 0 ≤ d) (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : ℤ, e ∣ a → e ∣ b → e ∣ d) : d = gcd a b :=
+dvd_antisymm hd_pos
+  (coe_zero_le (gcd a b)) (dvd_gcd hda hdb) (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b))
+
 /-- Euclid's lemma: if `a ∣ b * c` and `gcd a c = 1` then `a ∣ b`.
 Compare with `is_coprime.dvd_of_dvd_mul_left` and
 `unique_factorization_monoid.dvd_of_dvd_mul_left_of_no_prime_factors` -/
@@ -319,6 +331,18 @@ Compare with `is_coprime.dvd_of_dvd_mul_right` and
 `unique_factorization_monoid.dvd_of_dvd_mul_right_of_no_prime_factors` -/
 lemma dvd_of_dvd_mul_right_of_gcd_one {a b c : ℤ} (habc : a ∣ b * c) (hab : gcd a b = 1) : a ∣ c :=
 by { rw mul_comm at habc, exact dvd_of_dvd_mul_left_of_gcd_one habc hab }
+
+/-- For nonzero integers `a` and `b`, `gcd a b` is the smallest positive natural number that can be
+written in the form `a * x + b * y` for some pair of integers `x` and `y` -/
+theorem gcd_least_linear {a b : ℤ} (ha : a ≠ 0) :
+  is_least { n : ℕ | 0 < n ∧ ∃ x y : ℤ, ↑n = a * x + b * y } (a.gcd b) :=
+begin
+  simp_rw ←gcd_dvd_iff,
+  split,
+  { simpa [and_true, dvd_refl, set.mem_set_of_eq] using gcd_pos_of_ne_zero_left b ha },
+  { simp only [lower_bounds, and_imp, set.mem_set_of_eq],
+    exact λ n hn_pos hn, nat.le_of_dvd hn_pos hn },
+end
 
 /-! ### lcm -/
 
@@ -363,8 +387,7 @@ lemma pow_gcd_eq_one {M : Type*} [monoid M] (x : M) {m n : ℕ} (hm : x ^ m = 1)
   x ^ m.gcd n = 1 :=
 begin
   cases m, { simp only [hn, nat.gcd_zero_left] },
-  obtain ⟨x, rfl⟩ : is_unit x,
-  { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
+  lift x to Mˣ using is_unit_of_pow_eq_one hm m.succ_ne_zero,
   simp only [← units.coe_pow] at *,
   rw [← units.coe_one, ← zpow_coe_nat, ← units.ext_iff] at *,
   simp only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
@@ -407,7 +430,7 @@ lemma nat_gcd_helper_2 (d x y a b u v tx ty : ℕ) (hu : d * u = x) (hv : d * v 
 begin
   rw ← int.coe_nat_gcd, apply @int_gcd_helper' _ _ _ a (-b)
     (int.coe_nat_dvd.2 ⟨_, hu.symm⟩) (int.coe_nat_dvd.2 ⟨_, hv.symm⟩),
-  rw [mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg, sub_eq_iff_eq_add'],
+  rw [mul_neg, ← sub_eq_add_neg, sub_eq_iff_eq_add'],
   norm_cast, rw [hx, hy, h]
 end
 
@@ -417,7 +440,7 @@ lemma nat_gcd_helper_1 (d x y a b u v tx ty : ℕ) (hu : d * u = x) (hv : d * v 
 
 lemma nat_lcm_helper (x y d m n : ℕ) (hd : nat.gcd x y = d) (d0 : 0 < d)
   (xy : x * y = n) (dm : d * m = n) : nat.lcm x y = m :=
-(nat.mul_right_inj d0).1 $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
+mul_right_injective₀ d0.ne' $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
 
 lemma nat_coprime_helper_zero_left (x : ℕ) (h : 1 < x) : ¬ nat.coprime 0 x :=
 mt (nat.coprime_zero_left _).1 $ ne_of_gt h

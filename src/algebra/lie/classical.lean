@@ -9,6 +9,7 @@ import data.matrix.dmatrix
 import algebra.lie.abelian
 import linear_algebra.matrix.trace
 import algebra.lie.skew_adjoint
+import linear_algebra.symplectic_group
 
 /-!
 # Classical Lie algebras
@@ -74,9 +75,9 @@ variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
 @[simp] lemma matrix_trace_commutator_zero [fintype n] (X Y : matrix n n R) :
-  matrix.trace n R R ⁅X, Y⁆ = 0 :=
-calc _ = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (Y ⬝ X) : linear_map.map_sub _ _ _
-   ... = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (X ⬝ Y) :
+  matrix.trace ⁅X, Y⁆ = 0 :=
+calc _ = matrix.trace (X ⬝ Y) - matrix.trace (Y ⬝ X) : trace_sub _ _
+   ... = matrix.trace (X ⬝ Y) - matrix.trace (X ⬝ Y) :
      congr_arg (λ x, _ - x) (matrix.trace_mul_comm Y X)
    ... = 0 : sub_self _
 
@@ -85,7 +86,7 @@ namespace special_linear
 /-- The special linear Lie algebra: square matrices of trace zero. -/
 def sl [fintype n] : lie_subalgebra R (matrix n n R) :=
 { lie_mem' := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
-  ..linear_map.ker (matrix.trace n R R) }
+  ..linear_map.ker (matrix.trace_linear_map n R R) }
 
 lemma sl_bracket [fintype n] (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
 
@@ -97,7 +98,7 @@ variables {n} [fintype n] (i j : n)
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
 ⟨matrix.std_basis_matrix i j (1 : R),
-  show matrix.std_basis_matrix i j (1 : R) ∈ linear_map.ker (matrix.trace n R R),
+  show matrix.std_basis_matrix i j (1 : R) ∈ linear_map.ker (matrix.trace_linear_map n R R),
   from matrix.std_basis_matrix.trace_zero i j (1 : R) h⟩
 
 @[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = matrix.std_basis_matrix i j 1 := rfl
@@ -119,13 +120,10 @@ end special_linear
 
 namespace symplectic
 
-/-- The matrix defining the canonical skew-symmetric bilinear form. -/
-def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
-
 /-- The symplectic Lie algebra: skew-adjoint matrices with respect to the canonical skew-symmetric
 bilinear form. -/
 def sp [fintype l] : lie_subalgebra R (matrix (l ⊕ l) (l ⊕ l) R) :=
-  skew_adjoint_matrices_lie_subalgebra (J l R)
+  skew_adjoint_matrices_lie_subalgebra (matrix.J l R)
 
 end symplectic
 
@@ -330,11 +328,11 @@ begin
   ext i j,
   rcases i with ⟨⟨i₁ | i₂⟩ | i₃⟩;
   rcases j with ⟨⟨j₁ | j₂⟩ | j₃⟩;
-  simp only [indefinite_diagonal, matrix.diagonal, equiv.sum_assoc_apply_in1,
-    matrix.reindex_lie_equiv_apply, matrix.minor_apply, equiv.symm_symm, matrix.reindex_apply,
+  simp only [indefinite_diagonal, matrix.diagonal_apply, equiv.sum_assoc_apply_inl_inl,
+    matrix.reindex_lie_equiv_apply, matrix.submatrix_apply, equiv.symm_symm, matrix.reindex_apply,
     sum.elim_inl, if_true, eq_self_iff_true, matrix.one_apply_eq, matrix.from_blocks_apply₁₁,
-    dmatrix.zero_apply, equiv.sum_assoc_apply_in2, if_false, matrix.from_blocks_apply₁₂,
-    matrix.from_blocks_apply₂₁, matrix.from_blocks_apply₂₂, equiv.sum_assoc_apply_in3,
+    dmatrix.zero_apply, equiv.sum_assoc_apply_inl_inr, if_false, matrix.from_blocks_apply₁₂,
+    matrix.from_blocks_apply₂₁, matrix.from_blocks_apply₂₂, equiv.sum_assoc_apply_inr,
     sum.elim_inr];
   congr,
 end

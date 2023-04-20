@@ -3,11 +3,15 @@ Copyright (c) 2016 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import logic.basic
 import data.option.defs
+import logic.nonempty
+import tactic.cache
 
 /-!
 # Miscellaneous function constructions and lemmas
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w
@@ -34,7 +38,16 @@ lemma const_def {y : β} : (λ x : α, y) = const α y := rfl
 
 @[simp] lemma comp_const {f : β → γ} {b : β} : f ∘ const α b = const α (f b) := rfl
 
+lemma const_injective [nonempty α] : injective (const α : β → α → β) :=
+λ y₁ y₂ h, let ⟨x⟩ := ‹nonempty α› in congr_fun h x
+
+@[simp] lemma const_inj [nonempty α] {y₁ y₂ : β} : const α y₁ = const α y₂ ↔ y₁ = y₂ :=
+⟨λ h, const_injective h, λ h, h ▸ rfl⟩
+
 lemma id_def : @id α = λ x, x := rfl
+
+@[simp] lemma on_fun_apply (f : β → β → γ) (g : α → β) (a b : α) : on_fun f g a b = f (g a) (g b) :=
+rfl
 
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
   (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=
@@ -50,8 +63,11 @@ begin
   exact eq_of_heq (this a)
 end
 
-lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀a, f₁ a = f₂ a) :=
+lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀ a, f₁ a = f₂ a) :=
 iff.intro (assume h a, h ▸ rfl) funext
+
+lemma ne_iff {β : α → Sort*} {f₁ f₂ : Π a, β a} : f₁ ≠ f₂ ↔ ∃ a, f₁ a ≠ f₂ a :=
+funext_iff.not.trans not_forall
 
 protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
 protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
@@ -76,7 +92,7 @@ h ▸ hf.ne_iff
 
 /-- If the co-domain `β` of an injective function `f : α → β` has decidable equality, then
 the domain `α` also has decidable equality. -/
-def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
+protected def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
 λ a b, decidable_of_iff _ I.eq_iff
 
 lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
@@ -202,15 +218,31 @@ and_congr (injective.of_comp_iff hf.injective _) (surjective.of_comp_iff' hf _)
 /-- **Cantor's diagonal argument** implies that there are no surjective functions from `α`
 to `set α`. -/
 theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=
-let ⟨D, e⟩ := h (λ a, ¬ f a a) in
-(iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
+let ⟨D, e⟩ := h {a | ¬ a ∈ f a} in
+(iff_not_self (D ∈ f D)).1 $ iff_of_eq (congr_arg ((∈) D) e)
 
 /-- **Cantor's diagonal argument** implies that there are no injective functions from `set α`
 to `α`. -/
-theorem cantor_injective {α : Type*} (f : (set α) → α) :
-  ¬ function.injective f | i :=
-cantor_surjective (λ a b, ∀ U, a = f U → U b) $
+theorem cantor_injective {α : Type*} (f : set α → α) : ¬ function.injective f | i :=
+cantor_surjective (λ a, {b | ∀ U, a = f U → b ∈ U}) $
 right_inverse.surjective (λ U, funext $ λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩)
+
+/-- There is no surjection from `α : Type u` into `Type u`. This theorem
+  demonstrates why `Type : Type` would be inconsistent in Lean. -/
+theorem not_surjective_Type {α : Type u} (f : α → Type (max u v)) :
+  ¬ surjective f :=
+begin
+  intro hf,
+  let T : Type (max u v) := sigma f,
+  cases hf (set T) with U hU,
+  let g : set T → T := λ s, ⟨U, cast hU.symm s⟩,
+  have hg : injective g,
+  { intros s t h,
+    suffices : cast hU (g s).2 = cast hU (g t).2,
+    { simp only [cast_cast, cast_eq] at this, assumption },
+    { congr, assumption } },
+  exact cantor_injective g hg
+end
 
 /-- `g` is a partial inverse to `f` (an injective but not necessarily
   surjective function) if `g y = some x` implies `f x = y`, and `g y = none`
@@ -272,6 +304,14 @@ theorem left_inverse.right_inverse_of_surjective {f : α → β} {g : β → α}
   right_inverse f g :=
 λ x, let ⟨y, hy⟩ := hg x in hy ▸ congr_arg g (h y)
 
+lemma right_inverse.left_inverse_of_surjective {f : α → β} {g : β → α} :
+  right_inverse f g → surjective f → left_inverse f g :=
+left_inverse.right_inverse_of_surjective
+
+lemma right_inverse.left_inverse_of_injective {f : α → β} {g : β → α} :
+  right_inverse f g → injective g → left_inverse f g :=
+left_inverse.right_inverse_of_injective
+
 theorem left_inverse.eq_right_inverse {f : α → β} {g₁ g₂ : β → α} (h₁ : left_inverse g₁ f)
   (h₂ : right_inverse g₂ f) :
   g₁ = g₂ :=
@@ -299,33 +339,6 @@ theorem partial_inv_left {α β} {f : α → β} (I : injective f) : ∀ x, part
 is_partial_inv_left (partial_inv_of_injective I)
 
 end
-
-section inv_fun_on
-variables {α : Type u} [n : nonempty α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
-include n
-local attribute [instance, priority 10] classical.prop_decidable
-
-/-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
-on `f '' s`. For a computable version, see `function.injective.inv_of_mem_range`. -/
-noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
-if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
-
-theorem inv_fun_on_pos (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s ∧ f (inv_fun_on f s b) = b :=
-by rw [bex_def] at h; rw [inv_fun_on, dif_pos h]; exact classical.some_spec h
-
-theorem inv_fun_on_mem (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s := (inv_fun_on_pos h).left
-
-theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv_fun_on_pos h).right
-
-theorem inv_fun_on_eq' (h : ∀ (x ∈ s) (y ∈ s), f x = f y → x = y) (ha : a ∈ s) :
-  inv_fun_on f s (f a) = a :=
-have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
-h _ (inv_fun_on_mem this) _ ha (inv_fun_on_eq this)
-
-theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice n :=
-by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
-
-end inv_fun_on
 
 section inv_fun
 
@@ -413,6 +426,7 @@ end surj_inv
 
 section update
 variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [decidable_eq α']
+  {f g : Π a, β a} {a : α} {b : β a}
 
 /-- Replacing the value of a function at a given point by a given value. -/
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
@@ -458,6 +472,12 @@ funext_iff.trans $ forall_update_iff _ (λ x y, y = g x)
 lemma eq_update_iff {a : α} {b : β a} {f g : Π a, β a} :
   g = update f a b ↔ g a = b ∧ ∀ x ≠ a, g x = f x :=
 funext_iff.trans $ forall_update_iff _ (λ x y, g x = y)
+
+@[simp] lemma update_eq_self_iff : update f a b = f ↔ b = f a := by simp [update_eq_iff]
+@[simp] lemma eq_update_self_iff : f = update f a b ↔ f a = b := by simp [eq_update_iff]
+
+lemma ne_update_self_iff : f ≠ update f a b ↔ f a ≠ b := eq_update_self_iff.not
+lemma update_ne_self_iff : update f a b ≠ f ↔ b ≠ f a := update_eq_self_iff.not
 
 @[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
 update_eq_iff.2 ⟨rfl, λ _ _, rfl⟩
@@ -533,24 +553,57 @@ along a function `f : α → β` to a function `β → γ`,
 by using the values of `g` on the range of `f`
 and the values of an auxiliary function `e' : β → γ` elsewhere.
 
-Mostly useful when `f` is injective. -/
+Mostly useful when `f` is injective, more generally when `g.factors_through f`. -/
 def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
 λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
+
+/-- g factors through f : `f a = f b → g a = g b` -/
+def factors_through (g : α → γ) (f : α → β) : Prop :=
+∀ ⦃a b⦄, f a = f b → g a = g b
+
+lemma injective.factors_through (hf : injective f) (g : α → γ) : g.factors_through f :=
+λ a b h, congr_arg g (hf h)
 
 lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [decidable (∃ a, f a = b)] :
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
 by { unfold extend, congr }
 
-@[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
+lemma factors_through.extend_apply {g : α → γ} (hf : g.factors_through f) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
 begin
   simp only [extend_def, dif_pos, exists_apply_eq_apply],
-  exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
+  exact hf (classical.some_spec (exists_apply_eq_apply f a)),
 end
+
+@[simp] lemma injective.extend_apply (hf : f.injective) (g : α → γ) (e' : β → γ) (a : α) :
+  extend f g e' (f a) = g a :=
+(hf.factors_through g).extend_apply e' a
 
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
 by simp [function.extend_def, hb]
+
+lemma factors_through_iff (g : α → γ) [nonempty γ] :
+  g.factors_through f ↔ ∃ (e : β → γ), g = e ∘ f :=
+⟨λ hf, ⟨extend f g (const β (classical.arbitrary γ)),
+      funext (λ x, by simp only [comp_app, hf.extend_apply])⟩,
+  λ h a b hf, by rw [classical.some_spec h, comp_apply, hf]⟩
+
+lemma factors_through.apply_extend {δ} {g : α → γ} (hf : factors_through g f)
+  (F : γ → δ) (e' : β → γ) (b : β) :
+  F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
+begin
+  by_cases hb : ∃ a, f a = b,
+  { cases hb with a ha, subst b,
+    rw [factors_through.extend_apply, factors_through.extend_apply],
+    { intros a b h, simp only [comp_apply], apply congr_arg, exact hf h, },
+    { exact hf, }, },
+  { rw [extend_apply' _ _ _ hb, extend_apply' _ _ _ hb] }
+end
+
+lemma injective.apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
+  F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
+(hf.factors_through g).apply_extend F e' b
 
 lemma extend_injective (hf : injective f) (e' : β → γ) :
   injective (λ g, extend f g e') :=
@@ -558,13 +611,18 @@ begin
   intros g₁ g₂ hg,
   refine funext (λ x, _),
   have H := congr_fun hg (f x),
-  simp only [hf, extend_apply] at H,
+  simp only [hf.extend_apply] at H,
   exact H
 end
 
+lemma factors_through.extend_comp {g : α → γ} (e' : β → γ)
+  (hf : factors_through g f) :
+  extend f g e' ∘ f = g :=
+funext $ λ a, by simp only [comp_app, hf.extend_apply e']
+
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
   extend f g e' ∘ f = g :=
-funext $ λ a, extend_apply hf g e' a
+(hf.factors_through g).extend_comp e'
 
 lemma injective.surjective_comp_right' (hf : injective f) (g₀ : β → γ) :
   surjective (λ g : β → γ, g ∘ f) :=
@@ -606,7 +664,7 @@ def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
 f (g a b)
 
 -- Suggested local notation:
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) := rfl
@@ -631,7 +689,7 @@ class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := 
 for bundled maps.-/
 add_decl_doc has_uncurry.uncurry
 
-notation `↿`:max x:max := has_uncurry.uncurry x
+notation (name := uncurry) `↿`:max x:max := has_uncurry.uncurry x
 
 instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
 
@@ -645,6 +703,8 @@ def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 
 lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
 funext_iff.symm
+
+lemma _root_.bool.involutive_bnot : involutive bnot := bnot_bnot
 
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)
@@ -674,20 +734,34 @@ end involutive
 /-- The property of a binary function `f : α → β → γ` being injective.
 Mathematically this should be thought of as the corresponding function `α × β → γ` being injective.
 -/
-@[reducible] def injective2 {α β γ} (f : α → β → γ) : Prop :=
+def injective2 {α β γ} (f : α → β → γ) : Prop :=
 ∀ ⦃a₁ a₂ b₁ b₂⦄, f a₁ b₁ = f a₂ b₂ → a₁ = a₂ ∧ b₁ = b₂
 
 namespace injective2
-variables {α β γ : Type*} (f : α → β → γ)
+variables {α β γ : Sort*} {f : α → β → γ}
 
-protected lemma left (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : a₁ = a₂ :=
-(hf h).1
+/-- A binary injective function is injective when only the left argument varies. -/
+protected lemma left (hf : injective2 f) (b : β) : function.injective (λ a, f a b) :=
+λ a₁ a₂ h, (hf h).left
 
-protected lemma right (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : b₁ = b₂ :=
-(hf h).2
+/-- A binary injective function is injective when only the right argument varies. -/
+protected lemma right (hf : injective2 f) (a : α) : function.injective (f a) :=
+λ a₁ a₂ h, (hf h).right
 
-lemma eq_iff (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
-⟨λ h, hf h, λ⟨h1, h2⟩, congr_arg2 f h1 h2⟩
+protected lemma uncurry {α β γ : Type*} {f : α → β → γ} (hf : injective2 f) :
+  function.injective (uncurry f) :=
+λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h, and.elim (hf h) (congr_arg2 _)
+
+/-- As a map from the left argument to a unary function, `f` is injective. -/
+lemma left' (hf : injective2 f) [nonempty β] : function.injective f :=
+λ a₁ a₂ h, let ⟨b⟩ := ‹nonempty β› in hf.left b $ (congr_fun h b : _)
+
+/-- As a map from the right argument to a unary function, `f` is injective. -/
+lemma right' (hf : injective2 f) [nonempty α] : function.injective (λ b a, f a b) :=
+λ b₁ b₂ h, let ⟨a⟩ := ‹nonempty α› in hf.right a $ (congr_fun h a : _)
+
+lemma eq_iff (hf : injective2 f) {a₁ a₂ b₁ b₂} : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
+⟨λ h, hf h, and.rec $ congr_arg2 f⟩
 
 end injective2
 
@@ -744,6 +818,21 @@ lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Type*} (x y :
 lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y ↔ x = y :=
 (cast_bijective h).injective.eq_iff
 
+lemma function.left_inverse.eq_rec_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  (congr_arg f (h a)).rec (C (g (f a))) = C a :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw h
+
+lemma function.left_inverse.eq_rec_on_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  (congr_arg f (h a)).rec_on (C (g (f a))) = C a :=
+h.eq_rec_eq _ _
+
+lemma function.left_inverse.cast_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  cast (congr_arg (λ a, γ (f a)) (h a)) (C (g (f a))) = C a :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw h
+
 /-- A set of functions "separates points"
 if for each pair of distinct points there is a function taking different values on them. -/
 def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
@@ -751,3 +840,7 @@ def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 
 lemma is_symm_op.flip_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
 funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm
+
+lemma inv_image.equivalence {α : Sort u} {β : Sort v} (r : β → β → Prop) (f : α → β)
+  (h : equivalence r) : equivalence (inv_image r f) :=
+⟨λ _, h.1 _, λ _ _ x, h.2.1 x, inv_image.trans r f h.2.2⟩

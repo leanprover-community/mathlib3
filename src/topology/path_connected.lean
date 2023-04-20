@@ -3,12 +3,16 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.unit_interval
-import topology.algebra.ordered.proj_Icc
+import topology.algebra.order.proj_Icc
+import topology.compact_open
 import topology.continuous_function.basic
+import topology.unit_interval
 
 /-!
 # Path connectedness
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -59,7 +63,7 @@ on `(-∞, 0]` and to `y` on `[1, +∞)`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter unit_interval
+open_locale classical topology filter unit_interval
 open filter set function unit_interval
 
 variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X} {ι : Type*}
@@ -67,7 +71,7 @@ variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X} 
 /-! ### Paths -/
 
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure path (x y : X) extends C(I, X) :=
 (source' : to_fun 0 = x)
 (target' : to_fun 1 = y)
@@ -137,6 +141,32 @@ begin
   split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, mem_iff_one_sub_mem.mp hy, _⟩; convert hxy,
   simp
 end
+
+/-! #### Space of paths -/
+
+open continuous_map
+
+instance : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
+
+/--
+The following instance defines the topology on the path space to be induced from the
+compact-open topology on the space `C(I,X)` of continuous maps from `I` to `X`.
+-/
+instance : topological_space (path x y) :=
+topological_space.induced (coe : _ → C(I, X)) continuous_map.compact_open
+
+lemma continuous_eval : continuous (λ p : path x y × I, p.1 p.2) :=
+continuous_eval'.comp $ continuous_induced_dom.prod_map continuous_id
+
+@[continuity] lemma _root_.continuous.path_eval {Y} [topological_space Y]
+  {f : Y → path x y} {g : Y → I} (hf : continuous f) (hg : continuous g) :
+  continuous (λ y, f y (g y)) := continuous.comp continuous_eval (hf.prod_mk hg)
+
+lemma continuous_uncurry_iff {Y} [topological_space Y] {g : Y → path x y} :
+  continuous ↿g ↔ continuous g :=
+iff.symm $ continuous_induced_rng.trans
+  ⟨λ h, continuous_uncurry_of_continuous ⟨_, h⟩, continuous_of_continuous_uncurry ↑g⟩
+
 
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := Icc_extend zero_le_one γ
@@ -231,13 +261,13 @@ by split_ifs; rw extend_extends
   (γ.trans γ').symm = γ'.symm.trans γ.symm :=
 begin
   ext t,
-  simp only [trans_apply, one_div, symm_apply, not_le, comp_app],
+  simp only [trans_apply, ← one_div, symm_apply, not_le, comp_app],
   split_ifs with h h₁ h₂ h₃ h₄; rw [coe_symm_eq] at h,
   { have ht : (t : ℝ) = 1/2,
     { linarith [unit_interval.nonneg t, unit_interval.le_one t] },
     norm_num [ht] },
   { refine congr_arg _ (subtype.ext _),
-    norm_num [sub_sub_assoc_swap, mul_sub] },
+    norm_num [sub_sub_eq_add_sub, mul_sub] },
   { refine congr_arg _ (subtype.ext _),
     have h : 2 - 2 * (t : ℝ) - 1 = 1 - 2 * t, by linarith,
     norm_num [mul_sub, h] },
@@ -281,7 +311,7 @@ begin
     { by_cases h : t = 0,
       { use ⟨1/2, ⟨by linarith, by linarith⟩⟩,
         unfold_coes,
-        simp only [h, comp_app, if_true, le_refl, mul_one_div_cancel (@two_ne_zero ℝ _ _)],
+        simp only [h, comp_app, if_true, le_refl, mul_one_div_cancel (two_ne_zero' ℝ)],
         rw γ₁.extend_one,
         rwa [← γ₂.extend_extends, h, γ₂.extend_zero] at hxt },
       { use ⟨(t+1)/2, ⟨by linarith, by linarith⟩⟩,
@@ -347,8 +377,12 @@ lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_s
 h.comp (continuous_id.prod_map continuous_symm)
 
 @[continuity]
+lemma continuous_symm : continuous (symm : path x y → path y x) :=
+continuous_uncurry_iff.mp $ symm_continuous_family _ (continuous_fst.path_eval continuous_snd)
+
+@[continuity]
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
-  [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
+  [topological_space ι] {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).extend) :=
 h.comp (continuous_id.prod_map continuous_proj_Icc)
 
@@ -369,24 +403,76 @@ begin
     exact h₂'.comp (continuous_id.prod_map $
       (continuous_const.mul continuous_subtype_coe).sub continuous_const) },
   { rintros st hst,
-    simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
+    simp [hst, mul_inv_cancel (two_ne_zero' ℝ)] }
 end
 
-/-! #### Product of two paths -/
+@[continuity]
+lemma _root_.continuous.path_trans {f : Y → path x y} {g : Y → path y z} : continuous f →
+  continuous g → continuous (λ t, (f t).trans (g t)) :=
+begin
+  intros hf hg,
+  apply continuous_uncurry_iff.mp,
+  exact trans_continuous_family _ (continuous_uncurry_iff.mpr hf)
+    _ (continuous_uncurry_iff.mpr hg),
+end
 
+@[continuity]
+lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
+  continuous_fst.path_trans continuous_snd
+
+/-! #### Product of paths -/
+section prod
+variables {a₁ a₂ a₃ : X} {b₁ b₂ b₃ : Y}
 /-- Given a path in `X` and a path in `Y`, we can take their pointwise product to get a path in
 `X × Y`. -/
-protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) :
-  path (a₁, a₂) (b₁, b₂) :=
+protected def prod (γ₁ : path a₁ a₂) (γ₂ : path b₁ b₂) :
+  path (a₁, b₁) (a₂, b₂) :=
 { to_continuous_map := continuous_map.prod_mk γ₁.to_continuous_map γ₂.to_continuous_map,
-  source' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.source, γ₂.source],
-  target' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.target, γ₂.target] }
+  source' := by simp,
+  target' := by simp, }
 
+@[simp] lemma prod_coe_fn (γ₁ : path a₁ a₂) (γ₂ : path b₁ b₂) :
+  (coe_fn (γ₁.prod γ₂)) = λ t, (γ₁ t, γ₂ t) := rfl
+
+/-- Path composition commutes with products -/
+lemma trans_prod_eq_prod_trans
+  (γ₁ : path a₁ a₂) (δ₁ : path a₂ a₃) (γ₂ : path b₁ b₂) (δ₂ : path b₂ b₃) :
+  (γ₁.prod γ₂).trans (δ₁.prod δ₂) = (γ₁.trans δ₁).prod (γ₂.trans δ₂) :=
+begin
+  ext t;
+  unfold path.trans;
+  simp only [path.coe_mk, path.prod_coe_fn, function.comp_app];
+  split_ifs; refl,
+end
+
+end prod
+
+section pi
+variables {χ : ι → Type*} [∀ i, topological_space (χ i)] {as bs cs : Π i, χ i}
+/-- Given a family of paths, one in each Xᵢ, we take their pointwise product to get a path in
+Π i, Xᵢ. -/
+protected def pi (γ : Π i, path (as i) (bs i)) : path as bs :=
+{ to_continuous_map := continuous_map.pi (λ i, (γ i).to_continuous_map),
+  source' := by simp,
+  target' := by simp, }
+
+@[simp] lemma pi_coe_fn (γ : Π i, path (as i) (bs i)) : (coe_fn (path.pi γ)) = λ t i, γ i t := rfl
+
+/-- Path composition commutes with products -/
+lemma trans_pi_eq_pi_trans (γ₀ : Π i, path (as i) (bs i)) (γ₁ : Π i, path (bs i) (cs i)) :
+  (path.pi γ₀).trans (path.pi γ₁) = path.pi (λ i, (γ₀ i).trans (γ₁ i)) :=
+begin
+  ext t i,
+  unfold path.trans,
+  simp only [path.coe_mk, function.comp_app, pi_coe_fn],
+  split_ifs; refl,
+end
+end pi
 /-! #### Pointwise multiplication/addition of two paths in a topological (additive) group -/
 
 /-- Pointwise multiplication of paths in a topological group. The additive version is probably more
 useful. -/
-@[to_additive "Pointwise addition of paths in a topological additive group. -/"]
+@[to_additive "Pointwise addition of paths in a topological additive group."]
 protected def mul [has_mul X] [has_continuous_mul X] {a₁ b₁ a₂ b₂ : X}
   (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) : path (a₁ * a₂) (b₁ * b₂) :=
 (γ₁.prod γ₂).map continuous_mul
@@ -405,7 +491,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
     ((continuous_subtype_coe.max continuous_const).min continuous_const),
   source' :=
   begin
-    simp only [min_def, max_def],
+    simp only [min_def, max_def'],
     norm_cast,
     split_ifs with h₁ h₂ h₃ h₄,
     { simp [γ.extend_of_le_zero h₁] },
@@ -416,7 +502,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
   end,
   target' :=
   begin
-    simp only [min_def, max_def],
+    simp only [min_def, max_def'],
     norm_cast,
     split_ifs with h₁ h₂ h₃,
     { simp [γ.extend_of_one_le h₂] },
@@ -469,7 +555,6 @@ begin
   rw cast_coe,
   simp only [truncate, has_coe_to_fun.coe, coe_fn, refl, min_def, max_def],
   split_ifs with h₁ h₂; congr,
-  exact le_antisymm ‹_› ‹_›
 end
 
 @[simp] lemma truncate_zero_zero {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
@@ -517,9 +602,9 @@ begin
   have : range f = univ,
   { rw range_iff_surjective,
     intro t,
-    have h₁ : continuous (Icc_extend (@zero_le_one ℝ _) f),
+    have h₁ : continuous (Icc_extend (zero_le_one' ℝ) f),
     { continuity },
-    have := intermediate_value_Icc (@zero_le_one ℝ _) h₁.continuous_on,
+    have := intermediate_value_Icc (zero_le_one' ℝ) h₁.continuous_on,
     { rw [Icc_extend_left, Icc_extend_right] at this,
       change Icc (f 0) (f 1) ⊆ _ at this,
       rw [hf₀, hf₁] at this,
@@ -702,11 +787,11 @@ begin
 end
 
 lemma is_path_connected.joined_in (h : is_path_connected F) : ∀ x y ∈ F, joined_in F x y :=
-λ x y x_in y_in, let ⟨b, b_in, hb⟩ := h in (hb x_in).symm.trans (hb y_in)
+λ x x_in x y_in, let ⟨b, b_in, hb⟩ := h in (hb x_in).symm.trans (hb y_in)
 
 lemma is_path_connected_iff : is_path_connected F ↔ F.nonempty ∧ ∀ x y ∈ F, joined_in F x y :=
 ⟨λ h, ⟨let ⟨b, b_in, hb⟩ := h in ⟨b, b_in⟩, h.joined_in⟩,
- λ ⟨⟨b, b_in⟩, h⟩, ⟨b, b_in, λ x x_in, h b x b_in x_in⟩⟩
+ λ ⟨⟨b, b_in⟩, h⟩, ⟨b, b_in, λ x x_in, h b b_in x x_in⟩⟩
 
 lemma is_path_connected.image {Y : Type*} [topological_space Y] (hF : is_path_connected F)
   {f : X → Y} (hf : continuous f) : is_path_connected (f '' F) :=
@@ -719,7 +804,7 @@ end
 
 lemma is_path_connected.mem_path_component (h : is_path_connected F) (x_in : x ∈ F) (y_in : y ∈ F) :
   y ∈ path_component x :=
-(h.joined_in x y x_in y_in).joined
+(h.joined_in x x_in y y_in).joined
 
 lemma is_path_connected.subset_path_component (h : is_path_connected F) (x_in : x ∈ F) :
   F ⊆ path_component x :=
@@ -731,8 +816,8 @@ begin
   rcases hUV with ⟨x, xU, xV⟩,
   use [x, or.inl xU],
   rintros y (yU | yV),
-  { exact (hU.joined_in x y xU yU).mono (subset_union_left U V) },
-  { exact (hV.joined_in x y xV yV).mono (subset_union_right U V) },
+  { exact (hU.joined_in x xU y yU).mono (subset_union_left U V) },
+  { exact (hV.joined_in x xV y yV).mono (subset_union_right U V) },
 end
 
 /-- If a set `W` is path-connected, then it is also path-connected when seen as a set in a smaller
@@ -761,10 +846,10 @@ begin
     induction n with n hn,
     { use path.refl (p' 0),
       { split,
-        { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
-        { rw range_subset_iff, rintros x, exact hp' 0 (le_refl _) } } },
+        { rintros i hi, rw le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
+        { rw range_subset_iff, rintros x, exact hp' 0 le_rfl } } },
     { rcases hn (λ i hi, hp' i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
-      rcases h.joined_in (p' n) (p' $ n+1) (hp' n n.le_succ) (hp' (n+1) $ le_refl _) with ⟨γ₁, hγ₁⟩,
+      rcases h.joined_in (p' n) (hp' n n.le_succ) (p' $ n+1) (hp' (n+1) $ le_rfl) with ⟨γ₁, hγ₁⟩,
       let γ : path (p' 0) (p' $ n+1) := γ₀.trans γ₁,
       use γ,
       have range_eq : range γ = range γ₀ ∪ range γ₁ := γ₀.trans_range γ₁,
@@ -789,11 +874,10 @@ begin
   simp only [γ.cast_coe],
   refine and.intro hγ.2 _,
   rintros ⟨i, hi⟩,
-  convert hγ.1 i (nat.le_of_lt_succ hi), rw ← hpp' i hi,
-  congr,
-  ext,
-  rw fin.coe_coe_of_lt hi,
-  norm_cast
+  suffices : p ⟨i, hi⟩ = p' i, by convert hγ.1 i (nat.le_of_lt_succ hi),
+  rw ← hpp' i hi,
+  suffices : i = i % n.succ, { congr, assumption },
+  rw nat.mod_eq_of_lt hi,
 end
 
 lemma is_path_connected.exists_path_through_family'
@@ -816,8 +900,6 @@ joined by a continuous path. -/
 class path_connected_space (X : Type*) [topological_space X] : Prop :=
 (nonempty : nonempty X)
 (joined : ∀ x y : X, joined x y)
-
-attribute [instance, priority 50] path_connected_space.nonempty
 
 lemma path_connected_space_iff_zeroth_homotopy :
   path_connected_space X ↔ nonempty (zeroth_homotopy X) ∧ subsingleton (zeroth_homotopy X) :=
@@ -850,10 +932,10 @@ begin
   { rintro ⟨⟨x, x_in⟩, h⟩,
     refine ⟨⟨⟨x, x_in⟩⟩, _⟩,
     rintros ⟨y, y_in⟩ ⟨z, z_in⟩,
-    have H := h y z y_in z_in,
+    have H := h y y_in z z_in,
     rwa joined_in_iff_joined y_in z_in at H },
   { rintros ⟨⟨x, x_in⟩, H⟩,
-    refine ⟨⟨x, x_in⟩, λ y z y_in z_in, _⟩,
+    refine ⟨⟨x, x_in⟩, λ y y_in z z_in, _⟩,
     rw joined_in_iff_joined y_in z_in,
     apply H }
 end
@@ -862,9 +944,10 @@ lemma path_connected_space_iff_univ : path_connected_space X ↔ is_path_connect
 begin
   split,
   { introI h,
+    haveI := @path_connected_space.nonempty X _ _,
     inhabit X,
-    refine ⟨default X, mem_univ _, _⟩,
-    simpa using path_connected_space.joined (default X) },
+    refine ⟨default, mem_univ _, _⟩,
+    simpa using path_connected_space.joined default },
   { intro h,
     have h' := h.joined_in,
     cases h with x h,
@@ -882,6 +965,13 @@ begin
   use x,
   rw ← univ_subset_iff,
   exact (by simpa using hx : path_component x = univ) ▸ path_component_subset_component x
+end
+
+lemma is_path_connected.is_connected (hF : is_path_connected F) : is_connected F :=
+begin
+  rw is_connected_iff_connected_space,
+  rw is_path_connected_iff_path_connected_space at hF,
+  exact @path_connected_space.connected_space _ _ hF
 end
 
 namespace path_connected_space
@@ -935,11 +1025,9 @@ begin
   { introI h,
     apply_instance },
   { introI hX,
-    inhabit X,
-    let x₀ := default X,
     rw path_connected_space_iff_eq,
-    use x₀,
-    refine eq_univ_of_nonempty_clopen (by simp) ⟨_, _⟩,
+    use (classical.arbitrary X),
+    refine is_clopen.eq_univ ⟨_, _⟩ (by simp),
     { rw is_open_iff_mem_nhds,
       intros y y_in,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,
@@ -950,7 +1038,7 @@ begin
       intros y H,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,
       rcases H U U_in with ⟨z, hz, hz'⟩,
-      exact ((hU.joined_in z y hz $ mem_of_mem_nhds U_in).joined.mem_path_component hz') } },
+      exact ((hU.joined_in z hz y $ mem_of_mem_nhds U_in).joined.mem_path_component hz') } },
 end
 
 lemma path_connected_subset_basis [loc_path_connected_space X] {U : set X} (h : is_open U)

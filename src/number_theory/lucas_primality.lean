@@ -7,10 +7,12 @@ import data.fintype.basic
 import group_theory.order_of_element
 import tactic.zify
 import data.nat.totient
-import data.zmod.basic
 
 /-!
 # The Lucas test for primes.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file implements the Lucas test for primes (not to be confused with the Lucas-Lehmer test for
 Mersenne primes). A number `a` witnesses that `n` is prime if `a` has order `n-1` in the
@@ -47,13 +49,13 @@ begin
   have order_of_a : order_of a = p-1,
   { apply order_of_eq_of_pow_and_pow_div_prime _ ha hd,
     exact tsub_pos_of_lt hp1, },
-  haveI fhp0 : fact (0 < p) := ⟨h0.bot_lt⟩,
+  haveI : ne_zero p := ⟨h0⟩,
   rw nat.prime_iff_card_units,
   -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`
   refine le_antisymm (nat.card_units_zmod_lt_sub_one hp1) _,
   have hp' : p - 2 + 1 = p - 1 := tsub_add_eq_add_tsub hp1,
-  let a' : units (zmod p) := units.mk_of_mul_eq_one a (a ^ (p-2)) (by rw [←pow_succ, hp', ha]),
+  let a' : (zmod p)ˣ := units.mk_of_mul_eq_one a (a ^ (p-2)) (by rw [←pow_succ, hp', ha]),
   calc p - 1 = order_of a : order_of_a.symm
   ... = order_of a' : order_of_injective (units.coe_hom (zmod p)) units.ext a'
-  ... ≤ fintype.card (units (zmod p)) : order_of_le_card_univ,
+  ... ≤ fintype.card (zmod p)ˣ : order_of_le_card_univ,
 end

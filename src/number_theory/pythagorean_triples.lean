@@ -5,14 +5,17 @@ Authors: Paul van Wamelen
 -/
 import algebra.field.basic
 import ring_theory.int.basic
-import algebra.group_with_zero.power
 import tactic.ring
 import tactic.ring_exp
 import tactic.field_simp
+import data.int.nat_prime
 import data.zmod.basic
 
 /-!
 # Pythagorean Triples
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The main result is the classification of Pythagorean triples. The final result is for general
 Pythagorean triples. It follows from the more interesting relatively prime case. We use the
@@ -126,8 +129,8 @@ begin
   { -- x even, y even
     exfalso,
     apply nat.not_coprime_of_dvd_of_dvd (dec_trivial : 1 < 2) _ _ hc,
-    { apply int.dvd_nat_abs_of_of_nat_dvd, apply int.dvd_of_mod_eq_zero hx },
-    { apply int.dvd_nat_abs_of_of_nat_dvd, apply int.dvd_of_mod_eq_zero hy } },
+    { apply int.coe_nat_dvd_left.1, apply int.dvd_of_mod_eq_zero hx },
+    { apply int.coe_nat_dvd_left.1, apply int.dvd_of_mod_eq_zero hy } },
   { left, exact ⟨hx, hy⟩ },  -- x even, y odd
   { right, exact ⟨hx, hy⟩ }, -- x odd, y even
   { -- x odd, y odd
@@ -153,7 +156,7 @@ begin
     ∃ (k : ℕ) x0 y0, 0 < k ∧ int.gcd x0 y0 = 1 ∧ x = x0 * k ∧ y = y0 * k :=
     int.exists_gcd_one' (nat.pos_of_ne_zero h0),
   rw [int.gcd_mul_right, h2, int.nat_abs_of_nat, one_mul],
-  rw [← int.pow_dvd_pow_iff (dec_trivial : 0 < 2), sq z, ← h.eq],
+  rw [← int.pow_dvd_pow_iff zero_lt_two, sq z, ← h.eq],
   rw (by ring : x0 * k * (x0 * k) + y0 * k * (y0 * k) = k ^ 2 * (x0 * x0 + y0 * y0)),
   exact dvd_mul_right _ _
 end
@@ -248,7 +251,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
 { to_fun := λ x, ⟨⟨2 * x / (1 + x^2), (1 - x^2) / (1 + x^2)⟩,
     by { field_simp [hk x, div_pow], ring },
     begin
-      simp only [ne.def, div_eq_iff (hk x), ←neg_mul_eq_neg_mul, one_mul, neg_add,
+      simp only [ne.def, div_eq_iff (hk x), neg_mul, one_mul, neg_add,
         sub_eq_add_neg, add_left_inj],
       simpa only [eq_neg_iff_add_eq_zero, one_pow] using hk 1,
     end⟩,
@@ -262,7 +265,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
   right_inv := λ ⟨⟨x, y⟩, hxy, hy⟩,
   begin
     change x ^ 2 + y ^ 2 = 1 at hxy,
-    have h2 : y + 1 ≠ 0, { apply mt eq_neg_of_add_eq_zero, exact hy },
+    have h2 : y + 1 ≠ 0 := mt eq_neg_of_add_eq_zero_left hy,
     have h3 : (y + 1) ^ 2 + x ^ 2 = 2 * (y + 1),
     { rw [(add_neg_eq_iff_eq_add.mpr hxy.symm).symm], ring },
     have h4 : (2 : K) ≠ 0, { convert hk 1, rw one_pow 2, refl },
@@ -331,8 +334,7 @@ begin
     apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpm)) hnp,
     apply (or_self _).mp, apply int.prime.dvd_mul' hp,
     rw (by ring : n * n = - (m ^ 2 - n ^ 2) + m * m),
-    apply dvd_add (dvd_neg_of_dvd hp1),
-    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m },
+    exact hp1.neg_right.add ((int.coe_nat_dvd_left.2 hpm).mul_right _) },
   rw int.gcd_comm at hnp,
   apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpn)) hnp,
   apply (or_self _).mp, apply int.prime.dvd_mul' hp,

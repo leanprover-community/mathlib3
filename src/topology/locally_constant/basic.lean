@@ -5,13 +5,16 @@ Authors: Johan Commelin
 -/
 import topology.subset_properties
 import topology.connected
-import topology.algebra.monoid
 import topology.continuous_function.basic
+import algebra.indicator_function
 import tactic.tfae
 import tactic.fin_cases
 
 /-!
 # Locally constant functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file sets up the theory of locally constant function from a topological space to a type.
 
@@ -28,7 +31,7 @@ This file sets up the theory of locally constant function from a topological spa
 variables {X Y Z α : Type*} [topological_space X]
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 /-- A function between topological spaces is locally constant if the preimage of any set is open. -/
 def is_locally_constant (f : X → Y) : Prop := ∀ s : set Y, is_open (f ⁻¹' s)
@@ -97,10 +100,6 @@ lemma iff_continuous {_ : topological_space Y} [discrete_topology Y] (f : X → 
   is_locally_constant f ↔ continuous f :=
 ⟨is_locally_constant.continuous, λ h s, h.is_open_preimage s (is_open_discrete _)⟩
 
-lemma iff_continuous_bot (f : X → Y) :
-  is_locally_constant f ↔ @continuous X Y _ ⊥ f :=
-iff_continuous f
-
 lemma of_constant (f : X → Y) (h : ∀ x y, f x = f y) :
   is_locally_constant f :=
 (iff_eventually_eq f).2 $ λ x, eventually_of_forall $ λ x', h _ _
@@ -141,6 +140,23 @@ begin
   { simpa only [inter_empty, not_nonempty_empty, inter_compl_self] using hs }
 end
 
+lemma apply_eq_of_preconnected_space [preconnected_space X]
+  {f : X → Y} (hf : is_locally_constant f) (x y : X) :
+  f x = f y :=
+hf.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial
+
+lemma eq_const [preconnected_space X] {f : X → Y} (hf : is_locally_constant f) (x : X) :
+  f = function.const X (f x) :=
+funext $ λ y, hf.apply_eq_of_preconnected_space y x
+
+lemma exists_eq_const [preconnected_space X] [nonempty Y] {f : X → Y} (hf : is_locally_constant f) :
+  ∃ y, f = function.const X y :=
+begin
+  casesI is_empty_or_nonempty X,
+  { exact ⟨classical.arbitrary Y, funext $ h.elim⟩ },
+  { exact ⟨f (classical.arbitrary X), hf.eq_const _⟩ },
+end
+
 lemma iff_is_const [preconnected_space X] {f : X → Y} :
   is_locally_constant f ↔ ∀ x y, f x = f y :=
 ⟨λ h x y, h.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial, of_constant _⟩
@@ -148,10 +164,9 @@ lemma iff_is_const [preconnected_space X] {f : X → Y} :
 lemma range_finite [compact_space X] {f : X → Y} (hf : is_locally_constant f) :
   (set.range f).finite :=
 begin
-  letI : topological_space Y := ⊥,
-  haveI : discrete_topology Y := ⟨rfl⟩,
+  letI : topological_space Y := ⊥, haveI := discrete_topology_bot Y,
   rw @iff_continuous X Y ‹_› ‹_› at hf,
-  exact finite_of_is_compact_of_discrete _ (is_compact_range hf)
+  exact (is_compact_range hf).finite_of_discrete
 end
 
 @[to_additive] lemma one [has_one Y] : is_locally_constant (1 : X → Y) := const 1
@@ -185,9 +200,24 @@ begin
   apply h,
 end
 
+lemma of_constant_on_connected_components [locally_connected_space X] {f : X → Y}
+  (h : ∀ x, ∀ y ∈ connected_component x, f y = f x) :
+  is_locally_constant f :=
+begin
+  rw iff_exists_open,
+  exact λ x, ⟨connected_component x, is_open_connected_component, mem_connected_component, h x⟩,
+end
+
+lemma of_constant_on_preconnected_clopens [locally_connected_space X] {f : X → Y}
+  (h : ∀ U : set X, is_preconnected U → is_clopen U → ∀ x ∈ U, ∀ y ∈ U, f y = f x) :
+  is_locally_constant f :=
+of_constant_on_connected_components (λ x, h (connected_component x)
+  is_preconnected_connected_component is_clopen_connected_component x mem_connected_component)
+
 end is_locally_constant
 
 /-- A (bundled) locally constant function from a topological space `X` to a type `Y`. -/
+@[protect_proj]
 structure locally_constant (X Y : Type*) [topological_space X] :=
 (to_fun : X → Y)
 (is_locally_constant : is_locally_constant to_fun)
@@ -195,7 +225,7 @@ structure locally_constant (X Y : Type*) [topological_space X] :=
 namespace locally_constant
 
 instance [inhabited Y] : inhabited (locally_constant X Y) :=
-⟨⟨_, is_locally_constant.const (default Y)⟩⟩
+⟨⟨_, is_locally_constant.const default⟩⟩
 
 instance : has_coe_to_fun (locally_constant X Y) (λ _, X → Y) := ⟨locally_constant.to_fun⟩
 
@@ -262,8 +292,8 @@ def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x
     fin_cases e,
     { convert hU.1 using 1,
       ext,
-      simp only [nat.one_ne_zero, mem_singleton_iff, fin.one_eq_zero_iff,
-        mem_preimage, ite_eq_left_iff],
+      simp only [mem_singleton_iff, fin.one_eq_zero_iff, mem_preimage, ite_eq_left_iff,
+        nat.succ_succ_ne_one],
       tauto },
     { rw ← is_closed_compl_iff,
       convert hU.2,
@@ -275,8 +305,8 @@ def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x
   [∀ x, decidable (x ∈ U)] (hU : is_clopen U) : of_clopen hU ⁻¹' ({0} : set (fin 2)) = U :=
 begin
   ext,
-  simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff,
-    fin.one_eq_zero_iff, coe_mk, mem_preimage, ite_eq_left_iff],
+  simp only [of_clopen, mem_singleton_iff, fin.one_eq_zero_iff, coe_mk, mem_preimage,
+    ite_eq_left_iff, nat.succ_succ_ne_one],
   tauto,
 end
 
@@ -284,9 +314,8 @@ end
   [∀ x, decidable (x ∈ U)] (hU : is_clopen U) : of_clopen hU ⁻¹' ({1} : set (fin 2)) = Uᶜ :=
 begin
   ext,
-  simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff, coe_mk,
-    fin.zero_eq_one_iff, mem_preimage, ite_eq_right_iff,
-    mem_compl_eq],
+  simp only [of_clopen, mem_singleton_iff, coe_mk, fin.zero_eq_one_iff, mem_preimage,
+    ite_eq_right_iff, mem_compl_iff, nat.succ_succ_ne_one],
   tauto,
 end
 
@@ -295,10 +324,7 @@ lemma locally_constant_eq_of_fiber_zero_eq {X : Type*} [topological_space X]
 begin
   simp only [set.ext_iff, mem_singleton_iff, mem_preimage] at h,
   ext1 x,
-  have := h x,
-  set a := f x,
-  set b := g x,
-  fin_cases a; fin_cases b; finish
+  exact fin.fin_two_eq_of_eq_zero_iff (h x)
 end
 
 lemma range_finite [compact_space X] (f : locally_constant X Y) :
@@ -429,4 +455,47 @@ lemma coe_desc {X α β : Type*} [topological_space X] (f : X → α) (g : α �
 
 end desc
 
+section indicator
+variables {R : Type*} [has_one R] {U : set X} (f : locally_constant X R)
+open_locale classical
+
+/-- Given a clopen set `U` and a locally constant function `f`, `locally_constant.mul_indicator`
+  returns the locally constant function that is `f` on `U` and `1` otherwise. -/
+@[to_additive /-" Given a clopen set `U` and a locally constant function `f`,
+  `locally_constant.indicator` returns the locally constant function that is `f` on `U` and `0`
+  otherwise. "-/, simps]
+noncomputable def mul_indicator (hU : is_clopen U) :
+  locally_constant X R :=
+{ to_fun := set.mul_indicator U f,
+  is_locally_constant :=
+    begin
+      rw is_locally_constant.iff_exists_open, rintros x,
+      obtain ⟨V, hV, hx, h'⟩ := (is_locally_constant.iff_exists_open _).1 f.is_locally_constant x,
+      by_cases x ∈ U,
+      { refine ⟨U ∩ V, is_open.inter hU.1 hV, set.mem_inter h hx, _⟩, rintros y hy,
+        rw set.mem_inter_iff at hy, rw [set.mul_indicator_of_mem hy.1, set.mul_indicator_of_mem h],
+        apply h' y hy.2, },
+      { rw ←set.mem_compl_iff at h, refine ⟨Uᶜ, (is_clopen.compl hU).1, h, _⟩,
+        rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy,
+        simp [h, hy], },
+    end, }
+
+variables (a : X)
+
+@[to_additive]
+theorem mul_indicator_apply_eq_if (hU : is_clopen U) :
+  mul_indicator f hU a = if a ∈ U then f a else 1 :=
+set.mul_indicator_apply U f a
+
+variables {a}
+
+@[to_additive]
+theorem mul_indicator_of_mem (hU : is_clopen U) (h : a ∈ U) : f.mul_indicator hU a = f a :=
+by{ rw mul_indicator_apply, apply set.mul_indicator_of_mem h, }
+
+@[to_additive]
+theorem mul_indicator_of_not_mem (hU : is_clopen U) (h : a ∉ U) : f.mul_indicator hU a = 1 :=
+by{ rw mul_indicator_apply, apply set.mul_indicator_of_not_mem h, }
+
+end indicator
 end locally_constant

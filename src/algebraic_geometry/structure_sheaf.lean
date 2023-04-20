@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import algebraic_geometry.prime_spectrum.basic
-import algebra.category.CommRing.colimits
-import algebra.category.CommRing.limits
+import algebra.category.Ring.colimits
+import algebra.category.Ring.limits
 import topology.sheaves.local_predicate
-import ring_theory.localization
+import ring_theory.localization.at_prime
 import ring_theory.subring.basic
 
 /-!
@@ -190,7 +190,7 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
     { exact nm, },
     { simp only [ring_hom.map_neg, pi.neg_apply],
       erw [←w],
-      simp only [neg_mul_eq_neg_mul_symm], }
+      simp only [neg_mul], }
   end,
   mul_mem' :=
   begin
@@ -257,13 +257,14 @@ The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/
-def structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
+def Spec.structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
 ⟨structure_presheaf_in_CommRing R,
   -- We check the sheaf condition under `forget CommRing`.
   (is_sheaf_iff_is_sheaf_comp _ _).mpr
     (is_sheaf_of_iso (structure_presheaf_comp_forget R).symm
-      (structure_sheaf_in_Type R).property)⟩
+      (structure_sheaf_in_Type R).cond)⟩
 
+open Spec (structure_sheaf)
 
 namespace structure_sheaf
 
@@ -357,7 +358,8 @@ by convert is_localization.mk'_mul _ f₁ f₂ ⟨g₁, hu₁ x x.2⟩ ⟨g₂, 
 
 lemma const_ext {f₁ f₂ g₁ g₂ : R} {U hu₁ hu₂} (h : f₁ * g₂ = f₂ * g₁) :
   const R f₁ g₁ U hu₁ = const R f₂ g₂ U hu₂ :=
-subtype.eq $ funext $ λ x, is_localization.mk'_eq_of_eq h.symm
+subtype.eq $ funext $ λ x, is_localization.mk'_eq_of_eq
+  (by rw [mul_comm, subtype.coe_mk, ←h, mul_comm, subtype.coe_mk])
 
 lemma const_congr {f₁ f₂ g₁ g₂ : R} {U hu} (hf : f₁ = f₂) (hg : g₁ = g₂) :
   const R f₁ g₁ U hu = const R f₂ g₂ U (hg ▸ hu) :=
@@ -401,20 +403,20 @@ subtype.eq $ funext $ λ x, eq.symm $ is_localization.mk'_one _ f
 
 /-- The canonical ring homomorphism interpreting an element of `R` as an element of
 the stalk of `structure_sheaf R` at `x`. -/
-def to_stalk (x : prime_spectrum.Top R) : CommRing.of R ⟶ (structure_sheaf R).1.stalk x :=
-(to_open R ⊤ ≫ (structure_sheaf R).1.germ ⟨x, ⟨⟩⟩ : _)
+def to_stalk (x : prime_spectrum.Top R) : CommRing.of R ⟶ (structure_sheaf R).presheaf.stalk x :=
+(to_open R ⊤ ≫ (structure_sheaf R).presheaf.germ ⟨x, ⟨⟩⟩ : _)
 
 @[simp] lemma to_open_germ (U : opens (prime_spectrum.Top R)) (x : U) :
-  to_open R U ≫ (structure_sheaf R).1.germ x =
+  to_open R U ≫ (structure_sheaf R).presheaf.germ x =
   to_stalk R x :=
 by { rw [← to_open_res R ⊤ U (hom_of_le le_top : U ⟶ ⊤), category.assoc, presheaf.germ_res], refl }
 
 @[simp] lemma germ_to_open (U : opens (prime_spectrum.Top R)) (x : U) (f : R) :
-  (structure_sheaf R).1.germ x (to_open R U f) = to_stalk R x f :=
+  (structure_sheaf R).presheaf.germ x (to_open R U f) = to_stalk R x f :=
 by { rw ← to_open_germ, refl }
 
 lemma germ_to_top (x : prime_spectrum.Top R) (f : R) :
-  (structure_sheaf R).1.germ (⟨x, trivial⟩ : (⊤ : opens (prime_spectrum.Top R)))
+  (structure_sheaf R).presheaf.germ (⟨x, trivial⟩ : (⊤ : opens (prime_spectrum.Top R)))
     (to_open R ⊤ f) =
     to_stalk R x f :=
 rfl
@@ -431,7 +433,7 @@ by { erw ← germ_to_open R (basic_open (f : R)) ⟨x, f.2⟩ (f : R),
 /-- The canonical ring homomorphism from the localization of `R` at `p` to the stalk
 of the structure sheaf at the point `p`. -/
 def localization_to_stalk (x : prime_spectrum.Top R) :
-  CommRing.of (localization.at_prime x.as_ideal) ⟶ (structure_sheaf R).1.stalk x :=
+  CommRing.of (localization.at_prime x.as_ideal) ⟶ (structure_sheaf R).presheaf.stalk x :=
 show localization.at_prime x.as_ideal →+* _, from
 is_localization.lift (is_unit_to_stalk R x)
 
@@ -442,7 +444,7 @@ is_localization.lift_eq _ f
 @[simp] lemma localization_to_stalk_mk' (x : prime_spectrum.Top R) (f : R)
   (s : (as_ideal x).prime_compl) :
   localization_to_stalk R x (is_localization.mk' _ f s : localization _) =
-  (structure_sheaf R).1.germ (⟨x, s.2⟩ : basic_open (s : R))
+  (structure_sheaf R).presheaf.germ (⟨x, s.2⟩ : basic_open (s : R))
     (const R f s (basic_open s) (λ _, id)) :=
 (is_localization.lift_mk'_spec _ _ _ _).2 $
 by erw [← germ_to_open R (basic_open s) ⟨x, s.2⟩, ← germ_to_open R (basic_open s) ⟨x, s.2⟩,
@@ -477,25 +479,25 @@ rfl
 a prime ideal `p` to the localization of `R` at `p`,
 formed by gluing the `open_to_localization` maps. -/
 def stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
-  (structure_sheaf R).1.stalk x ⟶ CommRing.of (localization.at_prime x.as_ideal) :=
+  (structure_sheaf R).presheaf.stalk x ⟶ CommRing.of (localization.at_prime x.as_ideal) :=
 limits.colimit.desc (((open_nhds.inclusion x).op) ⋙ (structure_sheaf R).1)
   { X := _,
     ι :=
     { app := λ U, open_to_localization R ((open_nhds.inclusion _).obj (unop U)) x (unop U).2, } }
 
 @[simp] lemma germ_comp_stalk_to_fiber_ring_hom (U : opens (prime_spectrum.Top R)) (x : U) :
-  (structure_sheaf R).1.germ x ≫ stalk_to_fiber_ring_hom R x =
+  (structure_sheaf R).presheaf.germ x ≫ stalk_to_fiber_ring_hom R x =
   open_to_localization R U x x.2 :=
 limits.colimit.ι_desc _ _
 
 @[simp] lemma stalk_to_fiber_ring_hom_germ' (U : opens (prime_spectrum.Top R))
   (x : prime_spectrum.Top R) (hx : x ∈ U) (s : (structure_sheaf R).1.obj (op U)) :
-  stalk_to_fiber_ring_hom R x ((structure_sheaf R).1.germ ⟨x, hx⟩ s) = (s.1 ⟨x, hx⟩ : _) :=
+  stalk_to_fiber_ring_hom R x ((structure_sheaf R).presheaf.germ ⟨x, hx⟩ s) = (s.1 ⟨x, hx⟩ : _) :=
 ring_hom.ext_iff.1 (germ_comp_stalk_to_fiber_ring_hom R U ⟨x, hx⟩ : _) s
 
 @[simp] lemma stalk_to_fiber_ring_hom_germ (U : opens (prime_spectrum.Top R)) (x : U)
   (s : (structure_sheaf R).1.obj (op U)) :
-  stalk_to_fiber_ring_hom R x ((structure_sheaf R).1.germ x s) = s.1 x :=
+  stalk_to_fiber_ring_hom R x ((structure_sheaf R).presheaf.germ x s) = s.1 x :=
 by { cases x, exact stalk_to_fiber_ring_hom_germ' R U _ _ _ }
 
 @[simp] lemma to_stalk_comp_stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
@@ -509,15 +511,15 @@ ring_hom.ext_iff.1 (to_stalk_comp_stalk_to_fiber_ring_hom R x) _
 /-- The ring isomorphism between the stalk of the structure sheaf of `R` at a point `p`
 corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
 @[simps] def stalk_iso (x : prime_spectrum.Top R) :
-  (structure_sheaf R).1.stalk x ≅ CommRing.of (localization.at_prime x.as_ideal) :=
+  (structure_sheaf R).presheaf.stalk x ≅ CommRing.of (localization.at_prime x.as_ideal) :=
 { hom := stalk_to_fiber_ring_hom R x,
   inv := localization_to_stalk R x,
-  hom_inv_id' := (structure_sheaf R).1.stalk_hom_ext $ λ U hxU,
+  hom_inv_id' := (structure_sheaf R).presheaf.stalk_hom_ext $ λ U hxU,
   begin
     ext s, simp only [comp_apply], rw [id_apply, stalk_to_fiber_ring_hom_germ'],
     obtain ⟨V, hxV, iVU, f, g, hg, hs⟩ := exists_const _ _ s x hxU,
     erw [← res_apply R U V iVU s ⟨x, hxV⟩, ← hs, const_apply, localization_to_stalk_mk'],
-    refine (structure_sheaf R).1.germ_ext V hxV (hom_of_le hg) iVU _,
+    refine (structure_sheaf R).presheaf.germ_ext V hxV (hom_of_le hg) iVU _,
     erw [← hs, res_const']
   end,
   inv_hom_id' := @is_localization.ring_hom_ext R _ x.as_ideal.prime_compl
@@ -526,6 +528,20 @@ corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
       (ring_hom.id (localization.at_prime _)) $
     by { ext f, simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
                            stalk_to_fiber_ring_hom_to_stalk] } }
+
+instance (x : prime_spectrum R) : is_iso (stalk_to_fiber_ring_hom R x) :=
+is_iso.of_iso (stalk_iso R x)
+
+instance (x : prime_spectrum R) : is_iso (localization_to_stalk R x) :=
+is_iso.of_iso (stalk_iso R x).symm
+
+@[simp, reassoc] lemma stalk_to_fiber_ring_hom_localization_to_stalk (x : prime_spectrum.Top R) :
+  stalk_to_fiber_ring_hom R x ≫ localization_to_stalk R x = 𝟙 _ :=
+(stalk_iso R x).hom_inv_id
+
+@[simp, reassoc] lemma localization_to_stalk_stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
+  localization_to_stalk R x ≫ stalk_to_fiber_ring_hom R x = 𝟙 _ :=
+(stalk_iso R x).inv_hom_id
 
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
@@ -560,17 +576,17 @@ begin
   rw is_localization.eq,
   -- We know that the fractions `a/b` and `c/d` are equal as sections of the structure sheaf on
   -- `basic_open f`. We need to show that they agree as elements in the localization of `R` at `f`.
-  -- This amounts showing that `a * d * r = c * b * r`, for some power `r = f ^ n` of `f`.
+  -- This amounts showing that `r * (d * a) = r * (b * c)`, for some power `r = f ^ n` of `f`.
   -- We define `I` as the ideal of *all* elements `r` satisfying the above equation.
   let I : ideal R :=
-  { carrier := {r : R | a * d * r = c * b * r},
-    zero_mem' := by simp only [set.mem_set_of_eq, mul_zero],
-    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [mul_add, hr₁, hr₂] },
-    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_comm r₁ r₂, ← mul_assoc, hr₂] }},
+  { carrier := {r : R | r * (d * a) = r * (b * c)},
+    zero_mem' := by simp only [set.mem_set_of_eq, zero_mul],
+    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [add_mul, hr₁, hr₂] },
+    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_assoc, hr₂] }},
   -- Our claim now reduces to showing that `f` is contained in the radical of `I`
   suffices : f ∈ I.radical,
   { cases this with n hn,
-    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩ },
+    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩, },
   rw [← vanishing_ideal_zero_locus_eq_radical, mem_vanishing_ideal],
   intros p hfp,
   contrapose hfp,
@@ -592,9 +608,9 @@ lemma locally_const_basic_open (U : opens (prime_spectrum.Top R))
 begin
   -- First, any section `s` can be represented as a fraction `f/g` on some open neighborhood of `x`
   -- and we may pass to a `basic_open h`, since these form a basis
-  obtain ⟨V, (hxV : x.1 ∈ V.1), iVU, f, g, (hVDg : V ⊆ basic_open g), s_eq⟩ :=
+  obtain ⟨V, (hxV : x.1 ∈ V.1), iVU, f, g, (hVDg : V ≤ basic_open g), s_eq⟩ :=
     exists_const R U s x.1 x.2,
-  obtain ⟨_, ⟨h, rfl⟩, hxDh, (hDhV : basic_open h ⊆ V)⟩ :=
+  obtain ⟨_, ⟨h, rfl⟩, hxDh, (hDhV : basic_open h ≤ V)⟩ :=
     is_topological_basis_basic_opens.exists_subset_of_mem_open hxV V.2,
   -- The problem is of course, that `g` and `h` don't need to coincide.
   -- But, since `basic_open h ≤ basic_open g`, some power of `h` must be a multiple of `g`
@@ -628,11 +644,11 @@ A local representation of a section `s` as fractions `a i / h i` on finitely man
 -/
 lemma normalize_finite_fraction_representation (U : opens (prime_spectrum.Top R))
   (s : (structure_sheaf R).1.obj (op U)) {ι : Type*} (t : finset ι) (a h : ι → R)
-  (iDh : Π i : ι, basic_open (h i) ⟶ U)  (h_cover : U.1 ⊆ ⋃ i ∈ t, (basic_open (h i)).1)
+  (iDh : Π i : ι, basic_open (h i) ⟶ U) (h_cover : U ≤ ⨆ i ∈ t, basic_open (h i))
   (hs : ∀ i : ι, const R (a i) (h i) (basic_open (h i)) (λ y hy, hy) =
     (structure_sheaf R).1.map (iDh i).op s) :
   ∃ (a' h' : ι → R) (iDh' : Π i : ι, (basic_open (h' i)) ⟶ U),
-    (U.1 ⊆ ⋃ i ∈ t, (basic_open (h' i)).1) ∧
+    (U ≤ ⨆ i ∈ t, basic_open (h' i)) ∧
     (∀ i j ∈ t, a' i * h' j = h' i * a' j) ∧
     (∀ i ∈ t, (structure_sheaf R).1.map (iDh' i).op s =
       const R (a' i) (h' i) (basic_open (h' i)) (λ y hy, hy)) :=
@@ -673,14 +689,14 @@ begin
   have n_spec := λ (p : ι × ι), (exists_power p.fst p.snd).some_spec,
   -- We need one power `(h i * h j) ^ N` that works for *all* pairs `(i,j)`
   -- Since there are only finitely many indices involved, we can pick the supremum.
-  let N := (t.product t).sup n,
+  let N := (t ×ˢ t).sup n,
   have basic_opens_eq : ∀ i : ι, basic_open ((h i) ^ (N+1)) = basic_open (h i) :=
     λ i, basic_open_pow _ _ (by linarith),
   -- Expanding the fraction `a i / h i` by the power `(h i) ^ N` gives the desired normalization
   refine ⟨(λ i, a i * (h i) ^ N), (λ i, (h i) ^ (N + 1)),
     (λ i, eq_to_hom (basic_opens_eq i) ≫ iDh i), _, _, _⟩,
   { simpa only [basic_opens_eq] using h_cover },
-  { intros i j hi hj,
+  { intros i hi j hj,
     -- Here we need to show that our new fractions `a i / h i` satisfy the normalization condition
     -- Of course, the power `N` we used to expand the fractions might be bigger than the power
     -- `n (i, j)` which was originally chosen. We denote their difference by `k`
@@ -719,19 +735,21 @@ begin
   choose a' h' iDh' hxDh' s_eq' using locally_const_basic_open R (basic_open f) s,
   -- Since basic opens are compact, we can pass to a finite subcover
   obtain ⟨t, ht_cover'⟩ := (is_compact_basic_open f).elim_finite_subcover
-   (λ (i : ι), (basic_open (h' i)).1) (λ i, is_open_basic_open) (λ x hx, _),
+   (λ (i : ι), basic_open (h' i)) (λ i, is_open_basic_open) (λ x hx, _),
   swap,
   { -- Here, we need to show that our basic opens actually form a cover of `basic_open f`
     rw set.mem_Union,
     exact ⟨⟨x,hx⟩, hxDh' ⟨x, hx⟩⟩ },
+  simp only [← opens.coe_supr, set_like.coe_subset_coe] at ht_cover',
   -- We use the normalization lemma from above to obtain the relation `a i * h j = h i * a j`
   obtain ⟨a, h, iDh, ht_cover, ah_ha, s_eq⟩ := normalize_finite_fraction_representation R
     (basic_open f) s t a' h' iDh' ht_cover' s_eq',
   clear s_eq' iDh' hxDh' ht_cover' a' h',
+  simp only [← set_like.coe_subset_coe, opens.coe_supr] at ht_cover,
   -- Next we show that some power of `f` is a linear combination of the `h i`
   obtain ⟨n, hn⟩ : f ∈ (ideal.span (h '' ↑t)).radical,
   { rw [← vanishing_ideal_zero_locus_eq_radical, zero_locus_span],
-    simp_rw [subtype.val_eq_coe, basic_open_eq_zero_locus_compl] at ht_cover,
+    simp only [basic_open_eq_zero_locus_compl] at ht_cover,
     rw set.compl_subset_comm at ht_cover, -- Why doesn't `simp_rw` do this?
     simp_rw [set.compl_Union, compl_compl, ← zero_locus_Union, ← finset.set_bUnion_coe,
              ← set.image_eq_Union ] at ht_cover,
@@ -762,7 +780,7 @@ begin
     intros x hx,
     erw topological_space.opens.mem_supr,
     have := ht_cover hx,
-    rw [← finset.set_bUnion_coe, set.mem_bUnion_iff] at this,
+    rw [← finset.set_bUnion_coe, set.mem_Union₂] at this,
     rcases this with ⟨i, i_mem, x_mem⟩,
     use [i, i_mem] },
 
@@ -781,7 +799,7 @@ begin
   rw [← hb, finset.sum_mul, finset.mul_sum],
   apply finset.sum_congr rfl,
   intros j hj,
-  rw [mul_assoc, ah_ha j i hj hi],
+  rw [mul_assoc, ah_ha j hj i hi],
   ring
 end
 
@@ -798,10 +816,54 @@ def basic_open_iso (f : R) : (structure_sheaf R).1.obj (op (basic_open f)) ≅
   CommRing.of (localization.away f) :=
 (as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
 
+instance stalk_algebra (p : prime_spectrum R) : algebra R ((structure_sheaf R).presheaf.stalk p) :=
+(to_stalk R p).to_algebra
+
+@[simp] lemma stalk_algebra_map (p : prime_spectrum R) (r : R) :
+  algebra_map R ((structure_sheaf R).presheaf.stalk p) r = to_stalk R p r := rfl
+
+/-- Stalk of the structure sheaf at a prime p as localization of R -/
+instance is_localization.to_stalk (p : prime_spectrum R) :
+  is_localization.at_prime ((structure_sheaf R).presheaf.stalk p) p.as_ideal :=
+begin
+  convert (is_localization.is_localization_iff_of_ring_equiv _ (stalk_iso R p).symm
+    .CommRing_iso_to_ring_equiv).mp localization.is_localization,
+  apply algebra.algebra_ext,
+  intro _,
+  rw stalk_algebra_map,
+  congr' 1,
+  erw iso.eq_comp_inv,
+  exact to_stalk_comp_stalk_to_fiber_ring_hom R p,
+end
+
+instance open_algebra (U : (opens (prime_spectrum R))ᵒᵖ) :
+  algebra R ((structure_sheaf R).val.obj U) :=
+(to_open R (unop U)).to_algebra
+
+@[simp] lemma open_algebra_map (U : (opens (prime_spectrum R))ᵒᵖ) (r : R) :
+  algebra_map R ((structure_sheaf R).val.obj U) r = to_open R (unop U) r := rfl
+
+/-- Sections of the structure sheaf of Spec R on a basic open as localization of R -/
+instance is_localization.to_basic_open (r : R) :
+  is_localization.away r ((structure_sheaf R).val.obj (op $ basic_open r)) :=
+begin
+  convert (is_localization.is_localization_iff_of_ring_equiv _ (basic_open_iso R r).symm
+    .CommRing_iso_to_ring_equiv).mp localization.is_localization,
+  apply algebra.algebra_ext,
+  intro x,
+  congr' 1,
+  exact (localization_to_basic_open R r).symm
+end
+
+instance to_basic_open_epi (r : R) : epi (to_open R (basic_open r)) :=
+⟨λ S f g h, by { refine is_localization.ring_hom_ext _ _,
+  swap 5, exact is_localization.to_basic_open R r, exact h }⟩
+
 @[elementwise] lemma to_global_factors : to_open R ⊤ =
-  (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫
+  CommRing.of_hom (algebra_map R (localization.away (1 : R))) ≫ to_basic_open R (1 : R) ≫
   (structure_sheaf R).1.map (eq_to_hom (basic_open_one.symm)).op :=
 begin
+  rw ← category.assoc,
   change to_open R ⊤ = (to_basic_open R 1).comp _ ≫ _,
   unfold CommRing.of_hom,
   rw [localization_to_basic_open R, to_open_res],
@@ -817,11 +879,46 @@ begin
 end
 
 /-- The ring isomorphism between the ring `R` and the global sections `Γ(X, 𝒪ₓ)`. -/
-@[simps] def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).1.obj (op ⊤) :=
+@[simps {rhs_md := tactic.transparency.semireducible}]
+def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).1.obj (op ⊤) :=
 as_iso (to_open R ⊤)
 
 @[simp] lemma global_sections_iso_hom (R : CommRing) :
   (global_sections_iso R).hom = to_open R ⊤ := rfl
+
+@[simp, reassoc, elementwise]
+lemma to_stalk_stalk_specializes {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  to_stalk R y ≫ (structure_sheaf R).presheaf.stalk_specializes h = to_stalk R x :=
+by { dsimp[to_stalk], simpa [-to_open_germ], }
+
+@[simp, reassoc, elementwise]
+lemma localization_to_stalk_stalk_specializes {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  structure_sheaf.localization_to_stalk R y ≫ (structure_sheaf R).presheaf.stalk_specializes h =
+    CommRing.of_hom (prime_spectrum.localization_map_of_specializes h) ≫
+      structure_sheaf.localization_to_stalk R x :=
+begin
+  apply is_localization.ring_hom_ext y.as_ideal.prime_compl,
+  any_goals { dsimp, apply_instance },
+  erw ring_hom.comp_assoc,
+  conv_rhs { erw ring_hom.comp_assoc },
+  dsimp [CommRing.of_hom, localization_to_stalk, prime_spectrum.localization_map_of_specializes],
+  rw [is_localization.lift_comp, is_localization.lift_comp, is_localization.lift_comp],
+  exact to_stalk_stalk_specializes h
+end
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_to_fiber {R : Type*} [comm_ring R]
+  {x y : prime_spectrum R} (h : x ⤳ y) :
+  (structure_sheaf R).presheaf.stalk_specializes h ≫ structure_sheaf.stalk_to_fiber_ring_hom R x =
+    structure_sheaf.stalk_to_fiber_ring_hom R y ≫
+      prime_spectrum.localization_map_of_specializes h :=
+begin
+  change _ ≫ (structure_sheaf.stalk_iso R x).hom = (structure_sheaf.stalk_iso R y).hom ≫ _,
+  rw [← iso.eq_comp_inv, category.assoc, ← iso.inv_comp_eq],
+  exact localization_to_stalk_stalk_specializes h,
+end
 
 section comap
 

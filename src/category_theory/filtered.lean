@@ -7,10 +7,13 @@ import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
 import category_theory.category.preorder
-import order.bounded_order
+import category_theory.category.ulift
 
 /-!
 # Filtered categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A category is filtered if every finite diagram admits a cocone.
 We give a simple characterisation of this condition as
@@ -48,7 +51,10 @@ commute with finite limits.
 
 -/
 
-universes v v₁ u u₁-- declare the `v`'s first; see `category_theory.category` for an explanation
+open function
+
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v v₁ u u₁ u₂
 
 namespace category_theory
 
@@ -71,7 +77,7 @@ A category `is_filtered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/002V. (They also define a diagram being filtered.)
+See <https://stacks.math.columbia.edu/tag/002V>. (They also define a diagram being filtered.)
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -86,47 +92,58 @@ instance is_filtered_or_empty_of_semilattice_sup
 instance is_filtered_of_semilattice_sup_nonempty
   (α : Type u) [semilattice_sup α] [nonempty α] : is_filtered α := {}
 
--- TODO: Define `codirected_order` and provide the dual to this instance.
 @[priority 100]
-instance is_filtered_or_empty_of_directed_order
-  (α : Type u) [directed_order α] : is_filtered_or_empty α :=
-{ cocone_objs := λ X Y, let ⟨Z,h1,h2⟩ := directed_order.directed X Y in
+instance is_filtered_or_empty_of_directed_le (α : Type u) [preorder α] [is_directed α (≤)] :
+  is_filtered_or_empty α :=
+{ cocone_objs := λ X Y, let ⟨Z, h1, h2⟩ := exists_ge_ge X Y in
     ⟨Z, hom_of_le h1, hom_of_le h2, trivial⟩,
   cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, by simp⟩ }
 
--- TODO: Define `codirected_order` and provide the dual to this instance.
 @[priority 100]
-instance is_filtered_of_directed_order_nonempty
-  (α : Type u) [directed_order α] [nonempty α] : is_filtered α := {}
+instance is_filtered_of_directed_le_nonempty (α : Type u) [preorder α] [is_directed α (≤)]
+  [nonempty α] :
+  is_filtered α := {}
 
 -- Sanity checks
 example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
 example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
 
+instance : is_filtered (discrete punit) :=
+{ cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  nonempty := ⟨⟨punit.star⟩⟩ }
+
 namespace is_filtered
 
-variables {C} [is_filtered C]
+section allow_empty
+
+variables {C} [is_filtered_or_empty C]
+
+lemma cocone_objs : ∀ (X Y : C), ∃ Z (f : X ⟶ Z) (g : Y ⟶ Z), true :=
+is_filtered_or_empty.cocone_objs
+lemma cocone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ Z (h : Y ⟶ Z), f ≫ h = g ≫ h :=
+is_filtered_or_empty.cocone_maps
 
 /--
 `max j j'` is an arbitrary choice of object to the right of both `j` and `j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def max (j j' : C) : C :=
-(is_filtered_or_empty.cocone_objs j j').some
+(cocone_objs j j').some
 
 /--
-`left_to_max j j'` is an arbitrarily choice of morphism from `j` to `max j j'`,
+`left_to_max j j'` is an arbitrary choice of morphism from `j` to `max j j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def left_to_max (j j' : C) : j ⟶ max j j' :=
-(is_filtered_or_empty.cocone_objs j j').some_spec.some
+(cocone_objs j j').some_spec.some
 
 /--
-`right_to_max j j'` is an arbitrarily choice of morphism from `j'` to `max j j'`,
+`right_to_max j j'` is an arbitrary choice of morphism from `j'` to `max j j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def right_to_max (j j' : C) : j' ⟶ max j j' :=
-(is_filtered_or_empty.cocone_objs j j').some_spec.some_spec.some
+(cocone_objs j j').some_spec.some_spec.some
 
 /--
 `coeq f f'`, for morphisms `f f' : j ⟶ j'`, is an arbitrary choice of object
@@ -135,7 +152,7 @@ which admits a morphism `coeq_hom f f' : j' ⟶ coeq f f'` such that
 Its existence is ensured by `is_filtered`.
 -/
 noncomputable def coeq {j j' : C} (f f' : j ⟶ j') : C :=
-(is_filtered_or_empty.cocone_maps f f').some
+(cocone_maps f f').some
 
 /--
 `coeq_hom f f'`, for morphisms `f f' : j ⟶ j'`, is an arbitrary choice of morphism
@@ -144,7 +161,7 @@ noncomputable def coeq {j j' : C} (f f' : j ⟶ j') : C :=
 Its existence is ensured by `is_filtered`.
 -/
 noncomputable def coeq_hom {j j' : C} (f f' : j ⟶ j') : j' ⟶ coeq f f' :=
-(is_filtered_or_empty.cocone_maps f f').some_spec.some
+(cocone_maps f f').some_spec.some
 
 /--
 `coeq_condition f f'`, for morphisms `f f' : j ⟶ j'`, is the proof that
@@ -152,9 +169,15 @@ noncomputable def coeq_hom {j j' : C} (f f' : j ⟶ j') : j' ⟶ coeq f f' :=
 -/
 @[simp, reassoc]
 lemma coeq_condition {j j' : C} (f f' : j ⟶ j') : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f' :=
-(is_filtered_or_empty.cocone_maps f f').some_spec.some_spec
+(cocone_maps f f').some_spec.some_spec
+
+end allow_empty
+
+section nonempty
 
 open category_theory.limits
+
+variables {C} [is_filtered C]
 
 /--
 Any finite collection of objects in a filtered category has an object "to the right".
@@ -199,7 +222,12 @@ begin
       { subst hf,
         apply coeq_condition, },
       { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
-    { rw @w' _ _ mX' mY' f' (by finish), }, },
+    { rw @w' _ _ mX' mY' f' _,
+      apply finset.mem_of_mem_insert_of_ne mf',
+      contrapose! h,
+      obtain ⟨rfl, h⟩ := h,
+      rw [heq_iff_eq, psigma.mk.inj_iff] at h,
+      exact ⟨rfl, h.1.symm⟩ }, },
 end
 
 /--
@@ -279,7 +307,11 @@ of_right_adjoint (adjunction.of_right_adjoint R)
 lemma of_equivalence (h : C ≌ D) : is_filtered D :=
 of_right_adjoint h.symm.to_adjunction
 
+end nonempty
+
 section special_shapes
+
+variables {C} [is_filtered_or_empty C]
 
 /--
 `max₃ j₁ j₂ j₃` is an arbitrary choice of object to the right of `j₁`, `j₂` and `j₃`,
@@ -288,21 +320,21 @@ whose existence is ensured by `is_filtered`.
 noncomputable def max₃ (j₁ j₂ j₃ : C) : C := max (max j₁ j₂) j₃
 
 /--
-`first_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
+`first_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def first_to_max₃ (j₁ j₂ j₃ : C) : j₁ ⟶ max₃ j₁ j₂ j₃ :=
 left_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
 
 /--
-`second_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
+`second_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def second_to_max₃ (j₁ j₂ j₃ : C) : j₂ ⟶ max₃ j₁ j₂ j₃ :=
 right_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
 
 /--
-`third_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
+`third_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def third_to_max₃ (j₁ j₂ j₃ : C) : j₃ ⟶ max₃ j₁ j₂ j₃ :=
@@ -330,11 +362,7 @@ coeq_hom (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
 
 lemma coeq₃_condition₁ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
   f ≫ coeq₃_hom f g h = g ≫ coeq₃_hom f g h :=
-begin
-  dsimp [coeq₃_hom],
-  slice_lhs 1 2 { rw coeq_condition f g },
-  simp only [category.assoc],
-end
+by rw [coeq₃_hom, reassoc_of (coeq_condition f g)]
 
 lemma coeq₃_condition₂ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
   g ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
@@ -349,6 +377,13 @@ end
 lemma coeq₃_condition₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
   f ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
 eq.trans (coeq₃_condition₁ f g h) (coeq₃_condition₂ f g h)
+
+/-- For every span `j ⟵ i ⟶ j'`, there
+   exists a cocone `j ⟶ k ⟵ j'` such that the square commutes. -/
+lemma span {i j j' : C} (f : i ⟶ j) (f' : i ⟶ j') :
+  ∃ (k : C) (g : j ⟶ k) (g' : j' ⟶ k), f ≫ g = f' ≫ g' :=
+let ⟨K, G, G', _⟩ := cocone_objs j j', ⟨k, e, he⟩ := cocone_maps (f ≫ G) (f' ≫ G') in
+⟨k, G ≫ e, G' ≫ e, by simpa only [← category.assoc]⟩
 
 /--
 Given a "bowtie" of morphisms
@@ -368,24 +403,10 @@ lemma bowtie {j₁ j₂ k₁ k₂ : C}
   (f₁ : j₁ ⟶ k₁) (g₁ : j₁ ⟶ k₂) (f₂ : j₂ ⟶ k₁) (g₂ : j₂ ⟶ k₂) :
   ∃ (s : C) (α : k₁ ⟶ s) (β : k₂ ⟶ s), f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = g₂ ≫ β :=
 begin
-  let sa := max k₁ k₂,
-  let sb := coeq (f₁ ≫ left_to_max _ _) (g₁ ≫ right_to_max _ _),
-  let sc := coeq (f₂ ≫ left_to_max _ _) (g₂ ≫ right_to_max _ _),
-  let sd := max sb sc,
-  let s := coeq ((coeq_hom _ _ : sa ⟶ sb) ≫ left_to_max _ _)
-    ((coeq_hom _ _ : sa ⟶ sc) ≫ right_to_max _ _),
-  use s,
-  fsplit,
-  exact left_to_max k₁ k₂ ≫ coeq_hom _ _ ≫ left_to_max sb sc ≫ coeq_hom _ _,
-  fsplit,
-  exact right_to_max k₁ k₂ ≫ coeq_hom _ _ ≫ right_to_max sb sc ≫ coeq_hom _ _,
-  fsplit,
-  { slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
-    slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
-    simp only [category.assoc], },
-  { slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
-    slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
-    simp only [category.assoc], }
+  obtain ⟨t, k₁t, k₂t, ht⟩ := span f₁ g₁,
+  obtain ⟨s, ts, hs⟩ := cocone_maps (f₂ ≫ k₁t) (g₂ ≫ k₂t),
+  simp_rw category.assoc at hs,
+  exact ⟨s, k₁t ≫ ts, k₂t ≫ ts, by rw reassoc_of ht, hs⟩,
 end
 
 /--
@@ -404,36 +425,17 @@ Given a "tulip" of morphisms
        l
 ```
 in a filtered category, we can construct an object `s` and three morphisms from `k₁`, `k₂` and `l`
-to `s`, making the resulting sqaures commute.
+to `s`, making the resulting squares commute.
 -/
 lemma tulip {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂ ⟶ k₁) (f₃ : j₂ ⟶ k₂) (f₄ : j₃ ⟶ k₂)
   (g₁ : j₁ ⟶ l) (g₂ : j₃ ⟶ l) :
   ∃ (s : C) (α : k₁ ⟶ s) (β : l ⟶ s) (γ : k₂ ⟶ s),
     f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = f₃ ≫ γ ∧ f₄ ≫ γ = g₂ ≫ β :=
 begin
-  let sa := max₃ k₁ l k₂,
-  let sb := coeq (f₁ ≫ first_to_max₃ k₁ l k₂) (g₁ ≫ second_to_max₃ k₁ l k₂),
-  let sc := coeq (f₂ ≫ first_to_max₃ k₁ l k₂) (f₃ ≫ third_to_max₃ k₁ l k₂),
-  let sd := coeq (f₄ ≫ third_to_max₃ k₁ l k₂) (g₂ ≫ second_to_max₃ k₁ l k₂),
-  let se := max₃ sb sc sd,
-  let sf := coeq₃ (coeq_hom _ _ ≫ first_to_max₃ sb sc sd)
-    (coeq_hom _ _ ≫ second_to_max₃ sb sc sd) (coeq_hom _ _ ≫ third_to_max₃ sb sc sd),
-  use sf,
-  use first_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ first_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
-  use second_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ second_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
-  use third_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ third_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
-  fsplit,
-  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
-  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
-  simp only [category.assoc],
-  fsplit,
-  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
-  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
-  slice_rhs 3 6 { rw [← category.assoc, ← coeq₃_condition₂] },
-  simp only [category.assoc],
-  slice_rhs 3 6 { rw [← category.assoc, coeq₃_condition₂] },
-  slice_rhs 1 3 { rw [← category.assoc, ← coeq_condition] },
-  simp only [category.assoc],
+  obtain ⟨l', k₁l, k₂l, hl⟩ := span f₂ f₃,
+  obtain ⟨s, ls, l's, hs₁, hs₂⟩ := bowtie g₁ (f₁ ≫ k₁l) g₂ (f₄ ≫ k₂l),
+  refine ⟨s, k₁l ≫ l's, ls, k₂l ≫ l's, _, by rw reassoc_of hl, _⟩;
+  simp only [hs₁, hs₂, category.assoc],
 end
 
 end special_shapes
@@ -447,8 +449,8 @@ A category `is_cofiltered_or_empty` if
    are equal.
 -/
 class is_cofiltered_or_empty : Prop :=
-(cocone_objs : ∀ (X Y : C), ∃ W (f : W ⟶ X) (g : W ⟶ Y), true)
-(cocone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ W (h : W ⟶ X), h ≫ f = h ≫ g)
+(cone_objs : ∀ (X Y : C), ∃ W (f : W ⟶ X) (g : W ⟶ Y), true)
+(cone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ W (h : W ⟶ X), h ≫ f = h ≫ g)
 
 /--
 A category `is_cofiltered` if
@@ -457,7 +459,7 @@ A category `is_cofiltered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/04AZ.
+See <https://stacks.math.columbia.edu/tag/04AZ>.
 -/
 class is_cofiltered extends is_cofiltered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -465,41 +467,65 @@ class is_cofiltered extends is_cofiltered_or_empty C : Prop :=
 @[priority 100]
 instance is_cofiltered_or_empty_of_semilattice_inf
   (α : Type u) [semilattice_inf α] : is_cofiltered_or_empty α :=
-{ cocone_objs := λ X Y, ⟨X ⊓ Y, hom_of_le inf_le_left, hom_of_le inf_le_right, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨X, 𝟙 _, (by ext)⟩, }
+{ cone_objs := λ X Y, ⟨X ⊓ Y, hom_of_le inf_le_left, hom_of_le inf_le_right, trivial⟩,
+  cone_maps := λ X Y f g, ⟨X, 𝟙 _, (by ext)⟩, }
 
 @[priority 100]
 instance is_cofiltered_of_semilattice_inf_nonempty
   (α : Type u) [semilattice_inf α] [nonempty α] : is_cofiltered α := {}
 
+@[priority 100]
+instance is_cofiltered_or_empty_of_directed_ge (α : Type u) [preorder α]
+  [is_directed α (≥)] :
+  is_cofiltered_or_empty α :=
+{ cone_objs := λ X Y, let ⟨Z, hX, hY⟩ := exists_le_le X Y in
+    ⟨Z, hom_of_le hX, hom_of_le hY, trivial⟩,
+  cone_maps := λ X Y f g, ⟨X, 𝟙 _, by simp⟩ }
+
+@[priority 100]
+instance is_cofiltered_of_directed_ge_nonempty (α : Type u) [preorder α] [is_directed α (≥)]
+  [nonempty α] :
+  is_cofiltered α := {}
+
 -- Sanity checks
 example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
 example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
 
+instance : is_cofiltered (discrete punit) :=
+{ cone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
+  cone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  nonempty := ⟨⟨punit.star⟩⟩ }
+
 namespace is_cofiltered
 
-variables {C} [is_cofiltered C]
+section allow_empty
+
+variables {C} [is_cofiltered_or_empty C]
+
+lemma cone_objs : ∀ (X Y : C), ∃ W (f : W ⟶ X) (g : W ⟶ Y), true := is_cofiltered_or_empty.cone_objs
+lemma cone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ W (h : W ⟶ X), h ≫ f = h ≫ g :=
+is_cofiltered_or_empty.cone_maps
 
 /--
 `min j j'` is an arbitrary choice of object to the left of both `j` and `j'`,
 whose existence is ensured by `is_cofiltered`.
 -/
 noncomputable def min (j j' : C) : C :=
-(is_cofiltered_or_empty.cocone_objs j j').some
+(cone_objs j j').some
 
 /--
-`min_to_left j j'` is an arbitrarily choice of morphism from `min j j'` to `j`,
+`min_to_left j j'` is an arbitrary choice of morphism from `min j j'` to `j`,
 whose existence is ensured by `is_cofiltered`.
 -/
 noncomputable def min_to_left (j j' : C) : min j j' ⟶ j :=
-(is_cofiltered_or_empty.cocone_objs j j').some_spec.some
+(cone_objs j j').some_spec.some
 
 /--
-`min_to_right j j'` is an arbitrarily choice of morphism from `min j j'` to `j'`,
+`min_to_right j j'` is an arbitrary choice of morphism from `min j j'` to `j'`,
 whose existence is ensured by `is_cofiltered`.
 -/
 noncomputable def min_to_right (j j' : C) : min j j' ⟶ j' :=
-(is_cofiltered_or_empty.cocone_objs j j').some_spec.some_spec.some
+(cone_objs j j').some_spec.some_spec.some
 
 /--
 `eq f f'`, for morphisms `f f' : j ⟶ j'`, is an arbitrary choice of object
@@ -508,7 +534,7 @@ which admits a morphism `eq_hom f f' : eq f f' ⟶ j` such that
 Its existence is ensured by `is_cofiltered`.
 -/
 noncomputable def eq {j j' : C} (f f' : j ⟶ j') : C :=
-(is_cofiltered_or_empty.cocone_maps f f').some
+(cone_maps f f').some
 
 /--
 `eq_hom f f'`, for morphisms `f f' : j ⟶ j'`, is an arbitrary choice of morphism
@@ -517,7 +543,7 @@ noncomputable def eq {j j' : C} (f f' : j ⟶ j') : C :=
 Its existence is ensured by `is_cofiltered`.
 -/
 noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
-(is_cofiltered_or_empty.cocone_maps f f').some_spec.some
+(cone_maps f f').some_spec.some
 
 /--
 `eq_condition f f'`, for morphisms `f f' : j ⟶ j'`, is the proof that
@@ -525,9 +551,27 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 -/
 @[simp, reassoc]
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
-(is_cofiltered_or_empty.cocone_maps f f').some_spec.some_spec
+(cone_maps f f').some_spec.some_spec
+
+/-- For every cospan `j ⟶ i ⟵ j'`,
+ there exists a cone `j ⟵ k ⟶ j'` such that the square commutes. -/
+lemma cospan {i j j' : C} (f : j ⟶ i) (f' : j' ⟶ i) :
+  ∃ (k : C) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
+let ⟨K, G, G', _⟩ := cone_objs j j', ⟨k, e, he⟩ := cone_maps (G ≫ f) (G' ≫ f') in
+⟨k, e ≫ G, e ≫ G', by simpa only [category.assoc] using he⟩
+
+lemma _root_.category_theory.functor.ranges_directed (F : C ⥤ Type*) (j : C) :
+  directed (⊇) (λ (f : Σ' i, i ⟶ j), set.range (F.map f.2)) :=
+λ ⟨i, ij⟩ ⟨k, kj⟩, let ⟨l, li, lk, e⟩ := cospan ij kj in
+by refine ⟨⟨l, lk ≫ kj⟩, e ▸ _, _⟩; simp_rw F.map_comp; apply set.range_comp_subset_range
+
+end allow_empty
+
+section nonempty
 
 open category_theory.limits
+
+variables {C} [is_cofiltered C]
 
 /--
 Any finite collection of objects in a cofiltered category has an object "to the left".
@@ -572,7 +616,12 @@ begin
       { subst hf,
         apply eq_condition, },
       { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
-    { rw @w' _ _ mX' mY' f' (by finish), }, },
+    { rw @w' _ _ mX' mY' f' _,
+      apply finset.mem_of_mem_insert_of_ne mf',
+      contrapose! h,
+      obtain ⟨rfl, h⟩ := h,
+      rw [heq_iff_eq, psigma.mk.inj_iff] at h,
+      exact ⟨rfl, h.1.symm⟩ }, },
 end
 
 /--
@@ -601,7 +650,7 @@ lemma inf_to_commutes
   inf_to O H mX ≫ f = inf_to O H mY :=
 (inf_exists O H).some_spec.some_spec mX mY mf
 
-variables {J : Type v} [small_category J] [fin_category J]
+variables {J : Type w} [small_category J] [fin_category J]
 
 /--
 If we have `is_cofiltered C`, then for any functor `F : J ⥤ C` with `fin_category J`,
@@ -639,10 +688,10 @@ If `C` is cofiltered, and we have a functor `L : C ⥤ D` with a right adjoint,
 then `D` is cofiltered.
 -/
 lemma of_left_adjoint {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) : is_cofiltered D :=
-{ cocone_objs := λ X Y,
+{ cone_objs := λ X Y,
     ⟨L.obj (min (R.obj X) (R.obj Y)),
       (h.hom_equiv _ X).symm (min_to_left _ _), (h.hom_equiv _ Y).symm (min_to_right _ _), ⟨⟩⟩,
-  cocone_maps := λ X Y f g,
+  cone_maps := λ X Y f g,
     ⟨L.obj (eq (R.map f) (R.map g)), (h.hom_equiv _ _).symm (eq_hom _ _),
      by rw [← h.hom_equiv_naturality_right_symm, ← h.hom_equiv_naturality_right_symm,
        eq_condition]⟩,
@@ -656,15 +705,17 @@ of_left_adjoint (adjunction.of_left_adjoint L)
 lemma of_equivalence (h : C ≌ D) : is_cofiltered D :=
 of_left_adjoint h.to_adjunction
 
+end nonempty
+
 end is_cofiltered
 
 section opposite
 open opposite
 
 instance is_cofiltered_op_of_is_filtered [is_filtered C] : is_cofiltered Cᵒᵖ :=
-{ cocone_objs := λ X Y, ⟨op (is_filtered.max X.unop Y.unop),
+{ cone_objs := λ X Y, ⟨op (is_filtered.max X.unop Y.unop),
     (is_filtered.left_to_max _ _).op, (is_filtered.right_to_max _ _).op, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨op (is_filtered.coeq f.unop g.unop),
+  cone_maps := λ X Y f g, ⟨op (is_filtered.coeq f.unop g.unop),
     (is_filtered.coeq_hom _ _).op, begin
       rw [(show f = f.unop.op, by simp), (show g = g.unop.op, by simp),
         ← op_comp, ← op_comp],
@@ -687,5 +738,27 @@ instance is_filtered_op_of_is_cofiltered [is_cofiltered C] : is_filtered Cᵒᵖ
   nonempty := ⟨op is_cofiltered.nonempty.some⟩ }
 
 end opposite
+
+section ulift
+
+instance [is_filtered C] : is_filtered (ulift.{u₂} C) :=
+is_filtered.of_equivalence ulift.equivalence
+
+instance [is_cofiltered C] : is_cofiltered (ulift.{u₂} C) :=
+is_cofiltered.of_equivalence ulift.equivalence
+
+instance [is_filtered C] : is_filtered (ulift_hom C) :=
+is_filtered.of_equivalence ulift_hom.equiv
+
+instance [is_cofiltered C] : is_cofiltered (ulift_hom C) :=
+is_cofiltered.of_equivalence ulift_hom.equiv
+
+instance [is_filtered C] : is_filtered (as_small C) :=
+is_filtered.of_equivalence as_small.equiv
+
+instance [is_cofiltered C] : is_cofiltered (as_small C) :=
+is_cofiltered.of_equivalence as_small.equiv
+
+end ulift
 
 end category_theory

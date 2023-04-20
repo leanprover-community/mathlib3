@@ -7,9 +7,13 @@ Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 import data.fintype.basic
 import data.set.finite
 import data.setoid.basic
+import order.partition.finpartition
 
 /-!
 # Equivalence relations: partitions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file comprises properties of equivalence relations viewed as partitions.
 There are two implementations of partitions here:
@@ -19,6 +23,15 @@ There are two implementations of partitions here:
   expressed as `indexed_partition s`.
 
 Of course both implementations are related to `quotient` and `setoid`.
+
+`setoid.is_partition.partition` and `finpartition.is_partition_parts` furnish
+a link between `setoid.is_partition` and `finpartition`.
+
+## TODO
+
+Could the design of `finpartition` inform the one of `setoid.is_partition`? Maybe bundling it and
+changing it from `set (set α)` to `set α` where `[lattice α] [order_bot α]` would make it more
+usable.
 
 ## Tags
 
@@ -57,9 +70,9 @@ lemma classes_ker_subset_fiber_set {β : Type*} (f : α → β) :
   (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
 by { rintro s ⟨x, rfl⟩, rw set.mem_range, exact ⟨f x, rfl⟩ }
 
-lemma nonempty_fintype_classes_ker {α β : Type*} [fintype β] (f : α → β) :
-  nonempty (fintype (setoid.ker f).classes) :=
-by { classical, exact ⟨set.fintype_subset _ (classes_ker_subset_fiber_set f)⟩ }
+lemma finite_classes_ker {α β : Type*} [finite β] (f : α → β) :
+  (setoid.ker f).classes.finite :=
+(set.finite_range _).subset $ classes_ker_subset_fiber_set f
 
 lemma card_classes_ker_le {α β : Type*} [fintype β]
   (f : α → β) [fintype (setoid.ker f).classes] :
@@ -160,7 +173,7 @@ def is_partition (c : set (set α)) :=
 /-- A partition of `α` does not contain the empty set. -/
 lemma nonempty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
   s.nonempty :=
-set.ne_empty_iff_nonempty.1 $ λ hs0, hc.1 $ hs0 ▸ h
+set.nonempty_iff_ne_empty.2 $ λ hs0, hc.1 $ hs0 ▸ h
 
 lemma is_partition_classes (r : setoid α) : is_partition r.classes :=
 ⟨empty_not_mem_classes, classes_eqv_classes⟩
@@ -172,7 +185,7 @@ eqv_classes_disjoint hc.2
 lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) :
   ⋃₀ c = set.univ :=
 set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
-  let ⟨t, ht⟩ := hc.2 x in ⟨t, by clear_aux_decl; finish⟩
+  let ⟨t, ht⟩ := hc.2 x in ⟨t, by { simp only [exists_unique_iff_exists] at ht, tauto }⟩
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
@@ -229,7 +242,22 @@ _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order
 
 end partition
 
+/-- A finite setoid partition furnishes a finpartition -/
+@[simps]
+def is_partition.finpartition {c : finset (set α)}
+  (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
+{ parts := c,
+  sup_indep := finset.sup_indep_iff_pairwise_disjoint.mpr $ eqv_classes_disjoint hc.2,
+  sup_parts := c.sup_id_set_eq_sUnion.trans hc.sUnion_eq_univ,
+  not_bot_mem := hc.left }
+
 end setoid
+
+/-- A finpartition gives rise to a setoid partition -/
+theorem finpartition.is_partition_parts {α} (f : finpartition (set.univ : set α)) :
+  setoid.is_partition (f.parts : set (set α)) :=
+⟨f.not_bot_mem, setoid.eqv_classes_of_disjoint_union
+  (f.parts.sup_id_set_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩
 
 /-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,
 `s : ι → set α`.
@@ -250,7 +278,7 @@ structure indexed_partition {ι α : Type*} (s : ι → set α) :=
 noncomputable
 def indexed_partition.mk' {ι α : Type*} (s : ι → set α) (dis : ∀ i j, i ≠ j → disjoint (s i) (s j))
   (nonempty : ∀ i, (s i).nonempty) (ex : ∀ x, ∃ i, x ∈ s i) : indexed_partition s :=
-{ eq_of_mem := λ x i j hxi hxj, classical.by_contradiction $ λ h, dis _ _ h ⟨hxi, hxj⟩,
+{ eq_of_mem := λ x i j hxi hxj, classical.by_contradiction $ λ h, (dis _ _ h).le_bot ⟨hxi, hxj⟩,
   some := λ i, (nonempty i).some,
   some_mem := λ i, (nonempty i).some_spec,
   index := λ x, (ex x).some,
@@ -266,9 +294,9 @@ variables {ι α : Type*} {s : ι → set α} (hs : indexed_partition s)
 instance [unique ι] [inhabited α] :
   inhabited (indexed_partition (λ i : ι, (set.univ : set α))) :=
 ⟨{ eq_of_mem := λ x i j hi hj, subsingleton.elim _ _,
-   some := λ i, default α,
+   some := default,
    some_mem := set.mem_univ,
-   index := λ a, default ι,
+   index := default,
    mem_index := set.mem_univ }⟩
 
 attribute [simp] some_mem mem_index
@@ -281,7 +309,7 @@ lemma Union : (⋃ i, s i) = univ :=
 by { ext x, simp [hs.exists_mem x] }
 
 lemma disjoint : ∀ {i j}, i ≠ j → disjoint (s i) (s j) :=
-λ i j h x ⟨hxi, hxj⟩, h (hs.eq_of_mem hxi hxj)
+λ i j h, disjoint_left.mpr $ λ x hxi hxj, h (hs.eq_of_mem hxi hxj)
 
 lemma mem_iff_index_eq {x i} : x ∈ s i ↔ hs.index x = i :=
 ⟨λ hxi, (hs.eq_of_mem hxi (hs.mem_index x)).symm, λ h, h ▸ hs.mem_index _⟩
@@ -306,7 +334,7 @@ protected def quotient := quotient hs.setoid
 /-- The projection onto the quotient associated to an indexed partition. -/
 def proj : α → hs.quotient := quotient.mk'
 
-instance [inhabited α] : inhabited (hs.quotient) := ⟨hs.proj (default α)⟩
+instance [inhabited α] : inhabited (hs.quotient) := ⟨hs.proj default⟩
 
 lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.index x = hs.index y :=
 quotient.eq_rel

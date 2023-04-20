@@ -41,11 +41,9 @@ begin
   refine subset.antisymm _ _,
   { refine subset_inter (λ x hx, hx.irrational) _,
     rw set_of_liouville_eq_Inter_Union,
-    exact Inter_subset_Inter (λ n, Union_subset_Union $ λ a, Union_subset_Union $
-      λ b, Union_subset_Union $ λ hb, diff_subset _ _) },
+    exact Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, diff_subset _ _) },
   { simp only [inter_Inter, inter_Union, set_of_liouville_eq_Inter_Union],
-    refine Inter_subset_Inter (λ n, Union_subset_Union $ λ a, Union_subset_Union $
-      λ b, Union_subset_Union $ λ hb, _),
+    refine Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, _),
     rw [inter_comm],
     refine diff_subset_diff subset.rfl (singleton_subset_iff.2 ⟨a / b, _⟩),
     norm_cast }
@@ -64,7 +62,7 @@ begin
     refine λ n, ⟨r.num * 2, r.denom * 2, _, _⟩,
     { have := int.coe_nat_le.2 r.pos, rw int.coe_nat_one at this, linarith },
     { convert mem_ball_self _ using 2,
-      { norm_cast, field_simp },
+      { push_cast, norm_cast, norm_num },
       { refine one_div_pos.2 (pow_pos (int.cast_pos.2 _) _),
         exact mul_pos (int.coe_nat_pos.2 r.pos) zero_lt_two } } }
 end

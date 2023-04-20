@@ -43,7 +43,10 @@ begin
   { rwa strong_rank_condition_iff_succ R },
   intros n f, by_contradiction hf,
 
-  letI := module.finite.of_basis (pi.basis_fun R (fin (n + 1))),
+  -- Lean is unable to find these instances without help, either via this `letI`, or via duplicate
+  -- instances with unecessarily strong typeclasses on `R` and `M`.
+  letI : module.finite R (fin n.succ → R) := module.finite.pi,
+  letI : module.free R (fin n.succ → R) := module.free.pi _ _,
 
   let g : (fin (n + 1) → R) →ₗ[R] fin (n + 1) → R :=
     (extend_by_zero.linear_map R cast_succ).comp f,

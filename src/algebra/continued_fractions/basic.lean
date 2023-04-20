@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import data.seq.seq
-import algebra.field.basic
+import algebra.field.defs
 /-!
 # Basic Definitions/Theorems for Continued Fractions
 
@@ -47,6 +47,7 @@ variable (α : Type*)
 protected structure generalized_continued_fraction.pair := (a : α) (b : α)
 
 open generalized_continued_fraction
+open stream.seq as seq
 
 /-! Interlude: define some expected coercions and instances. -/
 namespace generalized_continued_fraction.pair
@@ -80,17 +81,13 @@ variable (α)
 
 /--
 A *generalised continued fraction* (gcf) is a potentially infinite expression of the form
-
-                                a₀
-                h + ---------------------------
-                                  a₁
-                      b₀ + --------------------
-                                    a₂
-                            b₁ + --------------
-                                        a₃
-                                  b₂ + --------
-                                      b₃ + ...
-
+$$
+  h + \dfrac{a_0}
+            {b_0 + \dfrac{a_1}
+                         {b_1 + \dfrac{a_2}
+                                      {b_2 + \dfrac{a_3}
+                                                   {b_3 + \dots}}}}
+$$
 where `h` is called the *head term* or *integer part*, the `aᵢ` are called the
 *partial numerators* and the `bᵢ` the *partial denominators* of the gcf.
 We store the sequence of partial numerators and denominators in a sequence of
@@ -108,7 +105,7 @@ namespace generalized_continued_fraction
 def of_integer (a : α) : generalized_continued_fraction α :=
 ⟨a, seq.nil⟩
 
-instance [inhabited α] : inhabited (generalized_continued_fraction α) := ⟨of_integer (default _)⟩
+instance [inhabited α] : inhabited (generalized_continued_fraction α) := ⟨of_integer default⟩
 
 /-- Returns the sequence of partial numerators `aᵢ` of `g`. -/
 def partial_numerators (g : generalized_continued_fraction α) : seq α :=
@@ -150,17 +147,13 @@ end generalized_continued_fraction
 /--
 A generalized continued fraction is a *simple continued fraction* if all partial numerators are
 equal to one.
-
-                                1
-                h + ---------------------------
-                                  1
-                      b₀ + --------------------
-                                    1
-                            b₁ + --------------
-                                        1
-                                  b₂ + --------
-                                      b₃ + ...
-
+$$
+  h + \dfrac{1}
+            {b_0 + \dfrac{1}
+                         {b_1 + \dfrac{1}
+                                      {b_2 + \dfrac{1}
+                                                   {b_3 + \dots}}}}
+$$
 -/
 def generalized_continued_fraction.is_simple_continued_fraction
   (g : generalized_continued_fraction α) [has_one α] : Prop :=
@@ -170,17 +163,13 @@ variable (α)
 /--
 A *simple continued fraction* (scf) is a generalized continued fraction (gcf) whose partial
 numerators are equal to one.
-
-                                1
-                h + ---------------------------
-                                  1
-                      b₀ + --------------------
-                                    1
-                            b₁ + --------------
-                                        1
-                                  b₂ + --------
-                                      b₃ + ...
-
+$$
+  h + \dfrac{1}
+            {b_0 + \dfrac{1}
+                         {b_1 + \dfrac{1}
+                                      {b_2 + \dfrac{1}
+                                                   {b_3 + \dots}}}}
+$$
 For convenience, one often writes `[h; b₀, b₁, b₂,...]`.
 It is encoded as the subtype of gcfs that satisfy
 `generalized_continued_fraction.is_simple_continued_fraction`.

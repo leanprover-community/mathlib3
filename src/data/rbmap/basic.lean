@@ -43,7 +43,7 @@ m.rev_fold (λ e, f e.1 e.2) d
 We don't assume β is inhabited when in membership predicate `mem` and
 function find_entry to make this module more convenient to use.
 If we had assumed β to be inhabited we could use the following simpler
-definition: (k, default β) ∈ m
+definition: (k, default) ∈ m
 -/
 
 protected def mem (k : α) (m : rbmap α β lt) : Prop :=

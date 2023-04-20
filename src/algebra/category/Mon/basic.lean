@@ -3,13 +3,15 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.elementwise
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the bundled categories:
 * `Mon`
@@ -64,6 +66,9 @@ add_decl_doc AddMon.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddMon`. -/
 add_decl_doc AddMon.of_hom
 
+@[simp] lemma of_hom_apply {X Y : Type u} [monoid X] [monoid Y] (f : X →* Y)
+  (x : X) : of_hom f x = f x := rfl
+
 @[to_additive]
 instance : inhabited Mon :=
 -- The default instance for `monoid punit` is derived via `punit.comm_ring`,
@@ -74,6 +79,8 @@ instance : inhabited Mon :=
 instance (M : Mon) : monoid M := M.str
 
 @[simp, to_additive] lemma coe_of (R : Type u) [monoid R] : (Mon.of R : Type u) = R := rfl
+
+@[to_additive] instance {G : Type*} [group G] : group (Mon.of G) := by assumption
 
 end Mon
 
@@ -114,6 +121,9 @@ instance (M : CommMon) : comm_monoid M := M.str
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _
+
+@[to_additive] instance : has_coe CommMon.{u} Mon.{u} :=
+{ coe := (forget₂ CommMon Mon).obj, }
 
 end CommMon
 

@@ -8,6 +8,9 @@ import data.finset.locally_finite
 /-!
 # Finite intervals of naturals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that `ℕ` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.
 
@@ -20,26 +23,26 @@ and subsequently be moved upstream to `data.finset.locally_finite`.
 open finset nat
 
 instance : locally_finite_order ℕ :=
-{ finset_Icc := λ a b, (list.range' a (b + 1 - a)).to_finset,
-  finset_Ico := λ a b, (list.range' a (b - a)).to_finset,
-  finset_Ioc := λ a b, (list.range' (a + 1) (b - a)).to_finset,
-  finset_Ioo := λ a b, (list.range' (a + 1) (b - a - 1)).to_finset,
+{ finset_Icc := λ a b, ⟨list.range' a (b + 1 - a), list.nodup_range' _ _⟩,
+  finset_Ico := λ a b, ⟨list.range' a (b - a), list.nodup_range' _ _⟩,
+  finset_Ioc := λ a b, ⟨list.range' (a + 1) (b - a), list.nodup_range' _ _⟩,
+  finset_Ioo := λ a b, ⟨list.range' (a + 1) (b - a - 1), list.nodup_range' _ _⟩,
   finset_mem_Icc := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range'],
+    rw [finset.mem_mk, multiset.mem_coe, list.mem_range'],
     cases le_or_lt a b,
     { rw [add_tsub_cancel_of_le (nat.lt_succ_of_le h).le, nat.lt_succ_iff] },
     { rw [tsub_eq_zero_iff_le.2 (succ_le_of_lt h), add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)) }
   end,
   finset_mem_Ico := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range'],
+    rw [finset.mem_mk, multiset.mem_coe, list.mem_range'],
     cases le_or_lt a b,
     { rw [add_tsub_cancel_of_le h] },
     { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2.le)) }
   end,
   finset_mem_Ioc := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range'],
+    rw [finset.mem_mk, multiset.mem_coe, list.mem_range'],
     cases le_or_lt a b,
     { rw [←succ_sub_succ, add_tsub_cancel_of_le (succ_le_succ h), nat.lt_succ_iff,
         nat.succ_le_iff] },
@@ -47,7 +50,7 @@ instance : locally_finite_order ℕ :=
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.le.trans hx.2)) }
   end,
   finset_mem_Ioo := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range', ← tsub_add_eq_tsub_tsub],
+    rw [finset.mem_mk, multiset.mem_coe, list.mem_range', ← tsub_add_eq_tsub_tsub],
     cases le_or_lt (a + 1) b,
     { rw [add_tsub_cancel_of_le h, nat.succ_le_iff] },
     { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
@@ -58,10 +61,10 @@ variables (a b c : ℕ)
 
 namespace nat
 
-lemma Icc_eq_range' : Icc a b = (list.range' a (b + 1 - a)).to_finset := rfl
-lemma Ico_eq_range' : Ico a b = (list.range' a (b - a)).to_finset := rfl
-lemma Ioc_eq_range' : Ioc a b = (list.range' (a + 1) (b - a)).to_finset := rfl
-lemma Ioo_eq_range' : Ioo a b = (list.range' (a + 1) (b - a - 1)).to_finset := rfl
+lemma Icc_eq_range' : Icc a b = ⟨list.range' a (b + 1 - a), list.nodup_range' _ _⟩ := rfl
+lemma Ico_eq_range' : Ico a b = ⟨list.range' a (b - a), list.nodup_range' _ _⟩ := rfl
+lemma Ioc_eq_range' : Ioc a b = ⟨list.range' (a + 1) (b - a), list.nodup_range' _ _⟩ := rfl
+lemma Ioo_eq_range' : Ioo a b = ⟨list.range' (a + 1) (b - a - 1), list.nodup_range' _ _⟩ := rfl
 
 lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
@@ -69,20 +72,14 @@ lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
 lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 
-@[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
-by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+@[simp] lemma card_Icc : (Icc a b).card = b + 1 - a := list.length_range' _ _
+@[simp] lemma card_Ico : (Ico a b).card = b - a := list.length_range' _ _
+@[simp] lemma card_Ioc : (Ioc a b).card = b - a := list.length_range' _ _
+@[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 := list.length_range' _ _
+@[simp] lemma card_Iic : (Iic b).card = b + 1 :=
+by rw [Iic_eq_Icc, card_Icc, bot_eq_zero, tsub_zero]
 
-@[simp] lemma card_Ico : (Ico a b).card = b - a :=
-by rw [Ico_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
-
-@[simp] lemma card_Ioc : (Ioc a b).card = b - a :=
-by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
-
-@[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
-by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
-
-@[simp] lemma card_Iic : (Iic b).card = b + 1 := by rw [Iic, card_Icc, bot_eq_zero, tsub_zero]
-@[simp] lemma card_Iio : (Iio b).card = b := by rw [Iio, card_Ico, bot_eq_zero, tsub_zero]
+@[simp] lemma card_Iio : (Iio b).card = b := by rw [Iio_eq_Ico, card_Ico, bot_eq_zero, tsub_zero]
 
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = b + 1 - a :=
 by rw [fintype.card_of_finset, card_Icc]
@@ -120,6 +117,9 @@ by { ext x, rw [mem_Ico, mem_Ioc, succ_le_iff, lt_succ_iff] }
 
 @[simp] lemma Ico_pred_singleton {a : ℕ} (h : 0 < a) : Ico (a - 1) a = {a - 1} :=
 by rw [←Icc_pred_right _ h, Icc_self]
+
+@[simp] lemma Ioc_succ_singleton : Ioc b (b + 1) = {b+1} :=
+by rw [← nat.Icc_succ_left, Icc_self]
 
 variables {a b c}
 
@@ -174,6 +174,71 @@ begin
     lt_iff_le_and_ne],
 end
 
+lemma mod_inj_on_Ico (n a : ℕ) : set.inj_on (% a) (finset.Ico n (n+a)) :=
+begin
+  induction n with n ih,
+  { simp only [zero_add, nat_zero_eq_zero, Ico_zero_eq_range],
+    rintro k hk l hl (hkl : k % a = l % a),
+    simp only [finset.mem_range, finset.mem_coe] at hk hl,
+    rwa [mod_eq_of_lt hk, mod_eq_of_lt hl] at hkl, },
+  rw [Ico_succ_left_eq_erase_Ico, succ_add, Ico_succ_right_eq_insert_Ico le_self_add],
+  rintro k hk l hl (hkl : k % a = l % a),
+  have ha : 0 < a,
+  { by_contra ha, simp only [not_lt, nonpos_iff_eq_zero] at ha, simpa [ha] using hk },
+  simp only [finset.mem_coe, finset.mem_insert, finset.mem_erase] at hk hl,
+  rcases hk with ⟨hkn, (rfl|hk)⟩; rcases hl with ⟨hln, (rfl|hl)⟩,
+  { refl },
+  { rw add_mod_right at hkl,
+    refine (hln $ ih hl _ hkl.symm).elim,
+    simp only [lt_add_iff_pos_right, set.left_mem_Ico, finset.coe_Ico, ha], },
+  { rw add_mod_right at hkl,
+    suffices : k = n, { contradiction },
+    refine ih hk _ hkl,
+    simp only [lt_add_iff_pos_right, set.left_mem_Ico, finset.coe_Ico, ha], },
+  { refine ih _ _ hkl; simp only [finset.mem_coe, hk, hl], },
+end
+
+/-- Note that while this lemma cannot be easily generalized to a type class, it holds for ℤ as
+well. See `int.image_Ico_mod` for the ℤ version. -/
+lemma image_Ico_mod (n a : ℕ) :
+  (Ico n (n+a)).image (% a) = range a :=
+begin
+  obtain rfl | ha := eq_or_ne a 0,
+  { rw [range_zero, add_zero, Ico_self, image_empty], },
+  ext i,
+  simp only [mem_image, exists_prop, mem_range, mem_Ico],
+  split,
+  { rintro ⟨i, h, rfl⟩, exact mod_lt i ha.bot_lt },
+  intro hia,
+  have hn := nat.mod_add_div n a,
+  obtain hi | hi := lt_or_le i (n % a),
+  { refine ⟨i + a * (n/a + 1), ⟨_, _⟩, _⟩,
+    { rw [add_comm (n/a), mul_add, mul_one, ← add_assoc],
+      refine hn.symm.le.trans (add_le_add_right _ _),
+      simpa only [zero_add] using add_le_add (zero_le i) (nat.mod_lt n ha.bot_lt).le, },
+    { refine lt_of_lt_of_le (add_lt_add_right hi (a * (n/a + 1))) _,
+      rw [mul_add, mul_one, ← add_assoc, hn], },
+    { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } },
+  { refine ⟨i + a * (n/a), ⟨_, _⟩, _⟩,
+    { exact hn.symm.le.trans (add_le_add_right hi _), },
+    { rw [add_comm n a],
+      refine add_lt_add_of_lt_of_le hia (le_trans _ hn.le),
+      simp only [zero_le, le_add_iff_nonneg_left], },
+    { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } },
+end
+
+section multiset
+open multiset
+
+lemma multiset_Ico_map_mod (n a : ℕ) : (multiset.Ico n (n+a)).map (% a) = range a :=
+begin
+  convert congr_arg finset.val (image_Ico_mod n a),
+  refine ((nodup_map_iff_inj_on (finset.Ico _ _).nodup).2 $ _).dedup.symm,
+  exact mod_inj_on_Ico _ _,
+end
+
+end multiset
+
 end nat
 
 namespace finset
@@ -194,3 +259,42 @@ begin
 end
 
 end finset
+
+section induction
+
+variables {P : ℕ → Prop} (h : ∀ n, P (n + 1) → P n)
+
+include h
+
+lemma nat.decreasing_induction_of_not_bdd_above (hP : ¬ bdd_above {x | P x}) (n : ℕ) : P n :=
+let ⟨m, hm, hl⟩ := not_bdd_above_iff.1 hP n in decreasing_induction h hl.le hm
+
+lemma nat.decreasing_induction_of_infinite (hP : {x | P x}.infinite) (n : ℕ) : P n :=
+nat.decreasing_induction_of_not_bdd_above h (mt bdd_above.finite hP) n
+
+lemma nat.cauchy_induction' (seed : ℕ) (hs : P seed)
+  (hi : ∀ x, seed ≤ x → P x → ∃ y, x < y ∧ P y) (n : ℕ) : P n :=
+begin
+  apply nat.decreasing_induction_of_infinite h (λ hf, _),
+  obtain ⟨m, hP, hm⟩ := hf.exists_maximal_wrt id _ ⟨seed, hs⟩,
+  obtain ⟨y, hl, hy⟩ := hi m (le_of_not_lt $ λ hl, hl.ne $ hm seed hs hl.le) hP,
+  exact hl.ne (hm y hy hl.le),
+end
+
+lemma nat.cauchy_induction (seed : ℕ) (hs : P seed) (f : ℕ → ℕ)
+  (hf : ∀ x, seed ≤ x → P x → x < f x ∧ P (f x)) (n : ℕ) : P n :=
+seed.cauchy_induction' h hs (λ x hl hx, ⟨f x, hf x hl hx⟩) n
+
+lemma nat.cauchy_induction_mul (k seed : ℕ) (hk : 1 < k) (hs : P seed.succ)
+  (hm : ∀ x, seed < x → P x → P (k * x)) (n : ℕ) : P n :=
+begin
+  apply nat.cauchy_induction h _ hs ((*) k) (λ x hl hP, ⟨_, hm x hl hP⟩),
+  convert (mul_lt_mul_right $ seed.succ_pos.trans_le hl).2 hk,
+  rw one_mul,
+end
+
+lemma nat.cauchy_induction_two_mul (seed : ℕ) (hs : P seed.succ)
+  (hm : ∀ x, seed < x → P x → P (2 * x)) (n : ℕ) : P n :=
+nat.cauchy_induction_mul h 2 seed one_lt_two hs hm n
+
+end induction

@@ -3,11 +3,15 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import ring_theory.subsemiring.pointwise
-import group_theory.subgroup.pointwise
 import ring_theory.subring.basic
+import group_theory.subgroup.pointwise
+import ring_theory.subsemiring.pointwise
+import data.set.pointwise.basic
 
 /-! # Pointwise instances on `subring`s
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides the action `subring.pointwise_mul_action` which matches the action of
 `mul_action_set`.
@@ -20,6 +24,8 @@ This file is almost identical to `ring_theory/subsemiring/pointwise.lean`. Where
 keep them in sync.
 
 -/
+
+open set
 
 variables {M R : Type*}
 
@@ -54,6 +60,16 @@ lemma pointwise_smul_def {a : M} (S : subring R) :
 
 lemma smul_mem_pointwise_smul (m : M) (r : R) (S : subring R) : r ∈ S → m • r ∈ m • S :=
 (set.smul_mem_smul_set : _ → _ ∈ m • (S : set R))
+
+lemma mem_smul_pointwise_iff_exists (m : M) (r : R) (S : subring R) :
+  r ∈ m • S ↔ ∃ (s : R), s ∈ S ∧ m • s = r :=
+(set.mem_smul_set : r ∈ m • (S : set R) ↔ _)
+
+@[simp] lemma smul_bot (a : M) : a • (⊥ : subring R) = ⊥ := map_bot _
+lemma smul_sup (a : M) (S T : subring R) : a • (S ⊔ T) = a • S ⊔ a • T := map_sup _ _ _
+
+lemma smul_closure (a : M) (s : set R) : a • closure s = closure (a • s) :=
+ring_hom.map_closure _ _
 
 instance pointwise_central_scalar [mul_semiring_action Mᵐᵒᵖ R] [is_central_scalar M R] :
   is_central_scalar M (subring R) :=

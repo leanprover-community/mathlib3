@@ -49,7 +49,6 @@ generalization, the Monge point of a simplex.
 noncomputable theory
 open_locale big_operators
 open_locale classical
-open_locale real
 open_locale real_inner_product_space
 
 namespace affine
@@ -58,8 +57,8 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry points_with_circumcenter_index
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The Monge point of a simplex (in 2 or more dimensions) is a
@@ -127,7 +126,7 @@ include V
 `points_with_circumcenter`. -/
 lemma monge_point_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P (n + 2)) :
-  s.monge_point = (univ : finset (points_with_circumcenter_index (n + 2))).affine_combination
+  s.monge_point = (univ : finset (points_with_circumcenter_index (n + 2))).affine_combination ℝ
     s.points_with_circumcenter (monge_point_weights_with_circumcenter n) :=
 begin
   rw [monge_point_eq_smul_vsub_vadd_circumcenter,
@@ -212,10 +211,12 @@ by simp_rw [monge_point_eq_affine_combination_of_points_with_circumcenter,
 n-dimensional face, is orthogonal to the difference of the two
 vertices not in that face. -/
 lemma inner_monge_point_vsub_face_centroid_vsub {n : ℕ} (s : simplex ℝ P (n + 2))
-  {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
+  {i₁ i₂ : fin (n + 3)} :
   ⟪s.monge_point -ᵥ ({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points,
         s.points i₁ -ᵥ s.points i₂⟫ = 0 :=
 begin
+  by_cases h : i₁ = i₂,
+  { simp [h], },
   simp_rw [monge_point_vsub_face_centroid_eq_weighted_vsub_of_points_with_circumcenter s h,
            point_eq_affine_combination_of_points_with_circumcenter,
            affine_combination_vsub],
@@ -237,7 +238,7 @@ begin
     { simp_rw [sum_insert (not_mem_singleton.2 h), sum_singleton],
       repeat { rw ←sum_subset fs.subset_univ _ },
       { simp_rw [sum_insert (not_mem_singleton.2 h), sum_singleton],
-        simp [h, h.symm, dist_comm (s.points i₁)] },
+        simp [h, ne.symm h, dist_comm (s.points i₁)] },
       all_goals { intros i hu hi, simp [hfs i hi] } },
     { intros i hu hi,
       simp [hfs i hi, point_weights_with_circumcenter] } },
@@ -271,7 +272,7 @@ begin
   simp_rw monge_plane_def,
   congr' 3,
   { congr' 1,
-    exact insert_singleton_comm _ _ },
+    exact pair_comm _ _ },
   { ext,
     simp_rw submodule.mem_span_singleton,
     split,
@@ -279,25 +280,22 @@ begin
 end
 
 /-- The Monge point lies in the Monge planes. -/
-lemma monge_point_mem_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)}
-    (h : i₁ ≠ i₂) : s.monge_point ∈ s.monge_plane i₁ i₂ :=
+lemma monge_point_mem_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} :
+  s.monge_point ∈ s.monge_plane i₁ i₂ :=
 begin
   rw [monge_plane_def, mem_inf_iff, ←vsub_right_mem_direction_iff_mem (self_mem_mk' _ _),
       direction_mk', submodule.mem_orthogonal'],
   refine ⟨_, s.monge_point_mem_affine_span⟩,
   intros v hv,
   rcases submodule.mem_span_singleton.mp hv with ⟨r, rfl⟩,
-  rw [inner_smul_right, s.inner_monge_point_vsub_face_centroid_vsub h, mul_zero]
+  rw [inner_smul_right, s.inner_monge_point_vsub_face_centroid_vsub, mul_zero]
 end
 
--- This doesn't actually need the `i₁ ≠ i₂` hypothesis, but it's
--- convenient for the proof and `monge_plane` isn't intended to be
--- useful without that hypothesis.
 /-- The direction of a Monge plane. -/
-lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
+lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} :
   (s.monge_plane i₁ i₂).direction = (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
     vector_span ℝ (set.range s.points) :=
-by rw [monge_plane_def, direction_inf_of_mem_inf (s.monge_point_mem_monge_plane h), direction_mk',
+by rw [monge_plane_def, direction_inf_of_mem_inf s.monge_point_mem_monge_plane, direction_mk',
        direction_affine_span]
 
 /-- The Monge point is the only point in all the Monge planes from any
@@ -310,8 +308,8 @@ begin
   have h' : ∀ i₂, i₁ ≠ i₂ → p -ᵥ s.monge_point ∈
     (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓ vector_span ℝ (set.range s.points),
   { intros i₂ hne,
-    rw [←s.direction_monge_plane hne,
-        vsub_right_mem_direction_iff_mem (s.monge_point_mem_monge_plane hne)],
+    rw [←s.direction_monge_plane,
+        vsub_right_mem_direction_iff_mem s.monge_point_mem_monge_plane],
     exact h i₂ hne },
   have hi : p -ᵥ s.monge_point ∈ ⨅ (i₂ : {i // i₁ ≠ i}),
     (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ,
@@ -369,14 +367,11 @@ by rw [altitude_def,
 
 /-- The vector span of the opposite face lies in the direction
 orthogonal to an altitude. -/
-lemma vector_span_le_altitude_direction_orthogonal  {n : ℕ} (s : simplex ℝ P (n + 1))
-    (i : fin (n + 2)) :
-  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ≤ (s.altitude i).directionᗮ :=
+lemma vector_span_is_ortho_altitude_direction {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
+  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ⟂ (s.altitude i).direction :=
 begin
   rw direction_altitude,
-  exact le_trans
-    (vector_span ℝ (s.points '' ↑(finset.univ.erase i))).le_orthogonal_orthogonal
-    (submodule.orthogonal_le inf_le_left)
+  exact (submodule.is_ortho_orthogonal_right _).mono_right inf_le_left,
 end
 
 open finite_dimensional
@@ -404,9 +399,9 @@ end
 
 /-- A line through a vertex is the altitude through that vertex if and
 only if it is orthogonal to the opposite face. -/
-lemma affine_span_insert_singleton_eq_altitude_iff {n : ℕ} (s : simplex ℝ P (n + 1))
+lemma affine_span_pair_eq_altitude_iff {n : ℕ} (s : simplex ℝ P (n + 1))
     (i : fin (n + 2)) (p : P) :
-  affine_span ℝ {p, s.points i} = s.altitude i ↔ (p ≠ s.points i ∧
+  line[ℝ, p, s.points i] = s.altitude i ↔ (p ≠ s.points i ∧
     p ∈ affine_span ℝ (set.range s.points) ∧
     p -ᵥ s.points i ∈ (affine_span ℝ (s.points '' ↑(finset.univ.erase i))).directionᗮ) :=
 begin
@@ -445,8 +440,8 @@ namespace triangle
 
 open euclidean_geometry finset simplex affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The orthocenter of a triangle is the intersection of its
@@ -496,7 +491,7 @@ lemma orthocenter_mem_altitude (t : triangle ℝ P) {i₁ : fin 3} :
 begin
   obtain ⟨i₂, i₃, h₁₂, h₂₃, h₁₃⟩ : ∃ i₂ i₃, i₁ ≠ i₂ ∧ i₂ ≠ i₃ ∧ i₁ ≠ i₃, by dec_trivial!,
   rw [orthocenter_eq_monge_point, t.altitude_eq_monge_plane h₁₂ h₁₃ h₂₃],
-  exact t.monge_point_mem_monge_plane h₂₃
+  exact t.monge_point_mem_monge_plane
 end
 
 /-- The orthocenter is the only point lying in any two of the
@@ -553,7 +548,7 @@ by { convert dist_orthocenter_reflection_circumcenter _ h, simp }
 /-- The affine span of the orthocenter and a vertex is contained in
 the altitude. -/
 lemma affine_span_orthocenter_point_le_altitude (t : triangle ℝ P) (i : fin 3) :
-  affine_span ℝ {t.orthocenter, t.points i} ≤ t.altitude i :=
+  line[ℝ, t.orthocenter, t.points i] ≤ t.altitude i :=
 begin
   refine span_points_subset_coe_of_subset_coe _,
   rw [set.insert_subset, set.singleton_subset_iff],
@@ -568,10 +563,10 @@ lemma altitude_replace_orthocenter_eq_affine_span {t₁ t₂ : triangle ℝ P} {
     (hi₁₂ : i₁ ≠ i₂) (hi₁₃ : i₁ ≠ i₃) (hi₂₃ : i₂ ≠ i₃) (hj₁₂ : j₁ ≠ j₂) (hj₁₃ : j₁ ≠ j₃)
     (hj₂₃ : j₂ ≠ j₃) (h₁ : t₂.points j₁ = t₁.orthocenter) (h₂ : t₂.points j₂ = t₁.points i₂)
     (h₃ : t₂.points j₃ = t₁.points i₃) :
-  t₂.altitude j₂ = affine_span ℝ {t₁.points i₁, t₁.points i₂} :=
+  t₂.altitude j₂ = line[ℝ, t₁.points i₁, t₁.points i₂] :=
 begin
   symmetry,
-  rw [←h₂, t₂.affine_span_insert_singleton_eq_altitude_iff],
+  rw [←h₂, t₂.affine_span_pair_eq_altitude_iff],
   rw [h₂],
   use t₁.independent.injective.ne hi₁₂,
   have he : affine_span ℝ (set.range t₂.points) = affine_span ℝ (set.range t₁.points),
@@ -594,9 +589,9 @@ begin
   rw [hu, finset.coe_insert, finset.coe_singleton, set.image_insert_eq, set.image_singleton,
       h₁, h₃],
   have hle : (t₁.altitude i₃).directionᗮ ≤
-    (affine_span ℝ ({t₁.orthocenter, t₁.points i₃} : set P)).directionᗮ :=
+    line[ℝ, t₁.orthocenter, t₁.points i₃].directionᗮ :=
       submodule.orthogonal_le (direction_le (affine_span_orthocenter_point_le_altitude _ _)),
-  refine hle ((t₁.vector_span_le_altitude_direction_orthogonal i₃) _),
+  refine hle ((t₁.vector_span_is_ortho_altitude_direction i₃) _),
   have hui : finset.univ.erase i₃ = {i₁, i₂}, { clear hle h₂ h₃, dec_trivial! },
   rw [hui, finset.coe_insert, finset.coe_singleton, set.image_insert_eq, set.image_singleton],
   refine vsub_mem_vector_span ℝ (set.mem_insert _ _)
@@ -628,8 +623,8 @@ namespace euclidean_geometry
 
 open affine affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 
 include V
 

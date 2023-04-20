@@ -10,6 +10,9 @@ import topology.continuous_function.basic
 /-!
 # Urysohn's lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove Urysohn's lemma `exists_continuous_zero_one_of_closed`: for any two disjoint
 closed sets `s` and `t` in a normal topological space `X` there exists a continuous function
 `f : X → ℝ` such that
@@ -71,7 +74,7 @@ Urysohn's lemma, normal topological space
 variables {X : Type*} [topological_space X]
 
 open set filter topological_space
-open_locale topological_space filter
+open_locale topology filter
 
 namespace urysohns
 
@@ -247,8 +250,7 @@ begin
     rw pow_zero,
     exact real.dist_le_of_mem_Icc_01 (c.lim_mem_Icc _) (c.lim_mem_Icc _) },
   { by_cases hxl : x ∈ c.left.U,
-    { filter_upwards [is_open.mem_nhds c.left.open_U hxl, ihn c.left],
-      intros y hyl hyd,
+    { filter_upwards [is_open.mem_nhds c.left.open_U hxl, ihn c.left] with _ hyl hyd,
       rw [pow_succ, c.lim_eq_midpoint, c.lim_eq_midpoint,
         c.right.lim_of_mem_C _ (c.left_U_subset_right_C hyl),
         c.right.lim_of_mem_C _ (c.left_U_subset_right_C hxl)],
@@ -257,8 +259,7 @@ begin
       exact mul_le_mul h1234.le hyd dist_nonneg (h0.trans h1234).le },
     { replace hxl : x ∈ c.left.right.Cᶜ, from compl_subset_compl.2 c.left.right.subset hxl,
       filter_upwards [is_open.mem_nhds (is_open_compl_iff.2 c.left.right.closed_C) hxl,
-        ihn c.left.right, ihn c.right],
-      intros y hyl hydl hydr,
+        ihn c.left.right, ihn c.right] with y hyl hydl hydr,
       replace hxl : x ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hxl,
       replace hyl : y ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hyl,
       simp only [pow_succ, c.lim_eq_midpoint, c.left.lim_eq_midpoint,
@@ -270,7 +271,7 @@ begin
       refine (div_le_div_of_le_of_nonneg
         (add_le_add (div_le_div_of_le_of_nonneg hydl zero_le_two) hydr) zero_le_two).trans_eq _,
       generalize : (3 / 4 : ℝ) ^ n = r,
-      field_simp [(@zero_lt_two ℝ _ _).ne'], ring } }
+      field_simp [(two_ne_zero' ℝ)], ring } }
 end
 
 end CU
@@ -291,7 +292,7 @@ lemma exists_continuous_zero_one_of_closed {s t : set X} (hs : is_closed s) (ht 
   ∃ f : C(X, ℝ), eq_on f 0 s ∧ eq_on f 1 t ∧ ∀ x, f x ∈ Icc (0 : ℝ) 1 :=
 begin
   -- The actual proof is in the code above. Here we just repack it into the expected format.
-  set c : urysohns.CU X := ⟨s, tᶜ, hs, ht.is_open_compl, λ _, disjoint_left.1 hd⟩,
+  set c : urysohns.CU X := ⟨s, tᶜ, hs, ht.is_open_compl, disjoint_left.1 hd⟩,
   exact ⟨⟨c.lim, c.continuous_lim⟩, c.lim_of_mem_C,
     λ x hx, c.lim_of_nmem_U _ (λ h, h hx), c.lim_mem_Icc⟩
 end

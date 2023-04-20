@@ -3,10 +3,13 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import data.finset.basic
+import data.finset.card
 
 /-!
 # UV-compressions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines UV-compression. It is an operation on a set family that reduces its shadow.
 
@@ -74,6 +77,8 @@ section generalized_boolean_algebra
 variables [generalized_boolean_algebra α] [decidable_rel (@disjoint α _ _)]
   [decidable_rel ((≤) : α → α → Prop)] {s : finset α} {u v a b : α}
 
+local attribute [instance] decidable_eq_of_decidable_le
+
 /-- To UV-compress `a`, if it doesn't touch `U` and does contain `V`, we remove `V` and
 put `U` in. We'll only really use this when `|U| = |V|` and `U ∩ V = ∅`. -/
 def compress (u v a : α) : α := if disjoint u a ∧ v ≤ a then (a ⊔ u) \ v else a
@@ -83,7 +88,7 @@ reduce the cardinality, so we keep all elements whose compression is already pre
 def compression (u v : α) (s : finset α) :=
 s.filter (λ a, compress u v a ∈ s) ∪ (s.image $ compress u v).filter (λ a, a ∉ s)
 
-localized "notation `𝓒 ` := uv.compression" in finset_family
+localized "notation (name := uv.compression) `𝓒 ` := uv.compression" in finset_family
 
 /-- `is_compressed u v s` expresses that `s` is UV-compressed. -/
 def is_compressed (u v : α) (s : finset α) := 𝓒 u v s = s
@@ -169,7 +174,7 @@ begin
   rw [compression, card_disjoint_union (compress_disjoint _ _), image_filter, card_image_of_inj_on,
     ←card_disjoint_union, filter_union_filter_neg_eq],
   { rw disjoint_iff_inter_eq_empty,
-    exact filter_inter_filter_neg_eq _ _ },
+    exact filter_inter_filter_neg_eq _ _ _ },
   intros a ha b hb hab,
   dsimp at hab,
   rw [mem_coe, mem_filter, function.comp_app] at ha hb,

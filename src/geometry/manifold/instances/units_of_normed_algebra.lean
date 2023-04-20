@@ -25,7 +25,7 @@ its group of units, the general linear group GL(`𝕜`, `V`).
 
 The Lie group instance requires the following fields:
 ```
-instance : lie_group 𝓘(𝕜, R) (units R) :=
+instance : lie_group 𝓘(𝕜, R) Rˣ :=
 { smooth_mul := sorry,
   smooth_inv := sorry,
   ..units.smooth_manifold_with_corners }
@@ -33,13 +33,13 @@ instance : lie_group 𝓘(𝕜, R) (units R) :=
 
 The ingredients needed for the construction are
 * smoothness of multiplication and inversion in the charts, i.e. as functions on the normed
-  `𝕜`-space `R`:  see `times_cont_diff_at_ring_inverse` for the inversion result, and
-  `times_cont_diff_mul` (needs to be generalized from field to algebra) for the multiplication
+  `𝕜`-space `R`:  see `cont_diff_at_ring_inverse` for the inversion result, and
+  `cont_diff_mul` (needs to be generalized from field to algebra) for the multiplication
   result
 * for an open embedding `f`, whose domain is equipped with the induced manifold structure
   `f.singleton_smooth_manifold_with_corners`, characterization of smoothness of functions to/from
   this manifold in terms of smoothness in the target space.  See the pair of lemmas
-  `times_cont_mdiff_coe_sphere` and `times_cont_mdiff.cod_restrict_sphere` for a model.
+  `cont_mdiff_coe_sphere` and `cont_mdiff.cod_restrict_sphere` for a model.
 None of this should be particularly difficult.
 
 -/
@@ -52,14 +52,14 @@ namespace units
 
 variables {R : Type*} [normed_ring R] [complete_space R]
 
-instance : charted_space R (units R) := open_embedding_coe.singleton_charted_space
+instance : charted_space R Rˣ := open_embedding_coe.singleton_charted_space
 
-lemma chart_at_apply {a : units R} {b : units R} : chart_at R a b = b := rfl
-lemma chart_at_source {a : units R} : (chart_at R a).source = set.univ := rfl
+lemma chart_at_apply {a : Rˣ} {b : Rˣ} : chart_at R a b = b := rfl
+lemma chart_at_source {a : Rˣ} : (chart_at R a).source = set.univ := rfl
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra 𝕜 R]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 R]
 
-instance : smooth_manifold_with_corners 𝓘(𝕜, R) (units R) :=
+instance : smooth_manifold_with_corners 𝓘(𝕜, R) Rˣ :=
 open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 
 end units

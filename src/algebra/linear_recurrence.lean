@@ -9,6 +9,9 @@ import linear_algebra.dimension
 /-!
 # Linear recurrence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Informally, a "linear recurrence" is an assertion of the form
 `∀ n : ℕ, u (n + d) = a 0 * u n + a 1 * u (n+1) + ... + a (d-1) * u (n+d-1)`,
 where `u` is a sequence, `d` is the *order* of the recurrence and the `a i`
@@ -37,14 +40,14 @@ properties of eigenvalues and eigenvectors.
 
 noncomputable theory
 open finset
-open_locale big_operators
+open_locale big_operators polynomial
 
 /-- A "linear recurrence relation" over a commutative semiring is given by its
   order `n` and `n` coefficients. -/
 structure linear_recurrence (α : Type*) [comm_semiring α] := (order : ℕ) (coeffs : fin order → α)
 
 instance (α : Type*) [comm_semiring α] : inhabited (linear_recurrence α) :=
-⟨⟨0, default _⟩⟩
+⟨⟨0, default⟩⟩
 
 namespace linear_recurrence
 
@@ -167,15 +170,20 @@ def tuple_succ : (fin E.order → α) →ₗ[α] (fin E.order → α) :=
 
 end comm_semiring
 
-section field
+section strong_rank_condition
 
-variables {α : Type*} [field α] (E : linear_recurrence α)
+-- note: `strong_rank_condition` is the same as `nontrivial` on `comm_ring`s, but that result,
+-- `comm_ring_strong_rank_condition`, is in a much later file.
+variables {α : Type*} [comm_ring α] [strong_rank_condition α] (E : linear_recurrence α)
 
 /-- The dimension of `E.sol_space` is `E.order`. -/
-lemma sol_space_dim : module.rank α E.sol_space = E.order :=
-@dim_fin_fun α _ E.order ▸ E.to_init.dim_eq
+lemma sol_space_rank : module.rank α E.sol_space = E.order :=
+begin
+  letI := nontrivial_of_invariant_basis_number α,
+  exact @rank_fin_fun α _ _ E.order ▸ E.to_init.rank_eq
+end
 
-end field
+end strong_rank_condition
 
 section comm_ring
 
@@ -183,7 +191,7 @@ variables {α : Type*} [comm_ring α] (E : linear_recurrence α)
 
 /-- The characteristic polynomial of `E` is
 `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
-def char_poly : polynomial α :=
+def char_poly : α[X] :=
   polynomial.monomial E.order 1 - (∑ i : fin E.order, polynomial.monomial i (E.coeffs i))
 
 /-- The geometric sequence `q^n` is a solution of `E` iff

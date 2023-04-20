@@ -120,6 +120,15 @@ begin
   simp_rw hg,
 end
 
+lemma convex_parallelepiped (v : ι → E) : convex ℝ (parallelepiped v) :=
+begin
+  rw parallelepiped_eq_sum_segment,
+  -- TODO: add `convex.sum` to match `convex.add`
+  let : add_submonoid (set E) :=
+  { carrier := { s | convex ℝ s}, zero_mem' := convex_singleton _, add_mem' := λ x y, convex.add },
+  exact this.sum_mem (λ i hi, convex_segment  _ _),
+end
+
 /-- The axis aligned parallelepiped over `ι → ℝ` is a cuboid. -/
 lemma parallelepiped_single [decidable_eq ι] (a : ι → ℝ) :
   parallelepiped (λ i, pi.single i (a i)) = set.uIcc 0 a :=

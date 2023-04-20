@@ -620,6 +620,49 @@ end submatrix
 section block
 variables [fintype m] [decidable_eq m]
 
+def matrix.ext_iff_block {A B : matrix (m ⊕ n) (m ⊕ n) α} :
+  A = B ↔ A.to_blocks₁₁ = B.to_blocks₁₁ ∧ A.to_blocks₁₂ = B.to_blocks₁₂ ∧
+          A.to_blocks₂₁ = B.to_blocks₂₁ ∧ A.to_blocks₂₂ = B.to_blocks₂₂ :=
+⟨λ h, h ▸ ⟨rfl, rfl, rfl, rfl⟩, λ ⟨h₁₁, h₁₂, h₂₁, h₂₂⟩,
+  by rw [←from_blocks_to_blocks A, ←from_blocks_to_blocks B, h₁₁, h₁₂, h₂₁, h₂₂]⟩
+
+@[simp] def from_blocks_inj
+  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α}
+  {A' : matrix m m α} {B' : matrix m n α} {C' : matrix n m α} {D' : matrix n n α} :
+  from_blocks A B C D = from_blocks A' B' C' D' ↔ A = A' ∧ B = B' ∧ C = C' ∧ D = D' :=
+matrix.ext_iff_block
+
+lemma from_blocks₂₂_invertible_aux
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] (A' : matrix m m α) :
+  (from_blocks
+    (A')         (-(A'⬝B⬝⅟D))
+    (-(⅟D⬝C⬝A')) (⅟D + ⅟D⬝C⬝A'⬝B⬝⅟D)) ⬝ from_blocks A B C D = 1 ↔ A' ⬝ (A - B⬝⅟D⬝C) = 1 :=
+begin
+  rw [from_blocks_multiply, ←from_blocks_one, from_blocks_inj],
+  simp_rw [matrix.neg_mul, ←sub_eq_add_neg, matrix.mul_sub, matrix.add_mul,
+    matrix.mul_inv_of_mul_self_cancel _, sub_self, matrix.inv_of_mul_self, ←matrix.mul_assoc,
+    neg_add_eq_iff_eq_add, add_zero, add_comm, eq_self_iff_true, true_and, and_true,
+    sub_eq_iff_eq_add],
+  refine and_iff_left_of_imp _,
+  intro h,
+  simp_rw [matrix.mul_assoc, h, matrix.mul_add, matrix.mul_one, ←matrix.mul_assoc],
+end
+
+lemma from_blocks₁₁_invertible_aux
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] (D' : matrix n n α) :
+  (from_blocks
+      (⅟A + ⅟A⬝B⬝D'⬝C⬝⅟A) (-(⅟A⬝B⬝D'))
+      (-(D'⬝C⬝⅟A))        (D')) ⬝ from_blocks A B C D = 1 ↔ D' ⬝ (D - C⬝⅟A⬝B) = 1 :=
+begin
+  -- prove by reordering
+  rw [←from_blocks₂₂_invertible_aux, ←from_blocks_submatrix_sum_swap_sum_swap,
+    ←from_blocks_submatrix_sum_swap_sum_swap D,
+    (show sum.swap = (equiv.sum_comm n m).symm, from rfl), submatrix_mul_equiv, ←reindex_apply,
+      equiv.apply_eq_iff_eq_symm_apply, reindex_symm, reindex_apply, submatrix_one_equiv],
+end
+
 /-- A block matrix is invertible if the bottom right corner and the corresponding schur complement
 is. -/
 def from_blocks₂₂_invertible
@@ -631,18 +674,7 @@ invertible_of_left_inverse _
   (from_blocks
       (⅟A')         (-(⅟A'⬝B⬝⅟D))
       (-(⅟D⬝C⬝⅟A')) (⅟D + ⅟D⬝C⬝⅟A'⬝B⬝⅟D))
-  begin
-    rw [from_blocks_multiply, ←from_blocks_one],
-    congr,
-    { rw [matrix.neg_mul, ← sub_eq_add_neg, matrix.mul_assoc (⅟A'), matrix.mul_assoc (⅟A'),
-        ← matrix.mul_sub, matrix.inv_of_mul_self A'] },
-    { rw [matrix.neg_mul, matrix.mul_inv_of_mul_self_cancel _ D, add_right_neg], },
-    { rw [matrix.neg_mul, matrix.add_mul, ←sub_eq_neg_add, ←neg_sub, sub_add_eq_sub_sub_swap,
-        matrix.mul_assoc (⅟D⬝C⬝⅟A'), matrix.mul_assoc (⅟D⬝C⬝⅟A'), ←matrix.mul_sub,
-        matrix.mul_inv_of_mul_self_cancel _, sub_self, neg_zero] },
-    { rw [matrix.neg_mul, matrix.add_mul, matrix.mul_inv_of_mul_self_cancel _ D,
-        matrix.inv_of_mul_self, neg_add_cancel_comm_assoc] },
-  end
+  (by rw [from_blocks₂₂_invertible_aux, matrix.inv_of_mul_self])
 
 lemma inv_of_from_blocks₂₂_eq
   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
@@ -656,7 +688,7 @@ begin
   convert (rfl : ⅟(from_blocks A B C D) = _),
 end
 
-/-- A block matrix is invertible if the bottom right corner and the corresponding schur complement
+/-- A block matrix is invertible if the top left corner and the corresponding schur complement
 is. -/
 def from_blocks₁₁_invertible
   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
@@ -667,13 +699,7 @@ invertible_of_left_inverse _
   (from_blocks
       (⅟A + ⅟A⬝B⬝⅟D'⬝C⬝⅟A) (-(⅟A⬝B⬝⅟D'))
       (-(⅟D'⬝C⬝⅟A))        (⅟D'))
-  begin
-    -- shortcut; flip the matrix and use the previous lemma
-    haveI := from_blocks₂₂_invertible D C B A,
-    rw [←from_blocks_submatrix_sum_swap_sum_swap, ←from_blocks_submatrix_sum_swap_sum_swap D,
-      (show sum.swap = equiv.sum_comm m n, from rfl), submatrix_mul_equiv,
-      ←inv_of_from_blocks₂₂_eq, matrix.inv_of_mul_self, submatrix_one_equiv],
-  end
+  (by rw [from_blocks₁₁_invertible_aux, matrix.inv_of_mul_self])
 
 lemma inv_of_from_blocks₁₁_eq
   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
@@ -685,6 +711,17 @@ begin
   letI := from_blocks₁₁_invertible A B C D,
   haveI := invertible.subsingleton (from_blocks A B C D),
   convert (rfl : ⅟(from_blocks A B C D) = _),
+end
+
+
+def invertible_of_from_blocks₂₂_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] [invertible (from_blocks A B C D)] : invertible (A - B⬝⅟D⬝C) :=
+let A' := (⅟(from_blocks A B C D)).to_blocks₁₁ in
+invertible_of_left_inverse _ A' $ begin
+  rw ←from_blocks₂₂_invertible_aux,
+  refine eq.trans _ (from_blocks A B C D).inv_of_mul_self,
+  congr,
 end
 
 end block

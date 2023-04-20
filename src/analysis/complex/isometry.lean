@@ -142,7 +142,8 @@ lemma linear_isometry_complex (f : ℂ ≃ₗᵢ[ℝ] ℂ) :
 begin
   let a : circle := ⟨f 1, by simpa using f.norm_map 1⟩,
   use a,
-  have : (f.trans (rotation a).symm) 1 = 1 := by simp,
+  have : (f.trans (rotation a).symm) 1 = 1,
+  { simpa using rotation_apply a⁻¹ (f 1) },
   refine (linear_isometry_complex_aux this).imp (λ h₁, _) (λ h₂, _),
   { simpa using eq_mul_of_inv_mul_eq h₁ },
   { exact eq_mul_of_inv_mul_eq h₂ }

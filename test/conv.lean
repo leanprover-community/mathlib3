@@ -30,7 +30,7 @@ end
 -- Example with ring failing to discharge, to normalizing the goal
 example : (22 + 7 * 4 + 3 * 8 = 0 + 7 * 4 + 47) = (74 = 75) :=
 begin
-  conv { ring, },
+  conv { ring_nf, },
 end
 
 -- Example with ring discharging the goal
@@ -43,7 +43,7 @@ end
 example (x : ℕ) : (22 + 7 * x + 3 * 8 = 0 + 7 * x + 46 + 1)
                     = (7 * x + 46 = 7 * x + 47) :=
 begin
-  conv { ring, },
+  conv { ring_nf, },
 end
 
 -- norm_num examples:

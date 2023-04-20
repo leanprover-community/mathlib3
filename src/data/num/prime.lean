@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.num.lemmas
 import data.nat.prime
@@ -9,6 +9,9 @@ import tactic.ring
 
 /-!
 # Primality for binary natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines versions of `nat.min_fac` and `nat.prime` for `num` and `pos_num`. As with other
 `num` definitions, they are not intended for general use (`nat` should be used instead of `num` in

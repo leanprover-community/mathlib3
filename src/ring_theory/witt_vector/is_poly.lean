@@ -40,7 +40,7 @@ and `witt_vector.verschiebung` is equal to multiplication by `p`.
   is polynomial in the coefficients of the input values.
 * `witt_vector.is_poly.ext`, `witt_vector.is_poly₂.ext`:
   two polynomial functions are equal if their families of polynomials are equal
-  after evaluating the Witt polynmials on them.
+  after evaluating the Witt polynomials on them.
 * `witt_vector.is_poly.comp` (+ many variants) show that unary/binary compositions
   of polynomial functions are polynomial.
 * `witt_vector.id_is_poly`, `witt_vector.neg_is_poly`,
@@ -158,13 +158,11 @@ end interactive
 end tactic
 
 namespace witt_vector
-universe variable u
+universe u
 
 variables {p : ℕ} {R S : Type u} {σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
-
-local attribute [semireducible] witt_vector
 
 open mv_polynomial
 open function (uncurry)
@@ -258,12 +256,11 @@ begin
   simp only [hom_bind₁],
   specialize h (ulift ℤ) (mk p $ λ i, ⟨x i⟩) k,
   simp only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
-  apply (ulift.ring_equiv.{0 u}).symm.injective,
-  simp only [map_eval₂_hom],
-  convert h,
-  all_goals {
-    funext i,
-    rw [← ring_equiv.coe_to_ring_hom],
+  apply (ulift.ring_equiv.symm : ℤ ≃+* _).injective,
+  simp only [←ring_equiv.coe_to_ring_hom, map_eval₂_hom],
+  convert h using 1,
+  all_goals
+  { funext i,
     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
@@ -352,8 +349,9 @@ begin
   simp only [matrix.head_cons, aeval_X, matrix.cons_val_zero, matrix.cons_val_one],
 end
 
-namespace tactic
 open tactic
+
+namespace tactic
 
 /-!
 ### The `@[is_poly]` attribute
@@ -501,7 +499,7 @@ begin
   { simp only [one_poly, one_pow, one_mul, alg_hom.map_pow, C_1, pow_zero, bind₁_X_right,
       if_true, eq_self_iff_true], },
   { intros i hi hi0,
-    simp only [one_poly, if_neg hi0, zero_pow (pow_pos (nat.prime.pos hp) _), mul_zero,
+    simp only [one_poly, if_neg hi0, zero_pow (pow_pos hp.1.pos _), mul_zero,
       alg_hom.map_pow, bind₁_X_right, alg_hom.map_mul], },
   { rw finset.mem_range, dec_trivial }
 end
@@ -522,12 +520,12 @@ omit hp
 
 /-- Addition of Witt vectors is a polynomial function. -/
 @[is_poly] lemma add_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (+)) :=
-⟨⟨witt_add p, by { introsI, refl }⟩⟩
+⟨⟨witt_add p, by { introsI, dunfold witt_vector.has_add, simp [eval] }⟩⟩
 
 
 /-- Multiplication of Witt vectors is a polynomial function. -/
 @[is_poly] lemma mul_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (*)) :=
-⟨⟨witt_mul p, by { introsI, refl }⟩⟩
+⟨⟨witt_mul p, by { introsI, dunfold witt_vector.has_mul, simp [eval] }⟩⟩
 
 include hp
 
@@ -583,12 +581,11 @@ begin
   simp only [hom_bind₁],
   specialize h (ulift ℤ) (mk p $ λ i, ⟨x (0, i)⟩) (mk p $ λ i, ⟨x (1, i)⟩) k,
   simp only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
-  apply (ulift.ring_equiv.{0 u}).symm.injective,
-  simp only [map_eval₂_hom],
-  convert h; clear h,
-  all_goals {
-    funext i,
-    rw [← ring_equiv.coe_to_ring_hom],
+  apply (ulift.ring_equiv.symm : ℤ ≃+* _).injective,
+  simp only [←ring_equiv.coe_to_ring_hom, map_eval₂_hom],
+  convert h using 1,
+  all_goals
+  { funext i,
     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
@@ -608,19 +605,19 @@ begin
   simp only [map_coeff, hf, map_aeval, peval, uncurry],
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   try { ext ⟨i, k⟩, fin_cases i },
-  all_goals {
-    simp only [map_coeff, matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one] },
+  all_goals
+  { simp only [map_coeff, matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one] },
 end
 
 end is_poly₂
 
 attribute [ghost_simps]
       alg_hom.map_zero alg_hom.map_one alg_hom.map_add alg_hom.map_mul
-      alg_hom.map_sub alg_hom.map_neg alg_hom.id_apply alg_hom.map_nat_cast
+      alg_hom.map_sub alg_hom.map_neg alg_hom.id_apply map_nat_cast
       ring_hom.map_zero ring_hom.map_one ring_hom.map_mul ring_hom.map_add
-      ring_hom.map_sub ring_hom.map_neg ring_hom.id_apply ring_hom.map_nat_cast
+      ring_hom.map_sub ring_hom.map_neg ring_hom.id_apply
       mul_add add_mul add_zero zero_add mul_one one_mul mul_zero zero_mul
-      nat.succ_ne_zero nat.add_sub_cancel nat.succ_eq_add_one
+      nat.succ_ne_zero add_tsub_cancel_right nat.succ_eq_add_one
       if_true eq_self_iff_true if_false forall_true_iff forall_2_true_iff forall_3_true_iff
 
 end witt_vector

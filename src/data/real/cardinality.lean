@@ -3,18 +3,21 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import set_theory.cardinal_ordinal
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.rat.denumerable
-import data.set.intervals.image_preimage
+import data.set.pointwise.interval
+import set_theory.cardinal.continuum
 
 /-!
 # The cardinality of the reals
 
-This file shows that the real numbers have cardinality continuum, i.e. `#ℝ = 2^ω`.
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
-We shows that `#ℝ ≤ 2^ω` by noting that every real number is determined by a Cauchy-sequence of the
-form `ℕ → ℚ`, which has cardinality `2^ω`. To show that `#ℝ ≥ 2^ω` we define an injection from
+This file shows that the real numbers have cardinality continuum, i.e. `#ℝ = 𝔠`.
+
+We show that `#ℝ ≤ 𝔠` by noting that every real number is determined by a Cauchy-sequence of the
+form `ℕ → ℚ`, which has cardinality `𝔠`. To show that `#ℝ ≥ 𝔠` we define an injection from
 `{0, 1} ^ ℕ` to `ℝ` with `f ↦ Σ n, f n * (1 / 3) ^ n`.
 
 We conclude that all intervals with distinct endpoints have cardinality continuum.
@@ -26,11 +29,15 @@ We conclude that all intervals with distinct endpoints have cardinality continuu
 
 ## Main statements
 
-* `cardinal.mk_real : #ℝ = 2 ^ omega`: the reals have cardinality continuum.
-* `cardinal.not_countable_real`: the universal set of real numbers is not countable. We can use this same
-  proof to show that all the other sets in this file are not countable.
+* `cardinal.mk_real : #ℝ = 𝔠`: the reals have cardinality continuum.
+* `cardinal.not_countable_real`: the universal set of real numbers is not countable.
+  We can use this same proof to show that all the other sets in this file are not countable.
 * 8 lemmas of the form `mk_Ixy_real` for `x,y ∈ {i,o,c}` state that intervals on the reals
   have cardinality continuum.
+
+## Notation
+
+* `𝔠` : notation for `cardinal.continuum` in locale `cardinal`, defined in `set_theory.continuum`.
 
 ## Tags
 continuum, cardinality, reals, cardinality of the reals
@@ -62,6 +69,10 @@ lemma cantor_function_aux_eq (h : f n = g n) :
   cantor_function_aux c f n = cantor_function_aux c g n :=
 by simp [cantor_function_aux, h]
 
+lemma cantor_function_aux_zero (f : ℕ → bool) :
+  cantor_function_aux c f 0 = cond (f 0) 1 0 :=
+by { cases h : f 0; simp [h] }
+
 lemma cantor_function_aux_succ (f : ℕ → bool) :
   (λ n, cantor_function_aux c f (n + 1)) = λ n, c * cantor_function_aux c (λ n, f (n + 1)) n :=
 by { ext n, cases h : f (n + 1); simp [h, pow_succ] }
@@ -89,7 +100,8 @@ lemma cantor_function_succ (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
   cantor_function c f = cond (f 0) 1 0 + c * cantor_function c (λ n, f (n+1)) :=
 begin
   rw [cantor_function, tsum_eq_zero_add (summable_cantor_function f h1 h2)],
-  rw [cantor_function_aux_succ, tsum_mul_left], refl
+  rw [cantor_function_aux_succ, tsum_mul_left, cantor_function_aux, pow_zero],
+  refl
 end
 
 /-- `cantor_function c` is strictly increasing with if `0 < c < 1/2`, if we endow `ℕ → bool` with a
@@ -117,10 +129,12 @@ begin
     { rw [cantor_function_succ _ (le_of_lt h1) h3, div_eq_mul_inv,
           ←tsum_geometric_of_lt_1 (le_of_lt h1) h3],
       apply zero_add },
-    { apply tsum_eq_single 0, intros n hn, cases n, contradiction, refl, apply_instance }},
+    { refine (tsum_eq_single 0 _).trans _,
+      { intros n hn, cases n, contradiction, refl },
+      { exact cantor_function_aux_zero _ }, } },
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],
   rw [hn 0 $ zero_lt_succ n],
-  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn
+  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ nat.succ_lt_succ hk) fn gn
 end
 
 /-- `cantor_function c` is injective if `0 < c < 1/2`. -/
@@ -141,26 +155,26 @@ begin
 end
 
 /-- The cardinality of the reals, as a type. -/
-lemma mk_real : #ℝ = 2 ^ omega.{0} :=
+lemma mk_real : #ℝ = 𝔠 :=
 begin
   apply le_antisymm,
   { rw real.equiv_Cauchy.cardinal_eq,
-    apply mk_quotient_le.trans, apply (mk_subtype_le _).trans,
-    rw [←power_def, mk_nat, mk_rat, power_self_eq (le_refl _)] },
+    apply mk_quotient_le.trans, apply (mk_subtype_le _).trans_eq,
+    rw [← power_def, mk_nat, mk_rat, aleph_0_power_aleph_0] },
   { convert mk_le_of_injective (cantor_function_injective _ _),
-    rw [←power_def, mk_bool, mk_nat], exact 1 / 3, norm_num, norm_num }
+    rw [←power_def, mk_bool, mk_nat, two_power_aleph_0], exact 1 / 3, norm_num, norm_num }
 end
 
 /-- The cardinality of the reals, as a set. -/
-lemma mk_univ_real : #(set.univ : set ℝ) = 2 ^ omega.{0} :=
+lemma mk_univ_real : #(set.univ : set ℝ) = 𝔠 :=
 by rw [mk_univ, mk_real]
 
-/-- The reals are not countable. -/
-lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
-by { rw [countable_iff, not_le, mk_univ_real], apply cantor }
+/-- **Non-Denumerability of the Continuum**: The reals are not countable. -/
+lemma not_countable_real : ¬ (set.univ : set ℝ).countable :=
+by { rw [← le_aleph_0_iff_set_countable, not_le, mk_univ_real], apply cantor }
 
 /-- The cardinality of the interval (a, ∞). -/
-lemma mk_Ioi_real (a : ℝ) : #(Ioi a) = 2 ^ omega.{0} :=
+lemma mk_Ioi_real (a : ℝ) : #(Ioi a) = 𝔠 :=
 begin
   refine le_antisymm (mk_real ▸ mk_set_le _) _,
   rw [← not_lt], intro h,
@@ -176,15 +190,15 @@ begin
   refine add_lt_of_lt (cantor _).le _ h,
   refine add_lt_of_lt (cantor _).le (mk_image_le.trans_lt h) _,
   rw mk_singleton,
-  exact one_lt_omega.trans (cantor _)
+  exact one_lt_aleph_0.trans (cantor _)
 end
 
 /-- The cardinality of the interval [a, ∞). -/
-lemma mk_Ici_real (a : ℝ) : #(Ici a) = 2 ^ omega.{0} :=
+lemma mk_Ici_real (a : ℝ) : #(Ici a) = 𝔠 :=
 le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioi_real a ▸ mk_le_mk_of_subset Ioi_subset_Ici_self)
 
 /-- The cardinality of the interval (-∞, a). -/
-lemma mk_Iio_real (a : ℝ) : #(Iio a) = 2 ^ omega.{0} :=
+lemma mk_Iio_real (a : ℝ) : #(Iio a) = 𝔠 :=
 begin
   refine le_antisymm (mk_real ▸ mk_set_le _) _,
   have h2 : (λ x, a + a - x) '' Iio a = Ioi a,
@@ -193,11 +207,11 @@ begin
 end
 
 /-- The cardinality of the interval (-∞, a]. -/
-lemma mk_Iic_real (a : ℝ) : #(Iic a) = 2 ^ omega.{0} :=
+lemma mk_Iic_real (a : ℝ) : #(Iic a) = 𝔠 :=
 le_antisymm (mk_real ▸ mk_set_le _) (mk_Iio_real a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
 
 /-- The cardinality of the interval (a, b). -/
-lemma mk_Ioo_real {a b : ℝ} (h : a < b) : #(Ioo a b) = 2 ^ omega.{0} :=
+lemma mk_Ioo_real {a b : ℝ} (h : a < b) : #(Ioo a b) = 𝔠 :=
 begin
   refine le_antisymm (mk_real ▸ mk_set_le _) _,
   have h1 : #((λ x, x - a) '' Ioo a b) ≤ #(Ioo a b) := mk_image_le,
@@ -206,19 +220,19 @@ begin
   replace h := sub_pos_of_lt h,
   have h2 : #(has_inv.inv '' Ioo 0 (b - a)) ≤ #(Ioo 0 (b - a)) := mk_image_le,
   refine le_trans _ h2,
-  rw [image_inv_Ioo_0_left h, mk_Ioi_real]
+  rw [image_inv, inv_Ioo_0_left h, mk_Ioi_real]
 end
 
 /-- The cardinality of the interval [a, b). -/
-lemma mk_Ico_real {a b : ℝ} (h : a < b) : #(Ico a b) = 2 ^ omega.{0} :=
+lemma mk_Ico_real {a b : ℝ} (h : a < b) : #(Ico a b) = 𝔠 :=
 le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ico_self)
 
 /-- The cardinality of the interval [a, b]. -/
-lemma mk_Icc_real {a b : ℝ} (h : a < b) : #(Icc a b) = 2 ^ omega.{0} :=
+lemma mk_Icc_real {a b : ℝ} (h : a < b) : #(Icc a b) = 𝔠 :=
 le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Icc_self)
 
 /-- The cardinality of the interval (a, b]. -/
-lemma mk_Ioc_real {a b : ℝ} (h : a < b) : #(Ioc a b) = 2 ^ omega.{0} :=
+lemma mk_Ioc_real {a b : ℝ} (h : a < b) : #(Ioc a b) = 𝔠 :=
 le_antisymm (mk_real ▸ mk_set_le _) (mk_Ioo_real h ▸ mk_le_mk_of_subset Ioo_subset_Ioc_self)
 
 end cardinal

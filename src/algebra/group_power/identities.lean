@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen, Kevin Lacker
 -/
 import tactic.ring
+
 /-!
 # Identities
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some "named" commutative ring identities.
 -/
@@ -19,14 +23,14 @@ Brahmagupta-Fibonacci identity or Diophantus identity, see
 
 This sign choice here corresponds to the signs obtained by multiplying two complex numbers.
 -/
-theorem pow_two_add_pow_two_mul_pow_two_add_pow_two :
+theorem sq_add_sq_mul_sq_add_sq :
   (x₁^2 + x₂^2) * (y₁^2 + y₂^2) = (x₁*y₁ - x₂*y₂)^2 + (x₁*y₂ + x₂*y₁)^2 :=
 by ring
 
 /--
 Brahmagupta's identity, see <https://en.wikipedia.org/wiki/Brahmagupta%27s_identity>
 -/
-theorem pow_two_add_mul_pow_two_mul_pow_two_add_mul_pow_two :
+theorem sq_add_mul_sq_mul_sq_add_mul_sq :
   (x₁^2 + n*x₂^2) * (y₁^2 + n*y₂^2) = (x₁*y₁ - n*x₂*y₂)^2 + n*(x₁*y₂ + x₂*y₁)^2 :=
 by ring
 

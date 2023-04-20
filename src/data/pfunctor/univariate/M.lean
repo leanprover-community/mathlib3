@@ -8,6 +8,9 @@ import data.pfunctor.univariate.basic
 /-!
 # M-types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 M types are potentially infinite tree-like structures. They are defined
 as the greatest fixpoint of a polynomial functor.
 -/
@@ -31,7 +34,7 @@ inductive cofix_a : ℕ → Type u
 /-- default inhabitant of `cofix_a` -/
 protected def cofix_a.default [inhabited F.A] : Π n, cofix_a F n
 | 0 := cofix_a.continue
-| (succ n) := cofix_a.intro (default _) $ λ _, cofix_a.default n
+| (succ n) := cofix_a.intro default $ λ _, cofix_a.default n
 
 instance [inhabited F.A] {n} : inhabited (cofix_a F n) := ⟨ cofix_a.default F n ⟩
 
@@ -55,8 +58,8 @@ lemma approx_eta  {n : ℕ} (x : cofix_a F (n+1)) :
   x = cofix_a.intro (head' x) (children' x) :=
 by cases x; refl
 
-/-- Relation between two approximations of the cofix of a pfunctor that state they both contain the same
-data until one of them is truncated -/
+/-- Relation between two approximations of the cofix of a pfunctor
+that state they both contain the same data until one of them is truncated -/
 inductive agree : ∀ {n : ℕ}, cofix_a F n → cofix_a F (n+1) → Prop
  | continue (x : cofix_a F 0) (y : cofix_a F 1) : agree x y
  | intro {n} {a} (x : F.B a → cofix_a F n) (x' : F.B a → cofix_a F (n+1)) :
@@ -164,12 +167,13 @@ structure M_intl :=
 /-- For polynomial functor `F`, `M F` is its final coalgebra -/
 def M := M_intl F
 
-lemma M.default_consistent [inhabited F.A] : Π n, agree (default (cofix_a F n)) (default (cofix_a F (succ n)))
+lemma M.default_consistent [inhabited F.A] :
+  Π n, agree (default : cofix_a F n) default
 | 0 := agree.continue _ _
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
 instance M.inhabited [inhabited F.A] : inhabited (M F) :=
-⟨ { approx := λ n, default _,
+⟨ { approx := default,
     consistent := M.default_consistent _ } ⟩
 
 instance M_intl.inhabited [inhabited F.A] : inhabited (M_intl F) :=
@@ -216,7 +220,7 @@ def children (x : M F) (i : F.B (head x)) : M F :=
 def ichildren [inhabited (M F)] [decidable_eq F.A] (i : F.Idx) (x : M F) : M F :=
 if H' : i.1 = head x
   then children x (cast (congr_arg _ $ by simp only [head,H']; refl) i.2)
-  else default _
+  else default
 
 lemma head_succ (n m : ℕ) (x : M F) :
   head' (x.approx (succ n)) = head' (x.approx (succ m)) :=
@@ -276,7 +280,7 @@ begin
   dsimp only [M.mk,dest],
   cases x with x ch, congr' with i,
   cases h : ch i,
-  simp  only [children,M.approx.s_mk,children',cast_eq],
+  simp only [children,M.approx.s_mk,children',cast_eq],
   dsimp only [M.approx.s_mk,children'],
   congr, rw h,
 end
@@ -294,7 +298,9 @@ begin
   { rw [← head_succ' n,h,head'], apply x.consistent },
   revert ch, rw h', intros, congr,
   { ext a, dsimp only [children],
-    h_generalize! hh : a == a'',
+    generalize hh : cast _ a = a'',
+    rw cast_eq_iff_heq at hh,
+    revert a'',
     rw h, intros, cases hh, refl },
 end
 
@@ -370,35 +376,35 @@ lemma cases_on_mk {r : M F → Sort*} (x : F.obj $ M F) (f : Π x : F.obj $ M F,
 cases_mk x f
 
 @[simp]
-lemma cases_on_mk' {r : M F → Sort*} {a} (x : F.B a → M F) (f : Π a (f : F.B a → M F), r (M.mk ⟨a,f⟩)) :
+lemma cases_on_mk'
+  {r : M F → Sort*} {a} (x : F.B a → M F) (f : Π a (f : F.B a → M F), r (M.mk ⟨a,f⟩)) :
   pfunctor.M.cases_on' (M.mk ⟨a,x⟩) f = f a x :=
 cases_mk ⟨_,x⟩ _
 
 /-- `is_path p x` tells us if `p` is a valid path through `x` -/
-inductive is_path  : path F → M F → Prop
+inductive is_path : path F → M F → Prop
 | nil (x : M F) : is_path [] x
 | cons (xs : path F) {a} (x : M F) (f : F.B a → M F) (i : F.B a) :
   x = M.mk ⟨a,f⟩ →
   is_path xs (f i) →
   is_path (⟨a,i⟩ :: xs) x
 
-lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'}
-  (h : is_path (⟨a',i⟩ :: xs) (M.mk ⟨a,f⟩)) :
-  a = a' :=
+lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'} :
+  is_path (⟨a',i⟩ :: xs) (M.mk ⟨a,f⟩) → a = a' :=
 begin
-  revert h, generalize h : (M.mk ⟨a,f⟩) = x,
-  intros h', cases h', subst x,
-  cases mk_inj ‹_›, refl,
+  generalize h : (M.mk ⟨a,f⟩) = x,
+  rintro (_ | ⟨_, _, _, _, rfl, _⟩),
+  cases mk_inj h,
+  refl
 end
 
-lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a}
-  (h : is_path (⟨a,i⟩ :: xs) (M.mk ⟨a,f⟩)) :
-  is_path xs (f i) :=
+lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a} :
+  is_path (⟨a,i⟩ :: xs) (M.mk ⟨a,f⟩) → is_path xs (f i) :=
 begin
-  revert h, generalize h : (M.mk ⟨a,f⟩) = x,
-  intros h', cases h', subst x,
-  have := mk_inj ‹_›, cases this, cases this,
-  assumption,
+  generalize h : (M.mk ⟨a,f⟩) = x,
+  rintro (_ | ⟨_, _, _, _, rfl, hp⟩),
+  cases mk_inj h,
+  exact hp
 end
 
 /-- follow a path through a value of `M F` and return the subtree
@@ -409,7 +415,7 @@ def isubtree [decidable_eq F.A] [inhabited (M F)] : path F → M F → M F
 | (⟨a, i⟩ :: ps) x :=
 pfunctor.M.cases_on' x (λ a' f,
 (if h : a = a' then isubtree ps (f $ cast (by rw h) i)
- else default (M F) : (λ x, M F) (M.mk ⟨a',f⟩)))
+ else default : (λ x, M F) (M.mk ⟨a',f⟩)))
 
 /-- similar to `isubtree` but returns the data at the end of the path instead
 of the whole subtree -/
@@ -418,7 +424,7 @@ def iselect [decidable_eq F.A] [inhabited (M F)] (ps : path F) : M F → F.A :=
 
 lemma iselect_eq_default [decidable_eq F.A] [inhabited (M F)] (ps : path F) (x : M F)
   (h : ¬ is_path ps x) :
-  iselect ps x = head (default $ M F) :=
+  iselect ps x = head default :=
 begin
   induction ps generalizing x,
   { exfalso, apply h, constructor },
@@ -452,7 +458,8 @@ by { dsimp only [ichildren,pfunctor.obj.iget],
      intros, refl }
 
 @[simp]
-lemma isubtree_cons [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i : F.B a} :
+lemma isubtree_cons
+  [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i : F.B a} :
   isubtree (⟨_,i⟩ :: ps) (M.mk ⟨a,f⟩) = isubtree ps (f i) :=
 by simp only [isubtree,ichildren_mk,pfunctor.obj.iget,dif_pos,isubtree,M.cases_on_mk']; refl
 
@@ -530,7 +537,7 @@ end
 section bisim
 
 variable (R : M F → M F → Prop)
-local infix ~ := R
+local infix ` ~ `:50 := R
 
 /-- Bisimulation is the standard proof technique for equality between
 infinite tree-like structures -/
@@ -552,20 +559,20 @@ begin
   intros h₀ hh,
   induction s₁ using pfunctor.M.cases_on' with a f,
   induction s₂ using pfunctor.M.cases_on' with a' f',
-  have : a = a' := bisim.head h₀, subst a',
+  obtain rfl : a = a' := bisim.head h₀,
   induction ps with i ps generalizing a f f',
   { existsi [rfl,a,f,f',rfl,rfl],
     apply bisim.tail h₀ },
   cases i with a' i,
-  have : a = a',
+  obtain rfl : a = a',
   { cases hh; cases is_path_cons hh; refl },
-  subst a', dsimp only [iselect] at ps_ih ⊢,
+  dsimp only [iselect] at ps_ih ⊢,
   have h₁ := bisim.tail h₀ i,
   induction h : (f i) using pfunctor.M.cases_on' with a₀ f₀,
   induction h' : (f' i) using pfunctor.M.cases_on' with a₁ f₁,
   simp only [h,h',isubtree_cons] at ps_ih ⊢,
   rw [h,h'] at h₁,
-  have : a₀ = a₁ := bisim.head h₁, subst a₁,
+  obtain rfl : a₀ = a₁ := bisim.head h₁,
   apply (ps_ih _ _ _ h₁),
   rw [← h,← h'], apply or_of_or_of_imp_of_imp hh is_path_cons' is_path_cons'
 end

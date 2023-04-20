@@ -3,7 +3,33 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.natural_isomorphism
+import category_theory.isomorphism
+import category_theory.functor.category
+import category_theory.functor.fully_faithful
+
+/-!
+# Whiskering
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+Given a functor `F  : C ⥤ D` and functors `G H : D ⥤ E` and a natural transformation `α : G ⟶ H`,
+we can construct a new natural transformation `F ⋙ G ⟶ F ⋙ H`,
+called `whisker_left F α`. This is the same as the horizontal composition of `𝟙 F` with `α`.
+
+This operation is functorial in `F`, and we package this as `whiskering_left`. Here
+`(whiskering_left.obj F).obj G` is `F ⋙ G`, and
+`(whiskering_left.obj F).map α` is `whisker_left F α`.
+(That is, we might have alternatively named this as the "left composition functor".)
+
+We also provide analogues for composition on the right, and for these operations on isomorphisms.
+
+At the end of the file, we provide the left and right unitors, and the associator,
+for functor composition.
+(In fact functor composition is definitionally associative, but very often relying on this causes
+extremely slow elaboration, so it is better to insert it explicitly.)
+We also show these natural isomorphisms satisfy the triangle and pentagon identities.
+-/
 
 namespace category_theory
 
@@ -28,15 +54,16 @@ If `α : G ⟶ H` then
 -/
 @[simps] def whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) : (G ⋙ F) ⟶ (H ⋙ F) :=
 { app := λ X, F.map (α.app X),
-  naturality' := λ X Y f, by rw [functor.comp_map, functor.comp_map, ←F.map_comp, ←F.map_comp, α.naturality] }
+  naturality' := λ X Y f,
+    by rw [functor.comp_map, functor.comp_map, ←F.map_comp, ←F.map_comp, α.naturality] }
 
 variables (C D E)
 
 /--
 Left-composition gives a functor `(C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E))`.
 
-`(whiskering_lift.obj F).obj G` is `F ⋙ G`, and
-`(whiskering_lift.obj F).map α` is `whisker_left F α`.
+`(whiskering_left.obj F).obj G` is `F ⋙ G`, and
+`(whiskering_left.obj F).map α` is `whisker_left F α`.
 -/
 @[simps] def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
 { obj := λ F,
@@ -65,6 +92,11 @@ Right-composition gives a functor `(D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E))`.
     naturality' := λ X Y f, begin ext, dsimp, rw [←nat_trans.naturality] end } }
 
 variables {C} {D} {E}
+
+instance faithful_whiskering_right_obj {F : D ⥤ E} [faithful F] :
+  faithful ((whiskering_right C D E).obj F) :=
+{ map_injective' := λ G H α β hαβ, nat_trans.ext _ _ $ funext $ λ X,
+    functor.map_injective _ $ congr_fun (congr_arg nat_trans.app hαβ) X }
 
 @[simp] lemma whisker_left_id (F : C ⥤ D) {G : D ⥤ E} :
   whisker_left F (nat_trans.id G) = nat_trans.id (F.comp G) :=
@@ -103,7 +135,7 @@ rfl
 
 /--
 If `α : G ≅ H` then
-`iso_whisker_right α F : (G ⋙ F) ≅ (G ⋙ F)` has components `F.map_iso (α.app X)`.
+`iso_whisker_right α F : (G ⋙ F) ≅ (H ⋙ F)` has components `F.map_iso (α.app X)`.
 -/
 def iso_whisker_right {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) : (G ⋙ F) ≅ (H ⋙ F) :=
 ((whiskering_right C D E).obj F).map_iso α
@@ -114,10 +146,12 @@ rfl
   (iso_whisker_right α F).inv = whisker_right α.inv F :=
 rfl
 
-instance is_iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) [is_iso α] : is_iso (whisker_left F α) :=
-{ .. iso_whisker_left F (as_iso α) }
-instance is_iso_whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) [is_iso α] : is_iso (whisker_right α F) :=
-{ .. iso_whisker_right (as_iso α) F }
+instance is_iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) [is_iso α] :
+  is_iso (whisker_left F α) :=
+is_iso.of_iso (iso_whisker_left F (as_iso α))
+instance is_iso_whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) [is_iso α] :
+  is_iso (whisker_right α F) :=
+is_iso.of_iso (iso_whisker_right (as_iso α) F)
 
 variables {B : Type u₄} [category.{v₄} B]
 
@@ -170,6 +204,9 @@ and it's usually best to insert explicit associators.)
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
 
+@[protected]
+lemma assoc (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) = (F ⋙ (G ⋙ H)) := rfl
+
 lemma triangle (F : A ⥤ B) (G : B ⥤ C) :
   (associator F (𝟭 B) G).hom ≫ (whisker_left F (left_unitor G).hom) =
     (whisker_right (right_unitor F).hom G) :=
@@ -180,8 +217,10 @@ variables {E : Type u₅} [category.{v₅} E]
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (K : D ⥤ E)
 
 lemma pentagon :
-  (whisker_right (associator F G H).hom K) ≫ (associator F (G ⋙ H) K).hom ≫ (whisker_left F (associator G H K).hom) =
-    ((associator (F ⋙ G) H K).hom ≫ (associator F G (H ⋙ K)).hom) :=
+  (whisker_right (associator F G H).hom K) ≫
+    (associator F (G ⋙ H) K).hom ≫
+    (whisker_left F (associator G H K).hom) =
+  ((associator (F ⋙ G) H K).hom ≫ (associator F G (H ⋙ K)).hom) :=
 by { ext, dsimp, simp }
 
 end functor

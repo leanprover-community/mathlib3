@@ -1,22 +1,34 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro and Kenny Lau
+Authors: Mario Carneiro, Kenny Lau
 -/
-import data.int.basic
 import data.list.range
+import data.int.order.basic
+
+/-!
+# Intervals in ℤ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file defines integer ranges. `range m n` is the set of integers greater than `m` and strictly
+less than `n`.
+
+## Note
+
+This could be unified with `data.list.intervals`. See the TODOs there.
+-/
 
 namespace int
 
-local attribute [semireducible] int.nonneg
-
-/-- List enumerating `[m, n)`. -/
+/-- List enumerating `[m, n)`. This is the ℤ variant of `list.Ico`. -/
 def range (m n : ℤ) : list ℤ :=
 (list.range (to_nat (n-m))).map $ λ r, m+r
 
 theorem mem_range_iff {m n r : ℤ} : r ∈ range m n ↔ m ≤ r ∧ r < n :=
 ⟨λ H, let ⟨s, h1, h2⟩ := list.mem_map.1 H in h2 ▸
-  ⟨le_add_of_nonneg_right trivial,
+  ⟨le_add_of_nonneg_right (coe_zero_le s),
   add_lt_of_lt_sub_left $ match n-m, h1 with
     | (k:ℕ), h1 := by rwa [list.mem_range, to_nat_coe_nat, ← coe_nat_lt] at h1
     end⟩,

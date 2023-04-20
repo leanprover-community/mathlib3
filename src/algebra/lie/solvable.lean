@@ -3,9 +3,9 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.ideal_operations
 import algebra.lie.abelian
-import order.preorder_hom
+import algebra.lie.ideal_operations
+import order.hom.basic
 
 /-!
 # Solvable Lie algebras
@@ -33,11 +33,11 @@ lie algebra, derived series, derived length, solvable, radical
 
 universes u v w w₁ w₂
 
-namespace lie_algebra
+variables (R : Type u) (L : Type v) (M : Type w) {L' : Type w₁}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
+variables (I J : lie_ideal R L) {f : L' →ₗ⁅R⁆ L}
 
-variables (R : Type u) (L : Type v) (M : Type w)
-variables [comm_ring R] [lie_ring L] [lie_algebra R L]
-variables (I : lie_ideal R L)
+namespace lie_algebra
 
 /-- A generalisation of the derived series of a Lie algebra, whose zeroth term is a specified ideal.
 
@@ -74,11 +74,11 @@ begin
   { rw [nat.succ_add k l, derived_series_of_ideal_succ, derived_series_of_ideal_succ, ih], },
 end
 
-lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤ J) (h₂ : l ≤ k) :
+@[mono] lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤ J) (h₂ : l ≤ k) :
   D k I ≤ D l J :=
 begin
   revert l, induction k with k ih; intros l h₂,
-  { rw nat.le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
+  { rw le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
   { have h : l = k.succ ∨ l ≤ k, by rwa [le_iff_eq_or_lt, nat.lt_succ_iff] at h₂,
     cases h,
     { rw [h, derived_series_of_ideal_succ, derived_series_of_ideal_succ],
@@ -95,17 +95,17 @@ derived_series_of_ideal_le (le_refl I) (zero_le k)
 lemma derived_series_of_ideal_mono {I J : lie_ideal R L} (h : I ≤ J) (k : ℕ) : D k I ≤ D k J :=
 derived_series_of_ideal_le h (le_refl k)
 
-lemma derived_series_of_ideal_antimono {k l : ℕ} (h : l ≤ k) : D k I ≤ D l I :=
+lemma derived_series_of_ideal_antitone {k l : ℕ} (h : l ≤ k) : D k I ≤ D l I :=
 derived_series_of_ideal_le (le_refl I) h
 
 lemma derived_series_of_ideal_add_le_add (J : lie_ideal R L) (k l : ℕ) :
   D (k + l) (I + J) ≤ (D k I) + (D l J) :=
 begin
-  let D₁ : lie_ideal R L →ₘ lie_ideal R L :=
+  let D₁ : lie_ideal R L →o lie_ideal R L :=
   { to_fun    := λ I, ⁅I, I⁆,
     monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
   have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,
-  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_right_of_le], },
+  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_of_le_right], },
   rw ← D₁.iterate_sup_le_sup_iff at h₁,
   exact h₁ k l I J,
 end
@@ -127,9 +127,7 @@ namespace lie_ideal
 
 open lie_algebra
 
-variables {R : Type u} {L : Type v}
-variables [comm_ring R] [lie_ring L] [lie_algebra R L]
-variables (I J : lie_ideal R L)
+variables {R L}
 
 lemma derived_series_eq_derived_series_of_ideal_comap (k : ℕ) :
   derived_series R I k = (derived_series_of_ideal R L k I).comap I.incl :=
@@ -148,7 +146,7 @@ by { rw [derived_series_eq_derived_series_of_ideal_comap, map_comap_incl, inf_eq
 
 lemma derived_series_eq_bot_iff (k : ℕ) :
   derived_series R I k = ⊥ ↔ derived_series_of_ideal R L k I = ⊥ :=
-by rw [← derived_series_eq_derived_series_of_ideal_map, I.incl.map_bot_iff, ker_incl, eq_bot_iff]
+by rw [← derived_series_eq_derived_series_of_ideal_map, map_eq_bot_iff, ker_incl, eq_bot_iff]
 
 lemma derived_series_add_eq_bot {k l : ℕ} {I J : lie_ideal R L}
   (hI : derived_series R I k = ⊥) (hJ : derived_series R J l = ⊥) :
@@ -161,8 +159,8 @@ begin
                      ... ≤ ⊥ : by { rw [hI, hJ], simp, },
 end
 
-lemma derived_series_map_le_derived_series {L' : Type w} [lie_ring L'] [lie_algebra R L']
-  {f : L' →ₗ⁅R⁆ L} (k : ℕ) : (derived_series R L' k).map f ≤ derived_series R L k :=
+lemma derived_series_map_le (k : ℕ) :
+  (derived_series R L' k).map f ≤ derived_series R L k :=
 begin
   induction k with k ih,
   { simp only [derived_series_def, derived_series_of_ideal_zero, le_top], },
@@ -170,43 +168,78 @@ begin
     exact le_trans (map_bracket_le f) (lie_submodule.mono_lie _ _ _ _ ih ih), },
 end
 
+lemma derived_series_map_eq (k : ℕ) (h : function.surjective f) :
+  (derived_series R L' k).map f = derived_series R L k :=
+begin
+  induction k with k ih,
+  { change (⊤ : lie_ideal R L').map f = ⊤,
+    rw ←f.ideal_range_eq_map,
+    exact f.ideal_range_eq_top_of_surjective h, },
+  { simp only [derived_series_def, map_bracket_eq f h, ih, derived_series_of_ideal_succ], },
+end
+
 end lie_ideal
 
 namespace lie_algebra
-
-variables (R : Type u) (L : Type v)
-variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 
 /-- A Lie algebra is solvable if its derived series reaches 0 (in a finite number of steps). -/
 class is_solvable : Prop :=
 (solvable : ∃ k, derived_series R L k = ⊥)
 
 instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) :=
-⟨⟨0, @subsingleton.elim _ lie_ideal.subsingleton_of_bot _ ⊥⟩⟩
+⟨⟨0, subsingleton.elim _ ⊥⟩⟩
 
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=
 begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨k, hk⟩ := hI,
-  obtain ⟨l, hl⟩ := hJ,
+  obtain ⟨k, hk⟩ := id hI, obtain ⟨l, hl⟩ := id hJ,
   exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot hk hl⟩⟩,
 end
 
+end lie_algebra
+
 variables {R L}
 
-lemma is_solvable_of_injective {L' : Type w} [lie_ring L'] [lie_algebra R L']
-  [h₁ : is_solvable R L] {f : L' →ₗ⁅R⁆ L} (h₂ : function.injective f) : is_solvable R L' :=
+namespace function
+
+open lie_algebra
+
+lemma injective.lie_algebra_is_solvable [h₁ : is_solvable R L] (h₂ : injective f) :
+  is_solvable R L' :=
 begin
-  tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+  obtain ⟨k, hk⟩ := id h₁,
   use k,
   apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
-  apply lie_ideal.derived_series_map_le_derived_series,
+  apply lie_ideal.derived_series_map_le,
+end
+
+lemma surjective.lie_algebra_is_solvable [h₁ : is_solvable R L'] (h₂ : surjective f) :
+  is_solvable R L :=
+begin
+  obtain ⟨k, hk⟩ := id h₁,
+  use k,
+  rw [← lie_ideal.derived_series_map_eq k h₂, hk],
+  simp only [lie_ideal.map_eq_bot_iff, bot_le],
+end
+
+end function
+
+lemma lie_hom.is_solvable_range (f : L' →ₗ⁅R⁆ L) [h : lie_algebra.is_solvable R L'] :
+  lie_algebra.is_solvable R f.range :=
+f.surjective_range_restrict.lie_algebra_is_solvable
+
+namespace lie_algebra
+
+lemma solvable_iff_equiv_solvable (e : L' ≃ₗ⁅R⁆ L) : is_solvable R L' ↔ is_solvable R L :=
+begin
+  split; introsI h,
+  { exact e.symm.injective.lie_algebra_is_solvable, },
+  { exact e.injective.lie_algebra_is_solvable, },
 end
 
 lemma le_solvable_ideal_solvable {I J : lie_ideal R L} (h₁ : I ≤ J) (h₂ : is_solvable R J) :
   is_solvable R I :=
-lie_algebra.is_solvable_of_injective (lie_ideal.hom_of_le_injective h₁)
+(lie_ideal.hom_of_le_injective h₁).lie_algebra_is_solvable
 
 variables (R L)
 
@@ -214,7 +247,7 @@ variables (R L)
 instance of_abelian_is_solvable [is_lie_abelian L] : is_solvable R L :=
 begin
   use 1,
-  rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv_self],
+  rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv],
   apply_instance,
 end
 
@@ -226,19 +259,15 @@ instance radical_is_solvable [is_noetherian R L] : is_solvable R (radical R L) :
 begin
   have hwf := lie_submodule.well_founded_of_noetherian R L L,
   rw ← complete_lattice.is_sup_closed_compact_iff_well_founded at hwf,
-  refine hwf { I : lie_ideal R L | is_solvable R I } _ _,
-  { use ⊥, exact lie_algebra.is_solvable_bot R L, },
-  { intros I J hI hJ, apply lie_algebra.is_solvable_add R L; [exact hI, exact hJ], },
+  refine hwf { I : lie_ideal R L | is_solvable R I } ⟨⊥, _⟩ (λ I hI J hJ, _),
+  { exact lie_algebra.is_solvable_bot R L, },
+  { apply lie_algebra.is_solvable_add R L, exacts [hI, hJ] },
 end
 
 /-- The `→` direction of this lemma is actually true without the `is_noetherian` assumption. -/
 lemma lie_ideal.solvable_iff_le_radical [is_noetherian R L] (I : lie_ideal R L) :
   is_solvable R I ↔ I ≤ radical R L :=
-begin
-  split; intros h,
-  { exact le_Sup h, },
-  { apply le_solvable_ideal_solvable h, apply_instance, },
-end
+⟨λ h, le_Sup h, λ h, le_solvable_ideal_solvable h infer_instance⟩
 
 lemma center_le_radical : center R L ≤ radical R L :=
 have h : is_solvable R (center R L), { apply_instance, }, le_Sup h
@@ -265,7 +294,7 @@ begin
   { intros k₁ k₂ h₁₂ h₁,
     suffices : derived_series_of_ideal R L k₂ I ≤ ⊥, { exact eq_bot_iff.mpr this, },
     change derived_series_of_ideal R L k₁ I = ⊥ at h₁, rw ← h₁,
-    exact derived_series_of_ideal_antimono I h₁₂, },
+    exact derived_series_of_ideal_antitone I h₁₂, },
   exact nat.Inf_upward_closed_eq_succ_iff hs k,
 end
 
@@ -304,8 +333,8 @@ lemma derived_length_zero (I : lie_ideal R L) [hI : is_solvable R I] :
 begin
   let s := {k | derived_series_of_ideal R L k I = ⊥}, change Inf s = 0 ↔ _,
   have hne : s ≠ ∅,
-  { rw set.ne_empty_iff_nonempty,
-    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := hI, use k,
+  { obtain ⟨k, hk⟩ := id hI,
+    refine set.nonempty.ne_empty ⟨k, _⟩,
     rw [derived_series_def, lie_ideal.derived_series_eq_bot_iff] at hk, exact hk, },
   simp [hne],
 end

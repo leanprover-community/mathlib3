@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
 -/
 
 /-
@@ -17,6 +17,8 @@ namespace omega
     the coefficients. -/
 @[derive inhabited]
 def term : Type := int × list int
+
+meta instance : has_reflect term := prod.has_reflect _ _
 
 namespace term
 

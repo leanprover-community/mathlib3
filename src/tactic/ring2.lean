@@ -475,11 +475,12 @@ namespace interactive
 open interactive interactive.types lean.parser
 open tactic.ring2
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /-- `ring2` solves equations in the language of rings.
 
-It supports only the commutative semiring operations, i.e. it does not normalize subtraction or division.
+It supports only the commutative semiring operations, i.e. it does not normalize subtraction or
+division.
 
   This variant on the `ring` tactic uses kernel computation instead
   of proof generation. In general, you should use `ring` instead of `ring2`. -/

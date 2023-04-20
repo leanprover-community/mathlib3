@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
 import category_theory.monoidal.of_chosen_finite_products
-import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.types
+import logic.equiv.fin
 
 /-!
 # The category of types is a symmetric monoidal category
@@ -15,9 +15,9 @@ open category_theory
 open category_theory.limits
 open tactic
 
-universes u
+universes v u
 
-namespace category_theory.monoidal
+namespace category_theory
 
 instance types_monoidal : monoidal_category.{u} (Type u) :=
 monoidal_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_product_limit_cone)
@@ -48,4 +48,40 @@ symmetric_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_pr
 @[simp] lemma braiding_inv_apply {X Y : Type u} {x : X} {y : Y} :
   ((β_ X Y).inv : Y ⊗ X → X ⊗ Y) (y, x) = (x, y) := rfl
 
-end category_theory.monoidal
+open opposite
+
+open monoidal_category
+
+/-- `(𝟙_ C ⟶ -)` is a lax monoidal functor to `Type`. -/
+def coyoneda_tensor_unit (C : Type u) [category.{v} C] [monoidal_category C] :
+  lax_monoidal_functor C (Type v) :=
+{ ε := λ p, 𝟙 _,
+  μ := λ X Y p, (λ_ (𝟙_ C)).inv ≫ (p.1 ⊗ p.2),
+  μ_natural' := by tidy,
+  associativity' := λ X Y Z, begin
+    ext ⟨⟨f, g⟩, h⟩, dsimp at f g h,
+    dsimp, simp only [iso.cancel_iso_inv_left, category.assoc],
+    conv_lhs { rw [←category.id_comp h, tensor_comp, category.assoc, associator_naturality,
+      ←category.assoc, unitors_inv_equal, triangle_assoc_comp_right_inv], },
+    conv_rhs { rw [←category.id_comp f, tensor_comp], },
+  end,
+  left_unitality' := by tidy,
+  right_unitality' := λ X, begin
+    ext ⟨f, ⟨⟩⟩, dsimp at f,
+    dsimp, simp only [category.assoc],
+    rw [right_unitor_naturality, unitors_inv_equal, iso.inv_hom_id_assoc],
+  end,
+  ..coyoneda.obj (op (𝟙_ C)) }.
+
+noncomputable theory
+
+/-- If `F` is a monoidal functor out of `Type`, it takes the (n+1)st cartesian power
+of a type to the image of that type, tensored with the image of the nth cartesian power. -/
+-- We don't yet have an API for tensor products indexed by finite ordered types,
+-- but it would be nice to state how monoidal functors preserve these.
+def monoidal_functor.map_pi {C : Type*} [category C] [monoidal_category C]
+  (F : monoidal_functor Type* C) (n : ℕ) (β : Type*) :
+  F.obj (fin (n+1) → β) ≅ F.obj β ⊗ F.obj (fin n → β) :=
+functor.map_iso _ (equiv.pi_fin_succ n β).to_iso ≪≫ (as_iso (F.μ β (fin n → β))).symm
+
+end category_theory

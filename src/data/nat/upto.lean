@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
-import data.nat.basic
+import data.nat.order.basic
 
 /-!
 # `nat.upto`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 `nat.upto p`, with `p` a predicate on `ℕ`, is a subtype of elements `n : ℕ` such that no value
 (strictly) below `n` satisfies `p`.
@@ -48,7 +51,7 @@ protected lemma wf : (∃ x, p x) → well_founded (upto.gt p)
   { rw this, apply measure_wf },
   ext ⟨a, ha⟩ ⟨b, _⟩,
   dsimp [measure, inv_image, upto.gt],
-  rw nat.sub_lt_sub_left_iff,
+  rw tsub_lt_tsub_iff_left_of_le,
   exact le_of_not_lt (λ h', ha _ h' h),
 end
 

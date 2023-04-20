@@ -6,12 +6,17 @@ Authors: Yury Kudryashov
 import category_theory.endomorphism
 import category_theory.category.Cat
 import algebra.category.Mon.basic
+import combinatorics.quiver.single_obj
 
 /-!
 # Single-object category
 
-Single object category with a given monoid of endomorphisms.  It is defined to facilitate transfering
-some definitions and lemmas (e.g., conjugacy etc.) from category theory to monoids and groups.
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+Single object category with a given monoid of endomorphisms.
+It is defined to facilitate transfering some definitions and lemmas (e.g., conjugacy etc.)
+from category theory to monoids and groups.
 
 ## Main definitions
 
@@ -36,9 +41,11 @@ An element `x : α` can be reinterpreted as an element of `End (single_obj.star 
 universes u v w
 
 namespace category_theory
-/-- Type tag on `unit` used to define single-object categories and groupoids. -/
-@[nolint unused_arguments has_inhabited_instance]
-def single_obj (α : Type u) : Type := unit
+
+/--
+Abbreviation that allows writing `category_theory.single_obj` rather than `quiver.single_obj`.
+-/
+abbreviation single_obj := quiver.single_obj
 
 namespace single_obj
 
@@ -56,18 +63,29 @@ instance category [monoid α] : category (single_obj α) :=
   id_comp' := λ _ _, mul_one,
   assoc' := λ _ _ _ _ x y z, (mul_assoc z y x).symm }
 
+lemma id_as_one [monoid α] (x : single_obj α) : 𝟙 x = 1 := rfl
+
+lemma comp_as_mul [monoid α] {x y z : single_obj α} (f : x ⟶ y) (g : y ⟶ z) :
+  f ≫ g = g * f := rfl
+
 /--
 Groupoid structure on `single_obj α`.
 
-See https://stacks.math.columbia.edu/tag/0019.
+See <https://stacks.math.columbia.edu/tag/0019>.
 -/
 instance groupoid [group α] : groupoid (single_obj α) :=
 { inv := λ _ _ x, x⁻¹,
   inv_comp' := λ _ _, mul_right_inv,
   comp_inv' := λ _ _, mul_left_inv }
 
-/-- The single object in `single_obj α`. -/
-protected def star : single_obj α := unit.star
+lemma inv_as_inv [group α] {x y : single_obj α} (f : x ⟶ y) : inv f = f⁻¹ :=
+by { ext, rw [comp_as_mul, inv_mul_self, id_as_one] }
+
+/--
+Abbreviation that allows writing `category_theory.single_obj.star` rather than
+`quiver.single_obj.star`.
+-/
+abbreviation star : single_obj α := quiver.single_obj.star α
 
 /-- The endomorphisms monoid of the only object in `single_obj α` is equivalent to the original
      monoid α. -/
@@ -81,7 +99,7 @@ lemma to_End_def [monoid α] (x : α) : to_End α x = x := rfl
     corresponding single-object categories. It means that `single_obj` is a fully faithful
     functor.
 
-See https://stacks.math.columbia.edu/tag/001F --
+See <https://stacks.math.columbia.edu/tag/001F> --
 although we do not characterize when the functor is full or faithful.
 -/
 def map_hom (α : Type u) (β : Type v) [monoid α] [monoid β] :
@@ -104,6 +122,15 @@ lemma map_hom_comp {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α �
   {γ : Type w} [monoid γ] (g : β →* γ) :
   map_hom α γ (g.comp f) = map_hom α β f ⋙ map_hom β γ g :=
 rfl
+
+/-- Given a function `f : C → G` from a category to a group, we get a functor
+    `C ⥤ G` sending any morphism `x ⟶ y` to `f y * (f x)⁻¹`. -/
+@[simps] def difference_functor {C G} [category C] [group G] (f : C → G) : C ⥤ single_obj G :=
+{ obj := λ _, (),
+  map := λ x y _, f y * (f x)⁻¹,
+  map_id' := by { intro, rw [single_obj.id_as_one, mul_right_inv] },
+  map_comp' := by { intros, rw [single_obj.comp_as_mul, ←mul_assoc,
+    mul_left_inj, mul_assoc, inv_mul_self, mul_one] } }
 
 end single_obj
 
@@ -134,13 +161,13 @@ variables (α : Type u) [monoid α]
 /--
 The units in a monoid are (multiplicatively) equivalent to
 the automorphisms of `star` when we think of the monoid as a single-object category. -/
-def to_Aut : units α ≃* Aut (single_obj.star α) :=
+def to_Aut : αˣ ≃* Aut (single_obj.star α) :=
 (units.map_equiv (single_obj.to_End α)).trans $
   Aut.units_End_equiv_Aut _
 
-@[simp] lemma to_Aut_hom (x : units α) : (to_Aut α x).hom = single_obj.to_End α x := rfl
-@[simp] lemma to_Aut_inv (x : units α) :
-  (to_Aut α x).inv = single_obj.to_End α (x⁻¹ : units α) :=
+@[simp] lemma to_Aut_hom (x : αˣ) : (to_Aut α x).hom = single_obj.to_End α x := rfl
+@[simp] lemma to_Aut_inv (x : αˣ) :
+  (to_Aut α x).inv = single_obj.to_End α (x⁻¹ : αˣ) :=
 rfl
 end units
 

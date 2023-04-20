@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
 -/
 
 /-
@@ -36,10 +36,10 @@ inductive preterm : Type
 | add : preterm → preterm → preterm
 | sub : preterm → preterm → preterm
 
-localized "notation `&` k := omega.nat.preterm.cst k" in omega.nat
-localized "infix ` ** ` : 300 := omega.nat.preterm.var" in omega.nat
-localized "notation t ` +* ` s := omega.nat.preterm.add t s" in omega.nat
-localized "notation t ` -* ` s := omega.nat.preterm.sub t s" in omega.nat
+localized "notation (name := preterm.cst) `&` k := omega.nat.preterm.cst k" in omega.nat
+localized "infix (name := preterm.var) ` ** `:300 := omega.nat.preterm.var" in omega.nat
+localized "notation (name := preterm.add) t ` +* ` s := omega.nat.preterm.add t s" in omega.nat
+localized "notation (name := preterm.sub) t ` -* ` s := omega.nat.preterm.sub t s" in omega.nat
 
 namespace preterm
 

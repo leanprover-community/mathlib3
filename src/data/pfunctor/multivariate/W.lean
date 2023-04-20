@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Simon Hudon
+Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.basic
 
 /-!
 # The W construction as a multivariate polynomial functor.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 W types are well-founded tree-like structures. They are defined
 as the least fixpoint of a polynomial functor.
@@ -24,7 +27,8 @@ as the least fixpoint of a polynomial functor.
 Three views of M-types:
 
  * `Wp`: polynomial functor
- * `W`: data type inductively defined by a triple: shape of the root, data in the root and children of the root
+ * `W`: data type inductively defined by a triple:
+     shape of the root, data in the root and children of the root
  * `W`: least fixed point of a polynomial functor
 
 Specifically, we define the polynomial functor `Wp` as:
@@ -38,7 +42,8 @@ its valid paths to values of `α`
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+   [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universes u v
@@ -112,7 +117,7 @@ def Wp : mvpfunctor n :=
 { A := P.last.W, B := P.W_path }
 
 /-- W-type of `P` -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def W (α : typevec n) : Type* := P.Wp.obj α
 
 instance mvfunctor_W : mvfunctor P.W := by delta mvpfunctor.W; apply_instance

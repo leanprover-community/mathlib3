@@ -1,8 +1,9 @@
 /-
 Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
+import data.option.defs
 import data.string.defs
 import tactic.derive_inhabited
 /-!
@@ -17,10 +18,9 @@ This file is mostly for non-tactics. Tactics should generally be placed in `tact
 expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
-attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
+open tactic
 
-@[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
-⟨λ b, pexpr.of_expr (reflect b)⟩
+attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
 namespace binder_info
 
@@ -61,7 +61,7 @@ meta def get_nth_prefix : name → ℕ → name
 | nm 0 := nm
 | nm (n + 1) := get_nth_prefix nm.get_prefix n
 
-/-- Auxilliary definition for `pop_nth_prefix` -/
+/-- Auxiliary definition for `pop_nth_prefix` -/
 private meta def pop_nth_prefix_aux : name → ℕ → name × ℕ
 | anonymous n := (anonymous, 1)
 | nm n := let (pfx, height) := pop_nth_prefix_aux nm.get_prefix n in
@@ -76,7 +76,7 @@ prod.fst $ pop_nth_prefix_aux nm n
 meta def pop_prefix (n : name) : name :=
 pop_nth_prefix n 1
 
-/-- Auxilliary definition for `from_components` -/
+/-- Auxiliary definition for `from_components` -/
 private def from_components_aux : name → list string → name
 | n [] := n
 | n (s :: rest) := from_components_aux (name.mk_string s n) rest
@@ -94,10 +94,21 @@ meta def sanitize_name : name → name
 | (name.mk_string s p) := name.mk_string s $ sanitize_name p
 | (name.mk_numeral s p) := name.mk_string sformat!"n{s}" $ sanitize_name p
 
-/-- Append a string to the last component of a name -/
+/-- Append a string to the last component of a name. -/
 def append_suffix : name → string → name
 | (mk_string s n) s' := mk_string (s ++ s') n
 | n _ := n
+
+/-- Update the last component of a name. -/
+def update_last (f : string → string) : name → name
+| (mk_string s n) := mk_string (f s) n
+| n := n
+
+/-- `append_to_last nm s is_prefix` adds `s` to the last component of `nm`,
+  either as prefix or as suffix (specified by `is_prefix`), separated by `_`.
+  Used by `simps_add_projections`. -/
+def append_to_last (nm : name) (s : string) (is_prefix : bool) : name :=
+nm.update_last $ λ s', if is_prefix then s ++ "_" ++ s' else s' ++ "_" ++ s
 
 /-- The first component of a name, turning a number to a string -/
 meta def head : name → string
@@ -109,12 +120,6 @@ meta def head : name → string
 /-- Tests whether the first component of a name is `"_private"` -/
 meta def is_private (n : name) : bool :=
 n.head = "_private"
-
-/-- Get the last component of a name, and convert it to a string. -/
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
 
 /-- Returns the number of characters used to print all the string components of a name,
   including periods between name segments. Ignores numerical parts of a name. -/
@@ -141,6 +146,19 @@ def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/-- Like `++`, except that if the right argument starts with `_root_` the namespace will be
+ignored.
+```
+append_namespace `a.b `c.d = `a.b.c.d
+append_namespace `a.b `_root_.c.d = `c.d
+```
+-/
+meta def append_namespace (ns : name) : name → name
+| (mk_string s anonymous) := if s = "_root_" then anonymous else mk_string s ns
+| (mk_string s p)         := mk_string s (append_namespace p)
+| (mk_numeral n p)        := mk_numeral n (append_namespace p)
+| anonymous               := ns
 
 /--
 Constructs a (non-simple) name from a string.
@@ -235,6 +253,17 @@ meta def fold_mvar {α} : level → (name → α → α) → α → α
 | (max a b) f := fold_mvar a f ∘ fold_mvar b f
 | (imax a b) f := fold_mvar a f ∘ fold_mvar b f
 
+/--
+`l.params` is the set of parameters occuring in `l`.
+For example if `l = max 1 (max (u+1) (max v w))` then `l.params = {u, v, w}`.
+-/
+protected meta def params (u : level) : name_set :=
+u.fold mk_name_set $ λ v l,
+  match v with
+  | (param nm) := l.insert nm
+  | _ := l
+  end
+
 end level
 
 /-! ### Declarations about `binder` -/
@@ -252,7 +281,6 @@ protected meta def to_string (b : binder) : string :=
 let (l, r) := b.info.brackets in
 l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
 
-open tactic
 meta instance : has_to_string binder := ⟨ binder.to_string ⟩
 meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
 meta instance : has_to_tactic_format binder :=
@@ -303,6 +331,16 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
+
+/--
+`int.to_pexpr n` creates a `pexpr` that will evaluate to `n`.
+The `pexpr` does not hold any typing information:
+`to_expr ``((%%(int.to_pexpr (-5)) : ℚ))` will create a native `ℚ` numeral `(-5 : ℚ)`.
+-/
+meta def int.to_pexpr : ℤ → pexpr
+| (int.of_nat k) := k.to_pexpr
+| (int.neg_succ_of_nat k) := ``(-%%((k+1).to_pexpr))
+
 namespace expr
 
 /--
@@ -327,6 +365,14 @@ protected meta def to_int : expr → option ℤ
 | e                  := coe <$> e.to_nat
 
 /--
+Turns an expression into a list, assuming it is only built up from `list.nil` and `list.cons`.
+-/
+protected meta def to_list {α} (f : expr → option α) : expr → option (list α)
+| `(list.nil)          := some []
+| `(list.cons %%x %%l) := list.cons <$> f x <*> l.to_list
+| _                    := none
+
+/--
 `is_num_eq n1 n2` returns true if `n1` and `n2` are both numerals with the same numeral structure,
 ignoring differences in type and type class arguments.
 -/
@@ -341,10 +387,51 @@ meta def is_num_eq : expr → expr → bool
 
 end expr
 
+/-! ### Declarations about `pexpr` -/
+
+namespace pexpr
+
+/--
+If `e` is an annotation of `frozen_name` to `expr.const n`,
+`e.get_frozen_name` returns `n`.
+Otherwise, returns `name.anonymous`.
+-/
+meta def get_frozen_name (e : pexpr) : name :=
+match e.is_annotation with
+| some (`frozen_name, expr.const n _) := n
+| _ := name.anonymous
+end
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_fn_args` returns `(f, [e₁, ... eₙ])`.
+See also `expr.get_app_fn_args`.
+-/
+meta def get_app_fn_args : pexpr → opt_param (list pexpr) [] → pexpr × list pexpr
+| (expr.app e1 e2) r := get_app_fn_args e1 (e2::r)
+| e1 r := (e1, r)
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_fn` returns `f`.
+See also `expr.get_app_fn`.
+-/
+meta def get_app_fn : pexpr → list pexpr :=
+prod.snd ∘ get_app_fn_args
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_args` returns `[e₁, ... eₙ]`.
+See also `expr.get_app_args`.
+-/
+meta def get_app_args : pexpr → list pexpr :=
+prod.snd ∘ get_app_fn_args
+
+end pexpr
+
 /-! ### Declarations about `expr` -/
 
 namespace expr
-open tactic
 
 /-- List of names removed by `clean`. All these names must resolve to functions defeq `id`. -/
 meta def clean_ids : list name :=
@@ -364,13 +451,41 @@ e.replace (λ e n,
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
 
-/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
-protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
-e.replace $ λ e d,
-  match e with
-  | expr.const n ls := some $ expr.const (f n) ls
-  | _ := none
-  end
+/-- Implementation of `expr.mreplace`. -/
+meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) :
+  expr → ℕ → m expr
+| (app f x) n := option.mget_or_else (R (app f x) n)
+  (do Rf ← mreplace_aux f n, Rx ← mreplace_aux x n, return $ app Rf Rx)
+| (lam nm bi ty bd) n := option.mget_or_else (R (lam nm bi ty bd) n)
+  (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ lam nm bi Rty Rbd)
+| (pi nm bi ty bd) n := option.mget_or_else (R (pi nm bi ty bd) n)
+  (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ pi nm bi Rty Rbd)
+| (elet nm ty a b) n := option.mget_or_else (R (elet nm ty a b) n)
+  (do Rty ← mreplace_aux ty n,
+    Ra ← mreplace_aux a n,
+    Rb ← mreplace_aux b n,
+    return $ elet nm Rty Ra Rb)
+| (macro c es) n := option.mget_or_else (R (macro c es) n) $
+    macro c <$> es.mmap (λ e, mreplace_aux e n)
+| e n := option.mget_or_else (R e n) (return e)
+
+/--
+Monadic analogue of `expr.replace`.
+
+The `mreplace R e` visits each subexpression `s` of `e`, and is called with `R s n`, where
+`n` is the number of binders above `e`.
+If `R s n` fails, the whole replacement fails.
+If `R s n` returns `some t`, `s` is replaced with `t` (and `mreplace` does not visit
+its subexpressions).
+If `R s n` return `none`, then `mreplace` continues visiting subexpressions of `s`.
+
+WARNING: This function performs exponentially worse on large terms than `expr.replace`,
+if a subexpression occurs more than once in an expression, `expr.replace` visits them only once,
+but this function will visit every occurence of it. Do not use this on large expressions.
+-/
+meta def mreplace {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) (e : expr) :
+  m expr :=
+mreplace_aux R e 0
 
 /-- Match a variable. -/
 meta def match_var {elab} : expr elab → option ℕ
@@ -405,8 +520,8 @@ meta def match_app {elab} : expr elab → option (expr elab × expr elab)
 | _ := none
 
 /-- Match an application of `coe_fn`. -/
-meta def match_app_coe_fn : expr → option (expr × expr × expr × expr)
-| (app `(@coe_fn %%α %%inst %%fexpr) x) := some (α, inst, fexpr, x)
+meta def match_app_coe_fn : expr → option (expr × expr × expr × expr × expr)
+| (app `(@coe_fn %%α %%β %%inst %%fexpr) x) := some (α, β, inst, fexpr, x)
 | _ := none
 
 /-- Match an abstraction. -/
@@ -462,7 +577,8 @@ meta def to_implicit_local_const : expr → expr
 | e := e
 
 /-- If `e` is a local constant, lamda, or pi expression, `to_implicit_binder e` changes the binder
-info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants. -/
+info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants.
+-/
 meta def to_implicit_binder : expr → expr
 | (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
 | (lam n _ d b) := lam n binder_info.implicit d b
@@ -482,9 +598,14 @@ meta def list_local_const_unique_names (e : expr) : name_set :=
 e.fold mk_name_set
   (λ e' _ es, if e'.is_local_constant then es.insert e'.local_uniq_name else es)
 
-/-- Returns a name_set of all constants in an expression. -/
+/-- Returns a `name_set` of all constants in an expression. -/
 meta def list_constant (e : expr) : name_set :=
 e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)
+
+/-- Returns a `list name` containing the constant names of an `expr` in the same order
+  that `expr.fold` traverses it. -/
+meta def list_constant' (e : expr) : list name :=
+(e.fold [] (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)).reverse
 
 /-- Returns a list of all meta-variables in an expression (without duplicates). -/
 meta def list_meta_vars (e : expr) : list expr :=
@@ -512,7 +633,7 @@ meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
 -- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
 ¬ t.list_meta_vars.empty ∨ e.occurs t
 
-/-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
+/-- Returns a `name_set` of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
 e.fold mk_name_set $ λ e' _ l,
   match e' with
@@ -527,6 +648,7 @@ e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /--
 Returns true if `e` contains a `sorry`.
+See also `name.contains_sorry`.
 -/
 meta def contains_sorry (e : expr) : bool :=
 e.fold ff (λ e' _ b, if (is_sorry e').is_some then tt else b)
@@ -628,7 +750,7 @@ meta def lambda_body : expr → expr
 | (lam n bi d b) := lambda_body b
 | e             := e
 
-/-- Auxilliary defintion for `pi_binders`.
+/-- Auxiliary defintion for `pi_binders`.
   See note [open expressions]. -/
 meta def pi_binders_aux : list binder → expr → list binder × expr
 | es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
@@ -642,7 +764,7 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 meta def pi_binders (e : expr) : list binder × expr :=
 let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
-/-- Auxilliary defintion for `get_app_fn_args`. -/
+/-- Auxiliary defintion for `get_app_fn_args`. -/
 meta def get_app_fn_args_aux : list expr → expr → expr × list expr
 | r (app f a) := get_app_fn_args_aux (a::r) f
 | r e         := (e, r)
@@ -654,12 +776,18 @@ get_app_fn_args_aux []
 
 /-- `drop_pis es e` instantiates the pis in `e` with the expressions from `es`. -/
 meta def drop_pis : list expr → expr → tactic expr
-| (list.cons v vs) (pi n bi d b) := do
+| (v :: vs) (pi n bi d b) := do
   t ← infer_type v,
   guard (t =ₐ d),
   drop_pis vs (b.instantiate_var v)
 | [] e := return e
 | _  _ := failed
+
+/-- `instantiate_pis es e` instantiates the pis in `e` with the expressions from `es`.
+  Does not check whether the result remains type-correct. -/
+meta def instantiate_pis : list expr → expr → expr
+| (v :: vs) (pi n bi d b) := instantiate_pis vs (b.instantiate_var v)
+| _ e := e
 
 /-- `mk_op_lst op empty [x1, x2, ...]` is defined as `op x1 (op x2 ...)`.
   Returns `empty` if the list is empty. -/
@@ -693,7 +821,7 @@ e.has_local_in $ mk_name_set.insert l.local_uniq_name
 /-- Turns a local constant into a binder -/
 meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
-| _                       := default binder
+| _                       := default
 
 /-- Strip-away the context-dependent unique id for the given local const and return: its friendly
 `name`, its `binder_info`, and its `type : expr`. -/
@@ -717,7 +845,8 @@ meta def unsafe_cast {elab₁ elab₂ : bool} : expr elab₁ → expr elab₂ :=
 /-- `replace_subexprs e mappings` takes an `e : expr` and interprets a `list (expr × expr)` as
 a collection of rules for variable replacements. A pair `(f, t)` encodes a rule which says "whenever
 `f` is encountered in `e` verbatim, replace it with `t`". -/
-meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) : expr elab :=
+meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) :
+  expr elab :=
 unsafe_cast $ e.unsafe_cast.replace $ λ e n,
   (mappings.filter $ λ ent : expr × expr, ent.1 = e).head'.map prod.snd
 
@@ -752,7 +881,8 @@ private meta def all_implicitly_included_variables_aux
 | []          vs rs tt := all_implicitly_included_variables_aux rs vs [] ff
 | []          vs rs ff := vs
 | (e :: rest) vs rs b :=
-  let (vs, rs, b) := if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
+  let (vs, rs, b) :=
+    if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
   all_implicitly_included_variables_aux rest vs rs b
 
 /-- `all_implicitly_included_variables es vs` accepts `es`, a list of `expr.local_const`, and `vs`,
@@ -763,6 +893,87 @@ private meta def all_implicitly_included_variables_aux
     In particular, those elements of `vs` are included automatically. -/
 meta def all_implicitly_included_variables (es vs : list expr) : list expr :=
 all_implicitly_included_variables_aux es vs [] ff
+
+/-- Get the list of explicit arguments of a function. -/
+meta def list_explicit_args (f : expr) : tactic (list expr) :=
+tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
+
+/--  `replace_explicit_args f parg` assumes that `f` is an expression corresponding to a function
+application.  It replaces the explicit arguments of `f`, in succession, by the elements of `parg`.
+The implicit arguments of `f` remain unchanged. -/
+meta def replace_explicit_args (f : expr) (parg : list expr) : tactic expr :=
+do finf ← (get_fun_info f.get_app_fn),
+  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
+  let nargs := list.replace_if f.get_app_args is_ex_arg parg,
+  return $ expr.mk_app f.get_app_fn nargs
+
+/-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
+This also works if `x1, ... xn` contain free variables. -/
+protected meta def simple_infer_type (env : environment) (e : expr) : exceptional expr := do
+(@const tt n ls, es) ← return e.get_app_fn_args |
+  exceptional.fail "expression is not a constant applied to arguments",
+d ← env.get n,
+return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip ls
+
+/-- Auxilliary function for `head_eta_expand`. -/
+meta def head_eta_expand_aux : ℕ → expr → expr → expr
+| (n+1) e (pi x bi d b) :=
+  lam x bi d $ head_eta_expand_aux n e b
+| _ e _ := e
+
+/-- `head_eta_expand n e t` eta-expands `e` `n` times, with the binders info and domains obtained
+  by its type `t`. -/
+meta def head_eta_expand (n : ℕ) (e t : expr) : expr :=
+((e.lift_vars 0 n).mk_app $ (list.range n).reverse.map var).head_eta_expand_aux n t
+
+/-- `e.eta_expand env dict` eta-expands all expressions that have as head a constant `n` in
+`dict`. They are expanded until they are applied to one more argument than the maximum in
+`dict.find n`. -/
+protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) : expr → expr
+| e := e.replace $ λ e _, do
+  let (e0, es) := e.get_app_fn_args,
+  let ns := (dict.find e0.const_name).iget,
+  guard (bnot ns.empty),
+  let e' := e0.mk_app $ es.map eta_expand,
+  let needed_n := ns.foldr max 0 + 1,
+  if needed_n ≤ es.length then some e'
+  else do
+    e'_type ← (e'.simple_infer_type env).to_option,
+    some $ head_eta_expand (needed_n - es.length) e' e'_type
+
+/--
+`e.apply_replacement_fun f test` applies `f` to each identifier
+(inductive type, defined function etc) in an expression, unless
+* The identifier occurs in an application with first argument `arg`; and
+* `test arg` is false.
+However, if `f` is in the dictionary `relevant`, then the argument `relevant.find f`
+is tested, instead of the first argument.
+
+Reorder contains the information about what arguments to reorder:
+e.g. `g x₁ x₂ x₃ ... xₙ` becomes `g x₂ x₁ x₃ ... xₙ` if `reorder.find g = some [1]`.
+We assume that all functions where we want to reorder arguments are fully applied.
+This can be done by applying `expr.eta_expand` first.
+-/
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
+  (relevant : name_map ℕ) (reorder : name_map $ list ℕ) : expr → expr
+| e := e.replace $ λ e _,
+  match e with
+  | const n ls := some $ const (f n) $
+      -- if the first two arguments are reordered, we also reorder the first two universe parameters
+      if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
+  | app g x :=
+    let f := g.get_app_fn,
+        nm := f.const_name,
+        n_args := g.get_app_num_args in -- this might be inefficient
+    if n_args ∈ (reorder.find nm).iget ∧ test g.get_app_args.head then
+    -- interchange `x` and the last argument of `g`
+    some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
+      apply_replacement_fun g.app_arg else
+    if n_args = (relevant.find nm).lhoare 0 ∧ f.is_constant ∧ ¬ test x then
+      some $ (f.mk_app $ g.get_app_args.map apply_replacement_fun) (apply_replacement_fun x) else
+      none
+  | _ := none
+  end
 
 end expr
 
@@ -839,8 +1050,6 @@ end environment
 
 namespace expr
 
-open tactic
-
 /-- `is_eta_expansion_of args univs l` checks whether for all elements `(nm, pr)` in `l` we have
   `pr = nm.{univs} args`.
   Used in `is_eta_expansion`, where `l` consists of the projections and the fields of the value we
@@ -901,18 +1110,20 @@ end expr
 /-! ### Declarations about `declaration` -/
 
 namespace declaration
-open tactic
 
 /--
-`declaration.update_with_fun f tgt decl`
-sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
-of all `expr.const`s which appear in the value or type of `decl`.
+`declaration.update_with_fun f test tgt decl`
+sets the name of the given `decl : declaration` to `tgt`, and applies both `expr.eta_expand` and
+`expr.apply_replacement_fun` to the value and type of `decl`.
 -/
-protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
+protected meta def update_with_fun (env : environment) (f : name → name) (test : expr → bool)
+  (relevant : name_map ℕ) (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) :
   declaration :=
 let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun f in
-decl.update_value $ decl.value.apply_replacement_fun f
+let decl := decl.update_type $
+  (decl.type.eta_expand env reorder).apply_replacement_fun f test relevant reorder in
+decl.update_value $
+  (decl.value.eta_expand env reorder).apply_replacement_fun f test relevant reorder
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`
@@ -973,8 +1184,8 @@ do tp ← pp tp, body ← pp body.get,
 private meta def print_defn (nm : name) (tp : expr) (body : expr) (is_trusted : bool) :
   tactic format :=
 do tp ← pp tp, body ← pp body,
-   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++ " := "
-     ++ body ++ ">"
+   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++
+     " := " ++ body ++ ">"
 
 /-- formats the arguments of a `declaration.cnst` -/
 private meta def print_cnst (nm : name) (tp : expr) (is_trusted : bool) : tactic format :=
@@ -1002,3 +1213,9 @@ end declaration
 meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=
 unchecked_cast
 expr.has_decidable_eq
+
+section
+local attribute [semireducible] reflected
+meta instance {α} [has_reflect α] : has_reflect (thunk α) | a :=
+expr.lam `x binder_info.default (reflect unit) (reflect $ a ())
+end

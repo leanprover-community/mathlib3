@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
 -/
 
 /-
@@ -32,9 +32,9 @@ inductive preterm : Type
 | var : int → nat → preterm
 | add : preterm → preterm → preterm
 
-localized "notation `&` k    := omega.int.preterm.cst k" in omega.int
-localized "infix ` ** ` : 300 := omega.int.preterm.var" in omega.int
-localized "notation t `+*` s := omega.int.preterm.add t s" in omega.int
+localized "notation (name := preterm.cst) `&` k := omega.int.preterm.cst k" in omega.int
+localized "infix (name := preterm.var) ` ** `:300 := omega.int.preterm.var" in omega.int
+localized "notation (name := preterm.add) t ` +* ` s := omega.int.preterm.add t s" in omega.int
 
 namespace preterm
 
@@ -83,7 +83,7 @@ open_locale list.func -- get notation for list.func.set
       preterm.val, zero_add, term.val],
     split_ifs with h1 h2,
     { simp only [one_mul, h1] },
-    { simp only [neg_mul_eq_neg_mul_symm, one_mul, h2] },
+    { simp only [neg_mul, one_mul, h2] },
     { rw mul_comm }
   end
 | (t +* s) :=

@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.of_associative
 import algebra.ring_quot
-import linear_algebra.tensor_algebra
+import linear_algebra.tensor_algebra.basic
 
 /-!
 # Universal enveloping algebra
@@ -82,14 +82,23 @@ def lift : (L →ₗ⁅R⁆ A) ≃ (universal_enveloping_algebra R L →ₐ[R] A
     ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : L →ₗ[R] A),
     begin
       intros a b h, induction h with x y,
-      simp [lie_ring.of_associative_ring_bracket],
+      simp only [lie_ring.of_associative_ring_bracket,
+        map_add, tensor_algebra.lift_ι_apply, lie_hom.coe_to_linear_map, lie_hom.map_lie,
+        map_mul, sub_add_cancel],
     end⟩,
-  inv_fun := λ F, (lie_algebra.of_associative_algebra_hom F).comp (ι R),
-  left_inv := λ f, by { ext, simp [ι, mk_alg_hom], },
-  right_inv := λ F, by { ext, simp [ι, mk_alg_hom], } }
+  inv_fun := λ F, (F : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R),
+  left_inv := λ f, by { ext, simp only [ι, mk_alg_hom,
+    tensor_algebra.lift_ι_apply, lie_hom.coe_to_linear_map, linear_map.to_fun_eq_coe,
+    linear_map.coe_comp, lie_hom.coe_comp, alg_hom.coe_to_lie_hom, lie_hom.coe_mk,
+    function.comp_app, alg_hom.to_linear_map_apply, ring_quot.lift_alg_hom_mk_alg_hom_apply], },
+  right_inv := λ F, by { ext, simp only [ι, mk_alg_hom,
+    tensor_algebra.lift_ι_apply, lie_hom.coe_to_linear_map, linear_map.to_fun_eq_coe,
+    linear_map.coe_comp, lie_hom.coe_linear_map_comp, alg_hom.comp_to_linear_map,
+    function.comp_app, alg_hom.to_linear_map_apply, ring_quot.lift_alg_hom_mk_alg_hom_apply,
+    alg_hom.coe_to_lie_hom, lie_hom.coe_mk], } }
 
 @[simp] lemma lift_symm_apply (F : universal_enveloping_algebra R L →ₐ[R] A) :
-  (lift R).symm F = (lie_algebra.of_associative_algebra_hom F).comp (ι R) :=
+  (lift R).symm F = (F : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R) :=
 rfl
 
 @[simp] lemma ι_comp_lift : (lift R f) ∘ (ι R) = f :=
@@ -107,14 +116,10 @@ end
 
 /-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma hom_ext {g₁ g₂ : universal_enveloping_algebra R L →ₐ[R] A}
-  (h : g₁ ∘ (ι R) = g₂ ∘ (ι R)) : g₁ = g₂ :=
-begin
-  apply (lift R).symm.injective,
-  rw [lift_symm_apply, lift_symm_apply],
-  ext x,
-  have := congr h (rfl : x = x),
-  rw function.comp_apply at this,
-  simp [this],
-end
+  (h : (g₁ : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R) =
+       (g₂ : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R)) :
+  g₁ = g₂ :=
+have h' : (lift R).symm g₁ = (lift R).symm g₂, { ext, simp [h], },
+(lift R).symm.injective h'
 
 end universal_enveloping_algebra

@@ -1,13 +1,16 @@
 /-
 Copyright (c) 2017 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
-import tactic.ext
 import tactic.lint
+import control.basic
 
 /-!
 # Functors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module provides additional lemmas, definitions, and instances for `functor`s.
 
@@ -26,7 +29,7 @@ functor, applicative
 
 attribute [functor_norm] seq_assoc pure_seq_eq_map map_pure seq_map_assoc map_seq
 
-universe variables u v w
+universes u v w
 
 section functor
 
@@ -95,7 +98,7 @@ instance {γ} : is_lawful_functor (const γ) :=
 by constructor; intros; refl
 
 instance {α β} [inhabited α] : inhabited (const α β) :=
-⟨(default _ : α)⟩
+⟨(default : α)⟩
 
 end const
 
@@ -120,7 +123,7 @@ instance add_const.is_lawful_functor {γ} : is_lawful_functor (add_const γ) :=
 @const.is_lawful_functor γ
 
 instance {α β} [inhabited α] : inhabited (add_const α β) :=
-⟨(default _ : α)⟩
+⟨(default : α)⟩
 
 /-- `functor.comp` is a wrapper around `function.comp` for types.
     It prevents Lean's type class resolution mechanism from trying
@@ -145,7 +148,7 @@ protected lemma ext
   {α} {x y : comp F G α} : x.run = y.run → x = y := id
 
 instance {α} [inhabited (F (G α))] : inhabited (comp F G α) :=
-⟨(default _ : F (G α))⟩
+⟨(default : F (G α))⟩
 
 variables [functor F] [functor G]
 
@@ -220,7 +223,7 @@ end comp
 
 variables {F : Type u → Type u} [functor F]
 
-/-- If we consider `x : F α` to, in some sense, contain values of type `α`, 
+/-- If we consider `x : F α` to, in some sense, contain values of type `α`,
 predicate `liftp p x` holds iff every value contained by `x` satisfies `p`. -/
 def liftp {α : Type u} (p : α → Prop) (x : F α) : Prop :=
 ∃ u : F (subtype p), subtype.val <$> u = x
@@ -242,10 +245,3 @@ theorem of_mem_supp {α : Type u} {x : F α} {p : α → Prop} (h : liftp p x) :
 λ y hy, hy h
 
 end functor
-
-namespace ulift
-
-instance : functor ulift :=
-{ map := λ α β f, up ∘ f ∘ down }
-
-end ulift

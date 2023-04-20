@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 import control.bitraversable.basic
 
 /-!
 # Bitraversable Lemmas
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
   * tfst - traverse on first functor argument

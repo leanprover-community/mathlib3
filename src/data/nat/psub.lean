@@ -1,11 +1,15 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
+import data.option.basic
 import data.nat.basic
 /-!
 # Partial predecessor and partial subtraction on the natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The usual definition of natural number subtraction (`nat.sub`) returns 0 as a "garbage value" for
 `a - b` when `a < b`. Similarly, `nat.pred 0` is defined to be `0`. The functions in this file
@@ -62,7 +66,7 @@ begin
   { show m < n, refine lt_of_not_ge (λ h, _),
     cases le.dest h with k e,
     injection s.symm.trans (psub_eq_some.2 $ (add_comm _ _).trans e) },
-  { show n ≤ m, rw ← psub_eq_some.1 s, apply le_add_left }
+  { show n ≤ m, rw ← psub_eq_some.1 s, apply nat.le_add_left }
 end
 
 theorem ppred_eq_pred {n} (h : 0 < n) : ppred n = some (pred n) :=

@@ -1,5 +1,4 @@
 import topology.category.Top.limits
-import category_theory.limits.shapes
 import topology.instances.real
 import topology.tactic
 
@@ -81,8 +80,6 @@ def g : X ⟶ R :=
 pushout.desc (𝟙 _) (𝟙 _) rfl
 
 end Gluing
-
-universes v u w
 
 section Products
 

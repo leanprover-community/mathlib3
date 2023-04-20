@@ -1,14 +1,17 @@
 /-
-Copyright (c) 2020 Johan Commelin and Robert Y. Lewis. All rights reserved.
+Copyright (c) 2020 Johan Commelin, Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin and Robert Y. Lewis
+Authors: Johan Commelin, Robert Y. Lewis
 -/
-
 import data.mv_polynomial.rename
+import data.mv_polynomial.variables
 
 /-!
 
 # Monad operations on `mv_polynomial`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines two monadic operations on `mv_polynomial`. Given `p : mv_polynomial σ R`,
 
@@ -63,11 +66,13 @@ def bind₁ (f : σ → mv_polynomial τ R) : mv_polynomial σ R →ₐ[R] mv_po
 aeval f
 
 /--
-`bind₂` is the "right hand side" bind operation on `mv_polynomial`, operating on the coefficient type.
-Given a polynomial `p : mv_polynomial σ R` and a map `f : R → mv_polynomial σ S` taking coefficients
-in `p` to polynomials over a new ring `S`, `bind₂ f p` replaces each coefficient in `p` with its
-value under `f`, producing a new polynomial over `S`. The variable type remains the same.
-This operation is a ring hom.
+`bind₂` is the "right hand side" bind operation on `mv_polynomial`,
+operating on the coefficient type.
+Given a polynomial `p : mv_polynomial σ R` and
+a map `f : R → mv_polynomial σ S` taking coefficients in `p` to polynomials over a new ring `S`,
+`bind₂ f p` replaces each coefficient in `p` with its value under `f`,
+producing a new polynomial over `S`.
+The variable type remains the same. This operation is a ring hom.
 -/
 def bind₂ (f : R →+* mv_polynomial σ S) : mv_polynomial σ R →+* mv_polynomial σ S :=
 eval₂_hom f X
@@ -131,17 +136,11 @@ eval₂_hom_X' f X i
 lemma bind₁_X_left : bind₁ (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
 by { ext1 i, simp }
 
-lemma aeval_X_left : aeval (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
-by rw [aeval_eq_bind₁, bind₁_X_left]
-
-lemma aeval_X_left_apply (φ : mv_polynomial σ R) : aeval X φ = φ :=
-by rw [aeval_eq_bind₁, bind₁_X_left, alg_hom.id_apply]
-
 variable (f : σ → mv_polynomial τ R)
 
 @[simp]
 lemma bind₁_C_right (f : σ → mv_polynomial τ R) (x) : bind₁ f (C x) = C x :=
-by simp [bind₁, C, aeval_monomial, finsupp.prod_zero_index]; refl
+by simp [bind₁, algebra_map_eq]
 
 @[simp]
 lemma bind₂_C_right (f : R →+* mv_polynomial σ S) (r : R) : bind₂ f (C r) = f r :=
@@ -149,7 +148,7 @@ eval₂_hom_C f X r
 
 @[simp]
 lemma bind₂_C_left : bind₂ (C : R →+* mv_polynomial σ R) = ring_hom.id _ :=
-by { ext1; simp }
+by { ext : 2; simp }
 
 @[simp]
 lemma bind₂_comp_C (f : R →+* mv_polynomial σ S) :
@@ -192,7 +191,7 @@ by { ext1, apply bind₁_bind₁ }
 
 lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) :
   (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
-by { ext1; simp }
+by { ext : 2; simp }
 
 lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T)
   (φ : mv_polynomial σ R) :
@@ -260,7 +259,7 @@ by { ext1, apply aeval_bind₁ }
 
 lemma eval₂_hom_comp_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S) :
   (eval₂_hom f g).comp (bind₂ h) = eval₂_hom ((eval₂_hom f g).comp h) g :=
-by { ext1; simp }
+by { ext : 2; simp }
 
 lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S)
   (φ : mv_polynomial σ R) :
@@ -268,7 +267,7 @@ lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynom
 ring_hom.congr_fun (eval₂_hom_comp_bind₂ f g h) φ
 
 lemma aeval_bind₂ [algebra S T] (f : σ → T) (g : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
-  aeval f (bind₂ g φ) = eval₂_hom ((@aeval S T σ _ f _ _ : mv_polynomial σ S →+* T).comp g) f φ :=
+  aeval f (bind₂ g φ) = eval₂_hom ((↑(aeval f : _ →ₐ[S] _) : _ →+* _).comp g) f φ :=
 eval₂_hom_bind₂ _ _ _ _
 
 lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl
@@ -287,6 +286,44 @@ by simp only [monomial_eq, ring_hom.map_mul, bind₂_C_right, finsupp.prod,
 lemma bind₂_monomial_one (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) :
   bind₂ f (monomial d 1) = monomial d 1 :=
 by rw [bind₂_monomial, f.map_one, one_mul]
+
+section
+open_locale classical
+
+lemma vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  (bind₁ f φ).vars ⊆ φ.vars.bUnion (λ i, (f i).vars) :=
+begin
+  calc (bind₁ f φ).vars
+      = (φ.support.sum (λ (x : σ →₀ ℕ), (bind₁ f) (monomial x (coeff x φ)))).vars :
+        by { rw [← alg_hom.map_sum, ← φ.as_sum], }
+  ... ≤ φ.support.bUnion (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) :
+        vars_sum_subset _ _
+  ... = φ.support.bUnion (λ (d : σ →₀ ℕ), (C (coeff d φ) * ∏ i in d.support, f i ^ d i).vars) :
+        by simp only [bind₁_monomial]
+  ... ≤ φ.support.bUnion (λ (d : σ →₀ ℕ), d.support.bUnion (λ i, (f i).vars)) : _ -- proof below
+  ... ≤ φ.vars.bUnion (λ (i : σ), (f i).vars) : _, -- proof below
+  { apply finset.bUnion_mono,
+    intros d hd,
+    calc (C (coeff d φ) * ∏ (i : σ) in d.support, f i ^ d i).vars
+        ≤ (C (coeff d φ)).vars ∪ (∏ (i : σ) in d.support, f i ^ d i).vars : vars_mul _ _
+    ... ≤ (∏ (i : σ) in d.support, f i ^ d i).vars :
+      by simp only [finset.empty_union, vars_C, finset.le_iff_subset, finset.subset.refl]
+    ... ≤ d.support.bUnion (λ (i : σ), (f i ^ d i).vars) : vars_prod _
+    ... ≤ d.support.bUnion (λ (i : σ), (f i).vars) : _,
+    apply finset.bUnion_mono,
+    intros i hi,
+    apply vars_pow, },
+  { intro j,
+    simp_rw finset.mem_bUnion,
+    rintro ⟨d, hd, ⟨i, hi, hj⟩⟩,
+    exact ⟨i, (mem_vars _).mpr ⟨d, hd, hi⟩, hj⟩ }
+end
+end
+
+lemma mem_vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) {j : τ}
+  (h : j ∈ (bind₁ f φ).vars) :
+  ∃ (i : σ), i ∈ φ.vars ∧ j ∈ (f i).vars :=
+by simpa only [exists_prop, finset.mem_bUnion, mem_support_iff, ne.def] using vars_bind₁ f φ h
 
 instance monad : monad (λ σ, mv_polynomial σ R) :=
 { map := λ α β f p, rename f p,

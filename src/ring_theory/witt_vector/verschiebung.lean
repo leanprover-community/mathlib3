@@ -26,9 +26,6 @@ local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 noncomputable theory
 
--- unfortunately, without this attribute, some of the code breaks for reasons I don't understand
-local attribute [semireducible] witt_vector
-
 /--
 `verschiebung_fun x` shifts the coefficients of `x` up by one,
 by inserting 0 as the 0th coefficient.
@@ -61,11 +58,11 @@ by rw [ghost_component_apply, aeval_witt_polynomial, finset.range_one, finset.su
   ghost_component (n + 1) (verschiebung_fun x) = p * ghost_component n x :=
 begin
   simp only [ghost_component_apply, aeval_witt_polynomial],
-  rw [finset.sum_range_succ', verschiebung_fun_coeff, if_pos rfl, zero_pow (pow_pos hp.pos _),
+  rw [finset.sum_range_succ', verschiebung_fun_coeff, if_pos rfl, zero_pow (pow_pos hp.1.pos _),
       mul_zero, add_zero, finset.mul_sum, finset.sum_congr rfl],
   rintro i -,
   simp only [pow_succ, mul_assoc, verschiebung_fun_coeff, if_neg (nat.succ_ne_zero i),
-    nat.succ_sub_succ, nat.sub_zero]
+    nat.succ_sub_succ, tsub_zero]
 end
 
 omit hp
@@ -83,10 +80,10 @@ if n = 0 then 0 else X (n-1)
 lemma aeval_verschiebung_poly' (x : 𝕎 R) (n : ℕ) :
   aeval x.coeff (verschiebung_poly n) = (verschiebung_fun x).coeff n :=
 begin
- cases n,
+  cases n,
   { simp only [verschiebung_poly, verschiebung_fun_coeff_zero, if_pos rfl, alg_hom.map_zero] },
   { rw [verschiebung_poly, verschiebung_fun_coeff_succ, if_neg (n.succ_ne_zero),
-        aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel] }
+        aeval_X, nat.succ_eq_add_one, add_tsub_cancel_right] }
 end
 
 variable (p)
@@ -161,8 +158,8 @@ begin
   split_ifs with hn,
   { simp only [hn, verschiebung_poly_zero, witt_polynomial_zero, bind₁_X_right] },
   { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
-    rw [nat.succ_eq_add_one, nat.add_sub_cancel, ring_hom.map_mul,
-        ring_hom.map_nat_cast, hom_bind₁],
+    rw [nat.succ_eq_add_one, add_tsub_cancel_right, ring_hom.map_mul,
+        map_nat_cast, hom_bind₁],
     calc  _
         = ghost_component (n + 1) (verschiebung $ mk p x) : _
     ... = _ : _,
@@ -170,9 +167,7 @@ begin
       simp only [←aeval_verschiebung_poly, coeff_mk],
       funext k,
       exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-    { rw [ghost_component_verschiebung],
-      congr' 1,
-      exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl } }
+    { rw [ghost_component_verschiebung], refl } }
 end
 
 end witt_vector

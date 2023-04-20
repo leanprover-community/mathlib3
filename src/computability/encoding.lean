@@ -1,15 +1,19 @@
 /-
 Copyright (c) 2020 Pim Spelier, Daan van Gent. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Pim Spelier, Daan van Gent.
+Authors: Pim Spelier, Daan van Gent
 -/
 
 import data.fintype.basic
 import data.num.lemmas
+import set_theory.cardinal.ordinal
 import tactic.derive_fintype
 
 /-!
 # Encodings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains the definition of a (finite) encoding, a map from a type to
 strings in an alphabet, used in defining computability by Turing machines.
@@ -23,18 +27,32 @@ It also contains several examples:
 - `fin_encoding_bool_bool`  : an encoding of bool.
 -/
 
+universes u v
+open_locale cardinal
+
 namespace computability
 
 /-- An encoding of a type in a certain alphabet, together with a decoding. -/
-structure encoding (α : Type) :=
-(Γ : Type)
+structure encoding (α : Type u) :=
+(Γ : Type v)
 (encode : α → list Γ)
 (decode : list Γ → option α)
 (decode_encode : ∀ x, decode (encode x) = some x)
 
+lemma encoding.encode_injective {α : Type u} (e : encoding α) :
+  function.injective e.encode :=
+begin
+  refine λ _ _ h, option.some_injective _ _,
+  rw [← e.decode_encode, ← e.decode_encode, h],
+end
+
 /-- An encoding plus a guarantee of finiteness of the alphabet. -/
-structure fin_encoding (α : Type) extends encoding α :=
+structure fin_encoding (α : Type u) extends encoding.{u 0} α :=
 (Γ_fin : fintype Γ)
+
+instance {α : Type u} (e : fin_encoding α) :
+  fintype e.to_encoding.Γ :=
+e.Γ_fin
 
 /-- A standard Turing machine alphabet, consisting of blank,bit0,bit1,bra,ket,comma. -/
 @[derive [decidable_eq,fintype]]
@@ -174,5 +192,24 @@ def fin_encoding_bool_bool : fin_encoding bool :=
 instance inhabited_fin_encoding : inhabited (fin_encoding bool) := ⟨fin_encoding_bool_bool⟩
 
 instance inhabited_encoding : inhabited (encoding bool) := ⟨fin_encoding_bool_bool.to_encoding⟩
+
+lemma encoding.card_le_card_list {α : Type u} (e : encoding.{u v} α) :
+  cardinal.lift.{v} (# α) ≤ cardinal.lift.{u} (# (list e.Γ)) :=
+(cardinal.lift_mk_le').2 ⟨⟨e.encode, e.encode_injective⟩⟩
+
+lemma encoding.card_le_aleph_0 {α : Type u} (e : encoding.{u v} α) [encodable e.Γ] : #α ≤ ℵ₀ :=
+begin
+  refine cardinal.lift_le.1 (e.card_le_card_list.trans _),
+  simp only [cardinal.lift_aleph_0, cardinal.lift_le_aleph_0],
+  casesI is_empty_or_nonempty e.Γ with h h,
+  { simp only [cardinal.mk_le_aleph_0] },
+  { rw cardinal.mk_list_eq_aleph_0 }
+end
+
+lemma fin_encoding.card_le_aleph_0 {α : Type u} (e : fin_encoding α) : #α ≤ ℵ₀ :=
+begin
+  haveI : encodable e.Γ := fintype.to_encodable _,
+  exact e.to_encoding.card_le_aleph_0
+end
 
 end computability

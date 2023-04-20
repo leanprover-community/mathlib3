@@ -1,9 +1,11 @@
 /-
 Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
-import data.fintype.card
+import data.fintype.big_operators
+import data.fintype.perm
+import data.fintype.prod
 import dynamics.fixed_points.basic
 
 /-!
@@ -30,15 +32,16 @@ namespace imo_1987_q1
 /-- The set of pairs `(x : α, σ : perm α)` such that `σ x = x` is equivalent to the set of pairs
 `(x : α, σ : perm {x}ᶜ)`. -/
 def fixed_points_equiv :
-  {σx : α × perm α | σx.2 σx.1 = σx.1} ≃ Σ x : α, perm ({x}ᶜ : set α) :=
-calc {σx : α × perm α | σx.2 σx.1 = σx.1} ≃ Σ x : α, {σ : perm α | σ x = x} : set_prod_equiv_sigma _
-... ≃ Σ x : α, {σ : perm α | ∀ y : ({x} : set α), σ y = equiv.refl ↥({x} : set α) y} :
+  {σx : α × perm α // σx.2 σx.1 = σx.1} ≃ Σ x : α, perm ({x}ᶜ : set α) :=
+calc {σx : α × perm α // σx.2 σx.1 = σx.1} ≃ Σ x : α, {σ : perm α // σ x = x} :
+  set_prod_equiv_sigma _
+... ≃ Σ x : α, {σ : perm α // ∀ y : ({x} : set α), σ y = equiv.refl ↥({x} : set α) y} :
   sigma_congr_right (λ x, equiv.set.of_eq $ by { simp only [set_coe.forall], dsimp, simp })
 ... ≃ Σ x : α, perm ({x}ᶜ : set α) :
   sigma_congr_right (λ x, by apply equiv.set.compl)
 
 theorem card_fixed_points :
-  card {σx : α × perm α | σx.2 σx.1 = σx.1} = card α * (card α - 1)! :=
+  card {σx : α × perm α // σx.2 σx.1 = σx.1} = card α * (card α - 1)! :=
 by simp [card_congr (fixed_points_equiv α), card_perm, finset.filter_not, finset.card_sdiff,
   finset.filter_eq', finset.card_univ]
 
@@ -60,12 +63,12 @@ It is easy to see that the cardinality of the LHS is given by
 `∑ k : fin (card α + 1), k * p α k`. -/
 def fixed_points_equiv' :
   (Σ (k : fin (card α + 1)) (σ : fiber α k), fixed_points σ.1) ≃
-    {σx : α × perm α | σx.2 σx.1 = σx.1} :=
+    {σx : α × perm α // σx.2 σx.1 = σx.1} :=
 { to_fun := λ p, ⟨⟨p.2.2, p.2.1⟩, p.2.2.2⟩,
   inv_fun := λ p,
-    ⟨⟨card (fixed_points p.1.2), (card_subtype_le _).trans_lt (nat.lt_succ_self _)⟩, 
+    ⟨⟨card (fixed_points p.1.2), (card_subtype_le _).trans_lt (nat.lt_succ_self _)⟩,
      ⟨p.1.2, rfl⟩, ⟨p.1.1, p.2⟩⟩,
-  left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simp only [mem_fiber, subtype.coe_mk] at hσ, 
+  left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simp only [mem_fiber, fin.coe_mk] at hσ,
     subst k, refl },
   right_inv := λ ⟨⟨x, σ⟩, h⟩, rfl }
 

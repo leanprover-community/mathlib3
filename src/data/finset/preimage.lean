@@ -8,6 +8,9 @@ import algebra.big_operators.basic
 
 /-!
 # Preimage of a `finset` under an injective map.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open set function
@@ -28,7 +31,7 @@ noncomputable def preimage (s : finset β) (f : α → β)
 
 @[simp] lemma mem_preimage {f : α → β} {s : finset β} {hf : set.inj_on f (f ⁻¹' ↑s)} {x : α} :
   x ∈ preimage s f hf ↔ f x ∈ s :=
-set.finite.mem_to_finset
+set.finite.mem_to_finset _
 
 @[simp, norm_cast] lemma coe_preimage {f : α → β} (s : finset β)
   (hf : set.inj_on f (f ⁻¹' ↑s)) : (↑(preimage s f hf) : set α) = f ⁻¹' ↑s :=
@@ -81,6 +84,21 @@ lemma image_preimage_of_bij [decidable_eq β] (f : α → β) (s : finset β)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) :
   image f (preimage s f hf.inj_on) = s :=
 finset.coe_inj.1 $ by simpa using hf.image_eq
+
+lemma preimage_subset {f : α ↪ β} {s : finset β} {t : finset α} (hs : s ⊆ t.map f) :
+  s.preimage f (f.injective.inj_on _) ⊆ t :=
+λ x hx, (mem_map' f).1 (hs (mem_preimage.1 hx))
+
+lemma subset_map_iff {f : α ↪ β} {s : finset β} {t : finset α} :
+  s ⊆ t.map f ↔ ∃ u ⊆ t, s = u.map f :=
+begin
+  classical,
+  refine ⟨λ h, ⟨_, preimage_subset h, _⟩, _⟩,
+  { rw [map_eq_image, image_preimage, filter_true_of_mem (λ x hx, _)],
+    exact coe_map_subset_range _ _ (h hx) },
+  { rintro ⟨u, hut, rfl⟩,
+    exact map_subset_map.2 hut }
+end
 
 lemma sigma_preimage_mk {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a)) (t : finset α) :
   t.sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s.filter (λ a, a.1 ∈ t) :=

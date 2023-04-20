@@ -1,13 +1,16 @@
 /-
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
-import data.finset.basic
+import data.finset.image
 import data.multiset.pi
 
 /-!
 # The cartesian product of finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace finset
@@ -22,18 +25,18 @@ satisfied. -/
 def pi.empty (β : α → Sort*) (a : α) (h : a ∈ (∅ : finset α)) : β a :=
 multiset.pi.empty β a h
 
-variables {δ : α → Type*} [decidable_eq α]
+variables {β : α → Type*} {δ : α → Sort*} [decidable_eq α]
 
 /-- Given a finset `s` of `α` and for all `a : α` a finset `t a` of `δ a`, then one can define the
 finset `s.pi t` of all functions defined on elements of `s` taking values in `t a` for `a ∈ s`.
 Note that the elements of `s.pi t` are only partially defined, on `s`. -/
-def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
-⟨s.1.pi (λ a, (t a).1), nodup_pi s.2 (λ a _, (t a).2)⟩
+def pi (s : finset α) (t : Πa, finset (β a)) : finset (Πa∈s, β a) :=
+⟨s.1.pi (λ a, (t a).1), s.nodup.pi $ λ a _, (t a).nodup⟩
 
-@[simp] lemma pi_val (s : finset α) (t : Πa, finset (δ a)) :
+@[simp] lemma pi_val (s : finset α) (t : Πa, finset (β a)) :
   (s.pi t).1 = s.1.pi (λ a, (t a).1) := rfl
 
-@[simp] lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : Πa∈s, δ a} :
+@[simp] lemma mem_pi {s : finset α} {t : Πa, finset (β a)} {f : Πa∈s, β a} :
   f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
 mem_pi _ _ _
 
@@ -65,23 +68,23 @@ assume e₁ e₂ eq,
   { rw [eq] },
   this
 
-@[simp] lemma pi_empty {t : Πa:α, finset (δ a)} :
-  pi (∅ : finset α) t = singleton (pi.empty δ) := rfl
+@[simp] lemma pi_empty {t : Πa:α, finset (β a)} :
+  pi (∅ : finset α) t = singleton (pi.empty β) := rfl
 
-@[simp] lemma pi_insert [∀a, decidable_eq (δ a)]
-  {s : finset α} {t : Πa:α, finset (δ a)} {a : α} (ha : a ∉ s) :
+@[simp] lemma pi_insert [∀a, decidable_eq (β a)]
+  {s : finset α} {t : Πa:α, finset (β a)} {a : α} (ha : a ∉ s) :
   pi (insert a s) t = (t a).bUnion (λb, (pi s t).image (pi.cons s a b)) :=
 begin
   apply eq_of_veq,
-  rw ← multiset.erase_dup_eq_self.2 (pi (insert a s) t).2,
-  refine (λ s' (h : s' = a ::ₘ s.1), (_ : erase_dup (multiset.pi s' (λ a, (t a).1)) =
-    erase_dup ((t a).1.bind $ λ b,
-    erase_dup $ (multiset.pi s.1 (λ (a : α), (t a).val)).map $
+  rw ← (pi (insert a s) t).2.dedup,
+  refine (λ s' (h : s' = a ::ₘ s.1), (_ : dedup (multiset.pi s' (λ a, (t a).1)) =
+    dedup ((t a).1.bind $ λ b,
+    dedup $ (multiset.pi s.1 (λ (a : α), (t a).val)).map $
       λ f a' h', multiset.pi.cons s.1 a b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),
   subst s', rw pi_cons,
   congr, funext b,
-  rw multiset.erase_dup_eq_self.2,
-  exact multiset.nodup_map (multiset.pi_cons_injective ha) (pi s t).2,
+  refine ((pi s t).nodup.map _).dedup.symm,
+  exact multiset.pi_cons_injective ha,
 end
 
 lemma pi_singletons {β : Type*} (s : finset α) (f : α → β) :
@@ -100,14 +103,13 @@ lemma pi_const_singleton {β : Type*} (s : finset α) (i : β) :
   s.pi (λ _, ({i} : finset β)) = {λ _ _, i} :=
 pi_singletons s (λ _, i)
 
-lemma pi_subset {s : finset α} (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a ∈ s, t₁ a ⊆ t₂ a) :
+lemma pi_subset {s : finset α} (t₁ t₂ : Πa, finset (β a)) (h : ∀ a ∈ s, t₁ a ⊆ t₂ a) :
   s.pi t₁ ⊆ s.pi t₂ :=
 λ g hg, mem_pi.2 $ λ a ha, h a ha (mem_pi.mp hg a ha)
 
 
-lemma pi_disjoint_of_disjoint {δ : α → Type*} [∀a, decidable_eq (δ a)]
-  {s : finset α} [decidable_eq (Πa∈s, δ a)]
-  (t₁ t₂ : Πa, finset (δ a)) {a : α} (ha : a ∈ s) (h : disjoint (t₁ a) (t₂ a)) :
+lemma pi_disjoint_of_disjoint {δ : α → Type*}
+  {s : finset α} (t₁ t₂ : Πa, finset (δ a)) {a : α} (ha : a ∈ s) (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (s.pi t₁) (s.pi t₂) :=
 disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
   disjoint_iff_ne.1 h (f₁ a ha) (mem_pi.mp hf₁ a ha) (f₂ a ha) (mem_pi.mp hf₂ a ha)

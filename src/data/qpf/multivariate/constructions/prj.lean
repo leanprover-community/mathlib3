@@ -1,13 +1,16 @@
 /-
 Copyright (c) 2020 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 
 import control.functor.multivariate
 import data.qpf.multivariate.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Projection functors are QPFs. The `n`-ary projection functors on `i` is an `n`-ary
 functor `F` such that `F (α₀..αᵢ₋₁, αᵢ, αᵢ₊₁..αₙ₋₁) = αᵢ`
 -/
@@ -22,7 +25,7 @@ variables {n : ℕ} (i : fin2 n)
 def prj (v : typevec.{u} n) : Type u := v i
 
 instance prj.inhabited {v : typevec.{u} n} [inhabited (v i)] : inhabited (prj i v) :=
-⟨ (default _ : v i) ⟩
+⟨ (default : v i) ⟩
 
 /-- `map` on functor `prj i` -/
 def prj.map ⦃α β : typevec n⦄ (f : α ⟹ β) : prj i α → prj i β :=

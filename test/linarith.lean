@@ -1,5 +1,4 @@
 import tactic.linarith
-import algebra.field_power
 
 example {α : Type} (_inst : Π (a : Prop), decidable a)
   [linear_ordered_field α]
@@ -57,7 +56,7 @@ example (ε : ℚ) (h1 : ε > 0) : ε / 3 + ε / 3 + ε / 3 = ε :=
 by linarith
 
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
-by linarith {discharger := `[ring SOP]}
+by linarith {discharger := `[ring]}
 
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
 by linarith
@@ -207,6 +206,25 @@ begin
   nlinarith
 end
 
+example (a b c z : ℚ) (_ : a ≤ z) (E0 : b ≤ c) (E1 : c ≤ a) (E2 : 0 ≤ c) : b ≤ a + c := by linarith
+
+example (u v x y A B : ℚ)
+(a_7 : 0 < A - u)
+(a_8 : 0 < A - v) :
+(0 ≤ A * (1 - A))
+→ (0 ≤ A * (B - 1))
+→ (0 < A * (A - u))
+→ (0 ≤ (B - 1) * (A - u))
+→ (0 ≤ (B - 1) * (A - v))
+→ (0 ≤ (B - x) * v)
+→ (0 ≤ (B - y) * u)
+→ (0 ≤ u * (A - v))
+→ u * y + v * x + u * v < 3 * A * B :=
+begin
+  intros,
+  linarith
+end
+
 example (u v x y A B : ℚ)
 (a : 0 < A)
 (a_1 : 0 <= 1 - A)
@@ -299,11 +317,11 @@ example (u v x y A B : ℚ)
 -> (0 < (A - v) * (A - u))
 -> (0 < (A - v) * (A - v))
 ->
- u * y + v * x + u * v < 3 * A * B :=
- begin
+  u * y + v * x + u * v < 3 * A * B :=
+begin
   intros,
   linarith
- end
+end
 
 example (A B : ℚ) : (0 < A) → (1 ≤ B) → (0 < A / 8 * B) :=
 begin
@@ -343,7 +361,7 @@ variable [fact false] -- we work in an inconsistent context below
 def leα : α → α → Prop := λ a b, ∀ c : α, true
 
 noncomputable instance : linear_ordered_field α :=
-by refine_struct { le := leα }; exact false.elim _inst_2
+by refine_struct { le := leα }; exact (fact.out false).elim
 
 example (a : α) (ha : a < 2) : a ≤ a :=
 by linarith
@@ -352,11 +370,11 @@ example (p q r s t u v w : ℕ) (h1 : p + u = q + t) (h2 : r + w = s + v) :
   p * r + q * s + (t * w + u * v) = p * s + q * r + (t * v + u * w) :=
 by nlinarith
 
--- Tests involving a norm, including that squares in a type where `pow_two_nonneg` does not apply
+-- Tests involving a norm, including that squares in a type where `sq_nonneg` does not apply
 -- do not cause an exception
 variables {R : Type*} [ring R] (abs : R → ℚ)
 
-lemma abs_nonneg' : ∀ r, 0 ≤ abs r := false.elim _inst_2
+lemma abs_nonneg' : ∀ r, 0 ≤ abs r := (fact.out false).elim
 
 example (t : R) (a b : ℚ) (h : a ≤ b) : abs (t^2) * a ≤ abs (t^2) * b :=
 by nlinarith [abs_nonneg' abs (t^2)]
@@ -374,7 +392,7 @@ constant T_zero : ordered_ring T
 
 namespace T
 
-lemma zero_lt_one : (0 : T) < 1 := false.elim _inst_2
+lemma zero_lt_one : (0 : T) < 1 := (fact.out false).elim
 
 lemma works {a b : ℕ} (hab : a ≤ b) (h : b < a) : false :=
 begin
@@ -395,3 +413,9 @@ example (x y : ℚ) (h₁ : 0 ≤ y) (h₂ : y ≤ x) : y * x ≤ x ^ 2 := by nl
 
 axiom foo {x : int} : 1 ≤ x → 1 ≤ x*x
 lemma bar (x y: int)(h : 0 ≤ y ∧ 1 ≤ x) : 1 ≤ y + x*x := by linarith [foo h.2]
+
+-- issue #9822
+lemma mytest (j : ℕ) (h : 0 < j) : j-1 < j:=
+begin
+  linarith,
+end

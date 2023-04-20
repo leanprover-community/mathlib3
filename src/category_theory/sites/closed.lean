@@ -48,9 +48,8 @@ universes v u
 
 namespace category_theory
 
-variables {C : Type u} [small_category C]
+variables {C : Type u} [category.{v} C]
 
-variables {P : Cᵒᵖ ⥤ Type u}
 variables (J₁ J₂ : grothendieck_topology C)
 
 namespace grothendieck_topology
@@ -141,7 +140,7 @@ lemma monotone_close {X : C} :
 lemma close_close {X : C} (S : sieve X) :
   J₁.close (J₁.close S) = J₁.close S :=
 le_antisymm
-  (J₁.le_close_of_is_closed (le_refl _) (J₁.close_is_closed S))
+  (J₁.le_close_of_is_closed le_rfl (J₁.close_is_closed S))
   (J₁.monotone_close (J₁.le_close _))
 
 /--
@@ -170,7 +169,7 @@ closure_operator.mk'
   J₁.close
   (λ S₁ S₂ h, J₁.le_close_of_is_closed (h.trans (J₁.le_close _)) (J₁.close_is_closed S₂))
   J₁.le_close
-  (λ S, J₁.le_close_of_is_closed (le_refl _) (J₁.close_is_closed S))
+  (λ S, J₁.le_close_of_is_closed le_rfl (J₁.close_is_closed S))
 
 @[simp]
 lemma closed_iff_closed {X : C} (S : sieve X) :
@@ -184,7 +183,7 @@ The presheaf sending each object to the set of `J`-closed sieves on it. This pre
 (and will turn out to be a subobject classifier for the category of `J`-sheaves).
 -/
 @[simps]
-def functor.closed_sieves : Cᵒᵖ ⥤ Type u :=
+def functor.closed_sieves : Cᵒᵖ ⥤ Type (max v u) :=
 { obj := λ X, {S : sieve X.unop // J₁.is_closed S},
   map := λ X Y f S, ⟨S.1.pullback f.unop, J₁.is_closed_pullback f.unop _ S.2⟩ }
 
@@ -239,7 +238,7 @@ begin
       ext1,
       dsimp,
       rw [← J₁.pullback_close, this _ hf],
-      apply le_antisymm (J₁.le_close_of_is_closed (le_refl _) (x f hf).2) (J₁.le_close _) } },
+      apply le_antisymm (J₁.le_close_of_is_closed le_rfl (x f hf).2) (J₁.le_close _) } },
 end
 
 /--
@@ -269,7 +268,7 @@ end
 
 /-- If being a sheaf for `J₁` is equivalent to being a sheaf for `J₂`, then `J₁ = J₂`. -/
 lemma topology_eq_iff_same_sheaves {J₁ J₂ : grothendieck_topology C} :
-  J₁ = J₂ ↔ (∀ P, presieve.is_sheaf J₁ P ↔ presieve.is_sheaf J₂ P) :=
+  J₁ = J₂ ↔ (∀ (P : Cᵒᵖ ⥤ Type (max v u)), presieve.is_sheaf J₁ P ↔ presieve.is_sheaf J₂ P) :=
 begin
   split,
   { rintro rfl,

@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Automation to construct `traversable` instances
 -/
+import tactic.basic
 import control.traversable.lemmas
-import data.list.basic
 
 namespace tactic.interactive
 
@@ -80,7 +80,8 @@ do t ← infer_type fn >>= whnf,
    mk_mapp_aux' fn t args
 
 /-- derive the equations for a specific `map` definition -/
-meta def derive_map_equations (pre : option name) (n : name) (vs : list expr) (tgt : expr) : tactic unit :=
+meta def derive_map_equations (pre : option name) (n : name) (vs : list expr) (tgt : expr) :
+  tactic unit :=
 do e ← get_env,
    ((e.constructors_of n).enum_from 1).mmap' $ λ ⟨i,c⟩,
    do { mk_meta_var tgt >>= set_goals ∘ pure,
@@ -130,8 +131,10 @@ do vs ← local_context,
      derive_map_equations pre n vs tgt
 
 /-- `seq_apply_constructor f [x,y,z]` synthesizes `f <*> x <*> y <*> z` -/
-private meta def seq_apply_constructor : expr → list (expr ⊕ expr) → tactic (list (tactic expr) × expr)
-| e (sum.inr x :: xs) := prod.map (cons intro1)   id <$> (to_expr ``(%%e <*> %%x) >>= flip seq_apply_constructor xs)
+private meta def seq_apply_constructor :
+  expr → list (expr ⊕ expr) → tactic (list (tactic expr) × expr)
+| e (sum.inr x :: xs) :=
+    prod.map (cons intro1)   id <$> (to_expr ``(%%e <*> %%x) >>= flip seq_apply_constructor xs)
 | e (sum.inl x :: xs) := prod.map (cons $ pure x) id <$> seq_apply_constructor e xs
 | e [] := return ([],e)
 
@@ -207,7 +210,8 @@ do ls ← local_context,
 open applicative
 
 /-- derive the equations for a specific `traverse` definition -/
-meta def derive_traverse_equations (pre : option name) (n : name) (vs : list expr) (tgt : expr) : tactic unit :=
+meta def derive_traverse_equations (pre : option name) (n : name) (vs : list expr) (tgt : expr) :
+  tactic unit :=
 do e ← get_env,
    ((e.constructors_of n).enum_from 1).mmap' $ λ ⟨i,c⟩,
    do { mk_meta_var tgt >>= set_goals ∘ pure,
@@ -266,7 +270,8 @@ meta def mk_one_instance
 do decl ← get_decl n,
    cls_decl ← get_decl cls,
    env ← get_env,
-   guard (env.is_inductive n) <|> fail format!"failed to derive '{cls}', '{n}' is not an inductive type",
+   guard (env.is_inductive n) <|>
+     fail format!"failed to derive '{cls}', '{n}' is not an inductive type",
    let ls := decl.univ_params.map $ λ n, level.param n,
    -- incrementally build up target expression `Π (hp : p) [cls hp] ..., cls (n.{ls} hp ...)`
    -- where `p ...` are the inductive parameter types of `n`
@@ -277,11 +282,11 @@ do decl ← get_decl n,
    tgt ← mk_inst cls tgt,
    tgt ← params.enum.mfoldr (λ ⟨i, param⟩ tgt,
    do -- add typeclass hypothesis for each inductive parameter
-      tgt ← do {
-        guard $ i < env.inductive_num_params n,
+      tgt ← do
+      { guard $ i < env.inductive_num_params n,
         param_cls ← mk_app cls [param],
-        pure $ expr.pi `a binder_info.inst_implicit param_cls tgt
-      } <|> pure tgt,
+        pure $ expr.pi `a binder_info.inst_implicit param_cls tgt }
+      <|> pure tgt,
       pure $ tgt.bind_pi param
    ) tgt,
    () <$ mk_instance tgt <|> do
@@ -351,8 +356,8 @@ do `(@is_lawful_traversable %%f %%d) ← target,
        traversable_law_starter def_eqns; (refl <|> simp_functor (def_eqns ++ comp_def)),
        traversable_law_starter def_eqns; (refl <|> simp none none tt tr_map [] goal ),
        traversable_law_starter def_eqns; (refl <|> do
-         η ← get_local `η <|> do {
-           t ← mk_const ``is_lawful_traversable.naturality >>= infer_type >>= pp,
+         η ← get_local `η <|> do
+         { t ← mk_const ``is_lawful_traversable.naturality >>= infer_type >>= pp,
            fail format!"expecting an `applicative_transformation` called `η` in\nnaturality : {t}"},
          simp none none tt (natur η) [] goal) ];
    refl,

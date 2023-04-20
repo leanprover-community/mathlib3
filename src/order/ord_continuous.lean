@@ -3,12 +3,14 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Johannes Hölzl
 -/
-import order.conditionally_complete_lattice
-import logic.function.iterate
-import order.rel_iso
+import order.conditionally_complete_lattice.basic
+import order.rel_iso.basic
 
 /-!
 # Order continuity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a function is *left order continuous* if it sends all least upper bounds
 to least upper bounds. The order dual notion is called *right order continuity*.
@@ -23,7 +25,7 @@ universes u v w x
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
-open set function
+open function order_dual set
 
 /-!
 ### Definitions
@@ -51,8 +53,8 @@ protected lemma id : left_ord_continuous (id : α → α) := λ s x h, by simpa 
 
 variable {α}
 
-protected lemma order_dual (hf : left_ord_continuous f) :
-  @right_ord_continuous (order_dual α) (order_dual β) _ _ f := hf
+protected lemma order_dual : left_ord_continuous f → right_ord_continuous (to_dual ∘ f ∘ of_dual) :=
+id
 
 lemma map_is_greatest (hf : left_ord_continuous f) {s : set α} {x : α} (h : is_greatest s x):
   is_greatest (f '' s) (f x) :=
@@ -148,15 +150,15 @@ protected lemma id : right_ord_continuous (id : α → α) := λ s x h, by simpa
 
 variable {α}
 
-protected lemma order_dual (hf : right_ord_continuous f) :
-  @left_ord_continuous (order_dual α) (order_dual β) _ _ f := hf
+protected lemma order_dual : right_ord_continuous f → left_ord_continuous (to_dual ∘ f ∘ of_dual) :=
+id
 
 lemma map_is_least (hf : right_ord_continuous f) {s : set α} {x : α} (h : is_least s x):
   is_least (f '' s) (f x) :=
 hf.order_dual.map_is_greatest h
 
 lemma mono (hf : right_ord_continuous f) : monotone f :=
-hf.order_dual.mono.order_dual
+hf.order_dual.mono.dual
 
 lemma comp (hg : right_ord_continuous g) (hf : right_ord_continuous f) :
   right_ord_continuous (g ∘ f) :=
@@ -245,7 +247,8 @@ protected lemma left_ord_continuous : left_ord_continuous e :=
   λ y hy, e.rel_symm_apply.1 $ (is_lub_le_iff hx).2 $ λ x' hx', e.rel_symm_apply.2 $ hy $
     mem_image_of_mem _ hx'⟩
 
-protected lemma right_ord_continuous : right_ord_continuous e := order_iso.left_ord_continuous e.dual
+protected lemma right_ord_continuous : right_ord_continuous e :=
+order_iso.left_ord_continuous e.dual
 
 end preorder
 

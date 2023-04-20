@@ -3,10 +3,13 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.rat
 import data.semiquot
+import data.rat.floor
 /-!
 # Implementation of floating-point numbers (experimental).
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ
@@ -65,7 +68,7 @@ begin
   rw ← int.coe_nat_le at this,
   rw ← sub_nonneg at *,
   simp only [emin, emax] at *,
-  ring,
+  ring_nf,
   assumption
 end, le_trans C.prec_max (nat.le_mul_of_pos_left dec_trivial),
 by rw max_eq_right; simp [sub_eq_add_neg]⟩

@@ -1,14 +1,15 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Mario Carneiro, Simon Hudon
+Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
-import data.fin2
+import data.fin.fin2
 import data.typevec
-import logic.function.basic
-import tactic.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 Functors between the category of tuples of types, and the category Type
 
@@ -28,7 +29,7 @@ and the category of Type -/
 class mvfunctor {n : ℕ} (F : typevec n → Type*) :=
 (map : Π {α β : typevec n}, (α ⟹ β) → (F α → F β))
 
-localized "infixr ` <$$> `:100 := mvfunctor.map" in mvfunctor
+localized "infixr (name := mvfunctor.map) ` <$$> `:100 := mvfunctor.map" in mvfunctor
 
 variables {n : ℕ}
 
@@ -161,7 +162,7 @@ lemma liftp_last_pred_iff {β} (p : β → Prop) (x : F (α ::: β)) :
 begin
   dsimp only [liftp,liftp'],
   apply exists_iff_exists_of_mono F (f _ n α) (g _ n α),
-  { clear x _inst_2 _inst_1 F, ext i ⟨x,_⟩, cases i; refl },
+  { ext i ⟨x,_⟩, cases i; refl },
   { intros, rw [mvfunctor.map_map,(⊚)],
     congr'; ext i ⟨x,_⟩; cases i; refl }
 end
@@ -169,13 +170,18 @@ end
 open function
 variables (rr : β → β → Prop)
 
-private def f : Π (n α), (λ (i : fin2 (n + 1)), {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))}) ⟹
+private def f :
+  Π (n α),
+    (λ (i : fin2 (n + 1)),
+      {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))}) ⟹
     λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}
 | _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 
-private def g : Π (n α), (λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}) ⟹
-    (λ (i : fin2 (n + 1)), {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))})
+private def g :
+  Π (n α), (λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}) ⟹
+    (λ (i : fin2 (n + 1)),
+      {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.1 p_1.2))})
 | _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 
@@ -184,7 +190,7 @@ lemma liftr_last_rel_iff  (x y : F (α ::: β)) :
 begin
   dsimp only [liftr,liftr'],
   apply exists_iff_exists_of_mono F (f rr _ _) (g rr _ _),
-  { clear x y _inst_2 _inst_1 F, ext i ⟨x,_⟩ : 2, cases i; refl, },
+  { ext i ⟨x,_⟩ : 2, cases i; refl, },
   { intros, rw [mvfunctor.map_map,mvfunctor.map_map,(⊚),(⊚)],
     congr'; ext i ⟨x,_⟩; cases i; refl }
 end

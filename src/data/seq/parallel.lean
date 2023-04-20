@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Parallel computation of a computable sequence of computations by
 a diagonal enumeration.
@@ -14,11 +14,12 @@ import data.seq.wseq
 universes u v
 
 namespace computation
-open wseq
+open stream.wseq as wseq
+open stream.seq as seq
 variables {α : Type u} {β : Type v}
 
 def parallel.aux2 : list (computation α) → α ⊕ list (computation α) :=
-list.foldr (λc o, match o with
+list.foldr (λ c o, match o with
 | sum.inl a  := sum.inl a
 | sum.inr ls := rmap (λ c', c' :: ls) (destruct c)
 end) (sum.inr [])
@@ -26,7 +27,7 @@ end) (sum.inr [])
 def parallel.aux1 : list (computation α) × wseq (computation α) →
   α ⊕ list (computation α) × wseq (computation α)
 | (l, S) := rmap (λ l', match seq.destruct S with
-  | none := (l', nil)
+  | none := (l', seq.nil)
   | some (none, S') := (l', S')
   | some (some c, S') := (c::l', S')
   end) (parallel.aux2 l)
@@ -156,7 +157,7 @@ begin
     exact ⟨c, or.inl cl, ac⟩ },
   { induction e : seq.destruct S with a; rw e at h',
     { exact let ⟨d, o, ad⟩ := IH _ _ h',
-        ⟨c, cl, ac⟩ := this a ⟨d, o.resolve_right (not_mem_nil _), ad⟩ in
+        ⟨c, cl, ac⟩ := this a ⟨d, o.resolve_right (wseq.not_mem_nil _), ad⟩ in
       ⟨c, or.inl cl, ac⟩ },
     { cases a with o S', cases o with c; simp [parallel.aux1] at h';
       rcases IH _ _ h' with ⟨d, dl | dS', ad⟩,
@@ -187,7 +188,7 @@ begin
       cases list.foldr parallel.aux2._match_1 (sum.inr list.nil) l; simp [parallel.aux2],
       cases destruct c; simp },
     simp [parallel.aux1], rw this, cases parallel.aux2 l with a l'; simp,
-    apply S.cases_on _ (λ c S, _) (λ S, _); simp; simp [parallel.aux1];
+    apply S.rec_on _ (λ c S, _) (λ S, _); simp; simp [parallel.aux1];
     exact ⟨_, _, rfl, rfl⟩
   end end
 end
@@ -196,15 +197,15 @@ theorem parallel_empty (S : wseq (computation α)) (h : S.head ~> none) :
 parallel S = empty _ :=
 eq_empty_of_not_terminates $ λ ⟨⟨a, m⟩⟩,
 let ⟨c, cs, ac⟩ := exists_of_mem_parallel m,
-    ⟨n, nm⟩ := exists_nth_of_mem cs,
-    ⟨c', h'⟩ := head_some_of_nth_some nm in by injection h h'
+    ⟨n, nm⟩ := wseq.exists_nth_of_mem cs,
+    ⟨c', h'⟩ := wseq.head_some_of_nth_some nm in by injection h h'
 
 -- The reason this isn't trivial from exists_of_mem_parallel is because it eliminates to Sort
 def parallel_rec {S : wseq (computation α)} (C : α → Sort v)
   (H : ∀ s ∈ S, ∀ a ∈ s, C a) {a} (h : a ∈ parallel S) : C a :=
 begin
   let T : wseq (computation (α × computation α)) :=
-    S.map (λc, c.map (λ a, (a, c))),
+    S.map (λ c, c.map (λ a, (a, c))),
   have : S = T.map (map (λ c, c.1)),
   { rw [←wseq.map_comp], refine (wseq.map_id _).symm.trans (congr_arg (λ f, wseq.map f S) _),
     funext c, dsimp [id, function.comp], rw [←map_comp], exact (map_id _).symm },
@@ -243,11 +244,11 @@ theorem parallel_congr_lem {S T : wseq (computation α)} {a}
 theorem parallel_congr_left {S T : wseq (computation α)} {a}
   (h1 : ∀ s ∈ S, s ~> a) (H : S.lift_rel equiv T) : parallel S ~ parallel T :=
 let h2 := (parallel_congr_lem H).1 h1 in
-λ a', ⟨λh, by have aa := parallel_promises h1 h; rw ←aa; rw ←aa at h; exact
+λ a', ⟨λ h, by have aa := parallel_promises h1 h; rw ←aa; rw ←aa at h; exact
   let ⟨s, sS, as⟩ := exists_of_mem_parallel h,
       ⟨t, tT, st⟩ := wseq.exists_of_lift_rel_left H sS,
       aT := (st _).1 as in mem_parallel h2 tT aT,
-λh, by have aa := parallel_promises h2 h; rw ←aa; rw ←aa at h; exact
+λ h, by have aa := parallel_promises h2 h; rw ←aa; rw ←aa at h; exact
   let ⟨s, sS, as⟩ := exists_of_mem_parallel h,
       ⟨t, tT, st⟩ := wseq.exists_of_lift_rel_right H sS,
       aT := (st _).2 as in mem_parallel h1 tT aT⟩

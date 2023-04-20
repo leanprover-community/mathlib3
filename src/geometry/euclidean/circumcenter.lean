@@ -1,17 +1,11 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
-import geometry.euclidean.basic
+import geometry.euclidean.sphere.basic
 import linear_algebra.affine_space.finite_dimensional
 import tactic.derive_fintype
-
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
 
 /-!
 # Circumcenter and circumradius
@@ -33,12 +27,15 @@ the circumcenter.
 
 -/
 
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real_inner_product_space
+
 namespace euclidean_geometry
 
-open inner_product_geometry
-
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 open affine_subspace
@@ -52,9 +49,9 @@ lemma dist_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} [non
 begin
   rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg,
       ←mul_self_inj_of_nonneg dist_nonneg dist_nonneg,
-      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+      dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
         p3 hp1,
-      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+      dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
         p3 hp2],
   simp
 end
@@ -63,13 +60,13 @@ end
 `orthogonal_projection` is. -/
 lemma dist_set_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} [nonempty s]
   [complete_space s.direction] {ps : set P} (hps : ps ⊆ s) (p : P) :
-  (set.pairwise_on ps (λ p1 p2, dist p1 p = dist p2 p) ↔
-    (set.pairwise_on ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
-      dist p2 (orthogonal_projection s p)))) :=
+  set.pairwise ps (λ p1 p2, dist p1 p = dist p2 p) ↔
+    (set.pairwise ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
+      dist p2 (orthogonal_projection s p))) :=
 ⟨λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h p1 hp1 p2 hp2 hne),
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h hp1 hp2 hne),
 λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h p1 hp1 p2 hp2 hne)⟩
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h hp1 hp2 hne)⟩
 
 /-- There exists `r` such that `p` has distance `r` from all the
 points of a set of points in `s` if and only if there exists (possibly
@@ -81,7 +78,7 @@ lemma exists_dist_eq_iff_exists_dist_orthogonal_projection_eq {s : affine_subspa
     ∃ r, ∀ p1 ∈ ps, dist p1 ↑(orthogonal_projection s p) = r :=
 begin
   have h := dist_set_eq_iff_dist_orthogonal_projection_eq hps p,
-  simp_rw set.pairwise_on_eq_iff_exists_eq at h,
+  simp_rw set.pairwise_eq_iff_exists_eq at h,
   exact h
 end
 
@@ -95,21 +92,21 @@ subspace with `p` added. -/
 lemma exists_unique_dist_eq_of_insert {s : affine_subspace ℝ P}
   [complete_space s.direction] {ps : set P} (hnps : ps.nonempty) {p : P}
   (hps : ps ⊆ s) (hp : p ∉ s)
-  (hu : ∃! cccr : (P × ℝ), cccr.fst ∈ s ∧ ∀ p1 ∈ ps, dist p1 cccr.fst = cccr.snd) :
-  ∃! cccr₂ : (P × ℝ), cccr₂.fst ∈ affine_span ℝ (insert p (s : set P)) ∧
-    ∀ p1 ∈ insert p ps, dist p1 cccr₂.fst = cccr₂.snd :=
+  (hu : ∃! cs : sphere P, cs.center ∈ s ∧ ps ⊆ (cs : set P)) :
+  ∃! cs₂ : sphere P, cs₂.center ∈ affine_span ℝ (insert p (s : set P)) ∧
+    (insert p ps) ⊆ (cs₂ : set P) :=
 begin
   haveI : nonempty s := set.nonempty.to_subtype (hnps.mono hps),
   rcases hu with ⟨⟨cc, cr⟩, ⟨hcc, hcr⟩, hcccru⟩,
-  simp only [prod.fst, prod.snd] at hcc hcr hcccru,
+  simp only at hcc hcr hcccru,
   let x := dist cc (orthogonal_projection s p),
   let y := dist p (orthogonal_projection s p),
   have hy0 : y ≠ 0 := dist_orthogonal_projection_ne_zero_of_not_mem hp,
   let ycc₂ := (x * x + y * y - cr * cr) / (2 * y),
   let cc₂ := (ycc₂ / y) • (p -ᵥ orthogonal_projection s p : V) +ᵥ cc,
   let cr₂ := real.sqrt (cr * cr + ycc₂ * ycc₂),
-  use (cc₂, cr₂),
-  simp only [prod.fst, prod.snd],
+  use ⟨cc₂, cr₂⟩,
+  simp only,
   have hpo : p = (1 : ℝ) • (p -ᵥ orthogonal_projection s p : V) +ᵥ orthogonal_projection s p,
   { simp },
   split,
@@ -120,55 +117,55 @@ begin
         (vsub_mem_vector_span ℝ (set.mem_insert _ _)
                                 (set.mem_insert_of_mem _ (orthogonal_projection_mem _))) },
     { intros p1 hp1,
-      rw [←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
+      rw [sphere.mem_coe, mem_sphere, ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
           real.mul_self_sqrt (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _))],
       cases hp1,
       { rw hp1,
         rw [hpo,
-            dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd
+            dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd
               (orthogonal_projection_mem p) hcc _ _
               (vsub_orthogonal_projection_mem_direction_orthogonal s p),
             ←dist_eq_norm_vsub V p, dist_comm _ cc],
         field_simp [hy0],
         ring },
-      { rw [dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+      { rw [dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
                _ (hps hp1),
             orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc, subtype.coe_mk,
-            hcr _ hp1, dist_eq_norm_vsub V cc₂ cc, vadd_vsub, norm_smul, ←dist_eq_norm_vsub V,
+            dist_of_mem_subset_mk_sphere hp1 hcr,
+            dist_eq_norm_vsub V cc₂ cc, vadd_vsub, norm_smul, ←dist_eq_norm_vsub V,
             real.norm_eq_abs, abs_div, abs_of_nonneg dist_nonneg, div_mul_cancel _ hy0,
             abs_mul_abs_self] } } },
   { rintros ⟨cc₃, cr₃⟩ ⟨hcc₃, hcr₃⟩,
-    simp only [prod.fst, prod.snd] at hcc₃ hcr₃,
+    simp only at hcc₃ hcr₃,
     obtain ⟨t₃, cc₃', hcc₃', hcc₃''⟩ :
       ∃ (r : ℝ) (p0 : P) (hp0 : p0 ∈ s), cc₃ = r • (p -ᵥ ↑((orthogonal_projection s) p)) +ᵥ p0,
     { rwa mem_affine_span_insert_iff (orthogonal_projection_mem p) at hcc₃ },
     have hcr₃' : ∃ r, ∀ p1 ∈ ps, dist p1 cc₃ = r :=
-      ⟨cr₃, λ p1 hp1, hcr₃ p1 (set.mem_insert_of_mem _ hp1)⟩,
+      ⟨cr₃, λ p1 hp1, dist_of_mem_subset_mk_sphere (set.mem_insert_of_mem _ hp1) hcr₃⟩,
     rw [exists_dist_eq_iff_exists_dist_orthogonal_projection_eq hps cc₃, hcc₃'',
       orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc₃'] at hcr₃',
     cases hcr₃' with cr₃' hcr₃',
-    have hu := hcccru (cc₃', cr₃'),
-    simp only [prod.fst, prod.snd] at hu,
+    have hu := hcccru ⟨cc₃', cr₃'⟩,
+    simp only at hu,
     replace hu := hu ⟨hcc₃', hcr₃'⟩,
-    rw prod.ext_iff at hu,
-    simp only [prod.fst, prod.snd] at hu,
     cases hu with hucc hucr,
     substs hucc hucr,
     have hcr₃val : cr₃ = real.sqrt (cr₃' * cr₃' + (t₃ * y) * (t₃ * y)),
     { cases hnps with p0 hp0,
       have h' : ↑(⟨cc₃', hcc₃'⟩ : s) = cc₃' := rfl,
-      rw [←hcr₃ p0 (set.mem_insert_of_mem _ hp0), hcc₃'',
+      rw [←dist_of_mem_subset_mk_sphere (set.mem_insert_of_mem _ hp0) hcr₃, hcc₃'',
           ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
           real.mul_self_sqrt (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)),
-          dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+          dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
             _ (hps hp0),
-          orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc₃', h', hcr p0 hp0,
+          orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc₃', h',
+          dist_of_mem_subset_mk_sphere hp0 hcr,
           dist_eq_norm_vsub V _ cc₃', vadd_vsub, norm_smul, ←dist_eq_norm_vsub V p,
-          real.norm_eq_abs, ←mul_assoc, mul_comm _ (abs t₃), ←mul_assoc, abs_mul_abs_self],
+          real.norm_eq_abs, ←mul_assoc, mul_comm _ (|t₃|), ←mul_assoc, abs_mul_abs_self],
       ring },
-    replace hcr₃ := hcr₃ p (set.mem_insert _ _),
+    replace hcr₃ := dist_of_mem_subset_mk_sphere (set.mem_insert _ _) hcr₃,
     rw [hpo, hcc₃'', hcr₃val, ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
-        dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd
+        dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd
           (orthogonal_projection_mem p) hcc₃' _ _
           (vsub_orthogonal_projection_mem_direction_orthogonal s p),
         dist_comm, ←dist_eq_norm_vsub V p,
@@ -191,13 +188,12 @@ end
 /-- Given a finite nonempty affinely independent family of points,
 there is a unique (circumcenter, circumradius) pair for those points
 in the affine subspace they span. -/
-lemma exists_unique_dist_eq_of_affine_independent {ι : Type*} [hne : nonempty ι] [fintype ι]
+lemma _root_.affine_independent.exists_unique_dist_eq {ι : Type*} [hne : nonempty ι] [finite ι]
     {p : ι → P} (ha : affine_independent ℝ p) :
-  ∃! cccr : (P × ℝ), cccr.fst ∈ affine_span ℝ (set.range p) ∧
-    ∀ i, dist (p i) cccr.fst = cccr.snd :=
+  ∃! cs : sphere P, cs.center ∈ affine_span ℝ (set.range p) ∧ set.range p ⊆ (cs : set P) :=
 begin
-  generalize' hn : fintype.card ι = n,
-  unfreezingI { induction n with m hm generalizing ι },
+  casesI nonempty_fintype ι,
+  unfreezingI { induction hn : fintype.card ι with m hm generalizing ι },
   { exfalso,
     have h := fintype.card_pos_iff.2 hne,
     rw hn at h,
@@ -206,21 +202,17 @@ begin
     { rw fintype.card_eq_one_iff at hn,
       cases hn with i hi,
       haveI : unique ι := ⟨⟨i⟩, hi⟩,
-      use (p i, 0),
-      simp only [prod.fst, prod.snd, set.range_unique, affine_subspace.mem_affine_span_singleton],
+      use ⟨p i, 0⟩,
+      simp only [set.range_unique, affine_subspace.mem_affine_span_singleton],
       split,
-      { simp_rw [hi (default ι)],
-        use rfl,
-        intro i1,
-        rw hi i1,
-        exact dist_self _ },
+      { simp_rw [hi default, set.singleton_subset_iff, sphere.mem_coe, mem_sphere, dist_self],
+        exact ⟨rfl, rfl⟩ },
       { rintros ⟨cc, cr⟩,
-        simp only [prod.fst, prod.snd],
+        simp only,
         rintros ⟨rfl, hdist⟩,
-        rw hi (default ι),
-        congr',
-        rw ←hdist (default ι),
-        exact dist_self _ } },
+        simp_rw [set.singleton_subset_iff, sphere.mem_coe, mem_sphere, dist_self] at hdist,
+        rw [hi default, hdist],
+        exact ⟨rfl, rfl⟩ } },
     { have i := hne.some,
       let ι2 := {x // x ≠ i},
       have hc : fintype.card ι2 = m + 1,
@@ -233,27 +225,20 @@ begin
           simp },
         { simp } },
       haveI : nonempty ι2 := fintype.card_pos_iff.1 (hc.symm ▸ nat.zero_lt_succ _),
-      have ha2 : affine_independent ℝ (λ i2 : ι2, p i2) :=
-        affine_independent_subtype_of_affine_independent ha _,
-      replace hm := hm ha2 hc,
+      have ha2 : affine_independent ℝ (λ i2 : ι2, p i2) := ha.subtype _,
+      replace hm := hm ha2 _ hc,
       have hr : set.range p = insert (p i) (set.range (λ i2 : ι2, p i2)),
       { change _ = insert _ (set.range (λ i2 : {x | x ≠ i}, p i2)),
         rw [←set.image_eq_range, ←set.image_univ, ←set.image_insert_eq],
         congr' with j,
         simp [classical.em] },
-      change ∃! (cccr : P × ℝ), (_ ∧ ∀ i2, (λ q, dist q cccr.fst = cccr.snd) (p i2)),
-      conv { congr, funext, conv { congr, skip, rw ←set.forall_range_iff } },
-      dsimp only,
-      rw hr,
-      change ∃! (cccr : P × ℝ), (_ ∧ ∀ (i2 : ι2), (λ q, dist q cccr.fst = cccr.snd) (p i2)) at hm,
-      conv at hm { congr, funext, conv { congr, skip, rw ←set.forall_range_iff } },
-      rw ←affine_span_insert_affine_span,
+      rw [hr, ←affine_span_insert_affine_span],
       refine exists_unique_dist_eq_of_insert
         (set.range_nonempty _)
         (subset_span_points ℝ _)
         _
         hm,
-      convert not_mem_affine_span_diff_of_affine_independent ha i set.univ,
+      convert ha.not_mem_affine_span_diff i set.univ,
       change set.range (λ i2 : {x | x ≠ i}, p i2) = _,
       rw ←set.image_eq_range,
       congr' with j, simp, refl } }
@@ -267,40 +252,55 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
-/-- The pair (circumcenter, circumradius) of a simplex. -/
-def circumcenter_circumradius {n : ℕ} (s : simplex ℝ P n) : (P × ℝ) :=
-(exists_unique_dist_eq_of_affine_independent s.independent).some
+/-- The circumsphere of a simplex. -/
+def circumsphere {n : ℕ} (s : simplex ℝ P n) : sphere P :=
+s.independent.exists_unique_dist_eq.some
 
-/-- The property satisfied by the (circumcenter, circumradius) pair. -/
-lemma circumcenter_circumradius_unique_dist_eq {n : ℕ} (s : simplex ℝ P n) :
-  (s.circumcenter_circumradius.fst ∈ affine_span ℝ (set.range s.points) ∧
-    ∀ i, dist (s.points i) s.circumcenter_circumradius.fst = s.circumcenter_circumradius.snd) ∧
-  (∀ cccr : (P × ℝ), (cccr.fst ∈ affine_span ℝ (set.range s.points) ∧
-    ∀ i, dist (s.points i) cccr.fst = cccr.snd) → cccr = s.circumcenter_circumradius) :=
-(exists_unique_dist_eq_of_affine_independent s.independent).some_spec
+/-- The property satisfied by the circumsphere. -/
+lemma circumsphere_unique_dist_eq {n : ℕ} (s : simplex ℝ P n) :
+  (s.circumsphere.center ∈ affine_span ℝ (set.range s.points) ∧
+    set.range s.points ⊆ s.circumsphere) ∧
+  (∀ cs : sphere P, (cs.center ∈ affine_span ℝ (set.range s.points) ∧
+    set.range s.points ⊆ cs → cs = s.circumsphere)) :=
+s.independent.exists_unique_dist_eq.some_spec
 
 /-- The circumcenter of a simplex. -/
 def circumcenter {n : ℕ} (s : simplex ℝ P n) : P :=
-s.circumcenter_circumradius.fst
+s.circumsphere.center
 
 /-- The circumradius of a simplex. -/
 def circumradius {n : ℕ} (s : simplex ℝ P n) : ℝ :=
-s.circumcenter_circumradius.snd
+s.circumsphere.radius
+
+/-- The center of the circumsphere is the circumcenter. -/
+@[simp] lemma circumsphere_center {n : ℕ} (s : simplex ℝ P n) :
+  s.circumsphere.center = s.circumcenter :=
+rfl
+
+/-- The radius of the circumsphere is the circumradius. -/
+@[simp] lemma circumsphere_radius {n : ℕ} (s : simplex ℝ P n) :
+  s.circumsphere.radius = s.circumradius :=
+rfl
 
 /-- The circumcenter lies in the affine span. -/
 lemma circumcenter_mem_affine_span {n : ℕ} (s : simplex ℝ P n) :
   s.circumcenter ∈ affine_span ℝ (set.range s.points) :=
-s.circumcenter_circumradius_unique_dist_eq.1.1
+s.circumsphere_unique_dist_eq.1.1
 
 /-- All points have distance from the circumcenter equal to the
 circumradius. -/
-@[simp] lemma dist_circumcenter_eq_circumradius {n : ℕ} (s : simplex ℝ P n) :
-  ∀ i, dist (s.points i) s.circumcenter = s.circumradius :=
-s.circumcenter_circumradius_unique_dist_eq.1.2
+@[simp] lemma dist_circumcenter_eq_circumradius {n : ℕ} (s : simplex ℝ P n) (i : fin (n + 1)) :
+  dist (s.points i) s.circumcenter = s.circumradius :=
+dist_of_mem_subset_sphere (set.mem_range_self _) s.circumsphere_unique_dist_eq.1.2
+
+/-- All points lie in the circumsphere. -/
+lemma mem_circumsphere {n : ℕ} (s : simplex ℝ P n) (i : fin (n + 1)) :
+  s.points i ∈ s.circumsphere :=
+s.dist_circumcenter_eq_circumradius i
 
 /-- All points have distance to the circumcenter equal to the
 circumradius. -/
@@ -318,8 +318,9 @@ lemma eq_circumcenter_of_dist_eq {n : ℕ} (s : simplex ℝ P n) {p : P}
     (hp : p ∈ affine_span ℝ (set.range s.points)) {r : ℝ} (hr : ∀ i, dist (s.points i) p = r) :
   p = s.circumcenter :=
 begin
-  have h := s.circumcenter_circumradius_unique_dist_eq.2 (p, r),
-  simp only [hp, hr, forall_const, eq_self_iff_true, and_self, prod.ext_iff] at h,
+  have h := s.circumsphere_unique_dist_eq.2 ⟨p, r⟩,
+  simp only [hp, hr, forall_const, eq_self_iff_true, subset_sphere, sphere.ext_iff,
+             set.forall_range_iff, mem_sphere, true_and] at h,
   exact h.1
 end
 
@@ -329,8 +330,9 @@ lemma eq_circumradius_of_dist_eq {n : ℕ} (s : simplex ℝ P n) {p : P}
     (hp : p ∈ affine_span ℝ (set.range s.points)) {r : ℝ} (hr : ∀ i, dist (s.points i) p = r) :
   r = s.circumradius :=
 begin
-  have h := s.circumcenter_circumradius_unique_dist_eq.2 (p, r),
-  simp only [hp, hr, forall_const, eq_self_iff_true, and_self, prod.ext_iff] at h,
+  have h := s.circumsphere_unique_dist_eq.2 ⟨p, r⟩,
+  simp only [hp, hr, forall_const, eq_self_iff_true, subset_sphere, sphere.ext_iff,
+             set.forall_range_iff, mem_sphere, true_and] at h,
   exact h.2
 end
 
@@ -346,8 +348,7 @@ begin
   intro h,
   have hr := s.dist_circumcenter_eq_circumradius,
   simp_rw [←h, dist_eq_zero] at hr,
-  have h01 := (injective_of_affine_independent s.independent).ne
-    (dec_trivial : (0 : fin (n + 2)) ≠ 1),
+  have h01 := s.independent.injective.ne (dec_trivial : (0 : fin (n + 2)) ≠ 1),
   simpa [hr] using h01
 end
 
@@ -365,19 +366,88 @@ end
 lemma circumcenter_eq_centroid (s : simplex ℝ P 1) :
   s.circumcenter = finset.univ.centroid ℝ s.points :=
 begin
-  have hr : set.pairwise_on set.univ
+  have hr : set.pairwise set.univ
     (λ i j : fin 2, dist (s.points i) (finset.univ.centroid ℝ s.points) =
                     dist (s.points j) (finset.univ.centroid ℝ s.points)),
   { intros i hi j hj hij,
-    rw [finset.centroid_insert_singleton_fin, dist_eq_norm_vsub V (s.points i),
+    rw [finset.centroid_pair_fin, dist_eq_norm_vsub V (s.points i),
         dist_eq_norm_vsub V (s.points j), vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub,
         ←one_smul ℝ (s.points i -ᵥ s.points 0), ←one_smul ℝ (s.points j -ᵥ s.points 0)],
     fin_cases i; fin_cases j; simp [-one_smul, ←sub_smul]; norm_num },
-  rw set.pairwise_on_eq_iff_exists_eq at hr,
+  rw set.pairwise_eq_iff_exists_eq at hr,
   cases hr with r hr,
   exact (s.eq_circumcenter_of_dist_eq
           (centroid_mem_affine_span_of_card_eq_add_one ℝ _ (finset.card_fin 2))
           (λ i, hr i (set.mem_univ _))).symm
+end
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumsphere. -/
+@[simp] lemma circumsphere_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumsphere = s.circumsphere :=
+begin
+  refine s.circumsphere_unique_dist_eq.2 _ ⟨_, _⟩; rw ←s.reindex_range_points e,
+  { exact (s.reindex e).circumsphere_unique_dist_eq.1.1 },
+  { exact (s.reindex e).circumsphere_unique_dist_eq.1.2 }
+end
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumcenter. -/
+@[simp] lemma circumcenter_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumcenter = s.circumcenter :=
+by simp_rw [←circumcenter, circumsphere_reindex]
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumradius. -/
+@[simp] lemma circumradius_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumradius = s.circumradius :=
+by simp_rw [←circumradius, circumsphere_reindex]
+
+local attribute [instance] affine_subspace.to_add_torsor
+
+/-- The orthogonal projection of a point `p` onto the hyperplane spanned by the simplex's points. -/
+def orthogonal_projection_span {n : ℕ} (s : simplex ℝ P n) :
+  P →ᵃ[ℝ] affine_span ℝ (set.range s.points) :=
+orthogonal_projection (affine_span ℝ (set.range s.points))
+
+/-- Adding a vector to a point in the given subspace, then taking the
+orthogonal projection, produces the original point if the vector is a
+multiple of the result of subtracting a point's orthogonal projection
+from that point. -/
+lemma orthogonal_projection_vadd_smul_vsub_orthogonal_projection
+  {n : ℕ} (s : simplex ℝ P n) {p1 : P} (p2 : P) (r : ℝ)
+  (hp : p1 ∈ affine_span ℝ (set.range s.points)) :
+  s.orthogonal_projection_span (r • (p2 -ᵥ s.orthogonal_projection_span p2 : V) +ᵥ p1) =
+    ⟨p1, hp⟩ :=
+orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ _
+
+lemma coe_orthogonal_projection_vadd_smul_vsub_orthogonal_projection {n : ℕ} {r₁ : ℝ}
+  (s : simplex ℝ P n) {p p₁o : P} (hp₁o : p₁o ∈ affine_span ℝ (set.range s.points)) :
+  ↑(s.orthogonal_projection_span (r₁ • (p -ᵥ ↑(s.orthogonal_projection_span p)) +ᵥ p₁o)) = p₁o :=
+congr_arg coe (orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ _ hp₁o)
+
+lemma dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq {n : ℕ}
+  (s : simplex ℝ P n) {p1 : P}
+  (p2 : P) (hp1 : p1 ∈ affine_span ℝ (set.range s.points)) :
+  dist p1 p2 * dist p1 p2 =
+    dist p1 (s.orthogonal_projection_span p2) * dist p1 (s.orthogonal_projection_span p2) +
+    dist p2 (s.orthogonal_projection_span p2) * dist p2 (s.orthogonal_projection_span p2) :=
+begin
+  rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
+    dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (s.orthogonal_projection_span p2) p2,
+    norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero],
+  exact submodule.inner_right_of_mem_orthogonal
+    (vsub_orthogonal_projection_mem_direction p2 hp1)
+    (orthogonal_projection_vsub_mem_direction_orthogonal _ p2),
+end
+
+lemma dist_circumcenter_sq_eq_sq_sub_circumradius {n : ℕ} {r : ℝ} (s : simplex ℝ P n)
+  {p₁ : P}
+  (h₁ : ∀ (i : fin (n + 1)), dist (s.points i) p₁ = r)
+  (h₁' : ↑((s.orthogonal_projection_span) p₁) = s.circumcenter)
+  (h : s.points 0 ∈ affine_span ℝ (set.range s.points)) :
+  dist p₁ s.circumcenter * dist p₁ s.circumcenter = r * r - s.circumradius * s.circumradius :=
+begin
+  rw [dist_comm, ←h₁ 0,
+    s.dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq p₁ h],
+  simp only [h₁', dist_comm p₁, add_sub_cancel', simplex.dist_circumcenter_eq_circumradius],
 end
 
 /-- If there exists a distance that a point has from all vertices of a
@@ -385,7 +455,7 @@ simplex, the orthogonal projection of that point onto the subspace
 spanned by that simplex is its circumcenter.  -/
 lemma orthogonal_projection_eq_circumcenter_of_exists_dist_eq {n : ℕ} (s : simplex ℝ P n)
   {p : P} (hr : ∃ r, ∀ i, dist (s.points i) p = r) :
-  ↑(orthogonal_projection (affine_span ℝ (set.range s.points)) p) = s.circumcenter :=
+  ↑(s.orthogonal_projection_span p) = s.circumcenter :=
 begin
   change ∃ r : ℝ, ∀ i, (λ x, dist x p = r) (s.points i) at hr,
   conv at hr { congr, funext, rw ←set.forall_range_iff },
@@ -400,15 +470,14 @@ the orthogonal projection of that point onto the subspace spanned by
 that simplex is its circumcenter.  -/
 lemma orthogonal_projection_eq_circumcenter_of_dist_eq {n : ℕ} (s : simplex ℝ P n) {p : P}
   {r : ℝ} (hr : ∀ i, dist (s.points i) p = r) :
-  ↑(orthogonal_projection (affine_span ℝ (set.range s.points)) p) = s.circumcenter :=
+  ↑(s.orthogonal_projection_span p) = s.circumcenter :=
 s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq ⟨r, hr⟩
 
 /-- The orthogonal projection of the circumcenter onto a face is the
 circumcenter of that face. -/
 lemma orthogonal_projection_circumcenter {n : ℕ} (s : simplex ℝ P n) {fs : finset (fin (n + 1))}
   {m : ℕ} (h : fs.card = m + 1) :
-  ↑(orthogonal_projection (affine_span ℝ (set.range (s.face h).points)) s.circumcenter) =
-    (s.face h).circumcenter :=
+  ↑((s.face h).orthogonal_projection_span s.circumcenter) = (s.face h).circumcenter :=
 begin
   have hr : ∃ r, ∀ i, dist ((s.face h).points i) s.circumcenter = r,
   { use s.circumradius,
@@ -466,7 +535,7 @@ begin
     { exact mem_insert_self _ _ } },
   change _ = ∑ i, f (point_index_embedding n i) + _,
   rw [add_comm, h, ←sum_map, sum_insert],
-  simp_rw [mem_map, not_exists],
+  simp_rw [finset.mem_map, not_exists],
   intros x hx h,
   injection h
 end
@@ -514,7 +583,7 @@ include V
 lemma point_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (i : fin (n + 1)) :
   s.points i =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (point_weights_with_circumcenter i) :=
 begin
   rw ←points_with_circumcenter_point,
@@ -541,7 +610,8 @@ def centroid_weights_with_circumcenter {n : ℕ} (fs : finset (fin (n + 1)))
 
 /-- `centroid_weights_with_circumcenter` sums to 1, if the `finset` is
 nonempty. -/
-@[simp] lemma sum_centroid_weights_with_circumcenter {n : ℕ} {fs : finset (fin (n + 1))} (h : fs.nonempty) :
+@[simp] lemma sum_centroid_weights_with_circumcenter {n : ℕ} {fs : finset (fin (n + 1))}
+  (h : fs.nonempty) :
   ∑ i, centroid_weights_with_circumcenter fs i = 1 :=
 begin
   simp_rw [sum_points_with_circumcenter, centroid_weights_with_circumcenter, add_zero,
@@ -557,7 +627,7 @@ include V
 lemma centroid_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (fs : finset (fin (n + 1))) :
   fs.centroid ℝ s.points =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (centroid_weights_with_circumcenter fs) :=
 begin
   simp_rw [centroid_def, affine_combination_apply,
@@ -570,7 +640,7 @@ begin
              fs.subset_univ
              (λ i, zero_smul ℝ _),
            set.indicator_apply],
-  congr, funext, congr' 2
+  congr,
 end
 
 omit V
@@ -596,7 +666,7 @@ include V
 `points_with_circumcenter`. -/
 lemma circumcenter_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P n) :
-  s.circumcenter = (univ : finset (points_with_circumcenter_index n)).affine_combination
+  s.circumcenter = (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
     s.points_with_circumcenter (circumcenter_weights_with_circumcenter n) :=
 begin
   rw ←points_with_circumcenter_eq_circumcenter,
@@ -622,7 +692,7 @@ begin
            sum_ite, sum_const, filter_or, filter_eq'],
   rw card_union_eq,
   { simp },
-  { simp [h.symm] }
+  { simpa only [if_true, mem_univ, disjoint_singleton] using h }
 end
 
 include V
@@ -632,17 +702,20 @@ terms of `points_with_circumcenter`. -/
 lemma reflection_circumcenter_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P n) {i₁ i₂ : fin (n + 1)} (h : i₁ ≠ i₂) :
   reflection (affine_span ℝ (s.points '' {i₁, i₂})) s.circumcenter =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (reflection_circumcenter_weights_with_circumcenter i₁ i₂) :=
 begin
   have hc : card ({i₁, i₂} : finset (fin (n + 1))) = 2,
   { simp [h] },
-  have h_faces : ↑(orthogonal_projection (affine_span ℝ (s.points '' {i₁, i₂})) s.circumcenter)
-    = ↑(orthogonal_projection (affine_span ℝ (set.range (s.face hc).points)) s.circumcenter),
+  -- Making the next line a separate definition helps the elaborator:
+  set W : affine_subspace ℝ P := affine_span ℝ (s.points '' {i₁, i₂}) with W_def,
+  have h_faces : ↑(orthogonal_projection W s.circumcenter)
+    = ↑((s.face hc).orthogonal_projection_span s.circumcenter),
   { apply eq_orthogonal_projection_of_eq_subspace,
     simp },
-  rw [reflection_apply, h_faces, s.orthogonal_projection_circumcenter hc, circumcenter_eq_centroid,
-      s.face_centroid_eq_centroid hc, centroid_eq_affine_combination_of_points_with_circumcenter,
+  rw [euclidean_geometry.reflection_apply, h_faces, s.orthogonal_projection_circumcenter hc,
+      circumcenter_eq_centroid, s.face_centroid_eq_centroid hc,
+      centroid_eq_affine_combination_of_points_with_circumcenter,
       circumcenter_eq_affine_combination_of_points_with_circumcenter, ←@vsub_eq_zero_iff_eq V,
       affine_combination_vsub, weighted_vsub_vadd_affine_combination, affine_combination_vsub,
       weighted_vsub_apply, sum_points_with_circumcenter],
@@ -662,8 +735,8 @@ namespace euclidean_geometry
 
 open affine affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- Given a nonempty affine subspace, whose direction is complete,
@@ -693,7 +766,7 @@ cospherical_iff_exists_mem_of_complete h
 subspace have the same circumradius. -/
 lemma exists_circumradius_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
   (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
-  (hd : findim ℝ s.direction = n) (hc : cospherical ps) :
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) :
   ∃ r : ℝ, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumradius = r :=
 begin
   rw cospherical_iff_exists_mem_of_finite_dimensional h at hc,
@@ -701,8 +774,8 @@ begin
   use r,
   intros sx hsxps,
   have hsx : affine_span ℝ (set.range sx.points) = s,
-  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_findim_add_one sx.independent
-      (span_points_subset_coe_of_subset_coe (set.subset.trans hsxps h)) _,
+  { refine sx.independent.affine_span_eq_of_le_of_card_eq_finrank_add_one
+      (span_points_subset_coe_of_subset_coe (hsxps.trans h)) _,
     simp [hd] },
   have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
   exact (sx.eq_circumradius_of_dist_eq
@@ -714,7 +787,7 @@ end
 subspace have the same circumradius. -/
 lemma circumradius_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
   (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
-  (hd : findim ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
   (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
   sx₁.circumradius = sx₂.circumradius :=
 begin
@@ -725,11 +798,11 @@ end
 /-- All n-simplices among cospherical points in n-space have the same
 circumradius. -/
 lemma exists_circumradius_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
-  (hd : findim ℝ V = n) (hc : cospherical ps) :
+  (hd : finrank ℝ V = n) (hc : cospherical ps) :
   ∃ r : ℝ, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumradius = r :=
 begin
   haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
-  rw [←findim_top, ←direction_top ℝ V P] at hd,
+  rw [←finrank_top, ←direction_top ℝ V P] at hd,
   refine exists_circumradius_eq_of_cospherical_subset _ hd hc,
   exact set.subset_univ _
 end
@@ -737,7 +810,7 @@ end
 /-- Two n-simplices among cospherical points in n-space have the same
 circumradius. -/
 lemma circumradius_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
-  (hd : findim ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hd : finrank ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
   (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
   sx₁.circumradius = sx₂.circumradius :=
 begin
@@ -749,7 +822,7 @@ end
 subspace have the same circumcenter. -/
 lemma exists_circumcenter_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
   (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
-  (hd : findim ℝ s.direction = n) (hc : cospherical ps) :
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) :
   ∃ c : P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumcenter = c :=
 begin
   rw cospherical_iff_exists_mem_of_finite_dimensional h at hc,
@@ -757,8 +830,8 @@ begin
   use c,
   intros sx hsxps,
   have hsx : affine_span ℝ (set.range sx.points) = s,
-  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_findim_add_one sx.independent
-      (span_points_subset_coe_of_subset_coe (set.subset.trans hsxps h)) _,
+  { refine sx.independent.affine_span_eq_of_le_of_card_eq_finrank_add_one
+      (span_points_subset_coe_of_subset_coe (hsxps.trans h)) _,
     simp [hd] },
   have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
   exact (sx.eq_circumcenter_of_dist_eq
@@ -770,7 +843,7 @@ end
 subspace have the same circumcenter. -/
 lemma circumcenter_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
   (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
-  (hd : findim ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
   (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
   sx₁.circumcenter = sx₂.circumcenter :=
 begin
@@ -781,11 +854,11 @@ end
 /-- All n-simplices among cospherical points in n-space have the same
 circumcenter. -/
 lemma exists_circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
-  (hd : findim ℝ V = n) (hc : cospherical ps) :
+  (hd : finrank ℝ V = n) (hc : cospherical ps) :
   ∃ c : P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumcenter = c :=
 begin
   haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
-  rw [←findim_top, ←direction_top ℝ V P] at hd,
+  rw [←finrank_top, ←direction_top ℝ V P] at hd,
   refine exists_circumcenter_eq_of_cospherical_subset _ hd hc,
   exact set.subset_univ _
 end
@@ -793,11 +866,58 @@ end
 /-- Two n-simplices among cospherical points in n-space have the same
 circumcenter. -/
 lemma circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
-  (hd : findim ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hd : finrank ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
   (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
   sx₁.circumcenter = sx₂.circumcenter :=
 begin
   rcases exists_circumcenter_eq_of_cospherical hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in an n-dimensional
+subspace have the same circumsphere. -/
+lemma exists_circumsphere_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) :
+  ∃ c : sphere P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumsphere = c :=
+begin
+  obtain ⟨r, hr⟩ := exists_circumradius_eq_of_cospherical_subset h hd hc,
+  obtain ⟨c, hc⟩ := exists_circumcenter_eq_of_cospherical_subset h hd hc,
+  exact ⟨⟨c, r⟩, λ sx hsx, sphere.ext _ _ (hc sx hsx) (hr sx hsx)⟩
+end
+
+/-- Two n-simplices among cospherical points in an n-dimensional
+subspace have the same circumsphere. -/
+lemma circumsphere_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumsphere = sx₂.circumsphere :=
+begin
+  rcases exists_circumsphere_eq_of_cospherical_subset h hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in n-space have the same
+circumsphere. -/
+lemma exists_circumsphere_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : finrank ℝ V = n) (hc : cospherical ps) :
+  ∃ c : sphere P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumsphere = c :=
+begin
+  haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
+  rw [←finrank_top, ←direction_top ℝ V P] at hd,
+  refine exists_circumsphere_eq_of_cospherical_subset _ hd hc,
+  exact set.subset_univ _
+end
+
+/-- Two n-simplices among cospherical points in n-space have the same
+circumsphere. -/
+lemma circumsphere_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : finrank ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumsphere = sx₂.circumsphere :=
+begin
+  rcases exists_circumsphere_eq_of_cospherical hd hc with ⟨r, hr⟩,
   rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
 end
 
@@ -815,44 +935,33 @@ begin
   let span_s := affine_span ℝ (set.range s.points),
   have h₁' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₁,
   have h₂' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₂,
-  have hn : (span_s : set P).nonempty := (affine_span_nonempty ℝ _).2 (set.range_nonempty _),
-  have hc : is_complete (span_s.direction : set V) := submodule.complete_of_finite_dimensional _,
   rw [←affine_span_insert_affine_span,
       mem_affine_span_insert_iff (orthogonal_projection_mem p)] at hp₁ hp₂,
   obtain ⟨r₁, p₁o, hp₁o, hp₁⟩ := hp₁,
   obtain ⟨r₂, p₂o, hp₂o, hp₂⟩ := hp₂,
-  obtain rfl : ↑(orthogonal_projection span_s p₁) = p₁o,
-  { have := orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hp₁o,
-    rw ← hp₁ at this,
-    rw this,
-    refl },
+  obtain rfl : ↑(s.orthogonal_projection_span p₁) = p₁o,
+  { subst hp₁, exact s.coe_orthogonal_projection_vadd_smul_vsub_orthogonal_projection hp₁o },
   rw h₁' at hp₁,
-  obtain rfl : ↑(orthogonal_projection span_s p₂) = p₂o,
-  { have := orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hp₂o,
-    rw ← hp₂ at this,
-    rw this,
-    refl },
+  obtain rfl : ↑(s.orthogonal_projection_span p₂) = p₂o,
+  { subst hp₂, exact s.coe_orthogonal_projection_vadd_smul_vsub_orthogonal_projection hp₂o },
   rw h₂' at hp₂,
   have h : s.points 0 ∈ span_s := mem_affine_span ℝ (set.mem_range_self _),
   have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =
-    r * r - s.circumradius * s.circumradius,
-  { rw [dist_comm, ←h₁ 0,
-        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₁ h],
-    simp [h₁', dist_comm p₁] },
+      r * r - s.circumradius * s.circumradius :=
+    s.dist_circumcenter_sq_eq_sq_sub_circumradius h₁ h₁' h,
   have hd₂ : dist p₂ s.circumcenter * dist p₂ s.circumcenter =
-    r * r - s.circumradius * s.circumradius,
-  { rw [dist_comm, ←h₂ 0,
-        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
-    simp [h₂', dist_comm p₂] },
+      r * r - s.circumradius * s.circumradius :=
+    s.dist_circumcenter_sq_eq_sq_sub_circumradius h₂ h₂' h,
   rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
-      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_square,
-      ←real_inner_self_eq_norm_square, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right,
-      real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
-  by_cases hp : p = orthogonal_projection span_s p,
-  { rw [hp₁, hp₂, ←hp],
-    simp },
+      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_mul_norm,
+      ←real_inner_self_eq_norm_mul_norm, real_inner_smul_left, real_inner_smul_left,
+      real_inner_smul_right, real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
+  by_cases hp : p = s.orthogonal_projection_span p,
+  { rw simplex.orthogonal_projection_span at hp,
+    rw [hp₁, hp₂, ←hp],
+    simp only [true_or, eq_self_iff_true, smul_zero, vsub_self] },
   { have hz : ⟪p -ᵥ orthogonal_projection span_s p, p -ᵥ orthogonal_projection span_s p⟫ ≠ 0,
-    { simpa using hp },
+      by simpa only [ne.def, vsub_eq_zero_iff_eq, inner_self_eq_zero] using hp,
     rw [mul_left_inj' hz, mul_self_eq_mul_self_iff] at hd₁,
     rw [hp₁, hp₂],
     cases hd₁,

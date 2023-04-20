@@ -1,14 +1,16 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Simon Hudon
+Authors: Jeremy Avigad, Simon Hudon
 -/
 import control.functor.multivariate
-import data.pfunctor.univariate
-import data.sigma
+import data.pfunctor.univariate.basic
 
 /-!
 # Multivariate polynomial functors.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Multivariate polynomial functors are used for defining M-types and W-types.
 They map a type vector `α` to the type `Σ a : A, B a ⟹ α`, with `A : Type` and
@@ -38,11 +40,11 @@ def map {α β : typevec n} (f : α ⟹ β) : P.obj α → P.obj β :=
 λ ⟨a, g⟩, ⟨a, typevec.comp f g⟩
 
 instance : inhabited (mvpfunctor n) :=
-⟨ ⟨default _, λ _, default _⟩ ⟩
+⟨⟨default, default⟩⟩
 
 instance obj.inhabited {α : typevec n} [inhabited P.A] [Π i, inhabited (α i)] :
   inhabited (P.obj α) :=
-⟨ ⟨default _, λ _ _, default _⟩ ⟩
+⟨ ⟨default, λ _ _, default⟩ ⟩
 
 instance : mvfunctor P.obj :=
 ⟨@mvpfunctor.map n P⟩

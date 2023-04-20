@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.derive_fintype
+import data.fintype.pi
+import data.fintype.prod
+import data.fintype.sigma
 
 @[derive fintype]
 inductive alphabet
@@ -38,3 +41,10 @@ structure foo4 {m n : Type} (b : m → ℕ) :=
 (x : m × n)
 (y : m × n)
 (h : b x.1 = b y.1)
+
+class my_class (M : Type*) :=
+(one : M)
+(eq_one : ∀ x : M, x = one)
+
+instance {M : Type*} [fintype M] [decidable_eq M] : fintype (my_class M) :=
+by tactic.mk_fintype_instance

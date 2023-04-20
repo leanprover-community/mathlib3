@@ -3,11 +3,13 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
-import analysis.specific_limits
+import analysis.specific_limits.basic
 
 /-!
 # Hofer's lemma
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This is an elementary lemma about complete metric spaces. It is motivated by an
 application to the bubbling-off analysis for holomorphic curves in symplectic topology.
@@ -19,10 +21,14 @@ example of a proof needing to construct a sequence by induction in the middle of
 * H. Hofer and C. Viterbo, *The Weinstein conjecture in the presence of holomorphic spheres*
 -/
 
-open_locale classical topological_space big_operators
+open_locale classical topology big_operators
 open filter finset
 
 local notation `d` := dist
+
+@[simp] lemma pos_div_pow_pos {α : Type*} [linear_ordered_semifield α] {a b : α} (ha : 0 < a)
+  (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
+div_pos ha (pow_pos hb k)
 
 lemma hofer {X: Type*} [metric_space X] [complete_space X]
   (x : X) (ε : ℝ) (ε_pos : 0 < ε)
@@ -36,14 +42,13 @@ begin
   have reformulation : ∀ x' (k : ℕ), ε * ϕ x ≤ ε / 2 ^ k * ϕ x' ↔ 2^k * ϕ x ≤ ϕ x',
   { intros x' k,
     rw [div_mul_eq_mul_div, le_div_iff, mul_assoc, mul_le_mul_left ε_pos, mul_comm],
-    exact pow_pos (by norm_num) k, },
+    positivity },
   -- Now let's specialize to `ε/2^k`
   replace H : ∀ k : ℕ, ∀ x', d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x' →
     ∃ y, d x' y ≤ ε/2^k ∧ 2 * ϕ x' < ϕ y,
   { intros k x',
     push_neg at H,
-    simpa [reformulation] using
-      H (ε/2^k) (by simp [ε_pos, zero_lt_two]) x' (by simp [ε_pos, zero_lt_two, one_le_two]) },
+    simpa [reformulation] using H (ε/2^k) (by simp [ε_pos]) x' (by simp [ε_pos.le, one_le_two]) },
   clear reformulation,
   haveI : nonempty X := ⟨x⟩,
   choose! F hF using H,  -- Use the axiom of choice
@@ -63,7 +68,7 @@ begin
   { intro n,
     induction n using nat.case_strong_induction_on with n IH,
     { specialize hu 0,
-      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le] using hu },
+      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le, le_refl] using hu },
     have A : d (u (n+1)) x ≤ 2 * ε,
     { rw [dist_comm],
       let r := range (n+1), -- range (n+1) = {0, ..., n}
@@ -85,7 +90,7 @@ begin
   -- Hence u is Cauchy
   have cauchy_u : cauchy_seq u,
   { refine cauchy_seq_of_le_geometric _ ε one_half_lt_one (λ n, _),
-    simpa only [one_div, inv_pow'] using key₁ n },
+    simpa only [one_div, inv_pow] using key₁ n },
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,

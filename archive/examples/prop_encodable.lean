@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
+Authors: Jeremy Avigad
 -/
 
-import data.W
+import data.W.basic
 
 /-!
 # W types
@@ -61,7 +61,7 @@ namespace prop_form
 
 private def constructors (α : Type*) := α ⊕ unit ⊕ unit ⊕ unit
 
-local notation `cvar` a := sum.inl a
+local notation `cvar ` a := sum.inl a
 local notation `cnot`   := sum.inr (sum.inl unit.star)
 local notation `cand`   := sum.inr (sum.inr (sum.inr unit.star))
 local notation `cor`    := sum.inr (sum.inr (sum.inl unit.star))
@@ -89,8 +89,8 @@ private def finv : W_type (λ i, fin (arity α i)) → prop_form α
 
 instance [encodable α] : encodable (prop_form α) :=
 begin
-  haveI : encodable (constructors α) :=
-    by { unfold constructors, apply_instance },
+  haveI : encodable (constructors α),
+  { unfold constructors, apply_instance },
   exact encodable.of_left_inverse f finv
     (by { intro p, induction p; simp [f, finv, *] })
 end

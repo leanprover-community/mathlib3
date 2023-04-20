@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers
+Authors: Joseph Myers
 -/
 import algebra.add_torsor
 
 /-!
 # Affine space
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we introduce the following notation:
 
@@ -25,7 +28,8 @@ files:
 * `affine_equiv`: an equivalence between affine spaces that preserves the affine structure;
 * `affine_subspace`: a subset of an affine space closed w.r.t. affine combinations of points;
 * `affine_combination`: an affine combination of points;
-* `affine_independent`: affine independent set of points.
+* `affine_independent`: affine independent set of points;
+* `affine_basis.coord`: the barycentric coordinate of a point.
 
 ## TODO
 
@@ -34,9 +38,6 @@ Some key definitions are not yet present.
 * Affine frames.  An affine frame might perhaps be represented as an `affine_equiv` to a `finsupp`
   (in the general case) or function type (in the finite-dimensional case) that gives the
   coordinates, with appropriate proofs of existence when `k` is a field.
-
-* Although results on affine combinations implicitly provide barycentric frames and coordinates,
-  there is no explicit representation of the map from a point to its coordinates.
  -/
 
-localized "notation `affine_space` := add_torsor" in affine
+localized "notation (name := add_torsor) `affine_space` := add_torsor" in affine

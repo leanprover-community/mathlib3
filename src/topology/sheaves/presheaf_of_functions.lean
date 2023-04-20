@@ -6,13 +6,13 @@ Authors: Scott Morrison
 import category_theory.yoneda
 import topology.sheaves.presheaf
 import topology.category.TopCommRing
-import topology.algebra.continuous_functions
+import topology.continuous_function.algebra
 
 /-!
 # Presheaves of functions
 
 We construct some simple examples of presheaves of functions on a topological space.
-* `presheaf_to_Type X f`, where `f : X → Type`,
+* `presheaf_to_Types X T`, where `T : X → Type`,
   is the presheaf of dependently-typed (not-necessarily continuous) functions
 * `presheaf_to_Type X T`, where `T : Type`,
   is the presheaf of (not-necessarily-continuous) functions to a fixed target type `T`
@@ -36,12 +36,14 @@ namespace Top
 variables (X : Top.{v})
 
 /--
-The presheaf of dependently typed functions on `X`, with fibres given by a type family `f`.
+The presheaf of dependently typed functions on `X`, with fibres given by a type family `T`.
 There is no requirement that the functions are continuous, here.
 -/
 def presheaf_to_Types (T : X → Type v) : X.presheaf (Type v) :=
 { obj := λ U, Π x : (unop U), T x,
-  map := λ U V i g, λ (x : unop V), g (i.unop x) }
+  map := λ U V i g, λ (x : unop V), g (i.unop x),
+  map_id' := λ U, by { ext g ⟨x, hx⟩, refl },
+  map_comp' := λ U V W i j, rfl }
 
 @[simp] lemma presheaf_to_Types_obj
   {T : X → Type v} {U : (opens X)ᵒᵖ} :
@@ -65,7 +67,9 @@ There is no requirement that the functions are continuous, here.
 -- written as an equality of functions (rather than being applied to some argument).
 def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
 { obj := λ U, (unop U) → T,
-  map := λ U V i g, g ∘ i.unop }
+  map := λ U V i g, g ∘ i.unop,
+  map_id' := λ U, by { ext g ⟨x, hx⟩, refl },
+  map_comp' := λ U V W i j, rfl }
 
 @[simp] lemma presheaf_to_Type_obj
   {T : Type v} {U : (opens X)ᵒᵖ} :
@@ -77,7 +81,8 @@ rfl
   (presheaf_to_Type X T).map i f = f ∘ i.unop :=
 rfl
 
-/-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
+/-- The presheaf of continuous functions on `X` with values in fixed target topological space
+`T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)
 
@@ -118,9 +123,14 @@ from `X : Top` to `R : TopCommRing` form a commutative ring, functorial in both 
 def CommRing_yoneda : TopCommRing.{u} ⥤ (Top.{u}ᵒᵖ ⥤ CommRing.{u}) :=
 { obj := λ R,
   { obj := λ X, continuous_functions X R,
-    map := λ X Y f, continuous_functions.pullback f R },
+    map := λ X Y f, continuous_functions.pullback f R,
+    map_id' := λ X, by { ext, refl },
+    map_comp' := λ X Y Z f g, rfl },
   map := λ R S φ,
-  { app := λ X, continuous_functions.map X φ } }
+  { app := λ X, continuous_functions.map X φ,
+    naturality' := λ X Y f, rfl },
+  map_id' := λ X, by { ext, refl },
+  map_comp' := λ X Y Z f g, rfl }
 
 /--
 The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with

@@ -513,7 +513,7 @@ Most explicitly, every element is the complement of a supremum of indepedendent 
 
 /-- In an atomic lattice, every element `b` has a complement of the form `Sup s`, where each element
 of `s` is an atom. See also `complemented_lattice_of_Sup_atoms_eq_top`. -/
-lemma exists_set_independent_is_compl_Sup_atoms [is_atomistic α] (b : α) :
+lemma exists_set_independent_is_compl_Sup_atoms (h : Sup {a : α | is_atom a} = ⊤) (b : α) :
   ∃ s : set α, complete_lattice.set_independent s ∧ is_compl b (Sup s) ∧ ∀ ⦃a⦄, a ∈ s → is_atom a :=
 begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn_subset
@@ -527,7 +527,7 @@ begin
     { rw directed_on_image,
       exact hc2.directed_on.mono (λ s t, Sup_le_Sup) } },
   refine ⟨s, s_ind, ⟨b_inf_Sup_s, _⟩, s_atoms⟩,
-  rw [codisjoint_iff_le_sup, ←Sup_atoms_eq_top, Sup_le_iff],
+  rw [codisjoint_iff_le_sup, ←h, Sup_le_iff],
   intros a ha,
   rw ← inf_eq_left,
   refine (ha.le_iff.mp inf_le_left).resolve_left (λ con, ha.1 _),
@@ -559,14 +559,19 @@ begin
     { exact ha } }
 end
 
-lemma exists_set_independent_of_Sup_atoms_eq_top [is_atomistic α] :
+lemma exists_set_independent_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) :
   ∃ s : set α, complete_lattice.set_independent s ∧ Sup s = ⊤ ∧ ∀ ⦃a⦄, a ∈ s → is_atom a :=
-let ⟨s, s_ind, s_top, s_atoms⟩ := exists_set_independent_is_compl_Sup_atoms ⊥ in
+let ⟨s, s_ind, s_top, s_atoms⟩ := exists_set_independent_is_compl_Sup_atoms h ⊥ in
   ⟨s, s_ind, eq_top_of_is_compl_bot s_top.symm, s_atoms⟩
 
 /-- See [Theorem 6.6][calugareanu]. -/
+theorem complemented_lattice_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) :
+  complemented_lattice α :=
+⟨λ b, let ⟨s, _, s_top, s_atoms⟩ := exists_set_independent_is_compl_Sup_atoms h b in ⟨Sup s, s_top⟩⟩
+
+/-- See [Theorem 6.6][calugareanu]. -/
 theorem complemented_lattice_of_is_atomistic [is_atomistic α] : complemented_lattice α :=
-⟨λ b,let ⟨s, _, s_top, s_atoms⟩ := exists_set_independent_is_compl_Sup_atoms b in ⟨Sup s, s_top⟩⟩
+complemented_lattice_of_Sup_atoms_eq_top Sup_atoms_eq_top
 
 theorem complemented_lattice_iff_is_atomistic : complemented_lattice α ↔ is_atomistic α :=
 begin

@@ -70,7 +70,7 @@ begin
   induction n with n ih generalizing k,
   { apply coeff_C },
   { rw [coeff_hermite_succ_succ,
-    (by linarith : n + 1 + k = n + k + 1),
+    (add_right_comm _ _ _ : n + 1 + k = n + k + 1),
     (by linarith : n + k + 1 + 2 = n + (k + 2) + 1),
     ih k, ih (k + 2), mul_zero, sub_zero] }
 end

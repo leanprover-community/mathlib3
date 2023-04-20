@@ -19,7 +19,7 @@ Equivalently, for any measurable space `γ`,
 
 ## Main definitions
 
-* `foo_bar`
+* `cond_kernel`: TODO
 
 ## Main statements
 
@@ -27,15 +27,18 @@ Equivalently, for any measurable space `γ`,
 
 ## Future extensions
 
-* We can obtain a disintegration for measures on `α × E` for a standard borel space `E` by using
-  that `E` is measurably equivalent to `ℝ`, `ℤ` or a finite set.
+* We can obtain a disintegration for measures on `α × Ω` for a standard borel space `Ω` by using
+  that `Ω` is measurably equivalent to `ℝ`, `ℤ` or a finite set.
 * The finite measure hypothesis can be weakened to σ-finite. The proof uses the finite case.
-* Using the Radon-Nikodym theorem for kernels, we can extend this to disintegration of
-  kernels.
+* Beyond measures, we can find a disintegration for a kernel `α → Ω × Ω'` by applying the
+  construction here for all `a : α` and showing additional measurability properties of the map we
+  obtain.
 * The conditional cdf construction in this file can give the cdf of a real measure by using the
   conditional cdf of a measure on `unit × ℝ`.
 
 -/
+
+-- todo: explain the word cdf, used everywhere in this file.
 
 open measure_theory set filter
 
@@ -386,7 +389,7 @@ include mα
 
 /-- `pre_cdf` is the Radon-Nikodym derivative of `ρ.Iic_snd` with respect to `ρ.fst` at each
 `r : ℚ`. This function `ℚ → α → ℝ≥0∞` is such that for almost all `a : α`, the function `ℚ → ℝ≥0∞`
-satisfies the properties of a cdf. -/
+satisfies the properties of a cdf (monotone with limit 0 at -∞ and 1 at +∞, right-continuous). -/
 noncomputable
 def pre_cdf (ρ : measure (α × ℝ)) (r : ℚ) : α → ℝ≥0∞ := measure.rn_deriv (ρ.Iic_snd r) ρ.fst
 
@@ -501,7 +504,7 @@ begin
     { rw monotone.tendsto_at_top_at_top_iff ha_mono at h_absurd,
       obtain ⟨r, hr⟩ := h_absurd 2,
       exact absurd (hr.trans (ha_le_one r)) ennreal.one_lt_two.not_le, },
-    exact h_tendsto, },
+    { exact h_tendsto, }, },
   classical,
   let F : α → ℝ≥0∞ := λ a,
     if h : ∃ l, tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 l) then h.some else 0,
@@ -716,8 +719,7 @@ begin
     exact ennreal.to_real_nonneg, },
   { rw cond_cdf_rat_of_not_mem _ _ h,
     split_ifs,
-    { refl, },
-    { exact zero_le_one, }, },
+    exacts [le_rfl, zero_le_one], },
 end
 
 lemma cond_cdf_rat_le_one (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
@@ -747,9 +749,7 @@ begin
   { simp only [cond_cdf_rat, h, if_false],
     refine (tendsto_congr' _).mp tendsto_const_nhds,
     rw [eventually_eq, eventually_at_bot],
-    refine ⟨-1, λ q hq, _⟩,
-    rw if_pos,
-    refine hq.trans_lt _,
+    refine ⟨-1, λ q hq, (if_pos (hq.trans_lt _)).symm⟩,
     linarith, },
 end
 
@@ -766,9 +766,7 @@ begin
   { simp only [cond_cdf_rat, h, if_false],
     refine (tendsto_congr' _).mp tendsto_const_nhds,
     rw [eventually_eq, eventually_at_top],
-    refine ⟨0, λ q hq, _⟩,
-    rw if_neg,
-    exact not_lt.mpr hq, },
+    exact ⟨0, λ q hq, (if_neg (not_lt.mpr hq)).symm⟩, },
 end
 
 lemma cond_cdf_rat_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ) :
@@ -1180,7 +1178,7 @@ begin
   rw lintegral_cond_kernel ρ hs,
 end
 
--- todo define someting to have a nicer expression?
+-- todo define something to have a nicer expression?
 theorem disintegration (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) (unit.star) :=
 by rw [← disintegration' ρ unit, kernel.const_apply]

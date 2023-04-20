@@ -30,28 +30,25 @@ inner product space, Hilbert space, norm
 - https://math.dartmouth.edu/archive/m113w10/public_html/jordan-vneumann-thm.pdf
 -/
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+variables {𝕜 E : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 local notation `𝓚` := algebra_map ℝ 𝕜
 open is_R_or_C
 open_locale complex_conjugate
 
-section
-
 variables (𝕜)
 
 /-- Auxiliary definition of the inner product derived from the norm. -/
-noncomputable def inner_
-  (x y : E') : 𝕜 :=
-  4⁻¹ * ((𝓚 ∥x + y∥) * (𝓚 ∥x + y∥) - (𝓚 ∥x - y∥) * (𝓚 ∥x - y∥)
-            + (I:𝕜) * (𝓚 ∥(I:𝕜) • x + y∥) * (𝓚 ∥(I:𝕜) • x + y∥)
-            - (I:𝕜) * (𝓚 ∥(I:𝕜) • x - y∥) * (𝓚 ∥(I:𝕜) • x - y∥))
+private noncomputable def inner_ (x y : E) : 𝕜 :=
+4⁻¹ * ((𝓚 ∥x + y∥) * (𝓚 ∥x + y∥) - (𝓚 ∥x - y∥) * (𝓚 ∥x - y∥)
+          + (I:𝕜) * (𝓚 ∥(I:𝕜) • x + y∥) * (𝓚 ∥(I:𝕜) • x + y∥)
+          - (I:𝕜) * (𝓚 ∥(I:𝕜) • x - y∥) * (𝓚 ∥(I:𝕜) • x - y∥))
 
 variables {𝕜}
 
 lemma inner_.add_left_aux1
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (x y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (x y z : E) :
   ∥x + y + z∥ * ∥x + y + z∥ =
     (∥2 • x + y∥ * ∥2 • x + y∥ + ∥2 • z + y∥ * ∥2 • z + y∥) / 2 - ∥x - z∥ * ∥x - z∥ :=
 begin
@@ -64,8 +61,8 @@ begin
 end
 
 lemma inner_.add_left_aux2
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (x y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (x y z : E) :
   ∥x + y - z∥ * ∥x + y - z∥ =
     (∥2 • x + y∥ * ∥2 • x + y∥ + ∥y - 2 • z∥ * ∥y - 2 • z∥) / 2 - ∥x + z∥ * ∥x + z∥ :=
 begin
@@ -78,8 +75,8 @@ begin
 end
 
 lemma inner_.add_left_aux2'
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (x y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (x y z : E) :
   ∥x + y + z∥ * ∥x + y + z∥ - ∥x + y - z∥ * ∥x + y - z∥ =
   ∥x + z∥ * ∥x + z∥ - ∥x - z∥ * ∥x - z∥ +
       (∥2 • z + y∥ * ∥2 • z + y∥ - ∥y - 2 • z∥ * ∥y - 2 • z∥) / 2 :=
@@ -89,8 +86,8 @@ begin
 end
 
 lemma inner_.add_left_aux3
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (y z : E) :
   ∥2 • z + y∥ * ∥2 • z + y∥ = 2 * (∥y + z∥ * ∥y + z∥ + ∥z∥ * ∥z∥) - ∥y∥ * ∥y∥ :=
 begin
   apply eq_sub_of_add_eq,
@@ -99,8 +96,8 @@ begin
 end
 
 lemma inner_.add_left_aux4
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (y z : E) :
   ∥y - 2 • z∥ * ∥y - 2 • z∥ = 2 * (∥y - z∥ * ∥y - z∥ + ∥z∥ * ∥z∥) - ∥y∥ * ∥y∥ :=
 begin
   apply eq_sub_of_add_eq,
@@ -110,8 +107,8 @@ begin
 end
 
 lemma inner_.add_left_aux4'
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (y z : E) :
   (∥2 • z + y∥ * ∥2 • z + y∥ - ∥y - 2 • z∥ * ∥y - 2 • z∥) / 2 =
   (∥y + z∥ * ∥y + z∥) - (∥y - z∥ * ∥y - z∥)
   :=
@@ -121,8 +118,8 @@ begin
 end
 
 lemma inner_.add_left_aux5
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (x y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (x y z : E) :
   ∥(I : 𝕜) • (x + y) + z∥ * ∥(I : 𝕜) • (x + y) + z∥ =
     (∥(I : 𝕜) • (2 • x + y)∥ * ∥(I : 𝕜) • (2 • x + y)∥ +
       ∥(I : 𝕜) • y + 2 • z∥ * ∥(I : 𝕜) • y + 2 • z∥) / 2 -
@@ -137,8 +134,8 @@ begin
 end
 
 lemma inner_.add_left_aux6
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (x y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (x y z : E) :
   ∥(I : 𝕜) • (x + y) - z∥ * ∥(I : 𝕜) • (x + y) - z∥ =
     (∥(I : 𝕜) • (2 • x + y)∥ * ∥(I : 𝕜) • (2 • x + y)∥ +
       ∥(I : 𝕜) • y - 2 • z∥ * ∥(I : 𝕜) • y - 2 • z∥) / 2 -
@@ -153,8 +150,8 @@ begin
 end
 
 lemma inner_.add_left_aux7
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (y z : E) :
   ∥(I : 𝕜) • y + 2 • z∥ * ∥(I : 𝕜) • y + 2 • z∥ =
     2 * (∥(I : 𝕜) • y + z∥ * ∥(I : 𝕜) • y + z∥ + ∥z∥ * ∥z∥) -
     ∥(I : 𝕜) • y∥ * ∥(I : 𝕜) • y∥ :=
@@ -165,8 +162,8 @@ begin
 end
 
 lemma inner_.add_left_aux8
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (y z : E) :
   ∥(I : 𝕜) • y - 2 • z∥ * ∥(I : 𝕜) • y - 2 • z∥ =
     2 * (∥(I : 𝕜) • y - z∥ * ∥(I : 𝕜) • y - z∥ + ∥z∥ * ∥z∥) -
     ∥(I : 𝕜) • y∥ * ∥(I : 𝕜) • y∥ :=
@@ -178,8 +175,8 @@ begin
 end
 
 lemma inner_.add_left
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (x y z : E') :
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (x y z : E) :
   inner_ 𝕜 (x + y) z = inner_ 𝕜 x z + inner_ 𝕜 y z :=
 begin
   simp only [inner_],
@@ -196,15 +193,16 @@ begin
     ring },
 end
 
-section
-variables (𝕜 E')
+variables (𝕜 E)
+
 /-- Auxiliary definition for the `add_left` property -/
-def inner_prop (r : 𝕜) : Prop := ∀ x y : E', inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y
-end
+private def inner_prop (r : 𝕜) : Prop := ∀ x y : E, inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y
+
+variables {𝕜 E}
 
 lemma inner_.nat
-  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (r : ℕ) (x y : E') :
+  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (r : ℕ) (x y : E) :
   inner_ 𝕜 ((r : 𝕜) • x) y = (r : 𝕜) * inner_ 𝕜 x y :=
 begin
   induction r with r ih,
@@ -215,15 +213,15 @@ begin
 end
 
 lemma inner_.nat_prop (r : ℕ)
-  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
-  inner_prop 𝕜 E' r :=
+  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  inner_prop 𝕜 E r :=
 begin
   intros x y,
   simp only [map_nat_cast],
   exact inner_.nat h r x y
 end
 
-lemma inner_.neg_one : inner_prop 𝕜 E' (-1 : ℤ) :=
+lemma inner_.neg_one : inner_prop 𝕜 E (-1 : ℤ) :=
 begin
   intros x y,
   simp only [inner_, neg_mul_eq_neg_mul, one_mul, int.cast_one, one_smul, ring_hom.map_one,
@@ -243,8 +241,8 @@ begin
 end
 
 lemma inner_.int_prop (r : ℤ)
-  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
-  inner_prop 𝕜 E' r :=
+  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  inner_prop 𝕜 E r :=
 begin
   intros x y,
   rw ←r.sign_mul_nat_abs,
@@ -263,8 +261,8 @@ begin
 end
 
 lemma inner_.rat_prop (r : ℚ)
-  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
-  inner_prop 𝕜 E' r :=
+  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  inner_prop 𝕜 E r :=
 begin
   intros x y,
   have : (r.denom : 𝕜) ≠ 0,
@@ -275,7 +273,7 @@ begin
   rw [←mul_assoc, mul_div_cancel' _ this, inner_.int_prop _ h, map_int_cast],
 end
 
-lemma inner_.continuous {α} [topological_space α] {f : α → E'} {g : α → E'}
+lemma inner_.continuous {α} [topological_space α] {f : α → E} {g : α → E}
   (hf : continuous f) (hg : continuous g) :
   continuous (λ x, inner_ 𝕜 (f x) (g x)) :=
 begin
@@ -300,8 +298,8 @@ begin
 end
 
 lemma inner_.real_prop (r : ℝ)
-  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
-  inner_prop 𝕜 E' r :=
+  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  inner_prop 𝕜 E r :=
 begin
   intros x y,
   revert r,
@@ -315,8 +313,8 @@ begin
 end
 
 lemma inner_.I_prop
-  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
-  inner_prop 𝕜 E' (I : 𝕜 ) :=
+  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  inner_prop 𝕜 E (I : 𝕜 ) :=
 begin
   by_cases hI : (I : 𝕜) = 0,
   { rw [hI, ←nat.cast_zero], apply inner_.nat_prop _ h },
@@ -340,8 +338,8 @@ begin
 end
 
 lemma inner_.smul_left
-  (h : ∀ (x y : E'), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
-  (x y : E') (r : 𝕜) :
+  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (x y : E) (r : 𝕜) :
   inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y :=
 begin
   rw [←re_add_im r, add_smul, inner_.add_left h, inner_.real_prop _ h, ←smul_smul,
@@ -349,7 +347,7 @@ begin
   ring,
 end
 
-lemma inner_.norm_sq (x : E') : ∥x∥ ^ 2 = re (inner_ 𝕜 x x) :=
+lemma inner_.norm_sq (x : E) : ∥x∥ ^ 2 = re (inner_ 𝕜 x x) :=
 begin
   simp only [inner_],
   have h₁ : norm_sq (4 : 𝕜) = 16,
@@ -369,7 +367,7 @@ begin
   ring,
 end
 
-lemma inner_.conj_sym (x y : E') : conj (inner_ 𝕜 y x) = inner_ 𝕜 x y :=
+lemma inner_.conj_sym (x y : E) : conj (inner_ 𝕜 y x) = inner_ 𝕜 x y :=
 begin
   simp only [inner_],
   have h4 : conj (4⁻¹ : 𝕜) = 4⁻¹,
@@ -393,13 +391,11 @@ begin
   simp only [neg_mul, sub_eq_add_neg, neg_neg],
 end
 
-end
-
-/-- Fréchet–von Neumann–Jordan theorm. A normed space `E'` whose norm satisfies the parallelogram
+/-- Fréchet–von Neumann–Jordan theorm. A normed space `E` whose norm satisfies the parallelogram
 identity can be given a compatible inner product. -/
 noncomputable def inner_product_space.of_norm
-  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
-  inner_product_space 𝕜 E' :=
+  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  inner_product_space 𝕜 E :=
 { inner := inner_ 𝕜,
   norm_sq_eq_inner := inner_.norm_sq,
   conj_sym := inner_.conj_sym,

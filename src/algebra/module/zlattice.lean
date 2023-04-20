@@ -17,8 +17,8 @@ that `L` spans `E` over `K`.
 The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
 * As `L : add_subgroup E` with the additional properties:
-  `(hd : ∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite)`, that is `L` is discrete
-  `(hs : submodule.span ℝ (L : set E) = ⊤)`, that is `L` spans `E` over `K`.
+  `(∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite`, that is `L` is discrete
+  `submodule.span ℝ (L : set E) = ⊤`, that is `L` spans `E` over `K`.
 
 ## Main result
 * `zspan.is_add_fundamental_domain`: for `L : submodule.span ℤ (set.range b)` a ℤ-lattice, proves
@@ -60,13 +60,23 @@ variable [fintype ι]
 by rounding down its coordinates on the basis `b`. -/
 def floor (m : E) : span ℤ (set.range b) := ∑ i, ⌊b.repr m i⌋ • b.restrict_scalars ℤ i
 
+/-- The map that sends a vector of `E` to the element of the ℤ-lattice spanned by `b` obtained
+by rounding up its coordinates on the basis `b`. -/
+def ceil (m : E) : span ℤ (set.range b) := ∑ i, ⌈b.repr m i⌉ • b.restrict_scalars ℤ i
+
 @[simp]
 lemma repr_floor_apply (m : E) (i : ι) :
   b.repr (floor b m) i = ⌊b.repr m i⌋ :=
-by simp only [floor, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
-  finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq',
-  finset.mem_univ, if_true, coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply,
-  linear_equiv.map_sum]
+by simp only [floor, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply, finset.sum_apply',
+  basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq', finset.mem_univ, if_true,
+  coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply, linear_equiv.map_sum]
+
+@[simp]
+lemma repr_ceil_apply (m : E) (i : ι) :
+  b.repr (ceil b m) i = ⌈b.repr m i⌉ :=
+by simp only [ceil, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply, finset.sum_apply',
+  basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq', finset.mem_univ, if_true,
+  coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply, linear_equiv.map_sum]
 
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,
 see `zspan.fract_mem_fundamental_domain`. -/
@@ -93,6 +103,10 @@ begin
   rw [map_add, finsupp.coe_add, pi.add_apply, add_tsub_cancel_right,
     ← (eq_int_cast (algebra_map ℤ K) _), basis.restrict_scalars_repr_apply, coe_mk],
 end
+
+@[simp]
+lemma fract_add_zspan (m : E) {v : E} (h : v ∈ span ℤ (set.range b)) :
+  fract b (m + v) = fract b m := by { rw [add_comm, fract_zspan_add b m h] }
 
 variable {b}
 

@@ -75,7 +75,7 @@ begin
     ih k, ih (k + 2), mul_zero, sub_zero] }
 end
 
-lemma coeff_hermite_self (n : ℕ) : coeff (hermite n) n = 1 :=
+@[simp] lemma coeff_hermite_self (n : ℕ) : coeff (hermite n) n = 1 :=
 begin
   induction n with n ih,
   { apply coeff_C },

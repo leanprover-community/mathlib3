@@ -43,12 +43,12 @@ def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 @[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
 @[simp] lemma rotation_symm_apply (a : circle) (z : ℂ) : (rotation a).symm z = a⁻¹ * z := rfl
 
-lemma rotation_mul_conj_lie (a : circle): rotation a * conj_lie = conj_lie * (rotation a⁻¹) :=
+lemma rotation_mul_conj_lie (a : circle) : rotation a * conj_lie = conj_lie * (rotation a⁻¹) :=
 begin
- ext1 z,
- suffices : (a : ℂ) = conj a⁻¹,
- { simpa using or.inl this },
- rw [←coe_inv_circle, coe_inv_circle_eq_conj, conj_conj],
+  ext1 z,
+  suffices : (a : ℂ) = conj (a⁻¹ : ℂ),
+  { simpa using or.inl this },
+  rw [←coe_inv_circle, coe_inv_circle_eq_conj, conj_conj],
 end
 
 @[simp] lemma rotation_symm (a : circle) : (rotation a).symm = rotation a⁻¹ :=

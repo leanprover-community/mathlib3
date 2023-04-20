@@ -8,6 +8,9 @@ import category_theory.subobject.lattice
 /-!
 # Specific subobjects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `equalizer_subobject`, `kernel_subobject` and `image_subobject`, which are the subobjects
 represented by the equalizer, kernel and image of (a pair of) morphism(s) and provide conditions
 for `P.factors f`, where `P` is one of these special subobjects.
@@ -144,6 +147,17 @@ by { ext, simp, dsimp, simp, } -- See library note [dsimp, simp].
   (sq : arrow.mk f ⟶ arrow.mk f') (sq' : arrow.mk f' ⟶ arrow.mk f'') :
   kernel_subobject_map (sq ≫ sq') = kernel_subobject_map sq ≫ kernel_subobject_map sq' :=
 by { ext, simp, }
+
+@[reassoc] lemma kernel_map_comp_kernel_subobject_iso_inv (sq : arrow.mk f ⟶ arrow.mk f') :
+  kernel.map f f' sq.1 sq.2 sq.3.symm ≫ (kernel_subobject_iso _).inv =
+    (kernel_subobject_iso _).inv ≫ kernel_subobject_map sq :=
+by ext; simp
+
+@[reassoc] lemma kernel_subobject_iso_comp_kernel_map
+  (sq : arrow.mk f ⟶ arrow.mk f') :
+  (kernel_subobject_iso _).hom ≫ kernel.map f f' sq.1 sq.2 sq.3.symm =
+    kernel_subobject_map sq ≫ (kernel_subobject_iso _).hom :=
+by simp [←iso.comp_inv_eq, kernel_map_comp_kernel_subobject_iso_inv]
 
 end
 
@@ -411,6 +425,21 @@ begin
   simp only [image_subobject_map, category.assoc, image_subobject_arrow'],
   erw [image.map_ι, ←category.assoc, image_subobject_arrow],
 end
+
+lemma image_map_comp_image_subobject_iso_inv
+  {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
+  (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
+  image.map sq ≫ (image_subobject_iso _).inv =
+  (image_subobject_iso _).inv ≫ image_subobject_map sq :=
+by ext; simp
+
+lemma image_subobject_iso_comp_image_map
+  {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
+  (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
+  (image_subobject_iso _).hom ≫ image.map sq =
+    image_subobject_map sq ≫ (image_subobject_iso _).hom :=
+by rw [←iso.comp_inv_eq, category.assoc, ←(image_subobject_iso (arrow.mk f).hom).eq_inv_comp,
+  ←image_map_comp_image_subobject_iso_inv]; refl
 
 end image
 

@@ -32,9 +32,9 @@ inductive preterm : Type
 | var : int → nat → preterm
 | add : preterm → preterm → preterm
 
-localized "notation `&` k    := omega.int.preterm.cst k" in omega.int
-localized "infix ` ** ` : 300 := omega.int.preterm.var" in omega.int
-localized "notation t `+*` s := omega.int.preterm.add t s" in omega.int
+localized "notation (name := preterm.cst) `&` k := omega.int.preterm.cst k" in omega.int
+localized "infix (name := preterm.var) ` ** `:300 := omega.int.preterm.var" in omega.int
+localized "notation (name := preterm.add) t ` +* ` s := omega.int.preterm.add t s" in omega.int
 
 namespace preterm
 

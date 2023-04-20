@@ -11,6 +11,9 @@ import category_theory.functor.reflects_isomorphisms
 /-!
 # Cones and cocones
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `cone F`, a cone over a functor `F`,
 and `F.cones : Cᵒᵖ ⥤ Type`, the functor associating to `X` the cones over `F` with cone point `X`.
 
@@ -715,18 +718,20 @@ def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
   { obj := λ c, op (cocone.op c),
     map := λ X Y f, quiver.hom.op
     { hom := f.hom.op,
-      w' := λ j, by { apply quiver.hom.unop_inj, dsimp, simp, }, } },
+      w' := λ j, by { apply quiver.hom.unop_inj, dsimp, apply cocone_morphism.w }, } },
   inverse :=
   { obj := λ c, cone.unop (unop c),
     map := λ X Y f,
     { hom := f.unop.hom.unop,
-      w' := λ j, by { apply quiver.hom.op_inj, dsimp, simp, }, } },
-  unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
+      w' := λ j, by { apply quiver.hom.op_inj, dsimp, apply cone_morphism.w }, } },
+  unit_iso := nat_iso.of_components (λ c,
+    cocones.ext (iso.refl _) (by { dsimp, simp })) (λ X Y f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ c,
     by { induction c using opposite.rec,
-         dsimp, apply iso.op, exact cones.ext (iso.refl _) (by tidy), })
+         dsimp, apply iso.op, exact cones.ext (iso.refl _) (by { dsimp, simp }), })
     (λ X Y f, quiver.hom.unop_inj (cone_morphism.ext _ _ (by { dsimp, simp }))),
-  functor_unit_iso_comp' := λ c, begin apply quiver.hom.unop_inj, ext, dsimp, simp, end }
+  functor_unit_iso_comp' := (λ c,
+    by { apply quiver.hom.unop_inj, ext, dsimp, apply comp_id })}
 
 attribute [simps] cocone_equivalence_op_cone_op
 

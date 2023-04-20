@@ -3,12 +3,16 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import order.basic
-import algebra.algebra.basic
+import algebra.big_operators.order
+import data.fintype.big_operators
+import data.int.lemmas
 import tactic.derive_fintype
 
 /-!
 # Sign function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the sign function for types with zero and a decidable less-than relation, and
 proves some basic theorems about it.
@@ -174,6 +178,13 @@ end cast
   map_one'  := rfl,
   map_mul'  := λ x y, by cases x; cases y; simp }
 
+lemma range_eq {α} (f : sign_type → α) : set.range f = {f zero, f neg, f pos} :=
+begin
+  classical,
+  simpa only [← finset.coe_singleton, ← finset.image_singleton,
+    ← fintype.coe_image_univ, finset.coe_image, ← set.image_insert_eq],
+end
+
 end sign_type
 
 variables {α : Type*}
@@ -276,7 +287,7 @@ lemma sign_mul (x y : α) : sign (x * y) = sign x * sign y :=
 begin
   rcases lt_trichotomy x 0 with hx | hx | hx; rcases lt_trichotomy y 0 with hy | hy | hy;
     simp only [sign_zero, mul_zero, zero_mul, sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul,
-               neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero',
+               neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero,
                mul_neg_of_pos_of_neg, mul_pos]
 end
 
@@ -323,3 +334,79 @@ begin
 end
 
 end add_group
+
+section linear_ordered_add_comm_group
+
+open_locale big_operators
+
+variables [linear_ordered_add_comm_group α]
+
+/- I'm not sure why this is necessary, see
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Decidable.20vs.20decidable_rel -/
+local attribute [instance] linear_ordered_add_comm_group.decidable_lt
+
+lemma sign_sum {ι : Type*} {s : finset ι} {f : ι → α} (hs : s.nonempty) (t : sign_type)
+  (h : ∀ i ∈ s, sign (f i) = t) : sign (∑ i in s, f i) = t :=
+begin
+  cases t,
+  { simp_rw [zero_eq_zero, sign_eq_zero_iff] at ⊢ h,
+    exact finset.sum_eq_zero h },
+  { simp_rw [neg_eq_neg_one, sign_eq_neg_one_iff] at ⊢ h,
+    exact finset.sum_neg h hs },
+  { simp_rw [pos_eq_one, sign_eq_one_iff] at ⊢ h,
+    exact finset.sum_pos h hs }
+end
+
+end linear_ordered_add_comm_group
+
+namespace int
+
+lemma sign_eq_sign (n : ℤ) : n.sign = _root_.sign n :=
+begin
+  obtain ((_ | _) | _) := n,
+  { exact congr_arg coe sign_zero.symm },
+  { exact congr_arg coe (sign_pos $ int.succ_coe_nat_pos _).symm },
+  { exact congr_arg coe (_root_.sign_neg $ neg_succ_lt_zero _).symm }
+end
+end int
+
+open finset nat
+open_locale big_operators
+
+private lemma exists_signed_sum_aux [decidable_eq α] (s : finset α) (f : α → ℤ) :
+  ∃ (β : Type u_1) (t : finset β) (sgn : β → sign_type) (g : β → α), (∀ b, g b ∈ s) ∧
+    t.card = ∑ a in s, (f a).nat_abs ∧
+    ∀ a ∈ s, (∑ b in t, if g b = a then (sgn b : ℤ) else 0) = f a :=
+begin
+  refine ⟨Σ a : {x // x ∈ s}, ℕ, finset.univ.sigma (λ a, range (f a).nat_abs), λ a, sign (f a.1),
+    λ a, a.1, λ a, a.1.prop, _, _⟩,
+  { simp [@sum_attach _ _ _ _ (λ a, (f a).nat_abs)] },
+  { intros x hx,
+    simp [sum_sigma, hx, ← int.sign_eq_sign, int.sign_mul_abs, mul_comm (|f _|),
+      @sum_attach _ _ _ _ (λ a, ∑ j in range (f a).nat_abs, if a = x then (f a).sign else 0)] }
+end
+
+/-- We can decompose a sum of absolute value `n` into a sum of `n` signs. -/
+lemma exists_signed_sum [decidable_eq α] (s : finset α) (f : α → ℤ) :
+  ∃ (β : Type u_1) (_ : fintype β) (sgn : β → sign_type) (g : β → α), by exactI (∀ b, g b ∈ s) ∧
+    fintype.card β = ∑ a in s, (f a).nat_abs ∧
+    ∀ a ∈ s, (∑ b, if g b = a then (sgn b : ℤ) else 0) = f a :=
+let ⟨β, t, sgn, g, hg, ht, hf⟩ := exists_signed_sum_aux s f in
+  ⟨t, infer_instance, λ b, sgn b, λ b, g b, λ b, hg b, by simp [ht], λ a ha,
+    (@sum_attach _ _ t _ (λ b, ite (g b = a) (sgn b : ℤ) 0)).trans $ hf _ ha⟩
+
+/-- We can decompose a sum of absolute value less than `n` into a sum of at most `n` signs. -/
+lemma exists_signed_sum' [nonempty α] [decidable_eq α] (s : finset α) (f : α → ℤ) (n : ℕ)
+  (h : ∑ i in s, (f i).nat_abs ≤ n) :
+  ∃ (β : Type u_1) (_ : fintype β) (sgn : β → sign_type) (g : β → α), by exactI
+    (∀ b, g b ∉ s → sgn b = 0) ∧ fintype.card β = n ∧
+    ∀ a ∈ s, (∑ i, if g i = a then (sgn i : ℤ) else 0) = f a :=
+begin
+  obtain ⟨β, _, sgn, g, hg, hβ, hf⟩ := exists_signed_sum s f,
+  resetI,
+  refine ⟨β ⊕ fin (n - ∑ i in s, (f i).nat_abs), infer_instance, sum.elim sgn 0,
+    sum.elim g $ classical.arbitrary _, _, by simp [hβ, h], λ a ha, by simp [hf _ ha]⟩,
+  rintro (b | b) hb,
+  { cases hb (hg _) },
+  { refl }
+end

@@ -177,33 +177,33 @@ end comm_ring
 
 variables [field K]
 
-lemma dim_R [fintype σ] : module.rank K (R σ K) = fintype.card (σ → K) :=
+lemma rank_R [fintype σ] : module.rank K (R σ K) = fintype.card (σ → K) :=
 calc module.rank K (R σ K) =
   module.rank K (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} →₀ K) :
-    linear_equiv.dim_eq
+    linear_equiv.rank_eq
       (finsupp.supported_equiv_finsupp {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card K - 1 })
-  ... = #{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
-    by rw [finsupp.dim_eq, dim_self, mul_one]
+  ... = #{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} : by rw [rank_finsupp_self']
   ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
-    refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
+    refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_finite $ assume f, _⟩,
     refine forall_congr (assume n, le_tsub_iff_right _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
   ... = #(σ → {n // n < fintype.card K}) :
     (@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)).cardinal_eq
   ... = #(σ → fin (fintype.card K)) :
-    (equiv.arrow_congr (equiv.refl σ) (equiv.refl _)).cardinal_eq
+    (equiv.arrow_congr (equiv.refl σ) fin.equiv_subtype.symm).cardinal_eq
   ... = #(σ → K) :
     (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
   ... = fintype.card (σ → K) : cardinal.mk_fintype _
 
 instance [finite σ] : finite_dimensional K (R σ K) :=
-by { casesI nonempty_fintype σ, exact is_noetherian.iff_fg.1 (is_noetherian.iff_dim_lt_aleph_0.mpr $
-  by simpa only [dim_R] using cardinal.nat_lt_aleph_0 (fintype.card (σ → K))) }
+by { casesI nonempty_fintype σ,
+  exact is_noetherian.iff_fg.1 (is_noetherian.iff_rank_lt_aleph_0.mpr $
+    by simpa only [rank_R] using cardinal.nat_lt_aleph_0 (fintype.card (σ → K))) }
 
 lemma finrank_R [fintype σ] : finite_dimensional.finrank K (R σ K) = fintype.card (σ → K) :=
-finite_dimensional.finrank_eq_of_dim_eq (dim_R σ K)
+finite_dimensional.finrank_eq_of_rank_eq (rank_R σ K)
 
 lemma range_evalᵢ [finite σ] : (evalᵢ σ K).range = ⊤ :=
 begin

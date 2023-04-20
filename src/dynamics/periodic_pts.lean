@@ -3,14 +3,18 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-
 import algebra.hom.iterate
 import data.list.cycle
+import data.pnat.basic
 import data.nat.prime
 import dynamics.fixed_points.basic
+import group_theory.group_action.group
 
 /-!
 # Periodic points
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A point `x : α` is a periodic point of `f : α → α` of period `n` if `f^[n] x = x`.
 

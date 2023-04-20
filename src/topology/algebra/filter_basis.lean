@@ -9,6 +9,9 @@ import topology.algebra.module.basic
 /-!
 # Group and ring filter bases
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `group_filter_basis` is a `filter_basis` on a group with some properties relating
 the basis to the group structure. The main theorem is that a `group_filter_basis`
 on a group gives a topology on the group which makes it into a topological group
@@ -35,7 +38,7 @@ Given a group `G` and a ring `R`:
 -/
 
 open filter set topological_space function
-open_locale topological_space filter pointwise
+open_locale topology filter pointwise
 
 universe u
 
@@ -67,7 +70,7 @@ attribute [to_additive] group_filter_basis.conj'
 attribute [to_additive] group_filter_basis.to_filter_basis
 
 /-- `group_filter_basis` constructor in the commutative group case. -/
-@[to_additive "`add_group_filter_basis` constructor in the commutative group case."]
+@[to_additive "`add_group_filter_basis` constructor in the additive commutative group case."]
 def group_filter_basis_of_comm {G : Type*} [comm_group G]
   (sets                   : set (set G))
   (nonempty               : sets.nonempty)

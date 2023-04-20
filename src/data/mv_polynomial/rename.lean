@@ -9,6 +9,9 @@ import data.mv_polynomial.basic
 /-!
 # Renaming variables of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file establishes the `rename` operation on multivariate polynomials,
 which modifies the set of variables.
 

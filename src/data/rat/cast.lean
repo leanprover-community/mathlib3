@@ -4,11 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.order
+import data.rat.lemmas
 import data.int.char_zero
+import algebra.group_with_zero.power
 import algebra.field.opposite
+import algebra.order.field.basic
 
 /-!
 # Casts for Rational Numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Summary
 
@@ -24,8 +30,6 @@ casting lemmas showing the well-behavedness of this injection.
 rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, casting
 -/
 
-open_locale big_operators
-
 variables {F ι α β : Type*}
 
 namespace rat
@@ -34,20 +38,14 @@ open_locale rat
 section with_div_ring
 variable [division_ring α]
 
-@[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
-(cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
-
 @[simp, norm_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
-by rw [coe_int_eq_of_int, cast_of_int]
+(cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
 @[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n :=
 by rw [← int.cast_coe_nat, cast_coe_int, int.cast_coe_nat]
 
-@[simp, norm_cast] theorem cast_zero : ((0 : ℚ) : α) = 0 :=
-(cast_of_int _).trans int.cast_zero
-
-@[simp, norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1 :=
-(cast_of_int _).trans int.cast_one
+@[simp, norm_cast] lemma cast_zero : ((0 : ℚ) : α) = 0 := (cast_coe_int _).trans int.cast_zero
+@[simp, norm_cast] lemma cast_one : ((1 : ℚ) : α) = 1 := (cast_coe_int _).trans int.cast_one
 
 theorem cast_commute (r : ℚ) (a : α) : commute ↑r a :=
 by simpa only [cast_def] using (r.1.cast_commute a).div_left (r.2.cast_commute a)
@@ -204,6 +202,8 @@ variable {α}
 
 @[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
 @[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
+@[simp, norm_cast] theorem cast_zpow (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
+map_zpow₀ (cast_hom α) q n
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
@@ -211,32 +211,7 @@ by simp only [mk_eq_div, cast_div, cast_coe_int]
 @[simp, norm_cast] theorem cast_pow (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
 (cast_hom α).map_pow q k
 
-@[simp, norm_cast] lemma cast_list_sum (s : list ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
-map_list_sum (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_multiset_sum (s : multiset ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
-map_multiset_sum (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_sum (s : finset ι) (f : ι → ℚ) :
-  (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
-map_sum (rat.cast_hom α) _ _
-
-@[simp, norm_cast] lemma cast_list_prod (s : list ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
-map_list_prod (rat.cast_hom α) _
-
 end with_div_ring
-
-section field
-variables [field α] [char_zero α]
-
-@[simp, norm_cast] lemma cast_multiset_prod (s : multiset ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
-map_multiset_prod (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_prod (s : finset ι) (f : ι → ℚ) :
-  (↑(∏ i in s, f i) : α) = ∏ i in s, f i :=
-map_prod (rat.cast_hom α) _ _
-
-end field
 
 section linear_ordered_field
 
@@ -300,63 +275,56 @@ by rw [cast_def, map_div₀, map_int_cast, map_nat_cast, cast_def]
 @[simp] lemma eq_rat_cast {k} [division_ring k] [ring_hom_class F ℚ k] (f : F) (r : ℚ) : f r = r :=
 by rw [← map_rat_cast f, rat.cast_id]
 
-lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
-begin
-  ext r,
-  refine rat.num_denom_cases_on' r _,
-  intros a b b0,
-  let φ : ℤ →+* R := f.comp (int.cast_ring_hom ℚ),
-  let ψ : ℤ →+* R := g.comp (int.cast_ring_hom ℚ),
-  rw [rat.mk_eq_div, int.cast_coe_nat],
-  have b0' : (b:ℚ) ≠ 0 := nat.cast_ne_zero.2 b0,
-  have : ∀ n : ℤ, f n = g n := λ n, show φ n = ψ n, by rw [φ.ext_int ψ],
-  calc f (a * b⁻¹)
-      = f a * f b⁻¹ * (g (b:ℤ) * g b⁻¹) :
-        by rw [int.cast_coe_nat, ← g.map_mul, mul_inv_cancel b0', g.map_one, mul_one, f.map_mul]
-  ... = g a * f b⁻¹ * (f (b:ℤ) * g b⁻¹) : by rw [this a, ← this b]
-  ... = g (a * b⁻¹) :
-        by rw [int.cast_coe_nat, mul_assoc, ← mul_assoc (f b⁻¹),
-              ← f.map_mul, inv_mul_cancel b0', f.map_one, one_mul, g.map_mul]
-end
-
-instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
-⟨ring_hom.ext_rat⟩
-
 namespace monoid_with_zero_hom
 
-variables {M : Type*} [group_with_zero M]
+variables {M₀ : Type*} [monoid_with_zero M₀] [monoid_with_zero_hom_class F ℚ M₀] {f g : F}
+include M₀
+
+/-- If `f` and `g` agree on the integers then they are equal `φ`. -/
+theorem ext_rat' (h : ∀ m : ℤ, f m = g m) : f = g :=
+fun_like.ext f g $ λ r, by rw [← r.num_div_denom, div_eq_mul_inv, map_mul, map_mul, h,
+  ← int.cast_coe_nat, eq_on_inv₀ f g (h _)]
 
 /-- If `f` and `g` agree on the integers then they are equal `φ`.
 
 See note [partially-applied ext lemmas] for why `comp` is used here. -/
-@[ext]
-theorem ext_rat {f g : ℚ →*₀ M}
-  (same_on_int : f.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
-    g.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : f = g :=
-begin
-  have same_on_int' : ∀ k : ℤ, f k = g k := congr_fun same_on_int,
-  ext x,
-  rw [← @rat.num_denom x, rat.mk_eq_div, map_div₀ f, map_div₀ g,
-    same_on_int' x.num, same_on_int' x.denom],
-end
+@[ext] theorem ext_rat {f g : ℚ →*₀ M₀}
+  (h : f.comp (int.cast_ring_hom ℚ : ℤ →*₀ ℚ) = g.comp (int.cast_ring_hom ℚ)) : f = g :=
+ext_rat' $ congr_fun h
 
 /-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
-theorem ext_rat_on_pnat {f g : ℚ →*₀ M}
+theorem ext_rat_on_pnat
   (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
-ext_rat $ ext_int' (by simpa) ‹_›
+ext_rat' $ fun_like.congr_fun $ show (f : ℚ →*₀ M₀).comp (int.cast_ring_hom ℚ : ℤ →*₀ ℚ) =
+  (g : ℚ →*₀ M₀).comp (int.cast_ring_hom ℚ : ℤ →*₀ ℚ),
+  from ext_int' (by simpa) (by simpa)
 
 end monoid_with_zero_hom
 
-namespace mul_opposite
+/-- Any two ring homomorphisms from `ℚ` to a semiring are equal. If the codomain is a division ring,
+then this lemma follows from `eq_rat_cast`. -/
+lemma ring_hom.ext_rat {R : Type*} [semiring R] [ring_hom_class F ℚ R] (f g : F) : f = g :=
+monoid_with_zero_hom.ext_rat' $ ring_hom.congr_fun $
+  ((f : ℚ →+* R).comp (int.cast_ring_hom ℚ)).ext_int ((g : ℚ →+* R).comp (int.cast_ring_hom ℚ))
 
-variables [division_ring α]
+instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
+⟨ring_hom.ext_rat⟩
 
-@[simp, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
-by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
-    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
+section smul
 
-@[simp, norm_cast] lemma unop_rat_cast (r : ℚ) : unop (r : αᵐᵒᵖ) = r :=
-by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
-    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
+namespace rat
 
-end mul_opposite
+variables {K : Type*} [division_ring K]
+
+@[priority 100]
+instance distrib_smul  : distrib_smul ℚ K :=
+{ smul := (•),
+  smul_zero := λ a, by rw [smul_def, mul_zero],
+  smul_add := λ a x y, by simp only [smul_def, mul_add, cast_add] }
+
+instance is_scalar_tower_right : is_scalar_tower ℚ K K :=
+⟨λ a x y, by simp only [smul_def, smul_eq_mul, mul_assoc]⟩
+
+end rat
+
+end smul

@@ -3,10 +3,13 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.bounded_order
+import order.prop_instances
 
 /-!
 # Heyting algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines Heyting, co-Heyting and bi-Heyting algebras.
 
@@ -61,7 +64,7 @@ variables {ι α β : Type*}
 
 /-- Syntax typeclass for Heyting negation `￢`.
 
-The difference between `has_hnot` and `has_compl` is that the former belongs to Heyting algebras,
+The difference between `has_compl` and `has_hnot` is that the former belongs to Heyting algebras,
 while the latter belongs to co-Heyting algebras. They are both pseudo-complements, but `compl`
 underestimates while `hnot` overestimates. In boolean algebras, they are equal. See `hnot_eq_compl`.
 -/
@@ -209,8 +212,11 @@ See also `Prop.heyting_algebra`. -/
 -- `p → q → r ↔ p ∧ q → r`
 @[simp] lemma le_himp_iff : a ≤ b ⇨ c ↔ a ⊓ b ≤ c := generalized_heyting_algebra.le_himp_iff _ _ _
 
+-- `p → q → r ↔ q ∧ p → r`
+lemma le_himp_iff' : a ≤ b ⇨ c ↔ b ⊓ a ≤ c := by rw [le_himp_iff, inf_comm]
+
 -- `p → q → r ↔ q → p → r`
-lemma le_himp_comm : a ≤ b ⇨ c ↔ b ≤ a ⇨ c := by rw [le_himp_iff, le_himp_iff, inf_comm]
+lemma le_himp_comm : a ≤ b ⇨ c ↔ b ≤ a ⇨ c := by rw [le_himp_iff, le_himp_iff']
 
 -- `p → q → p`
 lemma le_himp : a ≤ b ⇨ a := le_himp_iff.2 inf_le_left
@@ -247,7 +253,7 @@ lemma himp_himp (a b c : α) : a ⇨ b ⇨ c = a ⊓ b ⇨ c :=
 eq_of_forall_le_iff $ λ d, by simp_rw [le_himp_iff, inf_assoc]
 
 -- `(q → r) → (p → q) → q → r`
-@[simp] lemma himp_le_himp_himp : b ⇨ c ≤ (a ⇨ b) ⇨ a ⇨ c :=
+@[simp] lemma himp_le_himp_himp_himp : b ⇨ c ≤ (a ⇨ b) ⇨ a ⇨ c :=
 begin
   rw [le_himp_iff, le_himp_iff, inf_assoc, himp_inf_self, ←inf_assoc, himp_inf_self, inf_assoc],
   exact inf_le_left,
@@ -255,6 +261,8 @@ end
 
 -- `p → q → r ↔ q → p → r`
 lemma himp_left_comm (a b c : α) : a ⇨ b ⇨ c = b ⇨ a ⇨ c := by simp_rw [himp_himp, inf_comm]
+
+@[simp] lemma himp_idem : b ⇨ b ⇨ a = b ⇨ a := by rw [himp_himp, inf_idem]
 
 lemma himp_inf_distrib (a b c : α) : a ⇨ b ⊓ c = (a ⇨ b) ⊓ (a ⇨ c) :=
 eq_of_forall_le_iff $ λ d, by simp_rw [le_himp_iff, le_inf_iff, le_himp_iff]
@@ -275,6 +283,29 @@ by rw [sup_himp_distrib, himp_self, top_inf_eq]
 
 @[simp] lemma sup_himp_self_right (a b : α) : (a ⊔ b) ⇨ b = a ⇨ b :=
 by rw [sup_himp_distrib, himp_self, inf_top_eq]
+
+lemma codisjoint.himp_eq_right (h : codisjoint a b) : b ⇨ a = a :=
+by { conv_rhs { rw ←@top_himp _ _ a }, rw [←h.eq_top, sup_himp_self_left] }
+
+lemma codisjoint.himp_eq_left (h : codisjoint a b) : a ⇨ b = b := h.symm.himp_eq_right
+
+lemma codisjoint.himp_inf_cancel_right (h : codisjoint a b) : a ⇨ (a ⊓ b) = b :=
+by rw [himp_inf_distrib, himp_self, top_inf_eq, h.himp_eq_left]
+
+lemma codisjoint.himp_inf_cancel_left (h : codisjoint a b) : b ⇨ (a ⊓ b) = a :=
+by rw [himp_inf_distrib, himp_self, inf_top_eq, h.himp_eq_right]
+
+/-- See `himp_le` for a stronger version in Boolean algebras. -/
+lemma codisjoint.himp_le_of_right_le (hac : codisjoint a c) (hba : b ≤ a) : c ⇨ b ≤ a :=
+(himp_le_himp_left hba).trans_eq hac.himp_eq_right
+
+lemma le_himp_himp : a ≤ (a ⇨ b) ⇨ b := le_himp_iff.2 inf_himp_le
+
+lemma himp_triangle (a b c : α) : (a ⇨ b) ⊓ (b ⇨ c) ≤ a ⇨ c :=
+by { rw [le_himp_iff, inf_right_comm, ←le_himp_iff], exact himp_inf_le.trans le_himp_himp }
+
+lemma himp_inf_himp_cancel (hba : b ≤ a) (hcb : c ≤ b) : (a ⇨ b) ⊓ (b ⇨ c) = a ⇨ c :=
+(himp_triangle  _ _ _).antisymm $ le_inf (himp_le_himp_left hcb) (himp_le_himp_right hba)
 
 @[priority 100] -- See note [lower instance priority]
 instance generalized_heyting_algebra.to_distrib_lattice : distrib_lattice α :=
@@ -303,7 +334,9 @@ variables [generalized_coheyting_algebra α] {a b c d : α}
 @[simp] lemma sdiff_le_iff : a \ b ≤ c ↔ a ≤ b ⊔ c :=
 generalized_coheyting_algebra.sdiff_le_iff _ _ _
 
-lemma sdiff_le_comm : a \ b ≤ c ↔ a \ c ≤ b := by rw [sdiff_le_iff, sdiff_le_iff, sup_comm]
+lemma sdiff_le_iff' : a \ b ≤ c ↔ a ≤ c ⊔ b := by rw [sdiff_le_iff, sup_comm]
+
+lemma sdiff_le_comm : a \ b ≤ c ↔ a \ c ≤ b := by rw [sdiff_le_iff, sdiff_le_iff']
 
 lemma sdiff_le : a \ b ≤ a := sdiff_le_iff.2 le_sup_right
 
@@ -317,34 +350,73 @@ lemma disjoint.disjoint_sdiff_right (h : disjoint a b) : disjoint a (b \ c) := h
 lemma le_sup_sdiff : a ≤ b ⊔ a \ b := sdiff_le_iff.1 le_rfl
 lemma le_sdiff_sup : a ≤ a \ b ⊔ b := by rw [sup_comm, ←sdiff_le_iff]
 
+@[simp] lemma sup_sdiff_left : a ⊔ a \ b = a := sup_of_le_left sdiff_le
+@[simp] lemma sup_sdiff_right : a \ b ⊔ a = a := sup_of_le_right sdiff_le
+@[simp] lemma inf_sdiff_left : a \ b ⊓ a = a \ b := inf_of_le_left sdiff_le
+@[simp] lemma inf_sdiff_right : a ⊓ a \ b = a \ b := inf_of_le_right sdiff_le
+
 @[simp] lemma sup_sdiff_self (a b : α) : a ⊔ b \ a = a ⊔ b :=
 le_antisymm (sup_le_sup_left sdiff_le _) (sup_le le_sup_left le_sup_sdiff)
 
 @[simp] lemma sdiff_sup_self (a b : α) : b \ a ⊔ a = b ⊔ a :=
 by rw [sup_comm, sup_sdiff_self, sup_comm]
 
+alias sdiff_sup_self ← sup_sdiff_self_left
+alias sup_sdiff_self ← sup_sdiff_self_right
+
+lemma sup_sdiff_eq_sup (h : c ≤ a) : a ⊔ b \ c = a ⊔ b :=
+sup_congr_left (sdiff_le.trans le_sup_right) $ le_sup_sdiff.trans $ sup_le_sup_right h _
+
+-- cf. `set.union_diff_cancel'`
+lemma sup_sdiff_cancel' (hab : a ≤ b) (hbc : b ≤ c) : b ⊔ c \ a = c :=
+by rw [sup_sdiff_eq_sup hab, sup_of_le_right hbc]
+
+lemma sup_sdiff_cancel_right (h : a ≤ b) : a ⊔ b \ a = b := sup_sdiff_cancel' le_rfl h
+
+lemma sdiff_sup_cancel (h : b ≤ a) : a \ b ⊔ b = a := by rw [sup_comm, sup_sdiff_cancel_right h]
+
+lemma sup_le_of_le_sdiff_left (h : b ≤ c \ a) (hac : a ≤ c) : a ⊔ b ≤ c :=
+sup_le hac $ h.trans sdiff_le
+
+lemma sup_le_of_le_sdiff_right (h : a ≤ c \ b) (hbc : b ≤ c) : a ⊔ b ≤ c :=
+sup_le (h.trans sdiff_le) hbc
+
 @[simp] lemma sdiff_eq_bot_iff : a \ b = ⊥ ↔ a ≤ b := by rw [←le_bot_iff, sdiff_le_iff, sup_bot_eq]
 
 @[simp] lemma sdiff_bot : a \ ⊥ = a := eq_of_forall_ge_iff $ λ b, by rw [sdiff_le_iff, bot_sup_eq]
 @[simp] lemma bot_sdiff : ⊥ \ a = ⊥ := sdiff_eq_bot_iff.2 bot_le
 
-lemma sdiff_sdiff (a b c : α) : a \ b \ c = a \ (b ⊔ c) :=
-eq_of_forall_ge_iff $ λ d, by simp_rw [sdiff_le_iff, sup_assoc]
-
-@[simp] lemma sdiff_sdiff_le_sdiff : a \ b \ (a \ c) ≤ c \ b :=
+@[simp] lemma sdiff_sdiff_sdiff_le_sdiff : a \ b \ (a \ c) ≤ c \ b :=
 begin
   rw [sdiff_le_iff, sdiff_le_iff, sup_left_comm, sup_sdiff_self, sup_left_comm, sdiff_sup_self,
     sup_left_comm],
   exact le_sup_left,
 end
 
+lemma sdiff_sdiff (a b c : α) : a \ b \ c = a \ (b ⊔ c) :=
+eq_of_forall_ge_iff $ λ d, by simp_rw [sdiff_le_iff, sup_assoc]
+
+lemma sdiff_sdiff_left : a \ b \ c = a \ (b ⊔ c) := sdiff_sdiff _ _ _
+
 lemma sdiff_right_comm (a b c : α) : a \ b \ c = a \ c \ b := by simp_rw [sdiff_sdiff, sup_comm]
+
+lemma sdiff_sdiff_comm : a \ b \ c = a \ c \ b := sdiff_right_comm _ _ _
+
+@[simp] lemma sdiff_idem : a \ b \ b = a \ b := by rw [sdiff_sdiff_left, sup_idem]
+@[simp] lemma sdiff_sdiff_self : a \ b \ a = ⊥ := by rw [sdiff_sdiff_comm, sdiff_self, bot_sdiff]
 
 lemma sup_sdiff_distrib (a b c : α) : (a ⊔ b) \ c = a \ c ⊔ b \ c :=
 eq_of_forall_ge_iff $ λ d, by simp_rw [sdiff_le_iff, sup_le_iff, sdiff_le_iff]
 
 lemma sdiff_inf_distrib (a b c : α) : a \ (b ⊓ c) = a \ b ⊔ a \ c :=
 eq_of_forall_ge_iff $ λ d, by { rw [sup_le_iff, sdiff_le_comm, le_inf_iff], simp_rw sdiff_le_comm }
+
+lemma sup_sdiff : (a ⊔ b) \ c = a \ c ⊔ b \ c := sup_sdiff_distrib _ _ _
+
+@[simp] lemma sup_sdiff_right_self : (a ⊔ b) \ b = a \ b :=
+by rw [sup_sdiff, sdiff_self, sup_bot_eq]
+
+@[simp] lemma sup_sdiff_left_self : (a ⊔ b) \ a = b \ a := by rw [sup_comm, sup_sdiff_right_self]
 
 lemma sdiff_le_sdiff_right (h : a ≤ b) : a \ c ≤ b \ c := sdiff_le_iff.2 $ h.trans $ le_sup_sdiff
 
@@ -362,6 +434,40 @@ by rw [sdiff_inf, sdiff_self, bot_sup_eq]
 
 @[simp] lemma sdiff_inf_self_right (a b : α) : b \ (a ⊓ b) = b \ a :=
 by rw [sdiff_inf, sdiff_self, sup_bot_eq]
+
+lemma disjoint.sdiff_eq_left (h : disjoint a b) : a \ b = a :=
+by { conv_rhs { rw ←@sdiff_bot _ _ a }, rw [←h.eq_bot, sdiff_inf_self_left] }
+
+lemma disjoint.sdiff_eq_right (h : disjoint a b) : b \ a = b := h.symm.sdiff_eq_left
+
+lemma disjoint.sup_sdiff_cancel_left (h : disjoint a b) : (a ⊔ b) \ a = b :=
+by rw [sup_sdiff, sdiff_self, bot_sup_eq, h.sdiff_eq_right]
+
+lemma disjoint.sup_sdiff_cancel_right (h : disjoint a b) : (a ⊔ b) \ b = a :=
+by rw [sup_sdiff, sdiff_self, sup_bot_eq, h.sdiff_eq_left]
+
+/-- See `le_sdiff` for a stronger version in generalised Boolean algebras. -/
+lemma disjoint.le_sdiff_of_le_left (hac : disjoint a c) (hab : a ≤ b) : a ≤ b \ c :=
+hac.sdiff_eq_left.ge.trans $ sdiff_le_sdiff_right hab
+
+lemma sdiff_sdiff_le : a \ (a \ b) ≤ b := sdiff_le_iff.2 le_sdiff_sup
+
+lemma sdiff_triangle (a b c : α) : a \ c ≤ a \ b ⊔ b \ c :=
+by { rw [sdiff_le_iff, sup_left_comm, ←sdiff_le_iff], exact sdiff_sdiff_le.trans le_sup_sdiff }
+
+lemma sdiff_sup_sdiff_cancel (hba : b ≤ a) (hcb : c ≤ b) : a \ b ⊔ b \ c = a \ c :=
+(sdiff_triangle  _ _ _).antisymm' $ sup_le (sdiff_le_sdiff_left hcb) (sdiff_le_sdiff_right hba)
+
+lemma sdiff_le_sdiff_of_sup_le_sup_left (h : c ⊔ a ≤ c ⊔ b) : a \ c ≤ b \ c :=
+by { rw [←sup_sdiff_left_self, ←@sup_sdiff_left_self _ _ _ b], exact sdiff_le_sdiff_right h }
+
+lemma sdiff_le_sdiff_of_sup_le_sup_right (h : a ⊔ c ≤ b ⊔ c) : a \ c ≤ b \ c :=
+by { rw [←sup_sdiff_right_self, ←@sup_sdiff_right_self _ _ b], exact sdiff_le_sdiff_right h }
+
+@[simp] lemma inf_sdiff_sup_left : a \ c ⊓ (a ⊔ b) = a \ c :=
+inf_of_le_left $ sdiff_le.trans le_sup_left
+@[simp] lemma inf_sdiff_sup_right : a \ c ⊓ (b ⊔ a) = a \ c :=
+inf_of_le_left $ sdiff_le.trans le_sup_right
 
 @[priority 100] -- See note [lower instance priority]
 instance generalized_coheyting_algebra.to_distrib_lattice : distrib_lattice α :=
@@ -405,7 +511,7 @@ lemma sup_compl_le_himp : b ⊔ aᶜ ≤ a ⇨ b := sup_le le_himp compl_le_himp
 lemma himp_compl_comm (a b : α) : a ⇨ bᶜ = b ⇨ aᶜ := by simp_rw [←himp_bot, himp_left_comm]
 
 lemma le_compl_iff_disjoint_right : a ≤ bᶜ ↔ disjoint a b :=
-by rw [←himp_bot, le_himp_iff, disjoint]
+by rw [←himp_bot, le_himp_iff, disjoint_iff_inf_le]
 
 lemma le_compl_iff_disjoint_left : a ≤ bᶜ ↔ disjoint b a :=
 le_compl_iff_disjoint_right.trans disjoint.comm
@@ -415,9 +521,22 @@ by rw [le_compl_iff_disjoint_right, le_compl_iff_disjoint_left]
 
 alias le_compl_iff_disjoint_right ↔ _ disjoint.le_compl_right
 alias le_compl_iff_disjoint_left ↔ _ disjoint.le_compl_left
+alias le_compl_comm ← le_compl_iff_le_compl
+alias le_compl_comm ↔ le_compl_of_le_compl _
 
-lemma disjoint_compl_left : disjoint aᶜ a := le_himp_iff.1 (himp_bot _).ge
+lemma disjoint_compl_left : disjoint aᶜ a := disjoint_iff_inf_le.mpr $ le_himp_iff.1 (himp_bot _).ge
 lemma disjoint_compl_right : disjoint a aᶜ := disjoint_compl_left.symm
+
+lemma has_le.le.disjoint_compl_left (h : b ≤ a) : disjoint aᶜ b := disjoint_compl_left.mono_right h
+lemma has_le.le.disjoint_compl_right (h : a ≤ b) : disjoint a bᶜ := disjoint_compl_right.mono_left h
+
+lemma is_compl.compl_eq (h : is_compl a b) : aᶜ = b :=
+h.1.le_compl_left.antisymm' $ disjoint.le_of_codisjoint disjoint_compl_left h.2
+
+lemma is_compl.eq_compl (h : is_compl a b) : a = bᶜ :=
+h.1.le_compl_right.antisymm $ disjoint.le_of_codisjoint disjoint_compl_left h.2.symm
+
+lemma compl_unique (h₀ : a ⊓ b = ⊥) (h₁ : a ⊔ b = ⊤) : aᶜ = b := (is_compl.of_eq h₀ h₁).compl_eq
 
 @[simp] lemma inf_compl_self (a : α) : a ⊓ aᶜ = ⊥ := disjoint_compl_right.eq_bot
 @[simp] lemma compl_inf_self (a : α) : aᶜ ⊓ a = ⊥ := disjoint_compl_left.eq_bot
@@ -509,7 +628,7 @@ instance coheyting_algebra.to_distrib_lattice : distrib_lattice α :=
 lemma hnot_sdiff_comm (a b : α) : ￢a \ b = ￢b \ a := by simp_rw [←top_sdiff', sdiff_right_comm]
 
 lemma hnot_le_iff_codisjoint_right : ￢a ≤ b ↔ codisjoint a b :=
-by rw [←top_sdiff', sdiff_le_iff, codisjoint]
+by rw [←top_sdiff', sdiff_le_iff, codisjoint_iff_le_sup]
 
 lemma hnot_le_iff_codisjoint_left : ￢a ≤ b ↔ codisjoint b a :=
 hnot_le_iff_codisjoint_right.trans codisjoint.comm
@@ -520,11 +639,24 @@ by rw [hnot_le_iff_codisjoint_right, hnot_le_iff_codisjoint_left]
 alias hnot_le_iff_codisjoint_right ↔ _ codisjoint.hnot_le_right
 alias hnot_le_iff_codisjoint_left ↔ _ codisjoint.hnot_le_left
 
-lemma codisjoint_hnot_right : codisjoint a (￢a) := sdiff_le_iff.1 (top_sdiff' _).le
+lemma codisjoint_hnot_right : codisjoint a (￢a) :=
+codisjoint_iff_le_sup.2 $ sdiff_le_iff.1 (top_sdiff' _).le
 lemma codisjoint_hnot_left : codisjoint (￢a) a := codisjoint_hnot_right.symm
 
-@[simp] lemma sup_hnot_self (a : α) : a ⊔ ￢a = ⊤ := codisjoint_hnot_right.eq_top
-@[simp] lemma hnot_sup_self (a : α) : ￢a ⊔ a = ⊤ := codisjoint_hnot_left.eq_top
+lemma has_le.le.codisjoint_hnot_left (h : a ≤ b) : codisjoint (￢a) b :=
+codisjoint_hnot_left.mono_right h
+
+lemma has_le.le.codisjoint_hnot_right (h : b ≤ a) : codisjoint a (￢b) :=
+codisjoint_hnot_right.mono_left h
+
+lemma is_compl.hnot_eq (h : is_compl a b) : ￢a = b :=
+h.2.hnot_le_right.antisymm $ disjoint.le_of_codisjoint h.1.symm codisjoint_hnot_right
+
+lemma is_compl.eq_hnot (h : is_compl a b) : a = ￢b :=
+h.2.hnot_le_left.antisymm' $ disjoint.le_of_codisjoint h.1 codisjoint_hnot_right
+
+@[simp] lemma sup_hnot_self (a : α) : a ⊔ ￢a = ⊤ := codisjoint.eq_top codisjoint_hnot_right
+@[simp] lemma hnot_sup_self (a : α) : ￢a ⊔ a = ⊤ := codisjoint.eq_top codisjoint_hnot_left
 
 @[simp] lemma hnot_bot : ￢(⊥ : α) = ⊤ :=
 eq_of_forall_ge_iff $ λ a, by rw [hnot_le_iff_codisjoint_left, codisjoint_bot, top_le_iff]

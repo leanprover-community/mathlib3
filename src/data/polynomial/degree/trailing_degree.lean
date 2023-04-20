@@ -3,11 +3,14 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.nat.enat
+import data.enat.basic
 import data.polynomial.degree.definitions
 
 /-!
 # Trailing degree of univariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -36,7 +39,7 @@ variables [semiring R] {p q r : R[X]}
 `trailing_degree p = some n` when `p ≠ 0` and `n` is the smallest power of `X` that appears
 in `p`, otherwise
 `trailing_degree 0 = ⊤`. -/
-def trailing_degree (p : R[X]) : ℕ∞ := p.support.inf some
+def trailing_degree (p : R[X]) : ℕ∞ := p.support.min
 
 lemma trailing_degree_lt_wf : well_founded
 (λp q : R[X], trailing_degree p < trailing_degree q) :=
@@ -67,14 +70,13 @@ by unfold trailing_monic; apply_instance
 @[simp] lemma nat_trailing_degree_zero : nat_trailing_degree (0 : R[X]) = 0 := rfl
 
 lemma trailing_degree_eq_top : trailing_degree p = ⊤ ↔ p = 0 :=
-⟨λ h, support_eq_empty.1 (finset.min_eq_top.1 h),
-λ h, by simp [h]⟩
+⟨λ h, support_eq_empty.1 (finset.min_eq_top.1 h), λ h, by simp [h]⟩
 
 lemma trailing_degree_eq_nat_trailing_degree (hp : p ≠ 0) :
   trailing_degree p = (nat_trailing_degree p : ℕ∞) :=
 let ⟨n, hn⟩ :=
   not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt trailing_degree_eq_top.1 hp)) in
-have hn : trailing_degree p = some n := not_not.1 hn,
+have hn : trailing_degree p = n := not_not.1 hn,
 by rw [nat_trailing_degree, hn]; refl
 
 lemma trailing_degree_eq_iff_nat_trailing_degree_eq {p : R[X]} {n : ℕ} (hp : p ≠ 0) :
@@ -111,8 +113,8 @@ nat_trailing_degree p = nat_trailing_degree q :=
 by unfold nat_trailing_degree; rw h
 
 lemma le_trailing_degree_of_ne_zero (h : coeff p n ≠ 0) : trailing_degree p ≤ n :=
-show @has_le.le (ℕ∞) _ (p.support.inf some : ℕ∞) (some n : ℕ∞),
-from finset.inf_le (mem_support_iff.2 h)
+show @has_le.le ℕ∞ _ p.support.min n,
+from min_le (mem_support_iff.2 h)
 
 lemma nat_trailing_degree_le_of_ne_zero (h : coeff p n ≠ 0) : nat_trailing_degree p ≤ n :=
 begin
@@ -150,7 +152,7 @@ begin
 end
 
 @[simp] lemma trailing_degree_monomial (ha : a ≠ 0) : trailing_degree (monomial n a) = n :=
-by rw [trailing_degree, support_monomial n ha, inf_singleton, with_top.some_eq_coe]
+by rw [trailing_degree, support_monomial n ha, min_singleton]
 
 lemma nat_trailing_degree_monomial (ha : a ≠ 0) : nat_trailing_degree (monomial n a) = n :=
 by rw [nat_trailing_degree, trailing_degree_monomial ha]; refl
@@ -242,6 +244,13 @@ begin
     exact mem_support_iff.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
 end
 
+lemma le_nat_trailing_degree (hp : p ≠ 0) (hn : ∀ m < n, p.coeff m = 0) :
+  n ≤ p.nat_trailing_degree :=
+begin
+  rw nat_trailing_degree_eq_support_min' hp,
+  exact finset.le_min' _ _ _ (λ m hm, not_lt.1 $ λ hmn, mem_support_iff.1 hm $ hn _ hmn),
+end
+
 lemma nat_trailing_degree_le_nat_degree (p : R[X]) :
   p.nat_trailing_degree ≤ p.nat_degree :=
 begin
@@ -267,13 +276,12 @@ end
 
 lemma le_trailing_degree_mul : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
 begin
-  refine le_inf (λ n hn, _),
+  refine finset.le_min (λ n hn, _),
   rw [mem_support_iff, coeff_mul] at hn,
   obtain ⟨⟨i, j⟩, hij, hpq⟩ := exists_ne_zero_of_sum_ne_zero hn,
-  refine (add_le_add (inf_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)))
-    (inf_le (mem_support_iff.mpr (right_ne_zero_of_mul hpq)))).trans (le_of_eq _),
-  rwa [with_top.some_eq_coe, with_top.some_eq_coe, with_top.some_eq_coe,
-      ← with_top.coe_add, with_top.coe_eq_coe, ←nat.mem_antidiagonal],
+  refine (add_le_add (min_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)))
+    (min_le (mem_support_iff.mpr (right_ne_zero_of_mul hpq)))).trans (le_of_eq _),
+  rwa [← with_top.coe_add, with_top.coe_eq_coe, ←nat.mem_antidiagonal],
 end
 
 lemma le_nat_trailing_degree_mul (h : p * q ≠ 0) :

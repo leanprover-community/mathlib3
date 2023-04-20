@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import data.fin.vec_notation
 import field_theory.finite.polynomial
 import number_theory.basic
 import ring_theory.witt_vector.witt_polynomial
@@ -133,7 +132,7 @@ theorem witt_structure_rat_prop (Φ : mv_polynomial idx ℚ) (n : ℕ) :
 calc bind₁ (witt_structure_rat p Φ) (W_ ℚ n)
     = bind₁ (λ k, bind₁ (λ i, (rename (prod.mk i)) (W_ ℚ k)) Φ)
         (bind₁ (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
-      by { rw bind₁_bind₁, apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
+      by { rw bind₁_bind₁, exact eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
 ... = bind₁ (λ i, (rename (prod.mk i) (W_ ℚ n))) Φ :
       by rw [bind₁_X_in_terms_of_W_witt_polynomial p _ n, bind₁_X_right]
 

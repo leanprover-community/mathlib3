@@ -74,7 +74,7 @@ begin
   congr' 3,
   rw [←mul_smul, ←mul_rotate, mul_right_comm, mul_smul, ←mul_smul _ av, mul_rotate, mul_smul _ bz,
     ←smul_add],
-  simp only [list.map, list.pmap, nat.add_def, add_zero, fin.mk_eq_subtype_mk, fin.mk_bit0,
+  simp only [list.map, list.pmap, nat.add_def, add_zero, fin.mk_bit0,
     fin.mk_one, list.foldr_cons, list.foldr_nil],
   refl,
 end
@@ -102,6 +102,6 @@ begin
       ((subset_insert _ _).trans $ subset_convex_hull _ _) at hc,
     exact hc (subset_convex_hull _ _ $ mem_insert _ _) },
   rw [convex_hull_insert ⟨z, hzC⟩, convex_join_singleton_left],
-  refine disjoint_Union₂_left.2 (λ a ha b hb, h a _ ⟨b, hb⟩),
+  refine disjoint_Union₂_left.2 (λ a ha, disjoint_iff_inf_le.mpr $ λ b hb, h a _ ⟨b, hb⟩),
   rwa ←hC.1.convex_hull_eq,
 end

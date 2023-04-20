@@ -3,11 +3,14 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang
 -/
-import field_theory.splitting_field
-import ring_theory.polynomial.symmetric
+import data.polynomial.splits
+import ring_theory.mv_polynomial.symmetric
 
 /-!
 # Vieta's Formula
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The main result is `multiset.prod_X_add_C_eq_sum_esymm`, which shows that the product of
 linear terms `X + λ` with `λ` in a `multiset s` is equal to a linear combination of the
@@ -41,12 +44,12 @@ lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
 begin
   classical,
   rw [prod_map_add, antidiagonal_eq_map_powerset, map_map, ←bind_powerset_len, function.comp,
-    map_bind, sum_bind, finset.sum_eq_multiset_sum, finset.range_coe, map_congr (eq.refl _)],
+    map_bind, sum_bind, finset.sum_eq_multiset_sum, finset.range_val, map_congr (eq.refl _)],
   intros _ _,
   rw [esymm, ←sum_hom', ←sum_map_mul_right, map_congr (eq.refl _)],
   intros _ ht,
   rw mem_powerset_len at ht,
-  simp [ht, map_const, prod_repeat, prod_hom', map_id', card_sub],
+  simp [ht, map_const, prod_replicate, prod_hom', map_id', card_sub],
 end
 
 /-- Vieta's formula for the coefficients of the product of linear terms `X + λ` where `λ` runs
@@ -68,6 +71,14 @@ begin
     exact nat.sub_lt_succ s.card k }
 end
 
+lemma prod_X_add_C_coeff' {σ} (s : multiset σ) (r : σ → R) {k : ℕ} (h : k ≤ s.card) :
+  (s.map (λ i, X + C (r i))).prod.coeff k = (s.map r).esymm (s.card - k) :=
+by rw [← map_map (λ r, X + C r) r, prod_X_add_C_coeff]; rwa s.card_map r
+
+lemma _root_.finset.prod_X_add_C_coeff {σ} (s : finset σ) (r : σ → R) {k : ℕ} (h : k ≤ s.card) :
+  (∏ i in s, (X + C (r i))).coeff k = ∑ t in s.powerset_len (s.card - k), ∏ i in t, r i :=
+by { rw [finset.prod, prod_X_add_C_coeff' _ r h, finset.esymm_map_val], refl }
+
 end semiring
 
 section ring
@@ -80,7 +91,7 @@ begin
   rw [esymm, esymm, ←multiset.sum_map_mul_left, multiset.powerset_len_map, multiset.map_map,
     map_congr (eq.refl _)],
   intros x hx,
-  rw [(by { exact (mem_powerset_len.mp hx).right.symm }), ←prod_repeat, ←multiset.map_const],
+  rw [(by { exact (mem_powerset_len.mp hx).right.symm }), ←prod_replicate, ←multiset.map_const],
   nth_rewrite 2 ←map_id' x,
   rw [←prod_map_mul, map_congr (eq.refl _)],
   exact λ z _, neg_one_mul z,
@@ -142,10 +153,10 @@ lemma mv_polynomial.prod_C_add_X_eq_sum_esymm :
 begin
   let s := finset.univ.val.map (λ i : σ, mv_polynomial.X i),
   rw (_ : card σ = s.card),
-  { simp_rw [mv_polynomial.esymm_eq_multiset.esymm σ R _, finset.prod_eq_multiset_prod],
+  { simp_rw [mv_polynomial.esymm_eq_multiset_esymm σ R, finset.prod_eq_multiset_prod],
     convert multiset.prod_X_add_C_eq_sum_esymm s,
     rwa multiset.map_map, },
-  { rw multiset.card_map, exact rfl, }
+  { rw multiset.card_map, refl, }
 end
 
 lemma mv_polynomial.prod_X_add_C_coeff (k : ℕ) (h : k ≤ card σ) :
@@ -153,10 +164,10 @@ lemma mv_polynomial.prod_X_add_C_coeff (k : ℕ) (h : k ≤ card σ) :
 begin
   let s := finset.univ.val.map (λ i, (mv_polynomial.X i : mv_polynomial σ R)),
   rw (_ : card σ = s.card) at ⊢ h,
-  { rw [mv_polynomial.esymm_eq_multiset.esymm σ R (s.card - k), finset.prod_eq_multiset_prod],
+  { rw [mv_polynomial.esymm_eq_multiset_esymm σ R, finset.prod_eq_multiset_prod],
     convert multiset.prod_X_add_C_coeff s h,
     rwa multiset.map_map },
-  repeat { rw multiset.card_map, exact rfl, },
+  repeat { rw multiset.card_map, refl, },
 end
 
 end mv_polynomial

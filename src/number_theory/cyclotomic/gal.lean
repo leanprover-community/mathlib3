@@ -17,10 +17,10 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
 
 * `is_primitive_root.aut_to_pow_injective`: `is_primitive_root.aut_to_pow` is injective
   in the case that it's considered over a cyclotomic field extension.
-* `is_cyclotomic_extension.aut_equiv_pow`: If the `n`th cyclotomic polynomial is irreducible
-  in `K`, then `aut_to_pow` is a `mul_equiv` (for example, in `ℚ` and certain `𝔽ₚ`).
-* `gal_X_pow_equiv_units_zmod`, `gal_cyclotomic_equiv_units_zmod`: Repackage `aut_equiv_pow` in
-  terms of `polynomial.gal`.
+* `is_cyclotomic_extension.aut_equiv_pow`: If the `n`th cyclotomic polynomial is irreducible in `K`,
+  then `is_primitive_root.aut_to_pow` is a `mul_equiv` (for example, in `ℚ` and certain `𝔽ₚ`).
+* `gal_X_pow_equiv_units_zmod`, `gal_cyclotomic_equiv_units_zmod`: Repackage
+  `is_cyclotomic_extension.aut_equiv_pow` in terms of `polynomial.gal`.
 * `is_cyclotomic_extension.aut.comm_group`: Cyclotomic extensions are abelian.
 
 ## References
@@ -36,8 +36,6 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
   ideal of both elements is equal. This may not hold in an ID, and definitely holds in an ICD.)
 
 -/
-
-local attribute [instance] pnat.fact_pos
 
 variables {n : ℕ+} (K : Type*) [field K] {L : Type*} {μ : L}
 
@@ -93,7 +91,7 @@ variables (h : irreducible (cyclotomic n K)) {K} (L)
 include h
 
 /-- The `mul_equiv` that takes an automorphism `f` to the element `k : (zmod n)ˣ` such that
-  `f μ = μ ^ k`. A stronger version of `is_primitive_root.aut_to_pow`. -/
+  `f μ = μ ^ k` for any root of unity `μ`. A  strengthening of `is_primitive_root.aut_to_pow`. -/
 @[simps] noncomputable def aut_equiv_pow : (L ≃ₐ[K] L) ≃* (zmod n)ˣ :=
 let hζ := zeta_spec n K L,
     hμ := λ t, hζ.pow_of_coprime _ (zmod.val_coe_unit_coprime t) in
@@ -115,9 +113,8 @@ let hζ := zeta_spec n K L,
   end,
   right_inv := λ x, begin
     simp only [monoid_hom.to_fun_eq_coe],
-    generalize_proofs _ _ h,
-    have key := hζ.aut_to_pow_spec K ((hζ.power_basis K).equiv_of_minpoly
-                                      ((hμ x).power_basis K) h),
+    generalize_proofs _ h,
+    have key := hζ.aut_to_pow_spec K ((hζ.power_basis K).equiv_of_minpoly ((hμ x).power_basis K) h),
     have := (hζ.power_basis K).equiv_of_minpoly_gen ((hμ x).power_basis K) h,
     rw hζ.power_basis_gen K at this,
     rw [this, is_primitive_root.power_basis_gen] at key,
@@ -144,7 +141,7 @@ let hζ := (zeta_spec n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos in
 lemma from_zeta_aut_spec : from_zeta_aut hμ h (zeta n K L) = μ :=
 begin
   simp_rw [from_zeta_aut, aut_equiv_pow_symm_apply],
-  generalize_proofs _ hζ h _ hμ _,
+  generalize_proofs hζ h _ hμ _,
   rw [←hζ.power_basis_gen K] {occs := occurrences.pos [4]},
   rw [power_basis.equiv_of_minpoly_gen, hμ.power_basis_gen K],
   convert h.some_spec.some_spec,
@@ -158,17 +155,17 @@ section gal
 variables [field L] (hμ : is_primitive_root μ n) [algebra K L]
           [is_cyclotomic_extension {n} K L] (h : irreducible (cyclotomic n K)) {K}
 
-/-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
-Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `cyclotomic n K` is irreducible in
-the base field. -/
+/-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`.
+Asserts that the Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ`
+if `cyclotomic n K` is irreducible in the base field. -/
 noncomputable def gal_cyclotomic_equiv_units_zmod :
   (cyclotomic n K).gal ≃* (zmod n)ˣ :=
 (alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans
 (is_cyclotomic_extension.aut_equiv_pow L h)
 
-/-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
-Galois group of `X ^ n - 1` is equivalent to `(zmod n)ˣ` if `cyclotomic n K` is irreducible in the
-base field. -/
+/-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`.
+Asserts that the Galois group of `X ^ n - 1` is equivalent to `(zmod n)ˣ`
+if `cyclotomic n K` is irreducible in the base field. -/
 noncomputable def gal_X_pow_equiv_units_zmod :
   (X ^ (n : ℕ) - 1).gal ≃* (zmod n)ˣ :=
 (alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans

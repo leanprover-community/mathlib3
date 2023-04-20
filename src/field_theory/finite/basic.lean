@@ -3,12 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import tactic.apply_fun
-import algebra.ring.equiv
-import data.zmod.algebra
-import linear_algebra.finite_dimensional
-import ring_theory.integral_domain
 import field_theory.separable
+import field_theory.splitting_field
+import ring_theory.integral_domain
+import tactic.apply_fun
 
 /-!
 # Finite fields
@@ -103,7 +101,7 @@ begin
   have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm])
+    (λ a, by simp [@inv_eq_iff_eq_inv _ _ a])
     (by simp),
   rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
@@ -266,8 +264,8 @@ begin
   apply nodup_roots,
   rw separable_def,
   convert is_coprime_one_right.neg_right using 1,
-  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  { rw [derivative_sub, derivative_X, derivative_X_pow, char_p.cast_card_eq_zero K, C_0, zero_mul,
+      zero_sub] },
   end
 
 instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=
@@ -337,7 +335,7 @@ end zmod
 namespace char_p
 
 lemma sq_add_sq (R : Type*) [comm_ring R] [is_domain R]
-  (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+  (p : ℕ) [ne_zero p] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
   haveI := char_is_prime_of_pos R p,
@@ -418,6 +416,14 @@ by rw [← card_units p, pow_card_eq_one]
 theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }
+
+theorem order_of_units_dvd_card_sub_one {p : ℕ} [fact p.prime] (u : (zmod p)ˣ) :
+  order_of u ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ units_pow_card_sub_one_eq_one _ _
+
+theorem order_of_dvd_card_sub_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
+  order_of a ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ pow_card_sub_one_eq_one ha
 
 open polynomial
 

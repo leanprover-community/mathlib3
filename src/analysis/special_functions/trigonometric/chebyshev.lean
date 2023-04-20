@@ -28,11 +28,11 @@ by rw [aeval_def, eval₂_eq_eval_map, map_U]
 
 @[simp] lemma algebra_map_eval_T (x : R) (n : ℕ) :
   algebra_map R A ((T R n).eval x) = (T A n).eval (algebra_map R A x) :=
-by rw [←aeval_algebra_map_apply, aeval_T]
+by rw [←aeval_algebra_map_apply_eq_algebra_map_eval, aeval_T]
 
 @[simp] lemma algebra_map_eval_U (x : R) (n : ℕ) :
   algebra_map R A ((U R n).eval x) = (U A n).eval (algebra_map R A x) :=
-by rw [←aeval_algebra_map_apply, aeval_U]
+by rw [←aeval_algebra_map_apply_eq_algebra_map_eval, aeval_U]
 
 @[simp, norm_cast] lemma complex_of_real_eval_T : ∀ x n, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
 @algebra_map_eval_T ℝ ℂ _ _ _

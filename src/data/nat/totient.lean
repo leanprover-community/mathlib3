@@ -11,6 +11,9 @@ import data.zmod.basic
 /-!
 # Euler's totient function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines [Euler's totient function](https://en.wikipedia.org/wiki/Euler's_totient_function)
 `nat.totient n` which counts the number of naturals less than `n` that are coprime with `n`.
 We prove the divisor sum formula, namely that `n` equals `φ` summed over the divisors of `n`. See
@@ -27,7 +30,7 @@ namespace nat
 coprime with `n`. -/
 def totient (n : ℕ) : ℕ := ((range n).filter n.coprime).card
 
-localized "notation `φ` := nat.totient" in nat
+localized "notation (name := nat.totient) `φ` := nat.totient" in nat
 
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
 
@@ -35,6 +38,17 @@ localized "notation `φ` := nat.totient" in nat
 by simp [totient]
 
 lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
+
+/-- A characterisation of `nat.totient` that avoids `finset`. -/
+lemma totient_eq_card_lt_and_coprime (n : ℕ) : φ n = nat.card {m | m < n ∧ n.coprime m} :=
+begin
+  let e : {m | m < n ∧ n.coprime m} ≃ finset.filter n.coprime (finset.range n) :=
+  { to_fun  := λ m, ⟨m, by simpa only [finset.mem_filter, finset.mem_range] using m.property⟩,
+    inv_fun := λ m, ⟨m, by simpa only [finset.mem_filter, finset.mem_range] using m.property⟩,
+    left_inv  := λ m, by simp only [subtype.coe_mk, subtype.coe_eta],
+    right_inv := λ m, by simp only [subtype.coe_mk, subtype.coe_eta] },
+  rw [totient_eq_card_coprime, card_congr e, card_eq_fintype_card, fintype.card_coe],
+end
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 ((range n).card_filter_le _).trans_eq (card_range n)
@@ -89,13 +103,13 @@ open zmod
 
 /-- Note this takes an explicit `fintype ((zmod n)ˣ)` argument to avoid trouble with instance
 diamonds. -/
-@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [h : fact (0 < n)] [fintype ((zmod n)ˣ)] :
+@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [ne_zero n] [fintype ((zmod n)ˣ)] :
   fintype.card ((zmod n)ˣ) = φ n :=
 calc fintype.card ((zmod n)ˣ) = fintype.card {x : zmod n // x.val.coprime n} :
   fintype.card_congr zmod.units_equiv_coprime
 ... = φ n :
 begin
-  unfreezingI { obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := exists_eq_succ_of_ne_zero h.out.ne' },
+  unfreezingI { obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := exists_eq_succ_of_ne_zero ne_zero.out },
   simp only [totient, finset.card_eq_sum_ones, fintype.card_subtype, finset.sum_filter,
     ← fin.sum_univ_eq_sum_range, @nat.coprime_comm (m + 1)],
   refl
@@ -104,6 +118,7 @@ end
 lemma totient_even {n : ℕ} (hn : 2 < n) : even n.totient :=
 begin
   haveI : fact (1 < n) := ⟨one_lt_two.trans hn⟩,
+  haveI : ne_zero n := ne_zero.of_gt hn,
   suffices : 2 = order_of (-1 : (zmod n)ˣ),
   { rw [← zmod.card_units_eq_totient, even_iff_two_dvd, this], exact order_of_dvd_card_univ },
   rw [←order_of_units, units.coe_neg_one, order_of_neg_one, ring_char.eq (zmod n) n, if_neg hn.ne'],
@@ -115,9 +130,9 @@ if hmn0 : m * n = 0
     simp only [totient_zero, mul_zero, zero_mul, h]
   else
   begin
-    haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
-    haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
-    haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
+    haveI : ne_zero (m * n) := ⟨hmn0⟩,
+    haveI : ne_zero m := ⟨left_ne_zero_of_mul hmn0⟩,
+    haveI : ne_zero n := ⟨right_ne_zero_of_mul hmn0⟩,
     simp only [← zmod.card_units_eq_totient],
     rw [fintype.card_congr (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
@@ -184,8 +199,8 @@ calc φ (p ^ (n + 1))
       exact h b (lt_of_mul_lt_mul_left ha (zero_le _)) (mul_comm _ _) }
   end
 ... = _ :
-have h1 : set.inj_on (* p) (range (p ^ n)),
-  from λ x _ y _, (nat.mul_left_inj hp.pos).1,
+have h1 : function.injective (* p),
+  from mul_left_injective₀ hp.ne_zero,
 have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
   from λ a, begin
     simp only [mem_image, mem_range, exists_imp_distrib],
@@ -194,7 +209,7 @@ have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
     exact (mul_lt_mul_right hp.pos).2 h
   end,
 begin
-  rw [card_sdiff h2, card_image_of_inj_on h1, card_range,
+  rw [card_sdiff h2, card_image_of_inj_on (h1.inj_on _), card_range,
     card_range, ← one_mul (p ^ n), pow_succ, ← tsub_mul,
     one_mul, mul_comm]
 end
@@ -226,7 +241,7 @@ end
 lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fintype ((zmod p)ˣ)] :
   fintype.card ((zmod p)ˣ) ≤ p - 1 :=
 begin
-  haveI : fact (0 < p) := ⟨zero_lt_one.trans hp⟩,
+  haveI : ne_zero p := ⟨(pos_of_gt hp).ne'⟩,
   rw zmod.card_units_eq_totient p,
   exact nat.le_pred_of_lt (nat.totient_lt p hp),
 end
@@ -234,14 +249,13 @@ end
 lemma prime_iff_card_units (p : ℕ) [fintype ((zmod p)ˣ)] :
   p.prime ↔ fintype.card ((zmod p)ˣ) = p - 1 :=
 begin
-  by_cases hp : p = 0,
+  casesI eq_zero_or_ne_zero p with hp hp,
   { substI hp,
     simp only [zmod, not_prime_zero, false_iff, zero_tsub],
     -- the substI created an non-defeq but subsingleton instance diamond; resolve it
     suffices : fintype.card ℤˣ ≠ 0, { convert this },
     simp },
-  haveI : fact (0 < p) := ⟨nat.pos_of_ne_zero hp⟩,
-  rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))],
+  rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime $ ne_zero.pos p],
 end
 
 @[simp] lemma totient_two : φ 2 = 1 :=

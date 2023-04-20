@@ -3,10 +3,13 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.monoid_algebra.basic
+import algebra.monoid_algebra.support
 
 /-!
 # Lemmas about the `sup` and `inf` of the support of `add_monoid_algebra`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## TODO
 The current plan is to state and prove lemmas about `finset.sup (finsupp.support f) D` with a
@@ -96,9 +99,9 @@ lemma sup_support_pow_le (degb0 : degb 0 ≤ 0) (degbm : ∀ a b, degb (a + b) �
   (n : ℕ) (f : add_monoid_algebra R A) :
   (f ^ n).support.sup degb ≤ n • (f.support.sup degb) :=
 begin
-  rw [← list.prod_repeat, ←list.sum_repeat],
+  rw [← list.prod_replicate, ←list.sum_replicate],
   refine (sup_support_list_prod_le degb0 degbm _).trans_eq _,
-  rw list.map_repeat,
+  rw list.map_replicate,
 end
 
 lemma le_inf_support_pow (degt0 : 0 ≤ degt 0) (degtm : ∀ a b, degt a + degt b ≤ degt (a + b))

@@ -3,7 +3,9 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.fintype.card
+import data.fintype.big_operators
+import data.fintype.perm
+import data.fintype.prod
 import dynamics.fixed_points.basic
 
 /-!
@@ -66,7 +68,7 @@ def fixed_points_equiv' :
   inv_fun := λ p,
     ⟨⟨card (fixed_points p.1.2), (card_subtype_le _).trans_lt (nat.lt_succ_self _)⟩,
      ⟨p.1.2, rfl⟩, ⟨p.1.1, p.2⟩⟩,
-  left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simp only [mem_fiber, subtype.coe_mk] at hσ,
+  left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simp only [mem_fiber, fin.coe_mk] at hσ,
     subst k, refl },
   right_inv := λ ⟨⟨x, σ⟩, h⟩, rfl }
 

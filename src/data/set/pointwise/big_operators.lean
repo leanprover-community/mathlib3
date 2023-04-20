@@ -18,7 +18,7 @@ namespace set
 open_locale big_operators pointwise
 open function
 
-variables {ι : Type*} {α : Type*} {β : Type*} {F : Type*}
+variables {ι α β F : Type*}
 
 section monoid
 variables [monoid α] [monoid β] [monoid_hom_class F α β]
@@ -154,15 +154,15 @@ lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : 
 
 /-- The n-ary version of `set.image_mul_prod`. -/
 @[to_additive "The n-ary version of `set.add_image_prod`. "]
-lemma set.image_finset_prod_pi (l : finset ι) (S : ι → set α) :
+lemma image_finset_prod_pi (l : finset ι) (S : ι → set α) :
   (λ f : ι → α, ∏ i in l, f i) '' (l : set ι).pi S = (∏ i in l, S i) :=
-by { ext, simp_rw [set.mem_finset_prod, set.mem_image, set.mem_pi, exists_prop, finset.mem_coe] }
+by { ext, simp_rw [mem_finset_prod, mem_image, mem_pi, exists_prop, finset.mem_coe] }
 
 /-- A special case of `set.image_finset_prod_pi` for `finset.univ`. -/
 @[to_additive "A special case of `set.image_finset_sum_pi` for `finset.univ`. "]
-lemma set.image_fintype_prod_pi [fintype ι] (S : ι → set α) :
-  (λ f : ι → α, ∏ i, f i) '' set.univ.pi S = (∏ i, S i) :=
-by simpa only [finset.coe_univ] using set.image_finset_prod_pi finset.univ S
+lemma image_fintype_prod_pi [fintype ι] (S : ι → set α) :
+  (λ f : ι → α, ∏ i, f i) '' univ.pi S = (∏ i, S i) :=
+by simpa only [finset.coe_univ] using image_finset_prod_pi finset.univ S
 
 end comm_monoid
 

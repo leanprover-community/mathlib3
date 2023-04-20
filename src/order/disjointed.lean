@@ -8,6 +8,9 @@ import order.partial_sups
 /-!
 # Consecutive differences of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the way to make a sequence of elements into a sequence of disjoint elements with
 the same partial sups.
 
@@ -121,9 +124,9 @@ begin
   { exact h n le_rfl },
   rintro m hm,
   induction m with m ih,
-  { exact hdisj _ _ (nat.succ_ne_zero _).symm },
+  { exact hdisj (nat.succ_ne_zero _).symm },
   rw [partial_sups_succ, disjoint_iff, inf_sup_right, sup_eq_bot_iff, ←disjoint_iff, ←disjoint_iff],
-  exact ⟨ih (nat.le_of_succ_le hm), hdisj _ _ (nat.lt_succ_of_le hm).ne⟩,
+  exact ⟨ih (nat.le_of_succ_le hm), hdisj (nat.lt_succ_of_le hm).ne⟩,
 end
 
 end generalized_boolean_algebra
@@ -160,3 +163,8 @@ supr_disjointed f
 lemma disjointed_eq_inter_compl (f : ℕ → set α) (n : ℕ) :
   disjointed f n = f n ∩ (⋂ i < n, (f i)ᶜ) :=
 disjointed_eq_inf_compl f n
+
+lemma preimage_find_eq_disjointed (s : ℕ → set α) (H : ∀ x, ∃ n, x ∈ s n)
+  [∀ x n, decidable (x ∈ s n)] (n : ℕ) :
+  (λ x, nat.find (H x)) ⁻¹' {n} = disjointed s n :=
+by { ext x, simp [nat.find_eq_iff, disjointed_eq_inter_compl] }

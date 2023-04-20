@@ -3,11 +3,13 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.rat
-import set_theory.cardinal
+import set_theory.cardinal.basic
 
 /-!
 # Denumerability of ℚ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves that ℚ is infinite, denumerable, and deduces that it has cardinality `omega`.
 -/
@@ -29,15 +31,13 @@ instance : denumerable ℚ :=
 begin
   let T := { x : ℤ × ℕ // 0 < x.2 ∧ x.1.nat_abs.coprime x.2 },
   letI : infinite T := infinite.of_injective _ denumerable_aux.injective,
-  letI : encodable T := encodable.subtype,
+  letI : encodable T := subtype.encodable,
   letI : denumerable T := of_encodable_of_infinite T,
   exact denumerable.of_equiv T denumerable_aux
 end
 
 end rat
 
-namespace cardinal
-lemma mk_rat : cardinal.mk ℚ = omega :=
-denumerable_iff.mp ⟨by apply_instance⟩
+open_locale cardinal
 
-end cardinal
+lemma cardinal.mk_rat : #ℚ = ℵ₀ := by simp

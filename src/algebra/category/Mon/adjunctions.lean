@@ -5,8 +5,8 @@ Authors: Julian Kuelshammer
 -/
 import algebra.category.Mon.basic
 import algebra.category.Semigroup.basic
-import algebra.group.with_one
-import algebra.free_monoid
+import algebra.group.with_one.basic
+import algebra.free_monoid.basic
 
 /-!
 # Adjunctions regarding the category of monoids
@@ -37,8 +37,7 @@ def adjoin_one : Semigroup.{u} ⥤ Mon.{u} :=
 instance has_forget_to_Semigroup : has_forget₂ Mon Semigroup :=
 { forget₂ :=
   { obj := λ M, Semigroup.of M,
-    map := λ M N, monoid_hom.to_mul_hom },
-}
+    map := λ M N, monoid_hom.to_mul_hom }, }
 
 /-- The adjoin_one-forgetful adjunction from `Semigroup` to `Mon`.-/
 @[to_additive "The adjoin_one-forgetful adjunction from `AddSemigroup` to `AddMon`"]
@@ -68,6 +67,6 @@ def free : Type u ⥤ Mon.{u} :=
 def adj : free ⊣ forget Mon.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_monoid.lift.symm,
-  hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
+  hom_equiv_naturality_left_symm' := λ X Y G f g, by { ext1, refl } }
 
 instance : is_right_adjoint (forget Mon.{u}) := ⟨_, adj⟩

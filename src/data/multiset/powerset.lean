@@ -3,10 +3,14 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.multiset.basic
+import data.list.sublists
+import data.multiset.nodup
 
 /-!
 # The powerset of a multiset
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset
@@ -80,7 +84,7 @@ congr_arg coe powerset_aux_eq_map_coe
   @powerset α l = ((sublists' l).map coe : list (multiset α)) :=
 quot.sound powerset_aux_perm_powerset_aux'
 
-@[simp] theorem powerset_zero : @powerset α 0 = 0 ::ₘ 0 := rfl
+@[simp] theorem powerset_zero : @powerset α 0 = {0} := rfl
 
 @[simp] theorem powerset_cons (a : α) (s) :
   powerset (a ::ₘ s) = powerset s + map (cons a) (powerset s) :=
@@ -91,9 +95,9 @@ quotient.induction_on s $ λ l, by simp; refl
 quotient.induction_on₂ s t $ by simp [subperm, and.comm]
 
 theorem map_single_le_powerset (s : multiset α) :
-  s.map (λ a, a ::ₘ 0) ≤ powerset s :=
+  s.map singleton ≤ powerset s :=
 quotient.induction_on s $ λ l, begin
-  simp [powerset_coe],
+  simp only [powerset_coe, quot_mk_to_coe, coe_le, coe_map],
   show l.map (coe ∘ list.ret) <+~ (sublists l).map coe,
   rw ← list.map_map,
   exact ((map_ret_sublist_sublists _).map _).subperm
@@ -125,9 +129,9 @@ theorem revzip_powerset_aux_lemma [decidable_eq α] (l : list α)
 begin
   have : forall₂ (λ (p : multiset α × multiset α) (s : multiset α), p = (s, ↑l - s))
     (revzip l') ((revzip l').map prod.fst),
-  { rw forall₂_map_right_iff,
-    apply forall₂_same, rintro ⟨s, t⟩ h,
-    dsimp, rw [← H h, add_sub_cancel_left] },
+  { rw [forall₂_map_right_iff, forall₂_same],
+    rintro ⟨s, t⟩ h,
+    dsimp, rw [← H h, add_tsub_cancel_left] },
   rw [← forall₂_eq_eq_eq, forall₂_map_right_iff], simpa
 end
 
@@ -207,10 +211,10 @@ theorem powerset_len_coe (n) (l : list α) :
 congr_arg coe powerset_len_aux_eq_map_coe
 
 @[simp] theorem powerset_len_zero_left (s : multiset α) :
-  powerset_len 0 s = 0 ::ₘ 0 :=
+  powerset_len 0 s = {0} :=
 quotient.induction_on s $ λ l, by simp [powerset_len_coe']; refl
 
-@[simp] theorem powerset_len_zero_right (n : ℕ) :
+theorem powerset_len_zero_right (n : ℕ) :
   @powerset_len α (n + 1) 0 = 0 := rfl
 
 @[simp] theorem powerset_len_cons (n : ℕ) (a : α) (s) :
@@ -235,5 +239,50 @@ theorem powerset_len_mono (n : ℕ) {s t : multiset α} (h : s ≤ t) :
   powerset_len n s ≤ powerset_len n t :=
 le_induction_on h $ λ l₁ l₂ h, by simp [powerset_len_coe]; exact
   ((sublists_len_sublist_of_sublist _ h).map _).subperm
+
+@[simp] theorem powerset_len_empty {α : Type*} (n : ℕ) {s : multiset α} (h : s.card < n) :
+  powerset_len n s = 0 :=
+card_eq_zero.mp (nat.choose_eq_zero_of_lt h ▸ card_powerset_len _ _)
+
+@[simp]
+lemma powerset_len_card_add (s : multiset α) {i : ℕ} (hi : 0 < i) :
+  s.powerset_len (s.card + i) = 0 :=
+powerset_len_empty _ (lt_add_of_pos_right (card s) hi)
+
+theorem powerset_len_map {β : Type*} (f : α → β) (n : ℕ) (s : multiset α) :
+  powerset_len n (s.map f) = (powerset_len n s).map (map f) :=
+begin
+  induction s using multiset.induction with t s ih generalizing n,
+  { cases n; simp [powerset_len_zero_left, powerset_len_zero_right], },
+  { cases n; simp [ih, map_comp_cons], },
+end
+
+lemma pairwise_disjoint_powerset_len (s : multiset α) :
+  _root_.pairwise (λ i j, multiset.disjoint (s.powerset_len i) (s.powerset_len j)) :=
+λ i j h x hi hj, h (eq.trans (multiset.mem_powerset_len.mp hi).right.symm
+  (multiset.mem_powerset_len.mp hj).right)
+
+lemma bind_powerset_len {α : Type*} (S : multiset α) :
+  bind (multiset.range (S.card + 1)) (λ k, S.powerset_len k) = S.powerset :=
+begin
+  induction S using quotient.induction_on,
+  simp_rw [quot_mk_to_coe, powerset_coe', powerset_len_coe, ←coe_range, coe_bind, ←list.bind_map,
+    coe_card],
+  exact coe_eq_coe.mpr ((list.range_bind_sublists_len_perm S).map _),
+end
+
+@[simp] theorem nodup_powerset {s : multiset α} : nodup (powerset s) ↔ nodup s :=
+⟨λ h, (nodup_of_le (map_single_le_powerset _) h).of_map _,
+  quotient.induction_on s $ λ l h,
+  by simp; refine (nodup_sublists'.2 h).map_on _ ; exact
+  λ x sx y sy e,
+    (h.sublist_ext (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
+      (quotient.exact e)⟩
+
+alias nodup_powerset ↔ nodup.of_powerset nodup.powerset
+
+protected lemma nodup.powerset_len {n : ℕ} {s : multiset α} (h : nodup s) :
+  nodup (powerset_len n s) :=
+nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)
 
 end multiset

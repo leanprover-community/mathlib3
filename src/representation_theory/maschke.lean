@@ -3,13 +3,15 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 import algebra.char_p.invertible
-import algebra.regular.basic
 import linear_algebra.basis
 
 /-!
 # Maschke's theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove **Maschke's theorem** for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
@@ -104,16 +106,16 @@ In fact, the sum over `g : G` of the conjugate of `π` by `g` is a `k[G]`-linear
 def sum_of_conjugates_equivariant : W →ₗ[monoid_algebra k G] V :=
 monoid_algebra.equivariant_of_linear_of_comm (π.sum_of_conjugates G) (λ g v,
 begin
-  dsimp [sum_of_conjugates],
-  simp only [linear_map.sum_apply, finset.smul_sum],
+  simp only [sum_of_conjugates, linear_map.sum_apply,
+    -- We have a `module (monoid_algebra k G)` instance but are working with `finsupp`s,
+    -- so help the elaborator unfold everything correctly.
+    @finset.smul_sum (monoid_algebra k G)],
   dsimp [conjugate],
-  conv_lhs {
-    rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
-    simp only [mul_right_embedding],
-  },
+  conv_lhs
+  { rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
+    simp only [mul_right_embedding], },
   simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
-    finset.sum_map, inv_inv, inv_mul_cancel_right],
-  recover,
+    finset.sum_map, inv_inv, inv_mul_cancel_right]
 end)
 
 section
@@ -168,7 +170,8 @@ begin
   obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
     (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
   refine ⟨φ.equivariant_projection G, _⟩,
-  ext v,
+  apply linear_map.ext,
+  intro v,
   simp only [linear_map.id_coe, id.def, linear_map.comp_apply],
   apply linear_map.equivariant_projection_condition,
   intro v,
@@ -185,7 +188,7 @@ let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective p.subtype p.k
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
 /-- This also implies an instance `is_semisimple_module (monoid_algebra k G) V`. -/
-instance is_complemented : is_complemented (submodule (monoid_algebra k G) V) :=
+instance complemented_lattice : complemented_lattice (submodule (monoid_algebra k G) V) :=
 ⟨exists_is_compl⟩
 
 end submodule

@@ -1,10 +1,11 @@
 /-
-Copyright (c) 2021 Johan Commelin (inspired by Kevin Buzzard, copied by Damiano Testa).
+Copyright (c) 2021 Johan Commelin.
 All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin (inspired by Kevin Buzzard, copied by Damiano Testa)
+Authors: Johan Commelin, Damiano Testa, Kevin Buzzard
 -/
-import algebra.ordered_monoid
+import algebra.order.monoid.defs
+import algebra.order.monoid.with_zero.defs
 
 /-!
 An example of a `linear_ordered_comm_monoid_with_zero` in which the product of two positive
@@ -31,7 +32,7 @@ instance inhabited : inhabited foo := ⟨zero⟩
 
 instance : has_zero foo := ⟨zero⟩
 instance : has_one foo := ⟨one⟩
-notation `ε` := eps
+local notation `ε` := eps
 
 /-- The order on `foo` is the one induced by the natural order on the image of `aux1`. -/
 def aux1 : foo → ℕ
@@ -47,7 +48,7 @@ lemma aux1_inj : function.injective aux1 :=
 by boom
 
 instance : linear_order foo :=
-linear_order.lift aux1 $ aux1_inj
+linear_order.lift' aux1 aux1_inj
 
 /-- Multiplication on `foo`: the only external input is that `ε ^ 2 = 0`. -/
 def mul : foo → foo → foo
@@ -68,7 +69,6 @@ instance : linear_ordered_comm_monoid_with_zero foo :=
   zero_mul := by boom,
   mul_zero := by boom,
   mul_le_mul_left := by { rintro ⟨⟩ ⟨⟩ h ⟨⟩; revert h; dec_trivial },
-  lt_of_mul_lt_mul_left := by { rintro ⟨⟩ ⟨⟩ ⟨⟩; dec_trivial },
   zero_le_one := dec_trivial,
   .. foo.linear_order,
   .. foo.comm_monoid }

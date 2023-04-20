@@ -8,6 +8,9 @@ import data.real.basic
 /-!
 # Real sign function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces and contains some results about `real.sign` which maps negative
 real numbers to -1, positive real numbers to 1, and 0 to 0.
 
@@ -54,7 +57,7 @@ begin
   { exact (or.inr $ or.inr $ sign_of_pos hp) },
 end
 
-/-- This lemma is useful for working with `units ℝ` -/
+/-- This lemma is useful for working with `ℝˣ` -/
 lemma sign_apply_eq_of_ne_zero (r : ℝ) (h : r ≠ 0) : sign r = -1 ∨ sign r = 1 :=
 begin
   obtain hn | rfl | hp := lt_trichotomy r (0 : ℝ),

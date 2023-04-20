@@ -7,6 +7,9 @@ import data.option.defs
 
 /-! # Monadic lazy lists.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An alternative construction of lazy lists (see also `data.lazy_list`),
 with "lazyness" controlled by an arbitrary monad.
 
@@ -27,10 +30,10 @@ meta inductive mllist (m : Type u → Type u) (α : Type u) : Type u
 
 namespace mllist
 
-variables {α β : Type u} {m : Type u → Type u} [alternative m]
+variables {α β : Type u} {m : Type u → Type u}
 
 /-- Construct an `mllist` recursively. -/
-meta def fix (f : α → m α) : α → mllist m α
+meta def fix [alternative m] (f : α → m α) : α → mllist m α
 | x := cons $ (λ a, (some x, fix a)) <$> f x <|> pure (some x, nil)
 
 variables [monad m]
@@ -39,19 +42,19 @@ variables [monad m]
 accumulating the elements of the resulting `list β` as a single monadic lazy list.
 
 (This variant allows starting with a specified `list β` of elements, as well. )-/
-meta def fixl_with (f : α → m (α × list β)) : α → list β → mllist m β
+meta def fixl_with [alternative m] (f : α → m (α × list β)) : α → list β → mllist m β
 | s (b :: rest) := cons $ pure (some b, fixl_with s rest)
-| s [] := cons $ do {
-            (s', l) ← f s,
+| s [] := cons $ do
+          { (s', l) ← f s,
             match l with
             | (b :: rest) := pure (some b, fixl_with s' rest)
             | [] := pure (none, fixl_with s' [])
-            end
-          } <|> pure (none, nil)
+            end }
+          <|> pure (none, nil)
 
 /-- Repeatedly apply a function `f : α → m (α × list β)` to an initial `a : α`,
 accumulating the elements of the resulting `list β` as a single monadic lazy list. -/
-meta def fixl (f : α → m (α × list β)) (s : α) : mllist m β := fixl_with f s []
+meta def fixl [alternative m] (f : α → m (α × list β)) (s : α) : mllist m β := fixl_with f s []
 
 /-- Deconstruct an `mllist`, returning inside the monad an optional pair `α × mllist m α`
 representing the head and tail of the list. -/

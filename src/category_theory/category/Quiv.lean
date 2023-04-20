@@ -3,11 +3,15 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.path_category
+import category_theory.adjunction.basic
 import category_theory.category.Cat
+import category_theory.path_category
 
 /-!
 # The category of quivers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The category of (bundled) quivers, and the free/forgetful adjunction between `Cat` and `Quiv`.
 
@@ -18,13 +22,13 @@ universes v u
 namespace category_theory
 
 /-- Category of quivers. -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def Quiv := bundled quiver.{(v+1) u}
 
 namespace Quiv
 
-instance : has_coe_to_sort Quiv :=
-{ S := Type u,
-  coe := bundled.α }
+instance : has_coe_to_sort Quiv (Type u) :=
+{ coe := bundled.α }
 
 instance str (C : Quiv.{v u}) : quiver.{(v+1) u} C := C.str
 
@@ -70,7 +74,7 @@ namespace Quiv
 
 /-- Any prefunctor into a category lifts to a functor from the path category. -/
 @[simps]
-def lift {V : Type u} [quiver.{v+1} V] {C : Type u} [category.{v} C]
+def lift {V : Type u} [quiver.{v+1} V] {C : Type*} [category C]
   (F : prefunctor V C) : paths V ⥤ C :=
 { obj := λ X, F.obj X,
   map := λ X Y f, compose_path (F.map_path f), }

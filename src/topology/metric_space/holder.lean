@@ -23,7 +23,7 @@ properties of Hölder continuous functions.
 
 We use the type `ℝ≥0` (a.k.a. `nnreal`) for `C` because this type has coercion both to `ℝ` and
 `ℝ≥0∞`, so it can be easily used both in inequalities about `dist` and `edist`. We also use `ℝ≥0`
-for `r` to ensure that `d ^ r` is monotonically increasing in `d`. It might be a good idea to use
+for `r` to ensure that `d ^ r` is monotone in `d`. It might be a good idea to use
 `ℝ>0` for `r` but we don't have this type in `mathlib` (yet).
 
 ## Tags
@@ -35,7 +35,7 @@ Hölder continuity, Lipschitz continuity
 variables {X Y Z : Type*}
 
 open filter set
-open_locale nnreal ennreal topological_space
+open_locale nnreal ennreal topology
 
 section emetric
 
@@ -56,7 +56,7 @@ def holder_on_with (C r : ℝ≥0) (f : X → Y) (s : set X) : Prop :=
 λ x hx, hx.elim
 
 @[simp] lemma holder_on_with_singleton (C r : ℝ≥0) (f : X → Y) (x : X) : holder_on_with C r f {x} :=
-by { rintro a (rfl : a = x) b (rfl : b = a), rw edist_self, exact zero_le _  }
+by { rintro a (rfl : a = x) b (rfl : b = a), rw edist_self, exact zero_le _ }
 
 lemma set.subsingleton.holder_on_with {s : set X} (hs : s.subsingleton) (C r : ℝ≥0) (f : X → Y) :
   holder_on_with C r f s :=
@@ -114,7 +114,7 @@ lemma comp_holder_with {Cg rg : ℝ≥0} {g : Y → Z} {t : set Y} (hg : holder_
   holder_with (Cg * Cf ^ (rg : ℝ)) (rg * rf) (g ∘ f) :=
 holder_on_with_univ.mp $ hg.comp (hf.holder_on_with univ) (λ x _, ht x)
 
-/-- A Hölder continuouf sunction is uniformly continuous -/
+/-- A Hölder continuous function is uniformly continuous -/
 protected lemma uniform_continuous_on (hf : holder_on_with C r f s) (h0 : 0 < r) :
   uniform_continuous_on f s :=
 begin
@@ -122,7 +122,7 @@ begin
   have : tendsto (λ d : ℝ≥0∞, (C : ℝ≥0∞) * d ^ (r : ℝ)) (𝓝 0) (𝓝 0),
     from ennreal.tendsto_const_mul_rpow_nhds_zero_of_pos ennreal.coe_ne_top h0,
   rcases ennreal.nhds_zero_basis.mem_iff.1 (this (gt_mem_nhds εpos)) with ⟨δ, δ0, H⟩,
-  exact ⟨δ, δ0, λ x y hx hy h, (hf.edist_le hx hy).trans_lt (H h)⟩,
+  exact ⟨δ, δ0, λ x hx y hy h, (hf.edist_le hx hy).trans_lt (H h)⟩,
 end
 
 protected lemma continuous_on (hf : holder_on_with C r f s) (h0 : 0 < r) : continuous_on f s :=

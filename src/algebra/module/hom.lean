@@ -8,6 +8,9 @@ import algebra.module.pi
 /-!
 # Bundled hom instances for module and multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for module, mul_action and related structures on bundled `_hom` types.
 
 These are analogous to the instances in `algebra.module.pi`, but for bundled instead of unbundled
@@ -38,8 +41,11 @@ lemma smul_apply (r : R) (f : A →+ B) (x : A) : (r • f) x = r • f x := rfl
 instance [smul_comm_class R S B] : smul_comm_class R S (A →+ B) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
-instance [has_scalar R S] [is_scalar_tower R S B] : is_scalar_tower R S (A →+ B) :=
+instance [has_smul R S] [is_scalar_tower R S B] : is_scalar_tower R S (A →+ B) :=
 ⟨λ a b f, ext $ λ x, smul_assoc _ _ _⟩
+
+instance [distrib_mul_action Rᵐᵒᵖ B] [is_central_scalar R B] : is_central_scalar R (A →+ B) :=
+⟨λ a b, ext $ λ x, op_smul_eq_smul _ _⟩
 
 end
 

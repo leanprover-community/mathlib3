@@ -8,6 +8,9 @@ import category_theory.subobject.lattice
 /-!
 # Specific subobjects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `equalizer_subobject`, `kernel_subobject` and `image_subobject`, which are the subobjects
 represented by the equalizer, kernel and image of (a pair of) morphism(s) and provide conditions
 for `P.factors f`, where `P` is one of these special subobjects.
@@ -22,6 +25,7 @@ universes v u
 noncomputable theory
 
 open category_theory category_theory.category category_theory.limits category_theory.subobject
+  opposite
 
 variables {C : Type u} [category.{v} C] {X Y Z : C}
 
@@ -81,17 +85,17 @@ def kernel_subobject_iso :
   (kernel_subobject f : C) ≅ kernel f :=
 subobject.underlying_iso (kernel.ι f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).hom ≫ kernel.ι f = (kernel_subobject f).arrow :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow' :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow_comp :
   (kernel_subobject f).arrow ≫ f = 0 :=
 by { rw [←kernel_subobject_arrow], simp only [category.assoc, kernel.condition, comp_zero], }
@@ -130,7 +134,7 @@ subobject.factor_thru _
   ((kernel_subobject f).arrow ≫ sq.left)
   (kernel_subobject_factors _ _ (by simp [sq.w]))
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_map_arrow (sq : arrow.mk f ⟶ arrow.mk f') :
   kernel_subobject_map sq ≫ (kernel_subobject f').arrow =
     (kernel_subobject f).arrow ≫ sq.left :=
@@ -143,6 +147,17 @@ by { ext, simp, dsimp, simp, } -- See library note [dsimp, simp].
   (sq : arrow.mk f ⟶ arrow.mk f') (sq' : arrow.mk f' ⟶ arrow.mk f'') :
   kernel_subobject_map (sq ≫ sq') = kernel_subobject_map sq ≫ kernel_subobject_map sq' :=
 by { ext, simp, }
+
+@[reassoc] lemma kernel_map_comp_kernel_subobject_iso_inv (sq : arrow.mk f ⟶ arrow.mk f') :
+  kernel.map f f' sq.1 sq.2 sq.3.symm ≫ (kernel_subobject_iso _).inv =
+    (kernel_subobject_iso _).inv ≫ kernel_subobject_map sq :=
+by ext; simp
+
+@[reassoc] lemma kernel_subobject_iso_comp_kernel_map
+  (sq : arrow.mk f ⟶ arrow.mk f') :
+  (kernel_subobject_iso _).hom ≫ kernel.map f f' sq.1 sq.2 sq.3.symm =
+    kernel_subobject_map sq ≫ (kernel_subobject_iso _).hom :=
+by simp [←iso.comp_inv_eq, kernel_map_comp_kernel_subobject_iso_inv]
 
 end
 
@@ -203,6 +218,50 @@ begin
   { simp, },
 end
 
+/-- Taking cokernels is an order-reversing map from the subobjects of `X` to the quotient objects
+    of `X`. -/
+@[simps]
+def cokernel_order_hom [has_cokernels C] (X : C) : subobject X →o (subobject (op X))ᵒᵈ :=
+{ to_fun := subobject.lift (λ A f hf, subobject.mk (cokernel.π f).op)
+  begin
+    rintros A B f g hf hg i rfl,
+    refine subobject.mk_eq_mk_of_comm _ _ (iso.op _) (quiver.hom.unop_inj _),
+    { exact (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
+        (is_cokernel_epi_comp (colimit.is_colimit _) i.hom rfl)).symm },
+    { simp only [iso.comp_inv_eq, iso.op_hom, iso.symm_hom, unop_comp, quiver.hom.unop_op,
+        colimit.comp_cocone_point_unique_up_to_iso_hom, cofork.of_π_ι_app, coequalizer.cofork_π] }
+  end,
+  monotone' := subobject.ind₂ _ $
+  begin
+    introsI A B f g hf hg h,
+    dsimp only [subobject.lift_mk],
+    refine subobject.mk_le_mk_of_comm (cokernel.desc f (cokernel.π g) _).op _,
+    { rw [← subobject.of_mk_le_mk_comp h, category.assoc, cokernel.condition, comp_zero] },
+    { exact quiver.hom.unop_inj (cokernel.π_desc _ _ _) }
+  end }
+
+/-- Taking kernels is an order-reversing map from the quotient objects of `X` to the subobjects of
+    `X`. -/
+@[simps]
+def kernel_order_hom [has_kernels C] (X : C) : (subobject (op X))ᵒᵈ →o subobject X :=
+{ to_fun := subobject.lift (λ A f hf, subobject.mk (kernel.ι f.unop))
+  begin
+    rintros A B f g hf hg i rfl,
+    refine subobject.mk_eq_mk_of_comm _ _ _ _,
+    { exact is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
+        (is_kernel_comp_mono (limit.is_limit (parallel_pair g.unop 0)) i.unop.hom rfl) },
+    { dsimp,
+      simp only [←iso.eq_inv_comp, limit.cone_point_unique_up_to_iso_inv_comp, fork.of_ι_π_app] }
+  end,
+  monotone' := subobject.ind₂ _ $
+  begin
+    introsI A B f g hf hg h,
+    dsimp only [subobject.lift_mk],
+    refine subobject.mk_le_mk_of_comm (kernel.lift g.unop (kernel.ι f.unop) _) _,
+    { rw [← subobject.of_mk_le_mk_comp h, unop_comp, kernel.condition_assoc, zero_comp] },
+    { exact quiver.hom.op_inj (by simp) }
+  end }
+
 end kernel
 
 section image
@@ -233,9 +292,9 @@ def factor_thru_image_subobject : X ⟶ image_subobject f :=
 factor_thru_image f ≫ (image_subobject_iso f).inv
 
 instance [has_equalizers C] : epi (factor_thru_image_subobject f) :=
-by { dsimp [factor_thru_image_subobject], apply epi_comp,  }
+by { dsimp [factor_thru_image_subobject], apply epi_comp, }
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simp [factor_thru_image_subobject, image_subobject_arrow]
@@ -328,6 +387,9 @@ by simp [image_subobject_comp_iso]
 
 end
 
+lemma image_subobject_mono (f : X ⟶ Y) [mono f] : image_subobject f = mk f :=
+eq_of_comm (image_subobject_iso f ≪≫ image_mono_iso_source f ≪≫ (underlying_iso f).symm) (by simp)
+
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]
   {X' : C} (h : X' ⟶ X) [is_iso h] (f : X ⟶ Y) [has_image f] :
@@ -363,6 +425,21 @@ begin
   simp only [image_subobject_map, category.assoc, image_subobject_arrow'],
   erw [image.map_ι, ←category.assoc, image_subobject_arrow],
 end
+
+lemma image_map_comp_image_subobject_iso_inv
+  {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
+  (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
+  image.map sq ≫ (image_subobject_iso _).inv =
+  (image_subobject_iso _).inv ≫ image_subobject_map sq :=
+by ext; simp
+
+lemma image_subobject_iso_comp_image_map
+  {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
+  (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
+  (image_subobject_iso _).hom ≫ image.map sq =
+    image_subobject_map sq ≫ (image_subobject_iso _).hom :=
+by rw [←iso.comp_inv_eq, category.assoc, ←(image_subobject_iso (arrow.mk f).hom).eq_inv_comp,
+  ←image_map_comp_image_subobject_iso_inv]; refl
 
 end image
 

@@ -3,12 +3,14 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.kernel_pair
 
 /-!
 # Reflexive coequalizers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define reflexive pairs as a pair of morphisms which have a common section. We say a category has
 reflexive coequalizers if it has coequalizers of all reflexive pairs.

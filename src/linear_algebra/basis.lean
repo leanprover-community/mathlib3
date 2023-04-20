@@ -1463,7 +1463,6 @@ coordinates of `m` on the basis `b` are in `R` (see `basis.mem_span` for the cas
 lemma basis.mem_span_iff_repr_mem (m : V) :
   m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R K) :=
 begin
-  classical,
   refine ⟨λ hm i, ⟨(b.restrict_scalars R).repr ⟨m, hm⟩ i,
     (b.restrict_scalars_repr_apply R ⟨m, hm⟩ i)⟩, λ h, _⟩,
   rw [← b.total_repr m, finsupp.total_apply K _],

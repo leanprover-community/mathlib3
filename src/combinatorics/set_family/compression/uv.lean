@@ -49,95 +49,6 @@ boolean algebra, so that one can use it for `set α`.
 compression, UV-compression, shadow
 -/
 
-section generalized_boolean_algebra
-variables {α : Type*} [generalized_boolean_algebra α] {x y z : α}
-
-lemma disjoint.le_sdiff_of_sup_le_left (hxz : disjoint x z) (h : z ⊔ x ≤ y) : x ≤ y \ z :=
-hxz.symm.sup_sdiff_cancel_left.ge.trans (sdiff_le_sdiff_right h)
-
-lemma inf_sdiff_left_comm : x \ z ⊓ y = (x ⊓ y) \ z :=
-by rw [@inf_comm _ _ x, inf_comm, inf_sdiff_assoc]
-
-lemma disjoint_sdiff_comm : disjoint (x \ z) y ↔ disjoint x (y \ z) :=
-by simp_rw [disjoint_iff, inf_sdiff_right_comm, inf_sdiff_assoc]
-
-end generalized_boolean_algebra
-
-namespace finset
-variables {α : Type*} [decidable_eq α] {s s₁ s₂ t t₁ t₂ u : finset α} {a : α}
-
-lemma union_subset_union_left (h : s₁ ⊆ s₂) : s₁ ∪ t ⊆ s₂ ∪ t := union_subset_union h subset.rfl
-lemma union_subset_union_right (h : t₁ ⊆ t₂) : s ∪ t₁ ⊆ s ∪ t₂ := union_subset_union subset.rfl h
-
-lemma erase_eq (s : finset α) (a : α) : s.erase a = s \ {a} := (sdiff_singleton_eq_erase _ _).symm
-
-@[simp] lemma inter_erase (a : α) (s t : finset α) : s ∩ t.erase a = (s ∩ t).erase a :=
-by simp only [erase_eq, inter_sdiff]
-
-@[simp] lemma erase_inter (a : α) (s t : finset α) : s.erase a ∩ t = (s ∩ t).erase a :=
-by simpa only [inter_comm t] using inter_erase a t s
-
-lemma erase_sdiff_comm (s t : finset α) (a : α) : s.erase a \ t = (s \ t).erase a :=
-by simp_rw [erase_eq, sdiff_right_comm]
-
-lemma insert_union_comm (s t : finset α) (a : α) : insert a s ∪ t = s ∪ insert a t :=
-by rw [insert_union, union_insert]
-
-lemma erase_inter_comm (s t : finset α) (a : α) : s.erase a ∩ t = s ∩ t.erase a :=
-by rw [erase_inter, inter_erase]
-
-lemma erase_union_distrib (s t : finset α) (a : α) : (s ∪ t).erase a = s.erase a ∪ t.erase a :=
-by simp_rw [erase_eq, union_sdiff_distrib]
-
-lemma insert_inter_distrib (s t : finset α) (a : α) : insert a (s ∩ t) = insert a s ∩ insert a t :=
-by simp_rw [insert_eq, union_distrib_left]
-
-lemma erase_union_cancel (ha : a ∈ t) (s : finset α) : s.erase a ∪ t = s ∪ t :=
-by rw [←insert_erase (mem_union_right s ha), erase_union_distrib, ←union_insert, insert_erase ha]
-
-lemma union_erase_cancel (ha : a ∈ s) (t : finset α) : s ∪ t.erase a = s ∪ t :=
-by rw [←insert_erase (mem_union_left t ha), erase_union_distrib, ←insert_union, insert_erase ha]
-
-lemma insert_inter_cancel (ha : a ∉ t) (s : finset α) : insert a s ∩ t = s ∩ t :=
-by rw [insert_eq, inter_distrib_right, disjoint_iff_inter_eq_empty.1 (disjoint_singleton_left.2 ha),
-  empty_union]
-
-lemma inter_insert_cancel (ha : a ∉ s) (t : finset α) : s ∩ insert a t = s ∩ t :=
-by rw [insert_eq, inter_distrib_left, disjoint_iff_inter_eq_empty.1 (disjoint_singleton_right.2 ha),
-  empty_union]
-
-lemma sdiff_union_sdiff_cancel (hts : t ⊆ s) (hut : u ⊆ t) : s \ t ∪ t \ u = s \ u :=
-sdiff_sup_sdiff_cancel hts hut
-
-lemma sdiff_union_erase_cancel (hts : t ⊆ s) (ha : a ∈ t) : s \ t ∪ t.erase a = s.erase a :=
-by simp_rw [←sdiff_singleton_eq_erase, sdiff_union_sdiff_cancel hts (singleton_subset_iff.2 ha)]
-
-lemma union_sdiff_cancel_left (h : disjoint s t) : (s ∪ t) \ s = t := h.sup_sdiff_cancel_left
-lemma union_sdiff_cancel_right (h : disjoint s t) : (s ∪ t) \ t = s := h.sup_sdiff_cancel_right
-
-lemma subset_sdiff_of_union_subset_left (hsu : disjoint s u) (h : u ∪ s ⊆ t) : s ⊆ t \ u :=
-hsu.le_sdiff_of_sup_le_left h
-
-lemma sdiff_sdiff_eq_sdiff_union {a b c : finset α} (h : c ⊆ a) : a \ (b \ c) = a \ b ∪ c :=
-sdiff_sdiff_eq_sdiff_sup h
-
-lemma sdiff_erase' (h : a ∈ s) : s \ t.erase a = insert a (s \ t) :=
-by rw [←sdiff_singleton_eq_erase, sdiff_sdiff_eq_sdiff_union (singleton_subset_iff.2 h), insert_eq,
-  union_comm]
-
-lemma disjoint_erase_comm : disjoint (s.erase a) t ↔ disjoint s (t.erase a) :=
-by simp_rw [erase_eq, disjoint_sdiff_comm]
-
-lemma disjoint_of_erase_left (ha : a ∉ t) (hst : disjoint (s.erase a) t) : disjoint s t :=
-by { rw [←erase_insert ha, ←disjoint_erase_comm, disjoint_insert_right],
-  exact ⟨not_mem_erase _ _, hst⟩ }
-
-lemma disjoint_of_erase_right (ha : a ∉ s) (hst : disjoint s (t.erase a)) : disjoint s t :=
-by { rw [←erase_insert ha, disjoint_erase_comm, disjoint_insert_left],
-  exact ⟨not_mem_erase _ _, hst⟩ }
-
-end finset
-
 open finset
 
 variable {α : Type*}
@@ -187,7 +98,7 @@ if_pos ⟨hua, hva⟩
 lemma compress_of_disjoint_of_le' (hva : disjoint v a) (hua : u ≤ a) :
   compress u v ((a ⊔ v) \ u) = a :=
 by rw [compress_of_disjoint_of_le disjoint_sdiff_self_right
-  ((hva.mono_right hua).le_sdiff_of_sup_le_left $ sup_le_sup_right hua _),
+  (le_sdiff.2 ⟨(le_sup_right : v ≤ a ⊔ v), hva.mono_right hua⟩),
   sdiff_sup_cancel (le_sup_of_le_left hua), hva.symm.sup_sdiff_cancel_right]
 
 /-- `a` is in the UV-compressed family iff it's in the original and its compression is in the
@@ -296,8 +207,8 @@ begin
   { cases ha h.1 },
   unfold compress at hba,
   split_ifs at hba,
-  { rw ←hba,
-    exact (h.1.mono_right h.2).le_sdiff_of_sup_le_left (sup_le_sup_right h.2 _) },
+  { rw [←hba, le_sdiff],
+    exact ⟨le_sup_right, h.1.mono_right h.2⟩ },
   { cases ne_of_mem_of_not_mem hb ha hba }
 end
 
@@ -414,8 +325,8 @@ begin
       rw ←Hcomp.eq at ht,
       have hsb := sup_sdiff_mem_of_mem_compression ht ((erase_subset _ _).trans hvt)
         (disjoint_erase_comm.2 huvs.1),
-      rwa [sup_eq_union, sdiff_erase' (mem_union_left _ $ hvt hbv), union_erase_cancel hat,
-        ←erase_union_cancel hau] at hsb },
+      rwa [sup_eq_union, sdiff_erase (mem_union_left _ $ hvt hbv), union_erase_of_mem hat,
+        ←erase_union_of_mem hau] at hsb },
     { refine mem_shadow_iff.2 ⟨(t ⊔ u) \ v, sup_sdiff_mem_of_mem_compression Ht hvt $
         disjoint_of_erase_right hau huvs.1, a, _, _⟩,
       { rw [sup_eq_union, mem_sdiff, mem_union],
@@ -448,7 +359,7 @@ begin
     -- and then arguing that it's the same
     convert this,
     rw [sdiff_union_erase_cancel (hus.trans $ subset_union_left _ _) ‹x ∈ u›, erase_union_distrib,
-      erase_insert ‹x ∉ s›, erase_eq_of_not_mem ‹x ∉ v›, sdiff_erase' (mem_union_right _ hyv),
+      erase_insert ‹x ∉ s›, erase_eq_of_not_mem ‹x ∉ v›, sdiff_erase (mem_union_right _ hyv),
       union_sdiff_cancel_right hsv] },
   -- Now that this is done, it's immediate that `u ⊆ s`
   have hus : u ⊆ s,
@@ -462,8 +373,8 @@ begin
   { rwa [←insert_sdiff_of_not_mem _ ‹x ∉ u›, ←insert_union] },
   -- For (s ∪ v) \ u ∉ ∂ 𝒜', we split up based on w ∈ u
   rintro ⟨w, hwB, hw𝒜'⟩,
-  have : v ⊆ insert w ((s ∪ v) \ u) := (subset_sdiff_of_union_subset_left hvu $
-    union_subset_union_left hus).trans (subset_insert _ _),
+  have : v ⊆ insert w ((s ∪ v) \ u) := (subset_sdiff.2 ⟨subset_union_right _ _, hvu⟩).trans
+    (subset_insert _ _),
   by_cases hwu : w ∈ u,
     -- If `w ∈ u`, we find `z ∈ v`, and contradict `m` again
   { obtain ⟨z, hz, hxy⟩ := huv w hwu,
@@ -471,11 +382,11 @@ begin
     have : insert w ((s ∪ v) \ u) ∈ 𝒜 := mem_of_mem_compression hw𝒜' ‹_› (aux huv),
     have : (insert w ((s ∪ v) \ u) ∪ erase u w) \ erase v z ∈ 𝒜,
     { refine sup_sdiff_mem_of_mem_compression (by rwa hxy.eq) ((erase_subset _ _).trans ‹_›) _,
-      rw ←sdiff_erase' (mem_union_left _ $ hus hwu),
+      rw ←sdiff_erase (mem_union_left _ $ hus hwu),
       exact disjoint_sdiff },
     convert this,
     rw [insert_union_comm, insert_erase ‹w ∈ u›, sdiff_union_of_subset
-      (hus.trans $ subset_union_left _ _), sdiff_erase' (mem_union_right _ ‹z ∈ v›),
+      (hus.trans $ subset_union_left _ _), sdiff_erase (mem_union_right _ ‹z ∈ v›),
       union_sdiff_cancel_right hsv] },
   -- If `w ∉ u`, we contradict `m` again
   rw [mem_sdiff, ←not_imp, not_not] at hwB,

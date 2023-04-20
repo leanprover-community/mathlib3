@@ -615,6 +615,80 @@ inv_submatrix_equiv A e₁.symm e₂.symm
 
 end submatrix
 
+/-! ### Invertibility of block matrices -/
+
+section block
+variables [fintype m] [decidable_eq m]
+
+/-- A block matrix is invertible if the bottom right corner and the corresponding schur complement
+is. -/
+def from_blocks₂₂_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] [invertible (A - B⬝⅟D⬝C)] :
+  invertible (from_blocks A B C D) :=
+by let A' := A - B⬝⅟D⬝C; have i1 : invertible A' := ‹_›; exactI
+invertible_of_left_inverse _
+  (from_blocks
+      (⅟A')         (-(⅟A'⬝B⬝⅟D))
+      (-(⅟D⬝C⬝⅟A')) (⅟D + ⅟D⬝C⬝⅟A'⬝B⬝⅟D))
+  begin
+    rw [from_blocks_multiply, ←from_blocks_one],
+    congr,
+    { rw [matrix.neg_mul, ← sub_eq_add_neg, matrix.mul_assoc (⅟A'), matrix.mul_assoc (⅟A'),
+        ← matrix.mul_sub, matrix.inv_of_mul_self A'] },
+    { rw [matrix.neg_mul, matrix.mul_inv_of_mul_self_cancel _ D, add_right_neg], },
+    { rw [matrix.neg_mul, matrix.add_mul, ←sub_eq_neg_add, ←neg_sub, sub_add_eq_sub_sub_swap,
+        matrix.mul_assoc (⅟D⬝C⬝⅟A'), matrix.mul_assoc (⅟D⬝C⬝⅟A'), ←matrix.mul_sub,
+        matrix.mul_inv_of_mul_self_cancel _, sub_self, neg_zero] },
+    { rw [matrix.neg_mul, matrix.add_mul, matrix.mul_inv_of_mul_self_cancel _ D,
+        matrix.inv_of_mul_self, neg_add_cancel_comm_assoc] },
+  end
+
+lemma inv_of_from_blocks₂₂_eq
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] [invertible (A - B⬝⅟D⬝C)] [invertible (from_blocks A B C D)] :
+  ⅟(from_blocks A B C D) = from_blocks
+      (⅟(A - B⬝⅟D⬝C))          (-(⅟(A - B⬝⅟D⬝C)⬝B⬝⅟D))
+      (-(⅟D⬝C⬝⅟(A - B⬝⅟D⬝C))) (⅟D + ⅟D⬝C⬝⅟(A - B⬝⅟D⬝C)⬝B⬝⅟D):=
+begin
+  letI := from_blocks₂₂_invertible A B C D,
+  haveI := invertible.subsingleton (from_blocks A B C D),
+  convert (rfl : ⅟(from_blocks A B C D) = _),
+end
+
+/-- A block matrix is invertible if the bottom right corner and the corresponding schur complement
+is. -/
+def from_blocks₁₁_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] [invertible (D - C⬝⅟A⬝B)] :
+  invertible (from_blocks A B C D) :=
+by let D' := D - C⬝⅟A⬝B; have i1 : invertible D' := ‹_›; exactI
+invertible_of_left_inverse _
+  (from_blocks
+      (⅟A + ⅟A⬝B⬝⅟D'⬝C⬝⅟A) (-(⅟A⬝B⬝⅟D'))
+      (-(⅟D'⬝C⬝⅟A))        (⅟D'))
+  begin
+    -- shortcut; flip the matrix and use the previous lemma
+    haveI := from_blocks₂₂_invertible D C B A,
+    rw [←from_blocks_submatrix_sum_swap_sum_swap, ←from_blocks_submatrix_sum_swap_sum_swap D,
+      (show sum.swap = equiv.sum_comm m n, from rfl), submatrix_mul_equiv,
+      ←inv_of_from_blocks₂₂_eq, matrix.inv_of_mul_self, submatrix_one_equiv],
+  end
+
+lemma inv_of_from_blocks₁₁_eq
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] [invertible (D - C⬝⅟A⬝B)] [invertible (from_blocks A B C D)] :
+  ⅟(from_blocks A B C D) = from_blocks
+      (⅟A + ⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A) (-(⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)))
+      (-(⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A)) (⅟(D - C⬝⅟A⬝B)) :=
+begin
+  letI := from_blocks₁₁_invertible A B C D,
+  haveI := invertible.subsingleton (from_blocks A B C D),
+  convert (rfl : ⅟(from_blocks A B C D) = _),
+end
+
+end block
+
 /-! ### More results about determinants -/
 
 section det
@@ -655,12 +729,8 @@ end
 of the Schur complement. -/
 lemma det_from_blocks₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
-begin
-  have : from_blocks A B C D = (from_blocks D C B A).submatrix (sum_comm _ _) (sum_comm _ _),
-  { ext i j,
-    cases i; cases j; refl },
-  rw [this, det_submatrix_equiv_self, det_from_blocks₁₁],
-end
+by rw [←from_blocks_submatrix_sum_swap_sum_swap,
+  (show sum.swap = equiv.sum_comm m n, from rfl), det_submatrix_equiv_self, det_from_blocks₁₁]
 
 @[simp] lemma det_from_blocks_one₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) :
   (matrix.from_blocks A B C 1).det = det (A - B ⬝ C) :=

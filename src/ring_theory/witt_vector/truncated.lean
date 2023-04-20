@@ -183,10 +183,10 @@ instance : has_neg (truncated_witt_vector p n R) :=
 instance : has_sub (truncated_witt_vector p n R) :=
 ⟨λ x y, truncate_fun n (x.out - y.out)⟩
 
-instance has_nat_scalar : has_scalar ℕ (truncated_witt_vector p n R) :=
+instance has_nat_scalar : has_smul ℕ (truncated_witt_vector p n R) :=
 ⟨λ m x, truncate_fun n (m • x.out)⟩
 
-instance has_int_scalar : has_scalar ℤ (truncated_witt_vector p n R) :=
+instance has_int_scalar : has_smul ℤ (truncated_witt_vector p n R) :=
 ⟨λ m x, truncate_fun n (m • x.out)⟩
 
 instance has_nat_pow : has_pow (truncated_witt_vector p n R) ℕ :=
@@ -318,7 +318,7 @@ lemma mem_ker_truncate (x : 𝕎 R) :
 begin
   simp only [ring_hom.mem_ker, truncate, truncate_fun, ring_hom.coe_mk,
     truncated_witt_vector.ext_iff, truncated_witt_vector.coeff_mk, coeff_zero],
-  exact subtype.forall
+  exact fin.forall_iff
 end
 
 variables (p)

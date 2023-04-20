@@ -8,6 +8,9 @@ import data.list.basic
 /-!
 # Boolean quantifiers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This proves a few properties about `list.all` and `list.any`, which are the `bool` universal and
 existential quantifiers. Their definitions are in core Lean.
 -/
@@ -46,11 +49,5 @@ end
 theorem any_iff_exists_prop : any l (λ a, p a) ↔ ∃ a ∈ l, p a := by simp [any_iff_exists]
 
 theorem any_of_mem {p : α → bool} (h₁ : a ∈ l) (h₂ : p a) : any l p := any_iff_exists.2 ⟨_, h₁, h₂⟩
-
-@[priority 500] instance decidable_forall_mem (l : list α) : decidable (∀ x ∈ l, p x) :=
-decidable_of_iff _ all_iff_forall_prop
-
-instance decidable_exists_mem (l : list α) : decidable (∃ x ∈ l, p x) :=
-decidable_of_iff _ any_iff_exists_prop
 
 end list

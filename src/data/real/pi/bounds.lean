@@ -66,7 +66,7 @@ theorem pi_lower_bound_start (n : ℕ) {a}
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series n), rw [mul_comm],
   refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sq_le _),
-  rwa [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
+  rwa [le_sub_comm, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
 end
 
 lemma sqrt_two_add_series_step_up (c d : ℕ) {a b n : ℕ} {z : ℝ}
@@ -102,7 +102,7 @@ theorem pi_upper_bound_start (n : ℕ) {a}
   (h₂ : 1 / 4 ^ n ≤ a) : π < a :=
 begin
   refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series n) _,
-  rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le],
+  rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le_comm],
   { rwa [nat.cast_zero, zero_div] at h },
   { exact div_nonneg (sub_nonneg.2 h₂) (pow_nonneg (le_of_lt zero_lt_two) _) },
   { exact pow_pos zero_lt_two _ }

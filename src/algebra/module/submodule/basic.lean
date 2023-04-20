@@ -6,9 +6,14 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 import algebra.module.linear_map
 import algebra.module.equiv
 import group_theory.group_action.sub_mul_action
+import group_theory.submonoid.membership
+
 /-!
 
 # Submodules of a module
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -29,6 +34,13 @@ universes u'' u' u v w
 variables {G : Type u''} {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
+
+/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`.
+
+Note that only `R` is marked as `out_param` since `M` is already supplied by the `set_like` class.
+-/
+class submodule_class (S : Type*) (R : out_param $ Type*) (M : Type*) [add_zero_class M]
+  [has_smul R M] [set_like S M] [add_submonoid_class S M] extends smul_mem_class S R M
 
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
@@ -54,6 +66,9 @@ instance : add_submonoid_class (submodule R M) M :=
 { zero_mem := zero_mem',
   add_mem := add_mem' }
 
+instance : submodule_class (submodule R M) R M :=
+{ smul_mem := smul_mem' }
+
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
 iff.rfl
 
@@ -77,7 +92,7 @@ equalities. -/
 protected def copy (p : submodule R M) (s : set M) (hs : s = ↑p) : submodule R M :=
 { carrier := s,
   zero_mem' := hs.symm ▸ p.zero_mem',
-  add_mem' := hs.symm ▸ p.add_mem',
+  add_mem' := λ _ _, hs.symm ▸ p.add_mem',
   smul_mem' := hs.symm ▸ p.smul_mem' }
 
 @[simp] lemma coe_copy (S : submodule R M) (s : set M) (hs : s = ↑S) :
@@ -124,6 +139,24 @@ to_sub_mul_action_strict_mono.monotone
 
 end submodule
 
+namespace submodule_class
+
+variables [semiring R] [add_comm_monoid M] [module R M] {A : Type*} [set_like A M]
+  [add_submonoid_class A M] [hA : submodule_class A R M] (S' : A)
+
+include hA
+/-- A submodule of a `module` is a `module`.  -/
+@[priority 75] -- Prefer subclasses of `module` over `submodule_class`.
+instance to_module : module R S' :=
+subtype.coe_injective.module R (add_submonoid_class.subtype S') (set_like.coe_smul S')
+
+/-- The natural `R`-linear map from a submodule of an `R`-module `M` to `M`. -/
+protected def subtype : S' →ₗ[R] M := ⟨coe, λ _ _, rfl, λ _ _, rfl⟩
+
+@[simp] protected theorem coe_subtype : (submodule_class.subtype S' : S' → M) = coe := rfl
+
+end submodule_class
+
 namespace submodule
 
 section add_comm_monoid
@@ -143,7 +176,7 @@ variables (p)
 protected lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := add_mem h₁ h₂
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
-lemma smul_of_tower_mem [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
+lemma smul_of_tower_mem [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   (r : S) (h : x ∈ p) : r • x ∈ p :=
 p.to_sub_mul_action.smul_of_tower_mem r h
 
@@ -154,22 +187,28 @@ lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
     (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
 sum_mem (λ i hi, smul_mem _ _ (hyp i hi))
 
-@[simp] lemma smul_mem_iff' [group G] [mul_action G M] [has_scalar G R] [is_scalar_tower G R M]
+@[simp] lemma smul_mem_iff' [group G] [mul_action G M] [has_smul G R] [is_scalar_tower G R M]
   (g : G) : g • x ∈ p ↔ x ∈ p :=
 p.to_sub_mul_action.smul_mem_iff' g
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] :
-  has_scalar S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
+instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] :
+  has_smul S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
 
-instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
+instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
 p.to_sub_mul_action.is_scalar_tower
 
+instance is_scalar_tower' {S' : Type*}
+  [has_smul S R] [has_smul S M] [has_smul S' R] [has_smul S' M] [has_smul S S']
+  [is_scalar_tower S' R M] [is_scalar_tower S S' M] [is_scalar_tower S R M] :
+  is_scalar_tower S S' p :=
+p.to_sub_mul_action.is_scalar_tower'
+
 instance
-  [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
-  [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
+  [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
   [is_central_scalar S M] : is_central_scalar S p :=
 p.to_sub_mul_action.is_central_scalar
 
@@ -183,7 +222,7 @@ variables {p}
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
 @[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_smul_of_tower [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
+@[simp, norm_cast] lemma coe_smul_of_tower [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
@@ -193,7 +232,7 @@ variables (p)
 instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
 
-instance module' [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] : module S p :=
+instance module' [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] : module S p :=
 by refine {smul := (•), ..p.to_sub_mul_action.mul_action', ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 instance : module R p := p.module'
@@ -216,10 +255,42 @@ lemma injective_subtype : injective p.subtype := subtype.coe_injective
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
-p.subtype.map_sum
+map_sum p.subtype _ _
+
+section add_action
+
+/-! ### Additive actions by `submodule`s
+
+These instances transfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
+onto the action by an element `s : S` of a submodule `S : submodule R M` such that
+`s +ᵥ a = (s : M) +ᵥ a`.
+
+These instances work particularly well in conjunction with `add_group.to_add_action`, enabling
+`s +ᵥ m` as an alias for `↑s + m`.
+
+-/
+
+variables {α β : Type*}
+
+instance [has_vadd M α] : has_vadd p α := p.to_add_submonoid.has_vadd
+
+instance vadd_comm_class [has_vadd M β] [has_vadd α β] [vadd_comm_class M α β] :
+  vadd_comm_class p α β := ⟨λ a, (vadd_comm (a : M) : _)⟩
+
+instance [has_vadd M α] [has_faithful_vadd M α] :
+  has_faithful_vadd p α := ⟨λ x y h, subtype.ext $ eq_of_vadd_eq_vadd h⟩
+
+/-- The action by a submodule is the action by the underlying module. -/
+instance [add_action M α] : add_action p α := add_action.comp_hom _ p.subtype.to_add_monoid_hom
+
+variable {p}
+
+lemma vadd_def [has_vadd M α] (g : p) (m : α) : g +ᵥ m = (g : M) +ᵥ m := rfl
+
+end add_action
 
 section restrict_scalars
-variables (S) [semiring S] [module S M] [module R M] [has_scalar S R] [is_scalar_tower S R M]
+variables (S) [semiring S] [module S M] [module R M] [has_smul S R] [is_scalar_tower S R M]
 
 /--
 `V.restrict_scalars S` is the `S`-submodule of the `S`-module given by restriction of scalars,
@@ -367,7 +438,8 @@ subtype.coe_injective.ordered_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl
 instance to_linear_ordered_add_comm_monoid
   {M} [linear_ordered_add_comm_monoid M] [module R M] (S : submodule R M) :
   linear_ordered_add_comm_monoid S :=
-subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A submodule of an `ordered_cancel_add_comm_monoid` is an `ordered_cancel_add_comm_monoid`. -/
 instance to_ordered_cancel_add_comm_monoid
@@ -381,6 +453,7 @@ instance to_linear_ordered_cancel_add_comm_monoid
   {M} [linear_ordered_cancel_add_comm_monoid M] [module R M] (S : submodule R M) :
   linear_ordered_cancel_add_comm_monoid S :=
 subtype.coe_injective.linear_ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 end ordered_monoid
 
@@ -401,7 +474,7 @@ instance to_linear_ordered_add_comm_group
   {M} [linear_ordered_add_comm_group M] [module R M] (S : submodule R M) :
   linear_ordered_add_comm_group S :=
 subtype.coe_injective.linear_ordered_add_comm_group coe
-  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end ordered_group
 
@@ -410,7 +483,7 @@ end submodule
 namespace submodule
 
 variables [division_ring S] [semiring R] [add_comm_monoid M] [module R M]
-variables [has_scalar S R] [module S M] [is_scalar_tower S R M]
+variables [has_smul S R] [module S M] [is_scalar_tower S R M]
 
 variables (p : submodule R M) {s : S} {x y : M}
 
@@ -421,5 +494,5 @@ end submodule
 
 /-- Subspace of a vector space. Defined to equal `submodule`. -/
 abbreviation subspace (R : Type u) (M : Type v)
-  [field R] [add_comm_group M] [module R M] :=
+  [division_ring R] [add_comm_group M] [module R M] :=
 submodule R M

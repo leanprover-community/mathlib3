@@ -8,6 +8,9 @@ import data.pnat.basic
 /-!
 # Explicit least witnesses to existentials on positive natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Implemented via calling out to `nat.find`.
 
 -/

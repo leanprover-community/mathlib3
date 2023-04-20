@@ -87,7 +87,7 @@ def lift : (M →ₗ[R] N →ₗ[R] P) ≃ₗ⁅R,L⁆ (M ⊗[R] N →ₗ[R] P) 
 
 @[simp] lemma lift_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
   lift R L M N P f (m ⊗ₜ n) = f m n :=
-lift.equiv_apply R M N P f m n
+rfl
 
 /-- A weaker form of the universal property for tensor product of modules of a Lie algebra.
 

@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.finite_dimensional
 import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
@@ -188,8 +189,7 @@ begin
     simpa only [dot_product_mul_vec, dot_product_single, mul_one] using hv (pi.single i 1) }
 end
 
-alias nondegenerate_iff_det_ne_zero ↔
-  matrix.nondegenerate.det_ne_zero matrix.nondegenerate.of_det_ne_zero
+alias nondegenerate_iff_det_ne_zero ↔ nondegenerate.det_ne_zero nondegenerate.of_det_ne_zero
 
 end nondegenerate
 

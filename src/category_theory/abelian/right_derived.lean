@@ -83,7 +83,7 @@ F.right_derived_obj_iso 0 (InjectiveResolution.self X) ≪≫
 open_locale zero_object
 
 /-- The higher derived functors vanish on injective objects. -/
-@[simps]
+@[simps inv]
 def functor.right_derived_obj_injective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
   (X : C) [injective X] :
   (F.right_derived (n+1)).obj X ≅ 0 :=

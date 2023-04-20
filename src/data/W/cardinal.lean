@@ -9,6 +9,9 @@ import set_theory.cardinal.ordinal
 /-!
 # Cardinality of W-types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some theorems about the cardinality of W-types. The main result is
 `cardinal_mk_le_max_aleph_0_of_fintype` which says that if for any `a : α`,
 `β a` is finite, then the cardinality of `W_type β` is at most the maximum of the
@@ -51,7 +54,7 @@ end
 
 /-- If, for any `a : α`, `β a` is finite, then the cardinality of `W_type β`
   is at most the maximum of the cardinality of `α` and `ℵ₀`  -/
-lemma cardinal_mk_le_max_aleph_0_of_fintype [Π a, fintype (β a)] : #(W_type β) ≤ max (#α) ℵ₀ :=
+lemma cardinal_mk_le_max_aleph_0_of_finite [∀ a, finite (β a)] : #(W_type β) ≤ max (#α) ℵ₀ :=
 (is_empty_or_nonempty α).elim
   (begin
     introI h,
@@ -63,7 +66,7 @@ calc cardinal.sum (λ a, m ^ #(β a))
     ≤ #α * ⨆ a, m ^ #(β a) : cardinal.sum_le_supr _
 ... ≤ m * ⨆ a, m ^ #(β a) : mul_le_mul' (le_max_left _ _) le_rfl
 ... = m : mul_eq_left.{u} (le_max_right _ _)
-  (csupr_le' $ λ i, pow_le (le_max_right _ _) (lt_aleph_0_of_fintype _)) $
+  (csupr_le' $ λ i, pow_le (le_max_right _ _) (lt_aleph_0_of_finite _)) $
   pos_iff_ne_zero.1 $ order.succ_le_iff.1
     begin
       rw succ_zero,

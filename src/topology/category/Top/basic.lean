@@ -10,6 +10,9 @@ import topology.continuous_function.basic
 /-!
 # Category instance for topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the bundled category `Top` of topological spaces together with the functors `discrete`
 and `trivial` from the category of types to `Top` which equip a type with the corresponding
 discrete, resp. trivial, topology. For a proof that these functors are left, resp. right adjoint
@@ -55,6 +58,8 @@ def discrete : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊥⟩,
   map := λ X Y f, { to_fun := f, continuous_to_fun := continuous_bot } }
 
+instance {X : Type u} : discrete_topology (discrete.obj X) := ⟨rfl⟩
+
 /-- The trivial topology on any type. -/
 def trivial : Type u ⥤ Top.{u} :=
 { obj := λ X, ⟨X, ⊤⟩,
@@ -83,7 +88,7 @@ by { ext, refl }
 @[simp]
 lemma open_embedding_iff_comp_is_iso {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso g] :
   open_embedding (f ≫ g) ↔ open_embedding f :=
-open_embedding_iff_open_embedding_compose f (Top.homeo_of_iso (as_iso g)).open_embedding
+(Top.homeo_of_iso (as_iso g)).open_embedding.of_comp_iff f
 
 @[simp]
 lemma open_embedding_iff_is_iso_comp {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] :

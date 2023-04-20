@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.preadditive.additive_functor
-import category_theory.linear
+import category_theory.linear.basic
 
 /-!
 # Linear Functors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An additive functor between two `R`-linear categories is called *linear*
 if the induced map on hom types is a morphism of `R`-modules.
@@ -70,6 +73,10 @@ variables {C : Type*} {D : Type*} [category D] [preadditive D] [category_theory.
 instance induced_functor_linear : functor.linear R (induced_functor F) := {}
 
 end induced_category
+
+instance full_subcategory_inclusion_linear
+  {C : Type*} [category C] [preadditive C] [category_theory.linear R C] (Z : C → Prop) :
+  (full_subcategory_inclusion Z).linear R := {}
 
 section
 

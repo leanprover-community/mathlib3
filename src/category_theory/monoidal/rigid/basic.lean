@@ -108,8 +108,8 @@ attribute [instance] has_left_dual.exact
 
 open exact_pairing has_right_dual has_left_dual monoidal_category
 
-prefix `ᘁ`:1025 := left_dual
-postfix `ᘁ`:1025 := right_dual
+prefix (name := left_dual) `ᘁ`:1025 := left_dual
+postfix (name := right_dual) `ᘁ`:1025 := right_dual
 
 instance has_right_dual_unit : has_right_dual (𝟙_ C) :=
 { right_dual := 𝟙_ C }
@@ -139,8 +139,8 @@ def left_adjoint_mate {X Y : C} [has_left_dual X] [has_left_dual Y] (f : X ⟶ Y
 (λ_ _).inv ≫ (η_ (ᘁX) X ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ f) ⊗ 𝟙 _)
  ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom
 
-notation f `ᘁ` := right_adjoint_mate f
-notation `ᘁ` f := left_adjoint_mate f
+notation (name := right_adjoint_mate) f `ᘁ` := right_adjoint_mate f
+notation (name := left_adjoint_mate) `ᘁ` f := left_adjoint_mate f
 
 @[simp]
 lemma right_adjoint_mate_id {X : C} [has_right_dual X] : (𝟙 X)ᘁ = 𝟙 (Xᘁ) :=
@@ -372,8 +372,19 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_right' :=
     λ X Z Z' f g, tensor_right_hom_equiv_naturality f g, }
 
+/--
+If `Y` has a left dual `ᘁY`, then it is a closed object, with the internal hom functor `Y ⟶[C] -`
+given by left tensoring by `ᘁY`.
+This has to be a definition rather than an instance to avoid diamonds, for example between
+`category_theory.monoidal_closed.functor_closed` and
+`category_theory.monoidal.functor_has_left_dual`. Moreover, in concrete applications there is often
+a more useful definition of the internal hom object than `ᘁY ⊗ X`, in which case the closed
+structure shouldn't come from `has_left_dual` (e.g. in the category `FinVect k`, it is more
+convenient to define the internal hom as `Y →ₗ[k] X` rather than `ᘁY ⊗ X` even though these are
+naturally isomorphic).
+-/
 @[priority 100]
-instance closed_of_has_left_dual (Y : C) [has_left_dual Y] : closed Y :=
+def closed_of_has_left_dual (Y : C) [has_left_dual Y] : closed Y :=
 { is_adj := ⟨_, tensor_left_adjunction (ᘁY) Y⟩, }
 
 /-- `tensor_left_hom_equiv` commutes with tensoring on the right -/
@@ -618,11 +629,19 @@ class left_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C
 attribute [instance, priority 100] right_rigid_category.right_dual
 attribute [instance, priority 100] left_rigid_category.left_dual
 
+/-- Any left rigid category is monoidal closed, with the internal hom `X ⟶[C] Y = ᘁX ⊗ Y`.
+This has to be a definition rather than an instance to avoid diamonds, for example between
+`category_theory.monoidal_closed.functor_category` and
+`category_theory.monoidal.left_rigid_functor_category`. Moreover, in concrete applications there is
+often a more useful definition of the internal hom object than `ᘁY ⊗ X`, in which case the monoidal
+closed structure shouldn't come the rigid structure (e.g. in the category `FinVect k`, it is more
+convenient to define the internal hom as `Y →ₗ[k] X` rather than `ᘁY ⊗ X` even though these are
+naturally isomorphic). -/
 @[priority 100]
-instance monoidal_closed_of_left_rigid_category
+def monoidal_closed_of_left_rigid_category
   (C : Type u) [category.{v} C] [monoidal_category.{v} C] [left_rigid_category C] :
   monoidal_closed C :=
-{ closed' := λ X, by apply_instance, }
+{ closed' := λ X, closed_of_has_left_dual X, }
 
 /-- A rigid monoidal category is a monoidal category which is left rigid and right rigid. -/
 class rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]

@@ -3,12 +3,14 @@ Copyright (c) 2022 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.nat.log
 import algebra.order.floor
-import algebra.field_power
+import data.nat.log
 
 /-!
 # Integer logarithms in a field with respect to a natural base
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines two `ℤ`-valued analogs of the logarithm of `r : R` with base `b : ℕ`:
 
@@ -44,9 +46,9 @@ def digits (b : ℕ) (q : ℚ) (n : ℕ) : ℕ :=
     `(b : R) ^ (clog b r - 1) < r ≤ (b : R) ^ clog b r`.
   * `int.clog_zpow_gi`:  the galois insertion between `int.clog` and `zpow`.
 * `int.neg_log_inv_eq_clog`, `int.neg_clog_inv_eq_log`: the link between the two definitions.
-
 -/
-variables {R : Type*} [linear_ordered_field R] [floor_ring R]
+
+variables {R : Type*} [linear_ordered_semifield R] [floor_semiring R]
 
 namespace int
 
@@ -93,13 +95,10 @@ lemma zpow_log_le_self {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
 begin
   cases le_total 1 r with hr1 hr1,
   { rw log_of_one_le_right _ hr1,
-    refine le_trans _ (nat.floor_le hr.le),
-    rw [zpow_coe_nat, ←nat.cast_pow, nat.cast_le],
-    exact nat.pow_log_le_self hb (nat.floor_pos.mpr hr1) },
+    rw [zpow_coe_nat, ← nat.cast_pow, ← nat.le_floor_iff hr.le],
+    exact nat.pow_log_le_self b (nat.floor_pos.mpr hr1).ne' },
   { rw [log_of_right_le_one _ hr1, zpow_neg, zpow_coe_nat, ← nat.cast_pow],
-    apply inv_le_of_inv_le hr,
-    refine (nat.le_ceil _).trans (nat.cast_le.2 _),
-    exact nat.le_pow_clog hb _ },
+    exact inv_le_of_inv_le hr (nat.ceil_le.1 $ nat.le_pow_clog hb _) },
 end
 
 lemma lt_zpow_succ_log_self {b : ℕ} (hb : 1 < b) (r : R) :
@@ -137,7 +136,7 @@ begin
       zpow_coe_nat, ←nat.cast_pow, nat.floor_coe, nat.log_pow hb],
     exact_mod_cast hb.le, },
   { rw [log_of_right_le_one _ (zpow_le_one_of_nonpos _ $ neg_nonpos.mpr (int.coe_nat_nonneg _)),
-      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.ceil_coe, nat.clog_pow _ _ hb],
+      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.ceil_nat_cast, nat.clog_pow _ _ hb],
     exact_mod_cast hb.le, },
 end
 
@@ -252,9 +251,9 @@ end
 lemma zpow_pred_clog_lt_self {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
   (b : R) ^ (clog b r - 1) < r :=
 begin
-  rw [←neg_log_inv_eq_clog, ←neg_add', zpow_neg, inv_lt (zpow_pos_of_pos _ _) hr],
+  rw [←neg_log_inv_eq_clog, ←neg_add', zpow_neg, inv_lt _ hr],
   { exact lt_zpow_succ_log_self hb _, },
-  { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
+  { exact zpow_pos_of_pos (nat.cast_pos.mpr $ zero_le_one.trans_lt hb) _ }
 end
 
 @[simp] lemma clog_zero_right (b : ℕ) : clog b (0 : R) = 0 :=

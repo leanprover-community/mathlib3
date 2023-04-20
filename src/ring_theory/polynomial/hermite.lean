@@ -56,7 +56,7 @@ section coeff
 lemma coeff_hermite_succ_zero (n : ℕ) :
   coeff (hermite (n + 1)) 0 = -(coeff (hermite n) 1) := by simp [coeff_derivative]
 
-lemma hermite_coeff_recur (n k : ℕ) :
+lemma coeff_hermite_succ_succ (n k : ℕ) :
   coeff (hermite (n + 1)) (k + 1) = coeff (hermite n) k - (k + 2) * (coeff (hermite n) (k + 2)) :=
 begin
   rw [hermite_succ, coeff_sub, coeff_X_mul, coeff_derivative, mul_comm],
@@ -67,7 +67,7 @@ lemma hermite_coeff_upper (n k : ℕ) : coeff (hermite n) (n + k + 1) = 0 :=
 begin
   induction n with n ih generalizing k,
   { apply coeff_C },
-  {  rw [hermite_coeff_recur,
+  {  rw [coeff_hermite_succ_succ,
       (by linarith : n + 1 + k = n + k + 1),
       (by linarith : n + k + 1 + 2 = n + (k + 2) + 1),
       ih k, ih (k + 2), mul_zero, sub_zero] }
@@ -79,11 +79,11 @@ begin
   apply hermite_coeff_upper
 end
 
-lemma hermite_coeff_top (n : ℕ) : coeff (hermite n) n = 1 :=
+lemma coeff_hermite_self (n : ℕ) : coeff (hermite n) n = 1 :=
 begin
   induction n with n ih,
   { apply coeff_C },
-  { rw [hermite_coeff_recur, ih, hermite_coeff_upper, mul_zero, sub_zero] }
+  { rw [coeff_hermite_succ_succ, ih, hermite_coeff_upper, mul_zero, sub_zero] }
 end
 
 lemma hermite_degree {n : ℕ} : (hermite n).degree = n :=
@@ -91,7 +91,7 @@ begin
   rw degree_eq_of_le_of_coeff_ne_zero,
   simp_rw [degree_le_iff_coeff_zero, with_bot.coe_lt_coe],
   exact hermite_coeff_upper' n,
-  simp [hermite_coeff_top n]
+  simp [coeff_hermite_self n]
 end
 
 lemma hermite_nat_degree {n : ℕ} : (hermite n).nat_degree = n :=
@@ -99,7 +99,7 @@ nat_degree_eq_of_degree_eq_some hermite_degree
 
 lemma hermite_leading_coeff {n : ℕ} : (hermite n).leading_coeff = 1 :=
 begin
-  rw [← coeff_nat_degree, hermite_nat_degree, hermite_coeff_top],
+  rw [← coeff_nat_degree, hermite_nat_degree, coeff_hermite_self],
 end
 
 lemma hermite_monic {n : ℕ} : (hermite n).monic := hermite_leading_coeff
@@ -110,8 +110,8 @@ begin
   { rw zero_add at hnk,
     exact hermite_coeff_upper' _ _ hnk.pos },
   { cases k,
-    { rw [hermite_coeff_recur_zero, ih 1 hnk, neg_zero] },
-    { rw [hermite_coeff_recur, ih k _, ih (k + 2) _, mul_zero, sub_zero],
+    { rw [coeff_hermite_succ_zero, ih 1 hnk, neg_zero] },
+    { rw [coeff_hermite_succ_succ, ih k _, ih (k + 2) _, mul_zero, sub_zero],
       { rwa (by simp [nat.succ_add, nat.add_succ] : n.succ + k.succ = n + (k + 2)) at hnk },
       { rw (by rw [nat.succ_add, nat.add_succ] : n.succ + k.succ = n + k + 2) at hnk,
         exact (nat.odd_add.mp hnk).mpr even_two }}}

@@ -26,7 +26,7 @@ of the basis).
 -/
 
 open set topological_space measure_theory measure_theory.measure finite_dimensional
-open_locale big_operators
+open_locale big_operators pointwise
 
 noncomputable theory
 
@@ -105,8 +105,23 @@ begin
       neg_zero, finset.univ_unique] },
 end
 
+lemma parallelepiped_eq_sum_segment (v : ι → E) : parallelepiped v = ∑ i, segment ℝ 0 (v i) :=
+begin
+  ext,
+  simp only [mem_parallelepiped_iff, set.mem_finset_sum, finset.mem_univ, forall_true_left,
+    segment_eq_image, smul_zero, zero_add, ←set.pi_univ_Icc, set.mem_univ_pi],
+  split,
+  { rintro ⟨t, ht, rfl⟩,
+    exact ⟨t • v, λ i, ⟨t i, ht _, by simp⟩, rfl⟩ },
+  rintro ⟨g, hg, rfl⟩,
+  change ∀ i, _ at hg,
+  choose t ht hg using hg,
+  refine ⟨t, ht, _⟩,
+  simp_rw hg,
+end
+
 /-- The axis aligned parallelepiped over `ι → ℝ` is a cuboid. -/
-lemma parallelepiped_single {ι} [decidable_eq ι] [fintype ι] (a : ι → ℝ) :
+lemma parallelepiped_single [decidable_eq ι] (a : ι → ℝ) :
   parallelepiped (λ i, pi.single i (a i)) = set.uIcc 0 a :=
 begin
   ext,

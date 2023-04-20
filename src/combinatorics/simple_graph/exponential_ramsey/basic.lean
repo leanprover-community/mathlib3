@@ -1000,6 +1000,39 @@ lemma union_steps (hk : k ≠ 0) (hl : l ≠ 0) :
 by rw [union_right_comm (red_steps _ _ _ _), red_steps_union_density_steps hk hl,
   union_partial_steps]
 
+lemma filter_even_thing {n : ℕ} :
+  ((range n).filter even).card ≤ ((range n).filter (λ i, ¬ even i)).card + 1 :=
+begin
+  have : ((range n).filter even).image nat.succ ⊆ (range (n + 1)).filter (λ i, ¬ even i),
+  { simp only [finset.subset_iff, mem_filter, mem_image, and_imp, exists_prop, and_assoc,
+      mem_range, forall_exists_index, nat.succ_eq_add_one],
+    rintro _ y hy hy' rfl,
+    simp [hy, hy'] with parity_simps },
+  rw ←finset.card_image_of_injective _ nat.succ_injective,
+  refine (card_le_of_subset this).trans _,
+  rw [range_succ, filter_insert],
+  split_ifs,
+  { exact nat.le_succ _ },
+  exact card_insert_le _ _
+end
+
+lemma num_degree_steps_le_add (hk : k ≠ 0) (hl : l ≠ 0) :
+  (degree_steps μ k l ini).card ≤ (red_steps μ k l ini).card +
+    (big_blue_steps μ k l ini).card + (density_steps μ k l ini).card + 1 :=
+begin
+  have : big_blue_steps μ k l ini ∪ red_or_density_steps μ k l ini =
+    (range (final_step μ k l ini)).filter (λ i, ¬ even i),
+  { rw [big_blue_steps, red_or_density_steps, ←filter_or],
+    refine filter_congr _,
+    intros i hi,
+    rw [←and_or_distrib_left, ←not_le, and_iff_left],
+    exact em _ },
+  rw [add_right_comm _ _ (finset.card _), ←card_disjoint_union red_steps_disjoint_density_steps,
+    red_steps_union_density_steps hk hl, add_comm _ (finset.card _),
+    ←card_disjoint_union big_blue_steps_disjoint_red_or_density_steps, this, degree_steps],
+  apply filter_even_thing
+end
+
 lemma cases_of_lt_final_step {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i < final_step μ k l ini) :
   i ∈ red_steps μ k l ini ∨ i ∈ big_blue_steps μ k l ini ∨ i ∈ density_steps μ k l ini ∨
     i ∈ degree_steps μ k l ini :=

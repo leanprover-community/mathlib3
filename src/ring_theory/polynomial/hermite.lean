@@ -99,7 +99,7 @@ begin
   rw [← coeff_nat_degree, nat_degree_hermite, coeff_hermite_self],
 end
 
-lemma hermite_monic {n : ℕ} : (hermite n).monic := leading_coeff_hermite n
+lemma hermite_monic (n : ℕ) : (hermite n).monic := leading_coeff_hermite n
 
 lemma coeff_hermite_of_odd_add {n k : ℕ} (hnk : odd (n + k)) : coeff (hermite n) k = 0 :=
 begin

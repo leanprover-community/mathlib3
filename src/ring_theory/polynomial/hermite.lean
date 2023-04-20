@@ -63,23 +63,22 @@ begin
   norm_cast
 end
 
-lemma hermite_coeff_upper (n k : ℕ) (hnk : n < k) : coeff (hermite n) k = 0 :=
+lemma coeff_hermite_of_lt {n k : ℕ} (hnk : n < k) : coeff (hermite n) k = 0 :=
 begin
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_lt hnk,
   clear hnk,
   induction n with n ih generalizing k,
   { apply coeff_C },
-  { rw [coeff_hermite_succ_succ,
-    (add_right_comm _ _ _ : n + 1 + k = n + k + 1),
-    (by linarith : n + k + 1 + 2 = n + (k + 2) + 1),
-    ih k, ih (k + 2), mul_zero, sub_zero] }
+  { have : n + k + 1 + 2 = n + (k + 2) + 1 := by ring,
+    rw [nat.succ_eq_add_one, coeff_hermite_succ_succ, add_right_comm, this, ih k, ih (k + 2),
+      mul_zero, sub_zero] }
 end
 
 @[simp] lemma coeff_hermite_self (n : ℕ) : coeff (hermite n) n = 1 :=
 begin
   induction n with n ih,
   { apply coeff_C },
-  { rw [coeff_hermite_succ_succ, ih, hermite_coeff_upper, mul_zero, sub_zero],
+  { rw [coeff_hermite_succ_succ, ih, coeff_hermite_of_lt, mul_zero, sub_zero],
     simp }
 end
 
@@ -87,7 +86,8 @@ end
 begin
   rw degree_eq_of_le_of_coeff_ne_zero,
   simp_rw [degree_le_iff_coeff_zero, with_bot.coe_lt_coe],
-  { exact hermite_coeff_upper n },
+  { intro m,
+    exact coeff_hermite_of_lt },
   { simp [coeff_hermite_self n] }
 end
 
@@ -105,7 +105,7 @@ lemma coeff_hermite_of_odd_add {n k : ℕ} (hnk : odd (n + k)) : coeff (hermite 
 begin
   induction n with n ih generalizing k,
   { rw zero_add at hnk,
-    exact hermite_coeff_upper _ _ hnk.pos },
+    exact coeff_hermite_of_lt hnk.pos },
   { cases k,
     { rw nat.succ_add_eq_succ_add at hnk,
       rw [coeff_hermite_succ_zero, ih hnk, neg_zero] },

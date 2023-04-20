@@ -11,6 +11,9 @@ import ring_theory.polynomial.content
 /-!
 # Basic results about setwise gcds on normalized gcd monoid with a division.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main results
 
 * `finset.nat.gcd_div_eq_one`: given a nonempty finset `s` and a function `f` from `s` to

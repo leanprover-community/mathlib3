@@ -8,6 +8,9 @@ import algebra.homology.homological_complex
 /-!
 # Flip a complex of complexes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For now we don't have double complexes as a distinct thing,
 but we can model them as complexes of complexes.
 

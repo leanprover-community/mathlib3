@@ -10,6 +10,9 @@ import data.mv_polynomial.variables
 
 # Monad operations on `mv_polynomial`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines two monadic operations on `mv_polynomial`. Given `p : mv_polynomial σ R`,
 
 * `mv_polynomial.bind₁` and `mv_polynomial.join₁` operate on the variable type `σ`.

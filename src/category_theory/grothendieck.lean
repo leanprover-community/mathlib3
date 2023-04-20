@@ -9,6 +9,9 @@ import category_theory.elements
 /-!
 # The Grothendieck construction
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a functor `F : C ⥤ Cat`, the objects of `grothendieck F`
 consist of dependent pairs `(b, f)`, where `b : C` and `f : F.obj c`,
 and a morphism `(b, f) ⟶ (b', f')` is a pair `β : b ⟶ b'` in `C`, and

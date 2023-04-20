@@ -9,6 +9,9 @@ import data.real.sqrt
 /-!
 # The Clauser-Horne-Shimony-Holt inequality and Tsirelson's inequality.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We establish a version of the Clauser-Horne-Shimony-Holt (CHSH) inequality
 (which is a generalization of Bell's inequality).
 This is a foundational result which implies that

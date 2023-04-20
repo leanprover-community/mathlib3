@@ -14,6 +14,9 @@ import tactic.linear_combination
 
 # Partial fractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These results were formalised by the Xena Project, at the suggestion
 of Patrick Massot.
 

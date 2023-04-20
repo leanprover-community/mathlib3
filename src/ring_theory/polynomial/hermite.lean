@@ -53,7 +53,7 @@ end
 
 section coeff
 
-lemma hermite_coeff_recur_zero (n : ℕ) :
+lemma coeff_hermite_succ_zero (n : ℕ) :
   coeff (hermite (n + 1)) 0 = -(coeff (hermite n) 1) := by simp [coeff_derivative]
 
 lemma hermite_coeff_recur (n k : ℕ) :

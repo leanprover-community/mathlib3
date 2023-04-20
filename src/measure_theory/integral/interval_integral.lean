@@ -616,8 +616,9 @@ lemma integral_undef (h : ¬ interval_integrable f μ a b) :
   ∫ x in a..b, f x ∂μ = 0 :=
 by cases le_total a b with hab hab;
   simp only [integral_of_le, integral_of_ge, hab, neg_eq_zero];
-    refine integral_undef (not_imp_not.mpr integrable.integrable_on' _);
-      simpa [hab] using not_and_distrib.mp h
+    refine integral_undef (not_imp_not.mpr _ h);
+      simpa only [hab, Ioc_eq_empty_of_le, integrable_on_empty, not_true, false_or, or_false]
+        using not_and_distrib.mp h
 
 lemma interval_integrable_of_integral_ne_zero {a b : ℝ}
   {f : ℝ → E} {μ : measure ℝ} (h : ∫ x in a..b, f x ∂μ ≠ 0) :

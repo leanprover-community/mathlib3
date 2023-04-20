@@ -9,6 +9,9 @@ import data.mv_polynomial.variables
 /-!
 # Weighted homogeneous polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 It is possible to assign weights (in a commutative additive monoid `M`) to the variables of a
 multivariate polynomial ring, so that monomials of the ring then have a weighted degree with
 respect to the weights of the variables. The weights are represented by a function `w : σ → M`,

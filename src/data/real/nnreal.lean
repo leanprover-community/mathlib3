@@ -568,7 +568,7 @@ lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
 lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
 
-noncomputable example : has_ordered_sub ℝ≥0 := by apply_instance
+example : has_ordered_sub ℝ≥0 := by apply_instance
 
 lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c := tsub_div _ _ _
 

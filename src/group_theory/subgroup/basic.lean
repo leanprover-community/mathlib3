@@ -221,18 +221,18 @@ include hSG
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an additive subgroup of `add_group` `G` to `G`."]
-def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
+protected def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
-@[simp, to_additive] theorem coe_subtype : (subtype H : H → G) = coe := rfl
+@[simp, to_additive] theorem coe_subtype : (subgroup_class.subtype H : H → G) = coe := rfl
 
 variables {H}
 
 @[simp, norm_cast, to_additive coe_smul]
 lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
-(subtype H : H →* G).map_pow _ _
+(subgroup_class.subtype H : H →* G).map_pow _ _
 
 @[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
-(subtype H : H →* G).map_zpow _ _
+(subgroup_class.subtype H : H →* G).map_zpow _ _
 
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
 @[to_additive "The inclusion homomorphism from a additive subgroup `H` contained in `K` to `K`."]
@@ -257,7 +257,7 @@ by { cases a, simp only [inclusion, set_like.coe_mk, monoid_hom.mk'_apply] }
 
 @[simp, to_additive]
 lemma subtype_comp_inclusion {H K : S} (hH : H ≤ K) :
-  (subtype K).comp (inclusion hH) = subtype H :=
+  (subgroup_class.subtype K).comp (inclusion hH) = subgroup_class.subtype H :=
 by { ext, simp only [monoid_hom.comp_apply, coe_subtype, coe_inclusion] }
 
 end subgroup_class
@@ -538,11 +538,11 @@ subtype.coe_injective.linear_ordered_comm_group _
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an `add_subgroup` of `add_group` `G` to `G`."]
-def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
+protected def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑H.subtype = coe := rfl
 
-@[to_additive] lemma subtype_injective : function.injective (subtype H) := subtype.coe_injective
+@[to_additive] lemma subtype_injective : injective (subgroup.subtype H) := subtype.coe_injective
 
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
 @[to_additive "The inclusion homomorphism from a additive subgroup `H` contained in `K` to `K`."]

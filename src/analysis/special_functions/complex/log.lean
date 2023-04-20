@@ -38,16 +38,13 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
   mul_div_cancel' _ (of_real_ne_zero.2 $ abs.ne_zero hx), ← mul_assoc,
   mul_div_cancel' _ (of_real_ne_zero.2 $ abs.ne_zero hx), re_add_im]
 
-lemma exp_map_circle_surjective : function.surjective exp_map_circle :=
+lemma exp_map_circle_arg (c : circle) : exp_map_circle (arg c) = c :=
 begin
-  intros z,
-  have : ∀ (x : ℂ), (x.im : ℂ) * I = x - x.re,
-  { simp [complex.ext_iff] },
-  have logzre : (complex.log z).re = 0,
-  { simp [complex.log_re, abs_coe_circle] },
-  use (log z).im,
-  rw subtype.ext_iff,
-  simp [this, logzre, exp_log (ne_zero_of_mem_circle z)],
+  ext1,
+  rw [←log_im, exp_map_circle_apply],
+  have := exp_log (ne_zero_of_mem_circle c),
+  rwa [← (complex.log c).re_add_im, log_re, abs_coe_circle, real.log_one, of_real_zero,
+    zero_add] at this,
 end
 
 @[simp] lemma range_exp : range exp = {0}ᶜ :=
@@ -180,7 +177,7 @@ by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 `circle` group. -/
 def angle_to_circle_hom : real.angle ≃+ additive circle :=
 (quotient_add_group.quotient_add_equiv_of_eq (by { ext x, rw exp_map_circle_hom_ker})).trans
-(quotient_add_group.quotient_ker_equiv_of_surjective exp_map_circle_hom exp_map_circle_surjective)
+  (quotient_add_group.quotient_ker_equiv_of_right_inverse exp_map_circle_hom _ exp_map_circle_arg)
 
 /-- The equivalence identifying `real.angle` with the circle group. -/
 def angle_to_circle : real.angle ≃ circle := angle_to_circle_hom.to_equiv.trans additive.to_mul

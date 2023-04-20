@@ -943,6 +943,18 @@ begin
   { exact count_normalized_factors_eq hp hnorm hle hlt }
 end
 
+lemma max_power_factor {a₀ : R} {x : R} (h : a₀ ≠ 0) (hx : irreducible x) [nontrivial R] :
+  ∃ n : ℕ, ∃ a : R, ¬ x ∣ a ∧ a₀ = x ^ n * a :=
+begin
+  classical,
+  let n := (normalized_factors a₀).count (normalize x),
+  obtain ⟨a, ha1, ha2⟩ := (@exists_eq_pow_mul_and_not_dvd R _ _ x a₀
+    (ne_top_iff_finite.mp (part_enat.ne_top_iff.mpr _))),
+  simp_rw [← (multiplicity_eq_count_normalized_factors hx h).symm] at ha1,
+  use [n, a, ha2, ha1],
+  use [n, (multiplicity_eq_count_normalized_factors hx h)],
+end
+
 end multiplicity
 
 section multiplicative

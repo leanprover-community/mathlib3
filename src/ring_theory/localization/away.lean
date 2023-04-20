@@ -226,22 +226,11 @@ by simp only [self_as_unit, zpow_coe_nat, units.coe_pow, units.coe_mk]
 variables [is_domain R] [normalization_monoid R] [unique_factorization_monoid R]
 include hx
 
-lemma max_power_factor {a₀ : R} (h : a₀ ≠ 0) [nontrivial R] :
-  ∃ n : ℕ, ∃ a : R, ¬ x ∣ a ∧ a₀ = x ^ n * a :=
-begin
-  classical,
-  let n := (normalized_factors a₀).count (normalize x),
-  obtain ⟨a, ha1, ha2⟩ := (@exists_eq_pow_mul_and_not_dvd R _ _ x a₀
-    (ne_top_iff_finite.mp (part_enat.ne_top_iff.mpr _))),
-  simp_rw [← (multiplicity_eq_count_normalized_factors hx h).symm] at ha1,
-  use [n, a, ha2, ha1],
-  use [n, (multiplicity_eq_count_normalized_factors hx h)],
-end
-
 theorem exists_reduced_fraction {b : B} (hb : b ≠ 0) :
   ∃ (a : R) (n : ℤ), ¬ x ∣ a ∧
     (((self_as_unit x B)^n : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b :=
 begin
+  classical,
   obtain ⟨⟨a₀, y⟩, H⟩ := surj (submonoid.powers x) b,
   obtain ⟨d, hy⟩ := (submonoid.mem_powers_iff y.1 x).mp y.2,
   have ha₀ : a₀ ≠ 0,
@@ -257,7 +246,7 @@ begin
     exact is_localization.injective B (powers_le_non_zero_divisors_of_no_zero_divisors
       (hx.ne_zero)) },
   simp only [← subtype.val_eq_coe, ← hy] at H,
-  obtain ⟨m, a, hyp1, hyp2⟩ := max_power_factor x hx ha₀,
+  obtain ⟨m, a, hyp1, hyp2⟩ := max_power_factor ha₀ hx,
   refine ⟨a, m-d, _⟩,
   rw [self_as_unit_pow_sub x B a b m d, pow_eq_algebra_map x B d, mul_comm _ b, ← map_pow, H, hyp2,
     pow_eq_algebra_map x B m, map_mul, map_pow],

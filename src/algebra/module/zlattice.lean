@@ -5,6 +5,7 @@ Authors: Xavier Roblot
 -/
 import analysis.normed.order.lattice
 import linear_algebra.finite_dimensional
+import linear_algebra.free_module.pid
 import measure_theory.group.fundamental_domain
 import ring_theory.localization.module
 
@@ -199,42 +200,18 @@ begin
   { refine λ q, quotient.lift_on' q _ _,
     { exact λ x, ⟨fract b x, fract_mem_fundamental_domain b x⟩, },
     { exact λ _ _ h, mk_eq_mk.mpr
-      ((fract_eq_iff b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
+      ((fract_eq_fract b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
   { exact ⟨λ x y, quotient.induction_on₂' x y (λ a c h, by { rwa [quotient.eq',
-      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← fract_eq_iff,
+      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← fract_eq_fract,
       ← @mk_eq_mk _ (fundamental_domain b)], }),
-      λ y, ⟨quotient.mk' y, ext_iff.mpr ((mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
+      λ y, ⟨quotient.mk' y, ext_iff.mpr (fract_eq_self.mpr (subtype.mem y))⟩⟩, },
 end
 
 lemma sub_quo_fract_mem (x : E) [fintype ι] :
   x - quo_fract_equiv b (quotient.mk' x) ∈ span ℤ (set.range b) :=
 begin
   change x - fract b x ∈ span ℤ (set.range b),
-  simp only [fract_def, sub_sub_cancel, coe_mem],
-end
-
-open subtype
-
-/-- The map `zspan.fract_map` lift to an equiv between `E ⧸ span ℤ (set.range b)`
-and `zspan.fundamental_domain b`. -/
-def quo_fract_equiv [fintype ι] : E ⧸ span ℤ (set.range b) ≃ (fundamental_domain b) :=
-begin
-  refine equiv.of_bijective _ _,
-  { refine λ q, quotient.lift_on' q _ _,
-    { exact λ x, ⟨fract b x, fract_mem_fundamental_domain b x⟩, },
-    { exact λ _ _ h, mk_eq_mk.mpr
-      ((fract_eq_iff b _ _).mpr (quotient_add_group.left_rel_apply.mp h)), }},
-  { exact ⟨λ x y, quotient.induction_on₂' x y (λ a c h, by { rwa [quotient.eq',
-      quotient_add_group.left_rel_apply, mem_to_add_subgroup, ← fract_eq_iff,
-      ← @mk_eq_mk _ (fundamental_domain b)], }),
-      λ y, ⟨quotient.mk' y, ext_iff.mpr ((mem_fundamental_domain b).mp (subtype.mem y))⟩⟩, },
-end
-
-lemma sub_quo_fract_mem (x : E) [fintype ι] :
-  x - quo_fract_equiv b (quotient.mk' x) ∈ span ℤ (set.range b) :=
-begin
-  change x - fract b x ∈ span ℤ (set.range b),
-  simp only [fract_def, sub_sub_cancel, coe_mem],
+  simp only [fract_apply, sub_sub_cancel, coe_mem],
 end
 
 end normed_lattice_field
@@ -399,16 +376,16 @@ begin
           apply (submodule.smul_mem_iff (span ℚ (set.range e)) hnz).mp,
           refine (submodule.span_subset_span ℤ ℚ (set.range e)) _,
           rwa [(by push_cast : - (n : ℚ) + (m : ℚ) = (-n + m : ℤ)), ← zsmul_eq_smul_cast ℚ,
-            set_like.mem_coe, add_smul, neg_smul, ← zspan.fract_eq_iff], }},
+            set_like.mem_coe, add_smul, neg_smul, ← zspan.fract_eq_fract], }},
       intros n _,
       split,
       { change _ ∈ L.to_int_submodule,
-        simp_rw [zspan.fract_def e, ← h_spaneq],
+        simp_rw [zspan.fract_apply e, ← h_spaneq],
         refine sub_mem _ _,
         { exact zsmul_mem (submodule.subset_span (set.diff_subset _ _ hv)) _, },
         { refine ((span_mono _) (coe_mem (zspan.floor e (n • v)))),
           simp only [ht1, basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq], }},
-      { exact mem_closed_ball_zero_iff.mpr (zspan.fract_le e _), }},
+      { exact mem_closed_ball_zero_iff.mpr (zspan.norm_fract_le e _), }},
     { rwa [basis.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq, ← set.to_finset_nonempty,
         ← finset.card_pos, set.to_finset_diff, finset.card_sdiff (set.to_finset_mono ht1),
         set.to_finset_range, set.to_finset_card, ← finrank_eq_card_basis e, tsub_pos_iff_lt,

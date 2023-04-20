@@ -52,7 +52,7 @@ instance : monoid_hom_class (group_marking G S) (free_group S) G :=
   map_one := λ f, f.map_one' }
 
 @[to_additive]
-lemma map_surjective (m : group_marking G S) : surjective m := m.to_fun_surjective
+lemma coe_surjective (m : group_marking G S) : surjective m := m.to_fun_surjective
 
 end group_marking
 
@@ -111,19 +111,18 @@ variables (α : Type*)
 @[to_additive]
 private lemma mul_aux [decidable_eq S] (x : marked_group m) :
   ∃ n (l : free_group S), m l = x ∧ l.to_word.length ≤ n :=
-by { classical, obtain ⟨l, rfl⟩ := m.map_surjective x, exact ⟨_, _, rfl, le_rfl⟩ }
+by { classical, obtain ⟨l, rfl⟩ := m.coe_surjective x, exact ⟨_, _, rfl, le_rfl⟩ }
 
 @[to_additive]
 private lemma mul_aux' [decidable_eq S] (x : marked_group m) :
   ∃ n (l : free_group S), m l = x ∧ l.to_word.length = n :=
-by { classical, obtain ⟨l, rfl⟩ := m.map_surjective x, exact ⟨_, _, rfl, rfl⟩ }
+by { classical, obtain ⟨l, rfl⟩ := m.coe_surjective x, exact ⟨_, _, rfl, rfl⟩ }
 
+@[to_additive]
 lemma find_mul_aux [decidable_eq S] (x : marked_group m) :
-  nat.find (mul_aux x) = nat.find (mul_aux' x) :=
-begin
-
-
-end
+  by classical; exact nat.find (mul_aux x) = nat.find (mul_aux' x) :=
+le_antisymm (nat.find_mono $ λ n, Exists.imp $ λ l, and.imp_right le_of_eq) $
+  (nat.le_find_iff _ _).2 $ λ k hk ⟨l, hl, hlk⟩, (nat.lt_find_iff _ _).1 hk _ hlk ⟨l, hl, rfl⟩
 
 @[to_additive]
 noncomputable instance : normed_group (marked_group m) :=
@@ -153,9 +152,14 @@ group_norm.to_normed_group
     rw [free_group.to_word_injective hl, map_one],
   end }
 
+@[to_additive] instance :
+  discrete_topology (marked_group (group_marking.refl : group_marking G G)) :=
+sorry
+
 namespace marked_group
 
-@[to_additive] lemma norm_def (x : marked_group m) : ‖x‖ = nat.find (mul_aux' x) := find_mul_aux _
+@[to_additive] lemma norm_def (x : marked_group m) : ‖x‖ = nat.find (mul_aux' x) :=
+congr_arg coe (find_mul_aux _)
 
 @[simp, to_additive] lemma norm_eq_one (x : marked_group m) :
   ‖x‖ = 1 ↔ ∃ s, to_marked_group (m $ free_group.of s) = x :=
@@ -164,7 +168,9 @@ begin
   sorry
 end
 
-@[simp] lemma norm_eq_one (s : S) : ‖((to_marked_group (m (free_group.of s))) : marked_group m)‖ = 1 := sorry
+@[simp] lemma norm_to_marked_group (s : S) :
+  ‖((to_marked_group (m (free_group.of s))) : marked_group m)‖ = 1 :=
+
 
 lemma gen_set_mul_right (x : marked_group m) (s : S) :
   ‖(to_marked_group (of_marked_group x * m (free_group.of s)) : marked_group m)‖ ≤ ‖x‖ + 1 :=

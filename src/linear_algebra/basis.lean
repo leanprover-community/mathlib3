@@ -1424,3 +1424,59 @@ let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
   (prod_equiv_of_is_compl q p hq.symm)
 
 end division_ring
+
+section restrict_scalars
+
+variables [division_ring K] [add_comm_group V] [module K V] [comm_ring R] [module R V] [algebra R K]
+variables [is_scalar_tower R K V] [no_zero_smul_divisors R K] (b : basis ι K V)
+variable (R)
+
+open submodule
+
+/-- Let `b` be a `K`-basis of `V`. Let `R` be a comm_ring such that `algebra R K` with no zero
+smul divisors, then the submodule of `V` spanned by `b` over `R` admits `b` as a `R`-basis. -/
+noncomputable def basis.restrict_scalars : basis ι R (span R (set.range b)) :=
+basis.span (b.linear_independent.restrict_scalars (smul_left_injective R (ne_zero.ne 1)))
+
+@[simp]
+lemma basis.restrict_scalars_apply (i : ι) : (b.restrict_scalars R i : V) = b i :=
+  by simp only [basis.restrict_scalars, basis.span_apply]
+
+@[simp]
+lemma basis.restrict_scalars_repr_apply (m : span R (set.range b)) (i : ι) :
+  algebra_map R K ((b.restrict_scalars R).repr m i) = b.repr m i :=
+begin
+  classical,
+  let s := (b.repr m).support ∪ ((b.restrict_scalars R).repr m).support,
+  by_cases hi : i ∈ s,
+  { have h := (congr_arg (coe : _ → V) ((b.restrict_scalars R).total_repr m)).trans
+      (b.total_repr m).symm,
+    rw @finsupp.total_apply_of_mem_supported _ _ K _ _ _ _ _ s (finset.subset_union_left _ _) at h,
+    rw @finsupp.total_apply_of_mem_supported _ _ R _ _ _ _ _ s (finset.subset_union_right _ _) at h,
+    rw ← sub_eq_zero at h ⊢,
+    revert i,
+    have : ∀ i x, x • b i = (algebra_map R K) x • b i := by
+      { intros _ _, rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul], },
+    simpa only [this, coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply,  ← sub_smul,
+      ← finset.sum_sub_distrib, ← basis.forall_coord_eq_zero_iff b, basis.coord_apply,
+      linear_equiv.map_sum, b.repr.map_smul, basis.repr_self, finsupp.smul_single, smul_eq_mul,
+      mul_one, finset.sum_apply', finsupp.single_apply, finset.sum_ite_eq', ite_eq_right_iff]
+      using h, },
+  { rw [finsupp.not_mem_support_iff.mp (finset.not_mem_union.mp hi).left,
+      finsupp.not_mem_support_iff.mp (finset.not_mem_union.mp hi).right, _root_.map_zero], },
+end
+
+lemma basis.restrict_scalars_mem_span_iff (m : V) :
+  m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R K) :=
+begin
+  classical,
+  refine ⟨λ hm i, ⟨(b.restrict_scalars R).repr ⟨m, hm⟩ i,
+    (b.restrict_scalars_repr_apply R ⟨m, hm⟩ i)⟩, λ h, _⟩,
+  rw [← b.total_repr m, finsupp.total_apply K _],
+  refine sum_mem (λ i _, _),
+  dsimp only,
+  rw [← (h i).some_spec, algebra_map_smul],
+  exact smul_mem _ _ (subset_span (set.mem_range_self i)),
+end
+
+end restrict_scalars

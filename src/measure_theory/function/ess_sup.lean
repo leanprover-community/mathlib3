@@ -80,21 +80,21 @@ eventually_lt_of_lt_liminf hx hf
 
 variables [topological_space β] [first_countable_topology β] [order_topology β]
 
-lemma ae_le_of_ess_sup_le (hx : ess_sup f μ ≤ x)
-  (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, f y ≤ x :=
-eventually_le_of_limsup_le hx hf
+lemma ae_le_ess_sup (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) :
+  ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
+eventually_le_limsup hf
 
-lemma ae_le_of_le_ess_inf (hx : x ≤ ess_inf f μ)
-  (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, x ≤ f y :=
-eventually_le_of_le_liminf hx hf
+lemma ae_ess_inf_le (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) :
+  ∀ᵐ y ∂μ, ess_inf f μ ≤ f y :=
+eventually_liminf_le hf
 
-lemma meas_lt_of_ess_sup_le (hx : ess_sup f μ ≤ x)
-  (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : μ {y | x < f y} = 0 :=
-by { simp_rw ←not_le, exact ae_le_of_ess_sup_le hx hf }
+lemma meas_ess_sup_lt (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) :
+  μ {y | ess_sup f μ < f y} = 0 :=
+by { simp_rw ←not_le, exact ae_le_ess_sup hf }
 
-lemma meas_lt_of_le_ess_inf (hx : x ≤ ess_inf f μ)
-  (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : μ {y | f y < x} = 0 :=
-by { simp_rw ←not_le, exact ae_le_of_le_ess_inf hx hf }
+lemma meas_lt_ess_inf (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) :
+  μ {y | f y < ess_inf f μ} = 0 :=
+by { simp_rw ←not_le, exact ae_ess_inf_le hf }
 
 end conditionally_complete_linear_order
 

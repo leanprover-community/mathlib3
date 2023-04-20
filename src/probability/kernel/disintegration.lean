@@ -409,27 +409,19 @@ begin
   refine le_antisymm _ _,
   { have h : ∀ q : Ioi t, ∫⁻ x in s, ⨅ r : Ioi t, pre_cdf ρ r x ∂ρ.fst ≤ ρ.Iic_snd q s,
     { intros q,
-      calc ∫⁻ x in s, ⨅ r : Ioi t, pre_cdf ρ r x ∂ρ.fst
-          ≤ ∫⁻ x in s, pre_cdf ρ q x ∂ρ.fst :
-        begin
-          refine set_lintegral_mono_ae _ measurable_pre_cdf _,
-          { exact measurable_infi (λ _, measurable_pre_cdf), },
-          { filter_upwards [monotone_pre_cdf] with a ha_mono,
-            exact λ _, infi_le _ q, },
-        end
-      ... = ρ.Iic_snd q s : set_lintegral_pre_cdf_fst ρ _ hs, },
+      rw ← set_lintegral_pre_cdf_fst ρ _ hs,
+      refine set_lintegral_mono_ae _ measurable_pre_cdf _,
+      { exact measurable_infi (λ _, measurable_pre_cdf), },
+      { filter_upwards [monotone_pre_cdf] with a ha_mono,
+        exact λ _, infi_le _ q, }, },
     calc ∫⁻ x in s, (⨅ (r : Ioi t), pre_cdf ρ r x) ∂ρ.fst
         ≤ ⨅ q : Ioi t, ρ.Iic_snd q s : le_infi h
     ... = ρ.Iic_snd t s : measure.infi_Iic_snd_gt ρ t hs, },
-  { calc ρ.Iic_snd t s
-      = ∫⁻ x in s, pre_cdf ρ t x ∂ρ.fst : (set_lintegral_pre_cdf_fst ρ t hs).symm
-  ... ≤ ∫⁻ x in s, ⨅ (r : Ioi t), pre_cdf ρ ↑r x ∂ρ.fst :
-    begin
-      refine set_lintegral_mono_ae measurable_pre_cdf _ _,
-      { refine measurable_infi (λ _, measurable_pre_cdf), },
-      { filter_upwards [monotone_pre_cdf] with a ha_mono,
-        exact λ _, le_infi (λ r, ha_mono (le_of_lt r.prop)), },
-    end, },
+  { rw (set_lintegral_pre_cdf_fst ρ t hs).symm,
+    refine set_lintegral_mono_ae measurable_pre_cdf _ _,
+    { refine measurable_infi (λ _, measurable_pre_cdf), },
+    { filter_upwards [monotone_pre_cdf] with a ha_mono,
+      exact λ _, le_infi (λ r, ha_mono (le_of_lt r.prop)), }, },
 end
 
 lemma pre_cdf_le_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :

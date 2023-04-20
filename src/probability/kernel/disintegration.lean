@@ -452,10 +452,6 @@ begin
   { exact (measure.fst_univ ρ).symm },
 end
 
-lemma tendsto_lintegral_pre_cdf_at_top' (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  tendsto (λ r, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_top (𝓝 (∫⁻ a, 1 ∂ρ.fst)) :=
-by { convert tendsto_lintegral_pre_cdf_at_top ρ, rw [lintegral_one, measure.fst_univ], }
-
 lemma tendsto_lintegral_pre_cdf_at_bot (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   tendsto (λ r, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_bot (𝓝 0) :=
 begin
@@ -506,7 +502,8 @@ begin
       exact_mod_cast hnm, },
     have h_lintegral' : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_top
       (𝓝 (∫⁻ a, 1 ∂ρ.fst)),
-    { exact (tendsto_lintegral_pre_cdf_at_top' ρ).comp tendsto_coe_nat_at_top_at_top, },
+    { rw [lintegral_one, measure.fst_univ],
+      exact (tendsto_lintegral_pre_cdf_at_top ρ).comp tendsto_coe_nat_at_top_at_top, },
     exact tendsto_nhds_unique h_lintegral h_lintegral', },
   have : ∫⁻ a, (1 - F a) ∂ρ.fst = 0,
   { rw [lintegral_sub' hF_ae_meas _ hF_le_one, h_lintegral_eq, tsub_self],
@@ -962,10 +959,6 @@ def cond_kernel (ρ : measure (α × ℝ)) : kernel α ℝ :=
 
 lemma cond_kernel_apply (ρ : measure (α × ℝ)) (a : α) : cond_kernel ρ a = cond_measure ρ a := rfl
 
-lemma cond_kernel_Iic (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
-  cond_kernel ρ a (Iic r) = ennreal.of_real (cond_cdf_rat ρ a r) :=
-by rw [cond_kernel_apply, cond_measure_Iic ρ]
-
 instance (ρ : measure (α × ℝ)) : is_markov_kernel (cond_kernel ρ) :=
 ⟨λ a, by { rw cond_kernel, apply_instance, } ⟩
 
@@ -973,7 +966,7 @@ lemma set_lintegral_cond_kernel_Iic_rat (ρ : measure (α × ℝ)) [is_finite_me
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, cond_kernel ρ a (Iic r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
 begin
-  simp_rw [cond_kernel_Iic ρ],
+  simp_rw [cond_kernel_apply, cond_measure_Iic ρ],
   have : ∀ᵐ a ∂ρ.fst, a ∈ s → ennreal.of_real (cond_cdf_rat ρ a r) = pre_cdf ρ r a,
   { filter_upwards [of_real_cond_cdf_rat_ae_eq ρ r] with a ha using λ _, ha, },
   rw [set_lintegral_congr_fun hs this, set_lintegral_pre_cdf_fst ρ r hs],

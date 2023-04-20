@@ -5,6 +5,8 @@ Authors: Simon Hudon
 -/
 import control.random
 import control.uliftable
+import data.list.big_operators.lemmas
+import data.list.perm
 
 /-!
 # `gen` Monad
@@ -66,7 +68,7 @@ def choose [bounded_random α] (x y : α) (p : x ≤ y) : gen (x .. y) :=
 
 end rand
 
-open nat (hiding choose)
+open nat
 
 /-- Generate a `nat` example between `x` and `y`. -/
 def choose_nat (x y : ℕ) (p : x ≤ y) : gen (x .. y) :=

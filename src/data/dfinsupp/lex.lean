@@ -5,9 +5,13 @@ Authors: Damiano Testa, Junyan Xu
 -/
 import data.dfinsupp.order
 import data.dfinsupp.ne_locus
+import order.well_founded_set
 
 /-!
 # Lexicographic order on finitely supported dependent functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the lexicographic order on `dfinsupp`.
 -/
@@ -40,9 +44,9 @@ lemma lex_lt_of_lt_of_preorder [Π i, preorder (α i)] (r) [is_strict_order ι r
   {x y : Π₀ i, α i} (hlt : x < y) : ∃ i, (∀ j, r j i → x j ≤ y j ∧ y j ≤ x j) ∧ x i < y i :=
 begin
   obtain ⟨hle, j, hlt⟩ := pi.lt_def.1 hlt, classical,
-  obtain ⟨i, hi, hl⟩ := (x.ne_locus y).finite_to_set.well_founded_on.has_min
-    {i | x i < y i} ⟨⟨j, mem_ne_locus.2 hlt.ne⟩, hlt⟩, swap 3, { assumption },
-  exact ⟨i, λ k hk, ⟨hle k, not_not.1 $ λ h,
+  have : (x.ne_locus y : set ι).well_founded_on r := (x.ne_locus y).finite_to_set.well_founded_on,
+  obtain ⟨i, hi, hl⟩ := this.has_min {i | x i < y i} ⟨⟨j, mem_ne_locus.2 hlt.ne⟩, hlt⟩,
+  exact ⟨i, λ k hk, ⟨hle k, of_not_not $ λ h,
     hl ⟨k, mem_ne_locus.2 (ne_of_not_le h).symm⟩ ((hle k).lt_of_not_le h) hk⟩, hi⟩,
 end
 

@@ -5,7 +5,6 @@ Authors: Joël Riou
 -/
 
 import algebraic_topology.dold_kan.homotopies
-import data.nat.parity
 import tactic.ring_exp
 
 /-!

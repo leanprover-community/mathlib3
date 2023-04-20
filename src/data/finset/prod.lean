@@ -8,6 +8,9 @@ import data.finset.card
 /-!
 # Finsets in product types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines finset constructions on the product type `α × β`. Beware not to confuse with the
 `finset.prod` operation which computes the multiplicative product.
 
@@ -70,6 +73,14 @@ product_subset_product hs (subset.refl _)
 
 lemma product_subset_product_right (ht : t ⊆ t') : s ×ˢ t ⊆ s ×ˢ t' :=
 product_subset_product (subset.refl _) ht
+
+lemma map_swap_product (s : finset α) (t : finset β) :
+  (t ×ˢ s).map ⟨prod.swap, prod.swap_injective⟩ = s ×ˢ t :=
+coe_injective $ by { push_cast, exact set.image_swap_prod _ _ }
+
+@[simp] lemma image_swap_product [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+  (t ×ˢ s).image prod.swap = s ×ˢ t :=
+coe_injective $ by { push_cast, exact set.image_swap_prod _ _ }
 
 lemma product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   s ×ˢ t = s.bUnion (λa, t.image $ λb, (a, b)) :=
@@ -157,6 +168,31 @@ by { ext ⟨x, y⟩, simp only [or_and_distrib_right, mem_union, mem_product] }
 @[simp] lemma product_union [decidable_eq α] [decidable_eq β] :
   s ×ˢ (t ∪ t') = s ×ˢ t ∪ s ×ˢ t' :=
 by { ext ⟨x, y⟩, simp only [and_or_distrib_left, mem_union, mem_product] }
+
+lemma inter_product [decidable_eq α] [decidable_eq β] :
+  (s ∩ s') ×ˢ t = s ×ˢ t ∩ s' ×ˢ t :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_right, mem_inter, mem_product] }
+
+lemma product_inter [decidable_eq α] [decidable_eq β] :
+  s ×ˢ (t ∩ t') = s ×ˢ t ∩ s ×ˢ t' :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_left, mem_inter, mem_product] }
+
+lemma product_inter_product [decidable_eq α] [decidable_eq β] :
+  s ×ˢ t ∩ s' ×ˢ t' = (s ∩ s') ×ˢ (t ∩ t') :=
+by { ext ⟨x, y⟩, simp only [and_assoc, and.left_comm, mem_inter, mem_product] }
+
+lemma disjoint_product : disjoint (s ×ˢ t) (s' ×ˢ t') ↔ disjoint s s' ∨ disjoint t t' :=
+by simp_rw [←disjoint_coe, coe_product, set.disjoint_prod]
+
+@[simp] lemma disj_union_product (hs : disjoint s s') :
+  s.disj_union s' hs ×ˢ t = (s ×ˢ t).disj_union (s' ×ˢ t)
+    (disjoint_product.mpr $ or.inl hs) :=
+eq_of_veq $ multiset.add_product _ _ _
+
+@[simp] lemma product_disj_union (ht : disjoint t t') :
+  s ×ˢ t.disj_union t' ht = (s ×ˢ t).disj_union (s ×ˢ t')
+    (disjoint_product.mpr $ or.inr ht) :=
+eq_of_veq $ multiset.product_add _ _ _
 
 end prod
 

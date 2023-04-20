@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Kyle Miller
 -/
 
-import combinatorics.simple_graph.subgraph
 import combinatorics.simple_graph.clique
 import data.nat.lattice
 import data.setoid.partition
@@ -12,6 +11,9 @@ import order.antichain
 
 /-!
 # Graph Coloring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module defines colorings of simple graphs (also known as proper
 colorings in the literature). A graph coloring is the attribution of

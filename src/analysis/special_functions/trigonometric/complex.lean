@@ -28,12 +28,12 @@ open_locale real
 theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
   have h : (exp (θ * I) + exp (-θ * I)) / 2 = 0 ↔ exp (2 * θ * I) = -1,
-  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 two_ne_zero', zero_mul,
+  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 two_ne_zero, zero_mul,
       add_eq_zero_iff_eq_neg, neg_eq_neg_one_mul, ← div_eq_iff (exp_ne_zero _), ← exp_sub],
     field_simp only, congr' 3, ring },
   rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int, mul_right_comm],
   refine exists_congr (λ x, _),
-  refine (iff_of_eq $ congr_arg _ _).trans (mul_right_inj' $ mul_ne_zero two_ne_zero' I_ne_zero),
+  refine (iff_of_eq $ congr_arg _ _).trans (mul_right_inj' $ mul_ne_zero two_ne_zero I_ne_zero),
   field_simp, ring,
 end
 
@@ -63,7 +63,7 @@ begin
   have h := (sin_two_mul θ).symm,
   rw mul_assoc at h,
   rw [tan, div_eq_zero_iff, ← mul_eq_zero, ← zero_mul ((1/2):ℂ), mul_one_div,
-      cancel_factors.cancel_factors_eq_div h two_ne_zero', mul_comm],
+      cancel_factors.cancel_factors_eq_div h two_ne_zero, mul_comm],
   simpa only [zero_div, zero_mul, ne.def, not_false_iff] with field_simps using sin_eq_zero_iff,
 end
 
@@ -138,7 +138,7 @@ lemma tan_eq {z : ℂ}
   tan z = (tan z.re + tanh z.im * I) / (1 - tan z.re * tanh z.im * I) :=
 by convert tan_add_mul_I h; exact (re_add_im z).symm
 
-open_locale topological_space
+open_locale topology
 
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 continuous_on_sin.div continuous_on_cos $ λ x, id
@@ -160,7 +160,7 @@ lemma cos_surjective : function.surjective cos :=
 begin
   intro x,
   obtain ⟨w, w₀, hw⟩ : ∃ w ≠ 0, 1 * w * w + (-2 * x) * w + 1 = 0,
-  { rcases exists_quadratic_eq_zero (@one_ne_zero ℂ _ _)
+  { rcases exists_quadratic_eq_zero one_ne_zero
       ⟨_, ((cpow_nat_inv_pow _ two_ne_zero).symm.trans $ pow_two _)⟩ with ⟨w, hw⟩,
     refine ⟨w, _, hw⟩,
     rintro rfl,

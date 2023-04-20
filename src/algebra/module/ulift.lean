@@ -9,6 +9,9 @@ import algebra.module.equiv
 /-!
 # `ulift` instances for module and multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for module, mul_action and related structures on `ulift` types.
 
 (Recall `ulift α` is just a "copy" of a type `α` in a higher universe.)
@@ -128,6 +131,7 @@ instance module' [semiring R] [add_comm_monoid M] [module R M] : module R (ulift
 /--
 The `R`-linear equivalence between `ulift M` and `M`.
 -/
+@[simps apply symm_apply]
 def module_equiv [semiring R] [add_comm_monoid M] [module R M] : ulift M ≃ₗ[R] M :=
 { to_fun := ulift.down,
   inv_fun := ulift.up,

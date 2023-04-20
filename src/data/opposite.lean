@@ -8,6 +8,9 @@ import logic.equiv.defs
 /-!
 # Opposites
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a type synonym `opposite α := α`, denoted by `αᵒᵖ` and two synonyms for the
 identity map, `op : α → αᵒᵖ` and `unop : αᵒᵖ → α`. If `α` is a category, then `αᵒᵖ` is the opposite
 category, with all arrows reversed.

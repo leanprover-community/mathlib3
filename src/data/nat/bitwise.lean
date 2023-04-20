@@ -3,11 +3,15 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
+import data.list.basic
 import data.nat.bits
 import tactic.linarith
 
 /-!
 # Bitwise operations on natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In the first half of this file, we provide theorems for reasoning about natural numbers from their
 bitwise properties. In the second half of this file, we show properties of the bitwise operations
@@ -39,7 +43,7 @@ namespace nat
 @[simp] lemma bit_tt : bit tt = bit1 := rfl
 
 @[simp] lemma bit_eq_zero {n : ℕ} {b : bool} : n.bit b = 0 ↔ n = 0 ∧ b = ff :=
-by { cases b; norm_num [bit0_eq_zero, nat.bit1_ne_zero] }
+by { cases b; simp [nat.bit0_eq_zero, nat.bit1_ne_zero] }
 
 lemma zero_of_test_bit_eq_ff {n : ℕ} (h : ∀ i, test_bit n i = ff) : n = 0 :=
 begin

@@ -8,6 +8,9 @@ import order.partial_sups
 /-!
 # Consecutive differences of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the way to make a sequence of elements into a sequence of disjoint elements with
 the same partial sups.
 

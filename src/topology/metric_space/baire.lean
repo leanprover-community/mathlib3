@@ -6,9 +6,13 @@ Authors: Sébastien Gouëzel
 import analysis.specific_limits.basic
 import order.filter.countable_Inter
 import topology.G_delta
+import topology.sets.compacts
 
 /-!
 # Baire theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In a complete metric space, a countable intersection of dense open subsets is dense.
 
@@ -24,7 +28,7 @@ has the countable intersection property.
 
 noncomputable theory
 
-open_locale classical topological_space filter ennreal
+open_locale classical topology filter ennreal
 
 open filter encodable set topological_space
 

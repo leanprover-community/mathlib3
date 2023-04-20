@@ -1,16 +1,26 @@
 /-
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
+Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 -/
-import order.min_max
-import algebra.order.monoid.cancel.defs
-import algebra.order.sub.defs
+
 import algebra.order.group.defs
+import algebra.order.monoid.cancel.defs
+import algebra.order.monoid.canonical.defs
+import algebra.order.monoid.nat_cast
+import algebra.order.monoid.with_zero.defs
 import algebra.order.ring.lemmas
+import algebra.ring.defs
+import order.min_max
+import tactic.nontriviality
+import data.pi.algebra
+import algebra.group.units
 
 /-!
 # Ordered rings and semirings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basics of ordered (semi)rings.
 
@@ -28,21 +38,23 @@ For short,
 ## Typeclasses
 
 * `ordered_semiring`: Semiring with a partial order such that `+` and `*` respect `≤`.
-* `strict_ordered_semiring`: Semiring with a partial order such that `+` and `*` respects `<`.
+* `strict_ordered_semiring`: Nontrivial semiring with a partial order such that `+` and `*` respects
+  `<`.
 * `ordered_comm_semiring`: Commutative semiring with a partial order such that `+` and `*` respect
   `≤`.
-* `strict_ordered_comm_semiring`: Commutative semiring with a partial order such that `+` and `*`
-  respect `<`.
+* `strict_ordered_comm_semiring`: Nontrivial commutative semiring with a partial order such that `+`
+  and `*` respect `<`.
 * `ordered_ring`: Ring with a partial order such that `+` respects `≤` and `*` respects `<`.
 * `ordered_comm_ring`: Commutative ring with a partial order such that `+` respects `≤` and
   `*` respects `<`.
-* `linear_ordered_semiring`: Semiring with a linear order such that `+` respects `≤` and
+* `linear_ordered_semiring`: Nontrivial semiring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
-* `linear_ordered_comm_semiring`: Commutative semiring with a linear order such that `+` respects
+* `linear_ordered_comm_semiring`: Nontrivial commutative semiring with a linear order such that `+`
+  respects `≤` and `*` respects `<`.
+* `linear_ordered_ring`: Nontrivial ring with a linear order such that `+` respects `≤` and `*`
+  respects `<`.
+* `linear_ordered_comm_ring`: Nontrivial commutative ring with a linear order such that `+` respects
   `≤` and `*` respects `<`.
-* `linear_ordered_ring`: Ring with a linear order such that `+` respects `≤` and `*` respects `<`.
-* `linear_ordered_comm_ring`: Commutative ring with a linear order such that `+` respects `≤` and
-  `*` respects `<`.
 * `canonically_ordered_comm_semiring`: Commutative semiring with a partial order such that `+`
   respects `≤`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
 
@@ -56,35 +68,42 @@ immediate predecessors and what conditions are added to each of them.
   - `ordered_add_comm_monoid` & multiplication & `*` respects `≤`
   - `semiring` & partial order structure & `+` respects `≤` & `*` respects `≤`
 * `strict_ordered_semiring`
-  - `ordered_cancel_add_comm_monoid` & multiplication & `*` respects `<`
-  - `ordered_semiring` & `+` respects `<` & `*` respects `<`
+  - `ordered_cancel_add_comm_monoid` & multiplication & `*` respects `<` & nontriviality
+  - `ordered_semiring` & `+` respects `<` & `*` respects `<` & nontriviality
 * `ordered_comm_semiring`
   - `ordered_semiring` & commutativity of multiplication
   - `comm_semiring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `strict_ordered_comm_semiring`
   - `strict_ordered_semiring` & commutativity of multiplication
-  - `ordered_comm_semiring` & `+` respects `<` & `*` respects `<`
+  - `ordered_comm_semiring` & `+` respects `<` & `*` respects `<` & nontriviality
 * `ordered_ring`
-  - `strict_ordered_semiring` & additive inverses
+  - `ordered_semiring` & additive inverses
   - `ordered_add_comm_group` & multiplication & `*` respects `<`
   - `ring` & partial order structure & `+` respects `≤` & `*` respects `<`
+* `strict_ordered_ring`
+  - `strict_ordered_semiring` & additive inverses
+  - `ordered_semiring` & `+` respects `<` & `*` respects `<` & nontriviality
 * `ordered_comm_ring`
   - `ordered_ring` & commutativity of multiplication
   - `ordered_comm_semiring` & additive inverses
   - `comm_ring` & partial order structure & `+` respects `≤` & `*` respects `<`
+* `strict_ordered_comm_ring`
+  - `strict_ordered_comm_semiring` & additive inverses
+  - `strict_ordered_ring` & commutativity of multiplication
+  - `ordered_comm_ring` & `+` respects `<` & `*` respects `<` & nontriviality
 * `linear_ordered_semiring`
-  - `strict_ordered_semiring` & totality of the order & nontriviality
+  - `strict_ordered_semiring` & totality of the order
   - `linear_ordered_add_comm_monoid` & multiplication & nontriviality & `*` respects `<`
 * `linear_ordered_comm_semiring`
-  - `strict_ordered_comm_semiring` & totality of the order & nontriviality
+  - `strict_ordered_comm_semiring` & totality of the order
   - `linear_ordered_semiring` & commutativity of multiplication
 * `linear_ordered_ring`
-  - `ordered_ring` & totality of the order & nontriviality
+  - `strict_ordered_ring` & totality of the order
   - `linear_ordered_semiring` & additive inverses
   - `linear_ordered_add_comm_group` & multiplication & `*` respects `<`
   - `domain` & linear order structure
 * `linear_ordered_comm_ring`
-  - `ordered_comm_ring` & totality of the order & nontriviality
+  - `strict_ordered_comm_ring` & totality of the order
   - `linear_ordered_ring` & commutativity of multiplication
   - `linear_ordered_comm_semiring` & additive inverses
   - `is_domain` & linear order structure
@@ -109,7 +128,7 @@ calc  a + 1 ≤ a + a : add_le_add_left a1 a
 
 /-- An `ordered_semiring` is a semiring with a partial order such that addition is monotone and
 multiplication by a nonnegative number is monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor semiring ordered_add_comm_monoid]
 class ordered_semiring (α : Type u) extends semiring α, ordered_add_comm_monoid α :=
 (zero_le_one : (0 : α) ≤ 1)
 (mul_le_mul_of_nonneg_left  : ∀ a b c : α, a ≤ b → 0 ≤ c → c * a ≤ c * b)
@@ -117,44 +136,45 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_add_comm_monoi
 
 /-- An `ordered_comm_semiring` is a commutative semiring with a partial order such that addition is
 monotone and multiplication by a nonnegative number is monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor ordered_semiring comm_semiring]
 class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
 
 /-- An `ordered_ring` is a ring with a partial order such that addition is monotone and
 multiplication by a nonnegative number is monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor ring ordered_add_comm_group]
 class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
 (zero_le_one : 0 ≤ (1 : α))
 (mul_nonneg : ∀ a b : α, 0 ≤ a → 0 ≤ b → 0 ≤ a * b)
 
 /-- An `ordered_comm_ring` is a commutative ring with a partial order such that addition is monotone
 and multiplication by a nonnegative number is monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor ordered_ring comm_ring]
 class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_ring α
 
-/-- A `strict_ordered_semiring` is a semiring with a partial order such that addition is strictly
-monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
-class strict_ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
+/-- A `strict_ordered_semiring` is a nontrivial semiring with a partial order such that addition is
+strictly monotone and multiplication by a positive number is strictly monotone. -/
+@[protect_proj, ancestor semiring ordered_cancel_add_comm_monoid nontrivial]
+class strict_ordered_semiring (α : Type u)
+  extends semiring α, ordered_cancel_add_comm_monoid α, nontrivial α :=
 (zero_le_one : (0 : α) ≤ 1)
 (mul_lt_mul_of_pos_left  : ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
 /-- A `strict_ordered_comm_semiring` is a commutative semiring with a partial order such that
 addition is strictly monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor strict_ordered_semiring comm_semiring]
 class strict_ordered_comm_semiring (α : Type u) extends strict_ordered_semiring α, comm_semiring α
 
 /-- A `strict_ordered_ring` is a ring with a partial order such that addition is strictly monotone
 and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
-class strict_ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
+@[protect_proj, ancestor ring ordered_add_comm_group nontrivial]
+class strict_ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α, nontrivial α :=
 (zero_le_one : 0 ≤ (1 : α))
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
 
 /-- A `strict_ordered_comm_ring` is a commutative ring with a partial order such that addition is
 strictly monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor strict_ordered_ring comm_ring]
 class strict_ordered_comm_ring (α : Type*) extends strict_ordered_ring α, comm_ring α
 
 /-- A `linear_ordered_semiring` is a nontrivial semiring with a linear order such that
@@ -162,9 +182,9 @@ addition is monotone and multiplication by a positive number is strictly monoton
 /- It's not entirely clear we should assume `nontrivial` at this point; it would be reasonable to
 explore changing this, but be warned that the instances involving `domain` may cause typeclass
 search loops. -/
-@[protect_proj]
+@[protect_proj, ancestor strict_ordered_semiring linear_ordered_add_comm_monoid nontrivial]
 class linear_ordered_semiring (α : Type u)
-  extends strict_ordered_semiring α, linear_ordered_add_comm_monoid α, nontrivial α
+  extends strict_ordered_semiring α, linear_ordered_add_comm_monoid α
 
 /-- A `linear_ordered_comm_semiring` is a nontrivial commutative semiring with a linear order such
 that addition is monotone and multiplication by a positive number is strictly monotone. -/
@@ -174,12 +194,12 @@ class linear_ordered_comm_semiring (α : Type*)
 
 /-- A `linear_ordered_ring` is a ring with a linear order such that addition is monotone and
 multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
-class linear_ordered_ring (α : Type u) extends strict_ordered_ring α, linear_order α, nontrivial α
+@[protect_proj, ancestor strict_ordered_ring linear_order]
+class linear_ordered_ring (α : Type u) extends strict_ordered_ring α, linear_order α
 
 /-- A `linear_ordered_comm_ring` is a commutative ring with a linear order such that addition is
 monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor linear_ordered_ring comm_monoid]
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 
@@ -239,43 +259,8 @@ lemma monotone.mul (hf : monotone f) (hg : monotone g) (hf₀ : ∀ x, 0 ≤ f x
 
 end monotone
 
-section nontrivial
-variables [nontrivial α]
-
-/-- See `zero_lt_one'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_one : (0 : α) < 1 := zero_le_one.lt_of_ne zero_ne_one
-/-- See `zero_lt_two'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
-/-- See `zero_lt_three'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_three : (0 : α) < 3 :=
-zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono zero_le_one
-/-- See `zero_lt_four'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_four : (0 : α) < 4 := zero_lt_two.trans_le $ bit0_mono one_le_two
-
-@[field_simps] lemma two_ne_zero : (2 : α) ≠ 0 := zero_lt_two.ne'
-@[field_simps] lemma three_ne_zero : (3 : α) ≠ 0 := zero_lt_three.ne'
-@[field_simps] lemma four_ne_zero : (4 : α) ≠ 0 := zero_lt_four.ne'
-
-alias zero_lt_one ← one_pos
-alias zero_lt_two ← two_pos
-alias zero_lt_three ← three_pos
-alias zero_lt_four ← four_pos
-
-lemma bit1_pos (h : 0 ≤ a) : 0 < bit1 a :=
+lemma bit1_pos [nontrivial α] (h : 0 ≤ a) : 0 < bit1 a :=
 zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono h
-
-variables (α)
-
-/-- See `zero_lt_one` for a version with the type implicit. -/
-lemma zero_lt_one' : (0 : α) < 1 := zero_lt_one
-/-- See `zero_lt_two` for a version with the type implicit. -/
-lemma zero_lt_two' : (0 : α) < 2 := zero_lt_two
-/-- See `zero_lt_three` for a version with the type implicit. -/
-lemma zero_lt_three' : (0 : α) < 3 := zero_lt_three
-/-- See `zero_lt_four` for a version with the type implicit. -/
-lemma zero_lt_four' : (0 : α) < 4 := zero_lt_four
-
-end nontrivial
 
 lemma bit1_pos' (h : 0 < a) : 0 < bit1 a := by { nontriviality, exact bit1_pos h.le }
 
@@ -341,6 +326,22 @@ lemma mul_le_mul_of_nonpos_of_nonpos (hca : c ≤ a) (hdb : d ≤ b) (hc : c ≤
 lemma mul_le_mul_of_nonpos_of_nonpos' (hca : c ≤ a) (hdb : d ≤ b) (ha : a ≤ 0) (hd : d ≤ 0) :
   a * b ≤ c * d :=
 (mul_le_mul_of_nonpos_left hdb ha).trans $ mul_le_mul_of_nonpos_right hca hd
+
+/-- Variant of `mul_le_of_le_one_left` for `b` non-positive instead of non-negative.  -/
+lemma le_mul_of_le_one_left (hb : b ≤ 0) (h : a ≤ 1) : b ≤ a * b :=
+by simpa only [one_mul] using mul_le_mul_of_nonpos_right h hb
+
+/-- Variant of `le_mul_of_one_le_left` for `b` non-positive instead of non-negative. -/
+lemma mul_le_of_one_le_left (hb : b ≤ 0) (h : 1 ≤ a) : a * b ≤ b :=
+by simpa only [one_mul] using mul_le_mul_of_nonpos_right h hb
+
+/-- Variant of `mul_le_of_le_one_right` for `a` non-positive instead of non-negative. -/
+lemma le_mul_of_le_one_right (ha : a ≤ 0) (h : b ≤ 1) : a ≤ a * b :=
+by simpa only [mul_one] using mul_le_mul_of_nonpos_left h ha
+
+/-- Variant of `le_mul_of_one_le_right` for `a` non-positive instead of non-negative. -/
+lemma mul_le_of_one_le_right (ha : a ≤ 0) (h : 1 ≤ b) : a * b ≤ a :=
+by simpa only [mul_one] using mul_le_mul_of_nonpos_left h ha
 
 section monotone
 variables [preorder β] {f g : β → α}
@@ -517,28 +518,11 @@ lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf₀ : ∀ x, 
 
 end monotone
 
-section nontrivial
-variables [nontrivial α]
-
-lemma lt_one_add (a : α) : a < 1 + a := lt_add_of_pos_left _ zero_lt_one
-lemma lt_add_one (a : α) : a < a + 1 := lt_add_of_pos_right _ zero_lt_one
-
-lemma one_lt_two : (1 : α) < 2 := lt_add_one _
-
 lemma lt_two_mul_self (ha : 0 < a) : a < 2 * a := lt_mul_of_one_lt_left ha one_lt_two
-
-lemma nat.strict_mono_cast : strict_mono (coe : ℕ → α) :=
-strict_mono_nat_of_lt_succ $ λ n, by { rw [nat.cast_succ], apply lt_add_one }
-
-/-- `coe : ℕ → α` as an `order_embedding` -/
-@[simps { fully_applied := ff }] def nat.cast_order_embedding : ℕ ↪o α :=
-order_embedding.of_strict_mono coe nat.strict_mono_cast
 
 @[priority 100] -- see Note [lower instance priority]
 instance strict_ordered_semiring.to_no_max_order : no_max_order α :=
 ⟨λ a, ⟨a + 1, lt_add_of_pos_right _ one_pos⟩⟩
-
-end nontrivial
 
 end strict_ordered_semiring
 
@@ -575,14 +559,13 @@ instance strict_ordered_ring.to_strict_ordered_semiring : strict_ordered_semirin
 @[reducible] -- See note [reducible non-instances]
 def strict_ordered_ring.to_ordered_ring' [@decidable_rel α (≤)] : ordered_ring α :=
 { mul_nonneg := λ a b ha hb, begin
-    cases decidable.eq_or_lt_of_le ha with ha ha,
+    obtain ha | ha := decidable.eq_or_lt_of_le ha,
     { rw [←ha, zero_mul] },
-    cases decidable.eq_or_lt_of_le hb with hb hb,
+    obtain hb | hb := decidable.eq_or_lt_of_le hb,
     { rw [←hb, mul_zero] },
-    { exact (mul_pos ha hb).le }
+    { exact (strict_ordered_ring.mul_pos _ _ ha hb).le }
   end,
   ..‹strict_ordered_ring α›,  ..ring.to_semiring }
-
 
 @[priority 100] -- see Note [lower instance priority]
 instance strict_ordered_ring.to_ordered_ring : ordered_ring α :=
@@ -600,6 +583,22 @@ by simpa only [mul_neg, neg_lt_neg_iff] using mul_lt_mul_of_pos_right h (neg_pos
 
 lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
 by simpa only [zero_mul] using mul_lt_mul_of_neg_right ha hb
+
+/-- Variant of `mul_lt_of_lt_one_left` for `b` negative instead of positive. -/
+lemma lt_mul_of_lt_one_left (hb : b < 0) (h : a < 1) : b < a * b :=
+by simpa only [one_mul] using mul_lt_mul_of_neg_right h hb
+
+/-- Variant of `lt_mul_of_one_lt_left` for `b` negative instead of positive. -/
+lemma mul_lt_of_one_lt_left (hb : b < 0) (h : 1 < a) : a * b < b :=
+by simpa only [one_mul] using mul_lt_mul_of_neg_right h hb
+
+/-- Variant of `mul_lt_of_lt_one_right` for `a` negative instead of positive. -/
+lemma lt_mul_of_lt_one_right (ha : a < 0) (h : b < 1) : a < a * b :=
+by simpa only [mul_one] using mul_lt_mul_of_neg_left h ha
+
+/-- Variant of `lt_mul_of_lt_one_right` for `a` negative instead of positive. -/
+lemma mul_lt_of_one_lt_right (ha : a < 0) (h : 1 < b) : a * b < a :=
+by simpa only [mul_one] using mul_lt_mul_of_neg_left h ha
 
 section monotone
 variables [preorder β] {f g : β → α}
@@ -821,7 +820,7 @@ instance linear_ordered_ring.to_linear_ordered_add_comm_group : linear_ordered_a
 { ..‹linear_ordered_ring α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.is_domain : is_domain α :=
+instance linear_ordered_ring.no_zero_divisors : no_zero_divisors α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros a b hab,
@@ -831,6 +830,21 @@ instance linear_ordered_ring.is_domain : is_domain α :=
         (mul_neg_of_pos_of_neg ha hb).ne, (mul_pos ha hb).ne.symm]
     end,
   .. ‹linear_ordered_ring α› }
+
+@[priority 100] -- see Note [lower instance priority]
+--We don't want to import `algebra.ring.basic`, so we cannot use `no_zero_divisors.to_is_domain`.
+instance linear_ordered_ring.is_domain : is_domain α :=
+{ mul_left_cancel_of_ne_zero := λ a b c ha h,
+  begin
+    rw [← sub_eq_zero, ← mul_sub] at h,
+    exact sub_eq_zero.1 ((eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left ha)
+  end,
+  mul_right_cancel_of_ne_zero := λ a b c hb h,
+  begin
+    rw [← sub_eq_zero, ← sub_mul] at h,
+    exact sub_eq_zero.1 ((eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hb)
+  end,
+  .. (infer_instance : nontrivial α) }
 
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
 ⟨pos_and_pos_or_neg_and_neg_of_mul_pos,
@@ -856,10 +870,10 @@ lemma mul_self_nonneg (a : α) : 0 ≤ a * a :=
 (le_total 0 a).elim (λ h, mul_nonneg h h) (λ h, mul_nonneg_of_nonpos_of_nonpos h h)
 
 @[simp] lemma neg_le_self_iff : -a ≤ a ↔ 0 ≤ a :=
-by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (@zero_lt_two α _ _).not_le]
+by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (zero_lt_two' α).not_le]
 
 @[simp] lemma neg_lt_self_iff : -a < a ↔ 0 < a :=
-by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (@zero_lt_two α _ _).not_lt]
+by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (zero_lt_two' α).not_lt]
 
 @[simp] lemma le_neg_self_iff : a ≤ -a ↔ a ≤ 0 :=
 calc a ≤ -a ↔ -(-a) ≤ -a : by rw neg_neg

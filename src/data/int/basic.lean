@@ -3,11 +3,14 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import order.monotone
 import data.nat.basic
+import order.monotone.basic
 
 /-!
 # Basic instances on the integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains:
 * instances on `ℤ`. The stronger one is `int.comm_ring`.
@@ -83,6 +86,9 @@ namespace int
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
+@[simp] theorem sign_coe_add_one (n : ℕ) : int.sign (n + 1) = 1 := rfl
+@[simp] theorem sign_neg_succ_of_nat (n : ℕ) : int.sign -[1+ n] = -1 := rfl
+
 @[simp] lemma default_eq_zero : default = (0 : ℤ) := rfl
 
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
@@ -144,7 +150,7 @@ theorem succ_neg_succ (a : ℤ) : succ (-succ a) = -a :=
 by rw [neg_succ, succ_pred]
 
 theorem neg_pred (a : ℤ) : -pred a = succ (-a) :=
-by rw [eq_neg_of_eq_neg (neg_succ (-a)).symm, neg_neg]
+by rw [neg_eq_iff_eq_neg.mp (neg_succ (-a)), neg_neg]
 
 theorem pred_neg_pred (a : ℤ) : pred (-pred a) = -a :=
 by rw [neg_pred, pred_succ]
@@ -169,7 +175,7 @@ begin
     { exact hp _ i_ih } },
   { have : ∀ n:ℕ, p (- n),
     { intro n, induction n,
-      { simp [hz, nat.cast_zero] },
+      { simp [hz] },
       { convert hn _ n_ih using 1, simp [sub_eq_neg_add] } },
     exact this (i + 1) }
 end
@@ -178,7 +184,9 @@ end
 
 variables {a b : ℤ} {n : ℕ}
 
-attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
+attribute [simp] nat_abs_of_nat nat_abs_zero nat_abs_one
+
+lemma nat_abs_surjective : nat_abs.surjective := λ n, ⟨n, nat_abs_of_nat n⟩
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
@@ -209,7 +217,7 @@ lemma nat_abs_mul_nat_abs_eq {a b : ℤ} {c : ℕ} (h : a * b = (c : ℤ)) :
   a.nat_abs * b.nat_abs = c :=
 by rw [← nat_abs_mul, h, nat_abs_of_nat]
 
-@[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
+lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
@@ -255,12 +263,12 @@ match b, eq_succ_of_zero_lt H with ._, ⟨n, rfl⟩ := rfl end
 -- Will be generalized to Euclidean domains.
 local attribute [simp]
 protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
-| (n:ℕ) := show of_nat _ = _, by simp [nat.cast_zero]
-| -[1+ n] := show -of_nat _ = _, by simp [nat.cast_zero]
+| (n:ℕ) := show of_nat _ = _, by simp
+| -[1+ n] := show -of_nat _ = _, by simp
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
 protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
-| (n:ℕ) := show of_nat _ = _, by simp [nat.cast_zero]
+| (n:ℕ) := show of_nat _ = _, by simp
 | -[1+ n] := rfl
 
 @[simp] protected theorem div_neg : ∀ (a b : ℤ), a / -b = -(a / b)
@@ -334,9 +342,8 @@ end
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
 begin
-  rw [← sub_sub, neg_succ_of_nat_coe, sub_sub (n:ℤ)],
-  apply eq_neg_of_eq_neg,
-  rw [neg_sub, sub_sub_self, add_right_comm],
+  rw [← sub_sub, neg_succ_of_nat_coe, sub_sub (n:ℤ), eq_comm, neg_eq_iff_eq_neg,
+      neg_sub, sub_sub_self, add_right_comm],
   exact @congr_arg ℕ ℤ _ _ (λi, (i + 1 : ℤ)) (nat.mod_add_div _ _).symm
 end
 
@@ -516,68 +523,6 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 lemma to_nat_neg_nat : ∀ (n : ℕ), (-(n : ℤ)).to_nat = 0
 | 0       := rfl
 | (n + 1) := rfl
-
-/-! ### units -/
-
-@[simp] theorem units_nat_abs (u : ℤˣ) : nat_abs u = 1 :=
-units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
-  by rw [← nat_abs_mul, units.mul_inv]; refl,
-  by rw [← nat_abs_mul, units.inv_mul]; refl⟩
-
-theorem units_eq_one_or (u : ℤˣ) : u = 1 ∨ u = -1 :=
-by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
-
-lemma is_unit_eq_one_or {a : ℤ} : is_unit a → a = 1 ∨ a = -1
-| ⟨x, hx⟩ := hx ▸ (units_eq_one_or _).imp (congr_arg coe) (congr_arg coe)
-
-lemma is_unit_iff {a : ℤ} : is_unit a ↔ a = 1 ∨ a = -1 :=
-begin
-  refine ⟨λ h, is_unit_eq_one_or h, λ h, _⟩,
-  rcases h with rfl | rfl,
-  { exact is_unit_one },
-  { exact is_unit_one.neg }
-end
-
-lemma is_unit_eq_or_eq_neg {a b : ℤ} (ha : is_unit a) (hb : is_unit b) : a = b ∨ a = -b :=
-begin
-  rcases is_unit_eq_one_or hb with rfl | rfl,
-  { exact is_unit_eq_one_or ha },
-  { rwa [or_comm, neg_neg, ←is_unit_iff] },
-end
-
-lemma eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
-is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
-
-lemma eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) :
-  (z = 1 ∧ w = 1) ∨ (z = -1 ∧ w = -1) :=
-begin
-  have h' : w * z = 1 := (mul_comm z w) ▸ h,
-  rcases eq_one_or_neg_one_of_mul_eq_one h with rfl | rfl;
-  rcases eq_one_or_neg_one_of_mul_eq_one h' with rfl | rfl;
-  tauto,
-end
-
-theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
-by simp [nat_abs_eq_iff, is_unit_iff, nat.cast_zero]
-
-alias is_unit_iff_nat_abs_eq ↔ is_unit.nat_abs_eq _
-
-@[norm_cast]
-lemma of_nat_is_unit {n : ℕ} : is_unit (n : ℤ) ↔ is_unit n :=
-by rw [nat.is_unit_iff, is_unit_iff_nat_abs_eq, nat_abs_of_nat]
-
-lemma is_unit_mul_self {a : ℤ} (ha : is_unit a) : a * a = 1 :=
-(is_unit_eq_one_or ha).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
-
-lemma is_unit_add_is_unit_eq_is_unit_add_is_unit {a b c d : ℤ}
-  (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d) :
-  a + b = c + d ↔ a = c ∧ b = d ∨ a = d ∧ b = c :=
-begin
-  rw is_unit_iff at ha hb hc hd,
-  cases ha; cases hb; cases hc; cases hd;
-  subst ha; subst hb; subst hc; subst hd;
-  tidy,
-end
 
 end int
 

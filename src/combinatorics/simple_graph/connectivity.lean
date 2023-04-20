@@ -5,10 +5,13 @@ Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
-import data.list
+import data.list.rotate
 /-!
 
 # Graph connectivity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In a simple graph,
 
@@ -151,6 +154,13 @@ def append : Π {u v w : V}, G.walk u v → G.walk v w → G.walk u w
 | _ _ _ nil q := q
 | _ _ _ (cons h p) q := cons h (p.append q)
 
+/-- The reversed version of `simple_graph.walk.cons`, concatenating an edge to
+the end of a walk. -/
+def concat {u v w : V} (p : G.walk u v) (h : G.adj v w) : G.walk u w := p.append (cons h nil)
+
+lemma concat_eq_append {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  p.concat h = p.append (cons h nil) := rfl
+
 /-- The concatenation of the reverse of the first walk with the second walk. -/
 protected def reverse_aux : Π {u v w : V}, G.walk u v → G.walk u w → G.walk v w
 | _ _ _ nil q := q
@@ -215,6 +225,35 @@ lemma append_assoc : Π {u v w x : V} (p : G.walk u v) (q : G.walk v w) (r : G.w
   (hu : u = u') (hv : v = v') (hw : w = w') :
   (p.copy hu hv).append (q.copy hv hw) = (p.append q).copy hu hw := by { subst_vars, refl }
 
+lemma concat_nil {u v : V} (h : G.adj u v) : nil.concat h = cons h nil := rfl
+
+@[simp] lemma concat_cons {u v w x : V} (h : G.adj u v) (p : G.walk v w) (h' : G.adj w x) :
+  (cons h p).concat h' = cons h (p.concat h') := rfl
+
+lemma append_concat {u v w x : V} (p : G.walk u v) (q : G.walk v w) (h : G.adj w x) :
+  p.append (q.concat h) = (p.append q).concat h := append_assoc _ _ _
+
+lemma concat_append {u v w x : V} (p : G.walk u v) (h : G.adj v w) (q : G.walk w x) :
+  (p.concat h).append q = p.append (cons h q) :=
+by rw [concat_eq_append, ← append_assoc, cons_nil_append]
+
+/-- A non-trivial `cons` walk is representable as a `concat` walk. -/
+lemma exists_cons_eq_concat : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
+  ∃ (x : V) (q : G.walk u x) (h' : G.adj x w), cons h p = q.concat h'
+| _ _ _ h nil := ⟨_, nil, h, rfl⟩
+| _ _ _ h (cons h' p) :=
+  begin
+    obtain ⟨y, q, h'', hc⟩ := exists_cons_eq_concat h' p,
+    refine ⟨y, cons h q, h'', _⟩,
+    rw [concat_cons, hc],
+  end
+
+/-- A non-trivial `concat` walk is representable as a `cons` walk. -/
+lemma exists_concat_eq_cons : Π {u v w : V} (p : G.walk u v) (h : G.adj v w),
+  ∃ (x : V) (h' : G.adj u x) (q : G.walk x w), p.concat h = cons h' q
+| _ _ _ nil h := ⟨_, h, nil, rfl⟩
+| _ _ _ (cons h' p) h := ⟨_, h', walk.concat p h, concat_cons _ _ _⟩
+
 @[simp] lemma reverse_nil {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
 lemma reverse_singleton {u v : V} (h : G.adj u v) :
@@ -250,6 +289,10 @@ by simp [reverse]
   (p.append q).reverse = q.reverse.append p.reverse :=
 by simp [reverse]
 
+@[simp] lemma reverse_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).reverse = cons (G.symm h) p.reverse :=
+by simp [concat_eq_append]
+
 @[simp] lemma reverse_reverse : Π {u v : V} (p : G.walk u v), p.reverse.reverse = p
 | _ _ nil := rfl
 | _ _ (cons h p) := by simp [reverse_reverse]
@@ -267,6 +310,9 @@ by { subst_vars, refl }
   (p.append q).length = p.length + q.length
 | _ _ _ nil _ := by simp
 | _ _ _ (cons _ _) _ := by simp [length_append, add_left_comm, add_comm]
+
+@[simp] lemma length_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).length = p.length + 1 := length_append _ _
 
 @[simp] protected lemma length_reverse_aux : Π {u v w : V} (p : G.walk u v) (q : G.walk u w),
   (p.reverse_aux q).length = p.length + q.length
@@ -291,6 +337,76 @@ end
 @[simp] lemma length_eq_zero_iff {u : V} {p : G.walk u u} : p.length = 0 ↔ p = nil :=
 by cases p; simp
 
+section concat_rec
+
+variables
+  {motive : Π (u v : V), G.walk u v → Sort*}
+  (Hnil : Π {u : V}, motive u u nil)
+  (Hconcat : Π {u v w : V} (p : G.walk u v) (h : G.adj v w), motive u v p → motive u w (p.concat h))
+
+/-- Auxiliary definition for `simple_graph.walk.concat_rec` -/
+def concat_rec_aux : Π {u v : V} (p : G.walk u v), motive v u p.reverse
+| _ _ nil := Hnil
+| _ _ (cons h p) := eq.rec (Hconcat p.reverse (G.symm h) (concat_rec_aux p)) (reverse_cons h p).symm
+
+/-- Recursor on walks by inducting on `simple_graph.walk.concat`.
+
+This is inducting from the opposite end of the walk compared
+to `simple_graph.walk.rec`, which inducts on `simple_graph.walk.cons`. -/
+@[elab_as_eliminator]
+def concat_rec {u v : V} (p : G.walk u v) : motive u v p :=
+eq.rec (concat_rec_aux @Hnil @Hconcat p.reverse) (reverse_reverse p)
+
+@[simp] lemma concat_rec_nil (u : V) :
+  @concat_rec _ _ motive @Hnil @Hconcat _ _ (nil : G.walk u u) = Hnil := rfl
+
+@[simp] lemma concat_rec_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  @concat_rec _ _ motive @Hnil @Hconcat _ _ (p.concat h)
+  = Hconcat p h (concat_rec @Hnil @Hconcat p) :=
+begin
+  simp only [concat_rec],
+  apply eq_of_heq,
+  apply rec_heq_of_heq,
+  transitivity concat_rec_aux @Hnil @Hconcat (cons h.symm p.reverse),
+  { congr, simp },
+  { rw [concat_rec_aux, rec_heq_iff_heq],
+    congr; simp [heq_rec_iff_heq], }
+end
+
+end concat_rec
+
+lemma concat_ne_nil {u v : V} (p : G.walk u v) (h : G.adj v u) :
+  p.concat h ≠ nil :=
+by cases p; simp [concat]
+
+lemma concat_inj {u v v' w : V}
+  {p : G.walk u v} {h : G.adj v w} {p' : G.walk u v'} {h' : G.adj v' w}
+  (he : p.concat h = p'.concat h') :
+  ∃ (hv : v = v'), p.copy rfl hv = p' :=
+begin
+  induction p,
+  { cases p',
+    { exact ⟨rfl, rfl⟩ },
+    { exfalso,
+      simp only [concat_nil, concat_cons] at he,
+      obtain ⟨rfl, he⟩ := he,
+      simp only [heq_iff_eq] at he,
+      exact concat_ne_nil _ _ he.symm, } },
+  { rw concat_cons at he,
+    cases p',
+    { exfalso,
+      simp only [concat_nil] at he,
+      obtain ⟨rfl, he⟩ := he,
+      rw [heq_iff_eq] at he,
+      exact concat_ne_nil _ _ he, },
+    { rw concat_cons at he,
+      simp only at he,
+      obtain ⟨rfl, he⟩ := he,
+      rw [heq_iff_eq] at he,
+      obtain ⟨rfl, rfl⟩ := p_ih he,
+      exact ⟨rfl, rfl⟩, } }
+end
+
 /-- The `support` of a walk is the list of vertices it visits in order. -/
 def support : Π {u v : V}, G.walk u v → list V
 | u v nil := [u]
@@ -309,6 +425,9 @@ def edges {u v : V} (p : G.walk u v) : list (sym2 V) := p.darts.map dart.edge
 
 @[simp] lemma support_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).support = u :: p.support := rfl
+
+@[simp] lemma support_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).support = p.support.concat w := by induction p; simp [*, concat_nil]
 
 @[simp] lemma support_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
   (p.copy hu hv).support = p.support := by { subst_vars, refl }
@@ -336,6 +455,9 @@ by cases p; simp
 
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp [*]
+
+@[simp] lemma support_nonempty {u v : V} (p : G.walk u v) : {w | w ∈ p.support}.nonempty :=
+⟨u, by simp⟩
 
 lemma mem_support_iff {u v w : V} (p : G.walk u v) :
   w ∈ p.support ↔ w = u ∨ w ∈ p.support.tail :=
@@ -424,6 +546,9 @@ edges_subset_edge_set p h
 @[simp] lemma darts_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).darts = ⟨(u, v), h⟩ :: p.darts := rfl
 
+@[simp] lemma darts_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).darts = p.darts.concat ⟨(v, w), h⟩ := by induction p; simp [*, concat_nil]
+
 @[simp] lemma darts_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
   (p.copy hu hv).darts = p.darts := by { subst_vars, refl }
 
@@ -459,6 +584,9 @@ by simpa! using congr_arg list.init (map_fst_darts_append p)
 
 @[simp] lemma edges_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).edges = ⟦(u, v)⟧ :: p.edges := rfl
+
+@[simp] lemma edges_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).edges = p.edges.concat ⟦(v, w)⟧ := by simp [edges]
 
 @[simp] lemma edges_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
   (p.copy hu hv).edges = p.edges := by { subst_vars, refl }
@@ -608,7 +736,7 @@ lemma is_trail.count_edges_eq_one [decidable_eq V] {u v : V}
   p.edges.count e = 1 :=
 list.count_eq_one_of_mem h.edges_nodup he
 
-@[simp] lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
+lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
 by { fsplit; simp }
 
 lemma is_path.of_cons {u v w : V} {h : G.adj u v} {p : G.walk v w} :
@@ -618,6 +746,9 @@ by simp [is_path_def]
 @[simp] lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 by split; simp [is_path_def] { contextual := tt }
+
+@[simp] lemma is_path_iff_eq_nil {u : V} (p : G.walk u u) : p.is_path ↔ p = nil :=
+by { cases p; simp [is_path.nil] }
 
 lemma is_path.reverse {u v : V} {p : G.walk u v} (h : p.is_path) : p.reverse.is_path :=
 by simpa [is_path_def] using h
@@ -870,6 +1001,23 @@ begin
 end
 
 end walk_decomp
+
+/--
+Given a set `S` and a walk `w` from `u` to `v` such that `u ∈ S` but `v ∉ S`,
+there exists a dart in the walk whose start is in `S` but whose end is not.
+-/
+lemma exists_boundary_dart
+  {u v : V} (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S) :
+  ∃ (d : G.dart), d ∈ p.darts ∧ d.fst ∈ S ∧ d.snd ∉ S :=
+begin
+  induction p with _ x y w a p' ih,
+  { exact absurd uS vS },
+  { by_cases h : y ∈ S,
+    { obtain ⟨d, hd, hcd⟩ := ih h vS,
+      exact ⟨d, or.inr hd, hcd⟩ },
+    { exact ⟨⟨(x, y), a⟩, or.inl rfl, uS, h⟩ } }
+end
+
 
 end walk
 
@@ -1219,20 +1367,28 @@ by { induction p; simp only [*, transfer, edges_nil, edges_cons, eq_self_iff_tru
 @[simp] lemma support_transfer : (p.transfer H hp).support = p.support :=
 by { induction p; simp only [*, transfer, eq_self_iff_true, and_self, support_nil, support_cons], }
 
-lemma transfer_is_path (pp : p.is_path) : (p.transfer H hp).is_path :=
+@[simp] lemma length_transfer : (p.transfer H hp).length = p.length :=
+by induction p; simp [*]
+
+variables {p}
+
+protected lemma is_path.transfer (pp : p.is_path) : (p.transfer H hp).is_path :=
 begin
   induction p;
   simp only [transfer, is_path.nil, cons_is_path_iff, support_transfer] at pp ⊢,
   { tauto, },
 end
 
-lemma transfer_is_cycle (p : G.walk u u) (hp) (pc : p.is_cycle) : (p.transfer H hp).is_cycle :=
+protected lemma is_cycle.transfer {p : G.walk u u} (pc : p.is_cycle) (hp) :
+  (p.transfer H hp).is_cycle :=
 begin
   cases p;
   simp only [transfer, is_cycle.not_of_nil, cons_is_cycle_iff, transfer, edges_transfer] at pc ⊢,
   { exact pc, },
-  { exact ⟨transfer_is_path _ _ pc.left, pc.right⟩, },
+  { exact ⟨pc.left.transfer _, pc.right⟩, },
 end
+
+variables (p)
 
 @[simp] lemma transfer_transfer {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :
   (p.transfer H hp).transfer K (by { rw p.edges_transfer hp, exact hp', }) = p.transfer K hp' :=
@@ -1266,12 +1422,20 @@ variables {G}
 
 /-- Given a walk that avoids a set of edges, produce a walk in the graph
 with those edges deleted. -/
-@[simp, reducible]
+@[reducible]
 def to_delete_edges (s : set (sym2 V))
   {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s) : (G.delete_edges s).walk v w :=
 p.transfer _ (by
   { simp only [edge_set_delete_edges, set.mem_diff],
     exact λ e ep, ⟨edges_subset_edge_set p ep, hp e ep⟩, })
+
+@[simp] lemma to_delete_edges_nil (s : set (sym2 V)) {v : V} (hp) :
+  (walk.nil : G.walk v v).to_delete_edges s hp = walk.nil := rfl
+
+@[simp] lemma to_delete_edges_cons (s : set (sym2 V))
+  {u v w : V} (h : G.adj u v) (p : G.walk v w) (hp) :
+  (walk.cons h p).to_delete_edges s hp =
+    walk.cons ⟨h, hp _ (or.inl rfl)⟩ (p.to_delete_edges s $ λ _ he, hp _ $ or.inr he) := rfl
 
 /-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
 This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/
@@ -1284,10 +1448,13 @@ lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) 
   walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
 by rw [←transfer_eq_map_of_le, transfer_transfer, transfer_self]
 
-lemma is_path.to_delete_edges (s : set (sym2 V))
+protected lemma is_path.to_delete_edges (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
-  (p.to_delete_edges s hp).is_path :=
-by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
+  (p.to_delete_edges s hp).is_path := h.transfer _
+
+protected lemma is_cycle.to_delete_edges (s : set (sym2 V))
+  {v : V} {p : G.walk v v} (h : p.is_cycle) (hp) :
+  (p.to_delete_edges s hp).is_cycle := h.transfer _
 
 @[simp] lemma to_delete_edges_copy (s : set (sym2 V))
   {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') (h) :
@@ -1359,6 +1526,14 @@ protected lemma reachable.map {G : simple_graph V} {G' : simple_graph V'}
   (f : G →g G') {u v : V} (h : G.reachable u v) : G'.reachable (f u) (f v) :=
 h.elim (λ p, ⟨p.map f⟩)
 
+lemma iso.reachable_iff {G : simple_graph V} {G' : simple_graph V'}
+  {φ : G ≃g G'} {u v : V} : G'.reachable (φ u) (φ v) ↔ G.reachable u v :=
+⟨λ r, (φ.left_inv u) ▸ (φ.left_inv v) ▸ (r.map φ.symm.to_hom), reachable.map φ.to_hom⟩
+
+lemma iso.symm_apply_reachable {G : simple_graph V} {G' : simple_graph V'}
+  {φ : G ≃g G'} {u : V} {v : V'} : G.reachable (φ.symm v) u ↔ G'.reachable v (φ u) :=
+by rw [← iso.reachable_iff, rel_iso.apply_symm_apply]
+
 variables (G)
 
 lemma reachable_is_equivalence : equivalence G.reachable :=
@@ -1409,59 +1584,167 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
-@[simps] instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
+variables {V' G G' G''}
+
+namespace connected_component
+
+@[simps] instance inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_mk default⟩
 
-section connected_component
-variables {G}
-
 @[elab_as_eliminator]
-protected lemma connected_component.ind {β : G.connected_component → Prop}
+protected lemma ind {β : G.connected_component → Prop}
   (h : ∀ (v : V), β (G.connected_component_mk v)) (c : G.connected_component) : β c :=
 quot.ind h c
 
 @[elab_as_eliminator]
-protected lemma connected_component.ind₂ {β : G.connected_component → G.connected_component → Prop}
+protected lemma ind₂ {β : G.connected_component → G.connected_component → Prop}
   (h : ∀ (v w : V), β (G.connected_component_mk v) (G.connected_component_mk w))
   (c d : G.connected_component) : β c d :=
 quot.induction_on₂ c d h
 
-protected lemma connected_component.sound {v w : V} :
+protected lemma sound {v w : V} :
   G.reachable v w → G.connected_component_mk v = G.connected_component_mk w := quot.sound
 
-protected lemma connected_component.exact {v w : V} :
+protected lemma exact {v w : V} :
   G.connected_component_mk v = G.connected_component_mk w → G.reachable v w :=
 @quotient.exact _ G.reachable_setoid _ _
 
-@[simp] protected lemma connected_component.eq {v w : V} :
+@[simp] protected lemma eq {v w : V} :
   G.connected_component_mk v = G.connected_component_mk w ↔ G.reachable v w :=
 @quotient.eq _ G.reachable_setoid _ _
 
+lemma connected_component_mk_eq_of_adj {v w : V} (a : G.adj v w) :
+  G.connected_component_mk v = G.connected_component_mk w :=
+connected_component.sound a.reachable
+
 /-- The `connected_component` specialization of `quot.lift`. Provides the stronger
 assumption that the vertices are connected by a path. -/
-protected def connected_component.lift {β : Sort*} (f : V → β)
+protected def lift {β : Sort*} (f : V → β)
   (h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w) : G.connected_component → β :=
 quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
 
-@[simp] protected lemma connected_component.lift_mk {β : Sort*} {f : V → β}
+@[simp] protected lemma lift_mk {β : Sort*} {f : V → β}
   {h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w} {v : V} :
   connected_component.lift f h (G.connected_component_mk v) = f v := rfl
 
-protected lemma connected_component.«exists» {p : G.connected_component → Prop} :
+protected lemma «exists» {p : G.connected_component → Prop} :
   (∃ (c : G.connected_component), p c) ↔ ∃ v, p (G.connected_component_mk v) :=
 (surjective_quot_mk G.reachable).exists
 
-protected lemma connected_component.«forall» {p : G.connected_component → Prop} :
+protected lemma «forall» {p : G.connected_component → Prop} :
   (∀ (c : G.connected_component), p c) ↔ ∀ v, p (G.connected_component_mk v) :=
 (surjective_quot_mk G.reachable).forall
 
-lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
+lemma _root_.simple_graph.preconnected.subsingleton_connected_component (h : G.preconnected) :
   subsingleton G.connected_component :=
 ⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
 
+/-- The map on connected components induced by a graph homomorphism. -/
+def map (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
+C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
+  connected_component.eq.mpr (p.map φ).reachable
+
+@[simp] lemma map_mk (φ : G →g G') (v : V) :
+  (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
+
+@[simp] lemma map_id (C : connected_component G) : C.map hom.id = C :=
+by { refine C.ind _, exact (λ _, rfl) }
+
+@[simp] lemma map_comp (C : G.connected_component)
+  (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
+by { refine C.ind _, exact (λ _, rfl), }
+
+
+variables {φ : G ≃g G'} {v : V} {v' : V'}
+
+@[simp] lemma iso_image_comp_eq_map_iff_eq_comp
+  {C : G.connected_component} :
+  G'.connected_component_mk (φ v) = C.map (↑(↑φ : G ↪g G'))  ↔ (G.connected_component_mk v) = C :=
+begin
+  refine C.ind (λ u, _),
+  simp only [iso.reachable_iff, connected_component.map_mk,
+    rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn, connected_component.eq],
+end
+
+@[simp] lemma iso_inv_image_comp_eq_iff_eq_map
+  {C : G.connected_component} :
+  G.connected_component_mk (φ.symm v') = C ↔
+    G'.connected_component_mk v' = C.map φ :=
+begin
+  refine C.ind (λ u, _),
+  simp only [iso.symm_apply_reachable, connected_component.eq, coe_coe,
+    connected_component.map_mk, rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn],
+end
+
 end connected_component
 
-variables {G}
+namespace iso
+
+/-- An isomorphism of graphs induces a bijection of connected components. -/
+@[simps]
+def connected_component_equiv (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
+{ to_fun := connected_component.map φ,
+  inv_fun := connected_component.map φ.symm,
+  left_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G.connected_component_mk) (equiv.left_inv φ.to_equiv v)) C,
+  right_inv := λ C, connected_component.ind
+    (λ v, congr_arg (G'.connected_component_mk) (equiv.right_inv φ.to_equiv v)) C }
+
+@[simp] lemma connected_component_equiv_refl :
+  (iso.refl : G ≃g G).connected_component_equiv = equiv.refl _ :=
+by { ext ⟨v⟩, refl, }
+
+@[simp] lemma connected_component_equiv_symm (φ : G ≃g G') :
+  φ.symm.connected_component_equiv = φ.connected_component_equiv.symm := by { ext ⟨_⟩, refl, }
+
+@[simp] lemma connected_component_equiv_trans (φ : G ≃g G') (φ' : G' ≃g G'') :
+  connected_component_equiv (φ.trans φ') =
+  φ.connected_component_equiv.trans φ'.connected_component_equiv := by { ext ⟨_⟩, refl, }
+
+end iso
+
+namespace connected_component
+
+/-- The set of vertices in a connected component of a graph. -/
+def supp (C : G.connected_component) :=
+  { v | G.connected_component_mk v = C }
+
+@[ext] lemma supp_injective :
+  function.injective (connected_component.supp : G.connected_component → set V) :=
+begin
+  refine connected_component.ind₂ _,
+  intros v w,
+  simp only [connected_component.supp, set.ext_iff, connected_component.eq, set.mem_set_of_eq],
+  intro h,
+  rw [reachable_comm, h],
+end
+
+@[simp]
+lemma supp_inj {C D : G.connected_component} : C.supp = D.supp ↔ C = D :=
+connected_component.supp_injective.eq_iff
+
+instance : set_like G.connected_component V :=
+{ coe := connected_component.supp,
+  coe_injective' := connected_component.supp_injective, }
+
+@[simp] lemma mem_supp_iff (C : G.connected_component) (v : V) :
+  v ∈ C.supp ↔ G.connected_component_mk v = C := iff.rfl
+
+lemma connected_component_mk_mem {v : V} :
+  v ∈ G.connected_component_mk v := by exact rfl
+
+/--
+The equivalence between connected components, induced by an isomorphism of graphs,
+itself defines an equivalence on the supports of each connected component.
+-/
+def iso_equiv_supp (φ : G ≃g G') (C : G.connected_component) :
+  C.supp ≃ (φ.connected_component_equiv C).supp :=
+{ to_fun := λ v, ⟨φ v, connected_component.iso_image_comp_eq_map_iff_eq_comp.mpr v.prop⟩,
+  inv_fun := λ v', ⟨φ.symm v', connected_component.iso_inv_image_comp_eq_iff_eq_map.mpr v'.prop⟩,
+  left_inv := λ v, subtype.ext_val (φ.to_equiv.left_inv ↑v),
+  right_inv := λ v, subtype.ext_val (φ.to_equiv.right_inv ↑v), }
+
+end connected_component
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
@@ -1490,6 +1773,77 @@ by { rw ← set.nonempty_iff_univ_nonempty, exact hconn u v }
 
 lemma connected.set_univ_walk_nonempty (hconn : G.connected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty := hconn.preconnected.set_univ_walk_nonempty u v
+
+/-! ### Walks as subgraphs -/
+
+namespace walk
+variables {G G'} {u v w : V}
+
+/-- The subgraph consisting of the vertices and edges of the walk. -/
+@[simp] protected def to_subgraph : Π {u v : V}, G.walk u v → G.subgraph
+| u _ nil := G.singleton_subgraph u
+| _ _ (cons h p) := G.subgraph_of_adj h ⊔ p.to_subgraph
+
+lemma to_subgraph_cons_nil_eq_subgraph_of_adj (h : G.adj u v) :
+  (cons h nil).to_subgraph = G.subgraph_of_adj h :=
+by simp
+
+lemma mem_verts_to_subgraph (p : G.walk u v) :
+  w ∈ p.to_subgraph.verts ↔ w ∈ p.support :=
+begin
+  induction p with _ x y z h p' ih,
+  { simp },
+  { have : w = y ∨ w ∈ p'.support ↔ w ∈ p'.support :=
+      ⟨by rintro (rfl | h); simp [*], by simp { contextual := tt}⟩,
+    simp [ih, or_assoc, this] }
+end
+
+@[simp] lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
+set.ext (λ _, p.mem_verts_to_subgraph)
+
+lemma mem_edges_to_subgraph (p : G.walk u v) {e : sym2 V} :
+  e ∈ p.to_subgraph.edge_set ↔ e ∈ p.edges :=
+by induction p; simp [*]
+
+@[simp] lemma edge_set_to_subgraph (p : G.walk u v) : p.to_subgraph.edge_set = {e | e ∈ p.edges} :=
+set.ext (λ _, p.mem_edges_to_subgraph)
+
+@[simp] lemma to_subgraph_append (p : G.walk u v) (q : G.walk v w) :
+  (p.append q).to_subgraph = p.to_subgraph ⊔ q.to_subgraph :=
+by induction p; simp [*, sup_assoc]
+
+@[simp] lemma to_subgraph_reverse (p : G.walk u v) :
+  p.reverse.to_subgraph = p.to_subgraph :=
+begin
+  induction p,
+  { simp },
+  { simp only [*, walk.to_subgraph, reverse_cons, to_subgraph_append, subgraph_of_adj_symm],
+    rw [sup_comm],
+    congr,
+    ext; simp [-set.bot_eq_empty], }
+end
+
+@[simp] lemma to_subgraph_rotate [decidable_eq V] (c : G.walk v v) (h : u ∈ c.support) :
+  (c.rotate h).to_subgraph = c.to_subgraph :=
+by rw [rotate, to_subgraph_append, sup_comm, ← to_subgraph_append, take_spec]
+
+@[simp] lemma to_subgraph_map (f : G →g G') (p : G.walk u v) :
+  (p.map f).to_subgraph = p.to_subgraph.map f :=
+by induction p; simp [*, subgraph.map_sup]
+
+@[simp] lemma finite_neighbor_set_to_subgraph (p : G.walk u v) :
+  (p.to_subgraph.neighbor_set w).finite :=
+begin
+  induction p,
+  { rw [walk.to_subgraph, neighbor_set_singleton_subgraph],
+    apply set.to_finite, },
+  { rw [walk.to_subgraph, subgraph.neighbor_set_sup],
+    refine set.finite.union _ p_ih,
+    refine set.finite.subset _ (neighbor_set_subgraph_of_adj_subset p_h),
+    apply set.to_finite, },
+end
+
+end walk
 
 /-! ### Walks of a given length -/
 
@@ -1629,22 +1983,25 @@ section bridge_edges
 are no longer reachable from one another. -/
 def is_bridge (G : simple_graph V) (e : sym2 V) : Prop :=
 e ∈ G.edge_set ∧
-sym2.lift ⟨λ v w, ¬ (G.delete_edges {e}).reachable v w, by simp [reachable_comm]⟩ e
+sym2.lift ⟨λ v w, ¬ (G \ from_edge_set {e}).reachable v w, by simp [reachable_comm]⟩ e
 
 lemma is_bridge_iff {u v : V} :
-  G.is_bridge ⟦(u, v)⟧ ↔ G.adj u v ∧ ¬ (G.delete_edges {⟦(u, v)⟧}).reachable u v := iff.rfl
+  G.is_bridge ⟦(u, v)⟧ ↔ G.adj u v ∧ ¬ (G \ from_edge_set {⟦(u, v)⟧}).reachable u v := iff.rfl
 
 lemma reachable_delete_edges_iff_exists_walk {v w : V} :
-  (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔ ∃ (p : G.walk v w), ¬ ⟦(v, w)⟧ ∈ p.edges :=
+  (G \ from_edge_set {⟦(v, w)⟧}).reachable v w ↔ ∃ (p : G.walk v w), ¬ ⟦(v, w)⟧ ∈ p.edges :=
 begin
   split,
   { rintro ⟨p⟩,
-    use p.map (hom.map_spanning_subgraphs (G.delete_edges_le _)),
+    use p.map (hom.map_spanning_subgraphs (by simp)),
     simp_rw [walk.edges_map, list.mem_map, hom.map_spanning_subgraphs_apply, sym2.map_id', id.def],
     rintro ⟨e, h, rfl⟩,
     simpa using p.edges_subset_edge_set h, },
   { rintro ⟨p, h⟩,
-    exact ⟨p.to_delete_edge _ h⟩, },
+    refine ⟨p.transfer _ (λ e ep, _)⟩,
+    simp only [edge_set_sdiff, edge_set_from_edge_set, edge_set_sdiff_sdiff_is_diag,
+               set.mem_diff, set.mem_singleton_iff],
+    exact ⟨p.edges_subset_edge_set ep, λ h', h (h' ▸ ep)⟩,  },
 end
 
 lemma is_bridge_iff_adj_and_forall_walk_mem_edges {v w : V} :
@@ -1687,7 +2044,7 @@ begin
 end
 
 lemma adj_and_reachable_delete_edges_iff_exists_cycle {v w : V} :
-  G.adj v w ∧ (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔
+  G.adj v w ∧ (G \ from_edge_set {⟦(v, w)⟧}).reachable v w ↔
   ∃ (u : V) (p : G.walk u u), p.is_cycle ∧ ⟦(v, w)⟧ ∈ p.edges :=
 begin
   classical,
@@ -1739,3 +2096,4 @@ sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 end bridge_edges
 
 end simple_graph
+

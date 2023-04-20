@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.group.opposite
-import algebra.group_with_zero.basic
 import group_theory.group_action.defs
 
 /-!
 # Scalar actions on and by `Mᵐᵒᵖ`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the actions on the opposite type `has_smul R Mᵐᵒᵖ`, and actions by the opposite
 type, `has_smul Rᵐᵒᵖ M`.
@@ -102,6 +104,7 @@ instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
   smul_comm_class α αᵐᵒᵖ α :=
 smul_comm_class.symm _ _ _
 
+@[to_additive]
 instance comm_semigroup.is_central_scalar [comm_semigroup α] : is_central_scalar α α :=
 ⟨λ r m, mul_comm _ _⟩
 

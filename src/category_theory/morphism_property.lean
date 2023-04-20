@@ -6,9 +6,13 @@ Authors: Andrew Yang
 import category_theory.limits.shapes.diagonal
 import category_theory.arrow
 import category_theory.limits.shapes.comm_sq
+import category_theory.concrete_category.basic
 
 /-!
 # Properties of morphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide the basic framework for talking about properties of morphisms.
 The following meta-properties are defined
@@ -508,6 +512,58 @@ lemma universally_mono : monotone (universally : morphism_property C → morphis
 λ P₁ P₂ h X Y f h₁ X' Y' i₁ i₂ f' H, h _ _ _ (h₁ _ _ _ H)
 
 end universally
+
+section bijective
+
+variables [concrete_category C]
+
+open function
+
+local attribute [instance] concrete_category.has_coe_to_fun concrete_category.has_coe_to_sort
+
+variable (C)
+
+/-- Injectiveness (in a concrete category) as a `morphism_property` -/
+protected def injective : morphism_property C := λ X Y f, injective f
+
+/-- Surjectiveness (in a concrete category) as a `morphism_property` -/
+protected def surjective : morphism_property C := λ X Y f, surjective f
+
+/-- Bijectiveness (in a concrete category) as a `morphism_property` -/
+protected def bijective : morphism_property C := λ X Y f, bijective f
+
+lemma bijective_eq_sup : morphism_property.bijective C =
+  morphism_property.injective C ⊓ morphism_property.surjective C :=
+rfl
+
+lemma injective_stable_under_composition :
+  (morphism_property.injective C).stable_under_composition :=
+λ X Y Z f g hf hg, by { delta morphism_property.injective, rw coe_comp, exact hg.comp hf }
+
+lemma surjective_stable_under_composition :
+  (morphism_property.surjective C).stable_under_composition :=
+λ X Y Z f g hf hg, by { delta morphism_property.surjective, rw coe_comp, exact hg.comp hf }
+
+lemma bijective_stable_under_composition :
+  (morphism_property.bijective C).stable_under_composition :=
+λ X Y Z f g hf hg, by { delta morphism_property.bijective, rw coe_comp, exact hg.comp hf }
+
+lemma injective_respects_iso :
+  (morphism_property.injective C).respects_iso :=
+(injective_stable_under_composition C).respects_iso
+  (λ X Y e, ((forget C).map_iso e).to_equiv.injective)
+
+lemma surjective_respects_iso :
+  (morphism_property.surjective C).respects_iso :=
+(surjective_stable_under_composition C).respects_iso
+  (λ X Y e, ((forget C).map_iso e).to_equiv.surjective)
+
+lemma bijective_respects_iso :
+  (morphism_property.bijective C).respects_iso :=
+(bijective_stable_under_composition C).respects_iso
+  (λ X Y e, ((forget C).map_iso e).to_equiv.bijective)
+
+end bijective
 
 end morphism_property
 

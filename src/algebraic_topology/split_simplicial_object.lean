@@ -11,6 +11,9 @@ import category_theory.limits.shapes.finite_products
 
 # Split simplicial objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we introduce the notion of split simplicial object.
 If `C` is a category that has finite coproducts, a splitting
 `s : splitting X` of a simplical object `X` in `C` consists
@@ -34,10 +37,8 @@ Simplicial objects equipped with a splitting form a category
 
 noncomputable theory
 
-open category_theory
-open category_theory.category
-open category_theory.limits
-open opposite
+open category_theory category_theory.category category_theory.limits
+  opposite simplex_category
 open_locale simplicial
 
 universe u
@@ -59,7 +60,7 @@ namespace index_set
 def mk {Δ Δ' : simplex_category} (f : Δ ⟶ Δ') [epi f] : index_set (op Δ) :=
 ⟨op Δ', f, infer_instance⟩
 
-variables {Δ' Δ : simplex_categoryᵒᵖ} (A : index_set Δ)
+variables {Δ' Δ : simplex_categoryᵒᵖ} (A : index_set Δ) (θ : Δ ⟶ Δ')
 
 /-- The epimorphism in `simplex_category` associated to `A : splitting.index_set Δ` -/
 def e := A.2.1
@@ -82,7 +83,7 @@ end
 instance : fintype (index_set Δ) :=
 fintype.of_injective
   ((λ A, ⟨⟨A.1.unop.len, nat.lt_succ_iff.mpr
-    (simplex_category.len_le_of_epi (infer_instance : epi A.e))⟩, A.e.to_order_hom⟩) :
+    (len_le_of_epi (infer_instance : epi A.e))⟩, A.e.to_order_hom⟩) :
     index_set Δ → (sigma (λ (k : fin (Δ.unop.len+1)), (fin (Δ.unop.len+1) → fin (k+1)))))
 begin
   rintros ⟨Δ₁, α₁⟩ ⟨Δ₂, α₂⟩ h₁,
@@ -125,7 +126,7 @@ begin
     refine ext _ _ rfl _,
     { haveI := hf,
       simp only [eq_to_hom_refl, comp_id],
-      exact simplex_category.eq_id_of_epi f, }, },
+      exact eq_id_of_epi f, }, },
 end
 
 lemma eq_id_iff_len_eq : A.eq_id ↔ A.1.unop.len = Δ.unop.len :=
@@ -140,12 +141,43 @@ begin
     exact h, },
 end
 
+lemma eq_id_iff_len_le : A.eq_id ↔ Δ.unop.len ≤ A.1.unop.len :=
+begin
+  rw eq_id_iff_len_eq,
+  split,
+  { intro h,
+    rw h, },
+  { exact le_antisymm (len_le_of_epi (infer_instance : epi A.e)), },
+end
+
+lemma eq_id_iff_mono : A.eq_id ↔ mono A.e :=
+begin
+  split,
+  { intro h,
+    dsimp at h,
+    subst h,
+    dsimp only [id, e],
+    apply_instance, },
+  { intro h,
+    rw eq_id_iff_len_le,
+    exact len_le_of_mono h, }
+end
+
 /-- Given `A : index_set Δ₁`, if `p.unop : unop Δ₂ ⟶ unop Δ₁` is an epi, this
 is the obvious element in `A : index_set Δ₂` associated to the composition
 of epimorphisms `p.unop ≫ A.e`. -/
 @[simps]
 def epi_comp {Δ₁ Δ₂ : simplex_categoryᵒᵖ} (A : index_set Δ₁) (p : Δ₁ ⟶ Δ₂) [epi p.unop] :
   index_set Δ₂ := ⟨A.1, ⟨p.unop ≫ A.e, epi_comp _ _⟩⟩
+
+/--
+When `A : index_set Δ` and `θ : Δ → Δ'` is a morphism in `simplex_categoryᵒᵖ`,
+an element in `index_set Δ'` can be defined by using the epi-mono factorisation
+of `θ.unop ≫ A.e`. -/
+def pull : index_set Δ' := mk (factor_thru_image (θ.unop ≫ A.e))
+
+@[reassoc]
+lemma fac_pull : (A.pull θ).e ≫ image.ι (θ.unop ≫ A.e) = θ.unop ≫ A.e := image.fac _
 
 end index_set
 

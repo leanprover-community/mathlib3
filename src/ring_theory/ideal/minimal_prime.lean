@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.localization.integral
 import ring_theory.localization.at_prime
 import order.minimal
 

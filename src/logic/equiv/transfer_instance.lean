@@ -3,11 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import algebra.algebra.basic
+import algebra.algebra.equiv
 import algebra.field.basic
-import algebra.group.type_tags
 import logic.equiv.defs
-import ring_theory.ideal.local_ring
 
 /-!
 # Transfer algebraic structures across `equiv`s
@@ -410,14 +408,3 @@ end R
 
 end instances
 end equiv
-
-namespace ring_equiv
-
-@[reducible] protected lemma local_ring {A B : Type*} [comm_semiring A] [local_ring A]
-  [comm_semiring B] (e : A ≃+* B) : local_ring B :=
-begin
-  haveI := e.symm.to_equiv.nontrivial,
-  exact local_ring.of_surjective (e : A →+* B) e.surjective
-end
-
-end ring_equiv

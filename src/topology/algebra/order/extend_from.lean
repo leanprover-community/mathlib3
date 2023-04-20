@@ -3,15 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.extend_from
 
 /-!
 # Lemmas about `extend_from` in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter set topological_space
-open_locale topological_space classical
+open_locale topology classical
 
 universes u v
 variables {α : Type u} {β : Type v}

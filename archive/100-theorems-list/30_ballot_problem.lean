@@ -66,73 +66,44 @@ This represents vote sequences where candidate `+1` receives `p` votes and candi
 def counted_sequence (p q : ℕ) : set (list ℤ) :=
 {l | l.count 1 = p ∧ l.count (-1) = q ∧ ∀ x ∈ l, x = (1 : ℤ) ∨ x = -1}
 
-@[simp] lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.repeat 1 p} :=
+/-- An alternative definition of `counted_sequence` that uses `list.perm`. -/
+lemma mem_counted_sequence_iff_perm {p q l} :
+  l ∈ counted_sequence p q ↔ l ~ list.replicate p (1 : ℤ) ++ list.replicate q (-1) :=
 begin
-  ext l,
-  rw [counted_sequence, mem_singleton_iff],
-  split,
-  { rintro ⟨hl₀, hl₁, hl₂⟩,
-    rw list.eq_repeat,
-    have : ∀ x ∈ l, (1 : ℤ) = x,
-    { intros x hx,
-      obtain rfl | rfl := hl₂ x hx,
-      { refl },
-      { exact false.elim (list.not_mem_of_count_eq_zero hl₁ hx) } },
-    split,
-    { rwa ← list.count_eq_length.2 this },
-    { exact λ x hx, (this x hx).symm } },
-  { rintro rfl,
-    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
-    refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
-    { norm_num },
-    { rintro ⟨-, rfl⟩,
-      exact or.inl rfl } }
+  rw [list.perm_replicate_append_replicate],
+  { simp only [counted_sequence, list.subset_def, mem_set_of_eq, list.mem_cons_iff,
+      list.mem_singleton] },
+  { norm_num1 }
 end
 
-@[simp] lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.repeat (-1) q} :=
-begin
-  ext l,
-  rw [counted_sequence, mem_singleton_iff],
-  split,
-  { rintro ⟨hl₀, hl₁, hl₂⟩,
-    rw list.eq_repeat,
-    have : ∀ x ∈ l, (-1 : ℤ) = x,
-    { intros x hx,
-      obtain rfl | rfl := hl₂ x hx,
-      { exact false.elim (list.not_mem_of_count_eq_zero hl₀ hx) },
-      { refl } },
-    split,
-    { rwa ← list.count_eq_length.2 this },
-    { exact λ x hx, (this x hx).symm } },
-  { rintro rfl,
-    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
-    refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
-    { norm_num },
-    { rintro ⟨-, rfl⟩,
-      exact or.inr rfl } }
-end
+@[simp] lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.replicate p 1} :=
+by { ext l, simp [mem_counted_sequence_iff_perm] }
+
+@[simp] lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.replicate q (-1)} :=
+by { ext l, simp [mem_counted_sequence_iff_perm] }
+
+lemma mem_of_mem_counted_sequence {p q} {l} (hl : l ∈ counted_sequence p q) {x : ℤ} (hx : x ∈ l) :
+  x = 1 ∨ x = -1 :=
+hl.2.2 x hx
+
+lemma length_of_mem_counted_sequence {p q} {l : list ℤ} (hl : l ∈ counted_sequence p q) :
+  l.length = p + q :=
+by simp [(mem_counted_sequence_iff_perm.1 hl).length_eq]
+
+lemma counted_eq_nil_iff {p q : ℕ} {l : list ℤ} (hl : l ∈ counted_sequence p q) :
+  l = [] ↔ p = 0 ∧ q = 0 :=
+list.length_eq_zero.symm.trans $ by simp [length_of_mem_counted_sequence hl]
 
 lemma counted_ne_nil_left {p q : ℕ} (hp : p ≠ 0) {l : list ℤ} (hl : l ∈ counted_sequence p q) :
-  l ≠ list.nil :=
-begin
-  obtain ⟨hl₀, hl₁, hl₂⟩ := hl,
-  rintro rfl,
-  rw list.count_nil at hl₀,
-  exact hp hl₀.symm,
-end
+  l ≠ [] :=
+by simp [counted_eq_nil_iff hl, hp]
 
-lemma counted_ne_nil_right {p q : ℕ} (hp : q ≠ 0) {l : list ℤ} (hl : l ∈ counted_sequence p q) :
-  l ≠ list.nil :=
-begin
-  obtain ⟨hl₀, hl₁, hl₂⟩ := hl,
-  rintro rfl,
-  rw list.count_nil at hl₁,
-  exact hp hl₁.symm,
-end
+lemma counted_ne_nil_right {p q : ℕ} (hq : q ≠ 0) {l : list ℤ} (hl : l ∈ counted_sequence p q) :
+  l ≠ [] :=
+by simp [counted_eq_nil_iff hl, hq]
 
 lemma counted_succ_succ (p q : ℕ) : counted_sequence (p + 1) (q + 1) =
-  (counted_sequence p (q + 1)).image (list.cons 1) ∪
-  (counted_sequence (p + 1) q).image (list.cons (-1)) :=
+  list.cons 1 '' counted_sequence p (q + 1) ∪ list.cons (-1) '' counted_sequence (p + 1) q  :=
 begin
   ext l,
   rw [counted_sequence, counted_sequence, counted_sequence],
@@ -193,79 +164,13 @@ lemma counted_sequence_nonempty : ∀ (p q : ℕ), (counted_sequence p q).nonemp
     exact or.inl (counted_sequence_nonempty _ _),
   end
 
-lemma sum_of_mem_counted_sequence :
-  ∀ {p q : ℕ} {l : list ℤ} (hl : l ∈ counted_sequence p q), l.sum = p - q
-| 0 q l hl :=
-  begin
-    rw [counted_left_zero, mem_singleton_iff] at hl,
-    simp [hl],
-  end
-| p 0 l hl :=
-  begin
-    rw [counted_right_zero, mem_singleton_iff] at hl,
-    simp [hl],
-  end
-| (p + 1) (q + 1) l hl :=
-  begin
-    simp only [counted_succ_succ, mem_union, mem_image] at hl,
-    rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩),
-    { rw [list.sum_cons, sum_of_mem_counted_sequence hl],
-      push_cast,
-      ring },
-    { rw [list.sum_cons, sum_of_mem_counted_sequence hl],
-      push_cast,
-      ring }
-  end
-
-lemma mem_of_mem_counted_sequence :
-  ∀ {p q : ℕ} {l} (hl : l ∈ counted_sequence p q) {x : ℤ} (hx : x ∈ l), x = 1 ∨ x = -1
-| 0 q l hl x hx :=
-  begin
-    rw [counted_left_zero, mem_singleton_iff] at hl,
-    subst hl,
-    exact or.inr (list.eq_of_mem_repeat hx),
-  end
-| p 0 l hl x hx :=
-  begin
-    rw [counted_right_zero, mem_singleton_iff] at hl,
-    subst hl,
-    exact or.inl (list.eq_of_mem_repeat hx),
-  end
-| (p + 1) (q + 1) l hl x hx :=
-  begin
-    simp only [counted_succ_succ, mem_union, mem_image] at hl,
-    rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩);
-    rcases hx with (rfl | hx),
-    { left, refl },
-    { exact mem_of_mem_counted_sequence hl hx },
-    { right, refl },
-    { exact mem_of_mem_counted_sequence hl hx },
-  end
-
-lemma length_of_mem_counted_sequence :
-  ∀ {p q : ℕ} {l : list ℤ} (hl : l ∈ counted_sequence p q), l.length = p + q
-| 0 q l hl :=
-  begin
-    rw [counted_left_zero, mem_singleton_iff] at hl,
-    simp [hl],
-  end
-| p 0 l hl :=
-  begin
-    rw [counted_right_zero, mem_singleton_iff] at hl,
-    simp [hl],
-  end
-| (p + 1) (q + 1) l hl :=
-  begin
-    simp only [counted_succ_succ, mem_union, mem_image] at hl,
-    rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩),
-    { rw [list.length_cons, length_of_mem_counted_sequence hl, add_right_comm] },
-    { rw [list.length_cons, length_of_mem_counted_sequence hl, ←add_assoc] }
-  end
+lemma sum_of_mem_counted_sequence {p q} {l : list ℤ} (hl : l ∈ counted_sequence p q) :
+  l.sum = p - q :=
+by simp [(mem_counted_sequence_iff_perm.1 hl).sum_eq, sub_eq_add_neg]
 
 lemma disjoint_bits (p q : ℕ) :
-  disjoint
-    ((counted_sequence p (q + 1)).image (list.cons 1))
-    ((counted_sequence (p + 1) q).image (list.cons (-1))) :=
+  disjoint (list.cons 1 '' counted_sequence p (q + 1))
+    (list.cons (-1) '' counted_sequence (p + 1) q) :=
 begin
   simp_rw [disjoint_left, mem_image, not_exists, exists_imp_distrib],
   rintros _ _ ⟨_, rfl⟩ _ ⟨_, _, _⟩,
@@ -277,7 +182,7 @@ private def measureable_space_list_int : measurable_space (list ℤ) := ⊤
 
 local attribute [instance] measureable_space_list_int
 
-private def measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
+private lemma measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
 { measurable_set_singleton := λ s, trivial }
 
 local attribute [instance] measurable_singleton_class_list_int
@@ -381,7 +286,7 @@ begin
     rw mem_singleton_iff at hl,
     subst hl,
     refine λ l hl₁ hl₂, list.sum_pos _ (λ x hx, _) hl₁,
-    rw list.eq_of_mem_repeat (list.mem_of_mem_suffix hx hl₂),
+    rw list.eq_of_mem_replicate (list.mem_of_mem_suffix hx hl₂),
     norm_num },
 end
 
@@ -520,9 +425,9 @@ begin
   { rw ballot_problem' q p qp,
     rw [ennreal.to_real_div, ← nat.cast_add, ← nat.cast_add, ennreal.to_real_nat,
       ennreal.to_real_sub_of_le, ennreal.to_real_nat, ennreal.to_real_nat],
-    exacts [ennreal.coe_nat_le_coe_nat.2 qp.le, ennreal.nat_ne_top _] },
+    exacts [nat.cast_le.2 qp.le, ennreal.nat_ne_top _] },
   rwa ennreal.to_real_eq_to_real (measure_lt_top _ _).ne at this,
-  { simp only [ne.def, ennreal.div_eq_top, tsub_eq_zero_iff_le, ennreal.coe_nat_le_coe_nat,
+  { simp only [ne.def, ennreal.div_eq_top, tsub_eq_zero_iff_le, nat.cast_le,
       not_le, add_eq_zero_iff, nat.cast_eq_zero, ennreal.add_eq_top, ennreal.nat_ne_top,
       or_self, not_false_iff, and_true],
     push_neg,

@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.bundle
-import topology.algebra.order.basic
+import topology.algebra.order.field
 import topology.local_homeomorph
 
 /-!
 # Trivializations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -24,12 +27,6 @@ import topology.local_homeomorph
 
 We provide the following operations on `trivialization`s.
 
-* `trivialization.comap`: given a local trivialization `e` of a fiber bundle `p : Z → B`, a
-  continuous map `f : B' → B` and a point `b' : B'` such that `f b' ∈ e.base_set`,
-  `e.comap f hf b' hb'` is a trivialization of the pullback bundle. The pullback bundle
-  (a.k.a., the induced bundle) has total space `{(x, y) : B' × Z | f x = p y}`, and is given by
-  `λ ⟨(x, y), h⟩, x`.
-
 * `trivialization.comp_homeomorph`: given a local trivialization `e` of a fiber bundle
   `p : Z → B` and a homeomorphism `h : Z' ≃ₜ Z`, returns a local trivialization of the fiber bundle
   `p ∘ h`.
@@ -37,13 +34,13 @@ We provide the following operations on `trivialization`s.
 ## Implementation notes
 
 Previously, in mathlib, there was a structure `topological_vector_bundle.trivialization` which
-extended another structure `topological_fibre_bundle.trivialization` by a linearity hypothesis. As
+extended another structure `topological_fiber_bundle.trivialization` by a linearity hypothesis. As
 of PR #17359, we have changed this to a single structure `trivialization` (no namespace), together
 with a mixin class `trivialization.is_linear`.
 
-This permits all the *data* of a vector bundle to be held at the level of fibre bundles, so that the
+This permits all the *data* of a vector bundle to be held at the level of fiber bundles, so that the
 same trivializations can underlie an object's structure as (say) a vector bundle over `ℂ` and as a
-vector bundle over `ℝ`, as well as its structure simply as a fibre bundle.
+vector bundle over `ℝ`, as well as its structure simply as a fiber bundle.
 
 This might be a little surprising, given the general trend of the library to ever-increased
 bundling.  But in this case the typical motivation for more bundling does not apply: there is no
@@ -54,7 +51,7 @@ type of linear trivializations is not even particularly well-behaved.
 -/
 
 open topological_space filter set bundle
-open_locale topological_space classical bundle
+open_locale topology classical bundle
 
 variables {ι : Type*} {B : Type*} {F : Type*} {E : B → Type*}
 variables (F) {Z : Type*} [topological_space B] [topological_space F] {proj : Z → B}
@@ -563,54 +560,6 @@ protected def coord_change_homeomorph
 rfl
 
 variables {F} {B' : Type*} [topological_space B']
-
-/-- Given a bundle trivialization of `proj : Z → B` and a continuous map `f : B' → B`,
-construct a bundle trivialization of `φ : {p : B' × Z | f p.1 = proj p.2} → B'`
-given by `φ x = (x : B' × Z).1`. -/
-protected noncomputable def comap
-  (e : trivialization F proj) (f : B' → B) (hf : continuous f)
-  (b' : B') (hb' : f b' ∈ e.base_set) :
-  trivialization F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
-{ to_fun := λ p, ((p : B' × Z).1, (e (p : B' × Z).2).2),
-  inv_fun := λ p, if h : f p.1 ∈ e.base_set
-    then ⟨⟨p.1, e.to_local_homeomorph.symm (f p.1, p.2)⟩, by simp [e.proj_symm_apply' h]⟩
-    else ⟨⟨b', e.to_local_homeomorph.symm (f b', p.2)⟩, by simp [e.proj_symm_apply' hb']⟩,
-  source := {p | f (p : B' × Z).1 ∈ e.base_set},
-  target := {p | f p.1 ∈ e.base_set},
-  map_source' := λ p hp, hp,
-  map_target' := λ p (hp : f p.1 ∈ e.base_set), by simp [hp],
-  left_inv' :=
-    begin
-      rintro ⟨⟨b, x⟩, hbx⟩ hb,
-      dsimp at *,
-      have hx : x ∈ e.source, from e.mem_source.2 (hbx ▸ hb),
-      ext; simp *
-    end,
-  right_inv' := λ p (hp : f p.1 ∈ e.base_set), by simp [*, e.apply_symm_apply'],
-  open_source := e.open_base_set.preimage (hf.comp $ continuous_fst.comp continuous_subtype_coe),
-  open_target := e.open_base_set.preimage (hf.comp continuous_fst),
-  continuous_to_fun := ((continuous_fst.comp continuous_subtype_coe).continuous_on).prod $
-    continuous_snd.comp_continuous_on $ e.continuous_to_fun.comp
-      (continuous_snd.comp continuous_subtype_coe).continuous_on $
-      by { rintro ⟨⟨b, x⟩, (hbx : f b = proj x)⟩ (hb : f b ∈ e.base_set),
-           rw hbx at hb,
-           exact e.mem_source.2 hb },
-  continuous_inv_fun :=
-    begin
-      rw [embedding_subtype_coe.continuous_on_iff],
-      suffices : continuous_on (λ p : B' × F, (p.1, e.to_local_homeomorph.symm (f p.1, p.2)))
-        {p : B' × F | f p.1 ∈ e.base_set},
-      { refine this.congr (λ p (hp : f p.1 ∈ e.base_set), _),
-        simp [hp] },
-      { refine continuous_on_fst.prod (e.to_local_homeomorph.symm.continuous_on.comp _ _),
-        { exact ((hf.comp continuous_fst).prod_mk continuous_snd).continuous_on },
-        { exact λ p hp, e.mem_target.2 hp } }
-    end,
-  base_set := f ⁻¹' e.base_set,
-  source_eq := rfl,
-  target_eq := by { ext, simp },
-  open_base_set := e.open_base_set.preimage hf,
-  proj_to_fun := λ _ _, rfl }
 
 lemma is_image_preimage_prod (e : trivialization F proj) (s : set B) :
   e.to_local_homeomorph.is_image (proj ⁻¹' s) (s ×ˢ univ) :=

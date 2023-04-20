@@ -10,10 +10,12 @@ import algebra.module.prod
 import algebra.module.submodule.lattice
 import data.dfinsupp.basic
 import data.finsupp.basic
-import order.compactly_generated
 
 /-!
 # Linear algebra
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the basics of linear algebra. It sets up the "categorical/lattice structure" of
 modules over a ring, submodules, and linear maps.
@@ -26,7 +28,6 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 * Many constructors for (semi)linear maps
 * The kernel `ker` and range `range` of a linear map are submodules of the domain and codomain
   respectively.
-* The general linear group is defined to be the group of invertible linear maps from `M` to itself.
 
 See `linear_algebra.span` for the span of a set (as a submodule),
 and `linear_algebra.quotient` for quotients by submodules.
@@ -85,44 +86,36 @@ begin
   { intro i, exact (h i).map_zero },
 end
 
-variables (α : Type*) [fintype α]
+variables (α : Type*) [finite α]
 variables (R M) [add_comm_monoid M] [semiring R] [module R M]
 
-/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
+/-- Given `finite α`, `linear_equiv_fun_on_finite R` is the natural `R`-linear equivalence between
 `α →₀ β` and `α → β`. -/
-@[simps apply] noncomputable def linear_equiv_fun_on_fintype :
+@[simps apply] noncomputable def linear_equiv_fun_on_finite :
   (α →₀ M) ≃ₗ[R] (α → M) :=
 { to_fun := coe_fn,
-  map_add' := λ f g, by { ext, refl },
-  map_smul' := λ c f, by { ext, refl },
-  .. equiv_fun_on_fintype }
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. equiv_fun_on_finite }
 
-@[simp] lemma linear_equiv_fun_on_fintype_single [decidable_eq α] (x : α) (m : M) :
-  (linear_equiv_fun_on_fintype R M α) (single x m) = pi.single x m :=
-begin
-  ext a,
-  change (equiv_fun_on_fintype (single x m)) a = _,
-  convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
-end
+@[simp] lemma linear_equiv_fun_on_finite_single [decidable_eq α] (x : α) (m : M) :
+  (linear_equiv_fun_on_finite R M α) (single x m) = pi.single x m :=
+equiv_fun_on_finite_single x m
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_single [decidable_eq α]
-  (x : α) (m : M) : (linear_equiv_fun_on_fintype R M α).symm (pi.single x m) = single x m :=
-begin
-  ext a,
-  change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
-  convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
-end
+@[simp] lemma linear_equiv_fun_on_finite_symm_single [decidable_eq α]
+  (x : α) (m : M) : (linear_equiv_fun_on_finite R M α).symm (pi.single x m) = single x m :=
+equiv_fun_on_finite_symm_single x m
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_coe (f : α →₀ M) :
-  (linear_equiv_fun_on_fintype R M α).symm f = f :=
-by { ext, simp [linear_equiv_fun_on_fintype], }
+@[simp] lemma linear_equiv_fun_on_finite_symm_coe (f : α →₀ M) :
+  (linear_equiv_fun_on_finite R M α).symm f = f :=
+(linear_equiv_fun_on_finite R M α).symm_apply_apply f
 
 /-- If `α` has a unique term, then the type of finitely supported functions `α →₀ M` is
 `R`-linearly equivalent to `M`. -/
 noncomputable def linear_equiv.finsupp_unique (α : Type*) [unique α] : (α →₀ M) ≃ₗ[R] M :=
 { map_add' := λ x y, rfl,
   map_smul' := λ r x, rfl,
-  ..finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique α M) }
+  ..finsupp.equiv_fun_on_finite.trans (equiv.fun_unique α M) }
 
 variables {R M α}
 
@@ -155,6 +148,10 @@ variables [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄] [ring_hom_comp_tripl
 variables (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃)
 include R R₂
 
+@[simp] lemma map_sum {ι : Type*} {t : finset ι} {g : ι → M} :
+  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
+f.to_add_monoid_hom.map_sum _ _
+
 theorem comp_assoc (h : M₃ →ₛₗ[σ₃₄] M₄) :
   ((h.comp g : M₂ →ₛₗ[σ₂₄] M₄).comp f : M →ₛₗ[σ₁₄] M₄)
   = h.comp (g.comp f : M →ₛₗ[σ₁₃] M₃) := rfl
@@ -184,24 +181,29 @@ ext $ assume b, rfl
   p.subtype.comp (cod_restrict p f h) = f :=
 ext $ assume b, rfl
 
-/-- Restrict domain and codomain of an endomorphism. -/
-def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
-(f.dom_restrict p).cod_restrict p $ set_like.forall.2 hf
+/-- Restrict domain and codomain of a linear map. -/
+def restrict (f : M →ₗ[R] M₁) {p : submodule R M} {q : submodule R M₁} (hf : ∀ x ∈ p, f x ∈ q) :
+  p →ₗ[R] q :=
+(f.dom_restrict p).cod_restrict q $ set_like.forall.2 hf
+
+@[simp] lemma restrict_coe_apply (f : M →ₗ[R] M₁) {p : submodule R M} {q : submodule R M₁}
+  (hf : ∀ x ∈ p, f x ∈ q) (x : p) : ↑(f.restrict hf x) = f x := rfl
 
 lemma restrict_apply
-  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
+  {f : M →ₗ[R] M₁} {p : submodule R M} {q : submodule R M₁} (hf : ∀ x ∈ p, f x ∈ q) (x : p) :
   f.restrict hf x = ⟨f x, hf x.1 x.2⟩ := rfl
 
-lemma subtype_comp_restrict {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
-  p.subtype.comp (f.restrict hf) = f.dom_restrict p := rfl
+lemma subtype_comp_restrict {f : M →ₗ[R] M₁} {p : submodule R M} {q : submodule R M₁}
+  (hf : ∀ x ∈ p, f x ∈ q) :
+  q.subtype.comp (f.restrict hf) = f.dom_restrict p := rfl
 
 lemma restrict_eq_cod_restrict_dom_restrict
-  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
-  f.restrict hf = (f.dom_restrict p).cod_restrict p (λ x, hf x.1 x.2) := rfl
+  {f : M →ₗ[R] M₁} {p : submodule R M} {q : submodule R M₁} (hf : ∀ x ∈ p, f x ∈ q) :
+  f.restrict hf = (f.dom_restrict p).cod_restrict q (λ x, hf x.1 x.2) := rfl
 
 lemma restrict_eq_dom_restrict_cod_restrict
-  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x, f x ∈ p) :
-  f.restrict (λ x _, hf x) = (f.cod_restrict p hf).dom_restrict p := rfl
+  {f : M →ₗ[R] M₁} {p : submodule R M} {q : submodule R M₁} (hf : ∀ x, f x ∈ q) :
+  f.restrict (λ x _, hf x) = (f.cod_restrict q hf).dom_restrict p := rfl
 
 instance unique_of_left [subsingleton M] : unique (M →ₛₗ[σ₁₂] M₂) :=
 { uniq := λ f, ext $ λ x, by rw [subsingleton.elim x 0, map_zero, map_zero],
@@ -862,7 +864,8 @@ section add_comm_group
 variables [ring R] [add_comm_group M] [module R M] (p : submodule R M)
 variables [add_comm_group M₂] [module R M₂]
 
-@[simp] lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
+-- See `neg_coe_set`
+lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
 
 @[simp] protected lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
 ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx, map_neg f x⟩,
@@ -1032,6 +1035,23 @@ begin
   rw [range_comp, submodule.map_neg, submodule.map_id],
 end
 
+/-- A linear map version of `add_monoid_hom.eq_locus` -/
+def eq_locus (f g : M →ₛₗ[τ₁₂] M₂) : submodule R M :=
+{ carrier := {x | f x = g x},
+  smul_mem' := λ r x (hx : _ = _), show _ = _,
+    by simpa only [linear_map.map_smulₛₗ] using congr_arg ((•) (τ₁₂ r)) hx,
+  .. f.to_add_monoid_hom.eq_mlocus g.to_add_monoid_hom }
+
+@[simp] lemma mem_eq_locus {x : M} {f g : M →ₛₗ[τ₁₂] M₂} : x ∈ f.eq_locus g ↔ f x = g x :=
+iff.rfl
+
+lemma eq_locus_to_add_submonoid (f g : M →ₛₗ[τ₁₂] M₂) :
+  (f.eq_locus g).to_add_submonoid = (f : M →+ M₂).eq_mlocus g :=
+rfl
+
+@[simp] lemma eq_locus_same (f : M →ₛₗ[τ₁₂] M₂) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 end
 
 /--
@@ -1120,7 +1140,9 @@ lemma range_cod_restrict {τ₂₁ : R₂ →+* R} [ring_hom_surjective τ₂₁
   range (cod_restrict p f hf) = comap p.subtype f.range :=
 by simpa only [range_eq_map] using map_cod_restrict _ _ _ _
 
-lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x ∈ p → f x ∈ p) :
+lemma ker_restrict [add_comm_monoid M₁] [module R M₁]
+  {p : submodule R M} {q : submodule R M₁} {f : M →ₗ[R] M₁}
+  (hf : ∀ x : M, x ∈ p → f x ∈ q) :
   ker (f.restrict hf) = (f.dom_restrict p).ker :=
 by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 
@@ -1208,6 +1230,9 @@ lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ�
 lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
   f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
 
+lemma eq_locus_eq_ker_sub (f g : M →ₛₗ[τ₁₂] M₂) : f.eq_locus g = (f - g).ker :=
+set_like.ext $ λ v, sub_eq_zero.symm
+
 include sc
 theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]
@@ -1218,9 +1243,9 @@ disjoint_ker.trans
 ⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem hx hy) (by simp [h]),
  λ H x h₁ h₂, H x h₁ 0 (zero_mem _) (by simpa using h₂)⟩
 
-theorem inj_of_disjoint_ker {p : submodule R M}
+theorem inj_on_of_disjoint_ker {p : submodule R M}
   {s : set M} (h : s ⊆ p) (hd : disjoint p (ker f)) :
-  ∀ x y ∈ s, f x = f y → x = y :=
+  set.inj_on f s :=
 λ x hx y hy, disjoint_ker'.1 hd _ (h hx) _ (h hy)
 
 variables (F)
@@ -1449,20 +1474,27 @@ end linear_map
   f.range_restrict.range = ⊤ :=
 by simp [f.range_cod_restrict _]
 
+@[simp] lemma linear_map.ker_range_restrict [semiring R] [add_comm_monoid M]
+  [add_comm_monoid M₂] [module R M] [module R M₂] (f : M →ₗ[R] M₂) :
+  f.range_restrict.ker = f.ker :=
+linear_map.ker_cod_restrict _ _ _
+
 /-! ### Linear equivalences -/
 namespace linear_equiv
 
 section add_comm_monoid
 
 section subsingleton
-variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
-variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [semiring R] [semiring R₂]
+variables [add_comm_monoid M] [add_comm_monoid M₂]
 variables [module R M] [module R₂ M₂]
-variables [subsingleton M] [subsingleton M₂]
 variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
 include σ₂₁
+section module
+variables [subsingleton M] [subsingleton M₂]
+
 /-- Between two zero modules, the zero map is an equivalence. -/
 instance : has_zero (M ≃ₛₗ[σ₁₂] M₂) :=
 ⟨{ to_fun := 0,
@@ -1485,6 +1517,11 @@ instance : unique (M ≃ₛₗ[σ₁₂] M₂) :=
   default := 0 }
 omit σ₂₁
 
+end module
+
+instance unique_of_subsingleton [subsingleton R] [subsingleton R₂] : unique (M ≃ₛₗ[σ₁₂] M₂) :=
+by { haveI := module.subsingleton R M, haveI := module.subsingleton R₂ M₂, apply_instance }
+
 end subsingleton
 
 section
@@ -1494,6 +1531,9 @@ variables {module_M : module R M} {module_M₂ : module R₂ M₂}
 variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
 variables {re₁₂ : ring_hom_inv_pair σ₁₂ σ₂₁} {re₂₁ : ring_hom_inv_pair σ₂₁ σ₁₂}
 variables (e e' : M ≃ₛₗ[σ₁₂] M₂)
+
+@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
+e.to_linear_map.map_sum
 
 lemma map_eq_comap {p : submodule R M} :
   (p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂) = p.comap (e.symm : M₂ →ₛₗ[σ₂₁] M) :=
@@ -1759,11 +1799,11 @@ of_left_inverse $ classical.some_spec h.has_left_inverse
 
 /-- A bijective linear map is a linear equivalence. -/
 noncomputable def of_bijective [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₛₗ[σ₁₂] M₂ :=
-(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
+  (hf : bijective f) : M ≃ₛₗ[σ₁₂] M₂ :=
+(of_injective f hf.injective).trans (of_top _ $ linear_map.range_eq_top.2 hf.surjective)
 
 @[simp] theorem of_bijective_apply [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  {hf₁ hf₂} (x : M) : of_bijective f hf₁ hf₂ x = f x := rfl
+  {hf} (x : M) : of_bijective f hf x = f x := rfl
 
 end
 
@@ -2123,55 +2163,3 @@ rfl
 end linear_equiv
 
 end fun_left
-
-namespace linear_map
-
-variables [semiring R] [add_comm_monoid M] [module R M]
-variables (R M)
-
-/-- The group of invertible linear maps from `M` to itself -/
-@[reducible] def general_linear_group := (M →ₗ[R] M)ˣ
-
-namespace general_linear_group
-variables {R M}
-
-instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := by apply_instance
-
-/-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
-def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=
-{ inv_fun := f.inv.to_fun,
-  left_inv := λ m, show (f.inv * f.val) m = m,
-    by erw f.inv_val; simp,
-  right_inv := λ m, show (f.val * f.inv) m = m,
-    by erw f.val_inv; simp,
-  ..f.val }
-
-/-- An equivalence from `M` to itself determines an invertible linear map. -/
-def of_linear_equiv (f : (M ≃ₗ[R] M)) : general_linear_group R M :=
-{ val := f,
-  inv := (f.symm : M →ₗ[R] M),
-  val_inv := linear_map.ext $ λ _, f.apply_symm_apply _,
-  inv_val := linear_map.ext $ λ _, f.symm_apply_apply _ }
-
-variables (R M)
-
-/-- The general linear group on `R` and `M` is multiplicatively equivalent to the type of linear
-equivalences between `M` and itself. -/
-def general_linear_equiv : general_linear_group R M ≃* (M ≃ₗ[R] M) :=
-{ to_fun := to_linear_equiv,
-  inv_fun := of_linear_equiv,
-  left_inv := λ f, by { ext, refl },
-  right_inv := λ f, by { ext, refl },
-  map_mul' := λ x y, by {ext, refl} }
-
-@[simp] lemma general_linear_equiv_to_linear_map (f : general_linear_group R M) :
-  (general_linear_equiv R M f : M →ₗ[R] M) = f :=
-by {ext, refl}
-
-@[simp] lemma coe_fn_general_linear_equiv (f : general_linear_group R M) :
-  ⇑(general_linear_equiv R M f) = (f : M → M) :=
-rfl
-
-end general_linear_group
-
-end linear_map

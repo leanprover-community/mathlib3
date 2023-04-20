@@ -24,7 +24,7 @@ you should restate it here. You can also use
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal bounded_continuous_function big_operators
+open_locale topology classical nnreal bounded_continuous_function big_operators
 
 open set filter metric
 
@@ -83,7 +83,7 @@ When `α` is compact, and `β` is a metric space, the bounded continuous maps `�
 isometric to `C(α, β)`.
 -/
 @[simps to_equiv apply symm_apply { fully_applied := ff }]
-def isometric_bounded_of_compact :
+def isometry_equiv_bounded_of_compact :
   C(α, β) ≃ᵢ (α →ᵇ β) :=
 { isometry_to_fun := λ x y, rfl,
   to_equiv := equiv_bounded_of_compact α β }
@@ -127,11 +127,11 @@ by simp only [← dist_mk_of_compact, dist_lt_iff_of_compact C0, mk_of_compact_a
 end
 
 instance [complete_space β] : complete_space (C(α, β)) :=
-(isometric_bounded_of_compact α β).complete_space
+(isometry_equiv_bounded_of_compact α β).complete_space
 
 /-- See also `continuous_map.continuous_eval'` -/
 @[continuity] lemma continuous_eval : continuous (λ p : C(α, β) × α, p.1 p.2) :=
-continuous_eval.comp ((isometric_bounded_of_compact α β).continuous.prod_map continuous_id)
+continuous_eval.comp ((isometry_equiv_bounded_of_compact α β).continuous.prod_map continuous_id)
 
 /-- See also `continuous_map.continuous_eval_const` -/
 @[continuity] lemma continuous_eval_const (x : α) : continuous (λ f : C(α, β), f x) :=
@@ -147,10 +147,10 @@ instance : has_norm C(α, E) :=
 { norm := λ x, dist x 0 }
 
 @[simp] lemma _root_.bounded_continuous_function.norm_mk_of_compact (f : C(α, E)) :
-  ∥mk_of_compact f∥ = ∥f∥ := rfl
+  ‖mk_of_compact f‖ = ‖f‖ := rfl
 
 @[simp] lemma _root_.bounded_continuous_function.norm_to_continuous_map_eq (f : α →ᵇ E) :
-  ∥f.to_continuous_map∥ = ∥f∥ :=
+  ‖f.to_continuous_map‖ = ‖f‖ :=
 rfl
 
 open bounded_continuous_function
@@ -168,43 +168,48 @@ variables (f : C(α, E))
 -- The corresponding lemmas for `bounded_continuous_function` are stated with `{f}`,
 -- and so can not be used in dot notation.
 
-lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ :=
+lemma norm_coe_le_norm (x : α) : ‖f x‖ ≤ ‖f‖ :=
 (mk_of_compact f).norm_coe_le_norm x
 
 /-- Distance between the images of any two points is at most twice the norm of the function. -/
-lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
+lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ‖f‖ :=
 (mk_of_compact f).dist_le_two_norm x y
 
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
-lemma norm_le {C : ℝ} (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
+lemma norm_le {C : ℝ} (C0 : (0 : ℝ) ≤ C) : ‖f‖ ≤ C ↔ ∀x:α, ‖f x‖ ≤ C :=
 @bounded_continuous_function.norm_le _ _ _ _
   (mk_of_compact f) _ C0
 
-lemma norm_le_of_nonempty [nonempty α] {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥f x∥ ≤ M :=
+lemma norm_le_of_nonempty [nonempty α] {M : ℝ} : ‖f‖ ≤ M ↔ ∀ x, ‖f x‖ ≤ M :=
 @bounded_continuous_function.norm_le_of_nonempty _ _ _ _ _ (mk_of_compact f) _
 
-lemma norm_lt_iff {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+lemma norm_lt_iff {M : ℝ} (M0 : 0 < M) : ‖f‖ < M ↔ ∀ x, ‖f x‖ < M :=
 @bounded_continuous_function.norm_lt_iff_of_compact _ _ _ _ _ (mk_of_compact f) _ M0
 
-theorem nnnorm_lt_iff {M : ℝ≥0} (M0 : 0 < M) : ∥f∥₊ < M ↔ ∀ (x : α), ∥f x∥₊ < M :=
+theorem nnnorm_lt_iff {M : ℝ≥0} (M0 : 0 < M) : ‖f‖₊ < M ↔ ∀ (x : α), ‖f x‖₊ < M :=
 f.norm_lt_iff M0
 
 lemma norm_lt_iff_of_nonempty [nonempty α] {M : ℝ} :
-  ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+  ‖f‖ < M ↔ ∀ x, ‖f x‖ < M :=
 @bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _ (mk_of_compact f) _
 
 lemma nnnorm_lt_iff_of_nonempty [nonempty α] {M : ℝ≥0} :
-  ∥f∥₊ < M ↔ ∀ x, ∥f x∥₊ < M :=
+  ‖f‖₊ < M ↔ ∀ x, ‖f x‖₊ < M :=
 f.norm_lt_iff_of_nonempty
 
-lemma apply_le_norm (f : C(α, ℝ)) (x : α) : f x ≤ ∥f∥ :=
+lemma apply_le_norm (f : C(α, ℝ)) (x : α) : f x ≤ ‖f‖ :=
 le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
 
-lemma neg_norm_le_apply (f : C(α, ℝ)) (x : α) : -∥f∥ ≤ f x :=
+lemma neg_norm_le_apply (f : C(α, ℝ)) (x : α) : -‖f‖ ≤ f x :=
 le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
 
-lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
+lemma norm_eq_supr_norm : ‖f‖ = ⨆ x : α, ‖f x‖ :=
 (mk_of_compact f).norm_eq_supr_norm
+
+lemma norm_restrict_mono_set {X : Type*} [topological_space X]
+  (f : C(X, E)) {K L : topological_space.compacts X} (hKL : K ≤ L) :
+  ‖f.restrict K‖ ≤ ‖f.restrict L‖ :=
+(norm_le _ (norm_nonneg _)).mpr (λ x, norm_coe_le_norm (f.restrict L) $ set.inclusion hKL x)
 
 end
 
@@ -222,7 +227,7 @@ section
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
 instance : normed_space 𝕜 C(α,E) :=
-{ norm_smul_le := λ c f, le_of_eq (norm_smul c (mk_of_compact f)) }
+{ norm_smul_le := λ c f, (norm_smul_le c (mk_of_compact f) : _) }
 
 section
 variables (α 𝕜 E)
@@ -238,6 +243,13 @@ def linear_isometry_bounded_of_compact :
   norm_map' := λ f, rfl,
   .. add_equiv_bounded_of_compact α E }
 
+variables {α E} -- to match bounded_continuous_function.eval_clm
+
+/-- The evaluation at a point, as a continuous linear map from `C(α, 𝕜)` to `𝕜`. -/
+def eval_clm (x : α) : C(α, E) →L[𝕜] E :=
+  (eval_clm 𝕜 x).comp
+  ((linear_isometry_bounded_of_compact α E 𝕜).to_linear_isometry).to_continuous_linear_map
+
 end
 
 -- this lemma and the next are the analogues of those autogenerated by `@[simps]` for
@@ -252,8 +264,9 @@ rfl
 
 
 @[simp]
-lemma linear_isometry_bounded_of_compact_to_isometric :
-  (linear_isometry_bounded_of_compact α E 𝕜).to_isometric = (isometric_bounded_of_compact α E) :=
+lemma linear_isometry_bounded_of_compact_to_isometry_equiv :
+  (linear_isometry_bounded_of_compact α E 𝕜).to_isometry_equiv =
+    (isometry_equiv_bounded_of_compact α E) :=
 rfl
 
 @[simp]
@@ -401,7 +414,12 @@ map_continuous (comp_right_continuous_map A f)
 
 end comp_right
 
-section weierstrass
+section local_normal_convergence
+/-! ### Local normal convergence
+
+A sum of continuous functions (on a locally compact space) is "locally normally convergent" if the
+sum of its sup-norms on any compact subset is summable. This implies convergence in the topology
+of `C(X, E)` (i.e. locally uniform convergence). -/
 
 open topological_space
 
@@ -409,7 +427,7 @@ variables {X : Type*} [topological_space X] [t2_space X] [locally_compact_space 
 variables {E : Type*} [normed_add_comm_group E] [complete_space E]
 
 lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
-  (hF : ∀ K : compacts X, summable (λ i, ∥(F i).restrict K∥)) :
+  (hF : ∀ K : compacts X, summable (λ i, ‖(F i).restrict K‖)) :
   summable F :=
 begin
   refine (continuous_map.exists_tendsto_compact_open_iff_forall _).2 (λ K hK, _),
@@ -419,8 +437,7 @@ begin
   simpa only [has_sum, A] using summable_of_summable_norm (hF K)
 end
 
-end weierstrass
-
+end local_normal_convergence
 
 /-!
 ### Star structures

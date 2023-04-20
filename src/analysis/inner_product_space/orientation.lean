@@ -35,7 +35,7 @@ This file provides definitions and proves lemmas about orientations of real inne
 
 noncomputable theory
 
-variables {E : Type*} [inner_product_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
 open finite_dimensional
 open_locale big_operators real_inner_product_space
@@ -213,7 +213,8 @@ lemma volume_form_robust (b : orthonormal_basis (fin n) ℝ E) (hb : b.to_basis.
   o.volume_form = b.to_basis.det :=
 begin
   unfreezingI { cases n },
-  { have : o = positive_orientation := hb.symm.trans b.to_basis.orientation_is_empty,
+  { classical,
+    have : o = positive_orientation := hb.symm.trans b.to_basis.orientation_is_empty,
     simp [volume_form, or.by_cases, dif_pos this] },
   { dsimp [volume_form],
     rw [same_orientation_iff_det_eq_det, hb],
@@ -227,7 +228,8 @@ lemma volume_form_robust_neg (b : orthonormal_basis (fin n) ℝ E)
   o.volume_form = - b.to_basis.det :=
 begin
   unfreezingI { cases n },
-  { have : positive_orientation ≠ o := by rwa b.to_basis.orientation_is_empty at hb,
+  { classical,
+    have : positive_orientation ≠ o := by rwa b.to_basis.orientation_is_empty at hb,
     simp [volume_form, or.by_cases, dif_neg this.symm] },
   let e : orthonormal_basis (fin n.succ) ℝ E := o.fin_orthonormal_basis n.succ_pos (fact.out _),
   dsimp [volume_form],
@@ -239,7 +241,7 @@ end
 @[simp] lemma volume_form_neg_orientation : (-o).volume_form = - o.volume_form :=
 begin
   unfreezingI { cases n },
-  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp [volume_form_zero_neg] },
+  { refine o.eq_or_eq_neg_of_is_empty.elim _ _; rintros rfl; simp [volume_form_zero_neg] },
   let e : orthonormal_basis (fin n.succ) ℝ E := o.fin_orthonormal_basis n.succ_pos (fact.out _),
   have h₁ : e.to_basis.orientation = o := o.fin_orthonormal_basis_orientation _ _,
   have h₂ : e.to_basis.orientation ≠ -o,
@@ -252,7 +254,7 @@ lemma volume_form_robust' (b : orthonormal_basis (fin n) ℝ E) (v : fin n → E
   |o.volume_form v| = |b.to_basis.det v| :=
 begin
   unfreezingI { cases n },
-  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
+  { refine o.eq_or_eq_neg_of_is_empty.elim _ _; rintros rfl; simp },
   { rw [o.volume_form_robust (b.adjust_to_orientation o) (b.orientation_adjust_to_orientation o),
       b.abs_det_adjust_to_orientation] },
 end
@@ -260,10 +262,10 @@ end
 /-- Let `v` be an indexed family of `n` vectors in an oriented `n`-dimensional real inner
 product space `E`. The output of the volume form of `E` when evaluated on `v` is bounded in absolute
 value by the product of the norms of the vectors `v i`. -/
-lemma abs_volume_form_apply_le (v : fin n → E) : |o.volume_form v| ≤ ∏ i : fin n, ∥v i∥ :=
+lemma abs_volume_form_apply_le (v : fin n → E) : |o.volume_form v| ≤ ∏ i : fin n, ‖v i‖ :=
 begin
   unfreezingI { cases n },
-  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
+  { refine o.eq_or_eq_neg_of_is_empty.elim _ _; rintros rfl; simp },
   haveI : finite_dimensional ℝ E := fact_finite_dimensional_of_finrank_eq_succ n,
   have : finrank ℝ E = fintype.card (fin n.succ) := by simpa using _i.out,
   let b : orthonormal_basis (fin n.succ) ℝ E := gram_schmidt_orthonormal_basis this v,
@@ -277,7 +279,7 @@ begin
   simp [b.orthonormal.1 i],
 end
 
-lemma volume_form_apply_le (v : fin n → E) : o.volume_form v ≤ ∏ i : fin n, ∥v i∥ :=
+lemma volume_form_apply_le (v : fin n → E) : o.volume_form v ≤ ∏ i : fin n, ‖v i‖ :=
 (le_abs_self _).trans (o.abs_volume_form_apply_le v)
 
 /-- Let `v` be an indexed family of `n` orthogonal vectors in an oriented `n`-dimensional
@@ -285,10 +287,10 @@ real inner product space `E`. The output of the volume form of `E` when evaluate
 sign, the product of the norms of the vectors `v i`. -/
 lemma abs_volume_form_apply_of_pairwise_orthogonal
   {v : fin n → E} (hv : pairwise (λ i j, ⟪v i, v j⟫ = 0)) :
-  |o.volume_form v| = ∏ i : fin n, ∥v i∥ :=
+  |o.volume_form v| = ∏ i : fin n, ‖v i‖ :=
 begin
   unfreezingI { cases n },
-  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
+  { refine o.eq_or_eq_neg_of_is_empty.elim _ _; rintros rfl; simp },
   haveI : finite_dimensional ℝ E := fact_finite_dimensional_of_finrank_eq_succ n,
   have hdim : finrank ℝ E = fintype.card (fin n.succ) := by simpa using _i.out,
   let b : orthonormal_basis (fin n.succ) ℝ E := gram_schmidt_orthonormal_basis hdim v,
@@ -301,10 +303,10 @@ begin
   push_neg at h,
   congr,
   ext i,
-  have hb : b i = ∥v i∥⁻¹ • v i := gram_schmidt_orthonormal_basis_apply_of_orthogonal hdim hv (h i),
+  have hb : b i = ‖v i‖⁻¹ • v i := gram_schmidt_orthonormal_basis_apply_of_orthogonal hdim hv (h i),
   simp only [hb, inner_smul_left, real_inner_self_eq_norm_mul_norm, is_R_or_C.conj_to_real],
   rw abs_of_nonneg,
-  { have : ∥v i∥ ≠ 0 := by simpa using h i,
+  { have : ‖v i‖ ≠ 0 := by simpa using h i,
     field_simp },
   { positivity },
 end
@@ -315,12 +317,13 @@ lemma abs_volume_form_apply_of_orthonormal (v : orthonormal_basis (fin n) ℝ E)
   |o.volume_form v| = 1 :=
 by simpa [o.volume_form_robust' v v] using congr_arg abs v.to_basis.det_self
 
-lemma volume_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = n)]
+lemma volume_form_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = n)]
   (φ : E ≃ₗᵢ[ℝ] F) (x : fin n → F) :
   (orientation.map (fin n) φ.to_linear_equiv o).volume_form x = o.volume_form (φ.symm ∘ x) :=
 begin
   unfreezingI { cases n },
-  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
+  { refine o.eq_or_eq_neg_of_is_empty.elim _ _; rintros rfl; simp },
   let e : orthonormal_basis (fin n.succ) ℝ E := o.fin_orthonormal_basis n.succ_pos (fact.out _),
   have he : e.to_basis.orientation = o :=
     (o.fin_orthonormal_basis_orientation n.succ_pos (fact.out _)),

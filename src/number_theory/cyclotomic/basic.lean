@@ -202,26 +202,21 @@ lemma of_union_of_dvd (h : ∀ s ∈ S, n ∣ s) (hS : S.nonempty) [H : is_cyclo
   is_cyclotomic_extension (S ∪ {n}) A B :=
 begin
   refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, _, _⟩,
-  { cases hs,
+  { rw [mem_union, mem_singleton_iff] at hs,
+    obtain hs|rfl := hs,
     { exact H.exists_prim_root hs },
-    { simp only [mem_singleton_iff] at hs,
-      obtain ⟨m, hm⟩ := hS,
-      obtain ⟨x, hx⟩ := h m hm,
-      rw [← hs] at hx,
+    { obtain ⟨m, hm⟩ := hS,
+      obtain ⟨x, rfl⟩ := h m hm,
       obtain ⟨ζ, hζ⟩ := H.exists_prim_root hm,
       refine ⟨ζ ^ (x : ℕ), _⟩,
-      have : (x : ℕ) ∣ m := ⟨s, by simp only [hx, pnat.mul_coe, mul_comm]⟩,
-      convert hζ.pow_of_dvd x.ne_zero this,
-      rw [hx],
+      convert hζ.pow_of_dvd x.ne_zero (dvd_mul_left (x : ℕ) s),
       simp only [pnat.mul_coe, nat.mul_div_left, pnat.pos] } },
   { refine _root_.eq_top_iff.2 _,
     rw [← ((iff_adjoin_eq_top S A B).1 H).2],
     refine adjoin_mono (λ x hx, _),
     simp only [union_singleton, mem_insert_iff, mem_set_of_eq] at ⊢ hx,
     obtain ⟨m, hm⟩ := hx,
-    refine ⟨m, ⟨_, hm.2⟩⟩,
-    right,
-      exact hm.1 }
+    exact ⟨m, ⟨or.inr hm.1, hm.2⟩⟩ }
 end
 
 /-- If `∀ s ∈ S, n ∣ s` and `S` is not empty, then `is_cyclotomic_extension S A B` if and only if
@@ -231,17 +226,14 @@ lemma iff_union_of_dvd (h : ∀ s ∈ S, n ∣ s) (hS : S.nonempty) :
 begin
   refine ⟨λ H, by exactI of_union_of_dvd A B h hS, λ H, (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, _, _⟩⟩,
   { exact H.exists_prim_root (subset_union_left _ _ hs) },
-  { refine _root_.eq_top_iff.2 _,
-    rw [← ((iff_adjoin_eq_top _ A B).1 H).2],
+  { rw [_root_.eq_top_iff, ← ((iff_adjoin_eq_top _ A B).1 H).2],
     refine adjoin_mono (λ x hx, _),
     simp only [union_singleton, mem_insert_iff, mem_set_of_eq] at ⊢ hx,
-    obtain ⟨m, hm, hxpow⟩ := hx,
-    cases hm,
+    obtain ⟨m, rfl|hm, hxpow⟩ := hx,
     { obtain ⟨y, hy⟩ := hS,
       refine ⟨y, ⟨hy, _⟩⟩,
-      obtain ⟨z, hz⟩ := h y hy,
-      rw [hm] at hxpow,
-      simp only [hz, pnat.mul_coe, pow_mul, hxpow, one_pow] },
+      obtain ⟨z, rfl⟩ := h y hy,
+      simp only [pnat.mul_coe, pow_mul, hxpow, one_pow] },
     { exact ⟨m, ⟨hm, hxpow⟩⟩ } }
 end
 
@@ -251,23 +243,14 @@ variables (n S)
 lemma iff_union_singleton_one :
   is_cyclotomic_extension S A B ↔ is_cyclotomic_extension (S ∪ {1}) A B :=
 begin
-  by_cases hS : S.nonempty,
+  obtain hS|rfl := S.eq_empty_or_nonempty.symm,
   { exact iff_union_of_dvd _ _ (λ s hs, one_dvd _) hS },
-  replace hS : S = ∅ := set.not_nonempty_iff_eq_empty.1 hS,
+  rw [empty_union],
   refine ⟨λ H, _, λ H, _⟩,
-  { rw [hS] at H ⊢,
-    simp only [union_singleton, insert_emptyc_eq],
-    refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, ⟨1, by simp [mem_singleton_iff.1 hs]⟩, _⟩,
-    letI := H,
-    simp [adjoin_singleton_one, empty] },
-  { rw [hS, empty_union] at H,
-    refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, _, _⟩,
-    { exfalso,
-      rw [hS] at hs,
-      simpa [hs] },
-    { rw [hS],
-      letI := H,
-      simp [singleton_one] } }
+  { refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, ⟨1, by simp [mem_singleton_iff.1 hs]⟩, _⟩,
+    simp [adjoin_singleton_one, @empty _ _ _ _ _ H] },
+  { refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, (not_mem_empty s hs).elim, _⟩,
+    simp [@singleton_one A B _ _ _ H] }
 end
 
 variables {A B}
@@ -547,27 +530,17 @@ char_zero_of_injective_algebra_map ((algebra_map K _).injective)
 
 instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
   is_cyclotomic_extension {n} K (cyclotomic_field n K) :=
-{ exists_prim_root := λ a han,
-  begin
-    rw mem_singleton_iff at han,
-    subst a,
-    obtain ⟨r, hr⟩ := exists_root_of_splits (algebra_map K (cyclotomic_field n K))
-      (splitting_field.splits _) (degree_cyclotomic_pos n K (n.pos)).ne',
-    refine ⟨r, _⟩,
-    haveI := ne_zero.of_no_zero_smul_divisors K (cyclotomic_field n K) n,
-    rwa [← eval_map, ← is_root.def, map_cyclotomic, is_root_cyclotomic_iff] at hr
-  end,
-  adjoin_roots :=
-  begin
-    rw [←algebra.eq_top_iff, ←splitting_field.adjoin_roots, eq_comm],
-    letI := classical.dec_eq (cyclotomic_field n K),
-    obtain ⟨ζ, hζ⟩ := exists_root_of_splits _ (splitting_field.splits (cyclotomic n K))
-      (degree_cyclotomic_pos n _ n.pos).ne',
-    haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
-      ne_zero.nat_of_injective (algebra_map K _).injective,
-    rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def, is_root_cyclotomic_iff] at hζ,
-    exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots hζ,
-  end }
+begin
+  haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
+    ne_zero.nat_of_injective (algebra_map K _).injective,
+  letI := classical.dec_eq (cyclotomic_field n K),
+  obtain ⟨ζ, hζ⟩ := exists_root_of_splits (algebra_map K (cyclotomic_field n K))
+    (splitting_field.splits _) (degree_cyclotomic_pos n K n.pos).ne',
+  rw [← eval_map, ← is_root.def, map_cyclotomic, is_root_cyclotomic_iff] at hζ,
+  refine ⟨forall_eq.2 ⟨ζ, hζ⟩, _⟩,
+  rw [←algebra.eq_top_iff, ←splitting_field.adjoin_roots, eq_comm],
+  exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots hζ,
+end
 
 end cyclotomic_field
 
@@ -687,7 +660,7 @@ instance [ne_zero ((n : ℕ) : A)] :
       simp only [map_mul] }
   end,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by rw adjoin_algebra_injective n A K h⟩,
-    λ ⟨c, hc⟩, by rw mul_right_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }
+    λ ⟨c, hc⟩, by rw mul_left_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }
 
 lemma eq_adjoin_primitive_root {μ : (cyclotomic_field n K)} (h : is_primitive_root μ n) :
   cyclotomic_ring n A K = adjoin A ({μ} : set ((cyclotomic_field n K))) :=

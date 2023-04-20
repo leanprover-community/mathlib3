@@ -3,13 +3,15 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.functor.currying
 import category_theory.limits.over
 import category_theory.limits.shapes.images
 import category_theory.adjunction.reflective
 
 /-!
 # Monomorphisms over a fixed object
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 As preparation for defining `subobject X`, we set up the theory for
 `mono_over X := {f : over X // mono f.hom}`.
@@ -398,4 +400,3 @@ end «exists»
 end mono_over
 
 end category_theory
-

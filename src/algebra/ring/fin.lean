@@ -3,12 +3,15 @@ Copyright (c) 2022 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import algebra.ring.pi
-import algebra.ring.prod
 import logic.equiv.fin
+import algebra.ring.equiv
+import algebra.group.prod
 
 /-!
 # Rings and `fin`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file collects some basic results involving rings and the `fin` type
 

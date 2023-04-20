@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 import analysis.complex.circle
 import analysis.normed_space.ball_action
-import group_theory.subsemigroup.membership
 
 /-!
 # Poincaré disc

@@ -6,7 +6,6 @@ Authors: Moritz Doll
 
 import analysis.special_functions.integrals
 import analysis.special_functions.pow
-import measure_theory.integral.integral_eq_improper
 import measure_theory.integral.layercake
 import tactic.positivity
 
@@ -28,21 +27,21 @@ than the dimension.
 
 noncomputable theory
 
-open_locale big_operators nnreal filter topological_space ennreal
+open_locale big_operators nnreal filter topology ennreal
 
 open asymptotics filter set real measure_theory finite_dimensional
 
 variables {E : Type*} [normed_add_comm_group E]
 
-lemma sqrt_one_add_norm_sq_le (x : E) : real.sqrt (1 + ∥x∥^2) ≤ 1 + ∥x∥ :=
+lemma sqrt_one_add_norm_sq_le (x : E) : real.sqrt (1 + ‖x‖^2) ≤ 1 + ‖x‖ :=
 begin
   refine le_of_pow_le_pow 2 (by positivity) two_pos _,
   simp [sq_sqrt (zero_lt_one_add_norm_sq x).le, add_pow_two],
 end
 
-lemma one_add_norm_le_sqrt_two_mul_sqrt (x : E) : 1 + ∥x∥ ≤ (real.sqrt 2) * sqrt (1 + ∥x∥^2) :=
+lemma one_add_norm_le_sqrt_two_mul_sqrt (x : E) : 1 + ‖x‖ ≤ (real.sqrt 2) * sqrt (1 + ‖x‖^2) :=
 begin
-  suffices : (sqrt 2 * sqrt (1 + ∥x∥ ^ 2)) ^ 2 - (1 + ∥x∥) ^ 2 = (1 - ∥x∥) ^2,
+  suffices : (sqrt 2 * sqrt (1 + ‖x‖ ^ 2)) ^ 2 - (1 + ‖x‖) ^ 2 = (1 - ‖x‖) ^2,
   { refine le_of_pow_le_pow 2 (by positivity) (by norm_num) _,
     rw [←sub_nonneg, this],
     positivity, },
@@ -52,13 +51,13 @@ begin
 end
 
 lemma rpow_neg_one_add_norm_sq_le {r : ℝ} (x : E) (hr : 0 < r) :
-  (1 + ∥x∥^2)^(-r/2) ≤ 2^(r/2) * (1 + ∥x∥)^(-r) :=
+  (1 + ‖x‖^2)^(-r/2) ≤ 2^(r/2) * (1 + ‖x‖)^(-r) :=
 begin
   have h1 : 0 ≤ (2 : ℝ) := by positivity,
   have h3 : 0 < sqrt 2 := by positivity,
-  have h4 : 0 < 1 + ∥x∥ := by positivity,
-  have h5 : 0 < sqrt (1 + ∥x∥ ^ 2) := by positivity,
-  have h6 : 0 < sqrt 2 * sqrt (1 + ∥x∥^2) := mul_pos h3 h5,
+  have h4 : 0 < 1 + ‖x‖ := by positivity,
+  have h5 : 0 < sqrt (1 + ‖x‖ ^ 2) := by positivity,
+  have h6 : 0 < sqrt 2 * sqrt (1 + ‖x‖^2) := mul_pos h3 h5,
   rw [rpow_div_two_eq_sqrt _ h1, rpow_div_two_eq_sqrt _ (zero_lt_one_add_norm_sq x).le,
     ←inv_mul_le_iff (rpow_pos_of_pos h3 _), rpow_neg h4.le, rpow_neg (sqrt_nonneg _), ←mul_inv,
     ←mul_rpow h3.le h5.le, inv_le_inv (rpow_pos_of_pos h6 _) (rpow_pos_of_pos h4 _),
@@ -67,7 +66,7 @@ begin
 end
 
 lemma le_rpow_one_add_norm_iff_norm_le {r t : ℝ} (hr : 0 < r) (ht : 0 < t) (x : E) :
-  t ≤ (1 + ∥x∥) ^ -r ↔ ∥x∥ ≤ t ^ -r⁻¹ - 1 :=
+  t ≤ (1 + ‖x‖) ^ -r ↔ ‖x‖ ≤ t ^ -r⁻¹ - 1 :=
 begin
   rw [le_sub_iff_add_le', neg_inv],
   exact (real.le_rpow_inv_iff_of_neg (by positivity) ht (neg_lt_zero.mpr hr)).symm,
@@ -112,20 +111,20 @@ end
 
 lemma finite_integral_one_add_norm [measure_space E] [borel_space E]
   [(@volume E _).is_add_haar_measure] {r : ℝ} (hnr : (finrank ℝ E : ℝ) < r) :
-  ∫⁻ (x : E), ennreal.of_real ((1 + ∥x∥) ^ -r) < ∞ :=
+  ∫⁻ (x : E), ennreal.of_real ((1 + ‖x‖) ^ -r) < ∞ :=
 begin
   have hr : 0 < r := lt_of_le_of_lt (finrank ℝ E).cast_nonneg hnr,
 
   -- We start by applying the layer cake formula
-  have h_meas : measurable (λ (ω : E), (1 + ∥ω∥) ^ -r) := by measurability,
-  have h_pos : ∀ x : E, 0 ≤ (1 + ∥x∥) ^ -r :=
+  have h_meas : measurable (λ (ω : E), (1 + ‖ω‖) ^ -r) := by measurability,
+  have h_pos : ∀ x : E, 0 ≤ (1 + ‖x‖) ^ -r :=
   by { intros x, positivity },
   rw lintegral_eq_lintegral_meas_le volume h_pos h_meas,
 
   -- We use the first transformation of the integrant to show that we only have to integrate from
   -- 0 to 1 and from 1 to ∞
   have h_int : ∀ (t : ℝ) (ht : t ∈ Ioi (0 : ℝ)),
-    (volume {a : E | t ≤ (1 + ∥a∥) ^ -r} : ennreal) =
+    (volume {a : E | t ≤ (1 + ‖a‖) ^ -r} : ennreal) =
     volume (metric.closed_ball (0 : E) (t^(-r⁻¹) - 1)) :=
   begin
     intros t ht,
@@ -172,11 +171,11 @@ end
 
 lemma integrable_one_add_norm [measure_space E] [borel_space E] [(@volume E _).is_add_haar_measure]
   {r : ℝ} (hnr : (finrank ℝ E : ℝ) < r) :
-  integrable (λ (x : E), (1 + ∥x∥) ^ -r) :=
+  integrable (λ (x : E), (1 + ‖x‖) ^ -r) :=
 begin
   refine ⟨by measurability, _⟩,
   -- Lower Lebesgue integral
-  have : ∫⁻ (a : E), ∥(1 + ∥a∥) ^ -r∥₊ = ∫⁻ (a : E), ennreal.of_real ((1 + ∥a∥) ^ -r) :=
+  have : ∫⁻ (a : E), ‖(1 + ‖a‖) ^ -r‖₊ = ∫⁻ (a : E), ennreal.of_real ((1 + ‖a‖) ^ -r) :=
   lintegral_nnnorm_eq_of_nonneg (λ _, rpow_nonneg_of_nonneg (by positivity) _),
   rw [has_finite_integral, this],
   exact finite_integral_one_add_norm hnr,
@@ -184,13 +183,13 @@ end
 
 lemma integrable_rpow_neg_one_add_norm_sq [measure_space E] [borel_space E]
   [(@volume E _).is_add_haar_measure] {r : ℝ} (hnr : (finrank ℝ E : ℝ) < r) :
-  integrable (λ (x : E), (1 + ∥x∥^2) ^ (-r/2)) :=
+  integrable (λ (x : E), (1 + ‖x‖^2) ^ (-r/2)) :=
 begin
   have hr : 0 < r := lt_of_le_of_lt (finrank ℝ E).cast_nonneg hnr,
   refine ((integrable_one_add_norm hnr).const_mul $ 2 ^ (r / 2)).mono (by measurability)
     (eventually_of_forall $ λ x, _),
-  have h1 : 0 ≤ (1 + ∥x∥ ^ 2) ^ (-r/2) := by positivity,
-  have h2 : 0 ≤ (1 + ∥x∥) ^ -r := by positivity,
+  have h1 : 0 ≤ (1 + ‖x‖ ^ 2) ^ (-r/2) := by positivity,
+  have h2 : 0 ≤ (1 + ‖x‖) ^ -r := by positivity,
   have h3 : 0 ≤ (2 : ℝ)^(r/2) := by positivity,
   simp_rw [norm_mul, norm_eq_abs, abs_of_nonneg h1, abs_of_nonneg h2, abs_of_nonneg h3],
   exact rpow_neg_one_add_norm_sq_le _ hr,

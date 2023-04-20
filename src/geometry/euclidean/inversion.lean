@@ -3,7 +3,7 @@ Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import geometry.euclidean.basic
+import analysis.inner_product_space.basic
 
 /-!
 # Inversion in an affine space
@@ -25,7 +25,8 @@ open metric real function
 
 namespace euclidean_geometry
 
-variables {V P : Type*} [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
+variables {V P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
   {a b c d x y z : P} {R : ℝ}
 
 include V

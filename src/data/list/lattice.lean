@@ -11,6 +11,9 @@ import algebra.order.monoid.min_max
 /-!
 # Lattice structure of lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files prove basic properties about `list.disjoint`, `list.union`, `list.inter` and
 `list.bag_inter`, which are defined in core Lean and `data.list.defs`.
 

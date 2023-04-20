@@ -1173,7 +1173,7 @@ focus1 $ do
   let rec_app : name → pexpr := λ rec_suffix,
     (unchecked_cast expr.mk_app : pexpr → list pexpr → pexpr)
       (pexpr.mk_explicit (const (iname ++ rec_suffix) []))
-      (list.repeat pexpr.mk_placeholder (major_premise_args.length + 1) ++
+      (list.replicate (major_premise_args.length + 1) pexpr.mk_placeholder ++
         [to_pexpr major_premise]),
   let rec_suffix := if generate_ihs then "rec_on" else "cases_on",
   let drec_suffix := if generate_ihs then "drec_on" else "dcases_on",

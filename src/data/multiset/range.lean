@@ -6,7 +6,10 @@ Authors: Mario Carneiro
 import data.multiset.basic
 import data.list.range
 
-/-! # `multiset.range n` gives `{0, 1, ..., n-1}` as a multiset. -/
+/-! # `multiset.range n` gives `{0, 1, ..., n-1}` as a multiset. 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 open list nat
 

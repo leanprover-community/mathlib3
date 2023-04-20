@@ -6,8 +6,10 @@ Authors: Johan Commelin
 
 import algebra.char_p.two
 import algebra.ne_zero
+import algebra.gcd_monoid.integrally_closed
 import data.polynomial.ring_division
 import field_theory.finite.basic
+import field_theory.minpoly.is_integrally_closed
 import field_theory.separable
 import group_theory.specific_groups.cyclic
 import number_theory.divisors
@@ -95,9 +97,7 @@ units.ext.comp (λ x y, subtype.ext)
 a positive power equal to one. -/
 @[simps coe_coe] def roots_of_unity.mk_of_pow_eq (ζ : M) {n : ℕ+} (h : ζ ^ (n : ℕ) = 1) :
   roots_of_unity n M :=
-⟨units.mk_of_mul_eq_one ζ (ζ ^ n.nat_pred) $
-  by rwa [←pow_one ζ, ←pow_mul, ←pow_add, one_mul, pnat.one_add_nat_pred],
-units.ext $ by simpa⟩
+⟨units.of_pow_eq_one ζ n h n.ne_zero, units.pow_of_pow_eq_one _ _⟩
 
 @[simp] lemma roots_of_unity.coe_mk_of_pow_eq {ζ : M} {n : ℕ+}
   (h : ζ ^ (n : ℕ) = 1) : (roots_of_unity.mk_of_pow_eq _ h : M) = ζ := rfl
@@ -276,6 +276,14 @@ begin
   exact is_primitive_root.pow_eq_one
 end
 
+@[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
+by rw [primitive_roots, nth_roots_zero, multiset.to_finset_zero, finset.filter_empty]
+
+lemma is_primitive_root_of_mem_primitive_roots {ζ : R} (h : ζ ∈ primitive_roots k R) :
+  is_primitive_root ζ k :=
+k.eq_zero_or_pos.elim (λ hk, false.elim $ by simpa [hk] using h)
+  (λ hk, (mem_primitive_roots hk).1 h)
+
 end primitive_roots
 
 namespace is_primitive_root
@@ -289,10 +297,8 @@ lemma iff_def (ζ : M) (k : ℕ) :
 lemma mk_of_lt (ζ : M) (hk : 0 < k) (h1 : ζ ^ k = 1) (h : ∀ l : ℕ, 0 < l →  l < k → ζ ^ l ≠ 1) :
   is_primitive_root ζ k :=
 begin
-  refine ⟨h1, _⟩,
-  intros l hl,
-  apply dvd_trans _ (k.gcd_dvd_right l),
-  suffices : k.gcd l = k, { rw this },
+  refine ⟨h1, λ l hl, _⟩,
+  suffices : k.gcd l = k, { exact this ▸ k.gcd_dvd_right l },
   rw eq_iff_le_not_lt,
   refine ⟨nat.le_of_dvd hk (k.gcd_dvd_left l), _⟩,
   intro h', apply h _ (nat.gcd_pos_of_pos_left _ hk) h',
@@ -325,7 +331,8 @@ h.pow_ne_one_of_pos_of_lt zero_lt_one hk ∘ (pow_one ζ).trans
 lemma pow_inj (h : is_primitive_root ζ k) ⦃i j : ℕ⦄ (hi : i < k) (hj : j < k) (H : ζ ^ i = ζ ^ j) :
   i = j :=
 begin
-  wlog hij : i ≤ j,
+  wlog hij : i ≤ j generalizing i j,
+  { exact (this hj hi H.symm (le_of_not_le hij)).symm },
   apply le_antisymm hij,
   rw ← tsub_eq_zero_iff_le,
   apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt tsub_le_self hj),
@@ -347,7 +354,7 @@ end
 
 @[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
   [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
-by simp [iff_def, ← submonoid_class.coe_pow, -_root_.coe_pow]
+by simp [iff_def, ← submonoid_class.coe_pow]
 
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
@@ -394,14 +401,7 @@ protected lemma order_of (ζ : M) : is_primitive_root ζ (order_of ζ) :=
 ⟨pow_order_of_eq_one ζ, λ l, order_of_dvd_of_pow_eq_one⟩
 
 lemma unique {ζ : M} (hk : is_primitive_root ζ k) (hl : is_primitive_root ζ l) : k = l :=
-begin
-  wlog hkl : k ≤ l,
-  rcases hkl.eq_or_lt with rfl | hkl,
-  { refl },
-  rcases k.eq_zero_or_pos with rfl | hk',
-  { exact (zero_dvd_iff.mp $ hk.dvd_of_pow_eq_one l hl.pow_eq_one).symm },
-  exact absurd hk.pow_eq_one (hl.pow_ne_one_of_pos_of_lt hk' hkl)
-end
+nat.dvd_antisymm (hk.2 _ hl.1) (hl.2 _ hk.1)
 
 lemma eq_order_of : k = order_of ζ := h.unique (is_primitive_root.order_of ζ)
 
@@ -540,14 +540,6 @@ section is_domain
 variables {ζ : R}
 variables [comm_ring R] [is_domain R]
 
-@[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
-begin
-  rw [← finset.val_eq_zero, ← multiset.subset_zero, ← nth_roots_zero (1 : R), primitive_roots],
-    simp only [finset.not_mem_empty, forall_const, forall_prop_of_false, multiset.to_finset_zero,
-    finset.filter_true_of_mem, finset.empty_val, not_false_iff,
-    multiset.zero_subset, nth_roots_zero]
-end
-
 @[simp] lemma primitive_roots_one : primitive_roots 1 R = {(1 : R)} :=
 begin
   apply finset.eq_singleton_iff_unique_mem.2,
@@ -580,6 +572,10 @@ begin
       exact lt_mul_of_one_lt_right hpos hpri.1.one_lt } },
   { exact ne_zero.of_not_dvd R hp }
 end
+
+lemma mem_nth_roots_finset (hζ : is_primitive_root ζ k) (hk : 0 < k) :
+  ζ ∈ nth_roots_finset k R :=
+(mem_nth_roots_finset hk).2 hζ.pow_eq_one
 
 end is_domain
 
@@ -683,7 +679,7 @@ begin
   haveI F : fintype (subgroup.zpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_zpowers).to_equiv,
   refine @set.eq_of_subset_of_card_le Rˣ (subgroup.zpowers ζ) (roots_of_unity k R)
     F (roots_of_unity.fintype R k)
-    (subgroup.zpowers_subset $ show ζ ∈ roots_of_unity k R, from h.pow_eq_one) _,
+    (subgroup.zpowers_le_of_mem $ show ζ ∈ roots_of_unity k R, from h.pow_eq_one) _,
   calc fintype.card (roots_of_unity k R)
       ≤ k                                 : card_roots_of_unity R k
   ... = fintype.card (zmod k)             : (zmod.card k).symm
@@ -711,7 +707,7 @@ lemma eq_pow_of_pow_eq_one {k : ℕ} {ζ ξ : R}
   ∃ i < k, ζ ^ i = ξ :=
 begin
   lift ζ to Rˣ using h.is_unit h0,
-  lift ξ to Rˣ using is_unit_of_pow_eq_one ξ k hξ h0.ne',
+  lift ξ to Rˣ using is_unit_of_pow_eq_one hξ h0.ne',
   lift k to ℕ+ using h0,
   simp only [← units.coe_pow, ← units.ext_iff],
   rw coe_units_iff at h,
@@ -837,15 +833,8 @@ end
 /-- The sets `primitive_roots k R` are pairwise disjoint. -/
 lemma disjoint {k l : ℕ} (h : k ≠ l) :
   disjoint (primitive_roots k R) (primitive_roots l R) :=
-begin
-  by_cases hk : k = 0, { simp [hk], },
-  by_cases hl : l = 0, { simp [hl], },
-  rw finset.disjoint_left,
-  intro z,
-  simp only [mem_primitive_roots, nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
-  rintro ⟨hzk, Hzk⟩ ⟨hzl, Hzl⟩,
-  apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
-end
+finset.disjoint_left.2 $ λ z hk hl, h $ (is_primitive_root_of_mem_primitive_roots hk).unique $
+  is_primitive_root_of_mem_primitive_roots hl
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`.
@@ -921,7 +910,8 @@ lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp },
-  apply minpoly.gcd_domain_dvd (is_integral h hpos) (monic_X_pow_sub_C 1 hpos.ne').ne_zero,
+  letI : is_integrally_closed ℤ := gcd_monoid.to_is_integrally_closed,
+  apply minpoly.is_integrally_closed_dvd (is_integral h hpos),
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -946,17 +936,13 @@ lemma squarefree_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
 (separable_minpoly_mod h hdiv).squarefree
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
-`μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
-lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
-  minpoly ℤ μ ∣ expand ℤ p (minpoly ℤ (μ ^ p)) :=
+`μ ^ p`, where `p` is a natural number that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
+lemma minpoly_dvd_expand {p : ℕ} (hdiv : ¬ p ∣ n) : minpoly ℤ μ ∣ expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp * at *, },
-  refine minpoly.gcd_domain_dvd (h.is_integral hpos) _ _,
-  { apply monic.ne_zero,
-    rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
-        (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
-    exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
+  letI : is_integrally_closed ℤ := gcd_monoid.to_is_integrally_closed,
+  refine minpoly.is_integrally_closed_dvd (h.is_integral hpos) _,
   { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, polynomial.map_pow, map_X,
         eval_comp, eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],
     exact minpoly.aeval _ _ }
@@ -974,7 +960,7 @@ begin
   by rw [← zmod.expand_card, map_expand],
   rw [hfrob],
   apply ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p))),
-  exact minpoly_dvd_expand h hprime.1 hdiv
+  exact minpoly_dvd_expand h hdiv
 end
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of

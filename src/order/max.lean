@@ -8,6 +8,9 @@ import order.synonym
 /-!
 # Minimal/maximal and bottom/top elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines predicates for elements to be minimal/maximal or bottom/top and typeclasses
 saying that there are no such elements.
 
@@ -92,6 +95,7 @@ end⟩
 
 instance [nonempty ι] [Π i, preorder (π i)] [Π i, no_min_order (π i)] : no_min_order (Π i, π i) :=
 ⟨λ a, begin
+  classical,
   obtain ⟨b, hb⟩ := exists_lt (a $ classical.arbitrary _),
   exact ⟨_, update_lt_self_iff.2 hb⟩,
 end⟩

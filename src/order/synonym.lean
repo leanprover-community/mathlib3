@@ -10,6 +10,9 @@ import order.basic
 /-!
 # Type synonyms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides two type synonyms for order theory:
 * `order_dual α`: Type synonym of `α` to equip it with the dual order (`a ≤ b` becomes `b ≤ a`).
 * `lex α`: Type synonym of `α` to equip it with its lexicographic order. The precise meaning depends

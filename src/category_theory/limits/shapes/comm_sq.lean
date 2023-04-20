@@ -6,13 +6,15 @@ Authors: Scott Morrison, Joël Riou
 import category_theory.comm_sq
 import category_theory.limits.opposites
 import category_theory.limits.shapes.biproducts
-import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.constructions.binary_products
 import category_theory.limits.constructions.zero_objects
 
 /-!
 # Pullback and pushout squares, and bicartesian squares
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide another API for pullbacks and pushouts.
 
@@ -721,6 +723,38 @@ lemma of_vert_is_iso [is_iso g] [is_iso inl] (sq : comm_sq f g inl inr) :
   is_pushout f g inl inr := (of_horiz_is_iso sq.flip).flip
 
 end is_pushout
+
+section equalizer
+
+variables {X Y Z : C} {f f' : X ⟶ Y} {g g' : Y ⟶ Z}
+
+/-- If `f : X ⟶ Y`, `g g' : Y ⟶ Z` forms a pullback square, then `f` is the equalizer of
+`g` and `g'`. -/
+noncomputable
+def is_pullback.is_limit_fork (H : is_pullback f f g g') :
+  is_limit (fork.of_ι f H.w) :=
+begin
+  fapply fork.is_limit.mk,
+  { exact λ s, H.is_limit.lift (pullback_cone.mk s.ι s.ι s.condition) },
+  { exact λ s, H.is_limit.fac _ walking_cospan.left },
+  { intros s m e, apply pullback_cone.is_limit.hom_ext H.is_limit; refine e.trans _;
+      symmetry; exact H.is_limit.fac _ _ }
+end
+
+/-- If `f f' : X ⟶ Y`, `g : Y ⟶ Z` forms a pushout square, then `g` is the coequalizer of
+`f` and `f'`. -/
+noncomputable
+def is_pushout.is_limit_fork (H : is_pushout f f' g g) :
+  is_colimit (cofork.of_π g H.w) :=
+begin
+  fapply cofork.is_colimit.mk,
+  { exact λ s, H.is_colimit.desc (pushout_cocone.mk s.π s.π s.condition) },
+  { exact λ s, H.is_colimit.fac _ walking_span.left },
+  { intros s m e, apply pushout_cocone.is_colimit.hom_ext H.is_colimit; refine e.trans _;
+      symmetry; exact H.is_colimit.fac _ _ }
+end
+
+end equalizer
 
 namespace bicartesian_sq
 

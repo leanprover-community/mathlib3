@@ -8,6 +8,9 @@ import data.nat.basic
 /-!
 # Partial predecessor and partial subtraction on the natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The usual definition of natural number subtraction (`nat.sub`) returns 0 as a "garbage value" for
 `a - b` when `a < b`. Similarly, `nat.pred 0` is defined to be `0`. The functions in this file
 wrap the result in an `option` type instead:

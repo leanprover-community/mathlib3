@@ -9,6 +9,9 @@ import algebra.order.ring.defs
 /-!
 # Linear ordered (semi)fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A linear ordered (semi)field is a (semi)field equipped with a linear order such that
 * addition respects the order: `a ≤ b → c + a ≤ c + b`;
 * multiplication of positives is positive: `0 < a → 0 < b → 0 < a * b`;
@@ -31,13 +34,17 @@ set_option old_structure_cmd true
 variables {α : Type*}
 
 /-- A linear ordered semifield is a field with a linear order respecting the operations. -/
-@[protect_proj] class linear_ordered_semifield (α : Type*)
-  extends linear_ordered_comm_semiring α, semifield α
+@[protect_proj, ancestor linear_ordered_comm_semiring semifield]
+class linear_ordered_semifield (α : Type*) extends linear_ordered_comm_semiring α, semifield α
 
 /-- A linear ordered field is a field with a linear order respecting the operations. -/
-@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
+@[protect_proj, ancestor linear_ordered_comm_ring field]
+class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
 
 @[priority 100] -- See note [lower instance priority]
 instance linear_ordered_field.to_linear_ordered_semifield [linear_ordered_field α] :
   linear_ordered_semifield α :=
 { ..linear_ordered_ring.to_linear_ordered_semiring, ..‹linear_ordered_field α› }
+
+-- Guard against import creep.
+assert_not_exists monoid_hom

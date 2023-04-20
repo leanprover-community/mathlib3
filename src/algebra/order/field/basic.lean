@@ -11,6 +11,9 @@ import algebra.group_power.order
 /-!
 # Lemmas about linear ordered (semi)fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open function order_dual
@@ -172,6 +175,14 @@ by { rw [inv_eq_one_div], exact div_lt_iff' ha }
 lemma div_le_of_nonneg_of_le_mul (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ c * b) : a / b ≤ c :=
 by { rcases eq_or_lt_of_le hb with rfl|hb', simp [hc], rwa [div_le_iff hb'] }
 
+/-- One direction of `div_le_iff` where `c` is allowed to be `0` (but `b` must be nonnegative) -/
+lemma mul_le_of_nonneg_of_le_div (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ b / c) : a * c ≤ b :=
+begin
+  obtain rfl | hc := hc.eq_or_lt,
+  { simpa using hb },
+  { rwa le_div_iff hc at h }
+end
+
 lemma div_le_one_of_le (h : a ≤ b) (hb : 0 ≤ b) : a / b ≤ 1 :=
 div_le_of_nonneg_of_le_mul hb zero_le_one $ by rwa one_mul
 
@@ -216,16 +227,16 @@ lemma lt_inv (ha : 0 < a) (hb : 0 < b) : a < b⁻¹ ↔ b < a⁻¹ :=
 lt_iff_lt_of_le_iff_le (inv_le hb ha)
 
 lemma inv_lt_one (ha : 1 < a) : a⁻¹ < 1 :=
-by rwa [inv_lt ((@zero_lt_one α _ _).trans ha) zero_lt_one, inv_one]
+by rwa [inv_lt (zero_lt_one.trans ha) zero_lt_one, inv_one]
 
 lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
-by rwa [lt_inv (@zero_lt_one α _ _) h₁, inv_one]
+by rwa [lt_inv zero_lt_one h₁, inv_one]
 
 lemma inv_le_one (ha : 1 ≤ a) : a⁻¹ ≤ 1 :=
-by rwa [inv_le ((@zero_lt_one α _ _).trans_le ha) zero_lt_one, inv_one]
+by rwa [inv_le (zero_lt_one.trans_le ha) zero_lt_one, inv_one]
 
 lemma one_le_inv (h₁ : 0 < a) (h₂ : a ≤ 1) : 1 ≤ a⁻¹ :=
-by rwa [le_inv (@zero_lt_one α _ _) h₁, inv_one]
+by rwa [le_inv zero_lt_one h₁, inv_one]
 
 lemma inv_lt_one_iff_of_pos (h₀ : 0 < a) : a⁻¹ < 1 ↔ 1 < a :=
 ⟨λ h₁, inv_inv a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
@@ -372,10 +383,10 @@ lemma one_div_lt_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a < 1 / b ↔ b < a :=
 div_lt_div_left zero_lt_one ha hb
 
 lemma one_lt_one_div (h1 : 0 < a) (h2 : a < 1) : 1 < 1 / a :=
-by rwa [lt_one_div (@zero_lt_one α _ _) h1, one_div_one]
+by rwa [lt_one_div zero_lt_one h1, one_div_one]
 
 lemma one_le_one_div (h1 : 0 < a) (h2 : a ≤ 1) : 1 ≤ 1 / a :=
-by rwa [le_one_div (@zero_lt_one α _ _) h1, one_div_one]
+by rwa [le_one_div zero_lt_one h1, one_div_one]
 
 /-!
 ### Results about halving.
@@ -397,7 +408,7 @@ lemma half_pos (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
 
 lemma div_two_lt_of_pos (h : 0 < a) : a / 2 < a :=
-by { rw [div_lt_iff (@zero_lt_two α _ _)], exact lt_mul_of_one_lt_right h one_lt_two }
+by { rw [div_lt_iff (zero_lt_two' α)], exact lt_mul_of_one_lt_right h one_lt_two }
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
@@ -442,6 +453,10 @@ begin
   exact lt_max_iff.2 (or.inl $ lt_add_one _)
 end
 
+lemma exists_pos_lt_mul {a : α} (h : 0 < a) (b : α) : ∃ c : α, 0 < c ∧ b < c * a :=
+let ⟨c, hc₀, hc⟩ := exists_pos_mul_lt h b
+in ⟨c⁻¹, inv_pos.2 hc₀, by rwa [← div_eq_inv_mul, lt_div_iff hc₀]⟩
+
 lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monotone f)
   {c : α} (hc : 0 ≤ c) : monotone (λ x, (f x) / c) :=
 begin
@@ -455,7 +470,7 @@ lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : str
 by simpa only [div_eq_mul_inv] using hf.mul_const (inv_pos.2 hc)
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
+instance linear_ordered_semifield.to_densely_ordered : densely_ordered α :=
 { dense := λ a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
       ... < (a₁ + a₂) / 2 : div_lt_div_of_lt zero_lt_two (add_lt_add_left h _),
@@ -579,6 +594,9 @@ lt_iff_lt_of_le_iff_le $ div_le_iff_of_neg hc
 
 lemma lt_div_iff_of_neg' (hc : c < 0) : a < b / c ↔ b < c * a :=
 by rw [mul_comm, lt_div_iff_of_neg hc]
+
+lemma div_le_one_of_ge (h : b ≤ a) (hb : b ≤ 0) : a / b ≤ 1 :=
+by simpa only [neg_div_neg_eq] using div_le_one_of_le (neg_le_neg h) (neg_nonneg_of_nonpos hb)
 
 /-! ### Bi-implications of inequalities using inversions -/
 
@@ -723,7 +741,7 @@ by rw [sub_add_eq_sub_sub, sub_self, zero_sub]
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
 begin
   rwa [← div_sub_div_same, sub_eq_add_neg, add_comm (b/2), ← add_assoc, ← sub_eq_add_neg,
-    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
+    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (zero_lt_two' α)]
 end
 
 /--  An inequality involving `2`. -/
@@ -794,13 +812,5 @@ eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := map_inv₀ (abs_hom : α →*₀ α) a
 lemma abs_div (a b : α) : |a / b| = |a| / |b| := map_div₀ (abs_hom : α →*₀ α) a b
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
-
-lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
-begin
-  simp only [inv_nonneg, zpow_neg],
-  change 0 ≤ a ^ ((2 : ℕ) : ℤ),
-  rw zpow_coe_nat,
-  apply sq_nonneg,
-end
 
 end

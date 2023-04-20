@@ -3,14 +3,17 @@ Copyright (c) 2021 Alex Kontorovich, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
-import data.real.nnreal
 import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
 import topology.bases
 import topology.support
+
 /-!
 # Monoid actions continuous in the second variable
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define class `has_continuous_const_smul`. We say `has_continuous_const_smul Γ T` if
 `Γ` acts on `T` and for each `γ`, the map `x ↦ γ • x` is continuous. (This differs from
@@ -37,7 +40,7 @@ Hausdorff, discrete group, properly discontinuous, quotient space
 
 -/
 
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 open filter set topological_space
 
@@ -128,6 +131,7 @@ instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π 
   [∀ i, has_continuous_const_smul M (γ i)] : has_continuous_const_smul M (Π i, γ i) :=
 ⟨λ _, continuous_pi $ λ i, (continuous_apply i).const_smul _⟩
 
+@[to_additive]
 lemma is_compact.smul {α β} [has_smul α β] [topological_space β]
   [has_continuous_const_smul α β] (a : α) {s : set β}
   (hs : is_compact s) : is_compact (a • s) := hs.image (continuous_id'.const_smul a)

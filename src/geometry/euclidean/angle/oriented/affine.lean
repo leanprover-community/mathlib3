@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import analysis.convex.side
-import geometry.euclidean.angle.oriented.basic
+import geometry.euclidean.angle.oriented.rotation
 import geometry.euclidean.angle.unoriented.affine
 
 /-!
@@ -22,12 +22,13 @@ This file defines oriented angles in Euclidean affine spaces.
 noncomputable theory
 
 open finite_dimensional complex
-open_locale euclidean_geometry real real_inner_product_space complex_conjugate
+open_locale affine euclidean_geometry real real_inner_product_space complex_conjugate
 
 namespace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-variables [normed_add_torsor V P] [hd2 : fact (finrank ℝ V = 2)] [module.oriented ℝ V (fin 2)]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
+  [hd2 : fact (finrank ℝ V = 2)] [module.oriented ℝ V (fin 2)]
 include hd2
 
 local notation `o` := module.oriented.positive_orientation
@@ -62,6 +63,105 @@ by simp [oangle]
 /-- The angle ∡ABA at a point. -/
 @[simp] lemma oangle_self_left_right (p₁ p₂ : P) : ∡ p₁ p₂ p₁ = 0 :=
 (o).oangle_self _
+
+/-- If the angle between three points is nonzero, the first two points are not equal. -/
+lemma left_ne_of_oangle_ne_zero {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ ≠ 0) : p₁ ≠ p₂ :=
+by { rw ←@vsub_ne_zero V, exact (o).left_ne_zero_of_oangle_ne_zero h }
+
+/-- If the angle between three points is nonzero, the last two points are not equal. -/
+lemma right_ne_of_oangle_ne_zero {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ ≠ 0) : p₃ ≠ p₂ :=
+by { rw ←@vsub_ne_zero V, exact (o).right_ne_zero_of_oangle_ne_zero h }
+
+/-- If the angle between three points is nonzero, the first and third points are not equal. -/
+lemma left_ne_right_of_oangle_ne_zero {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ ≠ 0) : p₁ ≠ p₃ :=
+by { rw ←(vsub_left_injective p₂).ne_iff, exact (o).ne_of_oangle_ne_zero h }
+
+/-- If the angle between three points is `π`, the first two points are not equal. -/
+lemma left_ne_of_oangle_eq_pi {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = π) : p₁ ≠ p₂ :=
+left_ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π`, the last two points are not equal. -/
+lemma right_ne_of_oangle_eq_pi {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = π) : p₃ ≠ p₂ :=
+right_ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π`, the first and third points are not equal. -/
+lemma left_ne_right_of_oangle_eq_pi {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = π) : p₁ ≠ p₃ :=
+left_ne_right_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π / 2`, the first two points are not equal. -/
+lemma left_ne_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (π / 2 : ℝ)) : p₁ ≠ p₂ :=
+left_ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π / 2`, the last two points are not equal. -/
+lemma right_ne_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (π / 2 : ℝ)) : p₃ ≠ p₂ :=
+right_ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π / 2`, the first and third points are not equal. -/
+lemma left_ne_right_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (π / 2 : ℝ)) :
+  p₁ ≠ p₃ :=
+left_ne_right_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `-π / 2`, the first two points are not equal. -/
+lemma left_ne_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (-π / 2 : ℝ)) :
+  p₁ ≠ p₂ :=
+left_ne_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `-π / 2`, the last two points are not equal. -/
+lemma right_ne_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (-π / 2 : ℝ)) :
+  p₃ ≠ p₂ :=
+right_ne_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `-π / 2`, the first and third points are not equal. -/
+lemma left_ne_right_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (-π / 2 : ℝ)) :
+  p₁ ≠ p₃ :=
+left_ne_right_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the sign of the angle between three points is nonzero, the first two points are not
+equal. -/
+lemma left_ne_of_oangle_sign_ne_zero {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign ≠ 0) : p₁ ≠ p₂ :=
+left_ne_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between three points is nonzero, the last two points are not
+equal. -/
+lemma right_ne_of_oangle_sign_ne_zero {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign ≠ 0) : p₃ ≠ p₂ :=
+right_ne_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between three points is nonzero, the first and third points are not
+equal. -/
+lemma left_ne_right_of_oangle_sign_ne_zero {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign ≠ 0) :
+  p₁ ≠ p₃ :=
+left_ne_right_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between three points is positive, the first two points are not
+equal. -/
+lemma left_ne_of_oangle_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = 1) : p₁ ≠ p₂ :=
+left_ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is positive, the last two points are not
+equal. -/
+lemma right_ne_of_oangle_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = 1) : p₃ ≠ p₂ :=
+right_ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is positive, the first and third points are not
+equal. -/
+lemma left_ne_right_of_oangle_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = 1) : p₁ ≠ p₃ :=
+left_ne_right_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is negative, the first two points are not
+equal. -/
+lemma left_ne_of_oangle_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) : p₁ ≠ p₂ :=
+left_ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is negative, the last two points are not equal.
+-/
+lemma right_ne_of_oangle_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) : p₃ ≠ p₂ :=
+right_ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is negative, the first and third points are not
+equal. -/
+lemma left_ne_right_of_oangle_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) :
+  p₁ ≠ p₃ :=
+left_ne_right_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
 
 /-- Reversing the order of the points passed to `oangle` negates the angle. -/
 lemma oangle_rev (p₁ p₂ p₃ : P) : ∡ p₃ p₂ p₁ = -∡ p₁ p₂ p₃ :=
@@ -98,10 +198,42 @@ end
 /-- An oriented angle is zero or `π` if and only if the three points are collinear. -/
 lemma oangle_eq_zero_or_eq_pi_iff_collinear {p₁ p₂ p₃ : P} :
   (∡ p₁ p₂ p₃ = 0 ∨ ∡ p₁ p₂ p₃ = π) ↔ collinear ℝ ({p₁, p₂, p₃} : set P) :=
+by rw [←not_iff_not, not_or_distrib, oangle_ne_zero_and_ne_pi_iff_affine_independent,
+       affine_independent_iff_not_collinear_set]
+
+/-- If twice the oriented angles between two triples of points are equal, one triple is affinely
+independent if and only if the other is. -/
+lemma affine_independent_iff_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h : (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆) :
+  affine_independent ℝ ![p₁, p₂, p₃] ↔ affine_independent ℝ ![p₄, p₅, p₆] :=
+by simp_rw [←oangle_ne_zero_and_ne_pi_iff_affine_independent, ←real.angle.two_zsmul_ne_zero_iff, h]
+
+/-- If twice the oriented angles between two triples of points are equal, one triple is collinear
+if and only if the other is. -/
+lemma collinear_iff_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h : (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆) :
+  collinear ℝ ({p₁, p₂, p₃} : set P) ↔ collinear ℝ ({p₄, p₅, p₆} : set P) :=
+by simp_rw [←oangle_eq_zero_or_eq_pi_iff_collinear, ←real.angle.two_zsmul_eq_zero_iff, h]
+
+/-- If corresponding pairs of points in two angles have the same vector span, twice those angles
+are equal. -/
+lemma two_zsmul_oangle_of_vector_span_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h₁₂₄₅ : vector_span ℝ ({p₁, p₂} : set P) = vector_span ℝ ({p₄, p₅} : set P))
+  (h₃₂₆₅ : vector_span ℝ ({p₃, p₂} : set P) = vector_span ℝ ({p₆, p₅} : set P)) :
+  (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆ :=
 begin
-  rw [←not_iff_not, not_or_distrib, oangle_ne_zero_and_ne_pi_iff_affine_independent,
-      affine_independent_iff_not_collinear],
-  simp [-set.union_singleton]
+  simp_rw vector_span_pair at h₁₂₄₅ h₃₂₆₅,
+  exact (o).two_zsmul_oangle_of_span_eq_of_span_eq h₁₂₄₅ h₃₂₆₅
+end
+
+/-- If the lines determined by corresponding pairs of points in two angles are parallel, twice
+those angles are equal. -/
+lemma two_zsmul_oangle_of_parallel {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h₁₂₄₅ : line[ℝ, p₁, p₂] ∥ line[ℝ, p₄, p₅]) (h₃₂₆₅ : line[ℝ, p₃, p₂] ∥ line[ℝ, p₆, p₅]) :
+  (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆ :=
+begin
+  rw affine_subspace.affine_span_pair_parallel_iff_vector_span_eq at h₁₂₄₅ h₃₂₆₅,
+  exact two_zsmul_oangle_of_vector_span_eq h₁₂₄₅ h₃₂₆₅
 end
 
 /-- Given three points not equal to `p`, the angle between the first and the second at `p` plus
@@ -155,6 +287,20 @@ begin
   { rw [←(o).oangle_sub_eq_oangle_sub_rev_of_norm_eq h], simp },
   { simpa using hn }
 end
+
+/-- A base angle of an isosceles triangle is acute, oriented angle-at-point form. -/
+lemma abs_oangle_right_to_real_lt_pi_div_two_of_dist_eq {p₁ p₂ p₃ : P}
+  (h : dist p₁ p₂ = dist p₁ p₃) : |(∡ p₁ p₂ p₃).to_real| < π / 2 :=
+begin
+  simp_rw dist_eq_norm_vsub at h,
+  rw [oangle, ←vsub_sub_vsub_cancel_left p₃ p₂ p₁],
+  exact (o).abs_oangle_sub_right_to_real_lt_pi_div_two h
+end
+
+/-- A base angle of an isosceles triangle is acute, oriented angle-at-point form. -/
+lemma abs_oangle_left_to_real_lt_pi_div_two_of_dist_eq {p₁ p₂ p₃ : P}
+  (h : dist p₁ p₂ = dist p₁ p₃) : |(∡ p₂ p₃ p₁).to_real| < π / 2 :=
+(oangle_eq_oangle_of_dist_eq h) ▸ abs_oangle_right_to_real_lt_pi_div_two_of_dist_eq h
 
 /-- The cosine of the oriented angle at `p` between two points not equal to `p` equals that of the
 unoriented angle. -/
@@ -218,6 +364,40 @@ lemma oangle_eq_zero_iff_angle_eq_zero {p p₁ p₂ : P} (hp₁ : p₁ ≠ p) (h
 /-- The oriented angle between three points is `π` if and only if the unoriented angle is `π`. -/
 lemma oangle_eq_pi_iff_angle_eq_pi {p₁ p₂ p₃ : P} : ∡ p₁ p₂ p₃ = π ↔ ∠ p₁ p₂ p₃ = π :=
 (o).oangle_eq_pi_iff_angle_eq_pi
+
+/-- If the oriented angle between three points is `π / 2`, so is the unoriented angle. -/
+lemma angle_eq_pi_div_two_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+  ∠ p₁ p₂ p₃ = π / 2 :=
+begin
+  rw [angle, ←inner_product_geometry.inner_eq_zero_iff_angle_eq_pi_div_two],
+  exact (o).inner_eq_zero_of_oangle_eq_pi_div_two h
+end
+
+/-- If the oriented angle between three points is `π / 2`, so is the unoriented angle
+(reversed). -/
+lemma angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+  ∠ p₃ p₂ p₁ = π / 2 :=
+begin
+  rw angle_comm,
+  exact angle_eq_pi_div_two_of_oangle_eq_pi_div_two h,
+end
+
+/-- If the oriented angle between three points is `-π / 2`, the unoriented angle is `π / 2`. -/
+lemma angle_eq_pi_div_two_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P}
+  (h : ∡ p₁ p₂ p₃ = ↑(-π / 2)) : ∠ p₁ p₂ p₃ = π / 2 :=
+begin
+  rw [angle, ←inner_product_geometry.inner_eq_zero_iff_angle_eq_pi_div_two],
+  exact (o).inner_eq_zero_of_oangle_eq_neg_pi_div_two h
+end
+
+/-- If the oriented angle between three points is `-π / 2`, the unoriented angle (reversed) is
+`π / 2`. -/
+lemma angle_rev_eq_pi_div_two_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P}
+  (h : ∡ p₁ p₂ p₃ = ↑(-π / 2)) : ∠ p₃ p₂ p₁ = π / 2 :=
+begin
+  rw angle_comm,
+  exact angle_eq_pi_div_two_of_oangle_eq_neg_pi_div_two h
+end
 
 /-- Swapping the first and second points in an oriented angle negates the sign of that angle. -/
 lemma oangle_swap₁₂_sign (p₁ p₂ p₃ : P) : -(∡ p₁ p₂ p₃).sign = (∡ p₂ p₁ p₃).sign :=
@@ -404,6 +584,34 @@ lemma _root_.collinear.two_zsmul_oangle_eq_right {p₁ p₂ p₃ p₃' : P}
   (h : collinear ℝ ({p₃, p₂, p₃'} : set P)) (hp₃p₂ : p₃ ≠ p₂) (hp₃'p₂ : p₃' ≠ p₂) :
   (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₁ p₂ p₃' :=
 by rw [oangle_rev, smul_neg, h.two_zsmul_oangle_eq_left hp₃p₂ hp₃'p₂, ←smul_neg, ←oangle_rev]
+
+/-- Two different points are equidistant from a third point if and only if that third point
+equals some multiple of a `π / 2` rotation of the vector between those points, plus the midpoint
+of those points. -/
+lemma dist_eq_iff_eq_smul_rotation_pi_div_two_vadd_midpoint {p₁ p₂ p : P} (h : p₁ ≠ p₂) :
+  dist p₁ p = dist p₂ p ↔
+    ∃ r : ℝ, r • ((o).rotation (π / 2 : ℝ) (p₂ -ᵥ p₁)) +ᵥ midpoint ℝ p₁ p₂ = p :=
+begin
+  refine ⟨λ hd, _, λ hr, _⟩,
+  { have hi : ⟪p₂ -ᵥ p₁, p -ᵥ midpoint ℝ p₁ p₂⟫ = 0,
+    { rw [@dist_eq_norm_vsub' V, @dist_eq_norm_vsub' V,
+          ←mul_self_inj (norm_nonneg _) (norm_nonneg _), ←real_inner_self_eq_norm_mul_norm,
+          ←real_inner_self_eq_norm_mul_norm] at hd,
+      simp_rw [vsub_midpoint, ←vsub_sub_vsub_cancel_left p₂ p₁ p, inner_sub_left,
+               inner_add_right, inner_smul_right, hd, real_inner_comm (p -ᵥ p₁)],
+      abel },
+    rw [@orientation.inner_eq_zero_iff_eq_zero_or_eq_smul_rotation_pi_div_two V _ _ _ o,
+        or_iff_right (vsub_ne_zero.2 h.symm)] at hi,
+    rcases hi with ⟨r, hr⟩,
+    rw [eq_comm, ←eq_vadd_iff_vsub_eq] at hr,
+    exact ⟨r, hr.symm⟩ },
+  { rcases hr with ⟨r, rfl⟩,
+    simp_rw [@dist_eq_norm_vsub V, vsub_vadd_eq_vsub_sub, left_vsub_midpoint,
+             right_vsub_midpoint, inv_of_eq_inv, ←neg_vsub_eq_vsub_rev p₂ p₁,
+             ←mul_self_inj (norm_nonneg _) (norm_nonneg _), ←real_inner_self_eq_norm_mul_norm,
+             inner_sub_sub_self],
+    simp [-neg_vsub_eq_vsub_rev] }
+end
 
 open affine_subspace
 

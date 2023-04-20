@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.polynomial.big_operators
 import algebra.squarefree
 import data.polynomial.expand
 import data.polynomial.splits
-import field_theory.minpoly
+import field_theory.minpoly.field
 import ring_theory.power_basis
 
 /-!
@@ -336,7 +335,9 @@ theorem unique_separable_of_irreducible {f : F[X]} (hf : irreducible f) (hp : 0 
   n₁ = n₂ ∧ g₁ = g₂ :=
 begin
   revert g₁ g₂,
-  wlog hn : n₁ ≤ n₂ := le_total n₁ n₂ using [n₁ n₂, n₂ n₁],
+  wlog hn : n₁ ≤ n₂,
+  { intros g₁ g₂ hg₁ Hg₁ hg₂ Hg₂,
+    simpa only [eq_comm] using this hf hp n₂ n₁ (le_of_not_le hn) g₂ g₁ hg₂ Hg₂ hg₁ Hg₁ },
   have hf0 : f ≠ 0 := hf.ne_zero,
   unfreezingI { intros, rw le_iff_exists_add at hn, rcases hn with ⟨k, rfl⟩,
     rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp n₁)] at hgf₂, subst hgf₂,
@@ -345,8 +346,6 @@ begin
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,
       simp_rw expand_C at hf, exact absurd (is_unit_C.2 hr) hf.1 },
     { rw [add_zero, pow_zero, expand_one], split; refl } },
-  obtain ⟨hn, hg⟩ := this g₂ g₁ hg₂ hgf₂ hg₁ hgf₁,
-  exact ⟨hn.symm, hg.symm⟩
 end
 
 end char_p
@@ -366,9 +365,8 @@ begin
   rw [separable_def', derivative_sub, derivative_X_pow, derivative_one, sub_zero],
   -- Suppose `(n : F) = 0`, then the derivative is `0`, so `X ^ n - 1` is a unit, contradiction.
   rintro (h : is_coprime _ _) hn',
-  rw [← C_eq_nat_cast, hn', C.map_zero, zero_mul, is_coprime_zero_right] at h,
-  have := not_is_unit_X_pow_sub_one F n,
-  contradiction
+  rw [hn', C_0, zero_mul, is_coprime_zero_right] at h,
+  exact not_is_unit_X_pow_sub_one F n h
 end
 
 section splits

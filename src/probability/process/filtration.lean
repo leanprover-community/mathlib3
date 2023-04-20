@@ -16,7 +16,7 @@ This file defines filtrations of a measurable space and σ-finite filtrations.
   sub-σ-algebras.
 * `measure_theory.sigma_finite_filtration`: a filtration `f` is σ-finite with respect to a measure
   `μ` if for all `i`, `μ.trim (f.le i)` is σ-finite.
-* `measure_theory.filtration.natular`: the smallest filtration that makes a process adapted. That
+* `measure_theory.filtration.natural`: the smallest filtration that makes a process adapted. That
   notion `adapted` is not defined yet in this file. See `measure_theory.adapted`.
 
 ## Main results
@@ -30,7 +30,7 @@ filtration, stochastic process
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 

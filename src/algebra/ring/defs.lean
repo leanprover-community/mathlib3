@@ -10,6 +10,9 @@ import data.int.cast.defs
 /-!
 # Semirings and rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines semirings, rings and domains. This is analogous to `algebra.group.defs` and
 `algebra.group.basic`, the difference being that the former is about `+` and `*` separately, while
 the present file is about their interaction.
@@ -289,9 +292,9 @@ class non_unital_ring (α : Type*) extends
   non_unital_non_assoc_ring α, non_unital_semiring α
 
 /-- A unital but not-necessarily-associative ring. -/
-@[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring]
+@[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring add_comm_group_with_one]
 class non_assoc_ring (α : Type*) extends
-  non_unital_non_assoc_ring α, non_assoc_semiring α, add_group_with_one α
+  non_unital_non_assoc_ring α, non_assoc_semiring α, add_comm_group_with_one α
 
 /-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
 multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
@@ -409,10 +412,12 @@ instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_ring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
-/-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
-  the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
+/-- A domain is a nontrivial semiring such multiplication by a non zero element is cancellative,
+  on both sides. In other words, a nontrivial semiring `R` satisfying
+  `∀ {a b c : R}, a ≠ 0 → a * b = a * c → b = c` and
+  `∀ {a b c : R}, b ≠ 0 → a * b = c * b → a = c`.
 
-  This is implemented as a mixin for `ring α`.
+  This is implemented as a mixin for `semiring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
-@[protect_proj] class is_domain (α : Type u) [ring α]
-  extends no_zero_divisors α, nontrivial α : Prop
+@[protect_proj, ancestor is_cancel_mul_zero nontrivial]
+class is_domain (α : Type u) [semiring α] extends is_cancel_mul_zero α, nontrivial α : Prop

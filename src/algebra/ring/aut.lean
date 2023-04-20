@@ -3,12 +3,15 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import algebra.group_ring_action
+import algebra.group_ring_action.basic
 import algebra.hom.aut
 import algebra.ring.equiv
 
 /-!
 # Ring automorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the automorphism group structure on `ring_aut R := ring_equiv R R`.
 

@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import algebra.monoid_algebra.basic
+import data.finset.sort
 
 /-!
 # Theory of univariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `polynomial R`, the type of univariate polynomials over the semiring `R`, builds
 a semiring structure on it, and gives basic definitions that are expanded in other files in this
@@ -75,6 +79,8 @@ lemma forall_iff_forall_finsupp (P : R[X] → Prop) :
 lemma exists_iff_exists_finsupp (P : R[X] → Prop) :
   (∃ p, P p) ↔ ∃ (q : add_monoid_algebra R ℕ), P ⟨q⟩ :=
 ⟨λ ⟨⟨p⟩, hp⟩, ⟨p, hp⟩, λ ⟨q, hq⟩, ⟨⟨q⟩, hq⟩ ⟩
+
+@[simp] lemma eta (f : R[X]) : polynomial.of_finsupp f.to_finsupp = f := by cases f; refl
 
 /-! ### Conversions to and from `add_monoid_algebra`
 
@@ -326,8 +332,7 @@ def C : R →+* R[X] :=
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
-@[simp] lemma to_finsupp_C (a : R) : (C a).to_finsupp = single 0 a :=
-by rw [←monomial_zero_left, to_finsupp_monomial]
+@[simp] lemma to_finsupp_C (a : R) : (C a).to_finsupp = single 0 a := rfl
 
 lemma C_0 : C (0 : R) = 0 := by simp
 
@@ -368,6 +373,8 @@ begin
   { simp [monomial_zero_one], },
   { rw [pow_succ, ←ih, ←monomial_one_one_eq_X, monomial_mul_monomial, add_comm, one_mul], }
 end
+
+@[simp] lemma to_finsupp_X : X.to_finsupp = finsupp.single 1 (1 : R) := rfl
 
 /-- `X` commutes with everything, even when the coefficients are noncommutative. -/
 lemma X_mul : X * p = p * X :=
@@ -440,6 +447,8 @@ by { rintro ⟨p⟩ ⟨q⟩, simp only [coeff, fun_like.coe_fn_eq, imp_self] }
 
 @[simp] lemma coeff_inj : p.coeff = q.coeff ↔ p = q := coeff_injective.eq_iff
 
+lemma to_finsupp_apply (f : R[X]) (i) : f.to_finsupp i = f.coeff i := by cases f; refl
+
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { simp only [←of_finsupp_single, coeff, linear_map.coe_mk], rw finsupp.single_apply }
 
@@ -474,28 +483,32 @@ by { convert coeff_monomial using 2, simp [eq_comm], }
 lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
 by rw [coeff_C, if_neg h]
 
-theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
-nontrivial_of_ne 0 1 $ λ h01, h $
-  by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero]
+lemma C_mul_X_pow_eq_monomial : ∀ {n : ℕ}, C a * X ^ n = monomial n a
+| 0     := mul_one _
+| (n+1) := by rw [pow_succ', ←mul_assoc, C_mul_X_pow_eq_monomial, X, monomial_mul_monomial, mul_one]
 
-lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
-| 0     := (mul_one _).symm
-| (n+1) :=
-  calc monomial (n + 1) a = monomial n a * X : by { rw [X, monomial_mul_monomial, mul_one], }
-    ... = (C a * X^n) * X : by rw [monomial_eq_C_mul_X]
-    ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
+@[simp] lemma to_finsupp_C_mul_X_pow (a : R) (n : ℕ) :
+  (C a * X ^ n).to_finsupp = finsupp.single n a :=
+by rw [C_mul_X_pow_eq_monomial, to_finsupp_monomial]
 
-@[simp] lemma C_inj : C a = C b ↔ a = b :=
-⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
+lemma C_mul_X_eq_monomial : C a * X = monomial 1 a := by rw [← C_mul_X_pow_eq_monomial, pow_one]
 
-@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 :=
-calc C a = 0 ↔ C a = C 0 : by rw C_0
-         ... ↔ a = 0 : C_inj
+@[simp] lemma to_finsupp_C_mul_X (a : R) : (C a * X).to_finsupp = finsupp.single 1 a :=
+by rw [C_mul_X_eq_monomial, to_finsupp_monomial]
+
+lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
+
+@[simp] lemma C_inj : C a = C b ↔ a = b := C_injective.eq_iff
+@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 := C_injective.eq_iff' (map_zero C)
+
+lemma C_ne_zero : C a ≠ 0 ↔ a ≠ 0 := C_eq_zero.not
 
 lemma subsingleton_iff_subsingleton :
   subsingleton R[X] ↔ subsingleton R :=
-⟨λ h, subsingleton_iff.mpr (λ a b, C_inj.mp (subsingleton_iff.mp h _ _)),
-  by { introI, apply_instance } ⟩
+⟨@injective.subsingleton _ _ _ C_injective, by { introI, apply_instance } ⟩
+
+theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
+(subsingleton_or_nontrivial R).resolve_left $ λ hI, h $ by exactI subsingleton.elim _ _
 
 lemma forall_eq_iff_forall_eq :
   (∀ f g : R[X], f = g) ↔ (∀ a b : R, a = b) :=
@@ -547,14 +560,17 @@ by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero _ H]
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 by { rw [←of_finsupp_single, support], exact finsupp.support_single_subset }
 
+lemma support_C_mul_X {c : R} (h : c ≠ 0) : (C c * X).support = singleton 1 :=
+by rw [C_mul_X_eq_monomial, support_monomial 1 h]
+
+lemma support_C_mul_X' (c : R) : (C c * X).support ⊆ singleton 1 :=
+by simpa only [C_mul_X_eq_monomial] using support_monomial' 1 c
+
 lemma support_C_mul_X_pow (n : ℕ) {c : R} (h : c ≠ 0) : (C c * X ^ n).support = singleton n :=
-by rw [←monomial_eq_C_mul_X, support_monomial n h]
+by rw [C_mul_X_pow_eq_monomial, support_monomial n h]
 
 lemma support_C_mul_X_pow' (n : ℕ) (c : R) : (C c * X ^ n).support ⊆ singleton n :=
-begin
-  rw ← monomial_eq_C_mul_X,
-  exact support_monomial' n c,
-end
+by simpa only [C_mul_X_pow_eq_monomial] using support_monomial' n c
 
 open finset
 
@@ -573,33 +589,30 @@ support_add.trans (union_subset (support_add.trans (union_subset ((support_C_mul
 
 end fewnomials
 
-lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
+lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1 : R) :=
 begin
   induction n with n hn,
   { rw [pow_zero, monomial_zero_one] },
   { rw [pow_succ', hn, X, monomial_mul_monomial, one_mul] },
 end
 
-lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
-calc monomial n a = monomial n (a * 1) : by simp
-  ... = a • monomial n 1 : by rw [smul_monomial, smul_eq_mul]
-  ... = a • X^n  : by rw X_pow_eq_monomial
+@[simp] lemma to_finsupp_X_pow (n : ℕ) : (X ^ n).to_finsupp = finsupp.single n (1 : R) :=
+by rw [X_pow_eq_monomial, to_finsupp_monomial]
 
-lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : R[X]).support = singleton n :=
+lemma smul_X_eq_monomial {n} : a • X ^ n = monomial n (a : R) :=
+by rw [X_pow_eq_monomial, smul_monomial, smul_eq_mul, mul_one]
+
+lemma support_X_pow (H : ¬(1 : R) = 0) (n : ℕ) : (X ^ n : R[X]).support = singleton n :=
 begin
   convert support_monomial n H,
   exact X_pow_eq_monomial n,
 end
 
-lemma support_X_empty (H : (1:R)=0) : (X : R[X]).support = ∅ :=
-begin
-  rw [X, H, monomial_zero_right, support_zero],
-end
+lemma support_X_empty (H : (1 : R) = 0) : (X : R[X]).support = ∅ :=
+by rw [X, H, monomial_zero_right, support_zero]
 
-lemma support_X (H : ¬ (1 : R) = 0) : (X : R[X]).support = singleton 1 :=
-begin
-  rw [← pow_one X, support_X_pow H 1],
-end
+lemma support_X (H : ¬(1 : R) = 0) : (X : R[X]).support = singleton 1 :=
+by rw [← pow_one X, support_X_pow H 1]
 
 lemma monomial_left_inj {a : R} (ha : a ≠ 0) {i j : ℕ} : (monomial i a) = (monomial j a) ↔ i = j :=
 by simp_rw [←of_finsupp_single, finsupp.single_left_inj ha]
@@ -608,7 +621,7 @@ lemma binomial_eq_binomial {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 
   C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
 begin
-  simp_rw [←monomial_eq_C_mul_X, ←to_finsupp_inj, to_finsupp_add, to_finsupp_monomial],
+  simp_rw [C_mul_X_pow_eq_monomial, ←to_finsupp_inj, to_finsupp_add, to_finsupp_monomial],
   exact finsupp.single_add_single_eq_single_add_single hu hv,
 end
 
@@ -690,8 +703,8 @@ end
 lemma sum_monomial_eq : ∀ p : R[X], p.sum (λ n a, monomial n a) = p
 | ⟨p⟩ := (of_finsupp_sum _ _).symm.trans (congr_arg _ $ finsupp.sum_single _)
 
-lemma sum_C_mul_X_eq (p : R[X]) : p.sum (λn a, C a * X^n) = p :=
-by simp_rw [←monomial_eq_C_mul_X, sum_monomial_eq]
+lemma sum_C_mul_X_pow_eq (p : R[X]) : p.sum (λ n a, C a * X ^ n) = p :=
+by simp_rw [C_mul_X_pow_eq_monomial, sum_monomial_eq]
 
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : R[X] → R[X]
@@ -772,7 +785,7 @@ by { ext, rw [coeff_update_apply, coeff_erase] }
 
 lemma support_update (p : R[X]) (n : ℕ) (a : R) [decidable (a = 0)] :
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
-by { cases p, simp only [support, update, support_update], congr }
+by { classical, cases p, simp only [support, update, support_update], congr }
 
 lemma support_update_zero (p : R[X]) (n : ℕ) :
   support (p.update n 0) = p.support.erase n :=

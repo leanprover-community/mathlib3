@@ -9,6 +9,9 @@ import topology.metric_space.basic
 /-!
 # Sequences in topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define sequences in topological spaces and show how they are related to
 filters and the topology.
 
@@ -58,7 +61,7 @@ sequentially closed, sequentially compact, sequential space
 -/
 
 open set function filter topological_space
-open_locale topological_space filter
+open_locale topology filter
 
 variables {X Y : Type*}
 

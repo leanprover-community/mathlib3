@@ -7,10 +7,7 @@ import category_theory.groupoid.vertex_group
 import category_theory.groupoid.basic
 import category_theory.groupoid
 import algebra.group.defs
-import algebra.hom.group
-import algebra.hom.equiv.basic
 import data.set.lattice
-import combinatorics.quiver.connected_component
 import group_theory.subgroup.basic
 import order.galois_connection
 /-!

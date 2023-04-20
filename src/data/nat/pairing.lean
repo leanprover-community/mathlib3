@@ -5,11 +5,14 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.nat.sqrt
 import data.set.lattice
-import algebra.order.monoid.prod
-import algebra.order.group.min_max
+import algebra.group.prod
+import algebra.order.monoid.min_max
 
 /-!
 #  Naturals pairing function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a pairing function for the naturals as follows:
 ```text

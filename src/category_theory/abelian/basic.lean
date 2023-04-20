@@ -8,11 +8,13 @@ import category_theory.limits.constructions.pullbacks
 import category_theory.preadditive.biproducts
 import category_theory.limits.shapes.images
 import category_theory.limits.constructions.limits_of_products_and_equalizers
-import category_theory.limits.constructions.epi_mono
 import category_theory.abelian.non_preadditive
 
 /-!
 # Abelian categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains the definition and basic properties of abelian categories.
 
@@ -382,10 +384,40 @@ abbreviation coimage_iso_image' : abelian.coimage f ≅ image f :=
 is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
   (image.is_image f)
 
+lemma coimage_iso_image'_hom :
+  (coimage_iso_image' f).hom = cokernel.desc _ (factor_thru_image f)
+    (by simp [←cancel_mono (limits.image.ι f)]) :=
+begin
+  ext,
+  simp only [←cancel_mono (limits.image.ι f), is_image.iso_ext_hom, cokernel.π_desc, category.assoc,
+    is_image.lift_ι, coimage_strong_epi_mono_factorisation_to_mono_factorisation_m,
+    limits.image.fac],
+end
+
+lemma factor_thru_image_comp_coimage_iso_image'_inv :
+  factor_thru_image f ≫ (coimage_iso_image' f).inv = cokernel.π _ :=
+by simp only [is_image.iso_ext_inv, image.is_image_lift, image.fac_lift,
+  coimage_strong_epi_mono_factorisation_to_mono_factorisation_e]
+
 /-- There is a canonical isomorphism between the abelian image and the categorical image of a
     morphism. -/
 abbreviation image_iso_image : abelian.image f ≅ image f :=
 is_image.iso_ext (image_strong_epi_mono_factorisation f).to_mono_is_image (image.is_image f)
+
+lemma image_iso_image_hom_comp_image_ι :
+  (image_iso_image f).hom ≫ limits.image.ι _ = kernel.ι _ :=
+by simp only [is_image.iso_ext_hom, is_image.lift_ι,
+  image_strong_epi_mono_factorisation_to_mono_factorisation_m]
+
+lemma image_iso_image_inv :
+  (image_iso_image f).inv = kernel.lift _ (limits.image.ι f)
+    (by simp [←cancel_epi (factor_thru_image f)]) :=
+begin
+  ext,
+  simp only [is_image.iso_ext_inv, image.is_image_lift, limits.image.fac_lift,
+    image_strong_epi_mono_factorisation_to_mono_factorisation_e, category.assoc,
+    kernel.lift_ι, limits.image.fac],
+end
 
 end images
 

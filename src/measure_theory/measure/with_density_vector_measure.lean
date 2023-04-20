@@ -31,8 +31,7 @@ namespace measure_theory
 open topological_space
 
 variables {μ ν : measure α}
-variables {E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
-  [normed_space ℝ E] [complete_space E] [borel_space E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 /-- Given a measure `μ` and an integrable function `f`, `μ.with_densityᵥ f` is
 the vector measure which maps the set `s` to `∫ₛ f ∂μ`. -/
@@ -101,8 +100,8 @@ lemma with_densityᵥ_sub' (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ (λ x, f x - g x) = μ.with_densityᵥ f - μ.with_densityᵥ g :=
 with_densityᵥ_sub hf hg
 
-@[simp] lemma with_densityᵥ_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
-  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (f : α → E) (r : 𝕜) :
+@[simp] lemma with_densityᵥ_smul {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
+  [smul_comm_class ℝ 𝕜 E] (f : α → E) (r : 𝕜) :
   μ.with_densityᵥ (r • f) = r • μ.with_densityᵥ f :=
 begin
   by_cases hf : integrable f μ,
@@ -116,13 +115,13 @@ begin
       rwa integrable_smul_iff hr f } }
 end
 
-lemma with_densityᵥ_smul' {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
-  [smul_comm_class ℝ 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜] (f : α → E) (r : 𝕜) :
+lemma with_densityᵥ_smul' {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
+  [smul_comm_class ℝ 𝕜 E] (f : α → E) (r : 𝕜) :
   μ.with_densityᵥ (λ x, r • f x) = r • μ.with_densityᵥ f :=
 with_densityᵥ_smul f r
 
 lemma measure.with_densityᵥ_absolutely_continuous (μ : measure α) (f : α → ℝ) :
-  μ.with_densityᵥ f ≪ μ.to_ennreal_vector_measure :=
+  μ.with_densityᵥ f ≪ᵥ μ.to_ennreal_vector_measure :=
 begin
   by_cases hf : integrable f μ,
   { refine vector_measure.absolutely_continuous.mk (λ i hi₁ hi₂, _),
@@ -196,7 +195,7 @@ by rw [vector_measure.trim_measurable_set_eq hm hi, with_densityᵥ_apply hf (hm
 
 lemma integrable.with_densityᵥ_trim_absolutely_continuous
   {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) (hfi : integrable f μ) :
-  (μ.with_densityᵥ f).trim hm ≪ (μ.trim hm).to_ennreal_vector_measure :=
+  (μ.with_densityᵥ f).trim hm ≪ᵥ (μ.trim hm).to_ennreal_vector_measure :=
 begin
   refine vector_measure.absolutely_continuous.mk (λ j hj₁ hj₂, _),
   rw [measure.to_ennreal_vector_measure_apply_measurable hj₁, trim_measurable_set_eq hm hj₁] at hj₂,

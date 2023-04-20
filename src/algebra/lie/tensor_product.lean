@@ -19,13 +19,13 @@ universes u v w w₁ w₂ w₃
 
 variables {R : Type u} [comm_ring R]
 
+open lie_module
+
 namespace tensor_product
 
 open_locale tensor_product
 
 namespace lie_module
-
-open lie_module
 
 variables {L : Type v} {M : Type w} {N : Type w₁} {P : Type w₂} {Q : Type w₃}
 variables [lie_ring L] [lie_algebra R L]
@@ -87,7 +87,7 @@ def lift : (M →ₗ[R] N →ₗ[R] P) ≃ₗ⁅R,L⁆ (M ⊗[R] N →ₗ[R] P) 
 
 @[simp] lemma lift_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
   lift R L M N P f (m ⊗ₜ n) = f m n :=
-lift.equiv_apply R M N P f m n
+rfl
 
 /-- A weaker form of the universal property for tensor product of modules of a Lie algebra.
 
@@ -165,7 +165,7 @@ tensor_product.lie_module.lift_lie R L L M M
 @[simp] lemma to_module_hom_apply (x : L) (m : M) :
   to_module_hom R L M (x ⊗ₜ m) = ⁅x, m⁆ :=
 by simp only [to_module_hom, tensor_product.lie_module.lift_lie_apply, to_endomorphism_apply_apply,
-  lie_hom.coe_to_linear_map, lie_module_hom.coe_mk, linear_map.to_fun_eq_coe]
+  lie_hom.coe_to_linear_map, lie_module_hom.coe_mk, linear_map.coe_mk, linear_map.to_fun_eq_coe]
 
 end lie_module
 

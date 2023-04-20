@@ -9,6 +9,9 @@ import linear_algebra.matrix.trace
 /-!
 # Matrices with a single non-zero element.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `matrix.std_basis_matrix`. The matrix `matrix.std_basis_matrix i j c` has `c`
 at position `(i, j)`, and zeroes elsewhere.
 -/
@@ -46,8 +49,8 @@ begin
   split_ifs with h; simp [h],
 end
 
-lemma matrix_eq_sum_std_basis (x : matrix n m α) [fintype n] [fintype m] :
-  x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
+lemma matrix_eq_sum_std_basis [fintype m] [fintype n] (x : matrix m n α) :
+  x = ∑ (i : m) (j : n), std_basis_matrix i j (x i j) :=
 begin
   ext, symmetry,
   iterate 2 { rw finset.sum_apply },
@@ -62,10 +65,11 @@ end
 
 -- TODO: add `std_basis_vec`
 lemma std_basis_eq_basis_mul_basis (i : m) (j : n) :
-std_basis_matrix i j 1 = vec_mul_vec (λ i', ite (i = i') 1 0) (λ j', ite (j = j') 1 0) :=
+  std_basis_matrix i j 1 = vec_mul_vec (λ i', ite (i = i') 1 0) (λ j', ite (j = j') 1 0) :=
 begin
-  ext, norm_num [std_basis_matrix, vec_mul_vec],
-  split_ifs; tauto,
+  ext,
+  norm_num [std_basis_matrix, vec_mul_vec],
+  exact ite_and _ _ _ _,
 end
 
 -- todo: the old proof used fintypes, I don't know `finsupp` but this feels generalizable
@@ -90,7 +94,7 @@ matrix.induction_on' M
 begin
   inhabit m,
   inhabit n,
-  simpa using h_std_basis (default m) (default n) 0,
+  simpa using h_std_basis default default 0
 end
 h_add h_std_basis
 
@@ -120,12 +124,17 @@ section
 
 variables (i j : n) (c : α) (i' j' : n)
 
-@[simp] lemma diag_zero (h : j ≠ i) : diag n α α (std_basis_matrix i j c) = 0 :=
+@[simp] lemma diag_zero (h : j ≠ i) : diag (std_basis_matrix i j c) = 0 :=
 funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
+
+@[simp] lemma diag_same : diag (std_basis_matrix i i c) = pi.single i c :=
+by { ext j, by_cases hij : i = j; try {rw hij}; simp [hij] }
 
 variable [fintype n]
 
-lemma trace_zero (h : j ≠ i) : trace n α α (std_basis_matrix i j c) = 0 := by simp [h]
+@[simp] lemma trace_zero (h : j ≠ i) : trace (std_basis_matrix i j c) = 0 := by simp [trace, h]
+
+@[simp] lemma trace_eq : trace (std_basis_matrix i i c) = c := by simp [trace]
 
 @[simp] lemma mul_left_apply_same (b : n) (M : matrix n n α) :
   (std_basis_matrix i j c ⬝ M) i b = c * M j b :=
@@ -156,7 +165,7 @@ end
   std_basis_matrix i j c ⬝ std_basis_matrix k l d = 0 :=
 begin
   ext a b,
-  simp only [mul_apply, dmatrix.zero_apply, boole_mul, std_basis_matrix],
+  simp only [mul_apply, boole_mul, std_basis_matrix],
   by_cases h₁ : i = a;
   simp [h₁, h, h.symm],
 end

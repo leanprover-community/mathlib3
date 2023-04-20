@@ -9,6 +9,9 @@ import data.char
 /-!
 # Strings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Supplementary theorems about the `string` type.
 -/
 
@@ -78,7 +81,7 @@ lemma to_list_nonempty : ∀ {s : string}, s ≠ string.empty →
   s.to_list = s.head :: (s.popn 1).to_list
 | ⟨s⟩ h := by cases s; [cases h rfl, refl]
 
-@[simp] lemma head_empty : "".head = default _ := rfl
+@[simp] lemma head_empty : "".head = default := rfl
 
 @[simp] lemma popn_empty {n : ℕ} : "".popn n = "" :=
 begin

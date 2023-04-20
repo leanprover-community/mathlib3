@@ -1,5 +1,5 @@
+import logic.equiv.defs
 import tactic.simp_result
-import data.equiv.basic
 
 open tactic
 

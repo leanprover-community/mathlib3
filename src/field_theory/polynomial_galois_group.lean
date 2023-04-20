@@ -3,11 +3,9 @@ Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
-
 import analysis.complex.polynomial
 import field_theory.galois
-import group_theory.perm.cycle_type
-import ring_theory.eisenstein_criterion
+import group_theory.perm.cycle.type
 
 /-!
 # Galois Groups of Polynomials
@@ -41,19 +39,25 @@ equals the number of real roots plus the number of roots not fixed by complex co
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open finite_dimensional
 
 namespace polynomial
 
-variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
+variables {F : Type*} [field F] (p q : F[X]) (E : Type*) [field E] [algebra F E]
 
 /-- The Galois group of a polynomial. -/
-@[derive [has_coe_to_fun, group, fintype]]
+@[derive [group, fintype]]
 def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
+
+instance : has_coe_to_fun p.gal (λ _, p.splitting_field → p.splitting_field) :=
+alg_equiv.has_coe_to_fun
+
+instance apply_mul_semiring_action : mul_semiring_action p.gal p.splitting_field :=
+alg_equiv.apply_mul_semiring_action
 
 @[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
 begin
@@ -72,22 +76,22 @@ def unique_gal_of_splits (h : p.splits (ring_hom.id F)) : unique p.gal :=
 instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
 unique_gal_of_splits _ (h.1)
 
-instance unique_gal_zero : unique (0 : polynomial F).gal :=
+instance unique_gal_zero : unique (0 : F[X]).gal :=
 unique_gal_of_splits _ (splits_zero _)
 
-instance unique_gal_one : unique (1 : polynomial F).gal :=
+instance unique_gal_one : unique (1 : F[X]).gal :=
 unique_gal_of_splits _ (splits_one _)
 
 instance unique_gal_C (x : F) : unique (C x).gal :=
 unique_gal_of_splits _ (splits_C _ _)
 
-instance unique_gal_X : unique (X : polynomial F).gal :=
+instance unique_gal_X : unique (X : F[X]).gal :=
 unique_gal_of_splits _ (splits_X _)
 
 instance unique_gal_X_sub_C (x : F) : unique (X - C x).gal :=
 unique_gal_of_splits _ (splits_X_sub_C _)
 
-instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : polynomial F).gal :=
+instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : F[X]).gal :=
 unique_gal_of_splits _ (splits_X_pow _ _)
 
 instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :=
@@ -119,12 +123,7 @@ section roots_action
 see `polynomial.gal.map_roots_bijective`. -/
 def map_roots [fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
-λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
-  have key := subtype.mem x,
-  by_cases p = 0,
-  { simp only [h, root_set_zero] at key,
-    exact false.rec _ key },
-  { rw [mem_root_set h, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
+set.maps_to.restrict (is_scalar_tower.to_alg_hom F p.splitting_field E) _ _ $ root_set_maps_to _
 
 lemma map_roots_bijective [h : fact (p.splits (algebra_map F E))] :
   function.bijective (map_roots p E) :=
@@ -149,15 +148,7 @@ def roots_equiv_roots [fact (p.splits (algebra_map F E))] :
 equiv.of_bijective (map_roots p E) (map_roots_bijective p E)
 
 instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
-{ smul := λ ϕ x, ⟨ϕ x, begin
-    have key := subtype.mem x,
-    --simp only [root_set, finset.mem_coe, multiset.mem_to_finset] at *,
-    by_cases p = 0,
-    { simp only [h, root_set_zero] at key,
-      exact false.rec _ key },
-    { rw mem_root_set h,
-      change aeval (ϕ.to_alg_hom x) p = 0,
-      rw [aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩,
+{ smul := λ ϕ, set.maps_to.restrict ϕ _ _ $ root_set_maps_to ϕ.to_alg_hom,
   one_smul := λ _, by { ext, refl },
   mul_smul := λ _ _ _, by { ext, refl } }
 
@@ -184,10 +175,7 @@ variables (p E)
 
 /-- `polynomial.gal.gal_action` as a permutation representation -/
 def gal_action_hom [fact (p.splits (algebra_map F E))] : p.gal →* equiv.perm (root_set p E) :=
-{ to_fun := λ ϕ, equiv.mk (λ x, ϕ • x) (λ x, ϕ⁻¹ • x)
-  (λ x, inv_smul_smul ϕ x) (λ x, smul_inv_smul ϕ x),
-  map_one' := by { ext1 x, exact mul_action.one_smul x },
-  map_mul' := λ x y, by { ext1 z, exact mul_action.mul_smul x y z } }
+mul_action.to_perm_hom _ _
 
 lemma gal_action_hom_restrict [fact (p.splits (algebra_map F E))]
   (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑(gal_action_hom p E (restrict p E ϕ) x) = ϕ x :=
@@ -197,7 +185,7 @@ restrict_smul ϕ x
 lemma gal_action_hom_injective [fact (p.splits (algebra_map F E))] :
   function.injective (gal_action_hom p E) :=
 begin
-  rw monoid_hom.injective_iff,
+  rw injective_iff_map_eq_one,
   intros ϕ hϕ,
   ext x hx,
   have key := equiv.perm.ext_iff.mp hϕ (roots_equiv_roots p E ⟨x, hx⟩),
@@ -236,7 +224,7 @@ begin
   dsimp only [restrict_prod, restrict_dvd] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
-  rw [root_set, map_mul, polynomial.roots_mul] at hx,
+  rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
   cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
   { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,
@@ -255,7 +243,7 @@ begin
   { rwa [ne.def, mul_eq_zero, map_eq_zero, map_eq_zero, ←mul_eq_zero] }
 end
 
-lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : polynomial F}
+lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : F[X]}
   (hq₁ : q₁ ≠ 0) (hq₂ : q₂ ≠ 0) (h₁ : p₁.splits (algebra_map F q₁.splitting_field))
   (h₂ : p₂.splits (algebra_map F q₂.splitting_field)) :
   (p₁ * p₂).splits (algebra_map F (q₁ * q₂).splitting_field) :=
@@ -273,8 +261,8 @@ end
 lemma splits_in_splitting_field_of_comp (hq : q.nat_degree ≠ 0) :
   p.splits (algebra_map F (p.comp q).splitting_field) :=
 begin
-  let P : polynomial F → Prop := λ r, r.splits (algebra_map F (r.comp q).splitting_field),
-  have key1 : ∀ {r : polynomial F}, irreducible r → P r,
+  let P : F[X] → Prop := λ r, r.splits (algebra_map F (r.comp q).splitting_field),
+  have key1 : ∀ {r : F[X]}, irreducible r → P r,
   { intros r hr,
     by_cases hr' : nat_degree r = 0,
     { exact splits_of_nat_degree_le_one _ (le_trans (le_of_eq hr') zero_le_one) },
@@ -288,7 +276,7 @@ begin
       (minpoly.ne_zero qx_int)
       (normal.splits h_normal _)
       ((minpoly.irreducible qx_int).dvd_symm hr (minpoly.dvd F _ hx)) },
-  have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
+  have key2 : ∀ {p₁ p₂ : F[X]}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,
     { cases comp_eq_zero_iff.mp h₁ with h h,
@@ -333,8 +321,7 @@ begin
     λ h, nat.prime.ne_zero p_deg (nat_degree_eq_zero_iff_degree_le_zero.mpr (le_of_eq h)),
   let α : p.splitting_field := root_of_splits (algebra_map F p.splitting_field)
     (splitting_field.splits p) hp,
-  have hα : is_integral F α :=
-    (is_algebraic_iff_is_integral F).mp (algebra.is_algebraic_of_finite α),
+  have hα : is_integral F α := algebra.is_integral_of_finite _ _ α,
   use finite_dimensional.finrank F⟮α⟯ p.splitting_field,
   suffices : (minpoly F α).nat_degree = p.nat_degree,
   { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,
@@ -350,22 +337,21 @@ end
 
 section rationals
 
-lemma splits_ℚ_ℂ {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
+lemma splits_ℚ_ℂ {p : ℚ[X]} : fact (p.splits (algebra_map ℚ ℂ)) :=
 ⟨is_alg_closed.splits_codomain p⟩
 
 local attribute [instance] splits_ℚ_ℂ
 
 /-- The number of complex roots equals the number of real roots plus
     the number of roots not fixed by complex conjugation (i.e. with some imaginary component). -/
-lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : polynomial ℚ) :
+lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : ℚ[X]) :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ))).support.card :=
 begin
   by_cases hp : p = 0,
-  { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
-    refine eq.symm (nat.le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
-    simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
-    apply_instance },
+  { haveI : is_empty (p.root_set ℂ) := by { rw [hp, root_set_zero], apply_instance },
+    simp_rw [(gal_action_hom p ℂ _).support.eq_empty_of_is_empty, hp, root_set_zero,
+      set.to_finset_empty, finset.card_empty] },
   have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
   rw [←finset.card_image_of_injective _ subtype.coe_injective,
       ←finset.card_image_of_injective _ inj],
@@ -373,11 +359,11 @@ begin
   let b : finset ℂ := _,
   let c : finset ℂ := _,
   change a.card = b.card + c.card,
-  have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0 :=
-  λ z, by rw [set.mem_to_finset, mem_root_set hp],
+  have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0,
+  { intro z, rw [set.mem_to_finset, mem_root_set_of_ne hp], apply_instance },
   have hb : ∀ z : ℂ, z ∈ b ↔ aeval z p = 0 ∧ z.im = 0,
   { intro z,
-    simp_rw [finset.mem_image, exists_prop, set.mem_to_finset, mem_root_set hp],
+    simp_rw [finset.mem_image, exists_prop, set.mem_to_finset, mem_root_set_of_ne hp],
     split,
     { rintros ⟨w, hw, rfl⟩,
       exact ⟨by rw [aeval_alg_hom_apply, hw, alg_hom.map_zero], rfl⟩ },
@@ -394,23 +380,24 @@ begin
     simp_rw [finset.mem_image, exists_prop],
     split,
     { rintros ⟨w, hw, rfl⟩,
-      exact ⟨(mem_root_set hp).mp w.2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
+      exact ⟨(mem_root_set.mp w.2).2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
     { rintros ⟨hz1, hz2⟩,
-      exact ⟨⟨z, (mem_root_set hp).mpr hz1⟩,
+      exact ⟨⟨z, mem_root_set.mpr ⟨hp, hz1⟩⟩,
         equiv.perm.mem_support.mpr (mt (hc0 _).mp hz2), rfl⟩ } },
   rw ← finset.card_disjoint_union,
   { apply congr_arg finset.card,
     simp_rw [finset.ext_iff, finset.mem_union, ha, hb, hc],
     tauto },
-  { intro z,
-    rw [finset.inf_eq_inter, finset.mem_inter, hb, hc],
+  { rw finset.disjoint_left,
+    intros z,
+    rw [hb, hc],
     tauto },
   { apply_instance },
 end
 
 /-- An irreducible polynomial of prime degree with two non-real roots has full Galois group. -/
 lemma gal_action_hom_bijective_of_prime_degree
-  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  {p : ℚ[X]} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
   function.bijective (gal_action_hom p ℂ) :=
 begin
@@ -438,7 +425,7 @@ end
 
 /-- An irreducible polynomial of prime degree with 1-3 non-real roots has full Galois group. -/
 lemma gal_action_hom_bijective_of_prime_degree'
-  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  {p : ℚ[X]} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots1 : fintype.card (p.root_set ℝ) + 1 ≤ fintype.card (p.root_set ℂ))
   (p_roots2 : fintype.card (p.root_set ℂ) ≤ fintype.card (p.root_set ℝ) + 3) :
   function.bijective (gal_action_hom p ℂ) :=

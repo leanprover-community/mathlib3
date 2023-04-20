@@ -5,9 +5,8 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.preadditive
 import group_theory.quotient_group
-import category_theory.limits.concrete_category
 import category_theory.limits.shapes.kernels
-import category_theory.limits.shapes.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of additive commutative groups has all colimits.
@@ -300,9 +299,9 @@ The categorical cokernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical quotient.
 -/
 noncomputable def cokernel_iso_quotient {G H : AddCommGroup.{u}} (f : G ⟶ H) :
-  cokernel f ≅ AddCommGroup.of (quotient (add_monoid_hom.range f)) :=
+  cokernel f ≅ AddCommGroup.of (H ⧸ (add_monoid_hom.range f)) :=
 { hom := cokernel.desc f (mk' _)
-    (by { ext, apply quotient.sound, fsplit, exact -x,
+    (by { ext, apply quotient.sound, apply left_rel_apply.mpr, fsplit, exact -x,
           simp only [add_zero, add_monoid_hom.map_neg], }),
   inv := quotient_add_group.lift _ (cokernel.π f)
     (by { intros x H_1, cases H_1, induction H_1_h,
@@ -313,8 +312,8 @@ noncomputable def cokernel_iso_quotient {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   end,
   inv_hom_id' := begin
     ext x : 2,
-    simp only [colimit.ι_desc_apply, id_apply, lift_mk, mk'_apply,
-               cofork.of_π_ι_app, comp_apply, add_monoid_hom.comp_apply],
+    simp only [add_monoid_hom.coe_comp, function.comp_app, comp_apply, lift_mk,
+      cokernel.π_desc_apply, mk'_apply, id_apply],
   end, }
 
 end AddCommGroup

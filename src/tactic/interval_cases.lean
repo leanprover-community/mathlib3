@@ -3,8 +3,11 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.fintype.intervals
 import tactic.fin_cases
+import data.fin.interval -- These imports aren't required to compile this file,
+import data.int.interval -- but they are needed at the use site for the tactic to work
+import data.pnat.interval -- (on values of type fin/int/pnat)
+import data.pnat.basic
 
 /-!
 # Case bash on variables in finite intervals
@@ -133,7 +136,7 @@ do nlb ← try_core $ gives_lower_bound n e,
 Attempt to find a lower bound for the variable `n`, by evaluating `bot_le n`.
 -/
 meta def initial_lower_bound (n : expr) : tactic expr :=
-do e ← to_expr ``(@bot_le _ _ %%n),
+do e ← to_expr ``(@bot_le _ _ _ %%n),
    t ← infer_type e,
    match t with
    | `(%%b ≤ %%n) := do return e
@@ -144,7 +147,7 @@ do e ← to_expr ``(@bot_le _ _ %%n),
 Attempt to find an upper bound for the variable `n`, by evaluating `le_top n`.
 -/
 meta def initial_upper_bound (n : expr) : tactic expr :=
-do e ← to_expr ``(@le_top _ _ %%n),
+do e ← to_expr ``(@le_top _ _ _ %%n),
    match e with
    | `(%%n ≤ %%b) := do
      tn ← infer_type n,
@@ -198,13 +201,13 @@ to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>=
 (if hn : n.is_some then
   note (option.get hn)
 else
-  note_anon none) >>= fin_cases_at none
+  note_anon none) >>= fin_cases_at none none
 
 setup_tactic_parser
 
 namespace interactive
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 `interval_cases n` searches for upper and lower bounds on a variable `n`,

@@ -6,7 +6,7 @@ Authors: Simon Hudon
 
 import tactic.ext
 import tactic.solve_by_elim
-import data.stream.basic
+import data.stream.init
 import data.finset.basic
 import tactic.rcases
 
@@ -83,7 +83,7 @@ by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
 example (s₀ s₁ : ℤ → set (ℕ × ℕ))
         (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
 begin
-  ext i ⟨a,b⟩,
+  ext ((i) ⟨a,b⟩),
   apply h
 end
 
@@ -116,7 +116,7 @@ begin
     admit },
   have : ∀ (s₀ s₁ : stream ℕ), s₀ = s₁,
   { intros, ext1,
-    guard_target stream.nth n s₀ = stream.nth n s₁,
+    guard_target s₀.nth n = s₁.nth n,
     admit },
   have : ∀ n (s₀ s₁ : array n ℕ), s₀ = s₁,
   { intros, ext1,

@@ -51,8 +51,7 @@ begin
     suffices : singular_part μ ν set.univ = 0,
     { rw [measure.coe_zero, pi.zero_apply, ← this],
       exact measure_mono (set.subset_univ _) },
-    rw [← set.union_compl_self E, measure_union (@disjoint_compl_right _ E _) hE₁ hE₁.compl,
-        hE₂, zero_add],
+    rw [← measure_add_measure_compl hE₁, hE₂, zero_add],
     have : (singular_part μ ν + ν.with_density (rn_deriv μ ν)) Eᶜ = μ Eᶜ,
     { rw ← hadd },
     rw [measure.coe_add, pi.add_apply, h hE₃] at this,
@@ -93,7 +92,7 @@ open measure vector_measure
 
 theorem with_densityᵥ_rn_deriv_eq
   (s : signed_measure α) (μ : measure α) [sigma_finite μ]
-  (h : s ≪ μ.to_ennreal_vector_measure) :
+  (h : s ≪ᵥ μ.to_ennreal_vector_measure) :
   μ.with_densityᵥ (s.rn_deriv μ) = s :=
 begin
   rw [absolutely_continuous_ennreal_iff,
@@ -110,7 +109,8 @@ begin
     all_goals { rw ← integrable_on_univ,
       refine integrable_on.restrict _ measurable_set.univ,
       refine ⟨_, has_finite_integral_to_real_of_lintegral_ne_top _⟩,
-      { measurability },
+      { apply measurable.ae_strongly_measurable,
+        measurability },
       { rw set_lintegral_univ,
         exact (lintegral_rn_deriv_lt_top _ _).ne } } },
   { exact equiv_measure.right_inv μ }
@@ -119,7 +119,7 @@ end
 /-- The Radon-Nikodym theorem for signed measures. -/
 theorem absolutely_continuous_iff_with_densityᵥ_rn_deriv_eq
   (s : signed_measure α) (μ : measure α) [sigma_finite μ] :
-  s ≪ μ.to_ennreal_vector_measure ↔
+  s ≪ᵥ μ.to_ennreal_vector_measure ↔
   μ.with_densityᵥ (s.rn_deriv μ) = s :=
 ⟨with_densityᵥ_rn_deriv_eq s μ,
  λ h, h ▸ with_densityᵥ_absolutely_continuous _ _⟩

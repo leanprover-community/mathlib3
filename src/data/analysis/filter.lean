@@ -2,10 +2,24 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Computational realization of filters (experimental).
 -/
 import order.filter.cofinite
+
+/-!
+# Computational realization of filters (experimental)
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file provides infrastructure to compute with filters.
+
+## Main declarations
+
+* `cfilter`: Realization of a filter base. Note that this is in the generality of filters on
+  lattices, while `filter` is filters of sets (so corresponding to `cfilter (set α) σ`).
+* `filter.realizer`: Realization of a `filter`. `cfilter` that generates the given filter.
+-/
+
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,
@@ -20,11 +34,18 @@ structure cfilter (α σ : Type*) [partial_order α] :=
 
 variables {α : Type*} {β : Type*} {σ : Type*} {τ : Type*}
 
+instance [inhabited α] [semilattice_inf α] : inhabited (cfilter α α) :=
+⟨{ f := id,
+  pt := default,
+  inf := (⊓),
+  inf_le_left := λ _ _, inf_le_left,
+  inf_le_right := λ _ _, inf_le_right }⟩
+
 namespace cfilter
 section
 variables [partial_order α] (F : cfilter α σ)
 
-instance : has_coe_to_fun (cfilter α σ) := ⟨_, cfilter.f⟩
+instance : has_coe_to_fun (cfilter α σ) (λ _, σ → α) := ⟨cfilter.f⟩
 
 @[simp] theorem coe_mk (f pt inf h₁ h₂ a) : (@cfilter.mk α σ _ f pt inf h₁ h₂) a = f a := rfl
 
@@ -62,6 +83,7 @@ structure filter.realizer (f : filter α) :=
 (F : cfilter (set α) σ)
 (eq : F.to_filter = f)
 
+/-- A `cfilter` realizes the filter it generates. -/
 protected def cfilter.to_realizer (F : cfilter (set α) σ) : F.to_filter.realizer := ⟨σ, F, rfl⟩
 
 namespace filter.realizer
@@ -69,7 +91,8 @@ namespace filter.realizer
 theorem mem_sets {f : filter α} (F : f.realizer) {a : set α} : a ∈ f ↔ ∃ b, F.F b ⊆ a :=
 by cases F; subst f; simp
 
--- Used because it has better definitional equalities than the eq.rec proof
+/-- Transfer a realizer along an equality of filter. This has better definitional equalities than
+the `eq.rec` proof. -/
 def of_eq {f g : filter α} (e : f = g) (F : f.realizer) : g.realizer :=
 ⟨F.σ, F.F, F.eq.trans e⟩
 
@@ -97,13 +120,15 @@ protected def principal (s : set α) : (principal s).realizer := ⟨unit,
 { f            := λ _, s,
   pt           := (),
   inf          := λ _ _, (),
-  inf_le_left  := λ _ _, le_refl _,
-  inf_le_right := λ _ _, le_refl _ },
+  inf_le_left  := λ _ _, le_rfl,
+  inf_le_right := λ _ _, le_rfl },
 filter_eq $ set.ext $ λ x,
 ⟨λ ⟨_, s⟩, s, λ h, ⟨(), h⟩⟩⟩
 
 @[simp] theorem principal_σ (s : set α) : (realizer.principal s).σ = unit := rfl
 @[simp] theorem principal_F (s : set α) (u : unit) : (realizer.principal s).F u = s := rfl
+
+instance (s : set α) : inhabited (principal s).realizer := ⟨realizer.principal s⟩
 
 /-- `unit` is a realizer for the top filter -/
 protected def top : (⊤ : filter α).realizer :=
@@ -187,8 +212,7 @@ protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset 
   inf_le_right := λ s t a, mt (finset.mem_union_right _) },
 filter_eq $ set.ext $ λ x,
 ⟨λ ⟨s, h⟩, s.finite_to_set.subset (compl_subset_comm.1 h),
- λ ⟨fs⟩, by exactI ⟨xᶜ.to_finset, λ a (h : a ∉ xᶜ.to_finset),
-  classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
+ λ h, ⟨h.to_finset, by simp⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/
 protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) :

@@ -5,9 +5,13 @@ Authors: Yury Kudryashov
 -/
 import category_theory.category.Cat
 import category_theory.groupoid
+import category_theory.types
 
 /-!
 # Objects of a category up to an isomorphism
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 `is_isomorphic X Y := nonempty (X ≅ Y)` is an equivalence relation on the objects of a category.
 The quotient with respect to this relation defines a functor from our category to `Type`.

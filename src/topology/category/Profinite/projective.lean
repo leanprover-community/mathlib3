@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import topology.category.Profinite
+import topology.category.Profinite.basic
 import topology.stone_cech
 import category_theory.preadditive.projective
 
@@ -25,7 +25,7 @@ Let `X` be a profinite set.
 
 noncomputable theory
 
-universe variables u v w
+universes u v w
 open category_theory function
 
 namespace Profinite

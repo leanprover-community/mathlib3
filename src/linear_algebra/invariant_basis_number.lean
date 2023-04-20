@@ -3,11 +3,14 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
+import ring_theory.ideal.quotient
 import ring_theory.principal_ideal_domain
-import ring_theory.ideal.basic
 
 /-!
 # Invariant basis number property
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a ring `R` satisfies the invariant basis number property if there is a well-defined
 notion of the rank of a finitely generated free (left) `R`-module. Since a finitely generated free
@@ -34,9 +37,11 @@ We show that every nontrivial left-noetherian ring satisfies the strong rank con
 (and so in particular every division ring or field),
 and then use this to show every nontrivial commutative ring has the invariant basis number property.
 
-## Future work
+More generally, every commutative ring satisfies the strong rank condition. This is proved in
+`linear_algebra/free_module/strong_rank_condition`. We keep
+`invariant_basis_number_of_nontrivial_of_comm_ring` here since it imports fewer files.
 
-We can improve these results: in fact every commutative ring satisfies the strong rank condition.
+## Future work
 
 So far, there is no API at all for the `invariant_basis_number` class. There are several natural
 ways to formulate that a module `M` is finitely generated and free, for example
@@ -67,7 +72,7 @@ open function
 universes u v w
 
 section
-variables (R : Type u) [ring R]
+variables (R : Type u) [semiring R]
 
 /-- We say that `R` satisfies the strong rank condition if `(fin n → R) →ₗ[R] (fin m → R)` injective
     implies `n ≤ m`. -/
@@ -104,8 +109,8 @@ end
 lemma card_le_of_injective' [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
 begin
-  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
-  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  let P := (finsupp.linear_equiv_fun_on_finite R R β),
+  let Q := (finsupp.linear_equiv_fun_on_finite R R α).symm,
   exact card_le_of_injective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
     ((P.injective.comp i).comp Q.injective)
 end
@@ -131,8 +136,8 @@ end
 lemma card_le_of_surjective' [rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
 begin
-  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
-  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  let P := (finsupp.linear_equiv_fun_on_finite R R β),
+  let Q := (finsupp.linear_equiv_fun_on_finite R R α).symm,
   exact card_le_of_surjective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
     ((P.surjective.comp i).comp Q.surjective)
 end
@@ -162,7 +167,7 @@ instance invariant_basis_number_of_rank_condition [rank_condition R] : invariant
 end
 
 section
-variables (R : Type u) [ring R] [invariant_basis_number R]
+variables (R : Type u) [semiring R] [invariant_basis_number R]
 
 lemma eq_of_fin_equiv {n m : ℕ} : ((fin n → R) ≃ₗ[R] (fin m → R)) → n = m :=
 invariant_basis_number.eq_of_fin_equiv
@@ -234,10 +239,11 @@ variables {R : Type u} [comm_ring R] (I : ideal R) {ι : Type v} [fintype ι] {�
 
 /-- An `R`-linear map `R^n → R^m` induces a function `R^n/I^n → R^m/I^m`. -/
 private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
-  (I.pi ι).quotient → (I.pi ι').quotient :=
+  (ι → R) ⧸ (I.pi ι) → (ι' → R) ⧸ I.pi ι' :=
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
 begin
   refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
+  rw submodule.quotient_rel_r_def at hab,
   rw ←linear_map.map_sub,
   exact ideal.map_pi _ _ hab e h,
 end
@@ -245,12 +251,14 @@ end
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism of `R/I`-modules
     `R^n/I^n ≃ R^m/I^m`. -/
 private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] (ι' → R)) :
-  (I.pi ι).quotient ≃ₗ[I.quotient] (I.pi ι').quotient :=
+  ((ι → R) ⧸ I.pi ι) ≃ₗ[R ⧸ I] (ι' → R) ⧸ I.pi ι' :=
 begin
   refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr, simp }
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr,
+    simp only [map_add, linear_equiv.coe_coe, linear_equiv.map_smulₛₗ, ring_hom.id_apply,
+               linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] }
 end
 
 end
@@ -258,20 +266,16 @@ end
 section
 local attribute [instance] ideal.quotient.field
 
--- TODO: in fact, any nontrivial commutative ring satisfies the strong rank condition.
--- To see this, consider `f : (fin m → R) →ₗ[R] (fin n → R)`,
--- and consider the subring `A` of `R` generated by the matrix entries.
--- That subring is noetherian, and `f` induces a new linear map `f' : (fin m → A) →ₗ[R] (fin n → A)`
--- which is injective if `f` is.
--- Since we've already established the strong rank condition for noetherian rings,
--- this gives the result.
+/-- Nontrivial commutative rings have the invariant basis number property.
 
-/-- Nontrivial commutative rings have the invariant basis number property. -/
+In fact, any nontrivial commutative ring satisfies the strong rank condition, see
+`comm_ring_strong_rank_condition`. We prove this instance separately to avoid dependency on
+`linear_algebra.charpoly.basic`. -/
 @[priority 100]
 instance invariant_basis_number_of_nontrivial_of_comm_ring {R : Type u} [comm_ring R]
   [nontrivial R] : invariant_basis_number R :=
 ⟨λ n m e, let ⟨I, hI⟩ := ideal.exists_maximal R in
-  by exactI eq_of_fin_equiv I.quotient
+  by exactI eq_of_fin_equiv (R ⧸ I)
     ((ideal.pi_quot_equiv _ _).symm ≪≫ₗ ((induced_equiv _ e) ≪≫ₗ (ideal.pi_quot_equiv _ _)))⟩
 
 end

@@ -27,9 +27,9 @@ lagrange multiplier, local extremum
 -/
 
 open filter set
-open_locale topological_space filter big_operators
-variables {E F : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
-  [normed_group F] [normed_space ℝ F] [complete_space F]
+open_locale topology filter big_operators
+variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
   {f : E → F} {φ : E → ℝ} {x₀ : E} {f' : E →L[ℝ] F} {φ' : E →L[ℝ] ℝ}
 
 /-- Lagrange multipliers theorem: if `φ : E → ℝ` has a local extremum on the set `{x | f x = f x₀}`
@@ -38,7 +38,7 @@ a complete space, then the linear map `x ↦ (f' x, φ' x)` is not surjective. -
 lemma is_local_extr_on.range_ne_top_of_has_strict_fderiv_at
   (hextr : is_local_extr_on φ {x | f x = f x₀} x₀) (hf' : has_strict_fderiv_at f f' x₀)
   (hφ' : has_strict_fderiv_at φ φ' x₀) :
-  (f'.prod φ').range ≠ ⊤ :=
+  linear_map.range (f'.prod φ') ≠ ⊤ :=
 begin
   intro htop,
   set fφ := λ x, (f x, φ x),
@@ -68,14 +68,38 @@ begin
   refine ⟨Λ, Λ₀, e.map_ne_zero_iff.1 h0, λ x, _⟩,
   convert linear_map.congr_fun (linear_map.range_le_ker_iff.1 hΛ') x using 1,
   -- squeezed `simp [mul_comm]` to speed up elaboration
-  simp only [linear_map.coprod_equiv_apply, linear_equiv.refl_apply,
-    linear_map.ring_lmap_equiv_self_symm_apply, linear_map.comp_apply,
-    continuous_linear_map.coe_coe, continuous_linear_map.prod_apply,
-    linear_equiv.trans_apply, linear_equiv.prod_apply, linear_map.coprod_apply,
-    linear_map.smul_right_apply, linear_map.one_apply, smul_eq_mul, mul_comm]
+  simp only [mul_comm, algebra.id.smul_eq_mul, linear_equiv.trans_apply, linear_equiv.prod_apply,
+             linear_equiv.refl_apply, linear_map.ring_lmap_equiv_self_symm_apply,
+             linear_map.coprod_equiv_apply, continuous_linear_map.to_linear_map_eq_coe,
+             continuous_linear_map.coe_prod, linear_map.coprod_comp_prod, linear_map.add_apply,
+             linear_map.coe_comp, continuous_linear_map.coe_coe, linear_map.coe_smul_right,
+             linear_map.one_apply]
 end
 
-/-- Lagrange multipliers theorem. Let `f : ι → E → ℝ` be a finite family of functions.
+/-- Lagrange multipliers theorem: if `φ : E → ℝ` has a local extremum on the set `{x | f x = f x₀}`
+at `x₀`, and both `f : E → ℝ` and `φ` are strictly differentiable at `x₀`, then there exist
+`a b : ℝ` such that `(a, b) ≠ 0` and `a • f' + b • φ' = 0`. -/
+lemma is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at_1d
+  {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+  (hextr : is_local_extr_on φ {x | f x = f x₀} x₀) (hf' : has_strict_fderiv_at f f' x₀)
+  (hφ' : has_strict_fderiv_at φ φ' x₀) :
+  ∃ (a b : ℝ), (a, b) ≠ 0 ∧ a • f' + b • φ' = 0 :=
+begin
+  obtain ⟨Λ, Λ₀, hΛ, hfΛ⟩ := hextr.exists_linear_map_of_has_strict_fderiv_at hf' hφ',
+  refine ⟨Λ 1, Λ₀, _, _⟩,
+  { contrapose! hΛ,
+    simp only [prod.mk_eq_zero] at ⊢ hΛ,
+    refine ⟨linear_map.ext (λ x, _), hΛ.2⟩,
+    simpa [hΛ.1] using Λ.map_smul x 1 },
+  { ext x,
+    have H₁ : Λ (f' x) = f' x * Λ 1,
+    { simpa only [mul_one, algebra.id.smul_eq_mul] using Λ.map_smul (f' x) 1 },
+    have H₂ : f' x * Λ 1  + Λ₀ * φ' x = 0,
+    { simpa only [algebra.id.smul_eq_mul, H₁] using hfΛ x },
+    simpa [mul_comm] using H₂ }
+end
+
+/-- Lagrange multipliers theorem, 1d version. Let `f : ι → E → ℝ` be a finite family of functions.
 Suppose that `φ : E → ℝ` has a local extremum on the set `{x | ∀ i, f i x = f i x₀}` at `x₀`.
 Suppose that all functions `f i` as well as `φ` are strictly differentiable at `x₀`.
 Then the derivatives `f' i : E → L[ℝ] ℝ` and `φ' : E →L[ℝ] ℝ` are linearly dependent:
@@ -110,16 +134,17 @@ Then the derivatives `f' i : E → L[ℝ] ℝ` and `φ' : E →L[ℝ] ℝ` are l
 See also `is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at` for a version that
 that states existence of Lagrange multipliers `Λ` and `Λ₀` instead of using
 `¬linear_independent ℝ _` -/
-lemma is_local_extr_on.linear_dependent_of_has_strict_fderiv_at {ι : Type*} [fintype ι]
+lemma is_local_extr_on.linear_dependent_of_has_strict_fderiv_at {ι : Type*} [finite ι]
   {f : ι → E → ℝ} {f' : ι → E →L[ℝ] ℝ}
   (hextr : is_local_extr_on φ {x | ∀ i, f i x = f i x₀} x₀)
   (hf' : ∀ i, has_strict_fderiv_at (f i) (f' i) x₀)
   (hφ' : has_strict_fderiv_at φ φ' x₀) :
-  ¬linear_independent ℝ (λ i, option.elim i φ' f' : option ι → E →L[ℝ] ℝ) :=
+  ¬linear_independent ℝ (option.elim φ' f' : option ι → E →L[ℝ] ℝ) :=
 begin
+  casesI nonempty_fintype ι,
   rw [fintype.linear_independent_iff], push_neg,
   rcases hextr.exists_multipliers_of_has_strict_fderiv_at hf' hφ' with ⟨Λ, Λ₀, hΛ, hΛf⟩,
-  refine ⟨λ i, option.elim i Λ₀ Λ, _, _⟩,
+  refine ⟨option.elim Λ₀ Λ, _, _⟩,
   { simpa [add_comm] using hΛf },
   { simpa [function.funext_iff, not_and_distrib, or_comm, option.exists] using hΛ }
 end

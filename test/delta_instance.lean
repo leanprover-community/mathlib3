@@ -3,10 +3,12 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import data.set
+import data.set.basic
 import algebra.category.Mon.basic
 
-@[derive has_coe_to_sort] def X : Type := set ℕ
+def X : Type := set ℕ
+
+instance : has_coe_to_sort X Type := set.has_coe_to_sort
 
 @[derive ring] def T := ℤ
 

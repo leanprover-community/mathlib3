@@ -5,6 +5,7 @@ Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
 import measure_theory.integral.interval_integral
 import analysis.special_functions.sqrt
+import analysis.special_functions.trigonometric.inverse_deriv
 
 /-!
 # Freek № 9: The Area of a Circle
@@ -29,7 +30,7 @@ to the derivative of `λ x, r ^ 2 * arcsin (x / r) + x * sqrt (r ^ 2 - x ^ 2)` e
 `Ioo (-r) r` and that those two functions are continuous, then apply the second fundamental theorem
 of calculus with those facts. Some simple algebra then completes the proof.
 
-Note that we choose to define `disc` as a set of points in `ℝ ⨯ ℝ`. This is admittedly not ideal; it
+Note that we choose to define `disc` as a set of points in `ℝ × ℝ`. This is admittedly not ideal; it
 would be more natural to define `disc` as a `metric.ball` in `euclidean_space ℝ (fin 2)` (as well as
 to provide a more general proof in higher dimensions). However, our proof indirectly relies on a
 number of theorems (particularly `measure_theory.measure.prod_apply`) which do not yet exist for
@@ -92,9 +93,9 @@ begin
   { rintros x ⟨hx1, hx2⟩,
     convert ((has_deriv_at_const x ((r:ℝ)^2)).mul ((has_deriv_at_arcsin _ _).comp x
       ((has_deriv_at_const x (r:ℝ)⁻¹).mul (has_deriv_at_id' x)))).add
-        ((has_deriv_at_id' x).mul (((has_deriv_at_id' x).pow.const_sub ((r:ℝ)^2)).sqrt _)),
+        ((has_deriv_at_id' x).mul ((((has_deriv_at_id' x).pow 2).const_sub ((r:ℝ)^2)).sqrt _)),
     { have h : sqrt (1 - x ^ 2 / r ^ 2) * r = sqrt (r ^ 2 - x ^ 2),
-      { rw [← sqrt_sq hle, ← sqrt_mul, sub_mul, sqrt_sq hle, div_mul_eq_mul_div_comm,
+      { rw [← sqrt_sq hle, ← sqrt_mul, sub_mul, sqrt_sq hle, mul_comm_div,
             div_self (pow_ne_zero 2 hlt.ne'), one_mul, mul_one],
         simpa [sqrt_sq hle, div_le_one (pow_pos hlt 2)] using sq_le_sq' hx1.le hx2.le },
       field_simp,

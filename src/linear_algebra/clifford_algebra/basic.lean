@@ -5,9 +5,8 @@ Authors: Eric Wieser, Utensil Song
 -/
 
 import algebra.ring_quot
-import linear_algebra.tensor_algebra
-import linear_algebra.exterior_algebra
-import linear_algebra.quadratic_form
+import linear_algebra.tensor_algebra.basic
+import linear_algebra.quadratic_form.isometry
 
 /-!
 # Clifford Algebras
@@ -17,12 +16,12 @@ a quadratic_form `Q`.
 
 ## Notation
 
-The Clifford algebra of the `R`-module `M` equipped with a quadratic_form `Q` is denoted as
-`clifford_algebra Q`.
+The Clifford algebra of the `R`-module `M` equipped with a quadratic_form `Q` is
+an `R`-algebra denoted `clifford_algebra Q`.
 
 Given a linear morphism `f : M → A` from a module `M` to another `R`-algebra `A`, such that
 `cond : ∀ m, f m * f m = algebra_map _ _ (Q m)`, there is a (unique) lift of `f` to an `R`-algebra
-morphism, which is denoted `clifford_algebra.lift Q f cond`.
+morphism from `clifford_algebra Q` to `A`, which is denoted `clifford_algebra.lift Q f cond`.
 
 The canonical linear map `M → clifford_algebra Q` is denoted `clifford_algebra.ι Q`.
 
@@ -104,8 +103,8 @@ def lift :
   {f : M →ₗ[R] A // ∀ m, f m * f m = algebra_map _ _ (Q m)} ≃ (clifford_algebra Q →ₐ[R] A) :=
 { to_fun := λ f,
   ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : M →ₗ[R] A),
-    (λ x y (h : rel Q x y), by {
-      induction h,
+    (λ x y (h : rel Q x y), by
+    { induction h,
       rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
     linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
@@ -164,6 +163,8 @@ end
 
 /-- If `C` holds for the `algebra_map` of `r : R` into `clifford_algebra Q`, the `ι` of `x : M`,
 and is preserved under addition and muliplication, then it holds for all of `clifford_algebra Q`.
+
+See also the stronger `clifford_algebra.left_induction` and `clifford_algebra.right_induction`.
 -/
 -- This proof closely follows `tensor_algebra.induction`
 @[elab_as_eliminator]
@@ -176,8 +177,8 @@ lemma induction {C : clifford_algebra Q → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from M
-  let s : subalgebra R (clifford_algebra Q) := {
-    carrier := C,
+  let s : subalgebra R (clifford_algebra Q) :=
+  { carrier := C,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },
@@ -193,26 +194,6 @@ begin
   exact alg_hom.congr_fun of_id a,
 end
 
-/-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
-def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
-alg_equiv.of_alg_hom
-  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R),
-    by simp only [forall_const, ring_hom.map_zero,
-                  exterior_algebra.ι_sq_zero, quadratic_form.zero_apply]⟩)
-  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)),
-    by simp only [forall_const, ring_hom.map_zero,
-                  quadratic_form.zero_apply, ι_sq_scalar]⟩)
-  (exterior_algebra.hom_ext $ linear_map.ext $
-    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
-                  function.comp_app, alg_hom.to_linear_map_apply,
-                  exterior_algebra.lift_ι_apply, clifford_algebra.lift_ι_apply,
-                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
-  (clifford_algebra.hom_ext $ linear_map.ext $
-    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
-                  function.comp_app, alg_hom.to_linear_map_apply,
-                  clifford_algebra.lift_ι_apply, exterior_algebra.lift_ι_apply,
-                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
-
 /-- The symmetric product of vectors is a scalar -/
 lemma ι_mul_ι_add_swap (a b : M) :
   ι Q a * ι Q b + ι Q b * ι Q a = algebra_map R _ (quadratic_form.polar Q a b) :=
@@ -224,6 +205,21 @@ calc  ι Q a * ι Q b + ι Q b * ι Q a
 ... = algebra_map R _ (Q (a + b) - Q a - Q b) :
         by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
 ... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
+
+lemma ι_mul_comm (a b : M) :
+  ι Q a * ι Q b = algebra_map R _ (quadratic_form.polar Q a b) - ι Q b * ι Q a :=
+eq_sub_of_add_eq (ι_mul_ι_add_swap a b)
+
+/-- $aba$ is a vector. -/
+lemma ι_mul_ι_mul_ι  (a b : M) :
+  ι Q a * ι Q b * ι Q a = ι Q (quadratic_form.polar Q a b • a - Q a • b) :=
+by rw [ι_mul_comm, sub_mul, mul_assoc, ι_sq_scalar, ←algebra.smul_def, ←algebra.commutes,
+  ←algebra.smul_def, ←map_smul, ←map_smul, ←map_sub]
+
+@[simp]
+lemma ι_range_map_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
+  (ι Q).range.map (lift Q ⟨f, cond⟩).to_linear_map = f.range :=
+by rw [←linear_map.range_comp, ι_comp_lift]
 
 section map
 
@@ -265,6 +261,11 @@ begin
   rw [map_apply_ι, map_apply_ι, map_apply_ι, linear_map.comp_apply],
 end
 
+@[simp]
+lemma ι_range_map_map (f : M₁ →ₗ[R] M₂) (hf : ∀ m, Q₂ (f m) = Q₁ m) :
+  (ι Q₁).range.map (map Q₁ Q₂ f hf).to_linear_map = f.range.map (ι Q₂) :=
+(ι_range_map_lift _ _).trans (linear_map.range_comp _ _)
+
 variables {Q₁ Q₂ Q₃}
 
 /-- Two `clifford_algebra`s are equivalent as algebras if their quadratic forms are
@@ -301,6 +302,42 @@ lemma equiv_of_isometry_refl :
 by { ext x, exact alg_hom.congr_fun (map_id Q₁) x }
 
 end map
+
+variables (Q)
+
+/-- If the quadratic form of a vector is invertible, then so is that vector. -/
+def invertible_ι_of_invertible (m : M) [invertible (Q m)] : invertible (ι Q m) :=
+{ inv_of := ι Q (⅟(Q m) • m),
+  inv_of_mul_self := by rw [map_smul, smul_mul_assoc, ι_sq_scalar, algebra.smul_def, ←map_mul,
+    inv_of_mul_self, map_one],
+  mul_inv_of_self := by rw [map_smul, mul_smul_comm, ι_sq_scalar, algebra.smul_def, ←map_mul,
+    inv_of_mul_self, map_one] }
+
+/-- For a vector with invertible quadratic form, $v^{-1} = \frac{v}{Q(v)}$ -/
+lemma inv_of_ι (m : M) [invertible (Q m)] [invertible (ι Q m)] : ⅟(ι Q m) = ι Q (⅟(Q m) • m) :=
+begin
+  letI := invertible_ι_of_invertible Q m,
+  convert (rfl : ⅟(ι Q m) = _),
+end
+
+lemma is_unit_ι_of_is_unit {m : M} (h : is_unit (Q m)) : is_unit (ι Q m) :=
+begin
+  casesI h.nonempty_invertible,
+  letI := invertible_ι_of_invertible Q m,
+  exactI is_unit_of_invertible (ι Q m),
+end
+
+/-- $aba^{-1}$ is a vector. -/
+lemma ι_mul_ι_mul_inv_of_ι (a b : M) [invertible (ι Q a)] [invertible (Q a)] :
+  ι Q a * ι Q b * ⅟(ι Q a) = ι Q ((⅟(Q a) * quadratic_form.polar Q a b) • a - b) :=
+by rw [inv_of_ι, map_smul, mul_smul_comm, ι_mul_ι_mul_ι, ←map_smul, smul_sub, smul_smul, smul_smul,
+  inv_of_mul_self, one_smul]
+
+/-- $a^{-1}ba$ is a vector. -/
+lemma inv_of_ι_mul_ι_mul_ι (a b : M) [invertible (ι Q a)] [invertible (Q a)] :
+  ⅟(ι Q a) * ι Q b * ι Q a = ι Q ((⅟(Q a) * quadratic_form.polar Q a b) • a - b) :=
+by rw [inv_of_ι, map_smul, smul_mul_assoc, smul_mul_assoc, ι_mul_ι_mul_ι, ←map_smul, smul_sub,
+  smul_smul, smul_smul, inv_of_mul_self, one_smul]
 
 end clifford_algebra
 

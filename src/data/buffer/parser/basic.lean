@@ -6,6 +6,7 @@ Authors: Yakov Pechersky
 import data.string.basic
 import data.buffer.basic
 import data.nat.digits
+import data.buffer.parser
 
 /-!
 # Parsers
@@ -494,7 +495,7 @@ instance str {s : string} : (str s).mono :=
 mono.decorate_error
 
 instance remaining : remaining.mono :=
-⟨λ _ _, le_refl _⟩
+⟨λ _ _, le_rfl⟩
 
 instance eof : eof.mono :=
 mono.decorate_error
@@ -683,7 +684,7 @@ lemma remaining_ne_fail : remaining cb n ≠ fail n' err :=
 by simp [remaining]
 
 lemma eof_eq_done {u : unit} : eof cb n = done n' u ↔ n = n' ∧ cb.size ≤ n :=
-by simp [eof, guard_eq_done, remaining_eq_done, nat.sub_eq_zero_iff_le, and_comm, and_assoc]
+by simp [eof, guard_eq_done, remaining_eq_done, tsub_eq_zero_iff_le, and_comm, and_assoc]
 
 @[simp] lemma foldr_core_zero_eq_done {f : α → β → β} {p : parser α} {b' : β} :
   foldr_core f p b 0 cb n ≠ done n' b' :=
@@ -719,7 +720,7 @@ lemma foldr_eq_fail_iff_mono_at_end {f : α → β → β} {p : parser α} {err 
   [p.mono] (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
-  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  have : cb.size - n = 0 := tsub_eq_zero_iff_le.mpr hc,
   simp only [foldr, foldr_core_succ_eq_fail, this, and.left_comm, foldr_core_zero_eq_fail,
              ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
              exists_and_distrib_left],
@@ -773,7 +774,7 @@ lemma foldl_eq_fail_iff_mono_at_end {f : β → α → β} {p : parser α} {err 
   [p.mono] (hc : cb.size ≤ n) : foldl f b p cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
-  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  have : cb.size - n = 0 := tsub_eq_zero_iff_le.mpr hc,
   simp only [foldl, foldl_core_succ_eq_fail, this, and.left_comm, ne_iff_lt_iff_le, exists_eq_left,
              exists_and_distrib_right, and.congr_left_iff, exists_and_distrib_left,
              foldl_core_zero_eq_fail],
@@ -882,7 +883,7 @@ begin
   { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9],
     rintro ⟨np, c, ⟨hn, ⟨ge0, le9⟩, rfl, rfl⟩, rfl, rfl⟩,
     simpa [hn, ge0, le9, true_and, and_true, eq_self_iff_true, exists_prop_of_true,
-            nat.sub_le_sub_right_iff, l09] using (le_iff_le.mp le9) },
+            tsub_le_tsub_iff_right, l09] using (le_iff_le.mp le9) },
   { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9,
                le_iff_le],
     rintro ⟨hn, rfl, -, rfl, ge0, le9⟩,
@@ -959,8 +960,8 @@ static.decorate_errors
 lemma any_char : ¬ static any_char :=
 begin
   have : any_char "s".to_char_buffer 0 = done 1 's',
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [any_char_eq_done, this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [any_char_eq_done, this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -986,8 +987,8 @@ instance eps : static eps := static.pure
 lemma ch (c : char) : ¬ static (ch c) :=
 begin
   have : ch c [c].to_buffer 0 = done 1 (),
-    { have : 0 < [c].to_buffer.size := dec_trivial,
-      simp [ch_eq_done, this] },
+  { have : 0 < [c].to_buffer.size := dec_trivial,
+    simp [ch_eq_done, this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -1007,7 +1008,7 @@ begin
   cases cs with hd tl,
   { simp [one_of, static.decorate_errors] },
   { have : one_of (hd :: tl) (hd :: tl).to_buffer 0 = done 1 hd,
-      { simp [one_of_eq_done] },
+    { simp [one_of_eq_done] },
     simpa using not_of_ne this zero_ne_one }
 end
 
@@ -1019,7 +1020,7 @@ begin
   cases cs with hd tl,
   { simp [one_of', static.bind], },
   { have : one_of' (hd :: tl) (hd :: tl).to_buffer 0 = done 1 (),
-      { simp [one_of'_eq_done] },
+    { simp [one_of'_eq_done] },
     simpa using not_of_ne this zero_ne_one }
 end
 
@@ -1096,16 +1097,16 @@ lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.static
 lemma digit : ¬ digit.static :=
 begin
   have : digit "1".to_char_buffer 0 = done 1 1,
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [this] },
   exact not_of_ne this zero_ne_one
 end
 
 lemma nat : ¬ nat.static :=
 begin
   have : nat "1".to_char_buffer 0 = done 1 1,
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -1245,10 +1246,10 @@ begin
   rw [str, decorate_error_iff],
   cases hs : s.to_list,
   { have : s = "",
-      { cases s, rw [string.to_list] at hs, simpa [hs] },
+    { cases s, rw [string.to_list] at hs, simpa [hs] },
     simp [pure, this] },
   { have : s ≠ "",
-      { intro H, simpa [H] using hs },
+    { intro H, simpa [H] using hs },
     simp only [this, iff_true, ne.def, not_false_iff],
     apply_instance }
 end
@@ -1465,11 +1466,9 @@ begin
     haveI := hr,
     intros cb n,
     obtain ⟨np, a, h⟩ := p.exists_done cb n,
-    have : n = np := static.of_done h,
-    subst this,
+    obtain rfl : n = np := static.of_done h,
     obtain ⟨np, b', hf⟩ := exists_done (foldr_core f p b (reps + 1)) cb n,
-    have : n = np := static.of_done hf,
-    subst this,
+    obtain rfl : n = np := static.of_done hf,
     refine ⟨n, f a b', _⟩,
     rw foldr_core_eq_done,
     simp [h, hf, and.comm, and.left_comm, and.assoc] }
@@ -1851,7 +1850,7 @@ begin
     have hn : n < cb.size := bounded.of_done hp,
     subst this,
     obtain ⟨k, hk⟩ : ∃ k, cb.size - n = k + 1 :=
-      nat.exists_eq_succ_of_ne_zero (ne_of_gt (nat.sub_pos_of_lt hn)),
+      nat.exists_eq_succ_of_ne_zero (ne_of_gt (tsub_pos_of_lt hn)),
     cases k,
     { cases tl;
       simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
@@ -1860,8 +1859,7 @@ begin
     { rw ←@IH hd' tl' at hm, swap, refl,
       simp only [many1_eq_done, many, foldr] at hm,
       obtain ⟨np, hp', hf⟩ := hm,
-      have : np = n + 1 + 1 := step.of_done hp',
-      subst this,
+      obtain rfl : np = n + 1 + 1 := step.of_done hp',
       simpa [nat.sub_succ, many_eq_done, hp, hk, foldr_core_eq_done, hp'] using hf } },
   { simp only [many_eq_done, many1_eq_done, and_imp, exists_imp_distrib],
     intros np hp hm,
@@ -1869,7 +1867,7 @@ begin
     have hn : n < cb.size := bounded.of_done hp,
     subst this,
     obtain ⟨k, hk⟩ : ∃ k, cb.size - n = k + 1 :=
-      nat.exists_eq_succ_of_ne_zero (ne_of_gt (nat.sub_pos_of_lt hn)),
+      nat.exists_eq_succ_of_ne_zero (ne_of_gt (tsub_pos_of_lt hn)),
     cases k,
     { cases tl;
       simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
@@ -1882,8 +1880,7 @@ begin
       { simpa using hm },
       simp only at hm,
       obtain ⟨rfl, rfl⟩ := hm,
-      have : np = n + 1 + 1 := step.of_done hp',
-      subst this,
+      obtain rfl : np = n + 1 + 1 := step.of_done hp',
       simp [nat.sub_succ, many, many1_eq_done, hp, hk, foldr_core_eq_done, hp', ←hf, foldr] } }
 end
 
@@ -2110,8 +2107,7 @@ begin
     subst hk,
     simp only [many1_eq_done] at h,
     obtain ⟨_, hp, h⟩ := h,
-    have := step.of_done hp,
-    subst this,
+    obtain rfl := step.of_done hp,
     cases tl,
     { simp only [many_eq_done_nil, add_left_inj, exists_and_distrib_right, self_eq_add_right] at h,
       rcases h with ⟨rfl, -⟩,
@@ -2129,8 +2125,7 @@ begin
   { simpa using h },
   { simp only [many1_eq_done] at h,
     obtain ⟨np, hp, h⟩ := h,
-    have := step.of_done hp,
-    subst this,
+    obtain rfl := step.of_done hp,
     cases tl,
     { simp only [many_eq_done_nil, exists_and_distrib_right] at h,
       simpa [←h.left] using bounded.of_done hp },
@@ -2204,7 +2199,7 @@ begin
   -- Inductive case:
   -- We must prove that the first digit parsed in `lhd : ℕ` is precisely the digit that is
   -- represented by the character at position `n` in `cb : char_buffer`.
-  -- We will also prove the the correspondence between the subsequent digits `ltl : list ℕ` and the
+  -- We will also prove the correspondence between the subsequent digits `ltl : list ℕ` and the
   -- remaining characters past position `n` up to position `n'`.
   cases hx : (list.drop n (buffer.to_list cb)) with chd ctl,
   { -- Are there even characters left to parse, at position `n` in the `cb : char_buffer`? In other
@@ -2222,8 +2217,7 @@ begin
       -- In fact, we know that this new position is `n + 1`, by the `step` property of
       -- `parser.digit`.
       obtain ⟨_, hp, -⟩ := hp,
-      have := step.of_done hp,
-      subst this,
+      obtain rfl := step.of_done hp,
       -- We now unfold what it means for `parser.digit` to succeed, which means that the character
       -- parsed in was "numeric" (for some definition of that property), and, more importantly,
       -- that the `n`th character of `cb`, let's say `c`, when converted to a `ℕ` via
@@ -2268,8 +2262,7 @@ begin
     -- This means we must have failed parsing with `parser.digit` at some other position,
     -- which we prove must be `n + 1` via the `step` property.
     obtain ⟨_, hp, rfl, hp'⟩ := hp,
-    have := step.of_done hp,
-    subst this,
+    obtain rfl := step.of_done hp,
     -- Now we rely on the simplifier, which simplfies the LHS, which is a fold over a singleton
     -- list. On the RHS, `list.take (n + 1 - n)` also produces a singleton list, which, when
     -- reversed, is the same list. `nat.of_digits` of a singleton list is precisely the value in
@@ -2300,11 +2293,11 @@ begin
       { simp [hk, add_assoc] },
     subst this,
     simp only [nat.sub_succ, add_comm, ←nat.pred_sub, buffer.length_to_list, nat.pred_one_add,
-                min_eq_left_iff, list.length_drop, nat.add_sub_cancel_left, list.length_take,
-                nat.sub_zero],
+                min_eq_left_iff, list.length_drop, add_tsub_cancel_left, list.length_take,
+                tsub_zero],
     -- We now have a goal of proving an inequality dealing with `nat` subtraction and `nat.pred`,
     -- both of which require special care to provide positivity hypotheses.
-    rw [nat.sub_le_sub_right_iff, nat.pred_le_iff],
+    rw [tsub_le_tsub_iff_right, nat.pred_le_iff],
     { -- We know that `n' ≤ cb.size` because of the `bounded` property, that a parser will not
       -- produce a `done` result at a position farther than the size of the underlying
       -- `char_buffer`.
@@ -2569,14 +2562,14 @@ begin
     have hdigit : digit cb n = done (n + 1) (hd.to_nat - '0'.to_nat),
     { -- By our necessary condition, we know that `n` is in bounds, and that the `n`th character
       -- has the necessary "numeric" properties.
-      specialize ho n hn (le_refl _),
+      specialize ho n hn le_rfl,
       -- We prove an additional result that the conversion of `hd : char` to a `ℕ` would give a
       -- value `x ≤ 9`, since that is part of the iff statement in the `digit_eq_done` lemma.
       have : (buffer.read cb ⟨n, hn.trans_le hn'⟩).to_nat - '0'.to_nat ≤ 9,
       { -- We rewrite the statement to be a statement about characters instead, and split the
         -- inequality into the case that our hypotheses prove, and that `'0' ≤ '9'`, which
         -- is true by computation, handled by `dec_trivial`.
-        rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, nat.sub_le_sub_right_iff],
+        rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, tsub_le_tsub_iff_right],
         { exact ho.right },
         { dec_trivial } },
         -- We rely on the simplifier, mostly powered by `digit_eq_done`, and supply all the
@@ -2622,7 +2615,7 @@ begin
       obtain ⟨m, rfl⟩ : ∃ m, n' = n + m + 1 := nat.exists_eq_add_of_lt hn,
       -- The following rearrangement lemma is to simplify the `list.take (n' - n)` expression we had
       have : n + m + 1 - n = m + 1,
-        { rw [add_assoc, nat.sub_eq_iff_eq_add, add_comm],
+        { rw [add_assoc, tsub_eq_iff_eq_add_of_le, add_comm],
           exact nat.le_add_right _ _ },
       -- We also have to prove what is the `prod.snd` of the result of the fold of a `list (ℕ × ℕ)`
       -- with the function above. We use this lemma to finish our inductive case.
@@ -2642,7 +2635,7 @@ begin
       { -- On the way to proving this, we have to actually show that `m ≤ tl.length`, by showing
         -- that since `tl` was a subsequence in `cb`, and was retrieved from `n + 1` to `n + m + 1`,
         -- then since `n + m + 1 ≤ cb.size`, we have that `tl` must be at least `m` in length.
-        simpa [←H.right, ←nat.add_le_to_le_sub _ (hn''.trans_le hn').le, add_comm, add_assoc,
+        simpa [←H.right, le_tsub_iff_right (hn''.trans_le hn').le, add_comm, add_assoc,
                add_left_comm] using hn' },
       -- Finally, we rely on the simplifier. We already expressions of `nat.of_digits` on both
       -- the LHS and RHS. All that is left to do is to prove that the summand on the LHS is produced
@@ -2654,8 +2647,7 @@ begin
       -- `n + m + 1 - n = m + 1` proof and `mul_comm`.
       simp [this, hpow, nat.of_digits_append, mul_comm, ←pow_succ 10, hml, ltll] },
     { -- Consider the case that `n' ≤ n + 1`. But then since `n < n' ≤ n + 1`, `n' = n + 1`.
-      have : n' = n + 1 := le_antisymm hn'' (nat.succ_le_of_lt hn),
-      subst this,
+      obtain rfl : n' = n + 1 := le_antisymm hn'' (nat.succ_le_of_lt hn),
       -- This means we have only parsed in a single character, so the resulting parsed in list
       -- is explicitly formed from an expression we can construct from `hd`.
       use [[hd.to_nat - '0'.to_nat]],
@@ -2666,7 +2658,7 @@ begin
       -- character.
       simp only [many1_eq_done, many_eq_done_nil, digit_eq_fail, natm, and.comm, and.left_comm,
                  hdigit, true_and, mul_one, nat.of_digits_singleton, list.take, exists_eq_left,
-                 exists_and_distrib_right, nat.add_sub_cancel_left, eq_self_iff_true,
+                 exists_and_distrib_right, add_tsub_cancel_left, eq_self_iff_true,
                  list.reverse_singleton, zero_add, list.foldr, list.map],
       -- We take the route of proving that we hit a nonnumeric character, since we already have
       -- a hypothesis that says that characters at `n'` and past it are nonnumeric. (Note, by now

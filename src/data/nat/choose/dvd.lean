@@ -8,6 +8,9 @@ import data.nat.prime
 
 /-!
 # Divisibility properties of binomial coefficients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace nat
@@ -16,25 +19,22 @@ open_locale nat
 
 namespace prime
 
-lemma dvd_choose_add {p a b : ℕ} (hap : a < p) (hbp : b < p) (h : p ≤ a + b)
-  (hp : prime p) : p ∣ choose (a + b) a :=
-have h₁ : p ∣ (a + b)!, from hp.dvd_factorial.2 h,
-have h₂ : ¬p ∣ a!, from mt hp.dvd_factorial.1 (not_le_of_gt hap),
-have h₃ : ¬p ∣ b!, from mt hp.dvd_factorial.1 (not_le_of_gt hbp),
-by
-  rw [← choose_mul_factorial_mul_factorial (le.intro rfl), mul_assoc, hp.dvd_mul, hp.dvd_mul,
-      nat.add_sub_cancel_left a b] at h₁;
-  exact h₁.resolve_right (not_or_distrib.2 ⟨h₂, h₃⟩)
-
-lemma dvd_choose_self {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) :
-  p ∣ choose p k :=
+lemma dvd_choose_add {p a b : ℕ} (hp : prime p) (hap : a < p) (hbp : b < p) (h : p ≤ a + b) :
+  p ∣ choose (a + b) a :=
 begin
-  have r : k + (p - k) = p,
-    by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
-  have e : p ∣ choose (k + (p - k)) k,
-    by exact dvd_choose_add hkp (nat.sub_lt (hk.trans hkp) hk) (by rw r) hp,
-  rwa r at e,
+  have h₁ : p ∣ (a + b)!, from hp.dvd_factorial.2 h,
+  rw [← add_choose_mul_factorial_mul_factorial, ← choose_symm_add, hp.dvd_mul, hp.dvd_mul,
+    hp.dvd_factorial, hp.dvd_factorial] at h₁,
+  exact (h₁.resolve_right hbp.not_le).resolve_right hap.not_le
 end
+
+lemma dvd_choose {p a b : ℕ} (hp : prime p) (ha : a < p) (hab : b - a < p) (h : p ≤ b) :
+  p ∣ choose b a :=
+have a + (b - a) = b := nat.add_sub_of_le (ha.le.trans h),
+this ▸ hp.dvd_choose_add ha hab (this.symm ▸ h)
+
+lemma dvd_choose_self {p k : ℕ} (hp : prime p) (hk : k ≠ 0) (hkp : k < p) : p ∣ choose p k :=
+hp.dvd_choose hkp (nat.sub_lt ((zero_le _).trans_lt hkp) hk.bot_lt) le_rfl
 
 end prime
 

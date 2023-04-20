@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis, Heather Macbeth
 -/
 
-import algebra.ring.basic
+import algebra.ring.equiv
 
 /-!
 # Propositional typeclasses on several ring homs
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains three typeclasses used in the definition of (semi)linear maps:
 * `ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃`, which expresses the fact that `σ₂₃.comp σ₁₂ = σ₁₃`
@@ -42,7 +45,7 @@ Instances of these typeclasses mostly involving `ring_hom.id` are also provided:
 variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
 variables [semiring R₁] [semiring R₂] [semiring R₃]
 
-/-- Class that expresses the fact that three ring equivs form a composition triple. This is
+/-- Class that expresses the fact that three ring homomorphisms form a composition triple. This is
 used to handle composition of semilinear maps. -/
 class ring_hom_comp_triple (σ₁₂ : R₁ →+* R₂) (σ₂₃ : R₂ →+* R₃)
   (σ₁₃ : out_param (R₁ →+* R₃)) : Prop :=
@@ -60,8 +63,8 @@ ring_hom.congr_fun comp_eq x
 
 end ring_hom_comp_triple
 
-/-- Class that expresses the fact that two ring equivs are inverses of each other. This is used
-to handle `symm` for semilinear equivalences. -/
+/-- Class that expresses the fact that two ring homomorphisms are inverses of each other. This is
+used to handle `symm` for semilinear equivalences. -/
 class ring_hom_inv_pair (σ : R₁ →+* R₂) (σ' : out_param (R₂ →+* R₁)) : Prop :=
 (comp_eq : σ'.comp σ = ring_hom.id R₁)
 (comp_eq₂ : σ.comp σ' = ring_hom.id R₂)
@@ -89,6 +92,31 @@ instance triples {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂�
 instance triples₂ {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] :
   ring_hom_comp_triple σ₂₁ σ₁₂ (ring_hom.id R₂) :=
 ⟨by simp only [comp_eq₂]⟩
+
+/--
+Construct a `ring_hom_inv_pair` from both directions of a ring equiv.
+
+This is not an instance, as for equivalences that are involutions, a better instance
+would be `ring_hom_inv_pair e e`. Indeed, this declaration is not currently used in mathlib.
+
+See note [reducible non-instances].
+-/
+@[reducible]
+lemma of_ring_equiv (e : R₁ ≃+* R₂) :
+  ring_hom_inv_pair (↑e : R₁ →+* R₂) ↑e.symm :=
+⟨e.symm_to_ring_hom_comp_to_ring_hom, e.symm.symm_to_ring_hom_comp_to_ring_hom⟩
+
+/--
+Swap the direction of a `ring_hom_inv_pair`. This is not an instance as it would loop, and better
+instances are often available and may often be preferrable to using this one. Indeed, this
+declaration is not currently used in mathlib.
+
+See note [reducible non-instances].
+-/
+@[reducible]
+lemma symm (σ₁₂ : R₁ →+* R₂) (σ₂₁ : R₂ →+* R₁) [ring_hom_inv_pair σ₁₂ σ₂₁] :
+  ring_hom_inv_pair σ₂₁ σ₁₂ :=
+⟨ring_hom_inv_pair.comp_eq₂, ring_hom_inv_pair.comp_eq⟩
 
 end ring_hom_inv_pair
 

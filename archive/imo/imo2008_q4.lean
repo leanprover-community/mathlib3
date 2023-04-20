@@ -6,6 +6,7 @@ Authors: Manuel Candales
 import data.real.basic
 import data.real.sqrt
 import data.real.nnreal
+import tactic.linear_combination
 
 /-!
 # IMO 2008 Q4
@@ -22,14 +23,9 @@ The desired theorem is that either `f = λ x, x` or `f = λ x, 1/x`
 
 open real
 
-lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : abs x = 1 :=
-begin
-  let x₀ := real.to_nnreal (abs x),
-  have h' : (abs x) ^ n = 1, { rwa [pow_abs, h, abs_one] },
-  have : (x₀ : ℝ) ^ n = 1, rw (real.coe_to_nnreal (abs x) (abs_nonneg x)), exact h',
-  have : x₀ = 1 := eq_one_of_pow_eq_one hn (show x₀ ^ n = 1, by assumption_mod_cast),
-  rwa ← real.coe_to_nnreal (abs x) (abs_nonneg x), assumption_mod_cast,
-end
+lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : |x| = 1 :=
+by rw [← pow_left_inj (abs_nonneg x) zero_le_one (pos_iff_ne_zero.2 hn), one_pow, pow_abs, h,
+  abs_one]
 
 theorem imo2008_q4
   (f : ℝ → ℝ)
@@ -48,7 +44,7 @@ begin
       have hy2z2 : y ^ 2 + z ^ 2 ≠ 0 := ne_of_gt (add_pos (pow_pos hy 2) (pow_pos hz 2)),
       have hz2y2 : z ^ 2 + y ^ 2 ≠ 0 := ne_of_gt (add_pos (pow_pos hz 2) (pow_pos hy 2)),
       have hp2 : w ^ 2 * x ^ 2 = y ^ 2 * z ^ 2,
-      { rw [← mul_pow w x 2, ← mul_pow y z 2, hprod] },
+      { linear_combination (w * x + y * z)*hprod },
       field_simp [ne_of_gt hw, ne_of_gt hx, ne_of_gt hy, ne_of_gt hz, hy2z2, hz2y2, hp2],
       ring } },
 
@@ -58,8 +54,7 @@ begin
 
   have h₁ : f(1) = 1,
   { specialize H₂ 1 1 1 1 zero_lt_one zero_lt_one zero_lt_one zero_lt_one rfl,
-    norm_num at H₂,
-    simp only [← two_mul] at H₂,
+    norm_num [← two_mul] at H₂,
     rw mul_div_mul_left (f(1) ^ 2) (f 1) two_ne_zero at H₂,
     rwa ← (div_eq_iff h₀).mpr (sq (f 1)) },
 
@@ -70,25 +65,12 @@ begin
     rw [h₁, one_pow 2, sq_sqrt (le_of_lt hx), ← two_mul (f(x)), ← two_mul x] at H₂,
     have hx_ne_0 : x ≠ 0 := ne_of_gt hx,
     have hfx_ne_0 : f(x) ≠ 0, { specialize H₁ x hx, exact ne_of_gt H₁ },
-    field_simp at H₂,
-
-    have h1 : (2 * x) * ((f(x) - x) * (f(x) - 1 / x)) = 0,
-    { calc  (2 * x) * ((f(x) - x) * (f(x) - 1 / x))
-          = 2 * (f(x) - x) * (x * f(x) - x * 1 / x) : by ring
-      ... = 2 * (f(x) - x) * (x * f(x) - 1) : by rw (mul_div_cancel_left 1 hx_ne_0)
-      ... = ((1 + f(x) ^ 2) * (2 * x) - (1 + x ^ 2) * (2 * f(x))) : by ring
-      ... = 0 : sub_eq_zero.mpr H₂ },
-
-    have h2x_ne_0 : 2 * x ≠ 0 := mul_ne_zero two_ne_zero hx_ne_0,
-
-    calc  ((f(x) - x) * (f(x) - 1 / x))
-        = (2 * x) * ((f(x) - x) * (f(x) - 1 / x)) / (2 * x) : (mul_div_cancel_left _ h2x_ne_0).symm
-    ... = 0 : by { rw h1, exact zero_div (2 * x) } },
+    field_simp at H₂ ⊢,
+    linear_combination 1/2 * H₂ },
 
   have h₃ : ∀ x > 0, f(x) = x ∨ f(x) = 1 / x, { simpa [sub_eq_zero] using h₂ },
 
-  by_contradiction,
-  push_neg at h,
+  by_contra' h,
   rcases h with ⟨⟨b, hb, hfb₁⟩, ⟨a, ha, hfa₁⟩⟩,
   obtain hfa₂ := or.resolve_right (h₃ a ha) hfa₁, -- f(a) ≠ 1/a, f(a) = a
   obtain hfb₂ := or.resolve_left (h₃ b hb) hfb₁,  -- f(b) ≠ b, f(b) = 1/b
@@ -106,21 +88,18 @@ begin
   cases h₃ with hab₁ hab₂,
 
   -- f(ab) = ab → b^4 = 1 → b = 1 → f(b) = b → false
-  { rw hab₁ at H₂, field_simp at H₂,
-    obtain hb₁ := or.resolve_right H₂ h2ab_ne_0,
-    field_simp [ne_of_gt hb] at hb₁,
-    rw (show b ^ 2 * b ^ 2 = b ^ 4, by ring) at hb₁,
-    obtain hb₂ := abs_eq_one_of_pow_eq_one b 4 (show 4 ≠ 0, by norm_num) hb₁.symm,
+  { field_simp [hab₁] at H₂,
+    field_simp [ne_of_gt hb] at H₂,
+    have hb₁ : b ^ 4 = 1 := by linear_combination -H₂,
+    obtain hb₂ := abs_eq_one_of_pow_eq_one b 4 (show 4 ≠ 0, by norm_num) hb₁,
     rw abs_of_pos hb at hb₂, rw hb₂ at hfb₁, exact hfb₁ h₁ },
 
   -- f(ab) = 1/ab → a^4 = 1 → a = 1 → f(a) = 1/a → false
   { have hb_ne_0 : b ≠ 0 := ne_of_gt hb,
-    rw hab₂ at H₂, field_simp at H₂,
-    rw ← sub_eq_zero at H₂,
-    rw (show (a ^ 2 * b ^ 2 + 1) * (a * b) * (2 * (a * b)) - (a ^ 2 + b ^ 2) * (b ^ 2 * 2)
-            = 2 * (b ^ 4) * (a ^ 4 - 1), by ring) at H₂,
+    field_simp [hab₂] at H₂,
+    have H₃ : 2 * b ^ 4 * (a ^ 4 - 1) = 0 := by linear_combination (H₂),
     have h2b4_ne_0 : 2 * (b ^ 4) ≠ 0 := mul_ne_zero two_ne_zero (pow_ne_zero 4 hb_ne_0),
-    have ha₁ : a ^ 4 = 1, { simpa [sub_eq_zero, h2b4_ne_0] using H₂ },
+    have ha₁ : a ^ 4 = 1, { simpa [sub_eq_zero, h2b4_ne_0] using H₃ },
     obtain ha₂ := abs_eq_one_of_pow_eq_one a 4 (show 4 ≠ 0, by norm_num) ha₁,
     rw abs_of_pos ha at ha₂, rw ha₂ at hfa₁, norm_num at hfa₁ },
 end

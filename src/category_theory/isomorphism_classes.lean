@@ -5,9 +5,13 @@ Authors: Yury Kudryashov
 -/
 import category_theory.category.Cat
 import category_theory.groupoid
+import category_theory.types
 
 /-!
 # Objects of a category up to an isomorphism
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 `is_isomorphic X Y := nonempty (X ≅ Y)` is an equivalence relation on the objects of a category.
 The quotient with respect to this relation defines a functor from our category to `Type`.
@@ -42,7 +46,7 @@ def isomorphism_classes : Cat.{v u} ⥤ Type u :=
 
 lemma groupoid.is_isomorphic_iff_nonempty_hom {C : Type u} [groupoid.{v} C] {X Y : C} :
   is_isomorphic X Y ↔ nonempty (X ⟶ Y) :=
-(groupoid.iso_equiv_hom X Y).nonempty_iff_nonempty
+(groupoid.iso_equiv_hom X Y).nonempty_congr
 
 -- PROJECT: define `skeletal`, and show every category is equivalent to a skeletal category,
 -- using the axiom of choice to pick a representative of every isomorphism class.

@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.set.intervals.basic
+import data.set.intervals.unordered_interval
 import data.set.lattice
 
 /-!
 # Intervals in `pi`-space
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this we prove various simple lemmas about intervals in `Π i, α i`. Closed intervals (`Ici x`,
 `Iic x`, `Icc x y`) are equal to products of their projections to `α i`, while (semi-)open intervals
@@ -51,7 +55,7 @@ lemma pi_univ_Ioi_subset : pi univ (λ i, Ioi (x i)) ⊆ Ioi x :=
   λ h, nonempty.elim ‹nonempty ι› $ λ i, (h i).not_lt (hz i trivial)⟩
 
 lemma pi_univ_Iio_subset : pi univ (λ i, Iio (x i)) ⊆ Iio x :=
-@pi_univ_Ioi_subset ι (λ i, order_dual (α i)) _ x _
+@pi_univ_Ioi_subset ι (λ i, (α i)ᵒᵈ) _ x _
 
 lemma pi_univ_Ioo_subset : pi univ (λ i, Ioo (x i) (y i)) ⊆ Ioo x y :=
 λ x hx, ⟨pi_univ_Ioi_subset _ $ λ i hi, (hx i hi).1, pi_univ_Iio_subset _ $ λ i hi, (hx i hi).2⟩
@@ -94,12 +98,21 @@ lemma disjoint_pi_univ_Ioc_update_left_right {x y : Π i, α i} {i₀ : ι} {m :
   disjoint (pi univ (λ i, Ioc (x i) (update y i₀ m i)))
     (pi univ (λ i, Ioc (update x i₀ m i) (y i))) :=
 begin
-  rintro z ⟨h₁, h₂⟩,
+  rw disjoint_left,
+  rintro z h₁ h₂,
   refine (h₁ i₀ (mem_univ _)).2.not_lt _,
   simpa only [function.update_same] using (h₂ i₀ (mem_univ _)).1
 end
 
 end pi_preorder
+
+section pi_lattice
+variables [Π i, lattice (α i)]
+
+@[simp] lemma pi_univ_uIcc (a b : Π i, α i) : pi univ (λ i, uIcc (a i) (b i)) = uIcc a b :=
+pi_univ_Icc _ _
+
+end pi_lattice
 
 variables [decidable_eq ι] [Π i, linear_order (α i)]
 

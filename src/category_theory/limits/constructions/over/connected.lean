@@ -3,12 +3,15 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
-import category_theory.over
-import category_theory.limits.connected
 import category_theory.limits.creates
+import category_theory.over
+import category_theory.is_connected
 
 /-!
 # Connected limits in the over category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Shows that the forgetful functor `over B ⥤ C` creates connected limits, in particular `over B` has
 any connected limit which `C` has.

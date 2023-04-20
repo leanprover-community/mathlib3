@@ -5,10 +5,14 @@ Authors: Anne Baanen
 -/
 
 import algebra.group.units
-import algebra.ring.basic
+import algebra.group_with_zero.units.lemmas
+import algebra.ring.defs
 
 /-!
 # Invertible elements
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a typeclass `invertible a` for elements `a` with a two-sided
 multiplicative inverse.
@@ -97,8 +101,8 @@ left_inv_eq_right_inv (inv_of_mul_self _) hac
 lemma inv_of_eq_left_inv [monoid α] {a b : α} [invertible a] (hac : b * a = 1) : ⅟a = b :=
 (left_inv_eq_right_inv hac (mul_inv_of_self _)).symm
 
-lemma invertible_unique {α : Type u} [monoid α] (a b : α) (h : a = b)
-  [invertible a] [invertible b] :
+lemma invertible_unique {α : Type u} [monoid α] (a b : α) [invertible a] [invertible b]
+  (h : a = b) :
   ⅟a = ⅟b :=
 by { apply inv_of_eq_right_inv, rw [h, mul_inv_of_self], }
 
@@ -106,14 +110,15 @@ instance [monoid α] (a : α) : subsingleton (invertible a) :=
 ⟨ λ ⟨b, hba, hab⟩ ⟨c, hca, hac⟩, by { congr, exact left_inv_eq_right_inv hba hac } ⟩
 
 /-- If `r` is invertible and `s = r`, then `s` is invertible. -/
-def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = r) : invertible s :=
+def invertible.copy [mul_one_class α] {r : α} (hr : invertible r) (s : α) (hs : s = r) :
+  invertible s :=
 { inv_of := ⅟r,
   inv_of_mul_self := by rw [hs, inv_of_mul_self],
   mul_inv_of_self := by rw [hs, mul_inv_of_self] }
 
 /-- An `invertible` element is a unit. -/
 @[simps]
-def unit_of_invertible [monoid α] (a : α) [invertible a] : units α :=
+def unit_of_invertible [monoid α] (a : α) [invertible a] : αˣ :=
 { val     := a,
   inv     := ⅟a,
   val_inv := by simp,
@@ -123,10 +128,10 @@ lemma is_unit_of_invertible [monoid α] (a : α) [invertible a] : is_unit a :=
 ⟨unit_of_invertible a, rfl⟩
 
 /-- Units are invertible in their associated monoid. -/
-def units.invertible [monoid α] (u : units α) : invertible (u : α) :=
+def units.invertible [monoid α] (u : αˣ) : invertible (u : α) :=
 { inv_of := ↑(u⁻¹), inv_of_mul_self := u.inv_mul, mul_inv_of_self := u.mul_inv }
 
-@[simp] lemma inv_of_units [monoid α] (u : units α) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
+@[simp] lemma inv_of_units [monoid α] (u : αˣ) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
 inv_of_eq_right_inv u.mul_inv
 
 lemma is_unit.nonempty_invertible [monoid α] {a : α} (h : is_unit a) : nonempty (invertible a) :=
@@ -138,8 +143,7 @@ Prefer `casesI h.nonempty_invertible` over `letI := h.invertible` if you want to
 noncomputable def is_unit.invertible [monoid α] {a : α} (h : is_unit a) : invertible a :=
 classical.choice h.nonempty_invertible
 
-@[simp]
-lemma nonempty_invertible_iff_is_unit [monoid α] (a : α) :
+@[simp] lemma nonempty_invertible_iff_is_unit [monoid α] (a : α) :
   nonempty (invertible a) ↔ is_unit a :=
 ⟨nonempty.rec $ @is_unit_of_invertible _ _ _, is_unit.nonempty_invertible⟩
 
@@ -158,30 +162,37 @@ def invertible_one [monoid α] : invertible (1 : α) :=
 inv_of_eq_right_inv (mul_one _)
 
 /-- `-⅟a` is the inverse of `-a` -/
-def invertible_neg [ring α] (a : α) [invertible a] : invertible (-a) :=
-⟨ -⅟a, by simp, by simp ⟩
+def invertible_neg [has_mul α] [has_one α] [has_distrib_neg α] (a : α) [invertible a] :
+  invertible (-a) := ⟨-⅟a, by simp, by simp ⟩
 
-@[simp] lemma inv_of_neg [ring α] (a : α) [invertible a] [invertible (-a)] : ⅟(-a) = -⅟a :=
+@[simp] lemma inv_of_neg [monoid α] [has_distrib_neg α] (a : α) [invertible a] [invertible (-a)] :
+  ⅟(-a) = -⅟a :=
 inv_of_eq_right_inv (by simp)
 
 @[simp] lemma one_sub_inv_of_two [ring α] [invertible (2:α)] : 1 - (⅟2:α) = ⅟2 :=
 (is_unit_of_invertible (2:α)).mul_right_inj.1 $
   by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
 
+@[simp] lemma inv_of_two_add_inv_of_two [non_assoc_semiring α] [invertible (2 : α)] :
+  (⅟2 : α) + (⅟2 : α) = 1 :=
+by rw [←two_mul, mul_inv_of_self]
+
 /-- `a` is the inverse of `⅟a`. -/
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
 ⟨ a, mul_inv_of_self a, inv_of_mul_self a ⟩
 
-@[simp] lemma inv_of_inv_of [monoid α] {a : α} [invertible a] [invertible (⅟a)] :
-  ⅟(⅟a) = a :=
+@[simp] lemma inv_of_inv_of [monoid α] (a : α) [invertible a] [invertible (⅟a)] : ⅟(⅟a) = a :=
 inv_of_eq_right_inv (inv_of_mul_self _)
+
+@[simp] lemma inv_of_inj [monoid α] {a b : α} [invertible a] [invertible b] :
+  ⅟ a = ⅟ b ↔ a = b :=
+⟨invertible_unique _ _, invertible_unique _ _⟩
 
 /-- `⅟b * ⅟a` is the inverse of `a * b` -/
 def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invertible (a * b) :=
 ⟨ ⅟b * ⅟a, by simp [←mul_assoc], by simp [←mul_assoc] ⟩
 
-@[simp]
-lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
+@[simp] lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
 
@@ -202,13 +213,25 @@ lemma commute_inv_of {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] 
 calc m * ⅟m = 1       : mul_inv_of_self m
         ... = ⅟ m * m : (inv_of_mul_self m).symm
 
+lemma nonzero_of_invertible [mul_zero_one_class α] (a : α) [nontrivial α] [invertible a] : a ≠ 0 :=
+λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simp [ha]
+                         ... = 1 : inv_of_mul_self a
+
+@[priority 100] instance invertible.ne_zero [mul_zero_one_class α] [nontrivial α] (a : α)
+  [invertible a] : ne_zero a := ⟨nonzero_of_invertible a⟩
+
+section monoid_with_zero
+variable [monoid_with_zero α]
+
+/-- A variant of `ring.inverse_unit`. -/
+@[simp] lemma ring.inverse_invertible (x : α) [invertible x] : ring.inverse x = ⅟x :=
+ring.inverse_unit (unit_of_invertible _)
+
+end monoid_with_zero
+
 section group_with_zero
 
 variable [group_with_zero α]
-
-lemma nonzero_of_invertible (a : α) [invertible a] : a ≠ 0 :=
-λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simp [ha]
-                         ... = 1 : inv_of_mul_self a
 
 /-- `a⁻¹` is an inverse of `a` if `a ≠ 0` -/
 def invertible_of_nonzero {a : α} (h : a ≠ 0) : invertible a :=
@@ -246,12 +269,39 @@ def invertible_inv {a : α} [invertible a] : invertible (a⁻¹) :=
 
 end group_with_zero
 
-/--
-Monoid homs preserve invertibility.
--/
-def invertible.map {R : Type*} {S : Type*} [monoid R] [monoid S] (f : R →* S)
-  (r : R) [invertible r] :
+/-- Monoid homs preserve invertibility. -/
+def invertible.map {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [mul_one_class S]
+  [monoid_hom_class F R S] (f : F) (r : R) [invertible r] :
   invertible (f r) :=
 { inv_of := f (⅟r),
-  inv_of_mul_self := by rw [← f.map_mul, inv_of_mul_self, f.map_one],
-  mul_inv_of_self := by rw [← f.map_mul, mul_inv_of_self, f.map_one] }
+  inv_of_mul_self := by rw [←map_mul, inv_of_mul_self, map_one],
+  mul_inv_of_self := by rw [←map_mul, mul_inv_of_self, map_one] }
+
+/-- Note that the `invertible (f r)` argument can be satisfied by using `letI := invertible.map f r`
+before applying this lemma. -/
+lemma map_inv_of {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [monoid S]
+  [monoid_hom_class F R S] (f : F) (r : R) [invertible r] [invertible (f r)] :
+  f (⅟r) = ⅟(f r) :=
+by { letI := invertible.map f r, convert rfl }
+
+/-- If a function `f : R → S` has a left-inverse that is a monoid hom,
+  then `r : R` is invertible if `f r` is.
+
+The inverse is computed as `g (⅟(f r))` -/
+@[simps {attrs := []}]
+def invertible.of_left_inverse {R : Type*} {S : Type*} {G : Type*}
+  [mul_one_class R] [mul_one_class S] [monoid_hom_class G S R]
+  (f : R → S) (g : G) (r : R) (h : function.left_inverse g f) [invertible (f r)] :
+  invertible r :=
+(invertible.map g (f r)).copy _ (h r).symm
+
+/-- Invertibility on either side of a monoid hom with a left-inverse is equivalent. -/
+@[simps]
+def invertible_equiv_of_left_inverse {R : Type*} {S : Type*} {F G : Type*}
+  [monoid R] [monoid S] [monoid_hom_class F R S] [monoid_hom_class G S R]
+  (f : F) (g : G) (r : R) (h : function.left_inverse g f) :
+  invertible (f r) ≃ invertible r :=
+{ to_fun := λ _, by exactI invertible.of_left_inverse f _ _ h,
+  inv_fun := λ _, by exactI invertible.map f _,
+  left_inv := λ x, subsingleton.elim _ _,
+  right_inv := λ x, subsingleton.elim _ _ }

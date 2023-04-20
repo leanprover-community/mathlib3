@@ -8,6 +8,9 @@ import topology.separation
 /-!
 # Extending a function from a subset
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main definition of this file is `extend_from A f` where `f : X → Y`
 and `A : set X`. This defines a new function `g : X → Y` which maps any
 `x₀ : X` to the limit of `f` as `x` tends to `x₀`, if such a limit exists.
@@ -18,13 +21,13 @@ This is analoguous to the way `dense_inducing.extend` "extends" a function
 The main theorem we prove about this definition is `continuous_on_extend_from`
 which states that, for `extend_from A f` to be continuous on a set `B ⊆ closure A`,
 it suffices that `f` converges within `A` at any point of `B`, provided that
-`f` is a function to a regular space.
+`f` is a function to a T₃ space.
 
 -/
 
 noncomputable theory
 
-open_locale topological_space
+open_locale topology
 open filter set
 
 variables {X Y : Type*} [topological_space X] [topological_space Y]
@@ -52,7 +55,7 @@ lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuou
   ∀ x ∈ A, extend_from A f x = f x :=
 λ x x_in, extend_from_eq (subset_closure x_in) (hf x x_in)
 
-/-- If `f` is a function to a regular space `Y` which has a limit within `A` at any
+/-- If `f` is a function to a T₃ space `Y` which has a limit within `A` at any
 point of a set `B ⊆ closure A`, then `extend_from A f` is continuous on `B`. -/
 lemma continuous_on_extend_from [regular_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
   (hf : ∀ x ∈ B, ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : continuous_on (extend_from A f) B :=
@@ -67,17 +70,17 @@ begin
     rcases (nhds_within_basis_open x A).tendsto_left_iff.mp this V' V'_in with ⟨V, ⟨hxV, V_op⟩, hV⟩,
     use [V, is_open.mem_nhds V_op hxV, V_op, hV] },
   suffices : ∀ y ∈ V ∩ B, φ y ∈ V',
-    from mem_sets_of_superset (inter_mem_inf_sets V_in $ mem_principal_self B) this,
+    from mem_of_superset (inter_mem_inf V_in $ mem_principal_self B) this,
   rintros y ⟨hyV, hyB⟩,
   haveI := mem_closure_iff_nhds_within_ne_bot.mp (hB hyB),
   have limy : tendsto f (𝓝[A] y) (𝓝 $ φ y) := tendsto_extend_from (hf y hyB),
   have hVy : V ∈ 𝓝 y := is_open.mem_nhds V_op hyV,
   have : V ∩ A ∈ (𝓝[A] y),
     by simpa [inter_comm] using inter_mem_nhds_within _ hVy,
-  exact V'_closed.mem_of_tendsto limy (mem_sets_of_superset this hV)
+  exact V'_closed.mem_of_tendsto limy (mem_of_superset this hV)
 end
 
-/-- If a function `f` to a regular space `Y` has a limit within a
+/-- If a function `f` to a T₃ space `Y` has a limit within a
 dense set `A` for any `x`, then `extend_from A f` is continuous. -/
 lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : dense A)
   (hf : ∀ x, ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : continuous (extend_from A f) :=

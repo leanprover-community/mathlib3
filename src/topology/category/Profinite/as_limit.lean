@@ -3,7 +3,7 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne, Adam Topaz
 -/
-import topology.category.Profinite
+import topology.category.Profinite.basic
 import topology.discrete_quotient
 
 /-!
@@ -15,7 +15,7 @@ discrete (hence finite) quotients.
 ## Definitions
 
 There are a handful of definitions in this file, given `X : Profinite`:
-1. `X.fintype_diagram` is the functor `discret_quotient X ⥤ Fintype` whose limit
+1. `X.fintype_diagram` is the functor `discrete_quotient X ⥤ Fintype` whose limit
   is isomorphic to `X` (the limit taking place in `Profinite` via `Fintype_to_Profinite`, see 2).
 2. `X.diagram` is an abbreviation for `X.fintype_diagram ⋙ Fintype_to_Profinite`.
 3. `X.as_limit_cone` is the cone over `X.diagram` whose cone point is `X`.
@@ -40,7 +40,7 @@ variables (X : Profinite.{u})
 
 /-- The functor `discrete_quotient X ⥤ Fintype` whose limit is isomorphic to `X`. -/
 def fintype_diagram : discrete_quotient X ⥤ Fintype :=
-{ obj := λ S, Fintype.of S,
+{ obj := λ S, by haveI := fintype.of_finite S; exact Fintype.of S,
   map := λ S T f, discrete_quotient.of_le f.le }
 
 /-- An abbreviation for `X.fintype_diagram ⋙ Fintype_to_Profinite`. -/
@@ -56,9 +56,8 @@ instance is_iso_as_limit_cone_lift :
   is_iso ((limit_cone_is_limit X.diagram).lift X.as_limit_cone) :=
 is_iso_of_bijective _
 begin
-  refine ⟨λ a b, _, λ a, _⟩,
-  { intro h,
-    refine discrete_quotient.eq_of_proj_eq (λ S, _),
+  refine ⟨λ a b h, _, λ a, _⟩,
+  { refine discrete_quotient.eq_of_forall_proj_eq (λ S, _),
     apply_fun (λ f : (limit_cone X.diagram).X, f.val S) at h,
     exact h },
   { obtain ⟨b, hb⟩ := discrete_quotient.exists_of_compat

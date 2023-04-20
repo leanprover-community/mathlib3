@@ -6,8 +6,7 @@ structure equiv (α β : Sort*) :=
 (to_fun : α → β)
 (inv_fun : β → α)
 
-instance {α β} : has_coe_to_fun (equiv α β) :=
-⟨λ _, α → β, equiv.to_fun⟩
+instance {α β} : has_coe_to_fun (equiv α β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
 structure sparkling_equiv (α β) extends equiv α β
 
@@ -22,8 +21,8 @@ res ← linter.has_coe_to_fun.test decl,
 -- linter complains
 guard res.is_some
 
-instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
-⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
+instance {α β} : has_coe_to_fun (sparkling_equiv α β) (λ _, α → β) :=
+⟨λ f, f.to_equiv.to_fun⟩
 
 -- prima!
 run_cmd do
@@ -42,8 +41,8 @@ structure equiv (α β : Sort*) :=
 (to_fun : α → β)
 (inv_fun : β → α)
 
-instance {α β} [nonempty α] : has_coe_to_fun (equiv α β) :=
-⟨λ _, α → β, equiv.to_fun⟩
+instance {α β} [nonempty α] : has_coe_to_fun (equiv α β) (λ _, α → β) :=
+⟨equiv.to_fun⟩
 
 structure sparkling_equiv (α β) [nonempty α] extends equiv α β
 

@@ -13,6 +13,9 @@ import algebra.big_operators.nat_antidiagonal
 /-!
 # Sums of binomial coefficients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file includes variants of the binomial theorem and other results on sums of binomial
 coefficients. Theorems whose proofs depend on such sums may also go in this file for import
 reasons.
@@ -31,7 +34,7 @@ variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
 
 include h
 
-/-- A version of the **binomial theorem** for noncommutative semirings. -/
+/-- A version of the **binomial theorem** for commuting elements in noncommutative semirings. -/
 theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
@@ -93,7 +96,7 @@ lemma sum_range_choose_halfway (m : nat) :
 have ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) =
   ∑ i in range (m + 1), choose (2 * m + 1) i,
 from sum_congr rfl $ λ i hi, choose_symm $ by linarith [mem_range.1 hi],
-(nat.mul_right_inj zero_lt_two).1 $
+mul_right_injective₀ two_ne_zero $
 calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
   (∑ i in range (m + 1), choose (2 * m + 1) i) +
     ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) :
@@ -103,9 +106,9 @@ calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
     rw [range_eq_Ico, sum_Ico_reflect],
     { congr,
       have A : m + 1 ≤ 2 * m + 1, by linarith,
-      rw [add_comm, nat.add_sub_assoc A, ← add_comm],
+      rw [add_comm, add_tsub_assoc_of_le A, ← add_comm],
       congr,
-      rw nat.sub_eq_iff_eq_add A,
+      rw tsub_eq_iff_eq_add_of_le A,
       ring, },
    { linarith }
   end
@@ -135,7 +138,7 @@ theorem int.alternating_sum_range_choose {n : ℕ} :
 begin
   cases n, { simp },
   have h := add_pow (-1 : ℤ) 1 n.succ,
-  simp only [one_pow, mul_one, add_left_neg, int.nat_cast_eq_coe_nat] at h,
+  simp only [one_pow, mul_one, add_left_neg] at h,
   rw [← h, zero_pow (nat.succ_pos n), if_neg (nat.succ_ne_zero n)],
 end
 
@@ -164,10 +167,7 @@ theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] {x : finset
   ∑ m in x.powerset, (-1 : ℤ) ^ m.card = if x = ∅ then 1 else 0 :=
 begin
   rw sum_powerset_apply_card,
-  simp only [nsmul_eq_mul', ← card_eq_zero],
-  convert int.alternating_sum_range_choose,
-  ext,
-  simp,
+  simp only [nsmul_eq_mul', ← card_eq_zero, int.alternating_sum_range_choose]
 end
 
 theorem sum_powerset_neg_one_pow_card_of_nonempty {α : Type*} {x : finset α}

@@ -11,6 +11,9 @@ import tactic.apply_fun
 /-!
 # Partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A partition of a natural number `n` is a way of writing `n` as a sum of positive integers, where the
 order does not matter: two sums that differ only in the order of their summands are considered the
 same partition. This notion is closely related to that of a composition of `n`, but in a composition
@@ -42,8 +45,10 @@ Partition
 
 variables {α : Type*}
 
-open multiset nat
+open multiset
 open_locale big_operators
+
+namespace nat
 
 /-- A partition of `n` is a multiset of positive integers summing to `n`. -/
 @[ext, derive decidable_eq] structure partition (n : ℕ) :=
@@ -129,3 +134,4 @@ finset.univ.filter (λ c, c.parts.nodup)
 def odd_distincts (n : ℕ) : finset (partition n) := odds n ∩ distincts n
 
 end partition
+end nat

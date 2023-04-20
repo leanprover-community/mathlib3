@@ -1224,7 +1224,7 @@ end
 
 open_locale direct_sum
 
-/-- If `x` lies within an orthogonal family `v`, it can be expresse as a sum of projections. -/
+/-- If `x` lies within an orthogonal family `v`, it can be expressed as a sum of projections. -/
 lemma orthogonal_family.sum_projection_of_mem_supr [fintype ι]
   {V : ι → submodule 𝕜 E} [∀ i, complete_space ↥(V i)]
   (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) (x : E) (hx : x ∈ supr V) :

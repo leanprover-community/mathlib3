@@ -132,7 +132,7 @@ by rw [supr_ne_bot_subtype, hT.orthogonal_supr_eigenspaces_eq_bot]
 
 include dec_𝕜
 omit hT
-/-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
+/-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` gives
 an internal direct sum decomposition of `E`. -/
 noncomputable instance direct_sum_decomposition [hT : fact T.is_symmetric] :
   direct_sum.decomposition (λ μ : eigenvalues T, eigenspace T μ) :=
@@ -143,12 +143,13 @@ begin
 end
 
 lemma direct_sum_decompose_apply [hT : fact T.is_symmetric] (x : E) (μ : eigenvalues T) :
-  decompose (λ μ : eigenvalues T, eigenspace T μ) x μ = orthogonal_projection (eigenspace T μ) x :=
+  direct_sum.decompose (λ μ : eigenvalues T, eigenspace T μ) x μ
+    = orthogonal_projection (eigenspace T μ) x :=
 rfl
 
 include hT
 
-/-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
+/-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` gives
 an internal direct sum decomposition of `E`. -/
 lemma direct_sum_is_internal :
   direct_sum.is_internal (λ μ : eigenvalues T, eigenspace T μ) :=

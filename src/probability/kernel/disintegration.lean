@@ -380,23 +380,19 @@ lemma set_lintegral_pre_cdf_fst (ρ : measure (α × ℝ)) (r : ℚ) {s : set α
 begin
   have : ∀ r, ∫⁻ x in s, pre_cdf ρ r x ∂ρ.fst = ∫⁻ x in s, (pre_cdf ρ r * 1) x ∂ρ.fst,
   { simp only [mul_one, eq_self_iff_true, forall_const], },
-  rw [this, ← set_lintegral_with_density_eq_set_lintegral_mul _ _ _ hs],
-  { rw with_density_pre_cdf ρ r,
-    simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ,
-      univ_inter], },
-  { exact measurable_pre_cdf, },
+  rw [this, ← set_lintegral_with_density_eq_set_lintegral_mul _ measurable_pre_cdf _ hs],
+  { simp only [with_density_pre_cdf ρ r, pi.one_apply, lintegral_one, measure.restrict_apply,
+      measurable_set.univ, univ_inter], },
   { rw (_ : (1 : α → ℝ≥0∞) = (λ _, 1)),
-    { exact measurable_const, },
-    { refl, }, },
+    exacts [measurable_const, rfl], },
 end
 
 lemma monotone_pre_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, monotone (λ r, pre_cdf ρ r a) :=
 begin
   simp_rw [monotone, ae_all_iff],
-  intros r r' hrr',
-  refine ae_le_of_forall_set_lintegral_le_of_sigma_finite measurable_pre_cdf measurable_pre_cdf _,
-  intros s hs hs_fin,
+  refine λ r r' hrr', ae_le_of_forall_set_lintegral_le_of_sigma_finite
+    measurable_pre_cdf measurable_pre_cdf (λ s hs hs_fin, _),
   rw [set_lintegral_pre_cdf_fst ρ r hs, set_lintegral_pre_cdf_fst ρ r' hs],
   refine measure.Iic_snd_mono ρ _ s hs,
   exact_mod_cast hrr',

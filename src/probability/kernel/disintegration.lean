@@ -783,7 +783,7 @@ begin
   exact ((ha_le_one r).trans_lt ennreal.one_lt_top).ne,
 end
 
-lemma cond_cdf_rat_eq_inf_gt (ρ : measure (α × ℝ)) (a : α) (t : ℚ) :
+lemma inf_gt_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) (t : ℚ) :
   (⨅ r : Ioi t, cond_cdf_rat ρ a r) = cond_cdf_rat ρ a t :=
 begin
   by_cases ha : a ∈ cond_cdf_set ρ,
@@ -829,7 +829,7 @@ def cond_cdf (ρ : measure (α × ℝ)) : α → ℝ → ℝ :=
 lemma cond_cdf_eq_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   cond_cdf ρ a r = cond_cdf_rat ρ a r :=
 begin
-  rw [← cond_cdf_rat_eq_inf_gt ρ a r, cond_cdf],
+  rw [← inf_gt_cond_cdf_rat ρ a r, cond_cdf],
   refine equiv.infi_congr _ _,
   { exact
     { to_fun := λ t, ⟨t.1, by exact_mod_cast t.2⟩,

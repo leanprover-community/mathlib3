@@ -12,6 +12,9 @@ import ring_theory.mv_polynomial.basic
 /-!
 # Multivariate polynomials over fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains basic facts about multivariate polynomials over fields, for example that the
 dimension of the space of multivariate polynomials over a field is equal to the cardinality of
 finitely supported functions from the indexing set to `ℕ`.
@@ -50,7 +53,7 @@ variables {σ : Type u} {K : Type u} [field K]
 
 open_locale classical
 
-lemma dim_mv_polynomial : module.rank K (mv_polynomial σ K) = cardinal.mk (σ →₀ ℕ) :=
-by rw [← cardinal.lift_inj, ← (basis_monomials σ K).mk_eq_dim]
+lemma rank_mv_polynomial : module.rank K (mv_polynomial σ K) = cardinal.mk (σ →₀ ℕ) :=
+by rw [← cardinal.lift_inj, ← (basis_monomials σ K).mk_eq_rank]
 
 end mv_polynomial

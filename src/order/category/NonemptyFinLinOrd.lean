@@ -12,6 +12,9 @@ import category_theory.limits.shapes.regular_mono
 /-!
 # Nonempty finite linear orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `NonemptyFinLinOrd`, the category of nonempty finite linear orders with monotone maps.
 This is the index category for simplicial objects.
 -/

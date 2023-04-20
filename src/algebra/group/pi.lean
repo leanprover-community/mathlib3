@@ -471,9 +471,12 @@ noncomputable def function.extend_by_one.hom [mul_one_class R] : (ι → R) →*
 end extend
 
 namespace pi
-variables [decidable_eq I] [Π i, preorder (f i)] [Π i, has_zero (f i)]
+variables [decidable_eq I] [Π i, preorder (f i)] [Π i, has_one (f i)]
 
-lemma single_mono : monotone (pi.single i : f i → Π i, f i) := function.update_mono
-lemma single_strict_mono : strict_mono (pi.single i : f i → Π i, f i) := function.update_strict_mono
+@[to_additive] lemma mul_single_mono : monotone (pi.mul_single i : f i → Π i, f i) :=
+function.update_mono
+
+@[to_additive] lemma mul_single_strict_mono : strict_mono (pi.mul_single i : f i → Π i, f i) :=
+function.update_strict_mono
 
 end pi

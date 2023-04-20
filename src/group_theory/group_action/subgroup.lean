@@ -3,8 +3,8 @@ Copyright (c) 2021 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.group_action.basic
-import data.fintype.basic
+import group_theory.subgroup.pointwise
+
 /-!
 # Conjugation action on subgroups
 
@@ -12,16 +12,15 @@ This file defines the conjugation action of a group on its subgroups.
 -/
 
 open mul_action
+open_locale pointwise
 
 variables {G : Type*} [group G]
 
 /-- The conjugation action of `G` on the subgroups of `G` -/
-instance subgroup.mul_action' : mul_action G (subgroup G) :=
-{ smul := λ g H, H.map (mul_aut.conj g).to_monoid_hom,
-  one_smul := λ _, by ext; simp,
-  mul_smul := λ _ _ _, by ext; simp }
+instance subgroup.mul_action' : mul_action G (subgroup G) := mul_action.comp_hom _ mul_aut.conj
 
 namespace subgroup
+variables {G' : subgroup G} {g h : G}
 
 lemma smul_eq_map_conj (g : G) (H : subgroup G) :
   g • H = H.map (mul_aut.conj g).to_monoid_hom := rfl
@@ -30,30 +29,24 @@ lemma smul_eq_comap_conj (g : G) (H : subgroup G) :
   g • H = H.comap ((mul_aut.conj g)⁻¹).to_monoid_hom :=
 by simp only [smul_eq_map_conj, map_equiv_eq_comap_symm, mul_aut.inv_def]
 
-@[simp] lemma mem_smul (g h : G) (H : subgroup G) :
-  h ∈ (g • H) ↔ g⁻¹ * h * g ∈ H :=
+@[simp] lemma mem_smul : h ∈ g • G' ↔ g⁻¹ * h * g ∈ G' :=
 by simp only [smul_eq_comap_conj, mul_equiv.coe_to_monoid_hom, mul_aut.conj_inv_apply, mem_comap]
 
 instance decidable_mem_smul (g : G) (H : subgroup G) [decidable_pred (∈ H)] :
   decidable_pred (∈ g • H) :=
-λ h, decidable_of_iff _ (mem_smul g h H).symm
-
-/-- A subgroup is isomorphic to its conjugate -/
-noncomputable def equiv_smul (g : G) (H : subgroup G) : H ≃* (g • H : subgroup G) :=
-H.equiv_map_of_injective (mul_aut.conj g).to_monoid_hom (mul_aut.conj g).injective
+λ h, decidable_of_iff' _ mem_smul
 
 @[simp] lemma card_smul [fintype G] (g : G) (H : subgroup G)
   [decidable_pred (∈ H)] {h : fintype ↥(g • H : subgroup G)} :
   fintype.card (g • H : subgroup G) = fintype.card H :=
 fintype.card_congr (equiv_smul _ _).to_equiv.symm
 
-lemma smul_eq_self_of_mem {H : subgroup G} {x : G} (hx : x ∈ H) : x • H = H :=
-subgroup.ext (λ _, by simp [*, mul_mem_cancel_left, mul_mem_cancel_right] at *)
+lemma smul_eq_self_of_mem (hg : g ∈ G') : g • G' = G' :=
+subgroup.ext $ λ _, by simp [*, mul_mem_cancel_left, mul_mem_cancel_right] at *
 
-@[simp] lemma smul_self {H : subgroup G} (x : H) : x • H = H :=
-smul_eq_self_of_mem x.2
+@[simp] lemma smul_self (x : G') : x • G' = G' := smul_eq_self_of_mem x.2
 
-lemma smul_le_iff_le_smul {g : G} {H K : subgroup G} : g • H ≤ K ↔ H ≤ g⁻¹ • K :=
+lemma smul_le_iff_le_smul {H K : subgroup G} : g • H ≤ K ↔ H ≤ g⁻¹ • K :=
 by rw [smul_eq_map_conj, map_le_iff_le_comap, smul_eq_comap_conj, monoid_hom.map_inv, inv_inv]
 
 section map_comap
@@ -64,9 +57,8 @@ begin
   rw [smul_eq_map_conj, smul_eq_map_conj, map_map, map_map],
   congr,
   ext,
-  simp only [mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, monoid_hom.map_mul,
-    eq_self_iff_true, function.comp_app, monoid_hom.map_mul_inv, monoid_hom.coe_comp,
-    mul_left_inj]
+  simp only [mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, monoid_hom.map_mul, eq_self_iff_true,
+    function.comp_app, monoid_hom.map_mul_inv, monoid_hom.coe_comp, mul_left_inj]
 end
 
 @[simp] lemma comap_smul (g : G) (K : subgroup H) : comap f (f g • K) = g • comap f K :=

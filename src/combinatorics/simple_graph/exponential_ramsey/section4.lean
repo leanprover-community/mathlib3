@@ -241,15 +241,15 @@ end
 
 open real
 
-lemma b_le_sigma_mul_m {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ : 0 < σ) :
+lemma b_le_sigma_mul_m {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ : 0 ≤ σ) :
   (b : ℝ) ≤ σ * m := hb.trans (half_le_self (by positivity))
 
 lemma cast_b_le_cast_m {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2)
-  (hσ₀ : 0 < σ) (hσ₁ : σ < 1) : (b : ℝ) ≤ m :=
-(b_le_sigma_mul_m hb hσ₀).trans (mul_le_of_le_one_left (nat.cast_nonneg _) hσ₁.le)
+  (hσ₀ : 0 ≤ σ) (hσ₁ : σ ≤ 1) : (b : ℝ) ≤ m :=
+(b_le_sigma_mul_m hb hσ₀).trans (mul_le_of_le_one_left (nat.cast_nonneg _) hσ₁)
 
 lemma b_le_m {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2)
-  (hσ₀ : 0 < σ) (hσ₁ : σ < 1) : b ≤ m :=
+  (hσ₀ : 0 ≤ σ) (hσ₁ : σ ≤ 1) : b ≤ m :=
 nat.cast_le.1 (cast_b_le_cast_m hb hσ₀ hσ₁)
 
 lemma four_two_aux_aux {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ : 0 < σ) :
@@ -279,7 +279,7 @@ begin
     mul_comm (_ - _)],
 end
 
-lemma four_two_aux' {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ < 1) :
+lemma four_two_aux' {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ ≤ 1) :
   ∏ i in finset.range b, (σ * m - i) / (m - i) =
     σ ^ b * ∏ i in finset.range b, (1 - ((1 - σ) * i) / (σ * (m - i))) :=
 begin
@@ -293,10 +293,10 @@ begin
   have : (i : ℝ) < b, { rwa nat.cast_lt },
   suffices : (i : ℝ) < m, { linarith only [this] },
   refine (this.trans_le hb).trans_le ((half_le_self (by positivity)).trans _),
-  exact mul_le_of_le_one_left (nat.cast_nonneg _) hσ₁.le,
+  exact mul_le_of_le_one_left (nat.cast_nonneg _) hσ₁,
 end.
 
-lemma four_two_aux'' {m b i : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ < 1)
+lemma four_two_aux'' {m b i : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 ≤ σ) (hσ₁ : σ ≤ 1)
   (hi : i ∈ finset.range b) :
   (1 : ℝ) - i / (σ * m) ≤ 1 - ((1 - σ) * i) / (σ * (m - i)) :=
 begin
@@ -334,7 +334,7 @@ begin
   { norm_num1 },
 end
 
-lemma four_two_aux''' {m b i : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ)
+lemma four_two_aux''' {m b i : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 ≤ σ)
   (hi : i ∈ finset.range b) :
   real.exp ((- 2 / (σ * m)) * i) ≤ (1 : ℝ) - i / (σ * m) :=
 begin
@@ -348,7 +348,7 @@ begin
   exact hi.le
 end
 
-lemma four_two_aux'''' {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ < 1) :
+lemma four_two_aux'''' {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 ≤ σ) (hσ₁ : σ ≤ 1) :
   real.exp ((- 2 / (σ * m)) * ∑ i in finset.range b, i) ≤
     ∏ i in finset.range b, (1 - ((1 - σ) * i) / (σ * (m - i))) :=
 begin
@@ -370,15 +370,15 @@ end
 -- end
 
 -- Fact 4.2
-lemma four_two_left {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ < 1) :
+lemma four_two_left {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ ≤ 1) :
   σ ^ b * m.choose b * exp (- b ^ 2 / (σ * m)) ≤ my_generalized_binomial (σ * m) b :=
 begin
   have : 0 < (m.choose b : ℝ),
   { rw nat.cast_pos,
-    exact nat.choose_pos (b_le_m hb hσ₀ hσ₁) },
+    exact nat.choose_pos (b_le_m hb hσ₀.le hσ₁) },
   rw [mul_right_comm, ←le_div_iff this, div_eq_mul_inv (my_generalized_binomial _ _),
     four_two_aux_aux hb hσ₀, four_two_aux, four_two_aux' hb hσ₀ hσ₁],
-  refine mul_le_mul_of_nonneg_left ((four_two_aux'''' hb hσ₀ hσ₁).trans' _) (by positivity),
+  refine mul_le_mul_of_nonneg_left ((four_two_aux'''' hb hσ₀.le hσ₁).trans' _) (by positivity),
   rw [exp_le_exp, ←nat.cast_sum, finset.sum_range_id, ←nat.choose_two_right, div_mul_eq_mul_div],
   refine div_le_div_of_le (by positivity) _,
   rw [neg_mul, neg_le_neg_iff, ←le_div_iff'],
@@ -557,8 +557,6 @@ begin
   linarith
 end
 
-open filter
-
 lemma four_one_part_four (hμ : 0 < μ) :
   ∀ᶠ (l : ℕ) in at_top, ∀ (k : ℕ), l ≤ k →
     ∀ (σ : ℝ), μ - 2 / k ≤ σ →
@@ -635,7 +633,7 @@ begin
 end
 
 lemma four_one_part_seven (χ : top_edge_labelling V (fin 2)) {m b : ℕ} {X U : finset V} {σ : ℝ}
-  (hσ : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ < 1) (hμ₀ : 0 < μ) (hμ₁ : μ < 1)
+  (hσ : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ ≤ 1) (hμ₀ : 0 < μ) (hμ₁ : μ < 1)
   (hσ' : μ - 2 / k ≤ σ)
   (hb : b ≠ 0) (hk : 6 ≤ k) (hm : 3 ≤ m) (hkμ : 4 / μ ≤ k) (hUX : U ⊆ X)
   (hU : U.card = m) (hX : ramsey_number ![k, m] ≤ X.card) :
@@ -691,6 +689,18 @@ begin
   exact ⟨S, hS.1, hS.2, hS'⟩,
 end
 
+lemma four_one_part_nine_aux :
+  tendsto
+    (λ l, 4 * l ^ -((2 / 3 : ℝ) - 1 / 4 * 2) * (2 / μ) + l ^ -(1 - 1 / 4 : ℝ) * (4 * 2 / μ))
+    at_top (nhds (((4 * 0) * (2 / μ)) + 0 * (4 * 2 / μ))) :=
+begin
+  refine tendsto.add _ _,
+  { refine ((tendsto_rpow_neg_at_top _).const_mul _).mul_const _,
+    norm_num },
+  { refine (tendsto_rpow_neg_at_top _).mul_const _,
+    norm_num }
+end
+
 lemma four_one_part_nine (hμ₀ : 0 < μ) (hμ₁ : μ < 1) :
   ∀ᶠ (l : ℕ) in at_top, ∀ k, l ≤ k →
     ∀ (σ : ℝ) (b m : ℕ),
@@ -701,14 +711,19 @@ lemma four_one_part_nine (hμ₀ : 0 < μ) (hμ₁ : μ < 1) :
     (1 / 2 : ℝ) ≤ 3 / 4 * exp (- 4 * b / (μ * k) - b ^ 2 / (σ * m)) :=
 begin
   have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
-  -- have h3 : (0 : ℝ) < 2 / 3 - 1 / 4, { norm_num1 },
+  have ineq : 4 * 0 * (2 / μ) + 0 * (4 * 2 / μ) < log (3 / 2),
+  { rw [mul_zero, zero_mul, zero_mul, add_zero],
+    refine log_pos _,
+    norm_num },
+  have := eventually_le_of_tendsto_lt ineq (four_one_part_nine_aux μ),
   have h4 : (0 : ℝ) < 1 / 4, { norm_num1 },
   filter_upwards
     [((tendsto_rpow_at_top h4).comp t).eventually_ge_at_top (1 / 2),
       t.eventually_ge_at_top (4 / μ),
       t.eventually_gt_at_top 0,
-      eventually_gt_at_top 0
-    ] with l hl hl' hl'' hl''' --
+      eventually_gt_at_top 0,
+      t.eventually this
+    ] with l hl hl' hl'' hl''' hl'''' --
     k hlk σ b m hσ hσ' hb hm,
   suffices : (2 / 3 : ℝ) ≤ exp (- 4 * b / (μ * k) - b ^ 2 / (σ * m)),
   { linarith only [this] },
@@ -736,44 +751,25 @@ begin
   refine (add_le_add_right this _).trans _,
   have h' := ceil_le_two_mul hl,
   dsimp at h',
-  have : (b ^ 2 : ℝ) / m ≤ 4 * l ^ ((1 / 4 : ℝ) * 2 - (2 / 3)),
-  { rw [rpow_sub hl'', rpow_mul (nat.cast_nonneg _), rpow_two, mul_div_assoc'],
+  have : (b ^ 2 : ℝ) / m ≤ 4 * l ^ (- ((2 / 3) - (1 / 4 : ℝ) * 2)),
+  { rw [neg_sub, rpow_sub hl'', rpow_mul (nat.cast_nonneg _), rpow_two, mul_div_assoc'],
     refine div_le_div (by positivity) _ (rpow_pos_of_pos hl'' _) _,
     { rw hb,
       refine (pow_le_pow_of_le_left (by positivity) h' 2).trans_eq _,
       rw [mul_pow],
       congr' 1,
-      norm_num1,
-      },
+      norm_num1 },
       rw hm,
       exact nat.le_ceil _ },
   refine (add_le_add_right (mul_le_mul_of_nonneg_right this (by positivity)) _).trans _,
-
-  -- have : (b : ℝ) / (σ * m) ≤ 1 / 2,
-  -- { rwa [div_le_iff, mul_comm, mul_one_div],
-  --   positivity },
-  -- have h : (-1) * (b : ℝ) - b / 2 ≤ (-4 : ℝ) * b / (μ * k) - b ^ 2 / (σ * m),
-  -- { refine sub_le_sub _ _,
-  --   { rw [←div_mul_eq_mul_div],
-  --     refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
-  --     rwa [neg_div, neg_le_neg_iff, ←div_div, div_le_iff, one_mul],
-  --     rw nat.cast_pos,
-  --     exact hl'''.trans_le hlk },
-  --   rw [sq, mul_div_assoc, div_eq_mul_one_div (b : ℝ) 2],
-  --   refine mul_le_mul_of_nonneg_left this (nat.cast_nonneg _) },
-  -- have : (-1) * (b : ℝ) - b / 2 = (-3 / 2) * b,
-  -- { ring_nf },
-  -- rw this at h,
-  -- refine (exp_le_exp.2 h).trans' _,
-
-
-  -- have := tendsto_rpow_at_top,
-  -- refine h.trans' _,
-  -- have := eventually_ge_of_tendsto_gt,
-
+  have : (4 : ℝ) * b / (μ * k) ≤ l ^ (-(1 - (1 / 4 : ℝ))) * ((4 * 2) / μ),
+  { rw [neg_sub, rpow_sub hl'', rpow_one, div_mul_div_comm, mul_comm _ (_ * _ : ℝ), mul_assoc,
+      mul_comm μ, hb],
+    refine div_le_div (by positivity) (mul_le_mul_of_nonneg_left h' (by positivity))
+      (by positivity) (mul_le_mul_of_nonneg_right _ hμ₀.le),
+    rwa nat.cast_le },
+  exact (add_le_add_left this _).trans hl'''',
 end
-
-#exit
 
 -- lemma 4.1
 -- (9)
@@ -808,6 +804,8 @@ begin
     linarith only [hl] },
   have := four_one_part_six χ σ Usize hb rfl,
   rw ←four_one_part_five χ at this,
+  -- have : 0
+  have := four_one_part_seven μ χ hl',
 end
 
 end simple_graph

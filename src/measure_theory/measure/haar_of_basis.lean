@@ -129,6 +129,19 @@ begin
   exact this.sum_mem (λ i hi, convex_segment  _ _),
 end
 
+/-- A `parallelepiped` is the convex hull of its vertices -/
+lemma parallelepiped_eq_convex_hull (v : ι → E) :
+  parallelepiped v = convex_hull ℝ (∑ i, {(0 : E), v i}) :=
+begin
+  -- TODO: add `convex_hull_sum` to match `convex_hull_add`
+  let : set E →+ set E :=
+  { to_fun := convex_hull ℝ,
+    map_zero' := convex_hull_singleton _,
+    map_add' := convex_hull_add },
+  simp_rw [parallelepiped_eq_sum_segment, ←convex_hull_pair],
+  exact (this.map_sum _ _).symm,
+end
+
 /-- The axis aligned parallelepiped over `ι → ℝ` is a cuboid. -/
 lemma parallelepiped_single [decidable_eq ι] (a : ι → ℝ) :
   parallelepiped (λ i, pi.single i (a i)) = set.uIcc 0 a :=

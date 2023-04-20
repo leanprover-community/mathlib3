@@ -86,7 +86,7 @@ begin
   { rw [coeff_hermite_succ_succ, ih, hermite_coeff_upper, mul_zero, sub_zero] }
 end
 
-lemma hermite_degree {n : ℕ} : (hermite n).degree = n :=
+@[simp] lemma degree_hermite (n : ℕ) : (hermite n).degree = n :=
 begin
   rw degree_eq_of_le_of_coeff_ne_zero,
   simp_rw [degree_le_iff_coeff_zero, with_bot.coe_lt_coe],
@@ -94,17 +94,17 @@ begin
   simp [coeff_hermite_self n]
 end
 
-lemma hermite_nat_degree {n : ℕ} : (hermite n).nat_degree = n :=
-nat_degree_eq_of_degree_eq_some hermite_degree
+@[simp] lemma nat_degree_hermite {n : ℕ} : (hermite n).nat_degree = n :=
+nat_degree_eq_of_degree_eq_some (degree_hermite n)
 
-lemma hermite_leading_coeff {n : ℕ} : (hermite n).leading_coeff = 1 :=
+@[simp] lemma leading_coeff_hermite (n : ℕ) : (hermite n).leading_coeff = 1 :=
 begin
-  rw [← coeff_nat_degree, hermite_nat_degree, coeff_hermite_self],
+  rw [← coeff_nat_degree, nat_degree_hermite, coeff_hermite_self],
 end
 
-lemma hermite_monic {n : ℕ} : (hermite n).monic := hermite_leading_coeff
+lemma hermite_monic {n : ℕ} : (hermite n).monic := leading_coeff_hermite n
 
-lemma hermite_coeff_parity_zero (n k : ℕ) (hnk : odd (n + k)) : coeff (hermite n) k = 0 :=
+lemma coeff_hermite_of_odd_add {n k : ℕ} (hnk : odd (n + k)) : coeff (hermite n) k = 0 :=
 begin
   induction n with n ih generalizing k,
   { rw zero_add at hnk,

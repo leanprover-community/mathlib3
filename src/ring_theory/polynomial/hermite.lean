@@ -110,9 +110,10 @@ begin
   { rw zero_add at hnk,
     exact hermite_coeff_upper' _ _ hnk.pos },
   { cases k,
-    { rw [coeff_hermite_succ_zero, ih 1 hnk, neg_zero] },
-    { rw [coeff_hermite_succ_succ, ih k _, ih (k + 2) _, mul_zero, sub_zero],
-      { rwa (by simp [nat.succ_add, nat.add_succ] : n.succ + k.succ = n + (k + 2)) at hnk },
+    { rw nat.succ_add_eq_succ_add at hnk,
+      rw [coeff_hermite_succ_zero, ih hnk, neg_zero] },
+    { rw [coeff_hermite_succ_succ, ih, ih, mul_zero, sub_zero],
+      { rwa [nat.succ_add_eq_succ_add] at hnk },
       { rw (by rw [nat.succ_add, nat.add_succ] : n.succ + k.succ = n + k + 2) at hnk,
         exact (nat.odd_add.mp hnk).mpr even_two }}}
 end

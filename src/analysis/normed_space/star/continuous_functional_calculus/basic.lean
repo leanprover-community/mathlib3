@@ -117,6 +117,17 @@ lemma cfc₁_continuous (R : Type*) {A : Type*} [comm_semiring R] [star_ring R]
   continuous ⇑(cfc₁ : C(spectrum R a, R) →⋆ₐ[R] A) :=
 continuous_functional_calculus_class.hom_continuous
 
+@[continuity]
+lemma cfc₂_continuous (R : Type*) {A : Type*} [comm_semiring R] [star_ring R]
+  [topological_space R] [topological_semiring R] [has_continuous_star R] [ring A] [star_ring A]
+  [topological_space A] [algebra R A] (a : A) [continuous_functional_calculus_class R a] :
+  continuous ⇑(cfc₂ a : C(R, R) →⋆ₐ[R] A) :=
+(cfc₁_continuous R a).comp $ continuous_map.continuous_comp_left _
+
+lemma X_to_continuous_map (R : Type*) [semiring R] [topological_space R] [topological_semiring R] :
+  (X : R[X]).to_continuous_map = continuous_map.id R :=
+by ext; simp only [to_continuous_map_apply, eval_X, continuous_map.id_apply]
+
 @[simp]
 lemma cfc₁_map_X (R : Type*) {A : Type*} [comm_semiring R] [star_ring R]
   [topological_space R] [topological_semiring R] [has_continuous_star R] [ring A] [star_ring A]
@@ -125,11 +136,25 @@ lemma cfc₁_map_X (R : Type*) {A : Type*} [comm_semiring R] [star_ring R]
 continuous_functional_calculus_class.hom_map_X
 
 @[simp]
+lemma cfc₁_map_id (R : Type*) {A : Type*} [comm_semiring R] [star_ring R]
+  [topological_space R] [topological_semiring R] [has_continuous_star R] [ring A] [star_ring A]
+  [topological_space A] [algebra R A] (a : A) [continuous_functional_calculus_class R a] :
+  cfc₁ ((continuous_map.id R).restrict $ spectrum R a) = a :=
+by { convert cfc₁_map_X R a, rw X_to_continuous_map R }
+
+@[simp]
 lemma cfc₂_map_X {R A : Type*} [comm_semiring R] [star_ring R]
   [topological_space R] [topological_semiring R] [has_continuous_star R] [ring A] [star_ring A]
   [topological_space A] [algebra R A] (a : A) [continuous_functional_calculus_class R a] :
   cfc₂ a (X : R[X]).to_continuous_map = a :=
 cfc₁_map_X R a
+
+@[simp]
+lemma cfc₂_map_id (R : Type*) {A : Type*} [comm_semiring R] [star_ring R]
+  [topological_space R] [topological_semiring R] [has_continuous_star R] [ring A] [star_ring A]
+  [topological_space A] [algebra R A] (a : A) [continuous_functional_calculus_class R a] :
+  cfc₂ a (continuous_map.id R) = a :=
+cfc₁_map_id R a
 
 @[simp]
 lemma cfc₁_map_C {R A : Type*} [comm_semiring R] [star_ring R]
@@ -451,11 +476,12 @@ the spectrum of `a` restricts via a function `f : S → R` if `f` is a left inve
 
 This is the predicate which allows us to restrict a continuous functional calculus on over `S` to a
 continuous functional calculus over `R`. -/
-structure spectrum_restricts {R S : Type*} {A : Type*} [comm_semiring R] [comm_semiring S] [ring A]
+class spectrum_restricts {R S : Type*} {A : Type*} [comm_semiring R] [comm_semiring S] [ring A]
   [algebra R S] [algebra R A] [algebra S A] (a : A) (f : S → R) : Prop :=
 (right_inv_on : (spectrum S a).right_inv_on f (algebra_map R S))
 (left_inv : function.left_inverse f (algebra_map R S))
 
+-- not an instance because reasons.
 lemma spectrum_restricts_of_subset_range_algebra_map {R S : Type*} {A : Type*} [comm_semiring R]
   [comm_semiring S] [ring A] [algebra R S] [algebra R A] [algebra S A] (a : A) (f : S → R)
   (hf : function.left_inverse f (algebra_map R S))
@@ -492,7 +518,7 @@ h.image ▸ ha.image hf
 lemma spectrum_restricts.compact_space {R S : Type*} {A : Type*} [comm_semiring R]
   [topological_space R] [comm_semiring S] [topological_space S] [ring A] [algebra R S] [algebra R A]
   [algebra S A] [is_scalar_tower R S A] {a : A} {f : S → R} (hf : continuous f)
-  (h : spectrum_restricts a f) (h' : compact_space (spectrum S a)) :
+  [h : spectrum_restricts a f] [h' : compact_space (spectrum S a)] :
   compact_space (spectrum R a) :=
 is_compact_iff_compact_space.mp (h.is_compact hf $ is_compact_iff_compact_space.mpr h')
 
@@ -709,3 +735,268 @@ lemma spectrum_restricts.cfc_spectrum_restricts
   left_inv := h.left_inv }
 
 end univs
+
+section complex_to_real
+
+instance spectrum.compact_space_complex_to_real {A : Type*} [ring A] [algebra ℂ A]
+  {a : A} [spectrum_restricts a continuous_map.complex_re] [compact_space (spectrum ℂ a)] :
+  compact_space (spectrum ℝ a) :=
+spectrum_restricts.compact_space (map_continuous continuous_map.complex_re)
+
+noncomputable instance cfc.complex_to_real
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℂ A] {a : A}
+  [continuous_functional_calculus_class ℂ a] [h : spectrum_restricts a continuous_map.complex_re] :
+  continuous_functional_calculus_class ℝ a :=
+h.cfc _
+
+noncomputable instance cfc_spectrum.complex_to_real
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℂ A] {a : A}
+  [continuous_functional_calculus_spectrum_class ℂ a]
+  [h : spectrum_restricts a continuous_map.complex_re] :
+  continuous_functional_calculus_spectrum_class ℝ a :=
+h.cfc_spectrum _
+
+noncomputable instance cfc_injective.complex_to_real
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℂ A] {a : A}
+  [continuous_functional_calculus_injective_class ℂ a]
+  [h : spectrum_restricts a continuous_map.complex_re] :
+  continuous_functional_calculus_injective_class ℝ a :=
+h.cfc_injective _
+
+noncomputable instance cfc_isometry.complex_to_real
+  {A : Type*} [ring A] [star_ring A] [metric_space A] [algebra ℂ A] {a : A}
+  [compact_space (spectrum ℂ a)] [continuous_functional_calculus_isometry_class ℂ a]
+  [h : spectrum_restricts a continuous_map.complex_re] :
+  continuous_functional_calculus_isometry_class ℝ a :=
+h.cfc_isometry _ (algebra_map_isometry ℝ ℂ)
+
+instance cfc_spectrum_restricts.complex_to_real
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℂ A] {a : A}
+  [continuous_functional_calculus_spectrum_class ℂ a]
+  [h : spectrum_restricts a continuous_map.complex_re] (g : C(spectrum ℝ a, ℝ)) :
+  spectrum_restricts (@cfc₁ _ _ _ _ _ _ _ _ _ _ _ _ (h.cfc continuous_map.complex_re) g)
+    continuous_map.complex_re :=
+h.cfc_spectrum_restricts _ g
+
+instance cfc_spectrum_restricts.complex_to_real'
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℂ A] {a : A}
+  [continuous_functional_calculus_spectrum_class ℂ a]
+  [h : spectrum_restricts a continuous_map.complex_re] (g : C(ℝ, ℝ)) :
+  spectrum_restricts (@cfc₂ _ _ _ _ _ _ _ _ _ _ _ _ (h.cfc continuous_map.complex_re) g)
+    continuous_map.complex_re :=
+begin
+  rw [cfc₂, star_alg_hom.coe_comp, function.comp_apply],
+  apply_instance,
+end
+
+-- this is the instance you would need to add in order to get things to work if you had an algebra
+-- over `ℂ` instead of one over `ℝ` in what follows. Of course, for C⋆-algebras we already have
+-- a proof of this (or rather, it follows easily), but for matrices you could provide it
+-- separately.
+/-
+instance self_adjoint.spectrum_restricts {A : Type*} [ring A] [star_ring A] [topological_space A]
+  [algebra ℂ A] {a : self_adjoint A} : spectrum_restricts (a : A) continuous_map.complex_re :=
+sorry
+-/
+
+lemma cfc₂_real_is_self_adjoint
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A]
+  (a : A) [continuous_functional_calculus_class ℝ a] (f : C(ℝ, ℝ)) :
+  is_self_adjoint (cfc₂ a f) :=
+show star _ = _, by rw [←map_star, star_trivial]
+
+-- composition still works as long as we have propositinal equality of the intermediate elements.
+lemma self_adjoint.cfc₂_comp
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A]
+  (a b : self_adjoint A) (f g : C(ℝ, ℝ))
+  [continuous_functional_calculus_spectrum_class ℝ (a : A)]
+  [subsingleton (continuous_functional_calculus_class ℝ (cfc₂ (a : A) f))]
+  -- alternatively: [compact_space (spectrum ℝ (cfc₂ (a : A) f))] [t2_space A]
+  [h' : continuous_functional_calculus_class ℝ (b : A)]
+  (h : cfc₂ (a : A) f = b) :
+  cfc₂ (a : A) (g.comp f) = cfc₂ (b : A) g :=
+begin
+  letI : continuous_functional_calculus_class ℝ (cfc₂ (a : A) f),
+    from cast (by rw h) h',
+  rw cfc₂_comp (a : A) f g,
+  congr' 3,
+  simp only [cast_heq],
+end
+
+lemma self_adjoint.cfc₂_comp_coe_mk
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A]
+  (a : self_adjoint A) (f g : C(ℝ, ℝ))
+  [Π b : self_adjoint A, continuous_functional_calculus_spectrum_class ℝ (b : A)]
+  [subsingleton (continuous_functional_calculus_class ℝ (cfc₂ (a : A) f))]
+  -- alternatively: [compact_space (spectrum ℝ (cfc₂ (a : A) f))] [t2_space A]
+  (h := cfc₂_real_is_self_adjoint (a : A) f) :
+  cfc₂ (a : A) (g.comp f) = cfc₂ ((⟨cfc₂ (a : A) f, h⟩ : self_adjoint A) : A) g :=
+self_adjoint.cfc₂_comp a _ f g rfl
+
+@[simps]
+def cfcℝ {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A] [star_module ℝ A]
+  (a : self_adjoint A) [continuous_functional_calculus_class ℝ (a : A)] :
+  C(ℝ, ℝ) →L[ℝ] self_adjoint A :=
+{ to_fun := λ f, ⟨cfc₂ (a : A) f, cfc₂_real_is_self_adjoint a f⟩,
+  map_add' := λ f g, subtype.ext (by simp only [subtype.coe_mk, add_subgroup.coe_add, map_add]),
+  map_smul' := λ r f, subtype.ext $
+    by simp only [map_smul, ring_hom.id_apply, self_adjoint.coe_smul, subtype.coe_mk],
+  cont := continuous_induced_rng.mpr (cfc₂_continuous ℝ a) }
+
+lemma cfcℝ_comp
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A] [star_module ℝ A]
+  (a : self_adjoint A) (f g : C(ℝ, ℝ))
+  [Π b : self_adjoint A, continuous_functional_calculus_spectrum_class ℝ (b : A)]
+  [h : Π b : self_adjoint A, subsingleton (continuous_functional_calculus_class ℝ (b : A))] :
+  cfcℝ a (g.comp f) = cfcℝ (cfcℝ a f) g :=
+begin
+  ext,
+  simp only [cfcℝ_apply_coe],
+  haveI : subsingleton (continuous_functional_calculus_class ℝ (cfc₂ (a : A) f)),
+    simpa only using h ⟨cfc₂ (a : A) f, cfc₂_real_is_self_adjoint a f⟩,
+  refine self_adjoint.cfc₂_comp _ _ _ _ rfl,
+end
+
+section selfadjoint
+
+variables
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A] [star_module ℝ A]
+  [Π b : self_adjoint A, continuous_functional_calculus_spectrum_class ℝ (b : A)]
+  [Π b : self_adjoint A, subsingleton (continuous_functional_calculus_class ℝ (b : A))]
+
+lemma coe_cfcℝ_commute (a : self_adjoint A) (f g : C(ℝ, ℝ)) :
+  commute (cfcℝ a f : A) (cfcℝ a g) :=
+by simpa only [cfcℝ_apply_coe] using cfc₂_commute (a : A) f g
+
+lemma cfcℝ_map_X (a : self_adjoint A) :
+  cfcℝ a (X.to_continuous_map) = a :=
+subtype.ext (by rw [cfcℝ_apply_coe, cfc₂_map_X])
+
+lemma cfcℝ_map_id (a : self_adjoint A) :
+  cfcℝ a (continuous_map.id ℝ) = a :=
+by rw [←X_to_continuous_map, cfcℝ_map_X]
+
+lemma cfcℝ_neg_comm (a : self_adjoint A) (f : C(ℝ, ℝ)) :
+  cfcℝ (-a) f = cfcℝ a (f.comp (-(continuous_map.id ℝ))) :=
+by rw [cfcℝ_comp, map_neg, cfcℝ_map_id]
+
+noncomputable instance self_adjoint.has_pos_part : has_pos_part (self_adjoint A) :=
+{ pos := λ a, cfcℝ a (continuous_map.id ℝ ⊔ 0) }
+
+lemma self_adjoint.pos_part_def (a : self_adjoint A) :
+  a⁺ = cfcℝ a (continuous_map.id ℝ ⊔ 0) := rfl
+
+lemma self_adjoint.coe_pos_part (a : self_adjoint A) :
+  (↑(a⁺) : A) = cfc₂ (a : A) (continuous_map.id ℝ ⊔ 0) :=
+rfl
+
+noncomputable instance self_adjoint.has_neg_part : has_neg_part (self_adjoint A) :=
+{ neg := λ a, cfcℝ a ((-(continuous_map.id ℝ)) ⊔ 0) }
+
+lemma self_adjoint.neg_part_def (a : self_adjoint A) :
+  a⁻ = cfcℝ a ((-(continuous_map.id ℝ)) ⊔ 0) := rfl
+
+lemma self_adjoint.coe_neg_part (a : self_adjoint A) :
+  (↑(a⁻) : A) = cfc₂ (a : A) ((-(continuous_map.id ℝ)) ⊔ 0) := rfl
+
+lemma self_adjoint.neg_part_neg (a : self_adjoint A) : (-a)⁻ = a⁺ :=
+begin
+  rw [self_adjoint.neg_part_def, self_adjoint.pos_part_def, cfcℝ_neg_comm],
+  congr,
+  ext x,
+  simp only [continuous_map.comp_apply, continuous_map.neg_apply, continuous_map.id_apply,
+    continuous_map.sup_apply, neg_neg, continuous_map.zero_apply],
+end
+
+lemma self_adjoint.pos_part_neg (a : self_adjoint A) : (-a)⁺ = a⁻ :=
+by simpa only [neg_neg] using (self_adjoint.neg_part_neg (-a)).symm
+
+instance {X Y : Type*} [topological_space X] [topological_space Y] [has_add Y]
+  [has_continuous_add Y] [partial_order Y] [covariant_class Y Y (+) (≤)] :
+  covariant_class C(X, Y) C(X, Y) (+) (≤) :=
+{ elim := λ f g h h' x, add_le_add_left (h' x) _ }
+
+lemma self_adjoint.pos_part_sub_neg_part (a : self_adjoint A) : a⁺ - a⁻ = a :=
+begin
+  simp only [self_adjoint.neg_part_def, self_adjoint.pos_part_def, ←map_sub],
+  simp only [sub_eq_add_neg, neg_sup_eq_neg_inf_neg, neg_neg, neg_zero],
+  rw [add_comm, inf_add_sup, add_zero, cfcℝ_map_id],
+end
+
+-- it is essential to use coercions here because `self_adjoint A` can't have a `has_mul` instance
+-- should we define a partial multiplication on `self_adjoint A`? I think not, but maybe.
+lemma self_adjoint.pos_part_mul_neg_part (a : self_adjoint A) : (↑(a⁺) : A) * ↑(a⁻) = 0 :=
+begin
+  simp only [self_adjoint.pos_part_def, self_adjoint.neg_part_def, cfcℝ_apply_coe, ←map_mul],
+  convert map_zero (cfc₂ (a : A)),
+  ext x,
+  simp only [continuous_map.mul_apply, continuous_map.sup_apply, continuous_map.id_apply,
+    continuous_map.zero_apply, continuous_map.neg_apply, mul_eq_zero, max_eq_right_iff,
+    right.neg_nonpos_iff],
+  exact le_total _ _,
+end
+
+-- it is essential to use coercions here because `self_adjoint A` can't have a `has_mul` instance
+lemma self_adjoint.neg_part_mul_pos_part (a : self_adjoint A) : (↑(a⁻) : A) * ↑(a⁺) = 0 :=
+by { convert self_adjoint.pos_part_mul_neg_part a using 1, exact (coe_cfcℝ_commute _ _ _) }
+
+end selfadjoint
+
+end complex_to_real
+
+section real_to_nnreal
+open_locale nnreal
+
+instance : star_ring ℝ≥0 :=
+{ star := id,
+  star_involutive := λ _, rfl,
+  star_mul := mul_comm,
+  star_add := λ _ _, rfl }
+
+instance : has_trivial_star ℝ≥0 :=
+{ star_trivial := λ _, rfl }
+
+instance : has_continuous_star ℝ≥0 :=
+{ continuous_star := continuous_id }
+
+instance : star_module ℝ≥0 ℝ :=
+{ star_smul := by simp only [star_trivial, eq_self_iff_true, forall_const] }
+
+/-- `to_nnreal` as a bundled continuous map. -/
+noncomputable def continuous_map.to_nnreal : C(ℝ, ℝ≥0) :=
+⟨real.to_nnreal,
+ (@continuous_induced_rng ℝ≥0 ℝ _ coe real.to_nnreal _ _).mpr (continuous_id'.max continuous_const)⟩
+
+instance spectrum.compact_space_real_to_nnreal {A : Type*} [ring A] [algebra ℝ A]
+  {a : A} [spectrum_restricts a continuous_map.to_nnreal] [compact_space (spectrum ℝ a)] :
+  compact_space (spectrum ℝ≥0 a) :=
+spectrum_restricts.compact_space (map_continuous continuous_map.to_nnreal)
+
+noncomputable instance cfc.real_to_nnreal
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A] {a : A}
+  [continuous_functional_calculus_class ℝ a] [h : spectrum_restricts a continuous_map.to_nnreal] :
+  continuous_functional_calculus_class ℝ≥0 a :=
+h.cfc _
+
+noncomputable instance cfc_spectrum.real_to_nnreal
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A] {a : A}
+  [continuous_functional_calculus_spectrum_class ℝ a]
+  [h : spectrum_restricts a continuous_map.to_nnreal] :
+  continuous_functional_calculus_spectrum_class ℝ≥0 a :=
+h.cfc_spectrum _
+
+noncomputable instance cfc_injective.real_to_nnreal
+  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A] {a : A}
+  [continuous_functional_calculus_injective_class ℝ a]
+  [h : spectrum_restricts a continuous_map.to_nnreal] :
+  continuous_functional_calculus_injective_class ℝ≥0 a :=
+h.cfc_injective _
+
+noncomputable instance cfc_isometry.real_to_nnreal
+  {A : Type*} [ring A] [star_ring A] [metric_space A] [algebra ℝ A] {a : A}
+  [compact_space (spectrum ℝ a)] [continuous_functional_calculus_isometry_class ℝ a]
+  [h : spectrum_restricts a continuous_map.to_nnreal] :
+  continuous_functional_calculus_isometry_class ℝ≥0 a :=
+h.cfc_isometry _ isometry_subtype_coe
+
+end real_to_nnreal

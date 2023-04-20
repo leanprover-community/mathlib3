@@ -24,11 +24,10 @@ section monoid
 variables [monoid α] [monoid β] [monoid_hom_class F α β]
 
 @[to_additive]
-lemma set.image_list_prod (f : F) : ∀ (l : list (set α)),
+lemma image_list_prod (f : F) : ∀ (l : list (set α)),
   (f : α → β) '' l.prod = (l.map (λ s, f '' s)).prod
-| [] := set.image_one.trans $ congr_arg singleton (map_one f)
-| (a :: as) := by rw [list.map_cons, list.prod_cons, list.prod_cons, set.image_mul,
-  set.image_list_prod]
+| [] := image_one.trans $ congr_arg singleton (map_one f)
+| (a :: as) := by rw [list.map_cons, list.prod_cons, list.prod_cons, image_mul, image_list_prod]
 
 end monoid
 
@@ -36,15 +35,15 @@ section comm_monoid
 variables [comm_monoid α] [comm_monoid β] [monoid_hom_class F α β]
 
 @[to_additive]
-lemma set.image_multiset_prod (f : F) : ∀ (m : multiset (set α)),
+lemma image_multiset_prod (f : F) : ∀ (m : multiset (set α)),
   (f : α → β) '' m.prod = (m.map (λ s, f '' s)).prod :=
 quotient.ind $ by simpa only [multiset.quot_mk_to_coe, multiset.coe_prod, multiset.coe_map]
-                 using set.image_list_prod f
+                 using image_list_prod f
 
 @[to_additive]
-lemma set.image_finset_prod (f : F) (m : finset ι) (s : ι → set α) :
+lemma image_finset_prod (f : F) (m : finset ι) (s : ι → set α) :
   (f : α → β) '' (∏ i in m, s i) = (∏ i in m, f '' s i) :=
-(set.image_multiset_prod f _).trans $ congr_arg multiset.prod $ multiset.map_map _ _ _
+(image_multiset_prod f _).trans $ congr_arg multiset.prod $ multiset.map_map _ _ _
 
 /-- The n-ary version of `set.mem_mul`. -/
 @[to_additive /-" The n-ary version of `set.mem_add`. "-/]

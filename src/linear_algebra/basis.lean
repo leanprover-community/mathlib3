@@ -1430,7 +1430,7 @@ section restrict_scalars
 variables [comm_ring R] [ring K] [nontrivial K] [add_comm_group V]
 variables [algebra R K] [module K V] [module R V]
 variables [is_scalar_tower R K V] [no_zero_smul_divisors R K] (b : basis ι K V)
-variable (R)
+variables (R)
 
 open submodule
 
@@ -1467,8 +1467,8 @@ begin
     (b.restrict_scalars_repr_apply R ⟨m, hm⟩ i)⟩, λ h, _⟩,
   rw [← b.total_repr m, finsupp.total_apply K _],
   refine sum_mem (λ i _, _),
-  dsimp only,
-  rw [← (h i).some_spec, algebra_map_smul],
+  obtain ⟨_, h⟩ := h i,
+  simp_rw [← h, algebra_map_smul],
   exact smul_mem _ _ (subset_span (set.mem_range_self i)),
 end
 

@@ -46,6 +46,10 @@ variables (b : basis ι K E)
 for the proof that it is the fundamental domain. -/
 def fundamental_domain : set E := { m | ∀ i, b.repr m i ∈ set.Ico (0 : K) 1 }
 
+@[simp]
+lemma mem_fundamental_domain {m : E} :
+  m ∈ fundamental_domain b ↔ ∀ i, b.repr m i ∈ set.Ico (0 : K) 1 := iff.rfl
+
 variables [floor_ring K]
 
 section fintype
@@ -76,6 +80,10 @@ lemma repr_fract_apply (m : E) (i : ι):
 by rw [fract, map_sub, finsupp.coe_sub, pi.sub_apply, repr_floor_apply, int.fract]
 
 @[simp]
+lemma fract_fract (m : E) : fract b (fract b m) = fract b m :=
+basis.ext_elem b (λ _, by simp only [repr_fract_apply, int.fract_fract])
+
+@[simp]
 lemma fract_zspan_add (m : E) {v : E} (h : v ∈ span ℤ (set.range b)) :
   fract b (v + m) = fract b m :=
 begin
@@ -88,19 +96,17 @@ end
 
 variable {b}
 
-lemma mem_fundamental_domain {x : E} :
-  x ∈ fundamental_domain b ↔ fract b x = x :=
-by simp only [basis.ext_elem_iff b, fundamental_domain, set.mem_Ico, set.mem_set_of_eq,
-  repr_fract_apply, int.fract_eq_self]
+lemma fract_eq_self {x : E} :
+  fract b x = x ↔ x ∈ fundamental_domain b :=
+by simp only [basis.ext_elem_iff b, repr_fract_apply, int.fract_eq_self, mem_fundamental_domain,
+  set.mem_Ico]
 
 variable (b)
 
 lemma fract_mem_fundamental_domain (x : E) :
-  fract b x ∈ fundamental_domain b :=
-by simp only [mem_fundamental_domain, basis.ext_elem_iff b, repr_fract_apply, int.fract_fract,
-  eq_self_iff_true, implies_true_iff]
+  fract b x ∈ fundamental_domain b := fract_eq_self.mp (fract_fract b _)
 
-lemma fract_eq_iff (m n : E) :
+lemma fract_eq_fract (m n : E) :
   fract b m = fract b n ↔ -m + n ∈ span ℤ (set.range b) :=
 begin
   rw [eq_comm, basis.ext_elem_iff b],
@@ -148,7 +154,7 @@ begin
   use 2 * ∑ j, ‖b j‖,
   intros x hx y hy,
   refine le_trans (dist_le_norm_add_norm x y) _,
-  rw [← mem_fundamental_domain.mp hx, ← mem_fundamental_domain.mp hy],
+  rw [← fract_eq_self.mpr hx, ← fract_eq_self.mpr hy],
   refine (add_le_add (norm_fract_le b x) (norm_fract_le b y)).trans _,
   rw ← two_mul,
 end
@@ -164,7 +170,7 @@ begin
       implies_true_iff], },
   { rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
       ← fract_apply, ← fract_zspan_add b _ (subtype.mem y), add_comm, ← vadd_eq_add, ← vadd_def,
-      eq_comm, ← mem_fundamental_domain], },
+      eq_comm, fract_eq_self], },
 end
 
 end normed_lattice_field
@@ -176,7 +182,7 @@ variables (b : basis ι ℝ E)
 
 @[measurability]
 lemma fundamental_domain_measurable_set [measurable_space E] [opens_measurable_space E]
-  [finite ι]:
+  [finite ι] :
   measurable_set (fundamental_domain b) :=
 begin
   haveI : finite_dimensional ℝ E := finite_dimensional.of_fintype_basis b,

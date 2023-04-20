@@ -1458,7 +1458,9 @@ begin
     basis.restrict_scalars_apply, linear_map.coe_restrict_scalars_eq_coe],
 end
 
-lemma basis.restrict_scalars_mem_span_iff (m : V) :
+/-- Let `b` be a `K`-basis of `V`. Then `m : V` lies in the `R`-module spanned by `b` iff all the
+coordinates of `m` on the basis `b` are in `R` (see `basis.mem_span` for the case `R = K`). -/
+lemma basis.mem_span_iff_repr_mem (m : V) :
   m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R K) :=
 begin
   classical,

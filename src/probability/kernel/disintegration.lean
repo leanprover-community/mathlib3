@@ -212,20 +212,16 @@ lemma borel_eq_generate_from_Iic_rat :
   borel ℝ = measurable_space.generate_from {S : set ℝ | ∃ (u : ℚ), Iic ↑u = S} :=
 begin
   refine le_antisymm _ _,
-  swap,
+  { rw borel_eq_generate_from_Ioc_rat,
+    refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨l, u, hlu, rfl⟩ := ht,
+    rw ← Iic_diff_Iic,
+    refine measurable_set.diff _ _,
+    { exact measurable_space.measurable_set_generate_from ⟨u, rfl⟩, },
+    { exact measurable_space.measurable_set_generate_from ⟨l, rfl⟩, }, },
   { refine measurable_space.generate_from_le (λ t ht, _),
     obtain ⟨l, u, hlu, rfl⟩ := ht,
     exact measurable_set_Iic, },
-  rw borel_eq_generate_from_Ioc_rat,
-  refine measurable_space.generate_from_le (λ t ht, _),
-  obtain ⟨l, u, hlu, rfl⟩ := ht,
-  have : Ioc (l : ℝ) u = Iic u \ Iic l,
-  { ext1 x,
-    simp only [Iic_diff_Iic], },
-  rw this,
-  refine measurable_set.diff _ _,
-  { exact measurable_space.measurable_set_generate_from ⟨u, rfl⟩, },
-  { exact measurable_space.measurable_set_generate_from ⟨l, rfl⟩, },
 end
 
 end aux_lemmas_to_be_moved

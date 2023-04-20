@@ -742,9 +742,12 @@ begin
     { rw hb,
       refine (pow_le_pow_of_le_left (by positivity) h' 2).trans_eq _,
       rw [mul_pow],
-      norm_num },
+      congr' 1,
+      norm_num1,
+      },
+      rw hm,
       exact nat.le_ceil _ },
-
+  refine (add_le_add_right (mul_le_mul_of_nonneg_right this (by positivity)) _).trans _,
 
   -- have : (b : ℝ) / (σ * m) ≤ 1 / 2,
   -- { rwa [div_le_iff, mul_comm, mul_one_div],

@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 -/
 import analysis.special_functions.complex.arg
 import analysis.special_functions.log.basic
+import analysis.complex.circle
 
 /-!
 # The complex `log` function
@@ -43,10 +44,10 @@ begin
   have : ∀ (x : ℂ), (x.im : ℂ) * I = x - x.re,
   { simp [complex.ext_iff] },
   have logzre : (complex.log z).re = 0,
-  { simp [complex.log_re, abs_eq_of_mem_circle] },
+  { simp [complex.log_re, abs_coe_circle] },
   use (log z).im,
   rw subtype.ext_iff,
-  simp [this, logzre, exp_log (nonzero_of_mem_circle z)],
+  simp [this, logzre, exp_log (ne_zero_of_mem_circle z)],
 end
 
 @[simp] lemma range_exp : range exp = {0}ᶜ :=
@@ -133,14 +134,14 @@ begin
   { rintro ⟨n, rfl⟩, exact (exp_periodic.int_mul n).eq.trans exp_zero }
 end
 
-lemma exp_map_circle_hom_ker : exp_map_circle_hom.ker = add_subgroup.gmultiples (2 * π) :=
+lemma exp_map_circle_hom_ker : exp_map_circle_hom.ker = add_subgroup.zmultiples (2 * π) :=
 begin
   ext k,
   have a0 : (0 : additive circle) = (1 : circle) := rfl,
   have iI : ∀ (x y : ℂ), x * I = y * I ↔ x = y :=
-    λ _ _, ⟨mul_right_cancel' I_ne_zero, λ h, congr_arg _ h⟩,
+    λ _ _, ⟨mul_right_cancel₀ I_ne_zero, λ h, congr_arg _ h⟩,
   suffices : (∃ (n : ℤ), (k : ℂ) = n * 2 * π) ↔ ∃ (n : ℤ), (n : ℝ) * 2 * π = k,
-  { simpa [add_subgroup.mem_gmultiples_iff, add_monoid_hom.mem_ker, subtype.ext_iff,
+  { simpa [add_subgroup.mem_zmultiples_iff, add_monoid_hom.mem_ker, subtype.ext_iff,
            a0, exp_eq_one_iff, ←mul_assoc, iI] },
   simp_rw @eq_comm _ _ k,
   norm_cast,
@@ -149,7 +150,7 @@ end
 lemma exp_map_circle_eq_one_iff {x : ℝ} :
   exp_map_circle x = 1 ↔ x ∈ exp_map_circle_hom.ker :=
 begin
-  simp only [exp_map_circle_hom_ker, add_subgroup.mem_gmultiples_iff, gsmul_eq_mul],
+  simp only [exp_map_circle_hom_ker, add_subgroup.mem_zmultiples_iff, zsmul_eq_mul],
   split,
   { simp[exp_map_circle],
     intro h,
@@ -178,7 +179,7 @@ by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 /-- The additive-group isomorphism identifying `real.angle` with the additive version of the
 `circle` group. -/
 def angle_to_circle_hom : real.angle ≃+ additive circle :=
-(quotient_add_group.equiv_quotient_of_eq (by { ext x, rw exp_map_circle_hom_ker})).trans
+(quotient_add_group.quotient_add_equiv_of_eq (by { ext x, rw exp_map_circle_hom_ker})).trans
 (quotient_add_group.quotient_ker_equiv_of_surjective exp_map_circle_hom exp_map_circle_surjective)
 
 /-- The equivalence identifying `real.angle` with the circle group. -/

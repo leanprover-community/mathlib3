@@ -87,8 +87,8 @@ end
 begin
   rw degree_eq_of_le_of_coeff_ne_zero,
   simp_rw [degree_le_iff_coeff_zero, with_bot.coe_lt_coe],
-  exact hermite_coeff_upper n,
-  simp [coeff_hermite_self n]
+  { exact hermite_coeff_upper n },
+  { simp [coeff_hermite_self n] }
 end
 
 @[simp] lemma nat_degree_hermite {n : ℕ} : (hermite n).nat_degree = n :=

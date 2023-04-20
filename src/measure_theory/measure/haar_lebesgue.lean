@@ -64,10 +64,9 @@ def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
 lemma basis.parallelepiped_basis_fun (ι : Type*) [fintype ι] :
   (pi.basis_fun ℝ ι).parallelepiped = topological_space.positive_compacts.pi_Icc01 ι :=
 set_like.coe_injective $ begin
-  convert (parallelepiped_single 1),
-  change pi univ (λ i, Icc 0 1) = _,
-  ext,
-  simpa,
+  refine eq.trans _ ((uIcc_of_le _).trans (set.pi_univ_Icc _ _).symm),
+  { convert (parallelepiped_single 1) },
+  { exact zero_le_one },
 end
 
 namespace measure_theory

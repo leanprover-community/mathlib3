@@ -102,7 +102,7 @@ lemma uIcc_eq_finset_map : uIcc a b = (range (max a b + 1 - min a b).to_nat).map
 
 @[simp] lemma card_uIcc : (uIcc a b).card = (b - a).nat_abs + 1 :=
 (card_map _).trans $ int.coe_nat_inj $ by rw [card_range, sup_eq_max, inf_eq_min,
-  int.to_nat_of_nonneg (sub_nonneg_of_le $ le_add_one min_le_max), int.coe_nat_add, int.abs_coe_nat,
+  int.to_nat_of_nonneg (sub_nonneg_of_le $ le_add_one min_le_max), int.coe_nat_add, int.coe_nat_abs,
   add_comm, add_sub_assoc, max_sub_min_eq_abs, add_comm, int.coe_nat_one]
 
 lemma card_Icc_of_le (h : a ≤ b + 1) : ((Icc a b).card : ℤ) = b + 1 - a :=

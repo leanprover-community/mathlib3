@@ -1321,7 +1321,7 @@ by { rw matrix.mul_assoc, simpa only [mul_apply, dot_product, mul_vec] }
 end non_unital_semiring
 
 section non_assoc_semiring
-variables [fintype m] [decidable_eq m] [non_assoc_semiring α]
+variables [fintype m] [fintype n] [decidable_eq m] [non_assoc_semiring α]
 
 @[simp] lemma one_mul_vec (v : m → α) : mul_vec 1 v = v :=
 by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }

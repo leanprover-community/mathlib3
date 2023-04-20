@@ -84,8 +84,8 @@ end partial_order
 section lattice
 variables [Π i, lattice (α i)] [Π i, locally_finite_order (α i)] (a b : Π i, α i)
 
-lemma interval_eq : interval a b = pi_finset (λ i, interval (a i) (b i)) := rfl
-lemma card_interval : (interval a b).card = ∏ i, (interval (a i) (b i)).card := card_Icc _ _
+lemma uIcc_eq : uIcc a b = pi_finset (λ i, uIcc (a i) (b i)) := rfl
+lemma card_uIcc : (uIcc a b).card = ∏ i, (uIcc (a i) (b i)).card := card_Icc _ _
 
 end lattice
 end pi

@@ -475,8 +475,8 @@ by simp [dot_product]
 section mul_one_class
 variables [mul_one_class α] [add_comm_monoid α]
 
-lemma dot_product_one (v : n → α) : dot_product v 1 = ∑ i, v i := by simp [dot_product]
-lemma one_dot_product (v : n → α) : dot_product 1 v = ∑ i, v i := by simp [dot_product]
+lemma dot_product_one (v : n → α) : v ⬝ᵥ 1 = ∑ i, v i := by simp [(⬝ᵥ)]
+lemma one_dot_product (v : n → α) : 1 ⬝ᵥ v = ∑ i, v i := by simp [(⬝ᵥ)]
 
 end mul_one_class
 
@@ -544,7 +544,7 @@ end non_unital_non_assoc_semiring_decidable
 section non_assoc_semiring
 variables [non_assoc_semiring α]
 
-@[simp] lemma one_dot_product_one : dot_product (1 : n → α) 1 = fintype.card n :=
+@[simp] lemma one_dot_product_one : (1 : n → α) ⬝ᵥ 1 = fintype.card n :=
 by simp [dot_product, fintype.card]
 
 end non_assoc_semiring

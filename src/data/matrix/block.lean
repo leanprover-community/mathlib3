@@ -32,9 +32,7 @@ open_locale big_operators matrix
 namespace matrix
 
 lemma dot_product_block [fintype m] [fintype n] [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :
-  dot_product v w =
-    dot_product (λ i, v (sum.inl i))  (λ i, w (sum.inl i)) +
-    dot_product (λ j, v (sum.inr j))  (λ j, w (sum.inr j)) :=
+  v ⬝ᵥ w = v ∘ sum.inl ⬝ᵥ w ∘ sum.inl + v ∘ sum.inr ⬝ᵥ w ∘ sum.inr :=
 fintype.sum_sum_type _
 
 section block_matrices

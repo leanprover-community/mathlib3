@@ -219,13 +219,14 @@ lemma my_generalized_binomial_convex {k : ℕ} (hk : k ≠ 0) :
 open_locale big_operators
 
 lemma my_thing {α : Type*} {s : finset α} (f : α → ℕ) (b : ℕ) (hb : b ≠ 0) :
-  my_generalized_binomial ((∑ i in s, f i) / s.card) b ≤ (∑ i in s, (f i).choose b) / s.card :=
+  my_generalized_binomial ((∑ i in s, f i) / s.card) b * s.card ≤ (∑ i in s, (f i).choose b) :=
 begin
   simp only [div_eq_inv_mul, finset.mul_sum],
   cases eq_or_ne s.card 0 with hs hs,
-  { simp only [hs, nat.cast_zero, inv_zero, zero_mul, finset.sum_const_zero],
-    rw [←nat.cast_zero, my_generalized_binomial_nat, nat.cast_le, nat.choose_eq_zero_of_lt],
-    rwa pos_iff_ne_zero },
+  { simp only [hs, nat.cast_zero, mul_zero, ←nat.cast_sum],
+    exact nat.cast_nonneg _ },
+  rw [←le_div_iff, div_eq_mul_inv, mul_comm, finset.mul_sum],
+  swap, { positivity },
   simp only [←my_generalized_binomial_nat],
   have h₁ : ∑ i in s, (s.card : ℝ)⁻¹ = 1,
   { rw [finset.sum_const, nsmul_eq_mul, mul_inv_cancel],
@@ -456,6 +457,17 @@ lemma blue_density_eq_sum {A B : finset V} :
   blue_density χ A B = (∑ x in A, (blue_neighbors χ x ∩ B).card) / (A.card * B.card) :=
 col_density_eq_sum
 
+lemma blue_density_thing {A B : finset V} :
+  blue_density χ A B * A.card = (∑ x in B, (blue_neighbors χ x ∩ A).card) / B.card :=
+begin
+  rcases A.eq_empty_or_nonempty with rfl | hA,
+  { rw [blue_density, col_density],
+    simp only [inter_empty, card_empty, nat.cast_zero, sum_const_zero, zero_div, mul_zero] },
+  rw [blue_density, col_density, edge_density_comm, ←col_density, ←blue_density,
+    blue_density_eq_sum, div_mul_eq_mul_div, mul_div_mul_right],
+  rwa [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos],
+end
+
 -- (10)
 lemma four_one_part_two {l : ℕ} {C : book_config χ} {U : finset V}
   (hl : l ≠ 0)
@@ -483,7 +495,7 @@ end
 -- (10)
 lemma four_one_part_three {k l : ℕ} {C : book_config χ} {U : finset V}
   (hμ : 0 ≤ μ) (hk₆ : 6 ≤ k) (hl : 3 ≤ l)
-  (hU : U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊) (hU' : U ⊆ C.X)
+  (hU : U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊)
   (hX : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.X.card) :
   μ - 2 / k ≤ (μ * C.X.card - U.card) / (C.X.card - U.card) :=
 begin
@@ -588,8 +600,7 @@ end
 def common_blues (χ : top_edge_labelling V (fin 2)) (S : finset V) :
   finset V := univ.filter (λ i, ∀ j ∈ S, i ∈ blue_neighbors χ j)
 
-lemma four_one_part_five (χ : top_edge_labelling V (fin 2)) {m b : ℕ} {X U : finset V}
-  (hXU : U ⊆ X) (hU : U.card = m) :
+lemma four_one_part_five (χ : top_edge_labelling V (fin 2)) {b : ℕ} {X U : finset V} :
   ∑ S in powerset_len b U, ((common_blues χ S ∩ (X \ U)).card : ℝ) =
     ∑ v in X \ U, (blue_neighbors χ v ∩ U).card.choose b :=
 begin
@@ -614,11 +625,156 @@ begin
   rw [mem_col_neighbor_finset_comm],
 end
 
+lemma four_one_part_six (χ : top_edge_labelling V (fin 2)) {m b : ℕ} {X U : finset V} (σ : ℝ)
+  (hU : U.card = m) (hb : b ≠ 0) (hσ' : σ = blue_density χ U (X \ U)):
+  my_generalized_binomial (σ * ↑m) b * ((X \ U).card) ≤
+    ∑ v in X \ U, (blue_neighbors χ v ∩ U).card.choose b :=
+begin
+  refine (my_thing _ _ hb).trans' _,
+  rw [←blue_density_thing, ←hσ', hU],
+end
+
+lemma four_one_part_seven (χ : top_edge_labelling V (fin 2)) {m b : ℕ} {X U : finset V} {σ : ℝ}
+  (hσ : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ < 1) (hμ₀ : 0 < μ) (hμ₁ : μ < 1)
+  (hσ' : μ - 2 / k ≤ σ)
+  (hb : b ≠ 0) (hk : 6 ≤ k) (hm : 3 ≤ m) (hkμ : 4 / μ ≤ k) (hUX : U ⊆ X)
+  (hU : U.card = m) (hX : ramsey_number ![k, m] ≤ X.card) :
+  (μ ^ b * X.card * (m.choose b)) * (3 / 4) * exp (- 4 * b / (μ * k) - b ^ 2 / (σ * m)) ≤
+    my_generalized_binomial (σ * ↑m) b * ((X \ U).card) :=
+begin
+  refine (mul_le_mul_of_nonneg_right (four_two_left hσ hσ₀ hσ₁) (nat.cast_nonneg _)).trans' _,
+  have : 4 * m ≤ X.card,
+  { refine hX.trans' _,
+    refine (ramsey_number.mono_two hk le_rfl).trans' _,
+    rw ramsey_number_pair_swap,
+    refine (mul_sub_two_le_ramsey_number hm).trans_eq' _,
+    rw mul_comm,
+    norm_num1 },
+  have h₁ : 3 / 4 * (X.card : ℝ) ≤ (X \ U).card,
+  { rw [←@nat.cast_le ℝ, nat.cast_mul, nat.cast_bit0, nat.cast_two] at this,
+    rw [card_sdiff hUX, nat.cast_sub (card_le_of_subset hUX), hU],
+    linarith only [this] },
+  have : μ * (1 - 2 / (μ * k)) ≤ σ,
+  { rwa [mul_one_sub, mul_div_assoc', mul_div_mul_left _ _ hμ₀.ne'] },
+  have h₂ : μ * exp (- 4 / (μ * k)) ≤ σ,
+  { refine this.trans' (mul_le_mul_of_nonneg_left _ hμ₀.le),
+    refine (exp_thing (by positivity) _).trans_eq' _,
+    { rwa [←div_div, div_le_div_iff, one_mul, div_mul_eq_mul_div, ←bit0_eq_two_mul],
+      { rw nat.cast_pos,
+        exact hk.trans_lt' (by norm_num1), },
+      norm_num1 },
+    rw [mul_div_assoc', neg_mul, ←bit0_eq_two_mul] },
+  rw [sub_eq_add_neg, neg_div, real.exp_add, mul_right_comm _ (real.exp _), ←mul_assoc],
+  refine mul_le_mul_of_nonneg_right _ (exp_pos _).le,
+  rw [mul_right_comm _ (m.choose b : ℝ), mul_right_comm, mul_right_comm _ (m.choose b : ℝ)],
+  refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
+  rw [mul_comm (μ ^ b), mul_right_comm _ (μ ^ b), mul_assoc, mul_comm (σ ^ b),
+    mul_comm (X.card : ℝ)],
+  refine mul_le_mul h₁ _ (by positivity) (nat.cast_nonneg _),
+  refine (pow_le_pow_of_le_left (by positivity) h₂ _).trans' _,
+  rw [mul_pow, ←rpow_nat_cast (exp _), ←exp_mul, div_mul_eq_mul_div],
+end
+
+lemma four_one_part_eight {m b : ℕ} {U X : finset V} (hU : U.card = m) (hbm : b ≤ m)
+  (h : μ ^ b * X.card / 2 * m.choose b ≤
+    ∑ S in powerset_len b U, ((common_blues χ S ∩ (X \ U)).card : ℝ)) :
+  ∃ S ⊆ U, S.card = b ∧ μ ^ b * X.card / 2 ≤ (common_blues χ S ∩ (X \ U)).card :=
+begin
+  have : (powerset_len b U).nonempty,
+  { apply powerset_len_nonempty,
+    rwa hU },
+  have h' : ∑ (i : finset V) in powerset_len b U, μ ^ b * X.card / 2 ≤
+    μ ^ b * X.card / 2 * m.choose b,
+  { rw [sum_const, card_powerset_len, hU, nsmul_eq_mul, mul_comm] },
+  obtain ⟨S, hS, hS'⟩ := exists_le_of_sum_le this (h.trans' h'),
+  rw mem_powerset_len at hS,
+  exact ⟨S, hS.1, hS.2, hS'⟩,
+end
+
+lemma four_one_part_nine (hμ₀ : 0 < μ) (hμ₁ : μ < 1) :
+  ∀ᶠ (l : ℕ) in at_top, ∀ k, l ≤ k →
+    ∀ (σ : ℝ) (b m : ℕ),
+      μ - 2 / k ≤ σ →
+      (b : ℝ) ≤ σ * m / 2 →
+      b = ⌈(l : ℝ) ^ (1 / 4 : ℝ)⌉₊ →
+      m = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊ →
+    (1 / 2 : ℝ) ≤ 3 / 4 * exp (- 4 * b / (μ * k) - b ^ 2 / (σ * m)) :=
+begin
+  have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
+  -- have h3 : (0 : ℝ) < 2 / 3 - 1 / 4, { norm_num1 },
+  have h4 : (0 : ℝ) < 1 / 4, { norm_num1 },
+  filter_upwards
+    [((tendsto_rpow_at_top h4).comp t).eventually_ge_at_top (1 / 2),
+      t.eventually_ge_at_top (4 / μ),
+      t.eventually_gt_at_top 0,
+      eventually_gt_at_top 0
+    ] with l hl hl' hl'' hl''' --
+    k hlk σ b m hσ hσ' hb hm,
+  suffices : (2 / 3 : ℝ) ≤ exp (- 4 * b / (μ * k) - b ^ 2 / (σ * m)),
+  { linarith only [this] },
+  have hk : 4 / μ ≤ k,
+  { refine hl'.trans _, rwa nat.cast_le },
+  have : μ / 2 ≤ σ,
+  { refine hσ.trans' _,
+    rw [le_sub_comm, sub_half],
+    refine (div_le_div_of_le_left (by norm_num1) _ hk).trans _,
+    { positivity },
+    rw [div_div_eq_mul_div, bit0_eq_two_mul (2 : ℝ), mul_div_mul_left],
+    norm_num1 },
+  rw ←log_le_iff_le_exp,
+  swap,
+  { norm_num1 },
+  have : 0 < m,
+  { rw [hm, nat.ceil_pos],
+    positivity },
+  rw [neg_mul, neg_div, neg_sub_left, le_neg, ←log_inv, inv_div],
+  have : (b : ℝ) ^ 2 / (σ * m) ≤ (b ^ 2) / m * (2 / μ),
+  { rw [mul_comm, ←div_div, div_eq_mul_inv _ σ],
+    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    refine inv_le_of_inv_le (by positivity) _,
+    rwa inv_div },
+  refine (add_le_add_right this _).trans _,
+  have h' := ceil_le_two_mul hl,
+  dsimp at h',
+  have : (b ^ 2 : ℝ) / m ≤ 4 * l ^ ((1 / 4 : ℝ) * 2 - (2 / 3)),
+  { rw [rpow_sub hl'', rpow_mul (nat.cast_nonneg _), rpow_two, mul_div_assoc'],
+    refine div_le_div (by positivity) _ (rpow_pos_of_pos hl'' _) _,
+    { rw hb,
+      refine (pow_le_pow_of_le_left (by positivity) h' 2).trans_eq _,
+      rw [mul_pow],
+      norm_num },
+      exact nat.le_ceil _ },
+
+
+  -- have : (b : ℝ) / (σ * m) ≤ 1 / 2,
+  -- { rwa [div_le_iff, mul_comm, mul_one_div],
+  --   positivity },
+  -- have h : (-1) * (b : ℝ) - b / 2 ≤ (-4 : ℝ) * b / (μ * k) - b ^ 2 / (σ * m),
+  -- { refine sub_le_sub _ _,
+  --   { rw [←div_mul_eq_mul_div],
+  --     refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
+  --     rwa [neg_div, neg_le_neg_iff, ←div_div, div_le_iff, one_mul],
+  --     rw nat.cast_pos,
+  --     exact hl'''.trans_le hlk },
+  --   rw [sq, mul_div_assoc, div_eq_mul_one_div (b : ℝ) 2],
+  --   refine mul_le_mul_of_nonneg_left this (nat.cast_nonneg _) },
+  -- have : (-1) * (b : ℝ) - b / 2 = (-3 / 2) * b,
+  -- { ring_nf },
+  -- rw this at h,
+  -- refine (exp_le_exp.2 h).trans' _,
+
+
+  -- have := tendsto_rpow_at_top,
+  -- refine h.trans' _,
+  -- have := eventually_ge_of_tendsto_gt,
+
+end
+
 #exit
 
 -- lemma 4.1
 -- (9)
-lemma four_one (hμ₀ : 0 < μ) (hμ₁ : μ < 1) : ∀ᶠ (l : ℕ) in filter.at_top, ∀ k, l ≤ k →
+lemma four_one (hμ₀ : 0 < μ) (hμ₁ : μ < 1) : ∀ᶠ (l : ℕ) in at_top, ∀ k, l ≤ k →
   ∀ C : book_config χ,
   ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ →
   ¬ (∃ m : finset V, χ.monochromatic_of m 0 ∧ k ≤ m.card) →
@@ -637,12 +793,18 @@ begin
   have hC' : ramsey_number ![k, m] ≤ C.X.card := hC.trans (card_le_of_subset (filter_subset _ _)),
   let σ := blue_density χ U (C.X \ U),
   have : μ - 2 / k ≤ σ,
-  { exact (four_one_part_three μ hμ₀.le (hl.trans hlk) (hl.trans' (by norm_num1)) Usize UX
-      hC').trans (four_one_part_two μ (hl.trans_lt' (by norm_num1)).ne' Usize UX Uneigh) },
+  { exact (four_one_part_three μ hμ₀.le (hl.trans hlk) (hl.trans' (by norm_num1)) Usize hC').trans
+      (four_one_part_two μ (hl.trans_lt' (by norm_num1)).ne' Usize UX Uneigh) },
   simp only [←nat.ceil_le],
   specialize hl' k hlk σ this,
   set b := ⌈(l : ℝ) ^ (1 / 4 : ℝ)⌉₊,
-
+  have hb : b ≠ 0,
+  { rw [ne.def, nat.ceil_eq_zero, not_le],
+    refine rpow_pos_of_pos _ _,
+    rw nat.cast_pos,
+    linarith only [hl] },
+  have := four_one_part_six χ σ Usize hb rfl,
+  rw ←four_one_part_five χ at this,
 end
 
 end simple_graph

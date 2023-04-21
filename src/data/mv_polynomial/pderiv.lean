@@ -47,7 +47,7 @@ namespace mv_polynomial
 
 
 open set function finsupp add_monoid_algebra
-open_locale classical big_operators
+open_locale big_operators
 
 variables {R : Type u} {σ : Type v} {a a' a₁ a₂ : R} {s : σ →₀ ℕ}
 

@@ -96,18 +96,6 @@ lemma meas_lt_ess_inf (hf : is_bounded_under (≥) μ.ae f . is_bounded_default)
   μ {y | f y < ess_inf f μ} = 0 :=
 by { simp_rw ←not_le, exact ae_ess_inf_le hf }
 
-lemma ae_le_of_le_ess_inf [no_min_order β] (hx : x ≤ ess_inf f μ)
-  (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, x ≤ f y :=
-@ae_le_of_ess_sup_le α βᵒᵈ _ _ _ _ _ _ _ _ _ _ hx hf
-
-lemma meas_lt_of_ess_sup_le [no_max_order β] (hx : ess_sup f μ ≤ x)
-  (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : μ {y | x < f y} = 0 :=
-by { simp_rw ←not_le, exact ae_le_of_ess_sup_le hx hf }
-
-lemma meas_lt_of_le_ess_inf [no_min_order β] (hx : x ≤ ess_inf f μ)
-  (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : μ {y | f y < x} = 0 :=
-by { simp_rw ←not_le, exact ae_le_of_le_ess_inf hx hf }
-
 end conditionally_complete_linear_order
 
 section complete_lattice

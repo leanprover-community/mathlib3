@@ -69,37 +69,8 @@ protected def ring_con (I : ideal R) : ring_con R :=
   .. quotient_add_group.con I.to_add_subgroup }
 
 instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
-{ mul := (*),
-  one := 1,
-  nat_cast := λ n, submodule.quotient.mk n,
-  nat_cast_zero := by simp [nat.cast],
-  nat_cast_succ := by simpa [nat.cast],
-  int_cast := λ n, submodule.quotient.mk n,
-  int_cast_of_nat := λ n, begin
-    rw int.cast_coe_nat,
-    induction n with n hn,
-    { refl },
-    { simp only [nat.succ_eq_add_one, nat.cast_add, submodule.quotient.mk_add],
-      refl }
-  end,
-  int_cast_neg_succ_of_nat := λ n, begin
-    simp only [nat.cast_add, nat.cast_one, submodule.quotient.mk_add, neg_add_rev, int.cast_add,
-               int.cast_neg, int.cast_one, int.cast_coe_nat, submodule.quotient.mk_neg],
-    refl,
-  end,
-  mul_assoc := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (mul_assoc a b c),
-  mul_comm := λ a b, quotient.induction_on₂' a b $
-    λ a b, congr_arg submodule.quotient.mk (mul_comm a b),
-  one_mul := λ a, quotient.induction_on' a $
-    λ a, congr_arg submodule.quotient.mk (one_mul a),
-  mul_one := λ a, quotient.induction_on' a $
-    λ a, congr_arg submodule.quotient.mk (mul_one a),
-  left_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (left_distrib a b c),
-  right_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (right_distrib a b c),
-  ..submodule.quotient.add_comm_group I }
+{ ..submodule.quotient.add_comm_group I,  -- to help with unification
+  ..(quotient.ring_con I)^.quotient.comm_ring }
 
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal R) : R →+* (R ⧸ I) :=

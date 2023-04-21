@@ -790,8 +790,7 @@ begin
   exact snorm'_add_lt_top_of_le_one hf.1 hf.2 hg.2 hp_pos hp1_real,
 end
 
-lemma ae_le_snorm_ess_sup {f : α → F} : ∀ᵐ y ∂μ, ↑‖f y‖₊ ≤ snorm_ess_sup f μ ≤ x :=
-ae_le_of_ess_sup_le
+lemma ae_le_snorm_ess_sup {f : α → F} : ∀ᵐ y ∂μ, ↑‖f y‖₊ ≤ snorm_ess_sup f μ := ae_le_of_ess_sup_le
 
 lemma meas_snorm_ess_sup_lt {f : α → F} : μ {y | snorm_ess_sup f μ < ‖f y‖₊} = 0 :=
 meas_ess_sup_lt

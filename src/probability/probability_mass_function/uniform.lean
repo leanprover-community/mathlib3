@@ -4,22 +4,26 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
 import probability.probability_mass_function.constructions
+import data.list.basic
 
 /-!
 # Uniform Probability Mass Functions
 
 This file defines a number of uniform `pmf` distributions from various inputs,
-  uniformly drawing from the corresponding object.
+uniformly drawing from the corresponding object.
 
 `pmf.uniform_of_finset` gives each element in the set equal probability,
-  with `0` probability for elements not in the set.
+with `0` probability for elements not in the set.
 
 `pmf.uniform_of_fintype` gives all elements equal probability,
-  equal to the inverse of the size of the `fintype`.
+equal to the inverse of the size of the `fintype`.
 
 `pmf.of_multiset` draws randomly from the given `multiset`, treating duplicate values as distinct.
-  Each probability is given by the count of the element divided by the size of the `multiset`
+Each probability is given by the count of the element divided by the size of the `multiset`.
 
+`pmf.of_list` draws randomly from the given `list`, treating duplicate values as distinct.
+Each probability is given by the count of the element divided by the size of the `list`.
+Requires a proof that the given proof is nonempty to ensure the total probability is `1`.
 -/
 
 namespace pmf
@@ -169,5 +173,55 @@ end
 end measure
 
 end of_multiset
+
+section of_list
+
+/-- Given a non-empty list `l` construct the `pmf` that chooses an element in `l` uniformly.
+This requires a proof `h : ¬ l.empty` to ensure the total probability is `1`. -/
+def of_list (l : list α) (h : ¬ l.empty) : pmf α :=
+pmf.of_multiset (quotient.mk l) (h ∘ (multiset.coe_eq_zero_iff_empty l).1)
+
+variables (l : list α) (h : ¬ l.empty)
+
+@[simp] lemma support_of_list : (of_list l h).support = {x | x ∈ l} :=
+trans (pmf.support_of_multiset _) (set.ext $ λ x, by simp only [multiset.quot_mk_to_coe,
+  finset.mem_coe, multiset.mem_to_finset, multiset.mem_coe, set.mem_set_of_eq])
+
+lemma mem_support_of_list_iff (a : α) : a ∈ (of_list l h).support ↔ a ∈ l :=
+by simp only [support_of_list, set.mem_set_of_eq]
+
+@[simp] lemma of_list_apply (a : α) : of_list l h a = l.count a / l.length :=
+by rw [of_list, pmf.of_multiset_apply, multiset.quot_mk_to_coe,
+  multiset.coe_count, multiset.coe_card]
+
+lemma of_list_apply_of_not_mem (a : α) (ha : a ∉ l) : of_list l h a = 0 :=
+(pmf.apply_eq_zero_iff _ a).2 (mt (mem_support_of_list_iff l h a).1 ha)
+
+section measure
+
+variable (t : set α)
+
+@[simp] lemma to_outer_measure_of_list_apply :
+  (of_list l h).to_outer_measure t = l.countp (∈ t) / l.length :=
+begin
+  suffices : ∑ x in l.to_finset, (l.filter (∈ t)).count x =
+    ∑ x in (l.to_finset.filter (∈ t)), l.count x,
+  { simp only [of_list, to_outer_measure_of_multiset_apply, list.length,
+      multiset.quot_mk_to_coe, multiset.coe_filter, multiset.coe_count, multiset.coe_card,
+      ← finset.sum_filter_count_eq_countp, ← this, nat.cast_sum],
+    refine congr_arg (λ x, x / (l.length : ℝ≥0∞)) (tsum_eq_sum (λ x hx, _)),
+    simp [(λ h, hx (list.mem_to_finset.2 h) : x ∉ l)] },
+  rw [finset.sum_filter],
+  refine finset.sum_congr rfl (λ x hx, by split_ifs with hxt; simp [hxt]),
+end
+
+@[simp] lemma to_measure_of_list_apply [measurable_space α] (ht : measurable_set t) :
+  (of_list l h).to_measure t = l.countp t / l.length :=
+(to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
+  (to_outer_measure_of_list_apply l h t)
+
+end measure
+
+end of_list
 
 end pmf

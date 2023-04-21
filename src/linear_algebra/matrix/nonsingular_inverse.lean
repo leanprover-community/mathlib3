@@ -632,6 +632,40 @@ def matrix.ext_iff_block {A B : matrix (m ⊕ n) (m ⊕ n) α} :
   from_blocks A B C D = from_blocks A' B' C' D' ↔ A = A' ∧ B = B' ∧ C = C' ∧ D = D' :=
 matrix.ext_iff_block
 
+/- LU decomposition of a block matrix with an invertible top-left corner. -/
+lemma from_blocks_eq_of_invertible₁₁
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) [invertible A] :
+  from_blocks A B C D =
+    from_blocks 1 0 (C⬝⅟A) 1 ⬝ from_blocks A 0 0 (D - C⬝(⅟A)⬝B) ⬝ from_blocks 1 (⅟A⬝B) 0 1 :=
+by simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
+      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
+        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right]
+
+/- LU decomposition of a block matrix with an invertible bottom-right corner. -/
+lemma from_blocks_eq_of_invertible₂₂
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) [invertible D] :
+  from_blocks A B C D =
+    from_blocks 1 (B⬝⅟D) 0 1 ⬝ from_blocks (A - B⬝⅟D⬝C) 0 0 D ⬝ from_blocks 1 0 (⅟D ⬝ C) 1 :=
+(matrix.reindex (equiv.sum_comm _ _) (equiv.sum_comm _ _)).injective $ by
+  simpa [reindex_apply, sum_comm_symm, ←submatrix_mul_equiv _ _ _ (equiv.sum_comm n m),
+    (show ⇑(equiv.sum_comm n m) = sum.swap, from rfl), from_blocks_submatrix_sum_swap_sum_swap]
+    using from_blocks_eq_of_invertible₁₁ D C B A
+
+lemma from_blocks₂₂_invertible_aux'
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] (A' : matrix m m α) :
+  (from_blocks
+    (A')         (-(A'⬝B⬝⅟D))
+    (-(⅟D⬝C⬝A')) (⅟D + ⅟D⬝C⬝A'⬝B⬝⅟D)) ⬝ from_blocks A B C D =
+      from_blocks (A' ⬝ (A - B⬝⅟D⬝C)) 0 (⅟ D ⬝ C ⬝ (1 - (A' ⬝ (A - B⬝⅟D⬝C)))) 1 :=
+begin
+  rw [from_blocks_multiply, from_blocks_inj],
+  simp_rw [matrix.neg_mul, ←sub_eq_add_neg, matrix.mul_sub, matrix.add_mul,
+    matrix.mul_inv_of_mul_self_cancel _, sub_self, matrix.inv_of_mul_self, ←matrix.mul_assoc,
+    neg_add_eq_iff_eq_add, add_comm, eq_self_iff_true, true_and, and_true,
+      matrix.mul_one, sub_sub_eq_add_sub, ←add_sub_assoc, add_sub_cancel'],
+end
+
 lemma from_blocks₂₂_invertible_aux
   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] (A' : matrix m m α) :
@@ -745,15 +779,8 @@ by rw [←h.unit_spec, ←coe_units_inv, det_units_conj']
 the Schur complement. -/
 lemma det_from_blocks₁₁ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible A] : (matrix.from_blocks A B C D).det = det A * det (D - C ⬝ (⅟A) ⬝ B) :=
-begin
-  have : from_blocks A B C D =
-    from_blocks 1 0 (C ⬝ ⅟A) 1 ⬝ from_blocks A 0 0 (D - C ⬝ (⅟A) ⬝ B) ⬝ from_blocks 1 (⅟A ⬝ B) 0 1,
-  { simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
-      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
-        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right] },
-  rw [this, det_mul, det_mul, det_from_blocks_zero₂₁, det_from_blocks_zero₂₁,
-    det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one],
-end
+by rw [from_blocks_eq_of_invertible₁₁, det_mul, det_mul, det_from_blocks_zero₂₁,
+    det_from_blocks_zero₂₁, det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one]
 
 @[simp] lemma det_from_blocks_one₁₁ (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) :
   (matrix.from_blocks 1 B C D).det = det (D - C ⬝ B) :=

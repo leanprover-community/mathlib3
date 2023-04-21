@@ -615,7 +615,7 @@ inv_submatrix_equiv A e₁.symm e₂.symm
 
 end submatrix
 
-/-! ### Block matrices -/
+/-! ### 2×2 block matrices -/
 
 section block
 variables [fintype l]

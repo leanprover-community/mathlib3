@@ -83,6 +83,12 @@ protected lemma mul_mul_inv_of_self_cancel (A : matrix m n α) (B : matrix n n �
   [invertible B] : A ⬝ B ⬝ ⅟B = A :=
 by rw [matrix.mul_assoc, matrix.mul_inv_of_self, matrix.mul_one]
 
+def _root_.invertible.matrix_mul {A B : matrix n n α} (hA : invertible A) (hB : invertible B) :
+  invertible (A ⬝ B) := invertible_mul _ _
+
+protected lemma inv_of_mul {A B : matrix n n α} [invertible A] [invertible B] [invertible (A ⬝ B)] :
+  ⅟(A ⬝ B) = ⅟B ⬝ ⅟A := inv_of_mul _ _
+
 variables (A : matrix n n α) (B : matrix n n α)
 
 /-- If `A.det` has a constructive inverse, produce one for `A`. -/
@@ -685,6 +691,31 @@ begin
   convert (rfl : ⅟(from_blocks A 0 C D) = _),
 end
 
+lemma inv_of_from_blocks_diag_eq
+  (A : matrix m m α) (D : matrix n n α)
+  [invertible A] [invertible D] [invertible (from_blocks A 0 0 D)] :
+  ⅟(from_blocks A 0 0 D) = from_blocks (⅟A) 0 0 (⅟D) :=
+by rw [inv_of_from_blocks_zero₂₁_eq, matrix.mul_zero, matrix.zero_mul, neg_zero]
+
+lemma inv_of_from_blocks_one_zero₂₁_one_eq
+  (A : matrix m m α) (B : matrix m n α) (D : matrix n n α)
+  [invertible (from_blocks A B 0 D)] :
+  ⅟(from_blocks 1 B 0 1) = from_blocks (⅟A) (-(⅟A⬝B⬝⅟D)) 0 (⅟D) :=
+begin
+  letI := from_blocks_zero₂₁_invertible A B D,
+  haveI := invertible.subsingleton (from_blocks A B 0 D),
+  convert (rfl : ⅟(from_blocks A B 0 D) = _),
+end
+
+lemma inv_of_from_blocks_zero₁₂_eq
+  (A : matrix m m α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] [invertible D] [invertible (from_blocks A 0 C D)] :
+  ⅟(from_blocks A 0 C D) = from_blocks (⅟A) 0 (-(⅟D⬝C⬝⅟A)) (⅟D) :=
+begin
+  letI := from_blocks_zero₁₂_invertible A C D,
+  haveI := invertible.subsingleton (from_blocks A 0 C D),
+  convert (rfl : ⅟(from_blocks A 0 C D) = _),
+end
 /-- Both diagonal entries of an invertible upper-block-triangular matrix are invertible (by reading
 off the diagonal entries of the inverse). -/
 def invertible_of_from_blocks_zero₂₁_invertible
@@ -754,6 +785,88 @@ by simp only [← nonempty_invertible_iff_is_unit, ←nonempty_prod,
   is_unit (from_blocks A 0 C D) ↔ is_unit A ∧ is_unit D :=
 by simp only [← nonempty_invertible_iff_is_unit, ←nonempty_prod,
   (from_blocks_zero₁₂_invertible_equiv _ _ _).nonempty_congr]
+
+/-! #### General 2×2 block matrices-/
+
+
+/-- If `r` is invertible and `s = r` and `si = ⅟r`, then `s` is invertible with `⅟s = si`. -/
+def _root_.invertible.copy' {α} [mul_one_class α] {r : α} (hr : invertible r) (s : α) (si : α)
+  (hs : s = r) (hsi : si = ⅟r):
+  invertible s :=
+{ inv_of := si,
+  inv_of_mul_self := by rw [hs, hsi, inv_of_mul_self],
+  mul_inv_of_self := by rw [hs, hsi, mul_inv_of_self] }
+
+/-- A block matrix is invertible if the bottom right corner and the corresponding schur complement
+is. -/
+def from_blocks₂₂_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] [invertible (A - B⬝⅟D⬝C)] :
+  invertible (from_blocks A B C D) :=
+begin
+  refine invertible.copy _ _ (from_blocks_eq_of_invertible₂₂ _ _ _ _),
+  letI : invertible (1 : matrix n n α) := invertible_one,
+  letI : invertible (1 : matrix m m α) := invertible_one,
+  refine (invertible.matrix_mul _ _).matrix_mul _,
+  { exact from_blocks_zero₂₁_invertible _ _ _ },
+  { exact from_blocks_zero₂₁_invertible _ _ _ },
+  { exact from_blocks_zero₁₂_invertible _ _ _ },
+end
+
+lemma inv_of_from_blocks₂₂_eq
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] [invertible (A - B⬝⅟D⬝C)] [invertible (from_blocks A B C D)] :
+  ⅟(from_blocks A B C D) = from_blocks
+      (⅟(A - B⬝⅟D⬝C))          (-(⅟(A - B⬝⅟D⬝C)⬝B⬝⅟D))
+      (-(⅟D⬝C⬝⅟(A - B⬝⅟D⬝C))) (⅟D + ⅟D⬝C⬝⅟(A - B⬝⅟D⬝C)⬝B⬝⅟D):=
+begin
+  letI := from_blocks₂₂_invertible A B C D,
+  haveI := invertible.subsingleton (from_blocks A B C D),
+  convert (rfl : ⅟(from_blocks A B C D) = _),
+end
+
+/-- A block matrix is invertible if the top left corner and the corresponding schur complement
+is. -/
+def from_blocks₁₁_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] [invertible (D - C⬝⅟A⬝B)] :
+  invertible (from_blocks A B C D) :=
+by let D' := D - C⬝⅟A⬝B; have i1 : invertible D' := ‹_›; exactI
+invertible_of_left_inverse _
+  (from_blocks
+      (⅟A + ⅟A⬝B⬝⅟D'⬝C⬝⅟A) (-(⅟A⬝B⬝⅟D'))
+      (-(⅟D'⬝C⬝⅟A))        (⅟D'))
+  (by rw [from_blocks₁₁_invertible_aux, matrix.inv_of_mul_self])
+
+lemma inv_of_from_blocks₁₁_eq
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] [invertible (D - C⬝⅟A⬝B)] [invertible (from_blocks A B C D)] :
+  ⅟(from_blocks A B C D) = from_blocks
+      (⅟A + ⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A) (-(⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)))
+      (-(⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A)) (⅟(D - C⬝⅟A⬝B)) :=
+begin
+  letI := from_blocks₁₁_invertible A B C D,
+  haveI := invertible.subsingleton (from_blocks A B C D),
+  convert (rfl : ⅟(from_blocks A B C D) = _),
+end
+
+
+def invertible_of_from_blocks₂₂_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] [invertible (from_blocks A B C D)] : invertible (A - B⬝⅟D⬝C) :=
+let A' := (⅟(from_blocks A B C D)).to_blocks₁₁ in
+invertible_of_left_inverse _ A' $ begin
+  have h1 := matrix.inv_of_mul_self (from_blocks A B C D),
+  have h2 := matrix.mul_inv_of_self (from_blocks A B C D),
+  rw [←from_blocks_to_blocks (⅟(from_blocks A B C D)), from_blocks_multiply] at h1 h2,
+  replace h1 := congr_arg matrix.to_blocks₁₁ h1,
+  replace h2 := congr_arg matrix.to_blocks₁₂ h2,
+  simp at h1 h2,
+  rw ←from_blocks₂₂_invertible_aux,
+  refine eq.trans _ (from_blocks A B C D).inv_of_mul_self,
+  congr,
+end
+
 
 end block
 

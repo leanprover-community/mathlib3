@@ -77,9 +77,4 @@ lemma mem_fixed_points_iff_normal (H : subgroup G) :
 by simp [mem_fixed_points_iff_stabilizer_eq_top,
   stabilizer_eq_normalizer, normal_iff_normalizer_eq_top]
 
-/-- The normalizer of the conjugate of a subgroup is the conjugate of the normalizer -/
-@[simp] lemma normalizer_smul (g : conj_act G) (H : subgroup G) :
-  normalizer (g • H) = g • normalizer H :=
-by rw [smul_eq_map_conj, smul_eq_map_conj, map_equiv_normalizer_eq]
-
 end subgroup

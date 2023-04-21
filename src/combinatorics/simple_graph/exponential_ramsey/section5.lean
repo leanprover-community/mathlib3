@@ -111,7 +111,7 @@ end
 
 lemma height_upper_bound : ∀ᶠ k : ℕ in at_top,
   ∀ p₀ : ℝ, 0 ≤ p₀ →
-  ∀ p : ℝ, 0 ≤ p →
+  ∀ p : ℝ, p ≤ 1 →
   (height k p₀ p : ℝ) ≤ 2 / (k : ℝ) ^ (-1 / 4 : ℝ) * log k :=
 begin
   filter_upwards [eventually_ne_at_top 0] with k hk --
@@ -119,7 +119,7 @@ begin
   -- rw ←nat.lt_ceil,
   rw [←nat.le_floor_iff', height, dif_pos],
   rotate,
-  { exact ⟨hk, hp₀⟩ },
+  { exact ⟨hk, hp₀, hp⟩ },
   { rw ←pos_iff_ne_zero,
     exact one_le_height },
   refine nat.find_min' _ _,

@@ -44,9 +44,13 @@ fields, they can also be C^k vector bundles, etc.
 * `bundle.total_space.smooth_manifold_with_corners`: A smooth vector bundle is naturally a smooth
   manifold.
 
-* `vector_bundle_core.smooth_vector_bundle`: If a (topological) `vector_bundle_core` is smooth, in
-  the sense of having smooth transition functions, then the vector bundle constructed from it is a
-  smooth vector bundle.
+* `vector_bundle_core.smooth_vector_bundle`: If a (topological) `vector_bundle_core` is smooth,
+  in the sense of having smooth transition functions (cf. `vector_bundle_core.is_smooth`),
+  then the vector bundle constructed from it is a smooth vector bundle.
+
+* `vector_prebundle.smooth_vector_bundle`: If a `vector_prebundle` is smooth,
+  in the sense of having smooth transition functions (cf. `vector_prebundle.is_smooth`),
+  then the vector bundle constructed from it is a smooth vector bundle.
 
 * `bundle.prod.smooth_vector_bundle`: The direct sum of two smooth vector bundles is a smooth vector
   bundle.
@@ -432,7 +436,7 @@ end
 
 variables (IB)
 /-- Make a `smooth_vector_bundle` from a `smooth_vector_prebundle`.  -/
-lemma to_smooth_vector_bundle :
+lemma smooth_vector_bundle :
   @smooth_vector_bundle _ _ F E _ _ _ _ _ _ IB _ _ _ _ _ _ _
     a.total_space_topology a.fiber_topology a.to_fiber_bundle a.to_vector_bundle :=
 { smooth_on_coord_change := begin

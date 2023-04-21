@@ -366,8 +366,8 @@ end
 @[simp] lemma smul_normal (g : G) (H : subgroup G) [h : normal H] : mul_aut.conj g • H = H :=
 h.conj_act g
 
-@[simp] lemma normalizer_pointwise_smul (g : conj_act G) (H : subgroup G) :
-  normalizer (g • H) = g • normalizer H :=
+@[simp] lemma normalizer_pointwise_smul (a : α) (H : subgroup G) :
+  normalizer (a • H) = a • normalizer H :=
 by simp_rw [pointwise_smul_def, ←mul_distrib_mul_action.to_mul_aut_to_monoid_hom,
   map_equiv_normalizer_eq]
 

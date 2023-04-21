@@ -11,6 +11,9 @@ import topology.order.basic
 /-!
 # Exposed sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines exposed sets and exposed points for sets in a real vector space.
 
 An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional

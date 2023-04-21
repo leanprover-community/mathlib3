@@ -48,11 +48,14 @@ limsup_congr hfg
 lemma ess_inf_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) :  ess_inf f μ = ess_inf g μ :=
 @ess_sup_congr_ae α βᵒᵈ _ _ _ _ _ hfg
 
+@[simp] lemma ess_sup_const' [μ.ae.ne_bot] (c : β) : ess_sup (λ x : α, c) μ = c := limsup_const _
+@[simp] lemma ess_inf_const' [μ.ae.ne_bot] (c : β) : ess_inf (λ x : α, c) μ = c := liminf_const _
+
 lemma ess_sup_const (c : β) (hμ : μ ≠ 0) : ess_sup (λ x : α, c) μ = c :=
-by { rw ←ae_ne_bot at hμ, exactI limsup_const c }
+by { rw ←ae_ne_bot at hμ, exactI ess_sup_const' _ }
 
 lemma ess_inf_const (c : β) (hμ : μ ≠ 0) : ess_inf (λ x : α, c) μ = c :=
-by { rw ←ae_ne_bot at hμ, exactI liminf_const c }
+by { rw ←ae_ne_bot at hμ, exactI ess_inf_const' _ }
 
 end conditionally_complete_lattice
 
@@ -69,22 +72,29 @@ by { dsimp [ess_inf, liminf, Liminf], simp only [ae_iff, not_le] }
 
 lemma ae_lt_of_ess_sup_lt (hx : ess_sup f μ < x)
   (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, f y < x :=
-filter.eventually_lt_of_limsup_lt hx hf
+eventually_lt_of_limsup_lt hx hf
 
 lemma ae_lt_of_lt_ess_inf (hx : x < ess_inf f μ)
   (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, x < f y :=
-filter.eventually_lt_of_lt_liminf hx hf
+eventually_lt_of_lt_liminf hx hf
 
-variables [topological_space β] [first_countable_topology β] [densely_ordered β] [order_topology β]
+variables [topological_space β] [first_countable_topology β] [order_topology β]
 
-lemma ae_le_of_ess_sup_le [no_max_order β] (hx : ess_sup f μ ≤ x)
-  (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, f y ≤ x :=
-begin
-  obtain ⟨u, -, hu, hux⟩ := exists_seq_strict_anti_tendsto x,
-  have := λ n, ae_lt_of_ess_sup_lt (hx.trans_lt $ hu n) hf,
-  exact (eventually_countable_forall.2 this).mono
-    (λ y hy, ge_of_tendsto hux $ eventually_of_forall $ λ n, (hy _).le),
-end
+lemma ae_le_ess_sup (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) :
+  ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
+eventually_le_limsup hf
+
+lemma ae_ess_inf_le (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) :
+  ∀ᵐ y ∂μ, ess_inf f μ ≤ f y :=
+eventually_liminf_le hf
+
+lemma meas_ess_sup_lt (hf : is_bounded_under (≤) μ.ae f . is_bounded_default) :
+  μ {y | ess_sup f μ < f y} = 0 :=
+by { simp_rw ←not_le, exact ae_le_ess_sup hf }
+
+lemma meas_lt_ess_inf (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) :
+  μ {y | f y < ess_inf f μ} = 0 :=
+by { simp_rw ←not_le, exact ae_ess_inf_le hf }
 
 lemma ae_le_of_le_ess_inf [no_min_order β] (hx : x ≤ ess_inf f μ)
   (hf : is_bounded_under (≥) μ.ae f . is_bounded_default) : ∀ᵐ y ∂μ, x ≤ f y :=

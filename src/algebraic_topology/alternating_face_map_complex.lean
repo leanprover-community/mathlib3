@@ -15,6 +15,9 @@ import tactic.equiv_rw
 
 # The alternating face map complex of a simplicial object in a preadditive category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the alternating face map complex, as a
 functor `alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ`
 for any preadditive category `C`. For any simplicial object `X` in `C`,

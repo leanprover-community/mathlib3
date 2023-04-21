@@ -10,6 +10,9 @@ import topology.continuous_function.basic
 /-!
 # Urysohn's lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove Urysohn's lemma `exists_continuous_zero_one_of_closed`: for any two disjoint
 closed sets `s` and `t` in a normal topological space `X` there exists a continuous function
 `f : X → ℝ` such that

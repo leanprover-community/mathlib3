@@ -296,6 +296,10 @@ lemma mem_pointwise_smul_iff_inv_smul_mem {a : α} {S : subgroup G} {x : G} :
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
 mem_smul_set_iff_inv_smul_mem
 
+instance decidable_mem_pointwise_smul {a : α} {S : subgroup G} [decidable_pred (∈ S)] :
+  decidable_pred (∈ a • S) :=
+λ h, decidable_of_iff' _ mem_pointwise_smul_iff_inv_smul_mem
+
 lemma mem_inv_pointwise_smul_iff {a : α} {S : subgroup G} {x : G} : x ∈ a⁻¹ • S ↔ a • x ∈ S :=
 mem_inv_smul_set_iff
 
@@ -315,6 +319,10 @@ by simp [set_like.ext_iff, mem_pointwise_smul_iff_inv_smul_mem]
 /-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
 @[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
 (mul_distrib_mul_action.to_mul_equiv G a).subgroup_map H
+
+@[simp] lemma card_smul (a : α) (H : subgroup G) [fintype H] [fintype ↥(a • H)] :
+  fintype.card ↥(a • H) = fintype.card H :=
+fintype.card_congr (equiv_smul _ _).to_equiv.symm
 
 lemma subgroup_mul_singleton {H : subgroup G} {h : G} (hh : h ∈ H) :
   (H : set G) * {h} = H :=

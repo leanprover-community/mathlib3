@@ -1097,6 +1097,17 @@ by {rw eq_top_iff, intros x hx, obtain ⟨y, hy⟩ := (h x), exact ⟨y, trivial
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
+@[simp, to_additive] lemma comap_eq_top {f : N ≃* G} : H.comap f.to_monoid_hom = ⊤ ↔ H = ⊤ :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rw [←comap_id H, ←comap_top f.symm.to_monoid_hom, ←h, comap_comap],
+    congr, -- TODO: This should be a lemma
+    ext,
+    simp },
+  { rintro rfl,
+    exact comap_top _ }
+end
+
 /-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
 @[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
 def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype

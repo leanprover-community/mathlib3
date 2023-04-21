@@ -623,7 +623,8 @@ variables [decidable_eq l]
 variables [fintype m]
 variables [decidable_eq m]
 
-/-- LDU decomposition of a block matrix with an invertible top-left corner. -/
+/-- LDU decomposition of a block matrix with an invertible top-left corner, using the
+Schur complement. -/
 lemma from_blocks_eq_of_invertible₁₁
   (A : matrix m m α) (B : matrix m n α) (C : matrix l m α) (D : matrix l n α) [invertible A] :
   from_blocks A B C D =
@@ -632,7 +633,8 @@ by simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, 
       matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
         matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right]
 
-/-- LDU decomposition of a block matrix with an invertible bottom-right corner. -/
+/-- LDU decomposition of a block matrix with an invertible bottom-right corner, using the
+Schur complement. -/
 lemma from_blocks_eq_of_invertible₂₂
   (A : matrix l m α) (B : matrix l n α) (C : matrix n m α) (D : matrix n n α) [invertible D] :
   from_blocks A B C D =

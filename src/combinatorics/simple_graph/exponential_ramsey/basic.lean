@@ -88,15 +88,22 @@ begin
   exact nat.le_ceil _,
 end
 
+lemma q_function_above_p {k : ℕ} {p₀ p : ℝ} (hk : k ≠ 0) (hp₀ : 0 ≤ p₀) (hp₁ : p ≤ 1):
+  ∃ h, 1 ≤ h ∧ p ≤ q_function k p₀ h :=
+begin
+  obtain ⟨h, h₁, h₂⟩ := q_function_above_one hk hp₀,
+  exact ⟨h, h₁, hp₁.trans h₂⟩,
+end
+
 -- (5)
 noncomputable def height (k : ℕ) (p₀ p : ℝ) : ℕ :=
-if h : k ≠ 0 ∧ 0 ≤ p₀ then nat.find (q_function_above_one h.1 h.2) else 1
+if h : k ≠ 0 ∧ 0 ≤ p₀ ∧ p ≤ 1 then nat.find (q_function_above_p h.1 h.2.1 h.2.2) else 1
 
 lemma one_le_height {k : ℕ} {p₀ p : ℝ} : 1 ≤ height k p₀ p :=
 begin
   rw height,
   split_ifs with h,
-  { exact (nat.find_spec (q_function_above_one h.1 h.2)).1 },
+  { exact (nat.find_spec (q_function_above_p h.1 h.2.1 h.2.2)).1 },
   exact le_rfl
 end
 
@@ -217,7 +224,7 @@ structure book_config (χ : top_edge_labelling V (fin 2)) :=
 
 namespace book_config
 
-def book_config.p (C : book_config χ) : ℝ := red_density χ C.X C.Y
+def p (C : book_config χ) : ℝ := red_density χ C.X C.Y
 
 def start (X : finset V) : book_config χ :=
 begin
@@ -366,7 +373,6 @@ def degree_regularisation_step_basic (C : book_config χ) (U : finset V) (h : U 
   blue_XB := C.blue_XB.subset_left h
 }
 
-def p (C : book_config χ) : ℝ := red_density χ C.X C.Y
 noncomputable def height (k : ℕ) (p₀ : ℝ) (C : book_config χ) : ℕ := height k p₀ C.p
 
 noncomputable def degree_regularisation_step (k : ℕ) (p₀ : ℝ) (C : book_config χ) :
@@ -519,22 +525,21 @@ begin
   positivity,
 end
 
-noncomputable def big_blue_step (μ : ℝ) (k l : ℕ) (C : book_config χ) :
-  book_config χ :=
+noncomputable def big_blue_step (μ : ℝ) (C : book_config χ) : book_config χ :=
 big_blue_step_basic C (get_book χ μ C.X).1 (get_book χ μ C.X).2 get_book_fst_subset
   get_book_snd_subset get_book_blue_fst get_book_disjoints get_book_blue_fst_snd
 
-lemma big_blue_step_X {μ : ℝ} {k l : ℕ} {C : book_config χ} :
-  (big_blue_step μ k l C).X = (get_book χ μ C.X).2 := rfl
+lemma big_blue_step_X {μ : ℝ} {C : book_config χ} :
+  (big_blue_step μ C).X = (get_book χ μ C.X).2 := rfl
 
-lemma big_blue_step_Y {μ : ℝ} {k l : ℕ} {C : book_config χ} :
-  (big_blue_step μ k l C).Y = C.Y := rfl
+lemma big_blue_step_Y {μ : ℝ} {C : book_config χ} :
+  (big_blue_step μ C).Y = C.Y := rfl
 
-lemma big_blue_step_A {μ : ℝ} {k l : ℕ} {C : book_config χ} :
-  (big_blue_step μ k l C).A = C.A := rfl
+lemma big_blue_step_A {μ : ℝ} {C : book_config χ} :
+  (big_blue_step μ C).A = C.A := rfl
 
-lemma big_blue_step_B {μ : ℝ} {k l : ℕ} {C : book_config χ} :
-  (big_blue_step μ k l C).B = C.B ∪ (get_book χ μ C.X).1 := rfl
+lemma big_blue_step_B {μ : ℝ} {C : book_config χ} :
+  (big_blue_step μ C).B = C.B ∪ (get_book χ μ C.X).1 := rfl
 
 noncomputable def central_vertices (μ : ℝ) (C : book_config χ) : finset V :=
 C.X.filter (λ x, ↑(blue_neighbors χ x ∩ C.X).card ≤ μ * C.X.card)
@@ -601,7 +606,7 @@ noncomputable def algorithm_option (μ : ℝ) (k l : ℕ) (ini : book_config χ)
           then C.degree_regularisation_step k ini.p
           else
         if h' : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ
-          then C.big_blue_step μ k l
+          then C.big_blue_step μ
           else
         let x := C.get_central_vertex μ (C.get_central_vertex_condition h h') in
         if C.p - α_function k (C.height k ini.p) ≤
@@ -717,7 +722,7 @@ begin
   refl
 end
 
-lemma some_algorithm_of_final_step_le (hk : k ≠ 0) (hl : l ≠ 0)
+lemma some_algorithm_of_final_step_le
   (hi : i ≤ final_step μ k l ini) :
   some (algorithm μ k l ini i) = algorithm_option μ k l ini i :=
 begin
@@ -739,64 +744,61 @@ begin
   by_contra h,
   have h' : some (end_state μ k l ini) =
     algorithm_option μ k l ini (final_step μ k l ini),
-  { exact some_algorithm_of_final_step_le hk hl le_rfl },
+  { exact some_algorithm_of_final_step_le le_rfl },
   have : algorithm_option μ k l ini _ = none := final_step_is_none hk hl,
   rw [algorithm_option, ←h', algorithm_option._match_1] at this,
   simpa only [dif_neg h] using this,
 end
 
-lemma succeed_of_final_step_le' (hk : k ≠ 0) (hl : l ≠ 0)
-  (hi : i < final_step μ k l ini) :
+lemma succeed_of_final_step_le' (hi : i < final_step μ k l ini) :
   ¬ ((algorithm μ k l ini i).X.card ≤ ramsey_number ![k, ⌈(l : ℝ) ^ (3 / 4 : ℝ)⌉₊] ∨
     (algorithm μ k l ini i).p ≤ 1 / k) :=
 begin
   intro h'',
   have h : some (algorithm μ k l ini i) = algorithm_option μ k l ini i,
-  { exact some_algorithm_of_final_step_le hk hl hi.le },
+  { exact some_algorithm_of_final_step_le hi.le },
   have h' : some (algorithm μ k l ini (i + 1)) = algorithm_option μ k l ini (i + 1),
-  { exact some_algorithm_of_final_step_le hk hl hi },
+  { exact some_algorithm_of_final_step_le hi },
   rw [algorithm_option, ←h, algorithm_option._match_1, dif_pos h''] at h',
   simpa only using h',
 end
 
-lemma ramsey_number_lt_of_lt_final_step (hk : k ≠ 0) (hl : l ≠ 0)
-  (hi : i < final_step μ k l ini) :
+lemma ramsey_number_lt_of_lt_final_step (hi : i < final_step μ k l ini) :
   ramsey_number ![k, ⌈(l : ℝ) ^ (3 / 4 : ℝ)⌉₊] < (algorithm μ k l ini i).X.card :=
 begin
-  have := succeed_of_final_step_le' hk hl hi,
+  have := succeed_of_final_step_le' hi,
   rw [not_or_distrib, not_le] at this,
   exact this.1
 end
 
-lemma one_div_k_lt_p_of_lt_final_step (hk : k ≠ 0) (hl : l ≠ 0)
-  (hi : i < final_step μ k l ini) :
+lemma one_div_k_lt_p_of_lt_final_step (hi : i < final_step μ k l ini) :
   1 / (k : ℝ) < (algorithm μ k l ini i).p :=
 begin
-  have := succeed_of_final_step_le' hk hl hi,
+  have := succeed_of_final_step_le' hi,
   rw [not_or_distrib, not_le, not_le] at this,
   exact this.2
 end
 
-lemma algorithm_succ (hk : k ≠ 0) (hl : l ≠ 0) (hi : i < final_step μ k l ini) :
+lemma algorithm_succ (hi : i < final_step μ k l ini) :
   algorithm μ k l ini (i + 1) =
   let C := algorithm μ k l ini i in
   if even i
     then C.degree_regularisation_step k ini.p
     else
   if h' : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ
-    then C.big_blue_step μ k l
+    then C.big_blue_step μ
     else
   let x := C.get_central_vertex μ
-            (C.get_central_vertex_condition (succeed_of_final_step_le' hk hl hi) h') in
+            (C.get_central_vertex_condition (succeed_of_final_step_le' hi) h') in
   if C.p - α_function k (C.height k ini.p) ≤
       red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y)
     then C.red_step_basic x (C.get_central_vertex_mem_X _ _)
     else C.density_boost_step_basic x (C.get_central_vertex_mem_X _ _) :=
 begin
   have : some (algorithm μ k l ini i) = algorithm_option μ k l ini i,
-  { exact some_algorithm_of_final_step_le hk hl hi.le },
-  rw [←option.some_inj, some_algorithm_of_final_step_le hk hl hi, algorithm_option, ←this,
-    algorithm_option._match_1, dif_neg (succeed_of_final_step_le' hk hl hi)],
+  { exact some_algorithm_of_final_step_le hi.le },
+  rw [←option.some_inj, some_algorithm_of_final_step_le hi, algorithm_option, ←this,
+    algorithm_option._match_1, dif_neg (succeed_of_final_step_le' hi)],
 end
 
 noncomputable def degree_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
@@ -831,13 +833,13 @@ begin
   exact hx₂
 end
 
-lemma of_mem_red_or_density_steps₁ {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma of_mem_red_or_density_steps₁ {i : ℕ}
   (hi : i ∈ red_or_density_steps μ k l ini) :
  ¬ ((algorithm μ k l ini i).X.card ≤ ramsey_number ![k, ⌈(l : ℝ) ^ (3 / 4 : ℝ)⌉₊] ∨
     (algorithm μ k l ini i).p ≤ 1 / k) :=
 begin
   rw [red_or_density_steps, mem_filter, mem_range] at hi,
-  exact succeed_of_final_step_le' hk hl hi.1,
+  exact succeed_of_final_step_le' hi.1,
 end
 
 lemma of_mem_red_or_density_steps₂ {i : ℕ} (hi : i ∈ red_or_density_steps μ k l ini) :
@@ -847,43 +849,34 @@ begin
   exact hi.2.2,
 end
 
-noncomputable def get_x (i : ℕ) (hk : k ≠ 0) (hl : l ≠ 0)
-  (hi : i ∈ red_or_density_steps μ k l ini) : V :=
+noncomputable def get_x (k l i : ℕ) (hi : i ∈ red_or_density_steps μ k l ini) : V :=
 (algorithm μ k l ini i).get_central_vertex μ
   ((algorithm μ k l ini i).get_central_vertex_condition
-    (of_mem_red_or_density_steps₁ hk hl hi) (of_mem_red_or_density_steps₂ hi))
+    (of_mem_red_or_density_steps₁ hi) (of_mem_red_or_density_steps₂ hi))
 
-lemma get_x_mem_central_vertices (i : ℕ) (hk : k ≠ 0) (hl : l ≠ 0)
-  (hi : i ∈ red_or_density_steps μ k l ini) :
-  get_x i hk hl hi ∈ (algorithm μ k l ini i).central_vertices μ :=
+lemma get_x_mem_central_vertices (i : ℕ) (hi : i ∈ red_or_density_steps μ k l ini) :
+  get_x k l i hi ∈ (algorithm μ k l ini i).central_vertices μ :=
 (algorithm μ k l ini i).get_central_vertex_mem _ _
 
 noncomputable def red_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
-if hkhl : k ≠ 0 ∧ l ≠ 0
-  then finset.image coe $ (red_or_density_steps μ k l ini).attach.filter $
-    λ i, let x := get_x i hkhl.1 hkhl.2 i.prop,
-             C := algorithm μ k l ini i in
-      C.p - α_function k (C.height k ini.p) ≤
-        red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y)
-  else ∅
+finset.image coe $ (red_or_density_steps μ k l ini).attach.filter $
+  λ i, let x := get_x k l i i.prop,
+           C := algorithm μ k l ini i in
+    C.p - α_function k (C.height k ini.p) ≤
+      red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y)
 
 noncomputable def density_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
-if hkhl : k ≠ 0 ∧ l ≠ 0
-  then finset.image coe $ (red_or_density_steps μ k l ini).attach.filter $
-    λ i, let x := get_x i hkhl.1 hkhl.2 i.prop,
-             C := algorithm μ k l ini i in
-      red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y) <
-        C.p - α_function k (C.height k ini.p)
-  else ∅
+finset.image coe $ (red_or_density_steps μ k l ini).attach.filter $
+  λ i, let x := get_x k l i i.prop,
+           C := algorithm μ k l ini i in
+    red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y) <
+      C.p - α_function k (C.height k ini.p)
 
 lemma red_steps_subset_red_or_density_steps :
   red_steps μ k l ini ⊆ red_or_density_steps μ k l ini :=
 begin
   intros i hi,
   rw [red_steps] at hi,
-  split_ifs at hi,
-  swap,
-  { simpa using hi },
   simp only [mem_image, exists_prop, mem_filter, mem_attach, subtype.exists, exists_eq_right,
     true_and, exists_eq_right, exists_and_distrib_right, subtype.coe_mk] at hi,
   obtain ⟨hi, -⟩ := hi,
@@ -895,23 +888,19 @@ lemma density_steps_subset_red_or_density_steps :
 begin
   intros i hi,
   rw [density_steps] at hi,
-  split_ifs at hi,
-  swap,
-  { simpa using hi },
   simp only [mem_image, exists_prop, mem_filter, mem_attach, subtype.exists, exists_eq_right,
     true_and, exists_eq_right, exists_and_distrib_right, subtype.coe_mk] at hi,
   obtain ⟨hi, -⟩ := hi,
   exact hi
 end
 
-lemma red_steps_union_density_steps (hk : k ≠ 0) (hl : l ≠ 0) :
+lemma red_steps_union_density_steps :
   red_steps μ k l ini ∪ density_steps μ k l ini = red_or_density_steps μ k l ini :=
 begin
   refine subset.antisymm
     (union_subset red_steps_subset_red_or_density_steps density_steps_subset_red_or_density_steps)
     _,
-  rw [red_steps, density_steps, dif_pos (and.intro hk hl), dif_pos (and.intro hk hl), ←image_union,
-    ←filter_or],
+  rw [red_steps, density_steps, ←image_union, ←filter_or],
   intros i hi,
   simp only [mem_image, subtype.exists, subtype.coe_mk, exists_prop, mem_filter, mem_attach,
     true_and, exists_eq_right, exists_and_distrib_right],
@@ -921,61 +910,56 @@ end
 
 lemma red_steps_disjoint_density_steps : disjoint (red_steps μ k l ini) (density_steps μ k l ini) :=
 begin
-  rw [red_steps, density_steps],
-  split_ifs,
-  swap,
-  { simp },
-  rw [disjoint_image subtype.coe_injective, disjoint_filter],
+  rw [red_steps, density_steps, disjoint_image subtype.coe_injective, disjoint_filter],
   intros x hx,
   simp,
 end
 
-lemma degree_regularisation_applied {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
-  (hi : i ∈ degree_steps μ k l ini) :
+lemma degree_regularisation_applied {i : ℕ} (hi : i ∈ degree_steps μ k l ini) :
   algorithm μ k l ini (i + 1) = (algorithm μ k l ini i).degree_regularisation_step k ini.p :=
 begin
   rw [degree_steps, mem_filter, mem_range] at hi,
-  rw [algorithm_succ hk hl hi.1],
+  rw [algorithm_succ hi.1],
   exact if_pos hi.2,
 end
 
-lemma big_blue_applied {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i ∈ big_blue_steps μ k l ini) :
-  algorithm μ k l ini (i + 1) = (algorithm μ k l ini i).big_blue_step μ k l :=
+lemma big_blue_applied {i : ℕ} (hi : i ∈ big_blue_steps μ k l ini) :
+  algorithm μ k l ini (i + 1) = (algorithm μ k l ini i).big_blue_step μ :=
 begin
   rw [big_blue_steps, mem_filter, mem_range] at hi,
-  rw [algorithm_succ hk hl hi.1],
+  rw [algorithm_succ hi.1],
   dsimp,
   rw [if_neg hi.2.1, dif_pos hi.2.2],
 end
 
-lemma red_applied {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i ∈ red_steps μ k l ini) :
+lemma red_applied {i : ℕ} (hi : i ∈ red_steps μ k l ini) :
   algorithm μ k l ini (i + 1) = (algorithm μ k l ini i).red_step_basic
-      (get_x i hk hl (red_steps_subset_red_or_density_steps hi))
+      (get_x k l i (red_steps_subset_red_or_density_steps hi))
       (book_config.get_central_vertex_mem_X _ _ _) :=
 begin
-  rw [red_steps, dif_pos (and.intro hk hl), mem_image] at hi,
+  rw [red_steps, mem_image] at hi,
   simp only [subtype.coe_mk, mem_filter, mem_attach, true_and, exists_prop,
     subtype.exists, exists_and_distrib_right, exists_eq_right] at hi,
   obtain ⟨hi', hi''⟩ := hi,
   rw [red_or_density_steps, mem_filter, ←not_le, mem_range] at hi',
-  rw [algorithm_succ hk hl hi'.1],
+  rw [algorithm_succ hi'.1],
   dsimp,
   rw [if_neg hi'.2.1, dif_neg hi'.2.2, if_pos],
   { refl },
   { exact hi'' }
 end
 
-lemma density_applied {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i ∈ density_steps μ k l ini) :
+lemma density_applied {i : ℕ} (hi : i ∈ density_steps μ k l ini) :
   algorithm μ k l ini (i + 1) = (algorithm μ k l ini i).density_boost_step_basic
-      (get_x i hk hl (density_steps_subset_red_or_density_steps hi))
+      (get_x k l i (density_steps_subset_red_or_density_steps hi))
       (book_config.get_central_vertex_mem_X _ _ _) :=
 begin
-  rw [density_steps, dif_pos (and.intro hk hl), mem_image] at hi,
+  rw [density_steps, mem_image] at hi,
   simp only [subtype.coe_mk, mem_filter, mem_attach, true_and, exists_prop,
     subtype.exists, exists_and_distrib_right, exists_eq_right] at hi,
   obtain ⟨hi', hi''⟩ := hi,
   rw [red_or_density_steps, mem_filter, ←not_le, mem_range] at hi',
-  rw [algorithm_succ hk hl hi'.1],
+  rw [algorithm_succ hi'.1],
   dsimp,
   rw [if_neg hi'.2.1, dif_neg hi'.2.2, if_neg],
   { refl },
@@ -994,10 +978,10 @@ begin
   exact lt_or_le _ _,
 end
 
-lemma union_steps (hk : k ≠ 0) (hl : l ≠ 0) :
+lemma union_steps :
   red_steps μ k l ini ∪ big_blue_steps μ k l ini ∪ density_steps μ k l ini ∪ degree_steps μ k l ini
     = range (final_step μ k l ini) :=
-by rw [union_right_comm (red_steps _ _ _ _), red_steps_union_density_steps hk hl,
+by rw [union_right_comm (red_steps _ _ _ _), red_steps_union_density_steps,
   union_partial_steps]
 
 lemma filter_even_thing {n : ℕ} :
@@ -1016,7 +1000,7 @@ begin
   exact card_insert_le _ _
 end
 
-lemma num_degree_steps_le_add (hk : k ≠ 0) (hl : l ≠ 0) :
+lemma num_degree_steps_le_add :
   (degree_steps μ k l ini).card ≤ (red_steps μ k l ini).card +
     (big_blue_steps μ k l ini).card + (density_steps μ k l ini).card + 1 :=
 begin
@@ -1028,120 +1012,112 @@ begin
     rw [←and_or_distrib_left, ←not_le, and_iff_left],
     exact em _ },
   rw [add_right_comm _ _ (finset.card _), ←card_disjoint_union red_steps_disjoint_density_steps,
-    red_steps_union_density_steps hk hl, add_comm _ (finset.card _),
+    red_steps_union_density_steps, add_comm _ (finset.card _),
     ←card_disjoint_union big_blue_steps_disjoint_red_or_density_steps, this, degree_steps],
   apply filter_even_thing
 end
 
-lemma cases_of_lt_final_step {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i < final_step μ k l ini) :
+lemma cases_of_lt_final_step {i : ℕ} (hi : i < final_step μ k l ini) :
   i ∈ red_steps μ k l ini ∨ i ∈ big_blue_steps μ k l ini ∨ i ∈ density_steps μ k l ini ∨
     i ∈ degree_steps μ k l ini :=
-by rwa [←mem_range, ←union_steps hk hl, mem_union, mem_union, mem_union, or_assoc, or_assoc] at hi
+by rwa [←mem_range, ←union_steps, mem_union, mem_union, mem_union, or_assoc, or_assoc] at hi
 
 -- (7)
-lemma X_subset {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i < final_step μ k l ini) :
+lemma X_subset {i : ℕ} (hi : i < final_step μ k l ini) :
   (algorithm μ k l ini (i+1)).X ⊆ (algorithm μ k l ini i).X :=
 begin
-  rcases cases_of_lt_final_step hk hl hi with (hi' | hi' | hi' | hi'),
-  { rw [red_applied hk hl hi', book_config.red_step_basic_X],
+  rcases cases_of_lt_final_step hi with (hi' | hi' | hi' | hi'),
+  { rw [red_applied hi', book_config.red_step_basic_X],
     exact inter_subset_right _ _ },
-  { rw [big_blue_applied hk hl hi', book_config.big_blue_step_X],
+  { rw [big_blue_applied hi', book_config.big_blue_step_X],
     exact book_config.get_book_snd_subset },
-  { rw [density_applied hk hl hi', book_config.density_boost_step_basic_X],
+  { rw [density_applied hi', book_config.density_boost_step_basic_X],
     exact inter_subset_right _ _ },
-  { rw [degree_regularisation_applied hk hl hi', book_config.degree_regularisation_step_X],
+  { rw [degree_regularisation_applied hi', book_config.degree_regularisation_step_X],
     exact book_config.degree_regularisation_step_X_subset },
 end
 
 -- (7)
-lemma Y_subset {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i < final_step μ k l ini) :
+lemma Y_subset {i : ℕ} (hi : i < final_step μ k l ini) :
   (algorithm μ k l ini (i+1)).Y ⊆ (algorithm μ k l ini i).Y :=
 begin
-  rcases cases_of_lt_final_step hk hl hi with (hi' | hi' | hi' | hi'),
-  { rw [red_applied hk hl hi', book_config.red_step_basic_Y],
+  rcases cases_of_lt_final_step hi with (hi' | hi' | hi' | hi'),
+  { rw [red_applied hi', book_config.red_step_basic_Y],
     exact inter_subset_right _ _ },
-  { rw [big_blue_applied hk hl hi', book_config.big_blue_step_Y],
+  { rw [big_blue_applied hi', book_config.big_blue_step_Y],
     refl },
-  { rw [density_applied hk hl hi', book_config.density_boost_step_basic_Y],
+  { rw [density_applied hi', book_config.density_boost_step_basic_Y],
     exact inter_subset_right _ _ },
-  { rw [degree_regularisation_applied hk hl hi', book_config.degree_regularisation_step_Y],
+  { rw [degree_regularisation_applied hi', book_config.degree_regularisation_step_Y],
     refl },
 end
 
-lemma A_subset {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i < final_step μ k l ini) :
+lemma A_subset {i : ℕ} (hi : i < final_step μ k l ini) :
   (algorithm μ k l ini i).A ⊆ (algorithm μ k l ini (i+1)).A :=
 begin
-  rcases cases_of_lt_final_step hk hl hi with (hi' | hi' | hi' | hi'),
-  { rw [red_applied hk hl hi', book_config.red_step_basic_A],
+  rcases cases_of_lt_final_step hi with (hi' | hi' | hi' | hi'),
+  { rw [red_applied hi', book_config.red_step_basic_A],
     exact subset_insert _ _ },
-  { rw [big_blue_applied hk hl hi', book_config.big_blue_step_A],
+  { rw [big_blue_applied hi', book_config.big_blue_step_A],
     refl },
-  { rw [density_applied hk hl hi', book_config.density_boost_step_basic_A],
+  { rw [density_applied hi', book_config.density_boost_step_basic_A],
     refl },
-  { rw [degree_regularisation_applied hk hl hi', book_config.degree_regularisation_step_A],
+  { rw [degree_regularisation_applied hi', book_config.degree_regularisation_step_A],
     refl },
 end
 
-lemma B_subset {i : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (hi : i < final_step μ k l ini) :
+lemma B_subset {i : ℕ} (hi : i < final_step μ k l ini) :
   (algorithm μ k l ini i).B ⊆ (algorithm μ k l ini (i+1)).B :=
 begin
-  rcases cases_of_lt_final_step hk hl hi with (hi' | hi' | hi' | hi'),
-  { rw [red_applied hk hl hi', book_config.red_step_basic_B],
+  rcases cases_of_lt_final_step hi with (hi' | hi' | hi' | hi'),
+  { rw [red_applied hi', book_config.red_step_basic_B],
     refl },
-  { rw [big_blue_applied hk hl hi', book_config.big_blue_step_B],
+  { rw [big_blue_applied hi', book_config.big_blue_step_B],
     exact subset_union_left _ _ },
-  { rw [density_applied hk hl hi', book_config.density_boost_step_basic_B],
+  { rw [density_applied hi', book_config.density_boost_step_basic_B],
     exact subset_insert _ _ },
-  { rw [degree_regularisation_applied hk hl hi', book_config.degree_regularisation_step_B],
+  { rw [degree_regularisation_applied hi', book_config.degree_regularisation_step_B],
     refl },
 end
 
 noncomputable def blue_X_ratio (μ : ℝ) (k l : ℕ) (ini : book_config χ) (i : ℕ) : ℝ :=
-if h : k ≠ 0 ∧ l ≠ 0 ∧ i ∈ red_or_density_steps μ k l ini
+if h : i ∈ red_or_density_steps μ k l ini
   then
-    (blue_neighbors χ (get_x i h.1 h.2.1 h.2.2) ∩ (algorithm μ k l ini i).X).card
+    (blue_neighbors χ (get_x k l i h) ∩ (algorithm μ k l ini i).X).card
       / (algorithm μ k l ini i).X.card
   else 0
 
-lemma blue_X_ratio_eq (hk : k ≠ 0) (hl : l ≠ 0) (hi : i ∈ red_or_density_steps μ k l ini) :
-  blue_X_ratio μ k l ini i = (blue_neighbors χ (get_x i hk hl hi) ∩ (algorithm μ k l ini i).X).card
+lemma blue_X_ratio_eq (hi : i ∈ red_or_density_steps μ k l ini) :
+  blue_X_ratio μ k l ini i = (blue_neighbors χ (get_x k l i hi) ∩ (algorithm μ k l ini i).X).card
       / (algorithm μ k l ini i).X.card :=
-dif_pos ⟨hk, hl, hi⟩
+dif_pos hi
 
 -- (8)
-lemma blue_X_ratio_prop (hk : k ≠ 0) (hl : l ≠ 0) (hi : i ∈ red_or_density_steps μ k l ini) :
+lemma blue_X_ratio_prop (hi : i ∈ red_or_density_steps μ k l ini) :
   blue_X_ratio μ k l ini i * (algorithm μ k l ini i).X.card =
-    (blue_neighbors χ (get_x i hk hl hi) ∩ (algorithm μ k l ini i).X).card :=
+    (blue_neighbors χ (get_x k l i hi) ∩ (algorithm μ k l ini i).X).card :=
 begin
   cases finset.eq_empty_or_nonempty (algorithm μ k l ini i).X with hX hX,
   { rw [hX, inter_empty, card_empty, nat.cast_zero, mul_zero] },
-  rw [blue_X_ratio, dif_pos, div_mul_cancel],
-  { rwa [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos] },
-  exact ⟨hk, hl, hi⟩
+  rw [blue_X_ratio, dif_pos hi, div_mul_cancel],
+  rwa [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos],
 end
 
 lemma blue_X_ratio_nonneg : 0 ≤ blue_X_ratio μ k l ini i :=
 by { rw blue_X_ratio, split_ifs; positivity }
 
-lemma blue_X_ratio_le_mu (hk : k ≠ 0) (hl : l ≠ 0) (hi : i ∈ red_or_density_steps μ k l ini) :
+lemma blue_X_ratio_le_mu (hi : i ∈ red_or_density_steps μ k l ini) :
   blue_X_ratio μ k l ini i ≤ μ :=
 begin
-  rw [blue_X_ratio_eq hk hl hi],
-  have := get_x_mem_central_vertices i hk hl hi,
+  rw [blue_X_ratio_eq hi],
+  have := get_x_mem_central_vertices i hi,
   rw [book_config.central_vertices, mem_filter] at this,
   rw div_le_iff,
   { exact this.2 },
   rw [red_or_density_steps, mem_filter, mem_range] at hi,
   rw [nat.cast_pos],
-  refine (ramsey_number_lt_of_lt_final_step hk hl hi.1).trans_le' _,
+  refine (ramsey_number_lt_of_lt_final_step hi.1).trans_le' _,
   exact nat.zero_le _
 end
-
--- noncomputable def red_steps : finset ℕ :=
--- (finset.range (final_step μ k l ini + 1)).filter
---   (λ i, ¬ even i ∧
---     (algorithm μ k l ini i).num_big_blues μ < ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ∧
-
---     )
 
 end simple_graph

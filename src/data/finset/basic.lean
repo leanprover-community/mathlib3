@@ -570,6 +570,10 @@ lemma forall_mem_cons (h : a ∉ s) (p : α → Prop) :
   (∀ x, x ∈ cons a s h → p x) ↔ p a ∧ ∀ x, x ∈ s → p x :=
 by simp only [mem_cons, or_imp_distrib, forall_and_distrib, forall_eq]
 
+/-- Useful in proofs by induction. -/
+lemma forall_of_forall_cons {p : α → Prop} {h : a ∉ s} (H : ∀ x, x ∈ cons a s h → p x) (x)
+  (h : x ∈ s) : p x := H _ $ mem_cons.2 $ or.inr h
+
 @[simp] lemma mk_cons {s : multiset α} (h : (a ::ₘ s).nodup) :
   (⟨a ::ₘ s, h⟩ : finset α) = cons a ⟨s, (nodup_cons.1 h).2⟩ (nodup_cons.1 h).1 := rfl
 
@@ -2022,6 +2026,10 @@ iff_true_intro $ λ _, false.elim
 lemma forall_mem_insert [decidable_eq α] (a : α) (s : finset α) (p : α → Prop) :
   (∀ x, x ∈ insert a s → p x) ↔ p a ∧ ∀ x, x ∈ s → p x :=
 by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq]
+
+/-- Useful in proofs by induction. -/
+lemma forall_of_forall_insert [decidable_eq α] {p : α → Prop} {a : α} {s : finset α}
+  (H : ∀ x, x ∈ insert a s → p x) (x) (h : x ∈ s) : p x := H _ $ mem_insert_of_mem h
 
 end finset
 

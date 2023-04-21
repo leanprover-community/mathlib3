@@ -1078,15 +1078,23 @@ coe_injective $ by { push_cast, exact set.smul_univ hs }
 @[simp, to_additive] lemma card_smul_finset (a : α) (s : finset β) : (a • s).card = s.card :=
 card_image_of_injective _ $ mul_action.injective _
 
-@[to_additive] lemma card_dvd_card_smul_right {s : finset α} :
+/-- If the left cosets of `t` by elements of `s` are disjoint (but not necessarily distinct!), then
+the size of `t` divides the size of `s * t`. -/
+@[to_additive "If the left cosets of `t` by elements of `s` are disjoint (but not necessarily
+distinct!), then the size of `t` divides the size of `s + t`."]
+lemma card_dvd_card_smul_right {s : finset α} :
   ((• t) '' (s : set α)).pairwise_disjoint id → t.card ∣ (s • t).card :=
-card_dvd_card_image₂_right mul_action.injective
+card_dvd_card_image₂_right (λ _ _, mul_action.injective _)
 
 variables [decidable_eq α]
 
-@[to_additive] lemma card_dvd_card_mul_left {s t : finset α} :
+/-- If the right cosets of `s` by elements of `t` are disjoint (but not necessarily distinct!), then
+the size of `s` divides the size of `s * t`. -/
+@[to_additive "If the right cosets of `s` by elements of `t` are disjoint (but not necessarily
+distinct!), then the size of `s` divides the size of `s + t`."]
+lemma card_dvd_card_mul_left {s t : finset α} :
   ((λ b, s.image $ λ a, a * b) '' (t : set α)).pairwise_disjoint id → s.card ∣ (s * t).card :=
-card_dvd_card_image₂_left mul_left_injective
+card_dvd_card_image₂_left (λ _ _, mul_left_injective _)
 
 end group
 

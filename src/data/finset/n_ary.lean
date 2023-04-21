@@ -358,18 +358,22 @@ lemma image₂_right_identity {f : γ → β → γ} {b : β} (h : ∀ a, f a b 
   image₂ f s {b} = s :=
 by rw [image₂_singleton_right, funext h, image_id']
 
-lemma card_dvd_card_image₂_right (hf : ∀ a, injective (f a))
+/-- If each partial application of `f` is injective, and images of `s` under those partial
+applications are disjoint (but not necessarily distinct!), then the size of `t` divides the size of
+`finset.image₂ f s t`. -/
+lemma card_dvd_card_image₂_right (hf : ∀ a ∈ s, injective (f a))
   (hs : ((λ a, t.image $ f a) '' s).pairwise_disjoint id) :
   t.card ∣ (image₂ f s t).card :=
 begin
   classical,
   induction s using finset.induction with a s ha ih,
   { simp },
-  specialize ih (hs.subset $ set.image_subset _ $ coe_subset.2 $ subset_insert _ _),
+  specialize ih (forall_of_forall_insert hf)
+    (hs.subset $ set.image_subset _ $ coe_subset.2 $ subset_insert _ _),
   rw image₂_insert_left,
   by_cases h : disjoint (image (f a) t) (image₂ f s t),
   { rw card_union_eq h,
-    exact (card_image_of_injective _ $ hf _).symm.dvd.add ih },
+    exact (card_image_of_injective _ $ hf _ $ mem_insert_self _ _).symm.dvd.add ih },
   simp_rw [←bUnion_image_left, disjoint_bUnion_right, not_forall] at h,
   obtain ⟨b, hb, h⟩ := h,
   rwa union_eq_right_iff_subset.2,
@@ -377,7 +381,10 @@ begin
     (set.mem_image_of_mem _ $ mem_insert_of_mem hb) h).trans_subset (image_subset_image₂_right hb),
 end
 
-lemma card_dvd_card_image₂_left (hf : ∀ b, injective (λ a, f a b))
+/-- If each partial application of `f` is injective, and images of `t` under those partial
+applications are disjoint (but not necessarily distinct!), then the size of `s` divides the size of
+`finset.image₂ f s t`. -/
+lemma card_dvd_card_image₂_left (hf : ∀ b ∈ t, injective (λ a, f a b))
   (ht : ((λ b, s.image $ λ a, f a b) '' t).pairwise_disjoint id) :
   s.card ∣ (image₂ f s t).card :=
 by { rw ←image₂_swap, exact card_dvd_card_image₂_right hf ht }

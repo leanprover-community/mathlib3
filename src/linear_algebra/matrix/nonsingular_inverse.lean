@@ -623,7 +623,7 @@ variables [decidable_eq l]
 variables [fintype m]
 variables [decidable_eq m]
 
-/- LU decomposition of a block matrix with an invertible top-left corner. -/
+/-- LDU decomposition of a block matrix with an invertible top-left corner. -/
 lemma from_blocks_eq_of_invertible₁₁
   (A : matrix m m α) (B : matrix m n α) (C : matrix l m α) (D : matrix l n α) [invertible A] :
   from_blocks A B C D =
@@ -632,7 +632,7 @@ by simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, 
       matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
         matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right]
 
-/- LU decomposition of a block matrix with an invertible bottom-right corner. -/
+/-- LDU decomposition of a block matrix with an invertible bottom-right corner. -/
 lemma from_blocks_eq_of_invertible₂₂
   (A : matrix l m α) (B : matrix l n α) (C : matrix n m α) (D : matrix n n α) [invertible D] :
   from_blocks A B C D =
@@ -665,15 +665,8 @@ by rw [←h.unit_spec, ←coe_units_inv, det_units_conj']
 the Schur complement. -/
 lemma det_from_blocks₁₁ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible A] : (matrix.from_blocks A B C D).det = det A * det (D - C ⬝ (⅟A) ⬝ B) :=
-begin
-  have : from_blocks A B C D =
-    from_blocks 1 0 (C ⬝ ⅟A) 1 ⬝ from_blocks A 0 0 (D - C ⬝ (⅟A) ⬝ B) ⬝ from_blocks 1 (⅟A ⬝ B) 0 1,
-  { simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
-      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
-        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right] },
-  rw [this, det_mul, det_mul, det_from_blocks_zero₂₁, det_from_blocks_zero₂₁,
-    det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one],
-end
+by rw [from_blocks_eq_of_invertible₁₁, det_mul, det_mul, det_from_blocks_zero₂₁,
+  det_from_blocks_zero₂₁, det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one]
 
 @[simp] lemma det_from_blocks_one₁₁ (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) :
   (matrix.from_blocks 1 B C D).det = det (D - C ⬝ B) :=

@@ -52,7 +52,7 @@ by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 
 alias directed_on_iff_directed ↔ directed_on.directed_coe _
 
-theorem directed_on_range {f : β → α} :
+theorem directed_on_range {f : ι → α} :
   directed r f ↔ directed_on r (set.range f) :=
 by simp_rw [directed, directed_on, set.forall_range_iff, set.exists_range_iff]
 

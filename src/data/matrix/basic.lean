@@ -1321,19 +1321,21 @@ by { rw matrix.mul_assoc, simpa only [mul_apply, dot_product, mul_vec] }
 end non_unital_semiring
 
 section non_assoc_semiring
-variables [fintype m] [fintype n] [decidable_eq m] [non_assoc_semiring α]
+variables [non_assoc_semiring α]
+
+lemma mul_vec_one [fintype n] (A : matrix m n α) : mul_vec A 1 = λ i, ∑ j, A i j :=
+by ext; simp [mul_vec, dot_product]
+
+lemma vec_one_mul [fintype m] (A : matrix m n α) : vec_mul 1 A = λ j, ∑ i, A i j :=
+by ext; simp [vec_mul, dot_product]
+
+variables [fintype m] [fintype n] [decidable_eq m]
 
 @[simp] lemma one_mul_vec (v : m → α) : mul_vec 1 v = v :=
 by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
 
 @[simp] lemma vec_mul_one (v : m → α) : vec_mul v 1 = v :=
 by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
-
-lemma mul_vec_one (A : matrix m n α) : mul_vec A 1 = λ i, ∑ j, A i j :=
-by ext; simp [mul_vec, dot_product]
-
-lemma vec_one_mul (A : matrix m n α) : vec_mul 1 A = λ j, ∑ i, A i j :=
-by ext; simp [vec_mul, dot_product]
 
 end non_assoc_semiring
 
@@ -1838,10 +1840,11 @@ lemma submatrix_vec_mul_equiv [fintype l] [fintype m] [non_unital_non_assoc_semi
   vec_mul v (M.submatrix e₁ e₂) = vec_mul (v ∘ e₁.symm) M ∘ e₂ :=
 funext $ λ i, eq.symm (comp_equiv_symm_dot_product _ _ _)
 
-lemma mul_submatrix_one [fintype n] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
+lemma mul_submatrix_one [fintype n] [finite o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
   (e₂ : l → o) (M : matrix m n α) :
   M ⬝ (1 : matrix o o α).submatrix e₁ e₂ = submatrix M id (e₁.symm ∘ e₂) :=
 begin
+  casesI nonempty_fintype o,
   let A := M.submatrix id e₁.symm,
   have : M = A.submatrix id e₁,
   { simp only [submatrix_submatrix, function.comp.right_id, submatrix_id_id,
@@ -1851,10 +1854,11 @@ begin
     equiv.symm_comp_self],
 end
 
-lemma one_submatrix_mul [fintype m] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : l → o)
+lemma one_submatrix_mul [fintype m] [finite o] [non_assoc_semiring α] [decidable_eq o] (e₁ : l → o)
   (e₂ : m ≃ o) (M : matrix m n α) :
   ((1 : matrix o o α).submatrix e₁ e₂).mul M = submatrix M (e₂.symm ∘ e₁) id :=
 begin
+  casesI nonempty_fintype o,
   let A := M.submatrix e₂.symm id,
   have : M = A.submatrix e₂ id,
   { simp only [submatrix_submatrix, function.comp.right_id, submatrix_id_id,

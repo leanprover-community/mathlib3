@@ -3,12 +3,17 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
+import category_theory.adjunction.fully_faithful
 import category_theory.sites.plus
 import category_theory.limits.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 
 # Sheafification
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the sheafification of a presheaf over a site `C` with values in `D` whenever
 `D` is a concrete category for which the forgetful functor preserves the appropriate (co)limits

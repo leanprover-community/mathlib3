@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Anatole Dedecker
 -/
 import analysis.locally_convex.balanced_core_hull
+import linear_algebra.free_module.finite.matrix
+import topology.algebra.module.simple
+import topology.algebra.module.determinant
 
 /-!
 # Finite dimensional topological vector spaces over complete fields
@@ -44,29 +47,6 @@ noncomputable theory
 
 open set finite_dimensional topological_space filter
 open_locale big_operators
-
-section semiring
-
-variables {ι 𝕜 F : Type*} [finite ι] [semiring 𝕜] [topological_space 𝕜]
-  [add_comm_monoid F] [module 𝕜 F] [topological_space F]
-  [has_continuous_add F] [has_continuous_smul 𝕜 F]
-
-/-- A linear map on `ι → 𝕜` (where `ι` is finite) is continuous -/
-lemma linear_map.continuous_on_pi (f : (ι → 𝕜) →ₗ[𝕜] F) : continuous f :=
-begin
-  casesI nonempty_fintype ι,
-  classical,
-  -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
-  -- function.
-  have : (f : (ι → 𝕜) → F) =
-         (λx, ∑ i : ι, x i • (f (λ j, if i = j then 1 else 0))),
-    by { ext x, exact f.pi_apply_eq_sum_univ x },
-  rw this,
-  refine continuous_finset_sum _ (λi hi, _),
-  exact (continuous_apply i).smul continuous_const
-end
-
-end semiring
 
 section field
 
@@ -109,7 +89,7 @@ begin
   refine topological_add_group.ext h₁ infer_instance (le_antisymm _ _),
   { -- To show `𝓣 ≤ 𝓣₀`, we have to show that closed balls are `𝓣`-neighborhoods of 0.
     rw metric.nhds_basis_closed_ball.ge_iff,
-    -- Let `ε > 0`. Since `𝕜` is nontrivially normed, we have `0 < ∥ξ₀∥ < ε` for some `ξ₀ : 𝕜`.
+    -- Let `ε > 0`. Since `𝕜` is nontrivially normed, we have `0 < ‖ξ₀‖ < ε` for some `ξ₀ : 𝕜`.
     intros ε hε,
     rcases normed_field.exists_norm_lt 𝕜 hε with ⟨ξ₀, hξ₀, hξ₀ε⟩,
     -- Since `ξ₀ ≠ 0` and `𝓣` is T2, we know that `{ξ₀}ᶜ` is a `𝓣`-neighborhood of 0.
@@ -119,18 +99,18 @@ begin
     -- `𝓑`, which will imply that the closed ball is indeed a `𝓣`-neighborhood of 0.
     have : balanced_core 𝕜 {ξ₀}ᶜ ∈ @nhds 𝕜 t 0 := balanced_core_mem_nhds_zero this,
     refine mem_of_superset this (λ ξ hξ, _),
-    -- Let `ξ ∈ 𝓑`. We want to show `∥ξ∥ < ε`. If `ξ = 0`, this is trivial.
+    -- Let `ξ ∈ 𝓑`. We want to show `‖ξ‖ < ε`. If `ξ = 0`, this is trivial.
     by_cases hξ0 : ξ = 0,
     { rw hξ0,
       exact metric.mem_closed_ball_self hε.le },
     { rw [mem_closed_ball_zero_iff],
-      -- Now suppose `ξ ≠ 0`. By contradiction, let's assume `ε < ∥ξ∥`, and show that
+      -- Now suppose `ξ ≠ 0`. By contradiction, let's assume `ε < ‖ξ‖`, and show that
       -- `ξ₀ ∈ 𝓑 ⊆ {ξ₀}ᶜ`, which is a contradiction.
       by_contra' h,
       suffices : (ξ₀ * ξ⁻¹) • ξ ∈ balanced_core 𝕜 {ξ₀}ᶜ,
       { rw [smul_eq_mul 𝕜, mul_assoc, inv_mul_cancel hξ0, mul_one] at this,
         exact not_mem_compl_iff.mpr (mem_singleton ξ₀) ((balanced_core_subset _) this) },
-      -- For that, we use that `𝓑` is balanced : since `∥ξ₀∥ < ε < ∥ξ∥`, we have `∥ξ₀ / ξ∥ ≤ 1`,
+      -- For that, we use that `𝓑` is balanced : since `‖ξ₀‖ < ε < ‖ξ‖`, we have `‖ξ₀ / ξ‖ ≤ 1`,
       -- hence `ξ₀ = (ξ₀ / ξ) • ξ ∈ 𝓑` because `ξ ∈ 𝓑`.
       refine (balanced_core_balanced _).smul_mem _ hξ,
       rw [norm_mul, norm_inv, mul_inv_le_iff (norm_pos_iff.mpr hξ0), mul_one],
@@ -167,7 +147,7 @@ begin
     have hs : function.surjective (l.ker.liftq l (le_refl _)),
     { rw [← linear_map.range_eq_top, submodule.range_liftq],
       exact eq_top_of_finrank_eq ((finrank_self 𝕜).symm ▸ this) },
-    let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) hi hs,
+    let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) ⟨hi, hs⟩,
     have hlφ : (l : E → 𝕜) = φ ∘ l.ker.mkq,
       by ext; refl,
     -- Since the quotient map `E →ₗ[𝕜] (E ⧸ l.ker)` is continuous, the continuity of `l` will follow
@@ -196,6 +176,19 @@ end
 lemma linear_map.continuous_iff_is_closed_ker (l : E →ₗ[𝕜] 𝕜) :
   continuous l ↔ is_closed (l.ker : set E) :=
 ⟨λ h, is_closed_singleton.preimage h, l.continuous_of_is_closed_ker⟩
+
+/-- Over a nontrivially normed field, any linear form which is nonzero on a nonempty open set is
+    automatically continuous. -/
+lemma linear_map.continuous_of_nonzero_on_open (l : E →ₗ[𝕜] 𝕜) (s : set E) (hs₁ : is_open s)
+  (hs₂ : s.nonempty) (hs₃ : ∀ x ∈ s, l x ≠ 0) : continuous l :=
+begin
+  refine l.continuous_of_is_closed_ker (l.is_closed_or_dense_ker.resolve_right $ λ hl, _),
+  rcases hs₂ with ⟨x, hx⟩,
+  have : x ∈ interior (l.ker : set E)ᶜ,
+  { rw mem_interior_iff_mem_nhds,
+    exact mem_of_superset (hs₁.mem_nhds hx) hs₃ },
+  rwa hl.interior_compl at this
+end
 
 variables [complete_space 𝕜]
 
@@ -321,6 +314,21 @@ rfl
   range f.to_continuous_linear_map = range f :=
 rfl
 
+/-- A surjective linear map `f` with finite dimensional codomain is an open map. -/
+lemma is_open_map_of_finite_dimensional (f : F →ₗ[𝕜] E) (hf : function.surjective f) :
+  is_open_map f :=
+begin
+  rcases f.exists_right_inverse_of_surjective (linear_map.range_eq_top.2 hf) with ⟨g, hg⟩,
+  refine is_open_map.of_sections (λ x, ⟨λ y, g (y - f x) + x, _, _, λ y, _⟩),
+  { exact ((g.continuous_of_finite_dimensional.comp $ continuous_id.sub continuous_const).add
+      continuous_const).continuous_at },
+  { rw [sub_self, map_zero, zero_add] },
+  { simp only [map_sub, map_add, ← comp_apply f g, hg, id_apply, sub_add_cancel] }
+end
+
+instance can_lift_continuous_linear_map : can_lift (E →ₗ[𝕜] F) (E →L[𝕜] F) coe (λ _, true) :=
+⟨λ f _, ⟨f.to_continuous_linear_map, rfl⟩⟩
+
 end linear_map
 
 namespace linear_equiv
@@ -356,6 +364,10 @@ by { ext x, refl }
 @[simp] lemma to_linear_equiv_to_continuous_linear_equiv_symm (e : E ≃ₗ[𝕜] F) :
   e.to_continuous_linear_equiv.symm.to_linear_equiv = e.symm :=
 by { ext x, refl }
+
+instance can_lift_continuous_linear_equiv :
+  can_lift (E ≃ₗ[𝕜] F) (E ≃L[𝕜] F) continuous_linear_equiv.to_linear_equiv (λ _, true) :=
+⟨λ f _, ⟨_, f.to_linear_equiv_to_continuous_linear_equiv⟩⟩
 
 end linear_equiv
 

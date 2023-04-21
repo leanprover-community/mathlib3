@@ -46,6 +46,9 @@ When you extend this structure, make sure to extend `continuous_add_monoid_hom_c
 structure continuous_monoid_hom extends A →* B :=
 (continuous_to_fun : continuous to_fun)
 
+section
+set_option old_structure_cmd true
+
 /-- `continuous_add_monoid_hom_class F A B` states that `F` is a type of continuous additive monoid
 homomorphisms.
 
@@ -61,6 +64,11 @@ You should also extend this typeclass when you extend `continuous_monoid_hom`. -
 @[to_additive]
 class continuous_monoid_hom_class extends monoid_hom_class F A B :=
 (map_continuous (f : F) : continuous f)
+
+attribute [to_additive continuous_add_monoid_hom_class.to_add_monoid_hom_class]
+  continuous_monoid_hom_class.to_monoid_hom_class
+
+end
 
 /-- Reinterpret a `continuous_monoid_hom` as a `monoid_hom`. -/
 add_decl_doc continuous_monoid_hom.to_monoid_hom
@@ -90,7 +98,7 @@ directly. -/
 `fun_like.has_coe_to_fun` directly."]
 instance : has_coe_to_fun (continuous_monoid_hom A B) (λ _, A → B) := fun_like.has_coe_to_fun
 
-@[to_additive] lemma ext {f g : continuous_monoid_hom A B} (h : ∀ x, f x = g x) : f = g :=
+@[to_additive, ext] lemma ext {f g : continuous_monoid_hom A B} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext _ _ h
 
 /-- Reinterpret a `continuous_monoid_hom` as a `continuous_map`. -/
@@ -188,19 +196,21 @@ def coprod (f : continuous_monoid_hom A E) (g : continuous_monoid_hom B E) :
   inv := λ f, (inv E).comp f,
   mul_left_inv := λ f, ext (λ x, mul_left_inv (f x)) }
 
-instance : topological_space (continuous_monoid_hom A B) :=
+@[to_additive] instance : topological_space (continuous_monoid_hom A B) :=
 topological_space.induced to_continuous_map continuous_map.compact_open
 
 variables (A B C D E)
 
-lemma is_inducing : inducing (to_continuous_map : continuous_monoid_hom A B → C(A, B)) := ⟨rfl⟩
+@[to_additive] lemma inducing_to_continuous_map :
+  inducing (to_continuous_map : continuous_monoid_hom A B → C(A, B)) := ⟨rfl⟩
 
-lemma is_embedding : embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
-⟨is_inducing A B, to_continuous_map_injective⟩
+@[to_additive] lemma embedding_to_continuous_map :
+  embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
+⟨inducing_to_continuous_map A B, to_continuous_map_injective⟩
 
-lemma is_closed_embedding [has_continuous_mul B] [t2_space B] :
+@[to_additive] lemma closed_embedding_to_continuous_map [has_continuous_mul B] [t2_space B] :
   closed_embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
-⟨is_embedding A B, ⟨begin
+⟨embedding_to_continuous_map A B, ⟨begin
   suffices : (set.range (to_continuous_map : continuous_monoid_hom A B → C(A, B))) =
     ({f | f '' {1} ⊆ {1}ᶜ} ∪ ⋃ (x y) (U V W) (hU : is_open U) (hV : is_open V) (hW : is_open W)
     (h : disjoint (U * V) W), {f | f '' {x} ⊆ U} ∩ {f | f '' {y} ⊆ V} ∩ {f | f '' {x * y} ⊆ W})ᶜ,
@@ -214,7 +224,7 @@ lemma is_closed_embedding [has_continuous_mul B] [t2_space B] :
   refine λ f, ⟨_, _⟩,
   { rintros ⟨f, rfl⟩,
     exact ⟨λ h, h (map_one f), λ x y U V W hU hV hW h ⟨⟨hfU, hfV⟩, hfW⟩,
-      h ⟨set.mul_mem_mul hfU hfV, (congr_arg (∈ W) (map_mul f x y)).mp hfW⟩⟩ },
+      h.le_bot ⟨set.mul_mem_mul hfU hfV, (congr_arg (∈ W) (map_mul f x y)).mp hfW⟩⟩ },
   { rintros ⟨hf1, hf2⟩,
     suffices : ∀ x y, f (x * y) = f x * f y,
     { refine ⟨({ map_one' := of_not_not hf1, map_mul' := this, .. f } : continuous_monoid_hom A B),
@@ -231,16 +241,101 @@ end⟩⟩
 
 variables {A B C D E}
 
-instance [t2_space B] : t2_space (continuous_monoid_hom A B) :=
-(is_embedding A B).t2_space
+@[to_additive] instance [t2_space B] : t2_space (continuous_monoid_hom A B) :=
+(embedding_to_continuous_map A B).t2_space
 
-instance : topological_group (continuous_monoid_hom A E) :=
-let hi := is_inducing A E, hc := hi.continuous in
+@[to_additive] instance : topological_group (continuous_monoid_hom A E) :=
+let hi := inducing_to_continuous_map A E, hc := hi.continuous in
 { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (continuous.prod_map hc hc)),
   continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
+
+@[to_additive] lemma continuous_of_continuous_uncurry {A : Type*} [topological_space A]
+  (f : A → continuous_monoid_hom B C) (h : continuous (function.uncurry (λ x y, f x y))) :
+  continuous f :=
+(inducing_to_continuous_map _ _).continuous_iff.mpr
+  (continuous_map.continuous_of_continuous_uncurry _ h)
+
+@[to_additive] lemma continuous_comp [locally_compact_space B] :
+  continuous (λ f : continuous_monoid_hom A B × continuous_monoid_hom B C, f.2.comp f.1) :=
+(inducing_to_continuous_map A C).continuous_iff.2 $ (continuous_map.continuous_comp'.comp
+    ((inducing_to_continuous_map A B).prod_mk (inducing_to_continuous_map B C)).continuous)
+
+@[to_additive] lemma continuous_comp_left (f : continuous_monoid_hom A B) :
+  continuous (λ g : continuous_monoid_hom B C, g.comp f) :=
+(inducing_to_continuous_map A C).continuous_iff.2 $ f.to_continuous_map.continuous_comp_left.comp
+  (inducing_to_continuous_map B C).continuous
+
+@[to_additive] lemma continuous_comp_right (f : continuous_monoid_hom B C) :
+  continuous (λ g : continuous_monoid_hom A B, f.comp g) :=
+(inducing_to_continuous_map A C).continuous_iff.2 $ f.to_continuous_map.continuous_comp.comp
+  (inducing_to_continuous_map A B).continuous
+
+variables (E)
+
+/-- `continuous_monoid_hom _ f` is a functor. -/
+@[to_additive "`continuous_add_monoid_hom _ f` is a functor."]
+def comp_left (f : continuous_monoid_hom A B) :
+  continuous_monoid_hom (continuous_monoid_hom B E) (continuous_monoid_hom A E) :=
+{ to_fun := λ g, g.comp f,
+  map_one' := rfl,
+  map_mul' := λ g h, rfl,
+  continuous_to_fun := f.continuous_comp_left }
+
+variables (A) {E}
+
+/-- `continuous_monoid_hom f _` is a functor. -/
+@[to_additive "`continuous_add_monoid_hom f _` is a functor."]
+def comp_right {B : Type*} [comm_group B] [topological_space B]
+  [topological_group B] (f : continuous_monoid_hom B E) :
+  continuous_monoid_hom (continuous_monoid_hom A B) (continuous_monoid_hom A E) :=
+{ to_fun := λ g, f.comp g,
+  map_one' := ext (λ a, map_one f),
+  map_mul' := λ g h, ext (λ a, map_mul f (g a) (h a)),
+  continuous_to_fun := f.continuous_comp_right }
 
 end continuous_monoid_hom
 
 /-- The Pontryagin dual of `A` is the group of continuous homomorphism `A → circle`. -/
 @[derive [topological_space, t2_space, comm_group, topological_group, inhabited]]
 def pontryagin_dual := continuous_monoid_hom A circle
+
+variables {A B C D E}
+
+namespace pontryagin_dual
+
+open continuous_monoid_hom
+
+noncomputable instance : continuous_monoid_hom_class (pontryagin_dual A) A circle :=
+continuous_monoid_hom.continuous_monoid_hom_class
+
+/-- `pontryagin_dual` is a functor. -/
+noncomputable def map (f : continuous_monoid_hom A B) :
+  continuous_monoid_hom (pontryagin_dual B) (pontryagin_dual A) :=
+f.comp_left circle
+
+@[simp] lemma map_apply (f : continuous_monoid_hom A B) (x : pontryagin_dual B) (y : A) :
+  map f x y = x (f y) :=
+rfl
+
+@[simp] lemma map_one : map (one A B) = one (pontryagin_dual B) (pontryagin_dual A) :=
+ext (λ x, ext (λ y, map_one x))
+
+@[simp] lemma map_comp (g : continuous_monoid_hom B C) (f : continuous_monoid_hom A B) :
+  map (comp g f) = comp (map f) (map g) :=
+ext (λ x, ext (λ y, rfl))
+
+@[simp] lemma map_mul (f g : continuous_monoid_hom A E) : map (f * g) = map f * map g :=
+ext (λ x, ext (λ y, map_mul x (f y) (g y)))
+
+variables (A B C D E)
+
+/-- `continuous_monoid_hom.dual` as a `continuous_monoid_hom`. -/
+noncomputable def map_hom [locally_compact_space E] :
+  continuous_monoid_hom (continuous_monoid_hom A E)
+    (continuous_monoid_hom (pontryagin_dual E) (pontryagin_dual A)) :=
+{ to_fun := map,
+  map_one' := map_one,
+  map_mul' := map_mul,
+  continuous_to_fun := continuous_of_continuous_uncurry _ continuous_comp }
+
+end pontryagin_dual

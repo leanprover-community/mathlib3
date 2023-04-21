@@ -96,8 +96,8 @@ lemma triple_product_permutation (u v w : fin 3 → R) :
   u ⬝ᵥ (v ×₃ w) = v ⬝ᵥ (w ×₃ u) :=
 begin
   simp only [cross_apply, vec3_dot_product,
-    matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_append, matrix.cons_val_one,
-    matrix.cons_vec_alt0, matrix.cons_append, matrix.cons_val_zero],
+    matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_vec_append, matrix.cons_val_one,
+    matrix.cons_vec_alt0, matrix.cons_vec_append, matrix.cons_val_zero],
   ring,
 end
 
@@ -108,8 +108,8 @@ theorem triple_product_eq_det (u v w : fin 3 → R) :
 begin
   simp only [vec3_dot_product, cross_apply, matrix.det_fin_three,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_vec_alt0, matrix.cons_vec_alt0,
-    matrix.vec_head_vec_alt0, fin.fin_append_apply_zero, matrix.empty_append, matrix.cons_append,
-    matrix.cons_val', matrix.cons_val_one, matrix.cons_val_zero],
+    matrix.vec_head_vec_alt0, matrix.vec_append_apply_zero, matrix.empty_vec_append,
+    matrix.cons_vec_append, matrix.cons_val', matrix.cons_val_one, matrix.cons_val_zero],
   ring,
 end
 
@@ -117,8 +117,8 @@ end
 theorem cross_dot_cross (u v w x : fin 3 → R) :
   (u ×₃ v) ⬝ᵥ (w ×₃ x) = (u ⬝ᵥ w) * (v ⬝ᵥ x) - (u ⬝ᵥ x) * (v ⬝ᵥ w) :=
 begin
-  simp only [vec3_dot_product, cross_apply, cons_append, cons_vec_bit0_eq_alt0,
-    cons_val_one, cons_vec_alt0, linear_map.mk₂_apply, cons_val_zero, head_cons, empty_append],
+  simp only [vec3_dot_product, cross_apply, cons_vec_append, cons_vec_bit0_eq_alt0,
+    cons_val_one, cons_vec_alt0, linear_map.mk₂_apply, cons_val_zero, head_cons, empty_vec_append],
   ring_nf,
 end
 

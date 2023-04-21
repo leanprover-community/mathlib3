@@ -5,8 +5,12 @@ Authors: Aaron Anderson
 -/
 import data.polynomial.degree.definitions
 import tactic.compute_degree
+import data.polynomial.degree.lemmas
 /-!
 # Cancel the leading terms of two polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Definition
 

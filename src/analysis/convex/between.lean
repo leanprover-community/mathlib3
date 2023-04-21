@@ -3,8 +3,11 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
+import data.set.intervals.group
 import analysis.convex.segment
 import linear_algebra.affine_space.finite_dimensional
+import linear_algebra.affine_space.midpoint_zero
+import tactic.field_simp
 
 /-!
 # Betweenness in affine spaces
@@ -21,7 +24,9 @@ This file defines notions of a point in an affine space being between two given 
 
 variables (R : Type*) {V V' P P' : Type*}
 
-open affine_map
+open affine_equiv affine_map
+
+open_locale big_operators
 
 section ordered_ring
 
@@ -207,6 +212,12 @@ begin
   { exact ⟨t, ho, rfl⟩ }
 end
 
+lemma wbtw.mem_affine_span {x y z : P} (h : wbtw R x y z) : y ∈ line[R, x, z] :=
+begin
+  rcases h with ⟨r, ⟨-, rfl⟩⟩,
+  exact line_map_mem_affine_span_pair _ _ _
+end
+
 lemma wbtw_comm {x y z : P} : wbtw R x y z ↔ wbtw R z y x :=
 by rw [wbtw, wbtw, affine_segment_comm]
 
@@ -241,12 +252,22 @@ end
 
 variables {R}
 
-lemma sbtw.left_ne_right {x y z : P} (h : sbtw R x y z) : x ≠ z :=
+lemma wbtw.left_ne_right_of_ne_left {x y z : P} (h : wbtw R x y z) (hne : y ≠ x) : x ≠ z :=
 begin
   rintro rfl,
-  rw [sbtw, wbtw_self_iff] at h,
-  exact h.2.1 h.1
+  rw wbtw_self_iff at h,
+  exact hne h
 end
+
+lemma wbtw.left_ne_right_of_ne_right {x y z : P} (h : wbtw R x y z) (hne : y ≠ z) : x ≠ z :=
+begin
+  rintro rfl,
+  rw wbtw_self_iff at h,
+  exact hne h
+end
+
+lemma sbtw.left_ne_right {x y z : P} (h : sbtw R x y z) : x ≠ z :=
+h.wbtw.left_ne_right_of_ne_left h.2.1
 
 lemma sbtw_iff_mem_image_Ioo_and_ne [no_zero_smul_divisors R V] {x y z : P} :
   sbtw R x y z ↔ y ∈ line_map x z '' (set.Ioo (0 : R) 1) ∧ x ≠ z :=
@@ -328,6 +349,52 @@ lemma sbtw.not_rotate [no_zero_smul_divisors R V] {x y z : P} (h : sbtw R x y z)
   ¬ wbtw R z x y :=
 λ hs, h.left_ne (h.wbtw.rotate_iff.1 hs)
 
+@[simp] lemma wbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  wbtw R x (line_map x y r) y ↔ x = y ∨ r ∈ set.Icc (0 : R) 1 :=
+begin
+  by_cases hxy : x = y, { simp [hxy] },
+  rw [or_iff_right hxy, wbtw, affine_segment, (line_map_injective R hxy).mem_set_image]
+end
+
+@[simp] lemma sbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  sbtw R x (line_map x y r) y ↔ x ≠ y ∧ r ∈ set.Ioo (0 : R) 1 :=
+begin
+  rw [sbtw_iff_mem_image_Ioo_and_ne, and_comm, and_congr_right],
+  intro hxy,
+  rw (line_map_injective R hxy).mem_set_image
+end
+
+omit V
+
+@[simp] lemma wbtw_mul_sub_add_iff [no_zero_divisors R] {x y r : R} :
+  wbtw R x (r * (y - x) + x) y ↔ x = y ∨ r ∈ set.Icc (0 : R) 1 :=
+wbtw_line_map_iff
+
+@[simp] lemma sbtw_mul_sub_add_iff [no_zero_divisors R] {x y r : R} :
+  sbtw R x (r * (y - x) + x) y ↔ x ≠ y ∧ r ∈ set.Ioo (0 : R) 1 :=
+sbtw_line_map_iff
+
+@[simp] lemma wbtw_zero_one_iff {x : R} : wbtw R 0 x 1 ↔ x ∈ set.Icc (0 : R) 1 :=
+begin
+  simp_rw [wbtw, affine_segment, set.mem_image, line_map_apply_ring],
+  simp
+end
+
+@[simp] lemma wbtw_one_zero_iff {x : R} : wbtw R 1 x 0 ↔ x ∈ set.Icc (0 : R) 1 :=
+by rw [wbtw_comm, wbtw_zero_one_iff]
+
+@[simp] lemma sbtw_zero_one_iff {x : R} : sbtw R 0 x 1 ↔ x ∈ set.Ioo (0 : R) 1 :=
+begin
+  rw [sbtw, wbtw_zero_one_iff, set.mem_Icc, set.mem_Ioo],
+  exact ⟨λ h, ⟨h.1.1.lt_of_ne (ne.symm h.2.1), h.1.2.lt_of_ne h.2.2⟩,
+         λ h, ⟨⟨h.1.le, h.2.le⟩, h.1.ne', h.2.ne⟩⟩
+end
+
+@[simp] lemma sbtw_one_zero_iff {x : R} : sbtw R 1 x 0 ↔ x ∈ set.Ioo (0 : R) 1 :=
+by rw [sbtw_comm, sbtw_zero_one_iff]
+
+include V
+
 lemma wbtw.trans_left {w x y z : P} (h₁ : wbtw R w y z) (h₂ : wbtw R w x y) : wbtw R w x z :=
 begin
   rcases h₁ with ⟨t₁, ht₁, rfl⟩,
@@ -366,7 +433,164 @@ lemma sbtw.trans_right [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R 
   (h₂ : sbtw R x y z) : sbtw R w y z :=
 h₁.wbtw.trans_sbtw_right h₂
 
+lemma wbtw.trans_left_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : wbtw R w y z)
+  (h₂ : wbtw R w x y) (h : y ≠ z) : x ≠ z :=
+begin
+  rintro rfl,
+  exact h (h₁.swap_right_iff.1 h₂)
+end
+
+lemma wbtw.trans_right_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : wbtw R w x z)
+  (h₂ : wbtw R x y z) (h : w ≠ x) : w ≠ y :=
+begin
+  rintro rfl,
+  exact h (h₁.swap_left_iff.1 h₂)
+end
+
+lemma sbtw.trans_wbtw_left_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R w y z)
+  (h₂ : wbtw R w x y) : x ≠ z :=
+h₁.wbtw.trans_left_ne h₂ h₁.ne_right
+
+lemma sbtw.trans_wbtw_right_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R w x z)
+  (h₂ : wbtw R x y z) : w ≠ y :=
+h₁.wbtw.trans_right_ne h₂ h₁.left_ne
+
+lemma sbtw.affine_combination_of_mem_affine_span_pair [no_zero_divisors R]
+  [no_zero_smul_divisors R V] {ι : Type*} {p : ι → P} (ha : affine_independent R p)
+  {w w₁ w₂ : ι → R} {s : finset ι} (hw : ∑ i in s, w i = 1) (hw₁ : ∑ i in s, w₁ i = 1)
+  (hw₂ : ∑ i in s, w₂ i = 1)
+  (h : s.affine_combination R p w ∈
+    line[R, s.affine_combination R p w₁, s.affine_combination R p w₂])
+  {i : ι} (his : i ∈ s) (hs : sbtw R (w₁ i) (w i) (w₂ i)) :
+  sbtw R (s.affine_combination R p w₁) (s.affine_combination R p w) (s.affine_combination R p w₂) :=
+begin
+  rw affine_combination_mem_affine_span_pair ha hw hw₁ hw₂ at h,
+  rcases h with ⟨r, hr⟩,
+  dsimp only at hr,
+  rw [hr i his, sbtw_mul_sub_add_iff] at hs,
+  change ∀ i ∈ s, w i = ((r • (w₂ - w₁) + w₁) i) at hr,
+  rw s.affine_combination_congr hr (λ _ _, rfl),
+  dsimp only,
+  rw [←s.weighted_vsub_vadd_affine_combination, s.weighted_vsub_const_smul,
+      ←s.affine_combination_vsub, ←line_map_apply, sbtw_line_map_iff, and_iff_left hs.2,
+      ←@vsub_ne_zero V, s.affine_combination_vsub],
+  intro hz,
+  have hw₁w₂ : ∑ i in s, (w₁ - w₂) i = 0,
+  { simp_rw [pi.sub_apply, finset.sum_sub_distrib, hw₁, hw₂, sub_self] },
+  refine hs.1 _,
+  have ha' := ha s (w₁ - w₂) hw₁w₂ hz i his,
+  rwa [pi.sub_apply, sub_eq_zero] at ha'
+end
+
 end ordered_ring
+
+section strict_ordered_comm_ring
+variables [strict_ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
+
+include V
+
+variables {R}
+
+lemma wbtw.same_ray_vsub {x y z : P} (h : wbtw R x y z) : same_ray R (y -ᵥ x) (z -ᵥ y) :=
+begin
+  rcases h with ⟨t, ⟨ht0, ht1⟩, rfl⟩,
+  simp_rw line_map_apply,
+  rcases ht0.lt_or_eq with ht0' | rfl, swap, { simp },
+  rcases ht1.lt_or_eq with ht1' | rfl, swap, { simp },
+  refine or.inr (or.inr ⟨1 - t, t, sub_pos.2 ht1', ht0', _⟩),
+  simp [vsub_vadd_eq_vsub_sub, smul_sub, smul_smul, ←sub_smul],
+  ring_nf
+end
+
+lemma wbtw.same_ray_vsub_left {x y z : P} (h : wbtw R x y z) : same_ray R (y -ᵥ x) (z -ᵥ x) :=
+begin
+  rcases h with ⟨t, ⟨ht0, ht1⟩, rfl⟩,
+  simpa [line_map_apply] using same_ray_nonneg_smul_left (z -ᵥ x) ht0
+end
+
+lemma wbtw.same_ray_vsub_right {x y z : P} (h : wbtw R x y z) : same_ray R (z -ᵥ x) (z -ᵥ y) :=
+begin
+  rcases h with ⟨t, ⟨ht0, ht1⟩, rfl⟩,
+  simpa [line_map_apply, vsub_vadd_eq_vsub_sub, sub_smul] using
+    same_ray_nonneg_smul_right (z -ᵥ x) (sub_nonneg.2 ht1)
+end
+
+end strict_ordered_comm_ring
+
+section linear_ordered_ring
+
+variables [linear_ordered_ring R] [add_comm_group V] [module R V] [add_torsor V P]
+
+include V
+
+variables {R}
+
+/-- Suppose lines from two vertices of a triangle to interior points of the opposite side meet at
+`p`. Then `p` lies in the interior of the first (and by symmetry the other) segment from a
+vertex to the point on the opposite side. -/
+lemma sbtw_of_sbtw_of_sbtw_of_mem_affine_span_pair [no_zero_smul_divisors R V]
+  {t : affine.triangle R P} {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂) {p₁ p₂ p : P}
+  (h₁ : sbtw R (t.points i₂) p₁ (t.points i₃)) (h₂ : sbtw R (t.points i₁) p₂ (t.points i₃))
+  (h₁' : p ∈ line[R, t.points i₁, p₁]) (h₂' : p ∈ line[R, t.points i₂, p₂]) :
+  sbtw R (t.points i₁) p p₁ :=
+begin
+  -- Should not be needed; see comments on local instances in `data.sign`.
+  letI : decidable_rel ((<) : R → R → Prop) := linear_ordered_ring.decidable_lt,
+  have h₁₃ : i₁ ≠ i₃, { rintro rfl, simpa using h₂ },
+  have h₂₃ : i₂ ≠ i₃, { rintro rfl, simpa using h₁ },
+  have h3 : ∀ i : fin 3, i = i₁ ∨ i = i₂ ∨ i = i₃, { clear h₁ h₂ h₁' h₂', dec_trivial! },
+  have hu : (finset.univ : finset (fin 3)) = {i₁, i₂, i₃}, { clear h₁ h₂ h₁' h₂', dec_trivial! },
+  have hp : p ∈ affine_span R (set.range t.points),
+  { have hle : line[R, t.points i₁, p₁] ≤ affine_span R (set.range t.points),
+    { refine affine_span_pair_le_of_mem_of_mem (mem_affine_span _ (set.mem_range_self _)) _,
+      have hle : line[R, t.points i₂, t.points i₃] ≤ affine_span R (set.range t.points),
+      { refine affine_span_mono _ _, simp [set.insert_subset] },
+      rw affine_subspace.le_def' at hle,
+      exact hle _ h₁.wbtw.mem_affine_span },
+    rw affine_subspace.le_def' at hle,
+    exact hle _ h₁' },
+  have h₁i := h₁.mem_image_Ioo,
+  have h₂i := h₂.mem_image_Ioo,
+  rw set.mem_image at h₁i h₂i,
+  rcases h₁i with ⟨r₁, ⟨hr₁0, hr₁1⟩, rfl⟩,
+  rcases h₂i with ⟨r₂, ⟨hr₂0, hr₂1⟩, rfl⟩,
+  rcases eq_affine_combination_of_mem_affine_span_of_fintype hp with ⟨w, hw, rfl⟩,
+  have h₁s := sign_eq_of_affine_combination_mem_affine_span_single_line_map t.independent hw
+    (finset.mem_univ _) (finset.mem_univ _) (finset.mem_univ _) h₁₂ h₁₃ h₂₃ hr₁0 hr₁1 h₁',
+  have h₂s := sign_eq_of_affine_combination_mem_affine_span_single_line_map t.independent hw
+    (finset.mem_univ _) (finset.mem_univ _) (finset.mem_univ _) h₁₂.symm h₂₃ h₁₃ hr₂0 hr₂1 h₂',
+  dsimp only at h₁s h₂s,
+  rw [←finset.univ.affine_combination_affine_combination_single_weights R t.points
+        (finset.mem_univ i₁),
+      ←finset.univ.affine_combination_affine_combination_line_map_weights t.points
+        (finset.mem_univ _) (finset.mem_univ _)] at ⊢ h₁',
+  refine sbtw.affine_combination_of_mem_affine_span_pair t.independent hw
+    (finset.univ.sum_affine_combination_single_weights R (finset.mem_univ _))
+    (finset.univ.sum_affine_combination_line_map_weights (finset.mem_univ _) (finset.mem_univ _) _)
+    h₁' (finset.mem_univ i₁) _,
+  rw [finset.affine_combination_single_weights_apply_self,
+      finset.affine_combination_line_map_weights_apply_of_ne h₁₂ h₁₃, sbtw_one_zero_iff],
+  have hs : ∀ i : fin 3, sign (w i) = sign (w i₃),
+  { intro i,
+    rcases h3 i with rfl | rfl | rfl,
+    { exact h₂s },
+    { exact h₁s },
+    { refl } },
+  have hss : sign (∑ i, w i) = 1, { simp [hw] },
+  have hs' := sign_sum (finset.univ_nonempty) (sign (w i₃)) (λ i _, hs i),
+  rw hs' at hss,
+  simp_rw [hss, sign_eq_one_iff] at hs,
+  refine ⟨hs i₁, _⟩,
+  rw hu at hw,
+  rw [finset.sum_insert, finset.sum_insert, finset.sum_singleton] at hw,
+  { by_contra hle,
+    rw not_lt at hle,
+    exact (hle.trans_lt (lt_add_of_pos_right _ (left.add_pos (hs i₂) (hs i₃)))).ne' hw },
+  { simp [h₂₃] },
+  { simp [h₁₂, h₁₃] }
+end
+
+end linear_ordered_ring
 
 section linear_ordered_field
 
@@ -375,6 +599,85 @@ variables [linear_ordered_field R] [add_comm_group V] [module R V] [add_torsor V
 include V
 
 variables {R}
+
+lemma wbtw_iff_left_eq_or_right_mem_image_Ici {x y z : P} :
+  wbtw R x y z ↔ x = y ∨ z ∈ line_map x y '' (set.Ici (1 : R)) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with ⟨r, ⟨hr0, hr1⟩, rfl⟩,
+    rcases hr0.lt_or_eq with hr0' | rfl,
+    { rw set.mem_image,
+      refine or.inr ⟨r⁻¹, one_le_inv hr0' hr1, _⟩,
+      simp only [line_map_apply, smul_smul, vadd_vsub],
+      rw [inv_mul_cancel hr0'.ne', one_smul, vsub_vadd] },
+    { simp } },
+  { rcases h with rfl | ⟨r, ⟨hr, rfl⟩⟩,
+    { exact wbtw_self_left _ _ _ },
+    { rw set.mem_Ici at hr,
+      refine ⟨r⁻¹, ⟨inv_nonneg.2 (zero_le_one.trans hr), inv_le_one hr⟩, _⟩,
+      simp only [line_map_apply, smul_smul, vadd_vsub],
+      rw [inv_mul_cancel (one_pos.trans_le hr).ne', one_smul, vsub_vadd] } }
+end
+
+lemma wbtw.right_mem_image_Ici_of_left_ne {x y z : P} (h : wbtw R x y z) (hne : x ≠ y) :
+  z ∈ line_map x y '' (set.Ici (1 : R)) :=
+(wbtw_iff_left_eq_or_right_mem_image_Ici.1 h).resolve_left hne
+
+lemma wbtw.right_mem_affine_span_of_left_ne {x y z : P} (h : wbtw R x y z) (hne : x ≠ y) :
+  z ∈ line[R, x, y] :=
+begin
+  rcases h.right_mem_image_Ici_of_left_ne hne with ⟨r, ⟨-, rfl⟩⟩,
+  exact line_map_mem_affine_span_pair _ _ _
+end
+
+lemma sbtw_iff_left_ne_and_right_mem_image_IoI {x y z : P} :
+  sbtw R x y z ↔ x ≠ y ∧ z ∈ line_map x y '' (set.Ioi (1 : R)) :=
+begin
+  refine ⟨λ h, ⟨h.left_ne, _⟩, λ h, _⟩,
+  { obtain ⟨r, ⟨hr, rfl⟩⟩ := h.wbtw.right_mem_image_Ici_of_left_ne h.left_ne,
+    rw [set.mem_Ici] at hr,
+    rcases hr.lt_or_eq with hrlt | rfl,
+    { exact set.mem_image_of_mem _ hrlt },
+    { exfalso, simpa using h } },
+  { rcases h with ⟨hne, r, hr, rfl⟩,
+    rw set.mem_Ioi at hr,
+    refine ⟨wbtw_iff_left_eq_or_right_mem_image_Ici.2 (or.inr (set.mem_image_of_mem _
+      (set.mem_of_mem_of_subset hr set.Ioi_subset_Ici_self))), hne.symm, _⟩,
+    rw [line_map_apply, ←@vsub_ne_zero V, vsub_vadd_eq_vsub_sub],
+    nth_rewrite 0 ←one_smul R (y -ᵥ x),
+    rw [←sub_smul, smul_ne_zero_iff, vsub_ne_zero, sub_ne_zero],
+    exact ⟨hr.ne, hne.symm⟩ }
+end
+
+lemma sbtw.right_mem_image_Ioi {x y z : P} (h : sbtw R x y z) :
+  z ∈ line_map x y '' (set.Ioi (1 : R)) :=
+(sbtw_iff_left_ne_and_right_mem_image_IoI.1 h).2
+
+lemma sbtw.right_mem_affine_span {x y z : P} (h : sbtw R x y z) : z ∈ line[R, x, y] :=
+h.wbtw.right_mem_affine_span_of_left_ne h.left_ne
+
+lemma wbtw_iff_right_eq_or_left_mem_image_Ici {x y z : P} :
+  wbtw R x y z ↔ z = y ∨ x ∈ line_map z y '' (set.Ici (1 : R)) :=
+by rw [wbtw_comm, wbtw_iff_left_eq_or_right_mem_image_Ici]
+
+lemma wbtw.left_mem_image_Ici_of_right_ne {x y z : P} (h : wbtw R x y z) (hne : z ≠ y) :
+  x ∈ line_map z y '' (set.Ici (1 : R)) :=
+h.symm.right_mem_image_Ici_of_left_ne hne
+
+lemma wbtw.left_mem_affine_span_of_right_ne {x y z : P} (h : wbtw R x y z) (hne : z ≠ y) :
+  x ∈ line[R, z, y] :=
+h.symm.right_mem_affine_span_of_left_ne hne
+
+lemma sbtw_iff_right_ne_and_left_mem_image_IoI {x y z : P} :
+  sbtw R x y z ↔ z ≠ y ∧ x ∈ line_map z y '' (set.Ioi (1 : R)) :=
+by rw [sbtw_comm, sbtw_iff_left_ne_and_right_mem_image_IoI]
+
+lemma sbtw.left_mem_image_Ioi {x y z : P} (h : sbtw R x y z) :
+  x ∈ line_map z y '' (set.Ioi (1 : R)) :=
+h.symm.right_mem_image_Ioi
+
+lemma sbtw.left_mem_affine_span {x y z : P} (h : sbtw R x y z) : x ∈ line[R, z, y] :=
+h.symm.right_mem_affine_span
 
 lemma wbtw_smul_vadd_smul_vadd_of_nonneg_of_le (x : P) (v : V) {r₁ r₂ : R} (hr₁ : 0 ≤ r₁)
   (hr₂ : r₁ ≤ r₂) : wbtw R x (r₁ • v +ᵥ x) (r₂ • v +ᵥ x) :=
@@ -474,7 +777,7 @@ end
 lemma collinear.wbtw_or_wbtw_or_wbtw {x y z : P} (h : collinear R ({x, y, z} : set P)) :
   wbtw R x y z ∨ wbtw R y z x ∨ wbtw R z x y :=
 begin
-  rw collinear_iff_of_mem R (set.mem_insert _ _) at h,
+  rw collinear_iff_of_mem (set.mem_insert _ _) at h,
   rcases h with ⟨v, h⟩,
   simp_rw [set.mem_insert_iff, set.mem_singleton_iff] at h,
   have hy := h y (or.inr (or.inl rfl)),
@@ -495,6 +798,50 @@ begin
     { nth_rewrite 1 wbtw_comm,
       rw ←or_assoc,
       exact or.inl (wbtw_or_wbtw_smul_vadd_of_nonneg _ _ hy0.le hz0.le) } }
+end
+
+lemma wbtw_iff_same_ray_vsub {x y z : P} : wbtw R x y z ↔ same_ray R (y -ᵥ x) (z -ᵥ y) :=
+begin
+  refine ⟨wbtw.same_ray_vsub, λ h, _⟩,
+  rcases h with h | h | ⟨r₁, r₂, hr₁, hr₂, h⟩,
+  { rw vsub_eq_zero_iff_eq at h, simp [h] },
+  { rw vsub_eq_zero_iff_eq at h, simp [h] },
+  { refine ⟨r₂ / (r₁ + r₂),
+            ⟨div_nonneg hr₂.le (add_nonneg hr₁.le hr₂.le),
+             div_le_one_of_le (le_add_of_nonneg_left hr₁.le) (add_nonneg hr₁.le hr₂.le)⟩, _⟩,
+    have h' : z = r₂⁻¹ • r₁ • (y -ᵥ x) +ᵥ y, { simp [h, hr₂.ne'] },
+    rw eq_comm,
+    simp only [line_map_apply, h', vadd_vsub_assoc, smul_smul, ←add_smul, eq_vadd_iff_vsub_eq,
+               smul_add],
+    convert (one_smul _ _).symm,
+    field_simp [(add_pos hr₁ hr₂).ne', hr₂.ne'],
+    ring }
+end
+
+variables (R)
+
+lemma wbtw_point_reflection (x y : P) : wbtw R y x (point_reflection R x y) :=
+begin
+  refine ⟨2⁻¹, ⟨by norm_num, by norm_num⟩, _⟩,
+  rw [line_map_apply, point_reflection_apply, vadd_vsub_assoc, ←two_smul R (x -ᵥ y)],
+  simp
+end
+
+lemma sbtw_point_reflection_of_ne {x y : P} (h : x ≠ y) : sbtw R y x (point_reflection R x y) :=
+begin
+  refine ⟨wbtw_point_reflection _ _ _, h, _⟩,
+  nth_rewrite 0 [←point_reflection_self R x],
+  exact (point_reflection_involutive R x).injective.ne h
+end
+
+lemma wbtw_midpoint (x y : P) : wbtw R x (midpoint R x y) y :=
+by { convert wbtw_point_reflection R (midpoint R x y) x, simp }
+
+lemma sbtw_midpoint_of_ne {x y : P} (h : x ≠ y) : sbtw R x (midpoint R x y) y :=
+begin
+  have h : midpoint R x y ≠ x, { simp [h] },
+  convert sbtw_point_reflection_of_ne R h,
+  simp
 end
 
 end linear_ordered_field

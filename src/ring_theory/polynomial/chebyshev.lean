@@ -9,6 +9,9 @@ import tactic.linear_combination
 /-!
 # Chebyshev polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Chebyshev polynomials are two families of polynomials indexed by `ℕ`,
 with integral coefficients.
 
@@ -185,10 +188,10 @@ begin
   have h : derivative (T R (n + 2)) = (U R (n + 1) - X * U R n) + X * derivative (T R (n + 1))
                                       + 2 * X * U R n - (1 - X ^ 2) * derivative (U R n),
   { conv_lhs { rw T_eq_X_mul_T_sub_pol_U },
-  simp only [derivative_sub, derivative_mul, derivative_X, derivative_one, derivative_X_pow,
-  one_mul, T_derivative_eq_U],
-  rw [T_eq_U_sub_X_mul_U, nat.cast_bit0, nat.cast_one],
-  ring },
+    simp only [derivative_sub, derivative_mul, derivative_X, derivative_one, derivative_X_pow,
+              one_mul, T_derivative_eq_U],
+    rw [T_eq_U_sub_X_mul_U, C_eq_nat_cast, nat.cast_bit0, nat.cast_one],
+    ring },
   calc ((n : R[X]) + 1) * T R (n + 1)
       = ((n : R[X]) + 1 + 1) * (X * U R n + T R (n + 1))
         - X * ((n + 1) * U R n) - (X * U R n + T R (n + 1)) : by ring

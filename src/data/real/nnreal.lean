@@ -4,12 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.algebra.basic
-import algebra.order.nonneg
+import algebra.order.field.canonical.basic
+import algebra.order.nonneg.field
+import algebra.order.nonneg.floor
 import data.real.pointwise
+import order.conditionally_complete_lattice.group
 import tactic.positivity
 
 /-!
 # Nonnegative real numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `nnreal` (notation: `ℝ≥0`) to be the type of non-negative real numbers,
 a.k.a. the interval `[0, ∞)`. We also define the following operations and structures on `ℝ≥0`:
@@ -50,7 +56,7 @@ open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 @[derive [
-  ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  strict_ordered_semiring, comm_monoid_with_zero, -- to ensure these instances are computable
   floor_semiring, comm_semiring, semiring,
   semilattice_inf, semilattice_sup,
   distrib_lattice, densely_ordered, order_bot,
@@ -89,6 +95,9 @@ noncomputable def _root_.real.to_nnreal (r : ℝ) : ℝ≥0 := ⟨max r 0, le_ma
 lemma _root_.real.coe_to_nnreal (r : ℝ) (hr : 0 ≤ r) : (real.to_nnreal r : ℝ) = r :=
 max_eq_left hr
 
+lemma _root_.real.to_nnreal_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ⟨r, hr⟩ :=
+by simp_rw [real.to_nnreal, max_eq_left hr]
+
 lemma _root_.real.le_coe_to_nnreal (r : ℝ) : r ≤ real.to_nnreal r :=
 le_max_left r 0
 
@@ -123,7 +132,7 @@ protected lemma coe_two : ((2 : ℝ≥0) : ℝ) = 2 := rfl
 
 @[simp, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) :
   ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
-max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
+max_eq_left $ le_sub_comm.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 @[simp, norm_cast] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 :=
 by rw [← nnreal.coe_zero, nnreal.coe_eq]
@@ -419,6 +428,10 @@ to_nnreal_eq_zero.2
   real.to_nnreal r ≤ real.to_nnreal p ↔ r ≤ p :=
 by simp [nnreal.coe_le_coe.symm, real.to_nnreal, hp]
 
+@[simp] lemma to_nnreal_eq_to_nnreal_iff {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
+  real.to_nnreal r = real.to_nnreal p ↔ r = p :=
+by simp [← nnreal.coe_eq, coe_to_nnreal, hr, hp]
+
 @[simp] lemma to_nnreal_lt_to_nnreal_iff' {r p : ℝ} :
   real.to_nnreal r < real.to_nnreal p ↔ r < p ∧ 0 < p :=
 nnreal.coe_lt_coe.symm.trans max_lt_max_left_iff
@@ -481,6 +494,10 @@ end
 @[simp] lemma to_nnreal_bit1 {r : ℝ} (hr : 0 ≤ r) :
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
 (real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [bit1])
+
+lemma to_nnreal_pow {x : ℝ} (hx : 0 ≤ x) (n : ℕ) : (x ^ n).to_nnreal = (x.to_nnreal) ^ n :=
+by rw [← nnreal.coe_eq, nnreal.coe_pow, real.coe_to_nnreal _ (pow_nonneg hx _),
+  real.coe_to_nnreal x hx]
 
 end to_nnreal
 
@@ -551,7 +568,7 @@ lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
 lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
 
-noncomputable example : has_ordered_sub ℝ≥0 := by apply_instance
+example : has_ordered_sub ℝ≥0 := by apply_instance
 
 lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c := tsub_div _ _ _
 
@@ -562,12 +579,6 @@ section inv
 lemma sum_div {ι} (s : finset ι) (f : ι → ℝ≥0) (b : ℝ≥0) :
   (∑ i in s, f i) / b = ∑ i in s, (f i / b) :=
 finset.sum_div
-
-@[simp] lemma inv_pos {r : ℝ≥0} : 0 < r⁻¹ ↔ 0 < r := inv_pos
-
-lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p := div_pos hr hp
-
-lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one r
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=
 by rw [← mul_le_mul_left (pos_iff_ne_zero.2 h), mul_inv_cancel h]
@@ -645,35 +656,15 @@ le_of_forall_ge_of_dense $ assume a ha,
   have (a * x⁻¹) * x ≤ y, from h _ this,
   by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
 
-lemma div_add_div_same (a b c : ℝ≥0) : a / c + b / c = (a + b) / c := div_add_div_same _ _ _
-
-lemma half_pos {a : ℝ≥0} (h : 0 < a) : 0 < a / 2 := half_pos h
-
-lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := add_halves _
-
 lemma half_le_self (a : ℝ≥0) : a / 2 ≤ a := half_le_self bot_le
 
 lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a := half_lt_self h.bot_lt
-
-lemma two_inv_lt_one : (2⁻¹:ℝ≥0) < 1 := two_inv_lt_one
 
 lemma div_lt_one_of_lt {a b : ℝ≥0} (h : a < b) : a / b < 1 :=
 begin
   rwa [div_lt_iff, one_mul],
   exact ne_of_gt (lt_of_le_of_lt (zero_le _) h)
 end
-
-@[field_simps] lemma div_add_div (a : ℝ≥0) {b : ℝ≥0} (c : ℝ≥0) {d : ℝ≥0}
-  (hb : b ≠ 0) (hd : d ≠ 0) : a / b + c / d = (a * d + b * c) / (b * d) :=
-div_add_div _ _ hb hd
-
-@[field_simps] lemma add_div' (a b c : ℝ≥0) (hc : c ≠ 0) :
-  b + a / c = (b * c + a) / c :=
-add_div' _ _ _ hc
-
-@[field_simps] lemma div_add' (a b c : ℝ≥0) (hc : c ≠ 0) :
-  a / c + b = (a + b * c) / c :=
-div_add' _ _ _ hc
 
 lemma _root_.real.to_nnreal_inv {x : ℝ} :
   real.to_nnreal x⁻¹ = (real.to_nnreal x)⁻¹ :=
@@ -696,8 +687,6 @@ by rw [div_eq_inv_mul, div_eq_inv_mul, real.to_nnreal_mul (inv_nonneg.2 hy), rea
 lemma inv_lt_one_iff {x : ℝ≥0} (hx : x ≠ 0) : x⁻¹ < 1 ↔ 1 < x :=
 by rwa [← one_div, div_lt_iff hx, one_mul]
 
-lemma inv_lt_one {x : ℝ≥0} (hx : 1 < x) : x⁻¹ < 1 := inv_lt_one hx
-
 lemma zpow_pos {x : ℝ≥0} (hx : x ≠ 0) (n : ℤ) : 0 < x ^ n :=
 begin
   cases n,
@@ -705,10 +694,8 @@ begin
   { simp [pow_pos hx.bot_lt _] }
 end
 
-lemma inv_lt_inv_iff {x y : ℝ≥0} (hx : x ≠ 0) (hy : y ≠ 0) : y⁻¹ < x⁻¹ ↔ x < y := inv_lt_inv₀ hy hx
-
 lemma inv_lt_inv {x y : ℝ≥0} (hx : x ≠ 0) (h : x < y) : y⁻¹ < x⁻¹ :=
-(inv_lt_inv_iff hx ((bot_le.trans_lt h).ne')).2 h
+inv_lt_inv_of_lt hx.bot_lt h
 
 end inv
 
@@ -830,6 +817,8 @@ rfl
 @[simp] lemma nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : nnabs x = to_nnreal x :=
 by { ext, simp [coe_to_nnreal x h, abs_of_nonneg h] }
 
+lemma nnabs_coe (x : ℝ≥0) : nnabs x = x := by simp
+
 lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ |x| :=
 max_le (le_abs_self _) (abs_nonneg _)
 
@@ -852,7 +841,7 @@ meta def positivity_coe_nnreal_real : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
-  | nonnegative _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
+  | _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ℝ)` for `r : ℝ≥0`"

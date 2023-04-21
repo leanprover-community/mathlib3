@@ -178,11 +178,11 @@ lemma mem_insert_of_mem [is_strict_weak_order α lt] {a : α} {t : rbtree α lt}
   a ∈ t → a ∈ t.insert b :=
 begin cases t, apply rbnode.mem_insert_of_mem end
 
-lemma equiv_or_mem_of_mem_insert [is_strict_weak_order α lt] {a b : α} {t : rbtree α lt} :
+lemma equiv_or_mem_of_mem_insert {a b : α} {t : rbtree α lt} :
   a ∈ t.insert b → a ≈[lt] b ∨ a ∈ t :=
 begin cases t, apply rbnode.equiv_or_mem_of_mem_insert end
 
-lemma incomp_or_mem_of_mem_ins [is_strict_weak_order α lt] {a b : α} {t : rbtree α lt} :
+lemma incomp_or_mem_of_mem_ins {a b : α} {t : rbtree α lt} :
   a ∈ t.insert b → (¬ lt a b ∧ ¬ lt b a) ∨ a ∈ t :=
 equiv_or_mem_of_mem_insert
 

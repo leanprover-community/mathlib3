@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import field_theory.splitting_field
+import field_theory.normal
 import field_theory.perfect_closure
-import field_theory.separable
+import ring_theory.localization.integral
 
 /-!
 # Algebraically Closed Field
@@ -168,6 +168,19 @@ class is_alg_closure (R : Type u) (K : Type v) [comm_ring R]
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
+@[priority 100]
+instance is_alg_closure.normal (R K : Type*) [field R] [field K] [algebra R K] [is_alg_closure R K]:
+  normal R K :=
+⟨is_alg_closure.algebraic, λ _,
+  @is_alg_closed.splits_codomain _ _ _ (is_alg_closure.alg_closed R) _ _ _⟩
+
+@[priority 100]
+instance is_alg_closure.separable (R K : Type*) [field R] [field K] [algebra R K]
+[is_alg_closure R K] [char_zero R] :
+  is_separable R K :=
+⟨λ _, is_algebraic_iff_is_integral.mp (is_alg_closure.algebraic _), λ _, (minpoly.irreducible
+  (is_algebraic_iff_is_integral.mp (is_alg_closure.algebraic _))).separable⟩
 
 namespace lift
 
@@ -486,3 +499,26 @@ ring_hom.ext_iff.2 (equiv_of_equiv_symm_algebra_map L M hSR)
 end equiv_of_equiv
 
 end is_alg_closure
+
+/-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K/F` an algebraic extension
+  of fields. Then the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
+  the roots in `A` of the minimal polynomial of `x` over `F`. -/
+lemma algebra.is_algebraic.range_eval_eq_root_set_minpoly {F K} (A) [field F] [field K] [field A]
+  [is_alg_closed A] [algebra F K] (hK : algebra.is_algebraic F K) [algebra F A] (x : K) :
+  set.range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
+begin
+  have := algebra.is_algebraic_iff_is_integral.1 hK,
+  ext a, rw [mem_root_set_of_ne (minpoly.ne_zero (this x))]; [skip, apply_instance],
+  refine ⟨_, λ ha, _⟩,
+  { rintro ⟨ψ, rfl⟩, rw [aeval_alg_hom_apply ψ x, minpoly.aeval, map_zero] },
+  let Fx := adjoin_root (minpoly F x),
+  have hx : aeval x (minpoly F x) = 0 := minpoly.aeval F x,
+  letI : algebra Fx A := (adjoin_root.lift (algebra_map F A) a ha).to_algebra,
+  letI : algebra Fx K := (adjoin_root.lift (algebra_map F K) x hx).to_algebra,
+  haveI : is_scalar_tower F Fx A := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ a ha),
+  haveI : is_scalar_tower F Fx K := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ x hx),
+  haveI : fact (irreducible $ minpoly F x) := ⟨minpoly.irreducible $ this x⟩,
+  let ψ₀ : K →ₐ[Fx] A := is_alg_closed.lift (algebra.is_algebraic_of_larger_base F Fx hK),
+  exact ⟨ψ₀.restrict_scalars F, (congr_arg ψ₀ (adjoin_root.lift_root hx).symm).trans $
+    (ψ₀.commutes _).trans $ adjoin_root.lift_root ha⟩,
+end

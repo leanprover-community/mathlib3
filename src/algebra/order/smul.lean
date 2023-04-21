@@ -5,13 +5,16 @@ Authors: Frédéric Dupuis
 -/
 import algebra.module.pi
 import algebra.module.prod
-import algebra.order.field
+import algebra.order.monoid.prod
 import algebra.order.pi
-import data.set.pointwise
+import data.set.pointwise.smul
 import tactic.positivity
 
 /-!
 # Ordered scalar product
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -256,6 +259,7 @@ variables {M}
 end linear_ordered_semifield
 
 namespace tactic
+section ordered_smul
 variables [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] [ordered_smul R M]
   {a : R} {b : M}
 
@@ -265,13 +269,26 @@ smul_nonneg ha.le hb
 private lemma smul_nonneg_of_nonneg_of_pos (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a • b :=
 smul_nonneg ha hb.le
 
+end ordered_smul
+
+section no_zero_smul_divisors
+variables [has_zero R] [has_zero M] [has_smul R M] [no_zero_smul_divisors R M] {a : R} {b : M}
+
+private lemma smul_ne_zero_of_pos_of_ne_zero [preorder R] (ha : 0 < a) (hb : b ≠ 0) : a • b ≠ 0 :=
+smul_ne_zero ha.ne' hb
+
+private lemma smul_ne_zero_of_ne_zero_of_pos [preorder M] (ha : a ≠ 0) (hb : 0 < b) : a • b ≠ 0 :=
+smul_ne_zero ha hb.ne'
+
+end no_zero_smul_divisors
+
 open positivity
 
-/-- Extension for the `positivity` tactic: scalar multiplication is nonnegative if both sides are
-nonnegative, and strictly positive if both sides are. -/
+/-- Extension for the `positivity` tactic: scalar multiplication is nonnegative/positive/nonzero if
+both sides are. -/
 @[positivity]
 meta def positivity_smul : expr → tactic strictness
-| `(%%a • %%b) := do
+| e@`(%%a • %%b) := do
   strictness_a ← core a,
   strictness_b ← core b,
   match strictness_a, strictness_b with
@@ -279,7 +296,11 @@ meta def positivity_smul : expr → tactic strictness
   | positive pa, nonnegative pb := nonnegative <$> mk_app ``smul_nonneg_of_pos_of_nonneg [pa, pb]
   | nonnegative pa, positive pb := nonnegative <$> mk_app ``smul_nonneg_of_nonneg_of_pos [pa, pb]
   | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``smul_nonneg [pa, pb]
+  | positive pa, nonzero pb := nonzero <$> to_expr ``(smul_ne_zero_of_pos_of_ne_zero %%pa %%pb)
+  | nonzero pa, positive pb := nonzero <$> to_expr ``(smul_ne_zero_of_ne_zero_of_pos %%pa %%pb)
+  | nonzero pa, nonzero pb := nonzero <$> to_expr ``(smul_ne_zero %%pa %%pb)
+  | sa@_, sb@ _ := positivity_fail e a b sa sb
   end
-| _ := failed
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a • b`"
 
 end tactic

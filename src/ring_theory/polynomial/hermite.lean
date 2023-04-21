@@ -51,6 +51,8 @@ begin
   simp only [map_one, mul_one, derivative_one, sub_zero]
 end
 
+/-! ### Lemmas about `polynomial.coeff` -/
+
 section coeff
 
 lemma coeff_hermite_succ_zero (n : ℕ) :

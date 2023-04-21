@@ -38,8 +38,6 @@ This will give rise to a monomial in `mv_polynomial σ R` which mathematicians m
 
 noncomputable theory
 
-open_locale big_operators
-
 open set function finsupp add_monoid_algebra
 open_locale big_operators
 
@@ -78,12 +76,12 @@ variables {σ} (p)
 
 section degrees
 
-lemma degrees_neg [decidable_eq σ] (p : mv_polynomial σ R) : (- p).degrees = p.degrees :=
+lemma degrees_neg (p : mv_polynomial σ R) : (- p).degrees = p.degrees :=
 by rw [degrees, support_neg]; refl
 
 lemma degrees_sub [decidable_eq σ] (p q : mv_polynomial σ R) :
   (p - q).degrees ≤ p.degrees ⊔ q.degrees :=
-by simpa only [sub_eq_add_neg, degrees_neg] using degrees_add p (-q)
+by classical; simpa only [sub_eq_add_neg, degrees_neg] using degrees_add p (-q)
 
 end degrees
 
@@ -91,7 +89,7 @@ section vars
 
 variables (p q)
 
-@[simp] lemma vars_neg [decidable_eq σ] : (-p).vars = p.vars :=
+@[simp] lemma vars_neg : (-p).vars = p.vars :=
 by simp [vars, degrees_neg]
 
 lemma vars_sub_subset [decidable_eq σ] : (p - q).vars ⊆ p.vars ∪ q.vars :=
@@ -145,11 +143,12 @@ end eval₂
 
 section degree_of
 
-lemma degree_of_sub_lt [decidable_eq σ] {x : σ} {f g : mv_polynomial σ R} {k : ℕ} (h : 0 < k)
+lemma degree_of_sub_lt {x : σ} {f g : mv_polynomial σ R} {k : ℕ} (h : 0 < k)
   (hf : ∀ (m : σ →₀ ℕ), m ∈ f.support → (k ≤ m x) → coeff m f = coeff m g)
   (hg : ∀ (m : σ →₀ ℕ), m ∈ g.support → (k ≤ m x) → coeff m f = coeff m g) :
   degree_of x (f - g) < k :=
 begin
+  classical,
   rw degree_of_lt_iff h,
   intros m hm,
   by_contra hc,

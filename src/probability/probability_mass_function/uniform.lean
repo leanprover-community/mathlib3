@@ -32,6 +32,16 @@ noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
+
+-- TODO: move
+lemma multiset.to_finset_nonempty (s : multiset α) : s.to_finset.nonempty ↔ s ≠ 0 :=
+by simp only [ne.def, finset.nonempty_iff_ne_empty, multiset.to_finset_eq_empty]
+
+lemma list.to_finset_nonempty (l : list α) : l.to_finset.nonempty ↔ ¬ l.empty :=
+begin
+  sorry,
+end
+
 section uniform_of_finset
 
 /-- Uniform distribution taking the same non-zero probability on the nonempty finset `s` -/
@@ -152,6 +162,15 @@ lemma of_multiset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_multiset s hs a 
 by simpa only [of_multiset_apply, ennreal.div_zero_iff, nat.cast_eq_zero,
   multiset.count_eq_zero, ennreal.nat_ne_top, or_false] using ha
 
+lemma of_multiset_eq_uniform_of_finset (hs' : s.nodup) :
+  of_multiset s hs = uniform_of_finset s.to_finset ((multiset.to_finset_nonempty s).2 hs) :=
+begin
+  refine pmf.ext (λ x, _),
+  simp_rw [of_multiset_apply, uniform_of_finset_apply, multiset.count_eq_of_nodup hs',
+    multiset.card_to_finset, multiset.nodup.dedup hs', multiset.mem_to_finset],
+  split_ifs; simp only [algebra_map.coe_one, one_div, algebra_map.coe_zero, ennreal.zero_div]
+end
+
 section measure
 
 variable (t : set α)
@@ -179,44 +198,46 @@ section of_list
 /-- Given a non-empty list `l` construct the `pmf` that chooses an element in `l` uniformly.
 This requires a proof `h : ¬ l.empty` to ensure the total probability is `1`. -/
 def of_list (l : list α) (h : ¬ l.empty) : pmf α :=
-pmf.of_multiset (quotient.mk l) (h ∘ (multiset.coe_eq_zero_iff_empty l).1)
+of_multiset (quotient.mk l) (h ∘ (multiset.coe_eq_zero_iff_empty l).1)
 
 variables (l : list α) (h : ¬ l.empty)
 
-@[simp] lemma support_of_list : (of_list l h).support = {x | x ∈ l} :=
-trans (pmf.support_of_multiset _) (set.ext $ λ x, by simp only [multiset.quot_mk_to_coe,
-  finset.mem_coe, multiset.mem_to_finset, multiset.mem_coe, set.mem_set_of_eq])
+@[simp] lemma support_of_list : (of_list l h).support = {x | x ∈ l} := by simp [of_list]
 
-lemma mem_support_of_list_iff (a : α) : a ∈ (of_list l h).support ↔ a ∈ l :=
-by simp only [support_of_list, set.mem_set_of_eq]
+lemma mem_support_of_list_iff (x : α) : x ∈ (of_list l h).support ↔ x ∈ l := by simp
 
-@[simp] lemma of_list_apply (a : α) : of_list l h a = l.count a / l.length :=
-by rw [of_list, pmf.of_multiset_apply, multiset.quot_mk_to_coe,
-  multiset.coe_count, multiset.coe_card]
+@[simp] lemma of_list_apply (x : α) : of_list l h x = l.count x / l.length := by simp [of_list]
 
-lemma of_list_apply_of_not_mem (a : α) (ha : a ∉ l) : of_list l h a = 0 :=
-(pmf.apply_eq_zero_iff _ a).2 (mt (mem_support_of_list_iff l h a).1 ha)
+lemma of_list_apply_of_not_mem {x : α} (hx : x ∉ l) : of_list l h x = 0 := by simpa
+
+lemma of_list_eq_uniform_of_finset (hl : l.nodup) :
+  of_list l h = uniform_of_finset l.to_finset ((l.to_finset_nonempty).2 h) :=
+of_multiset_eq_uniform_of_finset _ hl
 
 section measure
 
-variable (t : set α)
-
-@[simp] lemma to_outer_measure_of_list_apply :
+@[simp] lemma to_outer_measure_of_list_apply (t : set α) :
   (of_list l h).to_outer_measure t = l.countp (∈ t) / l.length :=
-begin
-  suffices : ∑ x in l.to_finset, (l.filter (∈ t)).count x =
-    ∑ x in (l.to_finset.filter (∈ t)), l.count x,
-  { simp only [of_list, to_outer_measure_of_multiset_apply, list.length,
-      multiset.quot_mk_to_coe, multiset.coe_filter, multiset.coe_count, multiset.coe_card,
-      ← finset.sum_filter_count_eq_countp, ← this, nat.cast_sum],
-    refine congr_arg (λ x, x / (l.length : ℝ≥0∞)) (tsum_eq_sum (λ x hx, _)),
-    simp [(λ h, hx (list.mem_to_finset.2 h) : x ∉ l)] },
-  rw [finset.sum_filter],
-  refine finset.sum_congr rfl (λ x hx, by split_ifs with hxt; simp [hxt]),
-end
+calc (of_list l h).to_outer_measure t = (∑' x, (l.filter (∈ t)).count x) / l.length :
+    by simp only [of_list, multiset.quot_mk_to_coe, to_outer_measure_of_multiset_apply,
+      multiset.coe_filter, multiset.coe_count, multiset.coe_card]
+  ... = (∑ x in l.to_finset, (l.filter (∈ t)).count x) / l.length :
+    begin
+      refine congr_arg (λ x, x / (l.length : ℝ≥0∞)) (tsum_eq_sum _),
+      simp only [list.mem_to_finset, nat.cast_eq_zero, list.count_eq_zero, list.mem_filter, not_and,
+      ← and_imp, not_and_self, is_empty.forall_iff, implies_true_iff],
+    end
+  ... = (∑ x in (l.to_finset.filter (∈ t)), l.count x) / l.length :
+    begin
+      refine congr_arg (λ x, x / (l.length : ℝ≥0∞)) _,
+      rw [finset.sum_filter],
+      refine finset.sum_congr rfl (λ x hx, by split_ifs with hxt; simp [hxt]),
+    end
+  ... = l.countp (∈ t) / l.length : congr_arg (λ x, x / (l.length : ℝ≥0∞))
+    (by rw [← nat.cast_sum, finset.sum_filter_count_eq_countp])
 
-@[simp] lemma to_measure_of_list_apply [measurable_space α] (ht : measurable_set t) :
-  (of_list l h).to_measure t = l.countp t / l.length :=
+@[simp] lemma to_measure_of_list_apply [measurable_space α] (t : set α) (ht : measurable_set t) :
+  (of_list l h).to_measure t = l.countp (∈ t) / l.length :=
 (to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
   (to_outer_measure_of_list_apply l h t)
 

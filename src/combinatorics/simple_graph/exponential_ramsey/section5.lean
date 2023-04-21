@@ -1,5 +1,6 @@
 import combinatorics.simple_graph.exponential_ramsey.section4
 import combinatorics.simple_graph.graph_probability
+import algebra.order.chebyshev
 
 open real
 
@@ -114,18 +115,98 @@ lemma height_upper_bound : ∀ᶠ k : ℕ in at_top,
   ∀ p : ℝ, p ≤ 1 →
   (height k p₀ p : ℝ) ≤ 2 / (k : ℝ) ^ (-1 / 4 : ℝ) * log k :=
 begin
-  filter_upwards [eventually_ne_at_top 0] with k hk --
+  have : tendsto (λ k : ℝ, ⌊2 / (k : ℝ) ^ (-1 / 4 : ℝ) * log k⌋₊) at_top at_top,
+  { refine tendsto_nat_floor_at_top.comp _,
+    rw neg_div,
+    refine tendsto.at_top_mul_at_top _ tendsto_log_at_top,
+    have : ∀ᶠ k : ℝ in at_top, 2 * k ^ (1 / 4 : ℝ) = 2 / k ^ (-(1 / 4) : ℝ),
+    { filter_upwards [eventually_ge_at_top (0 : ℝ)] with k hk,
+      rw [rpow_neg hk, div_inv_eq_mul] },
+    refine tendsto.congr' this _,
+    exact (tendsto_rpow_at_top (by norm_num)).const_mul_at_top two_pos },
+  have := this.comp tendsto_coe_nat_at_top_at_top,
+  filter_upwards [eventually_ne_at_top 0, this.eventually_ge_at_top 1,
+    one_lt_q_function] with k hk hk' hk'' --
     p₀ hp₀ p hp,
-  -- rw ←nat.lt_ceil,
   rw [←nat.le_floor_iff', height, dif_pos],
   rotate,
   { exact ⟨hk, hp₀, hp⟩ },
   { rw ←pos_iff_ne_zero,
     exact one_le_height },
   refine nat.find_min' _ _,
-
-
+  exact ⟨hk', hp.trans (hk'' p₀ hp₀)⟩,
 end
-  -- 1 ≤ q_function k p₀ ⌈2 / ((k : ℝ) ^ (-1 / 4 : ℝ)) * log k⌉₊ :=
+
+open_locale big_operators
+
+-- #check weight
+
+variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)}
+
+lemma five_five_aux_part_one {X Y : finset V} :
+  ∑ x y in X, red_density χ X Y * ((red_neighbors χ x ∩ Y).card) =
+    (red_density χ X Y) ^ 2 * X.card ^ 2 * Y.card :=
+begin
+  simp_rw [sum_const, nsmul_eq_mul, ←mul_sum],
+  suffices : red_density χ X Y * X.card * Y.card = ∑ (x : V) in X, (red_neighbors χ x ∩ Y).card,
+  { rw [←this, sq, sq],
+    linarith only },
+  rcases X.eq_empty_or_nonempty with rfl | hX,
+  { rw [card_empty, nat.cast_zero, mul_zero, zero_mul, sum_empty] },
+  rcases Y.eq_empty_or_nonempty with rfl | hY,
+  { simp only [inter_empty, card_empty, nat.cast_zero, mul_zero, sum_const_zero] },
+  rw [mul_assoc, red_density_eq_sum, div_mul_cancel],
+  positivity
+end
+
+lemma five_five_aux_part_two {X Y : finset V} :
+  ∑ x y in X, (red_neighbors χ x ∩ red_neighbors χ y ∩ Y).card =
+    ∑ z in Y, (red_neighbors χ z ∩ X).card ^ 2 :=
+begin
+  simp_rw [inter_comm, card_eq_sum_ones, ←@filter_mem_eq_inter _ _ Y, ←@filter_mem_eq_inter _ _ X,
+    sum_filter, sq, sum_mul, mul_sum, boole_mul, ←ite_and, mem_inter, @sum_comm _ _ _ _ Y],
+  refine sum_congr rfl (λ x hx, _),
+  refine sum_congr rfl (λ x' hx', _),
+  refine sum_congr rfl (λ y hy, _),
+  refine if_congr _ rfl rfl,
+  rw @mem_col_neighbor_finset_comm _ _ _ _ _ _ y,
+  rw @mem_col_neighbor_finset_comm _ _ _ _ _ _ y,
+end
+
+lemma five_five_aux {X Y : finset V} :
+  ∑ x y in X, red_density χ X Y * (red_neighbors χ x ∩ Y).card ≤
+    ∑ x y in X, (red_neighbors χ x ∩ red_neighbors χ y ∩ Y).card :=
+begin
+  simp only [←nat.cast_sum],
+  rw [five_five_aux_part_one, five_five_aux_part_two, nat.cast_sum],
+  have : (∑ z in Y, (red_neighbors χ z ∩ X).card : ℝ) ^ 2 ≤
+    (Y.card : ℝ) * ∑ z in Y, ((red_neighbors χ z ∩ X).card : ℝ) ^ 2 := sq_sum_le_card_mul_sum_sq,
+  rcases X.eq_empty_or_nonempty with rfl | hX,
+  { simp },
+  rcases Y.eq_empty_or_nonempty with rfl | hY,
+  { simp },
+  have hY : 0 < (Y.card : ℝ) := by positivity,
+  rw [←div_le_iff' hY] at this,
+  simp only [nat.cast_pow],
+  refine this.trans_eq' _,
+  rw [red_density, col_density_comm, ←red_density],
+  rw [red_density_eq_sum, div_pow, div_mul_eq_mul_div, mul_pow, mul_div_mul_right,
+    div_mul_eq_mul_div, sq (Y.card : ℝ), mul_div_mul_right _ _ hY.ne'],
+  positivity
+end
+
+-- (13) observation 5.5
+lemma five_five {X Y : finset V} : 0 ≤ ∑ x y in X, pair_weight χ X Y x y :=
+begin
+  simp_rw [pair_weight, ←mul_sum, sum_sub_distrib],
+  refine mul_nonneg (by positivity) (sub_nonneg_of_le _),
+  exact five_five_aux
+end
+
+lemma five_six : ∀ᶠ l : ℕ in at_top, ∀ k : ℕ, l ≤ k →
+  k ^ 6 * ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤
+    ramsey_number ![k, ⌈(l : ℝ) ^ (3 / 4 : ℝ)⌉₊] :=
+begin
+end
 
 end simple_graph

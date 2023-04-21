@@ -13,6 +13,11 @@ def col_density [decidable_eq V] [decidable_eq K] (χ : top_edge_labelling V K) 
   (X Y : finset V) : ℝ :=
 edge_density (χ.label_graph k) X Y
 
+lemma col_density_comm [decidable_eq V] [decidable_eq K] (χ : top_edge_labelling V K) (k : K)
+  (X Y : finset V) :
+  col_density χ k X Y = col_density χ k Y X :=
+by rw [col_density, edge_density_comm, col_density]
+
 @[reducible] def red_density [decidable_eq V] (χ : top_edge_labelling V (fin 2)) (X Y : finset V) :
   ℝ := col_density χ 0 X Y
 @[reducible] def blue_density [decidable_eq V] (χ : top_edge_labelling V (fin 2)) (X Y : finset V) :

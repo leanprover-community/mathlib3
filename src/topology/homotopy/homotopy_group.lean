@@ -74,10 +74,12 @@ lemma one_char (f : I^1) : f = λ _, f 0 := eq_const_of_unique f
 section
 variable [decidable_eq N]
 
-abbreviation split_at (i : N) := (fun_split_at I i).symm
+/-- Makes a cube from a pair I × {j // j≠i}→I such that it ha the first value at coordinate i, and
+  it equals the function elsewhere. -/
+abbreviation insert_at (i : N) := (fun_split_at I i).symm
 
-lemma split_in_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
-  split_at i ⟨t₀, t⟩ ∈ boundary N :=
+lemma inserted_in_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}):
+  insert_at i ⟨t₀, t⟩ ∈ boundary N :=
 begin
   cases H, { use i, rwa [fun_split_at_symm_apply, dif_pos rfl] },
   cases H with j H,
@@ -105,8 +107,8 @@ instance fun_like : fun_like (gen_loop N x) (cube N) (λ _, X) :=
 { coe := λ f, f.1,
   coe_injective' := λ ⟨⟨f, _⟩, _⟩ ⟨⟨g, _⟩, _⟩ h, by { congr, exact h } }
 
-@[ext] lemma ext (f g : gen_loop N x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
--- using fun_like.ext is cumbersome as it's not labelled @[ext]
+@[ext] lemma ext (f g : gen_loop N x) (H : ∀ y, f y = g y) : f = g :=
+fun_like.coe_injective' (funext H)
 
 @[simp] lemma mk_apply (f : C(cube N, X)) (H y) : (⟨f, H⟩ : gen_loop N x) y = f y := rfl
 
@@ -144,11 +146,11 @@ variable [decidable_eq N]
 
 /-- Path from a generalized loop by `insert`-ing into `I^(n+1)`. -/
 @[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
-{ to_fun := λ t, ⟨(p.val.comp (cube.split_at i).to_continuous_map).curry t,
-    λ y yH, p.property (cube.split_at i (t, y)) (cube.split_in_boundary i $ or.inr yH)⟩,
+{ to_fun := λ t, ⟨(p.val.comp (cube.insert_at i).to_continuous_map).curry t,
+    λ y yH, p.property (cube.insert_at i (t, y)) (cube.inserted_in_boundary i $ or.inr yH)⟩,
   continuous_to_fun := by continuity,
-  source' := by { ext t, refine p.property (cube.split_at i (0, t)) ⟨i, or.inl _⟩, simp },
-  target' := by { ext t, refine p.property (cube.split_at i (1, t)) ⟨i, or.inr _⟩, simp } }
+  source' := by { ext t, refine p.property (cube.insert_at i (0, t)) ⟨i, or.inl _⟩, simp },
+  target' := by { ext t, refine p.property (cube.insert_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
 /-- Generalized loop from a path by `extrac`-ing of `I×I^n`. -/
 @[simps] def from_path (i : N) : Ω (gen_loop {j // j ≠ i} x) const → gen_loop N x :=
@@ -178,7 +180,7 @@ end
   right_inv := to_from i }
 
 lemma to_path_apply (i : N) {p : gen_loop N x} {t} {tn} :
-  to_path i p t tn = p (cube.split_at i ⟨t, tn⟩) := rfl
+  to_path i p t tn = p (cube.insert_at i ⟨t, tn⟩) := rfl
 
 lemma from_path_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : cube N} :
   from_path i p t = p (t i) (fun_split_at I i t).snd := rfl
@@ -194,8 +196,8 @@ variable [decidable_eq N]
 
 /-- Composition with insert as a continuous map.-/
 abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i}, X)) :=
-⟨λ f, f.comp (cube.split_at i).to_continuous_map,
-  (cube.split_at i).to_continuous_map.continuous_comp_left⟩
+⟨λ f, f.comp (cube.insert_at i).to_continuous_map,
+  (cube.insert_at i).to_continuous_map.continuous_comp_left⟩
 
 /--Homotopy of generalized loops to `C(I × I, C(cube {j // j ≠ i}, X))`. -/
 @[simps] def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
@@ -209,7 +211,7 @@ begin
   refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩, _⟩, _, _⟩, _⟩),
   { rintros y ⟨i,iH⟩,
     rw homotopy_to_apply_apply, rw H.eq_fst, rw p.2,
-    all_goals { apply cube.split_in_boundary, right, exact ⟨i,iH⟩} },
+    all_goals { apply cube.inserted_in_boundary, right, exact ⟨i,iH⟩} },
   { continuity },
   show ∀ _ _ _, _,
   { intros t y yH,
@@ -346,7 +348,7 @@ instance group : group (π_(n+1) X x) :=
 
 /-- Another group structure on `π_(n+2)` that distributes over the default one,
   so as to enable the Eckmann-Hilton argument. -/
-private def aux_group : group (π_(n+2) X x) :=
+@[reducible] private def aux_group : group (π_(n+2) X x) :=
 (homotopy_group_equiv_fundamental_group 1).group
 
 instance add_group : add_group (additive $ π_(n+2) X x) := additive.add_group
@@ -364,19 +366,22 @@ begin
 end
 
 lemma from_path_symm_to_path {p : gen_loop N x} (i : N) {t} :
-  (path_equiv i).symm (path_equiv i p).symm t = p (cube.split_at i ⟨σ (t i), λ j, t j⟩) :=
+  (path_equiv i).symm (path_equiv i p).symm t = p (cube.insert_at i ⟨σ (t i), λ j, t j⟩) :=
 by { dsimp only [path.symm, from_path, path.coe_mk], refl }
 
-/-- Characterization for the multiplication on `gen_loop`;
-  TODO: do the same for const/base point (easy) and reverse/path.symm? -/
+/-- Characterization of multiplicative identity -/
+lemma const_spec : (1 : π_(n+1) X x) = ⟦const⟧ := rfl
+
+/-- Characterization of multiplication -/
 lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
   ∃ r, (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦r⟧ ∧ ∀ t, r t = if (t 0 : ℝ) ≤ 1/2
     then q (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0) else t j)
     else p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
 ⟨_, rfl, λ _, from_path_trans_to_path 0⟩
 
-lemma symm_spec { p : gen_loop (fin (n+1)) x} :
-  ∃ q, (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦q⟧ ∧ ∀ t, q t = p ((fun_split_at I ↑0).symm (σ (t 0), λ j, t ↑j)) :=
+/-- Characterization of multiplicative inverse -/
+lemma symm_spec {p : gen_loop (fin (n+1)) x} :
+  ∃ q, (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦q⟧ ∧ ∀ t, q t = p (cube.insert_at ↑0 (σ (t 0), λ j, t ↑j)) :=
 ⟨_, rfl, λ _, from_path_symm_to_path _⟩
 
 /-- Multiplication on `π_(n+2}` is commutative. -/

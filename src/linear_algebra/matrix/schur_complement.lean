@@ -24,6 +24,7 @@ This file proves properties of 2×2 block matrices `[A B; C D]` that relate to t
 variables {l m n α : Type*}
 
 namespace matrix
+open_locale matrix
 
 section comm_ring
 variables [fintype l] [fintype m] [fintype n]
@@ -47,10 +48,10 @@ lemma from_blocks_eq_of_invertible₂₂
   from_blocks A B C D =
     from_blocks 1 (B⬝⅟D) 0 1 ⬝ from_blocks (A - B⬝⅟D⬝C) 0 0 D ⬝ from_blocks 1 0 (⅟D ⬝ C) 1 :=
 (matrix.reindex (equiv.sum_comm _ _) (equiv.sum_comm _ _)).injective $ by
-  simpa [reindex_apply, sum_comm_symm,
+  simpa [reindex_apply, equiv.sum_comm_symm,
     ←submatrix_mul_equiv _ _ _ (equiv.sum_comm n m),
     ←submatrix_mul_equiv _ _ _ (equiv.sum_comm n l),
-    sum_comm_apply, from_blocks_submatrix_sum_swap_sum_swap]
+    equiv.sum_comm_apply, from_blocks_submatrix_sum_swap_sum_swap]
     using from_blocks_eq_of_invertible₁₁ D C B A
 
 /-! ### Lemmas about `matrix.det` -/
@@ -76,7 +77,8 @@ of the Schur complement. -/
 lemma det_from_blocks₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
 begin
-  have : from_blocks A B C D = (from_blocks D C B A).submatrix (sum_comm _ _) (sum_comm _ _),
+  have : from_blocks A B C D
+    = (from_blocks D C B A).submatrix (equiv.sum_comm _ _) (equiv.sum_comm _ _),
   { ext i j,
     cases i; cases j; refl },
   rw [this, det_submatrix_equiv_self, det_from_blocks₁₁],
@@ -122,7 +124,7 @@ end comm_ring
 section is_R_or_C
 
 open_locale matrix
-variables {n : Type*} {m : Type*} {𝕜 : Type*} [is_R_or_C 𝕜]
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
 
 localized "infix ` ⊕ᵥ `:65 := sum.elim" in matrix
 
@@ -151,14 +153,6 @@ begin
     conj_transpose_nonsing_inv, star_mul_vec],
   abel
 end
-
-end matrix
-
-namespace matrix
-
-open_locale matrix
-variables {n : Type*} {m : Type*}
-  {𝕜 : Type*} [is_R_or_C 𝕜]
 
 lemma is_hermitian.from_blocks₁₁ [fintype m] [decidable_eq m]
   {A : matrix m m 𝕜} (B : matrix m n 𝕜) (D : matrix n n 𝕜)

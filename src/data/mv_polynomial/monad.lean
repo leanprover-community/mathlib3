@@ -288,9 +288,9 @@ lemma bind₂_monomial_one (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) 
 by rw [bind₂_monomial, f.map_one, one_mul]
 
 section
+open_locale classical
 
-lemma vars_bind₁ [decidable_eq σ] [decidable_eq τ]
-  (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+lemma vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
   (bind₁ f φ).vars ⊆ φ.vars.bUnion (λ i, (f i).vars) :=
 begin
   calc (bind₁ f φ).vars
@@ -320,8 +320,7 @@ begin
 end
 end
 
-lemma mem_vars_bind₁ [decidable_eq τ] [decidable_eq σ]
-  (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) {j : τ}
+lemma mem_vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) {j : τ}
   (h : j ∈ (bind₁ f φ).vars) :
   ∃ (i : σ), i ∈ φ.vars ∧ j ∈ (f i).vars :=
 by simpa only [exists_prop, finset.mem_bUnion, mem_support_iff, ne.def] using vars_bind₁ f φ h

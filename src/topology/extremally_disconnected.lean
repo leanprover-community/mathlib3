@@ -6,7 +6,6 @@ Authors: Johan Commelin
 import topology.stone_cech
 
 /-!
-
 # Extremally disconnected spaces
 
 An extremally disconnected topological space is a space
@@ -29,9 +28,7 @@ category of compact Hausdorff spaces.
 
 ## References
 
-Gleason, Andrew M. (1958), "Projective topological spaces",
-Illinois Journal of Mathematics, 2 (4A): 482–489,
-doi:10.1215/ijm/1255454110, MR 0121775
+[Gleason, *Projective topological spaces*][gleason1958]
 -/
 
 noncomputable theory

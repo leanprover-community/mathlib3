@@ -675,7 +675,7 @@ begin
   convert (rfl : ⅟(from_blocks A B 0 D) = _),
 end
 
-lemma inv_of_from_blocks_zero₂₂_eq
+lemma inv_of_from_blocks_zero₁₂_eq
   (A : matrix m m α) (C : matrix n m α) (D : matrix n n α)
   [invertible A] [invertible D] [invertible (from_blocks A 0 C D)] :
   ⅟(from_blocks A 0 C D) = from_blocks (⅟A) 0 (-(⅟D⬝C⬝⅟A)) (⅟D) :=

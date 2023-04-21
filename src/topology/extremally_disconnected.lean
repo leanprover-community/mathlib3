@@ -3,9 +3,9 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import topology.category.CompHaus.basic
 import topology.compact_open
 import topology.stone_cech
-import topology.category.CompHaus
 
 /-!
 
@@ -36,11 +36,12 @@ Illinois Journal of Mathematics, 2 (4A): 482–489,
 doi:10.1215/ijm/1255454110, MR 0121775
 -/
 
-universe variables u v w
-
 noncomputable theory
+
+open set
 open_locale classical
 
+universes u v w
 variables (X : Type u) [topological_space X]
 
 open function
@@ -53,11 +54,12 @@ class extremally_disconnected : Prop :=
 section
 
 include X
+
 /--  The assertion `compact_t2.projective` states that given continuous maps
 `f : X → Z` and `g : Y → Z` with `g` surjective between `t_2`, compact topological spaces,
 there exists a continuous lift `h : X → Y`, such that `f = g ∘ h`. -/
 def compact_t2.projective : Prop :=
-  Π {Y Z : Type u} [topological_space Y] [topological_space Z],
+Π {Y Z : Type u} [topological_space Y] [topological_space Z],
   by exactI Π [compact_space Y] [t2_space Y] [compact_space Z] [t2_space Z],
   Π {f : X → Z} {g : Y → Z} (hf : continuous f) (hg : continuous g) (g_sur : surjective g),
   ∃ h : X → Y, continuous h ∧ g ∘ h = f
@@ -75,54 +77,43 @@ begin
   have ht : continuous t := continuous_of_discrete_topology,
   let h : stone_cech X → Y := stone_cech_extend ht,
   have hh : continuous h := continuous_stone_cech_extend ht,
-  use [h, hh],
-  apply dense_range_stone_cech_unit.equalizer (hg.comp hh) hf,
+  refine ⟨h, hh, dense_range_stone_cech_unit.equalizer (hg.comp hh) hf _⟩,
   rw [comp.assoc, stone_cech_extend_extends ht, ← comp.assoc, hs, comp.left_id],
 end
 
-lemma extremally_disconnected_of_projective [compact_space X] [t2_space X]
+protected lemma compact_t2.projective.extremally_disconnected [compact_space X] [t2_space X]
   (h : compact_t2.projective X) :
   extremally_disconnected X :=
 begin
   refine { open_closure := λ U hU, _ },
-  let Z₁ : set (X × bool) := (Uᶜ).prod {tt},
-  let Z₂ : set (X × bool) := (closure U).prod {ff},
+  let Z₁ : set (X × bool) := Uᶜ ×ˢ {tt},
+  let Z₂ : set (X × bool) := closure U ×ˢ {ff},
   let Z : set (X × bool) := Z₁ ∪ Z₂,
-  have hZ₁ : is_closed Z₁ := is_closed.prod (is_closed_compl_iff.mpr hU) (t1_space.t1 tt),
-  have hZ₂ : is_closed Z₂ := is_closed.prod is_closed_closure (t1_space.t1 ff),
-  have hZ : is_closed Z := is_closed.union hZ₁ hZ₂,
-  have h_compl : ((subtype.val : Z → (X × bool)) ⁻¹' Z₂)ᶜ = subtype.val ⁻¹' Z₁,
-  { ext x, cases x with x hx, change x ∈ (_ ∪ _) at hx,
-    simp only [set.mem_preimage, not_and, eq_tt_eq_not_eq_ff, set.mem_singleton_iff,
-      set.mem_prod, set.mem_union_eq, set.mem_compl_eq] at hx ⊢,
-    rcases hx with hx | ⟨hx1, hx2⟩,
-    { simp only [hx, implies_true_iff, eq_self_iff_true, not_false_iff, and_self] },
-    { simp only [hx1, hx2, forall_true_left, and_false] } },
+  have hZ₁₂ : disjoint Z₁ Z₂ := disjoint_left.2 (λ x hx₁ hx₂, by cases hx₁.2.symm.trans hx₂.2),
+  have hZ₁ : is_closed Z₁ := hU.is_closed_compl.prod  (t1_space.t1 _),
+  have hZ₂ : is_closed Z₂ := is_closed_closure.prod (t1_space.t1 ff),
+  have hZ : is_closed Z := hZ₁.union  hZ₂,
   let f : Z → X := prod.fst ∘ subtype.val,
   have f_cont : continuous f := continuous_fst.comp continuous_subtype_val,
   have f_sur : surjective f,
-  { intro x, by_cases hx : x ∈ U,
-    { refine ⟨⟨(x, ff), _⟩, rfl⟩, right, exact ⟨subset_closure hx, set.mem_singleton _⟩ },
-    { refine ⟨⟨(x, tt), _⟩, rfl⟩, left, refine ⟨hx, set.mem_singleton _⟩ } },
+  { intro x,
+    by_cases hx : x ∈ U,
+    { exact ⟨⟨(x, ff), or.inr ⟨subset_closure hx, set.mem_singleton _⟩⟩, rfl⟩  },
+    { exact ⟨⟨(x, tt), or.inl ⟨hx, set.mem_singleton _⟩⟩, rfl⟩ } },
   haveI : compact_space Z := is_compact_iff_compact_space.mp hZ.is_compact,
-  rcases h continuous_id f_cont f_sur with ⟨g, hg, g_sec⟩,
-  let φ := subtype.val ∘ g,
+  obtain ⟨g, hg, g_sec⟩ := h continuous_id f_cont f_sur,
+  let φ := coe ∘ g,
   have hφ : continuous φ := continuous_subtype_val.comp hg,
-  have hfstφ : prod.fst ∘ φ = id := by rwa comp.assoc at g_sec,
+  have hφ₁ : ∀ x, (φ x).1 = x := congr_fun g_sec,
   suffices : closure U = φ ⁻¹' Z₂,
-  { rw [this, set.preimage_comp], apply continuous_def.mp hg,
-    rw [← is_closed_compl_iff, h_compl],
-    exact continuous_iff_is_closed.mp continuous_subtype_val Z₁ hZ₁ },
-  have key : ∀ x ∈ U, φ x = (x, ff),
-  { intros x hx,
-    replace hfstφ := congr_fun hfstφ x, rw comp_apply at hfstφ,
-    ext, { exact hfstφ },
-    { have : φ x ∈ (Z₁ ∪ Z₂) := (g x).property,
-      simp [hx, hfstφ] at this, exact this.2 } },
-  apply set.subset.antisymm,
-  { apply closure_minimal _ (continuous_iff_is_closed.mp hφ Z₂ hZ₂),
-    intros x hx, simp [key _ hx], exact subset_closure hx },
-  { intros x hx, rw [set.mem_preimage, set.mem_prod] at hx,
-    replace hfstφ := congr_fun hfstφ x, rw comp_apply at hfstφ,
-    rw hfstφ at hx, exact hx.1 }
+  { rw [this, set.preimage_comp, ←is_closed_compl_iff, ←preimage_compl,
+      ←preimage_subtype_coe_eq_compl subset.rfl],
+    { exact hZ₁.preimage hφ },
+    { rw [hZ₁₂.inter_eq, inter_empty] } },
+  refine (closure_minimal _ $ hZ₂.preimage hφ).antisymm (λ x hx, _),
+  { rintro x hx,
+    have : φ x ∈ (Z₁ ∪ Z₂) := (g x).2,
+    simpa [hx, hφ₁] using this },
+  { rw ←hφ₁ x,
+    exact hx.1 }
 end

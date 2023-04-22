@@ -41,7 +41,6 @@ by { rcases p, rcases q, simp_rw [←of_finsupp_add, coeff], exact finsupp.add_a
 
 @[simp] lemma coeff_bit0 (p : R[X]) (n : ℕ) : coeff (bit0 p) n = bit0 (coeff p n) := by simp [bit0]
 
--- [semiring K] [smul_zero_class α K] (a : α) (x : K[X]) (n : ℕ)
 @[simp] lemma coeff_smul [smul_zero_class S R] (r : S) (p : R[X]) (n : ℕ) :
   coeff (r • p) n = r • coeff p n :=
 by { rcases p, simp_rw [←of_finsupp_smul, coeff], exact finsupp.smul_apply _ _ _ }

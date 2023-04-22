@@ -10,6 +10,7 @@ import measure_theory.group.integration
 import topology.continuous_function.zero_at_infty
 import analysis.fourier.fourier_transform
 import analysis.inner_product_space.dual
+import topology.metric_space.emetric_paracompact
 
 /-!
 # The Riemann-Lebesgue Lemma
@@ -31,11 +32,11 @@ equivalence to an inner-product space.
 ## Main results
 
 - `tendsto_integral_exp_inner_smul_cocompact` : for `V` a finite-dimensional real inner product
-  space and `f : V → E` integrable, the function `λ w : V, ∫ v : V, exp (⟪w, v⟫ * I) • f v` tends
-  to 0 along `cocompact V`.
+  space and `f : V → E`, the function `λ w : V, ∫ v : V, exp (2 * π * ⟪w, v⟫ * I) • f v` tends to 0
+  along `cocompact V`.
 - `tendsto_integral_exp_smul_cocompact` : for `V` a finite-dimensional real vector space (endowed
   with its unique Hausdorff topological vector space structure), and `W` the dual of `V`, the
-  function `λ w : W, ∫ v : V, exp (w v * I) • f v` tends to along `cocompact W`.
+  function `λ w : W, ∫ v : V, exp (2 * π * w v * I) • f v` tends to along `cocompact W`.
 - `real.tendsto_integral_exp_smul_cocompact`: special case of functions on `ℝ`.
 - `real.zero_at_infty_fourier_integral` and `real.zero_at_infty_vector_fourier_integral`:
   reformulations explicitly using the Fourier integral.
@@ -43,7 +44,7 @@ equivalence to an inner-product space.
 noncomputable theory
 
 open measure_theory filter complex set finite_dimensional
-open_locale filter topology real ennreal fourier_transform real_inner_product_space
+open_locale filter topology real ennreal fourier_transform real_inner_product_space nnreal
 
 variables {E V : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f : V → E}
 
@@ -60,7 +61,7 @@ local attribute [instance, priority 500] borel_space_of_normed_add_comm_group
 
 variables [inner_product_space ℝ V] [finite_dimensional ℝ V]
 
-/-- The integrand in the Riemann-Lebesgue lemma is integrable. -/
+/-- The integrand in the Riemann-Lebesgue lemma for `f` is integrable iff `f` is. -/
 lemma fourier_integrand_integrable (w : V) :
   integrable f ↔ integrable (λ v : V, e [-⟪v, w⟫] • f v) :=
 begin
@@ -105,9 +106,9 @@ begin
 end
 
 /-- Riemann-Lebesgue Lemma for continuous and compactly-supported functions: the integral
-`∫ v, exp (2 * π * ⟪w, v⟫ * I) • f v` tends to 0 wrt `cocompact V`. Note that this is primarily
+`∫ v, exp (-2 * π * ⟪w, v⟫ * I) • f v` tends to 0 wrt `cocompact V`. Note that this is primarily
 of interest as a preparatory step for the more general result
-`tendsto_integral_exp_inner_smul_cocompact` in which `f` may be any `L¹` function. -/
+`tendsto_integral_exp_inner_smul_cocompact` in which `f` can be arbitrary. -/
 lemma tendsto_integral_exp_inner_smul_cocompact_of_continuous_compact_support
   (hf1 : continuous f) (hf2 : has_compact_support f) :
   tendsto (λ w : V, ∫ v : V, e[-⟪v, w⟫] • f v) (cocompact V) (𝓝 0) :=
@@ -124,7 +125,7 @@ begin
   { suffices : A = metric.closed_ball (0 : V) (R + 1),
     by { rw this, exact metric.is_closed_ball.measurable_set },
     simp_rw [A, metric.closed_ball, dist_eq_norm, sub_zero] },
-  obtain ⟨B, hB_pos, hB_vol⟩ : ∃ (B : nnreal), 0 < B ∧ volume A ≤ B,
+  obtain ⟨B, hB_pos, hB_vol⟩ : ∃ (B : ℝ≥0), 0 < B ∧ volume A ≤ B,
   { have hc : is_compact A, by simpa only [metric.closed_ball, dist_eq_norm, sub_zero]
       using is_compact_closed_ball (0 : V) _,
     let B₀ := volume A,
@@ -166,7 +167,7 @@ begin
       exact (mul_pos (zero_lt_two' ℝ) hδ1).le },
     { exact ((le_add_iff_nonneg_right _).mpr zero_le_one).trans hv.le } },
   rw int_A, clear int_A,
-  --* Bound integral using fact that ‖f v - f (v + w')‖ is small.
+  --* Bound integral using fact that `‖f v - f (v + w')‖` is small.
   have bdA : ∀ v : V, (v ∈ A) → ‖ ‖f v - f (v + i w) ‖ ‖ ≤ ε / B,
   { simp_rw norm_norm,
     simp_rw dist_eq_norm at hδ2,
@@ -194,8 +195,8 @@ end
 
 variables (f)
 
-/-- Riemann-Lebesgue lemma for integrable functions on a real inner-product space:
-the integral `∫ v, exp (2 * π * ⟪w, v⟫ * I) • f v` tends to 0 as `w → ∞`. -/
+/-- Riemann-Lebesgue lemma for functions on a real inner-product space: the integral
+`∫ v, exp (-2 * π * ⟪w, v⟫ * I) • f v` tends to 0 as `w → ∞`. -/
 theorem tendsto_integral_exp_inner_smul_cocompact :
   tendsto (λ w : V, ∫ v, e [-⟪v, w⟫] • f v) (cocompact V) (𝓝 0) :=
 begin
@@ -205,7 +206,6 @@ begin
     apply integral_undef,
     rwa ←fourier_integrand_integrable w },
   refine metric.tendsto_nhds.mpr (λ ε hε, _),
-  haveI : normal_space V := normal_space_of_t3_second_countable V,
   obtain ⟨g, hg_supp, hfg, hg_cont, -⟩ :=
     hfi.exists_has_compact_support_integral_sub_le (div_pos hε two_pos),
   refine ((metric.tendsto_nhds.mp
@@ -235,8 +235,9 @@ theorem real.zero_at_infty_fourier_integral (f : ℝ → E) :
   tendsto (𝓕 f) (cocompact ℝ) (𝓝 0) :=
 tendsto_integral_exp_inner_smul_cocompact f
 
-/-- Riemann-Lebesgue lemma for integrable functions, formulated via dual space.
-  **Do not use** -- it is only a stepping stone to `tendsto_integral_exp_smul_cocompact`. -/
+/-- Riemann-Lebesgue lemma for functions on a finite-dimensional inner-product space, formulated
+via dual space. **Do not use** -- it is only a stepping stone to
+`tendsto_integral_exp_smul_cocompact` where the inner-product-space structure isn't required. -/
 lemma tendsto_integral_exp_smul_cocompact_of_inner_product (μ : measure V) [μ.is_add_haar_measure] :
   tendsto (λ w : V →L[ℝ] ℝ, ∫ v, e[-w v] • f v ∂μ) (cocompact (V →L[ℝ] ℝ)) (𝓝 0) :=
 begin
@@ -266,8 +267,8 @@ variables
   [module ℝ V] [has_continuous_smul ℝ V] [finite_dimensional ℝ V]
   [complete_space E]
 
-/-- Riemann-Lebesgue lemma for integrable functions on a finite-dimensional real vector space,
-formulated via dual space. -/
+/-- Riemann-Lebesgue lemma for functions on a finite-dimensional real vector space, formulated via
+dual space. -/
 theorem tendsto_integral_exp_smul_cocompact (μ : measure V) [μ.is_add_haar_measure] :
   tendsto (λ w : V →L[ℝ] ℝ, ∫ v, e[-w v] • f v ∂μ) (cocompact (V →L[ℝ] ℝ)) (𝓝 0) :=
 begin
@@ -283,8 +284,7 @@ begin
   { continuous_to_fun := A₀.to_linear_map.continuous_of_finite_dimensional,
     continuous_inv_fun := A₀.symm.to_linear_map.continuous_of_finite_dimensional,
     .. A₀ },
-  letI : measurable_space V' := borel V',
-  haveI : borel_space V' := borel_space.mk (by refl),
+  borelize V',
   -- various equivs derived from A
   let Aₘ : measurable_equiv V V' := A.to_homeomorph.to_measurable_equiv,
   -- isomorphism between duals derived from A -- need to do continuity as a separate step in order

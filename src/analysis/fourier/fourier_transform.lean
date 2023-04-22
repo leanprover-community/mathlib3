@@ -125,7 +125,7 @@ section continuous
 variables [topological_space 𝕜] [topological_ring 𝕜] [topological_space V] [borel_space V]
   [topological_space W] {e : (multiplicative 𝕜) →* 𝕊} {μ : measure V} {L : V →ₗ[𝕜] W →ₗ[𝕜] 𝕜}
 
-/-- For any `w`, the Fourier integral is convergent iff  `f` is integrable. -/
+/-- For any `w`, the Fourier integral is convergent iff `f` is integrable. -/
 lemma fourier_integral_convergent_iff (he : continuous e) (hL : continuous (λ p : V × W, L p.1 p.2))
   {f : V → E} (w : W) :
   integrable f μ ↔ integrable (λ (v : V), (e [-L v w]) • f v) μ :=

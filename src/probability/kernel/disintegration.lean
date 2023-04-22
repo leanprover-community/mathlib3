@@ -55,36 +55,6 @@ section aux_lemmas_to_be_moved
 
 variables {α β ι : Type*}
 
-section conditionally_complete_linear_order
--- todo: move to the corresponding borel_space section
-
-variables {δ : Type*} [topological_space α] [conditionally_complete_linear_order α]
-  [order_topology α] [second_countable_topology α] {mα : measurable_space α} [borel_space α]
-  {mδ : measurable_space δ}
-
-include mα mδ
-
-lemma measurable_cInf {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
-  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_below ((λ i, f i x) '' s)) :
-  measurable (λ x, Inf ((λ i, f i x) '' s)) :=
-@measurable_cSup αᵒᵈ _ _ _ _ _ _ _ _ _ _ _ hs hf bdd
-
-lemma measurable_csupr [countable ι] {f : ι → δ → α}
-  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above (range (λ i, f i x))) :
-  measurable (λ x, ⨆ i, f i x) :=
-begin
-  change measurable (λ x, Sup (range (λ i, f i x))),
-  simp_rw ← image_univ at bdd ⊢,
-  refine measurable_cSup countable_univ hf bdd,
-end
-
-lemma measurable_cinfi [countable ι] {f : ι → δ → α}
-  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_below (range (λ i, f i x))) :
-  measurable (λ x, ⨅ i, f i x) :=
-@measurable_csupr αᵒᵈ _ _ _ _ _ _ _ _ _ _ _ hf bdd
-
-end conditionally_complete_linear_order
-
 lemma prod_Inter {s : set α} {t : ι → set β} [hι : nonempty ι] :
   s ×ˢ (⋂ i, t i) = ⋂ i, s ×ˢ (t i) :=
 begin

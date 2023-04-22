@@ -1269,6 +1269,25 @@ begin
     exact measurable_set.bInter hs (λ i hi, measurable_set_le (hf i) measurable_const) }
 end
 
+lemma measurable_cInf {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_below ((λ i, f i x) '' s)) :
+  measurable (λ x, Inf ((λ i, f i x) '' s)) :=
+@measurable_cSup αᵒᵈ _ _ _ _ _ _ _ _ _ _ _ hs hf bdd
+
+lemma measurable_csupr {ι : Type*} [countable ι] {f : ι → δ → α}
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above (range (λ i, f i x))) :
+  measurable (λ x, ⨆ i, f i x) :=
+begin
+  change measurable (λ x, Sup (range (λ i : ι, f i x))),
+  simp_rw ← image_univ at bdd ⊢,
+  refine measurable_cSup countable_univ hf bdd,
+end
+
+lemma measurable_cinfi {ι : Type*} [countable ι] {f : ι → δ → α}
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_below (range (λ i, f i x))) :
+  measurable (λ x, ⨅ i, f i x) :=
+@measurable_csupr αᵒᵈ _ _ _ _ _ _ _ _ _ _ _ hf bdd
+
 end conditionally_complete_linear_order
 
 /-- Convert a `homeomorph` to a `measurable_equiv`. -/

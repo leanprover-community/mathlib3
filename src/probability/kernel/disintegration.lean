@@ -27,7 +27,7 @@ Equivalently, for any measurable space `γ`,
 
 ## Future extensions
 
-* We can obtain a disintegration for measures on `α × Ω` for a standard borel space `Ω` by using
+* We can obtain a disintegration for measures on `α × Ω` for a standard Borel space `Ω` by using
   that `Ω` is measurably equivalent to `ℝ`, `ℤ` or a finite set.
 * The finite measure hypothesis can be weakened to σ-finite. The proof uses the finite case.
 * Beyond measures, we can find a disintegration for a kernel `α → Ω × Ω'` by applying the
@@ -95,15 +95,6 @@ begin
       exact ⟨u, u.prop, rfl⟩, },
     { refine hf_mono (le_trans _ hyq.le),
       norm_cast, }, },
-end
-
-lemma lintegral_sub' {m : measurable_space α} {μ : measure α} {f g : α → ℝ≥0∞}
-  (hg : ae_measurable g μ) (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
-  ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
-begin
-  refine ennreal.eq_sub_of_add_eq hg_fin _,
-  rw [← lintegral_add_right' _ hg],
-  exact lintegral_congr_ae (h_le.mono $ λ x hx, tsub_add_cancel_of_le hx)
 end
 
 lemma ennreal.tendsto_at_top_at_bot [nonempty ι] [semilattice_sup ι]
@@ -206,43 +197,9 @@ end aux_lemmas_to_be_moved
 
 namespace measure_theory.measure
 
-variables {α β ι : Type*} {mα : measurable_space α} {mβ : measurable_space β} {ρ : measure (α × β)}
+variables {α β : Type*} {mα : measurable_space α}
 
-include mα mβ
-
-/-- Marginal measure on `α` obtained from a measure on `α × β`. -/
-noncomputable
-def fst (ρ : measure (α × β)) : measure α := ρ.map prod.fst
-
-lemma fst_apply (ρ : measure (α × β)) {s : set α} (hs : measurable_set s) :
-  ρ.fst s = ρ (prod.fst ⁻¹' s) :=
-by rw [fst, measure.map_apply measurable_fst hs]
-
-lemma fst_univ (ρ : measure (α × β)) : ρ.fst univ = ρ univ :=
-by rw [fst_apply ρ measurable_set.univ, preimage_univ]
-
-instance [is_finite_measure ρ] : is_finite_measure ρ.fst := by { rw fst, apply_instance, }
-
-instance [is_probability_measure ρ] : is_probability_measure ρ.fst :=
-{ measure_univ := by { rw fst_univ, exact measure_univ, } }
-
-/-- Marginal measure on `β` obtained from a measure on `α × β`. -/
-noncomputable
-def snd (ρ : measure (α × β)) : measure β := ρ.map prod.snd
-
-lemma snd_apply (ρ : measure (α × β)) {s : set β} (hs : measurable_set s) :
-  ρ.snd s = ρ (prod.snd ⁻¹' s) :=
-by rw [snd, measure.map_apply measurable_snd hs]
-
-lemma snd_univ (ρ : measure (α × β)) : ρ.snd univ = ρ univ :=
-by rw [snd_apply ρ measurable_set.univ, preimage_univ]
-
-instance [is_finite_measure ρ] : is_finite_measure ρ.snd := by { rw snd, apply_instance, }
-
-instance [is_probability_measure ρ] : is_probability_measure ρ.snd :=
-{ measure_univ := by { rw snd_univ, exact measure_univ, } }
-
-omit mβ
+include mα
 
 /-- Measure on such that for a measurable set `s`, `ρ.Iic_snd r s = ρ (s ×ˢ Iic r)`. -/
 noncomputable

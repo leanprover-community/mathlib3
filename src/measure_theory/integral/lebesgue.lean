@@ -1780,14 +1780,19 @@ calc
   ... = ⨆n, (∫⁻ a, f n a ∂μ) :
     by simp only [lintegral_congr_ae (g_eq_f.mono $ λ a ha, ha _)]
 
-lemma lintegral_sub {f g : α → ℝ≥0∞} (hg : measurable g)
+lemma lintegral_sub' {f g : α → ℝ≥0∞} (hg : ae_measurable g μ)
   (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
   ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
 begin
   refine ennreal.eq_sub_of_add_eq hg_fin _,
-  rw [← lintegral_add_right _ hg],
+  rw [← lintegral_add_right' _ hg],
   exact lintegral_congr_ae (h_le.mono $ λ x hx, tsub_add_cancel_of_le hx)
 end
+
+lemma lintegral_sub {f g : α → ℝ≥0∞} (hg : measurable g)
+  (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
+  ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
+lintegral_sub' hg.ae_measurable hg_fin h_le
 
 lemma lintegral_sub_le (f g : α → ℝ≥0∞) (hf : measurable f) :
   ∫⁻ x, g x ∂μ - ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x - f x ∂μ :=

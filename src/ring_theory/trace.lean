@@ -7,10 +7,12 @@ Authors: Anne Baanen
 import linear_algebra.matrix.bilinear_form
 import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.determinant
+import linear_algebra.finite_dimensional
 import linear_algebra.vandermonde
 import linear_algebra.trace
 import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
+import field_theory.galois
 import ring_theory.power_basis
 
 /-!
@@ -48,7 +50,7 @@ The definition is as general as possible and the assumption that we have
 fields or that the extension is finite is added to the lemmas as needed.
 
 We only define the trace for left multiplication (`algebra.left_mul_matrix`,
-i.e. `algebra.lmul_left`).
+i.e. `linear_map.mul_left`).
 For now, the definitions assume `S` is commutative, so the choice doesn't matter anyway.
 
 ## References
@@ -99,7 +101,7 @@ variables {R}
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
   trace R S s = matrix.trace (algebra.left_mul_matrix b s) :=
-by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
+by { rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, ←to_matrix_lmul_eq], refl }
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
 lemma trace_algebra_map_of_basis (x : R) :
@@ -109,7 +111,7 @@ begin
   rw [trace_apply, linear_map.trace_eq_matrix_trace R b, matrix.trace],
   convert finset.sum_const _,
   ext i,
-  simp,
+  simp [-coe_lmul_eq_mul],
 end
 omit b
 
@@ -125,13 +127,14 @@ begin
   { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
 
-lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ]
+lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι] [finite κ]
   (b : basis ι R S) (c : basis κ S T) (x : T) :
   trace R S (trace S T x) = trace R T x :=
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq κ,
+  casesI nonempty_fintype ι,
+  casesI nonempty_fintype κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
       matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
@@ -141,9 +144,8 @@ begin
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end
 
-lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ]
-  (b : basis ι R S) (c : basis κ S T) :
+lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι]
+  [fintype κ] (b : basis ι R S) (c : basis κ S T) :
   (trace R S).comp ((trace S T).restrict_scalars R) = trace R T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace_of_basis b c] }
 
@@ -158,6 +160,24 @@ lemma trace_comp_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
   [finite_dimensional K L] [finite_dimensional L T] :
   (trace K L).comp ((trace L T).restrict_scalars K) = trace K T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace] }
+
+@[simp]
+lemma trace_prod_apply
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T]
+  (x : S × T) : trace R (S × T) x = trace R S x.fst + trace R T x.snd :=
+begin
+  nontriviality R,
+  let f := (lmul R S).to_linear_map.prod_map (lmul R T).to_linear_map,
+  have : (lmul R (S × T)).to_linear_map = (prod_map_linear R S T S T R).comp f :=
+    linear_map.ext₂ prod.mul_def,
+  simp_rw [trace, this],
+  exact trace_prod_map' _ _,
+end
+
+lemma trace_prod
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T] :
+  trace R (S × T) = (trace R S).coprod (trace R T) :=
+linear_map.ext $ λ p, by rw [coprod_apply, trace_prod_apply]
 
 section trace_form
 
@@ -181,8 +201,8 @@ lemma trace_form_to_matrix [decidable_eq ι] (i j) :
 by rw [bilin_form.to_matrix_apply, trace_form_apply]
 
 lemma trace_form_to_matrix_power_basis (h : power_basis R S) :
-  bilin_form.to_matrix h.basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
-by { ext, rw [trace_form_to_matrix, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
+  bilin_form.to_matrix h.basis (trace_form R S) = of (λ i j, trace R S (h.gen ^ (↑i + ↑j : ℕ))) :=
+by { ext, rw [trace_form_to_matrix, of_apply, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
 
 end trace_form
 
@@ -230,7 +250,7 @@ begin
   contrapose! hx,
   obtain ⟨s, ⟨b⟩⟩ := hx,
   refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
-  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_finset_basis b) },
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_fintype_basis b) },
   { exact subset_adjoin K _ (set.mem_singleton x) }
 end
 
@@ -281,10 +301,10 @@ variables [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
 
 open polynomial
 
-lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
-  _root_.is_integral R (algebra.trace L F x) :=
+lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : is_integral R x) :
+  is_integral R (algebra.trace L F x) :=
 begin
-  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : is_integral L x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
       trace_eq_sum_roots],
   { refine (is_integral.multiset_sum _).nsmul _,
@@ -356,6 +376,21 @@ begin
     exact is_separable.separable K _ }
 end
 
+lemma trace_eq_sum_automorphisms (x : L) [finite_dimensional K L] [is_galois K L] :
+  algebra_map K L (algebra.trace K L x) = ∑ (σ : L ≃ₐ[K] L), σ x :=
+begin
+  apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),
+  rw map_sum (algebra_map L (algebraic_closure L)),
+  rw ← fintype.sum_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
+  { rw ←trace_eq_sum_embeddings (algebraic_closure L),
+    { simp only [algebra_map_eq_smul_one, smul_one_smul] },
+    { exact is_galois.to_is_separable } },
+  { intro σ,
+    simp only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+               alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
+               ring_hom.id_apply] },
+end
+
 end eq_sum_embeddings
 
 section det_ne_zero
@@ -369,11 +404,15 @@ open finset
 
 /-- Given an `A`-algebra `B` and `b`, an `κ`-indexed family of elements of `B`, we define
 `trace_matrix A b` as the matrix whose `(i j)`-th element is the trace of `b i * b j`. -/
-@[simp] noncomputable
-def trace_matrix (b : κ → B) : matrix κ κ A
-| i j := trace_form A B (b i) (b j)
+noncomputable
+def trace_matrix (b : κ → B) : matrix κ κ A :=
+of $ λ i j, trace_form A B (b i) (b j)
 
-lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
+-- TODO: set as an equation lemma for `trace_matrix`, see mathlib4#3024
+@[simp]
+lemma trace_matrix_apply (b : κ → B) (i j) :
+  trace_matrix A b i j = trace_form A B (b i) (b j) :=
+rfl
 
 lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
   trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
@@ -385,7 +424,7 @@ lemma trace_matrix_of_matrix_vec_mul [fintype κ] (b : κ → B) (P : matrix κ 
   trace_matrix A ((P.map (algebra_map A B)).vec_mul b) = Pᵀ ⬝ (trace_matrix A b) ⬝ P :=
 begin
   ext α β,
-  rw [trace_matrix, vec_mul, dot_product, vec_mul, dot_product, matrix.mul_apply,
+  rw [trace_matrix_apply, vec_mul, dot_product, vec_mul, dot_product, matrix.mul_apply,
     bilin_form.sum_left, fintype.sum_congr _ _ (λ (i : κ), @bilin_form.sum_right _ _ _ _ _ _ _ _
     (b i * P.map (algebra_map A B) i α) (λ (y : κ), b y * P.map (algebra_map A B) y β)), sum_comm],
   congr, ext x,
@@ -402,7 +441,7 @@ end
 lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :
   trace_matrix A ((P.map (algebra_map A B)).mul_vec b) = P ⬝ (trace_matrix A b) ⬝ Pᵀ :=
 begin
-  refine add_equiv.injective transpose_add_equiv _,
+  refine add_equiv.injective (transpose_add_equiv _ _ _) _,
   rw [transpose_add_equiv_apply, transpose_add_equiv_apply, ← vec_mul_transpose,
     ← transpose_map, trace_matrix_of_matrix_vec_mul, transpose_transpose, transpose_mul,
     transpose_transpose, transpose_mul]
@@ -412,7 +451,7 @@ lemma trace_matrix_of_basis [fintype κ] [decidable_eq κ] (b : basis κ A B) :
   trace_matrix A b = bilin_form.to_matrix b (trace_form A B) :=
 begin
   ext i j,
-  rw [trace_matrix, trace_form_apply, trace_form_to_matrix]
+  rw [trace_matrix_apply, trace_form_apply, trace_form_to_matrix]
 end
 
 lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
@@ -420,11 +459,11 @@ lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
 begin
   ext i,
   rw [← col_apply ((trace_matrix A b).mul_vec (b.equiv_fun z)) i unit.star, col_mul_vec,
-    matrix.mul_apply, trace_matrix_def],
+    matrix.mul_apply, trace_matrix],
   simp only [col_apply, trace_form_apply],
   conv_lhs
   { congr, skip, funext,
-    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, ← linear_map.map_smul] },
+    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, of_apply, ← linear_map.map_smul] },
     rw [← linear_map.map_sum],
     congr,
     conv_lhs
@@ -439,8 +478,12 @@ variable (A)
 /-- `embeddings_matrix A C b : matrix κ (B →ₐ[A] C) C` is the matrix whose `(i, σ)` coefficient is
   `σ (b i)`. It is mostly useful for fields when `fintype.card κ = finrank A B` and `C` is
   algebraically closed. -/
-@[simp] def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C
-| i σ := σ (b i)
+def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C :=
+of $ λ i (σ : B →ₐ[A] C), σ (b i)
+
+-- TODO: set as an equation lemma for `embeddings_matrix`, see mathlib4#3024
+@[simp] lemma embeddings_matrix_apply (b : κ → B) (i) (σ : B →ₐ[A] C) :
+  embeddings_matrix A C b i σ = σ (b i) := rfl
 
 /-- `embeddings_matrix_reindex A C b e : matrix κ κ C` is the matrix whose `(i, j)` coefficient
   is `σⱼ (b i)`, where `σⱼ : B →ₐ[A] C` is the embedding corresponding to `j : κ` given by a
@@ -473,7 +516,7 @@ lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans [fintype κ]
   (e : κ ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
-  transpose_minor, ← minor_mul_transpose_minor, ← equiv.coe_refl, equiv.refl_symm]
+  transpose_submatrix, ← submatrix_mul_transpose_submatrix, ← equiv.coe_refl, equiv.refl_symm]
 
 end field
 
@@ -497,7 +540,7 @@ begin
   refine mt mul_self_eq_zero.mp _,
   { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],
     intros i _ j hij h,
-    exact (finset.mem_filter.mp hij).2.ne' (e.injective $ pb.alg_hom_ext h) },
+    exact (finset.mem_Ioi.mp hij).ne' (e.injective $ pb.alg_hom_ext h) },
   { rw [alg_hom.card, pb.finrank] }
 end
 

@@ -11,7 +11,10 @@ import algebraic_topology.dold_kan.notations
 
 # Construction of homotopies for the Dold-Kan correspondence
 
-TODO (@joelriou) continue adding the various files references below
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+TODO (@joelriou) continue adding the various files referenced below
 
 (The general strategy of proof of the Dold-Kan correspondence is explained
 in `equivalence.lean`.)
@@ -121,6 +124,11 @@ begin
     congr', }
 end
 
+lemma hσ'_eq' {q n a : ℕ} (ha : n=a+q) :
+  (hσ' q n (n+1) rfl : X _[n] ⟶ X _[n+1]) =
+  (-1 : ℤ)^a • X.σ ⟨a, nat.lt_succ_iff.mpr (nat.le.intro (eq.symm ha))⟩ :=
+by rw [hσ'_eq ha rfl, eq_to_hom_refl, comp_id]
+
 /-- The null homotopic map $(hσ q) ∘ d + d ∘ (hσ q)$ -/
 def Hσ (q : ℕ) : K[X] ⟶ K[X] := null_homotopic_map' (hσ' q)
 
@@ -169,8 +177,7 @@ def nat_trans_Hσ (q : ℕ) :
     rw [null_homotopic_map'_comp, comp_null_homotopic_map'],
     congr,
     ext n m hnm,
-    simp only [alternating_face_map_complex_map, alternating_face_map_complex.map,
-      chain_complex.of_hom_f, hσ'_naturality],
+    simp only [alternating_face_map_complex_map_f, hσ'_naturality],
   end, }
 
 /-- The maps `hσ' q n m hnm` are compatible with the application of additive functors. -/

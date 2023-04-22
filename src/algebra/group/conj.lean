@@ -3,14 +3,19 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
-import data.fintype.basic
 import algebra.hom.aut
 import algebra.hom.group
 import algebra.group.semiconj
 import algebra.group_with_zero.basic
+import algebra.hom.aut
+import algebra.hom.group
+import data.fintype.basic
 
 /-!
 # Conjugacy of group elements
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 See also `mul_aut.conj` and `quandle.conj`.
 -/
@@ -101,11 +106,11 @@ end group
 @[simp] lemma is_conj_iff₀ [group_with_zero α] {a b : α} :
   is_conj a b ↔ ∃ c : α, c ≠ 0 ∧ c * a * c⁻¹ = b :=
 ⟨λ ⟨c, hc⟩, ⟨c, begin
-    rw [← units.coe_inv', units.mul_inv_eq_iff_eq_mul],
+    rw [← units.coe_inv, units.mul_inv_eq_iff_eq_mul],
     exact ⟨c.ne_zero, hc⟩,
   end⟩, λ ⟨c, c0, hc⟩,
   ⟨units.mk0 c c0, begin
-    rw [semiconj_by, ← units.mul_inv_eq_iff_eq_mul, units.coe_inv', units.coe_mk0],
+    rw [semiconj_by, ← units.mul_inv_eq_iff_eq_mul, units.coe_inv, units.coe_mk0],
     exact hc
   end⟩⟩
 
@@ -173,10 +178,6 @@ begin
   exact ⟨conj_classes.mk a, rfl⟩,
 end
 
-instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
-  fintype (conj_classes α) :=
-quotient.fintype (is_conj.setoid α)
-
 /--
 Certain instances trigger further searches when they are considered as candidate instances;
 these instances should be assigned a priority lower than the default of 1000 (for example, 900).
@@ -210,9 +211,6 @@ library_note "slow-failing instance priority"
 @[priority 900] -- see Note [slow-failing instance priority]
 instance [decidable_rel (is_conj : α → α → Prop)] : decidable_eq (conj_classes α) :=
 quotient.decidable_eq
-
-instance [decidable_eq α] [fintype α] : decidable_rel (is_conj : α → α → Prop) :=
-λ a b, by { delta is_conj semiconj_by, apply_instance }
 
 end monoid
 
@@ -257,9 +255,6 @@ lemma is_conj_iff_conjugates_of_eq {a b : α} :
   rwa ← h at ha,
 end⟩
 
-instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] {a : α} : fintype (conjugates_of a) :=
-@subtype.fintype _ _ (‹decidable_rel is_conj› a) _
-
 end monoid
 
 namespace conj_classes
@@ -288,13 +283,6 @@ lemma carrier_eq_preimage_mk {a : conj_classes α} :
   a.carrier = conj_classes.mk ⁻¹' {a} :=
 set.ext (λ x, mem_carrier_iff_mk_eq)
 
-section fintype
-
-variables [fintype α] [decidable_rel (is_conj : α → α → Prop)]
-
-instance {x : conj_classes α} : fintype (carrier x) :=
-quotient.rec_on_subsingleton x $ λ a, conjugates_of.fintype
-
-end fintype
-
 end conj_classes
+
+assert_not_exists multiset

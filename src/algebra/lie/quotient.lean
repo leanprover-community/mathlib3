@@ -45,12 +45,12 @@ namespace quotient
 variables {N I}
 
 instance add_comm_group : add_comm_group (M ⧸ N) := submodule.quotient.add_comm_group _
-instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
   module S (M ⧸ N) := submodule.quotient.module' _
 instance module : module R (M ⧸ N) := submodule.quotient.module _
 instance is_central_scalar {S : Type*} [semiring S]
-  [has_scalar S R] [module S M] [is_scalar_tower S R M]
-  [has_scalar Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [has_smul S R] [module S M] [is_scalar_tower S R M]
+  [has_smul Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
   [is_central_scalar S M] : is_central_scalar S (M ⧸ N) :=
 submodule.quotient.is_central_scalar _
 instance inhabited : inhabited (M ⧸ N) := ⟨0⟩
@@ -64,7 +64,7 @@ lemma is_quotient_mk (m : M) : quotient.mk' m = (mk m : M ⧸ N) := rfl
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural linear map from `L` to the endomorphisms of `M` leaving `N` invariant. -/
 def lie_submodule_invariant : L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
-linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) N.lie_mem
+linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) $ λ _ _, N.lie_mem
 
 variables (N)
 

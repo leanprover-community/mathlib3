@@ -10,6 +10,9 @@ import data.list.rotate
 /-!
 # Cycles of a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lists have an equivalence relation of whether they are rotational permutations of one another.
 This relation is defined as `is_rotated`.
 
@@ -17,8 +20,8 @@ Based on this, we define the quotient of lists by the rotation relation, called 
 
 We also define a representation of concrete cycles, available when viewing them in a goal state or
 via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
-as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
-underlying element. This representation also supports cycles that can contain duplicates.
+as `c[2, 1, 4, 3]`. Two equal cycles may be printed differently if their internal representation
+is different.
 
 -/
 
@@ -623,6 +626,10 @@ rfl
 @[simp] lemma map_eq_nil {β : Type*} (f : α → β) (s : cycle α) : map f s = nil ↔ s = nil :=
 quotient.induction_on' s (by simp)
 
+@[simp] lemma mem_map {β : Type*} {f : α → β} {b : β} {s : cycle α} :
+  b ∈ s.map f ↔ ∃ a, a ∈ s ∧ f a = b :=
+quotient.induction_on' s (by simp)
+
 /-- The `multiset` of lists that can make the cycle. -/
 def lists (s : cycle α) : multiset (list α) :=
 quotient.lift_on' s
@@ -728,12 +735,12 @@ end decidable
 
 /--
 We define a representation of concrete cycles, available when viewing them in a goal state or
-via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
-as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
-underlying element. This representation also supports cycles that can contain duplicates.
+via `#eval`, when over representable types. For example, the cycle `(2 1 4 3)` will be shown
+as `c[2, 1, 4, 3]`. Two equal cycles may be printed differently if their internal representation
+is different.
 -/
-instance [has_repr α] : has_repr (cycle α) :=
-⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
+meta instance [has_repr α] : has_repr (cycle α) :=
+⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.unquot).head ++ "]"⟩
 
 /-- `chain R s` means that `R` holds between adjacent elements of `s`.
 
@@ -821,25 +828,25 @@ begin
     exact hs b (Hl hb) a Ha }
 end
 
-theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
+theorem chain_iff_pairwise [is_trans α r] : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
 ⟨begin
   induction s using cycle.induction_on with a l _,
   exact λ _ b hb, hb.elim,
   intros hs b hb c hc,
-  rw [cycle.chain_coe_cons, chain_iff_pairwise hr] at hs,
+  rw [cycle.chain_coe_cons, chain_iff_pairwise] at hs,
   simp only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
-    forall_false_left, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
+    is_empty.forall_iff, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
   simp only [mem_coe_iff, mem_cons_iff] at hb hc,
   rcases hb with rfl | hb;
   rcases hc with rfl | hc,
   { exact hs.1 c (or.inr rfl) },
   { exact hs.1 c (or.inl hc) },
   { exact hs.2.2 b hb },
-  { exact hr (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
+  { exact trans (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
 end, cycle.chain_of_pairwise⟩
 
-theorem forall_eq_of_chain (hr : transitive r) (hr' : anti_symmetric r)
+theorem forall_eq_of_chain [is_trans α r] [is_antisymm α r]
   (hs : chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=
-by { rw chain_iff_pairwise hr at hs, exact hr' (hs a ha b hb) (hs b hb a ha) }
+by { rw chain_iff_pairwise at hs, exact antisymm (hs a ha b hb) (hs b hb a ha) }
 
 end cycle

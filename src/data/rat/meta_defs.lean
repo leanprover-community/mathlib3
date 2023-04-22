@@ -42,15 +42,17 @@ meta def rat.mk_numeral (type has_zero has_one has_add has_neg has_div : expr) :
     let dene := denom.mk_numeral type has_zero has_one has_add in
     `(@has_div.div.{0} %%type %%has_div %%nume %%dene)
 
-/-- `rat.reflect q` represents the rational number `q` as a numeral expression of type `ℚ`. -/
-protected meta def rat.reflect : ℚ → expr :=
-rat.mk_numeral `(ℚ) `((by apply_instance : has_zero ℚ))
-         `((by apply_instance : has_one ℚ))`((by apply_instance : has_add ℚ))
-         `((by apply_instance : has_neg ℚ)) `(by apply_instance : has_div ℚ)
 
 section
+-- Note that here we are disabling the "safety" of reflected, to allow us to reuse `rat.mk_numeral`.
+-- The usual way to provide the required `reflected` instance would be via rewriting to prove that
+-- the expression we use here is equivalent.
 local attribute [semireducible] reflected
-meta instance : has_reflect ℚ := rat.reflect
+/-- `rat.reflect q` represents the rational number `q` as a numeral expression of type `ℚ`. -/
+meta instance rat.reflect : has_reflect ℚ :=
+rat.mk_numeral `(ℚ) `(by apply_instance : has_zero ℚ)
+  `(by apply_instance : has_one ℚ) `(by apply_instance : has_add ℚ)
+  `(by apply_instance : has_neg ℚ) `(by apply_instance : has_div ℚ)
 end
 
 /--
@@ -73,7 +75,7 @@ protected meta def expr.to_nonneg_rat : expr → option ℚ
   if c : m.coprime n then if h : 1 < n then
     return ⟨m, n, lt_trans zero_lt_one h, c⟩
   else none else none
-| e := do n ← e.to_nat, return (rat.of_int n)
+| e := do n ← e.to_nat, return n
 
 /-- Evaluates an expression as a rational number,
 if that expression represents a numeral, the quotient of two numerals,

@@ -9,6 +9,9 @@ import data.pfun
 /-!
 # Image of a `finset α` under a partially defined function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `part.to_finset` and `finset.pimage`. We also prove some trivial lemmas about
 these definitions.
 

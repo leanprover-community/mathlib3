@@ -5,10 +5,12 @@ Authors: Mario Carneiro
 -/
 import data.list.sort
 import data.multiset.basic
-import data.string.basic
 
 /-!
 # Construct a sorted list from a multiset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset
@@ -50,7 +52,8 @@ list.merge_sort_singleton r a
 
 end sort
 
-instance [has_repr α] : has_repr (multiset α) :=
-⟨λ s, "{" ++ string.intercalate ", " ((s.map repr).sort (≤)) ++ "}"⟩
+-- TODO: use a sort order if available, gh-18166
+meta instance [has_repr α] : has_repr (multiset α) :=
+⟨λ s, "{" ++ string.intercalate ", " (s.unquot.map repr) ++ "}"⟩
 
 end multiset

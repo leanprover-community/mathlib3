@@ -5,9 +5,13 @@ Authors: Johannes Hölzl
 -/
 import order.complete_lattice
 import order.synonym
+import order.hom.set
 
 /-!
 # Galois connections, insertions and coinsertions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Galois connections are order theoretic adjoints, i.e. a pair of functions `u` and `l`,
 such that `∀ a b, l a ≤ b ↔ a ≤ u b`.
@@ -200,20 +204,24 @@ end
 end partial_order
 
 section order_top
-variables [partial_order α] [preorder β] [order_top α] [order_top β] {l : α → β} {u : β → α}
-  (gc : galois_connection l u)
-include gc
+variables [partial_order α] [preorder β] [order_top α]
 
-lemma u_top : u ⊤ = ⊤ := top_unique $ gc.le_u le_top
+lemma u_eq_top {l : α → β} {u : β → α} (gc : galois_connection l u) {x} : u x = ⊤ ↔ l ⊤ ≤ x :=
+top_le_iff.symm.trans gc.le_iff_le.symm
+
+lemma u_top [order_top β] {l : α → β} {u : β → α} (gc : galois_connection l u) : u ⊤ = ⊤ :=
+gc.u_eq_top.2 le_top
 
 end order_top
 
 section order_bot
-variables [preorder α] [partial_order β] [order_bot α] [order_bot β] {l : α → β} {u : β → α}
-  (gc : galois_connection l u)
-include gc
+variables [preorder α] [partial_order β] [order_bot β]
 
-lemma l_bot : l ⊥ = ⊥ := gc.dual.u_top
+lemma l_eq_bot {l : α → β} {u : β → α} (gc : galois_connection l u) {x} : l x = ⊥ ↔ x ≤ u ⊥ :=
+gc.dual.u_eq_top
+
+lemma l_bot [order_bot α] {l : α → β} {u : β → α} (gc : galois_connection l u) : l ⊥ = ⊥ :=
+gc.dual.u_top
 
 end order_bot
 
@@ -382,14 +390,14 @@ end order_iso
 namespace nat
 
 lemma galois_connection_mul_div {k : ℕ} (h : 0 < k) : galois_connection (λ n, n * k) (λ n, n / k) :=
-λ x y, (le_div_iff_mul_le x y h).symm
+λ x y, (le_div_iff_mul_le h).symm
 
 end nat
 
 /-- A Galois insertion is a Galois connection where `l ∘ u = id`. It also contains a constructive
 choice function, to give better definitional equalities when lifting order structures. Dual
 to `galois_coinsertion` -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure galois_insertion {α β : Type*} [preorder α] [preorder β] (l : α → β) (u : β → α) :=
 (choice : Πx : α, u (l x) ≤ x → β)
 (gc : galois_connection l u)
@@ -582,7 +590,7 @@ end galois_insertion
 /-- A Galois coinsertion is a Galois connection where `u ∘ l = id`. It also contains a constructive
 choice function, to give better definitional equalities when lifting order structures. Dual to
 `galois_insertion` -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure galois_coinsertion [preorder α] [preorder β] (l : α → β) (u : β → α) :=
 (choice : Πx : β, x ≤ l (u x) → α)
 (gc : galois_connection l u)
@@ -720,7 +728,6 @@ lemma is_lub_of_l_image [preorder α] [preorder β] (gi : galois_coinsertion l u
   (hs : is_lub (l '' s) a) : is_lub s (u a) :=
 gi.dual.is_glb_of_u_image hs
 
-
 section lift
 
 variables [partial_order α]
@@ -767,11 +774,11 @@ end lift
 
 end galois_coinsertion
 
-/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
-`λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
-def with_bot.gi_get_or_else_bot [preorder α] [order_bot α] :
-  galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
-{ gc := λ a b, with_bot.get_or_else_bot_le_iff,
+/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then `with_bot.unbot' ⊥` and
+coercion form a Galois insertion. -/
+def with_bot.gi_unbot'_bot [preorder α] [order_bot α] :
+  galois_insertion (with_bot.unbot' ⊥) (coe : α → with_bot α) :=
+{ gc := λ a b, with_bot.unbot'_bot_le_iff,
   le_l_u := λ a, le_rfl,
-  choice := λ o ho, _,
+  choice := λ o ho, o.unbot' ⊥,
   choice_eq := λ _ _, rfl }

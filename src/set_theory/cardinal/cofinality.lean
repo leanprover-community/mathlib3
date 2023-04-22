@@ -10,6 +10,9 @@ import set_theory.ordinal.fixed_point
 /-!
 # Cofinality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of cofinality of an ordinal number and regular cardinals
 
 ## Main Definitions
@@ -17,7 +20,6 @@ This file contains the definition of cofinality of an ordinal number and regular
 * `ordinal.cof o` is the cofinality of the ordinal `o`.
   If `o` is the order type of the relation `<` on `α`, then `o.cof` is the smallest cardinality of a
   subset `s` of α that is *cofinal* in `α`, i.e. `∀ x : α, ∃ y ∈ s, ¬ y < x`.
-* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
 * `cardinal.is_strong_limit c` means that `c` is a strong limit cardinal:
   `c ≠ 0 ∧ ∀ x < c, 2 ^ x < c`.
 * `cardinal.is_regular c` means that `c` is a regular cardinal: `ℵ₀ ≤ c ∧ c.ord.cof = c`.
@@ -162,8 +164,8 @@ begin
   { refine ⟨T, this,
       le_antisymm _ (cardinal.ord_le.2 $ cof_type_le this)⟩,
     rw [← e, e'],
-    refine type_le'.2 ⟨rel_embedding.of_monotone
-      (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
+    refine (rel_embedding.of_monotone (λ a : T, (⟨a, let ⟨aS, _⟩ := a.2 in aS⟩ : S)) (λ a b h, _))
+      .ordinal_type_le,
     rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
     change s ⟨a, _⟩ ⟨b, _⟩,
     refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
@@ -172,11 +174,11 @@ begin
       exact irrefl _ h } },
   { intro a,
     have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
-    let b := (is_well_order.wf).min _ this,
-    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
+    let b := (is_well_founded.wf).min _ this,
+    have ba : ¬r b a := (is_well_founded.wf).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
     rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf).not_lt_min _ this
+    exact (is_well_founded.wf).not_lt_min _ this
       (is_order_connected.neg_trans h ba) }
 end
 
@@ -218,13 +220,14 @@ begin
 end
 
 @[simp] theorem lift_cof (o) : (cof o).lift = cof o.lift :=
-induction_on o $ begin introsI α r _,
-  cases lift_type r with _ e, rw e,
+begin
+  refine induction_on o _,
+  introsI α r _,
   apply le_antisymm,
-  { unfreezingI { refine le_cof_type.2 (λ S H, _) },
-    have : (#(ulift.up ⁻¹' S)).lift ≤ #S :=
-     ⟨⟨λ ⟨⟨x, h⟩⟩, ⟨⟨x⟩, h⟩,
-       λ ⟨⟨x, h₁⟩⟩ ⟨⟨y, h₂⟩⟩ e, by simp at e; congr; injection e⟩⟩,
+  { refine le_cof_type.2 (λ S H, _),
+    have : (#(ulift.up ⁻¹' S)).lift ≤ #S,
+    { rw [← cardinal.lift_umax, ← cardinal.lift_id' (#S)],
+      exact mk_preimage_of_injective_lift ulift.up _ ulift.up_injective },
     refine (cardinal.lift_le.2 $ cof_type_le _).trans this,
     exact λ a, let ⟨⟨b⟩, bs, br⟩ := H ⟨a⟩ in ⟨b, bs, br⟩ },
   { rcases cof_eq r with ⟨S, H, e'⟩,
@@ -289,13 +292,18 @@ theorem sup_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) :
   (∀ i, f i < c) → sup.{u u} f < c :=
 sup_lt_ord_lift (by rwa (#ι).lift_id)
 
-theorem sup_lt_lift {ι} {f : ι → cardinal} {c : cardinal} (hι : cardinal.lift (#ι) < c.ord.cof)
-  (hf : ∀ i, f i < c) : cardinal.sup.{u v} f < c :=
-by { rw [←ord_lt_ord, ←sup_ord], refine sup_lt_ord_lift hι (λ i, _), rw ord_lt_ord, apply hf }
+theorem supr_lt_lift {ι} {f : ι → cardinal} {c : cardinal} (hι : cardinal.lift (#ι) < c.ord.cof)
+  (hf : ∀ i, f i < c) : supr f < c :=
+begin
+  rw [←ord_lt_ord, supr_ord (cardinal.bdd_above_range _)],
+  refine sup_lt_ord_lift hι (λ i, _),
+  rw ord_lt_ord,
+  apply hf
+end
 
-theorem sup_lt {ι} {f : ι → cardinal} {c : cardinal} (hι : #ι < c.ord.cof) :
-  (∀ i, f i < c) → cardinal.sup.{u u} f < c :=
-sup_lt_lift (by rwa (#ι).lift_id)
+theorem supr_lt {ι} {f : ι → cardinal} {c : cardinal} (hι : #ι < c.ord.cof) :
+  (∀ i, f i < c) → supr f < c :=
+supr_lt_lift (by rwa (#ι).lift_id)
 
 theorem nfp_family_lt_ord_lift {ι} {f : ι → ordinal → ordinal} {c} (hc : ℵ₀ < cof c)
   (hc' : (#ι).lift < cof c) (hf : ∀ i (b < c), f i b < c) {a} (ha : a < c) :
@@ -355,7 +363,7 @@ by { rw ←(o.card).lift_id, exact cof_blsub_le_lift f }
 theorem blsub_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal} {c : ordinal}
   (ho : o.card.lift < c.cof) (hf : ∀ i hi, f i hi < c) : blsub.{u v} o f < c :=
 lt_of_le_of_ne (blsub_le hf) (λ h, ho.not_le
-  (by simpa [sup_ord, hf, h] using cof_blsub_le_lift.{u} f))
+  (by simpa [←supr_ord, hf, h] using cof_blsub_le_lift.{u} f))
 
 theorem blsub_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof)
   (hf : ∀ i hi, f i hi < c) : blsub.{u u} o f < c :=
@@ -439,8 +447,8 @@ variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}}
 protected theorem cof_eq (hf : is_fundamental_sequence a o f) : a.cof.ord = o :=
 hf.1.antisymm' $ by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) }
 
-protected theorem strict_mono (hf : is_fundamental_sequence a o f) :
-  ∀ {i j} (hi) (hj), i < j → f i hi < f j hj :=
+protected theorem strict_mono (hf : is_fundamental_sequence a o f) {i j} :
+  ∀ hi hj, i < j → f i hi < f j hj :=
 hf.2.1
 
 theorem blsub_eq (hf : is_fundamental_sequence a o f) : blsub.{u u} o f = a :=
@@ -492,25 +500,23 @@ end is_fundamental_sequence
 theorem exists_fundamental_sequence (a : ordinal.{u}) :
   ∃ f, is_fundamental_sequence a a.cof.ord f :=
 begin
-  suffices : ∃ o f, is_fundamental_sequence a o f,
-  { rcases this with ⟨o, f, hf⟩,
-    exact ⟨_, hf.ord_cof⟩ },
+  rsuffices ⟨o, f, hf⟩ : ∃ o f, is_fundamental_sequence a o f,
+  { exact ⟨_, hf.ord_cof⟩ },
   rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
   rcases ord_eq ι with ⟨r, wo, hr⟩,
   haveI := wo,
   let r' := subrel r {i | ∀ j, r j i → f j < f i},
   let hrr' : r' ↪r r := subrel.rel_embedding _ _,
   haveI := hrr'.is_well_order,
-  refine ⟨_, _, (type_le'.2 ⟨hrr'⟩).trans _, λ i j _ h _, (enum r' j h).prop _ _,
+  refine ⟨_, _, hrr'.ordinal_type_le.trans _, λ i j _ h _, (enum r' j h).prop _ _,
     le_antisymm (blsub_le (λ i hi, lsub_le_iff.1 hf.le _)) _⟩,
   { rw [←hι, hr] },
   { change r (hrr'.1 _ ) (hrr'.1 _ ),
     rwa [hrr'.2, @enum_lt_enum _ r'] },
   { rw [←hf, lsub_le_iff],
     intro i,
-    suffices : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
-    { rcases this with ⟨i', hi', hfg⟩,
-      exact hfg.trans_lt (lt_blsub _ _ _) },
+    rsuffices ⟨i', hi', hfg⟩ : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
+    { exact hfg.trans_lt (lt_blsub _ _ _) },
     by_cases h : ∀ j, r j i → f j < f i,
     { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
       rw bfamily_of_family'_typein,
@@ -590,7 +596,7 @@ begin
     rw [e, ord_nat] at this,
     cases n,
     { simp at e, simpa [e, not_zero_is_limit] using l },
-    { rw [← nat_cast_succ, cof_succ] at this,
+    { rw [nat_cast_succ, cof_succ] at this,
       rw [← this, cof_eq_one_iff_is_succ] at e,
       rcases e with ⟨a, rfl⟩,
       exact not_succ_is_limit _ l } }
@@ -668,8 +674,8 @@ begin
   { by_contra' h,
     apply mk_univ.not_lt,
     rw [←preimage_univ, ←Union_of_singleton, preimage_Union],
-    exact mk_Union_le_sum_mk.trans_lt ((sum_le_sup _).trans_lt $ mul_lt_of_lt h₁
-      (h₂.trans_le $ cof_ord_le _) (sup_lt h₂ h)) },
+    exact mk_Union_le_sum_mk.trans_lt ((sum_le_supr _).trans_lt $ mul_lt_of_lt h₁
+      (h₂.trans_le $ cof_ord_le _) (supr_lt h₂ h)) },
   cases this with x h,
   refine ⟨x, h.antisymm' _⟩,
   rw le_mk_iff_exists_set,
@@ -706,26 +712,7 @@ end ordinal
 namespace cardinal
 open ordinal
 
-local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
-
-/-- A cardinal is a limit if it is not zero or a successor
-  cardinal. Note that `ℵ₀` is a limit cardinal by this definition. -/
-def is_limit (c : cardinal) : Prop :=
-c ≠ 0 ∧ ∀ x < c, succ x < c
-
-theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 :=
-h.1
-
-theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c :=
-h.2 x
-
-theorem is_limit.aleph_0_le {c} (h : is_limit c) : ℵ₀ ≤ c :=
-begin
-  by_contra' h',
-  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
-  { exact h.1.irrefl },
-  { simpa using h.2 n }
-end
+local infixr (name := cardinal.pow) ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 
 /-- A cardinal is a strong limit if it is not zero and it is
   closed under powersets. Note that `ℵ₀` is a strong limit by this definition. -/
@@ -744,11 +731,24 @@ theorem is_strong_limit_aleph_0 : is_strong_limit ℵ₀ :=
   exact_mod_cast nat_lt_aleph_0 (pow 2 n)
 end⟩
 
-theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
-⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.2 _ h)⟩
+protected theorem is_strong_limit.is_succ_limit {c} (H : is_strong_limit c) : is_succ_limit c :=
+is_succ_limit_of_succ_lt $ λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.two_power_lt h)
 
-theorem is_limit_aleph_0 : is_limit ℵ₀ :=
-is_strong_limit_aleph_0.is_limit
+theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
+⟨H.ne_zero, H.is_succ_limit⟩
+
+theorem is_strong_limit_beth {o : ordinal} (H : is_succ_limit o) : is_strong_limit (beth o) :=
+begin
+  rcases eq_or_ne o 0 with rfl | h,
+  { rw beth_zero,
+    exact is_strong_limit_aleph_0 },
+  { refine ⟨beth_ne_zero o, λ a ha, _⟩,
+    rw beth_limit ⟨h, is_succ_limit_iff_succ_lt.1 H⟩ at ha,
+    rcases exists_lt_of_lt_csupr' ha with ⟨⟨i, hi⟩, ha⟩,
+    have := power_le_power_left two_ne_zero ha.le,
+    rw ←beth_succ at this,
+    exact this.trans_lt (beth_lt.2 (H.succ_lt hi)) }
+end
 
 theorem mk_bounded_subset {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) {r : α → α → Prop}
   [is_well_order α r] (hr : (#α).ord = type r) : #{s : set α // bounded r s} = #α :=
@@ -765,8 +765,8 @@ begin
   apply le_antisymm,
   { have : {s : set α | bounded r s} = ⋃ i, 𝒫 {j | r j i} := set_of_exists _,
     rw [←coe_set_of, this],
-    convert mk_Union_le_sum_mk.trans ((sum_le_sup _).trans (mul_le_max_of_aleph_0_le_left ha)),
-    apply (max_eq_left $ sup_le $ λ i, _).symm,
+    convert mk_Union_le_sum_mk.trans ((sum_le_supr _).trans (mul_le_max_of_aleph_0_le_left ha)),
+    apply (max_eq_left _).symm, apply csupr_le' (λ i, _),
     rw mk_powerset,
     apply (h'.two_power_lt _).le,
     rw [coe_set_of, card_typein, ←lt_ord, hr],
@@ -935,17 +935,17 @@ theorem bsup_lt_ord_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc 
   (hι : o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.bsup o f < c.ord :=
 bsup_lt_ord (by rwa hc.cof_eq)
 
-theorem sup_lt_lift_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c)
-  (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c) → sup.{u v} f < c :=
-sup_lt_lift (by rwa hc.cof_eq)
+theorem supr_lt_lift_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c)
+  (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c) → supr f < c :=
+supr_lt_lift (by rwa hc.cof_eq)
 
-theorem sup_lt_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c) (hι : #ι < c) :
-  (∀ i, f i < c) → sup.{u u} f < c :=
-sup_lt (by rwa hc.cof_eq)
+theorem supr_lt_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c) (hι : #ι < c) :
+  (∀ i, f i < c) → supr f < c :=
+supr_lt (by rwa hc.cof_eq)
 
 theorem sum_lt_lift_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} (hc : is_regular c)
   (hι : cardinal.lift.{v u} (#ι) < c) (hf : ∀ i, f i < c) : sum f < c :=
-(sum_le_sup_lift _).trans_lt $ mul_lt_of_lt hc.1 hι (sup_lt_lift_of_is_regular hc hι hf)
+(sum_le_supr_lift _).trans_lt $ mul_lt_of_lt hc.1 hι (supr_lt_lift_of_is_regular hc hι hf)
 
 theorem sum_lt_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} (hc : is_regular c)
   (hι : #ι < c) : (∀ i, f i < c) → sum f < c :=

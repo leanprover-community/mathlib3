@@ -10,6 +10,9 @@ import topology.algebra.uniform_group
 /-!
 # Uniform properties of neighborhood bases in topological algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files contains properties of filter bases on algebraic structures that also require the theory
 of uniform spaces.
 
@@ -32,7 +35,7 @@ protected def uniform_space : uniform_space G :=
 /-- The uniform space structure associated to an abelian group filter basis via the associated
 topological abelian group structure is compatible with its group structure. -/
 protected lemma uniform_add_group : @uniform_add_group G B.uniform_space _:=
-@topological_add_group_is_uniform G _ B.topology B.is_topological_add_group
+@topological_add_comm_group_is_uniform G _ B.topology B.is_topological_add_group
 
 lemma cauchy_iff {F : filter G} :
   @cauchy G B.uniform_space F ↔ F.ne_bot ∧ ∀ U ∈ B, ∃ M ∈ F, ∀ x y ∈ M, y - x ∈ U :=

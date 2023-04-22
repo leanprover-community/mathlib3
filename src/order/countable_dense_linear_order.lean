@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import order.ideal
+import data.finset.lattice
 
 /-!
 # The back and forth method and countable dense linear orders
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Results
 

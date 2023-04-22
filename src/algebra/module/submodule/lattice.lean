@@ -9,6 +9,9 @@ import algebra.punit_instances
 /-!
 # The lattice structure on `submodule`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the lattice structure on submodules, `submodule.complete_lattice`, with `⊥`
 defined as `{0}` and `⊓` defined as intersection of the underlying carrier.
 If `p` and `q` are submodules of a module, `p ≤ q` means that `p ⊆ q`.
@@ -27,7 +30,7 @@ variables {R S M : Type*}
 
 section add_comm_monoid
 variables [semiring R] [semiring S] [add_comm_monoid M] [module R M] [module S M]
-variables [has_scalar S R] [is_scalar_tower S R M]
+variables [has_smul S R] [is_scalar_tower S R M]
 variables {p q : submodule R M}
 
 namespace submodule
@@ -213,6 +216,14 @@ show T ≤ S ⊔ T, from le_sup_right
 lemma add_mem_sup {S T : submodule R M} {s t : M} (hs : s ∈ S) (ht : t ∈ T) : s + t ∈ S ⊔ T :=
 add_mem (mem_sup_left hs) (mem_sup_right ht)
 
+lemma sub_mem_sup {R' M' : Type*} [ring R'] [add_comm_group M'] [module R' M']
+  {S T : submodule R' M'} {s t : M'} (hs : s ∈ S) (ht : t ∈ T) :
+  s - t ∈ S ⊔ T :=
+begin
+  rw sub_eq_add_neg,
+  exact add_mem_sup hs (neg_mem ht),
+end
+
 lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
@@ -238,7 +249,7 @@ show s ≤ Sup S, from le_Sup hs
 
 theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
-show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp
+disjoint_iff_inf_le.trans $ show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp
 
 theorem disjoint_def' {p p' : submodule R M} :
   disjoint p p' ↔ ∀ (x ∈ p) (y ∈ p'), x = y → x = (0:M) :=

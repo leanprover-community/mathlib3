@@ -10,6 +10,9 @@ import algebra.module.submodule.bilinear
 /-!
 # Tensor product of modules over commutative semirings.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs the tensor product of modules over commutative semirings. Given a semiring
 `R` and modules over it `M` and `N`, the standard construction of the tensor product is
 `tensor_product R M N`. It is also a module over `R`.
@@ -78,8 +81,10 @@ def tensor_product : Type* :=
 
 variables {R}
 
-localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
-localized "notation M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
+localized "infix (name := tensor_product.infer)
+  ` ⊗ `:100 := tensor_product hole!" in tensor_product
+localized "notation (name := tensor_product)
+  M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
 
 namespace tensor_product
 
@@ -135,7 +140,7 @@ section
 variables (R R' M N)
 
 /--
-A typeclass for `has_scalar` structures which can be moved across a tensor product.
+A typeclass for `has_smul` structures which can be moved across a tensor product.
 
 This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
@@ -154,7 +159,7 @@ end
 `mul_action.is_scalar_tower.left`. -/
 @[priority 100]
 instance compatible_smul.is_scalar_tower
-  [has_scalar R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
+  [has_smul R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
   compatible_smul R R' M N :=
 ⟨λ r m n, begin
   conv_lhs {rw ← one_smul R m},
@@ -169,10 +174,10 @@ lemma smul_tmul [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (m
 compatible_smul.smul_tmul _ _ _
 
 /-- Auxiliary function to defining scalar multiplication on tensor product. -/
-def smul.aux {R' : Type*} [has_scalar R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
+def smul.aux {R' : Type*} [has_smul R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
 free_add_monoid.lift $ λ p : M × N, (r • p.1) ⊗ₜ p.2
 
-theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
+theorem smul.aux_of {R' : Type*} [has_smul R' M] (r : R') (m : M) (n : N) :
   smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 
@@ -191,7 +196,7 @@ action. Two natural ways in which this situation arises are:
 Note that in the special case that `R = R'`, since `R` is commutative, we just get the usual scalar
 action on a tensor product of two modules. This special case is important enough that, for
 performance reasons, we define it explicitly below. -/
-instance left_has_scalar : has_scalar R' (M ⊗[R] N) :=
+instance left_has_smul : has_smul R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
@@ -208,7 +213,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
-instance : has_scalar R (M ⊗[R] N) := tensor_product.left_has_scalar
+instance : has_smul R (M ⊗[R] N) := tensor_product.left_has_smul
 
 protected theorem smul_zero (r : R') : (r • 0 : M ⊗[R] N) = 0 :=
 add_monoid_hom.map_zero _
@@ -288,7 +293,7 @@ section
 
 -- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`
 variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M]
-variables [smul_comm_class R R'₂ M] [has_scalar R'₂ R']
+variables [smul_comm_class R R'₂ M] [has_smul R'₂ R']
 
 /-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
 instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
@@ -313,7 +318,7 @@ end
 
 /-- A short-cut instance for the common case, where the requirements for the `compatible_smul`
 instances are sufficient. -/
-instance is_scalar_tower [has_scalar R' R] [is_scalar_tower R' R M] :
+instance is_scalar_tower [has_smul R' R] [is_scalar_tower R' R M] :
   is_scalar_tower R' R (M ⊗[R] N) :=
 tensor_product.is_scalar_tower_left  -- or right
 
@@ -401,8 +406,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
 
-lemma lift_aux_tmul (m n) : lift_aux f (m ⊗ₜ n) = f m n :=
-zero_add _
+lemma lift_aux_tmul (m n) : lift_aux f (m ⊗ₜ n) = f m n := rfl
 
 variable {f}
 
@@ -420,11 +424,8 @@ def lift : M ⊗ N →ₗ[R] P :=
   .. lift_aux f }
 variable {f}
 
-@[simp] lemma lift.tmul (x y) : lift f (x ⊗ₜ y) = f x y :=
-zero_add _
-
-@[simp] lemma lift.tmul' (x y) : (lift f).1 (x ⊗ₜ y) = f x y :=
-lift.tmul _ _
+@[simp] lemma lift.tmul (x y) : lift f (x ⊗ₜ y) = f x y := rfl
+@[simp] lemma lift.tmul' (x y) : (lift f).1 (x ⊗ₜ y) = f x y := rfl
 
 theorem ext' {g h : (M ⊗[R] N) →ₗ[R] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
@@ -522,6 +523,15 @@ theorem ext_fourfold {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
 begin
   ext w x y z,
   exact H w x y z,
+end
+
+/-- Two linear maps (M ⊗ N) ⊗ (P ⊗ Q) → S which agree on all elements of the
+form (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) are equal. -/
+theorem ext_fourfold' {φ ψ : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) →ₗ[R] S}
+  (H : ∀ w x y z, φ ((w ⊗ₜ x) ⊗ₜ (y ⊗ₜ z)) = ψ ((w ⊗ₜ x) ⊗ₜ (y ⊗ₜ z))) : φ = ψ :=
+begin
+  ext m n p q,
+  exact H m n p q,
 end
 
 end UMP
@@ -642,11 +652,11 @@ variables [add_comm_monoid Q'] [module R Q']
 
 lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
   map (f₂.comp f₁) (g₂.comp g₁) = (map f₂ g₂).comp (map f₁ g₁) :=
-ext' $ λ _ _, by simp only [linear_map.comp_apply, map_tmul]
+ext' $ λ _ _, rfl
 
 lemma lift_comp_map (i : P →ₗ[R] Q →ₗ[R] Q') (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (lift i).comp (map f g) = lift ((i.comp f).compl₂ g) :=
-ext' $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply]
+ext' $ λ _ _, rfl
 
 local attribute [ext] ext
 
@@ -714,8 +724,7 @@ lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
 
 @[simp]
 lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
-  hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g :=
-by simp only [hom_tensor_hom_map, lift.tmul, map_bilinear_apply]
+  hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g := rfl
 
 end
 
@@ -777,8 +786,8 @@ variables {M N P Q}
   tensor_tensor_tensor_comm R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
 rfl
 
-@[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
-  (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+@[simp] lemma tensor_tensor_tensor_comm_symm :
+  (tensor_tensor_tensor_comm R M N P Q).symm = tensor_tensor_tensor_comm R M P N Q :=
 rfl
 
 variables (M N P Q)
@@ -872,8 +881,16 @@ def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
 lemma ltensor_comp : (g.comp f).ltensor M = (g.ltensor M).comp (f.ltensor M) :=
 by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, ltensor_tmul] }
 
+lemma ltensor_comp_apply (x : M ⊗[R] N) :
+  (g.comp f).ltensor M x = (g.ltensor M) ((f.ltensor M) x) :=
+by { rw [ltensor_comp, coe_comp], }
+
 lemma rtensor_comp : (g.comp f).rtensor M = (g.rtensor M).comp (f.rtensor M) :=
 by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, rtensor_tmul] }
+
+lemma rtensor_comp_apply (x : N ⊗[R] M) :
+  (g.comp f).rtensor M x = (g.rtensor M) ((f.rtensor M) x) :=
+by { rw [rtensor_comp, coe_comp], }
 
 lemma ltensor_mul (f g : module.End R N) : (f * g).ltensor M = (f.ltensor M) * (g.ltensor M) :=
 ltensor_comp M f g
@@ -885,7 +902,15 @@ variables (N)
 
 @[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id := map_id
 
+-- `simp` can prove this.
+lemma ltensor_id_apply (x : M ⊗[R] N) : (linear_map.id : N →ₗ[R] N).ltensor M x = x :=
+by {rw [ltensor_id, id_coe, id.def], }
+
 @[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id := map_id
+
+-- `simp` can prove this.
+lemma rtensor_id_apply (x : N ⊗[R] M) : (linear_map.id : N →ₗ[R] N).rtensor M x = x :=
+by { rw [rtensor_id, id_coe, id.def], }
 
 variables {N}
 

@@ -5,6 +5,7 @@ Authors: Anatole Dedecker, Bhavik Mehta
 -/
 import measure_theory.integral.interval_integral
 import order.filter.at_top_bot
+import measure_theory.function.jacobian
 
 /-!
 # Links between an integral and its "improper" version
@@ -43,17 +44,25 @@ as an `ae_cover` w.r.t. `μ.restrict (Iic b)`, instead of using `(λ x, Ioc x b)
   then `∫⁻ x in φ n, f x ∂μ` tends to `∫⁻ x, f x ∂μ` as `n` tends to `l`
 - `measure_theory.ae_cover.integrable_of_integral_norm_tendsto` : if `φ` is a `ae_cover μ l`,
   where `l` is a countably generated filter, if `f` is measurable and integrable on each `φ n`,
-  and if `∫ x in φ n, ∥f x∥ ∂μ` tends to some `I : ℝ` as n tends to `l`, then `f` is integrable
+  and if `∫ x in φ n, ‖f x‖ ∂μ` tends to some `I : ℝ` as n tends to `l`, then `f` is integrable
 - `measure_theory.ae_cover.integral_tendsto_of_countably_generated` : if `φ` is a `ae_cover μ l`,
   where `l` is a countably generated filter, and if `f` is measurable and integrable (globally),
   then `∫ x in φ n, f x ∂μ` tends to `∫ x, f x ∂μ` as `n` tends to `+∞`.
 
 We then specialize these lemmas to various use cases involving intervals, which are frequent
-in analysis.
+in analysis. In particular,
+- `measure_theory.integral_Ioi_of_has_deriv_at_of_tendsto` is a version of FTC-2 on the interval
+  `(a, +∞)`, giving the formula `∫ x in (a, +∞), g' x = l - g a` if `g'` is integrable and
+  `g` tends to `l` at `+∞`.
+- `measure_theory.integral_Ioi_of_has_deriv_at_of_nonneg` gives the same result assuming that
+  `g'` is nonnegative instead of integrable. Its automatic integrability in this context is proved
+  in `measure_theory.integrable_on_Ioi_deriv_of_nonneg`.
+- `measure_theory.integral_comp_smul_deriv_Ioi` is a version of the change of variables formula
+  on semi-infinite intervals.
 -/
 
 open measure_theory filter set topological_space
-open_locale ennreal nnreal topological_space
+open_locale ennreal nnreal topology
 
 namespace measure_theory
 
@@ -303,16 +312,16 @@ lemma ae_cover.comp_tendsto {α ι ι' : Type*} [measurable_space α] {μ : meas
 { ae_eventually_mem := hφ.ae_eventually_mem.mono (λ x hx, hu.eventually hx),
   measurable := λ i, hφ.measurable (u i) }
 
-section ae_cover_Union_Inter_encodable
+section ae_cover_Union_Inter_countable
 
-variables {α ι : Type*} [encodable ι]
+variables {α ι : Type*} [countable ι]
   [measurable_space α] {μ : measure α}
 
 lemma ae_cover.bUnion_Iic_ae_cover [preorder ι] {φ : ι → set α} (hφ : ae_cover μ at_top φ) :
   ae_cover μ at_top (λ (n : ι), ⋃ k (h : k ∈ Iic n), φ k) :=
 { ae_eventually_mem := hφ.ae_eventually_mem.mono
     (λ x h, h.mono (λ i hi, mem_bUnion right_mem_Iic hi)),
-  measurable := λ i, measurable_set.bUnion (countable_encodable _) (λ n _, hφ.measurable n) }
+  measurable := λ i, measurable_set.bUnion (to_countable _) (λ n _, hφ.measurable n) }
 
 lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι → set α}
   (hφ : ae_cover μ at_top φ) : ae_cover μ at_top (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
@@ -325,9 +334,9 @@ lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι �
       intros j hj,
       exact mem_bInter (λ k hk, hi k (le_trans hj hk)),
     end,
-  measurable := λ i, measurable_set.bInter (countable_encodable _) (λ n _, hφ.measurable n) }
+  measurable := λ i, measurable_set.bInter (to_countable _) (λ n _, hφ.measurable n) }
 
-end ae_cover_Union_Inter_encodable
+end ae_cover_Union_Inter_countable
 
 section lintegral
 
@@ -385,11 +394,11 @@ end lintegral
 section integrable
 
 variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter ι}
-  [normed_group E]
+  [normed_add_comm_group E]
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ) (hfm : ae_strongly_measurable f μ)
-  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ∥f x∥₊ ∂μ ≤ ennreal.of_real I) :
+  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ‖f x‖₊ ∂μ ≤ ennreal.of_real I) :
   integrable f μ :=
 begin
   refine ⟨hfm, (le_of_tendsto _ hbounded).trans_lt ennreal.of_real_lt_top⟩,
@@ -399,7 +408,7 @@ end
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ)
   (hfm : ae_strongly_measurable f μ)
-  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ∥f x∥₊ ∂μ) l (𝓝 $ ennreal.of_real I)) :
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ‖f x‖₊ ∂μ) l (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
 begin
   refine hφ.integrable_of_lintegral_nnnorm_bounded (max 1 (I + 1)) hfm _,
@@ -410,7 +419,7 @@ end
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0) (hfm : ae_strongly_measurable f μ)
-  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ∥f x∥₊ ∂μ ≤ I) :
+  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ‖f x‖₊ ∂μ ≤ I) :
   integrable f μ :=
 hφ.integrable_of_lintegral_nnnorm_bounded I hfm
   (by simpa only [ennreal.of_real_coe_nnreal] using hbounded)
@@ -418,7 +427,7 @@ hφ.integrable_of_lintegral_nnnorm_bounded I hfm
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0)
   (hfm : ae_strongly_measurable f μ)
-  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ∥f x∥₊ ∂μ) l (𝓝 I)) :
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ‖f x‖₊ ∂μ) l (𝓝 I)) :
   integrable f μ :=
 hφ.integrable_of_lintegral_nnnorm_tendsto I hfm
   (by simpa only [ennreal.of_real_coe_nnreal] using htendsto)
@@ -426,7 +435,7 @@ hφ.integrable_of_lintegral_nnnorm_tendsto I hfm
 lemma ae_cover.integrable_of_integral_norm_bounded [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E}
   (I : ℝ) (hfi : ∀ i, integrable_on f (φ i) μ)
-  (hbounded : ∀ᶠ i in l, ∫ x in φ i, ∥f x∥ ∂μ ≤ I) :
+  (hbounded : ∀ᶠ i in l, ∫ x in φ i, ‖f x‖ ∂μ ≤ I) :
   integrable f μ :=
 begin
   have hfm : ae_strongly_measurable f μ :=
@@ -444,7 +453,7 @@ end
 lemma ae_cover.integrable_of_integral_norm_tendsto [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E}
   (I : ℝ) (hfi : ∀ i, integrable_on f (φ i) μ)
-  (htendsto : tendsto (λ i, ∫ x in φ i, ∥f x∥ ∂μ) l (𝓝 I)) :
+  (htendsto : tendsto (λ i, ∫ x in φ i, ‖f x‖ ∂μ) l (𝓝 I)) :
   integrable f μ :=
 let ⟨I', hI'⟩ := htendsto.is_bounded_under_le in hφ.integrable_of_integral_norm_bounded I' hfi hI'
 
@@ -469,14 +478,14 @@ end integrable
 section integral
 
 variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter ι}
-  [normed_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 lemma ae_cover.integral_tendsto_of_countably_generated [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (hfi : integrable f μ) :
   tendsto (λ i, ∫ x in φ i, f x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
 suffices h : tendsto (λ i, ∫ (x : α), (φ i).indicator f x ∂μ) l (𝓝 (∫ (x : α), f x ∂μ)),
 by { convert h, ext n, rw integral_indicator (hφ.measurable n) },
-tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥)
+tendsto_integral_filter_of_dominated_convergence (λ x, ‖f x‖)
   (eventually_of_forall $ λ i, hfi.ae_strongly_measurable.indicator $ hφ.measurable i)
   (eventually_of_forall $ λ i, ae_of_all _ $ λ x, norm_indicator_le_norm_self _ _)
   hfi.norm (hφ.ae_tendsto_indicator f)
@@ -505,13 +514,13 @@ section integrable_of_interval_integral
 
 variables {ι E : Type*} {μ : measure ℝ}
           {l : filter ι} [filter.ne_bot l] [is_countably_generated l]
-          [normed_group E]
+          [normed_add_comm_group E]
           {a b : ι → ℝ} {f : ℝ → E}
 
 lemma integrable_of_interval_integral_norm_bounded
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
-  (h : ∀ᶠ i in l, ∫ x in a i .. b i, ∥f x∥ ∂μ ≤ I) :
+  (h : ∀ᶠ i in l, ∫ x in a i .. b i, ‖f x‖ ∂μ ≤ I) :
   integrable f μ :=
 begin
   have hφ : ae_cover μ l _ := ae_cover_Ioc ha hb,
@@ -521,17 +530,21 @@ begin
   rwa ←interval_integral.integral_of_le (hai.trans hbi)
 end
 
+/-- If `f` is integrable on intervals `Ioc (a i) (b i)`,
+where `a i` tends to -∞ and `b i` tends to ∞, and
+`∫ x in a i .. b i, ‖f x‖ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (-∞, ∞) -/
 lemma integrable_of_interval_integral_norm_tendsto
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
-  (h : tendsto (λ i, ∫ x in a i .. b i, ∥f x∥ ∂μ) l (𝓝 I)) :
+  (h : tendsto (λ i, ∫ x in a i .. b i, ‖f x‖ ∂μ) l (𝓝 I)) :
   integrable f μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_of_interval_integral_norm_bounded I' hfi ha hb hI'
 
 lemma integrable_on_Iic_of_interval_integral_norm_bounded (I b : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
-  (h : ∀ᶠ i in l, (∫ x in a i .. b, ∥f x∥ ∂μ) ≤ I) :
+  (h : ∀ᶠ i in l, (∫ x in a i .. b, ‖f x‖ ∂μ) ≤ I) :
   integrable_on f (Iic b) μ :=
 begin
   have hφ : ae_cover (μ.restrict $ Iic b) l _ := ae_cover_Ioi ha,
@@ -545,16 +558,20 @@ begin
   exact id
 end
 
+/-- If `f` is integrable on intervals `Ioc (a i) b`,
+where `a i` tends to -∞, and
+`∫ x in a i .. b, ‖f x‖ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (-∞, b) -/
 lemma integrable_on_Iic_of_interval_integral_norm_tendsto (I b : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
-  (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) l (𝓝 I)) :
+  (h : tendsto (λ i, ∫ x in a i .. b, ‖f x‖ ∂μ) l (𝓝 I)) :
   integrable_on f (Iic b) μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Iic_of_interval_integral_norm_bounded I' b hfi ha hI'
 
 lemma integrable_on_Ioi_of_interval_integral_norm_bounded (I a : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b l at_top)
-  (h : ∀ᶠ i in l, (∫ x in a .. b i, ∥f x∥ ∂μ) ≤ I) :
+  (h : ∀ᶠ i in l, (∫ x in a .. b i, ‖f x‖ ∂μ) ≤ I) :
   integrable_on f (Ioi a) μ :=
 begin
   have hφ : ae_cover (μ.restrict $ Ioi a) l _ := ae_cover_Iic hb,
@@ -569,9 +586,13 @@ begin
   exact id
 end
 
+/-- If `f` is integrable on intervals `Ioc a (b i)`,
+where `b i` tends to ∞, and
+`∫ x in a .. b i, ‖f x‖ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (a, ∞) -/
 lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b l at_top)
-  (h : tendsto (λ i, ∫ x in a .. b i, ∥f x∥ ∂μ) l (𝓝 $ I)) :
+  (h : tendsto (λ i, ∫ x in a .. b i, ‖f x‖ ∂μ) l (𝓝 $ I)) :
   integrable_on f (Ioi a) μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Ioi_of_interval_integral_norm_bounded I' a hfi hb hI'
@@ -579,7 +600,7 @@ let ⟨I', hI'⟩ := h.is_bounded_under_le in
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded {I a₀ b₀ : ℝ}
   (hfi : ∀ i, integrable_on f $ Ioc (a i) (b i))
   (ha : tendsto a l $ 𝓝 a₀) (hb : tendsto b l $ 𝓝 b₀)
-  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ∥f x∥) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ‖f x‖) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
 begin
   refine (ae_cover_Ioc_of_Ioc ha hb).integrable_of_integral_norm_bounded I
     (λ i, (hfi i).restrict measurable_set_Ioc) (eventually.mono h _),
@@ -591,12 +612,12 @@ end
 
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded_left {I a₀ b : ℝ}
   (hfi : ∀ i, integrable_on f $ Ioc (a i) b) (ha : tendsto a l $ 𝓝 a₀)
-  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ∥f x∥ ) ≤ I) : integrable_on f (Ioc a₀ b) :=
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ‖f x‖) ≤ I) : integrable_on f (Ioc a₀ b) :=
 integrable_on_Ioc_of_interval_integral_norm_bounded hfi ha tendsto_const_nhds h
 
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded_right {I a b₀ : ℝ}
   (hfi : ∀ i, integrable_on f $ Ioc a (b i)) (hb : tendsto b l $ 𝓝 b₀)
-  (h : ∀ᶠ i in l, (∫ x in Ioc a (b i), ∥f x∥ ) ≤ I) : integrable_on f (Ioc a b₀) :=
+  (h : ∀ᶠ i in l, (∫ x in Ioc a (b i), ‖f x‖ ) ≤ I) : integrable_on f (Ioc a b₀) :=
 integrable_on_Ioc_of_interval_integral_norm_bounded hfi tendsto_const_nhds hb h
 
 end integrable_of_interval_integral
@@ -605,7 +626,7 @@ section integral_of_interval_integral
 
 variables {ι E : Type*} {μ : measure ℝ}
           {l : filter ι} [is_countably_generated l]
-          [normed_group E] [normed_space ℝ E] [complete_space E]
+          [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
           {a b : ι → ℝ} {f : ℝ → E}
 
 lemma interval_integral_tendsto_integral
@@ -646,5 +667,252 @@ begin
 end
 
 end integral_of_interval_integral
+
+open real
+open_locale interval
+
+section Ioi_FTC
+
+variables {E : Type*} {f f' : ℝ → E} {g g' : ℝ → ℝ} {a b l : ℝ} {m : E}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+
+/-- **Fundamental theorem of calculus-2**, on semi-infinite intervals `(a, +∞)`.
+When a function has a limit at infinity `m`, and its derivative is integrable, then the
+integral of the derivative on `(a, +∞)` is `m - f a`. Version assuming differentiability
+on `(a, +∞)` and continuity on `[a, +∞)`.-/
+lemma integral_Ioi_of_has_deriv_at_of_tendsto (hcont : continuous_on f (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at f (f' x) x)
+  (f'int : integrable_on f' (Ioi a)) (hf : tendsto f at_top (𝓝 m)) :
+  ∫ x in Ioi a, f' x = m - f a :=
+begin
+  refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi a f'int tendsto_id) _,
+  apply tendsto.congr' _ (hf.sub_const _),
+  filter_upwards [Ioi_mem_at_top a] with x hx,
+  have h'x : a ≤ id x := le_of_lt hx,
+  symmetry,
+  apply interval_integral.integral_eq_sub_of_has_deriv_at_of_le h'x
+    (hcont.mono Icc_subset_Ici_self) (λ y hy, hderiv y hy.1),
+  rw interval_integrable_iff_integrable_Ioc_of_le h'x,
+  exact f'int.mono (λ y hy, hy.1) le_rfl,
+end
+
+/-- **Fundamental theorem of calculus-2**, on semi-infinite intervals `(a, +∞)`.
+When a function has a limit at infinity `m`, and its derivative is integrable, then the
+integral of the derivative on `(a, +∞)` is `m - f a`. Version assuming differentiability
+on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_tendsto'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at f (f' x) x)
+  (f'int : integrable_on f' (Ioi a)) (hf : tendsto f at_top (𝓝 m)) :
+  ∫ x in Ioi a, f' x = m - f a :=
+begin
+  apply integral_Ioi_of_has_deriv_at_of_tendsto _ (λ x hx, hderiv x (le_of_lt hx)) f'int hf,
+  assume x hx,
+  exact (hderiv x hx).continuous_at.continuous_within_at,
+end
+
+/-- When a function has a limit at infinity, and its derivative is nonnegative, then the derivative
+is automatically integrable on `(a, +∞)`. Version assuming differentiability
+on `(a, +∞)` and continuity on `[a, +∞)`. -/
+lemma integrable_on_Ioi_deriv_of_nonneg (hcont : continuous_on g (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioi a, 0 ≤ g' x) (hg : tendsto g at_top (𝓝 l)) :
+  integrable_on g' (Ioi a) :=
+begin
+  apply integrable_on_Ioi_of_interval_integral_norm_tendsto (l - g a) a (λ x, _) tendsto_id, swap,
+  { exact interval_integral.integrable_on_deriv_of_nonneg (hcont.mono Icc_subset_Ici_self)
+      (λ y hy, hderiv y hy.1) (λ y hy, g'pos y hy.1) },
+  apply tendsto.congr' _ (hg.sub_const _),
+  filter_upwards [Ioi_mem_at_top a] with x hx,
+  have h'x : a ≤ id x := le_of_lt hx,
+  calc g x - g a = ∫ y in a..id x, g' y :
+    begin
+      symmetry,
+      apply interval_integral.integral_eq_sub_of_has_deriv_at_of_le h'x
+        (hcont.mono Icc_subset_Ici_self) (λ y hy, hderiv y hy.1),
+      rw interval_integrable_iff_integrable_Ioc_of_le h'x,
+      exact interval_integral.integrable_on_deriv_of_nonneg (hcont.mono Icc_subset_Ici_self)
+        (λ y hy, hderiv y hy.1) (λ y hy, g'pos y hy.1)
+    end
+  ... = ∫ y in a..id x, ‖g' y‖ :
+    begin
+      simp_rw interval_integral.integral_of_le h'x,
+      refine set_integral_congr (measurable_set_Ioc) (λ y hy, _),
+      dsimp,
+      rw abs_of_nonneg,
+      exact g'pos _ hy.1,
+    end
+end
+
+/-- When a function has a limit at infinity, and its derivative is nonnegative, then the derivative
+is automatically integrable on `(a, +∞)`. Version assuming differentiability
+on `[a, +∞)`. -/
+lemma integrable_on_Ioi_deriv_of_nonneg'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioi a, 0 ≤ g' x) (hg : tendsto g at_top (𝓝 l)) :
+  integrable_on g' (Ioi a) :=
+begin
+  apply integrable_on_Ioi_deriv_of_nonneg _ (λ x hx, hderiv x (le_of_lt hx)) g'pos hg,
+  assume x hx,
+  exact (hderiv x hx).continuous_at.continuous_within_at,
+end
+
+/-- When a function has a limit at infinity `l`, and its derivative is nonnegative, then the
+integral of the derivative on `(a, +∞)` is `l - g a` (and the derivative is integrable, see
+`integrable_on_Ioi_deriv_of_nonneg`). Version assuming differentiability on `(a, +∞)` and
+continuity on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_nonneg (hcont : continuous_on g (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioi a, 0 ≤ g' x) (hg : tendsto g at_top (𝓝 l)) :
+  ∫ x in Ioi a, g' x = l - g a :=
+integral_Ioi_of_has_deriv_at_of_tendsto hcont hderiv
+  (integrable_on_Ioi_deriv_of_nonneg hcont hderiv g'pos hg) hg
+
+/-- When a function has a limit at infinity `l`, and its derivative is nonnegative, then the
+integral of the derivative on `(a, +∞)` is `l - g a` (and the derivative is integrable, see
+`integrable_on_Ioi_deriv_of_nonneg'`). Version assuming differentiability on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_nonneg'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioi a, 0 ≤ g' x) (hg : tendsto g at_top (𝓝 l)) :
+  ∫ x in Ioi a, g' x = l - g a :=
+integral_Ioi_of_has_deriv_at_of_tendsto' hderiv
+  (integrable_on_Ioi_deriv_of_nonneg' hderiv g'pos hg) hg
+
+/-- When a function has a limit at infinity, and its derivative is nonpositive, then the derivative
+is automatically integrable on `(a, +∞)`. Version assuming differentiability
+on `(a, +∞)` and continuity on `[a, +∞)`. -/
+lemma integrable_on_Ioi_deriv_of_nonpos (hcont : continuous_on g (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at g (g' x) x)
+  (g'neg : ∀ x ∈ Ioi a, g' x ≤ 0) (hg : tendsto g at_top (𝓝 l)) :
+  integrable_on g' (Ioi a) :=
+begin
+  apply integrable_neg_iff.1,
+  exact integrable_on_Ioi_deriv_of_nonneg hcont.neg (λ x hx, (hderiv x hx).neg)
+    (λ x hx, neg_nonneg_of_nonpos (g'neg x hx)) hg.neg,
+end
+
+/-- When a function has a limit at infinity, and its derivative is nonpositive, then the derivative
+is automatically integrable on `(a, +∞)`. Version assuming differentiability
+on `[a, +∞)`. -/
+lemma integrable_on_Ioi_deriv_of_nonpos'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at g (g' x) x)
+  (g'neg : ∀ x ∈ Ioi a, g' x ≤ 0) (hg : tendsto g at_top (𝓝 l)) :
+  integrable_on g' (Ioi a) :=
+begin
+  apply integrable_on_Ioi_deriv_of_nonpos _ (λ x hx, hderiv x (le_of_lt hx)) g'neg hg,
+  assume x hx,
+  exact (hderiv x hx).continuous_at.continuous_within_at,
+end
+
+/-- When a function has a limit at infinity `l`, and its derivative is nonpositive, then the
+integral of the derivative on `(a, +∞)` is `l - g a` (and the derivative is integrable, see
+`integrable_on_Ioi_deriv_of_nonneg`). Version assuming differentiability on `(a, +∞)` and
+continuity on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_nonpos (hcont : continuous_on g (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at g (g' x) x)
+  (g'neg : ∀ x ∈ Ioi a, g' x ≤ 0) (hg : tendsto g at_top (𝓝 l)) :
+  ∫ x in Ioi a, g' x = l - g a :=
+integral_Ioi_of_has_deriv_at_of_tendsto hcont hderiv
+  (integrable_on_Ioi_deriv_of_nonpos hcont hderiv g'neg hg) hg
+
+/-- When a function has a limit at infinity `l`, and its derivative is nonpositive, then the
+integral of the derivative on `(a, +∞)` is `l - g a` (and the derivative is integrable, see
+`integrable_on_Ioi_deriv_of_nonneg'`). Version assuming differentiability on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_nonpos'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at g (g' x) x)
+  (g'neg : ∀ x ∈ Ioi a, g' x ≤ 0) (hg : tendsto g at_top (𝓝 l)) :
+  ∫ x in Ioi a, g' x = l - g a :=
+integral_Ioi_of_has_deriv_at_of_tendsto' hderiv
+  (integrable_on_Ioi_deriv_of_nonpos' hderiv g'neg hg) hg
+
+end Ioi_FTC
+
+section Ioi_change_variables
+
+open real
+open_locale interval
+
+variables {E : Type*} {f : ℝ → E}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+
+/-- Change-of-variables formula for `Ioi` integrals of vector-valued functions, proved by taking
+limits from the result for finite intervals. -/
+lemma integral_comp_smul_deriv_Ioi {f f' : ℝ → ℝ} {g : ℝ → E} {a : ℝ}
+  (hf : continuous_on f $ Ici a)
+  (hft : tendsto f at_top at_top)
+  (hff' : ∀ x ∈ Ioi a, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hg_cont : continuous_on g $ f '' Ioi a)
+  (hg1 : integrable_on g $ f '' Ici a)
+  (hg2 : integrable_on (λ x, f' x • (g ∘ f) x) (Ici a)) :
+  ∫ x in Ioi a, f' x • (g ∘ f) x = ∫ u in Ioi (f a), g u :=
+begin
+  have eq : ∀ b : ℝ, a < b → ∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a .. f b, g u,
+  { intros b hb,
+    have i1 : Ioo (min a b) (max a b) ⊆ Ioi a,
+    { rw min_eq_left hb.le, exact Ioo_subset_Ioi_self },
+    have i2 : [a, b] ⊆ Ici a,
+    { rw uIcc_of_le hb.le, exact Icc_subset_Ici_self },
+    refine interval_integral.integral_comp_smul_deriv''' (hf.mono i2)
+      (λ x hx, hff' x $ mem_of_mem_of_subset hx i1) (hg_cont.mono $ image_subset _ _)
+      (hg1.mono_set $ image_subset _ _) (hg2.mono_set i2),
+    { rw min_eq_left hb.le, exact Ioo_subset_Ioi_self },
+    { rw uIcc_of_le hb.le, exact Icc_subset_Ici_self } },
+  rw integrable_on_Ici_iff_integrable_on_Ioi at hg2,
+  have t2 := interval_integral_tendsto_integral_Ioi _ hg2 tendsto_id,
+  have : Ioi (f a) ⊆ f '' Ici a := (Ioi_subset_Ici_self.trans $
+    is_preconnected.intermediate_value_Ici is_preconnected_Ici left_mem_Ici
+    (le_principal_iff.mpr $ Ici_mem_at_top _) hf hft),
+  have t1 := (interval_integral_tendsto_integral_Ioi _ (hg1.mono_set this) tendsto_id).comp hft,
+  exact tendsto_nhds_unique (tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top a) eq) t2) t1,
+end
+
+/-- Change-of-variables formula for `Ioi` integrals of scalar-valued functions -/
+lemma integral_comp_mul_deriv_Ioi {f f' : ℝ → ℝ} {g : ℝ → ℝ} {a : ℝ}
+  (hf : continuous_on f $ Ici a)
+  (hft : tendsto f at_top at_top)
+  (hff' : ∀ x ∈ Ioi a, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hg_cont : continuous_on g $ f '' Ioi a)
+  (hg1 : integrable_on g $ f '' Ici a)
+  (hg2 : integrable_on (λ x, (g ∘ f) x * f' x) (Ici a)) :
+  ∫ x in Ioi a, (g ∘ f) x * f' x = ∫ u in Ioi (f a), g u :=
+begin
+  have hg2' : integrable_on (λ x, f' x • (g ∘ f) x) (Ici a) := by simpa [mul_comm] using hg2,
+  simpa [mul_comm] using integral_comp_smul_deriv_Ioi hf hft hff' hg_cont hg1 hg2',
+end
+
+/-- Substitution `y = x ^ p` in integrals over `Ioi 0` -/
+lemma integral_comp_rpow_Ioi (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  ∫ x in Ioi 0, (|p| * x ^ (p - 1)) • g (x ^ p) = ∫ y in Ioi 0, g y :=
+begin
+  let S := Ioi (0 : ℝ),
+  have a1 : ∀ x:ℝ, x ∈ S → has_deriv_within_at (λ (t:ℝ), t ^ p) (p * x ^ (p - 1)) S x :=
+    λ x hx, (has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne')).has_deriv_within_at,
+  have a2 : inj_on (λ x:ℝ, x ^ p) S,
+  { rcases lt_or_gt_of_ne hp,
+    { apply strict_anti_on.inj_on,
+      intros x hx y hy hxy,
+      rw [←inv_lt_inv (rpow_pos_of_pos hx p) (rpow_pos_of_pos hy p),
+      ←rpow_neg (le_of_lt hx), ←rpow_neg (le_of_lt hy)],
+      exact rpow_lt_rpow (le_of_lt hx) hxy (neg_pos.mpr h), },
+    exact strict_mono_on.inj_on (λ x hx y hy hxy, rpow_lt_rpow (mem_Ioi.mp hx).le hxy h),},
+  have a3 : (λ (t : ℝ), t ^ p) '' S = S,
+  { ext1, rw mem_image, split,
+    { rintro ⟨y, hy, rfl⟩, exact rpow_pos_of_pos hy p },
+    { intro hx, refine ⟨x ^ (1 / p), rpow_pos_of_pos hx _, _⟩,
+      rw [←rpow_mul (le_of_lt hx), one_div_mul_cancel hp, rpow_one], } },
+  have := integral_image_eq_integral_abs_deriv_smul measurable_set_Ioi a1 a2 g,
+  rw a3 at this, rw this,
+  refine set_integral_congr measurable_set_Ioi _,
+  intros x hx, dsimp only,
+  rw [abs_mul, abs_of_nonneg (rpow_nonneg_of_nonneg (le_of_lt hx) _)],
+end
+
+lemma integral_comp_rpow_Ioi_of_pos {g : ℝ → E} {p : ℝ} (hp : 0 < p) :
+  ∫ x in Ioi 0, (p * x ^ (p - 1)) • g (x ^ p) = ∫ y in Ioi 0, g y :=
+begin
+  convert integral_comp_rpow_Ioi g hp.ne',
+  funext, congr, rw abs_of_nonneg hp.le,
+end
+
+end Ioi_change_variables
 
 end measure_theory

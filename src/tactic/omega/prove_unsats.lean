@@ -22,13 +22,13 @@ meta def prove_neg : int → tactic expr
 | (int.of_nat _) := failed
 | -[1+ m] := return `(int.neg_succ_lt_zero %%`(m))
 
-lemma forall_mem_repeat_zero_eq_zero (m : nat) :
-  (∀ x ∈ (list.repeat (0 : int) m), x = (0 : int)) :=
-λ x, list.eq_of_mem_repeat
+lemma forall_mem_replicate_zero_eq_zero (m : nat) :
+  (∀ x ∈ (list.replicate m (0 : int)), x = (0 : int)) :=
+λ x, list.eq_of_mem_replicate
 
-/-- Return expr of proof that elements of (repeat 0 is.length) are all 0 -/
+/-- Return expr of proof that elements of (replicate is.length 0) are all 0 -/
 meta def prove_forall_mem_eq_zero (is : list int) : tactic expr :=
-return `(forall_mem_repeat_zero_eq_zero is.length)
+return `(forall_mem_replicate_zero_eq_zero is.length)
 
 /-- Return expr of proof that the combination of linear constraints
     represented by ks and ts is unsatisfiable -/

@@ -3,12 +3,15 @@ Copyright (c) 2020 Johan Commelin, Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Damiano Testa, Yaël Dillies
 -/
-import logic.equiv.basic
+import logic.equiv.defs
 import logic.nontrivial
 import order.basic
 
 /-!
 # Type synonyms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides two type synonyms for order theory:
 * `order_dual α`: Type synonym of `α` to equip it with the dual order (`a ≤ b` becomes `b ≤ a`).
@@ -74,10 +77,10 @@ protected def rec {C : αᵒᵈ → Sort*} (h₂ : Π a : α, C (to_dual a)) : �
 @[simp] protected lemma «forall» {p : αᵒᵈ → Prop} : (∀ a, p a) ↔ ∀ a, p (to_dual a) := iff.rfl
 @[simp] protected lemma «exists» {p : αᵒᵈ → Prop} : (∃ a, p a) ↔ ∃ a, p (to_dual a) := iff.rfl
 
-alias to_dual_le_to_dual ↔ _ has_le.le.dual
-alias to_dual_lt_to_dual ↔ _ has_lt.lt.dual
-alias of_dual_le_of_dual ↔ _ has_le.le.of_dual
-alias of_dual_lt_of_dual ↔ _ has_lt.lt.of_dual
+alias to_dual_le_to_dual ↔ _ _root_.has_le.le.dual
+alias to_dual_lt_to_dual ↔ _ _root_.has_lt.lt.dual
+alias of_dual_le_of_dual ↔ _ _root_.has_le.le.of_dual
+alias of_dual_lt_of_dual ↔ _ _root_.has_lt.lt.of_dual
 
 end order_dual
 

@@ -33,7 +33,7 @@ begin
 end
 
 lemma exp_one_gt_d9 : 2.7182818283 < exp 1 :=
-lt_of_lt_of_le (by norm_num) (sub_le.1 (abs_sub_le_iff.1 exp_one_near_10).2)
+lt_of_lt_of_le (by norm_num) (sub_le_comm.1 (abs_sub_le_iff.1 exp_one_near_10).2)
 
 lemma exp_one_lt_d9 : exp 1 < 2.7182818286 :=
 lt_of_le_of_lt (sub_le_iff_le_add.1 (abs_sub_le_iff.1 exp_one_near_10).1) (by norm_num)
@@ -48,7 +48,7 @@ end
 lemma exp_neg_one_lt_d9 : exp (-1) < 0.36787944120 :=
 begin
   rw [exp_neg, inv_lt (exp_pos _)],
-  refine lt_of_lt_of_le _ (sub_le.1 (abs_sub_le_iff.1 exp_one_near_10).2),
+  refine lt_of_lt_of_le _ (sub_le_comm.1 (abs_sub_le_iff.1 exp_one_near_10).2),
   all_goals {norm_num},
 end
 
@@ -71,7 +71,7 @@ begin
 end
 
 lemma log_two_gt_d9 : 0.6931471803 < log 2 :=
-lt_of_lt_of_le (by norm_num1) (sub_le.1 (abs_sub_le_iff.1 log_two_near_10).2)
+lt_of_lt_of_le (by norm_num1) (sub_le_comm.1 (abs_sub_le_iff.1 log_two_near_10).2)
 
 lemma log_two_lt_d9 : log 2 < 0.6931471808 :=
 lt_of_le_of_lt (sub_le_iff_le_add.1 (abs_sub_le_iff.1 log_two_near_10).1) (by norm_num)

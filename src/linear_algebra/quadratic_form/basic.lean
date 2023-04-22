@@ -68,6 +68,8 @@ universes u v w
 variables {S : Type*}
 variables {R R₁: Type*} {M : Type*}
 
+open_locale big_operators
+
 section polar
 variables [ring R] [comm_ring R₁] [add_comm_group M]
 
@@ -142,6 +144,9 @@ variables (Q)
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_coe : Q.to_fun = ⇑Q := rfl
 
+-- this must come after the coe_to_fun definition
+initialize_simps_projections quadratic_form (to_fun → apply)
+
 variables {Q}
 
 @[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' := fun_like.ext _ _ H
@@ -157,8 +162,13 @@ protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : qua
   to_fun_smul := h.symm ▸ Q.to_fun_smul,
   exists_companion' := h.symm ▸ Q.exists_companion' }
 
-end fun_like
+@[simp]
+lemma coe_copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : ⇑(Q.copy Q' h) = Q' := rfl
 
+lemma copy_eq (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : Q.copy Q' h = Q :=
+fun_like.ext' h
+
+end fun_like
 
 section semiring
 variables [semiring R] [add_comm_monoid M] [module R M]
@@ -310,14 +320,14 @@ end ring
 section semiring_operators
 variables [semiring R] [add_comm_monoid M] [module R M]
 
-section has_scalar
+section has_smul
 
 variables [monoid S] [distrib_mul_action S R] [smul_comm_class S R R]
 
 /-- `quadratic_form R M` inherits the scalar action from any algebra over `R`.
 
 When `R` is commutative, this provides an `R`-action via `algebra.id`. -/
-instance : has_scalar S (quadratic_form R M) :=
+instance : has_smul S (quadratic_form R M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
     to_fun_smul := λ b x, by rw [pi.smul_apply, map_smul, pi.smul_apply, mul_smul_comm],
@@ -329,7 +339,7 @@ instance : has_scalar S (quadratic_form R M) :=
 @[simp] lemma smul_apply (a : S) (Q : quadratic_form R M) (x : M) :
   (a • Q) x = a • Q x := rfl
 
-end has_scalar
+end has_smul
 
 instance : has_zero (quadratic_form R M) :=
 ⟨ { to_fun := λ x, 0,
@@ -371,7 +381,6 @@ def eval_add_monoid_hom (m : M) : quadratic_form R M →+ R :=
 (pi.eval_add_monoid_hom _ m).comp coe_fn_add_monoid_hom
 
 section sum
-open_locale big_operators
 
 @[simp] lemma coe_fn_sum {ι : Type*} (Q : ι → quadratic_form R M) (s : finset ι) :
   ⇑(∑ i in s, Q i) = ∑ i in s, Q i :=
@@ -518,15 +527,7 @@ quadratic form.
 namespace bilin_form
 open quadratic_form
 
-section ring
-variables [ring R] [add_comm_group M] [module R M]
-variables {B : bilin_form R M}
-
-lemma polar_to_quadratic_form (x y : M) : polar (λ x, B x x) x y = B x y + B y x :=
-by { simp only [add_assoc, add_sub_cancel', add_right, polar, add_left_inj, add_neg_cancel_left,
-  add_left, sub_eq_add_neg _ (B y y), add_comm (B y x) _] }
-
-end ring
+section semiring
 
 variables [semiring R] [add_comm_monoid M] [module R M]
 variables {B : bilin_form R M}
@@ -546,6 +547,56 @@ section
 variables (R M)
 @[simp] lemma to_quadratic_form_zero : (0 : bilin_form R M).to_quadratic_form = 0 := rfl
 end
+
+@[simp] lemma to_quadratic_form_add (B₁ B₂ : bilin_form R M) :
+  (B₁ + B₂).to_quadratic_form = B₁.to_quadratic_form + B₂.to_quadratic_form := rfl
+
+@[simp] lemma to_quadratic_form_smul [monoid S] [distrib_mul_action S R] [smul_comm_class S R R]
+  (a : S) (B : bilin_form R M) :
+  (a • B).to_quadratic_form = a • B.to_quadratic_form := rfl
+
+section
+variables (R M)
+/-- `bilin_form.to_quadratic_form` as an additive homomorphism -/
+@[simps] def to_quadratic_form_add_monoid_hom : bilin_form R M →+ quadratic_form R M :=
+{ to_fun := to_quadratic_form,
+  map_zero' := to_quadratic_form_zero _ _,
+  map_add' := to_quadratic_form_add }
+end
+
+@[simp] lemma to_quadratic_form_list_sum (B : list (bilin_form R M)) :
+  B.sum.to_quadratic_form = (B.map to_quadratic_form).sum :=
+map_list_sum (to_quadratic_form_add_monoid_hom R M) B
+
+@[simp] lemma to_quadratic_form_multiset_sum (B : multiset (bilin_form R M)) :
+  B.sum.to_quadratic_form = (B.map to_quadratic_form).sum :=
+map_multiset_sum (to_quadratic_form_add_monoid_hom R M) B
+
+@[simp] lemma to_quadratic_form_sum {ι : Type*} (s : finset ι) (B : ι → bilin_form R M) :
+  (∑ i in s, B i).to_quadratic_form = ∑ i in s, (B i).to_quadratic_form :=
+map_sum (to_quadratic_form_add_monoid_hom R M) B s
+
+@[simp] lemma to_quadratic_form_eq_zero {B : bilin_form R M} :
+  B.to_quadratic_form = 0 ↔ B.is_alt :=
+quadratic_form.ext_iff
+
+end semiring
+
+section ring
+variables [ring R] [add_comm_group M] [module R M]
+variables {B : bilin_form R M}
+
+lemma polar_to_quadratic_form (x y : M) : polar (λ x, B x x) x y = B x y + B y x :=
+by { simp only [add_assoc, add_sub_cancel', add_right, polar, add_left_inj, add_neg_cancel_left,
+  add_left, sub_eq_add_neg _ (B y y), add_comm (B y x) _] }
+
+@[simp] lemma to_quadratic_form_neg (B : bilin_form R M) :
+  (-B).to_quadratic_form = -B.to_quadratic_form := rfl
+
+@[simp] lemma to_quadratic_form_sub (B₁ B₂ : bilin_form R M) :
+  (B₁ - B₂).to_quadratic_form = B₁.to_quadratic_form - B₂.to_quadratic_form := rfl
+
+end ring
 
 end bilin_form
 
@@ -626,10 +677,9 @@ abbreviation associated' : quadratic_form R M →ₗ[ℤ] bilin_form R M :=
 associated_hom ℤ
 
 /-- Symmetric bilinear forms can be lifted to quadratic forms -/
-instance : can_lift (bilin_form R M) (quadratic_form R M) :=
-{ coe := associated_hom ℕ,
-  cond := bilin_form.is_symm,
-  prf := λ B hB, ⟨B.to_quadratic_form, associated_left_inverse _ hB⟩ }
+instance can_lift :
+  can_lift (bilin_form R M) (quadratic_form R M) (associated_hom ℕ) bilin_form.is_symm :=
+{ prf := λ B hB, ⟨B.to_quadratic_form, associated_left_inverse _ hB⟩ }
 
 /-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
 bilinear form is non-zero, i.e. there exists `x` such that `Q x ≠ 0`. -/
@@ -889,14 +939,12 @@ begin
     { rw [is_ortho, hB₂],
       exact (v' j).prop _ (submodule.mem_span_singleton_self x) },
     { exact (v' i).prop _ (submodule.mem_span_singleton_self x) },
-    { exact hv₁ _ _ (ne_of_apply_ne _ hij), }, }
+    { exact hv₁ (ne_of_apply_ne _ hij), }, }
 end
 
 end bilin_form
 
 namespace quadratic_form
-
-open_locale big_operators
 
 open finset bilin_form
 
@@ -948,7 +996,7 @@ begin
   { rw [smul_left, smul_right, smul_eq_mul], ring },
   { intros i _ hij,
     rw [smul_left, smul_right,
-        show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ j i hij.symm,
+        show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ hij.symm,
         mul_zero, mul_zero] },
 end
 

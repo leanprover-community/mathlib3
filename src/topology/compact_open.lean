@@ -12,6 +12,9 @@ import topology.maps
 /-!
 # The compact-open topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the compact-open topology on the set of continuous maps between two
 topological spaces.
 
@@ -34,7 +37,7 @@ compact-open, curry, function space
 -/
 
 open set
-open_locale topological_space
+open_locale topology
 
 namespace continuous_map
 
@@ -58,6 +61,9 @@ set.ext (λ f, subset_inter_iff)
 @[simp] lemma gen_union (s t : set α) (u : set β) :
   compact_open.gen (s ∪ t) u = compact_open.gen s u ∩ compact_open.gen t u :=
 set.ext (λ f, (iff_of_eq (congr_arg (⊆ u) (image_union f s t))).trans union_subset_iff)
+
+lemma gen_empty_right {s : set α} (h : s.nonempty) : compact_open.gen s (∅ : set β) = ∅ :=
+eq_empty_of_forall_not_mem $ λ f, (h.image _).not_subset_empty
 
 -- The compact-open topology on the space of continuous maps α → β.
 instance compact_open : topological_space C(α, β) :=
@@ -84,6 +90,43 @@ end
 lemma continuous_comp : continuous (continuous_map.comp g : C(α, β) → C(α, γ)) :=
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
   by rw [hm, preimage_gen g hs hu]; exact continuous_map.is_open_gen hs (hu.preimage g.2)
+
+variable (f : C(α, β))
+
+private lemma image_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
+  (λ g : C(β, γ), g.comp f) ⁻¹' compact_open.gen s u = compact_open.gen (f '' s) u :=
+begin
+  ext ⟨g, _⟩,
+  change g ∘ f '' s ⊆ u ↔ g '' (f '' s) ⊆ u,
+  rw set.image_comp,
+end
+
+/-- C(-, γ) is a functor. -/
+lemma continuous_comp_left : continuous (λ g, g.comp f : C(β, γ) → C(α, γ)) :=
+continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
+  by { rw [hm, image_gen f hs hu], exact continuous_map.is_open_gen (hs.image f.2) hu }
+
+/-- Composition is a continuous map from `C(α, β) × C(β, γ)` to `C(α, γ)`, provided that `β` is
+  locally compact. This is Prop. 9 of Chap. X, §3, №. 4 of Bourbaki's *Topologie Générale*. -/
+lemma continuous_comp' [locally_compact_space β] :
+  continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
+continuous_generated_from begin
+  rintros M ⟨K, hK, U, hU, rfl⟩,
+  conv { congr, rw [compact_open.gen, preimage_set_of_eq],
+    congr, funext, rw [coe_comp, image_comp, image_subset_iff] },
+  rw is_open_iff_forall_mem_open,
+  rintros ⟨φ₀, ψ₀⟩ H,
+  obtain ⟨L, hL, hKL, hLU⟩ := exists_compact_between (hK.image φ₀.2) (hU.preimage ψ₀.2) H,
+  use {φ : C(α, β) | φ '' K ⊆ interior L} ×ˢ {ψ : C(β, γ) | ψ '' L ⊆ U},
+  use λ ⟨φ, ψ⟩ ⟨hφ, hψ⟩, subset_trans hφ (interior_subset.trans $ image_subset_iff.mp hψ),
+  use (continuous_map.is_open_gen hK is_open_interior).prod (continuous_map.is_open_gen hL hU),
+  exact mem_prod.mpr ⟨hKL, image_subset_iff.mpr hLU⟩,
+end
+
+lemma continuous.comp' {X : Type*} [topological_space X] [locally_compact_space β]
+  {f : X → C(α, β)} {g : X → C(β, γ)} (hf : continuous f) (hg : continuous g) :
+  continuous (λ x, (g x).comp (f x)) :=
+continuous_comp'.comp (hf.prod_mk hg : continuous $ λ x, (f x, g x))
 
 end functorial
 
@@ -129,10 +172,8 @@ instance [t2_space β] : t2_space C(α, β) :=
       is_compact_singleton hu, continuous_map.is_open_gen is_compact_singleton hv, _, _, _⟩,
     { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
     { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
-    { rw [←continuous_map.gen_inter, huv],
-      refine subset_empty_iff.mp (λ f, _),
-      rw [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff],
-      exact id },
+    { rw [disjoint_iff_inter_eq_empty, ←gen_inter, huv.inter_eq,
+        gen_empty_right (singleton_nonempty _)] }
   end ⟩
 
 end ev
@@ -144,7 +185,7 @@ lemma compact_open_le_induced (s : set α) :
   ≤ topological_space.induced (continuous_map.restrict s) continuous_map.compact_open :=
 begin
   simp only [induced_generate_from_eq, continuous_map.compact_open],
-  apply generate_from_mono,
+  apply topological_space.generate_from_anti,
   rintros b ⟨a, ⟨c, hc, u, hu, rfl⟩, rfl⟩,
   refine ⟨coe '' c, hc.image continuous_subtype_coe, u, hu, _⟩,
   ext f,
@@ -164,7 +205,7 @@ begin
   { refine le_infi₂ _,
     exact λ s hs, compact_open_le_induced s },
   simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
-  apply generate_from_mono,
+  apply topological_space.generate_from_anti,
   rintros _ ⟨s, hs, u, hu, rfl⟩,
   rw mem_Union₂,
   refine ⟨s, hs, _, ⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
@@ -304,7 +345,7 @@ continuous_eval'.comp $ f.continuous.prod_map continuous_id
 /-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
     function spaces, see `homeomorph.curry`. -/
-def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
+@[simps] def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
 ⟨_, continuous_uncurry_of_continuous f⟩
 
 /-- The uncurrying process is a continuous map between function spaces. -/

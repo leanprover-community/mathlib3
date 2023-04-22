@@ -20,17 +20,26 @@ Equivalently, for any measurable space `γ`, we have a disintegration of constan
 
 ### Conditional cdf
 
-Given `ρ : measure (α × ℝ)`, we call conditional cumulative distribution function (cdf) of `ρ` a
-function `cond_cdf ρ : α → ℝ → ℝ` such that for all `a : α`, `cond_cdf ρ a` is monotone
-right-continuous with limit 0 at -∞ and limit 1 at +∞.
+Given `ρ : measure (α × ℝ)`, we call conditional cumulative distribution function (conditional cdf)
+of `ρ` a function `cond_cdf ρ : α → ℝ → ℝ` such that for all `a : α`, `cond_cdf ρ a` is measurable,
+monotone and right-continuous with limit 0 at -∞ and limit 1 at +∞.
+For all `q : ℚ` and measurable set `s`, it verifies
+`∫⁻ a in s, ennreal.of_real (cond_cdf ρ a q) ∂ρ.fst = ρ (s ×ˢ Iic q)`.
+
+### Conditional kernel
+
+TODO
 
 ## Main definitions
 
-* `cond_kernel`: TODO
+For a measure `ρ` on `α × ℝ`, we define
+* `probability_theory.cond_cdf ρ : α → ℝ → ℝ`: the conditional cdf of `ρ`.
+* `probability_theory.cond_kernel ρ : kernel α ℝ`: TODO
 
 ## Main statements
 
-* `foo_bar_unique`
+* `probability_theory.kernel.const_eq_comp_prod`: TODO
+* `probability_theory.measure_eq_comp_prod`: TODO
 
 ## Future extensions
 
@@ -783,6 +792,7 @@ lemma bdd_below_range_cond_cdf_rat_gt (ρ : measure (α × ℝ)) (a : α) (x : �
   bdd_below (range (λ (r : {r' : ℚ // x < ↑r'}), cond_cdf_rat ρ a r)) :=
 by { refine ⟨0, λ z, _⟩, rintros ⟨u, rfl⟩, exact cond_cdf_rat_nonneg ρ a _, }
 
+/-- The conditional cdf is monotone for all `a : α`. -/
 lemma monotone_cond_cdf (ρ : measure (α × ℝ)) (a : α) : monotone (cond_cdf ρ a) :=
 begin
   intros x y hxy,
@@ -798,6 +808,7 @@ begin
   { refl, },
 end
 
+/-- The conditional cdf is non-negative for all `a : α`. -/
 lemma cond_cdf_nonneg (ρ : measure (α × ℝ)) (a : α) (r : ℝ) :
   0 ≤ cond_cdf ρ a r :=
 begin
@@ -807,6 +818,7 @@ begin
   exact le_cinfi (λ r', cond_cdf_rat_nonneg ρ a _),
 end
 
+/-- The conditional cdf is lower or equal to 1 for all `a : α`. -/
 lemma cond_cdf_le_one (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
   cond_cdf ρ a x ≤ 1 :=
 begin
@@ -816,6 +828,7 @@ begin
   exact ⟨r, hrx⟩,
 end
 
+/-- The conditional cdf tends to 0 at -∞ for all `a : α`. -/
 lemma tendsto_cond_cdf_at_bot (ρ : measure (α × ℝ)) (a : α) :
   tendsto (cond_cdf ρ a) at_bot (𝓝 0) :=
 begin
@@ -834,6 +847,7 @@ begin
   exact monotone_cond_cdf ρ a (h_exists x).some_spec.1.le,
 end
 
+/-- The conditional cdf tends to 1 at +∞ for all `a : α`. -/
 lemma tendsto_cond_cdf_at_top (ρ : measure (α × ℝ)) (a : α) :
   tendsto (cond_cdf ρ a) at_top (𝓝 1) :=
 begin
@@ -865,6 +879,7 @@ begin
   exact ((ha_le_one r).trans_lt ennreal.one_lt_top).ne,
 end
 
+/-- The conditional cdf is a measurable function of `a : α` for all `x : ℝ`. -/
 lemma measurable_cond_cdf (ρ : measure (α × ℝ)) (x : ℝ) :
   measurable (λ a, cond_cdf ρ a x) :=
 measurable_cinfi (λ q, measurable_cond_cdf_rat ρ q) (λ a, bdd_below_range_cond_cdf_rat_gt ρ a _)
@@ -887,9 +902,20 @@ begin
   refl,
 end
 
+/-- The conditional cdf is right-continuous for all `a : α`. -/
 lemma continuous_within_at_cond_cdf (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
   continuous_within_at (cond_cdf ρ a) (Ici x) x :=
 by { rw ← continuous_within_at_Ioi_iff_Ici, exact tendsto_cond_cdf_Ioi ρ a x, }
+
+lemma set_lintegral_cond_cdf_Iic_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)
+  {s : set α} (hs : measurable_set s) :
+  ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
+begin
+  have : ∀ᵐ a ∂ρ.fst, a ∈ s → ennreal.of_real (cond_cdf ρ a r) = pre_cdf ρ r a,
+  { filter_upwards [of_real_cond_cdf_ae_eq ρ r] with a ha using λ _, ha, },
+  rw [set_lintegral_congr_fun hs this, set_lintegral_pre_cdf_fst ρ r hs],
+  exact ρ.Iic_snd_apply r hs,
+end
 
 /-- Conditional cdf as a Stieltjes function. -/
 noncomputable
@@ -898,14 +924,11 @@ def cond_cdf_stieltjes (ρ : measure (α × ℝ)) (a : α) : stieltjes_function 
   mono' := monotone_cond_cdf ρ a,
   right_continuous' := continuous_within_at_cond_cdf ρ a }
 
-/-- Conditional measure on the second space of the product given the value on the first. -/
+/-- Conditional measure on the second space of the product given the value on the first. Use
+`cond_kernel` instead of this. -/
 noncomputable
 def cond_measure (ρ : measure (α × ℝ)) (a : α) : measure ℝ :=
 (cond_cdf_stieltjes ρ a).measure
-
-lemma cond_measure_Ioc (ρ : measure (α × ℝ)) (a : α) (x y : ℝ) :
-  cond_measure ρ a (Ioc x y) = ennreal.of_real (cond_cdf ρ a y - cond_cdf ρ a x) :=
-by { rw [cond_measure, stieltjes_function.measure_Ioc], refl, }
 
 lemma cond_measure_Iic (ρ : measure (α × ℝ)) (a : α) (q : ℝ) :
   cond_measure ρ a (Iic q) = ennreal.of_real (cond_cdf ρ a q) :=
@@ -946,17 +969,6 @@ begin
     exact measurable.ennreal_tsum hf_cd_meas, },
 end
 
-lemma set_lintegral_cond_measure_Iic_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)
-  {s : set α} (hs : measurable_set s) :
-  ∫⁻ a in s, cond_measure ρ a (Iic r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
-begin
-  simp_rw [cond_measure_Iic ρ],
-  have : ∀ᵐ a ∂ρ.fst, a ∈ s → ennreal.of_real (cond_cdf ρ a r) = pre_cdf ρ r a,
-  { filter_upwards [of_real_cond_cdf_ae_eq ρ r] with a ha using λ _, ha, },
-  rw [set_lintegral_congr_fun hs this, set_lintegral_pre_cdf_fst ρ r hs],
-  exact ρ.Iic_snd_apply r hs,
-end
-
 /-- Conditional measure on the second space of the product given the value on the first. -/
 noncomputable
 def cond_kernel (ρ : measure (α × ℝ)) : kernel α ℝ :=
@@ -968,10 +980,14 @@ lemma cond_kernel_apply (ρ : measure (α × ℝ)) (a : α) : cond_kernel ρ a =
 instance (ρ : measure (α × ℝ)) : is_markov_kernel (cond_kernel ρ) :=
 ⟨λ a, by { rw cond_kernel, apply_instance, } ⟩
 
+lemma cond_kernel_Iic (ρ : measure (α × ℝ)) (a : α) (q : ℚ) :
+  cond_kernel ρ a (Iic q) = ennreal.of_real (cond_cdf ρ a q) :=
+cond_measure_Iic ρ a q
+
 lemma set_lintegral_cond_kernel_Iic_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, cond_kernel ρ a (Iic r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
-by { simp_rw [cond_kernel_apply], exact set_lintegral_cond_measure_Iic_rat ρ r hs, }
+by { simp_rw [cond_kernel_Iic], exact set_lintegral_cond_cdf_Iic_rat ρ r hs, }
 
 lemma set_lintegral_cond_kernel_univ (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   {s : set α} (hs : measurable_set s) :
@@ -1135,6 +1151,10 @@ begin
     ... = ρ (Union f) : (measure_Union hf_disj hf_meas).symm, },
 end
 
+/-- **Disintegration** of constant kernels. A constant kernel on a product space `α × ℝ` can be
+written as the composition-product of the constant kernel with value `ρ.fst` (marginal measure over
+`α`) and a Markov kernel from `α` to `ℝ`. We call that Markov kernel `cond_kernel ρ`.
+-/
 theorem kernel.const_eq_comp_prod (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   (γ : Type*) [measurable_space γ] :
   kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) γ) :=
@@ -1145,8 +1165,10 @@ begin
   rw lintegral_cond_kernel ρ hs,
 end
 
--- todo define something to have a nicer expression?
-theorem disintegration (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+/-- **Disintegration** of finite product measures on `α × ℝ`. Such a measure can be written as the
+composition-product of the constant kernel with value `ρ.fst` (marginal measure over `α`) and a
+Markov kernel from `α` to `ℝ`. We call that Markov kernel `cond_kernel ρ`. -/
+theorem measure_eq_comp_prod (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) (unit.star) :=
 by rw [← kernel.const_eq_comp_prod ρ unit, kernel.const_apply]
 

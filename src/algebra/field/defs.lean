@@ -144,7 +144,7 @@ instance smul_division_ring : has_smul ℚ K :=
 lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_mul' a x
 
 -- named this way as there is another one for the `smul` given by an algebra instance
-@[simp] lemma rat.smul_one_eq_coe' {A : Type*} [division_ring A] (m : ℚ) :
+@[simp] lemma smul_one_eq_coe' {A : Type*} [division_ring A] (m : ℚ) :
   m • (1 : A) = ↑m :=
 by rw [rat.smul_def, mul_one]
 

@@ -13,6 +13,9 @@ import tactic.ring_exp
 /-!
 # Localizations of commutative rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We characterize the localization of a commutative ring `R` at a submonoid `M` up to
 isomorphism; that is, a commutative ring `S` is the localization of `R` at `M` iff we can find a
 ring homomorphism `f : R →+* S` satisfying 3 properties:

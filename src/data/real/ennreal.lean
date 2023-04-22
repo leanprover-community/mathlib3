@@ -9,6 +9,9 @@ import algebra.order.sub.with_top
 /-!
 # Extended non-negative reals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `ennreal = ℝ≥0∞ := with_top ℝ≥0` to be the type of extended nonnegative real numbers,
 i.e., the interval `[0, +∞]`. This type is used as the codomain of a `measure_theory.measure`,
 and of the extended distance `edist` in a `emetric_space`.
@@ -80,7 +83,7 @@ variables {α : Type*} {β : Type*}
   semilattice_sup, distrib_lattice, order_bot, bounded_order,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
-  linear_ordered_add_comm_monoid_with_top]]
+  linear_ordered_add_comm_monoid_with_top, char_zero]]
 def ennreal := with_top ℝ≥0
 
 localized "notation (name := ennreal) `ℝ≥0∞` := ennreal" in ennreal
@@ -207,6 +210,12 @@ by rw [ennreal.to_real, nnreal.coe_eq_one, ennreal.to_nnreal_eq_one_iff]
 @[simp] lemma of_real_lt_top {r : ℝ} : ennreal.of_real r < ∞ := lt_top_iff_ne_top.2 of_real_ne_top
 @[simp] lemma top_ne_of_real {r : ℝ} : ∞ ≠ ennreal.of_real r := by simp [ennreal.of_real]
 
+@[simp] lemma of_real_to_real_eq_iff : ennreal.of_real a.to_real = a ↔ a ≠ ⊤ :=
+⟨λ h, by { rw ←h, exact of_real_ne_top }, of_real_to_real⟩
+
+@[simp] lemma to_real_of_real_eq_iff {a : ℝ} : (ennreal.of_real a).to_real = a ↔ 0 ≤ a :=
+⟨λ h, by { rw ←h, exact to_real_nonneg }, to_real_of_real⟩
+
 @[simp] lemma zero_ne_top : 0 ≠ ∞ := coe_ne_top
 @[simp] lemma top_ne_zero : ∞ ≠ 0 := top_ne_coe
 
@@ -222,7 +231,6 @@ lemma coe_mono : monotone (coe : ℝ≥0 → ℝ≥0∞) := λ _ _, coe_le_coe.2
 @[simp, norm_cast] lemma zero_eq_coe : 0 = (↑r : ℝ≥0∞) ↔ 0 = r := coe_eq_coe
 @[simp, norm_cast] lemma coe_eq_one : (↑r : ℝ≥0∞) = 1 ↔ r = 1 := coe_eq_coe
 @[simp, norm_cast] lemma one_eq_coe : 1 = (↑r : ℝ≥0∞) ↔ 1 = r := coe_eq_coe
-@[simp] lemma coe_nonneg : 0 ≤ (↑r : ℝ≥0∞) := coe_le_coe.2 $ zero_le _
 @[simp, norm_cast] lemma coe_pos : 0 < (↑r : ℝ≥0∞) ↔ 0 < r := coe_lt_coe
 lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
 
@@ -255,12 +263,9 @@ lemma to_real_eq_to_real_iff' {x y : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ �
   x.to_real = y.to_real ↔ x = y :=
 by simp only [ennreal.to_real, nnreal.coe_eq, to_nnreal_eq_to_nnreal_iff' hx hy]
 
-protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) := zero_lt_one
-
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (one_lt_two : 1 < 2)
-@[simp] lemma zero_lt_two : (0 : ℝ≥0∞) < 2 := lt_trans zero_lt_one one_lt_two
-lemma two_ne_zero : (2 : ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
+
 lemma two_ne_top : (2 : ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
 /-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces. -/
@@ -300,9 +305,6 @@ le_antisymm
 lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨆ n, f n) = (⨆ n : ℝ≥0, f n) ⊔ f ∞ :=
 @infi_ennreal αᵒᵈ _ _
-
-@[simp] lemma add_top : a + ∞ = ∞ := add_top _
-@[simp] lemma top_add : ∞ + a = ∞ := top_add _
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
 def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
@@ -486,21 +488,6 @@ end
   ↑(s.sup f) = s.sup (λ x, (f x : ℝ≥0∞)) :=
 finset.comp_sup_eq_sup_comp_of_is_total _ coe_mono rfl
 
-lemma pow_le_pow {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
-begin
-  cases a,
-  { cases m,
-    { rw eq_bot_iff.mpr h,
-      exact le_rfl },
-    { rw [none_eq_top, top_pow (nat.succ_pos m)],
-      exact le_top } },
-  { rw [some_eq_coe, ← coe_pow, ← coe_pow, coe_le_coe],
-    exact pow_le_pow (by simpa using ha) h }
-end
-
-lemma one_le_pow_of_one_le (ha : 1 ≤ a) (n : ℕ) : 1 ≤ a ^ n :=
-by simpa using pow_le_pow ha (zero_le n)
-
 @[simp] lemma max_eq_zero_iff : max a b = 0 ↔ a = 0 ∧ b = 0 :=
 by simp only [nonpos_iff_eq_zero.symm, max_le_iff]
 
@@ -592,15 +579,11 @@ begin
   exact tsub_add_cancel_of_le ad.le
 end
 
-lemma coe_nat_lt_coe {n : ℕ} : (n : ℝ≥0∞) < r ↔ ↑n < r := ennreal.coe_nat n ▸ coe_lt_coe
-lemma coe_lt_coe_nat {n : ℕ} : (r : ℝ≥0∞) < n ↔ r < n := ennreal.coe_nat n ▸ coe_lt_coe
-@[simp, norm_cast] lemma coe_nat_lt_coe_nat {m n : ℕ} : (m : ℝ≥0∞) < n ↔ m < n :=
-ennreal.coe_nat n ▸ coe_nat_lt_coe.trans nat.cast_lt
-lemma coe_nat_mono : strict_mono (coe : ℕ → ℝ≥0∞) := λ _ _, coe_nat_lt_coe_nat.2
-@[simp, norm_cast] lemma coe_nat_le_coe_nat {m n : ℕ} : (m : ℝ≥0∞) ≤ n ↔ m ≤ n :=
-coe_nat_mono.le_iff_le
+@[simp, norm_cast] lemma coe_nat_lt_coe {n : ℕ} : (n : ℝ≥0∞) < r ↔ ↑n < r :=
+ennreal.coe_nat n ▸ coe_lt_coe
 
-instance : char_zero ℝ≥0∞ := ⟨coe_nat_mono.injective⟩
+@[simp, norm_cast] lemma coe_lt_coe_nat {n : ℕ} : (r : ℝ≥0∞) < n ↔ r < n :=
+ennreal.coe_nat n ▸ coe_lt_coe
 
 protected lemma exists_nat_gt {r : ℝ≥0∞} (h : r ≠ ∞) : ∃n:ℕ, r < n :=
 begin
@@ -674,9 +657,6 @@ section complete_lattice
 lemma coe_Sup {s : set ℝ≥0} : bdd_above s → (↑(Sup s) : ℝ≥0∞) = (⨆a∈s, ↑a) := with_top.coe_Sup
 lemma coe_Inf {s : set ℝ≥0} : s.nonempty → (↑(Inf s) : ℝ≥0∞) = (⨅a∈s, ↑a) := with_top.coe_Inf
 
-@[simp] lemma top_mem_upper_bounds {s : set ℝ≥0∞} : ∞ ∈ upper_bounds s :=
-assume x hx, le_top
-
 lemma coe_mem_upper_bounds {s : set ℝ≥0} :
   ↑r ∈ upper_bounds ((coe : ℝ≥0 → ℝ≥0∞) '' s) ↔ r ∈ upper_bounds s :=
 by simp [upper_bounds, ball_image_iff, -mem_image, *] {contextual := tt}
@@ -684,9 +664,6 @@ by simp [upper_bounds, ball_image_iff, -mem_image, *] {contextual := tt}
 end complete_lattice
 
 section mul
-
-@[mono] lemma mul_le_mul : a ≤ b → c ≤ d → a * c ≤ b * d :=
-mul_le_mul'
 
 @[mono] lemma mul_lt_mul (ac : a < c) (bd : b < d) : a * b < c * d :=
 begin
@@ -698,12 +675,14 @@ begin
   calc ↑(a * b) < ↑(a' * b') :
     coe_lt_coe.2 (mul_lt_mul' aa'.le bb' (zero_le _) ((zero_le a).trans_lt aa'))
   ... = ↑a' * ↑b' : coe_mul
-  ... ≤ c * d : mul_le_mul a'c.le b'd.le
+  ... ≤ c * d : mul_le_mul' a'c.le b'd.le
 end
 
-lemma mul_left_mono : monotone ((*) a) := λ b c, mul_le_mul le_rfl
+-- TODO: generalize to `covariant_class α α (*) (≤)`
+lemma mul_left_mono : monotone ((*) a) := λ b c, mul_le_mul' le_rfl
 
-lemma mul_right_mono : monotone (λ x, x * a) := λ b c h, mul_le_mul h le_rfl
+-- TODO: generalize to `covariant_class α α (swap (*)) (≤)`
+lemma mul_right_mono : monotone (λ x, x * a) := λ b c h, mul_le_mul' h le_rfl
 
 lemma pow_strict_mono {n : ℕ} (hn : n ≠ 0) : strict_mono (λ (x : ℝ≥0∞), x^n) :=
 begin
@@ -720,28 +699,30 @@ mul_right_mono.map_max
 lemma mul_max : a * max b c = max (a * b) (a * c) :=
 mul_left_mono.map_max
 
-lemma mul_eq_mul_left : a ≠ 0 → a ≠ ∞ → (a * b = a * c ↔ b = c) :=
+theorem mul_left_strictMono (h0 : a ≠ 0) (hinf : a ≠ ∞) : strict_mono ((*) a) :=
 begin
-  cases a; cases b; cases c;
-    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm,
-      nnreal.mul_eq_mul_left] {contextual := tt},
+  lift a to ℝ≥0 using hinf,
+  rw [coe_ne_zero] at h0,
+  intros x y h,
+  contrapose! h,
+  simpa only [← mul_assoc, ← coe_mul, inv_mul_cancel h0, coe_one, one_mul]
+    using mul_le_mul_left' h (↑a⁻¹)
 end
+
+lemma mul_eq_mul_left (h₀ : a ≠ 0) (hinf : a ≠ ∞) : a * b = a * c ↔ b = c :=
+(mul_left_strictMono h₀ hinf).injective.eq_iff
 
 lemma mul_eq_mul_right : c ≠ 0 → c ≠ ∞ → (a * c = b * c ↔ a = b) :=
 mul_comm c a ▸ mul_comm c b ▸ mul_eq_mul_left
 
-lemma mul_le_mul_left : a ≠ 0 → a ≠ ∞ → (a * b ≤ a * c ↔ b ≤ c) :=
-begin
-  cases a; cases b; cases c;
-    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm] {contextual := tt},
-  assume h, exact mul_le_mul_left (pos_iff_ne_zero.2 h)
-end
+lemma mul_le_mul_left (h₀ : a ≠ 0) (hinf : a ≠ ∞) : a * b ≤ a * c ↔ b ≤ c :=
+(mul_left_strictMono h₀ hinf).le_iff_le
 
 lemma mul_le_mul_right : c ≠ 0 → c ≠ ∞ → (a * c ≤ b * c ↔ a ≤ b) :=
 mul_comm c a ▸ mul_comm c b ▸ mul_le_mul_left
 
-lemma mul_lt_mul_left : a ≠ 0 → a ≠ ∞ → (a * b < a * c ↔ b < c) :=
-λ h0 ht, by simp only [mul_le_mul_left h0 ht, lt_iff_le_not_le]
+lemma mul_lt_mul_left (h₀ : a ≠ 0) (hinf : a ≠ ∞) : a * b < a * c ↔ b < c :=
+(mul_left_strictMono h₀ hinf).lt_iff_lt
 
 lemma mul_lt_mul_right : c ≠ 0 → c ≠ ∞ → (a * c < b * c ↔ a < b) :=
 mul_comm c a ▸ mul_comm c b ▸ mul_lt_mul_left
@@ -749,6 +730,7 @@ mul_comm c a ▸ mul_comm c b ▸ mul_lt_mul_left
 end mul
 
 section cancel
+
 /-- An element `a` is `add_le_cancellable` if `a + b ≤ a + c` implies `b ≤ c` for all `b` and `c`.
   This is true in `ℝ≥0∞` for all elements except `∞`. -/
 lemma add_le_cancellable_iff_ne {a : ℝ≥0∞} : add_le_cancellable a ↔ a ≠ ∞ :=
@@ -971,7 +953,7 @@ lemma bit0_injective : function.injective (bit0 : ℝ≥0∞ → ℝ≥0∞) := 
 @[simp] lemma bit0_inj : bit0 a = bit0 b ↔ a = b := bit0_injective.eq_iff
 
 @[simp] lemma bit0_eq_zero_iff : bit0 a = 0 ↔ a = 0 := bit0_injective.eq_iff' bit0_zero
-@[simp] lemma bit0_top : bit0 ∞ = ∞ := add_top
+@[simp] lemma bit0_top : bit0 ∞ = ∞ := add_top _
 @[simp] lemma bit0_eq_top_iff : bit0 a = ∞ ↔ a = ∞ := bit0_injective.eq_iff' bit0_top
 
 @[mono] lemma bit1_strict_mono : strict_mono (bit1 : ℝ≥0∞ → ℝ≥0∞) :=
@@ -1148,12 +1130,6 @@ def _root_.order_iso.inv_ennreal : ℝ≥0∞ ≃o ℝ≥0∞ᵒᵈ :=
 lemma _root_.order_iso.inv_ennreal_symm_apply :
   order_iso.inv_ennreal.symm a = (order_dual.of_dual a)⁻¹ := rfl
 
-protected lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
-begin
-  rw [←inv_inv a, ← ennreal.inv_pow, ← @ennreal.inv_pow a⁻¹, ennreal.inv_le_inv],
-  exact pow_le_pow (ennreal.one_le_inv.2 ha) h
-end
-
 @[simp] lemma div_top : a / ∞ = 0 := by rw [div_eq_mul_inv, inv_top, mul_zero]
 
 @[simp] lemma top_div_coe : ∞ / p = ∞ := by simp [div_eq_mul_inv, top_mul]
@@ -1173,7 +1149,7 @@ lemma div_eq_top : a / b = ∞ ↔ (a ≠ 0 ∧ b = 0) ∨ (a = ∞ ∧ b ≠ �
 by simp [div_eq_mul_inv, ennreal.mul_eq_top]
 
 protected lemma le_div_iff_mul_le (h0 : b ≠ 0 ∨ c ≠ 0) (ht : b ≠ ∞ ∨ c ≠ ∞) :
- a ≤ c / b ↔ a * b ≤ c :=
+  a ≤ c / b ↔ a * b ≤ c :=
 begin
   induction b using with_top.rec_top_coe,
   { lift c to ℝ≥0 using ht.neg_resolve_left rfl,
@@ -1236,7 +1212,7 @@ end
 by rw [← one_div, ennreal.le_div_iff_mul_le]; { right, simp }
 
 protected lemma div_le_div (hab : a ≤ b) (hdc : d ≤ c) : a / c ≤ b / d :=
-div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc)
+div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ mul_le_mul' hab (ennreal.inv_le_inv.mpr hdc)
 
 protected lemma div_le_div_left (h : a ≤ b) (c : ℝ≥0∞) : c / b ≤ c / a :=
 ennreal.div_le_div le_rfl h
@@ -1386,8 +1362,8 @@ lemma exists_nat_pos_mul_gt (ha : a ≠ 0) (hb : b ≠ ∞) :
 begin
   have : b / a ≠ ∞, from mul_ne_top hb (inv_ne_top.2 ha),
   refine (ennreal.exists_nat_gt this).imp (λ n hn, _),
-  have : ↑0 < (n : ℝ≥0∞), from lt_of_le_of_lt (by simp) hn,
-  refine ⟨coe_nat_lt_coe_nat.1 this, _⟩,
+  have : 0 < (n : ℝ≥0∞), from lt_of_le_of_lt (zero_le _) hn,
+  refine ⟨nat.cast_pos.1 this, _⟩,
   rwa [← ennreal.div_lt_iff (or.inl ha) (or.inr hb)]
 end
 
@@ -1501,7 +1477,7 @@ begin
     exact lt_of_lt_of_le (int.neg_succ_lt_zero _) (int.of_nat_nonneg _) },
   { simp only [zpow_neg_succ_of_nat, int.of_nat_eq_coe, zpow_coe_nat],
     refine (ennreal.inv_le_one.2 _).trans _;
-    exact ennreal.one_le_pow_of_one_le hx _, },
+    exact one_le_pow_of_one_le' hx _, },
   { simp only [zpow_neg_succ_of_nat, ennreal.inv_le_inv],
     apply pow_le_pow hx,
     simpa only [←int.coe_nat_le_coe_nat_iff, neg_le_neg_iff, int.coe_nat_add, int.coe_nat_one,

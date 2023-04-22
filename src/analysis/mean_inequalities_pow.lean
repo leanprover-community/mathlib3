@@ -109,6 +109,20 @@ begin
   { simp [hw', fin.sum_univ_succ], },
 end
 
+/-- Unweighted mean inequality, version for two elements of `ℝ≥0` and real exponents. -/
+theorem rpow_add_le_mul_rpow_add_rpow (z₁ z₂ : ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
+  (z₁ + z₂) ^ p ≤ 2^(p-1) * (z₁ ^ p + z₂ ^ p) :=
+begin
+  rcases eq_or_lt_of_le hp with rfl|h'p,
+  { simp only [rpow_one, sub_self, rpow_zero, one_mul] },
+  convert rpow_arith_mean_le_arith_mean2_rpow (1/2) (1/2) (2 * z₁) (2 * z₂) (add_halves 1) hp,
+  { simp only [one_div, inv_mul_cancel_left₀, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff] },
+  { simp only [one_div, inv_mul_cancel_left₀, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff] },
+  { have A : p - 1 ≠ 0 := ne_of_gt (sub_pos.2 h'p),
+    simp only [mul_rpow, rpow_sub' _ A, div_eq_inv_mul, rpow_one, mul_one],
+    ring }
+end
+
 /-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0`-valued
 functions and real exponents. -/
 theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) {p : ℝ}
@@ -116,10 +130,6 @@ theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 
   ∑ i in s, w i * z i ≤ (∑ i in s, (w i * z i ^ p)) ^ (1 / p) :=
 by exact_mod_cast real.arith_mean_le_rpow_mean s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) hp
-
-end nnreal
-
-namespace nnreal
 
 private lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ℝ≥0) (hab : a + b ≤ 1)
   (hp1 : 1 ≤ p) :
@@ -198,7 +208,7 @@ begin
   have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
   have hp_not_neg : ¬ p < 0, by simp [hp_nonneg],
   have h_top_iff_rpow_top : ∀ (i : ι) (hi : i ∈ s), w i * z i = ⊤ ↔ w i * (z i) ^ p = ⊤,
-  by simp [hp_pos, hp_nonneg, hp_not_nonpos, hp_not_neg],
+    by simp [ennreal.mul_eq_top, hp_pos, hp_nonneg, hp_not_nonpos, hp_not_neg],
   refine le_of_top_imp_top_of_to_nnreal_le _ _,
   { -- first, prove `(∑ i in s, w i * z i) ^ p = ⊤ → ∑ i in s, (w i * z i ^ p) = ⊤`
     rw [rpow_eq_top_iff, sum_eq_top_iff, sum_eq_top_iff],
@@ -248,9 +258,21 @@ begin
   { simp [hw', fin.sum_univ_succ], },
 end
 
-end ennreal
-
-namespace ennreal
+/-- Unweighted mean inequality, version for two elements of `ℝ≥0∞` and real exponents. -/
+theorem rpow_add_le_mul_rpow_add_rpow (z₁ z₂ : ℝ≥0∞) {p : ℝ} (hp : 1 ≤ p) :
+  (z₁ + z₂) ^ p ≤ 2^(p-1) * (z₁ ^ p + z₂ ^ p) :=
+begin
+  rcases eq_or_lt_of_le hp with rfl|h'p,
+  { simp only [rpow_one, sub_self, rpow_zero, one_mul, le_refl], },
+  convert rpow_arith_mean_le_arith_mean2_rpow
+    (1/2) (1/2) (2 * z₁) (2 * z₂) (ennreal.add_halves 1) hp,
+  { simp [← mul_assoc, ennreal.inv_mul_cancel two_ne_zero two_ne_top] },
+  { simp [← mul_assoc, ennreal.inv_mul_cancel two_ne_zero two_ne_top] },
+  { have A : p - 1 ≠ 0 := ne_of_gt (sub_pos.2 h'p),
+    simp only [mul_rpow_of_nonneg _ _ (zero_le_one.trans hp), rpow_sub _ _ two_ne_zero two_ne_top,
+      div_eq_inv_mul, rpow_one, mul_one],
+    ring }
+end
 
 lemma add_rpow_le_rpow_add {p : ℝ} (a b : ℝ≥0∞) (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ (a + b) ^ p :=

@@ -9,6 +9,9 @@ import algebra.free_algebra
 /-!
 # A *-algebra structure on the free algebra.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Reversing words gives a *-structure on the free monoid or on the free algebra on a type.
 
 ## Implementation note

@@ -616,8 +616,9 @@ lemma integral_undef (h : ¬ interval_integrable f μ a b) :
   ∫ x in a..b, f x ∂μ = 0 :=
 by cases le_total a b with hab hab;
   simp only [integral_of_le, integral_of_ge, hab, neg_eq_zero];
-    refine integral_undef (not_imp_not.mpr integrable.integrable_on' _);
-      simpa [hab] using not_and_distrib.mp h
+    refine integral_undef (not_imp_not.mpr _ h);
+      simpa only [hab, Ioc_eq_empty_of_le, integrable_on_empty, not_true, false_or, or_false]
+        using not_and_distrib.mp h
 
 lemma interval_integrable_of_integral_ne_zero {a b : ℝ}
   {f : ℝ → E} {μ : measure ℝ} (h : ∫ x in a..b, f x ∂μ ≠ 0) :
@@ -1065,6 +1066,30 @@ begin
 end
 
 open topological_space
+
+/-- Interval integrals commute with countable sums, when the supremum norms are summable (a
+special case of the dominated convergence theorem). -/
+lemma has_sum_interval_integral_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
+  (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
+  has_sum (λ i : ι, ∫ x in a..b, f i x) (∫ x in a..b, (∑' i : ι, f i x)) :=
+begin
+  refine has_sum_integral_of_dominated_convergence
+    (λ i (x : ℝ), ‖(f i).restrict ↑(⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)
+    (λ i, (map_continuous $ f i).ae_strongly_measurable)
+    (λ i, ae_of_all _ (λ x hx, ((f i).restrict ↑(⟨uIcc a b, is_compact_uIcc⟩ :
+      compacts ℝ)).norm_coe_le_norm ⟨x, ⟨hx.1.le, hx.2⟩⟩))
+    (ae_of_all _ (λ x hx, hf_sum))
+    interval_integrable_const
+    (ae_of_all _ (λ x hx, summable.has_sum _)),
+  -- next line is slow, & doesn't work with "exact" in place of "apply" -- ?
+  apply continuous_map.summable_apply (summable_of_summable_norm hf_sum) ⟨x, ⟨hx.1.le, hx.2⟩⟩,
+end
+
+lemma tsum_interval_integral_eq_of_summable_norm [countable ι] {f : ι → C(ℝ, E)}
+  (hf_sum : summable (λ i : ι, ‖(f i).restrict (⟨uIcc a b, is_compact_uIcc⟩ : compacts ℝ)‖)) :
+  ∑' (i : ι), ∫ x in a..b, f i x = ∫ x in a..b, (∑' i : ι, f i x) :=
+(has_sum_interval_integral_of_summable_norm hf_sum).tsum_eq
+
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
 /-- Continuity of interval integral with respect to a parameter, at a point within a set.
@@ -2499,11 +2524,13 @@ end
 -/
 
 /-- When the right derivative of a function is nonnegative, then it is automatically integrable. -/
-lemma integrable_on_deriv_right_of_nonneg (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
+lemma integrable_on_deriv_right_of_nonneg  (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
   (g'pos : ∀ x ∈ Ioo a b, 0 ≤ g' x) :
   integrable_on g' (Ioc a b) :=
 begin
+  by_cases hab : a < b, swap,
+  { simp [Ioc_eq_empty hab] },
   rw integrable_on_Ioc_iff_integrable_on_Ioo,
   have meas_g' : ae_measurable g' (volume.restrict (Ioo a b)),
   { apply (ae_measurable_deriv_within_Ioi g _).congr,
@@ -2524,8 +2551,8 @@ begin
     lintegral_coe_eq_integral _ intF,
   rw A at hf,
   have B : ∫ (x : ℝ) in Ioo a b, F x ≤ g b - g a,
-  { rw [← integral_Ioc_eq_integral_Ioo, ← interval_integral.integral_of_le hab],
-    apply integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv _ (λ x hx, _),
+  { rw [← integral_Ioc_eq_integral_Ioo, ← interval_integral.integral_of_le hab.le],
+    apply integral_le_sub_of_has_deriv_right_of_le hab.le hcont hderiv _ (λ x hx, _),
     { rwa integrable_on_Icc_iff_integrable_on_Ioo },
     { convert nnreal.coe_le_coe.2 (fle x),
       simp only [real.norm_of_nonneg (g'pos x hx), coe_nnnorm] } },
@@ -2534,11 +2561,11 @@ end
 
 /-- When the derivative of a function is nonnegative, then it is automatically integrable,
 Ioc version. -/
-lemma integrable_on_deriv_of_nonneg (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
+lemma integrable_on_deriv_of_nonneg (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
   (g'pos : ∀ x ∈ Ioo a b, 0 ≤ g' x) :
   integrable_on g' (Ioc a b) :=
-integrable_on_deriv_right_of_nonneg hab hcont (λ x hx, (hderiv x hx).has_deriv_within_at) g'pos
+integrable_on_deriv_right_of_nonneg hcont (λ x hx, (hderiv x hx).has_deriv_within_at) g'pos
 
 /-- When the derivative of a function is nonnegative, then it is automatically integrable,
 interval version. -/
@@ -2550,10 +2577,10 @@ begin
   cases le_total a b with hab hab,
   { simp only [uIcc_of_le, min_eq_left, max_eq_right, hab, interval_integrable,
       hab, Ioc_eq_empty_of_le, integrable_on_empty, and_true] at hcont hderiv hpos ⊢,
-    exact integrable_on_deriv_of_nonneg hab hcont hderiv hpos, },
+    exact integrable_on_deriv_of_nonneg hcont hderiv hpos, },
   { simp only [uIcc_of_ge, min_eq_right, max_eq_left, hab, interval_integrable,
       Ioc_eq_empty_of_le, integrable_on_empty, true_and] at hcont hderiv hpos ⊢,
-    exact integrable_on_deriv_of_nonneg hab hcont hderiv hpos }
+    exact integrable_on_deriv_of_nonneg hcont hderiv hpos }
 end
 
 /-!

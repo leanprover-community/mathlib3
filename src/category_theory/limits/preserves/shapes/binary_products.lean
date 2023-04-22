@@ -9,6 +9,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Preserving binary products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructions to relate the notions of preserving binary products and reflecting binary products
 to concrete binary fans.
 

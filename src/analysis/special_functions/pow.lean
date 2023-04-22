@@ -1941,7 +1941,7 @@ end
 lemma rpow_pos_of_nonneg {p : ℝ} {x : ℝ≥0∞} (hx_pos : 0 < x) (hp_nonneg : 0 ≤ p) : 0 < x^p :=
 begin
   by_cases hp_zero : p = 0,
-  { simp [hp_zero, ennreal.zero_lt_one], },
+  { simp [hp_zero, zero_lt_one], },
   { rw ←ne.def at hp_zero,
     have hp_pos := lt_of_le_of_ne hp_nonneg hp_zero.symm,
     rw ←zero_rpow_of_pos hp_pos, exact rpow_lt_rpow hx_pos hp_pos, },
@@ -1972,7 +1972,7 @@ end
 lemma rpow_lt_one_of_one_lt_of_neg {x : ℝ≥0∞} {z : ℝ} (hx : 1 < x) (hz : z < 0) : x^z < 1 :=
 begin
   cases x,
-  { simp [top_rpow_of_neg hz, ennreal.zero_lt_one] },
+  { simp [top_rpow_of_neg hz, zero_lt_one] },
   { simp only [some_eq_coe, one_lt_coe_iff] at hx,
     simp [coe_rpow_of_ne_zero (ne_of_gt (lt_trans zero_lt_one hx)),
           nnreal.rpow_lt_one_of_one_lt_of_neg hx hz] },
@@ -1981,7 +1981,7 @@ end
 lemma rpow_le_one_of_one_le_of_neg {x : ℝ≥0∞} {z : ℝ} (hx : 1 ≤ x) (hz : z < 0) : x^z ≤ 1 :=
 begin
   cases x,
-  { simp [top_rpow_of_neg hz, ennreal.zero_lt_one] },
+  { simp [top_rpow_of_neg hz, zero_lt_one] },
   { simp only [one_le_coe_iff, some_eq_coe] at hx,
     simp [coe_rpow_of_ne_zero (ne_of_gt (lt_of_lt_of_le zero_lt_one hx)),
           nnreal.rpow_le_one_of_one_le_of_nonpos hx (le_of_lt hz)] },

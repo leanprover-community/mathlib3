@@ -95,7 +95,7 @@ begin
     rw [smul_comm, hc, smul_zero] },
   have H₂ : (submodule.span R {a • y}).annihilator ≠ ⊤,
   { rwa [ne.def, submodule.annihilator_eq_top_iff, submodule.span_singleton_eq_bot] },
-  rwa [← h₃ (R ∙ a • y).annihilator ⟨l.trans H₁, H₂, _, rfl⟩ H₁,
+  rwa [H₁.eq_of_not_lt (h₃ (R ∙ a • y).annihilator ⟨l.trans H₁, H₂, _, rfl⟩),
     submodule.mem_annihilator_span_singleton, smul_comm, smul_smul]
 end
 

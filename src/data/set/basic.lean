@@ -615,6 +615,10 @@ inter_eq_self_of_subset_right $ subset_union_left _ _
 theorem union_inter_cancel_right {s t : set α} : (s ∪ t) ∩ t = t :=
 inter_eq_self_of_subset_right $ subset_union_right _ _
 
+lemma inter_set_of_eq_sep (s : set α) (p : α → Prop) : s ∩ {a | p a} = {a ∈ s | p a} := rfl
+lemma set_of_inter_eq_sep (p : α → Prop) (s : set α) : {a | p a} ∩ s = {a ∈ s | p a} :=
+inter_comm _ _
+
 /-! ### Distributivity laws -/
 
 theorem inter_distrib_left (s t u : set α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) :=
@@ -698,6 +702,9 @@ begin
   exacts [(ha hx).elim, hxt]
 end
 
+theorem subset_insert_iff_of_not_mem (ha : a ∉ s) : s ⊆ insert a t ↔ s ⊆ t :=
+forall₂_congr $ λ b hb, or_iff_right $ ne_of_mem_of_not_mem hb ha
+
 theorem ssubset_iff_insert {s t : set α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
 begin
   simp only [insert_subset, exists_and_distrib_right, ssubset_def, not_subset],
@@ -779,6 +786,8 @@ theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s := r
 @[simp] lemma empty_ssubset_singleton : (∅ : set α) ⊂ {a} := (singleton_nonempty _).empty_ssubset
 
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s := forall_eq
+
+lemma singleton_subset_singleton : ({a} : set α) ⊆ {b} ↔ a = b := by simp
 
 theorem set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} := rfl
 
@@ -951,6 +960,11 @@ disjoint_sup_right
 lemma disjoint_sdiff_left : disjoint (t \ s) s := disjoint_sdiff_self_left
 lemma disjoint_sdiff_right : disjoint s (t \ s) := disjoint_sdiff_self_right
 
+lemma diff_union_diff_cancel (hts : t ⊆ s) (hut : u ⊆ t) : s \ t ∪ t \ u = s \ u :=
+sdiff_sup_sdiff_cancel hts hut
+
+lemma diff_diff_eq_sdiff_union (h : u ⊆ s) : s \ (t \ u) = s \ t ∪ u := sdiff_sdiff_eq_sdiff_sup h
+
 @[simp] lemma disjoint_singleton_left : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl
 
@@ -961,6 +975,12 @@ disjoint.comm.trans disjoint_singleton_left
 by rw [disjoint_singleton_left, mem_singleton_iff]
 
 lemma subset_diff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := le_iff_subset.symm.trans le_sdiff
+
+lemma inter_diff_distrib_left (s t u : set α) : s ∩ (t \ u) = (s ∩ t) \ (s ∩ u) :=
+inf_sdiff_distrib_left _ _ _
+
+lemma inter_diff_distrib_right (s t u : set α) : s \ t ∩ u = (s ∩ u) \ (t ∩ u) :=
+inf_sdiff_distrib_right _ _ _
 
 /-! ### Lemmas about complement -/
 
@@ -1224,9 +1244,17 @@ sdiff_inf_self_right _ _
 @[simp] theorem diff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
 sdiff_eq_self_iff_disjoint.2 $ by simp [h]
 
+@[simp] lemma diff_singleton_ssubset {s : set α} {a : α} : s \ {a} ⊂ s ↔ a ∈ s :=
+sdiff_le.lt_iff_ne.trans $ sdiff_eq_left.not.trans $ by simp
+
 @[simp] theorem insert_diff_singleton {a : α} {s : set α} :
   insert a (s \ {a}) = insert a s :=
 by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
+
+lemma insert_diff_singleton_comm (hab : a ≠ b) (s : set α) :
+  insert a (s \ {b}) = insert a s \ {b} :=
+by simp_rw [←union_singleton, union_diff_distrib,
+  diff_singleton_eq_self (mem_singleton_iff.not.2 hab.symm)]
 
 @[simp] lemma diff_self {s : set α} : s \ s = ∅ := sdiff_self
 
@@ -1300,6 +1328,10 @@ ext $ λ s, subset_empty_iff
 
 @[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
 eq_univ_of_forall subset_univ
+
+/-- The powerset of a singleton contains only `∅` and the singleton itself. -/
+theorem powerset_singleton (x : α) : 𝒫 ({x} : set α) = {∅, {x}} :=
+by { ext y, rw [mem_powerset_iff, subset_singleton_iff_eq, mem_insert_iff, mem_singleton_iff] }
 
 /-! ### Sets defined as an if-then-else -/
 

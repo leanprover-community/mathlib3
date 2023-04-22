@@ -32,15 +32,11 @@ noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
+@[simp] lemma multiset.to_finset_nonempty (s : multiset α) : s.to_finset.nonempty ↔ s ≠ 0 :=
+by simp [finset.nonempty_iff_ne_empty]
 
--- TODO: move
-lemma multiset.to_finset_nonempty (s : multiset α) : s.to_finset.nonempty ↔ s ≠ 0 :=
-by simp only [ne.def, finset.nonempty_iff_ne_empty, multiset.to_finset_eq_empty]
-
-lemma list.to_finset_nonempty (l : list α) : l.to_finset.nonempty ↔ ¬ l.empty :=
-begin
-  sorry,
-end
+@[simp] lemma list.to_finset_nonempty (l : list α) : l.to_finset.nonempty ↔ ¬ l.empty :=
+by simp [finset.nonempty_iff_ne_empty, list.empty_iff_eq_nil]
 
 section uniform_of_finset
 
@@ -218,23 +214,16 @@ section measure
 
 @[simp] lemma to_outer_measure_of_list_apply (t : set α) :
   (of_list l h).to_outer_measure t = l.countp (∈ t) / l.length :=
-calc (of_list l h).to_outer_measure t = (∑' x, (l.filter (∈ t)).count x) / l.length :
-    by simp only [of_list, multiset.quot_mk_to_coe, to_outer_measure_of_multiset_apply,
-      multiset.coe_filter, multiset.coe_count, multiset.coe_card]
-  ... = (∑ x in l.to_finset, (l.filter (∈ t)).count x) / l.length :
-    begin
-      refine congr_arg (λ x, x / (l.length : ℝ≥0∞)) (tsum_eq_sum _),
-      simp only [list.mem_to_finset, nat.cast_eq_zero, list.count_eq_zero, list.mem_filter, not_and,
-      ← and_imp, not_and_self, is_empty.forall_iff, implies_true_iff],
-    end
-  ... = (∑ x in (l.to_finset.filter (∈ t)), l.count x) / l.length :
-    begin
-      refine congr_arg (λ x, x / (l.length : ℝ≥0∞)) _,
-      rw [finset.sum_filter],
-      refine finset.sum_congr rfl (λ x hx, by split_ifs with hxt; simp [hxt]),
-    end
-  ... = l.countp (∈ t) / l.length : congr_arg (λ x, x / (l.length : ℝ≥0∞))
-    (by rw [← nat.cast_sum, finset.sum_filter_count_eq_countp])
+begin
+  suffices : ∑ x in l.to_finset, ((l.filter (∈ t)).count x : ℝ≥0∞) = l.countp (∈ t),
+  { rw [of_list, to_outer_measure_of_multiset_apply, multiset.quot_mk_to_coe, multiset.coe_card],
+    refine congr_arg (λ x, x / (l.length : ℝ≥0∞)) (trans (tsum_eq_sum (λ x hx, _)) this),
+    have : x ∉ l := λ h, hx (list.mem_to_finset.2 h),
+    simp only [nat.cast_eq_zero, list.count_eq_zero, list.mem_filter, not_and_distrib,
+      multiset.mem_coe, (λ h, hx (list.mem_to_finset.2 h) : x ∉ l), not_false_iff, true_or] },
+  rw [← finset.sum_filter_count_eq_countp, nat.cast_sum, finset.sum_filter],
+  exact finset.sum_congr rfl (λ x hx, by by_cases ht : x ∈ t; simp [ht]),
+end
 
 @[simp] lemma to_measure_of_list_apply [measurable_space α] (t : set α) (ht : measurable_set t) :
   (of_list l h).to_measure t = l.countp (∈ t) / l.length :=

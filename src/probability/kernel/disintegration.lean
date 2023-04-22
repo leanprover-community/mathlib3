@@ -177,7 +177,7 @@ begin
   norm_cast,
 end
 
-lemma borel_eq_generate_from_Ioc_rat :
+lemma real.borel_eq_generate_from_Ioc_rat :
   borel ℝ
     = measurable_space.generate_from {S : set ℝ | ∃ (l u : ℚ) (h : l < u), Ioc ↑l ↑u = S} :=
 begin
@@ -212,11 +212,11 @@ begin
     { exact_mod_cast hlr, }, },
 end
 
-lemma borel_eq_generate_from_Iic_rat :
+lemma real.borel_eq_generate_from_Iic_rat :
   borel ℝ = measurable_space.generate_from {S : set ℝ | ∃ (u : ℚ), Iic ↑u = S} :=
 begin
   refine le_antisymm _ _,
-  { rw borel_eq_generate_from_Ioc_rat,
+  { rw real.borel_eq_generate_from_Ioc_rat,
     refine measurable_space.generate_from_le (λ t ht, _),
     obtain ⟨l, u, hlu, rfl⟩ := ht,
     rw ← Iic_diff_Iic,
@@ -953,7 +953,7 @@ lemma measurable_cond_measure (ρ : measure (α × ℝ)) :
 begin
   rw measure.measurable_measure,
   refine λ s hs, measurable_space.induction_on_inter
-    borel_eq_generate_from_Iic_rat is_pi_system_Iic_rat _ _ _ _ hs,
+    real.borel_eq_generate_from_Iic_rat is_pi_system_Iic_rat _ _ _ _ hs,
   { simp only [measure_empty, measurable_const], },
   { rintros S ⟨u, rfl⟩,
     simp_rw cond_measure_Iic ρ _ u,
@@ -1027,8 +1027,8 @@ begin
   -- `set_lintegral_cond_kernel_Iic_rat` gives the result for `t = Iic (q : ℚ)`. These sets form a
   -- π-system that generate the borel σ-algebra, hence we can get the same equality for any
   -- measurable set `t`.
-  refine measurable_space.induction_on_inter borel_eq_generate_from_Iic_rat is_pi_system_Iic_rat
-    _ _ _ _ ht,
+  refine measurable_space.induction_on_inter real.borel_eq_generate_from_Iic_rat
+    is_pi_system_Iic_rat _ _ _ _ ht,
   { simp only [measure_empty, lintegral_const, zero_mul, prod_empty], },
   { rintros t ⟨q, rfl⟩,
     exact set_lintegral_cond_kernel_Iic_rat ρ q hs, },

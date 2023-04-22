@@ -144,20 +144,21 @@ begin
     simp },
 end
 
-protected def smul (n : ℕ) : Π (α : Type*) {K : Type u} [field K] [has_smul α K],
-  by exactI Π [distrib_smul α K], by exactI Π [is_scalar_tower α K K] {f : K[X]},
+protected def smul (n : ℕ) : Π (α : Type*) {K : Type u} [field K],
+  by exactI Π [distrib_smul α K],
+  by exactI Π [is_scalar_tower α K K] {f : K[X]},
   α → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n
-  (λ α K fK hs ds ist f, by exactI @has_smul.smul _ K _)
-  (λ n ih α K fK hs ds ist f, by exactI ih α)
+  (λ α K fK ds ist f, by exactI @has_smul.smul _ K _)
+  (λ n ih α K fK ds ist f, by exactI ih α)
 
 /-- Lift an action of `α` on `K` to `K` adjoined `n` roots of `f : K[X]`.
 
 A `distrib_smul` is required to lift scalar multiplication on `K` to a splitting field of
 `f : K[X]`, i.e. we need this instance to keep the recursive definition going.
 -/
-instance has_smul (α : Type*) (n : ℕ) {K : Type u} [field K] [has_smul α K]
-  [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
+instance has_smul (α : Type*) (n : ℕ) {K : Type u} [field K] [distrib_smul α K]
+  [is_scalar_tower α K K] {f : K[X]} :
   has_smul α (splitting_field_aux n f) :=
 { smul := λ a x, splitting_field_aux.smul n α a x }
 
@@ -167,7 +168,7 @@ A `distrib_scalar` is required to lift scalar multiplication on `K` to a splitti
 `f : K[X]`, i.e. we need this instance to keep the recursive definition going.
 -/
 instance distrib_smul (α : Type*) (n : ℕ) {K : Type u} [field K]
-  [has_smul α K] [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
+  [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
   distrib_smul α (splitting_field_aux n f) :=
 { smul_zero := begin
     unfreezingI { induction n with n ih generalizing K };
@@ -183,13 +184,12 @@ instance distrib_smul (α : Type*) (n : ℕ) {K : Type u} [field K]
   end, }
 
 instance polynomial.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
-  [has_smul R₁ R₂] [field K] [has_smul R₁ K] [has_smul R₂ K]
-  [distrib_smul R₂ K] [distrib_smul R₁ K] [is_scalar_tower R₁ R₂ K] :
+  [has_smul R₁ R₂] [field K] [distrib_smul R₂ K] [distrib_smul R₁ K] [is_scalar_tower R₁ R₂ K] :
   is_scalar_tower R₁ R₂ K[X] :=
 ⟨λ a b x, by { ext, simp [polynomial.coeff_smul'] }⟩
 
 instance adjoin_root.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
-  [has_smul R₁ R₂] [field K] [has_smul R₁ K] [has_smul R₂ K] [distrib_smul R₂ K] [distrib_smul R₁ K]
+  [has_smul R₁ R₂] [field K] [distrib_smul R₁ K] [distrib_smul R₂ K]
   [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] {f : K[X]} :
   is_scalar_tower R₁ R₂ (adjoin_root f) :=
 ⟨begin
@@ -199,12 +199,21 @@ instance adjoin_root.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
 end⟩
 
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
-  [has_smul R₁ R₂] [field K] [has_smul R₁ K] [has_smul R₂ K],
-  by exactI Π [distrib_smul R₂ K] [distrib_smul R₁ K]
-  [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] {f : K[X]},
-    by exactI is_scalar_tower R₁ R₂ (splitting_field_aux n f) :=
-nat.rec_on n (λ R₁ R₂ K _ _ hs₁ hs₂ _ _ _ _ h f, by cases hs₁; cases hs₂; exact h) $
-         λ n ih R₁ R₂ K _ _ _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
+  [has_smul R₁ R₂] [field K],
+  by exactI Π [distrib_smul R₂ K] [distrib_smul R₁ K],
+  by exactI Π [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K]
+    {f : K[X]}, by exactI is_scalar_tower R₁ R₂ (splitting_field_aux n f) :=
+nat.rec_on n (λ R₁ R₂ K _ _ hs₂ hs₁ _ _ h f,
+begin
+  -- this proof is magic to me - I'm not sure why unfolding the `has_smul` makes the defeq work.
+  cases hs₁ with hs₁ _,
+  cases hs₂ with hs₂ _,
+  cases hs₁ with hs₁ _,
+  cases hs₂ with hs₂ _,
+  cases hs₁ with hs₁ _,
+  cases hs₂ with hs₂ _,
+  exact h,
+end) $ λ n ih R₁ R₂ K _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
 
 protected def neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f → splitting_field_aux n f :=
@@ -272,6 +281,9 @@ begin
   all_goals { ring },
 end
 
+instance (n : ℕ) {K : Type u} [field K] {f : K[X]} : add_monoid (splitting_field_aux n f) :=
+by apply_instance
+
 instance adjoin_root.distrib_mul_action (α : Type*) [comm_semiring α] {K : Type u} [field K]
   [distrib_mul_action α K] [is_scalar_tower α K K] (f : K[X]) :
   distrib_mul_action α (adjoin_root f) :=
@@ -289,17 +301,21 @@ A `distrib_mul_action` is required to lift scalar multiplication on `K` to a spl
 instance distrib_mul_action (α : Type*) [comm_semiring α] (n : ℕ) {K : Type u} [field K]
   [distrib_mul_action α K] [is_scalar_tower α K K] {f : K[X]} :
   distrib_mul_action α (splitting_field_aux n f) :=
-begin
-  refine_struct
-  { smul := @has_smul.smul α (splitting_field_aux n f) _,
-    smul_zero := smul_zero_class.smul_zero,
-    smul_add := distrib_smul.smul_add },
-  recover, any_goals { apply_instance },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  iterate 2 { rotate, exact ih },
-  { intros b, convert @mul_smul α K _ _ b, },
-  { intros b, convert @one_smul α K _ _ b, },
-end
+{ smul := @has_smul.smul α (splitting_field_aux n f) _,
+  smul_zero := smul_zero_class.smul_zero,
+  smul_add := distrib_smul.smul_add,
+  one_smul :=
+  begin
+    unfreezingI { induction n with n ih generalizing K },
+    { intros b, convert @one_smul α K _ _ b },
+    exact ih,
+  end,
+  mul_smul :=
+  begin
+    unfreezingI { induction n with n ih generalizing K },
+    { intros b, convert @mul_smul α K _ _ b },
+    exact ih,
+  end }
 
 protected def one (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f :=
@@ -348,7 +364,7 @@ begin
 end
 
 instance is_scalar_tower_right (α : Type*) (n : ℕ) {K : Type u} [field K]
-  [has_smul α K] [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
+  [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
   is_scalar_tower α (splitting_field_aux n f) (splitting_field_aux n f) :=
 ⟨begin
    unfreezingI { induction n with n ih generalizing K },

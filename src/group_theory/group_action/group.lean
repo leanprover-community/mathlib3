@@ -238,6 +238,11 @@ def to_mul_equiv (x : α) : β ≃* β :=
 { .. mul_distrib_mul_action.to_monoid_hom β x,
   .. mul_action.to_perm_hom α β x }
 
+variables {α β}
+
+@[simp] lemma to_mul_equiv_to_monoid_hom (a : α) :
+  (to_mul_equiv β a).to_monoid_hom = to_monoid_End α β a := rfl
+
 variables (α β)
 
 /-- Each element of the group defines an multiplicative monoid isomorphism.
@@ -249,10 +254,7 @@ def to_mul_aut : α →* mul_aut β :=
   map_one' := mul_equiv.ext (one_smul _),
   map_mul' := λ a₁ a₂, mul_equiv.ext (mul_smul _ _) }
 
-variables {α β}
-
-@[simp] lemma to_mul_aut_to_monoid_hom (a : α) :
-  (to_mul_aut α β a).to_monoid_hom = to_monoid_End α β a := rfl
+@[simp, norm_cast] lemma coe_to_mul_aut : ⇑(to_mul_aut α β) = to_mul_equiv β := rfl
 
 end mul_distrib_mul_action
 

@@ -1104,9 +1104,7 @@ by simp only [← measure.prod_restrict s t, integrable_on, integral_prod_mul]
 
 namespace measure
 
-variables {mα : measurable_space α} {mβ : measurable_space β} {ρ : measure (α × β)}
-
-include mα mβ
+variables {ρ : measure (α × β)}
 
 /-- Marginal measure on `α` obtained from a measure on `α × β`. -/
 noncomputable

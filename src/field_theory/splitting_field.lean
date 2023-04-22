@@ -116,10 +116,12 @@ on (which is what is needed to push scalar multiplication through the recursive 
 then a `comm_ring` instance, and finally a `field` instance.
 -/
 
+/-- Splitting fields have a zero. -/
 protected def zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_zero.zero K _) (λ n ih K fK f, ih)
 
+/-- Splitting fields have an addition. -/
 protected def add (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_add.add K _) (λ n ih K fK f, ih)
@@ -144,6 +146,7 @@ begin
     simp },
 end
 
+/-- Splitting fields inherit scalar multiplication. -/
 protected def smul (n : ℕ) : Π (α : Type*) {K : Type u} [field K],
   by exactI Π [distrib_smul α K],
   by exactI Π [is_scalar_tower α K K] {f : K[X]},
@@ -215,10 +218,12 @@ begin
   exact h,
 end) $ λ n ih R₁ R₂ K _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
 
+/-- Splitting fields have a negation. -/
 protected def neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_neg.neg K _) (λ n ih K fK f, ih)
 
+/-- Splitting fields have subtraction. -/
 protected def sub (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_sub.sub K _) (λ n ih K fK f, ih)
@@ -317,18 +322,22 @@ instance distrib_mul_action (α : Type*) [comm_semiring α] (n : ℕ) {K : Type 
     exact ih,
   end }
 
+/-- Splitting fields have a one. -/
 protected def one (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_one.one K _) (λ n ih K fK f, ih)
 
+/-- Splitting fields have a multiplication. -/
 protected def mul (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_mul.mul K _) (λ n ih K fK f, ih)
 
+/-- Splitting fields have a power operation. -/
 protected def npow (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   ℕ → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, ih)
 
+/-- Splitting fields have an injection from the base field. -/
 protected def mk (n : ℕ) : Π {K : Type u} [field K],
   by exactI Π {f : K[X]}, K → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, id) (λ n ih K fK f, by exactI ih ∘ coe)
@@ -372,14 +381,17 @@ instance is_scalar_tower_right (α : Type*) (n : ℕ) {K : Type u} [field K]
    { exact ih }
  end⟩
 
+/-- Splitting fields have an inverse. -/
 protected def inv (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_inv.inv K _) (λ n ih K fK f, ih)
 
+/-- Splitting fields have a division. -/
 protected def div (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_div.div K _) (λ n ih K fK f, ih)
 
+/-- Splitting fields have powers by integers. -/
 protected def zpow (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   ℤ → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, ih)
@@ -426,6 +438,7 @@ end
 instance inhabited {n : ℕ} {f : K[X]} :
   inhabited (splitting_field_aux n f) := ⟨37⟩
 
+/-- The injection from the base field as a ring homomorphism. -/
 @[simps] protected def mk_hom (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   K →+* splitting_field_aux n f :=
 { to_fun := splitting_field_aux.mk n,

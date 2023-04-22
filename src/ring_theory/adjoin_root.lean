@@ -444,7 +444,7 @@ basis.of_equiv_fun
   map_add' := λ f₁ f₂, funext $ λ i,
     by simp only [(mod_by_monic_hom hg).map_add, coeff_add, pi.add_apply],
   map_smul' := λ f₁ f₂, funext $ λ i,
-    by simp only [(mod_by_monic_hom hg).map_smul, polynomial.coeff_smul, pi.smul_apply, ring_hom.id_apply],
+    by simp only [(mod_by_monic_hom hg).map_smul, coeff_smul, pi.smul_apply, ring_hom.id_apply],
   left_inv := λ f, induction_on g f (λ f, eq.symm $ mk_eq_mk.mpr $
     by { simp only [mod_by_monic_hom_mk, sum_mod_by_monic_coeff hg degree_le_nat_degree],
          rw [mod_by_monic_eq_sub_mul_div _ hg, sub_sub_cancel],

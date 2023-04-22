@@ -183,6 +183,10 @@ function.injective.semiring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul
   (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl)
 
+instance {S} [distrib_smul S R] : distrib_smul S R[X] :=
+function.injective.distrib_smul ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩
+to_finsupp_injective to_finsupp_smul
+
 instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S R[X] :=
 function.injective.distrib_mul_action
   ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩ to_finsupp_injective to_finsupp_smul
@@ -301,7 +305,7 @@ begin
   { simp [pow_succ, ih, monomial_mul_monomial, nat.succ_eq_add_one, mul_add, add_comm] },
 end
 
-lemma smul_monomial {S} [monoid S] [distrib_mul_action S R] (a : S) (n : ℕ) (b : R) :
+lemma smul_monomial {S} [smul_zero_class S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 to_finsupp_injective $ by simp
 
@@ -342,7 +346,7 @@ lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
-@[simp] lemma smul_C {S} [monoid S] [distrib_mul_action S R] (s : S) (r : R) :
+@[simp] lemma smul_C {S} [smul_zero_class S R] (s : S) (r : R) :
   s • C r = C (s • r) :=
 smul_monomial _ _ r
 
@@ -856,6 +860,15 @@ lemma X_ne_zero : (X : R[X]) ≠ 0 :=
 mt (congr_arg (λ p, coeff p 1)) (by simp)
 
 end nonzero_semiring
+
+section division_ring
+
+variables [division_ring R]
+
+lemma polynomial.rat_smul_eq_C_mul (a : ℚ) (f : R[X]) : a • f = polynomial.C ↑a * f :=
+by rw [←rat.smul_one_eq_coe', ←polynomial.smul_C, C_1, smul_one_mul]
+
+end division_ring
 
 @[simp] lemma nontrivial_iff [semiring R] : nontrivial R[X] ↔ nontrivial R :=
 ⟨λ h, let ⟨r, s, hrs⟩ := @exists_pair_ne _ h in nontrivial.of_polynomial_ne hrs,

@@ -1259,22 +1259,23 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
 `[]`. See note [implicit instance arguments].
 -/
 
-@[simp] lemma coe_smul [add_monoid M] [distrib_smul R M]
+@[simp] lemma coe_smul [add_monoid M] [smul_zero_class R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
-lemma smul_apply [add_monoid M] [distrib_smul R M]
+lemma smul_apply [add_monoid M] [smul_zero_class R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
 
-lemma _root_.is_smul_regular.finsupp [add_monoid M] [distrib_smul R M] {k : R}
+lemma _root_.is_smul_regular.finsupp [add_monoid M] [smul_zero_class R M] {k : R}
   (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=
 λ _ _ h, ext $ λ i, hk (congr_fun h i)
 
-instance [nonempty α] [add_monoid M] [distrib_smul R M] [has_faithful_smul R M] :
+instance [nonempty α] [add_monoid M] [smul_zero_class R M] [has_faithful_smul R M] :
   has_faithful_smul R (α →₀ M) :=
 { eq_of_smul_eq_smul := λ r₁ r₂ h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ m : M,
     by simpa using congr_fun (h (single a m)) a }
 
 variables (α M)
 
+-- TODO/note: some of these instances can likely be generalised to `smul_with_zero`. (do in Lean4)
 instance [add_zero_class M] [distrib_smul R M] : distrib_smul R (α →₀ M) :=
 { smul      := (•),
   smul_add  := λ a x y, ext $ λ _, smul_add _ _ _,
@@ -1332,7 +1333,7 @@ lemma map_domain_smul {_ : monoid R} [add_comm_monoid M] [distrib_mul_action R M
    {f : α → β} (b : R) (v : α →₀ M) : map_domain f (b • v) = b • map_domain f v :=
 map_domain_map_range _ _ _ _ (smul_add b)
 
-@[simp] lemma smul_single {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
+@[simp] lemma smul_single [has_zero M] [smul_zero_class R M]
   (c : R) (a : α) (b : M) : c • finsupp.single a b = finsupp.single a (c • b) :=
 map_range_single
 

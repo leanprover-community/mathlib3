@@ -78,7 +78,7 @@ begin
   exact exists_rat_lt x,
 end
 
-lemma stieltjes_function.measure_univ {f : stieltjes_function} {l u : ℝ}
+lemma stieltjes_function.measure_univ (f : stieltjes_function) {l u : ℝ}
   (hf_bot : tendsto f at_bot (𝓝 l)) (hf_top : tendsto f at_top (𝓝 u)) :
   f.measure univ = ennreal.of_real (u - l) :=
 begin
@@ -90,7 +90,7 @@ begin
     refine λ hxr, hxr.trans _,
     exact_mod_cast hr_le_q, },
   have h_tendsto2 : tendsto (λ q : ℚ, f.measure (Iic q)) at_top (𝓝 (ennreal.of_real (u - l))),
-  { simp_rw stieltjes_function.measure_Iic hf_bot _,
+  { simp_rw stieltjes_function.measure_Iic _ hf_bot _,
     refine ennreal.tendsto_of_real (tendsto.sub_const (hf_top.comp _) l),
     rw tendsto_coe_rat_at_top_iff,
     exact tendsto_id, },
@@ -911,14 +911,15 @@ lemma cond_measure_Iic (ρ : measure (α × ℝ)) (a : α) (q : ℝ) :
   cond_measure ρ a (Iic q) = ennreal.of_real (cond_cdf ρ a q) :=
 begin
   rw [cond_measure, ← sub_zero (cond_cdf ρ a q)],
-  exact stieltjes_function.measure_Iic (tendsto_cond_cdf_at_bot ρ a) _,
+  exact stieltjes_function.measure_Iic _ (tendsto_cond_cdf_at_bot ρ a) _,
 end
 
 lemma cond_measure_univ (ρ : measure (α × ℝ)) (a : α) :
   cond_measure ρ a univ = 1 :=
 begin
   rw [← ennreal.of_real_one, ← sub_zero (1 : ℝ)],
-  exact stieltjes_function.measure_univ (tendsto_cond_cdf_at_bot ρ a) (tendsto_cond_cdf_at_top ρ a),
+  exact stieltjes_function.measure_univ _ (tendsto_cond_cdf_at_bot ρ a)
+    (tendsto_cond_cdf_at_top ρ a),
 end
 
 instance (ρ : measure (α × ℝ)) (a : α) : is_probability_measure (cond_measure ρ a) :=

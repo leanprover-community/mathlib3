@@ -853,7 +853,7 @@ begin
   { rintros i - ⟨v, hv, rfl⟩,
     exact hf i v hv },
   suffices : (infi p).map f ≤ infi p,
-  { exact λ v hv, this ⟨v, ùhv, rfl⟩, },
+  { exact λ v hv, this ⟨v, hv, rfl⟩, },
   exact le_infi (λ i, (submodule.map_mono (infi_le p i)).trans (this i)),
 end
 

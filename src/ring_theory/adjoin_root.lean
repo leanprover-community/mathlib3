@@ -52,6 +52,46 @@ universes u v w
 
 variables {R : Type u} {S : Type v} {K : Type w}
 
+section to_move
+
+open polynomial
+
+variables {k G α M : Type*}
+
+instance [semiring k] [distrib_smul R k] : distrib_smul R (add_monoid_algebra k G) :=
+finsupp.distrib_smul _ _
+
+instance [semiring R] [distrib_smul S R] : distrib_smul S R[X] :=
+function.injective.distrib_smul ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩
+to_finsupp_injective to_finsupp_smul
+
+lemma finsupp.smul_apply' [add_monoid M] [smul_zero_class R M] (b : R) (v : α →₀ M) (a : α)
+  : (b • v) a = b • v a := rfl
+
+lemma polynomial.coeff_smul' {α K : Type*} [semiring K] [smul_zero_class α K] (a : α)
+  (x : K[X]) (n : ℕ) : (a • x).coeff n = a • x.coeff n :=
+by { cases x, simp_rw [←of_finsupp_smul, coeff], rw finsupp.smul_apply' }
+
+@[simp] lemma finsupp.smul_single'' [has_zero M] [smul_zero_class R M] (c : R) (a : α) (b : M) :
+  c • finsupp.single a b = finsupp.single a (c • b) :=
+finsupp.map_range_single
+
+lemma polynomial.smul_monomial' [semiring R] [smul_zero_class S R] (a : S) (n : ℕ) (b : R) :
+  a • monomial n b = monomial n (a • b) :=
+to_finsupp_injective $ by simp only [to_finsupp_smul, to_finsupp_monomial, finsupp.smul_single'']
+
+lemma polynomial.smul_C' {α K : Type*} [semiring K] [smul_zero_class α K] (a : α) (x : K) :
+  a • polynomial.C x = polynomial.C (a • x) := polynomial.smul_monomial' _ _ x
+
+lemma polynomial.rat_smul_eq_C_mul {K : Type*} [division_ring K] (a : ℚ) (f : K[X]) :
+  a • f = polynomial.C ↑a * f :=
+begin
+  ext i,
+  rw [polynomial.coeff_smul', polynomial.coeff_C_mul, rat.smul_def],
+end
+
+end to_move
+
 open polynomial ideal
 
 /-- Adjoin a root of a polynomial `f` to a commutative ring `R`. We define the new ring
@@ -89,20 +129,19 @@ quotient.induction_on' x ih
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
 def of : R →+* adjoin_root f := (mk f).comp C
 
-instance [has_smul S R] [is_scalar_tower S R R] [distrib_smul S R] : has_smul S (adjoin_root f) :=
+instance [distrib_smul S R] [is_scalar_tower S R R] : has_smul S (adjoin_root f) :=
 submodule.quotient.has_smul' _
 
-instance [has_smul S R] [is_scalar_tower S R R] [distrib_smul S R] :
-  distrib_smul S (adjoin_root f) :=
+instance [distrib_smul S R] [is_scalar_tower S R R] : distrib_smul S (adjoin_root f) :=
 submodule.quotient.distrib_smul' _
 
 @[simp]
-lemma smul_mk [has_smul S R] [is_scalar_tower S R R] [distrib_smul S R] (a : S) (x : R[X]) :
+lemma smul_mk [distrib_smul S R] [is_scalar_tower S R R] (a : S) (x : R[X]) :
   a • mk f x = mk f (a • x) := rfl
 
-lemma smul_of [has_smul S R] [is_scalar_tower S R R] [distrib_smul S R] (a : S) (x : R) :
+lemma smul_of [distrib_smul S R] [is_scalar_tower S R R] (a : S) (x : R) :
   a • of f x = of f (a • x) :=
-by rw [of, ring_hom.comp_apply, ring_hom.comp_apply, smul_mk, polynomial.smul_C']
+by rw [of, ring_hom.comp_apply, ring_hom.comp_apply, smul_mk, smul_C']
 
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
@@ -112,7 +151,7 @@ instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algeb
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
 
-instance adjoin_root.is_scalar_tower_right [has_smul S R] [distrib_smul S R] [is_scalar_tower S R R] :
+instance adjoin_root.is_scalar_tower_right [distrib_smul S R] [is_scalar_tower S R R] :
   is_scalar_tower S (adjoin_root f) (adjoin_root f) :=
 ⟨begin
   rintro x ⟨y⟩ ⟨z⟩,

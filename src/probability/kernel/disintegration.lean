@@ -78,36 +78,6 @@ begin
   exact exists_rat_lt x,
 end
 
-lemma stieltjes_function.measure_Iic {f : stieltjes_function} {l : ℝ}
-  (hf : tendsto f at_bot (𝓝 l)) (x : ℝ) :
-  f.measure (Iic x) = ennreal.of_real (f x - l) :=
-begin
-  have h_tendsto_1 : tendsto (λ r : ℚ, f.measure (Ioc r x)) at_bot (𝓝 (f.measure (Iic x))),
-  { have h_Iic_eq_Union : Iic x = ⋃ r : ℚ, Ioc (↑-r) x,
-    { ext1 x,
-      simp only [mem_Iic, mem_Union, mem_Ioc, exists_and_distrib_right, iff_and_self],
-      intro h,
-      simp_rw [rat.cast_neg, neg_lt],
-      exact exists_rat_gt _, },
-    rw h_Iic_eq_Union,
-    suffices h_neg_top : tendsto (λ (r : ℚ), f.measure (Ioc (↑-r) x)) at_top
-      (𝓝 (f.measure (⋃ (r : ℚ), Ioc (↑-r) x))),
-    { have : (λ (r : ℚ), f.measure (Ioc (↑r) x)) = (λ r, f.measure (Ioc (↑- -r) x)),
-      { simp_rw neg_neg, },
-      rw this,
-      exact h_neg_top.comp tendsto_neg_at_bot_at_top, },
-    refine tendsto_measure_Union (λ r r' hrr' x, _),
-    simp only [rat.cast_neg, mem_Ioc, and_imp],
-    refine λ hrx hxq, ⟨(neg_le_neg _).trans_lt hrx, hxq⟩,
-    exact_mod_cast hrr', },
-  have h_tendsto_2 : tendsto (λ r : ℚ, f.measure (Ioc r x)) at_bot (𝓝 (ennreal.of_real (f x - l))),
-  { simp_rw stieltjes_function.measure_Ioc,
-    refine ennreal.tendsto_of_real (tendsto.const_sub _ (hf.comp _)),
-    rw tendsto_coe_rat_at_bot_iff,
-    exact tendsto_id, },
-  exact tendsto_nhds_unique h_tendsto_1 h_tendsto_2,
-end
-
 lemma stieltjes_function.measure_univ {f : stieltjes_function} {l u : ℝ}
   (hf_bot : tendsto f at_bot (𝓝 l)) (hf_top : tendsto f at_top (𝓝 u)) :
   f.measure univ = ennreal.of_real (u - l) :=

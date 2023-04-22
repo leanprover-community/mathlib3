@@ -52,14 +52,8 @@ local notation `e` := real.fourier_char
 
 section inner_product_space
 
-variables [normed_add_comm_group V]
-
-local attribute [instance, priority 500] borel
-
-lemma borel_space_of_normed_add_comm_group : borel_space V := borel_space.mk (by refl)
-local attribute [instance, priority 500] borel_space_of_normed_add_comm_group
-
-variables [inner_product_space ℝ V] [finite_dimensional ℝ V]
+variables [normed_add_comm_group V] [measurable_space V] [borel_space V]
+  [inner_product_space ℝ V] [finite_dimensional ℝ V]
 
 /-- The integrand in the Riemann-Lebesgue lemma for `f` is integrable iff `f` is. -/
 lemma fourier_integrand_integrable (w : V) :

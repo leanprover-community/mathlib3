@@ -693,7 +693,7 @@ def prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel α γ) [is_s_f
   kernel α (β × γ) :=
 κ ⊗ₖ (swap_left (prod_mk_left η β))
 
-localized "infix (name := kernel.comp) ` ×ₖ `:100 := probability_theory.kernel.prod" in
+localized "infix (name := kernel.prod) ` ×ₖ `:100 := probability_theory.kernel.prod" in
   probability_theory
 
 lemma prod_apply (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel α γ) [is_s_finite_kernel η]

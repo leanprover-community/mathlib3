@@ -3,126 +3,99 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.locally_finite
+import data.finset.locally_finite
 
 /-!
-# Intervals as finsets
+# Intervals of finsets as finsets
 
-This file provides basic results about all the `finset.Ixx`, which are defined in
-`order.locally_finite`.
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
-## TODO
+This file provides the `locally_finite_order` instance for `finset α` and calculates the cardinality
+of finite intervals of finsets.
 
-Bring the lemmas about `finset.Ico` in `data.finset.intervals` here and in `data.nat.intervals`.
+If `s t : finset α`, then `finset.Icc s t` is the finset of finsets which include `s` and are
+included in `t`. For example,
+`finset.Icc {0, 1} {0, 1, 2, 3} = {{0, 1}, {0, 1, 2}, {0, 1, 3}, {0, 1, 2, 3}}`
+and
+`finset.Icc {0, 1, 2} {0, 1, 3} = {}`.
 -/
 
-namespace finset
 variables {α : Type*}
-section preorder
-variables [preorder α] [locally_finite_order α] {a b : α}
 
-@[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
-by rw [←coe_nonempty, coe_Icc, set.nonempty_Icc]
+namespace finset
+variables [decidable_eq α] (s t : finset α)
 
-@[simp] lemma nonempty_Ioc : (Ioc a b).nonempty ↔ a < b :=
-by rw [←coe_nonempty, coe_Ioc, set.nonempty_Ioc]
+instance : locally_finite_order (finset α) :=
+{ finset_Icc := λ s t, t.powerset.filter ((⊆) s),
+  finset_Ico := λ s t, t.ssubsets.filter ((⊆) s),
+  finset_Ioc := λ s t, t.powerset.filter ((⊂) s),
+  finset_Ioo := λ s t, t.ssubsets.filter ((⊂) s),
+  finset_mem_Icc := λ s t u, by {rw [mem_filter, mem_powerset], exact and_comm _ _ },
+  finset_mem_Ico := λ s t u, by {rw [mem_filter, mem_ssubsets], exact and_comm _ _ },
+  finset_mem_Ioc := λ s t u, by {rw [mem_filter, mem_powerset], exact and_comm _ _ },
+  finset_mem_Ioo := λ s t u, by {rw [mem_filter, mem_ssubsets], exact and_comm _ _ } }
 
-@[simp] lemma nonempty_Ioo [densely_ordered α] : (Ioo a b).nonempty ↔ a < b :=
-by rw [←coe_nonempty, coe_Ioo, set.nonempty_Ioo]
+lemma Icc_eq_filter_powerset : Icc s t = t.powerset.filter ((⊆) s) := rfl
+lemma Ico_eq_filter_ssubsets : Ico s t = t.ssubsets.filter ((⊆) s) := rfl
+lemma Ioc_eq_filter_powerset : Ioc s t = t.powerset.filter ((⊂) s) := rfl
+lemma Ioo_eq_filter_ssubsets : Ioo s t = t.ssubsets.filter ((⊂) s) := rfl
 
-@[simp] lemma Icc_eq_empty_iff : Icc a b = ∅ ↔ ¬a ≤ b :=
-by rw [←coe_eq_empty, coe_Icc, set.Icc_eq_empty_iff]
+lemma Iic_eq_powerset : Iic s = s.powerset := filter_true_of_mem $ λ t _, empty_subset t
+lemma Iio_eq_ssubsets : Iio s = s.ssubsets := filter_true_of_mem $ λ t _, empty_subset t
 
-@[simp] lemma Ioc_eq_empty_iff : Ioc a b = ∅ ↔ ¬a < b :=
-by rw [←coe_eq_empty, coe_Ioc, set.Ioc_eq_empty_iff]
+variables {s t}
 
-@[simp] lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
-by rw [←coe_eq_empty, coe_Ioo, set.Ioo_eq_empty_iff]
-
-alias Icc_eq_empty_iff ↔ _ finset.Icc_eq_empty
-alias Ioc_eq_empty_iff ↔ _ finset.Ioc_eq_empty
-
-@[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
-
-@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ :=
-Icc_eq_empty h.not_le
-
-@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ :=
-Ioc_eq_empty h.not_lt
-
-@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ :=
-Ioo_eq_empty h.not_lt
-
-variables (a)
-
-@[simp] lemma Ioc_self : Ioc a a = ∅ :=
-by rw [←coe_eq_empty, coe_Ioc, set.Ioc_self]
-
-@[simp] lemma Ioo_self : Ioo a a = ∅ :=
-by rw [←coe_eq_empty, coe_Ioo, set.Ioo_self]
-
-end preorder
-
-section partial_order
-variables [partial_order α] [locally_finite_order α] {a b : α}
-
-@[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
-by rw [←coe_eq_singleton, coe_Icc, set.Icc_self]
-
-end partial_order
-
-section ordered_cancel_add_comm_monoid
-variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidable_eq α]
-  [locally_finite_order α]
-
-lemma image_add_const_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (a + c) (b + c) :=
+lemma Icc_eq_image_powerset (h : s ⊆ t) : Icc s t = (t \ s).powerset.image ((∪) s) :=
 begin
-  ext x,
-  rw [mem_image, mem_Icc],
+  ext u,
+  simp_rw [mem_Icc, mem_image, exists_prop, mem_powerset],
   split,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Icc at hy,
-    rw add_comm c,
-    exact ⟨add_le_add_right hy.1 c, add_le_add_right hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-    rw [hy, add_right_comm] at hx,
-    rw [eq_comm, add_right_comm, add_comm] at hy,
-    exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩ }
+  { rintro ⟨hs, ht⟩,
+    exact ⟨u \ s, sdiff_le_sdiff_right ht, sup_sdiff_cancel_right hs⟩ },
+  { rintro ⟨v, hv, rfl⟩,
+    exact ⟨le_sup_left, union_subset h $ hv.trans $ sdiff_subset _ _⟩ }
 end
 
-lemma image_add_const_Ioc (a b c : α) : (Ioc a b).image ((+) c) = Ioc (a + c) (b + c) :=
+lemma Ico_eq_image_ssubsets (h : s ⊆ t) : Ico s t = (t \ s).ssubsets.image ((∪) s) :=
 begin
-  ext x,
-  rw [mem_image, mem_Ioc],
+  ext u,
+  simp_rw [mem_Ico, mem_image, exists_prop, mem_ssubsets],
   split,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Ioc at hy,
-    rw add_comm c,
-    exact ⟨add_lt_add_right hy.1 c, add_le_add_right hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-    rw [hy, add_right_comm] at hx,
-    rw [eq_comm, add_right_comm, add_comm] at hy,
-    exact ⟨a + y, mem_Ioc.2 ⟨lt_of_add_lt_add_right hx.1, le_of_add_le_add_right hx.2⟩, hy⟩ }
+  { rintro ⟨hs, ht⟩,
+    exact ⟨u \ s, sdiff_lt_sdiff_right ht hs, sup_sdiff_cancel_right hs⟩ },
+  { rintro ⟨v, hv, rfl⟩,
+    exact ⟨le_sup_left, sup_lt_of_lt_sdiff_left hv h⟩ }
 end
 
-lemma image_add_const_Ioo (a b c : α) : (Ioo a b).image ((+) c) = Ioo (a + c) (b + c) :=
+/-- Cardinality of a non-empty `Icc` of finsets. -/
+lemma card_Icc_finset (h : s ⊆ t) : (Icc s t).card = 2 ^ (t.card - s.card) :=
 begin
-  ext x,
-  rw [mem_image, mem_Ioo],
-  split,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Ioo at hy,
-    rw add_comm c,
-    exact ⟨add_lt_add_right hy.1 c, add_lt_add_right hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-    rw [hy, add_right_comm] at hx,
-    rw [eq_comm, add_right_comm, add_comm] at hy,
-    exact ⟨a + y, mem_Ioo.2 ⟨lt_of_add_lt_add_right hx.1, lt_of_add_lt_add_right hx.2⟩, hy⟩ }
+  rw [←card_sdiff h, ←card_powerset, Icc_eq_image_powerset h, finset.card_image_iff],
+  rintro u hu v hv (huv : s ⊔ u = s ⊔ v),
+  rw [mem_coe, mem_powerset] at hu hv,
+  rw [←(disjoint_sdiff.mono_right hu : disjoint s u).sup_sdiff_cancel_left,
+    ←(disjoint_sdiff.mono_right hv : disjoint s v).sup_sdiff_cancel_left, huv],
 end
 
-end ordered_cancel_add_comm_monoid
+/-- Cardinality of an `Ico` of finsets. -/
+lemma card_Ico_finset (h : s ⊆ t) : (Ico s t).card = 2 ^ (t.card - s.card) - 1 :=
+by rw [card_Ico_eq_card_Icc_sub_one, card_Icc_finset h]
+
+/-- Cardinality of an `Ioc` of finsets. -/
+lemma card_Ioc_finset (h : s ⊆ t) : (Ioc s t).card = 2 ^ (t.card - s.card) - 1 :=
+by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc_finset h]
+
+/-- Cardinality of an `Ioo` of finsets. -/
+lemma card_Ioo_finset (h : s ⊆ t) : (Ioo s t).card = 2 ^ (t.card - s.card) - 2 :=
+by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc_finset h]
+
+/-- Cardinality of an `Iic` of finsets. -/
+lemma card_Iic_finset : (Iic s).card = 2 ^ s.card :=
+by rw [Iic_eq_powerset, card_powerset]
+
+/-- Cardinality of an `Iio` of finsets. -/
+lemma card_Iio_finset : (Iio s).card = 2 ^ s.card - 1 :=
+by rw [Iio_eq_ssubsets, ssubsets, card_erase_of_mem (mem_powerset_self _), card_powerset]
+
 end finset

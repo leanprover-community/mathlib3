@@ -26,7 +26,7 @@ p-series, Cauchy condensation test
 -/
 
 open filter
-open_locale big_operators ennreal nnreal topological_space
+open_locale big_operators ennreal nnreal topology
 
 /-!
 ### Cauchy condensation test
@@ -50,7 +50,7 @@ begin
     exact add_le_add ihn this,
     exacts [n.one_le_two_pow, nat.pow_le_pow_of_le_right zero_lt_two n.le_succ] },
   have : ∀ k ∈ Ico (2 ^ n) (2 ^ (n + 1)), f k ≤ f (2 ^ n) :=
-    λ k hk, hf (pow_pos zero_lt_two _) (Ico.mem.mp hk).1,
+    λ k hk, hf (pow_pos zero_lt_two _) (mem_Ico.mp hk).1,
   convert sum_le_sum this,
   simp [pow_succ, two_mul]
 end
@@ -72,8 +72,8 @@ begin
     exacts [add_le_add_right n.one_le_two_pow _,
       add_le_add_right (nat.pow_le_pow_of_le_right zero_lt_two n.le_succ) _] },
   have : ∀ k ∈ Ico (2 ^ n + 1) (2 ^ (n + 1) + 1), f (2 ^ (n + 1)) ≤ f k :=
-    λ k hk, hf (n.one_le_two_pow.trans_lt $ (nat.lt_succ_of_le le_rfl).trans_le (Ico.mem.mp hk).1)
-      (nat.le_of_lt_succ $ (Ico.mem.mp hk).2),
+    λ k hk, hf (n.one_le_two_pow.trans_lt $ (nat.lt_succ_of_le le_rfl).trans_le (mem_Ico.mp hk).1)
+      (nat.le_of_lt_succ $ (mem_Ico.mp hk).2),
   convert sum_le_sum this,
   simp [pow_succ, two_mul]
 end
@@ -122,7 +122,7 @@ begin
   split; intro h,
   { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf (zero_lt_one.trans hm) hmn),
-    simpa [h, ennreal.add_eq_top] using (ennreal.tsum_condensed_le hf) },
+    simpa [h, ennreal.add_eq_top, ennreal.mul_eq_top] using ennreal.tsum_condensed_le hf },
   { replace hf : ∀ m n, 0 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf hm hmn),
     simpa [h, ennreal.add_eq_top] using (ennreal.le_tsum_condensed hf) }
@@ -135,11 +135,9 @@ lemma summable_condensed_iff_of_nonneg {f : ℕ → ℝ} (h_nonneg : ∀ n, 0 �
   (h_mono : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) :
   summable (λ k : ℕ, (2 ^ k) * f (2 ^ k)) ↔ summable f :=
 begin
-  set g : ℕ → ℝ≥0 := λ n, ⟨f n, h_nonneg n⟩,
-  have : f = λ n, g n := rfl,
-  simp only [this],
-  have : ∀ ⦃m n⦄, 0 < m → m ≤ n → g n ≤ g m := λ m n hm h, nnreal.coe_le_coe.2 (h_mono hm h),
-  exact_mod_cast nnreal.summable_condensed_iff this
+  lift f to ℕ → ℝ≥0 using h_nonneg,
+  simp only [nnreal.coe_le_coe] at *,
+  exact_mod_cast nnreal.summable_condensed_iff h_mono
 end
 
 open real
@@ -153,7 +151,7 @@ Cauchy condensation test we formalized above. This test implies that `∑ n, 1 /
 and only if `∑ n, 2 ^ n / ((2 ^ n) ^ p)` converges, and the latter series is a geometric series with
 common ratio `2 ^ {1 - p}`. -/
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
+/-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
 if and only if `1 < p`. -/
 @[simp] lemma real.summable_nat_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
 begin
@@ -162,7 +160,7 @@ begin
   cases `0 ≤ p` and `p < 0` separately. -/
   { rw ← summable_condensed_iff_of_nonneg,
     { simp_rw [nat.cast_pow, nat.cast_two, ← rpow_nat_cast, ← rpow_mul zero_lt_two.le, mul_comm _ p,
-        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow₀, ← mul_pow,
+        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow, ← mul_pow,
         summable_geometric_iff_norm_lt_1],
       nth_rewrite 0 [← rpow_one 2],
       rw [← division_def, ← rpow_sub zero_lt_two, norm_eq_abs,
@@ -187,20 +185,43 @@ begin
         hp.not_lt, hk₀] using hk₁ } }
 end
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
+@[simp] lemma real.summable_nat_rpow {p : ℝ} : summable (λ n, n ^ p : ℕ → ℝ) ↔ p < -1 :=
+by { rcases neg_surjective p with ⟨p, rfl⟩, simp [rpow_neg] }
+
+/-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
 by simp
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
+/-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
 if and only if `1 < p`. -/
 @[simp] lemma real.summable_nat_pow_inv {p : ℕ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
 by simp only [← rpow_nat_cast, real.summable_nat_rpow_inv, nat.one_lt_cast]
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
+/-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_pow {p : ℕ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
 by simp
+
+/-- Summability of the `p`-series over `ℤ`. -/
+lemma real.summable_one_div_int_pow {p : ℕ} : summable (λ n:ℤ, 1 / (n : ℝ) ^ p) ↔ 1 < p :=
+begin
+  refine ⟨λ h, real.summable_one_div_nat_pow.mp (h.comp_injective nat.cast_injective),
+    λ h, summable_int_of_summable_nat (real.summable_one_div_nat_pow.mpr h)
+    (((real.summable_one_div_nat_pow.mpr h).mul_left $ 1 / (-1) ^ p).congr $ λ n, _)⟩,
+  conv_rhs { rw [int.cast_neg, neg_eq_neg_one_mul, mul_pow, ←div_div] },
+  conv_lhs { rw [mul_div, mul_one], },
+  refl,
+end
+
+lemma real.summable_abs_int_rpow {b : ℝ} (hb : 1 < b) : summable (λ n : ℤ, |(n : ℝ)| ^ (-b)) :=
+begin
+  refine summable_int_of_summable_nat (_ : summable (λ n : ℕ, |(n : ℝ)| ^ _))
+    (_ : summable (λ n : ℕ, |((-n : ℤ) : ℝ)| ^ _)),
+  work_on_goal 2 { simp_rw [int.cast_neg, int.cast_coe_nat, abs_neg] },
+  all_goals { simp_rw (λ n : ℕ, abs_of_nonneg (n.cast_nonneg : 0 ≤ (n : ℝ))),
+    rwa [real.summable_nat_rpow, neg_lt_neg_iff] },
+end
 
 /-- Harmonic series is not unconditionally summable. -/
 lemma real.not_summable_nat_cast_inv : ¬summable (λ n, n⁻¹ : ℕ → ℝ) :=
@@ -220,8 +241,71 @@ begin
   { exact λ i, div_nonneg zero_le_one i.cast_add_one_pos.le }
 end
 
-@[simp] lemma nnreal.summable_one_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
+@[simp] lemma nnreal.summable_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
+by simp [← nnreal.summable_coe]
+
+@[simp] lemma nnreal.summable_rpow {p : ℝ} : summable (λ n, n ^ p : ℕ → ℝ≥0) ↔ p < -1 :=
 by simp [← nnreal.summable_coe]
 
 lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ≥0) ↔ 1 < p :=
 by simp
+
+section
+
+open finset
+
+variables {α : Type*} [linear_ordered_field α]
+
+lemma sum_Ioc_inv_sq_le_sub {k n : ℕ} (hk : k ≠ 0) (h : k ≤ n) :
+  ∑ i in Ioc k n, ((i ^ 2) ⁻¹ : α) ≤ k ⁻¹ - n ⁻¹ :=
+begin
+  refine nat.le_induction _ _ n h,
+  { simp only [Ioc_self, sum_empty, sub_self] },
+  assume n hn IH,
+  rw [sum_Ioc_succ_top hn],
+  apply (add_le_add IH le_rfl).trans,
+  simp only [sub_eq_add_neg, add_assoc, nat.cast_add, nat.cast_one, le_add_neg_iff_add_le,
+    add_le_iff_nonpos_right, neg_add_le_iff_le_add, add_zero],
+  have A : 0 < (n : α), by simpa using hk.bot_lt.trans_le hn,
+  have B : 0 < (n : α) + 1, by linarith,
+  field_simp [B.ne'],
+  rw [div_le_div_iff _ A, ← sub_nonneg],
+  { ring_nf, exact B.le },
+  { nlinarith },
+end
+
+lemma sum_Ioo_inv_sq_le (k n : ℕ) :
+  ∑ i in Ioo k n, ((i ^ 2) ⁻¹ : α) ≤ 2 / (k + 1) :=
+calc
+∑ i in Ioo k n, ((i ^ 2) ⁻¹ : α) ≤ ∑ i in Ioc k (max (k+1) n), (i ^ 2) ⁻¹ :
+begin
+  apply sum_le_sum_of_subset_of_nonneg,
+  { assume x hx,
+    simp only [mem_Ioo] at hx,
+    simp only [hx, hx.2.le, mem_Ioc, le_max_iff, or_true, and_self] },
+  { assume i hi hident,
+    exact inv_nonneg.2 (sq_nonneg _), }
+end
+... ≤ ((k + 1) ^ 2) ⁻¹ + ∑ i in Ioc k.succ (max (k + 1) n), (i ^ 2) ⁻¹ :
+begin
+  rw [← nat.Icc_succ_left, ← nat.Ico_succ_right, sum_eq_sum_Ico_succ_bot],
+  swap, { exact nat.succ_lt_succ ((nat.lt_succ_self k).trans_le (le_max_left _ _)) },
+  rw [nat.Ico_succ_right, nat.Icc_succ_left, nat.cast_succ],
+end
+... ≤ ((k + 1) ^ 2) ⁻¹ + (k + 1) ⁻¹ :
+begin
+  refine add_le_add le_rfl ((sum_Ioc_inv_sq_le_sub _ (le_max_left _ _)).trans _),
+  { simp only [ne.def, nat.succ_ne_zero, not_false_iff] },
+  { simp only [nat.cast_succ, one_div, sub_le_self_iff, inv_nonneg, nat.cast_nonneg] }
+end
+... ≤ 1 / (k + 1) + 1 / (k + 1) :
+begin
+  have A : (1 : α) ≤ k + 1, by simp only [le_add_iff_nonneg_left, nat.cast_nonneg],
+  simp_rw ← one_div,
+  apply add_le_add_right,
+  refine div_le_div zero_le_one le_rfl (zero_lt_one.trans_le A) _,
+  simpa using pow_le_pow A one_le_two,
+end
+... = 2 / (k + 1) : by ring
+
+end

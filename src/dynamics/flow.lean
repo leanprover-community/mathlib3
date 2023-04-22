@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo
 -/
 
-import topology.algebra.group
+import topology.algebra.group.basic
 import logic.function.iterate
 
 /-!
 # Flows and invariant sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a flow on a topological space `α` by a topological
 monoid `τ` as a continuous monoid-act of `τ` on `α`. Anticipating the
@@ -97,7 +100,7 @@ instance : inhabited (flow τ α) :=
    map_add'  := λ _ _ _, rfl,
    map_zero' := λ _, rfl }⟩
 
-instance : has_coe_to_fun (flow τ α) := ⟨_, flow.to_fun⟩
+instance : has_coe_to_fun (flow τ α) (λ _, τ → α → α) := ⟨flow.to_fun⟩
 
 @[ext]
 lemma ext : ∀ {ϕ₁ ϕ₂ : flow τ α}, (∀ t x, ϕ₁ t x = ϕ₂ t x) → ϕ₁ = ϕ₂
@@ -109,7 +112,7 @@ protected lemma continuous {β : Type*} [topological_space β]
   continuous (λ x, ϕ (t x) (f x)) :=
 ϕ.cont'.comp (ht.prod_mk hf)
 
-alias flow.continuous ← continuous.flow
+alias flow.continuous ← _root_.continuous.flow
 
 lemma map_add (t₁ t₂ : τ) (x : α) : ϕ (t₁ + t₂) x = ϕ t₁ (ϕ t₂ x) :=
 ϕ.map_add' _ _ _
@@ -129,8 +132,7 @@ def from_iter {g : α → α} (h : continuous g) : flow ℕ α :=
 /-- Restriction of a flow onto an invariant set. -/
 def restrict {s : set α} (h : is_invariant ϕ s) : flow τ ↥s :=
 { to_fun    := λ t, (h t).restrict _ _ _,
-  cont'     := continuous_subtype_mk _ (ϕ.continuous continuous_fst
-    (continuous_subtype_coe.comp continuous_snd)),
+  cont'     := (ϕ.continuous continuous_fst continuous_subtype_coe.snd').subtype_mk _,
   map_add'  := λ _ _ _, subtype.ext (map_add _ _ _ _),
   map_zero' := λ _, subtype.ext (map_zero_apply _ _)}
 

@@ -3,7 +3,7 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson, Patrick Massot
 -/
-import analysis.normed_space.exponential
+import analysis.special_functions.exponential
 import combinatorics.derangements.finite
 import order.filter.basic
 
@@ -16,7 +16,7 @@ The specific lemma is `num_derangements_tendsto_inv_e`.
 open filter
 
 open_locale big_operators
-open_locale topological_space
+open_locale topology
 
 theorem num_derangements_tendsto_inv_e :
   tendsto (λ n, (num_derangements n : ℝ) / n.factorial) at_top
@@ -34,8 +34,8 @@ begin
     apply has_sum.tendsto_sum_nat,
     -- there's no specific lemma for ℝ that ∑ x^k/k! sums to exp(x), but it's
     -- true in more general fields, so use that lemma
-    rw real.exp_eq_exp_ℝ_ℝ,
-    exact exp_series_field_has_sum_exp (-1 : ℝ) },
+    rw real.exp_eq_exp_ℝ,
+    exact exp_series_div_has_sum_exp ℝ (-1 : ℝ) },
   intro n,
   rw [← int.cast_coe_nat, num_derangements_sum],
   push_cast,
@@ -44,7 +44,7 @@ begin
   refine finset.sum_congr (refl _) _,
   intros k hk,
   have h_le : k ≤ n := finset.mem_range_succ_iff.mp hk,
-  rw [nat.asc_factorial_eq_div, nat.add_sub_cancel' h_le],
+  rw [nat.asc_factorial_eq_div, add_tsub_cancel_of_le h_le],
   push_cast [nat.factorial_dvd_factorial h_le],
   field_simp [nat.factorial_ne_zero],
   ring,

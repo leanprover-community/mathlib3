@@ -3,13 +3,16 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.equiv.fin
-import data.equiv.fintype
+import group_theory.perm.cycle.type
 import group_theory.perm.option
-import group_theory.perm.cycle_type
+import logic.equiv.fin
+import logic.equiv.fintype
 
 /-!
 # Permutations of `fin n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 open equiv
 
@@ -111,7 +114,7 @@ begin
   refine ⟨0, dec_trivial, λ x hx', ⟨x, _⟩⟩,
   clear hx',
   cases x with x hx,
-  rw [coe_coe, gpow_coe_nat, fin.ext_iff, fin.coe_mk],
+  rw [coe_coe, zpow_coe_nat, fin.ext_iff, fin.coe_mk],
   induction x with x ih, { refl },
   rw [pow_succ, perm.mul_apply, coe_fin_rotate_of_ne_last, ih (lt_trans x.lt_succ_self hx)],
   rw [ne.def, fin.ext_iff, ih (lt_trans x.lt_succ_self hx), fin.coe_last],

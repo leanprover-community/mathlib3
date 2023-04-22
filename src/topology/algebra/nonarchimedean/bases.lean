@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 
-import linear_algebra.bilinear_map
 import topology.algebra.nonarchimedean.basic
 import topology.algebra.filter_basis
-import algebra.module.submodule_pointwise
+import algebra.module.submodule.pointwise
 
 /-!
 # Neighborhood bases for non-archimedean rings and modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This files contains special families of filter bases on rings and modules that give rise to
 non-archimedean topologies.
@@ -29,7 +31,7 @@ sub-modules in a commutative algebra. This important example gives rises to the 
 -/
 
 open set filter function lattice add_group_with_zero_nhd
-open_locale topological_space filter pointwise
+open_locale topology filter pointwise
 
 /-- A family of additive subgroups on a ring `A` is a subgroups basis if it satisfies some
 axioms ensuring there is a topology on `A` which is compatible with the ring structure and
@@ -63,7 +65,7 @@ lemma of_comm {A ι : Type*} [comm_ring A] (B : ι → add_subgroup A)
 def to_ring_filter_basis [nonempty ι] {B : ι → add_subgroup A}
   (hB : ring_subgroups_basis B) : ring_filter_basis A :=
 { sets := {U | ∃ i, U = B i},
-  nonempty := by { inhabit ι, exact ⟨B (default ι), default ι, rfl⟩ },
+  nonempty := by { inhabit ι, exact ⟨B default, default, rfl⟩ },
   inter_sets := begin
     rintros _ _ ⟨i, rfl⟩ ⟨j, rfl⟩,
     cases hB.inter i j with k hk,
@@ -231,7 +233,7 @@ include hB
 /-- The image of a submodules basis is a module filter basis. -/
 def to_module_filter_basis : module_filter_basis R M :=
 { sets := {U | ∃ i, U = B i},
-  nonempty := by { inhabit ι, exact ⟨B (default ι), default ι, rfl⟩ },
+  nonempty := by { inhabit ι, exact ⟨B default, default, rfl⟩ },
   inter_sets := begin
     rintros _ _ ⟨i, rfl⟩ ⟨j, rfl⟩,
     cases hB.inter i j with k hk,

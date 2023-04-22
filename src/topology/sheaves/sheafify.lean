@@ -24,7 +24,7 @@ Show that the map induced on stalks by `to_sheafify` is the inverse of `stalk_to
 
 Show sheafification is a functor from presheaves to sheaves,
 and that it is the left adjoint of the forgetful functor,
-following https://stacks.math.columbia.edu/tag/007X.
+following <https://stacks.math.columbia.edu/tag/007X>.
 -/
 
 universes v
@@ -68,7 +68,7 @@ The morphism from a presheaf to its sheafification,
 sending each section to its germs.
 (This forms the unit of the adjunction.)
 -/
-def to_sheafify : F ⟶ F.sheafify.presheaf :=
+def to_sheafify : F ⟶ F.sheafify.1 :=
 { app := λ U f, ⟨λ x, F.germ x f, prelocal_predicate.sheafify_of ⟨f, λ x, rfl⟩⟩,
   naturality' := λ U U' f, by { ext x ⟨u, m⟩, exact germ_res_apply F f.unop ⟨u, m⟩ x } }
 
@@ -104,9 +104,9 @@ begin
   dsimp at e',
   use ⟨W ⊓ (U' ⊓ V'), ⟨mW, mU, mV⟩⟩,
   refine ⟨_, _, _⟩,
-  { change W ⊓ (U' ⊓ V') ⟶ U.val,
+  { change W ⊓ (U' ⊓ V') ⟶ U.obj,
     exact (opens.inf_le_right _ _) ≫ (opens.inf_le_left _ _) ≫ iU, },
-  { change W ⊓ (U' ⊓ V') ⟶ V.val,
+  { change W ⊓ (U' ⊓ V') ⟶ V.obj,
     exact (opens.inf_le_right _ _) ≫ (opens.inf_le_right _ _) ≫ iV, },
   { intro w,
     dsimp,

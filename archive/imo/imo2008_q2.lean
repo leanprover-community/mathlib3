@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Manuel Candales
 -/
 import data.real.basic
-import data.set.basic
 import data.set.finite
 
 /-!
@@ -129,7 +128,7 @@ begin
     have hK_inf : set.infinite K,
     { intro h, apply hK_not_bdd, exact set.finite.bdd_above h },
 
-    exact set.infinite_of_infinite_image g hK_inf },
+    exact hK_inf.of_image g },
 
   exact hW_inf.mono hW_sub_S,
 end

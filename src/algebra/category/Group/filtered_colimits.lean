@@ -20,7 +20,7 @@ particular, this implies that `forget Group` preserves filtered colimits. Simila
 
 -/
 
-universe v
+universes v u
 
 noncomputable theory
 open_locale classical
@@ -37,7 +37,7 @@ open Mon.filtered_colimits (colimit_one_eq colimit_mul_mk_eq)
 
 -- We use parameters here, mainly so we can have the abbreviations `G` and `G.mk` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ Group.{v})
+parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ Group.{max v u})
 
 /--
 The colimit of `F ⋙ forget₂ Group Mon` in the category `Mon`.
@@ -45,7 +45,7 @@ In the following, we will show that this has the structure of a group.
 -/
 @[to_additive "The colimit of `F ⋙ forget₂ AddGroup AddMon` in the category `AddMon`.
 In the following, we will show that this has the structure of an additive group."]
-abbreviation G : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ Group Mon)
+abbreviation G : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ Group Mon.{max v u})
 
 /-- The canonical projection into the colimit, as a quotient type. -/
 @[to_additive "The canonical projection into the colimit, as a quotient type."]
@@ -93,8 +93,9 @@ instance colimit_group : group G :=
 { mul_left_inv := λ x, begin
     apply quot.induction_on x, clear x, intro x,
     cases x with j x,
-    erw [colimit_inv_mk_eq, colimit_mul_mk_eq (F ⋙ forget₂ Group Mon) ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j),
-      colimit_one_eq (F ⋙ forget₂ Group Mon) j],
+    erw [colimit_inv_mk_eq,
+      colimit_mul_mk_eq (F ⋙ forget₂ Group Mon.{max v u}) ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j),
+      colimit_one_eq (F ⋙ forget₂ Group Mon.{max v u}) j],
     dsimp,
     simp only [category_theory.functor.map_id, id_apply, mul_left_inv],
   end,
@@ -109,12 +110,12 @@ def colimit : Group := Group.of G
 @[to_additive "The cocone over the proposed colimit additive group."]
 def colimit_cocone : cocone F :=
 { X := colimit,
-  ι := { ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ Group Mon)).ι } }
+  ι := { ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ Group Mon.{max v u})).ι } }
 
 /-- The proposed colimit cocone is a colimit in `Group`. -/
 @[to_additive "The proposed colimit cocone is a colimit in `AddGroup`."]
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
-{ desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ Group Mon)
+{ desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ Group Mon.{max v u})
     ((forget₂ Group Mon).map_cocone t),
   fac' := λ t j, monoid_hom.coe_inj $
     (types.colimit_cocone_is_colimit (F ⋙ forget Group)).fac ((forget Group).map_cocone t) j,
@@ -124,15 +125,15 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 
 @[to_additive forget₂_AddMon_preserves_filtered_colimits]
 instance forget₂_Mon_preserves_filtered_colimits :
-  preserves_filtered_colimits (forget₂ Group Mon.{v}) :=
+  preserves_filtered_colimits (forget₂ Group Mon.{u}) :=
 { preserves_filtered_colimits := λ J _ _, by exactI
   { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
-      (colimit_cocone_is_colimit F)
-      (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ Group Mon.{v})) } }
+      (colimit_cocone_is_colimit.{u u} F)
+      (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ Group Mon.{u})) } }
 
 @[to_additive]
-instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget Group) :=
-limits.comp_preserves_filtered_colimits (forget₂ Group Mon) (forget Mon)
+instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget Group.{u}) :=
+limits.comp_preserves_filtered_colimits (forget₂ Group Mon) (forget Mon.{u})
 
 end
 
@@ -145,7 +146,7 @@ section
 
 -- We use parameters here, mainly so we can have the abbreviation `G` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommGroup.{v})
+parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommGroup.{max v u})
 
 /--
 The colimit of `F ⋙ forget₂ CommGroup Group` in the category `Group`.
@@ -153,12 +154,12 @@ In the following, we will show that this has the structure of a _commutative_ gr
 -/
 @[to_additive "The colimit of `F ⋙ forget₂ AddCommGroup AddGroup` in the category `AddGroup`.
 In the following, we will show that this has the structure of a _commutative_ additive group."]
-abbreviation G : Group := Group.filtered_colimits.colimit (F ⋙ forget₂ CommGroup Group.{v})
+abbreviation G : Group := Group.filtered_colimits.colimit (F ⋙ forget₂ CommGroup Group.{max v u})
 
 @[to_additive]
 instance colimit_comm_group : comm_group G :=
 { ..G.group,
-  ..CommMon.filtered_colimits.colimit_comm_monoid (F ⋙ forget₂ CommGroup CommMon.{v}) }
+  ..CommMon.filtered_colimits.colimit_comm_monoid (F ⋙ forget₂ CommGroup CommMon.{max v u}) }
 
 /-- The bundled commutative group giving the filtered colimit of a diagram. -/
 @[to_additive "The bundled additive commutative group giving the filtered colimit of a diagram."]
@@ -168,14 +169,14 @@ def colimit : CommGroup := CommGroup.of G
 @[to_additive "The cocone over the proposed colimit additive commutative group."]
 def colimit_cocone : cocone F :=
 { X := colimit,
-  ι := { ..(Group.filtered_colimits.colimit_cocone (F ⋙ forget₂ CommGroup Group)).ι } }
+  ι := { ..(Group.filtered_colimits.colimit_cocone (F ⋙ forget₂ CommGroup Group.{max v u})).ι } }
 
 /-- The proposed colimit cocone is a colimit in `CommGroup`. -/
 @[to_additive "The proposed colimit cocone is a colimit in `AddCommGroup`."]
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 { desc := λ t,
-  (Group.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommGroup Group.{v})).desc
-    ((forget₂ CommGroup Group.{v}).map_cocone t),
+  (Group.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommGroup Group.{max v u})).desc
+    ((forget₂ CommGroup Group.{max v u}).map_cocone t),
   fac' := λ t j, monoid_hom.coe_inj $
     (types.colimit_cocone_is_colimit (F ⋙ forget CommGroup)).fac
     ((forget CommGroup).map_cocone t) j,
@@ -185,15 +186,17 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 
 @[to_additive forget₂_AddGroup_preserves_filtered_colimits]
 instance forget₂_Group_preserves_filtered_colimits :
-  preserves_filtered_colimits (forget₂ CommGroup Group.{v}) :=
+  preserves_filtered_colimits (forget₂ CommGroup Group.{u}) :=
 { preserves_filtered_colimits := λ J _ _, by exactI
   { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
-      (colimit_cocone_is_colimit F)
-      (Group.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommGroup Group.{v})) } }
+      (colimit_cocone_is_colimit.{u u} F)
+      (Group.filtered_colimits.colimit_cocone_is_colimit
+        (F ⋙ forget₂ CommGroup Group.{u})) } }
 
 @[to_additive]
-instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget CommGroup) :=
-limits.comp_preserves_filtered_colimits (forget₂ CommGroup Group) (forget Group)
+instance forget_preserves_filtered_colimits :
+  preserves_filtered_colimits (forget CommGroup.{u}) :=
+limits.comp_preserves_filtered_colimits (forget₂ CommGroup Group) (forget Group.{u})
 
 end
 

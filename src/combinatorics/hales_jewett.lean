@@ -3,12 +3,16 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import data.fintype.basic
+import data.fintype.option
+import data.fintype.pi
+import data.fintype.sum
 import algebra.big_operators.basic
-import data.equiv.fin
 
 /-!
 # The Hales-Jewett theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove the Hales-Jewett theorem and deduce Van der Waerden's theorem as a corollary.
 
@@ -80,8 +84,8 @@ structure line (α ι : Type*) :=
 namespace line
 
 /- This lets us treat a line `l : line α ι` as a function `α → ι → α`. -/
-instance (α ι) : has_coe_to_fun (line α ι) :=
-⟨λ _, α → ι → α, λ l x i, (l.idx_fun i).get_or_else x⟩
+instance (α ι) : has_coe_to_fun (line α ι) (λ _, α → ι → α) :=
+⟨λ l x i, (l.idx_fun i).get_or_else x⟩
 
 /-- A line is monochromatic if all its points are the same color. -/
 def is_mono {α ι κ} (C : (ι → α) → κ) (l : line α ι) : Prop :=
@@ -101,9 +105,9 @@ structure almost_mono {α ι κ : Type*} (C : (ι → option α) → κ) :=
 (has_color : ∀ x : α, C (line (some x)) = color)
 
 instance {α ι κ : Type*} [nonempty ι] [inhabited κ] :
-  inhabited (almost_mono (λ v : ι → option α, default κ)) :=
-⟨{ line      := default _,
-   color     := default κ,
+  inhabited (almost_mono (λ v : ι → option α, (default : κ))) :=
+⟨{ line      := default,
+   color     := default,
    has_color := λ _, rfl }⟩
 
 /-- The type of collections of lines such that
@@ -173,10 +177,10 @@ by simp_rw [line.apply, line.diagonal, option.get_or_else_none]
 /-- The Hales-Jewett theorem. This version has a restriction on universe levels which is necessary
 for the proof. See `exists_mono_in_high_dimension` for a fully universe-polymorphic version. -/
 private theorem exists_mono_in_high_dimension' :
-  ∀ (α : Type u) [fintype α] (κ : Type (max v u)) [fintype κ],
+  ∀ (α : Type u) [finite α] (κ : Type (max v u)) [finite κ],
   ∃ (ι : Type) (_ : fintype ι), ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 -- The proof proceeds by induction on `α`.
-fintype.induction_empty_option
+finite.induction_empty_option
 -- We have to show that the theorem is invariant under `α ≃ α'` for the induction to work.
 (λ α α' e, forall_imp $ λ κ, forall_imp $ λ _, Exists.imp $ λ ι, Exists.imp $ λ _ h C,
   let ⟨l, c, lc⟩ := h (λ v, C (e ∘ v)) in
@@ -184,15 +188,16 @@ fintype.induction_empty_option
 begin -- This deals with the degenerate case where `α` is empty.
   introsI κ _,
   by_cases h : nonempty κ,
-  { resetI, exact ⟨unit, infer_instance, λ C, ⟨default _, classical.arbitrary _, pempty.rec _⟩⟩, },
+  { resetI, exact ⟨unit, infer_instance, λ C, ⟨default, classical.arbitrary _, pempty.rec _⟩⟩, },
   { exact ⟨empty, infer_instance, λ C, (h ⟨C (empty.rec _)⟩).elim⟩, }
 end
 begin -- Now we have to show that the theorem holds for `option α` if it holds for `α`.
   introsI α _ ihα κ _,
+  casesI nonempty_fintype κ,
 -- Later we'll need `α` to be nonempty. So we first deal with the trivial case where `α` is empty.
 -- Then `option α` has only one element, so any line is monochromatic.
   by_cases h : nonempty α,
-  work_on_goal 1 { refine ⟨unit, infer_instance, λ C, ⟨diagonal _ _, C (λ _, none), _⟩⟩,
+  work_on_goal 2 { refine ⟨unit, infer_instance, λ C, ⟨diagonal _ _, C (λ _, none), _⟩⟩,
     rintros (_ | ⟨a⟩), refl, exact (h ⟨a⟩).elim, },
 -- The key idea is to show that for every `r`, in high dimension we can either find
 -- `r` color focused lines or a monochromatic line.
@@ -210,7 +215,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   intro r,
   induction r with r ihr,
 -- The base case `r = 0` is trivial as the empty collection is color-focused.
-  { exact ⟨empty, infer_instance, λ C, or.inl ⟨default _, multiset.card_zero⟩⟩, },
+  { exact ⟨empty, infer_instance, λ C, or.inl ⟨default, multiset.card_zero⟩⟩, },
 -- Supposing the key claim holds for `r`, we need to show it for `r+1`. First pick a high enough
 -- dimension `ι` for `r`.
   obtain ⟨ι, _inst, hι⟩ := ihr,
@@ -237,7 +242,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   specialize hι C',
   rcases hι with ⟨s, sr⟩ | _,
 -- By above, we are done if `C'` has a monochromatic line.
-  work_on_goal 1 { exact or.inr (mono_of_mono hι) },
+  work_on_goal 2 { exact or.inr (mono_of_mono hι) },
 -- Here we assume `C'` has `r` color focused lines. We split into cases depending on whether one of
 -- these `r` lines has the same color as the focus point.
   by_cases h : ∃ p ∈ s.lines, (p : almost_mono _).color = C' s.focus,
@@ -268,7 +273,7 @@ end
 
 /-- The Hales-Jewett theorem: for any finite types `α` and `κ`, there exists a finite type `ι` such
 that whenever the hypercube `ι → α` is `κ`-colored, there is a monochromatic combinatorial line. -/
-theorem exists_mono_in_high_dimension (α : Type u) [fintype α] (κ : Type v) [fintype κ] :
+theorem exists_mono_in_high_dimension (α : Type u) [finite α] (κ : Type v) [finite κ] :
   ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 let ⟨ι, ιfin, hι⟩ := exists_mono_in_high_dimension' α (ulift κ)
 in ⟨ι, ιfin, λ C, let ⟨l, c, hc⟩ := hι (ulift.up ∘ C) in ⟨l, c.down, λ x, by rw ←hc⟩ ⟩
@@ -277,8 +282,8 @@ end line
 
 /-- A generalization of Van der Waerden's theorem: if `M` is a finitely colored commutative
 monoid, and `S` is a finite subset, then there exists a monochromatic homothetic copy of `S`. -/
-theorem exists_mono_homothetic_copy
-  {M κ} [add_comm_monoid M] (S : finset M) [fintype κ] (C : M → κ) :
+theorem exists_mono_homothetic_copy {M κ : Type*} [add_comm_monoid M] (S : finset M) [finite κ]
+  (C : M → κ) :
   ∃ (a > 0) (b : M) (c : κ), ∀ s ∈ S, C (a • s + b) = c :=
 begin
   obtain ⟨ι, _inst, hι⟩ := line.exists_mono_in_high_dimension S κ,

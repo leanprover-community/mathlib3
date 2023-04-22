@@ -3,10 +3,14 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
+import data.set.function
 import data.set.intervals.basic
 
 /-!
 # Projection of a line onto a closed interval
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a linearly ordered type `α`, in this file we define
 
@@ -42,6 +46,21 @@ by simp [proj_Icc, hx, h]
 @[simp] lemma proj_Icc_right : proj_Icc a b h b = ⟨b, right_mem_Icc.2 h⟩ :=
 proj_Icc_of_right_le h le_rfl
 
+lemma proj_Icc_eq_left (h : a < b) : proj_Icc a b h.le x = ⟨a, left_mem_Icc.mpr h.le⟩ ↔ x ≤ a :=
+begin
+  refine ⟨λ h', _, proj_Icc_of_le_left _⟩,
+  simp_rw [subtype.ext_iff_val, proj_Icc, max_eq_left_iff, min_le_iff, h.not_le, false_or] at h',
+  exact h'
+end
+
+lemma proj_Icc_eq_right (h : a < b) : proj_Icc a b h.le x = ⟨b, right_mem_Icc.mpr h.le⟩ ↔ b ≤ x :=
+begin
+  refine ⟨λ h', _, proj_Icc_of_right_le _⟩,
+  simp_rw [subtype.ext_iff_val, proj_Icc] at h',
+  have := ((max_choice _ _).resolve_left (by simp [h.ne', h'])).symm.trans h',
+  exact min_eq_left_iff.mp this
+end
+
 lemma proj_Icc_of_mem (hx : x ∈ Icc a b) : proj_Icc a b h x = ⟨x, hx⟩ :=
 by simp [proj_Icc, hx.1, hx.2]
 
@@ -69,7 +88,7 @@ f ∘ proj_Icc a b h
 
 @[simp] lemma Icc_extend_range (f : Icc a b → β) :
   range (Icc_extend h f) = range f :=
-by simp [Icc_extend, range_comp f]
+by simp only [Icc_extend, range_comp f, range_proj_Icc, range_id']
 
 lemma Icc_extend_of_le_left (f : Icc a b → β) (hx : x ≤ a) :
   Icc_extend h f x = f ⟨a, left_mem_Icc.2 h⟩ :=

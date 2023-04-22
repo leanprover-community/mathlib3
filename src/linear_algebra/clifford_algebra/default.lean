@@ -1,2 +1,0 @@
-import linear_algebra.clifford_algebra.basic
-import linear_algebra.clifford_algebra.conjugation

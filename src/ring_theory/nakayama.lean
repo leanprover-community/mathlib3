@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import ring_theory.noetherian
-import ring_theory.jacobson
+import ring_theory.jacobson_ideal
 /-!
 # Nakayama's lemma
 
@@ -52,8 +52,8 @@ begin
   intros n hn,
   cases submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul I N hN hIN with r hr,
   cases exists_mul_sub_mem_of_sub_one_mem_jacobson r (hIjac hr.1) with s hs,
-  have : n = (-(r * s - 1) • n),
-  { rw [neg_sub, sub_smul, mul_comm, mul_smul, hr.2 n hn, one_smul, smul_zero, sub_zero] },
+  have : n = (-(s * r - 1) • n),
+  { rw [neg_sub, sub_smul, mul_smul, hr.2 n hn, one_smul, smul_zero, sub_zero] },
   rw this,
   exact submodule.smul_mem_smul (submodule.neg_mem _ hs) hn
 end
@@ -76,17 +76,15 @@ begin
   have hNN' : N ⊔ N' = N ⊔ I • N',
     from le_antisymm hNN
       (sup_le_sup_left (submodule.smul_le.2 (λ _ _ _, submodule.smul_mem _ _)) _),
+  have h_comap := submodule.comap_injective_of_surjective (linear_map.range_eq_top.1 (N.range_mkq)),
   have : (I • N').map N.mkq = N'.map N.mkq,
-  { rw ← (submodule.comap_injective_of_surjective
-        (linear_map.range_eq_top.1 (submodule.range_mkq N))).eq_iff,
+  { rw ←h_comap.eq_iff,
     simpa [comap_map_eq, sup_comm, eq_comm] using hNN' },
   have := @submodule.eq_smul_of_le_smul_of_le_jacobson _ _ _ _ _ I J
-    (N'.map N.mkq) (fg_map hN')
-    (by rw [← map_smul'', this]; exact le_refl _)
+    (N'.map N.mkq) (hN'.map _)
+    (by rw [← map_smul'', this]; exact le_rfl)
     hIJ,
-  rw [← map_smul'', ← (submodule.comap_injective_of_surjective
-        (linear_map.range_eq_top.1 (submodule.range_mkq N))).eq_iff,
-        comap_map_eq, comap_map_eq, submodule.ker_mkq, sup_comm,
+  rw [← map_smul'', ←h_comap.eq_iff, comap_map_eq, comap_map_eq, submodule.ker_mkq, sup_comm,
         hNN'] at this,
   rw [this, sup_comm]
 end

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.functor
-import category_theory.functorial
+import category_theory.functor.functorial
 
 /-!
 # Unbundled lax monoidal functors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Design considerations
 The essential problem I've encountered that requires unbundled functors is

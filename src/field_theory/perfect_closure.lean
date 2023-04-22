@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.char_p.basic
-import data.equiv.ring
-import algebra.group_with_zero.power
-import algebra.iterate_hom
+import algebra.hom.iterate
+import algebra.ring.equiv
 
 /-!
 # The perfect closure of a field
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v
@@ -224,6 +226,7 @@ end)⟩
 instance : has_zero (perfect_closure K p) := ⟨mk K p (0, 0)⟩
 
 lemma zero_def : (0 : perfect_closure K p) = mk K p (0, 0) := rfl
+@[simp] lemma mk_zero_zero : mk K p (0, 0) = 0 := rfl
 
 theorem mk_zero (n : ℕ) : mk K p (n, 0) = 0 :=
 by induction n with n ih; [refl, rw ← ih]; symmetry; apply quot.sound;
@@ -234,7 +237,7 @@ theorem r.sound (m n : ℕ) (x y : K) (H : frobenius K p^[m] x = y) :
 by subst H; induction m with m ih; [simp only [zero_add, iterate_zero_apply],
   rw [ih, nat.succ_add, iterate_succ']]; apply quot.sound; apply r.intro
 
-instance : comm_ring (perfect_closure K p) :=
+instance : add_comm_group (perfect_closure K p) :=
 { add_assoc := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, congr_arg (quot.mk _) $
     by simp only [ring_hom.iterate_map_add, ← iterate_add_apply, add_assoc, add_comm s _],
@@ -249,7 +252,11 @@ instance : comm_ring (perfect_closure K p) :=
       ring_hom.iterate_map_neg, add_left_neg, mk_zero]),
   add_comm := λ e f, quot.induction_on e (λ ⟨m, x⟩, quot.induction_on f (λ ⟨n, y⟩,
     congr_arg (quot.mk _) $ by simp only [add_comm])),
-  left_distrib := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
+  .. (infer_instance : has_add (perfect_closure K p)),
+  .. (infer_instance : has_neg (perfect_closure K p)) }
+
+instance : comm_ring (perfect_closure K p) :=
+{ left_distrib := λ e f g, quot.induction_on e $ λ ⟨m, x⟩, quot.induction_on f $ λ ⟨n, y⟩,
     quot.induction_on g $ λ ⟨s, z⟩, show quot.mk _ _ = quot.mk _ _,
     by simp only [add_assoc, add_comm, add_left_comm]; apply r.sound;
     simp only [ring_hom.iterate_map_mul, ring_hom.iterate_map_add,
@@ -259,8 +266,8 @@ instance : comm_ring (perfect_closure K p) :=
     by simp only [add_assoc, add_comm _ s, add_left_comm _ s]; apply r.sound;
     simp only [ring_hom.iterate_map_mul, ring_hom.iterate_map_add,
       ← iterate_add_apply, add_mul, add_comm, add_left_comm],
-  .. (infer_instance : has_add (perfect_closure K p)),
-  .. (infer_instance : has_neg (perfect_closure K p)),
+  .. perfect_closure.add_comm_group K p,
+  .. add_monoid_with_one.unary,
   .. (infer_instance : comm_monoid (perfect_closure K p)) }
 
 theorem eq_iff' (x y : ℕ × K) : mk K p x = mk K p y ↔
@@ -295,7 +302,7 @@ end
 theorem nat_cast (n x : ℕ) : (x : perfect_closure K p) = mk K p (n, x) :=
 begin
   induction n with n ih,
-  { induction x with x ih, {refl},
+  { induction x with x ih, {simp},
     rw [nat.cast_succ, nat.cast_succ, ih], refl },
   rw ih, apply quot.sound,
   conv {congr, skip, skip, rw ← frobenius_nat_cast K p x},
@@ -329,8 +336,8 @@ begin
   { apply this },
   intro p, induction p with p ih,
   case nat.zero { apply r.sound, rw [(frobenius _ _).iterate_map_one, pow_zero] },
-  case nat.succ {
-    rw [pow_succ, ih],
+  case nat.succ
+  { rw [pow_succ, ih],
     symmetry,
     apply r.sound,
     simp only [pow_succ, (frobenius _ _).iterate_map_mul] }
@@ -348,7 +355,7 @@ lemma of_apply (x : K) : of K p x = mk _ _ (0, x) := rfl
 
 end ring
 
-theorem eq_iff [integral_domain K] (p : ℕ) [fact p.prime] [char_p K p]
+theorem eq_iff [comm_ring K] [is_domain K] (p : ℕ) [fact p.prime] [char_p K p]
   (x y : ℕ × K) : quot.mk (r K p) x = quot.mk (r K p) y ↔
     (frobenius K p^[y.1] x.2) = (frobenius K p^[x.1] y.2) :=
 (eq_iff' K p x y).trans ⟨λ ⟨z, H⟩, (frobenius_inj K p).iterate z $
@@ -361,7 +368,7 @@ variables [field K] (p : ℕ) [fact p.prime] [char_p K p]
 
 instance : has_inv (perfect_closure K p) :=
 ⟨quot.lift (λ x:ℕ×K, quot.mk (r K p) (x.1, x.2⁻¹)) (λ x y (H : r K p x y), match x, y, H with
-| _, _, r.intro n x := quot.sound $ by { simp only [frobenius_def], rw ← inv_pow₀, apply r.intro }
+| _, _, r.intro n x := quot.sound $ by { simp only [frobenius_def], rw ← inv_pow, apply r.intro }
 end)⟩
 
 instance : field (perfect_closure K p) :=
@@ -426,3 +433,11 @@ end
 end field
 
 end perfect_closure
+
+/-- A reduced ring with prime characteristic and surjective frobenius map is perfect. -/
+noncomputable def perfect_ring.of_surjective (k : Type*) [comm_ring k] [is_reduced k] (p : ℕ)
+  [fact p.prime] [char_p k p] (h : function.surjective $ frobenius k p) :
+  perfect_ring k p :=
+{ pth_root' := function.surj_inv h,
+  frobenius_pth_root' := function.surj_inv_eq h,
+  pth_root_frobenius' := λ x, frobenius_inj _ _ $ function.surj_inv_eq h _ }

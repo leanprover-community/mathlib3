@@ -3,12 +3,14 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.group_power.basic
+import algebra.hom.iterate
 import algebra.regular.basic
-import algebra.iterate_hom
 
 /-!
 # Regular elements
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Implementation details
 

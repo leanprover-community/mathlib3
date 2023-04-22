@@ -96,7 +96,7 @@ inductive generators
 | E : B → generators
 | F : B → generators
 
-instance [inhabited B] : inhabited (generators B) := ⟨generators.H $ default B⟩
+instance [inhabited B] : inhabited (generators B) := ⟨generators.H default⟩
 
 variables {B}
 
@@ -169,7 +169,7 @@ end cartan_matrix
 Note that it is defined for any matrix of integers. Its value for non-Cartan matrices should be
 regarded as junk. -/
 @[derive [inhabited, lie_ring, lie_algebra R]]
-def matrix.to_lie_algebra := (cartan_matrix.relations.to_ideal R A).quotient
+def matrix.to_lie_algebra := free_lie_algebra R _ ⧸ cartan_matrix.relations.to_ideal R A
 
 namespace cartan_matrix
 
@@ -182,12 +182,12 @@ The corresponding Dynkin diagram is:
 o --- o --- o --- o --- o
 ```
 -/
-def E₆ : matrix (fin 6) (fin 6) ℤ := ![![ 2,  0, -1,  0,  0,  0],
-                                       ![ 0,  2,  0, -1,  0,  0],
-                                       ![-1,  0,  2, -1,  0,  0],
-                                       ![ 0, -1, -1,  2, -1,  0],
-                                       ![ 0,  0,  0, -1,  2, -1],
-                                       ![ 0,  0,  0,  0, -1,  2]]
+def E₆ : matrix (fin 6) (fin 6) ℤ := !![ 2,  0, -1,  0,  0,  0;
+                                         0,  2,  0, -1,  0,  0;
+                                        -1,  0,  2, -1,  0,  0;
+                                         0, -1, -1,  2, -1,  0;
+                                         0,  0,  0, -1,  2, -1;
+                                         0,  0,  0,  0, -1,  2]
 
 /-- The Cartan matrix of type e₇. See [bourbaki1968] plate VI, page 281.
 
@@ -198,13 +198,13 @@ The corresponding Dynkin diagram is:
 o --- o --- o --- o --- o --- o
 ```
 -/
-def E₇ : matrix (fin 7) (fin 7) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0],
-                                       ![ 0,  2,  0, -1,  0,  0,  0],
-                                       ![-1,  0,  2, -1,  0,  0,  0],
-                                       ![ 0, -1, -1,  2, -1,  0,  0],
-                                       ![ 0,  0,  0, -1,  2, -1,  0],
-                                       ![ 0,  0,  0,  0, -1,  2, -1],
-                                       ![ 0,  0,  0,  0,  0, -1,  2]]
+def E₇ : matrix (fin 7) (fin 7) ℤ := !![ 2,  0, -1,  0,  0,  0,  0;
+                                         0,  2,  0, -1,  0,  0,  0;
+                                        -1,  0,  2, -1,  0,  0,  0;
+                                         0, -1, -1,  2, -1,  0,  0;
+                                         0,  0,  0, -1,  2, -1,  0;
+                                         0,  0,  0,  0, -1,  2, -1;
+                                         0,  0,  0,  0,  0, -1,  2]
 
 /-- The Cartan matrix of type e₈. See [bourbaki1968] plate VII, page 285.
 
@@ -215,14 +215,14 @@ The corresponding Dynkin diagram is:
 o --- o --- o --- o --- o --- o --- o
 ```
 -/
-def E₈ : matrix (fin 8) (fin 8) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0,  0],
-                                       ![ 0,  2,  0, -1,  0,  0,  0,  0],
-                                       ![-1,  0,  2, -1,  0,  0,  0,  0],
-                                       ![ 0, -1, -1,  2, -1,  0,  0,  0],
-                                       ![ 0,  0,  0, -1,  2, -1,  0,  0],
-                                       ![ 0,  0,  0,  0, -1,  2, -1,  0],
-                                       ![ 0,  0,  0,  0,  0, -1,  2, -1],
-                                       ![ 0,  0,  0,  0,  0,  0, -1,  2]]
+def E₈ : matrix (fin 8) (fin 8) ℤ := !![ 2,  0, -1,  0,  0,  0,  0,  0;
+                                         0,  2,  0, -1,  0,  0,  0,  0;
+                                        -1,  0,  2, -1,  0,  0,  0,  0;
+                                         0, -1, -1,  2, -1,  0,  0,  0;
+                                         0,  0,  0, -1,  2, -1,  0,  0;
+                                         0,  0,  0,  0, -1,  2, -1,  0;
+                                         0,  0,  0,  0,  0, -1,  2, -1;
+                                         0,  0,  0,  0,  0,  0, -1,  2]
 
 /-- The Cartan matrix of type f₄. See [bourbaki1968] plate VIII, page 288.
 
@@ -231,10 +231,10 @@ The corresponding Dynkin diagram is:
 o --- o =>= o --- o
 ```
 -/
-def F₄ : matrix (fin 4) (fin 4) ℤ := ![![ 2, -1,  0,  0],
-                                       ![-1,  2, -2,  0],
-                                       ![ 0, -1,  2, -1],
-                                       ![ 0,  0, -1,  2]]
+def F₄ : matrix (fin 4) (fin 4) ℤ := !![ 2, -1,  0,  0;
+                                        -1,  2, -2,  0;
+                                         0, -1,  2, -1;
+                                         0,  0, -1,  2]
 
 /-- The Cartan matrix of type g₂. See [bourbaki1968] plate IX, page 290.
 
@@ -244,8 +244,8 @@ o ≡>≡ o
 ```
 Actually we are using the transpose of Bourbaki's matrix. This is to make this matrix consistent
 with `cartan_matrix.F₄`, in the sense that all non-zero values below the diagonal are -1. -/
-def G₂ : matrix (fin 2) (fin 2) ℤ := ![![ 2, -3],
-                                       ![-1,  2]]
+def G₂ : matrix (fin 2) (fin 2) ℤ := !![ 2, -3;
+                                        -1,  2]
 
 end cartan_matrix
 

@@ -5,6 +5,8 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.order
 import algebra.big_operators.ring
+import algebra.char_zero.lemmas
+import data.rat.cast
 
 /-!
 # The Oxford Invariants Puzzle Challenges - Summer 2021, Week 3, Problem 1
@@ -20,7 +22,7 @@ Mathlib is based on type theory, so saying that a rational is a natural doesn't 
 we ask that there exists `b : ℕ` whose cast to `α` is the sum we want.
 
 In mathlib, `ℕ` starts at `0`. To make the indexing cleaner, we use `a₀, ..., aₙ₋₁` instead of
-`a₁, ..., aₙ`. Similarly, it's nicer to not use substraction of naturals, so we replace
+`a₁, ..., aₙ`. Similarly, it's nicer to not use subtraction of naturals, so we replace
 `aᵢ ∣ aᵢ₋₁ + aᵢ₊₁` by `aᵢ₊₁ ∣ aᵢ + aᵢ₊₂`.
 
 We don't actually have to work in `ℚ` or `ℝ`. We can be even more general by stating the result for
@@ -81,10 +83,10 @@ begin
   { exact ⟨0, by rw [nat.cast_zero, finset.sum_range_zero]⟩ }, -- `⟨Claim it, Prove it⟩`
   /- Case `n ≥ 1`. We replace `n` by `n + 1` everywhere to make this inequality explicit
   Set up the stronger induction hypothesis -/
-  suffices h : ∃ b : ℕ, (b : α) = ∑ i in finset.range (n + 1), (a 0 * a (n + 1))/(a i * a (i + 1))
-           ∧ a (n + 1) ∣ a n * b - a 0,
-  { obtain ⟨b, hb, -⟩ := h,
-    exact ⟨b, hb⟩ },
+  rsuffices ⟨b, hb, -⟩ :
+    ∃ b : ℕ, (b : α) = ∑ i in finset.range (n + 1), (a 0 * a (n + 1)) / (a i * a (i + 1))
+    ∧ a (n + 1) ∣ a n * b - a 0,
+  { exact ⟨b, hb⟩ },
   simp_rw ←@nat.cast_pos α at a_pos,
   /- Declare the induction
   `ih` will be the induction hypothesis -/
@@ -96,7 +98,7 @@ begin
     { rw [nat.cast_one, finset.sum_range_one, div_self],
       exact (mul_pos (a_pos 0 (nat.zero_le _)) (a_pos 1 (nat.zero_lt_succ _))).ne' },
     -- Check the divisibility condition
-    { rw [mul_one, nat.sub_self],
+    { rw [mul_one, tsub_self],
       exact dvd_zero _ } },
   /- Induction step
   `b` is the value of the previous sum as a natural, `hb` is the proof that it is indeed the value,
@@ -104,7 +106,7 @@ begin
   obtain ⟨b, hb, han⟩ := ih (λ i hi, ha i $ nat.le_succ_of_le hi)
     (λ i hi, a_pos i $ nat.le_succ_of_le hi),
   specialize ha n le_rfl,
-  have ha₀ : a 0 ≤ a n * b, -- Needing this is an artifact of `ℕ`-substraction.
+  have ha₀ : a 0 ≤ a n * b, -- Needing this is an artifact of `ℕ`-subtraction.
   { rw [←@nat.cast_le α, nat.cast_mul, hb, ←div_le_iff' (a_pos _ $ n.le_succ.trans $ nat.le_succ _),
       ←mul_div_mul_right _ _ (a_pos _ $ nat.le_succ _).ne'],
     suffices h : ∀ i, i ∈ finset.range (n + 1) → 0 ≤ (a 0 : α) * a (n + 1) / (a i * a (i + 1)),
@@ -119,7 +121,7 @@ begin
           norm_cast,
           rw nat.cast_sub (nat.div_le_of_le_mul _),
           rw [←mul_assoc, nat.mul_div_cancel' ha, add_mul],
-          exact (nat.sub_le_self _ _).trans (nat.le_add_right _ _),
+          exact tsub_le_self.trans (nat.le_add_right _ _),
         end
     ... = a (n + 2) / a (n + 1) * b + (a 0 * a (n + 2)) / (a (n + 1) * a (n + 2))
         : by rw [add_div, add_mul, sub_div, mul_div_right_comm, add_sub_sub_cancel,
@@ -132,7 +134,7 @@ begin
             (a_pos _ $ nat.le_succ _).ne', mul_comm],
         end },
   -- Check the divisibility condition
-  { rw [nat.mul_sub_left_distrib, ← mul_assoc, nat.mul_div_cancel' ha, add_mul,
-      nat.mul_div_cancel' han, nat.add_sub_sub_cancel ha₀, nat.add_sub_cancel],
+  { rw [mul_tsub, ← mul_assoc, nat.mul_div_cancel' ha, add_mul,
+      nat.mul_div_cancel' han, add_tsub_tsub_cancel ha₀, add_tsub_cancel_right],
     exact dvd_mul_right _ _ }
 end

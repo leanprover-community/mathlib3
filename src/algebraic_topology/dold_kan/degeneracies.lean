@@ -11,6 +11,9 @@ import tactic.fin_cases
 
 # Behaviour of P_infty with respect to degeneracies
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For any `X : simplicial_object C` where `C` is an abelian category,
 the projector `P_infty : K[X] ⟶ K[X]` is supposed to be the projection
 on the normalized subcomplex, parallel to the degenerate subcomplex, i.e.

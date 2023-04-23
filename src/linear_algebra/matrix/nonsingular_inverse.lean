@@ -48,7 +48,7 @@ matrix inverse, cramer, cramer's rule, adjugate
 
 namespace matrix
 universes u u' v
-variables {m : Type u} {n : Type u'} {α : Type v}
+variables {l : Type*} {m : Type u} {n : Type u'} {α : Type v}
 open_locale matrix big_operators
 open equiv equiv.perm finset
 
@@ -615,6 +615,39 @@ inv_submatrix_equiv A e₁.symm e₂.symm
 
 end submatrix
 
+/-! ### Block matrices -/
+
+section block
+variables [fintype l]
+variables [decidable_eq l]
+variables [fintype m]
+variables [decidable_eq m]
+
+/-- LDU decomposition of a block matrix with an invertible top-left corner, using the
+Schur complement. -/
+lemma from_blocks_eq_of_invertible₁₁
+  (A : matrix m m α) (B : matrix m n α) (C : matrix l m α) (D : matrix l n α) [invertible A] :
+  from_blocks A B C D =
+    from_blocks 1 0 (C⬝⅟A) 1 ⬝ from_blocks A 0 0 (D - C⬝(⅟A)⬝B) ⬝ from_blocks 1 (⅟A⬝B) 0 1 :=
+by simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
+      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
+        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right]
+
+/-- LDU decomposition of a block matrix with an invertible bottom-right corner, using the
+Schur complement. -/
+lemma from_blocks_eq_of_invertible₂₂
+  (A : matrix l m α) (B : matrix l n α) (C : matrix n m α) (D : matrix n n α) [invertible D] :
+  from_blocks A B C D =
+    from_blocks 1 (B⬝⅟D) 0 1 ⬝ from_blocks (A - B⬝⅟D⬝C) 0 0 D ⬝ from_blocks 1 0 (⅟D ⬝ C) 1 :=
+(matrix.reindex (equiv.sum_comm _ _) (equiv.sum_comm _ _)).injective $ by
+  simpa [reindex_apply, sum_comm_symm,
+    ←submatrix_mul_equiv _ _ _ (equiv.sum_comm n m),
+    ←submatrix_mul_equiv _ _ _ (equiv.sum_comm n l),
+    sum_comm_apply, from_blocks_submatrix_sum_swap_sum_swap]
+    using from_blocks_eq_of_invertible₁₁ D C B A
+
+end block
+
 /-! ### More results about determinants -/
 
 section det
@@ -634,15 +667,8 @@ by rw [←h.unit_spec, ←coe_units_inv, det_units_conj']
 the Schur complement. -/
 lemma det_from_blocks₁₁ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible A] : (matrix.from_blocks A B C D).det = det A * det (D - C ⬝ (⅟A) ⬝ B) :=
-begin
-  have : from_blocks A B C D =
-    from_blocks 1 0 (C ⬝ ⅟A) 1 ⬝ from_blocks A 0 0 (D - C ⬝ (⅟A) ⬝ B) ⬝ from_blocks 1 (⅟A ⬝ B) 0 1,
-  { simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
-      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
-        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right] },
-  rw [this, det_mul, det_mul, det_from_blocks_zero₂₁, det_from_blocks_zero₂₁,
-    det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one],
-end
+by rw [from_blocks_eq_of_invertible₁₁, det_mul, det_mul, det_from_blocks_zero₂₁,
+  det_from_blocks_zero₂₁, det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one]
 
 @[simp] lemma det_from_blocks_one₁₁ (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) :
   (matrix.from_blocks 1 B C D).det = det (D - C ⬝ B) :=

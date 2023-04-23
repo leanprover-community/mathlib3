@@ -21,7 +21,6 @@ lifting everything to `ℚ`.
 
 assert_not_exists finset
 assert_not_exists module
-assert_not_exists submonoid
 
 open_locale pointwise
 

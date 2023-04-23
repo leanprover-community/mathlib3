@@ -55,7 +55,6 @@ To ensure that composition works smoothly for semilinear maps, we use the typecl
 linear map
 -/
 
-assert_not_exists submonoid
 assert_not_exists finset
 
 open function

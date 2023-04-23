@@ -83,7 +83,6 @@ end coe_to_field
 
 section is_unit
 
-local attribute [-instance] algebraic_closure.algebra
 local attribute [instance] number_field.ring_of_integers_algebra
 
 open finite_dimensional
@@ -94,184 +93,32 @@ rw [← abs_one, abs_eq_abs, ← @ring_of_integers.is_unit_norm _ ℚ, rat.ring_
 
 example [number_field K] (x : 𝓞 K) : is_unit x ↔ abs (ring_of_integers.norm ℚ x : ℚ) = 1 :=
 begin
---  haveI : algebra K (algebraic_closure K) := algebraic_closure.algebra K,
-  haveI : char_zero (algebraic_closure K) :=
-    char_zero_of_injective_algebra_map (algebra_map K _).injective,
   let L := normal_closure ℚ K (algebraic_closure K),
-  haveI : is_alg_closure K (algebraic_closure K) := algebraic_closure.is_alg_closure K,
-  haveI : normal ℚ (algebraic_closure K) := normal_algebra_closure_of_is_algebraic ℚ K _ _,
   haveI : finite_dimensional K L := finite_dimensional.right ℚ K _,
-  haveI : is_galois K L := {
-    to_is_separable := sorry,
-    to_normal :=
-    begin
-      convert normal_closure.normal ℚ K (algebraic_closure K),
-      sorry,
-    end,
-
-  },
-  haveI : is_galois ℚ L := sorry,
-  have t1 := @ring_of_integers.is_unit_norm L K _ _ _ _ _ (algebra_map (𝓞 K) (𝓞 L) x),
---  haveI : algebra.is_algebraic ℚ K := sorry,
   have t2 := is_unit_iff_norm.of_is_galois L (algebra_map (𝓞 K) (𝓞 L) x),
-  have t3 := t1.trans t2,
-  have hs : ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x) = x ^ (finrank K L),
-  { sorry, },
+  have t3 := (ring_of_integers.is_unit_norm K).trans t2,
+  have hs : ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x) = x ^ (finrank K L) := sorry,
   convert t3 using 1,
   { rw hs,
     rw is_unit_pow_iff,
     rw ← pos_iff_ne_zero,
-    exact finite_dimensional.finrank_pos, },
+    exact finite_dimensional.finrank_pos,
+  },
   { simp only [ring_of_integers.norm_apply_coe, eq_iff_iff],
-    have t4 := algebra.norm_norm ℚ K L (algebra_map (𝓞 K) (𝓞 L) x),
-    rw ← t4,
-    rw (_ : (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K)),
-    { rw algebra.norm_algebra_map,
-      have : |(algebra.norm ℚ) ((x : K) ^ finrank K L)| = 1 ↔ |(algebra.norm ℚ) (x : K)| = 1,
-      { rw [map_pow, abs_pow],
-        nth_rewrite 0 (_ : (1 : ℚ) = 1 ^ finrank K L),
-        rw pow_left_inj _ _ _,
-        { exact abs_nonneg _, },
-        { norm_num, },
-        { exact finite_dimensional.finrank_pos, }},
-      rw this,
-    },
-    { refl, }},
-end
-
-#exit
-
-example (L : Type*) [field L] [number_field L] [number_field K] (x : 𝓞 K) [algebra K L]
-  [finite_dimensional K L] [is_scalar_tower ℚ K L]
-  [is_galois ℚ L] : is_unit x ↔ abs (ring_of_integers.norm ℚ x : ℚ) = 1 :=
-begin
-  haveI : is_galois K L := is_galois.tower_top_of_is_galois ℚ K L,
-  letI : algebra (𝓞 K) (𝓞 L) := number_field.ring_of_integers_algebra _ _,
-  have t1 := @ring_of_integers.is_unit_norm L K _ _ _ _ _ (algebra_map (𝓞 K) (𝓞 L) x),
-  have t2 := is_unit_iff_norm.of_is_galois L (algebra_map (𝓞 K) (𝓞 L) x),
-  have t3 := t1.trans t2,
-  convert t3 using 1,
-  { suffices : ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x) = x ^ (finrank K L),
-    { rw this,
-      rw is_unit_pow_iff,
-      rw ← pos_iff_ne_zero,
-      exact finite_dimensional.finrank_pos, },
-    { have : function.injective (algebra_map (𝓞 K) (𝓞 L)) := sorry,
-      apply (function.injective.eq_iff this).mp,
-      have : function.injective (coe : (𝓞 L) → L) := sorry,
-      apply (function.injective.eq_iff this).mp,
-      rw ring_of_integers.coe_algebra_map_norm,
-      rw (_ : ↑((algebra_map (𝓞 K) (𝓞 L)) x) = (algebra_map K L x)),
-      { rw algebra.norm_algebra_map,
-        refl, },
-      { refl, }}},
-  { have t4 := ring_of_integers.norm_composition ℚ K (algebra_map (𝓞 K) (𝓞 L) x),
-    rw ← t4,
-    suffices : ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x) = x ^ (finrank K L),
-    { rw this,
-      simp only [ring_of_integers.norm_apply_coe, map_pow, subsemiring_class.coe_pow, abs_pow,
-        eq_iff_iff],
-      have : |(algebra.norm ℚ) (x : K)| ^ finrank K L = 1 ↔ |(algebra.norm ℚ) (x : K)| = 1,
-      { nth_rewrite 0 (_ : (1 : ℚ) = 1 ^ finrank K L),
-        rw pow_left_inj _ _ _,
-        { exact abs_nonneg _, },
-        { norm_num, },
-        { exact finite_dimensional.finrank_pos, }},
-      rw this, },
-    { sorry, }},
-end
-
-
-end is_unit
-
-#exit
-
-lemma is_unit_iff_norm [number_field K] (x : 𝓞 K) :
-  is_unit x ↔ abs (ring_of_integers.norm ℚ x : ℚ) = 1 :=
-begin
-  set L := normal_closure ℚ K (algebraic_closure K),
-  have h1 : normal ℚ (algebraic_closure K) :=
-    is_alg_closed.normal.of_algebraic (number_field.is_algebraic K),
-  have h2 : finite_dimensional K L := sorry,
-  have h3 : normal ℚ L := @normal_closure.normal ℚ K _ _ _ (algebraic_closure K) _ _ _ _ h1,
-  have h4 : is_galois K L := sorry,
-
-  have t1 := @ring_of_integers.is_unit_norm L K _ _ _ h2 h4 _, -- (algebra_map (𝓞 K) (𝓞 L) x),
-  have t2 := is_unit_iff_norm.of_is_galois L,
---    (algebra_map (𝓞 K) (𝓞 L) x),
---  have t3 := t1.trans t2,
-  sorry,
-end
-
-#exit
-
-  clear t1,
-  clear t2,
-  convert t3 using 1,
-  { rw toto,
-    rw is_unit_pow_iff,
-    rw ← pos_iff_ne_zero,
-    exact finite_dimensional.finrank_pos, },
-  { have := congr_arg (coe : (𝓞 ℚ) → ℚ)
-    (ring_of_integers.norm_composition ℚ K (algebra_map (𝓞 K) (𝓞 L) x)),
-
-    rw this,
-
-
-    have t4 := algebra.norm_composition ℚ K L (algebra_map K L x),
-
-    rw ring_of_integers.coe_norm_algebra_map,
-
-    simp_rw ring_of_integers.norm,
-    simp only [monoid_hom.restrict_apply, monoid_hom.cod_restrict_apply],
-    have : (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K) := rfl,
-    simp_rw this,
-    rw ← abs_one,
-    rw abs_eq_abs,
-    rw abs_eq_abs,
-    have t4 := algebra.norm_composition ℚ K L (algebra_map K L x),
-    simp,
-    rw ← t4,
+    rw ← algebra.norm_norm ℚ K L (algebra_map (𝓞 K) (𝓞 L) x),
+    rw [show (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K), by refl],
+    rw algebra.norm_algebra_map,
+    rw map_pow,
+    rw abs_pow,
+    suffices : |(algebra.norm ℚ) (x : K)| ^ finrank K L = 1 ↔ |(algebra.norm ℚ) (x : K)| = 1,
+    { rw this, },
+    rw iff.comm,
+    rw ← pow_left_inj (abs_nonneg _ : 0 ≤ |(algebra.norm ℚ) ↑x|) zero_le_one (by sorry : 0 < finrank K L),
+    rw one_pow,
   },
 end
 
-#exit
-
-  rw ring_of_integers.toto at t3,
-  simp_rw ring_of_integers.norm at t3,
-  simp only [monoid_hom.restrict_apply, monoid_hom.cod_restrict_apply] at t3,
-  have : (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K) := rfl,
-  simp_rw this at t3,
-  simp at t3,
-  convert t3 using 1,
-
-  sorry,
-end
-
-#exit
-
-  abs (ring_of_integers.norm ℚ (u : 𝓞 K) : ℚ) = 1 :=
-begin
-  have t1 := congr_arg (λ x, (ring_of_integers.norm ℚ) x) u.val_inv,
-  have t2 := congr_arg rat.ring_of_integers_equiv t1,
-  have t3 := congr_arg abs t2,
-  simp_rw [map_mul, abs_mul, map_one, abs_one] at t3,
-  have t4 := dvd.intro _ t3,
-  have t5 :=  int.eq_one_of_dvd_one (abs_nonneg _) t4,
-  rw ← abs_one at t5 ⊢,
-  rw abs_eq_abs at t5 ⊢,
-  cases t5,
-  { left,
-    have := congr_arg rat.ring_of_integers_equiv.symm t5,
-    rw ring_equiv.symm_apply_apply _ _ at this,
-    rw map_one at this,
-    exact congr_arg (coe : (𝓞 ℚ) → ℚ) this, },
-  { right,
-    have := congr_arg rat.ring_of_integers_equiv.symm t5,
-    rw ring_equiv.symm_apply_apply _ _ at this,
-    rw ring_equiv.map_neg_one at this,
-    exact congr_arg (coe : (𝓞 ℚ) → ℚ) this, }
-end
+end is_unit
 
 #exit
 

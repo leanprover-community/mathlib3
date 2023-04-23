@@ -1,46 +1,147 @@
 import number_theory.number_field.norm
+import field_theory.is_alg_closed.basic
 import ring_theory.norm
 
-open_locale number_field big_operators
+/- section instances
+
+local attribute [-instance] algebraic_closure.algebra
+
+variables {K : Type*} [field K] [number_field K]
+
+instance : char_zero (algebraic_closure K) := sorry
+
+noncomputable instance i1 : algebra ℚ (algebraic_closure K) := algebra_rat
+
+noncomputable instance i2 : algebra K (algebraic_closure K) := algebraic_closure.algebra K
+
+instance : char_zero (normal_closure ℚ K (algebraic_closure K)) := sorry
+
+noncomputable instance : algebra ℚ (normal_closure ℚ K (algebraic_closure K)) := algebra_rat
+
+instance : number_field (normal_closure ℚ K (algebraic_closure K)) := sorry
+
+instance : is_galois ℚ (normal_closure ℚ K (algebraic_closure K)) := sorry
+
+instance i3 : is_galois K  (normal_closure ℚ K (algebraic_closure K)) := sorry
+
+end instances -/
+
+-- open_locale number_field big_operators
 
 section norm
 
+namespace algebra
+
+universes u
 variables (F K L : Type*) [field F] [field K] [field L] [algebra F K] [algebra F L]
   [algebra K L] [is_scalar_tower F K L] [finite_dimensional F L] [is_separable F L]
 
-lemma algebra.norm_norm (x : L) :
-  algebra.norm F (algebra.norm K x) = algebra.norm F x :=
+lemma norm_norm (x : L) {A : Type u} [field A] [is_alg_closed A] [algebra F A] :
+  norm F (norm K x) = norm F x :=
 begin
+  classical,
+--  let A := algebraic_closure L,
   haveI : finite_dimensional F K := sorry,
   haveI : is_separable F K := sorry,
-  let A := algebraic_closure L,
+  haveI : finite_dimensional K L := sorry,
   have : function.injective (algebra_map F A) := sorry,
-  rw ← this.eq_iff,
-  rw algebra.norm_eq_prod_embeddings,
-  rw algebra.norm_eq_prod_embeddings,
-  let T : (K →ₐ[F] A) → (L →ₐ[F] A) := sorry,
-  haveI :  ∀ σ : K →ₐ[F] A, fintype { τ : L →ₐ[F] A // τ ∘ (algebra_map K L) = σ} := sorry,
-  have : ∀ σ : K →ₐ[F] A, σ ((algebra.norm K) x) =
-    ∏ τ : { τ : L →ₐ[F] A // τ ∘ (algebra_map K L) = σ}, τ x := sorry,
-  sorry,
+  apply this,
+  nth_rewrite 1 norm_eq_prod_embeddings F A,
+  letI : ∀ (σ : K →ₐ[F] A), fintype (@alg_hom K L A _ _ _ _ σ.to_ring_hom.to_algebra) :=
+  begin
+    intro σ,
+    apply_instance,
+  end,
+  rw fintype.prod_equiv alg_hom_equiv_sigma (λ σ : L →ₐ[F] A, σ x)
+    (λ π : (Σ (f : K →ₐ[F] A), @alg_hom K L A _ _ _ _ f.to_ring_hom.to_algebra), (π.2 : L → A) x) _,
+  { dsimp,
+    rw ← finset.univ_sigma_univ,
+    rw finset.prod_sigma,
+    simp_rw alg_hom_equiv_sigma_apply x,
+    have : ∀ σ : K →ₐ[F] A, finset.univ.prod
+      (λ (π : @alg_hom K L A _ _ _ _ σ.to_ring_hom.to_algebra), π x) = σ (norm K x) :=
+    begin
+      intro σ,
+      letI : algebra K A := σ.to_ring_hom.to_algebra,
+      rw ← norm_eq_prod_embeddings K A,
+      refl,
+      sorry,
+    end,
+    simp_rw this,
+    rw norm_eq_prod_embeddings, },
+  { exact λ σ, (alg_hom_equiv_sigma_apply x).symm, },
 end
+
+#exit
+
+
+
+
+  let T : (K →ₐ[F] A) → (A →+* A) := sorry,
+/-  begin
+    intro τ,
+    have t1 : algebra K A := ring_hom.to_algebra τ,
+    refine @is_alg_closed.lift A _ _ K _ A _ _ _ t1 _ _ _,
+    sorry,
+  end -/
+  let R : (L →ₐ[F] A) → (K →ₐ[F] A) :=
+  begin
+    intro σ,
+    use σ ∘ algebra_map K L,
+    { simp only [function.comp_app, map_one], },
+    { simp only [function.comp_app, map_mul, eq_self_iff_true, forall_const], },
+    { simp only [function.comp_app, map_zero], },
+    { simp only [function.comp_app, map_add, eq_self_iff_true, forall_const], },
+    { simp only [function.comp_app, ←is_scalar_tower.algebra_map_apply, alg_hom.commutes,
+        eq_self_iff_true, forall_const], },
+  end,
+
+  have prop1 : ∀ (τ : K →ₐ[F] A) (k : K), τ k = (T τ) (algebra_map K A k) :=
+  begin
+    intros τ k,
+    sorry,
+  end,
+
+  -- have prop2 : ∀ τ : K →ₐ[F] A, finset.prod {σ : L →ₐ[F] A | σ ∘ algebra_map K L = τ}.to_finset
+  --   (λ σ, σ x) = finset.univ.prod (λ π : L →ₐ[K] A, (T τ) (π x)) := sorry,
+
+
+  have prop2 :  ∀ τ : K →ₐ[F] A,
+    (finset.filter (λ (σ : L →ₐ[F] A), R σ = τ) finset.univ).prod (λ σ, σ x) =
+    finset.prod finset.univ (λ π : L →ₐ[K] A, (T τ) (π x)) :=
+  begin
+    intro τ,
+    rw ← finset.prod_subtype_eq_prod_filter,
+    let e : { σ : L →ₐ[F] A // R σ = τ } ≃ (L →ₐ[K] A) := sorry,
+    have := equiv.prod_comp' e _ _ _,
+    convert this,
+    {
+      ext,
+      refine ⟨λ σ, _, λ σ, _⟩,
+      { exact finset.mem_univ _, },
+      { simp only [finset.mem_subtype, finset.mem_univ], }},
+
+--
+    sorry,
+--    refine fintype.prod_bijective _ _ _ _ _,
+
+  end,
+
+  have h : ∀ σ : L →ₐ[F] A, σ ∈ @finset.univ(L →ₐ[F] A) _ → R σ ∈ @finset.univ (K →ₐ[F] A) _ := sorry,
+  rw ← finset.prod_fiberwise finset.univ R _,
+  congr,
+  dsimp,
+  simp_rw prop2,
+  simp_rw ← map_prod,
+  simp_rw ← norm_eq_prod_embeddings,
+  simp_rw ← prop1,
+end
+
+end algebra
 
 end norm
 
-namespace ring_of_integers
-
-variables {L : Type*} (F K : Type*) [field K] [field L] [field F]
-  [algebra K L] [algebra F K] [algebra F L] [is_scalar_tower F K L]
-  [is_separable F K] [finite_dimensional F K] [is_separable K L]
-  [finite_dimensional K L] [is_separable F L] [finite_dimensional F L]
-
-lemma norm_norm (x : 𝓞 L) :
-  norm F (norm K x) = norm F x :=
-begin
-  sorry
-end
-
-end ring_of_integers
+#exit
 
 section normal_closure
 

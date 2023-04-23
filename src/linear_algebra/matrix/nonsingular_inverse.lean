@@ -48,7 +48,7 @@ matrix inverse, cramer, cramer's rule, adjugate
 
 namespace matrix
 universes u u' v
-variables {m : Type u} {n : Type u'} {α : Type v}
+variables {l : Type*} {m : Type u} {n : Type u'} {α : Type v}
 open_locale matrix big_operators
 open equiv equiv.perm finset
 
@@ -451,6 +451,8 @@ begin
   rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
 end
 
+section diagonal
+
 /-- `diagonal v` is invertible if `v` is -/
 def diagonal_invertible {α} [non_assoc_semiring α] (v : n → α) [invertible v] :
   invertible (diagonal v) :=
@@ -508,6 +510,8 @@ begin
     rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero, ring.inverse_non_unit _ this] }
 end
 
+end diagonal
+
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=
 begin
   by_cases h : is_unit A.det,
@@ -543,6 +547,107 @@ end
 by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_inv, ← det_transpose,
     Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
 
+/-! ### Inverses of permutated matrices
+
+Note that the simp-normal form of `matrix.reindex` is `matrix.submatrix`, so we prove most of these
+results about only the latter.
+-/
+
+section submatrix
+variables [fintype m]
+variables [decidable_eq m]
+
+/-- `A.submatrix e₁ e₂` is invertible if `A` is -/
+def submatrix_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m) [invertible A] :
+  invertible (A.submatrix e₁ e₂) :=
+invertible_of_right_inverse _ ((⅟A).submatrix e₂ e₁) $
+  by rw [matrix.submatrix_mul_equiv, matrix.mul_inv_of_self, submatrix_one_equiv]
+
+/-- `A` is invertible if `A.submatrix e₁ e₂` is -/
+def invertible_of_submatrix_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m)
+  [invertible (A.submatrix e₁ e₂)] : invertible A :=
+invertible_of_right_inverse _ ((⅟(A.submatrix e₁ e₂)).submatrix e₂.symm e₁.symm) $ begin
+  have : A = (A.submatrix e₁ e₂).submatrix e₁.symm e₂.symm := by simp,
+  conv in (_ ⬝ _) { congr, rw this },
+  rw [matrix.submatrix_mul_equiv, matrix.mul_inv_of_self, submatrix_one_equiv]
+end
+
+lemma inv_of_submatrix_equiv_eq (A : matrix m m α) (e₁ e₂ : n ≃ m)
+  [invertible A] [invertible (A.submatrix e₁ e₂)] :
+  ⅟(A.submatrix e₁ e₂) = (⅟A).submatrix e₂ e₁ :=
+begin
+  letI := submatrix_equiv_invertible A e₁ e₂,
+  haveI := invertible.subsingleton (A.submatrix e₁ e₂),
+  convert (rfl : ⅟(A.submatrix e₁ e₂) = _),
+end
+
+/-- Together `matrix.submatrix_equiv_invertible` and
+`matrix.invertible_of_submatrix_equiv_invertible` form an equivalence, although both sides of the
+equiv are subsingleton anyway. -/
+@[simps]
+def submatrix_equiv_invertible_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m) :
+  invertible (A.submatrix e₁ e₂) ≃ invertible A :=
+{ to_fun := λ _, by exactI invertible_of_submatrix_equiv_invertible A e₁ e₂,
+  inv_fun := λ _, by exactI submatrix_equiv_invertible A e₁ e₂,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- When lowered to a prop, `matrix.invertible_of_submatrix_equiv_invertible` forms an `iff`. -/
+@[simp] lemma is_unit_submatrix_equiv {A : matrix m m α} (e₁ e₂ : n ≃ m) :
+  is_unit (A.submatrix e₁ e₂) ↔ is_unit A :=
+by simp only [← nonempty_invertible_iff_is_unit,
+  (submatrix_equiv_invertible_equiv_invertible A _ _).nonempty_congr]
+
+@[simp] lemma inv_submatrix_equiv (A : matrix m m α) (e₁ e₂ : n ≃ m) :
+  (A.submatrix e₁ e₂)⁻¹ = (A⁻¹).submatrix e₂ e₁ :=
+begin
+  by_cases h : is_unit A,
+  { casesI h.nonempty_invertible,
+    letI := submatrix_equiv_invertible A e₁ e₂,
+    rw [←inv_of_eq_nonsing_inv, ←inv_of_eq_nonsing_inv, inv_of_submatrix_equiv_eq] },
+  { have := (is_unit_submatrix_equiv e₁ e₂).not.mpr h,
+    simp_rw [nonsing_inv_eq_ring_inverse, ring.inverse_non_unit _ h, ring.inverse_non_unit _ this,
+      submatrix_zero, pi.zero_apply] }
+end
+
+lemma inv_reindex (e₁ e₂ : n ≃ m) (A : matrix n n α) : (reindex e₁ e₂ A)⁻¹ = reindex e₂ e₁ (A⁻¹) :=
+inv_submatrix_equiv A e₁.symm e₂.symm
+
+end submatrix
+
+/-! ### Block matrices -/
+
+section block
+variables [fintype l]
+variables [decidable_eq l]
+variables [fintype m]
+variables [decidable_eq m]
+
+/-- LDU decomposition of a block matrix with an invertible top-left corner, using the
+Schur complement. -/
+lemma from_blocks_eq_of_invertible₁₁
+  (A : matrix m m α) (B : matrix m n α) (C : matrix l m α) (D : matrix l n α) [invertible A] :
+  from_blocks A B C D =
+    from_blocks 1 0 (C⬝⅟A) 1 ⬝ from_blocks A 0 0 (D - C⬝(⅟A)⬝B) ⬝ from_blocks 1 (⅟A⬝B) 0 1 :=
+by simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
+      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
+        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right]
+
+/-- LDU decomposition of a block matrix with an invertible bottom-right corner, using the
+Schur complement. -/
+lemma from_blocks_eq_of_invertible₂₂
+  (A : matrix l m α) (B : matrix l n α) (C : matrix n m α) (D : matrix n n α) [invertible D] :
+  from_blocks A B C D =
+    from_blocks 1 (B⬝⅟D) 0 1 ⬝ from_blocks (A - B⬝⅟D⬝C) 0 0 D ⬝ from_blocks 1 0 (⅟D ⬝ C) 1 :=
+(matrix.reindex (equiv.sum_comm _ _) (equiv.sum_comm _ _)).injective $ by
+  simpa [reindex_apply, sum_comm_symm,
+    ←submatrix_mul_equiv _ _ _ (equiv.sum_comm n m),
+    ←submatrix_mul_equiv _ _ _ (equiv.sum_comm n l),
+    sum_comm_apply, from_blocks_submatrix_sum_swap_sum_swap]
+    using from_blocks_eq_of_invertible₁₁ D C B A
+
+end block
+
 /-! ### More results about determinants -/
 
 section det
@@ -562,15 +667,8 @@ by rw [←h.unit_spec, ←coe_units_inv, det_units_conj']
 the Schur complement. -/
 lemma det_from_blocks₁₁ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible A] : (matrix.from_blocks A B C D).det = det A * det (D - C ⬝ (⅟A) ⬝ B) :=
-begin
-  have : from_blocks A B C D =
-    from_blocks 1 0 (C ⬝ ⅟A) 1 ⬝ from_blocks A 0 0 (D - C ⬝ (⅟A) ⬝ B) ⬝ from_blocks 1 (⅟A ⬝ B) 0 1,
-  { simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
-      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
-        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right] },
-  rw [this, det_mul, det_mul, det_from_blocks_zero₂₁, det_from_blocks_zero₂₁,
-    det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one],
-end
+by rw [from_blocks_eq_of_invertible₁₁, det_mul, det_mul, det_from_blocks_zero₂₁,
+  det_from_blocks_zero₂₁, det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one]
 
 @[simp] lemma det_from_blocks_one₁₁ (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) :
   (matrix.from_blocks 1 B C D).det = det (D - C ⬝ B) :=

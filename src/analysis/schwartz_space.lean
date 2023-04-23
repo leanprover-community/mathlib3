@@ -5,12 +5,12 @@ Authors: Moritz Doll
 -/
 
 import analysis.calculus.cont_diff
+import analysis.calculus.iterated_deriv
 import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
 import tactic.positivity
 import analysis.special_functions.pow
-import analysis.test
 
 /-!
 # Schwartz space
@@ -23,7 +23,7 @@ smooth functions `f : E → F`, where `E` and `F` are real normed vector spaces 
 natural numbers `k` and `n` we have uniform bounds `‖x‖^k * ‖iterated_fderiv ℝ n f x‖ < C`.
 This approach completely avoids using partial derivatives as well as polynomials.
 We construct the topology on the Schwartz space by a family of seminorms, which are the best
-constants in the above estimates, which is by abstract theory from
+constants in the above estimates. The abstract theory of topological vector spaces developed in
 `seminorm_family.module_filter_basis` and `with_seminorms.to_locally_convex_space` turns the
 Schwartz space into a locally convex topological vector space.
 
@@ -34,11 +34,15 @@ decay faster than any power of `‖x‖`.
 * `schwartz_map.seminorm`: The family of seminorms as described above
 * `schwartz_map.fderiv_clm`: The differential as a continuous linear map
 `𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F)`
+* `schwartz_map.deriv_clm`: The one-dimensional derivative as a continuous linear map
+`𝓢(ℝ, F) →L[𝕜] 𝓢(ℝ, F)`
 
 ## Main statements
 
 * `schwartz_map.uniform_add_group` and `schwartz_map.locally_convex`: The Schwartz space is a
 locally convex topological vector space.
+* `schwartz_map.one_add_le_sup_seminorm_apply`: For a Schwartz function `f` there is a uniform bound
+on `(1 + ‖x‖) ^ k * ‖iterated_fderiv ℝ n f x‖`.
 
 ## Implementation details
 
@@ -55,7 +59,7 @@ Schwartz space, tempered distributions
 
 noncomputable theory
 
-variables {𝕜 𝕜' E F : Type*}
+variables {𝕜 𝕜' D E F G : Type*}
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
 variables [normed_add_comm_group F] [normed_space ℝ F]
@@ -101,6 +105,10 @@ lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_l
 /-- Every Schwartz function is differentiable. -/
 @[protected] lemma differentiable (f : 𝓢(E, F)) : differentiable ℝ f :=
 (f.smooth 1).differentiable rfl.le
+
+/-- Every Schwartz function is differentiable at any point. -/
+@[protected] lemma differentiable_at (f : 𝓢(E, F)) {x : E} : differentiable_at ℝ f x :=
+f.differentiable.differentiable_at
 
 @[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
 
@@ -378,10 +386,30 @@ lemma seminorm_le_bound (k n : ℕ) (f : 𝓢(E, F)) {M : ℝ} (hMp: 0 ≤ M)
   (hM : ∀ x, ‖x‖^k * ‖iterated_fderiv ℝ n f x‖ ≤ M) : seminorm 𝕜 k n f ≤ M :=
 f.seminorm_aux_le_bound k n hMp hM
 
+/-- If one controls the seminorm for every `x`, then one controls the seminorm.
+
+Variant for functions `𝓢(ℝ, F)`. -/
+lemma seminorm_le_bound' (k n : ℕ) (f : 𝓢(ℝ, F)) {M : ℝ} (hMp: 0 ≤ M)
+  (hM : ∀ x, |x|^k * ‖iterated_deriv n f x‖ ≤ M) : seminorm 𝕜 k n f ≤ M :=
+begin
+  refine seminorm_le_bound 𝕜 k n f hMp _,
+  simpa only [real.norm_eq_abs, norm_iterated_fderiv_eq_norm_iterated_deriv],
+end
+
 /-- The seminorm controls the Schwartz estimate for any fixed `x`. -/
 lemma le_seminorm (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
   ‖x‖ ^ k * ‖iterated_fderiv ℝ n f x‖ ≤ seminorm 𝕜 k n f :=
 f.le_seminorm_aux k n x
+
+/-- The seminorm controls the Schwartz estimate for any fixed `x`.
+
+Variant for functions `𝓢(ℝ, F)`. -/
+lemma le_seminorm' (k n : ℕ) (f : 𝓢(ℝ, F)) (x : ℝ) :
+  |x| ^ k * ‖iterated_deriv n f x‖ ≤ seminorm 𝕜 k n f :=
+begin
+  have := le_seminorm 𝕜 k n f x,
+  rwa [← real.norm_eq_abs, ← norm_iterated_fderiv_eq_norm_iterated_deriv],
+end
 
 lemma norm_iterated_fderiv_le_seminorm (f : 𝓢(E, F)) (n : ℕ) (x₀ : E) :
   ‖iterated_fderiv ℝ n f x₀‖ ≤ (schwartz_map.seminorm 𝕜 0 n) f :=
@@ -404,6 +432,47 @@ begin
   rwa [pow_zero, one_mul] at this,
 end
 
+variables (𝕜 E F)
+
+/-- The family of Schwartz seminorms. -/
+def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
+λ m, seminorm 𝕜 m.1 m.2
+
+@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
+  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
+
+@[simp] lemma schwartz_seminorm_family_apply_zero :
+  schwartz_seminorm_family 𝕜 E F 0 = schwartz_map.seminorm 𝕜 0 0 := rfl
+
+variables {𝕜 E F}
+
+/-- A more convenient version of `le_sup_seminorm_apply`.
+
+The set `finset.Iic m` is the set of all pairs `(k', n')` with `k' ≤ m.1` and `n' ≤ m.2`.
+Note that the constant is far from optimal. -/
+lemma one_add_le_sup_seminorm_apply {m : ℕ × ℕ} {k n : ℕ} (hk : k ≤ m.1) (hn : n ≤ m.2)
+  (f : 𝓢(E, F)) (x : E) :
+  (1 + ‖x‖) ^ k * ‖iterated_fderiv ℝ n f x‖
+    ≤ 2^m.1 * (finset.Iic m).sup (λ m, seminorm 𝕜 m.1 m.2) f :=
+begin
+  rw [add_comm, add_pow],
+  simp only [one_pow, mul_one, finset.sum_congr, finset.sum_mul],
+  norm_cast,
+  rw ← nat.sum_range_choose m.1,
+  push_cast,
+  rw [finset.sum_mul],
+  have hk' : finset.range (k + 1) ⊆ finset.range (m.1 + 1) :=
+  by rwa [finset.range_subset, add_le_add_iff_right],
+  refine le_trans (finset.sum_le_sum_of_subset_of_nonneg hk' (λ _ _ _, by positivity)) _,
+  refine finset.sum_le_sum (λ i hi, _),
+  rw [mul_comm (‖x‖^i), mul_assoc],
+  refine mul_le_mul _ _ (by positivity) (by positivity),
+  { norm_cast,
+    exact i.choose_le_choose hk },
+  exact (le_seminorm 𝕜 i n f x).trans (seminorm.le_def.1 (finset.le_sup_of_le
+    (finset.mem_Iic.2 $ prod.mk_le_mk.2 ⟨finset.mem_range_succ_iff.mp hi, hn⟩) le_rfl) _),
+end
+
 end seminorms
 
 section topology
@@ -412,16 +481,6 @@ section topology
 
 variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 variables (𝕜 E F)
-
-/-- The family of Schwartz seminorms. -/
-def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
-λ n, seminorm 𝕜 n.1 n.2
-
-@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
-  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
-
-@[simp] lemma schwartz_seminorm_family_apply_zero :
-  schwartz_seminorm_family 𝕜 E F 0 = schwartz_map.seminorm 𝕜 0 0 := rfl
 
 instance : topological_space 𝓢(E, F) :=
 (schwartz_seminorm_family ℝ E F).module_filter_basis.topology'
@@ -458,11 +517,11 @@ instance : topological_space.first_countable_topology (𝓢(E, F)) :=
 (schwartz_with_seminorms ℝ E F).first_countable
 
 end topology
+
 section clm
 
 /-! ### Construction of continuous linear maps between Schwartz spaces -/
 
-variables {D G : Type*}
 variables [normed_field 𝕜] [normed_field 𝕜']
 variables [normed_add_comm_group D] [normed_space ℝ D]
 variables [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
@@ -470,6 +529,7 @@ variables [normed_add_comm_group G] [normed_space ℝ G] [normed_space 𝕜' G] 
 variables {σ : 𝕜 →+* 𝕜'}
 
 /-- Create a semilinear map between Schwartz spaces.
+
 Note: This is a helper definition for `mk_clm`. -/
 def mk_lm (A : (D → E) → (F → G))
   (hadd : ∀ (f g : 𝓢(D, E)) x, A (f + g) x = A f x + A g x)
@@ -491,6 +551,7 @@ def mk_lm (A : (D → E) → (F → G))
   map_smul' := λ a f, ext (hsmul a f), }
 
 /-- Create a continuous semilinear map between Schwartz spaces.
+
 For an example of using this definition, see `fderiv_clm`. -/
 def mk_clm [ring_hom_isometric σ] (A : (D → E) → (F → G))
   (hadd : ∀ (f g : 𝓢(D, E)) x, A (f + g) x = A f x + A g x)
@@ -534,64 +595,38 @@ mk_clm (λ f x, f x m)
 
 end eval_clm
 
-section fderiv
+section derivatives
 
 /-! ### Derivatives of Schwartz functions -/
-
-variables {E F}
-
-/-- The derivative of a Schwartz function as a Schwartz function with values in the
-continuous linear maps `E→L[ℝ] F`. -/
-@[protected] def fderiv (f : 𝓢(E, F)) : 𝓢(E, E →L[ℝ] F) :=
-{ to_fun := fderiv ℝ f,
-  smooth' := (cont_diff_top_iff_fderiv.mp f.smooth').2,
-  decay' :=
-  begin
-    intros k n,
-    cases f.decay' k (n+1) with C hC,
-    use C,
-    intros x,
-    rw norm_iterated_fderiv_fderiv,
-    exact hC x,
-  end }
-
-@[simp, norm_cast] lemma coe_fderiv (f : 𝓢(E, F)) : ⇑f.fderiv = fderiv ℝ f := rfl
-@[simp] lemma fderiv_apply (f : 𝓢(E, F)) (x : E) : f.fderiv x = fderiv ℝ f x := rfl
 
 variables (𝕜)
 variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
-/-- The derivative on Schwartz space as a linear map. -/
-def fderiv_lm : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
-{ to_fun := schwartz_map.fderiv,
-  map_add' := λ f g, ext $ λ _, fderiv_add
-    f.differentiable.differentiable_at
-    g.differentiable.differentiable_at,
-  map_smul' := λ a f, ext $ λ _, fderiv_const_smul f.differentiable.differentiable_at a }
-
-@[simp, norm_cast] lemma fderiv_lm_apply (f : 𝓢(E, F)) : fderiv_lm 𝕜 f = schwartz_map.fderiv f :=
-rfl
-
-/-- The derivative on Schwartz space as a continuous linear map. -/
+/-- The Fréchet derivative on Schwartz space as a continuous `𝕜`-linear map. -/
 def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
-{ cont :=
-  begin
-    change continuous (fderiv_lm 𝕜 : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F)),
-    refine seminorm.continuous_from_bounded (schwartz_with_seminorms 𝕜 E F)
-      (schwartz_with_seminorms 𝕜 E (E →L[ℝ] F)) _ _,
-    rintros ⟨k, n⟩,
-    use [{⟨k, n+1⟩}, 1],
-    intros f,
-    simp only [schwartz_seminorm_family_apply, seminorm.comp_apply, finset.sup_singleton, one_smul],
-    refine (fderiv_lm 𝕜 f).seminorm_le_bound 𝕜 k n (by positivity) _,
-    intros x,
-    rw [fderiv_lm_apply, coe_fderiv, norm_iterated_fderiv_fderiv],
-    exact f.le_seminorm 𝕜 k (n+1) x,
-  end,
-  to_linear_map := fderiv_lm 𝕜 }
+mk_clm (fderiv ℝ)
+  (λ f g _, fderiv_add f.differentiable_at g.differentiable_at)
+  (λ a f _, fderiv_const_smul f.differentiable_at a)
+  (λ f, (cont_diff_top_iff_fderiv.mp f.smooth').2)
+  (λ ⟨k, n⟩, ⟨{⟨k, n+1⟩}, 1, zero_le_one, λ f x, by simpa only [schwartz_seminorm_family_apply,
+    seminorm.comp_apply, finset.sup_singleton, one_smul, norm_iterated_fderiv_fderiv, one_mul]
+      using f.le_seminorm 𝕜 k (n+1) x⟩)
 
-@[simp, norm_cast] lemma fderiv_clm_apply (f : 𝓢(E, F)) : fderiv_clm 𝕜 f = schwartz_map.fderiv f :=
+@[simp] lemma fderiv_clm_apply (f : 𝓢(E, F)) (x : E) : fderiv_clm 𝕜 f x = fderiv ℝ f x :=
 rfl
+
+/-- The 1-dimensional derivative on Schwartz space as a continuous `𝕜`-linear map. -/
+def deriv_clm : 𝓢(ℝ, F) →L[𝕜] 𝓢(ℝ, F) :=
+mk_clm (λ f, deriv f)
+  (λ f g _, deriv_add f.differentiable_at g.differentiable_at)
+  (λ a f _, deriv_const_smul a f.differentiable_at)
+  (λ f, (cont_diff_top_iff_deriv.mp f.smooth').2)
+  (λ ⟨k, n⟩, ⟨{⟨k, n+1⟩}, 1, zero_le_one, λ f x, by simpa only [real.norm_eq_abs,
+    finset.sup_singleton, schwartz_seminorm_family_apply, one_mul,
+    norm_iterated_fderiv_eq_norm_iterated_deriv, ← iterated_deriv_succ']
+    using f.le_seminorm' 𝕜 k (n + 1) x⟩)
+
+@[simp] lemma deriv_clm_apply (f : 𝓢(ℝ, F)) (x : ℝ) : deriv_clm 𝕜 f x = deriv f x := rfl
 
 def pderiv_clm (m : E) : 𝓢(E, F) →L[𝕜] 𝓢(E, F) := (eval_clm m).comp (fderiv_clm 𝕜)
 
@@ -639,7 +674,7 @@ end
 
 #exit
 
-end fderiv
+end derivatives
 
 section bounded_continuous_function
 

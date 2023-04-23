@@ -12,6 +12,9 @@ import category_theory.functor.reflects_isomorphisms
 
 /-! # The simplex category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct a skeletal model of the simplex category, with objects `ℕ` and the
 morphism `n ⟶ m` being the monotone maps from `fin (n+1)` to `fin (m+1)`.
 

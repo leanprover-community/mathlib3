@@ -9,6 +9,9 @@ import data.matrix.basic
 /-!
 # Incidence matrix of a simple graph
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the unoriented incidence matrix of a simple graph.
 
 ## Main definitions

@@ -7,6 +7,9 @@ Authors: Adam Topaz
 import category_theory.sites.sheaf
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 In this file we construct the functor `Sheaf J A ⥤ Sheaf J B` between sheaf categories
 obtained by composition with a functor `F : A ⥤ B`.

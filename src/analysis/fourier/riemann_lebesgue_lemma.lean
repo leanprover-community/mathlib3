@@ -269,6 +269,8 @@ begin
   -- We have already proved the result for inner-product spaces, formulated in a way which doesn't
   -- refer to the inner product. So we choose an arbitrary inner-product space isomorphic to V
   -- and port the result over from there.
+  -- (TODO: Generalise `to_euclidean` from `analysis.inner_product_space.euclidean_dist` to not
+  -- require a normed space structure, and use that here.)
   let V' := euclidean_space ℝ (fin (finrank ℝ V)),
   have : finrank ℝ V = finrank ℝ V',
     by rw finrank_euclidean_space_fin,

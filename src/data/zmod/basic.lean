@@ -6,8 +6,8 @@ Authors: Chris Hughes
 
 import algebra.char_p.basic
 import data.nat.parity
-import algebra.group.conj_finite
 import tactic.fin_cases
+import data.fintype.units
 
 /-!
 # Integers mod `n`

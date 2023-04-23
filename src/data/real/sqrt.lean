@@ -341,9 +341,13 @@ end
 
 instance : star_ordered_ring ℝ :=
 { nonneg_iff := λ r, by
-  { refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
-    rintros ⟨s, rfl⟩,
-    exact mul_self_nonneg s },
+  { refine ⟨λ hr, _, λ hr, _⟩,
+    exact add_submonoid.subset_closure
+      ⟨(sqrt r), by rw [star_trivial, ←sqrt_mul hr, sqrt_mul_self hr]⟩,
+    refine add_submonoid.closure_induction hr _ le_rfl (λ _ _, add_nonneg),
+    { rintro _ ⟨x, rfl⟩,
+      rw star_trivial,
+      exact mul_self_nonneg x } },
   ..real.ordered_add_comm_group }
 
 end real

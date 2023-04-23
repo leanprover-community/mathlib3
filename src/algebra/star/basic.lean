@@ -7,6 +7,7 @@ import algebra.ring.aut
 import algebra.ring.comp_typeclasses
 import data.rat.cast
 import group_theory.group_action.opposite
+import group_theory.submonoid.basic
 import data.set_like.basic
 
 /-!
@@ -346,7 +347,7 @@ and `0 ≤ r ↔ ∃ s, r = star s * s`.
 class star_ordered_ring (R : Type u) [non_unital_semiring R] [partial_order R]
   extends star_ring R :=
 (add_le_add_left       : ∀ a b : R, a ≤ b → ∀ c : R, c + a ≤ c + b)
-(nonneg_iff            : ∀ r : R, 0 ≤ r ↔ ∃ s, r = star s * s)
+(nonneg_iff            : ∀ x : R, 0 ≤ x ↔ x ∈ add_submonoid.closure {(star s * s) | (s : R)})
 
 namespace star_ordered_ring
 
@@ -362,16 +363,23 @@ section non_unital_semiring
 
 variables [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
 
-lemma star_mul_self_nonneg {r : R} : 0 ≤ star r * r :=
-(star_ordered_ring.nonneg_iff _).mpr ⟨r, rfl⟩
+lemma star_mul_self_nonneg (r : R) : 0 ≤ star r * r :=
+(star_ordered_ring.nonneg_iff _).mpr $ add_submonoid.subset_closure ⟨r, rfl⟩
 
-lemma star_mul_self_nonneg' {r : R} : 0 ≤ r * star r :=
-by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
+lemma star_mul_self_nonneg' (r : R) : 0 ≤ r * star r :=
+by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg (star r) }
 
 lemma conjugate_nonneg {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
 begin
-  obtain ⟨x, rfl⟩ := (star_ordered_ring.nonneg_iff _).1 ha,
-  exact (star_ordered_ring.nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
+  rw star_ordered_ring.nonneg_iff at ha,
+  refine add_submonoid.closure_induction ha (λ x hx, _) (by rw [mul_zero, zero_mul])
+    (λ x y hx hy, _),
+  { obtain ⟨x, rfl⟩ := hx,
+    convert star_mul_self_nonneg (x * c) using 1,
+    rw [star_mul, ←mul_assoc, mul_assoc _ _ c] },
+  { calc 0 ≤ star c * x * c + 0 : by rw [add_zero]; exact hx
+     ...   ≤ star c * x * c + star c * y * c : star_ordered_ring.add_le_add_left _ _ hy _
+     ...   ≤ _ : by rw [mul_add, add_mul] }
 end
 
 lemma conjugate_nonneg' {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=

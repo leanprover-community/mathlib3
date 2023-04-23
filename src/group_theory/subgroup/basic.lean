@@ -2670,6 +2670,16 @@ begin
   exact subset_normal_closure (set.mem_singleton _),
 end
 
+variables (G) {M : Type*} [monoid M]
+
+lemma is_conj.eq_of_mem_center_left {g h : M} (H : is_conj g h) (Hg : g ∈ set.center M) :
+  g = h :=
+by { rcases H with ⟨u, hu⟩, rwa [← u.mul_left_inj, ← Hg u], }
+
+lemma is_conj.eq_of_mem_center_right {g h : M} (H : is_conj g h) (Hh : h ∈ set.center M) :
+  g = h :=
+(H.symm.eq_of_mem_center_left Hh).symm
+
 end is_conj
 
 assert_not_exists multiset

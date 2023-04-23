@@ -5,10 +5,7 @@ Authors: Chris Hughes
 -/
 import group_theory.group_action.basic
 import group_theory.subgroup.zpowers
-import set_theory.cardinal.finite
-import algebra.big_operators.finprod
 import algebra.group_ring_action.basic
-
 /-!
 # Conjugation action of a group on itself
 
@@ -35,8 +32,6 @@ is that some theorems about the group actions will not apply when since this
 `mul_aut.conj g • h` describes an action of `mul_aut G` on `G`, and not an action of `G`.
 
 -/
-
-open_locale big_operators
 
 variables (α M G G₀ R K : Type*)
 
@@ -192,6 +187,9 @@ begin
   simp [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
 end
 
+lemma mem_orbit_conj_act_iff (g h : G) : g ∈ orbit (conj_act G) h ↔ is_conj g h :=
+by { rw [is_conj_comm, is_conj_iff, mem_orbit_iff], refl }
+
 lemma stabilizer_eq_centralizer (g : G) : stabilizer (conj_act G) g = (zpowers g).centralizer :=
 le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
   (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm)
@@ -240,31 +238,7 @@ end conj_act
 section fintype
 
 open mul_action
-
 variables (G) [group G] {M} [monoid M]
-
--- move this
-lemma is_conj.eq_of_mem_center_left {g h : M} (H : is_conj g h) (Hg : g ∈ set.center M) :
-  g = h :=
-by { rcases H with ⟨u, hu⟩, rwa [← u.mul_left_inj, ← Hg u], }
-
--- move this
-lemma is_conj.eq_of_mem_center_right {g h : M} (H : is_conj g h) (Hh : h ∈ set.center M) :
-  g = h :=
-(H.symm.eq_of_mem_center_left Hh).symm
-
--- move this
-lemma mem_orbit_conj_act_iff {G : Type*} [group G] (g h : G) :
-  g ∈ orbit (conj_act G) h ↔ is_conj g h :=
-by { rw [is_conj_comm, is_conj_iff, mem_orbit_iff], exact iff.rfl }
-
--- move this
-lemma orbit_rel_r (X : Type*) [mul_action G X] :
-  (orbit_rel G X).r = λ x y, x ∈ orbit G y := rfl
-
--- move this
-lemma orbit_rel_r_apply {X : Type*} [mul_action G X] (x y : X) :
-  @setoid.r _ (orbit_rel G X) x y ↔ x ∈ orbit G y := iff.rfl
 
 section
 open_locale classical

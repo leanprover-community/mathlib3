@@ -248,13 +248,16 @@ variables (α β)
 /-- Each element of the group defines an multiplicative monoid isomorphism.
 
 This is a stronger version of `mul_action.to_perm_hom`. -/
-@[simps]
 def to_mul_aut : α →* mul_aut β :=
 { to_fun := to_mul_equiv β,
   map_one' := mul_equiv.ext (one_smul _),
   map_mul' := λ a₁ a₂, mul_equiv.ext (mul_smul _ _) }
 
 @[simp, norm_cast] lemma coe_to_mul_aut : ⇑(to_mul_aut α β) = to_mul_equiv β := rfl
+
+variables {α β}
+
+lemma to_mul_aut_apply (a : α) : to_mul_aut α β a = to_mul_equiv β a := rfl
 
 end mul_distrib_mul_action
 

@@ -866,7 +866,7 @@ section division_ring
 variables [division_ring R]
 
 lemma rat_smul_eq_C_mul (a : ℚ) (f : R[X]) : a • f = polynomial.C ↑a * f :=
-by rw [←rat.smul_one_eq_coe', ←polynomial.smul_C, C_1, smul_one_mul]
+by rw [←rat.smul_one_eq_coe, ←polynomial.smul_C, C_1, smul_one_mul]
 
 end division_ring
 

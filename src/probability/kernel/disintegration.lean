@@ -30,6 +30,8 @@ function verifies `∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = 
 
 TODO
 
+`∫⁻ a, ∫⁻ y, f (a, y) ∂(cond_kernel ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ`
+
 ## Main definitions
 
 For a measure `ρ` on `α × ℝ`, we define
@@ -41,6 +43,8 @@ For a measure `ρ` on `α × ℝ`, we define
 
 * `probability_theory.kernel.const_eq_comp_prod`: TODO
 * `probability_theory.measure_eq_comp_prod`: TODO
+* `probability_theory.lintegral_cond_kernel`:
+  `∫⁻ a, ∫⁻ y, f (a, y) ∂(cond_kernel ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ`
 
 ## Future extensions
 
@@ -707,7 +711,7 @@ open_locale classical
 
 /-- Conditional cdf of the measure given the value on `α`, restricted to the rationals.
 It is defined to be `pre_cdf` if it verifies a list of properties, and a default cdf-like function
-otherwise. -/
+otherwise. This is an auxiliary definition used to define `cond_cdf`. -/
 noncomputable
 def cond_cdf_rat (ρ : measure (α × ℝ)) : α → ℚ → ℝ :=
 λ a, if a ∈ cond_cdf_set ρ then (λ r, (pre_cdf ρ r a).to_real) else (λ r, if r < 0 then 0 else 1)
@@ -1016,6 +1020,7 @@ lemma measurable_cond_cdf (ρ : measure (α × ℝ)) (x : ℝ) :
   measurable (λ a, cond_cdf ρ a x) :=
 measurable_cinfi (λ q, measurable_cond_cdf_rat ρ q) (λ a, bdd_below_range_cond_cdf_rat_gt ρ a _)
 
+/-- Auxiliary lemma for `set_lintegral_cond_cdf_Iic`. -/
 lemma set_lintegral_cond_cdf_Iic_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
@@ -1220,7 +1225,7 @@ begin
     { exact λ i, measurable_set.prod hs (hf_meas i), }, },
 end
 
-lemma lintegral_cond_kernel (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+lemma lintegral_cond_kernel_mem (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   {s : set (α × ℝ)} (hs : measurable_set s) :
   ∫⁻ a, cond_kernel ρ a {x | (a, x) ∈ s} ∂ρ.fst = ρ s :=
 begin
@@ -1318,7 +1323,7 @@ begin
   ext a s hs : 2,
   rw [kernel.comp_prod_apply _ _ _ hs, kernel.const_apply, kernel.const_apply],
   simp_rw kernel.prod_mk_left_apply,
-  rw lintegral_cond_kernel ρ hs,
+  rw lintegral_cond_kernel_mem ρ hs,
 end
 
 /-- **Disintegration** of finite product measures on `α × ℝ`. Such a measure can be written as the
@@ -1327,5 +1332,14 @@ Markov kernel from `α` to `ℝ`. We call that Markov kernel `cond_kernel ρ`. -
 theorem measure_eq_comp_prod (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) (unit.star) :=
 by rw [← kernel.const_eq_comp_prod ρ unit, kernel.const_apply]
+
+lemma lintegral_cond_kernel (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+  {f : α × ℝ → ℝ≥0∞} (hf : measurable f) :
+  ∫⁻ a, ∫⁻ y, f (a, y) ∂(cond_kernel ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ :=
+begin
+  nth_rewrite 1 measure_eq_comp_prod ρ,
+  rw [kernel.lintegral_comp_prod _ _ _ hf, kernel.const_apply],
+  simp_rw kernel.prod_mk_left_apply,
+end
 
 end probability_theory

@@ -598,23 +598,23 @@ def pderiv_clm (m : E) : 𝓢(E, F) →L[𝕜] 𝓢(E, F) := (eval_clm m).comp (
 @[simp]
 lemma pderiv_clm_apply (m : E) (f : 𝓢(E, F)) (x : E) : pderiv_clm 𝕜 m f x = fderiv ℝ f x m := rfl
 
-def iterated_pderiv (n : ℕ) : (fin n → E) → 𝓢(E, F) →L[𝕜] 𝓢(E, F) :=
+def iterated_pderiv {n : ℕ} : (fin n → E) → 𝓢(E, F) →L[𝕜] 𝓢(E, F) :=
 nat.rec_on n
   (λ x, continuous_linear_map.id 𝕜 _)
   (λ n rec x, (pderiv_clm 𝕜 (x 0)).comp (rec (fin.tail x)))
 
 @[simp] lemma iterated_pderiv_zero (m : fin 0 → E) (f : 𝓢(E, F)):
-  iterated_pderiv 𝕜 0 m f = f := rfl
+  iterated_pderiv 𝕜 m f = f := rfl
 
 @[simp] lemma iterated_pderiv_one (m : fin 1 → E) (f : 𝓢(E, F)) :
-  iterated_pderiv 𝕜 1 m f = pderiv_clm 𝕜 (m 0) f := rfl
+  iterated_pderiv 𝕜 m f = pderiv_clm 𝕜 (m 0) f := rfl
 
 lemma iterated_pderiv_succ_left {n : ℕ} (m : fin (n + 1) → E) (f : 𝓢(E, F)) :
-  iterated_pderiv 𝕜 (n + 1) m f = pderiv_clm 𝕜 (m 0) (iterated_pderiv 𝕜 n (fin.tail m) f) := rfl
+  iterated_pderiv 𝕜 m f = pderiv_clm 𝕜 (m 0) (iterated_pderiv 𝕜 (fin.tail m) f) := rfl
 
 lemma iterated_pderiv_succ_right {n : ℕ} (m : fin (n + 1) → E) (f : 𝓢(E, F)) :
-  iterated_pderiv 𝕜 (n + 1) m f =
-    iterated_pderiv 𝕜 n (fin.init m) (pderiv_clm 𝕜 (m (fin.last n)) f) :=
+  iterated_pderiv 𝕜 m f =
+    iterated_pderiv 𝕜 (fin.init m) (pderiv_clm 𝕜 (m (fin.last n)) f) :=
 begin
   induction n with n IH,
   { rw [iterated_pderiv_zero, iterated_pderiv_one],
@@ -625,6 +625,19 @@ begin
   by simp only [fin.tail_def, fin.succ_last],
   simp only [iterated_pderiv_succ_left, IH (fin.tail m), hmzero, hmtail, fin.tail_init_eq_init_tail]
 end
+
+lemma iterated_pderiv_apply {n : ℕ} (m : fin n → E) (f : 𝓢(E, F)) (x : E) :
+  iterated_pderiv 𝕜 m f x = iterated_fderiv ℝ n f x m :=
+begin
+  induction n with n IH generalizing f,
+  { simp only [iterated_pderiv_zero, iterated_fderiv_zero_apply] },
+  rw [iterated_pderiv_succ_right],
+  rw IH (fin.init m),
+  rw
+  sorry,
+end
+
+#exit
 
 end fderiv
 

@@ -218,6 +218,9 @@ lemma smul_eq_C_mul (p : mv_polynomial σ R) (a : R) : a • p = C a * p := C_mu
 lemma C_eq_smul_one : (C a : mv_polynomial σ R) = a • 1 :=
 by rw [← C_mul', mul_one]
 
+lemma smul_monomial: a' • monomial s a = monomial s (a' * a) :=
+(smul_eq_C_mul (monomial s a) a').symm ▸ C_mul_monomial
+
 lemma X_injective [nontrivial R] : function.injective (X : σ → mv_polynomial σ R) :=
 (monomial_left_injective one_ne_zero).comp (finsupp.single_left_injective one_ne_zero)
 
@@ -557,6 +560,9 @@ add_monoid_algebra.support_mul_single p _ (by simp) _
   (X s * p).support = p.support.map (add_left_embedding (single s 1)) :=
 add_monoid_algebra.support_single_mul p _ (by simp) _
 
+@[simp] lemma support_smul_eq [no_zero_divisors R] {a : R} (h: a≠0) {p: mv_polynomial σ R}:
+(a • p).support = p.support := finsupp.support_smul_eq h
+
 lemma support_sdiff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
   p.support \ q.support ⊆ (p + q).support :=
 begin
@@ -625,6 +631,16 @@ by { rw ext_iff, simp only [coeff_zero], }
 lemma ne_zero_iff {p : mv_polynomial σ R} :
   p ≠ 0 ↔ ∃ d, coeff d p ≠ 0 :=
 by { rw [ne.def, eq_zero_iff], push_neg, }
+
+lemma eq_zero_iff_support_eq_empty (p: mv_polynomial σ R): p = 0 ↔ p.support = ∅ :=
+begin
+  split,
+  { intro hp,
+    exact hp.symm ▸ support_zero, },
+  { rw [eq_zero_iff],
+    intros hps d,
+    exact not_mem_support_iff.mp (finset.eq_empty_iff_forall_not_mem.mp hps d), },
+end
 
 lemma exists_coeff_ne_zero {p : mv_polynomial σ R} (h : p ≠ 0) :
   ∃ d, coeff d p ≠ 0 :=

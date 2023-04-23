@@ -9,6 +9,9 @@ import data.mv_polynomial.division
 /-!
 # Lemmas about ideals of `mv_polynomial`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Notably this contains results about monomial ideals.
 
 ## Main results

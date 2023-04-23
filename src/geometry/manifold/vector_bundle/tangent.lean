@@ -144,9 +144,8 @@ section
 
 variables {M} (x : M)
 
+instance : module 𝕜 (tangent_space I x) := by delta_instance tangent_space
 instance : inhabited (tangent_space I x) := ⟨0⟩
-instance : normed_add_comm_group (tangent_space I x) := by delta_instance tangent_space
-instance : normed_space 𝕜 (tangent_space I x) := by delta_instance tangent_space
 
 end
 
@@ -231,11 +230,13 @@ by simp only [fiber_bundle.charted_space_chart_at, and_iff_left_iff_imp] with mf
     (tangent_bundle_core I M).coord_change (achart H b₀) (achart H b) b :=
 (tangent_bundle_core I M).local_triv_symmL hb
 
+@[simp, mfld_simps]
 lemma coord_change_model_space (b b' x : F) :
   (tangent_bundle_core 𝓘(𝕜, F) F).coord_change (achart F b) (achart F b') x = 1 :=
 by simpa only [tangent_bundle_core_coord_change] with mfld_simps using
     fderiv_within_id unique_diff_within_at_univ
 
+@[simp, mfld_simps]
 lemma symmL_model_space (b b' : F) :
   (trivialization_at F (tangent_space 𝓘(𝕜, F)) b).symmL 𝕜 b' = (1 : F →L[𝕜] F) :=
 begin
@@ -243,6 +244,7 @@ begin
   apply mem_univ
 end
 
+@[simp, mfld_simps]
 lemma continuous_linear_map_at_model_space (b b' : F) :
   (trivialization_at F (tangent_space 𝓘(𝕜, F)) b).continuous_linear_map_at 𝕜 b' =
   (1 : F →L[𝕜] F) :=

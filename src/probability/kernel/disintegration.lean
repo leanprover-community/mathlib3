@@ -20,11 +20,11 @@ Equivalently, for any measurable space `γ`, we have a disintegration of constan
 
 ### Conditional cdf
 
-Given `ρ : measure (α × ℝ)`, we call conditional cumulative distribution function (conditional cdf)
-of `ρ` a function `cond_cdf ρ : α → ℝ → ℝ` such that for all `a : α`, `cond_cdf ρ a` is measurable,
-monotone and right-continuous with limit 0 at -∞ and limit 1 at +∞.
-For all `q : ℚ` and measurable set `s`, it verifies
-`∫⁻ a in s, ennreal.of_real (cond_cdf ρ a q) ∂ρ.fst = ρ (s ×ˢ Iic q)`.
+Given `ρ : measure (α × ℝ)`, we define the conditional cumulative distribution function
+(conditional cdf) of `ρ`. It is a function `cond_cdf ρ : α → ℝ → ℝ` such that for all `a : α`,
+`cond_cdf ρ a` is monotone and right-continuous with limit 0 at -∞ and limit 1 at +∞, and such that
+for all `x : ℝ`, `a ↦ cond_cdf ρ a x` is measurable. For all `x : ℝ` and measurable set `s`, that
+function verifies `∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x)`.
 
 ### Conditional kernel
 
@@ -64,6 +64,18 @@ open_locale nnreal ennreal measure_theory topology probability_theory
 section aux_lemmas_to_be_moved
 
 variables {α β ι : Type*}
+
+namespace directed
+
+variables [encodable α] [inhabited α] [preorder β] {f : α → β} (hf : directed (≥) f)
+
+lemma sequence_anti : antitone (f ∘ (hf.sequence f)) :=
+antitone_nat_of_succ_le $ hf.sequence_mono_nat
+
+lemma sequence_le (a : α) : f (hf.sequence f (encodable.encode a + 1)) ≤ f a :=
+hf.rel_sequence a
+
+end directed
 
 lemma prod_Inter {s : set α} {t : ι → set β} [hι : nonempty ι] :
   s ×ˢ (⋂ i, t i) = ⋂ i, s ×ˢ (t i) :=
@@ -150,7 +162,7 @@ lemma tendsto_of_antitone {ι α : Type*} [preorder ι] [topological_space α]
   tendsto f at_top at_bot ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
 @tendsto_of_monotone ι αᵒᵈ _ _ _ _ _ h_mono
 
-lemma to_real_infi (f : α → ℝ≥0∞) (hf : ∀ a, f a ≠ ∞) :
+lemma ennreal.to_real_infi (f : α → ℝ≥0∞) (hf : ∀ a, f a ≠ ∞) :
   (⨅ i, f i).to_real = ⨅ i, (f i).to_real :=
 begin
   casesI is_empty_or_nonempty α,
@@ -160,7 +172,59 @@ begin
   simp_rw [← with_top.coe_infi, ennreal.coe_to_real, nnreal.coe_infi],
 end
 
-lemma is_pi_system_Ioc_rat : @is_pi_system ℝ {S | ∃ (l u : ℚ) (h : l < u), Ioc (l : ℝ) u = S} :=
+lemma ennreal.of_real_cinfi (f : α → ℝ) [nonempty α] :
+  ennreal.of_real (⨅ i, f i) = ⨅ i, ennreal.of_real (f i) :=
+begin
+  by_cases hf : bdd_below (range f),
+  { exact monotone.map_cinfi_of_continuous_at ennreal.continuous_of_real.continuous_at
+      (λ i j hij, ennreal.of_real_le_of_real hij) hf, },
+  { symmetry,
+    rw [real.infi_of_not_bdd_below hf, ennreal.of_real_zero, ← ennreal.bot_eq_zero, infi_eq_bot],
+    intros x hx,
+    obtain ⟨i, hfi⟩ : ∃ i, f i ≤ 0,
+    { by_contra h,
+      refine hf ⟨0, _⟩,
+      rintros i ⟨y, rfl⟩,
+      push_neg at h,
+      exact (h y).le, },
+    refine ⟨i,  _⟩,
+    rw ennreal.of_real_of_nonpos hfi,
+    exact hx, },
+end
+
+/-- Monotone convergence for an infimum over a directed family and indexed by a countable type -/
+theorem lintegral_infi_directed_of_measurable {mα : measurable_space α} [countable β]
+  {f : β → α → ℝ≥0∞} {μ : measure α} (hμ : μ ≠ 0)
+  (hf : ∀ b, measurable (f b)) (hf_int : ∀ b, ∫⁻ a, f b a ∂μ ≠ ∞) (h_directed : directed (≥) f) :
+  ∫⁻ a, ⨅ b, f b a ∂μ = ⨅ b, ∫⁻ a, f b a ∂μ :=
+begin
+  casesI nonempty_encodable β,
+  casesI is_empty_or_nonempty β,
+  { simp only [with_top.cinfi_empty, lintegral_const],
+    rw [ennreal.top_mul, if_neg],
+    simp only [measure.measure_univ_eq_zero, hμ, not_false_iff], },
+  inhabit β,
+  have : ∀ a, (⨅ b, f b a) = (⨅ n, f (h_directed.sequence f n) a),
+  { refine λ a, le_antisymm (le_infi (λ n, infi_le _ _))
+      (le_infi (λ b, infi_le_of_le (encodable.encode b + 1) _)),
+    exact (h_directed.sequence_le b a), },
+  calc ∫⁻ a, ⨅ b, f b a ∂μ
+        = ∫⁻ a, ⨅ n, f (h_directed.sequence f n) a ∂μ : by simp only [this]
+    ... = ⨅ n, ∫⁻ a, f (h_directed.sequence f n) a ∂μ :
+      by { rw lintegral_infi (λ n, _) h_directed.sequence_anti,
+        { exact hf_int _, },
+        { exact hf _, }, }
+    ... = ⨅ b, ∫⁻ a, f b a ∂μ :
+    begin
+      refine le_antisymm (le_infi (λ b, _)) (le_infi (λ n, _)),
+      { exact infi_le_of_le (encodable.encode b + 1)
+          (lintegral_mono $ h_directed.sequence_le b) },
+      { exact infi_le (λb, ∫⁻ a, f b a ∂μ) _ },
+    end
+end
+
+lemma real.is_pi_system_Ioc_rat :
+  @is_pi_system ℝ {S | ∃ (l u : ℚ) (h : l < u), Ioc (l : ℝ) u = S} :=
 begin
   rintros s ⟨ls, us, hlus, rfl⟩ t ⟨lt, ut, hlut, rfl⟩ hst,
   rw [Ioc_inter_Ioc, sup_eq_max, inf_eq_min] at hst ⊢,
@@ -170,12 +234,19 @@ begin
   { norm_cast, },
 end
 
-lemma is_pi_system_Iic_rat : @is_pi_system ℝ {S | ∃ (u : ℚ), Iic (u : ℝ) = S} :=
+lemma real.is_pi_system_Iic_rat : @is_pi_system ℝ {S | ∃ (u : ℚ), Iic (u : ℝ) = S} :=
 begin
   rintros s ⟨us, rfl⟩ t ⟨ut, rfl⟩ hst,
   rw [Iic_inter_Iic, inf_eq_min] at hst ⊢,
   refine ⟨min us ut, _⟩,
   norm_cast,
+end
+
+lemma real.is_pi_system_Iic : @is_pi_system ℝ {S | ∃ u, Iic u = S} :=
+begin
+  rintros s ⟨us, rfl⟩ t ⟨ut, rfl⟩ hst,
+  rw [Iic_inter_Iic, inf_eq_min] at hst ⊢,
+  exact ⟨min us ut, rfl⟩,
 end
 
 lemma real.borel_eq_generate_from_Ioc_rat :
@@ -226,6 +297,19 @@ begin
     { exact measurable_space.measurable_set_generate_from ⟨l, rfl⟩, }, },
   { refine measurable_space.generate_from_le (λ t ht, _),
     obtain ⟨l, u, hlu, rfl⟩ := ht,
+    exact measurable_set_Iic, },
+end
+
+lemma real.borel_eq_generate_from_Iic :
+  borel ℝ = measurable_space.generate_from {S : set ℝ | ∃ u, Iic u = S} :=
+begin
+  refine le_antisymm _ _,
+  { rw real.borel_eq_generate_from_Iic_rat,
+    refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨u, rfl⟩ := ht,
+    exact measurable_space.measurable_set_generate_from ⟨u, rfl⟩, },
+  { refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨u, rfl⟩ := ht,
     exact measurable_set_Iic, },
 end
 
@@ -738,7 +822,7 @@ begin
   by_cases ha : a ∈ cond_cdf_set ρ,
   { simp_rw cond_cdf_rat_of_mem ρ a ha,
     have ha' := has_cond_cdf_of_mem_cond_cdf_set ha,
-    rw ← to_real_infi,
+    rw ← ennreal.to_real_infi,
     { suffices : (⨅ (i : ↥(Ioi t)), pre_cdf ρ ↑i a) = pre_cdf ρ t a, by rw this,
       rw ← ha'.2.2.2.2, },
     { exact λ r, ((ha'.2.1 r).trans_lt ennreal.one_lt_top).ne, }, },
@@ -847,6 +931,17 @@ lemma cond_cdf_eq_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   cond_cdf ρ a r = cond_cdf_rat ρ a r :=
 cond_cdf'_eq_cond_cdf_rat ρ a r
 
+lemma cond_cdf_eq_infi_cond_cdf (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
+  cond_cdf ρ a x = ⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a r :=
+begin
+  have : (⨅ r : {r' : ℚ // x < ↑r'}, cond_cdf ρ a ↑r)
+    = ⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a (r : ℚ),
+  { congr, },
+  rw this,
+  simp_rw cond_cdf_eq_cond_cdf_rat ρ a,
+  refl,
+end
+
 /-- The conditional cdf is non-negative for all `a : α`. -/
 lemma cond_cdf_nonneg (ρ : measure (α × ℝ)) (a : α) (r : ℝ) :
   0 ≤ cond_cdf ρ a r :=
@@ -931,14 +1026,69 @@ begin
   exact ρ.Iic_snd_apply r hs,
 end
 
+lemma set_lintegral_cond_cdf_Iic (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ)
+  {s : set α} (hs : measurable_set s) :
+  ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x) :=
+begin
+  by_cases hρ_zero : ρ.fst.restrict s = 0,
+  { rw [hρ_zero, lintegral_zero_measure],
+    refine le_antisymm (zero_le _) _,
+    calc ρ (s ×ˢ Iic x)
+        ≤ ρ (prod.fst ⁻¹' s) : measure_mono (prod_subset_preimage_fst s (Iic x))
+    ... = ρ.fst s : by rw [measure.fst_apply _ hs]
+    ... = ρ.fst.restrict s univ : by rw measure.restrict_apply_univ
+    ... = 0 : by simp only [hρ_zero, measure.coe_zero, pi.zero_apply], },
+  have h : ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst
+    = ∫⁻ a in s, ennreal.of_real (⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a r) ∂ρ.fst,
+  { congr,
+    ext1 a,
+    congr,
+    exact cond_cdf_eq_infi_cond_cdf ρ a x, },
+  haveI h_nonempty : nonempty {r' : ℚ // x < ↑r'},
+  { obtain ⟨r, hrx⟩ := exists_rat_gt x,
+    exact ⟨⟨r, hrx⟩⟩, },
+  rw h,
+  simp_rw ennreal.of_real_cinfi,
+  have h_coe : ∀ b : {r' : ℚ // x < ↑r'}, (b : ℝ) = ((b : ℚ) : ℝ) := λ _, by congr,
+  rw lintegral_infi_directed_of_measurable hρ_zero
+    (λ q : {r' : ℚ // x < ↑r'}, (measurable_cond_cdf ρ q).ennreal_of_real),
+  rotate,
+  { intro b,
+    simp_rw h_coe,
+    rw [set_lintegral_cond_cdf_Iic_rat ρ _ hs],
+    exact measure_ne_top ρ _, },
+  { refine λ i j, ⟨min i j, λ a, _, λ a, _⟩,
+    all_goals { refine ennreal.of_real_le_of_real (monotone_cond_cdf ρ a _),
+      rw [h_coe, h_coe],
+      norm_cast, },
+    { exact min_le_left _ _, },
+    { exact min_le_right _ _, }, },
+  simp_rw [h_coe, set_lintegral_cond_cdf_Iic_rat ρ _ hs],
+  rw ← measure_Inter_eq_infi,
+  { rw ← prod_Inter,
+    congr' with y,
+    simp only [mem_Inter, mem_Iic, subtype.forall, subtype.coe_mk],
+    exact ⟨le_of_forall_lt_rat_imp_le, λ hyx q hq, hyx.trans hq.le⟩, },
+  { exact λ i, hs.prod measurable_set_Iic, },
+  { refine λ q r, ⟨min q r, λ y, _, λ y, _⟩,
+    all_goals { simp only [mem_prod, mem_Iic, and_imp], refine λ hys hy, ⟨hys, hy.trans _⟩, },
+    { exact_mod_cast min_le_left q r, },
+    { exact_mod_cast min_le_right q r, }, },
+  { exact ⟨h_nonempty.some, measure_ne_top _ _⟩, },
+end
+
+lemma lintegral_cond_cdf_Iic (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ) :
+  ∫⁻ a, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (univ ×ˢ Iic x) :=
+by rw [← set_lintegral_univ, set_lintegral_cond_cdf_Iic ρ _ measurable_set.univ]
+
 /-- Conditional measure on the second space of the product given the value on the first. This is an
 auxiliary definition used to build `cond_kernel`. -/
 noncomputable def cond_measure (ρ : measure (α × ℝ)) (a : α) : measure ℝ := (cond_cdf ρ a).measure
 
-lemma cond_measure_Iic (ρ : measure (α × ℝ)) (a : α) (q : ℝ) :
-  cond_measure ρ a (Iic q) = ennreal.of_real (cond_cdf ρ a q) :=
+lemma cond_measure_Iic (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
+  cond_measure ρ a (Iic x) = ennreal.of_real (cond_cdf ρ a x) :=
 begin
-  rw [cond_measure, ← sub_zero (cond_cdf ρ a q)],
+  rw [cond_measure, ← sub_zero (cond_cdf ρ a x)],
   exact stieltjes_function.measure_Iic _ (tendsto_cond_cdf_at_bot ρ a) _,
 end
 
@@ -960,7 +1110,7 @@ lemma measurable_cond_measure (ρ : measure (α × ℝ)) :
 begin
   rw measure.measurable_measure,
   refine λ s hs, measurable_space.induction_on_inter
-    real.borel_eq_generate_from_Iic_rat is_pi_system_Iic_rat _ _ _ _ hs,
+    real.borel_eq_generate_from_Iic real.is_pi_system_Iic _ _ _ _ hs,
   { simp only [measure_empty, measurable_const], },
   { rintros S ⟨u, rfl⟩,
     simp_rw cond_measure_Iic ρ _ u,
@@ -986,14 +1136,14 @@ def cond_kernel (ρ : measure (α × ℝ)) : kernel α ℝ :=
 instance (ρ : measure (α × ℝ)) : is_markov_kernel (cond_kernel ρ) :=
 ⟨λ a, by { rw cond_kernel, apply_instance, } ⟩
 
-lemma cond_kernel_Iic (ρ : measure (α × ℝ)) (a : α) (q : ℚ) :
-  cond_kernel ρ a (Iic q) = ennreal.of_real (cond_cdf ρ a q) :=
-cond_measure_Iic ρ a q
+lemma cond_kernel_Iic (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
+  cond_kernel ρ a (Iic x) = ennreal.of_real (cond_cdf ρ a x) :=
+cond_measure_Iic ρ a x
 
-lemma set_lintegral_cond_kernel_Iic_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)
+lemma set_lintegral_cond_kernel_Iic (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ)
   {s : set α} (hs : measurable_set s) :
-  ∫⁻ a in s, cond_kernel ρ a (Iic r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
-by { simp_rw [cond_kernel_Iic], exact set_lintegral_cond_cdf_Iic_rat ρ r hs, }
+  ∫⁻ a in s, cond_kernel ρ a (Iic x) ∂ρ.fst = ρ (s ×ˢ Iic x) :=
+by { simp_rw [cond_kernel_Iic], exact set_lintegral_cond_cdf_Iic ρ x hs, }
 
 lemma set_lintegral_cond_kernel_univ (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   {s : set α} (hs : measurable_set s) :
@@ -1014,7 +1164,7 @@ begin
       exact_mod_cast hnm, }, },
   have h_tendsto2 : tendsto (λ n : ℚ, ∫⁻ a in s, cond_kernel ρ a (Iic n) ∂ρ.fst) at_top
     (𝓝 (ρ (s ×ˢ ⋃ r : ℚ, Iic r))),
-  { simp_rw [set_lintegral_cond_kernel_Iic_rat _ _ hs, prod_Union],
+  { simp_rw [set_lintegral_cond_kernel_Iic _ _ hs, prod_Union],
     refine tendsto_measure_Union (λ n m hnm x, _),
     simp only [rat.cast_coe_nat, mem_prod, mem_Iic, and_imp],
     refine λ hxs hxn, ⟨hxs, hxn.trans _⟩,
@@ -1030,14 +1180,14 @@ lemma set_lintegral_cond_kernel_prod (ρ : measure (α × ℝ)) [is_finite_measu
   {s : set α} (hs : measurable_set s) {t : set ℝ} (ht : measurable_set t) :
   ∫⁻ a in s, cond_kernel ρ a t ∂ρ.fst = ρ (s ×ˢ t) :=
 begin
-  -- `set_lintegral_cond_kernel_Iic_rat` gives the result for `t = Iic (q : ℚ)`. These sets form a
+  -- `set_lintegral_cond_kernel_Iic` gives the result for `t = Iic x`. These sets form a
   -- π-system that generate the borel σ-algebra, hence we can get the same equality for any
   -- measurable set `t`.
-  refine measurable_space.induction_on_inter real.borel_eq_generate_from_Iic_rat
-    is_pi_system_Iic_rat _ _ _ _ ht,
+  refine measurable_space.induction_on_inter real.borel_eq_generate_from_Iic
+    real.is_pi_system_Iic _ _ _ _ ht,
   { simp only [measure_empty, lintegral_const, zero_mul, prod_empty], },
   { rintros t ⟨q, rfl⟩,
-    exact set_lintegral_cond_kernel_Iic_rat ρ q hs, },
+    exact set_lintegral_cond_kernel_Iic ρ q hs, },
   { intros t ht ht_lintegral,
     calc ∫⁻ a in s, cond_kernel ρ a tᶜ ∂ρ.fst
         = ∫⁻ a in s, (cond_kernel ρ a univ) - cond_kernel ρ a t ∂ρ.fst :

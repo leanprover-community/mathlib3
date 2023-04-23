@@ -8,6 +8,9 @@ import algebra.homology.homological_complex
 /-!
 # Complexes in functor categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We can view a complex valued in a functor category `T ⥤ V` as
 a functor from `T` to complexes valued in `V`.
 

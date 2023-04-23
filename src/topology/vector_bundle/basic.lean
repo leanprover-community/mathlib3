@@ -881,13 +881,20 @@ variables [Π x, topological_space (E x)] [fiber_bundle F E] [vector_bundle 𝕜
 variables [Π x, topological_space (E' x)] [fiber_bundle F' E'] [vector_bundle 𝕜₂ F' E']
 variables (F E F' E')
 
-/-- When `ϕ` is a continuous linear map that changes vectors in charts around `x` to vectors
-in charts around `y`, `in_coordinates Z Z₂ x₀ x y₀ y ϕ` is a coordinate change of this continuous
-linear map that makes sense from charts around `x₀` to charts around `y₀`
-by composing it with appropriate coordinate changes given by smooth vector bundles `Z` and `Z₂`.
+/-- When `ϕ` is a continuous (semi)linear map between the fibers `E x` and `E' y` of two vector
+bundles `E` and `E'`, `in_coordinates F E F' E' x₀ x y₀ y ϕ` is a coordinate change of this
+continuous linear map w.r.t. the chart around `x₀` and the chart around `y₀`.
 
-This is the underlying function of the hom trivializations, but note that this is defined even when
-`x` and `y` live in different base sets.
+It is defined by composing `ϕ` with appropriate coordinate changes given by the vector bundles
+`E` and `E'`.
+We use the operations `trivialization.continuous_linear_map_at` and `trivialization.symmL` in the
+definition, instead of `trivialization.continuous_linear_equiv_at`, so that `in_coordinates` is
+defined everywhere (but see `in_coordinates_eq`).
+
+This is the (second component of the) underlying function of a trivialization of the hom-bundle
+(see `hom_trivialization_at_apply`). However, note that `in_coordinates` is defined even when
+`x` and `y` live in different base sets. Therefore, it is is also convenient when working with the
+hom-bundle between pulled back bundles.
 -/
 def in_coordinates (x₀ x : B) (y₀ y : B') (ϕ : E x →SL[σ] E' y) : F →SL[σ] F' :=
 ((trivialization_at F' E' y₀).continuous_linear_map_at 𝕜₂ y).comp $ ϕ.comp $

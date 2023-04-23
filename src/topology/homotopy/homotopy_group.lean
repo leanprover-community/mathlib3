@@ -23,8 +23,7 @@ We give a group instance using path transitivity and show commutativity when `n 
 
 ## definitions
 
-* `gen_loop n x` is the type of continous fuctions `I^n → X` that send the
-  boundary to `x`,
+* `gen_loop n x` is the type of continous fuctions `I^n → X` that send the boundary to `x`,
 * `homotopy_group n x` denoted `π_ n x` is the quotient of `gen_loop n x` by homotopy relative
   to the boundary,
 * group instance `group (π_(n+1) x)`,
@@ -47,7 +46,8 @@ universes u
 variables {X : Type u} [topological_space X]
 variables {N : Type*} {x : X}
 
-/-- The `n`-dimensional cube. -/
+/-- The `n`-dimensional cube `I^n` is defined via an abstract definition so that subsets of faces
+  can be implemented with subtypes of `fin n`. -/
 @[derive [has_zero, has_one, topological_space]]
 def cube (N : Type*) := N → I
 local notation `I^` n := cube (fin n)
@@ -60,7 +60,7 @@ by { convert pi.compact_space, intro, apply_instance }
 instance locally_compact_space : locally_compact_space (cube N) :=
 by convert locally_compact_space.pi; intro; apply_instance
 
-/-- The points of the `n`-dimensional cube with at least one projection equal to 0 or 1. -/
+/-- The points in a cube with at least one projection equal to 0 or 1. -/
 def boundary (N) : set (cube N) := {y | ∃ i, y i = 0 ∨ y i = 1}
 
 variable {n : ℕ}
@@ -74,11 +74,11 @@ lemma one_char (f : I^1) : f = λ _, f 0 := eq_const_of_unique f
 section
 variable [decidable_eq N]
 
-/-- Makes a cube from a pair I × {j // j≠i}→I such that it ha the first value at coordinate i, and
-  it equals the function elsewhere. -/
+/-- Makes a cube from a pair I × {j // j≠i} → I such that it has the first value at coordinate i,
+  and it equals the function elsewhere. -/
 abbreviation insert_at (i : N) := (fun_split_at I i).symm
 
-lemma inserted_in_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}):
+lemma insert_at_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
   insert_at i ⟨t₀, t⟩ ∈ boundary N :=
 begin
   cases H, { use i, rwa [fun_split_at_symm_apply, dif_pos rfl] },
@@ -96,7 +96,8 @@ local notation `Ω` := loop_space
 
 instance loop_space.inhabited : inhabited (Ω X x) := ⟨path.refl x⟩
 
-/-- The `n`-dimensional generalized loops; functions `I^n → X` fixed at the boundary. -/
+/-- The `n`-dimensional generalized loops are continuous functions `I^n → X` fixed at the boundary,
+  defined with an abstract type `N` of coordinates. -/
 def gen_loop (N) (x : X) : set C(cube N, X) := {p | ∀ y ∈ cube.boundary N, p y = x}
 
 namespace gen_loop
@@ -147,12 +148,12 @@ variable [decidable_eq N]
 /-- Path from a generalized loop by `insert`-ing into `I^(n+1)`. -/
 @[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
 { to_fun := λ t, ⟨(p.val.comp (cube.insert_at i).to_continuous_map).curry t,
-    λ y yH, p.property (cube.insert_at i (t, y)) (cube.inserted_in_boundary i $ or.inr yH)⟩,
+    λ y yH, p.property (cube.insert_at i (t, y)) (cube.insert_at_boundary i $ or.inr yH)⟩,
   continuous_to_fun := by continuity,
   source' := by { ext t, refine p.property (cube.insert_at i (0, t)) ⟨i, or.inl _⟩, simp },
   target' := by { ext t, refine p.property (cube.insert_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
-/-- Generalized loop from a path by `extrac`-ing of `I×I^n`. -/
+/-- Generalized loop from a path by `split`-ing into `I×I^n`. -/
 @[simps] def from_path (i : N) : Ω (gen_loop {j // j ≠ i} x) const → gen_loop N x :=
 λ p, ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(cube _, X))).uncurry.comp
   (fun_split_at I i).to_continuous_map,
@@ -172,7 +173,8 @@ begin
     to_continuous_map_comp_symm, continuous_map.comp_id], ext, refl,
 end
 
-/-- The (n+1)-dimensional loops are isomorphic to the loop space at `const`.-/
+/-- The `n+1`-dimensional loops are equivalent to the loop space at `const` as a `n`-dimensional
+  loop, defined abtractically for any nonempty index type `N`. -/
 @[simps] def path_equiv (i : N) : gen_loop N x ≃ Ω (gen_loop {j // j ≠ i} x) const :=
 { to_fun := to_path i,
   inv_fun := from_path i,
@@ -211,7 +213,7 @@ begin
   refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩, _⟩, _, _⟩, _⟩),
   { rintros y ⟨i,iH⟩,
     rw homotopy_to_apply_apply, rw H.eq_fst, rw p.2,
-    all_goals { apply cube.inserted_in_boundary, right, exact ⟨i,iH⟩} },
+    all_goals { apply cube.insert_at_boundary, right, exact ⟨i,iH⟩} },
   { continuity },
   show ∀ _ _ _, _,
   { intros t y yH,
@@ -304,8 +306,8 @@ end
   to itself. -/
 @[simps] def gen_loop_one_equiv_path_self : gen_loop (fin 1) x ≃ Ω X x :=
 { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by continuity⟩
-    (gen_loop.boundary p (λ _, 0) ⟨0, or.inl rfl⟩)
-    (gen_loop.boundary p (λ _, 1) ⟨1, or.inr rfl⟩),
+    (gen_loop.boundary _ (λ _, 0) ⟨0, or.inl rfl⟩)
+    (gen_loop.boundary _ (λ _, 1) ⟨1, or.inr rfl⟩),
   inv_fun := λ p,
   begin
     refine ⟨⟨λ (c : I^1), p c.head, by continuity⟩, _⟩,
@@ -350,8 +352,6 @@ instance group : group (π_(n+1) X x) :=
   so as to enable the Eckmann-Hilton argument. -/
 @[reducible] private def aux_group : group (π_(n+2) X x) :=
 (homotopy_group_equiv_fundamental_group 1).group
-
-instance add_group : add_group (additive $ π_(n+2) X x) := additive.add_group
 
 lemma from_path_trans_to_path {p q : gen_loop N x} (i : N) {t} :
   (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) t = if (t i : ℝ) ≤ 1/2

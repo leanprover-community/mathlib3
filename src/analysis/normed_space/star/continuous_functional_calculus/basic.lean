@@ -999,6 +999,8 @@ lemma cfcℝ_smul_comm (a : self_adjoint A) (r : ℝ) (f : C(ℝ, ℝ)) :
   cfcℝ (r • a) f = cfcℝ a (f.comp (r • continuous_map.id ℝ)) :=
 by rw [cfcℝ_comp, map_smul, cfcℝ_map_id]
 
+.
+
 lemma cfcℝ_one (f : C(ℝ, ℝ)) : cfcℝ (1 : self_adjoint A) f = (f 1) • 1 :=
 begin
   ext,
@@ -1162,50 +1164,49 @@ begin
   simp only [one_eq, set.mem_singleton_iff, forall_eq, zero_le_one],
 end
 
-variables
-  {A : Type*} [ring A] [star_ring A] [topological_space A] [algebra ℝ A] [star_module ℝ A]
-  [Π b : self_adjoint A, continuous_functional_calculus_spectrum_class ℝ (b : A)]
-  [Π b : self_adjoint A, subsingleton (continuous_functional_calculus_class ℝ (b : A))]
+.
 
-def positive (A : Type*) [ring A] [algebra ℝ A] [star_add_monoid A] [star_module ℝ A]
-  [is_positive_add_class A] : submodule ℝ≥0 A :=
-{ carrier := {a : A | is_positive a},
-  zero_mem' :=
-  begin
-    refine ⟨is_self_adjoint_zero A, _⟩,
-    nontriviality A,
-    simp only [zero_eq, set.mem_singleton_iff, forall_eq],
-  end,
-  smul_mem' := λ r a ha, ha.nnreal_smul r,
-  add_mem' := λ _ _, is_positive.add }
+lemma is_positive_tfae (A : Type*) [ring A] [star_ring A] [topological_space A] [algebra ℝ A]
+  [star_module ℝ A] [Π b : self_adjoint A, continuous_functional_calculus_spectrum_class ℝ (b : A)]
+  [Π b : self_adjoint A, subsingleton (continuous_functional_calculus_class ℝ (b : A))] (a : A) :
+  tfae [is_positive a, ∃ x : self_adjoint A, (x ^ 2 : A) = a, ∃ x : A, star x * x = a] :=
+begin
+  tfae_have : 1 → 2,
+  { intro ha,
+    lift a to ↥(self_adjoint A) using ha.is_self_adjoint,
+    use cfcℝ a ⟨real.sqrt⟩,
+    rw [←self_adjoint.coe_pow, ←subtype.ext_iff, ←cfcℝ_X_pow, ←cfcℝ_comp],
+    nth_rewrite_rhs 0 [←cfcℝ_map_id a],
+    ext x,
+    simp only [continuous_map.pow_apply, continuous_map.comp_apply, continuous_map.coe_mk,
+      to_continuous_map_apply, eval_X, continuous_map.id_apply],
+    sorry, },
+  tfae_have : 2 → 3,
+  { sorry },
+  tfae_have : 3 → 1,
+  { sorry },
+  tfae_finish,
+end
 
 #exit
 
+def star_ordered_ring.positive (A : Type*) [non_unital_semiring A] [partial_order A] [star_ordered_ring A] :
+  add_submonoid A :=
+{ carrier := {a : A | 0 ≤ a},
+  add_mem' := λ a b,
+  begin
+    simp only [set.mem_set_of, star_ordered_ring.nonneg_iff],
+    exact add_mem,
+  end,
+  zero_mem' := le_rfl }
+
+
+/-
 instance {α β : Type*} [topological_space α] [topological_space β] [is_empty α] :
   subsingleton C(α, β) :=
 fun_like.coe_injective.subsingleton
 -- actually, we should be able to get a `unique` instance here
 
-#exit
-
-#exit
-
-variables
-  {A : Type*} [ring A] [star_ring A] [algebra ℝ A]
---  [Π b : self_adjoint A, continuous_functional_calculus_spectrum_class ℝ (b : A)]
-  --[Π b : self_adjoint A, subsingleton (continuous_functional_calculus_class ℝ (b : A))]
-#exit
-end spectrum
-
-#exit
-
-end complex_to_real
-
-
-#exit
-
-
-/-
 lemma is_positive.cfc₂_dist_eq_Inf {A : Type*} [ring A] [star_ring A] [metric_space A]
   [algebra ℝ A] [star_module ℝ A] {a : A} (ha : is_positive a) [compact_space (spectrum ℝ a)]
   [continuous_functional_calculus_isometry_class ℝ a] :

@@ -33,7 +33,8 @@ TODO
 ## Main definitions
 
 For a measure `ρ` on `α × ℝ`, we define
-* `probability_theory.cond_cdf ρ : α → ℝ → ℝ`: the conditional cdf of `ρ`.
+* `probability_theory.cond_cdf ρ : α → stieltjes_function`: the conditional cdf of `ρ`. A
+  `stieltjes_function` is a function `ℝ → ℝ` which is monotone and right-continuous.
 * `probability_theory.cond_kernel ρ : kernel α ℝ`: TODO
 
 ## Main statements
@@ -47,8 +48,8 @@ For a measure `ρ` on `α × ℝ`, we define
   that `Ω` is measurably equivalent to `ℝ`, `ℤ` or a finite set.
 * The finite measure hypothesis can be weakened to σ-finite. The proof uses the finite case.
 * Beyond measures, we can find a disintegration for a kernel `α → Ω × Ω'` by applying the
-  construction here for all `a : α` and showing additional measurability properties of the map we
-  obtain.
+  construction used here for all `a : α` and showing additional measurability properties of the map
+  we obtain.
 * The conditional cdf construction in this file can give the cdf of a real measure by using the
   conditional cdf of a measure on `unit × ℝ`.
 
@@ -769,15 +770,16 @@ begin
         exact h.trans (mem_Ioi.mp x.prop).le, }, }, },
 end
 
-/-- Conditional cdf of the measure given the value on `α`. -/
+/-- Conditional cdf of the measure given the value on `α`. This is an auxiliary definition used
+to define `cond_cdf`. -/
 noncomputable
-def cond_cdf (ρ : measure (α × ℝ)) : α → ℝ → ℝ :=
+def cond_cdf' (ρ : measure (α × ℝ)) : α → ℝ → ℝ :=
 λ a t, ⨅ r : {r' : ℚ // t < r'}, cond_cdf_rat ρ a r
 
-lemma cond_cdf_eq_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
-  cond_cdf ρ a r = cond_cdf_rat ρ a r :=
+lemma cond_cdf'_eq_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
+  cond_cdf' ρ a r = cond_cdf_rat ρ a r :=
 begin
-  rw [← inf_gt_cond_cdf_rat ρ a r, cond_cdf],
+  rw [← inf_gt_cond_cdf_rat ρ a r, cond_cdf'],
   refine equiv.infi_congr _ _,
   { exact
     { to_fun := λ t, ⟨t.1, by exact_mod_cast t.2⟩,
@@ -788,15 +790,22 @@ begin
     simp only [subtype.val_eq_coe, equiv.coe_fn_mk, subtype.coe_mk], },
 end
 
+lemma cond_cdf'_nonneg (ρ : measure (α × ℝ)) (a : α) (r : ℝ) :
+  0 ≤ cond_cdf' ρ a r :=
+begin
+  haveI : nonempty {r' : ℚ // r < ↑r'},
+  { obtain ⟨r, hrx⟩ := exists_rat_gt r,
+    exact ⟨⟨r, hrx⟩⟩, },
+  exact le_cinfi (λ r', cond_cdf_rat_nonneg ρ a _),
+end
+
 lemma bdd_below_range_cond_cdf_rat_gt (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
   bdd_below (range (λ (r : {r' : ℚ // x < ↑r'}), cond_cdf_rat ρ a r)) :=
 by { refine ⟨0, λ z, _⟩, rintros ⟨u, rfl⟩, exact cond_cdf_rat_nonneg ρ a _, }
 
-/-- The conditional cdf is monotone for all `a : α`. -/
-lemma monotone_cond_cdf (ρ : measure (α × ℝ)) (a : α) : monotone (cond_cdf ρ a) :=
+lemma monotone_cond_cdf' (ρ : measure (α × ℝ)) (a : α) : monotone (cond_cdf' ρ a) :=
 begin
   intros x y hxy,
-  rw [cond_cdf],
   haveI : nonempty {r' : ℚ // y < ↑r'},
   { obtain ⟨r, hrx⟩ := exists_rat_gt y,
     exact ⟨⟨r, hrx⟩⟩, },
@@ -808,25 +817,53 @@ begin
   { refl, },
 end
 
+lemma continuous_within_at_cond_cdf'_Ici (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
+  continuous_within_at (cond_cdf' ρ a) (Ici x) x :=
+begin
+  rw ← continuous_within_at_Ioi_iff_Ici,
+  convert monotone.tendsto_nhds_within_Ioi (monotone_cond_cdf' ρ a) x,
+  rw Inf_image',
+  have h' : (⨅ r : Ioi x, cond_cdf' ρ a r) = ⨅ r : {r' : ℚ // x < r'}, cond_cdf' ρ a r,
+  { refine infi_Ioi_eq_infi_rat_gt x _ (monotone_cond_cdf' ρ a),
+    refine ⟨0, λ z, _⟩,
+    rintros ⟨u, hux, rfl⟩,
+    exact cond_cdf'_nonneg ρ a u, },
+  have h'' : (⨅ r : {r' : ℚ // x < r'}, cond_cdf' ρ a r)
+    = ⨅ r : {r' : ℚ // x < r'}, cond_cdf_rat ρ a r,
+  { congr' with r,
+    exact cond_cdf'_eq_cond_cdf_rat ρ a r, },
+  rw [h', h''],
+  refl,
+end
+
+/-- Conditional cdf of the measure given the value on `α`, as a Stieltjes function. -/
+noncomputable
+def cond_cdf (ρ : measure (α × ℝ)) (a : α) : stieltjes_function :=
+{ to_fun := cond_cdf' ρ a,
+  mono' := monotone_cond_cdf' ρ a,
+  right_continuous' := λ x, continuous_within_at_cond_cdf'_Ici ρ a x, }
+
+lemma cond_cdf_eq_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
+  cond_cdf ρ a r = cond_cdf_rat ρ a r :=
+cond_cdf'_eq_cond_cdf_rat ρ a r
+
 /-- The conditional cdf is non-negative for all `a : α`. -/
 lemma cond_cdf_nonneg (ρ : measure (α × ℝ)) (a : α) (r : ℝ) :
   0 ≤ cond_cdf ρ a r :=
-begin
-  haveI : nonempty {r' : ℚ // r < ↑r'},
-  { obtain ⟨r, hrx⟩ := exists_rat_gt r,
-    exact ⟨⟨r, hrx⟩⟩, },
-  exact le_cinfi (λ r', cond_cdf_rat_nonneg ρ a _),
-end
+cond_cdf'_nonneg ρ a r
 
 /-- The conditional cdf is lower or equal to 1 for all `a : α`. -/
 lemma cond_cdf_le_one (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
   cond_cdf ρ a x ≤ 1 :=
 begin
-  rw [cond_cdf],
   obtain ⟨r, hrx⟩ := exists_rat_gt x,
   refine cinfi_le_of_le (bdd_below_range_cond_cdf_rat_gt ρ a x) _ (cond_cdf_rat_le_one _ _ _),
   exact ⟨r, hrx⟩,
 end
+
+/-- The conditional cdf is monotone for all `a : α`. -/
+lemma monotone_cond_cdf (ρ : measure (α × ℝ)) (a : α) : monotone (cond_cdf ρ a) :=
+(cond_cdf ρ a).mono
 
 /-- The conditional cdf tends to 0 at -∞ for all `a : α`. -/
 lemma tendsto_cond_cdf_at_bot (ρ : measure (α × ℝ)) (a : α) :
@@ -884,29 +921,6 @@ lemma measurable_cond_cdf (ρ : measure (α × ℝ)) (x : ℝ) :
   measurable (λ a, cond_cdf ρ a x) :=
 measurable_cinfi (λ q, measurable_cond_cdf_rat ρ q) (λ a, bdd_below_range_cond_cdf_rat_gt ρ a _)
 
-lemma tendsto_cond_cdf_Ioi (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
-  tendsto (cond_cdf ρ a) (𝓝[Ioi x] x) (𝓝 (cond_cdf ρ a x)) :=
-begin
-  convert monotone.tendsto_nhds_within_Ioi (monotone_cond_cdf ρ a) x,
-  rw Inf_image',
-  have h' : (⨅ r : Ioi x, cond_cdf ρ a r) = ⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a r,
-  { refine infi_Ioi_eq_infi_rat_gt x _ (monotone_cond_cdf ρ a),
-    refine ⟨0, λ z, _⟩,
-    rintros ⟨u, hux, rfl⟩,
-    exact cond_cdf_nonneg ρ a u, },
-  have h'' : (⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a r)
-    = ⨅ r : {r' : ℚ // x < r'}, cond_cdf_rat ρ a r,
-  { congr' with r,
-    exact cond_cdf_eq_cond_cdf_rat ρ a r, },
-  rw [h', h''],
-  refl,
-end
-
-/-- The conditional cdf is right-continuous for all `a : α`. -/
-lemma continuous_within_at_cond_cdf (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
-  continuous_within_at (cond_cdf ρ a) (Ici x) x :=
-by { rw ← continuous_within_at_Ioi_iff_Ici, exact tendsto_cond_cdf_Ioi ρ a x, }
-
 lemma set_lintegral_cond_cdf_Iic_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
@@ -917,18 +931,9 @@ begin
   exact ρ.Iic_snd_apply r hs,
 end
 
-/-- Conditional cdf as a Stieltjes function. -/
-noncomputable
-def cond_cdf_stieltjes (ρ : measure (α × ℝ)) (a : α) : stieltjes_function :=
-{ to_fun := cond_cdf ρ a,
-  mono' := monotone_cond_cdf ρ a,
-  right_continuous' := continuous_within_at_cond_cdf ρ a }
-
-/-- Conditional measure on the second space of the product given the value on the first. Use
-`cond_kernel` instead of this. -/
-noncomputable
-def cond_measure (ρ : measure (α × ℝ)) (a : α) : measure ℝ :=
-(cond_cdf_stieltjes ρ a).measure
+/-- Conditional measure on the second space of the product given the value on the first. This is an
+auxiliary definition used to build `cond_kernel`. -/
+noncomputable def cond_measure (ρ : measure (α × ℝ)) (a : α) : measure ℝ := (cond_cdf ρ a).measure
 
 lemma cond_measure_Iic (ρ : measure (α × ℝ)) (a : α) (q : ℝ) :
   cond_measure ρ a (Iic q) = ennreal.of_real (cond_cdf ρ a q) :=
@@ -948,6 +953,8 @@ end
 instance (ρ : measure (α × ℝ)) (a : α) : is_probability_measure (cond_measure ρ a) :=
 ⟨cond_measure_univ ρ a⟩
 
+/-- The function `a ↦ cond_measure ρ a` is measurable. This allows us to build a kernel from these
+measures. -/
 lemma measurable_cond_measure (ρ : measure (α × ℝ)) :
   measurable (cond_measure ρ) :=
 begin
@@ -969,13 +976,12 @@ begin
     exact measurable.ennreal_tsum hf_cd_meas, },
 end
 
-/-- Conditional measure on the second space of the product given the value on the first. -/
+/-- Conditional measure on the second space of the product given the value on the first, as a
+kernel. -/
 noncomputable
 def cond_kernel (ρ : measure (α × ℝ)) : kernel α ℝ :=
 { val := λ a, cond_measure ρ a,
   property := measurable_cond_measure ρ }
-
-lemma cond_kernel_apply (ρ : measure (α × ℝ)) (a : α) : cond_kernel ρ a = cond_measure ρ a := rfl
 
 instance (ρ : measure (α × ℝ)) : is_markov_kernel (cond_kernel ρ) :=
 ⟨λ a, by { rw cond_kernel, apply_instance, } ⟩

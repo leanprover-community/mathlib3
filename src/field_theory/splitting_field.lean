@@ -173,7 +173,7 @@ instance has_smul (α : Type*) (n : ℕ) {K : Type u} [field K] [distrib_smul α
 
 /-- Lift an action of `α` on `K` to `K` adjoined `n` roots of `f : K[X]`.
 
-A `distrib_scalar` is required to lift scalar multiplication on `K` to a splitting field of
+A `distrib_smul` is required to lift scalar multiplication on `K` to a splitting field of
 `f : K[X]`, i.e. we need this instance to keep the recursive definition going.
 -/
 instance distrib_smul (α : Type*) (n : ℕ) {K : Type u} [field K]

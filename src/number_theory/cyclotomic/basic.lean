@@ -553,11 +553,12 @@ variables [is_domain A] [algebra A K] [is_fraction_ring A K]
 section cyclotomic_ring
 
 /-- If `K` is the fraction field of `A`, the `A`-algebra structure on `cyclotomic_field n K`.
-This is not an instance since it causes diamonds when `A = ℤ`. -/
+-/
 @[nolint unused_arguments]
 instance cyclotomic_field.algebra_base : algebra A (cyclotomic_field n K) :=
 splitting_field.algebra' (cyclotomic n K)
 
+/-- Ensure there are no diamonds when `A = ℤ`. -/
 example : algebra_int (cyclotomic_field n ℚ) = cyclotomic_field.algebra_base _ _ _ := rfl
 
 instance cyclotomic_field.no_zero_smul_divisors : no_zero_smul_divisors A (cyclotomic_field n K) :=

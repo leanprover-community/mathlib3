@@ -133,11 +133,16 @@ lemma star_star_mul (x y : R) : star (star x * y) = star y * x := by rw [star_mu
 
 lemma star_mul_star (x y : R) : star (x * star y) = y * star x := by rw [star_mul, star_star]
 
-lemma commute.star_star {x y : R} (h : commute x y) : commute (star x) (star y) :=
-(star_mul _ _).symm.trans $ (congr_arg star h.symm).trans $ star_mul _ _
+@[simp] lemma semiconj_by_star_star_star {x y z : R} :
+  semiconj_by (star x) (star z) (star y) ↔ semiconj_by x y z :=
+by simp_rw [semiconj_by, ←star_mul, star_injective.eq_iff, eq_comm]
+
+alias semiconj_by_star_star_star ↔ _ semiconj_by.star_star_star
 
 @[simp] lemma commute_star_star {x y : R} : commute (star x) (star y) ↔ commute x y :=
-⟨λ h, by simpa only [star_star] using h.star_star, commute.star_star⟩
+semiconj_by_star_star_star
+
+alias commute_star_star ↔ _ commute.star_star
 
 lemma commute_star_comm {x y : R} : commute (star x) y ↔ commute x (star y) :=
 by rw [←commute_star_star, star_star]

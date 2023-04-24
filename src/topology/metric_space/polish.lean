@@ -76,10 +76,6 @@ instance polish_space_of_complete_second_countable
 { second_countable := h,
   complete := ⟨m, rfl, h'⟩ }
 
-@[priority 10]
-instance second_countable_of_polish [topological_space α] [h : polish_space α] :
-  second_countable_topology α := h.second_countable
-
 /-- Construct on a Polish space a metric (compatible with the topology) which is complete. -/
 def polish_space_metric (α : Type*) [ht : topological_space α] [h : polish_space α] :
   metric_space α :=

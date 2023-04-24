@@ -30,7 +30,7 @@ including a version of the Cantor-Bendixson Theorem.
 * `exists_countable_union_perfect_of_is_closed`: One version of the **Cantor-Bendixson Theorem**:
   A closed set in a second countable space can be written as the union of a countable set and a
   perfect set.
-* `perfect.exists_nat_bool_injection`: A perfect nonempty set in a complete metric space
+* `exists_nat_bool_injection_of_perfect_nonempty`: A perfect nonempty set in a complete metric space
   admits an embedding from the Cantor space.
 
 ## Implementation Notes

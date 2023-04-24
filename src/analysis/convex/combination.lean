@@ -288,10 +288,11 @@ begin
     exact affine_combination_mem_convex_hull hw₀ hw₁, },
 end
 
-/-- Convex hull of `s` is equal to the set of all centers of masses of `finset`s `t`, `z '' t ⊆ s`.
-This version allows finsets in any type in any universe. -/
+/--
+Convex hull of `s` is equal to the set of all centers of masses of `finset`s `t`, `z '' t ⊆ s`.
+-/
 lemma convex_hull_eq (s : set E) :
-  convex_hull R s = {x : E | ∃ (ι : Type u') (t : finset ι) (w : ι → R) (z : ι → E)
+  convex_hull R s = {x : E | ∃ (ι : Type) (t : finset ι) (w : ι → R) (z : ι → E)
     (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : ∑ i in t, w i = 1) (hz : ∀ i ∈ t, z i ∈ s),
     t.center_mass w z = x} :=
 begin

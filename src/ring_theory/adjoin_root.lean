@@ -111,16 +111,15 @@ instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algeb
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
 
+-- TODO (lean4): make a smul lemma for `ideal.quotient.mk`.
 instance adjoin_root.is_scalar_tower_right [distrib_smul S R] [is_scalar_tower S R R] :
   is_scalar_tower S (adjoin_root f) (adjoin_root f) :=
 ⟨begin
   rintro x ⟨y⟩ ⟨z⟩,
-  simp only [submodule.quotient.quot_mk_eq_mk, algebra.id.smul_eq_mul],
-  -- TODO: post port, copy the `smul` lemma for `ideal.quotient`; will make this proof far easier.
-  rw [←submodule.quotient.mk_smul],
-  simp only [ideal.quotient.mk_eq_mk],
-  rw [←_root_.map_mul, ←_root_.map_mul, smul_mul_assoc, ←ideal.quotient.mk_eq_mk,
-      submodule.quotient.mk_smul, ideal.quotient.mk_eq_mk],
+  calc ideal.quotient.mk (span {f}) (x • y) * (ideal.quotient.mk (span {f})) z
+       = submodule.quotient.mk (x • y * z) : (_root_.map_mul (ideal.quotient.mk _) _ _).symm
+  ...  = x • (ideal.quotient.mk (span {f}) y * ideal.quotient.mk (span {f}) z) :
+  by rw [smul_mul_assoc, submodule.quotient.mk_smul, ideal.quotient.mk_eq_mk, _root_.map_mul]
 end⟩
 
 instance [comm_semiring S] [comm_semiring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :

@@ -208,52 +208,34 @@ theorem clopen_equalizer_of_discrete {X Y : Type*} [topological_space X] [topolo
 
 lemma tautology : true := sorry
 
-theorem uniqueness_of_homotopy_lifting (Y : Type*) [topological_space Y] (hf: is_covering_map f)
+theorem uniqueness_of_homotopy_lifting (Y : Type*) [topological_space Y] (hf : is_covering_map f)
   (H₁ H₂ : continuous_map Y E) (h : f ∘ H₁ = f ∘ H₂)
   (hC : ∀ x : Y, ∃ y ∈ connected_component x, H₁ y = H₂ y) :
   H₁ = H₂ :=
-
-  begin
-
-    let composition := f∘ H₁,
-    have k:continuous composition:=continuous.comp hf.continuous H₁.continuous ,
-    have london:=clopen_set_intersect_connected_components_whole_set Y _ _ hC,
-    {apply fun_like.ext H₁ H₂ ,
-    rw set.eq_univ_iff_forall at london,
-    exact london},
-
-      apply is_clopen_of_is_clopen_coe,
-      intro x,
-      let c:= (hf  $ composition x).to_trivialization,
-
-      let cbase:= c.base_set,
-      let d:= composition⁻¹' c.base_set,
-      use d,
-
-      have l:= mem_nhds_iff.2 ⟨ d,subset_rfl ,k.is_open_preimage c.base_set c.open_base_set,
-        set.mem_preimage.2 (is_evenly_covered.mem_to_trivialization_base_set _)⟩,
-      split,
-      exact l,
-
-      let f₁ : d → E := H₁ ∘ coe,
-      let f₂ : d → E := H₂ ∘ coe,
-      let g₁ : d → f ⁻¹' {composition x} := prod.snd ∘ c.1 ∘ f₁,
-      let g₂ : d → f ⁻¹' {composition x} := prod.snd ∘ c.1 ∘ f₂,
-      change is_clopen {y : d | f₁ y = f₂ y},
-      haveI := (hf (composition x)).1,
-      have key'': f₁ = coe ∘ g₁,
-
-      have key : ∀ y : d, f₁ y = f₂ y ↔ g₁ y = g₂ y,
-      intro y,
-      split,
-      sorry,
-      sorry,
-
-      simp_rw [key],
-      have key₁ : continuous g₁ := sorry,
-      have key₂ : continuous g₂ := sorry,
-      exact clopen_equalizer_of_discrete key₁ key₂,
-  end
+begin
+  refine fun_like.ext H₁ H₂ (set.eq_univ_iff_forall.mp
+    (clopen_set_intersect_connected_components_whole_set _ _
+    (is_clopen_of_is_clopen_coe _ _ (λ x, _)) hC)),
+  let t := (hf (f (H₁ x))).to_trivialization,
+  let U := (f ∘ H₁) ⁻¹' t.base_set,
+  refine ⟨U, (t.open_base_set.preimage (hf.continuous.comp H₁.continuous)).mem_nhds
+    ((hf (f (H₁ x)))).mem_to_trivialization_base_set, _⟩,
+  change is_clopen {y : U | H₁ y = H₂ y},
+  have h0 : ∀ y : U, f (H₁ y) = f (H₂ y) := λ y, congr_fun h y,
+  have h1 : ∀ y : U, f (H₁ y) ∈ t.base_set := subtype.prop,
+  have h2 : ∀ y : U, f (H₂ y) ∈ t.base_set := λ y, h0 y ▸ h1 y,
+  have key : ∀ y : U, H₁ y = H₂ y ↔ (t (H₁ y)).2 = (t (H₂ y)).2,
+  { refine λ y, ⟨congr_arg (prod.snd ∘ t), λ m, _⟩,
+    have h0 : f (H₁ y) = f (H₂ y) := congr_fun h y,
+    rw [←t.coe_fst' (h1 y), ←t.coe_fst' (h2 y)] at h0,
+    refine t.inj_on (t.mem_source.mpr (h1 y)) (t.mem_source.mpr (h2 y)) (prod.ext h0 m) },
+  simp_rw [key],
+  haveI := (hf (f (H₁ x))).1,
+  simp only [←t.mem_source] at h1 h2,
+  refine clopen_equalizer_of_discrete
+    (continuous_snd.comp (t.continuous_to_fun.comp_continuous (H₁.2.comp continuous_subtype_coe) h1))
+    (continuous_snd.comp (t.continuous_to_fun.comp_continuous (H₂.2.comp continuous_subtype_coe) h2)),
+end
 
   -- is_open.preimage k (connected_component_in r x)
   -- hf.mem_to_trivialization_base_set

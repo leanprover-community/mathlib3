@@ -286,7 +286,7 @@ variable (K)
 of `K`, the norm (down to `K`) of an element `x` of `L` is equal to the product of the images
 of `x` over all the `K`-embeddings `σ`  of `L` into `E`. -/
 lemma norm_eq_prod_embeddings [finite_dimensional K L] [is_separable K L] [is_alg_closed E]
-  {x : L} : algebra_map K E (norm K x) = ∏ σ : L →ₐ[K] E, σ x :=
+  (x : L) : algebra_map K E (norm K x) = ∏ σ : L →ₐ[K] E, σ x :=
 begin
   have hx := is_separable.is_integral K x,
   rw [norm_eq_norm_adjoin K x, ring_hom.map_pow, ← adjoin.power_basis_gen hx,
@@ -340,7 +340,7 @@ begin
   haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
   letI : ∀ (σ : L →ₐ[K] A), fintype (@alg_hom L F A _ _ _ _ σ.to_ring_hom.to_algebra) :=
     λ _, infer_instance,
-  rw [@norm_eq_prod_embeddings K F _ _ _ A _ _ _ _ _ _, fintype.prod_equiv alg_hom_equiv_sigma
+  rw [norm_eq_prod_embeddings K A (_ : F), fintype.prod_equiv alg_hom_equiv_sigma
     (λ σ : F →ₐ[K] A, σ x) (λ π : (Σ (f : L →ₐ[K] A), _), (π.2 : F → A) x) (λ _, rfl)],
   suffices : ∀ σ : L →ₐ[K] A, finset.univ.prod
     (λ (π : @alg_hom L F A _ _ _ _ σ.to_ring_hom.to_algebra), π x) = σ (norm L x),

@@ -1503,8 +1503,11 @@ variables [ordered_cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a
 @[to_additive] lemma mk_le_mk : mk a₁ a₂ ≤ mk b₁ b₂ ↔ ↑b₂ * a₁ ≤ a₂ * b₁ := iff.rfl
 @[to_additive] lemma mk_lt_mk : mk a₁ a₂ < mk b₁ b₂ ↔ ↑b₂ * a₁ < a₂ * b₁ := iff.rfl
 
-@[to_additive] instance : ordered_cancel_comm_monoid (localization s) :=
-{ le_refl := λ a, localization.induction_on a $ λ a, le_rfl,
+-- declaring this separately to the instance below makes things faster
+@[to_additive] instance : partial_order (localization s) :=
+{ le := (≤),
+  lt := (<),
+  le_refl := λ a, localization.induction_on a $ λ a, le_rfl,
   le_trans := λ a b c, localization.induction_on₃ a b c $ λ a b c hab hbc, begin
     simp only [mk_le_mk] at ⊢ hab hbc,
     refine le_of_mul_le_mul_left' _,
@@ -1520,8 +1523,10 @@ variables [ordered_cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a
     exact λ hab hba, ⟨1, by rw [hab.antisymm hba]⟩,
     all_goals { intros, refl },
   end,
-  lt_iff_le_not_le := λ a b, localization.induction_on₂ a b $ λ a b, lt_iff_le_not_le,
-  mul_le_mul_left := λ a b, localization.induction_on₂ a b $ λ a b hab c,
+  lt_iff_le_not_le := λ a b, localization.induction_on₂ a b $ λ a b, lt_iff_le_not_le }
+
+@[to_additive] instance : ordered_cancel_comm_monoid (localization s) :=
+{ mul_le_mul_left := λ a b, localization.induction_on₂ a b $ λ a b hab c,
     localization.induction_on c $ λ c, begin
       simp only [mk_mul, mk_le_mk, submonoid.coe_mul, mul_mul_mul_comm _ _ c.1] at ⊢ hab,
       exact mul_le_mul_left' hab _,
@@ -1530,7 +1535,7 @@ variables [ordered_cancel_comm_monoid α] {s : submonoid α} {a₁ b₁ : α} {a
       simp only [mk_mul, mk_le_mk, submonoid.coe_mul, mul_mul_mul_comm _ _ a.1] at ⊢ hab,
       exact le_of_mul_le_mul_left' hab,
     end,
-  ..localization.comm_monoid _, ..localization.has_le, ..localization.has_lt }
+  ..localization.comm_monoid s, ..localization.partial_order }
 
 @[to_additive] instance decidable_le [decidable_rel ((≤) : α → α → Prop)] :
   decidable_rel ((≤) : localization s → localization s → Prop) :=

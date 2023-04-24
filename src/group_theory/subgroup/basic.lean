@@ -1609,6 +1609,9 @@ lemma center_le_centralizer (s) : center G ≤ centralizer s := s.center_subset_
 @[to_additive] lemma centralizer_le (h : H ≤ K) : centralizer K ≤ centralizer H :=
 submonoid.centralizer_le h
 
+@[simp] lemma centralizer_eq_top_iff_subset {s : set G} : centralizer s = ⊤ ↔ s ⊆ center M :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
+
 @[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :
   H.centralizer.characteristic :=
 begin

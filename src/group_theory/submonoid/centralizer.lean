@@ -60,6 +60,9 @@ decidable_of_iff' _ mem_centralizer_iff
 lemma centralizer_le (h : S ⊆ T) : centralizer T ≤ centralizer S :=
 set.centralizer_subset h
 
+@[simp] lemma centralizer_eq_top_iff_subset {s : set M} : centralizer s = ⊤ ↔ s ⊆ center M :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
+
 variables (M)
 
 @[simp, to_additive]

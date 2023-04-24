@@ -676,12 +676,11 @@ lemma center_le_centralizer (s) : center R ≤ centralizer s := s.center_subset_
 lemma centralizer_le (s t : set R) (h : s ⊆ t) : centralizer t ≤ centralizer s :=
 set.centralizer_subset h
 
+@[simp] lemma centralizer_eq_top_iff_subset {s : set M} : centralizer s = ⊤ ↔ s ⊆ center M :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
+
 @[simp] lemma centralizer_univ : centralizer set.univ = center R :=
 set_like.ext' (set.centralizer_univ R)
-
-@[simp] lemma centralizer_eq_top_iff_subset {s : set R} : centralizer s = ⊤ ↔ s ⊆ center R :=
-eq_top_iff.trans $ ⟨λ h x hx g, (h trivial _ hx).symm,
-                    λ h x _ m hm, (h hm x).symm⟩
 
 end centralizer
 

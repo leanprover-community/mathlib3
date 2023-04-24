@@ -103,6 +103,11 @@ lemma centralizer_subset [has_mul M] (h : S ⊆ T) : centralizer T ⊆ centraliz
 lemma center_subset_centralizer [has_mul M] (S : set M) : set.center M ⊆ S.centralizer :=
 λ x hx m _, hx m
 
+@[simp] lemma centralizer_eq_top_iff_subset {s : set M} [has_mul M] :
+  centralizer s = ⊤ ↔ s ⊆ center M :=
+eq_top_iff.trans $ ⟨λ h x hx g, (h trivial _ hx).symm,
+                    λ h x _ m hm, (h hm x).symm⟩
+
 variables (M)
 
 @[simp, to_additive add_centralizer_univ]
@@ -114,6 +119,7 @@ variables {M} (S)
 @[simp, to_additive add_centralizer_eq_univ]
 lemma centralizer_eq_univ [comm_semigroup M] : centralizer S = univ :=
 subset.antisymm (subset_univ _) $ λ x hx y hy, mul_comm y x
+
 
 end set
 
@@ -143,6 +149,9 @@ lemma center_le_centralizer (S) : center M ≤ centralizer S := S.center_subset_
 @[to_additive]
 lemma centralizer_le (h : S ⊆ T) : centralizer T ≤ centralizer S :=
 set.centralizer_subset h
+
+@[simp] lemma centralizer_eq_top_iff_subset {s : set M} : centralizer s = ⊤ ↔ s ⊆ center M :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 variables (M)
 

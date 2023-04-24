@@ -255,6 +255,10 @@ lemma centralizer_le (s t : set A)
   centralizer R t wt ≤ centralizer R s ws :=
 set.centralizer_subset h
 
+@[simp] lemma centralizer_eq_top_iff_subset {s : set A} : centralizer s = ⊤ ↔ s ⊆ center M :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
+
+
 end centralizer
 
 end star_subalgebra

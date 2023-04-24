@@ -5,9 +5,9 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import data.fintype.units
 import data.nat.parity
 import tactic.fin_cases
-import data.fintype.units
 
 /-!
 # Integers mod `n`

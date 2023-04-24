@@ -1607,6 +1607,8 @@ set_like.ext' (set.centralizer_univ G)
 @[to_additive] lemma centralizer_le (h : H ≤ K) : centralizer K ≤ centralizer H :=
 submonoid.centralizer_le h
 
+lemma center_le_centralizer (s) : center G ≤ centralizer s := s.center_subset_centralizer
+
 @[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :
   H.centralizer.characteristic :=
 begin

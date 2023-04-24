@@ -50,6 +50,8 @@ variables {S}
 @[to_additive] lemma mem_centralizer_iff {z : M} : z ∈ centralizer S ↔ ∀ g ∈ S, g * z = z * g :=
 iff.rfl
 
+lemma center_le_centralizer (s) : center M ≤ centralizer s := s.center_subset_centralizer
+
 @[to_additive] instance decidable_mem_centralizer (a) [decidable $ ∀ b ∈ S, b * a = a * b] :
   decidable (a ∈ centralizer S) :=
 decidable_of_iff' _ mem_centralizer_iff

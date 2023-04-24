@@ -417,6 +417,8 @@ lemma mem_centralizer_iff {R} [non_unital_semiring R] {s : set R} {z : R} :
   z ∈ centralizer s ↔ ∀ g ∈ s, g * z = z * g :=
 iff.rfl
 
+lemma center_le_centralizer (s) : center R ≤ centralizer s := s.center_subset_centralizer
+
 lemma centralizer_le {R} [non_unital_semiring R] (s t : set R) (h : s ⊆ t) :
   centralizer t ≤ centralizer s :=
 set.centralizer_subset h

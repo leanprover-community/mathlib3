@@ -248,6 +248,8 @@ lemma mem_centralizer_iff {s : set A} {w} {z : A} :
   z ∈ centralizer R s w ↔ ∀ g ∈ s, g * z = z * g :=
 iff.rfl
 
+lemma center_le_centralizer (s) : center A ≤ centralizer s := s.center_subset_centralizer
+
 lemma centralizer_le (s t : set A)
   (ws : ∀ (a : A), a ∈ s → star a ∈ s) (wt : ∀ (a : A), a ∈ t → star a ∈ t) (h : s ⊆ t) :
   centralizer R t wt ≤ centralizer R s ws :=

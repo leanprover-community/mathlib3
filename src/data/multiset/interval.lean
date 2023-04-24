@@ -70,15 +70,8 @@ by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
 lemma card_uIcc :
   (uIcc s t).card = ∏ i in s.to_finset ∪ t.to_finset, ((t.count i - s.count i : ℤ).nat_abs + 1) :=
-begin
-  rw [uIcc, card_Icc, union_eq_right_iff_subset.2 (to_finset_subset.2 $ subset_of_le $
-    @inf_le_sup _ _ s t), sup_eq_union, inf_eq_inter, to_finset_union],
-  congr,
-  ext a,
-  rw [count_union, count_inter, ←int.coe_nat_inj', int.coe_nat_sub (min_le_max.trans le_self_add)],
-  push_cast,
-  rw [add_sub_right_comm, max_sub_min_eq_abs],
-end
+by simp_rw [uIcc_eq, finset.card_map, dfinsupp.card_uIcc, nat.card_uIcc, multiset.to_dfinsupp_apply,
+  to_dfinsupp_support]
 
 lemma card_Iic :
   (finset.Iic s).card = ∏ i in s.to_finset, (s.count i + 1) :=

@@ -83,7 +83,7 @@ equiv_dfinsupp.symm_apply_apply s
 lemma to_dfinsupp_injective : injective (to_dfinsupp : multiset α → Π₀ a, ℕ) :=
 equiv_dfinsupp.injective
 
-@[simp] lemma to_multiset_inj : to_dfinsupp s = to_dfinsupp t ↔ s = t :=
+@[simp] lemma to_dfinsupp_inj : to_dfinsupp s = to_dfinsupp t ↔ s = t :=
 to_dfinsupp_injective.eq_iff
 
 @[simp] lemma to_dfinsupp_le_to_dfinsupp : to_dfinsupp s ≤ to_dfinsupp t ↔ s ≤ t :=

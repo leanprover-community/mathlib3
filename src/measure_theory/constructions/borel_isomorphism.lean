@@ -9,7 +9,7 @@ import topology.perfect
 /-!
 # The Borel Isomorphism Theorem
 
-In this file we prove the Borel isomorphism theorem.
+In this file we prove several versions of the Borel isomorphism theorem.
 
 ## Main Statements
 
@@ -33,10 +33,8 @@ variables {α β : Type*}
 
 open topological_space set
 
-lemma second_countable_of_polish
-  [topological_space α] [h : polish_space α] : second_countable_topology α :=
-h.second_countable
-
+/-Note: Perhaps this should be in topology/instances/discrete or topology/metric_space/polish.
+It also seems likely there is a simpler proof. -/
 @[priority 50]
 instance polish_of_countable [h : countable α] [topological_space α] [discrete_topology α]
   : polish_space α :=
@@ -49,6 +47,13 @@ begin
     apply is_closed_discrete },
   exact this.polish_space,
 end
+
+/-Note: This is to avoid a loop in TC inference. When ported to Lean 4, this will not
+be necessary, and `second_countable_of_polish` should probably
+just be added as an instance soon after the definition of `polish_space`.-/
+private lemma second_countable_of_polish
+  [topological_space α] [h : polish_space α] : second_countable_topology α :=
+h.second_countable
 
 local attribute [-instance] polish_space_of_complete_second_countable
 local attribute [instance] second_countable_of_polish

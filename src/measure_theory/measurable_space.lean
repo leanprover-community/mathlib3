@@ -316,8 +316,7 @@ begin
 end
 
 lemma measurable_to_countable' [measurable_space α] [countable α] [measurable_space β] {f : β → α}
-  (h : ∀ x, measurable_set (f ⁻¹' {x})) :
-  measurable f :=
+  (h : ∀ x, measurable_set (f ⁻¹' {x})) : measurable f :=
 measurable_to_countable (λ y, h (f y))
 
 @[measurability] lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=

@@ -68,16 +68,15 @@ lemma norm_eq_one_of_not_exists_basis
   (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) (x : S) : norm R x = 1 :=
 by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 
-lemma norm_eq_one_of_not_finite_dimensional [field T] [algebra T S]
-  (h : ¬ finite_dimensional T S) (x : S) : norm T x = 1 :=
-begin
-  rw norm_eq_one_of_not_exists_basis,
-  contrapose! h,
-  obtain ⟨s, ⟨b⟩⟩ := h,
-  exact finite_dimensional.of_finite_basis b s.finite_to_set,
-end
-
 variables {R}
+
+lemma norm_eq_one_of_not_module_finite [algebra R S] (h : ¬ module.finite R S) (x : S) :
+  norm R x = 1 :=
+begin
+  refine norm_eq_one_of_not_exists_basis _ (mt _ h) _,
+  rintro ⟨s, ⟨b⟩⟩,
+  exact module.finite.of_basis b,
+end
 
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma norm_eq_matrix_det [fintype ι] [decidable_eq ι] (b : basis ι R S) (s : S) :
@@ -360,12 +359,12 @@ begin
       letI : algebra L A := σ.to_ring_hom.to_algebra,
       rw ← norm_eq_prod_embeddings L A (_ : F),
       refl, }},
-  { rw norm_eq_one_of_not_finite_dimensional hKF,
+  { rw norm_eq_one_of_not_module_finite hKF,
     by_cases hKL : finite_dimensional K L,
     { have hLF : ¬ finite_dimensional L F,
         by contrapose! hKF; exact @finite_dimensional.trans K L F _ _ _ _ _ _ _ hKL hKF,
-      rw [norm_eq_one_of_not_finite_dimensional hLF, _root_.map_one], },
-    { rw norm_eq_one_of_not_finite_dimensional hKL, }},
+      rw [norm_eq_one_of_not_module_finite hLF, _root_.map_one], },
+    { rw norm_eq_one_of_not_module_finite hKL, }},
 end
 
 end eq_prod_embeddings

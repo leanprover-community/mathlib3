@@ -104,7 +104,7 @@ lemma center_subset_centralizer [has_mul M] (S : set M) : set.center M ⊆ S.cen
 λ x hx m _, hx m
 
 @[simp] lemma centralizer_eq_top_iff_subset {s : set M} [has_mul M] :
-  centralizer s = ⊤ ↔ s ⊆ center M :=
+  centralizer s = set.univ ↔ s ⊆ center M :=
 eq_top_iff.trans $ ⟨λ h x hx g, (h trivial _ hx).symm,
                     λ h x _ m hm, (h hm x).symm⟩
 

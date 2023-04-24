@@ -190,7 +190,7 @@ end
 @[simp] lemma mem_orbit_conj_act {g h : G} : g ∈ orbit (conj_act G) h ↔ is_conj g h :=
 by { rw [is_conj_comm, is_conj_iff, mem_orbit_iff], refl }
 
-lemma orbit_rel_conj_act : (orbit_rel (conj_act G) G).rel = is_conj :=
+lemma orbit_rel_conj_act : (orbit_rel (conj_act G) G : G → G → Prop) = is_conj :=
 funext₂ $ λ g h, by rw [orbit_rel_apply, mem_orbit_conj_act]
 
 lemma stabilizer_eq_centralizer (g : G) : stabilizer (conj_act G) g = (zpowers g).centralizer :=

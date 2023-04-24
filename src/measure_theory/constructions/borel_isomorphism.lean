@@ -42,14 +42,11 @@ instance polish_of_countable [h : countable α] [topological_space α] [discrete
 begin
   rw countable_iff_exists_injective at h,
   cases h with f hf,
-  have : closed_embedding f, {
-    apply closed_embedding_of_continuous_injective_closed,
-    { apply continuous_of_discrete_topology},
-    { exact hf,},
-    intros t ht,
-    apply is_closed_discrete,
-  },
-  apply this.polish_space,
+  have : closed_embedding f,
+  { apply closed_embedding_of_continuous_injective_closed continuous_of_discrete_topology hf,
+    rintros t -,
+    apply is_closed_discrete },
+  exact this.polish_space,
 end
 
 local attribute [-instance] polish_space_of_complete_second_countable

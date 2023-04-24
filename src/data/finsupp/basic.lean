@@ -1275,7 +1275,6 @@ instance [nonempty α] [add_monoid M] [smul_zero_class R M] [has_faithful_smul R
 
 variables (α M)
 
--- TODO/note: some of these instances can likely be generalised to `smul_with_zero`. (do in Lean4)
 instance [add_zero_class M] [distrib_smul R M] : distrib_smul R (α →₀ M) :=
 { smul      := (•),
   smul_add  := λ a x y, ext $ λ _, smul_add _ _ _,

@@ -187,9 +187,11 @@ begin
   simp [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
 end
 
-lemma mem_orbit_conj_act_iff (g h : G) : g ∈ orbit (conj_act G) h ↔ is_conj g h :=
+lemma mem_orbit_conj_act_iff {g h : G} : g ∈ orbit (conj_act G) h ↔ is_conj g h :=
 by { rw [is_conj_comm, is_conj_iff, mem_orbit_iff], refl }
 
+lemma orbit_rel_conj_act_eq : (orbit_rel (conj_act G) G).rel = is_conj :=
+funext₂ $ λ g h, by rw [orbit_rel_rel_iff, mem_orbit_conj_act_iff]
 lemma stabilizer_eq_centralizer (g : G) : stabilizer (conj_act G) g = (zpowers g).centralizer :=
 le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
   (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm)

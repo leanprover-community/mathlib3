@@ -192,8 +192,7 @@ local attribute [instance] orbit_rel
 
 variables {α} {β}
 
-lemma orbit_rel_r_apply (x y : β) :
-  @setoid.r _ (orbit_rel α β) x y ↔ x ∈ orbit α y := iff.rfl
+lemma orbit_rel_rel_iff {x y : β} : (orbit_rel α β).rel x y ↔ x ∈ orbit α y := iff.rfl
 
 /-- When you take a set `U` in `β`, push it down to the quotient, and pull back, you get the union
 of the orbit of `U` under `α`. -/

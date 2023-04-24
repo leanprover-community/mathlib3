@@ -138,7 +138,7 @@ iff.rfl
   decidable (a ∈ centralizer S) :=
 decidable_of_iff' _ mem_centralizer_iff
 
-lemma center_le_centralizer (s) : center R ≤ centralizer s := s.center_subset_centralizer
+lemma center_le_centralizer (S) : center M ≤ centralizer S := S.center_subset_centralizer
 
 @[to_additive]
 lemma centralizer_le (h : S ⊆ T) : centralizer T ≤ centralizer S :=

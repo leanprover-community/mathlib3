@@ -362,7 +362,9 @@ begin
   { rw norm_eq_one_of_not_module_finite hKF,
     by_cases hKL : finite_dimensional K L,
     { have hLF : ¬ finite_dimensional L F,
-        by contrapose! hKF; exact @finite_dimensional.trans K L F _ _ _ _ _ _ _ hKL hKF,
+      { refine (mt _) hKF,
+        introI hKF,
+        exact finite_dimensional.trans K L F },
       rw [norm_eq_one_of_not_module_finite hLF, _root_.map_one], },
     { rw norm_eq_one_of_not_module_finite hKL, }},
 end

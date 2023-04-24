@@ -679,7 +679,7 @@ set.centralizer_subset h
 @[simp] lemma centralizer_univ : centralizer set.univ = center R :=
 set_like.ext' (set.centralizer_univ R)
 
-@[simp] lemma mem_center_iff_centralizer_eq_top {s : set R} : centralizer s = ⊤ ↔ s ⊆ center R :=
+@[simp] lemma centralizer_eq_top_iff_subset {s : set R} : centralizer s = ⊤ ↔ s ⊆ center R :=
 ⟨λ h x hx g, (eq_top_iff.mp h (mem_top g) _ hx).symm,
  λ h, top_le_iff.mp $ λ x _ m hm, (h hm x).symm⟩
 

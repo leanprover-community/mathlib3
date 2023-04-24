@@ -22,21 +22,22 @@ variables {R : Type*} [ring R]
 variables {D}
 
 def units_centralizer_to_stabilizer (x : units D) :
-  units (subring.centralizer (x : D)) → mul_action.stabilizer (conj_act $ units D) x :=
-λ u, ⟨conj_act.to_conj_act (units.map (subring.centralizer (x:D)).subtype.to_monoid_hom u),
+  units (subring.centralizer ({x} : set D)) → mul_action.stabilizer (conj_act $ units D) x :=
+λ u, ⟨conj_act.to_conj_act (units.map (subring.centralizer ({x} : set D)).subtype.to_monoid_hom u),
   by { show _ • _ = _, rw conj_act.smul_def,
     simp only [conj_act.of_conj_act_to_conj_act, ring_hom.to_monoid_hom_eq_coe],
-    rw mul_inv_eq_iff_eq_mul, ext, exact u.1.2.symm, }⟩
+    rw mul_inv_eq_iff_eq_mul, ext,
+    exact (u.1.2 x (set.mem_singleton x)).symm }⟩
 
 def stabilizer_units_to_centralizer (x : units D) :
-  mul_action.stabilizer (conj_act $ units D) x → subring.centralizer (x : D) :=
+  mul_action.stabilizer (conj_act $ units D) x → subring.centralizer ({x} : set D) :=
 λ u, ⟨↑(conj_act.of_conj_act u.1 : units D),
-  by { show _ = _, have : _ • _ = _ := u.2,
+  by { rintro x ⟨rfl⟩, have : _ • _ = _ := u.2,
     rw [conj_act.smul_def, mul_inv_eq_iff_eq_mul, units.ext_iff] at this,
     exact this.symm }⟩
 
 def stabilizer_units_to_units_centralizer (x : units D) :
-  mul_action.stabilizer (conj_act $ units D) x → units (subring.centralizer (x : D)) :=
+  mul_action.stabilizer (conj_act $ units D) x → units (subring.centralizer ({x} : set D)) :=
 λ u, ⟨stabilizer_units_to_centralizer x u,
       stabilizer_units_to_centralizer x u⁻¹,
       by { ext, simp only [stabilizer_units_to_centralizer, conj_act.of_conj_act_inv,
@@ -47,7 +48,7 @@ def stabilizer_units_to_units_centralizer (x : units D) :
         units.inv_mul', subgroup.coe_inv, subtype.val_eq_coe], }⟩
 
 def units_centralizer_equiv (x : units D) :
-  units (subring.centralizer (x : D)) ≃* mul_action.stabilizer (conj_act $ units D) x :=
+  units (subring.centralizer ({x} : set D)) ≃* mul_action.stabilizer (conj_act $ units D) x :=
 { to_fun := units_centralizer_to_stabilizer x,
   inv_fun := stabilizer_units_to_units_centralizer x,
   left_inv := λ u, by { ext, refl },
@@ -147,7 +148,7 @@ begin
   simp only [conj_classes.quot_mk_eq_mk],
   rw [card_carrier, conj_act.card, fintype.card_units, card_D,
       ←fintype.card_congr (units_centralizer_equiv x).to_equiv],
-  set Zx := subring.centralizer (x:D),
+  set Zx := subring.centralizer ({x} : set D),
   have hZx : Zx < ⊤,
   { rw lt_top_iff_ne_top,
     intro hZx,
@@ -156,7 +157,8 @@ begin
     simp only [set.mem_to_finset, conj_classes.quot_mk_eq_mk] at hx,
     exact (conj_classes.mk_bij_on (units D)).1 Hx hx },
   letI : field Zx := hD.field _ hZx,
-  letI : algebra Z Zx := (subring.inclusion $ subring.center_le_centralizer (x : D)).to_algebra,
+  letI : algebra Z Zx :=
+    (subring.inclusion $ subring.center_le_centralizer ({x} : set D)).to_algebra,
   let d := finrank Z Zx,
   have card_Zx : fintype.card Zx = q ^ d := card_eq_pow_finrank,
   have h1qd : 1 ≤ q ^ d, { rw ← card_Zx, exact fintype.card_pos },

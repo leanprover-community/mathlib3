@@ -1,38 +1,54 @@
 /-
 Copyright (c) 2021 Johan Commelin. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENsE.
 Authors: Johan Commelin
 -/
 import ring_theory.subring.basic
 
 /-!
-# FOOBAR TODO
+# Centralizer of a ring.
 
--- should this go near the `submonoid` centralizer?
+## Main definitions
+
+* `subring.centralizer`: the centralizer of a member of a ring.
+
 -/
 
+
+lemma set.center_subset_centraliser {α} [has_mul α] (s : set α) : set.center α ⊆ s.centralizer :=
+λ x hx m _, hx m
 
 namespace subring
 
 variables {R : Type*} [ring R]
 
-def centralizer (r : R) : subring R :=
-{ carrier := {x | r * x = x * r},
-  zero_mem' := by simp only [mul_zero, zero_mul, set.mem_set_of_eq],
-  one_mem' := by simp only [mul_one, one_mul, set.mem_set_of_eq],
-  add_mem' := λ x y hx hy, by { simp only [set.mem_set_of_eq, mul_add, add_mul, *] at *, },
-  neg_mem' := λ x hx, by { simp only [set.mem_set_of_eq,
-    ← neg_mul_eq_mul_neg, ← neg_mul_eq_neg_mul, *] at *, },
-  mul_mem' := λ x y hx hy,
-  by { simp only [set.mem_set_of_eq] at *,
-    rw [← mul_assoc, hx, mul_assoc, hy, mul_assoc], } }
+def centralizer (s : set R) : subring R :=
+{ neg_mem' := λ x, set.neg_mem_centralizer,
+  ..subsemiring.centralizer s }
 
-@[simp] lemma mem_centralizer (r x : R) : x ∈ centralizer r ↔ r * x = x * r := iff.rfl
+@[simp, norm_cast]
+lemma coe_centralizer (s : set R) : (centralizer s : set R) = s.centralizer := rfl
 
-lemma center_le_centralizer (r : R) : center R ≤ centralizer r := λ x hx, hx r
+lemma centralizer_to_submonoid (s : set R) :
+  (centralizer s).to_submonoid = submonoid.centralizer s := rfl
 
-lemma mem_center_of_centralizer_eq_top {r : R} (h : centralizer r = ⊤) :
+lemma centralizer_to_subsemiring (s : set R) :
+  (centralizer s).to_subsemiring = subsemiring.centralizer s := rfl
+
+lemma mem_centralizer_iff {s : set R} {z : R} :
+  z ∈ centralizer s ↔ ∀ g ∈ s, g * z = z * g :=
+iff.rfl
+
+lemma center_le_centralizer (s) : center R ≤ centralizer s := s.center_subset_centraliser
+
+lemma centralizer_le (s t : set R) (h : s ⊆ t) : centralizer t ≤ centralizer s :=
+set.centralizer_subset h
+
+@[simp] lemma centralizer_univ : centralizer set.univ = center R :=
+set_like.ext' (set.centralizer_univ R)
+
+lemma mem_center_of_centralizer_eq_top {r : R} (h : centralizer ({r} : set R) = ⊤) :
   r ∈ center R :=
-λ x, eq.symm $ show x ∈ centralizer r, by { rw h, exact mem_top x }
+λ x, eq.symm $ by simpa [mem_centralizer_iff] using eq_top_iff.mp h (mem_top x)
 
 end subring

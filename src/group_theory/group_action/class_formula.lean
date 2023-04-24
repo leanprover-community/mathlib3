@@ -106,10 +106,11 @@ end conj_classes
 
 open conj_classes
 
-lemma class_equation [fintype G] :
+lemma class_equation [finite G] :
   nat.card (subgroup.center G) + ∑ᶠ x ∈ noncenter G, nat.card (carrier x) = nat.card G :=
 begin
   classical,
+  casesI nonempty_fintype G,
   rw [@nat.card_eq_fintype_card G, ← class_equation',
       ←finset.sum_sdiff (conj_classes.noncenter G).to_finset.subset_univ],
   simp only [nat.card_eq_fintype_card, set.to_finset_card],

@@ -95,16 +95,18 @@ def induction_hyp : Prop :=
 namespace induction_hyp
 open finite_dimensional polynomial
 
-variables {D} [fintype D]
+variables {D}
 
 open_locale classical
 
-protected noncomputable def field (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) : field R :=
+protected noncomputable def field [fintype D] (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) :
+  field R :=
 { mul_comm := λ x y, subtype.ext $ hD R hR x.2 y.2,
   ..(show division_ring R, from fintype.division_ring_of_is_domain R)}
 
-lemma center_eq_top (hD : induction_hyp D) : subring.center D = ⊤ :=
+lemma center_eq_top [finite D] (hD : induction_hyp D) : subring.center D = ⊤ :=
 begin
+  casesI nonempty_fintype D,
   set Z := subring.center D,
   by_contra hZ,
   replace hZ := ne.lt_top hZ,
@@ -184,9 +186,10 @@ end
 
 end induction_hyp
 
-lemma center_eq_top [fintype D] : subring.center D = ⊤ :=
+lemma center_eq_top [finite D] : subring.center D = ⊤ :=
 begin
   classical,
+  casesI nonempty_fintype D,
   suffices : ∀ (n : ℕ) (D : Type*) [division_ring D] [fintype D],
     by exactI fintype.card D ≤ n → subring.center D = ⊤,
   { exact this _ D le_rfl },
@@ -209,8 +212,6 @@ end
 
 end little_wedderburn
 
-def little_wedderburn (D : Type*) [hD : division_ring D] [fintype D] : field D :=
-{ mul_comm := λ x y,
-  suffices y ∈ subring.center D, from this x,
-  by { rw little_wedderburn.center_eq_top, trivial },
+def little_wedderburn (D : Type*) [hD : division_ring D] [finite D] : field D :=
+{ mul_comm := λ x y, eq_top_iff.mp (little_wedderburn.center_eq_top D) (subring.mem_top y) x
   .. hD }

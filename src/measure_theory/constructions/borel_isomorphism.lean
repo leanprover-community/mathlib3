@@ -37,6 +37,7 @@ lemma second_countable_of_polish
   [topological_space α] [h : polish_space α] : second_countable_topology α :=
 h.second_countable
 
+@[priority 50]
 instance polish_of_countable [h : countable α] [topological_space α] [discrete_topology α]
   : polish_space α :=
 begin

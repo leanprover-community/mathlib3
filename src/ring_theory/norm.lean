@@ -326,6 +326,30 @@ begin
   { apply_instance }
 end
 
+lemma norm_norm [algebra L F] [is_scalar_tower K L F] [finite_dimensional K F] [is_separable K F]
+  (x : F) :
+  norm K (norm L x) = norm K x :=
+begin
+  let A := algebraic_closure K,
+  apply (algebra_map K A).injective,
+  haveI : finite_dimensional L F := finite_dimensional.right K L F,
+  haveI : finite_dimensional K L := finite_dimensional.left K L F,
+  haveI : is_separable K L := is_separable_tower_bot_of_is_separable K L F,
+  haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
+  letI : ∀ (σ : L →ₐ[K] A), fintype (@alg_hom L F A _ _ _ _ σ.to_ring_hom.to_algebra) :=
+    λ _, infer_instance,
+  rw [@norm_eq_prod_embeddings K F _ _ _ A _ _ _ _ _ _, fintype.prod_equiv alg_hom_equiv_sigma
+    (λ σ : F →ₐ[K] A, σ x) (λ π : (Σ (f : L →ₐ[K] A), _), (π.2 : F → A) x) (λ _, rfl)],
+  suffices : ∀ σ : L →ₐ[K] A, finset.univ.prod
+    (λ (π : @alg_hom L F A _ _ _ _ σ.to_ring_hom.to_algebra), π x) = σ (norm L x),
+  { simp_rw [← finset.univ_sigma_univ, finset.prod_sigma, this, norm_eq_prod_embeddings], },
+  { intro σ,
+    letI : algebra L A := σ.to_ring_hom.to_algebra,
+    rw ← norm_eq_prod_embeddings L A,
+    refl,
+    apply_instance, },
+end
+
 end eq_prod_embeddings
 
 end algebra

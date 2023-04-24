@@ -94,6 +94,9 @@ star_involutive _
 lemma star_injective [has_involutive_star R] : function.injective (star : R → R) :=
 star_involutive.injective
 
+@[simp] lemma star_inj [has_involutive_star R] {x y : R} : star x = star y ↔ x = y :=
+star_injective.eq_iff
+
 /-- `star` as an equivalence when it is involutive. -/
 protected def equiv.star [has_involutive_star R] : equiv.perm R :=
 star_involutive.to_perm _
@@ -135,7 +138,7 @@ lemma star_mul_star (x y : R) : star (x * star y) = y * star x := by rw [star_mu
 
 @[simp] lemma semiconj_by_star_star_star {x y z : R} :
   semiconj_by (star x) (star z) (star y) ↔ semiconj_by x y z :=
-by simp_rw [semiconj_by, ←star_mul, star_injective.eq_iff, eq_comm]
+by simp_rw [semiconj_by, ←star_mul, star_inj, eq_comm]
 
 alias semiconj_by_star_star_star ↔ _ semiconj_by.star_star_star
 

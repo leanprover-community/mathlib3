@@ -100,6 +100,9 @@ end
 lemma centralizer_subset [has_mul M] (h : S ⊆ T) : centralizer T ⊆ centralizer S :=
 λ t ht s hs, ht s (h hs)
 
+lemma center_subset_centralizer [has_mul M] (S : set M) : set.center M ⊆ S.centralizer :=
+λ x hx m _, hx m
+
 variables (M)
 
 @[simp, to_additive add_centralizer_univ]

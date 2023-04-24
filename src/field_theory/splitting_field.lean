@@ -93,7 +93,13 @@ theorem nat_degree_remove_factor' {f : K[X]} {n : ℕ} (hfn : f.nat_degree = n+1
   f.remove_factor.nat_degree = n :=
 by rw [nat_degree_remove_factor, hfn, n.add_sub_cancel]
 
-/-- Auxiliary construction to a splitting field of a polynomial. Uses induction on the degree. -/
+/-- Auxiliary construction to a splitting field of a polynomial, which removes
+`n` (arbitrarily-chosen) factors.
+Uses recursion on the degree. For better definitional behaviour, structures
+including `splitting_field_aux` (such as instances) should be defined using
+this recursion in each field, rather than defining the whole tuple through
+recursion.
+-/
 def splitting_field_aux : Π (n : ℕ) {K : Type u} [field K], by exactI Π (f : K[X]), Type u
 | 0 K fK f := K
 | (n + 1) K fK f := by exactI splitting_field_aux n f.remove_factor
@@ -208,13 +214,8 @@ instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
     {f : K[X]}, by exactI is_scalar_tower R₁ R₂ (splitting_field_aux n f) :=
 nat.rec_on n (λ R₁ R₂ K _ _ hs₂ hs₁ _ _ h f,
 begin
-  -- this proof is magic to me - I'm not sure why unfolding the `has_smul` makes the defeq work.
-  cases hs₁ with hs₁ _,
-  cases hs₂ with hs₂ _,
-  cases hs₁ with hs₁ _,
-  cases hs₂ with hs₂ _,
-  cases hs₁ with hs₁ _,
-  cases hs₂ with hs₂ _,
+  rcases hs₁ with @⟨@⟨⟨hs₁⟩,_⟩,_⟩,
+  rcases hs₂ with @⟨@⟨⟨hs₂⟩,_⟩,_⟩,
   exact h,
 end) $ λ n ih R₁ R₂ K _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
 
@@ -286,9 +287,6 @@ begin
   all_goals { ring },
 end
 
-instance (n : ℕ) {K : Type u} [field K] {f : K[X]} : add_monoid (splitting_field_aux n f) :=
-by apply_instance
-
 instance adjoin_root.distrib_mul_action (α : Type*) [comm_semiring α] {K : Type u} [field K]
   [distrib_mul_action α K] [is_scalar_tower α K K] (f : K[X]) :
   distrib_mul_action α (adjoin_root f) :=
@@ -306,20 +304,20 @@ A `distrib_mul_action` is required to lift scalar multiplication on `K` to a spl
 instance distrib_mul_action (α : Type*) [comm_semiring α] (n : ℕ) {K : Type u} [field K]
   [distrib_mul_action α K] [is_scalar_tower α K K] {f : K[X]} :
   distrib_mul_action α (splitting_field_aux n f) :=
-{ smul := @has_smul.smul α (splitting_field_aux n f) _,
-  smul_zero := smul_zero_class.smul_zero,
-  smul_add := distrib_smul.smul_add,
+{ smul := (•),
+  smul_zero := smul_zero,
+  smul_add := smul_add,
   one_smul :=
   begin
     unfreezingI { induction n with n ih generalizing K },
     { intros b, convert @one_smul α K _ _ b },
-    exact ih,
+    { exact ih }
   end,
   mul_smul :=
   begin
     unfreezingI { induction n with n ih generalizing K },
     { intros b, convert @mul_smul α K _ _ b },
-    exact ih,
+    { exact ih }
   end }
 
 /-- Splitting fields have a one. -/

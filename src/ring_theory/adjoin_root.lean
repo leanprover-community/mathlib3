@@ -116,13 +116,11 @@ instance adjoin_root.is_scalar_tower_right [distrib_smul S R] [is_scalar_tower S
 ⟨begin
   rintro x ⟨y⟩ ⟨z⟩,
   simp only [submodule.quotient.quot_mk_eq_mk, algebra.id.smul_eq_mul],
-  -- we need to copy this lemma for `ideal.quotient`; will make this proof far easier.
+  -- TODO: post port, copy the `smul` lemma for `ideal.quotient`; will make this proof far easier.
   rw [←submodule.quotient.mk_smul],
   simp only [ideal.quotient.mk_eq_mk],
-  rw [←_root_.map_mul, ←_root_.map_mul],
-  -- also maybe a `mul_assoc` for the special cases of `is_scalar_tower`
-  simp only [←ideal.quotient.mk_eq_mk, ←algebra.id.smul_eq_mul],
-  rw [←submodule.quotient.mk_smul, is_scalar_tower.smul_assoc]
+  rw [←_root_.map_mul, ←_root_.map_mul, smul_mul_assoc, ←ideal.quotient.mk_eq_mk,
+      submodule.quotient.mk_smul, ideal.quotient.mk_eq_mk],
 end⟩
 
 instance [comm_semiring S] [comm_semiring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :

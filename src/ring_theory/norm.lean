@@ -347,9 +347,8 @@ begin
   { simp_rw [← finset.univ_sigma_univ, finset.prod_sigma, this, norm_eq_prod_embeddings], },
   { intro σ,
     letI : algebra L A := σ.to_ring_hom.to_algebra,
-    rw ← norm_eq_prod_embeddings L A,
-    refl,
-    apply_instance, },
+    rw ← norm_eq_prod_embeddings L A (_ : F),
+    refl, },
 end
 
 end eq_prod_embeddings

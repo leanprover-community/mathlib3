@@ -81,9 +81,6 @@ begin
   refl
 end
 
-alias is_conj.is_conj.eq_of_mem_center_right ← is_conj.eq_of_mem_center_right
-alias is_conj.is_conj.eq_of_mem_center_left ← is_conj.eq_of_mem_center_left
-
 namespace conj_classes
 
 def noncenter (G : Type*) [monoid G] : set (conj_classes G) :=

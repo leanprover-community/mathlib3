@@ -869,7 +869,7 @@ begin
   rw [contract_nth, if_neg this, if_pos h],
 end
 
-lemma contract_nth_neg_apply (j : ℕ) {op : α → α → α} {g : fin (n + 1) → α}
+lemma contract_nth_not_apply (j : ℕ) {op : α → α → α} {g : fin (n + 1) → α}
   (k : fin n) (h : ¬(k : ℕ) < j) (h' : ¬(k : ℕ) = j) :
   contract_nth j op g k = g k.succ :=
 by rw [contract_nth, if_neg h, if_neg h']

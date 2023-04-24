@@ -189,7 +189,4 @@ def alg_hom_equiv_sigma :
     refl,
   end }
 
-lemma alg_hom_equiv_sigma_apply (x : C) {f : C →ₐ[A] D} :
-  ((alg_hom_equiv_sigma : (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), _) f).2 x = f x := rfl
-
 end alg_hom_tower

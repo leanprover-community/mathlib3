@@ -1,6 +1,7 @@
 import number_theory.number_field.norm
 import field_theory.is_alg_closed.basic
 import ring_theory.norm
+import ring_theory.trace
 
 /- section instances
 
@@ -30,21 +31,73 @@ end instances -/
 
 section norm
 
+namespace trace
+
+open algebra
+
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+variables [algebra R S] [algebra R T]
+
+lemma norm_norm_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι] [finite κ]
+  (b : basis ι R S) (c : basis κ S T) (x : T) :
+  norm R (norm S x) = norm R x :=
+begin
+  haveI := classical.dec_eq ι,
+  haveI := classical.dec_eq κ,
+  casesI nonempty_fintype ι,
+  casesI nonempty_fintype κ,
+  rw norm_eq_matrix_det (b.smul c),
+  rw norm_eq_matrix_det b,
+  rw norm_eq_matrix_det c,
+  rw matrix.det,
+  -- trace_eq_matrix_trace b, trace_eq_matrix_trace c,
+  --    matrix.trace, matrix.trace, matrix.trace,
+  --    ← finset.univ_product_univ, finset.sum_product],
+
+end
+
+
+end trace
+
 namespace algebra
 
-universes u
 variables (F K L : Type*) [field F] [field K] [field L] [algebra F K] [algebra F L]
   [algebra K L] [is_scalar_tower F K L] [finite_dimensional F L] [is_separable F L]
 
-lemma norm_norm (x : L) {A : Type u} [field A] [is_alg_closed A] [algebra F A] :
+lemma norm_norm (x : L) :
   norm F (norm K x) = norm F x :=
 begin
-  classical,
+  let A := algebraic_closure F,
+  apply (algebra_map F A).injective,
+  haveI : finite_dimensional K L := finite_dimensional.right F K L,
+  haveI : finite_dimensional F K := finite_dimensional.left F K L,
+  haveI : is_separable F K := is_separable_tower_bot_of_is_separable F K L,
+  haveI : is_separable K L := is_separable_tower_top_of_is_separable F K L,
+  letI : ∀ (σ : K →ₐ[F] A), fintype (@alg_hom K L A _ _ _ _ σ.to_ring_hom.to_algebra) :=
+    λ _, infer_instance,
+  rw [@norm_eq_prod_embeddings F L _ _ _ A _ _ _ _ _ _, fintype.prod_equiv alg_hom_equiv_sigma
+    (λ σ : L →ₐ[F] A, σ x) (λ π : (Σ (f : K →ₐ[F] A), _), (π.2 : L → A) x)
+    (λ _, rfl)],
+  suffices : ∀ σ : K →ₐ[F] A, finset.univ.prod
+    (λ (π : @alg_hom K L A _ _ _ _ σ.to_ring_hom.to_algebra), π x) = σ (norm K x),
+  { simp_rw [← finset.univ_sigma_univ, finset.prod_sigma, this, norm_eq_prod_embeddings], },
+  { intro σ,
+    letI : algebra K A := σ.to_ring_hom.to_algebra,
+    rw ← norm_eq_prod_embeddings K A,
+    refl,
+    apply_instance, },
+end
+
+#exit
+
+lemma norm_norm0 (x : L) {A : Type*} [field A] [is_alg_closed A] [algebra F A] :
+  norm F (norm K x) = norm F x :=
+begin
 --  let A := algebraic_closure L,
   haveI : finite_dimensional F K := sorry,
   haveI : is_separable F K := sorry,
   haveI : finite_dimensional K L := sorry,
-  have : function.injective (algebra_map F A) := sorry,
+  have : function.injective (algebra_map F A) := (algebra_map F A).injective,
   apply this,
   nth_rewrite 1 norm_eq_prod_embeddings F A,
   letI : ∀ (σ : K →ₐ[F] A), fintype (@alg_hom K L A _ _ _ _ σ.to_ring_hom.to_algebra) :=

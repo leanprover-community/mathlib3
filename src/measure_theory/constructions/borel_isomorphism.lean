@@ -78,7 +78,7 @@ begin
   apply nonempty.some,
   obtain ⟨f, -, fcts, finj⟩ := is_closed_univ.exists_nat_bool_injection_of_uncountable
     (by rwa [← countable_coe_iff ,(equiv.set.univ _).countable_iff]),
-  obtain ⟨g, gmeas, ginj⟩ := measurable_space.measurable_inj_cantor_of_countable_generated α,
+  obtain ⟨g, gmeas, ginj⟩ := measurable_space.measurable_inj_cantor_of_countably_generated α,
   exact ⟨borel_schroeder_bernstein fcts.measurable finj gmeas ginj⟩,
 end
 

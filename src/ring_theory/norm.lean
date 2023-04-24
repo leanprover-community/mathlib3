@@ -326,6 +326,8 @@ begin
   { apply_instance }
 end
 
+variables {F} (L)
+
 lemma norm_norm [algebra L F] [is_scalar_tower K L F] [finite_dimensional K F] [is_separable K F]
   (x : F) :
   norm K (norm L x) = norm K x :=

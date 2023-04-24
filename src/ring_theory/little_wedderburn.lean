@@ -6,7 +6,6 @@ Authors: Johan Commelin
 import group_theory.group_action.class_formula
 import group_theory.group_action.conj_act
 import ring_theory.polynomial.cyclotomic.eval
-import ring_theory.centralizer
 import tactic.by_contra
 
 /-!

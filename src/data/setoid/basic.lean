@@ -51,6 +51,12 @@ namespace setoid
 @[ext] lemma ext' {r s : setoid α} (H : ∀ a b, r.rel a b ↔ s.rel a b) :
   r = s := ext H
 
+instance fun_like : fun_like (setoid α) α (λ _, α → Prop) :=
+{ coe := λ s, s.rel,
+  coe_injective' := λ s s' (h : s.rel = s'.rel), setoid.ext' $ λ a b, h ▸ iff.rfl }
+
+lemma coe_eq_rel {s : setoid α} : (s : α → α → Prop) = s.rel := rfl
+
 lemma ext_iff {r s : setoid α} : r = s ↔ ∀ a b, r.rel a b ↔ s.rel a b :=
 ⟨λ h a b, h ▸ iff.rfl, ext'⟩
 

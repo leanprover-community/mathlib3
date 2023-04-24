@@ -218,8 +218,8 @@ lemma smul_eq_C_mul (p : mv_polynomial σ R) (a : R) : a • p = C a * p := C_mu
 lemma C_eq_smul_one : (C a : mv_polynomial σ R) = a • 1 :=
 by rw [← C_mul', mul_one]
 
-lemma smul_monomial: a' • monomial s a = monomial s (a' * a) :=
-(smul_eq_C_mul (monomial s a) a').symm ▸ C_mul_monomial
+lemma smul_monomial [monoid S₁] [distrib_mul_action S₁ R] (r : S₁) :
+  r • monomial s a = monomial s (r • a) := finsupp.smul_single _ _ _
 
 lemma X_injective [nontrivial R] : function.injective (X : σ → mv_polynomial σ R) :=
 (monomial_left_injective one_ne_zero).comp (finsupp.single_left_injective one_ne_zero)

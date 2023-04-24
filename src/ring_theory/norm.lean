@@ -336,6 +336,7 @@ end
 
 variables {F} (L)
 
+-- TODO. Generalize this proof to rings
 lemma norm_norm [algebra L F] [is_scalar_tower K L F] [is_separable K F] (x : F) :
   norm K (norm L x) = norm K x :=
 begin
@@ -367,7 +368,7 @@ begin
       rw [norm_eq_one_of_not_module_finite hLF, _root_.map_one], },
     { rw norm_eq_one_of_not_module_finite hKL, }},
 end
--- TODO. Generalize this proof to rings
+
 
 end eq_prod_embeddings
 

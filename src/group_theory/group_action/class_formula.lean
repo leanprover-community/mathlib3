@@ -1,7 +1,39 @@
+/-
+Copyright (c) 2021 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Eric Rodriguez
+-/
 import group_theory.group_action.quotient
 import algebra.big_operators.finprod
 import data.finite.card
 import algebra.group.conj_finite
+/-!
+# Class Formula
+
+## Main definitions
+
+* `foo_bar`
+
+## Main statements
+
+* `foo_bar_unique`
+
+## Notation
+
+
+
+## Implementation details
+
+
+
+## References
+
+* [F. Bar, *Quuxes*][bibkey]
+
+## Tags
+
+Foobars, barfoos
+-/
 
 open conj_act
 

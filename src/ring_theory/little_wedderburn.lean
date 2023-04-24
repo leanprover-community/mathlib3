@@ -3,6 +3,7 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import group_theory.group_action.class_formula
 import group_theory.group_action.conj_act
 import ring_theory.polynomial.cyclotomic.eval
 import ring_theory.centralizer
@@ -39,10 +40,10 @@ def stabilizer_units_to_units_centralizer (x : units D) :
 λ u, ⟨stabilizer_units_to_centralizer x u,
       stabilizer_units_to_centralizer x u⁻¹,
       by { ext, simp only [stabilizer_units_to_centralizer, conj_act.of_conj_act_inv,
-        subring.coe_mul, set_like.coe_mk, subring.coe_one, units.coe_inv',
+        subring.coe_mul, set_like.coe_mk, subring.coe_one, units.coe_inv,
         subgroup.coe_inv, units.mul_inv', subtype.val_eq_coe], },
       by { ext, simp only [stabilizer_units_to_centralizer, conj_act.of_conj_act_inv,
-        subring.coe_mul, set_like.coe_mk, subring.coe_one, units.coe_inv',
+        subring.coe_mul, set_like.coe_mk, subring.coe_one, units.coe_inv,
         units.inv_mul', subgroup.coe_inv, subtype.val_eq_coe], }⟩
 
 def units_centralizer_equiv (x : units D) :
@@ -68,9 +69,9 @@ end⟩
 
 def center_units_to_units_center (u : subgroup.center (units D)) : units (subring.center D) :=
 ⟨center_units_to_center u, center_units_to_center u⁻¹,
-by { ext, simp only [subring.coe_mul, subring.coe_one, units.coe_inv', subgroup.coe_inv,
+by { ext, simp only [subring.coe_mul, subring.coe_one, units.coe_inv, subgroup.coe_inv,
   units.mul_inv', center_units_to_center_coe, coe_coe], },
-by { ext, simp only [subring.coe_mul, subring.coe_one, units.coe_inv', units.inv_mul',
+by { ext, simp only [subring.coe_mul, subring.coe_one, units.coe_inv, units.inv_mul',
   subgroup.coe_inv, center_units_to_center_coe, coe_coe], }⟩
 
 variables (D)
@@ -131,20 +132,19 @@ begin
   { simpa only [eval_X, eval_one, eval_pow, eval_sub, coe_eval_ring_hom]
     using (eval_ring_hom (q : ℤ)).map_dvd (cyclotomic.dvd_X_pow_sub_one n ℤ) },
   apply_fun (coe : ℕ → ℤ) at key,
-  simp only [nat.cast_one, nat.cast_pow,
-    ←int.nat_cast_eq_coe_nat, nat.cast_add, nat.cast_sub h1qn] at key aux,
-  rw [← key, ← dvd_add_iff_left, ← int.nat_abs_dvd, ← int.dvd_nat_abs] at aux,
-  simp only [int.nat_cast_eq_coe_nat, int.nat_abs_of_nat, int.coe_nat_dvd] at aux,
+  simp only [nat.cast_one, nat.cast_pow, nat.cast_add, nat.cast_sub h1qn] at key aux,
+  rw [← key, dvd_add_left, ← int.nat_abs_dvd, ← int.dvd_nat_abs] at aux,
+  simp only [int.nat_abs_of_nat, int.coe_nat_dvd] at aux,
   { refine (nat.le_of_dvd _ aux).not_lt (sub_one_lt_nat_abs_cyclotomic_eval hn hq.ne'),
     exact tsub_pos_of_lt hq },
   suffices : Φ.eval q ∣ ↑∑ x in (conj_classes.noncenter (units D)).to_finset,fintype.card x.carrier,
-  { simp only [int.nat_cast_eq_coe_nat] at this ⊢,
-    convert this using 2, convert finsum_cond_eq_sum_of_cond_iff _ _,
+  { convert this using 2,
+    convert finsum_cond_eq_sum_of_cond_iff _ _,
     simp only [iff_self, set.mem_to_finset, implies_true_iff] },
-  simp only [← int.nat_cast_eq_coe_nat, nat.cast_sum],
+  simp only [nat.cast_sum],
   apply finset.dvd_sum,
   rintro ⟨x⟩ hx,
-  simp only [int.nat_cast_eq_coe_nat, conj_classes.quot_mk_eq_mk],
+  simp only [conj_classes.quot_mk_eq_mk],
   rw [card_carrier, conj_act.card, fintype.card_units, card_D,
       ←fintype.card_congr (units_centralizer_equiv x).to_equiv],
   set Zx := subring.centralizer (x:D),
@@ -163,9 +163,7 @@ begin
   haveI : is_scalar_tower Z Zx D := ⟨λ x y z, mul_assoc _ _ _⟩,
   have hdn : d ∣ n := ⟨_, (finrank_mul_finrank Z Zx D).symm⟩,
   rw [fintype.card_units, card_Zx, int.coe_nat_div],
-  simp only [←int.nat_cast_eq_coe_nat, nat.cast_sub h1qd, nat.cast_sub h1qn,
-    nat.cast_one, nat.cast_pow],
-  simp only [int.nat_cast_eq_coe_nat],
+  simp only [nat.cast_sub h1qd, nat.cast_sub h1qn, nat.cast_one, nat.cast_pow],
   suffices hd : d < n,
   { apply int.dvd_div_of_mul_dvd,
     have aux : ∀ {k : ℕ}, ((X : ℤ[X]) ^ k - 1).eval q = q ^ k - 1,
@@ -210,8 +208,7 @@ end
 
 end little_wedderburn
 
-def little_wedderburn (D : Type*) [hD : division_ring D] [fintype D] :
-  field D :=
+def little_wedderburn (D : Type*) [hD : division_ring D] [fintype D] : field D :=
 { mul_comm := λ x y,
   suffices y ∈ subring.center D, from this x,
   by { rw little_wedderburn.center_eq_top, trivial },

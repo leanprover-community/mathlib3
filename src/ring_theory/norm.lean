@@ -338,12 +338,12 @@ begin
   haveI : finite_dimensional K L := finite_dimensional.left K L F,
   haveI : is_separable K L := is_separable_tower_bot_of_is_separable K L F,
   haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
-  letI : ∀ (σ : L →ₐ[K] A), fintype (@alg_hom L F A _ _ _ _ σ.to_ring_hom.to_algebra) :=
+  letI : ∀ (σ : L →ₐ[K] A), by haveI := σ.to_ring_hom.to_algebra; exact fintype (F →ₐ[L] A) :=
     λ _, infer_instance,
   rw [norm_eq_prod_embeddings K A (_ : F), fintype.prod_equiv alg_hom_equiv_sigma
-    (λ σ : F →ₐ[K] A, σ x) (λ π : (Σ (f : L →ₐ[K] A), _), (π.2 : F → A) x) (λ _, rfl)],
-  suffices : ∀ σ : L →ₐ[K] A, finset.univ.prod
-    (λ (π : @alg_hom L F A _ _ _ _ σ.to_ring_hom.to_algebra), π x) = σ (norm L x),
+    (λ σ : F →ₐ[K] A, σ x) (λ π : (Σ f : L →ₐ[K] A, _), (π.2 : F → A) x) (λ _, rfl)],
+  suffices : ∀ σ : L →ₐ[K] A,
+    by haveI := σ.to_ring_hom.to_algebra; exact ∏ π : F →ₐ[L] A, π x = σ (norm L x),
   { simp_rw [← finset.univ_sigma_univ, finset.prod_sigma, this, norm_eq_prod_embeddings], },
   { intro σ,
     letI : algebra L A := σ.to_ring_hom.to_algebra,

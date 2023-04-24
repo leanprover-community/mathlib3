@@ -207,18 +207,13 @@ begin
   apply h𝓕.measure_zero_of_invariant _ _ hs,
   { intros γ,
     ext g,
-    rw set.mem_smul_set_iff_inv_smul_mem,
-    rw mem_preimage,
-    rw mem_preimage,
+    rw [set.mem_smul_set_iff_inv_smul_mem, mem_preimage, mem_preimage],
     congrm _ ∈ s,
     convert quotient_group.mk_mul_of_mem g (γ⁻¹).2, },
   exact measurable_set_preimage meas_π s_meas,
 end
 
 local attribute [-instance] quotient.measurable_space
-
-/- Move to commit message in PR: question: how to deduce
-  `ae_strongly_measurable (quotient_group.automorphize f) μ_𝓕`? -/
 
 /-- This is a simple version of the **Unfolding Trick**: Given a subgroup `Γ` of a group `G`, the
   integral of a function `f` on `G` with respect to a right-invariant measure `μ` is equal to the
@@ -299,15 +294,17 @@ lemma quotient_add_group.integral_mul_eq_integral_automorphize_mul
   (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 ≠ ∞)
   (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f) μ_𝓕)
   (h𝓕 : is_add_fundamental_domain Γ'.opposite 𝓕' μ') :
-  ∫ x : G', g (x : G' ⧸ Γ') * (f x) ∂μ' = ∫ x : G' ⧸ Γ', g x * (quotient_add_group.automorphize f x) ∂μ_𝓕 :=
+  ∫ x : G', g (x : G' ⧸ Γ') * (f x) ∂μ'
+    = ∫ x : G' ⧸ Γ', g x * (quotient_add_group.automorphize f x) ∂μ_𝓕 :=
 begin
   let π : G' → G' ⧸ Γ' := quotient_add_group.mk,
-  have H₀ : quotient_add_group.automorphize ((g ∘ π) * f) = g * (quotient_add_group.automorphize f) :=
+  have H₀ : quotient_add_group.automorphize ((g ∘ π) * f)
+    = g * (quotient_add_group.automorphize f) :=
     quotient_add_group.automorphize_smul_left f g,
   calc ∫ (x : G'), g (π x) * f x ∂μ' =
        ∫ (x : G' ⧸ Γ'), quotient_add_group.automorphize ((g ∘ π) * f) x ∂μ_𝓕 : _
   ... = ∫ (x : G' ⧸ Γ'), g x * (quotient_add_group.automorphize f x) ∂μ_𝓕 : by simp [H₀],
-  have meas_π : measurable π := sorry, -- continuous_quotient_mk.measurable, ---- **** WHY NOT WORKING?
+  have meas_π : measurable π := continuous_quotient_mk.measurable,
   have H₁ : integrable ((g ∘ π) * f) μ',
   { have : ae_strongly_measurable (λ x : G', g (x : G' ⧸ Γ')) μ',
     { refine (ae_strongly_measurable_of_absolutely_continuous _ _ hg).comp_measurable meas_π,

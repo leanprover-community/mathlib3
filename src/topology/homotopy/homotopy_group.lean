@@ -74,9 +74,12 @@ lemma one_char (f : I^1) : f = λ _, f 0 := eq_const_of_unique f
 section
 variable [decidable_eq N]
 
-/-- Makes a cube from a pair I × {j // j≠i} → I such that it has the first value at coordinate i,
-  and it equals the function elsewhere. -/
-abbreviation insert_at (i : N) := (fun_split_at I i).symm
+/-- Splits a cube into a pair I × {j // j≠i} → I such that the first member is the value of the
+  cube at coordinate `i`, and the function returns the value of the cube elsewhere. -/
+abbreviation split_at (i : N) := @fun_split_at I _ _ _ i
+
+/-- Makes a cube from a pair I × {j // j≠i} → I, inverse of `split_at`. -/
+abbreviation insert_at (i : N) := (@fun_split_at I _ _ _ i).symm
 
 lemma insert_at_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
   insert_at i ⟨t₀, t⟩ ∈ boundary N :=
@@ -145,7 +148,7 @@ section
 
 variable [decidable_eq N]
 
-/-- Path from a generalized loop by `insert`-ing into `I^(n+1)`. -/
+/-- Path from a generalized loop by currying `cube N` into `I × {j // j ≠ i} → I`. -/
 @[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
 { to_fun := λ t, ⟨(p.val.comp (cube.insert_at i).to_continuous_map).curry t,
     λ y yH, p.property (cube.insert_at i (t, y)) (cube.insert_at_boundary i $ or.inr yH)⟩,
@@ -153,10 +156,10 @@ variable [decidable_eq N]
   source' := by { ext t, refine p.property (cube.insert_at i (0, t)) ⟨i, or.inl _⟩, simp },
   target' := by { ext t, refine p.property (cube.insert_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
-/-- Generalized loop from a path by `split`-ing into `I×I^n`. -/
+/-- Generalized loop from a path by uncurrying `I × {j // j ≠ i} → I` into `cube N`. -/
 @[simps] def from_path (i : N) : Ω (gen_loop {j // j ≠ i} x) const → gen_loop N x :=
 λ p, ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(cube _, X))).uncurry.comp
-  (fun_split_at I i).to_continuous_map,
+  (cube.split_at i).to_continuous_map,
 begin
   rintros y ⟨j, Hj⟩,
   simp only [subtype.val_eq_coe, continuous_map.comp_apply, to_continuous_map_apply,
@@ -185,7 +188,7 @@ lemma to_path_apply (i : N) {p : gen_loop N x} {t} {tn} :
   to_path i p t tn = p (cube.insert_at i ⟨t, tn⟩) := rfl
 
 lemma from_path_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : cube N} :
-  from_path i p t = p (t i) (fun_split_at I i t).snd := rfl
+  from_path i p t = p (t i) (cube.split_at i t).snd := rfl
 
 end
 
@@ -229,7 +232,7 @@ end
   (H : (to_path i p).homotopy (to_path i q)) : C(I × cube N, X) :=
 ((⟨_, continuous_map.continuous_uncurry⟩ : C(_,_)).comp
   (c_coe.comp H.to_continuous_map).curry).uncurry.comp $
-    (continuous_map.id I).prod_map (fun_split_at I i).to_continuous_map
+    (continuous_map.id I).prod_map (cube.split_at i).to_continuous_map
 
 lemma homotopic_from (i : N) {p q : gen_loop N x} :
   (to_path i p).homotopic (to_path i q) → homotopic p q :=

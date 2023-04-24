@@ -8,14 +8,26 @@ open category_theory
 variables {k G H : Type u} [comm_ring k] [group G] [group H]
   (A : Rep k G) (B : Rep k H) (f : G →* H) (φ : B.V →ₗ[k] A.V) (n : ℕ)
 
+lemma map_mul_nth (j : ℕ) (g : fin (n + 1) → G) :
+  f ∘ fin.mul_nth j g = fin.mul_nth j (f ∘ g) :=
+begin
+  ext,
+  rw function.comp_app,
+  by_cases (x : ℕ) < j,
+  { simp only [fin.mul_nth_lt_apply _ h] },
+  { by_cases h1 : (x : ℕ) = j,
+    { simp only [fin.mul_nth_eq_apply _ h1, f.map_mul], },
+    { simp only [fin.mul_nth_neg_apply _ h h1] }}
+end
+
 def compatible : Prop := ∀ (g : G) (x : B.V), φ (B.ρ (f g) x) = A.ρ g (φ x)
 
-def compatible_chain_map_aux (n : ℕ) :
+/-def compatible_chain_map_aux (n : ℕ) :
   ((fin n → H) → B.V) →ₗ[k] ((fin n → G) → A.V) :=
 (φ.comp_left (fin n → G)).comp (linear_map.fun_left k B.V (λ x : fin n → G, f ∘ x))
 
 @[simp] lemma compatible_chain_map_aux_apply (n : ℕ) (x : (fin n → H) → B.V) (g : fin n → G) :
-  compatible_chain_map_aux A B f φ n x g = φ (x (f ∘ g)) := rfl
+  compatible_chain_map_aux A B f φ n x g = φ (x (f ∘ g)) := rfl-/
 
 open representation
 
@@ -61,7 +73,7 @@ lemma rep_hom_pair {k : Type u} [comm_ring k] {G : Type u} [group G]
   compatible B A (monoid_hom.id G) f.hom :=
 λ g, linear_map.ext_iff.1 (f.comm _)
 
--- not an aesthetically pleasing proof.
+/- not an aesthetically pleasing proof.
 lemma pair_chain_map_aux_comm (hp : compatible A B f φ) (n : ℕ) :
   ((inhomogeneous_cochains A).d n (n + 1)).comp (compatible_chain_map_aux A B f φ n)
     = (compatible_chain_map_aux A B f φ (n + 1)).comp ((inhomogeneous_cochains B).d n (n + 1)) :=
@@ -80,12 +92,23 @@ begin
   { by_cases heq : ((j : ℕ) = i),
     { simp only [fin.mul_nth_eq_apply _ heq, f.map_mul, function.comp_app] },
     { simp only [fin.mul_nth_neg_apply _ h heq, function.comp_app] }}
-end
+end-/
 
-def pair_chain_map (hp : compatible A B f φ) :
+@[simps] def pair_chain_map (hp : compatible A B f φ) :
   inhomogeneous_cochains B ⟶ inhomogeneous_cochains A :=
-{ f := λ i, compatible_chain_map_aux A B f φ i,
-  comm' := λ i j hij, by cases hij; exact pair_chain_map_aux_comm A B f φ hp i }
+{ f := λ i, φ.comp_left (fin i → G) ∘ₗ linear_map.fun_left k B.V (λ x : fin i → G, f ∘ x),
+  comm' := λ i j (hij : _ = _),
+  begin
+    subst hij,
+    ext x g,
+    simp only [Module.coe_comp, linear_map.coe_comp, function.comp_app, linear_map.comp_left_apply,
+      linear_map.fun_left_apply, inhomogeneous_cochains.d_def, inhomogeneous_cochains.d_apply,
+      φ.map_add, φ.map_sum, φ.map_smul, hp (g 0), add_right_inj, map_mul_nth],
+  end }
+
+lemma pair_chain_map_f_apply {hp : compatible A B f φ} (x : (fin n → H) → B) (g : fin n → G) :
+  (pair_chain_map A B f φ hp).f n x g = φ (x (f ∘ g)) :=
+rfl
 
 def pair_cohomology_map (hp : compatible A B f φ) (n : ℕ) :
   group_cohomology B n ⟶ group_cohomology A n :=

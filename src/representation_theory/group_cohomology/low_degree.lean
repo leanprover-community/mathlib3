@@ -238,9 +238,13 @@ begin
     sub_sub_sub_cancel_left, sub_add_sub_cancel, sub_self],
 end
 
-def one_cocycles := (d_one A).ker
-def one_coboundaries := ((d_zero A).cod_restrict (one_cocycles A) $
+abbreviation one_cocycles := (d_one A).ker
+abbreviation one_coboundaries := ((d_zero A).cod_restrict (one_cocycles A) $
 λ c, range_d_zero_le_ker_d_one A ⟨c, rfl⟩).range
+
+-- why doesn't it work...
+--@[priority 1000000] instance wtf : has_coe (one_cocycles A) (G → A) := by apply_instance
+variables {A}
 
 lemma mem_one_cocycles_iff (f : G → A) :
   f ∈ one_cocycles A ↔ ∀ g : G × G, A.ρ g.1 (f g.2) - f (g.1 * g.2) + f g.1 = 0 :=
@@ -257,6 +261,43 @@ by rcases h with ⟨x, rfl⟩; exact ⟨x, rfl⟩
 lemma mem_range_of_mem_one_coboundaries (f : one_coboundaries A) :
   (f : G → A) ∈ (d_zero A).range :=
 by rcases f with ⟨f, x, rfl⟩; exact ⟨x, rfl⟩
+
+variables (A)
+
+lemma one_coboundaries_of_trivial_eq (H : ∀ g x, A.ρ g x = x) :
+  one_coboundaries A = ⊥ :=
+begin
+  rw eq_bot_iff,
+  rintros x ⟨y, rfl⟩,
+  ext,
+  show A.ρ x y - y = 0,
+  rw [H, sub_self],
+end
+
+-- using predicate rather than Rep.of 1 because wanna coerce Z¹(G, A) to Fun(G, A).
+def one_cocycles_of_trivial_equiv (H : ∀ g x, A.ρ g x = x) :
+  one_cocycles A ≃ₗ[k] (additive G →+ A) :=
+{ to_fun := λ f,
+  { to_fun := (f : G → A),
+    map_zero' :=
+    begin
+      have : A.ρ 1 ((f : G → A) 1) - (f : G → A) (1 * 1) + (f : G → A) 1 = 0 :=
+        (mem_one_cocycles_iff (f : G → A)).1 f.2 (1, 1),
+      simpa only [H, mul_one, sub_self, zero_add, (mem_one_cocycles_iff (f : G → A)).1 f.2 (1, 1)], -- wow, simpa works on assumptions too?
+    end,
+    map_add' := λ x y,
+    begin
+      have : (f : G → A) (x * y) = A.ρ x ((f : G → A) y) + (f : G → A) x :=
+        (mem_one_cocycles_iff' (f : G → A)).1 f.2 (x, y),
+      simpa only [H, add_comm ((f : G → A) x)],
+    end },
+  map_add' := λ x y, rfl,
+  map_smul' := λ r x, rfl,
+  inv_fun := λ f,
+  { val := f,
+    property := (mem_one_cocycles_iff' f).2 (λ g, by simpa only [H, ←map_add, add_comm (f g.2)]) },
+  left_inv := λ f, by ext; refl,
+  right_inv := λ f, by ext; refl }
 
 def H_1 : Module k := Module.of k (one_cocycles A ⧸ one_coboundaries A)
 
@@ -407,6 +448,11 @@ end
   Module.of_hom (one_coboundaries A).mkq ≫ (H_1_iso A).inv
   = (one_cocycles_iso A).inv ≫ homology.π _ _ _ :=
 by rw [iso.comp_inv_eq, category.assoc, π_comp_H_1_iso_hom, iso.inv_hom_id_assoc]
+
+def H_1_of_trivial (H : ∀ g x, A.ρ g x = x) :
+  H_1 A ≅ Module.of k (additive G →+ A) :=
+(submodule.quot_equiv_of_eq_bot _ (one_coboundaries_of_trivial_eq A H)
+  ≪≫ₗ one_cocycles_of_trivial_equiv A H).to_Module_iso
 
 end first
 section second

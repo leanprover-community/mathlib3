@@ -1147,8 +1147,45 @@ hf.map (distrib_mul_action.to_add_monoid_hom α _) $ continuous_const_smul _
 lemma summable.const_smul (b : γ) (hf : summable f) : summable (λ i, b • f i) :=
 (hf.has_sum.const_smul _).summable
 
+/-- Infinite sums commute with scalar multiplication. Version for scalars living in a `monoid`, but
+  requiring a summability hypothesis. -/
 lemma tsum_const_smul [t2_space α] (b : γ) (hf : summable f) : ∑' i, b • f i = b • ∑' i, f i :=
 (hf.has_sum.const_smul _).tsum_eq
+
+/-- Infinite sums commute with scalar multiplication. Version for scalars living in a `group`, but
+  not requiring any summability hypothesis. -/
+lemma tsum_const_smul' {γ : Type*} [group γ] [distrib_mul_action γ α]
+  [has_continuous_const_smul γ α] [t2_space α] (g : γ) :
+  ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
+begin
+  by_cases hf : summable f,
+  { exact tsum_const_smul _ hf, },
+  rw tsum_eq_zero_of_not_summable hf,
+  simp only [smul_zero],
+  let mul_g : α ≃+ α := distrib_mul_action.to_add_equiv α g,
+  apply tsum_eq_zero_of_not_summable,
+  change ¬ summable (mul_g ∘ f),
+  rwa summable.map_iff_of_equiv mul_g; apply continuous_const_smul,
+end
+
+/-- Infinite sums commute with scalar multiplication. Version for scalars living in a
+  `division_ring`; no summability hypothesis. This could be made to work for a
+  `[group_with_zero γ]` if there was such a thing as `distrib_mul_action_with_zero`. -/
+lemma tsum_const_smul'' {γ : Type*} [division_ring γ] [module γ α] [has_continuous_const_smul γ α]
+  [t2_space α] (g : γ) :
+  ∑' (i : β), g • f i = g • ∑' (i : β), f i :=
+begin
+  by_cases hf : summable f,
+  { exact tsum_const_smul _ hf, },
+  rw tsum_eq_zero_of_not_summable hf,
+  simp only [smul_zero],
+  by_cases hg : g = 0,
+  { simp [hg], },
+  let mul_g : α ≃+ α := distrib_mul_action.to_add_equiv₀ α g hg,
+  apply tsum_eq_zero_of_not_summable,
+  change ¬ summable (mul_g ∘ f),
+  rwa summable.map_iff_of_equiv mul_g; apply continuous_const_smul,
+end
 
 end const_smul
 
@@ -1256,3 +1293,107 @@ begin
 end
 
 end has_continuous_star
+
+section automorphize
+
+variables {M : Type*} [topological_space M] [add_comm_monoid M] [t2_space M] {R : Type*}
+  [division_ring R] [module R M] [has_continuous_const_smul R M]
+
+/-- Given a group `α` acting on a type `β`, and a function `f : β → M`, we "automorphize" `f` to a
+  function `β ⧸ α → M` by summing over `α` orbits, `b ↦ ∑' (a : α), f(a • b)`. -/
+@[to_additive "Given an additive group `α` acting on a type `β`, and a function `f : β → M`,
+  we automorphize `f` to a function `β ⧸ α → M` by summing over `α` orbits,
+  `b ↦ ∑' (a : α), f(a • b)`."]
+def mul_action.automorphize [group α] [mul_action α β] (f : β → M) :
+  quotient (mul_action.orbit_rel α β) → M :=
+@quotient.lift _ _ (mul_action.orbit_rel α β) (λ b, ∑' (a : α), f(a • b))
+begin
+  rintros b₁ b₂ ⟨a, (rfl : a • b₂ = b₁)⟩,
+  simpa [mul_smul] using (equiv.mul_right a).tsum_eq (λ a', f (a' • b₂)),
+end
+
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
+  -scalar multiplication. -/
+lemma mul_action.automorphize_smul_left [group α] [mul_action α β]  (f : β → M)
+  (g : quotient (mul_action.orbit_rel α β) → R) :
+  mul_action.automorphize ((g ∘ quotient.mk') • f)
+    = g • (mul_action.automorphize f : quotient (mul_action.orbit_rel α β) → M) :=
+begin
+  ext x,
+  apply quotient.induction_on' x,
+  intro b,
+  simp only [mul_action.automorphize, pi.smul_apply', function.comp_app],
+  set π : β → quotient (mul_action.orbit_rel α β) := quotient.mk',
+  have H₁ : ∀ a : α, π (a • b) = π b,
+  { intro a,
+    rw quotient.eq_rel,
+    fconstructor,
+    exact a,
+    simp, },
+  change ∑' a : α, g (π (a • b)) • f (a • b) = g (π b) • ∑' a : α, f (a • b),
+  simp_rw [H₁],
+  exact tsum_const_smul'' _,
+end
+
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
+  -scalar multiplication. -/
+lemma add_action.automorphize_smul_left [add_group α] [add_action α β]  (f : β → M)
+  (g : quotient (add_action.orbit_rel α β) → R) :
+  add_action.automorphize ((g ∘ quotient.mk') • f)
+    = g • (add_action.automorphize f : quotient (add_action.orbit_rel α β) → M) :=
+begin
+  ext x,
+  apply quotient.induction_on' x,
+  intro b,
+  simp only [add_action.automorphize, pi.smul_apply', function.comp_app],
+  set π : β → quotient (add_action.orbit_rel α β) := quotient.mk',
+  have H₁ : ∀ a : α, π (a +ᵥ b) = π b,
+  { intro a,
+    rw quotient.eq_rel,
+    fconstructor,
+    exact a,
+    simp, },
+  change ∑' a : α, g (π (a +ᵥ b)) • f (a +ᵥ b) = g (π b) • ∑' a : α, f (a +ᵥ b),
+  simp_rw [H₁],
+  exact tsum_const_smul'' _,
+end
+
+attribute [to_additive mul_action.automorphize_smul_left] add_action.automorphize_smul_left
+
+section
+
+variables {G : Type*} [group G] {Γ : subgroup G}
+
+/-- Given a subgroup `Γ` of a group `G`, and a function `f : G → M`, we "automorphize" `f` to a
+  function `G ⧸ Γ → M` by summing over `Γ` orbits, `g ↦ ∑' (γ : Γ), f(γ • g)`. -/
+@[to_additive "Given a subgroup `Γ` of an additive group `G`, and a function `f : G → M`, we
+  automorphize `f` to a function `G ⧸ Γ → M` by summing over `Γ` orbits,
+  `g ↦ ∑' (γ : Γ), f(γ • g)`."]
+def quotient_group.automorphize  (f : G → M) : G ⧸ Γ → M := mul_action.automorphize f
+
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
+  -scalar multiplication. -/
+lemma quotient_group.automorphize_smul_left (f : G → M) (g : G ⧸ Γ → R) :
+  quotient_group.automorphize ((g ∘ quotient.mk') • f)
+    = g • (quotient_group.automorphize f : G ⧸ Γ → M) :=
+mul_action.automorphize_smul_left f g
+
+end
+
+section
+
+variables {G : Type*} [add_group G] {Γ : add_subgroup G}
+
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
+  -scalar multiplication. -/
+lemma quotient_add_group.automorphize_smul_left (f : G → M) (g : G ⧸ Γ → R) :
+  quotient_add_group.automorphize ((g ∘ quotient.mk') • f)
+    = g • (quotient_add_group.automorphize f : G ⧸ Γ → M) :=
+add_action.automorphize_smul_left f g
+
+end
+
+attribute [to_additive quotient_group.automorphize_smul_left]
+  quotient_add_group.automorphize_smul_left
+
+end automorphize

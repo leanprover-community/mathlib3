@@ -209,6 +209,11 @@ calc ∫⁻ x, f x ∂μ = ∑' g : G, ∫⁻ x in g • s, f x ∂μ : h.linteg
   tsum_congr $ λ g, ((measure_preserving_smul g⁻¹ μ).set_lintegral_comp_emb
     (measurable_embedding_const_smul _) _ _).symm
 
+
+@[to_additive] lemma lintegral_eq_tsum'' (h : is_fundamental_domain G s μ) (f : α → ℝ≥0∞) :
+  ∫⁻ x, f x ∂μ = ∑' g : G, ∫⁻ x in s, f (g • x) ∂μ :=
+(lintegral_eq_tsum' h f).trans ((equiv.inv G).tsum_eq (λ g, ∫⁻ (x : α) in s, f (g • x) ∂μ))
+
 @[to_additive] lemma set_lintegral_eq_tsum (h : is_fundamental_domain G s μ) (f : α → ℝ≥0∞)
   (t : set α) : ∫⁻ x in t, f x ∂μ = ∑' g : G, ∫⁻ x in t ∩ g • s, f x ∂μ :=
 calc ∫⁻ x in t, f x ∂μ = ∑' g : G, ∫⁻ x in g • s, f x ∂(μ.restrict t) :
@@ -353,6 +358,10 @@ calc ∫ x, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂μ : h.integral_eq_
 ... = ∑' g : G, ∫ x in s, f (g⁻¹ • x) ∂μ :
   tsum_congr $ λ g, (measure_preserving_smul g⁻¹ μ).set_integral_image_emb
     (measurable_embedding_const_smul _) _ _
+
+@[to_additive] lemma integral_eq_tsum'' (h : is_fundamental_domain G s μ)
+  (f : α → E) (hf : integrable f μ) : ∫ x, f x ∂μ = ∑' g : G, ∫ x in s, f (g • x) ∂μ :=
+(integral_eq_tsum' h f hf).trans ((equiv.inv G).tsum_eq (λ g, ∫ (x : α) in s, f (g • x) ∂μ))
 
 @[to_additive] lemma set_integral_eq_tsum (h : is_fundamental_domain G s μ) {f : α → E}
   {t : set α} (hf : integrable_on f t μ) :

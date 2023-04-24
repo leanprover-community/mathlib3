@@ -191,6 +191,17 @@ def distrib_mul_action.to_add_equiv (x : α) : β ≃+ β :=
 { .. distrib_mul_action.to_add_monoid_hom β x,
   .. mul_action.to_perm_hom α β x }
 
+/-- Each non-zero element of a `group_with_zero` defines an additive monoid isomorphism of an
+`add_monoid` on which it acts distributively.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+def distrib_mul_action.to_add_equiv₀ {α : Type*} (β : Type*) [group_with_zero α] [add_monoid β]
+  [distrib_mul_action α β] (x : α) (hx : x ≠ 0) : β ≃+ β :=
+{ inv_fun := λ b, x⁻¹ • b,
+  left_inv := inv_smul_smul₀ hx,
+  right_inv := smul_inv_smul₀ hx,
+  .. distrib_mul_action.to_add_monoid_hom β x, }
+
 variables (α β)
 
 /-- Each element of the group defines an additive monoid isomorphism.

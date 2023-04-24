@@ -206,33 +206,6 @@ begin
 end
 
 end partial_prod
-section mul_nth
-
-variables [has_mul α] {n : ℕ}
-
-/-- Sends `(g₀, ..., gₙ)` to `(g₀, ..., gⱼgⱼ₊₁, ..., gₙ)`. -/
-@[to_additive "Sends `(g₀, ..., gₙ)` to `(g₀, ..., gⱼ + gⱼ₊₁, ..., gₙ)`."]
-def mul_nth (j : ℕ) (g : fin (n + 1) → α) (k : fin n) : α :=
-if (k : ℕ) < j then g (cast_lt k (lt_trans k.2 $ lt_add_one _)) else
-if (k : ℕ) = j then g (cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (add_nat 1 k)
-else g (add_nat 1 k)
-
-@[to_additive] lemma mul_nth_lt_apply {j : ℕ} (g : fin (n + 1) → α) {k : fin n} (h : (k : ℕ) < j) :
-  mul_nth j g k = g (cast_lt k (lt_trans k.2 $ lt_add_one _)) := if_pos h
-
-@[to_additive] lemma mul_nth_eq_apply {j : ℕ} (g : fin (n + 1) → α) {k : fin n} (h : (k : ℕ) = j) :
-  mul_nth j g k = g (cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (add_nat 1 k) :=
-begin
-  have : ¬(k : ℕ) < j, from not_lt.2 (le_of_eq h.symm),
-  rw [mul_nth, if_neg this, if_pos h],
-end
-
-@[to_additive] lemma mul_nth_neg_apply {j : ℕ} (g : fin (n + 1) → α) {k : fin n}
-  (h : ¬(k : ℕ) < j) (h' : ¬(k : ℕ) = j) :
-  mul_nth j g k = g (add_nat 1 k) :=
-by rw [mul_nth, if_neg h, if_neg h']
-
-end mul_nth
 end fin
 
 namespace list

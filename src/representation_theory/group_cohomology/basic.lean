@@ -90,8 +90,8 @@ open Rep group_cohomology
 calculate group cohomology. -/
 @[simps] def d [monoid G] (n : ℕ) (A : Rep k G) :
   ((fin n → G) → A) →ₗ[k] (fin (n + 1) → G) → A :=
-{ to_fun := λ f g, A.ρ (g 0) (f (λ i, g (fin.add_nat 1 i)))
-    + (finset.range (n + 1)).sum (λ j, (-1 : k) ^ (j + 1) • f (fin.mul_nth j g)),
+{ to_fun := λ f g, A.ρ (g 0) (f (λ i, g i.succ))
+    + (finset.range (n + 1)).sum (λ j, (-1 : k) ^ (j + 1) • f (fin.contract_nth j (*) g)),
   map_add' := λ f g,
   begin
     ext x,
@@ -127,8 +127,7 @@ begin
   { congr,
     ext,
     have := fin.partial_prod_right_inv (1 : G) g (fin.cast_succ x),
-    simp only [fin.add_nat_one, mul_inv_rev, fin.coe_eq_cast_succ, one_smul,
-      fin.cast_succ_fin_succ] at *,
+    simp only [mul_inv_rev, fin.coe_eq_cast_succ, one_smul, fin.cast_succ_fin_succ] at *,
     rw [mul_assoc, ←mul_assoc _ _ (g x.succ), this, inv_mul_cancel_left] },
   { refine @finset.sum_bij _ ℕ (fin (n + 1)) _ (finset.range (n + 1)) finset.univ
       _ _ (λ a ha, a) (λ a ha, finset.mem_univ _) (λ a ha, _) (λ a b ha hb hab,

@@ -287,7 +287,7 @@ group cohomology. -/
 lemma diagonal_hom_equiv_symm_partial_prod_succ
   (f : (fin n → G) → A) (g : fin (n + 1) → G) (a : fin (n + 1)) :
   ((diagonal_hom_equiv n A).symm f).hom (finsupp.single (fin.partial_prod g ∘ a.succ.succ_above) 1)
-    = f (fin.mul_nth (a : ℕ) g) :=
+    = f (fin.contract_nth (a : ℕ) (*) g) :=
 begin
   simp only [diagonal_hom_equiv_symm_apply, fin.coe_succ, function.comp_app,
     fin.succ_succ_above_zero, fin.partial_prod_zero, map_one, fin.coe_eq_cast_succ,
@@ -295,22 +295,22 @@ begin
   congr,
   ext,
   by_cases (x : ℕ) < a,
-  { rw [fin.succ_above_below, fin.succ_above_below, inv_mul_cancel_left, fin.mul_nth_lt_apply _ h],
+  { rw [fin.succ_above_below, fin.succ_above_below, inv_mul_cancel_left,
+      fin.contract_nth_lt_apply _ _ h],
     { refl },
     { assumption },
     { rw [fin.cast_succ_lt_iff_succ_le, fin.succ_le_succ_iff, fin.le_iff_coe_le_coe],
       exact le_of_lt h }},
   { by_cases hx : (x : ℕ) = a,
-    { rw [fin.mul_nth_eq_apply _ hx, fin.succ_above_below, fin.succ_above_above,
+    { rw [fin.contract_nth_eq_apply _ _ hx, fin.succ_above_below, fin.succ_above_above,
         fin.cast_succ_fin_succ, fin.partial_prod_succ, mul_assoc,
-        inv_mul_cancel_left, fin.add_nat_one],
+        inv_mul_cancel_left],
       { refl },
       { simpa only [fin.le_iff_coe_le_coe, ←hx] },
       { rw [fin.cast_succ_lt_iff_succ_le, fin.succ_le_succ_iff, fin.le_iff_coe_le_coe],
         exact le_of_eq hx }},
-    { rw [fin.mul_nth_neg_apply _ h hx, fin.succ_above_above, fin.succ_above_above,
-        fin.partial_prod_succ, fin.cast_succ_fin_succ, fin.partial_prod_succ, inv_mul_cancel_left,
-        fin.add_nat_one],
+    { rw [fin.contract_nth_neg_apply _ _ h hx, fin.succ_above_above, fin.succ_above_above,
+        fin.partial_prod_succ, fin.cast_succ_fin_succ, fin.partial_prod_succ, inv_mul_cancel_left],
       { exact not_lt.1 h },
       { rw [fin.le_iff_coe_le_coe, fin.coe_succ],
         exact nat.succ_le_of_lt (lt_of_le_of_ne (not_lt.1 h) (ne.symm hx)) }}}

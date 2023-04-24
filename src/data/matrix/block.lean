@@ -189,6 +189,10 @@ begin
   ext i j, cases i; cases j; simp [from_blocks],
 end
 
+@[simp] lemma from_blocks_zero [has_zero α] :
+  from_blocks (0 : matrix n l α) 0 0 (0 : matrix o m α) = 0 :=
+by { ext i j, rcases i; rcases j; refl }
+
 lemma from_blocks_add [has_add α]
   (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
   (A' : matrix n l α) (B' : matrix n m α) (C' : matrix o l α) (D' : matrix o m α) :

@@ -167,6 +167,44 @@ by simp only [← nonempty_invertible_iff_is_unit, ←nonempty_prod,
 by simp only [← nonempty_invertible_iff_is_unit, ←nonempty_prod,
   (from_blocks_zero₁₂_invertible_equiv _ _ _).nonempty_congr]
 
+lemma inv_from_blocks_zero₂₁_of_is_unit_iff
+  (A : matrix m m α) (B : matrix m n α) (D : matrix n n α)
+  (hAD : is_unit A ↔ is_unit D) :
+  (from_blocks A B 0 D)⁻¹ = from_blocks A⁻¹ (-(A⁻¹⬝B⬝D⁻¹)) 0 D⁻¹ :=
+begin
+  by_cases hA : is_unit A,
+  { have hD := hAD.mp hA,
+    casesI hA.nonempty_invertible,
+    casesI hD.nonempty_invertible,
+    letI := from_blocks_zero₂₁_invertible A B D,
+    simp_rw [←inv_of_eq_nonsing_inv, inv_of_from_blocks_zero₂₁_eq] },
+  { have hD := hAD.not.mp hA,
+    have : ¬is_unit (from_blocks A B 0 D) :=
+      is_unit_from_blocks_zero₂₁.not.mpr (not_and'.mpr $ λ _, hA),
+    simp_rw [nonsing_inv_eq_ring_inverse,
+      ring.inverse_non_unit _ hA, ring.inverse_non_unit _ hD, ring.inverse_non_unit _ this,
+      matrix.zero_mul, neg_zero, from_blocks_zero] }
+end
+
+lemma inv_from_blocks_zero₁₂_of_is_unit_iff
+  (A : matrix m m α) (C : matrix n m α) (D : matrix n n α)
+  (hAD : is_unit A ↔ is_unit D) :
+  (from_blocks A 0 C D)⁻¹ = from_blocks A⁻¹ 0 (-(⅟D⬝C⬝⅟A)) D⁻¹ :=
+begin
+  by_cases hA : is_unit A,
+  { have hD := hAD.mp hA,
+    casesI hA.nonempty_invertible,
+    casesI hD.nonempty_invertible,
+    letI := from_blocks_zero₁₂_invertible A C D,
+    simp_rw [←inv_of_eq_nonsing_inv, inv_of_from_blocks_zero₁₂_eq] },
+  { have hD := hAD.not.mp hA,
+    have : ¬is_unit (from_blocks A 0 C D) :=
+      is_unit_from_blocks_zero₁₂.not.mpr (not_and'.mpr $ λ _, hA),
+    simp_rw [nonsing_inv_eq_ring_inverse,
+      ring.inverse_non_unit _ hA, ring.inverse_non_unit _ hD, ring.inverse_non_unit _ this,
+      matrix.zero_mul, neg_zero, from_blocks_zero] }
+end
+
 end triangular
 
 /-! ### Lemmas about `matrix.det` -/

@@ -1604,12 +1604,12 @@ set_like.ext' (set.centralizer_univ G)
 @[to_additive] lemma le_centralizer_iff : H ≤ K.centralizer ↔ K ≤ H.centralizer :=
 ⟨λ h x hx y hy, (h hy x hx).symm, λ h x hx y hy, (h hy x hx).symm⟩
 
-lemma center_le_centralizer (s) : center G ≤ centralizer s := s.center_subset_centralizer
+lemma center_le_centralizer (s) : center G ≤ centralizer s := set.center_subset_centralizer s
 
 @[to_additive] lemma centralizer_le (h : H ≤ K) : centralizer K ≤ centralizer H :=
 submonoid.centralizer_le h
 
-@[simp] lemma centralizer_eq_top_iff_subset {s : set G} : centralizer s = ⊤ ↔ s ⊆ center M :=
+@[simp] lemma centralizer_eq_top_iff_subset {s} : centralizer s = ⊤ ↔ s ≤ center G :=
 set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 @[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :

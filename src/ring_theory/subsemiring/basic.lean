@@ -604,13 +604,15 @@ lemma mem_centralizer_iff {R} [semiring R] {s : set R} {z : R} :
   z ∈ centralizer s ↔ ∀ g ∈ s, g * z = z * g :=
 iff.rfl
 
-lemma center_le_centralizer (s) : center R ≤ centralizer s := s.center_subset_centralizer
+lemma center_le_centralizer {R} [semiring R] (s) : center R ≤ centralizer s :=
+  s.center_subset_centralizer
 
 lemma centralizer_le {R} [semiring R] (s t : set R) (h : s ⊆ t) :
   centralizer t ≤ centralizer s :=
 set.centralizer_subset h
 
-@[simp] lemma centralizer_eq_top_iff_subset {s : set M} : centralizer s = ⊤ ↔ s ⊆ center M :=
+@[simp] lemma centralizer_eq_top_iff_subset {R} [semiring R] {s : set R} :
+  centralizer s = ⊤ ↔ s ⊆ center R :=
 set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 @[simp]

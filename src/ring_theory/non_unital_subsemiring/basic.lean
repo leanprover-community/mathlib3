@@ -424,10 +424,9 @@ lemma centralizer_le {R} [non_unital_semiring R] (s t : set R) (h : s ⊆ t) :
   centralizer t ≤ centralizer s :=
 set.centralizer_subset h
 
-@[simp] lemma centralizer_eq_top_iff_subset {R} [non_unital_semiring R] {s : set M} :
-  centralizer s = ⊤ ↔ s ⊆ center M :=
+@[simp] lemma centralizer_eq_top_iff_subset {R} [non_unital_semiring R] {s : set R} :
+  centralizer s = ⊤ ↔ s ⊆ center R :=
 set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
-
 
 @[simp]
 lemma centralizer_univ {R} [non_unital_semiring R] : centralizer set.univ = center R :=

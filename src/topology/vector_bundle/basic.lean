@@ -43,7 +43,7 @@ noncomputable theory
 open bundle set
 open_locale classical bundle
 
-variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*)
+variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 
 section topological_vector_space
 variables {B F E} [semiring R]
@@ -560,13 +560,13 @@ instance add_comm_group_fiber [add_comm_group F] : ∀ (x : B), add_comm_group (
 by dsimp [vector_bundle_core.fiber];  delta_instance fiber_bundle_core.fiber
 
 /-- The projection from the total space of a fiber bundle core, on its base. -/
-@[reducible, simp, mfld_simps] def proj : total_space Z.fiber → B := total_space.proj
+@[reducible, simp, mfld_simps] protected def proj : total_space Z.fiber → B := total_space.proj
 
 /-- The total space of the vector bundle, as a convenience function for dot notation.
 It is by definition equal to `bundle.total_space Z.fiber`, a.k.a. `Σ x, Z.fiber x` but with a
 different name for typeclass inference. -/
 @[nolint unused_arguments, reducible]
-def total_space := bundle.total_space Z.fiber
+protected def total_space := bundle.total_space Z.fiber
 
 /-- Local homeomorphism version of the trivialization change. -/
 def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
@@ -674,6 +674,38 @@ fiber_bundle_core.continuous_proj Z
 /-- The projection on the base of a vector bundle created from core is an open map -/
 lemma is_open_map_proj : is_open_map Z.proj :=
 fiber_bundle_core.is_open_map_proj Z
+
+variables {i j}
+
+@[simp, mfld_simps] lemma local_triv_continuous_linear_map_at {b : B} (hb : b ∈ Z.base_set i) :
+  (Z.local_triv i).continuous_linear_map_at R b = Z.coord_change (Z.index_at b) i b :=
+begin
+  ext1 v,
+  rw [(Z.local_triv i).continuous_linear_map_at_apply R, (Z.local_triv i).coe_linear_map_at_of_mem],
+  exacts [rfl, hb]
+end
+
+@[simp, mfld_simps] lemma trivialization_at_continuous_linear_map_at {b₀ b : B}
+  (hb : b ∈ (trivialization_at F Z.fiber b₀).base_set) :
+  (trivialization_at F Z.fiber b₀).continuous_linear_map_at R b =
+  Z.coord_change (Z.index_at b) (Z.index_at b₀) b :=
+Z.local_triv_continuous_linear_map_at hb
+
+@[simp, mfld_simps] lemma local_triv_symmL {b : B} (hb : b ∈ Z.base_set i) :
+  (Z.local_triv i).symmL R b = Z.coord_change i (Z.index_at b) b :=
+by { ext1 v, rw [(Z.local_triv i).symmL_apply R, (Z.local_triv i).symm_apply], exacts [rfl, hb] }
+
+@[simp, mfld_simps] lemma trivialization_at_symmL {b₀ b : B}
+  (hb : b ∈ (trivialization_at F Z.fiber b₀).base_set) :
+  (trivialization_at F Z.fiber b₀).symmL R b = Z.coord_change (Z.index_at b₀) (Z.index_at b) b :=
+Z.local_triv_symmL hb
+
+@[simp, mfld_simps] lemma trivialization_at_coord_change_eq {b₀ b₁ b : B}
+  (hb : b ∈ (trivialization_at F Z.fiber b₀).base_set ∩ (trivialization_at F Z.fiber b₁).base_set)
+  (v : F) :
+  (trivialization_at F Z.fiber b₀).coord_changeL R (trivialization_at F Z.fiber b₁) b v =
+  Z.coord_change (Z.index_at b₀) (Z.index_at b₁) b v :=
+Z.local_triv_coord_change_eq _ _ hb v
 
 end vector_bundle_core
 

@@ -485,3 +485,14 @@ noncomputable def function.extend_by_one.hom [mul_one_class R] : (ι → R) →*
   map_mul' := λ f g, by { simpa using function.extend_mul s f g 1 1 } }
 
 end extend
+
+namespace pi
+variables [decidable_eq I] [Π i, preorder (f i)] [Π i, has_one (f i)]
+
+@[to_additive] lemma mul_single_mono : monotone (pi.mul_single i : f i → Π i, f i) :=
+function.update_mono
+
+@[to_additive] lemma mul_single_strict_mono : strict_mono (pi.mul_single i : f i → Π i, f i) :=
+function.update_strict_mono
+
+end pi

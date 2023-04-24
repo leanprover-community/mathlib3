@@ -70,7 +70,7 @@ by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 
 variables {R}
 
-lemma norm_eq_one_of_not_module_finite [algebra R S] (h : ¬ module.finite R S) (x : S) :
+lemma norm_eq_one_of_not_module_finite (h : ¬ module.finite R S) (x : S) :
   norm R x = 1 :=
 begin
   refine norm_eq_one_of_not_exists_basis _ (mt _ h) _,
@@ -336,8 +336,7 @@ end
 
 variables {F} (L)
 
-lemma norm_norm [algebra L F] [is_scalar_tower K L F] [is_separable K F]
-  (x : F) :
+lemma norm_norm [algebra L F] [is_scalar_tower K L F] [is_separable K F] (x : F) :
   norm K (norm L x) = norm K x :=
 begin
   by_cases hKF : finite_dimensional K F,
@@ -368,6 +367,7 @@ begin
       rw [norm_eq_one_of_not_module_finite hLF, _root_.map_one], },
     { rw norm_eq_one_of_not_module_finite hKL, }},
 end
+-- TODO. Generalize this proof to rings
 
 end eq_prod_embeddings
 

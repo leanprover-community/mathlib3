@@ -810,6 +810,10 @@ begin
     exact p.imp H }
 end
 
+/-- As a function from a relation to a predicate, `chain` is monotonic. -/
+theorem chain_mono : monotone (chain : (α → α → Prop) → cycle α → Prop) :=
+λ a b hab s, chain.imp hab
+
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
 begin
   induction s using cycle.induction_on with a l _,

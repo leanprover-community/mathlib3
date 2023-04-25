@@ -29,6 +29,21 @@ If these conditions are satisfied, we register the typeclass `vector_bundle R F 
 
 We define constructions on vector bundles like pullbacks and direct sums in other files.
 
+## Main Definitions
+
+* `trivialization.is_linear`: a class stating that a trivialization is fiberwise linear on its base
+  set.
+* `trivialization.linear_equiv_at` and `trivialization.continuous_linear_map_at` are the
+  (continuous) linear fiberwise equivalences a trivialization induces.
+* They have forward maps `trivialization.linear_map_at` / `trivialization.continuous_linear_map_at`
+  and inverses `trivialization.symmₗ` / `trivialization.symmL`. Note that these are all defined
+  everywhere, since they are extended using the zero function.
+* `trivialization.coord_changeL` is the coordinate change induced by two trivializations. It only
+  makes sense on the intersection of their base sets, but is extended outside it using the identity.
+* Given a continuous (semi)linear map between `E x` and `E' y` where `E` and `E'` are bundles over
+  possibly different base sets, `continuous_linear_map.in_coordinates` turns this into a continuous
+  (semi)linear map between the chosen fibers of those bundles.
+
 ## Implementation notes
 
 The implementation choices in the vector bundle definition are discussed in the "Implementation
@@ -868,7 +883,7 @@ lemma to_vector_bundle :
 
 end vector_prebundle
 
-section in_coordinates
+namespace continuous_linear_map
 variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [nontrivially_normed_field 𝕜₂]
 variables {σ : 𝕜₁ →+* 𝕜₂}
 variables {B' : Type*} [topological_space B']
@@ -882,19 +897,20 @@ variables [Π x, topological_space (E' x)] [fiber_bundle F' E'] [vector_bundle �
 variables (F E F' E')
 
 /-- When `ϕ` is a continuous (semi)linear map between the fibers `E x` and `E' y` of two vector
-bundles `E` and `E'`, `in_coordinates F E F' E' x₀ x y₀ y ϕ` is a coordinate change of this
-continuous linear map w.r.t. the chart around `x₀` and the chart around `y₀`.
+bundles `E` and `E'`, `continuous_linear_map.in_coordinates F E F' E' x₀ x y₀ y ϕ` is a coordinate
+change of this continuous linear map w.r.t. the chart around `x₀` and the chart around `y₀`.
 
 It is defined by composing `ϕ` with appropriate coordinate changes given by the vector bundles
 `E` and `E'`.
 We use the operations `trivialization.continuous_linear_map_at` and `trivialization.symmL` in the
-definition, instead of `trivialization.continuous_linear_equiv_at`, so that `in_coordinates` is
-defined everywhere (but see `in_coordinates_eq`).
+definition, instead of `trivialization.continuous_linear_equiv_at`, so that
+`continuous_linear_map.in_coordinates` is defined everywhere (but see
+`continuous_linear_map.in_coordinates_eq`).
 
 This is the (second component of the) underlying function of a trivialization of the hom-bundle
-(see `hom_trivialization_at_apply`). However, note that `in_coordinates` is defined even when
-`x` and `y` live in different base sets. Therefore, it is is also convenient when working with the
-hom-bundle between pulled back bundles.
+(see `hom_trivialization_at_apply`). However, note that `continuous_linear_map.in_coordinates` is
+defined even when `x` and `y` live in different base sets.
+Therefore, it is is also convenient when working with the hom-bundle between pulled back bundles.
 -/
 def in_coordinates (x₀ x : B) (y₀ y : B') (ϕ : E x →SL[σ] E' y) : F →SL[σ] F' :=
 ((trivialization_at F' E' y₀).continuous_linear_map_at 𝕜₂ y).comp $ ϕ.comp $
@@ -928,6 +944,5 @@ protected lemma vector_bundle_core.in_coordinates_eq {ι ι'} (Z : vector_bundle
 by simp_rw [in_coordinates, Z'.trivialization_at_continuous_linear_map_at hy,
   Z.trivialization_at_symmL hx]
 
-end in_coordinates
-
+end continuous_linear_map
 end

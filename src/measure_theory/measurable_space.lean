@@ -1419,17 +1419,14 @@ begin
     { intro t,
       tauto },
     intros t ht,
-    simp only [mem_Union],
-    --I feel there should already be some basic logic theorem that does this,
-    --but I could not find it.
-    split; rintros ⟨n, hn⟩; use n; rw ht at *; exact hn, },
+    simp_rw [mem_Union, ht], },
   specialize this {y} measurable_set_eq,
   simpa only [mem_singleton, iff_true],
 end
 
 end measurable_space
 
-end countable_generate
+end countably_generated
 
 namespace filter
 

@@ -33,8 +33,7 @@ variables {α β : Type*}
 
 open topological_space set
 
-/-Note: Perhaps this should be in topology/instances/discrete or topology/metric_space/polish.
-It also seems likely there is a simpler proof. -/
+/-Note: Move to topology/metric_space/polish when porting. -/
 @[priority 50]
 instance polish_of_countable [h : countable α] [topological_space α] [discrete_topology α]
   : polish_space α :=
@@ -56,6 +55,8 @@ h.second_countable
 local attribute [-instance] polish_space_of_complete_second_countable
 local attribute [instance] second_countable_of_polish
 
+namespace polish_space
+
 variables [topological_space α] [polish_space α] [topological_space β] [polish_space β]
 variables [measurable_space α] [borel_space α] [measurable_space β] [borel_space β]
 
@@ -71,13 +72,13 @@ def borel_schroeder_bernstein
 (fmeas.measurable_embedding finj).schroeder_bernstein (gmeas.measurable_embedding ginj)
 
 /-- Any uncountable Polish space is Borel isomorphic to the Cantor space `ℕ → bool`.-/
-def borel_nat_bool_equiv_of_uncountable (h : ¬countable α) : (ℕ → bool) ≃ᵐ α :=
+def measurable_equiv_nat_bool_of_uncountable (h : ¬ countable α) : α ≃ᵐ (ℕ → bool) :=
 begin
   apply nonempty.some,
   obtain ⟨f, -, fcts, finj⟩ := is_closed_univ.exists_nat_bool_injection_of_uncountable
     (by rwa [← countable_coe_iff ,(equiv.set.univ _).countable_iff]),
   obtain ⟨g, gmeas, ginj⟩ := measurable_space.measurable_inj_cantor_of_countably_generated α,
-  exact ⟨borel_schroeder_bernstein fcts.measurable finj gmeas ginj⟩,
+  exact ⟨borel_schroeder_bernstein gmeas ginj fcts.measurable finj⟩,
 end
 
 /-- The **Borel Isomorphism Theorem**: Any two uncountable Polish spaces are Borel isomorphic.-/
@@ -93,7 +94,8 @@ begin
   { letI := h,
     letI := countable.of_equiv α e,
     use e; apply measurable_of_countable, },
-  apply borel_equiv_of_uncountable_of_uncountable,
-  { exact h },
+  refine measurable_equiv_of_uncountable h _,
   rwa e.countable_iff at h,
 end
+
+end polish_space

@@ -852,16 +852,16 @@ section contract_nth
 variables {α : Type*}
 
 /-- Sends `(g₀, ..., gₙ)` to `(g₀, ..., op gⱼ gⱼ₊₁, ..., gₙ)`. -/
-def contract_nth (j : ℕ) (op : α → α → α) (g : fin (n + 1) → α) (k : fin n) : α :=
+def contract_nth (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α) (k : fin n) : α :=
 if (k : ℕ) < j then g k.cast_succ else
 if (k : ℕ) = j then op (g k.cast_succ) (g k.succ)
 else g k.succ
 
-lemma contract_nth_lt_apply (j : ℕ) {op : α → α → α} {g : fin (n + 1) → α}
+lemma contract_nth_lt_apply (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
   (k : fin n) (h : (k : ℕ) < j) :
   contract_nth j op g k = g k.cast_succ := if_pos h
 
-lemma contract_nth_eq_apply (j : ℕ) {op : α → α → α} {g : fin (n + 1) → α}
+lemma contract_nth_eq_apply (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
   (k : fin n) (h : (k : ℕ) = j) :
   contract_nth j op g k = op (g k.cast_succ) (g k.succ) :=
 begin
@@ -869,10 +869,10 @@ begin
   rw [contract_nth, if_neg this, if_pos h],
 end
 
-lemma contract_nth_not_apply (j : ℕ) {op : α → α → α} {g : fin (n + 1) → α}
-  (k : fin n) (h : ¬(k : ℕ) < j) (h' : ¬(k : ℕ) = j) :
+lemma contract_nth_gt_apply (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
+  (k : fin n) (h : (j : ℕ) < k) :
   contract_nth j op g k = g k.succ :=
-by rw [contract_nth, if_neg h, if_neg h']
+by rw [contract_nth, if_neg (not_lt_of_gt h), if_neg (ne.symm $ ne_of_lt h)]
 
 end contract_nth
 

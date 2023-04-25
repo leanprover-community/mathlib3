@@ -91,7 +91,7 @@ calculate group cohomology. -/
 @[simps] def d [monoid G] (n : ℕ) (A : Rep k G) :
   ((fin n → G) → A) →ₗ[k] (fin (n + 1) → G) → A :=
 { to_fun := λ f g, A.ρ (g 0) (f (λ i, g i.succ))
-    + (finset.range (n + 1)).sum (λ j, (-1 : k) ^ (j + 1) • f (fin.contract_nth j (*) g)),
+    + finset.univ.sum (λ j : fin (n + 1), (-1 : k) ^ ((j : ℕ) + 1) • f (fin.contract_nth j (*) g)),
   map_add' := λ f g,
   begin
     ext x,
@@ -129,13 +129,8 @@ begin
     have := fin.partial_prod_right_inv (1 : G) g (fin.cast_succ x),
     simp only [mul_inv_rev, fin.coe_eq_cast_succ, one_smul, fin.cast_succ_fin_succ] at *,
     rw [mul_assoc, ←mul_assoc _ _ (g x.succ), this, inv_mul_cancel_left] },
-  { refine @finset.sum_bij _ ℕ (fin (n + 1)) _ (finset.range (n + 1)) finset.univ
-      _ _ (λ a ha, a) (λ a ha, finset.mem_univ _) (λ a ha, _) (λ a b ha hb hab,
-      by rw [←fin.coe_coe_of_lt (finset.mem_range.1 ha), ←fin.coe_coe_of_lt
-      (finset.mem_range.1 hb)]; congr' 1) (λ a ha, ⟨(a : ℕ), finset.mem_range.2 a.2,
-      by ext; simp only [fin.coe_coe_eq_self]⟩),
-    rw [diagonal_hom_equiv_symm_partial_prod_succ, fin.coe_succ,
-      fin.coe_coe_of_lt (finset.mem_range.1 ha)] }
+  { exact finset.sum_congr rfl (λ j hj,
+      by rw [diagonal_hom_equiv_symm_partial_prod_succ, fin.coe_succ]) }
 end
 
 end inhomogeneous_cochains

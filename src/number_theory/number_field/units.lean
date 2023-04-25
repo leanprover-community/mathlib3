@@ -84,6 +84,7 @@ end coe_to_field
 section is_unit
 
 local attribute [instance] number_field.ring_of_integers_algebra
+local attribute [-instance] algebraic_closure.algebra
 
 open finite_dimensional
 
@@ -93,8 +94,14 @@ rw [← abs_one, abs_eq_abs, ← @ring_of_integers.is_unit_norm _ ℚ, rat.ring_
 
 example [number_field K] (x : 𝓞 K) : is_unit x ↔ abs (ring_of_integers.norm ℚ x : ℚ) = 1 :=
 begin
+  letI : algebra K (algebraic_closure K) := algebraic_closure.algebra K,
+  haveI : char_zero (algebraic_closure K) := algebraic_closure.char_zero K,
   let L := normal_closure ℚ K (algebraic_closure K),
   haveI : finite_dimensional K L := finite_dimensional.right ℚ K _,
+  haveI : is_galois ℚ (algebraic_closure K) :=
+    is_alg_closure.is_galois_of_algebraic ℚ K _ (number_field.is_algebraic K),
+  haveI : is_galois K L := is_galois.tower_top_of_is_galois ℚ K L,
+--  haveI : number_field L := number_field.normal_closure ℚ K _,
   have t2 := is_unit_iff_norm.of_is_galois L (algebra_map (𝓞 K) (𝓞 L) x),
   have t3 := (ring_of_integers.is_unit_norm K).trans t2,
   have hs : ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x) = x ^ (finrank K L) := sorry,
@@ -105,7 +112,7 @@ begin
     exact finite_dimensional.finrank_pos,
   },
   { simp only [ring_of_integers.norm_apply_coe, eq_iff_iff],
-    rw ← algebra.norm_norm ℚ K L (algebra_map (𝓞 K) (𝓞 L) x),
+    rw ← algebra.norm_norm ℚ K (algebra_map (𝓞 K) (𝓞 L) x : L),
     rw [show (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K), by refl],
     rw algebra.norm_algebra_map,
     rw map_pow,

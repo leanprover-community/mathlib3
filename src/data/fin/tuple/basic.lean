@@ -857,11 +857,11 @@ if (k : ℕ) < j then g k.cast_succ else
 if (k : ℕ) = j then op (g k.cast_succ) (g k.succ)
 else g k.succ
 
-lemma contract_nth_lt_apply (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
+lemma contract_nth_apply_of_lt (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
   (k : fin n) (h : (k : ℕ) < j) :
   contract_nth j op g k = g k.cast_succ := if_pos h
 
-lemma contract_nth_eq_apply (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
+lemma contract_nth_apply_of_eq (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
   (k : fin n) (h : (k : ℕ) = j) :
   contract_nth j op g k = op (g k.cast_succ) (g k.succ) :=
 begin
@@ -869,7 +869,7 @@ begin
   rw [contract_nth, if_neg this, if_pos h],
 end
 
-lemma contract_nth_gt_apply (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
+lemma contract_nth_apply_of_gt (j : fin (n + 1)) {op : α → α → α} {g : fin (n + 1) → α}
   (k : fin n) (h : (j : ℕ) < k) :
   contract_nth j op g k = g k.succ :=
 by rw [contract_nth, if_neg (not_lt_of_gt h), if_neg (ne.symm $ ne_of_lt h)]

@@ -14,8 +14,8 @@ This file defines the space of complete types over a first-order theory.
 * `first_order.language.Theory.complete_type`:
   `T.complete_type α` consists of complete types over the theory `T` with variables `α`.
 * `first_order.language.Theory.type_of` is the type of a given tuple.
-* `first_order.language.Theory.complete_type.is_realized_in` indicates when a type is realized -
-that is, the type of some tuple over a particular model.
+* `first_order.language.Theory.realized_types`: `T.realized_types M α` is the set of
+  types in `T.complete_type α` that are realized in `M` - that is, the type of some tuple in `M`.
 
 ## Main Results
 * `first_order.language.Theory.complete_type.nonempty_iff`:

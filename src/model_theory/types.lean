@@ -179,7 +179,7 @@ begin
 end
 
 lemma formula_mem_type_of {φ : L.formula α} :
-  (formula.equiv_sentence φ) ∈ T.type_of v ↔ φ.realize v :=
+  formula.equiv_sentence φ ∈ T.type_of v ↔ φ.realize v :=
 by simp
 
 end complete_type

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
 import probability.probability_mass_function.constructions
-import data.list.basic
+import data.multiset.dedup
 
 /-!
 # Uniform Probability Mass Functions
@@ -23,7 +23,7 @@ Each probability is given by the count of the element divided by the size of the
 
 `pmf.of_list` draws randomly from the given `list`, treating duplicate values as distinct.
 Each probability is given by the count of the element divided by the size of the `list`.
-Requires a proof that the given proof is nonempty to ensure the total probability is `1`.
+Requires a proof that the given `list` is nonempty to avoid division by `0`.
 -/
 
 namespace pmf
@@ -37,6 +37,11 @@ by simp [finset.nonempty_iff_ne_empty]
 
 @[simp] lemma list.to_finset_nonempty (l : list α) : l.to_finset.nonempty ↔ ¬ l.empty :=
 by simp [finset.nonempty_iff_ne_empty, list.empty_iff_eq_nil]
+
+@[simp] lemma list.dedup_empty (l : list α) : l.dedup.empty ↔ l.empty :=
+begin
+  sorry,
+end
 
 section uniform_of_finset
 
@@ -158,14 +163,21 @@ lemma of_multiset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_multiset s hs a 
 by simpa only [of_multiset_apply, ennreal.div_zero_iff, nat.cast_eq_zero,
   multiset.count_eq_zero, ennreal.nat_ne_top, or_false] using ha
 
-lemma of_multiset_eq_uniform_of_finset (hs' : s.nodup) :
-  of_multiset s hs = uniform_of_finset s.to_finset ((multiset.to_finset_nonempty s).2 hs) :=
-begin
-  refine pmf.ext (λ x, _),
-  simp_rw [of_multiset_apply, uniform_of_finset_apply, multiset.count_eq_of_nodup hs',
-    multiset.card_to_finset, multiset.nodup.dedup hs', multiset.mem_to_finset],
-  split_ifs; simp only [algebra_map.coe_one, one_div, algebra_map.coe_zero, ennreal.zero_div]
-end
+/-- After removing duplicate elements from `s : multiset α`, the uniform distribution on `s`
+is the same as the uniform distribution on `s.to_finset`. -/
+@[simp] lemma of_multiset_dedup_eq_uniform_of_finset (hs : s.dedup ≠ 0) :
+  have s.to_finset.nonempty := (multiset.to_finset_nonempty s).2 (hs ∘ multiset.dedup_eq_zero.2),
+  of_multiset s.dedup hs = uniform_of_finset s.to_finset this :=
+pmf.ext (λ x, by simp only [of_multiset_apply, uniform_of_finset_apply, multiset.card_to_finset,
+  multiset.count_eq_of_nodup (s.nodup_dedup), nat.cast_ite, algebra_map.coe_one, div_eq_mul_inv,
+  algebra_map.coe_zero, ite_mul, one_mul, zero_mul, multiset.mem_dedup, multiset.mem_to_finset])
+
+lemma of_multiset_eq_uniform_of_finset_of_nodup (hs' : s.nodup) :
+  of_multiset s hs = uniform_of_finset s.to_finset (s.to_finset_nonempty.2 hs) :=
+have s.dedup ≠ 0 := (λ h, hs $ multiset.dedup_eq_zero.1 h),
+calc of_multiset s hs = of_multiset s.dedup this : by simp only [multiset.dedup_eq_self.2 hs']
+  ... = uniform_of_finset s.to_finset (s.to_finset_nonempty.2 hs) :
+    of_multiset_dedup_eq_uniform_of_finset _
 
 section measure
 
@@ -206,9 +218,19 @@ lemma mem_support_of_list_iff (x : α) : x ∈ (of_list l h).support ↔ x ∈ l
 
 lemma of_list_apply_of_not_mem {x : α} (hx : x ∉ l) : of_list l h x = 0 := by simpa
 
+/-- After removing duplicate elements from `l : list α`, the uniform distribution on `l`
+is the same as the uniform distribution on `l.to_finset`. -/
+lemma of_list_dedup_eq_uniform_of_finset (hl : ¬ l.dedup.empty) : of_list l.dedup hl =
+  uniform_of_finset l.to_finset (l.to_finset_nonempty.2 $ hl ∘ l.dedup_empty.2) :=
+begin
+  refine trans _ (of_multiset_dedup_eq_uniform_of_finset _),
+  sorry,
+  sorry,
+end
+
 lemma of_list_eq_uniform_of_finset (hl : l.nodup) :
-  of_list l h = uniform_of_finset l.to_finset ((l.to_finset_nonempty).2 h) :=
-of_multiset_eq_uniform_of_finset _ hl
+  of_list l h = uniform_of_finset l.to_finset (l.to_finset_nonempty.2 h) :=
+of_multiset_eq_uniform_of_finset_of_nodup _ hl
 
 section measure
 

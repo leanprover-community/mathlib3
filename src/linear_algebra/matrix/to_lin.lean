@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import data.matrix.block
 import data.matrix.notation
-import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
 import algebra.module.algebra
@@ -164,23 +163,68 @@ This should eventually be remedied.
 section to_matrix'
 
 variables {R : Type*} [comm_semiring R]
-variables {l m n : Type*}
+variables {k l m n : Type*}
 
 /-- `matrix.mul_vec M` is a linear map. -/
-@[simps] def matrix.mul_vec_lin [fintype n] (M : matrix m n R) : (n → R) →ₗ[R] (m → R) :=
+def matrix.mul_vec_lin [fintype n] (M : matrix m n R) : (n → R) →ₗ[R] (m → R) :=
 { to_fun := M.mul_vec,
   map_add' := λ v w, funext (λ i, dot_product_add _ _ _),
   map_smul' := λ c v, funext (λ i, dot_product_smul _ _ _) }
 
-variables [fintype n] [decidable_eq n]
+@[simp] lemma matrix.mul_vec_lin_apply [fintype n] (M : matrix m n R) (v : n → R) :
+  M.mul_vec_lin v = M.mul_vec v := rfl
 
-lemma matrix.mul_vec_std_basis (M : matrix m n R) (i j) :
+@[simp] lemma matrix.mul_vec_lin_zero [fintype n] : matrix.mul_vec_lin (0 : matrix m n R) = 0 :=
+linear_map.ext zero_mul_vec
+
+@[simp] lemma matrix.mul_vec_lin_add [fintype n] (M N : matrix m n R) :
+  (M + N).mul_vec_lin = M.mul_vec_lin + N.mul_vec_lin :=
+linear_map.ext $ λ _, add_mul_vec _ _ _
+
+lemma matrix.mul_vec_lin_submatrix [fintype n] [fintype l] (f₁ : m → k) (e₂ : n ≃ l)
+  (M : matrix k l R) :
+  (M.submatrix f₁ e₂).mul_vec_lin = fun_left R R f₁ ∘ₗ M.mul_vec_lin ∘ₗ fun_left _ _ e₂.symm :=
+linear_map.ext $ λ x, submatrix_mul_vec_equiv _ _ _ _
+
+/-- A variant of `matrix.mul_vec_lin_submatrix` that keeps around `linear_equiv`s. -/
+lemma matrix.mul_vec_lin_reindex [fintype n] [fintype l] (e₁ : k ≃ m) (e₂ : l ≃ n)
+  (M : matrix k l R) :
+  (reindex e₁ e₂ M).mul_vec_lin = ↑(linear_equiv.fun_congr_left R R e₁.symm)
+      ∘ₗ M.mul_vec_lin ∘ₗ ↑(linear_equiv.fun_congr_left R R e₂) :=
+matrix.mul_vec_lin_submatrix _ _ _
+
+variables [fintype n]
+
+@[simp] lemma matrix.mul_vec_lin_one [decidable_eq n] :
+  matrix.mul_vec_lin (1 : matrix n n R) = id :=
+by { ext, simp [linear_map.one_apply, std_basis_apply] }
+
+@[simp] lemma matrix.mul_vec_lin_mul [fintype m] (M : matrix l m R)
+  (N : matrix m n R) :
+  matrix.mul_vec_lin (M ⬝ N) = (matrix.mul_vec_lin M).comp (matrix.mul_vec_lin N) :=
+linear_map.ext $ λ x, (mul_vec_mul_vec _ _ _).symm
+
+lemma matrix.ker_mul_vec_lin_eq_bot_iff {M : matrix n n R} :
+  M.mul_vec_lin.ker = ⊥ ↔ ∀ v, M.mul_vec v = 0 → v = 0 :=
+by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.mul_vec_lin_apply]
+
+lemma matrix.mul_vec_std_basis [decidable_eq n] (M : matrix m n R) (i j) :
   M.mul_vec (std_basis R (λ _, R) j 1) i = M i j :=
 (congr_fun (matrix.mul_vec_single _ _ (1 : R)) i).trans $ mul_one _
 
-@[simp] lemma matrix.mul_vec_std_basis_apply (M : matrix m n R) (j) :
+@[simp] lemma matrix.mul_vec_std_basis_apply [decidable_eq n] (M : matrix m n R) (j) :
   M.mul_vec (std_basis R (λ _, R) j 1) = Mᵀ j :=
 funext $ λ i, matrix.mul_vec_std_basis M i j
+
+lemma matrix.range_mul_vec_lin (M : matrix m n R) : M.mul_vec_lin.range = span R (range Mᵀ) :=
+begin
+  letI := classical.dec_eq n,
+  simp_rw [range_eq_map, ←supr_range_std_basis, submodule.map_supr, range_eq_map,
+    ←ideal.span_singleton_one, ideal.span, submodule.map_span, image_image, image_singleton,
+    matrix.mul_vec_lin_apply, M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
+end
+
+variables [decidable_eq n]
 
 /-- Linear maps `(n → R) →ₗ[R] (m → R)` are linearly equivalent to `matrix m n R`. -/
 def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=
@@ -198,9 +242,13 @@ def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n
   map_smul' := λ c f, by { ext i j, simp only [pi.smul_apply, linear_map.smul_apply,
                                                ring_hom.id_apply, of_apply] } }
 
-/-- A `matrix m n R` is linearly equivalent to a linear map `(n → R) →ₗ[R] (m → R)`. -/
+/-- A `matrix m n R` is linearly equivalent to a linear map `(n → R) →ₗ[R] (m → R)`.
+
+Note that the forward-direction does not require `decidable_eq` and is `matrix.vec_mul_lin`. -/
 def matrix.to_lin' : matrix m n R ≃ₗ[R] ((n → R) →ₗ[R] (m → R)) :=
 linear_map.to_matrix'.symm
+
+lemma matrix.to_lin'_apply' (M : matrix m n R) : matrix.to_lin' M = M.mul_vec_lin := rfl
 
 @[simp] lemma linear_map.to_matrix'_symm :
   (linear_map.to_matrix'.symm : matrix m n R ≃ₗ[R] _) = matrix.to_lin' :=
@@ -233,8 +281,7 @@ end
   matrix.to_lin' M v = M.mul_vec v := rfl
 
 @[simp] lemma matrix.to_lin'_one :
-  matrix.to_lin' (1 : matrix n n R) = id :=
-by { ext, simp [linear_map.one_apply, std_basis_apply] }
+  matrix.to_lin' (1 : matrix n n R) = id := matrix.mul_vec_lin_one
 
 @[simp] lemma linear_map.to_matrix'_id :
   (linear_map.to_matrix' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
@@ -242,7 +289,19 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 
 @[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
-linear_map.ext $ λ x, (mul_vec_mul_vec _ _ _).symm
+matrix.mul_vec_lin_mul _ _
+
+@[simp] lemma matrix.to_lin'_submatrix [fintype l] [decidable_eq l] (f₁ : m → k) (e₂ : n ≃ l)
+  (M : matrix k l R) :
+  (M.submatrix f₁ e₂).to_lin' = fun_left R R f₁ ∘ₗ M.to_lin' ∘ₗ fun_left _ _ e₂.symm :=
+matrix.mul_vec_lin_submatrix _ _ _
+
+/-- A variant of `matrix.to_lin'_submatrix` that keeps around `linear_equiv`s. -/
+lemma matrix.to_lin'_reindex [fintype l] [decidable_eq l] (e₁ : k ≃ m) (e₂ : l ≃ n)
+  (M : matrix k l R) :
+  (reindex e₁ e₂ M).to_lin' = ↑(linear_equiv.fun_congr_left R R e₁.symm)
+      ∘ₗ M.to_lin' ∘ₗ ↑(linear_equiv.fun_congr_left R R e₂) :=
+matrix.mul_vec_lin_reindex _ _ _
 
 /-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
 lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R)
@@ -267,12 +326,10 @@ by simp [module.algebra_map_End_eq_smul_id]
 
 lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
   M.to_lin'.ker = ⊥ ↔ ∀ v, M.mul_vec v = 0 → v = 0 :=
-by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
+matrix.ker_mul_vec_lin_eq_bot_iff
 
 lemma matrix.range_to_lin' (M : matrix m n R) : M.to_lin'.range = span R (range Mᵀ) :=
-by simp_rw [range_eq_map, ←supr_range_std_basis, submodule.map_supr, range_eq_map,
-  ←ideal.span_singleton_one, ideal.span, submodule.map_span, image_image, image_singleton,
-  matrix.to_lin'_apply, M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
+matrix.range_mul_vec_lin _
 
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
@@ -341,16 +398,6 @@ lemma linear_map.to_matrix_alg_equiv'_mul
   (f g : (n → R) →ₗ[R] (n → R)) :
   (f * g).to_matrix_alg_equiv' = f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv' :=
 linear_map.to_matrix_alg_equiv'_comp f g
-
-lemma matrix.rank_vec_mul_vec {K m n : Type u} [field K] [fintype n] [decidable_eq n]
-  (w : m → K) (v : n → K) :
-  rank (vec_mul_vec w v).to_lin' ≤ 1 :=
-begin
-  rw [vec_mul_vec_eq, matrix.to_lin'_mul],
-  refine le_trans (rank_comp_le1 _ _) _,
-  refine (rank_le_domain _).trans_eq _,
-  rw [dim_fun', fintype.card_unit, nat.cast_one]
-end
 
 end to_matrix'
 
@@ -627,7 +674,7 @@ linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
 begin
   ext,
   rw [linear_map.to_matrix_apply, distrib_mul_action.to_linear_map_apply, linear_equiv.map_smul,
-    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal,
+    basis.repr_self, finsupp.smul_single_one, finsupp.single_eq_pi_single, matrix.diagonal_apply,
     pi.single_apply],
 end
 
@@ -721,51 +768,6 @@ by rw [smul_left_mul_matrix_algebra_map, block_diagonal_apply_ne _ _ _ h]
 end lmul_tower
 
 end algebra
-
-namespace linear_map
-
-section finite_dimensional
-
-open_locale classical
-
-variables {K : Type*} [field K]
-variables {V : Type*} [add_comm_group V] [module K V] [finite_dimensional K V]
-variables {W : Type*} [add_comm_group W] [module K W] [finite_dimensional K W]
-
-instance finite_dimensional : finite_dimensional K (V →ₗ[K] W) :=
-linear_equiv.finite_dimensional
-  (linear_map.to_matrix (basis.of_vector_space K V) (basis.of_vector_space K W)).symm
-
-section
-
-variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V]
-  [module A W] [is_scalar_tower K A W]
-
-/-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
-target are, as they form a subspace of all `k`-linear maps. -/
-instance finite_dimensional' : finite_dimensional K (V →ₗ[A] W) :=
-finite_dimensional.of_injective (restrict_scalars_linear_map K A V W)
-  (restrict_scalars_injective _)
-
-end
-
-/--
-The dimension of the space of linear transformations is the product of the dimensions of the
-domain and codomain.
--/
-@[simp] lemma finrank_linear_map :
-  finite_dimensional.finrank K (V →ₗ[K] W) =
-  (finite_dimensional.finrank K V) * (finite_dimensional.finrank K W) :=
-begin
-  let hbV := basis.of_vector_space K V,
-  let hbW := basis.of_vector_space K W,
-  rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), matrix.finrank_matrix,
-    finite_dimensional.finrank_eq_card_basis hbV, finite_dimensional.finrank_eq_card_basis hbW,
-    mul_comm],
-end
-
-end finite_dimensional
-end linear_map
 
 section
 

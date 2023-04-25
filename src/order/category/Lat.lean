@@ -9,6 +9,9 @@ import order.hom.lattice
 /-!
 # The category of lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `Lat`, the category of lattices.
 
 Note that `Lat` doesn't correspond to the literature definition of [`Lat`]

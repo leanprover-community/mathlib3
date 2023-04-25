@@ -141,11 +141,10 @@ does not pick wrong instances. In this section, we record the right instances fo
 them, noting in particular that the tangent bundle is a smooth manifold. -/
 
 section
-local attribute [reducible] tangent_space
 
 variables {M} (x : M)
 
-instance : module 𝕜 (tangent_space I x) := by apply_instance
+instance : module 𝕜 (tangent_space I x) := by delta_instance tangent_space
 instance : inhabited (tangent_space I x) := ⟨0⟩
 
 end
@@ -219,6 +218,41 @@ by simp only [fiber_bundle.charted_space_chart_at, and_iff_left_iff_imp] with mf
 @[simp, mfld_simps] lemma coe_chart_at_symm_fst (p : H × E) (q : TM) :
   ((chart_at (model_prod H E) q).symm p).1 = ((chart_at H q.1).symm : H → M) p.1 := rfl
 
+@[simp, mfld_simps] lemma trivialization_at_continuous_linear_map_at {b₀ b : M}
+  (hb : b ∈ (trivialization_at E (tangent_space I) b₀).base_set) :
+  (trivialization_at E (tangent_space I) b₀).continuous_linear_map_at 𝕜 b =
+  (tangent_bundle_core I M).coord_change (achart H b) (achart H b₀) b :=
+(tangent_bundle_core I M).local_triv_continuous_linear_map_at hb
+
+@[simp, mfld_simps] lemma trivialization_at_symmL {b₀ b : M}
+  (hb : b ∈ (trivialization_at E (tangent_space I) b₀).base_set) :
+  (trivialization_at E (tangent_space I) b₀).symmL 𝕜 b =
+    (tangent_bundle_core I M).coord_change (achart H b₀) (achart H b) b :=
+(tangent_bundle_core I M).local_triv_symmL hb
+
+@[simp, mfld_simps]
+lemma coord_change_model_space (b b' x : F) :
+  (tangent_bundle_core 𝓘(𝕜, F) F).coord_change (achart F b) (achart F b') x = 1 :=
+by simpa only [tangent_bundle_core_coord_change] with mfld_simps using
+    fderiv_within_id unique_diff_within_at_univ
+
+@[simp, mfld_simps]
+lemma symmL_model_space (b b' : F) :
+  (trivialization_at F (tangent_space 𝓘(𝕜, F)) b).symmL 𝕜 b' = (1 : F →L[𝕜] F) :=
+begin
+  rw [tangent_bundle.trivialization_at_symmL, coord_change_model_space],
+  apply mem_univ
+end
+
+@[simp, mfld_simps]
+lemma continuous_linear_map_at_model_space (b b' : F) :
+  (trivialization_at F (tangent_space 𝓘(𝕜, F)) b).continuous_linear_map_at 𝕜 b' =
+  (1 : F →L[𝕜] F) :=
+begin
+  rw [tangent_bundle.trivialization_at_continuous_linear_map_at, coord_change_model_space],
+  apply mem_univ
+end
+
 end tangent_bundle
 
 instance tangent_bundle_core.is_smooth : (tangent_bundle_core I M).is_smooth I :=
@@ -269,6 +303,11 @@ by { unfold_coes, simp_rw [tangent_bundle_model_space_chart_at], refl }
   (equiv.sigma_equiv_prod H E).symm :=
 by { unfold_coes,
   simp_rw [local_homeomorph.symm_to_local_equiv, tangent_bundle_model_space_chart_at], refl }
+
+lemma tangent_bundle_core_coord_change_model_space (x x' z : H) :
+  (tangent_bundle_core I H).coord_change (achart H x) (achart H x') z =
+  continuous_linear_map.id 𝕜 E :=
+by { ext v, exact (tangent_bundle_core I H).coord_change_self (achart _ z) z (mem_univ _) v }
 
 variable (H)
 /-- The canonical identification between the tangent bundle to the model space and the product,

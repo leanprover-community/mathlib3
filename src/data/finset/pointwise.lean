@@ -54,7 +54,7 @@ finset multiplication, finset addition, pointwise addition, pointwise multiplica
 pointwise subtraction
 -/
 
-open function
+open function mul_opposite
 open_locale big_operators pointwise
 
 variables {F α β γ : Type*}
@@ -124,7 +124,9 @@ localized "attribute [instance] finset.has_inv finset.has_neg" in pointwise
 @[simp, to_additive] lemma inv_empty : (∅ : finset α)⁻¹ = ∅ := image_empty _
 @[simp, to_additive] lemma inv_nonempty_iff : s⁻¹.nonempty ↔ s.nonempty := nonempty.image_iff _
 
-alias inv_nonempty_iff ↔ nonempty.inv nonempty.of_inv
+alias inv_nonempty_iff ↔ nonempty.of_inv nonempty.inv
+
+attribute [to_additive] nonempty.inv nonempty.of_inv
 
 @[to_additive, mono] lemma inv_subset_inv  (h : s ⊆ t) : s⁻¹ ⊆ t⁻¹ := image_subset_image h
 
@@ -212,6 +214,10 @@ attribute [mono] add_subset_add
 image₂_inter_subset_left
 @[to_additive] lemma mul_inter_subset : s * (t₁ ∩ t₂) ⊆ s * t₁ ∩ (s * t₂) :=
 image₂_inter_subset_right
+@[to_additive] lemma inter_mul_union_subset_union : s₁ ∩ s₂ * (t₁ ∪ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image₂_inter_union_subset_union
+@[to_additive] lemma union_mul_inter_subset_union : (s₁ ∪ s₂) * (t₁ ∩ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image₂_union_inter_subset_union
 
 /-- If a finset `u` is contained in the product of two sets `s * t`, we can find two finsets `s'`,
 `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' * t'`. -/
@@ -294,6 +300,10 @@ attribute [mono] sub_subset_sub
 image₂_inter_subset_left
 @[to_additive] lemma div_inter_subset : s / (t₁ ∩ t₂) ⊆ s / t₁ ∩ (s / t₂) :=
 image₂_inter_subset_right
+@[to_additive] lemma inter_div_union_subset_union : (s₁ ∩ s₂) / (t₁ ∪ t₂) ⊆ (s₁ / t₁) ∪ (s₂ / t₂) :=
+image₂_inter_union_subset_union
+@[to_additive] lemma union_div_inter_subset_union : (s₁ ∪ s₂) / (t₁ ∩ t₂) ⊆ (s₁ / t₁) ∪ (s₂ / t₂) :=
+image₂_union_inter_subset_union
 
 /-- If a finset `u` is contained in the product of two sets `s / t`, we can find two finsets `s'`,
 `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' / t'`. -/
@@ -711,6 +721,12 @@ image₂_union_left
 image₂_inter_subset_left
 @[to_additive] lemma smul_inter_subset : s • (t₁ ∩ t₂) ⊆ s • t₁ ∩ s • t₂ :=
 image₂_inter_subset_right
+@[to_additive] lemma inter_smul_union_subset_union [decidable_eq α] :
+  (s₁ ∩ s₂) • (t₁ ∪ t₂) ⊆ (s₁ • t₁) ∪ (s₂ • t₂) :=
+image₂_inter_union_subset_union
+@[to_additive] lemma union_smul_inter_subset_union [decidable_eq α] :
+  (s₁ ∪ s₂) • (t₁ ∩ t₂) ⊆ (s₁ • t₁) ∪ (s₂ • t₂) :=
+image₂_union_inter_subset_union
 
 /-- If a finset `u` is contained in the scalar product of two sets `s • t`, we can find two finsets
 `s'`, `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' • t'`. -/
@@ -806,7 +822,7 @@ by simp only [finset.smul_finset_def, and.assoc, mem_image, exists_prop, prod.ex
 @[simp, norm_cast, to_additive]
 lemma coe_smul_finset (a : α) (s : finset β) : (↑(a • s) : set β) = a • s := coe_image
 
-@[to_additive] lemma smul_finset_mem_smul_finset : b ∈ s → a • b ∈ a • s := mem_image_of_mem _
+@[to_additive] lemma smul_mem_smul_finset : b ∈ s → a • b ∈ a • s := mem_image_of_mem _
 @[to_additive] lemma smul_finset_card_le : (a • s).card ≤ s.card := card_image_le
 
 @[simp, to_additive] lemma smul_finset_empty (a : α) : a • (∅ : finset β) = ∅ := image_empty _
@@ -829,7 +845,11 @@ lemma smul_finset_singleton (b : β) : a • ({b} : finset β) = {a • b} := im
 @[to_additive] lemma smul_finset_inter_subset : a • (s₁ ∩ s₂) ⊆ a • s₁ ∩ (a • s₂) :=
 image_inter_subset _ _ _
 
-@[simp] lemma bUnion_smul_finset (s : finset α) (t : finset β) : s.bUnion (• t) = s • t :=
+@[to_additive] lemma smul_finset_subset_smul {s : finset α} : a ∈ s → a • t ⊆ s • t :=
+image_subset_image₂_right
+
+@[simp, to_additive] lemma bUnion_smul_finset (s : finset α) (t : finset β) :
+  s.bUnion (• t) = s • t :=
 bUnion_image_left
 
 end has_smul
@@ -935,6 +955,42 @@ instance no_zero_smul_divisors_finset [has_zero α] [has_zero β] [has_smul α �
 coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
+
+section has_smul
+variables [decidable_eq β] [decidable_eq γ] [has_smul αᵐᵒᵖ β] [has_smul β γ] [has_smul α γ]
+
+-- TODO: replace hypothesis and conclusion with a typeclass
+@[to_additive] lemma op_smul_finset_smul_eq_smul_smul_finset (a : α) (s : finset β) (t : finset γ)
+  (h : ∀ (a : α) (b : β) (c : γ), (op a • b) • c = b • a • c) :
+  (op a • s) • t = s • a • t :=
+by { ext, simp [mem_smul, mem_smul_finset, h] }
+
+end has_smul
+
+section has_mul
+variables [has_mul α] [decidable_eq α] {s t u : finset α} {a : α}
+
+@[to_additive] lemma op_smul_finset_subset_mul : a ∈ t → op a • s ⊆ s * t :=
+image_subset_image₂_left
+
+@[simp, to_additive] lemma bUnion_op_smul_finset (s t : finset α) :
+  t.bUnion (λ a, op a • s) = s * t :=
+bUnion_image_right
+
+@[to_additive] lemma mul_subset_iff_left : s * t ⊆ u ↔ ∀ a ∈ s, a • t ⊆ u := image₂_subset_iff_left
+@[to_additive] lemma mul_subset_iff_right : s * t ⊆ u ↔ ∀ b ∈ t, op b • s ⊆ u :=
+image₂_subset_iff_right
+
+end has_mul
+
+section semigroup
+variables [semigroup α] [decidable_eq α]
+
+@[to_additive] lemma op_smul_finset_mul_eq_mul_smul_finset (a : α) (s : finset α) (t : finset α) :
+  (op a • s) * t = s * a • t :=
+op_smul_finset_smul_eq_smul_smul_finset _ _ _ $ λ _ _ _, mul_assoc _ _ _
+
+end semigroup
 
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)

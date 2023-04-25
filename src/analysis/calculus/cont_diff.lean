@@ -176,6 +176,21 @@ by { rw [subsingleton.elim f (λ _, 0)], exact cont_diff_within_at_const }
   cont_diff_on 𝕜 n f s :=
 by { rw [subsingleton.elim f (λ _, 0)], exact cont_diff_on_const }
 
+lemma iterated_fderiv_succ_const (n : ℕ) (c : F) : iterated_fderiv 𝕜 (n + 1) (λ (y : E), c) = 0 :=
+begin
+  ext x m,
+  simp only [iterated_fderiv_succ_apply_right, fderiv_const, pi.zero_apply,
+    iterated_fderiv_zero_fun, continuous_multilinear_map.zero_apply,
+    continuous_linear_map.zero_apply],
+end
+
+lemma iterated_fderiv_const_of_ne {n : ℕ} (hn : n ≠ 0) (c : F) :
+  iterated_fderiv 𝕜 n (λ (y : E), c) = 0 :=
+begin
+  cases nat.exists_eq_succ_of_ne_zero hn with k hk,
+  rw [hk, iterated_fderiv_succ_const],
+end
+
 /-! ### Smoothness of linear functions -/
 
 /--
@@ -2816,3 +2831,58 @@ begin
   exact norm_iterated_fderiv_within_comp_le hg.cont_diff_on hf.cont_diff_on hn unique_diff_on_univ
     unique_diff_on_univ (maps_to_univ _ _) (mem_univ x) hC hD,
 end
+section apply
+
+lemma norm_iterated_fderiv_within_clm_apply {f : E → (F →L[𝕜] G)} {g : E → F} {s : set E} {x : E}
+  {N : ℕ∞} {n : ℕ} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s) (hs : unique_diff_on 𝕜 s)
+  (hx : x ∈ s) (hn : ↑n ≤ N) :
+    ‖iterated_fderiv_within 𝕜 n (λ y, (f y) (g y)) s x‖ ≤
+    (finset.range (n + 1)).sum (λ i, ↑(n.choose i) * ‖iterated_fderiv_within 𝕜 i f s x‖ *
+      ‖iterated_fderiv_within 𝕜 (n - i) g s x‖) :=
+begin
+  let B : (F →L[𝕜] G) →L[𝕜] F →L[𝕜] G :=
+  continuous_linear_map.flip (continuous_linear_map.apply 𝕜 G),
+  have hB : ‖B‖ ≤ 1 :=
+  begin
+    simp only [continuous_linear_map.op_norm_flip, continuous_linear_map.apply],
+    refine continuous_linear_map.op_norm_le_bound _ zero_le_one (λ f, _),
+    simp only [continuous_linear_map.coe_id', id.def, one_mul],
+  end,
+  exact B.norm_iterated_fderiv_within_le_of_bilinear_of_le_one hf hg hs hx hn hB,
+end
+
+lemma norm_iterated_fderiv_clm_apply {f : E → (F →L[𝕜] G)} {g : E → F}
+  {N : ℕ∞} {n : ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g) (x : E) (hn : ↑n ≤ N):
+    ‖iterated_fderiv 𝕜 n (λ (y : E), (f y) (g y)) x‖ ≤
+      (finset.range (n + 1)).sum (λ (i : ℕ), ↑(n.choose i) * ‖iterated_fderiv 𝕜 i f x‖ *
+        ‖iterated_fderiv 𝕜 (n - i) g x‖) :=
+begin
+  simp only [← iterated_fderiv_within_univ],
+  exact norm_iterated_fderiv_within_clm_apply hf.cont_diff_on hg.cont_diff_on unique_diff_on_univ
+    (set.mem_univ x) hn,
+end
+
+lemma norm_iterated_fderiv_within_clm_apply_const {f : E → (F →L[𝕜] G)} {c : F} {s : set E} {x : E}
+  {N : ℕ∞} {n : ℕ} (hf : cont_diff_on 𝕜 N f s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
+  (hn : ↑n ≤ N) : ‖iterated_fderiv_within 𝕜 n (λ (y : E), (f y) c) s x‖ ≤
+    ‖c‖ * ‖iterated_fderiv_within 𝕜 n f s x‖ :=
+begin
+  let g : (F →L[𝕜] G) →L[𝕜] G := continuous_linear_map.apply 𝕜 G c,
+  have h := g.norm_comp_continuous_multilinear_map_le (iterated_fderiv_within 𝕜 n f s x),
+  rw ← g.iterated_fderiv_within_comp_left hf hs hx hn at h,
+  refine h.trans (mul_le_mul_of_nonneg_right _ (norm_nonneg _)),
+  refine g.op_norm_le_bound (norm_nonneg _) (λ f, _),
+  rw [continuous_linear_map.apply_apply, mul_comm],
+  exact f.le_op_norm c,
+end
+
+lemma norm_iterated_fderiv_clm_apply_const {f : E → (F →L[𝕜] G)} {c : F} {x : E} {N : ℕ∞} {n : ℕ}
+  (hf : cont_diff 𝕜 N f) (hn : ↑n ≤ N) :
+    ‖iterated_fderiv 𝕜 n (λ (y : E), (f y) c) x‖ ≤ ‖c‖ * ‖iterated_fderiv 𝕜 n f x‖ :=
+begin
+  simp only [← iterated_fderiv_within_univ],
+  refine norm_iterated_fderiv_within_clm_apply_const hf.cont_diff_on unique_diff_on_univ
+    (set.mem_univ x) hn,
+end
+
+end apply

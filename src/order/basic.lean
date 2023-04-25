@@ -227,6 +227,9 @@ le_iff_lt_or_eq.trans or.comm
 lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a ≠ b :=
 ⟨λ h, ⟨le_of_lt h, ne_of_lt h⟩, λ ⟨h1, h2⟩, h1.lt_of_ne h2⟩
 
+lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
+by rw [lt_iff_le_and_ne, not_and, not_not, eq_comm]
+
 -- See Note [decidable namespace]
 protected lemma decidable.eq_iff_le_not_lt [partial_order α] [@decidable_rel α (≤)]
   {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
@@ -589,6 +592,12 @@ function.forall_update_iff _ (λ j z, z ≤ y j)
 lemma update_le_update_iff :
   function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
 by simp [update_le_iff] {contextual := tt}
+
+@[simp] lemma update_le_update_iff' : update x i a ≤ update x i b ↔ a ≤ b :=
+by simp [update_le_update_iff]
+
+@[simp] lemma update_lt_update_iff : update x i a < update x i b ↔ a < b :=
+lt_iff_lt_of_le_iff_le' update_le_update_iff' update_le_update_iff'
 
 @[simp] lemma le_update_self_iff : x ≤ update x i a ↔ x i ≤ a := by simp [le_update_iff]
 @[simp] lemma update_le_self_iff : update x i a ≤ x ↔ a ≤ x i := by simp [update_le_iff]

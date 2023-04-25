@@ -247,7 +247,7 @@ lemma continuous.matrix_block_diagonal' [has_zero R] [decidable_eq l]
   {A : X → Π i, matrix (m' i) (n' i) R} (hA : continuous A) :
   continuous (λ x, block_diagonal' (A x)) :=
 continuous_matrix $ λ ⟨i₁, i₂⟩ ⟨j₁, j₂⟩, begin
-  dsimp only [block_diagonal'],
+  dsimp only [block_diagonal'_apply'],
   split_ifs,
   { subst h,
     exact ((continuous_apply i₁).comp hA).matrix_elem i₂ j₂ },

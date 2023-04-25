@@ -52,9 +52,14 @@ variables {l m n p : Type*} {q r : Type*} {l' m' n' p' : Type*}
 section kronecker_map
 
 /-- Produce a matrix with `f` applied to every pair of elements from `A` and `B`. -/
-@[simp] def kronecker_map (f : α → β → γ) (A : matrix l m α) (B : matrix n p β) :
-  matrix (l × n) (m × p) γ
-| i j := f (A i.1 j.1) (B i.2 j.2)
+def kronecker_map (f : α → β → γ) (A : matrix l m α) (B : matrix n p β) :
+  matrix (l × n) (m × p) γ :=
+of $ λ (i : l × n) (j : m × p), f (A i.1 j.1) (B i.2 j.2)
+
+-- TODO: set as an equation lemma for `kronecker_map`, see mathlib4#3024
+@[simp]
+lemma kronecker_map_apply (f : α → β → γ) (A : matrix l m α) (B : matrix n p β) (i j) :
+  kronecker_map f A B i j = f (A i.1 j.1) (B i.2 j.2) := rfl
 
 lemma kronecker_map_transpose (f : α → β → γ)
   (A : matrix l m α) (B : matrix n p β) :
@@ -199,7 +204,7 @@ lemma kronecker_map_bilinear_mul_mul [comm_semiring R]
 begin
   ext ⟨i, i'⟩ ⟨j, j'⟩,
   simp only [kronecker_map_bilinear_apply_apply, mul_apply, ← finset.univ_product_univ,
-    finset.sum_product, kronecker_map],
+    finset.sum_product, kronecker_map_apply],
   simp_rw [f.map_sum, linear_map.sum_apply, linear_map.map_sum, h_comm],
 end
 
@@ -212,7 +217,7 @@ lemma trace_kronecker_map_bilinear [comm_semiring R]
   (f : α →ₗ[R] β →ₗ[R] γ) (A : matrix m m α) (B : matrix n n β) :
   trace (kronecker_map_bilinear f A B) = f (trace A) (trace B) :=
 by simp_rw [matrix.trace, matrix.diag, kronecker_map_bilinear_apply_apply,
-  linear_map.map_sum₂, map_sum, ←finset.univ_product_univ, finset.sum_product, kronecker_map]
+  linear_map.map_sum₂, map_sum, ←finset.univ_product_univ, finset.sum_product, kronecker_map_apply]
 
 /-- `determinant` of `matrix.kronecker_map_bilinear`.
 

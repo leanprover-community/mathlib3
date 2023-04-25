@@ -9,6 +9,9 @@ import category_theory.triangulated.basic
 /-!
 # Rotate
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file adds the ability to rotate triangles and triangle morphisms.
 It also shows that rotation gives an equivalence on the category of triangles.
 
@@ -85,8 +88,6 @@ def rotate : triangle C ⥤ triangle C :=
     hom₂ := f.hom₃,
     hom₃ := f.hom₁⟦1⟧',
     comm₃' := by { dsimp, simp only [comp_neg, neg_comp, ← functor.map_comp, f.comm₁], }, }, }
-
-example : ℕ:= 42
 
 /--
 The inverse rotation of triangles gives an endofunctor on the category of triangles in `C`.

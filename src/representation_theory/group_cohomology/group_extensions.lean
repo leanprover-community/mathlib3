@@ -1,4 +1,5 @@
 import representation_theory.group_cohomology.low_degree algebra.category.Group.images algebra.homology.short_exact.preadditive
+import group_theory.semidirect_product
 
 universes v u
 open category_theory category_theory.limits
@@ -8,8 +9,8 @@ structure extension (H G : Type*) [group H] [group G] :=
 [is_group : group E]
 (i : H →* E)
 (π : E →* G)
-(inj : function.injective i)
-(surj : function.surjective π)
+(i_ker : i.ker = ⊥)
+(π_range : π.range = ⊤)
 (exact : i.range = π.ker)
 
 attribute [instance] extension.is_group
@@ -41,10 +42,10 @@ lemma id_comp {E1 E2 : extension H G} (f : hom E1 E2) :
   comp (id E1) f = f :=
 by ext; refl
 
-instance : category (extension H G) :=
+/-instance : category (extension H G) :=
 { hom := hom,
   id := id,
-  comp := λ X Y Z f g, comp f g }
+  comp := λ X Y Z f g, comp f g }-/
 
 structure equiv (E1 E2 : extension H G) :=
 (f : E1.E ≃* E2.E)
@@ -108,16 +109,52 @@ instance rel : setoid (extension H G) :=
   iseqv := ⟨λ E, ⟨refl E⟩, λ E1 E2 ⟨f⟩, ⟨symm f⟩, λ E1 E2 E3 ⟨f⟩ ⟨g⟩, ⟨trans f g⟩⟩ }
 
 def extension_classes := quotient (extension.rel H G)
+
+def trivial : extension H G :=
+{ E := H × G,
+  is_group := prod.group,
+  i := monoid_hom.inl H G,
+  π := monoid_hom.snd H G,
+  i_ker := eq_bot_iff.2 $ λ x hx, (prod.ext_iff.1 hx).1,
+  π_range := eq_top_iff.2 $ λ x hx, ⟨(1, x), rfl⟩,
+  exact := subgroup.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ (monoid_hom.mem_ker _).2 rfl,
+   λ hx, ⟨x.1, prod.ext rfl hx.symm⟩⟩ }
+
+section semidirect_product
+open semidirect_product
+
+def semidirect_product (φ : G →* mul_aut H) : extension H G :=
+{ E := H ⋊[φ] G,
+  is_group := by apply_instance,
+  i := inl,
+  π := right_hom,
+  i_ker := (monoid_hom.ker_eq_bot_iff _).2 inl_injective,
+  π_range := monoid_hom.range_top_of_surjective _ right_hom_surjective,
+  exact := range_inl_eq_ker_right_hom }
+
+def one_equiv_trivial_aux : H ⋊[1] G ≃* H × G :=
+{ to_fun := λ x, (x.1, x.2),
+  inv_fun := λ x, semidirect_product.mk x.1 x.2,
+  left_inv := λ x, ext _ _ rfl rfl,
+  right_inv := λ x, prod.ext rfl rfl,
+  map_mul' := λ x y, prod.ext rfl rfl }
+
+def one_equiv_trivial : equiv (semidirect_product H G 1) (trivial H G) :=
+{ f := one_equiv_trivial_aux H G,
+  left := by ext; refl; refl,
+  right := by ext; refl; refl }
+
+end semidirect_product
 end
 
 open group_cohomology
 variables {G : Type} [group G] {A : Rep ℤ G} (F : two_cocycles A)
 -- WHY IS THIS ALL SO FUCKING SLOW
 def extend (F : two_cocycles A) := A × G
-def mul (x y : A × G) : A × G :=
+def mul (x y : extend F) : extend F :=
 (x.1 + A.ρ x.2 y.1 + (F : G × G → A) (x.2, y.2), x.2 * y.2)
 
-lemma mul_assoc (x y z : A × G) :
+lemma mul_assoc (x y z : extend F) :
   mul F (mul F x y) z = mul F x (mul F y z) :=
 begin
   ext,
@@ -148,8 +185,7 @@ lemma one_mul (g : A × G) :
   mul F (-(F : G × G → A) (1, 1), 1) g = g :=
 begin
   ext,
-  {-- dsimp [mul],
-    simp only [mul, map_one, two_cocycles_snd, linear_map.one_apply, neg_add_cancel_comm] },
+  { simp only [mul, map_one, two_cocycles_snd, linear_map.one_apply, neg_add_cancel_comm] },
   { exact one_mul _}
 end
 
@@ -183,35 +219,98 @@ instance : group (extend F) :=
 lemma extend_mul_def (x y : extend F) :
   x * y = (x.1 + A.ρ x.2 y.1 + (F : G × G → A) (x.2, y.2), x.2 * y.2) := rfl
 
-def extend_i : multiplicative A →* extend F :=
+lemma extend_one_def :
+  (1 : extend F) = (-(F : G × G → A) (1, 1), 1) := rfl
+
+lemma extend_inv_def (g : extend F) :
+  g⁻¹ = (- A.ρ g.2⁻¹ g.1 - (F : G × G → A) (g.2⁻¹, g.2) - (F : G × G → A) (1, 1), g.2⁻¹) := rfl
+
+@[simps] def extend_i : multiplicative A →* extend F :=
 { to_fun := λ x, (x - (F : G × G → A) (1, 1), 1),
   map_one' := prod.ext (zero_sub _) rfl,
   map_mul' := λ x y,
   begin
     ext,
-    dsimp,
-    simp only [extend_mul_def],
-    show _ + _ - _ = ((_ - _) + _) + _,
-    simp only [map_one, linear_map.one_apply, add_assoc],
-    rw sub_add_cancel,
-    sorry,
+    { show (x + y : A) - _ = _ + _,
+      simp only [map_one, linear_map.one_apply, add_assoc, sub_add_cancel, add_sub_right_comm] },
+    { exact (_root_.mul_one _).symm }
   end }
 
-def extend_π : extend F →* G :=
+lemma extend_i_ker_eq_bot : (extend_i F).ker = ⊥ :=
+eq_bot_iff.2 $ λ x hx, by rwa [monoid_hom.mem_ker, extend_i_apply, extend_one_def,
+  prod.mk_inj_right, sub_eq_neg_self] at hx
+
+@[simps] def extend_π : extend F →* G :=
 { to_fun := prod.snd,
   map_one' := rfl,
   map_mul' := λ x y, rfl }
-#exit
+
+lemma extend_π_range_eq_top : (extend_π F).range = ⊤ :=
+eq_top_iff.2 $ λ x hx, ⟨(0, x), rfl⟩
+
+lemma extend_exact : (extend_i F).range = (extend_π F).ker :=
+subgroup.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ (monoid_hom.mem_ker _).2 rfl,
+  λ (h : _ = _), ⟨(x.1 + (F : G × G → A) (1, 1) : A),
+  prod.ext (add_sub_cancel _ _) h.symm⟩⟩
+
 def extension : extension (multiplicative A) G :=
 { E := extend F,
   is_group := by apply_instance,
   i := extend_i F,
-  π := _,
-  inj := _,
-  surj := _,
-  exact := _ }
+  π := extend_π F,
+  i_ker := extend_i_ker_eq_bot F,
+  π_range := extend_π_range_eq_top F,
+  exact := extend_exact F }
+
+variables (G A)
+def Fucksake : G →* (mul_aut (multiplicative A)) :=
+{ to_fun := λ g,
+  { to_fun := A.ρ g,
+    inv_fun := A.ρ g⁻¹,
+    left_inv := sorry,
+    right_inv := sorry,
+    map_mul' := map_add _ },
+  map_one' := sorry,
+  map_mul' := sorry }
+
+variables {G A}
+
+def equiv_of_coboundary_aux (f : G → A) :
+  extend ⟨d_one A f, sorry⟩ ≃* multiplicative A ⋊[Fucksake G A] G :=
+{ to_fun := λ x, semidirect_product.mk (x.1 + f x.2 : A) x.2,
+  inv_fun := λ x, (x.1 - f x.2, x.2),
+  left_inv := λ x, prod.ext (add_sub_cancel _ _) rfl,
+  right_inv := λ x, semidirect_product.ext _ _ (sub_add_cancel _ _) rfl,
+  map_mul' := λ x y,
+  begin
+    ext,
+    { dsimp [extend_mul_def, Fucksake],
+      show _ = ((x.1 + f x.2) +  A.ρ x.2 (y.1 + f y.2) : A),
+      simp only [map_add, add_assoc, add_right_inj, sub_add_add_cancel, add_rotate' (f x.2)]},
+    { refl }
+  end }
+
+def equiv_of_coboundary (f : G → A) :
+  equiv (extension ⟨d_one A f, sorry⟩) (semidirect_product (multiplicative A) G (Fucksake G A)) :=
+{ f := equiv_of_coboundary_aux f,
+  left :=
+  begin
+    ext,
+    { show (x - (A.ρ 1 (f 1) - f (1 * 1) + f 1) + f 1 : A) = x,
+      rw [map_one, linear_map.one_apply, _root_.mul_one, sub_self, zero_add, sub_add_cancel], },
+    { refl }
+  end,
+  right := by ext; refl }
+
+#exit
 
 def equiv_of_eq (F1 F2 : two_cocycles A)
-  (H : (two_coboundaries A).quotient.mk F1 = (two_coboundaries A).quotient.mk F2) :
-  equiv (extend F1)
+  (H : (two_coboundaries A).mkq F1 = (two_coboundaries A).mkq F2) :
+  equiv (extension F1) (extension F2) :=
+{ f := _,
+  left := _,
+  right := _ }
+
+def two_cocycle (E : extension A G) : two_cocycles A :=
+{! !}
 end

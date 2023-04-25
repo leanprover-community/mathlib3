@@ -1,5 +1,5 @@
 import algebra.category.Algebra.basic
-
+import category_theory.monoidal.CommMon_
 universes u v
 
 open category_theory
@@ -40,6 +40,8 @@ instance has_forget_to_Algebra : has_forget₂ (CommAlg.{u v} R) (Algebra.{v} R)
 { forget₂ :=
   { obj := λ A, Algebra.of R A.carrier,
     map := λ A B f, f }}
+
+instance : monoidal_category (Algebra.{v} R) := by apply_instance
 
 /-- The object in the category of commutative R-algebras associated to a type equipped with the
 appropriate typeclasses. -/

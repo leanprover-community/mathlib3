@@ -32,6 +32,8 @@ def hom_to_under_hom {x y : CommAlg R} (f : x ⟶ y) :
   x.to_under_CommRing ⟶ y.to_under_CommRing :=
 under.hom_mk f.to_ring_hom (by ext r; exact f.commutes r)
 
+variables (R)
+
 def under_CommRing_CommAlg_equivalence : under (CommRing.of R) ≌ CommAlg R :=
 { functor :=
   { obj := λ A, CommAlg.of R A.right,
@@ -104,7 +106,6 @@ def over_equivalence {C D : Type*} [category C] [category D]
 noncomputable def over_Affine_Spec_equivalence :
   over (AffineScheme.Spec.obj (opposite.op $ CommRing.of R)) ≌ (CommAlg R)ᵒᵖ :=
 (over_equivalence AffineScheme.equiv_CommRing.symm (opposite.op (CommRing.of R))).symm.trans
-  ((over_op_op_equivalence _).trans (under_CommRing_CommAlg_equivalence).op)
-
+  ((over_op_op_equivalence _).trans (under_CommRing_CommAlg_equivalence R).op)
 
 end CommAlg

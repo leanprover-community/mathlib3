@@ -70,6 +70,14 @@ by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 
 variables {R}
 
+lemma norm_eq_one_of_not_module_finite (h : ¬ module.finite R S) (x : S) :
+  norm R x = 1 :=
+begin
+  refine norm_eq_one_of_not_exists_basis _ (mt _ h) _,
+  rintro ⟨s, ⟨b⟩⟩,
+  exact module.finite.of_basis b,
+end
+
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma norm_eq_matrix_det [fintype ι] [decidable_eq ι] (b : basis ι R S) (s : S) :
   norm R s = matrix.det (algebra.left_mul_matrix b s) :=
@@ -286,7 +294,7 @@ variable (K)
 of `K`, the norm (down to `K`) of an element `x` of `L` is equal to the product of the images
 of `x` over all the `K`-embeddings `σ`  of `L` into `E`. -/
 lemma norm_eq_prod_embeddings [finite_dimensional K L] [is_separable K L] [is_alg_closed E]
-  {x : L} : algebra_map K E (norm K x) = ∏ σ : L →ₐ[K] E, σ x :=
+  (x : L) : algebra_map K E (norm K x) = ∏ σ : L →ₐ[K] E, σ x :=
 begin
   have hx := is_separable.is_integral K x,
   rw [norm_eq_norm_adjoin K x, ring_hom.map_pow, ← adjoin.power_basis_gen hx,
@@ -328,29 +336,39 @@ end
 
 variables {F} (L)
 
-lemma norm_norm [algebra L F] [is_scalar_tower K L F] [finite_dimensional K F] [is_separable K F]
-  (x : F) :
+-- TODO. Generalize this proof to rings
+lemma norm_norm [algebra L F] [is_scalar_tower K L F] [is_separable K F] (x : F) :
   norm K (norm L x) = norm K x :=
 begin
-  let A := algebraic_closure K,
-  apply (algebra_map K A).injective,
-  haveI : finite_dimensional L F := finite_dimensional.right K L F,
-  haveI : finite_dimensional K L := finite_dimensional.left K L F,
-  haveI : is_separable K L := is_separable_tower_bot_of_is_separable K L F,
-  haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
-  letI : ∀ (σ : L →ₐ[K] A), fintype (@alg_hom L F A _ _ _ _ σ.to_ring_hom.to_algebra) :=
-    λ _, infer_instance,
-  rw [@norm_eq_prod_embeddings K F _ _ _ A _ _ _ _ _ _, fintype.prod_equiv alg_hom_equiv_sigma
-    (λ σ : F →ₐ[K] A, σ x) (λ π : (Σ (f : L →ₐ[K] A), _), (π.2 : F → A) x) (λ _, rfl)],
-  suffices : ∀ σ : L →ₐ[K] A, finset.univ.prod
-    (λ (π : @alg_hom L F A _ _ _ _ σ.to_ring_hom.to_algebra), π x) = σ (norm L x),
-  { simp_rw [← finset.univ_sigma_univ, finset.prod_sigma, this, norm_eq_prod_embeddings], },
-  { intro σ,
-    letI : algebra L A := σ.to_ring_hom.to_algebra,
-    rw ← norm_eq_prod_embeddings L A,
-    refl,
-    apply_instance, },
+  by_cases hKF : finite_dimensional K F,
+  { haveI := hKF,
+    let A := algebraic_closure K,
+    apply (algebra_map K A).injective,
+    haveI : finite_dimensional L F := finite_dimensional.right K L F,
+    haveI : finite_dimensional K L := finite_dimensional.left K L F,
+    haveI : is_separable K L := is_separable_tower_bot_of_is_separable K L F,
+    haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
+    letI : ∀ (σ : L →ₐ[K] A), by haveI := σ.to_ring_hom.to_algebra; exact fintype (F →ₐ[L] A) :=
+      λ _, infer_instance,
+    rw [norm_eq_prod_embeddings K A (_ : F), fintype.prod_equiv alg_hom_equiv_sigma
+      (λ σ : F →ₐ[K] A, σ x) (λ π : (Σ f : L →ₐ[K] A, _), (π.2 : F → A) x) (λ _, rfl)],
+    suffices : ∀ σ : L →ₐ[K] A,
+      by haveI := σ.to_ring_hom.to_algebra; exact ∏ π : F →ₐ[L] A, π x = σ (norm L x),
+    { simp_rw [← finset.univ_sigma_univ, finset.prod_sigma, this, norm_eq_prod_embeddings], },
+    { intro σ,
+      letI : algebra L A := σ.to_ring_hom.to_algebra,
+      rw ← norm_eq_prod_embeddings L A (_ : F),
+      refl, }},
+  { rw norm_eq_one_of_not_module_finite hKF,
+    by_cases hKL : finite_dimensional K L,
+    { have hLF : ¬ finite_dimensional L F,
+      { refine (mt _) hKF,
+        introI hKF,
+        exact finite_dimensional.trans K L F },
+      rw [norm_eq_one_of_not_module_finite hLF, _root_.map_one], },
+    { rw norm_eq_one_of_not_module_finite hKL, }},
 end
+
 
 end eq_prod_embeddings
 

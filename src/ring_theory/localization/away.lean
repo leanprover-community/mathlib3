@@ -213,28 +213,57 @@ noncomputable def self_as_unit : Bˣ :=
   by { rw mul_comm, exact away.mul_inv_self _ }⟩
 
 noncomputable
-def self_zpow_map : ℤ → B :=
-if hm : 0 ≤ m, algebra_map _ _ x ^ m else mk' _ (1 : R) ⟨x, submonoid.mem_powers _⟩^(m+1)
--- | (int.of_nat m) := algebra_map _ _ x ^ m
--- | -[1+ m]     := mk' _ (1 : R) ⟨x, submonoid.mem_powers _⟩^(m+1)
+def self_zpow : ℤ → B
+-- if hm : 0 ≤ m then algebra_map _ _ x ^ (int.eq_coe_of_zero_le hm).some else
+--   mk' _ (1 : R) ⟨x, submonoid.mem_powers _⟩^(int.eq_coe_of_zero_le
+--     (le_of_lt ((neg_lt_of_neg_lt (lt_of_not_le hm))))).some else
+| (int.of_nat m) := algebra_map _ _ x ^ m
+| -[1+ m]     := mk' _ (1 : R) ⟨x, submonoid.mem_powers _⟩^(m+1)
 
-lemma self_zpow_unit (m : ℤ) : is_unit (self_zpow_map x B m) := sorry
+lemma self_zpow_of_pos {n : ℤ} (hn : 0 ≤ n) : self_zpow x B n =
+  algebra_map R B (x ^ (int.eq_coe_of_zero_le hn).some) :=
+begin
+  sorry
+end
 
-noncomputable
-def self_zpow (m : ℤ) : B := ↑(self_zpow_unit x B m).unit
+lemma self_pow_eq_algebra_map' (d : ℕ) :
+  (self_zpow x B d) = (algebra_map R B x)^d :=
+begin
+  rw [self_zpow_of_pos, map_pow],
+  congr,
+  zify,
+  exact (int.eq_coe_of_zero_le (int.coe_nat_nonneg d)).some_spec.symm,
+end
 
-@[simp]
-lemma self_zpow_eq (m : ℤ) : (self_zpow_unit x B m).unit = ⟨algebra_map _ _ x, away.inv_self x, away.mul_inv_self _,
-  by { rw mul_comm, exact away.mul_inv_self _ }⟩^m := sorry
+lemma self_zpow_of_zero : self_zpow x B 0 = 1 := sorry
 
-lemma self_as_unit_pow_sub' (a : R) (b : B) (m d : ℤ) :
-  (self_zpow x B (m - d)) * mk' B a (1 : submonoid.powers x) = b ↔
-  (self_zpow x B m) * mk' B a (1 : submonoid.powers x) = (self_zpow x B m) * b :=
-  begin
-simp only [self_zpow, units.coe_mul],
-  end
--- by simp only [zpow_sub, units.coe_mul, mul_comm (self_zpow x B m) _,  mul_assoc,
---   units.inv_mul_eq_iff_eq_mul]
+lemma self_zpow_of_neg {n : ℤ} (hn : n < 0) : self_zpow x B n =
+  algebra_map R B (x ^ (int.eq_coe_of_zero_le (le_of_lt (neg_pos_of_neg hn))).some) := sorry
+
+lemma self_zpow_add {n m : ℤ} : self_zpow x B (n + m) =
+  self_zpow x B n * self_zpow x B m :=
+begin
+  wlog H : n ≤ m generalizing n m,
+  { replace this := this (le_of_lt (lt_of_not_le H)),
+    rwa [add_comm, mul_comm] at this },
+  sorry,
+  -- induction n,
+  -- induction m,
+  -- simp only [self_zpow, int.of_nat_eq_coe, self_pow_eq_algebra_map', ← int.coe_nat_add,
+  --   ← map_pow _ _ n, ← map_pow _ _ m, ← map_mul, ← map_pow],
+  -- congr,
+  -- exact pow_add _ _ _,
+  -- sorry,
+end
+
+-- lemma self_zpow_unit (m : ℤ) : is_unit (self_zpow_map x B m) := sorry
+
+-- noncomputable
+-- def self_zpow (m : ℤ) : B := ↑(self_zpow_unit x B m).unit
+
+-- @[simp]
+-- lemma self_zpow_eq (m : ℤ) : (self_zpow_unit x B m).unit = ⟨algebra_map _ _ x, away.inv_self x, away.mul_inv_self _,
+--   by { rw mul_comm, exact away.mul_inv_self _ }⟩^m := sorry
 
 lemma self_as_unit_pow_sub (a : R) (b : B) (m d : ℤ) :
   (((self_as_unit x B ^ (m - d)) : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b ↔
@@ -242,6 +271,14 @@ lemma self_as_unit_pow_sub (a : R) (b : B) (m d : ℤ) :
     (((self_as_unit x B ^ d) : Bˣ) : B) * b :=
 by simp only [zpow_sub, units.coe_mul, mul_comm (((self_as_unit x B ^ m) : Bˣ) : B) _,  mul_assoc,
   units.inv_mul_eq_iff_eq_mul]
+
+lemma self_zpow_pow_sub (a : R) (b : B) (m d : ℤ) :
+  (self_zpow x B (m - d)) * mk' B a (1 : submonoid.powers x) = b ↔
+  (self_zpow x B m) * mk' B a (1 : submonoid.powers x) = (self_zpow x B m) * b :=
+  begin
+  sorry
+-- simp only [self_zpow, units.coe_mul],
+  end
 
 lemma pow_eq_algebra_map (d : ℕ) :
   (((self_as_unit x B)^(d : ℤ) : Bˣ) : B) = (algebra_map R B x)^d :=

@@ -51,7 +51,7 @@ end
 
 lemma normal_closure_of_normal [normal F K] : K.normal_closure = K :=
 begin
-  haveI : is_scalar_tower F K K := ⟨smul_mul_assoc⟩,
+  haveI : is_scalar_tower F K K := by apply_instance,
   refine le_antisymm (normal_closure_le_iff.mpr (λ f, _)) K.le_normal_closure,
   rintros - ⟨a, rfl⟩,
   exact f.restrict_normal_commutes K a ▸ (f.restrict_normal K a).2,

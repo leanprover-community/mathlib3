@@ -194,3 +194,17 @@ instance {f : ℚ[X]} [hf : fact (irreducible f)] : number_field (adjoin_root f)
 end
 
 end adjoin_root
+
+section normal_closure
+
+variables (F K L : Type*) [field K] [field F] [field L] [number_field K] [number_field F]
+  [algebra F K] [char_zero L] [algebra K L] [algebra F L] [is_scalar_tower F K L]
+
+/-- The normal closure of an extension `K / F` of number fields in a characteristic zero
+  field is a number field. -/
+instance number_field.normal_closure : number_field (normal_closure F K L) :=
+{ to_char_zero := char_zero.of_module _ L,
+  to_finite_dimensional :=
+    by { haveI := finite_dimensional.right ℚ F K; exact finite_dimensional.trans ℚ F _, }}
+
+end normal_closure

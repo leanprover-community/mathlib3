@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.direct_limit
+import algebra.char_p.algebra
 import field_theory.is_alg_closed.basic
 
 /-!
@@ -262,5 +263,14 @@ hx ▸ map_is_integral (of_step_hom k n) (step.is_integral k n x)
 
 instance : is_alg_closure k (algebraic_closure k) :=
 ⟨algebraic_closure.is_alg_closed k, is_algebraic k⟩
+
+/-- The algebraic closure of a characteristic zero field has characteristic zero.
+
+  It is necessary to have this result has a separate lemma to be able to give the algebraic
+  closure an ℚ-algebra structure coming from `algebra_rat` rathet than the one coming from
+  `algebraic_closure.algebra` to have possible diamonds.
+-/
+lemma char_zero [char_zero k] : char_zero (algebraic_closure k) :=
+algebra_rat.char_zero (algebraic_closure k)
 
 end algebraic_closure

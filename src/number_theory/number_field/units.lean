@@ -98,10 +98,9 @@ begin
   haveI : char_zero (algebraic_closure K) := algebraic_closure.char_zero K,
   let L := normal_closure ℚ K (algebraic_closure K),
   haveI : finite_dimensional K L := finite_dimensional.right ℚ K _,
-  haveI : is_galois ℚ (algebraic_closure K) :=
-    is_alg_closure.is_galois_of_algebraic ℚ K _ (number_field.is_algebraic K),
+  haveI : is_alg_closure ℚ (algebraic_closure K) :=
+    is_alg_closure.of_algebraic ℚ K _ (number_field.is_algebraic K),
   haveI : is_galois K L := is_galois.tower_top_of_is_galois ℚ K L,
---  haveI : number_field L := number_field.normal_closure ℚ K _,
   have t2 := is_unit_iff_norm.of_is_galois L (algebra_map (𝓞 K) (𝓞 L) x),
   have t3 := (ring_of_integers.is_unit_norm K).trans t2,
   have hs : ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x) = x ^ (finrank K L) := sorry,

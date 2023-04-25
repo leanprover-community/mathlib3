@@ -182,25 +182,27 @@ lemma formula_mem_type_of {φ : L.formula α} :
   (formula.equiv_sentence φ) ∈ T.type_of v ↔ φ.realize v :=
 by simp
 
+end complete_type
+
+variable (M)
+
 /-- A complete type `p` is realized in a particular structure when there is some
   tuple `v` whose type is `p`. -/
-def is_realized_in (p : T.complete_type α) (M : Type w') [L.Structure M] [nonempty M] [M ⊨ T] :
-  Prop :=
-∃ v : α → M, T.type_of v = p
+@[simp] def realized_types (α : Type w) : set (T.complete_type α) :=
+set.range (T.type_of : (α → M) → T.complete_type α)
 
 theorem exists_Model_is_realized_in (p : T.complete_type α) :
-  ∃ (M : Theory.Model.{u v (max u v w)} T), p.is_realized_in M :=
+  ∃ (M : Theory.Model.{u v (max u v w)} T),
+    p ∈ T.realized_types M α :=
 begin
   obtain ⟨M⟩ := p.is_maximal.1,
   refine ⟨(M.subtheory_Model p.subset).reduct (L.Lhom_with_constants α), (λ a, (L.con a : M)), _⟩,
   refine set_like.ext (λ φ, _),
-  simp only [mem_type_of],
+  simp only [complete_type.mem_type_of],
   refine (formula.realize_equiv_sentence_symm_con _ _).trans (trans (trans _
     (p.is_maximal.is_complete.realize_sentence_iff φ M)) (p.is_maximal.mem_iff_models φ).symm),
   refl,
 end
-
-end complete_type
 
 end Theory
 end language

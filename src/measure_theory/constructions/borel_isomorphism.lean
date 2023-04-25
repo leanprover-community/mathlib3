@@ -39,12 +39,10 @@ It also seems likely there is a simpler proof. -/
 instance polish_of_countable [h : countable α] [topological_space α] [discrete_topology α]
   : polish_space α :=
 begin
-  rw countable_iff_exists_injective at h,
-  cases h with f hf,
+  obtain ⟨f, hf⟩ := h.exists_injective_nat,
   have : closed_embedding f,
   { apply closed_embedding_of_continuous_injective_closed continuous_of_discrete_topology hf,
-    rintros t -,
-    apply is_closed_discrete },
+    exact λ t _, is_closed_discrete _, },
   exact this.polish_space,
 end
 
@@ -73,28 +71,28 @@ def borel_schroeder_bernstein
 (fmeas.measurable_embedding finj).schroeder_bernstein (gmeas.measurable_embedding ginj)
 
 /-- Any uncountable Polish space is Borel isomorphic to the Cantor space `ℕ → bool`.-/
-def borel_nat_bool_equiv_of_uncountable (h : ¬countable α) : (ℕ → bool) ≃ᵐ α :=
+def measurable_equiv_nat_bool_of_uncountable (h : ¬ countable α) : α ≃ᵐ (ℕ → bool) :=
 begin
   apply nonempty.some,
   obtain ⟨f, -, fcts, finj⟩ := is_closed_univ.exists_nat_bool_injection_of_uncountable
     (by rwa [← countable_coe_iff ,(equiv.set.univ _).countable_iff]),
   obtain ⟨g, gmeas, ginj⟩ := measurable_space.measurable_inj_cantor_of_countably_generated α,
-  exact ⟨borel_schroeder_bernstein fcts.measurable finj gmeas ginj⟩,
+  exact ⟨borel_schroeder_bernstein gmeas ginj fcts.measurable finj⟩,
 end
 
 /-- The **Borel Isomorphism Theorem**: Any two uncountable Polish spaces are Borel isomorphic.-/
-def borel_equiv_of_uncountable_of_uncountable (hα : ¬countable α) (hβ : ¬countable β ) : α ≃ᵐ β :=
-(borel_nat_bool_equiv_of_uncountable hα).symm.trans (borel_nat_bool_equiv_of_uncountable hβ)
+def measurable_equiv_of_uncountable (hα : ¬ countable α) (hβ : ¬ countable β ) : α ≃ᵐ β :=
+(measurable_equiv_nat_bool_of_uncountable hα).trans
+  (measurable_equiv_nat_bool_of_uncountable hβ).symm
 
 /-- The **Borel Isomorphism Theorem**: If two Polish spaces have the same cardinality,
 they are Borel isomorphic.-/
-def equiv.borel_equiv (e : α ≃ β) : α ≃ᵐ β :=
+def equiv.measurable_equiv (e : α ≃ β) : α ≃ᵐ β :=
 begin
   by_cases h : countable α,
   { letI := h,
     letI := countable.of_equiv α e,
-    use e; apply measurable_of_countable, },
-  apply borel_equiv_of_uncountable_of_uncountable,
-  { exact h },
+    use e; exact measurable_of_countable _, },
+  refine measurable_equiv_of_uncountable h _,
   rwa e.countable_iff at h,
 end

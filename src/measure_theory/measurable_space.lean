@@ -1377,7 +1377,7 @@ end
 
 end measurable_embedding
 
-section countable_generate
+section countably_generated
 
 namespace measurable_space
 
@@ -1403,7 +1403,7 @@ begin
   { rw measurable_pi_iff,
     intro n,
     apply measurable_to_bool,
-    simp [preimage],
+    simp only [preimage, mem_singleton_iff, to_bool_iff, set_of_mem_eq],
     rw hb,
     apply measurable_set_generate_from,
     use n, },

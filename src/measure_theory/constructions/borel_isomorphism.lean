@@ -39,12 +39,10 @@ It also seems likely there is a simpler proof. -/
 instance polish_of_countable [h : countable α] [topological_space α] [discrete_topology α]
   : polish_space α :=
 begin
-  rw countable_iff_exists_injective at h,
-  cases h with f hf,
+  obtain ⟨f, hf⟩ := h.exists_injective_nat,
   have : closed_embedding f,
   { apply closed_embedding_of_continuous_injective_closed continuous_of_discrete_topology hf,
-    rintros t -,
-    apply is_closed_discrete },
+    exact λ t _, is_closed_discrete _, },
   exact this.polish_space,
 end
 
@@ -83,12 +81,13 @@ begin
 end
 
 /-- The **Borel Isomorphism Theorem**: Any two uncountable Polish spaces are Borel isomorphic.-/
-def borel_equiv_of_uncountable_of_uncountable (hα : ¬countable α) (hβ : ¬countable β ) : α ≃ᵐ β :=
-(borel_nat_bool_equiv_of_uncountable hα).symm.trans (borel_nat_bool_equiv_of_uncountable hβ)
+def measurable_equiv_of_uncountable (hα : ¬ countable α) (hβ : ¬ countable β ) : α ≃ᵐ β :=
+(measurable_equiv_nat_bool_of_uncountable hα).trans
+  (measurable_equiv_nat_bool_of_uncountable hβ).symm
 
 /-- The **Borel Isomorphism Theorem**: If two Polish spaces have the same cardinality,
 they are Borel isomorphic.-/
-def equiv.borel_equiv (e : α ≃ β) : α ≃ᵐ β :=
+def equiv.measurable_equiv (e : α ≃ β) : α ≃ᵐ β :=
 begin
   by_cases h : countable α,
   { letI := h,

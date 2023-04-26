@@ -637,7 +637,7 @@ lemma ne_zero_iff {p : mv_polynomial σ R} :
 by { rw [ne.def, eq_zero_iff], push_neg, }
 
 @[simp] lemma support_eq_empty {p : mv_polynomial σ R} : p.support = ∅ ↔ p = 0 :=
-finsupp.support_eq_empty 
+finsupp.support_eq_empty
 
 lemma exists_coeff_ne_zero {p : mv_polynomial σ R} (h : p ≠ 0) :
   ∃ d, coeff d p ≠ 0 :=

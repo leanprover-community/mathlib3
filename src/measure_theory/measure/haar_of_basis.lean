@@ -111,6 +111,7 @@ end add_comm_group
 section normed_space
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
+variables [normed_add_comm_group F] [normed_space ℝ F]
 
 /-- The parallelepiped spanned by a basis, as a compact set with nonempty interior. -/
 def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
@@ -131,6 +132,13 @@ def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
       rwa [← homeomorph.image_interior, nonempty_image_iff],
     end }
 
+#check positive_compacts.i
+
+lemma basis.parallelepiped_map (b : basis ι ℝ E) (e : E ≃ₗ[ℝ] F) :
+  (b.map e).parallelepiped = b.parallelepiped.map _ _ :=
+sorry
+
+#exit
 variables [measurable_space E] [borel_space E]
 
 /-- The Lebesgue measure associated to a basis, giving measure `1` to the parallelepiped spanned

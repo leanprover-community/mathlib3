@@ -93,6 +93,8 @@ begin
   refine ⟨measurable_equiv.measurable (euclidean_space.measurable_equiv ι), _⟩,
   rw ←add_haar_measure_eq_volume_pi,
   dsimp only [measure_space_of_inner_product_space, basis.add_haar],
+  ext1 s hs,
+  rw measure.map_apply _ hs,
   convert measure.map_id,
   sorry,
 end

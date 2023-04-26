@@ -9,6 +9,12 @@ open_locale big_operators
 
 variables {V K : Type*}
 
+lemma cast_card_sdiff {α R : Type*} [add_group_with_one R] [decidable_eq α] {s t : finset α}
+  (h : s ⊆ t) : ((t \ s).card : R) = t.card - s.card :=
+begin
+  rw [card_sdiff],
+end
+
 def col_density [decidable_eq V] [decidable_eq K] (χ : top_edge_labelling V K) (k : K)
   (X Y : finset V) : ℝ :=
 edge_density (χ.label_graph k) X Y
@@ -21,53 +27,81 @@ by rw [col_density, edge_density_comm, col_density]
 lemma col_density_nonneg [decidable_eq V] [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
   {X Y : finset V} :
   0 ≤ col_density χ k X Y :=
-rat.cast_nonneg.2 _
+rat.cast_nonneg.2 (edge_density_nonneg _ _ _)
 
 lemma col_density_le_one [decidable_eq V] [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
   {X Y : finset V} :
   col_density χ k X Y ≤ 1 :=
 begin
   rw ←rat.cast_one,
-  rw rat.cast_le,
-  exact edge_density_le_one _ _ _
+  exact rat.cast_le.2 (edge_density_le_one _ _ _),
 end
 
-@[reducible] def red_density [decidable_eq V] (χ : top_edge_labelling V (fin 2)) (X Y : finset V) :
-  ℝ := col_density χ 0 X Y
-@[reducible] def blue_density [decidable_eq V] (χ : top_edge_labelling V (fin 2)) (X Y : finset V) :
-  ℝ := col_density χ 1 X Y
+lemma col_density_empty_left [decidable_eq V] [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
+  {Y : finset V} : col_density χ k ∅ Y = 0 :=
+by rw [col_density, edge_density_empty_left, rat.cast_zero]
 
-def col_neighbor_finset [fintype V] [decidable_eq V] [decidable_eq K] (χ : top_edge_labelling V K)
+lemma col_density_empty_right [decidable_eq V] [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
+  {X : finset V} : col_density χ k X ∅ = 0 :=
+by rw [col_density, edge_density_empty_right, rat.cast_zero]
+
+localized "notation `red_density` χ:1024 := simple_graph.col_density χ 0" in exponential_ramsey
+localized "notation `blue_density` χ:1024 := simple_graph.col_density χ 1" in exponential_ramsey
+
+def col_neighbors [fintype V] [decidable_eq V] [decidable_eq K] (χ : top_edge_labelling V K)
   (k : K) (x : V) : finset V :=
 neighbor_finset (χ.label_graph k) x
 
-@[reducible] def red_neighbors [fintype V] [decidable_eq V] (χ : top_edge_labelling V (fin 2))
-  (x : V) : finset V := col_neighbor_finset χ 0 x
-@[reducible] def blue_neighbors [fintype V] [decidable_eq V] (χ : top_edge_labelling V (fin 2))
-  (x : V) : finset V := col_neighbor_finset χ 1 x
+localized "notation `red_neighbors` χ:1024 := simple_graph.col_neighbors χ 0" in exponential_ramsey
+localized "notation `blue_neighbors` χ:1024 := simple_graph.col_neighbors χ 1" in exponential_ramsey
+
+open_locale exponential_ramsey
 
 variables [fintype V] [decidable_eq V]
 
-lemma mem_col_neighbor_finset [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
-  y ∈ col_neighbor_finset χ k x ↔ ∃ (H : x ≠ y), χ.get x y = k :=
-by rw [col_neighbor_finset, mem_neighbor_finset, top_edge_labelling.label_graph_adj]
+lemma mem_col_neighbors [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
+  y ∈ col_neighbors χ k x ↔ ∃ (H : x ≠ y), χ.get x y = k :=
+by rw [col_neighbors, mem_neighbor_finset, top_edge_labelling.label_graph_adj]
 
-lemma mem_col_neighbor_finset' [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
-  y ∈ col_neighbor_finset χ k x ↔ ∃ (H : y ≠ x), χ.get y x = k :=
-by rw [col_neighbor_finset, mem_neighbor_finset, adj_comm, top_edge_labelling.label_graph_adj]
+lemma mem_col_neighbors' [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
+  y ∈ col_neighbors χ k x ↔ ∃ (H : y ≠ x), χ.get y x = k :=
+by rw [col_neighbors, mem_neighbor_finset, adj_comm, top_edge_labelling.label_graph_adj]
 
-lemma mem_col_neighbor_finset_comm [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
-  y ∈ col_neighbor_finset χ k x ↔ x ∈ col_neighbor_finset χ k y :=
+lemma mem_col_neighbors_comm [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
+  y ∈ col_neighbors χ k x ↔ x ∈ col_neighbors χ k y :=
+by rw [mem_col_neighbors, mem_col_neighbors']
+
+lemma not_mem_col_neighbors [decidable_eq K] {χ : top_edge_labelling V K} {x : V} {k : K} :
+  x ∉ col_neighbors χ k x := not_mem_neighbor_finset_self _ _
+
+lemma interedges_card_eq_sum {V : Type*} [decidable_eq V] [fintype V] {G : simple_graph V}
+  [decidable_rel G.adj] {A B : finset V} :
+  (G.interedges A B).card = ∑ x in A, (G.neighbor_finset x ∩ B).card :=
 begin
-  rw mem_col_neighbor_finset,
-  rw mem_col_neighbor_finset',
+  have : ∀ e ∈ G.interedges A B, prod.fst e ∈ A,
+  { rintro ⟨e₁, e₂⟩ h,
+    rw [interedges, rel.mk_mem_interedges_iff] at h,
+    exact h.1 },
+  rw card_eq_sum_card_fiberwise this,
+  refine sum_congr rfl _,
+  intros x hx,
+  rw [interedges, rel.interedges, filter_filter],
+  simp only [and_comm],
+  rw [←filter_filter, filter_product_left (λ i, i = x), finset.filter_eq', if_pos hx,
+    singleton_product, filter_map, card_map, inter_comm, ←filter_mem_eq_inter],
+  congr' 1,
+  refine filter_congr _,
+  simp only [function.embedding.coe_fn_mk, mem_neighbor_finset, iff_self, implies_true_iff],
 end
 
-lemma not_mem_red_neighbors {χ : top_edge_labelling V (fin 2)} {x : V} :
-  x ∉ red_neighbors χ x := not_mem_neighbor_finset_self _ _
-
-lemma not_mem_blue_neighbors {χ : top_edge_labelling V (fin 2)} {x : V} :
-  x ∉ blue_neighbors χ x := not_mem_neighbor_finset_self _ _
+lemma col_density_eq_sum {K : Type*} [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
+  {A B : finset V} :
+  col_density χ k A B = (∑ x in A, (col_neighbors χ k x ∩ B).card) / (A.card * B.card) :=
+begin
+  rw [col_density, edge_density_def, interedges_card_eq_sum],
+  simp only [nat.cast_sum, rat.cast_div, rat.cast_sum, rat.cast_coe_nat, rat.cast_mul],
+  refl,
+end
 
 -- (3)
 noncomputable def pair_weight (χ : top_edge_labelling V (fin 2)) (X Y : finset V) (x y : V) : ℝ :=
@@ -257,14 +291,14 @@ def red_step_basic (C : book_config χ) (x : V) (hx : x ∈ C.X) : book_config �
   hXA :=
   begin
     rw [disjoint_insert_right, mem_inter, not_and_distrib],
-    refine ⟨or.inl not_mem_red_neighbors, _⟩,
+    refine ⟨or.inl not_mem_col_neighbors, _⟩,
     exact disjoint_of_subset_left (inter_subset_right _ _) C.hXA,
   end,
   hXB := disjoint_of_subset_left (inter_subset_right _ _) C.hXB,
   hYA :=
   begin
     rw [disjoint_insert_right, mem_inter, not_and_distrib],
-    refine ⟨or.inl not_mem_red_neighbors, _⟩,
+    refine ⟨or.inl not_mem_col_neighbors, _⟩,
     exact disjoint_of_subset_left (inter_subset_right _ _) C.hYA,
   end,
   hYB := disjoint_of_subset_left (inter_subset_right _ _) C.hYB,
@@ -285,7 +319,7 @@ def red_step_basic (C : book_config χ) (x : V) (hx : x ∈ C.X) : book_config �
     rw [←inter_distrib_left, insert_eq, top_edge_labelling.monochromatic_between_union_right,
       top_edge_labelling.monochromatic_between_singleton_right],
     split,
-    { simp [red_neighbors, mem_col_neighbor_finset'] {contextual := tt} },
+    { simp [mem_col_neighbors'] {contextual := tt} },
     { exact C.red_XYA.subset_left (inter_subset_right _ _) },
   end,
   blue_B := C.blue_B,
@@ -335,13 +369,13 @@ def density_boost_step_basic (C : book_config χ) (x : V) (hx : x ∈ C.X) : boo
   hXB :=
   begin
     rw [disjoint_insert_right, mem_inter, not_and_distrib],
-    exact ⟨or.inl not_mem_blue_neighbors, C.hXB.inf_left' _⟩,
+    exact ⟨or.inl not_mem_col_neighbors, C.hXB.inf_left' _⟩,
   end,
   hYA := C.hYA.inf_left' _,
   hYB :=
   begin
     rw [disjoint_insert_right, mem_inter, not_and_distrib],
-    exact ⟨or.inl not_mem_red_neighbors, C.hYB.inf_left' _⟩,
+    exact ⟨or.inl not_mem_col_neighbors, C.hYB.inf_left' _⟩,
   end,
   hAB :=
   begin
@@ -361,7 +395,7 @@ def density_boost_step_basic (C : book_config χ) (x : V) (hx : x ∈ C.X) : boo
     rw [insert_eq, top_edge_labelling.monochromatic_between_union_right,
       top_edge_labelling.monochromatic_between_singleton_right],
     refine ⟨_, C.blue_XB.subset_left (inter_subset_right _ _)⟩,
-    simp [blue_neighbors, mem_col_neighbor_finset'] {contextual := tt},
+    simp [mem_col_neighbors'] {contextual := tt},
   end
 }
 
@@ -465,14 +499,13 @@ begin
   rw mem_useful_blue_books',
   simp only [hx, singleton_subset_iff, disjoint_singleton_left, mem_inter, and_true, coe_singleton,
     monochromatic_of_singleton, card_singleton, pow_one, true_and, inter_subset_right, not_true,
-    not_mem_blue_neighbors, top_edge_labelling.monochromatic_between_singleton_left, and_imp,
-    blue_neighbors, mem_col_neighbor_finset, ne.def, eq_self_iff_true, not_false_iff,
+    not_mem_col_neighbors, top_edge_labelling.monochromatic_between_singleton_left, and_imp,
+    mem_col_neighbors, ne.def, eq_self_iff_true, not_false_iff,
     is_empty.exists_iff, forall_exists_index, implies_true_iff] {contextual := tt},
   refine hx'.trans' (half_le_self _),
   positivity
 end
 
--- #check finset.exists_max_image
 lemma exists_maximal_blue_book_aux (χ : top_edge_labelling V (fin 2)) (μ : ℝ) (X : finset V) :
   ∃ (ST ∈ useful_blue_books χ μ X), ∀ (ST' ∈ useful_blue_books χ μ X),
     finset.card (prod.fst ST') ≤ finset.card (prod.fst ST) :=
@@ -688,7 +721,7 @@ begin
     have : red_neighbors χ x ∩ C'.X ⊆ C'.X.erase x,
     { rw subset_erase,
       refine ⟨inter_subset_right _ _, _⟩,
-      simp [not_mem_red_neighbors] },
+      simp [not_mem_col_neighbors] },
     refine (add_le_add_right (card_le_of_subset this) _).trans _,
     rw card_erase_add_one,
     exact book_config.get_central_vertex_mem_X _ _ _ },
@@ -697,7 +730,7 @@ begin
     have : blue_neighbors χ x ∩ C'.X ⊆ C'.X.erase x,
     { rw subset_erase,
       refine ⟨inter_subset_right _ _, _⟩,
-      simp [not_mem_blue_neighbors] },
+      simp [not_mem_col_neighbors] },
     refine (add_le_add_right (card_le_of_subset this) _).trans _,
     rw card_erase_add_one,
     exact book_config.get_central_vertex_mem_X _ _ _ },
@@ -868,25 +901,25 @@ begin
   exact hi.2.2,
 end
 
-noncomputable def get_x (k l i : ℕ) (hi : i ∈ red_or_density_steps μ k l ini) : V :=
+noncomputable def get_x (hi : i ∈ red_or_density_steps μ k l ini) : V :=
 (algorithm μ k l ini i).get_central_vertex μ
   ((algorithm μ k l ini i).get_central_vertex_condition
     (of_mem_red_or_density_steps₁ hi) (of_mem_red_or_density_steps₂ hi))
 
 lemma get_x_mem_central_vertices (i : ℕ) (hi : i ∈ red_or_density_steps μ k l ini) :
-  get_x k l i hi ∈ (algorithm μ k l ini i).central_vertices μ :=
+  get_x hi ∈ (algorithm μ k l ini i).central_vertices μ :=
 (algorithm μ k l ini i).get_central_vertex_mem _ _
 
 noncomputable def red_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
 finset.image coe $ (red_or_density_steps μ k l ini).attach.filter $
-  λ i, let x := get_x k l i i.prop,
+  λ i, let x := get_x i.prop,
            C := algorithm μ k l ini i in
     C.p - α_function k (C.height k ini.p) ≤
       red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y)
 
 noncomputable def density_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
 finset.image coe $ (red_or_density_steps μ k l ini).attach.filter $
-  λ i, let x := get_x k l i i.prop,
+  λ i, let x := get_x i.prop,
            C := algorithm μ k l ini i in
     red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y) <
       C.p - α_function k (C.height k ini.p)
@@ -953,7 +986,7 @@ end
 
 lemma red_applied {i : ℕ} (hi : i ∈ red_steps μ k l ini) :
   algorithm μ k l ini (i + 1) = (algorithm μ k l ini i).red_step_basic
-      (get_x k l i (red_steps_subset_red_or_density_steps hi))
+      (get_x (red_steps_subset_red_or_density_steps hi))
       (book_config.get_central_vertex_mem_X _ _ _) :=
 begin
   rw [red_steps, mem_image] at hi,
@@ -970,7 +1003,7 @@ end
 
 lemma density_applied {i : ℕ} (hi : i ∈ density_steps μ k l ini) :
   algorithm μ k l ini (i + 1) = (algorithm μ k l ini i).density_boost_step_basic
-      (get_x k l i (density_steps_subset_red_or_density_steps hi))
+      (get_x (density_steps_subset_red_or_density_steps hi))
       (book_config.get_central_vertex_mem_X _ _ _) :=
 begin
   rw [density_steps, mem_image] at hi,
@@ -1102,19 +1135,19 @@ end
 noncomputable def blue_X_ratio (μ : ℝ) (k l : ℕ) (ini : book_config χ) (i : ℕ) : ℝ :=
 if h : i ∈ red_or_density_steps μ k l ini
   then
-    (blue_neighbors χ (get_x k l i h) ∩ (algorithm μ k l ini i).X).card
+    (blue_neighbors χ (get_x h) ∩ (algorithm μ k l ini i).X).card
       / (algorithm μ k l ini i).X.card
   else 0
 
 lemma blue_X_ratio_eq (hi : i ∈ red_or_density_steps μ k l ini) :
-  blue_X_ratio μ k l ini i = (blue_neighbors χ (get_x k l i hi) ∩ (algorithm μ k l ini i).X).card
+  blue_X_ratio μ k l ini i = (blue_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).X).card
       / (algorithm μ k l ini i).X.card :=
 dif_pos hi
 
 -- (8)
 lemma blue_X_ratio_prop (hi : i ∈ red_or_density_steps μ k l ini) :
   blue_X_ratio μ k l ini i * (algorithm μ k l ini i).X.card =
-    (blue_neighbors χ (get_x k l i hi) ∩ (algorithm μ k l ini i).X).card :=
+    (blue_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).X).card :=
 begin
   cases finset.eq_empty_or_nonempty (algorithm μ k l ini i).X with hX hX,
   { rw [hX, inter_empty, card_empty, nat.cast_zero, mul_zero] },

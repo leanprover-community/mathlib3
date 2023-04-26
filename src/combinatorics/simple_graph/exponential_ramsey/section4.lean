@@ -216,7 +216,7 @@ lemma my_generalized_binomial_convex {k : ℕ} (hk : k ≠ 0) :
   convex_on ℝ set.univ (λ x, my_generalized_binomial x k) :=
 (my_desc_factorial_convex hk).smul (by positivity)
 
-open_locale big_operators
+open_locale big_operators exponential_ramsey
 
 lemma my_thing {α : Type*} {s : finset α} (f : α → ℕ) (b : ℕ) (hb : b ≠ 0) :
   my_generalized_binomial ((∑ i in s, f i) / s.card) b * s.card ≤ (∑ i in s, (f i).choose b) :=
@@ -420,53 +420,25 @@ begin
   rw [card_map, hU''],
 end
 
-lemma interedges_card_eq_sum {V : Type*} [decidable_eq V] [fintype V] {G : simple_graph V}
-  [decidable_rel G.adj] {A B : finset V} :
-  (G.interedges A B).card = ∑ x in A, (G.neighbor_finset x ∩ B).card :=
-begin
-  have : ∀ e ∈ G.interedges A B, prod.fst e ∈ A,
-  { rintro ⟨e₁, e₂⟩ h,
-    rw [interedges, rel.mk_mem_interedges_iff] at h,
-    exact h.1 },
-  rw card_eq_sum_card_fiberwise this,
-  refine sum_congr rfl _,
-  intros x hx,
-  rw [interedges, rel.interedges, filter_filter],
-  simp only [and_comm],
-  rw [←filter_filter, filter_product_left (λ i, i = x), finset.filter_eq', if_pos hx,
-    singleton_product, filter_map, card_map, inter_comm, ←filter_mem_eq_inter],
-  congr' 1,
-  refine filter_congr _,
-  simp only [function.embedding.coe_fn_mk, mem_neighbor_finset, iff_self, implies_true_iff],
-end
-
-lemma col_density_eq_sum {K : Type*} [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
-  {A B : finset V} :
-  col_density χ k A B = (∑ x in A, (col_neighbor_finset χ k x ∩ B).card) / (A.card * B.card) :=
-begin
-  rw [col_density, edge_density_def, interedges_card_eq_sum],
-  simp only [nat.cast_sum, rat.cast_div, rat.cast_sum, rat.cast_coe_nat, rat.cast_mul],
-  refl,
-end
-
-lemma red_density_eq_sum {A B : finset V} :
-  red_density χ A B = (∑ x in A, (red_neighbors χ x ∩ B).card) / (A.card * B.card) :=
-col_density_eq_sum
-
-lemma blue_density_eq_sum {A B : finset V} :
-  blue_density χ A B = (∑ x in A, (blue_neighbors χ x ∩ B).card) / (A.card * B.card) :=
-col_density_eq_sum
-
-lemma blue_density_thing {A B : finset V} :
-  blue_density χ A B * A.card = (∑ x in B, (blue_neighbors χ x ∩ A).card) / B.card :=
+lemma col_density_mul {k : fin 2} {A B : finset V} :
+  col_density χ k A B * A.card = (∑ x in B, (col_neighbors χ k x ∩ A).card) / B.card :=
 begin
   rcases A.eq_empty_or_nonempty with rfl | hA,
-  { rw [blue_density, col_density],
+  { rw [col_density_empty_left],
     simp only [inter_empty, card_empty, nat.cast_zero, sum_const_zero, zero_div, mul_zero] },
-  rw [blue_density, col_density, edge_density_comm, ←col_density, ←blue_density,
-    blue_density_eq_sum, div_mul_eq_mul_div, mul_div_mul_right],
+  rw [col_density_comm, col_density_eq_sum, div_mul_eq_mul_div, mul_div_mul_right],
   rwa [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos],
 end
+
+lemma col_density_mul_mul {k : fin 2} {A B : finset V} :
+  col_density χ k A B * (A.card * B.card) = ∑ x in B, (col_neighbors χ k x ∩ A).card :=
+begin
+  rcases B.eq_empty_or_nonempty with rfl | hA,
+  { rw [col_density_empty_right, sum_empty, zero_mul] },
+  rw [←mul_assoc, col_density_mul, div_mul_cancel],
+  rwa [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos],
+end
+
 
 -- (10)
 lemma four_one_part_two {l : ℕ} {C : book_config χ} {U : finset V}
@@ -475,7 +447,7 @@ lemma four_one_part_two {l : ℕ} {C : book_config χ} {U : finset V}
   (hU' : U ⊆ C.X) (hU'' : ∀ x ∈ U, μ * C.X.card ≤ (blue_neighbors χ x ∩ C.X).card) :
   (μ * C.X.card - U.card) / (C.X.card - U.card) ≤ blue_density χ U (C.X \ U) :=
 begin
-  rw [blue_density_eq_sum, card_sdiff hU', ←nat.cast_sub (card_le_of_subset hU'), ←div_div],
+  rw [col_density_eq_sum, card_sdiff hU', ←nat.cast_sub (card_le_of_subset hU'), ←div_div],
   refine div_le_div_of_le (nat.cast_nonneg _) _,
   rw [le_div_iff],
   have : U.card • (μ * C.X.card - U.card) ≤ ∑ x in U, (blue_neighbors χ x ∩ (C.X \ U)).card,
@@ -611,7 +583,7 @@ begin
   intros x hx y hy h,
   simp only [common_blues, mem_filter, mem_univ, true_and, exists_prop] at hy,
   have := hy x hx,
-  rw [blue_neighbors, mem_col_neighbor_finset] at this,
+  rw [mem_col_neighbors] at this,
   obtain ⟨h, z⟩ := this,
   exact z
 end
@@ -632,13 +604,13 @@ begin
   congr' 2,
   ext S,
   simp only [mem_powerset_len, mem_filter, common_blues, mem_univ, true_and, subset_inter_iff,
-    blue_neighbors, and_assoc],
+    and_assoc],
   rw ←and_rotate,
   refine and_congr_left' _,
   rw subset_iff,
   refine ball_congr _,
   intros x hx,
-  rw [mem_col_neighbor_finset_comm],
+  rw [mem_col_neighbors_comm],
 end
 
 lemma four_one_part_six (χ : top_edge_labelling V (fin 2)) {m b : ℕ} {X U : finset V} (σ : ℝ)
@@ -647,7 +619,7 @@ lemma four_one_part_six (χ : top_edge_labelling V (fin 2)) {m b : ℕ} {X U : f
     ∑ v in X \ U, (blue_neighbors χ v ∩ U).card.choose b :=
 begin
   refine (my_thing _ _ hb).trans' _,
-  rw [←blue_density_thing, ←hσ', hU],
+  rw [←col_density_mul, ←hσ', hU],
 end
 
 lemma four_one_part_seven {V : Type*} [decidable_eq V] {m b : ℕ} {X U : finset V} {σ : ℝ}

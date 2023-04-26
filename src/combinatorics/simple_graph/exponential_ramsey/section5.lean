@@ -18,6 +18,8 @@ end
 
 namespace simple_graph
 
+open_locale exponential_ramsey
+
 open filter finset nat
 
 lemma top_adjuster {p : ℕ → Prop} (h : ∀ᶠ k : ℕ in at_top, p k) :
@@ -160,12 +162,7 @@ begin
   suffices : red_density χ X Y * X.card * Y.card = ∑ (x : V) in X, (red_neighbors χ x ∩ Y).card,
   { rw [←this, sq, sq],
     linarith only },
-  rcases X.eq_empty_or_nonempty with rfl | hX,
-  { rw [card_empty, nat.cast_zero, mul_zero, zero_mul, sum_empty] },
-  rcases Y.eq_empty_or_nonempty with rfl | hY,
-  { simp only [inter_empty, card_empty, nat.cast_zero, mul_zero, sum_const_zero] },
-  rw [mul_assoc, red_density_eq_sum, div_mul_cancel],
-  positivity
+  rw [mul_right_comm, mul_assoc, col_density_comm, col_density_mul_mul],
 end
 
 lemma five_five_aux_part_two {X Y : finset V} :
@@ -178,10 +175,11 @@ begin
   refine sum_congr rfl (λ x' hx', _),
   refine sum_congr rfl (λ y hy, _),
   refine if_congr _ rfl rfl,
-  rw @mem_col_neighbor_finset_comm _ _ _ _ _ _ y,
-  rw @mem_col_neighbor_finset_comm _ _ _ _ _ _ y,
+  rw @mem_col_neighbors_comm _ _ _ _ _ _ y,
+  rw @mem_col_neighbors_comm _ _ _ _ _ _ y,
 end
 
+-- this proof might be possible without the empty casing from the col_density_sum variants
 lemma five_five_aux {X Y : finset V} :
   ∑ x y in X, red_density χ X Y * (red_neighbors χ x ∩ Y).card ≤
     ∑ x y in X, (red_neighbors χ x ∩ red_neighbors χ y ∩ Y).card :=
@@ -198,8 +196,8 @@ begin
   rw [←div_le_iff' hY] at this,
   simp only [nat.cast_pow],
   refine this.trans_eq' _,
-  rw [red_density, col_density_comm, ←red_density],
-  rw [red_density_eq_sum, div_pow, div_mul_eq_mul_div, mul_pow, mul_div_mul_right,
+  rw [col_density_comm],
+  rw [col_density_eq_sum, div_pow, div_mul_eq_mul_div, mul_pow, mul_div_mul_right,
     div_mul_eq_mul_div, sq (Y.card : ℝ), mul_div_mul_right _ _ hY.ne'],
   positivity
 end
@@ -420,12 +418,8 @@ begin
   rw [nat.abs_cast, inv_mul_le_iff, mul_one],
   swap,
   { rwa nat.cast_pos },
-  have hr₀ : 0 ≤ red_density χ X Y,
-  { rw [red_density, col_density, rat.cast_nonneg],
-    exact edge_density_nonneg _ _ _ },
-  have hr₁ : red_density χ X Y ≤ 1,
-  { rw [red_density, col_density, ←rat.cast_one, rat.cast_le],
-    exact edge_density_le_one _ _ _ },
+  have hr₀ : 0 ≤ red_density χ X Y := col_density_nonneg,
+  have hr₁ : red_density χ X Y ≤ 1 := col_density_le_one,
   have : set.uIcc (red_density χ X Y * (red_neighbors χ x ∩ Y).card)
     (red_neighbors χ x ∩ red_neighbors χ y ∩ Y).card ⊆
     set.uIcc 0 Y.card,
@@ -462,14 +456,14 @@ lemma five_four_aux (k l : ℕ) (ini : book_config χ) (i : ℕ)
   (hi : i ∈ red_or_density_steps μ k l ini) :
   (0 : ℝ) ≤ ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] * (algorithm μ k l ini i).X.card +
     ((algorithm μ k l ini i).X.card - ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊]) *
-    (weight χ (algorithm μ k l ini i).X (algorithm μ k l ini i).Y (get_x k l i hi) + 1) :=
+    (weight χ (algorithm μ k l ini i).X (algorithm μ k l ini i).Y (get_x hi) + 1) :=
 begin
   set C := algorithm μ k l ini i,
   let m := ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊],
   have hi' := hi,
   simp only [red_or_density_steps, mem_filter, mem_range] at hi',
   change (0 : ℝ) ≤ m * C.X.card +
-    (C.X.card - m) * (weight χ C.X C.Y (get_x k l i hi) + 1),
+    (C.X.card - m) * (weight χ C.X C.Y (get_x hi) + 1),
   refine (five_five χ C.X C.Y).trans _,
   rw [double_sum_pair_weight_eq],
   rw book_config.num_big_blues at hi',
@@ -532,7 +526,7 @@ lemma five_four :
   ∀ i : ℕ,
   ∀ hi : i ∈ red_or_density_steps μ k l ini,
   - ((algorithm μ k l ini i).X.card : ℝ) / k ^ 5 ≤
-    weight χ (algorithm μ k l ini i).X (algorithm μ k l ini i).Y (get_x k l i hi) :=
+    weight χ (algorithm μ k l ini i).X (algorithm μ k l ini i).Y (get_x hi) :=
 begin
   have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
   have h23 : (0 : ℝ) < 2 / 3, { norm_num },
@@ -546,7 +540,7 @@ begin
   have hi' := hi,
   rw [red_or_density_steps, mem_filter, mem_range] at hi',
   set C := algorithm μ k l ini i,
-  change - (C.X.card : ℝ) / k ^ 5 ≤ weight χ C.X C.Y (get_x k l i hi),
+  change - (C.X.card : ℝ) / k ^ 5 ≤ weight χ C.X C.Y (get_x hi),
   let m := ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊],
   have h₅₄ : (0 : ℝ) ≤ m * C.X.card + (C.X.card - m) * (weight χ C.X C.Y _ + 1) :=
     five_four_aux μ k l ini i hi,
@@ -572,7 +566,7 @@ begin
   { refine b.trans_le _,
     simp only [sub_le_self_iff, nat.cast_nonneg] },
   rw [neg_div, div_eq_mul_one_div, ←mul_neg, ←le_div_iff' this],
-  have : - (m / (C.X.card - m) + 1 / C.X.card : ℝ) ≤ weight χ C.X C.Y (get_x k l i hi) / C.X.card,
+  have : - (m / (C.X.card - m) + 1 / C.X.card : ℝ) ≤ weight χ C.X C.Y (get_x hi) / C.X.card,
   { rw [neg_le_iff_add_nonneg', add_assoc, div_add_div_same, add_comm (1 : ℝ),
       div_add_div _ _ b.ne' this.ne'],
     exact div_nonneg h₅₄ (mul_nonneg b.le (nat.cast_nonneg _)) },
@@ -638,22 +632,31 @@ end
 lemma α_one {k : ℕ} : α_function k 1 = (k : ℝ) ^ (- 1 / 4 : ℝ) / k :=
 by rw [α_function, nat.sub_self, pow_zero, mul_one]
 
-lemma five_seven_right {k : ℕ} {p₀ p : ℝ} (h : q_function k p₀ 0 ≤ p) (hk : k ≠ 0) (hp₀ : 0 ≤ p₀)
-  (hp₁ : p ≤ 1) :
+lemma q_height_lt_p {k : ℕ} {p₀ p : ℝ} (h : 1 < height k p₀ p) :
+  q_function k p₀ (height k p₀ p - 1) < p :=
+begin
+  have : k ≠ 0 ∧ 0 ≤ p₀ ∧ p ≤ 1,
+  { replace h := h.ne',
+    rw [height] at h,
+    simp only [ne.def, dite_eq_right_iff, not_forall] at h,
+    obtain ⟨hh, -⟩ := h,
+    exact hh },
+  by_contra' z,
+  have := height_min this.1 this.2.1 this.2.2 _ z,
+  { rw ←not_lt at this,
+    exact this (nat.sub_lt one_le_height zero_lt_one) },
+  simpa using h,
+end
+
+lemma five_seven_right {k : ℕ} {p₀ p : ℝ} (h : q_function k p₀ 0 ≤ p) :
   α_function k (height k p₀ p) ≤ (k : ℝ) ^ (- 1 / 4 : ℝ) * (p - q_function k p₀ 0 + 1 / k) :=
 begin
   rw [five_seven_aux],
   refine mul_le_mul_of_nonneg_left _ (rpow_nonneg_of_nonneg (nat.cast_nonneg _) _),
   simp only [add_le_add_iff_right, sub_le_sub_iff_right],
-  by_contra',
   cases lt_or_eq_of_le (@one_le_height k p₀ p) with h₁ h₁,
-  { have := height_min hk hp₀ hp₁ _ this.le,
-    { rw ←not_lt at this,
-      exact this (nat.sub_lt one_le_height zero_lt_one) },
-    rwa [ne.def, nat.sub_eq_zero_iff_le, not_le] },
-  rw h₁ at this,
-  refine this.not_le _,
-  rwa nat.sub_self,
+  { exact (q_height_lt_p h₁).le },
+  rwa [h₁, nat.sub_self],
 end
 
 lemma five_seven_extra {k : ℕ} {p₀ p : ℝ} (h' : p ≤ q_function k p₀ 1) :
@@ -669,7 +672,6 @@ end
 -- WARNING: the hypothesis 1 / k ≤ ini.p should be seen as setting an absolute lower bound on p₀,
 -- and k and ini both depend on it, with 1 / k ≤ it ≤ ini.p
 lemma five_eight {μ : ℝ} {k l : ℕ} {ini : book_config χ} (h : 1 / (k : ℝ) ≤ ini.p)
-  (hk : k ≠ 0)
   {i : ℕ} (hi : i ∈ degree_steps μ k l ini)
   (x : V) (hx : x ∈ (algorithm μ k l ini (i + 1)).X) :
   (1 - (k : ℝ) ^ (- 1 / 8 : ℝ)) * (algorithm μ k l ini i).p * (algorithm μ k l ini (i + 1)).Y.card ≤
@@ -694,12 +696,8 @@ begin
       norm_num },
     { norm_num },
     exact h'.trans (q_increasing zero_le_one) },
-  refine (mul_le_mul_of_nonneg_left (five_seven_right h' hk _ _)
-    (rpow_nonneg_of_nonneg (nat.cast_nonneg _) _)).trans _,
-  { rw [book_config.p, red_density, col_density, ←rat.cast_zero, rat.cast_le],
-    exact edge_density_nonneg _ _ _ },
-  { rw [book_config.p, red_density, col_density, ←rat.cast_one, rat.cast_le],
-    exact edge_density_le_one _ _ _ },
+  refine (mul_le_mul_of_nonneg_left (five_seven_right h') (rpow_nonneg_of_nonneg
+    (nat.cast_nonneg _) _)).trans _,
   rw [←mul_assoc, ←rpow_add' (nat.cast_nonneg _)],
   swap,
   { norm_num1 },
@@ -712,6 +710,181 @@ begin
     { rwa sub_nonneg },
     { positivity } },
   { positivity }
+end
+
+lemma q_height_le_one {k : ℕ} {p₀ p : ℝ} (hp₀₁ : p₀ ≤ 1) :
+  q_function k p₀ (height k p₀ p - 1) ≤ 1 :=
+begin
+  cases eq_or_lt_of_le (@one_le_height k p₀ p) with h₁ h₁,
+  { rwa [←h₁, nat.sub_self, q_function_zero] },
+  refine (q_height_lt_p h₁).le.trans _,
+  replace h₁ := h₁.ne',
+  rw [height] at h₁,
+  simp only [ne.def, dite_eq_right_iff, not_forall] at h₁,
+  obtain ⟨⟨_, _, z⟩, _⟩ := h₁,
+  exact z
+end
+
+lemma α_le_one {k : ℕ} {p₀ p : ℝ} (h : 1 / (k : ℝ) ≤ p₀) (hp₀₁ : p₀ ≤ 1) :
+  α_function k (height k p₀ p) ≤ 1 :=
+begin
+  rcases eq_or_ne k 0 with rfl | hk,
+  { rw [α_function],
+    simp only [char_p.cast_eq_zero, div_zero, zero_le_one] },
+  rw [five_seven_aux, q_function_zero, mul_comm],
+  refine mul_le_one _ (rpow_nonneg_of_nonneg (nat.cast_nonneg _) _)
+    (rpow_le_one_of_one_le_of_nonpos _ (by norm_num)),
+  swap,
+  { rwa [nat.one_le_cast, nat.succ_le_iff, pos_iff_ne_zero] },
+  rw [sub_add],
+  refine (sub_le_sub_right (q_height_le_one hp₀₁) _).trans _,
+  rwa [sub_le_self_iff, sub_nonneg],
+end
+
+variables {μ} {k l : ℕ} {ini : book_config χ} {i : ℕ}
+
+lemma p_pos (hi : i < final_step μ k l ini) : 0 < (algorithm μ k l ini i).p :=
+begin
+  refine (one_div_k_lt_p_of_lt_final_step hi).trans_le' _,
+  positivity
+end
+
+lemma X_nonempty (hi : i < final_step μ k l ini) : (algorithm μ k l ini i).X.nonempty :=
+begin
+  refine nonempty_of_ne_empty _,
+  intro h,
+  refine (p_pos hi).ne' _,
+  rw [book_config.p, h, col_density_empty_left],
+end
+
+lemma Y_nonempty (hi : i < final_step μ k l ini) : (algorithm μ k l ini i).Y.nonempty :=
+begin
+  refine nonempty_of_ne_empty _,
+  intro h,
+  refine (p_pos hi).ne' _,
+  rw [book_config.p, h, col_density_empty_right],
+end
+
+-- WARNING: the hypothesis 1 / k ≤ ini.p should be seen as setting an absolute lower bound on p₀,
+-- and k and ini both depend on it, with 1 / k ≤ it ≤ ini.p
+lemma red_neighbors_Y_nonempty (h : 1 / (k : ℝ) ≤ ini.p) (hk : 1 < k)
+  (hi : i ∈ degree_steps μ k l ini)
+  (x : V) (hx : x ∈ (algorithm μ k l ini (i + 1)).X) :
+  (red_neighbors χ x ∩ (algorithm μ k l ini (i + 1)).Y).nonempty :=
+begin
+  rw [←card_pos, ←@nat.cast_pos ℝ],
+  have : i < final_step μ k l ini,
+  { rw [degree_steps, mem_filter, mem_range] at hi,
+    exact hi.1 },
+  refine (five_eight h hi x hx).trans_lt' _,
+  refine mul_pos (mul_pos _ (p_pos this)) _,
+  { rw [sub_pos],
+    refine rpow_lt_one_of_one_lt_of_neg _ _,
+    { rwa nat.one_lt_cast },
+    norm_num1 },
+  rw [nat.cast_pos, card_pos, degree_regularisation_applied hi,
+    book_config.degree_regularisation_step_Y],
+  exact Y_nonempty this,
+end
+
+lemma red_neighbors_eq_blue_compl {x : V} : red_neighbors χ x = (insert x (blue_neighbors χ x))ᶜ :=
+begin
+  ext y,
+  rw [mem_compl, mem_insert, mem_col_neighbors, mem_col_neighbors, not_or_distrib],
+  simp only [fin.fin_two_eq_zero_iff_ne_one, not_exists],
+  split,
+  { rintro ⟨p, q⟩,
+    exact ⟨p.symm, λ h, q⟩ },
+  rintro ⟨p, q⟩,
+  exact ⟨ne.symm p, q _⟩,
+end
+
+lemma red_neighbors_inter_eq {x : V} {X : finset V} (hx : x ∈ X) :
+  red_neighbors χ x ∩ X = X \ (insert x (blue_neighbors χ x ∩ X)) :=
+by rw [red_neighbors_eq_blue_compl, sdiff_eq_inter_compl, inter_comm, ←insert_inter_of_mem hx,
+    compl_inter, ←inf_eq_inter, ←sup_eq_union, inf_sup_left, inf_compl_self, sup_bot_eq]
+
+lemma blue_neighbors_eq_red_compl {x : V} : blue_neighbors χ x = (insert x (red_neighbors χ x))ᶜ :=
+begin
+  ext y,
+  rw [mem_compl, mem_insert, mem_col_neighbors, mem_col_neighbors, not_or_distrib],
+  simp only [fin.fin_two_eq_zero_iff_ne_one, not_exists, not_not],
+  split,
+  { rintro ⟨p, q⟩,
+    exact ⟨p.symm, λ h, q⟩ },
+  rintro ⟨p, q⟩,
+  exact ⟨_, q (ne.symm p)⟩,
+end
+
+lemma red_neighbors_X_nonempty (hμ₁ : μ < 1) (hk : (1 - μ)⁻¹ ≤ k)
+  (hi : i ∈ red_or_density_steps μ k l ini) :
+  (red_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).X).nonempty :=
+begin
+  have hi' := hi,
+  rw [red_or_density_steps, mem_filter, mem_range] at hi',
+  have hμ : μ ≤ 1 - k⁻¹,
+  { rw [le_sub_comm],
+    exact inv_le_of_inv_le (sub_pos_of_lt hμ₁) hk },
+  have := (blue_X_ratio_le_mu hi).trans hμ,
+  rw [blue_X_ratio_eq hi, div_le_iff, one_sub_mul] at this,
+  swap,
+  { rw [nat.cast_pos, card_pos],
+    exact X_nonempty hi'.1 },
+  rw [red_neighbors_inter_eq, ←card_pos, card_sdiff],
+  swap,
+  { exact book_config.get_central_vertex_mem_X _ _ _ },
+
+  -- rw [red_neighbors_eq_blue_compl, inter_comm, ←sdiff_eq_inter_compl, ←card_pos],
+end
+
+#exit
+
+lemma five_one_case_a {k l : ℕ} {α : ℝ} (X Y : finset V) {x : V} (hx : x ∈ X) :
+    - α * ((red_neighbors χ x ∩ X).card * (red_neighbors χ x ∩ Y).card) / Y.card ≤
+      ∑ y in red_neighbors χ x ∩ X, pair_weight χ X Y x y →
+    red_density χ X Y - α ≤ red_density χ (red_neighbors χ x ∩ X) (red_neighbors χ x ∩ Y) :=
+begin
+  intro h,
+  conv_rhs { rw red_density_eq_sum },
+  simp only [pair_weight, ←mul_sum] at h,
+  rw [inv_mul_eq_div, div_le_div_right] at h,
+
+  -- rw le_div_iff,
+  -- simp only [←inter_assoc],
+
+  -- rw [red_density, red_density, ←red_density, col_density],
+end
+
+#exit
+
+lemma five_one (μ : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) :
+  ∀ᶠ l : ℕ in at_top,
+  ∀ k, l ≤ k →
+  ∀ n : ℕ,
+  ∀ χ : top_edge_labelling (fin n) (fin 2),
+  ∀ ini : book_config χ,
+  ∀ i : ℕ,
+  ∀ hi : i ∈ red_or_density_steps μ k l ini,
+    (algorithm μ k l ini i).p - α_function k (height k ini.p (algorithm μ k l ini i).p) ≤
+      red_density χ (red_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).X)
+                    (red_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).Y) ∨
+    (algorithm μ k l ini i).p -
+      (1 - k ^ (- 1 / 4 : ℝ)) *
+        ((1 - blue_X_ratio μ k l ini i) / blue_X_ratio μ k l ini i) *
+          α_function k (height k ini.p (algorithm μ k l ini i).p) ≤
+      red_density χ (blue_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).X)
+                    (red_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).Y) :=
+begin
+  filter_upwards [] with l k hlk n χ ini i hi,
+  let C := algorithm μ k l ini i,
+  let α := α_function k (height k ini.p C.p),
+  let x := get_x hi,
+  let β := blue_X_ratio μ k l ini i,
+  let ε : ℝ := k ^ (- 1 / 4 : ℝ),
+  change C.p - α ≤ red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y) ∨
+         C.p - (1 - ε) * ((1 - β) / β) * α ≤
+          red_density χ (blue_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y),
+
 end
 
 end simple_graph

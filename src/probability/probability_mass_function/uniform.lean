@@ -38,11 +38,6 @@ by simp [finset.nonempty_iff_ne_empty]
 @[simp] lemma list.to_finset_nonempty (l : list α) : l.to_finset.nonempty ↔ ¬ l.empty :=
 by simp [finset.nonempty_iff_ne_empty, list.empty_iff_eq_nil]
 
-@[simp] lemma list.dedup_empty (l : list α) : l.dedup.empty ↔ l.empty :=
-begin
-  sorry,
-end
-
 section uniform_of_finset
 
 /-- Uniform distribution taking the same non-zero probability on the nonempty finset `s` -/

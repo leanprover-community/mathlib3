@@ -48,6 +48,18 @@ dedup_cons_of_mem' $ mem_dedup.2 h
   dedup (a :: l) = a :: dedup l :=
 dedup_cons_of_not_mem' $ mt mem_dedup.1 h
 
+@[simp] lemma list.dedup_eq_nil (l : list α) : l.dedup = [] ↔ l = [] :=
+begin
+  induction l with a l hl,
+  { exact iff.rfl },
+  { by_cases h : a ∈ l,
+    { simp only [list.dedup_cons_of_mem h, hl, list.ne_nil_of_mem h] },
+    { simp only [list.dedup_cons_of_not_mem h, list.cons_ne_nil] } }
+end
+
+@[simp] lemma list.dedup_empty (l : list α) : l.dedup.empty ↔ l.empty :=
+by rw [list.empty_iff_eq_nil, list.empty_iff_eq_nil, list.dedup_eq_nil]
+
 theorem dedup_sublist : ∀ (l : list α), dedup l <+ l := pw_filter_sublist
 
 theorem dedup_subset : ∀ (l : list α), dedup l ⊆ l := pw_filter_subset

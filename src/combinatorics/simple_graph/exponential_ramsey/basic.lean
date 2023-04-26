@@ -11,9 +11,7 @@ variables {V K : Type*}
 
 lemma cast_card_sdiff {α R : Type*} [add_group_with_one R] [decidable_eq α] {s t : finset α}
   (h : s ⊆ t) : ((t \ s).card : R) = t.card - s.card :=
-begin
-  rw [card_sdiff],
-end
+by rw [card_sdiff h, nat.cast_sub (card_le_of_subset h)]
 
 def col_density [decidable_eq V] [decidable_eq K] (χ : top_edge_labelling V K) (k : K)
   (X Y : finset V) : ℝ :=

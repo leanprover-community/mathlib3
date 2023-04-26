@@ -639,7 +639,7 @@ begin
     norm_num1 },
   have h₁ : 3 / 4 * (X.card : ℝ) ≤ (X \ U).card,
   { rw [←@nat.cast_le ℝ, nat.cast_mul, nat.cast_bit0, nat.cast_two] at this,
-    rw [card_sdiff hUX, nat.cast_sub (card_le_of_subset hUX), hU],
+    rw [cast_card_sdiff hUX, hU],
     linarith only [this] },
   have : μ * (1 - 2 / (μ * k)) ≤ σ,
   { rwa [mul_one_sub, mul_div_assoc', mul_div_mul_left _ _ hμ₀.ne'] },

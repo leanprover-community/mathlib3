@@ -804,6 +804,18 @@ lemma red_neighbors_inter_eq {x : V} {X : finset V} (hx : x ∈ X) :
 by rw [red_neighbors_eq_blue_compl, sdiff_eq_inter_compl, inter_comm, ←insert_inter_of_mem hx,
     compl_inter, ←inf_eq_inter, ←sup_eq_union, inf_sup_left, inf_compl_self, sup_bot_eq]
 
+lemma card_red_neighbors_inter (hi : i ∈ red_or_density_steps μ k l ini) :
+  ((red_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).X).card : ℝ) =
+    (1 - blue_X_ratio μ k l ini i) * (algorithm μ k l ini i).X.card - 1 :=
+begin
+  rw [red_neighbors_inter_eq, cast_card_sdiff, card_insert_of_not_mem, one_sub_mul,
+    nat.cast_add_one, ←sub_sub, blue_X_ratio_prop],
+  { simp [not_mem_col_neighbors] },
+  { rw [insert_subset],
+    exact ⟨book_config.get_central_vertex_mem_X _ _ _, inter_subset_right _ _⟩ },
+  { exact book_config.get_central_vertex_mem_X _ _ _ },
+end
+
 lemma blue_neighbors_eq_red_compl {x : V} : blue_neighbors χ x = (insert x (red_neighbors χ x))ᶜ :=
 begin
   ext y,
@@ -816,44 +828,83 @@ begin
   exact ⟨_, q (ne.symm p)⟩,
 end
 
-lemma red_neighbors_X_nonempty (hμ₁ : μ < 1) (hk : (1 - μ)⁻¹ ≤ k)
+lemma red_neighbors_X_nonempty (hμ₁ : μ < 1) (hk : (1 - μ)⁻¹ ≤ k) (hl : 1 < l)
   (hi : i ∈ red_or_density_steps μ k l ini) :
   (red_neighbors χ (get_x hi) ∩ (algorithm μ k l ini i).X).nonempty :=
 begin
+  set X := (algorithm μ k l ini i).X with ←hx,
   have hi' := hi,
   rw [red_or_density_steps, mem_filter, mem_range] at hi',
   have hμ : μ ≤ 1 - k⁻¹,
   { rw [le_sub_comm],
     exact inv_le_of_inv_le (sub_pos_of_lt hμ₁) hk },
-  have := (blue_X_ratio_le_mu hi).trans hμ,
-  rw [blue_X_ratio_eq hi, div_le_iff, one_sub_mul] at this,
-  swap,
-  { rw [nat.cast_pos, card_pos],
-    exact X_nonempty hi'.1 },
-  rw [red_neighbors_inter_eq, ←card_pos, card_sdiff],
-  swap,
-  { exact book_config.get_central_vertex_mem_X _ _ _ },
-
-  -- rw [red_neighbors_eq_blue_compl, inter_comm, ←sdiff_eq_inter_compl, ←card_pos],
+  rw [←card_pos, ←@nat.cast_pos ℝ, card_red_neighbors_inter, sub_pos],
+  suffices : 1 < (1 - μ) * X.card,
+  { refine this.trans_le (mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _)),
+    rw sub_le_sub_iff_left,
+    exact blue_X_ratio_le_mu hi },
+  have : (k : ℝ) < X.card,
+  { rw nat.cast_lt,
+    refine (ramsey_number_lt_of_lt_final_step hi'.1).trans_le' _,
+    refine (ramsey_number.mono_two le_rfl _).trans_eq' ramsey_number_two_right.symm,
+    rw [nat.add_one_le_ceil_iff, nat.cast_one],
+    exact one_lt_rpow (nat.one_lt_cast.2 hl) (by norm_num) },
+  rw [←div_lt_iff' (sub_pos_of_lt hμ₁), one_div],
+  exact hk.trans_lt this,
 end
 
-#exit
-
-lemma five_one_case_a {k l : ℕ} {α : ℝ} (X Y : finset V) {x : V} (hx : x ∈ X) :
+lemma five_one_case_a {k l : ℕ} {α : ℝ} (X Y : finset V) {x : V} (hx : x ∈ X)
+  (hxX : (red_neighbors χ x ∩ X).nonempty) (hxY : (red_neighbors χ x ∩ Y).nonempty) :
     - α * ((red_neighbors χ x ∩ X).card * (red_neighbors χ x ∩ Y).card) / Y.card ≤
       ∑ y in red_neighbors χ x ∩ X, pair_weight χ X Y x y →
     red_density χ X Y - α ≤ red_density χ (red_neighbors χ x ∩ X) (red_neighbors χ x ∩ Y) :=
 begin
   intro h,
-  conv_rhs { rw red_density_eq_sum },
+  conv_rhs { rw col_density_eq_sum },
   simp only [pair_weight, ←mul_sum] at h,
-  rw [inv_mul_eq_div, div_le_div_right] at h,
-
-  -- rw le_div_iff,
-  -- simp only [←inter_assoc],
-
-  -- rw [red_density, red_density, ←red_density, col_density],
+  rw [inv_mul_eq_div, div_le_div_right, sum_sub_distrib, sum_const, nsmul_eq_mul,
+    le_sub_iff_add_le', mul_left_comm, ←add_mul, ←sub_eq_add_neg, ←le_div_iff] at h,
+  { refine h.trans_eq _,
+    congr' with i : 2,
+    rw [inter_left_comm, inter_assoc] },
+  { positivity },
+  rw [nat.cast_pos, card_pos],
+  exact hxY.mono (inter_subset_right _ _),
 end
+
+local notation `NB` := blue_neighbors χ
+local notation `NR` := red_neighbors χ
+
+lemma five_one_case_b {k l : ℕ} {α : ℝ} (X Y : finset V) {x : V} (hx : x ∈ X)
+  (hy : Y.nonempty)
+  (h : ∑ y in NR x ∩ X, pair_weight χ X Y x y <
+    - α * ((NR x ∩ X).card * (NR x ∩ Y).card) / Y.card) :
+  red_density χ X Y * ((NB x ∩ X).card * (NR x ∩ Y).card) +
+    α * ((NR x ∩ X).card * (NR x ∩ Y).card) + weight χ X Y x * Y.card ≤
+    ∑ y in NB x ∩ X, (NR y ∩ (NR x ∩ Y)).card :=
+begin
+  have : weight χ X Y x + α * ((NR x ∩ X).card * (NR x ∩ Y).card) / Y.card
+    ≤ ∑ y in NB x ∩ X, pair_weight χ X Y x y,
+  { rw [←le_sub_iff_add_le, sub_eq_add_neg, ←sub_le_iff_le_add', ←neg_div, ←neg_mul],
+    refine h.le.trans_eq' _,
+    rw [red_neighbors_inter_eq hx, sub_eq_iff_eq_add, insert_eq, sdiff_union_distrib,
+      sdiff_singleton_eq_erase, inter_sdiff, (inter_eq_left_iff_subset _ _).2 (erase_subset _ _),
+      ←sum_union, sdiff_union_of_subset, weight],
+    { rw subset_erase,
+      exact ⟨inter_subset_right _ _, by simp [not_mem_col_neighbors]⟩ },
+    exact disjoint_sdiff_self_left },
+  simp only [pair_weight, ←mul_sum] at this,
+  rw [inv_mul_eq_div, le_div_iff, sum_sub_distrib, sum_const, add_mul, div_mul_cancel,
+    nsmul_eq_mul, le_sub_iff_add_le', mul_left_comm _ (col_density χ 0 X Y), ←add_assoc,
+    add_right_comm] at this,
+  { refine this.trans_eq (sum_congr rfl _),
+    intros y hy,
+    rw [inter_left_comm, inter_assoc] },
+  positivity,
+  positivity,
+end
+
+  -- ∑ y in blue_neighbors χ x ∩ X,
 
 #exit
 

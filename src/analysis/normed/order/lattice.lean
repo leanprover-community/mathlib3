@@ -7,8 +7,6 @@ import topology.order.lattice
 import analysis.normed.group.basic
 import algebra.order.lattice_group
 
-import sandbox
-
 /-!
 # Normed lattice ordered groups
 
@@ -40,6 +38,23 @@ Motivated by the theory of Banach Lattices, this section introduces normed latti
 
 local notation (name := abs) `|`a`|` := abs a
 
+section solid_norm
+
+class has_solid_norm (α : Type*) [normed_add_comm_group α] [lattice α]  : Prop :=
+(solid :  ∀ ⦃x y : α⦄, |x| ≤ |y| → ‖x‖ ≤ ‖y‖)
+
+variables {α : Type*} [normed_add_comm_group α] [lattice α]
+
+lemma solid [has_solid_norm α] {a b : α} (h : |a| ≤ |b|): ‖a‖ ≤ ‖b‖ := has_solid_norm.solid h
+
+alias solid ← norm_le_norm_of_abs_le_abs
+
+instance : has_solid_norm ℝ := ⟨λ _ _, id⟩
+
+instance : has_solid_norm ℚ := ⟨λ _ _ _, by simpa only [norm, ← rat.cast_abs, rat.cast_le]⟩
+
+end solid_norm
+
 /--
 Let `α` be a normed commutative group equipped with a partial order covariant with addition, with
 respect which `α` forms a lattice. Suppose that `α` is *solid*, that is to say, for `a` and `b` in
@@ -47,17 +62,17 @@ respect which `α` forms a lattice. Suppose that `α` is *solid*, that is to say
 said to be a normed lattice ordered group.
 -/
 class normed_lattice_add_comm_group (α : Type*)
-  extends normed_add_comm_group α, lattice α, has_solid_norm α :=
-(add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
+  extends normed_add_comm_group α, lattice α, has_solid_norm α, covariant_class α α has_add.add (≤)
 
-instance : normed_lattice_add_comm_group ℝ := ⟨λ _ _ h _, add_le_add le_rfl h⟩
+instance : normed_lattice_add_comm_group ℝ := { }
 
 /--
 A normed lattice ordered group is an ordered additive commutative group
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
-  [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α := { ..h }
+  [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α :=
+{ add_le_add_left := λ _ _ hab c, h.elim c hab, ..h }
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
 open lattice_ordered_comm_group

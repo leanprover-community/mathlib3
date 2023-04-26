@@ -460,3 +460,20 @@ begin
 end
 
 end lattice_ordered_comm_group
+
+section solid
+
+variables [add_comm_group α] [lattice α]
+
+namespace lattice_comm_group
+
+def is_solid (s : set α) : Prop := ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, |y| ≤ |x| → y ∈ s
+
+def solid_closure (s : set α) : set α := {x | ∃ y ∈ s, |x| ≤ |y|}
+
+lemma is_solid_solid_closure (s : set α) : is_solid (solid_closure s) :=
+λ x ⟨y, hy, hxy⟩ z hzx, ⟨y, hy, hzx.trans hxy⟩
+
+end lattice_comm_group
+
+end solid

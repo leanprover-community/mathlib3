@@ -1427,29 +1427,29 @@ end division_ring
 
 section restrict_scalars
 
-variables [comm_ring R] [ring K] [nontrivial K] [add_comm_group V]
-variables [algebra R K] [module K V] [module R V]
-variables [is_scalar_tower R K V] [no_zero_smul_divisors R K] (b : basis ι K V)
+variables {S : Type*} [comm_ring R] [ring S] [nontrivial S] [add_comm_group M]
+variables [algebra R S] [module S M] [module R M]
+variables [is_scalar_tower R S M] [no_zero_smul_divisors R S] (b : basis ι S M)
 variables (R)
 
 open submodule
 
-/-- Let `b` be a `K`-basis of `V`. Let `R` be a comm_ring such that `algebra R K` with no zero
-smul divisors, then the submodule of `V` spanned by `b` over `R` admits `b` as a `R`-basis. -/
+/-- Let `b` be a `S`-basis of `M`. Let `R` be a comm_ring such that `algebra R S` with no zero
+smul divisors, then the submodule of `M` spanned by `b` over `R` admits `b` as a `R`-basis. -/
 noncomputable def basis.restrict_scalars : basis ι R (span R (set.range b)) :=
 basis.span (b.linear_independent.restrict_scalars (smul_left_injective R one_ne_zero))
 
 @[simp]
-lemma basis.restrict_scalars_apply (i : ι) : (b.restrict_scalars R i : V) = b i :=
+lemma basis.restrict_scalars_apply (i : ι) : (b.restrict_scalars R i : M) = b i :=
 by simp only [basis.restrict_scalars, basis.span_apply]
 
 @[simp]
 lemma basis.restrict_scalars_repr_apply (m : span R (set.range b)) (i : ι) :
-  algebra_map R K ((b.restrict_scalars R).repr m i) = b.repr m i :=
+  algebra_map R S ((b.restrict_scalars R).repr m i) = b.repr m i :=
 begin
-  suffices : finsupp.map_range.linear_map (algebra.linear_map R K) ∘ₗ
+  suffices : finsupp.map_range.linear_map (algebra.linear_map R S) ∘ₗ
       (b.restrict_scalars R).repr.to_linear_map
-      = ((b.repr : V →ₗ[K] (ι →₀ K)).restrict_scalars R).dom_restrict _,
+      = ((b.repr : M →ₗ[S] (ι →₀ S)).restrict_scalars R).dom_restrict _,
   { exact finsupp.congr_fun (linear_map.congr_fun this m) i, },
   refine basis.ext (b.restrict_scalars R) (λ _, _),
   simp only [linear_map.coe_comp, linear_equiv.coe_to_linear_map, function.comp_app, map_one,
@@ -1458,14 +1458,14 @@ begin
     basis.restrict_scalars_apply, linear_map.coe_restrict_scalars_eq_coe],
 end
 
-/-- Let `b` be a `K`-basis of `V`. Then `m : V` lies in the `R`-module spanned by `b` iff all the
-coordinates of `m` on the basis `b` are in `R` (see `basis.mem_span` for the case `R = K`). -/
-lemma basis.mem_span_iff_repr_mem (m : V) :
-  m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R K) :=
+/-- Let `b` be a `S`-basis of `M`. Then `m : M` lies in the `R`-module spanned by `b` iff all the
+coordinates of `m` on the basis `b` are in `R` (see `basis.mem_span` for the case `R = S`). -/
+lemma basis.mem_span_iff_repr_mem (m : M) :
+  m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R S) :=
 begin
   refine ⟨λ hm i, ⟨(b.restrict_scalars R).repr ⟨m, hm⟩ i,
     (b.restrict_scalars_repr_apply R ⟨m, hm⟩ i)⟩, λ h, _⟩,
-  rw [← b.total_repr m, finsupp.total_apply K _],
+  rw [← b.total_repr m, finsupp.total_apply S _],
   refine sum_mem (λ i _, _),
   obtain ⟨_, h⟩ := h i,
   simp_rw [← h, algebra_map_smul],

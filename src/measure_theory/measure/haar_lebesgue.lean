@@ -86,6 +86,17 @@ instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :
   is_add_haar_measure (volume : measure (ι → ℝ)) :=
 by { rw ← add_haar_measure_eq_volume_pi, apply_instance }
 
+
+lemma euclidean_space.volume_preserving_pi_Lp_equiv (ι : Type*) [fintype ι] :
+  measure_preserving (pi_Lp.equiv _ _) (volume : measure (euclidean_space ℝ ι)) volume :=
+begin
+  refine ⟨measurable_equiv.measurable (euclidean_space.measurable_equiv ι), _⟩,
+  rw ←add_haar_measure_eq_volume_pi,
+  dsimp only [measure_space_of_inner_product_space, basis.add_haar],
+  convert measure.map_id,
+  sorry,
+end
+
 namespace measure
 
 /-!

@@ -714,6 +714,13 @@ protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=
   inv_fun := (pi_Lp.equiv _ _).symm,
   ..linear_equiv.refl _ _}
 
+/-- `pi_Lp.equiv` as a continuous linear equivalence. -/
+@[simps {fully_applied := ff}]
+protected def continuous_linear_equiv : pi_Lp p β ≃L[𝕜] Π i, β i :=
+{ to_linear_equiv := pi_Lp.linear_equiv _ _ _,
+  continuous_to_fun := continuous_id,
+  continuous_inv_fun := continuous_id }
+
 section basis
 
 variables (ι)

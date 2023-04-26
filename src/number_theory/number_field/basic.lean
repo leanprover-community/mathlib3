@@ -203,7 +203,7 @@ variables (F K L : Type*) [field K] [field F] [field L] [number_field K] [number
 /-- The normal closure of an extension `K / F` of number fields in a characteristic zero
   field is a number field. -/
 instance number_field.normal_closure : number_field (normal_closure F K L) :=
-{ to_char_zero := char_zero.of_module _ L,
+{ to_char_zero := char_zero_of_injective_algebra_map (algebra_map F _).injective,
   to_finite_dimensional :=
     by { haveI := finite_dimensional.right ℚ F K; exact finite_dimensional.trans ℚ F _, }}
 

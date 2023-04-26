@@ -46,8 +46,8 @@ analytic sets.
 
 We use this to prove several versions of the Borel isomorphism theorem.
 
-* `borel_equiv_of_not_countable` : Any two uncountable Polish spaces are Borel isomorphic.
-* `equiv.borel_equiv` : Any two Polish spaces of the same cardinality are Borel. isomorphic.
+* `measurable_equiv_of_not_countable` : Any two uncountable Polish spaces are Borel isomorphic.
+* `equiv.measurable_equiv` : Any two Polish spaces of the same cardinality are Borel. isomorphic.
 -/
 
 open set function polish_space pi_nat topological_space metric filter

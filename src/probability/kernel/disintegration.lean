@@ -341,16 +341,35 @@ lemma kernel.restrict_subtype_apply {β : Type*} {mβ : measurable_space β} (κ
 lemma kernel.restrict_subtype_apply' {β : Type*} {mβ : measurable_space β} (κ : kernel α β)
   {s : set β} (hs : measurable_set s) (a : α) {t : set s} (ht : measurable_set t) :
   kernel.restrict_subtype κ hs a t = κ a (coe '' t) :=
+by rw [kernel.restrict_subtype_apply,
+    measure.comap_apply _ subtype.coe_injective (λ s', measurable_set.subtype_image hs) _ ht]
+
+instance is_finite_kernel.restrict_subtype {β : Type*} {mβ : measurable_space β} (κ : kernel α β)
+  [is_finite_kernel κ] {s : set β} (hs : measurable_set s) :
+  is_finite_kernel (kernel.restrict_subtype κ hs) :=
 begin
-  rw [kernel.restrict_subtype_apply,
-    measure.comap_apply _ subtype.coe_injective (λ s' hs', _) _ ht],
-  exact measurable_set.subtype_image hs hs',
+  refine ⟨⟨is_finite_kernel.bound κ, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
+  rw kernel.restrict_subtype_apply' κ hs a measurable_set.univ,
+  exact kernel.measure_le_bound κ a _,
 end
 
-instance {β : Type*} {mβ : measurable_space β} (κ : kernel α β)
-  {s : set β} (hs : measurable_set s) :
+instance is_s_finite_kernel.restrict_subtype {β : Type*} {mβ : measurable_space β} (κ : kernel α β)
+  [is_finite_kernel κ] {s : set β} (hs : measurable_set s) :
   kernel.is_s_finite_kernel (kernel.restrict_subtype κ hs) :=
-sorry
+begin
+  refine ⟨⟨λ n, kernel.restrict_subtype (kernel.seq κ n) hs, infer_instance, _⟩⟩,
+  ext1 a,
+  rw kernel.sum_apply,
+  simp_rw kernel.restrict_subtype_apply _ hs,
+  have : measure.sum (λ n, measure.comap (coe : s → β) (kernel.seq κ n a))
+    = measure.comap coe (measure.sum (λ n, kernel.seq κ n a)),
+  { ext1 t ht,
+    rw [measure.comap_apply _ subtype.coe_injective (λ s', measurable_set.subtype_image hs) _ ht,
+      measure.sum_apply _ ht, measure.sum_apply _ (measurable_set.subtype_image hs ht)],
+    congr' with n : 1,
+    rw measure.comap_apply _ subtype.coe_injective (λ s', measurable_set.subtype_image hs) _ ht, },
+  rw [this, kernel.measure_sum_seq],
+end
 
 lemma measurable_embedding.prod_mk {β γ δ : Type*} {mβ : measurable_space β}
   {mγ : measurable_space γ} {mδ : measurable_space δ}

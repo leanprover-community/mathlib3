@@ -16,7 +16,9 @@ where `ρ.fst` is the marginal measure of `ρ` on `α`. In particular,
 
 ## Main definitions
 
-* `probability_theory.cond_kernel ρ : kernel α ℝ`: conditional kernel described above.
+* `probability_theory.cond_kernel ρ : kernel α ℝ`: conditional kernel described above. We define it
+  as the measure associated to the Stieltjes function `cond_kernel ρ a` for all `a : α`, and show
+  that this defines a measurable map.
 
 ## Main statements
 
@@ -303,5 +305,146 @@ begin
   rw [kernel.lintegral_comp_prod _ _ _ hf, kernel.const_apply],
   simp_rw kernel.prod_mk_left_apply,
 end
+
+section subset
+
+/-- ### Disintegration of measures on subsets of the reals
+
+Since every standard Borel space is measurably equivalent to a subset of `ℝ`, we can generalize a
+disintegration result on those subsets to all these spaces. -/
+
+noncomputable
+def measure.restrict_subtype (μ : measure α) (s : set α) : measure s :=
+measure.comap coe μ
+
+noncomputable
+def kernel.restrict_subtype {β : Type*} {mβ : measurable_space β} (κ : kernel α β) {s : set β}
+  (hs : measurable_set s) :
+  kernel α s :=
+{ val := λ a, measure.comap coe (κ a),
+  property :=
+  begin
+    refine measure.measurable_measure.mpr (λ t ht, _),
+    have : (λ a, measure.comap coe (κ a) t) = λ a, κ a (coe '' t),
+    { ext1 a,
+      rw measure.comap_apply _ subtype.coe_injective (λ s' hs', _) _ ht,
+      exact measurable_set.subtype_image hs hs', },
+    rw this,
+    exact kernel.measurable_coe _
+      ((measurable_embedding.subtype_coe hs).measurable_set_image.mpr ht),
+  end }
+
+lemma kernel.restrict_subtype_apply {β : Type*} {mβ : measurable_space β} (κ : kernel α β)
+  {s : set β} (hs : measurable_set s) (a : α)  :
+  kernel.restrict_subtype κ hs a = measure.comap coe (κ a) := rfl
+
+lemma kernel.restrict_subtype_apply' {β : Type*} {mβ : measurable_space β} (κ : kernel α β)
+  {s : set β} (hs : measurable_set s) (a : α) {t : set s} (ht : measurable_set t) :
+  kernel.restrict_subtype κ hs a t = κ a (coe '' t) :=
+begin
+  rw [kernel.restrict_subtype_apply,
+    measure.comap_apply _ subtype.coe_injective (λ s' hs', _) _ ht],
+  exact measurable_set.subtype_image hs hs',
+end
+
+instance {β : Type*} {mβ : measurable_space β} (κ : kernel α β)
+  {s : set β} (hs : measurable_set s) :
+  kernel.is_s_finite_kernel (kernel.restrict_subtype κ hs) :=
+sorry
+
+lemma measurable_embedding.prod_mk {β γ δ : Type*} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {mδ : measurable_space δ}
+  {f : α → β} {g : γ → δ} (hg : measurable_embedding g) (hf : measurable_embedding f) :
+  measurable_embedding (λ x : γ × α, (g x.1, f x.2)) :=
+begin
+  have h_inj : function.injective (λ x : γ × α, (g x.fst, f x.snd)),
+  { intros x y hxy,
+    rw [← @prod.mk.eta _ _ x, ← @prod.mk.eta _ _ y],
+    simp only [prod.mk.inj_iff] at hxy ⊢,
+    exact ⟨hg.injective hxy.1, hf.injective hxy.2⟩, },
+  refine ⟨h_inj, _, _⟩,
+  { exact (hg.measurable.comp measurable_fst).prod_mk (hf.measurable.comp measurable_snd), },
+  { intros s hs,
+    refine @measurable_space.induction_on_inter _
+      (λ s, measurable_set ((λ (x : γ × α), (g x.fst, f x.snd)) '' s)) _ _ generate_from_prod.symm
+      is_pi_system_prod _ _ _ _ _ hs,
+    { simp only [image_empty, measurable_set.empty], },
+    { intros t ht,
+      rw mem_image2 at ht,
+      obtain ⟨t₁, t₂, ht₁, ht₂, rfl⟩ := ht,
+      have : ((λ x : γ × α, (g x.fst, f x.snd)) '' t₁ ×ˢ t₂) = (g '' t₁) ×ˢ (f '' t₂),
+      { ext1 x,
+        simp only [mem_image, mem_prod, prod.exists],
+        split,
+        { rintros ⟨c, a, h_mem, rfl⟩,
+          exact ⟨⟨c, h_mem.1, rfl⟩, a, h_mem.2, rfl⟩, },
+        { rintros ⟨⟨c, h_mem1, h_eq1⟩, a, h_mem2, h_eq2⟩,
+          refine ⟨c, a, ⟨h_mem1, h_mem2⟩, _⟩,
+          rw [h_eq1, h_eq2, prod.mk.eta], }, },
+      rw this,
+      exact (hg.measurable_set_image.mpr ht₁).prod (hf.measurable_set_image.mpr ht₂), },
+    { intros t ht ht_m,
+      rw [← range_diff_image h_inj, ← prod_range_range_eq],
+      exact measurable_set.diff
+        (measurable_set.prod hg.measurable_set_range hf.measurable_set_range) ht_m, },
+    { intros g hg_disj hg_meas hg,
+      simp_rw image_Union,
+      exact measurable_set.Union hg, }, },
+end
+
+theorem kernel.const_eq_comp_prod' {s : set ℝ} (ρ : measure (α × s)) [is_finite_measure ρ]
+  (γ : Type*) [measurable_space γ] (hs : measurable_set s) :
+  kernel.const γ ρ = (kernel.const γ ρ.fst)
+    ⊗ₖ (kernel.prod_mk_left
+      (kernel.restrict_subtype (cond_kernel (ρ.map (coe : α × s → α × ℝ))) hs) γ) :=
+begin
+  have h_coe_eq : (coe : α × s → α × ℝ) = λ x, (x.1, ↑x.2),
+  { ext1 x,
+    nth_rewrite 0 ← @prod.mk.eta _ _ x,
+    refl, },
+  have h_coe_apply : ∀ a b, (coe : α × s → α × ℝ) (a, b) = (a, ↑b) := λ a b, rfl,
+  ext a t ht : 2,
+  have h_emb : measurable_embedding (coe : α × s → α × ℝ),
+  { rw h_coe_eq,
+    exact measurable_embedding.prod_mk measurable_embedding.id
+      (measurable_embedding.subtype_coe hs), },
+  have h_meas : measurable (coe : α × s → α × ℝ) := h_emb.measurable,
+  have h_inj : function.injective (coe : α × s → α × ℝ) := h_emb.injective,
+  have h_meas_image : measurable_set ((coe : α × s → α × ℝ) '' t),
+  { exact h_emb.measurable_set_image.mpr ht, },
+  rw [kernel.comp_prod_apply _ _ _ ht, kernel.const_apply, kernel.const_apply],
+  simp_rw kernel.prod_mk_left_apply,
+  have : ∫⁻ b, kernel.restrict_subtype
+      (cond_kernel (measure.map coe ρ)) hs b {c : ↥s | (b, c) ∈ t} ∂ρ.fst
+    = ∫⁻ b, (cond_kernel (measure.map coe ρ)) b (coe '' {c : ↥s | (b, c) ∈ t}) ∂ρ.fst,
+  { congr,
+    ext1 a,
+    rw kernel.restrict_subtype_apply' (cond_kernel (ρ.map (coe : α × s → α × ℝ))) hs,
+    exact measurable_prod_mk_left ht, },
+  rw this,
+  have h_fst : (ρ.map (coe : α × s → α × ℝ)).fst = ρ.fst,
+  { ext1 t ht,
+    simp_rw measure.fst_apply _ ht,
+    rw measure.map_apply h_meas (measurable_fst ht),
+    congr' 1 with x,
+    simp only [mem_preimage],
+    rw [← @prod.mk.eta _ _ x, h_coe_apply],  },
+  rw ← h_fst,
+  have h_set_eq : ∀ b, (coe : s → ℝ) '' {c : ↥s | (b, c) ∈ t}
+    = {c : ℝ | (b, c) ∈ (coe : α × s → α × ℝ) '' t},
+  { intro a,
+    rw h_coe_eq,
+    ext1 x,
+    simp only [mem_image, mem_set_of_eq, set_coe.exists, subtype.coe_mk, exists_and_distrib_right,
+      exists_eq_right, prod.mk.inj_iff, prod.exists, exists_eq_right_right], },
+  simp_rw h_set_eq,
+  rw lintegral_cond_kernel_mem,
+  { rw measure.map_apply h_meas,
+    { rw preimage_image_eq _ h_inj, },
+    { exact h_meas_image, }, },
+  { exact h_meas_image, },
+end
+
+end subset
 
 end probability_theory

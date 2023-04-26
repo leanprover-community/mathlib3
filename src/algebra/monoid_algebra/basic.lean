@@ -1123,6 +1123,9 @@ instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) 
 
 variables {S : Type*}
 
+instance [semiring k] [distrib_smul R k] : distrib_smul R (add_monoid_algebra k G) :=
+finsupp.distrib_smul G k
+
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (add_monoid_algebra k G) :=
 finsupp.distrib_mul_action G k

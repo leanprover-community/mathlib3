@@ -84,8 +84,7 @@ lemma monoid_hom.functions_ext' [finite I] (M : Type*) [comm_monoid M]
   (g h : (Π i, Z i) →* M)
   (H : ∀ i, g.comp (monoid_hom.single Z i) = h.comp (monoid_hom.single Z i)) :
   g = h :=
-have _ := λ i, monoid_hom.congr_fun (H i), -- elab without an expected type
-g.functions_ext M h this
+g.functions_ext M h $ λ i, monoid_hom.congr_fun (H i)
 
 end mul_single
 

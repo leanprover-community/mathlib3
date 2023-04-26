@@ -27,9 +27,13 @@ import data.matrix.basic
 variables {l m n o p q : Type*} {m' n' p' : o → Type*}
 variables {R : Type*} {S : Type*} {α : Type*} {β : Type*}
 
-open_locale matrix
+open_locale big_operators matrix
 
 namespace matrix
+
+lemma dot_product_block [fintype m] [fintype n] [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :
+  v ⬝ᵥ w = v ∘ sum.inl ⬝ᵥ w ∘ sum.inl + v ∘ sum.inr ⬝ᵥ w ∘ sum.inr :=
+fintype.sum_sum_type _
 
 section block_matrices
 

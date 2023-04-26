@@ -9,6 +9,9 @@ import logic.equiv.transfer_instance
 /-!
 # If `C` is preadditive, `Cᵒᵖ` has a natural preadditive structure.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open opposite

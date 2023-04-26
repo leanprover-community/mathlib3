@@ -9,6 +9,9 @@ import data.pfunctor.univariate.M
 
 # Quotients of Polynomial Functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We assume the following:
 
 `P`   : a polynomial functor

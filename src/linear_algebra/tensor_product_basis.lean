@@ -40,4 +40,10 @@ lemma basis.tensor_product_apply' (b : basis ι R M) (c : basis κ R N) (i : ι 
   basis.tensor_product b c i = b i.1 ⊗ₜ c i.2 :=
 by simp [basis.tensor_product]
 
+@[simp]
+lemma basis.tensor_product_repr_tmul_apply (b : basis ι R M) (c : basis κ R N)
+  (m : M) (n : N) (i : ι) (j : κ) :
+  (basis.tensor_product b c).repr (m ⊗ₜ n) (i, j) = b.repr m i * c.repr n j :=
+by simp [basis.tensor_product]
+
 end comm_ring

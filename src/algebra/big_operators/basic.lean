@@ -865,15 +865,17 @@ lemma prod_dite_irrel (p : Prop) [decidable p] (s : finset α) (f : p → α →
   (∏ x in s, if h : p then f h x else g h x) = if h : p then ∏ x in s, f h x else ∏ x in s, g h x :=
 by { split_ifs with h; refl }
 
-@[simp] lemma sum_pi_single' {ι M : Type*} [decidable_eq ι] [add_comm_monoid M]
+@[simp, to_additive]
+lemma prod_pi_single' {ι M : Type*} [decidable_eq ι] [comm_monoid M]
   (i : ι) (x : M) (s : finset ι) :
-  ∑ j in s, pi.single i x j = if i ∈ s then x else 0 :=
-sum_dite_eq' _ _ _
+  ∏ j in s, pi.mul_single i x j = if i ∈ s then x else 1 :=
+prod_dite_eq' _ _ _
 
-@[simp] lemma sum_pi_single {ι : Type*} {M : ι → Type*}
-  [decidable_eq ι] [Π i, add_comm_monoid (M i)] (i : ι) (f : Π i, M i) (s : finset ι) :
-  ∑ j in s, pi.single j (f j) i = if i ∈ s then f i else 0 :=
-sum_dite_eq _ _ _
+@[simp, to_additive]
+lemma prod_pi_single {ι : Type*} {M : ι → Type*}
+  [decidable_eq ι] [Π i, comm_monoid (M i)] (i : ι) (f : Π i, M i) (s : finset ι) :
+  ∏ j in s, pi.mul_single j (f j) i = if i ∈ s then f i else 1 :=
+prod_dite_eq _ _ _
 
 @[to_additive]
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}

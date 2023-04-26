@@ -179,4 +179,6 @@ protected def measurable_equiv : euclidean_space ℝ ι ≃ᵐ (ι → ℝ) :=
   measurable_to_fun := measurable_id,
   measurable_inv_fun := measurable_id }
 
+lemma coe_measurable_equiv : ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.equiv 2 _ := rfl
+
 end euclidean_space

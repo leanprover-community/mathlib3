@@ -100,9 +100,9 @@ including `splitting_field_aux` (such as instances) should be defined using
 this recursion in each field, rather than defining the whole tuple through
 recursion.
 -/
-def splitting_field_aux : Π (n : ℕ) {K : Type u} [field K], by exactI Π (f : K[X]), Type u
-| 0 K fK f := K
-| (n + 1) K fK f := by exactI splitting_field_aux n f.remove_factor
+def splitting_field_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]), Type u :=
+nat.rec_on n (λ K _ _, K) $ λ n ih K _ f, by exactI
+ih f.remove_factor
 
 namespace splitting_field_aux
 
@@ -229,26 +229,26 @@ protected def sub (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_sub.sub K _) (λ n ih K fK f, ih)
 
-protected lemma nsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+private lemma nsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   (x : splitting_field_aux n f), (0 : ℕ) • x = splitting_field_aux.zero n :=
 nat.rec_on n (λ K fK f, by exactI zero_nsmul) (λ n ih K fK f, by exactI ih)
 
-protected lemma nsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+private lemma nsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   (k : ℕ) (x : splitting_field_aux n f),
   (k + 1) • x = splitting_field_aux.add n x (k • x) :=
 nat.rec_on n (λ K fK f n x, by exactI succ_nsmul x n) (λ n ih K fK f, by exactI ih)
 
-protected lemma zsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+private lemma zsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   (x : splitting_field_aux n f), (0 : ℤ) • x = splitting_field_aux.zero n :=
 nat.rec_on n (λ K fK f, by exactI zero_zsmul) (λ n ih K fK f, by exactI ih)
 
-protected lemma zsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+private lemma zsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   (k : ℕ) (x : splitting_field_aux n f),
   (↑(k + 1) : ℤ) • x = splitting_field_aux.add n x ((k : ℤ) • x) :=
 nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_succ' K _ k x)
   (λ n ih K fK f, by exactI ih)
 
-protected lemma zsmul_neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+private lemma zsmul_neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   (k : ℕ) (x : splitting_field_aux n f),
   -[1+ k] • x = splitting_field_aux.neg n ((k + 1 : ℤ) • x) :=
 nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_neg' K _ k x)
@@ -268,12 +268,12 @@ begin
       neg := splitting_field_aux.neg n,
       sub := splitting_field_aux.sub n,
       nsmul := (•),
-      nsmul_zero' := splitting_field_aux.nsmul_zero n,
-      nsmul_succ' := splitting_field_aux.nsmul_succ n,
+      nsmul_zero' := nsmul_zero n,
+      nsmul_succ' := nsmul_succ n,
       zsmul := (•),
-      zsmul_zero' := splitting_field_aux.zsmul_zero n,
-      zsmul_succ' := splitting_field_aux.zsmul_succ n,
-      zsmul_neg' := splitting_field_aux.zsmul_neg n },
+      zsmul_zero' := zsmul_zero n,
+      zsmul_succ' := zsmul_succ n,
+      zsmul_neg' := zsmul_neg n },
   all_goals { unfreezingI { induction n with n ih generalizing K } },
   -- The `succ` cases follow by induction, handle them first.
   iterate 6 { rotate, exact ih },

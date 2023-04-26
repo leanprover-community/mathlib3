@@ -111,24 +111,49 @@ section normed_space
 
 variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space ℝ E] [normed_space ℝ F]
 
+/-- The interval `[0,1]` as a compact set with non-empty interior. -/
+def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
+{ carrier := Icc 0 1,
+  is_compact' := is_compact_Icc,
+  interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
+
+universe u
+
+/-- The set `[0,1]^ι` as a compact set with non-empty interior. -/
+def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
+  positive_compacts (ι → ℝ) :=
+{ carrier := pi univ (λ i, Icc 0 1),
+  is_compact' := is_compact_univ_pi (λ i, is_compact_Icc),
+  interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
+    univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
+
 /-- The parallelepiped spanned by a basis, as a compact set with nonempty interior. -/
 def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
-{ carrier := parallelepiped b,
-  is_compact' := is_compact_Icc.image (continuous_finset_sum finset.univ
-    (λ (i : ι) (H : i ∈ finset.univ), (continuous_apply i).smul continuous_const)),
-  interior_nonempty' :=
-    begin
-      suffices H : set.nonempty (interior (b.equiv_funL.symm.to_homeomorph '' (Icc 0 1))),
-      { dsimp only [parallelepiped],
-        convert H,
-        ext t,
-        exact (b.equiv_fun_symm_apply t).symm },
-      have A : set.nonempty (interior (Icc (0 : ι → ℝ) 1)),
-      { rw [← pi_univ_Icc, interior_pi_set (@finite_univ ι _)],
-        simp only [univ_pi_nonempty_iff, pi.zero_apply, pi.one_apply, interior_Icc, nonempty_Ioo,
-          zero_lt_one, implies_true_iff] },
-      rwa [← homeomorph.image_interior, nonempty_image_iff],
-    end }
+(topological_space.positive_compacts.pi_Icc01 ι).map (λ (t : ι → ℝ), ∑ i, t i • b i)
+  (continuous_finset_sum finset.univ
+     (λ (i : ι) (H : i ∈ finset.univ), (continuous_apply i).smul continuous_const))
+  begin
+    simp_rw ← b.equiv_fun_symm_apply,
+    exact b.equiv_funL.symm.to_homeomorph.is_open_map
+  end
+-- { carrier := parallelepiped b,
+--   is_compact' := is_compact_Icc.image (continuous_finset_sum finset.univ
+--     (λ (i : ι) (H : i ∈ finset.univ), (continuous_apply i).smul continuous_const)),
+--   interior_nonempty' :=
+--     begin
+--       suffices H : set.nonempty (interior (b.equiv_funL.symm.to_homeomorph '' (Icc 0 1))),
+--       { dsimp only [parallelepiped],
+--         convert H,
+--         ext t,
+--         exact (b.equiv_fun_symm_apply t).symm },
+--       have A : set.nonempty (interior (Icc (0 : ι → ℝ) 1)),
+--       { rw [← pi_univ_Icc, interior_pi_set (@finite_univ ι _)],
+--         simp only [univ_pi_nonempty_iff, pi.zero_apply, pi.one_apply, interior_Icc, nonempty_Ioo,
+--           zero_lt_one, implies_true_iff] },
+--       rwa [← homeomorph.image_interior, nonempty_image_iff],
+--     end }
+
+#check basis.equiv_fun_symm_apply
 
 @[simp] lemma basis.coe_parallelepiped (b : basis ι ℝ E) :
   (b.parallelepiped : set E) = parallelepiped b :=

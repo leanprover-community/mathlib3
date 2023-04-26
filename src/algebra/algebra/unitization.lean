@@ -365,6 +365,21 @@ instance [comm_semiring R] [non_unital_comm_semiring A] [module R A] [is_scalar_
 { ..unitization.comm_monoid,
   ..unitization.non_assoc_semiring }
 
+instance [comm_ring R] [non_unital_non_assoc_ring A] [module R A] [is_scalar_tower R A A]
+  [smul_comm_class R A A] : non_assoc_ring (unitization R A) :=
+{ ..unitization.add_comm_group,
+  ..unitization.non_assoc_semiring }
+
+instance [comm_ring R] [non_unital_ring A] [module R A] [is_scalar_tower R A A]
+  [smul_comm_class R A A] : ring (unitization R A) :=
+{ ..unitization.add_comm_group,
+  ..unitization.semiring }
+
+instance [comm_ring R] [non_unital_comm_ring A] [module R A] [is_scalar_tower R A A]
+  [smul_comm_class R A A] : comm_ring (unitization R A) :=
+{ ..unitization.add_comm_group,
+  ..unitization.comm_semiring }
+
 variables (R A)
 
 /-- The canonical inclusion of rings `R →+* unitization R A`. -/

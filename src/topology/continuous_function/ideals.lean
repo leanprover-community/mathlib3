@@ -77,7 +77,7 @@ open topological_space
 
 section topological_ring
 
-variables {X R : Type*} [topological_space X] [ring R] [topological_space R] [topological_ring R]
+variables {X R : Type*} [topological_space X] [semiring R] [topological_space R] [topological_semiring R]
 
 variable (R)
 
@@ -131,7 +131,8 @@ end
 ⟨set_of_ideal I, set_of_ideal_open I⟩
 
 @[simp] lemma set_of_top_eq_univ [nontrivial R] : (set_of_ideal (⊤ : ideal C(X, R))) = set.univ :=
-set.univ_subset_iff.mp $ λ x hx, mem_set_of_ideal.mpr ⟨1, submodule.mem_top, one_ne_zero⟩
+set.univ_subset_iff.mp $ λ x hx, mem_set_of_ideal.mpr
+  ⟨1, @submodule.mem_top R R _ _ _ 1, one_ne_zero⟩ --submodule.mem_top, one_ne_zero⟩
 
 @[simp] lemma ideal_of_empty_eq_bot : (ideal_of_set R (∅ : set X)) = ⊥ :=
 ideal.ext (λ f, by simpa only [mem_ideal_of_set, set.compl_empty, set.mem_univ, forall_true_left,

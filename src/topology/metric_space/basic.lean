@@ -1837,7 +1837,7 @@ lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
   lift r to ℝ≥0 using hr.le,
-  simp [dist_pi_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
+  exact nndist_pi_lt_iff hr,
 end
 
 lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :

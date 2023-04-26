@@ -790,7 +790,7 @@ instance has_smul' {α : Type*} [topological_space α]
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance module' {α : Type*} [topological_space α]
-  (R : Type*) [ring R] [topological_space R] [topological_ring R]
+  (R : Type*) [semiring R] [topological_space R] [topological_semiring R]
   (M : Type*) [topological_space M] [add_comm_monoid M] [has_continuous_add M]
   [module R M] [has_continuous_smul R M] :
   module C(α, R) C(α, M) :=

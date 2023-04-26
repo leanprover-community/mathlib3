@@ -293,12 +293,43 @@ lemma self_as_unit_pow_sub (a : R) (b : B) (m d : ℤ) :
 by simp only [zpow_sub, units.coe_mul, mul_comm (((self_as_unit x B ^ m) : Bˣ) : B) _,  mul_assoc,
   units.inv_mul_eq_iff_eq_mul]
 
+lemma self_zpow_mul_neg (d : ℤ) : self_zpow x B d * self_zpow x B (-d) = 1 :=
+begin
+  by_cases hd : d ≤ 0,
+  { erw [self_zpow_of_nonpos x B hd, self_zpow_of_nonneg, ← map_pow, int.nat_abs_neg,
+      is_localization.mk'_spec, map_one],
+    apply nonneg_of_neg_nonpos,
+    rwa [neg_neg]},
+  { erw [self_zpow_of_nonneg x B (le_of_not_le hd), self_zpow_of_nonpos, ← map_pow, int.nat_abs_neg,
+     @is_localization.mk'_spec' R _ (submonoid.powers x) B _ _ _ 1 (submonoid.pow x d.nat_abs),
+      map_one],
+    refine nonpos_of_neg_nonneg (le_of_lt _),
+    rwa [neg_neg, ← not_le] },
+end
+
+lemma self_zpow_neg_mul (d : ℤ) : self_zpow x B (-d) * self_zpow x B d = 1 :=
+by rw [mul_comm, self_zpow_mul_neg x B d]
+
+-- noncomputable!
+-- lemma self_zpow_invertible (d : ℤ) : invertible (self_zpow x B d ) :=
+-- ⟨self_zpow x B (-d), self_zpow_neg_mul x B d, self_zpow_mul_neg x B d⟩
+
 lemma self_zpow_pow_sub (a : R) (b : B) (m d : ℤ) :
   (self_zpow x B (m - d)) * mk' B a (1 : submonoid.powers x) = b ↔
-  (self_zpow x B m) * mk' B a (1 : submonoid.powers x) = (self_zpow x B m) * b :=
+  (self_zpow x B m) * mk' B a (1 : submonoid.powers x) = (self_zpow x B d) * b :=
   begin
+  cases le_or_lt 0 (m - d) with H H,-- ; cases le_or_lt 0 d with hd hd,
+  { rw [sub_eq_add_neg, self_zpow_add, mul_assoc, mul_comm _ (mk' B a 1), ← mul_assoc],
+    split,
+    { intro h,
+      have := congr_arg (λ s : B, s * self_zpow x B d) h,
+      simp only at this,
+      rwa [mul_assoc, mul_assoc, self_zpow_neg_mul, mul_one, mul_comm b _] at this},
+    { intro h,
+      have := congr_arg (λ s : B, s * self_zpow x B (-d)) h,
+      simp only at this,
+      rwa [mul_comm _ b, mul_assoc b _ _, self_zpow_mul_neg, mul_one] at this}},
   sorry
--- simp only [self_zpow, units.coe_mul],
   end
 
 lemma pow_eq_algebra_map (d : ℕ) :

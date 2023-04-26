@@ -26,7 +26,7 @@ For a topological space `α`,
 
 open set
 
-variables {α β : Type*} [topological_space α] [topological_space β]
+variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
 
 namespace topological_space
 
@@ -96,17 +96,32 @@ protected def map (f : α → β) (hf : continuous f) (K : compacts α) : compac
 @[simp] lemma coe_map {f : α → β} (hf : continuous f) (s : compacts α) :
   (s.map f hf : set β) = f '' s := rfl
 
+@[simp] lemma map_id (K : compacts α) : K.map id continuous_id = K := compacts.ext $ set.image_id _
+
+lemma map_comp (f : β → γ) (g : α → β) (hf : continuous f) (hg : continuous g) (K : compacts α) :
+  K.map (f ∘ g) (hf.comp hg) = (K.map g hg).map f hf := compacts.ext $ set.image_comp _ _ _
+
 /-- A homeomorphism induces an equivalence on compact sets, by taking the image. -/
-@[simp] protected def equiv (f : α ≃ₜ β) : compacts α ≃ compacts β :=
+@[simps] protected def equiv (f : α ≃ₜ β) : compacts α ≃ compacts β :=
 { to_fun := compacts.map f f.continuous,
   inv_fun := compacts.map _ f.symm.continuous,
   left_inv := λ s, by { ext1, simp only [coe_map, ← image_comp, f.symm_comp_self, image_id] },
   right_inv := λ s, by { ext1, simp only [coe_map, ← image_comp, f.self_comp_symm, image_id] } }
 
+@[simp] lemma equiv_refl : compacts.equiv (homeomorph.refl α) = equiv.refl _ :=
+equiv.ext map_id
+
+lemma equiv_trans (f : α ≃ₜ β) (g : β ≃ₜ γ) :
+  compacts.equiv (f.trans g) = (compacts.equiv f).trans (compacts.equiv g) :=
+equiv.ext $ map_comp _ _ _ _
+
+lemma equiv_symm (f : α ≃ₜ β) : compacts.equiv f.symm = (compacts.equiv f).symm :=
+rfl
+
 /-- The image of a compact set under a homeomorphism can also be expressed as a preimage. -/
-lemma equiv_to_fun_val (f : α ≃ₜ β) (K : compacts α) :
-  (compacts.equiv f K).1 = f.symm ⁻¹' K.1 :=
-congr_fun (image_eq_preimage_of_inverse f.left_inv f.right_inv) K.1
+lemma coe_equiv_apply_eq_preimage (f : α ≃ₜ β) (K : compacts α) :
+  (compacts.equiv f K : set β) = f.symm ⁻¹' (K : set α) :=
+f.to_equiv.image_eq_preimage K
 
 /-- The product of two `compacts`, as a `compacts` in the product space. -/
 protected def prod (K : compacts α) (L : compacts β) : compacts (α × β) :=
@@ -225,6 +240,26 @@ order_top.lift (coe : _ → set α) (λ _ _, id) rfl
 @[simp] lemma coe_top [compact_space α] [nonempty α] :
   (↑(⊤ : positive_compacts α) : set α) = univ := rfl
 
+/-- The image of a positive compact set under a continuous open map. -/
+protected def map (f : α → β) (hf : continuous f) (hf' : is_open_map f) (K : positive_compacts α) :
+  positive_compacts β :=
+{ interior_nonempty' :=
+    (K.interior_nonempty'.image _).mono (hf'.image_interior_subset K.to_compacts),
+  ..K.map f hf }
+
+@[simp] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f)
+  (s : positive_compacts α) :
+  (s.map f hf hf' : set β) = f '' s := rfl
+
+@[simp] lemma map_id (K : positive_compacts α) : K.map id continuous_id is_open_map.id = K :=
+positive_compacts.ext $ set.image_id _
+
+lemma map_comp (f : β → γ) (g : α → β) (hf : continuous f) (hg : continuous g)
+  (hf' : is_open_map f) (hg' : is_open_map g)
+  (K : positive_compacts α) :
+  K.map (f ∘ g) (hf.comp hg) (hf'.comp hg') = (K.map g hg hg').map f hf hf' :=
+positive_compacts.ext $ set.image_comp _ _ _
+
 lemma _root_.exists_positive_compacts_subset [locally_compact_space α] {U : set α} (ho : is_open U)
   (hn : U.nonempty) : ∃ K : positive_compacts α, ↑K ⊆ U :=
 let ⟨x, hx⟩ := hn, ⟨K, hKc, hxK, hKU⟩ := exists_compact_subset ho hx in ⟨⟨⟨K, hKc⟩, ⟨x, hxK⟩⟩, hKU⟩
@@ -324,6 +359,15 @@ instance : inhabited (compact_opens α) := ⟨⊥⟩
 
 @[simp] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
   (s.map f hf hf' : set β) = f '' s := rfl
+
+@[simp] lemma map_id (K : compact_opens α) : K.map id continuous_id is_open_map.id = K :=
+compact_opens.ext $ set.image_id _
+
+lemma map_comp (f : β → γ) (g : α → β) (hf : continuous f) (hg : continuous g)
+  (hf' : is_open_map f) (hg' : is_open_map g)
+  (K : compact_opens α) :
+  K.map (f ∘ g) (hf.comp hg) (hf'.comp hg') = (K.map g hg hg').map f hf hf' :=
+compact_opens.ext $ set.image_comp _ _ _
 
 /-- The product of two `compact_opens`, as a `compact_opens` in the product space. -/
 protected def prod (K : compact_opens α) (L : compact_opens β) :

@@ -6,25 +6,7 @@ Authors: Patrick Massot, Scott Morrison, Mario Carneiro, Andrew Yang
 import topology.category.Top.limits.basic
 
 /-!
-# The category of topological spaces has all limits and colimits
-
-Further, these limits and colimits are preserved by the forgetful functor --- that is, the
-underlying types are just the limits in the category of types.
--/
-
-open category_theory
-open category_theory.limits
-
-universes u v w
-
-noncomputable theory
-
-namespace Top
-
-section topological_konig
-
-/-!
-## Topological Kőnig's lemma
+# Topological Kőnig's lemma
 
 A topological version of Kőnig's lemma is that the inverse limit of nonempty compact Hausdorff
 spaces is nonempty.  (Note: this can be generalized further to inverse limits of nonempty compact
@@ -45,6 +27,17 @@ discrete topology) in lemmas `nonempty_sections_of_finite_cofiltered_system` and
 
 (See <https://stacks.math.columbia.edu/tag/086J> for the Set version.)
 -/
+
+open category_theory
+open category_theory.limits
+
+universes u v w
+
+noncomputable theory
+
+namespace Top
+
+section topological_konig
 
 variables {J : Type u} [small_category J]
 variables (F : J ⥤ Top.{u})

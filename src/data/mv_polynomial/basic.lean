@@ -563,7 +563,7 @@ add_monoid_algebra.support_mul_single p _ (by simp) _
   (X s * p).support = p.support.map (add_left_embedding (single s 1)) :=
 add_monoid_algebra.support_single_mul p _ (by simp) _
 
-@[simp] lemma support_smul_eq {S₁: Type*} [semiring S₁] [module S₁ R] [no_zero_smul_divisors S₁ R]
+@[simp] lemma support_smul_eq {S₁ : Type*} [semiring S₁] [module S₁ R] [no_zero_smul_divisors S₁ R]
   {a : S₁} (h : a ≠ 0) (p : mv_polynomial σ R) : (a • p).support = p.support :=
 finsupp.support_smul_eq h
 

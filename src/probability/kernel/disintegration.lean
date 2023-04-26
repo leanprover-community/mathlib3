@@ -308,15 +308,12 @@ end
 
 section subset
 
-/-- ### Disintegration of measures on subsets of the reals
+/-! ### Disintegration of measures on subsets of the reals
 
 Since every standard Borel space is measurably equivalent to a subset of `ℝ`, we can generalize a
 disintegration result on those subsets to all these spaces. -/
 
-noncomputable
-def measure.restrict_subtype (μ : measure α) (s : set α) : measure s :=
-measure.comap coe μ
-
+/-- Restriction of kernel to a subtype of the target space. -/
 noncomputable
 def kernel.restrict_subtype {β : Type*} {mβ : measurable_space β} (κ : kernel α β) {s : set β}
   (hs : measurable_set s) :
@@ -383,24 +380,12 @@ begin
     exact ⟨hg.injective hxy.1, hf.injective hxy.2⟩, },
   refine ⟨h_inj, _, _⟩,
   { exact (hg.measurable.comp measurable_fst).prod_mk (hf.measurable.comp measurable_snd), },
-  { intros s hs,
-    refine @measurable_space.induction_on_inter _
+  { refine λ s hs, @measurable_space.induction_on_inter _
       (λ s, measurable_set ((λ (x : γ × α), (g x.fst, f x.snd)) '' s)) _ _ generate_from_prod.symm
       is_pi_system_prod _ _ _ _ _ hs,
     { simp only [image_empty, measurable_set.empty], },
-    { intros t ht,
-      rw mem_image2 at ht,
-      obtain ⟨t₁, t₂, ht₁, ht₂, rfl⟩ := ht,
-      have : ((λ x : γ × α, (g x.fst, f x.snd)) '' t₁ ×ˢ t₂) = (g '' t₁) ×ˢ (f '' t₂),
-      { ext1 x,
-        simp only [mem_image, mem_prod, prod.exists],
-        split,
-        { rintros ⟨c, a, h_mem, rfl⟩,
-          exact ⟨⟨c, h_mem.1, rfl⟩, a, h_mem.2, rfl⟩, },
-        { rintros ⟨⟨c, h_mem1, h_eq1⟩, a, h_mem2, h_eq2⟩,
-          refine ⟨c, a, ⟨h_mem1, h_mem2⟩, _⟩,
-          rw [h_eq1, h_eq2, prod.mk.eta], }, },
-      rw this,
+    { rintros t ⟨t₁, t₂, ht₁, ht₂, rfl⟩,
+      rw ← prod_image_image_eq,
       exact (hg.measurable_set_image.mpr ht₁).prod (hf.measurable_set_image.mpr ht₂), },
     { intros t ht ht_m,
       rw [← range_diff_image h_inj, ← prod_range_range_eq],
@@ -427,10 +412,6 @@ begin
   { rw h_coe_eq,
     exact measurable_embedding.prod_mk measurable_embedding.id
       (measurable_embedding.subtype_coe hs), },
-  have h_meas : measurable (coe : α × s → α × ℝ) := h_emb.measurable,
-  have h_inj : function.injective (coe : α × s → α × ℝ) := h_emb.injective,
-  have h_meas_image : measurable_set ((coe : α × s → α × ℝ) '' t),
-  { exact h_emb.measurable_set_image.mpr ht, },
   rw [kernel.comp_prod_apply _ _ _ ht, kernel.const_apply, kernel.const_apply],
   simp_rw kernel.prod_mk_left_apply,
   have : ∫⁻ b, kernel.restrict_subtype
@@ -440,15 +421,14 @@ begin
     ext1 a,
     rw kernel.restrict_subtype_apply' (cond_kernel (ρ.map (coe : α × s → α × ℝ))) hs,
     exact measurable_prod_mk_left ht, },
-  rw this,
   have h_fst : (ρ.map (coe : α × s → α × ℝ)).fst = ρ.fst,
   { ext1 t ht,
     simp_rw measure.fst_apply _ ht,
-    rw measure.map_apply h_meas (measurable_fst ht),
+    rw measure.map_apply h_emb.measurable (measurable_fst ht),
     congr' 1 with x,
     simp only [mem_preimage],
     rw [← @prod.mk.eta _ _ x, h_coe_apply],  },
-  rw ← h_fst,
+  rw [this, ← h_fst],
   have h_set_eq : ∀ b, (coe : s → ℝ) '' {c : ↥s | (b, c) ∈ t}
     = {c : ℝ | (b, c) ∈ (coe : α × s → α × ℝ) '' t},
   { intro a,
@@ -457,11 +437,9 @@ begin
     simp only [mem_image, mem_set_of_eq, set_coe.exists, subtype.coe_mk, exists_and_distrib_right,
       exists_eq_right, prod.mk.inj_iff, prod.exists, exists_eq_right_right], },
   simp_rw h_set_eq,
-  rw lintegral_cond_kernel_mem,
-  { rw measure.map_apply h_meas,
-    { rw preimage_image_eq _ h_inj, },
-    { exact h_meas_image, }, },
-  { exact h_meas_image, },
+  rw [lintegral_cond_kernel_mem (measure.map coe ρ) (h_emb.measurable_set_image.mpr ht),
+    measure.map_apply h_emb.measurable (h_emb.measurable_set_image.mpr ht),
+    preimage_image_eq _ h_emb.injective],
 end
 
 end subset

@@ -1351,13 +1351,14 @@ begin
     exact λ i hi, if_neg (h i hi) }
 end
 
-lemma sum_erase_lt_of_pos {γ : Type*} [decidable_eq α] [ordered_add_comm_monoid γ]
-  [covariant_class γ γ (+) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → γ} (hdf : 0 < f d) :
-  ∑ (m : α) in s.erase d, f m < ∑ (m : α) in s, f m :=
+@[to_additive]
+lemma prod_erase_lt_of_one_lt {γ : Type*} [decidable_eq α] [ordered_comm_monoid γ]
+  [covariant_class γ γ (*) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → γ} (hdf : 1 < f d) :
+  ∏ (m : α) in s.erase d, f m < ∏ (m : α) in s, f m :=
 begin
   nth_rewrite_rhs 0 ←finset.insert_erase hd,
-  rw finset.sum_insert (finset.not_mem_erase d s),
-  exact lt_add_of_pos_left _ hdf,
+  rw finset.prod_insert (finset.not_mem_erase d s),
+  exact lt_mul_of_one_lt_left' _ hdf,
 end
 
 /-- If a product is 1 and the function is 1 except possibly at one

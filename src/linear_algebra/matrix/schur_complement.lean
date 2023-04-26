@@ -189,7 +189,7 @@ end
 lemma inv_from_blocks_zero₁₂_of_is_unit_iff
   (A : matrix m m α) (C : matrix n m α) (D : matrix n n α)
   (hAD : is_unit A ↔ is_unit D) :
-  (from_blocks A 0 C D)⁻¹ = from_blocks A⁻¹ 0 (-(⅟D⬝C⬝⅟A)) D⁻¹ :=
+  (from_blocks A 0 C D)⁻¹ = from_blocks A⁻¹ 0 (-(D⁻¹⬝C⬝A⁻¹)) D⁻¹ :=
 begin
   by_cases hA : is_unit A,
   { have hD := hAD.mp hA,

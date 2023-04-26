@@ -134,7 +134,8 @@ nat.rec_on n (λ K fK f, by exactI @has_add.add K _) (λ n ih K fK f, ih)
 
 /-- `K` adjoined `n` roots of `f : K[X]` has addition and zero.
 
-We need this instance to define the `distrib_smul` instance below; a `distrib_smul`
+We stop via this instance on our path to the `field` instance
+in order to define the `distrib_smul` instance below; a `distrib_smul`
 is required to lift scalar multiplications on `K` to a splitting field of `f : K[X]`.
 -/
 instance add_zero_class (n : ℕ) {K : Type u} [field K] {f : K[X]} :

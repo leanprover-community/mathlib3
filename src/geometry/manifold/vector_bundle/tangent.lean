@@ -29,7 +29,7 @@ This defines a smooth vector bundle `tangent_bundle` with fibers `tangent_space`
   bundle.
 -/
 
-open bundle set smooth_manifold_with_corners local_homeomorph
+open bundle set smooth_manifold_with_corners local_homeomorph continuous_linear_map
 open_locale manifold topology bundle
 
 noncomputable theory

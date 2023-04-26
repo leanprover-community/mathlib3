@@ -212,48 +212,69 @@ noncomputable def self_as_unit : Bˣ :=
 ⟨algebra_map _ _ x, away.inv_self x, away.mul_inv_self _,
   by { rw mul_comm, exact away.mul_inv_self _ }⟩
 
-noncomputable
-def self_zpow : ℤ → B
--- if hm : 0 ≤ m then algebra_map _ _ x ^ (int.eq_coe_of_zero_le hm).some else
---   mk' _ (1 : R) ⟨x, submonoid.mem_powers _⟩^(int.eq_coe_of_zero_le
---     (le_of_lt ((neg_lt_of_neg_lt (lt_of_not_le hm))))).some else
-| (int.of_nat m) := algebra_map _ _ x ^ m
-| -[1+ m]     := mk' _ (1 : R) ⟨x, submonoid.mem_powers _⟩^(m+1)
+/-- `self_zpow x (m : ℤ)` is `x ^ m` as an element of the localization away from `x`. -/
+noncomputable def self_zpow (m : ℤ) : B :=
+if hm : 0 ≤ m
+then algebra_map _ _ x ^ m.nat_abs
+else mk' _ (1 : R) (submonoid.pow x m.nat_abs)
 
-lemma self_zpow_of_pos {n : ℤ} (hn : 0 ≤ n) : self_zpow x B n =
-  algebra_map R B (x ^ (int.eq_coe_of_zero_le hn).some) :=
+lemma self_zpow_of_nonneg {n : ℤ} (hn : 0 ≤ n) : self_zpow x B n =
+  algebra_map R B x ^ n.nat_abs :=
+dif_pos hn
+
+@[simp] lemma self_zpow_coe_nat (d : ℕ) : self_zpow x B d = (algebra_map R B x)^d :=
+self_zpow_of_nonneg _ _ (int.coe_nat_nonneg d)
+
+@[simp] lemma self_zpow_zero : self_zpow x B 0 = 1 :=
+by simp [self_zpow_of_nonneg _ _ le_rfl]
+
+lemma self_zpow_of_neg {n : ℤ} (hn : n < 0) :
+  self_zpow x B n = mk' _ (1 : R) (submonoid.pow x n.nat_abs) :=
+dif_neg hn.not_le
+
+lemma self_zpow_of_nonpos {n : ℤ} (hn : n ≤ 0) :
+  self_zpow x B n = mk' _ (1 : R) (submonoid.pow x n.nat_abs) :=
 begin
-  sorry
+  by_cases hn0 : n = 0,
+  { simp [hn0, self_zpow_zero, submonoid.pow_apply] },
+  { simp [self_zpow_of_neg _ _ (lt_of_le_of_ne hn hn0)] }
 end
 
-lemma self_pow_eq_algebra_map' (d : ℕ) :
-  (self_zpow x B d) = (algebra_map R B x)^d :=
+@[simp] lemma self_zpow_neg_coe_nat (d : ℕ) :
+  self_zpow x B (-d) = mk' _ (1 : R) (submonoid.pow x d) :=
+by simp [self_zpow_of_nonpos _ _ (neg_nonpos.mpr (int.coe_nat_nonneg d))]
+
+@[simp] lemma self_zpow_sub_cast_nat {n m : ℕ} :
+  self_zpow x B (n - m) = mk' _ (x ^ n) (submonoid.pow x m) :=
 begin
-  rw [self_zpow_of_pos, map_pow],
-  congr,
-  zify,
-  exact (int.eq_coe_of_zero_le (int.coe_nat_nonneg d)).some_spec.symm,
+  by_cases h : m ≤ n,
+  { rw [is_localization.eq_mk'_iff_mul_eq, submonoid.pow_apply, subtype.coe_mk,
+        ← int.coe_nat_sub h, self_zpow_coe_nat, ← map_pow, ← map_mul, ← pow_add,
+        nat.sub_add_cancel h] },
+  { rw [← neg_sub, ← int.coe_nat_sub (le_of_not_le h), self_zpow_neg_coe_nat,
+        is_localization.mk'_eq_iff_eq],
+    simp [submonoid.pow_apply, ← pow_add, nat.sub_add_cancel (le_of_not_le h)] }
 end
 
-lemma self_zpow_of_zero : self_zpow x B 0 = 1 := sorry
-
-lemma self_zpow_of_neg {n : ℤ} (hn : n < 0) : self_zpow x B n =
-  algebra_map R B (x ^ (int.eq_coe_of_zero_le (le_of_lt (neg_pos_of_neg hn))).some) := sorry
-
-lemma self_zpow_add {n m : ℤ} : self_zpow x B (n + m) =
-  self_zpow x B n * self_zpow x B m :=
+@[simp] lemma self_zpow_add {n m : ℤ} :
+  self_zpow x B (n + m) = self_zpow x B n * self_zpow x B m :=
 begin
-  wlog H : n ≤ m generalizing n m,
-  { replace this := this (le_of_lt (lt_of_not_le H)),
-    rwa [add_comm, mul_comm] at this },
-  sorry,
-  -- induction n,
-  -- induction m,
-  -- simp only [self_zpow, int.of_nat_eq_coe, self_pow_eq_algebra_map', ← int.coe_nat_add,
-  --   ← map_pow _ _ n, ← map_pow _ _ m, ← map_mul, ← map_pow],
-  -- congr,
-  -- exact pow_add _ _ _,
-  -- sorry,
+  cases le_or_lt 0 n with hn hn; cases le_or_lt 0 m with hm hm,
+  { rw [self_zpow_of_nonneg _ _ hn, self_zpow_of_nonneg _ _ hm,
+        self_zpow_of_nonneg _ _ (add_nonneg hn hm), int.nat_abs_add_nonneg hn hm, pow_add] },
+  { have : n + m = n.nat_abs - m.nat_abs,
+    { rw [int.nat_abs_of_nonneg hn, int.of_nat_nat_abs_of_nonpos hm.le, sub_neg_eq_add] },
+    rw [self_zpow_of_nonneg _ _ hn, self_zpow_of_neg _ _ hm,
+        this, self_zpow_sub_cast_nat, is_localization.mk'_eq_mul_mk'_one, map_pow] },
+  { have : n + m = m.nat_abs - n.nat_abs,
+    { rw [int.nat_abs_of_nonneg hm, int.of_nat_nat_abs_of_nonpos hn.le, sub_neg_eq_add, add_comm] },
+    rw [self_zpow_of_nonneg _ _ hm, self_zpow_of_neg _ _ hn,
+        this, self_zpow_sub_cast_nat, is_localization.mk'_eq_mul_mk'_one, map_pow, mul_comm] },
+  { rw [self_zpow_of_neg _ _ hn, self_zpow_of_neg _ _ hm, self_zpow_of_neg _ _ (add_neg hn hm),
+        int.nat_abs_add_neg hn hm, ← mk'_mul, one_mul],
+    congr,
+    ext,
+    simp [pow_add] },
 end
 
 -- lemma self_zpow_unit (m : ℤ) : is_unit (self_zpow_map x B m) := sorry

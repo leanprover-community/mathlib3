@@ -1320,6 +1320,11 @@ lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
   continuous_at (g ∘ f) x :=
 hg.comp hf
 
+lemma continuous_at.comp_of_eq {g : β → γ} {f : α → β} {x : α} {y : β}
+  (hg : continuous_at g y) (hf : continuous_at f x) (hy : f x = y) :
+  continuous_at (g ∘ f) x :=
+by { subst hy, exact hg.comp hf }
+
 lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 ((nhds_basis_opens x).tendsto_iff $ nhds_basis_opens $ f x).2 $
@@ -1607,3 +1612,31 @@ With `continuous_at` you can be even more precise about what to prove in case of
 see e.g. `continuous_at.comp_div_cases`.
 -/
 library_note "continuity lemma statement"
+
+/--
+Lean's elaborator has trouble elaborating applications of lemmas that state that the composition of
+two functions satisfy some property at a point, like `continuous_at.comp` / `cont_diff_at.comp` and
+`cont_mdiff_within_at.comp`. The reason is that a lemma like this looks like
+`continuous_at g (f x) → continuous_at f x → continuous_at (g ∘ f) x`.
+Since Lean's elaborator elaborates the arguments from left-to-right, when you write `hg.comp hf`,
+the elaborator will try to figure out *both* `f` and `g` from the type of `hg`. It tries to figure
+out `f` just from the point where `g` is continuous. For example, if `hg : continuous_at g (a, x)`
+then the elaborator will assign `f` to the function `prod.mk a`, since in that case `f x = (a, x)`.
+This is undesirable in most cases where `f` is not a variable. There are some ways to work around
+this, for example by giving `f` explicitly, or to force Lean to elaborate `hf` before elaborating
+`hg`, but this is annoying.
+Another better solution is to reformulate composition lemmas to have the following shape
+`continuous_at g y → continuous_at f x → f x = y → continuous_at (g ∘ f) x`.
+This is even useful if the proof of `f x = y` is `rfl`.
+The reason that this works better is because the type of `hg` doesn't mention of `f`.
+Only after elaborating the two `continuous_at` arguments, Lean will try to unify `f x` with `y`,
+which is often easy after having chosen the correct functions for `f` and `g`.
+Here is an example that shows the difference:
+```
+example {x₀ : α} (f : α → α → β) (hf : continuous_at (Function.uncurry f) (x₀, x₀)) :
+  continuous_at (λ x => f x x) x₀ :=
+-- hf.comp (x := x₀) (continuous_at_id.prod continuous_at_id) -- type mismatch
+-- hf.comp_of_eq (continuous_at_id.prod continuous_at_id) rfl -- works
+```
+-/
+library_note "comp_of_eq lemmas"

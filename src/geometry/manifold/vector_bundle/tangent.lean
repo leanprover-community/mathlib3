@@ -34,6 +34,8 @@ open_locale manifold topology bundle
 
 noncomputable theory
 
+section general
+
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
@@ -150,6 +152,7 @@ variables {M} (x : M)
 
 instance : module 𝕜 (tangent_space I x) := by delta_instance tangent_space
 instance : inhabited (tangent_space I x) := ⟨0⟩
+instance {x : M} : has_continuous_add (tangent_space I x) := by delta_instance tangent_space
 
 end
 
@@ -389,3 +392,15 @@ lemma in_tangent_coordinates_eq (f : N → M) (g : N → M') (ϕ : N → E →L[
 (tangent_bundle_core I M).in_coordinates_eq (tangent_bundle_core I' M') (ϕ x) hx hy
 
 end in_tangent_coordinates
+
+end general
+
+section real
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+{H : Type*} [topological_space H] {I : model_with_corners ℝ E H}
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+
+instance {x : M} : path_connected_space (tangent_space I x) := by delta_instance tangent_space
+
+end real

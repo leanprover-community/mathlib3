@@ -925,6 +925,13 @@ begin
   { simp only [written_in_ext_chart_at, (∘), mem_ext_chart_source, e.left_inv, e'.left_inv] }
 end
 
+/-- It can be annoying to apply `cont_mdiff_within_at.comp` -/
+lemma cont_mdiff_within_at.comp_of_eq {t : set M'} {g : M' → M''} {x : M} {y : M'}
+  (hg : cont_mdiff_within_at I' I'' n g t y) (hf : cont_mdiff_within_at I I' n f s x)
+  (st : maps_to f s t) (hx : f x = y) :
+  cont_mdiff_within_at I I'' n (g ∘ f) s x :=
+by { subst hx, exact hg.comp x hf st }
+
 /-- The composition of `C^∞` functions within domains at points is `C^∞`. -/
 lemma smooth_within_at.comp {t : set M'} {g : M' → M''} (x : M)
   (hg : smooth_within_at I' I'' g t (f x))
@@ -1004,6 +1011,12 @@ lemma cont_mdiff_at.comp {g : M' → M''} (x : M)
   cont_mdiff_at I I'' n (g ∘ f) x :=
 hg.comp x hf (maps_to_univ _ _)
 
+lemma cont_mdiff_at.comp_of_eq {g : M' → M''} {x : M} {y : M'}
+  (hg : cont_mdiff_at I' I'' n g y) (hf : cont_mdiff_at I I' n f x) (hx : f x = y) :
+  cont_mdiff_at I I'' n (g ∘ f) x :=
+by { subst hx, exact hg.comp x hf }
+
+
 /-- The composition of `C^∞` functions at points is `C^∞`. -/
 lemma smooth_at.comp {g : M' → M''} (x : M)
   (hg : smooth_at I' I'' g (f x)) (hf : smooth_at I I' f x) :
@@ -1043,6 +1056,14 @@ begin
   refine cont_diff_within_at_id.congr_of_eventually_eq _ _,
   { exact eventually_eq_of_mem self_mem_nhds_within (λ x₂, I.right_inv) },
   simp_rw [function.comp_apply, I.left_inv, id_def]
+end
+
+lemma cont_mdiff_on_model_symm : cont_mdiff_on 𝓘(𝕜, E) I n I.symm (range I) :=
+begin
+  rw [cont_mdiff_on_iff],
+  refine ⟨I.continuous_on_symm, λ x y, _⟩,
+  simp only with mfld_simps,
+  exact cont_diff_on_id.congr (λ x', I.right_inv)
 end
 
 include Is
@@ -1091,6 +1112,22 @@ cont_mdiff_at_ext_chart_at' $ mem_chart_source H x
 lemma cont_mdiff_on_ext_chart_at :
   cont_mdiff_on I 𝓘(𝕜, E) n (ext_chart_at I x) (chart_at H x).source :=
 λ x' hx', (cont_mdiff_at_ext_chart_at' hx').cont_mdiff_within_at
+
+lemma cont_mdiff_on_extend_symm (he : e ∈ maximal_atlas I M) :
+  cont_mdiff_on 𝓘(𝕜, E) I n (e.extend I).symm (I '' e.target) :=
+begin
+  have h2 := cont_mdiff_on_symm_of_mem_maximal_atlas he,
+  refine h2.comp (cont_mdiff_on_model_symm.mono $ image_subset_range _ _) _,
+  simp_rw [image_subset_iff, local_equiv.restr_coe_symm, I.to_local_equiv_coe_symm,
+    preimage_preimage, I.left_inv, preimage_id']
+end
+
+lemma cont_mdiff_on_ext_chart_at_symm (x : M) :
+  cont_mdiff_on 𝓘(𝕜, E) I n (ext_chart_at I x).symm (ext_chart_at I x).target :=
+begin
+  convert cont_mdiff_on_extend_symm (chart_mem_maximal_atlas I x),
+  rw [ext_chart_at_target, I.image_eq]
+end
 
 omit Is
 
@@ -1490,18 +1527,6 @@ lemma smooth.snd {f : N → M × M'} (hf : smooth J (I.prod I') f) :
   smooth J I' (λ x, (f x).2) :=
 smooth_snd.comp hf
 
-lemma smooth_iff_proj_smooth {f : M → M' × N'} :
-  (smooth I (I'.prod J') f) ↔ (smooth I I' (prod.fst ∘ f)) ∧ (smooth I J' (prod.snd ∘ f)) :=
-begin
-  split,
-  { intro h, exact ⟨smooth_fst.comp h, smooth_snd.comp h⟩ },
-  { rintro ⟨h_fst, h_snd⟩, simpa only [prod.mk.eta] using h_fst.prod_mk h_snd, }
-end
-
-lemma smooth_prod_assoc :
-  smooth ((I.prod I').prod J) (I.prod (I'.prod J)) (λ x : (M × M') × N, (x.1.1, x.1.2, x.2)) :=
-smooth_fst.fst.prod_mk $ smooth_fst.snd.prod_mk smooth_snd
-
 end projections
 
 lemma cont_mdiff_within_at_prod_iff (f : M → M' × N') {s : set M} {x : M} :
@@ -1513,7 +1538,26 @@ by { refine ⟨λ h, ⟨h.fst, h.snd⟩, λ h, _⟩, simpa only [prod.mk.eta] us
 lemma cont_mdiff_at_prod_iff (f : M → M' × N') {x : M} :
   cont_mdiff_at I (I'.prod J') n f x ↔
   cont_mdiff_at I I' n (prod.fst ∘ f) x ∧ cont_mdiff_at I J' n (prod.snd ∘ f) x :=
-by { simp_rw [← cont_mdiff_within_at_univ], exact cont_mdiff_within_at_prod_iff f }
+by simp_rw [← cont_mdiff_within_at_univ, cont_mdiff_within_at_prod_iff]
+
+lemma cont_mdiff_prod_iff (f : M → M' × N') :
+  cont_mdiff I (I'.prod J') n f ↔
+  cont_mdiff I I' n (prod.fst ∘ f) ∧ cont_mdiff I J' n (prod.snd ∘ f) :=
+⟨λ h, ⟨h.fst, h.snd⟩, λ h, by { convert h.1.prod_mk h.2, ext; refl }⟩
+
+lemma smooth_at_prod_iff (f : M → M' × N') {x : M} :
+  smooth_at I (I'.prod J') f x ↔
+  smooth_at I I' (prod.fst ∘ f) x ∧ smooth_at I J' (prod.snd ∘ f) x :=
+cont_mdiff_at_prod_iff f
+
+lemma smooth_prod_iff (f : M → M' × N') :
+  smooth I (I'.prod J') f ↔ smooth I I' (prod.fst ∘ f) ∧ smooth I J' (prod.snd ∘ f) :=
+cont_mdiff_prod_iff f
+
+
+lemma smooth_prod_assoc :
+  smooth ((I.prod I').prod J) (I.prod (I'.prod J)) (λ x : (M × M') × N, (x.1.1, x.1.2, x.2)) :=
+smooth_fst.fst.prod_mk $ smooth_fst.snd.prod_mk smooth_snd
 
 section prod_map
 

@@ -125,6 +125,11 @@ equiv.coe_fn_injective.comp to_equiv_injective
 @[ext] lemma ext {h h' : M ≃ₘ^n⟮I, I'⟯ M'} (Heq : ∀ x, h x = h' x) : h = h' :=
 coe_fn_injective $ funext Heq
 
+instance : continuous_map_class (M ≃ₘ⟮I, J⟯ N) M N :=
+{ coe := coe_fn,
+  coe_injective' := coe_fn_injective,
+  map_continuous := λ f, f.continuous }
+
 section
 
 variables (M I n)

@@ -935,6 +935,20 @@ rfl
   ⇑(f₁.prod_map f₂) = prod.map f₁ f₂ :=
 rfl
 
+lemma fst_prod_zero_add_zero_prod_snd [has_continuous_add M₁] [has_continuous_add M'₁] :
+  (continuous_linear_map.fst R₁ M₁ M'₁).prod 0 +
+  continuous_linear_map.prod 0 (continuous_linear_map.snd R₁ M₁ M'₁) =
+  continuous_linear_map.id R₁ (M₁ × M'₁) :=
+begin
+  rw [continuous_linear_map.ext_iff],
+  intro x,
+  simp_rw [continuous_linear_map.add_apply, continuous_linear_map.id_apply,
+    continuous_linear_map.prod_apply, continuous_linear_map.coe_fst',
+    continuous_linear_map.coe_snd', continuous_linear_map.zero_apply, prod.mk_add_mk, add_zero,
+    zero_add, prod.mk.eta]
+end
+
+
 /-- The continuous linear map given by `(x, y) ↦ f₁ x + f₂ y`. -/
 def coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃] (f₁ : M₁ →L[R₁] M₃)
   (f₂ : M₂ →L[R₁] M₃) :
@@ -954,6 +968,13 @@ lemma range_coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M�
   (f₂ : M₂ →L[R₁] M₃) :
   range (f₁.coprod f₂) = range f₁ ⊔ range f₂ :=
 linear_map.range_coprod _ _
+
+lemma comp_fst_add_comp_snd [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃]
+  (f : M₁ →L[R₁] M₃) (g : M₂ →L[R₁] M₃) :
+  f.comp (continuous_linear_map.fst R₁ M₁ M₂) +
+  g.comp (continuous_linear_map.snd R₁ M₁ M₂) =
+  f.coprod g :=
+rfl
 
 section
 
@@ -1412,10 +1433,11 @@ variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [semiring R₁] [semiring
 [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁]
 {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
 {M'₁ : Type*} [topological_space M'₁] [add_comm_monoid M'₁]
+{M''₁ : Type*} [topological_space M''₁] [add_comm_monoid M''₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R₁ M₁] [module R₁ M'₁] [module R₂ M₂] [module R₃ M₃]
+[module R₁ M₁] [module R₁ M'₁] [module R₁ M''₁] [module R₂ M₂] [module R₃ M₃]
 
 include σ₂₁
 /-- A continuous linear equivalence induces a continuous linear map. -/

@@ -26,6 +26,10 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H'' : Type*} [topological_space H'']
 {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
+-- declare a manifold `N` over the pair `(F, G)`.
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{G : Type*} [topological_space G] {J : model_with_corners 𝕜 F G}
+{N : Type*} [topological_space N] [charted_space G N]
 (n : ℕ∞)
 
 /-- Bundled `n` times continuously differentiable maps. -/
@@ -105,6 +109,16 @@ instance [inhabited M'] : inhabited C^n⟮I, M; I', M'⟯ :=
 
 /-- Constant map as a smooth map -/
 def const (y : M') : C^n⟮I, M; I', M'⟯ := ⟨λ x, y, cont_mdiff_const⟩
+
+/-- The first projection of a product, as a smooth map. -/
+def fst : C^n⟮I.prod I', M × M'; I, M⟯ := ⟨prod.fst, cont_mdiff_fst⟩
+
+/-- The second projection of a product, as a smooth map. -/
+def snd : C^n⟮I.prod I', M × M'; I', M'⟯ := ⟨prod.snd, cont_mdiff_snd⟩
+
+/-- Given two smooth maps `f` and `g`, this is the smooth map `(x, y) ↦ (f x, g y)`. -/
+def prod_mk (f : C^n⟮J, N; I, M⟯) (g : C^n⟮J, N; I', M'⟯) : C^n⟮J, N; I.prod I', M × M'⟯ :=
+⟨λ x, (f x, g x), f.2.prod_mk g.2⟩
 
 end cont_mdiff_map
 

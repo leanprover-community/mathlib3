@@ -224,6 +224,27 @@ begin
   apply cont_mdiff_at.mfderiv_id (λ x, f) this hmn,
 end
 
+include Js
+/-- The function that sends `x` to the `y`-derivative of `f(x,y)` at `g(x)` applied to `g₂(x)` is
+`C^n` at `x₀`, where the derivative is taken as a continuous linear map.
+We have to assume that `f` is `C^(n+1)` at `(x₀, g(x₀))` and `g` is `C^n` at `x₀`.
+We have to insert a coordinate change from `x₀` to `g₁(x)` to make the derivative sensible.
+
+This is  similar to `cont_mdiff_at.mfderiv`, but where the continuous linear map is applied to a
+(variable) vector.
+-/
+lemma cont_mdiff_at.mfderiv_apply {x₀ : N'} (f : N → M → M') (g : N → M) (g₁ : N' → N)
+  (g₂ : N' → E)
+  (hf : cont_mdiff_at (J.prod I) I' n (function.uncurry f) (g₁ x₀, g (g₁ x₀)))
+  (hg : cont_mdiff_at J I m g (g₁ x₀))
+  (hg₁ : cont_mdiff_at J' J m g₁ x₀)
+  (hg₂ : cont_mdiff_at J' 𝓘(𝕜, E) m g₂ x₀) (hmn : m + 1 ≤ n) :
+  cont_mdiff_at J' 𝓘(𝕜, E') m
+    (λ x, in_tangent_coordinates I I' g (λ x, f x (g x)) (λ x, mfderiv I I' (f x) (g x))
+      (g₁ x₀) (g₁ x) (g₂ x))
+    x₀ :=
+((hf.mfderiv f g hg hmn).comp_of_eq hg₁ rfl).clm_apply hg₂
+
 end mfderiv
 
 /-! ### The tangent map of a smooth function is smooth -/

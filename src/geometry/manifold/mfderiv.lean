@@ -94,7 +94,7 @@ Derivative, manifold
 noncomputable theory
 open_locale classical topology manifold bundle
 
-open set
+open set bundle
 
 universe u
 
@@ -696,6 +696,12 @@ end
 
 omit Is I's
 
+lemma mdifferentiable_at.prod_mk {f : M → M'} {g : M → M''} {x : M}
+  (hf : mdifferentiable_at I I' f x)
+  (hg : mdifferentiable_at I I'' g x) :
+  mdifferentiable_at I (I'.prod I'') (λ x, (f x, g x)) x :=
+⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
+
 /-! ### Congruence lemmas for derivatives on manifolds -/
 
 lemma has_mfderiv_within_at.congr_of_eventually_eq (h : has_mfderiv_within_at I I' f s x f')
@@ -805,6 +811,18 @@ begin
   exact hL.mfderiv_within_eq (unique_mdiff_within_at_univ I) A
 end
 
+/-- A congruence lemma for `mfderiv`, (ab)using the fact that `tangent_space I' (f x)` is
+definitionally equal to `E'`. -/
+lemma mfderiv_congr_point {x' : M} (h : x = x') :
+  @eq (E →L[𝕜] E') (mfderiv I I' f x) (mfderiv I I' f x') :=
+by subst h
+
+/-- A congruence lemma for `mfderiv`, (ab)using the fact that `tangent_space I' (f x)` is
+definitionally equal to `E'`. -/
+lemma mfderiv_congr {f' : M → M'} (h : f = f') :
+  @eq (E →L[𝕜] E') (mfderiv I I' f x) (mfderiv I I' f' x) :=
+by subst h
+
 /-! ### Composition lemmas -/
 
 omit Is I's
@@ -904,6 +922,11 @@ begin
   apply has_mfderiv_at.mfderiv,
   exact has_mfderiv_at.comp x hg.has_mfderiv_at hf.has_mfderiv_at
 end
+
+lemma mfderiv_comp_of_eq {x : M} {y : M'}
+  (hg : mdifferentiable_at I' I'' g y) (hf : mdifferentiable_at I I' f x) (hy : f x = y) :
+  mfderiv I I'' (g ∘ f) x = (mfderiv I' I'' g (f x)).comp (mfderiv I I' f x) :=
+by { subst hy, exact mfderiv_comp x hg hf }
 
 lemma mdifferentiable_on.comp
   (hg : mdifferentiable_on I' I'' g u) (hf : mdifferentiable_on I I' f s) (st : s ⊆ f ⁻¹' u) :
@@ -1063,6 +1086,9 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
+{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
+{H'' : Type*} [topological_space H''] (I'' : model_with_corners 𝕜 E'' H'')
+{M'' : Type*} [topological_space M''] [charted_space H'' M''] [smooth_manifold_with_corners I'' M'']
 
 namespace continuous_linear_map
 
@@ -1135,7 +1161,7 @@ section id
 lemma has_mfderiv_at_id (x : M) :
   has_mfderiv_at I I (@_root_.id M) x (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 begin
-  refine ⟨continuous_id.continuous_at, _⟩,
+  refine ⟨continuous_at_id, _⟩,
   have : ∀ᶠ y in 𝓝[range I] ((ext_chart_at I x) x),
     ((ext_chart_at I x) ∘ (ext_chart_at I x).symm) y = id y,
   { apply filter.mem_of_superset (ext_chart_at_target_mem_nhds_within I x),
@@ -1226,6 +1252,175 @@ lemma mfderiv_within_const (hxs : unique_mdiff_within_at I s x) :
 (has_mfderiv_within_at_const _ _ _ _ _).mfderiv_within hxs
 
 end const
+
+section prod
+/-! Operations on the product of two manifolds-/
+
+lemma has_mfderiv_at_fst (x : M × M') :
+  has_mfderiv_at (I.prod I') I prod.fst x
+    (continuous_linear_map.fst 𝕜 (tangent_space I x.1) (tangent_space I' x.2)) :=
+begin
+  refine ⟨continuous_fst.continuous_at, _⟩,
+  have : ∀ᶠ y in 𝓝[range (I.prod I')] (ext_chart_at (I.prod I') x x),
+    ((ext_chart_at I x.1) ∘ prod.fst ∘ (ext_chart_at (I.prod I') x).symm) y = y.1,
+  { apply filter.mem_of_superset (ext_chart_at_target_mem_nhds_within (I.prod I') x),
+    mfld_set_tac },
+  apply has_fderiv_within_at.congr_of_eventually_eq has_fderiv_within_at_fst this,
+  simp only with mfld_simps
+end
+
+theorem has_mfderiv_within_at_fst (s : set (M × M')) (x : M × M') :
+  has_mfderiv_within_at (I.prod I') I prod.fst s x
+    (continuous_linear_map.fst 𝕜 (tangent_space I x.1) (tangent_space I' x.2)) :=
+(has_mfderiv_at_fst I I' x).has_mfderiv_within_at
+
+lemma mdifferentiable_at_fst {x : M × M'} : mdifferentiable_at (I.prod I') I prod.fst x :=
+(has_mfderiv_at_fst I I' x).mdifferentiable_at
+
+lemma mdifferentiable_within_at_fst {s : set (M × M')} {x : M × M'} :
+  mdifferentiable_within_at (I.prod I') I prod.fst s x :=
+(mdifferentiable_at_fst I I').mdifferentiable_within_at
+
+lemma mdifferentiable_fst : mdifferentiable (I.prod I') I (prod.fst : M × M' → M) :=
+λx, mdifferentiable_at_fst I I'
+
+lemma mdifferentiable_on_fst {s : set (M × M')} : mdifferentiable_on (I.prod I') I prod.fst s :=
+(mdifferentiable_fst I I').mdifferentiable_on
+
+@[simp, mfld_simps] lemma mfderiv_fst {x : M × M'} :
+  mfderiv (I.prod I') I prod.fst x =
+  continuous_linear_map.fst 𝕜 (tangent_space I x.1) (tangent_space I' x.2) :=
+(has_mfderiv_at_fst I I' x).mfderiv
+
+lemma mfderiv_within_fst {s : set (M × M')} {x : M × M'}
+  (hxs : unique_mdiff_within_at (I.prod I') s x) :
+  mfderiv_within (I.prod I') I prod.fst s x =
+  continuous_linear_map.fst 𝕜 (tangent_space I x.1) (tangent_space I' x.2) :=
+by { rw mdifferentiable.mfderiv_within (mdifferentiable_at_fst I I') hxs, exact mfderiv_fst I I' }
+
+@[simp, mfld_simps] lemma tangent_map_prod_fst {p : tangent_bundle (I.prod I') (M × M')} :
+  tangent_map (I.prod I') I prod.fst p = total_space_mk p.proj.1 p.2.1 :=
+by simp [tangent_map]
+
+lemma tangent_map_within_prod_fst {s : set (M × M')} {p : tangent_bundle (I.prod I') (M × M')}
+  (hs : unique_mdiff_within_at (I.prod I') s p.proj) :
+  tangent_map_within (I.prod I') I prod.fst s p = total_space_mk p.proj.1 p.2.1 :=
+begin
+  simp only [tangent_map_within],
+  rw mfderiv_within_fst,
+  { rcases p, refl },
+  { exact hs }
+end
+
+lemma has_mfderiv_at_snd (x : M × M') :
+  has_mfderiv_at (I.prod I') I' prod.snd x
+    (continuous_linear_map.snd 𝕜 (tangent_space I x.1) (tangent_space I' x.2)) :=
+begin
+  refine ⟨continuous_snd.continuous_at, _⟩,
+  have : ∀ᶠ y in 𝓝[range (I.prod I')] (ext_chart_at (I.prod I') x x),
+    ((ext_chart_at I' x.2) ∘ prod.snd ∘ (ext_chart_at (I.prod I') x).symm) y = y.2,
+  { apply filter.mem_of_superset (ext_chart_at_target_mem_nhds_within (I.prod I') x),
+    mfld_set_tac },
+  apply has_fderiv_within_at.congr_of_eventually_eq has_fderiv_within_at_snd this,
+  simp only with mfld_simps
+end
+
+theorem has_mfderiv_within_at_snd (s : set (M × M')) (x : M × M') :
+  has_mfderiv_within_at (I.prod I') I' prod.snd s x
+    (continuous_linear_map.snd 𝕜 (tangent_space I x.1) (tangent_space I' x.2)) :=
+(has_mfderiv_at_snd I I' x).has_mfderiv_within_at
+
+lemma mdifferentiable_at_snd {x : M × M'} : mdifferentiable_at (I.prod I') I' prod.snd x :=
+(has_mfderiv_at_snd I I' x).mdifferentiable_at
+
+lemma mdifferentiable_within_at_snd {s : set (M × M')} {x : M × M'} :
+  mdifferentiable_within_at (I.prod I') I' prod.snd s x :=
+(mdifferentiable_at_snd I I').mdifferentiable_within_at
+
+lemma mdifferentiable_snd : mdifferentiable (I.prod I') I' (prod.snd : M × M' → M') :=
+λx, mdifferentiable_at_snd I I'
+
+lemma mdifferentiable_on_snd {s : set (M × M')} : mdifferentiable_on (I.prod I') I' prod.snd s :=
+(mdifferentiable_snd I I').mdifferentiable_on
+
+@[simp, mfld_simps] lemma mfderiv_snd {x : M × M'} :
+  mfderiv (I.prod I') I' prod.snd x =
+  continuous_linear_map.snd 𝕜 (tangent_space I x.1) (tangent_space I' x.2) :=
+(has_mfderiv_at_snd I I' x).mfderiv
+
+lemma mfderiv_within_snd {s : set (M × M')} {x : M × M'}
+  (hxs : unique_mdiff_within_at (I.prod I') s x) :
+  mfderiv_within (I.prod I') I' prod.snd s x =
+  continuous_linear_map.snd 𝕜 (tangent_space I x.1) (tangent_space I' x.2) :=
+by { rw mdifferentiable.mfderiv_within (mdifferentiable_at_snd I I') hxs, exact mfderiv_snd I I' }
+
+@[simp, mfld_simps] lemma tangent_map_prod_snd {p : tangent_bundle (I.prod I') (M × M')} :
+  tangent_map (I.prod I') I' prod.snd p = total_space_mk p.proj.2 p.2.2 :=
+by simp [tangent_map]
+
+lemma tangent_map_within_prod_snd {s : set (M × M')} {p : tangent_bundle (I.prod I') (M × M')}
+  (hs : unique_mdiff_within_at (I.prod I') s p.proj) :
+  tangent_map_within (I.prod I') I' prod.snd s p = total_space_mk p.proj.2 p.2.2 :=
+begin
+  simp only [tangent_map_within],
+  rw mfderiv_within_snd,
+  { rcases p, refl },
+  { exact hs }
+end
+
+variables {I I' I''}
+lemma mdifferentiable_at.mfderiv_prod {f : M → M'} {g : M → M''} {x : M}
+  (hf : mdifferentiable_at I I' f x)
+  (hg : mdifferentiable_at I I'' g x) :
+  mfderiv I (I'.prod I'') (λ x, (f x, g x)) x = (mfderiv I I' f x).prod (mfderiv I I'' g x) :=
+begin
+  classical,
+  simp_rw [mfderiv, if_pos (hf.prod_mk hg), if_pos hf, if_pos hg],
+  exact hf.2.fderiv_within_prod hg.2 (I.unique_diff _ (mem_range_self _))
+end
+
+variables (I I' I'')
+
+lemma mfderiv_prod_left {x₀ : M} {y₀ : M'} :
+  mfderiv I (I.prod I') (λ x, (x, y₀)) x₀ =
+  continuous_linear_map.inl 𝕜 (tangent_space I x₀) (tangent_space I' y₀) :=
+begin
+  refine ((mdifferentiable_at_id I).mfderiv_prod (mdifferentiable_at_const I I')).trans _,
+  rw [mfderiv_id, mfderiv_const, continuous_linear_map.inl]
+end
+
+lemma mfderiv_prod_right {x₀ : M} {y₀ : M'} :
+  mfderiv I' (I.prod I') (λ y, (x₀, y)) y₀ =
+  continuous_linear_map.inr 𝕜 (tangent_space I x₀) (tangent_space I' y₀) :=
+begin
+  refine ((mdifferentiable_at_const I' I).mfderiv_prod (mdifferentiable_at_id I')).trans _,
+  rw [mfderiv_id, mfderiv_const, continuous_linear_map.inr]
+end
+
+lemma mfderiv_prod_eq_add {f : M × M' → M''} {p : M × M'}
+  (hf : mdifferentiable_at (I.prod I') I'' f p) :
+  mfderiv (I.prod I') I'' f p =
+  (show E × E' →L[𝕜] E'', from mfderiv (I.prod I') I'' (λ (z : M × M'), f (z.1, p.2)) p +
+  mfderiv (I.prod I') I'' (λ (z : M × M'), f (p.1, z.2)) p) :=
+begin
+  dsimp only,
+  rw [← @prod.mk.eta _ _ p] at hf,
+  rw [mfderiv_comp_of_eq hf ((mdifferentiable_at_fst I I').prod_mk (mdifferentiable_at_const _ _))
+      rfl,
+    mfderiv_comp_of_eq hf ((mdifferentiable_at_const _ _).prod_mk (mdifferentiable_at_snd I I'))
+      rfl,
+    ← continuous_linear_map.comp_add,
+    (mdifferentiable_at_fst I I').mfderiv_prod (mdifferentiable_at_const (I.prod I') I'),
+    (mdifferentiable_at_const (I.prod I') I).mfderiv_prod (mdifferentiable_at_snd I I'),
+    mfderiv_fst, mfderiv_snd, mfderiv_const, mfderiv_const],
+  symmetry,
+  convert continuous_linear_map.comp_id _,
+  { exact continuous_linear_map.fst_prod_zero_add_zero_prod_snd },
+  simp_rw [prod.mk.eta],
+  all_goals { apply_instance }
+end
+
+end prod
 
 section arithmetic
 /-! #### Arithmetic

@@ -866,15 +866,14 @@ lemma prod_dite_irrel (p : Prop) [decidable p] (s : finset α) (f : p → α →
 by { split_ifs with h; refl }
 
 @[simp, to_additive]
-lemma prod_pi_single' {ι M : Type*} [decidable_eq ι] [comm_monoid M]
-  (i : ι) (x : M) (s : finset ι) :
-  ∏ j in s, pi.mul_single i x j = if i ∈ s then x else 1 :=
+lemma prod_pi_single' [decidable_eq α] (a : α) (x : β) (s : finset α) :
+  ∏ a' in s, pi.mul_single a x a' = if a ∈ s then x else 1 :=
 prod_dite_eq' _ _ _
 
 @[simp, to_additive]
-lemma prod_pi_single {ι : Type*} {M : ι → Type*}
-  [decidable_eq ι] [Π i, comm_monoid (M i)] (i : ι) (f : Π i, M i) (s : finset ι) :
-  ∏ j in s, pi.mul_single j (f j) i = if i ∈ s then f i else 1 :=
+lemma prod_pi_single {β : α → Type*}
+  [decidable_eq α] [Π a, comm_monoid (β a)] (a : α) (f : Π a, β a) (s : finset α) :
+  ∏ a' in s, pi.mul_single a' (f a') a = if a ∈ s then f a else 1 :=
 prod_dite_eq _ _ _
 
 @[to_additive]

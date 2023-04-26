@@ -102,7 +102,7 @@ instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] :
   distrib_mul_action R (mv_polynomial σ S₁) :=
 add_monoid_algebra.distrib_mul_action
 
-instance [comm_semiring R] [smul_zero_class S₁ R] : smul_zero_class S₁ (mv_polynomial σ R) :=
+instance [comm_semiring S₁] [smul_zero_class R S₁] : smul_zero_class R (mv_polynomial σ S₁) :=
 add_monoid_algebra.smul_zero_class
 
 instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithful_smul R S₁] :

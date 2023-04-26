@@ -62,17 +62,18 @@ respect which `α` forms a lattice. Suppose that `α` is *solid*, that is to say
 said to be a normed lattice ordered group.
 -/
 class normed_lattice_add_comm_group (α : Type*)
-  extends normed_add_comm_group α, lattice α, has_solid_norm α, covariant_class α α has_add.add (≤)
+  extends normed_add_comm_group α, lattice α, has_solid_norm α :=
+(add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
-instance : normed_lattice_add_comm_group ℝ := { }
+instance : normed_lattice_add_comm_group ℝ :=
+{ add_le_add_left := λ _ _ h _, add_le_add le_rfl h,}
 
 /--
 A normed lattice ordered group is an ordered additive commutative group
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
-  [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α :=
-{ add_le_add_left := λ _ _ hab c, h.elim c hab, ..h }
+  [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α := { ..h }
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
 open lattice_ordered_comm_group

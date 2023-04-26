@@ -925,7 +925,7 @@ begin
   { simp only [written_in_ext_chart_at, (∘), mem_ext_chart_source, e.left_inv, e'.left_inv] }
 end
 
-/-- It can be annoying to apply `cont_mdiff_within_at.comp` -/
+/-- See note [comp_of_eq lemmas] -/
 lemma cont_mdiff_within_at.comp_of_eq {t : set M'} {g : M' → M''} {x : M} {y : M'}
   (hg : cont_mdiff_within_at I' I'' n g t y) (hf : cont_mdiff_within_at I I' n f s x)
   (st : maps_to f s t) (hx : f x = y) :
@@ -1011,6 +1011,7 @@ lemma cont_mdiff_at.comp {g : M' → M''} (x : M)
   cont_mdiff_at I I'' n (g ∘ f) x :=
 hg.comp x hf (maps_to_univ _ _)
 
+/-- See note [comp_of_eq lemmas] -/
 lemma cont_mdiff_at.comp_of_eq {g : M' → M''} {x : M} {y : M'}
   (hg : cont_mdiff_at I' I'' n g y) (hf : cont_mdiff_at I I' n f x) (hx : f x = y) :
   cont_mdiff_at I I'' n (g ∘ f) x :=

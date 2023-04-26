@@ -1320,6 +1320,7 @@ lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
   continuous_at (g ∘ f) x :=
 hg.comp hf
 
+/-- See note [comp_of_eq lemmas] -/
 lemma continuous_at.comp_of_eq {g : β → γ} {f : α → β} {x : α} {y : β}
   (hg : continuous_at g y) (hf : continuous_at f x) (hy : f x = y) :
   continuous_at (g ∘ f) x :=

@@ -1392,7 +1392,7 @@ open_locale classical
 
 /-- If a measurable space is countably generated, it admits a measurable injection
 into the Cantor space `ℕ → bool` (equipped with the product sigma algebra). -/
-theorem measurable_inj_cantor_of_countably_generated
+theorem measurable_injection_cantor_of_countably_generated
 [measurable_space α] [h : countably_generated α] [measurable_singleton_class α] :
 ∃ f : α → (ℕ → bool), measurable f ∧ function.injective f :=
 begin

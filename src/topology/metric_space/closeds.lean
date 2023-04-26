@@ -10,6 +10,9 @@ import topology.sets.compacts
 /-!
 # Closed subsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the metric and emetric space structure on the types of closed subsets and nonempty
 compact subsets of a metric or emetric space.
 

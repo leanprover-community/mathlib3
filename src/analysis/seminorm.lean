@@ -207,14 +207,17 @@ lemma smul_sup [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 
   r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
 from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
-                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).coe_nonneg,
 ext $ λ x, real.smul_max _ _
 
 instance : partial_order (seminorm 𝕜 E) :=
   partial_order.lift _ fun_like.coe_injective
 
-lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
-lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe {p q : seminorm 𝕜 E} : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
+@[simp, norm_cast] lemma coe_lt_coe {p q : seminorm 𝕜 E} : (p : E → ℝ) < q ↔ p < q := iff.rfl
+
+lemma le_def {p q : seminorm 𝕜 E} : p ≤ q ↔ ∀ x, p x ≤ q x := iff.rfl
+lemma lt_def {p q : seminorm 𝕜 E} : p < q ↔ p ≤ q ∧ ∃ x, p x < q x := pi.lt_def
 
 instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
@@ -285,7 +288,7 @@ lemma bot_eq_zero : (⊥ : seminorm 𝕜 E) = 0 := rfl
 lemma smul_le_smul {p q : seminorm 𝕜 E} {a b : ℝ≥0} (hpq : p ≤ q) (hab : a ≤ b) :
   a • p ≤ b • q :=
 begin
-  simp_rw [le_def, pi.le_def, coe_smul],
+  simp_rw [le_def, coe_smul],
   intros x,
   simp_rw [pi.smul_apply, nnreal.smul_def, smul_eq_mul],
   exact mul_le_mul hab (hpq x) (map_nonneg p x) (nnreal.coe_nonneg b),

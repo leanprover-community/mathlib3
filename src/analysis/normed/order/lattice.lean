@@ -5,8 +5,9 @@ Authors: Christopher Hoskin
 -/
 import topology.order.lattice
 import analysis.normed.group.basic
-import analysis.normed.order.basic
 import algebra.order.lattice_group
+
+import sandbox
 
 /-!
 # Normed lattice ordered groups
@@ -32,7 +33,7 @@ normed, lattice, ordered, group
 -/
 
 /-!
-### Normed lattice orderd groups
+### Normed lattice ordered groups
 
 Motivated by the theory of Banach Lattices, this section introduces normed lattice ordered groups.
 -/
@@ -46,24 +47,10 @@ respect which `α` forms a lattice. Suppose that `α` is *solid*, that is to say
 said to be a normed lattice ordered group.
 -/
 class normed_lattice_add_comm_group (α : Type*)
-  extends normed_add_comm_group α, lattice α :=
+  extends normed_add_comm_group α, lattice α, has_solid_norm α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
-(solid : ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
 
-/-- A `normed_lattice_field` is a `normed_linear_ordered_field` that satisfies also the `solid`
-property: `|a| ≤ |b|` implies `‖a‖ ≤ ‖b‖`. -/
-class normed_lattice_field (α : Type*)
-extends normed_linear_ordered_field α :=
-(solid : ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
-
-lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ :=
-normed_lattice_add_comm_group.solid a b h
-
-alias solid ← norm_le_norm_of_abs_le_abs
-
-instance : normed_lattice_add_comm_group ℝ :=
-{ add_le_add_left := λ _ _ h _, add_le_add le_rfl h,
-  solid := λ _ _, id, }
+instance : normed_lattice_add_comm_group ℝ := ⟨λ _ _ h _, add_le_add le_rfl h⟩
 
 /--
 A normed lattice ordered group is an ordered additive commutative group
@@ -71,16 +58,6 @@ A normed lattice ordered group is an ordered additive commutative group
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
   [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α := { ..h }
-
-@[priority 100] instance normed_lattice_field.to_normed_lattice_add_comm_group  (α : Type*)
-  [normed_lattice_field α] : normed_lattice_add_comm_group α :=
-⟨λ _ _ h c, add_le_add_left h c, normed_lattice_field.solid⟩
-
-instance : normed_lattice_field ℚ :=
-⟨λ _ _ _, by simpa only [norm, ← rat.cast_abs, rat.cast_le]⟩
-
-noncomputable
-instance : normed_lattice_field ℝ := ⟨λ _ _, id⟩
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
 open lattice_ordered_comm_group
@@ -170,6 +147,7 @@ instance normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
   [normed_lattice_add_comm_group α] :
   has_continuous_sup α :=
 order_dual.has_continuous_sup αᵒᵈ
+
 
 /--
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.

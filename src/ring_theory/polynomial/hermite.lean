@@ -51,7 +51,16 @@ begin
   simp only [map_one, mul_one, derivative_one, sub_zero]
 end
 
-/-! ### Lemmas about `polynomial.coeff` -/
+/-!
+### Lemmas about `polynomial.coeff`
+
+## Main definitions
+
+* `polynomial.coeff_hermite_of_odd_add`: for `n`,`k` where `n+k` is odd, `(hermite n).coeff k` is
+  zero.
+* `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
+
+-/
 
 section coeff
 
@@ -101,7 +110,7 @@ begin
   rw [← coeff_nat_degree, nat_degree_hermite, coeff_hermite_self],
 end
 
-lemma monic_hermite (n : ℕ) : (hermite n).monic := leading_coeff_hermite n
+lemma hermite_monic (n : ℕ) : (hermite n).monic := leading_coeff_hermite n
 
 lemma coeff_hermite_of_odd_add {n k : ℕ} (hnk : odd (n + k)) : coeff (hermite n) k = 0 :=
 begin

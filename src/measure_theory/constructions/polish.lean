@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Felix Weilacher
 -/
 import topology.perfect
 import measure_theory.constructions.borel_space
@@ -758,7 +758,7 @@ def measurable_equiv_nat_bool_of_not_countable (h : ¬ countable α) : α ≃ᵐ
 begin
   apply nonempty.some,
   obtain ⟨f, -, fcts, finj⟩ := is_closed_univ.exists_nat_bool_injection_of_not_countable
-    (by rwa [← countable_coe_iff ,(equiv.set.univ _).countable_iff]),
+    (by rwa [← countable_coe_iff, (equiv.set.univ _).countable_iff]),
   obtain ⟨g, gmeas, ginj⟩ := measurable_space.measurable_injection_cantor_of_countably_generated α,
   exact ⟨borel_schroeder_bernstein gmeas ginj fcts.measurable finj⟩,
 end

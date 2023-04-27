@@ -208,7 +208,7 @@ section subtype
 /-- The `submonoid` of continuous maps `α → β`. -/
 @[to_additive "The `add_submonoid` of continuous maps `α → β`. "]
 def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
-  [monoid β] [has_continuous_mul β] : submonoid (α → β) :=
+  [mul_one_class β] [has_continuous_mul β] : submonoid (α → β) :=
 { carrier := { f : α → β | continuous f },
   one_mem' := @continuous_const _ _ _ _ 1,
   mul_mem' := λ f g fc gc, fc.mul gc }
@@ -379,7 +379,7 @@ section subtype
 
 /-- The subsemiring of continuous maps `α → β`. -/
 def continuous_subsemiring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
-  [semiring R] [topological_semiring R] : subsemiring (α → R) :=
+  [non_assoc_semiring R] [topological_semiring R] : subsemiring (α → R) :=
 { ..continuous_add_submonoid α R,
   ..continuous_submonoid α R }
 
@@ -790,7 +790,7 @@ instance has_smul' {α : Type*} [topological_space α]
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance module' {α : Type*} [topological_space α]
-  (R : Type*) [ring R] [topological_space R] [topological_ring R]
+  (R : Type*) [semiring R] [topological_space R] [topological_semiring R]
   (M : Type*) [topological_space M] [add_comm_monoid M] [has_continuous_add M]
   [module R M] [has_continuous_smul R M] :
   module C(α, R) C(α, M) :=

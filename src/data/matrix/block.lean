@@ -8,6 +8,9 @@ import data.matrix.basic
 /-!
 # Block Matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `matrix.from_blocks`: build a block matrix out of 4 blocks
@@ -24,9 +27,13 @@ import data.matrix.basic
 variables {l m n o p q : Type*} {m' n' p' : o → Type*}
 variables {R : Type*} {S : Type*} {α : Type*} {β : Type*}
 
-open_locale matrix
+open_locale big_operators matrix
 
 namespace matrix
+
+lemma dot_product_block [fintype m] [fintype n] [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :
+  v ⬝ᵥ w = v ∘ sum.inl ⬝ᵥ w ∘ sum.inl + v ∘ sum.inr ⬝ᵥ w ∘ sum.inr :=
+fintype.sum_sum_type _
 
 section block_matrices
 
@@ -103,6 +110,19 @@ rfl
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   (from_blocks A B C D).to_blocks₂₂ = D :=
 rfl
+
+/-- Two block matrices are equal if their blocks are equal. -/
+lemma ext_iff_blocks {A B : matrix (n ⊕ o) (l ⊕ m) α} :
+  A = B ↔ A.to_blocks₁₁ = B.to_blocks₁₁ ∧ A.to_blocks₁₂ = B.to_blocks₁₂ ∧
+          A.to_blocks₂₁ = B.to_blocks₂₁ ∧ A.to_blocks₂₂ = B.to_blocks₂₂ :=
+⟨λ h, h ▸ ⟨rfl, rfl, rfl, rfl⟩, λ ⟨h₁₁, h₁₂, h₂₁, h₂₂⟩,
+  by rw [←from_blocks_to_blocks A, ←from_blocks_to_blocks B, h₁₁, h₁₂, h₂₁, h₂₂]⟩
+
+@[simp] lemma from_blocks_inj
+  {A : matrix n l α} {B : matrix n m α} {C : matrix o l α} {D : matrix o m α}
+  {A' : matrix n l α} {B' : matrix n m α} {C' : matrix o l α} {D' : matrix o m α} :
+  from_blocks A B C D = from_blocks A' B' C' D' ↔ A = A' ∧ B = B' ∧ C = C' ∧ D = D' :=
+ext_iff_blocks
 
 lemma from_blocks_map
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : α → β) :
@@ -449,6 +469,14 @@ end
   block_diag (block_diagonal M) = M :=
 funext $ λ k, ext $ λ i j, block_diagonal_apply_eq M i j _
 
+lemma block_diagonal_injective [decidable_eq o] :
+  function.injective (block_diagonal : (o → matrix m n α) → matrix _ _ α) :=
+function.left_inverse.injective block_diag_block_diagonal
+
+@[simp] lemma block_diagonal_inj [decidable_eq o] {M N : o → matrix m n α} :
+  block_diagonal M = block_diagonal N ↔ M = N :=
+block_diagonal_injective.eq_iff
+
 @[simp] lemma block_diag_one [decidable_eq o] [decidable_eq m] [has_one α] :
   block_diag (1 : matrix (m × o) (m × o) α) = 1 :=
 funext $ block_diag_diagonal _
@@ -681,6 +709,14 @@ end
 @[simp] lemma block_diag'_block_diagonal' [decidable_eq o] (M : Π i, matrix (m' i) (n' i) α) :
   block_diag' (block_diagonal' M) = M :=
 funext $ λ k, ext $ λ i j, block_diagonal'_apply_eq M _ _ _
+
+lemma block_diagonal'_injective [decidable_eq o] :
+  function.injective (block_diagonal' : (Π i, matrix (m' i) (n' i) α) → matrix _ _ α) :=
+function.left_inverse.injective block_diag'_block_diagonal'
+
+@[simp] lemma block_diagonal'_inj [decidable_eq o] {M N : Π i, matrix (m' i) (n' i) α} :
+  block_diagonal' M = block_diagonal' N ↔ M = N :=
+block_diagonal'_injective.eq_iff
 
 @[simp] lemma block_diag'_one [decidable_eq o] [Π i, decidable_eq (m' i)] [has_one α] :
   block_diag' (1 : matrix (Σ i, m' i) (Σ i, m' i) α) = 1 :=

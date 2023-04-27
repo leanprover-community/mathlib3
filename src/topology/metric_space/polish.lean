@@ -11,6 +11,9 @@ import analysis.normed.field.basic
 /-!
 # Polish spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological space is Polish if its topology is second-countable and there exists a compatible
 complete metric. This is the class of spaces that is well-behaved with respect to measure theory.
 In this file, we establish the basic properties of Polish spaces.
@@ -174,10 +177,13 @@ begin
 end
 
 /-- A closed subset of a Polish space is also Polish. -/
-lemma _root_.is_closed.polish_space {α : Type*} [topological_space α] [polish_space α] {s : set α}
+lemma _root_.is_closed.polish_space [topological_space α] [polish_space α] {s : set α}
   (hs : is_closed s) :
   polish_space s :=
 (is_closed.closed_embedding_subtype_coe hs).polish_space
+
+instance [topological_space α] [polish_space α] : polish_space (univ : set α) :=
+is_closed_univ.polish_space
 
 /-- A sequence of type synonyms of a given type `α`, useful in the proof of
 `exists_polish_space_forall_le` to endow each copy with a different topology. -/

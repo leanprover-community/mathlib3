@@ -5,8 +5,8 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import data.fintype.units
 import data.nat.parity
-import algebra.group.conj_finite
 import tactic.fin_cases
 
 /-!
@@ -383,7 +383,7 @@ end universal_property
 
 lemma int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
-char_p.int_coe_eq_int_coe_iff (zmod c) c a b
+char_p.int_cast_eq_int_cast (zmod c) c
 
 lemma int_coe_eq_int_coe_iff' (a b : ℤ) (c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a % c = b % c :=

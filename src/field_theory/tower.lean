@@ -34,31 +34,59 @@ tower law
 universes u v w u₁ v₁ w₁
 open_locale classical big_operators
 
-section field
-
+open finite_dimensional
 open cardinal
 
 variables (F : Type u) (K : Type v) (A : Type w)
-variables [field F] [division_ring K] [add_comm_group A]
+
+section ring
+
+variables [comm_ring F] [ring K] [add_comm_group A]
 variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
+variables [strong_rank_condition F] [strong_rank_condition K] [module.free F K] [module.free K A]
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem rank_mul_rank' :
   (cardinal.lift.{w} (module.rank F K) * cardinal.lift.{v} (module.rank K A)) =
   cardinal.lift.{v} (module.rank F A) :=
-let b := basis.of_vector_space F K, c := basis.of_vector_space K A in
-by rw [← (module.rank F K).lift_id, ← b.mk_eq_rank,
-    ← (module.rank K A).lift_id, ← c.mk_eq_rank,
-    ← lift_umax.{w v}, ← (b.smul c).mk_eq_rank, mk_prod, lift_mul,
-    lift_lift, lift_lift, lift_lift, lift_lift, lift_umax]
+begin
+  obtain ⟨_, b⟩ := module.free.exists_basis F K,
+  obtain ⟨_, c⟩ := module.free.exists_basis K A,
+  rw [← (module.rank F K).lift_id, ← b.mk_eq_rank,
+      ← (module.rank K A).lift_id, ← c.mk_eq_rank,
+      ← lift_umax.{w v}, ← (b.smul c).mk_eq_rank, mk_prod, lift_mul,
+      lift_lift, lift_lift, lift_lift, lift_lift, lift_umax]
+end
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
-theorem rank_mul_rank (F : Type u) (K A : Type v) [field F] [field K] [add_comm_group A]
-  [algebra F K] [module K A] [module F A] [is_scalar_tower F K A] :
+theorem rank_mul_rank (F : Type u) (K A : Type v)
+  [comm_ring F] [ring K] [add_comm_group A]
+  [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
+  [strong_rank_condition F] [strong_rank_condition K] [module.free F K] [module.free K A] :
   module.rank F K * module.rank K A = module.rank F A :=
 by convert rank_mul_rank' F K A; rw lift_id
+
+/-- Tower law: if `A` is a `K`-algebra and `K` is an extension of `F` then
+`dim_F(A) = dim_F(K) * dim_K(A)`. -/
+theorem finite_dimensional.finrank_mul_finrank'
+  [nontrivial K] [module.finite F K] [module.finite K A] :
+  finrank F K * finrank K A = finrank F A :=
+begin
+  letI := nontrivial_of_invariant_basis_number F,
+  let b := module.free.choose_basis F K,
+  let c := module.free.choose_basis K A,
+  have := module.free.choose_basis_index.fintype K A,
+  rw [finrank_eq_card_basis b, finrank_eq_card_basis c,
+    finrank_eq_card_basis (b.smul c), fintype.card_prod],
+end
+
+end ring
+
+section field
+variables [field F] [division_ring K] [add_comm_group A]
+variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
 
 namespace finite_dimensional
 
@@ -92,10 +120,7 @@ theorem finrank_mul_finrank [finite_dimensional F K] :
 begin
   by_cases hA : finite_dimensional K A,
   { resetI,
-    let b := basis.of_vector_space F K,
-    let c := basis.of_vector_space K A,
-    rw [finrank_eq_card_basis b, finrank_eq_card_basis c,
-      finrank_eq_card_basis (b.smul c), fintype.card_prod] },
+    rw finrank_mul_finrank' },
   { rw [finrank_of_infinite_dimensional hA, mul_zero, finrank_of_infinite_dimensional],
     exact mt (@right F K A _ _ _ _ _ _ _) hA }
 end

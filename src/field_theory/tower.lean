@@ -77,9 +77,8 @@ begin
   letI := nontrivial_of_invariant_basis_number F,
   let b := module.free.choose_basis F K,
   let c := module.free.choose_basis K A,
-  have := module.free.choose_basis_index.fintype K A,
-  rw [finrank_eq_card_basis b, finrank_eq_card_basis c,
-    finrank_eq_card_basis (b.smul c), fintype.card_prod],
+  rw [finrank_eq_card_basis b, finrank_eq_card_basis c, finrank_eq_card_basis (b.smul c),
+    fintype.card_prod],
 end
 
 end ring

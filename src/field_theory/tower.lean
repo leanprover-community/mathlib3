@@ -60,7 +60,9 @@ begin
 end
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
-`dim_F(A) = dim_F(K) * dim_K(A)`. -/
+`dim_F(A) = dim_F(K) * dim_K(A)`.
+
+This version has `K` and `A` in the same universe. -/
 theorem rank_mul_rank (F : Type u) (K A : Type v)
   [comm_ring F] [ring K] [add_comm_group A]
   [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]

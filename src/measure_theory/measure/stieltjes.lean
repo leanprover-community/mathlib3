@@ -352,6 +352,9 @@ begin
       measure_union A measurable_set_Ioo, f.mono.le_left_lim hab, ← ennreal.of_real_add] }
 end
 
+section move_this
+
+-- todo: is this already somewhere?
 lemma exists_seq_monotone_tendsto_at_top_at_top (α : Type*) [semilattice_sup α]
   [(at_top : filter α).ne_bot] [(at_top : filter α).is_countably_generated] :
   ∃ xs : ℕ → α, monotone xs ∧ tendsto xs at_top at_top :=
@@ -401,8 +404,7 @@ begin
     obtain ⟨n, hn⟩ := hxs_tendsto y,
     exact ⟨n, hxy.trans_le (hn n le_rfl)⟩, },
   rw [h_Ici,  measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
-  exact λ i j, ⟨max i j, Ico_subset_Ico_right (hxs_mono (le_max_left _ _)),
-    Ico_subset_Ico_right (hxs_mono (le_max_right _ _))⟩,
+  exact monotone.directed_le (λ i j hij, Ico_subset_Ico_right (hxs_mono hij)),
 end
 
 lemma supr_eq_supr_subseq_of_antitone {ι₁ ι₂ α : Type*} [preorder ι₂] [complete_lattice α]
@@ -434,8 +436,7 @@ begin
     obtain ⟨n, hn⟩ := hxs_tendsto y,
     exact ⟨n, (hn n le_rfl).trans_lt hxy⟩, },
   rw [h_Iic,  measure_Union_eq_supr, supr_eq_supr_subseq_of_antitone h_mono hxs_tendsto],
-  exact λ i j, ⟨max i j, Ioc_subset_Ioc_left (hxs_mono (le_max_left _ _)),
-    Ioc_subset_Ioc_left (hxs_mono (le_max_right _ _))⟩,
+  exact monotone.directed_le (λ i j hij, Ioc_subset_Ioc_left (hxs_mono hij)),
 end
 
 lemma tendsto_measure_Iic_at_top {α : Type*} {mα : measurable_space α} [semilattice_sup α]
@@ -453,8 +454,7 @@ begin
     obtain ⟨n, hn⟩ := hxs_tendsto x,
     exact ⟨n, hn n le_rfl⟩, },
   rw [h_univ,  measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
-  exact λ i j, ⟨max i j, Iic_subset_Iic.mpr (hxs_mono (le_max_left _ _)),
-    Iic_subset_Iic.mpr (hxs_mono (le_max_right _ _))⟩,
+  exact monotone.directed_le (λ i j hij, Iic_subset_Iic.mpr (hxs_mono hij)),
 end
 
 lemma tendsto_measure_Ici_at_bot {α : Type*} {mα : measurable_space α} [semilattice_inf α]
@@ -463,6 +463,8 @@ lemma tendsto_measure_Ici_at_bot {α : Type*} {mα : measurable_space α} [semil
   (μ : measure α) :
   tendsto (λ x, μ (Ici x)) at_bot (𝓝 (μ univ)) :=
 @tendsto_measure_Iic_at_top αᵒᵈ _ _ h1 h2 μ
+
+end move_this
 
 lemma measure_Iic {l : ℝ} (hf : tendsto f at_bot (𝓝 l)) (x : ℝ) :
   f.measure (Iic x) = of_real (f x - l) :=
@@ -477,14 +479,12 @@ lemma measure_Ici {l : ℝ} (hf : tendsto f at_top (𝓝 l)) (x : ℝ) :
 begin
   refine tendsto_nhds_unique (tendsto_measure_Ico_at_top _ _) _,
   simp_rw measure_Ico,
-  refine ennreal.tendsto_of_real _,
-  have hf' : tendsto (λ x, left_lim f x) at_top (𝓝 l),
-  { have h_le1 : ∀ x, f (x - 1) ≤ left_lim f x := λ x, monotone.le_left_lim f.mono (sub_one_lt x),
-    have h_le2 : ∀ x, left_lim f x ≤ f x := λ x, monotone.left_lim_le f.mono le_rfl,
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le (hf.comp _) hf h_le1 h_le2,
-    rw tendsto_at_top_at_top,
-    exact λ y, ⟨y + 1, λ z hyz, by rwa le_sub_iff_add_le⟩, },
-  exact (tendsto.sub_const hf' _),
+  refine ennreal.tendsto_of_real (tendsto.sub_const _ _),
+  have h_le1 : ∀ x, f (x - 1) ≤ left_lim f x := λ x, monotone.le_left_lim f.mono (sub_one_lt x),
+  have h_le2 : ∀ x, left_lim f x ≤ f x := λ x, monotone.left_lim_le f.mono le_rfl,
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le (hf.comp _) hf h_le1 h_le2,
+  rw tendsto_at_top_at_top,
+  exact λ y, ⟨y + 1, λ z hyz, by rwa le_sub_iff_add_le⟩,
 end
 
 

@@ -788,7 +788,7 @@ end polish_space
 
 namespace measure_theory
 
-variables (α) [topological_space α] [measurable_space α] [polish_space α] [borel_space α]
+variables (α) [measurable_space α] [polish_space α] [borel_space α]
 
 lemma exists_nat_measurable_equiv_range_coe_fin_of_finite [finite α] :
   ∃ n : ℕ, nonempty (α ≃ᵐ range (coe : fin n → ℝ)) :=

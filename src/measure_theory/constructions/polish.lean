@@ -790,7 +790,7 @@ namespace measure_theory
 
 variables (α) [topological_space α] [measurable_space α] [polish_space α] [borel_space α]
 
-lemma exists_subset_real_measurable_equiv_of_finite [finite α] :
+lemma exists_nat_measurable_equiv_range_coe_fin_of_finite [finite α] :
   ∃ n : ℕ, nonempty (α ≃ᵐ range (coe : fin n → ℝ)) :=
 begin
   obtain ⟨n, ⟨n_equiv⟩⟩ := finite.exists_equiv_fin α,
@@ -798,7 +798,7 @@ begin
   exact equiv.of_injective _ (nat.cast_injective.comp fin.val_injective),
 end
 
-lemma exists_subset_real_measurable_equiv_of_infinite_of_countable [infinite α] [countable α] :
+lemma measurable_equiv_range_coe_nat_of_infinite_of_countable [infinite α] [countable α] :
   nonempty (α ≃ᵐ range (coe : ℕ → ℝ)) :=
 begin
   haveI : polish_space (range (coe : ℕ → ℝ)),
@@ -808,13 +808,14 @@ begin
   exact equiv.of_injective coe nat.cast_injective,
 end
 
-lemma exists_subset_real_measurable_equiv : ∃ s : set ℝ, nonempty (α ≃ᵐ s) :=
+/-- Any Polish Borel space is measurably equivalent to a subset of the reals. -/
+theorem exists_subset_real_measurable_equiv : ∃ s : set ℝ, nonempty (α ≃ᵐ s) :=
 begin
   by_cases hα : countable α,
   { casesI finite_or_infinite α,
-    { obtain ⟨n, h_nonempty_equiv⟩ := exists_subset_real_measurable_equiv_of_finite α,
+    { obtain ⟨n, h_nonempty_equiv⟩ := exists_nat_measurable_equiv_range_coe_fin_of_finite α,
       exact ⟨_, h_nonempty_equiv⟩, },
-    { exact ⟨_, exists_subset_real_measurable_equiv_of_infinite_of_countable α⟩, }, },
+    { exact ⟨_, measurable_equiv_range_coe_nat_of_infinite_of_countable α⟩, }, },
   { refine ⟨univ, ⟨(polish_space.measurable_equiv_of_not_countable hα _ : α ≃ᵐ (univ : set ℝ))⟩⟩,
     rw countable_coe_iff,
     exact cardinal.not_countable_real, }

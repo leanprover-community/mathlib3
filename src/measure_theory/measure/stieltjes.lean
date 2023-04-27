@@ -352,6 +352,65 @@ begin
       measure_union A measurable_set_Ioo, f.mono.le_left_lim hab, ← ennreal.of_real_add] }
 end
 
+lemma measure_Iic {l : ℝ} (hf : tendsto f at_bot (𝓝 l)) (x : ℝ) :
+  f.measure (Iic x) = of_real (f x - l) :=
+begin
+  have h_tendsto_1 : tendsto (λ r : ℚ, f.measure (Ioc r x)) at_bot (𝓝 (f.measure (Iic x))),
+  { have h_Iic_eq_Union : Iic x = ⋃ r : ℚ, Ioc (↑-r) x,
+    { ext1 x,
+      simp only [mem_Iic, mem_Union, mem_Ioc, exists_and_distrib_right, iff_and_self],
+      intro h,
+      simp_rw [rat.cast_neg, neg_lt],
+      exact exists_rat_gt _, },
+    rw h_Iic_eq_Union,
+    suffices h_neg_top : tendsto (λ r : ℚ, f.measure (Ioc (↑-r) x)) at_top
+      (𝓝 (f.measure (⋃ r : ℚ, Ioc (↑-r) x))),
+    { have : (λ (r : ℚ), f.measure (Ioc (↑r) x)) = (λ r, f.measure (Ioc (↑- -r) x)),
+      { simp_rw neg_neg, },
+      rw this,
+      exact h_neg_top.comp tendsto_neg_at_bot_at_top, },
+    refine tendsto_measure_Union (λ r r' hrr' x, _),
+    simp only [rat.cast_neg, mem_Ioc, and_imp],
+    refine λ hrx hxq, ⟨(neg_le_neg _).trans_lt hrx, hxq⟩,
+    exact_mod_cast hrr', },
+  have h_tendsto_2 : tendsto (λ r : ℚ, f.measure (Ioc r x)) at_bot (𝓝 (of_real (f x - l))),
+  { simp_rw measure_Ioc,
+    refine ennreal.tendsto_of_real (tendsto.const_sub _ (hf.comp _)),
+    rw tendsto_coe_rat_at_bot_iff,
+    exact tendsto_id, },
+  exact tendsto_nhds_unique h_tendsto_1 h_tendsto_2,
+end
+
+lemma measure_Ici {l : ℝ} (hf : tendsto f at_top (𝓝 l)) (x : ℝ) :
+  f.measure (Ici x) = of_real (l - left_lim f x) :=
+begin
+  have h_tendsto_1 : tendsto (λ r : ℚ, f.measure (Ico x r)) at_top (𝓝 (f.measure (Ici x))),
+  { have h_Iic_eq_Union : Ici x = ⋃ r : ℚ, Ico x r,
+    { ext1 y,
+      simp only [mem_Ici, mem_Union, mem_Ico, exists_and_distrib_left, iff_self_and],
+      intro h,
+      exact exists_rat_gt _, },
+    rw h_Iic_eq_Union,
+    refine tendsto_measure_Union (λ r r' hrr' y, _),
+    simp only [mem_Ico, and_imp],
+    refine λ hxy hyr, ⟨hxy, hyr.trans_le _⟩,
+    exact_mod_cast hrr', },
+  have h_tendsto_2 : tendsto (λ r : ℚ, f.measure (Ico x r)) at_top (𝓝 (of_real (l - left_lim f x))),
+  { simp_rw measure_Ico,
+    refine ennreal.tendsto_of_real _,
+    have hf' : tendsto (λ x, left_lim f x) at_top (𝓝 l),
+    { have h_le1 : ∀ x, f (x - 1) ≤ left_lim f x := λ x, monotone.le_left_lim f.mono (sub_one_lt x),
+      have h_le2 : ∀ x, left_lim f x ≤ f x := λ x, monotone.left_lim_le f.mono le_rfl,
+      refine tendsto_of_tendsto_of_tendsto_of_le_of_le (hf.comp _) hf h_le1 h_le2,
+      rw tendsto_at_top_at_top,
+      exact λ y, ⟨y + 1, λ z hyz, by rwa le_sub_iff_add_le⟩, },
+    refine (tendsto.sub_const (hf'.comp _) _),
+    rw tendsto_coe_rat_at_top_iff,
+    exact tendsto_id, },
+  exact tendsto_nhds_unique h_tendsto_1 h_tendsto_2,
+end
+
+
 instance : is_locally_finite_measure f.measure :=
 ⟨λ x, ⟨Ioo (x-1) (x+1), Ioo_mem_nhds (by linarith) (by linarith), by simp⟩⟩
 

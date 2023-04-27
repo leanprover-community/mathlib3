@@ -207,14 +207,17 @@ lemma smul_sup [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 
   r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
 from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
-                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).coe_nonneg,
 ext $ λ x, real.smul_max _ _
 
 instance : partial_order (seminorm 𝕜 E) :=
   partial_order.lift _ fun_like.coe_injective
 
-lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
-lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe {p q : seminorm 𝕜 E} : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
+@[simp, norm_cast] lemma coe_lt_coe {p q : seminorm 𝕜 E} : (p : E → ℝ) < q ↔ p < q := iff.rfl
+
+lemma le_def {p q : seminorm 𝕜 E} : p ≤ q ↔ ∀ x, p x ≤ q x := iff.rfl
+lemma lt_def {p q : seminorm 𝕜 E} : p < q ↔ p ≤ q ∧ ∃ x, p x < q x := pi.lt_def
 
 instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
@@ -285,7 +288,7 @@ lemma bot_eq_zero : (⊥ : seminorm 𝕜 E) = 0 := rfl
 lemma smul_le_smul {p q : seminorm 𝕜 E} {a b : ℝ≥0} (hpq : p ≤ q) (hab : a ≤ b) :
   a • p ≤ b • q :=
 begin
-  simp_rw [le_def, pi.le_def, coe_smul],
+  simp_rw [le_def, coe_smul],
   intros x,
   simp_rw [pi.smul_apply, nnreal.smul_def, smul_eq_mul],
   exact mul_le_mul hab (hpq x) (map_nonneg p x) (nnreal.coe_nonneg b),
@@ -1158,6 +1161,21 @@ lemma bound_of_shell_smul
   q x ≤ (C • p) x :=
 seminorm.bound_of_shell p q ε_pos hc hf hx
 
+lemma bound_of_shell_sup (p : ι → seminorm 𝕜 E) (s : finset ι)
+  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ‖c‖)
+  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ‖c‖ ≤ p j x → q x ≤ (C • p j) x)
+  {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :
+  q x ≤ (C • s.sup p) x :=
+begin
+  rcases hx with ⟨j, hj, hjx⟩,
+  have : (s.sup p) x ≠ 0,
+    from ne_of_gt ((hjx.symm.lt_of_le $ map_nonneg _ _).trans_le (le_finset_sup_apply hj)),
+  refine (s.sup p).bound_of_shell_smul q ε_pos hc (λ y hle hlt, _) this,
+  rcases exists_apply_eq_finset_sup p ⟨j, hj⟩ y with ⟨i, hi, hiy⟩,
+  rw [smul_apply, hiy],
+  exact hf y (λ k hk, (le_finset_sup_apply hk).trans_lt hlt) i hi (hiy ▸ hle)
+end
+
 end shell
 
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
@@ -1178,7 +1196,6 @@ begin
   refine ⟨‖k‖ * M, forall_range_iff.mpr $ λ i, _⟩,
   have := (forall_range_iff.mp hM) i,
   rwa [map_smul_eq_mul, norm_inv, inv_mul_le_iff (hr.trans hk)] at this
-end
 
 end nontrivially_normed_field
 

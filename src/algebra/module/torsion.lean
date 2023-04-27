@@ -496,19 +496,25 @@ section torsion
 variables [comm_semiring R] [add_comm_monoid M] [module R M]
 open_locale big_operators
 
-lemma is_torsion_by_ideal_of_finite_of_is_torsion [module.finite R M] (hM : module.is_torsion R M) :
-  ∃ I : ideal R, (I : set R) ∩ R⁰ ≠ ∅ ∧ module.is_torsion_by_set R M I :=
+variables (R M)
+
+lemma _root_.module.is_torsion_by_set_annihilator_top :
+  module.is_torsion_by_set R M (⊤ : submodule R M).annihilator :=
+λ x ha, mem_annihilator.mp ha.prop x mem_top
+
+variables {R M}
+
+lemma _root_.submodule.annihilator_top_inter_non_zero_divisors [module.finite R M]
+  (hM : module.is_torsion R M) :
+  ((⊤ : submodule R M).annihilator : set R) ∩ R⁰ ≠ ∅:=
 begin
-  cases (module.finite_def.mp infer_instance : (⊤ : submodule R M).fg) with S h,
-  refine ⟨∏ x in S, ideal.torsion_of R M x, _, _⟩,
-  { refine set.nonempty.ne_empty ⟨_, _, (∏ x in S, (@hM x).some : R⁰).2⟩,
-    rw [subtype.val_eq_coe, submonoid.coe_finset_prod],
-    apply ideal.prod_mem_prod,
-    exact λ x _, (@hM x).some_spec },
-  { rw [module.is_torsion_by_set_iff_torsion_by_set_eq_top, eq_top_iff, ← h, span_le],
-    intros x hx, apply torsion_by_set_le_torsion_by_set_of_subset,
-    { apply ideal.le_of_dvd, exact finset.dvd_prod_of_mem _ hx },
-    { rw mem_torsion_by_set_iff, rintro ⟨a, ha⟩, exact ha } }
+  obtain ⟨S, hS⟩ := ‹module.finite R M›.out,
+  refine set.nonempty.ne_empty ⟨_, _, (∏ x in S, (@hM x).some : R⁰).prop⟩,
+  rw [submonoid.coe_finset_prod, set_like.mem_coe, ←hS, mem_annihilator_span],
+  intro n,
+  letI := classical.dec_eq M,
+  rw [←finset.prod_erase_mul _ _ n.prop, mul_smul, ←submonoid.smul_def, (@hM n).some_spec,
+    smul_zero],
 end
 
 variables [no_zero_divisors R] [nontrivial R]

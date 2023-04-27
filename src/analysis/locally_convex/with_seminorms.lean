@@ -567,6 +567,7 @@ by simp_rw [hp.is_vonN_bounded_iff_seminorm_bounded, set.ball_image_iff]
 
 end nontrivially_normed_field
 
+-- TODO: the names in this section are not very predictable
 section continuous_of_bounded
 
 namespace seminorm
@@ -810,22 +811,6 @@ begin
   -- Note that the key ingredient for this proof is that, by scaling arguments hidden in
   -- `seminorm.continuous`, we only have to look at the `q`-ball of radius one, and the `s` we get
   -- from that will automatically work for all other radii.
-end
-
--- Not useful, should I keep it for explicit computations?
-lemma _root_.seminorm_family.bound_of_shell_sup (p : seminorm_family 𝕜 E ι) (s : finset ι)
-  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ‖c‖)
-  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ‖c‖ ≤ p j x → q x ≤ (C • p j) x)
-  {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :
-  q x ≤ (C • s.sup p) x :=
-begin
-  rcases hx with ⟨j, hj, hjx⟩,
-  have : (s.sup p) x ≠ 0,
-    from ne_of_gt ((hjx.symm.lt_of_le $ map_nonneg _ _).trans_le (le_finset_sup_apply hj)),
-  refine (s.sup p).bound_of_shell_smul q ε_pos hc (λ y hle hlt, _) this,
-  rcases exists_apply_eq_finset_sup p ⟨j, hj⟩ y with ⟨i, hi, hiy⟩,
-  rw [smul_apply, hiy],
-  exact hf y (λ k hk, (le_finset_sup_apply hk).trans_lt hlt) i hi (hiy ▸ hle)
 end
 
 end seminorm

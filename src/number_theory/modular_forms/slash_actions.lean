@@ -12,6 +12,13 @@ import linear_algebra.matrix.special_linear_group
 This file defines a class of slash actions, which are families of right actions of a given group
 parametrized by some Type. This is modeled on the slash action of `GL_pos (fin 2) ℝ` on the space
 of modular forms.
+
+## Notation
+
+In the `modular_form` locale, this provides
+
+* `f ∣[k;γ] A`: the `k`th `γ`-compatible slash action by `A` on `f`
+* `f ∣[k] A`: the `k`th `ℂ`-compatible slash action by `A` on `f`; a shorthand for `f ∣[k;ℂ] A`
 -/
 
 open complex upper_half_plane
@@ -36,6 +43,21 @@ class slash_action (β G α γ : Type*) [group G] [add_monoid α] [has_smul γ �
 (smul_action : ∀ (k : β) (g : G) (a : α) (z : γ), map k g (z • a) = z • (map k g a))
 (add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
 
+localized "notation (name := modular_form.slash) f ` ∣[`:100 k `;` γ `] `:0 a :100 :=
+  slash_action.map γ k a f" in modular_form
+
+localized "notation (name := modular_form.slash_complex) f ` ∣[`:100 k `]`:0 a :100 :=
+  slash_action.map ℂ k a f" in modular_form
+
+@[simp] lemma slash_action.neg_slash (β G α γ : Type*) [group G] [add_group α] [has_smul γ α]
+  [slash_action β G α γ] (k : β) (g : G) (a : α) :
+  (-a) ∣[k;γ] g = - (a ∣[k;γ] g) :=
+eq_neg_of_add_eq_zero_left $ by rw [←slash_action.add_action, add_left_neg, slash_action.zero_slash]
+
+attribute [simp]
+  slash_action.zero_slash slash_action.slash_one
+  slash_action.smul_action slash_action.add_action
+
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action {β G H α γ : Type*} [group G] [add_monoid α] [has_smul γ α]
   [group H] [slash_action β G α γ] (h : H →* G) : slash_action β H α γ :=
@@ -56,10 +78,12 @@ f (γ • x) * (((↑ₘ γ).det) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(
 
 variables {Γ : subgroup SL(2, ℤ)} {k: ℤ} (f : ℍ → ℂ)
 
-localized "notation (name := modular_form.slash) f ` ∣[`:100 k `]`:0 γ :100 :=
-  modular_form.slash k γ f" in modular_form
+section
 
-lemma slash_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ) :
+-- temporary notation until the instance is built
+local notation f ` ∣[`:100 k `]`:0 γ :100 := modular_form.slash k γ f
+
+private lemma slash_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ) :
   (f ∣[k] A) ∣[k] B = f ∣[k] (A * B) :=
 begin
   ext1,
@@ -78,7 +102,7 @@ begin
   simp_rw [this, ← mul_assoc, ←mul_zpow],
 end
 
-@[simp] lemma slash_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
+private lemma slash_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin
   ext1,
@@ -86,12 +110,12 @@ begin
   ring,
 end
 
-@[simp] lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
+private lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
 funext $ by simp [slash]
 
 variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
 
-@[simp] lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : α) :
+private lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : α) :
   (c • f) ∣[k] A = c • (f ∣[k] A) :=
 begin
   simp_rw [←smul_one_smul ℂ c f, ←smul_one_smul ℂ c (f ∣[k] A)],
@@ -102,10 +126,7 @@ begin
   ring,
 end
 
-@[simp] lemma neg_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) : (-f) ∣[k] A = - (f ∣[k] A) :=
-funext $ by simp [slash]
-
-@[simp] lemma zero_slash (k : ℤ) (A : GL(2, ℝ)⁺) : (0 : ℍ → ℂ) ∣[k] A = 0 :=
+private lemma zero_slash (k : ℤ) (A : GL(2, ℝ)⁺) : (0 : ℍ → ℂ) ∣[k] A = 0 :=
 funext $ λ _, by simp only [slash, pi.zero_apply, zero_mul]
 
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
@@ -116,31 +137,32 @@ instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
   smul_action := smul_slash,
   add_action := slash_add }
 
+end
+
+lemma slash_def (A : GL(2, ℝ)⁺) : f ∣[k] A = slash k A f := rfl
+
 instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ (ℍ → ℂ) ℂ :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ)))
 
 @[simp] lemma subgroup_slash (Γ : subgroup SL(2, ℤ)) (γ : Γ):
-  (slash_action.map ℂ k γ f) = slash k (γ : GL(2,ℝ)⁺) f := rfl
+  (f ∣[k] γ) = f ∣[k] (γ : GL(2,ℝ)⁺) := rfl
 
 instance SL_action : slash_action ℤ SL(2, ℤ) (ℍ → ℂ) ℂ :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (matrix.special_linear_group.map (int.cast_ring_hom ℝ)))
 
-@[simp] lemma SL_slash (γ : SL(2, ℤ)):
-  (slash_action.map ℂ k γ f) = slash k (γ : GL(2,ℝ)⁺) f := rfl
-
-local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
+@[simp] lemma SL_slash (γ : SL(2, ℤ)): f ∣[k] γ = f ∣[k] (γ : GL(2,ℝ)⁺) := rfl
 
 /-- The constant function 1 is invariant under any element of `SL(2, ℤ)`. -/
-@[simp] lemma is_invariant_one (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ), A] = (1 : ℍ → ℂ) :=
+@[simp] lemma is_invariant_one (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ)] A = (1 : ℍ → ℂ) :=
 begin
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,
       matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
       matrix.special_linear_group.det_coe], },
   funext,
-  rw [SL_slash, slash, zero_sub, this],
+  rw [SL_slash, slash_def, slash, zero_sub, this],
   simp,
 end
 
@@ -148,9 +170,9 @@ end
   if for every matrix `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
   and it acts on `ℍ` via Möbius transformations. -/
 lemma slash_action_eq'_iff (k : ℤ) (Γ : subgroup SL(2, ℤ)) (f : ℍ → ℂ) (γ : Γ)  (z : ℍ) :
-  f ∣[k, γ] z = f z ↔ f (γ • z) = ((↑ₘ[ℤ]γ 1 0 : ℂ) * z + (↑ₘ[ℤ]γ 1 1 : ℂ))^k * f z :=
+  (f ∣[k] γ) z = f z ↔ f (γ • z) = ((↑ₘ[ℤ]γ 1 0 : ℂ) * z + (↑ₘ[ℤ]γ 1 1 : ℂ))^k * f z :=
 begin
-  simp only [subgroup_slash, modular_form.slash],
+  simp only [subgroup_slash, slash_def, modular_form.slash],
   convert inv_mul_eq_iff_eq_mul₀ _ using 2,
   { rw mul_comm,
     simp only [denom, coe_coe, matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix, zpow_neg,
@@ -161,10 +183,10 @@ begin
 end
 
 lemma mul_slash (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
-  (f * g) ∣[k1 + k2, A] = (((↑ₘ A).det) : ℝ) • (f ∣[k1, A]) * (g ∣[k2, A]) :=
+  (f * g) ∣[k1 + k2] A = (((↑ₘ A).det) : ℝ) • (f ∣[k1] A) * (g ∣[k2] A) :=
 begin
   ext1,
-  simp only [slash_action.map, slash, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
+  simp only [slash_def, slash, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
     pi.mul_apply, pi.smul_apply, algebra.smul_mul_assoc, real_smul],
   set d : ℂ := ↑((↑ₘ A).det : ℝ),
   have h1 : d ^ (k1 + k2 - 1) = d * d ^ (k1 - 1) * d ^ (k2 - 1),
@@ -182,13 +204,13 @@ begin
 end
 
 @[simp] lemma mul_slash_SL2 (k1 k2 : ℤ) (A : SL(2, ℤ)) (f g : ℍ → ℂ) :
-  (f * g) ∣[k1 + k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
-calc (f * g) ∣[k1 + k2, (A : GL(2, ℝ)⁺)] = _ • (f ∣[k1, A]) * (g ∣[k2, A]) : mul_slash _ _ _ _ _
-... = (1:ℝ) • (f ∣[k1, A]) * (g ∣[k2, A]) : by simp [-matrix.special_linear_group.coe_matrix_coe]
-... = (f ∣[k1, A]) * (g ∣[k2, A]) : by simp
+  (f * g) ∣[k1 + k2] A = (f ∣[k1] A) * (g ∣[k2] A) :=
+calc (f * g) ∣[k1 + k2] (A : GL(2, ℝ)⁺) = _ • (f ∣[k1] A) * (g ∣[k2] A) : mul_slash _ _ _ _ _
+... = (1:ℝ) • (f ∣[k1] A) * (g ∣[k2] A) : by simp [-matrix.special_linear_group.coe_matrix_coe]
+... = (f ∣[k1] A) * (g ∣[k2] A) : by simp
 
 lemma mul_slash_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2, ℤ)) (A : Γ) (f g : ℍ → ℂ) :
-  (f * g) ∣[k1 + k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
+  (f * g) ∣[k1 + k2] A = (f ∣[k1] A) * (g ∣[k2] A) :=
 mul_slash_SL2 k1 k2 A f g
 
 end modular_form

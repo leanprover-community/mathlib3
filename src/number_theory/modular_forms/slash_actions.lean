@@ -27,24 +27,24 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
+@[derive group]
+def slash_act {β : Type*} (G : Type*) [group G] (b : β) :=
+mul_opposite G
+
+def slash_act.map {β : Type*} {G H : Type*} [group G] [group H] (b : β) (f : G →* H) :
+  slash_act G b →* slash_act H b :=
+f.op
+
 /--A general version of the slash action of the space of modular forms.-/
-class slash_action (β G α γ : Type*) [group G] [add_monoid α] [has_smul γ α] :=
-(map : β → G → α → α)
-(zero_slash : ∀ (k : β) (g : G), map k g 0 = 0)
-(slash_one : ∀ (k : β) (a : α) , map k 1 a = a)
-(right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
-(smul_action : ∀ (k : β) (g : G) (a : α) (z : γ), map k g (z • a) = z • (map k g a))
-(add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
+@[reducible] def slash_action (β G α : Type*) [group G] [add_monoid α] :=
+Π b : β, distrib_mul_action (slash_act G b) α
+
+@[reducible] def slash_action.map {β G α} (b : β) [group G] [add_monoid α] (a : α) (g : G)  : α :=
 
 /--Slash_action induced by a monoid homomorphism.-/
-def monoid_hom_slash_action {β G H α γ : Type*} [group G] [add_monoid α] [has_smul γ α]
-  [group H] [slash_action β G α γ] (h : H →* G) : slash_action β H α γ :=
-{ map := λ k g, slash_action.map γ k (h g),
-  zero_slash := λ k g, slash_action.zero_slash k (h g),
-  slash_one := λ k a, by simp only [map_one, slash_action.slash_one],
-  right_action := λ k g gg a, by simp only [map_mul, slash_action.right_action],
-  smul_action := λ _ _, slash_action.smul_action _ _,
-  add_action := λ _ g _ _, slash_action.add_action _ (h g) _ _,}
+def monoid_hom_slash_action {β G H α : Type*} [group G] [add_monoid α] [group H]
+  [slash_action β G α] (h : H →* G) : slash_action β H α :=
+λ b, distrib_mul_action.comp_hom _ $ slash_act.map _ h
 
 namespace modular_form
 
@@ -55,6 +55,7 @@ def slash (k : ℤ) (γ : GL(2, ℝ)⁺) (f : ℍ → ℂ) (x : ℍ) : ℂ :=
 f (γ • x) * (((↑ₘ γ).det) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(-k)
 
 variables {Γ : subgroup SL(2, ℤ)} {k: ℤ} (f : ℍ → ℂ)
+section
 
 localized "notation (name := modular_form.slash) f ` ∣[`:100 k `]`:0 γ :100 :=
   modular_form.slash k γ f" in modular_form
@@ -108,15 +109,20 @@ funext $ by simp [slash]
 @[simp] lemma zero_slash (k : ℤ) (A : GL(2, ℝ)⁺) : (0 : ℍ → ℂ) ∣[k] A = 0 :=
 funext $ λ _, by simp only [slash, pi.zero_apply, zero_mul]
 
-instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
-{ map := slash,
-  zero_slash := zero_slash,
-  slash_one := slash_one,
-  right_action := slash_right_action,
-  smul_action := smul_slash,
-  add_action := slash_add }
+instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) :=
+λ z,
+  { smul := λ x, slash z x.unop,
+    one_smul := slash_one z,
+    mul_smul := λ a b f, (slash_right_action z _ _ _).symm,
+    smul_zero := λ a, zero_slash z a.unop,
+    smul_add := λ a b, slash_add z _ _ }
 
-instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ (ℍ → ℂ) ℂ :=
+instance {z : ℤ} : smul_comm_class ℂ (slash_act GL(2, ℝ)⁺ z) (ℍ → ℂ) :=
+⟨λ _ _ _, (smul_slash z _ _ _).symm⟩
+
+end
+
+instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ (ℍ → ℂ) :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ)))
 

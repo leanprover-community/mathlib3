@@ -439,7 +439,7 @@ begin
 end
 
 lemma tendsto_measure_Iic_at_top {α : Type*} {mα : measurable_space α} [semilattice_sup α]
-  [no_max_order α] [(at_top : filter α).ne_bot] [(at_top : filter α).is_countably_generated]
+  [(at_top : filter α).ne_bot] [(at_top : filter α).is_countably_generated]
   (μ : measure α) :
   tendsto (λ x, μ (Iic x)) at_top (𝓝 (μ univ)) :=
 begin
@@ -458,11 +458,11 @@ begin
 end
 
 lemma tendsto_measure_Ici_at_bot {α : Type*} {mα : measurable_space α} [semilattice_inf α]
-  [no_min_order α] [h1 : (at_bot : filter α).ne_bot]
+  [h1 : (at_bot : filter α).ne_bot]
   [h2 : (at_bot : filter α).is_countably_generated]
   (μ : measure α) :
   tendsto (λ x, μ (Ici x)) at_bot (𝓝 (μ univ)) :=
-@tendsto_measure_Iic_at_top αᵒᵈ _ _ _ h1 h2 μ
+@tendsto_measure_Iic_at_top αᵒᵈ _ _ h1 h2 μ
 
 lemma measure_Iic {l : ℝ} (hf : tendsto f at_bot (𝓝 l)) (x : ℝ) :
   f.measure (Iic x) = of_real (f x - l) :=

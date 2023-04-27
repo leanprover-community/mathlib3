@@ -1127,6 +1127,21 @@ lemma bound_of_shell_smul
   q x ≤ (C • p) x :=
 seminorm.bound_of_shell p q ε_pos hc hf hx
 
+lemma bound_of_shell_sup (p : ι → seminorm 𝕜 E) (s : finset ι)
+  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ‖c‖)
+  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ‖c‖ ≤ p j x → q x ≤ (C • p j) x)
+  {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :
+  q x ≤ (C • s.sup p) x :=
+begin
+  rcases hx with ⟨j, hj, hjx⟩,
+  have : (s.sup p) x ≠ 0,
+    from ne_of_gt ((hjx.symm.lt_of_le $ map_nonneg _ _).trans_le (le_finset_sup_apply hj)),
+  refine (s.sup p).bound_of_shell_smul q ε_pos hc (λ y hle hlt, _) this,
+  rcases exists_apply_eq_finset_sup p ⟨j, hj⟩ y with ⟨i, hi, hiy⟩,
+  rw [smul_apply, hiy],
+  exact hf y (λ k hk, (le_finset_sup_apply hk).trans_lt hlt) i hi (hiy ▸ hle)
+end
+
 end nontrivially_normed_field
 
 end seminorm

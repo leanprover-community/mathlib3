@@ -17,6 +17,12 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
 * `polynomial.hermite n`: the `n`th probabilist's Hermite polynomial,
   defined recursively as a `polynomial ℤ`
 
+## Results
+
+* `polynomial.coeff_hermite_of_odd_add`: for `n`,`k` where `n+k` is odd, `(hermite n).coeff k` is
+  zero.
+* `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
+
 ## References
 
 * [Hermite Polynomials](https://en.wikipedia.org/wiki/Hermite_polynomials)
@@ -51,16 +57,7 @@ begin
   simp only [map_one, mul_one, derivative_one, sub_zero]
 end
 
-/-!
-### Lemmas about `polynomial.coeff`
-
-## Main definitions
-
-* `polynomial.coeff_hermite_of_odd_add`: for `n`,`k` where `n+k` is odd, `(hermite n).coeff k` is
-  zero.
-* `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
-
--/
+/-! ### Lemmas about `polynomial.coeff` -/
 
 section coeff
 

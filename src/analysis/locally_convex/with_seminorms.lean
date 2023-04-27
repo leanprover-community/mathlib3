@@ -565,6 +565,7 @@ by simp_rw [hp.is_vonN_bounded_iff_seminorm_bounded, set.ball_image_iff]
 
 end nontrivially_normed_field
 
+-- TODO: the names in this section are not very predictable
 section continuous_of_bounded
 
 namespace seminorm

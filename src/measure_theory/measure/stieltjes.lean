@@ -403,7 +403,7 @@ begin
     rw tendsto_at_top_at_top at hxs_tendsto,
     obtain ⟨n, hn⟩ := hxs_tendsto y,
     exact ⟨n, hxy.trans_le (hn n le_rfl)⟩, },
-  rw [h_Ici,  measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
+  rw [h_Ici, measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
   exact monotone.directed_le (λ i j hij, Ico_subset_Ico_right (hxs_mono hij)),
 end
 
@@ -435,7 +435,7 @@ begin
     rw tendsto_at_top_at_bot at hxs_tendsto,
     obtain ⟨n, hn⟩ := hxs_tendsto y,
     exact ⟨n, (hn n le_rfl).trans_lt hxy⟩, },
-  rw [h_Iic,  measure_Union_eq_supr, supr_eq_supr_subseq_of_antitone h_mono hxs_tendsto],
+  rw [h_Iic, measure_Union_eq_supr, supr_eq_supr_subseq_of_antitone h_mono hxs_tendsto],
   exact monotone.directed_le (λ i j hij, Ioc_subset_Ioc_left (hxs_mono hij)),
 end
 
@@ -453,7 +453,7 @@ begin
     rw tendsto_at_top_at_top at hxs_tendsto,
     obtain ⟨n, hn⟩ := hxs_tendsto x,
     exact ⟨n, hn n le_rfl⟩, },
-  rw [h_univ,  measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
+  rw [h_univ, measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
   exact monotone.directed_le (λ i j hij, Iic_subset_Iic.mpr (hxs_mono hij)),
 end
 

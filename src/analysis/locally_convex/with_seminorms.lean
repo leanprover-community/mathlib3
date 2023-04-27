@@ -725,7 +725,8 @@ end
 --  exact le_csupr hf₃ k
 --end
 --
---lemma uniform_equicontinuous_from_bounded [normed_algebra ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+--lemma uniform_equicontinuous_from_bounded [normed_algebra ℝ 𝕜] [module ℝ E]
+--  [is_scalar_tower ℝ 𝕜 E]
 --  {κ : Type*} {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
 --  [uniform_space E] [uniform_add_group E] (hp : with_seminorms p) [has_continuous_const_smul ℝ E]
 --  [uniform_space F] [uniform_add_group F] (hq : with_seminorms q) (f : κ → E →ₗ[𝕜] F)

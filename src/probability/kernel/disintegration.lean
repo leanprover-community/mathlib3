@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import probability.kernel.cond_cdf
+import measure_theory.constructions.polish
 
 /-!
 # Disintegration of product measures
@@ -443,5 +444,18 @@ begin
 end
 
 end subset
+
+section polish
+
+variables {β : Type*} [topological_space β] [polish_space β] [measurable_space β] [borel_space β]
+
+theorem todo (ρ : measure (α × β)) [is_finite_measure ρ] (γ : Type*) [measurable_space γ] :
+  ∃ (η : kernel α β) (h : kernel.is_s_finite_kernel η),
+  kernel.const γ ρ
+    = @kernel.comp_prod γ α _ _ β _ (kernel.const γ ρ.fst) _ (kernel.prod_mk_left η γ)
+      (by { haveI := h, apply_instance, }) :=
+sorry
+
+end polish
 
 end probability_theory

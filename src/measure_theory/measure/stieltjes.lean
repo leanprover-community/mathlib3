@@ -400,7 +400,7 @@ begin
     rw tendsto_at_top_at_top at hxs_tendsto,
     obtain ⟨n, hn⟩ := hxs_tendsto y,
     exact ⟨n, hxy.trans_le (hn n le_rfl)⟩, },
-  rw [h_Ici,  measure_Union_eq_supr,  supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
+  rw [h_Ici,  measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
   exact λ i j, ⟨max i j, Ico_subset_Ico_right (hxs_mono (le_max_left _ _)),
     Ico_subset_Ico_right (hxs_mono (le_max_right _ _))⟩,
 end
@@ -437,6 +437,32 @@ begin
   exact λ i j, ⟨max i j, Ioc_subset_Ioc_left (hxs_mono (le_max_left _ _)),
     Ioc_subset_Ioc_left (hxs_mono (le_max_right _ _))⟩,
 end
+
+lemma tendsto_measure_Iic_at_top {α : Type*} {mα : measurable_space α} [semilattice_sup α]
+  [no_max_order α] [(at_top : filter α).ne_bot] [(at_top : filter α).is_countably_generated]
+  (μ : measure α) :
+  tendsto (λ x, μ (Iic x)) at_top (𝓝 (μ univ)) :=
+begin
+  have h_mono : monotone (λ x, μ (Iic x)) := λ i j hij, measure_mono (Iic_subset_Iic.mpr hij),
+  convert tendsto_at_top_supr h_mono,
+  obtain ⟨xs, hxs_mono, hxs_tendsto⟩ := exists_seq_monotone_tendsto_at_top_at_top α,
+  have h_univ : (univ : set α) = ⋃ n, Iic (xs n),
+  { ext1 x,
+    simp only [mem_univ, mem_Union, mem_Iic, true_iff],
+    rw tendsto_at_top_at_top at hxs_tendsto,
+    obtain ⟨n, hn⟩ := hxs_tendsto x,
+    exact ⟨n, hn n le_rfl⟩, },
+  rw [h_univ,  measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
+  exact λ i j, ⟨max i j, Iic_subset_Iic.mpr (hxs_mono (le_max_left _ _)),
+    Iic_subset_Iic.mpr (hxs_mono (le_max_right _ _))⟩,
+end
+
+lemma tendsto_measure_Ici_at_bot {α : Type*} {mα : measurable_space α} [semilattice_inf α]
+  [no_min_order α] [h1 : (at_bot : filter α).ne_bot]
+  [h2 : (at_bot : filter α).is_countably_generated]
+  (μ : measure α) :
+  tendsto (λ x, μ (Ici x)) at_bot (𝓝 (μ univ)) :=
+@tendsto_measure_Iic_at_top αᵒᵈ _ _ _ h1 h2 μ
 
 lemma measure_Iic {l : ℝ} (hf : tendsto f at_bot (𝓝 l)) (x : ℝ) :
   f.measure (Iic x) = of_real (f x - l) :=

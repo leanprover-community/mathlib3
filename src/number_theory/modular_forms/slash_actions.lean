@@ -46,13 +46,20 @@ class slash_action (β G α γ : Type*) [group G] [add_monoid α] [has_smul γ �
 localized "notation (name := modular_form.slash) f ` ∣[`:100 k `;` γ `] `:0 a :100 :=
   slash_action.map γ k a f" in modular_form
 
-localized "notation (name := modular_form.slash_complex) f ` ∣[`:100 k `]`:0 a :100 :=
+localized "notation (name := modular_form.slash_complex) f ` ∣[`:100 k `] `:0 a :100 :=
   slash_action.map ℂ k a f" in modular_form
 
-@[simp] lemma slash_action.neg_slash (β G α γ : Type*) [group G] [add_group α] [has_smul γ α]
+@[simp] lemma slash_action.neg_slash {β G α γ : Type*} [group G] [add_group α] [has_smul γ α]
   [slash_action β G α γ] (k : β) (g : G) (a : α) :
   (-a) ∣[k;γ] g = - (a ∣[k;γ] g) :=
 eq_neg_of_add_eq_zero_left $ by rw [←slash_action.add_action, add_left_neg, slash_action.zero_slash]
+
+@[simp] lemma slash_action.smul_slash_of_tower {R β G α : Type*} (γ : Type*) [group G] [add_group α]
+  [monoid γ] [mul_action γ α]
+  [has_smul R γ] [has_smul R α] [is_scalar_tower R γ α]
+  [slash_action β G α γ] (k : β) (g : G) (a : α) (r : R) :
+  (r • a) ∣[k;γ] g = r • (a ∣[k;γ] g) :=
+by rw [←smul_one_smul γ r a, slash_action.smul_action, smul_one_smul]
 
 attribute [simp]
   slash_action.zero_slash slash_action.slash_one

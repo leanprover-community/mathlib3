@@ -9,6 +9,9 @@ import category_theory.limits.opposites
 
 /-!
 # The opposite of an abelian category is abelian.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory

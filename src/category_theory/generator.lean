@@ -14,6 +14,9 @@ import data.set.opposite
 /-!
 # Separating and detecting sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 There are several non-equivalent notions of a generator of a category. Here, we consider two of
 them:
 

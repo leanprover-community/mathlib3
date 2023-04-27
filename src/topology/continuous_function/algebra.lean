@@ -743,22 +743,17 @@ end continuous_map
 instance continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
   (R : Type*) [comm_semiring R] [topological_space R] [topological_semiring R]
   [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
-begin
-  fsplit,
-  intros s₁ s₂,
+⟨λ s₁ s₂, begin
   casesI is_empty_or_nonempty α,
-  { ext f,
-    have h : f = 0,
-    { ext x', exact is_empty_elim x', },
-    subst h,
-    simp only [subalgebra.zero_mem], },
+  { haveI : subsingleton C(α, R) := fun_like.coe_injective.subsingleton,
+    exact subsingleton.elim _ _ },
   { inhabit α,
     ext f,
     have h : f = algebra_map R C(α, R) (f default),
     { ext x', simp only [mul_one, algebra.id.smul_eq_mul, algebra_map_apply], congr, },
     rw h,
     simp only [subalgebra.algebra_map_mem], },
-end
+end⟩
 
 end algebra_structure
 

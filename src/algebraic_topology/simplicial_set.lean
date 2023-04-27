@@ -8,7 +8,7 @@ import algebraic_topology.topological_simplex
 import category_theory.limits.presheaf
 import category_theory.limits.types
 import category_theory.yoneda
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 
 /-!
 A simplicial set is just a simplicial object in `Type`,

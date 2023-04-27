@@ -8,7 +8,7 @@ import category_theory.adjunction.reflective
 import topology.stone_cech
 import category_theory.monad.limits
 import topology.urysohns_lemma
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 
 /-!
 # The category of Compact Hausdorff Spaces

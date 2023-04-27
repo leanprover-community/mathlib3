@@ -1377,7 +1377,7 @@ end
 
 end measurable_embedding
 
-section countable_generate
+section countably_generated
 
 namespace measurable_space
 
@@ -1392,7 +1392,7 @@ open_locale classical
 
 /-- If a measurable space is countably generated, it admits a measurable injection
 into the Cantor space `ℕ → bool` (equipped with the product sigma algebra). -/
-theorem measurable_inj_cantor_of_countably_generated
+theorem measurable_injection_cantor_of_countably_generated
 [measurable_space α] [h : countably_generated α] [measurable_singleton_class α] :
 ∃ f : α → (ℕ → bool), measurable f ∧ function.injective f :=
 begin
@@ -1403,7 +1403,7 @@ begin
   { rw measurable_pi_iff,
     intro n,
     apply measurable_to_bool,
-    simp [preimage],
+    simp only [preimage, mem_singleton_iff, to_bool_iff, set_of_mem_eq],
     rw hb,
     apply measurable_set_generate_from,
     use n, },
@@ -1419,17 +1419,14 @@ begin
     { intro t,
       tauto },
     intros t ht,
-    simp only [mem_Union],
-    --I feel there should already be some basic logic theorem that does this,
-    --but I could not find it.
-    split; rintros ⟨n, hn⟩; use n; rw ht at *; exact hn, },
+    simp_rw [mem_Union, ht], },
   specialize this {y} measurable_set_eq,
   simpa only [mem_singleton, iff_true],
 end
 
 end measurable_space
 
-end countable_generate
+end countably_generated
 
 namespace filter
 

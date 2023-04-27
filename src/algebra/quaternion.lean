@@ -362,11 +362,17 @@ lemma conj_add : (a + b).conj = a.conj + b.conj := conj.map_add a b
 
 @[simp] lemma conj_mul : (a * b).conj = b.conj * a.conj := by ext; simp; ring_exp
 
-lemma conj_conj_mul : (a.conj * b).conj = b.conj * a :=
-by rw [conj_mul, conj_conj]
+instance : star_ring ℍ[R, c₁, c₂] :=
+{ star := conj,
+  star_involutive := conj_conj,
+  star_add := conj_add,
+  star_mul := conj_mul }
 
-lemma conj_mul_conj : (a * b.conj).conj = b * a.conj :=
-by rw [conj_mul, conj_conj]
+@[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
+
+lemma conj_conj_mul : (a.conj * b).conj = b.conj * a := star_star_mul _ _
+
+lemma conj_mul_conj : (a * b.conj).conj = b * a.conj := star_mul_star _ _
 
 lemma self_add_conj' : a + a.conj = ↑(2 * a.re) := by ext; simp [two_mul]
 
@@ -389,18 +395,16 @@ lemma commute_self_conj : commute a a.conj :=
 a.commute_conj_self.symm
 
 lemma commute_conj_conj {a b : ℍ[R, c₁, c₂]} (h : commute a b) : commute a.conj b.conj :=
-calc a.conj * b.conj = (b * a).conj    : (conj_mul b a).symm
-                 ... = (a * b).conj    : by rw h.eq
-                 ... = b.conj * a.conj : conj_mul a b
+h.star_star
 
 @[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
 
 @[simp] lemma conj_im : conj a.im = - a.im := im_conj _
 
 @[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R, c₁, c₂]) = n :=
-by rw [←coe_nat_cast, conj_coe]
+@star_nat_cast ℍ[R, c₁, c₂] _ _ n
 @[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R, c₁, c₂]) = z :=
-by rw [←coe_int_cast, conj_coe]
+@star_int_cast ℍ[R, c₁, c₂] _ _ z
 
 @[simp] lemma conj_smul [monoid S] [distrib_mul_action S R] (s : S) (a : ℍ[R, c₁, c₂]) :
   conj (s • a) = s • conj a :=
@@ -441,13 +445,6 @@ lemma conj_neg : (-a).conj = -a.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).
 
 lemma conj_sub : (a - b).conj = a.conj - b.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).map_sub a b
 
-instance : star_ring ℍ[R, c₁, c₂] :=
-{ star := conj,
-  star_involutive := conj_conj,
-  star_add := conj_add,
-  star_mul := conj_mul }
-
-@[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
 
 @[simp] lemma conj_pow (n : ℕ) : (a ^ n).conj = a.conj ^ n := star_pow _ _
 

@@ -463,14 +463,14 @@ show dist x x ≤ ε, by rw dist_self; assumption
 by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 
 /-- A ball of radius zero is the sphere of radius zero -/
-@[simp] theorem closed_ball_zero_eq_sphere_zero : closed_ball x 0 = sphere x 0 :=
+theorem closed_ball_zero_eq_sphere_zero : closed_ball x 0 = sphere x 0 :=
 set.ext $ λ _, iff.symm $ le_antisymm_iff.trans $ and_iff_left dist_nonneg
 
 @[simp] theorem closed_ball_eq_sphere_of_nonneg (hε : ε ≤ 0) : closed_ball x ε = sphere x ε :=
 begin
   obtain rfl | hr := hε.eq_or_lt,
-  { simp },
-  { simp [hr] }
+  { exact closed_ball_zero_eq_sphere_zero },
+  { rw [closed_ball_eq_empty.mpr hr, sphere_eq_empty_of_neg hr] }
 end
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=

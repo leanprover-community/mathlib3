@@ -177,10 +177,13 @@ begin
 end
 
 /-- A closed subset of a Polish space is also Polish. -/
-lemma _root_.is_closed.polish_space {α : Type*} [topological_space α] [polish_space α] {s : set α}
+lemma _root_.is_closed.polish_space [topological_space α] [polish_space α] {s : set α}
   (hs : is_closed s) :
   polish_space s :=
 (is_closed.closed_embedding_subtype_coe hs).polish_space
+
+instance [topological_space α] [polish_space α] : polish_space (univ : set α) :=
+is_closed_univ.polish_space
 
 /-- A sequence of type synonyms of a given type `α`, useful in the proof of
 `exists_polish_space_forall_le` to endow each copy with a different topology. -/

@@ -113,9 +113,10 @@ by { rw [submodule.restrict_scalars_top, eq_top_iff, ← hb, submodule.span_le],
   exact submodule.subset_span }⟩⟩
 
 /-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
-`dim_F(A) = dim_F(K) * dim_K(A)`. -/
-theorem finrank_mul_finrank [finite_dimensional F K] :
-  finrank F K * finrank K A = finrank F A :=
+`dim_F(A) = dim_F(K) * dim_K(A)`.
+
+This is `finite_dimensional.finrank_mul_finrank'` with one fewer finiteness assumption. -/
+theorem finrank_mul_finrank [finite_dimensional F K] : finrank F K * finrank K A = finrank F A :=
 begin
   by_cases hA : finite_dimensional K A,
   { resetI,

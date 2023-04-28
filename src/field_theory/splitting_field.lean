@@ -253,12 +253,19 @@ private lemma zsmul_neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f :
 nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_neg' K _ k x)
   (λ n ih K fK f, by exactI ih)
 
--- hack to fix a bug in `get_current_field`
-meta def get_current_field : tactic name :=
+-- hack to fix a bug in `get_current_field` that doesn't allow more than one level of tags
+private meta def get_current_field : tactic name :=
 do t ← tactic.get_main_tag,
    [str, field] ← pure (t.reverse.take 2),
    expr.const_name <$> tactic.resolve_name (field.update_prefix str)
-attribute [vm_override get_current_field] tactic.interactive.get_current_field
+local attribute [vm_override get_current_field] tactic.interactive.get_current_field
+
+-- hack to workaround lean#804
+private meta def unfreezingI (tac : tactic.interactive.itactic) :=
+tactic.focus1 $
+  tactic.interactive.propagate_tags tactic.unfreeze_local_instances *> tac <*
+  tactic.all_goals (tactic.interactive.propagate_tags tactic.freeze_local_instances)
+local attribute [vm_override unfreezingI] tactic.interactive.unfreezingI
 
 /-- `K` adjoined `n` roots of `f : K[X]` is an additive, commutative group.
 
@@ -281,11 +288,7 @@ begin
       zsmul_succ' := zsmul_succ n,
       zsmul_neg' := zsmul_neg n,
       .. splitting_field_aux.add_zero_class n },
-  all_goals {
-    -- can't use `unfreezingI`, workaround for lean#804
-    propagate_tags { tactic.unfreeze_local_instances },
-    induction n with n ih generalizing K,
-    all_goals { propagate_tags { tactic.freeze_local_instances } } },
+  all_goals { unfreezingI { induction n with n ih generalizing K } },
   case [add_assoc      nat.zero,
         sub_eq_add_neg nat.zero,
         add_left_neg   nat.zero,
@@ -365,11 +368,7 @@ begin
       nat_cast := splitting_field_aux.mk n ∘ (coe : ℕ → K),
       int_cast := splitting_field_aux.mk n ∘ (coe : ℤ → K),
       .. splitting_field_aux.add_comm_group n },
-  all_goals {
-    -- can't use `unfreezingI`, workaround for lean#804
-    propagate_tags { tactic.unfreeze_local_instances },
-    induction n with n ih generalizing K,
-    all_goals { propagate_tags { tactic.freeze_local_instances } } },
+  all_goals { unfreezingI { induction n with n ih generalizing K } },
   case [nat_cast_zero            nat.zero,
         nat_cast_succ            nat.zero,
         int_cast_of_nat          nat.zero,
@@ -441,11 +440,7 @@ begin
     zpow := splitting_field_aux.zpow n,
     rat_cast := splitting_field_aux.mk n ∘ (coe : ℚ → K),
     .. splitting_field_aux.comm_ring n },
-  all_goals {
-    -- can't use `unfreezingI`, workaround for lean#804
-    propagate_tags { tactic.unfreeze_local_instances },
-    induction n with n ih generalizing K,
-    all_goals { propagate_tags { tactic.freeze_local_instances } } },
+  all_goals { unfreezingI { induction n with n ih generalizing K } },
   case [div_eq_mul_inv nat.zero,
         zpow_zero'     nat.zero,
         zpow_succ'     nat.zero,

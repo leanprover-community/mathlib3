@@ -30,7 +30,8 @@ inner product space, Hilbert space, norm
 - https://math.dartmouth.edu/archive/m113w10/public_html/jordan-vneumann-thm.pdf
 -/
 
-variables {𝕜 E : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {𝕜 E α : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
+  [topological_space α]
 
 local notation `𝓚` := algebra_map ℝ 𝕜
 open is_R_or_C
@@ -44,58 +45,50 @@ private noncomputable def inner_ (x y : E) : 𝕜 :=
           + (I:𝕜) * (𝓚 ‖(I:𝕜) • x + y‖) * (𝓚 ‖(I:𝕜) • x + y‖)
           - (I:𝕜) * (𝓚 ‖(I:𝕜) • x - y‖) * (𝓚 ‖(I:𝕜) • x - y‖))
 
+variables (E)
+
+/-- Predicate for the parallelogram identity to hold. -/
+def parallelogram_identity : Prop :=
+∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)
+
 variables {𝕜}
 
-lemma inner_.add_left_aux1
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (x y z : E) :
+/-- Auxiliary definition for the `add_left` property -/
+private def inner_prop (r : 𝕜) : Prop := ∀ x y : E, inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y
+
+variables {E}
+
+private lemma parallelogram_identity.add_left_aux1 (h : parallelogram_identity E) (x y z : E) :
   ‖x + y + z‖ * ‖x + y + z‖ =
     (‖2 • x + y‖ * ‖2 • x + y‖ + ‖2 • z + y‖ * ‖2 • z + y‖) / 2 - ‖x - z‖ * ‖x - z‖ :=
 begin
-  apply eq_sub_of_add_eq,
-  rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
-  symmetry,
-  have h₀ := h (x + y + z) (x - z),
-  convert h₀ using 4; { rw two_smul, abel }
+  rw [eq_sub_iff_add_eq, eq_div_iff (two_ne_zero' ℝ), mul_comm _ (2 : ℝ), eq_comm],
+  convert h (x + y + z) (x - z) using 4; { rw two_smul, abel }
 end
 
-lemma inner_.add_left_aux2
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (x y z : E) :
+private lemma parallelogram_identity.add_left_aux2 (h : parallelogram_identity E) (x y z : E) :
   ‖x + y - z‖ * ‖x + y - z‖ =
     (‖2 • x + y‖ * ‖2 • x + y‖ + ‖y - 2 • z‖ * ‖y - 2 • z‖) / 2 - ‖x + z‖ * ‖x + z‖ :=
 begin
-  apply eq_sub_of_add_eq,
-  rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
-  symmetry,
+  rw [eq_sub_iff_add_eq, eq_div_iff (two_ne_zero' ℝ), mul_comm _ (2 : ℝ), eq_comm],
   have h₀ := h (x + y - z) (x + z),
   convert h₀ using 4; { rw two_smul, abel }
 end
 
-lemma inner_.add_left_aux2'
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (x y z : E) :
+private lemma parallelogram_identity.add_left_aux2' (h : parallelogram_identity E) (x y z : E) :
   ‖x + y + z‖ * ‖x + y + z‖ - ‖x + y - z‖ * ‖x + y - z‖ =
   ‖x + z‖ * ‖x + z‖ - ‖x - z‖ * ‖x - z‖ +
       (‖2 • z + y‖ * ‖2 • z + y‖ - ‖y - 2 • z‖ * ‖y - 2 • z‖) / 2 :=
-begin
-  rw [inner_.add_left_aux1 h, inner_.add_left_aux2 h],
-  ring,
-end
+by { rw [h.add_left_aux1 , h.add_left_aux2], ring }
 
-lemma inner_.add_left_aux3
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (y z : E) :
+private lemma parallelogram_identity.add_left_aux3 (h : parallelogram_identity E) (y z : E) :
   ‖2 • z + y‖ * ‖2 • z + y‖ = 2 * (‖y + z‖ * ‖y + z‖ + ‖z‖ * ‖z‖) - ‖y‖ * ‖y‖ :=
 begin
   apply eq_sub_of_add_eq,
-  have h₀ := h (y + z) z,
-  convert h₀ using 4; { try { rw two_smul }, abel }
+  convert h (y + z) z using 4; { try { rw two_smul }, abel }
 end
 
-lemma inner_.add_left_aux4
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (y z : E) :
+private lemma parallelogram_identity.add_left_aux4 (h : parallelogram_identity E) (y z : E) :
   ‖y - 2 • z‖ * ‖y - 2 • z‖ = 2 * (‖y - z‖ * ‖y - z‖ + ‖z‖ * ‖z‖) - ‖y‖ * ‖y‖ :=
 begin
   apply eq_sub_of_add_eq,
@@ -104,49 +97,34 @@ begin
   convert h₀ using 4; { try { rw two_smul }, abel }
 end
 
-lemma inner_.add_left_aux4'
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (y z : E) :
+private lemma parallelogram_identity.add_left_aux4' (h : parallelogram_identity E) (y z : E) :
   (‖2 • z + y‖ * ‖2 • z + y‖ - ‖y - 2 • z‖ * ‖y - 2 • z‖) / 2 =
-  (‖y + z‖ * ‖y + z‖) - (‖y - z‖ * ‖y - z‖) :=
-begin
-  rw [inner_.add_left_aux3 h, inner_.add_left_aux4 h],
-  ring,
-end
+    (‖y + z‖ * ‖y + z‖) - (‖y - z‖ * ‖y - z‖) :=
+by { rw [h.add_left_aux3 , h.add_left_aux4], ring }
 
-lemma inner_.add_left_aux5
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (x y z : E) :
+lemma parallelogram_identity.add_left_aux5 (h : parallelogram_identity E) (x y z : E) :
   ‖(I : 𝕜) • (x + y) + z‖ * ‖(I : 𝕜) • (x + y) + z‖ =
     (‖(I : 𝕜) • (2 • x + y)‖ * ‖(I : 𝕜) • (2 • x + y)‖ +
       ‖(I : 𝕜) • y + 2 • z‖ * ‖(I : 𝕜) • y + 2 • z‖) / 2 -
     ‖(I : 𝕜) • x - z‖ * ‖(I : 𝕜) • x - z‖ :=
 begin
-  apply eq_sub_of_add_eq,
-  rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
-  symmetry,
+  rw [eq_sub_iff_add_eq, eq_div_iff (two_ne_zero' ℝ), mul_comm _ (2 : ℝ), eq_comm],
   have h₀ := h ((I : 𝕜) • (x + y) + z) ((I : 𝕜) • x - z),
   convert h₀ using 4; { try { simp only [two_smul, smul_add] }, abel }
 end
 
-lemma inner_.add_left_aux6
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (x y z : E) :
+lemma parallelogram_identity.add_left_aux6 (h : parallelogram_identity E) (x y z : E) :
   ‖(I : 𝕜) • (x + y) - z‖ * ‖(I : 𝕜) • (x + y) - z‖ =
     (‖(I : 𝕜) • (2 • x + y)‖ * ‖(I : 𝕜) • (2 • x + y)‖ +
       ‖(I : 𝕜) • y - 2 • z‖ * ‖(I : 𝕜) • y - 2 • z‖) / 2 -
     ‖(I : 𝕜) • x + z‖ * ‖(I : 𝕜) • x + z‖ :=
 begin
-  apply eq_sub_of_add_eq,
-  rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
-  symmetry,
+  rw [eq_sub_iff_add_eq, eq_div_iff (two_ne_zero' ℝ), mul_comm _ (2 : ℝ), eq_comm],
   have h₀ := h ((I : 𝕜) • (x + y) - z) ((I : 𝕜) • x + z),
   convert h₀ using 4; { try { simp only [two_smul, smul_add] }, abel }
 end
 
-lemma inner_.add_left_aux7
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (y z : E) :
+lemma parallelogram_identity.add_left_aux7 (h : parallelogram_identity E) (y z : E) :
   ‖(I : 𝕜) • y + 2 • z‖ * ‖(I : 𝕜) • y + 2 • z‖ =
     2 * (‖(I : 𝕜) • y + z‖ * ‖(I : 𝕜) • y + z‖ + ‖z‖ * ‖z‖) -
     ‖(I : 𝕜) • y‖ * ‖(I : 𝕜) • y‖ :=
@@ -156,9 +134,7 @@ begin
   convert h₀ using 4; { try { simp only [two_smul, smul_add] }, abel }
 end
 
-lemma inner_.add_left_aux8
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (y z : E) :
+lemma parallelogram_identity.add_left_aux8 (h : parallelogram_identity E) (y z : E) :
   ‖(I : 𝕜) • y - 2 • z‖ * ‖(I : 𝕜) • y - 2 • z‖ =
     2 * (‖(I : 𝕜) • y - z‖ * ‖(I : 𝕜) • y - z‖ + ‖z‖ * ‖z‖) -
     ‖(I : 𝕜) • y‖ * ‖(I : 𝕜) • y‖ :=
@@ -169,54 +145,36 @@ begin
   convert h₀ using 4; { try { simp only [two_smul, smul_add] }, abel }
 end
 
-lemma inner_.add_left
-  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (x y z : E) :
+lemma parallelogram_identity.add_left (h : parallelogram_identity E) (x y z : E) :
   inner_ 𝕜 (x + y) z = inner_ 𝕜 x z + inner_ 𝕜 y z :=
 begin
-  simp only [inner_],
-  rw ←mul_add,
+  simp only [inner_, ←mul_add],
   congr,
   simp only [mul_assoc, ←map_mul, add_sub_assoc, ←mul_sub, ←map_sub],
   rw add_add_add_comm,
   simp only [←map_add, ←mul_add],
   congr,
-  { rw [←add_sub_assoc, inner_.add_left_aux2' h, inner_.add_left_aux4' h] },
-  { rw [inner_.add_left_aux5 h, inner_.add_left_aux6 h,
-      inner_.add_left_aux7 h, inner_.add_left_aux8 h],
+  { rw [←add_sub_assoc, h.add_left_aux2', h.add_left_aux4'] },
+  { rw [h.add_left_aux5, h.add_left_aux6, h.add_left_aux7, h.add_left_aux8],
     simp only [map_sub, map_mul, map_add, div_eq_mul_inv],
-    ring },
+    ring }
 end
 
-variables (𝕜 E)
-
-/-- Auxiliary definition for the `add_left` property -/
-private def inner_prop (r : 𝕜) : Prop := ∀ x y : E, inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y
-
-variables {𝕜 E}
-
-lemma inner_.nat
-  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (r : ℕ) (x y : E) :
-  inner_ 𝕜 ((r : 𝕜) • x) y = (r : 𝕜) * inner_ 𝕜 x y :=
+lemma parallelogram_identity.nat (h : parallelogram_identity E) (n : ℕ) (x y : E) :
+  inner_ 𝕜 ((n : 𝕜) • x) y = (n : 𝕜) * inner_ 𝕜 x y :=
 begin
-  induction r with r ih,
+  induction n with n ih,
   { simp only [inner_, nat.nat_zero_eq_zero, zero_sub, nat.cast_zero, zero_mul, eq_self_iff_true,
       zero_smul, zero_add, mul_zero, sub_self, norm_neg, smul_zero], },
   { simp only [nat.cast_succ, add_smul, one_smul],
-    rw [inner_.add_left h, ih, add_mul, one_mul] },
+    rw [parallelogram_identity.add_left h, ih, add_mul, one_mul] }
 end
 
-lemma inner_.nat_prop (r : ℕ)
-  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
-  inner_prop 𝕜 E r :=
-begin
-  intros x y,
-  simp only [map_nat_cast],
-  exact inner_.nat h r x y
-end
+private lemma parallelogram_identity.nat_prop (h : parallelogram_identity E) (r : ℕ) :
+  inner_prop E (r : 𝕜) :=
+λ x y, by { simp only [map_nat_cast], exact h.nat r x y }
 
-lemma inner_.neg_one : inner_prop 𝕜 E (-1 : ℤ) :=
+lemma inner_prop_neg_one : inner_prop E ((-1 : ℤ) : 𝕜) :=
 begin
   intros x y,
   simp only [inner_, neg_mul_eq_neg_mul, one_mul, int.cast_one, one_smul, ring_hom.map_one,
@@ -235,44 +193,41 @@ begin
   ring,
 end
 
-lemma inner_.int_prop (r : ℤ)
-  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
-  inner_prop 𝕜 E r :=
+lemma parallelogram_identity.int_prop (h : parallelogram_identity E) (n : ℤ) :
+  inner_prop E (n : 𝕜) :=
 begin
   intros x y,
-  rw ←r.sign_mul_nat_abs,
+  rw ←n.sign_mul_nat_abs,
   simp only [int.cast_coe_nat, map_nat_cast, map_int_cast, int.cast_mul, map_mul, mul_smul],
-  obtain hr|rfl|hr := lt_trichotomy r 0,
-  { rw [int.sign_eq_neg_one_of_neg hr, inner_.neg_one ((r.nat_abs : 𝕜) • x) y, inner_.nat h],
+  obtain hn | rfl | hn := lt_trichotomy n 0,
+  { rw [int.sign_eq_neg_one_of_neg hn, inner_prop_neg_one ((n.nat_abs : 𝕜) • x), h.nat],
     simp only [map_neg, neg_mul, one_mul, mul_eq_mul_left_iff, true_or,
       int.nat_abs_eq_zero, eq_self_iff_true, int.cast_one, map_one, neg_inj, nat.cast_eq_zero,
       int.cast_neg] },
   { simp only [inner_, int.cast_zero, zero_sub, nat.cast_zero, zero_mul, eq_self_iff_true,
       int.sign_zero, zero_smul, zero_add, mul_zero, smul_zero, sub_self, norm_neg,
       int.nat_abs_zero] },
-  { rw int.sign_eq_one_of_pos hr,
+  { rw int.sign_eq_one_of_pos hn,
     simp only [one_mul, mul_eq_mul_left_iff, true_or, int.nat_abs_eq_zero, eq_self_iff_true,
-      int.cast_one, one_smul, nat.cast_eq_zero, inner_.nat h] }
+      int.cast_one, one_smul, nat.cast_eq_zero, h.nat] }
 end
 
-lemma inner_.rat_prop (r : ℚ)
-  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
-  inner_prop 𝕜 E r :=
+lemma parallelogram_identity.rat_prop (h : parallelogram_identity E) (r : ℚ) :
+  inner_prop E (r : 𝕜) :=
 begin
   intros x y,
   have : (r.denom : 𝕜) ≠ 0,
   { haveI : char_zero 𝕜 := is_R_or_C.char_zero_R_or_C,
     exact_mod_cast r.pos.ne' },
-  rw [←r.num_div_denom, ←mul_right_inj' this, ←inner_.nat h r.denom, smul_smul, rat.cast_div],
+  rw [←r.num_div_denom, ←mul_right_inj' this, ←h.nat r.denom, smul_smul, rat.cast_div],
   simp only [map_nat_cast, rat.cast_coe_nat, map_int_cast, rat.cast_coe_int, map_div₀],
-  rw [←mul_assoc, mul_div_cancel' _ this, inner_.int_prop _ h, map_int_cast],
+  rw [←mul_assoc, mul_div_cancel' _ this, h.int_prop _, map_int_cast],
 end
 
-lemma inner_.continuous {α} [topological_space α] {f : α → E} {g : α → E}
-  (hf : continuous f) (hg : continuous g) :
+lemma continuous.inner_ {f : α → E} {g : α → E} (hf : continuous f) (hg : continuous g) :
   continuous (λ x, inner_ 𝕜 (f x) (g x)) :=
 begin
-  simp only [inner_ ],
+  simp only [inner_],
   refine continuous_const.mul (continuous.sub (continuous.add (continuous.sub _ _) _) _),
   { refine continuous.mul _ _;
     { apply (continuous_algebra_map ℝ 𝕜).comp,
@@ -292,27 +247,22 @@ begin
       refine continuous.sub (hf.const_smul _) hg } },
 end
 
-lemma inner_.real_prop (r : ℝ)
-  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
-  inner_prop 𝕜 E r :=
+lemma parallelogram_identity.real_prop (h : parallelogram_identity E) (r : ℝ) :
+  inner_prop E (r : 𝕜) :=
 begin
   intros x y,
   revert r,
   rw ←function.funext_iff,
-  refine rat.dense_embedding_coe_real.dense.equalizer _ _ _,
-  { exact inner_.continuous (continuous_of_real.smul continuous_const) continuous_const },
-  { exact (continuous_conj.comp continuous_of_real).mul
-      (inner_.continuous continuous_const continuous_const) },
-  funext X,
-  simp only [function.comp_app, is_R_or_C.of_real_rat_cast, inner_.rat_prop _ h _ _],
+  refine rat.dense_embedding_coe_real.dense.equalizer _ _ (funext $ λ X, _),
+  { exact (continuous_of_real.smul continuous_const).inner_ continuous_const },
+  { exact (continuous_conj.comp continuous_of_real).mul continuous_const },
+  { simp only [function.comp_app, is_R_or_C.of_real_rat_cast, h.rat_prop _ _] }
 end
 
-lemma inner_.I_prop
-  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
-  inner_prop 𝕜 E (I : 𝕜 ) :=
+lemma parallelogram_identity.I_prop (h : parallelogram_identity E) : inner_prop E (I : 𝕜) :=
 begin
   by_cases hI : (I : 𝕜) = 0,
-  { rw [hI, ←nat.cast_zero], apply inner_.nat_prop _ h },
+  { rw [hI, ←nat.cast_zero], exact h.nat_prop _  },
   intros x y,
   have hI' : (-I : 𝕜) * I = 1,
   { rw [←inv_I, inv_mul_cancel hI], },
@@ -332,13 +282,11 @@ begin
   abel
 end
 
-lemma inner_.smul_left
-  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
-  (x y : E) (r : 𝕜) :
-  inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y :=
+lemma parallelogram_identity.inner_prop (h : parallelogram_identity E) (r : 𝕜) : inner_prop E r :=
 begin
-  rw [←re_add_im r, add_smul, inner_.add_left h, inner_.real_prop _ h, ←smul_smul,
-    inner_.real_prop _ h, inner_.I_prop h, map_add, map_mul, conj_of_real, conj_of_real, conj_I],
+  intros x y,
+  rw [←re_add_im r, add_smul, h.add_left, h.real_prop _, ←smul_smul, h.real_prop _, h.I_prop,
+    map_add, map_mul, conj_of_real, conj_of_real, conj_I],
   ring,
 end
 
@@ -362,7 +310,7 @@ begin
   ring,
 end
 
-lemma inner_.conj_sym (x y : E) : conj (inner_ 𝕜 y x) = inner_ 𝕜 x y :=
+lemma inner_.conj_symm (x y : E) : conj (inner_ 𝕜 y x) = inner_ 𝕜 x y :=
 begin
   simp only [inner_],
   have h4 : conj (4⁻¹ : 𝕜) = 4⁻¹,
@@ -386,13 +334,13 @@ begin
   simp only [neg_mul, sub_eq_add_neg, neg_neg],
 end
 
-/-- Fréchet–von Neumann–Jordan theorm. A normed space `E` whose norm satisfies the parallelogram
-identity can be given a compatible inner product. -/
+/-- **Fréchet–von Neumann–Jordan Theorem**. A normed space `E` whose norm satisfies the
+parallelogram identity can be given a compatible inner product. -/
 noncomputable def inner_product_space.of_norm
   (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
   inner_product_space 𝕜 E :=
 { inner := inner_ 𝕜,
   norm_sq_eq_inner := inner_.norm_sq,
-  conj_sym := inner_.conj_sym,
-  add_left := inner_.add_left h,
-  smul_left := inner_.smul_left h }
+  conj_symm := inner_.conj_symm,
+  add_left := parallelogram_identity.add_left h,
+  smul_left := λ _ _ _, parallelogram_identity.inner_prop h _ _ _ }

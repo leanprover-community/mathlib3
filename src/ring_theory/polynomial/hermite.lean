@@ -31,7 +31,9 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
 
 ## Implementation details
 
-We proceed by defining an auxiliary function `polynomial.hermite_gauss n` directly in terms of the `n`th derivative of a gaussian function. We show that it satisfies the same recurrence relation as the polynomial definition of `hermite n`, and hence that the two definitions are equivalent. This
+We proceed by defining an auxiliary function `polynomial.hermite_gauss n` directly in terms of the
+`n`th derivative of a gaussian function. We show that it satisfies the same recurrence relation as
+the polynomial definition of `hermite n`, and hence that the two definitions are equivalent. This
 definition is not intended to be used outside of this file.
 
 ## References

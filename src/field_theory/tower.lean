@@ -16,8 +16,8 @@ In this file we prove the tower law for arbitrary extensions and finite extensio
 Suppose `L` is a field extension of `K` and `K` is a field extension of `F`.
 Then `[L:F] = [L:K] [K:F]` where `[E₁:E₂]` means the `E₂`-dimension of `E₁`.
 
-In fact we generalize it to vector spaces, where `L` is not necessarily a field,
-but just a vector space over `K`.
+In fact we generalize it to rings and modules, where `L` is not necessarily a field,
+but just a free module over `K`.
 
 ## Implementation notes
 
@@ -45,9 +45,9 @@ variables [comm_ring F] [ring K] [add_comm_group A]
 variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
 variables [strong_rank_condition F] [strong_rank_condition K] [module.free F K] [module.free K A]
 
-/-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
-`dim_F(A) = dim_F(K) * dim_K(A)`. -/
-theorem rank_mul_rank' :
+/-- Tower law: if `A` is a `K`-module and `K` is an extension of `F` then
+$\operatorname{rank}_F(A) = \operatorname{rank}_F(K) * \operatorname{rank}_K(A)$. -/
+theorem lift_rank_mul_lift_rank :
   (cardinal.lift.{w} (module.rank F K) * cardinal.lift.{v} (module.rank K A)) =
   cardinal.lift.{v} (module.rank F A) :=
 begin
@@ -59,19 +59,19 @@ begin
       lift_lift, lift_lift, lift_lift, lift_lift, lift_umax]
 end
 
-/-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
-`dim_F(A) = dim_F(K) * dim_K(A)`.
+/-- Tower law: if `A` is a `K`-module and `K` is an extension of `F` then
+$\operatorname{rank}_F(A) = \operatorname{rank}_F(K) * \operatorname{rank}_K(A)$.
 
-This version has `K` and `A` in the same universe. -/
+This is a simpler version of `lift_rank_mul_lift_rank` with `K` and `A` in the same universe. -/
 theorem rank_mul_rank (F : Type u) (K A : Type v)
   [comm_ring F] [ring K] [add_comm_group A]
   [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
   [strong_rank_condition F] [strong_rank_condition K] [module.free F K] [module.free K A] :
   module.rank F K * module.rank K A = module.rank F A :=
-by convert rank_mul_rank' F K A; rw lift_id
+by convert lift_rank_mul_lift_rank F K A; rw lift_id
 
-/-- Tower law: if `A` is a `K`-algebra and `K` is an extension of `F` then
-`dim_F(A) = dim_F(K) * dim_K(A)`. -/
+/-- Tower law: if `A` is a `K`-module and `K` is an extension of `F` then
+$\operatorname{rank}_F(A) = \operatorname{rank}_F(K) * \operatorname{rank}_K(A)$. -/
 theorem finite_dimensional.finrank_mul_finrank'
   [nontrivial K] [module.finite F K] [module.finite K A] :
   finrank F K * finrank K A = finrank F A :=
@@ -114,7 +114,7 @@ let ⟨⟨b, hb⟩⟩ := hf in ⟨⟨b, submodule.restrict_scalars_injective F _
 by { rw [submodule.restrict_scalars_top, eq_top_iff, ← hb, submodule.span_le],
   exact submodule.subset_span }⟩⟩
 
-/-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
+/-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`.
 
 This is `finite_dimensional.finrank_mul_finrank'` with one fewer finiteness assumption. -/

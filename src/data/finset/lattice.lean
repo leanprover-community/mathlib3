@@ -1468,6 +1468,14 @@ lemma supr_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨆ x ∈ s.image f, g x) = (⨆ y ∈ s, g (f y)) :=
 by rw [← supr_coe, coe_image, supr_image, supr_coe]
 
+lemma sup_finset_image {β γ : Type*} [semilattice_sup β] [order_bot β]
+  (f : γ → α) (g : α → β) (s : finset γ) :
+  (s.image f).sup g = s.sup (g ∘ f) :=
+begin
+  classical,
+  induction s using finset.induction_on with a s' ha ih; simp *
+end
+
 lemma infi_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨅ x ∈ s.image f, g x) = (⨅ y ∈ s, g (f y)) :=
 by rw [← infi_coe, coe_image, infi_image, infi_coe]

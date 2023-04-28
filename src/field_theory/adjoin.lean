@@ -467,7 +467,7 @@ begin
       (le_supr_of_le x (le_supr_of_le hx le_rfl)))))
       (supr_le (λ x, supr_le (λ hx, adjoin_simple_le_iff.mpr (subset_adjoin F S hx)))),
   rw [key, ←finset.sup_eq_supr],
-  exact finset_sup_compact_of_compact S (λ x hx, adjoin_simple_is_compact_element x),
+  exact is_compact_element_finset_sup S (λ x hx, adjoin_simple_is_compact_element x),
 end
 
 /-- Adjoining a finite subset is compact in the lattice of intermediate fields. -/

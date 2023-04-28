@@ -169,13 +169,13 @@ begin
   exact hxk.ne (hxk.le.antisymm hkx),
 end
 
-lemma finset_sup_compact_of_compact {α β : Type*} [complete_lattice α] {f : β → α}
+lemma is_compact_element_finset_sup {α β : Type*} [complete_lattice α] {f : β → α}
   (s : finset β) (h : ∀ x ∈ s, is_compact_element (f x)) : is_compact_element (s.sup f) :=
 begin
   classical,
   rw is_compact_element_iff_le_of_directed_Sup_le,
   intros d hemp hdir hsup,
-  change f with id ∘ f, rw ←finset.sup_image,
+  change f with id ∘ f, rw ←finset.sup_finset_image,
   apply finset.sup_le_of_le_directed d hemp hdir,
   rintros x hx,
   obtain ⟨p, ⟨hps, rfl⟩⟩ := finset.mem_image.mp hx,

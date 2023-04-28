@@ -589,7 +589,7 @@ begin
   rw span_eq_supr_of_singleton_spans,
   simp only [finset.mem_coe],
   rw ←finset.sup_eq_supr,
-  exact complete_lattice.finset_sup_compact_of_compact S
+  exact complete_lattice.is_compact_element_finset_sup S
     (λ x _, singleton_span_is_compact_element x),
 end
 

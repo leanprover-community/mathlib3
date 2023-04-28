@@ -18,9 +18,7 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
 
 * `polynomial.hermite n`: the `n`th probabilist's Hermite polynomial,
   defined recursively as a `polynomial ℤ`
-* `polynomial.hermite_gauss n`: the `n`th probabilist's Hermite polynomial,
-  defined as a real function involving the `n`th derivative of a gaussian
-  function. The `n`th derivative uses `nat.iterate`.
+* `gaussian`: the real Gaussian function
 
 ## Results
 
@@ -28,8 +26,13 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
   zero.
 * `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
 * `polynomial.hermite_eq_gauss`: the recursive polynomial definition is equivalent to the
-  definition involving gaussian functions. That is, for all `n` and `x`,
-  `(hermite n).eval x = hermite_gauss n x`
+  definition of the Hermite polynomial as the polynomial factor occurring in the `n`-th derivative
+  of a gaussian. That is, for all `n` and `x`,
+
+## Implementation details
+
+We proceed by defining an auxiliary function `polynomial.hermite_gauss n` directly in terms of the `n`th derivative of a gaussian function. We show that it satisfies the same recurrence relation as the polynomial definition of `hermite n`, and hence that the two definitions are equivalent. This
+definition is not intended to be used outside of this file.
 
 ## References
 
@@ -132,23 +135,25 @@ begin
 end
 
 end coeff
+end polynomial
 
 /-! ### Lemmas about `polynomial.hermite_gauss` -/
 
 section gaussian
 
-abbreviation gaussian : ℝ → ℝ := λ x, real.exp (-(x^2 / 2))
+def gaussian : ℝ → ℝ := λ x, real.exp (-(x^2 / 2))
 
-abbreviation inv_gaussian : ℝ → ℝ := λ x, real.exp (x^2 / 2)
+lemma inv_gaussian_eq : gaussian⁻¹ = λ x, real.exp (x^2 / 2) :=
+by { ext, simp [gaussian, real.exp_neg] }
 
-lemma inv_gaussian_mul_gaussian (x : ℝ) : inv_gaussian x * gaussian x = 1 :=
-by rw [← real.exp_add, add_neg_self, real.exp_zero]
+lemma inv_gaussian_mul_gaussian (x : ℝ) : gaussian⁻¹ x * gaussian x = 1 :=
+by rw [inv_gaussian_eq, gaussian, ← real.exp_add, add_neg_self, real.exp_zero]
 
 lemma deriv_gaussian (x : ℝ) : deriv gaussian x = -x * gaussian x :=
-by simp [mul_comm]
+by simp [gaussian, mul_comm]
 
-lemma deriv_inv_gaussian (x : ℝ) : deriv inv_gaussian x = x * inv_gaussian x :=
-by simp [mul_comm]
+lemma deriv_inv_gaussian (x : ℝ) : deriv gaussian⁻¹ x = x * gaussian⁻¹ x :=
+by simp [inv_gaussian_eq, mul_comm]
 
 lemma cont_diff_gaussian : cont_diff ℝ ⊤ gaussian :=
 ((cont_diff_id.pow 2).div_const 2).neg.exp
@@ -159,10 +164,10 @@ lemma cont_diff.iterated_deriv :
 | (n+1) f hf := cont_diff.iterated_deriv n (deriv f) (cont_diff_top_iff_deriv.mp hf).2
 
 def hermite_gauss (n : ℕ) : ℝ → ℝ :=
-λ x, (-1)^n * (inv_gaussian x) * (deriv^[n] gaussian x)
+λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x)
 
 lemma hermite_gauss_def (n : ℕ) :
-hermite_gauss n = λ x, (-1)^n * (inv_gaussian x) * (deriv^[n] gaussian x) := rfl
+hermite_gauss n = λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x) := rfl
 
 lemma hermite_gauss_succ (n : ℕ) : hermite_gauss (n+1)
 = id * (hermite_gauss n) - deriv (hermite_gauss n):=
@@ -172,17 +177,19 @@ begin
              id.def, pi.mul_apply, pi.sub_apply, pow_succ],
   rw [deriv_mul, deriv_const_mul, deriv_inv_gaussian],
   ring,
-  { simp },
-  { simp },
+  { simp [inv_gaussian_eq] },
+  { simp [inv_gaussian_eq] },
   { apply (cont_diff_top_iff_deriv.mp (cont_diff.iterated_deriv _ _ cont_diff_gaussian)).1 }
 end
 
+namespace polynomial
+
 lemma hermite_eq_gauss (n : ℕ) :
 (λ x, eval x (map (algebra_map ℤ ℝ) (hermite n))) =
-λ x, (-1)^n * (inv_gaussian x) * (deriv^[n] gaussian x) :=
+λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x) :=
 begin
   induction n with n ih,
-  { simp [inv_gaussian_mul_gaussian] },
+  { simp [-pi.inv_apply, inv_gaussian_mul_gaussian] },
   { rw [← hermite_gauss_def, hermite_gauss_succ, hermite_succ, hermite_gauss_def, ← ih],
     ext,
     simp },
@@ -190,9 +197,8 @@ end
 
 lemma hermite_eq_gauss_apply :
   ∀ (n : ℕ) (x : ℝ), eval x (map (algebra_map ℤ ℝ) (hermite n)) =
-    (-1)^n * (inv_gaussian x) * (deriv^[n] gaussian x) :=
+    (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x) :=
 λ n x, congr_fun (hermite_eq_gauss n) x
 
-end gaussian
-
 end polynomial
+end gaussian

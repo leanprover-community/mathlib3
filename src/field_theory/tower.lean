@@ -6,8 +6,8 @@ Authors: Kenny Lau
 
 import data.nat.prime
 import ring_theory.algebra_tower
-import linear_algebra.matrix.finite_dimensional
-import linear_algebra.matrix.to_lin
+import linear_algebra.finite_dimensional
+import linear_algebra.free_module.finite.matrix
 
 /-!
 # Tower of field extensions

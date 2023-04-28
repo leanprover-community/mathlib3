@@ -32,8 +32,7 @@ noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
-@[simp] lemma multiset.to_finset_nonempty (s : multiset α) : s.to_finset.nonempty ↔ s ≠ 0 :=
-by simp [finset.nonempty_iff_ne_empty]
+#check list.to_finset_nil
 
 @[simp] lemma list.to_finset_nonempty (l : list α) : l.to_finset.nonempty ↔ ¬ l.empty :=
 by simp [finset.nonempty_iff_ne_empty, list.empty_iff_eq_nil]

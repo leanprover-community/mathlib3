@@ -2154,6 +2154,9 @@ by ext; simp
 @[simp] theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
 finset.val_inj.symm.trans multiset.dedup_eq_zero
 
+@[simp] lemma to_finset_nonempty : s.to_finset.nonempty ↔ s ≠ 0 :=
+by simp only [to_finset_eq_empty, ne.def, finset.nonempty_iff_ne_empty]
+
 @[simp] lemma to_finset_subset : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 

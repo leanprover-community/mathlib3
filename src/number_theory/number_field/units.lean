@@ -35,50 +35,6 @@ end rat
 
 variables (K : Type*) [field K]
 
-namespace number_field.units
-
-/-- The `monoid_hom` from the group of units `(𝓞 K)ˣ` to the field `K`. -/
-def coe_to_field : (𝓞 K)ˣ →* K := (coe_hom K).comp  (map (algebra_map (𝓞 K) K))
-
-lemma coe_to_field.injective : function.injective (coe_to_field K) :=
-λ _ _ h, eq_iff.mp (no_zero_smul_divisors.algebra_map_injective ↥(𝓞 K) K h)
-
-/-- There is a natural coercion from `(𝓞 K)ˣ` to `(𝓞 K)` and then from `(𝓞 K)` to `K` but it is
-useful to also have a direct one from `(𝓞 K)ˣ` to `K`. -/
-instance ring_of_integers.units.has_coe : has_coe (𝓞 K)ˣ K := ⟨coe_to_field K⟩
-
-section coe_to_field
-
-variable {K}
-
-@[simp]
-lemma coe_to_field.ext {x y : (𝓞 K)ˣ} : (x : K) = (y : K) ↔ x = y :=
-(coe_to_field.injective K).eq_iff
-
-@[simp]
-lemma coe_to_field.map_inv {x : (𝓞 K)ˣ} : ((x⁻¹ : (𝓞 K)ˣ) : K) = (x : K)⁻¹ :=
-map_inv (coe_to_field K) x
-
-@[simp]
-lemma coe_to_field.map_pow {x : (𝓞 K)ˣ} {n : ℕ} : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
-map_pow (coe_to_field K) x n
-
-@[simp]
-lemma coe_to_field.map_zpow {x : (𝓞 K)ˣ} {n : ℤ} : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
-map_zpow (coe_to_field K) x n
-
-@[simp]
-lemma coe_to_field.map_mul {x y : (𝓞 K)ˣ} : ((x * y : (𝓞 K)ˣ) : K) = (x : K) * (y : K) := rfl
-
-@[simp]
-lemma coe_to_field.map_one : ((1 : (𝓞 K)ˣ) : K) = (1 : K) := rfl
-
-@[simp]
-lemma coe_to_field.ne_zero {x : (𝓞 K)ˣ} : (x : K) ≠ 0 :=
-subtype.coe_injective.ne_iff.2 (units.ne_zero x)
-
-end coe_to_field
-
 section is_unit
 
 local attribute [instance] number_field.ring_of_integers_algebra
@@ -108,13 +64,47 @@ begin
     apply subtype.coe_injective,
     rw [ring_of_integers.coe_norm_algebra_map, algebra.norm_algebra_map,
       subsemiring_class.coe_pow], },
-  { rw [ring_of_integers.norm_apply_coe, ring_of_integers.norm_apply_coe,
-      show (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K), by refl,
-      ← algebra.norm_norm ℚ K (algebra_map K L x : L), algebra.norm_algebra_map, map_pow, abs_pow],
+  { simp_rw ring_of_integers.norm_apply_coe,
+    rw [show (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K), by refl],
+    rw [← algebra.norm_norm ℚ K (algebra_map K L x : L), algebra.norm_algebra_map, map_pow, abs_pow],
     nth_rewrite 1 ← one_pow (finrank K L),
     rw pow_left_inj (abs_nonneg _ : 0 ≤ |(algebra.norm ℚ) ↑x|) zero_le_one
       (@finrank_pos K L _ _ _ _ _), },
 end
+
+namespace number_field.units
+
+open number_field number_field.infinite_place
+
+lemma ext {x y : (𝓞 K)ˣ} : x = y ↔ (x : K) = (y : K) := sorry
+
+@[simp]
+lemma coe_pow {x : (𝓞 K)ˣ} {n : ℕ} : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n := sorry
+
+@[simp]
+lemma coe_one : ((1 : (𝓞 K)ˣ) : K) = (1 : K) := rfl
+
+section torsion
+
+/-- The torsion subgroup of the group of units. -/
+def torsion : subgroup (𝓞 K)ˣ := comm_group.torsion (𝓞 K)ˣ
+
+lemma mem_torsion (x : (𝓞 K)ˣ) [number_field K] :
+  x ∈ torsion K ↔ ∀ w : infinite_place K, w x = 1 :=
+begin
+  rw eq_iff_eq (x : K) 1,
+  rw [torsion, comm_group.mem_torsion, is_of_fin_order_iff_pow_eq_one],
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨n, h1, h2⟩ φ,
+    convert @norm_map_one_of_pow_eq_one _ _ _ _ φ.to_monoid_hom _ ⟨n, h1⟩ _,
+    rwa [ext, coe_pow, coe_one] at h2, },
+  { obtain ⟨n, hn, hx⟩ := embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 h,
+    refine ⟨n, hn, by { rw [ext, coe_pow, coe_one]; exact hx, }⟩}, 
+end
+
+end torsion
+
+end number_field.units
 
 #exit
 
@@ -125,20 +115,7 @@ open number_field number_field.infinite_place
 /-- The torsion subgroup of the group of units. -/
 def torsion : subgroup (𝓞 K)ˣ := comm_group.torsion (𝓞 K)ˣ
 
-lemma mem_torsion (x : (𝓞 K)ˣ) [number_field K] :
-  x ∈ torsion K ↔ ∀ w : infinite_place K, w x = 1 :=
-begin
-  rw (eq_iff_eq x 1 : (∀ w : infinite_place K, w x = 1) ↔ ∀ (φ : K →+* ℂ), ‖φ (x : K)‖ = 1),
-  rw [torsion, comm_group.mem_torsion, is_of_fin_order_iff_pow_eq_one],
-  split,
-  { rintros ⟨n, ⟨hn1, hn2⟩⟩ φ,
-    lift n to ℕ+ using hn1,
-    rw [← units_to_field.ext, units_to_field.map_pow] at hn2,
-    exact norm_map_one_of_pow_eq_one φ.to_monoid_hom hn2, },
-  { intro h,
-    obtain ⟨n , ⟨hn, hx⟩⟩ := embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 h,
-    exact ⟨n, ⟨hn, by { rwa [← units_to_field.ext, units_to_field.map_pow], }⟩⟩, },
-end
+
 
 lemma torsion_finite [number_field K] : finite (torsion K) :=
 begin
@@ -193,72 +170,48 @@ end
 
 end torsion
 
+namespace number_field.units
+
+/-- The `monoid_hom` from the group of units `(𝓞 K)ˣ` to the field `K`. -/
+def coe_to_field : (𝓞 K)ˣ →* K := (coe_hom K).comp  (map (algebra_map (𝓞 K) K))
+
+lemma coe_to_field.injective : function.injective (coe_to_field K) :=
+λ _ _ h, eq_iff.mp (no_zero_smul_divisors.algebra_map_injective ↥(𝓞 K) K h)
+
+/-- There is a natural coercion from `(𝓞 K)ˣ` to `(𝓞 K)` and then from `(𝓞 K)` to `K` but it is
+useful to also have a direct one from `(𝓞 K)ˣ` to `K`. -/
+instance ring_of_integers.units.has_coe : has_coe (𝓞 K)ˣ K := ⟨coe_to_field K⟩
+
+section coe_to_field
+
+variable {K}
+
+@[simp]
+lemma coe_to_field.ext {x y : (𝓞 K)ˣ} : (x : K) = (y : K) ↔ x = y :=
+(coe_to_field.injective K).eq_iff
+
+@[simp]
+lemma coe_to_field.map_inv {x : (𝓞 K)ˣ} : ((x⁻¹ : (𝓞 K)ˣ) : K) = (x : K)⁻¹ :=
+map_inv (coe_to_field K) x
+
+@[simp]
+lemma coe_to_field.map_pow {x : (𝓞 K)ˣ} {n : ℕ} : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
+map_pow (coe_to_field K) x n
+
+@[simp]
+lemma coe_to_field.map_zpow {x : (𝓞 K)ˣ} {n : ℤ} : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
+map_zpow (coe_to_field K) x n
+
+@[simp]
+lemma coe_to_field.map_mul {x y : (𝓞 K)ˣ} : ((x * y : (𝓞 K)ˣ) : K) = (x : K) * (y : K) := rfl
+
+@[simp]
+lemma coe_to_field.map_one : ((1 : (𝓞 K)ˣ) : K) = (1 : K) := rfl
+
+@[simp]
+lemma coe_to_field.ne_zero {x : (𝓞 K)ˣ} : (x : K) ≠ 0 :=
+subtype.coe_injective.ne_iff.2 (units.ne_zero x)
+
+end coe_to_field
+
 end number_field.units
-/-
-Copyright (c) 2023 Xavier Roblot. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Xavier Roblot
--/
-import number_theory.number_field.norm
-
-/-!
- # Units of a number field
-This file defines and proves results about the group `(𝓞 K)ˣ` of units of the ring of integers `𝓞 K`
-of a number field `K`.
-
- ## Tags
-number field, units
- -/
-
-open_locale number_field
-
-noncomputable theory
-
-open number_field units
-
-section rat
-
-lemma rat.ring_of_integers.is_unit_iff {x : 𝓞 ℚ} :
-  is_unit x ↔ ((x : ℚ) = 1) ∨ ((x : ℚ) = -1) :=
-by simp_rw [(is_unit_map_iff (rat.ring_of_integers_equiv : 𝓞 ℚ →+* ℤ) x).symm, int.is_unit_iff,
-  ring_equiv.coe_to_ring_hom, ring_equiv.map_eq_one_iff, ring_equiv.map_eq_neg_one_iff,
-  ← subtype.coe_injective.eq_iff, add_subgroup_class.coe_neg, algebra_map.coe_one]
-
-end rat
-
-variables (K : Type*) [field K]
-
-section is_unit
-
-local attribute [instance] number_field.ring_of_integers_algebra
-
-open finite_dimensional
-
-lemma is_unit_iff_norm [number_field K] (x : 𝓞 K) :
-  is_unit x ↔ abs (ring_of_integers.norm ℚ x : ℚ) = 1 :=
-begin
-  letI : algebra K (algebraic_closure K) := algebraic_closure.algebra K,
-  let L := normal_closure ℚ K (algebraic_closure K),
-  haveI : finite_dimensional K L := finite_dimensional.right ℚ K L,
-  haveI : is_alg_closure ℚ (algebraic_closure K) :=
-    is_alg_closure.of_algebraic ℚ K (algebraic_closure K) (number_field.is_algebraic K),
-  haveI : is_galois K L := is_galois.tower_top_of_is_galois ℚ K L,
-  suffices : is_unit (ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x)) ↔
-    |(ring_of_integers.norm ℚ (algebra_map (𝓞 K) (𝓞 L) x) : ℚ)| = 1,
-  { convert this using 1,
-    { rw (_ : ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x) = x ^ (finrank K L)),
-      { rw is_unit_pow_iff,
-        exact pos_iff_ne_zero.mp finrank_pos, },
-      { rw [← subtype.coe_inj, ring_of_integers.coe_norm_algebra_map, algebra.norm_algebra_map,
-        subsemiring_class.coe_pow], }},
-    { rw [ring_of_integers.norm_apply_coe, ring_of_integers.norm_apply_coe,
-        show (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K), by refl,
-        ←algebra.norm_norm ℚ K (algebra_map K L x : L), algebra.norm_algebra_map, map_pow, abs_pow],
-      nth_rewrite 1 ← one_pow (finrank K L),
-      rw pow_left_inj (abs_nonneg _ : 0 ≤ |(algebra.norm ℚ) ↑x|) zero_le_one
-      (@finrank_pos K L _ _ _ _ _), }},
-  { rw [ring_of_integers.is_unit_norm K, ← abs_one, abs_eq_abs, ← rat.ring_of_integers.is_unit_iff],
-    exact (ring_of_integers.is_unit_norm ℚ).symm, },
-end
-
-end is_unit

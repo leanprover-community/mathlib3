@@ -272,10 +272,11 @@ begin
       zsmul := (•),
       zsmul_zero' := zsmul_zero n,
       zsmul_succ' := zsmul_succ n,
-      zsmul_neg' := zsmul_neg n },
+      zsmul_neg' := zsmul_neg n,
+      .. splitting_field_aux.add_zero_class n },
   all_goals { unfreezingI { induction n with n ih generalizing K } },
   -- The `succ` cases follow by induction, handle them first.
-  iterate 6 { rotate, exact ih },
+  iterate 4 { rotate, exact ih },
   -- The `zero` cases follow from the structure of the field `K`.
   all_goals { intros,
     dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,

@@ -57,7 +57,7 @@ begin
         subsemiring_class.coe_pow], }},
     { rw [ring_of_integers.norm_apply_coe, ring_of_integers.norm_apply_coe,
         show (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K), by refl,
-        ← algebra.norm_norm ℚ K (algebra_map K L x : L), algebra.norm_algebra_map, map_pow, abs_pow],
+        ←algebra.norm_norm ℚ K (algebra_map K L x : L), algebra.norm_algebra_map, map_pow, abs_pow],
       nth_rewrite 1 ← one_pow (finrank K L),
       rw pow_left_inj (abs_nonneg _ : 0 ≤ |(algebra.norm ℚ) ↑x|) zero_le_one
       (@finrank_pos K L _ _ _ _ _), }},
@@ -66,4 +66,3 @@ begin
 end
 
 end is_unit
-

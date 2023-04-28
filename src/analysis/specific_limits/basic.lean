@@ -55,8 +55,10 @@ begin
 end
 
 /-- The limit of `n / (n + x)` is 1, for any constant `x` (valid in `ℝ` or any topological division
-algebra over `ℝ`, e.g., `ℂ`). -/
+algebra over `ℝ`, e.g., `ℂ`).
 
+TODO: introduce a typeclass saying that `1 / n` tends to 0 at top, making it possible to get this
+statement simultaneously on `ℚ`, `ℝ` and `ℂ`. -/
 lemma tendsto_coe_nat_div_add_at_top
   {𝕜 : Type*} [division_ring 𝕜] [topological_space 𝕜] [char_zero 𝕜] [algebra ℝ 𝕜]
   [has_continuous_smul ℝ 𝕜] [topological_division_ring 𝕜]

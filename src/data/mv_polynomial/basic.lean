@@ -105,24 +105,24 @@ add_monoid_algebra.distrib_mul_action
 instance [comm_semiring S₁] [smul_zero_class R S₁] : smul_zero_class R (mv_polynomial σ S₁) :=
 add_monoid_algebra.smul_zero_class
 
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithful_smul R S₁] :
+instance [comm_semiring S₁] [smul_zero_class R S₁] [has_faithful_smul R S₁] :
   has_faithful_smul R (mv_polynomial σ S₁) :=
 add_monoid_algebra.has_faithful_smul
 
 instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
 add_monoid_algebra.module
 
-instance [monoid R] [monoid S₁] [comm_semiring S₂]
-  [has_smul R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
+instance [comm_semiring S₂]
+  [has_smul R S₁] [smul_zero_class R S₂] [smul_zero_class S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.is_scalar_tower
 
-instance [monoid R] [monoid S₁][comm_semiring S₂]
-  [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
+instance [comm_semiring S₂]
+  [smul_zero_class R S₂] [smul_zero_class S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
 
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mul_action Rᵐᵒᵖ S₁]
+instance [comm_semiring S₁] [smul_zero_class R S₁] [smul_zero_class Rᵐᵒᵖ S₁]
   [is_central_scalar R S₁] :
   is_central_scalar R (mv_polynomial σ S₁) :=
 add_monoid_algebra.is_central_scalar
@@ -428,7 +428,7 @@ by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 
-lemma support_smul [distrib_mul_action R S₁] {a : R} {f : mv_polynomial σ S₁} :
+lemma support_smul [smul_zero_class R S₁] {a : R} {f : mv_polynomial σ S₁} :
   (a • f).support ⊆ f.support :=
 finsupp.support_smul
 
@@ -469,7 +469,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply p q m
 
-@[simp] lemma coeff_smul {S₁ : Type*} [monoid S₁] [distrib_mul_action S₁ R]
+@[simp] lemma coeff_smul {S₁ : Type*} [smul_zero_class S₁ R]
   (m : σ →₀ ℕ) (c : S₁) (p : mv_polynomial σ R) :
   coeff m (c • p) = c • coeff m p := smul_apply c p m
 
@@ -688,7 +688,8 @@ variables (R)
 by simp [constant_coeff_eq]
 variables {R}
 
-@[simp] lemma constant_coeff_smul [distrib_mul_action R S₁] (a : R) (f : mv_polynomial σ S₁) :
+@[simp] lemma constant_coeff_smul {R : Type*} [smul_zero_class R S₁]
+  (a : R) (f : mv_polynomial σ S₁) :
   constant_coeff (a • f) = a • constant_coeff f := rfl
 
 lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :

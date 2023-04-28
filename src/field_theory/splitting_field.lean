@@ -253,6 +253,13 @@ private lemma zsmul_neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f :
 nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_neg' K _ k x)
   (λ n ih K fK f, by exactI ih)
 
+-- hack to fix a bug in `get_current_field`
+meta def get_current_field : tactic name :=
+do t ← tactic.get_main_tag,
+   [str, field] ← pure (t.reverse.take 2),
+   expr.const_name <$> tactic.resolve_name (field.update_prefix str)
+attribute [vm_override get_current_field] tactic.interactive.get_current_field
+
 /-- `K` adjoined `n` roots of `f : K[X]` is an additive, commutative group.
 
 We need this instance to define the `distrib_mul_action` instance below; a `distrib_mul_action`
@@ -274,17 +281,21 @@ begin
       zsmul_succ' := zsmul_succ n,
       zsmul_neg' := zsmul_neg n,
       .. splitting_field_aux.add_zero_class n },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  -- The `succ` cases follow by induction, handle them first.
-  iterate 4 { rotate, exact ih },
-  -- The `zero` cases follow from the structure of the field `K`.
-  all_goals { intros,
-    dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
-      splitting_field_aux.neg, splitting_field_aux.sub] },
-  -- `simp` can handle a couple of them
-  any_goals { simp },
-  -- and `ring` can handle the rest.
-  all_goals { ring },
+  all_goals {
+    -- can't use `unfreezingI`, workaround for lean#804
+    propagate_tags { tactic.unfreeze_local_instances },
+    induction n with n ih generalizing K,
+    all_goals { propagate_tags { tactic.freeze_local_instances } } },
+  case [add_assoc      nat.zero,
+        sub_eq_add_neg nat.zero,
+        add_left_neg   nat.zero,
+        add_comm       nat.zero]
+  { all_goals { have_field, apply @field K } },
+  case [add_assoc      nat.succ,
+        sub_eq_add_neg nat.succ,
+        add_left_neg   nat.succ,
+        add_comm       nat.succ]
+  { all_goals { exact ih } },
 end
 
 instance adjoin_root.distrib_mul_action (α : Type*) [comm_semiring α] {K : Type u} [field K]
@@ -354,18 +365,37 @@ begin
       nat_cast := splitting_field_aux.mk n ∘ (coe : ℕ → K),
       int_cast := splitting_field_aux.mk n ∘ (coe : ℤ → K),
       .. splitting_field_aux.add_comm_group n },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  -- Most of the `succ` cases follow by induction, handle them first.
-  iterate 12 { rotate, exact ih },
-  -- The `zero` cases follow from the structure of the field `K`.
-  all_goals { intros,
-    dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
-      splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.mul,
-      splitting_field_aux.one, splitting_field_aux.npow, splitting_field_aux.mk] },
-  -- `simp` can handle a couple of them
-  any_goals { simp [nat.succ_eq_add_one, pow_succ] },
-  -- and `ring` can handle the rest.
-  all_goals { ring },
+  all_goals {
+    -- can't use `unfreezingI`, workaround for lean#804
+    propagate_tags { tactic.unfreeze_local_instances },
+    induction n with n ih generalizing K,
+    all_goals { propagate_tags { tactic.freeze_local_instances } } },
+  case [nat_cast_zero            nat.zero,
+        nat_cast_succ            nat.zero,
+        int_cast_of_nat          nat.zero,
+        int_cast_neg_succ_of_nat nat.zero,
+        mul_assoc                nat.zero,
+        one_mul                  nat.zero,
+        mul_one                  nat.zero,
+        npow_zero'               nat.zero,
+        npow_succ'               nat.zero,
+        left_distrib             nat.zero,
+        right_distrib            nat.zero,
+        mul_comm                 nat.zero]
+  { all_goals { have_field, apply @field K } },
+  case [nat_cast_zero            nat.succ,
+        nat_cast_succ            nat.succ,
+        int_cast_of_nat          nat.succ,
+        int_cast_neg_succ_of_nat nat.succ,
+        mul_assoc                nat.succ,
+        one_mul                  nat.succ,
+        mul_one                  nat.succ,
+        npow_zero'               nat.succ,
+        npow_succ'               nat.succ,
+        left_distrib             nat.succ,
+        right_distrib            nat.succ,
+        mul_comm                 nat.succ]
+  { all_goals { exact ih } },
 end
 
 instance is_scalar_tower_right (α : Type*) (n : ℕ) {K : Type u} [field K]
@@ -411,24 +441,31 @@ begin
     zpow := splitting_field_aux.zpow n,
     rat_cast := splitting_field_aux.mk n ∘ (coe : ℚ → K),
     .. splitting_field_aux.comm_ring n },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  -- The `succ` cases follow by induction, handle them first.
-  iterate 5 { rotate, exact ih },
-  rotate, { intros a h, exact ih h },
-  iterate 3 { rotate, exact ih },
-  -- The `zero` cases follow from the structure of the field `K`.
   all_goals {
-    dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
-      splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.mul,
-      splitting_field_aux.one, splitting_field_aux.inv, splitting_field_aux.div,
-      splitting_field_aux.npow, splitting_field_aux.zpow, splitting_field_aux.mk,
-      function.comp_app, id] },
-  any_goals { simp only [rat.smul_def, rat.cast_mk', div_eq_mul_inv, inv_zero, eq_self_iff_true,
-                forall_forall_const, forall_const, forall_true_iff, zpow_zero] },
-  { intros n a, exact @field.zpow_succ' K _ n a },
-  { intros n a, exact @field.zpow_neg' K _ n a },
-  { exact ⟨_, _, zero_ne_one⟩ },
-  { intros a h, exact mul_inv_cancel h }
+    -- can't use `unfreezingI`, workaround for lean#804
+    propagate_tags { tactic.unfreeze_local_instances },
+    induction n with n ih generalizing K,
+    all_goals { propagate_tags { tactic.freeze_local_instances } } },
+  case [div_eq_mul_inv nat.zero,
+        zpow_zero'     nat.zero,
+        zpow_succ'     nat.zero,
+        zpow_neg'      nat.zero,
+        exists_pair_ne nat.zero,
+        mul_inv_cancel nat.zero,
+        inv_zero       nat.zero,
+        rat_cast_mk    nat.zero,
+        qsmul_eq_mul'  nat.zero]
+  { all_goals { have_field, apply @field K } },
+  case [div_eq_mul_inv nat.succ,
+        zpow_zero'     nat.succ,
+        zpow_succ'     nat.succ,
+        zpow_neg'      nat.succ,
+        exists_pair_ne nat.succ,
+        mul_inv_cancel nat.succ,
+        inv_zero       nat.succ,
+        rat_cast_mk    nat.succ,
+        qsmul_eq_mul'  nat.succ]
+  { all_goals { try { exact @ih _ _ _ } } }
 end
 
 instance inhabited {n : ℕ} {f : K[X]} :

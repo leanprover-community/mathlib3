@@ -40,17 +40,17 @@ variables (𝕜)
 
 /-- Auxiliary definition of the inner product derived from the norm. -/
 private noncomputable def inner_ (x y : E) : 𝕜 :=
-4⁻¹ * ((𝓚 ∥x + y∥) * (𝓚 ∥x + y∥) - (𝓚 ∥x - y∥) * (𝓚 ∥x - y∥)
-          + (I:𝕜) * (𝓚 ∥(I:𝕜) • x + y∥) * (𝓚 ∥(I:𝕜) • x + y∥)
-          - (I:𝕜) * (𝓚 ∥(I:𝕜) • x - y∥) * (𝓚 ∥(I:𝕜) • x - y∥))
+4⁻¹ * ((𝓚 ‖x + y‖) * (𝓚 ‖x + y‖) - (𝓚 ‖x - y‖) * (𝓚 ‖x - y‖)
+          + (I:𝕜) * (𝓚 ‖(I:𝕜) • x + y‖) * (𝓚 ‖(I:𝕜) • x + y‖)
+          - (I:𝕜) * (𝓚 ‖(I:𝕜) • x - y‖) * (𝓚 ‖(I:𝕜) • x - y‖))
 
 variables {𝕜}
 
 lemma inner_.add_left_aux1
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (x y z : E) :
-  ∥x + y + z∥ * ∥x + y + z∥ =
-    (∥2 • x + y∥ * ∥2 • x + y∥ + ∥2 • z + y∥ * ∥2 • z + y∥) / 2 - ∥x - z∥ * ∥x - z∥ :=
+  ‖x + y + z‖ * ‖x + y + z‖ =
+    (‖2 • x + y‖ * ‖2 • x + y‖ + ‖2 • z + y‖ * ‖2 • z + y‖) / 2 - ‖x - z‖ * ‖x - z‖ :=
 begin
   apply eq_sub_of_add_eq,
   rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
@@ -60,10 +60,10 @@ begin
 end
 
 lemma inner_.add_left_aux2
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (x y z : E) :
-  ∥x + y - z∥ * ∥x + y - z∥ =
-    (∥2 • x + y∥ * ∥2 • x + y∥ + ∥y - 2 • z∥ * ∥y - 2 • z∥) / 2 - ∥x + z∥ * ∥x + z∥ :=
+  ‖x + y - z‖ * ‖x + y - z‖ =
+    (‖2 • x + y‖ * ‖2 • x + y‖ + ‖y - 2 • z‖ * ‖y - 2 • z‖) / 2 - ‖x + z‖ * ‖x + z‖ :=
 begin
   apply eq_sub_of_add_eq,
   rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
@@ -73,20 +73,20 @@ begin
 end
 
 lemma inner_.add_left_aux2'
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (x y z : E) :
-  ∥x + y + z∥ * ∥x + y + z∥ - ∥x + y - z∥ * ∥x + y - z∥ =
-  ∥x + z∥ * ∥x + z∥ - ∥x - z∥ * ∥x - z∥ +
-      (∥2 • z + y∥ * ∥2 • z + y∥ - ∥y - 2 • z∥ * ∥y - 2 • z∥) / 2 :=
+  ‖x + y + z‖ * ‖x + y + z‖ - ‖x + y - z‖ * ‖x + y - z‖ =
+  ‖x + z‖ * ‖x + z‖ - ‖x - z‖ * ‖x - z‖ +
+      (‖2 • z + y‖ * ‖2 • z + y‖ - ‖y - 2 • z‖ * ‖y - 2 • z‖) / 2 :=
 begin
   rw [inner_.add_left_aux1 h, inner_.add_left_aux2 h],
   ring,
 end
 
 lemma inner_.add_left_aux3
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (y z : E) :
-  ∥2 • z + y∥ * ∥2 • z + y∥ = 2 * (∥y + z∥ * ∥y + z∥ + ∥z∥ * ∥z∥) - ∥y∥ * ∥y∥ :=
+  ‖2 • z + y‖ * ‖2 • z + y‖ = 2 * (‖y + z‖ * ‖y + z‖ + ‖z‖ * ‖z‖) - ‖y‖ * ‖y‖ :=
 begin
   apply eq_sub_of_add_eq,
   have h₀ := h (y + z) z,
@@ -94,9 +94,9 @@ begin
 end
 
 lemma inner_.add_left_aux4
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (y z : E) :
-  ∥y - 2 • z∥ * ∥y - 2 • z∥ = 2 * (∥y - z∥ * ∥y - z∥ + ∥z∥ * ∥z∥) - ∥y∥ * ∥y∥ :=
+  ‖y - 2 • z‖ * ‖y - 2 • z‖ = 2 * (‖y - z‖ * ‖y - z‖ + ‖z‖ * ‖z‖) - ‖y‖ * ‖y‖ :=
 begin
   apply eq_sub_of_add_eq,
   have h₀ := h (y - z) z,
@@ -105,22 +105,22 @@ begin
 end
 
 lemma inner_.add_left_aux4'
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (y z : E) :
-  (∥2 • z + y∥ * ∥2 • z + y∥ - ∥y - 2 • z∥ * ∥y - 2 • z∥) / 2 =
-  (∥y + z∥ * ∥y + z∥) - (∥y - z∥ * ∥y - z∥) :=
+  (‖2 • z + y‖ * ‖2 • z + y‖ - ‖y - 2 • z‖ * ‖y - 2 • z‖) / 2 =
+  (‖y + z‖ * ‖y + z‖) - (‖y - z‖ * ‖y - z‖) :=
 begin
   rw [inner_.add_left_aux3 h, inner_.add_left_aux4 h],
   ring,
 end
 
 lemma inner_.add_left_aux5
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (x y z : E) :
-  ∥(I : 𝕜) • (x + y) + z∥ * ∥(I : 𝕜) • (x + y) + z∥ =
-    (∥(I : 𝕜) • (2 • x + y)∥ * ∥(I : 𝕜) • (2 • x + y)∥ +
-      ∥(I : 𝕜) • y + 2 • z∥ * ∥(I : 𝕜) • y + 2 • z∥) / 2 -
-    ∥(I : 𝕜) • x - z∥ * ∥(I : 𝕜) • x - z∥ :=
+  ‖(I : 𝕜) • (x + y) + z‖ * ‖(I : 𝕜) • (x + y) + z‖ =
+    (‖(I : 𝕜) • (2 • x + y)‖ * ‖(I : 𝕜) • (2 • x + y)‖ +
+      ‖(I : 𝕜) • y + 2 • z‖ * ‖(I : 𝕜) • y + 2 • z‖) / 2 -
+    ‖(I : 𝕜) • x - z‖ * ‖(I : 𝕜) • x - z‖ :=
 begin
   apply eq_sub_of_add_eq,
   rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
@@ -130,12 +130,12 @@ begin
 end
 
 lemma inner_.add_left_aux6
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (x y z : E) :
-  ∥(I : 𝕜) • (x + y) - z∥ * ∥(I : 𝕜) • (x + y) - z∥ =
-    (∥(I : 𝕜) • (2 • x + y)∥ * ∥(I : 𝕜) • (2 • x + y)∥ +
-      ∥(I : 𝕜) • y - 2 • z∥ * ∥(I : 𝕜) • y - 2 • z∥) / 2 -
-    ∥(I : 𝕜) • x + z∥ * ∥(I : 𝕜) • x + z∥ :=
+  ‖(I : 𝕜) • (x + y) - z‖ * ‖(I : 𝕜) • (x + y) - z‖ =
+    (‖(I : 𝕜) • (2 • x + y)‖ * ‖(I : 𝕜) • (2 • x + y)‖ +
+      ‖(I : 𝕜) • y - 2 • z‖ * ‖(I : 𝕜) • y - 2 • z‖) / 2 -
+    ‖(I : 𝕜) • x + z‖ * ‖(I : 𝕜) • x + z‖ :=
 begin
   apply eq_sub_of_add_eq,
   rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
@@ -145,11 +145,11 @@ begin
 end
 
 lemma inner_.add_left_aux7
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (y z : E) :
-  ∥(I : 𝕜) • y + 2 • z∥ * ∥(I : 𝕜) • y + 2 • z∥ =
-    2 * (∥(I : 𝕜) • y + z∥ * ∥(I : 𝕜) • y + z∥ + ∥z∥ * ∥z∥) -
-    ∥(I : 𝕜) • y∥ * ∥(I : 𝕜) • y∥ :=
+  ‖(I : 𝕜) • y + 2 • z‖ * ‖(I : 𝕜) • y + 2 • z‖ =
+    2 * (‖(I : 𝕜) • y + z‖ * ‖(I : 𝕜) • y + z‖ + ‖z‖ * ‖z‖) -
+    ‖(I : 𝕜) • y‖ * ‖(I : 𝕜) • y‖ :=
 begin
   apply eq_sub_of_add_eq,
   have h₀ := h ((I : 𝕜) • y + z) z,
@@ -157,11 +157,11 @@ begin
 end
 
 lemma inner_.add_left_aux8
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (y z : E) :
-  ∥(I : 𝕜) • y - 2 • z∥ * ∥(I : 𝕜) • y - 2 • z∥ =
-    2 * (∥(I : 𝕜) • y - z∥ * ∥(I : 𝕜) • y - z∥ + ∥z∥ * ∥z∥) -
-    ∥(I : 𝕜) • y∥ * ∥(I : 𝕜) • y∥ :=
+  ‖(I : 𝕜) • y - 2 • z‖ * ‖(I : 𝕜) • y - 2 • z‖ =
+    2 * (‖(I : 𝕜) • y - z‖ * ‖(I : 𝕜) • y - z‖ + ‖z‖ * ‖z‖) -
+    ‖(I : 𝕜) • y‖ * ‖(I : 𝕜) • y‖ :=
 begin
   apply eq_sub_of_add_eq,
   have h₀ := h ((I : 𝕜) • y - z) z,
@@ -170,7 +170,7 @@ begin
 end
 
 lemma inner_.add_left
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (x y z : E) :
   inner_ 𝕜 (x + y) z = inner_ 𝕜 x z + inner_ 𝕜 y z :=
 begin
@@ -196,7 +196,7 @@ private def inner_prop (r : 𝕜) : Prop := ∀ x y : E, inner_ 𝕜 (r • x) y
 variables {𝕜 E}
 
 lemma inner_.nat
-  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (r : ℕ) (x y : E) :
   inner_ 𝕜 ((r : 𝕜) • x) y = (r : 𝕜) * inner_ 𝕜 x y :=
 begin
@@ -208,7 +208,7 @@ begin
 end
 
 lemma inner_.nat_prop (r : ℕ)
-  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
   inner_prop 𝕜 E r :=
 begin
   intros x y,
@@ -223,20 +223,20 @@ begin
     map_neg, int.cast_neg, neg_smul, neg_one_mul],
   rw neg_mul_comm,
   congr' 1,
-  have h₁ : ∥-x - y∥ = ∥x + y∥,
+  have h₁ : ‖-x - y‖ = ‖x + y‖,
   { rw [←neg_add', norm_neg], },
-  have h₂ : ∥-x + y∥ = ∥x - y∥,
+  have h₂ : ‖-x + y‖ = ‖x - y‖,
   { rw [←neg_sub, norm_neg, sub_eq_neg_add], },
-  have h₃ : ∥(I : 𝕜) • (-x) + y∥ = ∥(I : 𝕜) • x - y∥,
+  have h₃ : ‖(I : 𝕜) • (-x) + y‖ = ‖(I : 𝕜) • x - y‖,
   { rw [←neg_sub, norm_neg, sub_eq_neg_add, ←smul_neg], },
-  have h₄ : ∥(I : 𝕜) • (-x) - y∥ = ∥(I : 𝕜) • x + y∥,
+  have h₄ : ‖(I : 𝕜) • (-x) - y‖ = ‖(I : 𝕜) • x + y‖,
   { rw [smul_neg, ←neg_add', norm_neg] },
   rw [h₁, h₂, h₃, h₄],
   ring,
 end
 
 lemma inner_.int_prop (r : ℤ)
-  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
   inner_prop 𝕜 E r :=
 begin
   intros x y,
@@ -256,7 +256,7 @@ begin
 end
 
 lemma inner_.rat_prop (r : ℚ)
-  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
   inner_prop 𝕜 E r :=
 begin
   intros x y,
@@ -293,7 +293,7 @@ begin
 end
 
 lemma inner_.real_prop (r : ℝ)
-  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
   inner_prop 𝕜 E r :=
 begin
   intros x y,
@@ -308,7 +308,7 @@ begin
 end
 
 lemma inner_.I_prop
-  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
   inner_prop 𝕜 E (I : 𝕜 ) :=
 begin
   by_cases hI : (I : 𝕜) = 0,
@@ -320,11 +320,11 @@ begin
   congr' 1,
   rw [smul_smul, I_mul_I_of_nonzero hI, neg_one_smul],
   rw [mul_sub, mul_add, mul_sub,
-    mul_assoc I (𝓚 ∥I • x - y∥), ←mul_assoc (-I) I, hI', one_mul,
-    mul_assoc I (𝓚 ∥I • x + y∥), ←mul_assoc (-I) I, hI', one_mul],
-  have h₁ : ∥-x - y∥ = ∥x + y∥,
+    mul_assoc I (𝓚 ‖I • x - y‖), ←mul_assoc (-I) I, hI', one_mul,
+    mul_assoc I (𝓚 ‖I • x + y‖), ←mul_assoc (-I) I, hI', one_mul],
+  have h₁ : ‖-x - y‖ = ‖x + y‖,
   { rw [←neg_add', norm_neg], },
-  have h₂ : ∥-x + y∥ = ∥x - y∥,
+  have h₂ : ‖-x + y‖ = ‖x - y‖,
   { rw [←neg_sub, norm_neg, sub_eq_neg_add], },
   rw [h₁, h₂],
   simp only [sub_eq_add_neg, mul_assoc],
@@ -333,7 +333,7 @@ begin
 end
 
 lemma inner_.smul_left
-  (h : ∀ (x y : E), ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
+  (h : ∀ (x y : E), ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
   (x y : E) (r : 𝕜) :
   inner_ 𝕜 (r • x) y = conj r * inner_ 𝕜 x y :=
 begin
@@ -342,7 +342,7 @@ begin
   ring,
 end
 
-lemma inner_.norm_sq (x : E) : ∥x∥ ^ 2 = re (inner_ 𝕜 x x) :=
+lemma inner_.norm_sq (x : E) : ‖x‖ ^ 2 = re (inner_ 𝕜 x x) :=
 begin
   simp only [inner_],
   have h₁ : norm_sq (4 : 𝕜) = 16,
@@ -351,8 +351,8 @@ begin
     rw [←this, norm_sq_eq_def', is_R_or_C.norm_eq_abs,
       is_R_or_C.abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 4)],
     norm_num },
-  have h₂ : ∥x + x∥ = 2 * ∥x∥,
-  { have : ∥(2 : 𝕜)∥ = 2,
+  have h₂ : ‖x + x‖ = 2 * ‖x‖,
+  { have : ‖(2 : 𝕜)‖ = 2,
     { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_two] },
     rw [←this, ←norm_smul, two_smul] },
   simp only [inner, h₁, h₂, one_im, bit0_zero, add_zero, norm_zero, I_re, of_real_im,
@@ -373,13 +373,13 @@ begin
   rw [add_comm y x, norm_sub_rev],
   by_cases hI : (I : 𝕜) = 0,
   { simp only [hI, neg_zero, zero_mul] },
-  have h₁ : ∥(I : 𝕜) • y - x∥ = ∥(I : 𝕜) • x + y∥,
-  { transitivity ∥(I : 𝕜) • ((I : 𝕜) • y - x)∥,
+  have h₁ : ‖(I : 𝕜) • y - x‖ = ‖(I : 𝕜) • x + y‖,
+  { transitivity ‖(I : 𝕜) • ((I : 𝕜) • y - x)‖,
     { rw [norm_smul, norm_I_of_nonzero hI, one_mul] },
     { rw [smul_sub, smul_smul, I_mul_I_of_nonzero hI, neg_one_smul, ←neg_add', add_comm,
         norm_neg] } },
-  have h₂ : ∥(I : 𝕜) • y + x∥ = ∥(I : 𝕜) • x - y∥,
-  { transitivity ∥(I : 𝕜) • ((I : 𝕜) • y + x)∥,
+  have h₂ : ‖(I : 𝕜) • y + x‖ = ‖(I : 𝕜) • x - y‖,
+  { transitivity ‖(I : 𝕜) • ((I : 𝕜) • y + x)‖,
     { rw [norm_smul, norm_I_of_nonzero hI, one_mul] },
     { rw [smul_add, smul_smul, I_mul_I_of_nonzero hI, neg_one_smul, ←neg_add_eq_sub]  }},
   rw [h₁, h₂, ←sub_add_eq_add_sub],
@@ -389,7 +389,7 @@ end
 /-- Fréchet–von Neumann–Jordan theorm. A normed space `E` whose norm satisfies the parallelogram
 identity can be given a compatible inner product. -/
 noncomputable def inner_product_space.of_norm
-  (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  (h : ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖)) :
   inner_product_space 𝕜 E :=
 { inner := inner_ 𝕜,
   norm_sq_eq_inner := inner_.norm_sq,

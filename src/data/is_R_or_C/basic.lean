@@ -587,7 +587,7 @@ begin
     abs_neg, abs_one],
 end
 
-lemma norm_I_of_nonzero (hI : (I : K) ≠ 0) : ∥(I : K)∥ = 1 :=
+lemma norm_I_of_nonzero (hI : (I : K) ≠ 0) : ‖(I : K)‖ = 1 :=
 by simpa only [norm_eq_abs] using abs_I_of_nonzero hI
 
 lemma abs_abs_sub_le_abs_sub : ∀ z w : K, abs' (abs z - abs w) ≤ abs (z - w) :=

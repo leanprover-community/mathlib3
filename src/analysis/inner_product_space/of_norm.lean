@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 
-import analysis.normed_space.lattice_ordered_group
 import topology.algebra.algebra
 import analysis.inner_product_space.basic
 
@@ -54,8 +53,7 @@ lemma inner_.add_left_aux1
     (∥2 • x + y∥ * ∥2 • x + y∥ + ∥2 • z + y∥ * ∥2 • z + y∥) / 2 - ∥x - z∥ * ∥x - z∥ :=
 begin
   apply eq_sub_of_add_eq,
-  rw eq_div_iff (by norm_num : (2 : ℝ) ≠ 0),
-  rw mul_comm _ (2 : ℝ),
+  rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
   symmetry,
   have h₀ := h (x + y + z) (x - z),
   convert h₀ using 4; { rw two_smul, abel }
@@ -68,8 +66,7 @@ lemma inner_.add_left_aux2
     (∥2 • x + y∥ * ∥2 • x + y∥ + ∥y - 2 • z∥ * ∥y - 2 • z∥) / 2 - ∥x + z∥ * ∥x + z∥ :=
 begin
   apply eq_sub_of_add_eq,
-  rw eq_div_iff (by norm_num : (2 : ℝ) ≠ 0),
-  rw mul_comm _ (2 : ℝ),
+  rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
   symmetry,
   have h₀ := h (x + y - z) (x + z),
   convert h₀ using 4; { rw two_smul, abel }
@@ -111,8 +108,7 @@ lemma inner_.add_left_aux4'
   (h : ∀ x y : E, ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥))
   (y z : E) :
   (∥2 • z + y∥ * ∥2 • z + y∥ - ∥y - 2 • z∥ * ∥y - 2 • z∥) / 2 =
-  (∥y + z∥ * ∥y + z∥) - (∥y - z∥ * ∥y - z∥)
-  :=
+  (∥y + z∥ * ∥y + z∥) - (∥y - z∥ * ∥y - z∥) :=
 begin
   rw [inner_.add_left_aux3 h, inner_.add_left_aux4 h],
   ring,
@@ -127,8 +123,7 @@ lemma inner_.add_left_aux5
     ∥(I : 𝕜) • x - z∥ * ∥(I : 𝕜) • x - z∥ :=
 begin
   apply eq_sub_of_add_eq,
-  rw eq_div_iff (by norm_num : (2 : ℝ) ≠ 0),
-  rw mul_comm _ (2 : ℝ),
+  rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
   symmetry,
   have h₀ := h ((I : 𝕜) • (x + y) + z) ((I : 𝕜) • x - z),
   convert h₀ using 4; { try { simp only [two_smul, smul_add] }, abel }
@@ -143,8 +138,7 @@ lemma inner_.add_left_aux6
     ∥(I : 𝕜) • x + z∥ * ∥(I : 𝕜) • x + z∥ :=
 begin
   apply eq_sub_of_add_eq,
-  rw eq_div_iff (by norm_num : (2 : ℝ) ≠ 0),
-  rw mul_comm _ (2 : ℝ),
+  rw [eq_div_iff (@_root_.two_ne_zero ℝ _ _), mul_comm _ (2 : ℝ)],
   symmetry,
   have h₀ := h ((I : 𝕜) • (x + y) - z) ((I : 𝕜) • x + z),
   convert h₀ using 4; { try { simp only [two_smul, smul_add] }, abel }

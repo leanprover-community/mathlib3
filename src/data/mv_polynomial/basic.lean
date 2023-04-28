@@ -428,7 +428,7 @@ by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 
-lemma support_smul [smul_zero_class R S₁] {a : R} {f : mv_polynomial σ S₁} :
+lemma support_smul {S₁ : Type*} [smul_zero_class S₁ R] {a : S₁} {f : mv_polynomial σ R} :
   (a • f).support ⊆ f.support :=
 finsupp.support_smul
 

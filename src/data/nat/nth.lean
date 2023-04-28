@@ -353,7 +353,7 @@ lemma le_nth_count' {n : ℕ} (hpn : ∃ k, p k ∧ n ≤ k) : n ≤ nth p (coun
 (le_cInf hpn $ λ k, and.right).trans (nth_count_eq_Inf p n).ge
 
 lemma le_nth_count (hp : (set_of p).infinite) (n : ℕ) : n ≤ nth p (count p n) :=
-let ⟨m, hp, hn⟩ := hp.exists_nat_lt n in le_nth_count' ⟨m, hp, hn.le⟩
+let ⟨m, hp, hn⟩ := hp.exists_gt n in le_nth_count' ⟨m, hp, hn.le⟩
 
 /-- If a predicate `p : ℕ → Prop` is true for infinitely many numbers, then `nat.count p` and
 `nat.nth p` form a Galois insertion. -/

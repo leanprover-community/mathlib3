@@ -12,6 +12,9 @@ import topology.algebra.module.basic
 /-!
 # Normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define (semi)normed spaces and algebras. We also prove some theorems
 about these definitions.
 -/
@@ -183,6 +186,14 @@ theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
+
+theorem interior_sphere [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
+  interior (sphere x r) = ∅ :=
+by rw [←frontier_closed_ball x hr, interior_frontier is_closed_ball]
+
+theorem frontier_sphere [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
+  frontier (sphere x r) = sphere x r :=
+by rw [is_closed_sphere.frontier_eq, interior_sphere x hr, diff_empty]
 
 instance {E : Type*} [normed_add_comm_group E] [normed_space ℚ E] (e : E) :
   discrete_topology $ add_subgroup.zmultiples e :=
@@ -392,6 +403,14 @@ end
 theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
+
+@[simp] theorem interior_sphere' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
+  interior (sphere x r) = ∅ :=
+by rw [←frontier_closed_ball' x, interior_frontier is_closed_ball]
+
+@[simp] theorem frontier_sphere' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
+  frontier (sphere x r) = sphere x r :=
+by rw [is_closed_sphere.frontier_eq, interior_sphere' x, diff_empty]
 
 variables {α}
 

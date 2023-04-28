@@ -10,6 +10,9 @@ import order.well_founded
 /-!
 # A model of ZFC
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we model Zermelo-Fraenkel set theory (+ Choice) using Lean's underlying type theory.
 We do this in four main steps:
 * Define pre-sets inductively.
@@ -1111,8 +1114,9 @@ begin
   exact H _ hxz
 end
 
-@[simp, norm_cast] theorem sInter_coe {x : Set.{u}} (h : x.nonempty) : ⋂₀ (x : Class.{u}) = ⋂₀ x :=
-set.ext $ λ y, sInter_apply.trans (Set.mem_sInter h).symm
+@[simp, norm_cast] theorem coe_sInter {x : Set.{u}} (h : x.nonempty) :
+  ↑(⋂₀ x) = ⋂₀ (x : Class.{u}) :=
+set.ext $ λ y, (Set.mem_sInter h).trans sInter_apply.symm
 
 theorem mem_of_mem_sInter {x y z : Class} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
 by { obtain ⟨w, rfl, hw⟩ := hy, exact coe_mem.2 (hw z hz) }

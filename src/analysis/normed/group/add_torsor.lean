@@ -10,6 +10,9 @@ import linear_algebra.affine_space.midpoint
 /-!
 # Torsors of additive normed group actions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines torsors of additive normed group actions, with a
 metric space structure.  The motivating case is Euclidean affine
 spaces.

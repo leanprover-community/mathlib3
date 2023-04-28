@@ -11,6 +11,9 @@ import data.nat.size
 
 /-!
 # Properties of the binary representation of integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 local attribute [simp] add_assoc

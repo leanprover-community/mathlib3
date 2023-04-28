@@ -56,6 +56,7 @@ noncomputable instance preserves_limits_of_shape_of_preserves_finite_limits (F :
 by apply preserves_limits_of_shape_of_equiv (fin_category.equiv_as_type J)
 
 -- This is a dangerous instance as it has unbound universe variables.
+/-- If we preserve limits of some arbitrary size, then we preserve all finite limits. -/
 noncomputable def preserves_limits_of_size.preserves_finite_limits (F : C ⥤ D)
   [preserves_limits_of_size.{w w₂} F] : preserves_finite_limits F :=
 ⟨λ J sJ fJ,
@@ -116,6 +117,7 @@ noncomputable instance preserves_colimits_of_shape_of_preserves_finite_colimits 
   preserves_colimits_of_shape J F :=
 by apply preserves_colimits_of_shape_of_equiv (fin_category.equiv_as_type J)
 
+/-- If we preserve colimits of some arbitrary size, then we preserve all finite colimits. -/
 -- This is a dangerous instance as it has unbound universe variables.
 noncomputable def preserves_colimits_of_size.preserves_finite_colimits (F : C ⥤ D)
   [preserves_colimits_of_size.{w w₂} F] : preserves_finite_colimits F :=

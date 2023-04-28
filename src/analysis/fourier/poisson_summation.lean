@@ -41,6 +41,55 @@ open_locale real big_operators filter fourier_transform
 local attribute [instance] real.fact_zero_lt_one
 
 open continuous_map
+open_locale ennreal
+
+local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
+
+
+---- move to `measure_theory.integral.periodic`
+variables {T : ℝ} [fact (0 < T)]
+
+---- move to `measure_theory.integral.periodic`
+lemma add_circle.integral_mul_eq_integral_automorphize_mul
+{K : Type*} [normed_field K]
+  [complete_space K] [normed_space ℝ K] {f : ℝ → K}
+  (f_ℒ_1 : integrable f) {g : (add_circle T) → K} (hg : ae_strongly_measurable g volume)
+  (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) volume ≠ ∞)
+  (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f : (add_circle T) → K) (volume : measure (add_circle T))) :
+  ∫ x : ℝ, g (x : add_circle T) * (f x)
+    = ∫ x : (add_circle T), g x * (quotient_add_group.automorphize f x) :=
+begin
+  letI : measurable_space (ℝ ⧸ add_subgroup.zmultiples T) := add_circle.measurable_space,
+  haveI : borel_space (ℝ ⧸ add_subgroup.zmultiples T) := by convert add_circle.borel_space,
+  have vol_eq := (add_circle.measure_preserving_mk T (0:ℝ)).map_eq,
+  convert (@quotient_add_group.integral_mul_eq_integral_automorphize_mul ℝ _ _ _ _ _ volume (add_subgroup.zmultiples (T:ℝ)) _ _ _ (Ioc (0:ℝ) (0+T)) K _ _ _ _ f f_ℒ_1 g _ _ _ _),
+  { exact vol_eq.symm, },
+  { convert hg, },
+  { convert g_ℒ_infinity, },
+  { convert F_ae_measurable, },
+  { refine is_add_fundamental_domain_Ioc' _ 0,
+    apply fact.out, },
+end
+
+/-- The key lemma for Poisson summation: the `m`-th Fourier coefficient of the periodic function
+`∑' n : ℤ, f (x + n)` is the value at `m` of the Fourier transform of `f`. -/
+lemma real.fourier_coeff_tsum_comp_add' {f : ℝ → ℂ} (f_ℒ_1 : integrable f) (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) (volume : measure (add_circle 1)))
+(m : ℤ) :
+  fourier_coeff (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) m = 𝓕 f m :=
+begin
+  dsimp [fourier_coeff],
+  have ae_fm : ae_strongly_measurable (fourier (-m)) volume := sorry,
+  convert (add_circle.integral_mul_eq_integral_automorphize_mul f_ℒ_1 ae_fm _ F_ae_measurable).symm,
+---- STOPPED HERE 4/28/23
+
+
+  haveI : borel_space (ℝ ⧸ add_subgroup.zmultiples (1:ℝ)) := sorry,
+  have h𝔽 := is_add_fundamental_domain_Ioc (by simp : (0:ℝ) < 1) 0,
+  convert (@quotient_add_group.integral_mul_eq_integral_automorphize_mul ℝ _ _ _ _ _ volume (add_subgroup.zmultiples (1:ℝ)) _ _ _ (Ioc (0:ℝ) (0+1)) ℂ _ _ _ _ f _ (fourier (-m)) _ _ _ _).symm,
+
+end
+
+
 
 /-- The key lemma for Poisson summation: the `m`-th Fourier coefficient of the periodic function
 `∑' n : ℤ, f (x + n)` is the value at `m` of the Fourier transform of `f`. -/

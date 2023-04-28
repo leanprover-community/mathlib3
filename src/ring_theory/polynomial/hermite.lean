@@ -141,6 +141,7 @@ end polynomial
 
 section gaussian
 
+/-- The real Gaussian function -/
 def gaussian : ℝ → ℝ := λ x, real.exp (-(x^2 / 2))
 
 lemma inv_gaussian_eq : gaussian⁻¹ = λ x, real.exp (x^2 / 2) :=
@@ -163,6 +164,7 @@ lemma cont_diff.iterated_deriv :
 | 0     f hf := hf
 | (n+1) f hf := cont_diff.iterated_deriv n (deriv f) (cont_diff_top_iff_deriv.mp hf).2
 
+/-- The Gaussian form of `hermite n` -/
 def hermite_gauss (n : ℕ) : ℝ → ℝ :=
 λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x)
 

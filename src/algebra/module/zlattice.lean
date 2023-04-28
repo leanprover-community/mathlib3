@@ -124,7 +124,7 @@ lemma fract_eq_fract (m n : E) :
   fract b m = fract b n ↔ -m + n ∈ span ℤ (set.range b) :=
 begin
   rw [eq_comm, basis.ext_elem_iff b],
-  simp_rw [repr_fract_apply, int.fract_eq_fract, eq_comm, basis.restrict_scalars_mem_span_iff,
+  simp_rw [repr_fract_apply, int.fract_eq_fract, eq_comm, basis.mem_span_iff_repr_mem,
     sub_eq_neg_add, map_add, linear_equiv.map_neg, finsupp.coe_add, finsupp.coe_neg, pi.add_apply,
     pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _), set.mem_range],
 end

@@ -253,20 +253,6 @@ private lemma zsmul_neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f :
 nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_neg' K _ k x)
   (λ n ih K fK f, by exactI ih)
 
--- hack to fix a bug in `get_current_field` that doesn't allow more than one level of tags
-private meta def get_current_field : tactic name :=
-do t ← tactic.get_main_tag,
-   [str, field] ← pure (t.reverse.take 2),
-   expr.const_name <$> tactic.resolve_name (field.update_prefix str)
-local attribute [vm_override get_current_field] tactic.interactive.get_current_field
-
--- hack to workaround lean#804
-private meta def unfreezingI (tac : tactic.interactive.itactic) :=
-tactic.focus1 $
-  tactic.interactive.propagate_tags tactic.unfreeze_local_instances *> tac <*
-  tactic.all_goals (tactic.interactive.propagate_tags tactic.freeze_local_instances)
-local attribute [vm_override unfreezingI] tactic.interactive.unfreezingI
-
 /-- `K` adjoined `n` roots of `f : K[X]` is an additive, commutative group.
 
 We need this instance to define the `distrib_mul_action` instance below; a `distrib_mul_action`
@@ -275,7 +261,7 @@ is required to lift scalar multiplications on `K` to a splitting field of `f : K
 instance add_comm_group (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   add_comm_group (splitting_field_aux n f) :=
 begin
-  refine_struct
+  refine
     { add := splitting_field_aux.add n,
       zero := splitting_field_aux.zero n,
       neg := splitting_field_aux.neg n,
@@ -287,18 +273,15 @@ begin
       zsmul_zero' := zsmul_zero n,
       zsmul_succ' := zsmul_succ n,
       zsmul_neg' := zsmul_neg n,
+      add_assoc := have h : _ := @add_assoc, _,
+      add_left_neg := have h : _ := @add_left_neg, _,
+      sub_eq_add_neg := have h : _ := @sub_eq_add_neg, _,
+      add_comm := have h : _ := @add_comm, _,
       .. splitting_field_aux.add_zero_class n },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  case [add_assoc      nat.zero,
-        sub_eq_add_neg nat.zero,
-        add_left_neg   nat.zero,
-        add_comm       nat.zero]
-  { all_goals { have_field, apply @field K } },
-  case [add_assoc      nat.succ,
-        sub_eq_add_neg nat.succ,
-        add_left_neg   nat.succ,
-        add_comm       nat.succ]
-  { all_goals { exact ih } },
+  all_goals {
+    unfreezingI { induction n with n ih generalizing K },
+    { apply @h K },
+    { exact ih } },
 end
 
 instance adjoin_root.distrib_mul_action (α : Type*) [comm_semiring α] {K : Type u} [field K]
@@ -355,7 +338,7 @@ nat.rec_on n (λ K fK f, id) (λ n ih K fK f, by exactI ih ∘ coe)
 instance comm_ring (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   comm_ring (splitting_field_aux n f) :=
 begin
-  refine_struct
+  refine
     { add := splitting_field_aux.add n,
       zero := splitting_field_aux.zero n,
       neg := splitting_field_aux.neg n,
@@ -367,34 +350,23 @@ begin
       npow := splitting_field_aux.npow n,
       nat_cast := splitting_field_aux.mk n ∘ (coe : ℕ → K),
       int_cast := splitting_field_aux.mk n ∘ (coe : ℤ → K),
+      nat_cast_zero := have h : _ := @comm_ring.nat_cast_zero, _,
+      nat_cast_succ := have h : _ := @comm_ring.nat_cast_succ, _,
+      int_cast_of_nat := have h : _ := @comm_ring.int_cast_of_nat, _,
+      int_cast_neg_succ_of_nat := have h : _ := @comm_ring.int_cast_neg_succ_of_nat, _,
+      mul_assoc := have h : _ := @mul_assoc, _,
+      one_mul := have h : _ := @one_mul, _,
+      mul_one := have h : _ := @mul_one, _,
+      npow_zero' := have h : _ := @comm_ring.npow_zero', _,
+      npow_succ' := have h : _ := @comm_ring.npow_succ', _,
+      left_distrib := have h : _ := @left_distrib, _,
+      right_distrib := have h : _ := @right_distrib, _,
+      mul_comm := have h : _ := @mul_comm, _,
       .. splitting_field_aux.add_comm_group n },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  case [nat_cast_zero            nat.zero,
-        nat_cast_succ            nat.zero,
-        int_cast_of_nat          nat.zero,
-        int_cast_neg_succ_of_nat nat.zero,
-        mul_assoc                nat.zero,
-        one_mul                  nat.zero,
-        mul_one                  nat.zero,
-        npow_zero'               nat.zero,
-        npow_succ'               nat.zero,
-        left_distrib             nat.zero,
-        right_distrib            nat.zero,
-        mul_comm                 nat.zero]
-  { all_goals { have_field, apply @field K } },
-  case [nat_cast_zero            nat.succ,
-        nat_cast_succ            nat.succ,
-        int_cast_of_nat          nat.succ,
-        int_cast_neg_succ_of_nat nat.succ,
-        mul_assoc                nat.succ,
-        one_mul                  nat.succ,
-        mul_one                  nat.succ,
-        npow_zero'               nat.succ,
-        npow_succ'               nat.succ,
-        left_distrib             nat.succ,
-        right_distrib            nat.succ,
-        mul_comm                 nat.succ]
-  { all_goals { exact ih } },
+  all_goals {
+    unfreezingI { induction n with n ih generalizing K },
+    { apply @h K },
+    { exact ih } },
 end
 
 instance is_scalar_tower_right (α : Type*) (n : ℕ) {K : Type u} [field K]
@@ -424,7 +396,7 @@ nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, 
 instance field (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   field (splitting_field_aux n f) :=
 begin
-  refine_struct
+  refine
   { add := splitting_field_aux.add n,
     zero := splitting_field_aux.zero n,
     neg := splitting_field_aux.neg n,
@@ -439,28 +411,20 @@ begin
     npow := splitting_field_aux.npow n,
     zpow := splitting_field_aux.zpow n,
     rat_cast := splitting_field_aux.mk n ∘ (coe : ℚ → K),
+    div_eq_mul_inv := have h : _ := @div_eq_mul_inv, _,
+    zpow_zero' := have h : _ := @field.zpow_zero', _,
+    zpow_succ' := have h : _ := @field.zpow_succ', _,
+    zpow_neg' := have h : _ := @field.zpow_neg', _,
+    exists_pair_ne := have h : _ := @exists_pair_ne, _,
+    mul_inv_cancel := have h : _ := @mul_inv_cancel, _,
+    inv_zero := have h : _ := @inv_zero, _,
+    rat_cast_mk := have h : _ := @field.rat_cast_mk, _,
+    qsmul_eq_mul' := have h : _ := @field.qsmul_eq_mul', _,
     .. splitting_field_aux.comm_ring n },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  case [div_eq_mul_inv nat.zero,
-        zpow_zero'     nat.zero,
-        zpow_succ'     nat.zero,
-        zpow_neg'      nat.zero,
-        exists_pair_ne nat.zero,
-        mul_inv_cancel nat.zero,
-        inv_zero       nat.zero,
-        rat_cast_mk    nat.zero,
-        qsmul_eq_mul'  nat.zero]
-  { all_goals { have_field, apply @field K } },
-  case [div_eq_mul_inv nat.succ,
-        zpow_zero'     nat.succ,
-        zpow_succ'     nat.succ,
-        zpow_neg'      nat.succ,
-        exists_pair_ne nat.succ,
-        mul_inv_cancel nat.succ,
-        inv_zero       nat.succ,
-        rat_cast_mk    nat.succ,
-        qsmul_eq_mul'  nat.succ]
-  { all_goals { try { exact @ih _ _ _ } } }
+  all_goals {
+    unfreezingI { induction n with n ih generalizing K },
+    { apply @h K },
+    { exact @ih _ _ _ } },
 end
 
 instance inhabited {n : ℕ} {f : K[X]} :

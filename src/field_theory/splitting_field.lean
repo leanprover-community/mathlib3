@@ -140,18 +140,18 @@ is required to lift scalar multiplications on `K` to a splitting field of `f : K
 -/
 instance add_zero_class (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   add_zero_class (splitting_field_aux n f) :=
-begin
-  refine_struct
-    { add := splitting_field_aux.add n,
-      zero := splitting_field_aux.zero n },
-  all_goals { unfreezingI { induction n with n ih generalizing K } },
-  -- The `succ` cases follow by induction, handle them first.
-  iterate 2 { rotate, exact ih },
-  -- The `zero` cases follow from the structure of the field `K`.
-  all_goals { intros,
-    dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero],
-    simp },
-end
+{ add := splitting_field_aux.add n,
+  zero := splitting_field_aux.zero n,
+  add_zero := λ a, begin
+    unfreezingI { induction n with n ih generalizing K },
+    { exact add_zero (show K, from a) },
+    { apply ih },
+  end,
+  zero_add := λ a, begin
+    unfreezingI { induction n with n ih generalizing K },
+    { exact zero_add (show K, from a) },
+    { apply ih },
+  end }
 
 /-- Splitting fields inherit scalar multiplication. -/
 protected def smul (n : ℕ) : Π (α : Type*) {K : Type u} [field K],
@@ -180,18 +180,16 @@ A `distrib_smul` is required to lift scalar multiplication on `K` to a splitting
 instance distrib_smul (α : Type*) (n : ℕ) {K : Type u} [field K]
   [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
   distrib_smul α (splitting_field_aux n f) :=
-{ smul_zero := begin
-    unfreezingI { induction n with n ih generalizing K };
-      dsimp only [splitting_field_aux, splitting_field_aux.has_smul, splitting_field_aux.smul],
-    { intros a, apply @smul_zero_class.smul_zero α K },
+{ smul_zero := λ a, begin
+    unfreezingI { induction n with n ih generalizing K },
+    { exact smul_zero a },
     { exact ih }
   end,
-  smul_add := begin
-    unfreezingI { induction n with n ih generalizing K };
-      dsimp only [splitting_field_aux, splitting_field_aux.has_smul, splitting_field_aux.smul],
-    { intros a, apply @distrib_smul.smul_add α K },
+  smul_add := λ a, begin
+    unfreezingI { induction n with n ih generalizing K },
+    { exact smul_add a },
     { exact ih }
-  end, }
+  end }
 
 instance polynomial.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
   [has_smul R₁ R₂] [field K] [distrib_smul R₂ K] [distrib_smul R₁ K] [is_scalar_tower R₁ R₂ K] :
@@ -308,16 +306,14 @@ instance distrib_mul_action (α : Type*) [comm_semiring α] (n : ℕ) {K : Type 
 { smul := (•),
   smul_zero := smul_zero,
   smul_add := smul_add,
-  one_smul :=
-  begin
+  one_smul := λ b, begin
     unfreezingI { induction n with n ih generalizing K },
-    { intros b, convert @one_smul α K _ _ b },
-    { exact ih }
+    { exact one_smul _ b },
+    { exact ih _ }
   end,
-  mul_smul :=
-  begin
+  mul_smul := λ b, begin
     unfreezingI { induction n with n ih generalizing K },
-    { intros b, convert @mul_smul α K _ _ b },
+    { exact mul_smul b },
     { exact ih }
   end }
 

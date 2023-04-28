@@ -656,7 +656,7 @@ begin
   rcases eq_or_ne m 1 with rfl | hm',
   { simp },
   rw [one_apply_ne, one_apply_ne hm', zero_mul],
-  rw [ne.def, nat.mul_eq_one_iff, not_and_distrib],
+  rw [ne.def, mul_eq_one, not_and_distrib],
   exact or.inl hm'
 end⟩
 

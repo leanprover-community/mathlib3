@@ -9,6 +9,9 @@ import analysis.normed_space.basic
 /-!
 # Rays in a real normed vector space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some lemmas about the `same_ray` predicate in case of a real normed space. In
 this case, for two vectors `x y` in the same ray, the norm of their sum is equal to the sum of their
 norms and `‖y‖ • x = ‖x‖ • y`.

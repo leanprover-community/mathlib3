@@ -99,8 +99,8 @@ begin
     simp_rw [mul_vec_single, mul_one, orthonormal_basis.coe_to_basis_repr_apply,
       orthonormal_basis.repr_reindex],
     refl },
-  { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
-    rw [basis.to_matrix_apply,
+  { simp only [diagonal_mul, (∘), eigenvalues],
+    rw [eigenvector_basis, basis.to_matrix_apply,
       orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.repr_reindex,
       eigenvalues₀, pi_Lp.basis_fun_apply, pi_Lp.equiv_symm_single] }
 end

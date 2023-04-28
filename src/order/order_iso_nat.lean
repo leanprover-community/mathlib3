@@ -226,17 +226,9 @@ a (monotonic_sequence_limit_index a)
 lemma well_founded.supr_eq_monotonic_sequence_limit [complete_lattice α]
   (h : well_founded ((>) : α → α → Prop)) (a : ℕ →o α) : supr a = monotonic_sequence_limit a :=
 begin
-  suffices : (⨆ (m : ℕ), a m) ≤ monotonic_sequence_limit a,
-  { exact le_antisymm this (le_supr a _), },
-  apply supr_le,
-  intros m,
-  by_cases hm : m ≤ monotonic_sequence_limit_index a,
-  { exact a.monotone hm, },
-  { replace hm := le_of_not_le hm,
-    let S := { n | ∀ m, n ≤ m → a n = a m },
-    have hInf : Inf S ∈ S,
-    { refine nat.Inf_mem _, rw well_founded.monotone_chain_condition at h, exact h a, },
-    change Inf S ≤ m at hm,
-    change a m ≤ a (Inf S),
-    rw hInf m hm, },
+  apply (supr_le (λ m, _)).antisymm (le_supr a _),
+  cases le_or_lt m (monotonic_sequence_limit_index a) with hm hm,
+  { exact a.monotone hm },
+  { cases well_founded.monotone_chain_condition'.1 h a with n hn,
+    exact (nat.Inf_mem ⟨n, λ k hk, (a.mono hk).eq_of_not_lt (hn k hk)⟩ m hm.le).ge }
 end

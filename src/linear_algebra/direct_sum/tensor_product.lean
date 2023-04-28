@@ -10,6 +10,9 @@ import algebra.direct_sum.module
 /-!
 # Tensor products of direct sums
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that taking `tensor_product`s commutes with taking `direct_sum`s in both arguments.
 
 ## Main results

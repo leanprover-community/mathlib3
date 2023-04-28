@@ -230,7 +230,7 @@ since this cardinal is finite, as a natural number in `finrank_V` -/
 
 lemma dim_V : module.rank ℝ (V n) = 2^n :=
 have module.rank ℝ (V n) = (2^n : ℕ),
-  by { rw [dim_eq_card_basis (dual_bases_e_ε _).basis, Q.card]; apply_instance },
+  by { rw [rank_eq_card_basis (dual_bases_e_ε _).basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
@@ -238,7 +238,7 @@ finite_dimensional.of_fintype_basis (dual_bases_e_ε _).basis
 
 lemma finrank_V : finrank ℝ (V n) = 2^n :=
 have _ := @dim_V n,
-by rw ←finrank_eq_dim at this; assumption_mod_cast
+by rw ←finrank_eq_rank at this; assumption_mod_cast
 
 /-! ### The linear map -/
 
@@ -359,25 +359,25 @@ begin
   let img := (g m).range,
   suffices : 0 < dim (W ⊓ img),
   { simp only [exists_prop],
-    exact_mod_cast exists_mem_ne_zero_of_dim_pos this },
+    exact_mod_cast exists_mem_ne_zero_of_rank_pos this },
   have dim_le : dim (W ⊔ img) ≤ 2^(m + 1),
-  { convert ← dim_submodule_le (W ⊔ img),
+  { convert ← rank_submodule_le (W ⊔ img),
     apply dim_V },
   have dim_add : dim (W ⊔ img) + dim (W ⊓ img) = dim W + 2^m,
-  { convert ← dim_sup_add_dim_inf_eq W img,
-    rw ← dim_eq_of_injective (g m) g_injective,
+  { convert ← submodule.rank_sup_add_rank_inf_eq W img,
+    rw ← rank_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
   { have li : linear_independent ℝ (H.restrict e),
     { convert (dual_bases_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
       rw (dual_bases_e_ε _).coe_basis },
-    have hdW := dim_span li,
+    have hdW := rank_span li,
     rw set.range_restrict at hdW,
     convert hdW,
     rw [← (dual_bases_e_ε _).coe_basis, cardinal.mk_image_eq (dual_bases_e_ε _).basis.injective,
         cardinal.mk_fintype] },
-  rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
-  rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
+  rw ← finrank_eq_rank ℝ at ⊢ dim_le dim_add dimW,
+  rw [← finrank_eq_rank ℝ, ← finrank_eq_rank ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
   rw pow_succ' at dim_le,
   rw set.to_finset_card at hH,

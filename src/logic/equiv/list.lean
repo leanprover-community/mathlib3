@@ -347,7 +347,7 @@ def list_unit_equiv : list unit ≃ ℕ :=
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _
 
 /-- If `α` is equivalent to `ℕ`, then `list α` is equivalent to `α`. -/
-def list_equiv_self_of_equiv_nat {α : Type} (e : α ≃ ℕ) : list α ≃ α :=
+def list_equiv_self_of_equiv_nat {α : Type*} (e : α ≃ ℕ) : list α ≃ α :=
 calc list α ≃ list ℕ : list_equiv_of_equiv e
         ... ≃ ℕ      : list_nat_equiv_nat
         ... ≃ α      : e.symm

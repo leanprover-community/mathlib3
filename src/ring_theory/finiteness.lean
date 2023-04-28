@@ -12,6 +12,9 @@ import ring_theory.ideal.operations
 /-!
 # Finiteness conditions in commutative algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a notion of finiteness that is common in commutative algebra.
 
 ## Main declarations
@@ -472,6 +475,14 @@ lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   exact hM.1.map f
 end⟩
 
+/-- The range of a linear map from a finite module is finite. -/
+instance range [finite R M] (f : M →ₗ[R] N) : finite R f.range :=
+of_surjective f.range_restrict $ λ ⟨x, y, hy⟩, ⟨y, subtype.ext hy⟩
+
+/-- Pushforwards of finite submodules are finite. -/
+instance map (p : submodule R M) [finite R p] (f : M →ₗ[R] N) : finite R (p.map f) :=
+of_surjective (f.restrict $ λ _, mem_map_of_mem) $ λ ⟨x, y, hy, hy'⟩, ⟨⟨_, hy⟩, subtype.ext hy'⟩
+
 variables (R)
 
 instance self : finite R R :=
@@ -511,13 +522,13 @@ of_surjective (e : M →ₗ[R] N) e.surjective
 
 section algebra
 
-lemma trans {R : Type*} (A B : Type*) [comm_semiring R] [comm_semiring A] [algebra R A]
-  [semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B] :
-  ∀ [finite R A] [finite A B], finite R B
+lemma trans {R : Type*} (A M : Type*) [comm_semiring R] [semiring A] [algebra R A]
+  [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M] :
+  ∀ [finite R A] [finite A M], finite R M
 | ⟨⟨s, hs⟩⟩ ⟨⟨t, ht⟩⟩ := ⟨submodule.fg_def.2
-  ⟨set.image2 (•) (↑s : set A) (↑t : set B),
+  ⟨set.image2 (•) (↑s : set A) (↑t : set M),
     set.finite.image2 _ s.finite_to_set t.finite_to_set,
-    by rw [set.image2_smul, submodule.span_smul_of_span_eq_top hs (↑t : set B),
+    by rw [set.image2_smul, submodule.span_smul_of_span_eq_top hs (↑t : set M),
       ht, submodule.restrict_scalars_top]⟩⟩
 
 end algebra
@@ -573,14 +584,15 @@ begin
 end
 
 lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite) (hf : f.finite) : (g.comp f).finite :=
-@module.finite.trans A B C _ _ f.to_algebra _ (g.comp f).to_algebra g.to_algebra
 begin
-  fconstructor,
-  intros a b c,
-  simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
-  refl
+  letI := f.to_algebra,
+  letI := g.to_algebra,
+  letI := (g.comp f).to_algebra,
+  letI : is_scalar_tower A B C := restrict_scalars.is_scalar_tower A B C,
+  letI : module.finite A B := hf,
+  letI : module.finite B C := hg,
+  exact module.finite.trans B C,
 end
-hf hg
 
 lemma of_comp_finite {f : A →+* B} {g : B →+* C} (h : (g.comp f).finite) : g.finite :=
 begin

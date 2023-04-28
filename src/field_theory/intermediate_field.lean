@@ -472,7 +472,7 @@ left K F L
 instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional F L :=
 right K F L
 
-@[simp] lemma dim_eq_dim_subalgebra :
+@[simp] lemma rank_eq_rank_subalgebra :
   module.rank K F.to_subalgebra = module.rank K F := rfl
 
 @[simp] lemma finrank_eq_finrank_subalgebra :

@@ -44,29 +44,28 @@ variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
-theorem dim_mul_dim' :
+theorem rank_mul_rank' :
   (cardinal.lift.{w} (module.rank F K) * cardinal.lift.{v} (module.rank K A)) =
   cardinal.lift.{v} (module.rank F A) :=
 let b := basis.of_vector_space F K, c := basis.of_vector_space K A in
-by rw [← (module.rank F K).lift_id, ← b.mk_eq_dim,
-    ← (module.rank K A).lift_id, ← c.mk_eq_dim,
-    ← lift_umax.{w v}, ← (b.smul c).mk_eq_dim, mk_prod, lift_mul,
+by rw [← (module.rank F K).lift_id, ← b.mk_eq_rank,
+    ← (module.rank K A).lift_id, ← c.mk_eq_rank,
+    ← lift_umax.{w v}, ← (b.smul c).mk_eq_rank, mk_prod, lift_mul,
     lift_lift, lift_lift, lift_lift, lift_lift, lift_umax]
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
-theorem dim_mul_dim (F : Type u) (K A : Type v) [field F] [field K] [add_comm_group A]
+theorem rank_mul_rank (F : Type u) (K A : Type v) [field F] [field K] [add_comm_group A]
   [algebra F K] [module K A] [module F A] [is_scalar_tower F K A] :
   module.rank F K * module.rank K A = module.rank F A :=
-by convert dim_mul_dim' F K A; rw lift_id
+by convert rank_mul_rank' F K A; rw lift_id
 
 namespace finite_dimensional
 
 open is_noetherian
 
 theorem trans [finite_dimensional F K] [finite_dimensional K A] : finite_dimensional F A :=
-let b := basis.of_vector_space F K, c := basis.of_vector_space K A in
-of_fintype_basis $ b.smul c
+module.finite.trans K A
 
 /-- In a tower of field extensions `L / K / F`, if `L / F` is finite, so is `K / F`.
 
@@ -114,25 +113,10 @@ theorem subalgebra.is_simple_order_of_finrank_prime (A) [ring A] [is_domain A] [
   end }
 /- TODO: `intermediate_field` version -/
 
-instance linear_map (F : Type u) (V : Type v) (W : Type w)
-  [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]
-  [finite_dimensional F V] [finite_dimensional F W] :
-  finite_dimensional F (V →ₗ[F] W) :=
-let b := basis.of_vector_space F V, c := basis.of_vector_space F W in
-(matrix.to_lin b c).finite_dimensional
-
-lemma finrank_linear_map (F : Type u) (V : Type v) (W : Type w)
-  [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]
-  [finite_dimensional F V] [finite_dimensional F W] :
-  finrank F (V →ₗ[F] W) = finrank F V * finrank F W :=
-  let b := basis.of_vector_space F V, c := basis.of_vector_space F W in
-by rw [linear_equiv.finrank_eq (linear_map.to_matrix b c), matrix.finrank_matrix,
-      finrank_eq_card_basis b, finrank_eq_card_basis c, mul_comm]
-
 -- TODO: generalize by removing [finite_dimensional F K]
 -- V = ⊕F,
 -- (V →ₗ[F] K) = ((⊕F) →ₗ[F] K) = (⊕ (F →ₗ[F] K)) = ⊕K
-instance linear_map' (F : Type u) (K : Type v) (V : Type w)
+instance _root_.linear_map.finite_dimensional'' (F : Type u) (K : Type v) (V : Type w)
   [field F] [field K] [algebra F K] [finite_dimensional F K]
   [add_comm_group V] [module F V] [finite_dimensional F V] :
   finite_dimensional K (V →ₗ[F] K) :=

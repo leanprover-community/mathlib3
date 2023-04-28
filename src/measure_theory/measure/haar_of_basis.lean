@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import measure_theory.measure.haar
 import analysis.inner_product_space.pi_L2
+import measure_theory.constructions.pi
 
 /-!
 # Additive Haar measure constructed from a basis
@@ -151,10 +152,33 @@ volume `1` to the parallelepiped spanned by any orthonormal basis. We define the
 some arbitrary choice of orthonormal basis. The fact that it works with any orthonormal basis
 is proved in `orthonormal_basis.volume_parallelepiped`. -/
 @[priority 100] instance measure_space_of_inner_product_space
-  [inner_product_space ℝ E] [finite_dimensional ℝ E] [measurable_space E] [borel_space E] :
+  [normed_add_comm_group E] [inner_product_space ℝ E] [finite_dimensional ℝ E]
+  [measurable_space E] [borel_space E] :
   measure_space E :=
 { volume := (std_orthonormal_basis ℝ E).to_basis.add_haar }
 
 /- This instance should not be necessary, but Lean has difficulties to find it in product
 situations if we do not declare it explicitly. -/
 instance real.measure_space : measure_space ℝ := by apply_instance
+
+/-! # Miscellaneous instances for `euclidean_space`
+
+In combination with `measure_space_of_inner_product_space`, these put a `measure_space` structure
+on `euclidean_space`. -/
+namespace euclidean_space
+variables (ι)
+
+-- TODO: do we want these instances for `pi_Lp` too?
+instance : measurable_space (euclidean_space ℝ ι) := measurable_space.pi
+instance : borel_space (euclidean_space ℝ ι) := pi.borel_space
+
+/-- `pi_Lp.equiv` as a `measurable_equiv`. -/
+@[simps to_equiv]
+protected def measurable_equiv : euclidean_space ℝ ι ≃ᵐ (ι → ℝ) :=
+{ to_equiv := pi_Lp.equiv _ _,
+  measurable_to_fun := measurable_id,
+  measurable_inv_fun := measurable_id }
+
+lemma coe_measurable_equiv : ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.equiv 2 _ := rfl
+
+end euclidean_space

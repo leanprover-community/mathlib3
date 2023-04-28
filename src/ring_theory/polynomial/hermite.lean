@@ -6,6 +6,8 @@ Authors: Luke Mantle
 
 import data.polynomial.derivative
 import data.nat.parity
+import analysis.special_functions.exp
+import analysis.special_functions.exp_deriv
 
 /-!
 # Hermite polynomials
@@ -124,5 +126,68 @@ begin
 end
 
 end coeff
+
+/-! ### Lemmas about `polynomial.hermite_gauss` -/
+
+section gauss
+
+abbreviation gaussian : ℝ → ℝ := λ x, real.exp (-(x^2 / 2))
+
+abbreviation inv_gaussian : ℝ → ℝ := λ x, real.exp (x^2 / 2)
+
+lemma inv_gaussian_mul_gaussian (x : ℝ) : inv_gaussian x * gaussian x = 1 :=
+by rw [← real.exp_add, add_neg_self, real.exp_zero]
+
+lemma deriv_gaussian (x : ℝ) : deriv gaussian x = -x * gaussian x :=
+by simp [mul_comm]
+
+lemma deriv_inv_gaussian (x : ℝ) : deriv inv_gaussian x = x * inv_gaussian x :=
+by simp [mul_comm]
+
+lemma cont_diff_gaussian : cont_diff ℝ ⊤ gaussian :=
+((cont_diff_id.pow 2).div_const 2).neg.exp
+
+lemma cont_diff.iterated_deriv :
+∀ (n : ℕ) (f : ℝ → ℝ) (hf : cont_diff ℝ ⊤ f), cont_diff ℝ ⊤ (deriv^[n] f)
+| 0     f hf := hf
+| (n+1) f hf := cont_diff.iterated_deriv n (deriv f) (cont_diff_top_iff_deriv.mp hf).2
+
+
+def hermite_exp (n : ℕ) : ℝ → ℝ :=
+λ x, (-1)^n * (inv_gaussian x) * (deriv^[n] gaussian x)
+
+lemma hermite_exp_def (n : ℕ) :
+hermite_exp n = λ x, (-1)^n * (inv_gaussian x) * (deriv^[n] gaussian x) := rfl
+
+lemma hermite_exp_succ (n : ℕ) : hermite_exp (n+1)
+= id * (hermite_exp n) - deriv (hermite_exp n):=
+begin
+  ext,
+  simp only [hermite_exp, function.iterate_succ', function.comp_app,
+             id.def, pi.mul_apply, pi.sub_apply, pow_succ],
+  rw [deriv_mul, deriv_const_mul, deriv_inv_gaussian],
+  ring,
+  { simp },
+  { simp },
+  { apply (cont_diff_top_iff_deriv.mp (cont_diff.iterated_deriv _ _ cont_diff_gaussian)).1 }
+end
+
+lemma hermite_eq_exp (n : ℕ) :
+(λ x, eval x (map (algebra_map ℤ ℝ) (hermite n))) =
+λ x, (-1)^n * (inv_gaussian x) * (deriv^[n] gaussian x) :=
+begin
+  induction n with n ih,
+  { simp [inv_gaussian_mul_gaussian] },
+  { rw [← hermite_exp_def, hermite_exp_succ, hermite_succ, hermite_exp_def, ← ih],
+    ext,
+    simp },
+end
+
+lemma hermite_eq_exp_apply :
+  ∀ (n : ℕ) (x : ℝ), eval x (map (algebra_map ℤ ℝ) (hermite n)) =
+    (-1)^n * (inv_gaussian x) * (deriv^[n] gaussian x) :=
+λ n x, congr_fun (hermite_eq_exp n) x
+
+end gauss
 
 end polynomial

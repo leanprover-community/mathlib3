@@ -20,14 +20,26 @@ distance. This way we hide the usage of `to_euclidean` behind an API.
 open_locale topology
 open set
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type*}
+[add_comm_group E] [topological_space E] [topological_add_group E] [t2_space E]
+[module ℝ E] [has_continuous_smul ℝ E] [finite_dimensional ℝ E]
+
 
 noncomputable theory
+open finite_dimensional
 
 /-- If `E` is a finite dimensional space over `ℝ`, then `to_euclidean` is a continuous `ℝ`-linear
 equivalence between `E` and the Euclidean space of the same dimension. -/
-def to_euclidean : E ≃L[ℝ] euclidean_space ℝ (fin $ finite_dimensional.finrank ℝ E) :=
-continuous_linear_equiv.of_finrank_eq finrank_euclidean_space_fin.symm
+def to_euclidean : E ≃L[ℝ] euclidean_space ℝ (fin $ finrank ℝ E) :=
+begin
+  let V' := euclidean_space ℝ (fin (finrank ℝ E)),
+  have : finrank ℝ E = finrank ℝ V',
+    by rw finrank_euclidean_space_fin,
+
+  exact (nonempty_linear_equiv_of_finrank_eq this).some,
+end
+
+#exit
 
 namespace euclidean
 

@@ -153,6 +153,8 @@ by simp [inv_gaussian_eq, mul_comm]
 lemma cont_diff_gaussian : cont_diff ℝ ⊤ gaussian :=
 ((cont_diff_id.pow 2).div_const 2).neg.exp
 
+namespace polynomial
+
 lemma hermite_gauss_succ (n : ℕ) :
 (λ x, (-1)^(n+1) * (gaussian⁻¹ x) * (deriv^[n+1] gaussian x))
 = id * (λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x)) -
@@ -168,23 +170,16 @@ begin
   { apply (cont_diff_top_iff_deriv.mp (cont_diff.iterate_deriv _ _ cont_diff_gaussian)).1 }
 end
 
-namespace polynomial
-
-lemma hermite_eq_deriv_gaussian (n : ℕ) :
-(λ (x : ℝ), aeval x (hermite n)) =
-λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x) :=
+lemma hermite_eq_deriv_gaussian (n : ℕ) (x : ℝ) :
+  aeval x (hermite n) = (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x) :=
 begin
+  apply function.funext_iff.mp _ x,
   induction n with n ih,
   { simp [-pi.inv_apply, inv_gaussian_mul_gaussian] },
   { rw [hermite_gauss_succ, hermite_succ, ← ih],
     ext,
     simp [aeval_def, eval₂_eq_eval_map] },
 end
-
-lemma hermite_eq_deriv_gaussian_apply :
-  ∀ (n : ℕ) (x : ℝ), aeval x (hermite n) =
-    (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x) :=
-λ n x, congr_fun (hermite_eq_deriv_gaussian n) x
 
 end polynomial
 end gaussian

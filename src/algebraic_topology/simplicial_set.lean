@@ -24,6 +24,9 @@ and their boundaries `∂Δ[n]` and horns `Λ[n, i]`.
 
 ## Future work
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 There isn't yet a complete API for simplices, boundaries, and horns.
 As an example, we should have a function that constructs
 from a non-surjective order preserving function `fin n → fin n`

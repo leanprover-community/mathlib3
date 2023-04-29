@@ -27,11 +27,23 @@ open_locale classical topology nat big_operators uniformity nnreal ennreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
-lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
+section linear_ordered
+variables {𝕜 : Type*}
+variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] [archimedean 𝕜]
+
+lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : 𝕜)⁻¹) at_top (𝓝 0) :=
 tendsto_inv_at_top_zero.comp tendsto_coe_nat_at_top_at_top
 
-lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
-by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
+lemma tendsto_const_div_at_top_nhds_0_nat [has_continuous_mul 𝕜] (C : 𝕜) :
+  tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
+by simpa only [mul_zero, div_eq_mul_inv] using tendsto_inverse_at_top_nhds_0_nat.const_mul C
+
+lemma tendsto_one_div_add_at_top_nhds_0_nat :
+  tendsto (λ n : ℕ, 1 / ((n : 𝕜) + 1)) at_top (𝓝 0) :=
+suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : 𝕜)) at_top (𝓝 0), by simpa,
+(tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
+
+end linear_ordered
 
 lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ≥0)⁻¹) at_top (𝓝 0) :=
 by { rw ← nnreal.tendsto_coe, exact tendsto_inverse_at_top_nhds_0_nat }
@@ -39,11 +51,6 @@ by { rw ← nnreal.tendsto_coe, exact tendsto_inverse_at_top_nhds_0_nat }
 lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : ℝ≥0) :
   tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
-
-lemma tendsto_one_div_add_at_top_nhds_0_nat :
-  tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
-suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
-(tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
 
 /-- The limit of `n / (n + x)` is 1, for any constant `x` (valid in `ℝ` or any topological division
 algebra over `ℝ`, e.g., `ℂ`).

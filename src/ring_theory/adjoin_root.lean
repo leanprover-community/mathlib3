@@ -110,6 +110,7 @@ instance (R₁ R₂ : Type*) {K : Type u}
 ⟨begin
   intros a b x,
   refine x.induction_on _ (λ p, _),
+  haveI : is_scalar_tower R₁ R₂ K[X] := polynomial.is_scalar_tower,
   simp only [adjoin_root.smul_mk, smul_assoc a b p],
 end⟩
 

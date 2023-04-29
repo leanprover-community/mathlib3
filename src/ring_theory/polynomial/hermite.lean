@@ -174,13 +174,11 @@ lemma hermite_eq_deriv_gaussian (n : ℕ) :
 (λ (x : ℝ), aeval x (hermite n)) =
 λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x) :=
 begin
-  convert_to (λ x, eval x (map (algebra_map ℤ ℝ) (hermite n))) = _,
-  simp [aeval_def, eval, eval₂_map],
   induction n with n ih,
   { simp [-pi.inv_apply, inv_gaussian_mul_gaussian] },
   { rw [hermite_gauss_succ, hermite_succ, ← ih],
     ext,
-    simp },
+    simp [aeval_def, eval₂_eq_eval_map] },
 end
 
 lemma hermite_eq_deriv_gaussian_apply :

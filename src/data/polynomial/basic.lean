@@ -203,8 +203,8 @@ instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [di
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_comm] }⟩
 
-instance {S₁ S₂} [has_smul S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
-  [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
+instance {S₁ S₂} [has_smul S₁ S₂] [monoid S₁] [monoid S₂] [smul_zero_class S₁ R]
+  [smul_zero_class S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_assoc] }⟩
 
 instance is_scalar_tower_right {α K : Type*} [semiring K] [distrib_smul α K]

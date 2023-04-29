@@ -9,6 +9,9 @@ import linear_algebra.multilinear.basic
 /-!
 # Continuous multilinear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define continuous multilinear maps as maps from `Π(i : ι), M₁ i` to `M₂` which are multilinear
 and continuous, by extending the space of multilinear maps with a continuity assumption.
 Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is an arbitrary type, and all these

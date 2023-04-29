@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     # timeout-minutes: 3
     steps:
-      - uses: styfle/cancel-workflow-action@0.9.0
+      - uses: styfle/cancel-workflow-action@0.11.0
         with:
           all_but_latest: true
           access_token: ${{ github.token }}
@@ -38,7 +38,7 @@ jobs:
     name: Lint style (fork)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install bibtool
         if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
@@ -48,7 +48,7 @@ jobs:
 
       - name: install Python
         if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -70,7 +70,7 @@ jobs:
     outputs:
       artifact_name: ${{ steps.setup_precompiled.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: ${{ env.GIT_HISTORY_DEPTH }}
 
@@ -84,7 +84,7 @@ jobs:
 
       - name: install Python
         if: ${{ ! 0 }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -96,7 +96,7 @@ jobs:
         run: |
           set -o pipefail
           leanpkg configure
-          echo "::set-output name=started::true"
+          echo "started=true" >> $GITHUB_OUTPUT
           lean --json -T100000 --make src | python3 scripts/detect_errors.py
           lean --json -T400000 --make src | python3 scripts/detect_errors.py
 
@@ -117,7 +117,7 @@ jobs:
           touch workspace.tar
           tar -cf workspace.tar --exclude=*.tar* .
           git_hash="$(git log -1 --pretty=format:%h)"
-          echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+          echo "artifact_name=precompiled-mathlib-$short_lean_version-$git_hash" >> $GITHUB_OUTPUT
 
       - name: upload precompiled mathlib zip file
         if: always() && steps.build.outputs.started == 'true'
@@ -149,7 +149,7 @@ jobs:
         run: rm -rf ./* ./.??*
 
       - name: retrieve build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
@@ -186,7 +186,7 @@ jobs:
         run: rm -rf ./* ./.??*
 
       - name: retrieve build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
@@ -202,7 +202,7 @@ jobs:
 
       - name: install Python
         if: ${{ ! 0 }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -263,7 +263,7 @@ jobs:
     needs: [style_lint, build, lint, tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - id: PR
         uses: 8BitJonny/gh-get-current-pr@1.2.0

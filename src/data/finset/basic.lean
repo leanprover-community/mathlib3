@@ -2248,6 +2248,9 @@ by { ext, simp }
 
 @[simp] lemma to_finset_eq_empty_iff (l : list α) : l.to_finset = ∅ ↔ l = nil := by cases l; simp
 
+@[simp] lemma to_finset_nonempty_iff (l : list α) : l.to_finset.nonempty ↔ ¬ l.empty :=
+by simp [finset.nonempty_iff_ne_empty, list.empty_iff_eq_nil]
+
 end list
 
 namespace finset

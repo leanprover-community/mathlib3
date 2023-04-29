@@ -32,13 +32,6 @@ noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
-#check list.to_finset_nil
-
-@[simp] lemma list.to_finset_nonempty (l : list α) : l.to_finset.nonempty ↔ ¬ l.empty :=
-by simp [finset.nonempty_iff_ne_empty, list.empty_iff_eq_nil]
-
-section uniform_of_finset
-
 /-- Uniform distribution taking the same non-zero probability on the nonempty finset `s` -/
 def uniform_of_finset (s : finset α) (hs : s.nonempty) : pmf α :=
 of_finset (λ a, if a ∈ s then s.card⁻¹ else 0) s (Exists.rec_on hs (λ x hx,
@@ -160,17 +153,17 @@ by simpa only [of_multiset_apply, ennreal.div_zero_iff, nat.cast_eq_zero,
 /-- After removing duplicate elements from `s : multiset α`, the uniform distribution on `s`
 is the same as the uniform distribution on `s.to_finset`. -/
 @[simp] lemma of_multiset_dedup_eq_uniform_of_finset (hs : s.dedup ≠ 0) :
-  have s.to_finset.nonempty := (multiset.to_finset_nonempty s).2 (hs ∘ multiset.dedup_eq_zero.2),
+  have s.to_finset.nonempty := (multiset.to_finset_nonempty).2 (hs ∘ multiset.dedup_eq_zero.2),
   of_multiset s.dedup hs = uniform_of_finset s.to_finset this :=
 pmf.ext (λ x, by simp only [of_multiset_apply, uniform_of_finset_apply, multiset.card_to_finset,
   multiset.count_eq_of_nodup (s.nodup_dedup), nat.cast_ite, algebra_map.coe_one, div_eq_mul_inv,
   algebra_map.coe_zero, ite_mul, one_mul, zero_mul, multiset.mem_dedup, multiset.mem_to_finset])
 
 lemma of_multiset_eq_uniform_of_finset_of_nodup (hs' : s.nodup) :
-  of_multiset s hs = uniform_of_finset s.to_finset (s.to_finset_nonempty.2 hs) :=
+  of_multiset s hs = uniform_of_finset s.to_finset (multiset.to_finset_nonempty.2 hs) :=
 have s.dedup ≠ 0 := (λ h, hs $ multiset.dedup_eq_zero.1 h),
 calc of_multiset s hs = of_multiset s.dedup this : by simp only [multiset.dedup_eq_self.2 hs']
-  ... = uniform_of_finset s.to_finset (s.to_finset_nonempty.2 hs) :
+  ... = uniform_of_finset s.to_finset (multiset.to_finset_nonempty.2 hs) :
     of_multiset_dedup_eq_uniform_of_finset _
 
 section measure
@@ -215,7 +208,9 @@ lemma of_list_apply_of_not_mem {x : α} (hx : x ∉ l) : of_list l h x = 0 := by
 /-- After removing duplicate elements from `l : list α`, the uniform distribution on `l`
 is the same as the uniform distribution on `l.to_finset`. -/
 lemma of_list_dedup_eq_uniform_of_finset (hl : ¬ l.dedup.empty) : of_list l.dedup hl =
-  uniform_of_finset l.to_finset (l.to_finset_nonempty.2 $ hl ∘ l.dedup_empty.2) :=
+  uniform_of_finset l.to_finset (l.to_finset_nonempty.2 $ hl ∘ begin
+    rw [list.list.dedup_empty]
+  end) :=
 begin
   refine trans _ (of_multiset_dedup_eq_uniform_of_finset _),
   sorry,

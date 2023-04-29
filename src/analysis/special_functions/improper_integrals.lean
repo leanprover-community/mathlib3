@@ -36,11 +36,8 @@ lemma integrable_on_Ioi_rpow_of_lt {a : ℝ} (ha : a < -1) {c : ℝ} (hc : 0 < c
 begin
   have hd : ∀ (x : ℝ) (hx : x ∈ Ici c), has_deriv_at (λ t, t ^ (a + 1) / (a + 1)) (x ^ a) x,
   { intros x hx,
-    simp_rw div_eq_inv_mul,
-    have : x ^ a = (a + 1)⁻¹ * ((a + 1) * x ^ a),
-    { rw [←mul_assoc, inv_mul_cancel, one_mul], linarith },
-    rw this,
-    convert (has_deriv_at_rpow_const (or.inl (hc.trans_le hx).ne')).const_mul _,
+    rw show x ^ a = ((a + 1) * x ^ a) / (a + 1), by { rw [mul_comm, mul_div_cancel], linarith },
+    convert (has_deriv_at_rpow_const (or.inl (hc.trans_le hx).ne')).div_const _,
     abel },
   have ht : tendsto (λ t, t ^ (a + 1) / (a + 1)) at_top (𝓝 0),
   { rw ←zero_div,

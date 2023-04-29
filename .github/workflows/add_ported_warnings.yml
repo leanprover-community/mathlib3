@@ -22,7 +22,7 @@ jobs:
       # TODO: is this really faster than just calling git from python?
       - name: Get changed files
         id: changed-files
-        uses: Ana06/get-changed-files@v1.2
+        uses: Ana06/get-changed-files@v2.2.0
 
       - name: run the script
         id: script

@@ -295,9 +295,8 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k
   has_faithful_smul R (monoid_algebra k G) :=
 finsupp.has_faithful_smul
 
-instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_smul R S] [is_scalar_tower R S k] :
-  is_scalar_tower R S (monoid_algebra k G) :=
+instance [semiring k] [smul_zero_class R k] [smul_zero_class S k] [has_smul R S]
+  [is_scalar_tower R S k] : is_scalar_tower R S (monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
@@ -1137,7 +1136,7 @@ finsupp.has_faithful_smul
 instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k G) :=
 finsupp.module G k
 
-instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
+instance [semiring k] [smul_zero_class R k] [smul_zero_class S k]
   [has_smul R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (add_monoid_algebra k G) :=
 finsupp.is_scalar_tower G k

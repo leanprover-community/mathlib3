@@ -103,6 +103,25 @@ lemma smul_of [distrib_smul S R] [is_scalar_tower S R R] (a : S) (x : R) :
   a • of f x = of f (a • x) :=
 by rw [of, ring_hom.comp_apply, ring_hom.comp_apply, smul_mk, smul_C]
 
+instance (R₁ R₂ : Type*) {K : Type u}
+  [has_smul R₁ R₂] [field K] [distrib_smul R₁ K] [distrib_smul R₂ K]
+  [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] {f : K[X]} :
+  is_scalar_tower R₁ R₂ (adjoin_root f) :=
+⟨begin
+  intros a b x,
+  refine x.induction_on _ (λ p, _),
+  simp only [adjoin_root.smul_mk, smul_assoc a b p],
+end⟩
+
+instance (α : Type*) [comm_semiring α] {K : Type u} [field K]
+  [distrib_mul_action α K] [is_scalar_tower α K K] (f : K[X]) :
+  distrib_mul_action α (adjoin_root f) :=
+{ smul := (•),
+  one_smul := λ x, by { refine x.induction_on _ (λ p, _), rw [adjoin_root.smul_mk, one_smul] },
+  mul_smul := λ a b x,
+    by { refine x.induction_on _ (λ p, _), simp only [adjoin_root.smul_mk, mul_smul] },
+  .. adjoin_root.distrib_smul f }
+
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 

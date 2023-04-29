@@ -191,21 +191,6 @@ instance distrib_smul (α : Type*) (n : ℕ) {K : Type u} [field K]
     { exact ih }
   end }
 
-instance polynomial.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
-  [has_smul R₁ R₂] [field K] [distrib_smul R₂ K] [distrib_smul R₁ K] [is_scalar_tower R₁ R₂ K] :
-  is_scalar_tower R₁ R₂ K[X] :=
-⟨λ a b x, polynomial.ext $ by simp [polynomial.coeff_smul]⟩
-
-instance adjoin_root.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
-  [has_smul R₁ R₂] [field K] [distrib_smul R₁ K] [distrib_smul R₂ K]
-  [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] {f : K[X]} :
-  is_scalar_tower R₁ R₂ (adjoin_root f) :=
-⟨begin
-  intros a b x,
-  refine x.induction_on _ (λ p, _),
-  simp only [adjoin_root.smul_mk, smul_assoc a b p],
-end⟩
-
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
   [has_smul R₁ R₂] [field K],
   by exactI Π [distrib_smul R₂ K] [distrib_smul R₁ K],
@@ -283,15 +268,6 @@ begin
     { apply @h K },
     { exact ih } },
 end
-
-instance adjoin_root.distrib_mul_action (α : Type*) [comm_semiring α] {K : Type u} [field K]
-  [distrib_mul_action α K] [is_scalar_tower α K K] (f : K[X]) :
-  distrib_mul_action α (adjoin_root f) :=
-{ smul := (•),
-  one_smul := λ x, by { refine x.induction_on _ (λ p, _), rw [adjoin_root.smul_mk, one_smul] },
-  mul_smul := λ a b x,
-    by { refine x.induction_on _ (λ p, _), simp only [adjoin_root.smul_mk, mul_smul] },
-  .. adjoin_root.distrib_smul f }
 
 /-- Lift an action of `α` on `K` to `K` adjoined `n` roots of `f : K[X]`.
 

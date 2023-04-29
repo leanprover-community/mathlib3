@@ -2296,6 +2296,11 @@ lemma cont_diff.continuous_deriv (h : cont_diff 𝕜 n f₂) (hn : 1 ≤ n) :
   continuous (deriv f₂) :=
 (cont_diff_succ_iff_deriv.mp (h.of_le hn)).2.continuous
 
+lemma cont_diff.iterate_deriv :
+∀ (n : ℕ) (f₂ : 𝕜 → F) (hf : cont_diff 𝕜 ∞ f₂), cont_diff 𝕜 ∞ (deriv^[n] f₂)
+| 0     f₂ hf := hf
+| (n+1) f₂ hf := cont_diff.iterate_deriv n (deriv f₂) (cont_diff_top_iff_deriv.mp hf).2
+
 end deriv
 
 section restrict_scalars

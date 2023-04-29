@@ -788,6 +788,9 @@ end polish_space
 
 namespace measure_theory
 
+-- todo after the port: move to topology/metric_space/polish
+instance [polish_space α] : polish_space (univ : set α) := is_closed_univ.polish_space
+
 variables (α) [measurable_space α] [polish_space α] [borel_space α]
 
 lemma exists_nat_measurable_equiv_range_coe_fin_of_finite [finite α] :

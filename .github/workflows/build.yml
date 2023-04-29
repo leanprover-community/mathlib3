@@ -40,7 +40,7 @@ jobs:
     name: Lint style
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install bibtool
         if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
@@ -50,7 +50,7 @@ jobs:
 
       - name: install Python
         if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -72,7 +72,7 @@ jobs:
     outputs:
       artifact_name: ${{ steps.setup_precompiled.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: ${{ env.GIT_HISTORY_DEPTH }}
 
@@ -86,7 +86,7 @@ jobs:
 
       - name: install Python
         if: ${{ ! 1 }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -204,7 +204,7 @@ jobs:
 
       - name: install Python
         if: ${{ ! 1 }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -265,7 +265,7 @@ jobs:
     needs: [style_lint, build, lint, tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - id: PR
         uses: 8BitJonny/gh-get-current-pr@1.2.0

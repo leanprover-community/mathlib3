@@ -633,6 +633,9 @@ instance units.has_measurable_smul : has_measurable_smul Mˣ β :=
   measurable_smul_const := λ x,
     (measurable_smul_const x : measurable (λ c : M, c • x)).comp measurable_space.le_map_comap, }
 
+instance [has_distrib_neg M] [has_measurable_neg M] : has_measurable_neg Mˣ :=
+⟨by { rintro _ ⟨s, hs, rfl⟩, exact comap_measurable coe hs.neg }⟩
+
 @[to_additive]
 lemma is_unit.measurable_const_smul_iff {c : M} (hc : is_unit c) :
   measurable (λ x, c • f x) ↔ measurable f :=

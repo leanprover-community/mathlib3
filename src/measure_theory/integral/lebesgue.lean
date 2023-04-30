@@ -77,6 +77,13 @@ def of_is_empty [is_empty α] : α →ₛ β :=
   measurable_set_fiber' := λ x, subsingleton.measurable_set,
   finite_range' := by simp [range_eq_empty] }
 
+/-- Reinterpret a measurable function with finite codomain as a simple function. -/
+@[simps] def of_finite [measurable_space β] [measurable_singleton_class β] [finite β] {f : α → β}
+  (hf : measurable f) : α →ₛ β :=
+{ to_fun := f,
+  measurable_set_fiber' := λ x, hf $ measurable_set_singleton _,
+  finite_range' := (set.range f).to_finite }
+
 /-- Range of a simple function `α →ₛ β` as a `finset β`. -/
 protected def range (f : α →ₛ β) : finset β := f.finite_range.to_finset
 

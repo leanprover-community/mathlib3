@@ -597,17 +597,53 @@ lemma integral_Icc_eq_integral_Ioc' [partial_order α] {f : α → E} {a b : α}
   ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
 set_integral_congr_set_ae (Ioc_ae_eq_Icc' ha).symm
 
+lemma integral_Icc_eq_integral_Ico' [partial_order α] {f : α → E} {a b : α} (hb : μ {b} = 0) :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ico a b, f t ∂μ :=
+set_integral_congr_set_ae (Ico_ae_eq_Icc' hb).symm
+
 lemma integral_Ioc_eq_integral_Ioo' [partial_order α] {f : α → E} {a b : α} (hb : μ {b} = 0) :
   ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
 set_integral_congr_set_ae (Ioo_ae_eq_Ioc' hb).symm
+
+lemma integral_Ico_eq_integral_Ioo' [partial_order α] {f : α → E} {a b : α} (ha : μ {a} = 0) :
+  ∫ t in Ico a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+set_integral_congr_set_ae (Ioo_ae_eq_Ico' ha).symm
+
+lemma integral_Iic_eq_integral_Iio' [partial_order α] {f : α → E} {a : α} (ha : μ {a} = 0) :
+  ∫ t in Iic a, f t ∂μ = ∫ t in Iio a, f t ∂μ :=
+set_integral_congr_set_ae (Iio_ae_eq_Iic' ha).symm
+
+lemma integral_Ici_eq_integral_Ioi' [partial_order α] {f : α → E} {a : α} (ha : μ {a} = 0) :
+  ∫ t in Ici a, f t ∂μ = ∫ t in Ioi a, f t ∂μ :=
+set_integral_congr_set_ae (Ioi_ae_eq_Ici' ha).symm
 
 lemma integral_Icc_eq_integral_Ioc [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
   ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
 integral_Icc_eq_integral_Ioc' $ measure_singleton a
 
+lemma integral_Icc_eq_integral_Ico [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ico a b, f t ∂μ :=
+integral_Icc_eq_integral_Ico' $ measure_singleton b
+
 lemma integral_Ioc_eq_integral_Ioo [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
   ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
 integral_Ioc_eq_integral_Ioo' $ measure_singleton b
+
+lemma integral_Ico_eq_integral_Ioo [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Ico a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+integral_Ico_eq_integral_Ioo' $ measure_singleton a
+
+lemma integral_Icc_eq_integral_Ioo [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ico a b, f t ∂μ :=
+by rw [integral_Icc_eq_integral_Ico, integral_Ico_eq_integral_Ioo]
+
+lemma integral_Iic_eq_integral_Iio [partial_order α] {f : α → E} {a : α} [has_no_atoms μ] :
+  ∫ t in Iic a, f t ∂μ = ∫ t in Iio a, f t ∂μ :=
+integral_Iic_eq_integral_Iio' $ measure_singleton a
+
+lemma integral_Ici_eq_integral_Ioi [partial_order α] {f : α → E} {a : α} [has_no_atoms μ] :
+  ∫ t in Ici a, f t ∂μ = ∫ t in Ioi a, f t ∂μ :=
+integral_Ici_eq_integral_Ioi' $ measure_singleton a
 
 end normed_add_comm_group
 

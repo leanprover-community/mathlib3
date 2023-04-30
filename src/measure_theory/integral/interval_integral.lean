@@ -84,39 +84,6 @@ lemma interval_integrable_iff_integrable_Ioc_of_le (hab : a ≤ b) :
   interval_integrable f μ a b ↔ integrable_on f (Ioc a b) μ :=
 by rw [interval_integrable_iff, uIoc_of_le hab]
 
-lemma integrable_on_Icc_iff_integrable_on_Ioc' {f : ℝ → E} (ha : μ {a} ≠ ∞) :
-  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
-begin
-  cases le_or_lt a b with hab hab,
-  { have : Icc a b = Icc a a ∪ Ioc a b := (Icc_union_Ioc_eq_Icc le_rfl hab).symm,
-    rw [this, integrable_on_union],
-    simp [ha.lt_top] },
-  { simp [hab, hab.le] },
-end
-
-lemma integrable_on_Icc_iff_integrable_on_Ioc [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
-  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
-integrable_on_Icc_iff_integrable_on_Ioc' (by simp)
-
-lemma integrable_on_Ioc_iff_integrable_on_Ioo'
-  {f : ℝ → E} {a b : ℝ} (hb : μ {b} ≠ ∞) :
-  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
-begin
-  cases lt_or_le a b with hab hab,
-  { have : Ioc a b = Ioo a b ∪ Icc b b := (Ioo_union_Icc_eq_Ioc hab le_rfl).symm,
-    rw [this, integrable_on_union],
-    simp [hb.lt_top] },
-  { simp [hab] },
-end
-
-lemma integrable_on_Ioc_iff_integrable_on_Ioo [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
-  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
-integrable_on_Ioc_iff_integrable_on_Ioo' (by simp)
-
-lemma integrable_on_Icc_iff_integrable_on_Ioo [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
-  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
-by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable_on_Ioo]
-
 lemma interval_integrable_iff' [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (uIcc a b) μ :=
 by rw [interval_integrable_iff, ←Icc_min_max, uIoc, integrable_on_Icc_iff_integrable_on_Ioc]
@@ -125,18 +92,6 @@ lemma interval_integrable_iff_integrable_Icc_of_le
   {f : ℝ → E} {a b : ℝ} (hab : a ≤ b) {μ : measure ℝ} [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
-
-lemma integrable_on_Ici_iff_integrable_on_Ioi' {f : ℝ → E} (ha : μ {a} ≠ ∞) :
-  integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
-begin
-  have : Ici a = Icc a a ∪ Ioi a := (Icc_union_Ioi_eq_Ici le_rfl).symm,
-  rw [this, integrable_on_union],
-  simp [ha.lt_top]
-end
-
-lemma integrable_on_Ici_iff_integrable_on_Ioi [has_no_atoms μ] {f : ℝ → E} :
-  integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
-integrable_on_Ici_iff_integrable_on_Ioi' (by simp)
 
 /-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
   with respect to `μ` on `uIcc a b`. -/

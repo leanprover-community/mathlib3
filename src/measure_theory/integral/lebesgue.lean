@@ -8,6 +8,8 @@ import measure_theory.constructions.borel_space
 import algebra.indicator_function
 import algebra.support
 import dynamics.ergodic.measure_preserving
+import order.succ_pred.interval_succ
+import data.set.intervals.monotone
 
 /-!
 # Lebesgue integral for `ℝ≥0∞`-valued functions
@@ -1061,6 +1063,9 @@ lemma lintegral_mono_set' {m : measurable_space α} ⦃μ : measure α⦄
   {s t : set α} {f : α → ℝ≥0∞} (hst : s ≤ᵐ[μ] t) :
   ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
 lintegral_mono' (measure.restrict_mono' hst (le_refl μ)) (le_refl f)
+
+lemma set_lintegral_le_lintegral (s : set α) (f  : α → ℝ≥0∞) : ∫⁻ a in s, f a ∂μ ≤ ∫⁻ a, f a ∂μ :=
+lintegral_mono' measure.restrict_le_self le_rfl
 
 lemma monotone_lintegral {m : measurable_space α} (μ : measure α) : monotone (lintegral μ) :=
 lintegral_mono
@@ -2231,6 +2236,71 @@ lemma measure_preserving.set_lintegral_comp_emb {mb : measurable_space β} {ν :
   (s : set α) :
   ∫⁻ a in s, f (g a) ∂μ = ∫⁻ b in g '' s, f b ∂ν :=
 by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injective]
+
+section
+
+open finset
+
+lemma sum_measure_preimage_Ioc_le {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (K N : ℕ) :
+  ∑ j in range K, μ (f ⁻¹' Ioc j N) ≤ ∫⁻ x, f x ∂μ + μ univ :=
+have hm : ∀ i : ℕ, null_measurable_set (f ⁻¹' Ioc i (i + 1)) μ,
+  from λ i, hf.null_measurable measurable_set_Ioc,
+have hmono : monotone (coe : ℕ → ℝ≥0∞), from ennreal.coe_nat_mono.monotone,
+calc ∑ j in range K, μ (f ⁻¹' Ioc j N)
+    ≤ ∑ j in range K, ∑ i in Ico j N, μ (f ⁻¹' Ioc i (i + 1)) :
+  -- Actually, we have an equality but it's easier to prove the inequality
+  begin
+    refine sum_le_sum (λ j hj, _),
+    simp only [← hmono.bUnion_Ico_Ioc_map_succ j N, preimage_Union₂, ← coe_Ico, mem_coe,
+      nat.succ_eq_succ, nat.cast_succ],
+    exact measure_bUnion_finset_le _ _
+  end
+... = ∑ i in range N, ∑ j in range (min (i + 1) K), μ (f ⁻¹' Ioc i (i + 1)) :
+  sum_comm' $ λ _ _, by simp [and.assoc, and.comm, and.left_comm, nat.lt_succ_iff]
+... = ∑ i in range N, ∫⁻ x in f ⁻¹' Ioc i (i + 1), min (i + 1) K ∂μ :
+  sum_congr rfl $ λ i hi, by rw [sum_const, card_range, set_lintegral_const, nsmul_eq_mul,
+    hmono.map_min, nat.cast_succ]
+... ≤ ∑ i in range N, ∫⁻ x in f ⁻¹' Ioc i (i + 1), f x + 1 ∂μ :
+  sum_le_sum $ λ i hi, lintegral_mono_ae $ (ae_restrict_mem₀ $ hm i).mono $ λ x hx,
+    (min_le_left _ _).trans $ add_le_add_right hx.1.le _
+... = ∫⁻ x in ⋃ i ∈ range N, f ⁻¹' Ioc i (i + 1), f x + 1 ∂μ :
+  begin
+    rw [lintegral_bUnion_finset₀],
+    { simp only [← nat.cast_succ],
+      exact (hmono.pairwise_disjoint_on_Ioc_succ.mono
+        (λ _ _ h, (h.preimage _).ae_disjoint)).set_pairwise _ },
+    { exact λ _ _, hm _ }
+  end
+... ≤ ∫⁻ x, f x ∂μ + μ univ :
+  begin
+    rw [lintegral_add' hf.restrict ae_measurable_const, ← lintegral_one],
+    exact add_le_add (set_lintegral_le_lintegral _ _) (set_lintegral_le_lintegral _ _)
+  end
+
+lemma tsum_measure_preimage_Ioi_le {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) :
+  ∑' j : ℕ, μ (f ⁻¹' Ioi j) ≤ ∫⁻ x, f x ∂μ + μ univ :=
+begin
+  cases (zero_le (μ (f ⁻¹' {∞}))).lt_or_eq with hfμ hfμ,
+  { rw [lintegral_eq_top_of_measure_eq_top_pos hfm hfμ, ennreal.top_add],
+    exact le_top },
+  suffices : ∀ K, ∑ i in range K, μ (f ⁻¹' Ioi i) ≤ ∫⁻ x, f x ∂μ + μ univ,
+    from le_of_tendsto' (ennreal.tendsto_nat_tsum _) this,
+  intro K,
+  suffices : tendsto (λ N : ℕ, ∑ j in range K, μ (f ⁻¹' Ioc j N)) at_top
+    (𝓝 (∑ i in range K, μ (f ⁻¹' Ioi i))),
+    from le_of_tendsto' this (sum_measure_preimage_Ioc_le hfm K),
+  refine tendsto_finset_sum _ (λ j hj, _),
+  rw [← measure_diff_null hfμ.symm, ← preimage_diff, ← Union_Ioc_coe_nat, preimage_Union],
+  exact tendsto_measure_Union
+    (set.monotone_preimage.comp $ antitone_const.Ioc coe_nat_mono.monotone)
+end
+
+lemma tsum_measure_preimage_Ioi_lt_top [is_finite_measure μ] {f : α → ℝ≥0∞}
+  (hfm : ae_measurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ∞) :
+  ∑' j : ℕ, μ (f ⁻¹' Ioi j) < ∞ :=
+(tsum_measure_preimage_Ioi_le hfm).trans_lt $ add_lt_top.2 ⟨hfi.lt_top, measure_lt_top _ _⟩
+
+end
 
 section dirac_and_count
 

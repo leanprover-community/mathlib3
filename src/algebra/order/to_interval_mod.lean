@@ -772,25 +772,73 @@ private lemma to_Ixx_mod_iff (hb : 0 < b) (x₁ x₂ x₃ : α) :
 by rw [to_Ico_mod_eq_sub, to_Ioc_mod_eq_sub _ x₁, add_le_add_iff_right, ←neg_sub x₁ x₃,
     to_Ioc_mod_neg, neg_zero, le_sub_iff_add_le]
 
+@[simp] lemma to_Ico_mod_zsmul_add' (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
+  to_Ico_mod (m • b + a) hb x = m • b + to_Ico_mod a hb x :=
+begin
+  unfold to_Ico_mod to_Ico_div,
+  sorry,
+end
+
+@[simp] lemma to_Ioc_mod_zsmul_add' (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
+  to_Ioc_mod (m • b + a) hb x = m • b + to_Ioc_mod a hb x :=
+begin
+  unfold to_Ioc_mod to_Ioc_div,
+  sorry,
+end
+
 private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
   (h : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃) :
   to_Ico_mod x₂ hb.out x₃ ≤ to_Ioc_mod x₂ hb.out x₁ :=
 begin
-  have h' := to_Ioc_mod_le_right x₁ hb.out x₃,
-  have h' := left_le_to_Ico_mod x₁ hb.out x₃,
-  --| 1  2   3 | 1
-  rw [←zero_add x₂, ←sub_le_sub_iff_right x₂],
-  rw [←to_Ico_mod_sub', ←to_Ioc_mod_sub', ←neg_sub x₂ x₁, to_Ioc_mod_neg,
-   ←neg_sub x₂ x₃, to_Ico_mod_neg, sub_le_sub_iff_left,
-    neg_zero, to_Ico_mod_sub' _ _ _ x₁, zero_add],
-  rw sub_le_iff_le_add,
-  rw [←sub_add_sub_cancel x₂ x₁ x₃, add_comm (_ - _), add_sub_assoc', to_Ioc_mod_sub', zero_add,
-    sub_add_cancel],
-  refine h.trans _,
-  -- rw ← to_Ico_mod_to_Ioc_mod _ _ (_ + _),
-  -- rw [to_Ioc_mod, to_Ioc_mod],
-  -- rw to_Ioc_mod_le_right,
-  sorry
+  let x₁' := to_Ico_mod 0 hb.out x₁,
+  let x₂' := to_Ico_mod x₁' hb.out x₂,
+  let x₃' := to_Ico_mod x₂' hb.out x₃,
+
+  have h₂ : ∃ m : ℤ, x₂' = m • b + x₂,
+  { use -(to_Ico_div 0 hb.out x₂),
+    sorry,
+  },
+
+  suffices hequiv : to_Ico_mod x₂' hb.out x₃' ≤ to_Ioc_mod x₂' hb.out x₁',
+  { clear_value x₂',
+    obtain ⟨m₂, rfl⟩ := h₂,
+    simpa using hequiv,
+  },
+
+  have h₁ : ∃ m : ℤ, x₁' = m • b + x₁,
+  { use -(to_Ico_div 0 hb.out x₁),
+    sorry,
+  },
+
+  have h₂' : to_Ico_mod x₁' hb.out x₂' = x₂' := sorry,
+  have h₃' : to_Ico_mod x₂' hb.out x₃' = x₃' := sorry,
+
+  have h' : to_Ico_mod x₁' hb.out x₂' ≤ to_Ioc_mod x₁' hb.out x₃',
+  { clear_value x₁',
+    obtain ⟨m, rfl⟩ := h₁,
+    simpa using h,
+  },
+
+  by_cases x₃' ≤ b + x₁',
+  { rw [h₂'] at h',
+    rw [h₃'],
+    -- since x₁' ≤ x₂' and to_Ioc_mod x₂' hb.out x₁' is the smallest number of the
+    -- form x₁' + k*b greater than x₂'.
+    have : x₁' + b ≤ to_Ioc_mod x₂' hb.out x₁' := sorry,
+    rw [add_comm _ _] at h,
+    exact h.trans this },
+
+  rw [h₃'],
+  simp at h,
+  -- since x₁' < x₃' - b and to_Ioc x₁' hb.out x₃' is the smallest number of the
+  -- form x₃' + k*b greater than x₁'.
+  have almost : to_Ioc_mod x₁' hb.out x₃' ≤ x₃' - b := sorry,
+  rw [h₂'] at h',
+  have almost1 := not_lt.2 (h'.trans almost),
+
+  have h₃ : x₃' - b < x₂' :=
+    sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right x₂' (fact.out (0 < b)) x₃),
+  contradiction,
 end
 
 private lemma to_Ixx_mod_antisymm {x₁ x₂ x₃ : α}
@@ -842,15 +890,25 @@ private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
   to_Ico_mod x₁ hb.out x₄ ≤ to_Ioc_mod x₁ hb.out x₃
     ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₁ :=
 begin
-  have h₁₂₃' := (to_Ixx_mod_iff hb.out _ _ _).mp
-     (to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₁₂₃.1)),
-  have h₂₃₄' := (to_Ixx_mod_iff hb.out _ _ _).mp
-     (to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₂₃₄.1)),
-  have h := to_Ixx_mod_add_eq hb.out x₃ x₂,
-  have := sub_le_sub (add_le_add h₁₂₃' h₂₃₄') h.ge,
-  rw [add_sub_cancel, add_sub_add_comm, add_sub_cancel, add_sub_right_comm, ←add_assoc,
-    add_right_comm, ←le_sub_iff_add_le, sub_sub_eq_add_sub] at this,
-  sorry
+  have h₁₂₃' := to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₁₂₃.1),
+  have h₂₃₄' := to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₂₃₄.1),
+  split,
+  swap,
+  { rw not_le,
+    have : to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₂ :=
+      to_Ico_mod_le_to_Ioc_mod x₃ (fact.out (0 < b)) x₂,
+    exact ((not_le.1 h₁₂₃.2).trans_le this).trans (not_le.1 h₂₃₄.2)
+  },
+  by_cases to_Ioc_mod x₃ hb.out x₂ = to_Ico_mod x₃ hb.out x₂,
+  { rw h at h₁₂₃',
+    have hy := h₁₂₃'.trans h₂₃₄',
+    exact to_Ixx_mod_cyclic_left _ _ _ hy,
+  },
+  have hyp := not_le.1 h₁₂₃.2,
+  have hyp2 : to_Ico_mod x₃ hb.out x₂ = x₃ := sorry, -- tfae_mem_Ioo_mod 2->4
+  have hyp3 : x₃ < to_Ioc_mod x₃ hb.out x₁ := left_lt_to_Ioc_mod x₃ (fact.out (0 < b)) x₁,
+  rw hyp2 at hyp,
+  simpa using (hyp3.trans hyp),
 end
 
 instance circular_preorder : circular_preorder (α ⧸ add_subgroup.zmultiples b) :=

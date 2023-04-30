@@ -153,11 +153,31 @@ lemma of_real_neg (r : ℝ) : ((-r : ℝ) : K) = -r := algebra_map.coe_neg r
 @[simp, norm_cast, is_R_or_C_simps, priority 900]
 lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : K) = r - s := map_sub (algebra_map ℝ K) r s
 
+@[simp, is_R_or_C_simps, norm_cast, priority 900]
+lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
+  ((∑ i in s, f i : ℝ) : K) = ∑ i in s, (f i : K) :=
+map_sum (algebra_map ℝ K) _ _
+
+@[simp, is_R_or_C_simps, norm_cast] lemma of_real_finsupp_sum
+  {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
+  ((f.sum (λ a b, g a b) : ℝ) : K) = f.sum (λ a b, ((g a b) : K)) :=
+map_finsupp_sum (algebra_map ℝ K) f g
+
 @[simp, norm_cast, is_R_or_C_simps, priority 900]
 lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : K) = r * s := algebra_map.coe_mul _ _
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900]
 lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : K) = r ^ n := map_pow (algebra_map ℝ K) r n
+
+@[simp, is_R_or_C_simps, norm_cast, priority 900]
+lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
+  ((∏ i in s, f i : ℝ) : K) = ∏ i in s, (f i : K) :=
+ring_hom.map_prod _ _ _
+
+@[simp, is_R_or_C_simps, norm_cast] lemma of_real_finsupp_prod
+  {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
+  ((f.prod (λ a b, g a b) : ℝ) : K) = f.prod (λ a b, ((g a b) : K)) :=
+ring_hom.map_finsupp_prod _ f g
 
 @[simp, norm_cast, is_R_or_C_simps]
 lemma real_smul_of_real (r x : ℝ) : r • (x : K) = (r : K) * (x : K) := real_smul_eq_coe_mul _ _
@@ -174,7 +194,7 @@ by rw [real_smul_eq_coe_mul, of_real_mul_re]
 @[is_R_or_C_simps] lemma smul_im (r : ℝ) (z : K) : im (r • z) = r * (im z) :=
 by rw [real_smul_eq_coe_mul, of_real_mul_im]
 
-@[simp, norm_cast, is_R_or_C_simps] lemma norm_of_real (r : ℝ) : ‖(r : K)‖ = ‖r‖ :=
+@[simp, norm_cast, is_R_or_C_simps] lemma norm_of_real (r : ℝ) : ‖(r : K)‖ = |r| :=
 norm_algebra_map' K r
 
 /-! ### Characteristic zero -/
@@ -318,6 +338,8 @@ by simp only [map_add, add_zero, ext_iff, add_left_inj, mul_eq_mul_left_iff, zer
               true_or, eq_self_iff_true, mul_neg, add_right_neg, zero_add, norm_sq_apply, mul_comm,
               and_self, neg_neg, mul_zero, sub_eq_neg_add, neg_zero] with is_R_or_C_simps
 
+lemma conj_mul (x : K) : conj x * x = ((norm_sq x) : K) := by rw [mul_comm, mul_conj]
+
 lemma norm_sq_sub (z w : K) : norm_sq (z - w) = norm_sq z + norm_sq w - 2 * re (z * conj w) :=
 by simp only [norm_sq_add, sub_eq_add_neg, ring_equiv.map_neg, mul_neg,
               norm_sq_neg, map_neg]
@@ -427,163 +449,87 @@ by rw [← of_real_rat_cast, of_real_im]
 lemma norm_of_nonneg {r : ℝ} (h : 0 ≤ r) : ‖(r : K)‖ = r :=
 (norm_of_real _).trans (abs_of_nonneg h)
 
+@[simp, is_R_or_C_simps, norm_cast]
 lemma norm_nat_cast (n : ℕ) : ‖(n : K)‖ = n :=
 by { rw [← of_real_nat_cast], exact norm_of_nonneg (nat.cast_nonneg n) }
 
 lemma mul_self_norm (z : K) : ‖z‖ * ‖z‖ = norm_sq z :=
 by rw [norm_sq_eq_def', sq]
 
-attribute [is_R_or_C_simps] norm_zero norm_one norm_eq_zero
+attribute [is_R_or_C_simps] norm_zero norm_one norm_eq_zero abs_norm_eq_norm norm_inv norm_div
 
 @[simp, is_R_or_C_simps] lemma norm_two : ‖(2 : K)‖ = 2 :=
 by rw [← nat.cast_two, norm_nat_cast, nat.cast_two]
 
 lemma abs_re_le_norm (z : K) : |re z| ≤ ‖z‖ :=
-by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg (re z)) (abs_nonneg _),
-       abs_mul_abs_self, mul_self_abs];
+by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg (re z)) (norm_nonneg _),
+       abs_mul_abs_self, mul_self_norm];
    apply re_sq_le_norm_sq
 
-lemma abs_im_le_abs (z : K) : abs' (im z) ≤ abs z :=
-by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg (im z)) (abs_nonneg _),
-       abs_mul_abs_self, mul_self_abs];
+lemma abs_im_le_norm (z : K) : |im z| ≤ ‖z‖ :=
+by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg (im z)) (norm_nonneg _),
+       abs_mul_abs_self, mul_self_norm];
    apply im_sq_le_norm_sq
 
-lemma norm_re_le_norm (z : K) : ‖re z‖ ≤ ‖z‖ :=
-by { rw [is_R_or_C.norm_eq_abs, real.norm_eq_abs], exact is_R_or_C.abs_re_le_abs _, }
+lemma norm_re_le_norm (z : K) : ‖re z‖ ≤ ‖z‖ := abs_re_le_norm z
+lemma norm_im_le_norm (z : K) : ‖im z‖ ≤ ‖z‖ := abs_im_le_norm z
 
-lemma norm_im_le_norm (z : K) : ‖im z‖ ≤ ‖z‖ :=
-by { rw [is_R_or_C.norm_eq_abs, real.norm_eq_abs], exact is_R_or_C.abs_im_le_abs _, }
+lemma re_le_norm (z : K) : re z ≤ ‖z‖ := (abs_le.1 (abs_re_le_norm z)).2
+lemma im_le_abs (z : K) : im z ≤ ‖z‖ := (abs_le.1 (abs_im_le_norm _)).2
 
-lemma re_le_abs (z : K) : re z ≤ abs z :=
-(abs_le.1 (abs_re_le_abs _)).2
+lemma im_eq_zero_of_le {a : K} (h : ‖a‖ ≤ re a) : im a = 0 :=
+by simpa only [mul_self_norm a, norm_sq_apply, self_eq_add_right, mul_self_eq_zero]
+  using congr_arg (λ z, z * z) ((re_le_norm a).antisymm h)
 
-lemma im_le_abs (z : K) : im z ≤ abs z :=
-(abs_le.1 (abs_im_le_abs _)).2
+lemma re_eq_self_of_le {a : K} (h : ‖a‖ ≤ re a) : (re a : K) = a :=
+by rw [(is_real_tfae a).out 2 3, im_eq_zero_of_le h]
 
-lemma im_eq_zero_of_le {a : K} (h : abs a ≤ re a) : im a = 0 :=
-begin
-  rw ← zero_eq_mul_self,
-  have : re a * re a = re a * re a + im a * im a,
-  { convert is_R_or_C.mul_self_abs a;
-    linarith [re_le_abs a] },
-  linarith
-end
-
-lemma re_eq_self_of_le {a : K} (h : abs a ≤ re a) : (re a : K) = a :=
-by { rw ← re_add_im a, simp only [im_eq_zero_of_le h, add_zero, zero_mul, algebra_map.coe_zero]
-  with is_R_or_C_simps, }
-
-lemma abs_add (z w : K) : abs (z + w) ≤ abs z + abs w :=
-(mul_self_le_mul_self_iff (abs_nonneg _)
-  (add_nonneg (abs_nonneg _) (abs_nonneg _))).2 $
-begin
-  rw [mul_self_abs, add_mul_self_eq, mul_self_abs, mul_self_abs,
-      add_right_comm, norm_sq_add, add_le_add_iff_left,
-      mul_assoc, mul_le_mul_left (zero_lt_two' ℝ)],
-  simpa [-mul_re] with is_R_or_C_simps using re_le_abs (z * conj w)
-end
-
-instance : is_absolute_value absK :=
-{ abv_nonneg  := abs_nonneg,
-  abv_eq_zero := λ _, abs_eq_zero,
-  abv_add     := abs_add,
-  abv_mul     := abs_mul }
 open is_absolute_value
 
-@[simp, is_R_or_C_simps] lemma abs_abs (z : K) : abs' (abs z) = abs z :=
-_root_.abs_of_nonneg (abs_nonneg _)
-
-@[simp, is_R_or_C_simps] lemma abs_pos {z : K} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
-@[simp, is_R_or_C_simps] lemma abs_neg : ∀ z : K, abs (-z) = abs z := abv_neg abs
-lemma abs_sub : ∀ z w : K, abs (z - w) = abs (w - z) := abv_sub abs
-lemma abs_sub_le : ∀ a b c : K, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
-@[simp, is_R_or_C_simps] theorem abs_inv : ∀ z : K, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
-@[simp, is_R_or_C_simps] theorem abs_div : ∀ z w : K, abs (z / w) = abs z / abs w := abv_div abs
-
-lemma abs_abs_sub_le_abs_sub : ∀ z w : K, abs' (abs z - abs w) ≤ abs (z - w) :=
-abs_abv_sub_le_abv_sub abs
-
-lemma abs_re_div_abs_le_one (z : K) : abs' (re z / abs z) ≤ 1 :=
+lemma abs_re_div_abs_le_one (z : K) : |re z / ‖z‖| ≤ 1 :=
 begin
-  by_cases hz : z = 0,
-  { simp [hz, zero_le_one] },
-  { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_re_le_abs] }
+  rw [abs_div, abs_norm_eq_norm],
+  exact div_le_one_of_le (abs_re_le_norm _) (norm_nonneg _)
 end
 
-lemma abs_im_div_abs_le_one (z : K) : abs' (im z / abs z) ≤ 1 :=
+lemma abs_im_div_abs_le_one (z : K) : |im z / ‖z‖| ≤ 1 :=
 begin
-  by_cases hz : z = 0,
-  { simp [hz, zero_le_one] },
-  { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_im_le_abs] }
+  rw [abs_div, abs_norm_eq_norm],
+  exact div_le_one_of_le (abs_im_le_norm _) (norm_nonneg _)
 end
 
-@[simp, is_R_or_C_simps, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : K) = n :=
-by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
+lemma re_eq_norm_of_mul_conj (x : K) : re (x * conj x) = ‖x * conj x‖ :=
+by rw [mul_conj, of_real_re, norm_of_real, abs_of_nonneg (norm_sq_nonneg _)]
 
-lemma norm_sq_eq_abs (x : K) : norm_sq x = abs x ^ 2 :=
-by rw [abs, sq, real.mul_self_sqrt (norm_sq_nonneg _)]
+lemma norm_sq_re_add_conj (x : K) : (‖x + conj x‖)^2 = (re (x + conj x))^2 :=
+by rw [add_conj, norm_mul, norm_two, norm_of_real, two_mul (re x : K), map_add, of_real_re,
+  ← two_mul, mul_pow, mul_pow, sq_abs]
 
-lemma re_eq_abs_of_mul_conj (x : K) : re (x * (conj x)) = abs (x * (conj x)) :=
-by rw [mul_conj, of_real_re, abs_of_real, norm_sq_eq_abs, sq, _root_.abs_mul, abs_abs]
-
-lemma abs_sq_re_add_conj (x : K) : (abs (x + conj x))^2 = (re (x + conj x))^2 :=
-by simp only [sq, ←norm_sq_eq_abs, norm_sq, map_add, add_zero, monoid_with_zero_hom.coe_mk,
-              add_right_neg, mul_zero] with is_R_or_C_simps
-
-lemma abs_sq_re_add_conj' (x : K) : (abs (conj x + x))^2 = (re (conj x + x))^2 :=
-by simp only [sq, ←norm_sq_eq_abs, norm_sq, map_add, add_zero, monoid_with_zero_hom.coe_mk,
-              add_left_neg, mul_zero] with is_R_or_C_simps
-
-lemma conj_mul_eq_norm_sq_left (x : K) : conj x * x = ((norm_sq x) : K) :=
-begin
-  rw ext_iff,
-  refine ⟨by simp only [norm_sq, neg_mul, monoid_with_zero_hom.coe_mk,
-                        sub_neg_eq_add, map_add, sub_zero, mul_zero] with is_R_or_C_simps, _⟩,
-  simp only [mul_comm, mul_neg, add_left_neg] with is_R_or_C_simps
-end
+lemma norm_sq_re_conj_add (x : K) : (‖conj x + x‖)^2 = (re (conj x + x))^2 :=
+by rw [add_comm, norm_sq_re_add_conj]
 
 /-! ### Cauchy sequences -/
 
-theorem is_cau_seq_re (f : cau_seq K abs) : is_cau_seq abs' (λ n, re (f n)) :=
+theorem is_cau_seq_re (f : cau_seq K norm) : is_cau_seq abs (λ n, re (f n)) :=
 λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
-lt_of_le_of_lt (by simpa using abs_re_le_abs (f j - f i)) (H _ ij)
+lt_of_le_of_lt (by simpa only [map_sub] using abs_re_le_norm (f j - f i)) (H _ ij)
 
-theorem is_cau_seq_im (f : cau_seq K abs) : is_cau_seq abs' (λ n, im (f n)) :=
+theorem is_cau_seq_im (f : cau_seq K norm) : is_cau_seq abs (λ n, im (f n)) :=
 λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
-lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
+lt_of_le_of_lt (by simpa only [map_sub] using abs_im_le_norm (f j - f i)) (H _ ij)
 
 /-- The real part of a K Cauchy sequence, as a real Cauchy sequence. -/
-noncomputable def cau_seq_re (f : cau_seq K abs) : cau_seq ℝ abs' :=
+noncomputable def cau_seq_re (f : cau_seq K norm) : cau_seq ℝ abs :=
 ⟨_, is_cau_seq_re f⟩
 
 /-- The imaginary part of a K Cauchy sequence, as a real Cauchy sequence. -/
-noncomputable def cau_seq_im (f : cau_seq K abs) : cau_seq ℝ abs' :=
+noncomputable def cau_seq_im (f : cau_seq K norm) : cau_seq ℝ abs :=
 ⟨_, is_cau_seq_im f⟩
 
-lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
-  is_cau_seq abs' (abs ∘ f) :=
+lemma is_cau_seq_norm {f : ℕ → K} (hf : is_cau_seq norm f) :
+  is_cau_seq abs (norm ∘ f) :=
 λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
-⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
-
-@[simp, is_R_or_C_simps, norm_cast, priority 900]
-lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
-  ((∏ i in s, f i : ℝ) : K) = ∏ i in s, (f i : K) :=
-ring_hom.map_prod _ _ _
-
-@[simp, is_R_or_C_simps, norm_cast, priority 900]
-lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
-  ((∑ i in s, f i : ℝ) : K) = ∑ i in s, (f i : K) :=
-ring_hom.map_sum _ _ _
-
-@[simp, is_R_or_C_simps, norm_cast] lemma of_real_finsupp_sum
-  {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
-  ((f.sum (λ a b, g a b) : ℝ) : K) = f.sum (λ a b, ((g a b) : K)) :=
-ring_hom.map_finsupp_sum _ f g
-
-@[simp, is_R_or_C_simps, norm_cast] lemma of_real_finsupp_prod
-  {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
-  ((f.prod (λ a b, g a b) : ℝ) : K) = f.prod (λ a b, ((g a b) : K)) :=
-ring_hom.map_finsupp_prod _ f g
+⟨i, λ j hj, lt_of_le_of_lt (abs_norm_sub_norm_le _ _) (hi j hj)⟩
 
 end is_R_or_C
 
@@ -609,10 +555,6 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   norm_sq_eq_def_ax := λ z, by simp only [sq, real.norm_eq_abs, ←abs_mul, abs_mul_self z, add_zero,
     mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
-  inv_def_ax := λ z, by simp only [star_ring_end_apply, star, sq, real.norm_eq_abs,
-    abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
-    div_self_mul_self'],
-  div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero],
   .. real.densely_normed_field, .. real.metric_space }
 
 end instances
@@ -626,7 +568,6 @@ section cleanup_lemmas
 local notation `reR` := @is_R_or_C.re ℝ _
 local notation `imR` := @is_R_or_C.im ℝ _
 local notation `IR` := @is_R_or_C.I ℝ _
-local notation `absR` := @is_R_or_C.abs ℝ _
 local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 
 @[simp, is_R_or_C_simps] lemma re_to_real {x : ℝ} : reR x = x := rfl
@@ -635,8 +576,6 @@ local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 @[simp, is_R_or_C_simps] lemma I_to_real : IR = 0 := rfl
 @[simp, is_R_or_C_simps] lemma norm_sq_to_real {x : ℝ} : norm_sq x = x*x :=
 by simp [is_R_or_C.norm_sq]
-@[simp, is_R_or_C_simps] lemma abs_to_real {x : ℝ} : absR x = has_abs.abs x :=
-by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 
 @[simp] lemma coe_real_eq_id : @coe ℝ ℝ _ = id := rfl
 
@@ -652,8 +591,7 @@ def re_lm : K →ₗ[ℝ] ℝ :=
 
 /-- The real part in a `is_R_or_C` field, as a continuous linear map. -/
 noncomputable def re_clm : K →L[ℝ] ℝ :=
-linear_map.mk_continuous re_lm 1 $ by
-{ simp only [norm_eq_abs, re_lm_coe, one_mul, abs_to_real], exact abs_re_le_abs, }
+linear_map.mk_continuous re_lm 1 $ λ x, by { rw [one_mul], exact abs_re_le_norm x }
 
 @[simp, is_R_or_C_simps, norm_cast] lemma re_clm_coe : ((re_clm : K →L[ℝ] ℝ) :
   K →ₗ[ℝ] ℝ) = re_lm := rfl
@@ -670,8 +608,7 @@ def im_lm : K →ₗ[ℝ] ℝ :=
 
 /-- The imaginary part in a `is_R_or_C` field, as a continuous linear map. -/
 noncomputable def im_clm : K →L[ℝ] ℝ :=
-linear_map.mk_continuous im_lm 1 $ by
-{ simp only [norm_eq_abs, re_lm_coe, one_mul, abs_to_real], exact abs_im_le_abs, }
+linear_map.mk_continuous im_lm 1 $ fun x, by { rw [one_mul], exact abs_im_le_norm x }
 
 @[simp, is_R_or_C_simps, norm_cast] lemma im_clm_coe : ((im_clm : K →L[ℝ] ℝ) :
   K →ₗ[ℝ] ℝ) = im_lm := rfl
@@ -692,7 +629,7 @@ def conj_ae : K ≃ₐ[ℝ] K :=
 
 /-- Conjugate as a linear isometry -/
 noncomputable def conj_lie : K ≃ₗᵢ[ℝ] K :=
-⟨conj_ae.to_linear_equiv, λ z, by simp [norm_eq_abs] with is_R_or_C_simps⟩
+⟨conj_ae.to_linear_equiv, λ _, norm_conj⟩
 
 @[simp, is_R_or_C_simps] lemma conj_lie_apply : (conj_lie : K → K) = conj := rfl
 
@@ -716,7 +653,7 @@ noncomputable def of_real_am : ℝ →ₐ[ℝ] K := algebra.of_id ℝ K
 
 /-- The ℝ → K coercion, as a linear isometry -/
 noncomputable def of_real_li : ℝ →ₗᵢ[ℝ] K :=
-{ to_linear_map := of_real_am.to_linear_map, norm_map' := by simp [norm_eq_abs] }
+{ to_linear_map := of_real_am.to_linear_map, norm_map' := norm_of_real }
 
 @[simp, is_R_or_C_simps] lemma of_real_li_apply : (of_real_li : ℝ → K) = coe := rfl
 
@@ -730,17 +667,8 @@ noncomputable def of_real_clm : ℝ →L[ℝ] K := of_real_li.to_continuous_line
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
 
-@[continuity] lemma continuous_abs : continuous (@is_R_or_C.abs K _) :=
-by simp only [show @is_R_or_C.abs K _ = has_norm.norm, by { ext, exact (norm_eq_abs _).symm },
-              continuous_norm]
-
-@[continuity] lemma continuous_norm_sq : continuous (@is_R_or_C.norm_sq K _) :=
-begin
-  have : (@is_R_or_C.norm_sq K _ : K → ℝ) = λ x, (is_R_or_C.abs x) ^ 2,
-  { ext,
-    exact norm_sq_eq_abs _ },
-  simp only [this, continuous_abs.pow 2],
-end
+@[continuity] lemma continuous_norm_sq : continuous (norm_sq : K → ℝ) :=
+(continuous_re.mul continuous_re).add (continuous_im.mul continuous_im)
 
 end linear_maps
 

@@ -564,6 +564,12 @@ lemma continuous_on.strongly_measurable_at_filter_nhds_within {α β : Type*} [m
   strongly_measurable_at_filter f (𝓝[s] x) μ :=
 ⟨s, self_mem_nhds_within, hf.ae_strongly_measurable hs⟩
 
+/-! ### Lemmas about adding and removing interval boundaries
+
+The primed lemmas take explicit arguments about the measure being finite at the endpoint, while
+the unprimed ones use `[has_no_atoms μ]`.
+-/
+
 section partial_order
 
 variables [partial_order α] [measurable_singleton_class α]
@@ -608,6 +614,10 @@ begin
       (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true] },
   { rw [Ioo_eq_empty hab, Ioc_eq_empty hab] }
 end
+
+lemma integrable_on_Icc_iff_integrable_on_Ioo' (ha : μ {a} ≠ ∞) (hb : μ {b} ≠ ∞) :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+by rw [integrable_on_Icc_iff_integrable_on_Ioc' ha, integrable_on_Ioc_iff_integrable_on_Ioo' hb]
 
 lemma integrable_on_Ici_iff_integrable_on_Ioi' (hb : μ {b} ≠ ∞) :
   integrable_on f (Ici b) μ ↔ integrable_on f (Ioi b) μ :=

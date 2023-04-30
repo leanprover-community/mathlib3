@@ -468,8 +468,7 @@ begin
 end
 
 /-- The `n`th power of a fundamental solution is trivial if and only if `n = 0`. -/
-lemma pow_eq_one_iff (h₀ : 0 < d) {a : solution₁ d} (h : is_fundamental a) (n : ℤ) :
-  a ^ n = 1 ↔ n = 0 :=
+lemma pow_eq_one_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : a ^ n = 1 ↔ n = 0 :=
 begin
   refine ⟨λ H, _, λ H, by rw [H, zpow_zero]⟩,
   have H' : (a ^ n).y = 0 := by rw [H, y_one],
@@ -482,8 +481,7 @@ begin
 end
 
 /-- The `n`th power of a fundamental solution has positive `y` if and only if `n` is positive. -/
-lemma pow_y_pos_iff (h₀ : 0 < d) {a : solution₁ d} (h : is_fundamental a) (n : ℤ) :
-  0 < (a ^ n).y ↔ 0 < n :=
+lemma pow_y_pos_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : 0 < (a ^ n).y ↔ 0 < n :=
 begin
   refine ⟨λ H, _, y_zpow_pos h.x_pos h.2.1⟩,
   rcases lt_trichotomy 0 n with hn | rfl | hn,
@@ -495,16 +493,15 @@ begin
 end
 
 /-- The `n`th power of a fundamental solution has negative `y` if and only if `n` is negative. -/
-lemma pow_y_neg_iff (h₀ : 0 < d) {a : solution₁ d} (h : is_fundamental a) (n : ℤ) :
-  (a ^ n).y < 0 ↔ n < 0 :=
+lemma pow_y_neg_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : (a ^ n).y < 0 ↔ n < 0 :=
 begin
   rw [← neg_neg n, zpow_neg, y_inv, neg_lt, neg_zero, neg_lt, neg_zero],
-  exact h.pow_y_pos_iff h₀ (-n),
+  exact h.pow_y_pos_iff (-n),
 end
 
 /-- A power of a fundamental solution is never equal to the negative of a power of this
 fundamental solution. -/
-lemma pow_ne_neg_fundamental_pow (h₀ : 0 < d) {a : solution₁ d} (h : is_fundamental a) {n n' : ℤ} :
+lemma pow_ne_neg_fundamental_pow {a : solution₁ d} (h : is_fundamental a) {n n' : ℤ} :
    a ^ n ≠ -a ^ n' :=
 begin
   intro hf,
@@ -516,8 +513,7 @@ end
 
 /-- The `x`-coordinate of a fundamental solution is a lower bound for the `x`-coordinate
 of any positive solution. -/
-lemma le_x (h₀ : 0 < d) {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d}
-  (hax : 1 < a.x) (hay : 0 < a.y) :
+lemma le_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x) :
   a₁.x ≤ a.x :=
 h.2.2 hax
 
@@ -531,7 +527,7 @@ begin
   rw [← abs_of_pos hay, ← abs_of_pos h.2.1, ← sq_le_sq, ← mul_le_mul_left h₀, ← sub_nonpos,
       ← mul_sub, H, sub_nonpos, sq_le_sq, abs_of_pos (zero_lt_one.trans h.1),
       abs_of_pos (zero_lt_one.trans hax)],
-  exact h.le_x h₀ hax hay,
+  exact h.le_x hax,
 end
 
 /-- If we multiply a positive solution with the inverse of a fundamental solution,
@@ -642,12 +638,12 @@ begin
         ← zpow_neg_one, neg_mul, ← zpow_add, ← sub_eq_add_neg] at hn₁,
     cases hn₁,
     { rcases int.is_unit_iff.mp (is_unit_of_mul_eq_one _ _ $ sub_eq_zero.mp $
-                (ha₁.pow_eq_one_iff h₀ (n₂ * n₁ - 1)).mp hn₁) with rfl | rfl,
+                (ha₁.pow_eq_one_iff (n₂ * n₁ - 1)).mp hn₁) with rfl | rfl,
       { rw zpow_one, },
       { rw [zpow_neg_one, y_inv, lt_neg, neg_zero] at Hy,
         exact false.elim (lt_irrefl _ $ ha₁.2.1.trans Hy), } },
     { rw [← zpow_zero a₁, eq_comm] at hn₁,
-      exact false.elim (ha₁.pow_ne_neg_fundamental_pow h₀ hn₁), } },
+      exact false.elim (ha₁.pow_ne_neg_fundamental_pow hn₁), } },
   { rw [x_neg, lt_neg] at Hx,
     have := (x_zpow_pos (zero_lt_one.trans ha₁.1) n₂).trans Hx,
     norm_num at this, }

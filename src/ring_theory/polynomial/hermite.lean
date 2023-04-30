@@ -132,29 +132,29 @@ end coeff
 /-! ### Lemmas about `hermite n` and gaussians -/
 section gaussian
 
-lemma hermite_gauss_succ (n : ℕ) (x : ℝ) :
-  (-1 : ℝ)^(n+1) * real.exp (x^2 / 2) * (deriv^[n+1] (λ y, real.exp (-(y^2 / 2))) x)
-  = x * ((-1 : ℝ)^n * real.exp (x^2 / 2) * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x)) -
-    deriv (λ x, (-1 : ℝ)^n * real.exp (x^2 / 2) * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x)) x :=
-begin
-  rw [function.iterate_succ_apply', deriv_mul, deriv_const_mul,
-      (by simp [mul_comm] : deriv (λ y, real.exp (y^2 / 2)) x = x * real.exp (x^2 / 2))],
-  ring_exp,
-  { simp },
-  { simp },
-  { apply (cont_diff_top_iff_deriv.mp (cont_diff.iterate_deriv _ _ _)).1,
-    exact ((cont_diff_id.pow 2).div_const 2).neg.exp },
-end
-
 /- `hermite n` is (up to sign) the factor appearing in `deriv^[n]` of a gaussian -/
 lemma hermite_eq_deriv_gaussian : ∀ (x : ℝ) (n : ℕ),
   aeval x (hermite n) = (-1 : ℝ)^n * real.exp (x^2 / 2) * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x)
 | _ 0       := by simp [← real.exp_add]
-| _ (n + 1) := begin
-  simp_rw [hermite_gauss_succ, hermite_succ, ← hermite_eq_deriv_gaussian],
+| _ (_ + 1) :=
+begin
+  have : ∀ n x,
+    (-1 : ℝ)^(n+1) * real.exp (x^2 / 2) * (deriv^[n+1] (λ y, real.exp (-(y^2 / 2))) x)
+    = x * ((-1 : ℝ)^n * real.exp (x^2 / 2) * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x)) -
+      deriv (λ x, (-1 : ℝ)^n * real.exp (x^2 / 2) * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x)) x,
+  { intros n x,
+    rw [function.iterate_succ_apply', deriv_mul, deriv_const_mul,
+        (by simp [mul_comm] : deriv (λ y, real.exp (y^2 / 2)) x = x * real.exp (x^2 / 2))],
+    ring_exp,
+    { simp },
+    { simp },
+    { apply (cont_diff_top_iff_deriv.mp (cont_diff.iterate_deriv _ _ _)).1,
+      exact ((cont_diff_id.pow 2).div_const 2).neg.exp } },
+  simp_rw [this, hermite_succ, ← hermite_eq_deriv_gaussian],
   simp [aeval_def, eval₂_eq_eval_map],
 end
 
 end gaussian
 
 end polynomial
+-- ⁻¹

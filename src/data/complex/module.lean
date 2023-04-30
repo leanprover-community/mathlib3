@@ -3,7 +3,6 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
-import linear_algebra.orientation
 import algebra.order.smul
 import data.complex.basic
 import data.fin.vec_notation
@@ -157,18 +156,15 @@ instance : finite_dimensional ℝ ℂ := of_fintype_basis basis_one_I
 @[simp] lemma finrank_real_complex : finite_dimensional.finrank ℝ ℂ = 2 :=
 by rw [finrank_eq_card_basis basis_one_I, fintype.card_fin]
 
-@[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
-by simp [← finrank_eq_dim, finrank_real_complex]
+@[simp] lemma rank_real_complex : module.rank ℝ ℂ = 2 :=
+by simp [← finrank_eq_rank, finrank_real_complex]
 
-lemma {u} dim_real_complex' : cardinal.lift.{u} (module.rank ℝ ℂ) = 2 :=
-by simp [← finrank_eq_dim, finrank_real_complex, bit0]
+lemma {u} rank_real_complex' : cardinal.lift.{u} (module.rank ℝ ℂ) = 2 :=
+by simp [← finrank_eq_rank, finrank_real_complex, bit0]
 
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
 circle. -/
 lemma finrank_real_complex_fact : fact (finrank ℝ ℂ = 2) := ⟨finrank_real_complex⟩
-
-/-- The standard orientation on `ℂ`. -/
-protected noncomputable def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
 
 end complex
 
@@ -199,10 +195,10 @@ instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [modu
   [finite_dimensional ℂ E] : finite_dimensional ℝ E :=
 finite_dimensional.trans ℝ ℂ E
 
-lemma dim_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
+lemma rank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   module.rank ℝ E = 2 * module.rank ℂ E :=
 cardinal.lift_inj.1 $
-  by { rw [← dim_mul_dim' ℝ ℂ E, complex.dim_real_complex], simp [bit0] }
+  by { rw [← lift_rank_mul_lift_rank ℝ ℂ E, complex.rank_real_complex], simp [bit0] }
 
 lemma finrank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   finite_dimensional.finrank ℝ E = 2 * finite_dimensional.finrank ℂ E :=
@@ -211,8 +207,7 @@ by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_rea
 @[priority 900]
 instance star_module.complex_to_real {E : Type*} [add_comm_group E] [has_star E] [module ℂ E]
   [star_module ℂ E] : star_module ℝ E :=
-⟨λ r a, by rw [star_trivial r, restrict_scalars_smul_def, restrict_scalars_smul_def, star_smul,
-  complex.coe_algebra_map, complex.star_def, complex.conj_of_real]⟩
+⟨λ r a, by rw [←smul_one_smul ℂ r a, star_smul, star_smul, star_one, smul_one_smul]⟩
 
 namespace complex
 

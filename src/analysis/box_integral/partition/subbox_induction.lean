@@ -29,7 +29,7 @@ partition, tagged partition, Henstock integral
 namespace box_integral
 
 open set metric
-open_locale classical topological_space
+open_locale classical topology
 noncomputable theory
 
 variables {ι : Type*} [fintype ι] {I J : box ι}

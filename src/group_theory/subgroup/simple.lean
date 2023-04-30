@@ -9,6 +9,9 @@ import group_theory.subgroup.actions
 /-!
 # Simple groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `is_simple_group G`, a class indicating that a group has exactly two normal
 subgroups.
 

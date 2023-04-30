@@ -62,7 +62,7 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 -/
 
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
-open_locale nat topological_space big_operators ennreal
+open_locale nat topology big_operators ennreal
 
 section topological_algebra
 
@@ -99,17 +99,16 @@ tsum_congr (λ n, exp_series_apply_eq x n)
 lemma exp_eq_tsum : exp 𝕂 = (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) :=
 funext exp_series_sum_eq
 
-@[simp] lemma exp_zero [t2_space 𝔸] : exp 𝕂 (0 : 𝔸) = 1 :=
+lemma exp_series_apply_zero (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, (0 : 𝔸)) = pi.single 0 1 n :=
 begin
-  suffices : (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
-  { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
-      from λ n hn, if_neg (finset.not_mem_singleton.mp hn),
-    rw [exp_eq_tsum, this, tsum_eq_sum key, finset.sum_singleton],
-    simp },
-  refine tsum_congr (λ n, _),
-  split_ifs with h h;
-  simp [h]
+  rw exp_series_apply_eq,
+  cases n,
+  { rw [pow_zero, nat.factorial_zero, nat.cast_one, inv_one, one_smul, pi.single_eq_same], },
+  { rw [zero_pow (nat.succ_pos _), smul_zero, pi.single_eq_of_ne (n.succ_ne_zero)], },
 end
+
+@[simp] lemma exp_zero [t2_space 𝔸] : exp 𝕂 (0 : 𝔸) = 1 :=
+by simp_rw [exp_eq_tsum, ←exp_series_apply_eq, exp_series_apply_zero, tsum_pi_single]
 
 @[simp] lemma exp_op [t2_space 𝔸] (x : 𝔸) :
   exp 𝕂 (mul_opposite.op x) = mul_opposite.op (exp 𝕂 x) :=
@@ -124,6 +123,11 @@ lemma star_exp [t2_space 𝔸] [star_ring 𝔸] [has_continuous_star 𝔸] (x : 
 by simp_rw [exp_eq_tsum, ←star_pow, ←star_inv_nat_cast_smul, ←tsum_star]
 
 variables (𝕂)
+
+lemma is_self_adjoint.exp [t2_space 𝔸] [star_ring 𝔸] [has_continuous_star 𝔸] {x : 𝔸}
+  (h : is_self_adjoint x) :
+  is_self_adjoint (exp 𝕂 x) :=
+(star_exp x).trans $ h.symm ▸ rfl
 
 lemma commute.exp_right [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute x (exp 𝕂 y) :=
 begin
@@ -447,6 +451,13 @@ begin
   exact ring.inverse_invertible _,
 end
 
+lemma exp_mem_unitary_of_mem_skew_adjoint [star_ring 𝔸] [has_continuous_star 𝔸] {x : 𝔸}
+  (h : x ∈ skew_adjoint 𝔸) :
+  exp 𝕂 x ∈ unitary 𝔸 :=
+by rw [unitary.mem_iff, star_exp, skew_adjoint.mem_iff.mp h,
+  ←exp_add_of_commute (commute.refl x).neg_left, ←exp_add_of_commute (commute.refl x).neg_right,
+  add_left_neg, add_right_neg, exp_zero, and_self]
+
 end
 
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
@@ -622,5 +633,11 @@ end
 
 lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : (exp ℝ : ℂ → ℂ) = exp ℂ :=
 exp_eq_exp ℝ ℂ ℂ
+
+/-- A version of `complex.of_real_exp` for `exp` instead of `complex.exp` -/
+@[simp, norm_cast]
+lemma of_real_exp_ℝ_ℝ (r : ℝ) : ↑(exp ℝ r) = exp ℂ (r : ℂ) :=
+(map_exp ℝ (algebra_map ℝ ℂ) (continuous_algebra_map _ _) r).trans
+  (congr_fun exp_ℝ_ℂ_eq_exp_ℂ_ℂ _)
 
 end scalar_tower

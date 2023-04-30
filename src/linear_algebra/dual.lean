@@ -118,11 +118,7 @@ instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 `module.eval_equiv`. -/
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
-@[simp] lemma eval_apply (v : M) (a : dual R M) : eval R M v a = a v :=
-begin
-  dunfold eval,
-  rw [linear_map.flip_apply, linear_map.id_apply]
-end
+@[simp] lemma eval_apply (v : M) (a : dual R M) : eval R M v a = a v := rfl
 
 variables {R M} {M' : Type*} [add_comm_monoid M'] [module R M']
 
@@ -394,7 +390,7 @@ lemma eval_range {ι : Type*} [_root_.finite ι] (b : basis ι R M) : (eval R M)
 begin
   classical,
   casesI nonempty_fintype ι,
-  rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, map_top, to_dual_range _],
+  rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, submodule.map_top, to_dual_range _],
   apply_instance
 end
 
@@ -426,13 +422,13 @@ end comm_ring
   finsupp.total ι (dual R M) R b.coord f (b i) = f i :=
 by { haveI := classical.dec_eq ι, rw [← coe_dual_basis, total_dual_basis] }
 
-lemma dual_dim_eq [comm_ring K] [add_comm_group V] [module K V] [_root_.finite ι]
+lemma dual_rank_eq [comm_ring K] [add_comm_group V] [module K V] [_root_.finite ι]
   (b : basis ι K V) :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
   casesI nonempty_fintype ι,
-  have := linear_equiv.lift_dim_eq b.to_dual_equiv,
+  have := linear_equiv.lift_rank_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
   apply cardinal.lift_id,
@@ -483,9 +479,9 @@ by { rw [← eval_apply_eq_zero_iff K v, linear_map.ext_iff], refl }
 end
 
 -- TODO(jmc): generalize to rings, once `module.rank` is generalized
-theorem dual_dim_eq [finite_dimensional K V] :
+theorem dual_rank_eq [finite_dimensional K V] :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
-(basis.of_vector_space K V).dual_dim_eq
+(basis.of_vector_space K V).dual_rank_eq
 
 lemma erange_coe [finite_dimensional K V] : (eval K V).range = ⊤ :=
 begin

@@ -12,6 +12,9 @@ import category_theory.structured_arrow
 /-!
 # Limits and colimits in comma categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We build limits in the comma category `comma L R` provided that the two source categories have
 limits and `R` preserves them.
 This is used to construct limits in the arrow category, structured arrow category and under

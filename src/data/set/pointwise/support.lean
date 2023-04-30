@@ -9,6 +9,9 @@ import algebra.support
 /-!
 # Support of a function composed with a scalar action
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that the support of `x ↦ f (c⁻¹ • x)` is equal to `c • support f`.
 -/
 

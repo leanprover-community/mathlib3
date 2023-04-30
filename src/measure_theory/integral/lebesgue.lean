@@ -36,7 +36,7 @@ We introduce the following notation for the lower Lebesgue integral of a functio
 
 noncomputable theory
 open set (hiding restrict restrict_apply) filter ennreal function (support)
-open_locale classical topological_space big_operators nnreal ennreal measure_theory
+open_locale classical topology big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -1406,7 +1406,7 @@ begin
   ... = C * μ s + ε₁ : by simp only [←simple_func.lintegral_eq_lintegral, coe_const,
     lintegral_const, measure.restrict_apply, measurable_set.univ, univ_inter]
   ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ :
-    add_le_add_right (ennreal.mul_le_mul le_rfl hs.le) _
+    add_le_add_right (mul_le_mul_left' hs.le _) _
   ... ≤ (ε₂ - ε₁) + ε₁ : add_le_add mul_div_le le_rfl
   ... = ε₂ : tsub_add_cancel_of_le hε₁₂.le,
 end
@@ -1780,25 +1780,34 @@ calc
   ... = ⨆n, (∫⁻ a, f n a ∂μ) :
     by simp only [lintegral_congr_ae (g_eq_f.mono $ λ a ha, ha _)]
 
-lemma lintegral_sub {f g : α → ℝ≥0∞} (hg : measurable g)
+lemma lintegral_sub' {f g : α → ℝ≥0∞} (hg : ae_measurable g μ)
   (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
   ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
 begin
   refine ennreal.eq_sub_of_add_eq hg_fin _,
-  rw [← lintegral_add_right _ hg],
+  rw [← lintegral_add_right' _ hg],
   exact lintegral_congr_ae (h_le.mono $ λ x hx, tsub_add_cancel_of_le hx)
 end
 
-lemma lintegral_sub_le (f g : α → ℝ≥0∞) (hf : measurable f) :
+lemma lintegral_sub {f g : α → ℝ≥0∞} (hg : measurable g)
+  (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
+  ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
+lintegral_sub' hg.ae_measurable hg_fin h_le
+
+lemma lintegral_sub_le' (f g : α → ℝ≥0∞) (hf : ae_measurable f μ) :
   ∫⁻ x, g x ∂μ - ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x - f x ∂μ :=
 begin
   rw tsub_le_iff_right,
   by_cases hfi : ∫⁻ x, f x ∂μ = ∞,
-  { rw [hfi, ennreal.add_top],
+  { rw [hfi, add_top],
     exact le_top },
-  { rw [← lintegral_add_right _ hf],
+  { rw [← lintegral_add_right' _ hf],
     exact lintegral_mono (λ x, le_tsub_add) }
 end
+
+lemma lintegral_sub_le (f g : α → ℝ≥0∞) (hf : measurable f) :
+  ∫⁻ x, g x ∂μ - ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x - f x ∂μ :=
+lintegral_sub_le' f g hf.ae_measurable
 
 lemma lintegral_strict_mono_of_ae_le_of_frequently_ae_lt {f g : α → ℝ≥0∞} (hg : ae_measurable g μ)
   (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h_le : f ≤ᵐ[μ] g) (h : ∃ᵐ x ∂μ, f x ≠ g x) :
@@ -2415,6 +2424,20 @@ lemma with_density_add_right (f : α → ℝ≥0∞) {g : α → ℝ≥0∞} (hg
   μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
 by simpa only [add_comm] using with_density_add_left hg f
 
+lemma with_density_add_measure {m : measurable_space α} (μ ν : measure α) (f : α → ℝ≥0∞) :
+  (μ + ν).with_density f = μ.with_density f + ν.with_density f :=
+begin
+  ext1 s hs,
+  simp only [with_density_apply f hs, restrict_add, lintegral_add_measure, measure.add_apply],
+end
+
+lemma with_density_sum {ι : Type*} {m : measurable_space α} (μ : ι → measure α) (f : α → ℝ≥0∞) :
+  (sum μ).with_density f = sum (λ n, (μ n).with_density f) :=
+begin
+  ext1 s hs,
+  simp_rw [sum_apply _ hs, with_density_apply f hs, restrict_sum μ hs, lintegral_sum_measure],
+end
+
 lemma with_density_smul (r : ℝ≥0∞) {f : α → ℝ≥0∞} (hf : measurable f) :
   μ.with_density (r • f) = r • μ.with_density f :=
 begin
@@ -2483,7 +2506,7 @@ lemma with_density_indicator_one {s : set α} (hs : measurable_set s) :
 by rw [with_density_indicator hs, with_density_one]
 
 lemma with_density_of_real_mutually_singular {f : α → ℝ} (hf : measurable f) :
-  μ.with_density (λ x, ennreal.of_real $ f x) ⊥ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
+  μ.with_density (λ x, ennreal.of_real $ f x) ⟂ₘ μ.with_density (λ x, ennreal.of_real $ -f x) :=
 begin
   set S : set α := { x | f x < 0 } with hSdef,
   have hS : measurable_set S := measurable_set_lt hf measurable_const,
@@ -2671,7 +2694,7 @@ begin
   { intros g h h_univ h_mea_g h_mea_h h_ind_g h_ind_h,
     simp [mul_add, *, measurable.mul] },
   { intros g h_mea_g h_mono_g h_ind,
-    have : monotone (λ n a, f a * g n a) := λ m n hmn x, ennreal.mul_le_mul le_rfl (h_mono_g hmn x),
+    have : monotone (λ n a, f a * g n a) := λ m n hmn x, mul_le_mul_left' (h_mono_g hmn x) _,
     simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
 end
 
@@ -2732,7 +2755,7 @@ lemma lintegral_with_density_le_lintegral_mul (μ : measure α)
 begin
   rw [← supr_lintegral_measurable_le_eq_lintegral, ← supr_lintegral_measurable_le_eq_lintegral],
   refine supr₂_le (λ i i_meas, supr_le (λ hi, _)),
-  have A : f * i ≤ f * g := λ x, ennreal.mul_le_mul le_rfl (hi x),
+  have A : f * i ≤ f * g := λ x, mul_le_mul_left' (hi x) _,
   refine le_supr₂_of_le (f * i) (f_meas.mul i_meas) _,
   exact le_supr_of_le A (le_of_eq (lintegral_with_density_eq_lintegral_mul _ f_meas i_meas))
 end
@@ -3025,7 +3048,7 @@ lemma exists_absolutely_continuous_is_finite_measure
 begin
   obtain ⟨g, gpos, gmeas, hg⟩ : ∃ (g : α → ℝ≥0), (∀ (x : α), 0 < g x) ∧
     measurable g ∧ ∫⁻ (x : α), ↑(g x) ∂μ < 1 :=
-      exists_pos_lintegral_lt_of_sigma_finite μ (ennreal.zero_lt_one).ne',
+      exists_pos_lintegral_lt_of_sigma_finite μ one_ne_zero,
   refine ⟨μ.with_density (λ x, g x), is_finite_measure_with_density hg.ne_top, _⟩,
   have : μ = (μ.with_density (λ x, g x)).with_density (λ x, (g x)⁻¹),
   { have A : (λ (x : α), (g x : ℝ≥0∞)) * (λ (x : α), (↑(g x))⁻¹) = 1,

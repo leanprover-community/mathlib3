@@ -10,6 +10,9 @@ import data.finsupp.basic
 /-!
 # Conversion between `finsupp` and homogenous `dfinsupp`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides conversions between `finsupp` and `dfinsupp`.
 It is in its own file since neither `finsupp` or `dfinsupp` depend on each other.
 
@@ -257,6 +260,7 @@ begin
   suffices : finsupp.single (⟨i, a⟩ : Σ i, η i) n ⟨j, b⟩ = 0,
   { simp [split_apply, dif_neg h, this] },
   have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simp [h],
+  classical,
   rw [finsupp.single_apply, if_neg H]
 end
 

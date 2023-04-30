@@ -13,6 +13,9 @@ import group_theory.group_action.quotient
 /-!
 # Group action on rings applied to polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains instances and definitions relating `mul_semiring_action` to `polynomial`.
 -/
 

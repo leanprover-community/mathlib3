@@ -9,6 +9,9 @@ import category_theory.linear.basic
 /-!
 # Linear structure on functor categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` and `D` are categories and `D` is `R`-linear,
 then `C ⥤ D` is also `R`-linear.
 

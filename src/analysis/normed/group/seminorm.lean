@@ -9,6 +9,9 @@ import data.real.nnreal
 /-!
 # Group seminorms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines norms and seminorms in a group. A group seminorm is a function to the reals which
 is positive-semidefinite and subadditive. A norm further only maps zero to zero.
 
@@ -335,7 +338,7 @@ instance [has_smul R' ℝ] [has_smul R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ
 lemma smul_sup (r : R) (p q : add_group_seminorm E) : r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
 from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
-                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).coe_nonneg,
 ext $ λ x, real.smul_max _ _
 
 end add_group_seminorm
@@ -457,7 +460,7 @@ lemma smul_apply (r : R) (p : group_seminorm E) (x : E) : (r • p) x = r • p 
 lemma smul_sup (r : R) (p q : group_seminorm E) : r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
 from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
-                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).coe_nonneg,
 ext $ λ x, real.smul_max _ _
 
 end group_seminorm
@@ -504,7 +507,7 @@ lemma smul_apply (r : R) (p : nonarch_add_group_seminorm E) (x : E) : (r • p) 
 lemma smul_sup (r : R) (p q : nonarch_add_group_seminorm E) : r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
 from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
-                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).coe_nonneg,
 ext $ λ x, real.smul_max _ _
 
 end nonarch_add_group_seminorm

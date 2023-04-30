@@ -26,6 +26,8 @@ attribute [derive [add_left_cancel_semigroup, add_right_cancel_semigroup, add_co
 
 namespace pnat
 
+instance : is_well_order ℕ+ (<) := { }
+
 @[simp] lemma one_add_nat_pred (n : ℕ+) : 1 + n.nat_pred = n :=
 by rw [nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.2]
 

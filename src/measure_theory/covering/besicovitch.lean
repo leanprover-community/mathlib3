@@ -99,7 +99,7 @@ noncomputable theory
 universe u
 
 open metric set filter fin measure_theory topological_space
-open_locale topological_space classical big_operators ennreal measure_theory nnreal
+open_locale topology classical big_operators ennreal measure_theory nnreal
 
 
 /-!
@@ -260,7 +260,8 @@ begin
   by_contra,
   suffices H : function.injective p.index, from not_injective_of_ordinal p.index H,
   assume x y hxy,
-  wlog x_le_y : x ≤ y := le_total x y using [x y, y x],
+  wlog x_le_y : x ≤ y generalizing x y,
+  { exact (this hxy.symm (le_of_not_le x_le_y)).symm },
   rcases eq_or_lt_of_le x_le_y with rfl|H, { refl },
   simp only [nonempty_def, not_exists, exists_prop, not_and, not_lt, not_le, mem_set_of_eq,
     not_forall] at h,
@@ -395,16 +396,14 @@ begin
     rpos := λ k, p.rpos (p.index (G k)),
     h := begin
       assume a b a_ne_b,
-      wlog G_le : G a ≤ G b := le_total (G a) (G b) using [a b, b a] tactic.skip,
-      { have G_lt : G a < G b,
-        { rcases G_le.lt_or_eq with H|H, { exact H },
-          have A : (a : ℕ) ≠ b := fin.coe_injective.ne a_ne_b,
-          rw [← color_G a (nat.lt_succ_iff.1 a.2), ← color_G b (nat.lt_succ_iff.1 b.2), H] at A,
-          exact (A rfl).elim },
-        exact or.inl (Gab a b G_lt) },
-      { assume a_ne_b,
-        rw or_comm,
-        exact this a_ne_b.symm }
+      wlog G_le : G a ≤ G b generalizing a b,
+      { exact (this b a a_ne_b.symm (le_of_not_le G_le)).symm },
+      have G_lt : G a < G b,
+      { rcases G_le.lt_or_eq with H|H, { exact H },
+        have A : (a : ℕ) ≠ b := fin.coe_injective.ne a_ne_b,
+        rw [← color_G a (nat.lt_succ_iff.1 a.2), ← color_G b (nat.lt_succ_iff.1 b.2), H] at A,
+        exact (A rfl).elim },
+      exact or.inl (Gab a b G_lt),
     end,
     hlast := begin
       assume a ha,
@@ -456,11 +455,8 @@ begin
     obtain ⟨jy, jy_lt, jyi, rfl⟩ :
       ∃ (jy : ordinal), jy < p.last_step ∧ p.color jy = i ∧ y = p.index jy,
         by simpa only [exists_prop, mem_Union, mem_singleton_iff] using hy,
-    wlog jxy : jx ≤ jy := le_total jx jy using [jx jy, jy jx] tactic.skip,
-    swap,
-    { assume h1 h2 h3 h4 h5 h6 h7,
-      rw [function.on_fun, disjoint.comm],
-      exact this h4 h5 h6 h1 h2 h3 h7.symm },
+    wlog jxy : jx ≤ jy generalizing jx jy,
+    { exact (this jy jy_lt jyi hy jx jx_lt jxi hx x_ne_y.symm (le_of_not_le jxy)).symm },
     replace jxy : jx < jy,
       by { rcases lt_or_eq_of_le jxy with H|rfl, { exact H }, { exact (x_ne_y rfl).elim } },
     let A : set ℕ := ⋃ (j : {j // j < jy})
@@ -569,7 +565,7 @@ begin
     apply (ennreal.mul_lt_mul_left hμs.ne' (measure_lt_top μ s).ne).2,
     rw ennreal.inv_lt_inv,
     conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
-    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) zero_lt_one },
   have B : μ (o ∩ v i) = ∑' (x : u i), μ (o ∩ closed_ball x (r x)),
   { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simp only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
@@ -754,13 +750,13 @@ begin
             ≤ (N/(N+1)) * μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd) :
               by { rw u_succ, exact (hF (u n) (Pu n)).2.2 }
         ... ≤ (N/(N+1))^n.succ * μ s :
-          by { rw [pow_succ, mul_assoc], exact ennreal.mul_le_mul le_rfl IH } },
+          by { rw [pow_succ, mul_assoc], exact mul_le_mul_left' IH _ } },
     have C : tendsto (λ (n : ℕ), ((N : ℝ≥0∞)/(N+1))^n * μ s) at_top (𝓝 (0 * μ s)),
     { apply ennreal.tendsto.mul_const _ (or.inr (measure_lt_top μ s).ne),
       apply ennreal.tendsto_pow_at_top_nhds_0_of_lt_1,
       rw [ennreal.div_lt_iff, one_mul],
       { conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
-        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) zero_lt_one },
       { simp only [true_or, add_eq_zero_iff, ne.def, not_false_iff, one_ne_zero, and_false] },
       { simp only [ennreal.nat_ne_top, ne.def, not_false_iff, or_true] } },
     rw zero_mul at C,
@@ -1144,7 +1140,7 @@ to `1` when `r` tends to `0`, for almost every `x` in `s`.
 This shows that almost every point of `s` is a Lebesgue density point for `s`.
 A stronger version holds for measurable sets, see `ae_tendsto_measure_inter_div_of_measurable_set`.
 
-See also `is_doubling_measure.ae_tendsto_measure_inter_div`. -/
+See also `is_unif_loc_doubling_measure.ae_tendsto_measure_inter_div`. -/
 lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure μ] (s : set β) :
   ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ (closed_ball x r)) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 1) :=

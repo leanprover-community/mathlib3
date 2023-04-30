@@ -11,6 +11,9 @@ import topology.local_homeomorph
 /-!
 # Asymptotics
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce these relations:
 
 * `is_O_with c l f g` : "f is big O of g along l with constant c";
@@ -45,7 +48,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space big_operators classical filter nnreal
+open_locale topology big_operators classical filter nnreal
 
 namespace asymptotics
 

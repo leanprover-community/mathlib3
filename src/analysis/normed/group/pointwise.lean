@@ -9,12 +9,15 @@ import topology.metric_space.hausdorff_distance
 /-!
 # Properties of pointwise addition of sets in normed groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We explore the relationships between pointwise addition of sets in normed groups, and the norm.
 Notably, we show that the sum of bounded sets remain bounded.
 -/
 
 open metric set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {E : Type*}
 

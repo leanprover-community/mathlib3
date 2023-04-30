@@ -188,10 +188,11 @@ variables {M}
 
 /-- The canonical map from `tensor_algebra R M` into `triv_sq_zero_ext R M` that sends
 `tensor_algebra.ι` to `triv_sq_zero_ext.inr`. -/
-def to_triv_sq_zero_ext : tensor_algebra R M →ₐ[R] triv_sq_zero_ext R M :=
+def to_triv_sq_zero_ext [module Rᵐᵒᵖ M] [is_central_scalar R M] :
+  tensor_algebra R M →ₐ[R] triv_sq_zero_ext R M :=
 lift R (triv_sq_zero_ext.inr_hom R M)
 
-@[simp] lemma to_triv_sq_zero_ext_ι (x : M) :
+@[simp] lemma to_triv_sq_zero_ext_ι (x : M) [module Rᵐᵒᵖ M] [is_central_scalar R M] :
    to_triv_sq_zero_ext (ι R x) = triv_sq_zero_ext.inr x :=
 lift_ι_apply _ _
 
@@ -200,7 +201,11 @@ lift_ι_apply _ _
 As an implementation detail, we implement this using `triv_sq_zero_ext` which has a suitable
 algebra structure. -/
 def ι_inv : tensor_algebra R M →ₗ[R] M :=
-(triv_sq_zero_ext.snd_hom R M).comp to_triv_sq_zero_ext.to_linear_map
+begin
+  letI : module Rᵐᵒᵖ M := module.comp_hom _ ((ring_hom.id R).from_opposite mul_comm),
+  haveI : is_central_scalar R M := ⟨λ r m, rfl⟩,
+  exact (triv_sq_zero_ext.snd_hom R M).comp to_triv_sq_zero_ext.to_linear_map
+end
 
 lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → tensor_algebra R M) :=
 λ x, by simp [ι_inv]
@@ -218,7 +223,9 @@ variables {R}
 @[simp] lemma ι_eq_algebra_map_iff (x : M) (r : R) : ι R x = algebra_map R _ r ↔ x = 0 ∧ r = 0 :=
 begin
   refine ⟨λ h, _, _⟩,
-  { have hf0 : to_triv_sq_zero_ext (ι R x) = (0, x), from lift_ι_apply _ _,
+  { letI : module Rᵐᵒᵖ M := module.comp_hom _ ((ring_hom.id R).from_opposite mul_comm),
+    haveI : is_central_scalar R M := ⟨λ r m, rfl⟩,
+    have hf0 : to_triv_sq_zero_ext (ι R x) = (0, x), from lift_ι_apply _ _,
     rw [h, alg_hom.commutes] at hf0,
     have : r = 0 ∧ 0 = x := prod.ext_iff.1 hf0,
     exact this.symm.imp_left eq.symm, },

@@ -245,6 +245,17 @@ begin
     exact y_mul_pos hax hay (x_pow_pos hax _) ih, }
 end
 
+/-- If `(x, y)` is a solution with `x` and `y` positive, then all its powers with positive
+exponents have positive `y`. -/
+lemma y_zpow_pos {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) {n : ℤ} (hn : 0 < n) :
+  0 < (a ^ n).y :=
+begin
+  rw [(int.to_nat_of_nonneg hn.le).symm, zpow_coe_nat],
+  replace hn : 0 < n.to_nat := int.lt_to_nat.mpr hn,
+  rw (nat.succ_pred_eq_of_pos hn).symm,
+  exact y_pow_succ_pos hax hay _,
+end
+
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
 lemma x_zpow_pos {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) : 0 < (a ^ n).x :=
 begin

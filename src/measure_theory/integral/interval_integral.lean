@@ -3,19 +3,16 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
-import analysis.normed_space.dual
+
 import data.set.intervals.disjoint
-import measure_theory.measure.haar_lebesgue
-import measure_theory.function.locally_integrable
 import measure_theory.integral.set_integral
-import measure_theory.integral.vitali_caratheodory
-import analysis.calculus.fderiv_measurable
+import measure_theory.measure.haar_lebesgue
 
 /-!
 # Integral over an interval
 
 In this file we define `∫ x in a..b, f x ∂μ` to be `∫ x in Ioc a b, f x ∂μ` if `a ≤ b` and
-`-∫ x in Ioc b a, f x ∂μ` if `b ≤ a`. We prove a few simple properties
+`-∫ x in Ioc b a, f x ∂μ` if `b ≤ a`.
 
 ## Implementation notes
 

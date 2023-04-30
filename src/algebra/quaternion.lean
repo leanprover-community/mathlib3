@@ -22,7 +22,7 @@ algebraic structures on `ℍ[R]`.
   [quaternion algebra](https://en.wikipedia.org/wiki/Quaternion_algebra) with coefficients `a`, `b`
 * `quaternion R`, `ℍ[R]` : the space of quaternions, a.k.a. `quaternion_algebra R (-1) (-1)`;
 * `quaternion.norm_sq` : square of the norm of a quaternion;
-* `quaternion.conj` : conjugate of a quaternion;
+* `quaternion.star_ring` : provides the conjugate of a quaternion as `has_star.star`;
 
 We also define the following algebraic structures on `ℍ[R]`:
 
@@ -339,78 +339,47 @@ by rw [← coe_commutes, coe_mul_eq_smul]
 lemma smul_coe : x • (y : ℍ[R, c₁, c₂]) = ↑(x * y) := by rw [coe_mul, coe_mul_eq_smul]
 
 /-- Quaternion conjugate. -/
-def conj : ℍ[R, c₁, c₂] ≃ₗ[R] ℍ[R, c₁, c₂] :=
-linear_equiv.of_involutive
-{ to_fun := λ a, ⟨a.1, -a.2, -a.3, -a.4⟩,
-  map_add' := λ a b, by ext; simp [neg_add],
-  map_smul' := λ r a, by ext; simp } $
-λ a, by simp
+instance : has_star ℍ[R, c₁, c₂] :=
+{ star := λ a, ⟨a.1, -a.2, -a.3, -a.4⟩ }
 
-@[simp] lemma re_conj : (conj a).re = a.re := rfl
-@[simp] lemma im_i_conj : (conj a).im_i = - a.im_i := rfl
-@[simp] lemma im_j_conj : (conj a).im_j = - a.im_j := rfl
-@[simp] lemma im_k_conj : (conj a).im_k = - a.im_k := rfl
-@[simp] lemma im_conj : (conj a).im = - a.im := ext _ _ neg_zero.symm rfl rfl rfl
+@[simp] lemma re_star : (star a).re = a.re := rfl
+@[simp] lemma im_i_star : (star a).im_i = - a.im_i := rfl
+@[simp] lemma im_j_star : (star a).im_j = - a.im_j := rfl
+@[simp] lemma im_k_star : (star a).im_k = - a.im_k := rfl
+@[simp] lemma im_star : (star a).im = - a.im := ext _ _ neg_zero.symm rfl rfl rfl
 
-@[simp] lemma conj_mk (a₁ a₂ a₃ a₄ : R) :
-  conj (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨a₁, -a₂, -a₃, -a₄⟩ :=
+@[simp] lemma star_mk (a₁ a₂ a₃ a₄ : R) :
+  star (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨a₁, -a₂, -a₃, -a₄⟩ :=
 rfl
 
-@[simp] lemma conj_conj : a.conj.conj = a := ext _ _ rfl (neg_neg _) (neg_neg _) (neg_neg _)
-
-lemma conj_add : (a + b).conj = a.conj + b.conj := conj.map_add a b
-
-@[simp] lemma conj_mul : (a * b).conj = b.conj * a.conj := by ext; simp; ring_exp
-
 instance : star_ring ℍ[R, c₁, c₂] :=
-{ star := conj,
-  star_involutive := conj_conj,
-  star_add := conj_add,
-  star_mul := conj_mul }
+{ star_involutive := λ x, by simp [has_star.star],
+  star_add := λ a b, by ext; simp [neg_add],
+  star_mul := λ a b, by ext; simp; ring_exp }
 
-@[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
+lemma self_add_star' : a + star a = ↑(2 * a.re) := by ext; simp [two_mul]
 
-lemma conj_conj_mul : (a.conj * b).conj = b.conj * a := star_star_mul _ _
+lemma self_add_star : a + star a = 2 * a.re :=
+by simp only [self_add_star', two_mul, coe_add]
 
-lemma conj_mul_conj : (a * b.conj).conj = b * a.conj := star_mul_star _ _
+lemma star_add_self' : star a + a = ↑(2 * a.re) := by rw [add_comm, self_add_star']
 
-lemma self_add_conj' : a + a.conj = ↑(2 * a.re) := by ext; simp [two_mul]
+lemma star_add_self : star a + a = 2 * a.re := by rw [add_comm, self_add_star]
 
-lemma self_add_conj : a + a.conj = 2 * a.re :=
-by simp only [self_add_conj', two_mul, coe_add]
+lemma star_eq_two_re_sub : star a = ↑(2 * a.re) - a := eq_sub_iff_add_eq.2 a.star_add_self'
 
-lemma conj_add_self' : a.conj + a = ↑(2 * a.re) := by rw [add_comm, self_add_conj']
-
-lemma conj_add_self : a.conj + a = 2 * a.re := by rw [add_comm, self_add_conj]
-
-lemma conj_eq_two_re_sub : a.conj = ↑(2 * a.re) - a := eq_sub_iff_add_eq.2 a.conj_add_self'
-
-lemma commute_conj_self : commute a.conj a :=
-begin
-  rw [a.conj_eq_two_re_sub],
+instance : is_star_normal a := ⟨begin
+  rw [a.star_eq_two_re_sub],
   exact (coe_commute (2 * a.re) a).sub_left (commute.refl a)
-end
+end⟩
 
-lemma commute_self_conj : commute a a.conj :=
-a.commute_conj_self.symm
+@[simp, norm_cast] lemma star_coe : star (x : ℍ[R, c₁, c₂]) = x := by ext; simp
 
-lemma commute_conj_conj {a b : ℍ[R, c₁, c₂]} (h : commute a b) : commute a.conj b.conj :=
-h.star_star
+@[simp] lemma star_im : star a.im = - a.im := im_star _
 
-@[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R, c₁, c₂]) = x := by ext; simp
-
-@[simp] lemma conj_im : conj a.im = - a.im := im_conj _
-
-@[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R, c₁, c₂]) = n :=
-@star_nat_cast ℍ[R, c₁, c₂] _ _ n
-@[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R, c₁, c₂]) = z :=
-@star_int_cast ℍ[R, c₁, c₂] _ _ z
-
-@[simp] lemma conj_smul [monoid S] [distrib_mul_action S R] (s : S) (a : ℍ[R, c₁, c₂]) :
-  conj (s • a) = s • conj a :=
+@[simp] lemma star_smul [monoid S] [distrib_mul_action S R] (s : S) (a : ℍ[R, c₁, c₂]) :
+  star (s • a) = s • star a :=
 ext _ _ rfl (smul_neg _ _).symm (smul_neg _ _).symm (smul_neg _ _).symm
-
-@[simp] lemma conj_one : conj (1 : ℍ[R, c₁, c₂]) = 1 := conj_coe 1
 
 lemma eq_re_of_eq_coe {a : ℍ[R, c₁, c₂]} {x : R} (h : a = x) : a = a.re :=
 by rw [h, coe_re]
@@ -423,42 +392,33 @@ section char_zero
 variables [no_zero_divisors R] [char_zero R]
 
 @[simp]
-lemma conj_eq_self {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
-  conj a = a ↔ a = a.re :=
+lemma star_eq_self {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
+  star a = a ↔ a = a.re :=
 by simp [ext_iff, neg_eq_iff_add_eq_zero, add_self_eq_zero]
 
-lemma conj_eq_neg {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
-  conj a = -a ↔ a.re = 0 :=
+lemma star_eq_neg {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
+  star a = -a ↔ a.re = 0 :=
 by simp [ext_iff, eq_neg_iff_add_eq_zero]
 
 end char_zero
--- Can't use `rw ← conj_eq_self` in the proof without additional assumptions
+-- Can't use `rw ← star_eq_self` in the proof without additional assumptions
 
-lemma conj_mul_eq_coe : conj a * a = (conj a * a).re := by ext; simp; ring_exp
+lemma star_mul_eq_coe : star a * a = (star a * a).re := by ext; simp; ring_exp
 
-lemma mul_conj_eq_coe : a * conj a = (a * conj a).re :=
-by { rw a.commute_self_conj.eq, exact a.conj_mul_eq_coe }
-
-lemma conj_zero : conj (0 : ℍ[R, c₁, c₂]) = 0 := conj.map_zero
-
-lemma conj_neg : (-a).conj = -a.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).map_neg a
-
-lemma conj_sub : (a - b).conj = a.conj - b.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).map_sub a b
-
-
-@[simp] lemma conj_pow (n : ℕ) : (a ^ n).conj = a.conj ^ n := star_pow _ _
+lemma mul_star_eq_coe : a * star a = (a * star a).re :=
+by { rw ←star_comm_self', exact a.star_mul_eq_coe }
 
 open mul_opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵐᵒᵖ) :=
-{ to_fun := op ∘ conj,
-  inv_fun := conj ∘ unop,
+def star_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵐᵒᵖ) :=
+{ to_fun := op ∘ star,
+  inv_fun := star ∘ unop,
   map_mul' := λ x y, by simp,
   commutes' := λ r, by simp,
-  .. conj.to_add_equiv.trans op_add_equiv }
+  .. star_add_equiv.trans op_add_equiv }
 
-@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] _) = op ∘ conj := rfl
+@[simp] lemma coe_star_ae : ⇑(star_ae : ℍ[R, c₁, c₂] ≃ₐ[R] _) = op ∘ star := rfl
 
 end quaternion_algebra
 
@@ -634,56 +594,27 @@ quaternion_algebra.rank_eq_four _ _
 lemma finrank_eq_four [strong_rank_condition R] : finite_dimensional.finrank R ℍ[R] = 4 :=
 quaternion_algebra.finrank_eq_four _ _
 
-/-- Quaternion conjugate. -/
-def conj : ℍ[R] ≃ₗ[R]  ℍ[R] := quaternion_algebra.conj
+@[simp] lemma star_re : (star a).re = a.re := rfl
+@[simp] lemma star_im_i : (star a).im_i = - a.im_i := rfl
+@[simp] lemma star_im_j : (star a).im_j = - a.im_j := rfl
+@[simp] lemma star_im_k : (star a).im_k = - a.im_k := rfl
+@[simp] lemma star_im : (star a).im = - a.im := a.im_star
 
-@[simp] lemma conj_re : a.conj.re = a.re := rfl
-@[simp] lemma conj_im_i : a.conj.im_i = - a.im_i := rfl
-@[simp] lemma conj_im_j : a.conj.im_j = - a.im_j := rfl
-@[simp] lemma conj_im_k : a.conj.im_k = - a.im_k := rfl
-@[simp] lemma conj_im : a.conj.im = - a.im := a.im_conj
+lemma self_add_star' : a + star a = ↑(2 * a.re) := a.self_add_star'
 
-@[simp] lemma conj_conj : a.conj.conj = a := a.conj_conj
+lemma self_add_star : a + star a = 2 * a.re := a.self_add_star
 
-@[simp] lemma conj_add : (a + b).conj = a.conj + b.conj := a.conj_add b
+lemma star_add_self' : star a + a = ↑(2 * a.re) := a.star_add_self'
 
-@[simp] lemma conj_mul : (a * b).conj = b.conj * a.conj := a.conj_mul b
+lemma star_add_self : star a + a = 2 * a.re := a.star_add_self
 
-lemma conj_conj_mul : (a.conj * b).conj = b.conj * a := a.conj_conj_mul b
+lemma star_eq_two_re_sub : star a = ↑(2 * a.re) - a := a.star_eq_two_re_sub
 
-lemma conj_mul_conj : (a * b.conj).conj = b * a.conj := a.conj_mul_conj b
+@[simp, norm_cast] lemma star_coe : star (x : ℍ[R]) = x := quaternion_algebra.star_coe x
+@[simp] lemma im_star : star a.im = - a.im := quaternion_algebra.im_star _
 
-lemma self_add_conj' : a + a.conj = ↑(2 * a.re) := a.self_add_conj'
-
-lemma self_add_conj : a + a.conj = 2 * a.re := a.self_add_conj
-
-lemma conj_add_self' : a.conj + a = ↑(2 * a.re) := a.conj_add_self'
-
-lemma conj_add_self : a.conj + a = 2 * a.re := a.conj_add_self
-
-lemma conj_eq_two_re_sub : a.conj = ↑(2 * a.re) - a := a.conj_eq_two_re_sub
-
-lemma commute_conj_self : commute a.conj a := a.commute_conj_self
-
-lemma commute_self_conj : commute a a.conj := a.commute_self_conj
-
-lemma commute_conj_conj {a b : ℍ[R]} (h : commute a b) : commute a.conj b.conj :=
-quaternion_algebra.commute_conj_conj h
-
-alias commute_conj_conj ← commute.quaternion_conj
-
-@[simp, norm_cast] lemma conj_coe : conj (x : ℍ[R]) = x := quaternion_algebra.conj_coe x
-@[simp] lemma im_conj : a.im.conj = - a.im := quaternion_algebra.im_conj _
-
-@[simp, norm_cast] lemma conj_nat_cast (n : ℕ) : conj (n : ℍ[R]) = n :=
-quaternion_algebra.conj_nat_cast _
-@[simp, norm_cast] lemma conj_int_cast (z : ℤ) : conj (z : ℍ[R]) = z :=
-quaternion_algebra.conj_int_cast _
-
-@[simp] lemma conj_smul [monoid S] [distrib_mul_action S R] (s : S) (a : ℍ[R]) :
-  conj (s • a) = s • conj a := quaternion_algebra.conj_smul _ _
-
-@[simp] lemma conj_one : conj (1 : ℍ[R]) = 1 := conj_coe 1
+@[simp] lemma star_smul [monoid S] [distrib_mul_action S R] (s : S) (a : ℍ[R]) :
+  star (s • a) = s • star a := quaternion_algebra.star_smul _ _
 
 lemma eq_re_of_eq_coe {a : ℍ[R]} {x : R} (h : a = x) : a = a.re :=
 quaternion_algebra.eq_re_of_eq_coe h
@@ -694,49 +625,41 @@ quaternion_algebra.eq_re_iff_mem_range_coe
 section char_zero
 variables [no_zero_divisors R] [char_zero R]
 
-@[simp] lemma conj_eq_self {a : ℍ[R]} : conj a = a ↔ a = a.re := quaternion_algebra.conj_eq_self
+@[simp] lemma star_eq_self {a : ℍ[R]} : star a = a ↔ a = a.re := quaternion_algebra.star_eq_self
 
-@[simp] lemma conj_eq_neg {a : ℍ[R]} : conj a = -a ↔ a.re = 0 := quaternion_algebra.conj_eq_neg
+@[simp] lemma star_eq_neg {a : ℍ[R]} : star a = -a ↔ a.re = 0 := quaternion_algebra.star_eq_neg
 
 end char_zero
 
-lemma conj_mul_eq_coe : conj a * a = (conj a * a).re := a.conj_mul_eq_coe
+lemma star_mul_eq_coe : star a * a = (star a * a).re := a.star_mul_eq_coe
 
-lemma mul_conj_eq_coe : a * conj a = (a * conj a).re := a.mul_conj_eq_coe
-
-@[simp] lemma conj_zero : conj (0:ℍ[R]) = 0 := quaternion_algebra.conj_zero
-
-@[simp] lemma conj_neg : (-a).conj = -a.conj := a.conj_neg
-
-@[simp] lemma conj_sub : (a - b).conj = a.conj - b.conj := a.conj_sub b
-
-@[simp] lemma conj_pow (n : ℕ) : conj (a ^ n) = conj a ^ n := a.conj_pow n
+lemma mul_star_eq_coe : a * star a = (a * star a).re := a.mul_star_eq_coe
 
 open mul_opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵐᵒᵖ) := quaternion_algebra.conj_ae
+def star_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵐᵒᵖ) := quaternion_algebra.star_ae
 
-@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵐᵒᵖ) = op ∘ conj := rfl
+@[simp] lemma coe_star_ae : ⇑(star_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵐᵒᵖ) = op ∘ star := rfl
 
 /-- Square of the norm. -/
 def norm_sq : ℍ[R] →*₀ R :=
-{ to_fun := λ a, (a * a.conj).re,
-  map_zero' := by rw [conj_zero, zero_mul, zero_re],
-  map_one' := by rw [conj_one, one_mul, one_re],
-  map_mul' := λ x y, coe_injective $ by conv_lhs { rw [← mul_conj_eq_coe, conj_mul, mul_assoc,
-    ← mul_assoc y, y.mul_conj_eq_coe, coe_commutes, ← mul_assoc, x.mul_conj_eq_coe, ← coe_mul] } }
+{ to_fun := λ a, (a * star a).re,
+  map_zero' := by rw [star_zero, zero_mul, zero_re],
+  map_one' := by rw [star_one, one_mul, one_re],
+  map_mul' := λ x y, coe_injective $ by conv_lhs { rw [← mul_star_eq_coe, star_mul, mul_assoc,
+    ← mul_assoc y, y.mul_star_eq_coe, coe_commutes, ← mul_assoc, x.mul_star_eq_coe, ← coe_mul] } }
 
-lemma norm_sq_def : norm_sq a = (a * a.conj).re := rfl
+lemma norm_sq_def : norm_sq a = (a * star a).re := rfl
 
 lemma norm_sq_def' : norm_sq a = a.1^2 + a.2^2 + a.3^2 + a.4^2 :=
 by simp only [norm_sq_def, sq, mul_neg, sub_neg_eq_add,
-  mul_re, conj_re, conj_im_i, conj_im_j, conj_im_k]
+  mul_re, star_re, star_im_i, star_im_j, star_im_k]
 
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=
-by rw [norm_sq_def, conj_coe, ← coe_mul, coe_re, sq]
+by rw [norm_sq_def, star_coe, ← coe_mul, coe_re, sq]
 
-@[simp] lemma norm_sq_conj : norm_sq (conj a) = norm_sq a := by simp [norm_sq_def']
+@[simp] lemma norm_sq_star : norm_sq (star a) = norm_sq a := by simp [norm_sq_def']
 
 @[norm_cast] lemma norm_sq_nat_cast (n : ℕ) : norm_sq (n : ℍ[R]) = n^2 :=
 by rw [←coe_nat_cast, norm_sq_coe]
@@ -745,28 +668,28 @@ by rw [←coe_nat_cast, norm_sq_coe]
 by rw [←coe_int_cast, norm_sq_coe]
 
 @[simp] lemma norm_sq_neg : norm_sq (-a) = norm_sq a :=
-by simp only [norm_sq_def, conj_neg, neg_mul_neg]
+by simp only [norm_sq_def, star_neg, neg_mul_neg]
 
-lemma self_mul_conj : a * a.conj = norm_sq a := by rw [mul_conj_eq_coe, norm_sq_def]
+lemma self_mul_star : a * star a = norm_sq a := by rw [mul_star_eq_coe, norm_sq_def]
 
-lemma conj_mul_self : a.conj * a = norm_sq a := by rw [← a.commute_self_conj.eq, self_mul_conj]
+lemma star_mul_self : star a * a = norm_sq a := by rw [star_comm_self', self_mul_star]
 
 lemma im_sq : a.im^2 = -norm_sq a.im :=
-by simp_rw [sq, ←conj_mul_self, im_conj, neg_mul, neg_neg]
+by simp_rw [sq, ←star_mul_self, im_star, neg_mul, neg_neg]
 
 lemma coe_norm_sq_add :
-  (norm_sq (a + b) : ℍ[R]) = norm_sq a + a * b.conj + b * a.conj + norm_sq b :=
-by simp [← self_mul_conj, mul_add, add_mul, add_assoc]
+  (norm_sq (a + b) : ℍ[R]) = norm_sq a + a * star b + b * star a + norm_sq b :=
+by simp [← self_mul_star, mul_add, add_mul, add_assoc]
 
 lemma norm_sq_smul (r : R) (q : ℍ[R]) : norm_sq (r • q) = r^2 * norm_sq q :=
-by simp_rw [norm_sq_def, conj_smul, smul_mul_smul, smul_re, sq, smul_eq_mul]
+by simp_rw [norm_sq_def, star_smul, smul_mul_smul, smul_re, sq, smul_eq_mul]
 
-lemma norm_sq_add (a b : ℍ[R]) : norm_sq (a + b) = norm_sq a + norm_sq b + 2 * (a * conj b).re :=
-calc norm_sq (a + b) = (norm_sq a + (a * conj b).re) + ((b * conj a).re + norm_sq b)
-                     : by simp_rw [norm_sq_def, conj_add, add_mul, mul_add, add_re]
-                 ... = norm_sq a + norm_sq b + ((a * conj b).re + (b * conj a).re) : by abel
-                 ... = norm_sq a + norm_sq b + 2 * (a * conj b).re
-                     : by rw [←add_re, ←conj_mul_conj a b, self_add_conj', coe_re]
+lemma norm_sq_add (a b : ℍ[R]) : norm_sq (a + b) = norm_sq a + norm_sq b + 2 * (a * star b).re :=
+calc norm_sq (a + b) = (norm_sq a + (a * star b).re) + ((b * star a).re + norm_sq b)
+                     : by simp_rw [norm_sq_def, star_add, add_mul, mul_add, add_re]
+                 ... = norm_sq a + norm_sq b + ((a * star b).re + (b * star a).re) : by abel
+                 ... = norm_sq a + norm_sq b + 2 * (a * star b).re
+                     : by rw [←add_re, ←star_mul_star a b, self_add_star', coe_re]
 
 end quaternion
 
@@ -808,18 +731,18 @@ no_zero_divisors.to_is_domain _
 
 lemma sq_eq_norm_sq : a^2 = norm_sq a ↔ a = a.re :=
 begin
-  simp_rw [←conj_eq_self],
+  simp_rw [←star_eq_self],
   obtain rfl | hq0 := eq_or_ne a 0,
   { simp },
-  { rw [←conj_mul_self, sq, mul_left_inj' hq0, eq_comm] }
+  { rw [←star_mul_self, sq, mul_left_inj' hq0, eq_comm] }
 end
 
 lemma sq_eq_neg_norm_sq : a^2 = -norm_sq a ↔ a.re = 0 :=
 begin
-  simp_rw [←conj_eq_neg],
+  simp_rw [←star_eq_neg],
   obtain rfl | hq0 := eq_or_ne a 0,
   { simp },
-  rw [←conj_mul_self, ←mul_neg, ←neg_sq, sq, mul_left_inj' (neg_ne_zero.mpr hq0), eq_comm],
+  rw [←star_mul_self, ←mul_neg, ←neg_sq, sq, mul_left_inj' (neg_ne_zero.mpr hq0), eq_comm],
 end
 
 end linear_ordered_comm_ring
@@ -828,12 +751,12 @@ section field
 
 variables [linear_ordered_field R] (a b : ℍ[R])
 
-@[simps { attrs := [] }] instance : has_inv ℍ[R] := ⟨λ a, (norm_sq a)⁻¹ • a.conj⟩
+@[simps { attrs := [] }] instance : has_inv ℍ[R] := ⟨λ a, (norm_sq a)⁻¹ • star a⟩
 
 instance : group_with_zero ℍ[R] :=
 { inv := has_inv.inv,
-  inv_zero := by rw [has_inv_inv, conj_zero, smul_zero],
-  mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
+  inv_zero := by rw [has_inv_inv, star_zero, smul_zero],
+  mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_star, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   .. quaternion.nontrivial,
   .. (by apply_instance : monoid_with_zero ℍ[R]) }
@@ -864,10 +787,6 @@ instance : division_ring ℍ[R] :=
 @[simp, norm_cast] lemma rat_cast_im_k (q : ℚ) : (q : ℍ[R]).im_k = 0 := rfl
 @[simp, norm_cast] lemma rat_cast_im (q : ℚ) : (q : ℍ[R]).im = 0 := rfl
 @[norm_cast] lemma coe_rat_cast (q : ℚ) : ↑(q : R) = (q : ℍ[R]) := rfl
-
-lemma conj_inv : conj (a⁻¹) = (conj a)⁻¹ := star_inv' a
-lemma conj_zpow (z : ℤ) : conj (a ^ z) = conj a ^ z := star_zpow₀ a z
-@[simp, norm_cast] lemma conj_rat_cast (q : ℚ) : conj (q : ℍ[R]) = q := @star_rat_cast ℍ[R] _ _ q
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b

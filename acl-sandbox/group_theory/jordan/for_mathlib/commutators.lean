@@ -9,6 +9,33 @@ import group_theory.abelianization
 
 variables {G : Type*} [group G]
 
+
+open subgroup
+
+lemma mem_commutator_set_of_is_conj_sq {G : Type*} [group G] {g : G} (hg : is_conj g (g ^ 2)) : g ∈ commutator_set G :=
+begin
+    obtain ⟨h, hg⟩ := hg, rw semiconj_by at hg,
+    use ↑h, use g,
+    rw [commutator_element_def, hg],
+    simp only [is_unit.mul_inv_cancel_right, units.is_unit, mul_inv_eq_iff_eq_mul, pow_two],
+end
+
+lemma subgroup.map_top_eq_range {G H : Type*} [group H] [group G] (f : H →* G) :
+  subgroup.map f ⊤ = f.range :=
+begin
+  suffices : (map f ⊤ : set G) = (f.range : set G),
+  refine set_like.ext' this,
+  simp only [coe_map, coe_top, set.image_univ, monoid_hom.coe_range],
+end
+
+lemma subgroup.map_commutator_eq {G H : Type*} [group H] [group G] (f : H →* G) :
+  subgroup.map f (commutator H) = ⁅f.range, f.range⁆ :=
+by rw [commutator_def H, subgroup.map_commutator, subgroup.map_top_eq_range]
+
+lemma subgroup.commutator_eq' {G : Type*} [group G] (H : subgroup G) :
+  subgroup.map H.subtype (commutator H) = ⁅H, H⁆ :=
+by rw [subgroup.map_commutator_eq, subgroup.subtype_range]
+
 /-- If G and H have multiplications *
 and φ : G → H is a surjective multiplicative map,
 and if G is commutative, then H is commutative.

@@ -1780,25 +1780,34 @@ calc
   ... = ⨆n, (∫⁻ a, f n a ∂μ) :
     by simp only [lintegral_congr_ae (g_eq_f.mono $ λ a ha, ha _)]
 
-lemma lintegral_sub {f g : α → ℝ≥0∞} (hg : measurable g)
+lemma lintegral_sub' {f g : α → ℝ≥0∞} (hg : ae_measurable g μ)
   (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
   ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
 begin
   refine ennreal.eq_sub_of_add_eq hg_fin _,
-  rw [← lintegral_add_right _ hg],
+  rw [← lintegral_add_right' _ hg],
   exact lintegral_congr_ae (h_le.mono $ λ x hx, tsub_add_cancel_of_le hx)
 end
 
-lemma lintegral_sub_le (f g : α → ℝ≥0∞) (hf : measurable f) :
+lemma lintegral_sub {f g : α → ℝ≥0∞} (hg : measurable g)
+  (hg_fin : ∫⁻ a, g a ∂μ ≠ ∞) (h_le : g ≤ᵐ[μ] f) :
+  ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
+lintegral_sub' hg.ae_measurable hg_fin h_le
+
+lemma lintegral_sub_le' (f g : α → ℝ≥0∞) (hf : ae_measurable f μ) :
   ∫⁻ x, g x ∂μ - ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x - f x ∂μ :=
 begin
   rw tsub_le_iff_right,
   by_cases hfi : ∫⁻ x, f x ∂μ = ∞,
   { rw [hfi, add_top],
     exact le_top },
-  { rw [← lintegral_add_right _ hf],
+  { rw [← lintegral_add_right' _ hf],
     exact lintegral_mono (λ x, le_tsub_add) }
 end
+
+lemma lintegral_sub_le (f g : α → ℝ≥0∞) (hf : measurable f) :
+  ∫⁻ x, g x ∂μ - ∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x - f x ∂μ :=
+lintegral_sub_le' f g hf.ae_measurable
 
 lemma lintegral_strict_mono_of_ae_le_of_frequently_ae_lt {f g : α → ℝ≥0∞} (hg : ae_measurable g μ)
   (hfi : ∫⁻ x, f x ∂μ ≠ ∞) (h_le : f ≤ᵐ[μ] g) (h : ∃ᵐ x ∂μ, f x ≠ g x) :

@@ -11,6 +11,9 @@ import category_theory.limits.preserves.finite
 /-!
 # Projective objects and categories with enough projectives
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An object `P` is called projective if every morphism out of `P` factors through every epimorphism.
 
 A category `C` has enough projectives if every object admits an epimorphism from some
@@ -203,7 +206,7 @@ lemma projective_of_map_projective (adj : F ⊣ G) [full F] [faithful F] (P : C)
   (hP : projective (F.obj P)) : projective P :=
 ⟨λ X Y f g, begin
   introI,
-  haveI := adj.left_adjoint_preserves_colimits,
+  haveI : preserves_colimits_of_size.{0 0} F := adj.left_adjoint_preserves_colimits,
   rcases @hP.1 (F.map f) (F.map g),
   use adj.unit.app _ ≫ G.map w ≫ (inv $ adj.unit.app _),
   refine faithful.map_injective F _,
@@ -217,7 +220,9 @@ def map_projective_presentation (adj : F ⊣ G) [G.preserves_epimorphisms] (X : 
 { P := F.obj Y.P,
   projective := adj.map_projective _ Y.projective,
   f := F.map Y.f,
-  epi := by haveI := adj.left_adjoint_preserves_colimits; apply_instance }
+  epi := by
+    haveI : preserves_colimits_of_size.{0 0} F := adj.left_adjoint_preserves_colimits;
+    apply_instance }
 
 end adjunction
 namespace equivalence

@@ -110,7 +110,7 @@ end pi_preorder
 section pi_partial_order
 variables [decidable_eq ι] [Π i, partial_order (α i)]
 
-lemma pi_image_update_Icc (f : Π i, α i) (i : ι) (a b : α i) :
+lemma image_update_Icc (f : Π i, α i) (i : ι) (a b : α i) :
   f.update i '' Icc a b = Icc (f.update i a) (f.update i b) :=
 begin
   ext,
@@ -125,114 +125,114 @@ begin
     { simpa only [function.update_noteq hij.symm, le_antisymm_iff] using h j (mem_univ j) } }
 end
 
-lemma pi_image_update_Ico (f : Π i, α i) (i : ι) (a b : α i) :
+lemma image_update_Ico (f : Π i, α i) (i : ι) (a b : α i) :
   f.update i '' Ico a b = Ico (f.update i a) (f.update i b) :=
 by rw [←Icc_diff_right, ←Icc_diff_right, image_diff (f.update_injective _), image_singleton,
-  pi_image_update_Icc]
+  image_update_Icc]
 
-lemma pi_image_update_Ioc (f : Π i, α i) (i : ι) (a b : α i) :
+lemma image_update_Ioc (f : Π i, α i) (i : ι) (a b : α i) :
   f.update i '' Ioc a b = Ioc (f.update i a) (f.update i b) :=
 by rw [←Icc_diff_left, ←Icc_diff_left, image_diff (f.update_injective _), image_singleton,
-  pi_image_update_Icc]
+  image_update_Icc]
 
-lemma pi_image_update_Ioo (f : Π i, α i) (i : ι) (a b : α i) :
+lemma image_update_Ioo (f : Π i, α i) (i : ι) (a b : α i) :
   f.update i '' Ioo a b = Ioo (f.update i a) (f.update i b) :=
 by rw [←Ico_diff_left, ←Ico_diff_left, image_diff (f.update_injective _), image_singleton,
-  pi_image_update_Ico]
+  image_update_Ico]
 
-lemma pi_image_update_Icc_left (f : Π i, α i) (i : ι) (a : α i) :
+lemma image_update_Icc_left (f : Π i, α i) (i : ι) (a : α i) :
   f.update i '' Icc a (f i) = Icc (f.update i a) f :=
-by simpa using pi_image_update_Icc f i a (f i)
+by simpa using image_update_Icc f i a (f i)
 
-lemma pi_image_update_Ico_left (f : Π i, α i) (i : ι) (a : α i) :
+lemma image_update_Ico_left (f : Π i, α i) (i : ι) (a : α i) :
   f.update i '' Ico a (f i) = Ico (f.update i a) f :=
-by simpa using pi_image_update_Ico f i a (f i)
+by simpa using image_update_Ico f i a (f i)
 
-lemma pi_image_update_Ioc_left (f : Π i, α i) (i : ι) (a : α i) :
+lemma image_update_Ioc_left (f : Π i, α i) (i : ι) (a : α i) :
   f.update i '' Ioc a (f i) = Ioc (f.update i a) f :=
-by simpa using pi_image_update_Ioc f i a (f i)
+by simpa using image_update_Ioc f i a (f i)
 
-lemma pi_image_update_Ioo_left (f : Π i, α i) (i : ι) (a : α i) :
+lemma image_update_Ioo_left (f : Π i, α i) (i : ι) (a : α i) :
   f.update i '' Ioo a (f i) = Ioo (f.update i a) f :=
-by simpa using pi_image_update_Ioo f i a (f i)
+by simpa using image_update_Ioo f i a (f i)
 
-lemma pi_image_update_Icc_right (f : Π i, α i) (i : ι) (b : α i) :
+lemma image_update_Icc_right (f : Π i, α i) (i : ι) (b : α i) :
   f.update i '' Icc (f i) b = Icc f (f.update i b) :=
-by simpa using pi_image_update_Icc f i (f i) b
+by simpa using image_update_Icc f i (f i) b
 
-lemma pi_image_update_Ico_right (f : Π i, α i) (i : ι) (b : α i) :
+lemma image_update_Ico_right (f : Π i, α i) (i : ι) (b : α i) :
   f.update i '' Ico (f i) b = Ico f (f.update i b) :=
-by simpa using pi_image_update_Ico f i (f i) b
+by simpa using image_update_Ico f i (f i) b
 
-lemma pi_image_update_Ioc_right (f : Π i, α i) (i : ι) (b : α i) :
+lemma image_update_Ioc_right (f : Π i, α i) (i : ι) (b : α i) :
   f.update i '' Ioc (f i) b = Ioc f (f.update i b) :=
-by simpa using pi_image_update_Ioc f i (f i) b
+by simpa using image_update_Ioc f i (f i) b
 
-lemma pi_image_update_Ioo_right (f : Π i, α i) (i : ι) (b : α i) :
+lemma image_update_Ioo_right (f : Π i, α i) (i : ι) (b : α i) :
   f.update i '' Ioo (f i) b = Ioo f (f.update i b) :=
-by simpa using pi_image_update_Ioo f i (f i) b
+by simpa using image_update_Ioo f i (f i) b
 
 variables [Π i, has_one (α i)]
 
 @[to_additive]
-lemma pi_image_mul_single_Icc (i : ι) (a b : α i) :
+lemma image_mul_single_Icc (i : ι) (a b : α i) :
   pi.mul_single i '' Icc a b = Icc (pi.mul_single i a) (pi.mul_single i b) :=
-pi_image_update_Icc _ _ _ _
+image_update_Icc _ _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ico (i : ι) (a b : α i) :
+lemma image_mul_single_Ico (i : ι) (a b : α i) :
   pi.mul_single i '' Ico a b = Ico (pi.mul_single i a) (pi.mul_single i b) :=
-pi_image_update_Ico _ _ _ _
+image_update_Ico _ _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ioc (i : ι) (a b : α i) :
+lemma image_mul_single_Ioc (i : ι) (a b : α i) :
   pi.mul_single i '' Ioc a b = Ioc (pi.mul_single i a) (pi.mul_single i b) :=
-pi_image_update_Ioc _ _ _ _
+image_update_Ioc _ _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ioo (i : ι) (a b : α i) :
+lemma image_mul_single_Ioo (i : ι) (a b : α i) :
   pi.mul_single i '' Ioo a b = Ioo (pi.mul_single i a) (pi.mul_single i b) :=
-pi_image_update_Ioo _ _ _ _
+image_update_Ioo _ _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Icc_left (i : ι) (a : α i) :
+lemma image_mul_single_Icc_left (i : ι) (a : α i) :
   pi.mul_single i '' Icc a 1 = Icc (pi.mul_single i a) 1 :=
-pi_image_update_Icc_left _ _ _
+image_update_Icc_left _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ico_left (i : ι) (a : α i) :
+lemma image_mul_single_Ico_left (i : ι) (a : α i) :
   pi.mul_single i '' Ico a 1 = Ico (pi.mul_single i a) 1 :=
-pi_image_update_Ico_left _ _ _
+image_update_Ico_left _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ioc_left (i : ι) (a : α i) :
+lemma image_mul_single_Ioc_left (i : ι) (a : α i) :
   pi.mul_single i '' Ioc a 1 = Ioc (pi.mul_single i a) 1 :=
-pi_image_update_Ioc_left _ _ _
+image_update_Ioc_left _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ioo_left (i : ι) (a : α i) :
+lemma image_mul_single_Ioo_left (i : ι) (a : α i) :
   pi.mul_single i '' Ioo a 1 = Ioo (pi.mul_single i a) 1 :=
-pi_image_update_Ioo_left _ _ _
+image_update_Ioo_left _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Icc_right (i : ι) (b : α i) :
+lemma image_mul_single_Icc_right (i : ι) (b : α i) :
   pi.mul_single i '' Icc 1 b = Icc 1 (pi.mul_single i b) :=
-pi_image_update_Icc_right _ _ _
+image_update_Icc_right _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ico_right (i : ι) (b : α i) :
+lemma image_mul_single_Ico_right (i : ι) (b : α i) :
   pi.mul_single i '' Ico 1 b = Ico 1 (pi.mul_single i b) :=
-pi_image_update_Ico_right _ _ _
+image_update_Ico_right _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ioc_right (i : ι) (b : α i) :
+lemma image_mul_single_Ioc_right (i : ι) (b : α i) :
   pi.mul_single i '' Ioc 1 b = Ioc 1 (pi.mul_single i b) :=
-pi_image_update_Ioc_right _ _ _
+image_update_Ioc_right _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_Ioo_right (i : ι) (b : α i) :
+lemma image_mul_single_Ioo_right (i : ι) (b : α i) :
   pi.mul_single i '' Ioo 1 b = Ioo 1 (pi.mul_single i b) :=
-pi_image_update_Ioo_right _ _ _
+image_update_Ioo_right _ _ _
 
 end pi_partial_order
 
@@ -244,34 +244,34 @@ pi_univ_Icc _ _
 
 variables [decidable_eq ι]
 
-lemma pi_image_update_uIcc (f : Π i, α i) (i : ι) (a b : α i) :
+lemma image_update_uIcc (f : Π i, α i) (i : ι) (a b : α i) :
   f.update i '' uIcc a b = uIcc (f.update i a) (f.update i b) :=
-(pi_image_update_Icc _ _ _ _).trans $ by simp_rw [uIcc, f.update_sup, f.update_inf]
+(image_update_Icc _ _ _ _).trans $ by simp_rw [uIcc, f.update_sup, f.update_inf]
 
-lemma pi_image_update_uIcc_left (f : Π i, α i) (i : ι) (a : α i) :
+lemma image_update_uIcc_left (f : Π i, α i) (i : ι) (a : α i) :
   f.update i '' uIcc a (f i) = uIcc (f.update i a) f :=
-by simpa using pi_image_update_uIcc f i a (f i)
+by simpa using image_update_uIcc f i a (f i)
 
-lemma pi_image_update_uIcc_right (f : Π i, α i) (i : ι) (b : α i) :
+lemma image_update_uIcc_right (f : Π i, α i) (i : ι) (b : α i) :
   f.update i '' uIcc (f i) b = uIcc f (f.update i b) :=
-by simpa using pi_image_update_uIcc f i (f i) b
+by simpa using image_update_uIcc f i (f i) b
 
 variables [Π i, has_one (α i)]
 
 @[to_additive]
-lemma pi_image_mul_single_uIcc (i : ι) (a b : α i) :
+lemma image_mul_single_uIcc (i : ι) (a b : α i) :
   pi.mul_single i '' uIcc a b = uIcc (pi.mul_single i a) (pi.mul_single i b) :=
-pi_image_update_uIcc _ _ _ _
+image_update_uIcc _ _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_uIcc_left (i : ι) (a : α i) :
+lemma image_mul_single_uIcc_left (i : ι) (a : α i) :
   pi.mul_single i '' uIcc a 1 = uIcc (pi.mul_single i a) 1 :=
-pi_image_update_uIcc_left _ _ _
+image_update_uIcc_left _ _ _
 
 @[to_additive]
-lemma pi_image_mul_single_uIcc_right (i : ι) (b : α i) :
+lemma image_mul_single_uIcc_right (i : ι) (b : α i) :
   pi.mul_single i '' uIcc 1 b = uIcc 1 (pi.mul_single i b) :=
-pi_image_update_uIcc_right _ _ _
+image_update_uIcc_right _ _ _
 
 end pi_lattice
 

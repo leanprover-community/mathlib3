@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.set_family.shadow
+import data.finset.sort
 
 /-!
 # UV-compressions
@@ -132,6 +133,7 @@ end
 /-- Any family is compressed along two identical elements. -/
 lemma is_compressed_self (u : α) (s : finset α) : is_compressed u u s := compression_self u s
 
+/-- An element can be compressed to any other element by removing/adding the differences. -/
 @[simp] lemma compress_sdiff_sdiff (a b : α) : compress (a \ b) (b \ a) b = a :=
 begin
   refine (compress_of_disjoint_of_le disjoint_sdiff_self_left sdiff_le).trans _,
@@ -200,7 +202,7 @@ begin
   { exact (ha.2 ha.1).elim }
 end
 
-lemma le_of_mem_compression (h : a ∈ 𝓒 u v s) (ha : a ∉ s) : u ≤ a :=
+lemma le_of_mem_compression_of_not_mem (h : a ∈ 𝓒 u v s) (ha : a ∉ s) : u ≤ a :=
 begin
   rw mem_compression at h,
   obtain _ | ⟨-, b, hb, hba⟩ := h,
@@ -212,7 +214,7 @@ begin
   { cases ne_of_mem_of_not_mem hb ha hba }
 end
 
-lemma disjoint_of_mem_compression (h : a ∈ 𝓒 u v s) (ha : a ∉ s) : disjoint v a :=
+lemma disjoint_of_mem_compression_of_not_mem (h : a ∈ 𝓒 u v s) (ha : a ∉ s) : disjoint v a :=
 begin
   rw mem_compression at h,
   obtain _ | ⟨-, b, hb, hba⟩ := h,
@@ -336,8 +338,8 @@ begin
   -- This is gonna be useful a couple of times so let's name it.
   have m : ∀ y ∉ s, insert y s ∉ 𝒜 := λ y h a, hs𝒜 (mem_shadow_iff_insert_mem.2 ⟨y, h, a⟩),
   obtain ⟨x, _, _⟩ := mem_shadow_iff_insert_mem.1 hs𝒜',
-  have hus : u ⊆ insert x s := le_of_mem_compression ‹insert x s ∈ 𝒜'› (m _ ‹x ∉ s›),
-  have hvs : disjoint v (insert x s) := disjoint_of_mem_compression ‹_› (m _ ‹x ∉ s›),
+  have hus : u ⊆ insert x s := le_of_mem_compression_of_not_mem ‹_ ∈ 𝒜'› (m _ ‹x ∉ s›),
+  have hvs : disjoint v (insert x s) := disjoint_of_mem_compression_of_not_mem ‹_› (m _ ‹x ∉ s›),
   have : (insert x s ∪ v) \ u ∈ 𝒜 := sup_sdiff_mem_of_mem_compression_of_not_mem ‹_› (m _ ‹x ∉ s›),
   have hsv : disjoint s v := hvs.symm.mono_left (subset_insert _ _),
   have hvu : disjoint v u := disjoint_of_subset_right hus hvs,

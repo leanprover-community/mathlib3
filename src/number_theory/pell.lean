@@ -251,9 +251,9 @@ exponents have positive `y`. -/
 lemma y_zpow_pos {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) {n : ℤ} (hn : 0 < n) :
   0 < (a ^ n).y :=
 begin
-  rw [(int.to_nat_of_nonneg hn.le).symm, zpow_coe_nat],
-  replace hn : 0 < n.to_nat := int.lt_to_nat.mpr hn,
-  rw (nat.succ_pred_eq_of_pos hn).symm,
+  lift n to ℕ using hn.le,
+  norm_cast at hn ⊢,
+  rw ← nat.succ_pred_eq_of_pos hn,
   exact y_pow_succ_pos hax hay _,
 end
 
@@ -449,10 +449,10 @@ begin
   obtain ⟨a, ha₁, ha₂⟩ := exists_pos_of_not_is_square h₀ hd,
   -- convert to `x : ℕ` to be able to use `nat.find`
   have P : ∃ x' : ℕ, 1 < x' ∧ ∃ y' : ℤ, 0 < y' ∧ (x' : ℤ) ^ 2 - d * y' ^ 2 = 1,
-  { have hx' := (int.to_nat_of_nonneg $ zero_le_one.trans ha₁.le).symm,
-    rw hx' at ha₁,
+  { have hax := a.prop,
+    lift a.x to ℕ using (by positivity) with ax,
     norm_cast at ha₁,
-    exact ⟨a.x.to_nat, ha₁, a.y, ha₂, hx' ▸ a.prop⟩, },
+    exact ⟨ax, ha₁, a.y, ha₂, hax⟩, },
   classical, -- to avoid having to show that the predicate is decidable
   let x₁ := nat.find P,
   obtain ⟨hx, y₁, hy₀, hy₁⟩ := nat.find_spec P,

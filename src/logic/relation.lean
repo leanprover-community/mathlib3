@@ -225,86 +225,6 @@ notation r`?` : 80 := relation.refl_gen r
 notation r`*` : 80 := relation.refl_trans_gen r
 notation `~`:75 r := λa b, ¬(r a b)
 
-lemma union_assoc : r₁ ∪ (r₂ ∪ r₃) = (r₁ ∪ r₂) ∪ r₃ := by simp [(∪), or_assoc]
-lemma inter_assoc : r₁ ∩ (r₂ ∩ r₃) = (r₁ ∩ r₂) ∩ r₃ := by simp [(∩), and_assoc]
-lemma union_comm (r₁ r₂ : α → α → Prop) : r₁ ∪ r₂ = r₂ ∪ r₁ := by simp [(∪), or_comm]
-lemma inter_comm (r₁ r₂ : α → α → Prop) : r₁ ∩ r₂ = r₂ ∩ r₁ := by simp [(∩), and_comm]
-lemma union_inter_distrib (r₁ r₂ r₃ : α → α → Prop) :
-  r₁ ∪ (r₂ ∩ r₃) = (r₁ ∪ r₂) ∩ (r₁ ∪ r₃) :=
-by simp [(∪), (∩), or_and_distrib_left]
-lemma inter_union_distrib (r₁ r₂ r₃ : α → α → Prop) :
-  r₁ ∩ (r₂ ∪ r₃) = (r₁ ∩ r₂) ∪ (r₁ ∩ r₃) :=
-by simp [(∪), (∩), and_or_distrib_left]
-
-lemma inter_left  : (r₁ ∩ r₂) a b → r₁ a b := and.left
-lemma inter_right : (r₁ ∩ r₂) a b → r₂ a b := and.right
-lemma union_inl : r₁ a b → (r₁ ∪ r₂) a b := or.inl
-lemma union_inr : r₂ a b → (r₁ ∪ r₂) a b := or.inr
-
-lemma trans_union_inl : r₁+ a b → (r₁ ∪ r₂)+ a b :=
-begin
-  assume h, induction h with c p c d p q ih,
-  { apply relation.trans_gen.single, apply or.inl, assumption },
-  { apply relation.trans_gen.tail ih, apply or.inl, assumption }
-end
-
-lemma trans_union_inr :
-  r₂+ a b → (r₁ ∪ r₂)+ a b :=
-begin
-  assume h, induction h with c p c d p q ih,
-  { apply trans_gen.single, apply or.inr, assumption },
-  { apply trans_gen.tail ih, apply or.inr, assumption }
-end
-
-lemma trans_weaken :
-  (r₁+ ∪ r₂+) a b → (r₁ ∪ r₂)+ a b :=
-begin
-  assume h, cases h,
-  { apply trans_union_inl, assumption },
-  { apply trans_union_inr, assumption }
-end
-
-lemma trans_weakenr :
-  (r₁ ∪ r₂+) a b → (r₁ ∪ r₂)+ a b :=
-begin
-  assume h, apply trans_weaken, cases h,
-  { apply or.inl, apply trans_gen.single, assumption },
-  { apply or.inr, assumption }
-end
-
-lemma trans_weakenl :
-  (r₁+ ∪ r₂) a b → (r₁ ∪ r₂)+ a b :=
-begin
-  assume h, apply trans_weaken, cases h,
-  { apply or.inl, assumption },
-  { apply or.inr, apply trans_gen.single, assumption }
-end
-
--- lemma trans_remove :
---   (r₁+ ∪ r₂+)+ a b → (r₁ ∪ r₂)+ a b :=
--- begin
---   assume h, induction h with _ _ _ _ ih h_1 _,
---   { apply trans_weaken, assumption },
---   { exact trans_gen.trans ih (trans_weaken h_1) }
--- end
-
--- lemma trans_remover :
---   (r₁ ∪ r₂+)+ a b → (r₁ ∪ r₂)+ a b :=
--- begin
---   assume h, induction h,
---   { apply trans_weakenr, assumption },
---   { exact relation.trans_gen.trans ih (trans_weakr h_1) }
--- end
-
--- lemma trans_removel :
---   (r₁+ ∪ r₂)+ a b → (r₁ ∪ r₂)+ a b :=
--- begin
---   assume h, induction h,
---   { apply trans_weakenl, assumption },
---   { exact relation.trans_gen.trans ih (trans_weakl h_1) }
--- end
-
-
 #print notation
 
 attribute [refl] refl_gen.refl
@@ -715,6 +635,135 @@ lemma refl_trans_gen_of_equivalence {r' : α → α → Prop} (hr : equivalence 
 refl_trans_gen_of_transitive_reflexive hr.1 hr.2.2
 
 end join
+
+
+lemma union_assoc : r₁ ∪ (r₂ ∪ r₃) = (r₁ ∪ r₂) ∪ r₃ := by simp [(∪), or_assoc]
+lemma inter_assoc : r₁ ∩ (r₂ ∩ r₃) = (r₁ ∩ r₂) ∩ r₃ := by simp [(∩), and_assoc]
+lemma union_comm (r₁ r₂ : α → α → Prop) : r₁ ∪ r₂ = r₂ ∪ r₁ := by simp [(∪), or_comm]
+lemma inter_comm (r₁ r₂ : α → α → Prop) : r₁ ∩ r₂ = r₂ ∩ r₁ := by simp [(∩), and_comm]
+lemma union_inter_distrib (r₁ r₂ r₃ : α → α → Prop) :
+  r₁ ∪ (r₂ ∩ r₃) = (r₁ ∪ r₂) ∩ (r₁ ∪ r₃) :=
+by simp [(∪), (∩), or_and_distrib_left]
+lemma inter_union_distrib (r₁ r₂ r₃ : α → α → Prop) :
+  r₁ ∩ (r₂ ∪ r₃) = (r₁ ∩ r₂) ∪ (r₁ ∩ r₃) :=
+by simp [(∪), (∩), and_or_distrib_left]
+
+lemma inter_left  : (r₁ ∩ r₂) a b → r₁ a b := and.left
+lemma inter_right : (r₁ ∩ r₂) a b → r₂ a b := and.right
+lemma union_inl : r₁ a b → (r₁ ∪ r₂) a b := or.inl
+lemma union_inr : r₂ a b → (r₁ ∪ r₂) a b := or.inr
+
+lemma trans_union_inl : r₁+ a b → (r₁ ∪ r₂)+ a b :=
+begin
+  assume h, induction h with _ _ _ _ _ _ ih,
+  { apply trans_gen.single, apply or.inl, assumption },
+  { apply trans_gen.tail ih, apply or.inl, assumption }
+end
+
+lemma trans_union_inr :
+  r₂+ a b → (r₁ ∪ r₂)+ a b :=
+begin
+  assume h, induction h with c p c d p q ih,
+  { apply trans_gen.single, apply or.inr, assumption },
+  { apply trans_gen.tail ih, apply or.inr, assumption }
+end
+
+lemma trans_weaken :
+  (r₁+ ∪ r₂+) a b → (r₁ ∪ r₂)+ a b :=
+begin
+  assume h, cases h,
+  { apply trans_union_inl, assumption },
+  { apply trans_union_inr, assumption }
+end
+
+lemma trans_weakenr :
+  (r₁ ∪ r₂+) a b → (r₁ ∪ r₂)+ a b :=
+begin
+  assume h, apply trans_weaken, cases h,
+  { apply or.inl, apply trans_gen.single, assumption },
+  { apply or.inr, assumption }
+end
+
+lemma trans_weakenl :
+  (r₁+ ∪ r₂) a b → (r₁ ∪ r₂)+ a b :=
+begin
+  assume h, apply trans_weaken, cases h,
+  { apply or.inl, assumption },
+  { apply or.inr, apply trans_gen.single, assumption }
+end
+
+lemma trans_remove :
+  (r₁+ ∪ r₂+)+ a b → (r₁ ∪ r₂)+ a b :=
+begin
+  assume h, induction h with _ _ _ _ _ h_1 ih,
+  { apply trans_weaken, assumption },
+  { exact relation.trans_gen.trans ih (trans_weaken h_1) }
+end
+
+lemma trans_remover :
+  (r₁ ∪ r₂+)+ a b → (r₁ ∪ r₂)+ a b :=
+begin
+  assume h, induction h with _ _ _ _ _ h_1 ih,
+  { apply trans_weakenr, assumption },
+  { exact relation.trans_gen.trans ih (trans_weakenr h_1) }
+end
+
+lemma trans_removel :
+  (r₁+ ∪ r₂)+ a b → (r₁ ∪ r₂)+ a b :=
+begin
+  assume h, induction h with _ _ _ _ _ h_1 ih,
+  { apply trans_weakenl, assumption },
+  { exact relation.trans_gen.trans ih (trans_weakenl h_1) }
+end
+
+lemma trans_intro :
+  (r₁ ∪ r₂)+ a b → (r₁+ ∪ r₂+)+ a b :=
+begin
+  assume h, induction h with _ h _ _ _ h_1 ih,
+  { apply relation.trans_gen.single, cases h,
+    { apply or.inl, apply relation.trans_gen.single, assumption },
+    { apply or.inr, apply relation.trans_gen.single, assumption } },
+  { apply relation.trans_gen.tail ih, cases h_1,
+    { apply or.inl, apply relation.trans_gen.single, assumption },
+    { apply or.inr, apply relation.trans_gen.single, assumption } }
+end
+
+lemma trans_intror :
+  (r₁ ∪ r₂)+ a b → (r₁ ∪ r₂+)+ a b :=
+begin
+  assume h, apply trans_removel, apply trans_intro, assumption
+end
+
+lemma trans_introl :
+  (r₁ ∪ r₂)+ a b → (r₁+ ∪ r₂)+ a b :=
+begin
+  assume h, apply trans_remover, apply trans_intro, assumption
+end
+
+@[simp]lemma trans_clos_flat :
+  (r₁+ ∪ r₂+)+ = (r₁ ∪ r₂)+ :=
+begin
+  apply funext, assume x₁, apply funext, assume x₂,
+  rw [←iff_eq_eq], apply iff.intro,
+  exact trans_remove, exact trans_intro
+end
+
+@[simp]lemma trans_clos_flatr :
+  (r₁ ∪ r₂+)+ = (r₁ ∪ r₂)+ :=
+begin
+  apply funext, assume x₁, apply funext, assume x₂,
+  rw [←iff_eq_eq], apply iff.intro,
+  exact trans_remover, exact trans_intror
+end
+
+@[simp]lemma trans_clos_flatl :
+  (r₁+ ∪ r₂)+ = (r₁ ∪ r₂)+ :=
+begin
+  apply funext, assume x₁, apply funext, assume x₂,
+  rw [←iff_eq_eq], apply iff.intro,
+  exact trans_removel, exact trans_introl
+end
+
 
 end relation
 

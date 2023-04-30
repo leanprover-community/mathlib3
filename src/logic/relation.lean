@@ -208,8 +208,8 @@ attribute [refl] refl_trans_gen.refl
 
 
 -- TODO contribution:
--- Define new notation
 -- Pick lemma's for implementation (think cleverly on how we can keep is abstract)
+-- Make everything using * first, then prove the + from there
 -- Implement lemmas
 @[instance] def relation.has_union : has_union ( α → α → Prop ) :=
 { union := λ(r₁ r₂ : α → α → Prop) (a b : α), r₁ a b ∨ r₂ a b }

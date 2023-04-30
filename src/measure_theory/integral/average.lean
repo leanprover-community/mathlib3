@@ -22,6 +22,11 @@ The average is defined as an integral over `(μ univ)⁻¹ • μ` so that all t
 integrals work for the average without modifications. For theorems that require integrability of a
 function, we provide a convenience lemma `measure_theory.integrable.to_average`.
 
+## TODO
+
+Provide the first moment method for the Lebesgue integral as well. A draft is available on branch
+`first_moment_lintegral`.
+
 ## Tags
 
 integral, center mass, average value

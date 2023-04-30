@@ -456,7 +456,7 @@ by { rw [← of_real_nat_cast], exact norm_of_nonneg (nat.cast_nonneg n) }
 lemma mul_self_norm (z : K) : ‖z‖ * ‖z‖ = norm_sq z :=
 by rw [norm_sq_eq_def', sq]
 
-attribute [is_R_or_C_simps] norm_zero norm_one norm_eq_zero abs_norm_eq_norm norm_inv norm_div
+attribute [is_R_or_C_simps] norm_zero norm_one norm_eq_zero abs_norm norm_inv norm_div
 
 @[simp, is_R_or_C_simps] lemma norm_two : ‖(2 : K)‖ = 2 :=
 by rw [← nat.cast_two, norm_nat_cast, nat.cast_two]
@@ -488,13 +488,13 @@ open is_absolute_value
 
 lemma abs_re_div_abs_le_one (z : K) : |re z / ‖z‖| ≤ 1 :=
 begin
-  rw [abs_div, abs_norm_eq_norm],
+  rw [abs_div, abs_norm],
   exact div_le_one_of_le (abs_re_le_norm _) (norm_nonneg _)
 end
 
 lemma abs_im_div_abs_le_one (z : K) : |im z / ‖z‖| ≤ 1 :=
 begin
-  rw [abs_div, abs_norm_eq_norm],
+  rw [abs_div, abs_norm],
   exact div_le_one_of_le (abs_im_le_norm _) (norm_nonneg _)
 end
 

@@ -1519,7 +1519,7 @@ begin
         is_R_or_C.abs_div, is_R_or_C.abs_mul, ←inner_self_re_abs,
         inner_self_eq_norm_mul_norm] at h,
       norm_cast at h,
-      rwa [_root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm, ←mul_assoc, mul_comm,
+      rwa [abs_mul, abs_norm, abs_norm, ←mul_assoc, mul_comm,
         mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), ←is_R_or_C.norm_eq_abs,
         ←norm_smul] at h },
     have hr0 : r ≠ 0,
@@ -1544,7 +1544,7 @@ begin
     rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
     rw [hy, is_R_or_C.abs_div],
     norm_cast,
-    rw [_root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
+    rw [_root_.abs_mul, abs_norm, abs_norm],
     exact abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
 end
 
@@ -1648,7 +1648,7 @@ begin
   ... ↔ ‖(‖y‖:𝕜) • x - (‖x‖:𝕜) • y‖ * ‖(‖y‖:𝕜) • x - (‖x‖:𝕜) • y‖ = 0 :
   begin
     simp only [@norm_sub_mul_self 𝕜, inner_smul_left, inner_smul_right, norm_smul, conj_of_real,
-      is_R_or_C.norm_eq_abs, abs_of_real, of_real_im, of_real_re, mul_re, abs_norm_eq_norm],
+      is_R_or_C.norm_eq_abs, abs_of_real, of_real_im, of_real_re, mul_re, abs_norm],
     refine eq.congr _ rfl,
     ring
   end

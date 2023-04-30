@@ -193,6 +193,12 @@ by rintro (h | h); simp [h]⟩
 lemma to_real_eq_zero_iff (x : ℝ≥0∞) : x.to_real = 0 ↔ x = 0 ∨ x = ∞ :=
 by simp [ennreal.to_real, to_nnreal_eq_zero_iff]
 
+lemma to_nnreal_ne_zero : a.to_nnreal ≠ 0 ↔ a ≠ 0 ∧ a ≠ ⊤ :=
+a.to_nnreal_eq_zero_iff.not.trans not_or_distrib
+
+lemma to_real_ne_zero : a.to_real ≠ 0 ↔ a ≠ 0 ∧ a ≠ ⊤ :=
+a.to_real_eq_zero_iff.not.trans not_or_distrib
+
 lemma to_nnreal_eq_one_iff (x : ℝ≥0∞) : x.to_nnreal = 1 ↔ x = 1 :=
 begin
   refine ⟨λ h, _, congr_arg _⟩,
@@ -203,6 +209,9 @@ end
 
 lemma to_real_eq_one_iff (x : ℝ≥0∞) : x.to_real = 1 ↔ x = 1 :=
 by rw [ennreal.to_real, nnreal.coe_eq_one, ennreal.to_nnreal_eq_one_iff]
+
+lemma to_nnreal_ne_one : a.to_nnreal ≠ 1 ↔ a ≠ 1 := a.to_nnreal_eq_one_iff.not
+lemma to_real_ne_one : a.to_real ≠ 1 ↔ a ≠ 1 := a.to_real_eq_one_iff.not
 
 @[simp] lemma coe_ne_top : (r : ℝ≥0∞) ≠ ∞ := with_top.coe_ne_top
 @[simp] lemma top_ne_coe : ∞ ≠ (r : ℝ≥0∞) := with_top.top_ne_coe
@@ -980,7 +989,7 @@ instance : div_inv_monoid ℝ≥0∞ :=
 { inv := has_inv.inv,
   .. (infer_instance : monoid ℝ≥0∞) }
 
-lemma div_eq_inv_mul : a / b = b⁻¹ * a := by rw [div_eq_mul_inv, mul_comm]
+protected lemma div_eq_inv_mul : a / b = b⁻¹ * a := by rw [div_eq_mul_inv, mul_comm]
 
 @[simp] lemma inv_zero : (0 : ℝ≥0∞)⁻¹ = ∞ :=
 show Inf {b : ℝ≥0∞ | 1 ≤ 0 * b} = ∞, by simp; refl

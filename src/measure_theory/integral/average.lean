@@ -296,6 +296,7 @@ lemma exists_set_average_le (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : int
 let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_set_average_le_pos hμ hμ₁ hf hs).ne'
   in ⟨x, hx, h⟩
 
+section finite_measure
 variables [is_finite_measure μ]
 
 /-- **First moment method**. An integrable function is smaller than its mean on a set of positive
@@ -335,6 +336,46 @@ lemma exists_not_mem_null_average_le (hμ : μ ≠ 0) (hf : integrable f μ) (hN
   ∃ x ∉ N, ⨍ a, f a ∂μ ≤ f x :=
 by simpa [integral_neg, neg_div] using exists_not_mem_null_le_average hμ hf.neg hN
 
+end finite_measure
+
+section probability_measure
+variables [is_probability_measure μ]
+
+/-- **First moment method**. An integrable function is smaller than its integral on a set of
+positive measure. -/
+lemma measure_le_integral_pos (hf : integrable f μ) : 0 < μ {x | f x ≤ ∫ a, f a ∂μ} :=
+by simpa only [average_eq_integral]
+  using measure_le_average_pos (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. An integrable function is greater than its integral on a set of
+positive measure. -/
+lemma measure_integral_le_pos (hf : integrable f μ) : 0 < μ {x | ∫ a, f a ∂μ ≤ f x} :=
+by simpa only [average_eq_integral]
+  using measure_average_le_pos (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. The minimum of an integrable function is smaller than its integral. -/
+lemma exists_le_integral (hf : integrable f μ) : ∃ x, f x ≤ ∫ a, f a ∂μ :=
+by simpa only [average_eq_integral] using exists_le_average (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. The maximum of an integrable function is greater than its integral. -/
+lemma exists_integral_le (hμ : μ ≠ 0) (hf : integrable f μ) : ∃ x, ∫ a, f a ∂μ ≤ f x :=
+by simpa only [average_eq_integral] using exists_average_le (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. The minimum of an integrable function is smaller than its integral,
+while avoiding a null set. -/
+lemma exists_not_mem_null_le_integral (hf : integrable f μ) (hN : μ N = 0) :
+  ∃ x ∉ N, f x ≤ ∫ a, f a ∂μ :=
+by simpa only [average_eq_integral]
+  using exists_not_mem_null_le_average (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. The maximum of an integrable function is greater than its integral,
+while avoiding a null set. -/
+lemma exists_not_mem_null_integral_le (hf : integrable f μ) (hN : μ N = 0) :
+  ∃ x ∉ N, ∫ a, f a ∂μ ≤ f x :=
+by simpa only [average_eq_integral]
+  using exists_not_mem_null_average_le (is_probability_measure.ne_zero μ) hf
+
+end probability_measure
 end first_moment
 
 end measure_theory

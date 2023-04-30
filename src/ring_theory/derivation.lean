@@ -1095,4 +1095,222 @@ end
 
 end exact_sequence
 
+section is_tensor_product
+
+variables (A B : Type*) [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
+variables [algebra A B] [algebra S B] [is_scalar_tower R A B] [is_scalar_tower R S B]
+
+
+/-- The lift of the map `Ω[A⁄R] →ₗ[R] Ω[B⁄S]` to the base change along `R → S`.
+This is an isomorphism when `B = S ⊗[R] A`. -/
+noncomputable
+def kaehler_differential.map_base_change' : S ⊗[R] Ω[A⁄R] →ₗ[S] Ω[B⁄S] :=
+(tensor_product.is_base_change R Ω[A⁄R] S).lift (kaehler_differential.map R S A B)
+
+@[simp]
+lemma kaehler_differential.map_base_change'_tmul (x : S) (y : Ω[A⁄R]) :
+  kaehler_differential.map_base_change' R S A B (x ⊗ₜ y) =
+    x • kaehler_differential.map R S A B y :=
+begin
+  conv_lhs { rw [← mul_one x, ← smul_eq_mul, ← tensor_product.smul_tmul', linear_map.map_smul] },
+  congr' 1,
+  exact is_base_change.lift_eq _ _ _
+end
+
+/-- (Implementation). `A`-module structure on `S ⊗[R] Ω[A⁄R]`. -/
+@[reducible]
+def kaehler_differential.module_of_is_base_change₁ :
+  module A (S ⊗[R] Ω[A⁄R]) :=
+{ add_smul := by simp only [linear_equiv.coe_to_equiv_symm, linear_equiv.coe_to_equiv,
+    add_smul, map_add, eq_self_iff_true, forall_const],
+  zero_smul := by simp only [map_zero, linear_equiv.coe_to_equiv_symm, forall_const, zero_smul],
+  smul_zero := by simp only [linear_equiv.coe_to_equiv, map_zero, smul_zero,
+    linear_equiv.coe_to_equiv_symm, forall_const],
+  smul_add := by simp only [linear_equiv.coe_to_equiv_symm, linear_equiv.coe_to_equiv,
+    smul_add, map_add, eq_self_iff_true, forall_const],
+  ..(tensor_product.comm R S Ω[A⁄R]).to_equiv.mul_action A }
+
+local attribute [instance] kaehler_differential.module_of_is_base_change₁
+
+lemma kaehler_differential.module_of_is_base_change₁_smul (a : A) (s : S) (x : Ω[A⁄R]) :
+  a • (s ⊗ₜ[R] x) = s ⊗ₜ (a • x) := rfl
+
+instance kaehler_differential.tower_of_is_base_change₁ : is_scalar_tower R A (S ⊗[R] Ω[A⁄R]) :=
+{ smul_assoc := λ x y z, begin
+    apply tensor_product.induction_on z,
+    { rw [smul_zero, smul_zero, smul_zero] },
+    { intros w z, simp only [kaehler_differential.module_of_is_base_change₁_smul,
+        tensor_product.smul_tmul', tensor_product.smul_tmul, smul_assoc] },
+    { intros w z e, simp only [e, smul_add, add_right_inj, imp_self] }
+  end }
+
+instance : smul_comm_class S A (S ⊗[R] Ω[A⁄R]) :=
+{ smul_comm := λ s a x, begin
+    apply tensor_product.induction_on x,
+    { rw [smul_zero, smul_zero, smul_zero] },
+    { intros w z,
+      simp only [kaehler_differential.module_of_is_base_change₁_smul, tensor_product.smul_tmul'] },
+    { intros w z e, simp only [e, smul_add, add_right_inj, imp_self] }
+  end }
+
+/-- (Implementation). `B = S ⊗[R] A`-module structure on `S ⊗[R] Ω[A⁄R]`. -/
+@[reducible] noncomputable
+def kaehler_differential.module_of_is_base_change₂ [algebra.is_pushout R S A B] :
+  module B (S ⊗[R] Ω[A⁄R]) :=
+module.comp_hom _ (algebra.pushout_desc B (@algebra.lsmul R S (S ⊗[R] Ω[A⁄R]) _ _ _ _ _ _ _)
+  (@algebra.lsmul R A _ _ _ _ _ _ _ _) (λ x y, linear_map.ext $ λ z, smul_comm _ _ _)).to_ring_hom
+
+local attribute [instance] kaehler_differential.module_of_is_base_change₂
+
+instance kaehler_differential.tower_of_is_base_change₂ [h : algebra.is_pushout R S A B] :
+  is_scalar_tower A B (S ⊗[R] Ω[A⁄R]) :=
+{ smul_assoc := begin
+    intros x y z,
+    change (alg_hom.to_ring_hom _ (x • y)) • z = x • (alg_hom.to_ring_hom _ y • z),
+    simp only [linear_map.mul_apply, alg_hom.coe_to_ring_hom, algebra.smul_def,
+      linear_map.smul_def, map_mul, alg_hom.to_ring_hom_eq_coe, algebra.pushout_desc_right],
+    refl
+  end }
+
+instance kaehler_differential.tower_of_is_base_change₃ [h : algebra.is_pushout R S A B] :
+  is_scalar_tower S B (S ⊗[R] Ω[A⁄R]) :=
+{ smul_assoc := begin
+    intros x y z,
+    change (alg_hom.to_ring_hom _ (x • y)) • z = x • (alg_hom.to_ring_hom _ y • z),
+    simp only [linear_map.mul_apply, alg_hom.coe_to_ring_hom, algebra.smul_def,
+      linear_map.smul_def, map_mul, alg_hom.to_ring_hom_eq_coe, algebra.pushout_desc_left],
+    refl
+  end }
+
+lemma kaehler_differential.map_base_change'_smul [h : algebra.is_pushout R S A B] (b : B) (x) :
+  kaehler_differential.map_base_change' R S A B (b • x) =
+    b • (kaehler_differential.map_base_change' R S A B x) :=
+begin
+  apply h.1.induction_on b,
+  { simp only [zero_smul, map_zero] },
+  rotate,
+  { intros s b e, rw [smul_assoc, linear_map.map_smul, e, smul_assoc] },
+  { intros b₁ b₂ e₁ e₂, simp only [map_add, e₁, e₂, add_smul] },
+  intro a, induction x using tensor_product.induction_on,
+  { simp only [smul_zero, map_zero] },
+  { simp [kaehler_differential.module_of_is_base_change₁_smul, smul_comm] },
+  { simp only [map_add, smul_add, *] }
+end
+
+/-- (Implementation).
+The `S`-derivation `B = S ⊗[R] A` to `S ⊗[R] Ω[A⁄R]` sending `a ⊗ b` to `a ⊗ d b`. -/
+noncomputable
+def kaehler_differential.derivation_tensor_product [h : algebra.is_pushout R S A B] :
+  derivation S B (S ⊗[R] Ω[A⁄R]) :=
+{ map_one_eq_zero' := begin
+    rw ← (algebra_map A B).map_one,
+    refine (h.out.lift_eq _ _).trans _,
+    dsimp,
+    rw [derivation.map_one_eq_zero, tensor_product.tmul_zero]
+  end,
+  leibniz' := begin
+    intros a b,
+    dsimp,
+    apply h.out.induction_on a,
+    { rw [map_zero, zero_smul, smul_zero, zero_add, zero_mul, map_zero] },
+    rotate,
+    { intros x y e, rw [smul_mul_assoc, linear_map.map_smul, e, linear_map.map_smul, smul_add,
+        smul_comm x b, smul_assoc], apply_instance },
+    { intros x y e₁ e₂, simp only [add_mul, add_smul, map_add, e₁, e₂, smul_add],
+      rw add_add_add_comm },
+    intro z, dsimp, apply h.out.induction_on b,
+    { rw [map_zero, zero_smul, smul_zero, zero_add, mul_zero, map_zero] },
+    { intro w,
+      simp only [alg_hom.to_linear_map_apply, algebra_map_smul, is_scalar_tower.coe_to_alg_hom',
+        ← map_mul],
+      erw [h.out.lift_eq, h.out.lift_eq, h.out.lift_eq],
+      simp only [tensor_product.mk_apply, derivation.leibniz, function.comp_app,
+        derivation.coe_fn_coe, linear_map.coe_comp, tensor_product.tmul_add],
+      refl },
+    { intros x y e, rw [mul_comm, smul_mul_assoc, linear_map.map_smul, mul_comm, e,
+        linear_map.map_smul, smul_add, smul_comm, smul_assoc] },
+    { intros x y e₁ e₂, simp only [mul_add, add_smul, map_add, e₁, e₂, smul_add],
+      rw add_add_add_comm }
+  end,
+  ..h.out.lift ((tensor_product.mk R S Ω[A⁄R] 1).comp (kaehler_differential.D R A).to_linear_map) }
+.
+
+lemma kaehler_differential.derivation_tensor_product_algebra_map [algebra.is_pushout R S A B] (x) :
+  kaehler_differential.derivation_tensor_product R S A B (algebra_map A B x) =
+    1 ⊗ₜ kaehler_differential.D _ _ x :=
+is_base_change.lift_eq _ _ _
+
+@[simp]
+lemma derivation.lift_kaehler_differential_D_apply (D : derivation R S M) (x) :
+  D.lift_kaehler_differential (kaehler_differential.D R S x) = D x :=
+derivation.congr_fun D.lift_kaehler_differential_comp x
+
+lemma kaehler_differential.derivation_tensor_product_equiv_left_inv
+  [h : algebra.is_pushout R S A B] :
+  ((kaehler_differential.derivation_tensor_product R S A B)
+    .lift_kaehler_differential.restrict_scalars S).comp
+    (kaehler_differential.map_base_change' R S A B) = linear_map.id :=
+begin
+  refine linear_map.restrict_scalars_injective R _,
+  apply tensor_product.ext',
+  intros x y,
+  obtain ⟨y, rfl⟩ := kaehler_differential.tensor_product_to_surjective _ _ y,
+  apply tensor_product.induction_on y,
+  { simp only [map_zero, tensor_product.tmul_zero]},
+  { intros y z,
+    simp only [linear_map.map_smul_of_tower, function.comp_app, linear_map.coe_comp,
+      kaehler_differential.map_base_change'_tmul, linear_map.coe_restrict_scalars_eq_coe,
+      derivation.tensor_product_to_tmul, kaehler_differential.map_D, linear_map.id_apply,
+      derivation.lift_kaehler_differential_D_apply,
+      kaehler_differential.derivation_tensor_product_algebra_map],
+    rw [smul_comm, tensor_product.smul_tmul', smul_eq_mul, mul_one],
+    refl },
+  { intros y z e₁ e₂, simp only [map_add, tensor_product.tmul_add, e₁, e₂] }
+end
+
+/-- The canonical isomorphism `(S ⊗[R] Ω[A⁄R]) ≃ₗ[S] Ω[B⁄S]` for `B = S ⊗[R] A`. -/
+@[simps] noncomputable
+def kaehler_differential.derivation_tensor_product_equiv [h : algebra.is_pushout R S A B] :
+  (S ⊗[R] Ω[A⁄R]) ≃ₗ[S] Ω[B⁄S] :=
+{ inv_fun := (kaehler_differential.derivation_tensor_product R S A B).lift_kaehler_differential,
+  left_inv := linear_map.congr_fun
+    (kaehler_differential.derivation_tensor_product_equiv_left_inv R S A B),
+  right_inv := begin
+    intro x,
+    obtain ⟨x, rfl⟩ := kaehler_differential.tensor_product_to_surjective _ _ x,
+    apply tensor_product.induction_on x,
+    { simp only [map_zero, linear_map.to_fun_eq_coe] },
+    { intros x y,
+      dsimp,
+      simp only [derivation.tensor_product_to_tmul, ring_hom.id_apply,
+        linear_map.map_smul, derivation.lift_kaehler_differential_D_apply,
+        kaehler_differential.map_base_change'_smul],
+      apply h.1.induction_on y,
+      { simp only [map_zero, smul_zero] },
+      { intro a, simp only [kaehler_differential.derivation_tensor_product_algebra_map,
+          alg_hom.to_linear_map_apply, one_smul, is_scalar_tower.coe_to_alg_hom',
+          kaehler_differential.map_base_change'_tmul,
+          kaehler_differential.map_D] },
+      { intros s b e, simp only [derivation.map_smul, linear_map.map_smul, e, smul_comm x] },
+      { intros a b e₁ e₂, simp only [map_add, smul_add, e₁, e₂] } },
+    { dsimp, intros x y e₁ e₂, simp only [map_add, e₁, e₂] }
+  end,
+  ..kaehler_differential.map_base_change' R S A B }
+.
+local attribute [irreducible] kaehler_differential
+
+lemma kaehler_differential.is_base_change [h : algebra.is_pushout R S A B] :
+  is_base_change S ((kaehler_differential.map R S A B).restrict_scalars R) :=
+begin
+  convert (tensor_product.is_base_change R Ω[A⁄R] S).comp
+    (is_base_change.of_equiv (kaehler_differential.derivation_tensor_product_equiv R S A B)),
+  ext,
+  simp only [tensor_product.mk_apply, function.comp_app, one_smul, linear_map.coe_comp,
+    kaehler_differential.map_base_change'_tmul, linear_equiv.coe_mk, linear_equiv.coe_to_linear_map,
+    linear_map.to_fun_eq_coe, linear_map.coe_restrict_scalars_eq_coe,
+    kaehler_differential.derivation_tensor_product_equiv],
+end
+
+end is_tensor_product
+
 end kaehler_differential

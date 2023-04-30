@@ -456,21 +456,6 @@ begin
   { rw [inf_cons, inf_cons, h, inf_sdiff] }
 end
 
-lemma inf_himp_right (s : finset ι) (f : ι → α) (a : α) : s.inf (λ b, f b ⇨ a) = s.sup f ⇨ a :=
-@sup_sdiff_left αᵒᵈ _ _ _ _ _
-
-lemma sup_himp_right (hs : s.nonempty) (f : ι → α) (a : α) : s.sup (λ b, f b ⇨ a) = s.inf f ⇨ a :=
-@inf_sdiff_left αᵒᵈ _ _ _ hs _ _
-
-lemma sup_himp_left (hs : s.nonempty) (f : ι → α) (a : α) : s.sup (λ b, a ⇨ f b) = a ⇨ s.sup f :=
-@inf_sdiff_right αᵒᵈ _ _ _ hs _ _
-
-@[simp] protected lemma compl_sup (s : finset ι) (f : ι → α) : (s.sup f)ᶜ = s.inf (compl ∘ f) :=
-map_finset_sup (order_iso.compl α) _ _
-
-@[simp] protected lemma compl_inf (s : finset ι) (f : ι → α) : (s.inf f)ᶜ = s.sup (compl ∘ f) :=
-map_finset_inf (order_iso.compl α) _ _
-
 end boolean_algebra
 
 section linear_order

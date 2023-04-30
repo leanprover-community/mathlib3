@@ -30,9 +30,11 @@ $x^2 - d y^2 = 1$ has a nontrivial (i.e., with $y \ne 0$) solution in integers.
 
 See `pell.exists_of_not_is_square` and `pell.exists_nontrivial_of_not_is_square`.
 
-The next step (TODO) will be to define the *fundamental solution* as the solution
-with smallest $x$ among all solutions satisfying $x > 1$ and $y > 0$ and to show
-that every solution is a power of the fundamental solution up to a (common) sign.
+We then define the *fundamental solution* to be the solution
+with smallest $x$ among all solutions satisfying $x > 1$ and $y > 0$.
+We show that every solution is a power of the fundamental solution up to a (common) sign,
+see `pell.fundamental.zpow_or_neg_zpow`, and that a (positive) solution has this property
+if and only if it is fundamental, see `pell.pos_generator_iff_fundamental`.
 
 ## References
 
@@ -45,8 +47,7 @@ Pell's equation
 
 ## TODO
 
-* Provide the structure theory of the solution set to Pell's equation
-  and furthermore also for `x ^ 2 - d * y ^ 2 = -1` and further generalizations.
+* Extend to `x ^ 2 - d * y ^ 2 = -1` and further generalizations.
 * Connect solutions to the continued fraction expansion of `√d`.
 -/
 

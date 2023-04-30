@@ -129,57 +129,36 @@ begin
 end
 
 end coeff
-end polynomial
 
-/-! ### Lemmas about `polynomial.hermite_gauss` -/
-
+/-! ### Lemmas about `hermite n` and gaussians -/
 section gaussian
 
-/-- The real Gaussian function -/
-def gaussian : ℝ → ℝ := λ x, real.exp (-(x^2 / 2))
-
-lemma inv_gaussian_eq : gaussian⁻¹ = λ x, real.exp (x^2 / 2) :=
-by { ext, simp [gaussian, real.exp_neg] }
-
-lemma inv_gaussian_mul_gaussian (x : ℝ) : gaussian⁻¹ x * gaussian x = 1 :=
-inv_mul_cancel (real.exp_pos _).ne.symm
-
-lemma deriv_gaussian (x : ℝ) : deriv gaussian x = -x * gaussian x :=
-by simp [gaussian, mul_comm]
-
-lemma deriv_inv_gaussian (x : ℝ) : deriv gaussian⁻¹ x = x * gaussian⁻¹ x :=
-by simp [inv_gaussian_eq, mul_comm]
-
-lemma cont_diff_gaussian : cont_diff ℝ ⊤ gaussian :=
-((cont_diff_id.pow 2).div_const 2).neg.exp
-
-namespace polynomial
-
-lemma hermite_gauss_succ (n : ℕ) :
-(λ x, (-1)^(n+1) * (gaussian⁻¹ x) * (deriv^[n+1] gaussian x))
-= id * (λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x)) -
-  deriv (λ x, (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x)) :=
+lemma hermite_gauss_succ (n : ℕ) (x : ℝ) :
+(-1 : ℝ)^(n+1) * real.exp (x^2 / 2) * (deriv^[n+1] (λ y, real.exp (-(y^2 / 2))) x)
+= x * ((-1 : ℝ)^n * real.exp (x^2 / 2) * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x)) -
+  deriv (λ x, (-1 : ℝ)^n * real.exp (x^2 / 2) * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x)) x :=
 begin
-  ext,
   simp only [function.iterate_succ', function.comp_app,
-             id.def, pi.mul_apply, pi.sub_apply, pow_succ],
-  rw [deriv_mul, deriv_const_mul, deriv_inv_gaussian],
-  ring,
-  { simp [inv_gaussian_eq] },
-  { simp [inv_gaussian_eq] },
-  { apply (cont_diff_top_iff_deriv.mp (cont_diff.iterate_deriv _ _ cont_diff_gaussian)).1 }
+             id.def, pi.mul_apply, pi.sub_apply],
+  rw [deriv_mul, deriv_const_mul,
+      (by simp [mul_comm] : deriv (λ y, real.exp (y^2 / 2)) x = x * real.exp (x^2 / 2))],
+  ring_exp,
+  { simp },
+  { simp },
+  { apply (cont_diff_top_iff_deriv.mp (cont_diff.iterate_deriv _ _ _)).1,
+    exact ((cont_diff_id.pow 2).div_const 2).neg.exp },
 end
 
-lemma hermite_eq_deriv_gaussian (n : ℕ) (x : ℝ) :
-  aeval x (hermite n) = (-1)^n * (gaussian⁻¹ x) * (deriv^[n] gaussian x) :=
+/- `hermite n` is (up to sign) the factor appearing in `deriv^[n]` of a gaussian -/
+lemma hermite_eq_deriv_gaussian : ∀ (n) (x),
+aeval x (hermite n) = (-1 : ℝ)^n * real.exp (x^2 / 2) * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x)
+| 0       _ := by simp [← real.exp_add]
+| (n + 1) _ :=
 begin
-  apply function.funext_iff.mp _ x,
-  induction n with n ih,
-  { simp [-pi.inv_apply, inv_gaussian_mul_gaussian] },
-  { rw [hermite_gauss_succ, hermite_succ, ← ih],
-    ext,
-    simp [aeval_def, eval₂_eq_eval_map] },
+  simp_rw [hermite_gauss_succ, hermite_succ, ← hermite_eq_deriv_gaussian],
+  simp [aeval_def, eval₂_eq_eval_map],
 end
+
+end gaussian
 
 end polynomial
-end gaussian

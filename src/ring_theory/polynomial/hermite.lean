@@ -18,7 +18,6 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
 
 * `polynomial.hermite n`: the `n`th probabilist's Hermite polynomial,
   defined recursively as a `polynomial ℤ`
-* `gaussian`: the real Gaussian function
 
 ## Results
 
@@ -26,7 +25,7 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
   zero.
 * `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
 * `polynomial.hermite_eq_deriv_gaussian`: the recursive polynomial definition is equivalent to the
-  definition as the polynomial factor occurring in the `n`-th derivative of a gaussian.
+  definition as (up to sign) the polynomial factor occurring in the `n`th derivative of a gaussian.
 
 ## References
 

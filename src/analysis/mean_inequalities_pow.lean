@@ -270,7 +270,7 @@ begin
   { simp [← mul_assoc, ennreal.inv_mul_cancel two_ne_zero two_ne_top] },
   { have A : p - 1 ≠ 0 := ne_of_gt (sub_pos.2 h'p),
     simp only [mul_rpow_of_nonneg _ _ (zero_le_one.trans hp), rpow_sub _ _ two_ne_zero two_ne_top,
-      div_eq_inv_mul, rpow_one, mul_one],
+      ennreal.div_eq_inv_mul, rpow_one, mul_one],
     ring }
 end
 

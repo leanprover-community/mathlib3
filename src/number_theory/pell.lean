@@ -574,34 +574,25 @@ lemma pow_of_nonneg (h₀ : 0 < d) {a₁ : solution₁ d} (h : is_fundamental a�
   (hax : 0 < a.x) (hay : 0 ≤ a.y) :
   ∃ n : ℕ, a = a₁ ^ n :=
 begin
-  have help : ∀ (x : ℕ) (a : solution₁ d), a.x = x → 0 ≤ a.y → ∃ n : ℕ, a = a₁ ^ n,
-  { clear hay hax a, -- to avoid confusion
-    intro x,
-    induction x using nat.strong_induction_on with x ih,
-    intros a hax hay,
-    have hx₀ : 0 ≤ a.x,
-    { rw hax, exact nat.cast_nonneg x, },
-    cases hay.eq_or_lt with hy hy,
-    { -- case 1: `a = 1`
-      refine ⟨0, _⟩,
-      simp only [pow_zero],
-      ext; simp only [x_one, y_one],
-      { have prop := a.prop,
-        rw [← hy, sq (0 : ℤ), zero_mul, mul_zero, sub_zero, sq_eq_one_iff] at prop,
-        refine prop.resolve_right (λ hf, _),
-        have := hx₀.trans_eq hf,
-        norm_num at this, },
-      { exact hy.symm, } },
-    { -- case 2: `a ≥ a₁`
-      have hx₁ : 1 < a.x := by nlinarith [a.prop],
-      obtain ⟨hxx₁, hxx₂, hyy⟩ := h.mul_inv_lt_x h₀ hx₁ hy,
-      have hX := int.to_nat_of_nonneg hxx₁.le,
-      have hX' : (a * a₁⁻¹).x.to_nat < x,
-      { exact_mod_cast (hX.trans_lt hxx₂).trans_eq hax, },
-      obtain ⟨n, hn⟩ := ih (a * a₁⁻¹).x.to_nat hX' (a * a₁⁻¹) hX.symm hyy,
-      refine ⟨n + 1, _⟩,
-      rw [pow_succ, ← hn, mul_comm a, ← mul_assoc, mul_inv_self, one_mul], } },
-  exact help a.x.to_nat a (int.to_nat_of_nonneg hax.le).symm hay,
+  lift a.x to ℕ using hax.le with ax hax',
+  induction ax using nat.strong_induction_on with x ih generalizing a,
+  cases hay.eq_or_lt with hy hy,
+  { -- case 1: `a = 1`
+    refine ⟨0, _⟩,
+    simp only [pow_zero],
+    ext; simp only [x_one, y_one],
+    { have prop := a.prop,
+      rw [← hy, sq (0 : ℤ), zero_mul, mul_zero, sub_zero, sq_eq_one_iff] at prop,
+      refine prop.resolve_right (λ hf, _),
+      have := (hax.trans_eq hax').le.trans_eq hf,
+      norm_num at this, },
+    { exact hy.symm, } },
+  { -- case 2: `a ≥ a₁`
+    have hx₁ : 1 < a.x := by nlinarith [a.prop],
+    obtain ⟨hxx₁, hxx₂, hyy⟩ := h.mul_inv_lt_x h₀ hx₁ hy,
+    lift (a * a₁⁻¹).x to ℕ using hxx₁.le with x' hx',
+    obtain ⟨n, hn⟩ := ih x' (by exact_mod_cast hxx₂.trans_eq hax'.symm) hxx₁ hyy hx',
+    exact ⟨n + 1, by rw [pow_succ, ← hn, mul_comm a, ← mul_assoc, mul_inv_self, one_mul]⟩, },
 end
 
 /-- Every solution is, up to a sign, a power of a given fundamental solution. -/

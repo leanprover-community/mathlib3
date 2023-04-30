@@ -11,6 +11,7 @@ import topology.continuous_function.zero_at_infty
 import analysis.fourier.fourier_transform
 import analysis.inner_product_space.dual
 import topology.metric_space.emetric_paracompact
+import analysis.inner_product_space.euclidean_dist
 
 /-!
 # The Riemann-Lebesgue Lemma
@@ -269,17 +270,8 @@ begin
   -- We have already proved the result for inner-product spaces, formulated in a way which doesn't
   -- refer to the inner product. So we choose an arbitrary inner-product space isomorphic to V
   -- and port the result over from there.
-  -- (TODO: Generalise `to_euclidean` from `analysis.inner_product_space.euclidean_dist` to not
-  -- require a normed space structure, and use that here.)
   let V' := euclidean_space ℝ (fin (finrank ℝ V)),
-  have : finrank ℝ V = finrank ℝ V',
-    by rw finrank_euclidean_space_fin,
-  -- note `nonempty_continuous_linear_equiv_of_finrank_eq` requires a normed-space structure
-  let A₀ := (nonempty_linear_equiv_of_finrank_eq this).some,
-  let A : V ≃L[ℝ] V' :=
-  { continuous_to_fun := A₀.to_linear_map.continuous_of_finite_dimensional,
-    continuous_inv_fun := A₀.symm.to_linear_map.continuous_of_finite_dimensional,
-    .. A₀ },
+  have A : V ≃L[ℝ] V' := to_euclidean,
   borelize V',
   -- various equivs derived from A
   let Aₘ : measurable_equiv V V' := A.to_homeomorph.to_measurable_equiv,

@@ -375,21 +375,21 @@ end linear_equiv
 
 variable [finite_dimensional 𝕜 F]
 
-/-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
-(finite) dimension. -/
+/-- Two finite-dimensional topological vector spaces over a complete normed field are continuously
+linearly equivalent if they have the same (finite) dimension. -/
 theorem finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq
   (cond : finrank 𝕜 E = finrank 𝕜 F) : nonempty (E ≃L[𝕜] F) :=
 (nonempty_linear_equiv_of_finrank_eq cond).map linear_equiv.to_continuous_linear_equiv
 
-/-- Two finite-dimensional normed spaces are continuously linearly equivalent if and only if they
-have the same (finite) dimension. -/
+/-- Two finite-dimensional topological vector spaces over a complete normed field are continuously
+linearly equivalent if and only if they have the same (finite) dimension. -/
 theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_finrank_eq :
    nonempty (E ≃L[𝕜] F) ↔ finrank 𝕜 E = finrank 𝕜 F :=
 ⟨ λ ⟨h⟩, h.to_linear_equiv.finrank_eq,
   λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq h ⟩
 
-/-- A continuous linear equivalence between two finite-dimensional normed spaces of the same
-(finite) dimension. -/
+/-- A continuous linear equivalence between two finite-dimensional topological vector spaces over a
+complete normed field of the same (finite) dimension. -/
 def continuous_linear_equiv.of_finrank_eq
   (cond : finrank 𝕜 E = finrank 𝕜 F) : E ≃L[𝕜] F :=
 (linear_equiv.of_finrank_eq E F cond).to_continuous_linear_equiv

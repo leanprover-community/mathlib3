@@ -25,7 +25,7 @@ inner product space, Hilbert space, norm
 
 ## References
 
-- http://www.mathematik.uni-muenchen.de/~michel/jordan-von_neumann_-_parallelogram_identity.pdf
+- [Jordan, P. and von Neumann, J., *On inner products in linear, metric spaces*][Jordan1935]
 - https://math.stackexchange.com/questions/21792/norms-induced-by-inner-products-and-the-parallelogram-law
 - https://math.dartmouth.edu/archive/m113w10/public_html/jordan-vneumann-thm.pdf
 -/

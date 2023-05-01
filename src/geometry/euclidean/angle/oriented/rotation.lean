@@ -120,7 +120,13 @@ end
 /-- The determinant of `rotation` (as a linear equiv) is equal to `1`. -/
 @[simp] lemma linear_equiv_det_rotation (θ : real.angle) :
   (o.rotation θ).to_linear_equiv.det = 1 :=
-units.ext $ o.det_rotation θ
+begin
+  ext,
+  -- This would finish just via `simp` except for the simp normal form issue raised at
+  -- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/problem.20with.20simp.20normal.20form.20for.20linear_isometry_equiv
+  simp only [units.coe_one, linear_equiv.coe_det],
+  exact o.det_rotation θ,
+end
 
 /-- The inverse of `rotation` is rotation by the negation of the angle. -/
 @[simp] lemma rotation_symm (θ : real.angle) : (o.rotation θ).symm = o.rotation (-θ) :=

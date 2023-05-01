@@ -444,12 +444,12 @@ def to_continuous_linear_equiv_of_det_ne_zero
 
 @[simp] lemma coe_to_continuous_linear_equiv_of_det_ne_zero (f : E →L[𝕜] E) (hf : f.det ≠ 0) :
   (f.to_continuous_linear_equiv_of_det_ne_zero hf : E →L[𝕜] E) = f :=
-by { ext x, refl }
+by { ext x, simp [to_continuous_linear_equiv_of_det_ne_zero], }
 
 @[simp] lemma to_continuous_linear_equiv_of_det_ne_zero_apply
   (f : E →L[𝕜] E) (hf : f.det ≠ 0) (x : E) :
   f.to_continuous_linear_equiv_of_det_ne_zero hf x = f x :=
-rfl
+by simp [to_continuous_linear_equiv_of_det_ne_zero]
 
 lemma _root_.matrix.to_lin_fin_two_prod_to_continuous_linear_map (a b c d : 𝕜) :
   (matrix.to_lin (basis.fin_two_prod 𝕜) (basis.fin_two_prod 𝕜)

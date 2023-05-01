@@ -364,6 +364,9 @@ protected def det : (M ≃ₗ[R] M) →* Rˣ :=
   ((e.symm.trans f).trans e).det = f.det :=
 by rw [←units.eq_iff, coe_det, coe_det, ←comp_coe, ←comp_coe, linear_map.det_conj]
 
+-- After establishing the API for `linear_equiv.det`, we mark it irreducible.
+attribute [irreducible] linear_equiv.det
+
 end linear_equiv
 
 /-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
@@ -394,7 +397,7 @@ lemma linear_equiv.det_coe_symm {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
   (f : M ≃ₗ[𝕜] M) : (f.symm : M →ₗ[𝕜] M).det = (f : M →ₗ[𝕜] M).det ⁻¹ :=
 by field_simp [is_unit.ne_zero f.is_unit_det']
 
-/-- Builds a linear equivalence from a linear map whose determinant in some bases is a unit. -/
+/-- Builds a linear equivalence from a linear map whose determinant in some basis is a unit. -/
 @[simps]
 def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : basis ι R M'}
   (h : is_unit (linear_map.to_matrix v v' f).det) : M ≃ₗ[R] M' :=
@@ -420,7 +423,7 @@ by { ext x, refl }
 
 /-- Builds a linear equivalence from a linear map on a finite-dimensional vector space whose
 determinant is nonzero. -/
-@[reducible] def linear_map.equiv_of_det_ne_zero
+def linear_map.equiv_of_det_ne_zero
   {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
   [finite_dimensional 𝕜 M] (f : M →ₗ[𝕜] M) (hf : linear_map.det f ≠ 0) :
   M ≃ₗ[𝕜] M :=
@@ -428,6 +431,18 @@ have is_unit (linear_map.to_matrix (finite_dimensional.fin_basis 𝕜 M)
   (finite_dimensional.fin_basis 𝕜 M) f).det :=
     by simp only [linear_map.det_to_matrix, is_unit_iff_ne_zero.2 hf],
 linear_equiv.of_is_unit_det this
+
+@[simp] lemma linear_map.coe_equiv_of_det_ne_zero
+  {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
+  [finite_dimensional 𝕜 M] (f : M →ₗ[𝕜] M) (hf : linear_map.det f ≠ 0) :
+  (f.equiv_of_det_ne_zero hf : M →ₗ[𝕜] M) = f :=
+by { ext x, refl, }
+
+@[simp] lemma linear_map.equiv_of_det_ne_zero_apply
+  {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
+  [finite_dimensional 𝕜 M] (f : M →ₗ[𝕜] M) (hf : linear_map.det f ≠ 0) (m : M) :
+  f.equiv_of_det_ne_zero hf m = f m :=
+rfl
 
 lemma linear_map.associated_det_of_eq_comp (e : M ≃ₗ[R] M) (f f' : M →ₗ[R] M)
   (h : ∀ x, f x = f' (e x)) : associated f.det f'.det :=

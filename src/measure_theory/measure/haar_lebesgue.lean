@@ -296,7 +296,8 @@ begin
     congr,
     ext x,
     simp only [linear_equiv.coe_to_continuous_linear_equiv, linear_equiv.of_is_unit_det_apply,
-               linear_equiv.coe_coe, continuous_linear_equiv.symm_symm], },
+      linear_equiv.coe_coe, continuous_linear_equiv.symm_symm,
+      linear_map.equiv_of_det_ne_zero_apply], },
   { simp only [hf, zero_mul, ennreal.of_real_zero, abs_zero],
     have : μ f.range = 0 :=
       add_haar_submodule μ _ (linear_map.range_lt_top_of_det_eq_zero hf).ne,

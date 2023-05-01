@@ -10,6 +10,9 @@ import tactic.fin_cases
 /-!
 # Block matrices and their determinant
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a predicate `matrix.block_triangular` saying a matrix
 is block triangular, and proves the value of the determinant for various
 matrices built out of blocks.

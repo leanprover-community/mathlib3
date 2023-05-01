@@ -12,6 +12,9 @@ import category_theory.idempotents.functor_extension
 
 # Construction of the projection `P_infty` for the Dold-Kan correspondence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we construct the projection `P_infty : K[X] ⟶ K[X]` by passing

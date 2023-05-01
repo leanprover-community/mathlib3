@@ -841,6 +841,11 @@ begin
   exact ((ennreal.add_lt_top).2 ⟨hf.2, hg.2⟩).ne,
 end
 
+lemma ae_le_snorm_ess_sup {f : α → F} : ∀ᵐ y ∂μ, ↑‖f y‖₊ ≤ snorm_ess_sup f μ := ae_le_ess_sup
+
+lemma meas_snorm_ess_sup_lt {f : α → F} : μ {y | snorm_ess_sup f μ < ‖f y‖₊} = 0 :=
+meas_ess_sup_lt
+
 section map_measure
 
 variables {β : Type*} {mβ : measurable_space β} {f : α → β} {g : β → E}

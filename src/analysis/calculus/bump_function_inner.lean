@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import analysis.calculus.iterated_deriv
 import analysis.inner_product_space.euclidean_dist
-import measure_theory.function.locally_integrable
 import measure_theory.integral.set_integral
 
 /-!

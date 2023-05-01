@@ -232,12 +232,28 @@ begin
   simp [add_smul],
 end
 
+@[simp] lemma to_Ico_div_add_zsmul' (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
+  to_Ico_div (a + m • b) hb x = to_Ico_div a hb x - m :=
+begin
+  refine (eq_to_Ico_div_of_sub_zsmul_mem_Ico hb _).symm,
+  rw [sub_smul, (sub_add _ _ _).symm, add_right_comm],
+  simpa using (sub_to_Ico_div_zsmul_mem_Ico a hb x),
+end
+
 @[simp] lemma to_Ioc_div_add_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
   to_Ioc_div a hb (x + m • b) = to_Ioc_div a hb x + m :=
 begin
   refine (eq_to_Ioc_div_of_sub_zsmul_mem_Ioc hb _).symm,
   convert sub_to_Ioc_div_zsmul_mem_Ioc a hb x using 1,
   simp [add_smul]
+end
+
+@[simp] lemma to_Ioc_div_add_zsmul' (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
+  to_Ioc_div (a + m • b) hb x = to_Ioc_div a hb x - m :=
+begin
+  refine (eq_to_Ioc_div_of_sub_zsmul_mem_Ioc hb _).symm,
+  rw [sub_smul, (sub_add _ _ _).symm, add_right_comm],
+  simpa using (sub_to_Ioc_div_zsmul_mem_Ioc a hb x),
 end
 
 @[simp] lemma to_Ico_div_zsmul_add (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
@@ -773,17 +789,15 @@ by rw [to_Ico_mod_eq_sub, to_Ioc_mod_eq_sub _ x₁, add_le_add_iff_right, ←neg
     to_Ioc_mod_neg, neg_zero, le_sub_iff_add_le]
 
 @[simp] lemma to_Ico_mod_zsmul_add' (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
-  to_Ico_mod (m • b + a) hb x = m • b + to_Ico_mod a hb x :=
+  to_Ico_mod (a + m • b) hb x = to_Ico_mod a hb x + m • b :=
 begin
-  unfold to_Ico_mod to_Ico_div,
-  sorry,
+  simp only [to_Ico_mod, to_Ico_div_add_zsmul', sub_smul, sub_add],
 end
 
 @[simp] lemma to_Ioc_mod_zsmul_add' (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
-  to_Ioc_mod (m • b + a) hb x = m • b + to_Ioc_mod a hb x :=
+  to_Ioc_mod (a + m • b) hb x = to_Ioc_mod a hb x + m • b :=
 begin
-  unfold to_Ioc_mod to_Ioc_div,
-  sorry,
+  simp only [to_Ioc_mod, to_Ioc_div_add_zsmul', sub_smul, sub_add],
 end
 
 private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
@@ -794,9 +808,13 @@ begin
   let x₂' := to_Ico_mod x₁' hb.out x₂,
   let x₃' := to_Ico_mod x₂' hb.out x₃,
 
-  have h₂ : ∃ m : ℤ, x₂' = m • b + x₂,
-  { use -(to_Ico_div 0 hb.out x₂),
-    sorry,
+  have h₁' : to_Ico_mod 0 hb.out x₁' = x₁' := to_Ico_mod_to_Ico_mod 0 0 hb.out x₁,
+  have h₂' : to_Ico_mod x₁' hb.out x₂' = x₂' := to_Ico_mod_to_Ico_mod x₁' x₁' hb.out x₂,
+  have h₃' : to_Ico_mod x₂' hb.out x₃' = x₃' := to_Ico_mod_to_Ico_mod x₂' x₂' hb.out x₃,
+
+  have h₂ : ∃ m₂ : ℤ, x₂' = x₂ + m₂ • b,
+  { have : ¬mem_Ioo_mod x₂ b x₂' := (to_Ico_mod_inj hb.out).1 h₂'.symm,
+    exact (not_mem_Ioo_mod_iff_eq_add_zsmul hb.out).1 this,
   },
 
   suffices hequiv : to_Ico_mod x₂' hb.out x₃' ≤ to_Ioc_mod x₂' hb.out x₁',
@@ -805,13 +823,10 @@ begin
     simpa using hequiv,
   },
 
-  have h₁ : ∃ m : ℤ, x₁' = m • b + x₁,
-  { use -(to_Ico_div 0 hb.out x₁),
-    sorry,
+  have h₁ : ∃ m₁ : ℤ, x₁' = x₁ + m₁ • b,
+  { have : ¬mem_Ioo_mod x₁ b x₁' := (to_Ico_mod_inj hb.out).1 h₁'.symm,
+    exact (not_mem_Ioo_mod_iff_eq_add_zsmul hb.out).1 this,
   },
-
-  have h₂' : to_Ico_mod x₁' hb.out x₂' = x₂' := sorry,
-  have h₃' : to_Ico_mod x₂' hb.out x₃' = x₃' := sorry,
 
   have h' : to_Ico_mod x₁' hb.out x₂' ≤ to_Ioc_mod x₁' hb.out x₃',
   { clear_value x₁',
@@ -819,25 +834,49 @@ begin
     simpa using h,
   },
 
-  by_cases x₃' ≤ b + x₁',
-  { rw [h₂'] at h',
-    rw [h₃'],
-    -- since x₁' ≤ x₂' and to_Ioc_mod x₂' hb.out x₁' is the smallest number of the
-    -- form x₁' + k*b greater than x₂'.
-    have : x₁' + b ≤ to_Ioc_mod x₂' hb.out x₁' := sorry,
-    rw [add_comm _ _] at h,
-    exact h.trans this },
+  -- so far we have just converted the conclusion and the hypothesis to use
+  -- the normalised variables
+  clear h,
+
+  have : x₁' + b ∈ set.Ioc x₂' (x₂' + b),
+  { simp only [set.mem_Ioc, add_le_add_iff_right],
+    exact ⟨to_Ico_mod_lt_right _ _ _, left_le_to_Ico_mod _ _ _⟩,
+  },
+
+  have : to_Ioc_mod x₂' hb.out x₁' = x₁' + b,
+  { apply (to_Ioc_mod_eq_iff hb.out).2,
+    refine ⟨this, -1, _⟩,
+    simp only [add_neg_cancel_right, one_smul, neg_smul],
+  },
 
   rw [h₃'],
-  simp at h,
-  -- since x₁' < x₃' - b and to_Ioc x₁' hb.out x₃' is the smallest number of the
-  -- form x₃' + k*b greater than x₁'.
-  have almost : to_Ioc_mod x₁' hb.out x₃' ≤ x₃' - b := sorry,
-  rw [h₂'] at h',
-  have almost1 := not_lt.2 (h'.trans almost),
+
+  by_cases x₃' ≤ b + x₁',
+  { rw [h₂'] at h',
+    rw [add_comm _ _] at h,
+    exact this.symm.trans_ge h, },
+
+  rw [not_le] at h,
+  have : x₃' - b ∈ set.Ioc x₁' (x₁' + b),
+  { simp only [set.mem_Ioc, add_le_add_iff_right],
+    split,
+    exact lt_tsub_iff_left.mpr h,
+    have w₁ : x₃' - b < x₂' := (sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _)),
+    have w₂ : x₂' < x₁' + b := to_Ico_mod_lt_right _ _ _,
+    exact (le_of_lt w₁).trans (le_of_lt w₂),
+  },
+
+  have : to_Ioc_mod x₁' hb.out x₃' = x₃' - b,
+  { apply (to_Ioc_mod_eq_iff hb.out).2,
+    refine ⟨this, 1, _⟩,
+    simp only [sub_add_cancel, one_smul],
+  },
 
   have h₃ : x₃' - b < x₂' :=
     sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right x₂' (fact.out (0 < b)) x₃),
+
+  rw [h₂'] at h',
+  have not_h₃ := not_lt.2 (h'.trans this.symm.ge),
   contradiction,
 end
 
@@ -905,7 +944,7 @@ begin
     exact to_Ixx_mod_cyclic_left _ _ _ hy,
   },
   have hyp := not_le.1 h₁₂₃.2,
-  have hyp2 : to_Ico_mod x₃ hb.out x₂ = x₃ := sorry, -- tfae_mem_Ioo_mod 2->4
+  have hyp2 := ((tfae_mem_Ioo_mod x₃ hb.out x₂).out 3 1).not_right.2 (ne_comm.mp h),
   have hyp3 : x₃ < to_Ioc_mod x₃ hb.out x₁ := left_lt_to_Ioc_mod x₃ (fact.out (0 < b)) x₁,
   rw hyp2 at hyp,
   simpa using (hyp3.trans hyp),

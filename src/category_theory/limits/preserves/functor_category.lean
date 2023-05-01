@@ -96,7 +96,7 @@ instance whiskering_right_preserves_limits {C : Type u} [category C]
 
 /-- If `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` preserves limits of shape `J`, so will `F`. -/
 noncomputable
-def preserves_limit_of_Lan_presesrves_limit {C D : Type u} [small_category C] [small_category D]
+def preserves_limit_of_Lan_preserves_limit {C D : Type u} [small_category C] [small_category D]
   (F : C ⥤ D) (J : Type u) [small_category J]
   [preserves_limits_of_shape J (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u))] :
   preserves_limits_of_shape J F :=

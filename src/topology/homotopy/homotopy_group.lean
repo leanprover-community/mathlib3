@@ -159,8 +159,8 @@ variable [decidable_eq N]
   target' := by { ext t, refine p.property (cube.insert_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
 /-- Generalized loop from a path by uncurrying $I → (I^{N\setminus\{j\}} → X)$ into $I^N → X$. -/
-@[simps] def from_path (i : N) : Ω (gen_loop {j // j ≠ i} x) const → gen_loop N x :=
-λ p, ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(cube _, X))).uncurry.comp
+@[simps] def from_path (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : gen_loop N x :=
+⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(cube _, X))).uncurry.comp
   (cube.split_at i).to_continuous_map,
 begin
   rintros y ⟨j, Hj⟩,
@@ -247,14 +247,14 @@ begin
   { rintros t y ⟨j, jH⟩, erw homotopy_from_apply,
     obtain rfl | h := eq_or_ne j i,
     { split,
-      { rw H.eq_fst, exacts [congr_arg p (equiv.apply_symm_apply _ _), jH] },
-      { rw H.eq_snd, exacts [congr_arg q (equiv.apply_symm_apply _ _), jH] } },
+      { rw H.eq_fst, exacts [congr_arg p (equiv.right_inv _ _), jH] },
+      { rw H.eq_snd, exacts [congr_arg q (equiv.right_inv _ _), jH] } },
     { rw [p.2 _ ⟨j, jH⟩, q.2 _ ⟨j, jH⟩], split; { apply boundary, exact ⟨⟨j, h⟩, jH⟩ } } },
   all_goals { intro,
     convert homotopy_from_apply _ _ _,
     rw H.apply_zero <|> rw H.apply_one,
     apply congr_arg p <|> apply congr_arg q,
-    exact (equiv.apply_symm_apply _ _).symm },
+    exact (equiv.right_inv _ _).symm },
 end
 -- above proofs: still room for golfing?
 

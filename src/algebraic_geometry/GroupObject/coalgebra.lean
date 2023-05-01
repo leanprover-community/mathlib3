@@ -149,7 +149,7 @@ class bialgebra (R : Type*) [comm_semiring R] (A : Type*) [semiring A] [algebra 
 (counit_map_one' : counit' 1 = 1)
 (counit_map_mul' : ∀ x y, counit' (x * y) = counit' x * counit' y)
 end
-
+#print prefix bialgebra
 section
 variables (R : Type u) [comm_ring R] (A : Type v)
 
@@ -337,10 +337,10 @@ set_option old_structure_cmd true
 class hopf_algebra (R : Type u) [comm_semiring R] (A : Type v) [semiring A] [algebra R A]
   extends bialgebra R A :=
 (i [] : A →ₗ[R] A)
-(i_left [] : (linear_map.mul' R A).comp ((tensor_product.map i linear_map.id).comp
-  (comul R A)) = (algebra.linear_map R A).comp (counit R A))
-(i_right [] : (linear_map.mul' R A).comp ((tensor_product.map linear_map.id i).comp
-  (comul R A)) = (algebra.linear_map R A).comp (counit R A))
+(i_left' [] : (linear_map.mul' R A).comp ((tensor_product.map i linear_map.id).comp comul')
+  = (algebra.linear_map R A).comp counit')
+(i_right' [] : (linear_map.mul' R A).comp ((tensor_product.map linear_map.id i).comp comul')
+  = (algebra.linear_map R A).comp counit')
 
 end
 
@@ -386,7 +386,7 @@ def CommHopfAlgebra.to_CommAlg (A : CommHopfAlgebra R) : CommAlg R := ⟨A⟩
 end
 namespace hopf_algebra
 section
-variables (R : Type*) [comm_semiring R] (A : Type*) [semiring A] [algebra R A] [hopf_algebra R A]
+variables (R : Type u) [comm_semiring R] (A : Type v) [semiring A] [algebra R A] [hopf_algebra R A]
 
 def comul := bialgebra.comul R A
 def counit := bialgebra.counit R A
@@ -404,22 +404,39 @@ lemma counit_left : (algebra.tensor_product.lid R A).to_alg_hom.comp
   ((algebra.tensor_product.map (counit R A) (alg_hom.id R A)).comp (comul R A)) = alg_hom.id R A :=
 bialgebra.counit_left R A
 
-lemma i_map_one : i R A 1 = 1 := sorry
-lemma i_map_mul {x y : A} : i R A (x * y) = i R A y * i R A x := sorry
+lemma i_left : (linear_map.mul' R A).comp ((tensor_product.map (i R A) linear_map.id).comp
+  (comul R A).to_linear_map) = (algebra.linear_map R A).comp (counit R A).to_linear_map :=
+i_left' R A
+
+lemma i_right : (linear_map.mul' R A).comp ((tensor_product.map linear_map.id (i R A)).comp
+  (comul R A).to_linear_map) = (algebra.linear_map R A).comp (counit R A).to_linear_map :=
+i_right' R A
+
+lemma i_map_one : i R A 1 = 1 :=
+begin
+  have := linear_map.ext_iff.1 (i_left.{v u} R A) 1,
+  simp only [linear_map.coe_comp, function.comp_app, alg_hom.to_linear_map_apply, map_one,
+    algebra.linear_map_apply, algebra.tensor_product.one_def, tensor_product.map_tmul,
+    linear_map.mul'_apply, linear_map.id_apply, mul_one] at this,
+  assumption,
+end
+
+lemma i_map_mul {x y : A} : i R A (x * y) = i R A y * i R A x :=
+sorry
 
 def of_op_alg_hom {R : Type u} [comm_ring R] {A : Type v} [semiring A] [algebra R A] [bialgebra R A]
   (i : A →ₐ[R] Aᵐᵒᵖ) :
   hopf_algebra R A :=
 { i := (mul_opposite.op_linear_equiv R).symm.to_linear_map.comp i.to_linear_map,
-  i_left := sorry,
-  i_right := sorry, .. show bialgebra R A, by assumption }
+  i_left' := sorry,
+  i_right' := sorry, .. show bialgebra R A, by assumption }
 
 def of_alg_hom {R : Type u} [comm_ring R] {A : Type v} [comm_semiring A] [algebra R A]
   [bialgebra R A] (i : A →ₐ[R] A) :
   hopf_algebra R A :=
 { i := i.to_linear_map,
-  i_left := sorry,
-  i_right := sorry, .. show bialgebra R A, by assumption }
+  i_left' := sorry,
+  i_right' := sorry, .. show bialgebra R A, by assumption }
 
 end
 end hopf_algebra

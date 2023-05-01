@@ -12,6 +12,9 @@ import group_theory.quotient_group
 /-!
 # Reducing to an interval modulo its length
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines operations that reduce a number (in an `archimedean`
 `linear_ordered_add_comm_group`) to a number in a given interval, modulo the length of that
 interval.

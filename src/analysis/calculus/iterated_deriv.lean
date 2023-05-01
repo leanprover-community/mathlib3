@@ -96,6 +96,10 @@ begin
   simp
 end
 
+lemma norm_iterated_fderiv_within_eq_norm_iterated_deriv_within :
+  ‖iterated_fderiv_within 𝕜 n f s x‖ = ‖iterated_deriv_within n f s x‖ :=
+by rw [iterated_deriv_within_eq_equiv_comp, linear_isometry_equiv.norm_map]
+
 @[simp] lemma iterated_deriv_within_zero :
   iterated_deriv_within 0 f s = f :=
 by { ext x, simp [iterated_deriv_within] }
@@ -221,6 +225,10 @@ multiplied by the product of the `m i`s. -/
 lemma iterated_fderiv_apply_eq_iterated_deriv_mul_prod {m : (fin n) → 𝕜} :
   (iterated_fderiv 𝕜 n f x : ((fin n) → 𝕜) → F) m = (∏ i, m i) • iterated_deriv n f x :=
 by { rw [iterated_deriv_eq_iterated_fderiv, ← continuous_multilinear_map.map_smul_univ], simp }
+
+lemma norm_iterated_fderiv_eq_norm_iterated_deriv :
+  ‖iterated_fderiv 𝕜 n f x‖ = ‖iterated_deriv n f x‖ :=
+by rw [iterated_deriv_eq_equiv_comp, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_deriv_zero :
   iterated_deriv 0 f = f :=

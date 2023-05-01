@@ -21,7 +21,7 @@ secants) in spheres in real inner product spaces and Euclidean affine spaces.
 open real
 open_locale euclidean_geometry real_inner_product_space real
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 
 namespace inner_product_geometry
 

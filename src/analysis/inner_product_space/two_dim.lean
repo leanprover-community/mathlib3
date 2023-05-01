@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.orientation
+import data.complex.orientation
 import tactic.linear_combination
 
 /-!
@@ -71,7 +72,7 @@ open finite_dimensional
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
-variables {E : Type*} [inner_product_space ℝ E] [fact (finrank ℝ E = 2)]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [fact (finrank ℝ E = 2)]
   (o : orientation ℝ E (fin 2))
 
 namespace orientation
@@ -147,7 +148,8 @@ begin
   { simpa }
 end
 
-lemma area_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma area_form_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).area_form x y = o.area_form (φ.symm x) (φ.symm y) :=
 begin
@@ -308,7 +310,8 @@ end
   (-o).right_angle_rotation = o.right_angle_rotation.trans (linear_isometry_equiv.neg ℝ) :=
 linear_isometry_equiv.ext $ o.right_angle_rotation_neg_orientation
 
-lemma right_angle_rotation_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma right_angle_rotation_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation x
   = φ (o.right_angle_rotation (φ.symm x)) :=
@@ -335,7 +338,8 @@ begin
     rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
 end
 
-lemma right_angle_rotation_map' {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma right_angle_rotation_map' {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation
   = (φ.symm.trans o.right_angle_rotation).trans φ :=
@@ -556,7 +560,8 @@ begin
   simp,
 end
 
-lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma kahler_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
 by simp [kahler_apply_apply, area_form_map]

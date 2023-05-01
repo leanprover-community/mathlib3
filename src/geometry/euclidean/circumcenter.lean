@@ -34,8 +34,8 @@ open_locale real_inner_product_space
 
 namespace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 open affine_subspace
@@ -252,8 +252,8 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The circumsphere of a simplex. -/
@@ -583,7 +583,7 @@ include V
 lemma point_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (i : fin (n + 1)) :
   s.points i =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (point_weights_with_circumcenter i) :=
 begin
   rw ←points_with_circumcenter_point,
@@ -627,7 +627,7 @@ include V
 lemma centroid_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (fs : finset (fin (n + 1))) :
   fs.centroid ℝ s.points =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (centroid_weights_with_circumcenter fs) :=
 begin
   simp_rw [centroid_def, affine_combination_apply,
@@ -666,7 +666,7 @@ include V
 `points_with_circumcenter`. -/
 lemma circumcenter_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P n) :
-  s.circumcenter = (univ : finset (points_with_circumcenter_index n)).affine_combination
+  s.circumcenter = (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
     s.points_with_circumcenter (circumcenter_weights_with_circumcenter n) :=
 begin
   rw ←points_with_circumcenter_eq_circumcenter,
@@ -702,7 +702,7 @@ terms of `points_with_circumcenter`. -/
 lemma reflection_circumcenter_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P n) {i₁ i₂ : fin (n + 1)} (h : i₁ ≠ i₂) :
   reflection (affine_span ℝ (s.points '' {i₁, i₂})) s.circumcenter =
-    (univ : finset (points_with_circumcenter_index n)).affine_combination
+    (univ : finset (points_with_circumcenter_index n)).affine_combination ℝ
       s.points_with_circumcenter (reflection_circumcenter_weights_with_circumcenter i₁ i₂) :=
 begin
   have hc : card ({i₁, i₂} : finset (fin (n + 1))) = 2,
@@ -735,8 +735,8 @@ namespace euclidean_geometry
 
 open affine affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- Given a nonempty affine subspace, whose direction is complete,

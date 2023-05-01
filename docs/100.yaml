@@ -154,6 +154,8 @@
   note   : "In `pell.eq_pell`, `d` is defined to be `a*a - 1` for an arbitrary `a > 1`."
 40:
   title  : Minkowski’s Fundamental Theorem
+  decl   : measure_theory.exists_ne_zero_mem_lattice_of_measure_mul_two_pow_lt_measure
+  author : Alex J. Best, Yaël Dillies
 41:
   title  : Puiseux’s Theorem
 42:

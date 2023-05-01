@@ -13,6 +13,9 @@ import category_theory.preadditive.additive_functor
 /-!
 # The category of `R`-modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `Module.{v} R` is the category of bundled `R`-modules with carrier in the universe `v`. We show
 that it is preadditive and show that being an isomorphism, monomorphism and epimorphism is
 equivalent to being a linear equivalence, an injective linear map and a surjective linear map,

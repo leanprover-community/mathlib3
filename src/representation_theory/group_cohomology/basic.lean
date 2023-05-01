@@ -106,7 +106,7 @@ calculate group cohomology. -/
 
 variables [group G] (n) (A : Rep k G)
 
-/-- The theorem that our isomorphism `Fun(G, A) ≅ Hom(k[Gⁿ⁺¹], A)` (where the righthand side is
+/-- The theorem that our isomorphism `Fun(Gⁿ, A) ≅ Hom(k[Gⁿ⁺¹], A)` (where the righthand side is
 morphisms in `Rep k G`) commutes with the differentials in the complex of inhomogeneous cochains
 and the homogeneous `linear_yoneda_obj_resolution`. -/
 lemma d_eq :
@@ -140,6 +140,7 @@ variables [group G] (n) (A : Rep k G)
 open inhomogeneous_cochains
 
 /-- Given a `k`-linear `G`-representation `A`, this is the complex of inhomogeneous cochains
+$$0 \to \mathrm{Fun}(G^0, A) \to \mathrm{Fun}(G^1, A) \to \mathrm{Fun}(G^2, A) \to \dots$$
 which calculates the group cohomology of `A`. -/
 noncomputable abbreviation inhomogeneous_cochains : cochain_complex (Module k) ℕ :=
 cochain_complex.of (λ n, Module.of k ((fin n → G) → A))
@@ -171,7 +172,8 @@ open group_cohomology
 
 /-- The group cohomology of a `k`-linear `G`-representation `A`, as the cohomology of its complex
 of inhomogeneous cochains. -/
-def group_cohomology [group G] (A : Rep k G) (n : ℕ) := (inhomogeneous_cochains A).homology n
+def group_cohomology [group G] (A : Rep k G) (n : ℕ) : Module k :=
+(inhomogeneous_cochains A).homology n
 
 /-- The `n`th group cohomology of a `k`-linear `G`-representation `A` is isomorphic to
 `Extⁿ(k, A)` (taken in `Rep k G`), where `k` is a trivial `k`-linear `G`-representation. -/

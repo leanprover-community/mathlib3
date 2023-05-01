@@ -205,6 +205,31 @@ begin
     assoc_rw [hi, inv_mul_cancel_left] }
 end
 
+@[to_additive] lemma inv_partial_prod_mul_eq_contract_nth {G : Type*} [group G]
+  (g : fin (n + 1) → G) (a : fin (n + 1)) (x : fin n) :
+  (fin.partial_prod g (a.succ.succ_above x.cast_succ))⁻¹
+    * (fin.partial_prod g (a.succ_above x).cast_succ * g (a.succ_above x))
+    = a.contract_nth has_mul.mul g x :=
+begin
+  rcases lt_trichotomy (x : ℕ) a with (h|h|h),
+  { rw [fin.succ_above_below, fin.succ_above_below, inv_mul_cancel_left,
+      fin.contract_nth_apply_of_lt _ _ _ _ h],
+    { assumption },
+    { rw [fin.cast_succ_lt_iff_succ_le, fin.succ_le_succ_iff, fin.le_iff_coe_le_coe],
+      exact le_of_lt h }},
+    { rw [fin.contract_nth_apply_of_eq _ _ _ _ h, fin.succ_above_below, fin.succ_above_above,
+        fin.cast_succ_fin_succ, fin.partial_prod_succ, mul_assoc,
+        inv_mul_cancel_left],
+      { simpa only [fin.le_iff_coe_le_coe, ←h] },
+      { rw [fin.cast_succ_lt_iff_succ_le, fin.succ_le_succ_iff, fin.le_iff_coe_le_coe],
+        exact le_of_eq h }},
+    { rw [fin.contract_nth_apply_of_gt _ _ _ _ h, fin.succ_above_above, fin.succ_above_above,
+        fin.partial_prod_succ, fin.cast_succ_fin_succ, fin.partial_prod_succ, inv_mul_cancel_left],
+      { exact fin.le_iff_coe_le_coe.2 (le_of_lt h) },
+      { rw [fin.le_iff_coe_le_coe, fin.coe_succ],
+        exact nat.succ_le_of_lt h }}
+end
+
 end partial_prod
 
 end fin

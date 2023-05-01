@@ -1421,19 +1421,19 @@ begin
   apply sum_congr rfl h₁
 end
 
-lemma coe_card_filter [add_comm_monoid_with_one β] (p) [decidable_pred p] (s : finset α) :
-  ((filter p s).card : β) = ∑ a in s, ite (p a) 1 0 :=
+lemma nat_cast_card_filter [add_comm_monoid_with_one β] (p) [decidable_pred p] (s : finset α) :
+  ((filter p s).card : β) = ∑ a in s, if p a then 1 else 0 :=
 by simp only [add_zero, sum_const, nsmul_eq_mul, eq_self_iff_true, sum_const_zero, sum_ite,
   nsmul_one]
 
 lemma card_filter (p) [decidable_pred p] (s : finset α) :
   (filter p s).card = ∑ a in s, ite (p a) 1 0 :=
-coe_card_filter _ _
+nat_cast_card_filter _ _
 
 @[simp]
 lemma sum_boole {s : finset α} {p : α → Prop} [add_comm_monoid_with_one β] {hp : decidable_pred p} :
-  (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
-(coe_card_filter _ _).symm
+  (∑ x in s, if p x then 1 else 0 : β) = (s.filter p).card :=
+(nat_cast_card_filter _ _).symm
 
 lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
   (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :

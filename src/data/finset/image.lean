@@ -132,7 +132,7 @@ lemma map_filter' (p : α → Prop) [decidable_pred p] (f : α ↪ β) (s : fins
   (s.filter p).map f = (s.map f).filter (λ b, ∃ a, p a ∧ f a = b) :=
 by simp [(∘), filter_map, f.injective.eq_iff]
 
-lemma filter_attach' [decidable_eq α] (s : finset α) (p : {a // a ∈ s} → Prop) [decidable_pred p] :
+lemma filter_attach' [decidable_eq α] (s : finset α) (p : s → Prop) [decidable_pred p] :
   s.attach.filter p =
     (s.filter $ λ x, ∃ h, p ⟨x, h⟩).attach.map ⟨subtype.map id $ filter_subset _ _,
       subtype.map_injective _ injective_id⟩ :=

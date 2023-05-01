@@ -5,7 +5,6 @@ Authors: David Loeffler
 -/
 import measure_theory.integral.exp_decay
 import analysis.calculus.parametric_integral
-import analysis.special_functions.integrals
 import analysis.convolution
 import analysis.special_functions.trigonometric.euler_sine_prod
 

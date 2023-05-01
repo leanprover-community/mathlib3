@@ -34,7 +34,7 @@ we have this lemma in the library, we should adjust the hypotheses here accordin
 noncomputable theory
 
 open function (hiding comp_apply) complex (hiding abs_of_nonneg) real set (hiding restrict_apply)
-  topological_space filter measure_theory asymptotics
+  topological_space filter measure_theory asymptotics add_circle
 
 open_locale real big_operators filter fourier_transform
 
@@ -45,17 +45,19 @@ open_locale ennreal
 
 local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
 
-
 ---- move to `measure_theory.integral.periodic`
+section
+
 variables {T : ℝ} [fact (0 < T)]
 
----- move to `measure_theory.integral.periodic`
 lemma add_circle.integral_mul_eq_integral_automorphize_mul
 {K : Type*} [normed_field K]
   [complete_space K] [normed_space ℝ K] {f : ℝ → K}
-  (f_ℒ_1 : integrable f) {g : (add_circle T) → K} (hg : ae_strongly_measurable g volume)
+  (f_ℒ_1 : integrable f) {g : (add_circle T) → K}
+  (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f : (add_circle T) → K) (volume : measure (add_circle T)))
+  (hg : ae_strongly_measurable g volume)
   (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) volume ≠ ∞)
-  (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f : (add_circle T) → K) (volume : measure (add_circle T))) :
+   :
   ∫ x : ℝ, g (x : add_circle T) * (f x)
     = ∫ x : (add_circle T), g x * (quotient_add_group.automorphize f x) :=
 begin
@@ -71,24 +73,81 @@ begin
     apply fact.out, },
 end
 
+end
+
+---- move to `analysis.fourier.add_circle`
+section
+
+variables {T : ℝ} [fact (0 < T)]
+
+lemma add_circle.integral_mul_eq_integral_automorphize_mul'
+{K : Type*} [normed_field K]
+  [complete_space K] [normed_space ℝ K] {f : ℝ → K}
+  (f_ℒ_1 : integrable f) {g : (add_circle T) → K}
+  (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f : (add_circle T) → K) haar_add_circle)
+  (hg : ae_strongly_measurable g haar_add_circle)
+  (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) haar_add_circle ≠ ∞)
+   :
+  ∫ x : ℝ, g (x : add_circle T) * (f x)
+    =  T • ∫ x : (add_circle T), g x * (quotient_add_group.automorphize f x) ∂haar_add_circle :=
+begin
+  have zero_lt_T : 0 < T := fact.out _,
+  rw add_circle.integral_mul_eq_integral_automorphize_mul f_ℒ_1,
+  { simp [volume_eq_smul_haar_add_circle, ennreal.to_real_of_real zero_lt_T.le], },
+  { simp [volume_eq_smul_haar_add_circle, F_ae_measurable.smul_measure], },
+  { simp [volume_eq_smul_haar_add_circle, hg.smul_measure], },
+  { rwa [volume_eq_smul_haar_add_circle, ess_sup_smul_measure],
+    simp [zero_lt_T], },
+end
+
+end
+
+-- move to `analysis.complex.circle`
+@[simp]
+theorem norm_coe_circle (z : ↥circle) : ‖(z : ℂ)‖  = 1 := abs_coe_circle _
+
+
+-- move to `analysis.complex.circle`
+@[simp]
+theorem nnnorm_coe_circle (z : ↥circle) : ‖(z : ℂ)‖₊  = 1 := begin
+  have := norm_coe_circle z,
+  rw ← coe_nnnorm at this,
+  exact_mod_cast this,
+end
+
 /-- The key lemma for Poisson summation: the `m`-th Fourier coefficient of the periodic function
 `∑' n : ℤ, f (x + n)` is the value at `m` of the Fourier transform of `f`. -/
-lemma real.fourier_coeff_tsum_comp_add' {f : ℝ → ℂ} (f_ℒ_1 : integrable f) (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) (volume : measure (add_circle 1)))
+lemma real.fourier_coeff_tsum_comp_add' {f : ℝ → ℂ} (f_ℒ_1 : integrable f) (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) haar_add_circle)
 (m : ℤ) :
   fourier_coeff (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) m = 𝓕 f m :=
 begin
   dsimp [fourier_coeff],
-  have ae_fm : ae_strongly_measurable (fourier (-m)) volume := sorry,
-  convert (add_circle.integral_mul_eq_integral_automorphize_mul f_ℒ_1 ae_fm _ F_ae_measurable).symm,
----- STOPPED HERE 4/28/23
-
-
-  haveI : borel_space (ℝ ⧸ add_subgroup.zmultiples (1:ℝ)) := sorry,
-  have h𝔽 := is_add_fundamental_domain_Ioc (by simp : (0:ℝ) < 1) 0,
-  convert (@quotient_add_group.integral_mul_eq_integral_automorphize_mul ℝ _ _ _ _ _ volume (add_subgroup.zmultiples (1:ℝ)) _ _ _ (Ioc (0:ℝ) (0+1)) ℂ _ _ _ _ f _ (fourier (-m)) _ _ _ _).symm,
-
+  have ae_fm : ae_strongly_measurable (fourier (-m)) haar_add_circle,
+  { apply continuous.ae_strongly_measurable,
+    continuity, },
+  convert (add_circle.integral_mul_eq_integral_automorphize_mul' f_ℒ_1 F_ae_measurable ae_fm _ ).symm,
+  { rw one_smul,
+    refl, },
+  { rw real.fourier_integral_eq_integral_exp_smul, -- rest should be a little lemma...
+    congr,
+    ext1 x,
+    congr' 4,
+    simp only [zsmul_eq_mul, div_one],
+    push_cast,
+    ring, },
+  { apply ne_of_lt,
+    calc _ = ess_sup (λ (x : add_circle (1 : ℝ)), (1 : ℝ≥0∞)) haar_add_circle : _
+    ... = (1 : ℝ≥0∞) : ess_sup_const _ _
+    ... < ⊤ : by simp,
+    { congr,
+      ext1 x,
+      exact_mod_cast nnnorm_coe_circle _, },
+    { apply measure_theory.is_probability_measure.ne_zero, }, },
 end
 
+---- STOPPED HERE 4/28/23
+
+#exit
 
 
 /-- The key lemma for Poisson summation: the `m`-th Fourier coefficient of the periodic function

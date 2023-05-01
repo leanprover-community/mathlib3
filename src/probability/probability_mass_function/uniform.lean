@@ -32,6 +32,8 @@ noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
+section uniform_of_finset
+
 /-- Uniform distribution taking the same non-zero probability on the nonempty finset `s` -/
 def uniform_of_finset (s : finset α) (hs : s.nonempty) : pmf α :=
 of_finset (λ a, if a ∈ s then s.card⁻¹ else 0) s (Exists.rec_on hs (λ x hx,
@@ -124,6 +126,8 @@ end uniform_of_fintype
 
 section of_multiset
 
+open multiset
+
 /-- Given a non-empty multiset `s` we construct the `pmf` which sends `a` to the fraction of
   elements in `s` that are `a`. -/
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
@@ -132,9 +136,9 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
       by simp_rw [ennreal.div_eq_inv_mul, ennreal.tsum_mul_left]
     ... = s.card⁻¹ * ∑ b in s.to_finset, (s.count b : ℝ≥0∞) :
       congr_arg (λ x, s.card⁻¹ * x) (tsum_eq_sum $ λ a ha, (nat.cast_eq_zero.2 $
-        by rwa [multiset.count_eq_zero, ← multiset.mem_to_finset]))
-    ... = 1 : by rw [← nat.cast_sum, multiset.to_finset_sum_count_eq s, ennreal.inv_mul_cancel
-      (nat.cast_ne_zero.2 (hs ∘ multiset.card_eq_zero.1)) (ennreal.nat_ne_top _)] ) ⟩
+        by rwa [count_eq_zero, ← mem_to_finset]))
+    ... = 1 : by rw [← nat.cast_sum, to_finset_sum_count_eq s, ennreal.inv_mul_cancel
+      (nat.cast_ne_zero.2 (hs ∘ card_eq_zero.1)) (ennreal.nat_ne_top _)] ) ⟩
 
 variables {s : multiset α} (hs : s ≠ 0)
 
@@ -148,22 +152,20 @@ by simp
 
 lemma of_multiset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_multiset s hs a = 0 :=
 by simpa only [of_multiset_apply, ennreal.div_zero_iff, nat.cast_eq_zero,
-  multiset.count_eq_zero, ennreal.nat_ne_top, or_false] using ha
+  count_eq_zero, ennreal.nat_ne_top, or_false] using ha
 
 /-- After removing duplicate elements from `s : multiset α`, the uniform distribution on `s`
 is the same as the uniform distribution on `s.to_finset`. -/
-@[simp] lemma of_multiset_dedup_eq_uniform_of_finset (hs : s.dedup ≠ 0) :
-  have s.to_finset.nonempty := (multiset.to_finset_nonempty).2 (hs ∘ multiset.dedup_eq_zero.2),
-  of_multiset s.dedup hs = uniform_of_finset s.to_finset this :=
-pmf.ext (λ x, by simp only [of_multiset_apply, uniform_of_finset_apply, multiset.card_to_finset,
-  multiset.count_eq_of_nodup (s.nodup_dedup), nat.cast_ite, algebra_map.coe_one, div_eq_mul_inv,
-  algebra_map.coe_zero, ite_mul, one_mul, zero_mul, multiset.mem_dedup, multiset.mem_to_finset])
+@[simp] lemma of_multiset_dedup_eq_uniform_of_finset (hs : s.dedup ≠ 0) : of_multiset s.dedup hs =
+  uniform_of_finset s.to_finset ((to_finset_nonempty).2 (hs ∘ dedup_eq_zero.2)) :=
+pmf.ext (λ x, by simp only [of_multiset_apply, uniform_of_finset_apply, card_to_finset,
+  count_eq_of_nodup (s.nodup_dedup), nat.cast_ite, algebra_map.coe_one, div_eq_mul_inv,
+  algebra_map.coe_zero, ite_mul, one_mul, zero_mul, mem_dedup, mem_to_finset])
 
 lemma of_multiset_eq_uniform_of_finset_of_nodup (hs' : s.nodup) :
-  of_multiset s hs = uniform_of_finset s.to_finset (multiset.to_finset_nonempty.2 hs) :=
-have s.dedup ≠ 0 := (λ h, hs $ multiset.dedup_eq_zero.1 h),
-calc of_multiset s hs = of_multiset s.dedup this : by simp only [multiset.dedup_eq_self.2 hs']
-  ... = uniform_of_finset s.to_finset (multiset.to_finset_nonempty.2 hs) :
+  of_multiset s hs = uniform_of_finset s.to_finset (to_finset_nonempty.2 hs) :=
+calc of_multiset s hs = of_multiset s.dedup (hs ∘ dedup_eq_zero.1) : by simp [dedup_eq_self.2 hs']
+  ... = uniform_of_finset s.to_finset (to_finset_nonempty.2 hs) :
     of_multiset_dedup_eq_uniform_of_finset _
 
 section measure
@@ -208,17 +210,17 @@ lemma of_list_apply_of_not_mem {x : α} (hx : x ∉ l) : of_list l h x = 0 := by
 /-- After removing duplicate elements from `l : list α`, the uniform distribution on `l`
 is the same as the uniform distribution on `l.to_finset`. -/
 lemma of_list_dedup_eq_uniform_of_finset (hl : ¬ l.dedup.empty) : of_list l.dedup hl =
-  uniform_of_finset l.to_finset (l.to_finset_nonempty.2 $ hl ∘ begin
-    rw [list.list.dedup_empty]
-  end) :=
+  uniform_of_finset l.to_finset (l.to_finset_nonempty_iff.2 $ hl ∘ l.dedup_empty.2) :=
 begin
-  refine trans _ (of_multiset_dedup_eq_uniform_of_finset _),
-  sorry,
-  sorry,
+  refine trans _ (of_multiset_dedup_eq_uniform_of_finset $ λ h, hl _),
+  { have : l = [] := by rwa [multiset.dedup_eq_zero, multiset.coe_eq_zero] at h,
+    simp only [this, list.dedup_nil, list.empty, coe_sort_tt] },
+  { exact pmf.ext (λ x, by simp only [of_list_apply, multiset.coe_dedup,
+      of_multiset_apply, multiset.coe_count, multiset.coe_card]) }
 end
 
 lemma of_list_eq_uniform_of_finset (hl : l.nodup) :
-  of_list l h = uniform_of_finset l.to_finset (l.to_finset_nonempty.2 h) :=
+  of_list l h = uniform_of_finset l.to_finset (l.to_finset_nonempty_iff.2 h) :=
 of_multiset_eq_uniform_of_finset_of_nodup _ hl
 
 section measure

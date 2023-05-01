@@ -790,15 +790,11 @@ by rw [to_Ico_mod_eq_sub, to_Ioc_mod_eq_sub _ x₁, add_le_add_iff_right, ←neg
 
 @[simp] lemma to_Ico_mod_zsmul_add' (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
   to_Ico_mod (a + m • b) hb x = to_Ico_mod a hb x + m • b :=
-begin
-  simp only [to_Ico_mod, to_Ico_div_add_zsmul', sub_smul, sub_add],
-end
+by simp only [to_Ico_mod, to_Ico_div_add_zsmul', sub_smul, sub_add]
 
 @[simp] lemma to_Ioc_mod_zsmul_add' (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
   to_Ioc_mod (a + m • b) hb x = to_Ioc_mod a hb x + m • b :=
-begin
-  simp only [to_Ioc_mod, to_Ioc_div_add_zsmul', sub_smul, sub_add],
-end
+by simp only [to_Ioc_mod, to_Ioc_div_add_zsmul', sub_smul, sub_add]
 
 private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
   (h : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃) :
@@ -833,8 +829,7 @@ begin
   rw [not_le] at hc,
   have hIoc₁₃ : to_Ioc_mod x₁' hb.out x₃' = x₃' - b,
   { apply (to_Ioc_mod_eq_iff hb.out).2,
-    refine ⟨_, 1, _⟩,
-    swap,
+    refine ⟨_, 1, _⟩, swap,
     { simp only [sub_add_cancel, one_smul] },
     simp only [set.mem_Ioc, add_le_add_iff_right],
     split,
@@ -899,23 +894,20 @@ private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
 begin
   have h₁₂₃' := to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₁₂₃.1),
   have h₂₃₄' := to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₂₃₄.1),
-  split,
-  swap,
+
+  split, swap,
   { rw not_le,
-    have : to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₂ :=
-      to_Ico_mod_le_to_Ioc_mod x₃ (fact.out (0 < b)) x₂,
-    exact ((not_le.1 h₁₂₃.2).trans_le this).trans (not_le.1 h₂₃₄.2)
-  },
-  by_cases to_Ioc_mod x₃ hb.out x₂ = to_Ico_mod x₃ hb.out x₂,
-  { rw h at h₁₂₃',
-    have hy := h₁₂₃'.trans h₂₃₄',
-    exact to_Ixx_mod_cyclic_left _ _ _ hy,
-  },
-  have hyp := not_le.1 h₁₂₃.2,
-  have hyp2 := ((tfae_mem_Ioo_mod x₃ hb.out x₂).out 3 1).not_right.2 (ne_comm.mp h),
-  have hyp3 : x₃ < to_Ioc_mod x₃ hb.out x₁ := left_lt_to_Ioc_mod x₃ (fact.out (0 < b)) x₁,
-  rw hyp2 at hyp,
-  simpa using (hyp3.trans hyp),
+    have := to_Ico_mod_le_to_Ioc_mod x₃ hb.out x₂,
+    exact ((not_le.1 h₁₂₃.2).trans_le this).trans (not_le.1 h₂₃₄.2) },
+
+  suffices h : to_Ico_mod x₃ hb.out x₂ = to_Ioc_mod x₃ hb.out x₂,
+  { exact to_Ixx_mod_cyclic_left _ _ _ ((h₁₂₃'.trans $ ge_of_eq h).trans h₂₃₄') },
+
+  by_contra,
+  have hIco₃₂ : to_Ico_mod x₃ hb.out x₂ = x₃ :=
+    ((tfae_mem_Ioo_mod x₃ hb.out x₂).out 3 1).not_right.2 h,
+  have hIco₃₁ : x₃ < to_Ioc_mod x₃ hb.out x₁ := left_lt_to_Ioc_mod x₃ _ x₁,
+  exact (h₁₂₃.2 $ (le_of_eq hIco₃₂).trans hIco₃₁.le),
 end
 
 instance circular_preorder : circular_preorder (α ⧸ add_subgroup.zmultiples b) :=

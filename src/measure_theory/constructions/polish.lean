@@ -834,4 +834,11 @@ begin
     exact cardinal.not_countable_real, }
 end
 
+/-- Any Polish Borel space embeds measurably into the reals. -/
+theorem exists_measurable_embedding_real : ∃ (f : α → ℝ), measurable_embedding f :=
+begin
+  obtain ⟨s, hs, ⟨e⟩⟩ := exists_subset_real_measurable_equiv α,
+  exact ⟨coe ∘ e, (measurable_embedding.subtype_coe hs).comp e.measurable_embedding⟩,
+end
+
 end measure_theory

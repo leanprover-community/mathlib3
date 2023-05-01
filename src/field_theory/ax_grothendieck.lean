@@ -14,8 +14,12 @@ This file proves that if `R` is an algebraic extension of a finite field,
 then any injective polynomial map `R^n -> R^n` is also surjective.
 
 This proof is required for the true Ax-Grothendieck theorem, which proves the same result
-for any algebraically closed field of characteristic zero. The proof of the theorem for
-characteristic zero is not in mathlib, but it is at https://github.com/Jlh18/ModelTheoryInLean8
+for any algebraically closed field of characteristic zero.
+
+## TODO
+
+The proof of the theorem for characteristic zero is not in mathlib, but it is at
+https://github.com/Jlh18/ModelTheoryInLean8
 -/
 
 noncomputable theory

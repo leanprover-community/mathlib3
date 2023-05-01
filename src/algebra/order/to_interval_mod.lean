@@ -800,34 +800,29 @@ private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
   (h : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃) :
   to_Ico_mod x₂ hb.out x₃ ≤ to_Ioc_mod x₂ hb.out x₁ :=
 begin
-  let x₁' := to_Ico_mod 0 hb.out x₁,
-  let x₂' := to_Ico_mod x₁' hb.out x₂,
+  let x₂' := to_Ico_mod x₁ hb.out x₂,
   let x₃' := to_Ico_mod x₂' hb.out x₃,
 
-  suffices hequiv : x₃' ≤ to_Ioc_mod x₂' hb.out x₁',
+  suffices hequiv : x₃' ≤ to_Ioc_mod x₂' hb.out x₁,
   { have hd : ∃ (z : ℤ), x₂ = x₂' + z • b := ((to_Ico_mod_eq_iff hb.out).1 rfl).2,
     clear_value x₂',
     obtain ⟨m₂, rfl⟩ := hd,
     simpa using hequiv },
 
-  have h : x₂' ≤ to_Ioc_mod x₁' hb.out x₃',
-  { have hd : ∃ (z : ℤ), x₁ = x₁' + z • b := ((to_Ico_mod_eq_iff hb.out).1 rfl).2,
-    clear_value x₁',
-    obtain ⟨m, rfl⟩ := hd,
-    simpa using h },
+  have h : x₂' ≤ to_Ioc_mod x₁ hb.out x₃' := by simpa,
 
-  have hIoc₂₁ : to_Ioc_mod x₂' hb.out x₁' = x₁' + b,
+  have hIoc₂₁ : to_Ioc_mod x₂' hb.out x₁ = x₁ + b,
   { apply (to_Ioc_mod_eq_iff hb.out).2,
     refine ⟨_, -1, _⟩,
     { simp only [set.mem_Ioc, add_le_add_iff_right],
       exact ⟨to_Ico_mod_lt_right _ _ _, left_le_to_Ico_mod _ _ _⟩ },
     simp only [add_neg_cancel_right, one_smul, neg_smul] },
 
-  by_cases hc : x₃' ≤ x₁' + b,
+  by_cases hc : x₃' ≤ x₁ + b,
   { exact hIoc₂₁.symm.trans_ge hc },
 
   rw [not_le] at hc,
-  have hIoc₁₃ : to_Ioc_mod x₁' hb.out x₃' = x₃' - b,
+  have hIoc₁₃ : to_Ioc_mod x₁ hb.out x₃' = x₃' - b,
   { apply (to_Ioc_mod_eq_iff hb.out).2,
     refine ⟨_, 1, _⟩, swap,
     { simp only [sub_add_cancel, one_smul] },
@@ -835,7 +830,7 @@ begin
     split,
     { exact lt_sub_iff_add_lt.2 hc },
       have w₁ : x₃' - b < x₂' := (sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _)),
-      have w₂ : x₂' < x₁' + b := to_Ico_mod_lt_right _ _ _,
+      have w₂ : x₂' < x₁ + b := to_Ico_mod_lt_right _ _ _,
       exact (le_of_lt w₁).trans (le_of_lt w₂) },
 
   have h₃ : x₃' - b < x₂' := sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right x₂' _ x₃),

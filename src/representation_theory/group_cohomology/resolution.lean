@@ -294,7 +294,7 @@ begin
     linear_map.one_apply, fin.partial_prod_succ],
   congr,
   ext,
-  exact fin.inv_partial_prod_mul_eq_contract_nth g a x,
+  rw [←fin.partial_prod_succ, fin.inv_partial_prod_mul_eq_contract_nth],
 end
 
 end Rep

@@ -7,6 +7,23 @@ noncomputable theory
 open category_theory
 
 namespace Module
+
+lemma monoidal_category.tensor_hom_tmul {R : Type u} [comm_ring R] (M N P Q : Module.{u} R)
+  (f : M ⟶ N) (g : P ⟶ Q) (x : M) (y : P) :
+  (f ⊗ g) (tensor_product.tmul R x y) = tensor_product.tmul R (f x) (g y) :=
+tensor_product.map_tmul _ _ _ _
+
+lemma tensor_μ_def {R : Type u} [comm_ring R] (X Y : Module.{u} R × Module.{u} R) :
+  tensor_μ (Module.{u} R) X Y
+    = (tensor_product.tensor_tensor_tensor_comm R X.1 X.2 Y.1 Y.2).to_linear_map :=
+begin
+  apply tensor_product.ext_fourfold',
+  intros,
+  simpa only [tensor_μ, Module.monoidal_category.associator_hom_apply,
+    Module.monoidal_category.braiding_hom_apply, Module.comp_def, linear_map.comp_apply,
+    Module.monoidal_category.associator_inv_apply, Module.monoidal_category.hom_apply,
+    linear_equiv.coe_to_linear_map, tensor_product.tensor_tensor_tensor_comm_tmul],
+end
 namespace Mon_Module_equivalence_Algebra
 
 variables {R : Type u} [comm_ring R] (A : Mon_ (Module.{u} R))
@@ -41,8 +58,81 @@ end
 
 namespace Algebra
 variables (R : Type u) [comm_ring R]
-open Module.Mon_Module_equivalence_Algebra
+open Module.Mon_Module_equivalence_Algebra category_theory.monoidal_category
 
+instance : monoidal_category (Algebra.{u} R) :=
+monoidal.transport Module.Mon_Module_equivalence_Algebra
+#check Module.monoidal_category.associator
+def tensor_def (X Y : Algebra.{u} R) :
+  X ⊗ Y ≅ (Module.Mon_Module_equivalence_Algebra.functor.obj
+    (Module.Mon_Module_equivalence_Algebra.inverse.obj X ⊗
+    Module.Mon_Module_equivalence_Algebra.inverse.obj Y)) := iso.refl _
+#check tensor_product.assoc
+#check Module.Mon_Module_equivalence_Algebra_forget
+#check linear_map.mul'
+
+variables {A B : Type u} [ring A] [ring B][algebra R A] [algebra R B]
+
+instance : smul_comm_class R (tensor_product R A B) (tensor_product R A B) :=
+by sorry
+
+lemma tensor_tensor_tensor_comm_comp_mul' (A B : Type u) [ring A] [ring B]
+  [algebra R A] [algebra R B] :
+  (tensor_product.map (linear_map.mul' R A) (linear_map.mul' R B)).comp
+  (tensor_product.tensor_tensor_tensor_comm R A B A B).to_linear_map
+  = linear_map.mul' R (tensor_product R A B) :=
+begin
+  apply tensor_product.ext_fourfold',
+  intros w x y z,
+  simp only [linear_map.coe_comp, linear_equiv.coe_to_linear_map, function.comp_app,
+    tensor_product.tensor_tensor_tensor_comm_tmul, tensor_product.map_tmul, linear_map.mul'_apply,
+    algebra.tensor_product.tmul_mul_tmul],
+end
+
+lemma tensor_product.ext_iff {R : Type*} [comm_ring R] {M N P : Type*}
+  [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+  [module R M] [module R N] [module R P]
+  (f g : tensor_product R M N →ₗ[R] P) :
+  f = g ↔ ∀ (x : M) (y : N), f (tensor_product.tmul R x y) = g (tensor_product.tmul R x y) :=
+⟨λ h x y, h ▸ rfl, λ h, tensor_product.ext' h⟩
+
+def tensor_iso (X Y : Algebra.{u} R) :
+  X ⊗ Y ≅ Algebra.of R (tensor_product R X Y) :=
+alg_equiv.to_Algebra_iso
+(alg_equiv.of_linear_equiv (linear_equiv.refl _ _)
+begin
+  intros x y,
+  dsimp,
+  rw Module.tensor_μ_def,
+  sorry
+  --exact (tensor_product.ext_iff _ _).1
+end sorry)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#exit
 def ε : R →ₐ[R] Algebra.of R (𝟙_ (Mon_ (Module.{u} R))).X :=
 alg_hom.of_linear_map linear_map.id rfl
 (λ x y,

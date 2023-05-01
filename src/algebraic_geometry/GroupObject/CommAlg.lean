@@ -1,5 +1,7 @@
 import algebra.category.Algebra.basic
 import category_theory.monoidal.CommMon_
+import category_theory.monoidal.internal.Module
+import ring_theory.tensor_product
 universes u v
 
 open category_theory
@@ -41,8 +43,6 @@ instance has_forget_to_Algebra : has_forget₂ (CommAlg.{u v} R) (Algebra.{v} R)
   { obj := λ A, Algebra.of R A.carrier,
     map := λ A B f, f }}
 
-instance : monoidal_category (Algebra.{v} R) := by apply_instance
-
 /-- The object in the category of commutative R-algebras associated to a type equipped with the
 appropriate typeclasses. -/
 def of (X : Type v) [comm_ring X] [algebra R X] : CommAlg.{u v} R := ⟨X⟩
@@ -81,6 +81,13 @@ end CommAlg
 variables {R : Type u} [comm_ring R]
 variables {X₁ X₂ : Type u}
 
+@[simps] def CommAlg.iso_of_Algebra_iso
+  {X Y : CommAlg R} (e : Algebra.of R X ≅ Algebra.of R Y) :
+  X ≅ Y :=
+{ hom := e.hom,
+  inv := e.inv,
+  hom_inv_id' := e.hom_inv_id,
+  inv_hom_id' := e.inv_hom_id }
 /-- Build an isomorphism in the category `CommAlg R` from a `alg_equiv` between commutative `algebra`s. -/
 @[simps]
 def alg_equiv.to_CommAlg_iso

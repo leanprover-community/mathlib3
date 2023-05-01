@@ -64,15 +64,14 @@ begin
       (ι → algebra.adjoin K (s : set R)) :=
     λ x i, ⟨eval (λ j : ι, (x j : R)) (ps i),
       eval_mem (hs₁ _) (λ i, (x i).2)⟩,
-  have hres_inj : function.injective res,
+  have hres_inj : injective res,
   { intros x y hxy,
     ext i,
-    simp only [res, subtype.ext_iff, function.funext_iff] at hxy,
+    simp only [res, subtype.ext_iff, funext_iff] at hxy,
     exact congr_fun (hinj (funext hxy)) i },
-  have hres_surj : function.surjective res,
+  have hres_surj : surjective res,
     from finite.injective_iff_surjective.1 hres_inj,
   cases hres_surj (λ i, ⟨v i, hv i⟩) with w hw,
   use λ i, w i,
-  simp only [res, subtype.ext_iff, function.funext_iff] at hw,
-  exact funext hw
+  simpa only [res, subtype.ext_iff, funext_iff] using hw,
 end

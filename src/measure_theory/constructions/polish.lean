@@ -46,8 +46,10 @@ analytic sets.
 
 We use this to prove several versions of the Borel isomorphism theorem.
 
-* `measurable_equiv_of_not_countable` : Any two uncountable Polish spaces are Borel isomorphic.
-* `equiv.measurable_equiv` : Any two Polish spaces of the same cardinality are Borel. isomorphic.
+* `polish_space.measurable_equiv_of_not_countable` : Any two uncountable Polish spaces
+  are Borel isomorphic.
+* `polish_space.equiv.measurable_equiv` : Any two Polish spaces of the same cardinality
+  are Borel. isomorphic.
 -/
 
 open set function polish_space pi_nat topological_space metric filter
@@ -759,7 +761,8 @@ begin
   apply nonempty.some,
   obtain ⟨f, -, fcts, finj⟩ := is_closed_univ.exists_nat_bool_injection_of_not_countable
     (by rwa [← countable_coe_iff, (equiv.set.univ _).countable_iff]),
-  obtain ⟨g, gmeas, ginj⟩ := measurable_space.measurable_injection_cantor_of_countably_generated α,
+  obtain ⟨g, gmeas, ginj⟩ :=
+    measurable_space.measurable_injection_nat_bool_of_countably_generated α,
   exact ⟨borel_schroeder_bernstein gmeas ginj fcts.measurable finj⟩,
 end
 

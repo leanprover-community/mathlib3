@@ -341,14 +341,14 @@ section Ico_Ioc
 variables (a b)
 
 omit hα
-/-- `mem_Ioo_mod a p b` means that `b` lies in the open interval `(a, a + p)` modulo `p`.
+/-- `mem_Ioo_mod p a b` means that `b` lies in the open interval `(a, a + p)` modulo `p`.
 Equivalently (as shown below), `b` is not congruent to `a` modulo `p`, or `to_Ico_mod hp a` agrees
 with `to_Ioc_mod hp a` at `b`, or `to_Ico_div hp a` agrees with `to_Ioc_div hp a` at `b`. -/
-def mem_Ioo_mod (p b : α) : Prop := ∃ z : ℤ, b - z • p ∈ set.Ioo a (a + p)
+def mem_Ioo_mod (p a b : α) : Prop := ∃ z : ℤ, b - z • p ∈ set.Ioo a (a + p)
 include hα
 
 lemma tfae_mem_Ioo_mod :
-  tfae [mem_Ioo_mod a p b,
+  tfae [mem_Ioo_mod p a b,
     to_Ico_mod hp a b = to_Ioc_mod hp a b,
     to_Ico_mod hp a b + p ≠ to_Ioc_mod hp a b,
     to_Ico_mod hp a b ≠ a] :=
@@ -373,20 +373,20 @@ end
 variables {a b}
 
 lemma mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod :
-  mem_Ioo_mod a p b ↔ to_Ico_mod hp a b = to_Ioc_mod hp a b := (tfae_mem_Ioo_mod hp a b).out 0 1
+  mem_Ioo_mod p a b ↔ to_Ico_mod hp a b = to_Ioc_mod hp a b := (tfae_mem_Ioo_mod hp a b).out 0 1
 lemma mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod :
-  mem_Ioo_mod a p b ↔ to_Ico_mod hp a b + p ≠ to_Ioc_mod hp a b := (tfae_mem_Ioo_mod hp a b).out 0 2
+  mem_Ioo_mod p a b ↔ to_Ico_mod hp a b + p ≠ to_Ioc_mod hp a b := (tfae_mem_Ioo_mod hp a b).out 0 2
 lemma mem_Ioo_mod_iff_to_Ico_mod_ne_left :
-  mem_Ioo_mod a p b ↔ to_Ico_mod hp a b ≠ a := (tfae_mem_Ioo_mod hp a b).out 0 3
+  mem_Ioo_mod p a b ↔ to_Ico_mod hp a b ≠ a := (tfae_mem_Ioo_mod hp a b).out 0 3
 
 lemma not_mem_Ioo_mod_iff_to_Ico_mod_add_period_eq_to_Ioc_mod :
-  ¬mem_Ioo_mod a p b ↔ to_Ico_mod hp a b + p = to_Ioc_mod hp a b :=
+  ¬mem_Ioo_mod p a b ↔ to_Ico_mod hp a b + p = to_Ioc_mod hp a b :=
 (mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod hp).not_left
 
-lemma not_mem_Ioo_mod_iff_to_Ico_mod_eq_left : ¬mem_Ioo_mod a p b ↔ to_Ico_mod hp a b = a :=
+lemma not_mem_Ioo_mod_iff_to_Ico_mod_eq_left : ¬mem_Ioo_mod p a b ↔ to_Ico_mod hp a b = a :=
 (mem_Ioo_mod_iff_to_Ico_mod_ne_left hp).not_left
 
-lemma mem_Ioo_mod_iff_to_Ioc_mod_ne_right : mem_Ioo_mod a p b ↔ to_Ioc_mod hp a b ≠ a + p :=
+lemma mem_Ioo_mod_iff_to_Ioc_mod_ne_right : mem_Ioo_mod p a b ↔ to_Ioc_mod hp a b ≠ a + p :=
 begin
   rw [mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod, to_Ico_mod_eq_iff hp],
   obtain ⟨h₁, h₂⟩ := to_Ioc_mod_mem_Ioc hp a b,
@@ -394,27 +394,27 @@ begin
     (to_Ioc_mod_add_to_Ioc_div_zsmul _ _ _).symm⟩⟩,
 end
 
-lemma not_mem_Ioo_mod_iff_to_Ioc_eq_right : ¬mem_Ioo_mod a p b ↔ to_Ioc_mod hp a b = a + p :=
+lemma not_mem_Ioo_mod_iff_to_Ioc_eq_right : ¬mem_Ioo_mod p a b ↔ to_Ioc_mod hp a b = a + p :=
 (mem_Ioo_mod_iff_to_Ioc_mod_ne_right hp).not_left
 
 lemma mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div :
-  mem_Ioo_mod a p b ↔ to_Ico_div hp a b = to_Ioc_div hp a b :=
+  mem_Ioo_mod p a b ↔ to_Ico_div hp a b = to_Ioc_div hp a b :=
 by rw [mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp,
        to_Ico_mod, to_Ioc_mod, sub_right_inj, (zsmul_strict_mono_left hp).injective.eq_iff]
 
 lemma mem_Ioo_mod_iff_to_Ico_div_ne_to_Ioc_div_add_one :
-  mem_Ioo_mod a p b ↔ to_Ico_div hp a b ≠ to_Ioc_div hp a b + 1 :=
+  mem_Ioo_mod p a b ↔ to_Ico_div hp a b ≠ to_Ioc_div hp a b + 1 :=
 by rw [mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod hp, ne, ne, to_Ico_mod, to_Ioc_mod,
        ← eq_sub_iff_add_eq, sub_sub, sub_right_inj, ← add_one_zsmul,
        (zsmul_strict_mono_left hp).injective.eq_iff]
 
 lemma not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one :
-  ¬mem_Ioo_mod a p b ↔ to_Ico_div hp a b = to_Ioc_div hp a b + 1 :=
+  ¬mem_Ioo_mod p a b ↔ to_Ico_div hp a b = to_Ioc_div hp a b + 1 :=
 (mem_Ioo_mod_iff_to_Ico_div_ne_to_Ioc_div_add_one hp).not_left
 
 include hp
 
-lemma mem_Ioo_mod_iff_ne_add_zsmul : mem_Ioo_mod a p b ↔ ∀ z : ℤ, b ≠ a + z • p :=
+lemma mem_Ioo_mod_iff_ne_add_zsmul : mem_Ioo_mod p a b ↔ ∀ z : ℤ, b ≠ a + z • p :=
 begin
   rw [mem_Ioo_mod_iff_to_Ico_mod_ne_left hp, ← not_iff_not],
   push_neg, split; intro h,
@@ -424,16 +424,16 @@ begin
     exact ⟨lt_add_of_pos_right a hp, h⟩, },
 end
 
-lemma not_mem_Ioo_mod_iff_eq_add_zsmul : ¬mem_Ioo_mod a p b ↔ ∃ z : ℤ, b = a + z • p :=
+lemma not_mem_Ioo_mod_iff_eq_add_zsmul : ¬mem_Ioo_mod p a b ↔ ∃ z : ℤ, b = a + z • p :=
 by simpa only [not_forall, not_ne_iff] using (mem_Ioo_mod_iff_ne_add_zsmul hp).not
 
 lemma not_mem_Ioo_mod_iff_eq_mod_zmultiples :
-  ¬mem_Ioo_mod a p b ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
+  ¬mem_Ioo_mod p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
 by simp_rw [not_mem_Ioo_mod_iff_eq_add_zsmul hp, quotient_add_group.eq_iff_sub_mem,
     add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
 
 lemma mem_Ioo_mod_iff_ne_mod_zmultiples :
-  mem_Ioo_mod a p b ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
+  mem_Ioo_mod p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
 (not_mem_Ioo_mod_iff_eq_mod_zmultiples hp).not_right
 
 lemma Ico_eq_locus_Ioc_eq_Union_Ioo :

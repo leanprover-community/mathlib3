@@ -498,7 +498,7 @@ lemma equiv_Icc_quot_comp_mk_eq_to_Ioc_mod : equiv_Icc_quot p a ∘ quotient.mk'
   λ x, quot.mk _ ⟨to_Ioc_mod hp.out a x, Ioc_subset_Icc_self $ to_Ioc_mod_mem_Ioc _ _ x⟩ :=
 begin
   rw equiv_Icc_quot_comp_mk_eq_to_Ico_mod, funext,
-  by_cases mem_Ioo_mod a p x,
+  by_cases mem_Ioo_mod p a x,
   { simp_rw (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp.out).1 h },
   { simp_rw [not_imp_comm.1 (mem_Ioo_mod_iff_to_Ico_mod_ne_left hp.out).2 h,
              not_imp_comm.1 (mem_Ioo_mod_iff_to_Ioc_mod_ne_right hp.out).2 h],

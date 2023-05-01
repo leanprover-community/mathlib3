@@ -788,7 +788,10 @@ end polish_space
 
 namespace measure_theory
 
-variables (α) [topological_space α] [measurable_space α] [polish_space α] [borel_space α]
+-- todo after the port: move to topology/metric_space/polish
+instance [polish_space α] : polish_space (univ : set α) := is_closed_univ.polish_space
+
+variables (α) [measurable_space α] [polish_space α] [borel_space α]
 
 lemma exists_nat_measurable_equiv_range_coe_fin_of_finite [finite α] :
   ∃ n : ℕ, nonempty (α ≃ᵐ range (coe : fin n → ℝ)) :=
@@ -809,16 +812,33 @@ begin
 end
 
 /-- Any Polish Borel space is measurably equivalent to a subset of the reals. -/
-theorem exists_subset_real_measurable_equiv : ∃ s : set ℝ, nonempty (α ≃ᵐ s) :=
+theorem exists_subset_real_measurable_equiv : ∃ s : set ℝ, measurable_set s ∧ nonempty (α ≃ᵐ s) :=
 begin
   by_cases hα : countable α,
   { casesI finite_or_infinite α,
     { obtain ⟨n, h_nonempty_equiv⟩ := exists_nat_measurable_equiv_range_coe_fin_of_finite α,
-      exact ⟨_, h_nonempty_equiv⟩, },
-    { exact ⟨_, measurable_equiv_range_coe_nat_of_infinite_of_countable α⟩, }, },
-  { refine ⟨univ, ⟨(polish_space.measurable_equiv_of_not_countable hα _ : α ≃ᵐ (univ : set ℝ))⟩⟩,
+      refine ⟨_, _, h_nonempty_equiv⟩,
+      letI : measurable_space (fin n) := borel (fin n),
+      haveI : borel_space (fin n) := ⟨rfl⟩,
+      refine measurable_embedding.measurable_set_range _,
+      { apply_instance, },
+      { exact continuous_of_discrete_topology.measurable_embedding
+          (nat.cast_injective.comp fin.val_injective), }, },
+    { refine ⟨_, _, measurable_equiv_range_coe_nat_of_infinite_of_countable α⟩,
+      refine measurable_embedding.measurable_set_range _,
+      { apply_instance, },
+      { exact continuous_of_discrete_topology.measurable_embedding nat.cast_injective, }, }, },
+  { refine ⟨univ, measurable_set.univ,
+      ⟨(polish_space.measurable_equiv_of_not_countable hα _ : α ≃ᵐ (univ : set ℝ))⟩⟩,
     rw countable_coe_iff,
     exact cardinal.not_countable_real, }
+end
+
+/-- Any Polish Borel space embeds measurably into the reals. -/
+theorem exists_measurable_embedding_real : ∃ (f : α → ℝ), measurable_embedding f :=
+begin
+  obtain ⟨s, hs, ⟨e⟩⟩ := exists_subset_real_measurable_equiv α,
+  exact ⟨coe ∘ e, (measurable_embedding.subtype_coe hs).comp e.measurable_embedding⟩,
 end
 
 end measure_theory

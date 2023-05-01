@@ -205,29 +205,33 @@ begin
     assoc_rw [hi, inv_mul_cancel_left] }
 end
 
+/-- Let `(g₀, g₁, ..., gₙ)` be a tuple of elements in `Gⁿ⁺¹`.
+Then if `k < j`, this says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ = gₖ`.
+If `k = j`, it says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ₊₁ = gₖgₖ₊₁`.
+If `k > j`, it says `(g₀g₁...gₖ)⁻¹ * g₀g₁...gₖ₊₁ = gₖ₊₁.`
+Useful for defining group cohomology. -/
 @[to_additive] lemma inv_partial_prod_mul_eq_contract_nth {G : Type*} [group G]
-  (g : fin (n + 1) → G) (a : fin (n + 1)) (x : fin n) :
-  (fin.partial_prod g (a.succ.succ_above x.cast_succ))⁻¹
-    * (fin.partial_prod g (a.succ_above x).cast_succ * g (a.succ_above x))
-    = a.contract_nth has_mul.mul g x :=
+  (g : fin (n + 1) → G) (j : fin (n + 1)) (k : fin n) :
+  (partial_prod g (j.succ.succ_above k.cast_succ))⁻¹ * partial_prod g (j.succ_above k).succ
+    = j.contract_nth has_mul.mul g k :=
 begin
-  rcases lt_trichotomy (x : ℕ) a with (h|h|h),
-  { rw [fin.succ_above_below, fin.succ_above_below, inv_mul_cancel_left,
-      fin.contract_nth_apply_of_lt _ _ _ _ h],
+  have := partial_prod_right_inv (1 : G) g,
+  simp only [one_smul, coe_eq_cast_succ] at this,
+  rcases lt_trichotomy (k : ℕ) j with (h|h|h),
+  { rwa [succ_above_below, succ_above_below, this, contract_nth_apply_of_lt],
     { assumption },
-    { rw [fin.cast_succ_lt_iff_succ_le, fin.succ_le_succ_iff, fin.le_iff_coe_le_coe],
+    { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
       exact le_of_lt h }},
-    { rw [fin.contract_nth_apply_of_eq _ _ _ _ h, fin.succ_above_below, fin.succ_above_above,
-        fin.cast_succ_fin_succ, fin.partial_prod_succ, mul_assoc,
-        inv_mul_cancel_left],
-      { simpa only [fin.le_iff_coe_le_coe, ←h] },
-      { rw [fin.cast_succ_lt_iff_succ_le, fin.succ_le_succ_iff, fin.le_iff_coe_le_coe],
-        exact le_of_eq h }},
-    { rw [fin.contract_nth_apply_of_gt _ _ _ _ h, fin.succ_above_above, fin.succ_above_above,
-        fin.partial_prod_succ, fin.cast_succ_fin_succ, fin.partial_prod_succ, inv_mul_cancel_left],
-      { exact fin.le_iff_coe_le_coe.2 (le_of_lt h) },
-      { rw [fin.le_iff_coe_le_coe, fin.coe_succ],
-        exact nat.succ_le_of_lt h }}
+  { rwa [succ_above_below, succ_above_above, partial_prod_succ, cast_succ_fin_succ, ←mul_assoc,
+      this, contract_nth_apply_of_eq],
+    { simpa only [le_iff_coe_le_coe, ←h] },
+    { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
+      exact le_of_eq h }},
+  { rwa [succ_above_above, succ_above_above, partial_prod_succ, partial_prod_succ,
+      cast_succ_fin_succ, partial_prod_succ, inv_mul_cancel_left, contract_nth_apply_of_gt],
+    { exact le_iff_coe_le_coe.2 (le_of_lt h) },
+    { rw [le_iff_coe_le_coe, coe_succ],
+      exact nat.succ_le_of_lt h }},
 end
 
 end partial_prod

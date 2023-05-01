@@ -874,6 +874,18 @@ lemma contract_nth_apply_of_gt (j : fin (n + 1)) (op : α → α → α) (g : fi
   contract_nth j op g k = g k.succ :=
 by rw [contract_nth, if_neg (not_lt_of_gt h), if_neg (ne.symm $ ne_of_lt h)]
 
+lemma contract_nth_apply_of_neq (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (hjk : (j : ℕ) ≠ k) :
+  contract_nth j op g k = g (j.succ_above k) :=
+begin
+  rcases lt_trichotomy (k : ℕ) j with (h|h|h),
+  { rwa [j.succ_above_below, contract_nth_apply_of_lt],
+    { rwa [ fin.lt_iff_coe_lt_coe] }},
+  { exact false.elim (hjk h.symm) },
+  { rwa [j.succ_above_above, contract_nth_apply_of_gt],
+    { exact fin.le_iff_coe_le_coe.2 (le_of_lt h) }}
+end
+
 end contract_nth
 
 /-- To show two sigma pairs of tuples agree, it to show the second elements are related via

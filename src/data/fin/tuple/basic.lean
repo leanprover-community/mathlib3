@@ -874,7 +874,7 @@ lemma contract_nth_apply_of_gt (j : fin (n + 1)) (op : α → α → α) (g : fi
   contract_nth j op g k = g k.succ :=
 by rw [contract_nth, if_neg (not_lt_of_gt h), if_neg (ne.symm $ ne_of_lt h)]
 
-lemma contract_nth_apply_of_neq (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+lemma contract_nth_apply_of_ne (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
   (k : fin n) (hjk : (j : ℕ) ≠ k) :
   contract_nth j op g k = g (j.succ_above k) :=
 begin

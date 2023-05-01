@@ -7,6 +7,7 @@ import algebraic_geometry.presheafed_space.has_colimits
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.preserves.shapes.pullbacks
 import topology.sheaves.functors
+import topology.category.Top.limits.pullbacks
 import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.comm_sq

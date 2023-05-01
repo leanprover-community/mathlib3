@@ -11,6 +11,9 @@ import category_theory.limits.presheaf
 /-!
 # Preservation of (co)limits in the functor category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * Show that if `X ⨯ -` preserves colimits in `D` for any `X : D`, then the product functor `F ⨯ -`
 for `F : C ⥤ D` preserves colimits.
 

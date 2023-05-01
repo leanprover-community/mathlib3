@@ -10,6 +10,9 @@ import category_theory.over
 /-!
 # Adjunctions related to the over category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Construct the left adjoint `star X` to `over.forget X : over X ⥤ C`.
 
 ## TODO

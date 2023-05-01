@@ -960,6 +960,11 @@ disjoint_sup_right
 lemma disjoint_sdiff_left : disjoint (t \ s) s := disjoint_sdiff_self_left
 lemma disjoint_sdiff_right : disjoint s (t \ s) := disjoint_sdiff_self_right
 
+lemma diff_union_diff_cancel (hts : t ⊆ s) (hut : u ⊆ t) : s \ t ∪ t \ u = s \ u :=
+sdiff_sup_sdiff_cancel hts hut
+
+lemma diff_diff_eq_sdiff_union (h : u ⊆ s) : s \ (t \ u) = s \ t ∪ u := sdiff_sdiff_eq_sdiff_sup h
+
 @[simp] lemma disjoint_singleton_left : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl
 

@@ -10,6 +10,9 @@ import category_theory.preadditive.yoneda.basic
 /-!
 # The Yoneda embedding for `R`-linear categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Yoneda embedding for `R`-linear categories `C`,
 sends an object `X : C` to the `Module R`-valued presheaf on `C`,
 with value on `Y : Cᵒᵖ` given by `Module.of R (unop Y ⟶ X)`.

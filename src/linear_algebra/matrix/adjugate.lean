@@ -11,6 +11,9 @@ import ring_theory.polynomial.basic
 /-!
 # Cramer's rule and adjugate matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The adjugate matrix is the transpose of the cofactor matrix.
 It is calculated with Cramer's rule, which we introduce first.
 The vectors returned by Cramer's rule are given by the linear map `cramer`,

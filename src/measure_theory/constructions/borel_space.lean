@@ -258,6 +258,16 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
   opens_measurable_space s :=
 ⟨by { rw [borel_comap], exact comap_mono h.1 }⟩
 
+@[priority 100]
+instance borel_space.countably_generated {α : Type*} [topological_space α] [measurable_space α]
+  [borel_space α] [second_countable_topology α] : countably_generated α :=
+begin
+  obtain ⟨b, bct, -, hb⟩ := exists_countable_basis α,
+  refine ⟨⟨b, bct, _⟩⟩,
+  borelize α,
+  exact hb.borel_eq_generate_from,
+end
+
 theorem _root_.measurable_set.induction_on_open [topological_space α] [measurable_space α]
   [borel_space α] {C : set α → Prop} (h_open : ∀ U, is_open U → C U)
   (h_compl : ∀ t, measurable_set t → C t → C tᶜ)
@@ -1268,6 +1278,25 @@ begin
     simp_rw [preimage, mem_Iic, cSup_le_iff (bdd _) (h2s.image _), ball_image_iff, set_of_forall],
     exact measurable_set.bInter hs (λ i hi, measurable_set_le (hf i) measurable_const) }
 end
+
+lemma measurable_cInf {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_below ((λ i, f i x) '' s)) :
+  measurable (λ x, Inf ((λ i, f i x) '' s)) :=
+@measurable_cSup αᵒᵈ _ _ _ _ _ _ _ _ _ _ _ hs hf bdd
+
+lemma measurable_csupr {ι : Type*} [countable ι] {f : ι → δ → α}
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above (range (λ i, f i x))) :
+  measurable (λ x, ⨆ i, f i x) :=
+begin
+  change measurable (λ x, Sup (range (λ i : ι, f i x))),
+  simp_rw ← image_univ at bdd ⊢,
+  refine measurable_cSup countable_univ hf bdd,
+end
+
+lemma measurable_cinfi {ι : Type*} [countable ι] {f : ι → δ → α}
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_below (range (λ i, f i x))) :
+  measurable (λ x, ⨅ i, f i x) :=
+@measurable_csupr αᵒᵈ _ _ _ _ _ _ _ _ _ _ _ hf bdd
 
 end conditionally_complete_linear_order
 

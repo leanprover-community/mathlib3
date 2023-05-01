@@ -3,11 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.complete_lattice
+import data.set.lattice
 import order.hom.lattice
 
 /-!
 # Complete lattice homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines frame homorphisms and complete lattice homomorphisms.
 
@@ -627,17 +630,17 @@ See also `complete_lattice_hom.set_preimage`. -/
   map_rel_iff' :=
     λ s t, ⟨λ h, by simpa using @monotone_image _ _ e.symm _ _ h, λ h, monotone_image h⟩ }
 
-section
-
-variables (α) [complete_lattice α]
-
-/-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
-@[simps] def inf_Inf_hom : Inf_hom (α × α) α :=
-{ to_fun := λ x, x.1 ⊓ x.2,
-  map_Inf' := λ s, by simp_rw [prod.fst_Inf, prod.snd_Inf, Inf_image, infi_inf_eq], }
+variables [complete_lattice α] (x : α × α)
 
 /-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
-@[simps] def sup_Sup_hom : Sup_hom (α × α) α :=
-{ to_fun := λ x, x.1 ⊔ x.2, map_Sup' := (inf_Inf_hom αᵒᵈ).map_Inf' }
+def sup_Sup_hom : Sup_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊔ x.2,
+  map_Sup' := λ s, by simp_rw [prod.fst_Sup, prod.snd_Sup, Sup_image, supr_sup_eq] }
 
-end
+/-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
+def inf_Inf_hom : Inf_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊓ x.2,
+  map_Inf' := λ s, by simp_rw [prod.fst_Inf, prod.snd_Inf, Inf_image, infi_inf_eq] }
+
+@[simp, norm_cast] lemma sup_Sup_hom_apply : sup_Sup_hom x = x.1 ⊔ x.2 := rfl
+@[simp, norm_cast] lemma inf_Inf_hom_apply : inf_Inf_hom x = x.1 ⊓ x.2 := rfl

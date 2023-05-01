@@ -150,6 +150,7 @@ lemma nth_injective_of_infinite (hp : (set_of p).infinite) : function.injective 
 begin
   intros m n h,
   wlog h' : m ≤ n,
+  { exact (this p hp h.symm (le_of_not_le h')).symm },
   rw le_iff_lt_or_eq at h',
   obtain (h' | rfl) := h',
   { simpa [h] using nth_strict_mono p hp h' },
@@ -293,7 +294,7 @@ begin
   suffices h : Inf {i : ℕ | p i ∧ n ≤ i} ∈ {i : ℕ | p i ∧ n ≤ i},
   { exact h.2 },
   apply Inf_mem,
-  obtain ⟨m, hp, hn⟩ := hp.exists_nat_lt n,
+  obtain ⟨m, hp, hn⟩ := hp.exists_gt n,
   exact ⟨m, hp, hn.le⟩
 end
 

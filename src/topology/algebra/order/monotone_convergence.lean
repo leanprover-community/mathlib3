@@ -8,6 +8,9 @@ import topology.order.basic
 /-!
 # Bounded monotone sequences converge
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few theorems of the form “if the range of a monotone function `f : ι → α`
 admits a least upper bound `a`, then `f x` tends to `a` as `x → ∞`”, as well as version of this
 statement for (conditionally) complete lattices that use `⨆ x, f x` instead of `is_lub`.
@@ -26,7 +29,7 @@ monotone convergence
 -/
 
 open filter set function
-open_locale filter topological_space classical
+open_locale filter topology classical
 
 variables {α β : Type*}
 

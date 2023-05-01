@@ -9,6 +9,9 @@ import data.nat.factorization.basic
 /-!
 # Prime powers and factorizations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with factorizations of prime powers.
 -/
 

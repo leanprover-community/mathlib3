@@ -43,7 +43,7 @@ to make sure it is definitionally equal to the `I`-topology on `R` seen as a `R`
 variables {R : Type*} [comm_ring R]
 
 open set topological_add_group submodule filter
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 namespace ideal
 

@@ -9,6 +9,9 @@ import algebra.gcd_monoid.multiset
 /-!
 # GCD and LCM operations on finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 - `finset.gcd` - the greatest common denominator of a `finset` of elements of a `gcd_monoid`

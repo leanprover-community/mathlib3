@@ -9,6 +9,9 @@ import category_theory.essentially_small
 /-!
 # Limits over essentially small indexing categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` has limits of size `w` and `J` is `w`-essentially small, then `C` has limits of shape `J`.
 
 -/

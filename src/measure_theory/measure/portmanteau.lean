@@ -73,7 +73,7 @@ open measure_theory
 open set
 open filter
 open bounded_continuous_function
-open_locale topological_space ennreal nnreal bounded_continuous_function
+open_locale topology ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 

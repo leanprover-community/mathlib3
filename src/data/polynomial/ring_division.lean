@@ -13,6 +13,9 @@ import algebra.polynomial.big_operators
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file starts looking like the ring theory of $ R[X] $
 
 ## Main definitions
@@ -161,6 +164,34 @@ lemma degree_le_of_dvd {p q : R[X]} (h1 : p ∣ q) (h2 : q ≠ 0) : degree p ≤
 begin
   rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
   exact degree_le_mul_left p h2.2,
+end
+
+lemma eq_zero_of_dvd_of_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : degree q < degree p) :
+  q = 0 :=
+begin
+  by_contradiction hc,
+  exact (lt_iff_not_ge _ _ ).mp h₂ (degree_le_of_dvd h₁ hc),
+end
+
+lemma eq_zero_of_dvd_of_nat_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : nat_degree q < nat_degree p) :
+  q = 0 :=
+begin
+  by_contradiction hc,
+  exact (lt_iff_not_ge _ _ ).mp h₂ (nat_degree_le_of_dvd h₁ hc),
+end
+
+theorem not_dvd_of_degree_lt {p q : R[X]} (h0 : q ≠ 0)
+  (hl : q.degree < p.degree) : ¬ p ∣ q :=
+begin
+  by_contra hcontra,
+  exact h0 (eq_zero_of_dvd_of_degree_lt hcontra hl),
+end
+
+theorem not_dvd_of_nat_degree_lt {p q : R[X]} (h0 : q ≠ 0)
+  (hl : q.nat_degree < p.nat_degree) : ¬ p ∣ q :=
+begin
+  by_contra hcontra,
+  exact h0 (eq_zero_of_dvd_of_nat_degree_lt hcontra hl),
 end
 
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
@@ -645,9 +676,9 @@ by simp only [empty_eq_zero, pow_zero, nth_roots, ← C_1, ← C_sub, roots_C]
 
 lemma card_nth_roots (n : ℕ) (a : R) :
   (nth_roots n a).card ≤ n :=
-if hn : n = 0
-then if h : (X : R[X]) ^ n - C a = 0
-  then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, card_zero]
+if hn : n = 0 then
+  if h : (X : R[X]) ^ n - C a = 0 then
+    by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, multiset.card_zero]
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
    (by { rw [hn, pow_zero, ← C_1, ← ring_hom.map_sub ],
          exact degree_C_le }))

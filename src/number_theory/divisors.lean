@@ -10,6 +10,9 @@ import data.nat.factors
 /-!
 # Divisor finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines sets of divisors of a natural number. This is particularly useful as background
 for defining Dirichlet convolution.
 
@@ -182,7 +185,7 @@ lemma divisors_antidiagonal_zero : divisors_antidiagonal 0 = ∅ := by { ext, si
 
 @[simp]
 lemma divisors_antidiagonal_one : divisors_antidiagonal 1 = {(1,1)} :=
-by { ext, simp [nat.mul_eq_one_iff, prod.ext_iff], }
+by { ext, simp [mul_eq_one, prod.ext_iff], }
 
 @[simp] lemma swap_mem_divisors_antidiagonal {x : ℕ × ℕ} :
   x.swap ∈ divisors_antidiagonal n ↔ x ∈ divisors_antidiagonal n :=

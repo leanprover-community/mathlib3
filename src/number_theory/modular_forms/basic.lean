@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 
-import geometry.manifold.mfderiv
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
 import analysis.complex.upper_half_plane.topology
 import number_theory.modular_forms.slash_invariant_forms
@@ -20,15 +19,9 @@ modular form.
 
 open complex upper_half_plane
 
-open_locale topological_space manifold upper_half_plane
+open_locale topology manifold upper_half_plane
 
 noncomputable theory
-
-instance upper_half_plane.charted_space : charted_space ℂ ℍ :=
-upper_half_plane.open_embedding_coe.singleton_charted_space
-
-instance upper_half_plane.smooth_manifold_with_corners : smooth_manifold_with_corners 𝓘(ℂ) ℍ :=
-upper_half_plane.open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(ℂ)
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 

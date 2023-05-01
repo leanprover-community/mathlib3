@@ -13,6 +13,9 @@ import ring_theory.adjoin.basic
 /-!
 # Multivariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines polynomial rings over a base ring (or even semiring),
 with variables from a general type `σ` (which could be infinite).
 
@@ -898,6 +901,22 @@ begin
   congr' with a, simp
 end
 
+@[simp]
+theorem eval₂_id (p : mv_polynomial σ R) (g : σ → R) : eval₂ (ring_hom.id _) g p = eval g p :=
+  rfl
+
+theorem eval_eval₂ {τ : Type*} (f : R →+* mv_polynomial τ S₁) (g : σ → mv_polynomial τ S₁)
+  (p : mv_polynomial σ R) (x : τ → S₁) :
+  eval x (eval₂ f g p) = eval₂ ((eval x).comp f) (λ s, eval x (g s)) p :=
+begin
+  apply induction_on p,
+  { simp, },
+  { intros p q hp hq,
+    simp [hp, hq] },
+  { intros p n hp,
+    simp [hp] }
+end
+
 end eval
 
 section map
@@ -1098,6 +1117,9 @@ section aeval
 
 variables [algebra R S₁] [comm_semiring S₂]
 variables (f : σ → S₁)
+
+lemma algebra_map_apply (r : R) :
+  algebra_map R (mv_polynomial σ S₁) r = C (algebra_map R S₁ r) := rfl
 
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/

@@ -8,6 +8,9 @@ import topology.separation
 /-!
 # The shrinking lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few versions of the shrinking lemma. The lemma says that in a normal
 topological space a point finite open covering can be “shrunk”: for a point finite open covering
 `u : ι → set X` there exists a refinement `v : ι → set X` such that `closure (v i) ⊆ u i`.
@@ -94,7 +97,8 @@ lemma apply_eq_of_chain {c : set (partial_refinement u s)} (hc : is_chain (≤) 
   (h₁ : v₁ ∈ c) (h₂ : v₂ ∈ c) {i} (hi₁ : i ∈ v₁.carrier) (hi₂ : i ∈ v₂.carrier) :
   v₁ i = v₂ i :=
 begin
-  wlog hle : v₁ ≤ v₂ := hc.total h₁ h₂ using [v₁ v₂, v₂ v₁],
+  wlog hle : v₁ ≤ v₂,
+  { cases hc.total h₁ h₂; [skip, symmetry]; apply_assumption; assumption' },
   exact hle.2 _ hi₁,
 end
 

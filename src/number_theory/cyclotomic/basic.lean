@@ -339,9 +339,11 @@ end
 lemma number_field [h : number_field K] [_root_.finite S] [is_cyclotomic_extension S K L] :
   number_field L :=
 { to_char_zero := char_zero_of_injective_algebra_map (algebra_map K L).injective,
-  to_finite_dimensional := @module.finite.trans _ K L _ _ _ _
-    (@algebra_rat L _ (char_zero_of_injective_algebra_map (algebra_map K L).injective)) _ _
-    h.to_finite_dimensional (finite S K L) }
+  to_finite_dimensional := begin
+    haveI := char_zero_of_injective_algebra_map (algebra_map K L).injective,
+    haveI := finite S K L,
+    exact module.finite.trans K _
+  end }
 
 localized "attribute [instance] is_cyclotomic_extension.number_field" in cyclotomic
 
@@ -660,7 +662,7 @@ instance [ne_zero ((n : ℕ) : A)] :
       simp only [map_mul] }
   end,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by rw adjoin_algebra_injective n A K h⟩,
-    λ ⟨c, hc⟩, by rw mul_right_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }
+    λ ⟨c, hc⟩, by rw mul_left_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }
 
 lemma eq_adjoin_primitive_root {μ : (cyclotomic_field n K)} (h : is_primitive_root μ n) :
   cyclotomic_ring n A K = adjoin A ({μ} : set ((cyclotomic_field n K))) :=

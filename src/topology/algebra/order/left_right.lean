@@ -8,6 +8,9 @@ import topology.continuous_on
 /-!
 # Left and right continuity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few lemmas about left and right continuous functions:
 
 * `continuous_within_at_Ioi_iff_Ici`: two definitions of right continuity
@@ -23,7 +26,7 @@ left continuous, right continuous
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 section partial_order
 

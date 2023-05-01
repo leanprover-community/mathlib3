@@ -47,7 +47,7 @@ Finitely generated module, principal ideal domain, classification, structure the
 -/
 
 universes u v
-open_locale big_operators
+open_locale big_operators classical
 
 variables {R : Type u} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 variables {M : Type v} [add_comm_group M] [module R M]
@@ -56,21 +56,36 @@ variables {N : Type (max u v)} [add_comm_group N] [module R N]
 open_locale direct_sum
 open submodule
 
+open unique_factorization_monoid
+
 /--A finitely generated torsion module over a PID is an internal direct sum of its
 `p i ^ e i`-torsion submodules for some primes `p i` and numbers `e i`.-/
 theorem submodule.is_internal_prime_power_torsion_of_pid
   [module.finite R M] (hM : module.is_torsion R M) :
+  direct_sum.is_internal (λ p : (factors (⊤ : submodule R M).annihilator).to_finset,
+    torsion_by R M
+      (is_principal.generator (p : ideal R)
+        ^ (factors (⊤ : submodule R M).annihilator).count p)) :=
+begin
+  convert is_internal_prime_power_torsion hM,
+  ext p : 1,
+  rw [← torsion_by_span_singleton_eq, ideal.submodule_span_eq, ← ideal.span_singleton_pow,
+    ideal.span_singleton_generator],
+end
+
+/--A finitely generated torsion module over a PID is an internal direct sum of its
+`p i ^ e i`-torsion submodules for some primes `p i` and numbers `e i`.-/
+theorem submodule.exists_is_internal_prime_power_torsion_of_pid
+  [module.finite R M] (hM : module.is_torsion R M) :
   ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) (h : ∀ i, irreducible $ p i) (e : ι → ℕ),
   by exactI direct_sum.is_internal (λ i, torsion_by R M $ p i ^ e i) :=
 begin
-  obtain ⟨P, dec, hP, e, this⟩ := is_internal_prime_power_torsion hM,
-  refine ⟨P, infer_instance, dec, λ p, is_principal.generator (p : ideal R), _, e, _⟩,
+  refine ⟨_, _, _, _, _, _, submodule.is_internal_prime_power_torsion_of_pid hM⟩,
+  exact finset.fintype_coe_sort _,
   { rintro ⟨p, hp⟩,
-    haveI := ideal.is_prime_of_prime (hP p hp),
-    exact (is_principal.prime_generator_of_is_prime p (hP p hp).ne_zero).irreducible },
-  { convert this, ext p : 1,
-    rw [← torsion_by_span_singleton_eq, ideal.submodule_span_eq, ← ideal.span_singleton_pow,
-      ideal.span_singleton_generator] }
+    have hP := prime_of_factor p (multiset.mem_to_finset.mp hp),
+    haveI := ideal.is_prime_of_prime hP,
+    exact (is_principal.prime_generator_of_is_prime p hP.ne_zero).irreducible },
 end
 
 namespace module
@@ -205,7 +220,7 @@ theorem equiv_direct_sum_of_is_torsion [h' : module.finite R N] (hN : module.is_
   ∃ (ι : Type u) [fintype ι] (p : ι → R) (h : ∀ i, irreducible $ p i) (e : ι → ℕ),
   nonempty $ N ≃ₗ[R] ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
-  obtain ⟨I, fI, _, p, hp, e, h⟩ := submodule.is_internal_prime_power_torsion_of_pid hN,
+  obtain ⟨I, fI, _, p, hp, e, h⟩ := submodule.exists_is_internal_prime_power_torsion_of_pid hN,
   haveI := fI,
   have : ∀ i, ∃ (d : ℕ) (k : fin d → ℕ),
     nonempty $ torsion_by R N (p i ^ e i) ≃ₗ[R] ⨁ j, R ⧸ R ∙ (p i ^ k j),
@@ -213,6 +228,7 @@ begin
     haveI := λ i, is_noetherian_submodule' (torsion_by R N $ p i ^ e i),
     exact λ i, torsion_by_prime_power_decomposition (hp i)
       ((is_torsion'_powers_iff $ p i).mpr $ λ x, ⟨e i, smul_torsion_by _ _⟩) },
+  classical,
   refine ⟨Σ i, fin (this i).some, infer_instance,
     λ ⟨i, j⟩, p i, λ ⟨i, j⟩, hp i, λ ⟨i, j⟩, (this i).some_spec.some j,
     ⟨(linear_equiv.of_bijective (direct_sum.coe_linear_map _) h).symm.trans $
@@ -233,7 +249,7 @@ begin
   haveI := is_noetherian_submodule' (torsion R N),
   haveI := module.finite.of_surjective _ (torsion R N).mkq_surjective,
   obtain ⟨I, fI, p, hp, e, ⟨h⟩⟩ := equiv_direct_sum_of_is_torsion (@torsion_is_torsion R N _ _ _),
-  obtain ⟨n, ⟨g⟩⟩ := @module.free_of_finite_type_torsion_free' R _ _ _ (N ⧸ torsion R N) _ _ _ _,
+  obtain ⟨n, ⟨g⟩⟩ := @module.basis_of_finite_type_torsion_free' R _ _ _ (N ⧸ torsion R N) _ _ _ _,
   haveI : module.projective R (N ⧸ torsion R N) := module.projective_of_basis ⟨g⟩,
   obtain ⟨f, hf⟩ := module.projective_lifting_property _ linear_map.id (torsion R N).mkq_surjective,
   refine ⟨n, I, fI, p, hp, e,

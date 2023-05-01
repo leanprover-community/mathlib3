@@ -11,6 +11,9 @@ import topology.sets.opens
 /-!
 # The category of open sets in a topological space.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `to_Top : opens X ⥤ Top` and
 `map (f : X ⟶ Y) : opens Y ⥤ opens X`, given by taking preimages of open sets.
 
@@ -98,7 +101,7 @@ The functor from open sets in `X` to `Top`,
 realising each open set as a topological space itself.
 -/
 def to_Top (X : Top.{u}) : opens X ⥤ Top :=
-{ obj := λ U, ⟨U.val, infer_instance⟩,
+{ obj := λ U, ⟨U, infer_instance⟩,
   map := λ U V i, ⟨λ x, ⟨x.1, i.le x.2⟩,
     (embedding.continuous_iff embedding_subtype_coe).2 continuous_induced_dom⟩ }
 
@@ -110,7 +113,7 @@ rfl
 /--
 The inclusion map from an open subset to the whole space, as a morphism in `Top`.
 -/
-@[simps]
+@[simps { fully_applied := ff }]
 def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
 { to_fun := _,
   continuous_to_fun := continuous_subtype_coe }
@@ -128,7 +131,7 @@ def inclusion_top_iso (X : Top.{u}) : (to_Top X).obj ⊤ ≅ X :=
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
-{ obj := λ U, ⟨ f ⁻¹' U.val, U.property.preimage f.continuous ⟩,
+{ obj := λ U, ⟨ f ⁻¹' U, U.is_open.preimage f.continuous ⟩,
   map := λ U V i, ⟨ ⟨ λ x h, i.le h ⟩ ⟩ }.
 
 lemma map_coe (f : X ⟶ Y) (U : opens Y) :
@@ -178,7 +181,7 @@ rfl
 lemma map_supr (f : X ⟶ Y) {ι : Type*} (U : ι → opens Y) :
   (map f).obj (supr U) = supr ((map f).obj ∘ U) :=
 begin
-  apply subtype.eq, rw [supr_def, supr_def, map_obj],
+  ext1, rw [supr_def, supr_def, map_obj],
   dsimp, rw set.preimage_Union, refl,
 end
 
@@ -235,7 +238,10 @@ rfl
      eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h.symm)) U) :=
 rfl
 
-/-- A homeomorphism of spaces gives an equivalence of categories of open sets. -/
+/-- A homeomorphism of spaces gives an equivalence of categories of open sets.
+
+TODO: define `order_iso.equivalence`, use it.
+-/
 @[simps] def map_map_iso {X Y : Top.{u}} (H : X ≅ Y) : opens Y ≌ opens X :=
 { functor := map H.hom,
   inverse := map H.inv,

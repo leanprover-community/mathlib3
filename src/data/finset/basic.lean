@@ -11,6 +11,9 @@ import tactic.monotonicity
 /-!
 # Finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Terms of type `finset α` are one way of talking about finite subsets of `α` in mathlib.
 Below, `finset α` is defined as a structure with 2 fields:
 
@@ -460,6 +463,9 @@ theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := no
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 
+@[simp] lemma val_eq_singleton_iff {a : α} {s : finset α} : s.val = {a} ↔ s = {a} :=
+by { rw ←val_inj, refl }
+
 lemma singleton_injective : injective (singleton : α → finset α) :=
 λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
 
@@ -857,7 +863,7 @@ end insert
 /-! ### Lattice structure -/
 
 section lattice
-variables [decidable_eq α] {s t u v : finset α} {a b : α}
+variables [decidable_eq α] {s s₁ s₂ t t₁ t₂ u v : finset α} {a b : α}
 
 /-- `s ∪ t` is the set such that `a ∈ s ∪ t` iff `a ∈ s` or `a ∈ t`. -/
 instance : has_union (finset α) := ⟨λ s t, ⟨_, t.2.ndunion s.1⟩⟩
@@ -911,6 +917,9 @@ theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := �
 
 lemma union_subset_union (hsu : s ⊆ u) (htv : t ⊆ v) : s ∪ t ⊆ u ∪ v :=
 sup_le_sup (le_iff_subset.2 hsu) htv
+
+lemma union_subset_union_left (h : s₁ ⊆ s₂) : s₁ ∪ t ⊆ s₂ ∪ t := union_subset_union h subset.rfl
+lemma union_subset_union_right (h : t₁ ⊆ t₂) : s ∪ t₁ ⊆ s ∪ t₂ := union_subset_union subset.rfl h
 
 lemma union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ := sup_comm
 
@@ -1390,6 +1399,9 @@ set.ext $ λ _, mem_sdiff
 lemma union_sdiff_left (s t : finset α) : (s ∪ t) \ s = t \ s := sup_sdiff_left_self
 lemma union_sdiff_right (s t : finset α) : (s ∪ t) \ t = s \ t := sup_sdiff_right_self
 
+lemma union_sdiff_cancel_left (h : disjoint s t) : (s ∪ t) \ s = t := h.sup_sdiff_cancel_left
+lemma union_sdiff_cancel_right (h : disjoint s t) : (s ∪ t) \ t = s := h.sup_sdiff_cancel_right
+
 lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := by simp [union_comm]
 
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s := sup_sdiff_inf _ _
@@ -1438,14 +1450,68 @@ lemma sdiff_union_distrib (s t₁ t₂ : finset α) : s \ (t₁ ∪ t₂) = (s \
 
 lemma union_sdiff_self (s t : finset α) : (s ∪ t) \ t = s \ t := sup_sdiff_right_self
 
+-- TODO: Do we want to delete this lemma and `finset.disj_union_singleton`,
+-- or instead add `finset.union_singleton`/`finset.singleton_union`?
 lemma sdiff_singleton_eq_erase (a : α) (s : finset α) : s \ singleton a = erase s a :=
 by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 
-@[simp] lemma sdiff_singleton_not_mem_eq_self (s : finset α) {a : α} (ha : a ∉ s) : s \ {a} = s :=
-by simp only [sdiff_singleton_eq_erase, ha, erase_eq_of_not_mem, not_false_iff]
+-- This lemma matches `finset.insert_eq` in functionality.
+lemma erase_eq (s : finset α) (a : α) : s.erase a = s \ {a} := (sdiff_singleton_eq_erase _ _).symm
+
+lemma disjoint_erase_comm : disjoint (s.erase a) t ↔ disjoint s (t.erase a) :=
+by simp_rw [erase_eq, disjoint_sdiff_comm]
+
+lemma disjoint_of_erase_left (ha : a ∉ t) (hst : disjoint (s.erase a) t) : disjoint s t :=
+by { rw [←erase_insert ha, ←disjoint_erase_comm, disjoint_insert_right],
+  exact ⟨not_mem_erase _ _, hst⟩ }
+
+lemma disjoint_of_erase_right (ha : a ∉ s) (hst : disjoint s (t.erase a)) : disjoint s t :=
+by { rw [←erase_insert ha, disjoint_erase_comm, disjoint_insert_left],
+  exact ⟨not_mem_erase _ _, hst⟩ }
+
+@[simp] lemma inter_erase (a : α) (s t : finset α) : s ∩ t.erase a = (s ∩ t).erase a :=
+by simp only [erase_eq, inter_sdiff]
+
+@[simp] lemma erase_inter (a : α) (s t : finset α) : s.erase a ∩ t = (s ∩ t).erase a :=
+by simpa only [inter_comm t] using inter_erase a t s
+
+lemma erase_sdiff_comm (s t : finset α) (a : α) : s.erase a \ t = (s \ t).erase a :=
+by simp_rw [erase_eq, sdiff_right_comm]
+
+lemma insert_union_comm (s t : finset α) (a : α) : insert a s ∪ t = s ∪ insert a t :=
+by rw [insert_union, union_insert]
+
+lemma erase_inter_comm (s t : finset α) (a : α) : s.erase a ∩ t = s ∩ t.erase a :=
+by rw [erase_inter, inter_erase]
+
+lemma erase_union_distrib (s t : finset α) (a : α) : (s ∪ t).erase a = s.erase a ∪ t.erase a :=
+by simp_rw [erase_eq, union_sdiff_distrib]
+
+lemma insert_inter_distrib (s t : finset α) (a : α) : insert a (s ∩ t) = insert a s ∩ insert a t :=
+by simp_rw [insert_eq, union_distrib_left]
+
+lemma erase_sdiff_distrib (s t : finset α) (a : α) : (s \ t).erase a = s.erase a \ t.erase a :=
+by simp_rw [erase_eq, sdiff_sdiff, sup_sdiff_eq_sup le_rfl, sup_comm]
+
+lemma erase_union_of_mem (ha : a ∈ t) (s : finset α) : s.erase a ∪ t = s ∪ t :=
+by rw [←insert_erase (mem_union_right s ha), erase_union_distrib, ←union_insert, insert_erase ha]
+
+lemma union_erase_of_mem (ha : a ∈ s) (t : finset α) : s ∪ t.erase a = s ∪ t :=
+by rw [←insert_erase (mem_union_left t ha), erase_union_distrib, ←insert_union, insert_erase ha]
+
+@[simp] lemma sdiff_singleton_eq_self (ha : a ∉ s) : s \ {a} = s :=
+sdiff_eq_self_iff_disjoint.2 $ by simp [ha]
 
 lemma sdiff_sdiff_left' (s t u : finset α) :
   (s \ t) \ u = (s \ t) ∩ (s \ u) := sdiff_sdiff_left'
+
+lemma sdiff_union_sdiff_cancel (hts : t ⊆ s) (hut : u ⊆ t) : s \ t ∪ t \ u = s \ u :=
+sdiff_sup_sdiff_cancel hts hut
+
+lemma sdiff_union_erase_cancel (hts : t ⊆ s) (ha : a ∈ t) : s \ t ∪ t.erase a = s.erase a :=
+by simp_rw [erase_eq, sdiff_union_sdiff_cancel hts (singleton_subset_iff.2 ha)]
+
+lemma sdiff_sdiff_eq_sdiff_union (h : u ⊆ s) : s \ (t \ u) = s \ t ∪ u := sdiff_sdiff_eq_sdiff_sup h
 
 lemma sdiff_insert (s t : finset α) (x : α) :
   s \ insert x t = (s \ t).erase x :=
@@ -1456,11 +1522,12 @@ lemma sdiff_insert_insert_of_mem_of_not_mem {s t : finset α} {x : α} (hxs : x 
   insert x (s \ insert x t) = s \ t :=
 by rw [sdiff_insert, insert_erase (mem_sdiff.mpr ⟨hxs, hxt⟩)]
 
-lemma sdiff_erase {x : α} (hx : x ∈ s) : s \ s.erase x = {x} :=
-begin
-  rw [← sdiff_singleton_eq_erase, sdiff_sdiff_right_self],
-  exact inf_eq_right.2 (singleton_subset_iff.2 hx),
-end
+lemma sdiff_erase (h : a ∈ s) : s \ t.erase a = insert a (s \ t) :=
+by rw [←sdiff_singleton_eq_erase, sdiff_sdiff_eq_sdiff_union (singleton_subset_iff.2 h), insert_eq,
+  union_comm]
+
+lemma sdiff_erase_self (ha : a ∈ s) : s \ s.erase a = {a} :=
+by rw [sdiff_erase ha, sdiff_self, insert_emptyc_eq]
 
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t := sdiff_sdiff_right_self
 
@@ -2211,6 +2278,11 @@ lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := s.val.c
 
 @[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
 by { ext, simp }
+
+@[simp] lemma to_list_eq_singleton_iff {a : α} {s : finset α} : s.to_list = [a] ↔ s = {a} :=
+by rw [to_list, to_list_eq_singleton_iff, val_eq_singleton_iff]
+
+@[simp] lemma to_list_singleton : ∀ a, ({a} : finset α).to_list = [a] := to_list_singleton
 
 lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
   ∃ (l : list α), l.nodup ∧ l.to_finset = s :=

@@ -9,6 +9,9 @@ import algebra.module.basic
 /-!
 # Equivariant homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `mul_action_hom M X Y`, the type of equivariant functions from `X` to `Y`, where `M` is a monoid

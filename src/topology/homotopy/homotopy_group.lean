@@ -19,7 +19,7 @@ Note that such functions are generalized loops `gen_loop n x`, in particular
 
 We show that `π_0 x` is equivalent to the path-conected components, and
 that `π_1 x` is equivalent to the fundamental group at `x`.
-We give a group instance using path transitivity and show commutativity when `n > 1`.
+We give a group instance using path composition and show commutativity when `n > 1`.
 
 ## definitions
 
@@ -46,8 +46,9 @@ universes u
 variables {X : Type u} [topological_space X]
 variables {N : Type*} {x : X}
 
-/-- The `n`-dimensional cube `I^n` is defined via an abstract definition so that subsets of faces
-  can be implemented with subtypes of `fin n`. -/
+/-- We allow an arbitrary indexing type `N`, not just `fin n`, in the definition of `cube`, so as to
+  be able to identify facets of a cube to cubes indexed by subtypes of `N`, which is more
+  convenient than using `fin (n-1)`. -/
 @[derive [has_zero, has_one, topological_space]]
 def cube (N : Type*) := N → I
 local notation `I^` n := cube (fin n)
@@ -74,18 +75,19 @@ lemma one_char (f : I^1) : f = λ _, f 0 := eq_const_of_unique f
 section
 variable [decidable_eq N]
 
-/-- Splits a cube into a pair I × {j // j≠i} → I such that the first member is the value of the
-  cube at coordinate `i`, and the function returns the value of the cube elsewhere. -/
+/-- The forward direction of the homeomorphism
+  between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/
 abbreviation split_at (i : N) := @fun_split_at I _ _ _ i
 
-/-- Makes a cube from a pair I × {j // j≠i} → I, inverse of `split_at`. -/
+/-- The backward direction of the homeomorphism
+  between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/
 abbreviation insert_at (i : N) := (@fun_split_at I _ _ _ i).symm
 
 lemma insert_at_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
   insert_at i ⟨t₀, t⟩ ∈ boundary N :=
 begin
-  cases H, { use i, rwa [fun_split_at_symm_apply, dif_pos rfl] },
-  cases H with j H,
+  obtain H | ⟨j, H⟩ := H,
+  { use i, rwa [fun_split_at_symm_apply, dif_pos rfl] },
   { use j, rwa [fun_split_at_symm_apply, dif_neg j.prop, subtype.coe_eta] },
 end
 
@@ -99,8 +101,9 @@ local notation `Ω` := loop_space
 
 instance loop_space.inhabited : inhabited (Ω X x) := ⟨path.refl x⟩
 
-/-- The `n`-dimensional generalized loops are continuous functions `I^n → X` fixed at the boundary,
-  defined with an abstract type `N` of coordinates. -/
+/-- The `n`-dimensional generalized loops based at `x` in a space `X` are
+  continuous functions `I^n → X` that sends the boundary to `x`.
+  We allow an arbitrary indexing type `N` in place of `fin n` here. -/
 def gen_loop (N) (x : X) : set C(cube N, X) := {p | ∀ y ∈ cube.boundary N, p y = x}
 
 namespace gen_loop
@@ -119,7 +122,7 @@ fun_like.coe_injective' (funext H)
 /-- The constant `gen_loop` at `x`. -/
 def const : gen_loop N x := ⟨continuous_map.const _ x, λ _ _, rfl⟩
 
-@[simp] lemma const_eq {t} : (@const X _ N x) t = x := rfl
+@[simp] lemma const_apply {t} : (@const X _ N x) t = x := rfl
 
 instance inhabited : inhabited (gen_loop N x) := ⟨const⟩
 
@@ -148,15 +151,14 @@ section
 
 variable [decidable_eq N]
 
-/-- Path from a generalized loop by currying `cube N` into `I × {j // j ≠ i} → I`. -/
+/-- Path from a generalized loop by currying $I^N → X$ into $I → (I^{N\setminus\{j\}} → X)$. -/
 @[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
 { to_fun := λ t, ⟨(p.val.comp (cube.insert_at i).to_continuous_map).curry t,
     λ y yH, p.property (cube.insert_at i (t, y)) (cube.insert_at_boundary i $ or.inr yH)⟩,
-  continuous_to_fun := by continuity,
   source' := by { ext t, refine p.property (cube.insert_at i (0, t)) ⟨i, or.inl _⟩, simp },
   target' := by { ext t, refine p.property (cube.insert_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
-/-- Generalized loop from a path by uncurrying `I × {j // j ≠ i} → I` into `cube N`. -/
+/-- Generalized loop from a path by uncurrying $I → (I^{N\setminus\{j\}} → X)$ into $I^N → X$. -/
 @[simps] def from_path (i : N) : Ω (gen_loop {j // j ≠ i} x) const → gen_loop N x :=
 λ p, ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(cube _, X))).uncurry.comp
   (cube.split_at i).to_continuous_map,
@@ -165,9 +167,9 @@ begin
   simp only [subtype.val_eq_coe, continuous_map.comp_apply, to_continuous_map_apply,
     fun_split_at_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
     function.uncurry_apply_pair],
-  by_cases Heq : j = i,
-  { subst Heq, cases Hj; rw Hj; simp only [p.source, p.target]; convert const_eq },
-  { exact gen_loop.boundary _ _ ⟨⟨j, Heq⟩, Hj⟩ },
+  obtain rfl | Hne := eq_or_ne j i,
+  { cases Hj; rw Hj; simp only [p.source, p.target]; convert const_apply },
+  { exact gen_loop.boundary _ _ ⟨⟨j, Hne⟩, Hj⟩ },
 end⟩
 
 lemma to_from (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : to_path i (from_path i p) = p :=
@@ -176,8 +178,9 @@ begin
     to_continuous_map_comp_symm, continuous_map.comp_id], ext, refl,
 end
 
-/-- The `n+1`-dimensional loops are equivalent to the loop space at `const` as a `n`-dimensional
-  loop, defined abtractically for any nonempty index type `N`. -/
+/-- The `n+1`-dimensional loops are in bijection with the loops in the space of
+  `n`-dimensional loops with base point `const`.
+  We allow an arbitrary indexing type `N` in place of `fin n` here. -/
 @[simps] def path_equiv (i : N) : gen_loop N x ≃ Ω (gen_loop {j // j ≠ i} x) const :=
 { to_fun := to_path i,
   inv_fun := from_path i,
@@ -194,17 +197,19 @@ end
 
 section
 
-/--Coercion as a continuous map.-/
+/-- The inclusion from the space of generalized loops to the space of all continuous functions
+  (not necessarily constant on the boundary), as a continuous map. -/
 abbreviation c_coe : C(gen_loop N x, C(cube N, X)) := ⟨λ p, p.val, continuous_induced_dom⟩
 
 variable [decidable_eq N]
 
-/-- Composition with insert as a continuous map.-/
+/-- Composition with insert as a continuous map. -/
 abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i}, X)) :=
 ⟨λ f, f.comp (cube.insert_at i).to_continuous_map,
   (cube.insert_at i).to_continuous_map.continuous_comp_left⟩
 
-/--Homotopy of generalized loops to `C(I × I, C(cube {j // j ≠ i}, X))`. -/
+/-- A homotopy between `n+1`-dimensional loops `p` and `q` constant on the boundary
+  seen as a continuous map from a square to the space of `n`-dimensional paths. -/
 @[simps] def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
   C(I × I, C(cube {j // j ≠ i}, X)) :=
 ((⟨_, continuous_map.continuous_curry⟩: C(_,_)).comp $
@@ -396,8 +401,7 @@ begin
   simp only [equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
   ext, iterate 6 { rw from_path_trans_to_path },
   simp_rw [if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
-  split_ifs; { congr, ext1, apply ite_ite_comm,
-  intros h0 h1, rw h0 at h1, exact zero_ne_one (fin.veq_of_eq h1) },
+  split_ifs; { congr, ext1, apply ite_ite_comm, rintro rfl, exact fin.zero_ne_one },
 end
 
 end

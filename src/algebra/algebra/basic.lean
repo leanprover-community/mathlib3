@@ -780,7 +780,7 @@ instance is_scalar_tower.to_smul_comm_class : smul_comm_class R A M :=
 instance is_scalar_tower.to_smul_comm_class' : smul_comm_class A R M :=
 smul_comm_class.symm _ _ _
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 200] -- see Note [lower instance priority]
 instance algebra.to_smul_comm_class {R A} [comm_semiring R] [semiring A] [algebra R A] :
   smul_comm_class R A A :=
 is_scalar_tower.to_smul_comm_class

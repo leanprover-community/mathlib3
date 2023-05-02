@@ -8,6 +8,9 @@ import linear_algebra.invariant_basis_number
 
 /-!
 # Invertible matrices over a ring with invariant basis number are square.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {n m : Type*} [fintype n] [decidable_eq n] [fintype m] [decidable_eq m]

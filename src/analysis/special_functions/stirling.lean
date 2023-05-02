@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
-import analysis.special_functions.log.deriv
-import tactic.positivity
 import data.real.pi.wallis
 
 /-!

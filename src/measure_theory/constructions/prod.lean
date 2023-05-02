@@ -1102,7 +1102,7 @@ lemma set_integral_prod_mul {L : Type*} [is_R_or_C L]
   ∫ z in s ×ˢ t, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x in s, f x ∂μ) * (∫ y in t, g y ∂ν) :=
 by simp only [← measure.prod_restrict s t, integrable_on, integral_prod_mul]
 
-/-! ### Marginals of a product measure-/
+/-! ### Marginals of a measure defined on a product -/
 
 namespace measure
 

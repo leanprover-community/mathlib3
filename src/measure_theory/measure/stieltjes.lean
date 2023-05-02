@@ -487,6 +487,13 @@ begin
   exact λ y, ⟨y + 1, λ z hyz, by rwa le_sub_iff_add_le⟩,
 end
 
+lemma measure_univ {l : ℝ} (hfl : tendsto f at_bot (𝓝 l)) {u : ℝ} (hfu : tendsto f at_top (𝓝 u)) :
+  f.measure univ = of_real (u - l) :=
+begin
+  refine tendsto_nhds_unique (tendsto_measure_Iic_at_top _) _,
+  simp_rw measure_Iic f hfl,
+  exact ennreal.tendsto_of_real (tendsto.sub_const hfu _),
+end
 
 instance : is_locally_finite_measure f.measure :=
 ⟨λ x, ⟨Ioo (x-1) (x+1), Ioo_mem_nhds (by linarith) (by linarith), by simp⟩⟩

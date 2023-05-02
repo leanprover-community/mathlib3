@@ -15,7 +15,7 @@ that they form a module.
 
 open complex upper_half_plane
 
-open_locale upper_half_plane
+open_locale upper_half_plane modular_form
 
 noncomputable theory
 
@@ -36,17 +36,15 @@ open modular_form
 
 variables (F : Type*) (Γ : out_param $ subgroup SL(2, ℤ)) (k : out_param ℤ)
 
-localized "notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f" in slash_invariant_forms
-
 /--Functions `ℍ → ℂ` that are invariant under the `slash_action`. -/
 structure slash_invariant_form :=
 (to_fun : ℍ → ℂ)
-(slash_action_eq' : ∀ γ : Γ, to_fun ∣[k, γ] = to_fun)
+(slash_action_eq' : ∀ γ : Γ, to_fun ∣[k] γ = to_fun)
 
 /--`slash_invariant_form_class F Γ k` asserts `F` is a type of bundled functions that are invariant
 under the `slash_action`. -/
 class slash_invariant_form_class extends fun_like F ℍ (λ _, ℂ) :=
-(slash_action_eq : ∀ (f : F) (γ : Γ), (f : ℍ → ℂ) ∣[k, γ] = f)
+(slash_action_eq : ∀ (f : F) (γ : Γ), (f : ℍ → ℂ) ∣[k] γ = f)
 
 attribute [nolint dangerous_instance] slash_invariant_form_class.to_fun_like
 
@@ -135,7 +133,7 @@ instance has_neg : has_neg (slash_invariant_form Γ k) :=
 ⟨ λ f,
   { to_fun := -f,
     slash_action_eq' := λ γ, by simpa [modular_form.subgroup_slash,
-      modular_form.neg_slash] using f.slash_action_eq' γ } ⟩
+      slash_action.neg_slash] using f.slash_action_eq' γ } ⟩
 
 @[simp] lemma coe_neg (f : slash_invariant_form Γ k) : ⇑(-f) = -f := rfl
 @[simp] lemma neg_apply (f : slash_invariant_form Γ k) (z : ℍ) : (-f) z = - (f z) := rfl

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import ring_theory.dedekind_domain.ideal
--- import ring_theory.discrete_valuation_ring.basic
 import ring_theory.discrete_valuation_ring.tfae
 import ring_theory.localization.at_prime
 import ring_theory.localization.submodule

@@ -159,6 +159,9 @@ calc a * b = a ↔ a * b = a * 1 : by rw mul_one
 @[simp, to_additive] lemma self_eq_mul_right : a = a * b ↔ b = 1 :=
 eq_comm.trans mul_right_eq_self
 
+@[to_additive] lemma mul_right_ne_self : a * b ≠ a ↔ b ≠ 1 := mul_right_eq_self.not
+@[to_additive] lemma self_ne_mul_right : a ≠ a * b ↔ b ≠ 1 := self_eq_mul_right.not
+
 end left_cancel_monoid
 
 section right_cancel_monoid
@@ -171,6 +174,9 @@ calc a * b = b ↔ a * b = 1 * b : by rw one_mul
 
 @[simp, to_additive] lemma self_eq_mul_left : b = a * b ↔ a = 1 :=
 eq_comm.trans mul_left_eq_self
+
+@[to_additive] lemma mul_left_ne_self : a * b ≠ b ↔ a ≠ 1 := mul_left_eq_self.not
+@[to_additive] lemma self_ne_mul_left : b ≠ a * b ↔ a ≠ 1 := self_eq_mul_left.not
 
 end right_cancel_monoid
 

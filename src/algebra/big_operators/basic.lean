@@ -865,15 +865,16 @@ lemma prod_dite_irrel (p : Prop) [decidable p] (s : finset α) (f : p → α →
   (∏ x in s, if h : p then f h x else g h x) = if h : p then ∏ x in s, f h x else ∏ x in s, g h x :=
 by { split_ifs with h; refl }
 
-@[simp] lemma sum_pi_single' {ι M : Type*} [decidable_eq ι] [add_comm_monoid M]
-  (i : ι) (x : M) (s : finset ι) :
-  ∑ j in s, pi.single i x j = if i ∈ s then x else 0 :=
-sum_dite_eq' _ _ _
+@[simp, to_additive]
+lemma prod_pi_mul_single' [decidable_eq α] (a : α) (x : β) (s : finset α) :
+  ∏ a' in s, pi.mul_single a x a' = if a ∈ s then x else 1 :=
+prod_dite_eq' _ _ _
 
-@[simp] lemma sum_pi_single {ι : Type*} {M : ι → Type*}
-  [decidable_eq ι] [Π i, add_comm_monoid (M i)] (i : ι) (f : Π i, M i) (s : finset ι) :
-  ∑ j in s, pi.single j (f j) i = if i ∈ s then f i else 0 :=
-sum_dite_eq _ _ _
+@[simp, to_additive]
+lemma prod_pi_mul_single {β : α → Type*}
+  [decidable_eq α] [Π a, comm_monoid (β a)] (a : α) (f : Π a, β a) (s : finset α) :
+  ∏ a' in s, pi.mul_single a' (f a') a = if a ∈ s then f a else 1 :=
+prod_dite_eq _ _ _
 
 @[to_additive]
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
@@ -1350,13 +1351,14 @@ begin
     exact λ i hi, if_neg (h i hi) }
 end
 
-lemma sum_erase_lt_of_pos {γ : Type*} [decidable_eq α] [ordered_add_comm_monoid γ]
-  [covariant_class γ γ (+) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → γ} (hdf : 0 < f d) :
-  ∑ (m : α) in s.erase d, f m < ∑ (m : α) in s, f m :=
+@[to_additive]
+lemma prod_erase_lt_of_one_lt {γ : Type*} [decidable_eq α] [ordered_comm_monoid γ]
+  [covariant_class γ γ (*) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → γ} (hdf : 1 < f d) :
+  ∏ (m : α) in s.erase d, f m < ∏ (m : α) in s, f m :=
 begin
   nth_rewrite_rhs 0 ←finset.insert_erase hd,
-  rw finset.sum_insert (finset.not_mem_erase d s),
-  exact lt_add_of_pos_left _ hdf,
+  rw finset.prod_insert (finset.not_mem_erase d s),
+  exact lt_mul_of_one_lt_left' _ hdf,
 end
 
 /-- If a product is 1 and the function is 1 except possibly at one

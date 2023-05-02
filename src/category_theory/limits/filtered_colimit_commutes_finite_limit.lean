@@ -13,6 +13,9 @@ import category_theory.concrete_category.basic
 /-!
 # Filtered colimits commute with finite limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that for a functor `F : J × K ⥤ Type v`, when `J` is finite and `K` is filtered,
 the universal morphism `colimit_limit_to_limit_colimit F` comparing the
 colimit (over `K`) of the limits (over `J`) with the limit of the colimits is an isomorphism.

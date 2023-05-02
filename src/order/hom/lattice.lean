@@ -3,7 +3,6 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.lattice
 import order.hom.bounded
 import order.symm_diff
 
@@ -215,18 +214,6 @@ instance order_iso_class.to_bounded_lattice_hom_class [lattice α] [lattice β] 
   [bounded_order β] [order_iso_class F α β] :
   bounded_lattice_hom_class F α β :=
 { ..order_iso_class.to_lattice_hom_class, ..order_iso_class.to_bounded_order_hom_class }
-
-@[simp] lemma map_finset_sup [semilattice_sup α] [order_bot α] [semilattice_sup β] [order_bot β]
-  [sup_bot_hom_class F α β] (f : F) (s : finset ι) (g : ι → α) :
-  f (s.sup g) = s.sup (f ∘ g) :=
-finset.cons_induction_on s (map_bot f) $ λ i s _ h,
-  by rw [finset.sup_cons, finset.sup_cons, map_sup, h]
-
-@[simp] lemma map_finset_inf [semilattice_inf α] [order_top α] [semilattice_inf β] [order_top β]
-  [inf_top_hom_class F α β] (f : F) (s : finset ι) (g : ι → α) :
-  f (s.inf g) = s.inf (f ∘ g) :=
-finset.cons_induction_on s (map_top f) $ λ i s _ h,
-  by rw [finset.inf_cons, finset.inf_cons, map_inf, h]
 
 section bounded_lattice
 variables [lattice α] [bounded_order α] [lattice β] [bounded_order β]

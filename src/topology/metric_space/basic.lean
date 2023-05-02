@@ -1647,6 +1647,9 @@ is_closed_eq (continuous_id.dist continuous_const) continuous_const
 @[simp] theorem closure_closed_ball : closure (closed_ball x ε) = closed_ball x ε :=
 is_closed_ball.closure_eq
 
+@[simp] theorem closure_sphere : closure (sphere x ε) = sphere x ε :=
+is_closed_sphere.closure_eq
+
 theorem closure_ball_subset_closed_ball : closure (ball x ε) ⊆ closed_ball x ε :=
 closure_minimal ball_subset_closed_ball is_closed_ball
 

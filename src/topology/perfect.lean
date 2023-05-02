@@ -3,8 +3,7 @@ Copyright (c) 2022 Felix Weilacher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Felix Weilacher
 -/
-import topology.separation
-import topology.bases
+import topology.metric_space.polish
 import topology.metric_space.cantor_scheme
 
 /-!
@@ -223,7 +222,7 @@ end
 end kernel
 end basic
 
-section cantor_inj
+section cantor_inj_metric
 
 open function
 open_locale ennreal
@@ -324,4 +323,16 @@ begin
   simpa only [← subtype.val_inj] using hdisj'.map_injective hxy,
 end
 
-end cantor_inj
+end cantor_inj_metric
+
+/-- Any closed uncountable subset of a Polish space admits a continuous injection
+from the Cantor space `ℕ → bool`.-/
+theorem is_closed.exists_nat_bool_injection_of_not_countable {α : Type*}
+  [topological_space α] [polish_space α] {C : set α} (hC : is_closed C) (hunc : ¬ C.countable) :
+  ∃ f : (ℕ → bool) → α, (range f) ⊆ C ∧ continuous f ∧ function.injective f :=
+begin
+  letI := upgrade_polish_space α,
+  obtain ⟨D, hD, Dnonempty, hDC⟩ := exists_perfect_nonempty_of_is_closed_of_not_countable hC hunc,
+  obtain ⟨f, hfD, hf⟩ := hD.exists_nat_bool_injection Dnonempty,
+  exact ⟨f, hfD.trans hDC, hf⟩,
+end

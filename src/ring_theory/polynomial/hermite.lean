@@ -133,7 +133,7 @@ end coeff
 section gaussian
 
 /- `hermite n` is (up to sign) the factor appearing in `deriv^[n]` of a gaussian -/
-lemma hermite_eq_deriv_gaussian' (n : ℕ) (x : ℝ) :
+lemma hermite_eq_deriv_gaussian (n : ℕ) (x : ℝ) :
   aeval x (hermite n) =
   (-1 : ℝ)^n * (deriv^[n] (λ y, real.exp (-(y^2 / 2))) x) / real.exp (-(x^2 / 2)) :=
 begin

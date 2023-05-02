@@ -109,14 +109,15 @@ lemma coe_star (K : proper_cone E) : ↑(star K) = (K : set E).inner_dual_cone :
   y ∈ star K ↔ ∀ ⦃x⦄, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ :=
 by simp_rw [mem_coe, coe_star, mem_inner_dual_cone _ _, _root_.coe_coe, set_like.mem_coe]
 
--- TODO: Replace map with a bundled version: proper_cone E →ₗ[ℝ] proper_cone F
-/-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
-noncomputable def map (f : E →ₗ[ℝ] F) (K : proper_cone E) : proper_cone F :=
-⟨((K : proper_cone E).map f).closure,
+-- TODO: Replace map with a bundled version: proper_cone E →L[ℝ] proper_cone F
+/-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. We
+use continuous maps here so that the adjoint of f is also a map between proper cones. -/
+noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
+⟨(convex_cone.closure (convex_cone.map (f : E →ₗ[ℝ] F) ↑K)),
   ⟨ 0, subset_closure $ set_like.mem_coe.2 $ convex_cone.mem_map.2 ⟨ 0, K.pointed, map_zero _ ⟩ ⟩,
     is_closed_closure ⟩
 
-@[simp, norm_cast] lemma coe_map (f : E →ₗ[ℝ] F) (K : proper_cone E) :
+@[simp, norm_cast] lemma coe_map (f : E →L[ℝ] F) (K : proper_cone E) :
   ↑(K.map f) = (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := rfl
 
 end complete_space

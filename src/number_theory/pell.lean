@@ -667,8 +667,7 @@ Pell equation `x^2 + d*y^2 = 1` if and only if it is a fundamental solution. -/
 theorem pos_generator_iff_fundamental (a : solution₁ d) :
   (1 < a.x ∧ 0 < a.y ∧ ∀ b : solution₁ d, ∃ n : ℤ, b = a ^ n ∨ b = -a ^ n) ↔ is_fundamental a :=
 begin
-  refine ⟨_, λ H, ⟨H.1, H.2.1, H.zpow_or_neg_zpow⟩⟩,
-  intro h,
+  refine ⟨λ h, _, λ H, ⟨H.1, H.2.1, H.zpow_or_neg_zpow⟩⟩,
   have h₀ := d_pos_of_one_lt_x h.1,
   have hd := d_nonsquare_of_one_lt_x h.1,
   obtain ⟨a₁, ha₁⟩ := is_fundamental.exists_of_not_is_square h₀ hd,

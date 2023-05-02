@@ -48,8 +48,7 @@ protected def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 @[simp, norm_cast] lemma coe_closure (K : convex_cone ℝ E) : (K.closure : set E) = closure K := rfl
 
 @[simp] protected lemma mem_closure {K : convex_cone ℝ E} {a : E} :
-  a ∈ K.closure ↔ a ∈ closure (K : set E) :=
-iff.rfl
+  a ∈ K.closure ↔ a ∈ closure (K : set E) := iff.rfl
 
 end convex_cone
 
@@ -106,6 +105,9 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
 
 @[simp, norm_cast] lemma coe_map (f : E →L[ℝ] F) (K : proper_cone E) :
   ↑(K.map f) = (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := rfl
+
+@[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone E} {y : F} :
+  y ∈ K.map f ↔ y ∈ (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := iff.rfl
 
 @[simp, norm_cast]
 lemma coe_star (K : proper_cone E) : ↑(star K) = (K : set E).inner_dual_cone := rfl

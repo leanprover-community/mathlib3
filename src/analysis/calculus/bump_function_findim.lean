@@ -3,11 +3,10 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.bump_function_inner
 import analysis.calculus.series
 import analysis.convolution
+import analysis.inner_product_space.euclidean_dist
 import data.set.pointwise.support
-import measure_theory.measure.haar_lebesgue
 
 /-!
 # Bump functions in finite-dimensional vector spaces

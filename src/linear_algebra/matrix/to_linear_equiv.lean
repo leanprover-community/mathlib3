@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import linear_algebra.finite_dimensional
+import linear_algebra.matrix.general_linear_group
 import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
@@ -46,21 +47,15 @@ variables [decidable_eq n]
 See `matrix.to_linear_equiv` for the same map on arbitrary modules.
 -/
 def to_linear_equiv' (P : matrix n n R) (h : invertible P) : (n → R) ≃ₗ[R] (n → R) :=
-{ inv_fun   := (⅟P).to_lin',
-  left_inv  := λ v,
-    show ((⅟P).to_lin'.comp P.to_lin') v = v,
-    by rw [← matrix.to_lin'_mul, P.inv_of_mul_self, matrix.to_lin'_one, linear_map.id_apply],
-  right_inv := λ v,
-    show (P.to_lin'.comp (⅟P).to_lin') v = v,
-    by rw [← matrix.to_lin'_mul, P.mul_inv_of_self, matrix.to_lin'_one, linear_map.id_apply],
-  ..P.to_lin' }
+general_linear_group.general_linear_equiv _ _ $
+  matrix.general_linear_group.to_linear $ unit_of_invertible P
 
 @[simp] lemma to_linear_equiv'_apply (P : matrix n n R) (h : invertible P) :
   (↑(P.to_linear_equiv' h) : module.End R (n → R)) = P.to_lin' := rfl
 
 @[simp] lemma to_linear_equiv'_symm_apply (P : matrix n n R) (h : invertible P) :
-  (↑(P.to_linear_equiv' h).symm : module.End R (n → R)) = P⁻¹.to_lin' :=
-show (⅟P).to_lin' = _, from congr_arg _ P.inv_of_eq_nonsing_inv
+  (↑(P.to_linear_equiv' h).symm : module.End R (n → R)) = (⅟P).to_lin' :=
+rfl
 
 end to_linear_equiv'
 

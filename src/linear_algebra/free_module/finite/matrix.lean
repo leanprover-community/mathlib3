@@ -11,6 +11,9 @@ import linear_algebra.matrix.to_lin
 /-!
 # Finite and free modules using matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide some instances for finite and free modules involving matrices.
 
 ## Main results

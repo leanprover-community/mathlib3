@@ -11,6 +11,9 @@ import analysis.normed.group.add_torsor
 /-!
 # Seminorms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines seminorms.
 
 A seminorm is a function to the reals which is positive-semidefinite, absolutely homogeneous, and
@@ -207,7 +210,7 @@ lemma smul_sup [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 
   r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
 from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
-                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).coe_nonneg,
 ext $ λ x, real.smul_max _ _
 
 instance : partial_order (seminorm 𝕜 E) :=

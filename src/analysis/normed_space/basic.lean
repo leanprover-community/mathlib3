@@ -95,7 +95,7 @@ lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) 
 by rw [← norm_smul, ← int.smul_one_eq_coe, smul_assoc, one_smul]
 
 @[simp] lemma abs_norm (z : β) : |‖z‖| = ‖z‖ :=
-  (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
+abs_of_nonneg $ norm_nonneg z
 
 lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
   ‖x‖⁻¹ • x ∈ closed_ball (0 : β) 1 :=

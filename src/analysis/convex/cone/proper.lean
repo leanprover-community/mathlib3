@@ -113,7 +113,7 @@ by simp_rw [mem_coe, coe_star, mem_inner_dual_cone _ _, _root_.coe_coe, set_like
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. We
 use continuous maps here so that the adjoint of f is also a map between proper cones. -/
 noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
-⟨(convex_cone.closure (convex_cone.map (f : E →ₗ[ℝ] F) ↑K)),
+⟨ (convex_cone.closure (convex_cone.map (f : E →ₗ[ℝ] F) ↑K)),
   ⟨ 0, subset_closure $ set_like.mem_coe.2 $ convex_cone.mem_map.2 ⟨ 0, K.pointed, map_zero _ ⟩ ⟩,
     is_closed_closure ⟩
 

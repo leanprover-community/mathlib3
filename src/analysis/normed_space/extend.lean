@@ -118,6 +118,13 @@ linear_map.mk_continuous _ (‖fr‖) fr.norm_extend_to_𝕜'_bound
 lemma extend_to_𝕜'_apply (fr : F →L[ℝ] ℝ) (x : F) :
   fr.extend_to_𝕜' x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
 
+@[simp] lemma norm_extend_to_𝕜' (fr : F →L[ℝ] ℝ) : ‖(fr.extend_to_𝕜' : F →L[𝕜] 𝕜)‖ = ‖fr‖ :=
+le_antisymm (linear_map.mk_continuous_norm_le _ (norm_nonneg _) _) $
+  op_norm_le_bound _ (norm_nonneg _) $ λ x,
+    calc ‖fr x‖ = ‖re (fr.extend_to_𝕜' x : 𝕜)‖ : congr_arg norm (fr.extend_to_𝕜'_apply_re x).symm
+    ... ≤ ‖(fr.extend_to_𝕜' x : 𝕜)‖ : abs_re_le_norm _
+    ... ≤ ‖(fr.extend_to_𝕜' : F →L[𝕜] 𝕜)‖ * ‖x‖ : le_op_norm _ _
+
 end continuous_linear_map
 
 /-- Extend `fr : restrict_scalars ℝ 𝕜 F →ₗ[ℝ] ℝ` to `F →ₗ[𝕜] 𝕜`. -/
@@ -134,3 +141,7 @@ fr.extend_to_𝕜'
 
 lemma continuous_linear_map.extend_to_𝕜_apply (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) (x : F) :
   fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x : _) := rfl
+
+@[simp] lemma continuous_linear_map.norm_extend_to_𝕜 (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) :
+  ‖fr.extend_to_𝕜‖ = ‖fr‖ :=
+fr.norm_extend_to_𝕜'

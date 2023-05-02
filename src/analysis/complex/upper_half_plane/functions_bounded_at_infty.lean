@@ -19,7 +19,7 @@ Both of which are relevant for defining modular forms.
 
 open complex filter
 
-open_locale topological_space upper_half_plane
+open_locale topology upper_half_plane
 
 noncomputable theory
 

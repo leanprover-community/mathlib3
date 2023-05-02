@@ -15,11 +15,14 @@ that they form a module.
 
 open complex upper_half_plane
 
-open_locale upper_half_plane
+open_locale upper_half_plane modular_form
 
 noncomputable theory
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
+
+-- like `↑ₘ`, but allows the user to specify the ring `R`. Useful to help Lean elaborate.
+local notation `↑ₘ[` R `]` := @coe _ (matrix (fin 2) (fin 2) R) _
 
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
@@ -33,17 +36,15 @@ open modular_form
 
 variables (F : Type*) (Γ : out_param $ subgroup SL(2, ℤ)) (k : out_param ℤ)
 
-localized "notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f" in slash_invariant_forms
-
 /--Functions `ℍ → ℂ` that are invariant under the `slash_action`. -/
 structure slash_invariant_form :=
 (to_fun : ℍ → ℂ)
-(slash_action_eq' : ∀ γ : Γ, to_fun ∣[k, γ] = to_fun)
+(slash_action_eq' : ∀ γ : Γ, to_fun ∣[k] γ = to_fun)
 
 /--`slash_invariant_form_class F Γ k` asserts `F` is a type of bundled functions that are invariant
 under the `slash_action`. -/
 class slash_invariant_form_class extends fun_like F ℍ (λ _, ℂ) :=
-(slash_action_eq : ∀ (f : F) (γ : Γ), (f : ℍ → ℂ) ∣[k, γ] = f)
+(slash_action_eq : ∀ (f : F) (γ : Γ), (f : ℍ → ℂ) ∣[k] γ = f)
 
 attribute [nolint dangerous_instance] slash_invariant_form_class.to_fun_like
 
@@ -87,7 +88,7 @@ instance slash_invariant_form_class.coe_to_fun [slash_invariant_form_class F Γ 
    slash_action.map ℂ k γ ⇑f = ⇑f := slash_invariant_form_class.slash_action_eq f γ
 
 lemma slash_action_eqn' (k : ℤ) (Γ : subgroup SL(2, ℤ)) [slash_invariant_form_class F Γ k] (f : F)
-  (γ : Γ) (z : ℍ) : f (γ • z) = ((↑ₘγ 1 0 : ℂ) * z +(↑ₘγ 1 1 : ℂ))^k * f z :=
+  (γ : Γ) (z : ℍ) : f (γ • z) = ((↑ₘ[ℤ]γ 1 0 : ℂ) * z +(↑ₘ[ℤ]γ 1 1 : ℂ))^k * f z :=
 begin
   rw ←modular_form.slash_action_eq'_iff,
   simp,
@@ -132,7 +133,7 @@ instance has_neg : has_neg (slash_invariant_form Γ k) :=
 ⟨ λ f,
   { to_fun := -f,
     slash_action_eq' := λ γ, by simpa [modular_form.subgroup_slash,
-      modular_form.neg_slash] using f.slash_action_eq' γ } ⟩
+      slash_action.neg_slash] using f.slash_action_eq' γ } ⟩
 
 @[simp] lemma coe_neg (f : slash_invariant_form Γ k) : ⇑(-f) = -f := rfl
 @[simp] lemma neg_apply (f : slash_invariant_form Γ k) (z : ℍ) : (-f) z = - (f z) := rfl

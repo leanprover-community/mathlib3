@@ -15,6 +15,9 @@ import measure_theory.tactic
 /-!
 # Measurable spaces and measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides properties of measurable spaces and the functions and isomorphisms
 between them. The definition of a measurable space is in `measure_theory.measurable_space_def`.
 
@@ -206,6 +209,12 @@ begin
   { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
+@[measurability] lemma measurable_nat_cast [has_nat_cast α] (n : ℕ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
+
+@[measurability] lemma measurable_int_cast [has_int_cast α] (n : ℤ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
+
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
 
@@ -306,6 +315,10 @@ begin
   { simp only [preimage_singleton_eq_empty.2 hyf, measurable_set.empty] }
 end
 
+lemma measurable_to_countable' [measurable_space α] [countable α] [measurable_space β] {f : β → α}
+  (h : ∀ x, measurable_set (f ⁻¹' {x})) : measurable f :=
+measurable_to_countable (λ y, h (f y))
+
 @[measurability] lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
 measurable_from_top
 
@@ -317,6 +330,15 @@ measurable_from_top
 
 lemma measurable_to_nat {f : α → ℕ} : (∀ y, measurable_set (f ⁻¹' {f y})) → measurable f :=
 measurable_to_countable
+
+lemma measurable_to_bool {f : α → bool} (h : measurable_set (f⁻¹' {tt})) : measurable f :=
+begin
+  apply measurable_to_countable',
+  rintros (-|-),
+  { convert h.compl,
+    rw [← preimage_compl, bool.compl_singleton, bool.bnot_tt] },
+  exact h,
+end
 
 lemma measurable_find_greatest' {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
   {N : ℕ} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
@@ -1112,27 +1134,6 @@ def set.singleton (a : α) : ({a} : set α) ≃ᵐ unit :=
   measurable_to_fun := measurable_const,
   measurable_inv_fun := measurable_const }
 
-/-- A set is equivalent to its image under a function `f` as measurable spaces,
-  if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
-noncomputable def set.image (f : α → β) (s : set α) (hf : injective f)
-  (hfm : measurable f) (hfi : ∀ s, measurable_set s → measurable_set (f '' s)) : s ≃ᵐ (f '' s) :=
-{ to_equiv := equiv.set.image f s hf,
-  measurable_to_fun  := (hfm.comp measurable_id.subtype_coe).subtype_mk,
-  measurable_inv_fun :=
-    begin
-      rintro t ⟨u, hu, rfl⟩, simp [preimage_preimage, set.image_symm_preimage hf],
-      exact measurable_subtype_coe (hfi u hu)
-    end }
-
-/-- The domain of `f` is equivalent to its range as measurable spaces,
-  if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
-noncomputable def set.range (f : α → β) (hf : injective f) (hfm : measurable f)
-  (hfi : ∀ s, measurable_set s → measurable_set (f '' s)) :
-  α ≃ᵐ (range f) :=
-(measurable_equiv.set.univ _).symm.trans $
-  (measurable_equiv.set.image f univ hf hfm hfi).trans $
-  measurable_equiv.cast (by rw image_univ) (by rw image_univ)
-
 /-- `α` is equivalent to its image in `α ⊕ β` as measurable spaces. -/
 def set.range_inl : (range sum.inl : set (α ⊕ β)) ≃ᵐ α :=
 { to_fun    := λ ab, match ab with
@@ -1269,20 +1270,37 @@ def pi_equiv_pi_subtype_prod (p : δ' → Prop) [decidable_pred p] :
   measurable_to_fun := measurable_pi_equiv_pi_subtype_prod π p,
   measurable_inv_fun := measurable_pi_equiv_pi_subtype_prod_symm π p }
 
+/-- If `s` is a measurable set in a measurable space, that space is equivalent
+to the sum of `s` and `sᶜ`.-/
+def sum_compl {s : set α} [decidable_pred s] (hs : measurable_set s) : s ⊕ (sᶜ : set α) ≃ᵐ α :=
+{ to_equiv := sum_compl s,
+  measurable_to_fun := by {apply measurable.sum_elim; exact measurable_subtype_coe},
+  measurable_inv_fun :=  measurable.dite measurable_inl measurable_inr hs }
+
 end measurable_equiv
 
 namespace measurable_embedding
 
-variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β}
+variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β} {g : β → α}
 
-/-- A measurable embedding defines a measurable equivalence between its domain
-and its range. -/
-noncomputable def equiv_range (f : α → β) (hf : measurable_embedding f) :
-  α ≃ᵐ range f :=
-{ to_equiv := equiv.of_injective f hf.injective,
-  measurable_to_fun := hf.measurable.subtype_mk,
+/-- A set is equivalent to its image under a function `f` as measurable spaces,
+  if `f` is a measurable embedding -/
+noncomputable def equiv_image (s : set α) (hf : measurable_embedding f) :
+  s ≃ᵐ (f '' s) :=
+{ to_equiv := equiv.set.image f s hf.injective,
+  measurable_to_fun  := (hf.measurable.comp measurable_id.subtype_coe).subtype_mk,
   measurable_inv_fun :=
-    by { rw coe_of_injective_symm, exact hf.measurable_range_splitting } }
+    begin
+      rintro t ⟨u, hu, rfl⟩, simp [preimage_preimage, set.image_symm_preimage hf.injective],
+      exact measurable_subtype_coe (hf.measurable_set_image' hu)
+    end }
+
+/-- The domain of `f` is equivalent to its range as measurable spaces,
+  if `f` is a measurable embedding -/
+noncomputable def equiv_range (hf : measurable_embedding f) : α ≃ᵐ (range f) :=
+(measurable_equiv.set.univ _).symm.trans $
+  (hf.equiv_image univ).trans $
+  measurable_equiv.cast (by rw image_univ) (by rw image_univ)
 
 lemma of_measurable_inverse_on_range {g : range f → α} (hf₁ : measurable f)
   (hf₂ : measurable_set (range f)) (hg : measurable g)
@@ -1294,12 +1312,121 @@ begin
   exact (measurable_embedding.subtype_coe hf₂).comp e.measurable_embedding
 end
 
-lemma of_measurable_inverse {g : β → α} (hf₁ : measurable f)
+lemma of_measurable_inverse (hf₁ : measurable f)
   (hf₂ : measurable_set (range f)) (hg : measurable g)
   (H : left_inverse g f) : measurable_embedding f :=
 of_measurable_inverse_on_range hf₁ hf₂ (hg.comp measurable_subtype_coe) H
 
+open_locale classical
+
+/-- The **`measurable Schröder-Bernstein Theorem**: Given measurable embeddings
+`α → β` and `β → α`, we can find a measurable equivalence `α ≃ᵐ β`.-/
+noncomputable
+def schroeder_bernstein {f : α → β} {g : β → α}
+  (hf : measurable_embedding f)(hg : measurable_embedding g) : α ≃ᵐ β :=
+begin
+  let F : set α → set α := λ A, (g '' (f '' A)ᶜ)ᶜ,
+  -- We follow the proof of the usual SB theorem in mathlib,
+  -- the crux of which is finding a fixed point of this F.
+  -- However, we must find this fixed point manually instead of invoking Knaster-Tarski
+  -- in order to make sure it is measurable.
+  suffices : Σ' A : set α, measurable_set A ∧ F A = A,
+  { rcases this with ⟨A, Ameas, Afp⟩,
+    let B := f '' A,
+    have Bmeas : measurable_set B := hf.measurable_set_image' Ameas,
+    refine (measurable_equiv.sum_compl Ameas).symm.trans
+      (measurable_equiv.trans _ (measurable_equiv.sum_compl Bmeas)),
+    apply measurable_equiv.sum_congr (hf.equiv_image _),
+    have : Aᶜ = g '' Bᶜ,
+    { apply compl_injective,
+      rw ← Afp,
+      simp, },
+    rw this,
+    exact (hg.equiv_image _).symm, },
+  have Fmono : ∀ {A B}, A ⊆ B → F A ⊆ F B := λ A B hAB,
+    compl_subset_compl.mpr $ set.image_subset _ $
+    compl_subset_compl.mpr $ set.image_subset _ hAB,
+  let X : ℕ → set α := λ n, F^[n] univ,
+  refine ⟨Inter X, _, _⟩,
+  { apply measurable_set.Inter,
+    intros n,
+    induction n with n ih,
+    { exact measurable_set.univ },
+    rw [function.iterate_succ', function.comp_apply],
+    exact (hg.measurable_set_image' (hf.measurable_set_image' ih).compl).compl, },
+  apply subset_antisymm,
+  { apply subset_Inter,
+    intros n,
+    cases n,
+    { exact subset_univ _ },
+    rw [function.iterate_succ', function.comp_apply],
+    exact Fmono (Inter_subset _ _ ), },
+  rintros x hx ⟨y, hy, rfl⟩,
+  rw mem_Inter at hx,
+  apply hy,
+  rw (inj_on_of_injective hf.injective _).image_Inter_eq,
+  swap, { apply_instance },
+  rw mem_Inter,
+  intro n,
+  specialize hx n.succ,
+  rw [function.iterate_succ', function.comp_apply] at hx,
+  by_contradiction h,
+  apply hx,
+  exact ⟨y, h, rfl⟩,
+end
+
 end measurable_embedding
+
+section countably_generated
+
+namespace measurable_space
+
+variable (α)
+
+/-- We say a measurable space is countably generated
+if can be generated by a countable set of sets.-/
+class countably_generated [m : measurable_space α] : Prop :=
+  (is_countably_generated : ∃ b : set (set α), b.countable ∧ m = generate_from b)
+
+open_locale classical
+
+/-- If a measurable space is countably generated, it admits a measurable injection
+into the Cantor space `ℕ → bool` (equipped with the product sigma algebra). -/
+theorem measurable_injection_cantor_of_countably_generated
+[measurable_space α] [h : countably_generated α] [measurable_singleton_class α] :
+∃ f : α → (ℕ → bool), measurable f ∧ function.injective f :=
+begin
+  obtain ⟨b, bct, hb⟩ := h.is_countably_generated,
+  obtain ⟨e, he⟩ := set.countable.exists_eq_range (bct.insert ∅) (insert_nonempty _ _),
+  rw [← generate_from_insert_empty, he] at hb,
+  refine ⟨λ x n, to_bool (x ∈ e n), _, _⟩,
+  { rw measurable_pi_iff,
+    intro n,
+    apply measurable_to_bool,
+    simp only [preimage, mem_singleton_iff, to_bool_iff, set_of_mem_eq],
+    rw hb,
+    apply measurable_set_generate_from,
+    use n, },
+  intros x y hxy,
+  have : ∀ s : set α, measurable_set s → (x ∈ s ↔ y ∈ s) := λ s, by
+  { rw hb,
+    apply generate_from_induction,
+    { rintros - ⟨n, rfl⟩,
+      rw ← bool.to_bool_eq,
+      rw funext_iff at hxy,
+      exact hxy n },
+    { tauto },
+    { intro t,
+      tauto },
+    intros t ht,
+    simp_rw [mem_Union, ht], },
+  specialize this {y} measurable_set_eq,
+  simpa only [mem_singleton, iff_true],
+end
+
+end measurable_space
+
+end countably_generated
 
 namespace filter
 
@@ -1469,18 +1596,36 @@ instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
   .. measurable_set.subtype.bounded_order,
   .. measurable_set.subtype.distrib_lattice }
 
+@[measurability] lemma measurable_set_blimsup {s : ℕ → set α} {p : ℕ → Prop}
+  (h : ∀ n, p n → measurable_set (s n)) :
+  measurable_set $ filter.blimsup s filter.at_top p :=
+begin
+  simp only [filter.blimsup_eq_infi_bsupr_of_nat, supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Inter
+    (λ n, measurable_set.Union (λ m, measurable_set.Union $ λ hm, h m hm.1)),
+end
+
+@[measurability] lemma measurable_set_bliminf {s : ℕ → set α} {p : ℕ → Prop}
+  (h : ∀ n, p n → measurable_set (s n)) :
+  measurable_set $ filter.bliminf s filter.at_top p :=
+begin
+  simp only [filter.bliminf_eq_supr_binfi_of_nat, infi_eq_Inter, supr_eq_Union],
+  exact measurable_set.Union
+    (λ n, measurable_set.Inter (λ m, measurable_set.Inter $ λ hm, h m hm.1)),
+end
+
 @[measurability] lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
   measurable_set $ filter.limsup s filter.at_top :=
 begin
-  simp only [filter.limsup_eq_infi_supr_of_nat', supr_eq_Union, infi_eq_Inter],
-  exact measurable_set.Inter (λ n, measurable_set.Union $ λ m, hs $ m + n),
+  convert measurable_set_blimsup (λ n h, hs n : ∀ n, true → measurable_set (s n)),
+  simp,
 end
 
 @[measurability] lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
   measurable_set $ filter.liminf s filter.at_top :=
 begin
-  simp only [filter.liminf_eq_supr_infi_of_nat', supr_eq_Union, infi_eq_Inter],
-  exact measurable_set.Union (λ n, measurable_set.Inter $ λ m, hs $ m + n),
+  convert measurable_set_bliminf (λ n h, hs n : ∀ n, true → measurable_set (s n)),
+  simp,
 end
 
 end measurable_set

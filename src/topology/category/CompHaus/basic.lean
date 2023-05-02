@@ -8,10 +8,13 @@ import category_theory.adjunction.reflective
 import topology.stone_cech
 import category_theory.monad.limits
 import topology.urysohns_lemma
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 
 /-!
 # The category of Compact Hausdorff Spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the category of compact Hausdorff spaces.
 The type of compact Hausdorff spaces is denoted `CompHaus`, and it is endowed with a category
@@ -235,8 +238,8 @@ lemma mono_iff_injective {X Y : CompHaus.{u}} (f : X ⟶ Y) : mono f ↔ functio
 begin
   split,
   { introsI hf x₁ x₂ h,
-    let g₁ : of punit ⟶ X := ⟨λ _, x₁, continuous_of_discrete_topology⟩,
-    let g₂ : of punit ⟶ X := ⟨λ _, x₂, continuous_of_discrete_topology⟩,
+    let g₁ : of punit ⟶ X := ⟨λ _, x₁, continuous_const⟩,
+    let g₂ : of punit ⟶ X := ⟨λ _, x₂, continuous_const⟩,
     have : g₁ ≫ f = g₂ ≫ f, by { ext, exact h },
     rw cancel_mono at this,
     apply_fun (λ e, e punit.star) at this,

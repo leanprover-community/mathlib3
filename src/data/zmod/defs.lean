@@ -10,6 +10,9 @@ import data.fintype.lattice
 /-!
 # Definition of `zmod n` + basic results.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the basic details of `zmod n`, including its commutative ring structure.
 
 ## Implementation details
@@ -38,25 +41,24 @@ to register the ring structure on `zmod n` as type class instance.
 
 open nat.modeq int
 
-/-- Multiplicative commutative semigroup structure on `fin (n+1)`. -/
-instance (n : ℕ) : comm_semigroup (fin (n+1)) :=
+/-- Multiplicative commutative semigroup structure on `fin n`. -/
+instance (n : ℕ) : comm_semigroup (fin n) :=
 { mul_assoc := λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
-    (calc ((a * b) % (n+1) * c) ≡ a * b * c [MOD (n+1)] : (nat.mod_modeq _ _).mul_right _
-      ... ≡ a * (b * c) [MOD (n+1)] : by rw mul_assoc
-      ... ≡ a * (b * c % (n+1)) [MOD (n+1)] : (nat.mod_modeq _ _).symm.mul_left _),
-  mul_comm := λ ⟨a, _⟩ ⟨b, _⟩,
-    fin.eq_of_veq (show (a * b) % (n+1) = (b * a) % (n+1), by rw mul_comm),
+    (calc ((a * b) % n * c) ≡ a * b * c [MOD n] : (nat.mod_modeq _ _).mul_right _
+      ... ≡ a * (b * c) [MOD n] : by rw mul_assoc
+      ... ≡ a * (b * c % n) [MOD n] : (nat.mod_modeq _ _).symm.mul_left _),
+  mul_comm := fin.mul_comm,
   ..fin.has_mul }
 
-private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b + c) = a * b + a * c :=
+private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin n, a * (b + c) = a * b + a * c :=
 λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
-(calc a * ((b + c) % (n+1)) ≡ a * (b + c) [MOD (n+1)] : (nat.mod_modeq _ _).mul_left _
-  ... ≡ a * b + a * c [MOD (n+1)] : by rw mul_add
-  ... ≡ (a * b) % (n+1) + (a * c) % (n+1) [MOD (n+1)] :
+(calc a * ((b + c) % n) ≡ a * (b + c) [MOD n] : (nat.mod_modeq _ _).mul_left _
+  ... ≡ a * b + a * c [MOD n] : by rw mul_add
+  ... ≡ (a * b) % n + (a * c) % n [MOD n] :
         (nat.mod_modeq _ _).symm.add (nat.mod_modeq _ _).symm)
 
-/-- Commutative ring structure on `fin (n+1)`. -/
-instance (n : ℕ) : comm_ring (fin (n+1)) :=
+/-- Commutative ring structure on `fin n`. -/
+instance (n : ℕ) [ne_zero n] : comm_ring (fin n) :=
 { one_mul := fin.one_mul,
   mul_one := fin.mul_one,
   left_distrib := left_distrib_aux n,

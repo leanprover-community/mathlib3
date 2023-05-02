@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.set.intervals.basic
+import data.set.n_ary
 
 /-!
 
 # Upper / lower bounds
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define:
 
@@ -567,25 +571,25 @@ by simp only [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici,
 #### Univ
 -/
 
-lemma is_greatest_univ [preorder γ] [order_top γ] : is_greatest (univ : set γ) ⊤ :=
-⟨mem_univ _, λ x hx, le_top⟩
+@[simp] lemma is_greatest_univ_iff : is_greatest univ a ↔ is_top a :=
+by simp [is_greatest, mem_upper_bounds, is_top]
+
+lemma is_greatest_univ [order_top α] : is_greatest (univ : set α) ⊤ :=
+is_greatest_univ_iff.2 is_top_top
 
 @[simp] lemma order_top.upper_bounds_univ [partial_order γ] [order_top γ] :
   upper_bounds (univ : set γ) = {⊤} :=
 by rw [is_greatest_univ.upper_bounds_eq, Ici_top]
 
-lemma is_lub_univ [preorder γ] [order_top γ] : is_lub (univ : set γ) ⊤ :=
-is_greatest_univ.is_lub
+lemma is_lub_univ [order_top α] : is_lub (univ : set α) ⊤ := is_greatest_univ.is_lub
 
 @[simp] lemma order_bot.lower_bounds_univ [partial_order γ] [order_bot γ] :
   lower_bounds (univ : set γ) = {⊥} :=
 @order_top.upper_bounds_univ γᵒᵈ _ _
 
-lemma is_least_univ [preorder γ] [order_bot γ] : is_least (univ : set γ) ⊥ :=
-@is_greatest_univ γᵒᵈ _ _
-
-lemma is_glb_univ [preorder γ] [order_bot γ] : is_glb (univ : set γ) ⊥ :=
-is_least_univ.is_glb
+@[simp] lemma is_least_univ_iff : is_least univ a ↔ is_bot a := @is_greatest_univ_iff αᵒᵈ _ _
+lemma is_least_univ [order_bot α] : is_least (univ : set α) ⊥ := @is_greatest_univ αᵒᵈ _ _
+lemma is_glb_univ [order_bot α] : is_glb (univ : set α) ⊥ := is_least_univ.is_glb
 
 @[simp] lemma no_max_order.upper_bounds_univ [no_max_order α] : upper_bounds (univ : set α) = ∅ :=
 eq_empty_of_subset_empty $ λ b hb, let ⟨x, hx⟩ := exists_gt b in
@@ -615,10 +619,11 @@ by simp only [bdd_above, upper_bounds_empty, univ_nonempty]
 @[simp] lemma bdd_below_empty [nonempty α] : bdd_below (∅ : set α) :=
 by simp only [bdd_below, lower_bounds_empty, univ_nonempty]
 
-lemma is_glb_empty [preorder γ] [order_top γ] : is_glb ∅ (⊤:γ) :=
-by simp only [is_glb, lower_bounds_empty, is_greatest_univ]
+@[simp] lemma is_glb_empty_iff : is_glb ∅ a ↔ is_top a := by simp [is_glb]
+@[simp] lemma is_lub_empty_iff : is_lub ∅ a ↔ is_bot a := @is_glb_empty_iff αᵒᵈ _ _
 
-lemma is_lub_empty [preorder γ] [order_bot γ] : is_lub ∅ (⊥:γ) := @is_glb_empty γᵒᵈ _ _
+lemma is_glb_empty [order_top α] : is_glb ∅ (⊤:α) := is_glb_empty_iff.2 is_top_top
+lemma is_lub_empty [order_bot α] : is_lub ∅ (⊥:α) := @is_glb_empty αᵒᵈ _ _
 
 lemma is_lub.nonempty [no_min_order α] (hs : is_lub s a) : s.nonempty :=
 let ⟨a', ha'⟩ := exists_lt a in
@@ -679,11 +684,11 @@ by rw [insert_eq, upper_bounds_union, upper_bounds_singleton]
 by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 
 /-- When there is a global maximum, every set is bounded above. -/
-@[simp] protected lemma order_top.bdd_above [preorder γ] [order_top γ] (s : set γ) : bdd_above s :=
+@[simp] protected lemma order_top.bdd_above [order_top α] (s : set α) : bdd_above s :=
 ⟨⊤, λ a ha, order_top.le_top a⟩
 
 /-- When there is a global minimum, every set is bounded below. -/
-@[simp] protected lemma order_bot.bdd_below [preorder γ] [order_bot γ] (s : set γ) : bdd_below s :=
+@[simp] protected lemma order_bot.bdd_below [order_bot α] (s : set α) : bdd_below s :=
 ⟨⊥, λ a ha, order_bot.bot_le a⟩
 
 /-!

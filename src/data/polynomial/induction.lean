@@ -9,6 +9,9 @@ import data.polynomial.basic
 /-!
 # Induction on polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas dealing with different flavours of induction on polynomials.
 See also `data/polynomial/inductions.lean` (with an `s`!).
 

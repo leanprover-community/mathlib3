@@ -10,9 +10,10 @@ import algebra.order.monoid.lemmas
 # Lemmas about `min` and `max` in an ordered monoid.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/763
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
+
+open function
 
 variables {α β : Type*}
 
@@ -44,26 +45,6 @@ variable [covariant_class α α (*) (≤)]
 lemma max_mul_mul_left (a b c : α) : max (a * b) (a * c) = a * max b c :=
 (monotone_id.const_mul' a).map_max.symm
 
-@[to_additive]
-lemma lt_or_lt_of_mul_lt_mul [covariant_class α α (function.swap (*)) (≤)]
-  {a b m n : α} (h : m * n < a * b) :
-  m < a ∨ n < b :=
-by { contrapose! h, exact mul_le_mul' h.1 h.2 }
-
-@[to_additive]
-lemma mul_lt_mul_iff_of_le_of_le
-  [covariant_class α α (function.swap (*)) (<)]
-  [covariant_class α α (*) (<)]
-  [covariant_class α α (function.swap (*)) (≤)]
-  {a b c d : α} (ac : a ≤ c) (bd : b ≤ d) :
-  a * b < c * d ↔ (a < c) ∨ (b < d) :=
-begin
-  refine ⟨lt_or_lt_of_mul_lt_mul, λ h, _⟩,
-  cases h with ha hb,
-  { exact mul_lt_mul_of_lt_of_le ha bd },
-  { exact mul_lt_mul_of_le_of_lt ac hb }
-end
-
 end left
 
 section right
@@ -78,6 +59,37 @@ lemma max_mul_mul_right (a b c : α) : max (a * c) (b * c) = max a b * c :=
 (monotone_id.mul_const' c).map_max.symm
 
 end right
+
+@[to_additive] lemma lt_or_lt_of_mul_lt_mul [covariant_class α α (*) (≤)]
+  [covariant_class α α (swap (*)) (≤)] {a₁ a₂ b₁ b₂ : α} :
+  a₁ * b₁ < a₂ * b₂ → a₁ < a₂ ∨ b₁ < b₂ :=
+by { contrapose!, exact λ h, mul_le_mul' h.1 h.2 }
+
+@[to_additive] lemma le_or_lt_of_mul_le_mul [covariant_class α α (*) (≤)]
+  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} :
+  a₁ * b₁ ≤ a₂ * b₂ → a₁ ≤ a₂ ∨ b₁ < b₂ :=
+by { contrapose!, exact λ h, mul_lt_mul_of_lt_of_le h.1 h.2 }
+
+@[to_additive] lemma lt_or_le_of_mul_le_mul [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (≤)]  {a₁ a₂ b₁ b₂ : α} :
+  a₁ * b₁ ≤ a₂ * b₂ → a₁ < a₂ ∨ b₁ ≤ b₂ :=
+by { contrapose!, exact λ h, mul_lt_mul_of_le_of_lt h.1 h.2 }
+
+@[to_additive] lemma le_or_le_of_mul_le_mul [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} :
+  a₁ * b₁ ≤ a₂ * b₂ → a₁ ≤ a₂ ∨ b₁ ≤ b₂ :=
+by { contrapose!, exact λ h, mul_lt_mul_of_lt_of_lt h.1 h.2 }
+
+@[to_additive] lemma mul_lt_mul_iff_of_le_of_le  [covariant_class α α (*) (≤)]
+  [covariant_class α α (swap (*)) (≤)] [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} (ha : a₁ ≤ a₂) (hb : b₁ ≤ b₂) :
+  a₁ * b₁ < a₂ * b₂ ↔ a₁ < a₂ ∨ b₁ < b₂ :=
+begin
+  refine ⟨lt_or_lt_of_mul_lt_mul, _⟩,
+  rintro (ha | hb),
+  { exact mul_lt_mul_of_lt_of_le ha hb },
+  { exact mul_lt_mul_of_le_of_lt ha hb }
+end
 
 end has_mul
 

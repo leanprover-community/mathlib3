@@ -37,7 +37,7 @@ arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 noncomputable theory
 
 open function filter set
-open_locale topological_space
+open_locale topology
 
 namespace real
 

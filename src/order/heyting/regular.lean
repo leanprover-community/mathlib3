@@ -8,6 +8,9 @@ import order.galois_connection
 /-!
 # Heyting regular elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Heyting regular elements, elements of an Heyting algebra that are their own double
 complement, and proves that they form a boolean algebra.
 

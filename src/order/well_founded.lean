@@ -9,6 +9,9 @@ import data.set.image
 /-!
 # Well-founded relations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A relation is well-founded if it can be used for induction: for each `x`, `(∀ y, r y x → P y) → P x`
 implies `P x`. Well-founded relations can be used for induction and recursion, including
 construction of fixed points in the space of dependent functions `Π x : α , β x`.
@@ -68,26 +71,6 @@ begin
   by_contra hy',
   exact hm' y hy' hy
 end
-
-lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
-begin
-  split,
-  { intros xle nge,
-    cases le_not_le_of_lt nge,
-    rw xle left at nge,
-    exact lt_irrefl x nge },
-  { intros ngt xle,
-    contrapose! ngt,
-    exact lt_of_le_of_ne xle (ne.symm ngt) }
-end
-
-theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
-by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
-
-theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
-@well_founded_iff_has_max' αᵒᵈ _
 
 open set
 /-- The supremum of a bounded, well-founded order -/

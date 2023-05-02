@@ -8,6 +8,9 @@ import data.set.lattice
 /-!
 # Formal concept analysis
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines concept lattices. A concept of a relation `r : α → β → Prop` is a pair of sets
 `s : set α` and `t : set β` such that `s` is the set of all `a : α` that are related to all elements
 of `t`, and `t` is the set of all `b : β` that are related to all elements of `s`.

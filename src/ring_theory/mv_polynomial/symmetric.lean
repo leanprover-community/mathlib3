@@ -10,6 +10,9 @@ import algebra.algebra.subalgebra.basic
 /-!
 # Symmetric Polynomials and Elementary Symmetric Polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines symmetric `mv_polynomial`s and elementary symmetric `mv_polynomial`s.
 We also prove some basic facts about them.
 
@@ -212,7 +215,7 @@ begin
   classical,
   have : (finsupp.to_multiset ∘ λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1) = finset.val,
   { funext, simp [finsupp.to_multiset_sum_single] },
-  rw [degrees, support_esymm, sup_finset_image, this, ←comp_sup_eq_sup_comp],
+  rw [degrees, support_esymm, sup_image, this, ←comp_sup_eq_sup_comp],
   { obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hpos.ne',
     simpa using powerset_len_sup _ _ (nat.lt_of_succ_le hn) },
   { intros,

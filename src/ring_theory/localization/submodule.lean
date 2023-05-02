@@ -10,6 +10,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Submodules in localizations of commutative rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Implementation notes
 
 See `src/ring_theory/localization/basic.lean` for a design overview.

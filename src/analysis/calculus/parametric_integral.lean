@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import measure_theory.integral.set_integral
-import analysis.calculus.mean_value
 
 /-!
 # Derivatives of integrals depending on parameters
@@ -54,7 +53,7 @@ integral, derivative
 noncomputable theory
 
 open topological_space measure_theory filter metric
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} [measurable_space α] {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜]
           {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_space 𝕜 E]

@@ -142,7 +142,7 @@ begin
   refine ramification_idx_spec (ideal.le_of_dvd _) (mt ideal.dvd_iff_le.mpr _);
     rw [dvd_iff_normalized_factors_le_normalized_factors (pow_ne_zero _ hP0) hp0,
         normalized_factors_pow, normalized_factors_irreducible hPirr, normalize_eq,
-        multiset.nsmul_singleton, ← multiset.le_count_iff_repeat_le],
+        multiset.nsmul_singleton, ← multiset.le_count_iff_replicate_le],
   { exact (nat.lt_succ_self _).not_le },
 end
 
@@ -417,8 +417,8 @@ begin
     have mem_span_b :
       ((submodule.mkq (map (algebra_map R S) p)) x :
         S ⧸ map (algebra_map R S) p) ∈ submodule.span (R ⧸ p) (set.range b) := b.mem_span _,
-    rw [← @submodule.restrict_scalars_mem R, algebra.span_restrict_scalars_eq_span_of_surjective
-        (show function.surjective (algebra_map R (R ⧸ p)), from ideal.quotient.mk_surjective) _,
+    rw [← @submodule.restrict_scalars_mem R,
+        submodule.restrict_scalars_span R (R ⧸ p) ideal.quotient.mk_surjective,
         b_eq_b', set.range_comp, ← submodule.map_span]
       at mem_span_b,
     obtain ⟨y, y_mem, y_eq⟩ := submodule.mem_map.mp mem_span_b,
@@ -581,7 +581,7 @@ begin
   letI := classical.dec_eq (ideal S),
   rw [sup_eq_prod_inf_factors _ (pow_ne_zero _ hP0), normalized_factors_pow,
       normalized_factors_irreducible ((ideal.prime_iff_is_prime hP0).mpr hP).irreducible,
-      normalize_eq, multiset.nsmul_singleton, multiset.inter_repeat, multiset.prod_repeat],
+      normalize_eq, multiset.nsmul_singleton, multiset.inter_replicate, multiset.prod_replicate],
   rw [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq] at a_mem a_not_mem,
   rwa [ideal.count_normalized_factors_eq a_mem a_not_mem, min_eq_left i.le_succ],
   { intro ha,
@@ -606,44 +606,44 @@ end
 
 /-- Since the inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)` has a kernel isomorphic to `P / S`,
 `[P^i / P^e : R / p] = [P^(i+1) / P^e : R / p] + [P / S : R / p]` -/
-lemma dim_pow_quot_aux [is_domain S] [is_dedekind_domain S] [p.is_maximal] [P.is_prime]
+lemma rank_pow_quot_aux [is_domain S] [is_dedekind_domain S] [p.is_maximal] [P.is_prime]
   (hP0 : P ≠ ⊥) {i : ℕ} (hi : i < e) :
   module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ i)) =
   module.rank (R ⧸ p) (S ⧸ P) + module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ (i + 1))) :=
 begin
   letI : field (R ⧸ p) := ideal.quotient.field _,
-  rw [dim_eq_of_injective _ (pow_quot_succ_inclusion_injective f p P i),
-      (quotient_range_pow_quot_succ_inclusion_equiv f p P hP0 hi).symm.dim_eq],
-  exact (dim_quotient_add_dim (linear_map.range (pow_quot_succ_inclusion f p P i))).symm,
+  rw [rank_eq_of_injective _ (pow_quot_succ_inclusion_injective f p P i),
+      (quotient_range_pow_quot_succ_inclusion_equiv f p P hP0 hi).symm.rank_eq],
+  exact (rank_quotient_add_rank (linear_map.range (pow_quot_succ_inclusion f p P i))).symm,
 end
 
-lemma dim_pow_quot [is_domain S] [is_dedekind_domain S] [p.is_maximal] [P.is_prime]
+lemma rank_pow_quot [is_domain S] [is_dedekind_domain S] [p.is_maximal] [P.is_prime]
   (hP0 : P ≠ ⊥) (i : ℕ) (hi : i ≤ e) :
   module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ i)) =
   (e - i) • module.rank (R ⧸ p) (S ⧸ P) :=
 begin
   refine @nat.decreasing_induction' _ i e (λ j lt_e le_j ih, _) hi _,
-  { rw [dim_pow_quot_aux f p P _ lt_e, ih, ← succ_nsmul, nat.sub_succ, ← nat.succ_eq_add_one,
+  { rw [rank_pow_quot_aux f p P _ lt_e, ih, ← succ_nsmul, nat.sub_succ, ← nat.succ_eq_add_one,
       nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt lt_e)],
     assumption },
   { rw [nat.sub_self, zero_nsmul, map_quotient_self],
-    exact dim_bot (R ⧸ p) (S ⧸ (P^e)) }
+    exact rank_bot (R ⧸ p) (S ⧸ (P^e)) }
 end
 
 omit hfp
 
 /-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
 then the dimension `[S/(P^e) : R/p]` is equal to `e * [S/P : R/p]`. -/
-lemma dim_prime_pow_ramification_idx [is_domain S] [is_dedekind_domain S] [p.is_maximal]
+lemma rank_prime_pow_ramification_idx [is_domain S] [is_dedekind_domain S] [p.is_maximal]
   [P.is_prime] (hP0 : P ≠ ⊥) (he : e ≠ 0) :
   module.rank (R ⧸ p) (S ⧸ P^e) =
   e • @module.rank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
     @@quotient.algebra_quotient_of_ramification_idx_ne_zero _ _ _ _ _ ⟨he⟩) :=
 begin
   letI : ne_zero e := ⟨he⟩,
-  have := dim_pow_quot f p P hP0 0 (nat.zero_le e),
+  have := rank_pow_quot f p P hP0 0 (nat.zero_le e),
   rw [pow_zero, nat.sub_zero, ideal.one_eq_top, ideal.map_top] at this,
-  exact (dim_top (R ⧸ p) _).symm.trans this
+  exact (rank_top (R ⧸ p) _).symm.trans this
 end
 
 /-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
@@ -657,12 +657,12 @@ begin
   letI : ne_zero e := ⟨he⟩,
   letI : algebra (R ⧸ p) (S ⧸ P) := quotient.algebra_quotient_of_ramification_idx_ne_zero f p P,
   letI := ideal.quotient.field p,
-  have hdim := dim_prime_pow_ramification_idx _ _ _ hP0 he,
+  have hdim := rank_prime_pow_ramification_idx _ _ _ hP0 he,
   by_cases hP : finite_dimensional (R ⧸ p) (S ⧸ P),
   { haveI := hP,
     haveI := (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mpr hP,
     refine cardinal.nat_cast_injective _,
-    rw [finrank_eq_dim, nat.cast_mul, finrank_eq_dim, hdim, nsmul_eq_mul] },
+    rw [finrank_eq_rank', nat.cast_mul, finrank_eq_rank', hdim, nsmul_eq_mul] },
   have hPe := mt (finite_dimensional_iff_of_rank_eq_nsmul he hdim).mp hP,
   simp only [finrank_of_infinite_dimensional hP, finrank_of_infinite_dimensional hPe, mul_zero],
 end
@@ -815,7 +815,7 @@ begin
           finrank (R ⧸ p) (S ⧸ (P : ideal S)^(e P)) : _
   ... = finrank (R ⧸ p) (Π P : (factors (map (algebra_map R S) p)).to_finset,
           (S ⧸ (P : ideal S)^(e P))) :
-    (module.free.finrank_pi_fintype (R ⧸ p)).symm
+    (finrank_pi_fintype (R ⧸ p)).symm
   ... = finrank (R ⧸ p) (S ⧸ map (algebra_map R S) p) : _
   ... = finrank K L : _,
   { rw ← finset.sum_attach,

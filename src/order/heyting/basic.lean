@@ -9,7 +9,6 @@ import order.prop_instances
 # Heyting algebras
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/793
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines Heyting, co-Heyting and bi-Heyting algebras.
@@ -296,6 +295,10 @@ by rw [himp_inf_distrib, himp_self, top_inf_eq, h.himp_eq_left]
 lemma codisjoint.himp_inf_cancel_left (h : codisjoint a b) : b ⇨ (a ⊓ b) = a :=
 by rw [himp_inf_distrib, himp_self, inf_top_eq, h.himp_eq_right]
 
+/-- See `himp_le` for a stronger version in Boolean algebras. -/
+lemma codisjoint.himp_le_of_right_le (hac : codisjoint a c) (hba : b ≤ a) : c ⇨ b ≤ a :=
+(himp_le_himp_left hba).trans_eq hac.himp_eq_right
+
 lemma le_himp_himp : a ≤ (a ⇨ b) ⇨ b := le_himp_iff.2 inf_himp_le
 
 lemma himp_triangle (a b c : α) : (a ⇨ b) ⊓ (b ⇨ c) ≤ a ⇨ c :=
@@ -442,6 +445,10 @@ by rw [sup_sdiff, sdiff_self, bot_sup_eq, h.sdiff_eq_right]
 
 lemma disjoint.sup_sdiff_cancel_right (h : disjoint a b) : (a ⊔ b) \ b = a :=
 by rw [sup_sdiff, sdiff_self, sup_bot_eq, h.sdiff_eq_left]
+
+/-- See `le_sdiff` for a stronger version in generalised Boolean algebras. -/
+lemma disjoint.le_sdiff_of_le_left (hac : disjoint a c) (hab : a ≤ b) : a ≤ b \ c :=
+hac.sdiff_eq_left.ge.trans $ sdiff_le_sdiff_right hab
 
 lemma sdiff_sdiff_le : a \ (a \ b) ≤ b := sdiff_le_iff.2 le_sdiff_sup
 

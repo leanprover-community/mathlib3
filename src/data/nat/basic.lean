@@ -11,7 +11,6 @@ import algebra.ring.defs
 # Basic operations on the natural numbers
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/729
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains:
@@ -79,15 +78,10 @@ instance : semiring ℕ                     := infer_instance
 
 protected lemma nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n := rfl
 
-theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
-by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
-
 instance nat.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero ℕ :=
 { mul_left_cancel_of_ne_zero :=
     λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
-  mul_right_cancel_of_ne_zero :=
-    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
-  .. (infer_instance : comm_monoid_with_zero ℕ) }
+  .. nat.comm_semiring }
 
 attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.zero_ne_one nat.one_ne_zero
@@ -216,18 +210,14 @@ by { rw ←not_iff_not, push_neg, exact forall_lt_succ }
 @[simp] theorem add_def {a b : ℕ} : nat.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℕ} : nat.mul a b = a * b := rfl
 
-lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
-| 0 0 h := ⟨0, by simp⟩
-| 0 (n+1) h := ⟨n+1, by simp⟩
-| (m+1) (n+1) h :=
-  let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
-  ⟨k, by simp [hk, add_comm, add_left_comm]⟩
+lemma exists_eq_add_of_le (h : m ≤ n) : ∃ k : ℕ, n = m + k :=
+⟨n - m, (nat.add_sub_of_le h).symm⟩
 
-lemma exists_eq_add_of_lt : ∀ {m n : ℕ}, m < n → ∃ k : ℕ, n = m + k + 1
-| 0 0 h := false.elim $ lt_irrefl _ h
-| 0 (n+1) h := ⟨n, by simp⟩
-| (m+1) (n+1) h := let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
-  ⟨k, by simp [hk]⟩
+lemma exists_eq_add_of_le' (h : m ≤ n) : ∃ k : ℕ, n = k + m :=
+⟨n - m, (nat.sub_add_cancel h).symm⟩
+
+lemma exists_eq_add_of_lt (h : m < n) : ∃ k : ℕ, n = m + k + 1 :=
+⟨n - (m + 1), by rw [add_right_comm, nat.add_sub_of_le h]⟩
 
 /-! ### `pred` -/
 
@@ -553,6 +543,7 @@ by { rw mul_comm, exact mod_add_div _ _ }
 lemma div_add_mod' (m k : ℕ) : (m / k) * k + m % k = m :=
 by { rw mul_comm, exact div_add_mod _ _ }
 
+/-- See also `nat.div_mod_equiv` for a similar statement as an `equiv`. -/
 protected theorem div_mod_unique {n k m d : ℕ} (h : 0 < k) :
   n / k = d ∧ n % k = m ↔ m + k * d = n ∧ m < k :=
 ⟨λ ⟨e₁, e₂⟩, e₁ ▸ e₂ ▸ ⟨mod_add_div _ _, mod_lt _ h⟩,

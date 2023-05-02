@@ -10,6 +10,9 @@ import algebraic_topology.dold_kan.functor_n
 
 # Comparison with the normalized Moore complex functor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we show that when the category `A` is abelian,
@@ -120,11 +123,18 @@ def N₁_iso_normalized_Moore_complex_comp_to_karoubi :
 { hom :=
   { app := λ X,
     { f := P_infty_to_normalized_Moore_complex X,
-      comm := by tidy, }, },
+      comm := by erw [comp_id, P_infty_comp_P_infty_to_normalized_Moore_complex] },
+    naturality' := λ X Y f, by simp only [functor.comp_map, normalized_Moore_complex_map,
+      P_infty_to_normalized_Moore_complex_naturality, karoubi.hom_ext, karoubi.comp_f, N₁_map_f,
+      P_infty_comp_P_infty_to_normalized_Moore_complex_assoc, to_karoubi_map_f, assoc] },
   inv :=
   { app := λ X,
     { f := inclusion_of_Moore_complex_map X,
-      comm := by tidy, }, },
+      comm := by erw [inclusion_of_Moore_complex_map_comp_P_infty, id_comp] },
+    naturality' := λ X Y f, by { ext, simp only [functor.comp_map, normalized_Moore_complex_map,
+      karoubi.comp_f, to_karoubi_map_f, homological_complex.comp_f, normalized_Moore_complex.map_f,
+      inclusion_of_Moore_complex_map_f, factor_thru_arrow, N₁_map_f,
+      inclusion_of_Moore_complex_map_comp_P_infty_assoc, alternating_face_map_complex.map_f] } },
   hom_inv_id' := begin
     ext X : 3,
     simp only [P_infty_to_normalized_Moore_complex_comp_inclusion_of_Moore_complex_map,

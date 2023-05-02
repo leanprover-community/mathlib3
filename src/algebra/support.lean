@@ -14,6 +14,9 @@ import group_theory.group_action.pi
 /-!
 # Support of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `function.support f = {x | f x ≠ 0}` and prove its basic properties.
 We also define `function.mul_support f = {x | f x ≠ 1}`.
 -/
@@ -197,6 +200,36 @@ mul_support_binop_subset (λ a b, a * b⁻¹) (by simp) f g
 mul_support_binop_subset (/) one_div_one f g
 
 end division_monoid
+
+section zero_one
+variables (R) [has_zero R] [has_one R] [ne_zero (1 : R)]
+
+@[simp] lemma support_one : support (1 : α → R) = univ := support_const one_ne_zero
+@[simp] lemma mul_support_zero : mul_support (0 : α → R) = univ := mul_support_const zero_ne_one
+
+end zero_one
+
+section add_monoid_with_one
+variables [add_monoid_with_one R] [char_zero R] {n : ℕ}
+
+lemma support_nat_cast (hn : n ≠ 0) : support (n : α → R) = univ :=
+support_const $ nat.cast_ne_zero.2 hn
+
+lemma mul_support_nat_cast (hn : n ≠ 1) : mul_support (n : α → R) = univ :=
+mul_support_const $ nat.cast_ne_one.2 hn
+
+end add_monoid_with_one
+
+section add_group_with_one
+variables [add_group_with_one R] [char_zero R] {n : ℤ}
+
+lemma support_int_cast (hn : n ≠ 0) : support (n : α → R) = univ :=
+support_const $ int.cast_ne_zero.2 hn
+
+lemma mul_support_int_cast (hn : n ≠ 1) : mul_support (n : α → R) = univ :=
+mul_support_const $ int.cast_ne_one.2 hn
+
+end add_group_with_one
 
 lemma support_smul [has_zero R] [has_zero M] [smul_with_zero R M] [no_zero_smul_divisors R M]
   (f : α → R) (g : α → M) :

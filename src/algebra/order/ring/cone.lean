@@ -8,6 +8,9 @@ import algebra.order.ring.defs
 /-!
 # Constructing an ordered ring from a ring with a specified positive cone.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 /-! ### Positive cones -/

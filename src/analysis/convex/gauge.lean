@@ -6,7 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.convex.basic
 import analysis.normed_space.pointwise
 import analysis.seminorm
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import tactic.congrm
 
 /-!

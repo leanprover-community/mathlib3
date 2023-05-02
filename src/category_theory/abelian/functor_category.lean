@@ -11,6 +11,9 @@ import category_theory.limits.preserves.shapes.kernels
 /-!
 # If `D` is abelian, then the functor category `C ⥤ D` is also abelian.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 noncomputable theory

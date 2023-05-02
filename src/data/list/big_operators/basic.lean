@@ -3,10 +3,14 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
+import data.int.order.basic
 import data.list.forall2
 
 /-!
 # Sums and products from lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides basic results about `list.prod`, `list.sum`, which calculate the product and sum
 of elements of a list and `list.alternating_prod`, `list.alternating_sum`, their alternating
@@ -48,17 +52,17 @@ lemma prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
 
 @[simp, priority 500, to_additive]
-theorem prod_repeat (a : M) (n : ℕ) : (repeat a n).prod = a ^ n :=
+theorem prod_replicate (n : ℕ) (a : M) : (replicate n a).prod = a ^ n :=
 begin
   induction n with n ih,
   { rw pow_zero, refl },
-  { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
+  { rw [list.replicate_succ, list.prod_cons, ih, pow_succ] }
 end
 
 @[to_additive sum_eq_card_nsmul]
 lemma prod_eq_pow_card (l : list M) (m : M) (h : ∀ (x ∈ l), x = m) :
   l.prod = m ^ l.length :=
-by rw [← prod_repeat, ← list.eq_repeat.mpr ⟨rfl, h⟩]
+by rw [← prod_replicate, ← eq_replicate_length.2 h]
 
 @[to_additive]
 lemma prod_hom_rel (l : list ι) {r : M → N → Prop} {f : ι → M} {g : ι → N} (h₁ : r 1 1)
@@ -91,13 +95,8 @@ l.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 @[simp]
 lemma prod_map_neg {α} [comm_monoid α] [has_distrib_neg α] (l : list α) :
   (l.map has_neg.neg).prod = (-1) ^ l.length * l.prod :=
-begin
-  convert @prod_map_mul α α _ l (λ _, -1) id,
-  { ext, rw neg_one_mul, refl },
-  { convert (prod_repeat _ _).symm, rw eq_repeat,
-    use l.length_map _, intro, rw mem_map, rintro ⟨_, _, rfl⟩, refl },
-  { rw l.map_id },
-end
+by simpa only [id, neg_mul, one_mul, map_const', prod_replicate, map_id]
+    using @prod_map_mul α α _ l (λ _, -1) id
 
 @[to_additive]
 lemma prod_map_hom (L : list ι) (f : ι → M) {G : Type*} [monoid_hom_class G M N] (g : G) :
@@ -265,7 +264,7 @@ lemma prod_le_pow_card [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
   (l : list M) (n : M) (h : ∀ (x ∈ l), x ≤ n) :
   l.prod ≤ n ^ l.length :=
-by simpa only [map_id'', map_const, prod_repeat] using prod_le_prod' h
+by simpa only [map_id'', map_const, prod_replicate] using prod_le_prod' h
 
 @[to_additive exists_lt_of_sum_lt] lemma exists_lt_of_prod_lt' [linear_order M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)] {l : list ι}
@@ -475,8 +474,8 @@ lemma prod_map_erase [decidable_eq ι] [comm_monoid M] (f : ι → M) {a} :
         mul_left_comm (f a) (f b)], }
   end
 
-@[simp] lemma sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
-by induction n; [refl, simp only [*, repeat_succ, sum_cons, nat.mul_succ, add_comm]]
+lemma sum_const_nat (m n : ℕ) : sum (replicate m n) = m * n :=
+by rw [sum_replicate, smul_eq_mul]
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/
@@ -487,6 +486,16 @@ begin
   { rw prod_cons,
     exact mul_pos (h _ $ mem_cons_self _ _) (ih $ λ a ha, h a $ mem_cons_of_mem _ ha) }
 end
+
+/-- A variant of `list.prod_pos` for `canonically_ordered_comm_semiring`. -/
+@[simp]
+lemma _root_.canonically_ordered_comm_semiring.list_prod_pos
+  {α : Type*} [canonically_ordered_comm_semiring α] [nontrivial α] :
+    Π {l : list α}, 0 < l.prod ↔ (∀ x ∈ l, (0 : α) < x)
+| [] := ⟨λ h x hx, hx.elim, λ _, zero_lt_one⟩
+| (x :: xs) := by simp_rw [prod_cons, mem_cons_iff, forall_eq_or_imp,
+    canonically_ordered_comm_semiring.mul_pos,
+    _root_.canonically_ordered_comm_semiring.list_prod_pos]
 
 /-!
 Several lemmas about sum/head/tail for `list ℕ`.
@@ -534,6 +543,18 @@ by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv
 by rw [div_eq_mul_inv, alternating_prod_cons']
 
 end alternating
+
+lemma sum_nat_mod (l : list ℕ) (n : ℕ) : l.sum % n = (l.map (% n)).sum % n :=
+by induction l; simp [nat.add_mod, *]
+
+lemma prod_nat_mod (l : list ℕ) (n : ℕ) : l.prod % n = (l.map (% n)).prod % n :=
+by induction l; simp [nat.mul_mod, *]
+
+lemma sum_int_mod (l : list ℤ) (n : ℤ) : l.sum % n = (l.map (% n)).sum % n :=
+by induction l; simp [int.add_mod, *]
+
+lemma prod_int_mod (l : list ℤ) (n : ℤ) : l.prod % n = (l.map (% n)).prod % n :=
+by induction l; simp [int.mul_mod, *]
 
 end list
 

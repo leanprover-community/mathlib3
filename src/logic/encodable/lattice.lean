@@ -9,6 +9,9 @@ import logic.pairwise
 /-!
 # Lattice operations on encodable types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lemmas about lattice and set operations on encodable types
 
 ## Implementation Notes

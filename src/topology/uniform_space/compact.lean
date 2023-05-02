@@ -6,9 +6,13 @@ Authors: Patrick Massot, Yury Kudryashov
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.equicontinuity
 import topology.separation
+import topology.support
 
 /-!
 # Compact separated uniform spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main statements
 
@@ -32,7 +36,7 @@ loop.
 uniform space, uniform continuity, compact space
 -/
 
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topology filter
 open filter uniform_space set
 
 variables {α β γ : Type*} [uniform_space α] [uniform_space β]
@@ -73,24 +77,15 @@ end
 /-- The unique uniform structure inducing a given compact topological structure. -/
 def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_space γ] :
   uniform_space γ :=
-{ uniformity := ⨆ x, 𝓝 (x, x),
-  refl := begin
-    simp_rw [filter.principal_le_iff, mem_supr],
-    rintros V V_in ⟨x, _⟩ ⟨⟩,
-    exact mem_of_mem_nhds (V_in x),
-  end,
-  symm := begin
-    refine le_of_eq _,
-    rw filter.map_supr,
-    congr' with x : 1,
-    erw [nhds_prod_eq, ← prod_comm],
-  end,
+{ uniformity := 𝓝ˢ (diagonal γ),
+  refl := principal_le_nhds_set,
+  symm := continuous_swap.tendsto_nhds_set $ λ x, eq.symm,
   comp := begin
     /-
-    This is the difficult part of the proof. We need to prove that, for each neighborhood W
-    of the diagonal Δ, W ○ W is still a neighborhood of the diagonal.
+    This is the difficult part of the proof. We need to prove that, for each neighborhood `W`
+    of the diagonal `Δ`, there exists a smaller neighborhood `V` such that `V ○ V ⊆ W`.
     -/
-    set 𝓝Δ := ⨆ x : γ, 𝓝 (x, x), -- The filter of neighborhoods of Δ
+    set 𝓝Δ := 𝓝ˢ (diagonal γ), -- The filter of neighborhoods of Δ
     set F := 𝓝Δ.lift' (λ (s : set (γ × γ)), s ○ s), -- Compositions of neighborhoods of Δ
     -- If this weren't true, then there would be V ∈ 𝓝Δ such that F ⊓ 𝓟 Vᶜ ≠ ⊥
     rw le_iff_forall_inf_principal_compl,
@@ -106,14 +101,9 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
     { have : (x, y) ∈ closure (Vᶜ), by rwa mem_closure_iff_cluster_pt,
       rwa closure_compl at this },
     have diag_subset : diagonal γ ⊆ interior V,
-    { rw subset_interior_iff_nhds,
-      rintros ⟨x, x⟩ ⟨⟩,
-      exact (mem_supr.mp V_in : _) x },
+      from subset_interior_iff_mem_nhds_set.2 V_in,
     have x_ne_y : x ≠ y,
-    { intro h,
-      apply this,
-      apply diag_subset,
-      simp [h] },
+      from mt (@diag_subset (x, y)) this,
     -- Since γ is compact and Hausdorff, it is normal, hence T₃.
     haveI : normal_space γ := normal_of_compact_t2,
     -- So there are closed neighboords V₁ and V₂ of x and y contained in disjoint open neighborhoods
@@ -124,20 +114,15 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
     -- We set U₃ := (V₁ ∪ V₂)ᶜ so that W := U₁ ×ˢ U₁ ∪ U₂ ×ˢ U₂ ∪ U₃ ×ˢ U₃ is an open
     -- neighborhood of Δ.
     let U₃ := (V₁ ∪ V₂)ᶜ,
-    have U₃_op : is_open U₃ :=
-      is_open_compl_iff.mpr (is_closed.union V₁_cl V₂_cl),
+    have U₃_op : is_open U₃ := (V₁_cl.union V₂_cl).is_open_compl,
     let W := U₁ ×ˢ U₁ ∪ U₂ ×ˢ U₂ ∪ U₃ ×ˢ U₃,
     have W_in : W ∈ 𝓝Δ,
-    { rw mem_supr,
-      intros x,
-      apply is_open.mem_nhds (is_open.union (is_open.union _ _) _),
-      { by_cases hx : x ∈ V₁ ∪ V₂,
-        { left,
-          cases hx with hx hx ; [left, right] ; split ; tauto },
-        { right,
-          rw mem_prod,
-          tauto }, },
-      all_goals { simp only [is_open.prod, *] } },
+    { rw [mem_nhds_set_iff_forall],
+      rintros ⟨z, z'⟩ (rfl : z = z'),
+      refine is_open.mem_nhds _ _,
+      { apply_rules [is_open.union, is_open.prod] },
+      { simp only [mem_union, mem_prod, and_self],
+        exact (em _).imp_left (λ h, union_subset_union VU₁ VU₂ h) } },
     -- So W ○ W ∈ F by definition of F
     have : W ○ W ∈ F, by simpa only using mem_lift' W_in,
     -- And V₁ ×ˢ V₂ ∈ 𝓝 (x, y)
@@ -160,19 +145,16 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
   is_open_uniformity := begin
     -- Here we need to prove the topology induced by the constructed uniformity is the
     -- topology we started with.
-    suffices : ∀ x : γ, filter.comap (prod.mk x) (⨆ y, 𝓝 (y ,y)) = 𝓝 x,
+    suffices : ∀ x : γ, filter.comap (prod.mk x) (𝓝ˢ (diagonal γ)) = 𝓝 x,
     { intros s,
-      change is_open s ↔ _,
-      simp_rw [is_open_iff_mem_nhds, nhds_eq_comap_uniformity_aux, this] },
+      simp_rw [is_open_fold, is_open_iff_mem_nhds, ← mem_comap_prod_mk, this] },
     intros x,
-    simp_rw [comap_supr, nhds_prod_eq, comap_prod,
-             show prod.fst ∘ prod.mk x = λ y : γ, x, by ext ; simp,
-             show prod.snd ∘ (prod.mk x) = (id : γ → γ), by ext ; refl, comap_id],
+    simp_rw [nhds_set_diagonal, comap_supr, nhds_prod_eq, comap_prod, (∘), comap_id'],
     rw [supr_split_single _ x, comap_const_of_mem (λ V, mem_of_mem_nhds)],
     suffices : ∀ y ≠ x, comap (λ (y : γ), x) (𝓝 y) ⊓ 𝓝 y ≤ 𝓝 x,
       by simpa,
     intros y hxy,
-    simp [comap_const_of_not_mem (compl_singleton_mem_nhds hxy) (by simp)],
+    simp [comap_const_of_not_mem (compl_singleton_mem_nhds hxy) (not_not.2 rfl)]
   end }
 
 /-!
@@ -183,12 +165,9 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
 continuous. -/
 lemma compact_space.uniform_continuous_of_continuous [compact_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
-calc
-map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw compact_space_uniformity
-                     ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw filter.map_supr
-                     ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_mono (λ x, (h.prod_map h).continuous_at)
-                     ... ≤ ⨆ y, 𝓝 (y, y)         : supr_comp_le (λ y, 𝓝 (y, y)) f
-                     ... ≤ 𝓤 β                   : supr_nhds_le_uniformity
+have tendsto (prod.map f f) (𝓝ˢ (diagonal α)) (𝓝ˢ (diagonal β)),
+  from (h.prod_map h).tendsto_nhds_set maps_to_prod_map_diagonal,
+(this.mono_left nhds_set_diagonal_eq_uniformity.ge).mono_right nhds_set_diagonal_le_uniformity
 
 /-- Heine-Cantor: a continuous function on a compact set of a uniform space is uniformly
 continuous. -/
@@ -222,19 +201,39 @@ begin
   exacts [mem_ball_self _ (hT a a.2), mem_Inter₂.1 h a ha],
 end
 
-lemma continuous.uniform_continuous_of_zero_at_infty {f : α → β} [has_zero β]
-  (h_cont : continuous f) (h_zero : tendsto f (cocompact α) (𝓝 0)) : uniform_continuous f :=
+lemma continuous.uniform_continuous_of_tendsto_cocompact {f : α → β} {x : β}
+  (h_cont : continuous f) (hx : tendsto f (cocompact α) (𝓝 x)) : uniform_continuous f :=
 uniform_continuous_def.2 $ λ r hr, begin
   obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
-  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (h_zero $ mem_nhds_left 0 ht),
+  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (hx $ mem_nhds_left _ ht),
   apply mem_of_superset (symmetrize_mem_uniformity $ hs.uniform_continuous_at_of_continuous_at
     f (λ _ _, h_cont.continuous_at) $ symmetrize_mem_uniformity hr),
   rintro ⟨b₁, b₂⟩ h,
   by_cases h₁ : b₁ ∈ s, { exact (h.1 h₁).1 },
   by_cases h₂ : b₂ ∈ s, { exact (h.2 h₂).2 },
   apply htr,
-  exact ⟨0, htsymm.mk_mem_comm.1 (hst h₁), hst h₂⟩,
+  exact ⟨x, htsymm.mk_mem_comm.1 (hst h₁), hst h₂⟩,
 end
+
+/-- If `f` has compact multiplicative support, then `f` tends to 1 at infinity. -/
+@[to_additive "If `f` has compact support, then `f` tends to zero at infinity."]
+lemma has_compact_mul_support.is_one_at_infty {f : α → γ} [topological_space γ] [has_one γ]
+  (h : has_compact_mul_support f) : tendsto f (cocompact α) (𝓝 1) :=
+begin
+  -- porting note: move to src/topology/support.lean once the port is over
+  intros N hN,
+  rw [mem_map, mem_cocompact'],
+  refine ⟨mul_tsupport f, h.is_compact, _⟩,
+  rw compl_subset_comm,
+  intros v hv,
+  rw [mem_preimage, image_eq_one_of_nmem_mul_tsupport hv],
+  exact mem_of_mem_nhds hN,
+end
+
+@[to_additive]
+lemma has_compact_mul_support.uniform_continuous_of_continuous {f : α → β} [has_one β]
+  (h1 : has_compact_mul_support f) (h2 : continuous f) : uniform_continuous f :=
+h2.uniform_continuous_of_tendsto_cocompact h1.is_one_at_infty
 
 /-- A family of functions `α → β → γ` tends uniformly to its value at `x` if `α` is locally compact,
 `β` is compact and `f` is continuous on `U × (univ : set β)` for some neighborhood `U` of `x`. -/

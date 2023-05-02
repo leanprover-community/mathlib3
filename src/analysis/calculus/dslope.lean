@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import linear_algebra.affine_space.slope
 
 /-!
 # Slope of a differentiable function
@@ -17,7 +16,7 @@ In this file we define `dslope` and prove some basic lemmas about its continuity
 differentiability.
 -/
 
-open_locale classical topological_space filter
+open_locale classical topology filter
 open function set filter
 
 variables {𝕜 E : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]

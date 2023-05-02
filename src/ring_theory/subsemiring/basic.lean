@@ -16,6 +16,9 @@ import group_theory.submonoid.membership
 /-!
 # Bundled subsemirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define bundled subsemirings and some standard constructions: `complete_lattice` structure,
 `subtype` and `inclusion` ring homomorphisms, subsemiring `map`, `comap` and range (`srange`) of
 a `ring_hom` etc.
@@ -29,9 +32,9 @@ section add_submonoid_with_one_class
 
 /-- `add_submonoid_with_one_class S R` says `S` is a type of subsets `s ≤ R` that contain `0`, `1`,
 and are closed under `(+)` -/
-class add_submonoid_with_one_class (S : Type*) (R : out_param $ Type*)
+class add_submonoid_with_one_class (S : Type*) (R : Type*)
   [add_monoid_with_one R] [set_like S R]
-  extends add_submonoid_class S R, one_mem_class S R
+  extends add_submonoid_class S R, one_mem_class S R : Prop
 
 variables {S R : Type*} [add_monoid_with_one R] [set_like S R] (s : S)
 
@@ -55,13 +58,11 @@ section subsemiring_class
 
 /-- `subsemiring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both a multiplicative and an additive submonoid. -/
-class subsemiring_class (S : Type*) (R : out_param $ Type u) [non_assoc_semiring R] [set_like S R]
-  extends submonoid_class S R :=
-(add_mem : ∀ {s : S} {a b : R}, a ∈ s → b ∈ s → a + b ∈ s)
-(zero_mem : ∀ (s : S), (0 : R) ∈ s)
+class subsemiring_class (S : Type*) (R : Type u) [non_assoc_semiring R] [set_like S R]
+  extends submonoid_class S R, add_submonoid_class S R : Prop
 
 @[priority 100] -- See note [lower instance priority]
-instance subsemiring_class.add_submonoid_with_one_class (S : Type*) (R : out_param $ Type u)
+instance subsemiring_class.add_submonoid_with_one_class (S : Type*) (R : Type u)
   [non_assoc_semiring R] [set_like S R] [h : subsemiring_class S R] :
   add_submonoid_with_one_class S R :=
 { .. h }
@@ -881,15 +882,26 @@ variables [set_like σR R] [set_like σS S] [subsemiring_class σR R] [subsemiri
 open subsemiring
 
 /-- Restriction of a ring homomorphism to a subsemiring of the domain. -/
-def restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
+def dom_restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
 
-@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.restrict s x = f x := rfl
+@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.dom_restrict s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to a subsemiring of the codomain. -/
 def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
   .. (f : R →* S).cod_restrict s h,
   .. (f : R →+ S).cod_restrict s h }
+
+/-- The ring homomorphism from the preimage of `s` to `s`. -/
+def restrict (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) :
+  s' →+* s := (f.dom_restrict s').cod_restrict s (λ x, h x x.2)
+
+@[simp] lemma coe_restrict_apply (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) (x : s') :
+  (f.restrict s' s h x : S) = f x := rfl
+
+@[simp] lemma comp_restrict (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) :
+  (subsemiring_class.subtype s).comp (f.restrict s' s h) = f.comp (subsemiring_class.subtype s') :=
+rfl
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 

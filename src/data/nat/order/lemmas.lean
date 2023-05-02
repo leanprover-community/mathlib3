@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.nat.order.basic
+import data.nat.units
 import data.set.basic
 import algebra.ring.divisibility
 import algebra.group_with_zero.divisibility
 
 /-!
 # Further lemmas about the natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The distinction between this file and `data.nat.order.basic` is not particularly clear.
 They are separated by now to minimize the porting requirements for tactics during the transition to
@@ -18,7 +22,7 @@ mathlib4. After `data.rat.order` has been ported, please feel free to reorganize
 
 universes u v
 
-variables {m n k : ℕ}
+variables {a b m n k : ℕ}
 namespace nat
 
 /-! ### Sets -/
@@ -179,6 +183,13 @@ the small number is zero. -/
 lemma eq_zero_of_dvd_of_lt {a b : ℕ} (w : a ∣ b) (h : b < a) : b = 0 :=
 nat.eq_zero_of_dvd_of_div_eq_zero w
   ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
+
+lemma le_of_lt_add_of_dvd (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
+begin
+  rintro ⟨a, rfl⟩ ⟨b, rfl⟩,
+  rw ←mul_add_one at h,
+  exact mul_le_mul_left' (lt_succ_iff.1 $ lt_of_mul_lt_mul_left h bot_le) _,
+end
 
 @[simp] lemma mod_div_self (m n : ℕ) : m % n / n = 0 :=
 begin

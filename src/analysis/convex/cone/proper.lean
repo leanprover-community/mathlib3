@@ -15,8 +15,7 @@ linear programs, the results from this file can be used to prove duality theorem
 
 ## TODO
 
-In the next few PRs (already sorry-free), we will add the definition and prove several properties
-of proper cones and finally prove the cone version of Farkas' lemma (2.3.4 in the reference).
+In the next few PRs (already sorry-free), we will prove the cone version of Farkas' lemma (2.3.4 in the reference).
 
 The next steps are:
 - Define primal and dual cone programs and prove weak duality.

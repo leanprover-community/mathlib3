@@ -202,7 +202,7 @@ norm_algebra_map' K r
 /-- ℝ and ℂ are both of characteristic zero.  -/
 @[priority 100] -- see Note [lower instance priority]
 instance char_zero_R_or_C : char_zero K :=
-(algebra_map ℝ K).injective.char_zero
+(ring_hom.char_zero_iff (algebra_map ℝ K).injective).1 infer_instance
 
 /-! ### The imaginary unit, `I` -/
 

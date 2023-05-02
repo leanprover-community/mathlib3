@@ -206,15 +206,6 @@ by { apply ne_zero.of_map f, simp only [map_nat_cast, hn] }
 
 end ring_hom_class
 
-protected theorem function.injective.char_zero' {M N F} [add_monoid_with_one M]
-  [add_monoid_with_one N] [char_zero M] [add_monoid_hom_class F M N] {f : F}
-  (hf : function.injective f) (h₁ : f 1 = 1) : char_zero N :=
-⟨λ m n h, nat.cast_injective $ hf $ by rwa [map_nat_cast' f h₁, map_nat_cast' f h₁]⟩
-
-protected theorem function.injective.char_zero {R S F} [non_assoc_semiring R] [non_assoc_semiring S]
-  [char_zero R] [ring_hom_class F R S] {f : F} (hf : function.injective f) : char_zero S :=
-hf.char_zero' (map_one f)
-
 namespace ring_hom
 
 /-- This is primed to match `eq_int_cast'`. -/

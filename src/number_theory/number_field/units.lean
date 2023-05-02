@@ -86,15 +86,29 @@ lemma coe_to_field.injective : function.injective (coe_to_field K) :=
 useful to also have a direct one from `(𝓞 K)ˣ` to `K`. -/
 instance ring_of_integers.units.has_coe : has_coe (𝓞 K)ˣ K := ⟨coe_to_field K⟩
 
+variable {K}
+
 @[ext]
 lemma ext {x y : (𝓞 K)ˣ} : x = y ↔ (x : K) = (y : K) := (coe_to_field.injective K).eq_iff.symm
+
+@[simp]
+lemma coe_one : ((1 : (𝓞 K)ˣ) : K) = (1 : K) := rfl
+
+@[simp]
+lemma coe_mul {x y : (𝓞 K)ˣ} : ((x * y : (𝓞 K)ˣ) : K) = (x : K) * (y : K) := rfl
+
+@[simp]
+lemma coe_inv {x : (𝓞 K)ˣ} : ((x⁻¹ : (𝓞 K)ˣ) : K) = (x : K)⁻¹ :=
+map_inv (coe_to_field K) x
 
 @[simp]
 lemma coe_pow {x : (𝓞 K)ˣ} {n : ℕ} : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
 map_pow (coe_to_field K) _ _
 
 @[simp]
-lemma coe_one : ((1 : (𝓞 K)ˣ) : K) = (1 : K) := rfl
+lemma coe_ne_zero {x : (𝓞 K)ˣ} : (x : K) ≠ 0 := subtype.coe_injective.ne_iff.2 (units.ne_zero x)
+
+variable (K)
 
 section torsion
 
@@ -146,6 +160,7 @@ end torsion
 namespace dirichlet
 
 open number_field.canonical_embedding number_field finite_dimensional
+open_locale classical
 
 /-- The multiplicity of an infinite place: it is equal to `1` if the place is real and `2` if
 the place is complex. -/
@@ -171,19 +186,15 @@ def log_embedding : (𝓞 K)ˣ → ({w : infinite_place K // w ≠ w₀} → ℝ
 open number_field number_field.infinite_place finite_dimensional number_field.units
 
 lemma log_embedding.map_one : log_embedding K 1 = 0 :=
-by simpa [log_embedding, units_to_field.map_one, map_one, real.log_one]
+by simpa [log_embedding, coe_one, map_one, real.log_one]
 
 lemma log_embedding.map_mul (x y : (𝓞 K)ˣ) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
-by simpa only [log_embedding, real.log_mul, units_to_field.map_mul, units_to_field.ne_zero,
-    map_mul, mul_add, ne.def, map_eq_zero, not_false_iff]
+by simpa only [log_embedding, real.log_mul, coe_mul, coe_ne_zero, map_mul, mul_add, ne.def,
+  map_eq_zero, not_false_iff]
 
 lemma log_embedding.map_inv (x : (𝓞 K)ˣ) : log_embedding K x⁻¹ = - log_embedding K x :=
-by simpa only [log_embedding, units_to_field.map_inv, map_inv₀, real.log_inv, mul_neg]
-
--- lemma log_embedding.map_zpow (x : 𝓤 K) (n : ℤ) :
--- log_embedding K (x ^ n) = n • log_embedding K x :=
--- sorry -- by simpa only [log_embedding, units_to_field.map_zpow, map_zpow₀, real.log_zpow]
+by simpa only [log_embedding, coe_inv, map_inv₀, real.log_inv, mul_neg]
 
 @[simp]
 lemma log_embedding.component {w : infinite_place K} (hw : w ≠ w₀) (x : (𝓞 K)ˣ) :
@@ -200,9 +211,9 @@ begin
       { simp [mult, apply_ite real.log, real.log_pow, nat.cast_two, ite_mul, one_mul], },
       { rw ne.def,
         split_ifs;
-        simp only [map_eq_zero, units_to_field.ne_zero, not_false_iff, pow_eq_zero_iff,
-          nat.succ_pos'], }},
-    { convert (congr_arg real.log (congr_arg (coe : ℚ → ℝ) (unit.abs_norm K x))).symm,
+        simp only [map_eq_zero, coe_ne_zero, not_false_iff, pow_eq_zero_iff, nat.succ_pos'], }},
+    { convert (congr_arg real.log (congr_arg (coe : ℚ → ℝ)
+        ((is_unit_iff_norm K x).mp x.is_unit))).symm,
       { simp only [algebra_map.coe_one, real.log_one], },
       { simpa only [rat.cast_abs], }}},
   { rw @finset.sum_subtype _ _ _ (λ w, w ≠ w₀) infer_instance (finset.univ.erase w₀) (λ _, _)
@@ -220,13 +231,13 @@ begin
   { by_cases hw : w = w₀,
     { suffices : mult K w₀ * real.log (w₀ (x : K)) = 0,
       { rw hw,
-        exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero)
+        exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr coe_ne_zero)
           ((mul_eq_zero.mp this).resolve_left (ne_of_gt (mult_pos K _))), },
       { rw [← neg_eq_zero, ← neg_mul, ← log_embedding.sum_component],
         exact finset.sum_eq_zero (λ w _, h w), }},
     { specialize h ⟨w, hw⟩,
       rw [log_embedding.component, pi.zero_apply] at h,
-      exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr units_to_field.ne_zero)
+      exact real.eq_one_of_pos_of_log_eq_zero (pos_iff.mpr coe_ne_zero)
         ((mul_eq_zero.mp h).resolve_left (ne_of_gt (mult_pos K _))), }},
   { simp only [log_embedding, h w, pi.zero_apply, real.log_one, subtype.val_eq_coe, mul_zero], },
 end
@@ -273,7 +284,7 @@ begin
       have one_le_mult : ∀ w : infinite_place K, 1 ≤ mult K w,
       { intro w, simp only [mult], split_ifs; norm_num, },
       intro w,
-      rw ← (real.log_le_iff_le_exp (infinite_place.pos_iff.mpr units_to_field.ne_zero)),
+      rw ← (real.log_le_iff_le_exp (infinite_place.pos_iff.mpr coe_ne_zero)),
       by_cases hw : w = w₀,
       { rw [hw, ← mul_le_mul_left (lt_of_lt_of_le one_pos (one_le_mult w₀)), ← neg_le_neg_iff,
           ← neg_mul, ← neg_mul, ← log_embedding.sum_component K u],
@@ -294,7 +305,7 @@ begin
         refine le_mul_of_one_le_left (nnreal.coe_nonneg r) _,
         exact one_le_mul_of_one_le_of_one_le (one_le_mult w)
           (nat.one_le_cast.mpr fintype.card_pos), }},
-    { refine set.finite.of_finite_image _ (set.inj_on_of_injective (units_to_field.injective K) _),
+    { refine set.finite.of_finite_image _ (set.inj_on_of_injective (coe_to_field.injective K) _),
       refine (embeddings.finite_of_norm_le K ℂ
         (real.exp (fintype.card (infinite_place K) * r))).subset _,
       rintros _ ⟨u, hu, rfl⟩,
@@ -445,7 +456,7 @@ begin
     ideal.span ({ seq w hB n } : set (𝓞 K)) = ideal.span { seq w hB m },
   { obtain ⟨u, hu⟩ := ideal.span_singleton_eq_span_singleton.mp h,
     refine ⟨u, λ z hz, real.log_neg _ _⟩,
-    { exact pos_iff.mpr units_to_field.ne_zero, },
+    { exact pos_iff.mpr coe_ne_zero, },
     { refine (mul_lt_iff_lt_one_right ((@pos_iff _ _ z _).mpr (seq.ne_zero w hB n))).mp _,
       rw ← map_mul,
       convert seq.antitone w hB n m hnm z hz,
@@ -493,3 +504,4 @@ by { rw ← rank_space K,
 
 end dirichlet
 
+end number_field.units

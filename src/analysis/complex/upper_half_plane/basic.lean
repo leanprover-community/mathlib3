@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 import data.fintype.parity
-import analysis.complex.basic
+import data.is_R_or_C.basic
+import data.complex.exponential
+import data.complex.module
 import linear_algebra.matrix.general_linear_group
 import tactic.linear_combination
 

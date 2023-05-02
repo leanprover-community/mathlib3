@@ -184,6 +184,14 @@ begin
   exact lt_irrefl _ (((one_lt_sq_iff $ zero_le_one.trans ha.le).mpr ha).trans_eq prop),
 end
 
+/-- If a solution has `x > 1`, then `d` is positive. -/
+lemma d_pos_of_one_lt_x {a : solution₁ d} (ha : 1 < a.x) : 0 < d :=
+begin
+  refine pos_of_mul_pos_left _ (sq_nonneg a.y),
+  rw [a.prop_y, sub_pos],
+  exact one_lt_pow ha two_ne_zero,
+end
+
 /-- A solution with `x = 1` is trivial. -/
 lemma eq_one_of_x_eq_one (h₀ : d ≠ 0) {a : solution₁ d} (ha : a.x = 1) : a = 1 :=
 begin

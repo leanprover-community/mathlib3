@@ -487,7 +487,7 @@ begin
   exact λ y, ⟨y + 1, λ z hyz, by rwa le_sub_iff_add_le⟩,
 end
 
-lemma measure_univ {l : ℝ} (hfl : tendsto f at_bot (𝓝 l)) {u : ℝ} (hfu : tendsto f at_top (𝓝 u)) :
+lemma measure_univ {l u : ℝ} (hfl : tendsto f at_bot (𝓝 l)) (hfu : tendsto f at_top (𝓝 u)) :
   f.measure univ = of_real (u - l) :=
 begin
   refine tendsto_nhds_unique (tendsto_measure_Iic_at_top _) _,

@@ -437,15 +437,13 @@ namespace is_fundamental
 open solution₁
 
 /-- A fundamental solution has positive `x`. -/
-lemma x_pos {a : solution₁ d} (h : is_fundamental a) : 0 < a.x :=
-zero_lt_one.trans h.1
+lemma x_pos {a : solution₁ d} (h : is_fundamental a) : 0 < a.x := zero_lt_one.trans h.1
 
 /-- If a fundamental solution exists, then `d` must be positive. -/
 lemma d_pos {a : solution₁ d} (h : is_fundamental a) : 0 < d := d_pos_of_one_lt_x h.1
 
 /-- If there is a fundamental solution, it is unique. -/
-lemma unique {a b : solution₁ d} (ha : is_fundamental a) (hb : is_fundamental b) :
-  a = b :=
+lemma unique {a b : solution₁ d} (ha : is_fundamental a) (hb : is_fundamental b) : a = b :=
 begin
   have hx := le_antisymm (ha.2.2 hb.1) (hb.2.2 ha.1),
   refine solution₁.ext hx _,
@@ -658,6 +656,7 @@ theorem pos_generator_iff_fundamental (hd : ¬ is_square d) (a : solution₁ d) 
 begin
   refine ⟨_, λ H, ⟨H.1, H.2.1, H.zpow_or_neg_zpow⟩⟩,
   intro h,
+  have h₀ := d_pos_of_one_lt_x h.1,
   obtain ⟨a₁, ha₁⟩ := is_fundamental.exists_of_not_is_square h₀ hd,
   obtain ⟨b, hb₁, hb₂⟩ := exists_unique_pos_generator h₀ hd,
   rwa [hb₂ a h, ← hb₂ a₁ ⟨ha₁.1, ha₁.2.1, ha₁.zpow_or_neg_zpow⟩],

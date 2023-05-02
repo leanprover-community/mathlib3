@@ -387,6 +387,16 @@ lemma exists_seq_antitone_tendsto_at_top_at_bot (α : Type*) [semilattice_inf α
   ∃ xs : ℕ → α, antitone xs ∧ tendsto xs at_top at_bot :=
 @exists_seq_monotone_tendsto_at_top_at_top αᵒᵈ _ h h2
 
+-- todo after the port: move to topology/algebra/order/monotone_convergence
+lemma supr_eq_supr_subseq_of_antitone {ι₁ ι₂ α : Type*} [preorder ι₂] [complete_lattice α]
+  {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : antitone f)
+  (hφ : tendsto φ l at_bot) :
+  (⨆ i, f i) = (⨆ i, f (φ i)) :=
+le_antisymm
+  (supr_mono' (λ i, exists_imp_exists (λ j (hj : φ j ≤ i), hf hj)
+    (hφ.eventually $ eventually_le_at_bot i).exists))
+  (supr_mono' (λ i, ⟨φ i, le_rfl⟩))
+
 lemma tendsto_measure_Ico_at_top {α : Type*} {mα : measurable_space α} [semilattice_sup α]
   [no_max_order α] [(at_top : filter α).ne_bot] [(at_top : filter α).is_countably_generated]
   (μ : measure α) (a : α) :
@@ -400,30 +410,17 @@ begin
     simp only [mem_Ici, mem_Union, mem_Ico, exists_and_distrib_left, iff_self_and],
     intro _,
     obtain ⟨y, hxy⟩ := no_max_order.exists_gt x,
-    rw tendsto_at_top_at_top at hxs_tendsto,
-    obtain ⟨n, hn⟩ := hxs_tendsto y,
+    obtain ⟨n, hn⟩ := tendsto_at_top_at_top.mp hxs_tendsto y,
     exact ⟨n, hxy.trans_le (hn n le_rfl)⟩, },
   rw [h_Ici, measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
   exact monotone.directed_le (λ i j hij, Ico_subset_Ico_right (hxs_mono hij)),
 end
 
-lemma supr_eq_supr_subseq_of_antitone {ι₁ ι₂ α : Type*} [preorder ι₂] [complete_lattice α]
-  {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : antitone f)
-  (hφ : tendsto φ l at_bot) :
-  (⨆ i, f i) = (⨆ i, f (φ i)) :=
--- todo: make order_dual work
-le_antisymm
-  (supr_mono' (λ i, exists_imp_exists (λ j (hj : φ j ≤ i), hf hj)
-    (hφ.eventually $ eventually_le_at_bot i).exists))
-  (supr_mono' (λ i, ⟨φ i, le_rfl⟩))
-
 lemma tendsto_measure_Ioc_at_bot {α : Type*} {mα : measurable_space α} [semilattice_inf α]
-  [no_min_order α] [h1 : (at_bot : filter α).ne_bot]
-  [h2 : (at_bot : filter α).is_countably_generated]
+  [no_min_order α] [(at_bot : filter α).ne_bot] [(at_bot : filter α).is_countably_generated]
   (μ : measure α) (a : α) :
   tendsto (λ x, μ (Ioc x a)) at_bot (𝓝 (μ (Iic a))) :=
 begin
-  -- todo: make order_dual work
   have h_mono : antitone (λ x, μ (Ioc x a)) := λ i j hij, measure_mono (Ioc_subset_Ioc_left hij),
   convert tendsto_at_bot_supr h_mono,
   obtain ⟨xs, hxs_mono, hxs_tendsto⟩ := exists_seq_antitone_tendsto_at_top_at_bot α,
@@ -432,8 +429,7 @@ begin
     simp only [mem_Iic, mem_Union, mem_Ioc, exists_and_distrib_right, iff_and_self],
     intro _,
     obtain ⟨y, hxy⟩ := no_min_order.exists_lt x,
-    rw tendsto_at_top_at_bot at hxs_tendsto,
-    obtain ⟨n, hn⟩ := hxs_tendsto y,
+    obtain ⟨n, hn⟩ := tendsto_at_top_at_bot.mp hxs_tendsto y,
     exact ⟨n, (hn n le_rfl).trans_lt hxy⟩, },
   rw [h_Iic, measure_Union_eq_supr, supr_eq_supr_subseq_of_antitone h_mono hxs_tendsto],
   exact monotone.directed_le (λ i j hij, Ioc_subset_Ioc_left (hxs_mono hij)),
@@ -450,16 +446,14 @@ begin
   have h_univ : (univ : set α) = ⋃ n, Iic (xs n),
   { ext1 x,
     simp only [mem_univ, mem_Union, mem_Iic, true_iff],
-    rw tendsto_at_top_at_top at hxs_tendsto,
-    obtain ⟨n, hn⟩ := hxs_tendsto x,
+    obtain ⟨n, hn⟩ := tendsto_at_top_at_top.mp hxs_tendsto x,
     exact ⟨n, hn n le_rfl⟩, },
   rw [h_univ, measure_Union_eq_supr, supr_eq_supr_subseq_of_monotone h_mono hxs_tendsto],
   exact monotone.directed_le (λ i j hij, Iic_subset_Iic.mpr (hxs_mono hij)),
 end
 
 lemma tendsto_measure_Ici_at_bot {α : Type*} {mα : measurable_space α} [semilattice_inf α]
-  [h1 : (at_bot : filter α).ne_bot]
-  [h2 : (at_bot : filter α).is_countably_generated]
+  [h1 : (at_bot : filter α).ne_bot] [h2 : (at_bot : filter α).is_countably_generated]
   (μ : measure α) :
   tendsto (λ x, μ (Ici x)) at_bot (𝓝 (μ univ)) :=
 @tendsto_measure_Iic_at_top αᵒᵈ _ _ h1 h2 μ
@@ -487,6 +481,13 @@ begin
   exact λ y, ⟨y + 1, λ z hyz, by rwa le_sub_iff_add_le⟩,
 end
 
+lemma measure_univ {l u : ℝ} (hfl : tendsto f at_bot (𝓝 l)) (hfu : tendsto f at_top (𝓝 u)) :
+  f.measure univ = of_real (u - l) :=
+begin
+  refine tendsto_nhds_unique (tendsto_measure_Iic_at_top _) _,
+  simp_rw measure_Iic f hfl,
+  exact ennreal.tendsto_of_real (tendsto.sub_const hfu _),
+end
 
 instance : is_locally_finite_measure f.measure :=
 ⟨λ x, ⟨Ioo (x-1) (x+1), Ioo_mem_nhds (by linarith) (by linarith), by simp⟩⟩

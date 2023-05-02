@@ -631,6 +631,10 @@ end
 
 end summable_norm_Icc
 
+/-! ### Substituting `-x` for `x`
+
+These lemmas are stated in terms of either `Iic` or `Ioi` (neglecting `Iio` and `Ici`) to match
+mathlib's conventions for integrals over finite intervals (see `interval_integral`). -/
 lemma integral_comp_neg_Iic {E : Type*}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E] (c : ℝ) (f : ℝ → E) :
   ∫ x in Iic c, f (-x) = ∫ x in Ioi (-c), f x :=

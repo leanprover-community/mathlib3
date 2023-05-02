@@ -92,7 +92,7 @@ lemma pointed (K : proper_cone E) : (K : convex_cone ℝ E).pointed :=
 @[ext] lemma ext {S T : proper_cone E} (h : (S : convex_cone ℝ E) = T) : S = T :=
 by cases S; cases T; congr'
 
-/-- We define K* to be the dual of a proper cone. -/
+/-- We define `K*` to be the inner dual cone of `K`. -/
 instance : has_star (proper_cone E) := ⟨ λ K,
   ⟨ (K : set E).inner_dual_cone, ⟨0, pointed_inner_dual_cone _⟩, is_closed_inner_dual_cone _ ⟩ ⟩
 

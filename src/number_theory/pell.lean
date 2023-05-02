@@ -192,6 +192,16 @@ begin
   exact one_lt_pow ha two_ne_zero,
 end
 
+/-- If a solution has `x > 1`, then `d` is not a square. -/
+lemma d_nonsquare_of_one_lt_x {a : solution₁ d} (ha : 1 < a.x) : ¬ is_square d :=
+begin
+  intro h,
+  obtain ⟨b, hb⟩ := h,
+  have hp := a.prop,
+  simp_rw [hb, ← sq, ← mul_pow, sq_sub_sq, int.mul_eq_one_iff_eq_one_or_neg_one] at hp,
+  rcases hp with ⟨hp₁, hp₂⟩ | ⟨hp₁, hp₂⟩; linarith [ha, hp₁, hp₂],
+end
+
 /-- A solution with `x = 1` is trivial. -/
 lemma eq_one_of_x_eq_one (h₀ : d ≠ 0) {a : solution₁ d} (ha : a.x = 1) : a = 1 :=
 begin

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.analytic.basic
-import analysis.calculus.mean_value
+import analysis.calculus.local_extr
 import analysis.calculus.cont_diff_def
 
 /-!

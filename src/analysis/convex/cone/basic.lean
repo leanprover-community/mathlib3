@@ -196,6 +196,7 @@ end mul_action
 section module
 variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
 
+-- TODO: Replace map with a bundled version: convex_cone 𝕜 E →ₗ[𝕜] convex_cone 𝕜 F
 /-- The image of a convex cone under a `𝕜`-linear map is a convex cone. -/
 def map (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) : convex_cone 𝕜 F :=
 { carrier := f '' S,

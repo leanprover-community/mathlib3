@@ -305,12 +305,6 @@ theorem add_conj (z : K) : z + conj z = 2 * (re z) :=
 by simp only [ext_iff, two_mul, map_add, add_zero, of_real_im, conj_im, of_real_re,
               eq_self_iff_true, add_right_neg, conj_re, and_self]
 
-/-- The pseudo-coercion `of_real` as a `ring_hom`. -/
-noncomputable def of_real_hom : ℝ →+* K := algebra_map ℝ K
-
-/-- The coercion from reals as a `ring_hom`. -/
-noncomputable def coe_hom : ℝ →+* K := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
-
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_sub (r s : ℝ) :
   ((r - s : ℝ) : K) = r - s :=
 ext_iff.2 $ by simp only [of_real_im, of_real_re, eq_self_iff_true, sub_zero, and_self, map_sub]
@@ -359,13 +353,6 @@ begin
     field_simp [h, norm_sq] }
 end
 
-protected lemma inv_zero : (0⁻¹ : K) = 0 :=
-by rw [← of_real_zero, ← of_real_inv, inv_zero]
-
-protected theorem mul_inv_cancel {z : K} (h : z ≠ 0) : z * z⁻¹ = 1 :=
-by rw [inv_def, ←mul_assoc, mul_conj, ←of_real_mul, ←norm_sq_eq_def',
-      mul_inv_cancel (mt norm_sq_eq_zero.1 h), of_real_one]
-
 lemma div_re (z w : K) : re (z / w) = re z * re w / norm_sq w + im z * im w / norm_sq w :=
 by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, neg_mul,
               mul_neg, neg_neg, map_neg] with is_R_or_C_simps
@@ -378,7 +365,7 @@ lemma conj_inv (x : K) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_div (r s : ℝ) :
   ((r / s : ℝ) : K) = r / s :=
-map_div₀ (@is_R_or_C.coe_hom K _) r s
+map_div₀ (algebra_map ℝ K) r s
 
 lemma div_re_of_real {z : K} {r : ℝ} : re (z / r) = re z / r :=
 begin
@@ -391,7 +378,7 @@ end
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_zpow (r : ℝ) (n : ℤ) :
   ((r ^ n : ℝ) : K) = r ^ n :=
-map_zpow₀ (@is_R_or_C.coe_hom K _) r n
+map_zpow₀ (algebra_map ℝ K) r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
 by { have := I_mul_I_ax, tauto }
@@ -422,7 +409,7 @@ by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) :
   ((n : ℝ) : K) = n :=
-map_nat_cast (@of_real_hom K _) n
+map_nat_cast (algebra_map ℝ K) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma nat_cast_re (n : ℕ) : re (n : K) = n :=
 by rw [← of_real_nat_cast, of_real_re]
@@ -431,7 +418,7 @@ by rw [← of_real_nat_cast, of_real_re]
 by rw [← of_real_nat_cast, of_real_im]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900]
-lemma of_real_int_cast (n : ℤ) : ((n : ℝ) : K) = n := map_int_cast (@of_real_hom K _) n
+lemma of_real_int_cast (n : ℤ) : ((n : ℝ) : K) = n := map_int_cast (algebra_map ℝ K) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma int_cast_re (n : ℤ) : re (n : K) = n :=
 by rw [← of_real_int_cast, of_real_re]
@@ -441,7 +428,7 @@ by rw [← of_real_int_cast, of_real_im]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900] theorem of_real_rat_cast (n : ℚ) :
   ((n : ℝ) : K) = n :=
-map_rat_cast (@is_R_or_C.of_real_hom K _) n
+map_rat_cast (algebra_map ℝ K) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma rat_cast_re (q : ℚ) : re (q : K) = q :=
 by rw [← of_real_rat_cast, of_real_re]

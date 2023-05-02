@@ -6,7 +6,6 @@ Authors: Calle Sönne
 import analysis.special_functions.trigonometric.basic
 import analysis.normed.group.add_circle
 import algebra.char_zero.quotient
-import algebra.order.to_interval_mod
 import topology.instances.sign
 
 /-!
@@ -407,26 +406,25 @@ begin
   exact abs_cos_eq_of_two_nsmul_eq h
 end
 
-@[simp] lemma coe_to_Ico_mod (θ ψ : ℝ) : ↑(to_Ico_mod ψ two_pi_pos θ) = (θ : angle) :=
+@[simp] lemma coe_to_Ico_mod (θ ψ : ℝ) : ↑(to_Ico_mod two_pi_pos ψ θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,
-  refine ⟨-to_Ico_div ψ two_pi_pos θ, _⟩,
+  refine ⟨-to_Ico_div two_pi_pos ψ θ, _⟩,
   rw [to_Ico_mod_sub_self, zsmul_eq_mul, mul_comm]
 end
 
-@[simp] lemma coe_to_Ioc_mod (θ ψ : ℝ) : ↑(to_Ioc_mod ψ two_pi_pos θ) = (θ : angle) :=
+@[simp] lemma coe_to_Ioc_mod (θ ψ : ℝ) : ↑(to_Ioc_mod two_pi_pos ψ θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,
-  refine ⟨-to_Ioc_div ψ two_pi_pos θ, _⟩,
+  refine ⟨-to_Ioc_div two_pi_pos ψ θ, _⟩,
   rw [to_Ioc_mod_sub_self, zsmul_eq_mul, mul_comm]
 end
 
 /-- Convert a `real.angle` to a real number in the interval `Ioc (-π) π`. -/
 def to_real (θ : angle) : ℝ :=
-(to_Ioc_mod_periodic (-π) two_pi_pos).lift θ
+(to_Ioc_mod_periodic two_pi_pos (-π)).lift θ
 
-lemma to_real_coe (θ : ℝ) : (θ : angle).to_real = to_Ioc_mod (-π) two_pi_pos θ :=
-rfl
+lemma to_real_coe (θ : ℝ) : (θ : angle).to_real = to_Ioc_mod two_pi_pos (-π) θ := rfl
 
 lemma to_real_coe_eq_self_iff {θ : ℝ} : (θ : angle).to_real = θ ↔ -π < θ ∧ θ ≤ π :=
 begin
@@ -458,13 +456,13 @@ end
 lemma neg_pi_lt_to_real (θ : angle) : -π < θ.to_real :=
 begin
   induction θ using real.angle.induction_on,
-  exact left_lt_to_Ioc_mod _ two_pi_pos _
+  exact left_lt_to_Ioc_mod _ _ _
 end
 
 lemma to_real_le_pi (θ : angle) : θ.to_real ≤ π :=
 begin
   induction θ using real.angle.induction_on,
-  convert to_Ioc_mod_le_right _ two_pi_pos _,
+  convert to_Ioc_mod_le_right two_pi_pos _ _,
   ring
 end
 
@@ -474,7 +472,7 @@ abs_le.2 ⟨(neg_pi_lt_to_real _).le, to_real_le_pi _⟩
 lemma to_real_mem_Ioc (θ : angle) : θ.to_real ∈ set.Ioc (-π) π :=
 ⟨neg_pi_lt_to_real _, to_real_le_pi _⟩
 
-@[simp] lemma to_Ioc_mod_to_real (θ : angle): to_Ioc_mod (-π) two_pi_pos θ.to_real = θ.to_real :=
+@[simp] lemma to_Ioc_mod_to_real (θ : angle): to_Ioc_mod two_pi_pos (-π) θ.to_real = θ.to_real :=
 begin
   induction θ using real.angle.induction_on,
   rw to_real_coe,

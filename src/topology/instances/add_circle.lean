@@ -57,17 +57,17 @@ variables {𝕜 B : Type*}
 section continuity
 
 variables [linear_ordered_add_comm_group 𝕜] [archimedean 𝕜]
-  [topological_space 𝕜] [order_topology 𝕜] (a : 𝕜) {p : 𝕜} (hp : 0 < p) (x : 𝕜)
+  [topological_space 𝕜] [order_topology 𝕜] {p : 𝕜} (hp : 0 < p) (a x : 𝕜)
 
-lemma continuous_right_to_Ico_mod : continuous_within_at (to_Ico_mod a hp) (Ici x) x :=
+lemma continuous_right_to_Ico_mod : continuous_within_at (to_Ico_mod hp a) (Ici x) x :=
 begin
   intros s h,
   rw [filter.mem_map, mem_nhds_within_iff_exists_mem_nhds_inter],
   haveI : nontrivial 𝕜 := ⟨⟨0, p, hp.ne⟩⟩,
   simp_rw mem_nhds_iff_exists_Ioo_subset at h ⊢,
   obtain ⟨l, u, hxI, hIs⟩ := h,
-  let d := to_Ico_div a hp x • p,
-  have hd := to_Ico_mod_mem_Ico a hp x,
+  let d := to_Ico_div hp a x • p,
+  have hd := to_Ico_mod_mem_Ico hp a x,
   simp_rw [subset_def, mem_inter_iff],
   refine ⟨_, ⟨l + d, min (a + p) u + d, _, λ x, id⟩, λ y, _⟩;
     simp_rw [← sub_mem_Ioo_iff_left, mem_Ioo, lt_min_iff],
@@ -77,28 +77,28 @@ begin
     exacts [⟨h.1, h.2.2⟩, ⟨hd.1.trans (sub_le_sub_right h' _), h.2.1⟩] },
 end
 
-lemma continuous_left_to_Ioc_mod : continuous_within_at (to_Ioc_mod a hp) (Iic x) x :=
+lemma continuous_left_to_Ioc_mod : continuous_within_at (to_Ioc_mod hp a) (Iic x) x :=
 begin
   rw (funext (λ y, eq.trans (by rw neg_neg) $ to_Ioc_mod_neg _ _ _) :
-    to_Ioc_mod a hp = (λ x, p - x) ∘ to_Ico_mod (-a) hp ∘ has_neg.neg),
+    to_Ioc_mod hp a = (λ x, p - x) ∘ to_Ico_mod hp (-a) ∘ has_neg.neg),
   exact ((continuous_sub_left _).continuous_at.comp_continuous_within_at $
     (continuous_right_to_Ico_mod _ _ _).comp continuous_neg.continuous_within_at $ λ y, neg_le_neg),
 end
 
 variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
 
-lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod a hp =ᶠ[𝓝 x] to_Ioc_mod a hp :=
+lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod hp a =ᶠ[𝓝 x] to_Ioc_mod hp a :=
 is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
   (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 ((mem_Ioo_mod_iff_ne_mod_zmultiples hp).2 hx)
 
-lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod a hp) x :=
-let h := to_Ico_mod_eventually_eq_to_Ioc_mod a hp hx in continuous_at_iff_continuous_left_right.2 $
-  ⟨(continuous_left_to_Ioc_mod a hp x).congr_of_eventually_eq
-    (h.filter_mono nhds_within_le_nhds) h.eq_of_nhds, continuous_right_to_Ico_mod a hp x⟩
+lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod hp a) x :=
+let h := to_Ico_mod_eventually_eq_to_Ioc_mod hp a hx in continuous_at_iff_continuous_left_right.2 $
+  ⟨(continuous_left_to_Ioc_mod hp a x).congr_of_eventually_eq
+    (h.filter_mono nhds_within_le_nhds) h.eq_of_nhds, continuous_right_to_Ico_mod hp a x⟩
 
-lemma continuous_at_to_Ioc_mod : continuous_at (to_Ioc_mod a hp) x :=
-let h := to_Ico_mod_eventually_eq_to_Ioc_mod a hp hx in continuous_at_iff_continuous_left_right.2 $
-  ⟨continuous_left_to_Ioc_mod a hp x, (continuous_right_to_Ico_mod a hp x).congr_of_eventually_eq
+lemma continuous_at_to_Ioc_mod : continuous_at (to_Ioc_mod hp a) x :=
+let h := to_Ico_mod_eventually_eq_to_Ioc_mod hp a hx in continuous_at_iff_continuous_left_right.2 $
+  ⟨continuous_left_to_Ioc_mod hp a x, (continuous_right_to_Ico_mod hp a x).congr_of_eventually_eq
     (h.symm.filter_mono nhds_within_le_nhds) h.symm.eq_of_nhds⟩
 
 end continuity
@@ -160,11 +160,11 @@ quotient_add_group.circular_order
 
 /-- The equivalence between `add_circle p` and the half-open interval `[a, a + p)`, whose inverse
 is the natural quotient map. -/
-def equiv_Ico : add_circle p ≃ Ico a (a + p) := quotient_add_group.equiv_Ico_mod a hp.out
+def equiv_Ico : add_circle p ≃ Ico a (a + p) := quotient_add_group.equiv_Ico_mod hp.out a
 
 /-- The equivalence between `add_circle p` and the half-open interval `(a, a + p]`, whose inverse
 is the natural quotient map. -/
-def equiv_Ioc : add_circle p ≃ Ioc a (a + p) := quotient_add_group.equiv_Ioc_mod a hp.out
+def equiv_Ioc : add_circle p ≃ Ioc a (a + p) := quotient_add_group.equiv_Ioc_mod hp.out a
 
 /-- Given a function on `𝕜`, return the unique function on `add_circle p` agreeing with `f` on
 `[a, a + p)`. -/
@@ -221,14 +221,14 @@ lemma continuous_at_equiv_Ico : continuous_at (equiv_Ico p a) x :=
 begin
   induction x using quotient_add_group.induction_on',
   rw [continuous_at, filter.tendsto, quotient_add_group.nhds_eq, filter.map_map],
-  apply continuous_at.cod_restrict, exact continuous_at_to_Ico_mod a hp.out hx,
+  exact (continuous_at_to_Ico_mod hp.out a hx).cod_restrict _,
 end
 
 lemma continuous_at_equiv_Ioc : continuous_at (equiv_Ioc p a) x :=
 begin
   induction x using quotient_add_group.induction_on',
   rw [continuous_at, filter.tendsto, quotient_add_group.nhds_eq, filter.map_map],
-  apply continuous_at.cod_restrict, exact continuous_at_to_Ioc_mod a hp.out hx,
+  exact (continuous_at_to_Ioc_mod hp.out a hx).cod_restrict _,
 end
 
 end continuity
@@ -495,13 +495,13 @@ def equiv_Icc_quot : 𝕋 ≃ quot (endpoint_ident p a) :=
     apply congr_arg subtype.val ((equiv_Ico p a).right_inv ⟨x, hx.1, hx.2.lt_of_ne h⟩) } }
 
 lemma equiv_Icc_quot_comp_mk_eq_to_Ico_mod : equiv_Icc_quot p a ∘ quotient.mk' =
-  λ x, quot.mk _ ⟨to_Ico_mod a hp.out x, Ico_subset_Icc_self $ to_Ico_mod_mem_Ico a _ x⟩ := rfl
+  λ x, quot.mk _ ⟨to_Ico_mod hp.out a x, Ico_subset_Icc_self $ to_Ico_mod_mem_Ico _ _ x⟩ := rfl
 
 lemma equiv_Icc_quot_comp_mk_eq_to_Ioc_mod : equiv_Icc_quot p a ∘ quotient.mk' =
-  λ x, quot.mk _ ⟨to_Ioc_mod a hp.out x, Ioc_subset_Icc_self $ to_Ioc_mod_mem_Ioc a _ x⟩ :=
+  λ x, quot.mk _ ⟨to_Ioc_mod hp.out a x, Ioc_subset_Icc_self $ to_Ioc_mod_mem_Ioc _ _ x⟩ :=
 begin
   rw equiv_Icc_quot_comp_mk_eq_to_Ico_mod, funext,
-  by_cases mem_Ioo_mod a p x,
+  by_cases mem_Ioo_mod p a x,
   { simp_rw (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp.out).1 h },
   { simp_rw [not_imp_comm.1 (mem_Ioo_mod_iff_to_Ico_mod_ne_left hp.out).2 h,
              not_imp_comm.1 (mem_Ioo_mod_iff_to_Ioc_mod_ne_right hp.out).2 h],

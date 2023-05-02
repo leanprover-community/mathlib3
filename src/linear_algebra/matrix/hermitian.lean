@@ -227,7 +227,7 @@ variables [is_R_or_C α] [is_R_or_C β]
 /-- The diagonal elements of a complex hermitian matrix are real. -/
 lemma is_hermitian.coe_re_apply_self {A : matrix n n α} (h : A.is_hermitian) (i : n) :
   (re (A i i) : α) = A i i :=
-by rw [←eq_conj_iff_re, ←star_def, ←conj_transpose_apply, h.eq]
+by rw [← conj_eq_iff_re, ← star_def, ← conj_transpose_apply, h.eq]
 
 /-- The diagonal elements of a complex hermitian matrix are real. -/
 lemma is_hermitian.coe_re_diag {A : matrix n n α} (h : A.is_hermitian) :

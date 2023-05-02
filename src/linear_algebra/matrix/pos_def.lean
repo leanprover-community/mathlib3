@@ -145,7 +145,7 @@ noncomputable def normed_add_comm_group.of_matrix {M : matrix n n 𝕜} (hM : M.
   normed_add_comm_group (n → 𝕜) :=
 @inner_product_space.of_core.to_normed_add_comm_group _ _ _ _ _
 { inner := λ x y, dot_product (star x) (M.mul_vec y),
-  conj_symm := λ x y, by
+  conj_symm := λ x y, by dsimp only [has_inner.inner];
     rw [star_dot_product, star_ring_end_apply, star_star, star_mul_vec,
       dot_product_mul_vec, hM.is_hermitian.eq],
   nonneg_re := λ x,
@@ -154,10 +154,10 @@ noncomputable def normed_add_comm_group.of_matrix {M : matrix n n 𝕜} (hM : M.
       { simp [h] },
       { exact le_of_lt (hM.2 x h) }
     end,
-  definite := λ x hx,
+  definite := λ x (hx : dot_product _ _ = 0),
     begin
       by_contra' h,
-      simpa [hx, lt_self_iff_false] using hM.2 x h,
+      simpa [hx, lt_irrefl] using hM.2 x h,
     end,
   add_left := by simp only [star_add, add_dot_product, eq_self_iff_true, forall_const],
   smul_left := λ x y r, by rw [← smul_eq_mul, ←smul_dot_product, star_ring_end_apply, ← star_smul] }

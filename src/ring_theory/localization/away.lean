@@ -367,7 +367,7 @@ variables [is_domain R] [normalization_monoid R] [unique_factorization_monoid R]
 
 theorem exists_reduced_fraction' {b : B} (hb : b ≠ 0) (hx : irreducible x) :
   ∃ (a : R) (n : ℤ), ¬ x ∣ a ∧
-    (self_zpow x B n) * mk' B a (1 : submonoid.powers x) = b :=
+    self_zpow x B n * algebra_map R B a = b :=
 begin
   classical,
   obtain ⟨⟨a₀, y⟩, H⟩ := surj (submonoid.powers x) b,

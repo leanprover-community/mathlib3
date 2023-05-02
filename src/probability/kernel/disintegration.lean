@@ -319,72 +319,6 @@ section subset
 Since every standard Borel space is measurably equivalent to a subset of `ℝ`, we can generalize a
 disintegration result on those subsets to all these spaces. -/
 
-noncomputable
-def kernel.comap_right {β γ : Type*} {mβ : measurable_space β} {mγ : measurable_space γ}
-  (κ : kernel α β) {f : γ → β} (hf : measurable_embedding f) :
-  kernel α γ :=
-{ val := λ a, measure.comap f (κ a),
-  property :=
-  begin
-    refine measure.measurable_measure.mpr (λ t ht, _),
-    have : (λ a, measure.comap f (κ a) t) = λ a, κ a (f '' t),
-    { ext1 a,
-      rw measure.comap_apply _ hf.injective (λ s' hs', _) _ ht,
-      exact hf.measurable_set_image.mpr hs', },
-    rw this,
-    exact kernel.measurable_coe _ (hf.measurable_set_image.mpr ht),
-  end }
-
-lemma kernel.comap_right_apply {β γ : Type*} {mβ : measurable_space β} {mγ : measurable_space γ}
-  (κ : kernel α β) {f : γ → β} (hf : measurable_embedding f) (a : α)  :
-  kernel.comap_right κ hf a = measure.comap f (κ a) := rfl
-
-lemma kernel.comap_right_apply' {β γ : Type*} {mβ : measurable_space β} {mγ : measurable_space γ}
-  (κ : kernel α β) {f : γ → β} (hf : measurable_embedding f)
-  (a : α) {t : set γ} (ht : measurable_set t) :
-  kernel.comap_right κ hf a t = κ a (f '' t) :=
-by rw [kernel.comap_right_apply,
-    measure.comap_apply _ hf.injective (λ s, hf.measurable_set_image.mpr) _ ht]
-
-lemma is_markov_kernel.comap_right {β γ : Type*} {mβ : measurable_space β} {mγ : measurable_space γ}
-  (κ : kernel α β) {f : γ → β} (hf : measurable_embedding f) (hκ : ∀ a, κ a (range f) = 1) :
-  is_markov_kernel (kernel.comap_right κ hf) :=
-begin
-  refine ⟨λ a, ⟨_⟩⟩,
-  rw kernel.comap_right_apply' κ hf a measurable_set.univ,
-  simp only [image_univ, subtype.range_coe_subtype, set_of_mem_eq],
-  exact hκ a,
-end
-
-instance is_finite_kernel.comap_right {β γ : Type*} {mβ : measurable_space β}
-  {mγ : measurable_space γ}
-  (κ : kernel α β) [is_finite_kernel κ] {f : γ → β} (hf : measurable_embedding f) :
-  is_finite_kernel (kernel.comap_right κ hf) :=
-begin
-  refine ⟨⟨is_finite_kernel.bound κ, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
-  rw kernel.comap_right_apply' κ hf a measurable_set.univ,
-  exact kernel.measure_le_bound κ a _,
-end
-
-instance is_s_finite_kernel.comap_right {β γ : Type*} {mβ : measurable_space β}
-  {mγ : measurable_space γ}
-  (κ : kernel α β) [kernel.is_s_finite_kernel κ] {f : γ → β} (hf : measurable_embedding f) :
-  kernel.is_s_finite_kernel (kernel.comap_right κ hf) :=
-begin
-  refine ⟨⟨λ n, kernel.comap_right (kernel.seq κ n) hf, infer_instance, _⟩⟩,
-  ext1 a,
-  rw kernel.sum_apply,
-  simp_rw kernel.comap_right_apply _ hf,
-  have : measure.sum (λ n, measure.comap f (kernel.seq κ n a))
-    = measure.comap f (measure.sum (λ n, kernel.seq κ n a)),
-  { ext1 t ht,
-    rw [measure.comap_apply _ hf.injective (λ s', hf.measurable_set_image.mpr) _ ht,
-      measure.sum_apply _ ht, measure.sum_apply _ (hf.measurable_set_image.mpr ht)],
-    congr' with n : 1,
-    rw measure.comap_apply _ hf.injective (λ s', hf.measurable_set_image.mpr) _ ht, },
-  rw [this, kernel.measure_sum_seq],
-end
-
 lemma measurable_embedding.prod_mk {β γ δ : Type*} {mβ : measurable_space β}
   {mγ : measurable_space γ} {mδ : measurable_space δ}
   {f : α → β} {g : γ → δ} (hg : measurable_embedding g) (hf : measurable_embedding f) :
@@ -414,60 +348,6 @@ begin
 end
 
 end subset
-
-namespace kernel
-
-variables {β : Type*} {mβ : measurable_space β} {κ η : kernel α β} {s : set α}
-  {hs : measurable_set s} [decidable_pred (∈ s)]
-include mβ
-
-lemma ext_fun_iff : κ = η ↔ ∀ a f, measurable f → ∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a) :=
-⟨λ h a f hf, by rw h, ext_fun⟩
-
-lemma ext_iff : κ = η ↔ ∀ a, κ a = η a :=
-⟨λ h a, by rw h, ext⟩
-
-lemma ext_iff' : κ = η ↔ ∀ a (s : set β) (hs : measurable_set s), κ a s = η a s :=
-by simp_rw [ext_iff, measure.ext_iff]
-
-def piecewise (hs : measurable_set s) (κ η : kernel α β) :
-  kernel α β :=
-{ val := λ a, if a ∈ s then κ a else η a,
-  property := measurable.piecewise hs (kernel.measurable _) (kernel.measurable _) }
-
-lemma piecewise_apply (a : α) :
-  piecewise hs κ η a = if a ∈ s then κ a else η a := rfl
-
-lemma piecewise_apply' (a : α) (t : set β) :
-  piecewise hs κ η a t = if a ∈ s then κ a t else η a t :=
-by { rw piecewise_apply, split_ifs; refl, }
-
-instance is_markov_kernel.piecewise [is_markov_kernel κ] [is_markov_kernel η] :
-  is_markov_kernel (piecewise hs κ η) :=
-by { refine ⟨λ a, ⟨_⟩⟩, rw [piecewise_apply', measure_univ, measure_univ, if_t_t], }
-
-instance is_finite_kernel.piecewise [is_finite_kernel κ] [is_finite_kernel η] :
-  is_finite_kernel (piecewise hs κ η) :=
-begin
-  refine ⟨⟨max (is_finite_kernel.bound κ) (is_finite_kernel.bound η), _, λ a, _⟩⟩,
-  { exact max_lt (is_finite_kernel.bound_lt_top κ) (is_finite_kernel.bound_lt_top η), },
-  rw [le_max_iff, piecewise_apply'],
-  split_ifs,
-  { exact or.inl (measure_le_bound _ _ _), },
-  { exact or.inr (measure_le_bound _ _ _), },
-end
-
-instance is_s_finite_kernel.piecewise [is_s_finite_kernel κ] [is_s_finite_kernel η] :
-  is_s_finite_kernel (piecewise hs κ η) :=
-begin
-  refine ⟨⟨λ n, kernel.piecewise hs (kernel.seq κ n) (kernel.seq η n), infer_instance, _⟩⟩,
-  ext1 a,
-  rw kernel.sum_apply,
-  simp_rw kernel.piecewise_apply,
-  split_ifs; exact (kernel.measure_sum_seq _ a).symm,
-end
-
-end kernel
 
 section polish
 
@@ -506,9 +386,9 @@ begin
   obtain ⟨f, hf⟩ := exists_measurable_embedding_real β,
   let ρ' : measure (α × ℝ) := ρ.map (prod.map id f),
   -- The general idea is to define `η = kernel.comap_right (cond_kernel_real ρ') hf`. There is
-  -- however an issue: `cond_kernel_real ρ'` may not be a Markov kernel since its value is only a
+  -- however an issue: that `η` may not be a Markov kernel since its value is only a
   -- probability distribution almost everywhere wrt `ρ.fst`, not everywhere.
-  -- We modify `cond_kernel_real ρ'` to obtain an almost everywhere equal Markov kernel.
+  -- We modify it to obtain an almost everywhere equal Markov kernel.
   let ρ_set := (to_measurable ρ.fst {a | cond_kernel_real ρ' a (range f) = 1}ᶜ)ᶜ,
   have hm : measurable_set ρ_set := (measurable_set_to_measurable _ _).compl,
   have h_eq_one_of_mem : ∀ a ∈ ρ_set, cond_kernel_real ρ' a (range f) = 1,
@@ -545,7 +425,7 @@ begin
   -- Now that we have defined `η'`, we show that `kernel.comap_right η' hf` is a suitable Markov
   -- kernel.
   refine ⟨kernel.comap_right η' hf, _, _⟩,
-  { refine is_markov_kernel.comap_right _ _ (λ a, _),
+  { refine kernel.is_markov_kernel.comap_right _ _ (λ a, _),
     rw kernel.piecewise_apply',
     split_ifs with h_mem h_not_mem,
     { exact h_eq_one_of_mem _ h_mem, },
@@ -586,11 +466,9 @@ end
 variables [nonempty β]
 
 noncomputable
-def cond_kernel (ρ : measure (α × β)) [is_finite_measure ρ] : kernel α β :=
-(todo ρ unit).some
+def cond_kernel (ρ : measure (α × β)) [is_finite_measure ρ] : kernel α β := (todo ρ unit).some
 
-instance (ρ : measure (α × β)) [is_finite_measure ρ] :
-  is_markov_kernel (cond_kernel ρ) :=
+instance (ρ : measure (α × β)) [is_finite_measure ρ] : is_markov_kernel (cond_kernel ρ) :=
 (todo ρ unit).some_spec.some
 
 theorem todo' (ρ : measure (α × β)) [is_finite_measure ρ] :
@@ -602,17 +480,12 @@ theorem todo'' (ρ : measure (α × β)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) () :=
 by rw [← todo', kernel.const_apply]
 
-theorem todo''' (ρ : measure (α × β)) [is_finite_measure ρ]
-  (γ : Type*) [measurable_space γ] :
+theorem todo''' (ρ : measure (α × β)) [is_finite_measure ρ] (γ : Type*) [measurable_space γ] :
   kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) γ) :=
 begin
-  have h := todo' ρ,
-  rw kernel.ext_iff' at h,
   ext a s hs : 2,
-  specialize h () s hs,
-  rw [kernel.const_apply, kernel.comp_prod_apply _ _ _ hs, kernel.const_apply] at h ⊢,
-  simp_rw kernel.prod_mk_left_apply' at h ⊢,
-  exact h,
+  simpa only [kernel.const_apply, kernel.comp_prod_apply _ _ _ hs, kernel.prod_mk_left_apply']
+    using kernel.ext_iff'.mp (todo' ρ) () s hs,
 end
 
 end polish

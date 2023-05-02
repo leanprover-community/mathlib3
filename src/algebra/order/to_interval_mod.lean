@@ -413,7 +413,6 @@ by rw [Imodeq_iff_to_Ico_mod_add_period_eq_to_Ioc_mod hp, to_Ico_mod, to_Ioc_mod
 
 include hp
 
-
 lemma Imodeq_iff_eq_add_zsmul : Imodeq p a b ↔ ∃ z : ℤ, b = a + z • p :=
 begin
   rw [Imodeq_iff_to_Ico_mod_eq_left hp],

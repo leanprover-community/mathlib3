@@ -187,7 +187,6 @@ p.to_sub_mul_action.smul_mem_iff' g
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-
 instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] :
   has_smul S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
 

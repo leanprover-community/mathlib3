@@ -1433,11 +1433,10 @@ variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [semiring R₁] [semiring
 [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁]
 {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
 {M'₁ : Type*} [topological_space M'₁] [add_comm_monoid M'₁]
-{M''₁ : Type*} [topological_space M''₁] [add_comm_monoid M''₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
-[module R₁ M₁] [module R₁ M'₁] [module R₁ M''₁] [module R₂ M₂] [module R₃ M₃]
+[module R₁ M₁] [module R₁ M'₁] [module R₂ M₂] [module R₃ M₃]
 
 include σ₂₁
 /-- A continuous linear equivalence induces a continuous linear map. -/

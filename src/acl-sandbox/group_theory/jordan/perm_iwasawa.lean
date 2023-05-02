@@ -182,13 +182,14 @@ theorem equiv.perm.normal_subgroups {α : Type*} [decidable_eq α] [fintype α]
 begin
   rw ←  alternating_group.commutator_group_eq hα,
 
-  have hprim : is_preprimitive (equiv.perm α) (nat.finset α 2),
-  { apply nat.finset_is_preprimitive_of,
+  refine commutator_le_iwasawa _ Iw2 hnN _,
+  { -- quasipreprimitive action
+    apply is_preprimitive.is_quasipreprimitive,
+    apply nat.finset_is_preprimitive_of,
     norm_num,
     apply lt_of_lt_of_le _ hα, norm_num,
     apply ne_of_gt,
     apply lt_of_lt_of_le _ hα, norm_num,  },
-  apply commutator_le_iwasawa hprim Iw2 hnN ,
 
   -- N acts nontrivially
   intro h,

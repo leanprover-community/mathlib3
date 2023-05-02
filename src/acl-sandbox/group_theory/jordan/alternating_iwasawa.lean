@@ -455,7 +455,7 @@ def Iw3 : iwasawa_structure (alternating_group α) (nat.finset α 3) :=
 
 /-- If α has at least 5 elements, but not 6, then
 the only nontrivial normal sugroup of (alternating_group α) is the alternating_group itself. -/
-theorem is_normal_subgroup_iff {α : Type*} [decidable_eq α] [fintype α]
+theorem is_normal_subgroup_iff_of_ne_6 {α : Type*} [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α) (hα' : fintype.card α ≠ 6)
   {N : subgroup (alternating_group α)} (hnN : N.normal) :
   N = ⊥ ∨ N = ⊤ :=
@@ -466,7 +466,8 @@ begin
   rw eq_top_iff,
   rw ← alternating_group_is_perfect hα,
   apply commutator_le_iwasawa _ Iw3 hnN _,
-  { apply alternating_group.nat.finset_is_preprimitive_of_alt 3,
+  { apply is_preprimitive.is_quasipreprimitive,
+    apply alternating_group.nat.finset_is_preprimitive_of_alt 3,
     norm_num,
     exact lt_of_lt_of_le (by norm_num) hα,
     exact hα', },
@@ -837,12 +838,13 @@ begin
   rw eq_top_iff,
   rw ← alternating_group_is_perfect hα,
 
-  have hprim : is_preprimitive (alternating_group α) (nat.finset α 3),
-  { apply nat.finset_is_preprimitive_of_alt,
+  refine commutator_le_iwasawa _ Iw3 hnN _,
+  { -- quasipreprimitive action
+    apply is_preprimitive.is_quasipreprimitive,
+    apply nat.finset_is_preprimitive_of_alt,
     norm_num,
     apply lt_of_lt_of_le _ hα, norm_num,
     exact hα', },
-  apply commutator_le_iwasawa hprim Iw3 hnN ,
 
   -- N acts nontrivially
   intro h,
@@ -870,12 +872,13 @@ begin
   rw eq_top_iff,
   rw ← alternating_group_is_perfect hα,
 
-  have hprim : is_preprimitive (alternating_group α) (nat.finset α 4),
-  { apply nat.finset_is_preprimitive_of_alt,
+  refine commutator_le_iwasawa _ (Iw4 hα) hnN _,
+  { -- quasipreprimitive action
+    apply is_preprimitive.is_quasipreprimitive,
+    apply nat.finset_is_preprimitive_of_alt,
     norm_num,
     apply lt_of_lt_of_le _ hα, norm_num,
     exact hα', },
-  apply commutator_le_iwasawa hprim (Iw4 hα) hnN,
 
   -- N acts nontrivially
   intro h,

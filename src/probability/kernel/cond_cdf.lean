@@ -49,7 +49,7 @@ section aux_lemmas_to_be_moved
 variables {α β ι : Type*}
 
 namespace directed
-
+-- todo after the port: move this to logic.encodable.basic near sequence_mono
 variables [encodable α] [inhabited α] [preorder β] {f : α → β} (hf : directed (≥) f)
 
 lemma sequence_anti : antitone (f ∘ (hf.sequence f)) :=

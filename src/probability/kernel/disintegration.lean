@@ -478,7 +478,8 @@ lemma aux (ρ : measure (α × ℝ)) [is_finite_measure ρ] {s : set ℝ} (hs : 
   ∀ᵐ a ∂ρ.fst, cond_kernel_real ρ a s = 1 :=
 begin
   have h : ρ {x | x.snd ∈ sᶜ}
-    = (kernel.const unit ρ.fst ⊗ₖ kernel.prod_mk_left (cond_kernel_real ρ) unit) () {x | x.snd ∈ sᶜ},
+    = (kernel.const unit ρ.fst ⊗ₖ kernel.prod_mk_left (cond_kernel_real ρ) unit) ()
+      {x | x.snd ∈ sᶜ},
   { rw ← measure_eq_comp_prod, },
   rw [hρ, kernel.comp_prod_apply] at h,
   swap, { exact measurable_snd hs.compl, },
@@ -503,9 +504,11 @@ theorem todo [nonempty β] (ρ : measure (α × β)) [is_finite_measure ρ] (γ 
       (by { haveI := h, apply_instance, }) :=
 begin
   obtain ⟨f, hf⟩ := exists_measurable_embedding_real β,
-  have h_prod_embed : measurable_embedding (prod.map (id : α → α) f) :=
-    (measurable_embedding.id).prod_mk hf,
   let ρ' : measure (α × ℝ) := ρ.map (prod.map id f),
+  -- The general idea is to define `η = kernel.comap_right (cond_kernel_real ρ') hf`. There is
+  -- however an issue: `cond_kernel_real ρ'` may not be a Markov kernel since its value is only a
+  -- probability distribution almost everywhere wrt `ρ.fst`, not everywhere.
+  -- We modify `cond_kernel_real ρ'` to obtain an almost everywhere equal Markov kernel.
   let ρ_set := (to_measurable ρ.fst {a | cond_kernel_real ρ' a (range f) = 1}ᶜ)ᶜ,
   have hm : measurable_set ρ_set := (measurable_set_to_measurable _ _).compl,
   have h_eq_one_of_mem : ∀ a ∈ ρ_set, cond_kernel_real ρ' a (range f) = 1,
@@ -515,6 +518,8 @@ begin
     suffices ha' : a ∉ {a : α | cond_kernel_real ρ' a (range f) = 1}ᶜ,
     { rwa not_mem_compl_iff at ha', },
     exact not_mem_subset h_ss ha, },
+  have h_prod_embed : measurable_embedding (prod.map (id : α → α) f) :=
+    (measurable_embedding.id).prod_mk hf,
   have h_fst : ρ'.fst = ρ.fst,
   { ext1 u hu,
     rw [measure.fst_apply _ hu, measure.fst_apply _ hu,
@@ -537,6 +542,8 @@ begin
   obtain ⟨x₀, hx₀⟩ : ∃ x, x ∈ range f := range_nonempty _,
   let η' := kernel.piecewise hm (cond_kernel_real ρ')
     (kernel.deterministic (measurable_const : measurable (λ _, x₀))),
+  -- Now that we have defined `η'`, we show that `kernel.comap_right η' hf` is a suitable Markov
+  -- kernel.
   refine ⟨kernel.comap_right η' hf, _, _⟩,
   { refine is_markov_kernel.comap_right _ _ (λ a, _),
     rw kernel.piecewise_apply',
@@ -557,23 +564,23 @@ begin
   rw [this, kernel.const_eq_comp_prod ρ'],
   ext c t ht : 2,
   rw [kernel.comap_right_apply' _ _ _ ht,
-    kernel.comp_prod_apply _ _ _ (h_prod_embed.measurable_set_image.mpr ht), kernel.const_apply],
-  rw [h_fst, kernel.comp_prod_apply _ _ _ ht, kernel.const_apply],
+    kernel.comp_prod_apply _ _ _ (h_prod_embed.measurable_set_image.mpr ht), kernel.const_apply,
+    h_fst, kernel.comp_prod_apply _ _ _ ht, kernel.const_apply],
   refine lintegral_congr_ae _,
   filter_upwards [h_ae] with a ha,
   rw [kernel.prod_mk_left_apply', kernel.prod_mk_left_apply', kernel.comap_right_apply'],
-  { have h1 : {c : ℝ | (a, c) ∈ prod.map id f '' t} = f '' {c : β | (a, c) ∈ t},
-    { ext1 x,
-      simp only [prod_map, id.def, mem_image, prod.mk.inj_iff, prod.exists, mem_set_of_eq],
-      split,
-      { rintros ⟨a', b, h_mem, rfl, hf_eq⟩,
-        exact ⟨b, h_mem, hf_eq⟩, },
-      { rintros ⟨b, h_mem, hf_eq⟩,
-        exact ⟨a, b, h_mem, rfl, hf_eq⟩, }, },
-    have h2 : cond_kernel_real ρ' (c, a).snd = η' (c, a).snd,
-    { rw [kernel.piecewise_apply, if_pos ha], },
-    rw [h1, h2], },
-  { exact measurable_prod_mk_left ht, },
+  swap, { exact measurable_prod_mk_left ht, },
+  have h1 : {c : ℝ | (a, c) ∈ prod.map id f '' t} = f '' {c : β | (a, c) ∈ t},
+  { ext1 x,
+    simp only [prod_map, id.def, mem_image, prod.mk.inj_iff, prod.exists, mem_set_of_eq],
+    split,
+    { rintros ⟨a', b, h_mem, rfl, hf_eq⟩,
+      exact ⟨b, h_mem, hf_eq⟩, },
+    { rintros ⟨b, h_mem, hf_eq⟩,
+      exact ⟨a, b, h_mem, rfl, hf_eq⟩, }, },
+  have h2 : cond_kernel_real ρ' (c, a).snd = η' (c, a).snd,
+  { rw [kernel.piecewise_apply, if_pos ha], },
+  rw [h1, h2],
 end
 
 variables [nonempty β]
@@ -582,7 +589,7 @@ noncomputable
 def cond_kernel (ρ : measure (α × β)) [is_finite_measure ρ] : kernel α β :=
 (todo ρ unit).some
 
-instance [nonempty β](ρ : measure (α × β)) [is_finite_measure ρ] :
+instance (ρ : measure (α × β)) [is_finite_measure ρ] :
   is_markov_kernel (cond_kernel ρ) :=
 (todo ρ unit).some_spec.some
 

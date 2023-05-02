@@ -94,7 +94,7 @@ lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) 
   ‖n • x‖ = ‖(n : α)‖ * ‖x‖ :=
 by rw [← norm_smul, ← int.smul_one_eq_coe, smul_assoc, one_smul]
 
-@[simp] lemma abs_norm_eq_norm (z : β) : |‖z‖| = ‖z‖ :=
+@[simp] lemma abs_norm (z : β) : |‖z‖| = ‖z‖ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
 lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
@@ -225,8 +225,8 @@ noncomputable def homeomorph_unit_ball [normed_space ℝ E] :
 { to_fun := λ x, ⟨(1 + ‖x‖^2).sqrt⁻¹ • x, begin
     have : 0 < 1 + ‖x‖ ^ 2, by positivity,
     rw [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
-      div_lt_one (abs_pos.mpr $ real.sqrt_ne_zero'.mpr this), ← abs_norm_eq_norm x, ← sq_lt_sq,
-      abs_norm_eq_norm, real.sq_sqrt this.le],
+      div_lt_one (abs_pos.mpr $ real.sqrt_ne_zero'.mpr this), ← abs_norm x, ← sq_lt_sq,
+      abs_norm, real.sq_sqrt this.le],
     exact lt_one_add _,
   end⟩,
   inv_fun := λ y, (1 - ‖(y : E)‖^2).sqrt⁻¹ • (y : E),

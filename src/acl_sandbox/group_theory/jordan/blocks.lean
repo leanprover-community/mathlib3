@@ -13,6 +13,11 @@ import .equivariant_map
 import .sub_mul_actions
 import .maximal_subgroups
 
+import algebra.big_operators.basic
+import group_theory.group_action.quotient
+
+import data.finite.card
+
 -- import group_theory.group_action.basic
 -- import group_theory.group_action.sub_mul_action
 -- import group_theory.subgroup.pointwise
@@ -660,15 +665,45 @@ end }
 
 end stabilizer
 
+#check cardinal.to_nat_congr
 
-section finite
+section fintype
+
+/-- The cardinality of the ambient is the product of
+  of the cardinality of a block
+  by the cardinality of the set of iterates of that block -/
+lemma nat_card_of_block_mul_card_of_orbit_of [hfX : fintype X] [hGX : is_pretransitive G X]
+  {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
+  nat.card B * nat.card (set.range (λ (g : G), g • B)) = nat.card X :=
+begin
+  classical,
+  have hpart := (is_block_system.of_block hB hB_ne).1,
+  have relB := setoid.mk_classes (set.range (λ (g : G), g • B)) hpart.2,
+  have := fintype.card_congr (equiv.sigma_fiber_equiv (@quotient.mk' _ (relB))),
+  rw fintype.card_sigma at this,
+  rw finset.sum_eq_card_nsmul at this,
+  let φ := mul_action.orbit_equiv_quotient_stabilizer G B,
+  haveI := finite.of_equiv (orbit G B),
+  have := nat.card_congr φ,
+
+  rw setoid.is_partition.nat_card_eq_sum_parts (is_block_system.of_block hB hB_ne).left,
+  rw [finset.sum_congr rfl _, finset.sum_const (fintype.card ↥B),
+    nsmul_eq_mul, nat.cast_id, mul_comm],
+  { rw ← set.to_finset_card },
+  { intros s hs,
+    simp only [set.mem_to_finset, set.mem_range] at hs,
+    obtain ⟨g, rfl⟩ := hs,
+    simp only [set.to_finset_card],
+    { refine eq.trans _ (eq.trans (smul_set_card_eq g B) _),
+      all_goals { apply fintype.card_congr', refl } } }
+end
 
 open_locale classical
 
 /-- The cardinality of the ambient is the product of
   of the cardinality of a block
   by the cardinality of the set of iterates of that block -/
-lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] [hGX : is_pretransitive G X]
+lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] [decidable_eq X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
   fintype.card B * fintype.card (set.range (λ (g : G), g • B)) = fintype.card X :=
 begin
@@ -720,7 +755,7 @@ begin
     refine nat.mul_le_mul_left _ hk }
 end
 
-/-- If a block has too much translates, it is a singleton  -/
+/-- If a block has too many translates, then it is a singleton  -/
 lemma is_top_of_small_block [hfX : fintype X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B)
   (hX : nontrivial X)
@@ -828,7 +863,7 @@ begin
   rw [← hgkB', hkB']
 end
 
-end finite
+end fintype
 
 end group
 

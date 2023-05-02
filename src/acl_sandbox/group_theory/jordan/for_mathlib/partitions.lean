@@ -6,7 +6,7 @@ Authors: Antoine Chambert-Loir
 
 import data.setoid.partition
 import algebra.big_operators.order
-
+import data.finite.card
 /-!
 
 # Four lemmas on partitions
@@ -33,7 +33,7 @@ but I use it to prove the other two.
 
 variables {α : Type*}
 
-open_locale big_operators classical
+open_locale big_operators
 
 /-- A partion of a type induces partitions on subsets -/
 lemma setoid.is_partition_on {α : Type*} {P : set (set α)} (hP : setoid.is_partition P) (s : set α) :
@@ -63,6 +63,8 @@ begin
       refine congr_arg2 _ _ rfl,
       apply ht.right x hxP, rw [← set.mem_preimage, hxy], exact hay } }
 end
+
+open_locale classical
 
 /-- The cardinal of ambient fintype equals
   the sum of cardinals of the parts of a partition (finset style)-/

@@ -205,7 +205,7 @@ begin
     have H₂ : v ≠ 0 := by simpa using (hT.eigenvector_basis hn).to_basis.ne_zero i,
     exact ⟨H₁, H₂⟩ },
   have re_μ : ↑(is_R_or_C.re μ) = μ,
-  { rw ← is_R_or_C.eq_conj_iff_re,
+  { rw ← is_R_or_C.conj_eq_iff_re,
     exact hT.conj_eigenvalue_eq_self (has_eigenvalue_of_has_eigenvector key) },
   simpa [re_μ] using key,
 end

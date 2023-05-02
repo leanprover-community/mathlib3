@@ -1108,7 +1108,7 @@ namespace measure
 
 variables {ρ : measure (α × β)}
 
-/-- Marginal measure on `α` obtained from a measure on `α × β`. -/
+/-- Marginal measure on `α` obtained from a measure `ρ` on `α × β`, defined by `ρ.map prod.fst`. -/
 noncomputable
 def fst (ρ : measure (α × β)) : measure α := ρ.map prod.fst
 
@@ -1123,7 +1123,7 @@ instance [is_finite_measure ρ] : is_finite_measure ρ.fst := by { rw fst, apply
 instance [is_probability_measure ρ] : is_probability_measure ρ.fst :=
 { measure_univ := by { rw fst_univ, exact measure_univ, } }
 
-/-- Marginal measure on `β` obtained from a measure on `α × β`. -/
+/-- Marginal measure on `β` obtained from a measure on `ρ` `α × β`, defined by `ρ.map prod.snd`. -/
 noncomputable
 def snd (ρ : measure (α × β)) : measure β := ρ.map prod.snd
 

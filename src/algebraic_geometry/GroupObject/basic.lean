@@ -16,7 +16,7 @@ local attribute [instance] over.construct_products.over_binary_product_of_pullba
   over.over_has_terminal
 
 -- `mul_one` and `mul_right_inv` aren't necessary.
-structure GroupObj :=
+structure Group_ :=
 (G : C)
 (mul : G ⨯ G ⟶ G)
 (one : ⊤_ C ⟶ G)
@@ -28,19 +28,21 @@ structure GroupObj :=
 (mul_left_inv : limits.prod.lift inv (𝟙 G) ≫ mul = terminal.from G ≫ one)
 (mul_right_inv : limits.prod.lift (𝟙 G) inv ≫ mul = terminal.from G ≫ one)
 
-attribute [reassoc] GroupObj.one_mul GroupObj.mul_left_inv GroupObj.assoc
-  GroupObj.mul_one GroupObj.mul_right_inv
+attribute [reassoc] Group_.one_mul Group_.mul_left_inv Group_.assoc
+  Group_.mul_one Group_.mul_right_inv
 
 abbreviation RepresentableGroupFunctor :=
 full_subcategory ({ G : Cᵒᵖ ⥤ Group | (G ⋙ forget _).representable })
 
-def Representable_inclusion : RepresentableGroupFunctor C ⥤ (Cᵒᵖ ⥤ Type*) :=
+namespace RepresentableGroupFunctor
+
+def comp_forget : RepresentableGroupFunctor C ⥤ (Cᵒᵖ ⥤ Type*) :=
 full_subcategory_inclusion _ ⋙ (whiskering_right _ _ _).obj (forget _)
 
-instance fdafda (G : RepresentableGroupFunctor C) :
+instance representable (G : RepresentableGroupFunctor C) :
   (G.1 ⋙ forget _).representable := G.2
 
-instance fdsafds {G : RepresentableGroupFunctor C} {A : Cᵒᵖ} :
+instance group {G : RepresentableGroupFunctor C} {A : Cᵒᵖ} :
   group ((G.1 ⋙ forget _).obj A) :=
 (G.1.obj A).group
 
@@ -59,10 +61,11 @@ noncomputable def finite_product_repr_aux {J : Type} [fintype J]
     exact (category.comp_id _).symm,
   end }
 
-namespace GroupObj
+end RepresentableGroupFunctor
+namespace Group_
 variables {C}
 
-@[ext] structure hom (G H : GroupObj C) :=
+@[ext] structure hom (G H : Group_ C) :=
 (hom : G.G ⟶ H.G)
 (mul_comp : G.mul ≫ hom = limits.prod.map hom hom ≫ H.mul)
 (one_comp : G.one ≫ hom = H.one)
@@ -73,32 +76,32 @@ restate_axiom hom.mul_comp hom.one_comp
 restate_axiom hom.inv_comp
 attribute [reassoc] hom.mul_comp hom.one_comp hom.inv_comp
 
-@[simps] def hom.id (G : GroupObj C) : G.hom G :=
+@[simps] def hom.id (G : Group_ C) : G.hom G :=
 { hom := 𝟙 G.G,
   mul_comp := by simp only [category.comp_id, prod.map_id_id, category.id_comp],
   one_comp := by simp only [category.comp_id],
   inv_comp := by simp only [category.comp_id, category.id_comp]}
 
-@[simps] def hom.comp {G H J : GroupObj C} (f : G.hom H) (g : H.hom J) :
+@[simps] def hom.comp {G H J : Group_ C} (f : G.hom H) (g : H.hom J) :
   G.hom J :=
 { hom := f.hom ≫ g.hom,
   mul_comp := by rw [f.mul_comp_assoc, g.mul_comp, prod.map_map_assoc],
   one_comp := by rw [f.one_comp_assoc, g.one_comp],
   inv_comp := by rw [f.inv_comp_assoc, g.inv_comp, category.assoc] }
 
-instance : category (GroupObj C) :=
+instance : category (Group_ C) :=
 { hom := λ G H, G.hom H,
   id := λ G, hom.id G,
   comp := λ G H J f g, hom.comp f g }
 
-@[simp] lemma id_hom (G : GroupObj C) : (𝟙 G : G.hom G).hom = 𝟙 G.G := rfl
+@[simp] lemma id_hom (G : Group_ C) : (𝟙 G : G.hom G).hom = 𝟙 G.G := rfl
 
-@[simp] lemma comp_hom {G H J : GroupObj C} (f : G ⟶ H) (g : H ⟶ J) :
+@[simp] lemma comp_hom {G H J : Group_ C} (f : G ⟶ H) (g : H ⟶ J) :
   (f ≫ g : G.hom J).hom = f.hom ≫ g.hom := rfl
 
 variables (C)
 
-def inclusion : GroupObj C ⥤ C :=
+def inclusion : Group_ C ⥤ C :=
 { obj := λ G, G.G,
   map := λ G H f, f.hom,
   map_id' := λ G, G.id_hom,
@@ -107,7 +110,7 @@ def inclusion : GroupObj C ⥤ C :=
 instance : faithful (inclusion C) :=
 { map_injective' := λ G H f g, f.ext g }
 
-noncomputable instance (G : GroupObj C) (Y : C) : group (Y ⟶ G.G) :=
+noncomputable instance (G : Group_ C) (Y : C) : group (Y ⟶ G.G) :=
 { mul := λ f g, limits.prod.lift f g ≫ G.mul,
   mul_assoc := λ f g h,
   begin
@@ -145,92 +148,90 @@ noncomputable instance (G : GroupObj C) (Y : C) : group (Y ⟶ G.G) :=
 
 variables {C}
 
-lemma one_def (G : GroupObj C) (Y : C) :
+lemma one_def (G : Group_ C) (Y : C) :
   (1 : Y ⟶ G.G) = terminal.from Y ≫ G.one := rfl
 
-lemma mul_def {G : GroupObj C} {Y : C} (g h : Y ⟶ G.G) :
+lemma mul_def {G : Group_ C} {Y : C} (g h : Y ⟶ G.G) :
   g * h = limits.prod.lift g h ≫ G.mul := rfl
 
-lemma inv_def {G : GroupObj C} {Y : C} (f : Y ⟶ G.G) :
+lemma inv_def {G : Group_ C} {Y : C} (f : Y ⟶ G.G) :
   f⁻¹ = f ≫ G.inv := rfl
 
-@[simps] def GroupObj_to_RepresentableGroupFunctor_obj_map
-  (G : GroupObj C) {X Y : C} (f : X ⟶ Y) :
+@[simps] def Group_to_Functor_obj_map
+  (G : Group_ C) {X Y : C} (f : X ⟶ Y) :
   (Y ⟶ G.G) →* (X ⟶ G.G) :=
 { to_fun := λ g, f ≫ g,
   map_one' := by simp only [one_def, ←category.assoc, terminal.comp_from],
   map_mul' := λ x y, by simp only [mul_def, limits.prod.comp_lift_assoc] }
 
-@[simps] noncomputable def GroupObj_to_RepresentableGroupFunctor_obj (G : GroupObj C) :
+@[simps] noncomputable def Group_to_Functor_obj (G : Group_ C) :
   RepresentableGroupFunctor C :=
 { obj :=
   { obj := λ Y, Group.of (opposite.unop Y ⟶ G.G),
-    map := λ X Y f, Group.of_hom (GroupObj_to_RepresentableGroupFunctor_obj_map G f.unop),
+    map := λ X Y f, Group.of_hom (Group_to_Functor_obj_map G f.unop),
     map_id' := λ X,
     begin
       ext,
-      simp only [unop_id, Group.of_hom_apply, GroupObj_to_RepresentableGroupFunctor_obj_map_apply,
+      simp only [unop_id, Group.of_hom_apply, Group_to_Functor_obj_map_apply,
         category.id_comp, id_apply],
     end,
     map_comp' := λ X Y Z f g,
     begin
       ext,
-      simp only [unop_comp, Group.of_hom_apply, GroupObj_to_RepresentableGroupFunctor_obj_map_apply,
-      category.assoc, comp_apply],
+      simp only [unop_comp, Group.of_hom_apply, Group_to_Functor_obj_map_apply,
+        category.assoc, comp_apply],
     end },
   property := ⟨⟨G.G, 𝟙 _, infer_instance⟩⟩ }
 
-@[simps] noncomputable def GroupObj_to_RepresentableGroupFunctor_map
-  {G H : GroupObj C} (f : G ⟶ H) :
-  GroupObj_to_RepresentableGroupFunctor_obj G ⟶ GroupObj_to_RepresentableGroupFunctor_obj H :=
+@[simps] noncomputable def Group_to_Functor_map
+  {G H : Group_ C} (f : G ⟶ H) :
+  Group_to_Functor_obj G ⟶ Group_to_Functor_obj H :=
 { app := λ X, Group.of_hom $ monoid_hom.mk' (λ g, g ≫ f.hom) (λ g h, show (_ ≫ _) ≫ _ = _ ≫ _,
     by simp only [category.assoc, f.mul_comp, ←limits.prod.lift_map]),
   naturality' := λ X Y g,
   begin
     ext,
-    simp only [category.assoc, GroupObj_to_RepresentableGroupFunctor_obj_obj_map, comp_apply,
-      Group.of_hom_apply, GroupObj_to_RepresentableGroupFunctor_obj_map_apply,
-      monoid_hom.mk'_apply],
+    simp only [category.assoc, Group_to_Functor_obj_obj_map, comp_apply,
+      Group.of_hom_apply, Group_to_Functor_obj_map_apply, monoid_hom.mk'_apply],
   end }
 
 variables (C)
 
-noncomputable def GroupObj_to_RepresentableGroupFunctor :
-  GroupObj C ⥤ RepresentableGroupFunctor C :=
-{ obj := λ G, GroupObj_to_RepresentableGroupFunctor_obj G,
-  map := λ G H f, GroupObj_to_RepresentableGroupFunctor_map f,
+noncomputable def Group_to_Functor :
+  Group_ C ⥤ RepresentableGroupFunctor C :=
+{ obj := λ G, Group_to_Functor_obj G,
+  map := λ G H f, Group_to_Functor_map f,
   map_id' := λ G,
   begin
     ext x y,
-    simp only [id_hom, category.comp_id, GroupObj_to_RepresentableGroupFunctor_map_app,
-      Group.of_hom_apply, monoid_hom.mk'_apply],
+    simp only [id_hom, category.comp_id, Group_to_Functor_map_app, Group.of_hom_apply,
+      monoid_hom.mk'_apply],
     erw [nat_trans.id_app, id_apply],
   end,
   map_comp' := λ G H J f g,
   begin
     ext x y,
-    simp only [comp_hom, GroupObj_to_RepresentableGroupFunctor_map_app, Group.of_hom_apply,
-      monoid_hom.mk'_apply],
+    simp only [comp_hom, Group_to_Functor_map_app, Group.of_hom_apply, monoid_hom.mk'_apply],
     erw nat_trans.comp_app,
-    simp only [GroupObj_to_RepresentableGroupFunctor_map_app, comp_apply, Group.of_hom_apply,
+    simp only [Group_to_Functor_map_app, comp_apply, Group.of_hom_apply,
       monoid_hom.mk'_apply, category.assoc],
   end  }
 
-noncomputable def hmm :
-  GroupObj_to_RepresentableGroupFunctor C ⋙ Representable_inclusion C
-  ≅ inclusion C ⋙ yoneda := iso.refl _
+noncomputable def Group_to_Functor_comp_forget_iso :
+  Group_to_Functor C ⋙ RepresentableGroupFunctor.comp_forget C
+    ≅ inclusion C ⋙ yoneda := iso.refl _
 
 variables {C}
 
-noncomputable instance jdfskfdjs {G : RepresentableGroupFunctor C} {A : Cᵒᵖ} :
+noncomputable instance group_yoneda_obj_op {G : RepresentableGroupFunctor C} {A : Cᵒᵖ} :
   group (opposite.unop A ⟶ (G.1 ⋙ forget _).repr_X) :=
 equiv.group ((functor.repr_w (G.1 ⋙ forget _)).app A).to_equiv
 
-noncomputable instance dksfdsa {G : RepresentableGroupFunctor C} {A : C} :
+noncomputable instance group_yoneda_obj {G : RepresentableGroupFunctor C} {A : C} :
     group (A ⟶ (G.1 ⋙ forget _).repr_X) :=
 equiv.group ((G.1 ⋙ forget _).repr_w.app $ opposite.op A).to_equiv
 
-lemma fucksake {G : RepresentableGroupFunctor C} {A : Cᵒᵖ} (x : G.1.1 A) :
+lemma repr_w_map_inv {G : RepresentableGroupFunctor C} {A : Cᵒᵖ} (x : G.1.1 A) :
   ((G.1 ⋙ forget _).repr_w.inv.app A x⁻¹)
   = (((G.1 ⋙ forget _).repr_w.inv.app A x)⁻¹ : opposite.unop A ⟶ (G.1 ⋙ forget _).repr_X) :=
 begin
@@ -288,8 +289,8 @@ lemma comp_inv {G : RepresentableGroupFunctor C} {A B : C} (f : A ⟶ B)
   f ≫ g⁻¹ = (f ≫ g)⁻¹ :=
 (yoneda_map_hom G f).map_inv g
 
-@[simps] noncomputable def RepresentableGroupFunctor_to_GroupObj_obj
-  (G : RepresentableGroupFunctor C) : GroupObj C :=
+@[simps] noncomputable def Functor_to_Group_obj
+  (G : RepresentableGroupFunctor C) : Group_ C :=
 { G := (G.1 ⋙ forget _).repr_X,
   mul := limits.prod.fst * limits.prod.snd,
   one := 1,
@@ -324,14 +325,14 @@ lemma comp_inv {G : RepresentableGroupFunctor C} {A B : C} (f : A ⟶ B)
 variables {G H : RepresentableGroupFunctor C} (f : G ⟶ H) {X : C}
   (g : X ⟶ (G.1 ⋙ forget _).repr_X)
 
-@[simps] noncomputable def RepresentableGroupFunctor_to_GroupObj_map
+@[simps] noncomputable def Functor_to_Group_map
   {G H : RepresentableGroupFunctor C} (f : G ⟶ H) :
-  RepresentableGroupFunctor_to_GroupObj_obj G ⟶ RepresentableGroupFunctor_to_GroupObj_obj H :=
+  Functor_to_Group_obj G ⟶ Functor_to_Group_obj H :=
 { hom := ((G.1 ⋙ forget _).repr_w.hom ≫ ((whiskering_right _ _ _).obj (forget _)).map f
     ≫ (H.1 ⋙ forget _).repr_w.inv).app (opposite.op $ (G.1 ⋙ forget _).repr_X) (𝟙 _),
   mul_comp :=
   begin
-    simp only [RepresentableGroupFunctor_to_GroupObj_obj_mul, functor.repr_w_hom,
+    simp only [Functor_to_Group_obj_mul, functor.repr_w_hom,
       whiskering_right_obj_map, functor_to_types.comp, whisker_right_app, forget_map_eq_coe],
     have := congr_fun (((G.1 ⋙ forget _).repr_w.hom ≫ ((whiskering_right _ _ _).obj
       (forget _)).map f ≫ (H.1 ⋙ forget _).repr_w.inv).naturality
@@ -363,8 +364,8 @@ variables {G H : RepresentableGroupFunctor C} (f : G ⟶ H) {X : C}
   end,
   one_comp :=
   begin
-    simp only [RepresentableGroupFunctor_to_GroupObj_obj_one, functor.repr_w_hom,
-      whiskering_right_obj_map, functor_to_types.comp, whisker_right_app, forget_map_eq_coe],
+    simp only [Functor_to_Group_obj_one, functor.repr_w_hom, whiskering_right_obj_map,
+      functor_to_types.comp, whisker_right_app, forget_map_eq_coe],
     have := congr_fun (((G.1 ⋙ forget _).repr_w.hom ≫ ((whiskering_right _ _ _).obj
       (forget _)).map f ≫ (H.1 ⋙ forget _).repr_w.inv).naturality
       (quiver.hom.op (1 : ⊤_ C ⟶ (G.1 ⋙ forget _).repr_X))) (𝟙 _),
@@ -376,29 +377,29 @@ variables {G H : RepresentableGroupFunctor C} (f : G ⟶ H) {X : C}
   end,
   inv_comp :=
   begin
-    simp only [RepresentableGroupFunctor_to_GroupObj_obj_inv, functor.repr_w_hom,
-      whiskering_right_obj_map, functor_to_types.comp, whisker_right_app, forget_map_eq_coe],
+    simp only [Functor_to_Group_obj_inv, functor.repr_w_hom, whiskering_right_obj_map,
+      functor_to_types.comp, whisker_right_app, forget_map_eq_coe],
     have := congr_fun (((G.1 ⋙ forget _).repr_w.hom ≫ ((whiskering_right _ _ _).obj
       (forget _)).map f ≫ (H.1 ⋙ forget _).repr_w.inv).naturality
       (quiver.hom.op ((𝟙 _)⁻¹ : (G.1 ⋙ forget _).repr_X ⟶ (G.1 ⋙ forget _).repr_X))) (𝟙 _),
     dsimp at this,
     erw ←this,
     rw [category.comp_id, equiv.inv_def, ←functor.repr_w_hom, ←iso.app_hom, ←iso.to_equiv_fun,
-      equiv.apply_symm_apply, map_inv, fucksake, comp_inv],
+      equiv.apply_symm_apply, map_inv, repr_w_map_inv, comp_inv],
     erw category.comp_id,
     refl,
   end }
 
 variables (C)
 
-noncomputable def RepresentableGroupFunctor_to_GroupObj :
-  RepresentableGroupFunctor C ⥤ GroupObj C :=
-{ obj := RepresentableGroupFunctor_to_GroupObj_obj,
-  map := λ X Y f, RepresentableGroupFunctor_to_GroupObj_map f,
+noncomputable def Functor_to_Group_ :
+  RepresentableGroupFunctor C ⥤ Group_ C :=
+{ obj := Functor_to_Group_obj,
+  map := λ X Y f, Functor_to_Group_map f,
   map_id' := λ X,
   begin
     ext,
-    simp only [RepresentableGroupFunctor_to_GroupObj_map_hom, functor.repr_w_hom,
+    simp only [Functor_to_Group_map_hom, functor.repr_w_hom,
       whiskering_right_obj_map, functor_to_types.comp, whisker_right_app, forget_map_eq_coe, id_hom],
     erw nat_trans.id_app,
     simp only [id_apply, ←functor.repr_w_hom, functor_to_types.hom_inv_id_app_apply],
@@ -407,13 +408,13 @@ noncomputable def RepresentableGroupFunctor_to_GroupObj :
   map_comp' := λ X Y Z f g,
   begin
     ext,
-    simp only [RepresentableGroupFunctor_to_GroupObj_map_hom, functor.repr_w_hom,
+    simp only [Functor_to_Group_map_hom, functor.repr_w_hom,
       whiskering_right_obj_map, functor_to_types.comp, whisker_right_app,
       forget_map_eq_coe, comp_hom],
     erw nat_trans.comp_app,
     have := congr_fun (((Y.1 ⋙ forget _).repr_w.hom ≫ ((whiskering_right _ _ _).obj
       (forget _)).map g ≫ (Z.1 ⋙ forget _).repr_w.inv).naturality
-      (quiver.hom.op (RepresentableGroupFunctor_to_GroupObj_map f).hom)) (𝟙 _),
+      (quiver.hom.op (Functor_to_Group_map f).hom)) (𝟙 _),
     dsimp at this,
     erw ←this,
     simp only [comp_apply, category.comp_id, ←functor.repr_w_hom,
@@ -422,15 +423,13 @@ noncomputable def RepresentableGroupFunctor_to_GroupObj :
   end }
 
 noncomputable def unit_iso :
-  𝟭 (GroupObj C) ≅ GroupObj_to_RepresentableGroupFunctor C
-  ⋙ RepresentableGroupFunctor_to_GroupObj C :=
+  𝟭 (Group_ C) ≅ Group_to_Functor C ⋙ Functor_to_Group_ C :=
 { hom :=
   { app := λ X,
-    { hom := (X.GroupObj_to_RepresentableGroupFunctor_obj.obj ⋙ forget Group).repr_w.inv.app
-          (opposite.op X.G) (𝟙 _),
+    { hom := (X.Group_to_Functor_obj.obj ⋙ forget Group).repr_w.inv.app (opposite.op X.G) (𝟙 _),
       mul_comp :=
       begin
-        dsimp [GroupObj_to_RepresentableGroupFunctor, RepresentableGroupFunctor_to_GroupObj],
+        dsimp [Group_to_Functor, Functor_to_Group_],
         simp only [yoneda.naturality, category.comp_id, comp_mul, limits.prod.map_fst,
           limits.prod.map_snd],
         simp only [equiv.mul_def, iso.to_equiv_fun, iso.app_hom,
@@ -439,14 +438,14 @@ noncomputable def unit_iso :
       end,
       one_comp :=
       begin
-        dsimp [GroupObj_to_RepresentableGroupFunctor, RepresentableGroupFunctor_to_GroupObj],
+        dsimp [Group_to_Functor, Functor_to_Group_],
         simp only [equiv.one_def, yoneda.naturality, category.comp_id, iso.to_equiv_symm_fun,
           iso.app_inv, one_def],
         erw [subsingleton.elim (terminal.from (⊤_ C)) (𝟙 _), category.id_comp],
       end,
       inv_comp :=
       begin
-        dsimp [GroupObj_to_RepresentableGroupFunctor, RepresentableGroupFunctor_to_GroupObj],
+        dsimp [Group_to_Functor, Functor_to_Group_],
         simp only [equiv.inv_def, inv_def, yoneda.naturality, category.comp_id, iso.to_equiv_fun,
           iso.app_hom, iso.to_equiv_symm_fun, iso.app_inv, functor.repr_w_hom],
         congr,
@@ -457,8 +456,8 @@ noncomputable def unit_iso :
     naturality' := sorry },
   inv :=
   { app := λ X,
-    { hom := (((GroupObj_to_RepresentableGroupFunctor C).obj X).1 ⋙ forget _).repr_f.app
-          (opposite.op (((GroupObj_to_RepresentableGroupFunctor C).obj X).1 ⋙ forget _).repr_X)
+    { hom := (((Group_to_Functor C).obj X).1 ⋙ forget _).repr_f.app
+          (opposite.op (((Group_to_Functor C).obj X).1 ⋙ forget _).repr_X)
           (𝟙 _),
       mul_comp := sorry,
       one_comp := sorry,
@@ -468,29 +467,30 @@ noncomputable def unit_iso :
   inv_hom_id' := sorry }
 
 noncomputable def counit_iso :
-  RepresentableGroupFunctor_to_GroupObj C ⋙ GroupObj_to_RepresentableGroupFunctor C
-    ≅ 𝟭 (RepresentableGroupFunctor C) := sorry
+  Functor_to_Group_ C ⋙ Group_to_Functor C
+    ≅ 𝟭 (RepresentableGroupFunctor C) :=
+sorry
 
-noncomputable def fuck_yeah :
-  GroupObj C ≌ RepresentableGroupFunctor C :=
-{ functor := GroupObj_to_RepresentableGroupFunctor C,
-  inverse := RepresentableGroupFunctor_to_GroupObj C,
+noncomputable def Group_RepresentableGroupFunctor_equivalence :
+  Group_ C ≌ RepresentableGroupFunctor C :=
+{ functor := Group_to_Functor C,
+  inverse := Functor_to_Group_ C,
   unit_iso := unit_iso C,
   counit_iso := counit_iso C,
   functor_unit_iso_comp' := sorry }
 
-end GroupObj
+end Group_
 
-abbreviation CommGroupObj := full_subcategory
-  (λ G : GroupObj C, (limits.prod.braiding G.G G.G).hom ≫ G.mul = G.mul)
+abbreviation CommGroup_ := full_subcategory
+  (λ G : Group_ C, (limits.prod.braiding G.G G.G).hom ≫ G.mul = G.mul)
 
-@[derive [faithful, full]] def CommGroupObj.inclusion : CommGroupObj C ⥤ GroupObj C :=
+@[derive [faithful, full]] def CommGroup_.inclusion : CommGroup_ C ⥤ Group_ C :=
 full_subcategory_inclusion _
 
 abbreviation RepresentableCommGroupFunctor :=
   full_subcategory (λ G : Cᵒᵖ ⥤ CommGroup, (G ⋙ forget _).representable)
 
-instance dksfjd (G : RepresentableCommGroupFunctor C) (X : Cᵒᵖ) :
+instance RepresentableCommGroupFunctor.comm_group (G : RepresentableCommGroupFunctor C) (X : Cᵒᵖ) :
   comm_group (G.1.obj X) := by apply_instance
 
 @[derive faithful] def RepresentableCommGroupFunctor_to_RepresentableGroupFunctor :

@@ -4,38 +4,7 @@ universes v u
 
 namespace algebra.tensor_product
 
-lemma is_unit_tmul_iff {R A B : Type*} [comm_semiring R] [ring A] [ring B]
-  [algebra R A] [algebra R B] (x : A) (y : B) :
-  is_unit (x ⊗ₜ[R] y) ↔ is_unit x ∧ is_unit y :=
-sorry
-
 open_locale tensor_product
-
-lemma tmul_zpow {R A B : Type*} [comm_semiring R] [ring A] [ring B]
-  [algebra R A] [algebra R B] (x : Aˣ) (y : Bˣ) (n : ℤ) :
-  (((is_unit.unit ((is_unit_tmul_iff (x : A) (y : B)).2 ⟨units.is_unit x, units.is_unit y⟩)) ^ n : (A ⊗[R] B)ˣ) : A ⊗[R] B)
-  = ((x ^ n : Aˣ) : A) ⊗ₜ[R] ((y ^ n : Bˣ) : B) :=
-begin
-  refine int.induction_on n _ _ _,
-  { simpa only [zpow_zero, units.coe_one] },
-  { intros i hi,
-    simpa only [←int.coe_nat_succ, zpow_coe_nat, units.coe_pow, ←algebra.tensor_product.tmul_pow]},
-  { intros,
-    rw ←neg_add',
-    rw ←neg_one_mul,
-    rw zpow_mul,
-    rw zpow_mul,
-    rw zpow_mul,
-    simp only [←int.coe_nat_succ, zpow_coe_nat, units.coe_pow, ←algebra.tensor_product.tmul_pow],
-    congr' 1,
-    simp only [zpow_neg, zpow_one],
-    rw units.inv_eq_of_mul_eq_one_left,
-    show _ * (_ ⊗ₜ[R] _) = _,
-    rw algebra.tensor_product.tmul_mul_tmul,
-    simp only [units.inv_mul],
-    refl,
-    }
-end
 
 noncomputable def units_tmul {R A B : Type*} [comm_semiring R] [ring A] [ring B]
   [algebra R A] [algebra R B] {x : A} {y : B} (hx : is_unit x) (hy : is_unit y) :
@@ -44,17 +13,6 @@ noncomputable def units_tmul {R A B : Type*} [comm_semiring R] [ring A] [ring B]
   inv := ((is_unit.unit hx)⁻¹ : Aˣ) ⊗ₜ[R] ((is_unit.unit hy)⁻¹ : Bˣ),
   val_inv := sorry,
   inv_val := sorry }
-
-lemma units_tmul_zpow {R A B : Type*} [comm_semiring R] [ring A] [ring B]
-  [algebra R A] [algebra R B] (x : A) (y : B) (hx : is_unit x) (hy : is_unit y) (m : ℤ) :
-  (((units_tmul hx hy) ^ m : (A ⊗[R] B)ˣ) : (A ⊗[R] B)) =
-  ((is_unit.unit hx ^ m : Aˣ) : A) ⊗ₜ[R] ((is_unit.unit hy ^ m : Bˣ) : B) :=
-begin
-  rw ←tmul_zpow,
-  congr,
-  ext,
-  refl,
-end
 
 end algebra.tensor_product
 variables (R : Type u) [comm_ring R]
@@ -147,7 +105,7 @@ noncomputable instance T_neg_Tmul_T_invertible (m n : ℤ) :
 @invertible_inv_of _ _ _ (@T R _ m ⊗ₜ[R] @T R _ n) _
 
 lemma T_tmul_T_inv (m n : ℤ) : ⅟(@T R _ m ⊗ₜ[R] @T R _ n) = T (-m) ⊗ₜ[R] T (-n) := rfl
-lemma T__Tmul_T_inv' (m n : ℤ) : ⅟(@T R _ (-m) ⊗ₜ[R] @T R _ (-n) ) = T m ⊗ₜ[R] T n :=
+lemma T_Tmul_T_inv' (m n : ℤ) : ⅟(@T R _ (-m) ⊗ₜ[R] @T R _ (-n) ) = T m ⊗ₜ[R] T n :=
 begin
   rw inv_of_eq_right_inv,{ simpa only [algebra.tensor_product.tmul_mul_tmul, ← T_add, add_left_neg,
     add_right_neg, T_zero], }
@@ -166,37 +124,24 @@ lemma comul_T (m : ℤ) :
 begin
   refine int.induction_on m _ _ _,
   { show comul R (finsupp.single 0 (1 : R)) = _,
-    simpa only [comul, eval₂_alg_hom_single, one_smul, zpow_zero, units.coe_one, T_zero, neg_zero]
-     },
+    simpa only [comul, eval₂_alg_hom_single, one_smul, zpow_zero, units.coe_one, T_zero, neg_zero] },
   { intros i hi,
     exact comul_T_nat _ _ },
   { intros i hi,
-    rw ←neg_add',
-    rw ←int.coe_nat_succ,
-      rw ←T_tmul_T_inv,
-  rw eq_comm,
-  rw inv_of_eq_right_inv,
-  rw ←comul_T_nat,
-  rw ←map_mul (comul R),
-  show comul R (T _ * T _) = _,
-  rw ←T_add,
-  rw add_right_neg,
-  rw T_zero,
-  rw map_one,
-     }
+    rw [←neg_add', ←int.coe_nat_succ, ←T_tmul_T_inv, eq_comm, inv_of_eq_right_inv],
+    rw [←comul_T_nat, ←map_mul (comul R)],
+    show comul R (T _ * T _) = _,
+    rw [←T_add, add_right_neg, T_zero, map_one] }
 end
 
 noncomputable def counit : R[T;T⁻¹] →ₐ[R] R := eval₂_alg_hom R _ is_unit_one
 
-lemma T_def (m : ℤ) : T m = finsupp.single m 1 := rfl
+lemma T_def (m : ℤ) : T m = finsupp.single m (1 : R) := rfl
+
 lemma counit_T (m : ℤ) :
   counit R (T m) = 1 :=
 begin
-  rw counit,
-  rw T,
-  rw eval₂_alg_hom_single,
-  rw one_smul,
-  simp only [units.coe_eq_one],
+  simp only [counit, T, eval₂_alg_hom_single, one_smul, units.coe_eq_one],
   rw ←one_zpow m,
   congr,
   ext,
@@ -209,36 +154,17 @@ eval₂_alg_hom R _ (is_unit_T (-1))
 lemma coinv_T (m : ℤ) :
   coinv R (T m) = T (-m) :=
 begin
-  rw coinv,
   delta T,
-  rw eval₂_alg_hom_single,
-  rw one_smul,
-  simp only [single_eq_C_mul_T, map_one, one_mul],
-    refine m.induction_on _ _ _,
+  rw [coinv, eval₂_alg_hom_single, one_smul, single_eq_C_mul_T, map_one, one_mul],
+  refine m.induction_on _ _ _,
   { simp only [zpow_zero, units.coe_one, neg_zero, T_zero], },
   { intros i hi,
-    rw ←int.coe_nat_succ,
-    rw zpow_coe_nat,
-    rw units.coe_pow,
-    rw is_unit.unit_spec,
-    rw T_pow,
-    rw mul_neg_one, },
+    rw [←int.coe_nat_succ, zpow_coe_nat, units.coe_pow, is_unit.unit_spec, T_pow, mul_neg_one], },
   { intros i hi,
-    rw ←neg_add',
-    rw ←int.coe_nat_succ,
-    rw zpow_neg,
-    rw units.inv_eq_of_mul_eq_one_left,
-     rw zpow_coe_nat,
-    rw units.coe_pow,
-    rw is_unit.unit_spec,
-    rw T_pow,
-    rw neg_neg,
-    rw mul_neg_one,
-    rw ←T_add,
-    rw add_neg_self,
-    rw T_zero,
-    }
-
+    rw [←neg_add', ←int.coe_nat_succ, zpow_neg],
+    apply units.inv_eq_of_mul_eq_one_left,
+    rw [zpow_coe_nat, units.coe_pow, is_unit.unit_spec, T_pow, neg_neg, mul_neg_one, ←T_add,
+      add_neg_self, T_zero] }
 end
 
 variables {k : Type*} [comm_ring k] (m : ℤ)
@@ -267,6 +193,5 @@ end
 
 noncomputable instance : hopf_algebra R (laurent_polynomial R) :=
 hopf_algebra.of_alg_hom (coinv R)
-
 
 end laurent_polynomial

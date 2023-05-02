@@ -69,54 +69,37 @@ lemma CommMon_tensor_mul_comm (M N : CommMon_ C) :
     (β_ (M.X ⊗ N.X) (M.X ⊗ N.X)).hom ≫ tensor_μ C (M.X, N.X) (M.X, N.X) ≫ (M.mul ⊗ N.mul)
   = tensor_μ C (M.X, N.X) (M.X, N.X) ≫ (M.mul ⊗ N.mul) :=
 begin
-  rw ←M.mul_comm, rw ←N.mul_comm,
-  rw tensor_comp,
-  rw ←category.comp_id (β_ N.X N.X).hom,
-  rw ←category.id_comp (β_ M.X M.X).hom,
-  rw tensor_comp,
-  rw ←tensor_id,
-  unfold tensor_μ,
+  rw [←M.mul_comm, ←N.mul_comm, tensor_comp, ←category.comp_id (β_ N.X N.X).hom,
+     ←category.id_comp (β_ M.X M.X).hom, tensor_comp, ←tensor_id, tensor_μ],
   simp only [category.assoc],
   rw ←associator_inv_naturality_assoc,
-
-  slice_lhs 3 6 { simp only [←tensor_comp],
-  dsimp,
-  rw ←(iso.eq_inv_comp _).2 (braided_category.hexagon_forward _ _ _),
-  },
+  slice_lhs 3 6
+  { dsimp,
+    simp only [←tensor_comp],
+    rw ←(iso.eq_inv_comp _).2 (braided_category.hexagon_forward _ _ _) },
   simp only [tensor_comp],
-  slice_lhs 3 4 {
-    rw (iso.hom_comp_eq_id (β_ (M.X ⊗ N.X) N.X)).1 (symmetric_category.symmetry _ _),
-    rw ←iso.refl_inv,
-    rw ←tensor_iso_inv,
-   },
+  slice_lhs 3 4
+  { rw [(iso.hom_comp_eq_id (β_ (M.X ⊗ N.X) N.X)).1 (symmetric_category.symmetry _ _),
+      ←iso.refl_inv, ←tensor_iso_inv] },
   slice_lhs 1 3
   { dsimp,
     rw (iso.eq_inv_comp _).2 (braided_category.hexagon_forward _ _ _) },
   slice_lhs 4 6
-  { rw ←iso.refl_hom,
-    rw ←tensor_iso_hom,
-    rw iso.hom_inv_id },
+  { rw [←iso.refl_hom, ←tensor_iso_hom, iso.hom_inv_id] },
   slice_lhs 3 6
   { simp only [category.id_comp],
-    rw (is_iso.eq_inv_comp _).2 (monoidal_category.pentagon M.X M.X N.X N.X),
-     },
+    rw (is_iso.eq_inv_comp _).2 (monoidal_category.pentagon M.X M.X N.X N.X) },
   slice_lhs 3 6
-  { rw iso.hom_inv_id,
-    rw category.comp_id, },
+  { rw [iso.hom_inv_id, category.comp_id], },
   slice_lhs 4 5
-  { rw ←tensor_id,
-    rw ←associator_naturality},
+  { rw [←tensor_id, ←associator_naturality] },
   slice_lhs 2 4
-  { rw inv_tensor,
-    rw is_iso.iso.inv_hom,
-    rw is_iso.inv_id,
+  { rw [inv_tensor, is_iso.iso.inv_hom, is_iso.inv_id],
     simp only [←tensor_comp]},
-  slice_lhs 2 3 {
-  rw ←category.assoc,
-  rw (iso.inv_comp_eq _).1 (braided_category.hexagon_reverse M.X N.X M.X),
-  simp only [category.assoc, ←tensor_comp, symmetric_category.symmetry,
-    category.comp_id, tensor_id],
-   },
+  slice_lhs 2 3
+  { rw [←category.assoc, (iso.inv_comp_eq _).1 (braided_category.hexagon_reverse M.X N.X M.X)],
+    simp only [category.assoc, ←tensor_comp, symmetric_category.symmetry,
+      category.comp_id, tensor_id] },
   dsimp,
   sorry,
 end

@@ -3,9 +3,7 @@ Copyright (c) 2022 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
-
 import measure_theory.function.continuous_map_dense
-import topology.continuous_function.zero_at_infty
 import analysis.fourier.fourier_transform
 import analysis.inner_product_space.dual
 import topology.metric_space.emetric_paracompact
@@ -19,7 +17,7 @@ spaces `V`: if `f` is a function on `V` (valued in a complete normed space `E`),
 Fourier transform of `f`, viewed as a function on the dual space of `V`, tends to 0 along the
 cocompact filter. Here the Fourier transform is defined by
 
-`λ w : V →L[ℝ] ℝ, ∫ (v : V), exp (↑(2 * π * w v) * I) • f x`.
+`λ w : V →L[ℝ] ℝ, ∫ (v : V), exp (↑(-2 * π * w v) * I) • f x`.
 
 This is true for arbitrary functions, but is only interesting for `L¹` functions (if `f` is not
 integrable then the integral is zero for all `w`). This is proved first for continuous

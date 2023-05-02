@@ -5,7 +5,6 @@ Authors: Joseph Myers, Sébastien Gouëzel, Heather Macbeth
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.pi_Lp
-import linear_algebra.finite_dimensional
 import linear_algebra.unitary_group
 
 /-!

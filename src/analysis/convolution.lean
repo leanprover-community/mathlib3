@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.group.integration
-import measure_theory.group.prod
-import measure_theory.function.locally_integrable
 import analysis.calculus.bump_function_inner
 import measure_theory.integral.interval_integral
 import analysis.calculus.parametric_integral

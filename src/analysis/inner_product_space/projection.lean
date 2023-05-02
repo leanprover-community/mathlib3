@@ -3,7 +3,6 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
-import analysis.convex.basic
 import analysis.inner_product_space.orthogonal
 import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C

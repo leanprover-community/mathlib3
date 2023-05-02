@@ -3,8 +3,6 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Eric Wieser
 -/
-import analysis.normed_space.basic
-import analysis.normed_space.pi_Lp
 import analysis.inner_product_space.pi_L2
 
 /-!

@@ -3,7 +3,6 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
-import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.completion

@@ -67,10 +67,10 @@ end definitions
 
 namespace proper_cone
 
-section complete_space
+section inner_product_space
 
-variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
-variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
 
 instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
 
@@ -96,19 +96,6 @@ by cases S; cases T; congr'
 instance : has_star (proper_cone E) :=
 ⟨λ K, ⟨(K : set E).inner_dual_cone, ⟨0, pointed_inner_dual_cone _⟩, is_closed_inner_dual_cone _⟩⟩
 
-/-- The dual of the dual of a proper cone is itself. -/
-instance : has_involutive_star (proper_cone E) :=
-{ star := has_star.star,
-  star_involutive := λ K, proper_cone.ext $
-    (K : convex_cone ℝ E).inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed }
-
-@[simp, norm_cast]
-lemma coe_star (K : proper_cone E) : ↑(star K) = (K : set E).inner_dual_cone := rfl
-
-@[simp] lemma mem_star {K : proper_cone E} {y : E} :
-  y ∈ star K ↔ ∀ ⦃x⦄, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ :=
-by simp_rw [mem_coe, coe_star, mem_inner_dual_cone _ _, _root_.coe_coe, set_like.mem_coe]
-
 -- TODO: Replace map with a bundled version: proper_cone E →L[ℝ] proper_cone F
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. We
 use continuous maps here so that the adjoint of f is also a map between proper cones. -/
@@ -119,6 +106,28 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
 
 @[simp, norm_cast] lemma coe_map (f : E →L[ℝ] F) (K : proper_cone E) :
   ↑(K.map f) = (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := rfl
+
+@[simp, norm_cast]
+lemma coe_star (K : proper_cone E) : ↑(star K) = (K : set E).inner_dual_cone := rfl
+
+@[simp] lemma mem_star {K : proper_cone E} {y : E} :
+  y ∈ star K ↔ ∀ ⦃x⦄, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ :=
+by simp_rw [mem_coe, coe_star, mem_inner_dual_cone _ _, _root_.coe_coe, set_like.mem_coe]
+
+-- TODO: add comap, adjoint
+
+end inner_product_space
+
+section complete_space
+
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
+
+/-- The dual of the dual of a proper cone is itself. -/
+instance : has_involutive_star (proper_cone E) :=
+{ star := has_star.star,
+  star_involutive := λ K, proper_cone.ext $
+    (K : convex_cone ℝ E).inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed }
 
 end complete_space
 

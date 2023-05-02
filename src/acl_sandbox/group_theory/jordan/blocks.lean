@@ -669,24 +669,134 @@ end stabilizer
 
 section fintype
 
+noncomputable def setoid.is_partition_equiv_quotient {α : Type*}
+  {c : set (set α)} (hc : setoid.is_partition c) :
+  quotient (setoid.mk_classes c hc.2) ≃ c :=
+begin
+  let f : α → c := λ a, ⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩,
+  refine equiv.of_bijective (@quotient.lift _ _ (setoid.mk_classes c hc.2) f _) _,
+  { -- well defined
+    intros a b hab,
+    change (setoid.mk_classes c hc.2).rel a b at hab,
+    rw setoid.rel_iff_exists_classes at hab,
+    rw setoid.classes_mk_classes at hab,
+    obtain ⟨u, h, ha, hb⟩ := hab,
+    let hc2 := hc.2,
+    simp only [f, subtype.mk_eq_mk],
+    rw ← setoid.eq_eqv_class_of_mem hc.2 h ha,
+    rw ← setoid.eq_eqv_class_of_mem hc.2 h hb, },
+  split,
+  { -- injective
+    intros x y,
+    obtain ⟨a, rfl⟩ := @quotient.exists_rep α (setoid.mk_classes c hc.2) x,
+    obtain ⟨b, rfl⟩ := @quotient.exists_rep α (setoid.mk_classes c hc.2) y,
+    simp only [quotient.lift_mk, f, subtype.mk_eq_mk],
+    intro hab,
+    apply quotient.sound,
+    change (setoid.mk_classes c hc.2).rel a b,
+    rw setoid.rel_iff_exists_classes,
+    use { x : α | (setoid.mk_classes c hc.2).rel x a},
+    split,
+    rw setoid.classes_mk_classes,
+    apply setoid.eqv_class_mem,
+    split,
+    rw set.mem_set_of, apply setoid.refl' _ a,
+    rw hab, rw set.mem_set_of, apply setoid.refl' _ b, },
+  { -- surjective
+    rintro ⟨u, hu⟩,
+    have hu' : u.nonempty,
+    { rw set.nonempty_iff_ne_empty,
+      intro hu', apply hc.1,  rw ← hu', exact hu, },
+    obtain ⟨a, ha⟩ := hu',
+    use @quotient.mk _ (setoid.mk_classes c hc.2) a,
+    rw quotient.lift_mk,
+    simp only [f, subtype.mk_eq_mk],
+    rw setoid.eq_eqv_class_of_mem hc.2 hu ha, }
+end
+
+
 /-- The cardinality of the ambient is the product of
   of the cardinality of a block
   by the cardinality of the set of iterates of that block -/
 lemma nat_card_of_block_mul_card_of_orbit_of [hfX : fintype X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
-  nat.card B * nat.card (set.range (λ (g : G), g • B)) = nat.card X :=
+  nat.card (set.range (λ (g : G), g • B)) • nat.card B = nat.card X :=
 begin
   classical,
-  have hpart := (is_block_system.of_block hB hB_ne).1,
-  have relB := setoid.mk_classes (set.range (λ (g : G), g • B)) hpart.2,
-  have := fintype.card_congr (equiv.sigma_fiber_equiv (@quotient.mk' _ (relB))),
-  rw fintype.card_sigma at this,
-  rw finset.sum_eq_card_nsmul at this,
-  let φ := mul_action.orbit_equiv_quotient_stabilizer G B,
-  haveI := finite.of_equiv (orbit G B),
-  have := nat.card_congr φ,
+  obtain ⟨b, hb⟩ := id hB_ne,
 
-  rw setoid.is_partition.nat_card_eq_sum_parts (is_block_system.of_block hB hB_ne).left,
+  simp only [nat.card_eq_fintype_card],
+
+  let relB := setoid.mk_classes (set.range (λ (g : G), g • B)) (is_block_system.of_block hB hB_ne).1.2,
+
+  rw ← fintype.card_congr (equiv.sigma_fiber_equiv (@quotient.mk' X (relB))),
+
+  rw fintype.card_sigma,
+
+  rw @finset.sum_eq_card_nsmul ℕ (quotient relB) (finset.univ) (λ a, fintype.card {x // quotient.mk' x = a}) _ (nat.card B) _,
+  simp only [nat.card_eq_fintype_card],
+  apply congr_arg2 _ _ rfl,
+
+  -- suffices : set.range (λ (g : G), g • B) ≃ (quotient relB),
+
+  rw [finset.card_univ],
+  apply fintype.card_congr,
+  simp only [relB],
+  have : setoid.is_partition (set.range (λ (g : G), g • B))
+   := (is_block_system.of_block hB hB_ne).1,
+
+  exact (setoid.is_partition_equiv_quotient (is_block_system.of_block hB hB_ne).1).symm,
+
+  intros a ha,
+  obtain ⟨a, rfl⟩ := @quotient.exists_rep X relB a,
+
+  obtain ⟨g, hg⟩ := hGX.exists_smul_eq b a,
+--   obtain ⟨u, ⟨⟨g,hu⟩,hu2⟩, hu'⟩:= ((is_block_system.of_block hB hB_ne).1.2 a),
+
+  dsimp,
+
+  apply symm,
+  rw nat.card_eq_fintype_card,
+  apply fintype.card_congr,
+
+  suffices : ∀ c ∈ B, quotient.mk' (g • c) = @quotient.mk _ relB a,
+
+  let φ : B → { y // quotient.mk' y = @quotient.mk _ relB a} := λ c,⟨g • ↑c, this ↑c c.prop⟩,
+  apply equiv.of_bijective φ,
+
+  split,
+  { -- injective
+    rintros ⟨c1, hc1⟩ ⟨c2, hc2⟩,
+    simp only [φ, subtype.coe_mk, smul_left_cancel_iff, subtype.mk_eq_mk, imp_self], },
+  { -- surjective
+    rintro ⟨y, hy⟩,
+    -- rw [@quotient.mk'_eq_mk _ relB y, quotient.eq] at hy,
+    have hy' : relB.rel y a,
+    { simpa [@quotient.mk'_eq_mk _ relB y, quotient.eq] using hy },
+
+    dsimp [relB] at hy',
+    rw setoid.rel_iff_exists_classes at hy',
+    rw setoid.classes_mk_classes at hy',
+    obtain ⟨u, ⟨g', rfl⟩, hy', hx'⟩ := hy',
+    dsimp only [φ],
+    obtain ⟨a, ha⟩ := hy',
+    use ⟨a, ha.1⟩,
+    simp only [subtype.coe_mk],
+--    dsimp at hu hx',
+--    dsimp at hu',
+--    suffices H : g' • B = g • B,
+  --  specialize hu' ⟨g', H⟩,
+
+  sorry, },
+  { -- sound
+    intros c hc,
+
+
+    sorry, }
+
+
+
+/-   rw setoid.is_partition.nat_card_eq_sum_parts (is_block_system.of_block hB hB_ne).left,
   rw [finset.sum_congr rfl _, finset.sum_const (fintype.card ↥B),
     nsmul_eq_mul, nat.cast_id, mul_comm],
   { rw ← set.to_finset_card },
@@ -695,7 +805,7 @@ begin
     obtain ⟨g, rfl⟩ := hs,
     simp only [set.to_finset_card],
     { refine eq.trans _ (eq.trans (smul_set_card_eq g B) _),
-      all_goals { apply fintype.card_congr', refl } } }
+      all_goals { apply fintype.card_congr', refl } } } -/
 end
 
 open_locale classical

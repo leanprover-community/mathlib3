@@ -451,6 +451,10 @@ lemma x_pos {a : solution₁ d} (h : is_fundamental a) : 0 < a.x := zero_lt_one.
 /-- If a fundamental solution exists, then `d` must be positive. -/
 lemma d_pos {a : solution₁ d} (h : is_fundamental a) : 0 < d := d_pos_of_one_lt_x h.1
 
+/-- If a fundamental solution exists, then `d` must be a non-square. -/
+lemma d_nonsquare {a : solution₁ d} (h : is_fundamental a) : ¬ is_square d :=
+d_nonsquare_of_one_lt_x h.1
+
 /-- If there is a fundamental solution, it is unique. -/
 lemma unique {a b : solution₁ d} (ha : is_fundamental a) (hb : is_fundamental b) : a = b :=
 begin

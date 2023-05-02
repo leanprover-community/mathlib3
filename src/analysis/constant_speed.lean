@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli
 -/
 import analysis.bounded_variation
-import tactic.swap_var
+
 /-!
 # Constant speed
 

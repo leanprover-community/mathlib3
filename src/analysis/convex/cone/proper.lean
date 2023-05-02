@@ -15,9 +15,11 @@ linear programs, the results from this file can be used to prove duality theorem
 
 ## TODO
 
-In the next few PRs (already sorry-free), we will prove the cone version of Farkas' lemma (2.3.4 in the reference).
+In the next few PRs (already sorry-free), we will prove the cone version of Farkas' lemma (2.3.4 in
+the reference).
 
 The next steps are:
+- Define the positive cone as a proper cone.
 - Define primal and dual cone programs and prove weak duality.
 - Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
 - Define linear programs and prove LP duality as a special case of cone duality.
@@ -102,7 +104,8 @@ instance : has_involutive_star (proper_cone E) :=
 
 @[simp] lemma coe_star (K : proper_cone E) : ↑(star K) = (K : set E).inner_dual_cone := rfl
 
-@[simp] lemma mem_star {K : proper_cone E} {y : E} : y ∈ star K ↔ ∀ x ∈ (K : set E), 0 ≤ ⟪x, y⟫_ℝ :=
+@[simp] lemma mem_star {K : proper_cone E} {y : E} :
+  y ∈ star K ↔ ∀ x ∈ (K : set E), 0 ≤ ⟪x, y⟫_ℝ :=
 by rw [mem_coe, coe_star, mem_inner_dual_cone _ _]
 
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/

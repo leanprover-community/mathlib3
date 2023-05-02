@@ -475,7 +475,7 @@ lemma norm_re_le_norm (z : K) : ‖re z‖ ≤ ‖z‖ := abs_re_le_norm z
 lemma norm_im_le_norm (z : K) : ‖im z‖ ≤ ‖z‖ := abs_im_le_norm z
 
 lemma re_le_norm (z : K) : re z ≤ ‖z‖ := (abs_le.1 (abs_re_le_norm z)).2
-lemma im_le_abs (z : K) : im z ≤ ‖z‖ := (abs_le.1 (abs_im_le_norm _)).2
+lemma im_le_norm (z : K) : im z ≤ ‖z‖ := (abs_le.1 (abs_im_le_norm _)).2
 
 lemma im_eq_zero_of_le {a : K} (h : ‖a‖ ≤ re a) : im a = 0 :=
 by simpa only [mul_self_norm a, norm_sq_apply, self_eq_add_right, mul_self_eq_zero]

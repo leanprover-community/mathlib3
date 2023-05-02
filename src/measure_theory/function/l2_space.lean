@@ -72,18 +72,17 @@ end
 
 lemma snorm_inner_lt_top (f g : α →₂[μ] E) : snorm (λ (x : α), ⟪f x, g x⟫) 1 μ < ∞ :=
 begin
-  -- have h : ∀ x, ‖⟪f x, g x⟫‖ ≤ ‖f x‖ * ‖g x‖, from λ x, norm_inner_le_norm _ _,
-  have h' : ∀ x, ‖⟪f x, g x⟫‖ ≤ ‖‖f x‖^2 + ‖g x‖^2‖,
+  have h : ∀ x, ‖⟪f x, g x⟫‖ ≤ ‖‖f x‖ ^ (2 : ℝ) + ‖g x‖ ^ (2 : ℝ)‖,
   { intro x,
+    rw [← @nat.cast_two ℝ, real.rpow_nat_cast, real.rpow_nat_cast],
     calc ‖⟪f x, g x⟫‖ ≤ ‖f x‖ * ‖g x‖ : norm_inner_le_norm _ _
     ... ≤ 2 * ‖f x‖ * ‖g x‖ :
       mul_le_mul_of_nonneg_right (le_mul_of_one_le_left (norm_nonneg _) one_le_two) (norm_nonneg _)
     ... ≤ ‖‖f x‖^2 + ‖g x‖^2‖ : (two_mul_le_add_sq _ _).trans (le_abs_self _) },
-  simp_rw [← real.rpow_nat_cast] at h',
-  refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
+  refine (snorm_mono_ae (ae_of_all _ h)).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
   { exact ((Lp.ae_strongly_measurable f).norm.ae_measurable.pow_const _).ae_strongly_measurable },
   { exact ((Lp.ae_strongly_measurable g).norm.ae_measurable.pow_const _).ae_strongly_measurable },
-  simp only [nat.cast_bit0, ennreal.add_lt_top, nat.cast_one],
+  rw [ennreal.add_lt_top],
   exact ⟨snorm_rpow_two_norm_lt_top f, snorm_rpow_two_norm_lt_top g⟩,
 end
 

@@ -10,6 +10,9 @@ import category_theory.sites.sheafification
 
 # Limits and colimits of sheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Limits
 
 We prove that the forgetful functor from `Sheaf J D` to presheaves creates limits.

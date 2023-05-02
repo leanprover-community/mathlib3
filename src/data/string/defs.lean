@@ -8,6 +8,9 @@ import data.list.defs
 /-!
 # Definitions for `string`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a bunch of functions for the `string` datatype.
 -/
 

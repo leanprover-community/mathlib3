@@ -9,6 +9,9 @@ import analysis.normed_space.basic
 /-!
 # Multiplicative actions of/on balls and spheres
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `E` be a normed vector space over a normed field `𝕜`. In this file we define the following
 multiplicative actions.
 

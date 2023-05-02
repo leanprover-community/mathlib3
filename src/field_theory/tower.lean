@@ -65,8 +65,7 @@ namespace finite_dimensional
 open is_noetherian
 
 theorem trans [finite_dimensional F K] [finite_dimensional K A] : finite_dimensional F A :=
-let b := basis.of_vector_space F K, c := basis.of_vector_space K A in
-of_fintype_basis $ b.smul c
+module.finite.trans K A
 
 /-- In a tower of field extensions `L / K / F`, if `L / F` is finite, so is `K / F`.
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Vincent Beffara
 -/
 import analysis.analytic.isolated_zeros
-import analysis.complex.cauchy_integral
 import analysis.complex.abs_max
 
 /-!

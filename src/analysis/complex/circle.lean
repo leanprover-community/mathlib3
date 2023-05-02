@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.special_functions.exp
-import topology.continuous_function.basic
 import analysis.normed.field.unit_ball
 
 /-!

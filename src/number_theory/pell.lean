@@ -432,6 +432,14 @@ open solution₁
 lemma x_pos {a : solution₁ d} (h : is_fundamental a) : 0 < a.x :=
 zero_lt_one.trans h.1
 
+/-- If a fundamental solution exists, then `d` must be positive. -/
+lemma d_pos {a : solution₁ d} (h : is_fundamental a) : 0 < d :=
+begin
+  refine pos_of_mul_pos_left _ (sq_nonneg a.y),
+  rw [a.prop_y, sub_pos],
+  exact one_lt_pow h.1 two_ne_zero,
+end
+
 /-- If there is a fundamental solution, it is unique. -/
 lemma unique (h₀ : 0 < d) {a b : solution₁ d} (ha : is_fundamental a) (hb : is_fundamental b) :
   a = b :=

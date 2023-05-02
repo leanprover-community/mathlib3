@@ -121,7 +121,6 @@ end inner_product_space
 section complete_space
 
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
-variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
 
 /-- The dual of the dual of a proper cone is itself. -/
 instance : has_involutive_star (proper_cone E) :=

@@ -1,4 +1,4 @@
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 import topology.instances.real
 import topology.tactic
 

@@ -67,10 +67,10 @@ end definitions
 
 namespace proper_cone
 
-section complete_space
+section inner_product_space
 
-variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
-variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
 
 instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
 
@@ -107,17 +107,17 @@ lemma coe_star (K : proper_cone E) : ↑(star K) = (K : set E).inner_dual_cone :
 
 @[simp] lemma mem_star {K : proper_cone E} {y : E} :
   y ∈ star K ↔ ∀ ⦃x⦄, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ :=
-by rw [mem_coe, coe_star, mem_inner_dual_cone _ _]
+by simp_rw [mem_coe, coe_star, mem_inner_dual_cone _ _, _root_.coe_coe, set_like.mem_coe]
 
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
-noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
-⟨((K : cone E).map f).closure,
+noncomputable def map (f : E →ₗ[ℝ] F) (K : proper_cone E) : proper_cone F :=
+⟨((K : proper_cone E).map f).closure,
   ⟨ 0, subset_closure $ set_like.mem_coe.2 $ convex_cone.mem_map.2 ⟨ 0, K.pointed, map_zero _ ⟩ ⟩,
     is_closed_closure ⟩
 
-@[simp, norm_cast] lemma coe_map (f : E →L[ℝ] F) (K : proper_cone E) :
+@[simp, norm_cast] lemma coe_map (f : E →ₗ[ℝ] F) (K : proper_cone E) :
   ↑(K.map f) = (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := rfl
 
-end complete_space
+end inner_product_space
 
 end proper_cone

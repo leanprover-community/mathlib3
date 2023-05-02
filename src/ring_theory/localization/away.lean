@@ -204,13 +204,6 @@ open multiplicity unique_factorization_monoid is_localization
 variable (x : R)
 
 variables (B : Type*) [comm_ring B] [algebra R B] [is_localization.away x B]
--- variable (hx : irreducible x)
-
--- `self_as_unit` is the element `x` at which `B` is a localization away, bundled as a unit in `B`
-
--- noncomputable def self_as_unit : Bˣ :=
--- ⟨algebra_map _ _ x, away.inv_self x, away.mul_inv_self _,
---   by { rw mul_comm, exact away.mul_inv_self _ }⟩
 
 /-- `self_zpow x (m : ℤ)` is `x ^ m` as an element of the localization away from `x`. -/
 noncomputable def self_zpow (m : ℤ) : B :=
@@ -277,22 +270,6 @@ begin
     simp [pow_add] },
 end
 
--- lemma self_zpow_unit (m : ℤ) : is_unit (self_zpow_map x B m) := sorry
-
--- noncomputable
--- def self_zpow (m : ℤ) : B := ↑(self_zpow_unit x B m).unit
-
--- @[simp]
--- lemma self_zpow_eq (m : ℤ) : (self_zpow_unit x B m).unit = ⟨algebra_map _ _ x, away.inv_self x, away.mul_inv_self _,
---   by { rw mul_comm, exact away.mul_inv_self _ }⟩^m := sorry
-
--- lemma self_as_unit_pow_sub (a : R) (b : B) (m d : ℤ) :
---   (((self_as_unit x B ^ (m - d)) : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b ↔
---   (((self_as_unit x B ^ m) : Bˣ) : B) * mk' B a (1 : submonoid.powers x) =
---     (((self_as_unit x B ^ d) : Bˣ) : B) * b :=
--- by simp only [zpow_sub, units.coe_mul, mul_comm (((self_as_unit x B ^ m) : Bˣ) : B) _,  mul_assoc,
---   units.inv_mul_eq_iff_eq_mul]
-
 lemma self_zpow_mul_neg (d : ℤ) : self_zpow x B d * self_zpow x B (-d) = 1 :=
 begin
   by_cases hd : d ≤ 0,
@@ -310,9 +287,6 @@ end
 lemma self_zpow_neg_mul (d : ℤ) : self_zpow x B (-d) * self_zpow x B d = 1 :=
 by rw [mul_comm, self_zpow_mul_neg x B d]
 
--- noncomputable!
--- lemma self_zpow_invertible (d : ℤ) : invertible (self_zpow x B d ) :=
--- ⟨self_zpow x B (-d), self_zpow_neg_mul x B d, self_zpow_mul_neg x B d⟩
 
 lemma self_zpow_pow_sub (a : R) (b : B) (m d : ℤ) :
   (self_zpow x B (m - d)) * mk' B a (1 : submonoid.powers x) = b ↔
@@ -330,39 +304,8 @@ begin
     rwa [mul_comm _ b, mul_assoc b _ _, self_zpow_mul_neg, mul_one] at this}
 end
 
--- lemma pow_eq_algebra_map (d : ℕ) :
---   (((self_as_unit x B)^(d : ℤ) : Bˣ) : B) = (algebra_map R B x)^d :=
--- by simp only [self_as_unit, zpow_coe_nat, units.coe_pow, units.coe_mk]
 
 variables [is_domain R] [normalization_monoid R] [unique_factorization_monoid R]
--- include hx
-
--- theorem exists_reduced_fraction {b : B} (hb : b ≠ 0) :
---   ∃ (a : R) (n : ℤ), ¬ x ∣ a ∧
---     (((self_as_unit x B)^n : Bˣ) : B) * mk' B a (1 : submonoid.powers x) = b :=
--- begin
---   classical,
---   obtain ⟨⟨a₀, y⟩, H⟩ := surj (submonoid.powers x) b,
---   obtain ⟨d, hy⟩ := (submonoid.mem_powers_iff y.1 x).mp y.2,
---   have ha₀ : a₀ ≠ 0,
---   { haveI := @is_domain_of_le_non_zero_divisors B _ R _ _ _ (submonoid.powers x) _
---       (powers_le_non_zero_divisors_of_no_zero_divisors hx.ne_zero),
---     simp only [map_zero, ← subtype.val_eq_coe, ← hy, map_pow] at H,
---     apply ((injective_iff_map_eq_zero' (algebra_map R B)).mp _ a₀).mpr.mt,
---     rw ← H,
---     apply mul_ne_zero hb (pow_ne_zero _ _),
---     exact is_localization.to_map_ne_zero_of_mem_non_zero_divisors B
---       (powers_le_non_zero_divisors_of_no_zero_divisors (hx.ne_zero))
---       (mem_non_zero_divisors_iff_ne_zero.mpr hx.ne_zero),
---     exact is_localization.injective B (powers_le_non_zero_divisors_of_no_zero_divisors
---       (hx.ne_zero)) },
---   simp only [← subtype.val_eq_coe, ← hy] at H,
---   obtain ⟨m, a, hyp1, hyp2⟩ := max_power_factor ha₀ hx,
---   refine ⟨a, m-d, _⟩,
---   rw [self_as_unit_pow_sub x B a b m d, pow_eq_algebra_map x B d, mul_comm _ b, ← map_pow, H, hyp2,
---     pow_eq_algebra_map x B m, map_mul, map_pow],
---   exact ⟨hyp1, (congr_arg _ (is_localization.mk'_one _ _))⟩,
--- end
 
 
 theorem exists_reduced_fraction' {b : B} (hb : b ≠ 0) (hx : irreducible x) :

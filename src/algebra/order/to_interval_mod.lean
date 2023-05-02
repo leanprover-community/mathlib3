@@ -413,18 +413,19 @@ by rw [Imodeq_iff_to_Ico_mod_add_period_eq_to_Ioc_mod hp, to_Ico_mod, to_Ioc_mod
 
 include hp
 
-lemma not_Imodeq_iff_ne_add_zsmul : ¬Imodeq p a b ↔ ∀ z : ℤ, b ≠ a + z • p :=
+
+lemma Imodeq_iff_eq_add_zsmul : Imodeq p a b ↔ ∃ z : ℤ, b = a + z • p :=
 begin
-  rw [Imodeq_iff_to_Ico_mod_eq_left hp, ← not_iff_not],
-  push_neg, split; intro h,
+  rw [Imodeq_iff_to_Ico_mod_eq_left hp],
+  split; intro h,
   { rw ← h,
     exact ⟨_, (to_Ico_mod_add_to_Ico_div_zsmul _ _ _).symm⟩ },
   { rw [to_Ico_mod_eq_iff, set.left_mem_Ico],
     exact ⟨lt_add_of_pos_right a hp, h⟩, },
 end
 
-lemma Imodeq_iff_eq_add_zsmul : Imodeq p a b ↔ ∃ z : ℤ, b = a + z • p :=
-by simpa only [not_forall, not_ne_iff] using (not_Imodeq_iff_ne_add_zsmul hp).not_right
+lemma not_Imodeq_iff_ne_add_zsmul : ¬Imodeq p a b ↔ ∀ z : ℤ, b ≠ a + z • p :=
+by rw [Imodeq_iff_eq_add_zsmul hp, not_exists]
 
 lemma Imodeq_iff_eq_mod_zmultiples :
   Imodeq p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=

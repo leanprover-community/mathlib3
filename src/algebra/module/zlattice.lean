@@ -19,7 +19,7 @@ that `L` spans `E` over `K`.
 The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
 * As `L : add_subgroup E` with the additional properties:
-  `(∀ r : ℝ, (L ∩ (metric.closed_ball 0 r)).finite`, that is `L` is discrete
+  `∀ r : ℝ, (L ∩ metric.closed_ball 0 r).finite`, that is `L` is discrete
   `submodule.span ℝ (L : set E) = ⊤`, that is `L` spans `E` over `K`.
 
 ## Main results
@@ -127,7 +127,7 @@ lemma fract_eq_fract (m n : E) :
   fract b m = fract b n ↔ -m + n ∈ span ℤ (set.range b) :=
 begin
   rw [eq_comm, basis.ext_elem_iff b],
-  simp_rw [repr_fract_apply, int.fract_eq_fract, eq_comm, basis.restrict_scalars_mem_span_iff,
+  simp_rw [repr_fract_apply, int.fract_eq_fract, eq_comm, basis.mem_span_iff_repr_mem,
     sub_eq_neg_add, map_add, linear_equiv.map_neg, finsupp.coe_add, finsupp.coe_neg, pi.add_apply,
     pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _), set.mem_range],
 end

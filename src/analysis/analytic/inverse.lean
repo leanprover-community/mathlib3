@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.analytic.composition
-import tactic.congrm
 /-!
 
 # Inverse of analytic functions

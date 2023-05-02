@@ -12,7 +12,7 @@ import ring_theory.roots_of_unity
 
 /-!
  # Units of a number field
-This file defines and proves results about the group `(𝓞 K)ˣ` of units of the ring of integers `𝓞 K`
+This file includes results about the group `(𝓞 K)ˣ` of units of the ring of integers `𝓞 K`
 of a number field `K`.
 
  ## Tags

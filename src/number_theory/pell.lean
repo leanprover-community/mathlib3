@@ -664,12 +664,13 @@ end
 
 /-- A positive solution is a generator (up to sign) of the group of all solutions to the
 Pell equation `x^2 + d*y^2 = 1` if and only if it is a fundamental solution. -/
-theorem pos_generator_iff_fundamental (hd : ¬ is_square d) (a : solution₁ d) :
+theorem pos_generator_iff_fundamental (a : solution₁ d) :
   (1 < a.x ∧ 0 < a.y ∧ ∀ b : solution₁ d, ∃ n : ℤ, b = a ^ n ∨ b = -a ^ n) ↔ is_fundamental a :=
 begin
   refine ⟨_, λ H, ⟨H.1, H.2.1, H.zpow_or_neg_zpow⟩⟩,
   intro h,
   have h₀ := d_pos_of_one_lt_x h.1,
+  have hd := d_nonsquare_of_one_lt_x h.1,
   obtain ⟨a₁, ha₁⟩ := is_fundamental.exists_of_not_is_square h₀ hd,
   obtain ⟨b, hb₁, hb₂⟩ := exists_unique_pos_generator h₀ hd,
   rwa [hb₂ a h, ← hb₂ a₁ ⟨ha₁.1, ha₁.2.1, ha₁.zpow_or_neg_zpow⟩],

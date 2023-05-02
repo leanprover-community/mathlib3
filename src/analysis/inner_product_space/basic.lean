@@ -1351,9 +1351,8 @@ lemma real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : 0 < r) : ⟪x, r • x⟫_ℝ / (‖x‖ * ‖r • x‖) = 1 :=
 begin
   rw [real_inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ‖x‖, mul_comm _ (|r|),
-      mul_assoc, _root_.abs_of_nonneg (le_of_lt hr), div_self],
-  exact mul_ne_zero (ne_of_gt hr)
-    (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
+      mul_assoc, abs_of_nonneg hr.le, div_self],
+  exact mul_ne_zero hr.ne' (mul_self_ne_zero.2 (norm_ne_zero_iff.2 hx))
 end
 
 /-- The inner product of a nonzero vector with a negative multiple of
@@ -1363,8 +1362,7 @@ lemma real_inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul
 begin
   rw [real_inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ‖x‖, mul_comm _ (|r|),
       mul_assoc, abs_of_neg hr, neg_mul, div_neg_eq_neg_div, div_self],
-  exact mul_ne_zero (ne_of_lt hr)
-    (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
+  exact mul_ne_zero hr.ne (mul_self_ne_zero.2 (norm_ne_zero_iff.2 hx))
 end
 
 lemma norm_inner_eq_norm_tfae (x y : E) :
@@ -1445,7 +1443,7 @@ end
 /-- If the inner product of two vectors is equal to the product of their norms (i.e.,
 `⟪x, y⟫ = ‖x‖ * ‖y‖`), then the two vectors are nonnegative real multiples of each other. One form
 of the equality case for Cauchy-Schwarz.
-Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ‖x‖ * ‖y‖`. -/
+Compare `norm_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ‖x‖ * ‖y‖`. -/
 lemma inner_eq_norm_mul_iff {x y : E} :
   ⟪x, y⟫ = (‖x‖ : 𝕜) * ‖y‖ ↔ (‖y‖ : 𝕜) • x = (‖x‖ : 𝕜) • y :=
 begin
@@ -1458,7 +1456,7 @@ end
 /-- If the inner product of two vectors is equal to the product of their norms (i.e.,
 `⟪x, y⟫ = ‖x‖ * ‖y‖`), then the two vectors are nonnegative real multiples of each other. One form
 of the equality case for Cauchy-Schwarz.
-Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ‖x‖ * ‖y‖`. -/
+Compare `norm_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ‖x‖ * ‖y‖`. -/
 lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ‖x‖ * ‖y‖ ↔ ‖y‖ • x = ‖x‖ • y :=
 inner_eq_norm_mul_iff
 
@@ -1852,12 +1850,12 @@ begin
     use a,
     intros s₁ hs₁ s₂ hs₂,
     rw ← finset.sum_sdiff_sub_sum_sdiff,
-    refine (_root_.abs_sub _ _).trans_lt _,
+    refine (abs_sub _ _).trans_lt _,
     have : ∀ i, 0 ≤ ‖f i‖ ^ 2 := λ i : ι, sq_nonneg _,
     simp only [finset.abs_sum_of_nonneg' this],
     have : ∑ i in s₁ \ s₂, ‖f i‖ ^ 2 + ∑ i in s₂ \ s₁, ‖f i‖ ^ 2 < (sqrt ε) ^ 2,
-    { rw [← hV.norm_sq_diff_sum, sq_lt_sq,
-        _root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
+    { rw [← hV.norm_sq_diff_sum, sq_lt_sq, abs_of_nonneg (sqrt_nonneg _),
+        abs_of_nonneg (norm_nonneg _)],
       exact H s₁ hs₁ s₂ hs₂ },
     have hη := sq_sqrt (le_of_lt hε),
     linarith },

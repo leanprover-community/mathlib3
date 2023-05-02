@@ -5,14 +5,13 @@ Authors: Joël Riou
 -/
 
 import category_theory.idempotents.karoubi
-import category_theory.additive.basic
 
 /-!
 
 # Biproducts in the idempotent completion of a preadditive category
 
-In this file, we define an instance expressing that if `C` is an additive category,
-then `karoubi C` is also an additive category.
+In this file, we define an instance expressing that if `C` is an additive category
+(i.e. is preadditive and has finite biproducts), then `karoubi C` is also an additive category.
 
 We also obtain that for all `P : karoubi C` where `C` is a preadditive category `C`, there
 is a canonical isomorphism `P ⊞ P.complement ≅ (to_karoubi C).obj P.X` in the category
@@ -97,9 +96,7 @@ lemma karoubi_has_finite_biproducts [has_finite_biproducts C] :
         simp only [eq_to_hom_refl, id_comp, (F j).idem], },
     end, } }
 
-instance {D : Type*} [category D] [additive_category D] : additive_category (karoubi D) :=
-{ to_preadditive := infer_instance,
-  to_has_finite_biproducts := karoubi_has_finite_biproducts }
+attribute [instance] karoubi_has_finite_biproducts
 
 /-- `P.complement` is the formal direct factor of `P.X` given by the idempotent
 endomorphism `𝟙 P.X - P.p` -/

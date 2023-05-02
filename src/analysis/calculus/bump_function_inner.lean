@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import analysis.calculus.iterated_deriv
-import analysis.inner_product_space.euclidean_dist
-import measure_theory.function.locally_integrable
+import analysis.inner_product_space.calculus
 import measure_theory.integral.set_integral
 
 /-!

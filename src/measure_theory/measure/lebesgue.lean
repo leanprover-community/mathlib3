@@ -635,7 +635,8 @@ end summable_norm_Icc
 ### Substituting `-x` for `x`
 
 These lemmas are stated in terms of either `Iic` or `Ioi` (neglecting `Iio` and `Ici`) to match
-mathlib's conventions for integrals over finite intervals (see `interval_integral`).
+mathlib's conventions for integrals over finite intervals (see `interval_integral`). For the case
+of finite integrals, see `interval_integral.integral_comp_neg`.
 -/
 
 @[simp] lemma integral_comp_neg_Iic {E : Type*}

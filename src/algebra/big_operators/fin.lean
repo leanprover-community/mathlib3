@@ -210,7 +210,12 @@ Then if `k < j`, this says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ = g�
 If `k = j`, it says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ₊₁ = gₖgₖ₊₁`.
 If `k > j`, it says `(g₀g₁...gₖ)⁻¹ * g₀g₁...gₖ₊₁ = gₖ₊₁.`
 Useful for defining group cohomology. -/
-@[to_additive] lemma inv_partial_prod_mul_eq_contract_nth {G : Type*} [group G]
+@[to_additive "Let `(g₀, g₁, ..., gₙ)` be a tuple of elements in `Gⁿ⁺¹`.
+Then if `k < j`, this says `-(g₀ + g₁ + ... + gₖ₋₁) + (g₀ + g₁ + ... + gₖ) = gₖ`.
+If `k = j`, it says `-(g₀ + g₁ + ... + gₖ₋₁) + (g₀ + g₁ + ... + gₖ₊₁) = gₖ + gₖ₊₁`.
+If `k > j`, it says `-(g₀ + g₁ + ... + gₖ) + (g₀ + g₁ + ... + gₖ₊₁) = gₖ₊₁.`
+Useful for defining group cohomology."]
+lemma inv_partial_prod_mul_eq_contract_nth {G : Type*} [group G]
   (g : fin (n + 1) → G) (j : fin (n + 1)) (k : fin n) :
   (partial_prod g (j.succ.succ_above k.cast_succ))⁻¹ * partial_prod g (j.succ_above k).succ
     = j.contract_nth has_mul.mul g k :=

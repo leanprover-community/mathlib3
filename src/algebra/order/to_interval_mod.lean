@@ -32,7 +32,7 @@ interval.
 
 ## TODO
 
-Unify `smodeq` and `Imodeq`, which were originally developed inndependently.
+Unify `smodeq` and `Imodeq`, which were originally developed independently.
 -/
 
 noncomputable theory
@@ -374,7 +374,8 @@ begin
     conv_lhs { rw [← to_Ico_mod_add_to_Ico_div_zsmul hp a b, h] } },
   tfae_have : 1 → 4,
   { rw [←not_exists, not_imp_comm],
-    have h' := to_Ico_mod_mem_Ico hp a b, exact λ h, ⟨_, h'.1.lt_of_ne' h, h'.2⟩ },
+    have h' := to_Ico_mod_mem_Ico hp a b,
+    exact λ h, ⟨_, h'.1.lt_of_ne' h, h'.2⟩ },
   tfae_finish,
 end
 

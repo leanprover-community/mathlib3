@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import analysis.quaternion
-import analysis.normed_space.exponential
-import analysis.inner_product_space.pi_L2
 import analysis.special_functions.trigonometric.series
 
 /-!

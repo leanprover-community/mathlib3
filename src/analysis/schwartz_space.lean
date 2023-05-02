@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 
-import analysis.calculus.cont_diff
 import analysis.calculus.iterated_deriv
 import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
-import tactic.positivity
 import analysis.special_functions.pow
 
 /-!

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
-import topology.algebra.module.character_space
 import analysis.normed_space.weak_dual
 import analysis.normed_space.spectrum
 

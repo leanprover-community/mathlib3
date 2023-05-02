@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux, Jon Bannon
 -/
 
-import algebra.star.star_alg_hom
-import analysis.normed_space.star.basic
-import analysis.normed_space.operator_norm
 import analysis.special_functions.pow
 import analysis.normed_space.star.mul
 

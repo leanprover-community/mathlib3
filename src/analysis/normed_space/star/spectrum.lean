@@ -3,11 +3,9 @@ Copyright (c) 2022 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
 import analysis.normed_space.star.exponential
 import analysis.special_functions.exponential
-import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras
 In this file, we establish various properties related to the spectrum of elements in C⋆-algebras.

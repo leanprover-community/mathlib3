@@ -5,7 +5,6 @@ Authors: Jireh Loreaux
 -/
 
 import analysis.normed_space.star.gelfand_duality
-import topology.algebra.star_subalgebra
 
 /-! # Continuous functional calculus
 

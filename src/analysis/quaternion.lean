@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Eric Wieser
 -/
 import algebra.quaternion
-import analysis.inner_product_space.basic
 import analysis.inner_product_space.pi_L2
-import topology.algebra.algebra
 
 /-!
 # Quaternions as a normed algebra

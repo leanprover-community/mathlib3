@@ -3,11 +3,7 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import analysis.normed_space.dual
-import analysis.normed_space.star.basic
-import analysis.complex.basic
 import analysis.inner_product_space.adjoint
-import algebra.star.subalgebra
 
 /-!
 # Von Neumann algebras

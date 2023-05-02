@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hans Parshall
 -/
 import analysis.matrix
-import analysis.normed_space.basic
-import data.is_R_or_C.basic
-import linear_algebra.unitary_group
 
 /-!
 # Unitary matrices

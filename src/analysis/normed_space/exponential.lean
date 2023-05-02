@@ -7,8 +7,6 @@ import analysis.analytic.basic
 import analysis.complex.basic
 import analysis.normed.field.infinite_sum
 import data.nat.choose.cast
-import data.finset.noncomm_prod
-import topology.algebra.algebra
 
 /-!
 # Exponential in a Banach algebra

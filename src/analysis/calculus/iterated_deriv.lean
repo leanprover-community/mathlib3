@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.deriv
-import analysis.calculus.cont_diff
+import analysis.calculus.cont_diff_def
 
 /-!
 # One-dimensional iterated derivatives

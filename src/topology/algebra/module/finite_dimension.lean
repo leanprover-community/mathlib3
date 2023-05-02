@@ -331,9 +331,11 @@ instance can_lift_continuous_linear_map : can_lift (E →ₗ[𝕜] F) (E →L[�
 
 end linear_map
 
-namespace linear_equiv
+section
 
 variables [t2_space E] [t2_space F] [finite_dimensional 𝕜 E]
+
+namespace linear_equiv
 
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
 space. -/
@@ -370,6 +372,65 @@ instance can_lift_continuous_linear_equiv :
 ⟨λ f _, ⟨_, f.to_linear_equiv_to_continuous_linear_equiv⟩⟩
 
 end linear_equiv
+
+variable [finite_dimensional 𝕜 F]
+
+/-- Two finite-dimensional topological vector spaces over a complete normed field are continuously
+linearly equivalent if they have the same (finite) dimension. -/
+theorem finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq
+  (cond : finrank 𝕜 E = finrank 𝕜 F) : nonempty (E ≃L[𝕜] F) :=
+(nonempty_linear_equiv_of_finrank_eq cond).map linear_equiv.to_continuous_linear_equiv
+
+/-- Two finite-dimensional topological vector spaces over a complete normed field are continuously
+linearly equivalent if and only if they have the same (finite) dimension. -/
+theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_finrank_eq :
+   nonempty (E ≃L[𝕜] F) ↔ finrank 𝕜 E = finrank 𝕜 F :=
+⟨ λ ⟨h⟩, h.to_linear_equiv.finrank_eq,
+  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq h ⟩
+
+/-- A continuous linear equivalence between two finite-dimensional topological vector spaces over a
+complete normed field of the same (finite) dimension. -/
+def continuous_linear_equiv.of_finrank_eq
+  (cond : finrank 𝕜 E = finrank 𝕜 F) : E ≃L[𝕜] F :=
+(linear_equiv.of_finrank_eq E F cond).to_continuous_linear_equiv
+
+end
+
+namespace basis
+
+variables {ι : Type*} [fintype ι] [t2_space E]
+
+/-- Construct a continuous linear map given the value at a finite basis. -/
+def constrL (v : basis ι 𝕜 E) (f : ι → F) :
+  E →L[𝕜] F :=
+by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
+  exact (v.constr 𝕜 f).to_continuous_linear_map
+
+@[simp, norm_cast] lemma coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
+  (v.constrL f : E →ₗ[𝕜] F) = v.constr 𝕜 f := rfl
+
+/-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and
+functions from its basis indexing type to `𝕜`. -/
+def equiv_funL (v : basis ι 𝕜 E) : E ≃L[𝕜] (ι → 𝕜) :=
+{ continuous_to_fun := begin
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v,
+    exact v.equiv_fun.to_linear_map.continuous_of_finite_dimensional,
+  end,
+  continuous_inv_fun := begin
+    change continuous v.equiv_fun.symm.to_fun,
+    exact v.equiv_fun.symm.to_linear_map.continuous_of_finite_dimensional,
+  end,
+  ..v.equiv_fun }
+
+@[simp] lemma constrL_apply (v : basis ι 𝕜 E) (f : ι → F) (e : E) :
+  (v.constrL f) e = ∑ i, (v.equiv_fun e i) • f i :=
+v.constr_apply_fintype 𝕜 _ _
+
+@[simp] lemma constrL_basis (v : basis ι 𝕜 E) (f : ι → F) (i : ι) :
+  (v.constrL f) (v i) = f i :=
+v.constr_basis 𝕜 _ _
+
+end basis
 
 namespace continuous_linear_map
 

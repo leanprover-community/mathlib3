@@ -13,6 +13,9 @@ import topology.category.Top.limits.basic
 /-!
 # The category of Compact Hausdorff Spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the category of compact Hausdorff spaces.
 The type of compact Hausdorff spaces is denoted `CompHaus`, and it is endowed with a category
 instance making it a full subcategory of `Top`.

@@ -34,11 +34,7 @@ section junk
 variables {α G H : Type*} [group G] [group H] [mul_action G α] {N : subgroup G}
 
 lemma subgroup.map_subgroup_of_eq {K : subgroup N} : (K.map N.subtype).subgroup_of N = K :=
-begin
-  dsimp [subgroup.subgroup_of],
-  rw subgroup.comap_map_eq ,
-  simp only [subgroup.ker_subtype, sup_bot_eq],
-end
+by rw [← subgroup.comap_subtype, subgroup.comap_map_eq , subgroup.ker_subtype, sup_bot_eq]
 
 lemma mul_action.stabilizer_subgroup_of_eq {a : α} :
   stabilizer N a = (stabilizer G a).subgroup_of N :=
@@ -891,5 +887,4 @@ begin
   apply_instance,
 end
 
-#check nat.finset_is_preprimitive_of_alt
 end alternating_group

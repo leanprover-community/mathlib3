@@ -6,9 +6,7 @@ Authors: Antoine Chambert-Loir
 
 import .for_mathlib.stabilizer
 import .for_mathlib.pretransitive
-import .for_mathlib.partitions
 import .for_mathlib.set
--- import data.setoid.partition
 import .equivariant_map
 import .sub_mul_actions
 import .maximal_subgroups
@@ -16,15 +14,9 @@ import .maximal_subgroups
 import algebra.big_operators.basic
 import group_theory.group_action.quotient
 
+import data.setoid.partition
 import data.finite.card
-
--- import group_theory.group_action.basic
--- import group_theory.group_action.sub_mul_action
--- import group_theory.subgroup.pointwise
--- import data.set.pointwise
--- import data.nat.prime
--- import algebra.big_operators.order
-
+import algebra.big_operators.finprod
 
 /-! # Blocks
 
@@ -665,286 +657,111 @@ end }
 
 end stabilizer
 
-#check cardinal.to_nat_congr
-
 section fintype
 
-noncomputable def setoid.quotient_equiv {α β : Type*} {s : setoid α} (f : α → β)
-  (hf : ∀ x y, s.rel x y ↔ f x = f y) (hf' : f.surjective) : quotient s ≃ β :=
-begin
-  refine equiv.of_bijective (λ q, q.lift_on' f (λ x y h, (hf x y).mp h)) _,
-  split,
-  -- injective
-  intros x y,
-  obtain ⟨a, rfl⟩:= quotient.exists_rep x,
-  obtain ⟨b, rfl⟩:= quotient.exists_rep y,
-  exact λ h, quotient.eq.mpr ((hf a b).mpr h),
-  -- surjective
-  exact (quotient.surjective_lift_on' (λ x y, (hf x y).mp)).mpr hf',
-end
-
-noncomputable def setoid.is_partition_equiv_quotient {α : Type*}
-  {c : set (set α)} (hc : setoid.is_partition c) :
-  quotient (setoid.mk_classes c hc.2) ≃ c :=
-begin
-  apply setoid.quotient_equiv (λ a, (⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩ : c)),
-  { intros x y,
-    exact ⟨
-      λ h,  subtype.ext ( set.ext ( λ z, ⟨λ h', setoid.trans' _ h' h, λ h', setoid.trans' _ h' (setoid.symm' _ h)⟩ )),
-      λ hz,  (set.ext_iff.mp(subtype.ext_iff.mp hz) x).mp (setoid.refl' _ x), ⟩, },
-  { -- surjective
-    rintro ⟨u, hu⟩,
-    have hu' : u.nonempty,
-    { rw set.nonempty_iff_ne_empty,
-      intro hu', apply hc.1,  rw ← hu', exact hu, },
-    obtain ⟨a, ha⟩ := hu',
-    use a,
-    simp only [subtype.mk_eq_mk],
-    rw setoid.eq_eqv_class_of_mem hc.2 hu ha, }
-end
-
-noncomputable def setoid.is_partition_equiv_quotient' {α : Type*}
-  {c : set (set α)} (hc : setoid.is_partition c) :
-  quotient (setoid.mk_classes c hc.2) ≃ c :=
-begin
-  -- Eric Wieser golfed this !
-  let φ : quotient (setoid.mk_classes c hc.2) → c := λ q,  q.lift_on' (λ a, (⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩ : c))
-    (λ a b hab, subtype.ext $ set.ext $ λ x,
-      ⟨λ h, setoid.trans' _ h hab, λ h, setoid.trans' _ h (setoid.symm' _ hab)⟩),
-  apply equiv.of_bijective φ,
-
-  let f : α → c := λ a, ⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩,
-  have hf : ∀ x y, f x = f y ↔ (setoid.mk_classes c hc.2).rel x y := λ x y, ⟨
-    λ hz,  (set.ext_iff.mp(subtype.ext_iff.mp hz) x).mp (setoid.refl' _ x),
-    λ h,  subtype.ext ( set.ext ( λ z, ⟨λ h', setoid.trans' _ h' h, λ h', setoid.trans' _ h' (setoid.symm' _ h)⟩ ))⟩,
-
-/-
-  have hf : ∀ x y, f x = f y ↔ (setoid.mk_classes c hc.2).rel x y,
-  { intros x y,
---    simp only [f],
-    simp only [subtype.mk_eq_mk, set.ext_iff, set.mem_set_of],
-    split,
-    intro hz,
-    rw ← hz x, exact setoid.refl' _ _,
-    intros h z,
-    split,
-    intro h', exact setoid.trans' _ h' h,
-    intro h', exact setoid.trans' _ h' (setoid.symm' _ h), },
--/
-
-/-
-  let f : α → c := λ a, ⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩,
-  refine equiv.of_bijective (@quotient.lift _ _ (setoid.mk_classes c hc.2) f _) _,
-  { -- well defined
-    intros a b hab,
-    change (setoid.mk_classes c hc.2).rel a b at hab,
-    rw setoid.rel_iff_exists_classes at hab,
-    rw setoid.classes_mk_classes at hab,
-    obtain ⟨u, h, ha, hb⟩ := hab,
-    let hc2 := hc.2,
-    simp only [f, subtype.mk_eq_mk],
-    rw ← setoid.eq_eqv_class_of_mem hc.2 h ha,
-    rw ← setoid.eq_eqv_class_of_mem hc.2 h hb, }, -/
-
-  split,
-  { -- injective
-    intros x y,
-    obtain ⟨a, rfl⟩ := @quotient.exists_rep α (setoid.mk_classes c hc.2) x,
-    obtain ⟨b, rfl⟩ := @quotient.exists_rep α (setoid.mk_classes c hc.2) y,
-    simp only [quotient.lift_mk, φ, subtype.mk_eq_mk],
-    intro hab,
-    apply quotient.sound,
-    change (setoid.mk_classes c hc.2).rel a b,
-    rw setoid.rel_iff_exists_classes,
-    use { x : α | (setoid.mk_classes c hc.2).rel x a},
-    split,
-    rw setoid.classes_mk_classes,
-    apply setoid.eqv_class_mem,
-    split,
-    rw set.mem_set_of, apply setoid.refl' _ a,
-    simp only [quotient.lift_on'_mk, subtype.mk_eq_mk] at hab,
-    rw hab, rw set.mem_set_of, apply setoid.refl' _ b, },
-  { -- surjective
-    rw quotient.surjective_lift_on',
-    rintro ⟨u, hu⟩,
-    have hu' : u.nonempty,
-    { rw set.nonempty_iff_ne_empty,
-      intro hu', apply hc.1,  rw ← hu', exact hu, },
-    obtain ⟨a, ha⟩ := hu',
-    use a,
-    simp only [subtype.mk_eq_mk],
-    rw setoid.eq_eqv_class_of_mem hc.2 hu ha, }
-end
-
-
-
-/-- The cardinality of the ambient is the product of
-  of the cardinality of a block
-  by the cardinality of the set of iterates of that block -/
-lemma nat_card_of_block_mul_card_of_orbit_of [hfX : fintype X] [hGX : is_pretransitive G X]
-  {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
-  nat.card (set.range (λ (g : G), g • B)) • nat.card B = nat.card X :=
+lemma setoid.nat_sum {α : Type*} [finite α] {c : set (set α)}
+  (hc : setoid.is_partition c) :
+  finsum (λ (x : c), nat.card x) = nat.card α :=
 begin
   classical,
-  obtain ⟨b, hb⟩ := id hB_ne,
-
-  simp only [nat.card_eq_fintype_card],
-
-  let relB := setoid.mk_classes (set.range (λ (g : G), g • B)) (is_block_system.of_block hB hB_ne).1.2,
-
-  rw ← fintype.card_congr (equiv.sigma_fiber_equiv (@quotient.mk' X (relB))),
-
-  rw fintype.card_sigma,
-
-  rw @finset.sum_eq_card_nsmul ℕ (quotient relB) (finset.univ) (λ a, fintype.card {x // quotient.mk' x = a}) _ (nat.card B) _,
-  simp only [nat.card_eq_fintype_card],
-  apply congr_arg2 _ _ rfl,
-
-  -- suffices : set.range (λ (g : G), g • B) ≃ (quotient relB),
-
-  rw [finset.card_univ],
-  apply fintype.card_congr,
-  simp only [relB],
-  have : setoid.is_partition (set.range (λ (g : G), g • B))
-   := (is_block_system.of_block hB hB_ne).1,
-
-  exact (setoid.is_partition_equiv_quotient (is_block_system.of_block hB hB_ne).1).symm,
-
-  intros a ha,
-  obtain ⟨a, rfl⟩ := @quotient.exists_rep X relB a,
-
-  obtain ⟨g, hg⟩ := hGX.exists_smul_eq b a,
---   obtain ⟨u, ⟨⟨g,hu⟩,hu2⟩, hu'⟩:= ((is_block_system.of_block hB hB_ne).1.2 a),
-
-  dsimp,
-
-  apply symm,
-  rw nat.card_eq_fintype_card,
-  apply fintype.card_congr,
-
-  suffices : ∀ c ∈ B, quotient.mk' (g • c) = @quotient.mk _ relB a,
-
-  let φ : B → { y // quotient.mk' y = @quotient.mk _ relB a} := λ c,⟨g • ↑c, this ↑c c.prop⟩,
-  apply equiv.of_bijective φ,
-
+  letI := fintype.of_finite α,
+  simp only [finsum_eq_sum_of_fintype, nat.card_eq_fintype_card],
+  rw ← fintype.card_sigma,
+  refine fintype.card_congr (equiv.of_bijective (λ x, x.snd : (Σ (a : ↥c), ↥a) → α) _),
   split,
-  { -- injective
-    rintros ⟨c1, hc1⟩ ⟨c2, hc2⟩,
-    simp only [φ, subtype.coe_mk, smul_left_cancel_iff, subtype.mk_eq_mk, imp_self], },
-  { -- surjective
-    rintro ⟨y, hy⟩,
-    -- rw [@quotient.mk'_eq_mk _ relB y, quotient.eq] at hy,
-    have hy' : relB.rel y a,
-    { simpa [@quotient.mk'_eq_mk _ relB y, quotient.eq] using hy },
-
-    dsimp [relB] at hy',
-    rw setoid.rel_iff_exists_classes at hy',
-    rw setoid.classes_mk_classes at hy',
-    obtain ⟨u, ⟨g', rfl⟩, hy', hx'⟩ := hy',
-    dsimp only [φ],
-    obtain ⟨a, ha⟩ := hy',
-    use ⟨a, ha.1⟩,
-    simp only [subtype.coe_mk],
---    dsimp at hu hx',
---    dsimp at hu',
---    suffices H : g' • B = g • B,
-  --  specialize hu' ⟨g', H⟩,
-
-  sorry, },
-  { -- sound
-    intros c hc,
-
-
-    sorry, }
-
-
-
-/-   rw setoid.is_partition.nat_card_eq_sum_parts (is_block_system.of_block hB hB_ne).left,
-  rw [finset.sum_congr rfl _, finset.sum_const (fintype.card ↥B),
-    nsmul_eq_mul, nat.cast_id, mul_comm],
-  { rw ← set.to_finset_card },
-  { intros s hs,
-    simp only [set.mem_to_finset, set.mem_range] at hs,
-    obtain ⟨g, rfl⟩ := hs,
-    simp only [set.to_finset_card],
-    { refine eq.trans _ (eq.trans (smul_set_card_eq g B) _),
-      all_goals { apply fintype.card_congr', refl } } } -/
+  -- injectivity
+  rintros ⟨⟨x, hx⟩,⟨a, ha : a ∈ x⟩⟩ ⟨⟨y, hy⟩, ⟨b, hb : b ∈ y⟩⟩ hab,
+  dsimp at hab,
+  rw hab at ha,
+  rw [sigma.subtype_ext_iff],
+  simp only [subtype.mk_eq_mk, subtype.coe_mk],
+  apply and.intro _ hab,
+  refine unique_of_exists_unique (hc.2 b) _ _,
+  simp only [exists_unique_iff_exists, exists_prop], exact ⟨hx, ha⟩,
+  simp only [exists_unique_iff_exists, exists_prop], exact ⟨hy, hb⟩,
+  -- surjectivity
+  intro a,
+  obtain ⟨x,⟨hx, ha : a ∈ x, ha'⟩, hx'⟩ := hc.2 a,
+  use ⟨⟨x, hx⟩, ⟨a, ha⟩⟩, refl,
 end
-
-open_locale classical
 
 /-- The cardinality of the ambient is the product of
   of the cardinality of a block
   by the cardinality of the set of iterates of that block -/
-lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] [decidable_eq X] [hGX : is_pretransitive G X]
+lemma nat_card_block_mul_card_orbit_eq [hfX : finite X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
-  fintype.card B * fintype.card (set.range (λ (g : G), g • B)) = fintype.card X :=
+  nat.card B * nat.card (set.range (λ (g : G), g • B)) = nat.card X :=
 begin
-  rw setoid.is_partition.card_eq_sum_parts (is_block_system.of_block hB hB_ne).left,
-  rw [finset.sum_congr rfl _, finset.sum_const (fintype.card ↥B),
-    nsmul_eq_mul, nat.cast_id, mul_comm],
-  { rw ← set.to_finset_card },
-  { intros s hs,
-    simp only [set.mem_to_finset, set.mem_range] at hs,
-    obtain ⟨g, rfl⟩ := hs,
-    simp only [set.to_finset_card],
-    { refine eq.trans _ (eq.trans (smul_set_card_eq g B) _),
-      all_goals { apply fintype.card_congr', refl } } }
+  classical,
+  letI := fintype.of_finite X,
+  rw ← setoid.nat_sum (is_block_system.of_block hB hB_ne).1,
+  simp only [finsum_eq_sum_of_fintype, nat.card_eq_fintype_card],
+  suffices : ∀ (x : set.range (λ (g : G), g • B)), fintype.card x = fintype.card B,
+  simp_rw this,
+  rw finset.sum_const,
+  rw [nsmul_eq_mul, nat.cast_id],
+  apply mul_comm,
+  rintro ⟨C, ⟨g, hg : g • B = C⟩⟩,
+  simp only [coe_sort_coe_base, subtype.coe_mk],
+  simp only [← set.to_finset_card, ←  hg, set.to_finset_smul_set, finset.card_smul_finset],
 end
 
 /-- The cardinality of a block divides the cardinality of the ambient type -/
-lemma card_of_block_divides [hfX : fintype X] [hGX : is_pretransitive G X]
+lemma nat_card_of_block_divides [hfX : finite X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
-  fintype.card B ∣ fintype.card X :=
-begin
-  rw ← card_of_block_mul_card_of_orbit_of hB hB_ne,
-  simp only [dvd_mul_right],
-end
+  nat.card B ∣ nat.card X :=
+dvd.intro _ (nat_card_block_mul_card_orbit_eq hB hB_ne)
 
 /-- A too large block is equal to ⊤ -/
-lemma is_top_of_large_block [hfX : fintype X] [hGX : is_pretransitive G X]
-  {B : set X} (hB : is_block G B) (hB' : fintype.card X < 2 * fintype.card B) :
+lemma is_top_of_large_block [hfX : finite X] [hGX : is_pretransitive G X]
+  {B : set X} (hB : is_block G B) (hB' : nat.card X < 2 * nat.card B) :
   B = ⊤ :=
 begin
-  cases nat.eq_zero_or_pos (fintype.card B),
-  { exfalso, rw h at hB', simpa using hB', },
+  classical,
+  letI := fintype.of_finite X,
+  cases set.eq_empty_or_nonempty B with hB_e hB_ne,
+--  cases nat.eq_zero_or_pos (nat.card B),
+  { exfalso, rw hB_e at hB',
+    simpa only [nat.card_eq_fintype_card, set.empty_card', mul_zero, nat.not_lt_zero] using hB', },
+
   rw [set.top_eq_univ, ← set.to_finset_inj, set.to_finset_univ,
     ← finset.card_eq_iff_eq_univ, set.to_finset_card],
-  have : B.nonempty,
-  { rw [← set.nonempty_coe_sort, ← fintype.card_pos_iff],
-    exact h },
-  obtain ⟨k, h⟩ := card_of_block_divides hB this,
-  cases nat.lt_or_ge k 2 with hk hk,
-  rw nat.lt_succ_iff at hk,
-  cases lt_or_eq_of_le hk with hk hk,
-  { simp only [nat.lt_one_iff] at hk,
-    rw [hk, mul_zero] at h,
-    apply le_antisymm (set_fintype_card_le_univ B),
-    rw h, apply nat.zero_le },
-  { rw [hk, mul_one] at h, exact h.symm, },
-  { exfalso,
-    rw [lt_iff_not_ge] at hB', apply hB',
-    rw [mul_comm, h],
-    refine nat.mul_le_mul_left _ hk }
+  obtain ⟨k, h⟩ := nat_card_of_block_divides hB hB_ne,
+  simp only [← nat.card_eq_fintype_card],
+  rw h at hB' ⊢,
+  suffices : k = 1, simp only [this, mul_one],
+  apply le_antisymm,
+  { apply nat.le_of_lt_succ,
+    rw lt_iff_not_le, intro hk,
+    rw lt_iff_not_le at hB', apply hB',
+    rw mul_comm,
+    refine nat.mul_le_mul_left _ hk, },
+  { rw nat.one_le_iff_ne_zero, intro hk,
+    rw [hk, mul_zero, nat.card_eq_fintype_card] at h,
+    apply (lt_iff_not_le.mp hB') (eq.le _),
+    suffices : nat.card B = 0, rw [this, mul_zero, zero_mul],
+    rw [← le_zero_iff, ← h, nat.card_eq_fintype_card],
+    exact set_fintype_card_le_univ B, },
 end
 
 /-- If a block has too many translates, then it is a singleton  -/
-lemma is_top_of_small_block [hfX : fintype X] [hGX : is_pretransitive G X]
+lemma is_top_of_small_block [hfX : finite X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B)
   (hX : nontrivial X)
-  (hB' :  fintype.card X < 2 * fintype.card (set.range (λ g : G, (g • B : set X)))) :
+  (hB' :  nat.card X < 2 * nat.card (set.range (λ g : G, (g • B : set X)))) :
   B.subsingleton :=
 begin
-  rw [← set.subsingleton_coe, ← fintype.card_le_one_iff_subsingleton],
+  classical,
+  letI := fintype.of_finite X,
+  rw [← set.subsingleton_coe, ← fintype.card_le_one_iff_subsingleton, ← nat.card_eq_fintype_card],
   cases set.eq_empty_or_nonempty B,
   { exfalso,
-    rw ← fintype.one_lt_card_iff_nontrivial at hX,
-    rw lt_iff_not_le at hX,
-    apply hX, rw ← nat.lt_succ_iff,
-    rw ← mul_one (1 : ℕ).succ,
+    rw [← fintype.one_lt_card_iff_nontrivial, lt_iff_not_le] at hX,
+    apply hX,
+    rw [← nat.lt_succ_iff, ← mul_one (1 : ℕ).succ, ← nat.card_eq_fintype_card],
     apply lt_of_lt_of_le hB',
     apply mul_le_mul_left',
-    rw fintype.card_le_one_iff ,
+    rw [nat.card_eq_fintype_card, fintype.card_le_one_iff],
     have : ∀ (x : set.range (λ (g : G), g • B)), ↑x = (∅ : set X),
     { rintro ⟨x, hx⟩,
       simp_rw [h, set.smul_set_empty] at hx,
@@ -952,13 +769,34 @@ begin
       apply set.range_const_subset hx },
     intros s t, rw ← subtype.coe_inj,
     simp only [this] },
-  let hk := card_of_block_mul_card_of_orbit_of hB h,
-  cases nat.lt_or_ge (fintype.card B) 2 with hb hb,
+  let hk := nat_card_block_mul_card_orbit_eq hB h,
+  cases nat.lt_or_ge (nat.card B) 2 with hb hb,
   rwa nat.lt_succ_iff at hb,
   exfalso,
   rw [← hk, lt_iff_not_ge] at hB', apply hB',
-  refine nat.mul_le_mul_right _ hb
+  refine nat.mul_le_mul_right _ hb,
 end
+
+example {α : Type*} (B B' : set α) (hB : B.finite) (hB' : B'.finite)
+  (h : B ⊆ B') (hc : nat.card B = nat.card B') : B = B' :=
+begin
+
+  rw ← set.finite.to_finset_inj,
+  refine finset.eq_of_subset_of_card_le _ _,
+    -- The two finiteness instances
+  exact hB, exact hB',
+
+    rw [set.finite.to_finset_subset, set.finite.coe_to_finset], exact h,
+
+    apply eq.ge,
+  suffices : ∀ (B : set α)(hB : B.finite), hB.to_finset.card = nat.card B,
+  simp only [this], exact hc,
+
+  intros B hB,
+  haveI : fintype B := set.finite.fintype hB,
+    rw set.finite.card_to_finset hB, rw nat.card_eq_fintype_card,
+end
+
 
 -- TODO : Is the assumption B.finite necessary ?
 /-- The intersection of the translates of a *finite* subset which contain a given point
@@ -1003,21 +841,12 @@ begin
 
   have hag' : ∀ (g : G), a ∈ g • B' → B' = g • B',
   { intros g hg,
-    rw ← set.finite.to_finset_inj,
-    refine finset.eq_of_subset_of_card_le _ _,
-    exact hfB', apply set.finite.map, exact hfB',
-
-    rw set.finite.to_finset_subset,
-    exact hag g hg,
-    apply eq.ge,
-    rw set.finite.card_to_finset _,
-    swap, exact set.finite.fintype hfB',
-    rw set.finite.card_to_finset _,
-    swap, apply set.finite.fintype,
-    apply set.finite.map, exact hfB',
     apply symm,
-    apply set.card_image_of_injective ,
-    apply mul_action.injective },
+    rw ← mem_stabilizer_iff,
+    rw ← subgroup.inv_mem_iff (stabilizer G B'),
+    rw mem_stabilizer_of_finite_iff G B' hfB' g⁻¹,
+    rw ← set.subset_set_smul_iff,
+    exact hag g hg, },
 
   rw is_block.mk_notempty_one,
   intros g hg,

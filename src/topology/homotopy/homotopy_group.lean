@@ -81,7 +81,7 @@ abbreviation split_at (i : N) := fun_split_at I i
 
 /-- The backward direction of the homeomorphism
   between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/
-abbreviation insert_at (i : N) := (@fun_split_at I _ _ _ i).symm
+abbreviation insert_at (i : N) := (fun_split_at I i).symm
 
 lemma insert_at_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
   insert_at i ⟨t₀, t⟩ ∈ boundary N :=
@@ -150,6 +150,52 @@ end homotopic
 section
 
 variable [decidable_eq N]
+
+/-- Concatenation of two `gen_loop`s along the `i`th coordinate. -/
+def mul_at (i : N) (f g : gen_loop N x) : gen_loop N x :=
+⟨⟨λ t, if (t i : ℝ) ≤ 1/2
+  then f (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
+  else g (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j),
+begin
+  refine continuous.if_le _ _ (continuous_induced_dom.comp (continuous_apply i)) continuous_const _,
+  exact (continuous_map.continuous_set_coe _ f).comp (continuous_pi (λ i', continuous_if_const _
+    (λ _, continuous_proj_Icc.comp $
+      continuous_const.mul (continuous_induced_dom.comp (continuous_apply _)))
+    (λ _, continuous_apply _))),
+  { refine (continuous_map.continuous_set_coe _ g).comp (continuous_pi (λ i', continuous_if_const _
+    (λ _, continuous_proj_Icc.comp $
+      (continuous_const.mul (continuous_induced_dom.comp _)).sub continuous_const)
+    (λ _, continuous_apply _))),
+    exact continuous_apply _ },
+  intros t H, repeat {rw gen_loop.boundary}; use i;
+  simp only [eq_self_iff_true, if_true, proj_Icc_eq_zero, sub_nonpos, proj_Icc_eq_one];
+  rw H; norm_num
+end⟩,
+begin
+  rintros t ⟨j,H⟩, simp only [continuous_map.coe_mk], by_cases (j=i),
+  { rw h at H, rcases H; rw H; norm_num; apply gen_loop.boundary; use i; norm_num },
+  cases H,
+  {split_ifs; apply gen_loop.boundary; use j; left; simp_rw [H]; split_ifs; tauto },
+  {split_ifs; apply gen_loop.boundary; use j; right; simp_rw [H]; split_ifs; tauto },
+end⟩
+
+/-- Reversal of a `gen_loop` along the `i`th coordinate. -/
+def symm_at (i : N) (f : gen_loop N x) : gen_loop N x :=
+⟨⟨λ t, f (cube.insert_at i (σ (t i), t ∘ coe)),
+begin
+  refine (continuous_map.continuous_set_coe _ f).comp (continuous_pi (λ i', _)),
+  simp only [fun_split_at_symm_apply, function.comp_app, subtype.coe_mk, dite_eq_ite],
+  exact continuous_if_const _ (λ _, unit_interval.continuous_symm.comp (continuous_apply i))
+    (λ _, continuous_apply _),
+end⟩,
+begin
+  rintros t ⟨j,H⟩, by_cases (j = i); apply gen_loop.boundary,
+  { use i, simp only [fun_split_at_symm_apply, eq_self_iff_true, function.comp_app, subtype.coe_mk,
+      dite_eq_ite, if_true],
+    rw ← h, cases H; rw H; finish },
+  use j, simp only [fun_split_at_symm_apply, function.comp_app, subtype.coe_mk, dite_eq_ite],
+  cases H; rw H; finish
+end⟩
 
 /-- Path from a generalized loop by currying $I^N → X$ into $I → (I^{N\setminus\{j\}} → X)$. -/
 @[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
@@ -277,7 +323,7 @@ open gen_loop
 /--Equivalence between the homotopy group of X and the fundamental group of
   `gen_loop {j // j ≠ i} x`. -/
 def homotopy_group_equiv_fundamental_group (i : N) :
-  homotopy_group N X x ≃ fundamental_group (gen_loop {j // j ≠ i} x) gen_loop.const :=
+  homotopy_group N X x ≃ fundamental_group (gen_loop {j // j ≠ i} x) const :=
 begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
   apply quotient.congr (path_equiv i),
@@ -350,7 +396,7 @@ begin
 end
 
 section
-variables {n : ℕ} (i : fin (n+1))
+variables {n : ℕ} (i : N)
 
 /-- Group structure on `π_(n+1)`. -/
 instance group : group (π_(n+1) X x) :=
@@ -361,36 +407,32 @@ instance group : group (π_(n+1) X x) :=
 @[reducible] private def aux_group : group (π_(n+2) X x) :=
 (homotopy_group_equiv_fundamental_group 1).group
 
-lemma from_path_trans_to_path {p q : gen_loop N x} (i : N) {t} :
-  (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) t = if (t i : ℝ) ≤ 1/2
-    then p (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
-    else q (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j) :=
+lemma from_path_trans_to_path {p q : gen_loop N x} :
+  (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) = mul_at i p q :=
 begin
-  dsimp only [path.trans, from_path, path.coe_mk, function.comp_app, path_equiv_symm_apply,
-    mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
-    continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
+  ext,
+  dsimp only [mul_at, path.trans, from_path, path.coe_mk, function.comp_app,
+    path_equiv_symm_apply, mk_apply, continuous_map.comp_apply, to_continuous_map_apply,
+    fun_split_at_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
+    function.uncurry_apply_pair],
   split_ifs, change p _ = _, swap, change q _ = _,
   all_goals { congr' 1, ext, rw [to_continuous_map_apply, fun_split_at_symm_apply], refl },
 end
 
-lemma from_path_symm_to_path {p : gen_loop N x} (i : N) {t} :
-  (path_equiv i).symm (path_equiv i p).symm t = p (cube.insert_at i ⟨σ (t i), λ j, t j⟩) :=
-by { dsimp only [path.symm, from_path, path.coe_mk], refl }
+lemma from_path_symm_to_path {p : gen_loop N x} :
+  (path_equiv i).symm (path_equiv i p).symm = symm_at i p :=
+by { ext, dsimp only [path.symm, from_path, path.coe_mk], refl }
 
 /-- Characterization of multiplicative identity -/
 lemma const_spec : (1 : π_(n+1) X x) = ⟦const⟧ := rfl
 
 /-- Characterization of multiplication -/
-lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
-  ∃ r, (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦r⟧ ∧ ∀ t, r t = if (t 0 : ℝ) ≤ 1/2
-    then q (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0) else t j)
-    else p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
-⟨_, rfl, λ _, from_path_trans_to_path 0⟩
+lemma mul_spec {p q : gen_loop (fin (n+1)) x} : (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦mul_at 0 q p⟧ :=
+by { apply quotient.sound, rw ← from_path_trans_to_path }
 
 /-- Characterization of multiplicative inverse -/
-lemma symm_spec {p : gen_loop (fin (n+1)) x} :
-  ∃ q, (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦q⟧ ∧ ∀ t, q t = p (cube.insert_at ↑0 (σ (t 0), λ j, t ↑j)) :=
-⟨_, rfl, λ _, from_path_symm_to_path _⟩
+lemma symm_spec {p : gen_loop (fin (n+1)) x} : (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦symm_at 0 p⟧ :=
+by { apply quotient.sound, rw ← from_path_symm_to_path }
 
 /-- Multiplication on `π_(n+2}` is commutative. -/
 instance comm_group : comm_group (π_(n+2) X x) :=
@@ -400,7 +442,10 @@ begin
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩, apply congr_arg quotient.mk,
   simp only [equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
   ext, iterate 6 { rw from_path_trans_to_path },
-  simp_rw [if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
+  simp only [mul_at, path.trans, from_path, path.coe_mk, function.comp_app, path_equiv_symm_apply,
+    mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
+    continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
+  simp_rw [ if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
   split_ifs; { congr, ext1, apply ite_ite_comm, rintro rfl, exact fin.zero_ne_one },
 end
 

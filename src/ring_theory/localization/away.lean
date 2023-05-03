@@ -330,8 +330,8 @@ begin
   simp only [← subtype.val_eq_coe, ← hy] at H,
   obtain ⟨m, a, hyp1, hyp2⟩ := max_power_factor ha₀ hx,
   refine ⟨a, m-d, _⟩,
-  rw [← mk'_one B, self_zpow_pow_sub, self_zpow_coe_nat, self_zpow_coe_nat, ← map_pow _ _ d, mul_comm _ b, H,
-    hyp2, map_mul, map_pow _ _ m],
+  rw [← mk'_one B, self_zpow_pow_sub, self_zpow_coe_nat, self_zpow_coe_nat, ← map_pow _ _ d,
+    mul_comm _ b, H, hyp2, map_mul, map_pow _ _ m],
   exact ⟨hyp1, (congr_arg _ (is_localization.mk'_one _ _))⟩,
 end
 

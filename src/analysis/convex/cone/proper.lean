@@ -23,6 +23,7 @@ The next steps are:
 - Define primal and dual cone programs and prove weak duality.
 - Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
 - Define linear programs and prove LP duality as a special case of cone duality.
+- Find a better reference (textbook instead of lecture notes).
 
 ## References
 
@@ -56,17 +57,14 @@ lemma closure_eq_iff_is_closed {K : convex_cone ℝ E} : K.closure = K ↔ is_cl
 
 end convex_cone
 
-section definitions
-
 /-- A proper cone is a convex cone `K` that is nonempty and closed. Proper cones have the nice
 property that the dual of the dual of a proper cone is itself. This makes them useful for defining
 cone programs and proving duality theorems. -/
-structure proper_cone (E : Type*) [normed_add_comm_group E] [inner_product_space ℝ E]
-  extends convex_cone ℝ E :=
+structure proper_cone (𝕜 : Type*) (E : Type*)
+  [is_R_or_C 𝕜] [ordered_semiring 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
+  extends convex_cone 𝕜 E :=
 (nonempty'  : (carrier : set E).nonempty)
 (is_closed' : is_closed (carrier : set E))
-
-end definitions
 
 namespace proper_cone
 
@@ -75,63 +73,63 @@ section inner_product_space
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
 
-instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
+noncomputable instance : has_coe (proper_cone ℝ E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
 
-@[simp] lemma to_convex_cone_eq_coe (K : proper_cone E) : K.to_convex_cone = K := rfl
+@[simp] lemma to_convex_cone_eq_coe (K : proper_cone ℝ E) : K.to_convex_cone = K := rfl
 
-noncomputable instance : has_zero (proper_cone E) :=
+noncomputable instance : has_zero (proper_cone ℝ E) :=
 ⟨ { to_convex_cone := (0 : convex_cone ℝ E),
     nonempty' := ⟨0, rfl⟩,
     is_closed' := is_closed_singleton } ⟩
 
-noncomputable instance : inhabited (proper_cone E) := ⟨0⟩
+noncomputable instance : inhabited (proper_cone ℝ E) := ⟨0⟩
 
-lemma ext' : function.injective (coe : proper_cone E → convex_cone ℝ E) :=
+lemma ext' : function.injective (coe : proper_cone ℝ E → convex_cone ℝ E) :=
 λ S T h, by cases S; cases T; congr'
 
-instance : set_like (proper_cone E) E :=
+instance : set_like (proper_cone ℝ E) E :=
 { coe := λ K, K.carrier,
   coe_injective' := λ _ _ h, proper_cone.ext' (set_like.coe_injective h) }
 
-@[ext] lemma ext {S T : proper_cone E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
+@[ext] lemma ext {S T : proper_cone ℝ E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
-@[simp] lemma mem_coe {x : E} {K : proper_cone E} : x ∈ (K : convex_cone ℝ E) ↔ x ∈ K := iff.rfl
+@[simp] lemma mem_coe {x : E} {K : proper_cone ℝ E} : x ∈ (K : convex_cone ℝ E) ↔ x ∈ K := iff.rfl
 
-protected lemma nonempty (K : proper_cone E) : (K : set E).nonempty := K.nonempty'
+protected lemma nonempty (K : proper_cone ℝ E) : (K : set E).nonempty := K.nonempty'
 
-protected lemma is_closed (K : proper_cone E) : is_closed (K : set E) := K.is_closed'
+protected lemma is_closed (K : proper_cone ℝ E) : is_closed (K : set E) := K.is_closed'
 
-protected lemma pointed (K : proper_cone E) : (K : convex_cone ℝ E).pointed :=
+protected lemma pointed (K : proper_cone ℝ E) : (K : convex_cone ℝ E).pointed :=
 (K : convex_cone ℝ E).pointed_of_nonempty_of_is_closed K.nonempty K.is_closed
 
--- TODO: Replace map with a bundled version: proper_cone E →L[ℝ] proper_cone F
+-- TODO: Replace map with a bundled version: proper_cone ℝ E →L[ℝ] proper_cone ℝ F
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. We
 use continuous maps here so that the adjoint of f is also a map between proper cones. -/
-noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
+noncomputable def map (f : E →L[ℝ] F) (K : proper_cone ℝ E) : proper_cone ℝ F :=
 { to_convex_cone := convex_cone.closure (convex_cone.map (f : E →ₗ[ℝ] F) ↑K),
   nonempty' := ⟨ 0, subset_closure $ set_like.mem_coe.2 $ convex_cone.mem_map.2
     ⟨0, K.pointed, map_zero _⟩ ⟩,
   is_closed' := is_closed_closure }
 
-@[simp, norm_cast] lemma coe_map (f : E →L[ℝ] F) (K : proper_cone E) :
+@[simp, norm_cast] lemma coe_map (f : E →L[ℝ] F) (K : proper_cone ℝ E) :
   ↑(K.map f) = (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := rfl
 
-@[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone E} {y : F} :
+@[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone ℝ E} {y : F} :
   y ∈ K.map f ↔ y ∈ (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := iff.rfl
 
-@[simp] lemma map_id (K : proper_cone E) : K.map (continuous_linear_map.id ℝ E) = K :=
+@[simp] lemma map_id (K : proper_cone ℝ E) : K.map (continuous_linear_map.id ℝ E) = K :=
 proper_cone.ext' $ by simpa using convex_cone.closure_eq_iff_is_closed.2 K.is_closed
 
 /-- The inner dual cone of a proper cone is a proper cone. -/
-def dual (K : proper_cone E): (proper_cone E) :=
+def dual (K : proper_cone ℝ E): (proper_cone ℝ E) :=
 { to_convex_cone := (K : set E).inner_dual_cone,
   nonempty' := ⟨0, pointed_inner_dual_cone _⟩,
   is_closed' := is_closed_inner_dual_cone _ }
 
 @[simp, norm_cast]
-lemma coe_dual (K : proper_cone E) : ↑(dual K) = (K : set E).inner_dual_cone := rfl
+lemma coe_dual (K : proper_cone ℝ E) : ↑(dual K) = (K : set E).inner_dual_cone := rfl
 
-@[simp] lemma mem_dual {K : proper_cone E} {y : E} :
+@[simp] lemma mem_dual {K : proper_cone ℝ E} {y : E} :
   y ∈ dual K ↔ ∀ ⦃x⦄, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ :=
 by {rw [← mem_coe, coe_dual, mem_inner_dual_cone _ _], refl}
 
@@ -144,7 +142,7 @@ section complete_space
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
 
 /-- The dual of the dual of a proper cone is itself. -/
-theorem dual_dual (K : proper_cone E) : K.dual.dual = K := proper_cone.ext' $
+theorem dual_dual (K : proper_cone ℝ E) : K.dual.dual = K := proper_cone.ext' $
   (K : convex_cone ℝ E).inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed
 
 end complete_space

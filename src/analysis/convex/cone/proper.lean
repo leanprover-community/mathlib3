@@ -15,10 +15,8 @@ linear programs, the results from this file can be used to prove duality theorem
 
 ## TODO
 
-In the next few PRs (already sorry-free), we will prove the cone version of Farkas' lemma (2.3.4 in
-the reference).
-
 The next steps are:
+- Prove the cone version of Farkas' lemma (2.3.4 in the reference).
 - Define the positive cone as a proper cone.
 - Define primal and dual cone programs and prove weak duality.
 - Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
@@ -75,7 +73,10 @@ instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
 
 instance : has_mem E (proper_cone E) := ⟨λ e K, e ∈ (K : convex_cone ℝ E) ⟩
 
-noncomputable instance : has_zero (proper_cone E) := ⟨ ⟨0, ⟨0, rfl⟩, is_closed_singleton⟩ ⟩
+noncomputable instance : has_zero (proper_cone E) :=
+⟨ { to_convex_cone := (0 : convex_cone ℝ E),
+    nonempty' := ⟨0, rfl⟩,
+    is_closed' := is_closed_singleton } ⟩
 
 noncomputable instance : inhabited (proper_cone E) := ⟨0⟩
 

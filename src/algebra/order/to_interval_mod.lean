@@ -651,7 +651,7 @@ private lemma to_Ixx_mod_iff (x₁ x₂ x₃ : α) :
 by rw [to_Ico_mod_eq_sub, to_Ioc_mod_eq_sub _ x₁, add_le_add_iff_right, ←neg_sub x₁ x₃,
     to_Ioc_mod_neg, neg_zero, le_sub_iff_add_le]
 
-private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
+private lemma to_Ixx_mod_cyclic_left {x₁ x₂ x₃ : α}
   (h : to_Ico_mod hp x₁ x₂ ≤ to_Ioc_mod hp x₁ x₃) :
   to_Ico_mod hp x₂ x₃ ≤ to_Ioc_mod hp x₂ x₁ :=
 begin
@@ -725,7 +725,7 @@ end
 private lemma to_Ixx_mod_total (x y z : α) :
   to_Ico_mod hp x y ≤ to_Ioc_mod hp x z ∨
   to_Ico_mod hp z y ≤ to_Ioc_mod hp z x :=
-(to_Ixx_mod_total' _ _ _ _).imp_right $ to_Ixx_mod_cyclic_left _ _ _ _
+(to_Ixx_mod_total' _ _ _ _).imp_right $ to_Ixx_mod_cyclic_left _
 
 private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
   (h₁₂₃ : to_Ico_mod hp x₁ x₂ ≤ to_Ioc_mod hp x₁ x₃
@@ -737,9 +737,9 @@ private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
 begin
   split,
   { suffices h : to_Ico_mod hp x₃ x₂ = to_Ioc_mod hp x₃ x₂,
-    { have h₁₂₃' := to_Ixx_mod_cyclic_left _ _ _ _ (to_Ixx_mod_cyclic_left _ _ _ _ h₁₂₃.1),
-      have h₂₃₄' := to_Ixx_mod_cyclic_left _ _ _ _ (to_Ixx_mod_cyclic_left _ _ _ _ h₂₃₄.1),
-      exact to_Ixx_mod_cyclic_left _ _ _ _ ((h₁₂₃'.trans h.ge).trans h₂₃₄') },
+    { have h₁₂₃' := to_Ixx_mod_cyclic_left _ (to_Ixx_mod_cyclic_left _ h₁₂₃.1),
+      have h₂₃₄' := to_Ixx_mod_cyclic_left _ (to_Ixx_mod_cyclic_left _ h₂₃₄.1),
+      exact to_Ixx_mod_cyclic_left _ ((h₁₂₃'.trans h.ge).trans h₂₃₄') },
     by_contra,
     have hIco₃₂ : to_Ico_mod hp x₃ x₂ = x₃ := ((add_comm_group.tfae_modeq hp x₃ x₂).out 3 1).mpr h,
     have hIco₃₁ : x₃ < to_Ioc_mod hp x₃ x₁ := left_lt_to_Ioc_mod _ _ _,
@@ -774,7 +774,7 @@ instance circular_preorder : circular_preorder (α ⧸ add_subgroup.zmultiples p
     induction x₂ using quotient_add_group.induction_on',
     induction x₃ using quotient_add_group.induction_on',
     simp_rw [btw_coe_iff] at h ⊢,
-    apply to_Ixx_mod_cyclic_left _ _ _ _ h,
+    apply to_Ixx_mod_cyclic_left _ h,
   end,
   sbtw := _,
   sbtw_iff_btw_not_btw := λ _ _ _, iff.rfl,

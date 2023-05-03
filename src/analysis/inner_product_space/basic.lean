@@ -162,11 +162,8 @@ lemma inner_conj_symm (x y : F) : ⟪y, x⟫† = ⟪x, y⟫ := c.conj_symm x y
 
 lemma inner_self_nonneg {x : F} : 0 ≤ re ⟪x, x⟫ := c.nonneg_re _
 
-lemma inner_self_nonneg_im (x : F) : im ⟪x, x⟫ = 0 :=
+lemma inner_self_im (x : F) : im ⟪x, x⟫ = 0 :=
 by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp [inner_conj_symm]
-
-lemma inner_self_im_zero (x : F) : im ⟪x, x⟫ = 0 :=
-inner_self_nonneg_im _
 
 lemma inner_add_left (x y z : F) : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 c.add_left _ _ _
@@ -177,7 +174,7 @@ by rw [←inner_conj_symm, inner_add_left, ring_hom.map_add]; simp only [inner_c
 lemma inner_norm_sq_eq_inner_self (x : F) : (norm_sqF x : 𝕜) = ⟪x, x⟫ :=
 begin
   rw ext_iff,
-  exact ⟨by simp only [of_real_re]; refl, by simp only [inner_self_nonneg_im, of_real_im]⟩
+  exact ⟨by simp only [of_real_re]; refl, by simp only [inner_self_im, of_real_im]⟩
 end
 
 lemma inner_re_symm (x y : F) : re ⟪x, y⟫ = re ⟪y, x⟫ :=
@@ -199,13 +196,17 @@ lemma inner_zero_right (x : F) : ⟪x, 0⟫ = 0 :=
 by rw [←inner_conj_symm, inner_zero_left]; simp only [ring_hom.map_zero]
 
 lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
-iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left _ })
+⟨c.definite _, by { rintro rfl, exact inner_zero_left _ }⟩
+
+lemma norm_sq_eq_zero {x : F} : norm_sqF x = 0 ↔ x = 0 :=
+iff.trans (by simp only [norm_sq, ext_iff, map_zero, inner_self_im, eq_self_iff_true, and_true])
+  (@inner_self_eq_zero 𝕜 _ _ _ _ _ x)
 
 lemma inner_self_ne_zero {x : F} : ⟪x, x⟫ ≠ 0 ↔ x ≠ 0 :=
 inner_self_eq_zero.not
 
 lemma inner_self_re_to_K (x : F) : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
-by norm_num [ext_iff, inner_self_nonneg_im]
+by norm_num [ext_iff, inner_self_im]
 
 lemma inner_abs_conj_symm (x y : F) : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
 by rw [←inner_conj_symm, abs_conj]
@@ -259,7 +260,7 @@ begin
       apply hy',
       rw ext_iff,
       exact ⟨by simp only [H, zero_re'],
-             by simp only [inner_self_nonneg_im, add_monoid_hom.map_zero]⟩ },
+             by simp only [inner_self_im, add_monoid_hom.map_zero]⟩ },
     have h₆ : re ⟪y, y⟫ ≠ 0 := ne_of_gt h₅,
     have hmain := calc
       0   ≤ re ⟪x - T • y, x - T • y⟫
@@ -332,11 +333,7 @@ add_group_norm.to_normed_add_comm_group
       linarith },
     exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this,
   end,
-  eq_zero_of_map_eq_zero' := λ x hx, (inner_self_eq_zero : ⟪x, x⟫ = 0 ↔ x = 0).1 $ begin
-    change sqrt (re ⟪x, x⟫) = 0 at hx,
-    rw [sqrt_eq_zero inner_self_nonneg] at hx,
-    exact ext (by simp [hx]) (by simp [inner_self_im_zero]),
-  end }
+  eq_zero_of_map_eq_zero' := λ x hx, norm_sq_eq_zero.1 $ (sqrt_eq_zero inner_self_nonneg).1 hx }
 
 local attribute [instance] to_normed_add_comm_group
 
@@ -395,10 +392,8 @@ lemma real_inner_comm (x y : F) : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := @inner_conj
 lemma inner_eq_zero_symm {x y : E} : ⟪x, y⟫ = 0 ↔ ⟪y, x⟫ = 0 :=
 ⟨λ h, by simp [←inner_conj_symm, h], λ h, by simp [←inner_conj_symm, h]⟩
 
-@[simp] lemma inner_self_nonneg_im (x : E) : im ⟪x, x⟫ = 0 :=
+@[simp] lemma inner_self_im (x : E) : im ⟪x, x⟫ = 0 :=
 by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp
-
-lemma inner_self_im_zero (x : E) : im ⟪x, x⟫ = 0 := inner_self_nonneg_im _
 
 lemma inner_add_left (x y z : E) : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 inner_product_space.add_left _ _ _
@@ -497,47 +492,11 @@ lemma inner_self_nonneg {x : E} : 0 ≤ re ⟪x, x⟫ :=
 by rw [←norm_sq_eq_inner]; exact pow_nonneg (norm_nonneg x) 2
 lemma real_inner_self_nonneg {x : F} : 0 ≤ ⟪x, x⟫_ℝ := @inner_self_nonneg ℝ F _ _ _ x
 
-@[simp] lemma inner_self_eq_zero {x : E} : ⟪x, x⟫ = 0 ↔ x = 0 :=
-begin
-  split,
-  { intro h,
-    have h₁ : re ⟪x, x⟫ = 0 :=
-    by rw is_R_or_C.ext_iff at h; simp only [h.1, zero_re'],
-    rw [←norm_sq_eq_inner x] at h₁,
-    rw [←norm_eq_zero],
-    exact pow_eq_zero h₁ },
-  { rintro rfl,
-    exact inner_zero_left _ }
-end
-
-lemma inner_self_ne_zero {x : E} : ⟪x, x⟫ ≠ 0 ↔ x ≠ 0 :=
-inner_self_eq_zero.not
-
-@[simp] lemma inner_self_nonpos {x : E} : re ⟪x, x⟫ ≤ 0 ↔ x = 0 :=
-begin
-  split,
-  { intro h,
-    rw ←@inner_self_eq_zero 𝕜,
-    have H₁ : re ⟪x, x⟫ ≥ 0, exact inner_self_nonneg,
-    have H₂ : re ⟪x, x⟫ = 0, exact le_antisymm h H₁,
-    rw is_R_or_C.ext_iff,
-    exact ⟨by simp [H₂], by simp [inner_self_nonneg_im]⟩ },
-  { rintro rfl,
-    simp only [inner_zero_left, add_monoid_hom.map_zero] }
-end
-
-lemma real_inner_self_nonpos {x : F} : ⟪x, x⟫_ℝ ≤ 0 ↔ x = 0 :=
-by { have h := @inner_self_nonpos ℝ F _ _ _ x, simpa using h }
-
 @[simp] lemma inner_self_re_to_K (x : E) : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
-is_R_or_C.ext_iff.2 ⟨by simp only [of_real_re], by simp only [inner_self_nonneg_im, of_real_im]⟩
+is_R_or_C.ext_iff.2 ⟨by simp only [of_real_re], by simp only [inner_self_im, of_real_im]⟩
 
 lemma inner_self_eq_norm_sq_to_K (x : E) : ⟪x, x⟫ = (‖x‖ ^ 2 : 𝕜) :=
-begin
-  suffices : (is_R_or_C.re ⟪x, x⟫ : 𝕜) = ‖x‖ ^ 2,
-  { simpa only [inner_self_re_to_K] using this },
-  exact_mod_cast (norm_sq_eq_inner x).symm
-end
+by rw [← inner_self_re_to_K, ← norm_sq_eq_inner, of_real_pow]
 
 lemma inner_self_re_abs (x : E) : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
 begin
@@ -548,6 +507,18 @@ end
 
 lemma inner_self_abs_to_K (x : E) : (absK ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by { rw [←inner_self_re_abs], exact inner_self_re_to_K _ }
+
+@[simp] lemma inner_self_eq_zero {x : E} : ⟪x, x⟫ = 0 ↔ x = 0 :=
+by rw [inner_self_eq_norm_sq_to_K, sq_eq_zero_iff, of_real_eq_zero, norm_eq_zero]
+
+lemma inner_self_ne_zero {x : E} : ⟪x, x⟫ ≠ 0 ↔ x ≠ 0 :=
+inner_self_eq_zero.not
+
+@[simp] lemma inner_self_nonpos {x : E} : re ⟪x, x⟫ ≤ 0 ↔ x = 0 :=
+by rw [← norm_sq_eq_inner, (sq_nonneg _).le_iff_eq, sq_eq_zero_iff, norm_eq_zero]
+
+lemma real_inner_self_nonpos {x : F} : ⟪x, x⟫_ℝ ≤ 0 ↔ x = 0 :=
+@inner_self_nonpos ℝ F _ _ _ x
 
 lemma real_inner_self_abs (x : F) : absR ⟪x, x⟫_ℝ = ⟪x, x⟫_ℝ :=
 by { have h := @inner_self_abs_to_K ℝ F _ _ _ x, simpa using h }
@@ -564,7 +535,7 @@ by rw [←inner_conj_symm, inner_neg_left]; simp only [ring_hom.map_neg, inner_c
 lemma inner_neg_neg (x y : E) : ⟪-x, -y⟫ = ⟪x, y⟫ := by simp
 
 @[simp] lemma inner_self_conj (x : E) : ⟪x, x⟫† = ⟪x, x⟫ :=
-by rw [is_R_or_C.ext_iff]; exact ⟨by rw [conj_re], by rw [conj_im, inner_self_im_zero, neg_zero]⟩
+by rw [is_R_or_C.ext_iff]; exact ⟨by rw [conj_re], by rw [conj_im, inner_self_im, neg_zero]⟩
 
 lemma inner_sub_left (x y z : E) : ⟪x - y, z⟫ = ⟪x, z⟫ - ⟪y, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_left] }
@@ -637,7 +608,7 @@ begin
       apply hy',
       rw is_R_or_C.ext_iff,
       exact ⟨by simp only [H, zero_re'],
-             by simp only [inner_self_nonneg_im, add_monoid_hom.map_zero]⟩ },
+             by simp only [inner_self_im, add_monoid_hom.map_zero]⟩ },
     have h₆ : re ⟪y, y⟫ ≠ 0 := ne_of_gt h₅,
     have hmain := calc
       0   ≤ re ⟪x - T • y, x - T • y⟫

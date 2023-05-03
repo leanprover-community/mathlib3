@@ -3,6 +3,7 @@ Copyright (c) 2021 Lu-Ming Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lu-Ming Zhang
 -/
+import linear_algebra.matrix.orthogonal
 import linear_algebra.matrix.symmetric
 import data.matrix.kronecker
 

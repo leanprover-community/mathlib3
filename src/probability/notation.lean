@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import probability.probability_mass_function.basic
+import measure_theory.function.conditional_expectation.basic
 
 /-! # Notations for probability theory
 

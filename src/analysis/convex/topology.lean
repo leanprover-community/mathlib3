@@ -12,6 +12,9 @@ import topology.algebra.module.basic
 /-!
 # Topological properties of convex sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove the following facts:
 
 * `convex.interior` : interior of a convex set is convex;

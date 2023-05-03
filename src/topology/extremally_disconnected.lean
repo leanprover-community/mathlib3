@@ -8,6 +8,9 @@ import topology.stone_cech
 /-!
 # Extremally disconnected spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An extremally disconnected topological space is a space in which the closure of every open set is
 open. Such spaces are also called Stonean spaces. They are the projective objects in the category of
 compact Hausdorff spaces.

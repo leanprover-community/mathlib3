@@ -224,7 +224,7 @@ begin
   simp only [one_mul, algebra.smul_mul_assoc],
 end
 
-lemma eq_conj_iff_real {z : K} : conj z = z ↔ ∃ r : ℝ, z = (r : K) :=
+lemma conj_eq_iff_real {z : K} : conj z = z ↔ ∃ r : ℝ, z = (r : K) :=
 begin
   split,
   { intro h,
@@ -249,8 +249,8 @@ abbreviation conj_to_ring_equiv : K ≃+* Kᵐᵒᵖ := star_ring_equiv
 
 variables {K}
 
-lemma eq_conj_iff_re {z : K} : conj z = z ↔ ((re z) : K) = z :=
-eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
+lemma conj_eq_iff_re {z : K} : conj z = z ↔ ((re z) : K) = z :=
+conj_eq_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
 /-- The norm squared function. -/
 def norm_sq : K →*₀ ℝ :=

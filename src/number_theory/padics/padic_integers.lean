@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro, Johan Commelin
 -/
 import number_theory.padics.padic_numbers
-import ring_theory.discrete_valuation_ring
+import ring_theory.discrete_valuation_ring.basic
 
 /-!
 # p-adic integers

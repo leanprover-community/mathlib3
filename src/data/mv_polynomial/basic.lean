@@ -102,24 +102,27 @@ instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] :
   distrib_mul_action R (mv_polynomial σ S₁) :=
 add_monoid_algebra.distrib_mul_action
 
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithful_smul R S₁] :
+instance [comm_semiring S₁] [smul_zero_class R S₁] : smul_zero_class R (mv_polynomial σ S₁) :=
+add_monoid_algebra.smul_zero_class
+
+instance [comm_semiring S₁] [smul_zero_class R S₁] [has_faithful_smul R S₁] :
   has_faithful_smul R (mv_polynomial σ S₁) :=
 add_monoid_algebra.has_faithful_smul
 
 instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
 add_monoid_algebra.module
 
-instance [monoid R] [monoid S₁] [comm_semiring S₂]
-  [has_smul R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
+instance [comm_semiring S₂]
+  [has_smul R S₁] [smul_zero_class R S₂] [smul_zero_class S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.is_scalar_tower
 
-instance [monoid R] [monoid S₁][comm_semiring S₂]
-  [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
+instance [comm_semiring S₂]
+  [smul_zero_class R S₂] [smul_zero_class S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
 
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mul_action Rᵐᵒᵖ S₁]
+instance [comm_semiring S₁] [smul_zero_class R S₁] [smul_zero_class Rᵐᵒᵖ S₁]
   [is_central_scalar R S₁] :
   is_central_scalar R (mv_polynomial σ S₁) :=
 add_monoid_algebra.is_central_scalar
@@ -217,6 +220,9 @@ lemma smul_eq_C_mul (p : mv_polynomial σ R) (a : R) : a • p = C a * p := C_mu
 
 lemma C_eq_smul_one : (C a : mv_polynomial σ R) = a • 1 :=
 by rw [← C_mul', mul_one]
+
+lemma smul_monomial {S₁ : Type*} [smul_zero_class S₁ R] (r : S₁) :
+  r • monomial s a = monomial s (r • a) := finsupp.smul_single _ _ _
 
 lemma X_injective [nontrivial R] : function.injective (X : σ → mv_polynomial σ R) :=
 (monomial_left_injective one_ne_zero).comp (finsupp.single_left_injective one_ne_zero)
@@ -422,7 +428,7 @@ by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 
-lemma support_smul [distrib_mul_action R S₁] {a : R} {f : mv_polynomial σ S₁} :
+lemma support_smul {S₁ : Type*} [smul_zero_class S₁ R] {a : S₁} {f : mv_polynomial σ R} :
   (a • f).support ⊆ f.support :=
 finsupp.support_smul
 
@@ -463,7 +469,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply p q m
 
-@[simp] lemma coeff_smul {S₁ : Type*} [monoid S₁] [distrib_mul_action S₁ R]
+@[simp] lemma coeff_smul {S₁ : Type*} [smul_zero_class S₁ R]
   (m : σ →₀ ℕ) (c : S₁) (p : mv_polynomial σ R) :
   coeff m (c • p) = c • coeff m p := smul_apply c p m
 
@@ -557,6 +563,10 @@ add_monoid_algebra.support_mul_single p _ (by simp) _
   (X s * p).support = p.support.map (add_left_embedding (single s 1)) :=
 add_monoid_algebra.support_single_mul p _ (by simp) _
 
+@[simp] lemma support_smul_eq {S₁ : Type*} [semiring S₁] [module S₁ R] [no_zero_smul_divisors S₁ R]
+  {a : S₁} (h : a ≠ 0) (p : mv_polynomial σ R) : (a • p).support = p.support :=
+finsupp.support_smul_eq h
+
 lemma support_sdiff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
   p.support \ q.support ⊆ (p + q).support :=
 begin
@@ -626,6 +636,9 @@ lemma ne_zero_iff {p : mv_polynomial σ R} :
   p ≠ 0 ↔ ∃ d, coeff d p ≠ 0 :=
 by { rw [ne.def, eq_zero_iff], push_neg, }
 
+@[simp] lemma support_eq_empty {p : mv_polynomial σ R} : p.support = ∅ ↔ p = 0 :=
+finsupp.support_eq_empty
+
 lemma exists_coeff_ne_zero {p : mv_polynomial σ R} (h : p ≠ 0) :
   ∃ d, coeff d p ≠ 0 :=
 ne_zero_iff.mp h
@@ -675,7 +688,8 @@ variables (R)
 by simp [constant_coeff_eq]
 variables {R}
 
-@[simp] lemma constant_coeff_smul [distrib_mul_action R S₁] (a : R) (f : mv_polynomial σ S₁) :
+@[simp] lemma constant_coeff_smul {R : Type*} [smul_zero_class R S₁]
+  (a : R) (f : mv_polynomial σ S₁) :
   constant_coeff (a • f) = a • constant_coeff f := rfl
 
 lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :

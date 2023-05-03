@@ -520,7 +520,7 @@ by { simp [sub_eq_add_neg, inner_add_left] }
 lemma inner_sub_right (x y z : E) : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right] }
 
-lemma inner_mul_conj_re_norm (x y : E) : re (⟪x, y⟫ * ⟪y, x⟫) = ‖⟪x, y⟫ * ⟪y, x⟫‖ :=
+lemma re_inner_mul_symm_eq_norm (x y : E) : re (⟪x, y⟫ * ⟪y, x⟫) = ‖⟪x, y⟫ * ⟪y, x⟫‖ :=
 by { rw [←inner_conj_symm, mul_comm], exact re_eq_norm_of_mul_conj (inner y x), }
 
 /-- Expand `⟪x + y, x + y⟫` -/

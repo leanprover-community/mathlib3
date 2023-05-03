@@ -113,9 +113,9 @@ section lift_instances
 
 /-! ### Instances on `splitting_field_aux`
 
-In order to avoid diamond issues, we have to be careful to define each field of
-an instance of `splitting_field_aux` by recursion, rather than defining the
-whole structure by recursion at once.
+In order to avoid diamond issues, we have to be careful to define each data field of algebraic
+instances on `splitting_field_aux` by recursion, rather than defining the whole structure by
+recursion at once.
 
 We do this in three steps: first define an `add_comm_group` instance to put a `distrib_smul`
 on (which is what is needed to push scalar multiplication through the recursive step),

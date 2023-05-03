@@ -959,153 +959,16 @@ e.non_unital_subsemiring_map s.to_non_unital_subsemiring
 
 end ring_equiv
 
-/-
 namespace non_unital_subring
 
-variables {F : Type w} {R : Type u} {S : Type v} {T : Type*}
-variables [non_unital_ring R] [non_unital_ring S] [non_unital_ring T]
+variables {F : Type w} {R : Type u} {S : Type v}
+variables [non_unital_ring R] [non_unital_ring S]
 variables [non_unital_ring_hom_class F R S]
-variables (g : S →ₙ+* T) (f : R →ₙ+* S)
-variables {s : set R}
-local attribute [reducible] closure
 
-@[elab_as_eliminator]
-protected theorem in_closure.rec_on {C : R → Prop} {x : R} (hx : x ∈ closure s)
-  (h1 : C 1) (hneg1 : C (-1)) (hs : ∀ z ∈ s, ∀ n, C n → C (z * n))
-  (ha : ∀ {x y}, C x → C y → C (x + y)) : C x :=
-begin
-  have h0 : C 0 := add_neg_self (1:R) ▸ ha h1 hneg1,
-  rcases exists_list_of_mem_closure hx with ⟨L, HL, rfl⟩, clear hx,
-  induction L with hd tl ih, { exact h0 },
-  rw list.forall_mem_cons at HL,
-  suffices : C (list.prod hd),
-  { rw [list.map_cons, list.sum_cons],
-    exact ha this (ih HL.2) },
-  replace HL := HL.1, clear ih tl,
-  rsuffices ⟨L, HL', HP | HP⟩ : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
-    (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
-  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
-    rw list.forall_mem_cons at HL',
-    rw list.prod_cons,
-    exact hs _ HL'.1 _ (ih HL'.2) },
-  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
-    rw [list.prod_cons, neg_mul_eq_mul_neg],
-    rw list.forall_mem_cons at HL',
-    exact hs _ HL'.1 _ (ih HL'.2) },
-  induction hd with hd tl ih,
-  { exact ⟨[], list.forall_mem_nil _, or.inl rfl⟩ },
-  rw list.forall_mem_cons at HL,
-  rcases ih HL.2 with ⟨L, HL', HP | HP⟩; cases HL.1 with hhd hhd,
-  { exact ⟨hd :: L, list.forall_mem_cons.2 ⟨hhd, HL'⟩, or.inl $
-      by rw [list.prod_cons, list.prod_cons, HP]⟩ },
-  { exact ⟨L, HL', or.inr $ by rw [list.prod_cons, hhd, neg_one_mul, HP]⟩ },
-  { exact ⟨hd :: L, list.forall_mem_cons.2 ⟨hhd, HL'⟩, or.inr $
-      by rw [list.prod_cons, list.prod_cons, HP, neg_mul_eq_mul_neg]⟩ },
-  { exact ⟨L, HL', or.inl $ by rw [list.prod_cons, hhd, HP, neg_one_mul, neg_neg]⟩ }
-end
-
-lemma closure_preimage_le (f : R →ₙ+* S) (s : set S) :
-  closure (f ⁻¹' s) ≤ (closure s).comap f :=
+lemma closure_preimage_le (f : F) (s : set S) :
+  closure ((f : R → S) ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
 end non_unital_subring
-
-lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
-  (k : R) * g ∈ G :=
-by { convert add_subgroup.zsmul_mem G h k, simp }
-
-/-! ## Actions by `non_unital_subring`s
-
-These are just copies of the definitions about `non_unital_subsemiring` starting from
-`non_unital_subsemiring.mul_action`.
-
-When `R` is commutative, `algebra.of_non_unital_subring` provides a stronger result than those found in
-this file, which uses the same scalar action.
--/
-section actions
-
-namespace non_unital_subring
-
-variables {α β : Type*}
-
-/-- The action by a non_unital_subring is the action by the underlying ring. -/
-instance [has_smul R α] (S : non_unital_subring R) : has_smul S α := S.to_non_unital_subsemiring.has_smul
-
-lemma smul_def [has_smul R α] {S : non_unital_subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
-
-instance smul_comm_class_left
-  [has_smul R β] [has_smul α β] [smul_comm_class R α β] (S : non_unital_subring R) :
-  smul_comm_class S α β :=
-S.to_non_unital_subsemiring.smul_comm_class_left
-
-instance smul_comm_class_right
-  [has_smul α β] [has_smul R β] [smul_comm_class α R β] (S : non_unital_subring R) :
-  smul_comm_class α S β :=
-S.to_non_unital_subsemiring.smul_comm_class_right
-
-/-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
-instance
-  [has_smul α β] [has_smul R α] [has_smul R β] [is_scalar_tower R α β] (S : non_unital_subring R) :
-  is_scalar_tower S α β :=
-S.to_non_unital_subsemiring.is_scalar_tower
-
-instance [has_smul R α] [has_faithful_smul R α] (S : non_unital_subring R) :
-  has_faithful_smul S α :=
-S.to_non_unital_subsemiring.has_faithful_smul
-
-/-- The action by a non_unital_subring is the action by the underlying ring. -/
-instance [mul_action R α] (S : non_unital_subring R) : mul_action S α :=
-S.to_non_unital_subsemiring.mul_action
-
-/-- The action by a non_unital_subring is the action by the underlying ring. -/
-instance [add_monoid α] [distrib_mul_action R α] (S : non_unital_subring R) : distrib_mul_action S α :=
-S.to_non_unital_subsemiring.distrib_mul_action
-
-/-- The action by a non_unital_subring is the action by the underlying ring. -/
-instance [monoid α] [mul_distrib_mul_action R α] (S : non_unital_subring R) : mul_distrib_mul_action S α :=
-S.to_non_unital_subsemiring.mul_distrib_mul_action
-
-/-- The action by a non_unital_subring is the action by the underlying ring. -/
-instance [has_zero α] [smul_with_zero R α] (S : non_unital_subring R) : smul_with_zero S α :=
-S.to_non_unital_subsemiring.smul_with_zero
-
-/-- The action by a non_unital_subring is the action by the underlying ring. -/
-instance [has_zero α] [mul_action_with_zero R α] (S : non_unital_subring R) : mul_action_with_zero S α :=
-S.to_non_unital_subsemiring.mul_action_with_zero
-
-/-- The action by a non_unital_subring is the action by the underlying ring. -/
-instance [add_comm_monoid α] [module R α] (S : non_unital_subring R) : module S α :=
-S.to_non_unital_subsemiring.module
-
-/-- The action by a non_unital_subsemiring is the action by the underlying ring. -/
-instance [semiring α] [mul_semiring_action R α] (S : non_unital_subring R) : mul_semiring_action S α :=
-S.to_submonoid.mul_semiring_action
-
-/-- The center of a semiring acts commutatively on that semiring. -/
-instance center.smul_comm_class_left : smul_comm_class (center R) R R :=
-non_unital_subsemiring.center.smul_comm_class_left
-
-/-- The center of a semiring acts commutatively on that semiring. -/
-instance center.smul_comm_class_right : smul_comm_class R (center R) R :=
-non_unital_subsemiring.center.smul_comm_class_right
-
-end non_unital_subring
-
-end actions
-
--- while this definition is not about non_unital_subrings, this is the earliest we have
--- both ordered ring structures and submonoids available
-
-/-- The subgroup of positive units of a linear ordered semiring. -/
-def units.pos_subgroup (R : Type*) [linear_ordered_semiring R] :
-  subgroup Rˣ :=
-{ carrier := {x | (0 : R) < x},
-  inv_mem' := λ x, units.inv_pos.mpr,
-  ..(pos_submonoid R).comap (units.coe_hom R)}
-
-@[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_semiring R]
-  (u : Rˣ) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl
-
- -/
 
 end hom

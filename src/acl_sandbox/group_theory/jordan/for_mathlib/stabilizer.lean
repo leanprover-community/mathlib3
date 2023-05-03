@@ -99,25 +99,22 @@ begin
 end
 
 /-- To prove membership to stabilizer of a *finite set*, it is enough to prove inclusion. -/
-lemma mem_stabilizer_of_finite_iff (s : set α) [decidable_eq α] [fintype s] (g : G) :
+lemma mem_stabilizer_of_finite_iff (s : set α) (hs : s.finite) (g : G) :
   g ∈ stabilizer G s ↔ g • s ⊆ s :=
 begin
+  letI : fintype s := set.finite.fintype hs,
   rw mem_stabilizer_iff,
   haveI : fintype (g • s : set α) := fintype.of_finite ↥(g • s),
   split,
   exact eq.subset,
-  { -- intro h,
-    rw [← set.to_finset_inj, ← set.to_finset_subset],
+  { rw [← set.to_finset_inj, ← set.to_finset_subset_to_finset],
     intro h,
     apply finset.eq_of_subset_of_card_le h,
     apply le_of_eq,
-    change _ = (set.image (λ x, g • x) s).to_finset.card,
-    have : (set.image (λ x, g • x) s).to_finset = finset.image (λ x, g • x) s.to_finset,
-    { rw ← finset.coe_inj, simp only [finset.coe_image, set.coe_to_finset], },
-    rw this,
-    rw finset.card_image_of_injective,
-    exact mul_action.injective g,
-  },
+    apply symm,
+    suffices : (g • s).to_finset = finset.map ⟨_, mul_action.injective g⟩ s.to_finset,
+    rw [this, finset.card_map],
+    rw ← finset.coe_inj, simp only [set.coe_to_finset, finset.coe_map, function.embedding.coe_fn_mk, set.image_smul], },
 end
 
 lemma fixing_subgroup_le_stabilizer (s : set α) :

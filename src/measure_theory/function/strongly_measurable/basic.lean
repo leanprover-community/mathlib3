@@ -5,6 +5,7 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 -/
 import analysis.normed_space.bounded_linear_maps
 import topology.metric_space.metrizable
+import measure_theory.integral.lebesgue
 import measure_theory.function.simple_func_dense
 
 /-!

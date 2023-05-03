@@ -40,10 +40,6 @@ noncomputable theory
 open set function
 open_locale manifold
 
-localized "notation (name := model_with_corners_self.euclidean) `𝓡 `n :=
-  (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :
-    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_space ℝ (fin n)))" in manifold
-
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
 `1 ≤ n`, as the definition only makes sense in this case.
@@ -104,10 +100,6 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   continuous_inv_fun := (continuous_id.update 0 $
     (continuous_apply 0).max continuous_const).subtype_mk _ }
 
-localized "notation (name := model_with_corners_euclidean_half_space.euclidean) `𝓡∂ `n :=
-  (model_with_corners_euclidean_half_space n :
-    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n))" in manifold
-
 /--
 Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_quadrant n)`, used as a
 model for manifolds with corners -/
@@ -129,6 +121,13 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   continuous_to_fun  := continuous_subtype_val,
   continuous_inv_fun := continuous.subtype_mk (continuous_pi $ λ i,
     (continuous_id.max continuous_const).comp (continuous_apply i)) _ }
+
+localized "notation (name := model_with_corners_self.euclidean) `𝓡 `n :=
+  (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_space ℝ (fin n)))" in manifold
+localized "notation (name := model_with_corners_euclidean_half_space.euclidean) `𝓡∂ `n :=
+  (model_with_corners_euclidean_half_space n :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n))" in manifold
 
 /--
 The left chart for the topological space `[x, y]`, defined on `[x,y)` and sending `x` to `0` in

@@ -1663,7 +1663,7 @@ begin
   { simp },
   { refine (mul_le_mul_right (norm_pos_iff.2 h)).mp _,
     calc ‖x‖ * ‖x‖ = ‖(⟪x, x⟫ : 𝕜)‖ : by rw [← sq, inner_self_eq_norm_sq_to_K, norm_pow,
-      norm_of_real, abs_norm]
+      norm_of_real, norm_norm]
     ... ≤ ‖innerSL 𝕜 x‖ * ‖x‖ : (innerSL 𝕜 x).le_op_norm _ }
 end
 

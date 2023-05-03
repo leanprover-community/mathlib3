@@ -85,7 +85,7 @@ instance slash_invariant_form_class.coe_to_fun [slash_invariant_form_class F Γ 
   has_coe_to_fun F (λ _, ℍ → ℂ) := fun_like.has_coe_to_fun
 
 @[simp] lemma slash_action_eqn [slash_invariant_form_class F Γ k] (f : F) (γ : Γ) :
-   slash_action.map k γ ⇑f = ⇑f := slash_invariant_form_class.slash_action_eq f γ
+  ⇑f ∣[k] γ = ⇑f := slash_invariant_form_class.slash_action_eq f γ
 
 lemma slash_action_eqn' (k : ℤ) (Γ : subgroup SL(2, ℤ)) [slash_invariant_form_class F Γ k] (f : F)
   (γ : Γ) (z : ℍ) : f (γ • z) = ((↑ₘ[ℤ]γ 1 0 : ℂ) * z +(↑ₘ[ℤ]γ 1 1 : ℂ))^k * f z :=

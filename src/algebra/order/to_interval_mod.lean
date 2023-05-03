@@ -579,13 +579,13 @@ by rw [to_Ico_mod_sub', zero_add, sub_add_cancel]
 lemma to_Ioc_mod_eq_sub (a b : α) : to_Ioc_mod hp a b = to_Ioc_mod hp 0 (b - a) + a :=
 by rw [to_Ioc_mod_sub', zero_add, sub_add_cancel]
 
-lemma to_Ico_mod_add_to_Ico_mod_zero (a b : α) :
+lemma to_Ico_mod_add_to_Ioc_mod_zero (a b : α) :
   to_Ico_mod hp 0 (a - b) + to_Ioc_mod hp 0 (b - a) = p :=
 by rw [to_Ico_mod_zero_sub_comm, sub_add_cancel]
 
 lemma to_Ioc_mod_add_to_Ico_mod_zero (a b : α) :
   to_Ioc_mod hp 0 (a - b) + to_Ico_mod hp 0 (b - a) = p :=
-by rw [add_comm, to_Ico_mod_add_to_Ico_mod_zero]
+by rw [add_comm, to_Ico_mod_add_to_Ioc_mod_zero]
 
 end zero
 
@@ -712,7 +712,7 @@ begin
   Thus if x ≠ y and y ≠ z then ({x-y} + {y-z}) + ({z-y} + {y-x}) = 2 * period, so one of
   `{x-y} + {y-z}` and `{z-y} + {y-x}` must be `≤ period` -/
   have := congr_arg2 (+)
-    (to_Ico_mod_add_to_Ico_mod_zero hp x y) (to_Ico_mod_add_to_Ico_mod_zero hp z y),
+    (to_Ico_mod_add_to_Ioc_mod_zero hp x y) (to_Ico_mod_add_to_Ioc_mod_zero hp z y),
   rw [add_add_add_comm, add_comm (to_Ioc_mod _ _ _), add_add_add_comm, ←two_nsmul] at this,
   replace := min_le_of_add_le_two_nsmul this.le,
   rw min_le_iff at this,

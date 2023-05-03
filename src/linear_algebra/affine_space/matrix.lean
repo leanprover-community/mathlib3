@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import linear_algebra.affine_space.basis
-import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.determinant
 
 /-!
 # Matrix results for barycentric co-ordinates

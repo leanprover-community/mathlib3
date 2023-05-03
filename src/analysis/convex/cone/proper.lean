@@ -80,7 +80,7 @@ noncomputable instance : has_zero (proper_cone E) :=
 
 noncomputable instance : inhabited (proper_cone E) := ⟨0⟩
 
-@[simp] lemma mem_coe {x : E} {K : proper_cone E} : x ∈ K ↔ x ∈ (K : convex_cone ℝ E) := iff.rfl
+@[simp] lemma mem_coe {x : E} {K : proper_cone E} : x ∈ (K : convex_cone ℝ E) ↔ x ∈ K := iff.rfl
 
 protected lemma nonempty (K : proper_cone E) : (K : set E).nonempty := K.nonempty'
 

@@ -7,8 +7,8 @@ import analysis.complex.circle
 import analysis.normed_space.ball_action
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.pi_L2
-import geometry.manifold.instances.real
 import geometry.manifold.algebra.lie_group
+import geometry.manifold.instances.real
 
 /-!
 # Manifold structure on the sphere

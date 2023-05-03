@@ -80,7 +80,7 @@ by simp only [ceil, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
 
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,
 see `zspan.fract_mem_fundamental_domain`. -/
-def fract : E → E := λ m, m - floor b m
+def fract (m : E) : E := m - floor b m
 
 lemma fract_apply (m : E) : fract b m = m - floor b m := rfl
 
@@ -173,18 +173,19 @@ begin
   rw ← two_mul,
 end
 
+lemma vadd_mem_fundamental_domain [fintype ι] (y : span ℤ (set.range b)) (x : E) :
+  y +ᵥ x ∈ fundamental_domain b ↔ y = -floor b x :=
+by rw [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
+    ← fract_apply, ← fract_zspan_add b _ (subtype.mem y), add_comm, ← vadd_eq_add, ← vadd_def,
+    eq_comm, ← fract_eq_self]
+
 lemma exist_unique_vadd_mem_fundamental_domain [finite ι] (x : E) :
   ∃! v : span ℤ (set.range b), v +ᵥ x ∈ fundamental_domain b :=
 begin
   casesI nonempty_fintype ι,
-  refine ⟨-floor b x, _, λ y _, _⟩,
-  { simp_rw [fundamental_domain, set.mem_Ico, vadd_def, vadd_eq_add, add_subgroup_class.coe_neg,
-    neg_add_eq_sub, ← fract_apply],
-    simp only [repr_fract_apply, int.fract_nonneg, int.fract_lt_one, true_and, set.mem_set_of_eq,
-      implies_true_iff], },
-  { rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
-      ← fract_apply, ← fract_zspan_add b _ (subtype.mem y), add_comm, ← vadd_eq_add, ← vadd_def,
-      eq_comm, fract_eq_self], },
+  refine ⟨-floor b x, _, λ y h, _⟩,
+  { exact (vadd_mem_fundamental_domain b (-floor b x) x).mpr rfl, },
+  { exact (vadd_mem_fundamental_domain b y x).mp h, },
 end
 
 end normed_lattice_field

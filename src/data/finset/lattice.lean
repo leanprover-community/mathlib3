@@ -447,6 +447,7 @@ end order_top
 section bounded_order
 variables [bounded_order α] [decidable_eq ι]
 
+--TODO: Extract out the obvious isomorphism `(insert i s).pi t ≃ t i ×ˢ s.pi t` from this proof
 lemma inf_sup {κ : ι → Type*} (s : finset ι) (t : Π i, finset (κ i)) (f : Π i, κ i → α) :
   s.inf (λ i, (t i).sup (f i)) = (s.pi t).sup (λ g, s.attach.inf $ λ i, f _ $ g _ i.2) :=
 begin

@@ -6,8 +6,6 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import linear_algebra.bilinear_form
 import analysis.inner_product_space.basic
 
-import analysis.inner_product_space.basic
-
 /-!
 # Orthogonal complements of submodules
 

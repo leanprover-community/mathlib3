@@ -12,6 +12,9 @@ import tactic.field_simp
 /-!
 # Transvections
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Transvections are matrices of the form `1 + std_basis_matrix i j c`, where `std_basis_matrix i j c`
 is the basic matrix with a `c` at position `(i, j)`. Multiplying by such a transvection on the left
 (resp. on the right) amounts to adding `c` times the `j`-th row to to the `i`-th row

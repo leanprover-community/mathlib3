@@ -9,6 +9,9 @@ import analysis.convex.extreme
 /-!
 # Convex independence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines convex independent families of points.
 
 Convex independence is closely related to affine independence. In both cases, no point can be

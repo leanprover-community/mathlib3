@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors:
+Authors: Antoine Chambert-Loir
 -/
 
 import group_theory.group_action.basic
@@ -133,6 +133,8 @@ end
 end mul_action
 
 
+-- #lint
+
 #exit
 
 
@@ -171,3 +173,5 @@ begin
 end
 
 end stabilizers
+
+#lint

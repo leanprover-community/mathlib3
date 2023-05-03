@@ -19,6 +19,9 @@ linear programs, the results from this file can be used to prove duality theorem
 
 The next steps are:
 - Prove the cone version of Farkas' lemma (2.3.4 in the reference).
+- Add comap, adjoint
+- Add convex_cone_class that extends set_like and replace the below instance
+- Replace map with a bundled version: proper_cone ℝ E →L[ℝ] proper_cone ℝ F
 - Define the positive cone as a proper cone.
 - Define primal and dual cone programs and prove weak duality.
 - Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
@@ -87,6 +90,7 @@ noncomputable instance : inhabited (proper_cone ℝ E) := ⟨0⟩
 lemma ext' : function.injective (coe : proper_cone ℝ E → convex_cone ℝ E) :=
 λ S T h, by cases S; cases T; congr'
 
+-- TODO: add convex_cone_class that extends set_like and replace the below instance
 instance : set_like (proper_cone ℝ E) E :=
 { coe := λ K, K.carrier,
   coe_injective' := λ _ _ h, proper_cone.ext' (set_like.coe_injective h) }

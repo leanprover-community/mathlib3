@@ -7,6 +7,8 @@ import analysis.inner_product_space.adjoint
 
 /-!
 
+# Proper cones
+
 We define a proper cone as a nonempty, closed, convex cone. Proper cones are used in defining conic
 programs which generalize linear programs. A linear program is a conic program for the positive
 cone. We then prove Farkas' lemma for conic programs following the proof in the reference below.
@@ -75,7 +77,7 @@ variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
 
 instance : has_coe (proper_cone E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
 
-instance : has_mem E (proper_cone E) := ⟨λ e K, e ∈ (K : convex_cone ℝ E) ⟩
+@[simp] lemma to_convex_cone_eq_coe (K : proper_cone E) : K.to_convex_cone = K := rfl
 
 noncomputable instance : has_zero (proper_cone E) :=
 ⟨ { to_convex_cone := (0 : convex_cone ℝ E),
@@ -83,6 +85,15 @@ noncomputable instance : has_zero (proper_cone E) :=
     is_closed' := is_closed_singleton } ⟩
 
 noncomputable instance : inhabited (proper_cone E) := ⟨0⟩
+
+lemma ext' : function.injective (coe : proper_cone E → convex_cone ℝ E) :=
+λ S T h, by cases S; cases T; congr'
+
+instance : set_like (proper_cone E) E :=
+{ coe := λ K, K.carrier,
+  coe_injective' := λ _ _ h, proper_cone.ext' (set_like.coe_injective h) }
+
+@[ext] lemma ext {S T : proper_cone E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 @[simp] lemma mem_coe {x : E} {K : proper_cone E} : x ∈ (K : convex_cone ℝ E) ↔ x ∈ K := iff.rfl
 
@@ -92,15 +103,6 @@ protected lemma is_closed (K : proper_cone E) : is_closed (K : set E) := K.is_cl
 
 protected lemma pointed (K : proper_cone E) : (K : convex_cone ℝ E).pointed :=
 (K : convex_cone ℝ E).pointed_of_nonempty_of_is_closed K.nonempty K.is_closed
-
-lemma ext' {S T : proper_cone E} (h : (S : convex_cone ℝ E) = T) : S = T :=
-by cases S; cases T; congr'
-
-instance : set_like (proper_cone E) E :=
-{ coe := λ K, K.carrier,
-  coe_injective' := λ _ _ h, proper_cone.ext' (set_like.coe_injective h) }
-
-@[ext] lemma ext {S T : proper_cone E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 -- TODO: Replace map with a bundled version: proper_cone E →L[ℝ] proper_cone F
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. We
@@ -142,7 +144,7 @@ section complete_space
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
 
 /-- The dual of the dual of a proper cone is itself. -/
-theorem dual_of_dual_eq_self {K : proper_cone E} : (K.dual).dual = K := proper_cone.ext' $
+theorem dual_dual (K : proper_cone E) : K.dual.dual = K := proper_cone.ext' $
   (K : convex_cone ℝ E).inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed
 
 end complete_space

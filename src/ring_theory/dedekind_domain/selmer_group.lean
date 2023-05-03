@@ -6,7 +6,6 @@ Authors: David Kurniadi Angdinata
 import algebra.hom.equiv.type_tags
 import data.zmod.quotient
 import ring_theory.dedekind_domain.adic_valuation
-import ring_theory.norm
 
 /-!
 # Selmer groups of fraction fields of Dedekind domains

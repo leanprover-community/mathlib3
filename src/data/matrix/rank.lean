@@ -8,7 +8,6 @@ import linear_algebra.free_module.finite.rank
 import linear_algebra.matrix.to_lin
 import linear_algebra.finite_dimensional
 import linear_algebra.matrix.dot_product
-import data.complex.module
 
 /-!
 # Rank of matrices

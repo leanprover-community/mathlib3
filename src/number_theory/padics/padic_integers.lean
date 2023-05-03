@@ -5,7 +5,6 @@ Authors: Robert Y. Lewis, Mario Carneiro, Johan Commelin
 -/
 import number_theory.padics.padic_numbers
 import ring_theory.discrete_valuation_ring
-import topology.metric_space.cau_seq_filter
 
 /-!
 # p-adic integers

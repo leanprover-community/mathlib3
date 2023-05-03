@@ -7,7 +7,6 @@ import data.nat.totient
 import algebra.ring.add_aut
 import group_theory.divisible
 import group_theory.order_of_element
-import ring_theory.int.basic
 import algebra.order.floor
 import algebra.order.to_interval_mod
 import topology.instances.real

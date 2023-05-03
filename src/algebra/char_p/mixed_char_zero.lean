@@ -3,7 +3,6 @@ Copyright (c) 2022 Jon Eugster. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jon Eugster
 -/
-import algebra.char_p.algebra
 import algebra.char_p.local_ring
 import ring_theory.ideal.quotient
 import tactic.field_simp

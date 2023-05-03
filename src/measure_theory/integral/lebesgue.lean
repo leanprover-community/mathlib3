@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Johannes Hölzl
 -/
 import dynamics.ergodic.measure_preserving
 import measure_theory.function.simple_func
-import measure_theory.measure.mutually_singular
 
 /-!
 # Lower Lebesgue integral for `ℝ≥0∞`-valued functions

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.category.Group.basic
-import category_theory.concrete_category.reflects_isomorphisms
 import category_theory.elementwise
+import category_theory.concrete_category.reflects_isomorphisms
 import algebra.ring.equiv
 
 /-!

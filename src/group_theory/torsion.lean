@@ -6,7 +6,6 @@ Authors: Julian Berman
 
 import group_theory.exponent
 import group_theory.order_of_element
-import group_theory.p_group
 import group_theory.quotient_group
 import group_theory.submonoid.operations
 

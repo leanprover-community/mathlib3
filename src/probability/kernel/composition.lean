@@ -661,7 +661,7 @@ begin
 end
 
 lemma deterministic_comp_eq_map (hf : measurable f) (κ : kernel α β) [is_s_finite_kernel κ] :
-  (deterministic hf ∘ₖ κ) = map κ f hf :=
+  (deterministic f hf ∘ₖ κ) = map κ f hf :=
 begin
   ext a s hs : 2,
   simp_rw [map_apply' _ _ _ hs, comp_apply _ _ _ hs, deterministic_apply' hf _ hs,
@@ -669,7 +669,7 @@ begin
 end
 
 lemma comp_deterministic_eq_comap (κ : kernel α β) [is_s_finite_kernel κ] (hg : measurable g) :
-  (κ ∘ₖ deterministic hg) = comap κ g hg :=
+  (κ ∘ₖ deterministic g hg) = comap κ g hg :=
 begin
   ext a s hs : 2,
   simp_rw [comap_apply' _ _ _ s, comp_apply _ _ _ hs, deterministic_apply hg a,

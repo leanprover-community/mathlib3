@@ -35,8 +35,8 @@ local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
 /-- A type synonym for `G` which acts via `•` as the `b`th slash action. -/
 @[derive group]
-def slash_act {β : Type*} (G : Type*) [group G] (b : β) :=
-mul_opposite G
+def slash_act {β : Type*} (G : Type*) [group G] (b : β) : Type* :=
+Gᵐᵒᵖ
 
 /-- Convert from `G` to `slash_act G b`. -/
 def slash_act.of {β : Type*} {G : Type*} [group G] (b : β) (g : G) : slash_act G b :=

@@ -25,6 +25,11 @@ variables (C : Type*) [category C] [abelian C]
 local attribute [instance]
   has_finite_limits_of_has_equalizers_and_finite_products
   has_finite_colimits_of_has_coequalizers_and_finite_coproducts
+  -- Porting note:
+  -- This should have been a global instance,
+  -- but triggers https://github.com/leanprover/lean4/issues/2055
+  -- when ported to mathlib4.
+  abelian.has_finite_biproducts
 
 instance : abelian Cᵒᵖ :=
 { normal_mono_of_mono := λ X Y f m, by exactI

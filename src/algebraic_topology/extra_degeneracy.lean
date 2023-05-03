@@ -14,6 +14,9 @@ import tactic.fin_cases
 
 # Augmented simplicial objects with an extra degeneracy
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In simplicial homotopy theory, in order to prove that the connected components
 of a simplicial set `X` are contractible, it suffices to construct an extra
 degeneracy as it is defined in *Simplicial Homotopy Theory* by Goerss-Jardine p. 190.

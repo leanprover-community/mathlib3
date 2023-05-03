@@ -669,10 +669,70 @@ end stabilizer
 
 section fintype
 
+noncomputable def setoid.quotient_equiv {α β : Type*} {s : setoid α} (f : α → β)
+  (hf : ∀ x y, s.rel x y ↔ f x = f y) (hf' : f.surjective) : quotient s ≃ β :=
+begin
+  refine equiv.of_bijective (λ q, q.lift_on' f (λ x y h, (hf x y).mp h)) _,
+  split,
+  -- injective
+  intros x y,
+  obtain ⟨a, rfl⟩:= quotient.exists_rep x,
+  obtain ⟨b, rfl⟩:= quotient.exists_rep y,
+  exact λ h, quotient.eq.mpr ((hf a b).mpr h),
+  -- surjective
+  exact (quotient.surjective_lift_on' (λ x y, (hf x y).mp)).mpr hf',
+end
+
 noncomputable def setoid.is_partition_equiv_quotient {α : Type*}
   {c : set (set α)} (hc : setoid.is_partition c) :
   quotient (setoid.mk_classes c hc.2) ≃ c :=
 begin
+  apply setoid.quotient_equiv (λ a, (⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩ : c)),
+  { intros x y,
+    exact ⟨
+      λ h,  subtype.ext ( set.ext ( λ z, ⟨λ h', setoid.trans' _ h' h, λ h', setoid.trans' _ h' (setoid.symm' _ h)⟩ )),
+      λ hz,  (set.ext_iff.mp(subtype.ext_iff.mp hz) x).mp (setoid.refl' _ x), ⟩, },
+  { -- surjective
+    rintro ⟨u, hu⟩,
+    have hu' : u.nonempty,
+    { rw set.nonempty_iff_ne_empty,
+      intro hu', apply hc.1,  rw ← hu', exact hu, },
+    obtain ⟨a, ha⟩ := hu',
+    use a,
+    simp only [subtype.mk_eq_mk],
+    rw setoid.eq_eqv_class_of_mem hc.2 hu ha, }
+end
+
+noncomputable def setoid.is_partition_equiv_quotient' {α : Type*}
+  {c : set (set α)} (hc : setoid.is_partition c) :
+  quotient (setoid.mk_classes c hc.2) ≃ c :=
+begin
+  -- Eric Wieser golfed this !
+  let φ : quotient (setoid.mk_classes c hc.2) → c := λ q,  q.lift_on' (λ a, (⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩ : c))
+    (λ a b hab, subtype.ext $ set.ext $ λ x,
+      ⟨λ h, setoid.trans' _ h hab, λ h, setoid.trans' _ h (setoid.symm' _ hab)⟩),
+  apply equiv.of_bijective φ,
+
+  let f : α → c := λ a, ⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩,
+  have hf : ∀ x y, f x = f y ↔ (setoid.mk_classes c hc.2).rel x y := λ x y, ⟨
+    λ hz,  (set.ext_iff.mp(subtype.ext_iff.mp hz) x).mp (setoid.refl' _ x),
+    λ h,  subtype.ext ( set.ext ( λ z, ⟨λ h', setoid.trans' _ h' h, λ h', setoid.trans' _ h' (setoid.symm' _ h)⟩ ))⟩,
+
+/-
+  have hf : ∀ x y, f x = f y ↔ (setoid.mk_classes c hc.2).rel x y,
+  { intros x y,
+--    simp only [f],
+    simp only [subtype.mk_eq_mk, set.ext_iff, set.mem_set_of],
+    split,
+    intro hz,
+    rw ← hz x, exact setoid.refl' _ _,
+    intros h z,
+    split,
+    intro h', exact setoid.trans' _ h' h,
+    intro h', exact setoid.trans' _ h' (setoid.symm' _ h), },
+-/
+
+/-
   let f : α → c := λ a, ⟨_, @setoid.eqv_class_mem _ c hc.2 a⟩,
   refine equiv.of_bijective (@quotient.lift _ _ (setoid.mk_classes c hc.2) f _) _,
   { -- well defined
@@ -684,13 +744,14 @@ begin
     let hc2 := hc.2,
     simp only [f, subtype.mk_eq_mk],
     rw ← setoid.eq_eqv_class_of_mem hc.2 h ha,
-    rw ← setoid.eq_eqv_class_of_mem hc.2 h hb, },
+    rw ← setoid.eq_eqv_class_of_mem hc.2 h hb, }, -/
+
   split,
   { -- injective
     intros x y,
     obtain ⟨a, rfl⟩ := @quotient.exists_rep α (setoid.mk_classes c hc.2) x,
     obtain ⟨b, rfl⟩ := @quotient.exists_rep α (setoid.mk_classes c hc.2) y,
-    simp only [quotient.lift_mk, f, subtype.mk_eq_mk],
+    simp only [quotient.lift_mk, φ, subtype.mk_eq_mk],
     intro hab,
     apply quotient.sound,
     change (setoid.mk_classes c hc.2).rel a b,
@@ -701,18 +762,20 @@ begin
     apply setoid.eqv_class_mem,
     split,
     rw set.mem_set_of, apply setoid.refl' _ a,
+    simp only [quotient.lift_on'_mk, subtype.mk_eq_mk] at hab,
     rw hab, rw set.mem_set_of, apply setoid.refl' _ b, },
   { -- surjective
+    rw quotient.surjective_lift_on',
     rintro ⟨u, hu⟩,
     have hu' : u.nonempty,
     { rw set.nonempty_iff_ne_empty,
       intro hu', apply hc.1,  rw ← hu', exact hu, },
     obtain ⟨a, ha⟩ := hu',
-    use @quotient.mk _ (setoid.mk_classes c hc.2) a,
-    rw quotient.lift_mk,
-    simp only [f, subtype.mk_eq_mk],
+    use a,
+    simp only [subtype.mk_eq_mk],
     rw setoid.eq_eqv_class_of_mem hc.2 hu ha, }
 end
+
 
 
 /-- The cardinality of the ambient is the product of

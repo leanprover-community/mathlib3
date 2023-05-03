@@ -8,8 +8,6 @@ import number_theory.bernoulli_polynomials
 import measure_theory.integral.interval_integral
 import analysis.fourier.add_circle
 import analysis.p_series
-import tactic.linear_combination
-
 
 /-!
 # Critical values of the Riemann zeta function

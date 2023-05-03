@@ -8,7 +8,6 @@ import algebra.continued_fractions.convergents_equiv
 import algebra.order.archimedean
 import algebra.algebra.basic
 import topology.order.basic
-import tactic.group
 
 /-!
 # Corollaries From Approximation Lemmas (`algebra.continued_fractions.computation.approximations`)

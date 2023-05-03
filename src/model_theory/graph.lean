@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import combinatorics.simple_graph.basic
-import model_theory.bundled
+import model_theory.satisfiability
 
 /-!
 # First-Ordered Structures in Graph Theory

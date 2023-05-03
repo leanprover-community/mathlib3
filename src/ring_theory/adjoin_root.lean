@@ -103,23 +103,22 @@ lemma smul_of [distrib_smul S R] [is_scalar_tower S R R] (a : S) (x : R) :
   a • of f x = of f (a • x) :=
 by rw [of, ring_hom.comp_apply, ring_hom.comp_apply, smul_mk, smul_C]
 
-instance (R₁ R₂ : Type*) {K : Type u}
-  [has_smul R₁ R₂] [field K] [distrib_smul R₁ K] [distrib_smul R₂ K]
-  [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] {f : K[X]} :
+instance (R₁ R₂ : Type*) [has_smul R₁ R₂] [distrib_smul R₁ R] [distrib_smul R₂ R]
+  [is_scalar_tower R₁ R R] [is_scalar_tower R₂ R R] [is_scalar_tower R₁ R₂ R] (f : R[X]) :
   is_scalar_tower R₁ R₂ (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
 
-instance (α : Type*) [comm_semiring α] {K : Type u} [field K]
-  [distrib_mul_action α K] [is_scalar_tower α K K] (f : K[X]) :
-  distrib_mul_action α (adjoin_root f) :=
+instance (R₁ R₂ : Type*) [distrib_smul R₁ R] [distrib_smul R₂ R]
+  [is_scalar_tower R₁ R R] [is_scalar_tower R₂ R R] [smul_comm_class R₁ R₂ R] (f : R[X]) :
+  smul_comm_class R₁ R₂ (adjoin_root f) :=
+submodule.quotient.smul_comm_class _ _
+
+instance [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] (f : R[X]) :
+  distrib_mul_action S (adjoin_root f) :=
 submodule.quotient.distrib_mul_action' _
 
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
-
-instance is_scalar_tower' [comm_semiring S] [comm_semiring K] [has_smul S K]
-  [algebra S R] [algebra K R] [is_scalar_tower S K R] : is_scalar_tower S K (adjoin_root f) :=
-submodule.quotient.is_scalar_tower _ _
 
 -- TODO (lean4): make a smul lemma for `ideal.quotient.mk`.
 instance adjoin_root.is_scalar_tower_right [distrib_smul S R] [is_scalar_tower S R R] :
@@ -131,10 +130,6 @@ instance adjoin_root.is_scalar_tower_right [distrib_smul S R] [is_scalar_tower S
   ...  = x • (ideal.quotient.mk (span {f}) y * ideal.quotient.mk (span {f}) z) :
   by rw [smul_mul_assoc, submodule.quotient.mk_smul, ideal.quotient.mk_eq_mk, _root_.map_mul]
 end⟩
-
-instance [comm_semiring S] [comm_semiring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
-  smul_comm_class S K (adjoin_root f) :=
-submodule.quotient.smul_comm_class _ _
 
 @[simp] lemma algebra_map_eq : algebra_map R (adjoin_root f) = of f := rfl
 

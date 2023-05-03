@@ -419,16 +419,17 @@ noncomputable def equiv_map_of_injective
 
 end non_unital_subring
 
-/-
+namespace non_unital_ring_hom
 
-namespace ring_hom
-
+variables {R : Type u} {S : Type v} {T : Type*}
+variables [non_unital_ring R] [non_unital_ring S] [non_unital_ring T]
 variables (g : S →ₙ+* T) (f : R →ₙ+* S)
 
 /-! ## range -/
 
 /-- The range of a ring homomorphism, as a non_unital_subring of the target. See Note [range copy pattern]. -/
-def range {R : Type u} {S : Type v} [ring R] [ring S] (f : R →ₙ+* S) : non_unital_subring S :=
+def range {R : Type u} {S : Type v} [non_unital_ring R] [non_unital_ring S]
+  (f : R →ₙ+* S) : non_unital_subring S :=
 ((⊤ : non_unital_subring R).map f).copy (set.range f) set.image_univ.symm
 
 @[simp] lemma coe_range : (f.range : set S) = set.range f := rfl
@@ -450,21 +451,26 @@ Note: this instance can form a diamond with `subtype.fintype` in the
 instance fintype_range [fintype R] [decidable_eq S] (f : R →ₙ+* S) : fintype (range f) :=
 set.fintype_range f
 
-end ring_hom
+end non_unital_ring_hom
 
 namespace non_unital_subring
 
+variables {F : Type w} {R : Type u} {S : Type v} {T : Type*}
+variables [non_unital_ring R] [non_unital_ring S] [non_unital_ring T]
+variables [non_unital_ring_hom_class F R S]
+variables (g : S →ₙ+* T) (f : R →ₙ+* S)
+
 /-! ## bot -/
 
-instance : has_bot (non_unital_subring R) := ⟨(int.cast_ring_hom R).range⟩
+instance : has_bot (non_unital_subring R) := ⟨(0 : R →ₙ+* R).range⟩
 
 instance : inhabited (non_unital_subring R) := ⟨⊥⟩
 
-lemma coe_bot : ((⊥ : non_unital_subring R) : set R) = set.range (coe : ℤ → R) :=
-ring_hom.coe_range (int.cast_ring_hom R)
+lemma coe_bot : ((⊥ : non_unital_subring R) : set R) = {0} :=
+(non_unital_ring_hom.coe_range (0 : R →ₙ+* R)).trans (@set.range_const R R _ 0)
 
-lemma mem_bot {x : R} : x ∈ (⊥ : non_unital_subring R) ↔ ∃ (n : ℤ), ↑n = x :=
-ring_hom.mem_range
+lemma mem_bot {x : R} : x ∈ (⊥ : non_unital_subring R) ↔ x = 0 :=
+show x ∈ ((⊥ : non_unital_subring R) : set R) ↔ x = 0, by rw [coe_bot, set.mem_singleton_iff]
 
 /-! ## inf -/
 
@@ -472,21 +478,23 @@ ring_hom.mem_range
 instance : has_inf (non_unital_subring R) :=
 ⟨λ s t,
   { carrier := s ∩ t,
-    .. s.to_submonoid ⊓ t.to_submonoid,
+    .. s.to_subsemigroup ⊓ t.to_subsemigroup,
     .. s.to_add_subgroup ⊓ t.to_add_subgroup }⟩
 
-@[simp] lemma coe_inf (p p' : non_unital_subring R) : ((p ⊓ p' : non_unital_subring R) : set R) = p ∩ p' := rfl
+@[simp] lemma coe_inf (p p' : non_unital_subring R) :
+  ((p ⊓ p' : non_unital_subring R) : set R) = p ∩ p' := rfl
 
 @[simp] lemma mem_inf {p p' : non_unital_subring R} {x : R} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
 
 instance : has_Inf (non_unital_subring R) :=
-⟨λ s, non_unital_subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, non_unital_subring.to_submonoid t )
+⟨λ s, non_unital_subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, non_unital_subring.to_subsemigroup t )
   (⨅ t ∈ s, non_unital_subring.to_add_subgroup t) (by simp) (by simp)⟩
 
 @[simp, norm_cast] lemma coe_Inf (S : set (non_unital_subring R)) :
   ((Inf S : non_unital_subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (non_unital_subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
+lemma mem_Inf {S : set (non_unital_subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
+set.mem_Inter₂
 
 @[simp, norm_cast] lemma coe_infi {ι : Sort*} {S : ι → non_unital_subring R} :
   (↑(⨅ i, S i) : set R) = ⋂ i, S i :=
@@ -495,8 +503,8 @@ by simp only [infi, coe_Inf, set.bInter_range]
 lemma mem_infi {ι : Sort*} {S : ι → non_unital_subring R} {x : R} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]
 
-@[simp] lemma Inf_to_submonoid (s : set (non_unital_subring R)) :
-  (Inf s).to_submonoid = ⨅ t ∈ s, non_unital_subring.to_submonoid t := mk'_to_submonoid _ _
+@[simp] lemma Inf_to_subsemigroup (s : set (non_unital_subring R)) :
+  (Inf s).to_subsemigroup = ⨅ t ∈ s, non_unital_subring.to_subsemigroup t := mk'_to_subsemigroup _ _
 
 @[simp] lemma Inf_to_add_subgroup (s : set (non_unital_subring R)) :
   (Inf s).to_add_subgroup = ⨅ t ∈ s, non_unital_subring.to_add_subgroup t := mk'_to_add_subgroup _ _
@@ -504,7 +512,7 @@ by simp only [infi, mem_Inf, set.forall_range_iff]
 /-- non_unital_subrings of a ring form a complete lattice. -/
 instance : complete_lattice (non_unital_subring R) :=
 { bot := (⊥),
-  bot_le := λ s x hx, let ⟨n, hn⟩ := mem_bot.1 hx in hn ▸ coe_int_mem s n,
+  bot_le := λ s x hx, (mem_bot.mp hx).symm ▸ zero_mem s,
   top := (⊤),
   le_top := λ s x hx, trivial,
   inf := (⊓),
@@ -524,15 +532,23 @@ section
 
 variables (R)
 
+-- this needs to go elsewhere, or rather just generalize `set.neg_mem_center`
+@[simp]
+lemma _root_.set.neg_mem_center' {R : Type*} [non_unital_non_assoc_ring R] {a : R}
+  (ha : a ∈ set.center R) : -a ∈ set.center R :=
+λ c, by rw [←neg_mul_comm, ha (-c), neg_mul_comm]
+
+
 /-- The center of a ring `R` is the set of elements that commute with everything in `R` -/
 def center : non_unital_subring R :=
 { carrier := set.center R,
-  neg_mem' := λ a, set.neg_mem_center,
+  neg_mem' := λ a, set.neg_mem_center',
   .. non_unital_subsemiring.center R }
 
 lemma coe_center : ↑(center R) = set.center R := rfl
 
-@[simp] lemma center_to_non_unital_subsemiring : (center R).to_non_unital_subsemiring = non_unital_subsemiring.center R := rfl
+@[simp] lemma center_to_non_unital_subsemiring :
+  (center R).to_non_unital_subsemiring = non_unital_subsemiring.center R := rfl
 
 variables {R}
 
@@ -542,36 +558,15 @@ iff.rfl
 instance decidable_mem_center [decidable_eq R] [fintype R] : decidable_pred (∈ center R) :=
 λ _, decidable_of_iff' _ mem_center_iff
 
-@[simp] lemma center_eq_top (R) [comm_ring R] : center R = ⊤ :=
+@[simp] lemma center_eq_top (R) [non_unital_comm_ring R] : center R = ⊤ :=
 set_like.coe_injective (set.center_eq_univ R)
 
 /-- The center is commutative. -/
-instance : comm_ring (center R) :=
-{ ..non_unital_subsemiring.center.comm_semiring,
-  ..(center R).to_ring}
+instance : non_unital_comm_ring (center R) :=
+{ ..non_unital_subsemiring.center.non_unital_comm_semiring,
+  ..(center R).to_non_unital_ring}
 
 end
-
-section division_ring
-
-variables {K : Type u} [division_ring K]
-
-instance : field (center K) :=
-{ inv := λ a, ⟨a⁻¹, set.inv_mem_center₀ a.prop⟩,
-  mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ mul_inv_cancel $ subtype.coe_injective.ne h,
-  div := λ a b, ⟨a / b, set.div_mem_center₀ a.prop b.prop⟩,
-  div_eq_mul_inv := λ a b, subtype.ext $ div_eq_mul_inv _ _,
-  inv_zero := subtype.ext inv_zero,
-  ..(center K).nontrivial,
-  ..center.comm_ring }
-
-@[simp]
-lemma center.coe_inv (a : center K) : ((a⁻¹ : center K) : K) = (a : K)⁻¹ := rfl
-
-@[simp]
-lemma center.coe_div (a b : center K) : ((a / b : center K) : K) = (a : K) / (b : K) := rfl
-
-end division_ring
 
 /-! ## non_unital_subring closure of a subset -/
 
@@ -606,11 +601,11 @@ of `s`, and is preserved under addition, negation, and multiplication, then `p` 
 elements of the closure of `s`. -/
 @[elab_as_eliminator]
 lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
-  (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
+  (Hs : ∀ x ∈ s, p x) (H0 : p 0)
   (Hadd : ∀ x y, p x → p y → p (x + y))
   (Hneg : ∀ (x : R), p x → p (-x))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, Hmul, H1, Hadd, H0, Hneg⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hadd, H0, Hmul, Hneg⟩).2 Hs h
 
 /-- An induction principle for closure membership, for predicates with two arguments. -/
 @[elab_as_eliminator]
@@ -619,8 +614,6 @@ lemma closure_induction₂ {s : set R} {p : R → R → Prop} {a b : R}
   (Hs : ∀ (x ∈ s) (y ∈ s), p x y)
   (H0_left : ∀ x, p 0 x)
   (H0_right : ∀ x, p x 0)
-  (H1_left : ∀ x, p 1 x)
-  (H1_right : ∀ x, p x 1)
   (Hneg_left : ∀ x y, p x y → p (-x) y)
   (Hneg_right : ∀ x y, p x y → p x (-y))
   (Hadd_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ + x₂) y)
@@ -628,24 +621,23 @@ lemma closure_induction₂ {s : set R} {p : R → R → Prop} {a b : R}
   (Hmul_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ * x₂) y)
   (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂)) : p a b :=
 begin
-  refine closure_induction hb _ (H0_right _) (H1_right _)
+  refine closure_induction hb _ (H0_right _)
     (Hadd_right a) (Hneg_right a) (Hmul_right a),
-  refine closure_induction ha Hs (λ x _, H0_left x) (λ x _, H1_left x) _ _ _,
+  refine closure_induction ha Hs (λ x _, H0_left x) _ _ _,
   { exact (λ x y H₁ H₂ z zs, Hadd_left x y z (H₁ z zs) (H₂ z zs)) },
   { exact (λ x hx z zs, Hneg_left x z (hx z zs)) },
   { exact (λ x y H₁ H₂ z zs, Hmul_left x y z (H₁ z zs) (H₂ z zs)) }
 end
 
 lemma mem_closure_iff {s : set R} {x} :
-  x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=
-⟨λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ submonoid.subset_closure hx)
+  x ∈ closure s ↔ x ∈ add_subgroup.closure (subsemigroup.closure s : set R) :=
+⟨λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ subsemigroup.subset_closure hx)
  (add_subgroup.zero_mem _)
- (add_subgroup.subset_closure ( submonoid.one_mem (submonoid.closure s)) )
  (λ x y hx hy, add_subgroup.add_mem _ hx hy )
  (λ x hx, add_subgroup.neg_mem _ hx )
    (λ x y hx hy, add_subgroup.closure_induction hy
      (λ q hq, add_subgroup.closure_induction hx
-       (λ p hp, add_subgroup.subset_closure ((submonoid.closure s).mul_mem hp hq))
+       (λ p hp, add_subgroup.subset_closure ((subsemigroup.closure s).mul_mem hp hq))
        (begin rw zero_mul q, apply add_subgroup.zero_mem _, end)
        (λ p₁ p₂ ihp₁ ihp₂, begin rw add_mul p₁ p₂ q, apply add_subgroup.add_mem _ ihp₁ ihp₂, end)
        (λ x hx, begin have f : -x * q = -(x*q) :=
@@ -655,17 +647,16 @@ lemma mem_closure_iff {s : set R} {x} :
      (λ z hz, begin have f : x * -z = -(x*z) := by simp,
        rw f, apply add_subgroup.neg_mem _ hz, end)),
  λ h, add_subgroup.closure_induction h
-   (λ x hx, submonoid.closure_induction hx
+   (λ x hx, subsemigroup.closure_induction hx
      (λ x hx, subset_closure hx)
-     (one_mem _)
      (λ x y hx hy, mul_mem hx hy))
  (zero_mem _)
  (λ x y hx hy, add_mem hx hy)
  (λ x hx, neg_mem hx)⟩
 
 /-- If all elements of `s : set A` commute pairwise, then `closure s` is a commutative ring.  -/
-def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
-  comm_ring (closure s) :=
+def closure_non_unital_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+  non_unital_comm_ring (closure s) :=
 { mul_comm := λ x y,
   begin
     ext,
@@ -674,8 +665,6 @@ def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * 
     hcomm
     (λ x, by simp only [mul_zero, zero_mul])
     (λ x, by simp only [mul_zero, zero_mul])
-    (λ x, by simp only [mul_one, one_mul])
-    (λ x, by simp only [mul_one, one_mul])
     (λ x y hxy, by simp only [mul_neg, neg_mul, hxy])
     (λ x y hxy, by simp only [mul_neg, neg_mul, hxy])
     (λ x₁ x₂ y h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
@@ -683,9 +672,10 @@ def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * 
     (λ x₁ x₂ y h₁ h₂, by rw [←mul_assoc, ←h₁, mul_assoc x₁ y x₂, ←h₂, mul_assoc])
     (λ x₁ x₂ y h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
   end,
-  ..(closure s).to_ring }
+  ..(closure s).to_non_unital_ring }
 
 
+/- probably there is a version if `x ≠ 0`, but we don't have `list.prod`
 theorem exists_list_of_mem_closure {s : set R} {x : R} (h : x ∈ closure s) :
   (∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ (L.map list.prod).sum = x) :=
 add_subgroup.closure_induction (mem_closure_iff.1 h)
@@ -697,6 +687,7 @@ add_subgroup.closure_induction (mem_closure_iff.1 h)
   (λ x ⟨L, hL⟩, ⟨L.map (list.cons (-1)), list.forall_mem_map_iff.2 $ λ j hj, list.forall_mem_cons.2
     ⟨or.inr rfl, hL.1 j hj⟩, hL.2 ▸ list.rec_on L (by simp)
       (by simp [list.map_cons, add_comm] {contextual := tt})⟩)
+-/
 
 variable (R)
 /-- `closure` forms a Galois insertion with the coercion to set. -/
@@ -709,7 +700,8 @@ protected def gi : galois_insertion (@closure R _) coe :=
 variable {R}
 
 /-- Closure of a non_unital_subring `S` equals `S`. -/
-lemma closure_eq (s : non_unital_subring R) : closure (s : set R) = s := (non_unital_subring.gi R).l_u_eq s
+lemma closure_eq (s : non_unital_subring R) : closure (s : set R) = s :=
+(non_unital_subring.gi R).l_u_eq s
 
 @[simp] lemma closure_empty : closure (∅ : set R) = ⊥ := (non_unital_subring.gi R).gc.l_bot
 
@@ -724,19 +716,19 @@ lemma closure_Union {ι} (s : ι → set R) : closure (⋃ i, s i) = ⨆ i, clos
 lemma closure_sUnion (s : set (set R)) : closure (⋃₀ s) = ⨆ t ∈ s, closure t :=
 (non_unital_subring.gi R).gc.l_Sup
 
-lemma map_sup (s t : non_unital_subring R) (f : R →ₙ+* S) : (s ⊔ t).map f = s.map f ⊔ t.map f :=
-(gc_map_comap f).l_sup
+lemma map_sup (s t : non_unital_subring R) (f : F) : (s ⊔ t).map f = s.map f ⊔ t.map f :=
+(@gc_map_comap F R S _ _ _ f).l_sup
 
-lemma map_supr {ι : Sort*} (f : R →ₙ+* S) (s : ι → non_unital_subring R) :
+lemma map_supr {ι : Sort*} (f : F) (s : ι → non_unital_subring R) :
   (supr s).map f = ⨆ i, (s i).map f :=
-(gc_map_comap f).l_supr
+(@gc_map_comap F R S _ _ _ f).l_supr
 
-lemma comap_inf (s t : non_unital_subring S) (f : R →ₙ+* S) : (s ⊓ t).comap f = s.comap f ⊓ t.comap f :=
-(gc_map_comap f).u_inf
+lemma comap_inf (s t : non_unital_subring S) (f : F) : (s ⊓ t).comap f = s.comap f ⊓ t.comap f :=
+(@gc_map_comap F R S _ _ _ f).u_inf
 
-lemma comap_infi {ι : Sort*} (f : R →ₙ+* S) (s : ι → non_unital_subring S) :
+lemma comap_infi {ι : Sort*} (f : F) (s : ι → non_unital_subring S) :
   (infi s).comap f = ⨅ i, (s i).comap f :=
-(gc_map_comap f).u_infi
+(@gc_map_comap F R S _ _ _ f).u_infi
 
 @[simp] lemma map_bot (f : R →ₙ+* S) : (⊥ : non_unital_subring R).map f = ⊥ :=
 (gc_map_comap f).l_bot
@@ -748,30 +740,33 @@ lemma comap_infi {ι : Sort*} (f : R →ₙ+* S) (s : ι → non_unital_subring 
 as a non_unital_subring of `R × S`. -/
 def prod (s : non_unital_subring R) (t : non_unital_subring S) : non_unital_subring (R × S) :=
 { carrier := s ×ˢ t,
-  .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
+  .. s.to_subsemigroup.prod t.to_subsemigroup, .. s.to_add_subgroup.prod t.to_add_subgroup}
 
 @[norm_cast]
-lemma coe_prod (s : non_unital_subring R) (t : non_unital_subring S) : (s.prod t : set (R × S)) = s ×ˢ t := rfl
+lemma coe_prod (s : non_unital_subring R) (t : non_unital_subring S) :
+  (s.prod t : set (R × S)) = s ×ˢ t := rfl
 
 lemma mem_prod {s : non_unital_subring R} {t : non_unital_subring S} {p : R × S} :
   p ∈ s.prod t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
-@[mono] lemma prod_mono ⦃s₁ s₂ : non_unital_subring R⦄ (hs : s₁ ≤ s₂) ⦃t₁ t₂ : non_unital_subring S⦄
-  (ht : t₁ ≤ t₂) : s₁.prod t₁ ≤ s₂.prod t₂ :=
+@[mono] lemma prod_mono ⦃s₁ s₂ : non_unital_subring R⦄ (hs : s₁ ≤ s₂)
+  ⦃t₁ t₂ : non_unital_subring S⦄ (ht : t₁ ≤ t₂) : s₁.prod t₁ ≤ s₂.prod t₂ :=
 set.prod_mono hs ht
 
-lemma prod_mono_right (s : non_unital_subring R) : monotone (λ t : non_unital_subring S, s.prod t) :=
+lemma prod_mono_right (s : non_unital_subring R) :
+  monotone (λ t : non_unital_subring S, s.prod t) :=
 prod_mono (le_refl s)
 
-lemma prod_mono_left (t : non_unital_subring S) : monotone (λ s : non_unital_subring R, s.prod t) :=
+lemma prod_mono_left (t : non_unital_subring S) :
+  monotone (λ s : non_unital_subring R, s.prod t) :=
 λ s₁ s₂ hs, prod_mono hs (le_refl t)
 
 lemma prod_top (s : non_unital_subring R) :
-  s.prod (⊤ : non_unital_subring S) = s.comap (ring_hom.fst R S) :=
+  s.prod (⊤ : non_unital_subring S) = s.comap (non_unital_ring_hom.fst R S) :=
 ext $ λ x, by simp [mem_prod, monoid_hom.coe_fst]
 
 lemma top_prod (s : non_unital_subring S) :
-  (⊤ : non_unital_subring R).prod s = s.comap (ring_hom.snd R S) :=
+  (⊤ : non_unital_subring R).prod s = s.comap (non_unital_ring_hom.snd R S) :=
 ext $ λ x, by simp [mem_prod, monoid_hom.coe_snd]
 
 @[simp]
@@ -782,24 +777,23 @@ lemma top_prod_top : (⊤ : non_unital_subring R).prod (⊤ : non_unital_subring
 def prod_equiv (s : non_unital_subring R) (t : non_unital_subring S) : s.prod t ≃+* s × t :=
 { map_mul' := λ x y, rfl, map_add' := λ x y, rfl, .. equiv.set.prod ↑s ↑t }
 
-/-- The underlying set of a non-empty directed Sup of non_unital_subrings is just a union of the non_unital_subrings.
-  Note that this fails without the directedness assumption (the union of two non_unital_subrings is
-  typically not a non_unital_subring) -/
-lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → non_unital_subring R} (hS : directed (≤) S)
-  {x : R} :
-  x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
+/-- The underlying set of a non-empty directed Sup of non_unital_subrings is just a union of the
+non_unital_subrings. Note that this fails without the directedness assumption (the union of two
+non_unital_subrings is typically not a non_unital_subring) -/
+lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → non_unital_subring R}
+  (hS : directed (≤) S) {x : R} : x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
 begin
   refine ⟨_, λ ⟨i, hi⟩, (set_like.le_def.1 $ le_supr S i) hi⟩,
   let U : non_unital_subring R := non_unital_subring.mk' (⋃ i, (S i : set R))
-    (⨆ i, (S i).to_submonoid) (⨆ i, (S i).to_add_subgroup)
-    (submonoid.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id))
+    (⨆ i, (S i).to_subsemigroup) (⨆ i, (S i).to_add_subgroup)
+    (subsemigroup.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id))
     (add_subgroup.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id)),
   suffices : (⨆ i, S i) ≤ U, by simpa using @this x,
   exact supr_le (λ i x hx, set.mem_Union.2 ⟨i, hx⟩),
 end
 
-lemma coe_supr_of_directed {ι} [hι : nonempty ι] {S : ι → non_unital_subring R} (hS : directed (≤) S) :
-  ((⨆ i, S i : non_unital_subring R) : set R) = ⋃ i, ↑(S i) :=
+lemma coe_supr_of_directed {ι} [hι : nonempty ι] {S : ι → non_unital_subring R}
+  (hS : directed (≤) S) : ((⨆ i, S i : non_unital_subring R) : set R) = ⋃ i, ↑(S i) :=
 set.ext $ λ x, by simp [mem_supr_of_directed hS]
 
 lemma mem_Sup_of_directed_on {S : set (non_unital_subring R)} (Sne : S.nonempty)
@@ -810,8 +804,8 @@ begin
   simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
-lemma coe_Sup_of_directed_on {S : set (non_unital_subring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
-  (↑(Sup S) : set R) = ⋃ s ∈ S, ↑s :=
+lemma coe_Sup_of_directed_on {S : set (non_unital_subring R)} (Sne : S.nonempty)
+  (hS : directed_on (≤) S) : (↑(Sup S) : set R) = ⋃ s ∈ S, ↑s :=
 set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
 
 lemma mem_map_equiv {f : R ≃+* S} {K : non_unital_subring R} {x : S} :
@@ -828,8 +822,12 @@ lemma comap_equiv_eq_map_symm (f : R ≃+* S) (K : non_unital_subring S) :
 
 end non_unital_subring
 
-namespace ring_hom
+namespace non_unital_ring_hom
 
+variables {F : Type w} {R : Type u} {S : Type v} {T : Type*}
+variables [non_unital_ring R] [non_unital_ring S] [non_unital_ring T]
+variables [non_unital_ring_hom_class F R S]
+variables (g : S →ₙ+* T) (f : R →ₙ+* S)
 variables {s : non_unital_subring R}
 
 open non_unital_subring
@@ -888,17 +886,24 @@ le_antisymm
     (closure_preimage_le _ _))
   (closure_le.2 $ set.image_subset _ subset_closure)
 
-end ring_hom
+end non_unital_ring_hom
 
 namespace non_unital_subring
 
-open ring_hom
+variables {F : Type w} {R : Type u} {S : Type v} {T : Type*}
+variables [non_unital_ring R] [non_unital_ring S] [non_unital_ring T]
+variables [non_unital_ring_hom_class F R S]
+variables (g : S →ₙ+* T) (f : R →ₙ+* S)
+variables {s : non_unital_subring R}
+
+open non_unital_ring_hom
 
 /-- The ring homomorphism associated to an inclusion of non_unital_subrings. -/
 def inclusion {S T : non_unital_subring R} (h : S ≤ T) : S →ₙ+* T :=
-S.subtype.cod_restrict _ (λ x, h x.2)
+(non_unital_subring_class.subtype S).cod_restrict _ (λ x, h x.2)
 
-@[simp] lemma range_subtype (s : non_unital_subring R) : s.subtype.range = s :=
+@[simp] lemma range_subtype (s : non_unital_subring R) :
+  (non_unital_subring_class.subtype s).range = s :=
 set_like.coe_injective $ (coe_srange _).trans subtype.range_coe
 
 @[simp]
@@ -909,18 +914,14 @@ lemma range_fst : (fst R S).srange = ⊤ :=
 lemma range_snd : (snd R S).srange = ⊤ :=
 (snd R S).srange_top_of_surjective $ prod.snd_surjective
 
-@[simp]
-lemma prod_bot_sup_bot_prod (s : non_unital_subring R) (t : non_unital_subring S) :
-  (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
-le_antisymm (sup_le (prod_mono_right s bot_le) (prod_mono_left t bot_le)) $
-assume p hp, prod.fst_mul_snd p ▸ mul_mem
-  ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set_like.mem_coe.2 $ one_mem ⊥⟩)
-  ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set_like.mem_coe.2 $ one_mem ⊥, hp.2⟩)
-
 end non_unital_subring
 
 namespace ring_equiv
 
+variables {F : Type w} {R : Type u} {S : Type v} {T : Type*}
+variables [non_unital_ring R] [non_unital_ring S] [non_unital_ring T]
+variables [non_unital_ring_hom_class F R S]
+variables (g : S →ₙ+* T) (f : R →ₙ+* S)
 variables {s t : non_unital_subring R}
 
 /-- Makes the identity isomorphism from a proof two non_unital_subrings of a multiplicative
@@ -933,10 +934,10 @@ def non_unital_subring_congr (h : s = t) : s ≃+* t :=
 def of_left_inverse {g : S → R} {f : R →ₙ+* S} (h : function.left_inverse g f) :
   R ≃+* f.range :=
 { to_fun := λ x, f.range_restrict x,
-  inv_fun := λ x, (g ∘ f.range.subtype) x,
+  inv_fun := λ x, (g ∘ (non_unital_subring_class.subtype f.range)) x,
   left_inv := h,
   right_inv := λ x, subtype.ext $
-    let ⟨x', hx'⟩ := ring_hom.mem_range.mp x.prop in
+    let ⟨x', hx'⟩ := non_unital_ring_hom.mem_range.mp x.prop in
     show f (g x) = x, by rw [←hx', h x'],
   ..f.range_restrict }
 
@@ -948,16 +949,23 @@ def of_left_inverse {g : S → R} {f : R →ₙ+* S} (h : function.left_inverse 
   {g : S → R} {f : R →ₙ+* S} (h : function.left_inverse g f) (x : f.range) :
   (of_left_inverse h).symm x = g x := rfl
 
+/-
 /-- Given an equivalence `e : R ≃+* S` of rings and a non_unital_subring `s` of `R`,
 `non_unital_subring_equiv_map e s` is the induced equivalence between `s` and `s.map e` -/
 @[simps] def non_unital_subring_map (e : R ≃+* S) :
   s ≃+* s.map e.to_ring_hom :=
 e.non_unital_subsemiring_map s.to_non_unital_subsemiring
+-/
 
 end ring_equiv
 
+/-
 namespace non_unital_subring
 
+variables {F : Type w} {R : Type u} {S : Type v} {T : Type*}
+variables [non_unital_ring R] [non_unital_ring S] [non_unital_ring T]
+variables [non_unital_ring_hom_class F R S]
+variables (g : S →ₙ+* T) (f : R →ₙ+* S)
 variables {s : set R}
 local attribute [reducible] closure
 

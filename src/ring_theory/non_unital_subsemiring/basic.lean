@@ -682,14 +682,16 @@ namespace non_unital_ring_hom
 
 variables {F : Type*} [non_unital_non_assoc_semiring T] [non_unital_ring_hom_class F R S]
   {s : non_unital_subsemiring R}
+variables {SS : Type*} [set_like SS S] [non_unital_subsemiring_class SS S]
 
 open non_unital_subsemiring_class non_unital_subsemiring
 
 /-- Restriction of a non-unital ring homomorphism to a non-unital subsemiring of the codomain. -/
-def cod_restrict (f : F) (s : non_unital_subsemiring S) (h : ∀ x, f x ∈ s) : R →ₙ+* s :=
+def cod_restrict (f : F) (s : SS) (h : ∀ x, (f : R → S) x ∈ s) : R →ₙ+* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
-  .. (f : R →ₙ* S).cod_restrict s.to_subsemigroup h,
-  .. (f : R →+ S).cod_restrict s.to_add_submonoid h }
+  map_mul' := λ x y, subtype.eq (map_mul f x y),
+  map_add' := λ x y, subtype.eq (map_add f x y),
+  map_zero' := subtype.eq (map_zero f) }
 
 /-- Restriction of a non-unital ring homomorphism to its range interpreted as a
 non-unital subsemiring.

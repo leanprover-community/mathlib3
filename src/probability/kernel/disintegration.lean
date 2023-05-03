@@ -7,6 +7,8 @@ import probability.kernel.cond_cdf
 import measure_theory.constructions.polish
 
 /-!
+TODO rewrite this file docstring
+
 # Disintegration of product measures
 
 Let `ρ` be a finite measure on `α × ℝ`. For any measurable space `γ`, there exists a kernel
@@ -42,6 +44,40 @@ where `ρ.fst` is the marginal measure of `ρ` on `α`. In particular,
 
 -/
 
+section todo_move
+namespace measure_theory
+
+lemma measurable_embedding.prod_mk {α β γ δ : Type*} {mα : measurable_space α}
+  {mβ : measurable_space β} {mγ : measurable_space γ} {mδ : measurable_space δ}
+  {f : α → β} {g : γ → δ} (hg : measurable_embedding g) (hf : measurable_embedding f) :
+  measurable_embedding (λ x : γ × α, (g x.1, f x.2)) :=
+begin
+  have h_inj : function.injective (λ x : γ × α, (g x.fst, f x.snd)),
+  { intros x y hxy,
+    rw [← @prod.mk.eta _ _ x, ← @prod.mk.eta _ _ y],
+    simp only [prod.mk.inj_iff] at hxy ⊢,
+    exact ⟨hg.injective hxy.1, hf.injective hxy.2⟩, },
+  refine ⟨h_inj, _, _⟩,
+  { exact (hg.measurable.comp measurable_fst).prod_mk (hf.measurable.comp measurable_snd), },
+  { refine λ s hs, @measurable_space.induction_on_inter _
+      (λ s, measurable_set ((λ (x : γ × α), (g x.fst, f x.snd)) '' s)) _ _ generate_from_prod.symm
+      is_pi_system_prod _ _ _ _ _ hs,
+    { simp only [set.image_empty, measurable_set.empty], },
+    { rintros t ⟨t₁, t₂, ht₁, ht₂, rfl⟩,
+      rw ← set.prod_image_image_eq,
+      exact (hg.measurable_set_image.mpr ht₁).prod (hf.measurable_set_image.mpr ht₂), },
+    { intros t ht ht_m,
+      rw [← set.range_diff_image h_inj, ← set.prod_range_range_eq],
+      exact measurable_set.diff
+        (measurable_set.prod hg.measurable_set_range hf.measurable_set_range) ht_m, },
+    { intros g hg_disj hg_meas hg,
+      simp_rw set.image_Union,
+      exact measurable_set.Union hg, }, },
+end
+
+end measure_theory
+end todo_move
+
 open measure_theory set filter
 
 open_locale ennreal measure_theory topology probability_theory
@@ -52,45 +88,42 @@ variables {α : Type*} {mα : measurable_space α}
 
 include mα
 
-/-- Conditional measure on the second space of the product given the value on the first. This is an
-auxiliary definition used to build `cond_kernel_real`. -/
-noncomputable def cond_measure (ρ : measure (α × ℝ)) (a : α) : measure ℝ := (cond_cdf ρ a).measure
-
-lemma cond_measure_Iic (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
-  cond_measure ρ a (Iic x) = ennreal.of_real (cond_cdf ρ a x) :=
+lemma measure_cond_cdf_Iic (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
+  (cond_cdf ρ a).measure (Iic x) = ennreal.of_real (cond_cdf ρ a x) :=
 begin
-  rw [cond_measure, ← sub_zero (cond_cdf ρ a x)],
+  rw [← sub_zero (cond_cdf ρ a x)],
   exact stieltjes_function.measure_Iic _ (tendsto_cond_cdf_at_bot ρ a) _,
 end
 
-lemma cond_measure_univ (ρ : measure (α × ℝ)) (a : α) :
-  cond_measure ρ a univ = 1 :=
+lemma measure_cond_cdf_univ (ρ : measure (α × ℝ)) (a : α) :
+  (cond_cdf ρ a).measure univ = 1 :=
 begin
   rw [← ennreal.of_real_one, ← sub_zero (1 : ℝ)],
   exact stieltjes_function.measure_univ _ (tendsto_cond_cdf_at_bot ρ a)
     (tendsto_cond_cdf_at_top ρ a),
 end
 
-instance (ρ : measure (α × ℝ)) (a : α) : is_probability_measure (cond_measure ρ a) :=
-⟨cond_measure_univ ρ a⟩
+instance (ρ : measure (α × ℝ)) (a : α) : is_probability_measure ((cond_cdf ρ a).measure) :=
+⟨measure_cond_cdf_univ ρ a⟩
 
-/-- The function `a ↦ cond_measure ρ a` is measurable. This allows us to build a kernel from these
-measures. -/
-lemma measurable_cond_measure (ρ : measure (α × ℝ)) :
-  measurable (cond_measure ρ) :=
+/-- The function `a ↦ (cond_cdf ρ a).measure` is measurable. This allows us to build a kernel from
+these measures. -/
+lemma measurable_measure_cond_cdf (ρ : measure (α × ℝ)) :
+  measurable (λ a, (cond_cdf ρ a).measure) :=
 begin
   rw measure.measurable_measure,
   refine λ s hs, measurable_space.induction_on_inter
     real.borel_eq_generate_from_Iic real.is_pi_system_Iic _ _ _ _ hs,
   { simp only [measure_empty, measurable_const], },
   { rintros S ⟨u, rfl⟩,
-    simp_rw cond_measure_Iic ρ _ u,
+    simp_rw measure_cond_cdf_Iic ρ _ u,
     exact (measurable_cond_cdf ρ u).ennreal_of_real, },
   { intros t ht ht_cd_meas,
-    have : (λ a, cond_measure ρ a tᶜ) = (λ a, cond_measure ρ a univ) - (λ a, cond_measure ρ a t),
+    have : (λ a, (cond_cdf ρ a).measure tᶜ)
+      = (λ a, (cond_cdf ρ a).measure univ) - (λ a, (cond_cdf ρ a).measure t),
     { ext1 a,
-      rw [measure_compl ht (measure_ne_top (cond_measure ρ a) _), pi.sub_apply], },
-    simp_rw [this, cond_measure_univ ρ],
+      rw [measure_compl ht (measure_ne_top (cond_cdf ρ a).measure _), pi.sub_apply], },
+    simp_rw [this, measure_cond_cdf_univ ρ],
     exact measurable.sub measurable_const ht_cd_meas, },
   { intros f hf_disj hf_meas hf_cd_meas,
     simp_rw measure_Union hf_disj hf_meas,
@@ -101,15 +134,15 @@ end
 kernel. -/
 noncomputable
 def cond_kernel_real (ρ : measure (α × ℝ)) : kernel α ℝ :=
-{ val := λ a, cond_measure ρ a,
-  property := measurable_cond_measure ρ }
+{ val := λ a, (cond_cdf ρ a).measure,
+  property := measurable_measure_cond_cdf ρ }
 
 instance (ρ : measure (α × ℝ)) : is_markov_kernel (cond_kernel_real ρ) :=
 ⟨λ a, by { rw cond_kernel_real, apply_instance, } ⟩
 
 lemma cond_kernel_real_Iic (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
   cond_kernel_real ρ a (Iic x) = ennreal.of_real (cond_cdf ρ a x) :=
-cond_measure_Iic ρ a x
+measure_cond_cdf_Iic ρ a x
 
 lemma set_lintegral_cond_kernel_real_Iic (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ)
   {s : set α} (hs : measurable_set s) :
@@ -126,7 +159,7 @@ begin
   { refine tendsto_lintegral_filter_of_dominated_convergence (λ _, 1) _ _ _ _,
     { exact eventually_of_forall (λ n, kernel.measurable_coe _ measurable_set_Iic), },
     { refine eventually_of_forall (λ n, eventually_of_forall (λ a, _)),
-      refine (measure_mono (subset_univ _)).trans_eq measure_univ, },
+      exact (measure_mono (subset_univ _)).trans_eq measure_univ, },
     { simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter, ne.def],
       exact measure_ne_top _ _, },
     { refine eventually_of_forall (λ a, tendsto_measure_Union (λ n m hnm x, _)),
@@ -282,11 +315,7 @@ begin
     ... = ρ (Union f) : (measure_Union hf_disj hf_meas).symm, },
 end
 
-/-- **Disintegration** of constant kernels. A constant kernel on a product space `α × ℝ` can be
-written as the composition-product of the constant kernel with value `ρ.fst` (marginal measure over
-`α`) and a Markov kernel from `α` to `ℝ`. We call that Markov kernel `cond_kernel_real ρ`.
--/
-theorem kernel.const_eq_comp_prod (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+theorem kernel.const_eq_comp_prod_real (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   (γ : Type*) [measurable_space γ] :
   kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel_real ρ) γ) :=
 begin
@@ -296,71 +325,36 @@ begin
   rw lintegral_cond_kernel_real_mem ρ hs,
 end
 
-/-- **Disintegration** of finite product measures on `α × ℝ`. Such a measure can be written as the
-composition-product of the constant kernel with value `ρ.fst` (marginal measure over `α`) and a
-Markov kernel from `α` to `ℝ`. We call that Markov kernel `cond_kernel_real ρ`. -/
-theorem measure_eq_comp_prod (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+theorem measure_eq_comp_prod_real (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel_real ρ) unit)) (unit.star) :=
-by rw [← kernel.const_eq_comp_prod ρ unit, kernel.const_apply]
+by rw [← kernel.const_eq_comp_prod_real ρ unit, kernel.const_apply]
 
 lemma lintegral_cond_kernel_real (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   {f : α × ℝ → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, ∫⁻ y, f (a, y) ∂(cond_kernel_real ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ :=
 begin
-  nth_rewrite 1 measure_eq_comp_prod ρ,
+  nth_rewrite 1 measure_eq_comp_prod_real ρ,
   rw [kernel.lintegral_comp_prod _ _ _ hf, kernel.const_apply],
   simp_rw kernel.prod_mk_left_apply,
 end
 
-section subset
-
-/-! ### Disintegration of measures on subsets of the reals
-
-Since every standard Borel space is measurably equivalent to a subset of `ℝ`, we can generalize a
-disintegration result on those subsets to all these spaces. -/
-
-lemma measurable_embedding.prod_mk {β γ δ : Type*} {mβ : measurable_space β}
-  {mγ : measurable_space γ} {mδ : measurable_space δ}
-  {f : α → β} {g : γ → δ} (hg : measurable_embedding g) (hf : measurable_embedding f) :
-  measurable_embedding (λ x : γ × α, (g x.1, f x.2)) :=
-begin
-  have h_inj : function.injective (λ x : γ × α, (g x.fst, f x.snd)),
-  { intros x y hxy,
-    rw [← @prod.mk.eta _ _ x, ← @prod.mk.eta _ _ y],
-    simp only [prod.mk.inj_iff] at hxy ⊢,
-    exact ⟨hg.injective hxy.1, hf.injective hxy.2⟩, },
-  refine ⟨h_inj, _, _⟩,
-  { exact (hg.measurable.comp measurable_fst).prod_mk (hf.measurable.comp measurable_snd), },
-  { refine λ s hs, @measurable_space.induction_on_inter _
-      (λ s, measurable_set ((λ (x : γ × α), (g x.fst, f x.snd)) '' s)) _ _ generate_from_prod.symm
-      is_pi_system_prod _ _ _ _ _ hs,
-    { simp only [image_empty, measurable_set.empty], },
-    { rintros t ⟨t₁, t₂, ht₁, ht₂, rfl⟩,
-      rw ← prod_image_image_eq,
-      exact (hg.measurable_set_image.mpr ht₁).prod (hf.measurable_set_image.mpr ht₂), },
-    { intros t ht ht_m,
-      rw [← range_diff_image h_inj, ← prod_range_range_eq],
-      exact measurable_set.diff
-        (measurable_set.prod hg.measurable_set_range hf.measurable_set_range) ht_m, },
-    { intros g hg_disj hg_meas hg,
-      simp_rw image_Union,
-      exact measurable_set.Union hg, }, },
-end
-
-end subset
-
 section polish
+
+/-! ### Disintegration of measures on Polish Borel spaces
+
+Since every standard Borel space embeds measurably into `ℝ`, we can generalize the disintegration
+property on ℝ to all these spaces. -/
 
 variables {β : Type*} [topological_space β] [polish_space β] [measurable_space β] [borel_space β]
 
-lemma aux (ρ : measure (α × ℝ)) [is_finite_measure ρ] {s : set ℝ} (hs : measurable_set s)
-  (hρ : ρ {x | x.snd ∈ sᶜ} = 0) :
+lemma ae_cond_kernel_real_eq_one (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+  {s : set ℝ} (hs : measurable_set s) (hρ : ρ {x | x.snd ∈ sᶜ} = 0) :
   ∀ᵐ a ∂ρ.fst, cond_kernel_real ρ a s = 1 :=
 begin
   have h : ρ {x | x.snd ∈ sᶜ}
     = (kernel.const unit ρ.fst ⊗ₖ kernel.prod_mk_left (cond_kernel_real ρ) unit) ()
       {x | x.snd ∈ sᶜ},
-  { rw ← measure_eq_comp_prod, },
+  { rw ← measure_eq_comp_prod_real, },
   rw [hρ, kernel.comp_prod_apply] at h,
   swap, { exact measurable_snd hs.compl, },
   rw [eq_comm, lintegral_eq_zero_iff] at h,
@@ -376,7 +370,8 @@ begin
   apply_instance,
 end
 
-theorem todo [nonempty β] (ρ : measure (α × β)) [is_finite_measure ρ] (γ : Type*)
+/-- Existence of a conditional kernel. Use the definition `cond_kernel` to get that kernel. -/
+lemma exists_cond_kernel [nonempty β] (ρ : measure (α × β)) [is_finite_measure ρ] (γ : Type*)
   [measurable_space γ] :
   ∃ (η : kernel α β) (h : is_markov_kernel η),
   kernel.const γ ρ
@@ -407,11 +402,10 @@ begin
     refl, },
   have h_ae : ∀ᵐ a ∂ρ.fst, a ∈ ρ_set,
   { rw ae_iff,
-    simp_rw not_mem_compl_iff,
-    simp only [set_of_mem_eq, measure_to_measurable],
+    simp only [not_mem_compl_iff, set_of_mem_eq, measure_to_measurable],
     change (ρ.fst) {a : α | a ∉ {a' : α | cond_kernel_real ρ' a' (range f) = 1}} = 0,
     rw [← ae_iff, ← h_fst],
-    refine aux ρ' hf.measurable_set_range _,
+    refine ae_cond_kernel_real_eq_one ρ' hf.measurable_set_range _,
     rw measure.map_apply h_prod_embed.measurable,
     swap, { exact measurable_snd hf.measurable_set_range.compl, },
     convert measure_empty,
@@ -441,7 +435,7 @@ begin
     refine ⟨λ h, ⟨x.1, x.2, h, rfl, rfl⟩, _⟩,
     rintros ⟨a, b, h_mem, rfl, hf_eq⟩,
     rwa hf.injective hf_eq at h_mem, },
-  rw [this, kernel.const_eq_comp_prod ρ'],
+  rw [this, kernel.const_eq_comp_prod_real ρ'],
   ext c t ht : 2,
   rw [kernel.comap_right_apply' _ _ _ ht,
     kernel.comp_prod_apply _ _ _ (h_prod_embed.measurable_set_image.mpr ht), kernel.const_apply,
@@ -465,27 +459,40 @@ end
 
 variables [nonempty β]
 
+/-- **Regular conditional probability distribution**, or conditional kernel: a Markov kernel such
+that `ρ : measure (α × β) = (ρ.fst : measure α) ⊗ₖ (cond_kernel ρ : kernel α β)` (up to
+augmentations of the spaces to make that expression valid: see `measure_eq_comp_prod`). -/
 noncomputable
-def cond_kernel (ρ : measure (α × β)) [is_finite_measure ρ] : kernel α β := (todo ρ unit).some
+def cond_kernel (ρ : measure (α × β)) [is_finite_measure ρ] : kernel α β :=
+(exists_cond_kernel ρ unit).some
 
 instance (ρ : measure (α × β)) [is_finite_measure ρ] : is_markov_kernel (cond_kernel ρ) :=
-(todo ρ unit).some_spec.some
+(exists_cond_kernel ρ unit).some_spec.some
 
-theorem todo' (ρ : measure (α × β)) [is_finite_measure ρ] :
+lemma kernel.const_unit_eq_comp_prod (ρ : measure (α × β)) [is_finite_measure ρ] :
   kernel.const unit ρ
     = (kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit) :=
-(todo ρ unit).some_spec.some_spec
+(exists_cond_kernel ρ unit).some_spec.some_spec
 
-theorem todo'' (ρ : measure (α × β)) [is_finite_measure ρ] :
+/-- **Disintegration** of finite product measures on `α × β`, where `β` is Polish Borel. Such a
+measure can be written as the composition-product of the constant kernel with value `ρ.fst`
+(marginal measure over `α`) and a Markov kernel from `α` to `β`. We call that Markov kernel
+`cond_kernel ρ`. -/
+theorem measure_eq_comp_prod (ρ : measure (α × β)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) () :=
-by rw [← todo', kernel.const_apply]
+by rw [← kernel.const_unit_eq_comp_prod, kernel.const_apply]
 
-theorem todo''' (ρ : measure (α × β)) [is_finite_measure ρ] (γ : Type*) [measurable_space γ] :
+/-- **Disintegration** of constant kernels. A constant kernel on a product space `α × β`, where `β`
+is Polish Borel, can be written as the composition-product of the constant kernel with value `ρ.fst`
+(marginal measure over `α`) and a Markov kernel from `α` to `β`. We call that Markov kernel
+`cond_kernel ρ`. -/
+theorem kernel.const_eq_comp_prod (ρ : measure (α × β)) [is_finite_measure ρ]
+  (γ : Type*) [measurable_space γ] :
   kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) γ) :=
 begin
   ext a s hs : 2,
   simpa only [kernel.const_apply, kernel.comp_prod_apply _ _ _ hs, kernel.prod_mk_left_apply']
-    using kernel.ext_iff'.mp (todo' ρ) () s hs,
+    using kernel.ext_iff'.mp (kernel.const_unit_eq_comp_prod ρ) () s hs,
 end
 
 end polish

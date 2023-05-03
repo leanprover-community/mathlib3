@@ -22,6 +22,7 @@ In this file we define `non_unital_subalgebra`s and the usual operations on them
   non-unital subalgebra on the larger algebra.
 -/
 
+/-- The identity map as a `non_unital_alg_hom`. -/
 def non_unital_alg_hom.id (R A : Type*) [monoid R] [non_unital_non_assoc_semiring A]
   [distrib_mul_action R A] : A →ₙₐ[R] A :=
 { to_fun := id,
@@ -51,17 +52,21 @@ instance non_unital_subalgebra_class.to_submodule_class (S : Type*) (R : Type*) 
   submodule_class S R A :=
 { .. non_unital_subalgebra_class.to_smul_mem_class S R A }
 
-@[priority 100] -- See note [lower instance priority]
-instance non_unital_subalgebra_class.to_non_unital_subring_class (S : Type*) (R : Type*) (A : Type*)
-  [comm_ring R] [non_unital_ring A] [module R A] [set_like S A]
-  [non_unital_subsemiring_class S A] [h : non_unital_subalgebra_class S R A] :
-  non_unital_subring_class S A :=
-{ neg_mem := λ S x hx, neg_one_smul R x ▸ smul_mem_class.smul_mem _ hx,
-  .. non_unital_subalgebra_class.to_non_unital_subsemiring_class S R A }
-
 -- not a problem because `R` is marked as an `out_param`
 attribute [nolint dangerous_instance] non_unital_subalgebra_class.to_non_unital_subring_class
 -/
+
+@[priority 100] -- See note [lower instance priority]
+instance non_unital_subalgebra_class.to_non_unital_subring_class (S : Type*) (R : Type*) (A : Type*)
+  [comm_ring R] [non_unital_ring A] [module R A] [set_like S A]
+  [h : non_unital_subsemiring_class S A] [smul_mem_class S R A] :
+  non_unital_subring_class S A :=
+{ neg_mem := λ S x hx, neg_one_smul R x ▸ smul_mem_class.smul_mem _ hx,
+  .. h }
+
+
+-- not a problem because `R` is marked as an `out_param` in `smul_mem_class`
+attribute [nolint dangerous_instance] non_unital_subalgebra_class.to_non_unital_subring_class
 
 variables {S R A : Type*} [comm_semiring R] [non_unital_semiring A] [module R A]
 variables [set_like S A] [non_unital_subsemiring_class S A] [hSR : smul_mem_class S R A] (s : S)
@@ -73,11 +78,9 @@ namespace non_unital_subalgebra_class
 def subtype (s : S) : s →ₙₐ[R] A :=
 { to_fun := coe,
  .. non_unital_subsemiring_class.subtype s,
- .. submodule_class.subtype s }
+ .. smul_mem_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → A) = coe := rfl
-
-#exit
 
 end non_unital_subalgebra_class
 
@@ -108,9 +111,8 @@ instance : non_unital_subsemiring_class (non_unital_subalgebra R A) A :=
   mul_mem := mul_mem',
   zero_mem := zero_mem' }
 
-instance : non_unital_subalgebra_class (non_unital_subalgebra R A) R A :=
-{ smul_mem := smul_mem',
-  .. non_unital_subalgebra.non_unital_subsemiring_class }
+instance : smul_mem_class (non_unital_subalgebra R A) R A :=
+{ smul_mem := smul_mem' }
 
 @[simp]
 lemma mem_carrier {s : non_unital_subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -174,10 +176,6 @@ multiset_sum_mem m h
 protected theorem sum_mem {ι : Type w} {t : finset ι} {f : ι → A} (h : ∀ x ∈ t, f x ∈ S) :
   ∑ x in t, f x ∈ S :=
 sum_mem h
-
-instance {R A : Type*} [comm_ring R] [non_unital_ring A] [module R A] :
-  non_unital_subring_class (non_unital_subalgebra R A) A :=
-{ .. non_unital_subalgebra_class.to_non_unital_subring_class _ R A }
 
 protected theorem neg_mem {R : Type u} {A : Type v} [comm_ring R] [non_unital_ring A]
   [module R A] (S : non_unital_subalgebra R A) {x : A} (hx : x ∈ S) : -x ∈ S :=

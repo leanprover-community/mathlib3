@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.finset.fold
 import data.finset.option
+import data.finset.pi
 import data.finset.prod
 import data.multiset.lattice
 import order.complete_lattice
@@ -408,13 +409,14 @@ lemma sup_inf_distrib_right (s : finset ι) (f : ι → α) (a : α) :
   s.sup f ⊓ a = s.sup (λ i, f i ⊓ a) :=
 by { rw [_root_.inf_comm, s.sup_inf_distrib_left], simp_rw _root_.inf_comm }
 
-protected lemma disjoint_sup_right : disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
+protected lemma disjoint_sup_right : disjoint a (s.sup f) ↔ ∀ ⦃i⦄, i ∈ s → disjoint a (f i) :=
 by simp only [disjoint_iff, sup_inf_distrib_left, finset.sup_eq_bot_iff]
 
-protected lemma disjoint_sup_left : disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
+protected lemma disjoint_sup_left : disjoint (s.sup f) a ↔ ∀ ⦃i⦄, i ∈ s → disjoint (f i) a :=
 by simp only [disjoint_iff, sup_inf_distrib_right, finset.sup_eq_bot_iff]
 
-lemma sup_inf_sup : s.sup f ⊓ t.sup g = (s ×ˢ t).sup (λ i, f i.1 ⊓ g i.2) :=
+lemma sup_inf_sup (s : finset ι) (t : finset κ) (f : ι → α) (g : κ → α) :
+  s.sup f ⊓ t.sup g = (s ×ˢ t).sup (λ i, f i.1 ⊓ g i.2) :=
 by simp_rw [finset.sup_inf_distrib_right, finset.sup_inf_distrib_left, sup_product_left]
 
 end order_bot
@@ -430,16 +432,48 @@ lemma inf_sup_distrib_right (s : finset ι) (f : ι → α) (a : α) :
   s.inf f ⊔ a = s.inf (λ i, f i ⊔ a) :=
 @sup_inf_distrib_right αᵒᵈ _ _ _ _ _ _
 
-protected lemma codisjoint_inf_right : codisjoint a (s.inf f) ↔ ∀ i ∈ s, codisjoint a (f i) :=
+protected lemma codisjoint_inf_right : codisjoint a (s.inf f) ↔ ∀ ⦃i⦄, i ∈ s → codisjoint a (f i) :=
 by simp only [codisjoint_iff, inf_sup_distrib_left, finset.inf_eq_top_iff]
 
-protected lemma codisjoint_inf_left : codisjoint (s.inf f) a ↔ ∀ i ∈ s, codisjoint (f i) a :=
+protected lemma codisjoint_inf_left : codisjoint (s.inf f) a ↔ ∀ ⦃i⦄, i ∈ s → codisjoint (f i) a :=
 by simp only [codisjoint_iff, inf_sup_distrib_right, finset.inf_eq_top_iff]
 
-lemma inf_sup_inf : s.inf f ⊔ t.inf g = (s ×ˢ t).inf (λ i, f i.1 ⊔ g i.2) :=
+lemma inf_sup_inf (s : finset ι) (t : finset κ) (f : ι → α) (g : κ → α) :
+  s.inf f ⊔ t.inf g = (s ×ˢ t).inf (λ i, f i.1 ⊔ g i.2) :=
 by simp_rw [finset.inf_sup_distrib_right, finset.inf_sup_distrib_left, inf_product_left]
 
 end order_top
+
+section bounded_order
+variables [bounded_order α] [decidable_eq ι]
+
+lemma inf_sup {κ : ι → Type*} (s : finset ι) (t : Π i, finset (κ i)) (f : Π i, κ i → α) :
+  s.inf (λ i, (t i).sup (f i)) = (s.pi t).sup (λ g, s.attach.inf $ λ i, f _ $ g _ i.2) :=
+begin
+  induction s using finset.induction with i s hi ih,
+  { simp },
+  rw [inf_insert, ih, attach_insert, sup_inf_sup],
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [subtype.val_eq_coe, finset.sup_le_iff, mem_product, mem_pi, and_imp, prod.forall,
+    inf_insert, inf_image],
+  refine ⟨λ h g hg, h (g i $ mem_insert_self _ _) (λ j hj, g j $ mem_insert_of_mem hj)
+    (hg _ $ mem_insert_self _ _) (λ j hj, hg _ $ mem_insert_of_mem hj), λ h a g ha hg, _⟩,
+  -- TODO: The next hypothesis must be named, else the `simpa` afterwards fails
+  have aux : ∀ j : {x // x ∈ s}, ↑j ≠ i := λ j : s, ne_of_mem_of_not_mem j.2 hi,
+  simpa only [subtype.val_eq_coe, cast_eq, dif_pos, function.comp, subtype.coe_mk, dif_neg, aux]
+    using h (λ j hj, if hji : j = i then cast (congr_arg κ hji.symm) a
+      else g _ $ mem_of_mem_insert_of_ne hj hji) _,
+  simp_rw mem_insert,
+  rintro j (rfl | hj),
+  { simpa },
+  { simpa [ne_of_mem_of_not_mem hj hi] using hg _ _ }
+end
+
+lemma sup_inf {κ : ι → Type*} (s : finset ι) (t : Π i, finset (κ i)) (f : Π i, κ i → α) :
+  s.sup (λ i, (t i).inf (f i)) = (s.pi t).inf (λ g, s.attach.sup $ λ i, f _ $ g _ i.2) :=
+@inf_sup αᵒᵈ _ _ _ _ _ _ _ _
+
+end bounded_order
 end distrib_lattice
 
 section boolean_algebra

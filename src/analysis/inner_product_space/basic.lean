@@ -1385,7 +1385,7 @@ end
 norms, has absolute value at most 1. -/
 lemma abs_real_inner_div_norm_mul_norm_le_one (x y : F) : absR (⟪x, y⟫_ℝ / (‖x‖ * ‖y‖)) ≤ 1 :=
 begin
-  rw [abs_div, abs_mul, abs_norm, abs_norm],
+  rw [_root_.abs_div, _root_.abs_mul, abs_norm, abs_norm],
   exact div_le_one_of_le (abs_real_inner_le_norm x y) (by positivity)
 end
 

@@ -612,7 +612,7 @@ lemma Gamma_one : Gamma 1 = 1 :=
 by rw [Gamma, complex.of_real_one, complex.Gamma_one, complex.one_re]
 
 lemma _root_.complex.Gamma_of_real (s : ℝ) : complex.Gamma (s : ℂ) = Gamma s :=
-by rw [Gamma, eq_comm, ←complex.eq_conj_iff_re, ←complex.Gamma_conj, complex.conj_of_real]
+by rw [Gamma, eq_comm, ←complex.conj_eq_iff_re, ←complex.Gamma_conj, complex.conj_of_real]
 
 theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n + 1) = n! :=
 by rw [Gamma, complex.of_real_add, complex.of_real_nat_cast, complex.of_real_one,

@@ -282,17 +282,33 @@ by rw [←neg_neg b, to_Ico_div_neg, neg_neg, neg_neg, neg_add', neg_neg, add_su
   to_Ico_mod hp a (b + m • p) = to_Ico_mod hp a b :=
 by { rw [to_Ico_mod, to_Ico_div_add_zsmul, to_Ico_mod, add_smul], abel }
 
+@[simp] lemma to_Ico_mod_add_zsmul_left (a b : α) (m : ℤ) :
+  to_Ico_mod hp (a + m • p) b = to_Ico_mod hp a b + m • p :=
+by simp only [to_Ico_mod, to_Ico_div_add_zsmul', sub_smul, sub_add]
+
 @[simp] lemma to_Ioc_mod_add_zsmul (a b : α) (m : ℤ) :
   to_Ioc_mod hp a (b + m • p) = to_Ioc_mod hp a b :=
 by { rw [to_Ioc_mod, to_Ioc_div_add_zsmul, to_Ioc_mod, add_smul], abel }
+
+@[simp] lemma to_Ioc_mod_add_zsmul_left (a b : α) (m : ℤ) :
+  to_Ioc_mod hp (a + m • p) b = to_Ioc_mod hp a b + m • p :=
+by simp only [to_Ioc_mod, to_Ioc_div_add_zsmul', sub_smul, sub_add]
 
 @[simp] lemma to_Ico_mod_zsmul_add (a b : α) (m : ℤ) :
   to_Ico_mod hp a (m • p + b) = to_Ico_mod hp a b :=
 by rw [add_comm, to_Ico_mod_add_zsmul]
 
+@[simp] lemma to_Ico_mod_zsmul_add_left (a b : α) (m : ℤ) :
+  to_Ico_mod hp (m • p + a) b = m • p + to_Ico_mod hp a b :=
+by rw [add_comm, to_Ico_mod_add_zsmul_left, add_comm]
+
 @[simp] lemma to_Ioc_mod_zsmul_add (a b : α) (m : ℤ) :
   to_Ioc_mod hp a (m • p + b) = to_Ioc_mod hp a b :=
 by rw [add_comm, to_Ioc_mod_add_zsmul]
+
+@[simp] lemma to_Ioc_mod_zsmul_add_left (a b : α) (m : ℤ) :
+  to_Ioc_mod hp (m • p + a) b = m • p + to_Ioc_mod hp a b :=
+by rw [add_comm, to_Ioc_mod_add_zsmul_left, add_comm]
 
 @[simp] lemma to_Ico_mod_sub_zsmul (a b : α) (m : ℤ) :
   to_Ico_mod hp a (b - m • p) = to_Ico_mod hp a b :=
@@ -462,6 +478,22 @@ lemma not_modeq_iff_ne_mod_zmultiples :
 
 end add_comm_group
 
+/-- If `a` and `b` fall within the same cycle WRT `c`, then they are congruent modulo `p`. -/
+@[simp] lemma to_Ico_mod_inj (c : α) :
+  to_Ico_mod hp c a = to_Ico_mod hp c b ↔ add_comm_group.modeq p a b :=
+begin
+  rw [to_Ico_mod_eq_to_Ico_mod, add_comm_group.modeq_iff_eq_add_zsmul hp],
+  simp_rw sub_eq_iff_eq_add',
+end
+
+alias to_Ico_mod_inj ↔ _ add_comm_group.modeq.to_Ico_mod_eq_to_Ico_mod
+
+lemma add_comm_group.modeq_comm (hp : 0 < p) :
+  add_comm_group.modeq p a b ↔ add_comm_group.modeq p b a :=
+by rw [←to_Ico_mod_inj hp, eq_comm, to_Ico_mod_inj]; assumption
+
+alias add_comm_group.modeq_comm ↔ add_comm_group.modeq.symm _
+
 lemma Ico_eq_locus_Ioc_eq_Union_Ioo :
   {b | to_Ico_mod hp a b = to_Ioc_mod hp a b} = ⋃ z : ℤ, set.Ioo (a + z • p) (a + p + z • p) :=
 begin
@@ -491,22 +523,6 @@ begin
     (zsmul_strict_mono_left hp).le_iff_le],
   apply (to_Ioc_div_wcovby_to_Ico_div _ _ _).le_succ,
 end
-
-/-- If `a` and `b` fall within the same cycle WRT `c`, then they are congruent modulo `p`. -/
-@[simp] lemma to_Ico_mod_inj (c : α) :
-  to_Ico_mod hp c a = to_Ico_mod hp c b ↔ add_comm_group.modeq p a b :=
-begin
-  rw [to_Ico_mod_eq_to_Ico_mod, add_comm_group.modeq_iff_eq_add_zsmul hp],
-  simp_rw sub_eq_iff_eq_add',
-end
-
-alias to_Ico_mod_inj ↔ _ add_comm_group.modeq.to_Ico_mod_eq_to_Ico_mod
-
-lemma add_comm_group.modeq_comm (hp : 0 < p) :
-  add_comm_group.modeq p a b ↔ add_comm_group.modeq p b a :=
-by rw [←to_Ico_mod_inj hp, eq_comm, to_Ico_mod_inj]; assumption
-
-alias add_comm_group.modeq_comm ↔ add_comm_group.modeq.symm _
 
 end Ico_Ioc
 
@@ -560,14 +576,6 @@ private lemma to_Ixx_mod_iff (x₁ x₂ x₃ : α) :
   to_Ico_mod hp 0 (x₂ - x₁) + to_Ico_mod hp 0 (x₁ - x₃) ≤ p :=
 by rw [to_Ico_mod_eq_sub, to_Ioc_mod_eq_sub _ x₁, add_le_add_iff_right, ←neg_sub x₁ x₃,
     to_Ioc_mod_neg, neg_zero, le_sub_iff_add_le]
-
-@[simp] lemma to_Ico_mod_zsmul_add' (a b : α) (m : ℤ) :
-  to_Ico_mod hp (a + m • p) b = to_Ico_mod hp a b + m • p :=
-by simp only [to_Ico_mod, to_Ico_div_add_zsmul', sub_smul, sub_add]
-
-@[simp] lemma to_Ioc_mod_zsmul_add' (a b : α) (m : ℤ) :
-  to_Ioc_mod hp (a + m • p) b = to_Ioc_mod hp a b + m • p :=
-by simp only [to_Ioc_mod, to_Ioc_div_add_zsmul', sub_smul, sub_add]
 
 private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
   (h : to_Ico_mod hp x₁ x₂ ≤ to_Ioc_mod hp x₁ x₃) :

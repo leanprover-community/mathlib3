@@ -98,6 +98,7 @@ def slash (k : ℤ) (γ : GL(2, ℝ)⁺) (f : ℍ → ℂ) (x : ℍ) : ℂ :=
 f (γ • x) * (((↑ₘ γ).det) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(-k)
 
 variables {Γ : subgroup SL(2, ℤ)} {k: ℤ} (f : ℍ → ℂ)
+
 section
 
 -- temporary notation until the instance is built

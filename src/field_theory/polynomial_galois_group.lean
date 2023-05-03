@@ -374,7 +374,7 @@ begin
     (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
-    exact complex.eq_conj_iff_im },
+    exact complex.conj_eq_iff_im },
   have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
   { intro z,
     simp_rw [finset.mem_image, exists_prop],

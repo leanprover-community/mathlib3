@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
 import measure_theory.integral.exp_decay
+import analysis.special_functions.improper_integrals
 import analysis.convolution
 import analysis.special_functions.trigonometric.euler_sine_prod
 
@@ -60,13 +61,6 @@ Gamma
 noncomputable theory
 open filter interval_integral set real measure_theory asymptotics
 open_locale nat topology ennreal big_operators complex_conjugate
-
-lemma integral_exp_neg_Ioi : ∫ (x : ℝ) in Ioi 0, exp (-x) = 1 :=
-begin
-  refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi _ _ tendsto_id) _,
-  { simpa only [neg_mul, one_mul] using exp_neg_integrable_on_Ioi 0 zero_lt_one, },
-  { simpa using tendsto_exp_neg_at_top_nhds_0.const_sub 1, },
-end
 
 namespace real
 
@@ -161,7 +155,7 @@ end
 
 lemma Gamma_integral_one : Gamma_integral 1 = 1 :=
 by simpa only [←of_real_one, Gamma_integral_of_real, of_real_inj, sub_self,
-  rpow_zero, mul_one] using integral_exp_neg_Ioi
+  rpow_zero, mul_one] using integral_exp_neg_Ioi_zero
 
 end complex
 

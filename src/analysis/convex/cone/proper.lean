@@ -48,6 +48,10 @@ protected def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
 @[simp] protected lemma mem_closure {K : convex_cone ℝ E} {a : E} :
   a ∈ K.closure ↔ a ∈ closure (K : set E) := iff.rfl
 
+lemma closure_eq_iff_is_closed {K : convex_cone ℝ E} : K.closure = K ↔ is_closed (K : set E) :=
+⟨ (λ h, by rw [← closure_eq_iff_is_closed, ← coe_closure, h]),
+  (λ h, set_like.coe_injective $ closure_eq_iff_is_closed.2 h) ⟩
+
 end convex_cone
 
 section definitions
@@ -112,6 +116,9 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone E) : proper_cone F :=
 
 @[simp] lemma mem_map {f : E →L[ℝ] F} {K : proper_cone E} {y : F} :
   y ∈ K.map f ↔ y ∈ (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := iff.rfl
+
+@[simp] lemma map_id (K : proper_cone E) : K.map (continuous_linear_map.id ℝ E) = K :=
+proper_cone.ext' $ by simpa using convex_cone.closure_eq_iff_is_closed.2 K.is_closed
 
 /-- The inner dual cone of a proper cone is a proper cone. -/
 def dual (K : proper_cone E): (proper_cone E) :=

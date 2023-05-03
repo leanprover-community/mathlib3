@@ -3,7 +3,7 @@ Copyright (c) 2022 Kevin H. Wilson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin H. Wilson
 -/
-import analysis.special_functions.integrals
+import measure_theory.integral.interval_integral
 
 /-!
 # Comparing sums and integrals

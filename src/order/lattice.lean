@@ -777,6 +777,19 @@ by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
 
 end pi
 
+namespace function
+variables {ι : Type*} {π : ι → Type*} [decidable_eq ι]
+
+lemma update_sup [Π i, semilattice_sup (π i)] (f : Π i, π i) (i : ι) (a b : π i) :
+  f.update i (a ⊔ b) = f.update i a ⊔ f.update i b :=
+funext $ λ j, by obtain rfl | hji := eq_or_ne j i; simp [update_noteq, *]
+
+lemma update_inf [Π i, semilattice_inf (π i)] (f : Π i, π i) (i : ι) (a b : π i) :
+  f.update i (a ⊓ b) = f.update i a ⊓ f.update i b :=
+funext $ λ j, by obtain rfl | hji := eq_or_ne j i; simp [update_noteq, *]
+
+end function
+
 /-!
 ### Monotone functions and lattices
 -/

@@ -133,7 +133,9 @@ by rw [supr_ne_bot_subtype, hT.orthogonal_supr_eigenspaces_eq_bot]
 include dec_𝕜
 omit hT
 /-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` gives
-an internal direct sum decomposition of `E`. -/
+an internal direct sum decomposition of `E`.
+
+Note this takes `hT` as a `fact` to allow it to be an instance. -/
 noncomputable instance direct_sum_decomposition [hT : fact T.is_symmetric] :
   direct_sum.decomposition (λ μ : eigenvalues T, eigenspace T μ) :=
 begin

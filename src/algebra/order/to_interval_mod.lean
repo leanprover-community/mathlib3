@@ -282,7 +282,7 @@ by rw [←neg_neg b, to_Ico_div_neg, neg_neg, neg_neg, neg_add', neg_neg, add_su
   to_Ico_mod hp a (b + m • p) = to_Ico_mod hp a b :=
 by { rw [to_Ico_mod, to_Ico_div_add_zsmul, to_Ico_mod, add_smul], abel }
 
-@[simp] lemma to_Ico_mod_add_zsmul_left (a b : α) (m : ℤ) :
+@[simp] lemma to_Ico_mod_add_zsmul' (a b : α) (m : ℤ) :
   to_Ico_mod hp (a + m • p) b = to_Ico_mod hp a b + m • p :=
 by simp only [to_Ico_mod, to_Ico_div_add_zsmul', sub_smul, sub_add]
 
@@ -290,7 +290,7 @@ by simp only [to_Ico_mod, to_Ico_div_add_zsmul', sub_smul, sub_add]
   to_Ioc_mod hp a (b + m • p) = to_Ioc_mod hp a b :=
 by { rw [to_Ioc_mod, to_Ioc_div_add_zsmul, to_Ioc_mod, add_smul], abel }
 
-@[simp] lemma to_Ioc_mod_add_zsmul_left (a b : α) (m : ℤ) :
+@[simp] lemma to_Ioc_mod_add_zsmul' (a b : α) (m : ℤ) :
   to_Ioc_mod hp (a + m • p) b = to_Ioc_mod hp a b + m • p :=
 by simp only [to_Ioc_mod, to_Ioc_div_add_zsmul', sub_smul, sub_add]
 
@@ -298,25 +298,33 @@ by simp only [to_Ioc_mod, to_Ioc_div_add_zsmul', sub_smul, sub_add]
   to_Ico_mod hp a (m • p + b) = to_Ico_mod hp a b :=
 by rw [add_comm, to_Ico_mod_add_zsmul]
 
-@[simp] lemma to_Ico_mod_zsmul_add_left (a b : α) (m : ℤ) :
+@[simp] lemma to_Ico_mod_zsmul_add' (a b : α) (m : ℤ) :
   to_Ico_mod hp (m • p + a) b = m • p + to_Ico_mod hp a b :=
-by rw [add_comm, to_Ico_mod_add_zsmul_left, add_comm]
+by rw [add_comm, to_Ico_mod_add_zsmul', add_comm]
 
 @[simp] lemma to_Ioc_mod_zsmul_add (a b : α) (m : ℤ) :
   to_Ioc_mod hp a (m • p + b) = to_Ioc_mod hp a b :=
 by rw [add_comm, to_Ioc_mod_add_zsmul]
 
-@[simp] lemma to_Ioc_mod_zsmul_add_left (a b : α) (m : ℤ) :
+@[simp] lemma to_Ioc_mod_zsmul_add' (a b : α) (m : ℤ) :
   to_Ioc_mod hp (m • p + a) b = m • p + to_Ioc_mod hp a b :=
-by rw [add_comm, to_Ioc_mod_add_zsmul_left, add_comm]
+by rw [add_comm, to_Ioc_mod_add_zsmul', add_comm]
 
 @[simp] lemma to_Ico_mod_sub_zsmul (a b : α) (m : ℤ) :
   to_Ico_mod hp a (b - m • p) = to_Ico_mod hp a b :=
 by rw [sub_eq_add_neg, ←neg_smul, to_Ico_mod_add_zsmul]
 
+@[simp] lemma to_Ico_mod_sub_zsmul' (a b : α) (m : ℤ) :
+  to_Ico_mod hp (a - m • p) b = to_Ico_mod hp a b - m • p :=
+by simp_rw [sub_eq_add_neg, ←neg_smul, to_Ico_mod_add_zsmul']
+
 @[simp] lemma to_Ioc_mod_sub_zsmul (a b : α) (m : ℤ) :
   to_Ioc_mod hp a (b - m • p) = to_Ioc_mod hp a b :=
 by rw [sub_eq_add_neg, ←neg_smul, to_Ioc_mod_add_zsmul]
+
+@[simp] lemma to_Ioc_mod_sub_zsmul' (a b : α) (m : ℤ) :
+  to_Ioc_mod hp (a - m • p) b = to_Ioc_mod hp a b - m • p :=
+by simp_rw [sub_eq_add_neg, ←neg_smul, to_Ioc_mod_add_zsmul']
 
 @[simp] lemma to_Ico_mod_add_right (a b : α) : to_Ico_mod hp a (b + p) = to_Ico_mod hp a b :=
 by simpa only [one_zsmul] using to_Ico_mod_add_zsmul hp a b 1
@@ -548,14 +556,6 @@ by { rw [to_Ioc_mod_eq_iff, and_iff_left], exact ⟨0, by simp⟩ }
   to_Ioc_mod hp a₁ (to_Ico_mod hp a₂ b) = to_Ioc_mod hp a₁ b :=
 (to_Ioc_mod_eq_to_Ioc_mod _).2 ⟨to_Ico_div hp a₂ b, self_sub_to_Ico_mod hp a₂ b⟩
 
-lemma to_Ico_mod_zero_sub_comm (a b : α) : to_Ico_mod hp 0 (a - b) = p - to_Ioc_mod hp 0 (b - a) :=
-by rw [←neg_sub, to_Ico_mod_neg, neg_zero]
-
-lemma to_Ioc_mod_zero_sub_comm (a b : α) : to_Ioc_mod hp 0 (a - b) = p - to_Ico_mod hp 0 (b - a) :=
-by rw [←neg_sub, to_Ioc_mod_neg, neg_zero]
-
-private lemma to_Ixx_mod_add_eq (a b : α) : to_Ico_mod hp 0 (a - b) + to_Ioc_mod hp 0 (b - a) = p :=
-by rw [to_Ico_mod_zero_sub_comm, sub_add_cancel]
 
 lemma to_Ico_mod_periodic (a : α) : function.periodic (to_Ico_mod hp a) p :=
 to_Ico_mod_add_right hp a
@@ -563,13 +563,32 @@ to_Ico_mod_add_right hp a
 lemma to_Ioc_mod_periodic (a : α) : function.periodic (to_Ioc_mod hp a) p :=
 to_Ioc_mod_add_right hp a
 
-section to_move
+-- helper lemmas for when `a = 0`
+section zero
+
+lemma to_Ico_mod_zero_sub_comm (a b : α) : to_Ico_mod hp 0 (a - b) = p - to_Ioc_mod hp 0 (b - a) :=
+by rw [←neg_sub, to_Ico_mod_neg, neg_zero]
+
+lemma to_Ioc_mod_zero_sub_comm (a b : α) : to_Ioc_mod hp 0 (a - b) = p - to_Ico_mod hp 0 (b - a) :=
+by rw [←neg_sub, to_Ioc_mod_neg, neg_zero]
 
 lemma to_Ico_mod_eq_sub (x₁ x₂ : α) : to_Ico_mod hp x₁ x₂ = to_Ico_mod hp 0 (x₂ - x₁) + x₁ :=
 by rw [to_Ico_mod_sub', zero_add, sub_add_cancel]
 
 lemma to_Ioc_mod_eq_sub (x₁ x₂ : α) : to_Ioc_mod hp x₁ x₂ = to_Ioc_mod hp 0 (x₂ - x₁) + x₁ :=
 by rw [to_Ioc_mod_sub', zero_add, sub_add_cancel]
+
+lemma to_Ico_mod_add_to_Ico_mod_zero (a b : α) :
+  to_Ico_mod hp 0 (a - b) + to_Ioc_mod hp 0 (b - a) = p :=
+by rw [to_Ico_mod_zero_sub_comm, sub_add_cancel]
+
+lemma to_Ioc_mod_add_to_Ico_mod_zero (a b : α) :
+  to_Ioc_mod hp 0 (a - b) + to_Ico_mod hp 0 (b - a) = p :=
+by rw [add_comm, to_Ico_mod_add_to_Ico_mod_zero]
+
+end zero
+
+section to_move
 
 private lemma to_Ixx_mod_iff (x₁ x₂ x₃ : α) :
   to_Ico_mod hp x₁ x₂ ≤ to_Ioc_mod hp x₁ x₃ ↔
@@ -631,14 +650,14 @@ begin
   exact h.2.1 ((to_Ico_mod_inj hp _).mp (h₁₃₂.antisymm h₁₂₃)),
 end
 
-/-- From this I think it's a lot easier to verify the axioms; another essential ingredient is the
-lemma saying {x-y} + {y-x} = period if x ≠ y (and = 0 if x = y). Thus if x ≠ y and y ≠ z then
-({x-y} + {y-z}) + ({z-y} + {y-x}) = 2 * period, so one of {x-y} + {y-z} and {z-y} + {y-x} must be
-`≤ period`, proving btw_total; -/
 private lemma to_Ixx_mod_total' (x y z : α) :
   to_Ico_mod hp y x ≤ to_Ioc_mod hp y z ∨ to_Ico_mod hp y z ≤ to_Ioc_mod hp y x :=
 begin
-  have := congr_arg2 (+) (to_Ixx_mod_add_eq hp x y) (to_Ixx_mod_add_eq hp z y),
+  /- an essential ingredient is the lemma saying {x-y} + {y-x} = period if x ≠ y (and = 0 if x = y).
+  Thus if x ≠ y and y ≠ z then ({x-y} + {y-z}) + ({z-y} + {y-x}) = 2 * period, so one of
+  `{x-y} + {y-z}` and `{z-y} + {y-x}` must be `≤ period` -/
+  have := congr_arg2 (+)
+    (to_Ico_mod_add_to_Ico_mod_zero hp x y) (to_Ico_mod_add_to_Ico_mod_zero hp z y),
   rw [add_add_add_comm, add_comm (to_Ioc_mod _ _ _), add_add_add_comm, ←two_nsmul] at this,
   replace := min_le_of_add_le_two_nsmul this.le,
   rw min_le_iff at this,
@@ -661,21 +680,18 @@ private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
   to_Ico_mod hp x₁ x₄ ≤ to_Ioc_mod hp x₁ x₃
     ∧ ¬to_Ico_mod hp x₃ x₄ ≤ to_Ioc_mod hp x₃ x₁ :=
 begin
-  have h₁₂₃' := to_Ixx_mod_cyclic_left _ _ _ _ (to_Ixx_mod_cyclic_left _ _ _ _ h₁₂₃.1),
-  have h₂₃₄' := to_Ixx_mod_cyclic_left _ _ _ _ (to_Ixx_mod_cyclic_left _ _ _ _ h₂₃₄.1),
-
-  split, swap,
+  split,
+  { suffices h : to_Ico_mod hp x₃ x₂ = to_Ioc_mod hp x₃ x₂,
+    { have h₁₂₃' := to_Ixx_mod_cyclic_left _ _ _ _ (to_Ixx_mod_cyclic_left _ _ _ _ h₁₂₃.1),
+      have h₂₃₄' := to_Ixx_mod_cyclic_left _ _ _ _ (to_Ixx_mod_cyclic_left _ _ _ _ h₂₃₄.1),
+      exact to_Ixx_mod_cyclic_left _ _ _ _ ((h₁₂₃'.trans h.ge).trans h₂₃₄') },
+    by_contra,
+    have hIco₃₂ : to_Ico_mod hp x₃ x₂ = x₃ := ((add_comm_group.tfae_modeq hp x₃ x₂).out 3 1).mpr h,
+    have hIco₃₁ : x₃ < to_Ioc_mod hp x₃ x₁ := left_lt_to_Ioc_mod _ _ _,
+    exact h₁₂₃.2 (hIco₃₂.le.trans hIco₃₁.le), },
   { rw not_le,
     have := to_Ico_mod_le_to_Ioc_mod hp x₃ x₂,
     exact ((not_le.1 h₁₂₃.2).trans_le this).trans (not_le.1 h₂₃₄.2) },
-
-  suffices h : to_Ico_mod hp x₃ x₂ = to_Ioc_mod hp x₃ x₂,
-  { exact to_Ixx_mod_cyclic_left _ _ _ _ ((h₁₂₃'.trans $ ge_of_eq h).trans h₂₃₄') },
-
-  by_contra,
-  have hIco₃₂ : to_Ico_mod hp x₃ x₂ = x₃ := ((add_comm_group.tfae_modeq hp x₃ x₂).out 3 1).mpr h,
-  have hIco₃₁ : x₃ < to_Ioc_mod hp x₃ x₁ := left_lt_to_Ioc_mod _ _ _,
-  exact h₁₂₃.2 (hIco₃₂.le.trans hIco₃₁.le),
 end
 
 end to_move
@@ -730,6 +746,9 @@ lemma quotient_add_group.equiv_Ioc_mod_zero (a : α) :
   quotient_add_group.equiv_Ioc_mod hp a 0 = ⟨to_Ioc_mod hp a 0, to_Ioc_mod_mem_Ioc hp a _⟩ :=
 rfl
 
+/-!
+### The circular order structure on `α ⧸ add_subgroup.zmultiples p`
+-/
 namespace quotient_add_group
 variables [hp' : fact (0 < p)]
 include hp'
@@ -737,12 +756,14 @@ include hp'
 instance : has_btw (α ⧸ add_subgroup.zmultiples p) :=
 { btw := λ x₁ x₂ x₃, (equiv_Ico_mod hp'.out 0 (x₂ - x₁) : α) ≤ equiv_Ioc_mod hp'.out 0 (x₃ - x₁) }
 
-lemma btw_coe_iff' (x₁ x₂ x₃ : α) : has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples p) x₂ x₃ ↔
+lemma btw_coe_iff' {x₁ x₂ x₃ : α} :
+  has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples p) x₂ x₃ ↔
     to_Ico_mod hp'.out 0 (x₂ - x₁) ≤ to_Ioc_mod hp'.out 0 (x₃ - x₁) :=
 iff.rfl
 
--- maybe harder to prove with than the primed one?
-lemma btw_coe_iff (x₁ x₂ x₃ : α) : has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples p) x₂ x₃ ↔
+-- maybe harder to use than the primed one?
+lemma btw_coe_iff {x₁ x₂ x₃ : α} :
+  has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples p) x₂ x₃ ↔
     to_Ico_mod hp'.out x₁ x₂ ≤ to_Ioc_mod hp'.out x₁ x₃ :=
 by rw [btw_coe_iff', to_Ioc_mod_sub', to_Ico_mod_sub', zero_add, sub_le_sub_iff_right]
 
@@ -788,6 +809,10 @@ instance circular_order : circular_order (α ⧸ add_subgroup.zmultiples p) :=
 end quotient_add_group
 
 end linear_ordered_add_comm_group
+
+/-!
+### Connections to `int.floor` and `int.fract`
+-/
 
 section linear_ordered_field
 

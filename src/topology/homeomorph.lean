@@ -504,6 +504,7 @@ variables [decidable_eq ι] (i : ι)
   continuous_inv_fun := continuous_pi $ λ j, by { dsimp only [equiv.pi_split_at],
     split_ifs, subst h, exacts [continuous_fst, (continuous_apply _).comp continuous_snd] } }
 
+variable (β)
 /-- A product of copies of a topological space can be split as the binary product of one copy and
   the product of all the remaining copies. -/
 @[simps] def fun_split_at : (ι → β) ≃ₜ β × ({j // j ≠ i} → β) := pi_split_at i _

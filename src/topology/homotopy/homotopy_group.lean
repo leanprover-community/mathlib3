@@ -77,7 +77,7 @@ variable [decidable_eq N]
 
 /-- The forward direction of the homeomorphism
   between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/
-abbreviation split_at (i : N) := @fun_split_at I _ _ _ i
+abbreviation split_at (i : N) := fun_split_at I i
 
 /-- The backward direction of the homeomorphism
   between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/

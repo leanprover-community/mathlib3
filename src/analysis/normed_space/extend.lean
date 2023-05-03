@@ -82,7 +82,7 @@ lemma extend_to_𝕜'_apply (fr : F →ₗ[ℝ] ℝ) (x : F) :
 @[simp] lemma extend_to_𝕜'_apply_re (fr : F →ₗ[ℝ] ℝ) (x : F) : re (fr.extend_to_𝕜' x : 𝕜) = fr x :=
 by simp only [extend_to_𝕜'_apply, map_sub, zero_mul, mul_zero, sub_zero] with is_R_or_C_simps
 
-lemma sq_norm_extend_to_𝕜'_apply (f : F →ₗ[ℝ] ℝ) (x : F) :
+lemma norm_extend_to_𝕜'_apply_sq (f : F →ₗ[ℝ] ℝ) (x : F) :
   ‖(f.extend_to_𝕜' x : 𝕜)‖ ^ 2 = f (conj (f.extend_to_𝕜' x : 𝕜) • x) :=
 calc ‖(f.extend_to_𝕜' x : 𝕜)‖ ^ 2 = re (conj (f.extend_to_𝕜' x) * f.extend_to_𝕜' x : 𝕜) :
   by rw [is_R_or_C.conj_mul_eq_norm_sq_left, norm_sq_eq_def', of_real_re]
@@ -105,7 +105,7 @@ begin
   { rw [h, norm_zero],
     apply mul_nonneg; exact norm_nonneg _ },
   rw [← mul_le_mul_left (norm_pos_iff.2 h), ← sq],
-  calc ‖lm x‖ ^ 2 = fr (conj (lm x : 𝕜) • x) : fr.to_linear_map.sq_norm_extend_to_𝕜'_apply x
+  calc ‖lm x‖ ^ 2 = fr (conj (lm x : 𝕜) • x) : fr.to_linear_map.norm_extend_to_𝕜'_apply_sq x
   ... ≤ ‖fr (conj (lm x : 𝕜) • x)‖ : le_abs_self _
   ... ≤ ‖fr‖ * ‖conj (lm x : 𝕜) • x‖ : le_op_norm _ _
   ... = ‖(lm x : 𝕜)‖ * (‖fr‖ * ‖x‖) : by rw [norm_smul, norm_conj, mul_left_comm]

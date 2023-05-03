@@ -438,3 +438,62 @@ end
 end normal_closure
 
 end normal_closure
+
+section tfae
+
+namespace intermediate_field
+
+/-- Equivalent characterizations for an intermediate field in a normal extension to be normal. -/
+theorem normal_tfae [hK : normal F K] (E : intermediate_field F K) :
+  [ normal F E,
+    ∀ σ : K ≃ₐ[F] K, E.map ↑σ = E,
+    ∀ σ : K ≃ₐ[F] K, E.map ↑σ ≤ E ].tfae :=
+begin
+  tfae_have : 1 → 2,
+  { introsI _ σ,
+    ext x,
+    rw [← set_like.mem_coe, coe_map],
+    split,
+    { rintro ⟨y, hy, rfl⟩,
+      rw [alg_equiv.coe_alg_hom, ← show _ = σ y, from σ.restrict_normal_commutes E ⟨y, hy⟩],
+      apply set_like.coe_mem },
+    { intro hx,
+      refine ⟨σ.symm x, _, σ.apply_symm_apply _⟩,
+      rw [← show _ = σ.symm x, from σ.symm.restrict_normal_commutes E ⟨x, hx⟩, set_like.mem_coe],
+      apply set_like.coe_mem } },
+  tfae_have : 2 → 3,
+  { intros h σ,
+    exact (h σ).symm ▸ le_refl E },
+  tfae_have : 3 → 1,
+  { intro h,
+    split,
+    { intro x,
+      exact is_algebraic_iff.2 (hK.is_algebraic _) },
+    intro x,
+    rw minpoly_eq,
+    refine splits_of_splits (hK.splits x) _,
+    intros y hy,
+    have hx := hK.is_integral (x : K),
+    let σ := (adjoin_root.lift_hom _ _ (aeval_eq_zero_of_mem_root_set hy)).comp
+      (adjoin_root_equiv_adjoin F hx).symm.to_alg_hom,
+    apply set_like.le_def.1
+      (h (alg_equiv.of_bijective _ ((σ.lift_normal K).normal_bijective _ _ _))),
+    rw [← set_like.mem_coe, coe_map],
+    use x,
+    rw set_like.mem_coe,
+    refine ⟨set_like.coe_mem _, _⟩,
+    show σ.lift_normal K (algebra_map _ K (adjoin_simple.gen F (x : K))) = _,
+    rw alg_hom.lift_normal_commutes,
+    show adjoin_root.lift_hom _ _ _ ((adjoin_root_equiv_adjoin F hx).symm _) = _,
+    rw [← adjoin_root_equiv_adjoin_apply_root F hx,
+      alg_equiv.symm_apply_apply, adjoin_root.lift_hom_root] },
+  tfae_finish
+end
+
+lemma normal_iff_forall_map_eq [normal F K] {E : intermediate_field F K} :
+  normal F E ↔ ∀ σ : K ≃ₐ[F] K, E.map ↑σ = E :=
+E.normal_tfae.out 0 1
+
+end intermediate_field
+
+end tfae

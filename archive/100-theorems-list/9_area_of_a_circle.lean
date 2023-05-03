@@ -3,7 +3,7 @@ Copyright (c) 2021 James Arthur, Benjamin Davidson, Andrew Souther. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
-import measure_theory.integral.interval_integral
+import measure_theory.integral.fund_thm_calculus
 import analysis.special_functions.sqrt
 import analysis.special_functions.trigonometric.inverse_deriv
 

@@ -17,8 +17,7 @@ of modular forms.
 
 In the `modular_form` locale, this provides
 
-* `f ∣[k;γ] A`: the `k`th `γ`-compatible slash action by `A` on `f`
-* `f ∣[k] A`: the `k`th `ℂ`-compatible slash action by `A` on `f`; a shorthand for `f ∣[k;ℂ] A`
+* `f ∣[k] A`: the `k`th slash action by `A` on `f`
 -/
 
 open complex upper_half_plane
@@ -34,18 +33,21 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
+/-- A type synonym for `G` which acts via `•` as the `b`th slash action. -/
 @[derive group]
 def slash_act {β : Type*} (G : Type*) [group G] (b : β) :=
 mul_opposite G
 
+/-- Convert from `G` to `slash_act G b`. -/
 def slash_act.of {β : Type*} {G : Type*} [group G] (b : β) (g : G) : slash_act G b :=
 mul_opposite.op g
 
+/-- Given a morphism between two groups, produce the morphism between the type aliases. -/
 def slash_act.map {β : Type*} {G H : Type*} [group G] [group H] (b : β) (f : G →* H) :
   slash_act G b →* slash_act H b :=
 f.op
 
-/--A general version of the slash action of the space of modular forms.-/
+/-- A general version of the slash action of the space of modular forms. -/
 @[reducible] def slash_action (β G α : Type*) [group G] [add_monoid α] :=
 Π b : β, distrib_mul_action (slash_act G b) α
 
@@ -155,8 +157,8 @@ instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) :=
     smul_zero := λ a, zero_slash z a.unop,
     smul_add := λ a b, slash_add z _ _ }
 
-instance {z : ℤ} : smul_comm_class ℂ (slash_act GL(2, ℝ)⁺ z) (ℍ → ℂ) :=
-⟨λ _ _ _, (smul_slash z _ _ _).symm⟩
+instance [is_scalar_tower α ℂ ℂ] {z : ℤ} : smul_comm_class (slash_act GL(2, ℝ)⁺ z) α (ℍ → ℂ) :=
+⟨λ _ _ _, smul_slash z _ _ _⟩
 
 end
 
@@ -166,12 +168,21 @@ instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ (ℍ �
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ)))
 
+instance subgroup_smul_comm_class {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
+  (Γ : subgroup SL(2, ℤ)) {z : ℤ} :
+  smul_comm_class (slash_act Γ z) α (ℍ → ℂ) :=
+⟨λ _ _ _, smul_slash z _ _ _⟩
+
 @[simp] lemma subgroup_slash (Γ : subgroup SL(2, ℤ)) (γ : Γ):
   (f ∣[k] γ) = f ∣[k] (γ : GL(2,ℝ)⁺) := rfl
 
 instance SL_action : slash_action ℤ SL(2, ℤ) (ℍ → ℂ) :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (matrix.special_linear_group.map (int.cast_ring_hom ℝ)))
+
+instance SL_smul_comm_class {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ] {z : ℤ} :
+  smul_comm_class (slash_act SL(2, ℤ) z) α (ℍ → ℂ) :=
+⟨λ _ _ _, smul_slash z _ _ _⟩
 
 @[simp] lemma SL_slash (γ : SL(2, ℤ)): f ∣[k] γ = f ∣[k] (γ : GL(2,ℝ)⁺) := rfl
 

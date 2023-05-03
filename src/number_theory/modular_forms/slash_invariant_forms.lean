@@ -120,7 +120,7 @@ variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
 instance has_smul : has_smul α (slash_invariant_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
-    slash_action_eq' := λ γ, by rw [←smul_one_smul ℂ c ⇑f, slash_action.smul_slash k γ ⇑f,
+    slash_action_eq' := λ γ, by rw [ slash_action.smul_slash k γ ⇑f c,
                                     slash_action_eqn] }⟩
 
 @[simp] lemma coe_smul (f : slash_invariant_form Γ k) (n : α) : ⇑(n • f) = n • f := rfl

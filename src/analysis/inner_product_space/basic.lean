@@ -259,7 +259,7 @@ begin
   rw [← @of_real_inj 𝕜, coe_norm_sq_eq_inner_self],
   simp only [inner_sub_sub_self, inner_smul_left, inner_smul_right, conj_of_real, mul_sub,
     ← coe_norm_sq_eq_inner_self x, ← coe_norm_sq_eq_inner_self y],
-  rw [← mul_assoc, mul_conj, is_R_or_C.conj_mul_eq_norm_sq_left, norm_sq_eq_def',
+  rw [← mul_assoc, mul_conj, is_R_or_C.conj_mul, norm_sq_eq_def',
     mul_left_comm, ← inner_conj_symm y, mul_conj, norm_sq_eq_def'],
   push_cast,
   ring
@@ -327,8 +327,7 @@ def to_normed_space : normed_space 𝕜 F :=
 { norm_smul_le := assume r x,
   begin
     rw [norm_eq_sqrt_inner, inner_smul_left, inner_smul_right, ←mul_assoc],
-    rw [is_R_or_C.conj_mul_eq_norm_sq_left, of_real_mul_re, sqrt_mul, ← coe_norm_sq_eq_inner_self,
-      of_real_re],
+    rw [is_R_or_C.conj_mul, of_real_mul_re, sqrt_mul, ← coe_norm_sq_eq_inner_self, of_real_re],
     { simp [sqrt_norm_sq_eq_norm, is_R_or_C.sqrt_norm_sq_eq_norm] },
     { exact norm_sq_nonneg r }
   end }

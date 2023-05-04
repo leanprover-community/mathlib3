@@ -405,14 +405,14 @@ by simp_rw [to_Ioc_mod, to_Ioc_div_add_right_eq, sub_add_eq_add_sub]
 lemma to_Ico_mod_neg (a b : α) : to_Ico_mod hp a (-b) = p - to_Ioc_mod hp (-a) b :=
 by { simp_rw [to_Ico_mod, to_Ioc_mod, to_Ico_div_neg, neg_smul, add_smul], abel }
 
+lemma to_Ico_mod_neg' (a b : α) : to_Ico_mod hp (-a) b = p - to_Ioc_mod hp a (-b) :=
+by simpa only [neg_neg] using to_Ico_mod_neg hp (-a) (-b)
+
 lemma to_Ioc_mod_neg (a b : α) : to_Ioc_mod hp a (-b) = p - to_Ico_mod hp (-a) b :=
 by { simp_rw [to_Ioc_mod, to_Ico_mod, to_Ioc_div_neg, neg_smul, add_smul], abel }
 
-lemma to_Ico_mod_neg' (a b : α) : to_Ico_mod hp (-a) b = p - to_Ioc_mod hp a (-b) :=
-by rw [to_Ioc_mod_neg, sub_sub_cancel]
-
 lemma to_Ioc_mod_neg' (a b : α) : to_Ioc_mod hp (-a) b = p - to_Ico_mod hp a (-b) :=
-by rw [to_Ico_mod_neg, sub_sub_cancel]
+by simpa only [neg_neg] using to_Ioc_mod_neg hp (-a) (-b)
 
 lemma to_Ico_mod_eq_to_Ico_mod : to_Ico_mod hp a b = to_Ico_mod hp a c ↔ ∃ n : ℤ, c - b = n • p :=
 begin

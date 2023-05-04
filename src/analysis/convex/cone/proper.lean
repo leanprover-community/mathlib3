@@ -38,23 +38,24 @@ open continuous_linear_map filter
 
 namespace convex_cone
 
-variables {E : Type*} [add_comm_monoid E] [has_smul ℝ E] [topological_space E]
-  [has_continuous_const_smul ℝ E] [has_continuous_add E]
+variables {𝕜 : Type*} [ordered_semiring 𝕜]
+variables {E : Type*} [add_comm_monoid E] [topological_space E] [has_continuous_add E]
+  [has_smul 𝕜 E] [has_continuous_const_smul 𝕜 E]
 
-/-- The closure of a convex cone inside a real inner product space is a convex cone. This
+/-- The closure of a convex cone inside a topological space is a convex cone. This
 construction is mainly used for defining maps between proper cones. -/
-protected def closure (K : convex_cone ℝ E) : convex_cone ℝ E :=
+protected def closure (K : convex_cone 𝕜 E) : convex_cone 𝕜 E :=
 { carrier := closure ↑K,
   smul_mem' :=
     λ c hc _ h₁, map_mem_closure (continuous_id'.const_smul c) h₁ (λ _ h₂, K.smul_mem hc h₂),
   add_mem' := λ _ h₁ _ h₂, map_mem_closure₂ continuous_add h₁ h₂ K.add_mem }
 
-@[simp, norm_cast] lemma coe_closure (K : convex_cone ℝ E) : (K.closure : set E) = closure K := rfl
+@[simp, norm_cast] lemma coe_closure (K : convex_cone 𝕜 E) : (K.closure : set E) = closure K := rfl
 
-@[simp] protected lemma mem_closure {K : convex_cone ℝ E} {a : E} :
+@[simp] protected lemma mem_closure {K : convex_cone 𝕜 E} {a : E} :
   a ∈ K.closure ↔ a ∈ closure (K : set E) := iff.rfl
 
-lemma closure_eq_iff_is_closed {K : convex_cone ℝ E} : K.closure = K ↔ is_closed (K : set E) :=
+lemma closure_eq_iff_is_closed {K : convex_cone 𝕜 E} : K.closure = K ↔ is_closed (K : set E) :=
 ⟨ (λ h, by rw [← closure_eq_iff_is_closed, ← coe_closure, h]),
   (λ h, set_like.coe_injective $ closure_eq_iff_is_closed.2 h) ⟩
 
@@ -64,44 +65,58 @@ end convex_cone
 property that the dual of the dual of a proper cone is itself. This makes them useful for defining
 cone programs and proving duality theorems. -/
 structure proper_cone (𝕜 : Type*) (E : Type*)
-  [is_R_or_C 𝕜] [ordered_semiring 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
+  [ordered_semiring 𝕜] [add_comm_monoid E] [topological_space E] [has_smul 𝕜 E]
   extends convex_cone 𝕜 E :=
 (nonempty'  : (carrier : set E).nonempty)
 (is_closed' : is_closed (carrier : set E))
 
 namespace proper_cone
 
+section has_smul
+
+variables {𝕜 : Type*} [ordered_semiring 𝕜]
+variables {E : Type*} [add_comm_monoid E] [topological_space E] [has_smul 𝕜 E]
+
+instance : has_coe (proper_cone 𝕜 E) (convex_cone 𝕜 E) := ⟨λ K, K.1⟩
+
+@[simp] lemma to_convex_cone_eq_coe (K : proper_cone 𝕜 E) : K.to_convex_cone = K := rfl
+
+lemma ext' : function.injective (coe : proper_cone 𝕜 E → convex_cone 𝕜 E) :=
+λ S T h, by cases S; cases T; congr'
+
+-- TODO: add convex_cone_class that extends set_like and replace the below instance
+instance : set_like (proper_cone 𝕜 E) E :=
+{ coe := λ K, K.carrier,
+  coe_injective' := λ _ _ h, proper_cone.ext' (set_like.coe_injective h) }
+
+@[ext] lemma ext {S T : proper_cone 𝕜 E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
+
+@[simp] lemma mem_coe {x : E} {K : proper_cone 𝕜 E} : x ∈ (K : convex_cone 𝕜 E) ↔ x ∈ K := iff.rfl
+
+protected lemma nonempty (K : proper_cone 𝕜 E) : (K : set E).nonempty := K.nonempty'
+
+protected lemma is_closed (K : proper_cone 𝕜 E) : is_closed (K : set E) := K.is_closed'
+
+end has_smul
+
+section module
+
+variables {𝕜 : Type*} [ordered_semiring 𝕜]
+variables {E : Type*} [add_comm_monoid E] [topological_space E] [t1_space E] [module 𝕜 E]
+
+instance : has_zero (proper_cone 𝕜 E) :=
+⟨ { to_convex_cone := 0,
+    nonempty' := ⟨0, rfl⟩,
+    is_closed' := is_closed_singleton } ⟩
+
+instance : inhabited (proper_cone 𝕜 E) := ⟨0⟩
+
+end module
+
 section inner_product_space
 
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
-
-noncomputable instance : has_coe (proper_cone ℝ E) (convex_cone ℝ E) := ⟨λ K, K.1⟩
-
-@[simp] lemma to_convex_cone_eq_coe (K : proper_cone ℝ E) : K.to_convex_cone = K := rfl
-
-noncomputable instance : has_zero (proper_cone ℝ E) :=
-⟨ { to_convex_cone := (0 : convex_cone ℝ E),
-    nonempty' := ⟨0, rfl⟩,
-    is_closed' := is_closed_singleton } ⟩
-
-noncomputable instance : inhabited (proper_cone ℝ E) := ⟨0⟩
-
-lemma ext' : function.injective (coe : proper_cone ℝ E → convex_cone ℝ E) :=
-λ S T h, by cases S; cases T; congr'
-
--- TODO: add convex_cone_class that extends set_like and replace the below instance
-instance : set_like (proper_cone ℝ E) E :=
-{ coe := λ K, K.carrier,
-  coe_injective' := λ _ _ h, proper_cone.ext' (set_like.coe_injective h) }
-
-@[ext] lemma ext {S T : proper_cone ℝ E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
-
-@[simp] lemma mem_coe {x : E} {K : proper_cone ℝ E} : x ∈ (K : convex_cone ℝ E) ↔ x ∈ K := iff.rfl
-
-protected lemma nonempty (K : proper_cone ℝ E) : (K : set E).nonempty := K.nonempty'
-
-protected lemma is_closed (K : proper_cone ℝ E) : is_closed (K : set E) := K.is_closed'
 
 protected lemma pointed (K : proper_cone ℝ E) : (K : convex_cone ℝ E).pointed :=
 (K : convex_cone ℝ E).pointed_of_nonempty_of_is_closed K.nonempty K.is_closed

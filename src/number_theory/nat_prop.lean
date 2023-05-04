@@ -26,23 +26,11 @@ end
 
 lemma lt_mul_pow_right {m a b : ℕ} (h1 : 0 < b) (h2 : 1 < a) (h3 : 1 < m) : a < b * a^m :=
 lt_of_le_of_lt ((le_mul_iff_one_le_left (lt_trans zero_lt_one h2)).2 h1)
-  (mul_lt_mul' le_rfl (lt_pow h2 h3) (nat.zero_le _) h1)
+  (mul_lt_mul' le_rfl (lt_self_pow h2 h3) (nat.zero_le _) h1)
 
 lemma le_mul_pow_right {m a b : ℕ} (h1 : 0 < b) (h2 : 1 < a) (h3 : 1 ≤ m) : a ≤ b * a^m :=
 le_trans ((le_mul_iff_one_le_left (lt_trans zero_lt_one h2)).2 h1)
-  (mul_le_mul' le_rfl (le_pow (le_of_lt h2) h3))
-
-lemma cast_eq_coe_b (x : ℕ) : @nat.cast ℤ _ x = coe_b x :=
-begin
-  induction x with d hd,
-  { change 0 = @has_coe.coe ℕ ℤ _ 0,
-    change _ = int.of_nat 0,
-    simp only [int.coe_nat_zero, int.of_nat_eq_coe], },
-  { show d.cast + 1 = @has_coe.coe ℕ ℤ _ d.succ,
-    change _ = int.of_nat d.succ,
-    simp only [int.of_nat_eq_coe, int.coe_nat_succ, add_left_inj],
-    change _ = int.of_nat d at hd, simp [hd], },
-end
+  (mul_le_mul' le_rfl (le_self_pow (le_of_lt h2) h3))
 
 lemma add_self_pred (n : ℕ) : n + (n - 1) = 2 * n - 1 :=
 begin
@@ -72,13 +60,14 @@ begin
     rw [nat.mul_eq_one_iff, pow_mul', pow_succ, pow_one, nat.mul_eq_one_iff] at h',
     rw [h'.1, h'.2.1, one_mul], },
   { have p2 : p^(2 * n) ≠ 0 := pow_ne_zero _ (nat.prime.ne_zero (fact.out _)),
+
     simp only [ne_zero_of_lt' 0, p2, or_self] at h,
     exfalso,
     exact h, },
 end
 
 instance [ne_zero d] {n : ℕ} : fact (0 < d * p^n) :=
-fact_iff.2 (mul_pos (fact.out _) (pow_pos (nat.prime.pos (fact.out _)) _))
+fact_iff.2 (mul_pos (nat.pos_of_ne_zero _) (pow_pos (nat.prime.pos (fact.out _)) _))
 
 lemma mul_prime_pow_pos [ne_zero d] (m : ℕ) : 0 < d * p^m := fact_iff.1 infer_instance
 

@@ -57,8 +57,63 @@ begin
   exact f.restrict_normal_commutes K a ▸ (f.restrict_normal K a).2,
 end
 
-lemma normal_closure_normal_closure [normal F L] :
-  K.normal_closure.normal_closure = K.normal_closure :=
+variables [normal F L]
+
+lemma normal_closure_normal_closure : K.normal_closure.normal_closure = K.normal_closure :=
 K.normal_closure.normal_closure_of_normal
+
+lemma normal_closure_def' : K.normal_closure = ⨆ f : L →ₐ[F] L, K.map f :=
+begin
+  refine K.normal_closure_def.trans (le_antisymm (supr_le (λ f, _)) (supr_le (λ f, _))),
+  { exact le_supr_of_le (f.lift_normal L) (λ b ⟨a, h⟩, ⟨a, a.2, h ▸ f.lift_normal_commutes L a⟩) },
+  { exact le_supr_of_le (f.comp K.val) (λ b ⟨a, h⟩, ⟨⟨a, h.1⟩, h.2⟩) },
+end
+
+lemma normal_closure_def'' : K.normal_closure = ⨆ f : L ≃ₐ[F] L, K.map f :=
+begin
+  refine K.normal_closure_def'.trans (le_antisymm (supr_le (λ f, _)) (supr_le (λ f, _))),
+  { exact le_supr_of_le (f.restrict_normal' L)
+      (λ b ⟨a, h⟩, ⟨a, h.1, h.2 ▸ f.restrict_normal_commutes L a⟩) },
+  { exact le_supr_of_le f le_rfl },
+end
+
+variables {K K'}
+
+lemma normal_closure_eq_self_iff_normal : K.normal_closure = K ↔ normal F K :=
+⟨λ h, h ▸ normal_closure.normal K, @normal_closure_of_normal F L _ _ _ K⟩
+
+lemma normal_closure_le_self_iff_normal : K.normal_closure ≤ K ↔ normal F K :=
+K.le_normal_closure.le_iff_eq.trans normal_closure_eq_self_iff_normal
+
+lemma normal_iff_forall_field_range_le : normal F K ↔ ∀ σ : K →ₐ[F] L, σ.field_range ≤ K :=
+by rw [←normal_closure_le_self_iff_normal, normal_closure_def, supr_le_iff]
+
+lemma normal_iff_forall_map_le : normal F K ↔ ∀ σ : L →ₐ[F] L, K.map σ ≤ K :=
+by rw [←normal_closure_le_self_iff_normal, normal_closure_def', supr_le_iff]
+
+lemma normal_iff_forall_map_le' : normal F K ↔ ∀ σ : L ≃ₐ[F] L, K.map ↑σ ≤ K :=
+by rw [←normal_closure_le_self_iff_normal, normal_closure_def'', supr_le_iff]
+
+lemma normal_iff_forall_field_range_eq : normal F K ↔ ∀ σ : K →ₐ[F] L, σ.field_range = K :=
+begin
+  haveI : is_scalar_tower F K K := by apply_instance,
+  refine ⟨_, λ h, normal_iff_forall_field_range_le.mpr (λ σ, (h σ).le)⟩,
+  introsI h σ,
+  exact le_antisymm (normal_iff_forall_field_range_le.mp h σ)
+    (λ x hx, ⟨(σ.restrict_normal' K).symm ⟨x, hx⟩,
+    (σ.restrict_normal_commutes K ((σ.restrict_normal' K).symm ⟨x, hx⟩)).symm.trans
+    (congr_arg (algebra_map K L) ((σ.restrict_normal' K).apply_symm_apply ⟨x, hx⟩))⟩),
+end
+
+lemma normal_iff_forall_map_eq : normal F K ↔ ∀ σ : L →ₐ[F] L, K.map σ = K :=
+begin
+  refine ⟨λ h σ, _, λ h, normal_iff_forall_map_le.mpr (λ σ, (h σ).le)⟩,
+  refine eq.trans _ (normal_iff_forall_field_range_eq.mp h (σ.comp K.val)),
+  refine eq.trans _ (K.val.map_field_range σ),
+  exact congr_arg (map σ) (set_like.ext' subtype.range_val.symm),
+end
+
+lemma normal_iff_forall_map_eq' : normal F K ↔ ∀ σ : L ≃ₐ[F] L, K.map ↑σ = K :=
+⟨λ h σ, normal_iff_forall_map_eq.mp h σ, λ h, normal_iff_forall_map_le'.mpr (λ σ, (h σ).le)⟩
 
 end intermediate_field

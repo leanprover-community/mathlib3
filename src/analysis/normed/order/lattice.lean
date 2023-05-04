@@ -40,6 +40,8 @@ local notation (name := abs) `|`a`|` := abs a
 
 section solid_norm
 
+/-- Let `α` be an `add_comm_group` with a `lattice` structure. A norm on `α` is solid if the balls
+of `α` for this norm are solid sets. -/
 class has_solid_norm (α : Type*) [normed_add_comm_group α] [lattice α]  : Prop :=
 (solid :  ∀ ⦃x y : α⦄, |x| ≤ |y| → ‖x‖ ≤ ‖y‖)
 

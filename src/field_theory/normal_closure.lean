@@ -83,20 +83,20 @@ end
 
 variables {K K'}
 
-lemma normal_closure_eq_self_iff_normal : K.normal_closure = K ↔ normal F K :=
-⟨λ h, h ▸ normal_closure.normal K, @normal_closure_of_normal F L _ _ _ K⟩
+lemma normal_iff_normal_closure_eq : normal F K ↔ K.normal_closure = K :=
+⟨@normal_closure_of_normal F L _ _ _ K, λ h, h ▸ normal_closure.normal K⟩
 
-lemma normal_closure_le_self_iff_normal : K.normal_closure ≤ K ↔ normal F K :=
-K.le_normal_closure.le_iff_eq.trans normal_closure_eq_self_iff_normal
+lemma normal_iff_normal_closure_le : normal F K ↔ K.normal_closure ≤ K :=
+normal_iff_normal_closure_eq.trans K.le_normal_closure.le_iff_eq.symm
 
 lemma normal_iff_forall_field_range_le : normal F K ↔ ∀ σ : K →ₐ[F] L, σ.field_range ≤ K :=
-by rw [←normal_closure_le_self_iff_normal, normal_closure_def, supr_le_iff]
+by rw [normal_iff_normal_closure_le, normal_closure_def, supr_le_iff]
 
 lemma normal_iff_forall_map_le : normal F K ↔ ∀ σ : L →ₐ[F] L, K.map σ ≤ K :=
-by rw [←normal_closure_le_self_iff_normal, normal_closure_def', supr_le_iff]
+by rw [normal_iff_normal_closure_le, normal_closure_def', supr_le_iff]
 
 lemma normal_iff_forall_map_le' : normal F K ↔ ∀ σ : L ≃ₐ[F] L, K.map ↑σ ≤ K :=
-by rw [←normal_closure_le_self_iff_normal, normal_closure_def'', supr_le_iff]
+by rw [normal_iff_normal_closure_le, normal_closure_def'', supr_le_iff]
 
 lemma normal_iff_forall_field_range_eq : normal F K ↔ ∀ σ : K →ₐ[F] L, σ.field_range = K :=
 begin

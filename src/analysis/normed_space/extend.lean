@@ -85,7 +85,7 @@ by simp only [extend_to_𝕜'_apply, map_sub, zero_mul, mul_zero, sub_zero] with
 lemma norm_extend_to_𝕜'_apply_sq (f : F →ₗ[ℝ] ℝ) (x : F) :
   ‖(f.extend_to_𝕜' x : 𝕜)‖ ^ 2 = f (conj (f.extend_to_𝕜' x : 𝕜) • x) :=
 calc ‖(f.extend_to_𝕜' x : 𝕜)‖ ^ 2 = re (conj (f.extend_to_𝕜' x) * f.extend_to_𝕜' x : 𝕜) :
-  by rw [is_R_or_C.conj_mul_eq_norm_sq_left, norm_sq_eq_def', of_real_re]
+  by rw [is_R_or_C.conj_mul, norm_sq_eq_def', of_real_re]
 ... = f (conj (f.extend_to_𝕜' x : 𝕜) • x) :
   by rw [← smul_eq_mul, ← map_smul, extend_to_𝕜'_apply_re]
 

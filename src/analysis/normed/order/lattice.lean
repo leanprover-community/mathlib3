@@ -43,11 +43,7 @@ section solid_norm
 class has_solid_norm (α : Type*) [normed_add_comm_group α] [lattice α]  : Prop :=
 (solid :  ∀ ⦃x y : α⦄, |x| ≤ |y| → ‖x‖ ≤ ‖y‖)
 
-variables {α : Type*} [normed_add_comm_group α] [lattice α]
-
-lemma solid [has_solid_norm α] {a b : α} (h : |a| ≤ |b|): ‖a‖ ≤ ‖b‖ := has_solid_norm.solid h
-
-alias solid ← norm_le_norm_of_abs_le_abs
+alias has_solid_norm.solid ← norm_le_norm_of_abs_le_abs
 
 instance : has_solid_norm ℝ := ⟨λ _ _, id⟩
 
@@ -76,7 +72,7 @@ instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
   [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α := { ..h }
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
-open lattice_ordered_comm_group
+open lattice_ordered_comm_group has_solid_norm
 
 lemma dual_solid (a b : α) (h: b⊓-b ≤ a⊓-a) : ‖a‖ ≤ ‖b‖ :=
 begin
@@ -163,7 +159,6 @@ instance normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
   [normed_lattice_add_comm_group α] :
   has_continuous_sup α :=
 order_dual.has_continuous_sup αᵒᵈ
-
 
 /--
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.

@@ -129,24 +129,16 @@ by evaluating: `a ↦ (f ↦ f a)`.
 
 lemma to_Div_inj_of_exists
   (h : ∀ (a : A), a ≠ 0 → ∃ (f : (⟨ℤ ∙ a⟩ : Module ℤ) ⟶ ⟨rat_circle⟩),
-    f ⟨a, submodule.subset_span $ set.mem_singleton _⟩ ≠ 0) :
+    f ⟨a, submodule.subset_span rfl⟩ ≠ 0) :
   function.injective $ to_Div A :=
-begin
-  contrapose! h,
-  simp only [function.injective, not_forall] at h,
-  obtain ⟨a, b, h1, h2⟩ := h,
-  refine ⟨a-b, λ r, h2 (sub_eq_zero.mp r), λ f, _⟩,
-  haveI injQZ : category_theory.injective (⟨rat_circle.{u}⟩ : Module ℤ) :=
-    injective_as_module_of_injective_as_Ab _,
-  let g : (⟨ℤ ∙ (a - b)⟩ : Module ℤ) ⟶ ⟨A⟩ := submodule.subtype (ℤ ∙ (a - b)),
+(injective_iff_map_eq_zero _).2 $ λ a h0, not_not.1 $ λ ha, begin
+  obtain ⟨f, hf⟩ := h a ha,
+  let g : (⟨ℤ ∙ a⟩ : Module ℤ) ⟶ ⟨A⟩ := (ℤ ∙ a).subtype,
   haveI : mono g,
   { rw Module.mono_iff_injective, apply submodule.injective_subtype, },
-  have f_eq := injective.comp_factor_thru f g,
-  rw [←fun_like.congr_fun f_eq ⟨a - b, submodule.subset_span (set.mem_singleton _)⟩,
-    comp_apply],
-  have := congr_fun h1 (injective.factor_thru f g).to_add_monoid_hom,
-  rw [to_Div_apply, to_Div_apply, ←sub_eq_zero, ←map_sub] at this,
-  convert this,
+  haveI := injective_as_module_of_injective_as_Ab (⟨rat_circle.{u}⟩ : Ab),
+  rw [←fun_like.congr_fun (injective.comp_factor_thru f g) ⟨a, _⟩] at hf,
+  exact hf (congr_fun h0 (injective.factor_thru f g).to_add_monoid_hom),
 end
 
 namespace infinite_order

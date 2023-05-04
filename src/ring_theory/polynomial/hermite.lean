@@ -21,11 +21,12 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
 
 ## Results
 
+* `polynomial.hermite_succ`: the recursion `hermite (n+1) = (x - d/dx) (hermite n)`
+* `polynomial.hermite_eq_deriv_gaussian`: the Hermite polynomial is (up to sign) the polynomial
+factor occurring in the `n`th derivative of a gaussian.
 * `polynomial.coeff_hermite_of_odd_add`: for `n`,`k` where `n+k` is odd, `(hermite n).coeff k` is
   zero.
 * `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
-* `polynomial.hermite_eq_deriv_gaussian`: the recursive polynomial definition is equivalent to the
-  definition as (up to sign) the polynomial factor occurring in the `n`th derivative of a gaussian.
 
 ## References
 
@@ -38,7 +39,7 @@ open polynomial
 
 namespace polynomial
 
-/-- the nth probabilist's Hermite polynomial -/
+/-- the nth probabilist's Hermite polynomial H_(n+1) = (x - d/dx) H_n -/
 noncomputable def hermite : ℕ → polynomial ℤ
 | 0     := 1
 | (n+1) := X * (hermite n) - (hermite n).derivative

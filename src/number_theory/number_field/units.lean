@@ -39,7 +39,7 @@ local attribute [instance] number_field.ring_of_integers_algebra
 open finite_dimensional
 
 lemma is_unit_iff_norm [number_field K] (x : 𝓞 K) :
-  is_unit x ↔ abs (ring_of_integers.norm ℚ x : ℚ) = 1 :=
+  is_unit x ↔ |(ring_of_integers.norm ℚ x : ℚ)| = 1 :=
 begin
   letI : algebra K (algebraic_closure K) := algebraic_closure.algebra K,
   let L := normal_closure ℚ K (algebraic_closure K),
@@ -47,22 +47,27 @@ begin
   haveI : is_alg_closure ℚ (algebraic_closure K) :=
     is_alg_closure.of_algebraic ℚ K (algebraic_closure K) (number_field.is_algebraic K),
   haveI : is_galois K L := is_galois.tower_top_of_is_galois ℚ K L,
-  suffices : is_unit (ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x)) ↔
-    |(ring_of_integers.norm ℚ (algebra_map (𝓞 K) (𝓞 L) x) : ℚ)| = 1,
-  { convert this using 1,
-    { rw (_ : ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x) = x ^ (finrank K L)),
-      { rw is_unit_pow_iff,
-        exact pos_iff_ne_zero.mp finrank_pos, },
-      { rw [← subtype.coe_inj, ring_of_integers.coe_norm_algebra_map, algebra.norm_algebra_map,
-        subsemiring_class.coe_pow], }},
-    { rw [ring_of_integers.norm_apply_coe, ring_of_integers.norm_apply_coe,
-        show (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K), by refl,
-        ←algebra.norm_norm ℚ K (algebra_map K L x : L), algebra.norm_algebra_map, map_pow, abs_pow],
-      nth_rewrite 1 ← one_pow (finrank K L),
-      rw pow_left_inj (abs_nonneg _ : 0 ≤ |(algebra.norm ℚ) ↑x|) zero_le_one
-      (@finrank_pos K L _ _ _ _ _), }},
-  { rw [ring_of_integers.is_unit_norm K, ← abs_one, abs_eq_abs, ← rat.ring_of_integers.is_unit_iff],
-    exact (ring_of_integers.is_unit_norm ℚ).symm, },
+  calc
+    is_unit x ↔ is_unit (x ^ finrank K L) : (is_unit_pow_iff (pos_iff_ne_zero.mp finrank_pos)).symm
+          ... ↔ is_unit (ring_of_integers.norm K (algebra_map (𝓞 K) (𝓞 L) x)) :
+        begin
+          refine (congr_arg is_unit _).to_iff,
+          rw [← subtype.coe_inj, ring_of_integers.coe_norm_algebra_map, algebra.norm_algebra_map,
+            subsemiring_class.coe_pow],
+        end
+          ... ↔ is_unit (algebra_map (𝓞 K) (𝓞 L) x) : ring_of_integers.is_unit_norm K
+          ... ↔ |(ring_of_integers.norm ℚ (algebra_map (𝓞 K) (𝓞 L) x) : ℚ)| = 1 : by
+          rw [(ring_of_integers.is_unit_norm ℚ).symm, ← abs_one, abs_eq_abs,
+            ← rat.ring_of_integers.is_unit_iff]
+          ... ↔ |(ring_of_integers.norm ℚ x : ℚ)| = 1 :
+        begin
+          rw [ring_of_integers.norm_apply_coe, ring_of_integers.norm_apply_coe,
+            show (algebra_map (𝓞 K) (𝓞 L) x : L) = algebra_map K L (x : K), by refl,
+            ← algebra.norm_norm ℚ K (algebra_map K L x : L), algebra.norm_algebra_map, map_pow,
+            abs_pow],
+          nth_rewrite 0 ← one_pow (finrank K L),
+          exact pow_left_inj (abs_nonneg _ : 0 ≤ |(algebra.norm ℚ) ↑x|) zero_le_one finrank_pos,
+        end
 end
 
 end is_unit

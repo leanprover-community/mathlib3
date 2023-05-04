@@ -143,7 +143,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
 @[reducible]
 noncomputable def normed_add_comm_group.of_matrix {M : matrix n n 𝕜} (hM : M.pos_def) :
   normed_add_comm_group (n → 𝕜) :=
-@inner_product_space.of_core.to_normed_add_comm_group _ _ _ _ _
+@inner_product_space.core.to_normed_add_comm_group _ _ _ _ _
 { inner := λ x y, dot_product (star x) (M.mul_vec y),
   conj_symm := λ x y, by dsimp only [has_inner.inner];
     rw [star_dot_product, star_ring_end_apply, star_star, star_mul_vec,

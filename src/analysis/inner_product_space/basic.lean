@@ -136,7 +136,9 @@ local to this proof. -/
 attribute [class] inner_product_space.core
 
 /-- Define `inner_product_space.core` from `inner_product_space`. Defined to reuse lemmas about
-`inner_product_space.core` for `inner_product_space`s. -/
+`inner_product_space.core` for `inner_product_space`s. Note that the `has_norm` instance provided by
+`inner_product_space.core.has_norm` is propositionally but not definitionally equal to the original
+norm. -/
 def inner_product_space.to_core [normed_add_comm_group E] [c : inner_product_space 𝕜 E] :
   inner_product_space.core 𝕜 E :=
 { nonneg_re := λ x, by { rw [← inner_product_space.norm_sq_eq_inner], apply sq_nonneg },
@@ -144,7 +146,7 @@ def inner_product_space.to_core [normed_add_comm_group E] [c : inner_product_spa
     by rw [inner_product_space.norm_sq_eq_inner x, hx, map_zero],
   .. c }
 
-namespace inner_product_space.of_core
+namespace inner_product_space.core
 
 variables [add_comm_group F] [module 𝕜 F] [c : inner_product_space.core 𝕜 F]
 include c
@@ -155,9 +157,11 @@ local notation `reK` := @is_R_or_C.re 𝕜 _
 local notation `ext_iff` := @is_R_or_C.ext_iff 𝕜 _
 local postfix `†`:90 := star_ring_end _
 
-/-- Inner product defined by the `inner_product_space.core` structure. -/
-def to_has_inner : has_inner 𝕜 F := c.to_has_inner
-local attribute [instance] to_has_inner
+/-- Inner product defined by the `inner_product_space.core` structure. We can't reuse
+`inner_product_space.core.to_has_inner` because it takes `inner_product_space.core` as an explicit
+argument. -/
+def to_has_inner' : has_inner 𝕜 F := c.to_has_inner
+local attribute [instance] to_has_inner'
 
 /-- The norm squared function for `inner_product_space.core` structure. -/
 def norm_sq (x : F) := reK ⟪x, x⟫
@@ -216,6 +220,9 @@ by norm_num [ext_iff, inner_self_im]
 
 lemma norm_inner_symm (x y : F) : ‖⟪x, y⟫‖ = ‖⟪y, x⟫‖ :=
 by rw [←inner_conj_symm, norm_conj]
+
+lemma norm_inner_symm (x y : F) : ‖⟪x, y⟫‖ = ‖⟪y, x⟫‖ :=
+by rw [is_R_or_C.norm_eq_abs, is_R_or_C.norm_eq_abs, abs_inner_symm]
 
 lemma inner_neg_left (x y : F) : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
@@ -324,10 +331,10 @@ def to_normed_space : normed_space 𝕜 F :=
     { exact norm_sq_nonneg r }
   end }
 
-end inner_product_space.of_core
+end inner_product_space.core
 
 section
-local attribute [instance] inner_product_space.of_core.to_normed_add_comm_group
+local attribute [instance] inner_product_space.core.to_normed_add_comm_group
 
 /-- Given a `inner_product_space.core` structure on a space, one can use it to turn
 the space into an inner product space. The `normed_add_comm_group` structure is expected
@@ -335,11 +342,11 @@ to already be defined with `inner_product_space.of_core.to_normed_add_comm_group
 def inner_product_space.of_core [add_comm_group F] [module 𝕜 F]
   (c : inner_product_space.core 𝕜 F) : inner_product_space 𝕜 F :=
 begin
-  letI : normed_space 𝕜 F := @inner_product_space.of_core.to_normed_space 𝕜 F _ _ _ c,
+  letI : normed_space 𝕜 F := @inner_product_space.core.to_normed_space 𝕜 F _ _ _ c,
   exact { norm_sq_eq_inner := λ x,
     begin
       have h₁ : ‖x‖^2 = (sqrt (re (c.inner x x))) ^ 2 := rfl,
-      have h₂ : 0 ≤ re (c.inner x x) := inner_product_space.of_core.inner_self_nonneg,
+      have h₂ : 0 ≤ re (c.inner x x) := inner_product_space.core.inner_self_nonneg,
       simp [h₁, sq_sqrt, h₂],
     end,
     ..c }
@@ -565,14 +572,14 @@ by simp [inner_add_add_self, inner_sub_sub_self, two_mul, sub_eq_add_neg, add_co
 /-- **Cauchy–Schwarz inequality**. -/
 lemma inner_mul_inner_self_le (x y : E) : ‖⟪x, y⟫‖ * ‖⟪y, x⟫‖ ≤ re ⟪x, x⟫ * re ⟪y, y⟫ :=
 begin
-  letI : inner_product_space.core 𝕜 E := inner_product_space.to_core,
-  exact inner_product_space.of_core.inner_mul_inner_self_le x y
+  letI c : inner_product_space.core 𝕜 E := inner_product_space.to_core,
+  exact inner_product_space.core.inner_mul_inner_self_le x y
 end
 
 /-- Cauchy–Schwarz inequality for real inner products. -/
 lemma real_inner_mul_inner_self_le (x y : F) : ⟪x, y⟫_ℝ * ⟪x, y⟫_ℝ ≤ ⟪x, x⟫_ℝ * ⟪y, y⟫_ℝ :=
 calc ⟪x, y⟫_ℝ * ⟪x, y⟫_ℝ ≤ ‖⟪x, y⟫_ℝ‖ * ‖⟪y, x⟫_ℝ‖ :
-  by { rw [norm_inner_symm y, ← norm_mul], exact le_abs_self _ }
+  by { rw [real_inner_comm y, ← norm_mul], exact le_abs_self _ }
 ... ≤ ⟪x, x⟫_ℝ * ⟪y, y⟫_ℝ : @inner_mul_inner_self_le ℝ _ _ _ _ x y
 
 /-- A family of vectors is linearly independent if they are nonzero
@@ -926,7 +933,7 @@ lemma norm_inner_le_norm (x y : E) : ‖⟪x, y⟫‖ ≤ ‖x‖ * ‖y‖ :=
 begin
   rw [norm_eq_sqrt_inner x, norm_eq_sqrt_inner y],
   letI : inner_product_space.core 𝕜 E := inner_product_space.to_core,
-  exact inner_product_space.of_core.norm_inner_le_norm x y
+  exact inner_product_space.core.norm_inner_le_norm x y
 end
 
 lemma nnnorm_inner_le_nnnorm (x y : E) : ‖⟪x, y⟫‖₊ ≤ ‖x‖₊ * ‖y‖₊ :=
@@ -1416,6 +1423,13 @@ begin
     simp only [norm_div, norm_mul, norm_of_real, abs_norm],
     exact norm_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
 end
+
+/-- If the inner product of two vectors is equal to the product of their norms (i.e.,
+`⟪x, y⟫ = ‖x‖ * ‖y‖`), then the two vectors are nonnegative real multiples of each other. One form
+of the equality case for Cauchy-Schwarz.
+Compare `norm_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ‖x‖ * ‖y‖`. -/
+lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ‖x‖ * ‖y‖ ↔ ‖y‖ • x = ‖x‖ • y :=
+inner_eq_norm_mul_iff
 
 /-- The inner product of two vectors, divided by the product of their
 norms, has absolute value 1 if and only if they are nonzero and one is

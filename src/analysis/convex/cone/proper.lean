@@ -27,6 +27,7 @@ The next steps are:
 - Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
 - Define linear programs and prove LP duality as a special case of cone duality.
 - Find a better reference (textbook instead of lecture notes).
+- Show submodules are (proper) cones.
 
 ## References
 

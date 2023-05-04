@@ -21,8 +21,8 @@ interval.
 
 ## Main definitions
 
-* `add_comm_group.a ≡ b [PMOD p]`: `a` and `b` are congruent modulo a multiple of `p`. See also
-  `smodeq` which is a more general version in arbitrary submodules. Has notation ``a ≡ b [PMOD p]`.
+* `a ≡ b [PMOD p]`: `a` and `b` are congruent modulo a multiple of `p`. See also `smodeq` which is a
+  more general version in arbitrary submodules. This is notation for `add_comm_group.modeq p a b`.
 * `to_Ico_div hp a b` (where `hp : 0 < p`): The unique integer such that this multiple of `p`,
   subtracted from `b`, is in `Ico a (a + p)`.
 * `to_Ico_mod hp a b` (where `hp : 0 < p`): Reduce `b` to the interval `Ico a (a + p)`.

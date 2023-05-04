@@ -207,7 +207,7 @@ end
 by rw [add_comm, to_Ico_div_add_zsmul, add_comm]
 
 @[simp] lemma to_Ioc_div_zsmul_add (a b : α) (m : ℤ) :
-  to_Ioc_div hp a (m • p + b) = to_Ioc_div hp a b + m :=
+  to_Ioc_div hp a (m • p + b) = m + to_Ioc_div hp a b :=
 by rw [add_comm, to_Ioc_div_add_zsmul, add_comm]
 
 @[simp] lemma to_Ico_div_sub_zsmul (a b : α) (m : ℤ) :

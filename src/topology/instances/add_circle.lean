@@ -90,7 +90,7 @@ variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
 lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod hp a =ᶠ[𝓝 x] to_Ioc_mod hp a :=
 is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
   (add_comm_group.not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 $
-    (add_comm_group.not_modeq_iff_ne_mod_zmultiples hp).2 hx
+    add_comm_group.not_modeq_iff_ne_mod_zmultiples.2 hx
 
 lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod hp a) x :=
 let h := to_Ico_mod_eventually_eq_to_Ioc_mod hp a hx in continuous_at_iff_continuous_left_right.2 $

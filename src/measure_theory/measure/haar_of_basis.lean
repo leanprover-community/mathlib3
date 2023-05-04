@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import measure_theory.measure.haar
 import analysis.inner_product_space.pi_L2
-import measure_theory.constructions.pi
 
 /-!
 # Additive Haar measure constructed from a basis

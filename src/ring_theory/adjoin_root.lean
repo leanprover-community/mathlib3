@@ -308,9 +308,10 @@ variables [field K] {f : K[X]}
 instance span_maximal_of_irreducible [fact (irreducible f)] : (span {f}).is_maximal :=
 principal_ideal_ring.is_maximal_of_irreducible $ fact.out _
 
-noncomputable instance has_inv [fact (irreducible f)] : has_inv (adjoin_root f) :=
-{ ..ideal.quotient.field (span {f} : ideal K[X]) }
+noncomputable instance group_with_zero [fact (irreducible f)] : group_with_zero (adjoin_root f) :=
+ideal.quotient.group_with_zero (span {f} : ideal K[X])
 
+-- TODO: golf using new `group_with_zero` instance
 @[simp] lemma of_inv [fact (irreducible f)] (x : K) : of f (x⁻¹) = (of f x)⁻¹ :=
 begin
   unfold has_inv.inv field.inv adjoin_root.has_inv ideal.quotient.field,
@@ -332,9 +333,8 @@ noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
   qsmul := (•),
   qsmul_eq_mul' := λ a x, adjoin_root.induction_on _ x (λ p,
     by { rw [smul_mk, ← mk_C_rat_cast, ← (mk f).map_mul, polynomial.rat_smul_eq_C_mul] }),
-  ..adjoin_root.has_inv,
-  ..adjoin_root.comm_ring f,
-  ..ideal.quotient.field (span {f} : ideal K[X]) }
+  ..adjoin_root.group_with_zero,
+  ..adjoin_root.comm_ring f }
 
 lemma coe_injective (h : degree f ≠ 0) : function.injective (coe : K → adjoin_root f) :=
 have _ := adjoin_root.nontrivial f h, by exactI (of f).injective

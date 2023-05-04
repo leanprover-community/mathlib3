@@ -305,6 +305,7 @@ end extend_restrict_scalars_adj
 Given commutative rings `R, S` and a ring hom `f : R →+* S`, the extension and restriction of
 scalars by `f` are adjoint to each other.
 -/
+@[simps]
 def extend_restrict_scalars_adj {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S]
   (f : R →+* S) : extend_scalars f ⊣ restrict_scalars f :=
 { hom_equiv := λ _ _, extend_restrict_scalars_adj.hom_equiv f,

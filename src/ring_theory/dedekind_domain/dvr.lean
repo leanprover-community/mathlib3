@@ -3,11 +3,9 @@ Copyright (c) 2020 Kenji Nakagawa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
-import ring_theory.dedekind_domain.ideal
-import ring_theory.discrete_valuation_ring.tfae
-import ring_theory.localization.at_prime
+import ring_theory.localization.localization_localization
 import ring_theory.localization.submodule
-
+import ring_theory.discrete_valuation_ring.tfae
 
 /-!
 # Dedekind domains

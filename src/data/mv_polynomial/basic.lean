@@ -1297,6 +1297,44 @@ by { ext, simp only [aeval_X, aeval_tower_X] }
 
 end aeval_tower
 
+section eval_mem
+
+variables {S subS : Type*} [comm_semiring S] [set_like subS S] [subsemiring_class subS S]
+
+theorem eval₂_mem {f : R →+* S}
+  {p : mv_polynomial σ R} {s : subS}
+  (hs : ∀ i ∈ p.support, f (p.coeff i) ∈ s) {v : σ → S} (hv : ∀ i, v i ∈ s) :
+     mv_polynomial.eval₂ f v p ∈ s :=
+begin
+  classical,
+  replace hs : ∀ i, f (p.coeff i) ∈ s,
+  { intro i,
+    by_cases hi : i ∈ p.support,
+    { exact hs i hi },
+    { rw [mv_polynomial.not_mem_support_iff.1 hi, f.map_zero],
+      exact zero_mem s } },
+  induction p using mv_polynomial.induction_on''' with a a b f ha hb0 ih generalizing hs,
+  { simpa using hs 0 },
+  rw [eval₂_add, eval₂_monomial],
+  refine add_mem (mul_mem _ $ prod_mem $ λ i hi, pow_mem (hv _) _) (ih $ λ i, _),
+  { simpa only [coeff_add, coeff_monomial, if_pos rfl,
+      mv_polynomial.not_mem_support_iff.1 ha, add_zero] using hs a },
+  have := hs i,
+  rw [coeff_add, coeff_monomial] at this,
+  split_ifs at this with h h,
+  { subst h,
+    rw [mv_polynomial.not_mem_support_iff.1 ha, map_zero],
+    exact zero_mem _ },
+  { rwa zero_add at this }
+end
+
+theorem eval_mem {p : mv_polynomial σ S} {s : subS}
+  (hs : ∀ i ∈ p.support, p.coeff i ∈ s) {v : σ → S} (hv : ∀ i, v i ∈ s) :
+    mv_polynomial.eval v p ∈ s :=
+eval₂_mem hs hv
+
+end eval_mem
+
 end comm_semiring
 
 end mv_polynomial

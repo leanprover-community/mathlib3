@@ -72,6 +72,8 @@ instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
 { ..submodule.quotient.add_comm_group I,  -- to help with unification
   ..(quotient.ring_con I)^.quotient.comm_ring }
 
+-- this instance is harder to find than the one via `algebra α (R ⧸ I)`, so use a lower priority
+@[priority 100]
 instance is_scalar_tower_right {α} [has_smul α R] [is_scalar_tower α R R] :
   is_scalar_tower α (R ⧸ I) (R ⧸ I) :=
 (quotient.ring_con I)^.is_scalar_tower_right

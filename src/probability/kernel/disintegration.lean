@@ -155,13 +155,13 @@ lemma set_lintegral_cond_kernel_real_Iic (ρ : measure (α × ℝ)) [is_finite_m
   ∫⁻ a in s, cond_kernel_real ρ a (Iic x) ∂ρ.fst = ρ (s ×ˢ Iic x) :=
 by { simp_rw [cond_kernel_real_Iic], exact set_lintegral_cond_cdf_Iic ρ x hs, }
 
-lemma set_lintegral_cond_kernel_real_univ (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+lemma set_lintegral_cond_kernel_real_univ (ρ : measure (α × ℝ))
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, cond_kernel_real ρ a univ ∂ρ.fst = ρ (s ×ˢ univ) :=
 by simp only [measure_univ, lintegral_const, measure.restrict_apply, measurable_set.univ,
   univ_inter, one_mul, measure.fst_apply _ hs, ← prod_univ]
 
-lemma lintegral_cond_kernel_real_univ (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+lemma lintegral_cond_kernel_real_univ (ρ : measure (α × ℝ)) :
   ∫⁻ a, cond_kernel_real ρ a univ ∂ρ.fst = ρ univ :=
 by rw [← set_lintegral_univ, set_lintegral_cond_kernel_real_univ ρ measurable_set.univ,
   univ_prod_univ]

@@ -943,7 +943,7 @@ begin
   { exact count_normalized_factors_eq hp hnorm hle hlt }
 end
 
-lemma max_power_factor {a₀ : R} {x : R} (h : a₀ ≠ 0) (hx : irreducible x) [nontrivial R] :
+lemma max_power_factor {a₀ : R} {x : R} (h : a₀ ≠ 0) (hx : irreducible x) :
   ∃ n : ℕ, ∃ a : R, ¬ x ∣ a ∧ a₀ = x ^ n * a :=
 begin
   classical,

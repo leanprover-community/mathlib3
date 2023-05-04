@@ -103,7 +103,7 @@ instance [slash_invariant_form_class F Γ k] : has_coe_t F (slash_invariant_form
 instance has_add : has_add (slash_invariant_form Γ k) :=
 ⟨ λ f g,
   { to_fun := f + g,
-    slash_action_eq' := λ γ, by rw [slash_action.add_slash, slash_action_eqn, slash_action_eqn] } ⟩
+    slash_action_eq' := λ γ, by rw [slash_action.add_slash, slash_action_eqn, slash_action_eqn] }⟩
 
 @[simp] lemma coe_add (f g : slash_invariant_form Γ k) : ⇑(f + g) = f + g := rfl
 @[simp] lemma add_apply (f g : slash_invariant_form Γ k) (z : ℍ) : (f + g) z = f z + g z := rfl

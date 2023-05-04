@@ -113,23 +113,16 @@ instance (R₁ R₂ : Type*) [distrib_smul R₁ R] [distrib_smul R₂ R]
   smul_comm_class R₁ R₂ (adjoin_root f) :=
 submodule.quotient.smul_comm_class _ _
 
+instance is_scalar_tower_right [distrib_smul S R] [is_scalar_tower S R R] :
+  is_scalar_tower S (adjoin_root f) (adjoin_root f) :=
+ideal.quotient.is_scalar_tower_right
+
 instance [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] (f : R[X]) :
   distrib_mul_action S (adjoin_root f) :=
 submodule.quotient.distrib_mul_action' _
 
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
-
--- TODO (lean4): make a smul lemma for `ideal.quotient.mk`.
-instance adjoin_root.is_scalar_tower_right [distrib_smul S R] [is_scalar_tower S R R] :
-  is_scalar_tower S (adjoin_root f) (adjoin_root f) :=
-⟨begin
-  rintro x ⟨y⟩ ⟨z⟩,
-  calc ideal.quotient.mk (span {f}) (x • y) * (ideal.quotient.mk (span {f})) z
-       = submodule.quotient.mk (x • y * z) : (_root_.map_mul (ideal.quotient.mk _) _ _).symm
-  ...  = x • (ideal.quotient.mk (span {f}) y * ideal.quotient.mk (span {f}) z) :
-  by rw [smul_mul_assoc, submodule.quotient.mk_smul, ideal.quotient.mk_eq_mk, _root_.map_mul]
-end⟩
 
 @[simp] lemma algebra_map_eq : algebra_map R (adjoin_root f) = of f := rfl
 

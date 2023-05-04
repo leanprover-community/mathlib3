@@ -30,7 +30,7 @@ lt_of_le_of_lt ((le_mul_iff_one_le_left (lt_trans zero_lt_one h2)).2 h1)
 
 lemma le_mul_pow_right {m a b : ℕ} (h1 : 0 < b) (h2 : 1 < a) (h3 : 1 ≤ m) : a ≤ b * a^m :=
 le_trans ((le_mul_iff_one_le_left (lt_trans zero_lt_one h2)).2 h1)
-  (mul_le_mul' le_rfl (le_self_pow (le_of_lt h2) h3))
+  (mul_le_mul' le_rfl (le_self_pow (ne_zero_of_lt (lt_of_succ_le h3)) _))
 
 lemma add_self_pred (n : ℕ) : n + (n - 1) = 2 * n - 1 :=
 begin
@@ -48,7 +48,7 @@ end
 
 variables {p : ℕ} [fact p.prime] {d : ℕ}
 lemma one_lt_mul_pow_of_ne_one [ne_zero d] {k : ℕ} (h : d * p^k ≠ 1) : 1 < d * p^k :=
-nat.one_lt_iff_ne_zero_and_ne_one.2 ⟨nat.mul_ne_zero (ne_zero_of_lt' 0)
+nat.one_lt_iff_ne_zero_and_ne_one.2 ⟨nat.mul_ne_zero (ne_zero.ne d)
   (pow_ne_zero _ (nat.prime.ne_zero (fact.out _))), h⟩
 
 lemma mul_pow_eq_one_of_mul_pow_sq_not_one_lt {p : ℕ} [fact p.prime] {d : ℕ} [ne_zero d]
@@ -60,26 +60,28 @@ begin
     rw [nat.mul_eq_one_iff, pow_mul', pow_succ, pow_one, nat.mul_eq_one_iff] at h',
     rw [h'.1, h'.2.1, one_mul], },
   { have p2 : p^(2 * n) ≠ 0 := pow_ne_zero _ (nat.prime.ne_zero (fact.out _)),
-
     simp only [ne_zero_of_lt' 0, p2, or_self] at h,
     exfalso,
-    exact h, },
+    cases h,
+    { apply ne_zero.ne d h, },
+    { exact h, }, },
 end
 
 instance [ne_zero d] {n : ℕ} : fact (0 < d * p^n) :=
-fact_iff.2 (mul_pos (nat.pos_of_ne_zero _) (pow_pos (nat.prime.pos (fact.out _)) _))
+fact_iff.2 (mul_pos (nat.pos_of_ne_zero (ne_zero.ne d)) (pow_pos (nat.prime.pos (fact.out _)) _))
 
 lemma mul_prime_pow_pos [ne_zero d] (m : ℕ) : 0 < d * p^m := fact_iff.1 infer_instance
 
 lemma mul_pow_lt_mul_pow_succ [ne_zero d] (m : ℕ) : d * p ^ m < d * p ^ m.succ :=
 mul_lt_mul' le_rfl (nat.pow_lt_pow_succ (nat.prime.one_lt (fact_iff.1 infer_instance)) m)
-    (nat.zero_le _) (fact_iff.1 infer_instance)
+    (nat.zero_le _) (nat.pos_of_ne_zero (ne_zero.ne d))
 
 lemma pow_lt_mul_pow_succ_right [ne_zero d] (m : ℕ) : p ^ m < d * p ^ m.succ :=
 begin
   rw [pow_succ, ←mul_assoc],
   apply lt_mul_of_one_lt_left (pow_pos (nat.prime.pos (fact.out _)) _)
-    (one_lt_mul ((nat.succ_le_iff).2 (fact.out _)) (nat.prime.one_lt (fact.out _))),
-  all_goals { assumption, },
+    (one_lt_mul ((nat.succ_le_iff).2 (nat.pos_of_ne_zero (ne_zero.ne d)))
+    (nat.prime.one_lt (fact.out _)));
+  assumption,
 end
 end nat

@@ -161,8 +161,11 @@ instance : inhabited (derivation R A M) := ⟨0⟩
 
 section scalar
 
-variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
-  [smul_comm_class S A M] [smul_comm_class S Aᵐᵒᵖ M]
+variables {S T : Type*}
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
+variables [smul_comm_class S A M] [smul_comm_class S Aᵐᵒᵖ M]
+variables [monoid T] [distrib_mul_action T M] [smul_comm_class R T M]
+variables [smul_comm_class T A M] [smul_comm_class T Aᵐᵒᵖ M]
 
 @[priority 100]
 instance : has_smul S (derivation R A M) :=
@@ -192,6 +195,12 @@ instance [distrib_mul_action Sᵐᵒᵖ M] [is_central_scalar S M] :
   is_central_scalar S (derivation R A M) :=
 { op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _}
 
+instance [has_smul S T] [is_scalar_tower S T M] : is_scalar_tower S T (derivation R A M) :=
+⟨λ x y z, ext $ λ a, smul_assoc _ _ _⟩
+
+instance [smul_comm_class S T M] : smul_comm_class S T (derivation R A M) :=
+⟨λ x y z, ext $ λ a, smul_comm _ _ _⟩
+
 end scalar
 
 @[priority 100]
@@ -199,11 +208,6 @@ instance {S : Type*} [semiring S] [module S M] [smul_comm_class R S M]
   [smul_comm_class S A M] [smul_comm_class S Aᵐᵒᵖ M] :
   module S (derivation R A M) :=
 function.injective.module S coe_fn_add_monoid_hom coe_injective coe_smul
-
-instance [is_scalar_tower R A M] [smul_comm_class R Aᵐᵒᵖ M]
-  [smul_comm_class A Aᵐᵒᵖ M] :
-  is_scalar_tower R A (derivation R A M) :=
-⟨λ x y z, ext (λ a, smul_assoc _ _ _)⟩
 
 section push_forward
 
@@ -268,14 +272,15 @@ end
 
 section cancel
 
-variables {R : Type*} [comm_semiring R] {A : Type*} [comm_semiring A] [algebra R A]
-  {M : Type*} [add_cancel_comm_monoid M] [module R M] [module A M]
+variables {R : Type*} [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
+  {M : Type*} [add_cancel_comm_monoid M] [module R M] [module A M] [module Aᵐᵒᵖ M]
 
 /-- Define `derivation R A M` from a linear map when `M` is cancellative by verifying the Leibniz
 rule. -/
-def mk' (D : A →ₗ[R] M) (h : ∀ a b, D (a * b) = a • D b + b • D a) : derivation R A M :=
+def mk' (D : A →ₗ[R] M) (h : ∀ a b, D (a * b) = a • D b + op b • D a) : derivation R A M :=
 { to_linear_map := D,
-  map_one_eq_zero' := add_right_eq_self.1 $ by simpa only [one_smul, one_mul] using (h 1 1).symm,
+  map_one_eq_zero' :=
+    by simpa only [op_one, one_smul, one_mul, add_right_eq_self] using (h 1 1).symm,
   leibniz' := h }
 
 @[simp] lemma coe_mk' (D : A →ₗ[R] M) (h) : ⇑(mk' D h) = D := rfl
@@ -286,11 +291,11 @@ end cancel
 section
 
 variables {R : Type*} [comm_ring R]
-variables {A : Type*} [comm_ring A] [algebra R A]
+variables {A : Type*} [ring A] [algebra R A]
 
 section
 
-variables {M : Type*} [add_comm_group M] [module A M] [module R M]
+variables {M : Type*} [add_comm_group M] [module A M] [module Aᵐᵒᵖ M] [module R M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 protected lemma map_neg : D (-a) = -D a := map_neg D a
@@ -299,17 +304,17 @@ protected lemma map_sub : D (a - b) = D a - D b := map_sub D a b
 @[simp] lemma map_coe_int (n : ℤ) : D (n : A) = 0 :=
 by rw [← zsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 
-lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
+lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) (h' : b * a = 1) : D a = -a • op a • D b :=
 begin
   rw neg_smul,
   refine eq_neg_of_add_eq_zero_left _,
-  calc D a + a ^ 2 • D b = a • b • D a + a • a • D b : by simp only [smul_smul, h, one_smul, sq]
-                     ... = a • D (a * b)             : by rw [leibniz, smul_add, add_comm]
-                     ... = 0                         : by rw [h, map_one_eq_zero, smul_zero]
+  calc D a + a • op a • D b = a • b • D a + a • op a • D b : by simp only [smul_smul, h, one_smul, sq]
+                     ... = a • D (b * a)             : by rw [leibniz, smul_add, add_comm]
+                     ... = 0                         : by rw [h', map_one_eq_zero, smul_zero]
 end
 
-lemma leibniz_inv_of [invertible a] : D (⅟a) = -⅟a^2 • D a :=
-D.leibniz_of_mul_eq_one $ inv_of_mul_self a
+lemma leibniz_inv_of [invertible a] : D (⅟a) = -⅟a • op (⅟a) • D a :=
+D.leibniz_of_mul_eq_one (inv_of_mul_self a) (mul_inv_of_self a)
 
 lemma leibniz_inv {K : Type*} [field K] [module K M] [algebra R K] (D : derivation R K M) (a : K) :
   D (a⁻¹) = -a⁻¹ ^ 2 • D a :=
@@ -352,7 +357,8 @@ variables (D : derivation R A A) {D1 D2 : derivation R A A} (r : R) (a b : A)
 instance : has_bracket (derivation R A A) (derivation R A A) :=
 ⟨λ D1 D2, mk' (⁅(D1 : module.End R A), (D2 : module.End R A)⁆) $ λ a b,
   by { simp only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_apply, leibniz, coe_fn_coe,
-    linear_map.sub_apply], ring, }⟩
+    linear_map.sub_apply, op_smul_eq_mul, smul_eq_mul, mul_sub, sub_mul],
+    abel, }⟩
 
 @[simp] lemma commutator_coe_linear_map :
   ↑⁅D1, D2⁆ = ⁅(D1 : module.End R A), (D2 : module.End R A)⁆ := rfl
@@ -360,11 +366,14 @@ instance : has_bracket (derivation R A A) (derivation R A A) :=
 lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 
 instance : lie_ring (derivation R A A) :=
-{ add_lie     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
-  lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
-  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring_nf, },
+{ add_lie     := λ d e f, ext $ λ a,
+    by simp only [commutator_apply, add_apply, map_add, add_sub_add_comm],
+  lie_add     := λ d e f, ext $ λ a,
+    by simp only [commutator_apply, add_apply, map_add, add_sub_add_comm],
+  lie_self    := λ d, ext $ λ a,
+    by simp only [commutator_apply, add_apply, map_add, sub_self, zero_apply],
   leibniz_lie := λ d e f,
-    by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
+    by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], abel, } }
 
 instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, smul_apply]},

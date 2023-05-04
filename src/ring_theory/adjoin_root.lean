@@ -311,17 +311,7 @@ principal_ideal_ring.is_maximal_of_irreducible $ fact.out _
 noncomputable instance group_with_zero [fact (irreducible f)] : group_with_zero (adjoin_root f) :=
 ideal.quotient.group_with_zero (span {f} : ideal K[X])
 
--- TODO: golf using new `group_with_zero` instance
-@[simp] lemma of_inv [fact (irreducible f)] (x : K) : of f (x⁻¹) = (of f x)⁻¹ :=
-begin
-  unfold has_inv.inv field.inv adjoin_root.has_inv ideal.quotient.field,
-  split_ifs with h,
-  { show of f (x⁻¹) = 0, rw [(_root_.map_eq_zero _).mp h, inv_zero, map_zero] },
-  show of f (x⁻¹) = classical.some (ideal.quotient.exists_inv _),
-  conv_lhs { rw [← mul_one (of f (x⁻¹)), ← classical.some_spec (ideal.quotient.exists_inv h)] },
-  have : x ≠ 0 := mt (_root_.map_eq_zero _).mpr h,
-  rw [← mul_assoc, ← _root_.map_mul, inv_mul_cancel this, map_one, one_mul],
-end
+@[simp] lemma of_inv [fact (irreducible f)] (x : K) : of f (x⁻¹) = (of f x)⁻¹ := map_inv₀ _ _
 
 @[simp] lemma mk_C_rat_cast (x : ℚ) : mk f (C ↑x) = of f x :=
 rfl

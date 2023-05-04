@@ -405,29 +405,23 @@ begin
 end
 
 @[to_additive zsmul_inj_iff_of_add_order_of_eq_zero]
-lemma zpow_inj_iff_of_order_of_eq_zero' (h : order_of x = 0) {n m : ℤ} :
+lemma zpow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℤ} :
   x ^ n = x ^ m ↔ n = m :=
-match m, n with
-| int.of_nat m, int.of_nat n := by simpa only [zpow_of_nat] using pow_inj_iff_of_order_of_eq_zero h
-| int.of_nat m, -[1+n] := begin
-  simp only [zpow_neg_succ_of_nat, zpow_of_nat],
-  refine ⟨λ H, _, λ h, h.elim⟩,
-  replace H := div_eq_one.mpr H.symm,
-  rw [div_inv_eq_mul, ←pow_add] at H,
-  refine order_of_eq_zero_iff'.mp h _ _ H,
-  norm_num,
-end
-| -[1+m], int.of_nat n := begin
-  simp only [zpow_neg_succ_of_nat, zpow_of_nat],
-  refine ⟨λ H, _, λ h, h.elim⟩,
-  replace H := div_eq_one.mpr H,
-  rw [div_inv_eq_mul, ←pow_add] at H,
-  refine order_of_eq_zero_iff'.mp h _ _ H,
-  norm_num,
-end
-| -[1+m], -[1+n] := by { rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_inj,
-  pow_inj_iff_of_order_of_eq_zero h, add_left_inj], simp only }
-end
+⟨not_imp_not.1 $ λ hne, begin
+  have := _, obtain hl | hl := ne.lt_or_lt hne,
+  { clear hne, revert m n, exact this }, { exact ne.symm (this hl) },
+  intros m n hl he,
+  obtain ⟨m, rfl⟩ := hl.le.dest,
+  rw [zpow_add, eq_comm, mul_right_eq_self, zpow_coe_nat] at he,
+  rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one] at h,
+  rw [lt_add_iff_pos_right, int.coe_nat_pos] at hl,
+  exact h ⟨m, hl, he⟩,
+end, congr_arg _⟩
+
+@[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
+lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
+  x ^ n = x ^ m ↔ n = m :=
+by simp_rw [← zpow_coe_nat, zpow_inj_iff_of_order_of_eq_zero h, int.coe_nat_eq_coe_nat_iff]
 
 @[to_additive]
 lemma pow_inj_mod {n m : ℕ} :

@@ -119,7 +119,7 @@ by rw [of_real_alg, zero_smul]
 
 theorem of_real_injective : function.injective (coe : ℝ → K) := (algebra_map ℝ K).injective
 
-@[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
+@[norm_cast] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
 algebra_map.coe_inj
 
 @[simp, is_R_or_C_simps] lemma bit0_re (z : K) : re (bit0 z) = bit0 (re z) := map_bit0 _ _

@@ -176,8 +176,9 @@ end
 
 open_locale classical
 
-/-- quotient by maximal ideal is a field. def rather than instance, since users will have
-computable inverses in some applications.
+/-- The quotient by a maximal ideal is a field. This is a `def` rather than `instance`, since users
+will have computable inverses (and `qsmul`, `rat_cast`) in some applications.
+
 See note [reducible non-instances]. -/
 @[reducible]
 protected noncomputable def field (I : ideal R) [hI : I.is_maximal] : field (R ⧸ I) :=

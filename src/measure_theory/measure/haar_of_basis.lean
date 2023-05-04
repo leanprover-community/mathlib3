@@ -123,7 +123,7 @@ end
 lemma convex_parallelepiped (v : ι → E) : convex ℝ (parallelepiped v) :=
 begin
   rw parallelepiped_eq_sum_segment,
-  exact convex_sum (λ i hi, convex_segment  _ _),
+  exact convex_sum _ _ (λ i hi, convex_segment  _ _),
 end
 
 /-- A `parallelepiped` is the convex hull of its vertices -/

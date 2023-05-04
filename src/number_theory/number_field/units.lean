@@ -40,15 +40,11 @@ section is_unit
 
 local attribute [instance] number_field.ring_of_integers_algebra
 
-open finite_dimensional
-
 variable {K}
 
 lemma is_unit_iff_norm [number_field K] (x : 𝓞 K) :
   is_unit x ↔ |(ring_of_integers.norm ℚ x : ℚ)| = 1 :=
-begin
-  convert (ring_of_integers.is_unit_norm ℚ).symm,
-  rw [← abs_one, abs_eq_abs, ← rat.ring_of_integers.is_unit_iff],
-end
+by { convert (ring_of_integers.is_unit_norm ℚ).symm,
+  rw [← abs_one, abs_eq_abs, ← rat.ring_of_integers.is_unit_iff], }
 
 end is_unit

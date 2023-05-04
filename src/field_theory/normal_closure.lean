@@ -20,6 +20,10 @@ namespace intermediate_field
 
 variables {F L : Type*} [field F] [field L] [algebra F L] (K K' : intermediate_field F L)
 
+-- PR #18940
+@[simp] lemma field_range_val : K.val.field_range = K :=
+set_like.ext' subtype.range_val
+
 /-- The normal closure of an `intermediate_field`. -/
 noncomputable def normal_closure : intermediate_field F L :=
 (normal_closure F K L).restrict_scalars F
@@ -97,20 +101,17 @@ by rw [←normal_closure_le_self_iff_normal, normal_closure_def'', supr_le_iff]
 lemma normal_iff_forall_field_range_eq : normal F K ↔ ∀ σ : K →ₐ[F] L, σ.field_range = K :=
 begin
   haveI : is_scalar_tower F K K := by apply_instance,
-  refine ⟨_, λ h, normal_iff_forall_field_range_le.mpr (λ σ, (h σ).le)⟩,
-  introsI h σ,
-  exact le_antisymm (normal_iff_forall_field_range_le.mp h σ)
-    (λ x hx, ⟨(σ.restrict_normal' K).symm ⟨x, hx⟩,
-    (σ.restrict_normal_commutes K ((σ.restrict_normal' K).symm ⟨x, hx⟩)).symm.trans
-    (congr_arg (algebra_map K L) ((σ.restrict_normal' K).apply_symm_apply ⟨x, hx⟩))⟩),
+  refine ⟨λ h σ, le_antisymm (normal_iff_forall_field_range_le.mp h σ) (λ x hx, _),
+    λ h, normal_iff_forall_field_range_le.mpr (λ σ, (h σ).le)⟩,
+  haveI : normal F K := h,
+  exact ⟨_, (σ.restrict_normal_commutes K _).symm.trans
+    (congr_arg _ ((σ.restrict_normal' K).apply_symm_apply ⟨x, hx⟩))⟩,
 end
 
 lemma normal_iff_forall_map_eq : normal F K ↔ ∀ σ : L →ₐ[F] L, K.map σ = K :=
 begin
-  refine ⟨λ h σ, _, λ h, normal_iff_forall_map_le.mpr (λ σ, (h σ).le)⟩,
-  refine eq.trans _ (normal_iff_forall_field_range_eq.mp h (σ.comp K.val)),
-  refine eq.trans _ (K.val.map_field_range σ),
-  exact congr_arg (map σ) (set_like.ext' subtype.range_val.symm),
+  refine ⟨λ h σ, K.field_range_val ▸ _, λ h, normal_iff_forall_map_le.mpr (λ σ, (h σ).le)⟩,
+  rw [K.val.map_field_range, normal_iff_forall_field_range_eq.mp h, field_range_val],
 end
 
 lemma normal_iff_forall_map_eq' : normal F K ↔ ∀ σ : L ≃ₐ[F] L, K.map ↑σ = K :=

@@ -123,24 +123,13 @@ end
 lemma convex_parallelepiped (v : ι → E) : convex ℝ (parallelepiped v) :=
 begin
   rw parallelepiped_eq_sum_segment,
-  -- TODO: add `convex.sum` to match `convex.add`
-  let : add_submonoid (set E) :=
-  { carrier := { s | convex ℝ s}, zero_mem' := convex_singleton _, add_mem' := λ x y, convex.add },
-  exact this.sum_mem (λ i hi, convex_segment  _ _),
+  exact convex_sum (λ i hi, convex_segment  _ _),
 end
 
 /-- A `parallelepiped` is the convex hull of its vertices -/
 lemma parallelepiped_eq_convex_hull (v : ι → E) :
   parallelepiped v = convex_hull ℝ (∑ i, {(0 : E), v i}) :=
-begin
-  -- TODO: add `convex_hull_sum` to match `convex_hull_add`
-  let : set E →+ set E :=
-  { to_fun := convex_hull ℝ,
-    map_zero' := convex_hull_singleton _,
-    map_add' := convex_hull_add },
-  simp_rw [parallelepiped_eq_sum_segment, ←convex_hull_pair],
-  exact (this.map_sum _ _).symm,
-end
+by simp_rw [convex_hull_sum, convex_hull_pair, parallelepiped_eq_sum_segment]
 
 /-- The axis aligned parallelepiped over `ι → ℝ` is a cuboid. -/
 lemma parallelepiped_single [decidable_eq ι] (a : ι → ℝ) :

@@ -49,7 +49,7 @@ We use this to prove several versions of the Borel isomorphism theorem.
 * `polish_space.measurable_equiv_of_not_countable` : Any two uncountable Polish spaces
   are Borel isomorphic.
 * `polish_space.equiv.measurable_equiv` : Any two Polish spaces of the same cardinality
-  are Borel. isomorphic.
+  are Borel isomorphic.
 -/
 
 open set function polish_space pi_nat topological_space metric filter

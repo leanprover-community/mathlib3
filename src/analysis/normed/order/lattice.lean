@@ -42,10 +42,12 @@ section solid_norm
 
 /-- Let `α` be an `add_comm_group` with a `lattice` structure. A norm on `α` is solid if the balls
 of `α` for this norm are solid sets. -/
-class has_solid_norm (α : Type*) [normed_add_comm_group α] [lattice α]  : Prop :=
-(solid :  ∀ ⦃x y : α⦄, |x| ≤ |y| → ‖x‖ ≤ ‖y‖)
+class has_solid_norm (α : Type*) [normed_add_comm_group α] [lattice α] : Prop :=
+(solid : ∀ ⦃x y : α⦄, |x| ≤ |y| → ‖x‖ ≤ ‖y‖)
 
-alias has_solid_norm.solid ← norm_le_norm_of_abs_le_abs
+variables {α : Type*} [normed_add_comm_group α] [lattice α] [has_solid_norm α]
+
+lemma norm_le_norm_of_abs_le_abs  {a b : α} (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ := has_solid_norm.solid h
 
 instance : has_solid_norm ℝ := ⟨λ _ _, id⟩
 

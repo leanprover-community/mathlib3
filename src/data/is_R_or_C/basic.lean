@@ -108,18 +108,18 @@ theorem ext_iff {z w : K} : z = w ↔ re z = re w ∧ im z = im w :=
 theorem ext {z w : K} (hre : re z = re w) (him : im z = im w) : z = w :=
 ext_iff.2 ⟨hre, him⟩
 
-@[simp, norm_cast] lemma of_real_zero : ((0 : ℝ) : K) = 0 :=
+@[simp, priority 900, norm_cast] lemma of_real_zero : ((0 : ℝ) : K) = 0 :=
 by rw [of_real_alg, zero_smul]
 
 @[simp, is_R_or_C_simps] lemma zero_re' : re (0 : K) = (0 : ℝ) := re.map_zero
 
-@[norm_cast] lemma of_real_one : ((1 : ℝ) : K) = 1 := map_one (algebra_map ℝ K)
+@[simp, priority 900, norm_cast] lemma of_real_one : ((1 : ℝ) : K) = 1 := map_one (algebra_map ℝ K)
 @[simp, is_R_or_C_simps] lemma one_re : re (1 : K) = 1 := by rw [← of_real_one, of_real_re]
 @[simp, is_R_or_C_simps] lemma one_im : im (1 : K) = 0 := by rw [← of_real_one, of_real_im]
 
 theorem of_real_injective : function.injective (coe : ℝ → K) := (algebra_map ℝ K).injective
 
-@[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
+@[simp, priority 900, norm_cast] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
 algebra_map.coe_inj
 
 @[simp, is_R_or_C_simps] lemma bit0_re (z : K) : re (bit0 z) = bit0 (re z) := map_bit0 _ _
@@ -132,9 +132,7 @@ by simp only [bit1, map_add, bit0_re, one_re]
 @[simp, is_R_or_C_simps] lemma bit1_im (z : K) : im (bit1 z) = bit0 (im z) :=
 by simp only [bit1, map_add, bit0_im, one_im, add_zero]
 
-theorem of_real_eq_zero {x : ℝ} : (x : K) = 0 ↔ x = 0 :=
-algebra_map.lift_map_eq_zero_iff x
-
+theorem of_real_eq_zero {x : ℝ} : (x : K) = 0 ↔ x = 0 := algebra_map.lift_map_eq_zero_iff x
 theorem of_real_ne_zero {x : ℝ} : (x : K) ≠ 0 ↔ x ≠ 0 := of_real_eq_zero.not
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900]
@@ -244,19 +242,16 @@ end
 by rw [conj_eq_re_sub_im, conj_eq_re_sub_im, smul_re, smul_im, of_real_mul, of_real_mul,
   real_smul_eq_coe_mul, mul_sub, mul_assoc]
 
-theorem add_conj (z : K) : z + conj z = 2 * (re z) :=
-by simp only [ext_iff, two_mul, map_add, add_zero, of_real_im, conj_im, of_real_re,
-              eq_self_iff_true, add_right_neg, conj_re, and_self]
+theorem add_conj (z : K) : z + conj z = 2 * re z :=
+calc z + conj z = re z + im z * I + (re z - im z * I) : by rw [re_add_im, conj_eq_re_sub_im]
+... = 2 * re z : by rw [add_add_sub_cancel, two_mul]
 
 theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
 by rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero]
 
 theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
-begin
-  rw [← neg_inj, ← of_real_neg, ← I_mul_re, re_eq_add_conj],
-  simp only [mul_add, sub_eq_add_neg, neg_div', neg_mul, conj_I,
-             mul_neg, neg_add_rev, neg_neg, ring_hom.map_mul]
-end
+by rw [← neg_inj, ← of_real_neg, ← I_mul_re, re_eq_add_conj, map_mul, conj_I, ← neg_div, ← mul_neg,
+  neg_sub, mul_sub, neg_mul, sub_eq_add_neg]
 
 /-- There are several equivalent ways to say that a number `z` is in fact a real number. -/
 theorem is_real_tfae (z : K) :

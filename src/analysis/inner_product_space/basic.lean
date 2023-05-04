@@ -366,10 +366,8 @@ lemma real_inner_comm (x y : F) : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := @inner_conj
 lemma inner_eq_zero_symm {x y : E} : ⟪x, y⟫ = 0 ↔ ⟪y, x⟫ = 0 :=
 by { rw [← inner_conj_symm], exact star_eq_zero }
 
-@[simp] lemma inner_self_nonneg_im (x : E) : im ⟪x, x⟫ = 0 :=
+@[simp] lemma inner_self_im (x : E) : im ⟪x, x⟫ = 0 :=
 by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp
-
-lemma inner_self_im_zero (x : E) : im ⟪x, x⟫ = 0 := inner_self_nonneg_im _
 
 lemma inner_add_left (x y z : E) : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 inner_product_space.add_left _ _ _
@@ -512,7 +510,7 @@ by rw [←inner_conj_symm, inner_neg_left]; simp only [ring_hom.map_neg, inner_c
 lemma inner_neg_neg (x y : E) : ⟪-x, -y⟫ = ⟪x, y⟫ := by simp
 
 @[simp] lemma inner_self_conj (x : E) : ⟪x, x⟫† = ⟪x, x⟫ :=
-by rw [is_R_or_C.ext_iff]; exact ⟨by rw [conj_re], by rw [conj_im, inner_self_im_zero, neg_zero]⟩
+by rw [is_R_or_C.ext_iff]; exact ⟨by rw [conj_re], by rw [conj_im, inner_self_im, neg_zero]⟩
 
 lemma inner_sub_left (x y z : E) : ⟪x - y, z⟫ = ⟪x, z⟫ - ⟪y, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_left] }

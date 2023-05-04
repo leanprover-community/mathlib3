@@ -89,7 +89,8 @@ variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
 
 lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod hp a =ᶠ[𝓝 x] to_Ioc_mod hp a :=
 is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
-  (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 ((mem_Ioo_mod_iff_ne_mod_zmultiples hp).2 hx)
+  (add_comm_group.not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 $
+    (add_comm_group.not_modeq_iff_ne_mod_zmultiples hp).2 hx
 
 lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod hp a) x :=
 let h := to_Ico_mod_eventually_eq_to_Ioc_mod hp a hx in continuous_at_iff_continuous_left_right.2 $
@@ -498,11 +499,11 @@ lemma equiv_Icc_quot_comp_mk_eq_to_Ioc_mod : equiv_Icc_quot p a ∘ quotient.mk'
   λ x, quot.mk _ ⟨to_Ioc_mod hp.out a x, Ioc_subset_Icc_self $ to_Ioc_mod_mem_Ioc _ _ x⟩ :=
 begin
   rw equiv_Icc_quot_comp_mk_eq_to_Ico_mod, funext,
-  by_cases mem_Ioo_mod p a x,
-  { simp_rw (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp.out).1 h },
-  { simp_rw [not_imp_comm.1 (mem_Ioo_mod_iff_to_Ico_mod_ne_left hp.out).2 h,
-             not_imp_comm.1 (mem_Ioo_mod_iff_to_Ioc_mod_ne_right hp.out).2 h],
+  by_cases add_comm_group.modeq p a x,
+  { simp_rw [(add_comm_group.modeq_iff_to_Ico_mod_eq_left hp.out).1 h,
+             (add_comm_group.modeq_iff_to_Ioc_mod_eq_right hp.out).1 h],
     exact quot.sound endpoint_ident.mk },
+  { simp_rw (add_comm_group.not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp.out).1 h },
 end
 
 /-- The natural map from `[a, a + p] ⊂ 𝕜` with endpoints identified to `𝕜 / ℤ • p`, as a

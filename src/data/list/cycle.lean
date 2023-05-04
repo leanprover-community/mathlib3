@@ -805,6 +805,19 @@ by rw [range_succ, ←coe_cons_eq_coe_append, chain_coe_cons, ←range_succ, cha
 
 variables {r : α → α → Prop} {s : cycle α}
 
+theorem chain.imp {r₁ r₂ : α → α → Prop} (H : ∀ a b, r₁ a b → r₂ a b) (p : chain r₁ s) :
+  chain r₂ s :=
+begin
+  induction s using cycle.induction_on,
+  { triv },
+  { rw chain_coe_cons at ⊢ p,
+    exact p.imp H }
+end
+
+/-- As a function from a relation to a predicate, `chain` is monotonic. -/
+theorem chain_mono : monotone (chain : (α → α → Prop) → cycle α → Prop) :=
+λ a b hab s, chain.imp hab
+
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
 begin
   induction s using cycle.induction_on with a l _,
@@ -844,6 +857,17 @@ theorem chain_iff_pairwise [is_trans α r] : chain r s ↔ ∀ (a ∈ s) (b ∈ 
   { exact hs.2.2 b hb },
   { exact trans (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
 end, cycle.chain_of_pairwise⟩
+
+theorem chain.eq_nil_of_irrefl [is_trans α r] [is_irrefl α r] (h : chain r s) : s = nil :=
+begin
+  induction s using cycle.induction_on with a l _ h,
+  { refl },
+  { have ha := mem_cons_self a l,
+    exact (irrefl_of r a $ chain_iff_pairwise.1 h a ha a ha).elim }
+end
+
+theorem chain.eq_nil_of_well_founded [is_well_founded α r] (h : chain r s) : s = nil :=
+chain.eq_nil_of_irrefl $ h.imp $ λ _ _, relation.trans_gen.single
 
 theorem forall_eq_of_chain [is_trans α r] [is_antisymm α r]
   (hs : chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=

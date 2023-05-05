@@ -222,7 +222,7 @@ begin
     { convert congr_arg (coe : ℝ → ℂ)
         (congr_arg (λ x : E, x.1 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc),
       exact (complex_embeddings.is_real.embedding_mk hφ).symm, },
-    { rw [eq_comm, ← complex.eq_conj_iff_re, ← full_embedding.conj_apply K _ hx,
+    { rw [eq_comm, ← complex.conj_eq_iff_re, ← full_embedding.conj_apply K _ hx,
         complex_embedding.is_real_iff.mp hφ], }},
   { have heqz := congr_arg (λ x : E, x.2 ⟨mk φ, ⟨φ, hφ, rfl⟩⟩) hc,
     by_cases h_same : φ = (infinite_place.mk φ).embedding,

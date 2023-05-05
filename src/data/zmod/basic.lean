@@ -751,6 +751,75 @@ end
 lemma val_cast_of_lt {n : ℕ} {a : ℕ} (h : a < n) : (a : zmod n).val = a :=
 by rw [val_nat_cast, nat.mod_eq_of_lt h]
 
+lemma val_le_self (a n : ℕ) : (a : zmod n).val ≤ a :=
+begin
+  cases n,
+  { refl, },
+  { by_cases a < n.succ,
+    { rw zmod.val_cast_of_lt h, },
+    { apply le_trans (zmod.val_le _) (le_of_not_gt h), }, },
+end
+
+lemma val_coe_val_le_val {n m : ℕ} [ne_zero m] (y : zmod n) : (y.val : zmod m).val ≤ y.val :=
+begin
+  by_cases y.val < m,
+  { rw zmod.val_cast_of_lt h, },
+  { apply le_of_lt (gt_of_ge_of_gt (not_lt.1 h) (zmod.val_lt (y.val : zmod m))), },
+end
+
+lemma val_coe_val_le_val' {n m : ℕ} [ne_zero m] [ne_zero n] (y : zmod n) :
+  (y : zmod m).val ≤ y.val := (@zmod.nat_cast_val _ (zmod m) _ _ y) ▸ val_coe_val_le_val y
+
+lemma coe_val_eq_val_of_lt {n m : ℕ} [ne_zero n] (h : n < m) (b : zmod n) :
+  (b.val : zmod m).val = b.val :=
+begin
+  have h2 : b.val = (b : zmod m).val,
+  { rw ←zmod.val_cast_of_lt (lt_trans (zmod.val_lt b) h),
+    refine congr_arg _ (zmod.nat_cast_val _), },
+  conv_rhs { rw h2, },
+  refine congr_arg _ _,
+  rwa zmod.nat_cast_val _,
+end
+
+lemma zero_le_div_and_div_lt_one {n : ℕ} [ne_zero n] (x : zmod n) :
+  0 ≤ (x.val : ℚ) / n ∧ (x.val : ℚ) / n < 1 :=
+⟨div_nonneg (nat.cast_le.2 (nat.zero_le _)) (nat.cast_le.2 (nat.zero_le _)), (div_lt_one
+  $ by {refine nat.cast_pos.2 (ne_zero.pos _)}).2 -- removing the by and refine does not work?
+    (nat.cast_lt.2 (zmod.val_lt _))⟩
+
+lemma nat_cast_zmod_cast_int {n a : ℕ} (h : a < n) : ((a : zmod n) : ℤ) = (a : ℤ) :=
+begin
+  by_cases h' : 0 < n,
+  { rw ←zmod.nat_cast_val _,
+    { apply congr rfl (zmod.val_cast_of_lt h), },
+    { apply ne_zero.of_pos h', }, },
+  simp only [not_lt, _root_.le_zero_iff] at h',
+  rw h',
+  simp only [zmod.cast_id', id.def],
+end
+
+lemma cast_int_one {n : ℕ} [fact (1 < n)] : ((1 : zmod n) : ℤ) = 1 :=
+begin
+  rwa [←zmod.nat_cast_val _, zmod.val_one _],
+  simp only [int.coe_nat_zero, int.coe_nat_succ, zero_add],
+  { assumption, },
+  { refine ⟨ne_zero_of_lt (fact.out (1 < n))⟩, },
+end
+
+lemma cast_nat_eq_zero_of_dvd {m n : ℕ} (h : m ∣ n) : (n : zmod m) = 0 :=
+begin
+  rw [←zmod.cast_nat_cast h, zmod.nat_cast_self, zmod.cast_zero],
+  refine zmod.char_p _,
+end
+
+lemma dvd_val_sub_cast_val {m : ℕ} (n : ℕ) [ne_zero m] [ne_zero n] (a : zmod m) :
+  n ∣ a.val - (a : zmod n).val :=
+begin
+  have : (a.val : zmod n) = ((a : zmod n).val : zmod n),
+  { rw [nat_cast_val, nat_cast_val], norm_cast, },
+  exact nat.dvd_iff_mod_eq_zero.2 (nat.sub_mod_eq_zero_of_mod_eq ((eq_iff_modeq_nat _).1 this)),
+end
+
 lemma neg_val' {n : ℕ} [ne_zero n] (a : zmod n) : (-a).val = (n - a.val) % n :=
 calc (-a).val = val (-a)    % n : by rw nat.mod_eq_of_lt ((-a).val_lt)
           ... = (n - val a) % n : nat.modeq.add_right_cancel' _ (by rw [nat.modeq, ←val_add,
@@ -1020,6 +1089,20 @@ instance subsingleton_ring_equiv [semiring R] : subsingleton (zmod n ≃+* R) :=
 @[simp] lemma ring_hom_map_cast [ring R] (f : R →+* (zmod n)) (k : zmod n) :
   f k = k :=
 by { cases n; simp }
+
+lemma cast_eq_of_dvd {m n : ℕ} (h : m ∣ n) (a : zmod m) : ((a : zmod n) : zmod m) = a :=
+begin
+  conv_rhs { rw ←zmod.ring_hom_map_cast (zmod.cast_hom h (zmod m)) a, },
+  rw zmod.cast_hom_apply,
+end
+
+@[simp]
+lemma cast_hom_self {n : ℕ} : zmod.cast_hom dvd_rfl (zmod n) = ring_hom.id (zmod n) := by simp
+
+@[simp]
+lemma cast_hom_comp {n m d : ℕ} (hm : n ∣ m) (hd : m ∣ d) :
+  (zmod.cast_hom hm (zmod n)).comp (zmod.cast_hom hd (zmod m)) = zmod.cast_hom (dvd_trans hm hd) (zmod n) :=
+ring_hom.ext_zmod _ _
 
 lemma ring_hom_right_inverse [ring R] (f : R →+* (zmod n)) :
   function.right_inverse (coe : zmod n → R) f :=

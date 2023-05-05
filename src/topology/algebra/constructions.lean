@@ -115,4 +115,40 @@ by simp only [inducing_embed_product.continuous_iff, embed_product_apply, (∘),
 @[to_additive] lemma continuous_coe_inv : continuous (λ u, ↑u⁻¹ : Mˣ → M) :=
 (units.continuous_iff.1 continuous_id).2
 
+/-- The inverse map `units.inv` is continuous with respect to the topology induced by
+  `units.coe_hom` on units. -/
+@[continuity]
+lemma induced_top_cont_inv {X : Type*} [topological_space X] [discrete_topology X] [monoid X] :
+  @continuous _ _ (topological_space.induced (units.coe_hom X) infer_instance) _
+  (units.inv : Xˣ → X) :=
+begin
+  convert continuous_of_discrete_topology,
+  refine @inducing.discrete_topology Xˣ X (topological_space.induced
+    (units.coe_hom X) infer_instance) _ _ (units.coe_hom _)
+    (λ a b h, units.eq_iff.1 h) rfl,
+-- Alternate proof :
+--  refine @embedding.discrete_topology (zmod n)ˣ (zmod n) (topological_space.induced
+--    (units.coe_hom (zmod n)) infer_instance) _ _ (units.coe_hom _) _,
+--  constructor,
+--  { constructor, refl, },
+--  { refine λ a b h, units.eq_iff.1 h, }, }
+end
+
+lemma discrete_topology_of_discrete {X : Type*} [_root_.topological_space X] [discrete_topology X]
+  [monoid X] : discrete_topology Xˣ :=
+begin
+  convert embedding.discrete_topology units.embedding_embed_product,
+  apply @prod.discrete_topology _ _ infer_instance infer_instance infer_instance infer_instance,
+  swap, { refine embedding.discrete_topology (embedding.mk ⟨rfl⟩ mul_opposite.unop_injective), },
+  { apply_instance, },
+end
+
+lemma discrete_prod_units {X Y : Type*} [monoid X] [monoid Y] [topological_space X]
+  [discrete_topology X] [topological_space Y] [discrete_topology Y] : discrete_topology (X × Y)ˣ :=
+begin
+  apply @embedding.discrete_topology _ _ _ _ prod.discrete_topology (units.embed_product _)
+    (units.embedding_embed_product),
+  { apply_instance, },
+  { refine inducing.discrete_topology (mul_opposite.unop_injective) rfl, },
+end
 end units

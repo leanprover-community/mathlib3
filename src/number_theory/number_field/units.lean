@@ -195,7 +195,7 @@ begin
         split_ifs;
         simp only [map_eq_zero, coe_ne_zero, not_false_iff, pow_eq_zero_iff, nat.succ_pos'], }},
     { convert (congr_arg real.log (congr_arg (coe : ℚ → ℝ)
-        ((is_unit_iff_norm K x).mp x.is_unit))).symm,
+        ((is_unit_iff_norm (x : 𝓞 K)).mp x.is_unit))).symm,
       { simp only [algebra_map.coe_one, real.log_one], },
       { simpa only [rat.cast_abs], }}},
   { rw @finset.sum_subtype _ _ _ (λ w, w ≠ w₀) infer_instance (finset.univ.erase w₀) (λ _, _)

@@ -527,7 +527,7 @@ Measures and integral calculus:
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: 'fourier_basis'
-    Riemann-Lebesgue lemma: ''
+    Riemann-Lebesgue lemma: 'tendsto_integral_exp_smul_cocompact'
     convolution product of periodic functions: ''
     Dirichlet theorem: ''
     Fejer theorem: ''

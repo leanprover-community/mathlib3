@@ -5,8 +5,8 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import data.fintype.units
 import data.nat.parity
-import algebra.group.conj_finite
 import tactic.fin_cases
 
 /-!

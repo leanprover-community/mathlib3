@@ -11,6 +11,9 @@ import tactic.interval_cases
 /-!
 # Finite dimensional vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition and basic properties of finite dimensional vector spaces, of their dimensions, and
 of linear maps on such spaces.
 
@@ -1124,46 +1127,6 @@ basis_of_linear_independent_of_card_eq_finrank lin_ind (trans s.to_finset_card.s
   (lin_ind : linear_independent K (coe : s → V)) (card_eq : s.to_finset.card = finrank K V) :
   ⇑(set_basis_of_linear_independent_of_card_eq_finrank lin_ind card_eq) = coe :=
 basis.coe_mk _ _
-
-
-variables {ι : Type*} (R : Type*) [comm_ring R] [module R V] [algebra R K] [is_scalar_tower R K V]
-variables [no_zero_smul_divisors R K] (b : basis ι K V)
-
-/-- Let `b` be a `K`-basis of `V`. Let `R` be a comm_ring such that `algebra R K` with no zero
-smul divisors, then the submodule of `V` spanned by `b` over `R` admits `b` as a `R`-basis. -/
-noncomputable def basis.restrict_scalars : basis ι R (span R (set.range b)) :=
-basis.span (b.linear_independent.restrict_scalars (smul_left_injective R (ne_zero.ne 1)))
-
-@[simp]
-lemma basis.restrict_scalars_apply (i : ι) : (b.restrict_scalars R i : V) = b i :=
-  by simp only [basis.restrict_scalars, basis.span_apply]
-
-@[simp]
-lemma basis.restrict_scalars_repr_apply (m : span R (set.range b)) [_root_.finite ι] (i : ι) :
-  algebra_map R K ((b.restrict_scalars R).repr m i) = b.repr m i :=
-begin
-  classical,
-  casesI nonempty_fintype ι,
-  rw ← congr_arg (coe : _ → V) (basis.sum_repr (b.restrict_scalars R) m),
-  simp_rw [coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply, linear_equiv.map_sum,
-    ← is_scalar_tower.algebra_map_smul K, b.repr.map_smul, basis.repr_self, algebra_map_smul,
-    finsupp.smul_single, finset.sum_apply', ← algebra.algebra_map_eq_smul_one, finsupp.single_apply,
-    finset.sum_ite_eq', finset.mem_univ, if_true],
-end
-
-lemma basis.restrict_scalars_mem_span_iff [_root_.finite ι] (m : V) :
-  m ∈ span R (set.range b) ↔ ∀ i, ∃ c : R, b.repr m i = algebra_map R K c :=
-begin
-  casesI nonempty_fintype ι,
-  split,
-  { exact λ hm i, ⟨(b.restrict_scalars R).repr ⟨m, hm⟩ i,
-    (b.restrict_scalars_repr_apply R ⟨m, hm⟩ i).symm⟩, },
-  { intros h,
-    rw ← b.sum_repr m,
-    refine sum_mem (λ i _ , _),
-    rw [(h i).some_spec, @is_scalar_tower.algebra_map_smul R K],
-    exact smul_mem _ _ (subset_span (set.mem_range_self i)), }
-end
 
 end basis
 

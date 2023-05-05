@@ -12,6 +12,9 @@ import topology.instances.real_vector_space
 /-!
 # Torsors of normed space actions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about normed additive torsors over normed spaces.
 -/
 

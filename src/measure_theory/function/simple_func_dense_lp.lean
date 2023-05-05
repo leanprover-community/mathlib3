@@ -186,6 +186,31 @@ lemma tendsto_approx_on_range_Lp [borel_space E]
 by simpa only [Lp.tendsto_Lp_iff_tendsto_ℒp'']
   using tendsto_approx_on_range_Lp_snorm hp_ne_top fmeas hf.2
 
+/-- Any function in `ℒp` can be approximated by a simple function if `p < ∞`. -/
+lemma _root_.measure_theory.mem_ℒp.exists_simple_func_snorm_sub_lt
+  {E : Type*} [normed_add_comm_group E]
+  {f : β → E} {μ : measure β} (hf : mem_ℒp f p μ) (hp_ne_top : p ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (g : β →ₛ E), snorm (f - g) p μ < ε ∧ mem_ℒp g p μ :=
+begin
+  borelize E,
+  let f' := hf.1.mk f,
+  suffices H : ∃ (g : β →ₛ E), snorm (f' - g) p μ < ε ∧ mem_ℒp g p μ,
+  { rcases H with ⟨g, hg, g_mem⟩,
+    refine ⟨g, _, g_mem⟩,
+    convert hg using 1,
+    apply snorm_congr_ae,
+    filter_upwards [hf.1.ae_eq_mk] with x hx,
+    simpa only [pi.sub_apply, sub_left_inj] using hx },
+  have hf' : mem_ℒp f' p μ, from hf.ae_eq hf.1.ae_eq_mk,
+  have f'meas : measurable f' := hf.1.measurable_mk,
+  haveI : separable_space (range f' ∪ {0} : set E),
+    from strongly_measurable.separable_space_range_union_singleton hf.1.strongly_measurable_mk,
+  rcases ((tendsto_order.1 (tendsto_approx_on_range_Lp_snorm hp_ne_top f'meas hf'.2)).2
+    ε hε.bot_lt).exists with ⟨n, hn⟩,
+  rw [← snorm_neg, neg_sub] at hn,
+  exact ⟨_, hn, mem_ℒp_approx_on_range f'meas hf' _⟩,
+end
+
 end Lp
 
 /-! ### L1 approximation by simple functions -/
@@ -897,7 +922,7 @@ end
 
 /-- If a set of ae strongly measurable functions is stable under addition and approximates
 characteristic functions in `ℒp`, then it is dense in `ℒp`. -/
-lemma mem_ℒp.induction_dense (hp_ne_top : p ≠ ∞) (h'p : 1 ≤ p) (P : (α → E) → Prop)
+lemma mem_ℒp.induction_dense (hp_ne_top : p ≠ ∞) (P : (α → E) → Prop)
   (h0P : ∀ (c : E) ⦃s : set α⦄, measurable_set s → μ s < ∞ → ∀ {ε : ℝ≥0∞}, ε ≠ 0 →
     (∃ (g : α → E), snorm (g - s.indicator (λ x, c)) p μ ≤ ε ∧ P g))
   (h1P : ∀ f g, P f → P g → P (f + g))
@@ -905,48 +930,45 @@ lemma mem_ℒp.induction_dense (hp_ne_top : p ≠ ∞) (h'p : 1 ≤ p) (P : (α 
   {f : α → E} (hf : mem_ℒp f p μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ (g : α → E), snorm (f - g) p μ ≤ ε ∧ P g :=
 begin
-  haveI : fact (1 ≤ p) := ⟨h'p⟩,
-  revert f hf ε,
-  refine mem_ℒp.induction hp_ne_top _ _ _ _ _,
-  { assume c s hs hμs ε εpos,
-    rcases h0P c hs hμs εpos with ⟨g, hg, Pg⟩,
-    rw [← snorm_neg, neg_sub] at hg,
-    exact ⟨g, hg, Pg⟩ },
-  { assume f f' hff' hf hf' Hf Hf' ε εpos,
-    have A : ε / 2 ≠ 0, by simp [εpos],
-    rcases Hf A with ⟨g, hfg, Pg⟩,
-    rcases Hf' A with ⟨g', hf'g', Pg'⟩,
+  rcases eq_or_ne p 0 with rfl|hp_pos,
+  { rcases h0P (0 : E) measurable_set.empty
+      (by simp only [measure_empty, with_top.zero_lt_top]) hε with ⟨g, hg, Pg⟩,
+    exact ⟨g, by simp only [snorm_exponent_zero, zero_le'], Pg⟩ },
+  suffices H : ∀ (f' : α →ₛ E) (δ : ℝ≥0∞) (hδ : δ ≠ 0), mem_ℒp f' p μ →
+    ∃ g, snorm (f' - g) p μ ≤ δ ∧ P g,
+  { obtain ⟨η, ηpos, hη⟩ := exists_Lp_half E μ p hε,
+    rcases hf.exists_simple_func_snorm_sub_lt hp_ne_top ηpos.ne' with ⟨f', hf', f'_mem⟩,
+    rcases H f' η ηpos.ne' f'_mem with ⟨g, hg, Pg⟩,
+    refine ⟨g, _, Pg⟩,
+    convert (hη _ _ (hf.ae_strongly_measurable.sub f'.ae_strongly_measurable)
+      (f'.ae_strongly_measurable.sub (h2P g Pg)) hf'.le hg).le,
+    simp only [sub_add_sub_cancel] },
+  refine simple_func.induction _ _,
+  { intros c s hs ε εpos Hs,
+    rcases eq_or_ne c 0 with rfl|hc,
+    { rcases h0P (0 : E) measurable_set.empty
+        (by simp only [measure_empty, with_top.zero_lt_top]) εpos with ⟨g, hg, Pg⟩,
+      rw [← snorm_neg, neg_sub] at hg,
+      refine ⟨g, _, Pg⟩,
+      convert hg,
+      ext x,
+      simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_zero,
+        piecewise_eq_indicator, indicator_zero', pi.zero_apply, indicator_zero] },
+    { have : μ s < ∞,
+        from (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs Hs),
+      rcases h0P c hs this εpos with ⟨g, hg, Pg⟩,
+      rw [← snorm_neg, neg_sub] at hg,
+      exact ⟨g, hg, Pg⟩ } },
+  { intros f f' hff' hf hf' δ δpos int_ff',
+    obtain ⟨η, ηpos, hη⟩ := exists_Lp_half E μ p δpos,
+    rw [simple_func.coe_add,
+      mem_ℒp_add_of_disjoint hff' f.strongly_measurable f'.strongly_measurable] at int_ff',
+    rcases hf η ηpos.ne' int_ff'.1 with ⟨g, hg, Pg⟩,
+    rcases hf' η ηpos.ne' int_ff'.2 with ⟨g', hg', Pg'⟩,
     refine ⟨g + g', _, h1P g g' Pg Pg'⟩,
-    calc snorm (f + f' - (g + g')) p μ
-        = snorm ((f - g) + (f' - g')) p μ : by { congr' 1, abel }
-    ... ≤ snorm (f - g) p μ + snorm (f' - g') p μ :
-      snorm_add_le (hf.ae_strongly_measurable.sub (h2P g Pg))
-        (hf'.ae_strongly_measurable.sub (h2P g' Pg')) h'p
-    ... ≤ ε / 2 + ε / 2 : add_le_add hfg hf'g'
-    ... = ε : ennreal.add_halves _ },
-  { rw is_closed_iff_nhds,
-    assume f hf ε εpos,
-    have A : ε / 2 ≠ 0, by simp [εpos],
-    rcases hf (emetric.ball f (ε/2)) (emetric.ball_mem_nhds _ A.bot_lt) with ⟨f', hf', h'f'⟩,
-    rcases h'f' A with ⟨g, hg, Pg⟩,
-    refine ⟨g, _, Pg⟩,
-    calc snorm (f - g) p μ = snorm ((f - f') + (f' - g)) p μ : by simp only [sub_add_sub_cancel]
-    ... ≤ snorm (f - f') p μ + snorm (f' - g) p μ :
-      snorm_add_le ((Lp.mem_ℒp f).sub (Lp.mem_ℒp f')).ae_strongly_measurable
-        ((Lp.mem_ℒp f').ae_strongly_measurable.sub (h2P g Pg)) h'p
-    ... ≤ ε / 2 + ε / 2 :
-      begin
-        refine add_le_add _ hg,
-        rw [← snorm_neg, neg_sub],
-        simp only [Lp.edist_def, emetric.mem_ball] at hf',
-        exact hf'.le
-      end
-    ... = ε : ennreal.add_halves _ },
-  { assume f f' hff' hf Hf ε εpos,
-    rcases Hf εpos with ⟨g, hg, Pg⟩,
-    refine ⟨g, _, Pg⟩,
-    have : f - g =ᵐ[μ] f' - g := hff'.sub (filter.germ.coe_eq.mp rfl),
-    rwa ← snorm_congr_ae this }
+    convert (hη _ _ (f.ae_strongly_measurable.sub (h2P g Pg))
+          (f'.ae_strongly_measurable.sub (h2P g' Pg')) hg hg').le,
+    abel }
 end
 
 section integrable

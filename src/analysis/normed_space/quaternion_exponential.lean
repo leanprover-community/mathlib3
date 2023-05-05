@@ -27,8 +27,6 @@ open_locale quaternion nat
 
 namespace quaternion
 
-lemma conj_exp (q : ℍ[ℝ]) : conj (exp ℝ q) = exp ℝ (conj q) := star_exp q
-
 @[simp, norm_cast] lemma exp_coe (r : ℝ) : exp ℝ (r : ℍ[ℝ]) = ↑(exp ℝ r) :=
 (map_exp ℝ (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _) _).symm
 
@@ -119,7 +117,7 @@ calc norm_sq (exp ℝ q)
       congr' 1,
       obtain hv | hv := eq_or_ne (‖q.im‖) 0,
       { simp [hv] },
-      rw [norm_sq_add, norm_sq_smul, conj_smul, coe_mul_eq_smul, smul_re, smul_re, conj_re, im_re,
+      rw [norm_sq_add, norm_sq_smul, star_smul, coe_mul_eq_smul, smul_re, smul_re, star_re, im_re,
         smul_zero, smul_zero, mul_zero, add_zero, div_pow, norm_sq_coe, norm_sq_eq_norm_sq, ←sq,
         div_mul_cancel _ (pow_ne_zero _ hv)],
     end

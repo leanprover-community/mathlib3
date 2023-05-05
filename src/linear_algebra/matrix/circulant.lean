@@ -8,6 +8,9 @@ import linear_algebra.matrix.symmetric
 /-!
 # Circulant matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and basic results about circulant matrices.
 Given a vector `v : n → α` indexed by a type that is endowed with subtraction,
 `matrix.circulant v` is the matrix whose `(i, j)`th entry is `v (i - j)`.

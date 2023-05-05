@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import data.nat.prime_fin
 import ring_theory.polynomial.cyclotomic.eval
 
 /-!

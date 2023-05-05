@@ -3,10 +3,10 @@ Copyright (c) 2023 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
-import number_theory.modular_forms.basic
 import analysis.special_functions.gaussian
-import analysis.calculus.series
 import analysis.complex.locally_uniform_limit
+import analysis.complex.upper_half_plane.functions_bounded_at_infty
+import analysis.complex.upper_half_plane.topology
 
 /-! # Jacobi's theta function
 

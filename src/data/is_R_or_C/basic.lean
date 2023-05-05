@@ -311,6 +311,8 @@ by simp only [map_add, add_zero, ext_iff, monoid_with_zero_hom.coe_mk,
               mul_neg, add_right_neg, zero_add, norm_sq, mul_comm, and_self,
               neg_neg, mul_zero, sub_eq_neg_add, neg_zero] with is_R_or_C_simps
 
+lemma conj_mul (x : K) : conj x * x = ((norm_sq x) : K) := by rw [mul_comm, mul_conj]
+
 theorem add_conj (z : K) : z + conj z = 2 * (re z) :=
 by simp only [ext_iff, two_mul, map_add, add_zero, of_real_im, conj_im, of_real_re,
               eq_self_iff_true, add_right_neg, conj_re, and_self]
@@ -589,14 +591,6 @@ by simp only [sq, ←norm_sq_eq_abs, norm_sq, map_add, add_zero, monoid_with_zer
 lemma abs_sq_re_add_conj' (x : K) : (abs (conj x + x))^2 = (re (conj x + x))^2 :=
 by simp only [sq, ←norm_sq_eq_abs, norm_sq, map_add, add_zero, monoid_with_zero_hom.coe_mk,
               add_left_neg, mul_zero] with is_R_or_C_simps
-
-lemma conj_mul_eq_norm_sq_left (x : K) : conj x * x = ((norm_sq x) : K) :=
-begin
-  rw ext_iff,
-  refine ⟨by simp only [norm_sq, neg_mul, monoid_with_zero_hom.coe_mk,
-                        sub_neg_eq_add, map_add, sub_zero, mul_zero] with is_R_or_C_simps, _⟩,
-  simp only [mul_comm, mul_neg, add_left_neg] with is_R_or_C_simps
-end
 
 /-! ### Cauchy sequences -/
 

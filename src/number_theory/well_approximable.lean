@@ -5,7 +5,6 @@ Authors: Oliver Nash
 -/
 import dynamics.ergodic.add_circle
 import measure_theory.covering.liminf_limsup
-import data.nat.totient
 
 /-!
 # Well-approximable numbers and Gallagher's ergodic theorem

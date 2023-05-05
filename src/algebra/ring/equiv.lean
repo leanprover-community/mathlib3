@@ -392,6 +392,9 @@ variables [non_assoc_ring R] [non_assoc_ring S] (f : R ≃+* S) (x y : R)
 
 @[simp] lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
 
+lemma map_eq_neg_one_iff {x : R} : f x = -1 ↔ x = -1 :=
+by rw [← neg_eq_iff_eq_neg, ← neg_eq_iff_eq_neg, ← map_neg, ring_equiv.map_eq_one_iff]
+
 end ring
 
 section non_unital_semiring_hom

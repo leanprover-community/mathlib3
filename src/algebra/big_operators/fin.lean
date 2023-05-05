@@ -208,6 +208,40 @@ begin
     assoc_rw [hi, inv_mul_cancel_left] }
 end
 
+/-- Let `(g₀, g₁, ..., gₙ)` be a tuple of elements in `Gⁿ⁺¹`.
+Then if `k < j`, this says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ = gₖ`.
+If `k = j`, it says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ₊₁ = gₖgₖ₊₁`.
+If `k > j`, it says `(g₀g₁...gₖ)⁻¹ * g₀g₁...gₖ₊₁ = gₖ₊₁.`
+Useful for defining group cohomology. -/
+@[to_additive "Let `(g₀, g₁, ..., gₙ)` be a tuple of elements in `Gⁿ⁺¹`.
+Then if `k < j`, this says `-(g₀ + g₁ + ... + gₖ₋₁) + (g₀ + g₁ + ... + gₖ) = gₖ`.
+If `k = j`, it says `-(g₀ + g₁ + ... + gₖ₋₁) + (g₀ + g₁ + ... + gₖ₊₁) = gₖ + gₖ₊₁`.
+If `k > j`, it says `-(g₀ + g₁ + ... + gₖ) + (g₀ + g₁ + ... + gₖ₊₁) = gₖ₊₁.`
+Useful for defining group cohomology."]
+lemma inv_partial_prod_mul_eq_contract_nth {G : Type*} [group G]
+  (g : fin (n + 1) → G) (j : fin (n + 1)) (k : fin n) :
+  (partial_prod g (j.succ.succ_above k.cast_succ))⁻¹ * partial_prod g (j.succ_above k).succ
+    = j.contract_nth has_mul.mul g k :=
+begin
+  have := partial_prod_right_inv (1 : G) g,
+  simp only [one_smul, coe_eq_cast_succ] at this,
+  rcases lt_trichotomy (k : ℕ) j with (h|h|h),
+  { rwa [succ_above_below, succ_above_below, this, contract_nth_apply_of_lt],
+    { assumption },
+    { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
+      exact le_of_lt h }},
+  { rwa [succ_above_below, succ_above_above, partial_prod_succ, cast_succ_fin_succ, ←mul_assoc,
+      this, contract_nth_apply_of_eq],
+    { simpa only [le_iff_coe_le_coe, ←h] },
+    { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
+      exact le_of_eq h }},
+  { rwa [succ_above_above, succ_above_above, partial_prod_succ, partial_prod_succ,
+      cast_succ_fin_succ, partial_prod_succ, inv_mul_cancel_left, contract_nth_apply_of_gt],
+    { exact le_iff_coe_le_coe.2 (le_of_lt h) },
+    { rw [le_iff_coe_le_coe, coe_succ],
+      exact nat.succ_le_of_lt h }},
+end
+
 end partial_prod
 
 end fin

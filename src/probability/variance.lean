@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Kexing Ying
 -/
 import probability.notation
 import probability.integration
+import measure_theory.function.l2_space
 
 /-!
 # Variance of random variables

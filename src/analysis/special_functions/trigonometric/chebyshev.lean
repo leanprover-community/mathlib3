@@ -11,6 +11,9 @@ import ring_theory.polynomial.chebyshev
 /-!
 # Multiple angle formulas in terms of Chebyshev polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gives the trigonometric characterizations of Chebyshev polynomials, for both the real
 (`real.cos`) and complex (`complex.cos`) cosine.
 -/

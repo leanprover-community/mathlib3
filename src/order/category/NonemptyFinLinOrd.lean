@@ -189,3 +189,9 @@ end NonemptyFinLinOrd
 lemma NonemptyFinLinOrd_dual_comp_forget_to_LinOrd :
   NonemptyFinLinOrd.dual ⋙ forget₂ NonemptyFinLinOrd LinOrd =
     forget₂ NonemptyFinLinOrd LinOrd ⋙ LinOrd.dual := rfl
+
+/-- The forgetful functor `NonemptyFinLinOrd ⥤ FinPartOrd` and `order_dual` commute. -/
+def NonemptyFinLinOrd_dual_comp_forget_to_FinPartOrd :
+  NonemptyFinLinOrd.dual ⋙ forget₂ NonemptyFinLinOrd FinPartOrd ≅
+    forget₂ NonemptyFinLinOrd FinPartOrd ⋙ FinPartOrd.dual :=
+{ hom := { app := λ X, order_hom.id }, inv := { app := λ X, order_hom.id } }

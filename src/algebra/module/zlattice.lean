@@ -39,7 +39,7 @@ variables {E ι : Type*}
 
 section normed_lattice_field
 
-variables {K : Type*} [normed_linear_ordered_field K] [has_solid_norm K]
+variables {K : Type*} [normed_linear_ordered_field K]
 variables [normed_add_comm_group E] [normed_space K E]
 variables (b : basis ι K E)
 
@@ -130,7 +130,7 @@ begin
     pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _), set.mem_range],
 end
 
-lemma norm_fract_le (m : E) :
+lemma norm_fract_le [has_solid_norm K] (m : E) :
   ‖fract b m‖ ≤ ∑ i, ‖b i‖ :=
 begin
   calc
@@ -162,7 +162,7 @@ end unique
 
 end fintype
 
-lemma fundamental_domain_bounded [finite ι] :
+lemma fundamental_domain_bounded [finite ι] [has_solid_norm K] :
   metric.bounded (fundamental_domain b) :=
 begin
   casesI nonempty_fintype ι,

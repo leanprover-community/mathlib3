@@ -1101,8 +1101,8 @@ lemma cast_hom_self {n : ℕ} : zmod.cast_hom dvd_rfl (zmod n) = ring_hom.id (zm
 
 @[simp]
 lemma cast_hom_comp {n m d : ℕ} (hm : n ∣ m) (hd : m ∣ d) :
-  (zmod.cast_hom hm (zmod n)).comp (zmod.cast_hom hd (zmod m)) = zmod.cast_hom (dvd_trans hm hd) (zmod n) :=
-ring_hom.ext_zmod _ _
+  (zmod.cast_hom hm (zmod n)).comp (zmod.cast_hom hd (zmod m)) = zmod.cast_hom (dvd_trans hm hd)
+  (zmod n) := ring_hom.ext_zmod _ _
 
 lemma ring_hom_right_inverse [ring R] (f : R →+* (zmod n)) :
   function.right_inverse (coe : zmod n → R) f :=

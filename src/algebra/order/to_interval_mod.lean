@@ -33,18 +33,13 @@ interval.
 
 ## TODO
 
-Unify `smodeq`, `add_comm_group.modeq` and `int.modeq`, which were originally developed independently.
+Unify `smodeq`, `add_comm_group.modeq` and `int.modeq`, which were originally developed
+independently.
 -/
 
 noncomputable theory
 
-lemma modeq_iff_eq_mod_zmultiples : a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
-by simp_rw [modeq_iff_eq_add_zsmul, quotient_add_group.eq_iff_sub_mem,
-    add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
-
-lemma not_modeq_iff_ne_mod_zmultiples :
-  ¬a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
-modeq_iff_eq_mod_zmultiples.not
+open add_comm_group
 
 section linear_ordered_add_comm_group
 
@@ -354,29 +349,19 @@ end
 section Ico_Ioc
 variables {a b}
 
-lemma modeq_iff_to_Ico_mod_eq_left :
-  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b = a :=
+lemma modeq_iff_to_Ico_mod_eq_left : a ≡ b [PMOD p] ↔ to_Ico_mod hp a b = a :=
+modeq_iff_eq_add_zsmul.trans ⟨by { rintro ⟨n, rfl⟩,
+  rw [to_Ico_mod_add_zsmul, to_Ico_mod_apply_left] }, λ h, ⟨to_Ico_div hp a b, eq_add_of_sub_eq h⟩⟩
+
+lemma modeq_iff_to_Ioc_mod_eq_right : a ≡ b [PMOD p] ↔ to_Ioc_mod hp a b = a + p :=
 begin
-  split,
-  { rintros ⟨z, rfl⟩,
-    rw [to_Ico_mod_add_zsmul, to_Ico_mod_apply_left] },
-  { intro h,
-    refine ⟨to_Ico_div hp a b, eq_add_of_sub_eq h⟩, }
+  refine modeq_iff_eq_add_zsmul.trans ⟨_, λ h, ⟨to_Ioc_div hp a b + 1, _⟩⟩,
+  { rintro ⟨z, rfl⟩,
+    rw [to_Ioc_mod_add_zsmul, to_Ioc_mod_apply_left] },
+  { rwa [add_one_zsmul, add_left_comm, ←sub_eq_iff_eq_add'] }
 end
 
 alias modeq_iff_to_Ico_mod_eq_left ↔ modeq.to_Ico_mod_eq_left _
-
-lemma modeq_iff_to_Ioc_mod_eq_right :
-  a ≡ b [PMOD p] ↔ to_Ioc_mod hp a b = a + p :=
-begin
-  split,
-  { rintros ⟨z, rfl⟩,
-    rw [to_Ioc_mod_add_zsmul, to_Ioc_mod_apply_left] },
-  { intro h,
-    refine ⟨to_Ioc_div hp a b + 1, _⟩,
-    rwa [add_one_zsmul, add_left_comm, ←sub_eq_iff_eq_add'] }
-end
-
 alias modeq_iff_to_Ioc_mod_eq_right ↔ modeq.to_Ico_mod_eq_right _
 
 variables (a b)

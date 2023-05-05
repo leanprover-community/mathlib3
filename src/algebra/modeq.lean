@@ -83,11 +83,11 @@ lemma modeq_sub (a b : α) : a ≡ b [PMOD b - a] := ⟨1, (one_smul _ _).symm�
 
 @[simp] lemma modeq_zero : a ≡ b [PMOD 0] ↔ a = b := by simp [modeq, sub_eq_zero, eq_comm]
 
-lemma zsmul_modeq_zero (n : ℤ) : n • p ≡ 0 [PMOD p] := ⟨-n, by simp⟩
-lemma self_modeq_zero : p ≡ 0 [PMOD p] := ⟨-1, by simp⟩
+@[simp] lemma zsmul_modeq_zero (n : ℤ) : n • p ≡ 0 [PMOD p] := ⟨-n, by simp⟩
+@[simp] lemma self_modeq_zero : p ≡ 0 [PMOD p] := ⟨-1, by simp⟩
 
-@[simp] lemma add_zsmul_modeq : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
-@[simp] lemma zsmul_add_modeq : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
+lemma add_zsmul_modeq : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
+lemma zsmul_add_modeq : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
 
 namespace modeq
 
@@ -99,11 +99,13 @@ Exists.imp $ λ m hm, by rw [←smul_sub, hm, smul_comm]
 
 @[simp] protected lemma add_iff_left :
   a₁ ≡ b₁ [PMOD p] → (a₁ + a₂ ≡ b₁ + b₂ [PMOD p] ↔ a₂ ≡ b₂ [PMOD p]) :=
-λ ⟨m, hm⟩, (equiv.add_left (-m)).exists_congr_left.trans $ by simpa [add_sub_add_comm, hm, add_smul]
+λ ⟨m, hm⟩, (equiv.add_left m).symm.exists_congr_left.trans $
+  by simpa [add_sub_add_comm, hm, add_smul]
 
 @[simp] protected lemma add_iff_right :
   a₂ ≡ b₂ [PMOD p] → (a₁ + a₂ ≡ b₁ + b₂ [PMOD p] ↔ a₁ ≡ b₁ [PMOD p]) :=
-λ ⟨m, hm⟩, (equiv.add_right (-m)).exists_congr_left.trans $ by simpa [add_sub_add_comm, hm, add_smul]
+λ ⟨m, hm⟩, (equiv.add_right m).symm.exists_congr_left.trans $
+  by simpa [add_sub_add_comm, hm, add_smul]
 
 @[simp] protected lemma sub_iff_left :
   a₁ ≡ b₁ [PMOD p] → (a₁ - a₂ ≡ b₁ - b₂ [PMOD p] ↔ a₂ ≡ b₂ [PMOD p]) :=

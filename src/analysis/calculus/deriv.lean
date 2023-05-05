@@ -1882,7 +1882,7 @@ p.differentiable.differentiable_on
 (p.has_deriv_at x).deriv
 
 @[simp] protected lemma deriv_aeval {R : Type*} [comm_semiring R] [algebra R 𝕜] (p : polynomial R) :
-deriv (λ (x : 𝕜), aeval x p) x = aeval x (derivative p) :=
+  deriv (λ (x : 𝕜), aeval x p) x = aeval x (derivative p) :=
 by simp [aeval_def, eval₂_eq_eval_map]
 
 protected lemma deriv_within (hxs : unique_diff_within_at 𝕜 s x) :

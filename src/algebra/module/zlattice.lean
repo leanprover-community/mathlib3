@@ -3,6 +3,7 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
+import analysis.normed.order.basic
 import analysis.normed.order.lattice
 import linear_algebra.finite_dimensional
 import measure_theory.group.fundamental_domain
@@ -10,9 +11,9 @@ import measure_theory.group.fundamental_domain
 /-!
 # ℤ-lattices
 
-Let `E` be a finite dimensional vector space over a `normed_lattice_field` `K` that is also
-a `floor_ring`, e.g. `ℚ` or `ℝ`. A (full) ℤ-lattice `L` of `E` is a discrete subgroup of `E` such
-that `L` spans `E` over `K`.
+Let `E` be a finite dimensional vector space over a `normed_linear_ordered_field` `K` with a solid
+norm and that is also a `floor_ring`, e.g. `ℚ` or `ℝ`. A (full) ℤ-lattice `L` of `E` is a discrete
+subgroup of `E` such that `L` spans `E` over `K`.
 
 The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
@@ -38,7 +39,7 @@ variables {E ι : Type*}
 
 section normed_lattice_field
 
-variables {K : Type*} [normed_lattice_field K]
+variables {K : Type*} [normed_linear_ordered_field K] [has_solid_norm K]
 variables [normed_add_comm_group E] [normed_space K E]
 variables (b : basis ι K E)
 

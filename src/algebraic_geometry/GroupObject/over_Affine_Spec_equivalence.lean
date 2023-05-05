@@ -4,7 +4,8 @@ import algebra.category.Algebra.limits
 open algebraic_geometry category_theory
 universes v u
 
-variables (R : Type u) [comm_ring R]
+variables (R : Type*) [comm_ring R]
+
 
 instance (x : under (CommRing.of R)) : algebra R x.right :=
 ring_hom.to_algebra x.hom

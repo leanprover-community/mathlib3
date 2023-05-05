@@ -89,9 +89,6 @@ lemma is_unit_T_tmul_T (R : Type*) [comm_ring R] (m n : ℤ) :
     simpa only [algebra.tensor_product.tmul_mul_tmul, ←T_sub, ←T_add, neg_add_self],
   end }, rfl⟩
 
-noncomputable def comul : R[T;T⁻¹] →ₐ[R] (R[T;T⁻¹] ⊗[R] R[T;T⁻¹]) :=
-eval₂_alg_hom R _ (is_unit_T_tmul_T R 1 1)
-
 noncomputable instance T_tmul_T_neg_invertible (m n : ℤ) :
   invertible (@T R _ m ⊗ₜ[R] @T R _ n) :=
 { inv_of := T (-m) ⊗ₜ[R] T (-n),
@@ -111,6 +108,9 @@ begin
     add_right_neg, T_zero], }
 end
 
+noncomputable def comul : R[T;T⁻¹] →ₐ[R] (R[T;T⁻¹] ⊗[R] R[T;T⁻¹]) :=
+eval₂_alg_hom R _ (is_unit_T_tmul_T R 1 1)
+
 lemma comul_T_nat (m : ℕ) :
   comul R (T m) = T m ⊗ₜ[R] T m :=
 begin
@@ -124,7 +124,8 @@ lemma comul_T (m : ℤ) :
 begin
   refine int.induction_on m _ _ _,
   { show comul R (finsupp.single 0 (1 : R)) = _,
-    simpa only [comul, eval₂_alg_hom_single, one_smul, zpow_zero, units.coe_one, T_zero, neg_zero] },
+    simpa only [comul, eval₂_alg_hom_single, one_smul, zpow_zero, units.coe_one,
+      T_zero, neg_zero] },
   { intros i hi,
     exact comul_T_nat _ _ },
   { intros i hi,
@@ -191,7 +192,29 @@ begin
     linear_map.id_apply, tensor_product.lid_tmul, counit_T, one_smul],
 end
 
+lemma bialgebra_comul'_def :
+  (bialgebra.comul' : R[T;T⁻¹] →ₗ[R] R[T;T⁻¹] ⊗[R] R[T;T⁻¹]) = (comul R).to_linear_map := rfl
+
+lemma bialgebra_counit'_def :
+  (bialgebra.counit' : R[T;T⁻¹] →ₗ[R] R) = (counit R).to_linear_map := rfl
+
 noncomputable instance : hopf_algebra R (laurent_polynomial R) :=
-hopf_algebra.of_alg_hom (coinv R)
+{ coinv := (coinv R).to_linear_map,
+  coinv_left' :=
+  begin
+    ext,
+    simpa only [linear_map.comp_apply, finsupp.lsingle_apply, single_eq_C_mul_T, map_one, one_mul,
+      linear_equiv.coe_to_linear_map, coinv_T, tensor_product.map_tmul, linear_map.id_apply,
+      bialgebra_comul'_def, bialgebra_counit'_def, comul_T, alg_hom.to_linear_map_apply,
+      linear_map.mul'_apply, counit_T, ←T_add, neg_add_self],
+  end,
+  coinv_right' :=
+  begin
+    ext,
+    simpa only [linear_map.comp_apply, finsupp.lsingle_apply, single_eq_C_mul_T, map_one, one_mul,
+      linear_equiv.coe_to_linear_map, coinv_T, tensor_product.map_tmul, linear_map.id_apply,
+      bialgebra_comul'_def, bialgebra_counit'_def, comul_T, alg_hom.to_linear_map_apply,
+      linear_map.mul'_apply, counit_T, ←T_add, add_neg_self],
+  end, .. laurent_polynomial.bialgebra R }
 
 end laurent_polynomial

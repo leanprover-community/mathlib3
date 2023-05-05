@@ -9,6 +9,13 @@ variables {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C] [symm
 
 namespace CommMon_
 
+variables (X Y Z : C) (f : X ≅ Y) (g : X ⟶ Z)
+#check f.hom_inv_id -- f.hom ≫ f.inv = 𝟙 X
+#check f.hom_inv_id_assoc g -- f.hom ≫ f.inv ≫ g = g
+
+
+
+example : f.hom ≫ f.inv ≫ g = f.hom ≫ (f.inv ≫ g) := rfl
 def iso_of_iso {M N : CommMon_ C}
   (f : M.X ≅ N.X)
   (one_f : M.one ≫ f.hom = N.one)
@@ -69,6 +76,7 @@ lemma CommMon_tensor_mul_comm (M N : CommMon_ C) :
     (β_ (M.X ⊗ N.X) (M.X ⊗ N.X)).hom ≫ tensor_μ C (M.X, N.X) (M.X, N.X) ≫ (M.mul ⊗ N.mul)
   = tensor_μ C (M.X, N.X) (M.X, N.X) ≫ (M.mul ⊗ N.mul) :=
 begin
+  rw tensor_μ,
   rw [←M.mul_comm, ←N.mul_comm, tensor_comp, ←category.comp_id (β_ N.X N.X).hom,
      ←category.id_comp (β_ M.X M.X).hom, tensor_comp, ←tensor_id, tensor_μ],
   simp only [category.assoc],
@@ -100,7 +108,6 @@ begin
   { rw [←category.assoc, (iso.inv_comp_eq _).1 (braided_category.hexagon_reverse M.X N.X M.X)],
     simp only [category.assoc, ←tensor_comp, symmetric_category.symmetry,
       category.comp_id, tensor_id] },
-  dsimp,
   sorry,
 end
 

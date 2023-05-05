@@ -39,7 +39,6 @@ class inner_product_spaceable (E : Type*) [normed_add_comm_group E] : Prop :=
   ∀ x y : E, ‖x + y‖ * ‖x + y‖ + ‖x - y‖ * ‖x - y‖ = 2 * (‖x‖ * ‖x‖ + ‖y‖ * ‖y‖))
 
 variables (𝕜 : Type*) [is_R_or_C 𝕜] {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  [inner_product_spaceable E]
 
 variables (𝕜)
 

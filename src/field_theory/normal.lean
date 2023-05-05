@@ -134,10 +134,10 @@ local attribute [-instance] adjoin_root.has_smul
 
 lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] : normal F E :=
 begin
-  by_cases hp : p = 0,
-  { haveI : is_splitting_field F F p, { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
-    exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F p).trans
-      (is_splitting_field.alg_equiv E p).symm)).mp (normal_self F) },
+  unfreezingI { rcases eq_or_ne p 0 with rfl | hp },
+  { have : is_splitting_field F F 0 := ⟨splits_zero _, subsingleton.elim _ _⟩,
+    exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F 0).trans
+      (is_splitting_field.alg_equiv E 0).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
   haveI hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
   have Hx : is_integral F x := is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x,
@@ -150,9 +150,8 @@ begin
   have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
   haveI : is_scalar_tower F E D := of_algebra_map_eq (λ _, rfl),
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
-  suffices : nonempty (D →ₐ[F] E),
-  { cases this with ϕ,
-    rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
+  rsuffices ⟨ϕ⟩ : nonempty (D →ₐ[F] E),
+  { rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
     have nat_lemma : ∀ a b c : ℕ, a * b = c → c ≤ a → 0 < c → b = 1,
     { intros a b c h1 h2 h3, nlinarith },
     exact nat_lemma _ _ _ (finite_dimensional.finrank_mul_finrank F E D)

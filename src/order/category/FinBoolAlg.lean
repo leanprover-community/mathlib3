@@ -54,9 +54,9 @@ induced_category.concrete_category FinBoolAlg.to_BoolAlg
 instance has_forget_to_BoolAlg : has_forget₂ FinBoolAlg BoolAlg :=
 induced_category.has_forget₂ FinBoolAlg.to_BoolAlg
 
--- instance has_forget_to_FinBddDistLat : has_forget₂ FinBoolAlg FinBddDistLat :=
--- { forget₂ := { obj := λ X, FinBddDistLat.of X, map := λ X Y f, f },
---   forget_comp := rfl }
+instance has_forget_to_FinBddDistLat : has_forget₂ FinBoolAlg FinBddDistLat :=
+{ forget₂ := { obj := λ X, FinBddDistLat.of X, map := λ X Y f, f },
+  forget_comp := rfl }
 
 instance forget_to_BoolAlg_full : full (forget₂ FinBoolAlg BoolAlg) := induced_category.full _
 instance forget_to_BoolAlg_faithful : faithful (forget₂ FinBoolAlg BoolAlg) :=
@@ -89,9 +89,9 @@ equivalence.mk dual dual
 
 end FinBoolAlg
 
--- lemma FinBoolAlg_dual_comp_forget_to_FinBddDistLat :
---   FinBoolAlg.dual ⋙ forget₂ FinBoolAlg FinBddDistLat =
---     forget₂ FinBoolAlg FinBddDistLat ⋙ FinBddDistLat.dual := rfl
+lemma FinBoolAlg_dual_comp_forget_to_FinBddDistLat :
+  FinBoolAlg.dual ⋙ forget₂ FinBoolAlg FinBddDistLat =
+    forget₂ FinBoolAlg FinBddDistLat ⋙ FinBddDistLat.dual := rfl
 
 /-- The powerset functor. `set` as a functor. -/
 @[simps] def Fintype_to_FinBoolAlg_op : Fintype ⥤ FinBoolAlgᵒᵖ :=

@@ -51,8 +51,7 @@ induced_category.concrete_category to_BddDistLat
 instance has_forget_to_BddDistLat :
   has_forget₂ FinBddDistLat BddDistLat :=
 induced_category.has_forget₂ FinBddDistLat.to_BddDistLat
-example {α β : Type*} [lattice α] [lattice β] [bounded_order α] [bounded_order β]
-   (f : bounded_lattice_hom α β) : α →o β := f
+
 instance has_forget_to_FinPartOrd : has_forget₂ FinBddDistLat FinPartOrd :=
 { forget₂ := { obj := λ X, FinPartOrd.of X,
                map := λ X Y f, (show bounded_lattice_hom X Y, from f : X →o Y) } }
@@ -67,18 +66,18 @@ between them. -/
 
 example {X Y : FinBddDistLat} : (X ⟶ Y) = bounded_lattice_hom X Y := rfl
 
--- /-- `order_dual` as a functor. -/
--- @[simps] def dual : FinBddDistLat ⥤ FinBddDistLat :=
--- { obj := λ X, ⟨BddDistLat.dual.obj X.to_BddDistLat⟩, map := λ X Y, _ }
+/-- `order_dual` as a functor. -/
+@[simps] def dual : FinBddDistLat ⥤ FinBddDistLat :=
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, bounded_lattice_hom.dual }
 
--- /-- The equivalence between `FinBddDistLat` and itself induced by `order_dual` both ways. -/
--- @[simps functor inverse] def dual_equiv : FinBddDistLat ≌ FinBddDistLat :=
--- equivalence.mk dual dual
---   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
---   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+/-- The equivalence between `FinBddDistLat` and itself induced by `order_dual` both ways. -/
+@[simps functor inverse] def dual_equiv : FinBddDistLat ≌ FinBddDistLat :=
+equivalence.mk dual dual
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end FinBddDistLat
 
--- lemma FinBddDistLat_dual_comp_forget_to_DistLat :
---   FinBddDistLat.dual ⋙ forget₂ FinBddDistLat DistLat =
---     forget₂ FinBddDistLat DistLat ⋙ DistLat.dual := rfl
+lemma FinBddDistLat_dual_comp_forget_to_BddDistLat :
+  FinBddDistLat.dual ⋙ forget₂ FinBddDistLat BddDistLat =
+    forget₂ FinBddDistLat BddDistLat ⋙ BddDistLat.dual := rfl

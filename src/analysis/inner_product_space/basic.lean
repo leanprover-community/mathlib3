@@ -221,9 +221,6 @@ by norm_num [ext_iff, inner_self_im]
 lemma norm_inner_symm (x y : F) : ‖⟪x, y⟫‖ = ‖⟪y, x⟫‖ :=
 by rw [←inner_conj_symm, norm_conj]
 
-lemma norm_inner_symm (x y : F) : ‖⟪x, y⟫‖ = ‖⟪y, x⟫‖ :=
-by rw [is_R_or_C.norm_eq_abs, is_R_or_C.norm_eq_abs, abs_inner_symm]
-
 lemma inner_neg_left (x y : F) : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 
@@ -475,7 +472,7 @@ inner_product_space.to_core.nonneg_re x
 lemma real_inner_self_nonneg {x : F} : 0 ≤ ⟪x, x⟫_ℝ := @inner_self_nonneg ℝ F _ _ _ x
 
 @[simp] lemma inner_self_re_to_K (x : E) : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
-((is_R_or_C.is_real_tfae (⟪x, x⟫ : 𝕜)).out 2 3).2 (inner_self_im_zero _)
+((is_R_or_C.is_real_tfae (⟪x, x⟫ : 𝕜)).out 2 3).2 (inner_self_im _)
 
 lemma inner_self_eq_norm_sq_to_K (x : E) : ⟪x, x⟫ = (‖x‖ ^ 2 : 𝕜) :=
 by rw [← inner_self_re_to_K, ← norm_sq_eq_inner, of_real_pow]
@@ -1383,8 +1380,8 @@ begin
       mul_pow, ← mul_right_inj' this, eq_comm, ← sub_eq_zero, ← mul_sub] at h,
     simp only [@norm_sq_eq_inner 𝕜] at h,
     letI : inner_product_space.core 𝕜 E := inner_product_space.to_core,
-    erw [← inner_product_space.of_core.cauchy_schwarz_aux,
-      inner_product_space.of_core.norm_sq_eq_zero, sub_eq_zero] at h,
+    erw [← inner_product_space.core.cauchy_schwarz_aux,
+      inner_product_space.core.norm_sq_eq_zero, sub_eq_zero] at h,
     rw [div_eq_inv_mul, mul_smul, h, inv_smul_smul₀],
     rwa [inner_self_ne_zero] },
   tfae_have : 2 → 3, from λ h, h.imp_right (λ h', ⟨_, h'⟩),
@@ -1423,13 +1420,6 @@ begin
     simp only [norm_div, norm_mul, norm_of_real, abs_norm],
     exact norm_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
 end
-
-/-- If the inner product of two vectors is equal to the product of their norms (i.e.,
-`⟪x, y⟫ = ‖x‖ * ‖y‖`), then the two vectors are nonnegative real multiples of each other. One form
-of the equality case for Cauchy-Schwarz.
-Compare `norm_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ‖x‖ * ‖y‖`. -/
-lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ‖x‖ * ‖y‖ ↔ ‖y‖ • x = ‖x‖ • y :=
-inner_eq_norm_mul_iff
 
 /-- The inner product of two vectors, divided by the product of their
 norms, has absolute value 1 if and only if they are nonzero and one is

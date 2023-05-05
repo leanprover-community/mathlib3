@@ -145,7 +145,7 @@ begin
     have cont_diff_gaussian : cont_diff ℝ ⊤ gaussian := ((cont_diff_id.pow 2).div_const 2).neg.exp,
     have : ∀ x n,
       (-1 : ℝ)^(n+1) * (deriv^[n+1] gaussian x) / gaussian x
-      = x * ((-1 : ℝ)^n * (deriv^[n] gaussian x)) / gaussian x -
+      = x * ((-1 : ℝ)^n * (deriv^[n] gaussian x) / gaussian x) -
         deriv (λ z, (-1 : ℝ)^n * (deriv^[n] gaussian z) / gaussian z) x,
     { intros x n,
       rw [function.iterate_succ_apply', deriv_div _ _ (gaussian_ne_zero _), deriv_const_mul,
@@ -156,8 +156,7 @@ begin
       { apply (cont_diff_top_iff_deriv.mp _).1,
         exact (cont_diff_gaussian.iterate_deriv _).const_smul ((-1 : ℝ)^n) },
       { simp } },
-    simp_rw [this, hermite_succ, ← mul_div x, ← ih],
-    simp [aeval_def, eval₂_eq_eval_map] }
+    simp_rw [this, hermite_succ, ← ih, polynomial.deriv_aeval, map_sub, map_mul, aeval_X] }
 end
 
 end gaussian

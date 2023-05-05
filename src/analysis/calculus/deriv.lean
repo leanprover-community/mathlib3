@@ -5,6 +5,7 @@ Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv
 import data.polynomial.derivative
+import data.polynomial.algebra_map
 import linear_algebra.affine_space.slope
 
 /-!
@@ -1879,6 +1880,10 @@ p.differentiable.differentiable_on
 
 @[simp] protected lemma deriv : deriv (λx, p.eval x) x = p.derivative.eval x :=
 (p.has_deriv_at x).deriv
+
+@[simp] protected lemma deriv_aeval {R : Type*} [comm_semiring R] [algebra R 𝕜] (p : polynomial R) :
+deriv (λ (x : 𝕜), aeval x p) x = aeval x (derivative p) :=
+by simp [aeval_def, eval₂_eq_eval_map]
 
 protected lemma deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, p.eval x) s x = p.derivative.eval x :=

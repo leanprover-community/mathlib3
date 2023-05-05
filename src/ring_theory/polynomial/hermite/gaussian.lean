@@ -37,10 +37,10 @@ lemma deriv_gaussian_eq_hermite_mul_gaussian (n : ℕ) (x : ℝ) :
   (-1 : ℝ)^n * aeval x (hermite n) * real.exp (-(x^2 / 2)) :=
 begin
   induction n with n ih generalizing x,
-  { by simp },
-  { replace ih : (deriv^[n] _) = _ := function.funext_iff.mpr ih,
-    have deriv_gaussian : deriv (λ y, real.exp (-(y^2 / 2))) x = (-x) * real.exp (-(x^2 / 2)) :=
-      by simp [mul_comm, ← neg_mul],
+  { rw [function.iterate_zero_apply, pow_zero, one_mul, hermite_zero, C_1, map_one, one_mul] },
+  { replace ih : (deriv^[n] _) = _ := _root_.funext ih,
+    have deriv_gaussian : deriv (λ y, real.exp (-(y^2 / 2))) x = (-x) * real.exp (-(x^2 / 2)),
+    { simp [mul_comm, ← neg_mul] },
     rw [function.iterate_succ_apply', ih, deriv_mul, deriv_const_mul, pow_succ (-1 : ℝ),
         deriv_gaussian, hermite_succ, map_sub, map_mul, aeval_X, polynomial.deriv_aeval],
     ring,

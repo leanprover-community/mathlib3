@@ -75,6 +75,6 @@ begin
   apply nat.dvd_antisymm
 end
 
-lemma dvd_sub_comm {a b n : ℤ} (h : n ∣ a - b) : n ∣ b - a :=
-(dvd_neg n (b - a)).mp (by {simp only [h, neg_sub]})
+lemma dvd_sub_comm (a b n : ℤ) : n ∣ b - a ↔ n ∣ a - b :=
+by { rw [←neg_sub b a, dvd_neg _ _], }
 end int

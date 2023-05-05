@@ -476,8 +476,8 @@ protected theorem sub_eq_zero_iff_le {a b : ordinal} : a - b = 0 ↔ a ≤ b :=
 ⟨λ h, by simpa only [h, add_zero] using le_add_sub a b,
  λ h, by rwa [← ordinal.le_zero, sub_le, add_zero]⟩
 
-lemma sub_ne_zero_of_lt {n k : ordinal} (h : k < n) : n - k ≠ 0 :=
-λ h', (not_lt.2 (ordinal.sub_eq_zero_iff_le.1 h')) h
+lemma sub_ne_zero_iff_lt {n k : ordinal} : n - k ≠ 0 ↔ k < n :=
+ordinal.sub_eq_zero_iff_le.not.trans not_le
 
 theorem sub_sub (a b c : ordinal) : a - b - c = a - (b + c) :=
 eq_of_forall_ge_iff $ λ d, by rw [sub_le, sub_le, sub_le, add_assoc]

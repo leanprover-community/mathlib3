@@ -308,12 +308,6 @@ variables [field K] {f : K[X]}
 instance span_maximal_of_irreducible [fact (irreducible f)] : (span {f}).is_maximal :=
 principal_ideal_ring.is_maximal_of_irreducible $ fact.out _
 
-noncomputable instance has_inv [fact (irreducible f)] : has_inv (adjoin_root f) :=
-{ ..ideal.quotient.field (span {f} : ideal K[X]) }
-
-@[simp] lemma mk_C_rat_cast (x : ℚ) : mk f (C ↑x) = of f x :=
-rfl
-
 noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
 { rat_cast := λ a, of f (a : K),
   rat_cast_mk := λ a b h1 h2,
@@ -323,8 +317,7 @@ noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
   end,
   qsmul := (•),
   qsmul_eq_mul' := λ a x, adjoin_root.induction_on _ x (λ p,
-    by { rw [smul_mk, ← mk_C_rat_cast, ← (mk f).map_mul, polynomial.rat_smul_eq_C_mul] }),
-  ..adjoin_root.has_inv,
+    by { rw [smul_mk, of, ring_hom.comp_apply, ← (mk f).map_mul, polynomial.rat_smul_eq_C_mul] }),
   ..adjoin_root.comm_ring f,
   ..ideal.quotient.field (span {f} : ideal K[X]) }
 

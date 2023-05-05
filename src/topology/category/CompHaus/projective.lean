@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import topology.category.CompHaus
+import topology.category.CompHaus.basic
 import topology.stone_cech
 import category_theory.preadditive.projective
 
 /-!
 # CompHaus has enough projectives
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we show that `CompHaus` has enough projectives.
 

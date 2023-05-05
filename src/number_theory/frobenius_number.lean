@@ -6,9 +6,14 @@ Authors: Alex Zhao
 import data.nat.modeq
 import group_theory.submonoid.basic
 import group_theory.submonoid.membership
+import tactic.ring
+import tactic.zify
 
 /-!
 # Frobenius Number in Two Variables
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we first define a predicate for Frobenius numbers, then solve the 2-variable variant
 of this problem.
@@ -44,19 +49,6 @@ def is_frobenius_number (n : ℕ) (s : set ℕ) : Prop :=
 is_greatest {k | k ∉ add_submonoid.closure (s)} n
 
 variables {m n : ℕ}
-
-lemma nat.coprime.mul_add_mul_ne_mul {a b : ℕ} (cop : coprime m n) (ha : a ≠ 0) (hb : b ≠ 0) :
-  a * m + b * n ≠ m * n :=
-begin
-  intro h,
-  obtain ⟨x, rfl⟩ : n ∣ a := cop.symm.dvd_of_dvd_mul_right
-    ((nat.dvd_add_iff_left (dvd_mul_left n b)).mpr ((congr_arg _ h).mpr (dvd_mul_left n m))),
-  obtain ⟨y, rfl⟩ : m ∣ b := cop.dvd_of_dvd_mul_right
-    ((nat.dvd_add_iff_right (dvd_mul_left m (n*x))).mpr ((congr_arg _ h).mpr (dvd_mul_right m n))),
-  rw [mul_comm, mul_ne_zero_iff, ←one_le_iff_ne_zero] at ha hb,
-  refine mul_ne_zero hb.2 ha.2 (eq_zero_of_mul_eq_self_left (ne_of_gt (add_le_add ha.1 hb.1)) _),
-  rw [← mul_assoc, ← h], ring,
-end
 
 /-- The **Chicken Mcnugget theorem** stating that the Frobenius number
   of positive numbers `m` and `n` is `m * n - m - n`. -/

@@ -3,14 +3,15 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.option.defs
 import logic.basic
 import tactic.cache
 import data.rbmap.basic
 import data.rbtree.default_lt
-
 /-!
 ## Definitions on lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains various definitions on lists. It does not contain
 proofs about these definitions, those are contained in other files in `data/list`
@@ -23,6 +24,11 @@ universes u v w x
 variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
+
+/-- Create a list of `n` copies of `a`. Same as `function.swap list.repeat`. -/
+@[simp] def replicate : ℕ → α → list α
+| 0 _ := []
+| (succ n) a := a :: replicate n a
 
 /-- Split a list at an index.
 
@@ -68,9 +74,16 @@ it returns `none` otherwise -/
 def to_array (l : list α) : array l.length α :=
 {data := λ v, l.nth_le v.1 v.2}
 
+/-- "default" `nth` function: returns `d` instead of `none` in the case
+  that the index is out of bounds. -/
+def nthd : Π (l : list α) (n : ℕ) (d : α), α
+| []      _       d := d
+| (x::xs) 0       d := x
+| (x::xs) (n + 1) d := nthd xs n d
+
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-@[simp] def inth [h : inhabited α] (l : list α) (n : nat) : α := (nth l n).iget
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd l n default
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.
@@ -233,23 +246,23 @@ mall id
 end
 
 /-- Auxiliary definition for `foldl_with_index`. -/
-def foldl_with_index_aux (f : ℕ → α → β → α) : ℕ → α → list β → α
+def foldl_with_index_aux {α : Sort*} {β : Type*} (f : ℕ → α → β → α) : ℕ → α → list β → α
 | _ a [] := a
 | i a (b :: l) := foldl_with_index_aux (i + 1) (f i a b) l
 
 /-- Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index. -/
-def foldl_with_index (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
+def foldl_with_index {α : Sort*} {β : Type*} (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
 foldl_with_index_aux f 0 a l
 
 /-- Auxiliary definition for `foldr_with_index`. -/
-def foldr_with_index_aux (f : ℕ → α → β → β) : ℕ → β → list α → β
+def foldr_with_index_aux {α : Type*} {β : Sort*} (f : ℕ → α → β → β) : ℕ → β → list α → β
 | _ b [] := b
 | i b (a :: l) := f i a (foldr_with_index_aux (i + 1) b l)
 
 /-- Fold a list from right to left as with `foldr`, but the combining function
 also receives each element's index. -/
-def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
+def foldr_with_index {α : Type*} {β : Sort*} (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
 foldr_with_index_aux f 0 b l
 
 /-- `find_indexes p l` is the list of indexes of elements of `l` that satisfy `p`. -/
@@ -398,6 +411,13 @@ attribute [simp] forall₂.nil
 
 end forall₂
 
+/-- `l.all₂ p` is equivalent to `∀ a ∈ l, p a`, but unfolds directly to a conjunction, i.e.
+`list.all₂ p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
+@[simp] def all₂ (p : α → Prop) : list α → Prop
+| []        := true
+| (x :: []) := p x
+| (x :: l)  := p x ∧ all₂ l
+
 /-- Auxiliary definition used to define `transpose`.
   `transpose_aux l L` takes each element of `l` and appends it to the start of
   each element of `L`.
@@ -526,6 +546,9 @@ def revzip (l : list α) : list (α × α) := zip l l.reverse
 def product (l₁ : list α) (l₂ : list β) : list (α × β) :=
 l₁.bind $ λ a, l₂.map $ prod.mk a
 
+/- This notation binds more strongly than (pre)images, unions and intersections. -/
+infixr (name := list.product) ` ×ˢ `:82 := list.product
+
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
      sigma [1, 2] (λ_, [(5 : ℕ), 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)] -/
@@ -627,7 +650,7 @@ def nodup : list α → Prop := pairwise (≠)
 instance nodup_decidable [decidable_eq α] : ∀ l : list α, decidable (nodup l) :=
 list.decidable_pairwise
 
-/-- `dedup l` removes duplicates from `l` (taking only the first occurrence).
+/-- `dedup l` removes duplicates from `l` (taking only the last occurrence).
   Defined as `pw_filter (≠)`.
 
      dedup [1, 0, 2, 2, 1] = [0, 2, 1] -/
@@ -1002,6 +1025,15 @@ def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → lis
 def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
 | (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
 | _       _       _       _       _       := []
+
+/--  Given a starting list `old`, a list of booleans and a replacement list `new`,
+read the items in `old` in succession and either replace them with the next element of `new` or
+not, according as to whether the corresponding boolean is `tt` or `ff`. -/
+def replace_if : list α → list bool → list α → list α
+| l  _  [] := l
+| [] _  _  := []
+| l  [] _  := l
+| (n::ns) (tf::bs) e@(c::cs) := if tf then c :: ns.replace_if bs cs else n :: ns.replace_if bs e
 
 /-- An auxiliary function for `list.map_with_prefix_suffix`. -/
 def map_with_prefix_suffix_aux {α β} (f : list α → α → list α → β) : list α → list α → list β

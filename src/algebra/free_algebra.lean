@@ -9,6 +9,9 @@ import algebra.monoid_algebra.basic
 /-!
 # Free Algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative semiring `R`, and a type `X`, we construct the free unital, associative
 `R`-algebra on `X`.
 
@@ -80,13 +83,13 @@ def has_one : has_one (pre R X) := ⟨of_scalar 1⟩
 Scalar multiplication defined as multiplication by the image of elements from `R`.
 Note: Used for notation only.
 -/
-def has_scalar : has_scalar R (pre R X) := ⟨λ r m, mul (of_scalar r) m⟩
+def has_smul : has_smul R (pre R X) := ⟨λ r m, mul (of_scalar r) m⟩
 
 end pre
 
 local attribute [instance]
   pre.has_coe_generator pre.has_coe_semiring pre.has_mul pre.has_add pre.has_zero
-  pre.has_one pre.has_scalar
+  pre.has_one pre.has_smul
 
 /--
 Given a function from `X` to an `R`-algebra `A`, `lift_fun` provides a lift of `f` to a function
@@ -135,7 +138,7 @@ namespace free_algebra
 
 local attribute [instance]
   pre.has_coe_generator pre.has_coe_semiring pre.has_mul pre.has_add pre.has_zero
-  pre.has_one pre.has_scalar
+  pre.has_one pre.has_smul
 
 instance : semiring (free_algebra R X) :=
 { add := quot.map₂ (+) (λ _ _ _, rel.add_compat_right) (λ _ _ _, rel.add_compat_left),
@@ -160,7 +163,7 @@ instance : semiring (free_algebra R X) :=
 
 instance : inhabited (free_algebra R X) := ⟨0⟩
 
-instance : has_scalar R (free_algebra R X) :=
+instance : has_smul R (free_algebra R X) :=
 { smul := λ r, quot.map ((*) ↑r) (λ a b, rel.mul_compat_right) }
 
 instance : algebra R (free_algebra R X) :=
@@ -179,9 +182,10 @@ variables {X}
 /--
 The canonical function `X → free_algebra R X`.
 -/
-def ι : X → free_algebra R X := λ m, quot.mk _ m
+@[irreducible] def ι : X → free_algebra R X := λ m, quot.mk _ m
 
-@[simp] lemma quot_mk_eq_ι (m : X) : quot.mk (free_algebra.rel R X) m = ι R m := rfl
+@[simp] lemma quot_mk_eq_ι (m : X) : quot.mk (free_algebra.rel R X) m = ι R m :=
+by rw [ι]
 
 variables {A : Type*} [semiring A] [algebra R A]
 
@@ -230,16 +234,17 @@ private def lift_aux (f : X → A) : (free_algebra R X →ₐ[R] A) :=
 Given a function `f : X → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
 of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
 -/
-def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
+@[irreducible] def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
 { to_fun := lift_aux R,
   inv_fun := λ F, F ∘ (ι R),
-  left_inv := λ f, by {ext, refl},
+  left_inv := λ f, by {ext, rw [ι], refl},
   right_inv := λ F, by
   { ext x,
     rcases x,
     induction x,
     case pre.of :
     { change ((F : free_algebra R X → A) ∘ (ι R)) _ = _,
+      rw [ι],
       refl },
     case pre.of_scalar :
     { change algebra_map _ _ x = F (algebra_map _ _ x),
@@ -251,36 +256,35 @@ def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
     { change lift_aux R (F ∘ ι R) (quot.mk _ _ * quot.mk _ _) = F (quot.mk _ _ * quot.mk _ _),
       rw [alg_hom.map_mul, alg_hom.map_mul, ha, hb], }, }, }
 
-@[simp] lemma lift_aux_eq (f : X → A) : lift_aux R f = lift R f := rfl
+@[simp] lemma lift_aux_eq (f : X → A) : lift_aux R f = lift R f :=
+by { rw [lift], refl }
 
 @[simp]
-lemma lift_symm_apply (F : free_algebra R X →ₐ[R] A) : (lift R).symm F = F ∘ (ι R) := rfl
+lemma lift_symm_apply (F : free_algebra R X →ₐ[R] A) : (lift R).symm F = F ∘ (ι R) :=
+by { rw [lift], refl }
 
 variables {R X}
 
 @[simp]
 theorem ι_comp_lift (f : X → A) :
-  (lift R f : free_algebra R X → A) ∘ (ι R) = f := by {ext, refl}
+  (lift R f : free_algebra R X → A) ∘ (ι R) = f :=
+by { ext, rw [ι, lift], refl }
 
 @[simp]
 theorem lift_ι_apply (f : X → A) (x) :
-  lift R f (ι R x) = f x := rfl
+  lift R f (ι R x) = f x :=
+by { rw [ι, lift], refl }
 
 @[simp]
 theorem lift_unique (f : X → A) (g : free_algebra R X →ₐ[R] A) :
   (g : free_algebra R X → A) ∘ (ι R) = f ↔ g = lift R f :=
-(lift R).symm_apply_eq
+by { rw [← (lift R).symm_apply_eq, lift], refl }
 
 /-!
-At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one
+Since we have set the basic definitions as `@[irreducible]`, from this point onwards one
 should only use the universal properties of the free algebra, and consider the actual implementation
-as a quotient of an inductive type as completely hidden.
+as a quotient of an inductive type as completely hidden. -/
 
-Of course, one still has the option to locally make these definitions `semireducible` if so desired,
-and Lean is still willing in some circumstances to do unification based on the underlying
-definition.
--/
-attribute [irreducible] ι lift
 -- Marking `free_algebra` irreducible makes `ring` instances inaccessible on quotients.
 -- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
 -- For now, we avoid this by not marking it irreducible.
@@ -322,7 +326,6 @@ instance [nontrivial R] : nontrivial (free_algebra R X) :=
 equiv_monoid_algebra_free_monoid.surjective.nontrivial
 
 section
-open_locale classical
 
 /-- The left-inverse of `algebra_map`. -/
 def algebra_map_inv : free_algebra R X →ₐ[R] R :=
@@ -344,8 +347,9 @@ map_eq_one_iff (algebra_map _ _) algebra_map_left_inverse.injective
 
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
-λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
-  let f : free_algebra R X →ₐ[R] R := lift R (λ z, if x = z then (1 : R) else 0) in
+λ x y hoxy, classical.by_contradiction $ by classical; exact assume hxy : x ≠ y,
+  let f : free_algebra R X →ₐ[R] R :=
+    lift R (λ z, if x = z then (1 : R) else 0) in
   have hfx1 : f (ι R x) = 1, from (lift_ι_apply _ _).trans $ if_pos rfl,
   have hfy1 : f (ι R y) = 1, from hoxy ▸ hfx1,
   have hfy0 : f (ι R y) = 0, from (lift_ι_apply _ _).trans $ if_neg hxy,

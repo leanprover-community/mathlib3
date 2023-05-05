@@ -1,93 +1,11 @@
 import .all
 run_cmd tactic.skip
 
--- algebra/category/Group/limits.lean
-apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
-apply_nolint CommGroup.forget_preserves_limits to_additive_doc
-apply_nolint CommGroup.forget₂_CommMon_preserves_limits to_additive_doc
-apply_nolint CommGroup.forget₂_Group_preserves_limits to_additive_doc
-apply_nolint CommGroup.has_limits to_additive_doc
-
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/group/semiconj.lean
-apply_nolint semiconj_by.one_left to_additive_doc
-apply_nolint semiconj_by.one_right to_additive_doc
-
--- algebra/hom/equiv.lean
-apply_nolint equiv.mul_left_symm_apply to_additive_doc
-apply_nolint equiv.mul_right_symm_apply to_additive_doc
-apply_nolint mul_equiv.apply_symm_apply to_additive_doc
-apply_nolint mul_equiv.map_div to_additive_doc
-apply_nolint mul_equiv.map_inv to_additive_doc
-apply_nolint mul_equiv.map_mul to_additive_doc
-apply_nolint mul_equiv.map_one to_additive_doc
-apply_nolint mul_equiv.symm_apply_apply to_additive_doc
-apply_nolint mul_equiv.unique to_additive_doc
-
--- algebra/hom/freiman.lean
-apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
-
--- algebra/hom/group.lean
-apply_nolint monoid_hom.ext_iff to_additive_doc
-apply_nolint monoid_hom.map_inv to_additive_doc
-apply_nolint monoid_hom.map_mul_inv to_additive_doc
-apply_nolint mul_hom.ext_iff to_additive_doc
-apply_nolint one_hom.comp_assoc to_additive_doc
-
--- algebra/order/group.lean
-apply_nolint inv_le_of_inv_le' to_additive_doc
-apply_nolint inv_le_one' to_additive_doc
-apply_nolint inv_lt_of_inv_lt' to_additive_doc
-apply_nolint inv_lt_one' to_additive_doc
-apply_nolint inv_lt_one_iff_one_lt to_additive_doc
-apply_nolint inv_mul_lt_of_lt_mul to_additive_doc
-apply_nolint inv_of_one_lt_inv to_additive_doc
-apply_nolint le_inv_mul_of_mul_le to_additive_doc
-apply_nolint le_inv_of_le_inv to_additive_doc
-apply_nolint le_one_of_one_le_inv to_additive_doc
-apply_nolint left.inv_le_one_iff to_additive_doc
-apply_nolint left.inv_lt_one_iff to_additive_doc
-apply_nolint left.one_le_inv_iff to_additive_doc
-apply_nolint left.one_lt_inv_iff to_additive_doc
-apply_nolint lt_inv_mul_of_mul_lt to_additive_doc
-apply_nolint lt_inv_of_lt_inv to_additive_doc
-apply_nolint lt_mul_of_inv_mul_lt to_additive_doc
-apply_nolint lt_mul_of_inv_mul_lt_left to_additive_doc
-apply_nolint lt_of_inv_lt_inv to_additive_doc
-apply_nolint mul_le_of_le_inv_mul to_additive_doc
-apply_nolint mul_lt_of_lt_inv_mul to_additive_doc
-apply_nolint one_le_inv' to_additive_doc
-apply_nolint one_le_of_inv_le_one to_additive_doc
-apply_nolint one_lt_inv' to_additive_doc
-apply_nolint one_lt_inv_of_inv to_additive_doc
-apply_nolint one_lt_of_inv_lt_one to_additive_doc
-apply_nolint ordered_comm_group.le_of_mul_le_mul_left to_additive_doc
-apply_nolint ordered_comm_group.lt_of_mul_lt_mul_left to_additive_doc
-apply_nolint ordered_comm_group.mul_lt_mul_left' to_additive_doc
-apply_nolint right.inv_le_one_iff to_additive_doc
-apply_nolint right.one_le_inv_iff to_additive_doc
-
--- algebra/order/lattice_group.lean
-apply_nolint lattice_ordered_comm_group.mabs_mul_le to_additive_doc
-
--- algebra/order/monoid.lean
-apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
-
--- algebra/order/monoid_lemmas.lean
-apply_nolint mul_le_one' to_additive_doc
-
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
-
--- combinatorics/additive/salem_spencer.lean
-apply_nolint mul_salem_spencer.decidable to_additive_doc
-
--- combinatorics/hindman.lean
-apply_nolint hindman.FP.mul to_additive_doc
-apply_nolint hindman.FP_partition_regular to_additive_doc
-apply_nolint hindman.exists_FP_of_finite_cover to_additive_doc
 
 -- computability/partrec.lean
 apply_nolint computable doc_blame
@@ -100,12 +18,10 @@ apply_nolint partrec doc_blame
 apply_nolint partrec₂ doc_blame
 
 -- computability/primrec.lean
-apply_nolint nat.cases doc_blame
-apply_nolint nat.elim doc_blame
-apply_nolint nat.primrec'.vec doc_blame
-apply_nolint nat.unpaired doc_blame
-apply_nolint primcodable.of_equiv doc_blame
-apply_nolint primcodable.subtype doc_blame
+apply_nolint primrec.dom_fintype fintype_finite
+
+-- computability/turing_machine.lean
+apply_nolint turing.TM1to1.exists_enc_dec fintype_finite
 
 -- control/basic.lean
 apply_nolint is_comm_applicative doc_blame
@@ -137,17 +53,14 @@ apply_nolint monoid.mfoldr.of_free_monoid doc_blame
 apply_nolint traversable.fold_map doc_blame
 apply_nolint traversable.foldl doc_blame
 apply_nolint traversable.foldr doc_blame
-apply_nolint traversable.free.map doc_blame
-apply_nolint traversable.free.mk doc_blame
 apply_nolint traversable.length doc_blame
 apply_nolint traversable.map_fold doc_blame
 apply_nolint traversable.mfoldl doc_blame
-apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
 apply_nolint traversable.mfoldr doc_blame
 
 -- control/monad/cont.lean
 apply_nolint cont doc_blame
-apply_nolint cont_t doc_blame has_inhabited_instance
+apply_nolint cont_t has_nonempty_instance doc_blame
 apply_nolint cont_t.map doc_blame
 apply_nolint cont_t.monad_lift doc_blame
 apply_nolint cont_t.run doc_blame
@@ -157,7 +70,7 @@ apply_nolint except_t.mk_label doc_blame
 apply_nolint is_lawful_monad_cont doc_blame
 apply_nolint monad_cont doc_blame
 apply_nolint monad_cont.goto doc_blame
-apply_nolint monad_cont.label doc_blame has_inhabited_instance
+apply_nolint monad_cont.label has_nonempty_instance doc_blame
 apply_nolint option_t.call_cc doc_blame
 apply_nolint option_t.mk_label doc_blame
 apply_nolint reader_t.call_cc doc_blame
@@ -173,7 +86,7 @@ apply_nolint except_t.pass_aux doc_blame
 apply_nolint option_t.pass_aux doc_blame
 apply_nolint swap_right doc_blame
 apply_nolint writer doc_blame
-apply_nolint writer_t doc_blame has_inhabited_instance
+apply_nolint writer_t has_nonempty_instance doc_blame
 apply_nolint writer_t.adapt doc_blame
 apply_nolint writer_t.bind doc_blame
 apply_nolint writer_t.ext unused_arguments
@@ -210,32 +123,16 @@ apply_nolint tactic.interactive.traverse_constructor unused_arguments
 apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
 
--- data/analysis/filter.lean
-apply_nolint cfilter has_inhabited_instance
-apply_nolint cfilter.to_realizer doc_blame
-apply_nolint filter.realizer has_inhabited_instance
-apply_nolint filter.realizer.of_eq doc_blame
+-- data/fintype/card_embedding.lean
+apply_nolint fintype.card_embedding_eq_of_infinite fintype_finite
 
--- data/analysis/topology.lean
-apply_nolint compact.realizer doc_blame unused_arguments has_inhabited_instance
-apply_nolint ctop has_inhabited_instance
-apply_nolint ctop.realizer has_inhabited_instance
-apply_nolint ctop.realizer.id doc_blame
-apply_nolint ctop.realizer.nhds doc_blame
-apply_nolint ctop.realizer.nhds_F unused_arguments
-apply_nolint ctop.realizer.nhds_σ unused_arguments
-apply_nolint ctop.realizer.of_equiv doc_blame
-apply_nolint ctop.to_realizer doc_blame
-apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
+-- data/fintype/order.lean
+apply_nolint directed.fintype_le fintype_finite
+apply_nolint fintype.bdd_above_range fintype_finite
+apply_nolint fintype.exists_le fintype_finite
 
--- data/finset/noncomm_prod.lean
-apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
-
--- data/fintype/card.lean
-apply_nolint fin.prod_univ_cast_succ to_additive_doc
-apply_nolint fin.prod_univ_eq_prod_range to_additive_doc
-apply_nolint fin.prod_univ_succ to_additive_doc
-apply_nolint fin.prod_univ_succ_above to_additive_doc
+-- data/fintype/small.lean
+apply_nolint small_of_fintype fintype_finite
 
 -- data/fp/basic.lean
 apply_nolint fp.div_nat_lt_two_pow doc_blame unused_arguments
@@ -270,7 +167,7 @@ apply_nolint int.shift2 doc_blame
 -- data/holor.lean
 apply_nolint holor.assoc_left doc_blame
 apply_nolint holor.assoc_right doc_blame
-apply_nolint holor_index has_inhabited_instance
+apply_nolint holor_index has_nonempty_instance
 apply_nolint holor_index.assoc_left doc_blame
 apply_nolint holor_index.assoc_right doc_blame
 apply_nolint holor_index.drop doc_blame
@@ -282,13 +179,18 @@ apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.traverse doc_blame
 
--- data/list/perm.lean
-apply_nolint list.perm.prod_eq' to_additive_doc
+-- data/matrix/basic.lean
+apply_nolint matrix.mul_submatrix_one fintype_finite
+apply_nolint matrix.one_submatrix_mul fintype_finite
+
+-- data/matrix/basis.lean
+apply_nolint matrix.induction_on fintype_finite
+apply_nolint matrix.induction_on' fintype_finite
 
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
--- data/nat/basic.lean
+-- data/nat/order/lemmas.lean
 apply_nolint nat.subtype.order_bot fails_quickly
 
 -- data/num/bitwise.lean
@@ -399,7 +301,6 @@ apply_nolint rbnode.is_bad_red_black doc_blame
 apply_nolint computation.bind.F doc_blame
 apply_nolint computation.bind.G doc_blame
 apply_nolint computation.bisim_o doc_blame
-apply_nolint computation.cases_on doc_blame
 apply_nolint computation.corec.F doc_blame
 apply_nolint computation.is_bisimulation doc_blame
 apply_nolint computation.lift_rel_aux doc_blame
@@ -415,14 +316,12 @@ apply_nolint computation.parallel_rec doc_blame
 
 -- data/seq/seq.lean
 apply_nolint seq.bisim_o doc_blame
-apply_nolint seq.cases_on doc_blame
 apply_nolint seq.corec.F doc_blame
 apply_nolint seq.is_bisimulation doc_blame
 apply_nolint seq.mem doc_blame
 
 -- data/seq/wseq.lean
 apply_nolint wseq.bisim_o doc_blame
-apply_nolint wseq.cases_on doc_blame
 apply_nolint wseq.destruct_append.aux doc_blame
 apply_nolint wseq.destruct_join.aux doc_blame
 apply_nolint wseq.drop.aux doc_blame
@@ -430,11 +329,6 @@ apply_nolint wseq.lift_rel_o doc_blame
 apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
-
--- data/set/pointwise.lean
-apply_nolint set.set_semiring.comm_semiring check_reducibility
-apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
-apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
 
 -- data/stream/defs.lean
 apply_nolint stream.corec doc_blame
@@ -445,111 +339,12 @@ apply_nolint stream.unfolds doc_blame
 -- data/stream/init.lean
 apply_nolint stream.is_bisimulation doc_blame
 
--- deprecated/group.lean
-apply_nolint is_group_hom.comp to_additive_doc
-apply_nolint is_group_hom.id to_additive_doc
-apply_nolint is_group_hom.injective_iff to_additive_doc
-apply_nolint is_group_hom.inv to_additive_doc
-apply_nolint is_group_hom.map_inv to_additive_doc
-apply_nolint is_group_hom.map_one to_additive_doc
-apply_nolint is_group_hom.mk' to_additive_doc
-apply_nolint is_group_hom.mul to_additive_doc
-apply_nolint is_group_hom.to_is_monoid_hom to_additive_doc
-apply_nolint is_monoid_hom.comp to_additive_doc
-apply_nolint is_monoid_hom.id to_additive_doc
-apply_nolint is_monoid_hom.inv to_additive_doc
-apply_nolint is_monoid_hom.map_mul to_additive_doc
-apply_nolint is_mul_hom.inv to_additive_doc
-apply_nolint is_mul_hom.mul to_additive_doc
-apply_nolint is_mul_hom.to_is_monoid_hom to_additive_doc
-apply_nolint mul_equiv.is_monoid_hom to_additive_doc
-apply_nolint mul_equiv.is_mul_hom to_additive_doc
-
--- deprecated/subfield.lean
-apply_nolint is_subfield doc_blame
-
--- deprecated/subring.lean
-apply_nolint ring.closure doc_blame
-
--- field_theory/finite/polynomial.lean
-apply_nolint mv_polynomial.R doc_blame unused_arguments
-apply_nolint mv_polynomial.evalᵢ doc_blame
-apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
-apply_nolint mv_polynomial.indicator doc_blame
-
--- group_theory/coset.lean
-apply_nolint subgroup.card_subgroup_dvd_card to_additive_doc
-
--- group_theory/group_action/basic.lean
-apply_nolint mul_action.quotient_preimage_image_eq_union_mul to_additive_doc
-
--- group_theory/group_action/defs.lean
-apply_nolint comp_smul_left to_additive_doc
-apply_nolint has_mul.to_has_scalar to_additive_doc
-apply_nolint mul_action.regular.is_pretransitive to_additive_doc
-apply_nolint mul_smul_comm to_additive_doc
-apply_nolint one_smul_eq_id to_additive_doc
-
--- group_theory/group_action/group.lean
-apply_nolint mul_action.to_perm_injective to_additive_doc
-
--- group_theory/group_action/opposite.lean
-apply_nolint has_mul.to_has_opposite_scalar to_additive_doc
-apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
-apply_nolint monoid.to_opposite_mul_action to_additive_doc
-apply_nolint mul_action.opposite_regular.is_pretransitive to_additive_doc
-
--- group_theory/group_action/pi.lean
-apply_nolint pi.has_faithful_scalar_at to_additive_doc
-
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly
 
--- group_theory/monoid_localization.lean
-apply_nolint submonoid.localization_map.lift_left_inverse to_additive_doc
-
--- group_theory/order_of_element.lean
-apply_nolint image_range_order_of to_additive_doc
-apply_nolint is_of_fin_order.quotient to_additive_doc
-apply_nolint is_of_fin_order_iff_coe to_additive_doc
-apply_nolint order_of_eq_of_pow_and_pow_div_prime to_additive_doc
-apply_nolint pow_gcd_card_eq_one_iff to_additive_doc
-
--- group_theory/specific_groups/cyclic.lean
-apply_nolint is_cyclic_of_prime_card to_additive_doc
-apply_nolint is_simple_group_of_prime_card to_additive_doc
-
--- group_theory/subgroup/basic.lean
-apply_nolint monoid_hom.eq_on_closure to_additive_doc
-apply_nolint subgroup.bot_or_exists_ne_one to_additive_doc
-apply_nolint subgroup.bot_or_nontrivial to_additive_doc
-apply_nolint subgroup.commute_of_normal_of_disjoint to_additive_doc
-apply_nolint subgroup.is_commutative.comm_group to_additive_doc
-apply_nolint subgroup.map_injective_of_ker_le to_additive_doc
-
--- group_theory/submonoid/basic.lean
-apply_nolint monoid_hom.eq_on_mclosure to_additive_doc
-
--- group_theory/sylow.lean
-apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
-
--- group_theory/torsion.lean
-apply_nolint exponent_exists.is_torsion to_additive_doc
-apply_nolint is_torsion.exponent_exists to_additive_doc
-apply_nolint is_torsion_of_fintype to_additive_doc
-
--- linear_algebra/affine_space/affine_subspace.lean
-apply_nolint affine_span.nonempty fails_quickly
-apply_nolint affine_subspace.to_add_torsor fails_quickly
-
--- linear_algebra/pi.lean
-apply_nolint function.has_scalar to_additive_doc
-apply_nolint function.smul_comm_class to_additive_doc
-
--- logic/equiv/list.lean
-apply_nolint encodable.fintype_arrow doc_blame
-apply_nolint encodable.fintype_pi doc_blame
-apply_nolint encodable.trunc_encodable_of_fintype doc_blame
+-- linear_algebra/affine_space/matrix.lean
+apply_nolint affine_basis.affine_independent_of_to_matrix_right_inv fintype_finite
+apply_nolint affine_basis.affine_span_eq_top_of_to_matrix_left_inv fintype_finite
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
@@ -559,55 +354,6 @@ apply_nolint relator.left_unique doc_blame
 apply_nolint relator.lift_fun doc_blame
 apply_nolint relator.right_total doc_blame
 apply_nolint relator.right_unique doc_blame
-
--- measure_theory/constructions/pi.lean
-apply_nolint measure_theory.pi.is_inv_invariant_volume to_additive_doc
-apply_nolint measure_theory.pi.is_mul_left_invariant_volume to_additive_doc
-
--- measure_theory/group/integration.lean
-apply_nolint measure_theory.integral_eq_zero_of_mul_left_eq_neg to_additive_doc
-apply_nolint measure_theory.integral_eq_zero_of_mul_right_eq_neg to_additive_doc
-apply_nolint measure_theory.integral_mul_left_eq_self to_additive_doc
-apply_nolint measure_theory.integral_mul_right_eq_self to_additive_doc
-apply_nolint measure_theory.lintegral_eq_zero_of_is_mul_left_invariant to_additive_doc
-apply_nolint measure_theory.lintegral_mul_left_eq_self to_additive_doc
-apply_nolint measure_theory.lintegral_mul_right_eq_self to_additive_doc
-
--- measure_theory/group/measure.lean
-apply_nolint measure_theory.forall_measure_preimage_mul_iff to_additive_doc
-apply_nolint measure_theory.forall_measure_preimage_mul_right_iff to_additive_doc
-apply_nolint measure_theory.is_mul_left_invariant.is_mul_right_invariant to_additive_doc
-apply_nolint measure_theory.is_open_pos_measure_of_mul_left_invariant_of_compact to_additive_doc
-apply_nolint measure_theory.is_open_pos_measure_of_mul_left_invariant_of_regular to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure.has_no_atoms to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure.sigma_finite to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure_map to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure_of_is_compact_nonempty_interior to_additive_doc
-apply_nolint measure_theory.measure_lt_top_of_is_compact_of_is_mul_left_invariant to_additive_doc
-apply_nolint measure_theory.measure_lt_top_of_is_compact_of_is_mul_left_invariant' to_additive_doc
-apply_nolint measure_theory.measure_preimage_mul to_additive_doc
-
--- measure_theory/group/prod.lean
-apply_nolint measure_theory.absolutely_continuous_of_is_mul_left_invariant to_additive_doc
-apply_nolint measure_theory.map_prod_inv_mul_eq to_additive_doc
-apply_nolint measure_theory.map_prod_inv_mul_eq_swap to_additive_doc
-apply_nolint measure_theory.map_prod_mul_eq to_additive_doc
-apply_nolint measure_theory.map_prod_mul_eq_swap to_additive_doc
-apply_nolint measure_theory.map_prod_mul_inv_eq to_additive_doc
-apply_nolint measure_theory.measure_eq_div_smul to_additive_doc
-apply_nolint measure_theory.measure_lintegral_div_measure to_additive_doc
-apply_nolint measure_theory.measure_mul_lintegral_eq to_additive_doc
-
--- measure_theory/measure/haar.lean
-apply_nolint measure_theory.measure.haar.haar_content_self to_additive_doc
-apply_nolint measure_theory.measure.haar.index_defined to_additive_doc
-apply_nolint measure_theory.measure.haar.is_left_invariant_haar_content to_additive_doc
-apply_nolint measure_theory.measure.haar_measure_unique to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure_haar_measure to_additive_doc
-apply_nolint measure_theory.measure.map_haar_inv to_additive_doc
-apply_nolint measure_theory.measure.regular_haar_measure to_additive_doc
-apply_nolint measure_theory.measure.regular_of_is_mul_left_invariant to_additive_doc
-apply_nolint measure_theory.measure.sigma_finite_haar_measure to_additive_doc
 
 -- meta/coinductive_predicates.lean
 apply_nolint monotonicity doc_blame
@@ -634,50 +380,24 @@ apply_nolint tactic.coinductive_predicate doc_blame
 apply_nolint tactic.interactive.coinduction doc_blame
 apply_nolint tactic.mono doc_blame
 
--- number_theory/dioph.lean
-apply_nolint poly has_inhabited_instance
+-- model_theory/direct_limit.lean
+apply_nolint first_order.language.direct_limit.exists_quotient_mk_sigma_mk_eq fintype_finite
+apply_nolint first_order.language.direct_limit.exists_unify_eq fintype_finite
 
--- number_theory/zsqrtd/basic.lean
-apply_nolint zsqrtd.le doc_blame
-apply_nolint zsqrtd.lt doc_blame
-apply_nolint zsqrtd.norm doc_blame
-
--- number_theory/zsqrtd/gaussian_int.lean
-apply_nolint gaussian_int doc_blame
-apply_nolint gaussian_int.div doc_blame
-apply_nolint gaussian_int.mod doc_blame
-
--- order/filter/at_top_bot.lean
-apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
-
--- order/filter/pointwise.lean
-apply_nolint filter.has_add check_reducibility
-apply_nolint filter.has_mul check_reducibility
+-- number_theory/class_number/admissible_absolute_value.lean
+apply_nolint absolute_value.is_admissible.exists_partition fintype_finite
 
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 
--- ring_theory/witt_vector/basic.lean
-apply_nolint witt_vector.comm_ring check_reducibility
-
--- set_theory/cofinality.lean
-apply_nolint strict_order.cof doc_blame
-
--- set_theory/game.lean
-apply_nolint pgame.inv_ty has_inhabited_instance
+-- ring_theory/trace.lean
+apply_nolint algebra.trace_comp_trace_of_basis fintype_finite
 
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 
--- set_theory/pgame.lean
-apply_nolint pgame.left_moves has_inhabited_instance
-apply_nolint pgame.relabelling has_inhabited_instance
-apply_nolint pgame.restricted has_inhabited_instance
-apply_nolint pgame.right_moves has_inhabited_instance
-
--- set_theory/zfc.lean
+-- set_theory/zfc/basic.lean
 apply_nolint Set.map_definable_aux unused_arguments
-apply_nolint pSet.type has_inhabited_instance
 
 -- tactic/abel.lean
 apply_nolint tactic.abel.eval doc_blame
@@ -686,6 +406,9 @@ apply_nolint tactic.abel.eval_add doc_blame
 apply_nolint tactic.abel.eval_atom doc_blame
 apply_nolint tactic.abel.eval_neg doc_blame
 apply_nolint tactic.abel.eval_smul doc_blame
+apply_nolint tactic.abel.int_smul_instg doc_blame
+apply_nolint tactic.abel.nat_smul_inst doc_blame
+apply_nolint tactic.abel.nat_smul_instg doc_blame
 apply_nolint tactic.abel.normal_expr doc_blame
 apply_nolint tactic.abel.normal_expr.e doc_blame
 apply_nolint tactic.abel.normal_expr.pp doc_blame
@@ -701,15 +424,6 @@ apply_nolint tactic.abel.smulg doc_blame
 apply_nolint tactic.abel.term doc_blame
 apply_nolint tactic.abel.termg doc_blame
 apply_nolint tactic.interactive.abel.mode doc_blame
-
--- tactic/alias.lean
-apply_nolint tactic.alias.alias_attr doc_blame
-apply_nolint tactic.alias.alias_direct doc_blame
-apply_nolint tactic.alias.alias_iff doc_blame
-apply_nolint tactic.alias.get_alias_target doc_blame
-apply_nolint tactic.alias.get_lambda_body doc_blame
-apply_nolint tactic.alias.make_left_right doc_blame
-apply_nolint tactic.alias.mk_iff_mp_app doc_blame
 
 -- tactic/chain.lean
 apply_nolint tactic.abstract_if_success doc_blame
@@ -1157,58 +871,3 @@ apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.transfer doc_blame
 apply_nolint transfer.analyse_decls doc_blame
 apply_nolint transfer.compute_transfer doc_blame
-
--- tactic/wlog.lean
-apply_nolint tactic.wlog doc_blame
-
--- topology/algebra/const_mul_action.lean
-apply_nolint fintype.properly_discontinuous_smul to_additive_doc
-apply_nolint is_open_map_quotient_mk_mul to_additive_doc
-apply_nolint t2_space_of_properly_discontinuous_smul_of_t2_space to_additive_doc
-
--- topology/algebra/constructions.lean
-apply_nolint mul_opposite.topological_space to_additive_doc
-apply_nolint units.topological_space to_additive_doc
-
--- topology/algebra/continuous_monoid_hom.lean
-apply_nolint continuous_monoid_hom.has_coe_to_fun to_additive_doc
-
--- topology/algebra/filter_basis.lean
-apply_nolint group_filter_basis.is_topological_group to_additive_doc
-
--- topology/algebra/group.lean
-apply_nolint filter.tendsto.inv to_additive_doc
-apply_nolint group_topology.complete_semilattice_Inf to_additive_doc
-apply_nolint group_topology.continuous_inv' to_additive_doc
-apply_nolint group_topology.continuous_mul' to_additive_doc
-apply_nolint group_topology.has_Inf to_additive_doc
-apply_nolint group_topology.partial_order to_additive_doc
-apply_nolint separable_locally_compact_group.sigma_compact_space to_additive_doc
-apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc
-
--- topology/algebra/nonarchimedean/basic.lean
-apply_nolint nonarchimedean_group.nonarchimedean_of_emb to_additive_doc
-apply_nolint nonarchimedean_group.prod.nonarchimedean_group to_additive_doc
-apply_nolint nonarchimedean_group.prod_self_subset to_additive_doc
-apply_nolint nonarchimedean_group.prod_subset to_additive_doc
-
--- topology/algebra/order/compact.lean
-apply_nolint continuous.bdd_above_range_of_has_compact_mul_support to_additive_doc
-apply_nolint continuous.bdd_below_range_of_has_compact_mul_support to_additive_doc
-apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
-apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
-
--- topology/category/Top/open_nhds.lean
-apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/metric_space/emetric_space.lean
-apply_nolint mul_opposite.emetric_space to_additive_doc
-apply_nolint mul_opposite.pseudo_emetric_space to_additive_doc
-
--- topology/uniform_space/completion.lean
-apply_nolint Cauchy.extend doc_blame
-apply_nolint Cauchy.gen doc_blame
-apply_nolint uniform_space.completion.completion_separation_quotient_equiv doc_blame
-apply_nolint uniform_space.completion.cpkg doc_blame
-apply_nolint uniform_space.completion.extension₂ doc_blame
-apply_nolint uniform_space.completion.map₂ doc_blame

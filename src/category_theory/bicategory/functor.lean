@@ -8,6 +8,9 @@ import category_theory.bicategory.basic
 /-!
 # Oplax functors and pseudofunctors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An oplax functor `F` between bicategories `B` and `C` consists of
 * a function between objects `F.obj : B ⟶ C`,
 * a family of functions between 1-morphisms `F.map : (a ⟶ b) → (F.obj a ⟶ F.obj b)`,
@@ -90,7 +93,7 @@ variables (F : prelax_functor B C)
 
 @[simp] lemma to_prefunctor_eq_coe : F.to_prefunctor = F := rfl
 @[simp] lemma to_prefunctor_obj : (F : prefunctor B C).obj = F.obj := rfl
-@[simp] lemma to_prefunctor_map : (F : prefunctor B C).map = F.map := rfl
+@[simp] lemma to_prefunctor_map : @prefunctor.map B _ C _ F = @map _ _ _ _ _ _ F := rfl
 
 /-- The identity prelax functor. -/
 @[simps]
@@ -126,8 +129,8 @@ def oplax_functor.map₂_associator_aux
   (map₂ : Π {a b : B} {f g : a ⟶ b}, (f ⟶ g) → (map f ⟶ map g))
   (map_comp : Π {a b c : B} (f : a ⟶ b) (g : b ⟶ c), map (f ≫ g) ⟶ map f ≫ map g)
   {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) : Prop :=
-map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
-  map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom
+map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ map f ◁ map_comp g h =
+  map_comp (f ≫ g) h ≫ map_comp f g ▷ map h ≫ (α_ (map f) (map g) (map h)).hom
 
 /--
 An oplax functor `F` between bicategories `B` and `C` consists of a function between objects
@@ -146,19 +149,19 @@ structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
 (map_id (a : B) : map (𝟙 a) ⟶ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ⟶ map f ≫ map g)
 (map_comp_naturality_left' : ∀ {a b c : B} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
-  map₂ (η ▷ g) ≫ map_comp f' g = map_comp f g ≫ (map₂ η ▷ map g) . obviously)
+  map₂ (η ▷ g) ≫ map_comp f' g = map_comp f g ≫ map₂ η ▷ map g . obviously)
 (map_comp_naturality_right' : ∀ {a b c : B} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g'),
-  map₂ (f ◁ η) ≫ map_comp f g' = map_comp f g ≫ (map f ◁ map₂ η) . obviously)
+  map₂ (f ◁ η) ≫ map_comp f g' = map_comp f g ≫ map f ◁ map₂ η . obviously)
 (map₂_id' : ∀ {a b : B} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
 (map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
 (map₂_associator' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
-  oplax_functor.map₂_associator_aux obj (λ a b, map) (λ a b f g, map₂) (λ a b c, map_comp) f g h
+  oplax_functor.map₂_associator_aux obj (λ _ _, map) (λ a b f g, map₂) (λ a b c, map_comp) f g h
     . obviously)
 (map₂_left_unitor' : ∀ {a b : B} (f : a ⟶ b),
-  map₂ (λ_ f).hom = map_comp (𝟙 a) f ≫ (map_id a ▷ map f) ≫ (λ_ (map f)).hom . obviously)
+  map₂ (λ_ f).hom = map_comp (𝟙 a) f ≫ map_id a ▷ map f ≫ (λ_ (map f)).hom . obviously)
 (map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
-  map₂ (ρ_ f).hom = map_comp f (𝟙 b) ≫ (map f ◁ map_id b) ≫ (ρ_ (map f)).hom . obviously)
+  map₂ (ρ_ f).hom = map_comp f (𝟙 b) ≫ map f ◁ map_id b ≫ (ρ_ (map f)).hom . obviously)
 
 namespace oplax_functor
 
@@ -187,8 +190,8 @@ variables (F : oplax_functor B C)
 
 @[simp] lemma to_prelax_eq_coe : F.to_prelax_functor = F := rfl
 @[simp] lemma to_prelax_functor_obj : (F : prelax_functor B C).obj = F.obj := rfl
-@[simp] lemma to_prelax_functor_map : (F : prelax_functor B C).map = F.map := rfl
-@[simp] lemma to_prelax_functor_map₂ : (F : prelax_functor B C).map₂ = F.map₂ := rfl
+@[simp] lemma to_prelax_functor_map : @prelax_functor.map B _ _ C _ _ F = @map _ _ _ _ F := rfl
+@[simp] lemma to_prelax_functor_map₂ : @prelax_functor.map₂ B _ _ C _ _ F = @map₂ _ _ _ _ F := rfl
 
 /-- Function between 1-morphisms as a functor. -/
 @[simps]
@@ -225,11 +228,11 @@ def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
     simp only [map₂_associator, ←map₂_comp_assoc, ←map_comp_naturality_right_assoc,
       whisker_left_comp, assoc],
     simp only [map₂_associator, map₂_comp, map_comp_naturality_left_assoc,
-      whisker_right_comp, assoc] },
+      comp_whisker_right, assoc] },
   map₂_left_unitor' := λ a b f, by
   { dsimp,
     simp only [map₂_left_unitor, map₂_comp, map_comp_naturality_left_assoc,
-      whisker_right_comp, assoc] },
+      comp_whisker_right, assoc] },
   map₂_right_unitor' := λ a b f, by
   { dsimp,
     simp only [map₂_right_unitor, map₂_comp, map_comp_naturality_right_assoc,
@@ -240,7 +243,7 @@ def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
 A structure on an oplax functor that promotes an oplax functor to a pseudofunctor.
 See `pseudofunctor.mk_of_oplax`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure pseudo_core (F : oplax_functor B C) :=
 (map_id_iso (a : B) : F.map (𝟙 a) ≅ 𝟙 (F.obj a))
 (map_comp_iso {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : F.map (f ≫ g) ≅ F.map f ≫ F.map g)
@@ -270,8 +273,8 @@ def pseudofunctor.map₂_associator_aux
   (map₂ : Π {a b : B} {f g : a ⟶ b}, (f ⟶ g) → (map f ⟶ map g))
   (map_comp : Π {a b c : B} (f : a ⟶ b) (g : b ⟶ c), map (f ≫ g) ≅ map f ≫ map g)
   {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) : Prop :=
-map₂ (α_ f g h).hom = (map_comp (f ≫ g) h).hom ≫ ((map_comp f g).hom ▷ map h) ≫
-  (α_ (map f) (map g) (map h)).hom ≫ (map f ◁ (map_comp g h).inv) ≫ (map_comp f (g ≫ h)).inv
+map₂ (α_ f g h).hom = (map_comp (f ≫ g) h).hom ≫ (map_comp f g).hom ▷ map h ≫
+  (α_ (map f) (map g) (map h)).hom ≫ map f ◁ (map_comp g h).inv ≫ (map_comp f (g ≫ h)).inv
 
 /--
 A pseudofunctor `F` between bicategories `B` and `C` consists of a function between objects
@@ -293,17 +296,17 @@ structure pseudofunctor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
 (map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
 (map₂_whisker_left' : ∀ {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g ⟶ h),
-  map₂ (f ◁ η) = (map_comp f g).hom ≫ (map f ◁ map₂ η) ≫ (map_comp f h).inv . obviously)
+  map₂ (f ◁ η) = (map_comp f g).hom ≫ map f ◁ map₂ η ≫ (map_comp f h).inv . obviously)
 (map₂_whisker_right' : ∀ {a b c : B} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c),
-  map₂ (η ▷ h) = (map_comp f h).hom ≫ (map₂ η ▷ map h) ≫ (map_comp g h).inv . obviously)
+  map₂ (η ▷ h) = (map_comp f h).hom ≫ map₂ η ▷ map h ≫ (map_comp g h).inv . obviously)
 (map₂_associator' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
   pseudofunctor.map₂_associator_aux obj (λ a b, map) (λ a b f g, map₂) (λ a b c, map_comp) f g h
     . obviously)
 (map₂_left_unitor' : ∀ {a b : B} (f : a ⟶ b),
-  map₂ (λ_ f).hom = (map_comp (𝟙 a) f).hom ≫ ((map_id a).hom ▷ map f) ≫ (λ_ (map f)).hom
+  map₂ (λ_ f).hom = (map_comp (𝟙 a) f).hom ≫ (map_id a).hom ▷ map f ≫ (λ_ (map f)).hom
     . obviously)
 (map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
-  map₂ (ρ_ f).hom = (map_comp f (𝟙 b)).hom ≫ (map f ◁ (map_id b).hom) ≫ (ρ_ (map f)).hom
+  map₂ (ρ_ f).hom = (map_comp f (𝟙 b)).hom ≫ map f ◁ (map_id b).hom ≫ (ρ_ (map f)).hom
     . obviously)
 
 namespace pseudofunctor
@@ -334,8 +337,8 @@ variables (F : pseudofunctor B C)
 
 @[simp] lemma to_prelax_functor_eq_coe : F.to_prelax_functor = F := rfl
 @[simp] lemma to_prelax_functor_obj : (F : prelax_functor B C).obj = F.obj := rfl
-@[simp] lemma to_prelax_functor_map : (F : prelax_functor B C).map = F.map := rfl
-@[simp] lemma to_prelax_functor_map₂ : (F : prelax_functor B C).map₂ = F.map₂ := rfl
+@[simp] lemma to_prelax_functor_map : @prelax_functor.map B _ _ C _ _ F = @map _ _ _ _ F := rfl
+@[simp] lemma to_prelax_functor_map₂ : @prelax_functor.map₂ B _ _ C _ _ F = @map₂ _ _ _ _ F := rfl
 
 /-- The oplax functor associated with a pseudofunctor. -/
 def to_oplax : oplax_functor B C :=
@@ -347,8 +350,8 @@ instance has_coe_to_oplax : has_coe (pseudofunctor B C) (oplax_functor B C) := �
 
 @[simp] lemma to_oplax_eq_coe : F.to_oplax = F := rfl
 @[simp] lemma to_oplax_obj : (F : oplax_functor B C).obj = F.obj := rfl
-@[simp] lemma to_oplax_map : (F : oplax_functor B C).map = F.map := rfl
-@[simp] lemma to_oplax_map₂ : (F : oplax_functor B C).map₂ = F.map₂ := rfl
+@[simp] lemma to_oplax_map : @oplax_functor.map B _ C _ F = @map _ _ _ _ F := rfl
+@[simp] lemma to_oplax_map₂ : @oplax_functor.map₂ B _ C _ F = @map₂ _ _ _ _ F := rfl
 @[simp] lemma to_oplax_map_id (a : B) : (F : oplax_functor B C).map_id a = (F.map_id a).hom := rfl
 @[simp] lemma to_oplax_map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) :
   (F : oplax_functor B C).map_comp f g = (F.map_comp f g).hom := rfl
@@ -381,7 +384,7 @@ Construct a pseudofunctor from an oplax functor whose `map_id` and `map_comp` ar
 @[simps]
 def mk_of_oplax (F : oplax_functor B C) (F' : F.pseudo_core) : pseudofunctor B C :=
 { map_id := F'.map_id_iso,
-  map_comp := F'.map_comp_iso,
+  map_comp := λ _ _ _, F'.map_comp_iso,
   map₂_whisker_left' := λ a b c f g h η, by
   { dsimp,
     rw [F'.map_comp_iso_hom f g, ←F.map_comp_naturality_right_assoc,

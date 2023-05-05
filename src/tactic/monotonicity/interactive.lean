@@ -16,8 +16,8 @@ open lean lean.parser  interactive
 open interactive.types
 open tactic
 
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+local postfix (name := parser.optional) `?`:9001 := optional
+local postfix (name := parser.many) *:9001 := many
 
 meta inductive mono_function (elab : bool := tt)
  | non_assoc : expr elab → list (expr elab) → list (expr elab) → mono_function
@@ -99,7 +99,7 @@ return ()
 private meta def match_rule_head  (p : expr)
 : list expr → expr → expr → tactic expr
  | vs e t :=
-(unify t p >> mmap' unify_with_instance vs >> instantiate_mvars e)
+(unify t p >> mmap' unify_with_instance vs.reverse >> instantiate_mvars e)
 <|>
 do (expr.pi _ _ d b) ← return t | failed,
    v ← mk_meta_var d,

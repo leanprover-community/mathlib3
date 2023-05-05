@@ -6,7 +6,6 @@ Authors: Kenny Lau
 
 import algebra.geom_sum
 import linear_algebra.smodeq
-import ring_theory.ideal.quotient
 import ring_theory.jacobson_ideal
 
 /-!
@@ -118,7 +117,7 @@ instance : is_Hausdorff I (Hausdorffification I M) :=
 ⟨λ x, quotient.induction_on' x $ λ x hx, (quotient.mk_eq_zero _).2 $ (mem_infi _).2 $ λ n, begin
   have := comap_map_mkq (⨅ n : ℕ, I ^ n • ⊤ : submodule R M) (I ^ n • ⊤),
   simp only [sup_of_le_right (infi_le (λ n, (I ^ n • ⊤ : submodule R M)) n)] at this,
-  rw [← this, map_smul'', mem_comap, map_top, range_mkq, ← smodeq.zero], exact hx n
+  rw [← this, map_smul'', mem_comap, submodule.map_top, range_mkq, ← smodeq.zero], exact hx n
 end⟩
 
 variables {M} [h : is_Hausdorff I N]
@@ -211,6 +210,7 @@ h.1.subsingleton
 @[priority 100] instance of_subsingleton [subsingleton M] : is_adic_complete I M := {}
 
 open_locale big_operators
+open finset
 
 lemma le_jacobson_bot [is_adic_complete I R] : I ≤ (⊥ : ideal R).jacobson :=
 begin
@@ -218,10 +218,10 @@ begin
   rw [← ideal.neg_mem_iff, ideal.mem_jacobson_bot],
   intros y,
   rw add_comm,
-  let f : ℕ → R := geom_sum (x * y),
+  let f : ℕ → R := λ n, ∑ i in range n, (x * y) ^ i,
   have hf : ∀ m n, m ≤ n → f m ≡ f n [SMOD I ^ m • (⊤ : submodule R R)],
   { intros m n h,
-    simp only [f, geom_sum_def, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
+    simp only [f, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
     rw [← add_tsub_cancel_of_le h, finset.sum_range_add, ← sub_sub, sub_self, zero_sub,
       neg_mem_iff],
     apply submodule.sum_mem,

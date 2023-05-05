@@ -9,6 +9,9 @@ import linear_algebra.determinant
 /-!
 # Determinants of maps in the complex numbers as a vector space over `ℝ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides results about the determinants of maps in the complex numbers as a vector
 space over `ℝ`.
 
@@ -19,7 +22,7 @@ namespace complex
 /-- The determinant of `conj_ae`, as a linear map. -/
 @[simp] lemma det_conj_ae : conj_ae.to_linear_map.det = -1 :=
 begin
-  rw [←linear_map.det_to_matrix basis_one_I, to_matrix_conj_ae, matrix.det_fin_two],
+  rw [←linear_map.det_to_matrix basis_one_I, to_matrix_conj_ae, matrix.det_fin_two_of],
   simp
 end
 

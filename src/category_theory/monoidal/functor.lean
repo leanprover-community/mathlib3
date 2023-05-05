@@ -5,9 +5,13 @@ Authors: Michael Jendrusch, Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monoidal.category
 import category_theory.adjunction.basic
+import category_theory.products.basic
 
 /-!
 # (Lax) monoidal functors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A lax monoidal functor `F` between monoidal categories `C` and `D`
 is a functor between the underlying categories equipped with morphisms
@@ -33,7 +37,7 @@ to monoid objects.
 
 ## References
 
-See https://stacks.math.columbia.edu/tag/0FFL.
+See <https://stacks.math.columbia.edu/tag/0FFL>.
 -/
 
 open category_theory
@@ -129,7 +133,7 @@ end
 /--
 A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms.
 
-See https://stacks.math.columbia.edu/tag/0FFL.
+See <https://stacks.math.columbia.edu/tag/0FFL>.
 -/
 structure monoidal_functor
 extends lax_monoidal_functor.{v₁ v₂} C D :=
@@ -219,6 +223,18 @@ nat_iso.of_components
 @[simp, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
 @[simp] lemma ε_hom_inv_id : F.ε ≫ F.ε_iso.inv = 𝟙 _ := F.ε_iso.hom_inv_id
 
+/-- Monoidal functors commute with left tensoring up to isomorphism -/
+@[simps] noncomputable def comm_tensor_left (X : C) :
+  F.to_functor ⋙ (tensor_left (F.to_functor.obj X)) ≅
+  tensor_left X ⋙ F.to_functor :=
+nat_iso.of_components (λ Y, F.μ_iso X Y) (λ Y Z f, by { convert F.μ_natural' (𝟙 _) f, simp })
+
+/-- Monoidal functors commute with right tensoring up to isomorphism -/
+@[simps] noncomputable def comm_tensor_right (X : C) :
+  F.to_functor ⋙ (tensor_right (F.to_functor.obj X)) ≅
+  tensor_right X ⋙ F.to_functor :=
+nat_iso.of_components (λ Y, F.μ_iso Y X) (λ Y Z f, by { convert F.μ_natural' f (𝟙 _), simp })
+
 end
 
 section
@@ -288,6 +304,53 @@ infixr ` ⊗⋙ `:80 := comp
 
 end lax_monoidal_functor
 
+namespace lax_monoidal_functor
+universes v₀ u₀
+variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
+variables (F : lax_monoidal_functor.{v₀ v₁} B C) (G : lax_monoidal_functor.{v₂ v₃} D E)
+
+local attribute [simp] μ_natural associativity left_unitality right_unitality
+
+/-- The cartesian product of two lax monoidal functors is lax monoidal. -/
+@[simps]
+def prod : lax_monoidal_functor (B × D) (C × E) :=
+{ ε := (ε F, ε G),
+  μ := λ X Y, (μ F X.1 Y.1, μ G X.2 Y.2),
+  .. (F.to_functor).prod (G.to_functor) }
+
+end lax_monoidal_functor
+
+namespace monoidal_functor
+variable (C)
+
+/-- The diagonal functor as a monoidal functor. -/
+@[simps]
+def diag : monoidal_functor C (C × C) :=
+{ ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _,
+  .. functor.diag C }
+
+end monoidal_functor
+
+namespace lax_monoidal_functor
+variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{v₁ v₃} C E)
+
+/-- The cartesian product of two lax monoidal functors starting from the same monoidal category `C`
+    is lax monoidal. -/
+def prod' : lax_monoidal_functor C (D × E) :=
+(monoidal_functor.diag C).to_lax_monoidal_functor ⊗⋙ (F.prod G)
+
+@[simp] lemma prod'_to_functor :
+  (F.prod' G).to_functor = (F.to_functor).prod' (G.to_functor) := rfl
+
+@[simp] lemma prod'_ε : (F.prod' G).ε = (F.ε, G.ε) :=
+by { dsimp [prod'], simp }
+
+@[simp] lemma prod'_μ (X Y : C) : (F.prod' G).μ X Y = (F.μ X Y, G.μ X Y) :=
+by { dsimp [prod'], simp }
+
+end lax_monoidal_functor
+
 namespace monoidal_functor
 
 variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₂ v₃} D E)
@@ -299,7 +362,35 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
   μ_is_iso := by { dsimp, apply_instance },
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
 
-infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
+-- We overload notation; potentially dangerous, but it seems to work.
+infixr (name := monoidal_functor.comp) ` ⊗⋙ `:80 := comp
+
+end monoidal_functor
+
+namespace monoidal_functor
+universes v₀ u₀
+variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
+variables (F : monoidal_functor.{v₀ v₁} B C) (G : monoidal_functor.{v₂ v₃} D E)
+
+/-- The cartesian product of two monoidal functors is monoidal. -/
+@[simps]
+def prod : monoidal_functor (B × D) (C × E) :=
+{ ε_is_iso := (is_iso_prod_iff C E).mpr ⟨ε_is_iso F, ε_is_iso G⟩,
+  μ_is_iso := λ X Y, (is_iso_prod_iff C E).mpr ⟨μ_is_iso F X.1 Y.1, μ_is_iso G X.2 Y.2⟩,
+  .. (F.to_lax_monoidal_functor).prod (G.to_lax_monoidal_functor) }
+
+end monoidal_functor
+
+namespace monoidal_functor
+variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₁ v₃} C E)
+
+/-- The cartesian product of two monoidal functors starting from the same monoidal category `C`
+    is monoidal. -/
+def prod' : monoidal_functor C (D × E) := diag C ⊗⋙ (F.prod G)
+
+@[simp] lemma prod'_to_lax_monoidal_functor :
+    (F.prod' G).to_lax_monoidal_functor
+  = (F.to_lax_monoidal_functor).prod' (G.to_lax_monoidal_functor) := rfl
 
 end monoidal_functor
 
@@ -355,15 +446,12 @@ def monoidal_adjoint (F : monoidal_functor C D) {G : D ⥤ C} (h : F.to_functor 
   end }.
 
 /-- If a monoidal functor `F` is an equivalence of categories then its inverse is also monoidal. -/
+@[simps]
 noncomputable
 def monoidal_inverse (F : monoidal_functor C D) [is_equivalence F.to_functor] :
   monoidal_functor D C :=
 { to_lax_monoidal_functor := monoidal_adjoint F (as_equivalence _).to_adjunction,
   ε_is_iso := by { dsimp [equivalence.to_adjunction], apply_instance },
   μ_is_iso := λ X Y, by { dsimp [equivalence.to_adjunction], apply_instance } }
-
-@[simp]
-lemma monoidal_inverse_to_functor (F : monoidal_functor C D) [is_equivalence F.to_functor] :
-  (monoidal_inverse F).to_functor = F.to_functor.inv := rfl
 
 end category_theory

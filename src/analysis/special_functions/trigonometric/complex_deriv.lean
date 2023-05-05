@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.trigonometric.complex
-import analysis.special_functions.trigonometric.deriv
 
 /-!
 # Complex trigonometric functions
@@ -31,7 +30,7 @@ lemma has_deriv_at_tan {x : ℂ} (h : cos x ≠ 0) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 (has_strict_deriv_at_tan h).has_deriv_at
 
-open_locale topological_space
+open_locale topology
 
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℂ} (hx : cos x = 0) :
   tendsto (λ x, abs (tan x)) (𝓝[≠] x) at_top :=
@@ -64,7 +63,7 @@ if h : cos x = 0 then
   by simp [deriv_zero_of_not_differentiable_at this, h, sq]
 else (has_deriv_at_tan h).deriv
 
-@[simp] lemma cont_diff_at_tan {x : ℂ} {n : with_top ℕ} :
+@[simp] lemma cont_diff_at_tan {x : ℂ} {n : ℕ∞} :
   cont_diff_at ℂ n tan x ↔ cos x ≠ 0 :=
 ⟨λ h, continuous_at_tan.1 h.continuous_at,
   cont_diff_sin.cont_diff_at.div cont_diff_cos.cont_diff_at⟩

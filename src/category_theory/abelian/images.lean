@@ -8,6 +8,9 @@ import category_theory.limits.shapes.kernels
 /-!
 # The abelian image and coimage.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In an abelian category we usually want the image of a morphism `f` to be defined as
 `kernel (cokernel.π f)`, and the coimage to be defined as `cokernel (kernel.ι f)`.
 
@@ -85,7 +88,7 @@ In any abelian category this is an isomorphism.
 Conversely, any additive category with kernels and cokernels and
 in which this is always an isomorphism, is abelian.
 
-See https://stacks.math.columbia.edu/tag/0107
+See <https://stacks.math.columbia.edu/tag/0107>
 -/
 def coimage_image_comparison : abelian.coimage f ⟶ abelian.image f :=
 cokernel.desc (kernel.ι f) (kernel.lift (cokernel.π f) f (by simp)) $ (by { ext, simp, })

@@ -9,6 +9,9 @@ import order.partition.finpartition
 /-!
 # Finite equipartitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines finite equipartitions, the partitions whose parts all are the same size up to a
 difference of `1`.
 
@@ -34,6 +37,10 @@ variables {P}
 lemma _root_.set.subsingleton.is_equipartition (h : (P.parts : set (finset α)).subsingleton) :
   P.is_equipartition :=
 h.equitable_on _
+
+lemma is_equipartition.card_parts_eq_average (hP : P.is_equipartition) (ht : t ∈ P.parts) :
+  t.card = s.card / P.parts.card ∨ t.card = s.card / P.parts.card + 1 :=
+P.is_equipartition_iff_card_parts_eq_average.1 hP _ ht
 
 lemma is_equipartition.average_le_card_part (hP : P.is_equipartition) (ht : t ∈ P.parts) :
   s.card / P.parts.card ≤ t.card :=

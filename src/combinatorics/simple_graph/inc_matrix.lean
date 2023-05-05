@@ -9,6 +9,9 @@ import data.matrix.basic
 /-!
 # Incidence matrix of a simple graph
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the unoriented incidence matrix of a simple graph.
 
 ## Main definitions
@@ -40,8 +43,6 @@ incidence matrix for each `simple_graph α` has the same type.
   arbitrary orientation of a simple graph.
 -/
 
-noncomputable theory
-
 open finset matrix simple_graph sym2
 open_locale big_operators matrix
 
@@ -50,7 +51,7 @@ variables (R : Type*) {α : Type*} (G : simple_graph α)
 
 /-- `G.inc_matrix R` is the `α × sym2 α` matrix whose `(a, e)`-entry is `1` if `e` is incident to
 `a` and `0` otherwise. -/
-def inc_matrix [has_zero R] [has_one R] : matrix α (sym2 α) R :=
+noncomputable def inc_matrix [has_zero R] [has_one R] : matrix α (sym2 α) R :=
 λ a, (G.incidence_set a).indicator 1
 
 variables {R}
@@ -70,9 +71,9 @@ variables [mul_zero_one_class R] {a b : α} {e : sym2 α}
 lemma inc_matrix_apply_mul_inc_matrix_apply :
   G.inc_matrix R a e * G.inc_matrix R b e = (G.incidence_set a ∩ G.incidence_set b).indicator 1 e :=
 begin
+  classical,
   simp only [inc_matrix, set.indicator_apply, ←ite_and_mul_zero,
-    pi.one_apply, mul_one, set.mem_inter_eq],
-  congr,
+    pi.one_apply, mul_one, set.mem_inter_iff],
 end
 
 lemma inc_matrix_apply_mul_inc_matrix_apply_of_not_adj (hab : a ≠ b) (h : ¬ G.adj a b) :
@@ -99,7 +100,7 @@ begin
 end
 
 lemma inc_matrix_apply_eq_one_iff : G.inc_matrix R a e = 1 ↔ e ∈ G.incidence_set a :=
-by { convert one_ne_zero.ite_eq_left_iff, assumption }
+by { convert one_ne_zero.ite_eq_left_iff, apply_instance }
 
 end mul_zero_one_class
 
@@ -162,6 +163,7 @@ variables [fintype (sym2 α)] [semiring R] {a b : α} {e : sym2 α}
 lemma inc_matrix_mul_transpose_apply_of_adj (h : G.adj a b) :
   (G.inc_matrix R ⬝ (G.inc_matrix R)ᵀ) a b = (1 : R) :=
 begin
+  classical,
   simp_rw [matrix.mul_apply, matrix.transpose_apply, inc_matrix_apply_mul_inc_matrix_apply,
     set.indicator_apply, pi.one_apply, sum_boole],
   convert nat.cast_one,

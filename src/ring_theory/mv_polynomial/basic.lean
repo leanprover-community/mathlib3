@@ -5,10 +5,15 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.char_p.basic
+import data.polynomial.algebra_map
+import data.mv_polynomial.variables
 import linear_algebra.finsupp_vector_space
 
 /-!
 # Multivariate polynomials over commutative rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains basic facts about multivariate polynomials over commutative rings, for example
 that the monomials form a basis.
@@ -123,12 +128,12 @@ end mv_polynomial
 /- this is here to avoid import cycle issues -/
 namespace polynomial
 
-/-- The monomials form a basis on `polynomial R`. -/
+/-- The monomials form a basis on `R[X]`. -/
 noncomputable def basis_monomials : basis ℕ R R[X] :=
-finsupp.basis_single_one.map (to_finsupp_iso_alg R).to_linear_equiv.symm
+basis.of_repr (to_finsupp_iso_alg R).to_linear_equiv
 
 @[simp] lemma coe_basis_monomials :
   (basis_monomials R : ℕ → R[X]) = λ s, monomial s 1 :=
-_root_.funext $ λ n, to_finsupp_iso_symm_single
+_root_.funext $ λ n, of_finsupp_single _ _
 
 end polynomial

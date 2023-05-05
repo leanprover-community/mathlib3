@@ -3,9 +3,7 @@ Copyright (c) 2022 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import analysis.normed_space.star.basic
-import algebra.star.module
-import analysis.special_functions.exponential
+import analysis.normed_space.exponential
 
 /-! # The exponential map from selfadjoint to unitary
 In this file, we establish various propreties related to the map `λ a, exp ℂ A (I • a)` between the
@@ -23,26 +21,16 @@ subtypes `self_adjoint A` and `unitary A`.
 section star
 
 variables {A : Type*}
-[normed_ring A] [normed_algebra ℂ A] [star_ring A] [cstar_ring A] [complete_space A]
+[normed_ring A] [normed_algebra ℂ A] [star_ring A] [has_continuous_star A] [complete_space A]
 [star_module ℂ A]
 
 open complex
-
-lemma self_adjoint.exp_i_smul_unitary {a : A} (ha : a ∈ self_adjoint A) :
-  exp ℂ A (I • a) ∈ unitary A :=
-begin
-  rw [unitary.mem_iff, star_exp],
-  simp only [star_smul, is_R_or_C.star_def, self_adjoint.mem_iff.mp ha, conj_I, neg_smul],
-  rw ←@exp_add_of_commute ℂ A _ _ _ _ _ _ ((commute.refl (I • a)).neg_left),
-  rw ←@exp_add_of_commute ℂ A _ _ _ _ _ _ ((commute.refl (I • a)).neg_right),
-  simpa only [add_right_neg, add_left_neg, and_self] using (exp_zero : exp ℂ A 0 = 1),
-end
 
 /-- The map from the selfadjoint real subspace to the unitary group. This map only makes sense
 over ℂ. -/
 @[simps]
 noncomputable def self_adjoint.exp_unitary (a : self_adjoint A) : unitary A :=
-⟨exp ℂ A (I • a), self_adjoint.exp_i_smul_unitary (a.property)⟩
+⟨exp ℂ (I • a), exp_mem_unitary_of_mem_skew_adjoint _ (a.prop.smul_mem_skew_adjoint conj_I)⟩
 
 open self_adjoint
 

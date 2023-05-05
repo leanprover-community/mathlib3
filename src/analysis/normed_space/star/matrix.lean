@@ -5,7 +5,7 @@ Authors: Hans Parshall
 -/
 import analysis.matrix
 import analysis.normed_space.basic
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import linear_algebra.unitary_group
 
 /-!
@@ -16,35 +16,16 @@ This file collects facts about the unitary matrices over `𝕜` (either `ℝ` or
 
 open_locale big_operators matrix
 
-variables {𝕜 n E : Type*}
-
-namespace matrix
-variables [fintype n] [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
-
-local attribute [instance] matrix.semi_normed_group
-
-@[simp] lemma entrywise_sup_norm_star_eq_norm (M : matrix n n E) : ∥star M∥ = ∥M∥ :=
-begin
-  refine le_antisymm (by simp [matrix.norm_le_iff, M.norm_entry_le_entrywise_sup_norm]) _,
-  refine ((matrix.norm_le_iff (norm_nonneg _)).mpr (λ i j, _)).trans
-    (congr_arg _ M.star_eq_conj_transpose).ge,
-  exact (normed_star_group.norm_star).symm.le.trans Mᴴ.norm_entry_le_entrywise_sup_norm
-end
-
-@[priority 100] -- see Note [lower instance priority]
-instance to_normed_star_group : normed_star_group (matrix n n E) :=
-⟨matrix.entrywise_sup_norm_star_eq_norm⟩
-
-end matrix
+variables {𝕜 m n E : Type*}
 
 section entrywise_sup_norm
 variables [is_R_or_C 𝕜] [fintype n] [decidable_eq n]
 
 lemma entry_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) (i j : n):
-  ∥U i j∥ ≤ 1 :=
+  ‖U i j‖ ≤ 1 :=
 begin
   -- The norm squared of an entry is at most the L2 norm of its row.
-  have norm_sum : ∥ U i j ∥^2 ≤ (∑ x, ∥ U i x ∥^2),
+  have norm_sum : ‖ U i j ‖^2 ≤ (∑ x, ‖ U i x ‖^2),
   { apply multiset.single_le_sum,
     { intros x h_x,
       rw multiset.mem_map at h_x,
@@ -55,11 +36,11 @@ begin
       use j,
       simp only [eq_self_iff_true, finset.mem_univ_val, and_self, sq_eq_sq] } },
   -- The L2 norm of a row is a diagonal entry of U ⬝ Uᴴ
-  have diag_eq_norm_sum : (U ⬝ Uᴴ) i i = ∑ (x : n), ∥ U i x ∥^2,
+  have diag_eq_norm_sum : (U ⬝ Uᴴ) i i = ∑ (x : n), ‖ U i x ‖^2,
   { simp only [matrix.mul_apply, matrix.conj_transpose_apply, ←star_ring_end_apply,
                is_R_or_C.mul_conj, is_R_or_C.norm_sq_eq_def', is_R_or_C.of_real_pow] },
   -- The L2 norm of a row is a diagonal entry of U ⬝ Uᴴ, real part
-  have re_diag_eq_norm_sum : is_R_or_C.re ((U ⬝ Uᴴ) i i) = ∑ (x : n), ∥ U i x ∥^2,
+  have re_diag_eq_norm_sum : is_R_or_C.re ((U ⬝ Uᴴ) i i) = ∑ (x : n), ‖ U i x ‖^2,
   { rw is_R_or_C.ext_iff at diag_eq_norm_sum,
     rw diag_eq_norm_sum.1,
     norm_cast },
@@ -72,13 +53,13 @@ begin
   exact norm_sum,
 end
 
-local attribute [instance] matrix.normed_group
+local attribute [instance] matrix.normed_add_comm_group
 
 /-- The entrywise sup norm of a unitary matrix is at most 1. -/
 lemma entrywise_sup_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) :
-  ∥ U ∥ ≤ 1 :=
+  ‖ U ‖ ≤ 1 :=
 begin
-  simp_rw pi_norm_le_iff zero_le_one,
+  simp_rw pi_norm_le_iff_of_nonneg zero_le_one,
   intros i j,
   exact entry_norm_bound_of_unitary hU _ _
 end

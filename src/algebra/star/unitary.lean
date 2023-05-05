@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Frédéric Dupuis
 -/
 import algebra.star.basic
-import group_theory.submonoid.membership
+import group_theory.submonoid.operations
 
 /-!
 # Unitary elements of a star monoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `unitary R`, where `R` is a star monoid, as the submonoid made of the elements
 that satisfy `star U * U = 1` and `U * star U = 1`, and these form a group.
@@ -113,7 +116,7 @@ section group_with_zero
 variables [group_with_zero R] [star_semigroup R]
 
 @[norm_cast] lemma coe_inv (U : unitary R) : ↑(U⁻¹) = (U⁻¹ : R) :=
-eq_inv_of_mul_right_eq_one (coe_mul_star_self _)
+eq_inv_of_mul_eq_one_right $ coe_mul_star_self _
 
 @[norm_cast] lemma coe_div (U₁ U₂ : unitary R) : ↑(U₁ / U₂) = (U₁ / U₂ : R) :=
 by simp only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]
@@ -121,7 +124,7 @@ by simp only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]
 @[norm_cast] lemma coe_zpow (U : unitary R) (z : ℤ) : ↑(U ^ z) = (U ^ z : R) :=
 begin
   induction z,
-  { simp [submonoid.coe_pow], },
+  { simp [submonoid_class.coe_pow], },
   { simp [coe_inv] },
 end
 
@@ -136,10 +139,7 @@ instance : has_neg (unitary R) :=
 @[norm_cast] lemma coe_neg (U : unitary R) : ↑(-U) = (-U : R) := rfl
 
 instance : has_distrib_neg (unitary R) :=
-{ neg := has_neg.neg,
-  neg_neg := λ U, subtype.ext $ neg_neg _,
-  neg_mul := λ U₁ U₂, subtype.ext $ neg_mul _ _,
-  mul_neg := λ U₁ U₂, subtype.ext $ mul_neg _ _ }
+subtype.coe_injective.has_distrib_neg _ coe_neg (unitary R).coe_mul
 
 end ring
 

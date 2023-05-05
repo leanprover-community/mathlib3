@@ -3,10 +3,13 @@ Copyright (c) 2021 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import logic.embedding
+import logic.embedding.set
 
 /-!
 # Equivalences on embeddings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file shows some advanced equivalences on embeddings, useful for constructing larger
 embeddings from smaller ones.
@@ -21,7 +24,8 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
   ((α ⊕ β) ↪ γ) ≃ {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} :=
 { to_fun := λ f, ⟨(inl.trans f, inr.trans f),
   begin
-    rintros _ ⟨⟨a, h⟩, ⟨b, rfl⟩⟩,
+    rw set.disjoint_left,
+    rintros _ ⟨a, h⟩ ⟨b, rfl⟩,
     simp only [trans_apply, inl_apply, inr_apply] at h,
     have : sum.inl a = sum.inr b := f.injective h,
     simp only at this,
@@ -36,8 +40,8 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
       rintros (a₁|b₁) (a₂|b₂) f_eq;
       simp only [equiv.coe_fn_symm_mk, sum.elim_inl, sum.elim_inr] at f_eq,
       { rw f.injective f_eq },
-      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₁, by simp⟩, ⟨b₂, by simp [f_eq]⟩⟩ },
-      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩ },
+      { simp! only at f_eq, exfalso, exact disj.le_bot ⟨⟨a₁, by simp⟩, ⟨b₂, by simp [f_eq]⟩⟩ },
+      { simp! only at f_eq, exfalso, exact disj.le_bot ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩ },
       { rw g.injective f_eq }
     end⟩,
   left_inv := λ f, by { dsimp only, ext, cases x; simp! },
@@ -59,12 +63,9 @@ def prod_embedding_disjoint_equiv_sigma_embedding_restricted {α β γ : Type*} 
   (Σ f : α ↪ γ, β ↪ ↥((set.range f)ᶜ)) :=
 (subtype_prod_equiv_sigma_subtype $
   λ (a : α ↪ γ) (b : β ↪ _), disjoint (set.range a) (set.range b)).trans $
-  equiv.sigma_congr_right $ λ a,
-    (subtype_equiv_prop begin
-      ext f,
-      rw [←set.range_subset_iff, set.subset_compl_iff_disjoint],
-      exact disjoint.comm.trans disjoint_iff,
-    end).trans (cod_restrict _ _)
+  equiv.sigma_congr_right $ λ a, (subtype_equiv_prop $ by { ext f,
+    rw [←set.range_subset_iff, set.subset_compl_iff_disjoint_right, disjoint.comm] }).trans
+      (cod_restrict _ _)
 
 /-- A combination of the above results, allowing us to turn one embedding over a sum type
 into two dependent embeddings, the second of which avoids any members of the range

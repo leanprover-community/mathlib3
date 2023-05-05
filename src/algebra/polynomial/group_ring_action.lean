@@ -3,14 +3,18 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.group_ring_action
+import algebra.group_ring_action.basic
 import algebra.hom.group_action
 import data.polynomial.algebra_map
 import data.polynomial.monic
+import group_theory.group_action.quotient
 
 
 /-!
 # Group action on rings applied to polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains instances and definitions relating `mul_semiring_action` to `polynomial`.
 -/
@@ -40,8 +44,10 @@ variables (M)
 
 noncomputable instance [mul_semiring_action M R] : mul_semiring_action M R[X] :=
 { smul := (•),
-  smul_one := λ m, (smul_eq_map R m).symm ▸ map_one (mul_semiring_action.to_ring_hom M R m),
-  smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_ring_hom M R m),
+  smul_one := λ m,
+    (smul_eq_map R m).symm ▸ polynomial.map_one (mul_semiring_action.to_ring_hom M R m),
+  smul_mul := λ m p q,
+    (smul_eq_map R m).symm ▸ polynomial.map_mul (mul_semiring_action.to_ring_hom M R m),
   ..polynomial.distrib_mul_action }
 
 variables {M R}

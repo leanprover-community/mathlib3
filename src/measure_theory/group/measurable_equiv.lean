@@ -160,4 +160,18 @@ def inv (G) [measurable_space G] [has_involutive_inv G] [has_measurable_inv G] :
 lemma symm_inv {G} [measurable_space G] [has_involutive_inv G] [has_measurable_inv G] :
   (inv G).symm = inv G := rfl
 
+/-- `equiv.div_right` as a `measurable_equiv`. -/
+@[to_additive /-" `equiv.sub_right` as a `measurable_equiv` "-/]
+def div_right [has_measurable_mul G] (g : G) : G ≃ᵐ G :=
+{ to_equiv := equiv.div_right g,
+  measurable_to_fun := measurable_div_const' g,
+  measurable_inv_fun := measurable_mul_const g }
+
+/-- `equiv.div_left` as a `measurable_equiv` -/
+@[to_additive /-" `equiv.sub_left` as a `measurable_equiv` "-/]
+def div_left [has_measurable_mul G] [has_measurable_inv G] (g : G) : G ≃ᵐ G :=
+{ to_equiv := equiv.div_left g,
+  measurable_to_fun := measurable_id.const_div g,
+  measurable_inv_fun := measurable_inv.mul_const g }
+
 end measurable_equiv

@@ -10,6 +10,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Definitions and basic properties of normal monomorphisms and epimorphisms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A normal monomorphism is a morphism that is the kernel of some other morphism.
 
 We give the construction `normal_mono → regular_mono` (`category_theory.normal_mono.regular_mono`)
@@ -220,7 +223,7 @@ def normal_epi_of_normal_mono_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_mon
 { W := op m.Z,
   g := m.g.op,
   w := congr_arg quiver.hom.op m.w,
-  is_colimit := is_colimit.of_π _ _
+  is_colimit := cokernel_cofork.is_colimit.of_π _ _
     (λ Z' g' w',
       (kernel_fork.is_limit.lift' m.is_limit g'.unop (congr_arg quiver.hom.unop w')).1.op)
     (λ Z' g' w',
@@ -239,7 +242,7 @@ def normal_mono_of_normal_epi_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_epi
 { Z := op m.W,
   g := m.g.op,
   w := congr_arg quiver.hom.op m.w,
-  is_limit := is_limit.of_ι _ _
+  is_limit := kernel_fork.is_limit.of_ι _ _
     (λ Z' g' w',
       (cokernel_cofork.is_colimit.desc' m.is_colimit g'.unop (congr_arg quiver.hom.unop w')).1.op)
     (λ Z' g' w',

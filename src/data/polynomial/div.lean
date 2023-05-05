@@ -3,12 +3,16 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.polynomial.algebra_map
 import data.polynomial.inductions
 import data.polynomial.monic
 import ring_theory.multiplicity
 
 /-!
 # Division of univariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The main defs are `div_by_monic` and `mod_by_monic`.
 The compatibility between these is given by `mod_by_monic_add_div`.
@@ -26,9 +30,24 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section comm_semiring
 variables [comm_semiring R]
 
-theorem X_dvd_iff {α : Type u} [comm_semiring α] {f : α[X]} : X ∣ f ↔ f.coeff 0 = 0 :=
+theorem X_dvd_iff {f : R[X]} : X ∣ f ↔ f.coeff 0 = 0 :=
 ⟨λ ⟨g, hfg⟩, by rw [hfg, mul_comm, coeff_mul_X_zero],
 λ hf, ⟨f.div_X, by rw [mul_comm, ← add_zero (f.div_X * X), ← C_0, ← hf, div_X_mul_X_add]⟩⟩
+
+theorem X_pow_dvd_iff {f : R[X]} {n : ℕ} :
+  X^n ∣ f ↔ ∀ d < n, f.coeff d = 0 :=
+⟨λ ⟨g, hgf⟩ d hd, by simp only [hgf, coeff_X_pow_mul', ite_eq_right_iff, not_le_of_lt hd,
+    is_empty.forall_iff], λ hd,
+begin
+  induction n with n hn,
+  { simp only [pow_zero, one_dvd] },
+  { obtain ⟨g, hgf⟩ := hn (λ d : ℕ, λ H : d < n, hd _ (nat.lt_succ_of_lt H)),
+    have := coeff_X_pow_mul g n 0,
+    rw [zero_add, ← hgf, hd n (nat.lt_succ_self n)] at this,
+    obtain ⟨k, hgk⟩ := polynomial.X_dvd_iff.mpr this.symm,
+    use k,
+    rwa [pow_succ, mul_comm X _, mul_assoc, ← hgk]},
+end⟩
 
 end comm_semiring
 
@@ -150,12 +169,12 @@ begin
 end
 
 @[simp] lemma mod_by_monic_zero (p : R[X]) : p %ₘ 0 = p :=
-if h : monic (0 : R[X]) then (subsingleton_of_monic_zero h).1 _ _ else
-by unfold mod_by_monic div_mod_by_monic_aux; rw dif_neg h
+if h : monic (0 : R[X]) then by { haveI := monic_zero_iff_subsingleton.mp h, simp }
+else by unfold mod_by_monic div_mod_by_monic_aux; rw dif_neg h
 
 @[simp] lemma div_by_monic_zero (p : R[X]) : p /ₘ 0 = 0 :=
-if h : monic (0 : R[X]) then (subsingleton_of_monic_zero h).1 _ _ else
-by unfold div_by_monic div_mod_by_monic_aux; rw dif_neg h
+if h : monic (0 : R[X]) then by { haveI := monic_zero_iff_subsingleton.mp h, simp }
+else by unfold div_by_monic div_mod_by_monic_aux; rw dif_neg h
 
 lemma div_by_monic_eq_of_not_monic (p : R[X]) (hq : ¬monic q) : p /ₘ q = 0 := dif_neg hq
 
@@ -301,7 +320,7 @@ begin
   haveI : nontrivial R := f.domain_nontrivial,
   have : map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p %ₘ q),
   { exact (div_mod_by_monic_unique ((p /ₘ q).map f) _ (hq.map f)
-      ⟨eq.symm $ by rw [← map_mul, ← map_add, mod_by_monic_add_div _ hq],
+      ⟨eq.symm $ by rw [← polynomial.map_mul, ← polynomial.map_add, mod_by_monic_add_div _ hq],
       calc _ ≤ degree (p %ₘ q) : degree_map_le _ _
       ... < degree q : degree_mod_by_monic_lt _ hq
       ... = _ : eq.symm $ degree_map_eq_of_leading_coeff_ne_zero _
@@ -343,8 +362,8 @@ theorem map_dvd_map [comm_ring S] (f : R →+* S) (hf : function.injective f) {x
 begin
   rw [← dvd_iff_mod_by_monic_eq_zero hx, ← dvd_iff_mod_by_monic_eq_zero (hx.map f),
     ← map_mod_by_monic f hx],
-  exact ⟨λ H, map_injective f hf $ by rw [H, map_zero],
-  λ H, by rw [H, map_zero]⟩
+  exact ⟨λ H, map_injective f hf $ by rw [H, polynomial.map_zero],
+  λ H, by rw [H, polynomial.map_zero]⟩
 end
 
 @[simp] lemma mod_by_monic_one (p : R[X]) : p %ₘ 1 = 0 :=
@@ -389,21 +408,6 @@ lemma eval₂_mod_by_monic_eq_self_of_root [comm_ring S] {f : R →+* S}
   (p %ₘ q).eval₂ f x = p.eval₂ f x :=
 by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
 
-lemma sum_fin [add_comm_monoid S] (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0)
-  {n : ℕ} (hn : p.degree < n) :
-  ∑ (i : fin n), f i (p.coeff i) = p.sum f :=
-begin
-  by_cases hp : p = 0,
-  { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
-  rw [degree_eq_nat_degree hp, with_bot.coe_lt_coe] at hn,
-  calc  ∑ (i : fin n), f i (p.coeff i)
-      = ∑ i in finset.range n, f i (p.coeff i) : fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i)) _
-  ... = ∑ i in p.support, f i (p.coeff i) : (finset.sum_subset
-    (supp_subset_range_nat_degree_succ.trans (finset.range_subset.mpr hn))
-    (λ i _ hi, show f i (p.coeff i) = 0, by rw [not_mem_support_iff.mp hi, hf])).symm
-  ... = p.sum f : p.sum_def _
-end
-
 lemma sum_mod_by_monic_coeff (hq : q.monic) {n : ℕ} (hn : q.degree ≤ n) :
   ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=
 begin
@@ -418,6 +422,14 @@ begin
   suffices : X - C b ∣ p - C (p.eval b),
   { simpa only [coe_eval_ring_hom, eval_sub, eval_X, eval_C] using (eval_ring_hom a).map_dvd this },
   simp [dvd_iff_is_root]
+end
+
+lemma mul_div_mod_by_monic_cancel_left (p : R[X]) {q : R[X]} (hmo : q.monic) : q * p /ₘ q = p :=
+begin
+  nontriviality R,
+  refine (div_mod_by_monic_unique _ 0 hmo ⟨by rw [zero_add], _⟩).1,
+  rw [degree_zero],
+  exact ne.bot_lt (λ h, hmo.ne_zero (degree_eq_bot.1 h))
 end
 
 variable (R)
@@ -437,11 +449,14 @@ end
 
 variable {R}
 
+lemma ker_eval_ring_hom (x : R) : (eval_ring_hom x).ker = ideal.span {X - C x} :=
+by { ext y, simpa only [ideal.mem_span_singleton, dvd_iff_is_root] }
+
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.
-The algorithm is "compute `p %ₘ q` and compare to `0`". `
+The algorithm is "compute `p %ₘ q` and compare to `0`".
 See `polynomial.mod_by_monic` for the algorithm that computes `%ₘ`.
- -/
+-/
 def decidable_dvd_monic (p : R[X]) (hq : monic q) : decidable (q ∣ p) :=
 decidable_of_iff (p %ₘ q = 0) (dvd_iff_mod_by_monic_eq_zero hq)
 
@@ -457,7 +472,7 @@ begin
 end
 
 /-- The largest power of `X - C a` which divides `p`.
-This is computable via the divisibility algorithm `decidable_dvd_monic`. -/
+This is computable via the divisibility algorithm `polynomial.decidable_dvd_monic`. -/
 def root_multiplicity (a : R) (p : R[X]) : ℕ :=
 if h0 : p = 0 then 0
 else let I : decidable_pred (λ n : ℕ, ¬(X - C a) ^ (n + 1) ∣ p) :=
@@ -472,30 +487,25 @@ by simp [multiplicity, root_multiplicity, part.dom];
 
 @[simp] lemma root_multiplicity_zero {x : R} : root_multiplicity x 0 = 0 := dif_pos rfl
 
+@[simp] lemma root_multiplicity_eq_zero_iff {p : R[X]} {x : R} :
+  root_multiplicity x p = 0 ↔ (is_root p x → p = 0) :=
+by simp only [root_multiplicity_eq_multiplicity, dite_eq_left_iff, part_enat.get_eq_iff_eq_coe,
+  nat.cast_zero, multiplicity.multiplicity_eq_zero, dvd_iff_is_root, not_imp_not]
+
 lemma root_multiplicity_eq_zero {p : R[X]} {x : R} (h : ¬ is_root p x) :
   root_multiplicity x p = 0 :=
-begin
-  rw root_multiplicity_eq_multiplicity,
-  split_ifs, { refl },
-  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, nat.cast_zero],
-  intro hdvd,
-  exact h (dvd_iff_is_root.mp hdvd)
-end
+root_multiplicity_eq_zero_iff.2 (λ h', (h h').elim)
+
+@[simp] lemma root_multiplicity_pos' {p : R[X]} {x : R} :
+  0 < root_multiplicity x p ↔ p ≠ 0 ∧ is_root p x :=
+by rw [pos_iff_ne_zero, ne.def, root_multiplicity_eq_zero_iff, not_imp, and.comm]
 
 lemma root_multiplicity_pos {p : R[X]} (hp : p ≠ 0) {x : R} :
   0 < root_multiplicity x p ↔ is_root p x :=
-begin
-  rw [← dvd_iff_is_root, root_multiplicity_eq_multiplicity, dif_neg hp,
-      ← enat.coe_lt_coe, enat.coe_get],
-  exact multiplicity.dvd_iff_multiplicity_pos
-end
+root_multiplicity_pos'.trans (and_iff_right hp)
 
 @[simp] lemma root_multiplicity_C (r a : R) : root_multiplicity a (C r) = 0 :=
-begin
-  rcases eq_or_ne r 0 with rfl|hr,
-  { simp },
-  { exact root_multiplicity_eq_zero (not_is_root_C _ _ hr) }
-end
+by simp only [root_multiplicity_eq_zero_iff, is_root, eval_C, C_eq_zero, imp_self]
 
 lemma pow_root_multiplicity_dvd (p : R[X]) (a : R) :
   (X - C a) ^ root_multiplicity a p ∣ p :=

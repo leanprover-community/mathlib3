@@ -10,6 +10,9 @@ import algebra.group.units
 /-!
 # Semiconjugate elements of a semigroup
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 We say that `x` is semiconjugate to `y` by `a` (`semiconj_by a x y`), if `a * x = y * a`.
@@ -27,6 +30,7 @@ operations (`pow_right`, field inverse etc) are in the files that define corresp
 -/
 
 universes u v
+variables {G : Type*}
 
 /-- `x` is semiconjugate to `y` by `a`, if `a * x = y * a`. -/
 @[to_additive add_semiconj_by "`x` is additive semiconjugate to `y` by `a` if `a + x = y + a`"]
@@ -70,11 +74,11 @@ section mul_one_class
 variables {M : Type u} [mul_one_class M]
 
 /-- Any element semiconjugates `1` to `1`. -/
-@[simp, to_additive]
+@[simp, to_additive "Any element additively semiconjugates `0` to `0`."]
 lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_mul]
 
 /-- One semiconjugates any element to itself. -/
-@[simp, to_additive]
+@[simp, to_additive "Zero additively semiconjugates any element to itself."]
 lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x
 
 /-- The relation “there exists an element that semiconjugates `a` to `b`” on a monoid (or, more
@@ -136,9 +140,20 @@ end
 
 end monoid
 
+section division_monoid
+variables [division_monoid G] {a x y : G}
+
+@[simp, to_additive] lemma inv_inv_symm_iff : semiconj_by a⁻¹ x⁻¹ y⁻¹ ↔ semiconj_by a y x :=
+inv_involutive.injective.eq_iff.symm.trans $ by simp_rw [mul_inv_rev, inv_inv, eq_comm, semiconj_by]
+
+@[to_additive] lemma inv_inv_symm : semiconj_by a x y → semiconj_by a⁻¹ y⁻¹ x⁻¹ :=
+inv_inv_symm_iff.2
+
+end division_monoid
+
 section group
 
-variables {G : Type u} [group G] {a x y : G}
+variables [group G] {a x y : G}
 
 @[simp, to_additive] lemma inv_right_iff : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
 @units_inv_right_iff G _ a ⟨x, x⁻¹, mul_inv_self x, inv_mul_self x⟩
@@ -152,13 +167,6 @@ inv_right_iff.2
 
 @[to_additive] lemma inv_symm_left : semiconj_by a x y → semiconj_by a⁻¹ y x :=
 inv_symm_left_iff.2
-
-@[to_additive] lemma inv_inv_symm (h : semiconj_by a x y) : semiconj_by a⁻¹ y⁻¹ x⁻¹ :=
-h.inv_right.inv_symm_left
-
--- this is not a simp lemma because it can be deduced from other simp lemmas
-@[to_additive] lemma inv_inv_symm_iff : semiconj_by a⁻¹ y⁻¹ x⁻¹ ↔ semiconj_by a x y :=
-inv_right_iff.trans inv_symm_left_iff
 
 /-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
 @[to_additive "`a` semiconjugates `x` to `a + x + -a`."]

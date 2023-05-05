@@ -3,13 +3,14 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import algebra.ring.ulift
+import algebra.field.ulift
 import data.mv_polynomial.cardinal
+import data.nat.factorization.prime_pow
 import data.rat.denumerable
 import field_theory.finite.galois_field
 import logic.equiv.transfer_instance
 import ring_theory.localization.cardinality
-import set_theory.cardinal_divisibility
+import set_theory.cardinal.divisibility
 
 /-!
 # Cardinality of Fields
@@ -49,7 +50,7 @@ lemma fintype.nonempty_field_iff {α} [fintype α] : nonempty (field α) ↔ is_
 begin
   refine ⟨λ ⟨h⟩, by exactI fintype.is_prime_pow_card_of_field, _⟩,
   rintros ⟨p, n, hp, hn, hα⟩,
-  haveI := fact.mk (nat.prime_iff.mpr hp),
+  haveI := fact.mk hp.nat_prime,
   exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩,
 end
 
@@ -68,7 +69,7 @@ begin
   apply le_antisymm,
   { refine ⟨⟨λ a, mv_polynomial.monomial (finsupp.single a 1) (1 : ulift.{u} ℚ), λ x y h, _⟩⟩,
     simpa [mv_polynomial.monomial_eq_monomial_iff, finsupp.single_eq_single_iff] using h },
-  { simpa using @mv_polynomial.cardinal_mk_le_max α (ulift.{u} ℚ) _ }
+  { simp }
 end
 
 /-- There is a field structure on type if and only if its cardinality is a prime power. -/
@@ -77,7 +78,7 @@ begin
   rw cardinal.is_prime_pow_iff,
   casesI fintype_or_infinite α with h h,
   { simpa only [cardinal.mk_fintype, nat.cast_inj, exists_eq_left',
-        (cardinal.nat_lt_omega _).not_le, false_or]
+        (cardinal.nat_lt_aleph_0 _).not_le, false_or]
       using fintype.nonempty_field_iff },
   { simpa only [← cardinal.infinite_iff, h, true_or, iff_true]
       using infinite.nonempty_field },

@@ -8,6 +8,9 @@ import logic.equiv.list
 /-!
 # W types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given `α : Type` and `β : α → Type`, the W type determined by this data, `W_type β`, is the
 inductively defined type of trees where the nodes are labeled by elements of `α` and the children of
 a node labeled `a` are indexed by elements of `β a`.
@@ -90,7 +93,7 @@ lemma infinite_of_nonempty_of_is_empty (a b : α) [ha : nonempty (β a)]
 ⟨begin
   introsI hf,
   have hba : b ≠ a, from λ h, ha.elim (is_empty.elim' (show is_empty (β a), from h ▸ he)),
-  refine not_injective_infinite_fintype
+  refine not_injective_infinite_finite
     (λ n : ℕ, show W_type β, from nat.rec_on n
       ⟨b, is_empty.elim' he⟩
       (λ n ih, ⟨a, λ _, ih⟩)) _,
@@ -116,8 +119,6 @@ lemma depth_lt_depth_mk (a : α) (f : β a → W_type β) (i : β a) :
   depth (f i) < depth ⟨a, f⟩ :=
 nat.lt_succ_of_le (finset.le_sup (finset.mem_univ i))
 
-end W_type
-
 /-
 Show that W types are encodable when `α` is an encodable fintype and for every `a : α`, `β a` is
 encodable.
@@ -127,13 +128,11 @@ induction on `n` that these are all encodable. These auxiliary constructions are
 and of themselves, so we mark them as `private`.
 -/
 
-namespace encodable
-
 @[reducible] private def W_type' {α : Type*} (β : α → Type*)
     [Π a : α, fintype (β a)] [Π a : α, encodable (β a)] (n : ℕ) :=
 { t : W_type β // t.depth ≤ n}
 
-variables {α : Type*} {β : α → Type*} [Π a : α, fintype (β a)] [Π a : α, encodable (β a)]
+variables [Π a : α, encodable (β a)]
 
 private def encodable_zero : encodable (W_type' β 0) :=
 let f    : W_type' β 0 → empty := λ ⟨x, h⟩, false.elim $ not_lt_of_ge h (W_type.depth_pos _),
@@ -176,4 +175,4 @@ begin
   exact encodable.of_left_inverse f finv this
 end
 
-end encodable
+end W_type

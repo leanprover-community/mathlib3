@@ -6,6 +6,9 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import model_theory.basic
 /-!
 # Language Maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Maps between first-order languages in the style of the
 [Flypitch project](https://flypitch.github.io/), as well as several important maps between
 structures.
@@ -27,18 +30,19 @@ the continuum hypothesis*][flypitch_itp]
 
 -/
 
-universes u v u' v' w
+universes u v u' v' w w'
 
 namespace first_order
 namespace language
-open Structure
+open Structure cardinal
+open_locale cardinal
 
 variables (L : language.{u v}) (L' : language.{u' v'}) {M : Type w} [L.Structure M]
 
 /-- A language homomorphism maps the symbols of one language to symbols of another. -/
 structure Lhom :=
-(on_function : ∀{n}, L.functions n → L'.functions n)
-(on_relation : ∀{n}, L.relations n → L'.relations n)
+(on_function : ∀ ⦃n⦄, L.functions n → L'.functions n)
+(on_relation : ∀ ⦃n⦄, L.relations n → L'.relations n)
 
 infix ` →ᴸ `:10 := Lhom -- \^L
 
@@ -46,7 +50,21 @@ variables {L L'}
 
 namespace Lhom
 
+/-- Defines a map between languages defined with `language.mk₂`. -/
+protected def mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (φ₀ : c → L'.constants) (φ₁ : f₁ → L'.functions 1) (φ₂ : f₂ → L'.functions 2)
+  (φ₁' : r₁ → L'.relations 1) (φ₂' : r₂ → L'.relations 2) :
+  language.mk₂ c f₁ f₂ r₁ r₂ →ᴸ L' :=
+⟨λ n, nat.cases_on n φ₀ (λ n, nat.cases_on n φ₁ (λ n, nat.cases_on n φ₂ (λ _, pempty.elim))),
+  λ n, nat.cases_on n pempty.elim
+    (λ n, nat.cases_on n φ₁' (λ n, nat.cases_on n φ₂' (λ _, pempty.elim)))⟩
+
 variables (ϕ : L →ᴸ L')
+
+/-- Pulls a structure back along a language map. -/
+def reduct (M : Type*) [L'.Structure M] : L.Structure M :=
+{ fun_map := λ n f xs, fun_map (ϕ.on_function f) xs,
+  rel_map := λ n r xs, rel_map (ϕ.on_relation r) xs }
 
 /-- The identity language homomorphism. -/
 @[simps] protected def id (L : language) : L →ᴸ L :=
@@ -77,11 +95,23 @@ by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h
 instance [L.is_algebraic] [L.is_relational] : unique (L →ᴸ L') :=
 ⟨⟨Lhom.of_is_empty L L'⟩, λ _, Lhom.funext (subsingleton.elim _ _) (subsingleton.elim _ _)⟩
 
+lemma mk₂_funext {c f₁ f₂ : Type u} {r₁ r₂ : Type v} {F G : language.mk₂ c f₁ f₂ r₁ r₂ →ᴸ L'}
+  (h0 : ∀ (c : (language.mk₂ c f₁ f₂ r₁ r₂).constants), F.on_function c = G.on_function c)
+  (h1 : ∀ (f : (language.mk₂ c f₁ f₂ r₁ r₂).functions 1), F.on_function f = G.on_function f)
+  (h2 : ∀ (f : (language.mk₂ c f₁ f₂ r₁ r₂).functions 2), F.on_function f = G.on_function f)
+  (h1' : ∀ (r : (language.mk₂ c f₁ f₂ r₁ r₂).relations 1), F.on_relation r = G.on_relation r)
+  (h2' : ∀ (r : (language.mk₂ c f₁ f₂ r₁ r₂).relations 2), F.on_relation r = G.on_relation r) :
+  F = G :=
+Lhom.funext (funext (λ n, nat.cases_on n (funext h0) (λ n, nat.cases_on n (funext h1)
+      (λ n, nat.cases_on n (funext h2) (λ n, funext (λ f, pempty.elim f))))))
+      (funext (λ n, nat.cases_on n (funext (λ r, pempty.elim r)) (λ n, nat.cases_on n (funext h1')
+      (λ n, nat.cases_on n (funext h2') (λ n, funext (λ r, pempty.elim r))))))
+
 /-- The composition of two language homomorphisms. -/
 @[simps] def comp (g : L' →ᴸ L'') (f : L →ᴸ L') : L →ᴸ L'' :=
 ⟨λ n F, g.1 (f.1 F), λ _ R, g.2 (f.2 R)⟩
 
-local infix ` ∘ `:60 := Lhom.comp
+local infix (name := Lhom.comp) ` ∘ `:60 := Lhom.comp
 
 @[simp] lemma id_comp (F : L →ᴸ L') : (Lhom.id L') ∘ F = F :=
 by {cases F, refl}
@@ -141,8 +171,19 @@ end sum_map
 
 /-- A language homomorphism is injective when all the maps between symbol types are. -/
 protected structure injective : Prop :=
-(on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
-(on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
+(on_function {n} : function.injective (λ f : L.functions n, on_function ϕ f))
+(on_relation {n} : function.injective (λ R : L.relations n, on_relation ϕ R))
+
+/-- Pulls a `L`-structure along a language map `ϕ : L →ᴸ L'`, and then expands it
+  to an `L'`-structure arbitrarily. -/
+noncomputable def default_expansion (ϕ : L →ᴸ L')
+  [∀ n (f : L'.functions n), decidable (f ∈ set.range (λ (f : L.functions n), on_function ϕ f))]
+  [∀ n (r : L'.relations n), decidable (r ∈ set.range (λ (r : L.relations n), on_relation ϕ r))]
+  (M : Type*) [inhabited M] [L.Structure M] : L'.Structure M :=
+{ fun_map := λ n f xs, if h' : f ∈ set.range (λ (f : L.functions n), on_function ϕ f) then
+    fun_map h'.some xs else default,
+  rel_map := λ n r xs, if h' : r ∈ set.range (λ (r : L.relations n), on_relation ϕ r) then
+    rel_map h'.some xs else default }
 
 /-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
 all symbols on that structure. -/
@@ -152,7 +193,17 @@ class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
 (map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
   rel_map (ϕ.on_relation R) x = rel_map R x)
 
-attribute [simp] is_expansion_on.map_on_function is_expansion_on.map_on_relation
+@[simp] lemma map_on_function {M : Type*}
+  [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
+  {n} (f : L.functions n) (x : fin n → M) :
+  fun_map (ϕ.on_function f) x = fun_map f x :=
+is_expansion_on.map_on_function f x
+
+@[simp] lemma map_on_relation {M : Type*}
+  [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
+  {n} (R : L.relations n) (x : fin n → M) :
+  rel_map (ϕ.on_relation R) x = rel_map R x :=
+is_expansion_on.map_on_relation R x
 
 instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
@@ -173,6 +224,57 @@ instance sum_map_is_expansion_on {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) 
   [ϕ.is_expansion_on M] [ψ.is_expansion_on M] :
   (ϕ.sum_map ψ).is_expansion_on M :=
 ⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
+
+instance sum_inl_is_expansion_on (M : Type*)
+  [L.Structure M] [L'.Structure M] :
+  (Lhom.sum_inl : L →ᴸ L.sum L').is_expansion_on M :=
+⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
+instance sum_inr_is_expansion_on (M : Type*)
+  [L.Structure M] [L'.Structure M] :
+  (Lhom.sum_inr : L' →ᴸ L.sum L').is_expansion_on M :=
+⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
+@[simp] lemma fun_map_sum_inl [(L.sum L').Structure M]
+  [(Lhom.sum_inl : L →ᴸ L.sum L').is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L.sum L') M _ n (sum.inl f) x = fun_map f x :=
+(Lhom.sum_inl : L →ᴸ L.sum L').map_on_function f x
+
+@[simp] lemma fun_map_sum_inr [(L'.sum L).Structure M]
+  [(Lhom.sum_inr : L →ᴸ L'.sum L).is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L'.sum L) M _ n (sum.inr f) x = fun_map f x :=
+(Lhom.sum_inr : L →ᴸ L'.sum L).map_on_function f x
+
+lemma sum_inl_injective : (Lhom.sum_inl : L →ᴸ L.sum L').injective :=
+⟨λ n, sum.inl_injective, λ n, sum.inl_injective⟩
+
+lemma sum_inr_injective : (Lhom.sum_inr : L' →ᴸ L.sum L').injective :=
+⟨λ n, sum.inr_injective, λ n, sum.inr_injective⟩
+
+@[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
+  @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
+begin
+  letI := ϕ.reduct M,
+  exact ⟨λ _ f _, rfl, λ _ R _, rfl⟩,
+end
+
+lemma injective.is_expansion_on_default {ϕ : L →ᴸ L'}
+  [∀ n (f : L'.functions n), decidable (f ∈ set.range (λ (f : L.functions n), on_function ϕ f))]
+  [∀ n (r : L'.relations n), decidable (r ∈ set.range (λ (r : L.relations n), on_relation ϕ r))]
+  (h : ϕ.injective) (M : Type*) [inhabited M] [L.Structure M] :
+  @is_expansion_on L L' ϕ M _ (ϕ.default_expansion M) :=
+begin
+  letI := ϕ.default_expansion M,
+  refine ⟨λ n f xs, _, λ n r xs, _⟩,
+  { have hf : ϕ.on_function f ∈ set.range (λ (f : L.functions n), ϕ.on_function f) := ⟨f, rfl⟩,
+    refine (dif_pos hf).trans _,
+    rw h.on_function hf.some_spec },
+  { have hr : ϕ.on_relation r ∈ set.range (λ (r : L.relations n), ϕ.on_relation r) := ⟨r, rfl⟩,
+    refine (dif_pos hr).trans _,
+    rw h.on_relation hr.some_spec },
+end
 
 end Lhom
 
@@ -214,36 +316,36 @@ end Lequiv
 section constants_on
 variables (α : Type u')
 
-/-- The function symbols of a language with constants indexed by a type. -/
-def constants_on_functions : ℕ → Type u'
-| 0 := α
-| _ := pempty
-
-instance [h : inhabited α] : inhabited (constants_on_functions α 0) := h
-
 /-- A language with constants indexed by a type. -/
-def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, pempty⟩
+@[simp] def constants_on : language.{u' 0} :=
+  language.mk₂ α pempty pempty pempty pempty
 
 variables {α}
 
-@[simp] lemma constants_on_constants : (constants_on α).constants = α := rfl
+lemma constants_on_constants : (constants_on α).constants = α := rfl
 
 instance is_algebraic_constants_on : is_algebraic (constants_on α) :=
-language.is_algebraic_of_empty_relations
+language.is_algebraic_mk₂
 
 instance is_relational_constants_on [ie : is_empty α] : is_relational (constants_on α) :=
-⟨λ n, nat.cases_on n ie (λ _, pempty.is_empty)⟩
+language.is_relational_mk₂
+
+instance is_empty_functions_constants_on_succ {n : ℕ} :
+  is_empty ((constants_on α).functions (n + 1)) :=
+nat.cases_on n pempty.is_empty (λ n, nat.cases_on n pempty.is_empty (λ _, pempty.is_empty))
+
+lemma card_constants_on : (constants_on α).card = # α :=
+by simp
 
 /-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
 def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
-{ fun_map := λ n, nat.cases_on n (λ a _, f a) (λ _, pempty.elim),
-  rel_map := λ _, pempty.elim }
+Structure.mk₂ f pempty.elim pempty.elim pempty.elim pempty.elim
 
 variables {β : Type v'}
 
 /-- A map between index types induces a map between constant languages. -/
 def Lhom.constants_on_map (f : α → β) : (constants_on α) →ᴸ (constants_on β) :=
-⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, pempty.elim⟩
+Lhom.mk₂ f pempty.elim pempty.elim pempty.elim pempty.elim
 
 lemma constants_on_map_is_expansion_on {f : α → β} {fα : α → M} {fβ : β → M}
   (h : fβ ∘ f = fα) :
@@ -252,8 +354,8 @@ lemma constants_on_map_is_expansion_on {f : α → β} {fα : α → M} {fβ : �
 begin
   letI := constants_on.Structure fα,
   letI := constants_on.Structure fβ,
-  exact ⟨λ n, nat.cases_on n (λ F x, (congr_fun h F : _)) (λ n F, pempty.elim F),
-    λ _ R, pempty.elim R⟩,
+  exact ⟨λ n, nat.cases_on n (λ F x, (congr_fun h F : _)) (λ n F, is_empty_elim F),
+    λ _ R, is_empty_elim R⟩
 end
 
 end constants_on
@@ -263,15 +365,23 @@ section with_constants
 variable (L)
 
 section
-variables (α : Type w)
+variables (α : Type w')
 
 /-- Extends a language with a constant for each element of a parameter set in `M`. -/
-def with_constants : language.{(max u w) v} := L.sum (constants_on α)
+def with_constants : language.{(max u w') v} := L.sum (constants_on α)
 
-localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
+localized "notation (name := language.with_constants)
+  L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
+
+@[simp] lemma card_with_constants :
+  (L[[α]]).card = cardinal.lift.{w'} L.card + cardinal.lift.{max u v} (# α) :=
+by rw [with_constants, card_sum, card_constants_on]
 
 /-- The language map adding constants.  -/
 @[simps] def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
+
+lemma Lhom_with_constants_injective : (L.Lhom_with_constants α).injective :=
+Lhom.sum_inl_injective
 
 variables {α}
 
@@ -298,6 +408,18 @@ variables (L) (α)
 
 variables {α} {β : Type*}
 
+@[simp] lemma with_constants_fun_map_sum_inl [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L[[α]]) M _ n (sum.inl f) x = fun_map f x :=
+(Lhom_with_constants L α).map_on_function f x
+
+@[simp] lemma with_constants_rel_map_sum_inl [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {R : L.relations n} {x : fin n → M} :
+  @rel_map (L[[α]]) M _ n (sum.inl R) x = rel_map R x :=
+(Lhom_with_constants L α).map_on_relation R x
+
 /-- The language map extending the constant set.  -/
 def Lhom_with_constants_map (f : α → β) : L[[α]] →ᴸ L[[β]] :=
 Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map f)
@@ -309,12 +431,22 @@ by ext n f R; refl
 end
 
 open_locale first_order
-variables (A : set M)
 
-instance with_constants_Structure : L[[A]].Structure M :=
+instance constants_on_self_Structure : (constants_on M).Structure M :=
+constants_on.Structure id
+
+instance with_constants_self_Structure : L[[M]].Structure M :=
+language.sum_Structure _ _ M
+
+instance with_constants_self_expansion : (Lhom_with_constants L M).is_expansion_on M :=
+⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
+
+variables (α : Type*) [(constants_on α).Structure M]
+
+instance with_constants_Structure : L[[α]].Structure M :=
 language.sum_Structure _ _ _
 
-instance with_constants_expansion : (L.Lhom_with_constants A).is_expansion_on M :=
+instance with_constants_expansion : (L.Lhom_with_constants α).is_expansion_on M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
 
 instance add_empty_constants_is_expansion_on' :
@@ -327,8 +459,17 @@ Lhom.sum_elim_is_expansion_on _ _ _
 
 instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ L')
   [φ.is_expansion_on M] :
-  (φ.add_constants A).is_expansion_on M :=
+  (φ.add_constants α).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
+
+@[simp] lemma with_constants_fun_map_sum_inr {a : α} {x : fin 0 → M} :
+  @fun_map (L[[α]]) M _ 0 (sum.inr a : L[[α]].functions 0) x = L.con a :=
+begin
+  rw unique.eq_default x,
+  exact (Lhom.sum_inr : (constants_on α) →ᴸ L.sum _).map_on_function _ _,
+end
+
+variables {α} (A : set M)
 
 @[simp] lemma coe_con {a : A} : ((L.con a) : M) = a := rfl
 

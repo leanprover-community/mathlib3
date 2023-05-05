@@ -3,13 +3,16 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import algebra.add_torsor
 import topology.algebra.constructions
 import group_theory.group_action.prod
-import group_theory.group_action.basic
 import topology.algebra.const_mul_action
 
 /-!
 # Continuous monoid action
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define class `has_continuous_smul`. We say `has_continuous_smul M X` if `M` acts on
 `X` and the map `(c, x) ↦ c • x` is continuous on `M × X`. We reuse this class for topological
@@ -33,13 +36,13 @@ Besides homeomorphisms mentioned above, in this file we provide lemmas like `con
 or `filter.tendsto.smul` that provide dot-syntax access to `continuous_smul`.
 -/
 
-open_locale topological_space pointwise
+open_locale topology pointwise
 open filter
 
 /-- Class `has_continuous_smul M X` says that the scalar multiplication `(•) : M → X → X`
 is continuous in both arguments. We use the same class for all kinds of multiplicative actions,
 including (semi)modules and algebras. -/
-class has_continuous_smul (M X : Type*) [has_scalar M X]
+class has_continuous_smul (M X : Type*) [has_smul M X]
   [topological_space M] [topological_space X] : Prop :=
 (continuous_smul : continuous (λp : M × X, p.1 • p.2))
 
@@ -60,9 +63,9 @@ section main
 
 variables {M X Y α : Type*} [topological_space M] [topological_space X] [topological_space Y]
 
-section has_scalar
+section has_smul
 
-variables [has_scalar M X] [has_continuous_smul M X]
+variables [has_smul M X] [has_continuous_smul M X]
 
 @[priority 100, to_additive] instance has_continuous_smul.has_continuous_const_smul :
   has_continuous_const_smul M X :=
@@ -103,14 +106,20 @@ lemma continuous.smul (hf : continuous f) (hg : continuous g) :
   continuous (λ x, f x • g x) :=
 continuous_smul.comp (hf.prod_mk hg)
 
-/-- If a scalar is central, then its right action is continuous when its left action is. -/
-instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X] :
+/-- If a scalar action is central, then its right action is continuous when its left action is. -/
+@[to_additive "If an additive action is central, then its right action is continuous when its left
+action is."]
+instance has_continuous_smul.op [has_smul Mᵐᵒᵖ X] [is_central_scalar M X] :
   has_continuous_smul Mᵐᵒᵖ X :=
 ⟨ suffices continuous (λ p : M × X, mul_opposite.op p.fst • p.snd),
   from this.comp (mul_opposite.continuous_unop.prod_map continuous_id),
   by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × X, _)) ⟩
 
-end has_scalar
+@[to_additive] instance mul_opposite.has_continuous_smul : has_continuous_smul M Xᵐᵒᵖ :=
+⟨mul_opposite.continuous_op.comp $ continuous_smul.comp $
+  continuous_id.prod_map mul_opposite.continuous_unop⟩
+
+end has_smul
 
 section monoid
 
@@ -124,7 +133,7 @@ variables [monoid M] [mul_action M X] [has_continuous_smul M X]
 end monoid
 
 @[to_additive]
-instance [has_scalar M X] [has_scalar M Y] [has_continuous_smul M X]
+instance [has_smul M X] [has_smul M Y] [has_continuous_smul M X]
   [has_continuous_smul M Y] :
   has_continuous_smul M (X × Y) :=
 ⟨(continuous_fst.smul (continuous_fst.comp continuous_snd)).prod_mk
@@ -132,7 +141,7 @@ instance [has_scalar M X] [has_scalar M Y] [has_continuous_smul M X]
 
 @[to_additive]
 instance {ι : Type*} {γ : ι → Type*}
-  [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
+  [∀ i, topological_space (γ i)] [Π i, has_smul M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
   has_continuous_smul M (Π i, γ i) :=
 ⟨continuous_pi $ λ i,
   (continuous_fst.smul continuous_snd).comp $
@@ -142,7 +151,7 @@ end main
 
 section lattice_ops
 
-variables {ι : Sort*} {M X : Type*} [topological_space M] [has_scalar M X]
+variables {ι : Sort*} {M X : Type*} [topological_space M] [has_smul M X]
 
 @[to_additive] lemma has_continuous_smul_Inf {ts : set (topological_space X)}
   (h : Π t ∈ ts, @has_continuous_smul M X _ _ t) :
@@ -150,7 +159,7 @@ variables {ι : Sort*} {M X : Type*} [topological_space M] [has_scalar M X]
 { continuous_smul :=
   begin
     rw ← @Inf_singleton _ _ ‹topological_space M›,
-    exact continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
+    exact continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
       (@has_continuous_smul.continuous_smul _ _ _ _ t (h t ht)))
   end }
 
@@ -165,3 +174,22 @@ has_continuous_smul_Inf $ set.forall_range_iff.mpr h
 by { rw inf_eq_infi, refine has_continuous_smul_infi (λ b, _), cases b; assumption }
 
 end lattice_ops
+
+section add_torsor
+
+variables (G : Type*) (P : Type*) [add_group G] [add_torsor G P] [topological_space G]
+variables [preconnected_space G] [topological_space P] [has_continuous_vadd G P]
+include G
+
+/-- An `add_torsor` for a connected space is a connected space. This is not an instance because
+it loops for a group as a torsor over itself. -/
+protected lemma add_torsor.connected_space : connected_space P :=
+{ is_preconnected_univ :=
+    begin
+      convert is_preconnected_univ.image ((equiv.vadd_const (classical.arbitrary P)) : G → P)
+                                         (continuous_id.vadd continuous_const).continuous_on,
+      rw [set.image_univ, equiv.range_eq_univ]
+    end,
+  to_nonempty := infer_instance }
+
+end add_torsor

@@ -3,11 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.big_operators.multiset
+import algebra.big_operators.multiset.basic
 import data.fun_like.basic
 
 /-!
 # Freiman homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define Freiman homomorphisms. A `n`-Freiman homomorphism on `A` is a function
 `f : α → β` such that `f (x₁) * ... * f (xₙ) = f (y₁) * ... * f (yₙ)` for all
@@ -66,13 +69,13 @@ structure freiman_hom (A : set α) (β : Type*) [comm_monoid α] [comm_monoid β
   (hs : s.card = n) (ht : t.card = n) (h : s.prod = t.prod) :
   (s.map to_fun).prod = (t.map to_fun).prod)
 
-notation A ` →+[`:25 n:25 `] `:0 β:0 := add_freiman_hom A β n
-notation A ` →*[`:25 n:25 `] `:0 β:0 := freiman_hom A β n
+notation (name := add_freiman_hom) A ` →+[`:25 n:25 `] `:0 β:0 := add_freiman_hom A β n
+notation (name := freiman_hom) A ` →*[`:25 n:25 `] `:0 β:0 := freiman_hom A β n
 
 /-- `add_freiman_hom_class F s β n` states that `F` is a type of `n`-ary sums-preserving morphisms.
 You should extend this class when you extend `add_freiman_hom`. -/
 class add_freiman_hom_class (F : Type*) (A : out_param $ set α) (β : out_param $ Type*)
-  [add_comm_monoid α] [add_comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] :=
+  [add_comm_monoid α] [add_comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] : Prop :=
 (map_sum_eq_map_sum' (f : F) {s t : multiset α} (hsA : ∀ ⦃x⦄, x ∈ s → x ∈ A)
   (htA : ∀ ⦃x⦄, x ∈ t → x ∈ A) (hs : s.card = n) (ht : t.card = n) (h : s.sum = t.sum) :
   (s.map f).sum = (t.map f).sum)
@@ -83,7 +86,7 @@ You should extend this class when you extend `freiman_hom`. -/
 "`add_freiman_hom_class F A β n` states that `F` is a type of `n`-ary sums-preserving morphisms.
 You should extend this class when you extend `add_freiman_hom`."]
 class freiman_hom_class (F : Type*) (A : out_param $ set α) (β : out_param $ Type*) [comm_monoid α]
-  [comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] :=
+  [comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] : Prop :=
 (map_prod_eq_map_prod' (f : F) {s t : multiset α} (hsA : ∀ ⦃x⦄, x ∈ s → x ∈ A)
   (htA : ∀ ⦃x⦄, x ∈ t → x ∈ A) (hs : s.card = n) (ht : t.card = n) (h : s.prod = t.prod) :
   (s.map f).prod = (t.map f).prod)
@@ -92,7 +95,7 @@ variables [fun_like F α (λ _, β)]
 
 section comm_monoid
 variables [comm_monoid α] [comm_monoid β] [comm_monoid γ] [comm_monoid δ] [comm_group G] {A : set α}
-  {B : set β} {C : set γ} {n : ℕ}
+  {B : set β} {C : set γ} {n : ℕ} {a b c d : α}
 
 @[to_additive]
 lemma map_prod_eq_map_prod [freiman_hom_class F A β n] (f : F) {s t : multiset α}
@@ -100,6 +103,15 @@ lemma map_prod_eq_map_prod [freiman_hom_class F A β n] (f : F) {s t : multiset 
   (h : s.prod = t.prod) :
   (s.map f).prod = (t.map f).prod :=
 freiman_hom_class.map_prod_eq_map_prod' f hsA htA hs ht h
+
+@[to_additive]
+lemma map_mul_map_eq_map_mul_map [freiman_hom_class F A β 2] (f : F) (ha : a ∈ A) (hb : b ∈ A)
+  (hc : c ∈ A) (hd : d ∈ A) (h : a * b = c * d) :
+  f a * f b = f c * f d :=
+begin
+  simp_rw ←prod_pair at ⊢ h,
+  refine map_prod_eq_map_prod f _ _ (card_pair _ _) (card_pair _ _) h; simp [ha, hb, hc, hd],
+end
 
 namespace freiman_hom
 
@@ -112,9 +124,10 @@ instance fun_like : fun_like (A →*[n] β) α (λ _, β) :=
 instance freiman_hom_class : freiman_hom_class (A →*[n] β) A β n :=
 { map_prod_eq_map_prod' := map_prod_eq_map_prod' }
 
-/-- Helper instance for when there's too many metavariables to apply
-`fun_like.has_coe_to_fun` directly. -/
-@[to_additive]
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
 instance : has_coe_to_fun (A →*[n] β) (λ _, α → β) := ⟨to_fun⟩
 
 initialize_simps_projections freiman_hom (to_fun → apply)
@@ -186,7 +199,7 @@ ext $ λ x, rfl
 def const (A : set α) (n : ℕ) (b : β) : A →*[n] β :=
 { to_fun := λ _, b,
   map_prod_eq_map_prod' := λ s t _ _ hs ht _,
-    by rw [multiset.map_const, multiset.map_const, prod_repeat, prod_repeat, hs, ht] }
+    by rw [multiset.map_const, multiset.map_const, prod_replicate, prod_replicate, hs, ht] }
 
 @[simp, to_additive] lemma const_apply (n : ℕ) (b : β) (x : α) : const A n b x = b := rfl
 
@@ -223,7 +236,7 @@ Freiman homomorphism sending `x` to `-f x`."]
 instance : has_inv (A →*[n] G) :=
 ⟨λ f, { to_fun := λ x, (f x)⁻¹,
   map_prod_eq_map_prod' := λ s t hsA htA hs ht h,
-    by rw [prod_map_inv', prod_map_inv', map_prod_eq_map_prod f hsA htA hs ht h] }⟩
+    by rw [prod_map_inv, prod_map_inv, map_prod_eq_map_prod f hsA htA hs ht h] }⟩
 
 @[simp, to_additive] lemma inv_apply (f : A →*[n] G) (x : α) : f⁻¹ x = (f x)⁻¹ := rfl
 
@@ -331,7 +344,7 @@ begin
     rw [hs, ht] },
   rw [←hs, card_pos_iff_exists_mem] at hm,
   obtain ⟨a, ha⟩ := hm,
-  suffices : ((s + repeat a (n - m)).map f).prod = ((t + repeat a (n - m)).map f).prod,
+  suffices : ((s + replicate (n - m) a).map f).prod = ((t + replicate (n - m) a).map f).prod,
   { simp_rw [multiset.map_add, prod_add] at this,
     exact mul_right_cancel this },
   replace ha := hsA _ ha,
@@ -339,12 +352,12 @@ begin
   rotate 2, assumption, -- Can't infer `A` and `n` from the context, so do it manually.
   { rw mem_add at hx,
     refine hx.elim (hsA _) (λ h, _),
-    rwa eq_of_mem_repeat h },
+    rwa eq_of_mem_replicate h },
   { rw mem_add at hx,
     refine hx.elim (htA _) (λ h, _),
-    rwa eq_of_mem_repeat h },
-  { rw [card_add, hs, card_repeat, add_tsub_cancel_of_le h] },
-  { rw [card_add, ht, card_repeat, add_tsub_cancel_of_le h] },
+    rwa eq_of_mem_replicate h },
+  { rw [card_add, hs, card_replicate, add_tsub_cancel_of_le h] },
+  { rw [card_add, ht, card_replicate, add_tsub_cancel_of_le h] },
   { rw [prod_add, prod_add, hst] }
 end
 
@@ -359,7 +372,7 @@ def freiman_hom.to_freiman_hom (h : m ≤ n) (f : A →*[n] β) : A →*[m] β :
 /-- A `n`-Freiman homomorphism is also a `m`-Freiman homomorphism for any `m ≤ n`. -/
 @[to_additive add_freiman_hom.add_freiman_hom_class_of_le "An additive `n`-Freiman homomorphism is
 also an additive `m`-Freiman homomorphism for any `m ≤ n`."]
-def freiman_hom.freiman_hom_class_of_le [freiman_hom_class F A β n] (h : m ≤ n) :
+lemma freiman_hom.freiman_hom_class_of_le [freiman_hom_class F A β n] (h : m ≤ n) :
   freiman_hom_class F A β m :=
 { map_prod_eq_map_prod' := λ f s t hsA htA hs ht hst,
     map_prod_eq_map_prod_of_le f hsA htA hs ht hst h }

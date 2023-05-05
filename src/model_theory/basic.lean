@@ -3,13 +3,15 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
-import category_theory.concrete_category.bundled
-import data.fin.tuple.basic
-import logic.encodable.basic
-import set_theory.cardinal
+import data.fin.vec_notation
+import set_theory.cardinal.basic
+
 
 /-!
 # Basics on First-Order Structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines first-order languages and structures in the style of the
 [Flypitch project](https://flypitch.github.io/), as well as several important maps between
 structures.
@@ -32,6 +34,10 @@ structures.
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
 
+## TODO
+
+Use `[countable L.symbols]` instead of `[L.countable]`.
+
 ## References
 For the Flypitch project:
 - [J. Han, F. van Doorn, *A formal proof of the independence of the continuum hypothesis*]
@@ -40,7 +46,7 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
-universes u v u' v' w
+universes u v u' v' w w'
 
 open_locale cardinal
 open cardinal
@@ -55,10 +61,50 @@ namespace first_order
 structure language :=
 (functions : ℕ → Type u) (relations : ℕ → Type v)
 
+/-- Used to define `first_order.language₂`. -/
+@[simp] def sequence₂ (a₀ a₁ a₂ : Type u) : ℕ → Type u
+| 0 := a₀
+| 1 := a₁
+| 2 := a₂
+| _ := pempty
+
+namespace sequence₂
+
+variables (a₀ a₁ a₂ : Type u)
+
+instance inhabited₀ [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+
+instance inhabited₁ [h : inhabited a₁] : inhabited (sequence₂ a₀ a₁ a₂ 1) := h
+
+instance inhabited₂ [h : inhabited a₂] : inhabited (sequence₂ a₀ a₁ a₂ 2) := h
+
+instance {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
+
+@[simp] lemma lift_mk {i : ℕ} :
+  cardinal.lift (# (sequence₂ a₀ a₁ a₂ i)) = # (sequence₂ (ulift a₀) (ulift a₁) (ulift a₂) i) :=
+begin
+  rcases i with (_ | _ | _ | i);
+  simp only [sequence₂, mk_ulift, mk_fintype, fintype.card_of_is_empty, nat.cast_zero, lift_zero],
+end
+
+@[simp] lemma sum_card :
+  cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=
+begin
+  rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
+  simp [add_assoc],
+end
+
+end sequence₂
+
 namespace language
 
+/-- A constructor for languages with only constants, unary and binary functions, and
+unary and binary relations. -/
+@[simps] protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
+⟨sequence₂ c f₁ f₂, sequence₂ pempty r₁ r₂⟩
+
 /-- The empty language has no symbols. -/
-protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
+protected def empty : language := ⟨λ _, empty, λ _, empty⟩
 
 instance : inhabited language := ⟨language.empty⟩
 
@@ -69,18 +115,17 @@ protected def sum (L : language.{u v}) (L' : language.{u' v'}) : language :=
 variable (L : language.{u v})
 
 /-- The type of constants in a given language. -/
-@[nolint has_inhabited_instance] protected def «constants» := L.functions 0
+@[nolint has_nonempty_instance] protected def «constants» := L.functions 0
+
+@[simp] lemma constants_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).constants = c :=
+rfl
 
 /-- The type of symbols in a given language. -/
-@[nolint has_inhabited_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
+@[nolint has_nonempty_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
 
 /-- The cardinality of a language is the cardinality of its type of symbols. -/
 def card : cardinal := # L.symbols
-
-/-- A language is countable when it has countably many symbols. -/
-class countable : Prop := (card_le_omega' : L.card ≤ ω)
-
-lemma card_le_omega [L.countable] : L.card ≤ ω := countable.card_le_omega'
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -90,29 +135,22 @@ class is_relational : Prop :=
 class is_algebraic : Prop :=
 (empty_relations : ∀ n, is_empty (L.relations n))
 
-/-- A language is countable when it has countably many symbols. -/
-class countable_functions : Prop := (card_functions_le_omega' : # (Σl, L.functions l) ≤ ω)
-
-lemma card_functions_le_omega [L.countable_functions] :
-  # (Σl, L.functions l) ≤ ω :=
-countable_functions.card_functions_le_omega'
-
 variables {L} {L' : language.{u' v'}}
 
 lemma card_eq_card_functions_add_card_relations :
-  L.card = cardinal.lift.{v} (# (Σl, L.functions l)) +
-    cardinal.lift.{u} (# (Σl, L.relations l)) :=
-by rw [card, symbols, mk_sum]
+  L.card = cardinal.sum (λ l, (cardinal.lift.{v} (#(L.functions l)))) +
+    cardinal.sum (λ l, cardinal.lift.{u} (#(L.relations l))) :=
+by simp [card, symbols]
 
 instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
 
 instance [L.is_algebraic] {n : ℕ} : is_empty (L.relations n) := is_algebraic.empty_relations n
 
-instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, pempty, symb⟩ :=
-⟨λ _, pempty.is_empty⟩
+instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, empty, symb⟩ :=
+⟨λ _, empty.is_empty⟩
 
-instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
-⟨λ _, pempty.is_empty⟩
+instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, empty⟩ :=
+⟨λ _, empty.is_empty⟩
 
 instance is_relational_empty : is_relational language.empty :=
 language.is_relational_of_empty_functions
@@ -126,32 +164,63 @@ instance is_relational_sum [L.is_relational] [L'.is_relational] : is_relational 
 instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.sum L') :=
 ⟨λ n, sum.is_empty⟩
 
-lemma encodable.countable [h : encodable L.symbols] :
-  L.countable :=
-⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+instance is_relational_mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h0 : is_empty c] [h1 : is_empty f₁] [h2 : is_empty f₂] :
+  is_relational (language.mk₂ c f₁ f₂ r₁ r₂) :=
+⟨λ n, nat.cases_on n h0 (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ _, pempty.is_empty)))⟩
 
-instance countable_empty : language.empty.countable :=
-⟨begin
-  rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
-    ← cardinal.encodable_iff, ← cardinal.encodable_iff],
-  exact ⟨⟨encodable.sigma⟩, ⟨encodable.sigma⟩⟩,
-end⟩
+instance is_algebraic_mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h1 : is_empty r₁] [h2 : is_empty r₂] :
+  is_algebraic (language.mk₂ c f₁ f₂ r₁ r₂) :=
+⟨λ n, nat.cases_on n pempty.is_empty
+  (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ _, pempty.is_empty)))⟩
 
-@[priority 100] instance countable.countable_functions [L.countable] :
-  L.countable_functions :=
-⟨begin
-  refine lift_le_omega.1 (trans _ L.card_le_omega),
-  rw [card, symbols, mk_sum],
-  exact le_self_add,
-end⟩
+instance subsingleton_mk₂_functions {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h0 : subsingleton c] [h1 : subsingleton f₁] [h2 : subsingleton f₂] {n : ℕ} :
+  subsingleton ((language.mk₂ c f₁ f₂ r₁ r₂).functions n) :=
+nat.cases_on n h0 (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
 
-lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
-  L.countable_functions :=
-⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+instance subsingleton_mk₂_relations {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h1 : subsingleton r₁] [h2 : subsingleton r₂] {n : ℕ} :
+  subsingleton ((language.mk₂ c f₁ f₂ r₁ r₂).relations n) :=
+nat.cases_on n ⟨λ x, pempty.elim x⟩
+  (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
 
-@[priority 100] instance is_relational.countable_functions [L.is_relational] :
-  L.countable_functions :=
-encodable.countable_functions
+@[simp] lemma empty_card : language.empty.card = 0 :=
+by simp [card_eq_card_functions_add_card_relations]
+
+instance is_empty_empty : is_empty language.empty.symbols :=
+begin
+  simp only [language.symbols, is_empty_sum, is_empty_sigma],
+  exact ⟨λ _, infer_instance, λ _, infer_instance⟩,
+end
+
+instance countable.countable_functions [h : countable L.symbols] :
+  countable (Σl, L.functions l) :=
+@function.injective.countable _ _ h _ sum.inl_injective
+
+@[simp] lemma card_functions_sum (i : ℕ) :
+  #((L.sum L').functions i) = (#(L.functions i)).lift + cardinal.lift.{u} (#(L'.functions i)) :=
+by simp [language.sum]
+
+@[simp] lemma card_relations_sum (i : ℕ) :
+  #((L.sum L').relations i) = (#(L.relations i)).lift + cardinal.lift.{v} (#(L'.relations i)) :=
+by simp [language.sum]
+
+@[simp] lemma card_sum :
+  (L.sum L').card = cardinal.lift.{max u' v'} L.card + cardinal.lift.{max u v} L'.card :=
+begin
+  simp only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
+    sum_add_distrib', lift_add, lift_sum, lift_lift],
+  rw [add_assoc, ←add_assoc (cardinal.sum (λ i, (# (L'.functions i)).lift)),
+    add_comm (cardinal.sum (λ i, (# (L'.functions i)).lift)), add_assoc, add_assoc]
+end
+
+@[simp] lemma card_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).card =
+    cardinal.lift.{v} (# c) + cardinal.lift.{v} (# f₁) + cardinal.lift.{v} (# f₂)
+    + cardinal.lift.{u} (# r₁) + cardinal.lift.{u} (# r₂) :=
+by simp [card_eq_card_functions_add_card_relations, add_assoc]
 
 variables (L) (M : Type w)
 
@@ -159,13 +228,16 @@ variables (L) (M : Type w)
   language. Each function of arity `n` is interpreted as a function sending tuples of length `n`
   (modeled as `(fin n → M)`) to `M`, and a relation of arity `n` is a function from tuples of length
   `n` to `Prop`. -/
-class Structure :=
+@[ext] class Structure :=
 (fun_map : ∀{n}, L.functions n → (fin n → M) → M)
 (rel_map : ∀{n}, L.relations n → (fin n → M) → Prop)
 
-variables (N : Type*) [L.Structure M] [L.Structure N]
+variables (N : Type w') [L.Structure M] [L.Structure N]
 
 open Structure
+
+/-- Used for defining `first_order.language.Theory.Model.inhabited`. -/
+def inhabited.trivial_structure {α : Type*} [inhabited α] : L.Structure α := ⟨default, default⟩
 
 /-! ### Maps -/
 
@@ -177,7 +249,8 @@ structure hom :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r x → rel_map r (to_fun ∘ x) . obviously)
 
-localized "notation A ` →[`:25 L `] ` B := L.hom A B" in first_order
+localized "notation (name := language.hom) A ` →[`:25 L `] ` B :=
+  first_order.language.hom L A B" in first_order
 
 /-- An embedding of first-order structures is an embedding that commutes with the
   interpretations of functions and relations. -/
@@ -185,7 +258,8 @@ localized "notation A ` →[`:25 L `] ` B := L.hom A B" in first_order
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
-localized "notation A ` ↪[`:25 L `] ` B := L.embedding A B" in first_order
+localized "notation (name := language.embedding) A ` ↪[`:25 L `] ` B :=
+  first_order.language.embedding L A B" in first_order
 
 /-- An equivalence of first-order structures is an equivalence that commutes with the
   interpretations of functions and relations. -/
@@ -193,7 +267,8 @@ structure equiv extends M ≃ N :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
-localized "notation A ` ≃[`:25 L `] ` B := L.equiv A B" in first_order
+localized "notation (name := language.equiv) A ` ≃[`:25 L `] ` B :=
+  first_order.language.equiv L A B" in first_order
 
 variables {L M N} {P : Type*} [L.Structure P] {Q : Type*} [L.Structure Q]
 
@@ -207,6 +282,55 @@ lemma fun_map_eq_coe_constants {c : L.constants} {x : fin 0 → M} :
   be a global instance, because `L` becomes a metavariable. -/
 lemma nonempty_of_nonempty_constants [h : nonempty L.constants] : nonempty M :=
 h.map coe
+
+/-- The function map for `first_order.language.Structure₂`. -/
+def fun_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (c' : c → M) (f₁' : f₁ → M → M) (f₂' : f₂ → M → M → M) :
+  ∀{n}, (language.mk₂ c f₁ f₂ r₁ r₂).functions n → (fin n → M) → M
+| 0 f _ := c' f
+| 1 f x := f₁' f (x 0)
+| 2 f x := f₂' f (x 0) (x 1)
+| (n + 3) f _ := pempty.elim f
+
+/-- The relation map for `first_order.language.Structure₂`. -/
+def rel_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (r₁' : r₁ → set M) (r₂' : r₂ → M → M → Prop) :
+  ∀{n}, (language.mk₂ c f₁ f₂ r₁ r₂).relations n → (fin n → M) → Prop
+| 0 r _ := pempty.elim r
+| 1 r x := (x 0) ∈ r₁' r
+| 2 r x := r₂' r (x 0) (x 1)
+| (n + 3) r _ := pempty.elim r
+
+/-- A structure constructor to match `first_order.language₂`. -/
+protected def Structure.mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (c' : c → M) (f₁' : f₁ → M → M) (f₂' : f₂ → M → M → M)
+  (r₁' : r₁ → set M) (r₂' : r₂ → M → M → Prop) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).Structure M :=
+⟨λ _, fun_map₂ c' f₁' f₂', λ _, rel_map₂ r₁' r₂'⟩
+
+namespace Structure
+
+variables {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+variables {c' : c → M} {f₁' : f₁ → M → M} {f₂' : f₂ → M → M → M}
+variables {r₁' : r₁ → set M} {r₂' : r₂ → M → M → Prop}
+
+@[simp] lemma fun_map_apply₀ (c₀ : c) {x : fin 0 → M} :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 0 c₀ x = c' c₀ := rfl
+
+@[simp] lemma fun_map_apply₁ (f : f₁) (x : M) :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 1 f (![x]) = f₁' f x := rfl
+
+@[simp] lemma fun_map_apply₂ (f : f₂) (x y : M) :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 2 f (![x,y]) = f₂' f x y := rfl
+
+@[simp] lemma rel_map_apply₁ (r : r₁) (x : M) :
+  @Structure.rel_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 1 r (![x]) = (x ∈ r₁' r) := rfl
+
+@[simp] lemma rel_map_apply₂ (r : r₂) (x y : M) :
+  @Structure.rel_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 2 r (![x,y]) = r₂' r x y := rfl
+
+end Structure
+
 
 /-- `hom_class L F M N` states that `F` is a type of `L`-homomorphisms. You should extend this
   typeclass when you extend `first_order.language.hom`. -/
@@ -301,6 +425,12 @@ lemma comp_assoc (f : M →[L] N) (g : N →[L] P) (h : P →[L] Q) :
 
 end hom
 
+/-- Any element of a `hom_class` can be realized as a first_order homomorphism. -/
+def hom_class.to_hom {F M N} [L.Structure M] [L.Structure N]
+  [fun_like F M (λ _, N)] [hom_class L F M N] :
+  F → (M →[L] N) :=
+λ φ, ⟨φ, λ _, hom_class.map_fun φ, λ _, hom_class.map_rel φ⟩
+
 namespace embedding
 
 instance embedding_like : embedding_like (M ↪[L] N) M N :=
@@ -332,8 +462,7 @@ hom_class.map_constants φ c
 strong_hom_class.map_rel φ r x
 
 /-- A first-order embedding is also a first-order homomorphism. -/
-def to_hom (f : M ↪[L] N) : M →[L] N :=
-{ to_fun := f }
+def to_hom : (M ↪[L] N) → M →[L] N := hom_class.to_hom
 
 @[simp]
 lemma coe_to_hom {f : M ↪[L] N} : (f.to_hom : M → N) = f := rfl
@@ -400,6 +529,13 @@ by { ext, simp only [coe_to_hom, comp_apply, hom.comp_apply] }
 
 end embedding
 
+/-- Any element of an injective `strong_hom_class` can be realized as a first_order embedding. -/
+def strong_hom_class.to_embedding {F M N} [L.Structure M] [L.Structure N]
+  [embedding_like F M N] [strong_hom_class L F M N] :
+  F → (M ↪[L] N) :=
+λ φ, ⟨⟨φ, embedding_like.injective φ⟩,
+  λ _, strong_hom_class.map_fun φ, λ _, strong_hom_class.map_rel φ⟩
+
 namespace equiv
 
 instance : equiv_like (M ≃[L] N) M N :=
@@ -455,13 +591,10 @@ hom_class.map_constants φ c
 strong_hom_class.map_rel φ r x
 
 /-- A first-order equivalence is also a first-order embedding. -/
-def to_embedding (f : M ≃[L] N) : M ↪[L] N :=
-{ to_fun := f,
-  inj' := f.to_equiv.injective }
+def to_embedding : (M ≃[L] N) → M ↪[L] N := strong_hom_class.to_embedding
 
 /-- A first-order equivalence is also a first-order homomorphism. -/
-def to_hom (f : M ≃[L] N) : M →[L] N :=
-{ to_fun := f }
+def to_hom : (M ≃[L] N) → M →[L] N := hom_class.to_hom
 
 @[simp] lemma to_embedding_to_hom (f : M ≃[L] N) : f.to_embedding.to_hom = f.to_hom := rfl
 
@@ -512,6 +645,13 @@ lemma comp_assoc (f : M ≃[L] N) (g : N ≃[L] P) (h : P ≃[L] Q) :
 
 end equiv
 
+/-- Any element of a bijective `strong_hom_class` can be realized as a first_order isomorphism. -/
+def strong_hom_class.to_equiv {F M N} [L.Structure M] [L.Structure N]
+  [equiv_like F M N] [strong_hom_class L F M N] :
+  F → (M ≃[L] N) :=
+λ φ, ⟨⟨φ, equiv_like.inv φ, equiv_like.left_inv φ, equiv_like.right_inv φ⟩,
+  λ _, hom_class.map_fun φ, λ _, strong_hom_class.map_rel φ⟩
+
 section sum_Structure
 variables (L₁ L₂ : language) (S : Type*) [L₁.Structure S] [L₂.Structure S]
 
@@ -536,5 +676,68 @@ variables {L₁ L₂ S}
 
 end sum_Structure
 
+section empty
+section
+variables [language.empty.Structure M] [language.empty.Structure N]
+
+@[simp] lemma empty.nonempty_embedding_iff :
+  nonempty (M ↪[language.empty] N) ↔ cardinal.lift.{w'} (# M) ≤ cardinal.lift.{w} (# N) :=
+trans ⟨nonempty.map (λ f, f.to_embedding), nonempty.map (λ f, {to_embedding := f})⟩
+  cardinal.lift_mk_le'.symm
+
+@[simp] lemma empty.nonempty_equiv_iff :
+  nonempty (M ≃[language.empty] N) ↔ cardinal.lift.{w'} (# M) = cardinal.lift.{w} (# N) :=
+trans ⟨nonempty.map (λ f, f.to_equiv), nonempty.map (λ f, {to_equiv := f})⟩
+  cardinal.lift_mk_eq'.symm
+
+end
+
+instance empty_Structure : language.empty.Structure M :=
+⟨λ _, empty.elim, λ _, empty.elim⟩
+
+instance : unique (language.empty.Structure M) :=
+⟨⟨language.empty_Structure⟩, λ a, begin
+  ext n f,
+  { exact empty.elim f },
+  { exact subsingleton.elim _ _ },
+end⟩
+
+@[priority 100] instance strong_hom_class_empty {F M N} [fun_like F M (λ _, N)] :
+  strong_hom_class language.empty F M N :=
+⟨λ _ _ f, empty.elim f, λ _ _ r, empty.elim r⟩
+
+/-- Makes a `language.empty.hom` out of any function. -/
+@[simps] def _root_.function.empty_hom (f : M → N) : (M →[language.empty] N) :=
+{ to_fun := f }
+
+/-- Makes a `language.empty.embedding` out of any function. -/
+@[simps] def _root_.embedding.empty (f : M ↪ N) : (M ↪[language.empty] N) :=
+{ to_embedding := f }
+
+/-- Makes a `language.empty.equiv` out of any function. -/
+@[simps] def _root_.equiv.empty (f : M ≃ N) : (M ≃[language.empty] N) :=
+{ to_equiv := f }
+
+end empty
+
 end language
 end first_order
+
+namespace equiv
+open first_order first_order.language first_order.language.Structure
+open_locale first_order
+
+variables {L : language} {M : Type*} {N : Type*} [L.Structure M]
+
+/-- A structure induced by a bijection. -/
+@[simps] def induced_Structure (e : M ≃ N) : L.Structure N :=
+⟨λ n f x, e (fun_map f (e.symm ∘ x)), λ n r x, rel_map r (e.symm ∘ x)⟩
+
+/-- A bijection as a first-order isomorphism with the induced structure on the codomain. -/
+@[simps] def induced_Structure_equiv (e : M ≃ N) :
+  @language.equiv L M N _ (induced_Structure e) :=
+{ map_fun' := λ n f x, by simp [← function.comp.assoc e.symm e x],
+  map_rel' := λ n r x, by simp [← function.comp.assoc e.symm e x],
+  .. e }
+
+end equiv

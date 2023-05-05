@@ -7,7 +7,7 @@ import measure_theory.covering.differentiation
 import measure_theory.covering.vitali_family
 import measure_theory.integral.lebesgue
 import measure_theory.measure.regular
-import set_theory.ordinal_arithmetic
+import set_theory.ordinal.arithmetic
 import topology.metric_space.basic
 
 /-!
@@ -99,7 +99,7 @@ noncomputable theory
 universe u
 
 open metric set filter fin measure_theory topological_space
-open_locale topological_space classical big_operators ennreal measure_theory nnreal
+open_locale topology classical big_operators ennreal measure_theory nnreal
 
 
 /-!
@@ -139,7 +139,7 @@ class has_besicovitch_covering (α : Type*) [metric_space α] : Prop :=
 /-- There is always a satellite configuration with a single point. -/
 instance {α : Type*} {τ : ℝ} [inhabited α] [metric_space α] :
   inhabited (besicovitch.satellite_config α 0 τ) :=
-⟨{ c := λ i, default,
+⟨{ c := default,
   r := λ i, 1,
   rpos := λ i, zero_lt_one,
   h := λ i j hij, (hij (subsingleton.elim i j)).elim,
@@ -260,7 +260,8 @@ begin
   by_contra,
   suffices H : function.injective p.index, from not_injective_of_ordinal p.index H,
   assume x y hxy,
-  wlog x_le_y : x ≤ y := le_total x y using [x y, y x],
+  wlog x_le_y : x ≤ y generalizing x y,
+  { exact (this hxy.symm (le_of_not_le x_le_y)).symm },
   rcases eq_or_lt_of_le x_le_y with rfl|H, { refl },
   simp only [nonempty_def, not_exists, exists_prop, not_and, not_lt, not_le, mem_set_of_eq,
     not_forall] at h,
@@ -395,16 +396,14 @@ begin
     rpos := λ k, p.rpos (p.index (G k)),
     h := begin
       assume a b a_ne_b,
-      wlog G_le : G a ≤ G b := le_total (G a) (G b) using [a b, b a] tactic.skip,
-      { have G_lt : G a < G b,
-        { rcases G_le.lt_or_eq with H|H, { exact H },
-          have A : (a : ℕ) ≠ b := fin.coe_injective.ne a_ne_b,
-          rw [← color_G a (nat.lt_succ_iff.1 a.2), ← color_G b (nat.lt_succ_iff.1 b.2), H] at A,
-          exact (A rfl).elim },
-        exact or.inl (Gab a b G_lt) },
-      { assume a_ne_b,
-        rw or_comm,
-        exact this a_ne_b.symm }
+      wlog G_le : G a ≤ G b generalizing a b,
+      { exact (this b a a_ne_b.symm (le_of_not_le G_le)).symm },
+      have G_lt : G a < G b,
+      { rcases G_le.lt_or_eq with H|H, { exact H },
+        have A : (a : ℕ) ≠ b := fin.coe_injective.ne a_ne_b,
+        rw [← color_G a (nat.lt_succ_iff.1 a.2), ← color_G b (nat.lt_succ_iff.1 b.2), H] at A,
+        exact (A rfl).elim },
+      exact or.inl (Gab a b G_lt),
     end,
     hlast := begin
       assume a ha,
@@ -456,11 +455,8 @@ begin
     obtain ⟨jy, jy_lt, jyi, rfl⟩ :
       ∃ (jy : ordinal), jy < p.last_step ∧ p.color jy = i ∧ y = p.index jy,
         by simpa only [exists_prop, mem_Union, mem_singleton_iff] using hy,
-    wlog jxy : jx ≤ jy := le_total jx jy using [jx jy, jy jx] tactic.skip,
-    swap,
-    { assume h1 h2 h3 h4 h5 h6 h7,
-      rw [function.on_fun, disjoint.comm],
-      exact this h4 h5 h6 h1 h2 h3 h7.symm },
+    wlog jxy : jx ≤ jy generalizing jx jy,
+    { exact (this jy jy_lt jyi hy jx jx_lt jxi hx x_ne_y.symm (le_of_not_le jxy)).symm },
     replace jxy : jx < jy,
       by { rcases lt_or_eq_of_le jxy with H|rfl, { exact H }, { exact (x_ne_y rfl).elim } },
     let A : set ℕ := ⋃ (j : {j // j < jy})
@@ -535,7 +531,7 @@ begin
     r_bound := 1,
     r_le := λ x, rle x x.2 },
   rcases exist_disjoint_covering_families hτ hN a with ⟨u, hu, hu'⟩,
-  have u_count : ∀ i, countable (u i),
+  have u_count : ∀ i, (u i).countable,
   { assume i,
     refine (hu i).countable_of_nonempty_interior (λ j hj, _),
     have : (ball (j : α) (r j)).nonempty := nonempty_ball.2 (a.rpos _),
@@ -557,7 +553,7 @@ begin
       simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul],
       rw ennreal.mul_div_cancel',
       { simp only [Npos, ne.def, nat.cast_eq_zero, not_false_iff] },
-      { exact ennreal.coe_nat_ne_top }
+      { exact (ennreal.nat_ne_top _) }
     end
     ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },
   -- choose an index `i` of a subfamily covering at least a proportion `1/N` of `s`.
@@ -569,7 +565,7 @@ begin
     apply (ennreal.mul_lt_mul_left hμs.ne' (measure_lt_top μ s).ne).2,
     rw ennreal.inv_lt_inv,
     conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
-    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) zero_lt_one },
   have B : μ (o ∩ v i) = ∑' (x : u i), μ (o ∩ closed_ball x (r x)),
   { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simp only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
@@ -602,7 +598,7 @@ begin
     { apply measurable_set.inter _ omeas,
       haveI : encodable (u i) := (u_count i).to_encodable,
       exact measurable_set.Union
-        (λ b, measurable_set.Union_Prop (λ hb, measurable_set_closed_ball)) },
+        (λ b, measurable_set.Union (λ hb, measurable_set_closed_ball)) },
     calc
     μ o = 1/(N+1) * μ s + N/(N+1) * μ s :
       by { rw [μo, ← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simp }
@@ -645,7 +641,7 @@ For a version giving the conclusion in a nicer form, see `exists_disjoint_closed
 theorem exists_disjoint_closed_ball_covering_ae_of_finite_measure_aux
   (μ : measure α) [is_finite_measure μ]
   (f : α → set ℝ) (s : set α) (hf : ∀ x ∈ s, ∀ δ > 0, (f x ∩ Ioo 0 δ).nonempty) :
-  ∃ (t : set (α × ℝ)), (countable t)
+  ∃ (t : set (α × ℝ)), t.countable
     ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
     ∧ t.pairwise_disjoint (λ p, closed_ball p.1 p.2) :=
@@ -726,7 +722,7 @@ begin
   { assume n,
     induction n with n IH,
     { simp only [u, P, prod.forall, id.def, function.iterate_zero],
-      simp only [finset.not_mem_empty, forall_false_left, finset.coe_empty, forall_2_true_iff,
+      simp only [finset.not_mem_empty, is_empty.forall_iff, finset.coe_empty, forall_2_true_iff,
         and_self, pairwise_disjoint_empty] },
     { rw u_succ,
       exact (hF (u n) IH).2.1 } },
@@ -754,13 +750,13 @@ begin
             ≤ (N/(N+1)) * μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd) :
               by { rw u_succ, exact (hF (u n) (Pu n)).2.2 }
         ... ≤ (N/(N+1))^n.succ * μ s :
-          by { rw [pow_succ, mul_assoc], exact ennreal.mul_le_mul le_rfl IH } },
+          by { rw [pow_succ, mul_assoc], exact mul_le_mul_left' IH _ } },
     have C : tendsto (λ (n : ℕ), ((N : ℝ≥0∞)/(N+1))^n * μ s) at_top (𝓝 (0 * μ s)),
     { apply ennreal.tendsto.mul_const _ (or.inr (measure_lt_top μ s).ne),
       apply ennreal.tendsto_pow_at_top_nhds_0_of_lt_1,
       rw [ennreal.div_lt_iff, one_mul],
       { conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
-        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) zero_lt_one },
       { simp only [true_or, add_eq_zero_iff, ne.def, not_false_iff, one_ne_zero, and_false] },
       { simp only [ennreal.nat_ne_top, ne.def, not_false_iff, or_true] } },
     rw zero_mul at C,
@@ -784,7 +780,7 @@ For a version giving the conclusion in a nicer form, see `exists_disjoint_closed
 -/
 theorem exists_disjoint_closed_ball_covering_ae_aux (μ : measure α) [sigma_finite μ]
   (f : α → set ℝ) (s : set α) (hf : ∀ x ∈ s, ∀ δ > 0, (f x ∩ Ioo 0 δ).nonempty) :
-  ∃ (t : set (α × ℝ)), (countable t)
+  ∃ (t : set (α × ℝ)), t.countable
     ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
     ∧ t.pairwise_disjoint (λ p, closed_ball p.1 p.2) :=
@@ -808,7 +804,7 @@ Besicovitch covering property (which is satisfied for instance by normed real ve
 theorem exists_disjoint_closed_ball_covering_ae (μ : measure α) [sigma_finite μ]
   (f : α → set ℝ) (s : set α) (hf : ∀ x ∈ s, ∀ δ > 0, (f x ∩ Ioo 0 δ).nonempty)
   (R : α → ℝ) (hR : ∀ x ∈ s, 0 < R x):
-  ∃ (t : set α) (r : α → ℝ), countable t ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x ∩ Ioo 0 (R x))
+  ∃ (t : set α) (r : α → ℝ), t.countable ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x ∩ Ioo 0 (R x))
     ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
     ∧ t.pairwise_disjoint (λ x, closed_ball x (r x)) :=
 begin
@@ -871,7 +867,7 @@ theorem exists_closed_ball_covering_tsum_measure_le
   (μ : measure α) [sigma_finite μ] [measure.outer_regular μ]
   {ε : ℝ≥0∞} (hε : ε ≠ 0) (f : α → set ℝ) (s : set α)
   (hf : ∀ x ∈ s, ∀ δ > 0, (f x ∩ Ioo 0 δ).nonempty) :
-  ∃ (t : set α) (r : α → ℝ), countable t ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x)
+  ∃ (t : set α) (r : α → ℝ), t.countable ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x)
     ∧ s ⊆ (⋃ (x ∈ t), closed_ball x (r x))
     ∧ ∑' (x : t), μ (closed_ball x (r x)) ≤ μ s + ε  :=
 begin
@@ -888,7 +884,7 @@ begin
     λ x hx, metric.mem_nhds_iff.1 (u_open.mem_nhds (su hx)),
   choose! R hR using this,
   obtain ⟨t0, r0, t0_count, t0s, hr0, μt0, t0_disj⟩ :
-    ∃ (t0 : set α) (r0 : α → ℝ), countable t0 ∧ t0 ⊆ s ∧ (∀ x ∈ t0, r0 x ∈ f x ∩ Ioo 0 (R x))
+    ∃ (t0 : set α) (r0 : α → ℝ), t0.countable ∧ t0 ⊆ s ∧ (∀ x ∈ t0, r0 x ∈ f x ∩ Ioo 0 (R x))
       ∧ μ (s \ (⋃ (x ∈ t0), closed_ball x (r0 x))) = 0
       ∧ t0.pairwise_disjoint (λ x, closed_ball x (r0 x)) :=
         exists_disjoint_closed_ball_covering_ae μ f s hf R (λ x hx, (hR x hx).1),
@@ -921,7 +917,7 @@ begin
     (∀ (i : fin N), (S i).pairwise_disjoint (λ j, closed_ball (q.c j) (q.r j))) ∧
       (range q.c ⊆ ⋃ (i : fin N), ⋃ (j ∈ S i), ball (q.c j) (q.r j)) :=
     exist_disjoint_covering_families hτ H q,
-  have S_count : ∀ i, countable (S i),
+  have S_count : ∀ i, (S i).countable,
   { assume i,
     apply (S_disj i).countable_of_nonempty_interior (λ j hj, _),
     have : (ball (j : α) (r1 j)).nonempty := nonempty_ball.2 (q.rpos _),
@@ -1076,12 +1072,18 @@ protected def vitali_family (μ : measure α) [sigma_finite μ] :
           subset.antisymm ht (closed_ball_subset_closed_ball H),
         rw this at tf,
         refine ⟨δ/2, ⟨half_pos δpos, tf⟩, ⟨half_pos δpos, half_lt_self δpos⟩⟩ } },
-    obtain ⟨t, r, t_count, ts, tg, μt, tdisj⟩ : ∃ (t : set α) (r : α → ℝ), countable t
+    obtain ⟨t, r, t_count, ts, tg, μt, tdisj⟩ : ∃ (t : set α) (r : α → ℝ), t.countable
       ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ g x ∩ Ioo 0 1)
       ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
       ∧ t.pairwise_disjoint (λ x, closed_ball x (r x)) :=
         exists_disjoint_closed_ball_covering_ae μ g s A (λ _, 1) (λ _ _, zero_lt_one),
-    exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).1.2, μt⟩,
+    let F : α → α × set α := λ x, (x, closed_ball x (r x)),
+    refine ⟨F '' t, _, _, _, _⟩,
+    { rintros - ⟨x, hx, rfl⟩, exact ts hx },
+    { rintros p ⟨x, hx, rfl⟩ q ⟨y, hy, rfl⟩ hxy,
+      exact tdisj hx hy (ne_of_apply_ne F hxy) },
+    { rintros - ⟨x, hx, rfl⟩, exact (tg x hx).1.2 },
+    { rwa bUnion_image }
   end }
 
 /-- The main feature of the Besicovitch Vitali family is that its filter at a point `x` corresponds
@@ -1103,7 +1105,7 @@ begin
   { exact closed_ball_subset_closed_ball hr.2 }
 end
 
-variables [metric_space β] [measurable_space β] [borel_space β] [sigma_compact_space β]
+variables [metric_space β] [measurable_space β] [borel_space β] [second_countable_topology β]
   [has_besicovitch_covering β]
 
 /-- In a space with the Besicovitch covering property, the ratio of the measure of balls converges
@@ -1113,7 +1115,6 @@ lemma ae_tendsto_rn_deriv
   ∀ᵐ x ∂μ, tendsto (λ r, ρ (closed_ball x r) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 (ρ.rn_deriv μ x)) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_rn_deriv (besicovitch.vitali_family μ) ρ] with x hx,
   exact hx.comp (tendsto_filter_at μ x)
 end
@@ -1128,7 +1129,6 @@ lemma ae_tendsto_measure_inter_div_of_measurable_set
   ∀ᵐ x ∂μ, tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 (s.indicator 1 x)) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_measure_inter_div_of_measurable_set
     (besicovitch.vitali_family μ) hs],
   assume x hx,
@@ -1139,14 +1139,12 @@ end
 to `1` when `r` tends to `0`, for almost every `x` in `s`.
 This shows that almost every point of `s` is a Lebesgue density point for `s`.
 A stronger version holds for measurable sets, see `ae_tendsto_measure_inter_div_of_measurable_set`.
--/
+
+See also `is_unif_loc_doubling_measure.ae_tendsto_measure_inter_div`. -/
 lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure μ] (s : set β) :
   ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ (closed_ball x r)) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 1) :=
-begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
-  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
-    with x hx using hx.comp (tendsto_filter_at μ x),
-end
+by filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
+    with x hx using hx.comp (tendsto_filter_at μ x)
 
 end besicovitch

@@ -5,9 +5,13 @@ Authors: Yury G. Kudryashov
 -/
 import data.set.intervals.unordered_interval
 import data.set.lattice
+import order.antichain
 
 /-!
 # Order-connected sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
 interval `[x, y]`. If `α` is a `densely_ordered` `conditionally_complete_linear_order` with
@@ -18,9 +22,12 @@ In this file we prove that intersection of a family of `ord_connected` sets is `
 that all standard intervals are `ord_connected`.
 -/
 
+open_locale interval
+open order_dual (to_dual of_dual)
+
 namespace set
 section preorder
-variables {α : Type*} [preorder α] {s t : set α}
+variables {α β : Type*} [preorder α] [preorder β] {s t : set α}
 
 /--
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
@@ -49,10 +56,17 @@ begin
   rw ord_connected_iff,
   intros x hx y hy hxy,
   rcases eq_or_lt_of_le hxy with rfl|hxy', { simpa },
-  have := hs x hx y hy hxy',
-  rw [← union_diff_cancel Ioo_subset_Icc_self],
-  simp [*, insert_subset]
+  rw [←Ioc_insert_left hxy, ←Ioo_insert_right hxy'],
+  exact insert_subset.2 ⟨hx, insert_subset.2 ⟨hy, hs x hx y hy hxy'⟩⟩,
 end
+
+lemma ord_connected.preimage_mono {f : β → α} (hs : ord_connected s) (hf : monotone f) :
+  ord_connected (f ⁻¹' s) :=
+⟨λ x hx y hy z hz, hs.out hx hy ⟨hf hz.1, hf hz.2⟩⟩
+
+lemma ord_connected.preimage_anti {f : β → α} (hs : ord_connected s) (hf : antitone f) :
+  ord_connected (f ⁻¹' s) :=
+⟨λ x hx y hy z hz, hs.out hy hx ⟨hf hz.2, hf hz.1⟩⟩
 
 protected lemma Icc_subset (s : set α) [hs : ord_connected s] {x y} (hx : x ∈ s) (hy : y ∈ s) :
   Icc x y ⊆ s := hs.out hx hy
@@ -135,36 +149,72 @@ instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
 ⟨λ a b (h : (a : α) < b), let ⟨x, H⟩ := exists_between h in
     ⟨⟨x, (hs.out a.2 b.2) (Ioo_subset_Icc_self H)⟩, H⟩ ⟩
 
+@[instance] lemma ord_connected_preimage {F : Type*} [order_hom_class F α β] (f : F) {s : set β}
+  [hs : ord_connected s] : ord_connected (f ⁻¹' s) :=
+⟨λ x hx y hy z hz, hs.out hx hy ⟨order_hom_class.mono _ hz.1, order_hom_class.mono _ hz.2⟩⟩
+
+@[instance] lemma ord_connected_image {E : Type*} [order_iso_class E α β] (e : E) {s : set α}
+  [hs : ord_connected s] : ord_connected (e '' s) :=
+by { erw [(e : α ≃o β).image_eq_preimage], apply ord_connected_preimage }
+
+@[instance] lemma ord_connected_range {E : Type*} [order_iso_class E α β] (e : E) :
+  ord_connected (range e) :=
+by simp_rw [← image_univ, ord_connected_image e]
+
+@[simp] lemma dual_ord_connected_iff {s : set α} :
+  ord_connected (of_dual ⁻¹' s) ↔ ord_connected s :=
+begin
+  simp_rw [ord_connected_def, to_dual.surjective.forall, dual_Icc, subtype.forall'],
+  exact forall_swap
+end
+
+@[instance] lemma dual_ord_connected {s : set α} [ord_connected s] :
+  ord_connected (of_dual ⁻¹' s) :=
+dual_ord_connected_iff.2 ‹_›
+
 end preorder
+
+section partial_order
+variables {α : Type*} [partial_order α] {s : set α}
+
+protected lemma _root_.is_antichain.ord_connected (hs : is_antichain (≤) s) : s.ord_connected :=
+⟨λ x hx y hy z hz, by { obtain rfl := hs.eq hx hy (hz.1.trans hz.2),
+  rw [Icc_self, mem_singleton_iff] at hz, rwa hz }⟩
+
+end partial_order
 
 section linear_order
 variables {α : Type*} [linear_order α] {s : set α} {x : α}
 
-@[instance] lemma ord_connected_interval {a b : α} : ord_connected (interval a b) :=
-ord_connected_Icc
+@[instance] lemma ord_connected_uIcc {a b : α} : ord_connected [a, b] := ord_connected_Icc
+@[instance] lemma ord_connected_uIoc {a b : α} : ord_connected (Ι a b) := ord_connected_Ioc
 
-lemma ord_connected.interval_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
-  interval x y ⊆ s :=
-by cases le_total x y; simp only [interval_of_le, interval_of_ge, *]; apply hs.out; assumption
+lemma ord_connected.uIcc_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
+  [x, y] ⊆ s :=
+hs.out (min_rec' (∈ s) hx hy) (max_rec' (∈ s) hx hy)
 
-lemma ord_connected_iff_interval_subset :
-  ord_connected s ↔ ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), interval x y ⊆ s :=
-⟨λ h, h.interval_subset,
-  λ h, ord_connected_iff.2 $ λ x hx y hy hxy, by simpa only [interval_of_le hxy] using h hx hy⟩
+lemma ord_connected.uIoc_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
+  Ι x y ⊆ s :=
+Ioc_subset_Icc_self.trans $ hs.uIcc_subset hx hy
 
-lemma ord_connected_iff_interval_subset_left (hx : x ∈ s) :
-  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → interval x y ⊆ s :=
-begin
-  refine ⟨λ hs, hs.interval_subset hx, λ hs, ord_connected_iff_interval_subset.2 $ λ y hy z hz, _⟩,
-  suffices h : interval y x ∪ interval x z ⊆ s,
-  { exact interval_subset_interval_union_interval.trans h },
-  rw [interval_swap, union_subset_iff],
-  exact ⟨hs hy, hs hz⟩,
-end
+lemma ord_connected_iff_uIcc_subset :
+  ord_connected s ↔ ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), [x, y] ⊆ s :=
+⟨λ h, h.uIcc_subset, λ H, ⟨λ x hx y hy, Icc_subset_uIcc.trans $ H hx hy⟩⟩
 
-lemma ord_connected_iff_interval_subset_right (hx : x ∈ s) :
-  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → interval y x ⊆ s :=
-by simp_rw [ord_connected_iff_interval_subset_left hx, interval_swap]
+lemma ord_connected_of_uIcc_subset_left (h : ∀ y ∈ s, [x, y] ⊆ s) :
+  ord_connected s :=
+ord_connected_iff_uIcc_subset.2 $ λ y hy z hz,
+calc [y, z] ⊆ [y, x] ∪ [x, z] : uIcc_subset_uIcc_union_uIcc
+... = [x, y] ∪ [x, z] : by rw [uIcc_comm]
+... ⊆ s : union_subset (h y hy) (h z hz)
+
+lemma ord_connected_iff_uIcc_subset_left (hx : x ∈ s) :
+  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [x, y] ⊆ s :=
+⟨λ hs, hs.uIcc_subset hx, ord_connected_of_uIcc_subset_left⟩
+
+lemma ord_connected_iff_uIcc_subset_right (hx : x ∈ s) :
+  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [y, x] ⊆ s :=
+by simp_rw [ord_connected_iff_uIcc_subset_left hx, uIcc_comm]
 
 end linear_order
 end set

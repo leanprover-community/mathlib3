@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.finset.sort
+import data.vector.basic
 import logic.denumerable
 
 /-!
 # Equivalences involving `list`-like types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines some additional constructive equivalences using `encodable` and the pairing
 function on `ℕ`.
@@ -37,9 +41,12 @@ def decode_list : ℕ → option (list α)
 
 /-- If `α` is encodable, then so is `list α`. This uses the `mkpair` and `unpair` functions from
 `data.nat.pairing`. -/
-instance list : encodable (list α) :=
+instance _root_.list.encodable : encodable (list α) :=
 ⟨encode_list, decode_list, λ l,
   by induction l with a l IH; simp [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
+
+instance _root_.list.countable {α : Type*} [countable α] : countable (list α) :=
+by { haveI := encodable.of_countable α, apply_instance }
 
 @[simp] theorem encode_list_nil : encode (@nil α) = 0 := rfl
 @[simp] theorem encode_list_cons (a : α) (l : list α) :
@@ -84,9 +91,13 @@ def decode_multiset (n : ℕ) : option (multiset α) :=
 coe <$> decode (list α) n
 
 /-- If `α` is encodable, then so is `multiset α`. -/
-instance multiset : encodable (multiset α) :=
+instance _root_.multiset.encodable : encodable (multiset α) :=
 ⟨encode_multiset, decode_multiset,
  λ s, by simp [encode_multiset, decode_multiset, encodek]⟩
+
+/-- If `α` is countable, then so is `multiset α`. -/
+instance _root_.multiset.countable {α : Type*} [countable α] : countable (multiset α) :=
+quotient.countable
 
 end finset
 
@@ -94,7 +105,9 @@ end finset
 def encodable_of_list [decidable_eq α] (l : list α) (H : ∀ x, x ∈ l) : encodable α :=
 ⟨λ a, index_of a l, l.nth, λ a, index_of_nth (H _)⟩
 
-def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : trunc (encodable α) :=
+/-- A finite type is encodable. Because the encoding is not unique, we wrap it in `trunc` to
+preserve computability. -/
+def _root_.fintype.trunc_encodable (α : Type*) [decidable_eq α] [fintype α] : trunc (encodable α) :=
 @@quot.rec_on_subsingleton _
   (λ s : multiset α, (∀ x:α, x ∈ s) → trunc (encodable α)) _
   finset.univ.1
@@ -102,14 +115,16 @@ def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : tru
   finset.mem_univ
 
 /-- A noncomputable way to arbitrarily choose an ordering on a finite type.
-  It is not made into a global instance, since it involves an arbitrary choice.
-  This can be locally made into an instance with `local attribute [instance] fintype.encodable`. -/
-noncomputable def _root_.fintype.encodable (α : Type*) [fintype α] : encodable α :=
-by { classical, exact (encodable.trunc_encodable_of_fintype α).out }
+It is not made into a global instance, since it involves an arbitrary choice.
+This can be locally made into an instance with `local attribute [instance] fintype.to_encodable`. -/
+noncomputable def _root_.fintype.to_encodable (α : Type*) [fintype α] : encodable α :=
+by { classical, exact (fintype.trunc_encodable α).out }
 
 /-- If `α` is encodable, then so is `vector α n`. -/
-instance vector [encodable α] {n} : encodable (vector α n) :=
-encodable.subtype
+instance _root_.vector.encodable [encodable α] {n} : encodable (vector α n) := subtype.encodable
+
+/-- If `α` is countable, then so is `vector α n`. -/
+instance _root_.vector.countable [countable α] {n} : countable (vector α n) := subtype.countable
 
 /-- If `α` is encodable, then so is `fin n → α`. -/
 instance fin_arrow [encodable α] {n} : encodable (fin n → α) :=
@@ -118,27 +133,32 @@ of_equiv _ (equiv.vector_equiv_fin _ _).symm
 instance fin_pi (n) (π : fin n → Type*) [∀ i, encodable (π i)] : encodable (Π i, π i) :=
 of_equiv _ (equiv.pi_equiv_subtype_sigma (fin n) π)
 
-/-- If `α` is encodable, then so is `array n α`. -/
-instance array [encodable α] {n} : encodable (array n α) :=
-of_equiv _ (equiv.array_equiv_fin _ _)
-
 /-- If `α` is encodable, then so is `finset α`. -/
-instance finset [encodable α] : encodable (finset α) :=
+instance _root_.finset.encodable [encodable α] : encodable (finset α) :=
 by haveI := decidable_eq_of_encodable α; exact
  of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
+/-- If `α` is countable, then so is `finset α`. -/
+instance _root_.finset.countable [countable α] : countable (finset α) :=
+finset.val_injective.countable
+
+-- TODO: Unify with `fintype_pi` and find a better name
+/-- When `α` is finite and `β` is encodable, `α → β` is encodable too. Because the encoding is not
+unique, we wrap it in `trunc` to preserve computability. -/
 def fintype_arrow (α : Type*) (β : Type*) [decidable_eq α] [fintype α] [encodable β] :
   trunc (encodable (α → β)) :=
 (fintype.trunc_equiv_fin α).map $
   λ f, encodable.of_equiv (fin (fintype.card α) → β) $
   equiv.arrow_congr f (equiv.refl _)
 
+/-- When `α` is finite and all `π a` are encodable, `Π a, π a` is encodable too. Because the
+encoding is not unique, we wrap it in `trunc` to preserve computability. -/
 def fintype_pi (α : Type*) (π : α → Type*) [decidable_eq α] [fintype α] [∀ a, encodable (π a)] :
   trunc (encodable (Π a, π a)) :=
-(encodable.trunc_encodable_of_fintype α).bind $ λ a,
-  (@fintype_arrow α (Σa, π a) _ _ (@encodable.sigma _ _ a _)).bind $ λ f,
-  trunc.mk $ @encodable.of_equiv _ _ (@encodable.subtype _ _ f _) (equiv.pi_equiv_subtype_sigma α π)
+(fintype.trunc_encodable α).bind $ λ a,
+  (@fintype_arrow α (Σa, π a) _ _ (@sigma.encodable _ _ a _)).bind $ λ f,
+  trunc.mk $ @encodable.of_equiv _ _ (@subtype.encodable _ _ f _) (equiv.pi_equiv_subtype_sigma α π)
 
 /-- The elements of a `fintype` as a sorted list. -/
 def sorted_univ (α) [fintype α] [encodable α] : list α :=
@@ -245,10 +265,10 @@ lemma raise_chain : ∀ l n, list.chain (≤) n (raise l n)
 /-- `raise l n` is an non-decreasing sequence. -/
 lemma raise_sorted : ∀ l n, list.sorted (≤) (raise l n)
 | []       n := list.sorted_nil
-| (m :: l) n := (list.chain_iff_pairwise (@le_trans _ _)).1 (raise_chain _ _)
+| (m :: l) n := list.chain_iff_pairwise.1 (raise_chain _ _)
 
 /-- If `α` is denumerable, then so is `multiset α`. Warning: this is *not* the same encoding as used
-in `encodable.multiset`. -/
+in `multiset.encodable`. -/
 instance multiset : denumerable (multiset α) := mk' ⟨
   λ s : multiset α, encode $ lower ((s.map encode).sort (≤)) 0,
   λ n, multiset.map (of_nat α) (raise (of_nat (list ℕ) n) 0),
@@ -293,15 +313,14 @@ lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)
 /-- `raise' l n` is a strictly increasing sequence. -/
 lemma raise'_sorted : ∀ l n, list.sorted (<) (raise' l n)
 | []       n := list.sorted_nil
-| (m :: l) n := (list.chain_iff_pairwise (@lt_trans _ _)).1
-  (raise'_chain _ (lt_succ_self _))
+| (m :: l) n := list.chain_iff_pairwise.1 (raise'_chain _ (lt_succ_self _))
 
 /-- Makes `raise' l n` into a finset. Elements are distinct thanks to `raise'_sorted`. -/
 def raise'_finset (l : list ℕ) (n : ℕ) : finset ℕ :=
 ⟨raise' l n, (raise'_sorted _ _).imp (@ne_of_lt _ _)⟩
 
 /-- If `α` is denumerable, then so is `finset α`. Warning: this is *not* the same encoding as used
-in `encodable.finset`. -/
+in `finset.encodable`. -/
 instance finset : denumerable (finset α) := mk' ⟨
   λ s : finset α, encode $ lower' ((s.map (eqv α).to_embedding).sort (≤)) 0,
   λ n, finset.map (eqv α).symm.to_embedding (raise'_finset (of_nat (list ℕ) n) 0),
@@ -320,15 +339,15 @@ namespace equiv
 /-- The type lists on unit is canonically equivalent to the natural numbers. -/
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
-  inv_fun := list.repeat (),
+  inv_fun := λ n, list.replicate n (),
   left_inv := λ u, list.length_injective (by simp),
-  right_inv := λ n, list.length_repeat () n }
+  right_inv := λ n, list.length_replicate n () }
 
 /-- `list ℕ` is equivalent to `ℕ`. -/
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _
 
 /-- If `α` is equivalent to `ℕ`, then `list α` is equivalent to `α`. -/
-def list_equiv_self_of_equiv_nat {α : Type} (e : α ≃ ℕ) : list α ≃ α :=
+def list_equiv_self_of_equiv_nat {α : Type*} (e : α ≃ ℕ) : list α ≃ α :=
 calc list α ≃ list ℕ : list_equiv_of_equiv e
         ... ≃ ℕ      : list_nat_equiv_nat
         ... ≃ α      : e.symm

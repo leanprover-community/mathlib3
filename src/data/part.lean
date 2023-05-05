@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
 import data.set.basic
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Partial values of a type
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `part α`, the partial values of a type.
 
@@ -20,8 +23,9 @@ for some `a : α`, while the domain of `o : part α` doesn't have to be decidabl
 translate back and forth between a partial value with a decidable domain and an option, and
 `option α` and `part α` are classically equivalent. In general, `part α` is bigger than `option α`.
 
-In current mathlib, `part ℕ`, aka `enat`, is used to move decidability of the order to decidability
-of `enat.find` (which is the smallest natural satisfying a predicate, or `∞` if there's none).
+In current mathlib, `part ℕ`, aka `part_enat`, is used to move decidability of the order to
+decidability of `part_enat.find` (which is the smallest natural satisfying a predicate, or `∞` if
+there's none).
 
 ## Main declarations
 
@@ -65,6 +69,14 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 /-- Convert a `part α` with a decidable domain to an option -/
 def to_option (o : part α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
+
+@[simp] lemma to_option_is_some (o : part α) [decidable o.dom] :
+  o.to_option.is_some ↔ o.dom :=
+by by_cases o.dom; simp [h, part.to_option]
+
+@[simp] lemma to_option_is_none (o : part α) [decidable o.dom] :
+  o.to_option.is_none ↔ ¬o.dom :=
+by by_cases o.dom; simp [h, part.to_option]
 
 /-- `part` extensionality -/
 theorem ext' : ∀ {o p : part α}
@@ -110,6 +122,8 @@ instance : inhabited (part α) := ⟨none⟩
   function returns `a`. -/
 def some (a : α) : part α := ⟨true, λ_, a⟩
 
+@[simp] lemma some_dom (a : α) : (some a).dom := trivial
+
 theorem mem_unique : ∀ {a b : α} {o : part α}, a ∈ o → b ∈ o → a = b
 | _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
@@ -138,6 +152,8 @@ theorem eq_none_iff {o : part α} : o = none ↔ ∀ a, a ∉ o :=
 
 theorem eq_none_iff' {o : part α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
+
+@[simp] lemma not_none_dom : ¬ (none : part α).dom := id
 
 @[simp] lemma some_ne_none (x : α) : some x ≠ none :=
 by { intro h, change none.dom, rw [← h], trivial }
@@ -193,12 +209,17 @@ otherwise. -/
 def get_or_else (a : part α) [decidable a.dom] (d : α) :=
 if ha : a.dom then a.get ha else d
 
+lemma get_or_else_of_dom (a : part α) (h : a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = a.get h := dif_pos h
+
+lemma get_or_else_of_not_dom (a : part α) (h : ¬ a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = d := dif_neg h
+
 @[simp] lemma get_or_else_none (d : α) [decidable (none : part α).dom] : get_or_else none d = d :=
-dif_neg id
+none.get_or_else_of_not_dom not_none_dom d
 
 @[simp] lemma get_or_else_some (a : α) (d : α) [decidable (some a).dom] :
-  get_or_else (some a) d = a :=
-dif_pos trivial
+  get_or_else (some a) d = a := (some a).get_or_else_of_dom (some_dom a) d
 
 @[simp] theorem mem_to_option {o : part α} [decidable o.dom] {a : α} :
   a ∈ to_option o ↔ a ∈ o :=
@@ -340,7 +361,7 @@ begin
   cases h' : f h,
   simp only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
   apply function.hfunext,
-  { simp only [h,h',exists_prop_of_true] },
+  { simp only [h, h', exists_prop_of_true] },
   { cc }
 end
 
@@ -513,7 +534,7 @@ lemma left_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
 lemma right_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
   b.dom := by tidy
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma mul_get_eq [has_mul α] (a b : part α) (hab : dom (a * b)) :
   (a * b).get hab = a.get (left_dom_of_mul_dom hab) * b.get (right_dom_of_mul_dom hab) :=
 by tidy
@@ -539,7 +560,7 @@ lemma left_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
 lemma right_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
   b.dom := by tidy
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma div_get_eq [has_div α] (a b : part α) (hab : dom (a / b)) :
   (a / b).get hab = a.get (left_dom_of_div_dom hab) / b.get (right_dom_of_div_dom hab) :=
 by tidy

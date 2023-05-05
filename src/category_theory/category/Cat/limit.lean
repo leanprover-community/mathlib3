@@ -10,6 +10,9 @@ import category_theory.limits.preserves.basic
 /-!
 # The category of small categories has all small limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An object in the limit consists of a family of objects,
 which are carried to one another by the functors in the diagram.
 A morphism between two such objects is a family of morphisms between the corresponding objects,
@@ -54,21 +57,23 @@ def hom_diagram {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) : 
   end,
   map_comp' := λ X Y Z f g, begin
     ext h, dsimp,
-    simp [functor.congr_hom (F.map_comp f g) h],
+    simp [functor.congr_hom (F.map_comp f g) h, eq_to_hom_map],
     refl,
   end, }
 
 @[simps]
 instance (F : J ⥤ Cat.{v v}) : category (limit (F ⋙ Cat.objects)) :=
 { hom := λ X Y, limit (hom_diagram X Y),
-  id := λ X, types.limit.mk (hom_diagram X X) (λ j, 𝟙 _) (λ j j' f, by simp),
-  comp := λ X Y Z f g, types.limit.mk (hom_diagram X Z)
+  id := λ X, types.limit.mk.{v v} (hom_diagram X X) (λ j, 𝟙 _) (λ j j' f, by simp),
+  comp := λ X Y Z f g, types.limit.mk.{v v} (hom_diagram X Z)
     (λ j, limit.π (hom_diagram X Y) j f ≫ limit.π (hom_diagram Y Z) j g)
     (λ j j' h, begin
       rw [←congr_fun (limit.w (hom_diagram X Y) h) f, ←congr_fun (limit.w (hom_diagram Y Z) h) g],
       dsimp,
       simp,
-    end), }
+    end),
+  id_comp' := λ _ _ _, by { ext, simp only [category.id_comp, types.limit.π_mk'] },
+  comp_id' := λ _ _ _, by { ext, simp only [types.limit.π_mk', category.comp_id] } }
 
 /-- Auxiliary definition: the limit category. -/
 @[simps]
@@ -97,7 +102,7 @@ def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit_cone_X F 
       naturality' := λ j j' f, (congr_arg functor.obj (s.π.naturality f) : _), } },
   map := λ X Y f,
   begin
-    fapply types.limit.mk,
+    fapply types.limit.mk.{v v},
     { intro j,
       refine eq_to_hom _ ≫ (s.π.app j).map f ≫ eq_to_hom _;
       simp, },
@@ -110,7 +115,9 @@ def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit_cone_X F 
       conv at this { congr, skip, dsimp, simp, },
       erw [functor.congr_hom this f],
       dsimp, simp, },
-  end, }
+  end,
+  map_id' := λ X, by simp,
+  map_comp' := λ X Y Z f g, by simp }
 
 @[simp]
 lemma limit_π_hom_diagram_eq_to_hom {F : J ⥤ Cat.{v v}}
@@ -129,7 +136,7 @@ def limit_cone_is_limit (F : J ⥤ Cat.{v v}) : is_limit (limit_cone F) :=
     fapply category_theory.functor.ext,
     { intro X,
       ext,
-      dsimp, simp only [types.limit.lift_π_apply, ←w j],
+      dsimp, simp only [types.limit.lift_π_apply', ←w j],
       refl, },
     { intros X Y f,
       dsimp, simp [(λ j, functor.congr_hom (w j).symm f)],

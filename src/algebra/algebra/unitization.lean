@@ -11,6 +11,9 @@ import algebra.hom.non_unital_alg
 /-!
 # Unitization of a non-unital algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a non-unital `R`-algebra `A` (given via the type classes
 `[non_unital_ring A] [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]`) we construct
 the minimal unital `R`-algebra containing `A` as an ideal. This object `algebra.unitization R A` is
@@ -137,18 +140,18 @@ prod.add_comm_monoid
 instance [add_comm_group R] [add_comm_group A] : add_comm_group (unitization R A) :=
 prod.add_comm_group
 
-instance [has_scalar S R] [has_scalar S A] : has_scalar S (unitization R A) :=
-prod.has_scalar
+instance [has_smul S R] [has_smul S A] : has_smul S (unitization R A) :=
+prod.has_smul
 
-instance [has_scalar T R] [has_scalar T A] [has_scalar S R] [has_scalar S A] [has_scalar T S]
+instance [has_smul T R] [has_smul T A] [has_smul S R] [has_smul S A] [has_smul T S]
   [is_scalar_tower T S R] [is_scalar_tower T S A] : is_scalar_tower T S (unitization R A) :=
 prod.is_scalar_tower
 
-instance [has_scalar T R] [has_scalar T A] [has_scalar S R] [has_scalar S A]
+instance [has_smul T R] [has_smul T A] [has_smul S R] [has_smul S A]
   [smul_comm_class T S R] [smul_comm_class T S A] : smul_comm_class T S (unitization R A) :=
 prod.smul_comm_class
 
-instance [has_scalar S R] [has_scalar S A] [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ A]
+instance [has_smul S R] [has_smul S A] [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ A]
   [is_central_scalar S R] [is_central_scalar S A] : is_central_scalar S (unitization R A) :=
 prod.is_central_scalar
 
@@ -174,9 +177,9 @@ prod.module
 @[simp] lemma fst_neg [has_neg R] [has_neg A] (x : unitization R A) : (-x).fst = -x.fst := rfl
 @[simp] lemma snd_neg [has_neg R] [has_neg A] (x : unitization R A) : (-x).snd = -x.snd := rfl
 
-@[simp] lemma fst_smul [has_scalar S R] [has_scalar S A] (s : S) (x : unitization R A) :
+@[simp] lemma fst_smul [has_smul S R] [has_smul S A] (s : S) (x : unitization R A) :
   (s • x).fst = s • x.fst := rfl
-@[simp] lemma snd_smul [has_scalar S R] [has_scalar S A] (s : S) (x : unitization R A) :
+@[simp] lemma snd_smul [has_smul S R] [has_smul S A] (s : S) (x : unitization R A) :
   (s • x).snd = s • x.snd := rfl
 
 section
@@ -192,7 +195,7 @@ ext rfl (add_zero 0).symm
   (inl (-r) : unitization R A) = -inl r :=
 ext rfl neg_zero.symm
 
-@[simp] lemma inl_smul [monoid S] [add_monoid A] [has_scalar S R] [distrib_mul_action S A]
+@[simp] lemma inl_smul [monoid S] [add_monoid A] [has_smul S R] [distrib_mul_action S A]
   (s : S) (r : R) : (inl (s • r) : unitization R A) = s • inl r :=
 ext rfl (smul_zero s).symm
 
@@ -203,7 +206,7 @@ variables (R)
 
 @[simp] lemma coe_zero [has_zero R] [has_zero A] : ↑(0 : A) = (0 : unitization R A) := rfl
 
-@[simp] lemma coe_add [add_zero_class R] [add_zero_class A] (m₁ m₂ : A) :
+@[simp] lemma coe_add [add_zero_class R] [has_add A] (m₁ m₂ : A) :
   (↑(m₁ + m₂) : unitization R A)  = m₁ + m₂ :=
 ext (add_zero 0).symm rfl
 
@@ -211,9 +214,9 @@ ext (add_zero 0).symm rfl
   (↑(-m) : unitization R A) = -m :=
 ext neg_zero.symm rfl
 
-@[simp] lemma coe_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_scalar S A]
+@[simp] lemma coe_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S A]
   (r : S) (m : A) : (↑(r • m) : unitization R A) = r • m :=
-ext (smul_zero' _ _).symm rfl
+ext (smul_zero _).symm rfl
 
 end
 
@@ -259,15 +262,15 @@ variables {R A : Type*}
 instance [has_one R] [has_zero A] : has_one (unitization R A) :=
 ⟨(1, 0)⟩
 
-instance [has_mul R] [has_add A] [has_mul A] [has_scalar R A] : has_mul (unitization R A) :=
+instance [has_mul R] [has_add A] [has_mul A] [has_smul R A] : has_mul (unitization R A) :=
 ⟨λ x y, (x.1 * y.1, x.1 • y.2 + y.1 • x.2 + x.2 * y.2)⟩
 
 @[simp] lemma fst_one [has_one R] [has_zero A] : (1 : unitization R A).fst = 1 := rfl
 @[simp] lemma snd_one [has_one R] [has_zero A] : (1 : unitization R A).snd = 0 := rfl
 
-@[simp] lemma fst_mul [has_mul R] [has_add A] [has_mul A] [has_scalar R A]
+@[simp] lemma fst_mul [has_mul R] [has_add A] [has_mul A] [has_smul R A]
   (x₁ x₂ : unitization R A) : (x₁ * x₂).fst = x₁.fst * x₂.fst := rfl
-@[simp] lemma snd_mul [has_mul R] [has_add A] [has_mul A] [has_scalar R A]
+@[simp] lemma snd_mul [has_mul R] [has_add A] [has_mul A] [has_smul R A]
   (x₁ x₂ : unitization R A) : (x₁ * x₂).snd = x₁.fst • x₂.snd + x₂.fst • x₁.snd + x₁.snd * x₂.snd :=
 rfl
 
@@ -289,20 +292,20 @@ end
 section
 variables (R)
 
-@[simp] lemma coe_mul [semiring R] [non_unital_non_assoc_semiring A] [module R A] (a₁ a₂ : A) :
-  (↑(a₁ * a₂) : unitization R A) = a₁ * a₂ :=
+@[simp] lemma coe_mul [semiring R] [add_comm_monoid A] [has_mul A] [smul_with_zero R A]
+  (a₁ a₂ : A) : (↑(a₁ * a₂) : unitization R A) = a₁ * a₂ :=
 ext (mul_zero _).symm $ show a₁ * a₂ = (0 : R) • a₂ + (0 : R) • a₁ + a₁ * a₂,
   by simp only [zero_smul, zero_add]
 
 end
 
-lemma inl_mul_coe [semiring R] [non_unital_non_assoc_semiring A] [module R A] (r : R) (a : A) :
-  (inl r * a : unitization R A) = ↑(r • a) :=
+lemma inl_mul_coe [semiring R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  (r : R) (a : A) : (inl r * a : unitization R A) = ↑(r • a) :=
 ext (mul_zero r) $ show r • a + (0 : R) • 0 + 0 * a = r • a,
   by rw [smul_zero, add_zero, zero_mul, add_zero]
 
-lemma coe_mul_inl [semiring R] [non_unital_non_assoc_semiring A] [module R A] (r : R) (a : A) :
-  (a * inl r : unitization R A) = ↑(r • a) :=
+lemma coe_mul_inl [semiring R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  (r : R) (a : A) : (a * inl r : unitization R A) = ↑(r • a) :=
 ext (zero_mul r) $ show (0 : R) • 0 + r • a + a * 0 = r • a,
   by rw [smul_zero, zero_add, mul_zero, add_zero]
 
@@ -324,11 +327,11 @@ instance [semiring R] [non_unital_non_assoc_semiring A] [module R A] :
   left_distrib := λ x₁ x₂ x₃, ext (mul_add x₁.1 x₂.1 x₃.1) $
     show x₁.1 • (x₂.2 + x₃.2) + (x₂.1 + x₃.1) • x₁.2 + x₁.2 * (x₂.2 + x₃.2) =
       x₁.1 • x₂.2 + x₂.1 • x₁.2 + x₁.2 * x₂.2 + (x₁.1 • x₃.2 + x₃.1 • x₁.2 + x₁.2 * x₃.2),
-    by { rw [smul_add, add_smul, mul_add], ac_refl },
+    by { simp only [smul_add, add_smul, mul_add], abel },
   right_distrib := λ x₁ x₂ x₃, ext (add_mul x₁.1 x₂.1 x₃.1) $
     show (x₁.1 + x₂.1) • x₃.2 + x₃.1 • (x₁.2 + x₂.2) + (x₁.2 + x₂.2) * x₃.2 =
       x₁.1 • x₃.2 + x₃.1 • x₁.2 + x₁.2 * x₃.2 + (x₂.1 • x₃.2 + x₃.1 • x₂.2 + x₂.2 * x₃.2),
-    by { rw [add_smul, smul_add, add_mul], ac_refl },
+    by { simp only [add_smul, smul_add, add_mul], abel },
   .. unitization.mul_one_class,
   .. unitization.add_comm_monoid }
 
@@ -345,9 +348,8 @@ instance [comm_monoid R] [non_unital_semiring A] [distrib_mul_action R A] [is_sc
       abel },
   ..unitization.mul_one_class }
 
--- This should work for `non_unital_comm_semiring`s, but we don't seem to have those
-instance [comm_monoid R] [comm_semiring A] [distrib_mul_action R A] [is_scalar_tower R A A]
-  [smul_comm_class R A A] : comm_monoid (unitization R A) :=
+instance [comm_monoid R] [non_unital_comm_semiring A] [distrib_mul_action R A]
+  [is_scalar_tower R A A] [smul_comm_class R A A] : comm_monoid (unitization R A) :=
 { mul_comm := λ x₁ x₂, ext (mul_comm x₁.1 x₂.1) $
     show x₁.1 • x₂.2 + x₂.1 • x₁.2 + x₁.2 * x₂.2 = x₂.1 • x₁.2 + x₁.1 • x₂.2 + x₂.2 * x₁.2,
     by rw [add_comm (x₁.1 • x₂.2), mul_comm],
@@ -358,8 +360,7 @@ instance [comm_semiring R] [non_unital_semiring A] [module R A] [is_scalar_tower
 { ..unitization.monoid,
   ..unitization.non_assoc_semiring }
 
--- This should work for `non_unital_comm_semiring`s, but we don't seem to have those
-instance [comm_semiring R] [comm_semiring A] [module R A] [is_scalar_tower R A A]
+instance [comm_semiring R] [non_unital_comm_semiring A] [module R A] [is_scalar_tower R A A]
   [smul_comm_class R A A] : comm_semiring (unitization R A) :=
 { ..unitization.comm_monoid,
   ..unitization.non_assoc_semiring }
@@ -376,6 +377,49 @@ def inl_ring_hom [semiring R] [non_unital_semiring A] [module R A] : R →+* uni
   map_add' := inl_add A }
 
 end mul
+
+/-! ### Star structure -/
+
+section star
+
+variables {R A : Type*}
+
+instance [has_star R] [has_star A] : has_star (unitization R A) :=
+⟨λ ra, (star ra.fst, star ra.snd)⟩
+
+@[simp] lemma fst_star [has_star R] [has_star A] (x : unitization R A) :
+  (star x).fst = star x.fst := rfl
+
+@[simp] lemma snd_star [has_star R] [has_star A] (x : unitization R A) :
+  (star x).snd = star x.snd := rfl
+
+@[simp] lemma inl_star [has_star R] [add_monoid A] [star_add_monoid A] (r : R) :
+  inl (star r) = star (inl r : unitization R A) :=
+ext rfl (by simp only [snd_star, star_zero, snd_inl])
+
+@[simp] lemma coe_star [add_monoid R] [star_add_monoid R] [has_star A] (a : A) :
+  ↑(star a) = star (a : unitization R A) :=
+ext (by simp only [fst_star, star_zero, fst_coe]) rfl
+
+instance [add_monoid R] [add_monoid A] [star_add_monoid R] [star_add_monoid A] :
+  star_add_monoid (unitization R A) :=
+{ star_involutive := λ x, ext (star_star x.fst) (star_star x.snd),
+  star_add := λ x y, ext (star_add x.fst y.fst) (star_add x.snd y.snd) }
+
+instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A]
+  [module R A] [star_module R A] : star_module R (unitization R A) :=
+{ star_smul := λ r x, ext (by simp) (by simp) }
+
+instance [comm_semiring R] [star_ring R] [non_unital_semiring A] [star_ring A]
+  [module R A] [is_scalar_tower R A A] [smul_comm_class R A A] [star_module R A] :
+  star_ring (unitization R A) :=
+{ star_mul := λ x y, ext (by simp [star_mul])
+    (by simp [star_mul, add_comm (star x.fst • star y.snd)]),
+  ..unitization.star_add_monoid }
+
+end star
+
+/-! ### Algebra structure -/
 
 section algebra
 variables (S R A : Type*)
@@ -424,7 +468,7 @@ section coe
 realized as a non-unital algebra homomorphism. -/
 @[simps]
 def coe_non_unital_alg_hom (R A : Type*) [comm_semiring R] [non_unital_semiring A] [module R A] :
-  non_unital_alg_hom R A (unitization R A) :=
+  A →ₙₐ[R] unitization R A :=
 { to_fun := coe,
   map_smul' := coe_smul R,
   map_zero' := coe_zero R,
@@ -438,7 +482,7 @@ section alg_hom
 variables {S R A : Type*}
   [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
   [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
-  {B : Type*} [ring B] [algebra S B]
+  {B : Type*} [semiring B] [algebra S B]
   [algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
   {C : Type*} [ring C] [algebra R C]
 
@@ -462,7 +506,7 @@ alg_hom_ext (non_unital_alg_hom.congr_fun h) (by simp [alg_hom.commutes])
 /-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `C` lift uniquely to
 `unitization R A →ₐ[R] C`. This is the universal property of the unitization. -/
 @[simps apply_apply]
-def lift : non_unital_alg_hom R A C ≃ (unitization R A →ₐ[R] C) :=
+def lift : (A →ₙₐ[R] C) ≃ (unitization R A →ₐ[R] C) :=
 { to_fun := λ φ,
   { to_fun := λ x, algebra_map R C x.fst + φ x.snd,
     map_one' := by simp only [fst_one, map_one, snd_one, φ.map_zero, add_zero],

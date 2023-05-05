@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
 import data.zmod.basic
-import data.zmod.topology
+import topology.algebra.constructions
 
 /-!
 # Properties of units of ℤ/nℤ

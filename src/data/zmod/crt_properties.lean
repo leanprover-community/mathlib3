@@ -24,7 +24,8 @@ lemma proj_fst' {m n : ℕ} (h : m.coprime n) (a : zmod m) (b : zmod n) :
     ((zmod.chinese_remainder h).symm (a,b)) = a :=
 begin
   change _ = prod.fst (a, b),
-  have h2 : zmod.cast_hom (show m.lcm n ∣ m * n, by simp [nat.lcm_dvd_iff]) (zmod m × zmod n) _ = _,
+  have h2 : zmod.cast_hom (show m.lcm n ∣ m * n,
+    by simp [nat.lcm_dvd_iff]) (zmod m × zmod n) _ = _,
     exact (zmod.chinese_remainder h).right_inv (a,b),
   conv_rhs { rw ←h2, },
   convert_to _ = (ring_hom.comp (ring_hom.fst (zmod m) (zmod n))
@@ -38,7 +39,8 @@ lemma proj_snd' {m n : ℕ} (h : m.coprime n) (a : zmod m) (b : zmod n) :
     ((zmod.chinese_remainder h).symm (a,b)) = b :=
 begin
   change _ = prod.snd (a, b),
-  have h2 : zmod.cast_hom (show m.lcm n ∣ m * n, by simp [nat.lcm_dvd_iff]) (zmod m × zmod n) _ = _,
+  have h2 : zmod.cast_hom (show m.lcm n ∣ m * n,
+    by simp [nat.lcm_dvd_iff]) (zmod m × zmod n) _ = _,
     exact (zmod.chinese_remainder h).right_inv (a,b),
   conv_rhs { rw ←h2, },
   convert_to _ = (ring_hom.comp (ring_hom.snd (zmod m) (zmod n))
@@ -78,11 +80,13 @@ lemma inv_snd {n : ℕ} (x : zmod (d * p^n)) (cop : d.coprime (p^n)) :
 
 variable (p)
 lemma proj_fst'' {n : ℕ} (hd : d.coprime p) (a : (zmod d)ˣ × (zmod (p^n))ˣ) :
-((zmod.chinese_remainder (nat.coprime.pow_right n hd)).inv_fun (↑(a.fst), ↑(a.snd)) : zmod d) = a.fst :=
+  ((zmod.chinese_remainder (nat.coprime.pow_right n hd)).inv_fun (↑(a.fst), ↑(a.snd)) : zmod d) =
+  a.fst :=
 by { rw ring_equiv.inv_fun_eq_symm, apply proj_fst', }
 
 lemma proj_snd'' [fact p.prime] {n : ℕ} (hd : d.coprime p) (a : (zmod d)ˣ × (zmod (p^n))ˣ) :
-(padic_int.to_zmod_pow n) ((zmod.chinese_remainder (nat.coprime.pow_right n hd)).inv_fun (↑(a.fst), ↑(a.snd)) : ℤ_[p]) = a.snd :=
+  (padic_int.to_zmod_pow n) ((zmod.chinese_remainder (nat.coprime.pow_right n hd)).inv_fun
+  (↑(a.fst), ↑(a.snd)) : ℤ_[p]) = a.snd :=
 begin
   rw [← zmod.int_cast_cast, map_int_cast, zmod.int_cast_cast, ring_equiv.inv_fun_eq_symm],
   convert proj_snd' _ _ _,

@@ -20,10 +20,6 @@ namespace intermediate_field
 
 variables {F L : Type*} [field F] [field L] [algebra F L] (K : intermediate_field F L)
 
--- PR #18940
-@[simp] lemma field_range_val : K.val.field_range = K :=
-set_like.ext' subtype.range_val
-
 /-- The normal closure of an `intermediate_field`. -/
 noncomputable def normal_closure : intermediate_field F L :=
 (normal_closure F K L).restrict_scalars F
@@ -79,7 +75,7 @@ begin
   { exact le_supr_of_le f le_rfl },
 end
 
-variables {K K'}
+variables {K}
 
 lemma normal_iff_normal_closure_eq : normal F K ↔ K.normal_closure = K :=
 ⟨@normal_closure_of_normal F L _ _ _ K, λ h, h ▸ normal_closure.normal K⟩

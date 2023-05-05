@@ -31,7 +31,7 @@ open polynomial
 
 namespace polynomial
 
-/- `hermite n` is (up to sign) the factor appearing in `deriv^[n]` of a gaussian -/
+/-- `hermite n` is (up to sign) the factor appearing in `deriv^[n]` of a gaussian -/
 lemma deriv_gaussian_eq_hermite_mul_gaussian (n : ℕ) (x : ℝ) :
   deriv^[n] (λ y, real.exp (-(y^2 / 2))) x =
   (-1 : ℝ)^n * aeval x (hermite n) * real.exp (-(x^2 / 2)) :=

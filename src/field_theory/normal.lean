@@ -147,7 +147,8 @@ begin
   haveI := fact.mk q_irred,
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
-  have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
+have finrankED : finite_dimensional.finrank E D = q.nat_degree :=
+    by rw [power_basis.finrank pbED, adjoin_root.power_basis_dim],
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   rsuffices ⟨ϕ⟩ : nonempty (D →ₐ[F] E),
   { rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],

@@ -94,13 +94,7 @@ variables (R : Type*) (M : Type*)
 variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
-
-instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
-  add_comm_group (dual S N) := linear_map.add_comm_group
-
-instance : linear_map_class (dual R M) R M R :=
-linear_map.semilinear_map_class
+@[reducible] def dual := M →ₗ[R] R
 
 /-- The canonical pairing of a vector space and its algebraic dual. -/
 def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :

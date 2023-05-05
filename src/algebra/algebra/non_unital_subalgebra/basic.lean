@@ -262,6 +262,26 @@ section
 
 -- TODO: generalize to `non_unital_subalgebra_class` or `submodule_class`
 
+/- is there any reason we don't want this?
+instance smul_mem_class.of_is_scalar_tower {S M N α : Type*} [set_like S α] [has_smul M N] [has_smul M α] [monoid N] [mul_action N α]
+  [smul_mem_class S N α] [is_scalar_tower M N α] :
+  smul_mem_class S M α :=
+{ smul_mem := λ s m a ha, smul_one_smul N m a ▸ smul_mem_class.smul_mem _ ha }
+-/
+
+/- instance wtf_why {S A : Type*} [add_comm_monoid A]
+  [set_like S A] [add_submonoid_class S A] (s : S) :
+  add_comm_monoid s :=
+add_submonoid_class.to_add_comm_monoid s -/
+
+/- needs the `smul_mem_class.of_is_scalar_tower` above
+instance foo {S R A : Type*} [comm_semiring R] [non_unital_semiring A] [module R A]
+  [semiring R'] [has_smul R' R] [module R' A] [is_scalar_tower R' R A]
+  [set_like S A] [non_unital_subsemiring_class S A] [smul_mem_class S R A] (s : S) :
+  module R' s :=
+infer_instance
+-/
+
 /-! `non_unital_subalgebra`s inherit structure from their `submodule` coercions. -/
 instance module' [semiring R'] [has_smul R' R] [module R' A] [is_scalar_tower R' R A] :
   module R' S :=
@@ -284,7 +304,6 @@ instance smul_comm_class' [semiring R'] [has_smul R' R] [module R' A] [is_scalar
 
 instance [smul_comm_class R A A] : smul_comm_class R S S :=
 { smul_comm := λ r x y, subtype.ext $ smul_comm r (x : A) (y : A) }
-
 
 end
 
@@ -584,7 +603,75 @@ def adjoin (s : set A) :
     { exact λ r x hx, (smul_mul_assoc r x b).symm ▸ smul_mem_class.smul_mem r hx },
   end,
   .. submodule.span R ((non_unital_subsemiring.closure s) : set A) }
+
+lemma adjoin_to_submodule (s : set A) :
+  (adjoin R s).to_submodule = submodule.span R ((non_unital_subsemiring.closure s) : set A) :=
+rfl
+
+lemma subset_adjoin {s : set A} : s ⊆ adjoin R s :=
+  non_unital_subsemiring.subset_closure.trans submodule.subset_span
+
+lemma self_mem_adjoin_singleton (x : A) : x ∈ adjoin R ({x} : set A) :=
+non_unital_algebra.subset_adjoin R (set.mem_singleton x)
+
 variables {R}
+
+/-- If some predicate holds for all `x ∈ (s : set A)` and this predicate is closed under the
+`algebra_map`, addition, multiplication and star operations, then it holds for `a ∈ adjoin R s`. -/
+lemma adjoin_induction {s : set A} {p : A → Prop} {a : A} (h : a ∈ adjoin R s)
+  (Hs : ∀ (x : A), x ∈ s → p x) (Hadd : ∀ (x y : A), p x → p y → p (x + y)) (H0 : p 0)
+  (Hmul : ∀ (x y : A), p x → p y → p (x * y))
+  (Hsmul : ∀ (r : R) {x : A}, p x → p (r • x)) : p a :=
+submodule.span_induction h (λ a ha, non_unital_subsemiring.closure_induction ha Hs H0 Hadd Hmul)
+  H0 Hadd Hsmul
+
+-- needs to go with submodules
+theorem _root_.submodule.span_induction₂ {R M : Type*} [semiring R] [add_comm_monoid M]
+  [module R M] {a b : M} {s : set M} {p : M → M → Prop} (ha : a ∈ submodule.span R s)
+  (hb : b ∈ submodule.span R s) (Hs : ∀ (x : M), x ∈ s → ∀ {y : M}, y ∈ s → p x y)
+  (H0_left : ∀ (y : M), p 0 y)
+  (H0_right : ∀ (x : M), p x 0)
+  (Hadd_left : ∀ (x₁ x₂ y : M), p x₁ y → p x₂ y → p (x₁ + x₂) y)
+  (Hadd_right : ∀ (x y₁ y₂ : M), p x y₁ → p x y₂ → p x (y₁ + y₂))
+  (Hsmul_left : ∀ (r : R) (x y : M), p x y → p (r • x) y)
+  (Hsmul_right : ∀ (r : R) (x y : M), p x y → p x (r • y)) : p a b :=
+submodule.span_induction ha (λ x hx, submodule.span_induction hb (λ y, Hs x hx) (H0_right x)
+  (Hadd_right x) (λ r, Hsmul_right r x))
+  (H0_left b) (λ x₁ x₂, Hadd_left x₁ x₂ b) (λ r x, Hsmul_left r x b)
+
+lemma adjoin_induction₂ {s : set A} {p : A → A → Prop} {a b : A} (ha : a ∈ adjoin R s)
+  (hb : b ∈ adjoin R s) (Hs : ∀ (x : A), x ∈ s → ∀ (y : A), y ∈ s → p x y)
+  (H0_left : ∀ (y : A), p 0 y)
+  (H0_right : ∀ (x : A), p x 0)
+  (Hadd_left : ∀ (x₁ x₂ y : A), p x₁ y → p x₂ y → p (x₁ + x₂) y)
+  (Hadd_right : ∀ (x y₁ y₂ : A), p x y₁ → p x y₂ → p x (y₁ + y₂))
+  (Hmul_left : ∀ (x₁ x₂ y : A), p x₁ y → p x₂ y → p (x₁ * x₂) y)
+  (Hmul_right : ∀ (x y₁ y₂ : A), p x y₁ → p x y₂ → p x (y₁ * y₂))
+  (Hsmul_left : ∀ (r : R) (x y : A), p x y → p (r • x) y)
+  (Hsmul_right : ∀ (r : R) (x y : A), p x y → p x (r • y)) : p a b :=
+submodule.span_induction₂ ha hb (λ x hx y hy, non_unital_subsemiring.closure_induction₂
+  hx hy Hs H0_left H0_right Hadd_left Hadd_right Hmul_left Hmul_right)
+  H0_left H0_right Hadd_left Hadd_right Hsmul_left Hsmul_right
+
+/-
+/-- The difference with `star_subalgebra.adjoin_induction` is that this acts on the subtype. -/
+lemma adjoin_induction' {s : set A} {p : adjoin R s → Prop} (a : adjoin R s)
+  (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_adjoin R s h⟩)
+  (Halg : ∀ r, p (algebra_map R _ r)) (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Hmul : ∀ x y, p x → p y → p (x * y)) (Hstar : ∀ x, p x → p (star x)) : p a :=
+subtype.rec_on a $ λ b hb,
+begin
+  refine exists.elim _ (λ (hb : b ∈ adjoin R s) (hc : p ⟨b, hb⟩), hc),
+  apply adjoin_induction hb,
+  exacts [λ x hx, ⟨subset_adjoin R s hx, Hs x hx⟩,
+    λ r, ⟨star_subalgebra.algebra_map_mem _ r, Halg r⟩,
+    (λ x y hx hy, exists.elim hx $ λ hx' hx,
+      exists.elim hy $ λ hy' hy, ⟨add_mem hx' hy', Hadd _ _ hx hy⟩),
+    (λ x y hx hy, exists.elim hx $ λ hx' hx,
+      exists.elim hy $ λ hy' hy, ⟨mul_mem hx' hy', Hmul _ _ hx hy⟩),
+    λ x hx, exists.elim hx (λ hx' hx, ⟨star_mem hx', Hstar _ hx⟩)]
+end
+-/
 
 protected lemma gc : galois_connection (adjoin R : set A → non_unital_subalgebra R A) coe :=
 λ s S, ⟨λ H, (non_unital_subsemiring.subset_closure.trans submodule.subset_span).trans H,
@@ -601,6 +688,23 @@ protected def gi : galois_insertion (adjoin R : set A → non_unital_subalgebra 
 
 instance : complete_lattice (non_unital_subalgebra R A) :=
 galois_insertion.lift_complete_lattice non_unital_algebra.gi
+
+lemma adjoin_le {S : non_unital_subalgebra R A} {s : set A} (hs : s ⊆ S) : adjoin R s ≤ S :=
+non_unital_algebra.gc.l_le hs
+
+lemma adjoin_le_iff {S : non_unital_subalgebra R A} {s : set A} : adjoin R s ≤ S ↔ s ⊆ S :=
+non_unital_algebra.gc _ _
+
+lemma adjoin_union (s t : set A) : adjoin R (s ∪ t) = adjoin R s ⊔ adjoin R t :=
+(non_unital_algebra.gc : galois_connection _ (coe : non_unital_subalgebra R A → set A)).l_sup
+
+variables (R A)
+@[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
+show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact non_unital_algebra.gc }
+
+@[simp] theorem adjoin_univ : adjoin R (set.univ : set A) = ⊤ :=
+eq_top_iff.2 $ λ x hx, subset_adjoin R hx
+variables {R A}
 
 @[simp]
 lemma coe_top : (↑(⊤ : non_unital_subalgebra R A) : set A) = set.univ := rfl

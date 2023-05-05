@@ -65,14 +65,14 @@ A star operation (e.g. complex conjugate).
 add_decl_doc star
 
 /-- `star_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under star. -/
-class star_mem_class (S R : Type*) [has_star R] [set_like S R] :=
+class star_mem_class (S R : Type*) [has_star R] [set_like S R] : Prop :=
 (star_mem : ∀ {s : S} {r : R}, r ∈ s → star r ∈ s)
 
 export star_mem_class (star_mem)
 
 namespace star_mem_class
 
-variables {S : Type u} [has_star R] [set_like S R] [hS : star_mem_class S R] (s : S)
+variables {S : Type v} [has_star R] [set_like S R] [hS : star_mem_class S R] (s : S)
 include hS
 
 instance : has_star s :=

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.direct_limit
+import algebra.char_p.algebra
 import field_theory.is_alg_closed.basic
+
 /-!
 # Algebraic Closure
 
@@ -257,7 +259,7 @@ def of_step_hom (n) : step k n →ₐ[k] algebraic_closure k :=
 
 theorem is_algebraic : algebra.is_algebraic k (algebraic_closure k) :=
 λ z, is_algebraic_iff_is_integral.2 $ let ⟨n, x, hx⟩ := exists_of_step k z in
-hx ▸ is_integral_alg_hom (of_step_hom k n) (step.is_integral k n x)
+hx ▸ map_is_integral (of_step_hom k n) (step.is_integral k n x)
 
 instance : is_alg_closure k (algebraic_closure k) :=
 ⟨algebraic_closure.is_alg_closed k, is_algebraic k⟩

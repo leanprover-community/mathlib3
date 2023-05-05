@@ -8,6 +8,9 @@ import category_theory.category.Pointed
 /-!
 # The category of bipointed types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `Bipointed`, the category of bipointed types.
 
 ## TODO
@@ -36,7 +39,7 @@ def of {X : Type*} (to_prod : X × X) : Bipointed := ⟨X, to_prod⟩
 
 @[simp] lemma coe_of {X : Type*} (to_prod : X × X) : ↥(of to_prod) = X := rfl
 
-alias of ← prod.Bipointed
+alias of ← _root_.prod.Bipointed
 
 instance : inhabited Bipointed := ⟨of ((), ())⟩
 

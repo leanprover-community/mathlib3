@@ -28,8 +28,8 @@ See `src/ring_theory/localization/basic.lean` for a design overview.
 localization, ring localization, commutative ring localization, characteristic predicate,
 commutative ring, field of fractions
 -/
-variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
-variables [algebra R S] {P : Type*} [comm_ring P]
+variables {R : Type*} [comm_semiring R] (M : submonoid R) (S : Type*) [comm_semiring S]
+variables [algebra R S] {P : Type*} [comm_semiring P]
 
 section at_prime
 
@@ -43,6 +43,9 @@ def prime_compl :
 { carrier := (Iᶜ : set R),
   one_mem' := by convert I.ne_top_iff_one.1 hp.1; refl,
   mul_mem' := λ x y hnx hny hxy, or.cases_on (hp.mem_or_mem hxy) hnx hny }
+
+lemma prime_compl_le_non_zero_divisors [no_zero_divisors R] : I.prime_compl ≤ non_zero_divisors R :=
+le_non_zero_divisors_of_no_zero_divisors $ not_not_intro I.zero_mem
 
 end ideal
 
@@ -58,37 +61,41 @@ protected abbreviation localization.at_prime := localization I.prime_compl
 
 namespace is_localization
 
+lemma at_prime.nontrivial [is_localization.at_prime S I] : nontrivial S :=
+nontrivial_of_ne (0 : S) 1 $ λ hze,
+begin
+  rw [←(algebra_map R S).map_one, ←(algebra_map R S).map_zero] at hze,
+  obtain ⟨t, ht⟩ := (eq_iff_exists I.prime_compl S).1 hze,
+  have htz : (t : R) = 0, by simpa using ht.symm,
+  exact t.2 (htz.symm ▸ I.zero_mem : ↑t ∈ I)
+end
+
+local attribute [instance] at_prime.nontrivial
+
 theorem at_prime.local_ring [is_localization.at_prime S I] : local_ring S :=
-local_of_nonunits_ideal
-  (λ hze, begin
-      rw [←(algebra_map R S).map_one, ←(algebra_map R S).map_zero] at hze,
-      obtain ⟨t, ht⟩ := (eq_iff_exists I.prime_compl S).1 hze,
-      exact ((show (t : R) ∉ I, from t.2) (have htz : (t : R) = 0, by simpa using ht.symm,
-        htz.symm ▸ I.zero_mem))
-    end)
-  (begin
-    intros x hx y hy hu,
-    cases is_unit_iff_exists_inv.1 hu with z hxyz,
-    have : ∀ {r : R} {s : I.prime_compl}, mk' S r s ∈ nonunits S → r ∈ I, from
-      λ (r : R) (s : I.prime_compl), not_imp_comm.1
-        (λ nr, is_unit_iff_exists_inv.2 ⟨mk' S ↑s (⟨r, nr⟩ : I.prime_compl),
-          mk'_mul_mk'_eq_one' _ _ nr⟩),
-    rcases mk'_surjective I.prime_compl x with ⟨rx, sx, hrx⟩,
-    rcases mk'_surjective I.prime_compl y with ⟨ry, sy, hry⟩,
-    rcases mk'_surjective I.prime_compl z with ⟨rz, sz, hrz⟩,
-    rw [←hrx, ←hry, ←hrz, ←mk'_add, ←mk'_mul,
-        ←mk'_self S I.prime_compl.one_mem] at hxyz,
-    rw ←hrx at hx, rw ←hry at hy,
-    obtain ⟨t, ht⟩ := is_localization.eq.1 hxyz,
-    simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
-    rw [←sub_eq_zero, ←sub_mul] at ht,
-    have hr := (hp.mem_or_mem_of_mul_eq_zero ht).resolve_right t.2,
-    rw sub_eq_add_neg at hr,
-    have := I.neg_mem_iff.1 ((ideal.add_mem_iff_right _ _).1 hr),
-    { exact not_or (mt hp.mem_or_mem (not_or sx.2 sy.2)) sz.2 (hp.mem_or_mem this)},
-    { exact I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ (this hx))
-                                         (I.mul_mem_right _ (this hy)))}
-  end)
+local_ring.of_nonunits_add
+begin
+  intros x y hx hy hu,
+  cases is_unit_iff_exists_inv.1 hu with z hxyz,
+  have : ∀ {r : R} {s : I.prime_compl}, mk' S r s ∈ nonunits S → r ∈ I, from
+    λ (r : R) (s : I.prime_compl), not_imp_comm.1
+      (λ nr, is_unit_iff_exists_inv.2 ⟨mk' S ↑s (⟨r, nr⟩ : I.prime_compl),
+        mk'_mul_mk'_eq_one' _ _ nr⟩),
+  rcases mk'_surjective I.prime_compl x with ⟨rx, sx, hrx⟩,
+  rcases mk'_surjective I.prime_compl y with ⟨ry, sy, hry⟩,
+  rcases mk'_surjective I.prime_compl z with ⟨rz, sz, hrz⟩,
+  rw [←hrx, ←hry, ←hrz, ←mk'_add, ←mk'_mul,
+      ←mk'_self S I.prime_compl.one_mem] at hxyz,
+  rw ←hrx at hx, rw ←hry at hy,
+  obtain ⟨t, ht⟩ := is_localization.eq.1 hxyz,
+  simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
+  suffices : ↑t * (↑sx * ↑sy * ↑sz) ∈ I, from
+    not_or (mt hp.mem_or_mem $ not_or sx.2 sy.2) sz.2
+      (hp.mem_or_mem $ (hp.mem_or_mem this).resolve_left t.2),
+  rw [←ht],
+  exact I.mul_mem_left _ (I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ $ this hx)
+                                                       (I.mul_mem_right _ $ this hy))),
+end
 
 end is_localization
 
@@ -111,8 +118,7 @@ The localization of an integral domain at the complement of a prime ideal is an 
 -/
 instance is_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
   is_domain (localization.at_prime P) :=
-is_domain_localization (le_non_zero_divisors_of_no_zero_divisors
-  (not_not_intro P.zero_mem))
+is_domain_localization P.prime_compl_le_non_zero_divisors
 
 namespace at_prime
 
@@ -130,8 +136,12 @@ lemma is_unit_to_map_iff (x : R) :
 lemma to_map_mem_maximal_iff (x : R) (h : _root_.local_ring S := local_ring S I) :
   algebra_map R S x ∈ local_ring.maximal_ideal S ↔ x ∈ I :=
 not_iff_not.mp $ by
-simpa only [@local_ring.mem_maximal_ideal S, mem_nonunits_iff, not_not]
+simpa only [local_ring.mem_maximal_ideal, mem_nonunits_iff, not_not]
   using is_unit_to_map_iff S I x
+
+lemma comap_maximal_ideal (h : _root_.local_ring S := local_ring S I) :
+  (local_ring.maximal_ideal S).comap (algebra_map R S) = I :=
+ideal.ext $ λ x, by simpa only [ideal.mem_comap] using to_map_mem_maximal_iff _ I x
 
 lemma is_unit_mk'_iff (x : R) (y : I.prime_compl) :
   is_unit (mk' S x y) ↔ x ∈ I.prime_compl :=
@@ -141,7 +151,7 @@ lemma is_unit_mk'_iff (x : R) (y : I.prime_compl) :
 lemma mk'_mem_maximal_iff (x : R) (y : I.prime_compl) (h : _root_.local_ring S := local_ring S I) :
   mk' S x y ∈ local_ring.maximal_ideal S ↔ x ∈ I :=
 not_iff_not.mp $ by
-simpa only [@local_ring.mem_maximal_ideal S, mem_nonunits_iff, not_not]
+simpa only [local_ring.mem_maximal_ideal, mem_nonunits_iff, not_not]
   using is_unit_mk'_iff S I x y
 
 end at_prime
@@ -162,8 +172,7 @@ variables {I}
 lemma at_prime.comap_maximal_ideal :
   ideal.comap (algebra_map R (localization.at_prime I))
     (local_ring.maximal_ideal (localization I.prime_compl)) = I :=
-ideal.ext $ λ x, by
-simpa only [ideal.mem_comap] using at_prime.to_map_mem_maximal_iff _ I x
+at_prime.comap_maximal_ideal _ _
 
 /-- The image of `I` in the localization at `I.prime_compl` is a maximal ideal, and in particular
 it is the unique maximal ideal given by the local ring structure `at_prime.local_ring` -/
@@ -227,7 +236,7 @@ map_unique _ _ hj
   local_ring_hom I I (ring_hom.id R) (ideal.comap_id I).symm = ring_hom.id _ :=
 local_ring_hom_unique _ _ _ _ (λ x, rfl)
 
-@[simp] lemma local_ring_hom_comp {S : Type*} [comm_ring S]
+@[simp] lemma local_ring_hom_comp {S : Type*} [comm_semiring S]
   (J : ideal S) [hJ : J.is_prime] (K : ideal P) [hK : K.is_prime]
   (f : R →+* S) (hIJ : I = J.comap f) (g : S →+* P) (hJK : J = K.comap g) :
   local_ring_hom I K (g.comp f) (by rw [hIJ, hJK, ideal.comap_comap f g]) =

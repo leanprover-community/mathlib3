@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import geometry.manifold.cont_mdiff
+import geometry.manifold.cont_mdiff_mfderiv
 import topology.continuous_function.basic
 
 /-!
@@ -14,19 +14,19 @@ In this file we define the type `cont_mdiff_map` of `n` times continuously diffe
 bundled maps.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H : Type*} [topological_space H]
 {H' : Type*} [topological_space H']
 (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H')
 (M : Type*) [topological_space M] [charted_space H M]
 (M' : Type*) [topological_space M'] [charted_space H' M']
-{E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H'']
 {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
-(n : with_top ℕ)
+(n : ℕ∞)
 
 /-- Bundled `n` times continuously differentiable maps. -/
 @[protect_proj]
@@ -37,9 +37,9 @@ structure cont_mdiff_map :=
 /-- Bundled smooth maps. -/
 @[reducible] def smooth_map := cont_mdiff_map I I' M M' ⊤
 
-localized "notation `C^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
+localized "notation (name := cont_mdiff_map) `C^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
   cont_mdiff_map I I' M M' n" in manifold
-localized "notation `C^` n `⟮` I `, ` M `; ` k `⟯` :=
+localized "notation (name := cont_mdiff_map.self) `C^` n `⟮` I `, ` M `; ` k `⟯` :=
   cont_mdiff_map I (model_with_corners_self k k) M k n" in manifold
 
 open_locale manifold
@@ -83,6 +83,11 @@ by cases f; cases g; cases h; refl
 
 @[ext] theorem ext (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext h
+
+instance : continuous_map_class C^n⟮I, M; I', M'⟯ M M' :=
+{ coe := (λ f, ⇑f),
+  coe_injective' := coe_inj,
+  map_continuous := λ f, f.cont_mdiff.continuous }
 
 /-- The identity as a smooth map. -/
 def id : C^n⟮I, M; I, M⟯ := ⟨id, cont_mdiff_id⟩

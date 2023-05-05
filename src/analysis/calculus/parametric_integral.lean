@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import measure_theory.integral.set_integral
-import analysis.calculus.mean_value
 
 /-!
 # Derivatives of integrals depending on parameters
@@ -54,42 +53,40 @@ integral, derivative
 noncomputable theory
 
 open topological_space measure_theory filter metric
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} [measurable_space α] {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜]
-          {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space 𝕜 E]
-          [complete_space E] [second_countable_topology E]
-          [measurable_space E] [borel_space E]
-          {H : Type*} [normed_group H] [normed_space 𝕜 H] [second_countable_topology $ H →L[𝕜] E]
+          {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_space 𝕜 E]
+          [complete_space E]
+          {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H]
 
 /-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming `F x₀` is
-integrable, `∥F x a - F x₀ a∥ ≤ bound a * ∥x - x₀∥` for `x` in a ball around `x₀` for ae `a` with
+integrable, `‖F x a - F x₀ a‖ ≤ bound a * ‖x - x₀‖` for `x` in a ball around `x₀` for ae `a` with
 integrable Lipschitz bound `bound` (with a ball radius independent of `a`), and `F x` is
 ae-measurable for `x` in the same ball. See `has_fderiv_at_integral_of_dominated_loc_of_lip` for a
 slightly less general but usually more useful version. -/
 lemma has_fderiv_at_integral_of_dominated_loc_of_lip' {F : H → α → E} {F' : α → (H →L[𝕜] E)}
   {x₀ : H} {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
-  (hF_meas : ∀ x ∈ ball x₀ ε, ae_measurable (F x) μ)
+  (hF_meas : ∀ x ∈ ball x₀ ε, ae_strongly_measurable (F x) μ)
   (hF_int : integrable (F x₀) μ)
-  (hF'_meas : ae_measurable F' μ)
-  (h_lipsch : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ∥F x a - F x₀ a∥ ≤ bound a * ∥x - x₀∥)
+  (hF'_meas : ae_strongly_measurable F' μ)
+  (h_lipsch : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ‖F x a - F x₀ a‖ ≤ bound a * ‖x - x₀‖)
   (bound_integrable : integrable (bound : α → ℝ) μ)
   (h_diff : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (F' a) x₀) :
   integrable F' μ ∧ has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' a ∂μ) x₀ :=
 begin
-  letI : measurable_space 𝕜 := borel 𝕜, haveI : opens_measurable_space 𝕜 := ⟨le_rfl⟩,
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
-  have nneg : ∀ x, 0 ≤ ∥x - x₀∥⁻¹ := λ x, inv_nonneg.mpr (norm_nonneg _) ,
+  have nneg : ∀ x, 0 ≤ ‖x - x₀‖⁻¹ := λ x, inv_nonneg.mpr (norm_nonneg _) ,
   set b : α → ℝ := λ a, |bound a|,
   have b_int : integrable b μ := bound_integrable.norm,
   have b_nonneg : ∀ a, 0 ≤ b a := λ a, abs_nonneg _,
-  replace h_lipsch : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ∥F x a - F x₀ a∥ ≤ b a * ∥x - x₀∥,
+  replace h_lipsch : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ‖F x a - F x₀ a‖ ≤ b a * ‖x - x₀‖,
     from h_lipsch.mono (λ a ha x hx, (ha x hx).trans $
       mul_le_mul_of_nonneg_right (le_abs_self _) (norm_nonneg _)),
   have hF_int' : ∀ x ∈ ball x₀ ε, integrable (F x) μ,
   { intros x x_in,
-    have : ∀ᵐ a ∂μ, ∥F x₀ a - F x a∥ ≤ ε * b a,
+    have : ∀ᵐ a ∂μ, ‖F x₀ a - F x a‖ ≤ ε * b a,
     { simp only [norm_sub_rev (F x₀ _)],
       refine h_lipsch.mono (λ a ha, (ha x x_in).trans _),
       rw mul_comm ε,
@@ -98,7 +95,7 @@ begin
     exact integrable_of_norm_sub_le (hF_meas x x_in) hF_int
       (integrable.const_mul bound_integrable.norm ε) this },
   have hF'_int : integrable F' μ,
-  { have : ∀ᵐ a ∂μ, ∥F' a∥ ≤ b a,
+  { have : ∀ᵐ a ∂μ, ‖F' a‖ ≤ b a,
     { apply (h_diff.and h_lipsch).mono,
       rintros a ⟨ha_diff, ha_lip⟩,
       refine ha_diff.le_of_lip' (b_nonneg a) (mem_of_superset (ball_mem_nhds _ ε_pos) $ ha_lip) },
@@ -106,8 +103,8 @@ begin
   refine ⟨hF'_int, _⟩,
   have h_ball: ball x₀ ε ∈ 𝓝 x₀ := ball_mem_nhds x₀ ε_pos,
   have : ∀ᶠ x in 𝓝 x₀,
-      ∥x - x₀∥⁻¹ * ∥∫ a, F x a ∂μ - ∫ a, F x₀ a ∂μ - (∫ a, F' a ∂μ) (x - x₀)∥ =
-       ∥∫ a, ∥x - x₀∥⁻¹ • (F x a - F x₀ a  - F' a (x - x₀)) ∂μ∥,
+      ‖x - x₀‖⁻¹ * ‖∫ a, F x a ∂μ - ∫ a, F x₀ a ∂μ - (∫ a, F' a ∂μ) (x - x₀)‖ =
+       ‖∫ a, ‖x - x₀‖⁻¹ • (F x a - F x₀ a  - F' a (x - x₀)) ∂μ‖,
   { apply mem_of_superset (ball_mem_nhds _ ε_pos),
     intros x x_in,
     rw [set.mem_set_of_eq, ← norm_smul_of_nonneg (nneg _), integral_smul,
@@ -115,37 +112,37 @@ begin
     exacts [hF_int' x x_in, hF_int, (hF_int' x x_in).sub hF_int,
             hF'_int.apply_continuous_linear_map _] },
   rw [has_fderiv_at_iff_tendsto, tendsto_congr' this, ← tendsto_zero_iff_norm_tendsto_zero,
-      ← show ∫ (a : α), ∥x₀ - x₀∥⁻¹ • (F x₀ a - F x₀ a - (F' a) (x₀ - x₀)) ∂μ = 0, by simp],
+      ← show ∫ (a : α), ‖x₀ - x₀‖⁻¹ • (F x₀ a - F x₀ a - (F' a) (x₀ - x₀)) ∂μ = 0, by simp],
   apply tendsto_integral_filter_of_dominated_convergence,
   { filter_upwards [h_ball] with _ x_in,
-    apply ae_measurable.const_smul,
+    apply ae_strongly_measurable.const_smul,
     exact ((hF_meas _ x_in).sub (hF_meas _ x₀_in)).sub (hF'_meas.apply_continuous_linear_map _) },
   { apply mem_of_superset h_ball,
     intros x hx,
     apply (h_diff.and h_lipsch).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
-    show ∥∥x - x₀∥⁻¹ • (F x a - F x₀ a - F' a (x - x₀))∥ ≤ b a + ∥F' a∥,
-    replace ha_bound : ∥F x a - F x₀ a∥ ≤ b a * ∥x - x₀∥ := ha_bound x hx,
-    calc ∥∥x - x₀∥⁻¹ • (F x a - F x₀ a - F' a (x - x₀))∥
-    = ∥∥x - x₀∥⁻¹ • (F x a - F x₀ a) - ∥x - x₀∥⁻¹ • F' a (x - x₀)∥ : by rw smul_sub
-    ... ≤  ∥∥x - x₀∥⁻¹ • (F x a - F x₀ a)∥ + ∥∥x - x₀∥⁻¹ • F' a (x - x₀)∥ : norm_sub_le _ _
-    ... =  ∥x - x₀∥⁻¹ * ∥F x a - F x₀ a∥ + ∥x - x₀∥⁻¹ * ∥F' a (x - x₀)∥ :
+    show ‖‖x - x₀‖⁻¹ • (F x a - F x₀ a - F' a (x - x₀))‖ ≤ b a + ‖F' a‖,
+    replace ha_bound : ‖F x a - F x₀ a‖ ≤ b a * ‖x - x₀‖ := ha_bound x hx,
+    calc ‖‖x - x₀‖⁻¹ • (F x a - F x₀ a - F' a (x - x₀))‖
+    = ‖‖x - x₀‖⁻¹ • (F x a - F x₀ a) - ‖x - x₀‖⁻¹ • F' a (x - x₀)‖ : by rw smul_sub
+    ... ≤  ‖‖x - x₀‖⁻¹ • (F x a - F x₀ a)‖ + ‖‖x - x₀‖⁻¹ • F' a (x - x₀)‖ : norm_sub_le _ _
+    ... =  ‖x - x₀‖⁻¹ * ‖F x a - F x₀ a‖ + ‖x - x₀‖⁻¹ * ‖F' a (x - x₀)‖ :
                                  by { rw [norm_smul_of_nonneg, norm_smul_of_nonneg] ; exact nneg _}
-    ... ≤  ∥x - x₀∥⁻¹ * (b a * ∥x - x₀∥) + ∥x - x₀∥⁻¹ * (∥F' a∥ * ∥x - x₀∥) : add_le_add _ _
-    ... ≤ b a + ∥F' a∥ : _,
+    ... ≤  ‖x - x₀‖⁻¹ * (b a * ‖x - x₀‖) + ‖x - x₀‖⁻¹ * (‖F' a‖ * ‖x - x₀‖) : add_le_add _ _
+    ... ≤ b a + ‖F' a‖ : _,
     exact mul_le_mul_of_nonneg_left ha_bound (nneg _),
     apply mul_le_mul_of_nonneg_left ((F' a).le_op_norm _) (nneg _),
-    by_cases h : ∥x - x₀∥ = 0,
+    by_cases h : ‖x - x₀‖ = 0,
     { simpa [h] using add_nonneg (b_nonneg a) (norm_nonneg (F' a)) },
     { field_simp [h] } },
   { exact b_int.add hF'_int.norm },
   { apply h_diff.mono,
     intros a ha,
-    suffices : tendsto (λ x, ∥x - x₀∥⁻¹ • (F x a - F x₀ a - F' a (x - x₀))) (𝓝 x₀) (𝓝 0),
+    suffices : tendsto (λ x, ‖x - x₀‖⁻¹ • (F x a - F x₀ a - F' a (x - x₀))) (𝓝 x₀) (𝓝 0),
     by simpa,
     rw tendsto_zero_iff_norm_tendsto_zero,
-    have : (λ x, ∥x - x₀∥⁻¹ * ∥F x a - F x₀ a - F' a (x - x₀)∥) =
-            λ x, ∥∥x - x₀∥⁻¹ • (F x a - F x₀ a - F' a (x - x₀))∥,
+    have : (λ x, ‖x - x₀‖⁻¹ * ‖F x a - F x₀ a - F' a (x - x₀)‖) =
+            λ x, ‖‖x - x₀‖⁻¹ • (F x a - F x₀ a - F' a (x - x₀))‖,
     { ext x,
       rw norm_smul_of_nonneg (nneg _) },
     rwa [has_fderiv_at_iff_tendsto, this] at ha },
@@ -158,18 +155,18 @@ for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_fderiv_at_integral_of_dominated_loc_of_lip {F : H → α → E} {F' : α → (H →L[𝕜] E)} {x₀ : H}
   {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) μ)
   (hF_int : integrable (F x₀) μ)
-  (hF'_meas : ae_measurable F' μ)
+  (hF'_meas : ae_strongly_measurable F' μ)
   (h_lip : ∀ᵐ a ∂μ, lipschitz_on_with (real.nnabs $ bound a) (λ x, F x a) (ball x₀ ε))
   (bound_integrable : integrable (bound : α → ℝ) μ)
   (h_diff : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (F' a) x₀) :
   integrable F' μ ∧ has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' a ∂μ) x₀ :=
 begin
-  obtain ⟨δ, δ_pos, hδ⟩ : ∃ δ > 0, ∀ x ∈ ball x₀ δ, ae_measurable (F x) μ ∧ x ∈ ball x₀ ε,
+  obtain ⟨δ, δ_pos, hδ⟩ : ∃ δ > 0, ∀ x ∈ ball x₀ δ, ae_strongly_measurable (F x) μ ∧ x ∈ ball x₀ ε,
     from eventually_nhds_iff_ball.mp (hF_meas.and (ball_mem_nhds x₀ ε_pos)),
   choose hδ_meas hδε using hδ,
-  replace h_lip : ∀ᵐ (a : α) ∂μ, ∀ x ∈ ball x₀ δ, ∥F x a - F x₀ a∥ ≤ |bound a| * ∥x - x₀∥,
+  replace h_lip : ∀ᵐ (a : α) ∂μ, ∀ x ∈ ball x₀ δ, ‖F x a - F x₀ a‖ ≤ |bound a| * ‖x - x₀‖,
     from h_lip.mono (λ a lip x hx, lip.norm_sub_le (hδε x hx) (mem_ball_self ε_pos)),
   replace bound_integrable := bound_integrable.norm,
   apply has_fderiv_at_integral_of_dominated_loc_of_lip' δ_pos; assumption
@@ -182,10 +179,10 @@ and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`.
 lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' : H → α → (H →L[𝕜] E)}
   {x₀ : H} {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) μ)
   (hF_int : integrable (F x₀) μ)
-  (hF'_meas : ae_measurable (F' x₀) μ)
-  (h_bound : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ∥F' x a∥ ≤ bound a)
+  (hF'_meas : ae_strongly_measurable (F' x₀) μ)
+  (h_bound : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ‖F' x a‖ ≤ bound a)
   (bound_integrable : integrable (bound : α → ℝ) μ)
   (h_diff : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, has_fderiv_at (λ x, F x a) (F' x a) x) :
   has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' x₀ a ∂μ) x₀ :=
@@ -211,19 +208,18 @@ assuming `F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball ar
 ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_deriv_at_integral_of_dominated_loc_of_lip {F : 𝕜 → α → E} {F' : α → E} {x₀ : 𝕜}
   {ε : ℝ} (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) μ)
   (hF_int : integrable (F x₀) μ)
-  (hF'_meas : ae_measurable F' μ) {bound : α → ℝ}
+  (hF'_meas : ae_strongly_measurable F' μ) {bound : α → ℝ}
   (h_lipsch : ∀ᵐ a ∂μ, lipschitz_on_with (real.nnabs $ bound a) (λ x, F x a) (ball x₀ ε))
   (bound_integrable : integrable (bound : α → ℝ) μ)
   (h_diff : ∀ᵐ a ∂μ, has_deriv_at (λ x, F x a) (F' a) x₀) :
   (integrable F' μ) ∧ has_deriv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' a ∂μ) x₀ :=
 begin
-  letI : measurable_space 𝕜 := borel 𝕜, haveI : opens_measurable_space 𝕜 := ⟨le_rfl⟩,
   set L : E →L[𝕜] (𝕜 →L[𝕜] E) := (continuous_linear_map.smul_rightL 𝕜 𝕜 E 1),
   replace h_diff : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (L (F' a)) x₀ :=
     h_diff.mono (λ x hx, hx.has_fderiv_at),
-  have hm : ae_measurable (L ∘ F') μ := L.continuous.measurable.comp_ae_measurable hF'_meas,
+  have hm : ae_strongly_measurable (L ∘ F') μ := L.continuous.comp_ae_strongly_measurable hF'_meas,
   cases has_fderiv_at_integral_of_dominated_loc_of_lip ε_pos hF_meas hF_int hm h_lipsch
     bound_integrable h_diff with hF'_int key,
   replace hF'_int : integrable F' μ,
@@ -244,11 +240,11 @@ end
 function, and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_deriv_at_integral_of_dominated_loc_of_deriv_le {F : 𝕜 → α → E} {F' : 𝕜 → α → E} {x₀ : 𝕜}
   {ε : ℝ} (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) μ)
   (hF_int : integrable (F x₀) μ)
-  (hF'_meas : ae_measurable (F' x₀) μ)
+  (hF'_meas : ae_strongly_measurable (F' x₀) μ)
   {bound : α → ℝ}
-  (h_bound : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ∥F' x a∥ ≤ bound a)
+  (h_bound : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ‖F' x a‖ ≤ bound a)
   (bound_integrable : integrable bound μ)
   (h_diff : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, has_deriv_at (λ x, F x a) (F' x a) x) :
   (integrable (F' x₀) μ) ∧ has_deriv_at (λn, ∫ a, F n a ∂μ) (∫ a, F' x₀ a ∂μ) x₀ :=

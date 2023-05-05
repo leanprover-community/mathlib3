@@ -5,6 +5,7 @@ Authors: Yourong Zang
 -/
 import analysis.complex.isometry
 import analysis.normed_space.conformal_linear_map
+import analysis.normed_space.finite_dimension
 
 /-!
 # Conformal maps between complex vector spaces
@@ -39,25 +40,27 @@ conj_lie.to_linear_isometry.is_conformal_map
 
 section conformal_into_complex_normed
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_space ℂ E]
   {z : ℂ} {g : ℂ →L[ℝ] E} {f : ℂ → E}
 
-lemma is_conformal_map_complex_linear
-  {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) : is_conformal_map (map.restrict_scalars ℝ) :=
+lemma is_conformal_map_complex_linear {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) :
+  is_conformal_map (map.restrict_scalars ℝ) :=
 begin
-  have minor₁ : ∥map 1∥ ≠ 0,
-  { simpa [ext_ring_iff] using nonzero },
-  refine ⟨∥map 1∥, minor₁, ⟨∥map 1∥⁻¹ • map, _⟩, _⟩,
+  have minor₁ : ‖map 1‖ ≠ 0,
+  { simpa only [ext_ring_iff, ne.def, norm_eq_zero] using nonzero},
+  refine ⟨‖map 1‖, minor₁, ⟨‖map 1‖⁻¹ • map, _⟩, _⟩,
   { intros x,
     simp only [linear_map.smul_apply],
     have : x = x • 1 := by rw [smul_eq_mul, mul_one],
     nth_rewrite 0 [this],
     rw [_root_.coe_coe map, linear_map.coe_coe_is_scalar_tower],
     simp only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
-    field_simp [minor₁], },
+    field_simp only [one_mul] },
   { ext1,
-    rw [← linear_isometry.coe_to_linear_map],
-    simp [minor₁], },
+    simp only [minor₁, linear_map.smul_apply, _root_.coe_coe, linear_map.coe_coe_is_scalar_tower,
+      continuous_linear_map.coe_coe, coe_restrict_scalars', coe_smul',
+      linear_isometry.coe_to_continuous_linear_map, linear_isometry.coe_mk, pi.smul_apply,
+      smul_inv_smul₀, ne.def, not_false_iff] },
 end
 
 lemma is_conformal_map_complex_linear_conj
@@ -77,23 +80,21 @@ lemma is_conformal_map.is_complex_or_conj_linear (h : is_conformal_map g) :
   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g ∘L ↑conj_cle) :=
 begin
-  rcases h with ⟨c, hc, li, hg⟩,
-  rcases linear_isometry_complex (li.to_linear_isometry_equiv rfl) with ⟨a, ha⟩,
-  let rot := c • (a : ℂ) • continuous_linear_map.id ℂ ℂ,
-  cases ha,
-  { refine or.intro_left _ ⟨rot, _⟩,
+  rcases h with ⟨c, hc, li, rfl⟩,
+  obtain ⟨li, rfl⟩ : ∃ li' : ℂ ≃ₗᵢ[ℝ] ℂ, li'.to_linear_isometry = li,
+    from ⟨li.to_linear_isometry_equiv rfl, by { ext1, refl }⟩,
+  rcases linear_isometry_complex li with ⟨a, rfl|rfl⟩,
+  -- let rot := c • (a : ℂ) • continuous_linear_map.id ℂ ℂ,
+  { refine or.inl ⟨c • (a : ℂ) • continuous_linear_map.id ℂ ℂ, _⟩,
     ext1,
-    simp only [coe_restrict_scalars', hg, ← li.coe_to_linear_isometry_equiv, ha,
-               pi.smul_apply, continuous_linear_map.smul_apply, rotation_apply,
-               continuous_linear_map.id_apply, smul_eq_mul], },
-  { refine or.intro_right _ ⟨rot, _⟩,
+    simp only [coe_restrict_scalars', smul_apply, linear_isometry.coe_to_continuous_linear_map,
+      linear_isometry_equiv.coe_to_linear_isometry, rotation_apply, id_apply, smul_eq_mul] },
+  { refine or.inr ⟨c • (a : ℂ) • continuous_linear_map.id ℂ ℂ, _⟩,
     ext1,
-    rw [continuous_linear_map.coe_comp', hg, ← li.coe_to_linear_isometry_equiv, ha],
-    simp only [coe_restrict_scalars', function.comp_app, pi.smul_apply,
-               linear_isometry_equiv.coe_trans, conj_lie_apply,
-               rotation_apply, continuous_linear_equiv.coe_apply, conj_cle_apply],
-    simp only [continuous_linear_map.smul_apply, continuous_linear_map.id_apply,
-               smul_eq_mul, conj_conj], },
+    simp only [coe_restrict_scalars', smul_apply, linear_isometry.coe_to_continuous_linear_map,
+      linear_isometry_equiv.coe_to_linear_isometry, rotation_apply, id_apply, smul_eq_mul,
+      comp_apply, linear_isometry_equiv.trans_apply, continuous_linear_equiv.coe_coe,
+      conj_cle_apply, conj_lie_apply, conj_conj] },
 end
 
 /-- A real continuous linear map on the complex plane is conformal if and only if the map or its
@@ -108,14 +109,15 @@ begin
   { rintros ⟨⟨map, rfl⟩ | ⟨map, hmap⟩, h₂⟩,
     { refine is_conformal_map_complex_linear _,
       contrapose! h₂ with w,
-      simp [w] },
+      simp only [w, restrict_scalars_zero]},
     { have minor₁ : g = (map.restrict_scalars ℝ) ∘L ↑conj_cle,
       { ext1,
-        simp [hmap] },
+        simp only [hmap, coe_comp', continuous_linear_equiv.coe_coe, function.comp_app,
+          conj_cle_apply, star_ring_end_self_apply]},
       rw minor₁ at ⊢ h₂,
       refine is_conformal_map_complex_linear_conj _,
       contrapose! h₂ with w,
-      simp [w] } }
+      simp only [w, restrict_scalars_zero, zero_comp]} }
 end
 
 end conformal_into_complex_plane

@@ -4,14 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Frédéric Dupuis
 -/
 import algebra.star.self_adjoint
-import data.equiv.module
+import algebra.module.equiv
 import linear_algebra.prod
 
 /-!
 # The star operation, bundled as a star-linear equiv
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `star_linear_equiv`, which is the star operation bundled as a star-linear map.
 It is defined on a star algebra `A` over the base ring `R`.
+
+This file also provides some lemmas that need `algebra.module.basic` imported to prove.
 
 ## TODO
 
@@ -24,6 +29,35 @@ It is defined on a star algebra `A` over the base ring `R`.
   the appropriate `ring_hom_inv_pair` instances to be able to define the semilinear
   equivalence.
 -/
+
+section smul_lemmas
+variables {R M : Type*}
+
+@[simp] lemma star_nat_cast_smul [semiring R] [add_comm_monoid M] [module R M] [star_add_monoid M]
+  (n : ℕ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
+map_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
+
+@[simp] lemma star_int_cast_smul [ring R] [add_comm_group M] [module R M] [star_add_monoid M]
+  (n : ℤ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
+map_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
+
+@[simp] lemma star_inv_nat_cast_smul [division_semiring R] [add_comm_monoid M] [module R M]
+  [star_add_monoid M] (n : ℕ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
+map_inv_nat_cast_smul (star_add_equiv : M ≃+ M) R R n x
+
+@[simp] lemma star_inv_int_cast_smul [division_ring R] [add_comm_group M] [module R M]
+  [star_add_monoid M] (n : ℤ) (x : M) : star ((n⁻¹ : R) • x) = (n⁻¹ : R) • star x :=
+map_inv_int_cast_smul (star_add_equiv : M ≃+ M) R R n x
+
+@[simp] lemma star_rat_cast_smul [division_ring R] [add_comm_group M] [module R M]
+  [star_add_monoid M] (n : ℚ) (x : M) : star ((n : R) • x) = (n : R) • star x :=
+map_rat_cast_smul (star_add_equiv : M ≃+ M) _ _ _ x
+
+@[simp] lemma star_rat_smul {R : Type*} [add_comm_group R] [star_add_monoid R] [module ℚ R]
+  (x : R) (n : ℚ) : star (n • x) = n • star x :=
+map_rat_smul (star_add_equiv : R ≃+ R) _ _
+
+end smul_lemmas
 
 /-- If `A` is a module over a commutative `R` with compatible actions,
 then `star` is a semilinear equivalence. -/
@@ -41,7 +75,7 @@ variables (R : Type*) (A : Type*)
 
 /-- The self-adjoint elements of a star module, as a submodule. -/
 def self_adjoint.submodule : submodule R A :=
-{ smul_mem' := self_adjoint.smul_mem,
+{ smul_mem' := λ r x, (is_self_adjoint.all _).smul,
   ..self_adjoint A }
 
 /-- The skew-adjoint elements of a star module, as a submodule. -/
@@ -66,7 +100,7 @@ variables {A} [invertible (2 : R)]
 { to_fun := λ x, ⟨(⅟2 : R) • (x - star x),
     by simp only [skew_adjoint.mem_iff, star_smul, star_sub, star_star, star_trivial, ←smul_neg,
                   neg_sub]⟩,
-  map_add' := λ x y, by { ext, simp only [sub_add, ←smul_add, sub_sub_assoc_swap, star_add,
+  map_add' := λ x y, by { ext, simp only [sub_add, ←smul_add, sub_sub_eq_add_sub, star_add,
                                           add_subgroup.coe_mk, add_subgroup.coe_add] },
   map_smul' := λ r x, by { ext, simp [←mul_smul, ←smul_sub,
             show r * ⅟ 2 = ⅟ 2 * r, from commute.inv_of_right (commute.one_right r).bit0_right] } }
@@ -86,3 +120,9 @@ linear_equiv.of_linear
   ((self_adjoint.submodule R A).subtype.coprod (skew_adjoint.submodule R A).subtype)
   (by ext; simp)
   (linear_map.ext $ star_module.self_adjoint_part_add_skew_adjoint_part R)
+
+@[simp]
+lemma algebra_map_star_comm {R A : Type*} [comm_semiring R] [star_ring R] [semiring A]
+  [star_semigroup A] [algebra R A] [star_module R A] (r : R) :
+  algebra_map R A (star r) = star (algebra_map R A r) :=
+by simp only [algebra.algebra_map_eq_smul_one, star_smul, star_one]

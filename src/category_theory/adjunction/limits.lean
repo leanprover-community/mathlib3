@@ -9,6 +9,9 @@ import category_theory.limits.creates
 /-!
 # Adjunctions and limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A left adjoint preserves colimits (`category_theory.adjunction.left_adjoint_preserves_colimits`),
 and a right adjoint preserves limits (`category_theory.adjunction.right_adjoint_preserves_limits`).
 
@@ -84,7 +87,7 @@ def functoriality_is_left_adjoint :
 /--
 A left adjoint preserves colimits.
 
-See https://stacks.math.columbia.edu/tag/0038.
+See <https://stacks.math.columbia.edu/tag/0038>.
 -/
 def left_adjoint_preserves_colimits : preserves_colimits_of_size.{v u} F :=
 { preserves_colimits_of_shape := λ J 𝒥,
@@ -194,7 +197,7 @@ def functoriality_is_right_adjoint :
 /--
 A right adjoint preserves limits.
 
-See https://stacks.math.columbia.edu/tag/0038.
+See <https://stacks.math.columbia.edu/tag/0038>.
 -/
 def right_adjoint_preserves_limits : preserves_limits_of_size.{v u} G :=
 { preserves_limits_of_shape := λ J 𝒥,

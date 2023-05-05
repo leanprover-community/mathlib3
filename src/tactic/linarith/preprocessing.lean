@@ -3,11 +3,10 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
+import data.prod.lex
+import tactic.cancel_denoms
 import tactic.linarith.datatypes
 import tactic.zify
-import tactic.cancel_denoms
-import order.lexicographic
 
 /-!
 # Linarith preprocessing

@@ -38,7 +38,7 @@ open prime_spectrum
 namespace algebraic_geometry
 open opposite
 open category_theory
-open structure_sheaf
+open structure_sheaf Spec (structure_sheaf)
 open topological_space
 open algebraic_geometry.LocallyRingedSpace
 open Top.presheaf
@@ -90,7 +90,7 @@ abbreviation to_Γ_Spec_map_basic_open : opens X :=
 
 /-- The preimage is the basic open in `X` defined by the same element `r`. -/
 lemma to_Γ_Spec_map_basic_open_eq : X.to_Γ_Spec_map_basic_open r = X.to_RingedSpace.basic_open r :=
-subtype.eq (X.to_Γ_Spec_preim_basic_open_eq r)
+opens.ext (X.to_Γ_Spec_preim_basic_open_eq r)
 
 /-- The map from the global sections `Γ(X)` to the sections on the (preimage of) a basic open. -/
 abbreviation to_to_Γ_Spec_map_basic_open :
@@ -183,15 +183,15 @@ begin
 end
 
 /-- The canonical morphism from `X` to the spectrum of its global sections. -/
-@[simps coe_base]
+@[simps val_base]
 def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
 { val := X.to_Γ_Spec_SheafedSpace,
-  property :=
+  prop :=
   begin
     intro x,
     let p : prime_spectrum (Γ.obj (op X)) := X.to_Γ_Spec_fun x,
     constructor, /- show stalk map is local hom ↓ -/
-    let S := (structure_sheaf _).val.stalk p,
+    let S := (structure_sheaf _).presheaf.stalk p,
     rintros (t : S) ht,
     obtain ⟨⟨r, s⟩, he⟩ := is_localization.surj p.as_ideal.prime_compl t,
     dsimp at he,
@@ -246,7 +246,7 @@ def identity_to_Γ_Spec : 𝟭 LocallyRingedSpace.{u} ⟶ Γ.right_op ⋙ Spec.t
     apply LocallyRingedSpace.comp_ring_hom_ext,
     { ext1 x,
       dsimp [Spec.Top_map, LocallyRingedSpace.to_Γ_Spec_fun],
-      rw [← subtype.val_eq_coe, ← local_ring.comap_closed_point (PresheafedSpace.stalk_map _ x),
+      rw [← local_ring.comap_closed_point (PresheafedSpace.stalk_map _ x),
         ← prime_spectrum.comap_comp_apply, ← prime_spectrum.comap_comp_apply],
       congr' 2,
       exact (PresheafedSpace.stalk_map_germ f.1 ⊤ ⟨x,trivial⟩).symm,
@@ -272,7 +272,7 @@ begin
   apply LocallyRingedSpace.comp_ring_hom_ext,
   { ext (p : prime_spectrum R) x,
     erw ← is_localization.at_prime.to_map_mem_maximal_iff
-      ((structure_sheaf R).val.stalk p) p.as_ideal x,
+      ((structure_sheaf R).presheaf.stalk p) p.as_ideal x,
     refl },
   { intro r, apply to_open_res },
 end

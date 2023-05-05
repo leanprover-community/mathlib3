@@ -3,11 +3,14 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad
 -/
-import data.finset.basic
+import data.finset.image
 import tactic.by_contra
 
 /-!
 # Cardinality of a finite set
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This defines the cardinality of a `finset` and provides induction principles for finsets.
 
@@ -53,7 +56,7 @@ lemma card_le_of_subset : s ⊆ t → s.card ≤ t.card := multiset.card_le_of_l
 lemma card_pos : 0 < s.card ↔ s.nonempty :=
 pos_iff_ne_zero.trans $ (not_congr card_eq_zero).trans nonempty_iff_ne_empty.symm
 
-alias finset.card_pos ↔ _ finset.nonempty.card_pos
+alias card_pos ↔ _ nonempty.card_pos
 
 lemma card_ne_zero_of_mem (h : a ∈ s) : s.card ≠ 0 := (not_congr card_eq_zero).2 $ ne_empty_of_mem h
 
@@ -160,7 +163,7 @@ begin
   exact inj_on_of_nodup_map this,
 end
 
-lemma card_image_eq_iff_inj_on [decidable_eq β] : (s.image f).card = s.card ↔ set.inj_on f s :=
+lemma card_image_iff [decidable_eq β] : (s.image f).card = s.card ↔ set.inj_on f s :=
 ⟨inj_on_of_card_image_eq, card_image_of_inj_on⟩
 
 lemma card_image_of_injective [decidable_eq β] (s : finset α) (H : injective f) :
@@ -183,6 +186,12 @@ card_le_of_subset $ filter_subset _ _
 
 lemma eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : t.card ≤ s.card) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
+
+lemma eq_of_superset_of_card_ge (hst : s ⊆ t) (hts : t.card ≤ s.card) : t = s :=
+(eq_of_subset_of_card_le hst hts).symm
+
+lemma subset_iff_eq_of_card_le (h : t.card ≤ s.card) : s ⊆ t ↔ s = t :=
+⟨λ hst, eq_of_subset_of_card_le hst h, eq.subset'⟩
 
 lemma map_eq_of_subset {f : α ↪ α} (hs : s.map f ⊆ s) : s.map f = s :=
 eq_of_subset_of_card_le hs (card_map _).ge
@@ -290,6 +299,9 @@ have hif : injective f',
       (right_inverse_surj_inv _)).injective,
 subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
+@[simp] lemma card_disj_union (s t : finset α) (h) : (s.disj_union t h).card = s.card + t.card :=
+multiset.card_add _ _
+
 /-! ### Lattice structure -/
 
 section lattice
@@ -298,14 +310,17 @@ variables [decidable_eq α]
 lemma card_union_add_card_inter (s t : finset α) : (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
 finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
+lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
+by rw [add_comm, card_union_add_card_inter]
+
 lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq (h : disjoint s t) : (s ∪ t).card = s.card + t.card :=
-by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+by rw [←disj_union_eq_union s t h, card_disj_union _ _ _]
 
 @[simp] lemma card_disjoint_union (h : disjoint s t) : card (s ∪ t) = s.card + t.card :=
-by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+card_union_eq h
 
 lemma card_sdiff (h : s ⊆ t) : card (t \ s) = t.card - s.card :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - s.card, by rwa sdiff_union_of_subset h at this,
@@ -319,6 +334,9 @@ calc card t - card s
       ≤ card t - card (s ∩ t) : tsub_le_tsub_left (card_le_of_subset (inter_subset_left s t)) _
   ... = card (t \ (s ∩ t)) : (card_sdiff (inter_subset_right s t)).symm
   ... ≤ card (t \ s) : by rw sdiff_inter_self_right t s
+
+lemma card_le_card_sdiff_add_card : s.card ≤ (s \ t).card + t.card :=
+tsub_le_iff_right.1 $ le_card_sdiff _ _
 
 lemma card_sdiff_add_card : (s \ t).card + t.card = (s ∪ t).card :=
 by rw [←card_disjoint_union sdiff_disjoint, sdiff_union_self_eq_union]

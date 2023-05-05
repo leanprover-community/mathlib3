@@ -3,8 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import algebra.algebra.basic
-import data.equiv.ring
+import algebra.algebra.tower
+import algebra.ring.equiv
 import group_theory.monoid_localization
 import ring_theory.ideal.basic
 import ring_theory.non_zero_divisors
@@ -12,6 +12,9 @@ import tactic.ring_exp
 
 /-!
 # Localizations of commutative rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We characterize the localization of a commutative ring `R` at a submonoid `M` up to
 isomorphism; that is, a commutative ring `S` is the localization of `R` at `M` iff we can find a
@@ -80,18 +83,20 @@ fractions `K`, assume `[field K]` instead of just `[comm_ring K]`.
 localization, ring localization, commutative ring localization, characteristic predicate,
 commutative ring, field of fractions
 -/
-variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
-variables [algebra R S] {P : Type*} [comm_ring P]
 
 open function
 open_locale big_operators
+
+section comm_semiring
+variables {R : Type*} [comm_semiring R] (M : submonoid R) (S : Type*) [comm_semiring S]
+variables [algebra R S] {P : Type*} [comm_semiring P]
 
 /-- The typeclass `is_localization (M : submodule R) S` where `S` is an `R`-algebra
 expresses that `S` is isomorphic to the localization of `R` at `M`. -/
 class is_localization : Prop :=
 (map_units [] : ∀ y : M, is_unit (algebra_map R S y))
 (surj [] : ∀ z : S, ∃ x : R × M, z * algebra_map R S x.2 = algebra_map R S x.1)
-(eq_iff_exists [] : ∀ {x y}, algebra_map R S x = algebra_map R S y ↔ ∃ c : M, x * c = y * c)
+(eq_iff_exists [] : ∀ {x y}, algebra_map R S x = algebra_map R S y ↔ ∃ c : M, ↑c * x = ↑c * y)
 
 variables {M S}
 
@@ -115,24 +120,29 @@ lemma of_le (N : submonoid R) (h₁ : M ≤ N)
       rintro ⟨c, hc⟩,
       exact ⟨⟨c, h₁ c.2⟩, hc⟩ },
     { rintro ⟨c, h⟩,
-      simpa only [set_like.coe_mk, map_mul, (h₂ c c.2).mul_left_inj] using
+      simpa only [set_like.coe_mk, map_mul, (h₂ c c.2).mul_right_inj] using
         congr_arg (algebra_map R S) h }
   end }
 
 variables (S)
 
-/-- `is_localization.to_localization_map M S` shows `S` is the monoid localization of `R` at `M`. -/
+/-- `is_localization.to_localization_with_zero_map M S` shows `S` is the monoid localization of
+`R` at `M`. -/
 @[simps]
-def to_localization_map : submonoid.localization_map M S :=
+def to_localization_with_zero_map : submonoid.localization_with_zero_map M S :=
 { to_fun := algebra_map R S,
   map_units' := is_localization.map_units _,
   surj' := is_localization.surj _,
   eq_iff_exists' := λ _ _, is_localization.eq_iff_exists _ _,
   .. algebra_map R S }
 
+/-- `is_localization.to_localization_map M S` shows `S` is the monoid localization of `R` at `M`. -/
+abbreviation to_localization_map : submonoid.localization_map M S :=
+(to_localization_with_zero_map M S).to_localization_map
+
 @[simp]
 lemma to_localization_map_to_map :
-  (to_localization_map M S).to_map = (algebra_map R S : R →* S) := rfl
+  (to_localization_map M S).to_map = (algebra_map R S : R →*₀ S) := rfl
 
 lemma to_localization_map_to_map_apply (x) :
   (to_localization_map M S).to_map x = algebra_map R S x := rfl
@@ -180,7 +190,7 @@ by { rw [hx, (algebra_map R S).map_zero] at h,
 variables (M S)
 
 lemma map_eq_zero_iff (r : R) :
-  algebra_map R S r = 0 ↔ ∃ m : M, r * m = 0 :=
+  algebra_map R S r = 0 ↔ ∃ m : M, ↑m * r = 0 :=
 begin
   split,
   intro h,
@@ -188,7 +198,7 @@ begin
       ((algebra_map R S).map_zero.trans h.symm),
     exact ⟨m, by simpa using hm.symm⟩ },
   { rintro ⟨m, hm⟩,
-    rw [← (is_localization.map_units S m).mul_left_inj, zero_mul, ← ring_hom.map_mul, hm,
+    rw [← (is_localization.map_units S m).mul_right_inj, mul_zero, ← ring_hom.map_mul, hm,
       ring_hom.map_zero] }
 end
 
@@ -240,6 +250,10 @@ theorem mk'_eq_iff_eq_mul {x} {y : M} {z} :
   mk' S x y = z ↔ algebra_map R S x = z * algebra_map R S y :=
 (to_localization_map M S).mk'_eq_iff_eq_mul
 
+theorem mk'_add_eq_iff_add_mul_eq_mul {x} {y : M} {z₁ z₂} :
+  mk' S x y + z₁ = z₂ ↔ algebra_map R S x + z₁ * algebra_map R S y = z₂ * algebra_map R S y :=
+by rw [←mk'_spec S x y, ←is_unit.mul_left_inj (is_localization.map_units S y), right_distrib]
+
 variables (M)
 
 lemma mk'_surjective (z : S) : ∃ x (y : M), mk' S x y = z :=
@@ -264,8 +278,12 @@ def unique_of_zero_mem (h : (0 : R) ∈ M) : unique S :=
 unique_of_zero_eq_one $ by simpa using is_localization.map_units S ⟨0, h⟩
 
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
-  mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
+  mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (y₂ * x₁) = algebra_map R S (y₁ * x₂) :=
 (to_localization_map M S).mk'_eq_iff_eq
+
+lemma mk'_eq_iff_eq' {x₁ x₂} {y₁ y₂ : M} :
+  mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
+(to_localization_map M S).mk'_eq_iff_eq'
 
 lemma mk'_mem_iff {x} {y : M} {I : ideal S} : mk' S x y ∈ I ↔ algebra_map R S x ∈ I :=
 begin
@@ -280,11 +298,11 @@ begin
 end
 
 protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
-  mk' S a₁ a₂ = mk' S b₁ b₂ ↔ ∃ c : M, a₁ * b₂ * c = b₁ * a₂ * c :=
+  mk' S a₁ a₂ = mk' S b₁ b₂ ↔ ∃ c : M, ↑c * (↑b₂ * a₁) = c * (a₂ * b₁) :=
 (to_localization_map M S).eq
 
 lemma mk'_eq_zero_iff (x : R) (s : M) :
-  mk' S x s = 0 ↔ ∃ (m : M), x * m = 0 :=
+  mk' S x s = 0 ↔ ∃ (m : M), ↑m * x = 0 :=
 by rw [← (map_units S s).mul_left_inj, mk'_spec, zero_mul, map_eq_zero_iff M]
 
 @[simp] lemma mk'_zero (s : M) : is_localization.mk' S 0 s = 0 :=
@@ -308,9 +326,13 @@ lemma mk'_eq_iff_mk'_eq {x₁ x₂}
   {y₁ y₂ : M} : mk' S x₁ y₁ = mk' S x₂ y₂ ↔ mk' P x₁ y₁ = mk' P x₂ y₂ :=
 (to_localization_map M S).mk'_eq_iff_mk'_eq (to_localization_map M P)
 
-lemma mk'_eq_of_eq {a₁ b₁ : R} {a₂ b₂ : M} (H : b₁ * a₂ = a₁ * b₂) :
+lemma mk'_eq_of_eq {a₁ b₁ : R} {a₂ b₂ : M} (H : ↑a₂ * b₁ = ↑b₂ * a₁) :
   mk' S a₁ a₂ = mk' S b₁ b₂ :=
 (to_localization_map M S).mk'_eq_of_eq H
+
+lemma mk'_eq_of_eq' {a₁ b₁ : R} {a₂ b₂ : M} (H : b₁ * ↑a₂ = a₁ * ↑b₂) :
+  mk' S a₁ a₂ = mk' S b₁ b₂ :=
+(to_localization_map M S).mk'_eq_of_eq' H
 
 variables (S)
 
@@ -359,7 +381,7 @@ lemma is_unit_comp (j : S →+* P) (y : M) :
 
 end
 
-/-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_ring`s
+/-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_semiring`s
 `g : R →+* P` such that `g(M) ⊆ units P`, `f x = f y → g x = g y` for all `x y : R`. -/
 lemma eq_of_eq {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) {x y}
   (h : (algebra_map R S) x = (algebra_map R S) y) :
@@ -371,41 +393,60 @@ lemma mk'_add (x₁ x₂ : R) (y₁ y₂ : M) :
   mk' S (x₁ * y₂ + x₂ * y₁) (y₁ * y₂) = mk' S x₁ y₁ + mk' S x₂ y₂ :=
 mk'_eq_iff_eq_mul.2 $ eq.symm
 begin
-  rw [mul_comm (_ + _), mul_add, mul_mk'_eq_mk'_of_mul, ←eq_sub_iff_add_eq, mk'_eq_iff_eq_mul,
-      mul_comm _ ((algebra_map R S) _), mul_sub, eq_sub_iff_add_eq, ←eq_sub_iff_add_eq', ←mul_assoc,
-      ←(algebra_map R S).map_mul, mul_mk'_eq_mk'_of_mul, mk'_eq_iff_eq_mul],
-  simp only [(algebra_map R S).map_add, submonoid.coe_mul, (algebra_map R S).map_mul],
-  ring_exp,
+  rw [mul_comm (_ + _), mul_add, mul_mk'_eq_mk'_of_mul, mk'_add_eq_iff_add_mul_eq_mul,
+    mul_comm (_ * _), ←mul_assoc, add_comm, ←map_mul, mul_mk'_eq_mk'_of_mul,
+    mk'_add_eq_iff_add_mul_eq_mul],
+  simp only [map_add, submonoid.coe_mul, map_mul],
+  ring
 end
 
-/-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_ring`s
+lemma mul_add_inv_left {g : R →+* P} (h : ∀ y : M, is_unit (g y)) (y : M) (w z₁ z₂ : P) :
+  w * ↑(is_unit.lift_right (g.to_monoid_hom.restrict M) h y)⁻¹ + z₁ = z₂
+    ↔ w + g y * z₁ = g y * z₂ :=
+begin
+  rw [mul_comm, ←one_mul z₁, ←units.inv_mul (is_unit.lift_right (g.to_monoid_hom.restrict M) h y),
+    mul_assoc, ←mul_add, units.inv_mul_eq_iff_eq_mul, units.inv_mul_cancel_left,
+    is_unit.coe_lift_right],
+  simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.restrict_apply, ring_hom.coe_monoid_hom]
+end
+
+lemma lift_spec_mul_add {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) (z w w' v) :
+  ((to_localization_with_zero_map M S).lift g.to_monoid_with_zero_hom hg) z * w + w' = v
+    ↔ g ((to_localization_map M S).sec z).1 * w + g ((to_localization_map M S).sec z).2 * w'
+      = g ((to_localization_map M S).sec z).2 * v :=
+begin
+  show  (_ * _) * _ + _ = _ ↔  _ = _,
+  erw [mul_comm, ←mul_assoc, mul_add_inv_left hg, mul_comm],
+  refl
+end
+
+/-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_semiring`s
 `g : R →+* P` such that `g y` is invertible for all `y : M`, the homomorphism induced from
 `S` to `P` sending `z : S` to `g x * (g y)⁻¹`, where `(x, y) : R × M` are such that
 `z = f x * (f y)⁻¹`. -/
 noncomputable def lift {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) : S →+* P :=
-ring_hom.mk' (@submonoid.localization_map.lift _ _ _ _ _ _ _
-  (to_localization_map M S) g.to_monoid_hom hg) $
-begin
-  intros x y,
-  rw [(to_localization_map M S).lift_spec, mul_comm, add_mul, ←sub_eq_iff_eq_add, eq_comm,
-      (to_localization_map M S).lift_spec_mul, mul_comm _ (_ - _), sub_mul, eq_sub_iff_add_eq',
-      ←eq_sub_iff_add_eq, mul_assoc, (to_localization_map M S).lift_spec_mul],
-  show g _ * (g _ * g _) = g _ * (g _ * g _ - g _ * g _),
-  simp only [← g.map_sub, ← g.map_mul, to_localization_map_sec],
-  apply eq_of_eq hg,
-  rw [(algebra_map R S).map_mul, sec_spec', mul_sub, (algebra_map R S).map_sub],
-  simp only [ring_hom.map_mul, sec_spec'],
-  ring,
-  assumption
-end
+{ map_add' :=
+  begin
+    intros x y,
+    erw [(to_localization_map M S).lift_spec, mul_add, mul_comm, eq_comm, lift_spec_mul_add,
+      add_comm, mul_comm,mul_assoc,mul_comm,mul_assoc, lift_spec_mul_add],
+    simp_rw ←mul_assoc,
+    show g _ * g _ * g _ + g _ * g _ * g _ = g _ * g _ * g _,
+    simp_rw [←map_mul g, ←map_add g],
+    apply @eq_of_eq _ _ _ S _ _ _ _ _ g hg,
+    simp only [sec_spec', to_localization_map_sec, map_add, map_mul],
+    ring
+  end,
+  .. @submonoid.localization_with_zero_map.lift _ _ _ _ _ _ _
+      (to_localization_with_zero_map M S) g.to_monoid_with_zero_hom hg }
 
 variables {g : R →+* P} (hg : ∀ y : M, is_unit (g y))
 
-/-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_ring`s
+/-- Given a localization map `f : R →+* S` for a submonoid `M ⊆ R` and a map of `comm_semiring`s
 `g : R →* P` such that `g y` is invertible for all `y : M`, the homomorphism induced from
 `S` to `P` maps `f x * (f y)⁻¹` to `g x * (g y)⁻¹` for all `x : R, y ∈ M`. -/
 lemma lift_mk' (x y) :
-  lift hg (mk' S x y) = g x * ↑(is_unit.lift_right (g.to_monoid_hom.mrestrict M) hg y)⁻¹ :=
+  lift hg (mk' S x y) = g x * ↑(is_unit.lift_right (g.to_monoid_hom.restrict M) hg y)⁻¹ :=
 (to_localization_map M S).lift_mk' _ _ _
 
 lemma lift_mk'_spec (x v) (y : M) :
@@ -439,6 +480,12 @@ lemma ring_hom_ext ⦃j k : S →+* P⦄
   (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
 ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h
 
+/- This is not an instance because the submonoid `M` would become a metavariable
+  in typeclass search. -/
+lemma alg_hom_subsingleton [algebra R P] : subsingleton (S →ₐ[R] P) :=
+⟨λ f g, alg_hom.coe_ring_hom_injective $ is_localization.ring_hom_ext M $
+  by rw [f.comp_algebra_map, g.comp_algebra_map]⟩
+
 /-- To show `j` and `k` agree on the whole localization, it suffices to show they agree
 on the image of the base ring, if they preserve `1` and `*`. -/
 protected lemma ext (j k : S → P) (hj1 : j 1 = 1) (hk1 : k 1 = 1)
@@ -466,7 +513,7 @@ lemma lift_injective_iff :
 
 section map
 
-variables {T : submonoid P} {Q : Type*} [comm_ring Q] (hy : M ≤ T.comap g)
+variables {T : submonoid P} {Q : Type*} [comm_semiring Q] (hy : M ≤ T.comap g)
 variables [algebra P Q] [is_localization T Q]
 
 section
@@ -505,17 +552,17 @@ lemma map_unique (j : S →+* Q)
   (hj : ∀ x : R, j (algebra_map R S x) = algebra_map P Q (g x)) : map Q g hy = j :=
 lift_unique (λ y, map_units _ ⟨g y, hy y.2⟩) hj
 
-/-- If `comm_ring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
+/-- If `comm_semiring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
 of the induced maps equals the map of localizations induced by `l ∘ g`. -/
-lemma map_comp_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
+lemma map_comp_map {A : Type*} [comm_semiring A] {U : submonoid A} {W} [comm_semiring W]
   [algebra A W] [is_localization U W] {l : P →+* A} (hl : T ≤ U.comap l) :
   (map W l hl).comp (map Q g hy : S →+* _) = map W (l.comp g) (λ x hx, hl (hy hx)) :=
 ring_hom.ext $ λ x, @submonoid.localization_map.map_map _ _ _ _ _ P _ (to_localization_map M S) g _
 _ _ _ _ _ _ _ _ _ (to_localization_map U W) l _ x
 
-/-- If `comm_ring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
+/-- If `comm_semiring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
 of the induced maps equals the map of localizations induced by `l ∘ g`. -/
-lemma map_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
+lemma map_map {A : Type*} [comm_semiring A] {U : submonoid A} {W} [comm_semiring W]
   [algebra A W] [is_localization U W] {l : P →+* A} (hl : T ≤ U.comap l) (x : S) :
   map W l hl (map Q g hy x) = map W (l.comp g) (λ x hx, hl (hy hx)) x :=
 by rw ←map_comp_map hy hl; refl
@@ -563,7 +610,7 @@ end map
 
 section alg_equiv
 
-variables {Q : Type*} [comm_ring Q] [algebra R Q] [is_localization M Q]
+variables {Q : Type*} [comm_semiring Q] [algebra R Q] [is_localization M Q]
 
 section
 
@@ -645,7 +692,7 @@ begin
     rw [ring_hom.algebra_map_to_algebra, ring_hom.comp_apply, ring_hom.comp_apply,
       is_localization.eq_iff_exists M S],
     simp_rw ← h.to_equiv.apply_eq_iff_eq,
-    change (∃ (c : M), h (h.symm x * c) = h (h.symm y * c)) ↔ _,
+    change (∃ (c : M), h (c * h.symm x) = h (c * h.symm y)) ↔ _,
     simp only [ring_equiv.apply_symm_apply, ring_equiv.map_mul],
     exact ⟨λ ⟨c, e⟩, ⟨⟨_, _, c.prop, rfl⟩, e⟩, λ ⟨⟨_, c, h, e₁⟩, e₂⟩, ⟨⟨_, h⟩, e₁.symm ▸ e₂⟩⟩ }
 end
@@ -674,20 +721,20 @@ variables (M S)
 include M
 
 lemma non_zero_divisors_le_comap [is_localization M S] :
-    non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
+  non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
 begin
   rintros a ha b (e : b * algebra_map R S a = 0),
   obtain ⟨x, s, rfl⟩ := mk'_surjective M b,
   rw [← @mk'_one R _ M, ← mk'_mul, ← (algebra_map R S).map_zero, ← @mk'_one R _ M,
     is_localization.eq] at e,
   obtain ⟨c, e⟩ := e,
-  rw [zero_mul, zero_mul, submonoid.coe_one, mul_one, mul_comm x a, mul_assoc, mul_comm] at e,
+  rw [mul_zero, mul_zero, submonoid.coe_one, one_mul, ←mul_assoc] at e,
   rw mk'_eq_zero_iff,
   exact ⟨c, ha _ e⟩
 end
 
 lemma map_non_zero_divisors_le [is_localization M S] :
-    (non_zero_divisors R).map (algebra_map R S).to_monoid_hom ≤ non_zero_divisors S  :=
+  (non_zero_divisors R).map (algebra_map R S) ≤ non_zero_divisors S  :=
 submonoid.map_le_iff_le_comap.mpr (non_zero_divisors_le_comap M S)
 
 end is_localization
@@ -718,10 +765,11 @@ begin
   rw r_eq_r' at h1 h2 ⊢,
   cases h1 with t₅ ht₅,
   cases h2 with t₆ ht₆,
-  use t₆ * t₅,
-  calc ((b : R) * c + d * a) * (b' * d') * (t₆ * t₅) =
-      (c * d' * t₆) * (b * b' * t₅) + (a * b' * t₅) * (d * d' * t₆) : by ring
-      ... = (b' * c' + d' * a') * (b * d) * (t₆ * t₅) : by rw [ht₆, ht₅]; ring
+  use t₅ * t₆,
+  dsimp only,
+  calc  (↑t₅ * ↑t₆) * ((↑b' * ↑d') * ((b : R) * c + d * a)) =
+      (t₆ * (d' * c)) * (t₅ * (b' * b)) + (t₅ * (b' * a)) * (t₆ * (d' * d)) : by ring
+      ... = (t₅ * t₆) * ((b * d)  * (b' * c' + d' * a')) : by rw [ht₆, ht₅]; ring
 end
 
 instance : has_add (localization M) := ⟨localization.add⟩
@@ -737,46 +785,14 @@ begin
   ring
 end
 
-/-- Negation in a ring localization is defined as `-⟨a, b⟩ = ⟨-a, b⟩`. -/
-@[irreducible] protected def neg (z : localization M) : localization M :=
-localization.lift_on z (λ a b, mk (-a) b) $
-  λ a b c d h, mk_eq_mk_iff.2
-begin
-  rw r_eq_r' at h ⊢,
-  cases h with t ht,
-  use t,
-  rw [neg_mul, neg_mul, ht],
-  ring_nf,
-end
-
-instance : has_neg (localization M) := ⟨localization.neg⟩
-
-lemma neg_mk (a b) : -(mk a b : localization M) = mk (-a) b :=
-by { unfold has_neg.neg localization.neg, apply lift_on_mk }
-
-/-- The zero element in a ring localization is defined as `⟨0, 1⟩`.
-
-Should not be confused with `add_localization.zero` which is `⟨0, 0⟩`. -/
-@[irreducible] protected def zero : localization M :=
-mk 0 1
-
-instance : has_zero (localization M) := ⟨localization.zero⟩
-
-lemma mk_zero (b) : (mk 0 b : localization M) = 0 :=
-calc mk 0 b = mk 0 1 : mk_eq_mk_iff.mpr (r_of_eq (by simp))
-... = 0 : by  unfold has_zero.zero localization.zero
-
-lemma lift_on_zero {p : Type*} (f : ∀ (a : R) (b : M), p) (H) : lift_on 0 f H = f 0 1 :=
-by rw [← mk_zero 1, lift_on_mk]
-
 private meta def tac := `[
 { intros,
-  simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
+  simp only [add_mk, localization.mk_mul, ← localization.mk_zero 1],
   refine mk_eq_mk_iff.mpr (r_of_eq _),
-  simp only [submonoid.coe_mul, prod.fst_mul, prod.snd_mul],
+  simp only [submonoid.coe_mul],
   ring }]
 
-instance : comm_ring (localization M) :=
+instance : comm_semiring (localization M) :=
 { zero := 0,
   one  := 1,
   add  := (+),
@@ -787,24 +803,33 @@ instance : comm_ring (localization M) :=
     (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
     (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
-  zsmul := (•),
-  zsmul_zero' := λ x, localization.induction_on x
-    (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
-  zsmul_succ' := λ n x, localization.induction_on x
-    (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
-  zsmul_neg' := λ n x, localization.induction_on x
-    (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
   add_zero       := λ y, localization.induction_on y (by tac),
-  neg            := has_neg.neg,
-  sub            := λ x y, x + -y,
-  sub_eq_add_neg := λ x y, rfl,
-  add_left_neg   := λ y, by exact localization.induction_on y (by tac),
   add_comm       := λ y z, localization.induction_on₂ z y (by tac),
   left_distrib   := λ m n k, localization.induction_on₃ m n k (by tac),
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
-   ..localization.comm_monoid M }
+  .. localization.comm_monoid_with_zero M }
+
+/--For any given denominator `b : M`, the map `a ↦ a / b` is an `add_monoid_hom` from `R` to
+  `localization M`-/
+@[simps]
+def mk_add_monoid_hom (b : M) : R →+ localization M :=
+{ to_fun := λ a, mk a b,
+  map_zero' := mk_zero _,
+  map_add' := λ x y, (add_mk_self _ _ _).symm }
+
+lemma mk_sum {ι : Type*} (f : ι → R) (s : finset ι) (b : M) :
+  mk (∑ i in s, f i) b = ∑ i in s, mk (f i) b :=
+(mk_add_monoid_hom b).map_sum f s
+
+lemma mk_list_sum (l : list R) (b : M) :
+  mk l.sum b = (l.map $ λ a, mk a b).sum :=
+(mk_add_monoid_hom b).map_list_sum l
+
+lemma mk_multiset_sum (l : multiset R) (b : M) :
+  mk l.sum b = (l.map $ λ a, mk a b).sum :=
+(mk_add_monoid_hom b).map_multiset_sum l
 
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
@@ -868,6 +893,13 @@ by rw [mk_eq_monoid_of_mk'_apply, mk', to_localization_map_eq_monoid_of]
 @[simp] lemma mk_eq_mk' : (mk : R → M → localization M) = is_localization.mk' (localization M) :=
 mk_eq_monoid_of_mk'
 
+lemma mk_algebra_map {A : Type*} [comm_semiring A] [algebra A R] (m : A) :
+  mk (algebra_map A R m) 1 = algebra_map A (localization M) m :=
+by rw [mk_eq_mk', mk'_eq_iff_eq_mul, submonoid.coe_one, map_one, mul_one]; refl
+
+lemma mk_nat_cast (m : ℕ) : (mk m 1 : localization M) = m :=
+by simpa using @mk_algebra_map R _ M ℕ _ _ m
+
 variables [is_localization M S]
 
 section
@@ -880,7 +912,7 @@ noncomputable def alg_equiv : localization M ≃ₐ[R] S :=
 is_localization.alg_equiv M _ _
 
 /-- The localization of a singleton is a singleton. Cannot be an instance due to metavariables. -/
-noncomputable def _root_.is_localization.unique (R Rₘ) [comm_ring R] [comm_ring Rₘ]
+noncomputable def _root_.is_localization.unique (R Rₘ) [comm_semiring R] [comm_semiring Rₘ]
   (M : submonoid R) [subsingleton R] [algebra R Rₘ] [is_localization M Rₘ] : unique Rₘ :=
 have inhabited Rₘ := ⟨1⟩,
 by exactI (alg_equiv M Rₘ).symm.injective.unique
@@ -905,6 +937,64 @@ by rw [mk_eq_mk', alg_equiv_symm_mk']
 
 end localization
 
+end comm_semiring
+
+section comm_ring
+variables {R : Type*} [comm_ring R] {M : submonoid R} (S : Type*) [comm_ring S]
+variables [algebra R S] {P : Type*} [comm_ring P]
+
+namespace localization
+
+/-- Negation in a ring localization is defined as `-⟨a, b⟩ = ⟨-a, b⟩`. -/
+@[irreducible] protected def neg (z : localization M) : localization M :=
+localization.lift_on z (λ a b, mk (-a) b) $
+  λ a b c d h, mk_eq_mk_iff.2
+begin
+  rw r_eq_r' at h ⊢,
+  cases h with t ht,
+  use t,
+  rw [mul_neg, mul_neg, ht],
+  ring_nf,
+end
+
+instance : has_neg (localization M) := ⟨localization.neg⟩
+
+lemma neg_mk (a b) : -(mk a b : localization M) = mk (-a) b :=
+by { unfold has_neg.neg localization.neg, apply lift_on_mk }
+
+instance : comm_ring (localization M) :=
+{ zsmul := (•),
+  zsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
+  zsmul_succ' := λ n x, localization.induction_on x
+    (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
+  zsmul_neg' := λ n x, localization.induction_on x
+    (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
+  neg            := has_neg.neg,
+  sub            := λ x y, x + -y,
+  sub_eq_add_neg := λ x y, rfl,
+  add_left_neg   := λ y, by exact localization.induction_on y
+  begin
+    intros,
+    simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
+    refine mk_eq_mk_iff.mpr (r_of_eq _),
+    simp only [submonoid.coe_mul],
+    ring
+  end,
+   .. localization.comm_semiring }
+
+lemma sub_mk (a c) (b d) : (mk a b : localization M) - mk c d = mk (d * a - b * c) (b * d) :=
+calc  mk a b - mk c d
+    = mk a b + (- mk c d) : sub_eq_add_neg _ _
+... = mk a b + (mk (-c) d) : by rw neg_mk
+... = mk (b * (-c) + d * a) (b * d) : add_mk _ _ _ _
+... = mk (d * a - b * c) (b * d) : by congr'; ring
+
+lemma mk_int_cast (m : ℤ) : (mk m 1 : localization M) = m :=
+by simpa using @mk_algebra_map R _ M ℤ _ _ m
+
+end localization
+
 namespace is_localization
 
 variables {R M} (S) {K : Type*} [is_localization M S]
@@ -915,7 +1005,7 @@ begin
   rw ← (algebra_map R S).map_zero,
   split; intro h,
   { cases (eq_iff_exists M S).mp h with c hc,
-    rw zero_mul at hc,
+    rw [mul_zero, mul_comm] at hc,
     exact hM c.2 x hc },
   { rw h },
 end
@@ -923,7 +1013,7 @@ end
 protected lemma injective (hM : M ≤ non_zero_divisors R) :
   injective (algebra_map R S) :=
 begin
-  rw ring_hom.injective_iff (algebra_map R S),
+  rw injective_iff_map_eq_zero (algebra_map R S),
   intros a ha,
   rwa to_map_eq_zero_iff S hM at ha
 end
@@ -933,25 +1023,65 @@ protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
 show (algebra_map R S).to_monoid_with_zero_hom x ≠ 0,
 from map_ne_zero_of_mem_non_zero_divisors (algebra_map R S) (is_localization.injective S hM) hx
 
+variables {S}
+
+lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) (x : S) :
+  ((sec M x).snd : R) ≠ 0 :=
+non_zero_divisors.coe_ne_zero ⟨(sec M x).snd.val, hM (sec M x).snd.property⟩
+
+lemma sec_fst_ne_zero [nontrivial R] [no_zero_divisors S] (hM : M ≤ non_zero_divisors R) {x : S}
+  (hx : x ≠ 0) : (sec M x).fst ≠ 0 :=
+begin
+  have hsec := sec_spec M x,
+  intro hfst,
+  rw [hfst, map_zero, mul_eq_zero, _root_.map_eq_zero_iff] at hsec,
+  { exact or.elim hsec hx (sec_snd_ne_zero hM x) },
+  { exact is_localization.injective S hM }
+end
+
 variables (S M) (Q : Type*) [comm_ring Q] {g : R →+* P} [algebra P Q]
 
 /-- Injectivity of a map descends to the map induced on localizations. -/
 lemma map_injective_of_injective
-  (hg : function.injective g) [is_localization (M.map g : submonoid P) Q]
-  (hM : (M.map g : submonoid P) ≤ non_zero_divisors P) :
+  (hg : function.injective g) [is_localization (M.map g : submonoid P) Q] :
   function.injective (map Q g M.le_comap_map : S → Q) :=
 begin
-  rintros x y hxy,
-  obtain ⟨a, b, rfl⟩ := mk'_surjective M x,
-  obtain ⟨c, d, rfl⟩ := mk'_surjective M y,
-  rw [map_mk' _ a b, map_mk' _ c d, mk'_eq_iff_eq] at hxy,
-  refine mk'_eq_iff_eq.2 (congr_arg (algebra_map _ _) (hg _)),
-  convert is_localization.injective _ hM hxy; simp,
+  rw injective_iff_map_eq_zero,
+  intros z hz,
+  obtain ⟨a, b, rfl⟩ := mk'_surjective M z,
+  rw [map_mk', mk'_eq_zero_iff] at hz,
+  obtain ⟨⟨m', hm'⟩, hm⟩ := hz,
+  rw submonoid.mem_map at hm',
+  obtain ⟨n, hn, hnm⟩ := hm',
+  rw [subtype.coe_mk, ← hnm,  ← map_mul, ← map_zero g] at hm,
+  rw [mk'_eq_zero_iff],
+  exact ⟨⟨n, hn⟩, hg hm⟩,
 end
 
 variables {S Q M}
 
 variables (A : Type*) [comm_ring A] [is_domain A]
+
+/-- A `comm_ring` `S` which is the localization of a ring `R` without zero divisors at a subset of
+non-zero elements does not have zero divisors.
+See note [reducible non-instances]. -/
+@[reducible]
+theorem no_zero_divisors_of_le_non_zero_divisors
+  [algebra A S] {M : submonoid A} [is_localization M S]
+  (hM : M ≤ non_zero_divisors A) : no_zero_divisors S :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero :=
+    begin
+      intros z w h,
+      cases surj M z with x hx,
+      cases surj M w with y hy,
+      have : z * w * algebra_map A S y.2 * algebra_map A S x.2 =
+        algebra_map A S x.1 * algebra_map A S y.1,
+      by rw [mul_assoc z, hy, ←hx]; ring,
+      rw [h, zero_mul, zero_mul, ← (algebra_map A S).map_mul] at this,
+      cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff S hM).mp this.symm) with H H,
+      { exact or.inl (eq_zero_of_fst_eq_zero hx H) },
+      { exact or.inr (eq_zero_of_fst_eq_zero hy H) },
+    end }
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain.
@@ -960,21 +1090,12 @@ See note [reducible non-instances]. -/
 theorem is_domain_of_le_non_zero_divisors
   [algebra A S] {M : submonoid A} [is_localization M S]
   (hM : M ≤ non_zero_divisors A) : is_domain S :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero :=
-    begin
-      intros z w h,
-      cases surj M z with x hx,
-      cases surj M w with y hy,
-      have : z * w * algebra_map A S y.2 * algebra_map A S x.2 =
-        algebra_map A S x.1 * algebra_map A S y.1,
-      by rw [mul_assoc z, hy, ←hx]; ac_refl,
-      rw [h, zero_mul, zero_mul, ← (algebra_map A S).map_mul] at this,
-      cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff S hM).mp this.symm) with H H,
-      { exact or.inl (eq_zero_of_fst_eq_zero hx H) },
-      { exact or.inr (eq_zero_of_fst_eq_zero hy H) },
-    end,
-  exists_pair_ne := ⟨(algebra_map A S) 0, (algebra_map A S) 1,
-                     λ h, zero_ne_one (is_localization.injective S hM h)⟩, }
+begin
+  apply no_zero_divisors.to_is_domain _,
+  { exact ⟨⟨(algebra_map A S) 0, (algebra_map A S) 1,
+                      λ h, zero_ne_one (is_localization.injective S hM h)⟩⟩ },
+  { exact no_zero_divisors_of_le_non_zero_divisors _ hM }
+end
 
 variables {A}
 
@@ -995,7 +1116,7 @@ lemma is_field.localization_map_bijective
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
-  letI := hR.to_field R,
+  letI := hR.to_field,
   replace hM := le_non_zero_divisors_of_no_zero_divisors hM,
   refine ⟨is_localization.injective _ hM, λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,
@@ -1025,7 +1146,12 @@ variables (S M)
 Given an algebra `R → S`, a submonoid `R` of `M`, and a localization `Rₘ` for `M`,
 let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.
 Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes,
-where `localization_map.map_comp` gives the commutativity of the underlying maps -/
+where `localization_map.map_comp` gives the commutativity of the underlying maps.
+
+This instance can be helpful if you define `Sₘ := localization (algebra.algebra_map_submonoid S M)`,
+however we will instead use the hypotheses `[algebra Rₘ Sₘ] [is_scalar_tower R Rₘ Sₘ]` in lemmas
+since the algebra structure may arise in different ways.
+-/
 noncomputable def localization_algebra : algebra Rₘ Sₘ :=
 (map Sₘ (algebra_map R S)
     (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
@@ -1033,17 +1159,76 @@ noncomputable def localization_algebra : algebra Rₘ Sₘ :=
 
 end
 
-lemma algebra_map_mk' (r : R) (m : M) :
-  (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) (mk' Rₘ r m) =
-    mk' Sₘ (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
-map_mk' _ _ _
+section
+
+variables [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
+
+variables (S Rₘ Sₘ)
+include S
+
+lemma is_localization.map_units_map_submonoid (y : M) : is_unit (algebra_map R Sₘ y) :=
+begin
+  rw is_scalar_tower.algebra_map_apply _ S,
+  exact is_localization.map_units Sₘ ⟨algebra_map R S y, algebra.mem_algebra_map_submonoid_of_mem y⟩
+end
+
+@[simp] lemma is_localization.algebra_map_mk' (x : R) (y : M) :
+  algebra_map Rₘ Sₘ (is_localization.mk' Rₘ x y) =
+    is_localization.mk' Sₘ (algebra_map R S x) ⟨algebra_map R S y,
+      algebra.mem_algebra_map_submonoid_of_mem y⟩ :=
+begin
+  rw [is_localization.eq_mk'_iff_mul_eq, subtype.coe_mk, ← is_scalar_tower.algebra_map_apply,
+      ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R Rₘ Sₘ,
+      is_scalar_tower.algebra_map_apply R Rₘ Sₘ, ← _root_.map_mul,
+      mul_comm, is_localization.mul_mk'_eq_mk'_of_mul],
+  exact congr_arg (algebra_map Rₘ Sₘ) (is_localization.mk'_mul_cancel_left x y)
+end
+
+variables (M)
+
+/-- If the square below commutes, the bottom map is uniquely specified:
+```
+R  →  S
+↓     ↓
+Rₘ → Sₘ
+```
+-/
+lemma is_localization.algebra_map_eq_map_map_submonoid :
+  algebra_map Rₘ Sₘ = map Sₘ (algebra_map R S)
+    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map) :=
+eq.symm $ is_localization.map_unique _ (algebra_map Rₘ Sₘ) (λ x,
+  by rw [← is_scalar_tower.algebra_map_apply R S Sₘ, ← is_scalar_tower.algebra_map_apply R Rₘ Sₘ])
+
+/-- If the square below commutes, the bottom map is uniquely specified:
+```
+R  →  S
+↓     ↓
+Rₘ → Sₘ
+```
+-/
+lemma is_localization.algebra_map_apply_eq_map_map_submonoid (x) :
+  algebra_map Rₘ Sₘ x = map Sₘ (algebra_map R S)
+    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
+    x :=
+fun_like.congr_fun (is_localization.algebra_map_eq_map_map_submonoid _ _ _ _) x
+
+variables {R}
+
+lemma is_localization.lift_algebra_map_eq_algebra_map :
+  @is_localization.lift R _ M Rₘ _ _ Sₘ _ _ (algebra_map R Sₘ)
+    (is_localization.map_units_map_submonoid S Sₘ) =
+    algebra_map Rₘ Sₘ :=
+is_localization.lift_unique _ (λ x, (is_scalar_tower.algebra_map_apply _ _ _ _).symm)
+
+end
 
 variables (Rₘ Sₘ)
 
 /-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization. -/
-lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
-  (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
+lemma localization_algebra_injective (hRS : function.injective (algebra_map R S)) :
   function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) :=
-is_localization.map_injective_of_injective M Rₘ Sₘ hRS hM
+is_localization.map_injective_of_injective M Rₘ Sₘ hRS
 
 end algebra
+
+end comm_ring

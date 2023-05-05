@@ -9,6 +9,9 @@ import ring_theory.ideal.quotient
 
 /-!
 # Characteristic of quotients rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v
@@ -31,9 +34,21 @@ lemma quotient' {R : Type*} [comm_ring R] (p : ℕ) [char_p R p] (I : ideal R)
   char_p (R ⧸ I) p :=
 ⟨λ x, begin
   rw [←cast_eq_zero_iff R p x, ←map_nat_cast (ideal.quotient.mk I)],
-  refine quotient.eq'.trans (_ : ↑x - 0 ∈ I ↔ _),
+  refine ideal.quotient.eq.trans (_ : ↑x - 0 ∈ I ↔ _),
   rw sub_zero,
   exact ⟨h x, λ h', h'.symm ▸ I.zero_mem⟩,
 end⟩
 
 end char_p
+
+lemma ideal.quotient.index_eq_zero {R : Type*} [comm_ring R] (I : ideal R) :
+  (I.to_add_subgroup.index : R ⧸ I) = 0 :=
+begin
+  rw [add_subgroup.index, nat.card_eq],
+  split_ifs with hq, swap, simp,
+  by_contra h,
+  -- TODO: can we avoid rewriting the `I.to_add_subgroup` here?
+  letI : fintype (R ⧸ I) := @fintype.of_finite _ hq,
+  have h : (fintype.card (R ⧸ I) : R ⧸ I) ≠ 0 := h,
+  simpa using h
+end

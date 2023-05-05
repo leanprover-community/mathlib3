@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import group_theory.perm.basic
-import data.fintype.basic
-import group_theory.subgroup.basic
+import data.fintype.perm
+import group_theory.subgroup.finite
 /-!
 # Lemmas about subgroups within the permutations (self-equivalences) of a type `α`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides extra lemmas about some `subgroup`s that exist within `equiv.perm α`.
 `group_theory.subgroup` depends on `group_theory.perm.basic`, so these need to be in a separate
@@ -59,9 +62,9 @@ fintype.card_eq.mpr ⟨(of_injective (subtype_congr_hom p) (subtype_congr_hom_in
 
 /-- **Cayley's theorem**: Every group G is isomorphic to a subgroup of the symmetric group acting on
 `G`. Note that we generalize this to an arbitrary "faithful" group action by `G`. Setting `H = G`
-recovers the usual statement of Cayley's theorem via `right_cancel_monoid.to_has_faithful_scalar` -/
+recovers the usual statement of Cayley's theorem via `right_cancel_monoid.to_has_faithful_smul` -/
 noncomputable def subgroup_of_mul_action (G H : Type*) [group G] [mul_action G H]
-  [has_faithful_scalar G H] : G ≃* (mul_action.to_perm_hom G H).range :=
+  [has_faithful_smul G H] : G ≃* (mul_action.to_perm_hom G H).range :=
 mul_equiv.of_left_inverse' _ (classical.some_spec mul_action.to_perm_injective.has_left_inverse)
 
 end perm

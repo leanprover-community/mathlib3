@@ -52,7 +52,7 @@ finite measures. -/
 (pos_part neg_part : measure α)
 [pos_part_finite : is_finite_measure pos_part]
 [neg_part_finite : is_finite_measure neg_part]
-(mutually_singular : pos_part ⊥ₘ neg_part)
+(mutually_singular : pos_part ⟂ₘ neg_part)
 
 attribute [instance] jordan_decomposition.pos_part_finite
 attribute [instance] jordan_decomposition.neg_part_finite
@@ -73,11 +73,11 @@ instance : has_involutive_neg (jordan_decomposition α) :=
 { neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩,
   neg_neg := λ j, jordan_decomposition.ext _ _ rfl rfl }
 
-instance : has_scalar ℝ≥0 (jordan_decomposition α) :=
+instance : has_smul ℝ≥0 (jordan_decomposition α) :=
 { smul := λ r j, ⟨r • j.pos_part, r • j.neg_part,
     mutually_singular.smul _ (mutually_singular.smul _ j.mutually_singular.symm).symm⟩ }
 
-instance has_scalar_real : has_scalar ℝ (jordan_decomposition α) :=
+instance has_smul_real : has_smul ℝ (jordan_decomposition α) :=
 { smul := λ r j, if hr : 0 ≤ r then r.to_nnreal • j else - ((-r).to_nnreal • j) }
 
 @[simp] lemma zero_pos_part : (0 : jordan_decomposition α).pos_part = 0 := rfl
@@ -169,7 +169,7 @@ end jordan_decomposition
 
 namespace signed_measure
 
-open measure vector_measure jordan_decomposition classical
+open classical jordan_decomposition measure set vector_measure
 
 variables {s : signed_measure α} {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
 
@@ -221,8 +221,7 @@ begin
   rw [← of_union _ (measurable_set.inter hi₁ hk) (measurable_set.inter hi₁.compl hk),
       set.inter_comm i, set.inter_comm iᶜ, set.inter_union_compl _ _],
   { apply_instance },
-  { rintro x ⟨⟨hx₁, _⟩, hx₂, _⟩,
-    exact false.elim (hx₂ hx₁) }
+  { exact (disjoint_compl_right.inf_left _).inf_right _ }
 end
 
 section
@@ -235,7 +234,7 @@ lemma subset_positive_null_set
   (hsu : 0 ≤[u] s) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
   have : s v + s (w \ v) = 0,
-  { rw [← hw₁, ← of_union set.disjoint_diff hv (hw.diff hv),
+  { rw [← hw₁, ← of_union set.disjoint_sdiff_right hv (hw.diff hv),
         set.union_diff_self, set.union_eq_self_of_subset_left hwt],
     apply_instance },
   have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),
@@ -259,13 +258,13 @@ end
 between the two sets. -/
 lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive
   (hu : measurable_set u) (hv : measurable_set v)
-  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
+  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u ∆ v) = 0) :
   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
 begin
   rw restrict_le_restrict_iff at hsu hsv,
   have a := hsu (hu.diff hv) (u.diff_subset v),
   have b := hsv (hv.diff hu) (v.diff_subset u),
-  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff)
+  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) disjoint_sdiff_self_right)
         (hu.diff hv) (hv.diff hu)] at hs,
   rw zero_apply at a b,
   split,
@@ -276,7 +275,7 @@ end
 between the two sets. -/
 lemma of_diff_eq_zero_of_symm_diff_eq_zero_negative
   (hu : measurable_set u) (hv : measurable_set v)
-  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
+  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u ∆ v) = 0) :
   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
 begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
@@ -288,17 +287,14 @@ end
 
 lemma of_inter_eq_of_symm_diff_eq_zero_positive
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
-  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
+  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u ∆ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=
 begin
-  have hwuv : s ((w ∩ u) Δ (w ∩ v)) = 0,
+  have hwuv : s ((w ∩ u) ∆ (w ∩ v)) = 0,
   { refine subset_positive_null_set (hu.union hv) ((hw.inter hu).symm_diff (hw.inter hv))
-      (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs _ _,
-    { exact symm_diff_le_sup u v },
-    { rintro x (⟨⟨hxw, hxu⟩, hx⟩ | ⟨⟨hxw, hxv⟩, hx⟩);
-      rw [set.mem_inter_eq, not_and] at hx,
-      { exact or.inl ⟨hxu, hx hxw⟩ },
-      { exact or.inr ⟨hxv, hx hxw⟩ } } },
+      (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs symm_diff_subset_union _,
+    rw ←inter_symm_diff_distrib_left,
+    exact inter_subset_right _ _ },
   obtain ⟨huv, hvu⟩ := of_diff_eq_zero_of_symm_diff_eq_zero_positive
     (hw.inter hu) (hw.inter hv)
     (restrict_le_restrict_subset _ _ hu hsu (w.inter_subset_right u))
@@ -308,7 +304,7 @@ end
 
 lemma of_inter_eq_of_symm_diff_eq_zero_negative
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
-  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
+  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u ∆ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=
 begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
@@ -514,7 +510,7 @@ end
 
 -- TODO: Generalize to vector measures once total variation on vector measures is defined
 lemma mutually_singular_iff (s t : signed_measure α) :
-  s ⊥ᵥ t ↔ s.total_variation ⊥ₘ t.total_variation :=
+  s ⟂ᵥ t ↔ s.total_variation ⟂ₘ t.total_variation :=
 begin
   split,
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
@@ -535,7 +531,7 @@ begin
 end
 
 lemma mutually_singular_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
-  s ⊥ᵥ μ ↔ s.total_variation ⊥ₘ μ.ennreal_to_measure :=
+  s ⟂ᵥ μ ↔ s.total_variation ⟂ₘ μ.ennreal_to_measure :=
 begin
   split,
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
@@ -554,8 +550,8 @@ begin
 end
 
 lemma total_variation_mutually_singular_iff (s : signed_measure α) (μ : measure α) :
-  s.total_variation ⊥ₘ μ ↔
-  s.to_jordan_decomposition.pos_part ⊥ₘ μ ∧ s.to_jordan_decomposition.neg_part ⊥ₘ μ :=
+  s.total_variation ⟂ₘ μ ↔
+  s.to_jordan_decomposition.pos_part ⟂ₘ μ ∧ s.to_jordan_decomposition.neg_part ⟂ₘ μ :=
 measure.mutually_singular.add_left_iff
 
 end signed_measure

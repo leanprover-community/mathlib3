@@ -3,12 +3,16 @@ Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.zmod.basic
-import data.equiv.mul_add
+import algebra.hom.equiv.basic
+import algebra.hom.aut
+import data.zmod.defs
 import tactic.group
 
 /-!
 # Racks and Quandles
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines racks and quandles, algebraic structures for sets
 that bijectively act on themselves with a self-distributivity
@@ -30,7 +34,7 @@ complements that is analogous to the fundamental group of the
 exterior, and he showed that the quandle associated to an oriented
 knot is invariant up to orientation-reversed mirror image.  Racks were
 used by Fenn and Rourke for framed codimension-2 knots and
-links.[FennRourke1992]
+links in [FennRourke1992].  Unital shelves are discussed in [crans2017].
 
 The name "rack" came from wordplay by Conway and Wraith for the "wrack
 and ruin" of forgetting everything but the conjugation operation for a
@@ -39,6 +43,7 @@ group.
 ## Main definitions
 
 * `shelf` is a type with a self-distributive action
+* `unital_shelf` is a shelf with a left and right unit
 * `rack` is a shelf whose action for each element is invertible
 * `quandle` is a rack whose action for an element fixes that element
 * `quandle.conj` defines a quandle of a group acting on itself by conjugation.
@@ -49,6 +54,11 @@ group.
 ## Main statements
 * `rack.envel_group` is left adjoint to `quandle.conj` (`to_envel_group.map`).
   The universality statements are `to_envel_group.univ` and `to_envel_group.univ_uniq`.
+
+## Implementation notes
+
+"Unital racks" are uninteresting (see `rack.assoc_iff_id`, `unital_shelf.assoc`), so we do not
+define them.
 
 ## Notation
 
@@ -89,6 +99,14 @@ class shelf (α : Type u) :=
 (self_distrib : ∀ {x y z : α}, act x (act y z) = act (act x y) (act x z))
 
 /--
+A *unital shelf* is a shelf equipped with an element `1` such that, for all elements `x`,
+we have both `x ◃ 1` and `1 ◃ x` equal `x`.
+-/
+class unital_shelf (α : Type u) extends shelf α, has_one α :=
+(one_act : ∀ a : α, act 1 a = a)
+(act_one : ∀ a : α, act a 1 = a)
+
+/--
 The type of homomorphisms between shelves.
 This is also the notion of rack and quandle homomorphisms.
 -/
@@ -110,11 +128,43 @@ class rack (α : Type u) extends shelf α :=
 (left_inv : ∀ x, function.left_inverse (inv_act x) (act x))
 (right_inv : ∀ x, function.right_inverse (inv_act x) (act x))
 
-localized "infixr ` ◃ `:65 := shelf.act" in quandles
-localized "infixr ` ◃⁻¹ `:65 := rack.inv_act" in quandles
-localized "infixr ` →◃ `:25 := shelf_hom" in quandles
+localized "infixr (name := shelf.act) ` ◃ `:65 := shelf.act" in quandles
+localized "infixr (name := rack.inv_act) ` ◃⁻¹ `:65 := rack.inv_act" in quandles
+localized "infixr (name := shelf_hom) ` →◃ `:25 := shelf_hom" in quandles
 
 open_locale quandles
+
+namespace unital_shelf
+open shelf
+
+variables {S : Type*} [unital_shelf S]
+
+/--
+A monoid is *graphic* if, for all `x` and `y`, the *graphic identity*
+`(x * y) * x = x * y` holds.  For a unital shelf, this graphic
+identity holds.
+-/
+lemma act_act_self_eq (x y : S) : (x ◃ y) ◃ x = x ◃ y :=
+begin
+  have h : (x ◃ y) ◃ x = (x ◃ y) ◃ (x ◃ 1) := by rw act_one,
+  rw [h, ←shelf.self_distrib, act_one],
+end
+
+lemma act_idem (x : S) : (x ◃ x) = x := by rw [←act_one x, ←shelf.self_distrib, act_one, act_one]
+
+lemma act_self_act_eq (x y : S) : x ◃ (x ◃ y) = x ◃ y :=
+begin
+  have h : x ◃ (x ◃ y) = (x ◃ 1) ◃ (x ◃ y) := by rw act_one,
+  rw [h, ←shelf.self_distrib, one_act],
+end
+
+/--
+The associativity of a unital shelf comes for free.
+-/
+lemma assoc (x y z : S) : (x ◃ y) ◃ z = x ◃ y ◃ z :=
+by rw [self_distrib, self_distrib, act_act_self_eq, act_self_act_eq]
+
+end unital_shelf
 
 namespace rack
 variables {R : Type*} [rack R]
@@ -161,8 +211,7 @@ This is used in the natural rack homomorphism `to_conj` from `R` to
 lemma ad_conj {R : Type*} [rack R] (x y : R) :
   act (x ◃ y) = act x * act y * (act x)⁻¹ :=
 begin
-  apply @mul_right_cancel _ _ _ (act x), ext z,
-  simp only [inv_mul_cancel_right],
+  rw [eq_mul_inv_iff_mul_eq], ext z,
   apply self_distrib.symm,
 end
 
@@ -298,7 +347,7 @@ instance opposite_quandle : quandle Qᵐᵒᵖ :=
 The conjugation quandle of a group.  Each element of the group acts by
 the corresponding inner automorphism.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def conj (G : Type*) := G
 
 instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
@@ -338,7 +387,7 @@ The dihedral quandle. This is the conjugation quandle of the dihedral group rest
 
 Used for Fox n-colorings of knots.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def dihedral (n : ℕ) := zmod n
 
 /--

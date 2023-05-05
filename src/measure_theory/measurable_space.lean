@@ -4,16 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 
-import algebra.indicator_function
-import data.equiv.fin
-import data.tprod
+import data.prod.tprod
 import group_theory.coset
+import logic.equiv.fin
 import measure_theory.measurable_space_def
+import order.filter.small_sets
+import order.liminf_limsup
 import measure_theory.tactic
-import order.filter.lift
 
 /-!
 # Measurable spaces and measurable functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides properties of measurable spaces and the functions and isomorphisms
 between them. The definition of a measurable space is in `measure_theory.measurable_space_def`.
@@ -74,7 +77,7 @@ variables {m m₁ m₂ : measurable_space α} {m' : measurable_space β} {f : α
 /-- The forward image of a measurable space under a function. `map f m` contains the sets
   `s : set β` whose preimage under `f` is measurable. -/
 protected def map (f : α → β) (m : measurable_space α) : measurable_space β :=
-{ measurable_set'      := λ s, m.measurable_set' $ f ⁻¹' s,
+{ measurable_set'      := λ s, measurable_set[m] $ f ⁻¹' s,
   measurable_set_empty := m.measurable_set_empty,
   measurable_set_compl := assume s hs, m.measurable_set_compl _ hs,
   measurable_set_Union := assume f hf, by { rw preimage_Union, exact m.measurable_set_Union _ hf }}
@@ -88,12 +91,16 @@ measurable_space.ext $ assume s, iff.rfl
 /-- The reverse image of a measurable space under a function. `comap f m` contains the sets
   `s : set α` such that `s` is the `f`-preimage of a measurable set in `β`. -/
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
-{ measurable_set'      := λ s, ∃s', m.measurable_set' s' ∧ f ⁻¹' s' = s,
+{ measurable_set'      := λ s, ∃s', measurable_set[m] s' ∧ f ⁻¹' s' = s,
   measurable_set_empty := ⟨∅, m.measurable_set_empty, rfl⟩,
   measurable_set_compl := assume s ⟨s', h₁, h₂⟩, ⟨s'ᶜ, m.measurable_set_compl _ h₁, h₂ ▸ rfl⟩,
   measurable_set_Union := assume s hs,
     let ⟨s', hs'⟩ := classical.axiom_of_choice hs in
     ⟨⋃ i, s' i, m.measurable_set_Union _ (λ i, (hs' i).left), by simp [hs'] ⟩ }
+
+lemma comap_eq_generate_from (m : measurable_space β) (f : α → β) :
+  m.comap f = generate_from {t | ∃ s, measurable_set s ∧ f ⁻¹' s = t} :=
+by convert generate_from_measurable_set.symm
 
 @[simp] lemma comap_id : m.comap id = m :=
 measurable_space.ext $ assume s, ⟨assume ⟨s', hs', h⟩, h ▸ hs', assume h, ⟨s, h, rfl⟩⟩
@@ -129,14 +136,6 @@ lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
 
-@[mono] lemma generate_from_mono {s t : set (set α)} (h : s ⊆ t) :
-  generate_from s ≤ generate_from t :=
-gi_generate_from.gc.monotone_l h
-
-lemma generate_from_sup_generate_from {s t : set (set α)} :
-  generate_from s ⊔ generate_from t = generate_from (s ∪ t) :=
-(@gi_generate_from α).gc.l_sup.symm
-
 lemma comap_generate_from {f : α → β} {s : set (set β)} :
   (generate_from s).comap f = generate_from (preimage f '' s) :=
 le_antisymm
@@ -160,6 +159,10 @@ lemma measurable_iff_comap_le {m₁ : measurable_space α} {m₂ : measurable_sp
 comap_le_iff_le_map.symm
 
 alias measurable_iff_comap_le ↔ measurable.comap_le measurable.of_comap_le
+
+lemma comap_measurable {m : measurable_space β} (f : α → β) :
+  measurable[m.comap f] f :=
+λ s hs, ⟨s, hs, rfl⟩
 
 lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space β} {f : α → β}
   (hf : @measurable α β ma mb f) (ha : ma ≤ ma') (hb : mb' ≤ mb) :
@@ -206,9 +209,18 @@ begin
   { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
 
-lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
+@[measurability] lemma measurable_nat_cast [has_nat_cast α] (n : ℕ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
+
+@[measurability] lemma measurable_int_cast [has_int_cast α] (n : ℤ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
+
+lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
+λ s hs, (f ⁻¹' s).to_finite.measurable_set
+
+lemma measurable_of_countable [countable α] [measurable_singleton_class α] (f : α → β) :
   measurable f :=
-λ s hs, (finite.of_fintype (f ⁻¹' s)).measurable_set
+λ s hs, (f ⁻¹' s).to_countable.measurable_set
 
 end typeclass_measurable_space
 
@@ -259,7 +271,7 @@ hf (measurable_set_singleton 1).compl
 /-- If a function coincides with a measurable function outside of a countable set, it is
 measurable. -/
 lemma measurable.measurable_of_countable_ne [measurable_singleton_class α]
-  (hf : measurable f) (h : countable {x | f x ≠ g x}) : measurable g :=
+  (hf : measurable f) (h : set.countable {x | f x ≠ g x}) : measurable g :=
 begin
   assume t ht,
   have : g ⁻¹' t = (g ⁻¹' t ∩ {x | f x = g x}ᶜ) ∪ (g ⁻¹' t ∩ {x | f x = g x}),
@@ -271,7 +283,6 @@ begin
   rw this,
   exact (hf ht).inter h.measurable_set.of_compl,
 end
-
 
 end measurable_functions
 
@@ -291,18 +302,22 @@ instance : measurable_singleton_class ℕ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℤ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℚ := ⟨λ _, trivial⟩
 
-lemma measurable_to_encodable [measurable_space α] [encodable α] [measurable_space β] {f : β → α}
+lemma measurable_to_countable [measurable_space α] [countable α] [measurable_space β] {f : β → α}
   (h : ∀ y, measurable_set (f ⁻¹' {f y})) :
   measurable f :=
 begin
   assume s hs,
   rw [← bUnion_preimage_singleton],
-  refine measurable_set.Union (λ y, measurable_set.Union_Prop $ λ hy, _),
+  refine measurable_set.Union (λ y, measurable_set.Union $ λ hy, _),
   by_cases hyf : y ∈ range f,
   { rcases hyf with ⟨y, rfl⟩,
     apply h },
   { simp only [preimage_singleton_eq_empty.2 hyf, measurable_set.empty] }
 end
+
+lemma measurable_to_countable' [measurable_space α] [countable α] [measurable_space β] {f : β → α}
+  (h : ∀ x, measurable_set (f ⁻¹' {x})) : measurable f :=
+measurable_to_countable (λ y, h (f y))
 
 @[measurability] lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
 measurable_from_top
@@ -314,7 +329,16 @@ variables [measurable_space α]
 measurable_from_top
 
 lemma measurable_to_nat {f : α → ℕ} : (∀ y, measurable_set (f ⁻¹' {f y})) → measurable f :=
-measurable_to_encodable
+measurable_to_countable
+
+lemma measurable_to_bool {f : α → bool} (h : measurable_set (f⁻¹' {tt})) : measurable f :=
+begin
+  apply measurable_to_countable',
+  rintros (-|-),
+  { convert h.compl,
+    rw [← preimage_compl, bool.compl_singleton, bool.bnot_tt] },
+  exact h,
+end
 
 lemma measurable_find_greatest' {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
   {N : ℕ} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
@@ -328,7 +352,7 @@ begin
   refine measurable_find_greatest' (λ k hk, _),
   simp only [nat.find_greatest_eq_iff, set_of_and, set_of_forall, ← compl_set_of],
   repeat { apply_rules [measurable_set.inter, measurable_set.const, measurable_set.Inter,
-    measurable_set.Inter_Prop, measurable_set.compl, hN]; try { intros } }
+    measurable_set.compl, hN]; try { intros } }
 end
 
 lemma measurable_find {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
@@ -458,12 +482,12 @@ lemma measurable.dite [∀ x, decidable (x ∈ s)] {f : s → β} (hf : measurab
 measurable_of_restrict_of_restrict_compl hs (by simpa) (by simpa)
 
 lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
-  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (sᶜ.restrict f)) :
+  {f : α → β} (s : set α) (hs : s.finite) (hf : measurable (sᶜ.restrict f)) :
   measurable f :=
 begin
   letI : fintype s := finite.fintype hs,
   exact measurable_of_restrict_of_restrict_compl hs.measurable_set
-    (measurable_of_fintype _) hf
+    (measurable_of_finite _) hf
 end
 
 lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α]
@@ -484,11 +508,11 @@ m₁.comap prod.fst ⊔ m₂.comap prod.snd
 instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
 m₁.prod m₂
 
-@[measurability] lemma measurable_fst [measurable_space α] [measurable_space β] :
+@[measurability] lemma measurable_fst {ma : measurable_space α} {mb : measurable_space β} :
   measurable (prod.fst : α × β → α) :=
 measurable.of_comap_le le_sup_left
 
-@[measurability] lemma measurable_snd [measurable_space α] [measurable_space β] :
+@[measurability] lemma measurable_snd {ma : measurable_space α} {mb : measurable_space β} :
   measurable (prod.snd : α × β → β) :=
 measurable.of_comap_le le_sup_right
 
@@ -556,20 +580,20 @@ lemma measurable_set.prod {s : set α} {t : set β} (hs : measurable_set s) (ht 
   measurable_set (s ×ˢ t) :=
 measurable_set.inter (measurable_fst hs) (measurable_snd ht)
 
-lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t : set _).nonempty) :
+lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t).nonempty) :
   measurable_set (s ×ˢ t) ↔ measurable_set s ∧ measurable_set t :=
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
   refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
-  have : measurable_set ((λ x, (x, y)) ⁻¹' (s ×ˢ t)) := measurable_id.prod_mk measurable_const hst,
-  have : measurable_set (prod.mk x ⁻¹' (s ×ˢ t)) := measurable_const.prod_mk measurable_id hst,
+  have : measurable_set ((λ x, (x, y)) ⁻¹' s ×ˢ t) := measurable_prod_mk_right hst,
+  have : measurable_set (prod.mk x ⁻¹' s ×ˢ t) := measurable_prod_mk_left hst,
   simp * at *
 end
 
 lemma measurable_set_prod {s : set α} {t : set β} :
   measurable_set (s ×ˢ t) ↔ (measurable_set s ∧ measurable_set t) ∨ s = ∅ ∨ t = ∅ :=
 begin
-  cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
+  cases (s ×ˢ t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.mp h] },
   { simp [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, measurable_set_prod_of_nonempty h] }
 end
@@ -578,7 +602,12 @@ lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
 
-lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class β]
+instance [measurable_singleton_class α] [measurable_singleton_class β] :
+  measurable_singleton_class (α × β) :=
+⟨λ ⟨a, b⟩, @singleton_prod_singleton _ _ a b ▸
+  (measurable_set_singleton a).prod (measurable_set_singleton b)⟩
+
+lemma measurable_from_prod_countable [countable β] [measurable_singleton_class β]
   {mγ : measurable_space γ} {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
   measurable f :=
 begin
@@ -597,7 +626,7 @@ lemma measurable.find {m : measurable_space α}
   (hf : ∀ n, measurable (f n)) (hp : ∀ n, measurable_set {x | p n x}) (h : ∀ x, ∃ n, p n x) :
   measurable (λ x, f (nat.find (h x)) x) :=
 begin
-  have : measurable (λ (p : α × ℕ), f p.2 p.1) := measurable_from_prod_encodable (λ n, hf n),
+  have : measurable (λ (p : α × ℕ), f p.2 p.1) := measurable_from_prod_countable (λ n, hf n),
   exact this.comp (measurable.prod_mk measurable_id (measurable_find h hp)),
 end
 
@@ -625,10 +654,10 @@ begin
   { have B : x ∈ t (nat.find (P x)) ∪ (⋃ k, t k)ᶜ := nat.find_spec (P x),
     have B' : (∀ (i : ℕ), x ∉ t i) ↔ false,
     { simp only [iff_false, not_forall, not_not_mem], exact ⟨n, hx⟩ },
-    simpa only [B', mem_union_eq, mem_Inter, or_false, compl_Union, mem_compl_eq] using B },
+    simpa only [B', mem_union, mem_Inter, or_false, compl_Union, mem_compl_iff] using B },
   congr,
   by_contra h,
-  exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩
+  exact (t_disj (ne.symm h)).le_bot ⟨hx, this⟩
 end
 
 end prod
@@ -676,17 +705,17 @@ end
 /- Even though we cannot use projection notation, we still keep a dot to be consistent with similar
   lemmas, like `measurable_set.prod`. -/
 @[measurability]
-lemma measurable_set.pi {s : set δ} {t : Π i : δ, set (π i)} (hs : countable s)
+lemma measurable_set.pi {s : set δ} {t : Π i : δ, set (π i)} (hs : s.countable)
   (ht : ∀ i ∈ s, measurable_set (t i)) :
   measurable_set (s.pi t) :=
 by { rw [pi_def], exact measurable_set.bInter hs (λ i hi, measurable_pi_apply _ (ht i hi)) }
 
-lemma measurable_set.univ_pi [encodable δ] {t : Π i : δ, set (π i)}
+lemma measurable_set.univ_pi [countable δ] {t : Π i : δ, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
-measurable_set.pi (countable_encodable _) (λ i _, ht i)
+measurable_set.pi (to_countable _) (λ i _, ht i)
 
 lemma measurable_set_pi_of_nonempty
-  {s : set δ} {t : Π i, set (π i)} (hs : countable s)
+  {s : set δ} {t : Π i, set (π i)} (hs : s.countable)
   (h : (pi s t).nonempty) : measurable_set (pi s t) ↔ ∀ i ∈ s, measurable_set (t i) :=
 begin
   classical,
@@ -694,7 +723,7 @@ begin
   convert measurable_update f hst, rw [update_preimage_pi hi], exact λ j hj _, hf j hj
 end
 
-lemma measurable_set_pi {s : set δ} {t : Π i, set (π i)} (hs : countable s) :
+lemma measurable_set_pi {s : set δ} {t : Π i, set (π i)} (hs : s.countable) :
   measurable_set (pi s t) ↔ (∀ i ∈ s, measurable_set (t i)) ∨ pi s t = ∅ :=
 begin
   cases (pi s t).eq_empty_or_nonempty with h h,
@@ -702,7 +731,10 @@ begin
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
 end
 
-section
+instance [countable δ] [Π a, measurable_singleton_class (π a)] :
+  measurable_singleton_class (Π a, π a) :=
+⟨λ f, univ_pi_singleton f ▸ measurable_set.univ_pi (λ t, measurable_set_singleton (f t))⟩
+
 variable (π)
 
 @[measurability]
@@ -731,21 +763,6 @@ begin
     simp only [pi_equiv_pi_subtype_prod_apply, measurable_pi_apply] }
 end
 
-end
-
-section fintype
-
-local attribute [instance] fintype.encodable
-
-lemma measurable_set.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
-  (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
-measurable_set.pi (countable_encodable _) ht
-
-lemma measurable_set.univ_pi_fintype [fintype δ] {t : Π i, set (π i)}
-  (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
-measurable_set.pi_fintype (λ i _, ht i)
-
-end fintype
 end pi
 
 instance tprod.measurable_space (π : δ → Type*) [∀ x, measurable_space (π x)] :
@@ -916,7 +933,7 @@ lemma exists_measurable_extend (hf : measurable_embedding f) {g : α → γ} (hg
   ∃ g' : β → γ, measurable g' ∧ g' ∘ f = g :=
 ⟨extend f g (λ x, classical.choice (hne x)),
   hf.measurable_extend hg (measurable_const' $ λ _ _, rfl),
-  funext $ λ x, extend_apply hf.injective _ _ _⟩
+  funext $ λ x, hf.injective.extend_apply _ _ _⟩
 
 lemma measurable_comp_iff (hg : measurable_embedding g) : measurable (g ∘ f) ↔ measurable f :=
 begin
@@ -1059,7 +1076,7 @@ iff.intro
 /-- Any two types with unique elements are measurably equivalent. -/
 def of_unique_of_unique (α β : Type*) [measurable_space α] [measurable_space β]
   [unique α] [unique β] : α ≃ᵐ β :=
-{ to_equiv := equiv_of_unique_of_unique,
+{ to_equiv := equiv_of_unique α β,
   measurable_to_fun := subsingleton.measurable,
   measurable_inv_fun := subsingleton.measurable }
 
@@ -1116,27 +1133,6 @@ def set.singleton (a : α) : ({a} : set α) ≃ᵐ unit :=
 { to_equiv := equiv.set.singleton a,
   measurable_to_fun := measurable_const,
   measurable_inv_fun := measurable_const }
-
-/-- A set is equivalent to its image under a function `f` as measurable spaces,
-  if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
-noncomputable def set.image (f : α → β) (s : set α) (hf : injective f)
-  (hfm : measurable f) (hfi : ∀ s, measurable_set s → measurable_set (f '' s)) : s ≃ᵐ (f '' s) :=
-{ to_equiv := equiv.set.image f s hf,
-  measurable_to_fun  := (hfm.comp measurable_id.subtype_coe).subtype_mk,
-  measurable_inv_fun :=
-    begin
-      rintro t ⟨u, hu, rfl⟩, simp [preimage_preimage, set.image_symm_preimage hf],
-      exact measurable_subtype_coe (hfi u hu)
-    end }
-
-/-- The domain of `f` is equivalent to its range as measurable spaces,
-  if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
-noncomputable def set.range (f : α → β) (hf : injective f) (hfm : measurable f)
-  (hfi : ∀ s, measurable_set s → measurable_set (f '' s)) :
-  α ≃ᵐ (range f) :=
-(measurable_equiv.set.univ _).symm.trans $
-  (measurable_equiv.set.image f univ hf hfm hfi).trans $
-  measurable_equiv.cast (by rw image_univ) (by rw image_univ)
 
 /-- `α` is equivalent to its image in `α ⊕ β` as measurable spaces. -/
 def set.range_inl : (range sum.inl : set (α ⊕ β)) ≃ᵐ α :=
@@ -1251,20 +1247,60 @@ def pi_measurable_equiv_tprod [decidable_eq δ']
 /-- The space `fin 2 → α` is measurably equivalent to `α × α`. -/
 @[simps {fully_applied := ff}] def fin_two_arrow : (fin 2 → α) ≃ᵐ α × α := pi_fin_two (λ _, α)
 
+/-- Measurable equivalence between `Π j : fin (n + 1), α j` and
+`α i × Π j : fin n, α (fin.succ_above i j)`. -/
+@[simps {fully_applied := ff}]
+def pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type*) [Π i, measurable_space (α i)]
+  (i : fin (n + 1)) :
+  (Π j, α j) ≃ᵐ α i × (Π j, α (i.succ_above j)) :=
+{ to_equiv := pi_fin_succ_above_equiv α i,
+  measurable_to_fun := (measurable_pi_apply i).prod_mk $ measurable_pi_iff.2 $
+    λ j, measurable_pi_apply _,
+  measurable_inv_fun := by simp [measurable_pi_iff, i.forall_iff_succ_above, measurable_fst,
+    (measurable_pi_apply _).comp measurable_snd]  }
+
+variable (π)
+
+/-- Measurable equivalence between (dependent) functions on a type and pairs of functions on
+`{i // p i}` and `{i // ¬p i}`. See also `equiv.pi_equiv_pi_subtype_prod`. -/
+@[simps {fully_applied := ff}]
+def pi_equiv_pi_subtype_prod (p : δ' → Prop) [decidable_pred p] :
+  (Π i, π i) ≃ᵐ ((Π i : subtype p, π i) × (Π i : {i // ¬p i}, π i)) :=
+{ to_equiv := pi_equiv_pi_subtype_prod p π,
+  measurable_to_fun := measurable_pi_equiv_pi_subtype_prod π p,
+  measurable_inv_fun := measurable_pi_equiv_pi_subtype_prod_symm π p }
+
+/-- If `s` is a measurable set in a measurable space, that space is equivalent
+to the sum of `s` and `sᶜ`.-/
+def sum_compl {s : set α} [decidable_pred s] (hs : measurable_set s) : s ⊕ (sᶜ : set α) ≃ᵐ α :=
+{ to_equiv := sum_compl s,
+  measurable_to_fun := by {apply measurable.sum_elim; exact measurable_subtype_coe},
+  measurable_inv_fun :=  measurable.dite measurable_inl measurable_inr hs }
+
 end measurable_equiv
 
 namespace measurable_embedding
 
-variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β}
+variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β} {g : β → α}
 
-/-- A measurable embedding defines a measurable equivalence between its domain
-and its range. -/
-noncomputable def equiv_range (f : α → β) (hf : measurable_embedding f) :
-  α ≃ᵐ range f :=
-{ to_equiv := equiv.of_injective f hf.injective,
-  measurable_to_fun := hf.measurable.subtype_mk,
+/-- A set is equivalent to its image under a function `f` as measurable spaces,
+  if `f` is a measurable embedding -/
+noncomputable def equiv_image (s : set α) (hf : measurable_embedding f) :
+  s ≃ᵐ (f '' s) :=
+{ to_equiv := equiv.set.image f s hf.injective,
+  measurable_to_fun  := (hf.measurable.comp measurable_id.subtype_coe).subtype_mk,
   measurable_inv_fun :=
-    by { rw coe_of_injective_symm, exact hf.measurable_range_splitting } }
+    begin
+      rintro t ⟨u, hu, rfl⟩, simp [preimage_preimage, set.image_symm_preimage hf.injective],
+      exact measurable_subtype_coe (hf.measurable_set_image' hu)
+    end }
+
+/-- The domain of `f` is equivalent to its range as measurable spaces,
+  if `f` is a measurable embedding -/
+noncomputable def equiv_range (hf : measurable_embedding f) : α ≃ᵐ (range f) :=
+(measurable_equiv.set.univ _).symm.trans $
+  (hf.equiv_image univ).trans $
+  measurable_equiv.cast (by rw image_univ) (by rw image_univ)
 
 lemma of_measurable_inverse_on_range {g : range f → α} (hf₁ : measurable f)
   (hf₂ : measurable_set (range f)) (hg : measurable g)
@@ -1276,12 +1312,121 @@ begin
   exact (measurable_embedding.subtype_coe hf₂).comp e.measurable_embedding
 end
 
-lemma of_measurable_inverse {g : β → α} (hf₁ : measurable f)
+lemma of_measurable_inverse (hf₁ : measurable f)
   (hf₂ : measurable_set (range f)) (hg : measurable g)
   (H : left_inverse g f) : measurable_embedding f :=
 of_measurable_inverse_on_range hf₁ hf₂ (hg.comp measurable_subtype_coe) H
 
+open_locale classical
+
+/-- The **`measurable Schröder-Bernstein Theorem**: Given measurable embeddings
+`α → β` and `β → α`, we can find a measurable equivalence `α ≃ᵐ β`.-/
+noncomputable
+def schroeder_bernstein {f : α → β} {g : β → α}
+  (hf : measurable_embedding f)(hg : measurable_embedding g) : α ≃ᵐ β :=
+begin
+  let F : set α → set α := λ A, (g '' (f '' A)ᶜ)ᶜ,
+  -- We follow the proof of the usual SB theorem in mathlib,
+  -- the crux of which is finding a fixed point of this F.
+  -- However, we must find this fixed point manually instead of invoking Knaster-Tarski
+  -- in order to make sure it is measurable.
+  suffices : Σ' A : set α, measurable_set A ∧ F A = A,
+  { rcases this with ⟨A, Ameas, Afp⟩,
+    let B := f '' A,
+    have Bmeas : measurable_set B := hf.measurable_set_image' Ameas,
+    refine (measurable_equiv.sum_compl Ameas).symm.trans
+      (measurable_equiv.trans _ (measurable_equiv.sum_compl Bmeas)),
+    apply measurable_equiv.sum_congr (hf.equiv_image _),
+    have : Aᶜ = g '' Bᶜ,
+    { apply compl_injective,
+      rw ← Afp,
+      simp, },
+    rw this,
+    exact (hg.equiv_image _).symm, },
+  have Fmono : ∀ {A B}, A ⊆ B → F A ⊆ F B := λ A B hAB,
+    compl_subset_compl.mpr $ set.image_subset _ $
+    compl_subset_compl.mpr $ set.image_subset _ hAB,
+  let X : ℕ → set α := λ n, F^[n] univ,
+  refine ⟨Inter X, _, _⟩,
+  { apply measurable_set.Inter,
+    intros n,
+    induction n with n ih,
+    { exact measurable_set.univ },
+    rw [function.iterate_succ', function.comp_apply],
+    exact (hg.measurable_set_image' (hf.measurable_set_image' ih).compl).compl, },
+  apply subset_antisymm,
+  { apply subset_Inter,
+    intros n,
+    cases n,
+    { exact subset_univ _ },
+    rw [function.iterate_succ', function.comp_apply],
+    exact Fmono (Inter_subset _ _ ), },
+  rintros x hx ⟨y, hy, rfl⟩,
+  rw mem_Inter at hx,
+  apply hy,
+  rw (inj_on_of_injective hf.injective _).image_Inter_eq,
+  swap, { apply_instance },
+  rw mem_Inter,
+  intro n,
+  specialize hx n.succ,
+  rw [function.iterate_succ', function.comp_apply] at hx,
+  by_contradiction h,
+  apply hx,
+  exact ⟨y, h, rfl⟩,
+end
+
 end measurable_embedding
+
+section countably_generated
+
+namespace measurable_space
+
+variable (α)
+
+/-- We say a measurable space is countably generated
+if can be generated by a countable set of sets.-/
+class countably_generated [m : measurable_space α] : Prop :=
+  (is_countably_generated : ∃ b : set (set α), b.countable ∧ m = generate_from b)
+
+open_locale classical
+
+/-- If a measurable space is countably generated, it admits a measurable injection
+into the Cantor space `ℕ → bool` (equipped with the product sigma algebra). -/
+theorem measurable_injection_nat_bool_of_countably_generated
+[measurable_space α] [h : countably_generated α] [measurable_singleton_class α] :
+∃ f : α → (ℕ → bool), measurable f ∧ function.injective f :=
+begin
+  obtain ⟨b, bct, hb⟩ := h.is_countably_generated,
+  obtain ⟨e, he⟩ := set.countable.exists_eq_range (bct.insert ∅) (insert_nonempty _ _),
+  rw [← generate_from_insert_empty, he] at hb,
+  refine ⟨λ x n, to_bool (x ∈ e n), _, _⟩,
+  { rw measurable_pi_iff,
+    intro n,
+    apply measurable_to_bool,
+    simp only [preimage, mem_singleton_iff, to_bool_iff, set_of_mem_eq],
+    rw hb,
+    apply measurable_set_generate_from,
+    use n, },
+  intros x y hxy,
+  have : ∀ s : set α, measurable_set s → (x ∈ s ↔ y ∈ s) := λ s, by
+  { rw hb,
+    apply generate_from_induction,
+    { rintros - ⟨n, rfl⟩,
+      rw ← bool.to_bool_eq,
+      rw funext_iff at hxy,
+      exact hxy n },
+    { tauto },
+    { intro t,
+      tauto },
+    intros t ht,
+    simp_rw [mem_Union, ht], },
+  specialize this {y} measurable_set_eq,
+  simpa only [mem_singleton, iff_true],
+end
+
+end measurable_space
+
+end countably_generated
 
 namespace filter
 
@@ -1302,10 +1447,10 @@ lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated 
   ∃ s ∈ f, measurable_set s ∧ ∀ x ∈ s, p x :=
 is_measurably_generated.exists_measurable_subset h
 
-lemma eventually.exists_measurable_mem_of_lift' {f : filter α} [is_measurably_generated f]
-  {p : set α → Prop} (h : ∀ᶠ s in f.lift' powerset, p s) :
+lemma eventually.exists_measurable_mem_of_small_sets {f : filter α} [is_measurably_generated f]
+  {p : set α → Prop} (h : ∀ᶠ s in f.small_sets, p s) :
   ∃ s ∈ f, measurable_set s ∧ p s :=
-let ⟨s, hsf, hs⟩ := eventually_lift'_powerset.1 h,
+let ⟨s, hsf, hs⟩ := eventually_small_sets.1 h,
   ⟨t, htf, htm, hts⟩ := is_measurably_generated.exists_measurable_subset hsf
 in ⟨t, htf, htm, hs t hts⟩
 
@@ -1332,7 +1477,7 @@ begin
 end
 
 alias principal_is_measurably_generated_iff ↔
-  _ measurable_set.principal_is_measurably_generated
+  _ _root_.measurable_set.principal_is_measurably_generated
 
 instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurably_generated (f i)] :
   is_measurably_generated (⨅ i, f i) :=
@@ -1444,13 +1589,43 @@ instance : bounded_order (subtype (measurable_set : set α → Prop)) :=
 
 instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
 { sdiff := (\),
-  sup_inf_sdiff := λ a b, subtype.eq $ sup_inf_sdiff a b,
-  inf_inf_sdiff := λ a b, subtype.eq $ inf_inf_sdiff a b,
   compl := has_compl.compl,
   inf_compl_le_bot := λ a, boolean_algebra.inf_compl_le_bot (a : set α),
   top_le_sup_compl := λ a, boolean_algebra.top_le_sup_compl (a : set α),
   sdiff_eq := λ a b, subtype.eq $ sdiff_eq,
   .. measurable_set.subtype.bounded_order,
   .. measurable_set.subtype.distrib_lattice }
+
+@[measurability] lemma measurable_set_blimsup {s : ℕ → set α} {p : ℕ → Prop}
+  (h : ∀ n, p n → measurable_set (s n)) :
+  measurable_set $ filter.blimsup s filter.at_top p :=
+begin
+  simp only [filter.blimsup_eq_infi_bsupr_of_nat, supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Inter
+    (λ n, measurable_set.Union (λ m, measurable_set.Union $ λ hm, h m hm.1)),
+end
+
+@[measurability] lemma measurable_set_bliminf {s : ℕ → set α} {p : ℕ → Prop}
+  (h : ∀ n, p n → measurable_set (s n)) :
+  measurable_set $ filter.bliminf s filter.at_top p :=
+begin
+  simp only [filter.bliminf_eq_supr_binfi_of_nat, infi_eq_Inter, supr_eq_Union],
+  exact measurable_set.Union
+    (λ n, measurable_set.Inter (λ m, measurable_set.Inter $ λ hm, h m hm.1)),
+end
+
+@[measurability] lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ filter.limsup s filter.at_top :=
+begin
+  convert measurable_set_blimsup (λ n h, hs n : ∀ n, true → measurable_set (s n)),
+  simp,
+end
+
+@[measurability] lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ filter.liminf s filter.at_top :=
+begin
+  convert measurable_set_bliminf (λ n h, hs n : ∀ n, true → measurable_set (s n)),
+  simp,
+end
 
 end measurable_set

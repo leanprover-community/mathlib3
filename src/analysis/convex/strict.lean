@@ -4,18 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.convex.basic
-import topology.algebra.order.basic
+import topology.algebra.order.group
 
 /-!
 # Strictly convex sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines strictly convex sets.
 
 A set is strictly convex if the open segment between any two distinct points lies in its interior.
-
-## TODO
-
-Define strictly convex spaces.
 -/
 
 open set
@@ -32,15 +31,15 @@ variables [ordered_semiring 𝕜] [topological_space E] [topological_space F]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 F] (s : set E)
 
 /-- A set is strictly convex if the open segment between any two distinct points lies is in its
 interior. This basically means "convex and not flat on the boundary". -/
 def strict_convex : Prop :=
 s.pairwise $ λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ interior s
 
-variables {𝕜 s} {x y : E}
+variables {𝕜 s} {x y : E} {a b : 𝕜}
 
 lemma strict_convex_iff_open_segment_subset :
   strict_convex 𝕜 s ↔ s.pairwise (λ x y, open_segment 𝕜 x y ⊆ interior s) :=
@@ -59,6 +58,10 @@ begin
   rw interior_univ,
   exact mem_univ _,
 end
+
+protected lemma strict_convex.eq (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 < a)
+  (hb : 0 < b) (hab : a + b = 1) (h : a • x + b • y ∉ interior s) : x = y :=
+hs.eq hx hy $ λ H, h $ H ha hb hab
 
 protected lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
   strict_convex 𝕜 (s ∩ t) :=
@@ -88,7 +91,7 @@ begin
   exact (directed_on_iff_directed.1 hdir).strict_convex_Union (λ s, hS _ s.2),
 end
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}
@@ -97,11 +100,12 @@ protected lemma strict_convex.convex (hs : strict_convex 𝕜 s) : convex 𝕜 s
 convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab, interior_subset $ hs hx hy hxy ha hb hab
 
 /-- An open convex set is strictly convex. -/
-protected lemma convex.strict_convex (h : is_open s) (hs : convex 𝕜 s) : strict_convex 𝕜 s :=
+protected lemma convex.strict_convex_of_open (h : is_open s) (hs : convex 𝕜 s) :
+  strict_convex 𝕜 s :=
 λ x hx y hy _ a b ha hb hab, h.interior_eq.symm ▸ hs hx hy ha.le hb.le hab
 
 lemma is_open.strict_convex_iff (h : is_open s) : strict_convex 𝕜 s ↔ convex 𝕜 s :=
-⟨strict_convex.convex, convex.strict_convex h⟩
+⟨strict_convex.convex, convex.strict_convex_of_open h⟩
 
 lemma strict_convex_singleton (c : E) : strict_convex 𝕜 ({c} : set E) := pairwise_singleton _ _
 
@@ -141,41 +145,25 @@ section linear_ordered_cancel_add_comm_monoid
 variables [topological_space β] [linear_ordered_cancel_add_comm_monoid β] [order_topology β]
   [module 𝕜 β] [ordered_smul 𝕜 β]
 
-lemma strict_convex_Iic (r : β) : strict_convex 𝕜 (Iic r) :=
+protected lemma set.ord_connected.strict_convex {s : set β} (hs : ord_connected s) :
+  strict_convex 𝕜 s :=
 begin
-  rintro x (hx : x ≤ r) y (hy : y ≤ r) hxy a b ha hb hab,
-  refine (subset_interior_iff_subset_of_open is_open_Iio).2 Iio_subset_Iic_self _,
-  rw ←convex.combo_self hab r,
-  obtain rfl | hx := hx.eq_or_lt,
-  { exact add_lt_add_left (smul_lt_smul_of_pos (hy.lt_of_ne hxy.symm) hb) _ },
-  obtain rfl | hy := hy.eq_or_lt,
-  { exact add_lt_add_right (smul_lt_smul_of_pos hx ha) _ },
-  { exact add_lt_add (smul_lt_smul_of_pos hx ha) (smul_lt_smul_of_pos hy hb) }
+  refine strict_convex_iff_open_segment_subset.2 (λ x hx y hy hxy, _),
+  cases hxy.lt_or_lt with hlt hlt; [skip, rw [open_segment_symm]];
+    exact (open_segment_subset_Ioo hlt).trans (is_open_Ioo.subset_interior_iff.2 $
+      Ioo_subset_Icc_self.trans $ hs.out ‹_› ‹_›)
 end
 
-lemma strict_convex_Ici (r : β) : strict_convex 𝕜 (Ici r) :=
-@strict_convex_Iic 𝕜 (order_dual β) _ _ _ _ _ _ r
-
-lemma strict_convex_Icc (r s : β) : strict_convex 𝕜 (Icc r s) :=
-(strict_convex_Ici r).inter $ strict_convex_Iic s
-
-lemma strict_convex_Iio (r : β) : strict_convex 𝕜 (Iio r) :=
-(convex_Iio r).strict_convex is_open_Iio
-
-lemma strict_convex_Ioi (r : β) : strict_convex 𝕜 (Ioi r) :=
-(convex_Ioi r).strict_convex is_open_Ioi
-
-lemma strict_convex_Ioo (r s : β) : strict_convex 𝕜 (Ioo r s) :=
-(strict_convex_Ioi r).inter $ strict_convex_Iio s
-
-lemma strict_convex_Ico (r s : β) : strict_convex 𝕜 (Ico r s) :=
-(strict_convex_Ici r).inter $ strict_convex_Iio s
-
-lemma strict_convex_Ioc (r s : β) : strict_convex 𝕜 (Ioc r s) :=
-(strict_convex_Ioi r).inter $ strict_convex_Iic s
-
-lemma strict_convex_interval (r s : β) : strict_convex 𝕜 (interval r s) :=
-strict_convex_Icc _ _
+lemma strict_convex_Iic (r : β) : strict_convex 𝕜 (Iic r) := ord_connected_Iic.strict_convex
+lemma strict_convex_Ici (r : β) : strict_convex 𝕜 (Ici r) := ord_connected_Ici.strict_convex
+lemma strict_convex_Iio (r : β) : strict_convex 𝕜 (Iio r) := ord_connected_Iio.strict_convex
+lemma strict_convex_Ioi (r : β) : strict_convex 𝕜 (Ioi r) := ord_connected_Ioi.strict_convex
+lemma strict_convex_Icc (r s : β) : strict_convex 𝕜 (Icc r s) := ord_connected_Icc.strict_convex
+lemma strict_convex_Ioo (r s : β) : strict_convex 𝕜 (Ioo r s) := ord_connected_Ioo.strict_convex
+lemma strict_convex_Ico (r s : β) : strict_convex 𝕜 (Ico r s) := ord_connected_Ico.strict_convex
+lemma strict_convex_Ioc (r s : β) : strict_convex 𝕜 (Ioc r s) := ord_connected_Ioc.strict_convex
+lemma strict_convex_uIcc (r s : β) : strict_convex 𝕜 (uIcc r s) := strict_convex_Icc _ _
+lemma strict_convex_uIoc (r s : β) : strict_convex 𝕜 (uIoc r s) := strict_convex_Ioc _ _
 
 end linear_ordered_cancel_add_comm_monoid
 end module
@@ -282,7 +270,7 @@ section ordered_ring
 variables [ordered_ring 𝕜] [topological_space E] [topological_space F]
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x y : E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s t : set E} {x y : E}
 
 lemma strict_convex.eq_of_open_segment_subset_frontier [nontrivial 𝕜] [densely_ordered 𝕜]
   (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (h : open_segment 𝕜 x y ⊆ frontier s) :
@@ -340,13 +328,14 @@ begin
     convex.combo_affine_apply hab⟩⟩,
 end
 
-lemma strict_convex.neg [topological_add_group E] (hs : strict_convex 𝕜 s) :
-  strict_convex 𝕜 ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg (homeomorph.neg E).is_open_map
+variables [topological_add_group E]
 
-lemma strict_convex.neg_preimage [topological_add_group E] (hs : strict_convex 𝕜 s) :
-  strict_convex 𝕜 ((λ z, -z) ⁻¹' s) :=
+lemma strict_convex.neg (hs : strict_convex 𝕜 s) : strict_convex 𝕜 (-s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg continuous_id.neg neg_injective
+
+lemma strict_convex.sub (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
+  strict_convex 𝕜 (s - t) :=
+(sub_eq_add_neg s t).symm ▸ hs.add ht.neg
 
 end add_comm_group
 end ordered_ring
@@ -385,27 +374,13 @@ Relates `convex` and `set.ord_connected`.
 -/
 
 section
-variables [topological_space E]
+variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] {s : set 𝕜}
 
 /-- A set in a linear ordered field is strictly convex if and only if it is convex. -/
-@[simp] lemma strict_convex_iff_convex [linear_ordered_field 𝕜] [topological_space 𝕜]
-  [order_topology 𝕜] {s : set 𝕜} :
-  strict_convex 𝕜 s ↔ convex 𝕜 s :=
-begin
-  refine ⟨strict_convex.convex, λ hs, strict_convex_iff_open_segment_subset.2 (λ x hx y hy hxy, _)⟩,
-  obtain h | h := hxy.lt_or_lt,
-  { refine (open_segment_subset_Ioo h).trans _,
-    rw ←interior_Icc,
-    exact interior_mono (Icc_subset_segment.trans $ hs.segment_subset hx hy) },
-  { rw open_segment_symm,
-    refine (open_segment_subset_Ioo h).trans _,
-    rw ←interior_Icc,
-    exact interior_mono (Icc_subset_segment.trans $ hs.segment_subset hy hx) }
-end
+@[simp] lemma strict_convex_iff_convex : strict_convex 𝕜 s ↔ convex 𝕜 s :=
+⟨strict_convex.convex, λ hs, hs.ord_connected.strict_convex⟩
 
-lemma strict_convex_iff_ord_connected [linear_ordered_field 𝕜] [topological_space 𝕜]
-  [order_topology 𝕜] {s : set 𝕜} :
-  strict_convex 𝕜 s ↔ s.ord_connected :=
+lemma strict_convex_iff_ord_connected : strict_convex 𝕜 s ↔ s.ord_connected :=
 strict_convex_iff_convex.trans convex_iff_ord_connected
 
 alias strict_convex_iff_ord_connected ↔ strict_convex.ord_connected _

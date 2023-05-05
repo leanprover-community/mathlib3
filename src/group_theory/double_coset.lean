@@ -13,6 +13,9 @@ import tactic.group
 /-!
 # Double cosets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines double cosets for two subgroups `H K` of a group `G` and the quotient of `G` by
 the double coset relation, i.e. `H \ G / K`. We also prove that `G` can be writen as a disjoint
 union of the double cosets and that if one of `H` or `K` is the trivial group (i.e. `⊥` ) then
@@ -85,7 +88,7 @@ lemma bot_rel_eq_left_rel (H : subgroup G) :
   (setoid ↑(⊥ : subgroup G) ↑H).rel = (quotient_group.left_rel H).rel :=
 begin
   ext a b,
-  rw rel_iff,
+  rw [rel_iff, setoid.rel, quotient_group.left_rel_apply],
   split,
   { rintros ⟨a, (rfl : a = 1), b, hb, rfl⟩,
     change a⁻¹ * (1 * a * b) ∈ H,
@@ -98,7 +101,7 @@ lemma rel_bot_eq_right_group_rel (H : subgroup G) :
   (setoid ↑H ↑(⊥ : subgroup G)).rel = (quotient_group.right_rel H).rel :=
 begin
   ext a b,
-  rw rel_iff,
+  rw [rel_iff, setoid.rel, quotient_group.right_rel_apply],
   split,
   { rintros ⟨b, hb, a, (rfl : a = 1), rfl⟩,
     change b * a * 1 * a⁻¹ ∈ H,

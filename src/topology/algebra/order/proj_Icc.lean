@@ -4,17 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Patrick Massot
 -/
 import data.set.intervals.proj_Icc
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Projection onto a closed interval
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that the projection `set.proj_Icc f a b h` is a quotient map, and use it
 to show that `Icc_extend h f` is continuous if and only if `f` is continuous.
 -/
 
 open set filter
-open_locale filter topological_space
+open_locale filter topology
 
 variables {α β γ : Type*} [linear_order α] [topological_space γ] {a b c : α} {h : a ≤ b}
 
@@ -28,7 +31,7 @@ variables [topological_space α] [order_topology α] [topological_space β]
 
 @[continuity]
 lemma continuous_proj_Icc : continuous (proj_Icc a b h) :=
-continuous_subtype_mk _ $ continuous_const.max $ continuous_const.min continuous_id
+(continuous_const.max $ continuous_const.min continuous_id).subtype_mk _
 
 lemma quotient_map_proj_Icc : quotient_map (proj_Icc a b h) :=
 quotient_map_iff.2 ⟨proj_Icc_surjective h, λ s,

@@ -3,8 +3,8 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.fintype.basic
-import model_theory.terms_and_formulas
+import data.fintype.quotient
+import model_theory.semantics
 
 /-!
 # Quotients of First-Order Structures

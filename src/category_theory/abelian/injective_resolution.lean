@@ -3,8 +3,8 @@ Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Scott Morrison
 -/
+import algebra.homology.quasi_iso
 import category_theory.preadditive.injective_resolution
-import category_theory.abelian.exact
 import algebra.homology.homotopy_category
 
 /-!
@@ -55,7 +55,7 @@ def desc_f_one {Y Z : C}
   (f : Z ⟶ Y) (I : InjectiveResolution Y) (J : InjectiveResolution Z) :
   J.cocomplex.X 1 ⟶ I.cocomplex.X 1 :=
 exact.desc (desc_f_zero f I J ≫ I.cocomplex.d 0 1) (J.ι.f 0) (J.cocomplex.d 0 1)
-  (by simp [←category.assoc, desc_f_zero])
+  (abelian.exact.op _ _ J.exact₀) (by simp [←category.assoc, desc_f_zero])
 
 @[simp] lemma desc_f_one_zero_comm {Y Z : C}
   (f : Z ⟶ Y) (I : InjectiveResolution Y) (J : InjectiveResolution Z) :
@@ -72,7 +72,7 @@ def desc_f_succ {Y Z : C}
 ⟨@exact.desc C _ _ _ _ _ _ _ _ _
   (g' ≫ I.cocomplex.d (n+1) (n+2))
   (J.cocomplex.d n (n+1))
-  (J.cocomplex.d (n+1) (n+2)) _
+  (J.cocomplex.d (n+1) (n+2)) (abelian.exact.op _ _ (J.exact _))
   (by simp [←category.assoc, w]), (by simp)⟩
 
 /-- A morphism in `C` descends to a chain map between injective resolutions. -/
@@ -102,7 +102,7 @@ attribute [irreducible] desc
 def desc_homotopy_zero_zero {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveResolution Z}
   (f : I.cocomplex ⟶ J.cocomplex)
   (comm : I.ι ≫ f = 0) : I.cocomplex.X 1 ⟶ J.cocomplex.X 0 :=
-exact.desc (f.f 0) (I.ι.f 0) (I.cocomplex.d 0 1)
+exact.desc (f.f 0) (I.ι.f 0) (I.cocomplex.d 0 1) (abelian.exact.op _ _ I.exact₀)
   (congr_fun (congr_arg homological_complex.hom.f comm) 0)
 
 /-- An auxiliary definition for `desc_homotopy_zero`. -/
@@ -110,7 +110,7 @@ def desc_homotopy_zero_one {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveR
   (f : I.cocomplex ⟶ J.cocomplex)
   (comm : I.ι ≫ f = (0 : _ ⟶ J.cocomplex)) : I.cocomplex.X 2 ⟶ J.cocomplex.X 1 :=
 exact.desc (f.f 1 - desc_homotopy_zero_zero f comm ≫ J.cocomplex.d 0 1)
-  (I.cocomplex.d 0 1) (I.cocomplex.d 1 2)
+  (I.cocomplex.d 0 1) (I.cocomplex.d 1 2) (abelian.exact.op _ _ (I.exact _))
   (by simp [desc_homotopy_zero_zero, ←category.assoc])
 
 /-- An auxiliary definition for `desc_homotopy_zero`. -/
@@ -121,7 +121,7 @@ def desc_homotopy_zero_succ {Y Z : C} {I : InjectiveResolution Y} {J : Injective
   (w : f.f (n + 1) = I.cocomplex.d (n+1) (n+2) ≫ g' + g ≫ J.cocomplex.d n (n+1)) :
   I.cocomplex.X (n + 3) ⟶ J.cocomplex.X (n + 2) :=
 exact.desc (f.f (n+2) - g' ≫ J.cocomplex.d _ _) (I.cocomplex.d (n+1) (n+2))
-  (I.cocomplex.d (n+2) (n+3))
+  (I.cocomplex.d (n+2) (n+3)) (abelian.exact.op _ _ (I.exact _))
   (by simp [preadditive.comp_sub, ←category.assoc, preadditive.sub_comp,
         show I.cocomplex.d (n+1) (n+2) ≫ g' = f.f (n + 1) - g ≫ J.cocomplex.d n (n+1),
         by {rw w, simp only [add_sub_cancel] } ])
@@ -260,7 +260,7 @@ In any abelian category with enough injectives,
 { cocomplex := of_cocomplex Z,
   ι := cochain_complex.mk_hom _ _ (injective.ι Z) 0
     (by { simp only [of_cocomplex_d, eq_self_iff_true, eq_to_hom_refl, category.comp_id,
-      dite_eq_ite, if_true, exact.w],
+      dite_eq_ite, if_true, comp_zero],
       exact (exact_f_d (injective.ι Z)).w, } ) (λ n _, ⟨0, by ext⟩),
   injective := by { rintros (_|_|_|n); { apply injective.injective_under, } },
   exact₀ := by simpa using exact_f_d (injective.ι Z),
@@ -276,5 +276,22 @@ instance : has_injective_resolutions C :=
 { out := λ _, infer_instance }
 
 end InjectiveResolution
-
 end category_theory
+namespace homological_complex.hom
+
+variables {C : Type u} [category.{v} C] [abelian C]
+
+/-- If `X` is a cochain complex of injective objects and we have a quasi-isomorphism
+`f : Y[0] ⟶ X`, then `X` is an injective resolution of `Y.` -/
+def homological_complex.hom.from_single₀_InjectiveResolution (X : cochain_complex C ℕ) (Y : C)
+  (f : (cochain_complex.single₀ C).obj Y ⟶ X) [quasi_iso f]
+  (H : ∀ n, injective (X.X n)) :
+  InjectiveResolution Y :=
+{ cocomplex := X,
+  ι := f,
+  injective := H,
+  exact₀ := f.from_single₀_exact_f_d_at_zero,
+  exact := f.from_single₀_exact_at_succ,
+  mono := f.from_single₀_mono_at_zero }
+
+end homological_complex.hom

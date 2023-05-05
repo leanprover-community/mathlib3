@@ -17,11 +17,10 @@ function `function.update f c (lim (𝓝[≠] c) f)` is complex differentiable i
 -/
 
 open topological_space metric set filter asymptotics function
-open_locale topological_space filter nnreal
+open_locale topology filter nnreal real
 
 universe u
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [second_countable_topology E]
-  [complete_space E]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
 
 namespace complex
 
@@ -31,7 +30,6 @@ lemma analytic_at_of_differentiable_on_punctured_nhds_of_continuous_at {f : ℂ 
   (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z) (hc : continuous_at f c) :
   analytic_at ℂ f c :=
 begin
-  letI : measurable_space E := borel E, haveI : borel_space E := ⟨rfl⟩,
   rcases (nhds_within_has_basis nhds_basis_closed_ball _).mem_iff.1 hd with ⟨R, hR0, hRs⟩,
   lift R to ℝ≥0 using hR0.le,
   replace hc : continuous_on f (closed_ball c R),
@@ -39,7 +37,7 @@ begin
     rcases eq_or_ne z c with rfl | hne,
     exacts [hc, (hRs ⟨hz, hne⟩).continuous_at] },
   exact (has_fpower_series_on_ball_of_differentiable_off_countable (countable_singleton c) hc
-    (λ z hz, hRs (diff_subset_diff_left ball_subset_closed_ball hz)) hR0).analytic_at 
+    (λ z hz, hRs (diff_subset_diff_left ball_subset_closed_ball hz)) hR0).analytic_at
 end
 
 lemma differentiable_on_compl_singleton_and_continuous_at_iff {f : ℂ → E} {s : set ℂ} {c : ℂ}
@@ -67,7 +65,7 @@ is complex differentiable on `s \ {c}`, and $f(z) - f(c)=o((z-c)^{-1})$, then `f
 equal to `lim (𝓝[≠] c) f` at `c` is complex differentiable on `s`. -/
 lemma differentiable_on_update_lim_of_is_o {f : ℂ → E} {s : set ℂ} {c : ℂ}
   (hc : s ∈ 𝓝 c) (hd : differentiable_on ℂ f (s \ {c}))
-  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  (ho : (λ z, f z - f c) =o[𝓝[≠] c] (λ z, (z - c)⁻¹)) :
   differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) s :=
 begin
   set F : ℂ → E := λ z, (z - c) • f z with hF,
@@ -90,7 +88,7 @@ end
 be equal to `lim (𝓝[≠] c) f` at `c` is complex differentiable on `{c} ∪ s`. -/
 lemma differentiable_on_update_lim_insert_of_is_o {f : ℂ → E} {s : set ℂ} {c : ℂ}
   (hc : s ∈ 𝓝[≠] c) (hd : differentiable_on ℂ f s)
-  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  (ho : (λ z, f z - f c) =o[𝓝[≠] c] (λ z, (z - c)⁻¹)) :
   differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) (insert c s) :=
 differentiable_on_update_lim_of_is_o (insert_mem_nhds_iff.2 hc)
   (hd.mono $ λ z hz, hz.1.resolve_left hz.2) ho
@@ -103,14 +101,14 @@ lemma differentiable_on_update_lim_of_bdd_above {f : ℂ → E} {s : set ℂ} {c
   (hb : bdd_above (norm ∘ f '' (s \ {c}))) :
   differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) s :=
 differentiable_on_update_lim_of_is_o hc hd $ is_bounded_under.is_o_sub_self_inv $
-  let ⟨C, hC⟩ := hb in ⟨C + ∥f c∥, eventually_map.2 $ mem_nhds_within_iff_exists_mem_nhds_inter.2
+  let ⟨C, hC⟩ := hb in ⟨C + ‖f c‖, eventually_map.2 $ mem_nhds_within_iff_exists_mem_nhds_inter.2
     ⟨s, hc, λ z hz, norm_sub_le_of_le (hC $ mem_image_of_mem _ hz) le_rfl⟩⟩
 
 /-- **Removable singularity** theorem: if a function `f : ℂ → E` is complex differentiable on a
 punctured neighborhood of `c` and $f(z) - f(c)=o((z-c)^{-1})$, then `f` has a limit at `c`. -/
 lemma tendsto_lim_of_differentiable_on_punctured_nhds_of_is_o {f : ℂ → E} {c : ℂ}
   (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z)
-  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  (ho : (λ z, f z - f c) =o[𝓝[≠] c] (λ z, (z - c)⁻¹)) :
   tendsto f (𝓝[≠] c) (𝓝 $ lim (𝓝[≠] c) f) :=
 begin
   rw eventually_nhds_within_iff at hd,
@@ -124,8 +122,39 @@ end
 bounded on a punctured neighborhood of `c`, then `f` has a limit at `c`. -/
 lemma tendsto_lim_of_differentiable_on_punctured_nhds_of_bounded_under {f : ℂ → E}
   {c : ℂ} (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z)
-  (hb : is_bounded_under (≤) (𝓝[≠] c) (λ z, ∥f z - f c∥)) :
+  (hb : is_bounded_under (≤) (𝓝[≠] c) (λ z, ‖f z - f c‖)) :
   tendsto f (𝓝[≠] c) (𝓝 $ lim (𝓝[≠] c) f) :=
 tendsto_lim_of_differentiable_on_punctured_nhds_of_is_o hd hb.is_o_sub_self_inv
+
+/-- The Cauchy formula for the derivative of a holomorphic function. -/
+lemma two_pi_I_inv_smul_circle_integral_sub_sq_inv_smul_of_differentiable
+  {U : set ℂ} (hU : is_open U) {c w₀ : ℂ} {R : ℝ} {f : ℂ → E}
+  (hc : closed_ball c R ⊆ U) (hf : differentiable_on ℂ f U) (hw₀ : w₀ ∈ ball c R) :
+  (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), ((z - w₀) ^ 2)⁻¹ • f z = deriv f w₀ :=
+begin
+  -- We apply the removable singularity theorem and the Cauchy formula to `dslope f w₀`
+  have hR : 0 < R := not_le.mp (ball_eq_empty.not.mp (nonempty_of_mem hw₀).ne_empty),
+  have hf' : differentiable_on ℂ (dslope f w₀) U,
+    from (differentiable_on_dslope (hU.mem_nhds ((ball_subset_closed_ball.trans hc) hw₀))).mpr hf,
+  have h0 := (hf'.diff_cont_on_cl_ball hc).two_pi_I_inv_smul_circle_integral_sub_inv_smul hw₀,
+  rw [← dslope_same, ← h0],
+  congr' 1,
+  transitivity ∮ z in C(c, R), ((z - w₀) ^ 2)⁻¹ • (f z - f w₀),
+  { have h1 : continuous_on (λ (z : ℂ), ((z - w₀) ^ 2)⁻¹) (sphere c R),
+    { refine ((continuous_id'.sub continuous_const).pow 2).continuous_on.inv₀ (λ w hw h, _),
+      exact sphere_disjoint_ball.ne_of_mem hw hw₀ (sub_eq_zero.mp (sq_eq_zero_iff.mp h)) },
+    have h2 : circle_integrable (λ (z : ℂ), ((z - w₀) ^ 2)⁻¹ • f z) c R,
+    { refine continuous_on.circle_integrable (pos_of_mem_ball hw₀).le _,
+      exact h1.smul (hf.continuous_on.mono (sphere_subset_closed_ball.trans hc)) },
+    have h3 : circle_integrable (λ (z : ℂ), ((z - w₀) ^ 2)⁻¹ • f w₀) c R,
+      from continuous_on.circle_integrable (pos_of_mem_ball hw₀).le (h1.smul continuous_on_const),
+    have h4 : ∮ (z : ℂ) in C(c, R), ((z - w₀) ^ 2)⁻¹ = 0,
+      by simpa using circle_integral.integral_sub_zpow_of_ne (dec_trivial : (-2 : ℤ) ≠ -1) c w₀ R,
+    simp only [smul_sub, circle_integral.integral_sub h2 h3, h4,
+      circle_integral.integral_smul_const, zero_smul, sub_zero] },
+  { refine circle_integral.integral_congr (pos_of_mem_ball hw₀).le (λ z hz, _),
+    simp only [dslope_of_ne, metric.sphere_disjoint_ball.ne_of_mem hz hw₀, slope, ← smul_assoc, sq,
+      mul_inv, ne.def, not_false_iff, vsub_eq_sub, algebra.id.smul_eq_mul] }
+end
 
 end complex

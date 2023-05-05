@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.hom.basic
-import order.lexicographic
 
 /-!
 # Orders on a sum type
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the disjoint sum and the linear (aka lexicographic) sum of two orders and provides
 relation instances for `sum.lift_rel` and `sum.lex`.
@@ -25,8 +27,9 @@ type synonym.
 * `α ⊕ₗ β`:  The linear sum of `α` and `β`.
 -/
 
-namespace sum
 variables {α β γ δ : Type*}
+
+namespace sum
 
 /-! ### Unbundled relation classes -/
 
@@ -40,7 +43,7 @@ variables (r : α → α → Prop) (s : β → β → Prop)
 instance [is_refl α r] [is_refl β s] : is_refl (α ⊕ β) (lift_rel r s) := ⟨lift_rel.refl _ _⟩
 
 instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (α ⊕ β) (lift_rel r s) :=
-⟨by { rintro _ (⟨a, _, h⟩ | ⟨a, _, h⟩); exact irrefl _ h }⟩
+⟨by { rintro _ (⟨h⟩ | ⟨h⟩); exact irrefl _ h }⟩
 
 @[trans] lemma lift_rel.trans [is_trans α r] [is_trans β s] :
   ∀ {a b c}, lift_rel r s a b → lift_rel r s b c → lift_rel r s a c
@@ -51,7 +54,7 @@ instance [is_trans α r] [is_trans β s] : is_trans (α ⊕ β) (lift_rel r s) :
 ⟨λ _ _ _, lift_rel.trans _ _⟩
 
 instance [is_antisymm α r] [is_antisymm β s] : is_antisymm (α ⊕ β) (lift_rel r s) :=
-⟨by { rintro _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, _, hba⟩ | ⟨_, _, hba⟩); rw antisymm hab hba }⟩
+⟨by { rintro _ _ (⟨hab⟩ | ⟨hab⟩) (⟨hba⟩ | ⟨hba⟩); rw antisymm hab hba }⟩
 
 end lift_rel
 
@@ -62,14 +65,14 @@ instance [is_refl α r] [is_refl β s] : is_refl (α ⊕ β) (lex r s) :=
 ⟨by { rintro (a | a), exacts [lex.inl (refl _), lex.inr (refl _)] }⟩
 
 instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (α ⊕ β) (lex r s) :=
-⟨by { rintro _ (⟨a, _, h⟩ | ⟨a, _, h⟩); exact irrefl _ h }⟩
+⟨by { rintro _ (⟨h⟩ | ⟨h⟩); exact irrefl _ h }⟩
 
 instance [is_trans α r] [is_trans β s] : is_trans (α ⊕ β) (lex r s) :=
-⟨by { rintro _ _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, c, hbc⟩ | ⟨_, c, hbc⟩),
+⟨by { rintro _ _ _ (⟨hab⟩ | ⟨hab⟩) (⟨hbc⟩ | ⟨hbc⟩),
   exacts [lex.inl (trans hab hbc), lex.sep _ _, lex.inr (trans hab hbc), lex.sep _ _] }⟩
 
 instance [is_antisymm α r] [is_antisymm β s] : is_antisymm (α ⊕ β) (lex r s) :=
-⟨by { rintro _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, _, hba⟩ | ⟨_, _, hba⟩); rw antisymm hab hba }⟩
+⟨by { rintro _ _ (⟨hab⟩ | ⟨hab⟩) (⟨hba⟩ | ⟨hba⟩); rw antisymm hab hba }⟩
 
 instance [is_total α r] [is_total β s] : is_total (α ⊕ β) (lex r s) :=
 ⟨λ a b, match a, b with
@@ -88,7 +91,7 @@ instance [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α ⊕
 end⟩
 
 instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
-{ wf := sum.lex_wf is_well_order.wf is_well_order.wf }
+{ wf := sum.lex_wf is_well_founded.wf is_well_founded.wf }
 
 end lex
 
@@ -134,10 +137,10 @@ instance : preorder (α ⊕ β) :=
   le_trans := λ _ _ _, trans,
   lt_iff_le_not_le := λ a b, begin
     refine ⟨λ hab, ⟨hab.mono (λ _ _, le_of_lt) (λ _ _, le_of_lt), _⟩, _⟩,
-    { rintro (⟨b, a, hba⟩ | ⟨b, a, hba⟩),
+    { rintro (⟨hba⟩ | ⟨hba⟩),
       { exact hba.not_lt (inl_lt_inl_iff.1 hab) },
       { exact hba.not_lt (inr_lt_inr_iff.1 hab) } },
-    { rintro ⟨⟨a, b, hab⟩ | ⟨a, b, hab⟩, hba⟩,
+    { rintro ⟨⟨hab⟩ | ⟨hab⟩, hba⟩,
       { exact lift_rel.inl (hab.lt_of_not_le $ λ h, hba $ lift_rel.inl h) },
       { exact lift_rel.inr (hab.lt_of_not_le $ λ h, hba $ lift_rel.inr h) } }
   end,
@@ -214,12 +217,10 @@ end⟩, ⟨λ a b h, begin
 end⟩⟩, λ h, @sum.densely_ordered _ _ _ _ h.1 h.2⟩
 
 @[simp] lemma swap_le_swap_iff [has_le α] [has_le β] {a b : α ⊕ β} : a.swap ≤ b.swap ↔ a ≤ b :=
-by cases a; cases b;
-  simp only [swap, inr_le_inr_iff, inl_le_inl_iff, not_inl_le_inr, not_inr_le_inl]
+lift_rel_swap_iff
 
 @[simp] lemma swap_lt_swap_iff [has_lt α] [has_lt β] {a b : α ⊕ β} : a.swap < b.swap ↔ a < b :=
-by cases a; cases b;
-  simp only [swap, inr_lt_inr_iff, inl_lt_inl_iff, not_inl_lt_inr, not_inr_lt_inl]
+lift_rel_swap_iff
 
 end disjoint
 
@@ -293,11 +294,11 @@ instance preorder : preorder (α ⊕ₗ β) :=
   le_trans := λ _ _ _, trans_of (lex (≤) (≤)),
   lt_iff_le_not_le := λ a b, begin
     refine ⟨λ hab, ⟨hab.mono (λ _ _, le_of_lt) (λ _ _, le_of_lt), _⟩, _⟩,
-    { rintro (⟨b, a, hba⟩ | ⟨b, a, hba⟩ | ⟨b, a⟩),
+    { rintro (⟨hba⟩ | ⟨hba⟩ | ⟨b, a⟩),
       { exact hba.not_lt (inl_lt_inl_iff.1 hab) },
       { exact hba.not_lt (inr_lt_inr_iff.1 hab) },
       { exact not_inr_lt_inl hab } },
-    { rintro ⟨⟨a, b, hab⟩ | ⟨a, b, hab⟩ | ⟨a, b⟩, hba⟩,
+    { rintro ⟨⟨hab⟩ | ⟨hab⟩ | ⟨a, b⟩, hba⟩,
       { exact lex.inl (hab.lt_of_not_le $ λ h, hba $ lex.inl h) },
       { exact lex.inr (hab.lt_of_not_le $ λ h, hba $ lex.inr h) },
       { exact lex.sep _ _} }
@@ -414,7 +415,7 @@ end sum
 open order_dual sum
 
 namespace order_iso
-variables {α β γ : Type*} [has_le α] [has_le β] [has_le γ] (a : α) (b : β) (c : γ)
+variables [has_le α] [has_le β] [has_le γ] (a : α) (b : β) (c : γ)
 
 /-- `equiv.sum_comm` promoted to an order isomorphism. -/
 @[simps apply] def sum_comm (α β : Type*) [has_le α] [has_le β] : α ⊕ β ≃o β ⊕ α :=
@@ -438,8 +439,7 @@ rfl
 @[simp] lemma sum_assoc_symm_apply_inr_inr : (sum_assoc α β γ).symm (inr (inr c)) = inr c := rfl
 
 /-- `order_dual` is distributive over `⊕` up to an order isomorphism. -/
-def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] :
-  order_dual (α ⊕ β) ≃o order_dual α ⊕ order_dual β :=
+def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] : (α ⊕ β)ᵒᵈ ≃o αᵒᵈ ⊕ βᵒᵈ :=
 { map_rel_iff' := begin
   rintro (a | a) (b | b),
   { change inl (to_dual a) ≤ inl (to_dual b) ↔ to_dual (inl a) ≤ to_dual (inl b),
@@ -501,8 +501,7 @@ def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] : (α �
   (sum_lex_assoc α β γ).symm (inr (inr c)) = inr c := rfl
 
 /-- `order_dual` is antidistributive over `⊕ₗ` up to an order isomorphism. -/
-def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] :
-  order_dual (α ⊕ₗ β) ≃o order_dual β ⊕ₗ order_dual α :=
+def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] : (α ⊕ₗ β)ᵒᵈ ≃o βᵒᵈ ⊕ₗ αᵒᵈ :=
 { map_rel_iff' := begin
   rintro (a | a) (b | b), simp,
   { change to_lex (inr $ to_dual a) ≤ to_lex (inr $ to_dual b) ↔
@@ -529,3 +528,49 @@ end,
   (sum_lex_dual_antidistrib α β).symm (inr (to_dual a)) = to_dual (inl a) := rfl
 
 end order_iso
+
+variable [has_le α]
+
+namespace with_bot
+
+/-- `with_bot α` is order-isomorphic to `punit ⊕ₗ α`, by sending `⊥` to `punit.star` and `↑a` to
+`a`. -/
+def order_iso_punit_sum_lex : with_bot α ≃o punit ⊕ₗ α :=
+⟨(equiv.option_equiv_sum_punit α).trans $ (equiv.sum_comm _ _).trans to_lex,
+  by rintro (a | _) (b | _); simp; exact not_coe_le_bot _⟩
+
+@[simp] lemma order_iso_punit_sum_lex_bot :
+  @order_iso_punit_sum_lex α _ ⊥ = to_lex (inl punit.star) := rfl
+
+@[simp] lemma order_iso_punit_sum_lex_coe (a : α) :
+  order_iso_punit_sum_lex (↑a) = to_lex (inr a) := rfl
+
+@[simp] lemma order_iso_punit_sum_lex_symm_inl (x : punit) :
+  (@order_iso_punit_sum_lex α _).symm (to_lex $ inl x) = ⊥ := rfl
+
+@[simp] lemma order_iso_punit_sum_lex_symm_inr (a : α) :
+  order_iso_punit_sum_lex.symm (to_lex $ inr a) = a := rfl
+
+end with_bot
+
+namespace with_top
+
+/-- `with_top α` is order-isomorphic to `α ⊕ₗ punit`, by sending `⊤` to `punit.star` and `↑a` to
+`a`. -/
+def order_iso_sum_lex_punit : with_top α ≃o α ⊕ₗ punit :=
+⟨(equiv.option_equiv_sum_punit α).trans to_lex,
+  by rintro (a | _) (b | _); simp; exact not_top_le_coe _⟩
+
+@[simp] lemma order_iso_sum_lex_punit_top :
+  @order_iso_sum_lex_punit α _ ⊤ = to_lex (inr punit.star) := rfl
+
+@[simp] lemma order_iso_sum_lex_punit_coe (a : α) :
+  order_iso_sum_lex_punit (↑a) = to_lex (inl a) := rfl
+
+@[simp] lemma order_iso_sum_lex_punit_symm_inr (x : punit) :
+  (@order_iso_sum_lex_punit α _).symm (to_lex $ inr x) = ⊤ := rfl
+
+@[simp] lemma order_iso_sum_lex_punit_symm_inl (a : α) :
+  order_iso_sum_lex_punit.symm (to_lex $ inl a) = a := rfl
+
+end with_top

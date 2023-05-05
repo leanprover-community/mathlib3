@@ -151,7 +151,7 @@ congr_arg (adj .hom_equiv _ _) (category.comp_id _)
 This is a cofork which is helpful for establishing monadicity: the morphism from the Beck
 coequalizer to this cofork is the unit for the adjunction on the comparison functor.
 -/
-@[simps]
+@[simps X]
 def unit_cofork (A : adj .to_monad.algebra)
   [has_coequalizer (F .map A.a) (adj .counit.app (F .obj A.A))] :
   cofork (G.map (F .map A.a)) (G.map (adj .counit.app (F .obj A.A))) :=
@@ -161,6 +161,10 @@ begin
   rw [← G.map_comp, coequalizer.condition, G.map_comp],
 end
 
+@[simp] lemma unit_cofork_π (A : adj .to_monad.algebra)
+  [has_coequalizer (F .map A.a) (adj .counit.app (F .obj A.A))] :
+  (unit_cofork A).π = G.map (coequalizer.π (F .map A.a) (adj .counit.app (F .obj A.A))) := rfl
+
 lemma comparison_adjunction_unit_f
   [∀ (A : adj .to_monad.algebra), has_coequalizer (F .map A.a) (adj .counit.app (F .obj A.A))]
   (A : adj .to_monad.algebra) :
@@ -168,8 +172,8 @@ lemma comparison_adjunction_unit_f
     (beck_coequalizer A).desc (unit_cofork A) :=
 begin
   apply limits.cofork.is_colimit.hom_ext (beck_coequalizer A),
-  rw is_colimit.fac,
-  dsimp only [cofork.π_eq_app_one, beck_cofork_ι_app, unit_cofork_ι_app],
+  rw [cofork.is_colimit.π_desc],
+  dsimp only [beck_cofork_π, unit_cofork_π],
   rw [comparison_adjunction_unit_f_aux, ← adj .hom_equiv_naturality_left A.a, coequalizer.condition,
       adj .hom_equiv_naturality_right, adj .hom_equiv_unit, category.assoc],
   apply adj .right_triangle_components_assoc,

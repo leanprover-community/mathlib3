@@ -3,10 +3,14 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.sites.compatible_sheafification
 import category_theory.adjunction.whiskering
+import category_theory.sites.sheafification
+import category_theory.sites.whiskering
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 In this file, we show that an adjunction `F ⊣ G` induces an adjunction between
 categories of sheaves, under certain hypotheses on `F` and `G`.
@@ -98,7 +102,7 @@ abbreviation compose_and_sheafify_from_types (G : Type (max v u) ⥤ D) :
 is the forgetful functor to sheaves of types. -/
 def adjunction_to_types {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D) :
   compose_and_sheafify_from_types J G ⊣ Sheaf_forget J :=
-adjunction.comp _ _ ((Sheaf_equiv_SheafOfTypes J).symm.to_adjunction) (adjunction J adj)
+((Sheaf_equiv_SheafOfTypes J).symm.to_adjunction).comp (adjunction J adj)
 
 @[simp]
 lemma adjunction_to_types_unit_app_val {G : Type (max v u) ⥤ D} (adj : G ⊣ forget D)

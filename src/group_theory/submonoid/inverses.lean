@@ -10,6 +10,9 @@ import group_theory.submonoid.pointwise
 
 # Submonoid of inverses
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a submonoid `N` of a monoid `M`, we define the submonoid `N.left_inv` as the submonoid of
 left inverses of `N`. When `M` is commutative, we may define `from_comm_left_inv : N.left_inv →* N`
 since the inverses are unique. When `N ≤ is_unit.submonoid M`, this is precisely
@@ -169,7 +172,7 @@ open_locale pointwise
 
 @[to_additive] lemma left_inv_eq_inv : S.left_inv = S⁻¹ :=
 submonoid.ext $ λ x,
-  ⟨λ h, submonoid.mem_inv.mpr ((inv_eq_of_mul_eq_one h.some_spec).symm ▸ h.some.prop),
+  ⟨λ h, submonoid.mem_inv.mpr ((inv_eq_of_mul_eq_one_right h.some_spec).symm ▸ h.some.prop),
     λ h, ⟨⟨_, h⟩, mul_right_inv _⟩⟩
 
 @[simp, to_additive] lemma from_left_inv_eq_inv (x : S.left_inv) :

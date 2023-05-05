@@ -3,7 +3,6 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.set.countable
 import model_theory.substructures
 
 /-!
@@ -61,7 +60,7 @@ end
 theorem fg_bot : (⊥ : L.substructure M).fg :=
 ⟨∅, by rw [finset.coe_empty, closure_empty]⟩
 
-theorem fg_closure {s : set M} (hs : finite s) : fg (closure L s) :=
+theorem fg_closure {s : set M} (hs : s.finite) : fg (closure L s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
 
 theorem fg_closure_singleton (x : M) : fg (closure L ({x} : set M)) :=
@@ -112,7 +111,7 @@ begin
   { rintros ⟨S, Scount, hS⟩,
     cases eq_empty_or_nonempty ↑N with h h,
     { exact or.intro_left _ h },
-    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_surjective
+    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_eq_range
       (singleton_nonempty h.some).inr,
     refine or.intro_right _ ⟨f, _⟩,
     rw [← h', closure_union, hS, sup_eq_left, closure_le],
@@ -128,7 +127,7 @@ end
 
 theorem cg_bot : (⊥ : L.substructure M).cg := fg_bot.cg
 
-theorem cg_closure {s : set M} (hs : countable s) : cg (closure L s) :=
+theorem cg_closure {s : set M} (hs : s.countable) : cg (closure L s) :=
 ⟨s, hs, rfl⟩
 
 theorem cg_closure_singleton (x : M) : cg (closure L ({x} : set M)) := (fg_closure_singleton x).cg
@@ -155,6 +154,14 @@ begin
   have h' := subset_closure hx,
   rw h2 at h',
   exact hom.map_le_range h'
+end
+
+theorem cg_iff_countable [countable (Σl, L.functions l)] {s : L.substructure M} :
+  s.cg ↔ countable s :=
+begin
+  refine ⟨_, λ h, ⟨s, h.to_set, s.closure_eq⟩⟩,
+  rintro ⟨s, h, rfl⟩,
+  exact h.substructure_closure L
 end
 
 end substructure
@@ -216,6 +223,9 @@ begin
   rw [cg_def, ← hs],
   exact h.range f,
 end
+
+lemma cg_iff_countable [countable (Σl, L.functions l)] : cg L M ↔ countable M :=
+by rw [cg_def, cg_iff_countable, top_equiv.to_equiv.countable_iff]
 
 lemma fg.cg (h : fg L M) : cg L M :=
 cg_def.2 (fg_def.1 h).cg

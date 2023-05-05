@@ -9,6 +9,9 @@ import topology.uniform_space.uniform_convergence
 /-!
 # Compact convergence (uniform convergence on compact sets)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a topological space `α` and a uniform space `β` (e.g., a metric space or a topological group),
 the space of continuous maps `C(α, β)` carries a natural uniform space structure. We define this
 uniform space structure in this file and also prove the following properties of the topology it
@@ -76,7 +79,7 @@ of the uniform space structure on `C(α, β)` definitionally equal to the compac
 
 universes u₁ u₂ u₃
 
-open_locale filter uniformity topological_space
+open_locale filter uniformity topology
 open uniform_space set filter
 
 variables {α : Type u₁} {β : Type u₂} [topological_space α] [uniform_space β]
@@ -196,7 +199,7 @@ lemma compact_conv_nhd_subset_compact_open (hK : is_compact K) {U : set β} (hU 
 begin
   obtain ⟨V, hV₁, hV₂, hV₃⟩ := lebesgue_number_of_compact_open (hK.image f.continuous) hU hf,
   refine ⟨V, hV₁, hV₂, _⟩,
-  rintros g hg - ⟨x, hx, rfl⟩,
+  rintros g hg _ ⟨x, hx, rfl⟩,
   exact hV₃ (f x) ⟨x, hx, rfl⟩ (hg x hx),
 end
 
@@ -264,8 +267,8 @@ begin
     haveI := hι,
     exact ⟨⋂ i, compact_open.gen (C i) (U i), h₂.trans hXf,
       is_open_Inter (λ i, continuous_map.is_open_gen (hC i) (hU i)), h₁⟩, },
-  { simp only [le_generate_from_iff_subset_is_open, and_imp, exists_prop, forall_exists_index,
-      set_of_subset_set_of],
+  { simp only [topological_space.le_generate_from_iff_subset_is_open, and_imp, exists_prop,
+      forall_exists_index, set_of_subset_set_of],
     rintros - K hK U hU rfl f hf,
     obtain ⟨V, hV, hV', hVf⟩ := compact_conv_nhd_subset_compact_open f hK hU hf,
     exact filter.mem_of_superset (filter_basis.mem_filter_of_mem _ ⟨⟨K, V⟩, ⟨hK, hV⟩, rfl⟩) hVf, },
@@ -276,22 +279,26 @@ def compact_convergence_uniformity : filter (C(α, β) × C(α, β)) :=
 ⨅ KV ∈ { KV : set α × set (β × β) | is_compact KV.1 ∧ KV.2 ∈ 𝓤 β },
 𝓟 { fg : C(α, β) × C(α, β) | ∀ (x : α), x ∈ KV.1 → (fg.1 x, fg.2 x) ∈ KV.2 }
 
+lemma has_basis_compact_convergence_uniformity_aux :
+  has_basis (@compact_convergence_uniformity α β _ _)
+    (λ p : set α × set (β × β), is_compact p.1 ∧ p.2 ∈ 𝓤 β)
+    (λ p, { fg : C(α, β) × C(α, β) | ∀ x ∈ p.1, (fg.1 x, fg.2 x) ∈ p.2 }) :=
+begin
+  refine filter.has_basis_binfi_principal _ compact_conv_nhd_compact_entourage_nonempty,
+  rintros ⟨K₁, V₁⟩ ⟨hK₁, hV₁⟩ ⟨K₂, V₂⟩ ⟨hK₂, hV₂⟩,
+  refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
+  simp only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
+      ← forall_and_distrib, mem_inter_iff, mem_union],
+  exact λ f g, forall_imp (λ x, by tauto!),
+end
+
 /-- An intermediate lemma. Usually `mem_compact_convergence_entourage_iff` is more useful. -/
 lemma mem_compact_convergence_uniformity (X : set (C(α, β) × C(α, β))) :
   X ∈ @compact_convergence_uniformity α β _ _ ↔
   ∃ (K : set α) (V : set (β × β)) (hK : is_compact K) (hV : V ∈ 𝓤 β),
     { fg : C(α, β) × C(α, β) | ∀ x ∈ K, (fg.1 x, fg.2 x) ∈ V } ⊆ X :=
-begin
-  rw [compact_convergence_uniformity,
-    (filter.has_basis_binfi_principal _ compact_conv_nhd_compact_entourage_nonempty).mem_iff],
-  { simp only [exists_prop, prod.forall, set_of_subset_set_of, mem_set_of_eq, prod.exists],
-    exact exists₂_congr (λ K V, by tauto) },
-  { rintros ⟨K₁, V₁⟩ ⟨hK₁, hV₁⟩ ⟨K₂, V₂⟩ ⟨hK₂, hV₂⟩,
-    refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
-    simp only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
-      ← forall_and_distrib, mem_inter_eq, mem_union_eq],
-    exact λ f g, forall_imp (λ x, by tauto!), },
-end
+by simp only [has_basis_compact_convergence_uniformity_aux.mem_iff, exists_prop, prod.exists,
+  and_assoc]
 
 /-- Note that we ensure the induced topology is definitionally the compact-open topology. -/
 instance compact_convergence_uniform_space : uniform_space C(α, β) :=
@@ -346,7 +353,20 @@ mem_compact_convergence_uniformity X
 lemma has_basis_compact_convergence_uniformity :
   has_basis (𝓤 C(α, β)) (λ p : set α × set (β × β), is_compact p.1 ∧ p.2 ∈ 𝓤 β)
             (λ p, { fg : C(α, β) × C(α, β) | ∀ x ∈ p.1, (fg.1 x, fg.2 x) ∈ p.2 }) :=
-⟨λ t, by { simp only [mem_compact_convergence_entourage_iff, prod.exists], tauto, }⟩
+has_basis_compact_convergence_uniformity_aux
+
+lemma _root_.filter.has_basis.compact_convergence_uniformity {ι : Type*} {pi : ι → Prop}
+  {s : ι → set (β × β)} (h : (𝓤 β).has_basis pi s) :
+  has_basis (𝓤 C(α, β)) (λ p : set α × ι, is_compact p.1 ∧ pi p.2)
+    (λ p, { fg : C(α, β) × C(α, β) | ∀ x ∈ p.1, (fg.1 x, fg.2 x) ∈ s p.2 }) :=
+begin
+  refine has_basis_compact_convergence_uniformity.to_has_basis _ _,
+  { rintro ⟨t₁, t₂⟩ ⟨h₁, h₂⟩,
+    rcases h.mem_iff.1 h₂ with ⟨i, hpi, hi⟩,
+    exact ⟨(t₁, i), ⟨h₁, hpi⟩, λ fg hfg x hx, hi (hfg _ hx)⟩ },
+  { rintro ⟨t, i⟩ ⟨ht, hi⟩,
+    exact ⟨(t, s i), ⟨ht, h.mem_of_mem hi⟩, subset.rfl⟩ }
+end
 
 variables {ι : Type u₃} {p : filter ι} {F : ι → C(α, β)} {f}
 
@@ -397,7 +417,7 @@ lemma has_basis_compact_convergence_uniformity_of_compact :
             (λ V, { fg : C(α, β) × C(α, β) | ∀ x, (fg.1 x, fg.2 x) ∈ V }) :=
 has_basis_compact_convergence_uniformity.to_has_basis
   (λ p hp, ⟨p.2, hp.2, λ fg hfg x hx, hfg x⟩)
-  (λ V hV, ⟨⟨univ, V⟩, ⟨compact_univ, hV⟩, λ fg hfg x, hfg x (mem_univ x)⟩)
+  (λ V hV, ⟨⟨univ, V⟩, ⟨is_compact_univ, hV⟩, λ fg hfg x, hfg x (mem_univ x)⟩)
 
 /-- Convergence in the compact-open topology is the same as uniform convergence for sequences of
 continuous functions on a compact space. -/
@@ -405,7 +425,7 @@ lemma tendsto_iff_tendsto_uniformly :
   tendsto F p (𝓝 f) ↔ tendsto_uniformly (λ i a, F i a) f p :=
 begin
   rw [tendsto_iff_forall_compact_tendsto_uniformly_on, ← tendsto_uniformly_on_univ],
-  exact ⟨λ h, h univ compact_univ, λ h K hK, h.mono (subset_univ K)⟩,
+  exact ⟨λ h, h univ is_compact_univ, λ h K hK, h.mono (subset_univ K)⟩,
 end
 
 end compact_domain

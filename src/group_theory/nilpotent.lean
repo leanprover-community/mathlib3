@@ -8,7 +8,7 @@ import group_theory.quotient_group
 import group_theory.solvable
 import group_theory.p_group
 import group_theory.sylow
-import data.nat.factorization
+import data.nat.factorization.basic
 import tactic.tfae
 
 /-!
@@ -195,8 +195,7 @@ begin
   refine monotone_nat_of_le_succ _,
   intros n x hx y,
   rw [mul_assoc, mul_assoc, ← mul_assoc y x⁻¹ y⁻¹],
-  exact mul_mem (upper_central_series G n) hx
-    (normal.conj_mem (upper_central_series.subgroup.normal G n) x⁻¹ (inv_mem _ hx) y),
+  exact mul_mem hx (normal.conj_mem (upper_central_series.subgroup.normal G n) x⁻¹ (inv_mem hx) y)
 end
 
 /-- A group `G` is nilpotent iff there exists an ascending central series which reaches `G` in
@@ -303,8 +302,7 @@ begin
     (@subgroup.inv_mem _ _ _),
   rintros y ⟨z, hz, a, ha⟩,
   rw [← ha, mul_assoc, mul_assoc, ← mul_assoc a z⁻¹ a⁻¹],
-  exact mul_mem (lower_central_series G n) hz
-    (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem _ hz) a),
+  exact mul_mem hz (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem hz) a)
 end
 
 /-- The lower central series of a group is a descending central series. -/
@@ -515,7 +513,7 @@ begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hH with ⟨n, hn⟩,
   use (n + 1),
-  refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
+  refine lower_central_series_succ_eq_bot (le_trans ((subgroup.map_eq_bot_iff _).mp _) hf1),
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end
 
@@ -526,7 +524,7 @@ lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] (f : G →* H)
 begin
   rw ← lower_central_series_length_eq_nilpotency_class,
   apply nat.find_min',
-  refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
+  refine lower_central_series_succ_eq_bot (le_trans ((subgroup.map_eq_bot_iff _).mp _) hf1),
   apply eq_bot_iff.mpr,
   apply (le_trans (lower_central_series.map f _)),
   simp only [lower_central_series_nilpotency_class, le_bot_iff],
@@ -776,9 +774,9 @@ section finite_pi
 
 -- Now for finite products
 
-variables {η : Type*} [fintype η] {Gs : η → Type*} [∀ i, group (Gs i)]
+variables {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
 
-lemma lower_central_series_pi_of_fintype (n : ℕ):
+lemma lower_central_series_pi_of_finite [finite η] (n : ℕ) :
   lower_central_series (Π i, Gs i) n = subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
 begin
   let pi := λ (f : Π i, subgroup (Gs i)), subgroup.pi set.univ f,
@@ -788,17 +786,17 @@ begin
         = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆          : rfl
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆   : by rw ih
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
-    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : commutator_pi_pi_of_fintype _ _
+    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : commutator_pi_pi_of_finite _ _
     ... = pi (λ i, lower_central_series (Gs i) n.succ)     : rfl }
 end
 
 /-- n-ary products of nilpotent groups are nilpotent -/
-instance is_nilpotent_pi [∀ i, is_nilpotent (Gs i)] :
-  is_nilpotent (Π i, Gs i) :=
+instance is_nilpotent_pi [finite η] [∀ i, is_nilpotent (Gs i)] : is_nilpotent (Π i, Gs i) :=
 begin
+  casesI nonempty_fintype η,
   rw nilpotent_iff_lower_central_series,
   refine ⟨finset.univ.sup (λ i, group.nilpotency_class (Gs i)), _⟩,
-  rw [lower_central_series_pi_of_fintype, pi_eq_bot_iff],
+  rw [lower_central_series_pi_of_finite, pi_eq_bot_iff],
   intros i,
   apply lower_central_series_eq_bot_iff_nilpotency_class_le.mpr,
   exact @finset.le_sup _ _ _ _ finset.univ (λ i, group.nilpotency_class (Gs i)) _
@@ -806,13 +804,13 @@ begin
 end
 
 /-- The nilpotency class of an n-ary product is the sup of the nilpotency classes of the factors -/
-lemma nilpotency_class_pi [∀ i, is_nilpotent (Gs i)] :
+lemma nilpotency_class_pi [fintype η] [∀ i, is_nilpotent (Gs i)] :
   group.nilpotency_class (Π i, Gs i) = finset.univ.sup (λ i, group.nilpotency_class (Gs i)) :=
 begin
   apply eq_of_forall_ge_iff,
   intros k,
   simp only [finset.sup_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
-    lower_central_series_pi_of_fintype, pi_eq_bot_iff, finset.mem_univ, true_implies_iff ],
+    lower_central_series_pi_of_finite, pi_eq_bot_iff, finset.mem_univ, true_implies_iff ],
 end
 
 end finite_pi
@@ -831,11 +829,9 @@ lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_con
 begin
   -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
   rw normalizer_condition_iff_only_full_group_self_normalizing,
-  unfreezingI
-  { induction h using nilpotent_center_quotient_ind with G' _ _ G' _ _ ih;
-    clear _inst_1 G; rename G' → G, },
-  { rintros H -, apply subsingleton.elim, },
-  { intros H hH,
+  apply nilpotent_center_quotient_ind G; unfreezingI { clear_dependent G },
+  { introsI G _ _ H _, apply subsingleton.elim, },
+  { introsI G _ _ ih H hH,
 
     have hch : center G ≤ H := subgroup.center_le_normalizer.trans (le_of_eq hH),
     have hkh : (mk' (center G)).ker ≤ H, by simpa using hch,
@@ -856,17 +852,18 @@ section with_finite_group
 
 open group fintype
 
-variables {G : Type*} [hG : group G] [hf : fintype G]
-include hG hf
+variables {G : Type*} [hG : group G]
+include hG
 
 /-- A p-group is nilpotent -/
-lemma is_p_group.is_nilpotent {p : ℕ} [hp : fact (nat.prime p)] (h : is_p_group p G) :
+lemma is_p_group.is_nilpotent [finite G] {p : ℕ} [hp : fact (nat.prime p)] (h : is_p_group p G) :
   is_nilpotent G :=
 begin
+  casesI nonempty_fintype G,
   classical,
   unfreezingI
   { revert hG,
-    induction hf using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
+    induction val using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
   { apply_instance, },
   { introI _, intro h,
     have hcq : fintype.card (G ⧸ center G) < fintype.card G,
@@ -877,6 +874,8 @@ begin
     have hnq : is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)),
     exact (of_quotient_center_nilpotent hnq), }
 end
+
+variables [fintype G]
 
 /-- If a finite group is the direct product of its Sylow groups, it is nilpotent -/
 theorem is_nilpotent_of_product_of_sylow_group

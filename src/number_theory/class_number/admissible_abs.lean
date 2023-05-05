@@ -8,6 +8,9 @@ import number_theory.class_number.admissible_absolute_value
 
 /-!
 # Admissible absolute value on the integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines an admissible absolute value `absolute_value.abs_is_admissible`
 which we use to show the class number of the ring of integers of a number field
 is finite.
@@ -38,12 +41,12 @@ begin
   refine ⟨λ i, ⟨nat_abs (floor ((A i % b : ℤ) / (abs b • ε) : ℝ)), _⟩, _⟩,
   { rw [← coe_nat_lt, nat_abs_of_nonneg (hfloor i), floor_lt],
     apply lt_of_lt_of_le _ (nat.le_ceil _),
-    rw [algebra.smul_def, ring_hom.eq_int_cast, ← div_div_eq_div_mul, div_lt_div_right hε,
+    rw [algebra.smul_def, eq_int_cast, ← div_div, div_lt_div_right hε,
         div_lt_iff hb', one_mul, cast_lt],
     exact int.mod_lt _ hb },
   intros i₀ i₁ hi,
   have hi : (⌊↑(A i₀ % b) / abs b • ε⌋.nat_abs : ℤ) = ⌊↑(A i₁ % b) / abs b • ε⌋.nat_abs :=
-    congr_arg (coe : ℕ → ℤ) (subtype.mk_eq_mk.mp hi),
+    congr_arg (coe : ℕ → ℤ) (fin.mk_eq_mk.mp hi),
   rw [nat_abs_of_nonneg (hfloor i₀), nat_abs_of_nonneg (hfloor i₁)] at hi,
   have hi := abs_sub_lt_one_of_floor_eq_floor hi,
   rw [abs_sub_comm, ← sub_div, abs_div, abs_of_nonneg hbε.le, div_lt_iff hbε, one_mul] at hi,

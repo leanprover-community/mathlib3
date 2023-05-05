@@ -37,7 +37,7 @@ begin
 end
 
 namespace Module
-variables {R : Type u} [ring R] {M : Module.{(max u v)} R}
+variables {R : Type u} [ring R] {M : Module.{max u v} R}
 
 /-- Modules that have a basis are projective. -/
 -- We transport the corresponding result from `module.projective`.

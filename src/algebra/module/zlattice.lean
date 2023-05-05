@@ -257,7 +257,7 @@ section zlattice
 
 open submodule
 
-variables (K : Type*) [normed_lattice_field K] [floor_ring K]
+variables (K : Type*) [normed_linear_ordered_field K] [has_solid_norm K] [floor_ring K]
 variables {E : Type*} [normed_add_comm_group E] [normed_space K E] [finite_dimensional K E]
 variables {L : add_subgroup E}
 variables (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)

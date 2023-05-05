@@ -40,14 +40,20 @@ local notation (name := abs) `|`a`|` := abs a
 
 section solid_norm
 
-/-- Let `α` be an `add_comm_group` with a `lattice` structure. A norm on `α` is solid if the balls
-of `α` for this norm are solid sets. -/
+/-- Let `α` be an `add_comm_group` with a `lattice` structure. A norm on `α` is *solid* if, for `a`
+and `b` in `α`, with absolute values `|a|` and `|b|` respectively, `|a| ≤ |b|` implies `‖a‖ ≤ ‖b‖`.
+-/
 class has_solid_norm (α : Type*) [normed_add_comm_group α] [lattice α] : Prop :=
 (solid : ∀ ⦃x y : α⦄, |x| ≤ |y| → ‖x‖ ≤ ‖y‖)
 
 variables {α : Type*} [normed_add_comm_group α] [lattice α] [has_solid_norm α]
 
 lemma norm_le_norm_of_abs_le_abs  {a b : α} (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ := has_solid_norm.solid h
+
+/-- If `α` has a solid norm, then the balls centered at the origin of `α` are solid sets. -/
+lemma is_solid_ball (r : ℝ) :
+  lattice_ordered_add_comm_group.is_solid (metric.ball (0 : α) r) :=
+λ _ hx _ hxy, mem_ball_zero_iff.mpr ((has_solid_norm.solid hxy).trans_lt (mem_ball_zero_iff.mp hx))
 
 instance : has_solid_norm ℝ := ⟨λ _ _, id⟩
 

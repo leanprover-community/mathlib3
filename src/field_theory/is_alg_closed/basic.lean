@@ -518,7 +518,8 @@ begin
   haveI : is_scalar_tower F Fx A := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ a ha),
   haveI : is_scalar_tower F Fx K := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ x hx),
   haveI : fact (irreducible $ minpoly F x) := ⟨minpoly.irreducible $ this x⟩,
-  let ψ₀ : K →ₐ[Fx] A := is_alg_closed.lift (algebra.is_algebraic_of_larger_base F Fx hK),
+  let ψ₀ : K →ₐ[Fx] A,
+  { exact is_alg_closed.lift (algebra.is_algebraic_of_larger_base F Fx hK) },
   exact ⟨ψ₀.restrict_scalars F, (congr_arg ψ₀ (adjoin_root.lift_root hx).symm).trans $
     (ψ₀.commutes _).trans $ adjoin_root.lift_root ha⟩,
 end

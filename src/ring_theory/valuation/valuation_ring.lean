@@ -7,7 +7,7 @@ import ring_theory.valuation.integers
 import ring_theory.ideal.local_ring
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
-import ring_theory.discrete_valuation_ring
+import ring_theory.discrete_valuation_ring.basic
 import ring_theory.bezout
 import tactic.field_simp
 

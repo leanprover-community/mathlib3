@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
-import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
 import field_theory.fixed
 import group_theory.group_action.fixing_subgroup

@@ -6,7 +6,9 @@ Authors: Patrick Massot
 
 import ring_theory.ideal.operations
 import topology.algebra.nonarchimedean.bases
+import topology.uniform_space.completion
 import topology.algebra.uniform_ring
+
 /-!
 # Adic topology
 

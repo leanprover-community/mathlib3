@@ -18,7 +18,7 @@ In this file we define the normal closure of an `intermediate_field`.
 
 namespace intermediate_field
 
-variables {F L : Type*} [field F] [field L] [algebra F L] (K K' : intermediate_field F L)
+variables {F L : Type*} [field F] [field L] [algebra F L] (K : intermediate_field F L)
 
 /-- The normal closure of an `intermediate_field`. -/
 noncomputable def normal_closure : intermediate_field F L :=
@@ -33,15 +33,16 @@ let h := normal_closure.is_finite_dimensional F K L in h
 lemma normal_closure_def : K.normal_closure = ⨆ f : K →ₐ[F] L, f.field_range :=
 rfl
 
-variables {K K'}
+variables {K}
 
-lemma normal_closure_le_iff : K.normal_closure ≤ K' ↔ ∀ f : K →ₐ[F] L, f.field_range ≤ K' :=
+lemma normal_closure_le_iff {K' : intermediate_field F L} :
+  K.normal_closure ≤ K' ↔ ∀ f : K →ₐ[F] L, f.field_range ≤ K' :=
 supr_le_iff
 
 lemma field_range_le_normal_closure (f : K →ₐ[F] L) : f.field_range ≤ K.normal_closure :=
 le_supr alg_hom.field_range f
 
-variables (K K')
+variables (K)
 
 lemma le_normal_closure : K ≤ K.normal_closure :=
 begin

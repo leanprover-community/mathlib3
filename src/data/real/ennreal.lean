@@ -1845,6 +1845,17 @@ end real
 section infi
 variables {ι : Sort*} {f g : ι → ℝ≥0∞}
 
+lemma to_nnreal_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_nnreal = ⨅i, (f i).to_nnreal :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { rw [infi_of_empty, top_to_nnreal, nnreal.infi_empty] },
+  { lift f to ι → ℝ≥0 using hf,
+    norm_cast }
+end
+
+lemma to_real_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_real = ⨅i, (f i).to_real :=
+by simp only [ennreal.to_real, to_nnreal_infi hf, nnreal.coe_infi]
+
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm
   (le_infi $ assume i, add_le_add (infi_le _ _) $ le_rfl)

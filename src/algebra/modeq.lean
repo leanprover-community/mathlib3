@@ -1,18 +1,36 @@
 /-
-Copyright (c) 2023 Yaël Dillies, Eric Wieser. All rights reserved.
+Copyright (c) 2023 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Eric Wieser
+Authors: Yaël Dillies
 -/
-import algebra.module.basic
 import data.int.modeq
+import group_theory.quotient_group
 
 /-!
 # Equality modulo an element
+
+This file defines equality modulo an element in a commutative group.
+
+## Main definitions
+
+* `a ≡ b [PMOD p]`: `a` and `b` are congruent modulo a`p`.
+
+## See also
+
+`smodeq` is a generalisation to arbitrary submodules.
 
 ## TODO
 
 Delete `int.modeq` in favour of `add_comm_group.modeq`.
 -/
+
+section
+variables {G : Type*} [group G]
+
+@[simp, to_additive sub_add_cancel'']
+lemma div_mul_cancel''' (a b : G) : a / (b * a) = b⁻¹ := by rw [←inv_div, mul_div_cancel'']
+
+end
 
 namespace add_comm_group
 variables {α : Type*}
@@ -22,14 +40,14 @@ variables [add_comm_group α] {p a a₁ a₂ b b₁ b₂ c : α} {n : ℤ}
 
 /-- `a ≡ b [PMOD p]` means that `b` is congruent to `a` modulo `p`.
 
-Equivalently (as shown further down the file), `b` does not lie in the open interval `(a, a + p)`
-modulo `p`, or `to_Ico_mod hp a` disagrees with `to_Ioc_mod hp a` at `b`, or `to_Ico_div hp a`
-disagrees with `to_Ioc_div hp a` at `b`. -/
-def modeq (p a b : α) : Prop := ∃ z : ℤ, b - a = z • p
+Equivalently (as shown in `algebra.order.to_interval_mod`), `b` does not lie in the open interval
+`(a, a + p)` modulo `p`, or `to_Ico_mod hp a` disagrees with `to_Ioc_mod hp a` at `b`, or
+`to_Ico_div hp a` disagrees with `to_Ioc_div hp a` at `b`. -/
+def modeq (p a b : α) : Prop := ∃ n : ℤ, b - a = n • p
 
 notation a ` ≡ `:50 b ` [PMOD `:50 p `]`:0 := modeq p a b
 
-@[refl] lemma modeq_refl (a : α) : a ≡ a [PMOD p] := ⟨0, by simp⟩
+@[refl, simp] lemma modeq_refl (a : α) : a ≡ a [PMOD p] := ⟨0, by simp⟩
 
 lemma modeq_rfl : a ≡ a [PMOD p] := modeq_refl _
 
@@ -38,7 +56,9 @@ lemma modeq_comm : a ≡ b [PMOD p] ↔ b ≡ a [PMOD p] :=
 
 alias modeq_comm ↔ modeq.symm _
 
-lemma modeq.trans : a ≡ b [PMOD p] → b ≡ c [PMOD p] → a ≡ c [PMOD p] :=
+attribute [symm] modeq.symm
+
+@[trans] lemma modeq.trans : a ≡ b [PMOD p] → b ≡ c [PMOD p] → a ≡ c [PMOD p] :=
 λ ⟨m, hm⟩ ⟨n, hn⟩, ⟨m + n, by simp [add_smul, ←hm, ←hn]⟩
 
 instance : is_refl _ (modeq p) := ⟨modeq_refl⟩
@@ -63,6 +83,12 @@ lemma modeq_sub (a b : α) : a ≡ b [PMOD b - a] := ⟨1, (one_smul _ _).symm�
 
 @[simp] lemma modeq_zero : a ≡ b [PMOD 0] ↔ a = b := by simp [modeq, sub_eq_zero, eq_comm]
 
+lemma zsmul_modeq_zero (n : ℤ) : n • p ≡ 0 [PMOD p] := ⟨-n, by simp⟩
+lemma self_modeq_zero : p ≡ 0 [PMOD p] := ⟨-1, by simp⟩
+
+@[simp] lemma add_zsmul_modeq : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
+@[simp] lemma zsmul_add_modeq : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
+
 namespace modeq
 
 protected lemma of_zsmul : a ≡ b [PMOD (n • p)] → a ≡ b [PMOD p] :=
@@ -71,81 +97,76 @@ protected lemma of_zsmul : a ≡ b [PMOD (n • p)] → a ≡ b [PMOD p] :=
 protected lemma zsmul : a ≡ b [PMOD p] → n • a ≡ n • b [PMOD (n • p)] :=
 Exists.imp $ λ m hm, by rw [←smul_sub, hm, smul_comm]
 
-protected lemma add : a₁ ≡ b₁ [PMOD p] → a₂ ≡ b₂ [PMOD p] → a₁ + a₂ ≡ b₁ + b₂ [PMOD p] :=
-λ ⟨m, hm⟩ ⟨n, hn⟩, ⟨m + n, by rw [add_sub_add_comm, hm, hn, add_smul]⟩
+@[simp] protected lemma add_iff_left :
+  a₁ ≡ b₁ [PMOD p] → (a₁ + a₂ ≡ b₁ + b₂ [PMOD p] ↔ a₂ ≡ b₂ [PMOD p]) :=
+λ ⟨m, hm⟩, (equiv.add_left (-m)).exists_congr_left.trans $ by simpa [add_sub_add_comm, hm, add_smul]
 
-protected lemma sub (h₁ : a₁ ≡ b₁ [PMOD p]) (h₂ : a₂ ≡ b₂ [PMOD p]) : a₁ - a₂ ≡ b₁ - b₂ [PMOD p] :=
-by simpa only [sub_eq_add_neg] using h₁.add h₂.neg
+@[simp] protected lemma add_iff_right :
+  a₂ ≡ b₂ [PMOD p] → (a₁ + a₂ ≡ b₁ + b₂ [PMOD p] ↔ a₁ ≡ b₁ [PMOD p]) :=
+λ ⟨m, hm⟩, (equiv.add_right (-m)).exists_congr_left.trans $ by simpa [add_sub_add_comm, hm, add_smul]
+
+@[simp] protected lemma sub_iff_left :
+  a₁ ≡ b₁ [PMOD p] → (a₁ - a₂ ≡ b₁ - b₂ [PMOD p] ↔ a₂ ≡ b₂ [PMOD p]) :=
+λ ⟨m, hm⟩, (equiv.sub_left m).symm.exists_congr_left.trans $
+  by simpa [sub_sub_sub_comm, hm, sub_smul]
+
+@[simp] protected lemma sub_iff_right :
+  a₂ ≡ b₂ [PMOD p] → (a₁ - a₂ ≡ b₁ - b₂ [PMOD p] ↔ a₁ ≡ b₁ [PMOD p]) :=
+λ ⟨m, hm⟩, (equiv.sub_right m).symm.exists_congr_left.trans $
+  by simpa [sub_sub_sub_comm, hm, sub_smul]
+
+alias modeq.add_iff_left ↔ add_left_cancel add
+alias modeq.add_iff_right ↔ add_right_cancel _
+alias modeq.sub_iff_left ↔ sub_left_cancel sub
+alias modeq.sub_iff_right ↔ sub_right_cancel _
+
+attribute [protected] add_left_cancel add_right_cancel add sub_left_cancel sub_right_cancel sub
+
+-- The following eight can already be proved by simp
 
 protected lemma add_left (c : α) (h : a ≡ b [PMOD p]) : c + a ≡ c + b [PMOD p] := modeq_rfl.add h
 protected lemma sub_left (c : α) (h : a ≡ b [PMOD p]) : c - a ≡ c - b [PMOD p] := modeq_rfl.sub h
 protected lemma add_right (c : α) (h : a ≡ b [PMOD p]) : a + c ≡ b + c [PMOD p] := h.add modeq_rfl
 protected lemma sub_right (c : α) (h : a ≡ b [PMOD p]) : a - c ≡ b - c [PMOD p] := h.sub modeq_rfl
 
-protected lemma add_left_cancel (h₁ : a₁ ≡ b₁ [PMOD p]) (h : a₁ + a₂ ≡ b₁ + b₂ [PMOD p]) :
-  a₂ ≡ b₂ [PMOD p] :=
-by simpa using h.sub h₁
+protected lemma add_left_cancel' (c : α) : c + a ≡ c + b [PMOD p] → a ≡ b [PMOD p] :=
+modeq_rfl.add_left_cancel
 
-protected lemma add_right_cancel (h₂ : a₂ ≡ b₂ [PMOD p]) (h : a₁ + a₂ ≡ b₁ + b₂ [PMOD p]) :
-  a₁ ≡ b₁ [PMOD p] :=
-by simpa using h.sub h₂
+protected lemma add_right_cancel' (c : α) : a + c ≡ b + c [PMOD p] → a ≡ b [PMOD p] :=
+modeq_rfl.add_right_cancel
 
-protected lemma add_left_cancel' (c : α) (h : c + a ≡ c + b [PMOD p]) : a ≡ b [PMOD p] :=
-modeq_rfl.add_left_cancel h
+protected lemma sub_left_cancel' (c : α) : c - a ≡ c - b [PMOD p] → a ≡ b [PMOD p] :=
+modeq_rfl.sub_left_cancel
 
-protected lemma add_right_cancel' (c : α) (h : a + c ≡ b + c [PMOD p]) : a ≡ b [PMOD p] :=
-modeq_rfl.add_right_cancel h
+protected lemma sub_right_cancel' (c : α) : a - c ≡ b - c [PMOD p] → a ≡ b [PMOD p] :=
+modeq_rfl.sub_right_cancel
+
+protected lemma add_zsmul : a ≡ b [PMOD p] → a + n • p ≡ b [PMOD p] := add_zsmul_modeq.trans
+protected lemma zsmul_add : a ≡ b [PMOD p] → n • p + a ≡ b [PMOD p] := zsmul_add_modeq.trans
 
 end modeq
 
-@[simp] lemma add_modeq_left : n + a ≡ a [PMOD p] := modeq.symm $ modeq_iff_dvd.2 $ by simp
-@[simp] lemma add_modeq_right : a + n ≡ a [PMOD p] := modeq.symm $ modeq_iff_dvd.2 $ by simp
+lemma modeq_sub_iff_add_modeq' : a ≡ b - c [PMOD p] ↔ c + a ≡ b [PMOD p] := by simp [modeq, sub_sub]
+lemma modeq_sub_iff_add_modeq : a ≡ b - c [PMOD p] ↔ a + c ≡ b [PMOD p] :=
+modeq_sub_iff_add_modeq'.trans $ by rw add_comm
+lemma sub_modeq_iff_modeq_add' : a - b ≡ c [PMOD p] ↔ a ≡ b + c [PMOD p] :=
+modeq_comm.trans $ modeq_sub_iff_add_modeq'.trans modeq_comm
+lemma sub_modeq_iff_modeq_add : a - b ≡ c [PMOD p] ↔ a ≡ c + b [PMOD p] :=
+modeq_comm.trans $ modeq_sub_iff_add_modeq.trans modeq_comm
 
-lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : m.nat_abs.coprime n.nat_abs) :
-  a ≡ b [PMOD m] ∧ a ≡ b [PMOD p] ↔ (a ≡ b [PMOD m * n]) :=
-⟨λ h, begin
-    rw [modeq_iff_dvd, modeq_iff_dvd] at h,
-    rw [modeq_iff_dvd, ← nat_abs_dvd, ← dvd_nat_abs,
-      coe_nat_dvd, nat_abs_mul],
-    refine hmn.mul_dvd_of_dvd_of_dvd _ _;
-    rw [← coe_nat_dvd, nat_abs_dvd, dvd_nat_abs]; tauto
-  end,
-λ h, ⟨h.of_mul_right _, h.of_mul_left _⟩⟩
+@[simp] lemma sub_modeq_zero : a - b ≡ 0 [PMOD p] ↔ a ≡ b [PMOD p] :=
+by simp [sub_modeq_iff_modeq_add]
 
-lemma gcd_a_modeq (a b : ℕ) : (a : ℤ) * nat.gcd_a a b ≡ nat.gcd a b [PMOD b] :=
-by { rw [← add_zero ((a : ℤ) * _), nat.gcd_eq_gcd_ab],
-  exact (dvd_mul_right _ _).zero_modeq_int.add_left _ }
+@[simp] lemma add_modeq_left : a + b ≡ a [PMOD p] ↔ b ≡ 0 [PMOD p] :=
+by simp [←modeq_sub_iff_add_modeq']
 
-lemma modeq_add_fac {a b n : ℤ} (c : ℤ) (ha : a ≡ b [PMOD p]) : a + n*c ≡ b [PMOD p] :=
-calc a + n*c ≡ b + n*c [PMOD p] : ha.add_right _
-         ... ≡ b + 0 [PMOD p] : (dvd_mul_right _ _).modeq_zero_int.add_left _
-         ... ≡ b [PMOD p] : by rw add_zero
+@[simp] lemma add_modeq_right : a + b ≡ b [PMOD p] ↔ a ≡ 0 [PMOD p] :=
+by simp [←modeq_sub_iff_add_modeq]
 
-lemma modeq_add_fac_self {a t n : ℤ} : a + n * t ≡ a [PMOD p] :=
-modeq_add_fac _ modeq_rfl
-
-lemma mod_coprime {a b : ℕ} (hab : nat.coprime a b) : ∃ y : ℤ, a * y ≡ 1 [PMOD b] :=
-⟨ nat.gcd_a a b,
-  have hgcd : nat.gcd a b = 1, from nat.coprime.gcd_eq_one hab,
-  calc
-   ↑a * nat.gcd_a a b ≡ ↑a * nat.gcd_a a b + ↑b * nat.gcd_b a b [PMOD ↑b] : modeq.symm $
-                      modeq_add_fac _ $ modeq_refl _
-              ... ≡ 1 [PMOD ↑b] : by rw [← nat.gcd_eq_gcd_ab, hgcd]; reflexivity ⟩
-
-lemma exists_unique_equiv (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℤ, 0 ≤ z ∧ z < b ∧ z ≡ a [PMOD b] :=
-⟨ a % b, mod_nonneg _ (ne_of_gt hb),
-  have a % b < |b|, from mod_lt _ (ne_of_gt hb),
-  by rwa abs_of_pos hb at this,
-  by simp [modeq] ⟩
-
-lemma exists_unique_equiv_nat (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℕ, ↑z < b ∧ ↑z ≡ a [PMOD b] :=
-let ⟨z, hz1, hz2, hz3⟩ := exists_unique_equiv a hb in
-⟨z.nat_abs, by split; rw [←of_nat_eq_coe, of_nat_nat_abs_eq_of_nonneg hz1]; assumption⟩
-
-lemma modeq_iff_eq_add_zsmul : a ≡ b [PMOD p] ↔ ∃ z : ℤ, b = a + z • p :=
+lemma modeq_iff_eq_add_zsmul : a ≡ b [PMOD p] ↔ ∃ n : ℤ, b = a + n • p :=
 by simp_rw [modeq, sub_eq_iff_eq_add']
 
-lemma not_modeq_iff_ne_add_zsmul : ¬a ≡ b [PMOD p] ↔ ∀ z : ℤ, b ≠ a + z • p :=
+lemma not_modeq_iff_ne_add_zsmul : ¬a ≡ b [PMOD p] ↔ ∀ n : ℤ, b ≠ a + n • p :=
 by rw [modeq_iff_eq_add_zsmul, not_exists]
 
 lemma modeq_iff_eq_mod_zmultiples : a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=

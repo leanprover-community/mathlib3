@@ -38,6 +38,14 @@ Unify `smodeq`, `add_comm_group.modeq` and `int.modeq`, which were originally de
 
 noncomputable theory
 
+lemma modeq_iff_eq_mod_zmultiples : a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
+by simp_rw [modeq_iff_eq_add_zsmul, quotient_add_group.eq_iff_sub_mem,
+    add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
+
+lemma not_modeq_iff_ne_mod_zmultiples :
+  ¬a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
+modeq_iff_eq_mod_zmultiples.not
+
 section linear_ordered_add_comm_group
 
 variables {α : Type*} [linear_ordered_add_comm_group α] [hα : archimedean α] {p : α} (hp : 0 < p)

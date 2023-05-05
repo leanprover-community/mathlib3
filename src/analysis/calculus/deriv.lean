@@ -1875,13 +1875,13 @@ protected theorem has_deriv_within_at (x : 𝕜) (s : set 𝕜) :
 (p.has_deriv_at x).has_deriv_within_at
 
 protected theorem has_deriv_within_at_aeval (x : 𝕜) (s : set 𝕜) :
-  has_deriv_within_at (λx, aeval x q) (aeval x q.derivative.eval) s x :=
+  has_deriv_within_at (λx, aeval x q) (aeval x q.derivative) s x :=
 (q.has_deriv_at_aeval x).has_deriv_within_at
 
-protected lemma differentiable_at (x : 𝕜) : differentiable_at 𝕜 (λx, p.eval x) x :=
+protected lemma differentiable_at : differentiable_at 𝕜 (λx, p.eval x) x :=
 (p.has_deriv_at x).differentiable_at
 
-protected lemma differentiable_at_aeval (x : 𝕜) : differentiable_at 𝕜 (λx, aeval x q) x :=
+protected lemma differentiable_at_aeval : differentiable_at 𝕜 (λx, aeval x q) x :=
 (q.has_deriv_at_aeval x).differentiable_at
 
 protected lemma differentiable_within_at : differentiable_within_at 𝕜 (λx, p.eval x) s x :=
@@ -1893,7 +1893,7 @@ q.differentiable_at_aeval.differentiable_within_at
 protected lemma differentiable : differentiable 𝕜 (λx, p.eval x) :=
 λx, p.differentiable_at
 
-protected lemma differentiable_aeval : differentiable 𝕜 (λx, aeval q x) :=
+protected lemma differentiable_aeval : differentiable 𝕜 (λ x : 𝕜, aeval x q) :=
 λx, q.differentiable_at_aeval
 
 protected lemma differentiable_on : differentiable_on 𝕜 (λx, p.eval x) s :=
@@ -1905,7 +1905,7 @@ q.differentiable_aeval.differentiable_on
 @[simp] protected lemma deriv : deriv (λx, p.eval x) x = p.derivative.eval x :=
 (p.has_deriv_at x).deriv
 
-@[simp] protected lemma deriv : deriv (λx, aeval x q) x = aeval x q.derivative :=
+@[simp] protected lemma deriv_aeval : deriv (λx, aeval x q) x = aeval x q.derivative :=
 (q.has_deriv_at_aeval x).deriv
 
 protected lemma deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
@@ -1917,7 +1917,8 @@ end
 
 protected lemma deriv_within_aeval (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, aeval x q) s x = aeval x q.derivative :=
-by simpa only [aeval_def, eval₂_eq_eval_map] using deriv_within (q.map (algebra_map R 𝕜)) x
+by simpa only [aeval_def, eval₂_eq_eval_map, derivative_map]
+  using (q.map (algebra_map R 𝕜)).deriv_within hxs
 
 protected lemma has_fderiv_at (x : 𝕜) :
   has_fderiv_at (λx, p.eval x) (smul_right (1 : 𝕜 →L[𝕜] 𝕜) (p.derivative.eval x)) x :=

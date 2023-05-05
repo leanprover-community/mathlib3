@@ -3,6 +3,7 @@ Copyright (c) 2023 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
+import analysis.normed.order.basic
 import analysis.normed.order.lattice
 import linear_algebra.finite_dimensional
 import linear_algebra.free_module.pid
@@ -12,9 +13,9 @@ import ring_theory.localization.module
 /-!
 # ℤ-lattices
 
-Let `E` be a finite dimensional vector space over a `normed_lattice_field` `K` that is also
-a `floor_ring`, e.g. `ℚ` or `ℝ`. A (full) ℤ-lattice `L` of `E` is a discrete subgroup of `E` such
-that `L` spans `E` over `K`.
+Let `E` be a finite dimensional vector space over a `normed_linear_ordered_field` `K` with a solid
+norm and that is also a `floor_ring`, e.g. `ℚ` or `ℝ`. A (full) ℤ-lattice `L` of `E` is a discrete
+subgroup of `E` such that `L` spans `E` over `K`.
 
 The ℤ-lattice `L` can be defined in two ways:
 * For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
@@ -41,7 +42,7 @@ variables {E ι : Type*}
 
 section normed_lattice_field
 
-variables {K : Type*} [normed_lattice_field K]
+variables {K : Type*} [normed_linear_ordered_field K]
 variables [normed_add_comm_group E] [normed_space K E]
 variables (b : basis ι K E)
 
@@ -83,7 +84,7 @@ by simp only [ceil, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
 
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,
 see `zspan.fract_mem_fundamental_domain`. -/
-def fract : E → E := λ m, m - floor b m
+def fract (m : E) : E := m - floor b m
 
 lemma fract_apply (m : E) : fract b m = m - floor b m := rfl
 
@@ -132,7 +133,7 @@ begin
     pi.neg_apply, ← (eq_int_cast (algebra_map ℤ K) _), set.mem_range],
 end
 
-lemma norm_fract_le (m : E) :
+lemma norm_fract_le [has_solid_norm K] (m : E) :
   ‖fract b m‖ ≤ ∑ i, ‖b i‖ :=
 begin
   calc
@@ -164,7 +165,7 @@ end unique
 
 end fintype
 
-lemma fundamental_domain_bounded [finite ι] :
+lemma fundamental_domain_bounded [finite ι] [has_solid_norm K] :
   metric.bounded (fundamental_domain b) :=
 begin
   casesI nonempty_fintype ι,
@@ -176,18 +177,19 @@ begin
   rw ← two_mul,
 end
 
+lemma vadd_mem_fundamental_domain [fintype ι] (y : span ℤ (set.range b)) (x : E) :
+  y +ᵥ x ∈ fundamental_domain b ↔ y = -floor b x :=
+by rw [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
+    ← fract_apply, ← fract_zspan_add b _ (subtype.mem y), add_comm, ← vadd_eq_add, ← vadd_def,
+    eq_comm, ← fract_eq_self]
+
 lemma exist_unique_vadd_mem_fundamental_domain [finite ι] (x : E) :
   ∃! v : span ℤ (set.range b), v +ᵥ x ∈ fundamental_domain b :=
 begin
   casesI nonempty_fintype ι,
-  refine ⟨-floor b x, _, λ y _, _⟩,
-  { simp_rw [fundamental_domain, set.mem_Ico, vadd_def, vadd_eq_add, add_subgroup_class.coe_neg,
-    neg_add_eq_sub, ← fract_apply],
-    simp only [repr_fract_apply, int.fract_nonneg, int.fract_lt_one, true_and, set.mem_set_of_eq,
-      implies_true_iff], },
-  { rwa [subtype.ext_iff, ← add_right_inj x, add_subgroup_class.coe_neg, ← sub_eq_add_neg,
-      ← fract_apply, ← fract_zspan_add b _ (subtype.mem y), add_comm, ← vadd_eq_add, ← vadd_def,
-      eq_comm, fract_eq_self], },
+  refine ⟨-floor b x, _, λ y h, _⟩,
+  { exact (vadd_mem_fundamental_domain b (-floor b x) x).mpr rfl, },
+  { exact (vadd_mem_fundamental_domain b y x).mp h, },
 end
 
 open subtype
@@ -255,7 +257,7 @@ section zlattice
 
 open submodule
 
-variables (K : Type*) [normed_lattice_field K] [floor_ring K]
+variables (K : Type*) [normed_linear_ordered_field K] [has_solid_norm K] [floor_ring K]
 variables {E : Type*} [normed_add_comm_group E] [normed_space K E] [finite_dimensional K E]
 variables {L : add_subgroup E}
 variables (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)

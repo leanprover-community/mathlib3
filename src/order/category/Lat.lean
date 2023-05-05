@@ -17,6 +17,10 @@ This defines `Lat`, the category of lattices.
 Note that `Lat` doesn't correspond to the literature definition of [`Lat`]
 (https://ncatlab.org/nlab/show/Lat) as we don't require bottom or top elements. Instead, `Lat`
 corresponds to `BddLat`.
+
+## TODO
+
+The free functor from `Lat` to `BddLat` is `X → with_top (with_bot X)`.
 -/
 
 universes u

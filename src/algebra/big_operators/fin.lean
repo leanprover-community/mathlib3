@@ -208,12 +208,6 @@ begin
     assoc_rw [hi, inv_mul_cancel_left] }
 end
 
-@[to_additive] lemma partial_prod_right_inv' {G : Type*} [group G]
-  (g : G) (f : fin n → G) (i : fin n) :
-  ((g • partial_prod f) i.cast_succ)⁻¹ * (g • partial_prod f) i.succ = f i :=
-by simp_rw [pi.smul_apply, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left,
-    partial_prod_right_inv]
-
 /-- Let `(g₀, g₁, ..., gₙ)` be a tuple of elements in `Gⁿ⁺¹`.
 Then if `k < j`, this says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ = gₖ`.
 If `k = j`, it says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ₊₁ = gₖgₖ₊₁`.

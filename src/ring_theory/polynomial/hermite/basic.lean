@@ -35,11 +35,12 @@ open polynomial
 
 namespace polynomial
 
-/-- the nth probabilist's Hermite polynomial H_(n+1) = (x - d/dx) H_n -/
+/-- the nth probabilist's Hermite polynomial -/
 noncomputable def hermite : ℕ → polynomial ℤ
 | 0     := 1
 | (n+1) := X * (hermite n) - (hermite n).derivative
 
+/-- The recursion `hermite (n+1) = (x - d/dx) (hermite n)` -/
 @[simp] lemma hermite_succ (n : ℕ) : hermite (n+1) = X * (hermite n) - (hermite n).derivative :=
 by rw hermite
 

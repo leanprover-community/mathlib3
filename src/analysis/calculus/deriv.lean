@@ -1867,7 +1867,8 @@ by simpa only [aeval_def, eval₂_eq_eval_map, derivative_map]
 protected lemma has_deriv_at (x : 𝕜) : has_deriv_at (λx, p.eval x) (p.derivative.eval x) x :=
 (p.has_strict_deriv_at x).has_deriv_at
 
-protected lemma has_deriv_at_aeval (x : 𝕜) : has_deriv_at (λx, aeval x q) (aeval x q.derivative) x :=
+protected lemma has_deriv_at_aeval (x : 𝕜) :
+  has_deriv_at (λx, aeval x q) (aeval x q.derivative) x :=
 (q.has_strict_deriv_at_aeval x).has_deriv_at
 
 protected theorem has_deriv_within_at (x : 𝕜) (s : set 𝕜) :

@@ -36,18 +36,16 @@ lemma deriv_gaussian_eq_hermite_mul_gaussian (n : ℕ) (x : ℝ) :
 deriv^[n] (λ y, real.exp (-(y^2 / 2))) x =
 (-1 : ℝ)^n * aeval x (hermite n) * real.exp (-(x^2 / 2)) :=
 begin
+  rw mul_assoc,
   induction n with n ih generalizing x,
   { by simp },
   { replace ih : (deriv^[n] _) = _ := function.funext_iff.mpr ih,
     have deriv_gaussian : deriv (λ y, real.exp (-(y^2 / 2))) x = (-x) * real.exp (-(x^2 / 2)) :=
       by simp [mul_comm, ← neg_mul],
-    rw [function.iterate_succ_apply', ih, deriv_mul, deriv_const_mul, pow_succ (-1 : ℝ),
+    rw [function.iterate_succ_apply', ih, deriv_const_mul_field, deriv_mul, pow_succ (-1 : ℝ),
         deriv_gaussian, hermite_succ, map_sub, map_mul, aeval_X, polynomial.deriv_aeval],
     ring,
     { simp_rw [aeval_def, eval₂_eq_eval_map],
-      apply polynomial.differentiable },
-    { simp_rw [aeval_def, eval₂_eq_eval_map],
-      apply differentiable.const_mul,
       apply polynomial.differentiable },
     { simp } }
 end

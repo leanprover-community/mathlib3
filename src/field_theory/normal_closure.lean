@@ -45,10 +45,7 @@ le_supr alg_hom.field_range f
 variables (K)
 
 lemma le_normal_closure : K ≤ K.normal_closure :=
-begin
-  refine le_of_eq_of_le _ (field_range_le_normal_closure K.val),
-  exact set_like.ext' subtype.range_val.symm,
-end
+K.field_range_val.symm.trans_le (field_range_le_normal_closure K.val)
 
 lemma normal_closure_of_normal [normal F K] : K.normal_closure = K :=
 begin

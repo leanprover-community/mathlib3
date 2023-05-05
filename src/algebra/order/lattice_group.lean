@@ -460,3 +460,23 @@ begin
 end
 
 end lattice_ordered_comm_group
+
+namespace lattice_ordered_add_comm_group
+
+variables {β : Type u} [lattice β] [add_comm_group β]
+
+section solid
+
+/-- A subset `s ⊆ β`, with `β` an `add_comm_group` with a `lattice` structure, is solid if for
+all `x ∈ s` and all `y ∈ β` such that `|y| ≤ |x|`, then `y ∈ s`. -/
+def is_solid (s : set β) : Prop := ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, |y| ≤ |x| → y ∈ s
+
+/-- The solid closure of a subset `s` is the smallest superset of `s` that is solid. -/
+def solid_closure (s : set β) : set β := {y | ∃ x ∈ s, |y| ≤ |x|}
+
+lemma is_solid_solid_closure (s : set β) : is_solid (solid_closure s) :=
+λ x ⟨y, hy, hxy⟩ z hzx, ⟨y, hy, hzx.trans hxy⟩
+
+end solid
+
+end lattice_ordered_add_comm_group

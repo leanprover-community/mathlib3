@@ -139,7 +139,7 @@ begin
     exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F 0).trans
       (is_splitting_field.alg_equiv E 0).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
-  haveI hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
+  have hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
   have Hx : is_integral F x := is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x,
   refine ⟨Hx, or.inr _⟩,
   rintros q q_irred ⟨r, hr⟩,
@@ -148,7 +148,6 @@ begin
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
   have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
-  haveI : is_scalar_tower F E D := of_algebra_map_eq (λ _, rfl),
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   rsuffices ⟨ϕ⟩ : nonempty (D →ₐ[F] E),
   { rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
@@ -159,12 +158,12 @@ begin
         from ϕ.to_ring_hom.injective)) finite_dimensional.finrank_pos, },
   let C := adjoin_root (minpoly F x),
   haveI Hx_irred := fact.mk (minpoly.irreducible Hx),
-  letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift
+  let : algebra C D := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F D) (adjoin_root.root q) (by rw [algebra_map_eq F E D, ←eval₂_map, hr,
       adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
   letI : algebra C E := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F E) x (minpoly.aeval F x)),
-  haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
+  have : is_scalar_tower F C D := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
   haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
   suffices : nonempty (D →ₐ[C] E),
   { exact nonempty.map (alg_hom.restrict_scalars F) this },

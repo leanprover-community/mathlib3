@@ -5,11 +5,14 @@ Authors: Michael Geißer, Michael Stoll
 -/
 import tactic.basic
 import data.real.irrational
+<<<<<<< HEAD
 import combinatorics.pigeonhole
 import ring_theory.coprime.lemmas
 import data.int.units
 import algebra.continued_fractions.computation.translations
 import algebra.continued_fractions.computation.approximation_corollaries
+=======
+>>>>>>> origin/master
 
 /-!
 # Diophantine Approximation

@@ -3,11 +3,15 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
+import algebra.big_operators.intervals
 import topology.algebra.infinite_sum.order
 import topology.instances.real
 
 /-!
 # Infinite sum in the reals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides lemmas about Cauchy sequences in terms of infinite sums.
 -/

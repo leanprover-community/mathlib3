@@ -9,6 +9,9 @@ import category_theory.adjunction.basic
 /-!
 # Adjunctions regarding the category of topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that the forgetful functor from topological spaces to types has a left and right
 adjoint, given by `Top.discrete`, resp. `Top.trivial`, the functors which equip a type with the
 discrete, resp. trivial, topology.

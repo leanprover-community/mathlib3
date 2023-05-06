@@ -7,19 +7,20 @@ import analysis.special_functions.log.base
 import measure_theory.measure.measure_space_def
 
 /-!
-# Doubling measures
+# Uniformly locally doubling measures
 
-A doubling measure `μ` on a metric space is a measure for which there exists a constant `C` such
-that for all sufficiently small radii `ε`, and for any centre, the measure of a ball of radius
-`2 * ε` is bounded by `C` times the measure of the concentric ball of radius `ε`.
+A uniformly locally doubling measure `μ` on a metric space is a measure for which there exists a
+constant `C` such that for all sufficiently small radii `ε`, and for any centre, the measure of a
+ball of radius `2 * ε` is bounded by `C` times the measure of the concentric ball of radius `ε`.
 
-This file records basic files on doubling measures.
+This file records basic facts about uniformly locally doubling measures.
 
 ## Main definitions
 
-  * `is_doubling_measure`: the definition of a doubling measure (as a typeclass).
-  * `is_doubling_measure.doubling_constant`: a function yielding the doubling constant `C` appearing
-  in the definition of a doubling measure.
+  * `is_unif_loc_doubling_measure`: the definition of a uniformly locally doubling measure (as a
+  typeclass).
+  * `is_unif_loc_doubling_measure.doubling_constant`: a function yielding the doubling constant `C`
+  appearing in the definition of a uniformly locally doubling measure.
 -/
 
 noncomputable theory
@@ -27,26 +28,28 @@ noncomputable theory
 open set filter metric measure_theory topological_space
 open_locale ennreal nnreal topology
 
-/-- A measure `μ` is said to be a doubling measure if there exists a constant `C` such that for
-all sufficiently small radii `ε`, and for any centre, the measure of a ball of radius `2 * ε` is
-bounded by `C` times the measure of the concentric ball of radius `ε`.
+/-- A measure `μ` is said to be a uniformly locally doubling measure if there exists a constant `C`
+such that for all sufficiently small radii `ε`, and for any centre, the measure of a ball of radius
+`2 * ε` is bounded by `C` times the measure of the concentric ball of radius `ε`.
 
 Note: it is important that this definition makes a demand only for sufficiently small `ε`. For
-example we want hyperbolic space to carry the instance `is_doubling_measure volume` but volumes grow
-exponentially in hyperbolic space. To be really explicit, consider the hyperbolic plane of
-curvature -1, the area of a disc of radius `ε` is `A(ε) = 2π(cosh(ε) - 1)` so `A(2ε)/A(ε) ~ exp(ε)`.
--/
-class is_doubling_measure {α : Type*} [metric_space α] [measurable_space α] (μ : measure α) :=
+example we want hyperbolic space to carry the instance `is_unif_loc_doubling_measure volume` but
+volumes grow exponentially in hyperbolic space. To be really explicit, consider the hyperbolic plane
+of curvature -1, the area of a disc of radius `ε` is `A(ε) = 2π(cosh(ε) - 1)` so
+`A(2ε)/A(ε) ~ exp(ε)`. -/
+class is_unif_loc_doubling_measure
+  {α : Type*} [metric_space α] [measurable_space α] (μ : measure α) :=
 (exists_measure_closed_ball_le_mul [] :
   ∃ (C : ℝ≥0), ∀ᶠ ε in 𝓝[>] 0, ∀ x, μ (closed_ball x (2 * ε)) ≤ C * μ (closed_ball x ε))
 
-namespace is_doubling_measure
+namespace is_unif_loc_doubling_measure
 
-variables {α : Type*} [metric_space α] [measurable_space α] (μ : measure α) [is_doubling_measure μ]
+variables {α : Type*} [metric_space α] [measurable_space α]
+          (μ : measure α) [is_unif_loc_doubling_measure μ]
 
-/-- A doubling constant for a doubling measure.
+/-- A doubling constant for a uniformly locally doubling measure.
 
-See also `is_doubling_measure.scaling_constant_of`. -/
+See also `is_unif_loc_doubling_measure.scaling_constant_of`. -/
 def doubling_constant : ℝ≥0 := classical.some $ exists_measure_closed_ball_le_mul μ
 
 lemma exists_measure_closed_ball_le_mul' :
@@ -82,8 +85,8 @@ begin
     exact real.rpow_le_rpow_of_exponent_le one_le_two (nat.le_ceil (real.logb 2 K)), },
 end
 
-/-- A variant of `is_doubling_measure.doubling_constant` which allows for scaling the radius by
-values other than `2`. -/
+/-- A variant of `is_unif_loc_doubling_measure.doubling_constant` which allows for scaling the
+radius by values other than `2`. -/
 def scaling_constant_of (K : ℝ) : ℝ≥0 :=
 max (classical.some $ exists_eventually_forall_measure_closed_ball_le_mul μ K) 1
 
@@ -104,7 +107,7 @@ begin
     refine le_mul_of_one_le_of_le _ le_rfl,
     apply ennreal.one_le_coe_iff.2 (le_max_right _ _) },
   { apply (hR ⟨rpos, hr⟩ x t ht.2).trans _,
-    exact ennreal.mul_le_mul (ennreal.coe_le_coe.2 (le_max_left _ _)) le_rfl }
+    exact mul_le_mul_right' (ennreal.coe_le_coe.2 (le_max_left _ _)) _ }
 end
 
 lemma eventually_measure_le_scaling_constant_mul (K : ℝ) :
@@ -113,7 +116,7 @@ lemma eventually_measure_le_scaling_constant_mul (K : ℝ) :
 begin
   filter_upwards [classical.some_spec (exists_eventually_forall_measure_closed_ball_le_mul μ K)]
     with r hr x,
-  exact (hr x K le_rfl).trans (ennreal.mul_le_mul (ennreal.coe_le_coe.2 (le_max_left _ _)) le_rfl)
+  exact (hr x K le_rfl).trans (mul_le_mul_right' (ennreal.coe_le_coe.2 (le_max_left _ _)) _)
 end
 
 lemma eventually_measure_le_scaling_constant_mul' (K : ℝ) (hK : 0 < K) :
@@ -139,4 +142,4 @@ lemma measure_mul_le_scaling_constant_of_mul {K : ℝ} {x : α} {t r : ℝ}
   μ (closed_ball x (t * r)) ≤ scaling_constant_of μ K * μ (closed_ball x r) :=
 (eventually_measure_mul_le_scaling_constant_of_mul μ K).some_spec.2 x t r ht hr
 
-end is_doubling_measure
+end is_unif_loc_doubling_measure

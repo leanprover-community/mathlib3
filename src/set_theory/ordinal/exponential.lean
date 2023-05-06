@@ -7,8 +7,12 @@ import set_theory.ordinal.arithmetic
 
 /-! # Ordinal exponential
 
-In this file we define the power function and the logarithm function on ordinals,
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
+In this file we define the power function and the logarithm function on ordinals. The two are
+related by the lemma `ordinal.opow_le_iff_le_log : (b^c) ≤ x ↔ c ≤ log b x` for nontrivial inputs 
+`b`, `c`.
 -/
 
 noncomputable theory
@@ -186,12 +190,10 @@ end
 theorem opow_one_add (a b : ordinal) : a ^ (1 + b) = a * a ^ b :=
 by rw [opow_add, opow_one]
 
-theorem opow_dvd_opow (a) {b c : ordinal}
-  (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by { rw [← ordinal.add_sub_cancel_of_le h, opow_add], apply dvd_mul_right }
+theorem opow_dvd_opow (a) {b c : ordinal} (h : b ≤ c) : a ^ b ∣ a ^ c :=
+⟨a ^ (c - b), by rw [←opow_add, ordinal.add_sub_cancel_of_le h] ⟩
 
-theorem opow_dvd_opow_iff {a b c : ordinal}
-  (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
+theorem opow_dvd_opow_iff {a b c : ordinal} (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
 ⟨λ h, le_of_not_lt $ λ hn,
   not_le_of_lt ((opow_lt_opow_iff_right a1).2 hn) $
     le_of_dvd (opow_ne_zero _ $ one_le_iff_ne_zero.1 $ a1.le) h,
@@ -379,6 +381,14 @@ theorem log_opow {b : ordinal} (hb : 1 < b) (x : ordinal) : log b (b ^ x) = x :=
 begin
   convert log_opow_mul_add hb zero_ne_one.symm hb (opow_pos x (zero_lt_one.trans hb)),
   rw [add_zero, mul_one]
+end
+
+theorem div_opow_log_pos (b : ordinal) {o : ordinal} (ho : o ≠ 0) : 0 < o / b ^ log b o :=
+begin
+  rcases eq_zero_or_pos b with (rfl | hb),
+  { simpa using ordinal.pos_iff_ne_zero.2 ho },
+  { rw div_pos (opow_ne_zero _ hb.ne'),
+    exact opow_log_le_self b ho }
 end
 
 theorem div_opow_log_lt {b : ordinal} (o : ordinal) (hb : 1 < b) : o / b ^ log b o < b :=

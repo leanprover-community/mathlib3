@@ -8,6 +8,9 @@ import topology.uniform_space.uniform_convergence_topology
 /-!
 # Equicontinuity of a family of functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `X` be a topological space and `α` a `uniform_space`. A family of functions `F : ι → X → α`
 is said to be *equicontinuous at a point `x₀ : X`* when, for any entourage `U` in `α`, there is a
 neighborhood `V` of `x₀` such that, for all `x ∈ V`, and *for all `i`*, `F i x` is `U`-close to

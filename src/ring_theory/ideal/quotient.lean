@@ -12,6 +12,9 @@ import tactic.fin_cases
 /-!
 # Ideal quotients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines ideal quotients as a special case of submodule quotients and proves some basic
 results about these quotients.
 
@@ -68,6 +71,20 @@ protected def ring_con (I : ideal R) : ring_con R :=
 instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
 { ..submodule.quotient.add_comm_group I,  -- to help with unification
   ..(quotient.ring_con I)^.quotient.comm_ring }
+
+-- this instance is harder to find than the one via `algebra α (R ⧸ I)`, so use a lower priority
+@[priority 100]
+instance is_scalar_tower_right {α} [has_smul α R] [is_scalar_tower α R R] :
+  is_scalar_tower α (R ⧸ I) (R ⧸ I) :=
+(quotient.ring_con I)^.is_scalar_tower_right
+
+instance smul_comm_class {α} [has_smul α R] [is_scalar_tower α R R] [smul_comm_class α R R] :
+  smul_comm_class α (R ⧸ I) (R ⧸ I) :=
+(quotient.ring_con I)^.smul_comm_class
+
+instance smul_comm_class' {α} [has_smul α R] [is_scalar_tower α R R] [smul_comm_class R α R] :
+  smul_comm_class (R ⧸ I) α (R ⧸ I) :=
+(quotient.ring_con I)^.smul_comm_class'
 
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal R) : R →+* (R ⧸ I) :=
@@ -231,7 +248,7 @@ end quotient
 
 /-- Quotienting by equal ideals gives equivalent rings.
 
-See also `submodule.quot_equiv_of_eq`.
+See also `submodule.quot_equiv_of_eq` and `ideal.quotient_equiv_alg_of_eq`.
 -/
 def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
   (R ⧸ I) ≃+* R ⧸ J :=

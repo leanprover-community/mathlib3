@@ -9,6 +9,9 @@ import data.finsupp.to_dfinsupp
 /-!
 # Results on direct sums and finitely supported functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 1. The linear equivalence between finitely supported functions `ι →₀ M` and
 the direct sum of copies of `M` indexed by `ι`.
 -/

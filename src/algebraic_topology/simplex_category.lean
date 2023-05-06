@@ -12,6 +12,9 @@ import category_theory.functor.reflects_isomorphisms
 
 /-! # The simplex category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct a skeletal model of the simplex category, with objects `ℕ` and the
 morphism `n ⟶ m` being the monotone maps from `fin (n+1)` to `fin (m+1)`.
 
@@ -811,8 +814,7 @@ end epi_mono
 to the category attached to the ordered set `{0, 1, ..., n}` -/
 @[simps obj map]
 def to_Cat : simplex_category ⥤ Cat.{0} :=
-simplex_category.skeletal_functor ⋙ forget₂ NonemptyFinLinOrd LinearOrder ⋙
-  forget₂ LinearOrder Lattice ⋙ forget₂ Lattice PartialOrder ⋙
-  forget₂ PartialOrder Preorder ⋙ Preorder_to_Cat
+simplex_category.skeletal_functor ⋙ forget₂ NonemptyFinLinOrd LinOrd ⋙
+  forget₂ LinOrd Lat ⋙ forget₂ Lat PartOrd ⋙ forget₂ PartOrd Preord ⋙ Preord_to_Cat
 
 end simplex_category

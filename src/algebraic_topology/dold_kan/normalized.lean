@@ -10,6 +10,9 @@ import algebraic_topology.dold_kan.functor_n
 
 # Comparison with the normalized Moore complex functor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we show that when the category `A` is abelian,

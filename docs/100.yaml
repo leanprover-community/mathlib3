@@ -147,11 +147,15 @@
   author : Yury G. Kudryashov
 39:
   title  : Solutions to Pell’s Equation
-  decl   : pell.eq_pell
-  author : Mario Carneiro
-  note   : "`d` is defined to be `a*a - 1` for an arbitrary `a > 1`."
+  decls  :
+    - pell.eq_pell
+    - pell.exists_of_not_is_square
+  author : Mario Carneiro (first), Michael Stoll (second)
+  note   : "In `pell.eq_pell`, `d` is defined to be `a*a - 1` for an arbitrary `a > 1`."
 40:
   title  : Minkowski’s Fundamental Theorem
+  decl   : measure_theory.exists_ne_zero_mem_lattice_of_measure_mul_two_pow_lt_measure
+  author : Alex J. Best, Yaël Dillies
 41:
   title  : Puiseux’s Theorem
 42:

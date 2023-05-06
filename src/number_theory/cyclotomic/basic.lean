@@ -3,10 +3,8 @@ Copyright (c) 2021 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
-
 import ring_theory.polynomial.cyclotomic.basic
 import number_theory.number_field.basic
-import algebra.char_p.algebra
 import field_theory.galois
 
 /-!
@@ -339,9 +337,11 @@ end
 lemma number_field [h : number_field K] [_root_.finite S] [is_cyclotomic_extension S K L] :
   number_field L :=
 { to_char_zero := char_zero_of_injective_algebra_map (algebra_map K L).injective,
-  to_finite_dimensional := @module.finite.trans _ K L _ _ _ _
-    (@algebra_rat L _ (char_zero_of_injective_algebra_map (algebra_map K L).injective)) _ _
-    h.to_finite_dimensional (finite S K L) }
+  to_finite_dimensional := begin
+    haveI := char_zero_of_injective_algebra_map (algebra_map K L).injective,
+    haveI := finite S K L,
+    exact module.finite.trans K _
+  end }
 
 localized "attribute [instance] is_cyclotomic_extension.number_field" in cyclotomic
 

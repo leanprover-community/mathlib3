@@ -10,6 +10,9 @@ import topology.sets.compacts
 /-!
 # Additional results on topological groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Two results on topological groups that have been separated out as they require more substantial
 imports developing either positive compacts or the compact open topology.
 

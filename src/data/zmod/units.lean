@@ -25,7 +25,7 @@ zmod, units
 open zmod nat
 namespace zmod
 /-- Same as `zmod.cast_hom_apply` with some hypotheses being made explicit. -/
-lemma cast_hom_apply' {n : ℕ} (R : Type*) [_inst_1 : ring R] {m : ℕ} [_inst_2 : char_p R m]
+lemma cast_hom_apply' {n : ℕ} (R : Type*) [ring R] {m : ℕ} [char_p R m]
   (h : m ∣ n) (i : zmod n) : (cast_hom h R) i = ↑i := cast_hom_apply i
 
 lemma coe_map_of_dvd {a b : ℕ} (h : a ∣ b) (x : units (zmod b)) :

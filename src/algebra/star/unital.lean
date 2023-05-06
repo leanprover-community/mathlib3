@@ -4,11 +4,35 @@ import algebra.algebra.unitization
 
 .
 
-/-! # Relating unital and non-unital substructures
+/-!
+# Relating unital and non-unital substructures
 
 This file takes unital and non-unital structures and relates them.
 
+## Main declarations
+
+* `non_unital_subalgebra.unitization s : unitization R s →ₐ[R] algebra.adjoin R (s : set A)`:
+  where `s` is a non-unital subalgebra of a unital `R`-algebra `A`, this is the natural algebra
+  homomorphism sending `(r, a)` to `r • 1 + a`. This is always surjective.#check
+* `non_unital_subalgebra.unitization_equiv s : unitization R s ≃ₐ[R] algebra.adjoin R (s : set A)`:
+  when `R` is a field and `1 ∉ s`, the above homomorphism is injective is upgraded to
+  an `alg_equiv`.
+* `subsemiring.closure_equiv_adjoin_nat : subsemiring.closure s ≃ₐ[ℕ] algebra.adjoin ℕ s`: the
+  identity map between these subsemirings, viewed as `ℕ`-algebras.
+* `subring.closure_equiv_adjoin_int : subring.closure s ≃ₐ[ℤ] algebra.adjoin ℤ s`: the
+  identity map between these subsemirings, viewed as `ℤ`-algebras.
+* `non_unital_subsemiring.unitization : unitization ℕ S →ₐ[ℕ] subsemiring.closure (S : set R)`:
+  the natural `ℕ`-algebra homomorphism between the unitization of a non-unital subsemiring `S` and
+  its `subsemiring.closure`. This is just `non_unital_subalgebra.unitization S` where we replace the
+  codomain using `subsemiring.closure_equiv_adjoint_nat`
+* `non_unital_subring.unitization : unitization ℤ S →ₐ[ℤ] subring.closure (S : set R)`:
+  the natural `ℤ`-algebra homomorphism between the unitization of a non-unital subring `S` and
+  its `subring.closure`. This is just `non_unital_subalgebra.unitization S` where we replace the
+  codomain using `subring.closure_equiv_adjoint_int`
+
 -/
+
+#exit
 
 section generic
 

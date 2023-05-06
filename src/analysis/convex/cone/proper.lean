@@ -35,9 +35,11 @@ The next steps are:
 
 -/
 
-open continuous_linear_map filter
+open continuous_linear_map filter set
 
 namespace convex_cone
+
+section has_smul
 
 variables {𝕜 : Type*} [ordered_semiring 𝕜]
 variables {E : Type*} [add_comm_monoid E] [topological_space E] [has_continuous_add E]
@@ -59,6 +61,32 @@ protected def closure (K : convex_cone 𝕜 E) : convex_cone 𝕜 E :=
 lemma closure_eq_iff_is_closed {K : convex_cone 𝕜 E} : K.closure = K ↔ is_closed (K : set E) :=
 ⟨ (λ h, by rw [← closure_eq_iff_is_closed, ← coe_closure, h]),
   (λ h, set_like.coe_injective $ closure_eq_iff_is_closed.2 h) ⟩
+
+end has_smul
+
+section complete_space
+
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
+
+/-- The image of a convex cone under an adjoint is a convex cone. -/
+protected def adjoint (f : E →L[ℝ] F) (S : convex_cone ℝ F) : convex_cone ℝ E :=
+{ carrier := (adjoint f)''S,
+  smul_mem' := λ c hc _ ⟨y, h1, h2⟩,
+    ⟨c • y, S.smul_mem hc h1, by rw [← h2,continuous_linear_map.map_smul] ⟩,
+  add_mem' := λ x ⟨a, ha1, ha2⟩ y ⟨b, hb1, hb2⟩,
+    ⟨a + b, S.add_mem ha1 hb1, by rw [← ha2, ← hb2, continuous_linear_map.map_add ] ⟩ }
+
+@[simp] lemma coe_adjoint (f : E →L[ℝ] F) (S : convex_cone ℝ F) :
+  (convex_cone.adjoint f S : set E) = (adjoint f)''S := rfl
+
+@[simp] lemma mem_adjoint {f : E →L[ℝ] F} {S : convex_cone ℝ F} {x : E} :
+  x ∈ convex_cone.adjoint f S ↔ x ∈ (adjoint f)''S := iff.rfl
+
+@[simp] lemma adjoint_id (S : convex_cone ℝ E) :
+  convex_cone.adjoint (continuous_linear_map.id ℝ E) S = S := set_like.coe_injective $ by simp
+
+end complete_space
 
 end convex_cone
 
@@ -118,6 +146,7 @@ section inner_product_space
 
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
+variables {G : Type*} [normed_add_comm_group G] [inner_product_space ℝ G]
 
 protected lemma pointed (K : proper_cone ℝ E) : (K : convex_cone ℝ E).pointed :=
 (K : convex_cone ℝ E).pointed_of_nonempty_of_is_closed K.nonempty K.is_closed
@@ -153,13 +182,52 @@ lemma coe_dual (K : proper_cone ℝ E) : ↑(dual K) = (K : set E).inner_dual_co
   y ∈ dual K ↔ ∀ ⦃x⦄, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ :=
 by {rw [← mem_coe, coe_dual, mem_inner_dual_cone _ _], refl}
 
--- TODO: add comap, adjoint
+/-- The preimage of a convex cone under a continuous `ℝ`-linear map is a convex cone. -/
+noncomputable def comap (f : E →L[ℝ] F) (S : proper_cone ℝ F) : proper_cone ℝ E :=
+{ to_convex_cone := convex_cone.comap (f : E →ₗ[ℝ] F) S,
+  nonempty' := ⟨ 0,
+  begin
+    simp only [convex_cone.comap, mem_preimage, map_zero, set_like.mem_coe, mem_coe],
+    apply proper_cone.pointed,
+  end ⟩,
+  is_closed' :=
+  begin
+    simp only [convex_cone.comap, continuous_linear_map.coe_coe],
+    apply is_closed.preimage f.2 S.is_closed,
+  end }
+
+@[simp] lemma coe_comap (f : E →L[ℝ] F) (S : proper_cone ℝ F) : (S.comap f : set E) = f ⁻¹' S := rfl
+
+@[simp] lemma comap_id (S : convex_cone ℝ E) : S.comap linear_map.id = S :=
+set_like.coe_injective preimage_id
+
+lemma comap_comap (g : F →L[ℝ] G) (f : E →L[ℝ] F) (S : proper_cone ℝ G) :
+  (S.comap g).comap f = S.comap (g.comp f) :=
+set_like.coe_injective $ preimage_comp.symm
+
+@[simp] lemma mem_comap {f : E →L[ℝ] F} {S : proper_cone ℝ F} {x : E} : x ∈ S.comap f ↔ f x ∈ S :=
+iff.rfl
 
 end inner_product_space
 
 section complete_space
 
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
+
+protected noncomputable def adjoint (f : E →L[ℝ] F) (K : proper_cone ℝ F) : proper_cone ℝ E :=
+{ to_convex_cone := convex_cone.adjoint f K,
+  nonempty' := ⟨0, 0, K.pointed, map_zero _⟩,
+  is_closed' := sorry }
+
+@[simp] lemma coe_adjoint (f : E →L[ℝ] F) (K : proper_cone ℝ F) :
+  (K.adjoint f : set E) = (adjoint f)''K := rfl
+
+@[simp] lemma mem_adjoint {f : E →L[ℝ] F} {K : proper_cone ℝ F} {x : E} :
+  x ∈ K.adjoint f ↔ x ∈ (adjoint f)''K := iff.rfl
+
+@[simp] lemma adjoint_id (K : proper_cone ℝ E) :
+  K.adjoint (continuous_linear_map.id ℝ E) = K := set_like.coe_injective $ by simp
 
 /-- The dual of the dual of a proper cone is itself. -/
 theorem dual_dual (K : proper_cone ℝ E) : K.dual.dual = K := proper_cone.ext' $

@@ -10,27 +10,36 @@ import probability.kernel.basic
 /-!
 # Independence with respect to a kernel and a measure
 
+A family of sets of sets `π : ι → set (set Ω)` is independent with respect to a kernel
+`κ : kernel α Ω` and a measure `μ` on `α` if for any finite set of indices `s = {i_1, ..., i_n}`,
+for any sets `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, then for `μ`-almost every `a : α`,
+`κ a (⋂ i in s, f i) = ∏ i in s, κ a (f i)`.
 
-This file does not contain a notion of independence of a kernel with respect to another. This is
-independence of sets or random variables with respect to a kernel and a measure. This is a minimal
-generalization of both independence and conditional independence.
+This notion of independence is a generalization of both independence and conditional independence.
+For conditional independence, `κ` is the conditional kernel (not yet in mathlib) and `μ` is the
+ambiant measure. For (non-conditional) independence, `κ = kernel.const unit μ` and the measure is
+the Dirac measure on `unit`.
 
-Independence: `κ = kernel.const unit μ`, with measure `(measure.dirac () : measure unit)`
-Conditional independence: `κ` is the yet to be defined conditional kernel and `μ` is the ambiant
-measure.
+The main purpose of this file is to prove only once the properties that hold for both conditional
+and non-conditional independence.
 
 ## Main definitions
 
-* `foo_bar`
+* `Indep_setsₖ`: independence of a family of sets of sets.
+  Variant for two sets of sets: `indep_setsₖ`.
+* `Indepₖ`: independence of a family of σ-algebras. Variant for two σ-algebras: `indepₖ`.
+* `Indep_setₖ`: independence of a family of sets. Variant for two sets: `indep_setₖ`.
+* `Indep_funₖ`: independence of a family of functions (random variables).
+  Variant for two functions: `indep_funₖ`.
 
-
+See the file `independence.lean` for a more detailed discussion of these definitions in the
+particular case of the usual independence notion.
 
 ## Main statements
 
-* `foo_bar_unique`
-
-## Notation
-
+* `Indep_setsₖ.Indepₖ`: if π-systems are independent as sets of sets, then the
+  measurable space structures they generate are independent.
+* `indep_setsₖ.indepₖ`: variant with two π-systems.
 
 -/
 
@@ -48,7 +57,7 @@ include mα
 
 /-- A family of sets of sets `π : ι → set (set Ω)` is independent with respect to a kernel `κ` and
 a measure `μ` if for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-`f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, then `∀ᵐ a ∂μ, κ a (⋂ i in s, f i) = ∏ i in s, κ a (f i) `.
+`f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, then `∀ᵐ a ∂μ, κ a (⋂ i in s, f i) = ∏ i in s, κ a (f i)`.
 It will be used for families of pi_systems. -/
 def Indep_setsₖ {mΩ : measurable_space Ω} (π : ι → set (set Ω)) (κ : kernel α Ω)
   (μ : measure α . volume_tac) :

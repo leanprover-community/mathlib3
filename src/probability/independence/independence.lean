@@ -31,9 +31,12 @@ import probability.independence.indep_kernel
 
 ## Implementation notes
 
+The definitions of independence in this file are a particular case of independence with respect to a
+kernel and a measure, as defined in the file `indep_kernel.lean`.
+
 We provide one main definition of independence:
 * `Indep_sets`: independence of a family of sets of sets `pi : ι → set (set Ω)`.
-Three other independence notions are defined using `Indep_sets`:
+Three other independence notions are related to `Indep_sets`:
 * `Indep`: independence of a family of measurable space structures `m : ι → measurable_space Ω`,
 * `Indep_set`: independence of a family of sets `s : ι → set Ω`,
 * `Indep_fun`: independence of a family of functions. For measurable spaces
@@ -44,9 +47,9 @@ sets of sets, sets, functions) instead of a family. These properties are denoted
 as for a family, but without a capital letter, for example `indep_fun` is the version of `Indep_fun`
 for two functions.
 
-The definition of independence for `Indep_sets` uses finite sets (`finset`). An alternative and
-equivalent way of defining independence would have been to use countable sets.
-TODO: prove that equivalence.
+The definition of independence for `Indep_sets` uses finite sets (`finset`). See
+`probability_theory.Indep_setsₖ`. An alternative and equivalent way of defining independence would
+have been to use countable sets.
 
 Most of the definitions and lemma in this file list all variables instead of using the `variables`
 keyword at the beginning of a section, for example

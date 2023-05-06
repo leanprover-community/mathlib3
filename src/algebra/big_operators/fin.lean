@@ -222,14 +222,13 @@ lemma inv_partial_prod_mul_eq_contract_nth {G : Type*} [group G]
   (partial_prod g (j.succ.succ_above k.cast_succ))⁻¹ * partial_prod g (j.succ_above k).succ
     = j.contract_nth has_mul.mul g k :=
 begin
-  have := partial_prod_right_inv g,
   rcases lt_trichotomy (k : ℕ) j with (h|h|h),
-  { rwa [succ_above_below, succ_above_below, this, contract_nth_apply_of_lt],
+  { rwa [succ_above_below, succ_above_below, partial_prod_right_inv, contract_nth_apply_of_lt],
     { assumption },
     { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
       exact le_of_lt h }},
   { rwa [succ_above_below, succ_above_above, partial_prod_succ, cast_succ_fin_succ, ←mul_assoc,
-      this, contract_nth_apply_of_eq],
+      partial_prod_right_inv, contract_nth_apply_of_eq],
     { simpa only [le_iff_coe_le_coe, ←h] },
     { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
       exact le_of_eq h }},

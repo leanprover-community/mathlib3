@@ -607,6 +607,26 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, Hadd, H0, Hmul, Hneg⟩).2 Hs h
 
+/-- The difference with `non_unital_subring.closure_induction` is that this acts on the
+subtype. -/
+@[elab_as_eliminator]
+lemma closure_induction' {s : set R} {p : closure s → Prop} (a : closure s)
+  (Hs : ∀ x (hx : x ∈ s), p ⟨x, subset_closure hx⟩) (H0 : p 0)
+  (Hadd : ∀ x y, p x → p y → p (x + y)) (Hneg : ∀ x, p x → p (-x))
+  (Hmul : ∀ x y, p x → p y → p (x * y)) : p a :=
+subtype.rec_on a $ λ b hb,
+begin
+  refine exists.elim _ (λ (hb : b ∈ closure s) (hc : p ⟨b, hb⟩), hc),
+  refine closure_induction hb (λ x hx, ⟨subset_closure hx, Hs x hx⟩) ⟨zero_mem (closure s), H0⟩
+    _ _ _,
+  { rintro x y ⟨hx, hpx⟩ ⟨hy, hpy⟩,
+    exact ⟨add_mem hx hy, Hadd _ _ hpx hpy⟩, },
+  { rintro x ⟨hx, hpx⟩,
+    exact ⟨neg_mem hx, Hneg _ hpx⟩, },
+  { rintro x y ⟨hx, hpx⟩ ⟨hy, hpy⟩,
+    exact ⟨mul_mem hx hy, Hmul _ _ hpx hpy⟩, }
+end
+
 /-- An induction principle for closure membership, for predicates with two arguments. -/
 @[elab_as_eliminator]
 lemma closure_induction₂ {s : set R} {p : R → R → Prop} {a b : R}
@@ -931,7 +951,7 @@ def non_unital_subring_congr (h : s = t) : s ≃+* t :=
 
 /-- Restrict a ring homomorphism with a left inverse to a ring isomorphism to its
 `ring_hom.range`. -/
-def of_left_inverse {g : S → R} {f : R →ₙ+* S} (h : function.left_inverse g f) :
+def of_left_inverse' {g : S → R} {f : R →ₙ+* S} (h : function.left_inverse g f) :
   R ≃+* f.range :=
 { to_fun := λ x, f.range_restrict x,
   inv_fun := λ x, (g ∘ (non_unital_subring_class.subtype f.range)) x,
@@ -941,13 +961,13 @@ def of_left_inverse {g : S → R} {f : R →ₙ+* S} (h : function.left_inverse 
     show f (g x) = x, by rw [←hx', h x'],
   ..f.range_restrict }
 
-@[simp] lemma of_left_inverse_apply
+@[simp] lemma of_left_inverse'_apply
   {g : S → R} {f : R →ₙ+* S} (h : function.left_inverse g f) (x : R) :
-  ↑(of_left_inverse h x) = f x := rfl
+  ↑(of_left_inverse' h x) = f x := rfl
 
-@[simp] lemma of_left_inverse_symm_apply
+@[simp] lemma of_left_inverse'_symm_apply
   {g : S → R} {f : R →ₙ+* S} (h : function.left_inverse g f) (x : f.range) :
-  (of_left_inverse h).symm x = g x := rfl
+  (of_left_inverse' h).symm x = g x := rfl
 
 /-
 /-- Given an equivalence `e : R ≃+* S` of rings and a non_unital_subring `s` of `R`,

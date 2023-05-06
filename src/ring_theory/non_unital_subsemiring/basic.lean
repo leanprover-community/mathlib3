@@ -537,6 +537,22 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, Hadd, H0, Hmul⟩).2 Hs h
 
+/-- The difference with `non_unital_subsemiring.closure_induction` is that this acts on the
+subtype. -/
+@[elab_as_eliminator]
+lemma closure_induction' {s : set R} {p : closure s → Prop} (a : closure s)
+  (Hs : ∀ x (hx : x ∈ s), p ⟨x, subset_closure hx⟩) (H0 : p 0)
+  (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p a :=
+subtype.rec_on a $ λ b hb,
+begin
+  refine exists.elim _ (λ (hb : b ∈ closure s) (hc : p ⟨b, hb⟩), hc),
+  refine closure_induction hb (λ x hx, ⟨subset_closure hx, Hs x hx⟩) ⟨zero_mem (closure s), H0⟩ _ _,
+  { rintro x y ⟨hx, hpx⟩ ⟨hy, hpy⟩,
+    exact ⟨add_mem hx hy, Hadd _ _ hpx hpy⟩, },
+  { rintro x y ⟨hx, hpx⟩ ⟨hy, hpy⟩,
+    exact ⟨mul_mem hx hy, Hmul _ _ hpx hpy⟩, }
+end
+
 /-- An induction principle for closure membership for predicates with two arguments. -/
 @[elab_as_eliminator]
 lemma closure_induction₂ {s : set R} {p : R → R → Prop} {x} {y : R} (hx : x ∈ closure s)

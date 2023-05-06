@@ -5,7 +5,7 @@ Authors: Scott Morrison, Jireh Loreaux
 -/
 import algebra.star.star_alg_hom
 import algebra.algebra.subalgebra.basic
-import algebra.star.pointwise
+import algebra.star.center
 import algebra.star.module
 import ring_theory.adjoin.basic
 
@@ -229,29 +229,27 @@ end map
 section centralizer
 variables (R) {A}
 
-lemma _root_.set.star_mem_centralizer {a : A} {s : set A}
-  (h : ∀ (a : A), a ∈ s → star a ∈ s) (ha : a ∈ set.centralizer s) :
-  star a ∈ set.centralizer s :=
-λ y hy, by simpa using congr_arg star (ha _ (h _ hy)).symm
-
 /-- The centralizer, or commutant, of a *-closed set as star subalgebra. -/
 def centralizer
-  (s : set A) (w : ∀ (a : A), a ∈ s → star a ∈ s) : star_subalgebra R A :=
-{ star_mem' := λ x, set.star_mem_centralizer w,
-  ..subalgebra.centralizer R s, }
+  (s : set A) : star_subalgebra R A :=
+{ star_mem' := λ x, set.star_mem_centralizer,
+  ..subalgebra.centralizer R (s ∪ star s), }
 
 @[simp]
-lemma coe_centralizer (s : set A) (w : ∀ (a : A), a ∈ s → star a ∈ s) :
-  (centralizer R s w : set A) = s.centralizer := rfl
+lemma coe_centralizer (s : set A) :
+  (centralizer R s : set A) = (s ∪ star s).centralizer := rfl
 
-lemma mem_centralizer_iff {s : set A} {w} {z : A} :
-  z ∈ centralizer R s w ↔ ∀ g ∈ s, g * z = z * g :=
-iff.rfl
+lemma mem_centralizer_iff {s : set A} {z : A} :
+  z ∈ centralizer R s ↔ ∀ g ∈ s, g * z = z * g ∧ star g * z = z * star g :=
+begin
+  show (∀ g ∈ s ∪ star s, g * z = z * g) ↔ ∀ g ∈ s, g * z = z * g ∧ (star g) * z = z * (star g),
+  simp only [set.mem_union, or_imp_distrib, forall_and_distrib, and.congr_right_iff],
+  exact λ h, ⟨λ hz a ha, hz _ (set.star_mem_star.mpr ha), λ hz a ha, star_star a ▸ hz _ ha⟩,
+end
 
-lemma centralizer_le (s t : set A)
-  (ws : ∀ (a : A), a ∈ s → star a ∈ s) (wt : ∀ (a : A), a ∈ t → star a ∈ t) (h : s ⊆ t) :
-  centralizer R t wt ≤ centralizer R s ws :=
-set.centralizer_subset h
+lemma centralizer_le (s t : set A) (h : s ⊆ t) :
+  centralizer R t ≤ centralizer R s :=
+set.centralizer_subset (set.union_subset_union h $ set.preimage_mono h)
 
 end centralizer
 

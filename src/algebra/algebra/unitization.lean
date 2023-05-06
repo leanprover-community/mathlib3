@@ -7,6 +7,8 @@ Authors: Jireh Loreaux
 import algebra.algebra.basic
 import linear_algebra.prod
 import algebra.hom.non_unital_alg
+import algebra.star.star_alg_hom
+import algebra.star.module
 
 /-!
 # Unitization of a non-unital algebra
@@ -490,6 +492,19 @@ def coe_non_unital_alg_hom (R A : Type*) [comm_semiring R] [non_unital_semiring 
   map_add' := coe_add R,
   map_mul' := coe_mul R }
 
+/-- The coercion from a non-unital `R`-algebra `A` to its unitization `unitization R A`
+realized as a non-unital algebra homomorphism. -/
+@[simps]
+def coe_non_unital_star_alg_hom (R A : Type*) [comm_semiring R] [star_add_monoid R]
+  [non_unital_semiring A] [has_star A] [module R A] :
+  A →⋆ₙₐ[R] unitization R A :=
+{ to_fun := coe,
+  map_smul' := coe_smul R,
+  map_zero' := coe_zero R,
+  map_add' := coe_add R,
+  map_mul' := coe_mul R,
+  map_star' := coe_star }
+
 end coe
 
 section alg_hom
@@ -499,16 +514,21 @@ variables {S R A : Type*}
   [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
   {B : Type*} [semiring B] [algebra S B]
   [algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
-  {C : Type*} [ring C] [algebra R C]
+  {C : Type*} [semiring C] [algebra R C]
 
-lemma alg_hom_ext {φ ψ : unitization R A →ₐ[S] B} (h : ∀ a : A, φ a = ψ a)
+lemma alg_hom_ext {F : Type*} [alg_hom_class F S (unitization R A) B] {φ ψ : F}
+  (h : ∀ a : A, φ a = ψ a)
   (h' : ∀ r, φ (algebra_map R (unitization R A) r) = ψ (algebra_map R (unitization R A) r)) :
   φ = ψ :=
 begin
-  ext,
+  refine fun_like.ext φ ψ (λ x, _),
   induction x using unitization.ind,
   simp only [map_add, ←algebra_map_eq_inl, h, h'],
 end
+
+lemma alg_hom_ext'' {F : Type*} [alg_hom_class F R (unitization R A) C] {φ ψ : F}
+  (h : ∀ a : A, φ a = ψ a) : φ = ψ :=
+alg_hom_ext h (λ r, by simp only [alg_hom_class.commutes])
 
 /-- See note [partially-applied ext lemmas] -/
 @[ext]
@@ -516,7 +536,7 @@ lemma alg_hom_ext' {φ ψ : unitization R A →ₐ[R] C}
   (h : φ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A) =
     ψ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A)) :
   φ = ψ :=
-alg_hom_ext (non_unital_alg_hom.congr_fun h) (by simp [alg_hom.commutes])
+alg_hom_ext'' (non_unital_alg_hom.congr_fun h)
 
 /-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `C` lift uniquely to
 `unitization R A →ₐ[R] C`. This is the universal property of the unitization. -/
@@ -553,5 +573,35 @@ lemma lift_symm_apply (φ : unitization R A →ₐ[R] C) (a : A) :
   unitization.lift.symm φ a = φ a := rfl
 
 end alg_hom
+
+section star_alg_hom
+
+variables {S R A : Type*}
+  [comm_semiring S] [comm_semiring R] [star_ring R] [non_unital_semiring A] [star_ring A]
+  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A] [star_module R A]
+  {C : Type*} [semiring C] [star_ring C] [algebra R C] [star_module R C]
+
+/-- Non-unital star algebra homomorphisms from `A` into a unital star `R`-algebra `C` lift uniquely
+to `unitization R A →⋆ₐ[R] C`. This is the universal property of the unitization. -/
+@[simps apply_apply]
+def star_lift : (A →⋆ₙₐ[R] C) ≃ (unitization R A →⋆ₐ[R] C) :=
+{ to_fun := λ φ,
+  { to_fun := unitization.lift φ.to_non_unital_alg_hom,
+    map_star' := λ x,
+    begin
+      induction x using unitization.ind,
+      simp only [star_add, lift_apply_apply, fst_add, fst_star, fst_inl, fst_coe, star_zero,
+        add_zero, snd_add, snd_star, snd_inl, snd_coe, zero_add,
+        non_unital_star_alg_hom.coe_to_non_unital_alg_hom, map_star, algebra_map_star_comm],
+    end,
+    .. unitization.lift φ.to_non_unital_alg_hom },
+  inv_fun := λ φ, φ.to_non_unital_star_alg_hom.comp (coe_non_unital_star_alg_hom R A),
+  left_inv := λ φ, by { ext, simp, },
+  right_inv := λ φ, unitization.alg_hom_ext'' (by simp) }
+
+lemma star_lift_symm_apply (φ : unitization R A →⋆ₐ[R] C) (a : A) :
+  unitization.star_lift.symm φ a = φ a := rfl
+
+end star_alg_hom
 
 end unitization

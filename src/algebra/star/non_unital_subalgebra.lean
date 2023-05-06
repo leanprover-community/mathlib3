@@ -5,7 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.non_unital_subalgebra.basic
 import algebra.star.star_alg_hom
-import algebra.star.pointwise
+import algebra.star.center
 
 /-!
 # Non-unital Subalgebras over Commutative Semirings
@@ -17,6 +17,39 @@ In this file we define `non_unital_star_subalgebra`s and the usual operations on
 * once we have scalar actions by semigroups (as opposed to monoids), implement the action of a
   non-unital subalgebra on the larger algebra.
 -/
+
+namespace star_mem_class
+
+instance {S R : Type*} [has_involutive_star R] [set_like S R] [star_mem_class S R] (s : S) :
+  has_involutive_star s :=
+{ star := star,
+  star_involutive := λ r, subtype.ext (star_star r) }
+
+instance {S R : Type*} [semigroup R] [star_semigroup R] [set_like S R] [mul_mem_class S R]
+  [star_mem_class S R] (s : S) : star_semigroup s :=
+{ star := star,
+  star_involutive := star_star,
+  star_mul := λ _ _, subtype.ext $ star_mul _ _ }
+
+instance {S R : Type*} [add_monoid R] [star_add_monoid R] [set_like S R] [add_submonoid_class S R]
+  [star_mem_class S R] (s : S) : star_add_monoid s :=
+{ star := star,
+  star_involutive := star_star,
+  star_add := λ _ _, subtype.ext $ star_add _ _ }
+
+instance {S R : Type*} [non_unital_semiring R] [star_ring R] [set_like S R]
+  [non_unital_subsemiring_class S R] [star_mem_class S R] (s : S) : star_ring s :=
+{ star := star,
+  .. star_mem_class.star_semigroup s,
+  .. star_mem_class.star_add_monoid s }
+
+instance {S : Type*} (R : Type*) {M : Type*} [has_star R] [has_star M] [has_smul R M]
+  [star_module R M] [set_like S M] [smul_mem_class S R M] [star_mem_class S M] (s : S) :
+  star_module R s :=
+{ star_smul := λ _ _, subtype.ext $ star_smul _ _ }
+
+end star_mem_class
+
 
 universes u u' v v' w w' w''
 
@@ -650,7 +683,7 @@ non_unital_star_algebra.gc.l_le hs
 lemma adjoin_le_iff {S : non_unital_star_subalgebra R A} {s : set A} : adjoin R s ≤ S ↔ s ⊆ S :=
 non_unital_star_algebra.gc _ _
 
-lemma _root_.subalgebra.star_closure_eq_adjoin (S : non_unital_subalgebra R A) :
+lemma _root_.non_unital_subalgebra.star_closure_eq_adjoin (S : non_unital_subalgebra R A) :
   S.star_closure = adjoin R (S : set A) :=
 le_antisymm (non_unital_subalgebra.star_closure_le_iff.2 $ subset_adjoin R (S : set A))
   (adjoin_le (le_sup_left : S ≤ S ⊔ star S))
@@ -788,7 +821,6 @@ This is the algebra version of `submodule.top_equiv`. -/
 alg_equiv.of_alg_hom (non_unital_star_subalgebra_class.subtype ⊤) to_top rfl $
   non_unital_alg_hom.ext $ λ _, subtype.ext rfl
   -/
-#where
 
 instance subsingleton_of_subsingleton [subsingleton A] :
   subsingleton (non_unital_star_subalgebra R A) :=
@@ -982,11 +1014,6 @@ end supr_lift
 
 section center
 
-lemma _root_.set.star_mem_center {A : Type*} [semigroup A] [star_semigroup A] {a : A}
-  (ha : a ∈ set.center A) : star a ∈ set.center A :=
-by simpa only [star_mul, star_star] using
-  λ g, congr_arg star ((set.mem_center_iff A).mp ha $ star g).symm
-
 variables (R A)
 
 /-- The center of an algebra is the set of elements which commute with every element. They form a
@@ -1021,22 +1048,12 @@ end center
 
 section centralizer
 
-lemma _root_.set.star_mem_centralizer {A : Type*} [non_unital_semiring A] [star_ring A]
-  {a : A} {s : set A} (h : ∀ (a : A), a ∈ s → star a ∈ s) (ha : a ∈ set.centralizer s) :
-  star a ∈ set.centralizer s :=
-λ y hy, by simpa using congr_arg star (ha _ (h _ hy)).symm
-
-lemma _root_.set.star_mem_centralizer' {A : Type*} [non_unital_semiring A] [star_ring A]
-  {a : A} {s : set A} (ha : a ∈ set.centralizer (s ∪ star s)) :
-  star a ∈ set.centralizer (s ∪ star s) :=
-set.star_mem_centralizer (λ x hx, hx.elim (λ hx, or.inr $ set.star_mem_star.mpr hx) or.inl) ha
-
 variables (R)
 
 
 /-- The centralizer of the star-closure of a set as a non-unital star subalgebra. -/
 def centralizer (s : set A) : non_unital_star_subalgebra R A :=
-{ star_mem' := λ a, set.star_mem_centralizer',
+{ star_mem' := λ a, set.star_mem_centralizer,
   .. non_unital_subalgebra.centralizer R (s ∪ star s), }
 
 @[simp, norm_cast]

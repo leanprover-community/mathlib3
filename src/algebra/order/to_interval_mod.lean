@@ -627,7 +627,6 @@ to_Ioc_mod_add_right hp a
 -- helper lemmas for when `a = 0`
 section zero
 
-
 lemma to_Ico_mod_zero_sub_comm (a b : α) : to_Ico_mod hp 0 (a - b) = p - to_Ioc_mod hp 0 (b - a) :=
 by rw [←neg_sub, to_Ico_mod_neg, neg_zero]
 
@@ -635,16 +634,16 @@ lemma to_Ioc_mod_zero_sub_comm (a b : α) : to_Ioc_mod hp 0 (a - b) = p - to_Ico
 by rw [←neg_sub, to_Ioc_mod_neg, neg_zero]
 
 lemma to_Ico_div_eq_sub (a b : α) : to_Ico_div hp a b = to_Ico_div hp 0 (b - a) :=
-by rw [to_Ico_div_sub', zero_add]
+by rw [to_Ico_div_sub_eq_to_Ico_div_add, zero_add]
 
 lemma to_Ioc_div_eq_sub (a b : α) : to_Ioc_div hp a b = to_Ioc_div hp 0 (b - a) :=
-by rw [to_Ioc_div_sub', zero_add]
+by rw [to_Ioc_div_sub_eq_to_Ioc_div_add, zero_add]
 
 lemma to_Ico_mod_eq_sub (a b : α) : to_Ico_mod hp a b = to_Ico_mod hp 0 (b - a) + a :=
-by rw [to_Ico_mod_sub', zero_add, sub_add_cancel]
+by rw [to_Ico_mod_sub_eq_sub, zero_add, sub_add_cancel]
 
 lemma to_Ioc_mod_eq_sub (a b : α) : to_Ioc_mod hp a b = to_Ioc_mod hp 0 (b - a) + a :=
-by rw [to_Ioc_mod_sub', zero_add, sub_add_cancel]
+by rw [to_Ioc_mod_sub_eq_sub, zero_add, sub_add_cancel]
 
 lemma to_Ico_mod_add_to_Ioc_mod_zero (a b : α) :
   to_Ico_mod hp 0 (a - b) + to_Ioc_mod hp 0 (b - a) = p :=
@@ -832,7 +831,7 @@ iff.rfl
 lemma btw_coe_iff {x₁ x₂ x₃ : α} :
   has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples p) x₂ x₃ ↔
     to_Ico_mod hp'.out x₁ x₂ ≤ to_Ioc_mod hp'.out x₁ x₃ :=
-by rw [btw_coe_iff', to_Ioc_mod_sub', to_Ico_mod_sub', zero_add, sub_le_sub_iff_right]
+by rw [btw_coe_iff', to_Ioc_mod_sub_eq_sub, to_Ico_mod_sub_eq_sub, zero_add, sub_le_sub_iff_right]
 
 instance circular_preorder : circular_preorder (α ⧸ add_subgroup.zmultiples p) :=
 { btw_refl := λ x, show _ ≤ _, by simp [sub_self, hp'.out.le],

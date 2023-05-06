@@ -47,9 +47,9 @@ section definitions
 variables {mα : measurable_space α}
 include mα
 
-/-- A family of sets of sets `π : ι → set (set Ω)` is independent with respect to a measure `μ` if
-for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-`f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
+/-- A family of sets of sets `π : ι → set (set Ω)` is independent with respect to a kernel `κ` and
+a measure `μ` if for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
+`f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, then `∀ᵐ a ∂μ, κ a (⋂ i in s, f i) = ∏ i in s, κ a (f i) `.
 It will be used for families of pi_systems. -/
 def Indep_setsₖ {mΩ : measurable_space Ω} (π : ι → set (set Ω)) (κ : kernel α Ω)
   (μ : measure α . volume_tac) :
@@ -57,25 +57,22 @@ def Indep_setsₖ {mΩ : measurable_space Ω} (π : ι → set (set Ω)) (κ : k
 ∀ (s : finset ι) {f : ι → set Ω} (H : ∀ i, i ∈ s → f i ∈ π i),
   ∀ᵐ a ∂μ, κ a (⋂ i ∈ s, f i) = ∏ i in s, κ a (f i)
 
-/-- Two sets of sets `s₁, s₂` are independent with respect to a measure `μ` if for any sets
-`t₁ ∈ p₁, t₂ ∈ s₂`, then `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
+/-- Two sets of sets `s₁, s₂` are independent with respect to a kernel `κ` and a measure `μ` if for
+any sets `t₁ ∈ p₁, t₂ ∈ s₂`, then `∀ᵐ a ∂μ, κ a (t₁ ∩ t₂) = κ a (t₁) * κ a (t₂)` -/
 def indep_setsₖ {mΩ : measurable_space Ω} (s1 s2 : set (set Ω)) (κ : kernel α Ω)
   (μ : measure α . volume_tac) : Prop :=
 ∀ t1 t2 : set Ω, t1 ∈ s1 → t2 ∈ s2 → (∀ᵐ a ∂μ, κ a (t1 ∩ t2) = κ a t1 * κ a t2)
 
 /-- A family of measurable space structures (i.e. of σ-algebras) is independent with respect to a
-measure `μ` (typically defined on a finer σ-algebra) if the family of sets of measurable sets they
-define is independent. `m : ι → measurable_space Ω` is independent with respect to measure `μ` if
-for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
-`f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
+kernel `κ` and a measure `μ` if the family of sets of measurable sets they define is independent. -/
 def Indepₖ (m : ι → measurable_space Ω) {mΩ : measurable_space Ω} (κ : kernel α Ω)
   (μ : measure α . volume_tac) :
   Prop :=
 Indep_setsₖ (λ x, {s | measurable_set[m x] s}) κ μ
 
 /-- Two measurable space structures (or σ-algebras) `m₁, m₂` are independent with respect to a
-measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
-`μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
+kernel `κ` and a measure `μ` if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
+`∀ᵐ a ∂μ, κ a (t₁ ∩ t₂) = κ a (t₁) * κ a (t₂)` -/
 def indepₖ (m₁ m₂ : measurable_space Ω) {mΩ : measurable_space Ω} (κ : kernel α Ω)
   (μ : measure α . volume_tac) :
   Prop :=
@@ -590,9 +587,9 @@ end from_pi_systems_to_measurable_spaces
 section indep_set
 /-! ### Independence of measurable sets
 
-We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
-* `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
-* `indep_set s t μ ↔ indep_setsₖ {s} {t} μ`.
+We prove the following equivalences on `indep_setₖ`, for measurable sets `s, t`.
+* `indep_setₖ s t κ μ ↔ ∀ᵐ a ∂μ, κ a (s ∩ t) = κ a s * κ a t`,
+* `indep_setₖ s t κ μ ↔ indep_setsₖ {s} {t} κ μ`.
 -/
 
 variables {mα : measurable_space α} {m₁ m₂ m₀ : measurable_space Ω} {κ : kernel α Ω}
@@ -734,8 +731,8 @@ begin
   { exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩ }
 end
 
-/-- If `f` is a family of mutually independent random variables (`Indep_fun m f μ`) and `S, T` are
-two disjoint finite index sets, then the tuple formed by `f i` for `i ∈ S` is independent of the
+/-- If `f` is a family of mutually independent random variables (`Indep_funₖ m f κ μ`) and `S, T`
+are two disjoint finite index sets, then the tuple formed by `f i` for `i ∈ S` is independent of the
 tuple `(f i)_i` for `i ∈ T`. -/
 lemma Indep_funₖ.indep_funₖ_finset [∀ a, is_probability_measure (κ a)]
   {ι : Type*} {β : ι → Type*} {m : Π i, measurable_space (β i)}

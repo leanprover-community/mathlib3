@@ -7,6 +7,7 @@ Authors: Roberto Alvarez
 import algebraic_topology.fundamental_groupoid.fundamental_group
 import group_theory.eckmann_hilton
 import logic.equiv.transfer_instance
+import algebra.group.ext
 
 /-!
 # `n`th homotopy group
@@ -108,6 +109,16 @@ def gen_loop (N) (x : X) : set C(cube N, X) := {p | ∀ y ∈ cube.boundary N, p
 
 namespace gen_loop
 
+/-- Copy of a `gen_loop` with a new map from the unit cube equal to the old one.
+  Useful to fix definitional equalities. -/
+def copy (f : gen_loop N x) (g : cube N → X) (h : g = f) : gen_loop N x :=
+⟨⟨g, h.symm ▸ f.1.2⟩, by { convert f.2, ext1, simp_rw h, refl }⟩
+
+lemma coe_copy (f : gen_loop N x) {g : cube N → X} (h : g = f) : ⇑(copy f g h) = g := rfl
+
+lemma copy_eq (f : gen_loop N x) {g : cube N → X} (h : g = f) : copy f g h = f :=
+by { ext x, exact congr_fun h x }
+
 lemma boundary (f : gen_loop N x) : ∀ y ∈ cube.boundary N, f y = x := f.2
 
 instance fun_like : fun_like (gen_loop N x) (cube N) (λ _, X) :=
@@ -150,52 +161,6 @@ end homotopic
 section
 
 variable [decidable_eq N]
-
-/-- Concatenation of two `gen_loop`s along the `i`th coordinate. -/
-def mul_at (i : N) (f g : gen_loop N x) : gen_loop N x :=
-⟨⟨λ t, if (t i : ℝ) ≤ 1/2
-  then f (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
-  else g (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j),
-begin
-  refine continuous.if_le _ _ (continuous_induced_dom.comp (continuous_apply i)) continuous_const _,
-  exact (continuous_map.continuous_set_coe _ f).comp (continuous_pi (λ i', continuous_if_const _
-    (λ _, continuous_proj_Icc.comp $
-      continuous_const.mul (continuous_induced_dom.comp (continuous_apply _)))
-    (λ _, continuous_apply _))),
-  { refine (continuous_map.continuous_set_coe _ g).comp (continuous_pi (λ i', continuous_if_const _
-    (λ _, continuous_proj_Icc.comp $
-      (continuous_const.mul (continuous_induced_dom.comp _)).sub continuous_const)
-    (λ _, continuous_apply _))),
-    exact continuous_apply _ },
-  intros t H, repeat {rw gen_loop.boundary}; use i;
-  simp only [eq_self_iff_true, if_true, proj_Icc_eq_zero, sub_nonpos, proj_Icc_eq_one];
-  rw H; norm_num
-end⟩,
-begin
-  rintros t ⟨j,H⟩, simp only [continuous_map.coe_mk], by_cases (j=i),
-  { rw h at H, rcases H; rw H; norm_num; apply gen_loop.boundary; use i; norm_num },
-  cases H,
-  {split_ifs; apply gen_loop.boundary; use j; left; simp_rw [H]; split_ifs; tauto },
-  {split_ifs; apply gen_loop.boundary; use j; right; simp_rw [H]; split_ifs; tauto },
-end⟩
-
-/-- Reversal of a `gen_loop` along the `i`th coordinate. -/
-def symm_at (i : N) (f : gen_loop N x) : gen_loop N x :=
-⟨⟨λ t, f (cube.insert_at i (σ (t i), t ∘ coe)),
-begin
-  refine (continuous_map.continuous_set_coe _ f).comp (continuous_pi (λ i', _)),
-  simp only [fun_split_at_symm_apply, function.comp_app, subtype.coe_mk, dite_eq_ite],
-  exact continuous_if_const _ (λ _, unit_interval.continuous_symm.comp (continuous_apply i))
-    (λ _, continuous_apply _),
-end⟩,
-begin
-  rintros t ⟨j,H⟩, by_cases (j = i); apply gen_loop.boundary,
-  { use i, simp only [fun_split_at_symm_apply, eq_self_iff_true, function.comp_app, subtype.coe_mk,
-      dite_eq_ite, if_true],
-    rw ← h, cases H; rw H; finish },
-  use j, simp only [fun_split_at_symm_apply, function.comp_app, subtype.coe_mk, dite_eq_ite],
-  cases H; rw H; finish
-end⟩
 
 /-- Path from a generalized loop by currying $I^N → X$ into $I → (I^{N\setminus\{j\}} → X)$. -/
 @[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
@@ -313,14 +278,13 @@ end gen_loop
 @[derive inhabited]
 def homotopy_group (N) (X : Type*) [topological_space X] (x : X) : Type _ :=
 quotient (gen_loop.homotopic.setoid N x)
-/--Homotopy group of finite index. -/
+/-- Homotopy group of finite index. -/
 abbreviation pi (n) (X : Type*) [topological_space X] (x : X) := homotopy_group (fin n) _ x
--- TODO: Maybe switch these two names
 local notation `π_` := pi
 
 variable [decidable_eq N]
 open gen_loop
-/--Equivalence between the homotopy group of X and the fundamental group of
+/-- Equivalence between the homotopy group of X and the fundamental group of
   `gen_loop {j // j ≠ i} x`. -/
 def homotopy_group_equiv_fundamental_group (i : N) :
   homotopy_group N X x ≃ fundamental_group (gen_loop {j // j ≠ i} x) const :=
@@ -402,51 +366,93 @@ variables {n : ℕ} (i : N)
 instance group : group (π_(n+1) X x) :=
 (homotopy_group_equiv_fundamental_group 0).group
 
-/-- Another group structure on `π_(n+2)` that distributes over the default one,
-  so as to enable the Eckmann-Hilton argument. -/
-@[reducible] private def aux_group : group (π_(n+2) X x) :=
-(homotopy_group_equiv_fundamental_group 1).group
+/-- Group structure on `homotopy_group` obtained by pulling back path composition along the
+  `i`th direction. The group structures for two different $i j : N` distribute over each
+  other, and therefore are equal by the Eckmann-Hilton argument. When `N = fin (n+1)`,
+  the group structure with `i = 0` is taken to be default and registered as an instance above. -/
+@[reducible] def aux_group (i : N) : group (homotopy_group N X x) :=
+(homotopy_group_equiv_fundamental_group i).group
 
-lemma from_path_trans_to_path {p q : gen_loop N x} :
-  (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) = mul_at i p q :=
+lemma is_unital_aux_group (i : N) :
+  eckmann_hilton.is_unital (aux_group i).mul (⟦const⟧ : homotopy_group N X x) :=
+⟨⟨(aux_group i).one_mul⟩, ⟨(aux_group i).mul_one⟩⟩
+
+/-- Concatenation of two `gen_loop`s along the `i`th coordinate. -/
+def trans_at (i : N) (f g : gen_loop N x) : gen_loop N x :=
+copy ((path_equiv i).symm ((path_equiv i f).trans $ path_equiv i g))
+  (λ t, if (t i : ℝ) ≤ 1/2
+    then f (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
+    else g (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j))
 begin
-  ext,
-  dsimp only [mul_at, path.trans, from_path, path.coe_mk, function.comp_app,
-    path_equiv_symm_apply, mk_apply, continuous_map.comp_apply, to_continuous_map_apply,
-    fun_split_at_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
-    function.uncurry_apply_pair],
-  split_ifs, change p _ = _, swap, change q _ = _,
+  ext1, symmetry,
+  dsimp only [path.trans, from_path, path.coe_mk, function.comp_app, path_equiv_symm_apply,
+    mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
+    continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
+  split_ifs, change f _ = _, swap, change g _ = _,
   all_goals { congr' 1, ext, rw [to_continuous_map_apply, fun_split_at_symm_apply], refl },
 end
 
+/-- Reversal of a `gen_loop` along the `i`th coordinate. -/
+def symm_at (i : N) (f : gen_loop N x) : gen_loop N x :=
+copy ((path_equiv i).symm (path_equiv i f).symm)
+  (λ t, f $ λ j, if j = i then σ (t i) else t j) $
+  by { ext1, change _ = f _, congr, ext1, simp }
+
+lemma trans_at_distrib {i j : N} (h : i ≠ j) (a b c d : gen_loop N x) :
+  trans_at i (trans_at j a b) (trans_at j c d) = trans_at j (trans_at i a c) (trans_at i b d) :=
+begin
+  ext, simp_rw [trans_at, coe_copy, if_neg h, if_neg h.symm],
+  split_ifs; { congr, ext1, apply ite_ite_comm, rintro rfl, exact h.symm },
+end
+
+lemma from_path_trans_to_path {p q : gen_loop N x} :
+  (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) = trans_at i p q :=
+(copy_eq _ _).symm
+
 lemma from_path_symm_to_path {p : gen_loop N x} :
-  (path_equiv i).symm (path_equiv i p).symm = symm_at i p :=
-by { ext, dsimp only [path.symm, from_path, path.coe_mk], refl }
+  (path_equiv i).symm (path_equiv i p).symm = symm_at i p := (copy_eq _ _).symm
+
+lemma aux_group_indep (i j : N) : (aux_group i : group (homotopy_group N X x)) = aux_group j :=
+begin
+  by_cases h : i = j, { rw h },
+  refine group.ext (eckmann_hilton.mul (is_unital_aux_group i) (is_unital_aux_group j) _),
+  rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩,
+  apply congr_arg quotient.mk,
+  simp_rw [from_path_trans_to_path, trans_at_distrib h],
+end
+
+lemma trans_at_indep {i} (j) (f g : gen_loop N x) : ⟦trans_at i f g⟧ = ⟦trans_at j f g⟧ :=
+begin
+  simp_rw ← from_path_trans_to_path,
+  have := congr_arg (@group.mul _) (aux_group_indep i j),
+  exact congr_fun₂ this ⟦g⟧ ⟦f⟧,
+end
+
+lemma symm_at_indep {i} (j) (f : gen_loop N x) : ⟦symm_at i f⟧ = ⟦symm_at j f⟧ :=
+begin
+  simp_rw ← from_path_symm_to_path,
+  have := congr_arg (@group.inv _) (aux_group_indep i j),
+  exact congr_fun this ⟦f⟧,
+end
 
 /-- Characterization of multiplicative identity -/
 lemma const_spec : (1 : π_(n+1) X x) = ⟦const⟧ := rfl
 
 /-- Characterization of multiplication -/
-lemma mul_spec {p q : gen_loop (fin (n+1)) x} : (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦mul_at 0 q p⟧ :=
-by { apply quotient.sound, rw ← from_path_trans_to_path }
+lemma mul_spec {i} {p q : gen_loop (fin (n+1)) x} : (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦trans_at i q p⟧ :=
+by { rw [trans_at_indep 0 q, ← from_path_trans_to_path], apply quotient.sound, refl }
 
 /-- Characterization of multiplicative inverse -/
-lemma symm_spec {p : gen_loop (fin (n+1)) x} : (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦symm_at 0 p⟧ :=
-by { apply quotient.sound, rw ← from_path_symm_to_path }
+lemma inv_spec {i} {p : gen_loop (fin (n+1)) x} : (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦symm_at i p⟧ :=
+by { rw [symm_at_indep 0 p, ← from_path_symm_to_path], apply quotient.sound, refl }
 
 /-- Multiplication on `π_(n+2}` is commutative. -/
 instance comm_group : comm_group (π_(n+2) X x) :=
-@eckmann_hilton.comm_group (π_(n+2) X x) aux_group.mul 1
-  ⟨⟨λ _, by apply aux_group.one_mul⟩, ⟨λ _, by apply aux_group.mul_one⟩⟩ _
+@eckmann_hilton.comm_group (π_(n+2) X x) _ 1 (is_unital_aux_group 1) _
 begin
-  rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩, apply congr_arg quotient.mk,
-  simp only [equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
-  ext, iterate 6 { rw from_path_trans_to_path },
-  simp only [mul_at, path.trans, from_path, path.coe_mk, function.comp_app, path_equiv_symm_apply,
-    mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
-    continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
-  simp_rw [ if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
-  split_ifs; { congr, ext1, apply ite_ite_comm, rintro rfl, exact fin.zero_ne_one },
+  rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩,
+  apply congr_arg quotient.mk,
+  simp_rw [from_path_trans_to_path, trans_at_distrib fin.zero_ne_one],
 end
 
 end

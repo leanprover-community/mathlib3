@@ -19,7 +19,7 @@ import category_theory.limits.shapes.regular_mono
 This defines `NonemptyFinLinOrd`, the category of nonempty finite linear orders with monotone maps.
 This is the index category for simplicial objects.
 
-Note: `NonemptyFinLinOrd` is NOT a subcategory of `FinBddDistLat` because its morphisms do not
+Note: `NonemptyFinLinOrd` is *not* a subcategory of `FinBddDistLat` because its morphisms do not
 preserve `⊥` and `⊤`.
 -/
 

@@ -124,14 +124,6 @@ end
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
 ⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
 
--- seems to be causing a diamond in the below proof
--- however, this may be a fluke and the proof below uses non-canonical `algebra` instances:
--- when I replaced all the instances inside the proof with the "canonical" instances we have,
--- I had the (unprovable) goal (of the form) `adjoin_root.mk f (C x) = adjoin_root.mk f X`
--- for some `x, f`. So maybe this is indeed the correct approach and rewriting this proof is
--- salient in the future, or at least taking a closer look at the algebra instances it uses.
-local attribute [-instance] adjoin_root.has_smul
-
 lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] : normal F E :=
 begin
   unfreezingI { rcases eq_or_ne p 0 with rfl | hp },

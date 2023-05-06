@@ -89,9 +89,6 @@ quotient.induction_on' x ih
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
 def of : R →+* adjoin_root f := (mk f).comp C
 
-instance [distrib_smul S R] [is_scalar_tower S R R] : has_smul S (adjoin_root f) :=
-submodule.quotient.has_smul' _
-
 instance [distrib_smul S R] [is_scalar_tower S R R] : distrib_smul S (adjoin_root f) :=
 submodule.quotient.distrib_smul' _
 

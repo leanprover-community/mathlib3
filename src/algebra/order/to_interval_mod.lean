@@ -293,7 +293,8 @@ by rw [←sub_neg_eq_add, to_Ioc_div_sub_eq_to_Ioc_div_add, sub_eq_add_neg]
 lemma to_Ico_div_neg (a b : α) : to_Ico_div hp a (-b) = -(to_Ioc_div hp (-a) b + 1) :=
 begin
   suffices : to_Ico_div hp a (-b) = -(to_Ioc_div hp (-(a + p)) b),
-  { rwa [neg_add, ←sub_eq_add_neg, to_Ioc_div_sub_eq_to_Ioc_div_add', to_Ioc_div_add_right] at this },
+  { rwa [neg_add, ←sub_eq_add_neg, to_Ioc_div_sub_eq_to_Ioc_div_add',
+      to_Ioc_div_add_right] at this },
   rw [← neg_eq_iff_eq_neg, eq_comm],
   apply to_Ioc_div_eq_of_sub_zsmul_mem_Ioc,
   obtain ⟨hc, ho⟩ := sub_to_Ico_div_zsmul_mem_Ico hp a (-b),

@@ -25,7 +25,7 @@ function verifies `∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = 
 
 ## Main statements
 
-* `set_lintegral_cond_cdf_Iic`: for all `a : α` and `x : ℝ`, all measurable set `s`,
+* `probability_theory.set_lintegral_cond_cdf`: for all `a : α` and `x : ℝ`, all measurable set `s`,
   `∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x)`.
 
 ## References
@@ -60,6 +60,7 @@ hf.rel_sequence a
 
 end directed
 
+-- todo: move to data/set/lattice next to prod_Union or prod_sInter
 lemma prod_Inter {s : set α} {t : ι → set β} [hι : nonempty ι] :
   s ×ˢ (⋂ i, t i) = ⋂ i, s ×ˢ (t i) :=
 begin
@@ -119,11 +120,13 @@ begin
   exact λ ε hε, ⟨i, λ n hn, (hi n hn).trans (zero_le _)⟩,
 end
 
+-- todo: move to topology/algebra/order/monotone_convergence
 lemma tendsto_of_antitone {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : antitone f) :
   tendsto f at_top at_bot ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
 @tendsto_of_monotone ι αᵒᵈ _ _ _ _ _ h_mono
 
+-- todo: this is part of another PR (#18946). Delete once it is merged.
 lemma ennreal.to_real_infi (f : α → ℝ≥0∞) (hf : ∀ a, f a ≠ ∞) :
   (⨅ i, f i).to_real = ⨅ i, (f i).to_real :=
 begin
@@ -133,6 +136,7 @@ begin
     simp_rw [← with_top.coe_infi, ennreal.coe_to_real, nnreal.coe_infi], },
 end
 
+-- todo: move to data/real/ennreal
 lemma ennreal.of_real_cinfi (f : α → ℝ) [nonempty α] :
   ennreal.of_real (⨅ i, f i) = ⨅ i, ennreal.of_real (f i) :=
 begin
@@ -153,6 +157,7 @@ begin
     exact hx, },
 end
 
+-- todo: move to measure_theory/measurable_space
 /-- Monotone convergence for an infimum over a directed family and indexed by a countable type -/
 theorem lintegral_infi_directed_of_measurable {mα : measurable_space α} [countable β]
   {f : β → α → ℝ≥0∞} {μ : measure α} (hμ : μ ≠ 0)
@@ -183,6 +188,7 @@ begin
     end
 end
 
+-- todo: move to measure_theory/pi_system
 lemma real.is_pi_system_Ioc_rat :
   @is_pi_system ℝ {S | ∃ (l u : ℚ) (h : l < u), Ioc (l : ℝ) u = S} :=
 begin
@@ -194,6 +200,7 @@ begin
   { norm_cast, },
 end
 
+-- todo: move to measure_theory/pi_system
 lemma real.is_pi_system_Iic_rat : @is_pi_system ℝ {S | ∃ (u : ℚ), Iic (u : ℝ) = S} :=
 begin
   rintros s ⟨us, rfl⟩ t ⟨ut, rfl⟩ _,
@@ -202,9 +209,11 @@ begin
   norm_cast,
 end
 
+-- todo: move to measure_theory/pi_system
 lemma real.is_pi_system_Iic : @is_pi_system ℝ {S | ∃ u, Iic u = S} :=
 by { rintros s ⟨us, rfl⟩ t ⟨ut, rfl⟩ _, rw [Iic_inter_Iic, inf_eq_min], exact ⟨min us ut, rfl⟩, }
 
+-- todo: move to measure_theory/constructions/borel_space
 lemma real.borel_eq_generate_from_Ioc_rat :
   borel ℝ
     = measurable_space.generate_from {S : set ℝ | ∃ (l u : ℚ) (h : l < u), Ioc ↑l ↑u = S} :=
@@ -239,6 +248,7 @@ begin
     { exact_mod_cast hlr, }, },
 end
 
+-- todo: move to measure_theory/constructions/borel_space
 lemma real.borel_eq_generate_from_Iic_rat :
   borel ℝ = measurable_space.generate_from {S : set ℝ | ∃ (u : ℚ), Iic ↑u = S} :=
 begin
@@ -255,6 +265,7 @@ begin
     exact measurable_set_Iic, },
 end
 
+-- todo: move to measure_theory/constructions/borel_space
 lemma real.borel_eq_generate_from_Iic :
   borel ℝ = measurable_space.generate_from {S : set ℝ | ∃ u, Iic u = S} :=
 begin
@@ -386,9 +397,20 @@ variables {α β ι : Type*} {mα : measurable_space α}
 
 include mα
 
+/-! ### Auxiliary definitions
+
+We build towards the definition of `probability_theory.cond_cdf`. We first define
+`probability_theory.pre_cdf`, a function defined on `α × ℚ` with the properties of a cdf almost
+everywhere. We then introduce `probability_theory.cond_cdf_rat`, a function on `α × ℚ` which has
+the properties of a cdf for all `a : α`. We finally extend to `ℝ`. -/
+
 /-- `pre_cdf` is the Radon-Nikodym derivative of `ρ.Iic_snd` with respect to `ρ.fst` at each
 `r : ℚ`. This function `ℚ → α → ℝ≥0∞` is such that for almost all `a : α`, the function `ℚ → ℝ≥0∞`
-satisfies the properties of a cdf (monotone with limit 0 at -∞ and 1 at +∞, right-continuous). -/
+satisfies the properties of a cdf (monotone with limit 0 at -∞ and 1 at +∞, right-continuous).
+
+We define this function on `ℚ` and not `ℝ` because `ℚ` is countable, which allows us to prove
+properties of the form `∀ᵐ a ∂ρ.fst, ∀ q, P (pre_cdf q a)`, instead of the weaker
+`∀ q, ∀ᵐ a ∂ρ.fst, P (pre_cdf q a)`. -/
 noncomputable
 def pre_cdf (ρ : measure (α × ℝ)) (r : ℚ) : α → ℝ≥0∞ := measure.rn_deriv (ρ.Iic_snd r) ρ.fst
 
@@ -604,7 +626,8 @@ end
 section has_cond_cdf
 
 /-- A product measure on `α × ℝ` is said to have a conditional cdf at `a : α` if `pre_cdf` is
-monotone with limit 0 at -∞ and 1 at +∞, and is right continuous. -/
+monotone with limit 0 at -∞ and 1 at +∞, and is right continuous.
+This property holds almost everywhere (see `has_cond_cdf_ae`). -/
 def has_cond_cdf (ρ : measure (α × ℝ)) (a : α) : Prop :=
 monotone (λ r, pre_cdf ρ r a) ∧ (∀ r, pre_cdf ρ r a ≤ 1)
   ∧ (tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 1)) ∧ (tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 0))
@@ -647,7 +670,7 @@ end has_cond_cdf
 open_locale classical
 
 /-- Conditional cdf of the measure given the value on `α`, restricted to the rationals.
-It is defined to be `pre_cdf` if it verifies a list of properties, and a default cdf-like function
+It is defined to be `pre_cdf` if `a ∈ cond_cdf_set`, and a default cdf-like function
 otherwise. This is an auxiliary definition used to define `cond_cdf`. -/
 noncomputable
 def cond_cdf_rat (ρ : measure (α × ℝ)) : α → ℚ → ℝ :=
@@ -782,8 +805,8 @@ begin
         exact h.trans (mem_Ioi.mp x.prop).le, }, }, },
 end
 
-/-- Conditional cdf of the measure given the value on `α`. This is an auxiliary definition used
-to define `cond_cdf`. -/
+/-- Conditional cdf of the measure given the value on `α`, as a plain function. This is an auxiliary
+definition used to define `cond_cdf`. -/
 noncomputable
 def cond_cdf' (ρ : measure (α × ℝ)) : α → ℝ → ℝ :=
 λ a t, ⨅ r : {r' : ℚ // t < r'}, cond_cdf_rat ρ a r
@@ -845,6 +868,8 @@ begin
   rw [h', h''],
   refl,
 end
+
+/-! ### Conditional cdf -/
 
 /-- Conditional cdf of the measure given the value on `α`, as a Stieltjes function. -/
 noncomputable
@@ -942,8 +967,8 @@ lemma measurable_cond_cdf (ρ : measure (α × ℝ)) (x : ℝ) :
   measurable (λ a, cond_cdf ρ a x) :=
 measurable_cinfi (λ q, measurable_cond_cdf_rat ρ q) (λ a, bdd_below_range_cond_cdf_rat_gt ρ a _)
 
-/-- Auxiliary lemma for `set_lintegral_cond_cdf_Iic`. -/
-lemma set_lintegral_cond_cdf_Iic_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)
+/-- Auxiliary lemma for `set_lintegral_cond_cdf`. -/
+lemma set_lintegral_cond_cdf_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a r) ∂ρ.fst = ρ (s ×ˢ Iic r) :=
 begin
@@ -953,7 +978,7 @@ begin
   exact ρ.Iic_snd_apply r hs,
 end
 
-lemma set_lintegral_cond_cdf_Iic (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ)
+lemma set_lintegral_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ)
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x) :=
 begin
@@ -980,12 +1005,12 @@ begin
   rotate,
   { intro b,
     simp_rw h_coe,
-    rw [set_lintegral_cond_cdf_Iic_rat ρ _ hs],
+    rw [set_lintegral_cond_cdf_rat ρ _ hs],
     exact measure_ne_top ρ _, },
   { refine monotone.directed_ge (λ i j hij a, ennreal.of_real_le_of_real (monotone_cond_cdf ρ a _)),
     rw [h_coe, h_coe],
     exact_mod_cast hij, },
-  simp_rw [h_coe, set_lintegral_cond_cdf_Iic_rat ρ _ hs],
+  simp_rw [h_coe, set_lintegral_cond_cdf_rat ρ _ hs],
   rw ← measure_Inter_eq_infi,
   { rw ← prod_Inter,
     congr' with y,
@@ -998,8 +1023,8 @@ begin
   { exact ⟨h_nonempty.some, measure_ne_top _ _⟩, },
 end
 
-lemma lintegral_cond_cdf_Iic (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ) :
+lemma lintegral_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ) :
   ∫⁻ a, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (univ ×ˢ Iic x) :=
-by rw [← set_lintegral_univ, set_lintegral_cond_cdf_Iic ρ _ measurable_set.univ]
+by rw [← set_lintegral_univ, set_lintegral_cond_cdf ρ _ measurable_set.univ]
 
 end probability_theory

@@ -33,7 +33,7 @@ See `pell.exists_of_not_is_square` and `pell.exists_nontrivial_of_not_is_square`
 We then define the *fundamental solution* to be the solution
 with smallest $x$ among all solutions satisfying $x > 1$ and $y > 0$.
 We show that every solution is a power of the fundamental solution up to a (common) sign,
-see `pell.fundamental.zpow_or_neg_zpow`, and that a (positive) solution has this property
+see `pell.fundamental.eq_zpow_or_neg_zpow`, and that a (positive) solution has this property
 if and only if it is fundamental, see `pell.pos_generator_iff_fundamental`.
 
 ## References
@@ -618,7 +618,7 @@ begin
 end
 
 /-- Every solution is, up to a sign, a power of a given fundamental solution. -/
-lemma zpow_or_neg_zpow {a₁ : solution₁ d} (h : is_fundamental a₁) (a : solution₁ d) :
+lemma eq_zpow_or_neg_zpow {a₁ : solution₁ d} (h : is_fundamental a₁) (a : solution₁ d) :
   ∃ n : ℤ, a = a₁ ^ n ∨ a = -a₁ ^ n :=
 begin
   obtain ⟨b, hbx, hby, hb⟩ := exists_pos_variant h.d_pos a,
@@ -642,10 +642,10 @@ theorem exists_unique_pos_generator (h₀ : 0 < d) (hd : ¬ is_square d) :
   ∃! a₁ : solution₁ d, 1 < a₁.x ∧ 0 < a₁.y ∧ ∀ a : solution₁ d, ∃ n : ℤ, a = a₁ ^ n ∨ a = -a₁ ^ n :=
 begin
   obtain ⟨a₁, ha₁⟩ := is_fundamental.exists_of_not_is_square h₀ hd,
-  refine ⟨a₁, ⟨ha₁.1, ha₁.2.1, ha₁.zpow_or_neg_zpow⟩, λ a (H : 1 < _ ∧ _), _⟩,
+  refine ⟨a₁, ⟨ha₁.1, ha₁.2.1, ha₁.eq_zpow_or_neg_zpow⟩, λ a (H : 1 < _ ∧ _), _⟩,
   obtain ⟨Hx, Hy, H⟩ := H,
   obtain ⟨n₁, hn₁⟩ := H a₁,
-  obtain ⟨n₂, hn₂⟩ := ha₁.zpow_or_neg_zpow a,
+  obtain ⟨n₂, hn₂⟩ := ha₁.eq_zpow_or_neg_zpow a,
   rcases hn₂ with rfl | rfl,
   { rw [← zpow_mul, eq_comm, @eq_comm _ a₁, ← mul_inv_eq_one, ← @mul_inv_eq_one _ _ _ a₁,
         ← zpow_neg_one, neg_mul, ← zpow_add, ← sub_eq_add_neg] at hn₁,
@@ -667,12 +667,12 @@ Pell equation `x^2 + d*y^2 = 1` if and only if it is a fundamental solution. -/
 theorem pos_generator_iff_fundamental (a : solution₁ d) :
   (1 < a.x ∧ 0 < a.y ∧ ∀ b : solution₁ d, ∃ n : ℤ, b = a ^ n ∨ b = -a ^ n) ↔ is_fundamental a :=
 begin
-  refine ⟨λ h, _, λ H, ⟨H.1, H.2.1, H.zpow_or_neg_zpow⟩⟩,
+  refine ⟨λ h, _, λ H, ⟨H.1, H.2.1, H.eq_zpow_or_neg_zpow⟩⟩,
   have h₀ := d_pos_of_one_lt_x h.1,
   have hd := d_nonsquare_of_one_lt_x h.1,
   obtain ⟨a₁, ha₁⟩ := is_fundamental.exists_of_not_is_square h₀ hd,
   obtain ⟨b, hb₁, hb₂⟩ := exists_unique_pos_generator h₀ hd,
-  rwa [hb₂ a h, ← hb₂ a₁ ⟨ha₁.1, ha₁.2.1, ha₁.zpow_or_neg_zpow⟩],
+  rwa [hb₂ a h, ← hb₂ a₁ ⟨ha₁.1, ha₁.2.1, ha₁.eq_zpow_or_neg_zpow⟩],
 end
 
 end pell

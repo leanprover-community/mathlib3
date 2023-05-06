@@ -523,7 +523,7 @@ end
 
 /-- A power of a fundamental solution is never equal to the negative of a power of this
 fundamental solution. -/
-lemma pow_ne_neg_fundamental_pow {a : solution₁ d} (h : is_fundamental a) {n n' : ℤ} :
+lemma pow_ne_neg_pow {a : solution₁ d} (h : is_fundamental a) {n n' : ℤ} :
    a ^ n ≠ -a ^ n' :=
 begin
   intro hf,
@@ -541,7 +541,7 @@ h.2.2 hax
 
 /-- The `y`-coordinate of a fundamental solution is a lower bound for the `y`-coordinate
 of any positive solution. -/
-lemma le_y {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+lemma y_le_y {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
   (hay : 0 < a.y) :
   a₁.y ≤ a.y :=
 begin
@@ -554,7 +554,7 @@ end
 
 /-- If we multiply a positive solution with the inverse of a fundamental solution,
 the `x`-coordinate decreases and the `y`-coordinate remains nonnegative. -/
-lemma mul_inv_lt_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+lemma x_mul_inv_lt_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
   (hay : 0 < a.y) :
   0 < (a * a₁⁻¹).x ∧ (a * a₁⁻¹).x < a.x ∧ 0 ≤ (a * a₁⁻¹).y :=
 begin
@@ -565,7 +565,7 @@ begin
         mul_pow, mul_pow, a.prop_x, a₁.prop_x, ← sub_nonneg],
     ring_nf,
     rw [sub_nonneg, sq_le_sq, abs_of_pos hay, abs_of_pos h.2.1],
-    exact h.le_y hax hay, },
+    exact h.y_le_y hax hay, },
   simp only [x_mul, x_inv, y_inv, mul_neg, add_neg_lt_iff_le_add',
              lt_add_neg_iff_add_lt, zero_add, y_mul, le_neg_add_iff_add_le, add_zero],
   refine ⟨_, _, H₁⟩,
@@ -611,7 +611,7 @@ begin
     { exact hy.symm, } },
   { -- case 2: `a ≥ a₁`
     have hx₁ : 1 < a.x := by nlinarith [a.prop, h.d_pos],
-    obtain ⟨hxx₁, hxx₂, hyy⟩ := h.mul_inv_lt_x hx₁ hy,
+    obtain ⟨hxx₁, hxx₂, hyy⟩ := h.x_mul_inv_lt_x hx₁ hy,
     lift (a * a₁⁻¹).x to ℕ using hxx₁.le with x' hx',
     obtain ⟨n, hn⟩ := ih x' (by exact_mod_cast hxx₂.trans_eq hax'.symm) hxx₁ hyy hx',
     exact ⟨n + 1, by rw [pow_succ, ← hn, mul_comm a, ← mul_assoc, mul_inv_self, one_mul]⟩, },
@@ -656,7 +656,7 @@ begin
       { rw [zpow_neg_one, y_inv, lt_neg, neg_zero] at Hy,
         exact false.elim (lt_irrefl _ $ ha₁.2.1.trans Hy), } },
     { rw [← zpow_zero a₁, eq_comm] at hn₁,
-      exact false.elim (ha₁.pow_ne_neg_fundamental_pow hn₁), } },
+      exact false.elim (ha₁.pow_ne_neg_pow hn₁), } },
   { rw [x_neg, lt_neg] at Hx,
     have := (x_zpow_pos (zero_lt_one.trans ha₁.1) n₂).trans Hx,
     norm_num at this, }

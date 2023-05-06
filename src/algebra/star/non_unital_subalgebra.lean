@@ -112,6 +112,11 @@ instance : smul_mem_class (non_unital_star_subalgebra R A) R A :=
 instance : star_mem_class (non_unital_star_subalgebra R A) A :=
 { star_mem := star_mem' }
 
+instance {R : Type u} {A : Type v} [comm_ring R] [non_unital_ring A] [module R A] [has_star A] :
+  non_unital_subring_class (non_unital_star_subalgebra R A) A :=
+{ neg_mem := λ S x hx, neg_one_smul R x ▸ smul_mem_class.smul_mem _ hx,
+  .. non_unital_star_subalgebra.non_unital_subsemiring_class }
+
 @[simp]
 lemma mem_carrier {s : non_unital_star_subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 

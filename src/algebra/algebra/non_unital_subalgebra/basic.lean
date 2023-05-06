@@ -56,17 +56,8 @@ instance non_unital_subalgebra_class.to_submodule_class (S : Type*) (R : Type*) 
 attribute [nolint dangerous_instance] non_unital_subalgebra_class.to_non_unital_subring_class
 -/
 
-@[priority 100] -- See note [lower instance priority]
-instance non_unital_subalgebra_class.to_non_unital_subring_class (S : Type*) (R : Type*) (A : Type*)
-  [comm_ring R] [non_unital_ring A] [module R A] [set_like S A]
-  [h : non_unital_subsemiring_class S A] [smul_mem_class S R A] :
-  non_unital_subring_class S A :=
-{ neg_mem := λ S x hx, neg_one_smul R x ▸ smul_mem_class.smul_mem _ hx,
-  .. h }
-
-
 -- not a problem because `R` is marked as an `out_param` in `smul_mem_class`
-attribute [nolint dangerous_instance] non_unital_subalgebra_class.to_non_unital_subring_class
+--attribute [nolint dangerous_instance] non_unital_subalgebra_class.to_non_unital_subring_class
 
 variables {S R A : Type*} [comm_semiring R] [non_unital_semiring A] [module R A]
 variables [set_like S A] [non_unital_subsemiring_class S A] [hSR : smul_mem_class S R A] (s : S)
@@ -113,6 +104,11 @@ instance : non_unital_subsemiring_class (non_unital_subalgebra R A) A :=
 
 instance : smul_mem_class (non_unital_subalgebra R A) R A :=
 { smul_mem := smul_mem' }
+
+instance {R : Type u} {A : Type v} [comm_ring R] [non_unital_ring A] [module R A] :
+  non_unital_subring_class (non_unital_subalgebra R A) A :=
+{ neg_mem := λ S x hx, neg_one_smul R x ▸ smul_mem_class.smul_mem _ hx,
+  .. non_unital_subalgebra.non_unital_subsemiring_class }
 
 @[simp]
 lemma mem_carrier {s : non_unital_subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl

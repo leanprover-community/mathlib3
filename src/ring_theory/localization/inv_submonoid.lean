@@ -11,6 +11,9 @@ import tactic.ring_exp
 /-!
 # Submonoid of inverses
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
  * `is_localization.inv_submonoid M S` is the submonoid of `S = M⁻¹R` consisting of inverses of

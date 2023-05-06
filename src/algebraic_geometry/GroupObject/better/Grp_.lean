@@ -10,12 +10,7 @@ open category_theory.iso
 open category_theory.limits
 noncomputable theory
 
-variables (C : Type*) [category C] [has_finite_products C]
--- should this be a pred? not sure it'll work for one of my use cases
-local attribute [instance] monoidal_of_has_finite_products
-local attribute [instance] symmetric_of_has_finite_products
-
-namespace monoidal_of_has_finite_products
+/-namespace monoidal_of_has_finite_products
 
 def tensor_unit_iso : 𝟙_ C ≅ ⊤_ C := iso.refl _
 def tensor_obj_iso (X Y : C) : X ⊗ Y ≅ X ⨯ Y := iso.refl _
@@ -24,11 +19,19 @@ def tensor_obj_iso (X Y : C) : X ⊗ Y ≅ X ⨯ Y := iso.refl _
 @[simp] lemma right_unitor_def (X : C) : ρ_ X = prod.right_unitor X := rfl
 
 end monoidal_of_has_finite_products
+
+
 namespace symmetric_of_has_finite_products
 
 @[simp] lemma braiding_def (X Y : C) : β_ X Y = prod.braiding X Y := rfl
 
 end symmetric_of_has_finite_products
+-/
+
+variables (C : Type*) [category C] [has_finite_products C]
+
+local attribute [instance] monoidal_of_has_finite_products
+local attribute [instance] symmetric_of_has_finite_products
 
 structure Grp_ extends Mon_ C :=
 (inv : X ⟶ X)

@@ -62,6 +62,8 @@ open Module.Mon_Module_equivalence_Algebra category_theory.monoidal_category
 
 instance : monoidal_category (Algebra.{u} R) :=
 monoidal.transport Module.Mon_Module_equivalence_Algebra
+
+
 #check Module.monoidal_category.associator
 def tensor_def (X Y : Algebra.{u} R) :
   X ⊗ Y ≅ (Module.Mon_Module_equivalence_Algebra.functor.obj

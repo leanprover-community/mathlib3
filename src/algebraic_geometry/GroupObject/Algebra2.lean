@@ -23,10 +23,12 @@ variables {M N P Q S : Type*} [ring M] [ring N] [ring P] [ring Q] [ring S]
   [algebra R M] [algebra R N] [algebra R P] [algebra R Q] [algebra R S]
 
 -- these prefer ext; exact to using the tensor_product lemma with the same proof.
+
 theorem algebra.tensor_product.ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₐ[R] Q}
   (H : ∀ x y z, g ((x ⊗ₜ y) ⊗ₜ z) = h ((x ⊗ₜ y) ⊗ₜ z)) : g = h :=
 begin
   apply alg_hom.to_linear_map_injective,
+  -- apply tensor_product.ext_threefold, incredibly slow!
   ext x y z,
   exact H x y z,
 end
@@ -66,8 +68,8 @@ lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Algebra R}
     tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = tensor_hom f₁ f₂ ≫ tensor_hom g₁ g₂ :=
 by { ext1, refl }
 
-set_option profiler true
 -- needs u and by apply
+
 def associator (M : Algebra.{u} R) (N : Algebra.{u} R) (K : Algebra.{u} R) :
   tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
 alg_equiv.to_Algebra_iso (by apply algebra.tensor_product.assoc R M N K)

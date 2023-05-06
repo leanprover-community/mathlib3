@@ -196,8 +196,7 @@ noncomputable def yoneda_𝔸_1_star_over_iso (R : CommRingᵒᵖ) :
   { app := λ X f, units.map ((Γ_Spec.adjunction.counit.app
       (CommRing.laurent_polynomial.op.obj R)).unop
       ≫ Scheme.Γ.map (quiver.hom.op f.1)).to_monoid_hom
-      (laurent_polynomial.T_as_unit $ (opposite.unop R).α),
-    naturality' := sorry },
+      (laurent_polynomial.T_as_unit $ (opposite.unop R).α) },
   inv :=
   { app := λ X f, over.hom_mk (yoneda_𝔸_1_star_over_iso_aux f) sorry,
     naturality' := λ X Y g, sorry },

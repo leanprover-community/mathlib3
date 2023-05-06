@@ -535,7 +535,7 @@ end
 
 /-- The `x`-coordinate of a fundamental solution is a lower bound for the `x`-coordinate
 of any positive solution. -/
-lemma le_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x) :
+lemma x_le_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x) :
   a₁.x ≤ a.x :=
 h.2.2 hax
 
@@ -549,7 +549,7 @@ begin
   rw [← abs_of_pos hay, ← abs_of_pos h.2.1, ← sq_le_sq, ← mul_le_mul_left h.d_pos, ← sub_nonpos,
       ← mul_sub, H, sub_nonpos, sq_le_sq, abs_of_pos (zero_lt_one.trans h.1),
       abs_of_pos (zero_lt_one.trans hax)],
-  exact h.le_x hax,
+  exact h.x_le_x hax,
 end
 
 /-- If we multiply a positive solution with the inverse of a fundamental solution,
@@ -592,7 +592,7 @@ begin
 end
 
 /-- Any nonnegative solution is a power with nonnegative exponent of a fundamental solution. -/
-lemma pow_of_nonneg {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 0 < a.x)
+lemma eq_pow_of_nonneg {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 0 < a.x)
   (hay : 0 ≤ a.y) :
   ∃ n : ℕ, a = a₁ ^ n :=
 begin
@@ -622,7 +622,7 @@ lemma zpow_or_neg_zpow {a₁ : solution₁ d} (h : is_fundamental a₁) (a : sol
   ∃ n : ℤ, a = a₁ ^ n ∨ a = -a₁ ^ n :=
 begin
   obtain ⟨b, hbx, hby, hb⟩ := exists_pos_variant h.d_pos a,
-  obtain ⟨n, hn⟩ := h.pow_of_nonneg hbx hby,
+  obtain ⟨n, hn⟩ := h.eq_pow_of_nonneg hbx hby,
   rcases hb with rfl | rfl | rfl | hb,
   { exact ⟨n, or.inl (by exact_mod_cast hn)⟩, },
   { exact ⟨-n, or.inl (by simp [hn])⟩, },

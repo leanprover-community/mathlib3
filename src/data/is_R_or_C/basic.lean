@@ -108,19 +108,16 @@ theorem ext_iff {z w : K} : z = w ↔ re z = re w ∧ im z = im w :=
 theorem ext {z w : K} (hre : re z = re w) (him : im z = im w) : z = w :=
 ext_iff.2 ⟨hre, him⟩
 
-@[simp, priority 900, norm_cast] lemma of_real_zero : ((0 : ℝ) : K) = 0 :=
-by rw [of_real_alg, zero_smul]
+@[norm_cast] lemma of_real_zero : ((0 : ℝ) : K) = 0 := algebra_map.coe_zero
 
-@[simp, is_R_or_C_simps] lemma zero_re' : re (0 : K) = (0 : ℝ) := re.map_zero
+@[is_R_or_C_simps] lemma zero_re' : re (0 : K) = (0 : ℝ) := map_zero re
 
-@[simp, priority 900, norm_cast] lemma of_real_one : ((1 : ℝ) : K) = 1 := map_one (algebra_map ℝ K)
+@[norm_cast] lemma of_real_one : ((1 : ℝ) : K) = 1 := map_one (algebra_map ℝ K)
 @[simp, is_R_or_C_simps] lemma one_re : re (1 : K) = 1 := by rw [← of_real_one, of_real_re]
 @[simp, is_R_or_C_simps] lemma one_im : im (1 : K) = 0 := by rw [← of_real_one, of_real_im]
 
 theorem of_real_injective : function.injective (coe : ℝ → K) := (algebra_map ℝ K).injective
-
-@[simp, priority 900, norm_cast] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
-algebra_map.coe_inj
+@[norm_cast] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w := algebra_map.coe_inj
 
 @[simp, is_R_or_C_simps] lemma bit0_re (z : K) : re (bit0 z) = bit0 (re z) := map_bit0 _ _
 
@@ -444,7 +441,7 @@ by rw [← of_real_rat_cast, of_real_im]
 lemma norm_of_nonneg {r : ℝ} (h : 0 ≤ r) : ‖(r : K)‖ = r :=
 (norm_of_real _).trans (abs_of_nonneg h)
 
-@[simp, is_R_or_C_simps, norm_cast]
+@[simp, priority 900, is_R_or_C_simps, norm_cast]
 lemma norm_nat_cast (n : ℕ) : ‖(n : K)‖ = n :=
 by { rw [← of_real_nat_cast], exact norm_of_nonneg (nat.cast_nonneg n) }
 
@@ -453,7 +450,7 @@ by rw [norm_sq_eq_def', sq]
 
 attribute [is_R_or_C_simps] norm_zero norm_one norm_eq_zero abs_norm norm_inv norm_div
 
-@[simp, is_R_or_C_simps] lemma norm_two : ‖(2 : K)‖ = 2 :=
+@[simp, priority 900, is_R_or_C_simps] lemma norm_two : ‖(2 : K)‖ = 2 :=
 by rw [← nat.cast_two, norm_nat_cast, nat.cast_two]
 
 lemma abs_re_le_norm (z : K) : |re z| ≤ ‖z‖ :=

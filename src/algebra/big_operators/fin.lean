@@ -193,7 +193,6 @@ begin
   rw [partial_prod_succ, ←mul_assoc, hx, mul_inv_cancel_left],
 end)
 
-
 @[to_additive] lemma partial_prod_right_inv {G : Type*} [group G]
   (f : fin n → G) (i : fin n) :
   (partial_prod f i.cast_succ)⁻¹ * partial_prod f i.succ = f i :=

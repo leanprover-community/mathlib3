@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Martin Zinkevich, Vincent Beffara
 -/
 import measure_theory.integral.set_integral
-import probability.independence
+import probability.independence.independence
 
 /-!
 # Integration in Probability Theory

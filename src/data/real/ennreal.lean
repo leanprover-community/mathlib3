@@ -657,6 +657,13 @@ section complete_lattice
 lemma coe_Sup {s : set ℝ≥0} : bdd_above s → (↑(Sup s) : ℝ≥0∞) = (⨆a∈s, ↑a) := with_top.coe_Sup
 lemma coe_Inf {s : set ℝ≥0} : s.nonempty → (↑(Inf s) : ℝ≥0∞) = (⨅a∈s, ↑a) := with_top.coe_Inf
 
+lemma coe_supr {ι : Sort*} {f : ι → ℝ≥0} (hf : bdd_above (range f)) :
+  (↑(supr f) : ℝ≥0∞) = ⨆a, ↑(f a) :=
+with_top.coe_supr _ hf
+@[norm_cast]
+lemma coe_infi {ι : Sort*} [nonempty ι] (f : ι → ℝ≥0) : (↑(infi f) : ℝ≥0∞) = (⨅ a, ↑(f a)) :=
+with_top.coe_infi f
+
 lemma coe_mem_upper_bounds {s : set ℝ≥0} :
   ↑r ∈ upper_bounds ((coe : ℝ≥0 → ℝ≥0∞) '' s) ↔ r ∈ upper_bounds s :=
 by simp [upper_bounds, ball_image_iff, -mem_image, *] {contextual := tt}
@@ -1850,7 +1857,7 @@ begin
   casesI is_empty_or_nonempty ι,
   { rw [infi_of_empty, top_to_nnreal, nnreal.infi_empty] },
   { lift f to ι → ℝ≥0 using hf,
-    simp_rw [← with_top.coe_infi, to_nnreal_coe] },
+    simp_rw [← coe_infi, to_nnreal_coe] },
 end
 
 lemma to_nnreal_Inf (s : set ℝ≥0∞) (hf : ∀ r ∈ s, r ≠ ∞) :

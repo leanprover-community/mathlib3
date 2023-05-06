@@ -552,43 +552,63 @@ begin
   exact h.x_le_x hax,
 end
 
-/-- If we multiply a positive solution with the inverse of a fundamental solution,
-the `x`-coordinate decreases and the `y`-coordinate remains nonnegative. -/
-lemma x_mul_inv_lt_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
-  (hay : 0 < a.y) :
-  0 < (a * a₁⁻¹).x ∧ (a * a₁⁻¹).x < a.x ∧ 0 ≤ (a * a₁⁻¹).y :=
+-- helper lemma for the next three results
+lemma x_mul_y_le_y_mul_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d}
+  (hax : 1 < a.x) (hay : 0 < a.y) :
+  a.x * a₁.y ≤ a.y * a₁.x :=
 begin
-  have hax' := zero_lt_one.trans hax,
-  have H₁ : a.x * a₁.y ≤ a.y * a₁.x,
-  { rw [← abs_of_pos hax', ← abs_of_pos hay,
-        ← abs_of_pos h.x_pos, ← abs_of_pos h.2.1, ← abs_mul, ← abs_mul, ← sq_le_sq,
-        mul_pow, mul_pow, a.prop_x, a₁.prop_x, ← sub_nonneg],
-    ring_nf,
-    rw [sub_nonneg, sq_le_sq, abs_of_pos hay, abs_of_pos h.2.1],
-    exact h.y_le_y hax hay, },
-  simp only [x_mul, x_inv, y_inv, mul_neg, add_neg_lt_iff_le_add',
-             lt_add_neg_iff_add_lt, zero_add, y_mul, le_neg_add_iff_add_le, add_zero],
-  refine ⟨_, _, H₁⟩,
-  { refine (mul_lt_mul_left hax').mp _,
-    rw [(by ring : a.x * (d * (a.y * a₁.y)) = (d * a.y) * (a.x * a₁.y))],
-    refine ((mul_le_mul_left $ mul_pos h.d_pos hay).mpr H₁).trans_lt _,
-    rw [← mul_assoc, mul_assoc d, ← sq, a.prop_y, ← sub_pos],
-    ring_nf,
-    exact zero_lt_one.trans h.1, },
-  { refine (mul_lt_mul_left h.2.1).mp _,
-    rw [(by ring : a₁.y * (a.x * a₁.x) = a.x * a₁.y * a₁.x)],
-    refine ((mul_le_mul_right $ zero_lt_one.trans h.1).mpr H₁).trans_lt _,
-    rw [mul_assoc, ← sq, a₁.prop_x, ← sub_neg],
-    ring_nf,
-    rw [sub_neg, ← abs_of_pos hay, ← abs_of_pos h.2.1, ← abs_of_pos hax', ← abs_mul, ← sq_lt_sq,
-        mul_pow, a.prop_x],
-    calc
-      a.y ^ 2 = 1 * a.y ^ 2                  : (one_mul _).symm
-          ... ≤ d * a.y ^ 2                  : (mul_le_mul_right $ sq_pos_of_pos hay).mpr h.d_pos
-          ... < d * a.y ^ 2 + 1              : lt_add_one _
-          ... = (1 + d * a.y ^ 2) * 1        : by rw [add_comm, mul_one]
-          ... ≤ (1 + d * a.y ^ 2) * a₁.y ^ 2
-                : (mul_le_mul_left (by {have := h.d_pos, positivity})).mpr (sq_pos_of_pos h.2.1), }
+  rw [← abs_of_pos $ zero_lt_one.trans hax, ← abs_of_pos hay, ← abs_of_pos h.x_pos,
+      ← abs_of_pos h.2.1, ← abs_mul, ← abs_mul, ← sq_le_sq, mul_pow, mul_pow, a.prop_x, a₁.prop_x,
+      ← sub_nonneg],
+  ring_nf,
+  rw [sub_nonneg, sq_le_sq, abs_of_pos hay, abs_of_pos h.2.1],
+  exact h.y_le_y hax hay,
+end
+
+/-- If we multiply a positive solution with the inverse of a fundamental solution,
+the `y`-coordinate remains nonnegative. -/
+lemma mul_inv_y_nonneg {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+  (hay : 0 < a.y) :
+  0 ≤ (a * a₁⁻¹).y :=
+by simpa only [y_inv, mul_neg, y_mul, le_neg_add_iff_add_le, add_zero]
+     using h.x_mul_y_le_y_mul_x hax hay
+
+/-- If we multiply a positive solution with the inverse of a fundamental solution,
+the `x`-coordinate stays positive. -/
+lemma mul_inv_x_pos {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+  (hay : 0 < a.y) :
+  0 < (a * a₁⁻¹).x :=
+begin
+  simp only [x_mul, x_inv, y_inv, mul_neg, lt_add_neg_iff_add_lt, zero_add],
+  refine (mul_lt_mul_left $ zero_lt_one.trans hax).mp _,
+  rw [(by ring : a.x * (d * (a.y * a₁.y)) = (d * a.y) * (a.x * a₁.y))],
+  refine ((mul_le_mul_left $ mul_pos h.d_pos hay).mpr $ x_mul_y_le_y_mul_x h hax hay).trans_lt _,
+  rw [← mul_assoc, mul_assoc d, ← sq, a.prop_y, ← sub_pos],
+  ring_nf,
+  exact zero_lt_one.trans h.1,
+end
+
+/-- If we multiply a positive solution with the inverse of a fundamental solution,
+the `x`-coordinate decreases. -/
+lemma mul_inv_x_lt_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+  (hay : 0 < a.y) :
+  (a * a₁⁻¹).x < a.x :=
+begin
+  simp only [x_mul, x_inv, y_inv, mul_neg, add_neg_lt_iff_le_add'],
+  refine (mul_lt_mul_left h.2.1).mp _,
+  rw [(by ring : a₁.y * (a.x * a₁.x) = a.x * a₁.y * a₁.x)],
+  refine ((mul_le_mul_right $ zero_lt_one.trans h.1).mpr $ x_mul_y_le_y_mul_x h hax hay).trans_lt _,
+  rw [mul_assoc, ← sq, a₁.prop_x, ← sub_neg],
+  ring_nf,
+  rw [sub_neg, ← abs_of_pos hay, ← abs_of_pos h.2.1, ← abs_of_pos $ zero_lt_one.trans hax,
+      ← abs_mul, ← sq_lt_sq, mul_pow, a.prop_x],
+  calc
+    a.y ^ 2 = 1 * a.y ^ 2                  : (one_mul _).symm
+        ... ≤ d * a.y ^ 2                  : (mul_le_mul_right $ sq_pos_of_pos hay).mpr h.d_pos
+        ... < d * a.y ^ 2 + 1              : lt_add_one _
+        ... = (1 + d * a.y ^ 2) * 1        : by rw [add_comm, mul_one]
+        ... ≤ (1 + d * a.y ^ 2) * a₁.y ^ 2
+              : (mul_le_mul_left (by {have := h.d_pos, positivity})).mpr (sq_pos_of_pos h.2.1),
 end
 
 /-- Any nonnegative solution is a power with nonnegative exponent of a fundamental solution. -/
@@ -611,7 +631,9 @@ begin
     { exact hy.symm, } },
   { -- case 2: `a ≥ a₁`
     have hx₁ : 1 < a.x := by nlinarith [a.prop, h.d_pos],
-    obtain ⟨hxx₁, hxx₂, hyy⟩ := h.x_mul_inv_lt_x hx₁ hy,
+    have hxx₁ := h.mul_inv_x_pos hx₁ hy,
+    have hxx₂ := h.mul_inv_x_lt_x hx₁ hy,
+    have hyy := h.mul_inv_y_nonneg hx₁ hy,
     lift (a * a₁⁻¹).x to ℕ using hxx₁.le with x' hx',
     obtain ⟨n, hn⟩ := ih x' (by exact_mod_cast hxx₂.trans_eq hax'.symm) hxx₁ hyy hx',
     exact ⟨n + 1, by rw [pow_succ, ← hn, mul_comm a, ← mul_assoc, mul_inv_self, one_mul]⟩, },

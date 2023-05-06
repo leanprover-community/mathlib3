@@ -320,7 +320,7 @@ end
 lemma Iic_snd_le_fst (ρ : measure (α × ℝ)) (r : ℚ) : ρ.Iic_snd r ≤ ρ.fst :=
 begin
   intros s hs,
-  simp_rw [fst_apply _ hs, Iic_snd_apply ρ r hs],
+  simp_rw [fst_apply hs, Iic_snd_apply ρ r hs],
   exact measure_mono (prod_subset_preimage_fst _ _),
 end
 
@@ -353,7 +353,7 @@ end
 lemma tendsto_Iic_snd_at_top (ρ : measure (α × ℝ)) {s : set α} (hs : measurable_set s) :
   tendsto (λ r, ρ.Iic_snd r s) at_top (𝓝 (ρ.fst s)) :=
 begin
-  simp_rw [ρ.Iic_snd_apply _ hs, fst_apply ρ hs, ← prod_univ],
+  simp_rw [ρ.Iic_snd_apply _ hs, fst_apply hs, ← prod_univ],
   rw [← real.Union_Iic_rat, prod_Union],
   refine tendsto_measure_Union (λ r q hr_le_q x, _),
   simp only [mem_prod, mem_Iic, and_imp],
@@ -484,7 +484,7 @@ begin
   convert ρ.tendsto_Iic_snd_at_top measurable_set.univ,
   { ext1 r,
     rw [← set_lintegral_univ, set_lintegral_pre_cdf_fst ρ _ measurable_set.univ], },
-  { exact (measure.fst_univ ρ).symm, },
+  { exact measure.fst_univ.symm, },
 end
 
 lemma tendsto_lintegral_pre_cdf_at_bot (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
@@ -543,7 +543,7 @@ begin
   { rw [lintegral_sub' hF_ae_meas _ hF_le_one, h_lintegral_eq, tsub_self],
     calc ∫⁻ a, F a ∂ρ.fst = ∫⁻ a, 1 ∂ρ.fst : h_lintegral_eq
     ... = ρ.fst univ : lintegral_one
-    ... = ρ univ : measure.fst_univ ρ
+    ... = ρ univ : measure.fst_univ
     ... ≠ ∞ : measure_ne_top ρ _, },
   rw lintegral_eq_zero_iff' (ae_measurable_const.sub hF_ae_meas) at this,
   filter_upwards [this, hF_le_one] with ha h_one_sub_eq_zero h_le_one,
@@ -987,7 +987,7 @@ begin
     refine le_antisymm (zero_le _) _,
     calc ρ (s ×ˢ Iic x)
         ≤ ρ (prod.fst ⁻¹' s) : measure_mono (prod_subset_preimage_fst s (Iic x))
-    ... = ρ.fst s : by rw [measure.fst_apply _ hs]
+    ... = ρ.fst s : by rw [measure.fst_apply hs]
     ... = ρ.fst.restrict s univ : by rw measure.restrict_apply_univ
     ... = 0 : by simp only [hρ_zero, measure.coe_zero, pi.zero_apply], },
   have h : ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst

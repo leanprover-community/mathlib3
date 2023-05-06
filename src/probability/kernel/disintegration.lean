@@ -153,13 +153,13 @@ measure_cond_cdf_Iic ρ a x
 lemma set_lintegral_cond_kernel_real_Iic (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ)
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, cond_kernel_real ρ a (Iic x) ∂ρ.fst = ρ (s ×ˢ Iic x) :=
-by { simp_rw [cond_kernel_real_Iic], exact set_lintegral_cond_cdf_Iic ρ x hs, }
+by { simp_rw [cond_kernel_real_Iic], exact set_lintegral_cond_cdf ρ x hs, }
 
 lemma set_lintegral_cond_kernel_real_univ (ρ : measure (α × ℝ))
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, cond_kernel_real ρ a univ ∂ρ.fst = ρ (s ×ˢ univ) :=
 by simp only [measure_univ, lintegral_const, measure.restrict_apply, measurable_set.univ,
-  univ_inter, one_mul, measure.fst_apply _ hs, ← prod_univ]
+  univ_inter, one_mul, measure.fst_apply hs, ← prod_univ]
 
 lemma lintegral_cond_kernel_real_univ (ρ : measure (α × ℝ)) :
   ∫⁻ a, cond_kernel_real ρ a univ ∂ρ.fst = ρ univ :=
@@ -290,7 +290,7 @@ end
 
 theorem kernel.const_eq_comp_prod_real (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   (γ : Type*) [measurable_space γ] :
-  kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel_real ρ) γ) :=
+  kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel_real ρ)) :=
 begin
   ext a s hs : 2,
   rw [kernel.comp_prod_apply _ _ _ hs, kernel.const_apply, kernel.const_apply],
@@ -299,7 +299,7 @@ begin
 end
 
 theorem measure_eq_comp_prod_real (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
-  ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel_real ρ) unit)) () :=
+  ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel_real ρ))) () :=
 by rw [← kernel.const_eq_comp_prod_real ρ unit, kernel.const_apply]
 
 lemma lintegral_cond_kernel_real (ρ : measure (α × ℝ)) [is_finite_measure ρ]
@@ -316,7 +316,7 @@ lemma ae_cond_kernel_real_eq_one (ρ : measure (α × ℝ)) [is_finite_measure �
   ∀ᵐ a ∂ρ.fst, cond_kernel_real ρ a s = 1 :=
 begin
   have h : ρ {x | x.snd ∈ sᶜ}
-    = (kernel.const unit ρ.fst ⊗ₖ kernel.prod_mk_left (cond_kernel_real ρ) unit) ()
+    = (kernel.const unit ρ.fst ⊗ₖ kernel.prod_mk_left unit (cond_kernel_real ρ)) ()
       {x | x.snd ∈ sᶜ},
   { rw ← measure_eq_comp_prod_real, },
   rw [hρ, kernel.comp_prod_apply] at h,
@@ -350,7 +350,7 @@ lemma exists_cond_kernel [nonempty Ω] (ρ : measure (α × Ω)) [is_finite_meas
   [measurable_space γ] :
   ∃ (η : kernel α Ω) (h : is_markov_kernel η),
   kernel.const γ ρ
-    = @kernel.comp_prod γ α _ _ Ω _ (kernel.const γ ρ.fst) _ (kernel.prod_mk_left η γ)
+    = @kernel.comp_prod γ α _ _ Ω _ (kernel.const γ ρ.fst) _ (kernel.prod_mk_left γ η)
       (by { haveI := h, apply_instance, }) :=
 begin
   obtain ⟨f, hf⟩ := exists_measurable_embedding_real Ω,
@@ -372,7 +372,7 @@ begin
     (measurable_embedding.id).prod_mk hf,
   have h_fst : ρ'.fst = ρ.fst,
   { ext1 u hu,
-    rw [measure.fst_apply _ hu, measure.fst_apply _ hu,
+    rw [measure.fst_apply hu, measure.fst_apply hu,
       measure.map_apply h_prod_embed.measurable (measurable_fst hu)],
     refl, },
   have h_ae : ∀ᵐ a ∂ρ.fst, a ∈ ρ_set,
@@ -390,7 +390,7 @@ begin
   classical,
   obtain ⟨x₀, hx₀⟩ : ∃ x, x ∈ range f := range_nonempty _,
   let η' := kernel.piecewise hm (cond_kernel_real ρ')
-    (kernel.deterministic (measurable_const : measurable (λ _, x₀))),
+    (kernel.deterministic (λ _, x₀) measurable_const),
   -- We show that `kernel.comap_right η' hf` is a suitable Markov kernel.
   refine ⟨kernel.comap_right η' hf, _, _⟩,
   { refine kernel.is_markov_kernel.comap_right _ _ (λ a, _),
@@ -445,7 +445,7 @@ instance (ρ : measure (α × Ω)) [is_finite_measure ρ] : is_markov_kernel (co
 
 lemma kernel.const_unit_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ] :
   kernel.const unit ρ
-    = (kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit) :=
+    = (kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ)) :=
 (exists_cond_kernel ρ unit).some_spec.some_spec
 
 /-- **Disintegration** of finite product measures on `α × Ω`, where `Ω` is Polish Borel. Such a
@@ -453,7 +453,7 @@ measure can be written as the composition-product of the constant kernel with va
 (marginal measure over `α`) and a Markov kernel from `α` to `Ω`. We call that Markov kernel
 `cond_kernel ρ`. -/
 theorem measure_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ] :
-  ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) () :=
+  ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ))) () :=
 by rw [← kernel.const_unit_eq_comp_prod, kernel.const_apply]
 
 /-- **Disintegration** of constant kernels. A constant kernel on a product space `α × Ω`, where `Ω`
@@ -462,7 +462,7 @@ is Polish Borel, can be written as the composition-product of the constant kerne
 `cond_kernel ρ`. -/
 theorem kernel.const_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ]
   (γ : Type*) [measurable_space γ] :
-  kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) γ) :=
+  kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel ρ)) :=
 begin
   ext a s hs : 2,
   simpa only [kernel.const_apply, kernel.comp_prod_apply _ _ _ hs, kernel.prod_mk_left_apply']

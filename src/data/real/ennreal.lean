@@ -1870,6 +1870,37 @@ begin
     simp_rw [←with_top.coe_Inf' hs, set.image_image, to_nnreal_coe, set.image_id'] }
 end
 
+lemma to_nnreal_supr (hf : ∀ i, f i ≠ ∞) : (supr f).to_nnreal = ⨆ i, (f i).to_nnreal :=
+begin
+  lift f to ι → ℝ≥0 using hf,
+  simp_rw to_nnreal_coe,
+  by_cases h : bdd_above (range f),
+  { simp_rw [← coe_supr h, to_nnreal_coe] },
+  { simp_rw [nnreal.supr_of_not_bdd_above h],
+    convert top_to_nnreal,
+    rw supr_eq_top,
+    intros b hb,
+    lift b to ℝ≥0 using hb.ne,
+    simp_rw [not_bdd_above_iff, mem_range, exists_prop, exists_exists_eq_and, ←coe_lt_coe] at h,
+    exact h b }
+end
+
+lemma to_nnreal_Sup (s : set ℝ≥0∞) (hf : ∀ r ∈ s, r ≠ ∞) :
+  (Sup s).to_nnreal = Sup (ennreal.to_nnreal '' s) :=
+begin
+  lift s to set ℝ≥0 using hf,
+  simp_rw [image_image, to_nnreal_coe, set.image_id'],
+  by_cases h : bdd_above s,
+  { simp_rw [← with_top.coe_Sup' h, to_nnreal_coe] },
+  { simp_rw [nnreal.Sup_of_not_bdd_above h],
+    convert top_to_nnreal,
+    simp_rw [Sup_eq_top, set.mem_image, exists_prop, exists_exists_and_eq_and],
+    intros b hb,
+    lift b to ℝ≥0 using hb.ne,
+    simp_rw [not_bdd_above_iff, ←coe_lt_coe, exists_prop] at h,
+    exact h b }
+end
+
 lemma to_real_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_real = ⨅ i, (f i).to_real :=
 by simp only [ennreal.to_real, to_nnreal_infi hf, nnreal.coe_infi]
 

@@ -1908,6 +1908,13 @@ lemma to_real_Inf (s : set ℝ≥0∞) (hf : ∀ r ∈ s, r ≠ ∞) :
   (Inf s).to_real = Inf (ennreal.to_real '' s) :=
 by simp only [ennreal.to_real, to_nnreal_Inf s hf, nnreal.coe_Inf, set.image_image]
 
+lemma to_real_supr (hf : ∀ i, f i ≠ ∞) : (supr f).to_real = ⨆ i, (f i).to_real :=
+by simp only [ennreal.to_real, to_nnreal_supr hf, nnreal.coe_supr]
+
+lemma to_real_Sup (s : set ℝ≥0∞) (hf : ∀ r ∈ s, r ≠ ∞) :
+  (Sup s).to_real = Sup (ennreal.to_real '' s) :=
+by simp only [ennreal.to_real, to_nnreal_Sup s hf, nnreal.coe_Sup, set.image_image]
+
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm
   (le_infi $ assume i, add_le_add (infi_le _ _) $ le_rfl)

@@ -87,6 +87,11 @@ def coe_add_hom : add_hom ℕ+ ℕ :=
   map_add' := add_coe }
 
 instance : covariant_class ℕ+ ℕ+ (+) (≤) := positive.covariant_class_add_le
+-- We add shortcut instances here, hoping they help performance,
+-- even though they are already found by TC synthesis.
+instance : covariant_class ℕ+ ℕ+ (+) (<) := by apply_instance
+instance : contravariant_class ℕ+ ℕ+ (+) (≤) := by apply_instance
+instance : contravariant_class ℕ+ ℕ+ (+) (<) := by apply_instance
 
 /-- An equivalence between `ℕ+` and `ℕ` given by `pnat.nat_pred` and `nat.succ_pnat`. -/
 @[simps { fully_applied := ff }] def _root_.equiv.pnat_equiv_nat : ℕ+ ≃ ℕ :=

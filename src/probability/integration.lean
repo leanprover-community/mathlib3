@@ -54,6 +54,7 @@ begin
       measurable_set.univ, measure.restrict_apply],
     ring_nf,
     congr,
+    rw indep_sets_def at h_ind,
     rw [mul_comm, h_ind s' T h_meas_s' (set.mem_singleton _)], },
   { intros f' g h_univ h_meas_f' h_meas_g h_ind_f' h_ind_g,
     have h_measM_f' : measurable f', from h_meas_f'.mono hMf le_rfl,
@@ -336,6 +337,7 @@ theorem indep_fun_iff_integral_comp_mul [is_finite_measure μ]
     integral μ ((φ ∘ f) * (ψ ∘ g)) = integral μ (φ ∘ f) * integral μ (ψ ∘ g) :=
 begin
   refine ⟨λ hfg _ _ hφ hψ, indep_fun.integral_mul_of_integrable (hfg.comp hφ hψ), _⟩,
+  rw [indep_fun_iff],
   rintro h _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
   specialize h (measurable_one.indicator hA) (measurable_one.indicator hB)
     ((integrable_const 1).indicator (hfm.comp measurable_id hA))

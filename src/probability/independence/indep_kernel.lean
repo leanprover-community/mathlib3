@@ -9,12 +9,12 @@ import measure_theory.constructions.pi
 import probability.kernel.basic
 
 /-!
-# Independence with respect to a kernel
+# Independence with respect to a kernel and a measure
 
 
-This is not a notion of independence of a kernel with respect to another. This is independence of
-sets or random variables with respect to a kernel and a measure. This is a minimal generalization
-of both independence and conditional independence.
+This file does not contain a notion of independence of a kernel with respect to another. This is
+independence of sets or random variables with respect to a kernel and a measure. This is a minimal
+generalization of both independence and conditional independence.
 
 Independence: `κ = kernel.const unit μ`, with measure `(measure.dirac () : measure unit)`
 Conditional independence: `κ` is the yet to be defined conditional kernel and `μ` is the ambiant
@@ -35,10 +35,6 @@ measure.
 
 -/
 
-
-localized "notation (name := measurable_space.comap)
-  `σₘ[` X ` ; ` m `]` := measurable_space.comap X m" in probability_theory
-
 open measure_theory measurable_space
 open_locale big_operators measure_theory ennreal
 
@@ -48,13 +44,14 @@ variables {Ω α ι : Type*}
 
 section definitions
 
-variables [measurable_space α]
+variables {mα : measurable_space α}
+include mα
 
 /-- A family of sets of sets `π : ι → set (set Ω)` is independent with respect to a measure `μ` if
 for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
 It will be used for families of pi_systems. -/
-def Indep_setsₖ [measurable_space Ω] (π : ι → set (set Ω)) (κ : kernel α Ω)
+def Indep_setsₖ {mΩ : measurable_space Ω} (π : ι → set (set Ω)) (κ : kernel α Ω)
   (μ : measure α . volume_tac) :
   Prop :=
 ∀ (s : finset ι) {f : ι → set Ω} (H : ∀ i, i ∈ s → f i ∈ π i),
@@ -62,7 +59,7 @@ def Indep_setsₖ [measurable_space Ω] (π : ι → set (set Ω)) (κ : kernel 
 
 /-- Two sets of sets `s₁, s₂` are independent with respect to a measure `μ` if for any sets
 `t₁ ∈ p₁, t₂ ∈ s₂`, then `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
-def indep_setsₖ [measurable_space Ω] (s1 s2 : set (set Ω)) (κ : kernel α Ω)
+def indep_setsₖ {mΩ : measurable_space Ω} (s1 s2 : set (set Ω)) (κ : kernel α Ω)
   (μ : measure α . volume_tac) : Prop :=
 ∀ t1 t2 : set Ω, t1 ∈ s1 → t2 ∈ s2 → (∀ᵐ a ∂μ, κ a (t1 ∩ t2) = κ a t1 * κ a t2)
 
@@ -71,7 +68,7 @@ measure `μ` (typically defined on a finer σ-algebra) if the family of sets of 
 define is independent. `m : ι → measurable_space Ω` is independent with respect to measure `μ` if
 for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
-def Indepₖ (m : ι → measurable_space Ω) [measurable_space Ω] (κ : kernel α Ω)
+def Indepₖ (m : ι → measurable_space Ω) {mΩ : measurable_space Ω} (κ : kernel α Ω)
   (μ : measure α . volume_tac) :
   Prop :=
 Indep_setsₖ (λ x, {s | measurable_set[m x] s}) κ μ
@@ -79,20 +76,20 @@ Indep_setsₖ (λ x, {s | measurable_set[m x] s}) κ μ
 /-- Two measurable space structures (or σ-algebras) `m₁, m₂` are independent with respect to a
 measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
 `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
-def indepₖ (m₁ m₂ : measurable_space Ω) [measurable_space Ω] (κ : kernel α Ω)
+def indepₖ (m₁ m₂ : measurable_space Ω) {mΩ : measurable_space Ω} (κ : kernel α Ω)
   (μ : measure α . volume_tac) :
   Prop :=
 indep_setsₖ {s | measurable_set[m₁] s} {s | measurable_set[m₂] s} κ μ
 
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
-def Indep_setₖ [measurable_space Ω] (s : ι → set Ω) (κ : kernel α Ω)
+def Indep_setₖ {mΩ : measurable_space Ω} (s : ι → set Ω) (κ : kernel α Ω)
   (μ : measure α . volume_tac) : Prop :=
 Indepₖ (λ i, generate_from {s i}) κ μ
 
 /-- Two sets are independent if the two measurable space structures they generate are independent.
 For a set `s`, the generated measurable space structure has measurable sets `∅, s, sᶜ, univ`. -/
-def indep_setₖ [measurable_space Ω] (s t : set Ω) (κ : kernel α Ω)
+def indep_setₖ {mΩ : measurable_space Ω} (s t : set Ω) (κ : kernel α Ω)
   (μ : measure α . volume_tac) : Prop :=
 indepₖ (generate_from {s}) (generate_from {t}) κ μ
 
@@ -100,7 +97,7 @@ indepₖ (generate_from {s}) (generate_from {t}) κ μ
 spaces, each with a measurable space structure, is independent if the family of measurable space
 structures they generate on `Ω` is independent. For a function `g` with codomain having measurable
 space structure `m`, the generated measurable space structure is `measurable_space.comap g m`. -/
-def Indep_funₖ [measurable_space Ω] {β : ι → Type*} (m : Π (x : ι), measurable_space (β x))
+def Indep_funₖ {mΩ : measurable_space Ω} {β : ι → Type*} (m : Π (x : ι), measurable_space (β x))
   (f : Π (x : ι), Ω → β x) (κ : kernel α Ω)
   (μ : measure α . volume_tac) : Prop :=
 Indepₖ (λ x, measurable_space.comap (f x) (m x)) κ μ
@@ -108,7 +105,7 @@ Indepₖ (λ x, measurable_space.comap (f x) (m x)) κ μ
 /-- Two functions are independent if the two measurable space structures they generate are
 independent. For a function `f` with codomain having measurable space structure `m`, the generated
 measurable space structure is `measurable_space.comap f m`. -/
-def indep_funₖ {β γ} [measurable_space Ω] [mβ : measurable_space β] [mγ : measurable_space γ]
+def indep_funₖ {β γ} {mΩ : measurable_space Ω} [mβ : measurable_space β] [mγ : measurable_space γ]
   (f : Ω → β) (g : Ω → γ) (κ : kernel α Ω)
   (μ : measure α . volume_tac) : Prop :=
 indepₖ (measurable_space.comap f mβ) (measurable_space.comap g mγ) κ μ

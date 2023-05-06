@@ -127,6 +127,59 @@ indep_funₖ f g (kernel.const unit μ) (measure.dirac () : measure unit)
 
 end definitions
 
+section definition_lemmas
+
+lemma Indep_sets_def [measurable_space Ω] (π : ι → set (set Ω)) (μ : measure Ω . volume_tac) :
+  Indep_sets π μ ↔ ∀ (s : finset ι) {f : ι → set Ω} (H : ∀ i, i ∈ s → f i ∈ π i),
+    μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i) :=
+by simp only [Indep_sets, Indep_setsₖ, ae_dirac_eq, filter.eventually_pure, kernel.const_apply]
+
+lemma indep_sets_def [measurable_space Ω] (s1 s2 : set (set Ω)) (μ : measure Ω . volume_tac) :
+  indep_sets s1 s2 μ ↔ ∀ t1 t2 : set Ω, t1 ∈ s1 → t2 ∈ s2 → (μ (t1 ∩ t2) = μ t1 * μ t2) :=
+by simp only [indep_sets, indep_setsₖ, ae_dirac_eq, filter.eventually_pure, kernel.const_apply]
+
+lemma Indep_iff_Indep_sets (m : ι → measurable_space Ω) [measurable_space Ω]
+  (μ : measure Ω . volume_tac) :
+  Indep m μ ↔ Indep_sets (λ x, {s | measurable_set[m x] s}) μ :=
+by rw [Indep, Indep_sets, Indepₖ]
+
+lemma indep_iff_indep_sets (m₁ m₂ : measurable_space Ω) [measurable_space Ω]
+  (μ : measure Ω . volume_tac) :
+  indep m₁ m₂ μ ↔ indep_sets {s | measurable_set[m₁] s} {s | measurable_set[m₂] s} μ :=
+by rw [indep, indep_sets, indepₖ]
+
+lemma indep_iff (m₁ m₂ : measurable_space Ω) [measurable_space Ω]
+  (μ : measure Ω . volume_tac) :
+  indep m₁ m₂ μ
+    ↔ ∀ t1 t2, measurable_set[m₁] t1 → measurable_set[m₂] t2 → μ (t1 ∩ t2) = μ t1 * μ t2 :=
+by { rw [indep_iff_indep_sets, indep_sets_def], refl, }
+
+lemma Indep_set_iff_Indep [measurable_space Ω] (s : ι → set Ω) (μ : measure Ω . volume_tac) :
+  Indep_set s μ ↔ Indep (λ i, generate_from {s i}) μ :=
+by rw [Indep_set, Indep, Indep_setₖ]
+
+lemma indep_set_iff_indep [measurable_space Ω] (s t : set Ω) (μ : measure Ω . volume_tac) :
+  indep_set s t μ ↔ indep (generate_from {s}) (generate_from {t}) μ :=
+by rw [indep_set, indep, indep_setₖ]
+
+lemma Indep_fun_iff_Indep [measurable_space Ω] {β : ι → Type*}
+  (m : Π (x : ι), measurable_space (β x)) (f : Π (x : ι), Ω → β x) (μ : measure Ω . volume_tac) :
+  Indep_fun m f μ ↔ Indep (λ x, measurable_space.comap (f x) (m x)) μ :=
+by rw [Indep_fun, Indep, Indep_funₖ]
+
+lemma indep_fun_iff_indep {β γ} [measurable_space Ω] [mβ : measurable_space β]
+  [mγ : measurable_space γ] (f : Ω → β) (g : Ω → γ) (μ : measure Ω . volume_tac) :
+  indep_fun f g μ ↔ indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ :=
+by rw [indep_fun, indep, indep_funₖ]
+
+lemma indep_fun_iff {β γ} [measurable_space Ω] [mβ : measurable_space β] [mγ : measurable_space γ]
+  (f : Ω → β) (g : Ω → γ) (μ : measure Ω . volume_tac) :
+  indep_fun f g μ ↔ ∀ t1 t2, measurable_set[measurable_space.comap f mβ] t1
+    → measurable_set[measurable_space.comap g mγ] t2 → μ (t1 ∩ t2) = μ t1 * μ t2 :=
+by rw [indep_fun_iff_indep, indep_iff]
+
+end definition_lemmas
+
 section indep
 
 @[symm] lemma indep_sets.symm {s₁ s₂ : set (set Ω)} [measurable_space Ω] {μ : measure Ω}

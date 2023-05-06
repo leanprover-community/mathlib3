@@ -127,7 +127,7 @@ begin
   { congr,
     ext,
     have := fin.partial_prod_right_inv g (fin.cast_succ x),
-    simp only [fin.cast_succ_fin_succ] at *,
+    simp only [mul_inv_rev, fin.cast_succ_fin_succ] at *,
     rw [mul_assoc, ←mul_assoc _ _ (g x.succ), this, inv_mul_cancel_left] },
   { exact finset.sum_congr rfl (λ j hj,
       by rw [diagonal_hom_equiv_symm_partial_prod_succ, fin.coe_succ]) }

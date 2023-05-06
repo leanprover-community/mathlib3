@@ -329,10 +329,12 @@ section finite
 variables [_root_.finite ι]
 
 /-- A vector space is linearly equivalent to its dual space. -/
-@[simps]
-def to_dual_equiv : M ≃ₗ[R] dual R M :=
+def to_dual_equiv : M ≃ₗ[R] (dual R M) :=
 linear_equiv.of_bijective b.to_dual
   ⟨ker_eq_bot.mp b.to_dual_ker, range_eq_top.mp b.to_dual_range⟩
+
+-- `simps` times out when generating this
+@[simp] lemma to_dual_equiv_apply (m : M) : b.to_dual_equiv m = b.to_dual m := rfl
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
 def dual_basis : basis ι R (dual R M) := b.map b.to_dual_equiv

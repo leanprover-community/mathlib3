@@ -18,8 +18,6 @@ linear programs, the results from this file can be used to prove duality theorem
 ## TODO
 
 The next steps are:
-- Prove the cone version of Farkas' lemma (2.3.4 in the reference).
-- Add comap, adjoint
 - Add convex_cone_class that extends set_like and replace the below instance
 - Replace map with a bundled version: proper_cone ℝ E →L[ℝ] proper_cone ℝ F
 - Define the positive cone as a proper cone.
@@ -153,7 +151,7 @@ protected lemma pointed (K : proper_cone ℝ E) : (K : convex_cone ℝ E).pointe
 
 -- TODO: Replace map with a bundled version: proper_cone ℝ E →L[ℝ] proper_cone ℝ F
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. We
-use continuous maps here so that the adjoint of f is also a map between proper cones. -/
+use continuous maps here so that the comap of f is also a map between proper cones. -/
 noncomputable def map (f : E →L[ℝ] F) (K : proper_cone ℝ E) : proper_cone ℝ F :=
 { to_convex_cone := convex_cone.closure (convex_cone.map (f : E →ₗ[ℝ] F) ↑K),
   nonempty' := ⟨ 0, subset_closure $ set_like.mem_coe.2 $ convex_cone.mem_map.2
@@ -215,23 +213,54 @@ section complete_space
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
 variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
 
-protected noncomputable def adjoint (f : E →L[ℝ] F) (K : proper_cone ℝ F) : proper_cone ℝ E :=
-{ to_convex_cone := convex_cone.adjoint f K,
-  nonempty' := ⟨0, 0, K.pointed, map_zero _⟩,
-  is_closed' := sorry }
-
-@[simp] lemma coe_adjoint (f : E →L[ℝ] F) (K : proper_cone ℝ F) :
-  (K.adjoint f : set E) = (adjoint f)''K := rfl
-
-@[simp] lemma mem_adjoint {f : E →L[ℝ] F} {K : proper_cone ℝ F} {x : E} :
-  x ∈ K.adjoint f ↔ x ∈ (adjoint f)''K := iff.rfl
-
-@[simp] lemma adjoint_id (K : proper_cone ℝ E) :
-  K.adjoint (continuous_linear_map.id ℝ E) = K := set_like.coe_injective $ by simp
-
 /-- The dual of the dual of a proper cone is itself. -/
 theorem dual_dual (K : proper_cone ℝ E) : K.dual.dual = K := proper_cone.ext' $
   (K : convex_cone ℝ E).inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed
+
+/-- This is a relative version of
+`convex_cone.hyperplane_separation_of_nonempty_of_is_closed_of_nmem`. This reduces to the previous
+theorem when `f` is the identity map. This is a geometric interpretation of the Farkas' lemma
+(2.3.4 in the reference) stated using proper cones. -/
+theorem hyperplane_separation (K : proper_cone ℝ E) {f : E →L[ℝ] F} {b : F} :
+  b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ K.dual → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
+begin
+  -- suppose `b ∈ K.map f`
+  simp only [proper_cone.mem_map, proper_cone.mem_dual, adjoint_inner_right, convex_cone.mem_closure, mem_closure_iff_seq_limit],
+
+  -- there is a sequence `seq : ℕ → F` in the image of `f` that converges to `b`
+  rintros ⟨seq, hmem, htends⟩ y hinner,
+
+  suffices h : ∀ n, 0 ≤ ⟪y, seq n⟫_ℝ, from ge_of_tendsto' (continuous.seq_continuous
+    (continuous.inner (@continuous_const _ _ _ _ y) continuous_id) htends) h,
+
+  intro n,
+  obtain ⟨_, h, hseq⟩ := hmem n,
+  simpa only [← hseq, real_inner_comm] using (hinner h),
+end
+begin
+  -- proof by contradiction
+  -- suppose `b ∉ K.map f`
+  intro h,
+  contrapose! h,
+
+  -- as `b ∉ K.map f`, there is a hyperplane `y` separating `b` from `K.map f`
+  obtain ⟨y, hxy, hyb⟩ := convex_cone.hyperplane_separation_of_nonempty_of_is_closed_of_nmem _
+    (K.map f).nonempty (K.map f).is_closed h,
+
+  -- the rest of the proof is a straightforward algebraic manipulation
+  refine ⟨y, _, hyb⟩,
+  simp_rw [proper_cone.mem_dual, adjoint_inner_right],
+  intros x hxK,
+  apply hxy (f x),
+  rw [to_convex_cone_eq_coe, proper_cone.coe_map],
+  apply subset_closure,
+  rw [set_like.mem_coe, convex_cone.mem_map],
+  use ⟨x, hxK, rfl⟩,
+end
+
+theorem hyperplane_separation_of_nmem (K : proper_cone ℝ E) {f : E →L[ℝ] F} {b : F}
+  (disj : b ∉ K.map f) : ∃ y : F, (adjoint f y) ∈ K.dual ∧ ⟪y, b⟫_ℝ < 0 :=
+by { contrapose! disj, rwa K.hyperplane_separation }
 
 end complete_space
 

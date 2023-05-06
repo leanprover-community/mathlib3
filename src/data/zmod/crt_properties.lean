@@ -19,6 +19,9 @@ This file has some theorems regarding coercions with respect to the Chinese Rema
 zmod, CRT
 -/
 
+namespace zmod
+namespace chinese_remainder_theorem
+
 lemma proj_fst' {m n : ℕ} (h : m.coprime n) (a : zmod m) (b : zmod n) :
   zmod.cast_hom (show m ∣ m * n, from dvd.intro n rfl) (zmod m)
     ((zmod.chinese_remainder h).symm (a,b)) = a :=
@@ -91,3 +94,5 @@ begin
   rw [← zmod.int_cast_cast, map_int_cast, zmod.int_cast_cast, ring_equiv.inv_fun_eq_symm],
   convert proj_snd' _ _ _,
 end
+end chinese_remainder_theorem
+end zmod

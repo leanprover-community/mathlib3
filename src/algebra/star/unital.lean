@@ -32,8 +32,6 @@ This file takes unital and non-unital structures and relates them.
 
 -/
 
-#exit
-
 section generic
 
 variables {R S A : Type*} [comm_semiring R] [semiring A] [algebra R A] [set_like S A]

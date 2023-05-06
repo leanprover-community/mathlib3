@@ -478,13 +478,13 @@ by rw [(is_real_tfae a).out 2 3, im_eq_zero_of_le h]
 
 open is_absolute_value
 
-lemma abs_re_div_abs_le_one (z : K) : |re z / ‖z‖| ≤ 1 :=
+lemma abs_re_div_norm_le_one (z : K) : |re z / ‖z‖| ≤ 1 :=
 begin
   rw [abs_div, abs_norm],
   exact div_le_one_of_le (abs_re_le_norm _) (norm_nonneg _)
 end
 
-lemma abs_im_div_abs_le_one (z : K) : |im z / ‖z‖| ≤ 1 :=
+lemma abs_im_div_norm_le_one (z : K) : |im z / ‖z‖| ≤ 1 :=
 begin
   rw [abs_div, abs_norm],
   exact div_le_one_of_le (abs_im_le_norm _) (norm_nonneg _)

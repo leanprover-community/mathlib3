@@ -233,7 +233,7 @@ by { simp [sub_eq_add_neg, inner_add_left, inner_neg_left] }
 lemma inner_sub_right (x y z : F) : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right, inner_neg_right] }
 
-lemma re_inner_mul_symm_eq_norm (x y : F) : re (⟪x, y⟫ * ⟪y, x⟫) = ‖⟪x, y⟫ * ⟪y, x⟫‖ :=
+lemma inner_mul_symm_re_eq_norm (x y : F) : re (⟪x, y⟫ * ⟪y, x⟫) = ‖⟪x, y⟫ * ⟪y, x⟫‖ :=
 by { rw [←inner_conj_symm, mul_comm], exact re_eq_norm_of_mul_conj (inner y x), }
 
 /-- Expand `inner (x + y) (x + y)` -/
@@ -522,7 +522,7 @@ by { simp [sub_eq_add_neg, inner_add_left] }
 lemma inner_sub_right (x y z : E) : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right] }
 
-lemma re_inner_mul_symm_eq_norm (x y : E) : re (⟪x, y⟫ * ⟪y, x⟫) = ‖⟪x, y⟫ * ⟪y, x⟫‖ :=
+lemma inner_mul_symm_re_eq_norm (x y : E) : re (⟪x, y⟫ * ⟪y, x⟫) = ‖⟪x, y⟫ * ⟪y, x⟫‖ :=
 by { rw [←inner_conj_symm, mul_comm], exact re_eq_norm_of_mul_conj (inner y x), }
 
 /-- Expand `⟪x + y, x + y⟫` -/

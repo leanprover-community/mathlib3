@@ -198,6 +198,14 @@ lemma _root_.alg_hom.map_field_range {K L : Type*} [field K] [field L] [algebra 
   (f : E →ₐ[F] K) (g : K →ₐ[F] L) : f.field_range.map g = (g.comp f).field_range :=
 set_like.ext' (set.range_comp g f).symm
 
+lemma _root_.alg_hom.field_range_eq_top {K : Type*} [field K] [algebra F K] {f : E →ₐ[F] K} :
+  f.field_range = ⊤ ↔ function.surjective f :=
+set_like.ext'_iff.trans set.range_iff_surjective
+
+lemma _root_.alg_equiv.field_range_eq_top {K : Type*} [field K] [algebra F K] (f : E ≃ₐ[F] K) :
+  (f : E →ₐ[F] K).field_range = ⊤ :=
+alg_hom.field_range_eq_top.mpr f.surjective
+
 end lattice
 
 section adjoin_def

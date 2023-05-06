@@ -278,6 +278,15 @@ lemma alg_hom.restrict_normal_comp [normal F E] :
 alg_hom.ext (λ _, (algebra_map E K₃).injective
   (by simp only [alg_hom.comp_apply, alg_hom.restrict_normal_commutes]))
 
+lemma alg_hom.field_range_of_normal {E : intermediate_field F K} [normal F E] (f : E →ₐ[F] K) :
+  f.field_range = E :=
+begin
+  haveI : is_scalar_tower F E E := by apply_instance,
+  let g := f.restrict_normal' E,
+  rw [←show E.val.comp ↑g = f, from fun_like.ext_iff.mpr (f.restrict_normal_commutes E),
+    ←alg_hom.map_field_range, g.field_range_eq_top, ←E.val.field_range_eq_map, E.field_range_val],
+end
+
 /-- Restrict algebra isomorphism to a normal subfield -/
 def alg_equiv.restrict_normal [h : normal F E] : E ≃ₐ[F] E :=
 alg_hom.restrict_normal' χ.to_alg_hom E

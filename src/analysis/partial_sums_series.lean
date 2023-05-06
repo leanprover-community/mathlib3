@@ -253,17 +253,17 @@ noncomputable def riemann_permute_aux (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ 
   if sk ≤ M then sorry
   else sorry
 
+--mutual lemma test (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k :=
+--sorry
+
 noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
 | 0 := 0
 | (n+1) :=
-  let fₙ : fin (n + 1) → ℕ := λ x,
-    have h : (x : ℕ) < n + 1 := fin.is_lt x,
-    rearrangement (x : ℕ) in
-  if ∑ x in finset.univ, a (fₙ x) ≤ M then
-    have h : ∃ k, k ∉ set.range fₙ ∧ 0 ≤ a k := sorry,
+  if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement ↑x) ≤ M then
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k := sorry,
     nat.find h
   else
-    have h : ∃ k, k ∉ set.range fₙ ∧ a k ≤ 0 := sorry,
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k ≤ 0 := sorry,
     nat.find h
 
 lemma injective_rearrangement (a : ℕ → ℝ) (M : ℝ) : function.injective (rearrangement a M) :=
@@ -279,9 +279,9 @@ begin
   cases m,
   { exact nat.not_lt_zero n h },
   { unfold rearrangement at h₁,
-    set fₙ := λ x : fin (n + 1), rearrangement a M (x : ℕ),
-    by_cases h : ∑ x in finset.univ, a (fₙ x) ≤ M,
+    by_cases h₃ : ∑ (x : fin (m + 1)) in finset.univ, a (rearrangement a M ↑x) ≤ M,
     {
+      rw if_pos h₃ at h₁,
       sorry
     },
     {

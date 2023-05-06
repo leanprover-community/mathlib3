@@ -847,6 +847,46 @@ lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
 mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
+section contract_nth
+
+variables {α : Type*}
+
+/-- Sends `(g₀, ..., gₙ)` to `(g₀, ..., op gⱼ gⱼ₊₁, ..., gₙ)`. -/
+def contract_nth (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α) (k : fin n) : α :=
+if (k : ℕ) < j then g k.cast_succ else
+if (k : ℕ) = j then op (g k.cast_succ) (g k.succ)
+else g k.succ
+
+lemma contract_nth_apply_of_lt (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (h : (k : ℕ) < j) :
+  contract_nth j op g k = g k.cast_succ := if_pos h
+
+lemma contract_nth_apply_of_eq (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (h : (k : ℕ) = j) :
+  contract_nth j op g k = op (g k.cast_succ) (g k.succ) :=
+begin
+  have : ¬(k : ℕ) < j, from not_lt.2 (le_of_eq h.symm),
+  rw [contract_nth, if_neg this, if_pos h],
+end
+
+lemma contract_nth_apply_of_gt (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (h : (j : ℕ) < k) :
+  contract_nth j op g k = g k.succ :=
+by rw [contract_nth, if_neg (not_lt_of_gt h), if_neg (ne.symm $ ne_of_lt h)]
+
+lemma contract_nth_apply_of_ne (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (hjk : (j : ℕ) ≠ k) :
+  contract_nth j op g k = g (j.succ_above k) :=
+begin
+  rcases lt_trichotomy (k : ℕ) j with (h|h|h),
+  { rwa [j.succ_above_below, contract_nth_apply_of_lt],
+    { rwa [ fin.lt_iff_coe_lt_coe] }},
+  { exact false.elim (hjk h.symm) },
+  { rwa [j.succ_above_above, contract_nth_apply_of_gt],
+    { exact fin.le_iff_coe_le_coe.2 (le_of_lt h) }}
+end
+
+end contract_nth
 
 /-- To show two sigma pairs of tuples agree, it to show the second elements are related via
 `fin.cast`. -/

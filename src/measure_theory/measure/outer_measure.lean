@@ -11,6 +11,9 @@ import data.fin.vec_notation
 /-!
 # Outer Measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An outer measure is a function `μ : set α → ℝ≥0∞`, from the powerset of a type to the extended
 nonnegative real numbers that satisfies the following conditions:
 1. `μ ∅ = 0`;

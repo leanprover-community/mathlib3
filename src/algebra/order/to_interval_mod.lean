@@ -27,8 +27,8 @@ interval.
 * `to_Ioc_div hp a b` (where `hp : 0 < p`): The unique integer such that this multiple of `p`,
   subtracted from `b`, is in `Ioc a (a + p)`.
 * `to_Ioc_mod hp a b` (where `hp : 0 < p`): Reduce `b` to the interval `Ioc a (a + p)`.
-* `add_comm_group.modeq p a b`: `a` and `b` are congruent modulo a multiple of `p`. See also
-  `smodeq` which is a more general version in arbitrary submodules.
+* `a ≡ b [PMOD p]`: `a` and `b` are congruent modulo a multiple of `p`. See also `smodeq` which is a
+  more general version in arbitrary submodules. This is notation for `add_comm_group.modeq p a b`.
 
 ## TODO
 
@@ -462,8 +462,10 @@ with `to_Ioc_mod hp a` at `b`, or `to_Ico_div hp a` disagrees with `to_Ioc_div h
 def modeq (p a b : α) : Prop := ∀ z : ℤ, b - z • p ∉ set.Ioo a (a + p)
 include hα
 
+notation a ` ≡ `:50 b ` [PMOD `:50 p `]`:0 := modeq p a b
+
 lemma tfae_modeq :
-  tfae [modeq p a b,
+  tfae [a ≡ b [PMOD p],
     to_Ico_mod hp a b ≠ to_Ioc_mod hp a b,
     to_Ico_mod hp a b + p = to_Ioc_mod hp a b,
     to_Ico_mod hp a b = a] :=
@@ -492,17 +494,17 @@ end
 variables {a b}
 
 lemma modeq_iff_to_Ico_mod_ne_to_Ioc_mod :
-  modeq p a b ↔ to_Ico_mod hp a b ≠ to_Ioc_mod hp a b := (tfae_modeq hp a b).out 0 1
+  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b ≠ to_Ioc_mod hp a b := (tfae_modeq hp a b).out 0 1
 lemma modeq_iff_to_Ico_mod_add_period_eq_to_Ioc_mod :
-  modeq p a b ↔ to_Ico_mod hp a b + p = to_Ioc_mod hp a b := (tfae_modeq hp a b).out 0 2
+  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b + p = to_Ioc_mod hp a b := (tfae_modeq hp a b).out 0 2
 lemma modeq_iff_to_Ico_mod_eq_left :
-  modeq p a b ↔ to_Ico_mod hp a b = a := (tfae_modeq hp a b).out 0 3
+  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b = a := (tfae_modeq hp a b).out 0 3
 
 lemma not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod :
-  ¬modeq p a b ↔ to_Ico_mod hp a b = to_Ioc_mod hp a b :=
+  ¬a ≡ b [PMOD p] ↔ to_Ico_mod hp a b = to_Ioc_mod hp a b :=
 (modeq_iff_to_Ico_mod_ne_to_Ioc_mod _).not_left
 
-lemma modeq_iff_to_Ioc_mod_eq_right : modeq p a b ↔ to_Ioc_mod hp a b = a + p :=
+lemma modeq_iff_to_Ioc_mod_eq_right : a ≡ b [PMOD p] ↔ to_Ioc_mod hp a b = a + p :=
 begin
   rw [modeq_iff_to_Ico_mod_ne_to_Ioc_mod hp, ne, to_Ico_mod_eq_iff hp, not_iff_comm],
   obtain ⟨h₁, h₂⟩ := to_Ioc_mod_mem_Ioc hp a b,
@@ -511,19 +513,19 @@ begin
 end
 
 lemma not_modeq_iff_to_Ico_div_eq_to_Ioc_div :
-  ¬modeq p a b ↔ to_Ico_div hp a b = to_Ioc_div hp a b :=
+  ¬a ≡ b [PMOD p] ↔ to_Ico_div hp a b = to_Ioc_div hp a b :=
 by rw [not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp,
        to_Ico_mod, to_Ioc_mod, sub_right_inj, (zsmul_strict_mono_left hp).injective.eq_iff]
 
 lemma modeq_iff_to_Ico_div_eq_to_Ioc_div_add_one :
-  modeq p a b ↔ to_Ico_div hp a b = to_Ioc_div hp a b + 1 :=
+  a ≡ b [PMOD p] ↔ to_Ico_div hp a b = to_Ioc_div hp a b + 1 :=
 by rw [modeq_iff_to_Ico_mod_add_period_eq_to_Ioc_mod hp, to_Ico_mod, to_Ioc_mod,
        ← eq_sub_iff_add_eq, sub_sub, sub_right_inj, ← add_one_zsmul,
        (zsmul_strict_mono_left hp).injective.eq_iff]
 
 include hp
 
-lemma modeq_iff_eq_add_zsmul : modeq p a b ↔ ∃ z : ℤ, b = a + z • p :=
+lemma modeq_iff_eq_add_zsmul : a ≡ b [PMOD p] ↔ ∃ z : ℤ, b = a + z • p :=
 begin
   rw [modeq_iff_to_Ico_mod_eq_left hp],
   split; intro h,
@@ -533,16 +535,16 @@ begin
     exact ⟨lt_add_of_pos_right a hp, h⟩, },
 end
 
-lemma not_modeq_iff_ne_add_zsmul : ¬modeq p a b ↔ ∀ z : ℤ, b ≠ a + z • p :=
+lemma not_modeq_iff_ne_add_zsmul : ¬a ≡ b [PMOD p] ↔ ∀ z : ℤ, b ≠ a + z • p :=
 by rw [modeq_iff_eq_add_zsmul hp, not_exists]
 
 lemma modeq_iff_eq_mod_zmultiples :
-  modeq p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
+  a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
 by simp_rw [modeq_iff_eq_add_zsmul hp, quotient_add_group.eq_iff_sub_mem,
     add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
 
 lemma not_modeq_iff_ne_mod_zmultiples :
-  ¬modeq p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
+  ¬a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
 (modeq_iff_eq_mod_zmultiples hp).not
 
 end add_comm_group

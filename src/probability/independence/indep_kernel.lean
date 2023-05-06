@@ -3,7 +3,6 @@ Copyright (c) 2023 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-
 import probability.notation
 import measure_theory.constructions.pi
 import probability.kernel.basic
@@ -421,7 +420,8 @@ begin
     finset.union_inter_cancel_right, ht1_eq, ← ha1, ht2_eq, ← ha2],
 end
 
-lemma Indep_setₖ.indepₖ_generate_from_of_disjoint [∀ a, is_probability_measure (κ a)] {s : ι → set Ω}
+lemma Indep_setₖ.indepₖ_generate_from_of_disjoint [∀ a, is_probability_measure (κ a)]
+  {s : ι → set Ω}
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_setₖ s κ μ) (S T : set ι) (hST : disjoint S T) :
   indepₖ (generate_from {t | ∃ n ∈ S, s n = t}) (generate_from {t | ∃ k ∈ T, s k = t}) κ μ :=
 begin
@@ -860,7 +860,8 @@ lemma Indep_funₖ.mul [∀ a, is_probability_measure (κ a)]
   (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
   indep_funₖ (f i * f j) (f k) κ μ :=
 begin
-  have : indep_funₖ (λ ω, (f i ω, f j ω)) (f k) κ μ := hf_Indep.indep_funₖ_prod hf_meas i j k hik hjk,
+  have : indep_funₖ (λ ω, (f i ω, f j ω)) (f k) κ μ :=
+    hf_Indep.indep_funₖ_prod hf_meas i j k hik hjk,
   change indep_funₖ ((λ p : β × β, p.fst * p.snd) ∘ (λ ω, (f i ω, f j ω))) (id ∘ (f k)) κ μ,
   exact indep_funₖ.comp this (measurable_fst.mul measurable_snd) measurable_id,
 end

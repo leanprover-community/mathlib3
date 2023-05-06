@@ -1845,16 +1845,30 @@ end real
 section infi
 variables {ι : Sort*} {f g : ι → ℝ≥0∞}
 
-lemma to_nnreal_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_nnreal = ⨅i, (f i).to_nnreal :=
+lemma to_nnreal_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_nnreal = ⨅ i, (f i).to_nnreal :=
 begin
   casesI is_empty_or_nonempty ι,
   { rw [infi_of_empty, top_to_nnreal, nnreal.infi_empty] },
   { lift f to ι → ℝ≥0 using hf,
-    norm_cast }
+    simp_rw [← with_top.coe_infi, to_nnreal_coe] },
 end
 
-lemma to_real_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_real = ⨅i, (f i).to_real :=
+lemma to_nnreal_Inf (s : set ℝ≥0∞) (hf : ∀ r ∈ s, r ≠ ∞) :
+  (Inf s).to_nnreal = Inf (ennreal.to_nnreal '' s) :=
+begin
+  lift s to set ℝ≥0 using hf,
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp_rw [set.image_empty, Inf_empty, nnreal.Inf_empty, top_to_nnreal] },
+  { have := with_top.coe_Inf' hs,
+    simp_rw [←with_top.coe_Inf' hs, set.image_image, to_nnreal_coe, set.image_id'] }
+end
+
+lemma to_real_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_real = ⨅ i, (f i).to_real :=
 by simp only [ennreal.to_real, to_nnreal_infi hf, nnreal.coe_infi]
+
+lemma to_real_Inf (s : set ℝ≥0∞) (hf : ∀ r ∈ s, r ≠ ∞) :
+  (Inf s).to_real = Inf (ennreal.to_real '' s) :=
+by simp only [ennreal.to_real, to_nnreal_Inf s hf, nnreal.coe_Inf, set.image_image]
 
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm

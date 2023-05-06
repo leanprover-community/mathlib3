@@ -63,7 +63,7 @@ instance. -/
 instance ordered_cancel_comm_monoid.to_contravariant_class_right
   (M : Type*) [ordered_cancel_comm_monoid M] :
   contravariant_class M M (swap (*)) (<) :=
-contravariant_swap_mul_lt_of_contravariant_mul_lt M
+by apply_instance -- As of 2023 May 6, this is not needed anywhere in mathlib.
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid : ordered_comm_monoid α :=

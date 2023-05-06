@@ -463,9 +463,6 @@ by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e
 instance add_covariant_class : covariant_class cardinal cardinal (+) (≤) :=
 ⟨λ a b c, add_le_add' le_rfl⟩
 
-instance add_swap_covariant_class : covariant_class cardinal cardinal (swap (+)) (≤) :=
-⟨λ a b c h, add_le_add' h le_rfl⟩
-
 instance : canonically_ordered_comm_semiring cardinal.{u} :=
 { bot                   := 0,
   bot_le                := cardinal.zero_le,

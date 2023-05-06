@@ -347,19 +347,9 @@ end
 
 example : archimedean ℝ≥0 := by apply_instance
 
--- TODO: why are these three instances necessary? why aren't they inferred?
-instance covariant_add : covariant_class ℝ≥0 ℝ≥0 (+) (≤) :=
-ordered_add_comm_monoid.to_covariant_class_left ℝ≥0
-
-instance contravariant_add : contravariant_class ℝ≥0 ℝ≥0 (+) (<) :=
-ordered_cancel_add_comm_monoid.to_contravariant_class_left ℝ≥0
-
-instance covariant_mul : covariant_class ℝ≥0 ℝ≥0 (*) (≤) :=
-ordered_comm_monoid.to_covariant_class_left ℝ≥0
-
--- Why isn't `nnreal.contravariant_add` inferred?
+-- Why isn't the instance inferred?
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
-@le_of_forall_pos_le_add _ _ _ _ _ _ nnreal.contravariant_add _ _ h
+@le_of_forall_pos_le_add _ _ _ _ _ _ (by apply_instance : contravariant_class ℝ≥0 ℝ≥0 (+) (<)) _ _ h
 
 lemma lt_iff_exists_rat_btwn (a b : ℝ≥0) :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < real.to_nnreal q ∧ real.to_nnreal q < b) :=

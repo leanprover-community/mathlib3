@@ -383,7 +383,8 @@ namespace real
 open int
 
 /-- Define the technical condition to be used as assumption in the inductive proof. -/
-private def contfrac_legendre.ass (ξ : ℝ) (u v : ℤ) : Prop :=
+-- this is not `private`, as it is used in the public `exists_rat_eq_convergent'` below.
+def contfrac_legendre.ass (ξ : ℝ) (u v : ℤ) : Prop :=
 is_coprime u v ∧ (v = 1 → (-(1 / 2) : ℝ) < ξ - u) ∧ |ξ - u / v| < (v * (2 * v - 1))⁻¹
 
 /-!
@@ -394,12 +395,12 @@ is_coprime u v ∧ (v = 1 → (-(1 / 2) : ℝ) < ξ - u) ∧ |ξ - u / v| < (v *
 private lemma aux₀ {v : ℤ} (hv : 0 < v) : (0 : ℝ) < v ∧ (0 : ℝ) < 2 * v - 1 :=
 ⟨cast_pos.mpr hv, by {norm_cast, linarith}⟩
 
-/-! In the following, we assume that `ass ξ u v` holds and `v ≥ 2`. -/
+-- In the following, we assume that `ass ξ u v` holds and `v ≥ 2`.
 
 variables {ξ : ℝ} {u v : ℤ} (hv : 2 ≤ v) (h : contfrac_legendre.ass ξ u v)
 include hv h
 
-/-- The fractional part of `ξ` is positive. -/
+-- The fractional part of `ξ` is positive.
 private lemma aux₁ : 0 < fract ξ :=
 begin
   have hv₀ : (0 : ℝ) < v := cast_pos.mpr (zero_lt_two.trans_le hv),
@@ -420,7 +421,7 @@ begin
   linarith only [hv, H],
 end
 
-/-- An auxiliary lemma for the inductive step. -/
+-- An auxiliary lemma for the inductive step.
 private lemma aux₂ : 0 < u - ⌊ξ⌋ * v ∧ u - ⌊ξ⌋ * v < v :=
 begin
   obtain ⟨hcop, _, h⟩ := h,
@@ -452,7 +453,7 @@ begin
     cases huv_cop; linarith only [hv, huv_cop], },
 end
 
-/-- The key step: the relevant inequality persists in the inductive step. -/
+-- The key step: the relevant inequality persists in the inductive step.
 private
 lemma aux₃ : |(fract ξ)⁻¹ - v / (u - ⌊ξ⌋ * v)| < ((u - ⌊ξ⌋ * v) * (2 * (u - ⌊ξ⌋ * v) - 1))⁻¹ :=
 begin
@@ -493,7 +494,7 @@ begin
                                               mul_pos Hu Hu', mul_assoc, mul_le_mul_left Hu],
 end
 
-/-- The conditions `ass ξ u v` persist in the inductive step. -/
+-- The conditions `ass ξ u v` persist in the inductive step.
 private lemma invariant : contfrac_legendre.ass (fract ξ)⁻¹ v (u - ⌊ξ⌋ * v) :=
 begin
   refine ⟨_, λ huv, _, by exact_mod_cast aux₃ hv h⟩,

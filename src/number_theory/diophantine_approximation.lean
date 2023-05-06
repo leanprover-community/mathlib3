@@ -387,9 +387,7 @@ open int
 def contfrac_legendre.ass (ξ : ℝ) (u v : ℤ) : Prop :=
 is_coprime u v ∧ (v = 1 → (-(1 / 2) : ℝ) < ξ - u) ∧ |ξ - u / v| < (v * (2 * v - 1))⁻¹
 
-/-!
-### Auxiliary lemmas
--/
+-- ### Auxiliary lemmas
 
 -- This saves a few lines below, as it is frequently needed.
 private lemma aux₀ {v : ℤ} (hv : 0 < v) : (0 : ℝ) < v ∧ (0 : ℝ) < 2 * v - 1 :=

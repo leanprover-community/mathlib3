@@ -253,14 +253,53 @@ noncomputable def riemann_permute_aux (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ 
   if sk ≤ M then sorry
   else sorry
 
---mutual lemma test (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k :=
---sorry
+lemma partial_sum_sub_partial_sum_abs (a : ℕ → ℝ) (n : ℕ) :
+  partial_sum a n - partial_sum (λ k, ‖a k‖) n = 2 * ∑ n in {x : fin n | a ↑x < 0}.to_finset, a ↑n :=
+begin
+  induction n with n hi,
+  { simp },
+  {
+    rw partial_sum_next,
+    rw partial_sum_next,
+    have : a n + partial_sum a n - (‖a n‖ + partial_sum (λ (k : ℕ), ‖a k‖) n) =
+      a n - ‖a n‖ + (partial_sum a n - partial_sum (λ (k : ℕ), ‖a k‖) n) := by ring,
+    rw this,
+    clear this,
+    rw hi,
+    clear hi,
+    by_cases h : a n < 0,
+    { have h₁ : n = ↑(n : fin n.succ) := sorry,
+      have : (n : fin n.succ) ∈ {x : fin n.succ | a ↑x < 0}.to_finset := begin
+        rw set.mem_to_finset,
+        change a ↑(n : fin n.succ) < 0,
+        rw ←h₁,
+        exact h,
+      end,
+      sorry
+    },
+    {
+      sorry
+    }
+  }
+end
+
+lemma absolutely_converges_of_converges_if_finite_negative (a : ℕ → ℝ) (h : series_converges a)
+  (h₁ : set.finite {n | a n < 0}) : series_converges_absolutely a :=
+begin
+  unfold series_converges_absolutely,
+  unfold series_converges at h ⊢,
+  sorry
+end
 
 noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
 | 0 := 0
 | (n+1) :=
   if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement ↑x) ≤ M then
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k := sorry,
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k := begin
+      by_contra h,
+      push_neg at h,
+      sorry
+    end,
     nat.find h
   else
     have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k ≤ 0 := sorry,

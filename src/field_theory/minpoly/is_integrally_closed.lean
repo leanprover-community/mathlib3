@@ -3,7 +3,6 @@ Copyright (c) 2019 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca, Paul Lezeau, Junyan Xu
 -/
-import data.polynomial.field_division
 import ring_theory.adjoin_root
 import field_theory.minpoly.field
 import ring_theory.polynomial.gauss_lemma

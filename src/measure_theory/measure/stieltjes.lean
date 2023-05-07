@@ -74,7 +74,7 @@ le_antisymm
   (supr_mono' (λ i, ⟨φ i, le_rfl⟩))
 
 namespace measure_theory
-
+-- todo after the port: move these lemmas to measure_theory/measure/measure_space?
 variables {α : Type*} {mα : measurable_space α}
 include mα
 

@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
 import measure_theory.integral.exp_decay
-import analysis.calculus.parametric_integral
-import analysis.special_functions.integrals
+import analysis.special_functions.improper_integrals
 import analysis.convolution
 import analysis.special_functions.trigonometric.euler_sine_prod
 
@@ -62,13 +61,6 @@ Gamma
 noncomputable theory
 open filter interval_integral set real measure_theory asymptotics
 open_locale nat topology ennreal big_operators complex_conjugate
-
-lemma integral_exp_neg_Ioi : ∫ (x : ℝ) in Ioi 0, exp (-x) = 1 :=
-begin
-  refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi _ _ tendsto_id) _,
-  { simpa only [neg_mul, one_mul] using exp_neg_integrable_on_Ioi 0 zero_lt_one, },
-  { simpa using tendsto_exp_neg_at_top_nhds_0.const_sub 1, },
-end
 
 namespace real
 
@@ -163,7 +155,7 @@ end
 
 lemma Gamma_integral_one : Gamma_integral 1 = 1 :=
 by simpa only [←of_real_one, Gamma_integral_of_real, of_real_inj, sub_self,
-  rpow_zero, mul_one] using integral_exp_neg_Ioi
+  rpow_zero, mul_one] using integral_exp_neg_Ioi_zero
 
 end complex
 
@@ -620,7 +612,7 @@ lemma Gamma_one : Gamma 1 = 1 :=
 by rw [Gamma, complex.of_real_one, complex.Gamma_one, complex.one_re]
 
 lemma _root_.complex.Gamma_of_real (s : ℝ) : complex.Gamma (s : ℂ) = Gamma s :=
-by rw [Gamma, eq_comm, ←complex.eq_conj_iff_re, ←complex.Gamma_conj, complex.conj_of_real]
+by rw [Gamma, eq_comm, ←complex.conj_eq_iff_re, ←complex.Gamma_conj, complex.conj_of_real]
 
 theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n + 1) = n! :=
 by rw [Gamma, complex.of_real_add, complex.of_real_nat_cast, complex.of_real_one,
@@ -1453,8 +1445,8 @@ begin
     rw [←neg_eq_zero, ←complex.sin_neg, ←mul_neg, complex.sin_eq_zero_iff, mul_comm] at hs,
     obtain ⟨k, hk⟩ := hs,
     rw [mul_eq_mul_right_iff, eq_false_intro (of_real_ne_zero.mpr pi_pos.ne'), or_false,
-      neg_eq_iff_neg_eq] at hk,
-    rw ←hk,
+      neg_eq_iff_eq_neg] at hk,
+    rw hk,
     cases k,
     { rw [int.cast_of_nat, complex.Gamma_neg_nat_eq_zero, zero_mul] },
     { rw [int.cast_neg_succ_of_nat, neg_neg, nat.cast_add, nat.cast_one, add_comm, sub_add_cancel',

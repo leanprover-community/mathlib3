@@ -28,7 +28,7 @@ Classes of kernels:
 * `is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable sum of finite kernels.
 
 Particular kernels:
-* `deterministic {f : α → β} (hf : measurable f)`: kernel `a ↦ measure.dirac (f a)`.
+* `deterministic (f : α → β) (hf : measurable f)`: kernel `a ↦ measure.dirac (f a)`.
 * `const α (μβ : measure β)`: constant kernel `a ↦ μβ`.
 * `kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of `a : α` is
   `(κ a).restrict s`.
@@ -317,7 +317,7 @@ section deterministic
 
 /-- Kernel which to `a` associates the dirac measure at `f a`. This is a Markov kernel. -/
 noncomputable
-def deterministic {f : α → β} (hf : measurable f) :
+def deterministic (f : α → β) (hf : measurable f) :
   kernel α β :=
 { val := λ a, measure.dirac (f a),
   property :=
@@ -328,11 +328,11 @@ def deterministic {f : α → β} (hf : measurable f) :
     end, }
 
 lemma deterministic_apply {f : α → β} (hf : measurable f) (a : α) :
-  deterministic hf a = measure.dirac (f a) := rfl
+  deterministic f hf a = measure.dirac (f a) := rfl
 
 lemma deterministic_apply' {f : α → β} (hf : measurable f) (a : α) {s : set β}
   (hs : measurable_set s) :
-  deterministic hf a s = s.indicator (λ _, 1) (f a) :=
+  deterministic f hf a s = s.indicator (λ _, 1) (f a) :=
 begin
   rw [deterministic],
   change measure.dirac (f a) s = s.indicator 1 (f a),
@@ -340,7 +340,7 @@ begin
 end
 
 instance is_markov_kernel_deterministic {f : α → β} (hf : measurable f) :
-  is_markov_kernel (deterministic hf) :=
+  is_markov_kernel (deterministic f hf) :=
 ⟨λ a, by { rw deterministic_apply hf, apply_instance, }⟩
 
 end deterministic
@@ -356,6 +356,10 @@ def const (α : Type*) {β : Type*} [measurable_space α] {mβ : measurable_spac
   property := measure.measurable_of_measurable_coe _ (λ s hs, measurable_const), }
 
 include mα mβ
+
+lemma const_apply (μβ : measure β) (a : α) :
+  const α μβ a = μβ :=
+rfl
 
 instance is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure μβ] :
   is_finite_kernel (const α μβ) :=

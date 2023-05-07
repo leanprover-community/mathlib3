@@ -6,7 +6,6 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 import analysis.asymptotics.theta
 import analysis.complex.basic
 import analysis.specific_limits.normed
-import data.complex.exponential
 
 /-!
 # Complex and real exponential

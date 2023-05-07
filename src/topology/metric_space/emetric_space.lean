@@ -12,6 +12,9 @@ import topology.uniform_space.uniform_embedding
 /-!
 # Extended metric spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is devoted to the definition and study of `emetric_spaces`, i.e., metric
 spaces in which the distance is allowed to take the value ∞. This extended distance is
 called `edist`, and takes values in `ℝ≥0∞`.

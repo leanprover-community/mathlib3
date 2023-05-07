@@ -3,11 +3,12 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import order.conditionally_complete_lattice.group
 import algebra.algebra.basic
-import algebra.order.nonneg.field
 import algebra.order.field.canonical.basic
+import algebra.order.nonneg.field
+import algebra.order.nonneg.floor
 import data.real.pointwise
+import order.conditionally_complete_lattice.group
 import tactic.positivity
 
 /-!
@@ -567,7 +568,7 @@ lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
 lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
 
-noncomputable example : has_ordered_sub ℝ≥0 := by apply_instance
+example : has_ordered_sub ℝ≥0 := by apply_instance
 
 lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c := tsub_div _ _ _
 

@@ -3,8 +3,8 @@ Copyright (c) 2022 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.normed_space.operator_norm
 import analysis.locally_convex.bounded
+import topology.algebra.module.strong_topology
 
 /-!
 # Compact operators

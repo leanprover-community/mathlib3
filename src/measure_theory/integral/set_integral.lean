@@ -292,7 +292,7 @@ lemma integral_union_eq_left_of_ae (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   have ht : integrable_on f t μ,
-  { apply integrable_on.congr_fun' integrable_on_zero, symmetry, exact ht_eq },
+  { apply integrable_on_zero.congr_fun_ae, symmetry, exact ht_eq },
   by_cases H : integrable_on f (s ∪ t) μ, swap,
   { rw [integral_undef H, integral_undef], simpa [integrable_on_union, ht] using H },
   let f' := H.1.mk f,
@@ -301,7 +301,7 @@ begin
   ... = ∫ x in s, f' x ∂μ :
     begin
       apply integral_union_eq_left_of_ae_aux _ H.1.strongly_measurable_mk
-        (H.congr_fun' H.1.ae_eq_mk),
+        (H.congr_fun_ae H.1.ae_eq_mk),
       filter_upwards [ht_eq, ae_mono (measure.restrict_mono (subset_union_right s t) le_rfl)
         H.1.ae_eq_mk] with x hx h'x,
       rw [← h'x, hx]
@@ -593,21 +593,68 @@ lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm 
   ∫ x in s, f x ∂μ = ∫ x in s, f x ∂(μ.trim hm) :=
 by rwa [integral_trim hm hf_meas, restrict_trim hm μ]
 
-lemma integral_Icc_eq_integral_Ioc' [partial_order α] {f : α → E} {a b : α} (ha : μ {a} = 0) :
+/-! ### Lemmas about adding and removing interval boundaries
+
+The primed lemmas take explicit arguments about the endpoint having zero measure, while the
+unprimed ones use `[has_no_atoms μ]`.
+-/
+
+section partial_order
+
+variables [partial_order α] {a b : α}
+
+lemma integral_Icc_eq_integral_Ioc' (ha : μ {a} = 0) :
   ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
 set_integral_congr_set_ae (Ioc_ae_eq_Icc' ha).symm
 
-lemma integral_Ioc_eq_integral_Ioo' [partial_order α] {f : α → E} {a b : α} (hb : μ {b} = 0) :
+lemma integral_Icc_eq_integral_Ico' (hb : μ {b} = 0) :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ico a b, f t ∂μ :=
+set_integral_congr_set_ae (Ico_ae_eq_Icc' hb).symm
+
+lemma integral_Ioc_eq_integral_Ioo' (hb : μ {b} = 0) :
   ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
 set_integral_congr_set_ae (Ioo_ae_eq_Ioc' hb).symm
 
-lemma integral_Icc_eq_integral_Ioc [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
-  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
+lemma integral_Ico_eq_integral_Ioo' (ha : μ {a} = 0) :
+  ∫ t in Ico a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+set_integral_congr_set_ae (Ioo_ae_eq_Ico' ha).symm
+
+lemma integral_Icc_eq_integral_Ioo' (ha : μ {a} = 0) (hb : μ {b} = 0) :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+set_integral_congr_set_ae (Ioo_ae_eq_Icc' ha hb).symm
+
+lemma integral_Iic_eq_integral_Iio' (ha : μ {a} = 0) :
+  ∫ t in Iic a, f t ∂μ = ∫ t in Iio a, f t ∂μ :=
+set_integral_congr_set_ae (Iio_ae_eq_Iic' ha).symm
+
+lemma integral_Ici_eq_integral_Ioi' (ha : μ {a} = 0) :
+  ∫ t in Ici a, f t ∂μ = ∫ t in Ioi a, f t ∂μ :=
+set_integral_congr_set_ae (Ioi_ae_eq_Ici' ha).symm
+
+variable [has_no_atoms μ]
+
+lemma integral_Icc_eq_integral_Ioc : ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
 integral_Icc_eq_integral_Ioc' $ measure_singleton a
 
-lemma integral_Ioc_eq_integral_Ioo [partial_order α] {f : α → E} {a b : α} [has_no_atoms μ] :
-  ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+lemma integral_Icc_eq_integral_Ico : ∫ t in Icc a b, f t ∂μ = ∫ t in Ico a b, f t ∂μ :=
+integral_Icc_eq_integral_Ico' $ measure_singleton b
+
+lemma integral_Ioc_eq_integral_Ioo : ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
 integral_Ioc_eq_integral_Ioo' $ measure_singleton b
+
+lemma integral_Ico_eq_integral_Ioo : ∫ t in Ico a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
+integral_Ico_eq_integral_Ioo' $ measure_singleton a
+
+lemma integral_Icc_eq_integral_Ioo : ∫ t in Icc a b, f t ∂μ = ∫ t in Ico a b, f t ∂μ :=
+by rw [integral_Icc_eq_integral_Ico, integral_Ico_eq_integral_Ioo]
+
+lemma integral_Iic_eq_integral_Iio : ∫ t in Iic a, f t ∂μ = ∫ t in Iio a, f t ∂μ :=
+integral_Iic_eq_integral_Iio' $ measure_singleton a
+
+lemma integral_Ici_eq_integral_Ioi : ∫ t in Ici a, f t ∂μ = ∫ t in Ioi a, f t ∂μ :=
+integral_Ici_eq_integral_Ioi' $ measure_singleton a
+
+end partial_order
 
 end normed_add_comm_group
 
@@ -1126,13 +1173,19 @@ end
 
 section inner
 
-variables {E' : Type*} [inner_product_space 𝕜 E'] [complete_space E'] [normed_space ℝ E']
+variables {E' : Type*}
+variables [normed_add_comm_group E'] [inner_product_space 𝕜 E']
+variables [complete_space E'] [normed_space ℝ E']
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 
 lemma integral_inner {f : α → E'} (hf : integrable f μ) (c : E') :
   ∫ x, ⟪c, f x⟫ ∂μ = ⟪c, ∫ x, f x ∂μ⟫ :=
-((@innerSL 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
+((innerSL 𝕜 c).restrict_scalars ℝ).integral_comp_comm hf
+
+variables (𝕜)
+-- variable binder update doesn't work for lemmas which refer to `𝕜` only via the notation
+local notation (name := inner_with_explicit) `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
 
 lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : integrable f μ)
   (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫ ∂μ = 0) :

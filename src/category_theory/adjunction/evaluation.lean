@@ -11,6 +11,9 @@ import category_theory.functor.epi_mono
 
 # Adjunctions involving evaluation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that evaluation of functors have adjoints, given the existence of (co)products.
 
 -/

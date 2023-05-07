@@ -10,6 +10,9 @@ import topology.instances.real
 /-!
 # Infinite sum in the reals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides lemmas about Cauchy sequences in terms of infinite sums.
 -/
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 
-import geometry.manifold.mfderiv
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
 import analysis.complex.upper_half_plane.topology
 import number_theory.modular_forms.slash_invariant_forms
@@ -24,12 +23,6 @@ open_locale topology manifold upper_half_plane
 
 noncomputable theory
 
-instance upper_half_plane.charted_space : charted_space ℂ ℍ :=
-upper_half_plane.open_embedding_coe.singleton_charted_space
-
-instance upper_half_plane.smooth_manifold_with_corners : smooth_manifold_with_corners 𝓘(ℂ) ℍ :=
-upper_half_plane.open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(ℂ)
-
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
@@ -42,14 +35,14 @@ open modular_form
 
 variables (F : Type*) (Γ : subgroup SL(2, ℤ)) (k : ℤ)
 
-local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
+open_locale modular_form
 
 set_option old_structure_cmd true
 
 /--These are `slash_invariant_form`'s that are holomophic and bounded at infinity. -/
 structure modular_form extends slash_invariant_form Γ k :=
 (holo' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
-(bdd_at_infty' : ∀ (A : SL(2, ℤ)), is_bounded_at_im_infty (to_fun ∣[k, A]))
+(bdd_at_infty' : ∀ (A : SL(2, ℤ)), is_bounded_at_im_infty (to_fun ∣[k] A))
 
 /-- The `slash_invariant_form` associated to a `modular_form`. -/
 add_decl_doc modular_form.to_slash_invariant_form
@@ -57,7 +50,7 @@ add_decl_doc modular_form.to_slash_invariant_form
 /--These are `slash_invariant_form`s that are holomophic and zero at infinity. -/
 structure cusp_form extends slash_invariant_form Γ k :=
 (holo' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
-(zero_at_infty' : ∀ (A : SL(2, ℤ)), is_zero_at_im_infty (to_fun ∣[k, A]))
+(zero_at_infty' : ∀ (A : SL(2, ℤ)), is_zero_at_im_infty (to_fun ∣[k] A))
 
 /-- The `slash_invariant_form` associated to a `cusp_form`. -/
 add_decl_doc cusp_form.to_slash_invariant_form
@@ -67,14 +60,14 @@ add_decl_doc cusp_form.to_slash_invariant_form
 at infinity. -/
 class modular_form_class extends slash_invariant_form_class F Γ k :=
 (holo: ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
-(bdd_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_bounded_at_im_infty (f ∣[k, A]))
+(bdd_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_bounded_at_im_infty (f ∣[k] A))
 
 /--`cusp_form_class F Γ k` says that `F` is a type of bundled functions that extend
 `slash_invariant_forms_class` by requiring that the functions be holomorphic and zero
 at infinity. -/
 class cusp_form_class extends slash_invariant_form_class F Γ k :=
 (holo: ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
-(zero_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_zero_at_im_infty (f ∣[k, A]))
+(zero_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_zero_at_im_infty (f ∣[k] A))
 
 @[priority 100]
 instance modular_form_class.modular_form : modular_form_class (modular_form Γ k) Γ k :=

@@ -7,6 +7,9 @@ import algebra.continued_fractions.translations
 /-!
 # Stabilisation of gcf Computations Under Termination
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We show that the continuants and convergents of a gcf stabilise once the gcf terminates.

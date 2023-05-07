@@ -102,11 +102,10 @@ lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
 @[simp] lemma _root_.real.map_to_nnreal_at_top : map real.to_nnreal at_top = at_top :=
 by simp only [← map_coe_at_top, filter.map_map, (∘), real.to_nnreal_coe, map_id']
 
-lemma _root_.real.comap_to_nnreal_at_top : comap real.to_nnreal at_top = at_top :=
+@[simp] lemma _root_.real.comap_to_nnreal_at_top : comap real.to_nnreal at_top = at_top :=
 begin
   have := Ioi_mem_at_top (0 : ℝ),
-  simp only [← comap_coe_at_top, comap_comap, real.coe_to_nnreal', (∘), comap_max,
-    comap_id'],
+  simp only [← comap_coe_at_top, comap_comap, real.coe_to_nnreal', (∘), comap_max, comap_id'],
   rw [inf_of_le_left, comap_const_of_not_mem this (lt_irrefl _)],
   { simp },
   { rwa le_principal_iff }
@@ -154,7 +153,7 @@ begin
   have h_sum : (λ s, ∑ b in s, real.to_nnreal (f b)) = λ s, real.to_nnreal (∑ b in s, f b),
     from funext (λ _, (real.to_nnreal_sum_of_nonneg (λ n _, hf_nonneg n)).symm),
   simp_rw [has_sum, h_sum],
-  exact tendsto_real_to_nnreal hf.has_sum,
+  exact hf.has_sum.real_to_nnreal,
 end
 
 @[norm_cast] lemma summable_coe {f : α → ℝ≥0} : summable (λa, (f a : ℝ)) ↔ summable f :=
@@ -226,7 +225,7 @@ lemma tendsto_cofinite_zero_of_summable {α} {f : α → ℝ≥0} (hf : summable
 begin
   have h_f_coe : f = λ n, real.to_nnreal (f n : ℝ), from funext (λ n, real.to_nnreal_coe.symm),
   rw [h_f_coe, ← @real.to_nnreal_coe 0],
-  exact tendsto_real_to_nnreal ((summable_coe.mpr hf).tendsto_cofinite_zero),
+  exact (summable_coe.mpr hf).tendsto_cofinite_zero.real_to_nnreal,
 end
 
 lemma tendsto_at_top_zero_of_summable {f : ℕ → ℝ≥0} (hf : summable f) :

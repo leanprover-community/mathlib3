@@ -260,7 +260,7 @@ begin
       ext,
       simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, coe_mul, coe_star,
         pi.mul_apply, pi.star_apply, star_def, continuous_map.coe_coe],
-      simpa only [norm_sq_eq_def', conj_mul_eq_norm_sq_left, of_real_pow], }, },
+      simpa only [norm_sq_eq_def', is_R_or_C.conj_mul, of_real_pow], }, },
   /- Get the function `g'` which is guaranteed to exist above. By the extreme value theorem and
   compactness of `t`, there is some `0 < c` such that `c ≤ g' x` for all `x ∈ t`. Then by
   `main_lemma_aux` there is some `g` for which `g * g'` is the desired function. -/

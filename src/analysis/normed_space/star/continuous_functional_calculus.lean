@@ -146,7 +146,7 @@ begin
   refine ⟨u.unit_of_nearby _ _, rfl⟩,
   simp only [complex.abs_of_real, map_inv₀, units.coe_map, units.coe_inv, ring_hom.coe_monoid_hom,
     ring_hom.to_monoid_hom_eq_coe, units.coe_mk0, units.coe_map_inv, norm_algebra_map',
-    inv_inv, complex.norm_eq_abs, abs_norm_eq_norm, subtype.val_eq_coe, coe_coe],
+    inv_inv, complex.norm_eq_abs, abs_norm, subtype.val_eq_coe, coe_coe],
   /- Since `a` is invertible, by `spectrum_star_mul_self_of_is_star_normal`, the spectrum (in `A`)
   of `star a * a` is contained in the half-open interval `(0, ‖star a * a‖]`. Therefore, by basic
   spectral mapping properties, the spectrum of `‖star a * a‖ • 1 - star a * a` is contained in

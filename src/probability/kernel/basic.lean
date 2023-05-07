@@ -17,36 +17,30 @@ sets `s` of `β`, `a ↦ κ a s` is measurable.
 ## Main definitions
 
 Classes of kernels:
-* `kernel α β`: kernels from `α` to `β`, defined as the `add_submonoid` of the measurable
-  functions in `α → measure β`.
-* `is_markov_kernel κ`: a kernel from `α` to `β` is said to be a Markov kernel if for all `a : α`,
-  `k a` is a probability measure.
-* `is_finite_kernel κ`: a kernel from `α` to `β` is said to be finite if there exists `C : ℝ≥0∞`
-  such that `C < ∞` and for all `a : α`, `κ a univ ≤ C`. This implies in particular that all
-  measures in the image of `κ` are finite, but is stronger since it requires an uniform bound. This
-  stronger condition is necessary to ensure that the composition of two finite kernels is finite.
-* `is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable sum of finite kernels.
+* `probability_theory.kernel α β`: kernels from `α` to `β`, defined as the `add_submonoid` of the
+  measurable functions in `α → measure β`.
+* `probability_theory.is_markov_kernel κ`: a kernel from `α` to `β` is said to be a Markov kernel
+  if for all `a : α`, `k a` is a probability measure.
+* `probability_theory.is_finite_kernel κ`: a kernel from `α` to `β` is said to be finite if there
+  exists `C : ℝ≥0∞` such that `C < ∞` and for all `a : α`, `κ a univ ≤ C`. This implies in
+  particular that all measures in the image of `κ` are finite, but is stronger since it requires an
+  uniform bound. This stronger condition is necessary to ensure that the composition of two finite
+  kernels is finite.
+* `probability_theory.kernel.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
+  sum of finite kernels.
 
 Particular kernels:
-* `deterministic (f : α → β) (hf : measurable f)`: kernel `a ↦ measure.dirac (f a)`.
-* `const α (μβ : measure β)`: constant kernel `a ↦ μβ`.
-* `kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of `a : α` is
-  `(κ a).restrict s`.
+* `probability_theory.kernel.deterministic (f : α → β) (hf : measurable f)`:
+  kernel `a ↦ measure.dirac (f a)`.
+* `probability_theory.kernel.const α (μβ : measure β)`: constant kernel `a ↦ μβ`.
+* `probability_theory.kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of
+  `a : α` is `(κ a).restrict s`.
   Integral: `∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a)`
-* `kernel.with_density κ (f : α → β → ℝ≥0∞)`: kernel `a ↦ (κ a).with_density (f a)`.
-  It is defined if `κ` is s-finite. If `f` is finite everywhere, then this is also an s-finite
-  kernel. The class of s-finite kernels is the smallest class of kernels that contains finite
-  kernels and which is stable by `with_density`.
-  Integral: `∫⁻ b, g b ∂(with_density κ f a) = ∫⁻ b, f a b * g b ∂(κ a)`
 
 ## Main statements
 
-* `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f` and all `a`,
-  then the two kernels `κ` and `η` are equal.
-
-* `measurable_lintegral`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable, for an s-finite
-  kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `function.uncurry f`
-  is measurable.
+* `probability_theory.kernel.ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable
+  functions `f` and all `a`, then the two kernels `κ` and `η` are equal.
 
 -/
 
@@ -437,338 +431,122 @@ end
 
 end restrict
 
-section measurable_lintegral
+section comap_right
 
-/-- This is an auxiliary lemma for `measurable_prod_mk_mem`. -/
-lemma measurable_prod_mk_mem_of_finite (κ : kernel α β) {t : set (α × β)} (ht : measurable_set t)
-  (hκs : ∀ a, is_finite_measure (κ a)) :
-  measurable (λ a, κ a {b | (a, b) ∈ t}) :=
-begin
-  -- `t` is a measurable set in the product `α × β`: we use that the product σ-algebra is generated
-  -- by boxes to prove the result by induction.
-  refine measurable_space.induction_on_inter generate_from_prod.symm is_pi_system_prod _ _ _ _ ht,
-  { -- case `t = ∅`
-    simp only [set.mem_empty_iff_false, set.set_of_false, measure_empty, measurable_const], },
-  { -- case of a box: `t = t₁ ×ˢ t₂` for measurable sets `t₁` and `t₂`
-    intros t' ht',
-    simp only [set.mem_image2, set.mem_set_of_eq, exists_and_distrib_left] at ht',
-    obtain ⟨t₁, ht₁, t₂, ht₂, rfl⟩ := ht',
-    simp only [set.prod_mk_mem_set_prod_eq],
-    classical,
-    have h_eq_ite : (λ a, κ a {b : β | a ∈ t₁ ∧ b ∈ t₂}) = λ a, ite (a ∈ t₁) (κ a t₂) 0,
-    { ext1 a,
-      split_ifs,
-      { simp only [h, true_and], refl, },
-      { simp only [h, false_and, set.set_of_false, set.inter_empty, measure_empty], }, },
-    rw h_eq_ite,
-    exact measurable.ite ht₁ (kernel.measurable_coe κ ht₂) measurable_const },
-  { -- we assume that the result is true for `t` and we prove it for `tᶜ`
-    intros t' ht' h_meas,
-    have h_eq_sdiff : ∀ a, {b : β | (a, b) ∈ t'ᶜ} = set.univ \ {b : β | (a, b) ∈ t'},
-    { intro a,
-      ext1 b,
-      simp only [set.mem_compl_iff, set.mem_set_of_eq, set.mem_diff, set.mem_univ, true_and], },
-    simp_rw h_eq_sdiff,
-    have : (λ a, κ a (set.univ \ {b : β | (a, b) ∈ t'}))
-      = (λ a, (κ a set.univ - κ a {b : β | (a, b) ∈ t'})),
-    { ext1 a,
-      rw [← set.diff_inter_self_eq_diff, set.inter_univ, measure_diff],
-      { exact set.subset_univ _, },
-      { exact (@measurable_prod_mk_left α β _ _ a) t' ht', },
-      { exact measure_ne_top _ _, }, },
-    rw this,
-    exact measurable.sub (kernel.measurable_coe κ measurable_set.univ) h_meas, },
-  { -- we assume that the result is true for a family of disjoint sets and prove it for their union
-    intros f h_disj hf_meas hf,
-    have h_Union : (λ a, κ a {b : β | (a, b) ∈ ⋃ i, f i}) = λ a, κ a (⋃ i, {b : β | (a, b) ∈ f i}),
-    { ext1 a,
-      congr' with b,
-      simp only [set.mem_Union, set.supr_eq_Union, set.mem_set_of_eq],
-      refl, },
-    rw h_Union,
-    have h_tsum : (λ a, κ a (⋃ i, {b : β | (a, b) ∈ f i})) = λ a, ∑' i, κ a {b : β | (a, b) ∈ f i},
-    { ext1 a,
-      rw measure_Union,
-      { intros i j hij s hsi hsj b hbs,
-        have habi : {(a, b)} ⊆ f i, by { rw set.singleton_subset_iff, exact hsi hbs, },
-        have habj : {(a, b)} ⊆ f j, by { rw set.singleton_subset_iff, exact hsj hbs, },
-        simpa only [set.bot_eq_empty, set.le_eq_subset, set.singleton_subset_iff,
-          set.mem_empty_iff_false] using h_disj hij habi habj, },
-      { exact λ i, (@measurable_prod_mk_left α β _ _ a) _ (hf_meas i), }, },
-    rw h_tsum,
-    exact measurable.ennreal_tsum hf, },
-end
+variables {γ : Type*} {mγ : measurable_space γ} {f : γ → β}
 
-lemma measurable_prod_mk_mem (κ : kernel α β) [is_s_finite_kernel κ]
-  {t : set (α × β)} (ht : measurable_set t) :
-  measurable (λ a, κ a {b | (a, b) ∈ t}) :=
-begin
-  rw ← kernel_sum_seq κ,
-  have : ∀ a, kernel.sum (seq κ) a {b : β | (a, b) ∈ t} = ∑' n, seq κ n a {b : β | (a, b) ∈ t},
-    from λ a, kernel.sum_apply' _ _ (measurable_prod_mk_left ht),
-  simp_rw this,
-  refine measurable.ennreal_tsum (λ n, _),
-  exact measurable_prod_mk_mem_of_finite (seq κ n) ht infer_instance,
-end
+include mγ
 
-lemma measurable_lintegral_indicator_const (κ : kernel α β) [is_s_finite_kernel κ]
-  {t : set (α × β)} (ht : measurable_set t) (c : ℝ≥0∞) :
-  measurable (λ a, ∫⁻ b, t.indicator (function.const (α × β) c) (a, b) ∂(κ a)) :=
-begin
-  simp_rw lintegral_indicator_const_comp measurable_prod_mk_left ht _,
-  exact measurable.const_mul (measurable_prod_mk_mem _ ht) c,
-end
-
-/-- For an s-finite kernel `κ` and a function `f : α → β → ℝ≥0∞` which is measurable when seen as a
-map from `α × β` (hypothesis `measurable (function.uncurry f)`), the integral
-`a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable. -/
-theorem measurable_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
-  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) :
-  measurable (λ a, ∫⁻ b, f a b ∂(κ a)) :=
-begin
-  let F : ℕ → simple_func (α × β) ℝ≥0∞ := simple_func.eapprox (function.uncurry f),
-  have h : ∀ a, (⨆ n, F n a) = function.uncurry f a,
-    from simple_func.supr_eapprox_apply (function.uncurry f) hf,
-  simp only [prod.forall, function.uncurry_apply_pair] at h,
-  simp_rw ← h,
-  have : ∀ a, ∫⁻ b, (⨆ n, F n (a, b)) ∂(κ a) = ⨆ n, ∫⁻ b, F n (a, b) ∂(κ a),
-  { intro a,
-    rw lintegral_supr,
-    { exact λ n, (F n).measurable.comp measurable_prod_mk_left, },
-    { exact λ i j hij b, simple_func.monotone_eapprox (function.uncurry f) hij _, }, },
-  simp_rw this,
-  refine measurable_supr (λ n, simple_func.induction _ _ (F n)),
-  { intros c t ht,
-    simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
-      simple_func.coe_zero, set.piecewise_eq_indicator],
-    exact measurable_lintegral_indicator_const κ ht c, },
-  { intros g₁ g₂ h_disj hm₁ hm₂,
-    simp only [simple_func.coe_add, pi.add_apply],
-    have h_add : (λ a, ∫⁻ b, g₁ (a, b) + g₂ (a, b) ∂(κ a))
-      = (λ a, ∫⁻ b, g₁ (a, b) ∂(κ a)) + (λ a, ∫⁻ b, g₂ (a, b) ∂(κ a)),
-    { ext1 a,
-      rw [pi.add_apply, lintegral_add_left (g₁.measurable.comp measurable_prod_mk_left)], },
-    rw h_add,
-    exact measurable.add hm₁ hm₂, },
-end
-
-lemma measurable_lintegral' (κ : kernel α β) [is_s_finite_kernel κ]
-  {f : β → ℝ≥0∞} (hf : measurable f) :
-  measurable (λ a, ∫⁻ b, f b ∂(κ a)) :=
-measurable_lintegral κ (hf.comp measurable_snd)
-
-lemma measurable_set_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
-  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
-  measurable (λ a, ∫⁻ b in s, f a b ∂(κ a)) :=
-by { simp_rw ← lintegral_restrict κ hs, exact measurable_lintegral _ hf }
-
-lemma measurable_set_lintegral' (κ : kernel α β) [is_s_finite_kernel κ]
-  {f : β → ℝ≥0∞} (hf : measurable f) {s : set β} (hs : measurable_set s) :
-  measurable (λ a, ∫⁻ b in s, f b ∂(κ a)) :=
-measurable_set_lintegral κ (hf.comp measurable_snd) hs
-
-end measurable_lintegral
-
-section with_density
-variables {f : α → β → ℝ≥0∞}
-
-/-- Kernel with image `(κ a).with_density (f a)` if `function.uncurry f` is measurable, and
-with image 0 otherwise. If `function.uncurry f` is measurable, it satisfies
-`∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a)`. -/
+/-- Kernel with value `(κ a).comap f`, for a measurable embedding `f`. That is, for a measurable set
+`t : set β`, `comap_right κ hf a t = κ a (f '' t)`. -/
 noncomputable
-def with_density (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0∞) :
-  kernel α β :=
-@dite _ (measurable (function.uncurry f)) (classical.dec _)
-  (λ hf, ({ val := λ a, (κ a).with_density (f a),
-    property :=
-    begin
-      refine measure.measurable_of_measurable_coe _ (λ s hs, _),
-      simp_rw with_density_apply _ hs,
-      exact measurable_set_lintegral κ hf hs,
-    end, } : kernel α β))
-  (λ hf, 0)
-
-lemma with_density_of_not_measurable (κ : kernel α β) [is_s_finite_kernel κ]
-  (hf : ¬ measurable (function.uncurry f)) :
-  with_density κ f = 0 :=
-by { classical, exact dif_neg hf, }
-
-protected lemma with_density_apply (κ : kernel α β) [is_s_finite_kernel κ]
-  (hf : measurable (function.uncurry f)) (a : α) :
-  with_density κ f a = (κ a).with_density (f a) :=
-by { classical, rw [with_density, dif_pos hf], refl, }
-
-lemma with_density_apply' (κ : kernel α β) [is_s_finite_kernel κ]
-  (hf : measurable (function.uncurry f)) (a : α) {s : set β} (hs : measurable_set s) :
-  with_density κ f a s = ∫⁻ b in s, f a b ∂(κ a) :=
-by rw [kernel.with_density_apply κ hf, with_density_apply _ hs]
-
-lemma lintegral_with_density (κ : kernel α β) [is_s_finite_kernel κ]
-  (hf : measurable (function.uncurry f)) (a : α) {g : β → ℝ≥0∞} (hg : measurable g) :
-  ∫⁻ b, g b ∂(with_density κ f a) = ∫⁻ b, f a b * g b ∂(κ a) :=
-begin
-  rw [kernel.with_density_apply _ hf,
-    lintegral_with_density_eq_lintegral_mul _ (measurable.of_uncurry_left hf) hg],
-  simp_rw pi.mul_apply,
-end
-
-lemma with_density_add_left (κ η : kernel α β) [is_s_finite_kernel κ] [is_s_finite_kernel η]
-  (f : α → β → ℝ≥0∞) :
-  with_density (κ + η) f = with_density κ f + with_density η f :=
-begin
-  by_cases hf : measurable (function.uncurry f),
-  { ext a s hs : 2,
-    simp only [kernel.with_density_apply _ hf, coe_fn_add, pi.add_apply, with_density_add_measure,
-      measure.add_apply], },
-  { simp_rw [with_density_of_not_measurable _ hf],
-    rw zero_add, },
-end
-
-lemma with_density_kernel_sum [countable ι] (κ : ι → kernel α β)
-  (hκ : ∀ i, is_s_finite_kernel (κ i)) (f : α → β → ℝ≥0∞) :
-  @with_density _ _ _ _ (kernel.sum κ) (is_s_finite_kernel_sum hκ) f
-    = kernel.sum (λ i, with_density (κ i) f) :=
-begin
-  by_cases hf : measurable (function.uncurry f),
-  { ext1 a,
-    simp_rw [sum_apply, kernel.with_density_apply _ hf, sum_apply,
-      with_density_sum (λ n, κ n a) (f a)], },
-  { simp_rw [with_density_of_not_measurable _ hf],
-    exact sum_zero.symm, },
-end
-
-lemma with_density_tsum [countable ι] (κ : kernel α β) [is_s_finite_kernel κ]
-  {f : ι → α → β → ℝ≥0∞} (hf : ∀ i, measurable (function.uncurry (f i))) :
-  with_density κ (∑' n, f n) = kernel.sum (λ n, with_density κ (f n)) :=
-begin
-  have h_sum_a : ∀ a, summable (λ n, f n a) := λ a, pi.summable.mpr (λ b, ennreal.summable),
-  have h_sum : summable (λ n, f n) := pi.summable.mpr h_sum_a,
-  ext a s hs : 2,
-  rw [sum_apply' _ a hs, with_density_apply' κ _ a hs],
-  swap,
-  { have : function.uncurry (∑' n, f n) = ∑' n, function.uncurry (f n),
-    { ext1 p,
-      simp only [function.uncurry_def],
-      rw [tsum_apply h_sum, tsum_apply (h_sum_a _), tsum_apply],
-      exact pi.summable.mpr (λ p, ennreal.summable), },
+def comap_right (κ : kernel α β) (hf : measurable_embedding f) :
+  kernel α γ :=
+{ val := λ a, (κ a).comap f,
+  property :=
+  begin
+    refine measure.measurable_measure.mpr (λ t ht, _),
+    have : (λ a, measure.comap f (κ a) t) = λ a, κ a (f '' t),
+    { ext1 a,
+      rw measure.comap_apply _ hf.injective (λ s' hs', _) _ ht,
+      exact hf.measurable_set_image.mpr hs', },
     rw this,
-    exact measurable.ennreal_tsum' hf, },
-  have : ∫⁻ b in s, (∑' n, f n) a b ∂(κ a) = ∫⁻ b in s, (∑' n, (λ b, f n a b) b) ∂(κ a),
-  { congr' with b,
-    rw [tsum_apply h_sum, tsum_apply (h_sum_a a)], },
-  rw [this, lintegral_tsum (λ n, (measurable.of_uncurry_left (hf n)).ae_measurable)],
-  congr' with n,
-  rw with_density_apply' _ (hf n) a hs,
-end
+    exact kernel.measurable_coe _ (hf.measurable_set_image.mpr ht),
+  end }
 
-/-- If a kernel `κ` is finite and a function `f : α → β → ℝ≥0∞` is bounded, then `with_density κ f`
-is finite. -/
-lemma is_finite_kernel_with_density_of_bounded (κ : kernel α β) [is_finite_kernel κ]
-  {B : ℝ≥0∞} (hB_top : B ≠ ∞) (hf_B : ∀ a b, f a b ≤ B) :
-  is_finite_kernel (with_density κ f) :=
+lemma comap_right_apply (κ : kernel α β) (hf : measurable_embedding f) (a : α) :
+  comap_right κ hf a = measure.comap f (κ a) := rfl
+
+lemma comap_right_apply' (κ : kernel α β) (hf : measurable_embedding f)
+  (a : α) {t : set γ} (ht : measurable_set t) :
+  comap_right κ hf a t = κ a (f '' t) :=
+by rw [comap_right_apply,
+    measure.comap_apply _ hf.injective (λ s, hf.measurable_set_image.mpr) _ ht]
+
+lemma is_markov_kernel.comap_right (κ : kernel α β) (hf : measurable_embedding f)
+  (hκ : ∀ a, κ a (set.range f) = 1) :
+  is_markov_kernel (comap_right κ hf) :=
 begin
-  by_cases hf : measurable (function.uncurry f),
-  { exact
-      ⟨⟨B * is_finite_kernel.bound κ, ennreal.mul_lt_top hB_top (is_finite_kernel.bound_ne_top κ),
-        λ a,
-        begin
-          rw with_density_apply' κ hf a measurable_set.univ,
-          calc ∫⁻ b in set.univ, f a b ∂(κ a)
-              ≤ ∫⁻ b in set.univ, B ∂(κ a) : lintegral_mono (hf_B a)
-          ... = B * κ a set.univ : by simp only [measure.restrict_univ, lintegral_const]
-          ... ≤ B * is_finite_kernel.bound κ :
-            mul_le_mul_left' (measure_le_bound κ a set.univ) _,
-        end⟩⟩, },
-  { rw with_density_of_not_measurable _ hf,
-    apply_instance, },
+  refine ⟨λ a, ⟨_⟩⟩,
+  rw comap_right_apply' κ hf a measurable_set.univ,
+  simp only [set.image_univ, subtype.range_coe_subtype, set.set_of_mem_eq],
+  exact hκ a,
 end
 
-/-- Auxiliary lemma for `is_s_finite_kernel_with_density`.
-If a kernel `κ` is finite, then `with_density κ f` is s-finite. -/
-lemma is_s_finite_kernel_with_density_of_is_finite_kernel (κ : kernel α β) [is_finite_kernel κ]
-  (hf_ne_top : ∀ a b, f a b ≠ ∞) :
-  is_s_finite_kernel (with_density κ f) :=
+instance is_finite_kernel.comap_right (κ : kernel α β) [is_finite_kernel κ]
+  (hf : measurable_embedding f) :
+  is_finite_kernel (comap_right κ hf) :=
 begin
-  -- We already have that for `f` bounded from above and a `κ` a finite kernel,
-  -- `with_density κ f` is finite. We write any function as a countable sum of bounded
-  -- functions, and decompose an s-finite kernel as a sum of finite kernels. We then use that
-  -- `with_density` commutes with sums for both arguments and get a sum of finite kernels.
-  by_cases hf : measurable (function.uncurry f),
-  swap, { rw with_density_of_not_measurable _ hf, apply_instance, },
-  let fs : ℕ → α → β → ℝ≥0∞ := λ n a b, min (f a b) (n + 1) - min (f a b) n,
-  have h_le : ∀ a b n, ⌈(f a b).to_real⌉₊ ≤ n → f a b ≤ n,
-  { intros a b n hn,
-    have : (f a b).to_real ≤ n := nat.le_of_ceil_le hn,
-    rw ← ennreal.le_of_real_iff_to_real_le (hf_ne_top a b) _ at this,
-    { refine this.trans (le_of_eq _),
-      rw ennreal.of_real_coe_nat, },
-    { norm_cast,
-      exact zero_le _, }, },
-  have h_zero : ∀ a b n, ⌈(f a b).to_real⌉₊ ≤ n → fs n a b = 0,
-  { intros a b n hn,
-    suffices : min (f a b) (n + 1) = f a b ∧ min (f a b) n = f a b,
-    { simp_rw [fs, this.1, this.2, tsub_self (f a b)], },
-    exact ⟨min_eq_left ((h_le a b n hn).trans (le_add_of_nonneg_right zero_le_one)),
-      min_eq_left (h_le a b n hn)⟩, },
-  have hf_eq_tsum : f = ∑' n, fs n,
-  { have h_sum_a : ∀ a, summable (λ n, fs n a),
-    { refine λ a, pi.summable.mpr (λ b, _),
-      suffices : ∀ n, n ∉ finset.range ⌈(f a b).to_real⌉₊ → fs n a b = 0,
-        from summable_of_ne_finset_zero this,
-      intros n hn_not_mem,
-      rw [finset.mem_range, not_lt] at hn_not_mem,
-      exact h_zero a b n hn_not_mem, },
-    ext a b : 2,
-    rw [tsum_apply (pi.summable.mpr h_sum_a), tsum_apply (h_sum_a a),
-      ennreal.tsum_eq_liminf_sum_nat],
-    have h_finset_sum : ∀ n, ∑ i in finset.range n, fs i a b = min (f a b) n,
-    { intros n,
-      induction n with n hn,
-      { simp only [finset.range_zero, finset.sum_empty, algebra_map.coe_zero, min_zero], },
-      rw [finset.sum_range_succ, hn],
-      simp_rw [fs],
-      norm_cast,
-      rw add_tsub_cancel_iff_le,
-      refine min_le_min le_rfl _,
-      norm_cast,
-      exact nat.le_succ n, },
-    simp_rw h_finset_sum,
-    refine (filter.tendsto.liminf_eq _).symm,
-    refine filter.tendsto.congr' _ tendsto_const_nhds,
-    rw [filter.eventually_eq, filter.eventually_at_top],
-    exact ⟨⌈(f a b).to_real⌉₊, λ n hn, (min_eq_left (h_le a b n hn)).symm⟩, },
-  rw [hf_eq_tsum, with_density_tsum _ (λ (n : ℕ), _)],
-  swap, { exact (hf.min measurable_const).sub (hf.min measurable_const), },
-  refine is_s_finite_kernel_sum (λ n, _),
-  suffices : is_finite_kernel (with_density κ (fs n)), by { haveI := this, apply_instance, },
-  refine is_finite_kernel_with_density_of_bounded _ (ennreal.coe_ne_top : (↑n + 1) ≠ ∞) (λ a b, _),
-  norm_cast,
-  calc fs n a b ≤ min (f a b) (n + 1) : tsub_le_self
-            ... ≤ (n + 1) : min_le_right _ _
-            ... = ↑(n + 1) : by norm_cast,
+  refine ⟨⟨is_finite_kernel.bound κ, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
+  rw comap_right_apply' κ hf a measurable_set.univ,
+  exact measure_le_bound κ a _,
 end
 
-/-- For a s-finite kernel `κ` and a function `f : α → β → ℝ≥0∞` which is everywhere finite,
-`with_density κ f` is s-finite. -/
-theorem is_s_finite_kernel.with_density (κ : kernel α β) [is_s_finite_kernel κ]
-  (hf_ne_top : ∀ a b, f a b ≠ ∞) :
-  is_s_finite_kernel (with_density κ f) :=
+instance is_s_finite_kernel.comap_right (κ : kernel α β) [is_s_finite_kernel κ]
+  (hf : measurable_embedding f) :
+  is_s_finite_kernel (comap_right κ hf) :=
 begin
-  have h_eq_sum : with_density κ f = kernel.sum (λ i, with_density (seq κ i) f),
-  { rw ← with_density_kernel_sum _ _,
-    congr,
-    exact (kernel_sum_seq κ).symm, },
-  rw h_eq_sum,
-  exact is_s_finite_kernel_sum
-    (λ n, is_s_finite_kernel_with_density_of_is_finite_kernel (seq κ n) hf_ne_top),
+  refine ⟨⟨λ n, comap_right (seq κ n) hf, infer_instance, _⟩⟩,
+  ext1 a,
+  rw sum_apply,
+  simp_rw comap_right_apply _ hf,
+  have : measure.sum (λ n, measure.comap f (seq κ n a))
+    = measure.comap f (measure.sum (λ n, seq κ n a)),
+  { ext1 t ht,
+    rw [measure.comap_apply _ hf.injective (λ s', hf.measurable_set_image.mpr) _ ht,
+      measure.sum_apply _ ht, measure.sum_apply _ (hf.measurable_set_image.mpr ht)],
+    congr' with n : 1,
+    rw measure.comap_apply _ hf.injective (λ s', hf.measurable_set_image.mpr) _ ht, },
+  rw [this, measure_sum_seq],
 end
 
-/-- For a s-finite kernel `κ` and a function `f : α → β → ℝ≥0`, `with_density κ f` is s-finite. -/
-instance (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0) :
-  is_s_finite_kernel (with_density κ (λ a b, f a b)) :=
-is_s_finite_kernel.with_density κ (λ _ _, ennreal.coe_ne_top)
+end comap_right
 
-end with_density
+section piecewise
+
+variables {η : kernel α β} {s : set α} {hs : measurable_set s} [decidable_pred (∈ s)]
+
+/-- `piecewise hs κ η` is the kernel equal to `κ` on the measurable set `s` and to `η` on its
+complement. -/
+def piecewise (hs : measurable_set s) (κ η : kernel α β) :
+  kernel α β :=
+{ val := λ a, if a ∈ s then κ a else η a,
+  property := measurable.piecewise hs (kernel.measurable _) (kernel.measurable _) }
+
+lemma piecewise_apply (a : α) :
+  piecewise hs κ η a = if a ∈ s then κ a else η a := rfl
+
+lemma piecewise_apply' (a : α) (t : set β) :
+  piecewise hs κ η a t = if a ∈ s then κ a t else η a t :=
+by { rw piecewise_apply, split_ifs; refl, }
+
+instance is_markov_kernel.piecewise [is_markov_kernel κ] [is_markov_kernel η] :
+  is_markov_kernel (piecewise hs κ η) :=
+by { refine ⟨λ a, ⟨_⟩⟩, rw [piecewise_apply', measure_univ, measure_univ, if_t_t], }
+
+instance is_finite_kernel.piecewise [is_finite_kernel κ] [is_finite_kernel η] :
+  is_finite_kernel (piecewise hs κ η) :=
+begin
+  refine ⟨⟨max (is_finite_kernel.bound κ) (is_finite_kernel.bound η), _, λ a, _⟩⟩,
+  { exact max_lt (is_finite_kernel.bound_lt_top κ) (is_finite_kernel.bound_lt_top η), },
+  rw [piecewise_apply'],
+  exact (ite_le_sup _ _ _).trans (sup_le_sup (measure_le_bound _ _ _) (measure_le_bound _ _ _)),
+end
+
+instance is_s_finite_kernel.piecewise [is_s_finite_kernel κ] [is_s_finite_kernel η] :
+  is_s_finite_kernel (piecewise hs κ η) :=
+begin
+  refine ⟨⟨λ n, piecewise hs (seq κ n) (seq η n), infer_instance, _⟩⟩,
+  ext1 a,
+  simp_rw [sum_apply, kernel.piecewise_apply],
+  split_ifs; exact (measure_sum_seq _ a).symm,
+end
+
+lemma lintegral_piecewise (a : α) (g : β → ℝ≥0∞) :
+  ∫⁻ b, g b ∂(piecewise hs κ η a) = if a ∈ s then ∫⁻ b, g b ∂(κ a) else ∫⁻ b, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+end piecewise
 
 section comap_right
 

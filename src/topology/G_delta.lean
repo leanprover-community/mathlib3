@@ -20,11 +20,8 @@ In this file we define `Gδ` sets and prove their basic properties.
 * `is_Gδ`: a set `s` is a `Gδ` set if it can be represented as an intersection
   of countably many open sets;
 
-* `residual`: the filter of residual sets. A set `s` is called *residual* if it includes a dense
-  `Gδ` set. In a Baire space (e.g., in a complete (e)metric space), residual sets form a filter.
-
-  For technical reasons, we define `residual` in any topological space but the definition agrees
-  with the description above only in Baire spaces.
+* `residual`: the σ-filter of residual sets. A set `s` is called *residual* if it includes a
+  countable intersection of dense open sets.
 
 ## Main results
 

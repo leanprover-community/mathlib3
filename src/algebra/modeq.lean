@@ -21,7 +21,8 @@ This file defines equality modulo an element in a commutative group.
 
 ## TODO
 
-Delete `int.modeq` in favour of `add_comm_group.modeq`.
+Delete `int.modeq` in favour of `add_comm_group.modeq`. Unify it with `smodeq`. Once this is done,
+we can rename `add_comm_group.modeq` to just `modeq`.
 -/
 
 section

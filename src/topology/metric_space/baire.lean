@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.specific_limits.basic
---import order.filter.countable_Inter
 import topology.G_delta
 import topology.sets.compacts
 

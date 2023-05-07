@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import data.polynomial.ring_division
 import data.mv_polynomial.rename
 import ring_theory.polynomial.basic
+import data.mv_polynomial.polynomial
 
 /-!
 ## Function extensionality for multivariate polynomials
@@ -30,41 +31,17 @@ variables {R : Type*} [comm_ring R] [is_domain R] [infinite R]
 private lemma funext_fin {n : ℕ} {p : mv_polynomial (fin n) R}
   (h : ∀ x : fin n → R, eval x p = 0) : p = 0 :=
 begin
-  unfreezingI { induction n with n ih generalizing R },
-  { let e := (mv_polynomial.is_empty_ring_equiv R (fin 0)),
-    apply e.injective,
-    rw ring_equiv.map_zero,
-    convert h fin_zero_elim,
-    suffices : (eval₂_hom (ring_hom.id _) (is_empty.elim' fin.is_empty)) p =
-      (eval fin_zero_elim : mv_polynomial (fin 0) R →+* R) p,
-    { rw [← this],
-      simp only [coe_eval₂_hom, is_empty_ring_equiv_apply,
-        ring_equiv.trans_apply, aeval_eq_eval₂_hom],
-      congr },
-    exact eval₂_hom_congr rfl (subsingleton.elim _ _) rfl },
-  { let e := (fin_succ_equiv R n).to_ring_equiv,
-    apply e.injective,
-    simp only [ring_equiv.map_zero],
-    apply polynomial.funext,
-    intro q,
+  induction n with n ih,
+  { apply (mv_polynomial.is_empty_ring_equiv R (fin 0)).injective,
+    rw [ring_equiv.map_zero],
+    convert h _, },
+  { apply (fin_succ_equiv R n).injective,
+    simp only [alg_equiv.map_zero],
+    refine polynomial.funext (λ q, _),
     rw [polynomial.eval_zero],
-    apply ih, swap, { apply_instance },
-    intro x,
-    dsimp [e],
-    rw [fin_succ_equiv_apply],
-    calc _ = eval _ p : _
-       ... = 0 : h _,
-    { intro i, exact fin.cases (eval x q) x i },
-    apply induction_on p,
-    { intro r,
-      simp only [eval_C, polynomial.eval_C, ring_hom.coe_comp, eval₂_hom_C], },
-    { intros, simp only [*, ring_hom.map_add, polynomial.eval_add] },
-    { intros φ i hφ, simp only [*, eval_X, polynomial.eval_mul, ring_hom.map_mul, eval₂_hom_X'],
-      congr' 1,
-      by_cases hi : i = 0,
-      { subst hi, simp only [polynomial.eval_X, fin.cases_zero] },
-      { rw [← fin.succ_pred i hi], simp only [eval_X, polynomial.eval_C, fin.cases_succ] } },
-    { apply_instance, }, },
+    apply ih (λ x, _),
+    calc _ = _ : eval_polynomial_eval_fin_succ_equiv p _ _
+       ... = 0 : h _, }
 end
 
 /-- Two multivariate polynomials over an infinite integral domain are equal

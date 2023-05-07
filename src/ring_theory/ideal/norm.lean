@@ -8,7 +8,6 @@ import algebra.char_p.quotient
 import data.finsupp.fintype
 import data.int.absolute_value
 import data.int.associated
-import number_theory.ramification_inertia
 import linear_algebra.free_module.determinant
 import linear_algebra.free_module.ideal_quotient
 import ring_theory.dedekind_domain.pid

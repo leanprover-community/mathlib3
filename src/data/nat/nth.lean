@@ -294,7 +294,7 @@ begin
   suffices h : Inf {i : ℕ | p i ∧ n ≤ i} ∈ {i : ℕ | p i ∧ n ≤ i},
   { exact h.2 },
   apply Inf_mem,
-  obtain ⟨m, hp, hn⟩ := hp.exists_nat_lt n,
+  obtain ⟨m, hp, hn⟩ := hp.exists_gt n,
   exact ⟨m, hp, hn.le⟩
 end
 

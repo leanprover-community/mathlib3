@@ -6,31 +6,17 @@ Authors: Rémy Degenne
 import probability.kernel.basic
 
 /-!
-# Measurable Integral
+# Measurability of the integral against a kernel
 
-## Main definitions
-
-* `foo_bar`
+The Lebesgue integral of a measurable function against a kernel is measurable.
 
 ## Main statements
 
-* `foo_bar_unique`
-
-## Notation
-
-
-
-## Implementation details
+* `probability_theory.kernel.measurable_lintegral`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is
+  measurable, for an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that
+  `function.uncurry f` is measurable.
 
 
-
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
-
-## Tags
-
-Foobars, barfoos
 -/
 
 open measure_theory probability_theory function set filter
@@ -46,6 +32,7 @@ namespace kernel
 
 /-- This is an auxiliary lemma for `measurable_kernel_prod_mk_left`. -/
 lemma measurable_kernel_prod_mk_left_of_finite {t : set (α × β)} (ht : measurable_set t)
+>>>>>>> origin/master
   (hκs : ∀ a, is_finite_measure (κ a)) :
   measurable (λ a, κ a {b | (a, b) ∈ t}) :=
 begin

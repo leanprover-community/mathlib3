@@ -5,7 +5,6 @@ Authors: Anatole Dedecker
 -/
 import analysis.normed_space.exponential
 import analysis.calculus.fderiv_analytic
-import data.complex.exponential
 import topology.metric_space.cau_seq_filter
 
 /-!

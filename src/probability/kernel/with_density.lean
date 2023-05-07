@@ -8,29 +8,23 @@ import probability.kernel.measurable_integral
 /-!
 # With Density
 
+For an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` which is finite
+everywhere, we define `with_density κ f` as the kernel `a ↦ (κ a).with_density (f a)`. This is
+an s-finite kernel.
+
 ## Main definitions
 
-* `foo_bar`
+* `probability_theory.kernel.with_density κ (f : α → β → ℝ≥0∞)`:
+  kernel `a ↦ (κ a).with_density (f a)`. It is defined if `κ` is s-finite. If `f` is finite
+  everywhere, then this is also an s-finite kernel. The class of s-finite kernels is the smallest
+  class of kernels that contains finite kernels and which is stable by `with_density`.
+  Integral: `∫⁻ b, g b ∂(with_density κ f a) = ∫⁻ b, f a b * g b ∂(κ a)`
 
 ## Main statements
 
-* `foo_bar_unique`
+* `probability_theory.kernel.lintegral_with_density`:
+  `∫⁻ b, g b ∂(with_density κ f a) = ∫⁻ b, f a b * g b ∂(κ a)`
 
-## Notation
-
-
-
-## Implementation details
-
-
-
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
-
-## Tags
-
-Foobars, barfoos
 -/
 
 open measure_theory probability_theory
@@ -252,5 +246,8 @@ instance (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0)
   is_s_finite_kernel (with_density κ (λ a b, f a b)) :=
 is_s_finite_kernel.with_density κ (λ _ _, ennreal.coe_ne_top)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 end probability_theory.kernel

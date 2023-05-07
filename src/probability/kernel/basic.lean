@@ -17,36 +17,30 @@ sets `s` of `β`, `a ↦ κ a s` is measurable.
 ## Main definitions
 
 Classes of kernels:
-* `kernel α β`: kernels from `α` to `β`, defined as the `add_submonoid` of the measurable
-  functions in `α → measure β`.
-* `is_markov_kernel κ`: a kernel from `α` to `β` is said to be a Markov kernel if for all `a : α`,
-  `k a` is a probability measure.
-* `is_finite_kernel κ`: a kernel from `α` to `β` is said to be finite if there exists `C : ℝ≥0∞`
-  such that `C < ∞` and for all `a : α`, `κ a univ ≤ C`. This implies in particular that all
-  measures in the image of `κ` are finite, but is stronger since it requires an uniform bound. This
-  stronger condition is necessary to ensure that the composition of two finite kernels is finite.
-* `is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable sum of finite kernels.
+* `probability_theory.kernel α β`: kernels from `α` to `β`, defined as the `add_submonoid` of the
+  measurable functions in `α → measure β`.
+* `probability_theory.is_markov_kernel κ`: a kernel from `α` to `β` is said to be a Markov kernel
+  if for all `a : α`, `k a` is a probability measure.
+* `probability_theory.is_finite_kernel κ`: a kernel from `α` to `β` is said to be finite if there
+  exists `C : ℝ≥0∞` such that `C < ∞` and for all `a : α`, `κ a univ ≤ C`. This implies in
+  particular that all measures in the image of `κ` are finite, but is stronger since it requires an
+  uniform bound. This stronger condition is necessary to ensure that the composition of two finite
+  kernels is finite.
+* `probability_theory.kernel.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
+  sum of finite kernels.
 
 Particular kernels:
-* `deterministic {f : α → β} (hf : measurable f)`: kernel `a ↦ measure.dirac (f a)`.
-* `const α (μβ : measure β)`: constant kernel `a ↦ μβ`.
-* `kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of `a : α` is
-  `(κ a).restrict s`.
+* `probability_theory.kernel.deterministic (f : α → β) (hf : measurable f)`:
+  kernel `a ↦ measure.dirac (f a)`.
+* `probability_theory.kernel.const α (μβ : measure β)`: constant kernel `a ↦ μβ`.
+* `probability_theory.kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of
+  `a : α` is `(κ a).restrict s`.
   Integral: `∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a)`
-* `kernel.with_density κ (f : α → β → ℝ≥0∞)`: kernel `a ↦ (κ a).with_density (f a)`.
-  It is defined if `κ` is s-finite. If `f` is finite everywhere, then this is also an s-finite
-  kernel. The class of s-finite kernels is the smallest class of kernels that contains finite
-  kernels and which is stable by `with_density`.
-  Integral: `∫⁻ b, g b ∂(with_density κ f a) = ∫⁻ b, f a b * g b ∂(κ a)`
 
 ## Main statements
 
-* `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f` and all `a`,
-  then the two kernels `κ` and `η` are equal.
-
-* `measurable_lintegral`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable, for an s-finite
-  kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `function.uncurry f`
-  is measurable.
+* `probability_theory.kernel.ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable
+  functions `f` and all `a`, then the two kernels `κ` and `η` are equal.
 
 -/
 
@@ -317,7 +311,7 @@ section deterministic
 
 /-- Kernel which to `a` associates the dirac measure at `f a`. This is a Markov kernel. -/
 noncomputable
-def deterministic {f : α → β} (hf : measurable f) :
+def deterministic (f : α → β) (hf : measurable f) :
   kernel α β :=
 { val := λ a, measure.dirac (f a),
   property :=
@@ -328,11 +322,11 @@ def deterministic {f : α → β} (hf : measurable f) :
     end, }
 
 lemma deterministic_apply {f : α → β} (hf : measurable f) (a : α) :
-  deterministic hf a = measure.dirac (f a) := rfl
+  deterministic f hf a = measure.dirac (f a) := rfl
 
 lemma deterministic_apply' {f : α → β} (hf : measurable f) (a : α) {s : set β}
   (hs : measurable_set s) :
-  deterministic hf a s = s.indicator (λ _, 1) (f a) :=
+  deterministic f hf a s = s.indicator (λ _, 1) (f a) :=
 begin
   rw [deterministic],
   change measure.dirac (f a) s = s.indicator 1 (f a),
@@ -340,7 +334,7 @@ begin
 end
 
 instance is_markov_kernel_deterministic {f : α → β} (hf : measurable f) :
-  is_markov_kernel (deterministic hf) :=
+  is_markov_kernel (deterministic f hf) :=
 ⟨λ a, by { rw deterministic_apply hf, apply_instance, }⟩
 
 lemma lintegral_deterministic' {f : β → ℝ≥0∞} {g : α → β} {a : α}

@@ -6,7 +6,6 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.free_module.finite.matrix
-import linear_algebra.matrix.to_lin
 
 /-!
 # Bilinear form

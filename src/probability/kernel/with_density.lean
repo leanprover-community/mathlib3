@@ -246,8 +246,4 @@ instance (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0)
   is_s_finite_kernel (with_density κ (λ a b, f a b)) :=
 is_s_finite_kernel.with_density κ (λ _ _, ennreal.coe_ne_top)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
 end probability_theory.kernel

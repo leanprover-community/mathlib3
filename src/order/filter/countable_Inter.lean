@@ -189,3 +189,43 @@ begin
   refine ⟨λ S hSc hS, ⟨_, _⟩⟩; refine (countable_sInter_mem hSc).2 (λ s hs, _),
   exacts [(hS s hs).1, (hS s hs).2]
 end
+
+namespace filter
+
+variable (g : set (set α))
+
+inductive countable_generate_sets : set α → Prop
+| basic {s : set α}      : s ∈ g → countable_generate_sets s
+| univ                   : countable_generate_sets univ
+| superset {s t : set α} : countable_generate_sets s → s ⊆ t → countable_generate_sets t
+| Inter {S : set (set α)}  : S.countable →
+    (∀ s ∈ S, countable_generate_sets s) → countable_generate_sets ⋂₀ S
+
+def countable_generate : filter α :=
+of_countable_Inter (countable_generate_sets g) (λ S, countable_generate_sets.Inter)
+  (λ s t, countable_generate_sets.superset)
+
+instance countable_Inter_filter_of_countable_generate :
+  countable_Inter_filter (countable_generate g) := by rw[countable_generate] ; apply_instance
+
+lemma mem_countable_generate_iff {s : set α} : s ∈ countable_generate g ↔
+  ∃ (S : set (set α)), S ⊆ g ∧ S.countable ∧ ⋂₀ S ⊆ s :=
+begin
+  split; intro h,
+  { induction h with s hs s t hs st ih S Sct hS ih,
+    { exact ⟨{s}, by simp[hs]⟩ },
+    { exact ⟨∅, by simp⟩ },
+    { refine exists_imp_exists (λ S, _) ih,
+      tauto },
+    choose T Tg Tct hT using ih,
+    refine ⟨⋃ s (H : s ∈ S), T s H, by simpa, Sct.bUnion Tct, _⟩,
+    apply subset_sInter,
+    intros s H,
+    refine subset_trans (sInter_subset_sInter (subset_Union₂ s H)) (hT s H), },
+  rcases h with ⟨S, Sg, Sct, hS⟩,
+  refine mem_of_superset ((countable_sInter_mem Sct).mpr _) hS,
+  intros s H,
+  exact countable_generate_sets.basic (Sg H),
+end
+
+end filter

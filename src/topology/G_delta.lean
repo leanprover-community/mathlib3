@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import topology.uniform_space.basic
 import topology.separation
+import order.filter.countable_Inter
 
 /-!
 # `Gδ` sets
@@ -180,10 +181,29 @@ end
 
 end continuous_at
 
-/-- A set `s` is called *residual* if it includes a dense `Gδ` set. If `α` is a Baire space
-(e.g., a complete metric space), then residual sets form a filter, see `mem_residual`.
+section residual
 
-For technical reasons we define the filter `residual` in any topological space but in a non-Baire
-space it is not useful because it may contain some non-residual sets. -/
+variable [topological_space α]
+
+/-- A set `s` is called *residual* if it includes a countable intersection of dense open sets. -/
 def residual (α : Type*) [topological_space α] : filter α :=
-⨅ t (ht : is_Gδ t) (ht' : dense t), 𝓟 t
+filter.countable_generate (λ t, is_open t ∧ dense t)
+
+instance countable_Inter_filter_residual : countable_Inter_filter (residual α) :=
+by rw[residual]; apply_instance
+
+lemma residual_of_dense_open {s : set α} (ho : is_open s) (hd : dense s) : s ∈ residual α :=
+countable_generate_sets.basic ⟨ho, hd⟩
+
+lemma residual_of_dense_Gδ {s : set α} (ho : is_Gδ s) (hd : dense s) : s ∈ residual α :=
+begin
+  rcases ho with ⟨T, To, Tct, rfl⟩,
+  exact (countable_sInter_mem Tct).mpr (λ t tT, residual_of_dense_open (To t tT)
+    (hd.mono (sInter_subset_of_mem tT))),
+end
+
+lemma mem_residual_iff {s : set α} : s ∈ residual α ↔
+  ∃ (S : set (set α)), (∀ t ∈ S, is_open t ∧ dense t) ∧ S.countable ∧ ⋂₀ S ⊆ s :=
+mem_countable_generate_iff _
+
+end residual

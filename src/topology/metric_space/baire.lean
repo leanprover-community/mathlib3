@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.specific_limits.basic
-import order.filter.countable_Inter
+--import order.filter.countable_Inter
 import topology.G_delta
 import topology.sets.compacts
 
@@ -222,25 +222,38 @@ begin
   { rwa forall_range_iff }
 end
 
+/-- A set is residual (comeagre) if and only if it includes a dense `Gδ` set. -/
+lemma mem_residual {s : set α} :
+  s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t ∧ dense t :=
+begin
+  split,
+  { rw mem_residual_iff,
+    rintros ⟨S, hS, Sct, Ss⟩,
+    refine ⟨_, Ss, ⟨_, λ t ht, (hS t ht).1, Sct, rfl⟩, _⟩,
+    simp_rw forall_and_distrib at hS,
+    exact dense_sInter_of_open hS.1 Sct hS.2, },
+  rintros ⟨t, ts, ho, hd⟩,
+  exact mem_of_superset (residual_of_dense_Gδ ho hd) ts,
+end
+
+/-- A property holds on a residual (comeagre) set if and only if it holds on some dense `Gδ` set. -/
+lemma eventually_residual {p : α → Prop} :
+  (∀ᶠ x in residual α, p x) ↔ ∃ (t : set α), is_Gδ t ∧ dense t ∧ ∀ (x : α), x ∈ t → p x :=
+begin
+  -- this can probably be improved...
+  convert @mem_residual _ _ _ p,
+  simp_rw [exists_prop, and_comm ((_ : set α) ⊆ p), and_assoc],
+  refl,
+end
+
+lemma dense_of_mem_residual {s : set α} (hs : s ∈ residual α) : dense s :=
+let ⟨t, hts, _, hd⟩ := mem_residual.1 hs in hd.mono hts
+
 /-- Baire theorem: a countable intersection of dense Gδ sets is dense. Formulated here with ⋂₀. -/
 theorem dense_sInter_of_Gδ {S : set (set α)} (ho : ∀s∈S, is_Gδ s) (hS : S.countable)
   (hd : ∀s∈S, dense s) : dense (⋂₀S) :=
-begin
-  -- the result follows from the result for a countable intersection of dense open sets,
-  -- by rewriting each set as a countable intersection of open sets, which are of course dense.
-  choose T hTo hTc hsT using ho,
-  have : ⋂₀ S = ⋂₀ (⋃ s ∈ S, T s ‹_›), -- := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
-    by simp only [sInter_Union, (hsT _ _).symm, ← sInter_eq_bInter],
-  rw this,
-  refine dense_sInter_of_open _ (hS.bUnion hTc) _;
-    simp only [mem_Union]; rintro t ⟨s, hs, tTs⟩,
-  show is_open t, from hTo s hs t tTs,
-  show dense t,
-  { intro x,
-    have := hd s hs x,
-    rw hsT s hs at this,
-    exact closure_mono (sInter_subset_of_mem tTs) this }
-end
+dense_of_mem_residual ((countable_sInter_mem hS).mpr
+  (λ s hs, residual_of_dense_Gδ (ho _ hs) (hd _ hs)))
 
 /-- Baire theorem: a countable intersection of dense Gδ sets is dense. Formulated here with
 an index set which is an encodable type. -/
@@ -270,39 +283,6 @@ begin
   apply dense_Inter_of_Gδ; simp [bool.forall_bool, *]
 end
 
-/-- A property holds on a residual (comeagre) set if and only if it holds on some dense `Gδ` set. -/
-lemma eventually_residual {p : α → Prop} :
-  (∀ᶠ x in residual α, p x) ↔ ∃ (t : set α), is_Gδ t ∧ dense t ∧ ∀ x ∈ t, p x :=
-calc (∀ᶠ x in residual α, p x) ↔
-  ∀ᶠ x in ⨅ (t : set α) (ht : is_Gδ t ∧ dense t), 𝓟 t, p x :
-    by simp only [residual, infi_and]
-... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x : mem_binfi_of_directed
-    (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩, by simp⟩)
-    ⟨univ, is_Gδ_univ, dense_univ⟩
-... ↔ _ : by simp [and_assoc]
-
-/-- A set is residual (comeagre) if and only if it includes a dense `Gδ` set. -/
-lemma mem_residual {s : set α} :
-  s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t ∧ dense t :=
-(@eventually_residual α _ _ (λ x, x ∈ s)).trans $ exists_congr $
-λ t, by rw [exists_prop, and_comm (t ⊆ s), subset_def, and_assoc]
-
-lemma dense_of_mem_residual {s : set α} (hs : s ∈ residual α) :
-  dense s :=
-let ⟨t, hts, _, hd⟩ := mem_residual.1 hs in hd.mono hts
-
-instance : countable_Inter_filter (residual α) :=
-⟨begin
-  intros S hSc hS,
-  simp only [mem_residual] at *,
-  choose T hTs hT using hS,
-  refine ⟨⋂ s ∈ S, T s ‹_›, _, _, _⟩,
-  { rw [sInter_eq_bInter],
-    exact Inter₂_mono hTs },
-  { exact is_Gδ_bInter hSc (λ s hs, (hT s hs).1) },
-  { exact dense_bInter_of_Gδ (λ s hs, (hT s hs).1) hSc (λ s hs, (hT s hs).2) }
-end⟩
-
 /-- If a countable family of closed sets cover a dense `Gδ` set, then the union of their interiors
 is dense. Formulated here with `⋃`. -/
 lemma is_Gδ.dense_Union_interior_of_closed [encodable ι] {s : set α} (hs : is_Gδ s)
@@ -315,7 +295,7 @@ begin
   { refine dense_Inter_of_open hgo (λ i x, _),
     rw [closure_compl, interior_frontier (hc _)],
     exact id },
-  refine (hd.inter_of_Gδ hs (is_Gδ_Inter $ λ i, (hgo i).is_Gδ) hgd).mono _,
+  refine (hd.inter_of_Gδ hs (is_Gδ_Inter_of_open $ λ i, hgo i) hgd).mono _,
   rintro x ⟨hxs, hxg⟩,
   rw [mem_Inter] at hxg,
   rcases mem_Union.1 (hU hxs) with ⟨i, hi⟩,

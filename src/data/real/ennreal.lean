@@ -1872,10 +1872,8 @@ begin
   lift f to ι → ℝ≥0 using hf,
   simp_rw to_nnreal_coe,
   by_cases h : bdd_above (range f),
-  { simp_rw [← coe_supr h, to_nnreal_coe] },
-  { simp_rw [nnreal.supr_of_not_bdd_above h],
-    convert top_to_nnreal,
-    exact (with_top.supr_coe_eq_top f).mpr h }
+  { rw [← coe_supr h, to_nnreal_coe] },
+  { rw [nnreal.supr_of_not_bdd_above h, (with_top.supr_coe_eq_top f).mpr h, top_to_nnreal] }
 end
 
 lemma to_nnreal_Sup (s : set ℝ≥0∞) (hs : ∀ r ∈ s, r ≠ ∞) :

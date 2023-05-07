@@ -337,6 +337,31 @@ instance is_markov_kernel_deterministic {f : α → β} (hf : measurable f) :
   is_markov_kernel (deterministic f hf) :=
 ⟨λ a, by { rw deterministic_apply hf, apply_instance, }⟩
 
+lemma lintegral_deterministic' {f : β → ℝ≥0∞} {g : α → β} {a : α}
+  (hg : measurable g) (hf : measurable f) :
+  ∫⁻ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
+by rw [kernel.deterministic_apply, lintegral_dirac' _ hf]
+
+@[simp]
+lemma lintegral_deterministic {f : β → ℝ≥0∞} {g : α → β} {a : α}
+  (hg : measurable g) [measurable_singleton_class β] :
+  ∫⁻ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
+by rw [kernel.deterministic_apply, lintegral_dirac (g a) f]
+
+lemma integral_deterministic' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {g : α → β} {a : α}
+  (hg : measurable g) (hf : strongly_measurable f) :
+  ∫ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
+by rw [kernel.deterministic_apply, integral_dirac' _ _ hf]
+
+@[simp]
+lemma integral_deterministic {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {g : α → β} {a : α}
+  (hg : measurable g) [measurable_singleton_class β] :
+  ∫ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
+by rw [kernel.deterministic_apply, integral_dirac _ (g a)]
+
+
 end deterministic
 
 section const
@@ -362,6 +387,17 @@ instance is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure �
 instance is_markov_kernel_const {μβ : measure β} [hμβ : is_probability_measure μβ] :
   is_markov_kernel (const α μβ) :=
 ⟨λ a, hμβ⟩
+
+@[simp]
+lemma lintegral_const {f : β → ℝ≥0∞} {μ : measure β} {a : α} :
+  ∫⁻ x, f x ∂(kernel.const α μ a) = ∫⁻ x, f x ∂μ :=
+by rw kernel.const_apply
+
+@[simp]
+lemma integral_const {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {f : β → E} {μ : measure β} {a : α} :
+  ∫ x, f x ∂(kernel.const α μ a) = ∫ x, f x ∂μ :=
+by rw kernel.const_apply
 
 end const
 
@@ -398,9 +434,20 @@ lemma restrict_apply' (κ : kernel α β) (hs : measurable_set s) (a : α) (ht :
   kernel.restrict κ hs a t = (κ a) (t ∩ s) :=
 by rw [restrict_apply κ hs a, measure.restrict_apply ht]
 
+@[simp]
+lemma restrict_univ : kernel.restrict κ measurable_set.univ = κ :=
+by { ext1 a, rw [kernel.restrict_apply, measure.restrict_univ], }
+
+@[simp]
 lemma lintegral_restrict (κ : kernel α β) (hs : measurable_set s) (a : α) (f : β → ℝ≥0∞) :
   ∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a) :=
 by rw restrict_apply
+
+@[simp]
+lemma integral_restrict {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {f : β → E} {a : α} (hs : measurable_set s) :
+  ∫ x, f x ∂(kernel.restrict κ hs a) = ∫ x in s, f x ∂(κ a) :=
+by rw kernel.restrict_apply
 
 instance is_finite_kernel.restrict (κ : kernel α β) [is_finite_kernel κ] (hs : measurable_set s) :
   is_finite_kernel (kernel.restrict κ hs) :=

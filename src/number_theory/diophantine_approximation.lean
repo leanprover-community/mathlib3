@@ -5,7 +5,6 @@ Authors: Michael Geißer, Michael Stoll
 -/
 import tactic.basic
 import data.real.irrational
-import combinatorics.pigeonhole
 
 /-!
 # Diophantine Approximation

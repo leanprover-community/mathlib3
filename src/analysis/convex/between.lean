@@ -6,8 +6,8 @@ Authors: Joseph Myers
 import data.set.intervals.group
 import analysis.convex.segment
 import linear_algebra.affine_space.finite_dimensional
-import linear_algebra.affine_space.midpoint_zero
 import tactic.field_simp
+import algebra.char_p.invertible
 
 /-!
 # Betweenness in affine spaces

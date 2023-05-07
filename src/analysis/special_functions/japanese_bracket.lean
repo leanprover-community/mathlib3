@@ -3,6 +3,7 @@ Copyright (c) 2022 Moritz Doll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
+import measure_theory.measure.haar_lebesgue
 import measure_theory.integral.layercake
 
 /-!

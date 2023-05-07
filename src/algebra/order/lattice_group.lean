@@ -62,12 +62,6 @@ lattice, ordered, group
 
 universe u
 
--- A linearly ordered additive commutative group is a lattice ordered commutative group
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_covariant_class (α : Type u)
-  [linear_ordered_comm_group α] : covariant_class α α (*) (≤) :=
-{ elim := λ a b c bc, linear_ordered_comm_group.mul_le_mul_left _ _ bc a }
-
 variables {α : Type u} [lattice α] [comm_group α]
 
 -- Special case of Bourbaki A.VI.9 (1)

@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import category_theory.adjunction.opposites
 import order.category.BddOrd
 import order.category.Lat
 import order.category.Semilat
@@ -123,3 +124,41 @@ lemma BddLat_dual_comp_forget_to_SemilatSup :
 lemma BddLat_dual_comp_forget_to_SemilatInf :
   BddLat.dual ⋙ forget₂ BddLat SemilatInf =
     forget₂ BddLat SemilatSup ⋙ SemilatSup.dual := rfl
+
+/--  The functor that adds a bottom and a top element to a lattice. This is the free functor. -/
+def Lat_to_BddLat : Lat.{u} ⥤ BddLat :=
+{ obj := λ X, BddLat.of $ with_top $ with_bot X,
+  map := λ X Y, lattice_hom.with_top_with_bot,
+  map_id' := λ X, lattice_hom.with_top_with_bot_id,
+  map_comp' := λ X Y Z _ _, lattice_hom.with_top_with_bot_comp _ _ }
+
+/-- `Lat_to_BddLat` is left adjoint to the forgetful functor, meaning it is the free
+functor from `Lat` to `BddLat`. -/
+def Lat_to_BddLat_forget_adjunction :
+  Lat_to_BddLat.{u} ⊣ forget₂ BddLat Lat :=
+adjunction.mk_of_hom_equiv
+  { hom_equiv := λ X Y,
+    { to_fun := λ f,
+      { to_fun := f ∘ some ∘ some,
+        map_sup' := λ a b, (congr_arg f $ by refl).trans (f.map_sup' _ _),
+        map_inf' := λ a b, (congr_arg f $ by refl).trans (f.map_inf' _ _) },
+      inv_fun := lattice_hom.with_top_with_bot',
+      left_inv := λ f, bounded_lattice_hom.ext $ λ a, match a with
+          | none := f.map_top'.symm
+          | some none := f.map_bot'.symm
+          | some (some a) := rfl
+        end,
+      right_inv := λ f, lattice_hom.ext $ λ a, rfl },
+  hom_equiv_naturality_left_symm' := λ X Y Z f g, bounded_lattice_hom.ext $ λ a, match a with
+          | none := rfl
+          | some none := rfl
+          | some (some a) := rfl
+        end,
+  hom_equiv_naturality_right' := λ X Y Z f g, lattice_hom.ext $ λ a, rfl }
+
+/-- `Lat_to_BddLat` and `order_dual` commute. -/
+@[simps] def Lat_to_BddLat_comp_dual_iso_dual_comp_Lat_to_BddLat :
+ (Lat_to_BddLat.{u} ⋙ BddLat.dual) ≅ (Lat.dual ⋙ Lat_to_BddLat) :=
+adjunction.left_adjoint_uniq
+    (Lat_to_BddLat_forget_adjunction.comp BddLat.dual_equiv.to_adjunction)
+    (Lat.dual_equiv.to_adjunction.comp Lat_to_BddLat_forget_adjunction)

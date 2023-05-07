@@ -26,7 +26,7 @@ Classes of kernels:
   particular that all measures in the image of `κ` are finite, but is stronger since it requires an
   uniform bound. This stronger condition is necessary to ensure that the composition of two finite
   kernels is finite.
-* `probability_theory.kernel.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
+* `probability_theory.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
   sum of finite kernels.
 
 Particular kernels:

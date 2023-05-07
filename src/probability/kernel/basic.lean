@@ -339,26 +339,26 @@ instance is_markov_kernel_deterministic {f : α → β} (hf : measurable f) :
 
 lemma lintegral_deterministic' {f : β → ℝ≥0∞} {g : α → β} {a : α}
   (hg : measurable g) (hf : measurable f) :
-  ∫⁻ x, f x ∂(kernel.deterministic hg a) = f (g a) :=
+  ∫⁻ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
 by rw [kernel.deterministic_apply, lintegral_dirac' _ hf]
 
 @[simp]
 lemma lintegral_deterministic {f : β → ℝ≥0∞} {g : α → β} {a : α}
   (hg : measurable g) [measurable_singleton_class β] :
-  ∫⁻ x, f x ∂(kernel.deterministic hg a) = f (g a) :=
+  ∫⁻ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
 by rw [kernel.deterministic_apply, lintegral_dirac (g a) f]
 
 lemma integral_deterministic' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [complete_space E] {f : β → E} {g : α → β} {a : α}
   (hg : measurable g) (hf : strongly_measurable f) :
-  ∫ x, f x ∂(kernel.deterministic hg a) = f (g a) :=
+  ∫ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
 by rw [kernel.deterministic_apply, integral_dirac' _ _ hf]
 
 @[simp]
 lemma integral_deterministic {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [complete_space E] {f : β → E} {g : α → β} {a : α}
   (hg : measurable g) [measurable_singleton_class β] :
-  ∫ x, f x ∂(kernel.deterministic hg a) = f (g a) :=
+  ∫ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
 by rw [kernel.deterministic_apply, integral_dirac _ (g a)]
 
 

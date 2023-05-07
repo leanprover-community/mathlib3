@@ -12,9 +12,9 @@ The Lebesgue integral of a measurable function against a kernel is measurable.
 
 ## Main statements
 
-* `measurable_lintegral`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable, for an s-finite
-  kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `function.uncurry f`
-  is measurable.
+* `probability_theory.kernel.measurable_lintegral`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is
+  measurable, for an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that
+  `function.uncurry f` is measurable.
 
 
 -/

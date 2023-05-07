@@ -157,5 +157,4 @@ lemma measurable_set_lintegral' (κ : kernel α β) [is_s_finite_kernel κ]
   measurable (λ a, ∫⁻ b in s, f b ∂(κ a)) :=
 measurable_set_lintegral κ (hf.comp measurable_snd) hs
 
-
 end probability_theory.kernel

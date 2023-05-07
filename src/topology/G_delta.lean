@@ -192,9 +192,11 @@ filter.countable_generate (λ t, is_open t ∧ dense t)
 instance countable_Inter_filter_residual : countable_Inter_filter (residual α) :=
 by rw[residual]; apply_instance
 
+/-- Dense open sets are residual. -/
 lemma residual_of_dense_open {s : set α} (ho : is_open s) (hd : dense s) : s ∈ residual α :=
 countable_generate_sets.basic ⟨ho, hd⟩
 
+/-- Dense Gδ sets are residual. -/
 lemma residual_of_dense_Gδ {s : set α} (ho : is_Gδ s) (hd : dense s) : s ∈ residual α :=
 begin
   rcases ho with ⟨T, To, Tct, rfl⟩,
@@ -202,6 +204,7 @@ begin
     (hd.mono (sInter_subset_of_mem tT))),
 end
 
+/-- A set is residual iff it includes a countable intersection of dense open sets. -/
 lemma mem_residual_iff {s : set α} : s ∈ residual α ↔
   ∃ (S : set (set α)), (∀ t ∈ S, is_open t ∧ dense t) ∧ S.countable ∧ ⋂₀ S ⊆ s :=
 mem_countable_generate_iff _

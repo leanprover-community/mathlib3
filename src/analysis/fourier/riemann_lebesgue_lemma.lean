@@ -5,9 +5,7 @@ Authors: David Loeffler
 -/
 
 import measure_theory.function.continuous_map_dense
-import measure_theory.integral.integral_eq_improper
 import measure_theory.group.integration
-import topology.continuous_function.zero_at_infty
 import analysis.fourier.fourier_transform
 import analysis.inner_product_space.dual
 import topology.metric_space.emetric_paracompact

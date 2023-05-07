@@ -312,10 +312,7 @@ noncomputable instance : is_R_or_C ℂ :=
   conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
   norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
     add_monoid_hom.coe_mk, complex.norm_eq_abs],
-  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
-    complex.of_real_eq_coe, complex.norm_eq_abs],
-  div_I_ax := complex.div_I }
+  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im] }
 
 lemma _root_.is_R_or_C.re_eq_complex_re : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl
 lemma _root_.is_R_or_C.im_eq_complex_im : ⇑(is_R_or_C.im : ℂ →+ ℝ) = complex.im := rfl

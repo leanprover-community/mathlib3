@@ -435,6 +435,9 @@ begin
   apply intermediate_field.finite_dimensional_supr_of_finite,
 end
 
+instance is_scalar_tower : is_scalar_tower F (normal_closure F K L) L :=
+is_scalar_tower.subalgebra' F L L _
+
 end normal_closure
 
 end normal_closure

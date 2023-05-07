@@ -15,7 +15,7 @@ import data.set.countable
 In this file we define `countable_Inter_filter` to be the class of filters with the following
 property: for any countable collection of sets `s ∈ l` their intersection belongs to `l` as well.
 
-Two main examples are the `residual` filter defined in `topology.metric_space.baire` and
+Two main examples are the `residual` filter defined in `topology.G_delta` and
 the `measure.ae` filter defined in `measure_theory.measure_space`.
 
 We reformulate the definition in terms of indexed intersection and in terms of `filter.eventually`

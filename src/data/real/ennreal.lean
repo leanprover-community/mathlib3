@@ -1860,14 +1860,12 @@ begin
     simp_rw [← coe_infi, to_nnreal_coe] },
 end
 
-lemma to_nnreal_Inf (s : set ℝ≥0∞) (hf : ∀ r ∈ s, r ≠ ∞) :
+lemma to_nnreal_Inf (s : set ℝ≥0∞) (hs : ∀ r ∈ s, r ≠ ∞) :
   (Inf s).to_nnreal = Inf (ennreal.to_nnreal '' s) :=
 begin
-  lift s to set ℝ≥0 using hf,
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { simp_rw [set.image_empty, Inf_empty, nnreal.Inf_empty, top_to_nnreal] },
-  { have := with_top.coe_Inf' hs,
-    simp_rw [←with_top.coe_Inf' hs, set.image_image, to_nnreal_coe, set.image_id'] }
+  let f : s → ℝ≥0∞ := coe,
+  have hf : ∀ i, f i ≠ ∞ := λ⟨r, rs⟩, hs r rs,
+  simpa [←Inf_range, subtype.range_coe, ←Inf_image'] using (to_nnreal_infi hf),
 end
 
 lemma to_nnreal_supr (hf : ∀ i, f i ≠ ∞) : (supr f).to_nnreal = ⨆ i, (f i).to_nnreal :=
@@ -1878,27 +1876,15 @@ begin
   { simp_rw [← coe_supr h, to_nnreal_coe] },
   { simp_rw [nnreal.supr_of_not_bdd_above h],
     convert top_to_nnreal,
-    rw supr_eq_top,
-    intros b hb,
-    lift b to ℝ≥0 using hb.ne,
-    simp_rw [not_bdd_above_iff, mem_range, exists_prop, exists_exists_eq_and, ←coe_lt_coe] at h,
-    exact h b }
+    exact (with_top.supr_coe_eq_top f).mpr h }
 end
 
-lemma to_nnreal_Sup (s : set ℝ≥0∞) (hf : ∀ r ∈ s, r ≠ ∞) :
+lemma to_nnreal_Sup (s : set ℝ≥0∞) (hs : ∀ r ∈ s, r ≠ ∞) :
   (Sup s).to_nnreal = Sup (ennreal.to_nnreal '' s) :=
 begin
-  lift s to set ℝ≥0 using hf,
-  simp_rw [image_image, to_nnreal_coe, set.image_id'],
-  by_cases h : bdd_above s,
-  { simp_rw [← with_top.coe_Sup' h, to_nnreal_coe] },
-  { simp_rw [nnreal.Sup_of_not_bdd_above h],
-    convert top_to_nnreal,
-    simp_rw [Sup_eq_top, set.mem_image, exists_prop, exists_exists_and_eq_and],
-    intros b hb,
-    lift b to ℝ≥0 using hb.ne,
-    simp_rw [not_bdd_above_iff, ←coe_lt_coe, exists_prop] at h,
-    exact h b }
+  let f : s → ℝ≥0∞ := coe,
+  have hf : ∀ i, f i ≠ ∞ := λ⟨r, rs⟩, hs r rs,
+  simpa [←Sup_range, subtype.range_coe, ←Sup_image'] using (to_nnreal_supr hf),
 end
 
 lemma to_real_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_real = ⨅ i, (f i).to_real :=

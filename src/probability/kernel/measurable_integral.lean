@@ -32,7 +32,6 @@ namespace kernel
 
 /-- This is an auxiliary lemma for `measurable_kernel_prod_mk_left`. -/
 lemma measurable_kernel_prod_mk_left_of_finite {t : set (α × β)} (ht : measurable_set t)
->>>>>>> origin/master
   (hκs : ∀ a, is_finite_measure (κ a)) :
   measurable (λ a, κ a {b | (a, b) ∈ t}) :=
 begin

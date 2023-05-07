@@ -3,9 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.atoms
 import order.category.HeytAlg
-import order.hom.complete_lattice
 
 /-!
 # The category of boolean algebras
@@ -76,43 +74,3 @@ end BoolAlg
 lemma BoolAlg_dual_comp_forget_to_BddDistLat :
   BoolAlg.dual ⋙ forget₂ BoolAlg BddDistLat =
     forget₂ BoolAlg BddDistLat ⋙ BddDistLat.dual := rfl
-
-/-! ### Atoms -/
-
-/-- The type of atoms of an order. -/
-@[nolint inhabited_instance] def atom (α : Type*) [preorder α] [order_bot α] := {a : α // is_atom a}
-
-namespace atom
-variables {α β : Type*}
-
-
-section preorder
-variables [preorder α] [order_bot α] [preorder β] [order_bot β]
-
-instance : has_coe (atom α) α := coe_subtype
-
-@[nolint duplicated_namespace] protected lemma atom (a : atom α) : is_atom (a : α) := a.2
-
-@[ext] protected lemma ext {a b : atom α} (h : (a : α) = b) : a = b := subtype.ext h
-
-end preorder
-
-variables [lattice α] [bounded_order α] [lattice β] [bounded_order β]
-
-def comap (f : bounded_lattice_hom α β) (b : atom β) : atom α := sorry
-
-end atom
-
-/-- The powerset functor. `set` as a functor. -/
-def Type_to_BoolAlg_op : Type* ⥤ BoolAlgᵒᵖ :=
-{ obj := λ X, op $ BoolAlg.of (set X),
-  map := λ X Y f, quiver.hom.op $
-    (complete_lattice_hom.set_preimage f : bounded_lattice_hom (set Y) (set X)) }
-
-/-- The atoms functor. `atom` as a functor. -/
-def BoolAlg_op_to_Type : BoolAlgᵒᵖ ⥤ Type* :=
-{ obj := λ X, atom (unop X : BoolAlg),
-  map := λ X Y f,
-    sorry
-    -- atom.comap $ quiver.hom.unop f
-     }

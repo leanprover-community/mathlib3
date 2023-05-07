@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
-import probability.kernel.basic
+import probability.kernel.measurable_integral
 
 /-!
 # Product and composition of kernels

@@ -1864,7 +1864,7 @@ lemma to_nnreal_Inf (s : set ℝ≥0∞) (hs : ∀ r ∈ s, r ≠ ∞) :
   (Inf s).to_nnreal = Inf (ennreal.to_nnreal '' s) :=
 begin
   have hf : ∀ i, (coe : s → ℝ≥0∞) i ≠ ∞ := λ⟨r, rs⟩, hs r rs,
-  simpa [←Inf_range, subtype.range_coe, ←Inf_image'] using (to_nnreal_infi hf)
+  simpa [←Inf_range, ←Inf_image'] using to_nnreal_infi hf
 end
 
 lemma to_nnreal_supr (hf : ∀ i, f i ≠ ∞) : (supr f).to_nnreal = ⨆ i, (f i).to_nnreal :=
@@ -1882,7 +1882,7 @@ lemma to_nnreal_Sup (s : set ℝ≥0∞) (hs : ∀ r ∈ s, r ≠ ∞) :
   (Sup s).to_nnreal = Sup (ennreal.to_nnreal '' s) :=
 begin
   have hf : ∀ i, (coe : s → ℝ≥0∞) i ≠ ∞ := λ⟨r, rs⟩, hs r rs,
-  simpa [←Sup_range, subtype.range_coe, ←Sup_image'] using (to_nnreal_supr hf)
+  simpa [←Sup_range, ←Sup_image'] using to_nnreal_supr hf
 end
 
 lemma to_real_infi (hf : ∀ i, f i ≠ ∞) : (infi f).to_real = ⨅ i, (f i).to_real :=

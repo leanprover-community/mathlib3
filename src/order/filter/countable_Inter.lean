@@ -194,6 +194,7 @@ namespace filter
 
 variable (g : set (set α))
 
+/-- foo-/
 inductive countable_generate_sets : set α → Prop
 | basic {s : set α}      : s ∈ g → countable_generate_sets s
 | univ                   : countable_generate_sets univ
@@ -201,6 +202,7 @@ inductive countable_generate_sets : set α → Prop
 | Inter {S : set (set α)}  : S.countable →
     (∀ s ∈ S, countable_generate_sets s) → countable_generate_sets ⋂₀ S
 
+/-- bar-/
 def countable_generate : filter α :=
 of_countable_Inter (countable_generate_sets g) (λ S, countable_generate_sets.Inter)
   (λ s t, countable_generate_sets.superset)

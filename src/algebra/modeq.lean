@@ -21,17 +21,10 @@ This file defines equality modulo an element in a commutative group.
 
 ## TODO
 
-Delete `int.modeq` in favour of `add_comm_group.modeq`. Unify it with `smodeq`. Once this is done,
-we can rename `add_comm_group.modeq` to just `modeq`.
+Delete `int.modeq` in favour of `add_comm_group.modeq`. Generalise `smodeq` to `add_subgroup` and
+redefine `add_comm_group.modeq` using it. Once this is done, we can rename `add_comm_group.modeq`
+to `add_subgroup.modeq` and multiplicativise it.
 -/
-
-section
-variables {G : Type*} [group G]
-
-@[simp, to_additive sub_add_cancel'']
-lemma div_mul_cancel''' (a b : G) : a / (b * a) = b⁻¹ := by rw [←inv_div, mul_div_cancel'']
-
-end
 
 namespace add_comm_group
 variables {α : Type*}

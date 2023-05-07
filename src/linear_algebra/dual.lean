@@ -329,7 +329,7 @@ section finite
 variables [_root_.finite ι]
 
 /-- A vector space is linearly equivalent to its dual space. -/
-def to_dual_equiv : M ≃ₗ[R] (dual R M) :=
+def to_dual_equiv : M ≃ₗ[R] dual R M :=
 linear_equiv.of_bijective b.to_dual
   ⟨ker_eq_bot.mp b.to_dual_ker, range_eq_top.mp b.to_dual_range⟩
 

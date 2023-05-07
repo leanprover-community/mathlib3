@@ -1584,31 +1584,30 @@ section centralizer
 /-- The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`. -/
 @[to_additive "The `centralizer` of `H` is the additive subgroup of `g : G` commuting with
 every `h : H`."]
-def centralizer : subgroup G :=
-{ carrier := set.centralizer H,
+def centralizer (s : set G) : subgroup G :=
+{ carrier := set.centralizer s,
   inv_mem' := λ g, set.inv_mem_centralizer,
-  .. submonoid.centralizer ↑H }
+  .. submonoid.centralizer s }
 
-variables {H}
-
-@[to_additive] lemma mem_centralizer_iff {g : G} : g ∈ H.centralizer ↔ ∀ h ∈ H, h * g = g * h :=
+@[to_additive] lemma mem_centralizer_iff {g : G} {s : set G} :
+  g ∈ centralizer s ↔ ∀ h ∈ s, h * g = g * h :=
 iff.rfl
 
-@[to_additive] lemma mem_centralizer_iff_commutator_eq_one {g : G} :
-  g ∈ H.centralizer ↔ ∀ h ∈ H, h * g * h⁻¹ * g⁻¹ = 1 :=
+@[to_additive] lemma mem_centralizer_iff_commutator_eq_one {g : G} {s : set G} :
+  g ∈ centralizer s ↔ ∀ h ∈ s, h * g * h⁻¹ * g⁻¹ = 1 :=
 by simp only [mem_centralizer_iff, mul_inv_eq_iff_eq_mul, one_mul]
 
-@[to_additive] lemma centralizer_top : centralizer ⊤ = center G :=
+@[to_additive] lemma centralizer_univ : centralizer set.univ = center G :=
 set_like.ext' (set.centralizer_univ G)
 
-@[to_additive] lemma le_centralizer_iff : H ≤ K.centralizer ↔ K ≤ H.centralizer :=
+@[to_additive] lemma le_centralizer_iff : H ≤ centralizer K ↔ K ≤ centralizer H :=
 ⟨λ h x hx y hy, (h hy x hx).symm, λ h x hx y hy, (h hy x hx).symm⟩
 
-@[to_additive] lemma centralizer_le (h : H ≤ K) : centralizer K ≤ centralizer H :=
+@[to_additive] lemma centralizer_le {s t : set G} (h : s ⊆ t) : centralizer t ≤ centralizer s :=
 submonoid.centralizer_le h
 
 @[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :
-  H.centralizer.characteristic :=
+  (centralizer (H : set G)).characteristic :=
 begin
   refine subgroup.characteristic_iff_comap_le.mpr (λ ϕ g hg h hh, ϕ.injective _),
   rw [map_mul, map_mul],
@@ -1657,10 +1656,10 @@ end⟩⟩
   (H.subgroup_of K).is_commutative :=
 H.comap_injective_is_commutative subtype.coe_injective
 
-@[to_additive] lemma le_centralizer_iff_is_commutative : K ≤ K.centralizer ↔ K.is_commutative :=
+@[to_additive] lemma le_centralizer_iff_is_commutative : K ≤ centralizer K ↔ K.is_commutative :=
 ⟨λ h, ⟨⟨λ x y, subtype.ext (h y.2 x x.2)⟩⟩, λ h x hx y hy, congr_arg coe (h.1.1 ⟨y, hy⟩ ⟨x, hx⟩)⟩
 
-@[to_additive] lemma le_centralizer [h : H.is_commutative] : H ≤ H.centralizer :=
+@[to_additive] lemma le_centralizer [h : H.is_commutative] : H ≤ centralizer H :=
 le_centralizer_iff_is_commutative.mpr h
 
 end subgroup

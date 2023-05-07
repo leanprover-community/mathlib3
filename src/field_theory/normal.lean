@@ -135,8 +135,8 @@ local attribute [-instance] adjoin_root.has_smul
 lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] : normal F E :=
 begin
   unfreezingI { rcases eq_or_ne p 0 with rfl | hp },
-  { have : is_splitting_field F F 0 := ⟨splits_zero _, subsingleton.elim _ _⟩,
-    exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F 0).trans
+  { haveI : is_splitting_field F F 0 := ⟨splits_zero _, subsingleton.elim _ _⟩,
+    exact (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F 0).trans
       (is_splitting_field.alg_equiv E 0).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
   have hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
@@ -147,8 +147,8 @@ begin
   haveI := fact.mk q_irred,
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
-have finrankED : finite_dimensional.finrank E D = q.nat_degree :=
-    by rw [power_basis.finrank pbED, adjoin_root.power_basis_dim],
+  have finrankED : finite_dimensional.finrank E D = q.nat_degree,
+  { rw [power_basis.finrank pbED, adjoin_root.power_basis_dim] },
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   rsuffices ⟨ϕ⟩ : nonempty (D →ₐ[F] E),
   { rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
@@ -159,12 +159,12 @@ have finrankED : finite_dimensional.finrank E D = q.nat_degree :=
         from ϕ.to_ring_hom.injective)) finite_dimensional.finrank_pos, },
   let C := adjoin_root (minpoly F x),
   haveI Hx_irred := fact.mk (minpoly.irreducible Hx),
-  let : algebra C D := ring_hom.to_algebra (adjoin_root.lift
+  letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F D) (adjoin_root.root q) (by rw [algebra_map_eq F E D, ←eval₂_map, hr,
       adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
   letI : algebra C E := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F E) x (minpoly.aeval F x)),
-  have : is_scalar_tower F C D := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
+  haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
   haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
   suffices : nonempty (D →ₐ[C] E),
   { exact nonempty.map (alg_hom.restrict_scalars F) this },
@@ -185,7 +185,7 @@ have finrankED : finite_dimensional.finrank E D = q.nat_degree :=
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C S),
   suffices : (algebra.adjoin C S).restrict_scalars F
-           = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
+            = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
   { rw [adjoin_root.adjoin_root_eq_top, subalgebra.restrict_scalars_top,
       ←@subalgebra.restrict_scalars_top F C] at this,
     exact top_le_iff.mpr (subalgebra.restrict_scalars_injective F this) },

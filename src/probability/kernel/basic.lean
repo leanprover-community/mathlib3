@@ -17,27 +17,30 @@ sets `s` of `β`, `a ↦ κ a s` is measurable.
 ## Main definitions
 
 Classes of kernels:
-* `kernel α β`: kernels from `α` to `β`, defined as the `add_submonoid` of the measurable
-  functions in `α → measure β`.
-* `is_markov_kernel κ`: a kernel from `α` to `β` is said to be a Markov kernel if for all `a : α`,
-  `k a` is a probability measure.
-* `is_finite_kernel κ`: a kernel from `α` to `β` is said to be finite if there exists `C : ℝ≥0∞`
-  such that `C < ∞` and for all `a : α`, `κ a univ ≤ C`. This implies in particular that all
-  measures in the image of `κ` are finite, but is stronger since it requires an uniform bound. This
-  stronger condition is necessary to ensure that the composition of two finite kernels is finite.
-* `is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable sum of finite kernels.
+* `probability_theory.kernel α β`: kernels from `α` to `β`, defined as the `add_submonoid` of the
+  measurable functions in `α → measure β`.
+* `probability_theory.is_markov_kernel κ`: a kernel from `α` to `β` is said to be a Markov kernel
+  if for all `a : α`, `k a` is a probability measure.
+* `probability_theory.is_finite_kernel κ`: a kernel from `α` to `β` is said to be finite if there
+  exists `C : ℝ≥0∞` such that `C < ∞` and for all `a : α`, `κ a univ ≤ C`. This implies in
+  particular that all measures in the image of `κ` are finite, but is stronger since it requires an
+  uniform bound. This stronger condition is necessary to ensure that the composition of two finite
+  kernels is finite.
+* `probability_theory.kernel.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
+  sum of finite kernels.
 
 Particular kernels:
-* `deterministic (f : α → β) (hf : measurable f)`: kernel `a ↦ measure.dirac (f a)`.
-* `const α (μβ : measure β)`: constant kernel `a ↦ μβ`.
-* `kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of `a : α` is
-  `(κ a).restrict s`.
+* `probability_theory.kernel.deterministic (f : α → β) (hf : measurable f)`:
+  kernel `a ↦ measure.dirac (f a)`.
+* `probability_theory.kernel.const α (μβ : measure β)`: constant kernel `a ↦ μβ`.
+* `probability_theory.kernel.restrict κ (hs : measurable_set s)`: kernel for which the image of
+  `a : α` is `(κ a).restrict s`.
   Integral: `∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a)`
 
 ## Main statements
 
-* `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f` and all `a`,
-  then the two kernels `κ` and `η` are equal.
+* `probability_theory.kernel.ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable
+  functions `f` and all `a`, then the two kernels `κ` and `η` are equal.
 
 -/
 

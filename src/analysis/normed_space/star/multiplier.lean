@@ -60,14 +60,19 @@ open nnreal continuous_linear_map mul_opposite
 
 universes u v
 
+-- Backporting note: this used to extend `(A →L[𝕜] A) × (A →L[𝕜] A)`
+-- rather than having fields `fst` and `snd`.
+-- However the mathlib4 refactor https://github.com/leanprover-community/mathlib4/pull/3840
+-- when backported caused a timeout here. I don't understand why this timeout occurs,
+-- but flattening the fields `fst` and `snd` into the structure seems to resolve it.
 /-- The type of *double centralizers*, also known as the *multiplier algebra* and denoted by
 `𝓜(𝕜, A)`, of a non-unital normed algebra.
 
 If `x : 𝓜(𝕜, A)`, then `x.fst` and `x.snd` are what is usually referred to as $L$ and $R$. -/
 @[ext]
 structure double_centralizer (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜]
-  [non_unital_normed_ring A] [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A]
-  extends (A →L[𝕜] A) × (A →L[𝕜] A) :=
+  [non_unital_normed_ring A] [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A] :=
+(fst snd : A →L[𝕜] A)
 (central : ∀ x y : A, snd x * y = x * fst y)
 
 localized "notation `𝓜(` 𝕜 `, ` A `)` := double_centralizer 𝕜 A" in multiplier_algebra
@@ -89,29 +94,44 @@ algebra structure from `(A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` to `𝓜(
 
 variables {𝕜 A}
 
+@[simps]
+def to_prod (x : 𝓜(𝕜, A)) : (A →L[𝕜] A) × (A →L[𝕜] A) := (x.fst, x.snd)
+
+@[ext]
+lemma prod_ext (x y : 𝓜(𝕜, A)) (w : x.to_prod = y.to_prod) : x = y :=
+begin
+  ext1,
+  convert congr_arg prod.fst w,
+  convert congr_arg prod.snd w,
+end
+
 lemma range_to_prod : set.range to_prod = {lr : (A →L[𝕜] A) × _ | ∀ x y, lr.2 x * y = x * lr.1 y} :=
-set.ext $ λ x, ⟨by {rintro ⟨a, rfl⟩, exact a.central}, λ hx, ⟨⟨x, hx⟩, rfl⟩⟩
+set.ext $ λ x, ⟨by {rintro ⟨a, rfl⟩, exact a.central}, λ hx, ⟨⟨x.1, x.2, hx⟩, by ext; simp⟩⟩
 
 instance : has_add 𝓜(𝕜, A) :=
 { add := λ a b,
-  { to_prod := a.to_prod + b.to_prod,
+  { fst := a.fst + b.fst,
+    snd := a.snd + b.snd,
     central := λ x y, show (a.snd + b.snd) x * y = x * (a.fst + b.fst) y,
       by simp only [continuous_linear_map.add_apply, mul_add, add_mul, central] } }
 
 instance : has_zero 𝓜(𝕜, A) :=
 { zero :=
-  { to_prod := 0,
+  { fst := 0,
+    snd := 0,
     central := λ x y, (zero_mul y).trans (mul_zero x).symm } }
 
 instance : has_neg 𝓜(𝕜, A) :=
 { neg := λ a,
-  { to_prod := -a.to_prod,
+  { fst := -a.fst,
+    snd := -a.snd,
     central := λ x y, show -a.snd x * y = x * -a.fst y,
       by simp only [continuous_linear_map.neg_apply, neg_mul, mul_neg, central] } }
 
 instance : has_sub 𝓜(𝕜, A) :=
 { sub := λ a b,
-  { to_prod := a.to_prod - b.to_prod,
+  { fst := a.fst - b.fst,
+    snd := a.snd - b.snd,
     central := λ x y, show (a.snd - b.snd) x * y = x * (a.fst - b.fst) y,
       by simp only [continuous_linear_map.sub_apply, sub_mul, mul_sub, central] } }
 
@@ -122,7 +142,8 @@ variables {S : Type*} [monoid S] [distrib_mul_action S A] [smul_comm_class 𝕜 
 
 instance : has_smul S 𝓜(𝕜, A) :=
 { smul := λ s a,
-  { to_prod := s • a.to_prod,
+  { fst := s • a.fst,
+    snd := s • a.snd,
     central := λ x y, show (s • a.snd) x * y = x * (s • a.fst) y,
       by simp only [continuous_linear_map.smul_apply, mul_smul_comm, smul_mul_assoc, central] } }
 
@@ -134,47 +155,45 @@ variables {T : Type*} [monoid T] [distrib_mul_action T A] [smul_comm_class 𝕜 
   [has_continuous_const_smul T A] [is_scalar_tower T A A] [smul_comm_class T A A]
 
 instance [has_smul S T] [is_scalar_tower S T A] : is_scalar_tower S T 𝓜(𝕜, A) :=
-{ smul_assoc := λ _ _ a, ext _ _ $ smul_assoc _ _ a.to_prod }
+{ smul_assoc := λ _ _ a, ext _ _ (smul_assoc _ _ a.fst) (smul_assoc _ _ a.snd) }
 
 instance [smul_comm_class S T A] : smul_comm_class S T 𝓜(𝕜, A) :=
-{ smul_comm := λ _ _ a, ext _ _ $ smul_comm _ _ a.to_prod }
+{ smul_comm := λ _ _ a, ext _ _ (smul_comm _ _ a.fst)(smul_comm _ _ a.snd) }
 
 instance {R : Type*} [semiring R] [module R A] [smul_comm_class 𝕜 R A]
   [has_continuous_const_smul R A] [is_scalar_tower R A A] [smul_comm_class R A A]
   [module Rᵐᵒᵖ A] [is_central_scalar R A] : is_central_scalar R 𝓜(𝕜, A) :=
-{ op_smul_eq_smul := λ _ a, ext _ _ $ op_smul_eq_smul _ a.to_prod }
+{ op_smul_eq_smul := λ _ a, ext _ _ (op_smul_eq_smul _ a.fst) (op_smul_eq_smul _ a.snd) }
 
 end scalars
 
-instance : has_one 𝓜(𝕜, A) := ⟨⟨1, λ x y, rfl⟩⟩
+instance : has_one 𝓜(𝕜, A) := ⟨⟨1, 1, λ x y, rfl⟩⟩
 
 instance : has_mul 𝓜(𝕜, A) :=
 { mul := λ a b,
-  { to_prod := (a.fst.comp b.fst, b.snd.comp a.snd),
+  { fst := a.fst.comp b.fst,
+    snd := b.snd.comp a.snd,
     central := λ x y, show b.snd (a.snd x) * y = x * a.fst (b.fst y),
       by simp only [central] } }
 
 instance : has_nat_cast 𝓜(𝕜, A) :=
-{ nat_cast := λ n, ⟨n, λ x y,
+{ nat_cast := λ n, ⟨n, n, λ x y,
   begin
-    rw [prod.snd_nat_cast, prod.fst_nat_cast],
     simp only [←nat.smul_one_eq_coe, smul_apply, one_apply, mul_smul_comm, smul_mul_assoc],
   end⟩ }
 
 instance : has_int_cast 𝓜(𝕜, A) :=
-{ int_cast := λ n, ⟨n, λ x y,
+{ int_cast := λ n, ⟨n, n, λ x y,
   begin
-    rw [prod.snd_int_cast, prod.fst_int_cast],
     simp only [←int.smul_one_eq_coe, smul_apply, one_apply, mul_smul_comm, smul_mul_assoc],
   end⟩ }
 
 instance : has_pow 𝓜(𝕜, A) ℕ :=
-{ pow := λ a n, ⟨a.to_prod ^ n, λ x y,
+{ pow := λ a n, ⟨a.fst ^ n, a.snd ^ n, λ x y,
   begin
     induction n with k hk generalizing x y,
     { refl },
-    { rw [prod.pow_snd, prod.pow_fst] at hk ⊢,
-      rw [pow_succ a.snd, mul_apply, a.central, hk, pow_succ' a.fst, mul_apply] },
+    { rw [pow_succ a.snd, mul_apply, a.central, hk, pow_succ' a.fst, mul_apply] },
   end⟩ }
 
 instance : inhabited 𝓜(𝕜, A) := ⟨0⟩
@@ -214,12 +233,12 @@ def to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A
 
 lemma to_prod_mul_opposite_injective :
   function.injective (to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ) :=
-λ a b h, let h' := prod.ext_iff.mp h in ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2
+λ a b h, let h' := prod.ext_iff.mp h in prod_ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2
 
 lemma range_to_prod_mul_opposite :
   set.range to_prod_mul_opposite = {lr : (A →L[𝕜] A) × _ | ∀ x y, unop lr.2 x * y = x * lr.1 y} :=
 set.ext $ λ x,
-  ⟨by {rintro ⟨a, rfl⟩, exact a.central}, λ hx, ⟨⟨(x.1, unop x.2), hx⟩, prod.ext rfl rfl⟩⟩
+  ⟨by {rintro ⟨a, rfl⟩, exact a.central}, λ hx, ⟨⟨x.1, unop x.2, hx⟩, prod.ext rfl rfl⟩⟩
 
 /-- The ring structure is inherited as the pullback under the injective map
 `double_centralizer.to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` -/
@@ -252,21 +271,22 @@ def to_prod_mul_opposite_hom : 𝓜(𝕜, A) →+* (A →L[𝕜] A) × (A →L[�
 instance {S : Type*} [semiring S] [module S A] [smul_comm_class 𝕜 S A]
   [has_continuous_const_smul S A] [is_scalar_tower S A A] [smul_comm_class S A A] :
   module S 𝓜(𝕜, A) :=
-function.injective.module S to_prod_hom ext (λ x y, rfl)
+function.injective.module S to_prod_hom prod_ext (λ x y, rfl)
 
 -- TODO: generalize to `algebra S 𝓜(𝕜, A)` once `continuous_linear_map.algebra` is generalized.
 instance : algebra 𝕜 𝓜(𝕜, A) :=
 { to_fun := λ k,
-  { to_prod := algebra_map 𝕜 ((A →L[𝕜] A) × (A →L[𝕜] A)) k,
-    central := λ x y, by simp_rw [prod.algebra_map_apply, algebra.algebra_map_eq_smul_one,
+  { fst := algebra_map 𝕜 (A →L[𝕜] A) k,
+    snd := algebra_map 𝕜 (A →L[𝕜] A) k,
+    central := λ x y, by simp_rw [algebra.algebra_map_eq_smul_one,
       smul_apply, one_apply, mul_smul_comm, smul_mul_assoc] },
-  map_one' := ext _ _ $ map_one $ algebra_map 𝕜 ((A →L[𝕜] A) × (A →L[𝕜] A)),
-  map_mul' := λ k₁ k₂, ext _ _ $ prod.ext (map_mul (algebra_map 𝕜 (A →L[𝕜] A)) _ _)
+  map_one' := prod_ext _ _ $ map_one $ algebra_map 𝕜 ((A →L[𝕜] A) × (A →L[𝕜] A)),
+  map_mul' := λ k₁ k₂, prod_ext _ _ $ prod.ext (map_mul (algebra_map 𝕜 (A →L[𝕜] A)) _ _)
     ((map_mul (algebra_map 𝕜 (A →L[𝕜] A)) _ _).trans (algebra.commutes _ _)),
-  map_zero' := ext _ _ $ map_zero $ algebra_map 𝕜 ((A →L[𝕜] A) × (A →L[𝕜] A)),
-  map_add' := λ _ _, ext _ _ $ map_add (algebra_map 𝕜 ((A →L[𝕜] A) × (A →L[𝕜] A))) _ _,
-  commutes' := λ _ _, ext _ _ $ prod.ext (algebra.commutes _ _) (algebra.commutes _ _).symm,
-  smul_def' := λ _ _, ext _ _ $ prod.ext (algebra.smul_def _ _)
+  map_zero' := prod_ext _ _ $ map_zero $ algebra_map 𝕜 ((A →L[𝕜] A) × (A →L[𝕜] A)),
+  map_add' := λ _ _, prod_ext _ _ $ map_add (algebra_map 𝕜 ((A →L[𝕜] A) × (A →L[𝕜] A))) _ _,
+  commutes' := λ _ _, prod_ext _ _ $ prod.ext (algebra.commutes _ _) (algebra.commutes _ _).symm,
+  smul_def' := λ _ _, prod_ext _ _ $ prod.ext (algebra.smul_def _ _)
     ((algebra.smul_def _ _).trans $ algebra.commutes _ _) }
 
 @[simp] lemma algebra_map_to_prod (k : 𝕜) :
@@ -297,14 +317,15 @@ instance : has_star 𝓜(𝕜, A) :=
 @[simp] lemma star_snd (a : 𝓜(𝕜, A)) (b : A) : (star a).snd b = star (a.fst (star b)) := rfl
 
 instance : star_add_monoid 𝓜(𝕜, A) :=
-{ star_involutive := λ x, by {ext; simp only [star_fst, star_snd, star_star]},
-  star_add := λ x y, by {ext; simp only [star_fst, star_snd, add_fst, add_snd,
-    continuous_linear_map.add_apply, star_add]},
+{ star_involutive := λ x,
+    by {ext; simp only [to_prod_fst, to_prod_snd, star_fst, star_snd, star_star]},
+  star_add := λ x y, by {ext; simp only [to_prod_fst, to_prod_snd, star_fst, star_snd, add_fst,
+    add_snd, continuous_linear_map.add_apply, star_add]},
   .. double_centralizer.has_star }
 
 instance : star_ring 𝓜(𝕜, A) :=
-{ star_mul := λ a b, by {ext; simp only [star_fst, star_snd, mul_fst, mul_snd, star_star,
-    continuous_linear_map.coe_mul, function.comp_app]},
+{ star_mul := λ a b, by {ext; simp only [to_prod_fst, to_prod_snd, star_fst, star_snd, mul_fst,
+    mul_snd, star_star, continuous_linear_map.coe_mul, function.comp_app]},
   .. double_centralizer.star_add_monoid }
 
 instance : star_module 𝕜 𝓜(𝕜, A) :=
@@ -337,8 +358,8 @@ lemma coe_snd (a : A) : (a : 𝓜(𝕜, A)).snd = (continuous_linear_map.mul �
 lemma coe_eq_algebra_map : (coe : 𝕜 → 𝓜(𝕜, 𝕜)) = algebra_map 𝕜 𝓜(𝕜, 𝕜) :=
 begin
   ext;
-  simp only [coe_fst, mul_apply', mul_one, algebra_map_to_prod, prod.algebra_map_apply, coe_snd,
-    flip_apply, one_mul];
+  simp only [to_prod_fst, to_prod_snd, coe_fst, mul_apply', mul_one, algebra_map_to_prod,
+    prod.algebra_map_apply, coe_snd, flip_apply, one_mul];
   simp only [algebra.algebra_map_eq_smul_one, smul_apply, one_apply, smul_eq_mul, mul_one],
 end
 
@@ -348,14 +369,16 @@ homomorphism. -/
 noncomputable def coe_hom [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A] :
   A →⋆ₙₐ[𝕜] 𝓜(𝕜, A) :=
 { to_fun := λ a, a,
-  map_smul' := λ k a, by ext; simp only [coe_fst, coe_snd, continuous_linear_map.map_smul,
-    smul_fst, smul_snd],
-  map_zero' := by ext; simp only [coe_fst, coe_snd, map_zero, zero_fst, zero_snd],
-  map_add' := λ a b, by ext; simp only [coe_fst, coe_snd, map_add, add_fst, add_snd],
-  map_mul' := λ a b, by ext; simp only [coe_fst, coe_snd, mul_apply', flip_apply, mul_fst, mul_snd,
-    continuous_linear_map.coe_mul, function.comp_app, mul_assoc],
-  map_star' := λ a, by ext; simp only [coe_fst, coe_snd, mul_apply', star_fst, star_snd,
-    flip_apply, star_mul, star_star] }
+  map_smul' := λ k a, by ext; simp only [to_prod_fst, to_prod_snd, coe_fst, coe_snd,
+    continuous_linear_map.map_smul, smul_fst, smul_snd],
+  map_zero' := by ext; simp only [to_prod_fst, to_prod_snd, coe_fst, coe_snd, map_zero, zero_fst,
+    zero_snd],
+  map_add' := λ a b, by ext; simp only [to_prod_fst, to_prod_snd, coe_fst, coe_snd, map_add,
+    add_fst, add_snd],
+  map_mul' := λ a b, by ext; simp only [to_prod_fst, to_prod_snd, coe_fst, coe_snd, mul_apply',
+    flip_apply, mul_fst, mul_snd, continuous_linear_map.coe_mul, function.comp_app, mul_assoc],
+  map_star' := λ a, by ext; simp only [to_prod_fst, to_prod_snd, coe_fst, coe_snd, mul_apply',
+    star_fst, star_snd, flip_apply, star_mul, star_star] }
 
 /-!
 ### Norm structures
@@ -446,8 +469,8 @@ end
 
 lemma nnnorm_fst_eq_snd (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a.snd‖₊ := subtype.ext $ norm_fst_eq_snd a
 @[simp] lemma norm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖ = ‖a‖ :=
-  by simp only [norm_def, to_prod_hom_apply, prod.norm_def, norm_fst_eq_snd, max_eq_right,
-    eq_self_iff_true]
+  by simp only [to_prod_fst, to_prod_snd, norm_def, to_prod_hom_apply, prod.norm_def,
+    norm_fst_eq_snd, max_eq_right, eq_self_iff_true]
 @[simp] lemma norm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖ = ‖a‖ := by rw [←norm_fst, norm_fst_eq_snd]
 @[simp] lemma nnnorm_fst (a : 𝓜(𝕜, A)) : ‖a.fst‖₊ = ‖a‖₊ := subtype.ext (norm_fst a)
 @[simp] lemma nnnorm_snd (a : 𝓜(𝕜, A)) : ‖a.snd‖₊ = ‖a‖₊ := subtype.ext (norm_snd a)

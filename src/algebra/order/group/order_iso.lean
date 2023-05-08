@@ -52,7 +52,7 @@ lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
 (order_iso.inv α).le_symm_apply
 
 /-- `x ↦ a / x` as an order-reversing equivalence. -/
-@[to_additive "`x ↦ a / x` as an order-reversing equivalence.", simps]
+@[to_additive "`x ↦ a - x` as an order-reversing equivalence.", simps]
 def order_iso.div_left (a : α) : α ≃o αᵒᵈ :=
 { to_equiv := (equiv.div_left a).trans order_dual.to_dual,
   map_rel_iff' := λ x y, @div_le_div_iff_left α _ _ _ _ _ _ _ }
@@ -81,7 +81,7 @@ def order_iso.mul_right (a : α) : α ≃o α :=
 by { ext x, refl }
 
 /-- `x ↦ x / a` as an order isomorphism. -/
-@[to_additive "`x ↦ x / a` as an order isomorphism.", simps]
+@[to_additive "`x ↦ x - a` as an order isomorphism.", simps]
 def order_iso.div_right (a : α) : α ≃o α :=
 { to_equiv := equiv.div_right a,
   map_rel_iff' := λ x y, div_le_div_iff_right a }

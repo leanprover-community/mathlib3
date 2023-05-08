@@ -63,6 +63,9 @@ op_homeomorph.comap_nhds_eq x
 @[simp, to_additive] lemma comap_unop_nhds (x : M) : comap (unop : Mᵐᵒᵖ → M) (𝓝 x) = 𝓝 (op x) :=
 op_homeomorph.symm.comap_nhds_eq x
 
+@[to_additive]
+instance {M : Type*} [topological_space M] [discrete_topology M] : discrete_topology Mᵐᵒᵖ :=
+inducing.discrete_topology mul_opposite.unop_injective rfl
 end mul_opposite
 
 namespace units
@@ -116,7 +119,9 @@ by simp only [inducing_embed_product.continuous_iff, embed_product_apply, (∘),
 (units.continuous_iff.1 continuous_id).2
 
 /-- The inverse map `units.inv` is continuous with respect to the topology induced by
-  `units.coe_hom` on units. -/
+  `units.coe_hom` on units.
+
+  Note this is not the topology used by default in mathlib.-/
 @[continuity]
 lemma induced_top_cont_inv {X : Type*} [topological_space X] [discrete_topology X] [monoid X] :
   @continuous _ _ (topological_space.induced (units.coe_hom X) infer_instance) _
@@ -142,10 +147,6 @@ begin
   swap, { refine embedding.discrete_topology (embedding.mk ⟨rfl⟩ mul_opposite.unop_injective), },
   { apply_instance, },
 end
-
-@[to_additive]
-instance {M : Type*} [topological_space M] [discrete_topology M] : discrete_topology Mᵐᵒᵖ :=
-inducing.discrete_topology mul_opposite.unop_injective rfl
 
 lemma discrete_prod_units {X Y : Type*} [monoid X] [monoid Y] [topological_space X]
   [discrete_topology X] [topological_space Y] [discrete_topology Y] : discrete_topology (X × Y)ˣ :=

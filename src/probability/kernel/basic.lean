@@ -44,9 +44,9 @@ Particular kernels:
 
 -/
 
-open measure_theory
-
 open_locale measure_theory ennreal nnreal big_operators
+
+open measure_theory
 
 namespace probability_theory
 
@@ -348,6 +348,18 @@ lemma lintegral_deterministic {f : β → ℝ≥0∞} {g : α → β} {a : α}
   ∫⁻ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
 by rw [kernel.deterministic_apply, lintegral_dirac (g a) f]
 
+lemma set_lintegral_deterministic' {f : β → ℝ≥0∞} {g : α → β} {a : α}
+  (hg : measurable g) (hf : measurable f) {s : set β} (hs : measurable_set s)
+  [decidable (g a ∈ s)] :
+  ∫⁻ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
+by rw [kernel.deterministic_apply, set_lintegral_dirac' hf hs]
+
+@[simp]
+lemma set_lintegral_deterministic {f : β → ℝ≥0∞} {g : α → β} {a : α}
+  (hg : measurable g) [measurable_singleton_class β] (s : set β) [decidable (g a ∈ s)] :
+  ∫⁻ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
+by { rw [kernel.deterministic_apply, set_lintegral_dirac f s], apply_instance, }
+
 lemma integral_deterministic' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [complete_space E] {f : β → E} {g : α → β} {a : α}
   (hg : measurable g) (hf : strongly_measurable f) :
@@ -361,6 +373,19 @@ lemma integral_deterministic {E : Type*} [normed_add_comm_group E] [normed_space
   ∫ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
 by rw [kernel.deterministic_apply, integral_dirac _ (g a)]
 
+lemma set_integral_deterministic' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {g : α → β} {a : α}
+  (hg : measurable g) (hf : strongly_measurable f) {s : set β} (hs : measurable_set s)
+  [decidable (g a ∈ s)] :
+  ∫ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
+by rw [kernel.deterministic_apply, set_integral_dirac' hf hs]
+
+@[simp]
+lemma set_integral_deterministic {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {g : α → β} {a : α}
+  (hg : measurable g) [measurable_singleton_class β] (s : set β) [decidable (g a ∈ s)] :
+  ∫ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
+by { rw [kernel.deterministic_apply, set_integral_dirac f s], apply_instance, }
 
 end deterministic
 

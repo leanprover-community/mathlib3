@@ -1532,6 +1532,29 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
+lemma set_integral_dirac' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} (hf : strongly_measurable f)
+  {s : set β} (hs : measurable_set s) [decidable (b ∈ s)] :
+  ∫ x in s, f x ∂(measure.dirac b) = if b ∈ s then f b else 0 :=
+begin
+  rw [restrict_dirac' hs],
+  swap, { apply_instance, },
+  split_ifs,
+  { exact integral_dirac' _ _ hf, },
+  { exact integral_zero_measure _, },
+end
+
+lemma set_integral_dirac {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] (f : β → E)
+  (s : set β) [measurable_singleton_class β] [decidable (b ∈ s)] :
+  ∫ x in s, f x ∂(measure.dirac b) = if b ∈ s then f (b) else 0 :=
+begin
+  rw [restrict_dirac],
+  split_ifs,
+  { exact integral_dirac _ _, },
+  { exact integral_zero_measure _, },
+end
+
 lemma mul_meas_ge_le_integral_of_nonneg [is_finite_measure μ] {f : α → ℝ} (hf_nonneg : 0 ≤ f)
   (hf_int : integrable f μ) (ε : ℝ) :
   ε * (μ {x | ε ≤ f x}).to_real ≤ ∫ x, f x ∂μ :=

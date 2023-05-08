@@ -32,6 +32,47 @@ open_locale classical topology big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
+
+section move_this
+
+variables {α β : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  {b : β} {s : set β}
+include mβ
+
+-- todo after the port: move to measure_theory/measure/measure_space
+lemma restrict_dirac' (hs : measurable_set s) [decidable (b ∈ s)] :
+  (measure.dirac b).restrict s = if b ∈ s then measure.dirac b else 0 :=
+begin
+  ext1 t ht,
+  classical,
+  simp only [measure.restrict_apply ht, measure.dirac_apply' _ (ht.inter hs), set.indicator_apply,
+    set.mem_inter_iff, pi.one_apply],
+  by_cases has : b ∈ s,
+  { simp only [has, and_true, if_true],
+    split_ifs with hat,
+    { rw measure.dirac_apply_of_mem hat, },
+    { simp only [measure.dirac_apply' _ ht, set.indicator_apply, hat, if_false], }, },
+  { simp only [has, and_false, if_false, measure.coe_zero, pi.zero_apply], },
+end
+
+-- todo after the port: move to measure_theory/measure/measure_space
+lemma restrict_dirac [measurable_singleton_class β] [decidable (b ∈ s)] :
+  (measure.dirac b).restrict s = if b ∈ s then measure.dirac b else 0 :=
+begin
+  ext1 t ht,
+  classical,
+  simp only [measure.restrict_apply ht, measure.dirac_apply _, set.indicator_apply,
+    set.mem_inter_iff, pi.one_apply],
+  by_cases has : b ∈ s,
+  { simp only [has, and_true, if_true],
+    split_ifs with hat,
+    { rw measure.dirac_apply_of_mem hat, },
+    { simp only [measure.dirac_apply' _ ht, set.indicator_apply, hat, if_false], }, },
+  { simp only [has, and_false, if_false, measure.coe_zero, pi.zero_apply], },
+end
+
+end move_this
+
 local infixr ` →ₛ `:25 := simple_func
 
 variables {α β γ δ : Type*}
@@ -1287,6 +1328,27 @@ by simp [lintegral_congr_ae (ae_eq_dirac' hf)]
 lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
+
+lemma set_lintegral_dirac' {a : α} {f : α → ℝ≥0∞} (hf : measurable f)
+  {s : set α} (hs : measurable_set s) [decidable (a ∈ s)] :
+  ∫⁻ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
+begin
+  rw [restrict_dirac' hs],
+  swap, { apply_instance, },
+  split_ifs,
+  { exact lintegral_dirac' _ hf, },
+  { exact lintegral_zero_measure _, },
+end
+
+lemma set_lintegral_dirac {a : α} (f : α → ℝ≥0∞)
+  (s : set α) [measurable_singleton_class α] [decidable (a ∈ s)] :
+  ∫⁻ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
+begin
+  rw [restrict_dirac],
+  split_ifs,
+  { exact lintegral_dirac _ _, },
+  { exact lintegral_zero_measure _, },
+end
 
 lemma lintegral_count' {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂count = ∑' a, f a :=

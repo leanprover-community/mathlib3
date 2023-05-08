@@ -48,12 +48,7 @@ lemma le_normal_closure : K ≤ K.normal_closure :=
 K.field_range_val.symm.trans_le (field_range_le_normal_closure K.val)
 
 lemma normal_closure_of_normal [normal F K] : K.normal_closure = K :=
-begin
-  haveI : is_scalar_tower F K K := by apply_instance,
-  refine le_antisymm (normal_closure_le_iff.mpr (λ f, _)) K.le_normal_closure,
-  rintros - ⟨a, rfl⟩,
-  exact f.restrict_normal_commutes K a ▸ (f.restrict_normal K a).2,
-end
+by simp only [normal_closure_def, alg_hom.field_range_of_normal, supr_const]
 
 lemma normal_closure_normal_closure [normal F L] :
   K.normal_closure.normal_closure = K.normal_closure :=

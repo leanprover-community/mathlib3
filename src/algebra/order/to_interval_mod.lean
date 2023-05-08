@@ -524,6 +524,12 @@ end add_comm_group
 
 open add_comm_group
 
+/-- If `a` and `b` fall within the same cycle WRT `c`, then they are congruent modulo `p`. -/
+@[simp] lemma to_Ico_mod_inj {c : α} : to_Ico_mod hp c a = to_Ico_mod hp c b ↔ a ≡ b [PMOD p] :=
+by simp_rw [to_Ico_mod_eq_to_Ico_mod, modeq_iff_eq_add_zsmul, sub_eq_iff_eq_add']
+
+alias to_Ico_mod_inj ↔ _ add_comm_group.modeq.to_Ico_mod_eq_to_Ico_mod
+
 lemma Ico_eq_locus_Ioc_eq_Union_Ioo :
   {b | to_Ico_mod hp a b = to_Ioc_mod hp a b} = ⋃ z : ℤ, set.Ioo (a + z • p) (a + p + z • p) :=
 begin

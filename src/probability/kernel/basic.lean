@@ -419,9 +419,20 @@ lemma lintegral_const {f : β → ℝ≥0∞} {μ : measure β} {a : α} :
 by rw kernel.const_apply
 
 @[simp]
+lemma set_lintegral_const {f : β → ℝ≥0∞} {μ : measure β} {a : α} {s : set β} :
+  ∫⁻ x in s, f x ∂(kernel.const α μ a) = ∫⁻ x in s, f x ∂μ :=
+by rw kernel.const_apply
+
+@[simp]
 lemma integral_const {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   {f : β → E} {μ : measure β} {a : α} :
   ∫ x, f x ∂(kernel.const α μ a) = ∫ x, f x ∂μ :=
+by rw kernel.const_apply
+
+@[simp]
+lemma set_integral_const {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {f : β → E} {μ : measure β} {a : α} {s : set β} :
+  ∫ x in s, f x ∂(kernel.const α μ a) = ∫ x in s, f x ∂μ :=
 by rw kernel.const_apply
 
 end const
@@ -469,10 +480,16 @@ lemma lintegral_restrict (κ : kernel α β) (hs : measurable_set s) (a : α) (f
 by rw restrict_apply
 
 @[simp]
-lemma integral_restrict {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
-  {f : β → E} {a : α} (hs : measurable_set s) :
-  ∫ x, f x ∂(kernel.restrict κ hs a) = ∫ x in s, f x ∂(κ a) :=
-by rw kernel.restrict_apply
+lemma set_lintegral_restrict (κ : kernel α β) (hs : measurable_set s) (a : α) (f : β → ℝ≥0∞)
+  (t : set β) :
+  ∫⁻ b in t, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in (t ∩ s), f b ∂(κ a) :=
+by rw [restrict_apply, measure.restrict_restrict' hs]
+
+@[simp]
+lemma set_integral_restrict {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {a : α} (hs : measurable_set s) (t : set β) :
+  ∫ x in t, f x ∂(kernel.restrict κ hs a) = ∫ x in (t ∩ s), f x ∂(κ a) :=
+by rw [restrict_apply, measure.restrict_restrict' hs]
 
 instance is_finite_kernel.restrict (κ : kernel α β) [is_finite_kernel κ] (hs : measurable_set s) :
   is_finite_kernel (kernel.restrict κ hs) :=

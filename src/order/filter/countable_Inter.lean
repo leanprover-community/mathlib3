@@ -233,7 +233,7 @@ begin
   exact countable_generate_sets.basic (Sg H),
 end
 
-lemma sets_iff_countable_generate {f : filter α} [countable_Inter_filter f] :
+lemma le_countable_generate_iff_of_countable_Inter_filter {f : filter α} [countable_Inter_filter f] :
   f ≤ countable_generate g ↔ g ⊆ f.sets :=
 begin
   split; intro h,

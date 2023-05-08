@@ -26,7 +26,7 @@ Classes of kernels:
   particular that all measures in the image of `κ` are finite, but is stronger since it requires an
   uniform bound. This stronger condition is necessary to ensure that the composition of two finite
   kernels is finite.
-* `probability_theory.kernel.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
+* `probability_theory.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
   sum of finite kernels.
 
 Particular kernels:
@@ -154,10 +154,16 @@ instance is_markov_kernel.is_finite_kernel [h : is_markov_kernel κ] : is_finite
 
 namespace kernel
 
-@[ext] lemma ext {κ : kernel α β} {η : kernel α β} (h : ∀ a, κ a = η a) : κ = η :=
+@[ext] lemma ext {η : kernel α β} (h : ∀ a, κ a = η a) : κ = η :=
 by { ext1, ext1 a, exact h a, }
 
-lemma ext_fun {κ η : kernel α β} (h : ∀ a f, measurable f → ∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)) :
+lemma ext_iff {η : kernel α β} : κ = η ↔ ∀ a, κ a = η a :=
+⟨λ h a, by rw h, ext⟩
+
+lemma ext_iff' {η : kernel α β} : κ = η ↔ ∀ a (s : set β) (hs : measurable_set s), κ a s = η a s :=
+by simp_rw [ext_iff, measure.ext_iff]
+
+lemma ext_fun {η : kernel α β} (h : ∀ a f, measurable f → ∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)) :
   κ = η :=
 begin
   ext a s hs,
@@ -165,6 +171,10 @@ begin
   simp_rw [lintegral_indicator_const hs, one_mul] at h,
   rw h,
 end
+
+lemma ext_fun_iff {η : kernel α β} :
+  κ = η ↔ ∀ a f, measurable f → ∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a) :=
+⟨λ h a f hf, by rw h, ext_fun⟩
 
 protected lemma measurable (κ : kernel α β) : measurable κ := κ.prop
 
@@ -220,7 +230,7 @@ end sum
 section s_finite
 
 /-- A kernel is s-finite if it can be written as the sum of countably many finite kernels. -/
-class is_s_finite_kernel (κ : kernel α β) : Prop :=
+class _root_.probability_theory.is_s_finite_kernel (κ : kernel α β) : Prop :=
 (tsum_finite : ∃ κs : ℕ → kernel α β, (∀ n, is_finite_kernel (κs n)) ∧ κ = kernel.sum κs)
 
 @[priority 100]
@@ -420,6 +430,139 @@ begin
 end
 
 end restrict
+
+section comap_right
+
+variables {γ : Type*} {mγ : measurable_space γ} {f : γ → β}
+
+include mγ
+
+/-- Kernel with value `(κ a).comap f`, for a measurable embedding `f`. That is, for a measurable set
+`t : set β`, `comap_right κ hf a t = κ a (f '' t)`. -/
+noncomputable
+def comap_right (κ : kernel α β) (hf : measurable_embedding f) :
+  kernel α γ :=
+{ val := λ a, (κ a).comap f,
+  property :=
+  begin
+    refine measure.measurable_measure.mpr (λ t ht, _),
+    have : (λ a, measure.comap f (κ a) t) = λ a, κ a (f '' t),
+    { ext1 a,
+      rw measure.comap_apply _ hf.injective (λ s' hs', _) _ ht,
+      exact hf.measurable_set_image.mpr hs', },
+    rw this,
+    exact kernel.measurable_coe _ (hf.measurable_set_image.mpr ht),
+  end }
+
+lemma comap_right_apply (κ : kernel α β) (hf : measurable_embedding f) (a : α) :
+  comap_right κ hf a = measure.comap f (κ a) := rfl
+
+lemma comap_right_apply' (κ : kernel α β) (hf : measurable_embedding f)
+  (a : α) {t : set γ} (ht : measurable_set t) :
+  comap_right κ hf a t = κ a (f '' t) :=
+by rw [comap_right_apply,
+    measure.comap_apply _ hf.injective (λ s, hf.measurable_set_image.mpr) _ ht]
+
+lemma is_markov_kernel.comap_right (κ : kernel α β) (hf : measurable_embedding f)
+  (hκ : ∀ a, κ a (set.range f) = 1) :
+  is_markov_kernel (comap_right κ hf) :=
+begin
+  refine ⟨λ a, ⟨_⟩⟩,
+  rw comap_right_apply' κ hf a measurable_set.univ,
+  simp only [set.image_univ, subtype.range_coe_subtype, set.set_of_mem_eq],
+  exact hκ a,
+end
+
+instance is_finite_kernel.comap_right (κ : kernel α β) [is_finite_kernel κ]
+  (hf : measurable_embedding f) :
+  is_finite_kernel (comap_right κ hf) :=
+begin
+  refine ⟨⟨is_finite_kernel.bound κ, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
+  rw comap_right_apply' κ hf a measurable_set.univ,
+  exact measure_le_bound κ a _,
+end
+
+instance is_s_finite_kernel.comap_right (κ : kernel α β) [is_s_finite_kernel κ]
+  (hf : measurable_embedding f) :
+  is_s_finite_kernel (comap_right κ hf) :=
+begin
+  refine ⟨⟨λ n, comap_right (seq κ n) hf, infer_instance, _⟩⟩,
+  ext1 a,
+  rw sum_apply,
+  simp_rw comap_right_apply _ hf,
+  have : measure.sum (λ n, measure.comap f (seq κ n a))
+    = measure.comap f (measure.sum (λ n, seq κ n a)),
+  { ext1 t ht,
+    rw [measure.comap_apply _ hf.injective (λ s', hf.measurable_set_image.mpr) _ ht,
+      measure.sum_apply _ ht, measure.sum_apply _ (hf.measurable_set_image.mpr ht)],
+    congr' with n : 1,
+    rw measure.comap_apply _ hf.injective (λ s', hf.measurable_set_image.mpr) _ ht, },
+  rw [this, measure_sum_seq],
+end
+
+end comap_right
+
+section piecewise
+
+variables {η : kernel α β} {s : set α} {hs : measurable_set s} [decidable_pred (∈ s)]
+
+/-- `piecewise hs κ η` is the kernel equal to `κ` on the measurable set `s` and to `η` on its
+complement. -/
+def piecewise (hs : measurable_set s) (κ η : kernel α β) :
+  kernel α β :=
+{ val := λ a, if a ∈ s then κ a else η a,
+  property := measurable.piecewise hs (kernel.measurable _) (kernel.measurable _) }
+
+lemma piecewise_apply (a : α) :
+  piecewise hs κ η a = if a ∈ s then κ a else η a := rfl
+
+lemma piecewise_apply' (a : α) (t : set β) :
+  piecewise hs κ η a t = if a ∈ s then κ a t else η a t :=
+by { rw piecewise_apply, split_ifs; refl, }
+
+instance is_markov_kernel.piecewise [is_markov_kernel κ] [is_markov_kernel η] :
+  is_markov_kernel (piecewise hs κ η) :=
+by { refine ⟨λ a, ⟨_⟩⟩, rw [piecewise_apply', measure_univ, measure_univ, if_t_t], }
+
+instance is_finite_kernel.piecewise [is_finite_kernel κ] [is_finite_kernel η] :
+  is_finite_kernel (piecewise hs κ η) :=
+begin
+  refine ⟨⟨max (is_finite_kernel.bound κ) (is_finite_kernel.bound η), _, λ a, _⟩⟩,
+  { exact max_lt (is_finite_kernel.bound_lt_top κ) (is_finite_kernel.bound_lt_top η), },
+  rw [piecewise_apply'],
+  exact (ite_le_sup _ _ _).trans (sup_le_sup (measure_le_bound _ _ _) (measure_le_bound _ _ _)),
+end
+
+instance is_s_finite_kernel.piecewise [is_s_finite_kernel κ] [is_s_finite_kernel η] :
+  is_s_finite_kernel (piecewise hs κ η) :=
+begin
+  refine ⟨⟨λ n, piecewise hs (seq κ n) (seq η n), infer_instance, _⟩⟩,
+  ext1 a,
+  simp_rw [sum_apply, kernel.piecewise_apply],
+  split_ifs; exact (measure_sum_seq _ a).symm,
+end
+
+lemma lintegral_piecewise (a : α) (g : β → ℝ≥0∞) :
+  ∫⁻ b, g b ∂(piecewise hs κ η a) = if a ∈ s then ∫⁻ b, g b ∂(κ a) else ∫⁻ b, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+lemma set_lintegral_piecewise (a : α) (g : β → ℝ≥0∞) (t : set β) :
+  ∫⁻ b in t, g b ∂(piecewise hs κ η a)
+    = if a ∈ s then ∫⁻ b in t, g b ∂(κ a) else ∫⁻ b in t, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+lemma integral_piecewise {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  (a : α) (g : β → E) :
+  ∫ b, g b ∂(piecewise hs κ η a) = if a ∈ s then ∫ b, g b ∂(κ a) else ∫ b, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+lemma set_integral_piecewise {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] (a : α) (g : β → E) (t : set β) :
+  ∫ b in t, g b ∂(piecewise hs κ η a)
+    = if a ∈ s then ∫ b in t, g b ∂(κ a) else ∫ b in t, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+end piecewise
 
 end kernel
 

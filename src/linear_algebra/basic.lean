@@ -1727,7 +1727,7 @@ include σ₂₁ re₁₂ re₂₁
 rfl
 omit σ₂₁ re₁₂ re₂₁
 
-@[simp] theorem range_eq_top : (e : M →ₛₗ[σ₁₂] M₂).range = ⊤ :=
+@[simp] protected theorem range : (e : M →ₛₗ[σ₁₂] M₂).range = ⊤ :=
 linear_map.range_eq_top.2 e.to_equiv.surjective
 
 include σ₂₁ re₁₂ re₂₁

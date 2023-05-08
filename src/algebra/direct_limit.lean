@@ -335,7 +335,7 @@ quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
     ⟨ind, 1, (of _ _ ind).map_one⟩
     (λ a s ih, let ⟨i, x⟩ := a, ⟨j, y, hs⟩ := ih, ⟨k, hik, hjk⟩ := exists_ge_ge i j in
       ⟨k, f i k hik x * f j k hjk y, by rw [(of _ _ _).map_mul, of_f, of_f, hs]; refl⟩))
-  (λ s ⟨i, x, ih⟩, ⟨i, -x, by rw [(of _ _ _).map_neg, ih]; refl⟩)
+  (λ s ⟨i, x, ih⟩, ⟨i, -x, by rw [(of G f i).map_neg, ih]; refl⟩)
   (λ p q ⟨i, x, ihx⟩ ⟨j, y, ihy⟩, let ⟨k, hik, hjk⟩ := exists_ge_ge i j in
     ⟨k, f i k hik x + f j k hjk y, by rw [(of _ _ _).map_add, of_f, of_f, ihx, ihy]; refl⟩)
 
@@ -381,11 +381,13 @@ begin
   refine subring.in_closure.rec_on hxs _ _ _ _,
   { rw [(restriction _).map_one, (free_comm_ring.lift _).map_one, (f' j k hjk).map_one,
         (restriction _).map_one, (free_comm_ring.lift _).map_one] },
-  { rw [(restriction _).map_neg, (restriction _).map_one,
-        (free_comm_ring.lift _).map_neg, (free_comm_ring.lift _).map_one,
-        (f' j k hjk).map_neg, (f' j k hjk).map_one,
-        (restriction _).map_neg, (restriction _).map_one,
-        (free_comm_ring.lift _).map_neg, (free_comm_ring.lift _).map_one] },
+  { rw [(restriction s).map_neg, (restriction t).map_neg,
+        (restriction s).map_one, (restriction t).map_one,
+        (free_comm_ring.lift (λ ix : s, f' ix.1.1 j (hj ix ix.2) ix.1.2)).map_neg,
+        (free_comm_ring.lift (λ ix : t, f' ix.1.1 k (hk ix ix.2) ix.1.2)).map_neg,
+        (free_comm_ring.lift _).map_one,
+        (free_comm_ring.lift _).map_one,
+        (f' j k hjk).map_neg, (f' j k hjk).map_one] },
   { rintros _ ⟨p, hps, rfl⟩ n ih,
     rw [(restriction _).map_mul, (free_comm_ring.lift _).map_mul,
         (f' j k hjk).map_mul, ih,
@@ -412,44 +414,30 @@ begin
     { refine ⟨j, {⟨i, x⟩, ⟨j, f' i j hij x⟩}, _,
         is_supported_sub (is_supported_of.2 $ or.inr rfl) (is_supported_of.2 $ or.inl rfl), _⟩,
       { rintros k (rfl | ⟨rfl | _⟩), exact hij, refl },
-      { rw [(restriction _).map_sub, (free_comm_ring.lift _).map_sub,
-            restriction_of, dif_pos, restriction_of, dif_pos, lift_of, lift_of],
-        dsimp only,
+      { simp only [set.mem_insert_iff, set.mem_singleton, free_comm_ring.restriction_of, dif_pos,
+          free_comm_ring.lift_of, true_or, eq_self_iff_true, or_true, map_sub],
         have := directed_system.map_map (λ i j h, f' i j h),
         dsimp only at this,
-        rw this, exact sub_self _,
-        exacts [or.inr rfl, or.inl rfl] } },
+        rw this, exact sub_self _,} },
     { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 rfl) is_supported_one, _⟩,
       { rintros k (rfl|h), refl },
-      { rw [(restriction _).map_sub, (free_comm_ring.lift _).map_sub, restriction_of, dif_pos,
-          (restriction _).map_one, lift_of, (free_comm_ring.lift _).map_one],
-        dsimp only, rw [(f' i i _).map_one, sub_self],
-        { exact set.mem_singleton _ } } },
+      { simp, } },
     { refine ⟨i, {⟨i, x+y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
         is_supported_sub (is_supported_of.2 $ or.inl rfl)
           (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl)
             (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
-      { rw [(restriction _).map_sub, (restriction _).map_add,
-            restriction_of, restriction_of, restriction_of,
-            dif_pos, dif_pos, dif_pos,
-            (free_comm_ring.lift _).map_sub, (free_comm_ring.lift _).map_add,
-            lift_of, lift_of, lift_of],
-        dsimp only, rw (f' i i _).map_add, exact sub_self _,
-        exacts [or.inl rfl, or.inr (or.inr rfl), or.inr (or.inl rfl)] } },
+      { simp only [map_add, set.mem_insert_iff, set.mem_singleton, free_comm_ring.restriction_of,
+          dif_pos, free_comm_ring.lift_of, true_or, eq_self_iff_true, or_true, map_sub],
+        exact sub_self _, } },
     { refine ⟨i, {⟨i, x*y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
         is_supported_sub (is_supported_of.2 $ or.inl rfl)
           (is_supported_mul (is_supported_of.2 $ or.inr $ or.inl rfl)
             (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
-      { rw [(restriction _).map_sub, (restriction _).map_mul,
-            restriction_of, restriction_of, restriction_of,
-            dif_pos, dif_pos, dif_pos,
-            (free_comm_ring.lift _).map_sub, (free_comm_ring.lift _).map_mul,
-            lift_of, lift_of, lift_of],
-        dsimp only, rw (f' i i _).map_mul,
-        exacts [sub_self _, or.inl rfl, or.inr (or.inr rfl),
-          or.inr (or.inl rfl)] } } },
+      { simp only [map_mul, set.mem_insert_iff, set.mem_singleton, free_comm_ring.restriction_of,
+          dif_pos, free_comm_ring.lift_of, true_or, eq_self_iff_true, or_true, map_sub],
+        exact sub_self _, } } },
   { refine nonempty.elim (by apply_instance) (assume ind : ι, _),
     refine ⟨ind, ∅, λ _, false.elim, is_supported_zero, _⟩,
     rw [(restriction _).map_zero, (free_comm_ring.lift _).map_zero] },
@@ -498,7 +486,7 @@ theorem of_injective [is_directed ι (≤)] [directed_system G (λ i j h, f' i j
 begin
   suffices : ∀ x, of G (λ i j h, f' i j h) i x = 0 → x = 0,
   { intros x y hxy, rw ← sub_eq_zero, apply this,
-    rw [(of G _ i).map_sub, hxy, sub_self] },
+    rw [(of G (λ i j h, (f' i j h)) i).map_sub, hxy, sub_self] },
   intros x hx, rcases of.zero_exact hx with ⟨j, hij, hfx⟩,
   apply hf i j hij, rw [hfx, (f' i j hij).map_zero]
 end

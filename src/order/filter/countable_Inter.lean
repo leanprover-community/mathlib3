@@ -195,7 +195,7 @@ namespace filter
 variable (g : set (set α))
 
 /-- `countable_generate_sets g` is the (sets of the)
-largest `countable_Inter_filter` containing `g`.-/
+greatest `countable_Inter_filter` containing `g`.-/
 inductive countable_generate_sets : set α → Prop
 | basic {s : set α}      : s ∈ g → countable_generate_sets s
 | univ                   : countable_generate_sets univ
@@ -203,7 +203,7 @@ inductive countable_generate_sets : set α → Prop
 | Inter {S : set (set α)}  : S.countable →
     (∀ s ∈ S, countable_generate_sets s) → countable_generate_sets ⋂₀ S
 
-/-- `countable_generate g` is the smallest `countable_Inter_filter` containing `g`.-/
+/-- `countable_generate g` is the greatest `countable_Inter_filter` containing `g`.-/
 def countable_generate : filter α :=
 of_countable_Inter (countable_generate_sets g) (λ S, countable_generate_sets.Inter)
   (λ s t, countable_generate_sets.superset)
@@ -233,18 +233,26 @@ begin
   exact countable_generate_sets.basic (Sg H),
 end
 
-lemma le_countable_generate_iff_of_countable_Inter_filter {f : filter α} [countable_Inter_filter f] :
-  f ≤ countable_generate g ↔ g ⊆ f.sets :=
+lemma le_countable_generate_iff_of_countable_Inter_filter {f : filter α}
+[countable_Inter_filter f] : f ≤ countable_generate g ↔ g ⊆ f.sets :=
 begin
   split; intro h,
-  { refine subset_trans (λ s hs, _) h,
-    exact countable_generate_sets.basic hs, },
+  { exact subset_trans (λ s, countable_generate_sets.basic) h },
   intros s hs,
   induction hs with s hs s t hs st ih S Sct hS ih,
   { exact h hs },
   { exact univ_mem },
   { exact mem_of_superset ih st, },
   exact (countable_sInter_mem Sct).mpr ih,
+end
+
+/-- `countable_generate g` is the greatest `countable_Inter_filter` containing `g`.-/
+lemma countable_generate_is_greatest : is_greatest
+  {f : filter α | countable_Inter_filter f ∧ g ⊆ f.sets} (countable_generate g) :=
+begin
+  refine ⟨⟨infer_instance, λ s, countable_generate_sets.basic⟩, _⟩,
+  rintros f ⟨fct, hf⟩,
+  rwa @le_countable_generate_iff_of_countable_Inter_filter _ _ _ fct,
 end
 
 end filter

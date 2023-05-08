@@ -28,8 +28,8 @@ open set function real ennreal measure_theory filter probability_theory
 variables {α β γ E : Type*}
   {mα : measurable_space α} {mβ : measurable_space β} {mγ : measurable_space γ}
   [normed_add_comm_group E]
-  {κ : kernel α β} [kernel.is_s_finite_kernel κ]
-  {η : kernel (α × β) γ} [kernel.is_s_finite_kernel η]
+  {κ : kernel α β} [is_s_finite_kernel κ]
+  {η : kernel (α × β) γ} [is_s_finite_kernel η]
   {a : α}
 
 /-! ### The product measure -/

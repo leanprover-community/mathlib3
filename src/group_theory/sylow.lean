@@ -299,18 +299,18 @@ ext (λ g, sylow.smul_eq_iff_mem_normalizer)
 
 lemma sylow.conj_eq_normalizer_conj_of_mem_centralizer
   [fact p.prime] [finite (sylow p G)] (P : sylow p G) (x g : G)
-  (hx : x ∈ (P : subgroup G).centralizer) (hy : g⁻¹ * x * g ∈ (P : subgroup G).centralizer) :
+  (hx : x ∈ centralizer (P : set G)) (hy : g⁻¹ * x * g ∈ centralizer (P : set G)) :
   ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
 begin
-  have h1 : ↑P ≤ (zpowers x).centralizer,
+  have h1 : ↑P ≤ centralizer (zpowers x : set G),
   { rwa [le_centralizer_iff, zpowers_le] },
-  have h2 : ↑(g • P) ≤ (zpowers x).centralizer,
+  have h2 : ↑(g • P) ≤ centralizer (zpowers x : set G),
   { rw [le_centralizer_iff, zpowers_le],
     rintros - ⟨z, hz, rfl⟩,
     specialize hy z hz,
     rwa [←mul_assoc, ←eq_mul_inv_iff_mul_eq, mul_assoc, mul_assoc, mul_assoc, ←mul_assoc,
       eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_assoc] at hy },
-  obtain ⟨h, hh⟩ := exists_smul_eq (zpowers x).centralizer ((g • P).subtype h2) (P.subtype h1),
+  obtain ⟨h, hh⟩ := exists_smul_eq (centralizer (zpowers x : set G)) ((g • P).subtype h2) (P.subtype h1),
   simp_rw [sylow.smul_subtype, smul_def, smul_smul] at hh,
   refine ⟨h * g, sylow.smul_eq_iff_mem_normalizer.mp (sylow.subtype_injective hh), _⟩,
   rw [←mul_assoc, commute.right_comm (h.prop x (mem_zpowers x)), mul_inv_rev, inv_mul_cancel_right]
@@ -319,7 +319,8 @@ end
 lemma sylow.conj_eq_normalizer_conj_of_mem [fact p.prime] [finite (sylow p G)] (P : sylow p G)
   [hP : (P : subgroup G).is_commutative] (x g : G) (hx : x ∈ P) (hy : g⁻¹ * x * g ∈ P) :
   ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
-P.conj_eq_normalizer_conj_of_mem_centralizer x g (le_centralizer P hx) (le_centralizer P hy)
+P.conj_eq_normalizer_conj_of_mem_centralizer x g
+  (le_centralizer (P : subgroup G) hx : _) (le_centralizer (P : subgroup G) hy : _)
 
 /-- Sylow `p`-subgroups are in bijection with cosets of the normalizer of a Sylow `p`-subgroup -/
 noncomputable def sylow.equiv_quotient_normalizer [fact p.prime] [fintype (sylow p G)]

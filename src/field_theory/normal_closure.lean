@@ -16,9 +16,6 @@ In this file we define the normal closure of an `intermediate_field`.
 - `intermediate_field.normal_closure K` for `K : intermediate_field F L`.
 -/
 
-instance {F L : Type*} [field F] [field L] [algebra F L] (K : intermediate_field F L) :
-  nonempty (K →ₐ[F] L) := ⟨K.val⟩
-
 namespace intermediate_field
 
 variables {F L : Type*} [field F] [field L] [algebra F L] (K : intermediate_field F L)

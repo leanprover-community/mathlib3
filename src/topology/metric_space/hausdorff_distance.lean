@@ -425,6 +425,14 @@ open emetric
 /-- The minimal distance of a point to a set -/
 def inf_dist (x : α) (s : set α) : ℝ := ennreal.to_real (inf_edist x s)
 
+theorem inf_dist_eq_infi : inf_dist x s = ⨅ y : s, dist x y :=
+begin
+  rw [inf_dist, inf_edist, infi_subtype', ennreal.to_real_infi],
+  { simp only [dist_edist],
+    refl },
+  { exact λ _, edist_ne_top _ _ }
+end
+
 /-- the minimal distance is always nonnegative -/
 lemma inf_dist_nonneg : 0 ≤ inf_dist x s := by simp [inf_dist]
 

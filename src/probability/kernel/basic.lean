@@ -26,7 +26,7 @@ Classes of kernels:
   particular that all measures in the image of `κ` are finite, but is stronger since it requires an
   uniform bound. This stronger condition is necessary to ensure that the composition of two finite
   kernels is finite.
-* `probability_theory.kernel.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
+* `probability_theory.is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable
   sum of finite kernels.
 
 Particular kernels:
@@ -347,6 +347,56 @@ instance is_markov_kernel_deterministic {f : α → β} (hf : measurable f) :
   is_markov_kernel (deterministic f hf) :=
 ⟨λ a, by { rw deterministic_apply hf, apply_instance, }⟩
 
+lemma lintegral_deterministic' {f : β → ℝ≥0∞} {g : α → β} {a : α}
+  (hg : measurable g) (hf : measurable f) :
+  ∫⁻ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
+by rw [kernel.deterministic_apply, lintegral_dirac' _ hf]
+
+@[simp]
+lemma lintegral_deterministic {f : β → ℝ≥0∞} {g : α → β} {a : α}
+  (hg : measurable g) [measurable_singleton_class β] :
+  ∫⁻ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
+by rw [kernel.deterministic_apply, lintegral_dirac (g a) f]
+
+lemma set_lintegral_deterministic' {f : β → ℝ≥0∞} {g : α → β} {a : α}
+  (hg : measurable g) (hf : measurable f) {s : set β} (hs : measurable_set s)
+  [decidable (g a ∈ s)] :
+  ∫⁻ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
+by rw [kernel.deterministic_apply, set_lintegral_dirac' hf hs]
+
+@[simp]
+lemma set_lintegral_deterministic {f : β → ℝ≥0∞} {g : α → β} {a : α}
+  (hg : measurable g) [measurable_singleton_class β] (s : set β) [decidable (g a ∈ s)] :
+  ∫⁻ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
+by rw [kernel.deterministic_apply, set_lintegral_dirac f s]
+
+lemma integral_deterministic' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {g : α → β} {a : α}
+  (hg : measurable g) (hf : strongly_measurable f) :
+  ∫ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
+by rw [kernel.deterministic_apply, integral_dirac' _ _ hf]
+
+@[simp]
+lemma integral_deterministic {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {g : α → β} {a : α}
+  (hg : measurable g) [measurable_singleton_class β] :
+  ∫ x, f x ∂(kernel.deterministic g hg a) = f (g a) :=
+by rw [kernel.deterministic_apply, integral_dirac _ (g a)]
+
+lemma set_integral_deterministic' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {g : α → β} {a : α}
+  (hg : measurable g) (hf : strongly_measurable f) {s : set β} (hs : measurable_set s)
+  [decidable (g a ∈ s)] :
+  ∫ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
+by rw [kernel.deterministic_apply, set_integral_dirac' hf _ hs]
+
+@[simp]
+lemma set_integral_deterministic {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {g : α → β} {a : α}
+  (hg : measurable g) [measurable_singleton_class β] (s : set β) [decidable (g a ∈ s)] :
+  ∫ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
+by rw [kernel.deterministic_apply, set_integral_dirac f _ s]
+
 end deterministic
 
 section const
@@ -372,6 +422,28 @@ instance is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure �
 instance is_markov_kernel_const {μβ : measure β} [hμβ : is_probability_measure μβ] :
   is_markov_kernel (const α μβ) :=
 ⟨λ a, hμβ⟩
+
+@[simp]
+lemma lintegral_const {f : β → ℝ≥0∞} {μ : measure β} {a : α} :
+  ∫⁻ x, f x ∂(kernel.const α μ a) = ∫⁻ x, f x ∂μ :=
+by rw kernel.const_apply
+
+@[simp]
+lemma set_lintegral_const {f : β → ℝ≥0∞} {μ : measure β} {a : α} {s : set β} :
+  ∫⁻ x in s, f x ∂(kernel.const α μ a) = ∫⁻ x in s, f x ∂μ :=
+by rw kernel.const_apply
+
+@[simp]
+lemma integral_const {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {f : β → E} {μ : measure β} {a : α} :
+  ∫ x, f x ∂(kernel.const α μ a) = ∫ x, f x ∂μ :=
+by rw kernel.const_apply
+
+@[simp]
+lemma set_integral_const {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {f : β → E} {μ : measure β} {a : α} {s : set β} :
+  ∫ x in s, f x ∂(kernel.const α μ a) = ∫ x in s, f x ∂μ :=
+by rw kernel.const_apply
 
 end const
 
@@ -408,9 +480,26 @@ lemma restrict_apply' (κ : kernel α β) (hs : measurable_set s) (a : α) (ht :
   kernel.restrict κ hs a t = (κ a) (t ∩ s) :=
 by rw [restrict_apply κ hs a, measure.restrict_apply ht]
 
+@[simp]
+lemma restrict_univ : kernel.restrict κ measurable_set.univ = κ :=
+by { ext1 a, rw [kernel.restrict_apply, measure.restrict_univ], }
+
+@[simp]
 lemma lintegral_restrict (κ : kernel α β) (hs : measurable_set s) (a : α) (f : β → ℝ≥0∞) :
   ∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a) :=
 by rw restrict_apply
+
+@[simp]
+lemma set_lintegral_restrict (κ : kernel α β) (hs : measurable_set s) (a : α) (f : β → ℝ≥0∞)
+  (t : set β) :
+  ∫⁻ b in t, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in (t ∩ s), f b ∂(κ a) :=
+by rw [restrict_apply, measure.restrict_restrict' hs]
+
+@[simp]
+lemma set_integral_restrict {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} {a : α} (hs : measurable_set s) (t : set β) :
+  ∫ x in t, f x ∂(kernel.restrict κ hs a) = ∫ x in (t ∩ s), f x ∂(κ a) :=
+by rw [restrict_apply, measure.restrict_restrict' hs]
 
 instance is_finite_kernel.restrict (κ : kernel α β) [is_finite_kernel κ] (hs : measurable_set s) :
   is_finite_kernel (kernel.restrict κ hs) :=
@@ -544,6 +633,22 @@ end
 
 lemma lintegral_piecewise (a : α) (g : β → ℝ≥0∞) :
   ∫⁻ b, g b ∂(piecewise hs κ η a) = if a ∈ s then ∫⁻ b, g b ∂(κ a) else ∫⁻ b, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+lemma set_lintegral_piecewise (a : α) (g : β → ℝ≥0∞) (t : set β) :
+  ∫⁻ b in t, g b ∂(piecewise hs κ η a)
+    = if a ∈ s then ∫⁻ b in t, g b ∂(κ a) else ∫⁻ b in t, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+lemma integral_piecewise {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  (a : α) (g : β → E) :
+  ∫ b, g b ∂(piecewise hs κ η a) = if a ∈ s then ∫ b, g b ∂(κ a) else ∫ b, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+lemma set_integral_piecewise {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] (a : α) (g : β → E) (t : set β) :
+  ∫ b in t, g b ∂(piecewise hs κ η a)
+    = if a ∈ s then ∫ b in t, g b ∂(κ a) else ∫ b in t, g b ∂(η a) :=
 by { simp_rw piecewise_apply, split_ifs; refl, }
 
 end piecewise

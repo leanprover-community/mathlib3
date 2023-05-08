@@ -122,7 +122,7 @@ lemma extend_to_𝕜'_apply (fr : F →L[ℝ] ℝ) (x : F) :
 le_antisymm (linear_map.mk_continuous_norm_le _ (norm_nonneg _) _) $
   op_norm_le_bound _ (norm_nonneg _) $ λ x,
     calc ‖fr x‖ = ‖re (fr.extend_to_𝕜' x : 𝕜)‖ : congr_arg norm (fr.extend_to_𝕜'_apply_re x).symm
-    ... ≤ ‖(fr.extend_to_𝕜' x : 𝕜)‖ : (abs_re_le_abs _).trans_eq (norm_eq_abs _).symm
+    ... ≤ ‖(fr.extend_to_𝕜' x : 𝕜)‖ : abs_re_le_norm _
     ... ≤ ‖(fr.extend_to_𝕜' : F →L[𝕜] 𝕜)‖ * ‖x‖ : le_op_norm _ _
 
 end continuous_linear_map

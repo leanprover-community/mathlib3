@@ -46,7 +46,7 @@ noncomputable
 def map_measure (κ : kernel α β) (μ : measure α) :
   measure β :=
 measure.of_measurable (λ s hs, ∫⁻ x, κ x s ∂μ)
-  (by simp only [measure_empty, lintegral_const, zero_mul])
+  (by simp only [measure_empty, measure_theory.lintegral_const, zero_mul])
   begin
     intros f hf₁ hf₂,
     simp_rw [measure_Union hf₂ hf₁,

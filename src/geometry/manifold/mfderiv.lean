@@ -1593,7 +1593,7 @@ lemma ker_mfderiv_eq_bot {x : M} (hx : x ∈ e.source) :
 
 lemma range_mfderiv_eq_top {x : M} (hx : x ∈ e.source) :
   linear_map.range (mfderiv I I' e x) = ⊤ :=
-(he.mfderiv hx).to_linear_equiv.range
+(he.mfderiv hx).to_linear_equiv.range_eq_top
 
 lemma range_mfderiv_eq_univ {x : M} (hx : x ∈ e.source) :
   range (mfderiv I I' e x) = univ :=

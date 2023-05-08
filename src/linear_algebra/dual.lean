@@ -1067,7 +1067,7 @@ begin
   let f' := linear_map.quot_ker_equiv_of_surjective f hf,
   transitivity linear_map.range (f.dual_map.comp f'.symm.dual_map.to_linear_map),
   { rw linear_map.range_comp_of_range_eq_top,
-    apply linear_equiv.range },
+    apply linear_equiv.range_eq_top },
   { apply congr_arg,
     ext φ x,
     simp only [linear_map.coe_comp, linear_equiv.coe_to_linear_map, linear_map.dual_map_apply,

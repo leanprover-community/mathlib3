@@ -738,7 +738,7 @@ lemma linear_independent.repr_ker : hv.repr.ker = ⊥ :=
 by rw [linear_independent.repr, linear_equiv.ker]
 
 lemma linear_independent.repr_range : hv.repr.range = ⊤ :=
-by rw [linear_independent.repr, linear_equiv.range]
+by rw [linear_independent.repr, linear_equiv.range_eq_top]
 
 lemma linear_independent.repr_eq
   {l : ι →₀ R} {x} (eq : finsupp.total ι M R v l = ↑x) :

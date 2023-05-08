@@ -166,7 +166,7 @@ begin
       inner_add_right, inner_sub_left, inner_sub_right, hT x, ← inner_conj_symm x (T y)],
     suffices : (re ⟪T y, x⟫ : 𝕜) = ⟪T y, x⟫,
     { rw conj_eq_iff_re.mpr this,
-      ring_nf, },
+      ring, },
     { rw ← re_add_im ⟪T y, x⟫,
       simp_rw [h, mul_zero, add_zero],
       norm_cast, } },

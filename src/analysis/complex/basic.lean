@@ -321,7 +321,7 @@ section complex_order
 open_locale complex_order
 
 lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑‖z‖ :=
-by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
+by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, _root_.abs_of_nonneg (complex.le_def.2 hz).1]
 
 end complex_order
 
@@ -334,16 +334,12 @@ open_locale complex_conjugate
 local notation `reC` := @is_R_or_C.re ℂ _
 local notation `imC` := @is_R_or_C.im ℂ _
 local notation `IC` := @is_R_or_C.I ℂ _
-local notation `absC` := @is_R_or_C.abs ℂ _
 local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 
 @[simp] lemma re_to_complex {x : ℂ} : reC x = x.re := rfl
 @[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
 @[simp] lemma I_to_complex : IC = complex.I := rfl
-@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
-by simp [is_R_or_C.norm_sq, complex.norm_sq]
-@[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
-by simp [is_R_or_C.abs, complex.abs]
+@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x := rfl
 
 section tsum
 variables {α : Type*} (𝕜 : Type*) [is_R_or_C 𝕜]

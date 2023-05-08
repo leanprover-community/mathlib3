@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
-import probability.kernel.basic
+import probability.kernel.measurable_integral
 
 /-!
 # Product and composition of kernels
@@ -93,7 +93,7 @@ def comp_prod_fun (κ : kernel α β) (η : kernel (α × β) γ) (a : α) (s : 
 lemma comp_prod_fun_empty (κ : kernel α β) (η : kernel (α × β) γ) (a : α) :
   comp_prod_fun κ η a ∅ = 0 :=
 by simp only [comp_prod_fun, set.mem_empty_iff_false, set.set_of_false, measure_empty,
-  lintegral_const, zero_mul]
+  measure_theory.lintegral_const, zero_mul]
 
 lemma comp_prod_fun_Union (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel η] (a : α)
   (f : ℕ → set (β × γ)) (hf_meas : ∀ i, measurable_set (f i)) (hf_disj : pairwise (disjoint on f)) :
@@ -336,7 +336,7 @@ begin
   let Cη := is_finite_kernel.bound η,
   calc ∫⁻ b, η (a, b) set.univ ∂(κ a)
       ≤ ∫⁻ b, Cη ∂(κ a) : lintegral_mono (λ b, measure_le_bound η (a, b) set.univ)
-  ... = Cη * κ a set.univ : lintegral_const Cη
+  ... = Cη * κ a set.univ : measure_theory.lintegral_const Cη
   ... = κ a set.univ * Cη : mul_comm _ _,
 end
 

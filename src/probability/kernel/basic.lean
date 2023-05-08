@@ -358,7 +358,7 @@ by rw [kernel.deterministic_apply, set_lintegral_dirac' hf hs]
 lemma set_lintegral_deterministic {f : β → ℝ≥0∞} {g : α → β} {a : α}
   (hg : measurable g) [measurable_singleton_class β] (s : set β) [decidable (g a ∈ s)] :
   ∫⁻ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
-by { rw [kernel.deterministic_apply, set_lintegral_dirac f s], apply_instance, }
+by rw [kernel.deterministic_apply, set_lintegral_dirac f s]
 
 lemma integral_deterministic' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [complete_space E] {f : β → E} {g : α → β} {a : α}
@@ -385,7 +385,7 @@ lemma set_integral_deterministic {E : Type*} [normed_add_comm_group E] [normed_s
   [complete_space E] {f : β → E} {g : α → β} {a : α}
   (hg : measurable g) [measurable_singleton_class β] (s : set β) [decidable (g a ∈ s)] :
   ∫ x in s, f x ∂(kernel.deterministic g hg a) = if g a ∈ s then f (g a) else 0 :=
-by { rw [kernel.deterministic_apply, set_integral_dirac f _ s], apply_instance, }
+by rw [kernel.deterministic_apply, set_integral_dirac f _ s]
 
 end deterministic
 

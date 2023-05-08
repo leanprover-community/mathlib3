@@ -226,7 +226,7 @@ namespace inducing
 lemma discrete_topology {X Y : Type*} [h1 : _root_.topological_space X]
   [h2 : _root_.topological_space Y] [discrete_topology Y] {f : X → Y} (inj : function.injective f)
   (ind : h1 = topological_space.induced f h2) : discrete_topology X :=
-embedding.discrete_topology (embedding.mk ⟨ind⟩ inj)
+(embedding.mk ⟨ind⟩ inj).discrete_topology
 end inducing
 
 /-- A function between topological spaces is a quotient map if it is surjective,

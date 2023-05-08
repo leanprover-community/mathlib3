@@ -28,13 +28,8 @@ namespace zmod
 lemma cast_hom_apply' {n : ℕ} (R : Type*) [ring R] {m : ℕ} [char_p R m]
   (h : m ∣ n) (i : zmod n) : (cast_hom h R) i = ↑i := cast_hom_apply i
 
-lemma coe_map_of_dvd {a b : ℕ} (h : a ∣ b) (x : units (zmod b)) :
-  is_unit (x : zmod a) :=
-begin
-  change is_unit ((x : zmod b) : zmod a),
-  rw [←zmod.cast_hom_apply' (zmod a) h (x : zmod b), ←ring_hom.coe_monoid_hom, ←units.coe_map],
-  apply units.is_unit,
-end
+lemma coe_map_of_dvd {a b : ℕ} (h : a ∣ b) {x : (zmod b)} (hx : is_unit x) :
+  is_unit (x : zmod a) := is_unit.map (cast_hom h (zmod a)).to_monoid_hom hx
 
 lemma is_unit_of_is_coprime_dvd {a b : ℕ} (h : a ∣ b) {x : ℕ} (hx : x.coprime b) :
   is_unit (x : zmod a) :=
@@ -43,7 +38,7 @@ begin
   { rw ←cast_nat_cast h x,
     { congr, },
     { refine zmod.char_p _, }, },
-  { apply coe_map_of_dvd h _, },
+  { apply coe_map_of_dvd h (units.is_unit _), },
 end
 
 lemma is_unit_mul {a b g : ℕ} (n : ℕ) (h1 : g.coprime a) (h2 : g.coprime b) :

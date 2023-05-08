@@ -421,12 +421,6 @@ instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
 { norm_mul := λ f g, op_norm_comp_le f g,
   .. continuous_linear_map.to_seminormed_add_comm_group, .. continuous_linear_map.ring }
 
-/-- For a normed space `E`, continuous linear endomorphisms form a normed algebra with
-respect to the operator norm. -/
-instance to_normed_algebra : normed_algebra 𝕜 (E →L[𝕜] E) :=
-{ .. continuous_linear_map.to_normed_space,
-  .. continuous_linear_map.algebra }
-
 end
 
 end op_norm

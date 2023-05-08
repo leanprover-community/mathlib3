@@ -128,15 +128,9 @@ end
 /-- The exponential generating function for the Bernoulli numbers `bernoulli' n`. -/
 def bernoulli'_power_series := mk $ λ n, algebra_map ℚ A (bernoulli' n / n!)
 
-theorem bernoulli'_power_series_mul_exp_sub_one :
-  bernoulli'_power_series A * (exp A - 1) = X * exp A :=
+theorem bernoulli'_power_series_mul_exp_sub_one_aux (n : ℕ) :
+  ∑ (p : ℕ × ℕ) in antidiagonal n, bernoulli' p.fst / p.fst! * ((p.snd + 1) * p.snd!)⁻¹ = (n!)⁻¹ :=
 begin
-  ext n,
-  -- constant coefficient is a special case
-  cases n, { simp },
-  rw [bernoulli'_power_series, coeff_mul, mul_comm X, sum_antidiagonal_succ'],
-  suffices : ∑ p in antidiagonal n, (bernoulli' p.1 / p.1!) * ((p.2 + 1) * p.2!)⁻¹ = n!⁻¹,
-  { simpa [ring_hom.map_sum] using congr_arg (algebra_map ℚ A) this },
   apply eq_inv_of_mul_eq_one_left,
   rw sum_mul,
   convert bernoulli'_spec' n using 1,
@@ -150,6 +144,17 @@ begin
   rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
   rw [cast_mul, cast_mul, mul_div_mul_right, cast_div_char_zero, cast_mul],
   assumption, rwa nat.cast_succ,
+end
+
+theorem bernoulli'_power_series_mul_exp_sub_one :
+  bernoulli'_power_series A * (exp A - 1) = X * exp A :=
+begin
+  ext n,
+  -- constant coefficient is a special case
+  cases n, { simp },
+  rw [bernoulli'_power_series, coeff_mul, mul_comm X, sum_antidiagonal_succ'],
+  have := bernoulli'_power_series_mul_exp_sub_one_aux n,
+  simpa [ring_hom.map_sum] using congr_arg (algebra_map ℚ A) this,
 end
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/

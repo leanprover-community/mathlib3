@@ -44,9 +44,9 @@ Particular kernels:
 
 -/
 
-open_locale measure_theory ennreal nnreal big_operators
-
 open measure_theory
+
+open_locale measure_theory ennreal nnreal big_operators
 
 namespace probability_theory
 

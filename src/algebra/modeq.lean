@@ -26,10 +26,6 @@ redefine `add_comm_group.modeq` using it. Once this is done, we can rename `add_
 to `add_subgroup.modeq` and multiplicativise it.
 -/
 
-lemma int.cast_mul' {α : Type*} [add_comm_group_with_one α] : ∀ m n, ((m * n : ℤ) : α) = m • n :=
-λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, add_smul, ih])
-  (λ k _ ih n, by simp [sub_mul, sub_smul, ih])
-
 namespace add_comm_group
 variables {α : Type*}
 

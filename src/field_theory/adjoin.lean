@@ -202,8 +202,8 @@ lemma _root_.alg_hom.field_range_eq_top {K : Type*} [field K] [algebra F K] {f :
   f.field_range = ⊤ ↔ function.surjective f :=
 set_like.ext'_iff.trans set.range_iff_surjective
 
-@[simp] lemma _root_.alg_equiv.field_range_eq_top {K : Type*} [field K] [algebra F K] (f : E ≃ₐ[F] K) :
-  (f : E →ₐ[F] K).field_range = ⊤ :=
+@[simp] lemma _root_.alg_equiv.field_range_eq_top {K : Type*} [field K] [algebra F K]
+  (f : E ≃ₐ[F] K) : (f : E →ₐ[F] K).field_range = ⊤ :=
 alg_hom.field_range_eq_top.mpr f.surjective
 
 end lattice

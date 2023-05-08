@@ -425,7 +425,7 @@ by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 lemma int.cast_mul' [add_comm_group_with_one α] : ∀ m n, ((m * n : ℤ) : α) = m • n :=
 λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, add_zsmul, ih])
-  (λ k _ ih n, by simp [sub_mul, sub_zsmul, ih, sub_eq_add_neg])
+  (λ k _ ih n, by simp [sub_mul, sub_zsmul, ih, ←sub_eq_add_neg])
 
 @[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
 | (n : ℕ) := by rw [coe_nat_zsmul, nsmul_eq_mul, int.cast_coe_nat]

@@ -193,7 +193,7 @@ end add_comm_group
 @[simp] lemma modeq_iff_int_modeq {a b n : ℤ} : a ≡ b [PMOD n] ↔ a ≡ b [ZMOD n] :=
 by simp [modeq, dvd_iff_exists_eq_mul_left, int.modeq_iff_dvd]
 
-section ring
+section add_comm_group_with_one
 variables [add_comm_group_with_one α] [char_zero α]
 
 @[simp, norm_cast]
@@ -208,5 +208,5 @@ by simp_rw [←int.coe_nat_modeq_iff, ←modeq_iff_int_modeq, ←@int_cast_modeq
 alias int_cast_modeq_int_cast ↔ modeq.of_int_cast modeq.int_cast
 alias nat_cast_modeq_nat_cast ↔ _root_.nat.modeq.of_nat_cast modeq.nat_cast
 
-end ring
+end add_comm_group_with_one
 end add_comm_group

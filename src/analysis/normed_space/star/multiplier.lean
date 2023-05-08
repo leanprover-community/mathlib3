@@ -105,7 +105,8 @@ begin
   convert congr_arg prod.snd w,
 end
 
-lemma range_to_prod : set.range to_prod = {lr : (A →L[𝕜] A) × _ | ∀ x y, lr.2 x * y = x * lr.1 y} :=
+lemma range_to_prod :
+  set.range to_prod = {lr : (A →L[𝕜] A) × _ | ∀ x y, lr.2 x * y = x * lr.1 y} :=
 set.ext $ λ x, ⟨by {rintro ⟨a, rfl⟩, exact a.central}, λ hx, ⟨⟨x.1, x.2, hx⟩, by ext; simp⟩⟩
 
 instance : has_add 𝓜(𝕜, A) :=
@@ -233,7 +234,8 @@ def to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A
 
 lemma to_prod_mul_opposite_injective :
   function.injective (to_prod_mul_opposite : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ) :=
-λ a b h, let h' := prod.ext_iff.mp h in prod_ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2
+λ a b h, let h' := prod.ext_iff.mp h in
+  prod_ext _ _ $ prod.ext h'.1 $ mul_opposite.op_injective h'.2
 
 lemma range_to_prod_mul_opposite :
   set.range to_prod_mul_opposite = {lr : (A →L[𝕜] A) × _ | ∀ x y, unop lr.2 x * y = x * lr.1 y} :=

@@ -16,14 +16,6 @@ In this file we define the normal closure of an `intermediate_field`.
 - `intermediate_field.normal_closure K` for `K : intermediate_field F L`.
 -/
 
-lemma alg_hom.field_range_eq_top {F K L : Type*} [field F] [field K] [field L] [algebra F K]
-  [algebra F L] {f : K →ₐ[F] L} : f.field_range = ⊤ ↔ function.surjective f :=
-set_like.ext'_iff.trans set.range_iff_surjective
-
-lemma alg_equiv.field_range {F K L : Type*} [field F] [field K] [field L] [algebra F K]
-  [algebra F L] (f : K ≃ₐ[F] L) : (f : K →ₐ[F] L).field_range = ⊤ :=
-alg_hom.field_range_eq_top.mpr f.surjective
-
 instance {F L : Type*} [field F] [field L] [algebra F L] (K : intermediate_field F L) :
   nonempty (K →ₐ[F] L) := ⟨K.val⟩
 
@@ -53,21 +45,13 @@ supr_le_iff
 lemma field_range_le_normal_closure (f : K →ₐ[F] L) : f.field_range ≤ K.normal_closure :=
 le_supr alg_hom.field_range f
 
-lemma field_range_of_normal [normal F K] (f : K →ₐ[F] L) : f.field_range = K :=
-begin
-  haveI : is_scalar_tower F K K := by apply_instance,
-  let g := f.restrict_normal' K,
-  have : K.val.comp ↑g = f := fun_like.ext_iff.mpr (f.restrict_normal_commutes K),
-  rw [←this, ←alg_hom.map_field_range, g.field_range, ←K.val.field_range_eq_map, field_range_val],
-end
-
 variables (K)
 
 lemma le_normal_closure : K ≤ K.normal_closure :=
 K.field_range_val.symm.trans_le (field_range_le_normal_closure K.val)
 
 lemma normal_closure_of_normal [normal F K] : K.normal_closure = K :=
-by simp only [normal_closure_def, field_range_of_normal, supr_const]
+by simp only [normal_closure_def, alg_hom.field_range_of_normal, supr_const]
 
 variables [normal F L]
 
@@ -107,15 +91,15 @@ lemma normal_iff_forall_map_le' : normal F K ↔ ∀ σ : L ≃ₐ[F] L, K.map �
 by rw [normal_iff_normal_closure_le, normal_closure_def'', supr_le_iff]
 
 lemma normal_iff_forall_field_range_eq : normal F K ↔ ∀ σ : K →ₐ[F] L, σ.field_range = K :=
-⟨@field_range_of_normal F L _ _ _ K, normal_iff_forall_field_range_le.mpr ∘ λ h σ, (h σ).le⟩
+⟨@alg_hom.field_range_of_normal F L _ _ _ K, normal_iff_forall_field_range_le.2 ∘ λ h σ, (h σ).le⟩
 
 lemma normal_iff_forall_map_eq : normal F K ↔ ∀ σ : L →ₐ[F] L, K.map σ = K :=
 begin
-  refine ⟨λ h σ, K.field_range_val ▸ _, λ h, normal_iff_forall_map_le.mpr (λ σ, (h σ).le)⟩,
-  rw [K.val.map_field_range, normal_iff_forall_field_range_eq.mp h, field_range_val],
+  refine ⟨λ h σ, K.field_range_val ▸ _, λ h, normal_iff_forall_map_le.2 (λ σ, (h σ).le)⟩,
+  rw [K.val.map_field_range, normal_iff_forall_field_range_eq.1 h, field_range_val],
 end
 
 lemma normal_iff_forall_map_eq' : normal F K ↔ ∀ σ : L ≃ₐ[F] L, K.map ↑σ = K :=
-⟨λ h σ, normal_iff_forall_map_eq.mp h σ, λ h, normal_iff_forall_map_le'.mpr (λ σ, (h σ).le)⟩
+⟨λ h σ, normal_iff_forall_map_eq.1 h σ, λ h, normal_iff_forall_map_le'.2 (λ σ, (h σ).le)⟩
 
 end intermediate_field

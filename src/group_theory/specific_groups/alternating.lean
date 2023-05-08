@@ -4,11 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
+import algebra.group.conj_finite
 import group_theory.perm.fin
+import group_theory.subgroup.simple
 import tactic.interval_cases
 
 /-!
 # Alternating Groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The alternating group on a finite type `α` is the subgroup of the permutation group `perm α`
 consisting of the even permutations.
@@ -259,10 +264,9 @@ lemma is_conj_swap_mul_swap_of_cycle_type_two {g : perm (fin 5)}
   is_conj (swap 0 4 * swap 1 3) g :=
 begin
   have h := g.support.card_le_univ,
-  rw [← sum_cycle_type, multiset.eq_repeat_of_mem h2, multiset.sum_repeat, smul_eq_mul] at h,
-  rw [← multiset.eq_repeat'] at h2,
-  have h56 : 5 ≤ 3 * 2 := nat.le_succ 5,
-  have h := le_of_mul_le_mul_right (le_trans h h56) dec_trivial,
+  rw [← multiset.eq_replicate_card] at h2,
+  rw [← sum_cycle_type, h2, multiset.sum_replicate, smul_eq_mul] at h,
+  have h : g.cycle_type.card ≤ 3 := le_of_mul_le_mul_right (le_trans h dec_trivial) dec_trivial,
   rw [mem_alternating_group, sign_of_cycle_type, h2] at ha,
   norm_num at ha,
   rw [pow_add, pow_mul, int.units_pow_two,one_mul,

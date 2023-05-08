@@ -10,6 +10,9 @@ import data.mv_polynomial.comm_ring
 /-!
 # Matrices of multivariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove results about matrices over an mv_polynomial ring.
 In particular, we provide `matrix.mv_polynomial_X` which associates every entry of a matrix with a
 unique variable.
@@ -25,8 +28,13 @@ namespace matrix
 variables (m n R)
 
 /-- The matrix with variable `X (i,j)` at location `(i,j)`. -/
-@[simp] noncomputable def mv_polynomial_X [comm_semiring R] : matrix m n (mv_polynomial (m × n) R)
-| i j := mv_polynomial.X (i, j)
+noncomputable def mv_polynomial_X [comm_semiring R] : matrix m n (mv_polynomial (m × n) R) :=
+of $ λ i j, mv_polynomial.X (i, j)
+
+-- TODO: set as an equation lemma for `mv_polynomial_X`, see mathlib4#3024
+@[simp]
+lemma mv_polynomial_X_apply [comm_semiring R] (i j) :
+  mv_polynomial_X m n R i j = mv_polynomial.X (i, j) := rfl
 
 variables {m n R S}
 

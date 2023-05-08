@@ -3,10 +3,9 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import category_theory.sites.limits
 import category_theory.functor.flat
-import category_theory.limits.preserves.filtered
-import category_theory.sites.left_exact
+import category_theory.sites.sheaf
+import tactic.apply_fun
 
 /-!
 # Cover-preserving functors between sites.
@@ -24,10 +23,6 @@ if it pushes compatible families of elements to compatible families.
 * `category_theory.pullback_sheaf`: the pullback of a sheaf along a cover-preserving and
 compatible-preserving functor.
 * `category_theory.sites.pullback`: the induced functor `Sheaf K A ⥤ Sheaf J A` for a
-cover-preserving and compatible-preserving functor `G : (C, J) ⥤ (D, K)`.
-* `category_theory.sites.pushforward`: the induced functor `Sheaf J A ⥤ Sheaf K A` for a
-cover-preserving and compatible-preserving functor `G : (C, J) ⥤ (D, K)`.
-* `category_theory.sites.pushforward`: the induced functor `Sheaf J A ⥤ Sheaf K A` for a
 cover-preserving and compatible-preserving functor `G : (C, J) ⥤ (D, K)`.
 
 ## Main results
@@ -62,7 +57,7 @@ variables {L : grothendieck_topology A}
 A functor `G : (C, J) ⥤ (D, K)` between sites is *cover-preserving*
 if for all covering sieves `R` in `C`, `R.pushforward_functor G` is a covering sieve in `D`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure cover_preserving (G : C ⥤ D) : Prop :=
 (cover_preserve : ∀ {U : C} {S : sieve U} (hS : S ∈ J U), S.functor_pushforward G ∈ K (G.obj U))
 
@@ -86,7 +81,7 @@ compatible family of elements at `C` and valued in `G.op ⋙ ℱ`, and each comm
 This is actually stronger than merely preserving compatible families because of the definition of
 `functor_pushforward` used.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (compatible :
   ∀ (ℱ : SheafOfTypes.{w} K) {Z} {T : presieve Z}
@@ -162,6 +157,18 @@ begin
   exact hx (c'.π.app left).right (c'.π.app right).right hg₁ hg₂ (e₁.symm.trans e₂)
 end
 
+lemma compatible_preserving_of_downwards_closed (F : C ⥤ D) [full F] [faithful F]
+  (hF : Π {c : C} {d : D} (f : d ⟶ F.obj c), Σ c', F.obj c' ≅ d) : compatible_preserving K F :=
+begin
+  constructor,
+  introv hx he,
+  obtain ⟨X', e⟩ := hF f₁,
+  apply (ℱ.1.map_iso e.op).to_equiv.injective,
+  simp only [iso.op_hom, iso.to_equiv_fun, ℱ.1.map_iso_hom, ← functor_to_types.map_comp_apply],
+  simpa using hx (F.preimage $ e.hom ≫ f₁) (F.preimage $ e.hom ≫ f₂) hg₁ hg₂
+    (F.map_injective $ by simpa using he),
+end
+
 /--
 If `G` is cover-preserving and compatible-preserving,
 then `G.op ⋙ _` pulls sheaves back to sheaves.
@@ -210,50 +217,5 @@ if `G` is cover-preserving and compatible-preserving.
   map := λ _ _ f, ⟨(((whiskering_left _ _ _).obj G.op)).map f.val⟩,
   map_id' := λ ℱ, by { ext1, apply (((whiskering_left _ _ _).obj G.op)).map_id },
   map_comp' := λ _ _ _ f g, by { ext1, apply (((whiskering_left _ _ _).obj G.op)).map_comp } }
-
-end category_theory
-
-namespace category_theory
-
-variables {C : Type v₁} [small_category C] {D : Type v₁} [small_category D]
-variables (A : Type u₂) [category.{v₁} A]
-variables (J : grothendieck_topology C) (K : grothendieck_topology D)
-
-instance [has_limits A] : creates_limits (Sheaf_to_presheaf J A) :=
-category_theory.Sheaf.category_theory.Sheaf_to_presheaf.category_theory.creates_limits.{u₂ v₁ v₁}
-
--- The assumptions so that we have sheafification
-variables [concrete_category.{v₁} A] [preserves_limits (forget A)] [has_colimits A] [has_limits A]
-variables [preserves_filtered_colimits (forget A)] [reflects_isomorphisms (forget A)]
-
-local attribute [instance] reflects_limits_of_reflects_isomorphisms
-
-instance {X : C} : is_cofiltered (J.cover X) := infer_instance
-
-/-- The pushforward functor `Sheaf J A ⥤ Sheaf K A` associated to a functor `G : C ⥤ D` in the
-same direction as `G`. -/
-@[simps] def sites.pushforward (G : C ⥤ D) : Sheaf J A ⥤ Sheaf K A :=
-Sheaf_to_presheaf J A ⋙ Lan G.op ⋙ presheaf_to_Sheaf K A
-
-instance (G : C ⥤ D) [representably_flat G] :
-  preserves_finite_limits (sites.pushforward A J K G) :=
-begin
-  apply_with comp_preserves_finite_limits { instances := ff },
-  { apply_instance },
-  apply_with comp_preserves_finite_limits { instances := ff },
-  { apply category_theory.Lan_preserves_finite_limits_of_flat },
-  { apply category_theory.presheaf_to_Sheaf.limits.preserves_finite_limits.{u₂ v₁ v₁},
-    apply_instance }
-end
-
-/-- The pushforward functor is left adjoint to the pullback functor. -/
-def sites.pullback_pushforward_adjunction {G : C ⥤ D} (hG₁ : compatible_preserving K G)
-  (hG₂ : cover_preserving J K G) : sites.pushforward A J K G ⊣ sites.pullback A hG₁ hG₂ :=
-((Lan.adjunction A G.op).comp (sheafification_adjunction K A)).restrict_fully_faithful
-  (Sheaf_to_presheaf J A) (𝟭 _)
-  (nat_iso.of_components (λ _, iso.refl _)
-    (λ _ _ _,(category.comp_id _).trans (category.id_comp _).symm))
-  (nat_iso.of_components (λ _, iso.refl _)
-    (λ _ _ _,(category.comp_id _).trans (category.id_comp _).symm))
 
 end category_theory

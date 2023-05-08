@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import order.monotone.odd
 import analysis.special_functions.exp_deriv
 import analysis.special_functions.trigonometric.basic
-import data.set.intervals.monotone
 
 /-!
 # Differentiability of trigonometric functions
@@ -21,7 +21,7 @@ sin, cos, tan, angle
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 namespace complex
@@ -43,7 +43,7 @@ lemma has_deriv_at_sin (x : ℂ) : has_deriv_at sin (cos x) x :=
 
 lemma cont_diff_sin {n} : cont_diff ℂ n sin :=
 (((cont_diff_neg.mul cont_diff_const).cexp.sub
-  (cont_diff_id.mul cont_diff_const).cexp).mul cont_diff_const).div_const
+  (cont_diff_id.mul cont_diff_const).cexp).mul cont_diff_const).div_const _
 
 lemma differentiable_sin : differentiable ℂ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
@@ -71,7 +71,7 @@ lemma has_deriv_at_cos (x : ℂ) : has_deriv_at cos (-sin x) x :=
 
 lemma cont_diff_cos {n} : cont_diff ℂ n cos :=
 ((cont_diff_id.mul cont_diff_const).cexp.add
-  (cont_diff_neg.mul cont_diff_const).cexp).div_const
+  (cont_diff_neg.mul cont_diff_const).cexp).div_const _
 
 lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
@@ -100,7 +100,7 @@ lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 (has_strict_deriv_at_sinh x).has_deriv_at
 
 lemma cont_diff_sinh {n} : cont_diff ℂ n sinh :=
-(cont_diff_exp.sub cont_diff_neg.cexp).div_const
+(cont_diff_exp.sub cont_diff_neg.cexp).div_const _
 
 lemma differentiable_sinh : differentiable ℂ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
@@ -126,7 +126,7 @@ lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
 (has_strict_deriv_at_cosh x).has_deriv_at
 
 lemma cont_diff_cosh {n} : cont_diff ℂ n cosh :=
-(cont_diff_exp.add cont_diff_neg.cexp).div_const
+(cont_diff_exp.add cont_diff_neg.cexp).div_const _
 
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
@@ -241,7 +241,7 @@ end
 section
 /-! ### Simp lemmas for derivatives of `λ x, complex.cos (f x)` etc., `f : E → ℂ` -/
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
   {x : E} {s : set E}
 
 /-! #### `complex.cos` -/
@@ -568,6 +568,9 @@ by simpa only [sinh_zero] using @sinh_lt_sinh x 0
 @[simp] lemma sinh_nonneg_iff : 0 ≤ sinh x ↔ 0 ≤ x :=
 by simpa only [sinh_zero] using @sinh_le_sinh 0 x
 
+lemma abs_sinh (x : ℝ) : |sinh x| = sinh (|x|) :=
+by cases le_total x 0; simp [abs_of_nonneg, abs_of_nonpos, *]
+
 lemma cosh_strict_mono_on : strict_mono_on cosh (Ici 0) :=
 (convex_Ici _).strict_mono_on_of_deriv_pos continuous_cosh.continuous_on $ λ x hx,
   by { rw [interior_Ici, mem_Ioi] at hx, rwa [deriv_cosh, sinh_pos_iff] }
@@ -713,7 +716,7 @@ section
 
 /-! ### Simp lemmas for derivatives of `λ x, real.cos (f x)` etc., `f : E → ℝ` -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
 
 /-! #### `real.cos` -/

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import analysis.convex.specific_functions
+import tactic.positivity
 
 /-!
 # Mean value inequalities
@@ -71,7 +72,7 @@ theorem arith_mean_le_rpow_mean (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) {p : ℝ} (hp : 1 ≤ p) :
   ∑ i in s, w i * z i ≤ (∑ i in s, (w i * z i ^ p)) ^ (1 / p) :=
 begin
-  have : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  have : 0 < p := by positivity,
   rw [← rpow_le_rpow_iff _ _ this, ← rpow_mul, one_div_mul_cancel (ne_of_gt this), rpow_one],
   exact rpow_arith_mean_le_arith_mean_rpow s w z hw hw' hz hp,
   all_goals { apply_rules [sum_nonneg, rpow_nonneg_of_nonneg],
@@ -108,6 +109,20 @@ begin
   { simp [hw', fin.sum_univ_succ], },
 end
 
+/-- Unweighted mean inequality, version for two elements of `ℝ≥0` and real exponents. -/
+theorem rpow_add_le_mul_rpow_add_rpow (z₁ z₂ : ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
+  (z₁ + z₂) ^ p ≤ 2^(p-1) * (z₁ ^ p + z₂ ^ p) :=
+begin
+  rcases eq_or_lt_of_le hp with rfl|h'p,
+  { simp only [rpow_one, sub_self, rpow_zero, one_mul] },
+  convert rpow_arith_mean_le_arith_mean2_rpow (1/2) (1/2) (2 * z₁) (2 * z₂) (add_halves 1) hp,
+  { simp only [one_div, inv_mul_cancel_left₀, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff] },
+  { simp only [one_div, inv_mul_cancel_left₀, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff] },
+  { have A : p - 1 ≠ 0 := ne_of_gt (sub_pos.2 h'p),
+    simp only [mul_rpow, rpow_sub' _ A, div_eq_inv_mul, rpow_one, mul_one],
+    ring }
+end
+
 /-- Weighted generalized mean inequality, version for sums over finite sets, with `ℝ≥0`-valued
 functions and real exponents. -/
 theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) {p : ℝ}
@@ -115,10 +130,6 @@ theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 
   ∑ i in s, w i * z i ≤ (∑ i in s, (w i * z i ^ p)) ^ (1 / p) :=
 by exact_mod_cast real.arith_mean_le_rpow_mean s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) hp
-
-end nnreal
-
-namespace nnreal
 
 private lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ℝ≥0) (hab : a + b ≤ 1)
   (hp1 : 1 ≤ p) :
@@ -133,7 +144,7 @@ end
 lemma add_rpow_le_rpow_add {p : ℝ} (a b : ℝ≥0) (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ (a + b) ^ p :=
 begin
-  have hp_pos : 0 < p := lt_of_lt_of_le zero_lt_one hp1,
+  have hp_pos : 0 < p := by positivity,
   by_cases h_zero : a + b = 0,
   { simp [add_eq_zero_iff.mp h_zero, hp_pos.ne'] },
   have h_nonzero : ¬(a = 0 ∧ b = 0), by rwa add_eq_zero_iff at h_zero,
@@ -171,9 +182,11 @@ begin
   rwa one_div_div at h_rpow_add_rpow_le_add,
 end
 
-lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0) (hp : 0 ≤ p) (hp1 : p ≤ 1) :
   (a + b) ^ p ≤ a ^ p + b ^ p :=
 begin
+  rcases hp.eq_or_lt with rfl|hp_pos,
+  { simp },
   have h := rpow_add_rpow_le a b hp_pos hp1,
   rw one_div_one at h,
   repeat { rw nnreal.rpow_one at h },
@@ -190,12 +203,12 @@ theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ≥0∞) (hw' : ∑ 
   (hp : 1 ≤ p) :
   (∑ i in s, w i * z i) ^ p ≤ ∑ i in s, (w i * z i ^ p) :=
 begin
-  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp,
-  have hp_nonneg : 0 ≤ p, from le_of_lt hp_pos,
+  have hp_pos : 0 < p, positivity,
+  have hp_nonneg : 0 ≤ p, positivity,
   have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
   have hp_not_neg : ¬ p < 0, by simp [hp_nonneg],
   have h_top_iff_rpow_top : ∀ (i : ι) (hi : i ∈ s), w i * z i = ⊤ ↔ w i * (z i) ^ p = ⊤,
-  by simp [hp_pos, hp_nonneg, hp_not_nonpos, hp_not_neg],
+    by simp [ennreal.mul_eq_top, hp_pos, hp_nonneg, hp_not_nonpos, hp_not_neg],
   refine le_of_top_imp_top_of_to_nnreal_le _ _,
   { -- first, prove `(∑ i in s, w i * z i) ^ p = ⊤ → ∑ i in s, (w i * z i ^ p) = ⊤`
     rw [rpow_eq_top_iff, sum_eq_top_iff, sum_eq_top_iff],
@@ -245,14 +258,26 @@ begin
   { simp [hw', fin.sum_univ_succ], },
 end
 
-end ennreal
-
-namespace ennreal
+/-- Unweighted mean inequality, version for two elements of `ℝ≥0∞` and real exponents. -/
+theorem rpow_add_le_mul_rpow_add_rpow (z₁ z₂ : ℝ≥0∞) {p : ℝ} (hp : 1 ≤ p) :
+  (z₁ + z₂) ^ p ≤ 2^(p-1) * (z₁ ^ p + z₂ ^ p) :=
+begin
+  rcases eq_or_lt_of_le hp with rfl|h'p,
+  { simp only [rpow_one, sub_self, rpow_zero, one_mul, le_refl], },
+  convert rpow_arith_mean_le_arith_mean2_rpow
+    (1/2) (1/2) (2 * z₁) (2 * z₂) (ennreal.add_halves 1) hp,
+  { simp [← mul_assoc, ennreal.inv_mul_cancel two_ne_zero two_ne_top] },
+  { simp [← mul_assoc, ennreal.inv_mul_cancel two_ne_zero two_ne_top] },
+  { have A : p - 1 ≠ 0 := ne_of_gt (sub_pos.2 h'p),
+    simp only [mul_rpow_of_nonneg _ _ (zero_le_one.trans hp), rpow_sub _ _ two_ne_zero two_ne_top,
+      div_eq_inv_mul, rpow_one, mul_one],
+    ring }
+end
 
 lemma add_rpow_le_rpow_add {p : ℝ} (a b : ℝ≥0∞) (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ (a + b) ^ p :=
 begin
-  have hp_pos : 0 < p := lt_of_lt_of_le zero_lt_one hp1,
+  have hp_pos : 0 < p := by positivity,
   by_cases h_top : a + b = ⊤,
   { rw ←@ennreal.rpow_eq_top_iff_of_pos (a + b) p hp_pos at h_top,
     rw h_top,
@@ -285,9 +310,14 @@ begin
   rwa one_div_div at h_rpow_add_rpow_le_add,
 end
 
-lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp : 0 ≤ p) (hp1 : p ≤ 1) :
   (a + b) ^ p ≤ a ^ p + b ^ p :=
 begin
+  rcases hp.eq_or_lt with rfl|hp_pos,
+  { suffices : (1 : ℝ≥0∞) ≤ 1 + 1,
+    { simpa using this },
+    norm_cast,
+    norm_num },
   have h := rpow_add_rpow_le a b hp_pos hp1,
   rw one_div_one at h,
   repeat { rw ennreal.rpow_one at h },

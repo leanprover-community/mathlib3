@@ -10,6 +10,9 @@ import category_theory.functor.epi_mono
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Eilenberg-Moore (co)algebras for a (co)monad,
 and provides the category instance for them.
 
@@ -241,7 +244,7 @@ end monad
 namespace comonad
 
 /-- An Eilenberg-Moore coalgebra for a comonad `T`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure coalgebra (G : comonad C) : Type (max u₁ v₁) :=
 (A : C)
 (a : A ⟶ (G : C ⥤ C).obj A)
@@ -256,7 +259,7 @@ namespace coalgebra
 variables {G : comonad C}
 
 /-- A morphism of Eilenberg-Moore coalgebras for the comonad `G`. -/
-@[ext, nolint has_inhabited_instance] structure hom (A B : coalgebra G) :=
+@[ext, nolint has_nonempty_instance] structure hom (A B : coalgebra G) :=
 (f : A.A ⟶ B.A)
 (h' : A.a ≫ (G : C ⥤ C).map f = f ≫ B.a . obviously)
 

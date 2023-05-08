@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
+import ring_theory.adjoin_root
 import ring_theory.localization.basic
 
 /-!
@@ -12,6 +13,8 @@ import ring_theory.localization.basic
 
  * `is_localization.away (x : R) S` expresses that `S` is a localization away from `x`, as an
    abbreviation of `is_localization (submonoid.powers x) S`
+ * `exists_reduced_fraction (hb : b ≠ 0)` produces a reduced fraction of the form `b = a * x^n` for
+   some `n : ℤ` and some `a : R` that is not divisible by `x`.
 
 ## Implementation notes
 
@@ -21,9 +24,11 @@ See `src/ring_theory/localization/basic.lean` for a design overview.
 localization, ring localization, commutative ring localization, characteristic predicate,
 commutative ring, field of fractions
 -/
+
+section comm_semiring
+
 variables {R : Type*} [comm_semiring R] (M : submonoid R) {S : Type*} [comm_semiring S]
 variables [algebra R S] {P : Type*} [comm_semiring P]
-
 
 namespace is_localization
 
@@ -43,6 +48,9 @@ variables [is_localization.away x S]
 /-- Given `x : R` and a localization map `F : R →+* S` away from `x`, `inv_self` is `(F x)⁻¹`. -/
 noncomputable def inv_self : S :=
 mk' S (1 : R) ⟨x, submonoid.mem_powers _⟩
+
+@[simp] lemma mul_inv_self : algebra_map R S x * inv_self x = 1 :=
+by { convert is_localization.mk'_mul_mk'_eq_one _ 1, symmetry, apply is_localization.mk'_one }
 
 variables {g : R →+* P}
 
@@ -98,7 +106,7 @@ begin
   { intros x y hxy,
     obtain ⟨c, eq⟩ := (is_localization.eq_iff_exists M S).mp hxy,
     obtain ⟨u, hu⟩ := H c,
-    rwa [← hu, units.mul_left_inj] at eq },
+    rwa [← hu, units.mul_right_inj] at eq },
   { intros y,
     obtain ⟨⟨x, s⟩, eq⟩ := is_localization.surj M y,
     obtain ⟨u, hu⟩ := H s,
@@ -134,7 +142,7 @@ lemma away_of_is_unit_of_bijective {R : Type*} (S : Type*) [comm_ring R] [comm_r
     erw H.1.eq_iff,
     split,
     { rintro rfl, exact ⟨1, rfl⟩ },
-    { rintro ⟨⟨_, n, rfl⟩, e⟩, exact (hr.pow _).mul_left_inj.mp e }
+    { rintro ⟨⟨_, n, rfl⟩, e⟩, exact (hr.pow _).mul_right_inj.mp e }
   end }
 
 end at_units
@@ -161,3 +169,170 @@ abbreviation away_map (f : R →+* P) (r : R) :
 is_localization.away.map _ _ f r
 
 end localization
+
+end comm_semiring
+
+open polynomial adjoin_root localization
+
+variables {R : Type*} [comm_ring R]
+
+local attribute [instance] is_localization.alg_hom_subsingleton adjoin_root.alg_hom_subsingleton
+
+/-- The `R`-`alg_equiv` between the localization of `R` away from `r` and
+    `R` with an inverse of `r` adjoined. -/
+noncomputable def localization.away_equiv_adjoin (r : R) : away r ≃ₐ[R] adjoin_root (C r * X - 1) :=
+alg_equiv.of_alg_hom
+  { commutes' := is_localization.away.away_map.lift_eq r
+      (is_unit_of_mul_eq_one _ _ $ root_is_inv r), .. away_lift _ r _ }
+  (lift_hom _ (is_localization.away.inv_self r) $ by simp only
+    [map_sub, map_mul, aeval_C, aeval_X, is_localization.away.mul_inv_self, aeval_one, sub_self])
+  (subsingleton.elim _ _)
+  (subsingleton.elim _ _)
+
+lemma is_localization.adjoin_inv (r : R) : is_localization.away r (adjoin_root $ C r * X - 1) :=
+is_localization.is_localization_of_alg_equiv _ (localization.away_equiv_adjoin r)
+
+lemma is_localization.away.finite_presentation (r : R) {S} [comm_ring S] [algebra R S]
+  [is_localization.away r S] : algebra.finite_presentation R S :=
+(adjoin_root.finite_presentation _).equiv $ (localization.away_equiv_adjoin r).symm.trans $
+  is_localization.alg_equiv (submonoid.powers r) _ _
+
+section num_denom
+
+open multiplicity unique_factorization_monoid is_localization
+
+variable (x : R)
+
+variables (B : Type*) [comm_ring B] [algebra R B] [is_localization.away x B]
+
+/-- `self_zpow x (m : ℤ)` is `x ^ m` as an element of the localization away from `x`. -/
+noncomputable def self_zpow (m : ℤ) : B :=
+if hm : 0 ≤ m
+then algebra_map _ _ x ^ m.nat_abs
+else mk' _ (1 : R) (submonoid.pow x m.nat_abs)
+
+lemma self_zpow_of_nonneg {n : ℤ} (hn : 0 ≤ n) : self_zpow x B n =
+  algebra_map R B x ^ n.nat_abs :=
+dif_pos hn
+
+@[simp] lemma self_zpow_coe_nat (d : ℕ) : self_zpow x B d = (algebra_map R B x)^d :=
+self_zpow_of_nonneg _ _ (int.coe_nat_nonneg d)
+
+@[simp] lemma self_zpow_zero : self_zpow x B 0 = 1 :=
+by simp [self_zpow_of_nonneg _ _ le_rfl]
+
+lemma self_zpow_of_neg {n : ℤ} (hn : n < 0) :
+  self_zpow x B n = mk' _ (1 : R) (submonoid.pow x n.nat_abs) :=
+dif_neg hn.not_le
+
+lemma self_zpow_of_nonpos {n : ℤ} (hn : n ≤ 0) :
+  self_zpow x B n = mk' _ (1 : R) (submonoid.pow x n.nat_abs) :=
+begin
+  by_cases hn0 : n = 0,
+  { simp [hn0, self_zpow_zero, submonoid.pow_apply] },
+  { simp [self_zpow_of_neg _ _ (lt_of_le_of_ne hn hn0)] }
+end
+
+@[simp] lemma self_zpow_neg_coe_nat (d : ℕ) :
+  self_zpow x B (-d) = mk' _ (1 : R) (submonoid.pow x d) :=
+by simp [self_zpow_of_nonpos _ _ (neg_nonpos.mpr (int.coe_nat_nonneg d))]
+
+@[simp] lemma self_zpow_sub_cast_nat {n m : ℕ} :
+  self_zpow x B (n - m) = mk' _ (x ^ n) (submonoid.pow x m) :=
+begin
+  by_cases h : m ≤ n,
+  { rw [is_localization.eq_mk'_iff_mul_eq, submonoid.pow_apply, subtype.coe_mk,
+        ← int.coe_nat_sub h, self_zpow_coe_nat, ← map_pow, ← map_mul, ← pow_add,
+        nat.sub_add_cancel h] },
+  { rw [← neg_sub, ← int.coe_nat_sub (le_of_not_le h), self_zpow_neg_coe_nat,
+        is_localization.mk'_eq_iff_eq],
+    simp [submonoid.pow_apply, ← pow_add, nat.sub_add_cancel (le_of_not_le h)] }
+end
+
+@[simp] lemma self_zpow_add {n m : ℤ} :
+  self_zpow x B (n + m) = self_zpow x B n * self_zpow x B m :=
+begin
+  cases le_or_lt 0 n with hn hn; cases le_or_lt 0 m with hm hm,
+  { rw [self_zpow_of_nonneg _ _ hn, self_zpow_of_nonneg _ _ hm,
+        self_zpow_of_nonneg _ _ (add_nonneg hn hm), int.nat_abs_add_nonneg hn hm, pow_add] },
+  { have : n + m = n.nat_abs - m.nat_abs,
+    { rw [int.nat_abs_of_nonneg hn, int.of_nat_nat_abs_of_nonpos hm.le, sub_neg_eq_add] },
+    rw [self_zpow_of_nonneg _ _ hn, self_zpow_of_neg _ _ hm,
+        this, self_zpow_sub_cast_nat, is_localization.mk'_eq_mul_mk'_one, map_pow] },
+  { have : n + m = m.nat_abs - n.nat_abs,
+    { rw [int.nat_abs_of_nonneg hm, int.of_nat_nat_abs_of_nonpos hn.le, sub_neg_eq_add, add_comm] },
+    rw [self_zpow_of_nonneg _ _ hm, self_zpow_of_neg _ _ hn,
+        this, self_zpow_sub_cast_nat, is_localization.mk'_eq_mul_mk'_one, map_pow, mul_comm] },
+  { rw [self_zpow_of_neg _ _ hn, self_zpow_of_neg _ _ hm, self_zpow_of_neg _ _ (add_neg hn hm),
+        int.nat_abs_add_neg hn hm, ← mk'_mul, one_mul],
+    congr,
+    ext,
+    simp [pow_add] },
+end
+
+lemma self_zpow_mul_neg (d : ℤ) : self_zpow x B d * self_zpow x B (-d) = 1 :=
+begin
+  by_cases hd : d ≤ 0,
+  { erw [self_zpow_of_nonpos x B hd, self_zpow_of_nonneg, ← map_pow, int.nat_abs_neg,
+      is_localization.mk'_spec, map_one],
+    apply nonneg_of_neg_nonpos,
+    rwa [neg_neg]},
+  { erw [self_zpow_of_nonneg x B (le_of_not_le hd), self_zpow_of_nonpos, ← map_pow, int.nat_abs_neg,
+     @is_localization.mk'_spec' R _ (submonoid.powers x) B _ _ _ 1 (submonoid.pow x d.nat_abs),
+      map_one],
+    refine nonpos_of_neg_nonneg (le_of_lt _),
+    rwa [neg_neg, ← not_le] },
+end
+
+lemma self_zpow_neg_mul (d : ℤ) : self_zpow x B (-d) * self_zpow x B d = 1 :=
+by rw [mul_comm, self_zpow_mul_neg x B d]
+
+
+lemma self_zpow_pow_sub (a : R) (b : B) (m d : ℤ) :
+  (self_zpow x B (m - d)) * mk' B a (1 : submonoid.powers x) = b ↔
+  (self_zpow x B m) * mk' B a (1 : submonoid.powers x) = (self_zpow x B d) * b :=
+begin
+  rw [sub_eq_add_neg, self_zpow_add, mul_assoc, mul_comm _ (mk' B a 1), ← mul_assoc],
+  split,
+  { intro h,
+    have := congr_arg (λ s : B, s * self_zpow x B d) h,
+    simp only at this,
+    rwa [mul_assoc, mul_assoc, self_zpow_neg_mul, mul_one, mul_comm b _] at this},
+  { intro h,
+    have := congr_arg (λ s : B, s * self_zpow x B (-d)) h,
+    simp only at this,
+    rwa [mul_comm _ b, mul_assoc b _ _, self_zpow_mul_neg, mul_one] at this}
+end
+
+
+variables [is_domain R] [normalization_monoid R] [unique_factorization_monoid R]
+
+
+theorem exists_reduced_fraction' {b : B} (hb : b ≠ 0) (hx : irreducible x) :
+  ∃ (a : R) (n : ℤ), ¬ x ∣ a ∧
+    self_zpow x B n * algebra_map R B a = b :=
+begin
+  classical,
+  obtain ⟨⟨a₀, y⟩, H⟩ := surj (submonoid.powers x) b,
+  obtain ⟨d, hy⟩ := (submonoid.mem_powers_iff y.1 x).mp y.2,
+  have ha₀ : a₀ ≠ 0,
+  { haveI := @is_domain_of_le_non_zero_divisors B _ R _ _ _ (submonoid.powers x) _
+      (powers_le_non_zero_divisors_of_no_zero_divisors hx.ne_zero),
+    simp only [map_zero, ← subtype.val_eq_coe, ← hy, map_pow] at H,
+    apply ((injective_iff_map_eq_zero' (algebra_map R B)).mp _ a₀).mpr.mt,
+    rw ← H,
+    apply mul_ne_zero hb (pow_ne_zero _ _),
+    exact is_localization.to_map_ne_zero_of_mem_non_zero_divisors B
+      (powers_le_non_zero_divisors_of_no_zero_divisors (hx.ne_zero))
+      (mem_non_zero_divisors_iff_ne_zero.mpr hx.ne_zero),
+    exact is_localization.injective B (powers_le_non_zero_divisors_of_no_zero_divisors
+      (hx.ne_zero)) },
+  simp only [← subtype.val_eq_coe, ← hy] at H,
+  obtain ⟨m, a, hyp1, hyp2⟩ := max_power_factor ha₀ hx,
+  refine ⟨a, m-d, _⟩,
+  rw [← mk'_one B, self_zpow_pow_sub, self_zpow_coe_nat, self_zpow_coe_nat, ← map_pow _ _ d,
+    mul_comm _ b, H, hyp2, map_mul, map_pow _ _ m],
+  exact ⟨hyp1, (congr_arg _ (is_localization.mk'_one _ _))⟩,
+end
+
+end num_denom

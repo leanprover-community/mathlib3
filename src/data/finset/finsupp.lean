@@ -3,12 +3,16 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import algebra.big_operators.finsupp
 import data.finset.pointwise
 import data.finsupp.indicator
-import data.fintype.card
+import data.fintype.big_operators
 
 /-!
 # Finitely supported product of finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the finitely supported product of finsets as a `finset (ι →₀ α)`.
 

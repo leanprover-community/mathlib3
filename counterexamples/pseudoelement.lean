@@ -5,6 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import category_theory.abelian.pseudoelements
+import algebra.category.Module.biproducts
 
 /-!
 # Pseudoelements and pullbacks
@@ -36,17 +37,11 @@ namespace category_theory.abelian.pseudoelement
 
 /-- `x` is given by `t ↦ (t, 2 * t)`. -/
 def x : over ((of ℤ ℚ) ⊞ (of ℤ ℚ)) :=
-begin
-  constructor,
-  exact biprod.lift (of_hom id) (of_hom (2 * id)),
-end
+over.mk (biprod.lift (of_hom id) (of_hom (2 * id)))
 
 /-- `y` is given by `t ↦ (t, t)`. -/
 def y : over ((of ℤ ℚ) ⊞ (of ℤ ℚ)) :=
-begin
-  constructor,
-  exact biprod.lift (of_hom id) (of_hom id),
-end
+over.mk (biprod.lift (of_hom id) (of_hom id))
 
 /-- `biprod.fst ≫ x` is pseudoequal to `biprod.fst y`. -/
 lemma fst_x_pseudo_eq_fst_y : pseudo_equal _ (app biprod.fst x) (app biprod.fst y) :=
@@ -95,7 +90,7 @@ begin
   simp only [ha₁, this, biprod.lift_snd, of_hom_apply, id_coe, id.def, preadditive.add_comp,
     category.assoc, biprod.inl_snd, limits.comp_zero, biprod.inr_snd, category.comp_id, zero_add,
     mul_apply, self_eq_add_left] at ha₂,
-  exact @one_ne_zero ℚ _ _ ha₂,
+  exact one_ne_zero' ℚ ha₂,
 end
 
 local attribute [instance] pseudoelement.setoid

@@ -10,6 +10,9 @@ import data.real.cardinality
 /-!
 # The cardinality of the complex numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that the complex numbers have cardinality continuum, i.e. `#ℂ = 𝔠`.
 -/
 
@@ -27,4 +30,4 @@ by rw [mk_univ, mk_complex]
 
 /-- The complex numbers are not countable. -/
 lemma not_countable_complex : ¬ (set.univ : set ℂ).countable :=
-by { rw [← mk_set_le_aleph_0, not_le, mk_univ_complex], apply cantor }
+by { rw [← le_aleph_0_iff_set_countable, not_le, mk_univ_complex], apply cantor }

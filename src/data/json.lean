@@ -98,7 +98,7 @@ meta instance {α} [json_serializable α] : non_null_json_serializable (list α)
     json.array l ← success j | exception (λ _, format!"array expected, got {j.typename}"),
     l.mmap (of_json α) }
 
-meta instance {α} [json_serializable α] : json_serializable (rbmap string α) :=
+meta instance {α} [json_serializable α] : non_null_json_serializable (rbmap string α) :=
 { to_json := λ m, json.object (m.to_list.map $ λ x, (x.1, to_json x.2)),
   of_json := λ j, do
     json.object l ← success j | exception (λ _, format!"object expected, got {j.typename}"),
@@ -133,6 +133,9 @@ meta instance {α : Type} [json_serializable α] (p : α → Prop) [decidable_pr
       pure (subtype.mk i h)
     else
       exception (λ _, format!"condition does not hold") }
+
+meta instance {α : Type} [non_null_json_serializable α] (p : α → Prop) [decidable_pred p] :
+  non_null_json_serializable (subtype p) := {}
 
 /-- Note this only makes sense on types which do not themselves serialize to `null` -/
 meta instance {α} [non_null_json_serializable α] : json_serializable (option α) :=

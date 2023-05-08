@@ -51,7 +51,7 @@ variables {L : grothendieck_topology E}
 /--
 An auxiliary structure that witnesses the fact that `f` factors through an image object of `G`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure presieve.cover_by_image_structure (G : C ⥤ D) {V U : D} (f : V ⟶ U) :=
 (obj : C)
 (lift : V ⟶ G.obj obj)

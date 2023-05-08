@@ -550,13 +550,12 @@ lemma not_modeq_iff_ne_mod_zmultiples :
 
 end add_comm_group
 
+open add_comm_group
+
 /-- If `a` and `b` fall within the same cycle WRT `c`, then they are congruent modulo `p`. -/
 @[simp] lemma to_Ico_mod_inj (c : α) :
   to_Ico_mod hp c a = to_Ico_mod hp c b ↔ a ≡ b [PMOD p] :=
-begin
-  rw [to_Ico_mod_eq_to_Ico_mod, add_comm_group.modeq_iff_eq_add_zsmul hp],
-  simp_rw sub_eq_iff_eq_add',
-end
+by simp_rw [to_Ico_mod_eq_to_Ico_mod, modeq_iff_eq_add_zsmul hp, sub_eq_iff_eq_add']
 
 alias to_Ico_mod_inj ↔ _ add_comm_group.modeq.to_Ico_mod_eq_to_Ico_mod
 
@@ -570,16 +569,15 @@ lemma Ico_eq_locus_Ioc_eq_Union_Ioo :
   {b | to_Ico_mod hp a b = to_Ioc_mod hp a b} = ⋃ z : ℤ, set.Ioo (a + z • p) (a + p + z • p) :=
 begin
   ext1, simp_rw [set.mem_set_of, set.mem_Union, ← set.sub_mem_Ioo_iff_left,
-    ←add_comm_group.not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod, add_comm_group.modeq, not_forall,
-    not_not],
+    ←not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod, modeq, not_forall, not_not],
 end
 
 lemma to_Ioc_div_wcovby_to_Ico_div (a b : α) : to_Ioc_div hp a b ⩿ to_Ico_div hp a b :=
 begin
   suffices : to_Ioc_div hp a b = to_Ico_div hp a b ∨ to_Ioc_div hp a b + 1 = to_Ico_div hp a b,
   { rwa [wcovby_iff_eq_or_covby, ←order.succ_eq_iff_covby] },
-  rw [eq_comm, ←add_comm_group.not_modeq_iff_to_Ico_div_eq_to_Ioc_div,
-    eq_comm, ←add_comm_group.modeq_iff_to_Ico_div_eq_to_Ioc_div_add_one],
+  rw [eq_comm, ←not_modeq_iff_to_Ico_div_eq_to_Ioc_div,
+    eq_comm, ←modeq_iff_to_Ico_div_eq_to_Ioc_div_add_one],
   exact em' _,
 end
 
@@ -761,10 +759,9 @@ begin
   contradiction,
 end
 
-private lemma to_Ixx_mod_antisymm {x₁ x₂ x₃ : α}
-  (h₁₂₃ : to_Ico_mod hp x₁ x₂ ≤ to_Ioc_mod hp x₁ x₃)
-  (h₁₃₂ : to_Ico_mod hp x₁ x₃ ≤ to_Ioc_mod hp x₁ x₂) :
-  add_comm_group.modeq p x₂ x₁ ∨ add_comm_group.modeq p x₃ x₂ ∨ add_comm_group.modeq p x₁ x₃ :=
+private lemma to_Ixx_mod_antisymm (h₁₂₃ : to_Ico_mod hp a b ≤ to_Ioc_mod hp a c)
+  (h₁₃₂ : to_Ico_mod hp a c ≤ to_Ioc_mod hp a b) :
+  b ≡ a [PMOD p] ∨ c ≡ b [PMOD p] ∨ a ≡ c [PMOD p] :=
 begin
   by_contra' h,
   rw add_comm_group.modeq_comm hp at h,
@@ -773,26 +770,25 @@ begin
   exact h.2.1 ((to_Ico_mod_inj hp _).mp (h₁₃₂.antisymm h₁₂₃)),
 end
 
-private lemma to_Ixx_mod_total' (x y z : α) :
-  to_Ico_mod hp y x ≤ to_Ioc_mod hp y z ∨ to_Ico_mod hp y z ≤ to_Ioc_mod hp y x :=
+private lemma to_Ixx_mod_total' (a b c : α) :
+  to_Ico_mod hp b a ≤ to_Ioc_mod hp b c ∨ to_Ico_mod hp b c ≤ to_Ioc_mod hp b a :=
 begin
-  /- an essential ingredient is the lemma saying {x-y} + {y-x} = period if x ≠ y (and = 0 if x = y).
-  Thus if x ≠ y and y ≠ z then ({x-y} + {y-z}) + ({z-y} + {y-x}) = 2 * period, so one of
-  `{x-y} + {y-z}` and `{z-y} + {y-x}` must be `≤ period` -/
+  /- an essential ingredient is the lemma sabing {a-b} + {b-a} = period if a ≠ b (and = 0 if a = b).
+  Thus if a ≠ b and b ≠ c then ({a-b} + {b-c}) + ({c-b} + {b-a}) = 2 * period, so one of
+  `{a-b} + {b-c}` and `{c-b} + {b-a}` must be `≤ period` -/
   have := congr_arg2 (+)
-    (to_Ico_mod_add_to_Ioc_mod_zero hp x y) (to_Ico_mod_add_to_Ioc_mod_zero hp z y),
+    (to_Ico_mod_add_to_Ioc_mod_zero hp a b) (to_Ico_mod_add_to_Ioc_mod_zero hp c b),
   rw [add_add_add_comm, add_comm (to_Ioc_mod _ _ _), add_add_add_comm, ←two_nsmul] at this,
   replace := min_le_of_add_le_two_nsmul this.le,
   rw min_le_iff at this,
   rw [to_Ixx_mod_iff, to_Ixx_mod_iff],
   refine this.imp (le_trans $ add_le_add_left _ _) (le_trans $ add_le_add_left _ _),
   { apply to_Ico_mod_le_to_Ioc_mod },
-  { apply to_Ico_mod_le_to_Ioc_mod },
+  { apply to_Ico_mod_le_to_Ioc_mod }
 end
 
-private lemma to_Ixx_mod_total (x y z : α) :
-  to_Ico_mod hp x y ≤ to_Ioc_mod hp x z ∨
-  to_Ico_mod hp z y ≤ to_Ioc_mod hp z x :=
+private lemma to_Ixx_mod_total (a b c : α) :
+  to_Ico_mod hp a b ≤ to_Ioc_mod hp a c ∨ to_Ico_mod hp c b ≤ to_Ioc_mod hp c a :=
 (to_Ixx_mod_total' _ _ _ _).imp_right $ to_Ixx_mod_cyclic_left _
 
 private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}

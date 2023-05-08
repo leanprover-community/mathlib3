@@ -35,19 +35,18 @@ namespace measure_theory
 
 section move_this
 
-variables {α β : Type*} {mα : measurable_space α} {mβ : measurable_space β}
-  {b : β} {s : set β}
-include mβ
+variables {α : Type*} {mα : measurable_space α} {a : α} {s : set α}
+include mα
 
 -- todo after the port: move to measure_theory/measure/measure_space
-lemma restrict_dirac' (hs : measurable_set s) [decidable (b ∈ s)] :
-  (measure.dirac b).restrict s = if b ∈ s then measure.dirac b else 0 :=
+lemma restrict_dirac' (hs : measurable_set s) [decidable (a ∈ s)] :
+  (measure.dirac a).restrict s = if a ∈ s then measure.dirac a else 0 :=
 begin
   ext1 t ht,
   classical,
   simp only [measure.restrict_apply ht, measure.dirac_apply' _ (ht.inter hs), set.indicator_apply,
     set.mem_inter_iff, pi.one_apply],
-  by_cases has : b ∈ s,
+  by_cases has : a ∈ s,
   { simp only [has, and_true, if_true],
     split_ifs with hat,
     { rw measure.dirac_apply_of_mem hat, },
@@ -56,14 +55,14 @@ begin
 end
 
 -- todo after the port: move to measure_theory/measure/measure_space
-lemma restrict_dirac [measurable_singleton_class β] [decidable (b ∈ s)] :
-  (measure.dirac b).restrict s = if b ∈ s then measure.dirac b else 0 :=
+lemma restrict_dirac [measurable_singleton_class α] [decidable (a ∈ s)] :
+  (measure.dirac a).restrict s = if a ∈ s then measure.dirac a else 0 :=
 begin
   ext1 t ht,
   classical,
   simp only [measure.restrict_apply ht, measure.dirac_apply _, set.indicator_apply,
     set.mem_inter_iff, pi.one_apply],
-  by_cases has : b ∈ s,
+  by_cases has : a ∈ s,
   { simp only [has, and_true, if_true],
     split_ifs with hat,
     { rw measure.dirac_apply_of_mem hat, },

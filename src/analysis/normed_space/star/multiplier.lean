@@ -94,6 +94,9 @@ algebra structure from `(A →L[𝕜] A) × (A →L[𝕜] A)ᵐᵒᵖ` to `𝓜(
 
 variables {𝕜 A}
 
+/--
+Extract the pair of linear maps.
+-/
 @[simps]
 def to_prod (x : 𝓜(𝕜, A)) : (A →L[𝕜] A) × (A →L[𝕜] A) := (x.fst, x.snd)
 

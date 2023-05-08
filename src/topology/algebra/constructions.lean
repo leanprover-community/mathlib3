@@ -143,6 +143,7 @@ begin
   { apply_instance, },
 end
 
+@[to_additive]
 instance {M : Type*} [topological_space M] [discrete_topology M] : discrete_topology Mᵐᵒᵖ :=
 inducing.discrete_topology mul_opposite.unop_injective rfl
 

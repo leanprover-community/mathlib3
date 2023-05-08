@@ -242,9 +242,6 @@ lemma codisjoint.left_le_of_le_inf_right (h : a ⊓ b ≤ c) (hd : codisjoint b 
 lemma codisjoint.left_le_of_le_inf_left (h : b ⊓ a ≤ c) (hd : codisjoint b c) : a ≤ c :=
 hd.left_le_of_le_inf_right $ by rwa inf_comm
 
-lemma codisjoint.inf_left_sup_inf_right (a : α) (h : codisjoint b c) : a ⊓ b ⊔ a ⊓ c = a :=
-le_antisymm (sup_le inf_le_left inf_le_left) $ by simp [sup_inf_left, sup_inf_right, h.eq_top]
-
 end distrib_lattice_top
 end codisjoint
 
@@ -323,18 +320,17 @@ calc a ⊓ x ≤ (b ⊔ y) ⊓ x : inf_le_inf hle le_rfl
 lemma le_sup_right_iff_inf_left_le {a b} (h : is_compl x y) : a ≤ b ⊔ y ↔ a ⊓ x ≤ b :=
 ⟨h.inf_left_le_of_le_sup_right, h.symm.dual.inf_left_le_of_le_sup_right⟩
 
+lemma sup_inf_sup_eq (h : is_compl x y) : (a ⊔ x) ⊓ (b ⊔ y) = (b ⊓ x) ⊔ (a ⊓ y) :=
+calc (a ⊔ x) ⊓ (b ⊔ y) = ((a ⊓ y) ⊔ x) ⊓ ((b ⊓ x) ⊔ y) :
+  by rw [sup_inf_right, h.symm.sup_eq_top, inf_top_eq, sup_inf_right, h.sup_eq_top, inf_top_eq]
+... = (b ⊓ x) ⊔ (a ⊓ y) :
+  by rw [inf_sup_left, inf_sup_right, inf_sup_right, h.inf_eq_bot, sup_bot_eq, inf_assoc,
+    inf_left_comm y, h.symm.inf_eq_bot, inf_bot_eq, inf_bot_eq, bot_sup_eq, inf_right_idem,
+    inf_left_comm, inf_idem]
+
 lemma le_inf_sup_inf (h : is_compl x y) : a ≤ b ⊓ x ⊔ c ⊓ y ↔ a ⊓ x ≤ b ∧ a ⊓ y ≤ c :=
-begin
-  refine ⟨λ h', ⟨_, _⟩, λ h', _⟩,
-  { refine (inf_le_inf_right x h').trans _,
-    rw [inf_sup_right,  inf_right_idem, inf_assoc, h.symm.inf_eq_bot, inf_bot_eq, sup_bot_eq],
-    exact inf_le_left },
-  { refine (inf_le_inf_right y h').trans _,
-    rw [inf_sup_right,  inf_right_idem, inf_assoc, h.inf_eq_bot, inf_bot_eq, bot_sup_eq],
-    exact inf_le_left },
-  { rw [← h.codisjoint.inf_left_sup_inf_right a],
-    exact sup_le_sup (le_inf h'.1 inf_le_right) (le_inf h'.2 inf_le_right) }
-end
+by rw [← h.le_sup_right_iff_inf_left_le, ← h.symm.le_sup_right_iff_inf_left_le, ← le_inf_iff,
+  ← h.sup_inf_sup_eq, inf_comm]
 
 lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
 by rw [← le_bot_iff, ← h.le_sup_right_iff_inf_left_le, bot_sup_eq]

@@ -124,15 +124,22 @@ end
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
 ⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
 
-lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] :
-  normal F E :=
+-- seems to be causing a diamond in the below proof
+-- however, this may be a fluke and the proof below uses non-canonical `algebra` instances:
+-- when I replaced all the instances inside the proof with the "canonical" instances we have,
+-- I had the (unprovable) goal (of the form) `adjoin_root.mk f (C x) = adjoin_root.mk f X`
+-- for some `x, f`. So maybe this is indeed the correct approach and rewriting this proof is
+-- salient in the future, or at least taking a closer look at the algebra instances it uses.
+local attribute [-instance] adjoin_root.has_smul
+
+lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] : normal F E :=
 begin
-  by_cases hp : p = 0,
-  { haveI : is_splitting_field F F p, { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
-    exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F p).trans
-      (is_splitting_field.alg_equiv E p).symm)).mp (normal_self F) },
+  unfreezingI { rcases eq_or_ne p 0 with rfl | hp },
+  { haveI : is_splitting_field F F 0 := ⟨splits_zero _, subsingleton.elim _ _⟩,
+    exact (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F 0).trans
+      (is_splitting_field.alg_equiv E 0).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
-  haveI hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
+  have hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
   have Hx : is_integral F x := is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x,
   refine ⟨Hx, or.inr _⟩,
   rintros q q_irred ⟨r, hr⟩,
@@ -140,13 +147,11 @@ begin
   haveI := fact.mk q_irred,
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
-  have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
-  letI : algebra F D := ring_hom.to_algebra ((algebra_map E D).comp (algebra_map F E)),
-  haveI : is_scalar_tower F E D := of_algebra_map_eq (λ _, rfl),
+  have finrankED : finite_dimensional.finrank E D = q.nat_degree,
+  { rw [power_basis.finrank pbED, adjoin_root.power_basis_dim] },
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
-  suffices : nonempty (D →ₐ[F] E),
-  { cases this with ϕ,
-    rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
+  rsuffices ⟨ϕ⟩ : nonempty (D →ₐ[F] E),
+  { rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
     have nat_lemma : ∀ a b c : ℕ, a * b = c → c ≤ a → 0 < c → b = 1,
     { intros a b c h1 h2 h3, nlinarith },
     exact nat_lemma _ _ _ (finite_dimensional.finrank_mul_finrank F E D)
@@ -180,7 +185,7 @@ begin
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C S),
   suffices : (algebra.adjoin C S).restrict_scalars F
-           = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
+            = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
   { rw [adjoin_root.adjoin_root_eq_top, subalgebra.restrict_scalars_top,
       ←@subalgebra.restrict_scalars_top F C] at this,
     exact top_le_iff.mpr (subalgebra.restrict_scalars_injective F this) },

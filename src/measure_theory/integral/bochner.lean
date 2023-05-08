@@ -1532,10 +1532,9 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
-lemma set_integral_dirac' {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-  [complete_space E] {f : β → E} (hf : strongly_measurable f)
-  {s : set β} (hs : measurable_set s) [decidable (b ∈ s)] :
-  ∫ x in s, f x ∂(measure.dirac b) = if b ∈ s then f b else 0 :=
+lemma set_integral_dirac' {mα : measurable_space α} {f : α → E} (hf : strongly_measurable f)
+  (a : α) {s : set α} (hs : measurable_set s) [decidable (a ∈ s)] :
+  ∫ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
 begin
   rw [restrict_dirac' hs],
   swap, { apply_instance, },
@@ -1544,10 +1543,9 @@ begin
   { exact integral_zero_measure _, },
 end
 
-lemma set_integral_dirac {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-  [complete_space E] (f : β → E)
-  (s : set β) [measurable_singleton_class β] [decidable (b ∈ s)] :
-  ∫ x in s, f x ∂(measure.dirac b) = if b ∈ s then f (b) else 0 :=
+lemma set_integral_dirac [measurable_space α] [measurable_singleton_class α] (f : α → E)
+  (a : α) (s : set α) [decidable (a ∈ s)] :
+  ∫ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
 begin
   rw [restrict_dirac],
   split_ifs,

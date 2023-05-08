@@ -143,12 +143,10 @@ begin
   { apply_instance, },
 end
 
+instance {M : Type*} [topological_space M] [discrete_topology M] : discrete_topology Mᵐᵒᵖ :=
+inducing.discrete_topology mul_opposite.unop_injective rfl
+
 lemma discrete_prod_units {X Y : Type*} [monoid X] [monoid Y] [topological_space X]
   [discrete_topology X] [topological_space Y] [discrete_topology Y] : discrete_topology (X × Y)ˣ :=
-begin
-  apply @embedding.discrete_topology _ _ _ _ prod.discrete_topology (units.embed_product _)
-    (units.embedding_embed_product),
-  { apply_instance, },
-  { refine inducing.discrete_topology (mul_opposite.unop_injective) rfl, },
-end
+embedding.discrete_topology (units.embedding_embed_product)
 end units

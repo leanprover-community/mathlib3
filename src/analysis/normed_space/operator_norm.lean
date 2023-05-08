@@ -1244,27 +1244,6 @@ normed_add_comm_group.of_separation (λ f, (op_norm_zero_iff f).mp)
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
 { .. continuous_linear_map.to_normed_add_comm_group, .. continuous_linear_map.to_semi_normed_ring }
 
-variable {f}
-
-lemma homothety_norm [ring_hom_isometric σ₁₂] [nontrivial E] (f : E →SL[σ₁₂] F) {a : ℝ}
-  (hf : ∀x, ‖f x‖ = a * ‖x‖) :
-  ‖f‖ = a :=
-begin
-  obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
-  rw ← norm_pos_iff at hx,
-  have ha : 0 ≤ a, by simpa only [hf, hx, zero_le_mul_right] using norm_nonneg (f x),
-  apply le_antisymm (f.op_norm_le_bound ha (λ y, le_of_eq (hf y))),
-  simpa only [hf, hx, mul_le_mul_right] using f.le_op_norm x,
-end
-
-variable (f)
-
-/-- If a continuous linear map is a topology embedding, then it is expands the distances
-by a positive factor.-/
-theorem antilipschitz_of_embedding (f : E →L[𝕜] Fₗ) (hf : embedding f) :
-  ∃ K, antilipschitz_with K f :=
-f.to_linear_map.antilipschitz_of_comap_nhds_le $ map_zero f ▸ (hf.nhds_eq_comap 0).ge
-
 end op_norm
 
 end continuous_linear_map

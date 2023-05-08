@@ -75,7 +75,7 @@ H₃.closure_le.trans ⟨λ h a b c d, h ⟨a, b, c, d, rfl⟩, λ h g ⟨a, b, 
 lemma commutator_mono (h₁ : H₁ ≤ K₁) (h₂ : H₂ ≤ K₂) : ⁅H₁, H₂⁆ ≤ ⁅K₁, K₂⁆ :=
 commutator_le.mpr (λ g₁ hg₁ g₂ hg₂, commutator_mem_commutator (h₁ hg₁) (h₂ hg₂))
 
-lemma commutator_eq_bot_iff_le_centralizer : ⁅H₁, H₂⁆ = ⊥ ↔ H₁ ≤ H₂.centralizer :=
+lemma commutator_eq_bot_iff_le_centralizer : ⁅H₁, H₂⁆ = ⊥ ↔ H₁ ≤ centralizer H₂ :=
 begin
   rw [eq_bot_iff, commutator_le],
   refine forall_congr (λ p, forall_congr (λ hp, forall_congr (λ q, forall_congr (λ hq, _)))),

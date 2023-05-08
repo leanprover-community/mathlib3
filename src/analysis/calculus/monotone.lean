@@ -3,9 +3,8 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import measure_theory.measure.lebesgue
-import analysis.calculus.deriv
 import measure_theory.covering.one_dim
+import order.monotone.extension
 
 /-!
 # Differentiability of monotone functions
@@ -29,8 +28,8 @@ limit of `(f y - f x) / (y - x)` by a lower and upper approximation argument fro
 behavior of `μ [x, y]`.
 -/
 
-open set filter function metric measure_theory measure_theory.measure is_doubling_measure
-open_locale topological_space
+open set filter function metric measure_theory measure_theory.measure is_unif_loc_doubling_measure
+open_locale topology
 
 /-- If `(f y - f x) / (y - x)` converges to a limit as `y` tends to `x`, then the same goes if
 `y` is shifted a little bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.
@@ -232,8 +231,9 @@ begin
   apply ae_of_mem_of_ae_of_mem_inter_Ioo,
   assume a b as bs hab,
   obtain ⟨g, hg, gf⟩ : ∃ (g : ℝ → ℝ), monotone g ∧ eq_on f g (s ∩ Icc a b) :=
-    monotone_on.exists_monotone_extension (hf.mono (inter_subset_left s (Icc a b)))
-      ⟨⟨as, ⟨le_rfl, hab.le⟩⟩, λ x hx, hx.2.1⟩ ⟨⟨bs, ⟨hab.le, le_rfl⟩⟩, λ x hx, hx.2.2⟩,
+    (hf.mono (inter_subset_left s (Icc a b))).exists_monotone_extension
+      (hf.map_bdd_below (inter_subset_left _ _) ⟨a, λ x hx, hx.2.1, as⟩)
+      (hf.map_bdd_above (inter_subset_left _ _) ⟨b, λ x hx, hx.2.2, bs⟩),
   filter_upwards [hg.ae_differentiable_at] with x hx,
   assume h'x,
   apply hx.differentiable_within_at.congr_of_eventually_eq _ (gf ⟨h'x.1, h'x.2.1.le, h'x.2.2.le⟩),

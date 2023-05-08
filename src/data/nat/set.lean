@@ -8,6 +8,9 @@ import data.set.image
 
 /-!
 ### Recursion on the natural numbers and `set.range`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace nat

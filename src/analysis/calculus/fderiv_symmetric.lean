@@ -3,9 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.deriv
 import analysis.calculus.mean_value
-import analysis.convex.topology
 
 /-!
 # Symmetry of the second derivative
@@ -48,7 +46,7 @@ rectangle are contained in `s` by convexity. The general case follows by lineari
 -/
 
 open asymptotics set
-open_locale topological_space
+open_locale topology
 
 variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 [normed_add_comm_group F] [normed_space ℝ F]

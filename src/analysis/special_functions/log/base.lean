@@ -3,7 +3,6 @@ Copyright (c) 2022 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey, Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import analysis.special_functions.log.basic
 import analysis.special_functions.pow
 import data.int.log
 
@@ -23,7 +22,7 @@ logarithm, continuity
 -/
 
 open set filter function
-open_locale topological_space
+open_locale topology
 noncomputable theory
 
 namespace real

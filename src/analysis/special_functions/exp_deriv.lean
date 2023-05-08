@@ -5,7 +5,6 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import analysis.calculus.inverse
 import analysis.complex.real_deriv
-import analysis.special_functions.exp
 
 /-!
 # Complex and real exponential
@@ -20,7 +19,7 @@ exp, derivative
 noncomputable theory
 
 open filter asymptotics set function
-open_locale classical topological_space
+open_locale classical topology
 
 namespace complex
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]

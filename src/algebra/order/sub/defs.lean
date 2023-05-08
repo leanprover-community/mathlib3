@@ -12,7 +12,6 @@ import order.lattice
 # Ordered Subtraction
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/732
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves lemmas relating (truncated) subtraction with an order. We provide a class
@@ -53,7 +52,7 @@ In other words, `a - b` is the least `c` such that `a ≤ b + c`.
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
 in canonically ordered monoids on many specific types.
 -/
-class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
+class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] : Prop :=
 (tsub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
 
 section has_add

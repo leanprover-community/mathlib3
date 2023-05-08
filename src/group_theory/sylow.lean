@@ -9,6 +9,7 @@ import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
 import group_theory.noncomm_pi_coprod
+import order.atoms.finite
 
 /-!
 # Sylow theorems

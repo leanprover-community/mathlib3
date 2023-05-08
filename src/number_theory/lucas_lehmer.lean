@@ -14,6 +14,9 @@ import tactic.ring_exp
 /-!
 # The Lucas-Lehmer test for Mersenne primes.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `lucas_lehmer_residue : Π p : ℕ, zmod (2^p - 1)`, and
 prove `lucas_lehmer_residue p = 0 → prime (mersenne p)`.
 
@@ -386,7 +389,7 @@ theorem order_ω (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   order_of (ω_unit (p'+2)) = 2^(p'+2) :=
 begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
-  { norm_num, },
+  { exact nat.prime_two, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
     replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :

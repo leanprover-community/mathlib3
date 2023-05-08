@@ -11,6 +11,9 @@ import tactic.assert_exists
 /-!
 # (Semi)ring equivs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define extension of `equiv` called `ring_equiv`, which is a datatype representing an
 isomorphism of `semiring`s, `ring`s, `division_ring`s, or `field`s. We also introduce the
 corresponding group of automorphisms `ring_aut`.
@@ -388,6 +391,9 @@ section ring
 variables [non_assoc_ring R] [non_assoc_ring S] (f : R ≃+* S) (x y : R)
 
 @[simp] lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
+
+lemma map_eq_neg_one_iff {x : R} : f x = -1 ↔ x = -1 :=
+by rw [← neg_eq_iff_eq_neg, ← neg_eq_iff_eq_neg, ← map_neg, ring_equiv.map_eq_one_iff]
 
 end ring
 

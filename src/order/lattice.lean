@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.monotone
+import order.monotone.basic
 import tactic.simps
 import tactic.pi_instances
 
@@ -11,7 +11,6 @@ import tactic.pi_instances
 # (Semi-)lattices
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/642
 > Any changes to this file require a corresponding PR to mathlib4.
 
 Semilattices are partially ordered sets with join (greatest lower bound, or `sup`) or
@@ -505,19 +504,22 @@ variables [lattice α] {a b c d : α}
 
 lemma inf_le_sup : a ⊓ b ≤ a ⊔ b := inf_le_left.trans le_sup_left
 
-@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b :=
-begin
-  split,
-  { rintro H rfl, simpa using H },
-  { refine λ Hne, lt_iff_le_and_ne.2 ⟨inf_le_sup, λ Heq, Hne _⟩,
-    refine le_antisymm _ _,
-    exacts [le_sup_left.trans (Heq.symm.trans_le inf_le_right),
-      le_sup_right.trans (Heq.symm.trans_le inf_le_left)] }
-end
-
 @[simp] lemma sup_le_inf : a ⊔ b ≤ a ⊓ b ↔ a = b :=
 ⟨λ h, le_antisymm (le_sup_left.trans $ h.trans inf_le_right)
   (le_sup_right.trans $ h.trans inf_le_left), by { rintro rfl, simp }⟩
+
+@[simp] lemma inf_eq_sup : a ⊓ b = a ⊔ b ↔ a = b := by rw [←inf_le_sup.ge_iff_eq, sup_le_inf]
+@[simp] lemma sup_eq_inf : a ⊔ b = a ⊓ b ↔ a = b := eq_comm.trans inf_eq_sup
+@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b := by rw [inf_le_sup.lt_iff_ne, ne.def, inf_eq_sup]
+
+lemma inf_eq_and_sup_eq_iff : a ⊓ b = c ∧ a ⊔ b = c ↔ a = c ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl := sup_eq_inf.1 (h.2.trans h.1.symm),
+    simpa using h },
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨inf_idem, sup_idem⟩ }
+end
 
 /-!
 #### Distributivity laws
@@ -774,6 +776,19 @@ instance [Π i, distrib_lattice (α' i)] : distrib_lattice (Π i, α' i) :=
 by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
 
 end pi
+
+namespace function
+variables {ι : Type*} {π : ι → Type*} [decidable_eq ι]
+
+lemma update_sup [Π i, semilattice_sup (π i)] (f : Π i, π i) (i : ι) (a b : π i) :
+  f.update i (a ⊔ b) = f.update i a ⊔ f.update i b :=
+funext $ λ j, by obtain rfl | hji := eq_or_ne j i; simp [update_noteq, *]
+
+lemma update_inf [Π i, semilattice_inf (π i)] (f : Π i, π i) (i : ι) (a b : π i) :
+  f.update i (a ⊓ b) = f.update i a ⊓ f.update i b :=
+funext $ λ j, by obtain rfl | hji := eq_or_ne j i; simp [update_noteq, *]
+
+end function
 
 /-!
 ### Monotone functions and lattices

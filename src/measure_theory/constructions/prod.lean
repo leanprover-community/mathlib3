@@ -60,7 +60,7 @@ product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
 -/
 
 noncomputable theory
-open_locale classical topological_space ennreal measure_theory
+open_locale classical topology ennreal measure_theory
 open set function real ennreal
 open measure_theory measurable_space measure_theory.measure
 open topological_space (hiding generate_from)
@@ -904,7 +904,8 @@ lemma integrable.integral_norm_prod_right [sigma_finite μ] ⦃f : α × β → 
   (hf : integrable f (μ.prod ν)) : integrable (λ y, ∫ x, ‖f (x, y)‖ ∂μ) ν :=
 hf.swap.integral_norm_prod_left
 
-lemma integrable_prod_mul {f : α → ℝ} {g : β → ℝ} (hf : integrable f μ) (hg : integrable g ν) :
+lemma integrable_prod_mul {L : Type*} [is_R_or_C L]
+  {f : α → L} {g : β → L} (hf : integrable f μ) (hg : integrable g ν) :
   integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν) :=
 begin
   refine (integrable_prod_iff _).2 ⟨_, _⟩,
@@ -1083,7 +1084,7 @@ begin
   exact integral_prod f hf
 end
 
-lemma integral_prod_mul (f : α → ℝ) (g : β → ℝ) :
+lemma integral_prod_mul {L : Type*} [is_R_or_C L] (f : α → L) (g : β → L) :
   ∫ z, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x, f x ∂μ) * (∫ y, g y ∂ν) :=
 begin
   by_cases h : integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν),
@@ -1096,8 +1097,48 @@ begin
   simp [integral_undef h, integral_undef H],
 end
 
-lemma set_integral_prod_mul (f : α → ℝ) (g : β → ℝ) (s : set α) (t : set β) :
+lemma set_integral_prod_mul {L : Type*} [is_R_or_C L]
+  (f : α → L) (g : β → L) (s : set α) (t : set β) :
   ∫ z in s ×ˢ t, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x in s, f x ∂μ) * (∫ y in t, g y ∂ν) :=
 by simp only [← measure.prod_restrict s t, integrable_on, integral_prod_mul]
+
+/-! ### Marginals of a measure defined on a product -/
+
+namespace measure
+
+variables {ρ : measure (α × β)}
+
+/-- Marginal measure on `α` obtained from a measure `ρ` on `α × β`, defined by `ρ.map prod.fst`. -/
+noncomputable
+def fst (ρ : measure (α × β)) : measure α := ρ.map prod.fst
+
+lemma fst_apply {s : set α} (hs : measurable_set s) : ρ.fst s = ρ (prod.fst ⁻¹' s) :=
+by rw [fst, measure.map_apply measurable_fst hs]
+
+lemma fst_univ : ρ.fst univ = ρ univ :=
+by rw [fst_apply measurable_set.univ, preimage_univ]
+
+instance [is_finite_measure ρ] : is_finite_measure ρ.fst := by { rw fst, apply_instance, }
+
+instance [is_probability_measure ρ] : is_probability_measure ρ.fst :=
+{ measure_univ := by { rw fst_univ, exact measure_univ, } }
+
+/-- Marginal measure on `β` obtained from a measure on `ρ` `α × β`, defined by `ρ.map prod.snd`. -/
+noncomputable
+def snd (ρ : measure (α × β)) : measure β := ρ.map prod.snd
+
+lemma snd_apply {s : set β} (hs : measurable_set s) : ρ.snd s = ρ (prod.snd ⁻¹' s) :=
+by rw [snd, measure.map_apply measurable_snd hs]
+
+lemma snd_univ : ρ.snd univ = ρ univ :=
+by rw [snd_apply measurable_set.univ, preimage_univ]
+
+instance [is_finite_measure ρ] : is_finite_measure ρ.snd := by { rw snd, apply_instance, }
+
+instance [is_probability_measure ρ] : is_probability_measure ρ.snd :=
+{ measure_univ := by { rw snd_univ, exact measure_univ, } }
+
+end measure
+
 
 end measure_theory

@@ -21,7 +21,7 @@ The file is a place to collect measure-theoretic results about the additive circ
 -/
 
 open set function filter measure_theory measure_theory.measure metric
-open_locale measure_theory pointwise big_operators topological_space ennreal
+open_locale measure_theory pointwise big_operators topology ennreal
 
 namespace add_circle
 
@@ -93,17 +93,15 @@ begin
     exact le_refl _, },
 end
 
-lemma volume_of_add_preimage_eq (s I : set $ add_circle T)
-  (u x : add_circle T) (hu : is_of_fin_add_order u) (hs : u +ᵥ s = s)
+lemma volume_of_add_preimage_eq (s I : set $ add_circle T) (u x : add_circle T)
+  (hu : is_of_fin_add_order u) (hs : (u +ᵥ s : set $ add_circle T) =ᵐ[volume] s)
   (hI : I =ᵐ[volume] ball x (T / (2 * add_order_of u))) :
   volume s = add_order_of u • volume (s ∩ I) :=
 begin
   let G := add_subgroup.zmultiples u,
   haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples,
   have hsG : ∀ (g : G), (g +ᵥ s : set $ add_circle T) =ᵐ[volume] s,
-  { rintros ⟨y, hy⟩,
-    convert ae_eq_refl s,
-    exact vadd_eq_self_of_mem_zmultiples hy hs, },
+  { rintros ⟨y, hy⟩, exact (vadd_ae_eq_self_of_mem_zmultiples hs hy : _), },
   rw [(is_add_fundamental_domain_of_ae_ball I u x hu hI).measure_eq_card_smul_of_vadd_ae_eq_self
     s hsG, add_order_eq_card_zmultiples' u, nat.card_eq_fintype_card],
 end

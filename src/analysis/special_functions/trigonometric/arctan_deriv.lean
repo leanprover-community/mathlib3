@@ -17,7 +17,7 @@ noncomputable theory
 namespace real
 
 open set filter
-open_locale topological_space real
+open_locale topology real
 
 lemma has_strict_deriv_at_tan {x : ℝ} (h : cos x ≠ 0) :
   has_strict_deriv_at tan (1 / (cos x)^2) x :=

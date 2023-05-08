@@ -6,7 +6,9 @@ Authors: Patrick Massot
 
 import ring_theory.ideal.operations
 import topology.algebra.nonarchimedean.bases
+import topology.uniform_space.completion
 import topology.algebra.uniform_ring
+
 /-!
 # Adic topology
 
@@ -43,7 +45,7 @@ to make sure it is definitionally equal to the `I`-topology on `R` seen as a `R`
 variables {R : Type*} [comm_ring R]
 
 open set topological_add_group submodule filter
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 namespace ideal
 

@@ -9,6 +9,9 @@ import category_theory.limits.functor_category
 /-!
 # If `D` has finite (co)limits, so do the functor categories `C ⥤ D`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These are boiler-plate instances, in their own file as neither import otherwise needs the other.
 -/
 

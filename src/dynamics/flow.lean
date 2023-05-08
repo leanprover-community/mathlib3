@@ -10,6 +10,9 @@ import logic.function.iterate
 /-!
 # Flows and invariant sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a flow on a topological space `α` by a topological
 monoid `τ` as a continuous monoid-act of `τ` on `α`. Anticipating the
 cases where `τ` is one of `ℕ`, `ℤ`, `ℝ⁺`, or `ℝ`, we use additive

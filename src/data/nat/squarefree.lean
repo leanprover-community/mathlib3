@@ -3,9 +3,10 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import ring_theory.int.basic
-import data.nat.factorization.prime_pow
 import algebra.squarefree
+import data.nat.factorization.prime_pow
+import data.nat.prime_norm_num
+import ring_theory.int.basic
 
 /-!
 # Lemmas about squarefreeness of natural numbers
@@ -512,7 +513,8 @@ end
 
 /-- Evaluates the `squarefree` predicate on naturals. -/
 @[norm_num] meta def eval_squarefree : expr → tactic (expr × expr)
-| `(squarefree (%%e : ℕ)) := do
+| `(@squarefree ℕ %%inst %%e) := do
+  is_def_eq inst `(nat.monoid),
   n ← e.to_nat,
   match n with
   | 0 := false_intro `(@not_squarefree_zero ℕ _ _)

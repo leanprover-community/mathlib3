@@ -3,7 +3,6 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.nat.lattice
 import data.nat.succ_pred
 import algebra.char_zero.lemmas
 import algebra.order.sub.with_top
@@ -12,6 +11,9 @@ import algebra.order.ring.with_top
 /-!
 # Definition and basic properties of extended natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `enat` (notation: `ℕ∞`) to be `with_top ℕ` and prove some basic lemmas
 about this type.
 -/
@@ -19,8 +21,8 @@ about this type.
 /-- Extended natural numbers `ℕ∞ = with_top ℕ`. -/
 @[derive [has_zero, add_comm_monoid_with_one, canonically_ordered_comm_semiring, nontrivial,
   linear_order, order_bot, order_top, has_bot, has_top, canonically_linear_ordered_add_monoid,
-  has_sub, has_ordered_sub, complete_linear_order, linear_ordered_add_comm_monoid_with_top,
-  succ_order, well_founded_lt, has_well_founded, char_zero, has_coe_t ℕ]]
+  has_sub, has_ordered_sub, linear_ordered_add_comm_monoid_with_top, succ_order, well_founded_lt,
+  has_well_founded, char_zero, has_coe_t ℕ]]
 def enat : Type := with_top ℕ
 
 notation `ℕ∞` := enat
@@ -32,7 +34,8 @@ instance : is_well_order ℕ∞ (<) := { }
 
 variables {m n : ℕ∞}
 
-@[simp, norm_cast] lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
+-- eligible for `dsimp`
+@[simp, nolint simp_nf, norm_cast] lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : ℕ) : ℕ∞) = 1 := rfl
 @[simp, norm_cast] lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
 @[simp, norm_cast] lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl

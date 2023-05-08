@@ -8,6 +8,9 @@ import data.nat.basic
 /-!
 # Additional properties of binary recursion on `nat`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file documents additional properties of binary recursion,
 which allows us to more easily work with operations which do depend
 on the number of leading zeros in the binary representation of `n`.

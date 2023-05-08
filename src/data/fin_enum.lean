@@ -8,6 +8,9 @@ import data.fintype.basic
 import data.list.prod_sigma
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Type class for finitely enumerable types. The property is stronger
 than `fintype` in that it assigns each element a rank in a finite
 enumeration.

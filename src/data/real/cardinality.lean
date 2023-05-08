@@ -11,6 +11,9 @@ import set_theory.cardinal.continuum
 /-!
 # The cardinality of the reals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that the real numbers have cardinality continuum, i.e. `#ℝ = 𝔠`.
 
 We show that `#ℝ ≤ 𝔠` by noting that every real number is determined by a Cauchy-sequence of the
@@ -65,6 +68,10 @@ by { cases h' : f n; simp [h'], apply pow_nonneg h }
 lemma cantor_function_aux_eq (h : f n = g n) :
   cantor_function_aux c f n = cantor_function_aux c g n :=
 by simp [cantor_function_aux, h]
+
+lemma cantor_function_aux_zero (f : ℕ → bool) :
+  cantor_function_aux c f 0 = cond (f 0) 1 0 :=
+by { cases h : f 0; simp [h] }
 
 lemma cantor_function_aux_succ (f : ℕ → bool) :
   (λ n, cantor_function_aux c f (n + 1)) = λ n, c * cantor_function_aux c (λ n, f (n + 1)) n :=
@@ -122,9 +129,9 @@ begin
     { rw [cantor_function_succ _ (le_of_lt h1) h3, div_eq_mul_inv,
           ←tsum_geometric_of_lt_1 (le_of_lt h1) h3],
       apply zero_add },
-    { convert tsum_eq_single 0 _,
-      { apply_instance },
-      { intros n hn, cases n, contradiction, refl } } },
+    { refine (tsum_eq_single 0 _).trans _,
+      { intros n hn, cases n, contradiction, refl },
+      { exact cantor_function_aux_zero _ }, } },
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],
   rw [hn 0 $ zero_lt_succ n],
   apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ nat.succ_lt_succ hk) fn gn

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Heather Macbeth
 -/
 import topology.continuous_function.weierstrass
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 
 /-!
 # The Stone-Weierstrass theorem
@@ -124,8 +124,8 @@ begin
   rw inf_eq,
   refine A.topological_closure.smul_mem
     (A.topological_closure.sub_mem
-      (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
-          (A.subalgebra_topological_closure g.property)) _) _,
+      (A.topological_closure.add_mem (A.le_topological_closure f.property)
+          (A.le_topological_closure g.property)) _) _,
   exact_mod_cast abs_mem_subalgebra_closure A _,
 end
 
@@ -145,8 +145,8 @@ begin
   rw sup_eq,
   refine A.topological_closure.smul_mem
     (A.topological_closure.add_mem
-      (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
-          (A.subalgebra_topological_closure g.property)) _) _,
+      (A.topological_closure.add_mem (A.le_topological_closure f.property)
+          (A.le_topological_closure g.property)) _) _,
   exact_mod_cast abs_mem_subalgebra_closure A _,
 end
 
@@ -160,7 +160,7 @@ begin
   exact h,
 end
 
-open_locale topological_space
+open_locale topology
 
 -- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top
@@ -190,11 +190,8 @@ begin
   and finally using compactness to produce the desired function `h`
   as a maximum over finitely many `x` of a minimum over finitely many `y` of the `g x y`.
   -/
-  dsimp [set.separates_points_strongly] at sep,
-
-  let g : X → X → L := λ x y, (sep f x y).some,
-  have w₁ : ∀ x y, g x y x = f x := λ x y, (sep f x y).some_spec.1,
-  have w₂ : ∀ x y, g x y y = f y := λ x y, (sep f x y).some_spec.2,
+  dsimp only [set.separates_points_strongly] at sep,
+  choose g hg w₁ w₂ using sep f,
 
   -- For each `x y`, we define `U x y` to be `{z | f z - ε < g x y z}`,
   -- and observe this is a neighbourhood of `y`.
@@ -226,7 +223,7 @@ begin
   -- and `h x x = f x`.
   let h : Π x, L := λ x,
     ⟨(ys x).sup' (ys_nonempty x) (λ y, (g x y : C(X, ℝ))),
-      finset.sup'_mem _ sup_mem _ _ _ (λ y _, (g x y).2)⟩,
+      finset.sup'_mem _ sup_mem _ _ _ (λ y _, hg x y)⟩,
   have lt_h : ∀ x z, f z - ε < h x z,
   { intros x z,
     obtain ⟨y, ym, zm⟩ := set.exists_set_mem_of_union_eq_top _ _ (ys_w x) z,
@@ -234,7 +231,7 @@ begin
     simp only [coe_fn_coe_base', subtype.coe_mk, sup'_coe, finset.sup'_apply, finset.lt_sup'_iff],
     exact ⟨y, ym, zm⟩ },
   have h_eq : ∀ x, h x x = f x,
-  { intro x, simp only [coe_fn_coe_base'] at w₁, simp [coe_fn_coe_base', w₁], },
+  { intro x, simp [coe_fn_coe_base', w₁], },
 
   -- For each `x`, we define `W x` to be `{z | h x z < f z + ε}`,
   let W : Π x, set X := λ x, {z | h x z < f z + ε},
@@ -296,13 +293,13 @@ begin
   apply set_like.ext',
   let L := A.topological_closure,
   have n : set.nonempty (L : set C(X, ℝ)) :=
-    ⟨(1 : C(X, ℝ)), A.subalgebra_topological_closure A.one_mem⟩,
+    ⟨(1 : C(X, ℝ)), A.le_topological_closure A.one_mem⟩,
   convert sublattice_closure_eq_top
     (L : set C(X, ℝ)) n
     (λ f fm g gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (λ f fm g gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (subalgebra.separates_points.strongly
-      (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
+      (subalgebra.separates_points_monotone (A.le_topological_closure) w)),
   { simp, },
 end
 

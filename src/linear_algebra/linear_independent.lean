@@ -12,6 +12,9 @@ import set_theory.cardinal.basic
 
 # Linear independence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines linear independence in a module or vector space.
 
 It is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.
@@ -362,8 +365,8 @@ by apply @linear_independent_comp_subtype_disjoint _ _ _ id
 
 theorem linear_independent_iff_total_on {s : set M} :
   linear_independent R (λ x, x : s → M) ↔ (finsupp.total_on M M R id s).ker = ⊥ :=
-by rw [finsupp.total_on, linear_map.ker, linear_map.comap_cod_restrict, map_bot, comap_bot,
-  linear_map.ker_comp, linear_independent_subtype_disjoint, disjoint_iff_inf_le,
+by rw [finsupp.total_on, linear_map.ker, linear_map.comap_cod_restrict, submodule.map_bot,
+  comap_bot, linear_map.ker_comp, linear_independent_subtype_disjoint, disjoint_iff_inf_le,
   ← map_comap_subtype, map_le_iff_le_comap, comap_bot, ker_subtype, le_bot_iff]
 
 lemma linear_independent.restrict_of_comp_subtype {s : set ι}
@@ -703,10 +706,11 @@ def linear_independent.total_equiv (hv : linear_independent R v) :
 begin
   apply linear_equiv.of_bijective
     (linear_map.cod_restrict (span R (range v)) (finsupp.total ι M R v) _),
+  split,
   { rw [← linear_map.ker_eq_bot, linear_map.ker_cod_restrict],
     apply hv },
   { rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
-      ← linear_map.range_le_iff_comap, range_subtype, map_top],
+      ← linear_map.range_le_iff_comap, range_subtype, submodule.map_top],
     rw finsupp.range_total,
     exact le_rfl },
   { intro l,

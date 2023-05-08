@@ -8,6 +8,9 @@ import data.set.image
 /-!
 # Sets in sigma types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `set.sigma`, the indexed sum of sets.
 -/
 
@@ -67,7 +70,7 @@ lemma exists_sigma_iff {p : (Σ i, α i) → Prop} :
   (∃ x ∈ s.sigma t, p x) ↔ ∃ (i ∈ s) (a ∈ t i), p ⟨i, a⟩ :=
 ⟨λ ⟨⟨i, a⟩, ha, h⟩, ⟨i, ha.1, a, ha.2, h⟩, λ ⟨i, hi, a, ha, h⟩, ⟨⟨i, a⟩, ⟨hi, ha⟩, h⟩⟩
 
-@[simp] lemma sigma_empty : s.sigma (λ _, (∅ : set (α i))) = ∅ := ext $ λ _, and_false _
+@[simp] lemma sigma_empty : s.sigma (λ i, (∅ : set (α i))) = ∅ := ext $ λ _, and_false _
 @[simp] lemma empty_sigma : (∅ : set ι).sigma t = ∅ := ext $ λ _, false_and _
 lemma univ_sigma_univ : (@univ ι).sigma (λ _, @univ (α i)) = univ := ext $ λ _, true_and _
 @[simp] lemma sigma_univ : s.sigma (λ _, univ : Π i, set (α i)) = sigma.fst ⁻¹' s :=

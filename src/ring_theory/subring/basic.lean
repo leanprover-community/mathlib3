@@ -10,6 +10,9 @@ import ring_theory.subsemiring.basic
 /-!
 # Subrings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a ring. This file defines the "bundled" subring type `subring R`, a type
 whose terms correspond to subrings of `R`. This is the preferred way to talk
 about subrings in mathlib. Unbundled subrings (`s : set R` and `is_subring s`)
@@ -71,12 +74,11 @@ section subring_class
 
 /-- `subring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both a multiplicative submonoid and an additive subgroup. -/
-class subring_class (S : Type*) (R : out_param $ Type u) [ring R] [set_like S R]
-  extends subsemiring_class S R :=
-(neg_mem : ∀ {s : S} {a : R}, a ∈ s → -a ∈ s)
+class subring_class (S : Type*) (R : Type u) [ring R] [set_like S R]
+  extends subsemiring_class S R, neg_mem_class S R : Prop
 
 @[priority 100] -- See note [lower instance priority]
-instance subring_class.add_subgroup_class (S : Type*) (R : out_param $ Type u) [set_like S R]
+instance subring_class.add_subgroup_class (S : Type*) (R : Type u) [set_like S R]
   [ring R] [h : subring_class S R] : add_subgroup_class S R :=
 { .. h }
 
@@ -934,6 +936,9 @@ range_top_iff_surjective.2 hf
   the equalizer of f and g as a subring of R -/
 def eq_locus (f g : R →+* S) : subring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_locus g }
+
+@[simp] lemma eq_locus_same (f : R →+* S) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
 
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subring closure. -/
 lemma eq_on_set_closure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :

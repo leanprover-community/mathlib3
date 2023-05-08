@@ -3,11 +3,14 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad
 -/
-import data.finset.basic
+import data.finset.image
 import tactic.by_contra
 
 /-!
 # Cardinality of a finite set
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This defines the cardinality of a `finset` and provides induction principles for finsets.
 
@@ -184,6 +187,12 @@ card_le_of_subset $ filter_subset _ _
 lemma eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : t.card ≤ s.card) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
+lemma eq_of_superset_of_card_ge (hst : s ⊆ t) (hts : t.card ≤ s.card) : t = s :=
+(eq_of_subset_of_card_le hst hts).symm
+
+lemma subset_iff_eq_of_card_le (h : t.card ≤ s.card) : s ⊆ t ↔ s = t :=
+⟨λ hst, eq_of_subset_of_card_le hst h, eq.subset'⟩
+
 lemma map_eq_of_subset {f : α ↪ α} (hs : s.map f ⊆ s) : s.map f = s :=
 eq_of_subset_of_card_le hs (card_map _).ge
 
@@ -301,6 +310,9 @@ variables [decidable_eq α]
 lemma card_union_add_card_inter (s t : finset α) : (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
 finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
+lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
+by rw [add_comm, card_union_add_card_inter]
+
 lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
@@ -322,6 +334,9 @@ calc card t - card s
       ≤ card t - card (s ∩ t) : tsub_le_tsub_left (card_le_of_subset (inter_subset_left s t)) _
   ... = card (t \ (s ∩ t)) : (card_sdiff (inter_subset_right s t)).symm
   ... ≤ card (t \ s) : by rw sdiff_inter_self_right t s
+
+lemma card_le_card_sdiff_add_card : s.card ≤ (s \ t).card + t.card :=
+tsub_le_iff_right.1 $ le_card_sdiff _ _
 
 lemma card_sdiff_add_card : (s \ t).card + t.card = (s ∪ t).card :=
 by rw [←card_disjoint_union sdiff_disjoint, sdiff_union_self_eq_union]

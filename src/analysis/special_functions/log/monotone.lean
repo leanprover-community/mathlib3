@@ -3,7 +3,6 @@ Copyright (c) 2021 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
-import analysis.special_functions.log.basic
 import analysis.special_functions.pow
 
 /-!
@@ -18,7 +17,7 @@ logarithm, tonality
 -/
 
 open set filter function
-open_locale topological_space
+open_locale topology
 noncomputable theory
 
 namespace real

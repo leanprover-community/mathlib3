@@ -7,12 +7,15 @@ Authors: Joël Riou
 import algebraic_topology.dold_kan.gamma_comp_n
 import algebraic_topology.dold_kan.n_reflects_iso
 
-/-! The unit isomorphism of the Dold-Kan equivalence
+/-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+ The unit isomorphism of the Dold-Kan equivalence
 
 In order to construct the unit isomorphism of the Dold-Kan equivalence,
 we first construct natural transformations
 `Γ₂N₁.nat_trans : N₁ ⋙ Γ₂ ⟶ to_karoubi (simplicial_object C)` and
-`Γ₂N₂.nat_trans : N₂ ⋙ Γ₂ ⟶ 𝟭 (simplicial_object C)` (TODO).
+`Γ₂N₂.nat_trans : N₂ ⋙ Γ₂ ⟶ 𝟭 (simplicial_object C)`.
 It is then shown that `Γ₂N₂.nat_trans` is an isomorphism by using
 that it becomes an isomorphism after the application of the functor
 `N₂ : karoubi (simplicial_object C) ⥤ karoubi (chain_complex C ℕ)`
@@ -157,6 +160,94 @@ def nat_trans : (N₁ : simplicial_object C ⥤ _) ⋙ Γ₂ ⟶ to_karoubi _ :=
   end, }
 
 end Γ₂N₁
+
+/-- The compatibility isomorphism relating `N₂ ⋙ Γ₂` and `N₁ ⋙ Γ₂`. -/
+@[simps]
+def compatibility_Γ₂N₁_Γ₂N₂ : to_karoubi (simplicial_object C) ⋙ N₂ ⋙ Γ₂ ≅ N₁ ⋙ Γ₂ :=
+eq_to_iso (functor.congr_obj (functor_extension₁_comp_whiskering_left_to_karoubi _ _) (N₁ ⋙ Γ₂))
+
+namespace Γ₂N₂
+
+/-- The natural transformation `N₂ ⋙ Γ₂ ⟶ 𝟭 (simplicial_object C)`. -/
+def nat_trans : (N₂ : karoubi (simplicial_object C) ⥤ _) ⋙ Γ₂ ⟶ 𝟭 _ :=
+((whiskering_left _ _ _).obj _).preimage (compatibility_Γ₂N₁_Γ₂N₂.hom ≫ Γ₂N₁.nat_trans)
+
+lemma nat_trans_app_f_app (P : karoubi (simplicial_object C)) :
+  Γ₂N₂.nat_trans.app P = (N₂ ⋙ Γ₂).map P.decomp_id_i ≫
+    (compatibility_Γ₂N₁_Γ₂N₂.hom ≫ Γ₂N₁.nat_trans).app P.X ≫ P.decomp_id_p :=
+whiskering_left_obj_preimage_app ((compatibility_Γ₂N₁_Γ₂N₂.hom ≫ Γ₂N₁.nat_trans)) P
+
+end Γ₂N₂
+
+lemma compatibility_Γ₂N₁_Γ₂N₂_nat_trans (X : simplicial_object C) :
+  Γ₂N₁.nat_trans.app X = (compatibility_Γ₂N₁_Γ₂N₂.app X).inv ≫
+    Γ₂N₂.nat_trans.app ((to_karoubi _).obj X) :=
+begin
+  rw [← cancel_epi (compatibility_Γ₂N₁_Γ₂N₂.app X).hom, iso.hom_inv_id_assoc],
+  exact congr_app (((whiskering_left _ _ _).obj _).image_preimage
+    (compatibility_Γ₂N₁_Γ₂N₂.hom ≫ Γ₂N₁.nat_trans : _ ⟶ to_karoubi _ ⋙ 𝟭 _ )).symm X,
+end
+
+lemma identity_N₂_objectwise (P : karoubi (simplicial_object C)) :
+  N₂Γ₂.inv.app (N₂.obj P) ≫ N₂.map (Γ₂N₂.nat_trans.app P) = 𝟙 (N₂.obj P) :=
+begin
+  ext n,
+  have eq₁ : (N₂Γ₂.inv.app (N₂.obj P)).f.f n = P_infty.f n ≫ P.p.app (op [n]) ≫
+    (Γ₀.splitting (N₂.obj P).X).ι_summand (splitting.index_set.id (op [n])),
+  { simp only [N₂Γ₂_inv_app_f_f, N₂_obj_p_f, assoc], },
+  have eq₂ : (Γ₀.splitting (N₂.obj P).X).ι_summand (splitting.index_set.id (op [n])) ≫
+    (N₂.map (Γ₂N₂.nat_trans.app P)).f.f n = P_infty.f n ≫ P.p.app (op [n]),
+  { dsimp [N₂],
+    simp only [Γ₂N₂.nat_trans_app_f_app, P_infty_on_Γ₀_splitting_summand_eq_self_assoc,
+      functor.comp_map, compatibility_Γ₂N₁_Γ₂N₂_hom, nat_trans.comp_app,
+      eq_to_hom_app, assoc, karoubi.comp_f, karoubi.eq_to_hom_f, eq_to_hom_refl, comp_id,
+      karoubi.decomp_id_p_f, karoubi.comp_p_assoc, Γ₂_map_f_app,
+      N₂_map_f_f, karoubi.decomp_id_i_f, Γ₂N₁.nat_trans_app_f_app],
+    erw [splitting.ι_desc_assoc, assoc, assoc, splitting.ι_desc_assoc],
+    dsimp [splitting.index_set.id, splitting.index_set.e],
+    simp only [assoc, nat_trans.naturality, P_infty_f_naturality_assoc,
+      app_idem_assoc, P_infty_f_idem_assoc],
+    erw [P.X.map_id, comp_id], },
+  simp only [karoubi.comp_f, homological_complex.comp_f, karoubi.id_eq, N₂_obj_p_f, assoc,
+    eq₁, eq₂, P_infty_f_naturality_assoc, app_idem, P_infty_f_idem_assoc],
+end
+
+lemma identity_N₂ :
+  ((𝟙 (N₂ : karoubi (simplicial_object C) ⥤ _ ) ◫ N₂Γ₂.inv) ≫
+    (Γ₂N₂.nat_trans ◫ 𝟙 N₂) : N₂ ⟶ N₂) = 𝟙 N₂ :=
+by { ext P : 2, dsimp, rw [Γ₂.map_id, N₂.map_id, comp_id, id_comp, identity_N₂_objectwise P], }
+
+instance : is_iso (Γ₂N₂.nat_trans : (N₂ : karoubi (simplicial_object C) ⥤ _ ) ⋙ _ ⟶ _) :=
+begin
+  haveI : ∀ (P : karoubi (simplicial_object C)), is_iso (Γ₂N₂.nat_trans.app P),
+  { intro P,
+    haveI : is_iso (N₂.map (Γ₂N₂.nat_trans.app P)),
+    { have h := identity_N₂_objectwise P,
+      erw hom_comp_eq_id at h,
+      rw h,
+      apply_instance, },
+    exact is_iso_of_reflects_iso _ N₂, },
+  apply nat_iso.is_iso_of_is_iso_app,
+end
+
+instance : is_iso (Γ₂N₁.nat_trans : (N₁ : simplicial_object C ⥤ _ ) ⋙ _ ⟶ _) :=
+begin
+  haveI : ∀ (X : simplicial_object C), is_iso (Γ₂N₁.nat_trans.app X),
+  { intro X,
+    rw compatibility_Γ₂N₁_Γ₂N₂_nat_trans,
+    apply_instance, },
+  apply nat_iso.is_iso_of_is_iso_app,
+end
+
+/-- The unit isomorphism of the Dold-Kan equivalence. -/
+@[simp]
+def Γ₂N₂ : 𝟭 _ ≅ (N₂ : karoubi (simplicial_object C) ⥤ _) ⋙ Γ₂ :=
+(as_iso Γ₂N₂.nat_trans).symm
+
+/-- The natural isomorphism `to_karoubi (simplicial_object C) ≅ N₁ ⋙ Γ₂`. -/
+@[simps]
+def Γ₂N₁ : to_karoubi _  ≅ (N₁ : simplicial_object C ⥤ _) ⋙ Γ₂ :=
+(as_iso Γ₂N₁.nat_trans).symm
 
 end dold_kan
 

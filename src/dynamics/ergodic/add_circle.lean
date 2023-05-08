@@ -13,33 +13,34 @@ import data.set.pointwise.iterate
 
 This file contains proofs of ergodicity for maps of the additive circle.
 
-# Main definitions:
+## Main definitions:
 
  * `add_circle.ergodic_zsmul`: given `n : ℤ` such that `1 < |n|`, the self map `y ↦ n • y` on
    the additive circle is ergodic (wrt the Haar measure).
  * `add_circle.ergodic_nsmul`: given `n : ℕ` such that `1 < n`, the self map `y ↦ n • y` on
    the additive circle is ergodic (wrt the Haar measure).
-
-# TODO
-
- * Show that the map `y ↦ n • y + x` is ergodic for any `x` (and `1 < |n|`).
+ * `add_circle.ergodic_zsmul_add`: given `n : ℤ` such that `1 < |n|` and `x : add_circle T`, the
+   self map `y ↦ n • y + x` on the additive circle is ergodic (wrt the Haar measure).
+ * `add_circle.ergodic_nsmul_add`: given `n : ℕ` such that `1 < n` and `x : add_circle T`, the
+   self map `y ↦ n • y + x` on the additive circle is ergodic (wrt the Haar measure).
 
 -/
 
 open set function measure_theory measure_theory.measure filter metric
-open_locale measure_theory nnreal ennreal topological_space pointwise
+open_locale measure_theory nnreal ennreal topology pointwise
 
 namespace add_circle
 
 variables {T : ℝ} [hT : fact (0 < T)]
 include hT
 
-/-- If a null-measurable subset of the circle is invariant under rotation by a family of rational
-angles with denominators tending to infinity, then it must be almost empty or almost full. -/
-lemma ae_empty_or_univ_of_forall_vadd_eq_self
+/-- If a null-measurable subset of the circle is almost invariant under rotation by a family of
+rational angles with denominators tending to infinity, then it must be almost empty or almost full.
+-/
+lemma ae_empty_or_univ_of_forall_vadd_ae_eq_self
   {s : set $ add_circle T} (hs : null_measurable_set s volume)
   {ι : Type*} {l : filter ι} [l.ne_bot] {u : ι → add_circle T}
-  (hu₁ : ∀ i, (u i) +ᵥ s = s) (hu₂ : tendsto (add_order_of ∘ u) l at_top) :
+  (hu₁ : ∀ i, ((u i) +ᵥ s : set _) =ᵐ[volume] s) (hu₂ : tendsto (add_order_of ∘ u) l at_top) :
   s =ᵐ[volume] (∅ : set $ add_circle T) ∨ s =ᵐ[volume] univ :=
 begin
   /- Sketch of proof:
@@ -60,7 +61,8 @@ begin
   obtain ⟨d, -, hd⟩ : ∃ d, d ∈ s ∧ ∀ {ι'} {l : filter ι'} (w : ι' → add_circle T) (δ : ι' → ℝ),
     tendsto δ l (𝓝[>] 0) → (∀ᶠ j in l, d ∈ closed_ball (w j) (1 * δ j)) →
       tendsto (λ j, μ (s ∩ closed_ball (w j) (δ j)) / μ (closed_ball (w j) (δ j))) l (𝓝 1) :=
-    exists_mem_of_measure_ne_zero_of_ae h (is_doubling_measure.ae_tendsto_measure_inter_div μ s 1),
+    exists_mem_of_measure_ne_zero_of_ae h
+      (is_unif_loc_doubling_measure.ae_tendsto_measure_inter_div μ s 1),
   let I : ι → set (add_circle T) := λ j, closed_ball d (T / (2 * ↑(n j))),
   replace hd : tendsto (λ j, μ (s ∩ I j) / μ (I j)) l (𝓝 1),
   { let δ : ι → ℝ := λ j, T / (2 * ↑(n j)),
@@ -101,15 +103,35 @@ lemma ergodic_zsmul {n : ℤ} (hn : 1 < |n|) : ergodic (λ (y : add_circle T), n
     have hu₀ : ∀ j, add_order_of (u j) = n.nat_abs^j,
     { exact λ j, add_order_of_div_of_gcd_eq_one (pow_pos (pos_of_gt hn) j) (gcd_one_left _), },
     have hnu : ∀ j, n^j • (u j) = 0 := λ j, by rw [← add_order_of_dvd_iff_zsmul_eq_zero, hu₀,
-      int.coe_nat_pow, ← int.abs_eq_nat_abs, ← abs_pow, abs_dvd],
-    have hu₁ : ∀ j, (u j) +ᵥ s = s := λ j, vadd_eq_self_of_preimage_zsmul_eq_self hs' (hnu j),
+      int.coe_nat_pow, int.coe_nat_abs, ← abs_pow, abs_dvd],
+    have hu₁ : ∀ j, ((u j) +ᵥ s : set _) =ᵐ[volume] s :=
+      λ j, by rw vadd_eq_self_of_preimage_zsmul_eq_self hs' (hnu j),
     have hu₂ : tendsto (λ j, add_order_of $ u j) at_top at_top,
     { simp_rw hu₀, exact nat.tendsto_pow_at_top_at_top_of_one_lt hn, },
-    exact ae_empty_or_univ_of_forall_vadd_eq_self hs.null_measurable_set hu₁ hu₂,
+    exact ae_empty_or_univ_of_forall_vadd_ae_eq_self hs.null_measurable_set hu₁ hu₂,
   end,
   .. measure_preserving_zsmul volume (abs_pos.mp $ lt_trans zero_lt_one hn), }
 
 lemma ergodic_nsmul {n : ℕ} (hn : 1 < n) : ergodic (λ (y : add_circle T), n • y) :=
 ergodic_zsmul (by simp [hn] : 1 < |(n : ℤ)|)
+
+lemma ergodic_zsmul_add (x : add_circle T) {n : ℤ} (h : 1 < |n|) : ergodic $ λ y, n • y + x :=
+begin
+  set f : add_circle T → add_circle T := λ y, n • y + x,
+  let e : add_circle T ≃ᵐ add_circle T := measurable_equiv.add_left (divisible_by.div x $ n - 1),
+  have he : measure_preserving e volume volume := measure_preserving_add_left volume _,
+  suffices : e ∘ f ∘ e.symm = λ y, n • y,
+  { rw [← he.ergodic_conjugate_iff, this], exact ergodic_zsmul h, },
+  replace h : n - 1 ≠ 0, { rw ←abs_one at h, rw sub_ne_zero, exact ne_of_apply_ne _ (ne_of_gt h), },
+  have hnx : n • divisible_by.div x (n - 1) = x + divisible_by.div x (n - 1),
+  { conv_rhs { congr, rw ←divisible_by.div_cancel x h }, rw [sub_smul, one_smul, sub_add_cancel], },
+  ext y,
+  simp only [f, hnx, measurable_equiv.coe_add_left, measurable_equiv.symm_add_left, comp_app,
+    smul_add, zsmul_neg', neg_smul, neg_add_rev],
+  abel,
+end
+
+lemma ergodic_nsmul_add (x : add_circle T) {n : ℕ} (h : 1 < n) : ergodic $ λ y, n • y + x :=
+ergodic_zsmul_add x (by simp [h] : 1 < |(n : ℤ)|)
 
 end add_circle

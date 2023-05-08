@@ -12,6 +12,9 @@ import group_theory.group_action.units
 /-!
 # Absolute values and the integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some results on absolute values applied to integers.
 
 ## Main results

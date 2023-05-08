@@ -1580,6 +1580,7 @@ normalizer_eq_top.mp (hmax.2 _ (hnc H (lt_top_iff_ne_top.mpr hmax.1)))
 end normalizer
 
 section centralizer
+variables {H}
 
 /-- The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`. -/
 @[to_additive "The `centralizer` of `H` is the additive subgroup of `g : G` commuting with

@@ -166,7 +166,7 @@ zpowers_eq_bot.not
 subgroup.zpowers_eq_bot.mpr rfl
 
 @[to_additive] lemma centralizer_closure (S : set G) :
-  centralizer (closure S) = ⨅ g ∈ S, (zpowers g).centralizer :=
+  centralizer (closure S : set G) = ⨅ g ∈ S, centralizer (zpowers g : set G) :=
 le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ subset_closure hg)
   $ le_centralizer_iff.1 $ (closure_le _).2
   $ λ g, set_like.mem_coe.2 ∘ zpowers_le.1 ∘ le_centralizer_iff.1 ∘ infi_le_of_le g ∘ infi_le _

@@ -143,8 +143,7 @@ lemma mul_poly_of_interest_aux2 (n : ℕ) :
   (p ^ n * witt_mul p n : mv_polynomial (fin 2 × ℕ) ℤ) + witt_poly_prod_remainder p n =
     witt_poly_prod p n :=
 begin
-  convert mul_poly_of_interest_aux1 p n,
-  rw [sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
+  rw [← mul_poly_of_interest_aux1 p n, sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
   refl
 end
 

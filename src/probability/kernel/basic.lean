@@ -546,6 +546,22 @@ lemma lintegral_piecewise (a : α) (g : β → ℝ≥0∞) :
   ∫⁻ b, g b ∂(piecewise hs κ η a) = if a ∈ s then ∫⁻ b, g b ∂(κ a) else ∫⁻ b, g b ∂(η a) :=
 by { simp_rw piecewise_apply, split_ifs; refl, }
 
+lemma set_lintegral_piecewise (a : α) (g : β → ℝ≥0∞) (t : set β) :
+  ∫⁻ b in t, g b ∂(piecewise hs κ η a)
+    = if a ∈ s then ∫⁻ b in t, g b ∂(κ a) else ∫⁻ b in t, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+lemma integral_piecewise {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  (a : α) (g : β → E) :
+  ∫ b, g b ∂(piecewise hs κ η a) = if a ∈ s then ∫ b, g b ∂(κ a) else ∫ b, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
+lemma set_integral_piecewise {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] (a : α) (g : β → E) (t : set β) :
+  ∫ b in t, g b ∂(piecewise hs κ η a)
+    = if a ∈ s then ∫ b in t, g b ∂(κ a) else ∫ b in t, g b ∂(η a) :=
+by { simp_rw piecewise_apply, split_ifs; refl, }
+
 end piecewise
 
 end kernel

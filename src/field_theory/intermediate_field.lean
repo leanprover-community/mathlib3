@@ -352,7 +352,7 @@ S.to_subalgebra.range_val
 @[simp] lemma field_range_val : S.val.field_range = S :=
 set_like.ext' subtype.range_val
 
-instance : inhabited (S →ₐ[K] L) := ⟨S.val⟩
+instance alg_hom.inhabited : inhabited (S →ₐ[K] L) := ⟨S.val⟩
 
 lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
   [is_scalar_tower R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=

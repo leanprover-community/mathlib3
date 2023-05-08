@@ -423,6 +423,11 @@ by rcases n with _|_|n; simp [is_empty.subsingleton, unique.subsingleton, not_su
 
 section monoid
 
+instance add_comm_semigroup (n : ℕ) : add_comm_semigroup (fin n) :=
+{ add := (+),
+  add_assoc := by simp [eq_iff_veq, add_def, add_assoc],
+  add_comm := by simp [eq_iff_veq, add_def, add_comm] }
+
 @[simp] protected lemma add_zero [ne_zero n] (k : fin n) : k + 0 = k :=
 by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
 
@@ -431,11 +436,10 @@ by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
 
 instance add_comm_monoid (n : ℕ) [ne_zero n] : add_comm_monoid (fin n) :=
 { add := (+),
-  add_assoc := by simp [eq_iff_veq, add_def, add_assoc],
   zero := 0,
   zero_add := fin.zero_add,
   add_zero := fin.add_zero,
-  add_comm := by simp [eq_iff_veq, add_def, add_comm] }
+  ..fin.add_comm_semigroup n }
 
 instance [ne_zero n] : add_monoid_with_one (fin n) :=
 { one := 1,

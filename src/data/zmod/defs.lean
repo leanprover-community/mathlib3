@@ -57,15 +57,20 @@ private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin n, a * (b + c) = a * 
   ... ≡ (a * b) % n + (a * c) % n [MOD n] :
         (nat.mod_modeq _ _).symm.add (nat.mod_modeq _ _).symm)
 
+instance (n : ℕ) : distrib (fin n) :=
+{ left_distrib := left_distrib_aux n,
+  right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
+  ..fin.add_comm_semigroup n,
+  ..fin.comm_semigroup n }
+
 /-- Commutative ring structure on `fin n`. -/
 instance (n : ℕ) [ne_zero n] : comm_ring (fin n) :=
 { one_mul := fin.one_mul,
   mul_one := fin.mul_one,
-  left_distrib := left_distrib_aux n,
-  right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
   ..fin.add_monoid_with_one,
   ..fin.add_comm_group n,
-  ..fin.comm_semigroup n }
+  ..fin.comm_semigroup n,
+  ..fin.distrib n }
 
 /-- Note this is more general than `fin.comm_ring` as it applies (vacuously) to `fin 0` too. -/
 instance (n : ℕ) : has_distrib_neg (fin n) :=

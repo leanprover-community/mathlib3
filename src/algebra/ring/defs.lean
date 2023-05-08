@@ -82,7 +82,10 @@ lemma distrib_three_right [has_mul R] [has_add R] [right_distrib_class R] (a b c
 by simp [right_distrib]
 
 /-!
-### Semirings
+### Classes of semirings and rings
+
+In order to solve a problem in Lean 4, we have rearranged the order in which classes are defined.
+See the note at this point in mathlib4 for an explanation.
 -/
 
 /-- A not-necessarily-unital, not-necessarily-associative semiring. -/
@@ -100,12 +103,36 @@ class non_unital_semiring (α : Type u) extends
 class non_assoc_semiring (α : Type u) extends
   non_unital_non_assoc_semiring α, mul_zero_one_class α, add_comm_monoid_with_one α
 
+/-- A not-necessarily-unital, not-necessarily-associative ring. -/
+@[protect_proj, ancestor add_comm_group non_unital_non_assoc_semiring]
+class non_unital_non_assoc_ring (α : Type u) extends
+  add_comm_group α, non_unital_non_assoc_semiring α
+
+-- We defer the instance `non_unital_non_assoc_ring.to_has_distrib_neg` to `algebra.ring.basic`
+-- as it relies on the lemma `eq_neg_of_add_eq_zero_left`.
+
+/-- An associative but not-necessarily unital ring. -/
+@[protect_proj, ancestor non_unital_non_assoc_ring non_unital_semiring]
+class non_unital_ring (α : Type*) extends
+  non_unital_non_assoc_ring α, non_unital_semiring α
+
+/-- A unital but not-necessarily-associative ring. -/
+@[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring add_comm_group_with_one]
+class non_assoc_ring (α : Type*) extends
+  non_unital_non_assoc_ring α, non_assoc_semiring α, add_comm_group_with_one α
+
 /-- A semiring is a type with the following structures: additive commutative monoid
 (`add_comm_monoid`), multiplicative monoid (`monoid`), distributive laws (`distrib`), and
 multiplication by zero law (`mul_zero_class`). The actual definition extends `monoid_with_zero`
 instead of `monoid` and `mul_zero_class`. -/
 @[protect_proj, ancestor non_unital_semiring non_assoc_semiring monoid_with_zero]
 class semiring (α : Type u) extends non_unital_semiring α, non_assoc_semiring α, monoid_with_zero α
+
+/-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
+multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
+`semiring` with a negation operation making it an additive group.  -/
+@[protect_proj, ancestor add_comm_group monoid distrib]
+class ring (α : Type u) extends add_comm_group_with_one α, monoid α, distrib α
 
 section has_one_has_add
 
@@ -277,30 +304,6 @@ end has_distrib_neg
 /-!
 ### Rings
 -/
-
-/-- A not-necessarily-unital, not-necessarily-associative ring. -/
-@[protect_proj, ancestor add_comm_group non_unital_non_assoc_semiring]
-class non_unital_non_assoc_ring (α : Type u) extends
-  add_comm_group α, non_unital_non_assoc_semiring α
-
--- We defer the instance `non_unital_non_assoc_ring.to_has_distrib_neg` to `algebra.ring.basic`
--- as it relies on the lemma `eq_neg_of_add_eq_zero_left`.
-
-/-- An associative but not-necessarily unital ring. -/
-@[protect_proj, ancestor non_unital_non_assoc_ring non_unital_semiring]
-class non_unital_ring (α : Type*) extends
-  non_unital_non_assoc_ring α, non_unital_semiring α
-
-/-- A unital but not-necessarily-associative ring. -/
-@[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring add_comm_group_with_one]
-class non_assoc_ring (α : Type*) extends
-  non_unital_non_assoc_ring α, non_assoc_semiring α, add_comm_group_with_one α
-
-/-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
-multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
-`semiring` with a negation operation making it an additive group.  -/
-@[protect_proj, ancestor add_comm_group monoid distrib]
-class ring (α : Type u) extends add_comm_group_with_one α, monoid α, distrib α
 
 section non_unital_non_assoc_ring
 variables [non_unital_non_assoc_ring α]

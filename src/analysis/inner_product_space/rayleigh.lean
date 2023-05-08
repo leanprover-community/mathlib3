@@ -67,7 +67,7 @@ begin
     let c : 𝕜 := ↑‖x‖⁻¹ * r,
     have : c ≠ 0 := by simp [c, hx, hr.ne'],
     refine ⟨c • x, _, _⟩,
-    { field_simp [norm_smul, is_R_or_C.norm_eq_abs, abs_of_nonneg hr.le] },
+    { field_simp [norm_smul, abs_of_pos hr] },
     { rw T.rayleigh_smul x this,
       exact hxT } },
   { rintros ⟨x, hx, hxT⟩,

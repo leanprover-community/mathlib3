@@ -290,7 +290,7 @@ open quotient_group
 
 /-- Cosets of the centralizer of an element embed into the set of commutators. -/
 noncomputable def quotient_centralizer_embedding (g : G) :
-  G ⧸ centralizer (zpowers (g : G)) ↪ commutator_set G :=
+  G ⧸ centralizer (zpowers (g : G) : set G) ↪ commutator_set G :=
 ((mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g).trans (quotient_equiv_of_eq
   (conj_act.stabilizer_eq_centralizer g))).symm.to_embedding.trans ⟨λ x, ⟨x * g⁻¹,
   let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩, λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp⟩

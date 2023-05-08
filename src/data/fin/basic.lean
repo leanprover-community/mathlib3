@@ -1363,6 +1363,11 @@ instance (n : ℕ) [ne_zero n] : add_comm_group (fin n) :=
   ..fin.add_comm_monoid n,
   ..fin.has_neg n }
 
+/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : has_involutive_neg (fin n) :=
+{ neg := has_neg.neg,
+  neg_neg := nat.cases_on n fin_zero_elim (λ i, neg_neg) }
+
 protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
 
 protected lemma coe_sub (a b : fin n) : ((a - b : fin n) : ℕ) = (a + (n - b)) % n :=

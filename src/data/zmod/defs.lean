@@ -67,6 +67,13 @@ instance (n : ℕ) [ne_zero n] : comm_ring (fin n) :=
   ..fin.add_comm_group n,
   ..fin.comm_semigroup n }
 
+/-- Note this is more general than `fin.comm_ring` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : has_distrib_neg (fin n) :=
+{ neg := has_neg.neg,
+  mul_neg := nat.cases_on n fin_zero_elim $ λ i, mul_neg,
+  neg_mul := nat.cases_on n fin_zero_elim $ λ i, neg_mul,
+  ..fin.has_involutive_neg n }
+
 end fin
 
 /-- The integers modulo `n : ℕ`. -/

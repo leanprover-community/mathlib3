@@ -3,7 +3,6 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Sébastien Gouëzel
 -/
-import analysis.calculus.mean_value
 import analysis.special_functions.pow_deriv
 import analysis.special_functions.sqrt
 
@@ -86,19 +85,17 @@ end
 lemma real.pow_sum_div_card_le_sum_pow {α : Type*} {s : finset α} {f : α → ℝ} (n : ℕ)
   (hf : ∀ a ∈ s, 0 ≤ f a) : (∑ x in s, f x) ^ (n + 1) / s.card ^ n ≤ ∑ x in s, (f x) ^ (n + 1) :=
 begin
-  by_cases hs0 : s = ∅,
-  { simp_rw [hs0, finset.sum_empty, zero_pow' _ (nat.succ_ne_zero n), zero_div] },
-  { have hs : s.card ≠ 0 := hs0 ∘ finset.card_eq_zero.1,
-    have hs' : (s.card : ℝ) ≠ 0 := (nat.cast_ne_zero.2 hs),
-    have hs'' : 0 < (s.card : ℝ) := nat.cast_pos.2 (nat.pos_of_ne_zero hs),
+  rcases s.eq_empty_or_nonempty with rfl | hs,
+  { simp_rw [finset.sum_empty, zero_pow' _ (nat.succ_ne_zero n), zero_div] },
+  { have hs0 : 0 < (s.card : ℝ) := nat.cast_pos.2 hs.card_pos,
     suffices : (∑ x in s, f x / s.card) ^ (n + 1) ≤ ∑ x in s, (f x ^ (n + 1) / s.card),
-    by rwa [← finset.sum_div, ← finset.sum_div, div_pow, pow_succ' (s.card : ℝ),
-        ← div_div, div_le_iff hs'', div_mul, div_self hs', div_one] at this,
+    { rwa [← finset.sum_div, ← finset.sum_div, div_pow, pow_succ' (s.card : ℝ),
+        ← div_div, div_le_iff hs0, div_mul, div_self hs0.ne', div_one] at this },
     have := @convex_on.map_sum_le ℝ ℝ ℝ α _ _ _ _ _ _ (set.Ici 0) (λ x, x ^ (n + 1)) s
       (λ _, 1 / s.card) (coe ∘ f) (convex_on_pow (n + 1)) _ _ (λ i hi, set.mem_Ici.2 (hf i hi)),
     { simpa only [inv_mul_eq_div, one_div, algebra.id.smul_eq_mul] using this },
     { simp only [one_div, inv_nonneg, nat.cast_nonneg, implies_true_iff] },
-    { simpa only [one_div, finset.sum_const, nsmul_eq_mul] using mul_inv_cancel hs' }}
+    { simpa only [one_div, finset.sum_const, nsmul_eq_mul] using mul_inv_cancel hs0.ne' } }
 end
 
 lemma nnreal.pow_sum_div_card_le_sum_pow {α : Type*} (s : finset α) (f : α → ℝ≥0) (n : ℕ) :
@@ -128,7 +125,8 @@ begin
   refine mul_nonneg ihn _, generalize : (1 + 1) * n = k,
   cases le_or_lt m k with hmk hmk,
   { have : m ≤ k + 1, from hmk.trans (lt_add_one ↑k).le,
-    exact mul_nonneg_of_nonpos_of_nonpos (sub_nonpos_of_le hmk) (sub_nonpos_of_le this) },
+    convert mul_nonneg_of_nonpos_of_nonpos (sub_nonpos_of_le hmk) _,
+    convert sub_nonpos_of_le this },
   { exact mul_nonneg (sub_nonneg_of_le hmk.le) (sub_nonneg_of_le hmk) }
 end
 

@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.algebra.basic
-import algebra.order.nonneg
+import algebra.order.nonneg.field
+import algebra.order.nonneg.floor
 
 /-!
 # Nonnegative rationals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the nonnegative rationals as a subtype of `rat` and provides its algebraic order
 structure.
@@ -41,10 +45,8 @@ instance : has_coe ℚ≥0 ℚ := ⟨subtype.val⟩
 /- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
 @[simp] lemma val_eq_coe (q : ℚ≥0) : q.val = q := rfl
 
-instance : can_lift ℚ ℚ≥0 :=
-{ coe := coe,
-  cond := λ q, 0 ≤ q,
-  prf := λ q hq, ⟨⟨q, hq⟩, rfl⟩ }
+instance can_lift : can_lift ℚ ℚ≥0 coe (λ q, 0 ≤ q) :=
+{ prf := λ q hq, ⟨⟨q, hq⟩, rfl⟩ }
 
 @[ext] lemma ext : (p : ℚ) = (q : ℚ) → p = q := subtype.ext
 
@@ -78,7 +80,7 @@ open _root_.rat (to_nnrat)
 @[simp, norm_cast] lemma coe_bit0 (q : ℚ≥0) : ((bit0 q : ℚ≥0) : ℚ) = bit0 q := rfl
 @[simp, norm_cast] lemma coe_bit1 (q : ℚ≥0) : ((bit1 q : ℚ≥0) : ℚ) = bit1 q := rfl
 @[simp, norm_cast] lemma coe_sub (h : q ≤ p) : ((p - q : ℚ≥0) : ℚ) = p - q :=
-max_eq_left $ le_sub.2 $ by simp [show (q : ℚ) ≤ p, from h]
+max_eq_left $ le_sub_comm.2 $ by simp [show (q : ℚ) ≤ p, from h]
 
 @[simp] lemma coe_eq_zero : (q : ℚ) = 0 ↔ q = 0 := by norm_cast
 lemma coe_ne_zero : (q : ℚ) ≠ 0 ↔ q ≠ 0 := coe_eq_zero.not

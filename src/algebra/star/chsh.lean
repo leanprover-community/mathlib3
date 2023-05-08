@@ -3,11 +3,14 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.star.basic
-import analysis.special_functions.pow
+import algebra.char_p.invertible
+import data.real.sqrt
 
 /-!
 # The Clauser-Horne-Shimony-Holt inequality and Tsirelson's inequality.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We establish a version of the Clauser-Horne-Shimony-Holt (CHSH) inequality
 (which is a generalization of Bell's inequality).

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
-import analysis.special_functions.log.deriv
-import tactic.positivity
 import data.real.pi.wallis
 
 /-!
@@ -20,19 +18,18 @@ The proof follows: <https://proofwiki.org/wiki/Stirling%27s_Formula>.
 
 We proceed in two parts.
 
-### Part 1
-We consider the fraction sequence $a_n$ of fractions $\frac{n!}{\sqrt{2n}(\frac{n}{e})^n}$ and
-prove that this sequence converges against a real, positive number $a$. For this the two main
+**Part 1**: We consider the sequence $a_n$ of fractions $\frac{n!}{\sqrt{2n}(\frac{n}{e})^n}$
+and prove that this sequence converges to a real, positive number $a$. For this the two main
 ingredients are
  - taking the logarithm of the sequence and
- - use the series expansion of $\log(1 + x)$.
+ - using the series expansion of $\log(1 + x)$.
 
-### Part 2
-We use the fact that the series defined in part 1 converges againt a real number $a$ and prove that
-$a = \sqrt{\pi}$. Here the main ingredient is the convergence of the Wallis product.
+**Part 2**: We use the fact that the series defined in part 1 converges againt a real number $a$
+and prove that $a = \sqrt{\pi}$. Here the main ingredient is the convergence of Wallis' product
+formula for `π`.
 -/
 
-open_locale topological_space real big_operators nat
+open_locale topology real big_operators nat
 open finset filter nat real
 
 namespace stirling
@@ -42,7 +39,7 @@ namespace stirling
 -/
 
 /--
-Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
+Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}(\frac{n}{e})^n}$.
 Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
 noncomputable def stirling_seq (n : ℕ) : ℝ :=
@@ -60,14 +57,8 @@ We have the expression
 -/
 lemma log_stirling_seq_formula (n : ℕ) : log (stirling_seq n.succ) =
   log n.succ!- 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
-begin
-  have h1 : (0 : ℝ) < n.succ! := cast_pos.mpr n.succ.factorial_pos,
-  have h2 : (0 : ℝ) < (2 * n.succ) := mul_pos two_pos (cast_pos.mpr (succ_pos n)),
-  have h3 := real.sqrt_pos.mpr h2,
-  have h4 := pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) n.succ,
-  have h5 := mul_pos h3 h4,
-  rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow]; linarith,
-end
+by rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, real.log_pow, tsub_tsub];
+  try { apply ne_of_gt }; positivity -- TODO: Make `positivity` handle `≠ 0` goals
 
 /--
 The sequence `log (stirling_seq (m + 1)) - log (stirling_seq (m + 2))` has the series expansion
@@ -96,13 +87,9 @@ begin
 end
 
 /-- The sequence `log ∘ stirling_seq ∘ succ` is monotone decreasing -/
-lemma log_stirling_seq'_antitone : antitone (log ∘ stirling_seq ∘ succ) :=
-begin
-  have : ∀ {k : ℕ}, 0 < (1 : ℝ) / (2 * k.succ + 1) :=
-  λ k, one_div_pos.mpr (add_pos (mul_pos two_pos (cast_pos.mpr k.succ_pos)) one_pos),
-  exact antitone_nat_of_succ_le (λ n, sub_nonneg.mp ((log_stirling_seq_diff_has_sum n).nonneg
-    (λ m, (mul_pos this (pow_pos (pow_pos this 2) m.succ)).le))),
-end
+lemma log_stirling_seq'_antitone : antitone (real.log ∘ stirling_seq ∘ succ) :=
+antitone_nat_of_succ_le $ λ n, sub_nonneg.mp $ (log_stirling_seq_diff_has_sum n).nonneg $ λ m,
+  by positivity
 
 /--
 We have a bound for successive elements in the sequence `log (stirling_seq k)`.
@@ -114,15 +101,16 @@ begin
   have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) := sq_nonneg _,
   have g : has_sum (λ k : ℕ, ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
     ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)),
-  { refine (has_sum_geometric_of_lt_1 h_nonneg _).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
+  { have := (has_sum_geometric_of_lt_1 h_nonneg _).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
+    { simp_rw ←pow_succ at this,
+      exact this, },
     rw [one_div, inv_pow],
-    refine inv_lt_one (one_lt_pow ((lt_add_iff_pos_left 1).mpr
-      (mul_pos two_pos (cast_pos.mpr n.succ_pos))) two_ne_zero) },
+    exact inv_lt_one (one_lt_pow ((lt_add_iff_pos_left 1).mpr $ by positivity) two_ne_zero) },
   have hab : ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ ≤
     ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ,
   { refine λ k, mul_le_of_le_one_left (pow_nonneg h_nonneg k.succ) _,
     rw one_div,
-    exact inv_le_one (le_add_of_nonneg_left (mul_pos two_pos (cast_pos.mpr k.succ_pos)).le) },
+    exact inv_le_one (le_add_of_nonneg_left $ by positivity) },
   exact has_sum_le hab (log_stirling_seq_diff_has_sum n) g,
 end
 
@@ -159,31 +147,26 @@ begin
   have h₁ : ∀ k, log_stirling_seq' k - log_stirling_seq' (k + 1) ≤ 1 / 4 * (1 / k.succ ^ 2) :=
   by { intro k, convert log_stirling_seq_sub_log_stirling_seq_succ k using 1, field_simp, },
   have h₂ : ∑ (k : ℕ) in range n, (1 : ℝ) / (k.succ) ^ 2 ≤ d := by
-  { refine sum_le_tsum (range n) (λ k _, _)
-      ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
-    apply le_of_lt,
-    rw [one_div_pos, sq_pos_iff],
-    exact nonzero_of_invertible (succ k), },
+  { exact sum_le_tsum (range n) (λ k _, by positivity)
+      ((summable_nat_add_iff 1).mpr $ real.summable_one_div_nat_pow.mpr one_lt_two) },
   calc
   log (stirling_seq 1) - log (stirling_seq n.succ) = log_stirling_seq' 0 - log_stirling_seq' n : rfl
   ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) : by
     rw ← sum_range_sub' log_stirling_seq' n
   ... ≤ ∑ k in range n, (1/4) * (1 / k.succ^2) : sum_le_sum (λ k _, h₁ k)
   ... = 1 / 4 * ∑ k in range n, 1 / k.succ ^ 2 : by rw mul_sum
-  ... ≤ 1 / 4 * d : (mul_le_mul_left (one_div_pos.mpr four_pos)).mpr h₂,
+  ... ≤ 1 / 4 * d : mul_le_mul_of_nonneg_left h₂ $ by positivity,
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/
 lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log (stirling_seq n.succ) :=
 begin
   obtain ⟨d, h⟩ := log_stirling_seq_bounded_aux,
-  exact ⟨log (stirling_seq 1) - d, λ n, sub_le.mp (h n)⟩,
+  exact ⟨log (stirling_seq 1) - d, λ n, sub_le_comm.mp (h n)⟩,
 end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
-lemma stirling_seq'_pos (n : ℕ) : 0 < stirling_seq n.succ :=
-div_pos (cast_pos.mpr n.succ.factorial_pos) (mul_pos (real.sqrt_pos.mpr (mul_pos two_pos
-  (cast_pos.mpr n.succ_pos))) (pow_pos (div_pos (cast_pos.mpr n.succ_pos) (exp_pos 1)) n.succ))
+lemma stirling_seq'_pos (n : ℕ) : 0 < stirling_seq n.succ := by { unfold stirling_seq, positivity }
 
 /--
 The sequence `stirling_seq` has a positive lower bound.
@@ -216,31 +199,6 @@ end
  https://proofwiki.org/wiki/Stirling%27s_Formula#Part_2
 -/
 
-/-- For `n : ℕ`, define `w n` as `2^(4*n) * n!^4 / ((2*n)!^2 * (2*n + 1))` -/
-noncomputable def w (n : ℕ) : ℝ :=
-(2 ^ (4 * n) * n! ^ 4) / ((2 * n)!^ 2 * (2 * n + 1))
-
-/-- The sequence `w n` converges to `π/2` -/
-lemma tendsto_w_at_top: tendsto (λ (n : ℕ), w n) at_top (𝓝 (π/2)) :=
-begin
-  convert tendsto_prod_pi_div_two,
-  funext n,
-  induction n with n ih,
-  { rw [w, prod_range_zero, cast_zero, mul_zero, pow_zero, one_mul, mul_zero, factorial_zero,
-        cast_one, one_pow, one_pow, one_mul, mul_zero, zero_add, div_one] },
-  rw [w, prod_range_succ, ←ih, w, _root_.div_mul_div_comm, _root_.div_mul_div_comm],
-  refine (div_eq_div_iff (ne_of_gt _) (ne_of_gt _)).mpr _,
-  { exact mul_pos (pow_pos (cast_pos.mpr (2 * n.succ).factorial_pos) 2)
-      (add_pos (mul_pos two_pos (cast_pos.mpr n.succ_pos)) one_pos) },
-  { have h : 0 < 2 * (n : ℝ) + 1 :=
-    add_pos_of_nonneg_of_pos (mul_nonneg zero_le_two n.cast_nonneg) one_pos,
-    exact mul_pos (mul_pos (pow_pos (cast_pos.mpr (2 * n).factorial_pos) 2) h)
-      (mul_pos h (add_pos_of_nonneg_of_pos (mul_nonneg zero_le_two n.cast_nonneg) three_pos)) },
-  { simp_rw [nat.mul_succ, factorial_succ, succ_eq_add_one, pow_succ],
-    push_cast,
-    ring_nf },
-end
-
 /-- The sequence `n / (2 * n + 1)` tends to `1/2` -/
 lemma tendsto_self_div_two_mul_self_add_one :
   tendsto (λ (n : ℕ), (n : ℝ) / (2 * n + 1)) at_top (𝓝 (1 / 2)) :=
@@ -248,19 +206,19 @@ begin
   conv { congr, skip, skip, rw [one_div, ←add_zero (2 : ℝ)] },
   refine (((tendsto_const_div_at_top_nhds_0_nat 1).const_add (2 : ℝ)).inv₀
     ((add_zero (2 : ℝ)).symm ▸ two_ne_zero)).congr' (eventually_at_top.mpr ⟨1, λ n hn, _⟩),
-  rw [add_div' (1 : ℝ) (2 : ℝ) (n : ℝ) (cast_ne_zero.mpr (one_le_iff_ne_zero.mp hn)), inv_div],
+  rw [add_div' (1 : ℝ) 2 n (cast_ne_zero.mpr (one_le_iff_ne_zero.mp hn)), inv_div],
 end
 
-
 /-- For any `n ≠ 0`, we have the identity
-`(stirling_seq n)^4/(stirling_seq (2*n))^2 * (n / (2 * n + 1)) = w n`. -/
+`(stirling_seq n)^4 / (stirling_seq (2*n))^2 * (n / (2 * n + 1)) = W n`, where `W n` is the
+`n`-th partial product of Wallis' formula for `π / 2`. -/
 lemma stirling_seq_pow_four_div_stirling_seq_pow_two_eq (n : ℕ) (hn : n ≠ 0) :
-  ((stirling_seq n) ^ 4 / (stirling_seq (2 * n)) ^ 2) * (n / (2 * n + 1)) = w n :=
+  ((stirling_seq n) ^ 4 / (stirling_seq (2 * n)) ^ 2) * (n / (2 * n + 1)) = wallis.W n :=
 begin
-  rw [bit0_eq_two_mul, stirling_seq, pow_mul, stirling_seq, w],
+  rw [bit0_eq_two_mul, stirling_seq, pow_mul, stirling_seq, wallis.W_eq_factorial_ratio],
   simp_rw [div_pow, mul_pow],
-  rw [sq_sqrt (mul_nonneg two_pos.le n.cast_nonneg),
-      sq_sqrt (mul_nonneg two_pos.le (2 * n).cast_nonneg)],
+  rw [sq_sqrt, sq_sqrt],
+  any_goals { positivity },
   have : (n : ℝ) ≠ 0, from cast_ne_zero.mpr hn,
   have : (exp 1) ≠ 0, from exp_ne_zero 1,
   have : ((2 * n)!: ℝ) ≠ 0, from cast_ne_zero.mpr (factorial_ne_zero (2 * n)),
@@ -272,10 +230,10 @@ end
 
 /--
 Suppose the sequence `stirling_seq` (defined above) has the limit `a ≠ 0`.
-Then the sequence `w` has limit `a^2/2`
+Then the Wallis sequence `W n` has limit `a^2 / 2`.
 -/
 lemma second_wallis_limit (a : ℝ) (hane : a ≠ 0) (ha : tendsto stirling_seq at_top (𝓝 a)) :
-  tendsto w at_top (𝓝 (a ^ 2 / 2)):=
+  tendsto wallis.W at_top (𝓝 (a ^ 2 / 2)):=
 begin
   refine tendsto.congr' (eventually_at_top.mpr ⟨1, λ n hn,
     stirling_seq_pow_four_div_stirling_seq_pow_two_eq n (one_le_iff_ne_zero.mp hn)⟩) _,
@@ -291,9 +249,9 @@ end
 theorem tendsto_stirling_seq_sqrt_pi : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 (sqrt π)) :=
 begin
   obtain ⟨a, hapos, halimit⟩ := stirling_seq_has_pos_limit_a,
-  have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique tendsto_w_at_top
-    (second_wallis_limit a (ne_of_gt hapos) halimit),
-  rwa [(div_left_inj' (show (2 : ℝ) ≠ 0, from two_ne_zero)).mp hπ, sqrt_sq hapos.le],
+  have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique wallis.tendsto_W_nhds_pi_div_two
+    (second_wallis_limit a hapos.ne' halimit),
+  rwa [(div_left_inj' (two_ne_zero' ℝ)).mp hπ, sqrt_sq hapos.le],
 end
 
 end stirling

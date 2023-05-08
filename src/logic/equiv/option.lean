@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import control.equiv_functor
-import logic.equiv.basic
+import data.option.basic
+import data.subtype
+import logic.equiv.defs
 
 /-!
 # Equivalences for `option α`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 
 We define

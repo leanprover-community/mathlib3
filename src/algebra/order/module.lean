@@ -8,6 +8,9 @@ import algebra.order.smul
 /-!
 # Ordered module
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide lemmas about `ordered_smul` that hold once a module structure is present.
 
 ## References
@@ -160,17 +163,17 @@ begin
   exact smul_le_smul_iff_of_pos (neg_pos_of_neg hc),
 end
 
-lemma smul_lt_iff_of_neg (hc : c < 0) : c • a < b ↔ c⁻¹ • b < a :=
-begin
-  rw [←neg_neg c, ←neg_neg a, neg_smul_neg, inv_neg, neg_smul _ b, neg_lt_neg_iff],
-  exact smul_lt_iff_of_pos (neg_pos_of_neg hc),
-end
+lemma inv_smul_le_iff_of_neg (h : c < 0) : c⁻¹ • a ≤ b ↔ c • b ≤ a :=
+by { rw [←smul_le_smul_iff_of_neg h, smul_inv_smul₀ h.ne], apply_instance }
 
-lemma lt_smul_iff_of_neg (hc : c < 0) : a < c • b ↔ b < c⁻¹ • a :=
-begin
-  rw [←neg_neg c, ←neg_neg b, neg_smul_neg, inv_neg, neg_smul _ a, neg_lt_neg_iff],
-  exact lt_smul_iff_of_pos (neg_pos_of_neg hc),
-end
+lemma inv_smul_lt_iff_of_neg (h : c < 0) : c⁻¹ • a < b ↔ c • b < a :=
+by { rw [←smul_lt_smul_iff_of_neg h, smul_inv_smul₀ h.ne], apply_instance }
+
+lemma smul_inv_le_iff_of_neg (h : c < 0) : a ≤ c⁻¹ • b ↔ b ≤ c • a :=
+by { rw [←smul_le_smul_iff_of_neg h, smul_inv_smul₀ h.ne], apply_instance }
+
+lemma smul_inv_lt_iff_of_neg (h : c < 0) : a < c⁻¹ • b ↔ b < c • a :=
+by { rw [←smul_lt_smul_iff_of_neg h, smul_inv_smul₀ h.ne], apply_instance }
 
 variables (M)
 

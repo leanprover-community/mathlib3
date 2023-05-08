@@ -48,7 +48,7 @@ non-Riemann filter (e.g., Henstock-Kurzweil and McShane).
 integral
 -/
 
-open_locale big_operators classical topological_space nnreal filter uniformity box_integral
+open_locale big_operators classical topology nnreal filter uniformity box_integral
 open set finset function filter metric box_integral.integration_params
 
 noncomputable theory
@@ -334,12 +334,12 @@ begin
   { rw [integral, dif_neg hgi] }
 end
 
-/-- If `∥f x∥ ≤ g x` on `[l, u]` and `g` is integrable, then the norm of the integral of `f` is less
+/-- If `‖f x‖ ≤ g x` on `[l, u]` and `g` is integrable, then the norm of the integral of `f` is less
 than or equal to the integral of `g`. -/
-lemma norm_integral_le_of_norm_le {g : ℝⁿ → ℝ} (hle : ∀ x ∈ I.Icc, ∥f x∥ ≤ g x)
+lemma norm_integral_le_of_norm_le {g : ℝⁿ → ℝ} (hle : ∀ x ∈ I.Icc, ‖f x‖ ≤ g x)
   (μ : measure ℝⁿ) [is_locally_finite_measure μ]
   (hg : integrable I l g μ.to_box_additive.to_smul) :
-  ∥(integral I l f μ.to_box_additive.to_smul : E)∥ ≤
+  ‖(integral I l f μ.to_box_additive.to_smul : E)‖ ≤
     integral I l g μ.to_box_additive.to_smul :=
 begin
   by_cases hfi : integrable.{u v v} I l f μ.to_box_additive.to_smul,
@@ -352,9 +352,9 @@ begin
     exact integral_nonneg (λ x hx, (norm_nonneg _).trans (hle x hx)) μ }
 end
 
-lemma norm_integral_le_of_le_const {c : ℝ} (hc : ∀ x ∈ I.Icc, ∥f x∥ ≤ c)
+lemma norm_integral_le_of_le_const {c : ℝ} (hc : ∀ x ∈ I.Icc, ‖f x‖ ≤ c)
   (μ : measure ℝⁿ) [is_locally_finite_measure μ] :
-  ∥(integral I l f μ.to_box_additive.to_smul : E)∥ ≤ (μ I).to_real * c :=
+  ‖(integral I l f μ.to_box_additive.to_smul : E)‖ ≤ (μ I).to_real * c :=
 by simpa only [integral_const]
   using norm_integral_le_of_norm_le hc μ (integrable_const c)
 
@@ -652,8 +652,8 @@ begin
   simp only [dist_eq_norm, integral_sum_sub_partitions _ _ h₁p h₂p,
     box_additive_map.to_smul_apply, ← smul_sub],
   have : ∀ J ∈ π₁.to_prepartition ⊓ π₂.to_prepartition,
-    ∥μ.to_box_additive J • (f ((π₁.inf_prepartition π₂.to_prepartition).tag J) -
-      f ((π₂.inf_prepartition π₁.to_prepartition).tag J))∥ ≤ μ.to_box_additive J * ε',
+    ‖μ.to_box_additive J • (f ((π₁.inf_prepartition π₂.to_prepartition).tag J) -
+      f ((π₂.inf_prepartition π₁.to_prepartition).tag J))‖ ≤ μ.to_box_additive J * ε',
   { intros J hJ,
     have : 0 ≤ μ.to_box_additive J, from ennreal.to_real_nonneg,
     rw [norm_smul, real.norm_eq_abs, abs_of_nonneg this, ← dist_eq_norm],

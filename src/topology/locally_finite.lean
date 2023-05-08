@@ -3,10 +3,14 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.basic
+import topology.continuous_on
+import order.filter.small_sets
 
 /-!
 ### Locally finite families of sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a family of sets in a topological space is *locally finite* if at every point `x : X`,
 there is a neighborhood of `x` which meets only finitely many sets in the family.
@@ -17,9 +21,10 @@ In this file we give the definition and prove basic properties of locally finite
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 
 open set function filter
-open_locale topological_space filter
+open_locale topology filter
 
-variables {ι ι' α X Y : Type*} [topological_space X] [topological_space Y]
+universe u
+variables {ι : Type u} {ι' α X Y : Type*} [topological_space X] [topological_space Y]
   {f g : ι → set X}
 
 /-- A family of sets in `set X` is locally finite if at every point `x : X`,
@@ -45,63 +50,87 @@ lemma comp_inj_on {g : ι' → ι} (hf : locally_finite f)
 λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage $ hg.mono $ λ i hi,
   hi.out.mono $ inter_subset_left _ _⟩
 
-lemma comp_injective {g : ι' → ι} (hf : locally_finite f)
-  (hg : function.injective g) : locally_finite (f ∘ g) :=
+lemma comp_injective {g : ι' → ι} (hf : locally_finite f) (hg : injective g) :
+  locally_finite (f ∘ g) :=
 hf.comp_inj_on (hg.inj_on _)
 
-lemma eventually_finite (hf : locally_finite f) (x : X) :
+lemma _root_.locally_finite_iff_small_sets :
+  locally_finite f ↔ ∀ x, ∀ᶠ s in (𝓝 x).small_sets, {i | (f i ∩ s).nonempty}.finite :=
+forall_congr $ λ x, iff.symm $ eventually_small_sets' $ λ s t hst ht, ht.subset $
+  λ i hi, hi.mono $ inter_subset_inter_right _ hst
+
+protected lemma eventually_small_sets (hf : locally_finite f) (x : X) :
   ∀ᶠ s in (𝓝 x).small_sets, {i | (f i ∩ s).nonempty}.finite :=
-eventually_small_sets.2 $ let ⟨s, hsx, hs⟩ := hf x in
-  ⟨s, hsx, λ t hts, hs.subset $ λ i hi, hi.out.mono $ inter_subset_inter_right _ hts⟩
+locally_finite_iff_small_sets.mp hf x
 
 lemma exists_mem_basis {ι' : Sort*} (hf : locally_finite f) {p : ι' → Prop}
   {s : ι' → set X} {x : X} (hb : (𝓝 x).has_basis p s) :
   ∃ i (hi : p i), {j | (f j ∩ s i).nonempty}.finite :=
-let ⟨i, hpi, hi⟩ := hb.small_sets.eventually_iff.mp (hf.eventually_finite x)
+let ⟨i, hpi, hi⟩ := hb.small_sets.eventually_iff.mp (hf.eventually_small_sets x)
 in ⟨i, hpi, hi subset.rfl⟩
 
-lemma sum_elim {g : ι' → set X} (hf : locally_finite f) (hg : locally_finite g) :
-  locally_finite (sum.elim f g) :=
+protected theorem nhds_within_Union (hf : locally_finite f) (a : X) :
+  𝓝[⋃ i, f i] a = ⨆ i, 𝓝[f i] a :=
 begin
-  intro x,
-  obtain ⟨s, hsx, hsf, hsg⟩ :
-    ∃ s, s ∈ 𝓝 x ∧ {i | (f i ∩ s).nonempty}.finite ∧ {j | (g j ∩ s).nonempty}.finite,
-    from ((𝓝 x).frequently_small_sets_mem.and_eventually
-      ((hf.eventually_finite x).and (hg.eventually_finite x))).exists,
-  refine ⟨s, hsx, _⟩,
-  convert (hsf.image sum.inl).union (hsg.image sum.inr) using 1,
-  ext (i|j); simp
+  rcases hf a with ⟨U, haU, hfin⟩,
+  refine le_antisymm _ (supr_le $ λ i, nhds_within_mono _ (subset_Union _ _)),
+  calc 𝓝[⋃ i, f i] a = 𝓝[⋃ i, f i ∩ U] a :
+    by rw [← Union_inter, ← nhds_within_inter_of_mem' (nhds_within_le_nhds haU)]
+  ... = 𝓝[⋃ i ∈ {j | (f j ∩ U).nonempty}, (f i ∩ U)] a :
+    by simp only [mem_set_of_eq, Union_nonempty_self]
+  ... = ⨆ i ∈ {j | (f j ∩ U).nonempty}, 𝓝[f i ∩ U] a :
+    nhds_within_bUnion hfin _ _
+  ... ≤ ⨆ i, 𝓝[f i ∩ U] a : supr₂_le_supr _ _
+  ... ≤ ⨆ i, 𝓝[f i] a : supr_mono (λ i, nhds_within_mono _ $ inter_subset_left _ _)
 end
+
+lemma continuous_on_Union' {g : X → Y} (hf : locally_finite f)
+  (hc : ∀ i x, x ∈ closure (f i) → continuous_within_at g (f i) x) :
+  continuous_on g (⋃ i, f i) :=
+begin
+  rintro x -,
+  rw [continuous_within_at, hf.nhds_within_Union, tendsto_supr],
+  intro i,
+  by_cases hx : x ∈ closure (f i),
+  { exact hc i _ hx },
+  { rw [mem_closure_iff_nhds_within_ne_bot, not_ne_bot] at hx,
+    rw [hx],
+    exact tendsto_bot }
+end
+
+lemma continuous_on_Union {g : X → Y} (hf : locally_finite f) (h_cl : ∀ i, is_closed (f i))
+  (h_cont : ∀ i, continuous_on g (f i)) :
+  continuous_on g (⋃ i, f i) :=
+hf.continuous_on_Union' $ λ i x hx, h_cont i x $ (h_cl i).closure_subset hx
+
+protected lemma continuous' {g : X → Y} (hf : locally_finite f) (h_cov : (⋃ i, f i) = univ)
+  (hc : ∀ i x, x ∈ closure (f i) → continuous_within_at g (f i) x) :
+  continuous g :=
+continuous_iff_continuous_on_univ.2 $ h_cov ▸ hf.continuous_on_Union' hc
+
+protected lemma continuous {g : X → Y} (hf : locally_finite f) (h_cov : (⋃ i, f i) = univ)
+  (h_cl : ∀ i, is_closed (f i)) (h_cont : ∀ i, continuous_on g (f i)) :
+  continuous g :=
+continuous_iff_continuous_on_univ.2 $ h_cov ▸ hf.continuous_on_Union h_cl h_cont
 
 protected lemma closure (hf : locally_finite f) : locally_finite (λ i, closure (f i)) :=
 begin
   intro x,
   rcases hf x with ⟨s, hsx, hsf⟩,
   refine ⟨interior s, interior_mem_nhds.2 hsx, hsf.subset $ λ i hi, _⟩,
-  exact (hi.mono is_open_interior.closure_inter').of_closure.mono
+  exact (hi.mono is_open_interior.closure_inter).of_closure.mono
     (inter_subset_inter_right _ interior_subset)
 end
 
-lemma is_closed_Union (hf : locally_finite f) (hc : ∀i, is_closed (f i)) :
-  is_closed (⋃i, f i) :=
+lemma closure_Union (h : locally_finite f) : closure (⋃ i, f i) = ⋃ i, closure (f i) :=
 begin
-  simp only [← is_open_compl_iff, compl_Union, is_open_iff_mem_nhds, mem_Inter],
-  intros a ha,
-  replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, (hc i).is_open_compl.mem_nhds (ha i),
-  rcases hf a with ⟨t, h_nhds, h_fin⟩,
-  have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
-    from inter_mem h_nhds ((bInter_mem h_fin).2 (λ i _, ha i)),
-  filter_upwards [this],
-  simp only [mem_inter_iff, mem_Inter],
-  rintros b ⟨hbt, hn⟩ i hfb,
-  exact hn i ⟨b, hfb, hbt⟩ hfb,
+  ext x,
+  simp only [mem_closure_iff_nhds_within_ne_bot, h.nhds_within_Union, supr_ne_bot, mem_Union]
 end
 
-lemma closure_Union (h : locally_finite f) : closure (⋃ i, f i) = ⋃ i, closure (f i) :=
-subset.antisymm
-  (closure_minimal (Union_mono $ λ _, subset_closure) $
-    h.closure.is_closed_Union $ λ _, is_closed_closure)
-  (Union_subset $ λ i, closure_mono $ subset_Union _ _)
+lemma is_closed_Union (hf : locally_finite f) (hc : ∀ i, is_closed (f i)) :
+  is_closed (⋃ i, f i) :=
+by simp only [← closure_eq_iff_is_closed, hf.closure_Union, (hc _).closure_eq]
 
 /-- If `f : β → set α` is a locally finite family of closed sets, then for any `x : α`, the
 intersection of the complements to `f i`, `x ∉ f i`, is a neighbourhood of `x`. -/
@@ -162,3 +191,29 @@ lemma preimage_continuous {g : Y → X} (hf : locally_finite f) (hg : continuous
   in ⟨g ⁻¹' s, hg.continuous_at hsx, hs.subset $ λ i ⟨y, hy⟩, ⟨g y, hy⟩⟩
 
 end locally_finite
+
+@[simp] lemma equiv.locally_finite_comp_iff (e : ι' ≃ ι) :
+  locally_finite (f ∘ e) ↔ locally_finite f :=
+⟨λ h, by simpa only [(∘), e.apply_symm_apply] using h.comp_injective e.symm.injective,
+  λ h, h.comp_injective e.injective⟩
+
+lemma locally_finite_sum {f : ι ⊕ ι' → set X} :
+  locally_finite f ↔ locally_finite (f ∘ sum.inl) ∧ locally_finite (f ∘ sum.inr) :=
+by simp only [locally_finite_iff_small_sets, ← forall_and_distrib, ← finite_preimage_inl_and_inr,
+  preimage_set_of_eq, (∘), eventually_and]
+
+lemma locally_finite.sum_elim {g : ι' → set X} (hf : locally_finite f) (hg : locally_finite g) :
+  locally_finite (sum.elim f g) :=
+locally_finite_sum.mpr ⟨hf, hg⟩
+
+lemma locally_finite_option {f : option ι → set X} :
+  locally_finite f ↔ locally_finite (f ∘ some) :=
+begin
+  simp only [← (equiv.option_equiv_sum_punit.{u} ι).symm.locally_finite_comp_iff,
+    locally_finite_sum, locally_finite_of_finite, and_true],
+  refl
+end
+
+lemma locally_finite.option_elim (hf : locally_finite f) (s : set X) :
+  locally_finite (option.elim s f) :=
+locally_finite_option.2 hf

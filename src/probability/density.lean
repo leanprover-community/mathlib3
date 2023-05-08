@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.radon_nikodym
-import measure_theory.measure.lebesgue
+import measure_theory.measure.haar_of_basis
 
 /-!
 # Probability density function
@@ -192,7 +192,7 @@ begin
     { refine ⟨hf.ae_strongly_measurable, _⟩,
       rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
             (measurable_pdf _ _ _) hf.nnnorm.coe_nnreal_ennreal],
-      have : (λ x, (pdf X ℙ μ * λ x, ↑∥f x∥₊) x) =ᵐ[μ] (λ x, ∥f x * (pdf X ℙ μ x).to_real∥₊),
+      have : (λ x, (pdf X ℙ μ * λ x, ↑‖f x‖₊) x) =ᵐ[μ] (λ x, ‖f x * (pdf X ℙ μ x).to_real‖₊),
       { simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul],
         rw [smul_eq_mul, mul_comm],
         refine filter.eventually_eq.mul (ae_eq_refl _) (ae_eq_trans of_real_to_real_ae_eq.symm _),
@@ -295,12 +295,12 @@ lemma integral_mul_eq_integral [has_pdf X ℙ] :
 integral_fun_mul_eq_integral measurable_id
 
 lemma has_finite_integral_mul {f : ℝ → ℝ} {g : ℝ → ℝ≥0∞}
-  (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ∥f x∥₊ * g x ≠ ∞) :
+  (hg : pdf X ℙ =ᵐ[volume] g) (hgi : ∫⁻ x, ‖f x‖₊ * g x ≠ ∞) :
   has_finite_integral (λ x, f x * (pdf X ℙ volume x).to_real) :=
 begin
   rw has_finite_integral,
-  have : (λ x, ↑∥f x∥₊ * g x) =ᵐ[volume] (λ x, ∥f x * (pdf X ℙ volume x).to_real∥₊),
-  { refine ae_eq_trans (filter.eventually_eq.mul (ae_eq_refl (λ x, ∥f x∥₊))
+  have : (λ x, ↑‖f x‖₊ * g x) =ᵐ[volume] (λ x, ‖f x * (pdf X ℙ volume x).to_real‖₊),
+  { refine ae_eq_trans (filter.eventually_eq.mul (ae_eq_refl (λ x, ‖f x‖₊))
       (ae_eq_trans hg.symm of_real_to_real_ae_eq.symm)) _,
     simp_rw [← smul_eq_mul, nnnorm_smul, ennreal.coe_mul, smul_eq_mul],
     refine filter.eventually_eq.mul (ae_eq_refl _) _,
@@ -390,8 +390,8 @@ begin
     (measurable_pdf X ℙ).ae_measurable.ennreal_to_real.ae_strongly_measurable, _⟩,
   refine has_finite_integral_mul huX _,
   set ind := (volume s)⁻¹ • (1 : ℝ → ℝ≥0∞) with hind,
-  have : ∀ x, ↑∥x∥₊ * s.indicator ind x = s.indicator (λ x, ∥x∥₊ * ind x) x :=
-      λ x, (s.indicator_mul_right (λ x, ↑∥x∥₊) ind).symm,
+  have : ∀ x, ↑‖x‖₊ * s.indicator ind x = s.indicator (λ x, ‖x‖₊ * ind x) x :=
+      λ x, (s.indicator_mul_right (λ x, ↑‖x‖₊) ind).symm,
   simp only [this, lintegral_indicator _ hms, hind, mul_one,
              algebra.id.smul_eq_mul, pi.one_apply, pi.smul_apply],
   rw lintegral_mul_const _ measurable_nnnorm.coe_nnreal_ennreal,

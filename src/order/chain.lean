@@ -3,11 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.pairwise
+import data.set.pairwise.basic
+import data.set.lattice
 import data.set_like.basic
 
 /-!
 # Chains and flags
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines chains for an arbitrary relation and flags for an order and proves Hausdorff's
 Maximality Principle.

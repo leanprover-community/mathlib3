@@ -5,9 +5,11 @@ Authors: Kenny Lau
 -/
 import data.dfinsupp.basic
 import group_theory.submonoid.operations
-import group_theory.subgroup.basic
 /-!
 # Direct sum
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the direct sum of abelian groups, indexed by a discrete type.
 
@@ -231,16 +233,20 @@ noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ
 
 /--The natural map between `⨁ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
-noncomputable def sigma_uncurry : (⨁ i j, δ i j) →+ ⨁ (i : Σ i, _), δ i.1 i.2 :=
+def sigma_uncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  (⨁ i j, δ i j) →+ ⨁ (i : Σ i, _), δ i.1 i.2 :=
 { to_fun := dfinsupp.sigma_uncurry,
   map_zero' := dfinsupp.sigma_uncurry_zero,
   map_add' := dfinsupp.sigma_uncurry_add }
 
-@[simp] lemma sigma_uncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
+@[simp] lemma sigma_uncurry_apply [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)]
+  (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j := dfinsupp.sigma_uncurry_apply f i j
 
 /--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
-noncomputable def sigma_curry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
+noncomputable def sigma_curry_equiv
+  [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
 { ..sigma_curry, ..dfinsupp.sigma_curry_equiv }
 
 end sigma

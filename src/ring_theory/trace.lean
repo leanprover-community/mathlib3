@@ -161,6 +161,24 @@ lemma trace_comp_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
   (trace K L).comp ((trace L T).restrict_scalars K) = trace K T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace] }
 
+@[simp]
+lemma trace_prod_apply
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T]
+  (x : S × T) : trace R (S × T) x = trace R S x.fst + trace R T x.snd :=
+begin
+  nontriviality R,
+  let f := (lmul R S).to_linear_map.prod_map (lmul R T).to_linear_map,
+  have : (lmul R (S × T)).to_linear_map = (prod_map_linear R S T S T R).comp f :=
+    linear_map.ext₂ prod.mul_def,
+  simp_rw [trace, this],
+  exact trace_prod_map' _ _,
+end
+
+lemma trace_prod
+  [module.free R S] [module.free R T] [module.finite R S] [module.finite R T] :
+  trace R (S × T) = (trace R S).coprod (trace R T) :=
+linear_map.ext $ λ p, by rw [coprod_apply, trace_prod_apply]
+
 section trace_form
 
 variables (R S)
@@ -283,10 +301,10 @@ variables [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
 
 open polynomial
 
-lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
-  _root_.is_integral R (algebra.trace L F x) :=
+lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : is_integral R x) :
+  is_integral R (algebra.trace L F x) :=
 begin
-  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : is_integral L x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
       trace_eq_sum_roots],
   { refine (is_integral.multiset_sum _).nsmul _,
@@ -386,11 +404,14 @@ open finset
 
 /-- Given an `A`-algebra `B` and `b`, an `κ`-indexed family of elements of `B`, we define
 `trace_matrix A b` as the matrix whose `(i j)`-th element is the trace of `b i * b j`. -/
-@[simp] noncomputable
-def trace_matrix (b : κ → B) : matrix κ κ A
-| i j := trace_form A B (b i) (b j)
+noncomputable
+def trace_matrix (b : κ → B) : matrix κ κ A :=
+of $ λ i j, trace_form A B (b i) (b j)
 
-lemma trace_matrix_def (b : κ → B) : trace_matrix A b = of (λ i j, trace_form A B (b i) (b j)) :=
+-- TODO: set as an equation lemma for `trace_matrix`, see mathlib4#3024
+@[simp]
+lemma trace_matrix_apply (b : κ → B) (i j) :
+  trace_matrix A b i j = trace_form A B (b i) (b j) :=
 rfl
 
 lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
@@ -403,7 +424,7 @@ lemma trace_matrix_of_matrix_vec_mul [fintype κ] (b : κ → B) (P : matrix κ 
   trace_matrix A ((P.map (algebra_map A B)).vec_mul b) = Pᵀ ⬝ (trace_matrix A b) ⬝ P :=
 begin
   ext α β,
-  rw [trace_matrix, vec_mul, dot_product, vec_mul, dot_product, matrix.mul_apply,
+  rw [trace_matrix_apply, vec_mul, dot_product, vec_mul, dot_product, matrix.mul_apply,
     bilin_form.sum_left, fintype.sum_congr _ _ (λ (i : κ), @bilin_form.sum_right _ _ _ _ _ _ _ _
     (b i * P.map (algebra_map A B) i α) (λ (y : κ), b y * P.map (algebra_map A B) y β)), sum_comm],
   congr, ext x,
@@ -430,7 +451,7 @@ lemma trace_matrix_of_basis [fintype κ] [decidable_eq κ] (b : basis κ A B) :
   trace_matrix A b = bilin_form.to_matrix b (trace_form A B) :=
 begin
   ext i j,
-  rw [trace_matrix, trace_form_apply, trace_form_to_matrix]
+  rw [trace_matrix_apply, trace_form_apply, trace_form_to_matrix]
 end
 
 lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
@@ -438,7 +459,7 @@ lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
 begin
   ext i,
   rw [← col_apply ((trace_matrix A b).mul_vec (b.equiv_fun z)) i unit.star, col_mul_vec,
-    matrix.mul_apply, trace_matrix_def],
+    matrix.mul_apply, trace_matrix],
   simp only [col_apply, trace_form_apply],
   conv_lhs
   { congr, skip, funext,
@@ -457,8 +478,12 @@ variable (A)
 /-- `embeddings_matrix A C b : matrix κ (B →ₐ[A] C) C` is the matrix whose `(i, σ)` coefficient is
   `σ (b i)`. It is mostly useful for fields when `fintype.card κ = finrank A B` and `C` is
   algebraically closed. -/
-@[simp] def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C
-| i σ := σ (b i)
+def embeddings_matrix (b : κ → B) : matrix κ (B →ₐ[A] C) C :=
+of $ λ i (σ : B →ₐ[A] C), σ (b i)
+
+-- TODO: set as an equation lemma for `embeddings_matrix`, see mathlib4#3024
+@[simp] lemma embeddings_matrix_apply (b : κ → B) (i) (σ : B →ₐ[A] C) :
+  embeddings_matrix A C b i σ = σ (b i) := rfl
 
 /-- `embeddings_matrix_reindex A C b e : matrix κ κ C` is the matrix whose `(i, j)` coefficient
   is `σⱼ (b i)`, where `σⱼ : B →ₐ[A] C` is the embedding corresponding to `j : κ` given by a

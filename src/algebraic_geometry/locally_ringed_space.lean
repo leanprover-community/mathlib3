@@ -6,7 +6,6 @@ Authors: Johan Commelin
 
 import algebraic_geometry.ringed_space
 import algebraic_geometry.stalks
-import logic.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces
@@ -247,14 +246,11 @@ end
 
 -- This actually holds for all ringed spaces with nontrivial stalks.
 @[simp] lemma basic_open_zero (X : LocallyRingedSpace) (U : opens X.carrier) :
-  X.to_RingedSpace.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+  X.to_RingedSpace.basic_open (0 : X.presheaf.obj $ op U) = ⊥ :=
 begin
-  ext,
-  simp only [set.mem_empty_iff_false, topological_space.opens.empty_eq,
-    topological_space.opens.mem_coe, opens.coe_bot, iff_false, RingedSpace.basic_open,
-    is_unit_zero_iff, set.mem_set_of_eq, map_zero],
-  rintro ⟨⟨y, _⟩, h, e⟩,
-  exact @zero_ne_one (X.presheaf.stalk y) _ _ h,
+  simp only [RingedSpace.basic_open, is_unit_zero_iff, map_zero,
+    zero_ne_one' (X.presheaf.stalk _), set.set_of_false, set.image_empty],
+  refl
 end
 
 instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)

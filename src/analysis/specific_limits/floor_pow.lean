@@ -19,7 +19,7 @@ We state several auxiliary results pertaining to sequences of the form `‚åäc^n‚å
 -/
 
 open filter finset
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 /-- If a monotone sequence `u` is such that `u n / n` tends to a limit `l` along subsequences with
 exponential growth rate arbitrarily close to `1`, then `u n / n` tends to `l`. -/

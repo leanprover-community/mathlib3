@@ -54,7 +54,7 @@ variables (p) (r : ℚ)
 omit hp_prime
 /--
 `mod_part p r` is an integer that satisfies
-`∥(r - mod_part p r : ℚ_[p])∥ < 1` when `∥(r : ℚ_[p])∥ ≤ 1`,
+`‖(r - mod_part p r : ℚ_[p])‖ < 1` when `‖(r : ℚ_[p])‖ ≤ 1`,
 see `padic_int.norm_sub_mod_part`.
 It is the unique non-negative integer that is `< p` with this property.
 
@@ -77,16 +77,16 @@ end
 lemma mod_part_nonneg : 0 ≤ mod_part p r :=
 int.mod_nonneg _ $ by exact_mod_cast hp_prime.1.ne_zero
 
-lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
+lemma is_unit_denom (r : ℚ) (h : ‖(r : ℚ_[p])‖ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
 begin
   rw is_unit_iff,
   apply le_antisymm (r.denom : ℤ_[p]).2,
   rw [← not_lt, val_eq_coe, coe_nat_cast],
   intro norm_denom_lt,
-  have hr : ∥(r * r.denom : ℚ_[p])∥ = ∥(r.num : ℚ_[p])∥,
+  have hr : ‖(r * r.denom : ℚ_[p])‖ = ‖(r.num : ℚ_[p])‖,
   { rw_mod_cast @rat.mul_denom_eq_num r, refl, },
   rw padic_norm_e.mul at hr,
-  have key : ∥(r.num : ℚ_[p])∥ < 1,
+  have key : ‖(r.num : ℚ_[p])‖ < 1,
   { calc _ = _ : hr.symm
     ... < 1 * 1 : mul_lt_mul' h norm_denom_lt (norm_nonneg _) zero_lt_one
     ... = 1 : mul_one 1 },
@@ -97,7 +97,7 @@ begin
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
-lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+lemma norm_sub_mod_part_aux (r : ℚ) (h : ‖(r : ℚ_[p])‖ ≤ 1) :
   ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
@@ -117,7 +117,7 @@ begin
   exact is_unit_denom r h,
 end
 
-lemma norm_sub_mod_part (h : ∥(r : ℚ_[p])∥ ≤ 1) : ∥(⟨r,h⟩ - mod_part p r : ℤ_[p])∥ < 1 :=
+lemma norm_sub_mod_part (h : ‖(r : ℚ_[p])‖ ≤ 1) : ‖(⟨r,h⟩ - mod_part p r : ℤ_[p])‖ < 1 :=
 begin
   let n := mod_part p r,
   rw [norm_lt_one_iff_dvd, ← (is_unit_denom r h).dvd_mul_right],
@@ -131,8 +131,8 @@ begin
   exact norm_sub_mod_part_aux r h
 end
 
-lemma exists_mem_range_of_norm_rat_le_one (h : ∥(r : ℚ_[p])∥ ≤ 1) :
-  ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
+lemma exists_mem_range_of_norm_rat_le_one (h : ‖(r : ℚ_[p])‖ ≤ 1) :
+  ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ‖(⟨r,h⟩ - n : ℤ_[p])‖ < 1 :=
 ⟨mod_part p r, mod_part_nonneg _, mod_part_lt_p _, norm_sub_mod_part _ h⟩
 
 lemma zmod_congr_of_sub_mem_span_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
@@ -172,10 +172,10 @@ variable (x : ℤ_[p])
 lemma exists_mem_range : ∃ n : ℕ, n < p ∧ (x - n ∈ maximal_ideal ℤ_[p]) :=
 begin
   simp only [maximal_ideal_eq_span_p, ideal.mem_span_singleton, ← norm_lt_one_iff_dvd],
-  obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
-  have H : ∥(r : ℚ_[p])∥ ≤ 1,
+  obtain ⟨r, hr⟩ := rat_dense p (x : ℚ_[p]) zero_lt_one,
+  have H : ‖(r : ℚ_[p])‖ ≤ 1,
   { rw norm_sub_rev at hr,
-    calc _ = ∥(r : ℚ_[p]) - x + x∥ : by ring_nf
+    calc _ = ‖(r : ℚ_[p]) - x + x‖ : by ring_nf
        ... ≤ _ : padic_norm_e.nonarchimedean _ _
        ... ≤ _ :  max_le (le_of_lt hr) x.2 },
   obtain ⟨n, hzn, hnp, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
@@ -191,7 +191,7 @@ end
 
 /--
 `zmod_repr x` is the unique natural number smaller than `p`
-satisfying `∥(x - zmod_repr x : ℤ_[p])∥ < 1`.
+satisfying `‖(x - zmod_repr x : ℤ_[p])‖ < 1`.
 -/
 def zmod_repr : ℕ :=
 classical.some (exists_mem_range x)
@@ -290,7 +290,7 @@ end
 
 /-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are congruent mod `p^n`.
 See `appr_spec`. -/
-noncomputable def appr : ℤ_[p] → ℕ → ℕ
+@[irreducible] noncomputable def appr : ℤ_[p] → ℕ → ℕ
 | x 0     := 0
 | x (n+1) :=
 let y := x - appr x n in
@@ -381,8 +381,6 @@ begin
     rw unit_coeff_spec hc',
     exact (dvd_pow_self (p : ℤ_[p]) hc0.ne').mul_left _, },
 end
-
-attribute [irreducible] appr
 
 /-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.appr n`. -/
 def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
@@ -572,7 +570,7 @@ def lim_nth_hom (r : R) : ℤ_[p] :=
 of_int_seq (nth_hom f r) (is_cau_seq_nth_hom f_compat r)
 
 lemma lim_nth_hom_spec (r : R) :
-  ∀ ε : ℝ, 0 < ε → ∃ N : ℕ, ∀ n ≥ N, ∥lim_nth_hom f_compat r - nth_hom f r n∥ < ε :=
+  ∀ ε : ℝ, 0 < ε → ∃ N : ℕ, ∀ n ≥ N, ‖lim_nth_hom f_compat r - nth_hom f r n‖ < ε :=
 begin
   intros ε hε,
   obtain ⟨ε', hε'0, hε'⟩ : ∃ v : ℚ, (0 : ℝ) < v ∧ ↑v < ε := exists_rat_btwn hε,

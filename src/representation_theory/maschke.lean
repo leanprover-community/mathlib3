@@ -5,11 +5,13 @@ Authors: Scott Morrison
 -/
 import algebra.monoid_algebra.basic
 import algebra.char_p.invertible
-import algebra.regular.basic
 import linear_algebra.basis
 
 /-!
 # Maschke's theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove **Maschke's theorem** for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
@@ -104,8 +106,10 @@ In fact, the sum over `g : G` of the conjugate of `π` by `g` is a `k[G]`-linear
 def sum_of_conjugates_equivariant : W →ₗ[monoid_algebra k G] V :=
 monoid_algebra.equivariant_of_linear_of_comm (π.sum_of_conjugates G) (λ g v,
 begin
-  dsimp [sum_of_conjugates],
-  simp only [linear_map.sum_apply, finset.smul_sum],
+  simp only [sum_of_conjugates, linear_map.sum_apply,
+    -- We have a `module (monoid_algebra k G)` instance but are working with `finsupp`s,
+    -- so help the elaborator unfold everything correctly.
+    @finset.smul_sum (monoid_algebra k G)],
   dsimp [conjugate],
   conv_lhs
   { rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],

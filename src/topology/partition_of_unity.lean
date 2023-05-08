@@ -75,7 +75,7 @@ partition of unity, bump function, Urysohn's lemma, normal space, paracompact sp
 universes u v
 
 open function set filter
-open_locale big_operators topological_space classical
+open_locale big_operators topology classical
 
 noncomputable theory
 

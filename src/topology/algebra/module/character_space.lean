@@ -62,6 +62,8 @@ instance : continuous_linear_map_class (character_space 𝕜 A) 𝕜 A 𝕜 :=
   map_add := λ φ, (φ : weak_dual 𝕜 A).map_add,
   map_continuous := λ φ, (φ : weak_dual 𝕜 A).cont }
 
+@[ext] lemma ext {φ ψ : character_space 𝕜 A} (h : ∀ x, φ x = ψ x) : φ = ψ := fun_like.ext _ _ h
+
 /-- An element of the character space, as a continuous linear map. -/
 def to_clm (φ : character_space 𝕜 A) : A →L[𝕜] 𝕜 := (φ : weak_dual 𝕜 A)
 
@@ -84,6 +86,9 @@ def to_non_unital_alg_hom (φ : character_space 𝕜 A) : A →ₙₐ[𝕜] 𝕜
 
 @[simp]
 lemma coe_to_non_unital_alg_hom (φ : character_space 𝕜 A) : ⇑(to_non_unital_alg_hom φ) = φ := rfl
+
+instance [subsingleton A] : is_empty (character_space 𝕜 A) :=
+⟨λ φ, φ.prop.1 $ continuous_linear_map.ext (λ x, by simp only [subsingleton.elim x 0, map_zero])⟩
 
 variables (𝕜 A)
 
@@ -145,7 +150,7 @@ end
 
 /-- under suitable mild assumptions on `𝕜`, the character space is a closed set in
 `weak_dual 𝕜 A`. -/
-lemma is_closed [nontrivial 𝕜] [t2_space 𝕜] [has_continuous_mul 𝕜] :
+protected lemma is_closed [nontrivial 𝕜] [t2_space 𝕜] [has_continuous_mul 𝕜] :
   is_closed (character_space 𝕜 A) :=
 begin
   rw [eq_set_map_one_map_mul, set.set_of_and],
@@ -163,9 +168,29 @@ variables [comm_ring 𝕜] [no_zero_divisors 𝕜] [topological_space 𝕜] [has
 lemma apply_mem_spectrum [nontrivial 𝕜] (φ : character_space 𝕜 A) (a : A) : φ a ∈ spectrum 𝕜 a :=
 alg_hom.apply_mem_spectrum φ a
 
+lemma ext_ker {φ ψ : character_space 𝕜 A} (h : ring_hom.ker φ = ring_hom.ker ψ) : φ = ψ :=
+begin
+  ext,
+  have : x - algebra_map 𝕜 A (ψ x) ∈ ring_hom.ker φ,
+  { simpa only [h, ring_hom.mem_ker, map_sub, alg_hom_class.commutes] using sub_self (ψ x) },
+  { rwa [ring_hom.mem_ker, map_sub, alg_hom_class.commutes, sub_eq_zero] at this, }
+end
+
 end ring
 
 end character_space
+
+section kernel
+
+variables [field 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜] [has_continuous_const_smul 𝕜 𝕜]
+variables [ring A] [topological_space A] [algebra 𝕜 A]
+
+/-- The `ring_hom.ker` of `φ : character_space 𝕜 A` is maximal. -/
+instance ker_is_maximal (φ : character_space 𝕜 A) : (ring_hom.ker φ).is_maximal :=
+ring_hom.ker_is_maximal_of_surjective φ $ λ z, ⟨algebra_map 𝕜 A z,
+  by simp only [alg_hom_class.commutes, algebra.id.map_eq_id, ring_hom.id_apply]⟩
+
+end kernel
 
 section gelfand_transform
 

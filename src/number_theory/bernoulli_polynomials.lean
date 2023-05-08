@@ -118,7 +118,7 @@ end
 begin
  simp_rw [bernoulli_def, finset.smul_sum, finset.range_eq_Ico, ←finset.sum_Ico_Ico_comm,
     finset.sum_Ico_eq_sum_range],
-  simp only [cast_succ, add_tsub_cancel_left, tsub_zero, zero_add, linear_map.map_add],
+  simp only [add_tsub_cancel_left, tsub_zero, zero_add, linear_map.map_add],
   simp_rw [smul_monomial, mul_comm (_root_.bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
@@ -127,7 +127,7 @@ begin
         mul_assoc, mul_comm, ←smul_eq_mul, ←smul_monomial] },
     rw [←sum_smul], },
   rw [sum_range_succ_comm],
-  simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, add_tsub_cancel_left,
+  simp only [add_right_eq_self, mul_one, cast_one, cast_add, add_tsub_cancel_left,
     choose_succ_self_right, one_smul, _root_.bernoulli_zero, sum_singleton, zero_add,
     linear_map.map_add, range_one],
   apply sum_eq_zero (λ x hx, _),
@@ -196,7 +196,7 @@ variables {A : Type*} [comm_ring A] [algebra ℚ A]
 -- TODO: define exponential generating functions, and use them here
 -- This name should probably be updated afterwards
 
-/-- The theorem that `∑ Bₙ(t)X^n/n!)(e^X-1)=Xe^{tX}`  -/
+/-- The theorem that $(e^X - 1) * ∑ Bₙ(t)* X^n/n! = Xe^{tX}$ -/
 theorem bernoulli_generating_function (t : A) :
   mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli n)) * (exp A - 1) =
     power_series.X * rescale t (exp A) :=

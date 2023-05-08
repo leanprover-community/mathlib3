@@ -3,12 +3,17 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import data.pi.algebra
 import algebra.hom.group
-import algebra.order.with_zero
+import algebra.order.group.instances
+import algebra.order.monoid.with_zero.defs
 import order.hom.basic
 
 /-!
 # Ordered monoid and group homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines morphisms between (additive) ordered monoids.
 
@@ -70,13 +75,19 @@ structure order_add_monoid_hom (α β : Type*) [preorder α] [preorder β] [add_
 
 infixr ` →+o `:25 := order_add_monoid_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_add_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_add_monoid_hom`. -/
+@[ancestor add_monoid_hom_class]
 class order_add_monoid_hom_class (F : Type*) (α β : out_param $ Type*) [preorder α] [preorder β]
   [add_zero_class α] [add_zero_class β]
   extends add_monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
+
+end
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
@@ -101,19 +112,25 @@ structure order_monoid_hom (α β : Type*) [preorder α] [preorder β] [mul_one_
 
 infixr ` →*o `:25 := order_monoid_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_monoid_hom`. -/
-@[to_additive]
+@[ancestor monoid_hom_class, to_additive]
 class order_monoid_hom_class (F : Type*) (α β : out_param $ Type*)
   [preorder α] [preorder β] [mul_one_class α] [mul_one_class β]
   extends monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
 
+end
+
 @[priority 100, to_additive] -- See note [lower instance priority]
 instance order_monoid_hom_class.to_order_hom_class [order_monoid_hom_class F α β] :
   order_hom_class F α β :=
-{ map_rel := order_monoid_hom_class.monotone }
+{ map_rel := order_monoid_hom_class.monotone,
+  .. ‹order_monoid_hom_class F α β› }
 
 @[to_additive]
 instance [order_monoid_hom_class F α β] : has_coe_t F (α →*o β) :=
@@ -141,6 +158,9 @@ structure order_monoid_with_zero_hom (α β : Type*) [preorder α] [preorder β]
 
 infixr ` →*₀o `:25 := order_monoid_with_zero_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_monoid_with_zero_hom_class F α β` states that `F` is a type of
 ordered monoid with zero homomorphisms.
 
@@ -149,6 +169,8 @@ class order_monoid_with_zero_hom_class (F : Type*) (α β : out_param $ Type*)
   [preorder α] [preorder β] [mul_zero_one_class α] [mul_zero_one_class β]
   extends monoid_with_zero_hom_class F α β :=
 (monotone (f : F) : monotone f)
+
+end
 
 @[priority 100] -- See note [lower instance priority]
 instance order_monoid_with_zero_hom_class.to_order_monoid_hom_class
@@ -248,7 +270,15 @@ definitional equalities."]
 protected def copy (f : α →*o β) (f' : α → β) (h : f' = f) : α →*o β :=
 { to_fun := f',
   monotone' := h.symm.subst f.monotone',
-  ..f.to_monoid_hom.copy f' $ by exact h }
+  ..f.to_monoid_hom.copy f' h }
+
+@[simp, to_additive] lemma coe_copy (f : α →*o β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+@[to_additive] lemma copy_eq (f : α →*o β) (f' : α → β) (h : f' = f) :
+  f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 
@@ -386,12 +416,14 @@ lemma to_order_monoid_hom_injective : injective (to_order_monoid_hom : _ → α 
 lemma to_monoid_with_zero_hom_injective : injective (to_monoid_with_zero_hom : _ → α →*₀ β) :=
 λ f g h, ext $ by convert fun_like.ext_iff.1 h
 
-/-- Copy of an `order_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
+/-- Copy of an `order_monoid_with_zero_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def copy (f : α →*o β) (f' : α → β) (h : f' = f) : α →*o β :=
+protected def copy (f : α →*₀o β) (f' : α → β) (h : f' = f) : α →*o β :=
 { to_fun := f',
-  monotone' := h.symm.subst f.monotone',
-  ..f.to_monoid_hom.copy f' (by exact h) }
+  .. f.to_order_monoid_hom.copy f' h, .. f.to_monoid_with_zero_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : α →*₀o β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →*₀o β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

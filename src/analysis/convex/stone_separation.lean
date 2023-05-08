@@ -8,6 +8,9 @@ import analysis.convex.join
 /-!
 # Stone's separation theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file prove Stone's separation theorem. This tells us that any two disjoint convex sets can be
 separated by a convex set whose complement is also convex.
 
@@ -102,6 +105,6 @@ begin
       ((subset_insert _ _).trans $ subset_convex_hull _ _) at hc,
     exact hc (subset_convex_hull _ _ $ mem_insert _ _) },
   rw [convex_hull_insert ⟨z, hzC⟩, convex_join_singleton_left],
-  refine disjoint_Union₂_left.2 (λ a ha b hb, h a _ ⟨b, hb⟩),
+  refine disjoint_Union₂_left.2 (λ a ha, disjoint_iff_inf_le.mpr $ λ b hb, h a _ ⟨b, hb⟩),
   rwa ←hC.1.convex_hull_eq,
 end

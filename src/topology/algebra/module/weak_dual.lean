@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä, Moritz Doll
 -/
 import topology.algebra.module.basic
+import linear_algebra.bilinear_map
 
 /-!
 # Weak dual topology
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the weak topology given two vector spaces `E` and `F` over a commutative semiring
 `𝕜` and a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`. The weak topology on `E` is the coarsest topology
@@ -60,7 +64,7 @@ weak-star, weak dual, duality
 
 noncomputable theory
 open filter
-open_locale topological_space
+open_locale topology
 
 variables {α 𝕜 𝕝 R E F M : Type*}
 
@@ -237,6 +241,10 @@ continuous_pi_iff.mp coe_fn_continuous y
 lemma continuous_of_continuous_eval [topological_space α] {g : α → weak_dual 𝕜 E}
   (h : ∀ y, continuous (λ a, (g a) y)) : continuous g :=
 continuous_induced_rng.2 (continuous_pi_iff.mpr h)
+
+instance [t2_space 𝕜] : t2_space (weak_dual 𝕜 E) :=
+embedding.t2_space $ weak_bilin.embedding $
+  show function.injective (top_dual_pairing 𝕜 E), from continuous_linear_map.coe_injective
 
 end weak_dual
 

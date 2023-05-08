@@ -3,9 +3,10 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
+import data.zmod.quotient
+import group_theory.noncomm_pi_coprod
 import group_theory.order_of_element
 import algebra.gcd_monoid.finset
-import algebra.punit_instances
 import data.nat.factorization.basic
 import tactic.by_contra
 
@@ -195,7 +196,7 @@ variable {G}
 begin
   refine ⟨λ he, _, λ he, _⟩,
   { by_contra h,
-    obtain ⟨m, ⟨t, rfl⟩, het⟩ := set.infinite.exists_nat_lt h (exponent G),
+    obtain ⟨m, ⟨t, rfl⟩, het⟩ := set.infinite.exists_gt h (exponent G),
     exact pow_ne_one_of_lt_order_of' he het (pow_exponent_eq_one t) },
   { lift (set.range order_of) to finset ℕ using he with t ht,
     have htpos : 0 < t.prod id,
@@ -313,3 +314,32 @@ end
 end cancel_comm_monoid
 
 end monoid
+
+section comm_group
+
+open subgroup
+open_locale big_operators
+
+variables (G) [comm_group G] [group.fg G]
+
+@[to_additive] lemma card_dvd_exponent_pow_rank : nat.card G ∣ monoid.exponent G ^ group.rank G :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
+  let f : (Π g : S, zpowers (g : G)) →* G := noncomm_pi_coprod (λ s t h x y hx hy, mul_comm x y),
+  have hf : function.surjective f,
+  { rw [←monoid_hom.range_top_iff_surjective, eq_top_iff, ←hS2, closure_le],
+    exact λ g hg, ⟨pi.mul_single ⟨g, hg⟩ ⟨g, mem_zpowers g⟩, noncomm_pi_coprod_mul_single _ _⟩ },
+  replace hf := nat_card_dvd_of_surjective f hf,
+  rw nat.card_pi at hf,
+  refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
+  rw ← order_eq_card_zpowers',
+  exact monoid.order_dvd_exponent (g : G),
+end
+
+@[to_additive] lemma card_dvd_exponent_pow_rank' {n : ℕ} (hG : ∀ g : G, g ^ n = 1) :
+  nat.card G ∣ n ^ group.rank G :=
+(card_dvd_exponent_pow_rank G).trans
+    (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
+
+end comm_group

@@ -9,6 +9,9 @@ import linear_algebra.matrix.determinant
 /-!
 # Changing the index type of a matrix
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file concerns the map `matrix.reindex`, mapping a `m` by `n` matrix
 to an `m'` by `n'` matrix, as long as `m ≃ m'` and `n ≃ n'`.
 

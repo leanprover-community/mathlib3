@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.homology.homotopy
 import algebra.category.Module.abelian
 import algebra.category.Module.subobject
+import category_theory.limits.concrete_category
 
 /-!
 # Complexes of modules

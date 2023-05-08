@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space_def
 /-!
 # Almost everywhere disjoint sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that sets `s` and `t` are `μ`-a.e. disjoint (see `measure_theory.ae_disjoint`) if their
 intersection has measure zero. This assumption can be used instead of `disjoint` in most theorems in
 measure theory.
@@ -34,7 +37,7 @@ begin
   refine ⟨λ i, to_measurable μ (s i ∩ ⋃ j ∈ ({i}ᶜ : set ι), s j),
     λ i, measurable_set_to_measurable _ _, λ i, _, _⟩,
   { simp only [measure_to_measurable, inter_Union],
-    exact (measure_bUnion_null_iff $ to_countable _).2 (λ j hj, hd _ _ (ne.symm hj)) },
+    exact (measure_bUnion_null_iff $ to_countable _).2 (λ j hj, hd (ne.symm hj)) },
   { simp only [pairwise, disjoint_left, on_fun, mem_diff, not_and, and_imp, not_not],
     intros i j hne x hi hU hj,
     replace hU : x ∉ s i ∩ ⋃ j ≠ i, s j := λ h, hU (subset_to_measurable _ _ h),
@@ -68,8 +71,12 @@ hf.mono' $ λ i j h, h.ae_disjoint
 lemma mono_ae (h : ae_disjoint μ s t) (hu : u ≤ᵐ[μ] s) (hv : v ≤ᵐ[μ] t) : ae_disjoint μ u v :=
 measure_mono_null_ae (hu.inter hv) h
 
-lemma mono (h : ae_disjoint μ s t) (hu : u ⊆ s) (hv : v ⊆ t) : ae_disjoint μ u v :=
+protected lemma mono (h : ae_disjoint μ s t) (hu : u ⊆ s) (hv : v ⊆ t) : ae_disjoint μ u v :=
 h.mono_ae hu.eventually_le hv.eventually_le
+
+protected lemma congr (h : ae_disjoint μ s t) (hu : u =ᵐ[μ] s) (hv : v =ᵐ[μ] t) :
+  ae_disjoint μ u v :=
+h.mono_ae (filter.eventually_eq.le hu) (filter.eventually_eq.le hv)
 
 @[simp] lemma Union_left_iff [countable ι] {s : ι → set α} :
   ae_disjoint μ (⋃ i, s i) t ↔ ∀ i, ae_disjoint μ (s i) t :=
@@ -106,7 +113,8 @@ set `u`. -/
 lemma exists_disjoint_diff (h : ae_disjoint μ s t) :
   ∃ u, measurable_set u ∧ μ u = 0 ∧ disjoint (s \ u) t :=
 ⟨to_measurable μ (s ∩ t), measurable_set_to_measurable _ _, (measure_to_measurable _).trans h,
-  disjoint_diff.symm.mono_left (λ x hx, ⟨hx.1, λ hxt, hx.2 $ subset_to_measurable _ _ ⟨hx.1, hxt⟩⟩)⟩
+  disjoint_sdiff_self_left.mono_left $ λ x hx, ⟨hx.1, λ hxt, hx.2 $
+    subset_to_measurable _ _ ⟨hx.1, hxt⟩⟩⟩
 
 lemma of_null_right (h : μ t = 0) : ae_disjoint μ s t :=
 measure_mono_null (inter_subset_right _ _) h

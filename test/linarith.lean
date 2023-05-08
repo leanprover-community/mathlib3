@@ -206,6 +206,25 @@ begin
   nlinarith
 end
 
+example (a b c z : ℚ) (_ : a ≤ z) (E0 : b ≤ c) (E1 : c ≤ a) (E2 : 0 ≤ c) : b ≤ a + c := by linarith
+
+example (u v x y A B : ℚ)
+(a_7 : 0 < A - u)
+(a_8 : 0 < A - v) :
+(0 ≤ A * (1 - A))
+→ (0 ≤ A * (B - 1))
+→ (0 < A * (A - u))
+→ (0 ≤ (B - 1) * (A - u))
+→ (0 ≤ (B - 1) * (A - v))
+→ (0 ≤ (B - x) * v)
+→ (0 ≤ (B - y) * u)
+→ (0 ≤ u * (A - v))
+→ u * y + v * x + u * v < 3 * A * B :=
+begin
+  intros,
+  linarith
+end
+
 example (u v x y A B : ℚ)
 (a : 0 < A)
 (a_1 : 0 <= 1 - A)
@@ -298,11 +317,11 @@ example (u v x y A B : ℚ)
 -> (0 < (A - v) * (A - u))
 -> (0 < (A - v) * (A - v))
 ->
- u * y + v * x + u * v < 3 * A * B :=
- begin
+  u * y + v * x + u * v < 3 * A * B :=
+begin
   intros,
   linarith
- end
+end
 
 example (A B : ℚ) : (0 < A) → (1 ≤ B) → (0 < A / 8 * B) :=
 begin

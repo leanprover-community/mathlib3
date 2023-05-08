@@ -6,7 +6,6 @@ Authors: Kexing Ying
 import probability.martingale.convergence
 import probability.martingale.optional_stopping
 import probability.martingale.centering
-import probability.conditional_expectation
 
 /-!
 
@@ -26,14 +25,10 @@ is required to prove the generalized Borel-Cantelli.
   given a filtration `ℱ` and a sequence of sets `s` such that `s n ∈ ℱ n` for all `n`,
   `limsup at_top s` is almost everywhere equal to the set for which `∑ ℙ[s (n + 1)∣ℱ n] = ∞`.
 
-## TODO
-
-Prove the missing second Borel-Cantelli lemma using this generalized version.
-
 -/
 
 open filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
+open_locale nnreal ennreal measure_theory probability_theory big_operators topology
 
 namespace measure_theory
 
@@ -102,7 +97,7 @@ begin
     { exact hσ.min (hf.adapted.is_stopping_time_least_ge _ _), },
     { exact hπ.min (hf.adapted.is_stopping_time_least_ge _ _), },
     { exact λ ω, min_le_min (hσ_le_π ω) le_rfl, }, },
-  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_nat
+  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_discrete
       (hf.adapted.is_stopping_time_least_ge _ _) least_ge_le, },
   { exact λ i, integrable_stopped_value _ ((hf.adapted.is_stopping_time_least_ge _ _))
       (hf.integrable) least_ge_le, },
@@ -261,7 +256,7 @@ begin
     refine neg_le.2 (hc _ _),
     simpa only [pi.neg_apply, set.mem_range, neg_inj] },
   { rw mem_lower_bounds at hc,
-    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_neg_eq, eq_comm] at hω,
+    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_eq_neg] at hω,
     refine le_neg.1 (hc _ _),
     simpa only [set.mem_range] }
 end
@@ -297,7 +292,7 @@ lemma adapted_process (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ℱ.mono (finset.mem_range.1 hk) _ $ hs _
 
 lemma martingale_part_process_ae_eq (ℱ : filtration ℕ m0) (μ : measure Ω) (s : ℕ → set Ω) (n : ℕ) :
-  martingale_part ℱ μ (process s) n =
+  martingale_part (process s) ℱ μ n =
   ∑ k in finset.range n, ((s (k + 1)).indicator 1 - μ[(s (k + 1)).indicator 1 | ℱ k]) :=
 begin
   simp only [martingale_part_eq_sum, process_zero, zero_add],
@@ -306,7 +301,7 @@ begin
 end
 
 lemma predictable_part_process_ae_eq (ℱ : filtration ℕ m0) (μ : measure Ω) (s : ℕ → set Ω) (n : ℕ) :
-  predictable_part ℱ μ (process s) n =
+  predictable_part (process s) ℱ μ n =
   ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] :=
 begin
   have := martingale_part_process_ae_eq ℱ μ s n,
@@ -326,7 +321,8 @@ end
 lemma integrable_process (μ : measure Ω) [is_finite_measure μ]
   (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
   integrable (process s n) μ :=
-integrable_finset_sum' _ $ λ k hk, integrable_on.indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
+integrable_finset_sum' _ $ λ k hk,
+  integrable_on.integrable_indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
 
 end borel_cantelli
 
@@ -339,7 +335,7 @@ lemma tendsto_sum_indicator_at_top_iff [is_finite_measure μ]
   (hf : adapted ℱ f) (hint : ∀ n, integrable (f n) μ)
   (hbdd : ∀ᵐ ω ∂μ, ∀ n, |f (n + 1) ω - f n ω| ≤ R) :
   ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top at_top ↔
-    tendsto (λ n, predictable_part ℱ μ f n ω) at_top at_top :=
+    tendsto (λ n, predictable_part f ℱ μ n ω) at_top at_top :=
 begin
   have h₁ := (martingale_martingale_part hf hint).ae_not_tendsto_at_top_at_top
     (martingale_part_bdd_difference ℱ hbdd),
@@ -387,9 +383,9 @@ end
 /-- **Lévy's generalization of the Borel-Cantelli lemma**: given a sequence of sets `s` and a
 filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.limsup s` is almost
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/
-theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
+theorem ae_mem_limsup_at_top_iff (μ : measure Ω) [is_finite_measure μ]
   {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
-  ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
+  ∀ᵐ ω ∂μ, ω ∈ limsup s at_top ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
       at_top at_top :=
 (limsup_eq_tendsto_sum_indicator_at_top ℝ s).symm ▸ tendsto_sum_indicator_at_top_iff' hs

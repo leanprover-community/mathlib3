@@ -8,6 +8,9 @@ import analysis.box_integral.partition.basic
 /-!
 # Split a box along one or more hyperplanes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 A hyperplane `{x : ι → ℝ | x i = a}` splits a rectangular box `I : box_integral.box ι` into two
@@ -119,7 +122,8 @@ lemma disjoint_split_lower_split_upper (I : box ι) (i : ι) (x : ℝ) :
 begin
   rw [← disjoint_with_bot_coe, coe_split_lower, coe_split_upper],
   refine (disjoint.inf_left' _ _).inf_right' _,
-  exact λ y (hy : y i ≤ x ∧ x < y i), not_lt_of_le hy.1 hy.2
+  rw set.disjoint_left,
+  exact λ y (hle : y i ≤ x) hlt, not_lt_of_le hle hlt
 end
 
 lemma split_lower_ne_split_upper (I : box ι) (i : ι) (x : ℝ) :

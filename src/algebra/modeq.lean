@@ -86,10 +86,10 @@ lemma modeq_sub (a b : α) : a ≡ b [PMOD b - a] := ⟨1, (one_smul _ _).symm�
 @[simp] lemma zsmul_modeq_zero (z : ℤ) : z • p ≡ 0 [PMOD p] := ⟨-z, by simp⟩
 @[simp] lemma self_modeq_zero : p ≡ 0 [PMOD p] := ⟨-1, by simp⟩
 
-lemma add_zsmul_modeq : a + z • p ≡ a [PMOD p] := ⟨-z, by simp⟩
-lemma zsmul_add_modeq : z • p + a ≡ a [PMOD p] := ⟨-z, by simp⟩
-lemma add_nsmul_modeq : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
-lemma nsmul_add_modeq : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
+lemma add_zsmul_modeq (z : ℤ) : a + z • p ≡ a [PMOD p] := ⟨-z, by simp⟩
+lemma zsmul_add_modeq (z : ℤ) : z • p + a ≡ a [PMOD p] := ⟨-z, by simp⟩
+lemma add_nsmul_modeq (n : ℕ) : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
+lemma nsmul_add_modeq (n : ℕ) : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
 
 namespace modeq
 
@@ -132,8 +132,6 @@ alias modeq.sub_iff_right ↔ sub_right_cancel _
 
 attribute [protected] add_left_cancel add_right_cancel add sub_left_cancel sub_right_cancel sub
 
--- The following eight can already be proved by simp
-
 protected lemma add_left (c : α) (h : a ≡ b [PMOD p]) : c + a ≡ c + b [PMOD p] := modeq_rfl.add h
 protected lemma sub_left (c : α) (h : a ≡ b [PMOD p]) : c - a ≡ c - b [PMOD p] := modeq_rfl.sub h
 protected lemma add_right (c : α) (h : a ≡ b [PMOD p]) : a + c ≡ b + c [PMOD p] := h.add modeq_rfl
@@ -151,10 +149,14 @@ modeq_rfl.sub_left_cancel
 protected lemma sub_right_cancel' (c : α) : a - c ≡ b - c [PMOD p] → a ≡ b [PMOD p] :=
 modeq_rfl.sub_right_cancel
 
-protected lemma add_zsmul : a ≡ b [PMOD p] → a + z • p ≡ b [PMOD p] := add_zsmul_modeq.trans
-protected lemma zsmul_add : a ≡ b [PMOD p] → z • p + a ≡ b [PMOD p] := zsmul_add_modeq.trans
-protected lemma add_nsmul : a ≡ b [PMOD p] → a + n • p ≡ b [PMOD p] := add_nsmul_modeq.trans
-protected lemma nsmul_add : a ≡ b [PMOD p] → n • p + a ≡ b [PMOD p] := nsmul_add_modeq.trans
+protected lemma add_zsmul (z : ℤ) : a ≡ b [PMOD p] → a + z • p ≡ b [PMOD p] :=
+(add_zsmul_modeq _).trans
+protected lemma zsmul_add (z : ℤ) : a ≡ b [PMOD p] → z • p + a ≡ b [PMOD p] :=
+(zsmul_add_modeq _).trans
+protected lemma add_nsmul (n : ℕ) : a ≡ b [PMOD p] → a + n • p ≡ b [PMOD p] :=
+(add_nsmul_modeq _).trans
+protected lemma nsmul_add (n : ℕ) : a ≡ b [PMOD p] → n • p + a ≡ b [PMOD p] :=
+(nsmul_add_modeq _).trans
 
 end modeq
 

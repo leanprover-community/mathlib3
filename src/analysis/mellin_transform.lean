@@ -38,7 +38,7 @@ def mellin [normed_space ℂ E] [complete_space E] (f : ℝ → E) (s : ℂ) : E
 
 end defs
 
-open real complex (hiding exp abs_of_nonneg)
+open real complex (hiding exp log abs_of_nonneg)
 
 variables {E : Type*} [normed_add_comm_group E]
 
@@ -162,7 +162,7 @@ section mellin_diff
 /-- If `f` is `O(x ^ (-a))` at `+∞`, then `log • f` is `O(x ^ (-b))` for every `b < a`. -/
 lemma is_O_rpow_top_log_smul [normed_space ℝ E] {a b : ℝ} {f : ℝ → E}
   (hab : b < a) (hf : is_O at_top f (λ t, t ^ (-a))) :
-  is_O at_top (λ t : ℝ, t.log • f t) (λ t, t ^ (-b)) :=
+  is_O at_top (λ t : ℝ, log t • f t) (λ t, t ^ (-b)) :=
 begin
   refine ((is_o_log_rpow_at_top (sub_pos.mpr hab)).is_O.smul hf).congr'
     (eventually_of_forall (λ t, by refl))
@@ -173,9 +173,9 @@ end
 /-- If `f` is `O(x ^ (-a))` at `+∞`, then `log • f` is `O(x ^ (-b))` for every `a < b`. -/
 lemma is_O_rpow_zero_log_smul [normed_space ℝ E] {a b : ℝ} {f : ℝ → E}
   (hab : a < b) (hf : is_O (𝓝[Ioi 0] 0) f (λ t, t ^ (-a))) :
-  is_O (𝓝[Ioi 0] 0) (λ t : ℝ, t.log • f t) (λ t, t ^ (-b)) :=
+  is_O (𝓝[Ioi 0] 0) (λ t : ℝ, log t • f t) (λ t, t ^ (-b)) :=
 begin
-  have : is_o (𝓝[Ioi 0] 0) (λ t : ℝ, t.log) (λ t : ℝ, t ^ (a - b)),
+  have : is_o (𝓝[Ioi 0] 0) log (λ t : ℝ, t ^ (a - b)),
   { refine ((is_o_log_rpow_at_top (sub_pos.mpr hab)).neg_left.comp_tendsto
       tendsto_inv_zero_at_top).congr'
         (eventually_nhds_within_iff.mpr $ eventually_of_forall (λ t ht, _))
@@ -199,10 +199,10 @@ theorem mellin_has_deriv_of_is_O_rpow [complete_space E] [normed_space ℂ E]
   (hfc : locally_integrable_on f $ Ioi 0)
   (hf_top : is_O at_top f (λ t, t ^ (-a))) (hs_top : s.re < a)
   (hf_bot : is_O (𝓝[Ioi 0] 0) f (λ t, t ^ (-b))) (hs_bot : b < s.re) :
-  has_deriv_at (mellin f) (mellin (λ t, (↑(t.log) : ℂ) • f t) s) s :=
+  has_deriv_at (mellin f) (mellin (λ t, (log t : ℂ) • f t) s) s :=
 begin
   let F : ℂ → ℝ → E := λ z t, (t : ℂ) ^ (z - 1) • f t,
-  let F' : ℂ → ℝ → E := λ z t, ((t : ℂ) ^ (z - 1) * t.log) • f t,
+  let F' : ℂ → ℝ → E := λ z t, ((t : ℂ) ^ (z - 1) * log t) • f t,
   have hab : b < a := hs_bot.trans hs_top,
   -- A convenient radius of ball within which we can uniformly bound the derivative.
   obtain ⟨v, hv0, hv1, hv2⟩ : ∃ (v : ℝ), (0 < v) ∧ (v < s.re - b) ∧ (v < a - s.re),
@@ -210,7 +210,7 @@ begin
     obtain ⟨w', hw1', hw2'⟩ := exists_between (sub_pos.mpr hs_bot),
     exact ⟨min w w', lt_min hw1 hw1',
       (min_le_right _ _).trans_lt hw2', (min_le_left _ _).trans_lt hw2⟩ },
-  let bound : ℝ → ℝ := λ t : ℝ, (t ^ (s.re + v - 1) + t ^ (s.re - v - 1)) * |t.log| * ‖f t‖,
+  let bound : ℝ → ℝ := λ t : ℝ, (t ^ (s.re + v - 1) + t ^ (s.re - v - 1)) * |log t| * ‖f t‖,
   have h1 : ∀ᶠ (z : ℂ) in 𝓝 s, ae_strongly_measurable (F z) (volume.restrict $ Ioi 0),
   { refine eventually_of_forall (λ z, ae_strongly_measurable.smul _ hfc.ae_strongly_measurable),
     refine continuous_on.ae_strongly_measurable _ measurable_set_Ioi,
@@ -227,7 +227,7 @@ begin
   have h4 : (∀ᵐ (t : ℝ) ∂volume.restrict (Ioi 0), ∀ (z : ℂ),
     z ∈ metric.ball s v → ‖F' z t‖ ≤ bound t),
   { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ $ λ t ht z hz, _),
-    simp_rw [bound, F', norm_smul, norm_mul, complex.norm_eq_abs (real.log _), complex.abs_of_real,
+    simp_rw [bound, F', norm_smul, norm_mul, complex.norm_eq_abs (log _), complex.abs_of_real,
       mul_assoc],
     refine mul_le_mul_of_nonneg_right _ (mul_nonneg (abs_nonneg _) (norm_nonneg _)),
     rw [complex.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos ht],
@@ -269,7 +269,7 @@ begin
   { dsimp only [F, F'],
     refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ $ λ t ht y hy, _),
     have ht' : (t : ℂ) ≠ 0 := of_real_ne_zero.mpr (ne_of_gt ht),
-    have u1 : has_deriv_at (λ z : ℂ, (t : ℂ) ^ (z - 1)) (↑t ^ (y - 1) * ↑t.log) y,
+    have u1 : has_deriv_at (λ z : ℂ, (t : ℂ) ^ (z - 1)) (t ^ (y - 1) * log t) y,
     { convert ((has_deriv_at_id' y).sub_const 1).const_cpow (or.inl ht') using 1,
       rw of_real_log (le_of_lt ht),
       ring },
@@ -293,21 +293,6 @@ end mellin_diff
 
 section exp_decay
 
-/-- If `f` is `O(exp (-a * x))` at top for some `0 < a`, then it is `O(x ^ b)` for every `b`. -/
-lemma is_o_rpow_of_is_O_exp_neg {f : ℝ → E} {a : ℝ} (ha : 0 < a)
-  (hf : is_O at_top f (λ t, exp (-a * t))) (b : ℝ) :
-  is_o at_top f (λ t, t ^ b) :=
-begin
-  refine hf.trans_is_o (is_o_of_tendsto' _ _),
-  { refine (eventually_gt_at_top 0).mp (eventually_of_forall $ λ t ht h, _),
-    rw rpow_eq_zero_iff_of_nonneg ht.le at h,
-    exact (ht.ne' h.1).elim },
-  { refine (tendsto_exp_mul_div_rpow_at_top (-b) a ha).inv_tendsto_at_top.congr' _,
-    refine (eventually_ge_at_top 0).mp (eventually_of_forall $ λ t ht, _),
-    dsimp only,
-    rw [pi.inv_apply, inv_div, ←inv_div_inv, neg_mul, real.exp_neg, rpow_neg ht, inv_inv] }
-end
-
 /-- If `f` is locally integrable, decays exponentially at infinity, and is `O(x ^ (-b))` at 0, then
 its Mellin transform converges for `b < s.re`. -/
 lemma mellin_convergent_of_is_O_rpow_exp [normed_space ℂ E]
@@ -316,8 +301,8 @@ lemma mellin_convergent_of_is_O_rpow_exp [normed_space ℂ E]
   (hf_top : is_O at_top f (λ t, exp (-a * t)))
   (hf_bot : is_O (𝓝[Ioi 0] 0) f (λ t, t ^ (-b))) (hs_bot : b < s.re) :
   integrable_on (λ t : ℝ, (t : ℂ) ^ (s - 1) • f t) (Ioi 0) :=
-mellin_convergent_of_is_O_rpow hfc
-  (is_o_rpow_of_is_O_exp_neg ha hf_top _).is_O (lt_add_one _) hf_bot hs_bot
+mellin_convergent_of_is_O_rpow hfc (hf_top.trans (is_o_exp_neg_mul_rpow_at_top ha _).is_O)
+  (lt_add_one _) hf_bot hs_bot
 
 /-- If `f` is locally integrable, decays exponentially at infinity, and is `O(x ^ (-b))` at 0, then
 its Mellin transform is holomorphic on `b < s.re`. -/
@@ -327,7 +312,7 @@ lemma mellin_differentiable_at_of_is_O_rpow_exp [complete_space E] [normed_space
   (hf_top : is_O at_top f (λ t, exp (-a * t)))
   (hf_bot : is_O (𝓝[Ioi 0] 0) f (λ t, t ^ (-b))) (hs_bot : b < s.re) :
   differentiable_at ℂ (mellin f) s :=
-mellin_differentiable_at_of_is_O_rpow hfc
-  (is_o_rpow_of_is_O_exp_neg ha hf_top _).is_O (lt_add_one _) hf_bot hs_bot
+mellin_differentiable_at_of_is_O_rpow hfc (hf_top.trans (is_o_exp_neg_mul_rpow_at_top ha _).is_O)
+  (lt_add_one _) hf_bot hs_bot
 
 end exp_decay

@@ -5,6 +5,7 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.algebra.basic
 import algebra.big_operators.ring
+import algebra.module.big_operators
 import group_theory.group_action.basic
 import group_theory.group_action.pi
 import data.finset.locally_finite
@@ -62,50 +63,15 @@ end
 section pre
 variables {α : Type*} [preorder α] [locally_finite_order α] {a b c : α}
 
-lemma Icc_ssubset_Icc_left (hab : a ≤ b) (h : c < b) : Icc a c ⊂ Icc a b :=
-begin
-  classical,
-  rw finset.ssubset_iff,
-  use b,
-  simp only [hab, true_and, mem_Icc],
-  refine ⟨λ hh, lt_irrefl c (h.trans_le hh),
-    insert_subset.mpr ⟨right_mem_Icc.mpr hab, finset.subset_iff.mpr (λ x hx, _)⟩⟩,
-  rw [mem_Icc] at ⊢ hx,
-  exact ⟨hx.1, (hx.2.trans_lt h).le⟩,
-end
-
-lemma Icc_ssubset_Icc_right (hab : a ≤ b) (h : a < c) : Icc c b ⊂ Icc a b :=
-@Icc_ssubset_Icc_left (order_dual α) _ _ _ _ _ hab h
-
 lemma card_Icc_lt_card_Icc_left (hab : a ≤ b) (h : c < b) : (Icc a c).card < (Icc a b).card :=
-card_lt_card (Icc_ssubset_Icc_left hab h)
+card_lt_card (Icc_ssubset_Icc_right hab (le_refl a) h)
 
 lemma card_Icc_lt_card_Icc_right (hab : a ≤ b) (h : a < c) : (Icc c b).card < (Icc a b).card :=
 @card_Icc_lt_card_Icc_left (order_dual α) _ _ _ _ _ hab h
 
 end pre
+
 variables {α : Type*} [partial_order α] [locally_finite_order α] {a b : α}
-
-@[simp] lemma Ioc_insert_left [decidable_eq α] (h : a ≤ b) : insert a (Ioc a b) = Icc a b :=
-@Ico_insert_right (order_dual α) _ _ _ _ _ h
-local attribute [simp] Ico_insert_right
-
-lemma Icc_eq_cons_Ioc (h : a ≤ b) : Icc a b = (Ioc a b).cons a left_not_mem_Ioc :=
-finset.coe_inj.mp (by { classical, simp [h] })
-
-lemma Icc_eq_cons_Ico (h : a ≤ b) : Icc a b = (Ico a b).cons b right_not_mem_Ico :=
-finset.coe_inj.mp (by { classical, simp [h] })
-
-section order_top
-variables [order_top α]
-
-@[simp]
-lemma Ioi_insert [decidable_eq α] (a : α) : insert a (Ioi a) = Ici a := Ioc_insert_left le_top
-
-lemma Ici_eq_cons_Ioi (a : α) : Ici a = (Ioi a).cons a left_not_mem_Ioc :=
-finset.coe_inj.mp (by { classical, simp })
-
-end order_top
 
 section sum
 variables {β : Type*} [add_comm_monoid β] {f : α → β}
@@ -352,9 +318,9 @@ instance [preorder α] [locally_finite_order α] [decidable_eq α] [ring 𝕜] :
 
 section smul
 variables [preorder α] [locally_finite_order α] [add_comm_monoid 𝕜] [add_comm_monoid 𝕝]
-  [has_scalar 𝕜 𝕝]
+  [has_smul 𝕜 𝕝]
 
-instance : has_scalar (incidence_algebra 𝕜 α) (incidence_algebra 𝕝 α) :=
+instance : has_smul (incidence_algebra 𝕜 α) (incidence_algebra 𝕝 α) :=
 ⟨λ f g, ⟨λ a b, ∑ x in Icc a b, f a x • g x b, λ a b h, by rw [Icc_eq_empty h, sum_empty]⟩⟩
 
 @[simp] lemma smul_apply (f : incidence_algebra 𝕜 α) (g : incidence_algebra 𝕝 α) (a b : α) :
@@ -363,7 +329,7 @@ instance : has_scalar (incidence_algebra 𝕜 α) (incidence_algebra 𝕝 α) :=
 end smul
 
 instance [preorder α] [locally_finite_order α] [add_comm_monoid 𝕜] [monoid 𝕜] [semiring 𝕝]
-  [add_comm_monoid 𝕞] [has_scalar 𝕜 𝕝] [module 𝕝 𝕞] [distrib_mul_action 𝕜 𝕞]
+  [add_comm_monoid 𝕞] [has_smul 𝕜 𝕝] [module 𝕝 𝕞] [distrib_mul_action 𝕜 𝕞]
   [is_scalar_tower 𝕜 𝕝 𝕞] :
   is_scalar_tower (incidence_algebra 𝕜 α) (incidence_algebra 𝕝 α) (incidence_algebra 𝕞 α) :=
 ⟨λ f g h, begin
@@ -409,21 +375,20 @@ instance [preorder α] [locally_finite_order α] [decidable_eq α] [semiring �
 section smul_with_zero
 variables [has_zero 𝕜] [has_zero 𝕝] [smul_with_zero 𝕜 𝕝] [has_le α]
 
-instance incidence_algebra.has_scalar_right : has_scalar 𝕜 (incidence_algebra 𝕝 α) :=
-⟨λ c f, ⟨c • f, λ a b h, by rw [pi.smul_apply, pi.smul_apply, eq_zero_of_not_le h, smul_zero']⟩⟩
+instance incidence_algebra.has_smul_right : has_smul 𝕜 (incidence_algebra 𝕝 α) :=
+⟨λ c f, ⟨c • f, λ a b h, by rw [pi.smul_apply, pi.smul_apply, eq_zero_of_not_le h, smul_zero]⟩⟩
 
 @[simp] lemma smul_apply' (c : 𝕜) (f : incidence_algebra 𝕝 α) (a b : α) : (c • f) a b = c • f a b :=
 rfl
 
 instance incidence_algebra.smul_with_zero_right : smul_with_zero 𝕜 (incidence_algebra 𝕝 α) :=
 { smul := (•),
-  smul_zero := λ m, by { ext, exact smul_zero' _ _ },
+  smul_zero := λ m, by { ext, exact smul_zero _ },
   zero_smul := λ m, by { ext, exact zero_smul _ _ } }
 
 end smul_with_zero
 
-instance incidence_algebra.module_right [preorder α] [locally_finite_order α] [decidable_eq α]
-  [semiring 𝕜] [add_comm_monoid 𝕝] [module 𝕜 𝕝] :
+instance incidence_algebra.module_right [preorder α] [semiring 𝕜] [add_comm_monoid 𝕝] [module 𝕜 𝕝] :
   module 𝕜 (incidence_algebra 𝕝 α) :=
 { smul := (•),
   one_smul := λ f, by { ext, exact one_smul _ _ },
@@ -432,15 +397,14 @@ instance incidence_algebra.module_right [preorder α] [locally_finite_order α] 
   add_smul := λ c f g, by { ext, exact add_smul _ _ _ },
   .. incidence_algebra.smul_with_zero_right 𝕜 𝕝 α }
 
-lemma smul_smul_smul_comm {α β γ δ : Type*} [has_scalar α β] [has_scalar α γ] [has_scalar β δ]
-  [has_scalar α δ] [has_scalar γ δ] [is_scalar_tower α β δ] [is_scalar_tower α γ δ]
+lemma smul_smul_smul_comm {α β γ δ : Type*} [has_smul α β] [has_smul α γ] [has_smul β δ]
+  [has_smul α δ] [has_smul γ δ] [is_scalar_tower α β δ] [is_scalar_tower α γ δ]
   [smul_comm_class β γ δ] (a : α) (b : β) (c : γ) (d : δ) :
   (a • b) • (c • d) = (a • c) • b • d :=
 by { rw [smul_assoc, smul_assoc, smul_comm b], apply_instance }
 
 instance incidence_algebra.algebra_right [partial_order α] [locally_finite_order α] [decidable_eq α]
-  [comm_semiring 𝕜] [comm_semiring 𝕝]
-  [algebra 𝕜 𝕝] :
+  [comm_semiring 𝕜] [comm_semiring 𝕝] [algebra 𝕜 𝕝] :
   algebra 𝕜 (incidence_algebra 𝕝 α) :=
 { smul := (•),
   to_fun := λ c, algebra_map 𝕜 𝕝 c • 1,
@@ -450,8 +414,8 @@ instance incidence_algebra.algebra_right [partial_order α] [locally_finite_orde
     ext,
     obtain rfl | h := eq_or_ne a b,
     { simp only [smul_boole, one_apply, algebra.id.smul_eq_mul, mul_apply, algebra.mul_smul_comm,
-      boole_smul, smul_apply', ←ite_and, algebra_map_smul, map_mul, algebra.smul_mul_assoc,
-      if_pos rfl, eq_comm, and_self, sum_boole_smul, Icc_self],
+        boole_smul, smul_apply', ←ite_and, algebra_map_smul, map_mul, algebra.smul_mul_assoc,
+        if_pos rfl, eq_comm, and_self, Icc_self],
       simp only [mul_one, if_true, algebra.mul_smul_comm, smul_boole, zero_mul, ite_mul, sum_ite_eq,
         algebra.smul_mul_assoc, mem_singleton],
       rw [algebra.algebra_map_eq_smul_one, algebra.algebra_map_eq_smul_one],
@@ -476,7 +440,7 @@ variables [has_zero 𝕜] [has_one 𝕜] [preorder α] [decidable_eq α] [@decid
 /-- The lambda function of the incidence algebra is the function that assigns `1` to every nonempty
 interval of cardinality one or two. -/
 def lambda : incidence_algebra 𝕜 α :=
-⟨λ a b, if a = b ∨ a ⋖ b then 1 else 0, λ a b h, if_neg (λ hh, h (hh.elim eq.le covers.le))⟩
+⟨λ a b, if a = b ∨ a ⋖ b then 1 else 0, λ a b h, if_neg (λ hh, h (hh.elim eq.le covby.le))⟩
 
 variables {𝕜 α}
 
@@ -501,7 +465,7 @@ lemma zeta_of_le {a b : α} (h : a ≤ b) : zeta 𝕜 α a b = 1 := if_pos h
 
 end zeta
 
-lemma zeta_mul_zeta [add_comm_monoid 𝕜] [mul_one_class 𝕜] [preorder α] [locally_finite_order α]
+lemma zeta_mul_zeta [semiring 𝕜] [preorder α] [locally_finite_order α]
   [@decidable_rel α (≤)] (a b : α) :
   (zeta 𝕜 α * zeta 𝕜 α) a b = (Icc a b).card :=
 begin
@@ -511,7 +475,7 @@ begin
   rw [zeta_of_le hx.1, zeta_of_le hx.2, one_mul],
 end
 
-lemma zeta_mul_kappa [add_comm_monoid 𝕜] [mul_one_class 𝕜] [preorder α] [locally_finite_order α]
+lemma zeta_mul_kappa [semiring 𝕜] [preorder α] [locally_finite_order α]
   [@decidable_rel α (≤)] (a b : α) :
   (zeta 𝕜 α * zeta 𝕜 α) a b = (Icc a b).card :=
 begin

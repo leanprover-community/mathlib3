@@ -227,7 +227,8 @@ begin
   exact hf_int.2,
 end
 
-lemma ae_strongly_measurable_integral_cond_kernel {mα : measurable_space α} {mE : measurable_space E}
+lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_kernel
+  {mα : measurable_space α} {mE : measurable_space E}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → E} (hf : ae_strongly_measurable f ρ) :
   ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(cond_kernel ρ x)) ρ.fst :=
@@ -258,8 +259,7 @@ lemma integrable_cond_kernel {mE : measurable_space E} {ρ : measure (E × Ω)} 
   integrable (λ x, ∫ y, f (x, y) ∂(cond_kernel ρ) x) ρ.fst :=
 begin
   refine (integrable_norm_iff _).mp (aux hf hf_int),
-  refine ae_strongly_measurable.integral_kernel_prod_right',
-  sorry,
+  refine ae_strongly_measurable.integral_cond_kernel hf.1,
 end
 
 lemma integrable_condexp_kernel [is_finite_measure μ] {mE : measurable_space E}

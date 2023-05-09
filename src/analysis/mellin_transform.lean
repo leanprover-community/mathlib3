@@ -159,7 +159,7 @@ end mellin_convergent
 
 section mellin_diff
 
-/-- If `f` is `O(x ^ (-a))` at `+∞`, then `log • f` is `O(x ^ (-b))` for every `b < a`. -/
+/-- If `f` is `O(x ^ (-a))` as `x → +∞`, then `log • f` is `O(x ^ (-b))` for every `b < a`. -/
 lemma is_O_rpow_top_log_smul [normed_space ℝ E] {a b : ℝ} {f : ℝ → E}
   (hab : b < a) (hf : is_O at_top f (λ t, t ^ (-a))) :
   is_O at_top (λ t : ℝ, log t • f t) (λ t, t ^ (-b)) :=
@@ -170,7 +170,7 @@ begin
   rw [smul_eq_mul, ←rpow_add ht, ←sub_eq_add_neg, sub_eq_add_neg a, add_sub_cancel'],
 end
 
-/-- If `f` is `O(x ^ (-a))` at `+∞`, then `log • f` is `O(x ^ (-b))` for every `a < b`. -/
+/-- If `f` is `O(x ^ (-a))` as `x → 0`, then `log • f` is `O(x ^ (-b))` for every `a < b`. -/
 lemma is_O_rpow_zero_log_smul [normed_space ℝ E] {a b : ℝ} {f : ℝ → E}
   (hab : a < b) (hf : is_O (𝓝[Ioi 0] 0) f (λ t, t ^ (-a))) :
   is_O (𝓝[Ioi 0] 0) (λ t : ℝ, log t • f t) (λ t, t ^ (-b)) :=

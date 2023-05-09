@@ -934,6 +934,22 @@ lemma strongly_measurable_cond_cdf (ρ : measure (α × ℝ)) (x : ℝ) :
   strongly_measurable (λ a, cond_cdf ρ a x) :=
 (measurable_cond_cdf ρ x).strongly_measurable
 
+lemma integrable_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ) :
+  integrable (λ a, cond_cdf ρ a x) ρ.fst :=
+begin
+  refine integrable_of_forall_fin_meas_le _ (measure_lt_top ρ.fst univ) _ (λ t ht hρt, _),
+  { exact (strongly_measurable_cond_cdf ρ _).ae_strongly_measurable, },
+  { have : ∀ y, (‖cond_cdf ρ y x‖₊ : ℝ≥0∞) ≤ 1,
+    { intro y,
+      rw real.nnnorm_of_nonneg (cond_cdf_nonneg _ _ _),
+      exact_mod_cast cond_cdf_le_one _ _ _, },
+    refine (set_lintegral_mono (measurable_cond_cdf _ _).ennnorm
+      measurable_one (λ y _, this y)).trans _,
+    simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ,
+      univ_inter],
+    exact measure_mono (subset_univ _), },
+end
+
 lemma set_integral_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ)
   {s : set α} (hs : measurable_set s) :
   ∫ a in s, cond_cdf ρ a x ∂ρ.fst = (ρ (s ×ˢ Iic x)).to_real :=
@@ -942,17 +958,7 @@ begin
   rw ← of_real_integral_eq_lintegral_of_real at h,
   { rw [← h, ennreal.to_real_of_real],
     exact integral_nonneg (λ _, cond_cdf_nonneg _ _ _), },
-  { refine integrable_of_forall_fin_meas_le _ (measure_lt_top ρ.fst univ) _ (λ t ht hρt, _),
-    { exact (strongly_measurable_cond_cdf ρ _).ae_strongly_measurable, },
-    { have : ∀ y, (‖cond_cdf ρ y x‖₊ : ℝ≥0∞) ≤ 1,
-      { intro y,
-        rw real.nnnorm_of_nonneg (cond_cdf_nonneg _ _ _),
-        exact_mod_cast cond_cdf_le_one _ _ _, },
-      refine (set_lintegral_mono (measurable_cond_cdf _ _).ennnorm
-        measurable_one (λ y _, this y)).trans _,
-      simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ,
-        univ_inter, measure.restrict_apply ht],
-      exact measure_mono (subset_univ _), }, },
+  { exact (integrable_cond_cdf _ _).integrable_on, },
   { exact eventually_of_forall (λ _, cond_cdf_nonneg _ _ _), },
 end
 

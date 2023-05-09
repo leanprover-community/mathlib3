@@ -512,6 +512,15 @@ begin
     exact H _ (by linarith [hn]), }
 end
 
+/-- If `a` is a fundamental solution, then `(a^m).y < (a^n).y` if and only if `m < n`. -/
+lemma zpow_y_lt_iff_lt {a : solution₁ d} (h : is_fundamental a) {m n : ℤ} :
+  (a ^ m).y < (a ^ n).y ↔ m < n :=
+begin
+  refine ⟨λ H, _, λ H, h.y_strict_mono H⟩,
+  contrapose! H,
+  exact h.y_strict_mono.monotone H,
+end
+
 /-- The `n`th power of a fundamental solution is trivial if and only if `n = 0`. -/
 lemma pow_eq_one_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : a ^ n = 1 ↔ n = 0 :=
 begin

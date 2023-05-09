@@ -32,11 +32,11 @@ then its value is equal to the capacity of a minimum cut in the same network.
 - `existence_of_a_cut`   : there exists a cut with a capacity equal to the value of the maximum flow.
 - `max_flow_min_cut`     : if f is a max flow and c is a min cut in the same network, then their values are equal (max flow min cut theorem).
 
-## Notation
+### Notation
 
 - Type V is used for the set of all vertices in our graph. It is a finite type.
 
-## References
+#### References
 
 - Some of the structure ideas and lemmas can be seen in https://github.com/Zetagon/maxflow-mincut.
 

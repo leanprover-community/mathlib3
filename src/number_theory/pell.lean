@@ -529,14 +529,6 @@ begin
   exact ⟨λ H, h.y_strict_mono.injective (congr_arg solution₁.y H), λ H, H ▸ rfl⟩,
 end
 
-/-- The `n`th power of a fundamental solution has positive `y` if and only if `n` is positive. -/
-lemma zpow_y_pos_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : 0 < (a ^ n).y ↔ 0 < n :=
-h.zpow_y_lt_iff_lt 0 n
-
-/-- The `n`th power of a fundamental solution has negative `y` if and only if `n` is negative. -/
-lemma zpow_y_neg_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : (a ^ n).y < 0 ↔ n < 0 :=
-h.zpow_y_lt_iff_lt n 0
-
 /-- A power of a fundamental solution is never equal to the negative of a power of this
 fundamental solution. -/
 lemma zpow_ne_neg_zpow {a : solution₁ d} (h : is_fundamental a) {n n' : ℤ} :

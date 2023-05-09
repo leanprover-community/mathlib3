@@ -22,12 +22,12 @@ import order.omega_complete_partial_order
   `\.`, not the same as the scalar multiplication `•`/`\bub`.
 
 -/
-variables {R R₂ K M M₂ V S : Type*}
+variables {ι R R₂ K M M₂ V S : Type*}
 
 namespace submodule
 
 open function set
-open_locale pointwise
+open_locale big_operators pointwise
 
 section add_comm_monoid
 
@@ -648,81 +648,58 @@ begin
 end
 
 /-- TODO: prove this from `submodule.mem_supr_iff_exists_dfinsupp`. -/
-lemma mem_supr'
-  {ι : Type w} (p : ι → submodule R M) {x : M} :
-  x ∈ supr p ↔ ∃ v : ι →₀ M, (∀ i, v i ∈ p i) ∧ ∑ i in v.support, v i = x :=
+lemma mem_supr' {p : ι → submodule R M} {x : M} :
+  x ∈ supr p ↔ ∃ v : ι →₀ M, (∀ i, v i ∈ p i) ∧ v.sum (λ i _, v i) = x :=
 begin
   classical,
   rw submodule.supr_eq_span,
-  refine ⟨λ h, _, λ h, _⟩,
-  refine submodule.span_induction h _ _ _ _,
-  { intros y hy,
-    rw set.mem_Union at hy,
-    cases hy with i hy,
-    use finsupp.single i y,
-    split,
-    { intro j, by_cases h : j = i,
-      simp only [h, finsupp.single_eq_same], exact hy,
-      rw ← ne.def at h,
-      simp only [finsupp.single_eq_of_ne h.symm, submodule.zero_mem], },
-    by_cases hy : y = 0, rw hy,
-    simp only [finsupp.coe_zero, pi.zero_apply, finsupp.single_zero, finset.sum_const_zero],
-    rw [finsupp.support_single_ne_zero hy, finset.sum_singleton],
-    exact finsupp.single_eq_same, },
-  { use 0,
-    simp only [finsupp.coe_zero, pi.zero_apply, implies_true_iff, eq_self_iff_true, and_self,
-      finset.sum_const_zero, submodule.zero_mem], },
-  { intros x y hx hy,
-    rcases hx with ⟨v, hv, hvs⟩,
-    rcases hy with ⟨w, hw, hws⟩,
-    use v + w,
-    refine ⟨λ i, submodule.add_mem _ (hv i) (hw i), _⟩,
-    rw [← hvs, ← hws],
+  refine ⟨λ h, submodule.span_induction h (λ y hy, _) ⟨0, by simp⟩ _ _, _⟩,
+  { rw set.mem_Union at hy,
+    obtain ⟨i, hy⟩ := hy,
+    refine ⟨finsupp.single i y, λ j, _, _⟩,
+    { obtain rfl | h := eq_or_ne i j,
+      { rwa finsupp.single_eq_same },
+      { simp only [finsupp.single_eq_of_ne h, submodule.zero_mem] } },
+    obtain rfl | hy := eq_or_ne y 0,
+    { simp only [finsupp.single_zero, finsupp.coe_zero, pi.zero_apply, finsupp.sum_zero]},
+    { rw [finsupp.sum, finsupp.support_single_ne_zero _ hy, finset.sum_singleton,
+        finsupp.single_eq_same] } },
+  { rintro x y ⟨v, hv, rfl⟩ ⟨w, hw, rfl⟩,
+    refine ⟨v + w, λ i, submodule.add_mem _ (hv i) (hw i), _⟩,
     change (v + w).sum (λ i, id) = v.sum (λ i, id) + w.sum (λ i, id),
-    exact finsupp.sum_add_index (λ _, rfl) (λ _ _ _, rfl), },
-  { intros r x hx,
-    rcases hx with ⟨v, hv, hvs⟩,
-    use r • v,
-    refine ⟨λ i, submodule.smul_mem _ _ (hv i), _⟩,
-    rw [← hvs, finset.smul_sum],
-    simp only [finsupp.smul_apply],
-    refine finset.sum_subset finsupp.support_smul
-      (λ a ha han, finsupp.not_mem_support_iff.mp han) },
-  rcases h with ⟨v, hv, hvs⟩,
-  have := submodule.sum_mem (supr p) (λ i _, (le_supr p i : p i ≤ supr p) (hv i)),
-  rw ← submodule.supr_eq_span,
-  rwa hvs at this,
+    exact finsupp.sum_add_index (λ _ _, rfl) (λ _ _ _ _, rfl) },
+  { rintro r x ⟨v, hv, rfl⟩,
+    refine ⟨r • v, λ i, submodule.smul_mem _ _ (hv i), _⟩,
+    simp only [finsupp.smul_sum, finsupp.smul_apply],
+    exact finset.sum_subset finsupp.support_smul (λ a ha, finsupp.not_mem_support_iff.1) },
+  { rintro ⟨v, hv, rfl⟩,
+    rw ←submodule.supr_eq_span,
+    exact submodule.sum_mem _ (λ i _, (le_supr p i : p i ≤ supr p) $ hv i) }
 end
 
 /-- TODO: prove this from `submodule.mem_bsupr_iff_exists_dfinsupp`. -/
 lemma mem_bsupr {p : ι → Prop} (f : ι → submodule R M) (x : M) :
   x ∈ (⨆ i (H : p i), f i) ↔
-  ∃ v : ι →₀ M, (∀ i, v i ∈ f i) ∧ ∑ i in v.support, v i = x ∧ (∀ i, ¬ p i → v i = 0) :=
+    ∃ v : ι →₀ M, (∀ i, v i ∈ f i) ∧ v.sum (λ i _, v i) = x ∧ (∀ i, ¬ p i → v i = 0) :=
 begin
   classical,
   change set ι at p,
-  refine ⟨λ h, _, λ h, _⟩,
+  refine ⟨λ h, _, _⟩,
   { rw supr_subtype' at h,
-    rcases (mem_supr' _).mp h with ⟨v', hv', hsum⟩,
+    obtain ⟨v', hv', rfl⟩ := mem_supr'.1 h,
     change p →₀ M at v',
     -- define `v = v'` where `p i` is true and zero otherwise
-    let v : ι →₀ M :=
-      ⟨v'.support.map (function.embedding.subtype p),
-       λ (i : ι), dite (p i) (λ hi, v' ⟨i, hi⟩) (λ _, 0), _⟩,
-    refine ⟨v, _, _, _⟩,
-    { intros i,
-      simp only [finsupp.coe_mk],
+    -- TODO: Is there not a general `finsupp` construction for that?
+    let v : ι →₀ M := ⟨v'.support.map (function.embedding.subtype p),
+      λ i, if hi : p i then v' ⟨i, hi⟩ else 0, λ i, _⟩,
+    refine ⟨v, λ i, _, _, λ i hi, dif_neg hi⟩,
+    { simp only [finsupp.coe_mk],
       split_ifs with hi,
       { exact hv' ⟨i, hi⟩ },
-      exact zero_mem _ },
+      { exact zero_mem _ } },
     { simp only [finsupp.coe_mk, dite_eq_ite, function.embedding.coe_subtype, finset.sum_map,
-        subtype.coe_eta],
-      convert hsum,
-      ext i, split_ifs with hi, refl,
-      cases hi i.2 },
-    { intros i hi,
-      simp only [finsupp.coe_mk, dif_neg hi], },
-    intros i,
+        subtype.coe_eta, finsupp.sum],
+      exact finset.sum_congr rfl (λ i hi, dif_pos i.2) },
     simp only [exists_prop, function.embedding.coe_subtype, set_coe.exists, finset.mem_map,
       exists_and_distrib_right, exists_eq_right, finsupp.mem_support_iff, ne.def, subtype.coe_mk],
     split_ifs with hi,
@@ -732,14 +709,12 @@ begin
     { cases hh with key _,
       exact hi key },
     cases hh rfl },
-  rcases h with ⟨v, hv, hsum, hzero⟩,
-  have hle: (⨆ i ∈ v.support, f i) ≤ ⨆ (i : ι) (H : p i), f i,
-  { refine bsupr_le_bsupr' (λ i hi, _),
-    revert hi, contrapose!,
-    refine λ h, finsupp.not_mem_support_iff.mpr (hzero i h), },
-  have key: x ∈ ⨆ i ∈ v.support, f i,
-  { rw ← hsum, exact sum_mem_bsupr (λ i hi, hv i), },
-  exact hle key,
+  rintro ⟨v, hv, rfl, hzero⟩,
+  suffices hle : (⨆ i ∈ v.support, f i) ≤ ⨆ (i : ι) (H : p i), f i,
+  { exact hle (sum_mem_bsupr $ λ i hi, hv i) },
+  refine bsupr_mono (λ i, _),
+  contrapose!,
+  exact λ h, finsupp.not_mem_support_iff.mpr (hzero i h),
 end
 
 section

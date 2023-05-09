@@ -7,6 +7,7 @@ import algebra.direct_sum.module
 
 /-!
 # Decompositions of Modules
+
 This file talks about decompositions of modules.
 -/
 

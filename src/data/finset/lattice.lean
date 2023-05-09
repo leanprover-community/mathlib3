@@ -395,7 +395,7 @@ section distrib_lattice
 variables [distrib_lattice α]
 
 section order_bot
-variables [order_bot α] {f : ι → α} {g : κ → α} {s : finset ι} {t : finset κ} {a : α}
+variables [order_bot α] {s : finset ι} {t : finset κ} {f : ι → α} {g : κ → α} {a : α}
 
 lemma sup_inf_distrib_left (s : finset ι) (f : ι → α) (a : α) :
   a ⊓ s.sup f = s.sup (λ i, a ⊓ f i) :=
@@ -440,7 +440,7 @@ by simp only [codisjoint_iff, inf_sup_distrib_right, finset.inf_eq_top_iff]
 
 lemma inf_sup_inf (s : finset ι) (t : finset κ) (f : ι → α) (g : κ → α) :
   s.inf f ⊔ t.inf g = (s ×ˢ t).inf (λ i, f i.1 ⊔ g i.2) :=
-by simp_rw [finset.inf_sup_distrib_right, finset.inf_sup_distrib_left, inf_product_left]
+@sup_inf_sup αᵒᵈ _ _ _ _ _ _ _ _
 
 end order_top
 
@@ -510,10 +510,10 @@ lemma sup_himp_right (hs : s.nonempty) (f : ι → α) (a : α) : s.sup (λ b, f
 lemma sup_himp_left (hs : s.nonempty) (f : ι → α) (a : α) : s.sup (λ b, a ⇨ f b) = a ⇨ s.sup f :=
 @inf_sdiff_right αᵒᵈ _ _ _ hs _ _
 
-@[simp] protected lemma compl_sup (s : finset ι) (f : ι → α) : (s.sup f)ᶜ = s.inf (compl ∘ f) :=
+@[simp] protected lemma compl_sup (s : finset ι) (f : ι → α) : (s.sup f)ᶜ = s.inf (λ i, (f i)ᶜ) :=
 map_finset_sup (order_iso.compl α) _ _
 
-@[simp] protected lemma compl_inf (s : finset ι) (f : ι → α) : (s.inf f)ᶜ = s.sup (compl ∘ f) :=
+@[simp] protected lemma compl_inf (s : finset ι) (f : ι → α) : (s.inf f)ᶜ = s.sup (λ i, (f i)ᶜ) :=
 map_finset_inf (order_iso.compl α) _ _
 
 end boolean_algebra

@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
 import measure_theory.integral.interval_integral
-import data.set.intervals.monotone
 
 /-!
 # Divergence theorem for Bochner integral
@@ -14,7 +13,7 @@ import data.set.intervals.monotone
 In this file we prove the Divergence theorem for Bochner integral on a box in
 `ℝⁿ⁺¹ = fin (n + 1) → ℝ`. More precisely, we prove the following theorem.
 
-Let `E` be a complete normed space with second countably topology. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
+Let `E` be a complete normed space. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
 continuous on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, differentiable on its interior with
 derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹`, and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on
 `[a, b]`, where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the
@@ -47,14 +46,13 @@ divergence theorem, Bochner integral
 -/
 
 open set finset topological_space function box_integral measure_theory filter
-open_locale big_operators classical topological_space interval
+open_locale big_operators classical topology interval
 
 universes u
 
 namespace measure_theory
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 section
 variables {n : ℕ}
@@ -62,7 +60,7 @@ variables {n : ℕ}
 local notation `ℝⁿ` := fin n → ℝ
 local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
 local notation `Eⁿ⁺¹` := fin (n + 1) → E
-local notation `e` i := pi.single i 1
+local notation `e ` i := pi.single i 1
 
 section
 
@@ -70,13 +68,13 @@ section
 ### Divergence theorem for functions on `ℝⁿ⁺¹ = fin (n + 1) → ℝ`.
 
 In this section we use the divergence theorem for a Henstock-Kurzweil-like integral
-`box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at` to prove the divergence
+`box_integral.has_integral_GP_divergence_of_forall_has_deriv_within_at` to prove the divergence
 theorem for Bochner integral. The divergence theorem for Bochner integral
 `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable` assumes that the function
 itself is continuous on a closed box, differentiable at all but countably many points of its
 interior, and the divergence is integrable on the box.
 
-This statement differs from `box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at`
+This statement differs from `box_integral.has_integral_GP_divergence_of_forall_has_deriv_within_at`
 in several aspects.
 
 * We use Bochner integral instead of a Henstock-Kurzweil integral. This modification is done in
@@ -94,10 +92,10 @@ in several aspects.
 
 /-- An auxiliary lemma for
 `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`. This is exactly
-`box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at` reformulated for the
+`box_integral.has_integral_GP_divergence_of_forall_has_deriv_within_at` reformulated for the
 Bochner integral. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₁ (I : box (fin (n + 1)))
-  (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
+  (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : s.countable)
   (Hc : continuous_on f I.Icc) (Hd : ∀ x ∈ I.Icc \ s, has_fderiv_within_at f (f' x) I.Icc x)
   (Hi : integrable_on (λ x, ∑ i, f' x (e i) i) I.Icc) :
   ∫ x in I.Icc, ∑ i, f' x (e i) i =
@@ -107,7 +105,7 @@ lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₁ (I : box 
 begin
   simp only [← set_integral_congr_set_ae (box.coe_ae_eq_Icc _)],
   have A := ((Hi.mono_set box.coe_subset_Icc).has_box_integral ⊥ rfl),
-  have B := has_integral_bot_divergence_of_forall_has_deriv_within_at I f f' (s ∩ I.Icc)
+  have B := has_integral_GP_divergence_of_forall_has_deriv_within_at I f f' (s ∩ I.Icc)
     (hs.mono (inter_subset_left _ _)) (λ x hx, Hc _ hx.2)
     (λ x hx, Hd _ ⟨hx.1, λ h, hx.2 ⟨h, hx.1⟩⟩),
   rw continuous_on_pi at Hc,
@@ -125,7 +123,7 @@ end
 `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`. Compared to the previous
 lemma, here we drop the assumption of differentiability on the boundary of the box. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₂ (I : box (fin (n + 1)))
-  (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
+  (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : s.countable)
   (Hc : continuous_on f I.Icc) (Hd : ∀ x ∈ I.Ioo \ s, has_fderiv_at f (f' x) x)
   (Hi : integrable_on (λ x, ∑ i, f' x (e i) i) I.Icc) :
   ∫ x in I.Icc, ∑ i, f' x (e i) i =
@@ -204,7 +202,7 @@ begin
     from box.le_iff_Icc.1 (box.face_mono (hJ_le _) i),
   rw [mem_closed_ball_zero_iff, real.norm_eq_abs, abs_of_nonneg dist_nonneg,
     dist_eq_norm, ← integral_sub (Hid.mono_set Hsub) ((Hic _).mono_set Hsub)],
-  calc ∥(∫ x in ((J k).face i).Icc, f (i.insert_nth d x) i - f (i.insert_nth (c k) x) i)∥
+  calc ‖(∫ x in ((J k).face i).Icc, f (i.insert_nth d x) i - f (i.insert_nth (c k) x) i)‖
       ≤ (ε / ∏ j, ((I.face i).upper j - (I.face i).lower j)) * (volume ((J k).face i).Icc).to_real :
     begin
       refine norm_set_integral_le_of_norm_le_const' (((J k).face i).measure_Icc_lt_top _)
@@ -231,9 +229,9 @@ end
 
 variables (a b : ℝⁿ⁺¹)
 
-local notation `face` i := set.Icc (a ∘ fin.succ_above i) (b ∘ fin.succ_above i)
-local notation `front_face` i:2000 := fin.insert_nth i (b i)
-local notation `back_face` i:2000 := fin.insert_nth i (a i)
+local notation `face ` i := set.Icc (a ∘ fin.succ_above i) (b ∘ fin.succ_above i)
+local notation `front_face ` i:2000 := fin.insert_nth i (b i)
+local notation `back_face ` i:2000 := fin.insert_nth i (a i)
 
 /-- **Divergence theorem** for Bochner integral. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is continuous on a rectangular
 box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, is differentiable on its interior with derivative
@@ -251,7 +249,7 @@ of `f : ℝⁿ⁺¹ → Eⁿ⁺¹` to these faces are given by `f ∘ back_face 
 `back_face i = fin.insert_nth i (a i)` and `front_face i = fin.insert_nth i (b i)` are embeddings
 `ℝⁿ → ℝⁿ⁺¹` that take `y : ℝⁿ` and insert `a i` (resp., `b i`) as `i`-th coordinate. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable (hle : a ≤ b) (f : ℝⁿ⁺¹ → Eⁿ⁺¹)
-  (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : continuous_on f (Icc a b))
+  (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : s.countable) (Hc : continuous_on f (Icc a b))
   (Hd : ∀ x ∈ set.pi univ (λ i, Ioo (a i) (b i)) \ s, has_fderiv_at f (f' x) x)
   (Hi : integrable_on (λ x, ∑ i, f' x (e i) i) (Icc a b)) :
   ∫ x in Icc a b, ∑ i, f' x (e i) i =
@@ -282,7 +280,7 @@ end
 in terms of a vector-valued function `f : ℝⁿ⁺¹ → Eⁿ⁺¹`. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable' (hle : a ≤ b)
   (f : fin (n + 1) → ℝⁿ⁺¹ → E) (f' : fin (n + 1) → ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] E)
-  (s : set ℝⁿ⁺¹) (hs : countable s) (Hc : ∀ i, continuous_on (f i) (Icc a b))
+  (s : set ℝⁿ⁺¹) (hs : s.countable) (Hc : ∀ i, continuous_on (f i) (Icc a b))
   (Hd : ∀ (x ∈ pi set.univ (λ i, Ioo (a i) (b i)) \ s) i, has_fderiv_at (f i) (f' i x) x)
   (Hi : integrable_on (λ x, ∑ i, f' i x (e i)) (Icc a b)) :
   ∫ x in Icc a b, ∑ i, f' i x (e i) =
@@ -297,10 +295,10 @@ end
 /-- An auxiliary lemma that is used to specialize the general divergence theorem to spaces that do
 not have the form `fin n → ℝ`. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv
-  {F : Type*} [normed_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
   [borel_space F] (eL : F ≃L[ℝ] ℝⁿ⁺¹) (he_ord : ∀ x y, eL x ≤ eL y ↔ x ≤ y)
   (he_vol : measure_preserving eL volume volume) (f : fin (n + 1) → F → E)
-  (f' : fin (n + 1) → F → F →L[ℝ] E) (s : set F) (hs : countable s)
+  (f' : fin (n + 1) → F → F →L[ℝ] E) (s : set F) (hs : s.countable)
   (a b : F) (hle : a ≤ b) (Hc : ∀ i, continuous_on (f i) (Icc a b))
   (Hd : ∀ (x ∈ interior (Icc a b) \ s) i, has_fderiv_at (f i) (f' i x) x)
   (DF : F → E) (hDF : ∀ x, DF x = ∑ i, f' i x (eL.symm $ e i)) (Hi : integrable_on DF (Icc a b)) :
@@ -329,14 +327,12 @@ calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : 
       ((he_ord _ _).2 hle) (λ i x, f i (eL.symm x))
       (λ i x, f' i (eL.symm x) ∘L (eL.symm : ℝⁿ⁺¹ →L[ℝ] F))
       (eL.symm ⁻¹' s) (hs.preimage eL.symm.injective) _ _ _,
-    { refine λ i, (Hc i).comp eL.symm.continuous_on _,
-      rw hIcc' },
+    { exact λ i, (Hc i).comp eL.symm.continuous_on hIcc'.subset },
     { refine λ x hx i, (Hd (eL.symm x) ⟨_, hx.2⟩ i).comp x eL.symm.has_fderiv_at,
       rw ← hIcc,
       refine preimage_interior_subset_interior_preimage eL.continuous _,
-      simp only [set.mem_preimage, eL.apply_symm_apply, ← pi_univ_Icc,
-        interior_pi_set (finite.of_fintype _), interior_Icc],
-      exact hx.1 },
+      simpa only [set.mem_preimage, eL.apply_symm_apply, ← pi_univ_Icc, interior_pi_set finite_univ,
+        interior_Icc] using hx.1 },
     { rw [← he_vol.integrable_on_comp_preimage he_emb, hIcc],
       simp [← hDF, (∘), Hi] }
   end
@@ -362,7 +358,7 @@ differentiability of `f`;
 * `measure_theory.integral_eq_of_has_deriv_within_at_off_countable` for a version that works both
   for `a ≤ b` and `b ≤ a` at the expense of using unordered intervals instead of `set.Icc`. -/
 theorem integral_eq_of_has_deriv_within_at_off_countable_of_le (f f' : ℝ → E)
-  {a b : ℝ} (hle : a ≤ b) {s : set ℝ} (hs : countable s)
+  {a b : ℝ} (hle : a ≤ b) {s : set ℝ} (hs : s.countable)
   (Hc : continuous_on f (Icc a b)) (Hd : ∀ x ∈ Ioo a b \ s, has_deriv_at f (f' x) x)
   (Hi : interval_integrable f' volume a b) :
   ∫ x in a..b, f' x = f b - f a :=
@@ -382,7 +378,7 @@ begin
       refine integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv e _ _
         (λ _, f) (λ _, F') s hs a b hle (λ i, Hc) (λ x hx i, Hd x hx) _ _ _,
       { exact λ x y, (order_iso.fun_unique (fin 1) ℝ).symm.le_iff_le },
-      { exact (volume_preserving_fun_unique (fin 1) ℝ).symm },
+      { exact (volume_preserving_fun_unique (fin 1) ℝ).symm _ },
       { intro x, rw [fin.sum_univ_one, hF', e_symm, pi.single_eq_same, one_smul] },
       { rw [interval_integrable_iff_integrable_Ioc_of_le hle] at Hi,
         exact Hi.congr_set_ae Ioc_ae_eq_Icc.symm }
@@ -402,16 +398,16 @@ See also `measure_theory.interval_integral.integral_eq_sub_of_has_deriv_right` f
 only assumes right differentiability of `f`.
 -/
 theorem integral_eq_of_has_deriv_within_at_off_countable (f f' : ℝ → E) {a b : ℝ} {s : set ℝ}
-  (hs : countable s) (Hc : continuous_on f [a, b])
+  (hs : s.countable) (Hc : continuous_on f [a, b])
   (Hd : ∀ x ∈ Ioo (min a b) (max a b) \ s, has_deriv_at f (f' x) x)
   (Hi : interval_integrable f' volume a b) :
   ∫ x in a..b, f' x = f b - f a :=
 begin
   cases le_total a b with hab hab,
-  { simp only [interval_of_le hab, min_eq_left hab, max_eq_right hab] at *,
+  { simp only [uIcc_of_le hab, min_eq_left hab, max_eq_right hab] at *,
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi },
-  { simp only [interval_of_ge hab, min_eq_right hab, max_eq_left hab] at *,
-    rw [interval_integral.integral_symm, neg_eq_iff_neg_eq, neg_sub, eq_comm],
+  { simp only [uIcc_of_ge hab, min_eq_right hab, max_eq_left hab] at *,
+    rw [interval_integral.integral_symm, neg_eq_iff_eq_neg, neg_sub],
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi.symm }
 end
 
@@ -426,7 +422,7 @@ See also `measure_theory.integral2_divergence_prod_of_has_fderiv_within_at_off_c
 version that does not assume `a ≤ b` and uses iterated interval integral instead of the integral
 over `Icc a b`. -/
 lemma integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le (f g : ℝ × ℝ → E)
-  (f' g' : ℝ × ℝ → ℝ × ℝ →L[ℝ] E) (a b : ℝ × ℝ) (hle : a ≤ b) (s : set (ℝ × ℝ)) (hs : countable s)
+  (f' g' : ℝ × ℝ → ℝ × ℝ →L[ℝ] E) (a b : ℝ × ℝ) (hle : a ≤ b) (s : set (ℝ × ℝ)) (hs : s.countable)
   (Hcf : continuous_on f (Icc a b)) (Hcg : continuous_on g (Icc a b))
   (Hdf : ∀ x ∈ Ioo a.1 b.1 ×ˢ Ioo a.2 b.2 \ s, has_fderiv_at f (f' x) x)
   (Hdg : ∀ x ∈ Ioo a.1 b.1 ×ˢ Ioo a.2 b.2 \ s, has_fderiv_at g (g' x) x)
@@ -444,7 +440,7 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
     refine integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv e _ _
       ![f, g] ![f', g'] s hs a b hle _ (λ x hx, _) _ _ Hi,
     { exact λ x y, (order_iso.fin_two_arrow_iso ℝ).symm.le_iff_le },
-    { exact (volume_preserving_fin_two_arrow ℝ).symm },
+    { exact (volume_preserving_fin_two_arrow ℝ).symm _ },
     { exact fin.forall_fin_two.2 ⟨Hcf, Hcg⟩ },
     { rw [Icc_prod_eq, interior_prod_eq, interior_Icc, interior_Icc] at hx,
       exact fin.forall_fin_two.2 ⟨Hdf x hx, Hdg x hx⟩ },
@@ -455,7 +451,7 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
   begin
     have : ∀ (a b : ℝ¹) (f : ℝ¹ → E), ∫ x in Icc a b, f x = ∫ x in Icc (a 0) (b 0), f (λ _, x),
     { intros a b f,
-      convert ((volume_preserving_fun_unique (fin 1) ℝ).symm.set_integral_preimage_emb
+      convert (((volume_preserving_fun_unique (fin 1) ℝ).symm _).set_integral_preimage_emb
         (measurable_equiv.measurable_embedding _) _ _).symm,
       exact ((order_iso.fun_unique (fin 1) ℝ).symm.preimage_Icc a b).symm },
     simp only [fin.sum_univ_two, this],
@@ -479,7 +475,7 @@ the normal derivative of `F` along the boundary.
 See also `measure_theory.integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le`
 for a version that uses an integral over `Icc a b`, where `a b : ℝ × ℝ`, `a ≤ b`. -/
 lemma integral2_divergence_prod_of_has_fderiv_within_at_off_countable (f g : ℝ × ℝ → E)
-  (f' g' : ℝ × ℝ → ℝ × ℝ →L[ℝ] E) (a₁ a₂ b₁ b₂ : ℝ) (s : set (ℝ × ℝ)) (hs : countable s)
+  (f' g' : ℝ × ℝ → ℝ × ℝ →L[ℝ] E) (a₁ a₂ b₁ b₂ : ℝ) (s : set (ℝ × ℝ)) (hs : s.countable)
   (Hcf : continuous_on f ([a₁, b₁] ×ˢ [a₂, b₂])) (Hcg : continuous_on g ([a₁, b₁] ×ˢ [a₂, b₂]))
   (Hdf : ∀ x ∈ Ioo (min a₁ b₁) (max a₁ b₁) ×ˢ Ioo (min a₂ b₂) (max a₂ b₂) \ s,
     has_fderiv_at f (f' x) x)
@@ -490,31 +486,31 @@ lemma integral2_divergence_prod_of_has_fderiv_within_at_off_countable (f g : ℝ
     (∫ x in a₁..b₁, g (x, b₂)) - (∫ x in a₁..b₁, g (x, a₂)) +
       (∫ y in a₂..b₂, f (b₁, y)) - ∫ y in a₂..b₂, f (a₁, y) :=
 begin
-  wlog h₁ : a₁ ≤ b₁ := le_total a₁ b₁ using [a₁ b₁, b₁ a₁] tactic.skip,
-  wlog h₂ : a₂ ≤ b₂ := le_total a₂ b₂ using [a₂ b₂, b₂ a₂] tactic.skip,
-  { simp only [interval_of_le h₁, interval_of_le h₂, min_eq_left, max_eq_right, h₁, h₂]
-      at Hcf Hcg Hdf Hdg Hi,
-    calc ∫ x in a₁..b₁, ∫ y in a₂..b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1)
-        = ∫ x in Icc a₁ b₁, ∫ y in Icc a₂ b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1) :
-      by simp only [interval_integral.integral_of_le, h₁, h₂,
-        set_integral_congr_set_ae Ioc_ae_eq_Icc]
-    ... = ∫ x in Icc a₁ b₁ ×ˢ Icc a₂ b₂, f' x (1, 0) + g' x (0, 1) :
-      (set_integral_prod _ Hi).symm
-    ... = (∫ x in a₁..b₁, g (x, b₂)) - (∫ x in a₁..b₁, g (x, a₂)) +
-            (∫ y in a₂..b₂, f (b₁, y)) - ∫ y in a₂..b₂, f (a₁, y) :
-      begin
-        rw Icc_prod_Icc at *,
-        apply integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le f g f' g'
-          (a₁, a₂) (b₁, b₂) ⟨h₁, h₂⟩ s; assumption
-      end },
-  { rw [interval_swap b₂ a₂, min_comm b₂ a₂, max_comm b₂ a₂] at this,
-    intros Hcf Hcg Hdf Hdg Hi,
-    simp only [interval_integral.integral_symm b₂ a₂, interval_integral.integral_neg],
-    refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi)).trans _, abel },
-  { rw [interval_swap b₁ a₁, min_comm b₁ a₁, max_comm b₁ a₁] at this,
-    intros Hcf Hcg Hdf Hdg Hi,
+  wlog h₁ : a₁ ≤ b₁ generalizing a₁ b₁,
+  { specialize this b₁ a₁,
+    rw [uIcc_comm b₁ a₁, min_comm b₁ a₁, max_comm b₁ a₁] at this,
     simp only [interval_integral.integral_symm b₁ a₁],
-    refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi)).trans _, abel }
+    refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi (le_of_not_le h₁))).trans _, abel },
+  wlog h₂ : a₂ ≤ b₂ generalizing a₂ b₂,
+  { specialize this b₂ a₂,
+    rw [uIcc_comm b₂ a₂, min_comm b₂ a₂, max_comm b₂ a₂] at this,
+    simp only [interval_integral.integral_symm b₂ a₂, interval_integral.integral_neg],
+    refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi (le_of_not_le h₂))).trans _, abel },
+  simp only [uIcc_of_le h₁, uIcc_of_le h₂, min_eq_left, max_eq_right, h₁, h₂]
+    at Hcf Hcg Hdf Hdg Hi,
+  calc ∫ x in a₁..b₁, ∫ y in a₂..b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1)
+      = ∫ x in Icc a₁ b₁, ∫ y in Icc a₂ b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1) :
+    by simp only [interval_integral.integral_of_le, h₁, h₂,
+      set_integral_congr_set_ae Ioc_ae_eq_Icc]
+  ... = ∫ x in Icc a₁ b₁ ×ˢ Icc a₂ b₂, f' x (1, 0) + g' x (0, 1) :
+    (set_integral_prod _ Hi).symm
+  ... = (∫ x in a₁..b₁, g (x, b₂)) - (∫ x in a₁..b₁, g (x, a₂)) +
+          (∫ y in a₂..b₂, f (b₁, y)) - ∫ y in a₂..b₂, f (a₁, y) :
+    begin
+      rw Icc_prod_Icc at *,
+      apply integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le f g f' g'
+        (a₁, a₂) (b₁, b₂) ⟨h₁, h₂⟩ s; assumption
+    end
 end
 
 end measure_theory

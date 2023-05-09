@@ -1,5 +1,5 @@
 import tactic.norm_cast
-import data.int.cast
+import data.int.basic
 
 set_option pp.numerals false
 set_option pp.notation false

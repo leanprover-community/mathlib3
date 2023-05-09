@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.matrix
-import linear_algebra.bilinear_form
+import linear_algebra.matrix.bilinear_form
 
 /-!
 # Lie algebras of skew-adjoint endomorphisms of a bilinear form
@@ -119,7 +119,7 @@ begin
     A ∈ skew_adjoint_matrices_submodule (Pᵀ ⬝ J ⬝ P),
   { simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
       coe_coe], exact this, },
-  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P (is_unit_of_invertible P)],
+  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv' _ _ P (is_unit_of_invertible P)],
 end
 
 lemma skew_adjoint_matrices_lie_subalgebra_equiv_apply

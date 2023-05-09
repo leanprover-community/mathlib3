@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import category_theory.preadditive.default
+import category_theory.preadditive.basic
 
 /-!
 # Preadditive structure on functor categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 If `C` and `D` are categories and `D` is preadditive,
 then `C ⥤ D` is also preadditive.
@@ -21,7 +24,7 @@ open category_theory.limits preadditive
 
 variables {C D : Type*} [category C] [category D] [preadditive D]
 
-instance : preadditive (C ⥤ D) :=
+instance functor_category_preadditive : preadditive (C ⥤ D) :=
 { hom_group := λ F G,
   { add := λ α β,
     { app := λ X, α.app X + β.app X,
@@ -65,7 +68,7 @@ as group homomorphism -/
 (app_hom X).map_nsmul α n
 
 @[simp] lemma app_zsmul (X : C) (α : F ⟶ G) (n : ℤ) : (n • α).app X = n • α.app X :=
-(app_hom X).map_zsmul α n
+(app_hom X : (F ⟶ G) →+ (F.obj X ⟶ G.obj X)).map_zsmul α n
 
 @[simp] lemma app_sum {ι : Type*} (s : finset ι) (X : C) (α : ι → (F ⟶ G)) :
   (∑ i in s, α i).app X = ∑ i in s, ((α i).app X) :=

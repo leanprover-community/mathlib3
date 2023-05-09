@@ -62,7 +62,7 @@ ring_hom.injective_iff_ker_eq_bot _
 
 theorem algebraic_independent_iff : algebraic_independent R x ↔
   ∀p : mv_polynomial ι R, mv_polynomial.aeval (x : ι → A) p = 0 → p = 0 :=
-ring_hom.injective_iff _
+injective_iff_map_eq_zero _
 
 theorem algebraic_independent.eq_zero_of_aeval_eq_zero (h : algebraic_independent R x) :
   ∀p : mv_polynomial ι R, mv_polynomial.aeval (x : ι → A) p = 0 → p = 0 :=
@@ -153,8 +153,7 @@ lemma alg_hom.algebraic_independent_iff (f : A →ₐ[R] A') (hf : injective f) 
 
 @[nontriviality]
 lemma algebraic_independent_of_subsingleton [subsingleton R] : algebraic_independent R x :=
-by haveI := @mv_polynomial.unique R ι;
-  exact algebraic_independent_iff.2 (λ l hl, subsingleton.elim _ _)
+algebraic_independent_iff.2 (λ l hl, subsingleton.elim _ _)
 
 theorem algebraic_independent_equiv (e : ι ≃ ι') {f : ι' → A} :
   algebraic_independent R (f ∘ e) ↔ algebraic_independent R f :=
@@ -268,7 +267,7 @@ theorem algebraic_independent_comp_subtype {s : set ι} :
 have (aeval (x ∘ coe : s → A) : _ →ₐ[R] _) =
   (aeval x).comp (rename coe), by ext; simp,
 have ∀ p : mv_polynomial s R, rename (coe : s → ι) p = 0 ↔ p = 0,
-  from (ring_hom.injective_iff' (rename (coe : s → ι) : mv_polynomial s R →ₐ[R] _).to_ring_hom).1
+  from (injective_iff_map_eq_zero' (rename (coe : s → ι) : mv_polynomial s R →ₐ[R] _).to_ring_hom).1
     (rename_injective _ subtype.val_injective),
 by simp [algebraic_independent_iff, supported_eq_range_rename, *]
 
@@ -278,7 +277,7 @@ theorem algebraic_independent_subtype {s : set A} :
 by apply @algebraic_independent_comp_subtype _ _ _ id
 
 lemma algebraic_independent_of_finite (s : set A)
-  (H : ∀ t ⊆ s, finite t → algebraic_independent R (λ x, x : t → A)) :
+  (H : ∀ t ⊆ s, t.finite → algebraic_independent R (λ x, x : t → A)) :
   algebraic_independent R (λ x, x : s → A) :=
 algebraic_independent_subtype.2 $
   λ p hp, algebraic_independent_subtype.1 (H _ (mem_supported.1 hp) (finset.finite_to_set _)) _
@@ -305,7 +304,7 @@ begin
   refine algebraic_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
   rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
   rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
-  exact (h i).mono (subset.trans hI $ bUnion_subset $
+  exact (h i).mono (subset.trans hI $ Union₂_subset $
     λ j hj, hi j (fi.mem_to_finset.2 hj))
 end
 
@@ -325,7 +324,7 @@ lemma exists_maximal_algebraic_independent
     ∀ x : set A, algebraic_independent R (coe : x → A) →
       u ⊆ x → x ⊆ t → x = u :=
 begin
-  rcases zorn.zorn_subset_nonempty
+  rcases zorn_subset_nonempty
       { u : set A | algebraic_independent R (coe : u → A) ∧ s ⊆ u ∧ u ⊆ t }
     (λ c hc chainc hcn, ⟨⋃₀ c, begin
       refine ⟨⟨algebraic_independent_sUnion_of_directed hcn
@@ -412,12 +411,9 @@ lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_C
   hx.mv_polynomial_option_equiv_polynomial_adjoin (C r) =
     polynomial.C (algebra_map _ _ r) :=
 begin
-  -- TODO: this instance is slow to infer
-  have h : is_scalar_tower R (mv_polynomial ι R) (polynomial (mv_polynomial ι R)) :=
-    @polynomial.is_scalar_tower (mv_polynomial ι R) _ R _ _ _ _ _ _ _,
   rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_C,
-    @is_scalar_tower.algebra_map_apply _ _ _ _ _ _ _ _ _ h, ← polynomial.C_eq_algebra_map,
-    polynomial.map_C, coe_coe, alg_hom.coe_to_ring_hom, alg_equiv.coe_alg_hom, alg_equiv.commutes]
+      is_scalar_tower.algebra_map_apply R (mv_polynomial ι R), ← polynomial.C_eq_algebra_map,
+      polynomial.map_C, ring_hom.coe_coe, alg_equiv.commutes]
 end
 
 @[simp]
@@ -433,7 +429,7 @@ lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_X_some
   hx.mv_polynomial_option_equiv_polynomial_adjoin (X (some i)) =
     polynomial.C (hx.aeval_equiv (X i)) :=
 by rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_X,
-      option.elim, polynomial.map_C, coe_coe, alg_hom.coe_to_ring_hom, alg_equiv.coe_alg_hom]
+      option.elim, polynomial.map_C, ring_hom.coe_coe]
 
 lemma algebraic_independent.aeval_comp_mv_polynomial_option_equiv_polynomial_adjoin
   (hx : algebraic_independent R x) (a : A) :

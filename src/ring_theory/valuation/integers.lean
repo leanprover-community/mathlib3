@@ -9,6 +9,9 @@ import ring_theory.valuation.basic
 /-!
 # Ring of integers under a given valuation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The elements with valuation less than or equal to 1.
 
 TODO: Define characteristic predicate.
@@ -28,7 +31,7 @@ def integer : subring R :=
 { carrier := { x | v x ≤ 1 },
   one_mem' := le_of_eq v.map_one,
   mul_mem' := λ x y hx hy, trans_rel_right (≤) (v.map_mul x y) (mul_le_one' hx hy),
-  zero_mem' := trans_rel_right (≤) v.map_zero zero_le_one',
+  zero_mem' := trans_rel_right (≤) v.map_zero zero_le_one,
   add_mem' := λ x y hx hy, le_trans (v.map_add x y) (max_le hx hy),
   neg_mem' := λ x hx, trans_rel_right (≤) (v.map_neg x) hx }
 

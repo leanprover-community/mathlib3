@@ -9,6 +9,9 @@ import data.nat.basic
 /-!
 # Equitable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines equitable functions.
 
 A function `f` is equitable on a set `s` if `f a₁ ≤ f a₂ + 1` for all `a₁, a₂ ∈ s`. This is mostly
@@ -73,8 +76,9 @@ end set
 open set
 
 namespace finset
+variables {s : finset α} {f : α → ℕ} {a : α}
 
-lemma equitable_on_iff_le_le_add_one {s : finset α} {f : α → ℕ} :
+lemma equitable_on_iff_le_le_add_one :
   equitable_on (s : set α) f ↔
     ∀ a ∈ s, (∑ i in s, f i) / s.card ≤ f a ∧ f a ≤ (∑ i in s, f i) / s.card + 1 :=
 begin
@@ -97,7 +101,15 @@ begin
   exact λ _ _, rfl,
 end
 
-lemma equitable_on_iff {s : finset α} {f : α → ℕ} :
+lemma equitable_on.le (h : equitable_on (s : set α) f) (ha : a ∈ s) :
+  (∑ i in s, f i) / s.card ≤ f a :=
+(equitable_on_iff_le_le_add_one.1 h a ha).1
+
+lemma equitable_on.le_add_one (h : equitable_on (s : set α) f) (ha : a ∈ s) :
+  f a ≤ (∑ i in s, f i) / s.card + 1 :=
+(equitable_on_iff_le_le_add_one.1 h a ha).2
+
+lemma equitable_on_iff :
   equitable_on (s : set α) f ↔
     ∀ a ∈ s, f a = (∑ i in s, f i) / s.card ∨ f a = (∑ i in s, f i) / s.card + 1 :=
 by simp_rw [equitable_on_iff_le_le_add_one, nat.le_and_le_add_one_iff]

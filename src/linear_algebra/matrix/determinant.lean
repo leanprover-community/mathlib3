@@ -5,7 +5,8 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.pequiv
 import data.matrix.block
-import data.fintype.card
+import data.matrix.notation
+import data.fintype.big_operators
 import group_theory.perm.fin
 import group_theory.perm.sign
 import algebra.algebra.basic
@@ -15,6 +16,9 @@ import linear_algebra.pi
 
 /-!
 # Determinant of a matrix
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the determinant of a matrix, `matrix.det`, and its essential properties.
 
@@ -46,7 +50,7 @@ open_locale matrix big_operators
 variables {m n : Type*} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
 variables {R : Type v} [comm_ring R]
 
-local notation `ε` σ:max := ((sign σ : ℤ ) : R)
+local notation `ε ` σ:max := ((sign σ : ℤ) : R)
 
 
 /-- `det` is an `alternating_map` in the rows of the matrix. -/
@@ -124,7 +128,7 @@ lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   ∑ σ : perm n, (ε σ) * ∏ x, (M (σ x) (p x) * N (p x) x) = 0 :=
 begin
   obtain ⟨i, j, hpij, hij⟩ : ∃ i j, p i = p j ∧ i ≠ j,
-  { rw [← fintype.injective_iff_bijective, injective] at H,
+  { rw [← finite.injective_iff_bijective, injective] at H,
     push_neg at H,
     exact H },
   exact sum_involution
@@ -156,7 +160,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
   sum_congr rfl (λ σ _, fintype.sum_equiv (equiv.mul_right σ⁻¹) _ _
     (λ τ,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
-        by { rw ← σ⁻¹.prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
+        by { rw ← (σ⁻¹ : _ ≃ _).prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
           by { rw [mul_comm, sign_mul (τ * σ⁻¹)], simp only [int.cast_mul, units.coe_mul] }
@@ -213,8 +217,8 @@ lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i))
 
 /-- Permuting rows and columns with the same equivalence has no effect. -/
 @[simp]
-lemma det_minor_equiv_self (e : n ≃ m) (A : matrix m m R) :
-  det (A.minor e e) = det A :=
+lemma det_submatrix_equiv_self (e : n ≃ m) (A : matrix m m R) :
+  det (A.submatrix e e) = det A :=
 begin
   rw [det_apply', det_apply'],
   apply fintype.sum_equiv (equiv.perm_congr e),
@@ -223,16 +227,16 @@ begin
   congr' 1,
   apply fintype.prod_equiv e,
   intro i,
-  rw [equiv.perm_congr_apply, equiv.symm_apply_apply, minor_apply],
+  rw [equiv.perm_congr_apply, equiv.symm_apply_apply, submatrix_apply],
 end
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
 
-For the `simp` version of this lemma, see `det_minor_equiv_self`; this one is unsuitable because
+For the `simp` version of this lemma, see `det_submatrix_equiv_self`; this one is unsuitable because
 `matrix.reindex_apply` unfolds `reindex` first.
 -/
 lemma det_reindex_self (e : m ≃ n) (A : matrix m m R) : det (reindex e e A) = det A :=
-det_minor_equiv_self e.symm A
+det_submatrix_equiv_self e.symm A
 
 /-- The determinant of a permutation matrix equals its sign. -/
 @[simp] lemma det_permutation (σ : perm n) :
@@ -240,22 +244,36 @@ det_minor_equiv_self e.symm A
 by rw [←matrix.mul_one (σ.to_pequiv.to_matrix : matrix n n R), pequiv.to_pequiv_mul_matrix,
   det_permute, det_one, mul_one]
 
-@[simp] lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
+lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
 calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
 
+@[simp] lemma det_smul_of_tower {α} [monoid α] [distrib_mul_action α R] [is_scalar_tower α R R]
+  [smul_comm_class α R R] (c : α) (A : matrix n n R) :
+  det (c • A) = c ^ fintype.card n • det A :=
+by rw [←smul_one_smul R c A, det_smul, smul_pow, one_pow, smul_mul_assoc, one_mul]
+
+lemma det_neg (A : matrix n n R) : det (-A) = (-1) ^ fintype.card n * det A :=
+by rw [←det_smul, neg_one_smul]
+
+/-- A variant of `matrix.det_neg` with scalar multiplication by `units ℤ` instead of multiplication
+by `R`. -/
+lemma det_neg_eq_smul (A : matrix n n R) : det (-A) = (-1 : units ℤ) ^ fintype.card n • det A :=
+by rw [←det_smul_of_tower, units.neg_smul, one_smul]
+
 /-- Multiplying each row by a fixed `v i` multiplies the determinant by
 the product of the `v`s. -/
 lemma det_mul_row (v : n → R) (A : matrix n n R) :
-  det (λ i j, v j * A i j) = (∏ i, v i) * det A :=
-calc det (λ i j, v j * A i j) = det (A ⬝ diagonal v) : congr_arg det $ by { ext, simp [mul_comm] }
-                          ... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal, mul_comm]
+  det (of $ λ i j, v j * A i j) = (∏ i, v i) * det A :=
+calc  det (of $ λ i j, v j * A i j)
+    = det (A ⬝ diagonal v) : congr_arg det $ by { ext, simp [mul_comm] }
+... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal, mul_comm]
 
 /-- Multiplying each column by a fixed `v j` multiplies the determinant by
 the product of the `v`s. -/
 lemma det_mul_column (v : n → R) (A : matrix n n R) :
-  det (λ i j, v i * A i j) = (∏ i, v i) * det A :=
+  det (of $ λ i j, v i * A i j) = (∏ i, v i) * det A :=
 multilinear_map.map_smul_univ _ v A
 
 @[simp] lemma det_pow (M : matrix m m R) (n : ℕ) : det (M ^ n) = (det M) ^ n :=
@@ -286,7 +304,7 @@ f.to_alg_hom.map_det _
 end hom_map
 
 @[simp] lemma det_conj_transpose [star_ring R] (M : matrix m m R) : det (Mᴴ) = star (det M) :=
-((star_ring_aut : ring_aut R).map_det _).symm.trans $ congr_arg star M.det_transpose
+((star_ring_end R).map_det _).symm.trans $ congr_arg star M.det_transpose
 
 section det_zero
 /-!
@@ -558,10 +576,10 @@ begin
     exact hkx }
 end
 
-/-- The determinant of a 2x2 block matrix with the lower-left block equal to zero is the product of
+/-- The determinant of a 2×2 block matrix with the lower-left block equal to zero is the product of
 the determinants of the diagonal blocks. For the generalization to any number of blocks, see
-`matrix.upper_block_triangular_det`. -/
-lemma upper_two_block_triangular_det
+`matrix.det_of_upper_triangular`. -/
+@[simp] lemma det_from_blocks_zero₂₁
   (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   (matrix.from_blocks A B 0 D).det = A.det * D.det :=
 begin
@@ -582,8 +600,7 @@ begin
     rw fintype.prod_sum_type,
     simp_rw [equiv.sum_congr_apply, sum.map_inr, sum.map_inl, from_blocks_apply₁₁,
       from_blocks_apply₂₂],
-    have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
-    rw hr,
+    rw mul_mul_mul_comm,
     congr,
     rw [sign_sum_congr, units.coe_mul, int.cast_mul] },
   { intros σ₁ σ₂ h₁ h₂,
@@ -616,19 +633,28 @@ begin
       rw [hx, from_blocks_apply₂₁], refl }}
 end
 
+/-- The determinant of a 2×2 block matrix with the upper-right block equal to zero is the product of
+the determinants of the diagonal blocks. For the generalization to any number of blocks, see
+`matrix.det_of_lower_triangular`. -/
+@[simp] lemma det_from_blocks_zero₁₂
+  (A : matrix m m R) (C : matrix n m R) (D : matrix n n R) :
+  (matrix.from_blocks A 0 C D).det = A.det * D.det :=
+by rw [←det_transpose, from_blocks_transpose, transpose_zero, det_from_blocks_zero₂₁,
+  det_transpose, det_transpose]
+
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column 0. -/
 lemma det_succ_column_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ i : fin n.succ, (-1) ^ (i : ℕ) * A i 0 *
-    det (A.minor i.succ_above fin.succ) :=
+    det (A.submatrix i.succ_above fin.succ) :=
 begin
   rw [matrix.det_apply, finset.univ_perm_fin_succ, ← finset.univ_product_univ],
-  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product, matrix.minor],
+  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product, matrix.submatrix],
   refine finset.sum_congr rfl (λ i _, fin.cases _ (λ i, _) i),
   { simp only [fin.prod_univ_succ, matrix.det_apply, finset.mul_sum,
         equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
         equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
         equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
-        mul_smul_comm] },
+        mul_smul_comm, of_apply] },
   -- `univ_perm_fin_succ` gives a different embedding of `perm (fin n)` into
   -- `perm (fin n.succ)` than the determinant of the submatrix we want,
   -- permute `A` so that we get the correct one.
@@ -646,23 +672,23 @@ begin
       equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
   ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
         ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
-    by simp only [mul_assoc, mul_comm, neg_mul_eq_neg_mul_symm, one_mul, zsmul_eq_mul, neg_inj,
+    by simp only [mul_assoc, mul_comm, _root_.neg_mul, one_mul, zsmul_eq_mul, neg_inj,
       neg_smul, fin.succ_above_cycle_range],
 end
 
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row 0. -/
 lemma det_succ_row_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ j : fin n.succ, (-1) ^ (j : ℕ) * A 0 j *
-    det (A.minor fin.succ j.succ_above) :=
+    det (A.submatrix fin.succ j.succ_above) :=
 by { rw [← det_transpose A, det_succ_column_zero],
      refine finset.sum_congr rfl (λ i _, _),
      rw [← det_transpose],
-     simp only [transpose_apply, transpose_minor, transpose_transpose] }
+     simp only [transpose_apply, transpose_submatrix, transpose_transpose] }
 
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row `i`. -/
 lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (i : fin n.succ) :
   det A = ∑ j : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
-    det (A.minor i.succ_above j.succ_above) :=
+    det (A.submatrix i.succ_above j.succ_above) :=
 begin
   simp_rw [pow_add, mul_assoc, ← mul_sum],
   have : det A = (-1 : R) ^ (i : ℕ) * (i.cycle_range⁻¹).sign * det A,
@@ -674,7 +700,7 @@ begin
   congr,
   rw [← det_permute, det_succ_row_zero],
   refine finset.sum_congr rfl (λ j _, _),
-  rw [mul_assoc, matrix.minor, matrix.minor],
+  rw [mul_assoc, matrix.submatrix, matrix.submatrix],
   congr,
   { rw [equiv.perm.inv_def, fin.cycle_range_symm_zero] },
   { ext i' j',
@@ -684,10 +710,10 @@ end
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column `j`. -/
 lemma det_succ_column {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (j : fin n.succ) :
   det A = ∑ i : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
-    det (A.minor i.succ_above j.succ_above) :=
+    det (A.submatrix i.succ_above j.succ_above) :=
 by { rw [← det_transpose, det_succ_row _ j],
      refine finset.sum_congr rfl (λ i _, _),
-     rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
+     rw [add_comm, ← det_transpose, transpose_apply, transpose_submatrix, transpose_transpose] }
 
 
 /-- Determinant of 0x0 matrix -/
@@ -697,6 +723,8 @@ det_is_empty
 /-- Determinant of 1x1 matrix -/
 lemma det_fin_one (A : matrix (fin 1) (fin 1) R) : det A = A 0 0  := det_unique A
 
+lemma det_fin_one_of (a : R) : det !![a] = a := det_fin_one _
+
 /-- Determinant of 2x2 matrix -/
 lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :
   det A = A 0 0 * A 1 1 - A 0 1 * A 1 0 :=
@@ -704,6 +732,10 @@ begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   ring
 end
+
+@[simp] lemma det_fin_two_of (a b c d : R) :
+  matrix.det !![a, b; c, d] = a * d - b * c :=
+det_fin_two _
 
 /-- Determinant of 3x3 matrix -/
 lemma det_fin_three (A : matrix (fin 3) (fin 3) R) :

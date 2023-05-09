@@ -5,11 +5,12 @@ Authors: Anne Baanen
 -/
 
 import analysis.special_functions.pow
-import ring_theory.class_group
-import ring_theory.norm
 import linear_algebra.free_module.pid
 import linear_algebra.matrix.absolute_value
 import number_theory.class_number.admissible_absolute_value
+import ring_theory.class_group
+import ring_theory.dedekind_domain.integral_closure
+import ring_theory.norm
 
 /-!
 # Class numbers of global fields
@@ -58,14 +59,14 @@ lemma norm_bound_pos : 0 < norm_bound abv bS :=
 begin
   obtain ⟨i, j, k, hijk⟩ : ∃ i j k,
     algebra.left_mul_matrix bS (bS i) j k ≠ 0,
-  { by_contra h,
-    push_neg at h,
+  { by_contra' h,
     obtain ⟨i⟩ := bS.index_nonempty,
     apply bS.ne_zero i,
-    apply (algebra.left_mul_matrix bS).injective_iff.mp (algebra.left_mul_matrix_injective bS),
+    apply (injective_iff_map_eq_zero (algebra.left_mul_matrix bS)).mp
+      (algebra.left_mul_matrix_injective bS),
     ext j k,
     simp [h, dmatrix.zero_apply] },
-  simp only [norm_bound, algebra.smul_def, eq_nat_cast, int.nat_cast_eq_coe_nat],
+  simp only [norm_bound, algebra.smul_def, eq_nat_cast],
   refine mul_pos (int.coe_nat_pos.mpr (nat.factorial_pos _)) _,
   refine pow_pos (mul_pos (int.coe_nat_pos.mpr (fintype.card_pos_iff.mpr ⟨i⟩)) _) _,
   refine lt_of_lt_of_le (abv.pos hijk) (finset.le_max' _ _ _),
@@ -90,7 +91,7 @@ end
 
 /-- If the `R`-integral element `a : S` has coordinates `< y` with respect to some basis `b`,
 its norm is strictly less than `norm_bound abv b * y ^ dim S`. -/
-lemma norm_lt {T : Type*} [linear_ordered_comm_ring T]
+lemma norm_lt {T : Type*} [linear_ordered_ring T]
   (a : S) {y : T} (hy : ∀ k, (abv (bS.repr a k) : T) < y) :
   (abv (algebra.norm R a) : T) < norm_bound abv bS * y ^ fintype.card ι :=
 begin
@@ -110,7 +111,7 @@ begin
   have y'_nonneg : 0 ≤ y' := le_trans (abv.nonneg _) (hy' i),
   apply (int.cast_le.mpr (norm_le abv bS a hy')).trans_lt,
   simp only [int.cast_mul, int.cast_pow],
-  apply mul_lt_mul' (le_refl _),
+  apply mul_lt_mul' le_rfl,
   { exact pow_lt_pow_of_lt_left this
       (int.cast_nonneg.mpr y'_nonneg)
       (fintype.card_pos_iff.mpr ⟨i⟩) },
@@ -157,16 +158,14 @@ variables [infinite R]
 
 /-- In the following results, we need a large set of distinct elements of `R`. -/
 noncomputable def distinct_elems : fin (cardM bS adm).succ ↪ R :=
-function.embedding.trans (fin.coe_embedding _).to_embedding (infinite.nat_embedding R)
+fin.coe_embedding.trans (infinite.nat_embedding R)
 
 variables [decidable_eq R]
 
 /-- `finset_approx` is a finite set such that each fractional ideal in the integral closure
 contains an element close to `finset_approx`. -/
 noncomputable def finset_approx : finset R :=
-((finset.univ.product finset.univ)
-  .image (λ (xy : _ × _), distinct_elems bS adm xy.1 - distinct_elems bS adm xy.2))
-  .erase 0
+(finset.univ.image $ λ xy : _ × _, distinct_elems bS adm xy.1 - distinct_elems bS adm xy.2).erase 0
 
 lemma finset_approx.zero_not_mem : (0 : R) ∉ finset_approx bS adm :=
 finset.not_mem_erase _ _
@@ -182,7 +181,7 @@ begin
     rintro rfl,
     simpa using hx },
   { rintros ⟨i, j, hij, rfl⟩,
-    refine ⟨_, ⟨i, j⟩, finset.mem_product.mpr ⟨finset.mem_univ _, finset.mem_univ _⟩, rfl⟩,
+    refine ⟨_, ⟨i, j⟩, finset.mem_univ _, rfl⟩,
     rw [ne.def, sub_eq_zero],
     exact λ h, hij ((distinct_elems bS adm).injective h) }
 end
@@ -205,7 +204,7 @@ begin
                 (abv b ^ fintype.card ι),
   { have := norm_bound_pos abv bS,
     have := abv.nonneg b,
-    rw [ε_eq, algebra.smul_def, ring_hom.eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
+    rw [ε_eq, algebra.smul_def, eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
         div_mul_cancel, rpow_neg_one, mul_left_comm, mul_inv_cancel, mul_one, rpow_nat_cast];
       try { norm_cast, linarith },
     { apply rpow_nonneg_of_nonneg,
@@ -267,7 +266,7 @@ begin
   refine ⟨q, r, hr, _⟩,
   refine lt_of_mul_lt_mul_left _
     (show 0 ≤ abv (algebra.norm R (algebra_map R S b')), from abv.nonneg _),
-  refine lt_of_le_of_lt (le_of_eq _) (mul_lt_mul hqr (le_refl _)
+  refine lt_of_le_of_lt (le_of_eq _) (mul_lt_mul hqr le_rfl
     (abv.pos ((algebra.norm_ne_zero_iff_of_basis bS).mpr hb)) (abv.nonneg _)),
   rw [← abv.map_mul, ← monoid_hom.map_mul, ← abv.map_mul, ← monoid_hom.map_mul, ← algebra.smul_def,
       smul_sub b', sub_mul, smul_comm, h, mul_comm b a', algebra.smul_mul_assoc r a' b,
@@ -278,7 +277,7 @@ end real
 
 lemma prod_finset_approx_ne_zero : algebra_map R S (∏ m in finset_approx bS adm, m) ≠ 0 :=
 begin
-  refine mt ((ring_hom.injective_iff _).mp bS.algebra_map_injective _) _,
+  refine mt ((injective_iff_map_eq_zero _).mp bS.algebra_map_injective _) _,
   simp only [finset.prod_eq_zero_iff, not_exists],
   rintros x hx rfl,
   exact finset_approx.zero_not_mem bS adm hx
@@ -293,9 +292,8 @@ include ist iic
 
 /-- Each class in the class group contains an ideal `J`
 such that `M := Π m ∈ finset_approx` is in `J`. -/
-theorem exists_mk0_eq_mk0 [is_dedekind_domain S] [is_fraction_ring S L]
-  (h : algebra.is_algebraic R L) (I : (ideal S)⁰) :
-  ∃ (J : (ideal S)⁰), class_group.mk0 L I = class_group.mk0 L J ∧
+theorem exists_mk0_eq_mk0 [is_dedekind_domain S] (h : algebra.is_algebraic R L) (I : (ideal S)⁰) :
+  ∃ (J : (ideal S)⁰), class_group.mk0 I = class_group.mk0 J ∧
     algebra_map _ _ (∏ m in finset_approx bS adm, m) ∈ (J : ideal S) :=
 begin
   set M := ∏ m in finset_approx bS adm, m with M_eq,
@@ -333,17 +331,16 @@ omit iic ist
 /-- `class_group.mk_M_mem` is a specialization of `class_group.mk0` to (the finite set of)
 ideals that contain `M := ∏ m in finset_approx L f abs, m`.
 By showing this function is surjective, we prove that the class group is finite. -/
-noncomputable def mk_M_mem [is_fraction_ring S L] [is_dedekind_domain S]
+noncomputable def mk_M_mem [is_dedekind_domain S]
   (J : {J : ideal S // algebra_map _ _ (∏ m in finset_approx bS adm, m) ∈ J}) :
-  class_group S L :=
-class_group.mk0 _ ⟨J.1, mem_non_zero_divisors_iff_ne_zero.mpr
+  class_group S :=
+class_group.mk0 ⟨J.1, mem_non_zero_divisors_iff_ne_zero.mpr
   (ne_bot_of_prod_finset_approx_mem bS adm J.1 J.2)⟩
 
 include iic ist
 
-lemma mk_M_mem_surjective [is_fraction_ring S L] [is_dedekind_domain S]
-  (h : algebra.is_algebraic R L) :
-  function.surjective (class_group.mk_M_mem L bS adm) :=
+lemma mk_M_mem_surjective [is_dedekind_domain S] (h : algebra.is_algebraic R L) :
+  function.surjective (class_group.mk_M_mem bS adm) :=
 begin
   intro I',
   obtain ⟨⟨I, hI⟩, rfl⟩ := class_group.mk0_surjective I',
@@ -359,8 +356,8 @@ algebraic extension `L` is finite if there is an admissible absolute value.
 See also `class_group.fintype_of_admissible_of_finite` where `L` is a finite
 extension of `K = Frac(R)`, supplying most of the required assumptions automatically.
 -/
-noncomputable def fintype_of_admissible_of_algebraic [is_fraction_ring S L] [is_dedekind_domain S]
-  (h : algebra.is_algebraic R L) : fintype (class_group S L) :=
+noncomputable def fintype_of_admissible_of_algebraic [is_dedekind_domain S]
+  (h : algebra.is_algebraic R L) : fintype (class_group S) :=
 @fintype.of_surjective _ _ _
   (@fintype.of_equiv _
     {J // J ∣ ideal.span ({algebra_map R S (∏ (m : R) in finset_approx bS adm, m)} : set S)}
@@ -369,8 +366,10 @@ noncomputable def fintype_of_admissible_of_algebraic [is_fraction_ring S L] [is_
             exact prod_finset_approx_ne_zero bS adm }))
     ((equiv.refl _).subtype_equiv (λ I, ideal.dvd_iff_le.trans
       (by rw [equiv.refl_apply, ideal.span_le, set.singleton_subset_iff]))))
-  (class_group.mk_M_mem L bS adm)
+  (class_group.mk_M_mem bS adm)
   (class_group.mk_M_mem_surjective L bS adm h)
+
+include K
 
 /-- The main theorem: the class group of an integral closure `S` of `R` in a
 finite extension `L` of `K = Frac(R)` is finite if there is an admissible
@@ -380,8 +379,7 @@ See also `class_group.fintype_of_admissible_of_algebraic` where `L` is an
 algebraic extension of `R`, that includes some extra assumptions.
 -/
 noncomputable def fintype_of_admissible_of_finite [is_dedekind_domain R] :
-  fintype (@class_group S L _ _ _
-    (is_integral_closure.is_fraction_ring_of_finite_extension R K L S)) :=
+  fintype (class_group S) :=
 begin
   letI := classical.dec_eq L,
   letI := is_integral_closure.is_fraction_ring_of_finite_extension R K L S,
@@ -391,7 +389,7 @@ begin
     (is_integral_closure.range_le_span_dual_basis S b hb_int),
   let bS := b.map ((linear_map.quot_ker_equiv_range _).symm ≪≫ₗ _),
   refine fintype_of_admissible_of_algebraic L bS adm
-    (λ x, (is_fraction_ring.is_algebraic_iff R K).mpr (algebra.is_algebraic_of_finite x)),
+    (λ x, (is_fraction_ring.is_algebraic_iff R K L).mpr (algebra.is_algebraic_of_finite _ _ x)),
   { rw linear_map.ker_eq_bot.mpr,
     { exact submodule.quot_equiv_of_eq_bot _ rfl },
     { exact is_integral_closure.algebra_map_injective _ R _ } },

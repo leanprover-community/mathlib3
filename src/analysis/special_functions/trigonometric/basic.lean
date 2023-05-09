@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp
-import data.set.intervals.infinite
 
 /-!
 # Trigonometric functions
@@ -40,7 +39,7 @@ sin, cos, tan, angle
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 namespace complex
@@ -97,23 +96,23 @@ intermediate_value_Icc' (by norm_num) continuous_on_cos
 which one can derive all its properties. For explicit bounds on π, see `data.real.pi.bounds`. -/
 protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
-localized "notation `π` := real.pi" in real
+localized "notation (name := real.pi) `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (two_ne_zero' ℝ)];
   exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (two_ne_zero' ℝ)];
   exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (two_ne_zero' ℝ)];
   exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
-  (by rw div_self (@two_ne_zero' ℝ _ _ _); exact one_le_pi_div_two)
+  (by rw div_self (two_ne_zero' ℝ); exact one_le_pi_div_two)
 
 lemma pi_le_four : π ≤ 4 :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
@@ -153,11 +152,11 @@ namespace real
 open_locale real
 
 @[simp] lemma sin_pi : sin π = 0 :=
-by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,
+by rw [← mul_div_cancel_left π (two_ne_zero' ℝ), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
 
 @[simp] lemma cos_pi : cos π = -1 :=
-by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), mul_div_assoc,
+by rw [← mul_div_cancel_left π (two_ne_zero' ℝ), mul_div_assoc,
     cos_two_mul, cos_pi_div_two];
   simp [bit0, pow_add]
 
@@ -288,7 +287,7 @@ sin_pos_of_pos_of_lt_pi hx.1 hx.2
 
 lemma sin_nonneg_of_mem_Icc {x : ℝ} (hx : x ∈ Icc 0 π) : 0 ≤ sin x :=
 begin
-  rw ← closure_Ioo pi_pos at hx,
+  rw ← closure_Ioo pi_ne_zero.symm at hx,
   exact closure_lt_subset_le continuous_const continuous_sin
     (closure_mono (λ y, sin_pos_of_mem_Ioo) hx)
 end
@@ -364,9 +363,9 @@ lemma sin_eq_zero_iff_of_lt_of_lt {x : ℝ} (hx₁ : -π < x) (hx₂ : x < π) :
   λ h, by simp [h]⟩
 
 lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x :=
-⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (sub_floor_div_mul_nonneg _ pi_pos))
+⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (int.sub_floor_div_mul_nonneg _ pi_pos))
   (sub_nonpos.1 $ le_of_not_gt $ λ h₃,
-    (sin_pos_of_pos_of_lt_pi h₃ (sub_floor_div_mul_lt _ pi_pos)).ne
+    (sin_pos_of_pos_of_lt_pi h₃ (int.sub_floor_div_mul_lt _ pi_pos)).ne
     (by simp [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
 
@@ -481,44 +480,11 @@ subset.antisymm (range_subset_iff.2 cos_mem_Icc) surj_on_cos.subset_range
 subset.antisymm (range_subset_iff.2 sin_mem_Icc) surj_on_sin.subset_range
 
 lemma range_cos_infinite : (range real.cos).infinite :=
-by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+by { rw real.range_cos, exact Icc_infinite (by norm_num) }
 
 lemma range_sin_infinite : (range real.sin).infinite :=
-by { rw real.range_sin, exact Icc.infinite (by norm_num) }
+by { rw real.range_sin, exact Icc_infinite (by norm_num) }
 
-lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
-begin
-  cases le_or_gt x 1 with h' h',
-  { have hx : |x| = x := abs_of_nonneg (le_of_lt h),
-    have : |x| ≤ 1, rwa [hx],
-    have := sin_bound this, rw [abs_le] at this,
-    have := this.2, rw [sub_le_iff_le_add', hx] at this,
-    apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
-    apply sub_lt_sub_left, rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
-    { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
-      rw mul_le_mul_right, exact h', apply pow_pos h },
-    norm_num, norm_num, apply pow_pos h },
-  exact lt_of_le_of_lt (sin_le_one x) h'
-end
-
-/- note 1: this inequality is not tight, the tighter inequality is sin x > x - x ^ 3 / 6.
-   note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
-lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
-begin
-  have hx : |x| = x := abs_of_nonneg (le_of_lt h),
-  have : |x| ≤ 1, rwa [hx],
-  have := sin_bound this, rw [abs_le] at this,
-  have := this.1, rw [le_sub_iff_add_le, hx] at this,
-  refine lt_of_lt_of_le _ this,
-  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
-  apply add_lt_of_lt_sub_left,
-  rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹,
-    by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
-  apply mul_lt_mul',
-  { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
-    rw mul_le_mul_right, exact h', apply pow_pos h },
-  norm_num, norm_num, apply pow_pos h
-end
 
 section cos_div_sq
 
@@ -794,6 +760,9 @@ tan_periodic.sub_eq x
 lemma tan_pi_sub (x : ℝ) : tan (π - x) = -tan x :=
 tan_neg x ▸ tan_periodic.sub_eq'
 
+lemma tan_pi_div_two_sub (x : ℝ) : tan (π / 2 - x) = (tan x)⁻¹ :=
+by rw [tan_eq_sin_div_cos, tan_eq_sin_div_cos, inv_div, sin_pi_div_two_sub, cos_pi_div_two_sub]
+
 lemma tan_nat_mul_pi (n : ℕ) : tan (n * π) = 0 :=
 tan_zero ▸ tan_periodic.nat_mul_eq n
 
@@ -826,8 +795,8 @@ lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[<] (π/2)) (𝓝[>] 0) :=
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
-  { filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr (norm_num.lt_neg_pos
-      _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx },
+  { filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr (neg_lt_self pi_div_two_pos))]
+      with x hx using cos_pos_of_mem_Ioo hx },
 end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[<] (π/2)) at_top :=
@@ -844,8 +813,8 @@ lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[>] (-(π/2))) (𝓝[>] 0) :
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
   { convert continuous_cos.continuous_within_at, simp },
-  { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr (norm_num.lt_neg_pos
-      _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx },
+  { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr (neg_lt_self pi_div_two_pos))]
+      with x hx using cos_pos_of_mem_Ioo hx },
 end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[>] (-(π/2))) at_bot :=
@@ -1023,6 +992,9 @@ tan_periodic.sub_eq x
 lemma tan_pi_sub (x : ℂ) : tan (π - x) = -tan x :=
 tan_neg x ▸ tan_periodic.sub_eq'
 
+lemma tan_pi_div_two_sub (x : ℂ) : tan (π / 2 - x) = (tan x)⁻¹ :=
+by rw [tan_eq_sin_div_cos, tan_eq_sin_div_cos, inv_div, sin_pi_div_two_sub, cos_pi_div_two_sub]
+
 lemma tan_nat_mul_pi (n : ℕ) : tan (n * π) = 0 :=
 tan_zero ▸ tan_periodic.nat_mul_eq n
 
@@ -1076,5 +1048,24 @@ exp_antiperiodic z
 
 @[simp] lemma exp_sub_pi_mul_I (z : ℂ) : exp (z - π * I) = -exp z :=
 exp_antiperiodic.sub_eq z
+
+/-- A supporting lemma for the **Phragmen-Lindelöf principle** in a horizontal strip. If `z : ℂ`
+belongs to a horizontal strip `|complex.im z| ≤ b`, `b ≤ π / 2`, and `a ≤ 0`, then
+$$\left|exp^{a\left(e^{z}+e^{-z}\right)}\right| \le e^{a\cos b \exp^{|re z|}}.$$
+-/
+lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le {a b : ℝ} (ha : a ≤ 0)
+  {z : ℂ} (hz : |z.im| ≤ b) (hb : b ≤ π / 2) :
+  abs (exp (a * (exp z + exp (-z)))) ≤ real.exp (a * real.cos b * real.exp (|z.re|)) :=
+begin
+  simp only [abs_exp, real.exp_le_exp, of_real_mul_re, add_re, exp_re, neg_im, real.cos_neg,
+    ← add_mul, mul_assoc, mul_comm (real.cos b), neg_re, ← real.cos_abs z.im],
+  have : real.exp (|z.re|) ≤ real.exp z.re + real.exp (-z.re),
+    from apply_abs_le_add_of_nonneg (λ x, (real.exp_pos x).le) z.re,
+  refine mul_le_mul_of_nonpos_left (mul_le_mul this _ _ ((real.exp_pos _).le.trans this)) ha,
+  { exact real.cos_le_cos_of_nonneg_of_le_pi (_root_.abs_nonneg _)
+      (hb.trans $ half_le_self $ real.pi_pos.le) hz },
+  { refine real.cos_nonneg_of_mem_Icc ⟨_, hb⟩,
+    exact (neg_nonpos.2 $ real.pi_div_two_pos.le).trans ((_root_.abs_nonneg _).trans hz) }
+end
 
 end complex

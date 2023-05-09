@@ -3,11 +3,14 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.derived
+import category_theory.functor.left_derived
 import category_theory.monoidal.preadditive
 
 /-!
 # Tor, the left-derived functor of tensor product
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define `Tor C n : C ⥤ C ⥤ C`, by left-deriving in the second factor of `(X, Y) ↦ X ⊗ Y`.
 
@@ -67,3 +70,5 @@ begin
 end
 
 end category_theory
+
+assert_not_exists Module.abelian

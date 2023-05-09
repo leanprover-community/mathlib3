@@ -28,18 +28,17 @@ separated, so the map from `K` to `hat K` is injective.
 Then we extend the valuation given on `K` to a valuation on `hat K`.
 -/
 
-
 open filter set
-open_locale topological_space
+open_locale topology
 
 section division_ring
 
-variables {K : Type*} [division_ring K]
+variables {K : Type*} [division_ring K] {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀]
 
 section valuation_topological_division_ring
 
 section inversion_estimate
-variables {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀] (v : valuation K Γ₀)
+variables (v : valuation K Γ₀)
 
 -- The following is the main technical lemma ensuring that inversion is continuous
 -- in the topology induced by a valuation on a division ring (ie the next instance)
@@ -68,9 +67,9 @@ begin
   calc
     v (x⁻¹ - y⁻¹) = v (x⁻¹ * (y - x) * y⁻¹) : by rw decomp
     ... = (v x⁻¹) * (v $ y - x) * (v y⁻¹) : by repeat { rw valuation.map_mul }
-    ... = (v x)⁻¹ * (v $ y - x) * (v y)⁻¹ : by rw [v.map_inv, v.map_inv]
+    ... = (v x)⁻¹ * (v $ y - x) * (v y)⁻¹ : by rw [map_inv₀, map_inv₀]
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : by
-      { rw [mul_assoc, mul_comm, key, mul_assoc, mul_inv_rev₀] }
+      { rw [mul_assoc, mul_comm, key, mul_assoc, mul_inv_rev] }
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : rfl
     ... = (v $ x - y) * ((v y) * (v y))⁻¹ : by rw valuation.map_sub_swap
     ... < γ : hyp1',
@@ -82,13 +81,13 @@ open valued
 /-- The topology coming from a valuation on a division ring makes it a topological division ring
     [BouAC, VI.5.1 middle of Proposition 1] -/
 @[priority 100]
-instance valued.topological_division_ring [valued K] : topological_division_ring K :=
-{ continuous_inv :=
+instance valued.topological_division_ring [valued K Γ₀] : topological_division_ring K :=
+{ continuous_at_inv₀ :=
     begin
       intros x x_ne s s_in,
       cases valued.mem_nhds.mp s_in with γ hs, clear s_in,
       rw [mem_map, valued.mem_nhds],
-      change ∃ (γ : (valued.Γ₀ K)ˣ), {y : K | v (y - x) < γ} ⊆ {x : K | x⁻¹ ∈ s},
+      change ∃ (γ : Γ₀ˣ), {y : K | (v (y - x) : Γ₀) < γ} ⊆ {x : K | x⁻¹ ∈ s},
       have vx_ne := (valuation.ne_zero_iff $ v).mpr x_ne,
       let γ' := units.mk0 _ vx_ne,
       use min (γ * (γ'*γ')) γ',
@@ -102,9 +101,10 @@ instance valued.topological_division_ring [valued K] : topological_division_ring
 
 /-- A valued division ring is separated. -/
 @[priority 100]
-instance valued_ring.separated [valued K] : separated_space K :=
+instance valued_ring.separated [valued K Γ₀] : separated_space K :=
 begin
-  apply topological_add_group.separated_of_zero_sep,
+  rw separated_iff_t2,
+  apply topological_add_group.t2_space_of_zero_sep,
   intros x x_ne,
   refine ⟨{k | v k < v x}, _, λ h, lt_irrefl _ h⟩,
   rw valued.mem_nhds,
@@ -113,28 +113,22 @@ begin
   exact ⟨γ', λ y hy, by simpa using hy⟩,
 end
 
-
 section
-local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
 
+open_locale with_zero_topology
 open valued
 
-lemma valued.continuous_valuation [valued K] : continuous (v : K → Γ₀ K) :=
+lemma valued.continuous_valuation [valued K Γ₀] : continuous (v : K → Γ₀) :=
 begin
   rw continuous_iff_continuous_at,
   intro x,
-  classical,
-  by_cases h : x = 0,
-  { rw h,
-    change tendsto _ _ (𝓝 (v (0 : K))),
-    erw valuation.map_zero,
-    rw linear_ordered_comm_group_with_zero.tendsto_zero,
-    intro γ,
-    rw valued.mem_nhds_zero,
-    use [γ, set.subset.refl _] },
-  { change tendsto _ _ _,
-    have v_ne : v x ≠ 0, from (valuation.ne_zero_iff _).mpr h,
-    rw linear_ordered_comm_group_with_zero.tendsto_of_ne_zero v_ne,
+  rcases eq_or_ne x 0 with rfl|h,
+  { rw [continuous_at, map_zero, with_zero_topology.tendsto_zero],
+    intros γ hγ,
+    rw [filter.eventually, valued.mem_nhds_zero],
+    use [units.mk0 γ hγ, subset.rfl] },
+  { have v_ne : (v x : Γ₀) ≠ 0, from (valuation.ne_zero_iff _).mpr h,
+    rw [continuous_at, with_zero_topology.tendsto_of_ne_zero v_ne],
     apply valued.loc_const v_ne },
 end
 end
@@ -143,21 +137,22 @@ end valuation_topological_division_ring
 
 end division_ring
 
-section valuation_on_valued_field_completion
+namespace valued
 open uniform_space
 
-variables {K : Type*} [field K] [valued K]
+variables {K : Type*} [field K] {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀]
+  [hv: valued K Γ₀]
 
-open valued uniform_space
+include hv
 
 local notation `hat ` := completion
 
 /-- A valued field is completable. -/
 @[priority 100]
-instance valued.completable : completable_top_field K :=
+instance completable : completable_top_field K :=
 { nice := begin
     rintros F hF h0,
-    have : ∃ (γ₀ : (Γ₀ K)ˣ) (M ∈ F), ∀ x ∈ M, (γ₀ : Γ₀ K) ≤ v x,
+    have : ∃ (γ₀ : Γ₀ˣ) (M ∈ F), ∀ x ∈ M, (γ₀ : Γ₀) ≤ v x,
     { rcases filter.inf_eq_bot_iff.mp h0 with ⟨U, U_in, M, M_in, H⟩,
       rcases valued.mem_nhds_zero.mp U_in with ⟨γ₀, hU⟩,
       existsi [γ₀, M, M_in],
@@ -183,14 +178,14 @@ instance valued.completable : completable_top_field K :=
       replace x_in₀ := H₀ x x_in₀,
       replace y_in₀ := H₀ y y_in₀, clear H₀,
       apply valuation.inversion_estimate,
-      { have : v x ≠ 0,
+      { have : (v x : Γ₀) ≠ 0,
         { intro h, rw h at x_in₀, simpa using x_in₀, },
         exact (valuation.ne_zero_iff _).mp this },
       { refine lt_of_lt_of_le H₁ _,
         rw units.min_coe,
         apply min_le_min _ x_in₀,
         rw mul_assoc,
-        have : ((γ₀ * γ₀ : (Γ₀ K)ˣ) : Γ₀ K) ≤ v x * v x,
+        have : ((γ₀ * γ₀ : Γ₀ˣ) : Γ₀) ≤ v x * v x,
           from calc ↑γ₀ * ↑γ₀ ≤ ↑γ₀ * v x : mul_le_mul_left' x_in₀ ↑γ₀
                           ... ≤ _ : mul_le_mul_right' x_in₀ (v x),
         rw units.coe_mul,
@@ -198,29 +193,26 @@ instance valued.completable : completable_top_field K :=
   end,
   ..valued_ring.separated }
 
-local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
+open_locale with_zero_topology
 
 /-- The extension of the valuation of a valued field to the completion of the field. -/
-noncomputable def valued.extension : hat K → Γ₀ K :=
-completion.dense_inducing_coe.extend (v : K → Γ₀ K)
+noncomputable def extension : hat K → Γ₀ :=
+completion.dense_inducing_coe.extend (v : K → Γ₀)
 
-lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ₀ K) :=
+lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
  begin
   refine completion.dense_inducing_coe.continuous_extend _,
   intro x₀,
-  by_cases h : x₀ = coe 0,
+  rcases eq_or_ne x₀ 0 with rfl|h,
   { refine ⟨0, _⟩,
-    erw [h, ← completion.dense_inducing_coe.to_inducing.nhds_eq_comap]; try { apply_instance },
-    rw linear_ordered_comm_group_with_zero.tendsto_zero,
-    intro γ₀,
-    rw valued.mem_nhds,
-    exact ⟨γ₀, by simp⟩ },
-  { have preimage_one : v ⁻¹' {(1 : Γ₀ K)} ∈ 𝓝 (1 : K),
-    { have : v (1 : K) ≠ 0, { rw valuation.map_one, exact zero_ne_one.symm },
+    erw [← completion.dense_inducing_coe.to_inducing.nhds_eq_comap],
+    exact valued.continuous_valuation.tendsto' 0 0 (map_zero v) },
+  { have preimage_one : v ⁻¹' {(1 : Γ₀)} ∈ 𝓝 (1 : K),
+    { have : (v (1 : K) : Γ₀) ≠ 0, { rw valuation.map_one, exact zero_ne_one.symm },
       convert valued.loc_const this,
       ext x,
       rw [valuation.map_one, mem_preimage, mem_singleton_iff, mem_set_of_eq] },
-    obtain ⟨V, V_in, hV⟩ : ∃ V ∈ 𝓝 (1 : hat K), ∀ x : K, (x : hat K) ∈ V → v x = 1,
+    obtain ⟨V, V_in, hV⟩ : ∃ V ∈ 𝓝 (1 : hat K), ∀ x : K, (x : hat K) ∈ V → (v x : Γ₀) = 1,
     { rwa [completion.dense_inducing_coe.nhds_eq_comap, mem_comap] at preimage_one },
 
     have : ∃ V' ∈ (𝓝 (1 : hat K)), (0 : hat K) ∉ V' ∧ ∀ x y ∈ V', x*y⁻¹ ∈ V,
@@ -229,7 +221,7 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
         conv {congr, skip, skip, rw ← (one_mul (1 : hat K))},
         refine tendsto.mul continuous_fst.continuous_at
                            (tendsto.comp _ continuous_snd.continuous_at),
-        convert topological_division_ring.continuous_inv (1 : hat K) zero_ne_one.symm,
+        convert continuous_at_inv₀ (zero_ne_one.symm : 1 ≠ (0 : hat K)),
         exact inv_one.symm },
       rcases tendsto_prod_self_iff.mp this V V_in with ⟨U, U_in, hU⟩,
       let hatKstar := ({0}ᶜ : set $ hat K),
@@ -261,39 +253,36 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
       rintro rfl,
       exact mul_ne_zero (ne_of_mem_of_not_mem y₀_in zeroV') h H },
     rcases this with ⟨z₀, y₀, y₀_in, hz₀, z₀_ne⟩,
-    have vz₀_ne: v z₀ ≠ 0 := by rwa valuation.ne_zero_iff,
+    have vz₀_ne: (v z₀ : Γ₀) ≠ 0 := by rwa valuation.ne_zero_iff,
     refine ⟨v z₀, _⟩,
-    rw [linear_ordered_comm_group_with_zero.tendsto_of_ne_zero vz₀_ne, mem_comap],
-    use [(λ x, x*x₀) '' V', nhds_right],
-    intros x x_in,
-    rcases mem_preimage.1 x_in with ⟨y, y_in, hy⟩, clear x_in,
-    change y*x₀ = coe x at hy,
-    have : v (x*z₀⁻¹) = 1,
+    rw [with_zero_topology.tendsto_of_ne_zero vz₀_ne, eventually_comap],
+    filter_upwards [nhds_right] with x x_in a ha,
+    rcases x_in with ⟨y, y_in, rfl⟩,
+    have : (v (a * z₀⁻¹) : Γ₀) = 1,
     { apply hV,
       have : ((z₀⁻¹ : K) : hat K) = z₀⁻¹,
-      from ring_hom.map_inv (completion.coe_ring_hom : K →+* hat K) z₀,
-      rw [completion.coe_mul, this, ← hy, hz₀, mul_inv₀, mul_comm y₀⁻¹, ← mul_assoc, mul_assoc y,
+      from map_inv₀ (completion.coe_ring_hom : K →+* hat K) z₀,
+      rw [completion.coe_mul, this, ha, hz₀, mul_inv, mul_comm y₀⁻¹, ← mul_assoc, mul_assoc y,
           mul_inv_cancel h, mul_one],
       solve_by_elim },
-    calc v x = v (x*z₀⁻¹*z₀) : by rw [mul_assoc, inv_mul_cancel z₀_ne, mul_one]
-         ... = v (x*z₀⁻¹)*v z₀ : valuation.map_mul _ _ _
+    calc v a = v (a * z₀⁻¹ * z₀) : by rw [mul_assoc, inv_mul_cancel z₀_ne, mul_one]
+         ... = v (a * z₀⁻¹) * v z₀ : valuation.map_mul _ _ _
          ... = v z₀ : by rw [this, one_mul]  },
 end
 
-@[norm_cast]
-lemma valued.extension_extends (x : K) : valued.extension (x : hat K) = v x :=
+@[simp, norm_cast]
+lemma extension_extends (x : K) : extension (x : hat K) = v x :=
 begin
-  haveI : t2_space (valued.Γ₀ K) := regular_space.t2_space _,
   refine completion.dense_inducing_coe.extend_eq_of_tendsto _,
   rw ← completion.dense_inducing_coe.nhds_eq_comap,
   exact valued.continuous_valuation.continuous_at,
 end
 
 /-- the extension of a valuation on a division ring to its completion. -/
-noncomputable def valued.extension_valuation :
-  valuation (hat K) (Γ₀ K) :=
+noncomputable def extension_valuation :
+  valuation (hat K) Γ₀ :=
 { to_fun := valued.extension,
-  map_zero' := by { simpa [← v.map_zero, ← valued.extension_extends (0 : K)] },
+  map_zero' := by { rw [← v.map_zero, ← valued.extension_extends (0 : K)], refl, },
   map_one' := by { rw [← completion.coe_one, valued.extension_extends (1 : K)],
                    exact valuation.map_one _ },
   map_mul' := λ x y, begin
@@ -309,10 +298,10 @@ noncomputable def valued.extension_valuation :
       norm_cast,
       exact valuation.map_mul _ _ _ },
   end,
-  map_add' := λ x y, begin
+  map_add_le_max' := λ x y, begin
     rw le_max_iff,
     apply completion.induction_on₂ x y,
-    { have cont : continuous (valued.extension : hat K → Γ₀ K) := valued.continuous_extension,
+    { have cont : continuous (valued.extension : hat K → Γ₀) := valued.continuous_extension,
       exact  (is_closed_le (cont.comp continuous_add) $ cont.comp continuous_fst).union
         (is_closed_le (cont.comp continuous_add) $ cont.comp continuous_snd) },
     { intros x y,
@@ -322,4 +311,45 @@ noncomputable def valued.extension_valuation :
       exact v.map_add x y, },
   end }
 
-end valuation_on_valued_field_completion
+-- Bourbaki CA VI §5 no.3 Proposition 5 (d)
+lemma closure_coe_completion_v_lt {γ : Γ₀ˣ} :
+  closure (coe '' { x : K | v x < (γ : Γ₀) }) = { x : hat K | extension_valuation x < (γ : Γ₀) } :=
+begin
+  ext x,
+  let γ₀ := extension_valuation x,
+  suffices : γ₀ ≠ 0 → (x ∈ closure (coe '' { x : K | v x < (γ : Γ₀) }) ↔ γ₀ < (γ : Γ₀)),
+  { cases eq_or_ne γ₀ 0,
+    { simp only [h, (valuation.zero_iff _).mp h, mem_set_of_eq, valuation.map_zero, units.zero_lt,
+        iff_true],
+      apply subset_closure,
+      exact ⟨0, by simpa only [mem_set_of_eq, valuation.map_zero, units.zero_lt, true_and]⟩, },
+    { exact this h, }, },
+  intros h,
+  have hγ₀ : extension ⁻¹' {γ₀} ∈ 𝓝 x := continuous_extension.continuous_at.preimage_mem_nhds
+    (with_zero_topology.singleton_mem_nhds_of_ne_zero h),
+  rw mem_closure_iff_nhds',
+  refine ⟨λ hx, _, λ hx s hs, _⟩,
+  { obtain ⟨⟨-, y, hy₁ : v y < (γ : Γ₀), rfl⟩, hy₂⟩ := hx _ hγ₀,
+    replace hy₂ : v y = γ₀, { simpa using hy₂, },
+    rwa ← hy₂, },
+  { obtain ⟨y, hy₁, hy₂ : ↑y ∈ s⟩ := completion.dense_range_coe.mem_nhds (inter_mem hγ₀ hs),
+    replace hy₁ : v y = γ₀, { simpa using hy₁, },
+    rw ← hy₁ at hx,
+    exact ⟨⟨y, ⟨y, hx, rfl⟩⟩, hy₂⟩, },
+end
+
+noncomputable instance valued_completion : valued (hat K) Γ₀ :=
+{ v := extension_valuation,
+  is_topological_valuation := λ s,
+  begin
+    suffices : has_basis (𝓝 (0 : hat K)) (λ _, true) (λ γ : Γ₀ˣ, { x | extension_valuation x < γ }),
+    { rw this.mem_iff,
+      exact exists_congr (λ γ, by simp), },
+    simp_rw ← closure_coe_completion_v_lt,
+    exact (has_basis_nhds_zero K Γ₀).has_basis_of_dense_inducing completion.dense_inducing_coe,
+  end }
+
+@[simp, norm_cast] lemma valued_completion_apply (x : K) : valued.v (x : hat K) = v x :=
+extension_extends x
+
+end valued

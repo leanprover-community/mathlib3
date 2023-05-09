@@ -5,11 +5,11 @@ Authors: Simon Hudon
 -/
 import data.lazy_list.basic
 import data.tree
-import data.int.basic
+import data.pnat.basic
 import control.bifunctor
 import control.ulift
-import tactic.linarith
 import testing.slim_check.gen
+import tactic.linarith
 
 /-!
 # `sampleable` Class
@@ -241,7 +241,7 @@ if h : n > 0 then
      nat.div_lt_of_lt_mul
        (suffices 1 * n < k * n, by simpa,
         nat.mul_lt_mul_of_pos_right hk h),
-  ⟨n/11, this _ (by norm_num)⟩ :: ⟨n/3, this _ (by norm_num)⟩ :: nat.shrink' n n (le_refl _) []
+  ⟨n/11, this _ (by norm_num)⟩ :: ⟨n/3, this _ (by norm_num)⟩ :: nat.shrink' n n le_rfl []
 else
   []
 
@@ -281,13 +281,13 @@ well_founded.fix has_well_founded.wf $ λ x f_rec,
      y ← (shrink x).find (λ a, p a),
      f_rec y y.property <|> some y.val .
 
-instance fin.sampleable {n} [fact $ 0 < n] : sampleable (fin n) :=
-sampleable.lift ℕ fin.of_nat' subtype.val $
+instance fin.sampleable {n : ℕ} [ne_zero n] : sampleable (fin n) :=
+sampleable.lift ℕ fin.of_nat' fin.val $
 λ i, (mod_le _ _ : i % n ≤ i)
 
 @[priority 100]
 instance fin.sampleable' {n} : sampleable (fin (succ n)) :=
-sampleable.lift ℕ fin.of_nat subtype.val $
+sampleable.lift ℕ fin.of_nat fin.val $
 λ i, (mod_le _ _ : i % succ n ≤ i)
 
 instance pnat.sampleable : sampleable ℕ+ :=
@@ -346,7 +346,7 @@ instance prod.sampleable : sampleable_bifunctor.{u v} prod :=
   p_repr := @prod.has_repr }
 
 instance sigma.sampleable {α β} [sampleable α] [sampleable β] : sampleable (Σ _ : α, β) :=
-sampleable.lift (α × β) (λ ⟨x,y⟩, ⟨x,y⟩) (λ ⟨x,y⟩, ⟨x,y⟩) $ λ ⟨x,y⟩, le_refl _
+sampleable.lift (α × β) (λ ⟨x,y⟩, ⟨x,y⟩) (λ ⟨x,y⟩, ⟨x,y⟩) $ λ ⟨x,y⟩, le_rfl
 
 /-- shrinking function for sum types -/
 def sum.shrink {α β} [has_sizeof α] [has_sizeof β] (shrink_α : shrink_fn α)
@@ -371,7 +371,7 @@ begin
   rcases i with ⟨x,⟨y,hy⟩⟩; unfold_wf;
   dsimp [rat.mk_pnat],
   mono*,
-  { rw [← int.coe_nat_le, ← int.abs_eq_nat_abs, ← int.abs_eq_nat_abs],
+  { rw [← int.coe_nat_le, int.coe_nat_abs, int.coe_nat_abs],
     apply int.abs_div_le_abs },
   { change _ - 1 ≤ y-1,
     apply tsub_le_tsub_right,
@@ -413,7 +413,7 @@ begin
   cases k,
   { cases hk },
   have : sizeof xs < sizeof (x :: xs),
-  { unfold_wf, linarith },
+  { unfold_wf },
   cases k,
   { simp only [this, list.drop] },
   { simp only [list.drop],
@@ -540,7 +540,7 @@ instance no_shrink.sampleable {α} [sampleable α] : sampleable (no_shrink α) :
 
 instance string.sampleable : sampleable string :=
 { sample := do { x ← list_of (sample char), pure x.as_string },
-  .. sampleable.lift (list char) list.as_string string.to_list $ λ _, le_refl _ }
+  .. sampleable.lift (list char) list.as_string string.to_list $ λ _, le_rfl }
 
 /-- implementation of `sampleable (tree α)` -/
 def tree.sample (sample : gen α) : ℕ → gen (tree α) | n :=

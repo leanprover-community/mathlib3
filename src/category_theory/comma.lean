@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.isomorphism
-import category_theory.functor_category
+import category_theory.functor.category
 import category_theory.eq_to_hom
 
 /-!
 # Comma categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A comma category is a construction in category theory, which builds a category out of two functors
 with a common codomain. Specifically, for functors `L : A ⥤ T` and `R : B ⥤ T`, an object in
@@ -55,8 +58,8 @@ variables {T : Type u₃} [category.{v₃} T]
 /-- The objects of the comma category are triples of an object `left : A`, an object
    `right : B` and a morphism `hom : L.obj left ⟶ R.obj right`.  -/
 structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
-(left : A . obviously)
-(right : B . obviously)
+(left : A)
+(right : B)
 (hom : L.obj left ⟶ R.obj right)
 
 -- Satisfying the inhabited linter
@@ -72,8 +75,8 @@ variables {L : A ⥤ T} {R : B ⥤ T}
     morphisms coming from the two objects using morphisms in the image of the functors `L` and `R`.
 -/
 @[ext] structure comma_morphism (X Y : comma L R) :=
-(left : X.left ⟶ Y.left . obviously)
-(right : X.right ⟶ Y.right . obviously)
+(left : X.left ⟶ Y.left)
+(right : X.right ⟶ Y.right)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
 
 -- Satisfying the inhabited linter

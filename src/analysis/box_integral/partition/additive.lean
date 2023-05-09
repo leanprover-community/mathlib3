@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.split
 import analysis.normed_space.operator_norm
-import data.set.intervals.proj_Icc
 
 /-!
 # Box additive functions
@@ -45,8 +44,10 @@ structure box_additive_map (ι M : Type*) [add_comm_monoid M] (I : with_top (box
 (sum_partition_boxes' : ∀ J : box ι, ↑J ≤ I → ∀ π : prepartition J, π.is_partition →
   ∑ Ji in π.boxes, to_fun Ji = to_fun J)
 
-localized "notation ι ` →ᵇᵃ `:25 M := box_integral.box_additive_map ι M ⊤" in box_integral
-localized "notation ι ` →ᵇᵃ[`:25 I `] ` M := box_integral.box_additive_map ι M I" in box_integral
+localized "notation (name := box_integral.box_additive_map.top)
+  ι ` →ᵇᵃ `:25 M := box_integral.box_additive_map ι M ⊤" in box_integral
+localized "notation (name := box_integral.box_additive_map)
+  ι ` →ᵇᵃ[`:25 I `] ` M := box_integral.box_additive_map ι M I" in box_integral
 
 namespace box_additive_map
 
@@ -83,8 +84,12 @@ instance : has_add (ι →ᵇᵃ[I₀] M) :=
 ⟨λ f g, ⟨f + g, λ I hI π hπ,
   by simp only [pi.add_apply, sum_add_distrib, sum_partition_boxes _ hI hπ]⟩⟩
 
+instance {R} [monoid R] [distrib_mul_action R M] : has_smul R (ι →ᵇᵃ[I₀] M) :=
+⟨λ r f, ⟨r • f, λ I hI π hπ,
+  by simp only [pi.smul_apply, ←smul_sum, sum_partition_boxes _ hI hπ]⟩⟩
+
 instance : add_comm_monoid (ι →ᵇᵃ[I₀] M) :=
-function.injective.add_comm_monoid _ coe_injective rfl (λ _ _, rfl)
+function.injective.add_comm_monoid _ coe_injective rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[simp] lemma map_split_add (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) (i : ι) (x : ℝ) :
   (I.split_lower i x).elim 0 f + (I.split_upper i x).elim 0 f = f I :=
@@ -128,7 +133,7 @@ map. -/
 
 /-- If `f` is a box additive function on subboxes of `I` and `π₁`, `π₂` are two prepartitions of
 `I` that cover the same part of `I`, then `∑ J in π₁.boxes, f J = ∑ J in π₂.boxes, f J`. -/
-lemma sum_boxes_congr [fintype ι] (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {π₁ π₂ : prepartition I}
+lemma sum_boxes_congr [finite ι] (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {π₁ π₂ : prepartition I}
   (h : π₁.Union = π₂.Union) :
   ∑ J in π₁.boxes, f J = ∑ J in π₂.boxes, f J :=
 begin
@@ -149,7 +154,7 @@ end
 
 section to_smul
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
 /-- If `f` is a box-additive map, then so is the map sending `I` to the scalar multiplication
 by `f I` as a continuous linear map from `E` to itself. -/
@@ -176,7 +181,7 @@ of_map_split_add
     rw with_top.coe_le_coe at hJ,
     refine i.succ_above_cases _ _ j,
     { intros x hx,
-      simp only [box.split_lower_def hx, box.split_upper_def hx, update_same, 
+      simp only [box.split_lower_def hx, box.split_upper_def hx, update_same,
         ← with_bot.some_eq_coe, option.elim, box.face, (∘), update_noteq (fin.succ_above_ne _ _)],
       abel },
     { clear j, intros j x hx,
@@ -189,7 +194,7 @@ of_map_split_add
       simp only [box.split_lower_def hx, box.split_upper_def hx,
         box.split_lower_def hx', box.split_upper_def hx',
         ← with_bot.some_eq_coe, option.elim, box.face_mk,
-        update_noteq (fin.succ_above_ne _ _).symm, sub_add_comm,
+        update_noteq (fin.succ_above_ne _ _).symm, sub_add_sub_comm,
         update_comp_eq_of_injective _ i.succ_above.injective j x, ← hf],
       simp only [box.face] }
   end

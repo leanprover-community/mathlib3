@@ -3,11 +3,14 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.convex.topology
-import tactic.by_contra
+import analysis.convex.hull
+import linear_algebra.affine_space.independent
 
 /-!
 # Simplicial complexes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define simplicial complexes in `𝕜`-modules. A simplicial complex is a collection
 of simplices closed by inclusion (of vertices) and intersection (of underlying sets).
@@ -68,7 +71,7 @@ instance : has_mem (finset E) (simplicial_complex 𝕜 E) := ⟨λ s K, s ∈ K.
 /-- The underlying space of a simplicial complex is the union of its faces. -/
 def space (K : simplicial_complex 𝕜 E) : set E := ⋃ s ∈ K.faces, convex_hull 𝕜 (s : set E)
 
-lemma mem_space_iff : x ∈ K.space ↔ ∃ s ∈ K.faces, x ∈ convex_hull 𝕜 (s : set E) := mem_bUnion_iff
+lemma mem_space_iff : x ∈ K.space ↔ ∃ s ∈ K.faces, x ∈ convex_hull 𝕜 (s : set E) := mem_Union₂
 
 lemma convex_hull_subset_space (hs : s ∈ K.faces) : convex_hull 𝕜 ↑s ⊆ K.space :=
 subset_bUnion_of_mem hs
@@ -91,7 +94,7 @@ begin
   classical,
   by_contra' h,
   refine h.2 (s ∩ t) (K.down_closed hs (inter_subset_left _ _) $ λ hst, h.1 $
-    (K.inter_subset_convex_hull hs ht).trans _) _,
+    disjoint_iff_inf_le.mpr $ (K.inter_subset_convex_hull hs ht).trans _) _,
   { rw [←coe_inter, hst, coe_empty, convex_hull_empty],
     refl },
   { rw [coe_inter, convex_hull_inter_convex_hull hs ht] }
@@ -134,12 +137,12 @@ lemma vertices_eq : K.vertices = ⋃ k ∈ K.faces, (k : set E) :=
 begin
   ext x,
   refine ⟨λ h, mem_bUnion h $ mem_coe.2 $ mem_singleton_self x, λ h, _⟩,
-  obtain ⟨s, hs, hx⟩ := mem_bUnion_iff.1 h,
+  obtain ⟨s, hs, hx⟩ := mem_Union₂.1 h,
   exact K.down_closed hs (finset.singleton_subset_iff.2 $ mem_coe.1 hx) (singleton_ne_empty _),
 end
 
 lemma vertices_subset_space : K.vertices ⊆ K.space :=
-vertices_eq.subset.trans $ set.bUnion_mono $ λ x hx, subset_convex_hull 𝕜 x
+vertices_eq.subset.trans $ Union₂_mono $ λ x hx, subset_convex_hull 𝕜 x
 
 lemma vertex_mem_convex_hull_iff (hx : x ∈ K.vertices) (hs : s ∈ K.faces) :
   x ∈ convex_hull 𝕜 (s : set E) ↔ x ∈ s :=

@@ -4,14 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
 -/
 import order.filter.filter_product
-import analysis.specific_limits
+import analysis.specific_limits.basic
 
 /-!
 # Construction of the hyperreal numbers as an ultraproduct of real sequences.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter filter.germ
-open_locale topological_space classical
+open_locale topology classical
 
 /-- Hyperreal numbers on the ultrafilter extending the cofinite filter -/
 @[derive [linear_ordered_field, inhabited]]
@@ -23,12 +26,13 @@ notation `ℝ*` := hyperreal
 
 noncomputable instance : has_coe_t ℝ ℝ* := ⟨λ x, (↑x : germ _ _)⟩
 
-@[simp, norm_cast]
-lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y :=
-germ.const_inj
+@[simp, norm_cast] lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y := germ.const_inj
+lemma coe_ne_coe {x y : ℝ} : (x : ℝ*) ≠ y ↔ x ≠ y := coe_eq_coe.not
 
 @[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ℝ*) = 0 ↔ x = 0 := coe_eq_coe
 @[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ℝ*) = 1 ↔ x = 1 := coe_eq_coe
+@[norm_cast] lemma coe_ne_zero {x : ℝ} : (x : ℝ*) ≠ 0 ↔ x ≠ 0 := coe_ne_coe
+@[norm_cast] lemma coe_ne_one {x : ℝ} : (x : ℝ*) ≠ 1 ↔ x ≠ 1 := coe_ne_coe
 
 @[simp, norm_cast] lemma coe_one : ↑(1 : ℝ) = (1 : ℝ*) := rfl
 @[simp, norm_cast] lemma coe_zero : ↑(0 : ℝ) = (0 : ℝ*) := rfl
@@ -41,15 +45,11 @@ germ.const_inj
 @[simp, norm_cast] lemma coe_div (x y : ℝ) : ↑(x / y) = (x / y : ℝ*) := rfl
 @[simp, norm_cast] lemma coe_sub (x y : ℝ) : ↑(x - y) = (x - y : ℝ*) := rfl
 
-@[simp, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt
-@[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
-coe_lt_coe
 @[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
-@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
-begin
-  convert const_abs x,
-  apply linear_order.to_lattice_eq_filter_germ_lattice,
-end
+@[simp, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt_iff
+@[simp, norm_cast] lemma coe_nonneg {x : ℝ} : 0 ≤ (x : ℝ*) ↔ 0 ≤ x := coe_le_coe
+@[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x := coe_lt_coe
+@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| := const_abs x
 @[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
 @[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
 
@@ -62,34 +62,28 @@ noncomputable def epsilon : ℝ* := of_seq $ λ n, n⁻¹
 /-- A sample infinite hyperreal-/
 noncomputable def omega : ℝ* := of_seq coe
 
-localized "notation `ε` := hyperreal.epsilon" in hyperreal
-localized "notation `ω` := hyperreal.omega" in hyperreal
+localized "notation (name := hyperreal.epsilon) `ε` := hyperreal.epsilon" in hyperreal
+localized "notation (name := hyperreal.omega) `ω` := hyperreal.omega" in hyperreal
 
-lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
+@[simp] lemma inv_omega : ω⁻¹ = ε := rfl
+@[simp] lemma inv_epsilon : ε⁻¹ = ω := @inv_inv _ _ ω
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv₀ _ _ ω
-
-lemma epsilon_pos : 0 < ε :=
-suffices ∀ᶠ i in hyperfilter ℕ, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def,
-have h0' : {n : ℕ | ¬ 0 < n} = {0} :=
-by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
-begin
-  simp only [inv_pos, nat.cast_pos],
-  exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
+lemma omega_pos : 0 < ω := germ.coe_pos.2 $ mem_hyperfilter_of_finite_compl $ begin
+  convert set.finite_singleton 0,
+  simp [set.eq_singleton_iff_unique_mem],
 end
 
-lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
+lemma epsilon_pos : 0 < ε := inv_pos_of_pos omega_pos
 
-lemma omega_pos : 0 < ω := by rw ←inv_epsilon_eq_omega; exact inv_pos.2 epsilon_pos
-
-lemma omega_ne_zero : ω ≠ 0 := ne_of_gt omega_pos
+lemma epsilon_ne_zero : ε ≠ 0 := epsilon_pos.ne'
+lemma omega_ne_zero : ω ≠ 0 := omega_pos.ne'
 
 theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 
 lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, 0 < r → of_seq f < (r : ℝ*) :=
 begin
-  simp only [metric.tendsto_at_top, dist_zero_right, norm, lt_def] at hf ⊢,
+  simp only [metric.tendsto_at_top, real.dist_eq, sub_zero, lt_def] at hf ⊢,
   intros r hr, cases hf r hr with N hf',
   have hs : {i : ℕ | f i < r}ᶜ ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
@@ -170,10 +164,10 @@ have HR₁ : S.nonempty :=
 have HR₂ : bdd_above S :=
   ⟨ r₂, λ y hy, le_of_lt (coe_lt_coe.1 (lt_of_lt_of_le hy (not_lt.mp hr₂))) ⟩,
 λ δ hδ,
-  ⟨ lt_of_not_ge' $ λ c,
+  ⟨ lt_of_not_le $ λ c,
       have hc : ∀ y ∈ S, y ≤ R - δ := λ y hy, coe_le_coe.1 $ le_of_lt $ lt_of_lt_of_le hy c,
       not_lt_of_le (cSup_le HR₁ hc) $ sub_lt_self R hδ,
-    lt_of_not_ge' $ λ c,
+    lt_of_not_le $ λ c,
       have hc : ↑(R + δ / 2) < x :=
         lt_of_lt_of_le (add_lt_add_left (coe_lt_coe.2 (half_lt_self hδ)) R) c,
       not_lt_of_le (le_cSup HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
@@ -662,14 +656,14 @@ theorem infinite_iff_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) : infinite x �
 
 lemma infinitesimal_pos_iff_infinite_pos_inv {x : ℝ*} :
   infinite_pos x⁻¹ ↔ (infinitesimal x ∧ 0 < x) :=
-by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv₀]
+by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv]
 
 lemma infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} :
   infinite_neg x⁻¹ ↔ (infinitesimal x ∧ x < 0) :=
-by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv₀]
+by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv]
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=
-by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv₀]
+by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv]
 
 /-!
 ### `st` stuff that requires infinitesimal machinery
@@ -687,7 +681,7 @@ lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → i
 have H : _ := exists_st_of_not_infinite $ not_imp_not.mpr (infinitesimal_iff_infinite_inv h).mpr hi,
 Exists.cases_on H $ λ s hs,
 have H' : is_st 1 (r * s) := mul_inv_cancel h ▸ is_st_mul hxr hs,
-have H'' : s = r⁻¹ := one_div r ▸ eq_one_div_of_mul_eq_one (eq_of_is_st_real H').symm,
+have H'' : s = r⁻¹ := one_div r ▸ eq_one_div_of_mul_eq_one_right (eq_of_is_st_real H').symm,
 H'' ▸ hs
 
 lemma st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ :=
@@ -785,7 +779,29 @@ lemma infinite_mul_of_not_infinitesimal_infinite {x y : ℝ*} :
   ¬ infinitesimal x → infinite y → infinite (x * y) :=
 λ hx hy, by rw [mul_comm]; exact infinite_mul_of_infinite_not_infinitesimal hy hx
 
-lemma infinite_mul_infinite {x y : ℝ*} : infinite x → infinite y → infinite (x * y) :=
+lemma infinite.mul {x y : ℝ*} : infinite x → infinite y → infinite (x * y) :=
 λ hx hy, infinite_mul_of_infinite_not_infinitesimal hx (not_infinitesimal_of_infinite hy)
 
 end hyperreal
+
+namespace tactic
+open positivity
+
+private lemma hyperreal_coe_ne_zero {r : ℝ} : r ≠ 0 → (r : ℝ*) ≠ 0 := hyperreal.coe_ne_zero.2
+private lemma hyperreal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ℝ*) := hyperreal.coe_nonneg.2
+private lemma hyperreal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ℝ*) := hyperreal.coe_pos.2
+
+/-- Extension for the `positivity` tactic: cast from `ℝ` to `ℝ*`. -/
+@[positivity]
+meta def positivity_coe_real_hyperreal : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  unify inst `(@coe_to_lift _ _ hyperreal.has_coe_t),
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``hyperreal_coe_pos [p]
+  | nonnegative p := nonnegative <$> mk_app ``hyperreal_coe_nonneg [p]
+  | nonzero p := nonzero <$> mk_app ``hyperreal_coe_ne_zero [p]
+  end
+| e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `(r : ℝ*)` for `r : ℝ`"
+
+end tactic

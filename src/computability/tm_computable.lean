@@ -12,6 +12,9 @@ import data.polynomial.eval
 /-!
 # Computable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of a Turing machine with some finiteness conditions
 (bundling the definition of TM2 in turing_machine.lean), a definition of when a TM gives a certain
 output (in a certain time), and the definition of computability (in polytime or any time function)
@@ -92,6 +95,9 @@ structure evals_to {σ : Type*} (f : σ → option σ) (a : σ) (b : option σ) 
 (steps : ℕ)
 (evals_in_steps : ((flip bind f)^[steps] a) = b)
 
+-- note: this cannot currently be used in `calc`, as the last two arguments must be `a` and `b`.
+-- If this is desired, this argument order can be changed, but this spelling is I think the most
+-- natural, so there is a trade-off that needs to be made here. A notation can get around this.
 /-- A "proof" of the fact that `f` eventually reaches `b` in at most `m` steps when repeatedly
 evaluated on `a`, remembering the number of steps it takes. -/
 structure evals_to_in_time {σ : Type*} (f : σ → option σ) (a : σ) (b : option σ) (m : ℕ)
@@ -113,8 +119,8 @@ structure evals_to_in_time {σ : Type*} (f : σ → option σ) (a : σ) (b : opt
 ⟨evals_to.refl f a, le_refl 0⟩
 
 /-- Transitivity of `evals_to_in_time` in the sum of the numbers of steps. -/
-@[trans] def evals_to_in_time.trans {σ : Type*} (f : σ → option σ) (a : σ) (b : σ) (c : option σ)
-  (m₁ : ℕ) (m₂ : ℕ) (h₁ : evals_to_in_time f a b m₁) (h₂ : evals_to_in_time f b c m₂) :
+@[trans] def evals_to_in_time.trans {σ : Type*} (f : σ → option σ) (m₁ : ℕ) (m₂ : ℕ)
+  (a : σ) (b : σ) (c : option σ) (h₁ : evals_to_in_time f a b m₁) (h₂ : evals_to_in_time f b c m₂) :
   evals_to_in_time f a c (m₂ + m₁) :=
 ⟨evals_to.trans f a b c h₁.to_evals_to h₂.to_evals_to, add_le_add h₂.steps_le_m h₁.steps_le_m⟩
 

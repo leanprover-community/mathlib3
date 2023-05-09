@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Mario Carneiro, Sean Leather
 -/
 import data.finset.card
-import order.hom.basic
 
 /-!
 # Finite sets in `option α`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -54,7 +56,7 @@ order_embedding.of_map_le_iff (λ s, cons none (s.map embedding.some) $ by simp)
   cons_subset_cons.trans map_subset_map
 
 /-⟨none ::ₘ s.1.map some, multiset.nodup_cons.2
-  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) s.2⟩⟩-/
+  ⟨by simp, s.nodup.map $ λ a b, option.some.inj⟩⟩-/
 
 @[simp] theorem mem_insert_none {s : finset α} : ∀ {o : option α},
   o ∈ s.insert_none ↔ ∀ a ∈ o, a ∈ s

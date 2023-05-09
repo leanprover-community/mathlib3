@@ -70,7 +70,7 @@ def restrict_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
   map_comp' := λ _ _ _ g h, linear_map.ext $ λ m, rfl }
 
 instance {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) :
-  category_theory.faithful (restrict_scalars f) :=
+  category_theory.faithful (restrict_scalars.{v} f) :=
 { map_injective' := λ _ _ _ _ h, linear_map.ext $ λ x, by simpa only using fun_like.congr_fun h x }
 
 @[simp] lemma restrict_scalars.map_apply {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)

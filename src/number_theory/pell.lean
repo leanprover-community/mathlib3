@@ -489,29 +489,42 @@ begin
   exact b.prop,
 end
 
+/-- The map sending an integer `n` to the `y`-coordinate of `a^n` for a fundamental
+solution `a` is stritcly increasing. -/
+lemma y_strict_mono {a : solution₁ d} (h : is_fundamental a) :
+  strict_mono (λ (n : ℤ), (a ^ n).y) :=
+begin
+  have H : ∀ (n : ℤ), 0 ≤ n → (a ^ n).y < (a ^ (n + 1)).y,
+  { intros n hn,
+    rw [← sub_pos, zpow_add, zpow_one, y_mul, add_sub_assoc],
+    rw show (a ^ n).y * a.x - (a ^ n).y = (a ^ n).y * (a.x - 1), from by ring,
+    refine add_pos_of_pos_of_nonneg (mul_pos (x_zpow_pos h.x_pos _) h.2.1)
+      (mul_nonneg _ (by {rw sub_nonneg, exact h.1.le})),
+    rcases hn.eq_or_lt with rfl | hn,
+    { simp only [zpow_zero, y_one], },
+    { exact (y_zpow_pos h.x_pos h.2.1 hn).le, } },
+  refine strict_mono_int_of_lt_succ (λ n, _),
+  cases le_or_lt 0 n with hn hn,
+  { exact H n hn, },
+  { let m : ℤ := -n - 1,
+    have hm : n = -m - 1 := by simp only [neg_sub, sub_neg_eq_add, add_tsub_cancel_left],
+    rw [hm, sub_add_cancel, ← neg_add', zpow_neg, zpow_neg, y_inv, y_inv, neg_lt_neg_iff],
+    exact H _ (by linarith [hn]), }
+end
+
 /-- The `n`th power of a fundamental solution is trivial if and only if `n = 0`. -/
 lemma pow_eq_one_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : a ^ n = 1 ↔ n = 0 :=
 begin
-  refine ⟨λ H, _, λ H, by rw [H, zpow_zero]⟩,
-  have H' : (a ^ n).y = 0 := by rw [H, y_one],
-  rcases lt_trichotomy 0 n with hn | rfl | hn,
-  { exact absurd H' (y_zpow_pos h.x_pos h.2.1 hn).ne', },
-  { refl, },
-  { have := y_zpow_pos h.x_pos h.2.1 (by rwa [lt_neg, neg_zero] : 0 < -n),
-    rw [zpow_neg, y_inv, H', neg_zero] at this,
-    exact false.elim (lt_irrefl _ this), }
+  rw ← zpow_zero a,
+  exact ⟨λ H, h.y_strict_mono.injective (congr_arg solution₁.y H), λ H, H ▸ rfl⟩,
 end
 
 /-- The `n`th power of a fundamental solution has positive `y` if and only if `n` is positive. -/
 lemma pow_y_pos_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : 0 < (a ^ n).y ↔ 0 < n :=
 begin
   refine ⟨λ H, _, y_zpow_pos h.x_pos h.2.1⟩,
-  rcases lt_trichotomy 0 n with hn | rfl | hn,
-  { exact hn, },
-  { rwa [zpow_zero, y_one] at H, },
-  { have := y_zpow_pos h.x_pos h.2.1 (by rwa [lt_neg, neg_zero] : 0 < -n),
-    rw [zpow_neg, y_inv, lt_neg, neg_zero] at this,
-    exact false.elim (lt_irrefl _ $ H.trans this), }
+  contrapose! H,
+  exact h.y_strict_mono.monotone H,
 end
 
 /-- The `n`th power of a fundamental solution has negative `y` if and only if `n` is negative. -/

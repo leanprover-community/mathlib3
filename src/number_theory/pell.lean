@@ -513,7 +513,7 @@ begin
 end
 
 /-- If `a` is a fundamental solution, then `(a^m).y < (a^n).y` if and only if `m < n`. -/
-lemma zpow_y_lt_iff_lt {a : solution₁ d} (h : is_fundamental a) {m n : ℤ} :
+lemma zpow_y_lt_iff_lt {a : solution₁ d} (h : is_fundamental a) (m n : ℤ) :
   (a ^ m).y < (a ^ n).y ↔ m < n :=
 begin
   refine ⟨λ H, _, λ H, h.y_strict_mono H⟩,
@@ -530,19 +530,11 @@ end
 
 /-- The `n`th power of a fundamental solution has positive `y` if and only if `n` is positive. -/
 lemma pow_y_pos_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : 0 < (a ^ n).y ↔ 0 < n :=
-begin
-  refine ⟨λ H, _, λ H, h.y_strict_mono H⟩,
-  contrapose! H,
-  exact h.y_strict_mono.monotone H,
-end
+h.zpow_y_lt_iff_lt 0 n
 
 /-- The `n`th power of a fundamental solution has negative `y` if and only if `n` is negative. -/
 lemma pow_y_neg_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : (a ^ n).y < 0 ↔ n < 0 :=
-begin
-  refine ⟨λ H, _, λ H, h.y_strict_mono H⟩,
-  contrapose! H,
-  exact h.y_strict_mono.monotone H,
-end
+h.zpow_y_lt_iff_lt n 0
 
 /-- A power of a fundamental solution is never equal to the negative of a power of this
 fundamental solution. -/

@@ -30,6 +30,7 @@ Möbius function that generalizes the Möbius function in number theory.
 
 
 ## References
+
 - Aigner - Combinatorial Theory, Chapter IV
 - Jacobson - Basic Algebra I, 8.6
 - Rota - On the foundations of Combinatorial Theory
@@ -37,8 +38,8 @@ Möbius function that generalizes the Möbius function in number theory.
 - Kung, Rota, Yan - Combinatorics: The Rota Way, Chapter 3
 
 ## TODOs
-Here are some additions to this file that could be made in the future
 
+Here are some additions to this file that could be made in the future:
 - Generalize the construction of `mu` to invert any element of the incidence algebra `f` which has
   `f x x` a unit for all `x`.
 - Give formulae for higher powers of zeta.
@@ -50,6 +51,8 @@ Here are some additions to this file that could be made in the future
 - Connect to the more advanced theory of arithmetic functions, and Dirichlet convolution.
 -/
 
+-- TODO: Rename `prod.Icc_eq` to `finset.Icc_prod_eq` to match `set.Icc_prod_eq`
+
 open finset
 open_locale big_operators
 
@@ -58,61 +61,58 @@ namespace finset
 section
 variables {α β : Type*} [preorder α] [preorder β] [locally_finite_order α] [locally_finite_order β]
   [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((≤) : β → β → Prop)]
-lemma prod_Icc (a b : α × β) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := rfl
+lemma prod_Icc (a b : α × β) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := by rw prod.Icc_eq
 end
 section pre
 variables {α : Type*} [preorder α] [locally_finite_order α] {a b c : α}
 
 lemma card_Icc_lt_card_Icc_left (hab : a ≤ b) (h : c < b) : (Icc a c).card < (Icc a b).card :=
-card_lt_card (Icc_ssubset_Icc_right hab (le_refl a) h)
+card_lt_card (Icc_ssubset_Icc_right hab le_rfl h)
 
 lemma card_Icc_lt_card_Icc_right (hab : a ≤ b) (h : a < c) : (Icc c b).card < (Icc a b).card :=
-@card_Icc_lt_card_Icc_left (order_dual α) _ _ _ _ _ hab h
+@card_Icc_lt_card_Icc_left αᵒᵈ _ _ _ _ _ hab h
 
 end pre
 
-variables {α : Type*} [partial_order α] [locally_finite_order α] {a b : α}
+variables {α β : Type*} [partial_order α] [comm_monoid β] {f : α → β} {a b : α}
 
-section sum
-variables {β : Type*} [add_comm_monoid β] {f : α → β}
+section locally_finite_order
+variables [locally_finite_order α]
 
-lemma sum_Icc_eq_add_sum_Ioc (h : a ≤ b) : ∑ x in Icc a b, f x = f a + ∑ x in Ioc a b, f x :=
-by rw [Icc_eq_cons_Ioc h, sum_cons]
+@[to_additive] lemma mul_prod_Ico (h : a ≤ b) : f b * ∏ x in Ico a b, f x = ∏ x in Icc a b, f x :=
+by rw [Icc_eq_cons_Ico h, prod_cons]
 
-lemma sum_Icc_eq_add_sum_Ico (h : a ≤ b) : ∑ x in Icc a b, f x = f b + ∑ x in Ico a b, f x :=
-by rw [Icc_eq_cons_Ico h, sum_cons]
+@[to_additive] lemma mul_prod_Ioc (h : a ≤ b) : f a * ∏ x in Ioc a b, f x = ∏ x in Icc a b, f x :=
+by rw [Icc_eq_cons_Ioc h, prod_cons]
 
-section order_top
-variables [order_top α]
+end locally_finite_order
 
-lemma sum_Ici_eq_add_sum_Ioi (a : α) : ∑ x in Ici a, f x = f a + ∑ x in Ioi a, f x :=
-sum_Icc_eq_add_sum_Ioc le_top
+section locally_finite_order_top
+variables [locally_finite_order_top α]
 
-end order_top
-end sum
+@[to_additive] lemma mul_prod_Ioi (a : α) : f a * ∏ x in Ioi a, f x = ∏ x in Ici a, f x :=
+by rw [Ici_eq_cons_Ioi, prod_cons]
+
+end locally_finite_order_top
+
+section locally_finite_order_bot
+variables [locally_finite_order_bot α]
+
+@[to_additive] lemma mul_prod_Iio (a : α) : f a * ∏ x in Iio a, f x = ∏ x in Iic a, f x :=
+by rw [Iic_eq_cons_Iio, prod_cons]
+
+end locally_finite_order_bot
 end finset
 
-@[simp] lemma smul_boole {M A} [monoid M] [add_monoid A] [distrib_mul_action M A] (P : Prop)
-  [decidable P] (a : M) (b : A) :
-  a • (if P then b else 0) = if P then (a • b) else 0 :=
+@[simp] lemma smul_boole {M A} [has_zero A] [smul_zero_class M A] (P : Prop) [decidable P] (a : M)
+  (b : A) : a • (if P then b else 0) = if P then (a • b) else 0 :=
 by rw [smul_ite, smul_zero]
 
-@[simp] lemma boole_smul {M A} [semiring M] [add_comm_monoid  A] [module M A] (P : Prop)
-  [decidable P] (a : A) :
-  (if P then (1 : M) else 0) • a = if P then a else 0 :=
+@[simp] lemma boole_smul {M A} [semiring M] [add_comm_monoid A] [module M A] (P : Prop)
+  [decidable P] (a : A) : (if P then (1 : M) else 0) • a = if P then a else 0 :=
 by rw [ite_smul, one_smul, zero_smul]
 
-lemma sum_smul_boole {ι M α} [decidable_eq ι] [semiring M] [add_monoid α] [distrib_mul_action M α]
-  (s : finset ι) (f : ι → M) (i : ι) :
-  (∑ x in s, (f x • ite (i = x) (1 : M) 0)) = ite (i ∈ s) (f i • 1) 0 :=
-by simp_rw [smul_boole, sum_ite_eq]
-
-lemma sum_boole_smul {ι M α} [decidable_eq ι] [semiring M] [add_monoid α] [distrib_mul_action M α]
-  (s : finset ι) (f : ι → M) (i : ι) :
-  (∑ x in s, (ite (i = x) 1 0) • f x) = ite (i ∈ s) (f i) 0 :=
-by simp_rw [boole_smul, sum_ite_eq]
-
-open finset
+open finset order_dual
 open_locale big_operators
 
 variables (𝕄 F 𝕜 𝕝 𝕞 α β : Type*)
@@ -129,26 +129,26 @@ variables [has_zero 𝕜] [has_le α]
 instance fun_like : fun_like (incidence_algebra 𝕜 α) α (λ _, α → 𝕜) :=
 ⟨to_fun, λ f g h, by { cases f, cases g, congr' }⟩
 
-variables {𝕜 α}
+variables {𝕜 α} {a b : α}
 
-lemma eq_zero_of_not_le {a b : α} (h : ¬ a ≤ b) (f : incidence_algebra 𝕜 α) : f a b = 0 :=
+lemma apply_eq_zero_of_not_le (h : ¬ a ≤ b) (f : incidence_algebra 𝕜 α) : f a b = 0 :=
 eq_zero_of_not_le' _ h
 
-lemma le_of_ne_zero {f : incidence_algebra 𝕜 α} {a b : α} : f a b ≠ 0 → a ≤ b :=
+lemma le_of_ne_zero {f : incidence_algebra 𝕜 α} : f a b ≠ 0 → a ≤ b :=
 not_imp_comm.1 $ eq_zero_of_not_le' _
 
 -- completely uninteresting lemmas about coercion to function, that all homs need
 section coes
 
 -- Fallback `has_coe_to_fun` instance to help the elaborator
-instance : has_coe_to_fun (incidence_algebra 𝕜 α) (λ _, α → α → 𝕜) := ⟨to_fun⟩
+instance : has_coe_to_fun (incidence_algebra 𝕜 α) (λ _, α → α → 𝕜) := fun_like.has_coe_to_fun
 
 -- this must come after the coe_to_fun definitions
 initialize_simps_projections incidence_algebra (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : incidence_algebra 𝕜 α) : f.to_fun = f := rfl
 
-@[simp] lemma coe_mk (f : α → α → 𝕜) (h) : (mk f h : α → α → 𝕜) = f := rfl
+@[simp, norm_cast] lemma coe_mk (f : α → α → 𝕜) (h) : (mk f h : α → α → 𝕜) = f := rfl
 
 protected lemma congr_fun {f g : incidence_algebra 𝕜 α} (h : f = g) (a b : α) : f a b = g a b :=
 congr_arg (λ f : incidence_algebra 𝕜 α, f a b) h
@@ -158,15 +158,15 @@ protected lemma congr_arg (f : incidence_algebra 𝕜 α) {a₁ a₂ b₁ b₂ :
   f a₁ b₁ = f a₂ b₂ :=
 congr_arg2 f ha hb
 
-lemma coe_inj ⦃f g : incidence_algebra 𝕜 α⦄ (h : (f : α → α → 𝕜) = g) : f = g :=
-by { cases f, cases g, cases h, refl }
+@[simp] lemma coe_inj {f g : incidence_algebra 𝕜 α} : (f : α → α → 𝕜) = g ↔ f = g :=
+fun_like.coe_injective.eq_iff
 
 @[ext] lemma ext ⦃f g : incidence_algebra 𝕜 α⦄ (h : ∀ a b (hab : a ≤ b), f a b = g a b) : f = g :=
 begin
-  refine coe_inj (funext $ λ a, funext $ λ b, _),
+  refine fun_like.coe_injective (funext₂ $ λ a b, _),
   by_cases hab : a ≤ b,
   { exact h _ _ hab },
-  { rw [eq_zero_of_not_le hab, eq_zero_of_not_le hab] }
+  { rw [apply_eq_zero_of_not_le hab, apply_eq_zero_of_not_le hab] }
 end
 
 lemma ext_iff {f g : incidence_algebra 𝕜 α} : f = g ↔ ∀ a b, f a b = g a b :=
@@ -191,7 +191,7 @@ section add
 variables [add_zero_class 𝕜] [has_le α]
 
 instance : has_add (incidence_algebra 𝕜 α) :=
-⟨λ f g, ⟨f + g, λ a b h, by simp_rw [pi.add_apply, eq_zero_of_not_le h, zero_add]⟩⟩
+⟨λ f g, ⟨f + g, λ a b h, by simp_rw [pi.add_apply, apply_eq_zero_of_not_le h, zero_add]⟩⟩
 
 @[simp] lemma add_apply (f g : incidence_algebra 𝕜 α) (a b : α) :
   (f + g) a b = f a b + g a b := rfl
@@ -213,10 +213,10 @@ section add_group
 variables [add_group 𝕜] [has_le α]
 
 instance : has_neg (incidence_algebra 𝕜 α) :=
-⟨λ f, ⟨-f, λ a b h, by simp_rw [pi.neg_apply, eq_zero_of_not_le h, neg_zero]⟩⟩
+⟨λ f, ⟨-f, λ a b h, by simp_rw [pi.neg_apply, apply_eq_zero_of_not_le h, neg_zero]⟩⟩
 
 instance : has_sub (incidence_algebra 𝕜 α) :=
-⟨λ f g, ⟨f - g, λ a b h, by simp_rw [pi.sub_apply, eq_zero_of_not_le h, sub_zero]⟩⟩
+⟨λ f g, ⟨f - g, λ a b h, by simp_rw [pi.sub_apply, apply_eq_zero_of_not_le h, sub_zero]⟩⟩
 
 @[simp] lemma neg_apply (f : incidence_algebra 𝕜 α) (a b : α) : (-f) a b = -f a b := rfl
 
@@ -376,7 +376,7 @@ section smul_with_zero
 variables [has_zero 𝕜] [has_zero 𝕝] [smul_with_zero 𝕜 𝕝] [has_le α]
 
 instance incidence_algebra.has_smul_right : has_smul 𝕜 (incidence_algebra 𝕝 α) :=
-⟨λ c f, ⟨c • f, λ a b h, by rw [pi.smul_apply, pi.smul_apply, eq_zero_of_not_le h, smul_zero]⟩⟩
+⟨λ c f, ⟨c • f, λ a b h, by rw [pi.smul_apply, pi.smul_apply, apply_eq_zero_of_not_le h, smul_zero]⟩⟩
 
 @[simp] lemma smul_apply' (c : 𝕜) (f : incidence_algebra 𝕝 α) (a b : α) : (c • f) a b = c • f a b :=
 rfl
@@ -488,13 +488,12 @@ end
 section mu
 variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_order α] [decidable_eq α]
 
-/-- The moebius function of the incidence algebra as a bare function defined recursively. -/
+/-- The Möbius function of the incidence algebra as a bare function defined recursively. -/
 def mu_aux (a : α) : α → 𝕜
-| b := if h : a = b then 1 else
-  -∑ x in (Ico a b).attach,
-    have ha : a ≤ x, begin cases x, rw mem_Ico at x_property, exact x_property.1, end,
-    have hb : ↑x < b, begin cases x, rw mem_Ico at x_property, exact x_property.2, end,
-    have (Icc a x).card < (Icc a b).card, from card_Icc_lt_card_Icc_left (ha.trans_lt hb).le hb,
+| b := if h : a = b then 1 else -∑ x in (Ico a b).attach,
+    let h := mem_Ico.1 x.2 in
+    have (Icc a x).card < (Icc a b).card :=
+      card_lt_card (Icc_ssubset_Icc_right (h.1.trans h.2.le) le_rfl h.2),
     mu_aux x
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ b, (Icc a b).card)⟩] }
 
@@ -517,11 +516,9 @@ variables {𝕜 α}
 lemma mu_apply (a b : α) : mu 𝕜 α a b = if a = b then 1 else -∑ x in Ico a b, mu 𝕜 α a x :=
 by rw [mu, coe_mk, mu_aux_apply, sum_attach]
 
-lemma mu_apply_of_eq {a b : α} (h : a = b) : mu 𝕜 α a b = 1 :=
-by rw [mu_apply, if_pos h]
+lemma mu_apply_of_eq {a b : α} (h : a = b) : mu 𝕜 α a b = 1 := by rw [mu_apply, if_pos h]
 
-@[simp]
-lemma mu_apply_self (a : α) : mu 𝕜 α a a = 1 := mu_apply_of_eq rfl
+@[simp] lemma mu_apply_self (a : α) : mu 𝕜 α a a = 1 := mu_apply_of_eq rfl
 
 lemma mu_apply_of_ne {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ico a b, mu 𝕜 α a x :=
 by rw [mu_apply, if_neg h]
@@ -533,16 +530,17 @@ variables {𝕜 α} [add_comm_group 𝕜] [has_one 𝕜] [partial_order α] [loc
   [decidable_eq α]
 
 -- we need partial order for this
-lemma mu_spec_of_ne_right {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, mu 𝕜 α a x = 0 :=
+lemma mu_spec_of_ne_right {a b : α} (h : a ≠ b) : ∑ x in Icc a b, mu 𝕜 α a x = 0 :=
 begin
   have : mu 𝕜 α a b = _ := mu_apply_of_ne h,
   by_cases hab : a ≤ b,
-  { rw [sum_Icc_eq_add_sum_Ico hab, this, neg_add_self] },
+  { rw [←add_sum_Ico hab, this, neg_add_self] },
   { have : ∀ x ∈ Icc a b, ¬ a ≤ x,
     { intros x hx hn, apply hab, rw [mem_Icc] at hx, exact le_trans hn hx.2 },
-    conv in (mu _ _ _ _) { rw eq_zero_of_not_le (this x H) },
+    conv in (mu _ _ _ _) { rw apply_eq_zero_of_not_le (this x H) },
     exact sum_const_zero },
 end
+
 end mu_spec
 
 section mu'
@@ -554,9 +552,9 @@ variables [add_comm_group 𝕜] [has_one 𝕜] [preorder α] [locally_finite_ord
 private def mu'_aux (b : α) : α → 𝕜
 | a := if h : a = b then 1 else
   -∑ x in (Ioc a b).attach,
-    have ha : a < x, begin cases x, rw mem_Ioc at x_property, exact x_property.1, end,
-    have hb : ↑x ≤ b, begin cases x, rw mem_Ioc at x_property, exact x_property.2, end,
-    have (Icc ↑x b).card < (Icc a b).card, from card_Icc_lt_card_Icc_right (ha.le.trans hb) ha,
+    let h := mem_Ioc.1 x.2 in
+    have (Icc ↑x b).card < (Icc a b).card :=
+      card_lt_card (Icc_ssubset_Icc_left (h.1.le.trans h.2) h.1 le_rfl),
     mu'_aux x
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ a, (Icc a b).card)⟩] }
 
@@ -573,6 +571,7 @@ private def mu' : incidence_algebra 𝕜 α :=
     obtain ⟨⟨x, hx⟩, -⟩ := exists_ne_zero_of_sum_ne_zero h,
     exact (nonempty_Ioc.1 ⟨x, hx⟩).le }
 end⟩
+
 variables {𝕜 α}
 
 lemma mu'_apply (a b : α) : mu' 𝕜 α a b = if a = b then 1 else -∑ x in Ioc a b, mu' 𝕜 α x b :=
@@ -581,11 +580,10 @@ by rw [mu', coe_mk, mu'_aux_apply, sum_attach]
 lemma mu'_apply_of_ne {a b : α} (h : a ≠ b) : mu' 𝕜 α a b = -∑ x in Ioc a b, mu' 𝕜 α x b :=
 by rw [mu'_apply, if_neg h]
 
-lemma mu'_apply_of_eq {a b : α} (h : a = b) : mu' 𝕜 α a b = 1 :=
-by rw [mu'_apply, if_pos h]
+lemma mu'_apply_of_eq {a b : α} (h : a = b) : mu' 𝕜 α a b = 1 := by rw [mu'_apply, if_pos h]
 
-@[simp]
-lemma mu'_apply_self (a : α) : mu' 𝕜 α a a = 1 := mu'_apply_of_eq rfl
+@[simp] lemma mu'_apply_self (a : α) : mu' 𝕜 α a a = 1 := mu'_apply_of_eq rfl
+
 end mu'
 
 section mu'_spec
@@ -593,17 +591,17 @@ section mu'_spec
 variables [add_comm_group 𝕜] [has_one 𝕜] [partial_order α] [locally_finite_order α] [decidable_eq α]
 variables {𝕜 α}
 
-
-lemma mu'_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, (mu' 𝕜 α) x b = 0 :=
+lemma mu'_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ x in Icc a b, (mu' 𝕜 α) x b = 0 :=
 begin
   have : mu' 𝕜 α a b = _ := mu'_apply_of_ne h,
   by_cases hab : a ≤ b,
-  { rw [sum_Icc_eq_add_sum_Ioc hab, this, neg_add_self] },
+  { rw [←add_sum_Ioc hab, this, neg_add_self] },
   { have : ∀ x ∈ Icc a b, ¬ x ≤ b,
     { intros x hx hn, apply hab, rw [mem_Icc] at hx, exact le_trans hx.1 hn },
-    conv in (mu' _ _ _ _) { rw eq_zero_of_not_le (this x H) },
+    conv in (mu' _ _ _ _) { rw apply_eq_zero_of_not_le (this x H) },
     exact sum_const_zero }
 end
+
 end mu'_spec
 
 section mu_zeta
@@ -635,28 +633,17 @@ end
 end mu_zeta
 
 section mu_eq_mu'
-variables [ring 𝕜] [partial_order α] [locally_finite_order α]
-  [decidable_eq α]
+variables [ring 𝕜] [partial_order α] [locally_finite_order α] [decidable_eq α]
 
-lemma mu_eq_mu' : mu 𝕜 α = mu' 𝕜 α :=
-begin
-  letI : @decidable_rel α (≤) := classical.dec_rel _,
-  exact left_inv_eq_right_inv (mu_mul_zeta 𝕜 α) (zeta_mul_mu' 𝕜 α)
-end
+lemma mu_eq_mu' : mu 𝕜 α = mu' 𝕜 α := left_inv_eq_right_inv (mu_mul_zeta 𝕜 α) (zeta_mul_mu' 𝕜 α)
 
 lemma mu_apply_of_ne' {a b : α} (h : a ≠ b) : mu 𝕜 α a b = -∑ x in Ioc a b, mu 𝕜 α x b :=
-begin
-  rw mu_eq_mu',
-  exact mu'_apply_of_ne h,
-end
+by { rw mu_eq_mu', exact mu'_apply_of_ne h }
 
 lemma zeta_mul_mu [@decidable_rel α (≤)] : zeta 𝕜 α * mu 𝕜 α = 1 :=
-begin
-  rw mu_eq_mu',
-  exact zeta_mul_mu' 𝕜 α,
-end
+by { rw mu_eq_mu', exact zeta_mul_mu' 𝕜 α }
 
-lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ (x : α) in Icc a b, mu 𝕜 α x b = 0 :=
+lemma mu_spec_of_ne_left {a b : α} (h : a ≠ b) : ∑ x in Icc a b, mu 𝕜 α x b = 0 :=
 by rw [mu_eq_mu', mu'_spec_of_ne_left h]
 
 end mu_eq_mu'
@@ -664,17 +651,16 @@ end mu_eq_mu'
 section order_dual
 variables [ring 𝕜] [partial_order α] [locally_finite_order α] [decidable_eq α]
 
-open order_dual
-lemma mu_dual (a b : α) : mu 𝕜 (order_dual α) (to_dual a) (to_dual b) = mu 𝕜 α b a :=
+lemma mu_dual (a b : α) : mu 𝕜 αᵒᵈ (to_dual a) (to_dual b) = mu 𝕜 α b a :=
 begin
   letI : @decidable_rel α (≤) := classical.dec_rel _,
-  let mud : incidence_algebra 𝕜 (order_dual α) := { to_fun := λ a b, mu 𝕜 α b a,
-    eq_zero_of_not_le' := λ a b hab, eq_zero_of_not_le hab _ },
-  suffices : mu 𝕜 (order_dual α) = mud,
+  let mud : incidence_algebra 𝕜 αᵒᵈ := { to_fun := λ a b, mu 𝕜 α b a,
+    eq_zero_of_not_le' := λ a b hab, apply_eq_zero_of_not_le hab _ },
+  suffices : mu 𝕜 αᵒᵈ = mud,
   { rw [this], refl },
-  suffices : mud * zeta 𝕜 (order_dual α) = 1,
+  suffices : mud * zeta 𝕜 αᵒᵈ = 1,
   { rw ← mu_mul_zeta at this,
-    apply_fun (* (mu 𝕜 (order_dual α))) at this,
+    apply_fun (* (mu 𝕜 αᵒᵈ)) at this,
     symmetry,
     simpa [mul_assoc, zeta_mul_mu] using this },
   clear a b,
@@ -685,9 +671,10 @@ begin
   { simp only [h, if_false],
     conv in (ite _ _ _)
     { rw if_pos (mem_Icc.mp H).2 },
-    change ∑ (x : α) in (Icc b a : finset α), mu 𝕜 α x a = 0,
+    change ∑ x in (Icc b a : finset α), mu 𝕜 α x a = 0,
     exact mu_spec_of_ne_left _ _ (ne.symm h) }
 end
+
 end order_dual
 
 section inversion_top
@@ -728,11 +715,11 @@ by letI : @decidable_rel α (≤) := classical.dec_rel _; symmetry; calc
       { conv in ((mu _ _ * zeta _ _) _ _) { rw [mul_apply] },
         simp_rw [sum_mul] }
   ... = ∑ y in Ici x, ∑ z in Ici y, (1 : incidence_algebra 𝕜 α) x z * f z : by
-      { simp [mu_mul_zeta 𝕜 α, sum_Ici_eq_add_sum_Ioi],
+      { simp [mu_mul_zeta 𝕜 α, ←add_sum_Ioi],
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
         conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         simp }
-  ... = f x : by { simp [one_apply, sum_Ici_eq_add_sum_Ioi],
+  ... = f x : by { simp [one_apply, ←add_sum_Ioi],
         conv in (ite _ _ _) { rw if_neg (ne_of_lt $ mem_Ioi.mp H) },
         conv in (ite _ _ _) { rw if_neg (not_lt_of_le $ (mem_Ioi.mp H).le) },
         simp }
@@ -747,7 +734,7 @@ O'Donnell. -/
 lemma moebius_inversion_bot (f g : α → 𝕜) (h : ∀ x, g x = ∑ y in Iic x, f y) (x : α) :
   f x = ∑ y in Iic x, mu 𝕜 α y x * g y :=
 begin
-  convert @moebius_inversion_top 𝕜 (order_dual α) _ _ _ _ _ f g h x,
+  convert @moebius_inversion_top 𝕜 αᵒᵈ _ _ _ _ _ f g h x,
   ext y,
   erw mu_dual,
 end
@@ -774,7 +761,7 @@ variables {α β}
 variables [decidable_eq α] [decidable_eq β]
 lemma one_prod_apply (a b : α × β) :
   (1 : incidence_algebra 𝕜 (α × β)) a b =
-  (1 : incidence_algebra 𝕜 α) a.1 b.1 * (1 : incidence_algebra 𝕜 β) a.2 b.2 :=
+    (1 : incidence_algebra 𝕜 α) a.1 b.1 * (1 : incidence_algebra 𝕜 β) a.2 b.2 :=
 by simp [ite_and, prod.ext_iff]
 
 lemma one_prod_mk (a₁ a₂ : α) (b₁ b₂ : β) :
@@ -791,7 +778,7 @@ def mu_prod : incidence_algebra 𝕜 (α × β) :=
   eq_zero_of_not_le' := begin
     rintros ⟨a⟩ ⟨b⟩ hab,
     rw [prod.mk_le_mk, not_and_distrib] at hab,
-    cases hab; simp [eq_zero_of_not_le hab],
+    cases hab; simp [apply_eq_zero_of_not_le hab],
 end }
 
 variables {α β}
@@ -799,7 +786,6 @@ variables {α β}
 lemma mu_prod_mk (x y : α) (u v : β) : mu_prod 𝕜 α β (x, u) (y, v) = mu 𝕜 α x y * mu 𝕜 β u v := rfl
 lemma mu_prod_apply (a b : α × β) : mu_prod 𝕜 α β a b = mu 𝕜 α a.fst b.fst * mu 𝕜 β a.snd b.snd :=
 rfl
-
 
 end preorder
 

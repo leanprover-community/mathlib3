@@ -332,7 +332,7 @@ lemma convergent_zero (ξ : ℝ) : ξ.convergent 0 = ⌊ξ⌋ := rfl
 @[simp]
 lemma convergent_succ (ξ : ℝ) (n : ℕ) :
   ξ.convergent (n + 1) = ⌊ξ⌋ + ((fract ξ)⁻¹.convergent n)⁻¹ :=
-convergent.equations._eqn_2 ξ n
+by simp only [convergent]
 
 /-- All convergents of `0` are zero. -/
 @[simp]

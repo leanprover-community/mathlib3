@@ -227,11 +227,13 @@ begin
   exact hf_int.2,
 end
 
-lemma ae_strongly_measurable_todo {ρ : measure (α × β)} {κ : kernel α β} [is_s_finite_kernel κ]
-  {f : α × β → γ} (hf : ae_strongly_measurable f ρ) :
-  ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(κ x)) ρ.fst :=
+lemma ae_strongly_measurable_integral_cond_kernel {mα : measurable_space α} {mE : measurable_space E}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → E} (hf : ae_strongly_measurable f ρ) :
+  ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(cond_kernel ρ x)) ρ.fst :=
 begin
-  sorry
+  rw measure_eq_comp_prod ρ at hf,
+  exact ae_strongly_measurable.integral_kernel_prod_right' hf,
 end
 
 lemma aux {mE : measurable_space E} {ρ : measure (E × Ω)} [is_finite_measure ρ]

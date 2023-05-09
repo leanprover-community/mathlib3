@@ -93,7 +93,7 @@ end
 protected def map (f : α → β) (hf : continuous f) (K : compacts α) : compacts β :=
 ⟨f '' K.1, K.2.image hf⟩
 
-@[simp] lemma coe_map {f : α → β} (hf : continuous f) (s : compacts α) :
+@[simp, norm_cast] lemma coe_map {f : α → β} (hf : continuous f) (s : compacts α) :
   (s.map f hf : set β) = f '' s := rfl
 
 @[simp] lemma map_id (K : compacts α) : K.map id continuous_id = K := compacts.ext $ set.image_id _
@@ -247,7 +247,7 @@ protected def map (f : α → β) (hf : continuous f) (hf' : is_open_map f) (K :
     (K.interior_nonempty'.image _).mono (hf'.image_interior_subset K.to_compacts),
   ..K.map f hf }
 
-@[simp] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f)
+@[simp, norm_cast] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f)
   (s : positive_compacts α) :
   (s.map f hf hf' : set β) = f '' s := rfl
 
@@ -357,8 +357,8 @@ instance : inhabited (compact_opens α) := ⟨⊥⟩
   compact_opens β :=
 ⟨s.to_compacts.map f hf, hf' _ s.is_open⟩
 
-@[simp] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
-  (s.map f hf hf' : set β) = f '' s := rfl
+@[simp, norm_cast] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f)
+  (s : compact_opens α) : (s.map f hf hf' : set β) = f '' s := rfl
 
 @[simp] lemma map_id (K : compact_opens α) : K.map id continuous_id is_open_map.id = K :=
 compact_opens.ext $ set.image_id _

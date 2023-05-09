@@ -256,7 +256,7 @@ begin
         have h_le : (λ a, cond_kernel_real ρ a {x : ℝ | (a, x) ∈ t})
           ≤ᵐ[ρ.fst] λ a, cond_kernel_real ρ a univ,
         { exact eventually_of_forall (λ a, measure_mono (subset_univ _)), },
-        rw lintegral_sub (kernel.measurable_prod_mk_mem _ ht) _ h_le,
+        rw lintegral_sub (kernel.measurable_kernel_prod_mk_left ht) _ h_le,
         refine ((lintegral_mono_ae h_le).trans_lt _).ne,
         rw lintegral_cond_kernel_real_univ,
         exact measure_lt_top ρ univ,

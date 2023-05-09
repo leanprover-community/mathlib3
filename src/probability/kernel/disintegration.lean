@@ -119,7 +119,7 @@ lemma measurable_measure_cond_cdf (ρ : measure (α × ℝ)) :
 begin
   rw measure.measurable_measure,
   refine λ s hs, measurable_space.induction_on_inter
-    borel_eq_generate_from_Iic is_pi_system_Iic _ _ _ _ hs,
+    (borel_eq_generate_from_Iic ℝ) is_pi_system_Iic _ _ _ _ hs,
   { simp only [measure_empty, measurable_const], },
   { rintros S ⟨u, rfl⟩,
     simp_rw measure_cond_cdf_Iic ρ _ u,
@@ -173,7 +173,8 @@ begin
   -- `set_lintegral_cond_kernel_real_Iic` gives the result for `t = Iic x`. These sets form a
   -- π-system that generate the borel σ-algebra, hence we can get the same equality for any
   -- measurable set `t`.
-  refine measurable_space.induction_on_inter borel_eq_generate_from_Iic is_pi_system_Iic _ _ _ _ ht,
+  refine measurable_space.induction_on_inter (borel_eq_generate_from_Iic ℝ)
+    is_pi_system_Iic _ _ _ _ ht,
   { simp only [measure_empty, lintegral_const, zero_mul, prod_empty], },
   { rintros t ⟨q, rfl⟩,
     exact set_lintegral_cond_kernel_real_Iic ρ q hs, },

@@ -110,7 +110,7 @@ begin
       norm_cast, }, },
 end
 
-lemma ennreal.tendsto_at_top_at_bot [nonempty ι] [semilattice_sup ι]
+lemma ennreal.tendsto_at_top_zero_of_tendsto_at_top_at_bot [nonempty ι] [semilattice_sup ι]
   {f : ι → ℝ≥0∞} (h : tendsto f at_top at_bot) :
   tendsto f at_top (𝓝 0) :=
 begin
@@ -135,16 +135,10 @@ begin
       (λ i j hij, ennreal.of_real_le_of_real hij) hf, },
   { symmetry,
     rw [real.infi_of_not_bdd_below hf, ennreal.of_real_zero, ← ennreal.bot_eq_zero, infi_eq_bot],
-    intros x hx,
-    obtain ⟨i, hfi⟩ : ∃ i, f i ≤ 0,
-    { by_contra h,
-      refine hf ⟨0, _⟩,
-      rintros i ⟨y, rfl⟩,
-      push_neg at h,
-      exact (h y).le, },
-    refine ⟨i, _⟩,
-    rw ennreal.of_real_of_nonpos hfi,
-    exact hx, },
+    obtain ⟨y, hy_mem, hy_neg⟩ := not_bdd_below_iff.mp hf 0,
+    obtain ⟨i, rfl⟩ := mem_range.mpr hy_mem,
+    refine λ x hx, ⟨i, _⟩,
+    rwa ennreal.of_real_of_nonpos hy_neg.le, },
 end
 
 -- todo: move to measure_theory/measurable_space
@@ -474,7 +468,7 @@ begin
     have h_tendsto : tendsto (λ r, pre_cdf ρ (-r) a) at_top at_bot
       ∨ ∃ l, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 l) := tendsto_of_antitone h_anti,
     cases h_tendsto with h_bot h_tendsto,
-    { exact ⟨0, ennreal.tendsto_at_top_at_bot h_bot⟩, },
+    { exact ⟨0, ennreal.tendsto_at_top_zero_of_tendsto_at_top_at_bot h_bot⟩, },
     { exact h_tendsto, }, },
   classical,
   let F : α → ℝ≥0∞ := λ a,
@@ -934,5 +928,36 @@ end
 lemma lintegral_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ) :
   ∫⁻ a, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (univ ×ˢ Iic x) :=
 by rw [← set_lintegral_univ, set_lintegral_cond_cdf ρ _ measurable_set.univ]
+
+/-- The conditional cdf is a strongly measurable function of `a : α` for all `x : ℝ`. -/
+lemma strongly_measurable_cond_cdf (ρ : measure (α × ℝ)) (x : ℝ) :
+  strongly_measurable (λ a, cond_cdf ρ a x) :=
+(measurable_cond_cdf ρ x).strongly_measurable
+
+lemma set_integral_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ)
+  {s : set α} (hs : measurable_set s) :
+  ∫ a in s, cond_cdf ρ a x ∂ρ.fst = (ρ (s ×ˢ Iic x)).to_real :=
+begin
+  have h := set_lintegral_cond_cdf ρ x hs,
+  rw ← of_real_integral_eq_lintegral_of_real at h,
+  { rw [← h, ennreal.to_real_of_real],
+    exact integral_nonneg (λ _, cond_cdf_nonneg _ _ _), },
+  { refine integrable_of_forall_fin_meas_le _ (measure_lt_top ρ.fst univ) _ (λ t ht hρt, _),
+    { exact (strongly_measurable_cond_cdf ρ _).ae_strongly_measurable, },
+    { have : ∀ y, (‖cond_cdf ρ y x‖₊ : ℝ≥0∞) ≤ 1,
+      { intro y,
+        rw real.nnnorm_of_nonneg (cond_cdf_nonneg _ _ _),
+        exact_mod_cast cond_cdf_le_one _ _ _, },
+      refine (set_lintegral_mono (measurable_cond_cdf _ _).ennnorm
+        measurable_one (λ y _, this y)).trans _,
+      simp only [pi.one_apply, lintegral_one, measure.restrict_apply, measurable_set.univ,
+        univ_inter, measure.restrict_apply ht],
+      exact measure_mono (subset_univ _), }, },
+  { exact eventually_of_forall (λ _, cond_cdf_nonneg _ _ _), },
+end
+
+lemma integral_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : ℝ) :
+  ∫ a, cond_cdf ρ a x ∂ρ.fst = (ρ (univ ×ˢ Iic x)).to_real :=
+by rw [← set_integral_cond_cdf ρ _ measurable_set.univ, measure.restrict_univ]
 
 end probability_theory

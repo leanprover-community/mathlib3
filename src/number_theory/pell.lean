@@ -457,7 +457,7 @@ lemma d_nonsquare {a : solution₁ d} (h : is_fundamental a) : ¬ is_square d :=
 d_nonsquare_of_one_lt_x h.1
 
 /-- If there is a fundamental solution, it is unique. -/
-lemma unique {a b : solution₁ d} (ha : is_fundamental a) (hb : is_fundamental b) : a = b :=
+lemma subsingleton {a b : solution₁ d} (ha : is_fundamental a) (hb : is_fundamental b) : a = b :=
 begin
   have hx := le_antisymm (ha.2.2 hb.1) (hb.2.2 ha.1),
   refine solution₁.ext hx _,

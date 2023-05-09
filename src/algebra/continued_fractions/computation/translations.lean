@@ -8,6 +8,9 @@ import algebra.continued_fractions.translations
 /-!
 # Basic Translation Lemmas Between Structures Defined for Computing Continued Fractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 This is a collection of simple lemmas between the different structures used for the computation

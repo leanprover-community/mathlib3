@@ -13,9 +13,9 @@ is strongly measurable.
 
 ## Main statements
 
-* `probability_theory.measurable.lintegral_kernel_prod_right`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)`
-  is measurable, for an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that
-  `uncurry f` is measurable.
+* `measurable.lintegral_kernel_prod_right`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable,
+  for an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `uncurry f`
+  is measurable.
 * `measure_theory.strongly_measurable.integral_kernel_prod_right`: the function
   `a ↦ ∫ b, f a b ∂(κ a)` is measurable, for an s-finite kernel `κ : kernel α β` and a function
   `f : α → β → E` such that `uncurry f` is measurable.

@@ -32,7 +32,8 @@ See `pell.exists_of_not_is_square` and `pell.exists_nontrivial_of_not_is_square`
 
 We then define the *fundamental solution* to be the solution
 with smallest $x$ among all solutions satisfying $x > 1$ and $y > 0$.
-We show that every solution is a power of the fundamental solution up to a (common) sign,
+We show that every solution is a power (in the sense of the group structure mentioned above)
+of the fundamental solution up to a (common) sign,
 see `pell.fundamental.eq_zpow_or_neg_zpow`, and that a (positive) solution has this property
 if and only if it is fundamental, see `pell.pos_generator_iff_fundamental`.
 
@@ -287,7 +288,7 @@ end
 /-- If `(x, y)` is a solution with `x` and `y` positive, then the `y` component of any power
 has the same sign as the exponent. -/
 lemma sign_y_zpow_eq_sign_of_x_pos_of_y_pos {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
-   (n : ℤ) :
+  (n : ℤ) :
   (a ^ n).y.sign = n.sign :=
 begin
   rcases n with (_ | _) | _,

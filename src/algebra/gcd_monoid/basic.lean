@@ -806,11 +806,15 @@ end⟩
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
 
-@[simp] lemma lcm_mul_pow_eq_left [normalized_gcd_monoid α] {x y : α} (m : ℕ) [fact (0 < m)] :
+instance normalized_gcd_monoid_of_unique_units [gcd_monoid α] : normalized_gcd_monoid α :=
+{ normalize_gcd := λ _ _, normalize_eq _,
+  normalize_lcm := λ _ _, normalize_eq _,
+  ..normalization_monoid_of_unique_units }
+
+@[simp] lemma lcm_mul_pow_eq_left [gcd_monoid α] {x y : α} (m : ℕ) [fact (0 < m)] :
   lcm (x * y^m) y = x * y^m :=
-(lcm_eq_left_iff _ _ (by {convert normalize_eq (x * y^m)})).2
+(lcm_eq_left_iff _ _ (normalize_eq (x * y^m))).2
   (dvd_mul_of_dvd_right (dvd_pow_self y (ne_zero_of_lt' 0)) x)
--- normalize from different places, so convert needed
 
 /-- If a monoid's only unit is `1`, then it is isomorphic to its associates. -/
 @[simps]

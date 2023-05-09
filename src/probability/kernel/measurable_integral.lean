@@ -176,10 +176,9 @@ begin
   rwa this,
 end
 
-lemma measurable.lintegral_kernel_prod_right'' :
-  ∀ {f : β × γ → ℝ≥0∞} (hf : measurable f), measurable (λ x, ∫⁻ y, f (x, y) ∂(η (a, x))) :=
+lemma measurable.lintegral_kernel_prod_right'' {f : β × γ → ℝ≥0∞} (hf : measurable f) :
+  measurable (λ x, ∫⁻ y, f (x, y) ∂(η (a, x))) :=
 begin
-  intros f hf,
   change measurable ((λ x, ∫⁻ y, (λ u : (α × β) × γ, f (u.1.2, u.2)) (x, y) ∂(η x))
     ∘ (λ x, (a, x))),
   refine (measurable.lintegral_kernel_prod_right' _).comp measurable_prod_mk_left,

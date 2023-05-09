@@ -485,8 +485,8 @@ begin
   rw hb' at hb ⊢,
   norm_cast at hb ⊢,
   refine nat.find_min' P ⟨hb, |b.y|, abs_pos.mpr $ y_ne_zero_of_one_lt_x hb'', _⟩,
-  convert b.prop using 1,
   rw [← hb', sq_abs],
+  exact b.prop,
 end
 
 /-- The `n`th power of a fundamental solution is trivial if and only if `n = 0`. -/

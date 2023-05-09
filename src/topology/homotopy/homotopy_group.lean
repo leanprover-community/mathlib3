@@ -96,7 +96,7 @@ end
 
 end cube
 
-/-- Paths fixed at both ends -/
+/-- The space of paths with both endpoints equal to a specified point `x : X`. -/
 abbreviation loop_space (X : Type*) [topological_space X] (x : X) := path x x
 local notation `Ω` := loop_space
 
@@ -137,7 +137,7 @@ def const : gen_loop N x := ⟨continuous_map.const _ x, λ _ _, rfl⟩
 
 instance inhabited : inhabited (gen_loop N x) := ⟨const⟩
 
-/-- The "homotopy relative to boundary" relation between `gen_loop`s. -/
+/-- The "homotopic relative to boundary" relation between `gen_loop`s. -/
 def homotopic (f g : gen_loop N x) : Prop := f.1.homotopic_rel g.1 (cube.boundary N)
 
 namespace homotopic
@@ -214,13 +214,13 @@ abbreviation c_coe : C(gen_loop N x, C(cube N, X)) := ⟨λ p, p.val, continuous
 
 variable [decidable_eq N]
 
-/-- Composition with insert as a continuous map. -/
+/-- Composition with `cube.insert_at` as a continuous map. -/
 abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i}, X)) :=
 ⟨λ f, f.comp (cube.insert_at i).to_continuous_map,
   (cube.insert_at i).to_continuous_map.continuous_comp_left⟩
 
 /-- A homotopy between `n+1`-dimensional loops `p` and `q` constant on the boundary
-  seen as a continuous map from a square to the space of `n`-dimensional paths. -/
+  seen as a homotopy between two paths in the space of `n`-dimensional paths. -/
 @[simps] def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
   C(I × I, C(cube {j // j ≠ i}, X)) :=
 ((⟨_, continuous_map.continuous_curry⟩: C(_,_)).comp $
@@ -230,9 +230,9 @@ lemma homotopic_to (i : N) {p q : gen_loop N x} :
   homotopic p q → (to_path i p).homotopic (to_path i q) :=
 begin
   refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩, _⟩, _, _⟩, _⟩),
-  { rintros y ⟨i,iH⟩,
+  { rintros y ⟨i, iH⟩,
     rw homotopy_to_apply_apply, rw H.eq_fst, rw p.2,
-    all_goals { apply cube.insert_at_boundary, right, exact ⟨i,iH⟩} },
+    all_goals { apply cube.insert_at_boundary, right, exact ⟨i, iH⟩} },
   { continuity },
   show ∀ _ _ _, _,
   { intros t y yH,
@@ -243,7 +243,7 @@ begin
   exacts [H.apply_zero _, H.apply_one _],
 end
 
-/--Homotopy of paths to `C(I × cube N, X)`. -/
+/-- The converse to `gen_loop.homotopy_to`: a homotopy between two loops in the space of `n`-dimensional loops can be seen as a homotopy between two `n+1`-dimensional paths. -/
 @[simps] def homotopy_from (i : N) {p q : gen_loop N x}
   (H : (to_path i p).homotopy (to_path i q)) : C(I × cube N, X) :=
 ((⟨_, continuous_map.continuous_uncurry⟩ : C(_,_)).comp
@@ -267,14 +267,13 @@ begin
     apply congr_arg p <|> apply congr_arg q,
     exact (equiv.right_inv _ _).symm },
 end
--- above proofs: still room for golfing?
 
 end
 
 end gen_loop
 
 /-- The `n`th homotopy group at `x` defined as the quotient of `gen_loop n x` by the
-  `homotopic` relation. -/
+  `gen_loop.homotopic` relation. -/
 @[derive inhabited]
 def homotopy_group (N) (X : Type*) [topological_space X] (x : X) : Type _ :=
 quotient (gen_loop.homotopic.setoid N x)

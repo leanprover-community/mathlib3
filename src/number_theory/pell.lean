@@ -522,7 +522,7 @@ end
 /-- The `n`th power of a fundamental solution has positive `y` if and only if `n` is positive. -/
 lemma pow_y_pos_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : 0 < (a ^ n).y ↔ 0 < n :=
 begin
-  refine ⟨λ H, _, y_zpow_pos h.x_pos h.2.1⟩,
+  refine ⟨λ H, _, λ H, h.y_strict_mono H⟩,
   contrapose! H,
   exact h.y_strict_mono.monotone H,
 end
@@ -530,8 +530,9 @@ end
 /-- The `n`th power of a fundamental solution has negative `y` if and only if `n` is negative. -/
 lemma pow_y_neg_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : (a ^ n).y < 0 ↔ n < 0 :=
 begin
-  rw [← neg_neg n, zpow_neg, y_inv, neg_lt, neg_zero, neg_lt, neg_zero],
-  exact h.pow_y_pos_iff (-n),
+  refine ⟨λ H, _, λ H, h.y_strict_mono H⟩,
+  contrapose! H,
+  exact h.y_strict_mono.monotone H,
 end
 
 /-- A power of a fundamental solution is never equal to the negative of a power of this

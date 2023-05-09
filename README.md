@@ -101,6 +101,10 @@ Be warned that this will take some time if a fundamental file was changed.
 * Adam Topaz (@adamtopaz): algebra, category theory, algebraic geometry
 * Eric Wieser (@eric-wieser): algebra, infrastructure
 
+## Reviewers
+
+* Yaël Dillies (@YaelDillies): algebra, combinatorics, convex analysis, order theory
+
 ## Emeritus maintainers:
 
 * Jeremy Avigad (@avigad): analysis

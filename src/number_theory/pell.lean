@@ -693,7 +693,7 @@ begin
 end
 
 /-- A positive solution is a generator (up to sign) of the group of all solutions to the
-Pell equation `x^2 - d*y^2 = 1` if and only if it is a fundamental solution. -/
+Pell equation `x^2 - d*y^2 = 1` if and only if it is a fundamental solution.  -/
 theorem pos_generator_iff_fundamental (a : solution₁ d) :
   (1 < a.x ∧ 0 < a.y ∧ ∀ b : solution₁ d, ∃ n : ℤ, b = a ^ n ∨ b = -a ^ n) ↔ is_fundamental a :=
 begin

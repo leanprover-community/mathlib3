@@ -23,21 +23,22 @@ This file defines equality modulo an element in a commutative group.
 
 Delete `int.modeq` in favour of `add_comm_group.modeq`. Generalise `smodeq` to `add_subgroup` and
 redefine `add_comm_group.modeq` using it. Once this is done, we can rename `add_comm_group.modeq`
-to `add_subgroup.modeq` and multiplicativise it.
+to `add_subgroup.modeq` and multiplicativise it. Longer term, we could generalise to submonoids and
+also unify with `nat.modeq`.
 -/
 
 namespace add_comm_group
 variables {α : Type*}
 
 section add_comm_group
-variables [add_comm_group α] {p a a₁ a₂ b b₁ b₂ c : α} {n : ℤ}
+variables [add_comm_group α] {p a a₁ a₂ b b₁ b₂ c : α} {n : ℕ} {z : ℤ}
 
 /-- `a ≡ b [PMOD p]` means that `b` is congruent to `a` modulo `p`.
 
 Equivalently (as shown in `algebra.order.to_interval_mod`), `b` does not lie in the open interval
 `(a, a + p)` modulo `p`, or `to_Ico_mod hp a` disagrees with `to_Ioc_mod hp a` at `b`, or
 `to_Ico_div hp a` disagrees with `to_Ioc_div hp a` at `b`. -/
-def modeq (p a b : α) : Prop := ∃ n : ℤ, b - a = n • p
+def modeq (p a b : α) : Prop := ∃ z : ℤ, b - a = z • p
 
 notation a ` ≡ `:50 b ` [PMOD `:50 p `]`:0 := modeq p a b
 
@@ -67,11 +68,11 @@ modeq_comm.trans $ by simp [modeq, ←neg_eq_iff_eq_neg]
 
 alias modeq_neg ↔ modeq.of_neg' modeq.neg'
 
-@[simp] lemma zsmul_modeq_zsmul [no_zero_smul_divisors ℤ α] (hn : n ≠ 0) :
-  n • a ≡ n • b [PMOD (n • p)] ↔ a ≡ b [PMOD p] :=
+@[simp] lemma zsmul_modeq_zsmul [no_zero_smul_divisors ℤ α] (hn : z ≠ 0) :
+  z • a ≡ z • b [PMOD (z • p)] ↔ a ≡ b [PMOD p] :=
 exists_congr $ λ m, by rw [←smul_sub, smul_comm, smul_right_inj hn]; apply_instance
 
-@[simp] lemma nsmul_modeq_nsmul [no_zero_smul_divisors ℕ α] {n : ℕ} (hn : n ≠ 0) :
+@[simp] lemma nsmul_modeq_nsmul [no_zero_smul_divisors ℕ α] (hn : n ≠ 0) :
   n • a ≡ n • b [PMOD (n • p)] ↔ a ≡ b [PMOD p] :=
 exists_congr $ λ m, by rw [←smul_sub, smul_comm, smul_right_inj hn]; apply_instance
 
@@ -82,26 +83,26 @@ lemma modeq_sub (a b : α) : a ≡ b [PMOD b - a] := ⟨1, (one_smul _ _).symm�
 
 @[simp] lemma modeq_zero : a ≡ b [PMOD 0] ↔ a = b := by simp [modeq, sub_eq_zero, eq_comm]
 
-@[simp] lemma zsmul_modeq_zero (n : ℤ) : n • p ≡ 0 [PMOD p] := ⟨-n, by simp⟩
+@[simp] lemma zsmul_modeq_zero (z : ℤ) : z • p ≡ 0 [PMOD p] := ⟨-z, by simp⟩
 @[simp] lemma self_modeq_zero : p ≡ 0 [PMOD p] := ⟨-1, by simp⟩
 
-lemma add_zsmul_modeq : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
-lemma zsmul_add_modeq : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
-lemma add_nsmul_modeq {n : ℕ} : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
-lemma nsmul_add_modeq {n : ℕ} : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
+lemma add_zsmul_modeq : a + z • p ≡ a [PMOD p] := ⟨-z, by simp⟩
+lemma zsmul_add_modeq : z • p + a ≡ a [PMOD p] := ⟨-z, by simp⟩
+lemma add_nsmul_modeq : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
+lemma nsmul_add_modeq : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
 
 namespace modeq
 
-protected lemma of_zsmul : a ≡ b [PMOD (n • p)] → a ≡ b [PMOD p] :=
-λ ⟨m, hm⟩, ⟨m * n, by rwa [mul_smul]⟩
+protected lemma of_zsmul : a ≡ b [PMOD (z • p)] → a ≡ b [PMOD p] :=
+λ ⟨m, hm⟩, ⟨m * z, by rwa [mul_smul]⟩
 
-protected lemma of_nsmul {n : ℕ} : a ≡ b [PMOD (n • p)] → a ≡ b [PMOD p] :=
+protected lemma of_nsmul : a ≡ b [PMOD (n • p)] → a ≡ b [PMOD p] :=
 λ ⟨m, hm⟩, ⟨m * n, by rwa [mul_smul, coe_nat_zsmul]⟩
 
-protected lemma zsmul : a ≡ b [PMOD p] → n • a ≡ n • b [PMOD (n • p)] :=
+protected lemma zsmul : a ≡ b [PMOD p] → z • a ≡ z • b [PMOD (z • p)] :=
 Exists.imp $ λ m hm, by rw [←smul_sub, hm, smul_comm]
 
-protected lemma nsmul {n : ℕ} : a ≡ b [PMOD p] → n • a ≡ n • b [PMOD (n • p)] :=
+protected lemma nsmul : a ≡ b [PMOD p] → n • a ≡ n • b [PMOD (n • p)] :=
 Exists.imp $ λ m hm, by rw [←smul_sub, hm, smul_comm]
 
 @[simp] protected lemma add_iff_left :
@@ -150,10 +151,10 @@ modeq_rfl.sub_left_cancel
 protected lemma sub_right_cancel' (c : α) : a - c ≡ b - c [PMOD p] → a ≡ b [PMOD p] :=
 modeq_rfl.sub_right_cancel
 
-protected lemma add_zsmul : a ≡ b [PMOD p] → a + n • p ≡ b [PMOD p] := add_zsmul_modeq.trans
-protected lemma zsmul_add : a ≡ b [PMOD p] → n • p + a ≡ b [PMOD p] := zsmul_add_modeq.trans
-protected lemma add_nsmul {n : ℕ} : a ≡ b [PMOD p] → a + n • p ≡ b [PMOD p] := add_nsmul_modeq.trans
-protected lemma nsmul_add {n : ℕ} : a ≡ b [PMOD p] → n • p + a ≡ b [PMOD p] := nsmul_add_modeq.trans
+protected lemma add_zsmul : a ≡ b [PMOD p] → a + z • p ≡ b [PMOD p] := add_zsmul_modeq.trans
+protected lemma zsmul_add : a ≡ b [PMOD p] → z • p + a ≡ b [PMOD p] := zsmul_add_modeq.trans
+protected lemma add_nsmul : a ≡ b [PMOD p] → a + n • p ≡ b [PMOD p] := add_nsmul_modeq.trans
+protected lemma nsmul_add : a ≡ b [PMOD p] → n • p + a ≡ b [PMOD p] := nsmul_add_modeq.trans
 
 end modeq
 
@@ -174,10 +175,10 @@ by simp [←modeq_sub_iff_add_modeq']
 @[simp] lemma add_modeq_right : a + b ≡ b [PMOD p] ↔ a ≡ 0 [PMOD p] :=
 by simp [←modeq_sub_iff_add_modeq]
 
-lemma modeq_iff_eq_add_zsmul : a ≡ b [PMOD p] ↔ ∃ n : ℤ, b = a + n • p :=
+lemma modeq_iff_eq_add_zsmul : a ≡ b [PMOD p] ↔ ∃ z : ℤ, b = a + z • p :=
 by simp_rw [modeq, sub_eq_iff_eq_add']
 
-lemma not_modeq_iff_ne_add_zsmul : ¬a ≡ b [PMOD p] ↔ ∀ n : ℤ, b ≠ a + n • p :=
+lemma not_modeq_iff_ne_add_zsmul : ¬a ≡ b [PMOD p] ↔ ∀ z : ℤ, b ≠ a + z • p :=
 by rw [modeq_iff_eq_add_zsmul, not_exists]
 
 lemma modeq_iff_eq_mod_zmultiples : a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
@@ -190,15 +191,15 @@ modeq_iff_eq_mod_zmultiples.not
 
 end add_comm_group
 
-@[simp] lemma modeq_iff_int_modeq {a b n : ℤ} : a ≡ b [PMOD n] ↔ a ≡ b [ZMOD n] :=
+@[simp] lemma modeq_iff_int_modeq {a b z : ℤ} : a ≡ b [PMOD z] ↔ a ≡ b [ZMOD z] :=
 by simp [modeq, dvd_iff_exists_eq_mul_left, int.modeq_iff_dvd]
 
 section add_comm_group_with_one
 variables [add_comm_group_with_one α] [char_zero α]
 
 @[simp, norm_cast]
-lemma int_cast_modeq_int_cast {a b n : ℤ} : a ≡ b [PMOD (n : α)] ↔ a ≡ b [PMOD n] :=
-by simp_rw [modeq, ←int.cast_mul']; norm_cast
+lemma int_cast_modeq_int_cast {a b z : ℤ} : a ≡ b [PMOD (z : α)] ↔ a ≡ b [PMOD z] :=
+by simp_rw [modeq, ←int.cast_mul_eq_zsmul_cast]; norm_cast
 
 @[simp, norm_cast]
 lemma nat_cast_modeq_nat_cast {a b n : ℕ} : a ≡ b [PMOD (n : α)] ↔ a ≡ b [MOD n] :=

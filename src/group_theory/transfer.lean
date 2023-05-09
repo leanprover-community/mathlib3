@@ -169,7 +169,7 @@ rfl
 
 section burnside_transfer
 
-variables {p : ℕ} (P : sylow p G) (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer)
+variables {p : ℕ} (P : sylow p G) (hP : (P : subgroup G).normalizer ≤ centralizer (P : set G))
 
 include hP
 

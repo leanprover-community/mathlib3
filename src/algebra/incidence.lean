@@ -314,7 +314,7 @@ instance [preorder α] [locally_finite_order α] [decidable_eq α] [ring 𝕜] :
   ring (incidence_algebra 𝕜 α) :=
 { .. incidence_algebra.semiring 𝕜 α, .. incidence_algebra.add_group 𝕜 α }
 
-/-! ### Scalar multiplication betwen incidence algebras -/
+/-! ### Scalar multiplication between incidence algebras -/
 
 section smul
 variables [preorder α] [locally_finite_order α] [add_comm_monoid 𝕜] [add_comm_monoid 𝕝]

@@ -6,11 +6,18 @@ Authors: Rémy Degenne
 import probability.kernel.composition
 
 /-!
-# Integral of a function against the `comp_prod` kernel
+# Bochner integral of a function against the composition-product of two kernels
+
+We prove properties of the composition-product of two kernels. If `κ` is an s-finite kernel from
+`α` to `β` and `η` is an s-finite kernel from `α × β` to `γ`, we can form their composition-product
+`κ ⊗ₖ η : kernel α (β × γ)`. We proved in `probability.kernel.lintegral_comp_prod` that it verifies
+`∫⁻ bc, f bc ∂((κ ⊗ₖ η) a) = ∫⁻ b, ∫⁻ c, f (b, c) ∂(η (a, b)) ∂(κ a)`. In this file, we prove the
+same equality for the Bochner integral.
 
 ## Main statements
 
-* `foo_bar_unique`
+* `probability_theory.integral_comp_prod`: the integral against the composition-product is
+  `∫ z, f z ∂((κ ⊗ₖ η) a) = ∫ x, ∫ y, f (x, y) ∂(η (a, x)) ∂(κ a)`
 
 ## Implementation details
 
@@ -32,12 +39,9 @@ variables {α β γ E : Type*}
   {η : kernel (α × β) γ} [is_s_finite_kernel η]
   {a : α}
 
-/-! ### The product measure -/
-
 namespace probability_theory
 
-lemma ae_kernel_lt_top (a : α) {s : set (β × γ)} (hs : measurable_set s)
-  (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
+lemma ae_kernel_lt_top (a : α) {s : set (β × γ)} (hs : measurable_set s) (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
   ∀ᵐ b ∂(κ a), η (a, b) (prod.mk b ⁻¹' s) < ∞ :=
 begin
   rw kernel.comp_prod_apply _ _ _ hs at h2s,
@@ -48,8 +52,7 @@ lemma integrable_kernel_prod_mk_left (a : α)
   {s : set (β × γ)} (hs : measurable_set s) (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
   integrable (λ b, (η (a, b) (prod.mk b ⁻¹' s)).to_real) (κ a) :=
 begin
-  refine ⟨(kernel.measurable_kernel_prod_mk_left' hs a).ennreal_to_real.ae_strongly_measurable,
-    _⟩,
+  refine ⟨(kernel.measurable_kernel_prod_mk_left' hs a).ennreal_to_real.ae_strongly_measurable, _⟩,
   simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
   convert h2s.lt_top using 1,
   rw kernel.comp_prod_apply _ _ _ hs,
@@ -107,39 +110,33 @@ begin
   rw lintegral_indicator _ hs,
 end
 
-lemma restrict_comp_prod_eq_comp_prod_univ {s : set β} (hs : measurable_set s) :
+lemma comp_prod_restrict_left {s : set β} (hs : measurable_set s) :
   (kernel.restrict κ hs) ⊗ₖ η = kernel.restrict (κ ⊗ₖ η) (hs.prod measurable_set.univ) :=
 by { rw ← comp_prod_restrict, congr, exact kernel.restrict_univ.symm, }
 
-end probability_theory
+lemma comp_prod_restrict_right {t : set γ} (ht : measurable_set t) :
+  κ ⊗ₖ (kernel.restrict η ht) = kernel.restrict (κ ⊗ₖ η) (measurable_set.univ.prod ht) :=
+by { rw ← comp_prod_restrict, congr, exact kernel.restrict_univ.symm, }
 
-open probability_theory
-
-namespace measure_theory
-
-lemma ae_strongly_measurable.integral_kernel_prod_right'
+lemma _root_.measure_theory.ae_strongly_measurable.integral_kernel_prod_right'
   [normed_space ℝ E] [complete_space E]
   ⦃f : β × γ → E⦄ (hf : ae_strongly_measurable f ((κ ⊗ₖ η) a)) :
   ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(η (a, x))) (κ a) :=
 ⟨λ x, ∫ y, hf.mk f (x, y) ∂(η (a, x)), hf.strongly_measurable_mk.integral_kernel_prod_right'',
   by { filter_upwards [ae_ae_of_ae_comp_prod hf.ae_eq_mk] with _ hx using integral_congr_ae hx }⟩
 
-lemma ae_strongly_measurable.comp_prod_mk_left
+lemma _root_.measure_theory.ae_strongly_measurable.comp_prod_mk_left
   {δ : Type*} [topological_space δ] {f : β × γ → δ}
   (hf : ae_strongly_measurable f ((κ ⊗ₖ η) a)) :
-  ∀ᵐ x ∂(κ a), ae_strongly_measurable (λ y, f (x, y)) (η (a , x)) :=
+  ∀ᵐ x ∂(κ a), ae_strongly_measurable (λ y, f (x, y)) (η (a, x)) :=
 begin
   filter_upwards [ae_ae_of_ae_comp_prod hf.ae_eq_mk] with x hx,
   exact ⟨λ y, hf.mk f (x, y), hf.strongly_measurable_mk.comp_measurable measurable_prod_mk_left, hx⟩
 end
 
-end measure_theory
+/-! ### Lebesgue integral -/
 
-namespace probability_theory
-
-/-! ### The Lebesgue integral on a product -/
-
-lemma kernel.lintegral_comp_prod'' (f : β × γ → ℝ≥0∞) (hf : ae_measurable f ((κ ⊗ₖ η) a)) :
+lemma kernel.lintegral_comp_prod₀ (f : β × γ → ℝ≥0∞) (hf : ae_measurable f ((κ ⊗ₖ η) a)) :
   ∫⁻ z, f z ∂((κ ⊗ₖ η) a) = ∫⁻ x, ∫⁻ y, f (x, y) ∂(η (a, x)) ∂(κ a) :=
 begin
   have A : ∫⁻ z, f z ∂((κ ⊗ₖ η) a) = ∫⁻ z, hf.mk f z ∂((κ ⊗ₖ η) a) :=
@@ -151,7 +148,7 @@ begin
   exact hf.measurable_mk,
 end
 
-/-! ### Integrability on a product -/
+/-! ### Integrability -/
 
 lemma has_finite_integral_comp_prod_iff ⦃f : β × γ → E⦄ (h1f : strongly_measurable f) :
   has_finite_integral f ((κ ⊗ₖ η) a)
@@ -217,7 +214,7 @@ integrable.mono hf.integral_norm_comp_prod_left
   (norm_of_nonneg $ integral_nonneg_of_ae $ eventually_of_forall $
   λ y, (norm_nonneg (f (x, y)) : _)).symm
 
-/-! ### The Bochner integral on a product -/
+/-! ### Bochner integral -/
 
 variables [normed_space ℝ E] [complete_space E]
   {E' : Type*} [normed_add_comm_group E'] [complete_space E'] [normed_space ℝ E']
@@ -299,7 +296,7 @@ begin
   rw [← tendsto_iff_norm_tendsto_zero], exact tendsto_id
 end
 
-lemma integral_comp_prod : ∀ (f : β × γ → E) (hf : integrable f ((κ ⊗ₖ η) a)),
+lemma integral_comp_prod : ∀ {f : β × γ → E} (hf : integrable f ((κ ⊗ₖ η) a)),
   ∫ z, f z ∂((κ ⊗ₖ η) a) = ∫ x, ∫ y, f (x, y) ∂(η (a, x)) ∂(κ a) :=
 begin
   apply integrable.induction,
@@ -325,7 +322,7 @@ begin
       exact integral_congr_ae (ae_eq_symm hfgx) } }
 end
 
-lemma set_integral_comp_prod (f : β × γ → E) {s : set β} {t : set γ}
+lemma set_integral_comp_prod {f : β × γ → E} {s : set β} {t : set γ}
   (hs : measurable_set s) (ht : measurable_set t) (hf : integrable_on f (s ×ˢ t) ((κ ⊗ₖ η) a)) :
   ∫ z in s ×ˢ t, f z ∂((κ ⊗ₖ η) a) = ∫ x in s, ∫ y in t, f (x, y) ∂(η (a, x)) ∂(κ a) :=
 begin
@@ -334,9 +331,14 @@ begin
   { rw [comp_prod_restrict, kernel.restrict_apply], exact hf, },
 end
 
-lemma set_integral_comp_prod_univ (f : β × γ → E) {s : set β}
+lemma set_integral_comp_prod_univ_right (f : β × γ → E) {s : set β}
   (hs : measurable_set s) (hf : integrable_on f (s ×ˢ univ) ((κ ⊗ₖ η) a)) :
   ∫ z in s ×ˢ univ, f z ∂((κ ⊗ₖ η) a) = ∫ x in s, ∫ y, f (x, y) ∂(η (a, x)) ∂(κ a) :=
-by { rw set_integral_comp_prod f hs measurable_set.univ hf, simp_rw measure.restrict_univ, }
+by { rw set_integral_comp_prod hs measurable_set.univ hf, simp_rw measure.restrict_univ, }
+
+lemma set_integral_comp_prod_univ_left (f : β × γ → E) {t : set γ}
+  (ht : measurable_set t) (hf : integrable_on f (univ ×ˢ t) ((κ ⊗ₖ η) a)) :
+  ∫ z in univ ×ˢ t, f z ∂((κ ⊗ₖ η) a) = ∫ x, ∫ y in t, f (x, y) ∂(η (a, x)) ∂(κ a) :=
+by { rw set_integral_comp_prod measurable_set.univ ht hf, simp_rw measure.restrict_univ, }
 
 end probability_theory

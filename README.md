@@ -103,7 +103,19 @@ Be warned that this will take some time if a fundamental file was changed.
 
 ## Reviewers
 
+* Aaron Anderson (@awainverse)
+* Alex J Best (@alexjbest)
+* Thomas Browning (@tb65536)
+* Kevin Buzzard (@kbuzzard)
+* Anatole Dedecker (@ADedecker)
 * Yaël Dillies (@YaelDillies): algebra, combinatorics, convex analysis, order theory
+* Moritz Doll (@mcdoll)
+* Jireh Loreaux (@j-loreaux)
+* Joseph Myers (@jsm28)
+* Joël Riou (@joelriou)
+* Junyan Xu (@alreadydone)
+* Andrew Yang (@erdOne)
+* Kexing Ying (@JasonKYi)
 
 ## Emeritus maintainers:
 

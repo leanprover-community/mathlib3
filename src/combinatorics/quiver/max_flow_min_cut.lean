@@ -30,11 +30,11 @@ then its value is equal to the capacity of a minimum cut in the same network.
 
 - `no_augm_path`         : if the active flow gives a maximum flow, then there is no augmenting path in the residual network.
 - `existence_of_a_cut`   : there exists a cut with a capacity equal to the value of the maximum flow.
-- `max_flow_min_cut`     : if f is a max flow and c is a min cut in the same network, then their valies are equal (max flow min cut theorem).
+- `max_flow_min_cut`     : if f is a max flow and c is a min cut in the same network, then their values are equal (max flow min cut theorem).
 
 ## Notation
 
-- Type V is used for the set of all vertices in our graph.
+- Type V is used for the set of all vertices in our graph. It is a finite type.
 
 ## References
 
@@ -44,11 +44,10 @@ then its value is equal to the capacity of a minimum cut in the same network.
 
 open finset
 
-
 open_locale big_operators
 open_locale classical
 
-notation ` V' ` := univ
+notation ` V' ` := univ -- The universe, containing all vertices.
 
 /-!
   We now define our flow network. Our goal will be to prove weak_duality.
@@ -57,7 +56,7 @@ notation ` V' ` := univ
 
 structure digraph (V : Type*) [inst : fintype V] :=
   (is_edge : V → V → Prop)
-  (hnonsymmetric : ∀ u v : V, ¬ ((is_edge u v) ∧ (is_edge v u)))
+  (nonsymmetric : ∀ u v : V, ¬ ((is_edge u v) ∧ (is_edge v u)))
 
 structure capacity (V : Type*) [inst : fintype V]
   extends digraph V :=
@@ -81,11 +80,11 @@ def mk_out {V : Type* } [inst : fintype V]
 structure active_flow_network (V : Type*)  [fintype V] :=
   (network : flow_network V)
   (f : V -> V -> ℝ)
-  (sourceNotSink: network.source ≠ network.sink)
+  (source_not_sink: network.source ≠ network.sink)
   (non_neg_flow : ∀ u v : V, f u v ≥ 0)
   (no_overflow : ∀ u v : V, f u v ≤ network.c u v)
-  (noEdgesInSource : ∀ u : V, ¬ (network.is_edge u network.source))
-  (noEdgesOutSink : ∀ u: V, ¬ (network.is_edge network.sink u))
+  (no_edges_in_source : ∀ u : V, ¬ (network.is_edge u network.source))
+  (no_edges_out_sink : ∀ u: V, ¬ (network.is_edge network.sink u))
   (conservation : ∀ v : V,
                   v ∈ (V' : finset V) \ {network.source, network.sink} →
                   mk_out f {v} = mk_in f {v})
@@ -98,7 +97,7 @@ def F_value {V : Type*}  [fintype V] :
 structure cut (V : Type*)  [fintype V] :=
   (network : flow_network V)
   (S : finset V)
-  (T : finset V )
+  (T : finset V)
   (sins : network.source ∈ S)
   (tint : network.sink ∈ T)
   (Tcomp : T = univ \ S)
@@ -111,10 +110,7 @@ lemma f_vanishes_outside_edge {V : Type*} [fintype V]
   (afn : active_flow_network V) (u : V) (v : V) (not_edge: ¬afn.network.is_edge u v) :
   afn.f u v = 0 :=
   begin
-    have cap_is_zero: afn.network.c u v = 0 :=
-      begin
-        exact afn.network.vanishes u v not_edge,
-      end,
+    have zeroCap: afn.network.c u v = 0 := afn.network.vanishes u v not_edge,
     have bar := afn.no_overflow u v,
     have foo := afn.non_neg_flow u v,
     linarith,
@@ -127,18 +123,16 @@ begin
   cases c,
   simp only [mem_singleton] at *,
   rw c_Tcomp at xInS,
-  have h : univ \ c_S ∩ c_S = ∅ := sdiff_inter_self c_S univ,
-  have foo : disjoint (univ \ c_S)  c_S  := sdiff_disjoint,
-  have bar : c_network.source ∈ c_S := c_sins,
+  have h: univ \ c_S ∩ c_S = ∅ := sdiff_inter_self c_S univ,
+  have foo: disjoint (univ \ c_S)  c_S  := sdiff_disjoint,
+  have bar: c_network.source ∈ c_S := c_sins,
   exact disjoint_iff_ne.mp foo x xInS c_network.source c_sins
 end
-
-lemma foobar { a b : ℝ } : a + - b = a - b := rfl
 
 lemma f_zero {V : Type*}  [inst' : fintype V]
   (afn : active_flow_network V) (x : V) : afn.f x x = 0 :=
 begin
-  have hnonsymm : _ := afn.network.hnonsymmetric x x,
+  have hnonsymm: _ := afn.network.nonsymmetric x x,
   have hvanish: _ := afn.network.vanishes x x,
   simp only [not_and, imp_not_self] at hnonsymm,
   have hnon_edge := hnonsymm, clear hnonsymm,
@@ -155,12 +149,11 @@ lemma mk_in_single_node { V : Type* }  [fintype V]
   mk_in (afn.f) {p} = ∑ v in finset.univ, (afn.f) v p :=
 begin
   rw @sum_eq_sum_diff_singleton_add _ _ _ _ univ p (by simp only [mem_univ]) (λ x, afn.f x p),
-  have foo : (λ (x : V), afn.f x p) p = afn.f p p := rfl,
   simp only [congr_fun],
   rw f_zero afn p,
-  have bar : ∑ (x : V) in univ \ {p}, afn.f x p + 0 =
+  have foo: ∑ (x : V) in univ \ {p}, afn.f x p + 0 =
   (λ p', ∑ (x : V) in univ \ {p'}, afn.f x p') p := by simp only [add_zero],
-  rw bar, clear bar,
+  rw foo, clear foo,
   rw ← @finset.sum_singleton _ _ p (λp', ∑ (x : V) in univ \ {p'}, afn.f x p' ) _,
   simp only [mk_in, sum_singleton],
 end
@@ -174,12 +167,11 @@ lemma mk_out_single_node { V : Type* }  [fintype V]
   mk_out afn.f {p} = ∑ v in finset.univ, (afn.f) p v :=
 begin
   rw @sum_eq_sum_diff_singleton_add _ _ _ _ univ p (by simp only [mem_univ]) (λ x, afn.f p x),
-  have foo : (λ (x : V), afn.f p x) p = afn.f p p := rfl,
   simp only [congr_fun],
   rw f_zero afn p,
-  have bar : ∑ (x : V) in univ \ {p}, afn.f p x + 0 =
+  have foo: ∑ (x : V) in univ \ {p}, afn.f p x + 0 =
   (λ p', ∑ (x : V) in univ \ {p'}, afn.f p' x) p := by simp only [add_zero],
-  rw bar, clear bar,
+  rw foo, clear foo,
   rw ← @finset.sum_singleton _ _ p (λp', ∑ (x : V) in univ \ {p'}, afn.f p' x) _,
   simp only [mk_out, sum_singleton],
 end
@@ -201,9 +193,11 @@ begin
   intro hx,
   unfold edge_flow,
   rw afn.conservation x,
-  {ring},
-  {exact hx,}
+  { ring },
+  { exact hx },
 end
+
+lemma foobar { a b : ℝ } : a + - b = a - b := rfl
 
 lemma sub_comm_zero (a b : ℝ) : a - b = 0 → b - a = 0 := by {intro eq, linarith}
 
@@ -217,7 +211,7 @@ begin
   rw ← add_zero (mk_in afn.f S),
   nth_rewrite 0 ← add_neg_self (∑ u in S, (∑ v in S, afn.f u v)),
   rw ← add_assoc,
-  have tmp: mk_in afn.f S + ∑ u in S, ∑ v in S, afn.f u v = ∑ u in S, ∑ v in V', afn.f v u :=
+  have foo: mk_in afn.f S + ∑ u in S, ∑ v in S, afn.f u v = ∑ u in S, ∑ v in V', afn.f v u :=
   begin
     unfold mk_in,
     have h: S ⊆ V' := finset.subset_univ S,
@@ -228,43 +222,42 @@ begin
     rw hyp,
     exact swap,
   end,
-  have tmp2: mk_out afn.f S + (∑ u in S, ∑ v in S, afn.f u v) = ∑ u in S, ∑ v in V', afn.f u v :=
+  have bar: mk_out afn.f S + (∑ u in S, ∑ v in S, afn.f u v) = ∑ u in S, ∑ v in V', afn.f u v :=
   begin
     unfold mk_out,
     rw finset.sum_comm,
     have h: S ⊆ V' := finset.subset_univ S,
-    have hyp:
+    have baz:
     ∑ (y : V) in V' \ S, ∑ (x : V) in S, afn.f x y + ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u =
     ∑ u in V', ∑ v in S, afn.f v u := finset.sum_sdiff h,
-    have obvs: ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u =
+    have bark: ∑ (u : V) in S, ∑ (v : V) in S, afn.f v u =
     ∑ (u : V) in S, ∑ (v : V) in S, afn.f u v := finset.sum_comm,
     have swap: ∑ u in V', ∑ v in S, afn.f v u = ∑ u in S, ∑ v in V', afn.f u v := finset.sum_comm,
-    rw obvs at hyp,
-    rw hyp,
+    rw bark at baz,
+    rw baz,
     exact swap,
   end,
-  rw tmp,
+  rw foo,
   rw add_assoc,
   rw break_out_neg,
   nth_rewrite 1 add_comm,
-  rw tmp2,
-  clear tmp tmp2,
+  rw bar,
+  clear foo bar,
   rw foobar,
   rw ← @sum_sub_distrib _ _ S _ _ _,
   simp only [mk_in_single_node', mk_out_single_node'],
-  have hseq : S = S := rfl,
   have h : ∀ (x : V), x ∈ S -> - edge_flow afn x = 0 :=
   begin
     intros x hx,
     unfold edge_flow,
     rw afn.conservation x,
-    { ring, },
-    { exact finset.mem_of_subset stNotInS hx,}
+    { ring },
+    { exact finset.mem_of_subset stNotInS hx },
   end,
-  have foo := finset.sum_congr hseq h,
-  unfold edge_flow at foo,
-  simp at foo,
-  rw ← foo,
+  have baz := finset.sum_congr rfl h,
+  unfold edge_flow at baz,
+  simp at baz,
+  rw ← baz,
   simp,
 end
 
@@ -293,6 +286,223 @@ begin
   simp
 end
 
+lemma sdiff_finset_sdiff_singleton_eq_sdiff_singleton {V : Type*}  [inst' : fintype V]
+  (S : finset V) (s : V) : (s ∈ S) → V' \ (S \ {s}) \ {s} = V' \ S :=
+begin
+  intro sInS,
+  have sSubsetS: {s} ⊆  S := (finset.singleton_subset_iff).2 sInS,
+  ext x,
+  have eq1: V' \ (S \ {s}) \ {s} = V' \ (S \ {s}) ∩ (V' \ {s}) :=
+  finset.sdiff_sdiff_left' V' (S \ {s}) {s},
+  rw eq1,
+  have xIn: x ∈ V' := finset.mem_univ x,
+  split,
+  {
+    intro hyp,
+    have xIn1: x ∈ V' \ (S \ {s}) := (finset.mem_inter.1 hyp).1,
+    have xIn2: x ∈ V' \ {s} := (finset.mem_inter.1 hyp).2,
+    have xOut: x ∉ S :=
+    begin
+      have xOut1: x ∉ (S \ {s}) := (finset.mem_sdiff.1 xIn1).2,
+      have xOut2: x ∉ {s} := (finset.mem_sdiff.1 xIn2).2,
+      have xOutAnd: x ∉ (S \ {s}) ∧ x ∉ {s} := and.intro xOut1 xOut2,
+      have eq2: S = (S \ {s}) ∪ {s} :=
+      begin
+        have inter: S ∩ {s} = {s} := finset.inter_singleton_of_mem sInS,
+        have eq3: (S \ {s}) ∪ S ∩ {s} = S := by rw finset.sdiff_union_inter S {s},
+        calc
+          S
+              = (S \ {s}) ∪ S ∩ {s} : eq_comm.1 eq3
+          ... = (S \ {s}) ∪ {s} : by rw inter,
+      end,
+      rw eq2,
+      exact finset.not_mem_union.2 xOutAnd,
+    end,
+    have concl: x ∈ V' ∧ x ∉ S := and.intro xIn xOut,
+    exact finset.mem_sdiff.2 concl,
+  },
+  intro hyp,
+  have xOutS: x ∉ S := (finset.mem_sdiff.1 hyp).2,
+  have xOut: x ∉ S \ {s} :=
+  begin
+    by_contradiction h,
+    have contr: x ∈ S := (finset.mem_sdiff.1 h).1,
+    exact absurd contr xOutS,
+  end,
+  have sdiff: x ∈ V' ∧ x ∉ S \ {s} := and.intro xIn xOut,
+  have xIn1: x ∈ V' \ (S \ {s}) := finset.mem_sdiff.2 sdiff,
+  have xNotIns: x ∉ {s} :=
+  begin
+    by_contradiction h,
+    have contr: x ∈ S := finset.mem_of_subset sSubsetS h,
+    exact absurd contr xOutS,
+  end,
+  have concl: x ∈ V' ∧ x ∉ {s} := and.intro xIn xNotIns,
+  have xIn2: x ∈ V' \ {s} := finset.mem_sdiff.2 concl,
+  have member: x ∈ V' \ (S \ {s}) ∧ x ∈ V' \ {s} := and.intro xIn1 xIn2,
+  exact finset.mem_inter.2 member,
+end
+
+lemma sdiff_finset_union_finset_eq_sdiff_singleton {V : Type*}  [inst' : fintype V]
+  (S : finset V) (s : V) : (s ∈ S) → V' \ S ∪ S \ {s} = V' \ {s} :=
+begin
+  intro sInS,
+  have sSubsetS: {s} ⊆  S := (finset.singleton_subset_iff).2 sInS,
+  ext x,
+  have xIn: x ∈ V' := finset.mem_univ x,
+  split,
+  {
+    intro hyp,
+    have foo: x ∈ V' \ S ∨ x ∈ S \ {s} := finset.mem_union.1 hyp,
+    have bar: x ∈ V' \ S → x ∈ V' \ {s} :=
+    begin
+      intro hypo,
+      have xOutS: x ∉ S := (finset.mem_sdiff.1 hypo).2,
+      have xNotIns: x ∉ {s} :=
+      begin
+        by_contradiction h,
+        have contr: x ∈ S := finset.mem_of_subset sSubsetS h,
+        exact absurd contr xOutS,
+      end,
+      have concl: x ∈ V' ∧ x ∉ {s} := and.intro xIn xNotIns,
+      exact finset.mem_sdiff.2 concl,
+    end,
+    have baz: x ∈ S \ {s} → x ∈ V' \ {s} :=
+    begin
+      intro hypo,
+      have xNotIns: x ∉ {s} := (finset.mem_sdiff.1 hypo).2,
+      have concl: x ∈ V' ∧ x ∉ {s} := and.intro xIn xNotIns,
+      exact finset.mem_sdiff.2 concl,
+    end,
+    exact or.elim foo bar baz,
+  },
+  intro hyp,
+  have xNotIns: x ∉ {s} := (finset.mem_sdiff.1 hyp).2,
+  by_cases h' : x ∈ S,
+  {
+    have and: x ∈ S ∧ x ∉ {s} := and.intro h' xNotIns,
+    have xInSs: x ∈ S \ {s} := finset.mem_sdiff.2 and,
+    have conj: x ∈ V' \ S ∨ x ∈ S \ {s} := or.intro_right (x ∈ V' \ S) xInSs,
+    exact finset.mem_union.2 conj,
+  },
+  {
+    have and: x ∈ V' ∧ x ∉ S := and.intro xIn h',
+    have xInVS: x ∈ V' \ S := finset.mem_sdiff.2 and,
+    have conj: x ∈ V' \ S ∨ x ∈ S \ {s} := or.intro_left (x ∈ S \ {s}) xInVS,
+    exact finset.mem_union.2 conj,
+  },
+end
+
+lemma disjoint_sdiff_finset_sdiff_singleton {V : Type*}  [inst' : fintype V]
+  (S : finset V) (s : V) : disjoint (V' \ S) (S \ {s}) :=
+begin
+  have foo: (V' \ S) ∩ (S \ {s}) = ∅ :=
+  begin
+    have noMembers: ∀ (v : V), v ∉ (V' \ S) ∩ (S \ {s}) :=
+    begin
+    intro v,
+    by_contradiction h,
+    have vInVmS: v ∈ (V' \ S) := (finset.mem_inter.1 h).1,
+    have vNotInS: v ∉ S := (finset.mem_sdiff.1 vInVmS).2,
+    have vInSms: v ∈ (S \ {s}) := (finset.mem_inter.1 h).2,
+    have vInS: v ∈ S := (finset.mem_sdiff.1 vInSms).1,
+    exact absurd vInS vNotInS,
+    end,
+    exact finset.eq_empty_of_forall_not_mem noMembers,
+  end,
+  have bar: ¬ ((V' \ S) ∩ (S \ {s})).nonempty :=
+  begin
+    by_contradiction h,
+    have contr: (V' \ S) ∩ (S \ {s}) ≠ ∅ := finset.nonempty.ne_empty h,
+    exact absurd foo contr,
+  end,
+  by_contradiction notDisjoint,
+  have contr: ((V' \ S) ∩ (S \ {s})).nonempty := finset.not_disjoint_iff_nonempty_inter.1 notDisjoint,
+  exact absurd contr bar,
+end
+
+lemma sum_sdiff_singleton_sum_sdiff_finset_sdiff_singleton {V : Type*}  [inst' : fintype V]
+  (f : V → V → ℝ) (S : finset V) (s : V) :
+  (s ∈ S) →  ∑ (x : V) in (S \ {s}), ∑ (y : V) in V' \ (S \ {s}), f x y =
+  ∑ (x : V) in (S \ {s}), f x s + ∑ (x : V) in (S \ {s}), ∑ (y : V) in V' \ S, f x y :=
+begin
+  intro sInS,
+  have singleton: s ∈ {s} := finset.mem_singleton.2 rfl,
+  have disjS: disjoint {s} (S \ {s}) :=
+    begin
+      have sOut: s ∉ (S \ {s}) := finset.not_mem_sdiff_of_mem_right singleton,
+      exact finset.disjoint_singleton_left.2 sOut,
+    end,
+  have sInCompl: {s} ⊆ V' \ (S \ {s}) :=
+  begin
+    have sIn: {s} ⊆ V' := finset.subset_univ {s},
+    have conj: {s} ⊆ V' ∧ disjoint {s} (S \ {s}) := and.intro sIn disjS,
+    exact finset.subset_sdiff.2 conj,
+  end,
+  have foo: ∑ (x : V) in (S \ {s}), ∑ (y : V) in V' \ (S \ {s}), f x y =
+  ∑ (y : V) in V' \ (S \ {s}), ∑ (x : V) in (S \ {s}), f x y := finset.sum_comm,
+  have bar: ∑ (y : V) in V' \ (S \ {s}), ∑ (x : V) in (S \ {s}), f x y =
+  ∑ (y : V) in V' \ S, ∑ (x : V) in (S \ {s}), f x y + ∑ (y : V) in {s}, ∑ (x : V) in (S \ {s}), f x y :=
+  by {rw ← finset.sum_sdiff sInCompl, rw sdiff_finset_sdiff_singleton_eq_sdiff_singleton S s sInS},
+  have baz: ∑ (y : V) in {s}, ∑ (x : V) in (S \ {s}), f x y = ∑ (x : V) in (S \ {s}), f x s :=
+  by simp,
+  have swap: ∑ (y : V) in V' \ S, ∑ (x : V) in S \ {s}, f x y =
+  ∑ (x : V) in S \ {s}, ∑ (y : V) in V' \ S, f x y := finset.sum_comm,
+  rw baz at bar,
+  rw [foo, bar, add_comm, swap],
+end
+
+lemma in_expansion {V : Type*}  [inst' : fintype V]
+  (f : V → V → ℝ) (S : finset V) (s : V) :
+  (s ∈ S) → ∑ (x : V) in V' \ S, ∑ (y : V) in S, f x y =
+  ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y + ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
+begin
+  intro sInS,
+  have sSubsetS: {s} ⊆  S := (finset.singleton_subset_iff).2 sInS,
+  have foo: ∑ (x : V) in V' \ S, ∑ (y : V) in S, f x y = ∑ (y : V) in S, ∑ (x : V) in V' \ S, f x y :=
+  finset.sum_comm,
+  have bar: ∑ (y : V) in S, ∑ (x : V) in V' \ S, f x y =
+  ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y + ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y :=
+  by {rw finset.sum_sdiff sSubsetS},
+  have swap:
+  ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y + ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y =
+  ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y + ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
+  begin
+    have swap1: ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y =
+    ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y := finset.sum_comm,
+    have swap2: ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y =
+    ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y := finset.sum_comm,
+    linarith,
+  end,
+  linarith,
+end
+
+lemma sum_sdiff_finset_sdiff_singleton_sum_sdiff_singleton {V : Type*}  [inst' : fintype V]
+  (f : V → V → ℝ) (S : finset V) (s : V) :
+  (s ∈ S) → ∑ (x : V) in V' \ (S \ {s}), ∑ (y : V) in S \ {s}, f x y =
+  ∑ (x : V) in V' \ S, ∑ (y : V) in S \ {s}, f x y + ∑ (u : V) in S \ {s}, f s u :=
+begin
+  intro sInS,
+  have singleton: s ∈ {s} := finset.mem_singleton.2 rfl,
+  have disjS: disjoint {s} (S \ {s}) :=
+    begin
+      have sOut: s ∉ (S \ {s}) := finset.not_mem_sdiff_of_mem_right singleton,
+      exact finset.disjoint_singleton_left.2 sOut,
+    end,
+  have sInCompl: {s} ⊆ V' \ (S \ {s}) :=
+  begin
+    have sIn: {s} ⊆ V' := finset.subset_univ {s},
+    have conj: {s} ⊆ V' ∧ disjoint {s} (S \ {s}) := and.intro sIn disjS,
+    exact finset.subset_sdiff.2 conj,
+  end,
+  have foo: ∑ (x : V) in V' \ (S \ {s}), ∑ (y : V) in S \ {s}, f x y =
+    ∑ (x : V) in V' \ S, ∑ (y : V) in S \ {s}, f x y + ∑ (x : V) in {s}, ∑ (y : V) in S \ {s}, f x y :=
+  by {rw ← finset.sum_sdiff sInCompl, rw sdiff_finset_sdiff_singleton_eq_sdiff_singleton S s sInS},
+  have bar: ∑ (x : V) in {s}, ∑ (y : V) in S \ {s}, f x y = ∑ (u : V) in S \ {s}, f s u :=
+  by simp,
+  linarith,
+end
+
 lemma flow_value_source_in_S {V : Type*}  [inst' : fintype V]
   (afn : active_flow_network V) (ct : cut V)
   (same_net : afn.network = ct.network) :
@@ -304,10 +514,7 @@ begin
   set s := afn.network.source,
   set t := afn.network.sink,
   set f := afn.f,
-  have same: s = s := rfl,
-  have hs : s = afn.network.source := rfl,
-  have hT : T = ct.T := rfl,
-  have singleton: s ∈ {s} := finset.mem_singleton.2 same,
+  have singleton: s ∈ {s} := finset.mem_singleton.2 rfl,
   have sInS: s ∈ S :=
   begin
     have same_source: s = ct.network.source := (same_source_and_sink afn ct same_net).1,
@@ -330,7 +537,7 @@ begin
   begin
     by_contradiction h,
     have contr: s = t := by rw ← h,
-    exact absurd contr afn.sourceNotSink,
+    exact absurd contr afn.source_not_sink,
   end,
   have tNotInS: t ∉ S :=
   begin
@@ -344,135 +551,14 @@ begin
     exact finset.not_mem_sdiff_of_mem_right tInT,
   end,
   have seteq: V' \ (S \ {s}) \ {s} = V' \ S :=
-  begin
-    ext x,
-    have eq1: V' \ (S \ {s}) \ {s} = V' \ (S \ {s}) ∩ (V' \ {s}) :=
-    finset.sdiff_sdiff_left' V' (S \ {s}) {s},
-    rw eq1,
-    have xIn: x ∈ V' := finset.mem_univ x,
-    split,
-    {
-      intro hyp,
-      have xIn1: x ∈ V' \ (S \ {s}) := (finset.mem_inter.1 hyp).1,
-      have xIn2: x ∈ V' \ {s} := (finset.mem_inter.1 hyp).2,
-      have xOut: x ∉ S :=
-      begin
-        have xOut1: x ∉ (S \ {s}) := (finset.mem_sdiff.1 xIn1).2,
-        have xOut2: x ∉ {s} := (finset.mem_sdiff.1 xIn2).2,
-        have xOutAnd: x ∉ (S \ {s}) ∧ x ∉ {s} := and.intro xOut1 xOut2,
-        have eq2: S = (S \ {s}) ∪ {s} :=
-        begin
-          have inter: S ∩ {s} = {s} := finset.inter_singleton_of_mem sInS,
-          have eq3: (S \ {s}) ∪ S ∩ {s} = S := by rw finset.sdiff_union_inter S {s},
-          calc
-            S
-                = (S \ {s}) ∪ S ∩ {s} : eq_comm.1 eq3
-            ... = (S \ {s}) ∪ {s} : by rw inter,
-        end,
-        rw eq2,
-        exact finset.not_mem_union.2 xOutAnd,
-      end,
-      have concl: x ∈ V' ∧ x ∉ S := and.intro xIn xOut,
-      exact finset.mem_sdiff.2 concl,
-    },
-    intro hyp,
-    have xOutS: x ∉ S := (finset.mem_sdiff.1 hyp).2,
-    have xOut: x ∉ S \ {s} :=
-    begin
-      by_contradiction h,
-      have contr: x ∈ S := (finset.mem_sdiff.1 h).1,
-      exact absurd contr xOutS,
-    end,
-    have sdiff: x ∈ V' ∧ x ∉ S \ {s} := and.intro xIn xOut,
-    have xIn1: x ∈ V' \ (S \ {s}) := finset.mem_sdiff.2 sdiff,
-    have xNotIns: x ∉ {s} :=
-    begin
-      by_contradiction h,
-      have contr: x ∈ S := finset.mem_of_subset sSubsetS h,
-      exact absurd contr xOutS,
-    end,
-    have concl: x ∈ V' ∧ x ∉ {s} := and.intro xIn xNotIns,
-    have xIn2: x ∈ V' \ {s} := finset.mem_sdiff.2 concl,
-    have member: x ∈ V' \ (S \ {s}) ∧ x ∈ V' \ {s} := and.intro xIn1 xIn2,
-    exact finset.mem_inter.2 member,
-  end,
+  sdiff_finset_sdiff_singleton_eq_sdiff_singleton S s sInS,
   have union: V' \ S ∪ S \ {s} = V' \ {s} :=
-  begin
-    ext x,
-    have xIn: x ∈ V' := finset.mem_univ x,
-    split,
-    {
-      intro hyp,
-      have h1: x ∈ V' \ S ∨ x ∈ S \ {s} := finset.mem_union.1 hyp,
-      have h2: x ∈ V' \ S → x ∈ V' \ {s} :=
-      begin
-        intro hypo,
-        have xOutS: x ∉ S := (finset.mem_sdiff.1 hypo).2,
-        have xNotIns: x ∉ {s} :=
-        begin
-          by_contradiction h,
-          have contr: x ∈ S := finset.mem_of_subset sSubsetS h,
-          exact absurd contr xOutS,
-        end,
-        have concl: x ∈ V' ∧ x ∉ {s} := and.intro xIn xNotIns,
-        exact finset.mem_sdiff.2 concl,
-      end,
-      have h3: x ∈ S \ {s} → x ∈ V' \ {s} :=
-      begin
-        intro hypo,
-        have xNotIns: x ∉ {s} := (finset.mem_sdiff.1 hypo).2,
-        have concl: x ∈ V' ∧ x ∉ {s} := and.intro xIn xNotIns,
-        exact finset.mem_sdiff.2 concl,
-      end,
-      exact or.elim h1 h2 h3,
-    },
-    intro hyp,
-    have xNotIns: x ∉ {s} := (finset.mem_sdiff.1 hyp).2,
-    by_cases h' : x ∈ S,
-    {
-      have and: x ∈ S ∧ x ∉ {s} := and.intro h' xNotIns,
-      have xInSs: x ∈ S \ {s} := finset.mem_sdiff.2 and,
-      have conj: x ∈ V' \ S ∨ x ∈ S \ {s} := or.intro_right (x ∈ V' \ S) xInSs,
-      exact finset.mem_union.2 conj,
-    },
-    {
-      have and: x ∈ V' ∧ x ∉ S := and.intro xIn h',
-      have xInVS: x ∈ V' \ S := finset.mem_sdiff.2 and,
-      have conj: x ∈ V' \ S ∨ x ∈ S \ {s} := or.intro_left (x ∈ S \ {s}) xInVS,
-      exact finset.mem_union.2 conj,
-    },
-  end,
-  have disj: disjoint (V' \ S) (S \ {s}) :=
-  begin
-    have h1: (V' \ S) ∩ (S \ {s}) = ∅ :=
-    begin
-      have noMembers: ∀ (v : V), v ∉ (V' \ S) ∩ (S \ {s}) :=
-      begin
-      intro v,
-      by_contradiction h,
-      have vInVmS: v ∈ (V' \ S) := (finset.mem_inter.1 h).1,
-      have vNotInS: v ∉ S := (finset.mem_sdiff.1 vInVmS).2,
-      have vInSms: v ∈ (S \ {s}) := (finset.mem_inter.1 h).2,
-      have vInS: v ∈ S := (finset.mem_sdiff.1 vInSms).1,
-      exact absurd vInS vNotInS,
-      end,
-      exact finset.eq_empty_of_forall_not_mem noMembers,
-    end,
-    have h2: ¬ ((V' \ S) ∩ (S \ {s})).nonempty :=
-    begin
-      by_contradiction h,
-      have contr: (V' \ S) ∩ (S \ {s}) ≠ ∅ := finset.nonempty.ne_empty h,
-      exact absurd h1 contr,
-    end,
-    by_contradiction notDisjoint,
-    have contr: ((V' \ S) ∩ (S \ {s})).nonempty := finset.not_disjoint_iff_nonempty_inter.1 notDisjoint,
-    exact absurd contr h2,
-  end,
+  sdiff_finset_union_finset_eq_sdiff_singleton S s sInS,
+  have disj: disjoint (V' \ S) (S \ {s}) := disjoint_sdiff_finset_sdiff_singleton S s,
   have disjTS: disjoint {t} {s} := finset.disjoint_singleton.2 (tNots),
   have expand: mk_out f {s} + (mk_out f (S \ {s}) - mk_in f (S \ {s})) - mk_in f {s}
   =  mk_out f {s} - mk_in f {s} :=
   begin
-    have h3: s ∉ S \ {s} := finset.not_mem_sdiff_of_mem_right singleton,
     have eq: mk_out f (S \ {s}) - mk_in f (S \ {s}) = 0 :=
     begin
       have h: (S \ {s}) ⊆ finset.univ \ {s,t} :=
@@ -523,24 +609,13 @@ begin
     have eq2: ∑ (x : V) in {s}, ∑ (y : V) in V' \ S, f x y = ∑ (y : V) in V' \ S, f s y := by simp,
     have eq3: ∑ (x : V) in (S \ {s}), ∑ (y : V) in V' \ (S \ {s}), f x y =
     ∑ (x : V) in (S \ {s}), f x s + ∑ (x : V) in (S \ {s}), ∑ (y : V) in V' \ S, f x y :=
-    begin
-      have obvs: ∑ (x : V) in (S \ {s}), ∑ (y : V) in V' \ (S \ {s}), f x y =
-      ∑ (y : V) in V' \ (S \ {s}), ∑ (x : V) in (S \ {s}), f x y := finset.sum_comm,
-      have sdiff: ∑ (y : V) in V' \ (S \ {s}), ∑ (x : V) in (S \ {s}), f x y =
-      ∑ (y : V) in V' \ S, ∑ (x : V) in (S \ {s}), f x y + ∑ (y : V) in {s}, ∑ (x : V) in (S \ {s}), f x y :=
-      by {rw ← finset.sum_sdiff sInCompl, rw seteq},
-      have obs: ∑ (y : V) in {s}, ∑ (x : V) in (S \ {s}), f x y = ∑ (x : V) in (S \ {s}), f x s := by {simp},
-      have swap: ∑ (y : V) in V' \ S, ∑ (x : V) in S \ {s}, f x y =
-      ∑ (x : V) in S \ {s}, ∑ (y : V) in V' \ S, f x y := finset.sum_comm,
-      rw obs at sdiff,
-      rw [obvs, sdiff, add_comm, swap],
-    end,
+    sum_sdiff_singleton_sum_sdiff_finset_sdiff_singleton f S s sInS,
     have eq4: ∑ (x : V) in {s}, ∑ (y : V) in V' \ {s}, f x y =
     ∑ (y : V) in V' \ S, f s y + ∑ (u : V) in S \ {s}, f s u :=
     begin
-      have obvs: ∑ (x : V) in {s}, ∑ (y : V) in V' \ {s}, f x y =
-      ∑ (y : V) in V' \ {s}, f s y := by {simp},
-      rw obvs,
+      have foo: ∑ (x : V) in {s}, ∑ (y : V) in V' \ {s}, f x y =
+      ∑ (y : V) in V' \ {s}, f s y := by simp,
+      rw foo,
       rw ← union,
       exact finset.sum_union disj,
     end,
@@ -552,41 +627,21 @@ begin
     unfold mk_in,
     have eq1: ∑ (x : V) in V' \ S, ∑ (y : V) in S, f x y =
     ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y + ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
-    begin
-      have obvs: ∑ (x : V) in V' \ S, ∑ (y : V) in S, f x y = ∑ (y : V) in S, ∑ (x : V) in V' \ S, f x y := finset.sum_comm,
-      have sdiff: ∑ (y : V) in S, ∑ (x : V) in V' \ S, f x y =
-      ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y + ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y :=
-      by {rw finset.sum_sdiff sSubsetS},
-      have swap: ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y + ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y =
-      ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y + ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
-      begin
-        have eq11: ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y =
-        ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y := finset.sum_comm,
-        have eq12: ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y =
-        ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y := finset.sum_comm,
-        linarith,
-      end,
-      linarith,
-    end,
-    have eq2: ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y = ∑ (u : V) in V' \ S, f u s := by {simp},
+    in_expansion f S s sInS,
+    have eq2: ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y = ∑ (u : V) in V' \ S, f u s :=
+    by simp,
     have eq3: ∑ (x : V) in V' \ (S \ {s}), ∑ (y : V) in S \ {s}, f x y =
     ∑ (x : V) in V' \ S, ∑ (y : V) in S \ {s}, f x y + ∑ (u : V) in S \ {s}, f s u :=
-    begin
-      have eq31: ∑ (x : V) in V' \ (S \ {s}), ∑ (y : V) in S \ {s}, f x y =
-      ∑ (x : V) in V' \ S, ∑ (y : V) in S \ {s}, f x y + ∑ (x : V) in {s}, ∑ (y : V) in S \ {s}, f x y :=
-      by {rw ← finset.sum_sdiff sInCompl, rw seteq},
-      have eq32: ∑ (x : V) in {s}, ∑ (y : V) in S \ {s}, f x y = ∑ (u : V) in S \ {s}, f s u := by {simp},
-      linarith,
-    end,
+    sum_sdiff_finset_sdiff_singleton_sum_sdiff_singleton f S s sInS,
     have eq4: ∑ (x : V) in V' \ {s}, ∑ (y : V) in {s}, f x y =
     ∑ (u : V) in V' \ S, f u s + ∑ (u : V) in S \ {s}, f u s :=
     begin
-      have obvs: ∑ (u : V) in V' \ S, f u s =
-      ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y := by {simp},
-      have obs: ∑ (u : V) in S \ {s}, f u s =
-      ∑ (x : V) in S \ {s}, ∑ (y : V) in {s}, f x y := by {simp},
+      have foo: ∑ (u : V) in V' \ S, f u s =
+      ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y := by simp,
+      have bar: ∑ (u : V) in S \ {s}, f u s =
+      ∑ (x : V) in S \ {s}, ∑ (y : V) in {s}, f x y := by simp,
       rw ← union,
-      rw [obvs,obs],
+      rw [foo,bar],
       exact finset.sum_union disj,
     end,
     linarith,
@@ -603,7 +658,7 @@ end
 -/
 
 lemma weak_duality {V: Type*} [inst' : fintype V]
-  (afn: active_flow_network V) (ct : cut V) (same_net : afn.network = ct.network):
+  (afn : active_flow_network V) (ct : cut V) (same_net : afn.network = ct.network):
   F_value afn ≤ cut_cap ct :=
 begin
   set S := ct.S,
@@ -611,38 +666,6 @@ begin
   set s := afn.network.source,
   set t := afn.network.sink,
   unfold cut_cap,
-  have same: s = s := by {simp},
-  have hs : s = afn.network.source := rfl,
-  have hT : T = ct.T := rfl,
-  have singleton: s ∈ {s} := finset.mem_singleton.2 same,
-  have sInS: s ∈ S :=
-  begin
-    have same_source: s = ct.network.source := (same_source_and_sink afn ct same_net).1,
-    rw same_source,
-    exact ct.sins,
-  end,
-  have sInCompl: {s} ⊆ V' \ (S \ {s}) :=
-  begin
-    have sIn: {s} ⊆ V' := finset.subset_univ {s},
-    have disjS: disjoint {s} (S \ {s}) :=
-    begin
-      have sOut: s ∉ (S \ {s}) := finset.not_mem_sdiff_of_mem_right singleton,
-      exact finset.disjoint_singleton_left.2 sOut,
-    end,
-    have conj: {s} ⊆ V' ∧ disjoint {s} (S \ {s}) := and.intro sIn disjS,
-    exact finset.subset_sdiff.2 conj,
-  end,
-  have tNotInS: t ∉ S :=
-  begin
-    have same_sink: t = ct.network.sink := (same_source_and_sink afn ct same_net).2,
-    have tInT: t ∈ T := by {rw same_sink, exact ct.tint},
-    have Tcomp : T = univ \ S := ct.Tcomp,
-    have foo: S = univ \ (univ \ S) :=
-    by {simp only [sdiff_sdiff_right_self, finset.inf_eq_inter, finset.univ_inter]},
-    have Scomp : S = univ \ T := by {rw ← Tcomp at foo, exact foo},
-    rw Scomp at *,
-    exact finset.not_mem_sdiff_of_mem_right tInT,
-  end,
   have lemma1: F_value afn = mk_out afn.f S - mk_in afn.f S :=
   by {unfold F_value, exact flow_value_source_in_S afn ct same_net},
   have lemma2: mk_out afn.f S ≤  mk_out ct.network.to_capacity.c S :=
@@ -676,9 +699,6 @@ begin
   apply le_trans lemma3 lemma2,
 end
 
-lemma zero_left_move {a b c d : ℝ} : (0 = a + b - c - d) -> (d - b = a - c) :=
-by {intro h, linarith}
-
 def is_max_flow  {V : Type*}  [inst' : fintype V]
   (fn: active_flow_network V) : Prop :=
   ∀ fn' : active_flow_network V, fn.network = fn'.network → F_value fn' ≤ F_value fn
@@ -687,7 +707,7 @@ def is_min_cut {V : Type*}  [inst' : fintype V]
   (fn: cut V) : Prop := ∀ fn' : cut V, fn.network = fn'.network → cut_cap fn ≤ cut_cap fn'
 
 lemma max_flow_criterion  {V : Type*}  [inst' : fintype V]
-  (afn : active_flow_network V) (ct : cut V) (hsame_network: afn.network = ct.network):
+  (afn : active_flow_network V) (ct : cut V) (hsame_network : afn.network = ct.network):
   cut_cap ct = F_value afn -> is_max_flow afn :=
 begin
   intros eq fn same_net,
@@ -716,7 +736,7 @@ def mk_rsf {V : Type*}  [inst' : fintype V] -- stays for residual flow
   (afn : active_flow_network V)
   (u v : V) : ℝ :=
   if  afn.network.is_edge u v
-  then afn.network.c  u v - afn.f u v
+  then afn.network.c u v - afn.f u v
   else if afn.network.is_edge v u
         then afn.f v u
         else 0
@@ -726,7 +746,7 @@ structure residual_network  (V : Type*)  [inst' : fintype V] :=
   (f' : V -> V -> ℝ)
   (f_def : f' = mk_rsf afn)
   (is_edge : V -> V -> Prop)
-  (is_edge_def : is_edge = λ u v, f' u v > 0 )
+  (is_edge_def : is_edge = λ u v, f' u v > 0)
 
 noncomputable
 def mk_rsn {V : Type*} [fintype V] -- stays for residual network
@@ -736,18 +756,20 @@ def mk_rsn {V : Type*} [fintype V] -- stays for residual network
 universe u
 
 /-
-  We define a path structure indicating if there is a path between two vertices,
-  given the edges in the graph.
+  We define a recursive structure returning the path between two vertices,
+  if such a path exists, given the edges in the graph.
 -/
-
 inductive path {V : Type u } (is_edge : V -> V -> Prop) (a : V) : V → Type (u + 1)
 | nil  : path a
 | cons : Π {b c : V}, path b → (is_edge b c) → path c
 
-def no_augumenting_path {V : Type*} [inst' : fintype V]
+def no_augmenting_path {V : Type*} [inst' : fintype V]
   (rsn : residual_network V) : Prop :=
   ∀ t : V, ∀ p : path rsn.is_edge rsn.afn.network.source t, ¬ (t = rsn.afn.network.sink)
 
+/-
+  Given two vertices $u and $v, returns true if and only if (u,v) is an edge in a given path.
+-/
 def path.in {V : Type u }
   {is_edge : V -> V -> Prop}
   (u v : V)
@@ -763,24 +785,32 @@ begin
   simp only,
   rw rsn_f_def,
   unfold mk_rsf,
-  have tmp := classical.em (rsn_afn.network.to_capacity.to_digraph.is_edge u v),
-  cases tmp,
+  have foo := classical.em (rsn_afn.network.to_capacity.to_digraph.is_edge u v),
+  cases foo,
   {
-    simp only [tmp, if_true, sub_nonneg, rsn_afn.no_overflow],
+    simp only [foo, if_true, sub_nonneg, rsn_afn.no_overflow],
   },
   {
-    simp only [tmp, if_false], clear tmp,
-    have tmp := classical.em (rsn_afn.network.to_capacity.to_digraph.is_edge v u),
-    cases tmp,
+    simp only [foo, if_false], clear foo,
+    have bar := classical.em (rsn_afn.network.to_capacity.to_digraph.is_edge v u),
+    cases bar,
     {
       have h := rsn_afn.non_neg_flow v u,
-      simp only [tmp, h, if_true],
+      simp only [bar, h, if_true],
       linarith,
     },
     {
-      simp only [tmp, if_false],
+      simp only [bar, if_false],
     },
   },
+end
+
+lemma positive_residual_flow {V : Type*} [inst' : fintype V]
+  (rsn : residual_network V) (u v : V) : rsn.is_edge u v → rsn.f' u v > 0 :=
+begin
+  intro edge,
+  rw rsn.is_edge_def at edge,
+  exact edge,
 end
 
 /-!
@@ -789,154 +819,431 @@ end
 -/
 
 lemma no_augm_path {V : Type*} [inst' : fintype V]
-  (rsn : residual_network V) : (is_max_flow rsn.afn) -> no_augumenting_path rsn :=
+  (rsn : residual_network V) : (is_max_flow rsn.afn) -> no_augmenting_path rsn :=
 begin
-  intros max_flow v exists_path,
+  intros max_flow x exists_path,
   by_contradiction is_sink,
   set s := rsn.afn.network.source,
   set t := rsn.afn.network.sink,
-  set vertices := {s} ∪ { x | (∃ y: V, exists_path.in x y) }, --all vertices in the augmenting path
-  set d := 0,
-  -- set flows := { rsn.f' x y | exists_path.in x y }, -- set of reals, why it doesn't work?
-  -- set d := flows.min, -- the minimum flow in the augmenting path
-  have pos: 0 < d := by sorry, -- by definition of is_edge in the residual network
+  have augm_path: path rsn.is_edge s t := by {rw is_sink at exists_path, exact exists_path},
+  have exists_augm_path: ¬no_augmenting_path rsn :=
+  begin
+    unfold no_augmenting_path,
+    push_neg,
+    use x,
+    by_contradiction h,
+    have contr: x ≠ t := h exists_path,
+    exact absurd is_sink contr,
+  end,
+  --all vertices in the augmenting path
+  set vertices := set.to_finset ({t} ∪ { x | (∃ y: V, exists_path.in x y) }),
+  -- set of all flow values in the augmenting path
+  set flows := set.to_finset (function.uncurry rsn.f' '' {e ∈ vertices ×ˢ vertices | exists_path.in e.1 e.2}),
+  have nonemp: flows.nonempty :=
+  begin
+    by_contradiction h,
+    have empty: flows = ∅ := finset.not_nonempty_iff_eq_empty.1 h,
+    have foo: ∀ v : V, exists_path.in v t → flows ≠ ∅ :=
+    begin
+      intros v hyp,
+      have t_in_vertices: t ∈ vertices := by simp,
+      have v_in_vertices: v ∈ vertices :=
+      begin
+        simp only [set.mem_to_finset, set.mem_set_of_eq],
+        have baz: exists_path.in v t := hyp,
+        have exist: ∃ (y : V), path.in v y exists_path := by {use t, exact hyp},
+        have mem: v ∈ {x_1 : V | ∃ (y : V), path.in x_1 y exists_path} :=
+        by {simp only [set.mem_set_of_eq], exact exist},
+        have or: v ∈ {t} ∨ v ∈ {x_1 : V | ∃ (y : V), path.in x_1 y exists_path} :=
+        or.intro_right (v ∈ {t}) mem,
+        exact (set.mem_union v {t} ({x_1 : V | ∃ (y : V), path.in x_1 y exists_path})).2 or,
+      end,
+      have contr: rsn.f' v t ∈ flows :=
+      begin
+        simp only [true_and, set.singleton_union, finset.mem_univ, set.to_finset_congr,
+          true_or, eq_self_iff_true, set.to_finset_set_of, finset.mem_insert, set.to_finset_insert,
+          finset.mem_filter, vertices] at v_in_vertices,
+        apply v_in_vertices.elim;
+        intro hypo,
+        {
+          simp only [hypo, set.mem_to_finset, set.coe_to_finset, set.singleton_union, set.mem_image,
+            set.mem_sep_iff, set.mem_prod, set.mem_insert_iff, set.mem_set_of_eq, prod.exists,
+            function.uncurry_apply_pair, set.to_finset_nonempty, set.nonempty_image_iff,
+            set.to_finset_eq_empty, set.image_eq_empty,set.sep_eq_empty_iff_mem_false, and_imp,
+            prod.forall, eq_self_iff_true, true_or] at *,
+          use [t, t],
+          simpa,
+        },
+        {
+          simp only [set.singleton_union, set.mem_image, set.mem_to_finset,
+          set.coe_to_finset, prod.exists],
+          use [v, t],
+          simp [hypo, hyp]
+        },
+      end,
+      exact finset.ne_empty_of_mem contr,
+    end,
+    have bar: ∃ v : V, exists_path.in v t := -- exists augmenting path
+    begin
+      by_contradiction h,
+      push_neg at h,
+      have no_augm_path: no_augmenting_path rsn := by sorry,
+      exact absurd no_augm_path exists_augm_path,
+    end,
+    have contr: flows ≠ ∅ := exists.elim bar foo,
+    exact absurd empty contr,
+  end,
+  set d := flows.min' nonemp, -- the minimum flow in the augmenting path
+  have pos: 0 < d :=
+  begin
+    have mem: d ∈ flows := finset.min'_mem flows nonemp,
+    have pos: ∀ f : ℝ , f ∈ flows → f > 0 :=
+    begin
+      intros f hyp,
+      simp only [set.mem_to_finset, set.mem_set_of_eq, set.coe_to_finset, set.singleton_union,
+      set.mem_image, set.mem_sep_iff, set.mem_prod, set.mem_insert_iff, prod.exists,
+      function.uncurry_apply_pair] at hyp,
+      obtain ⟨a, b, hyp, hyp'⟩ := hyp,
+      rw [← hyp'],
+      apply positive_residual_flow,
+      sorry,
+    end,
+    exact pos d mem,
+  end,
   set better_flow: active_flow_network V :=
   ⟨rsn.afn.network,
-  (λ u v : V, if exists_path.in u v then rsn.afn.f u v + d
-              else if exists_path.in v u then rsn.afn.f u v - d else rsn.afn.f u v),
+  (λ u v : V, if rsn.afn.network.is_edge u v then (if exists_path.in u v then rsn.afn.f u v + d
+              else (if exists_path.in v u then rsn.afn.f u v - d else rsn.afn.f u v)) else 0),
   begin -- source ≠ sink
-    exact rsn.afn.sourceNotSink,
+    exact rsn.afn.source_not_sink,
   end,
   begin -- non_neg_flow
     intros u v,
-    by_cases h: exists_path.in u v,
+    by_cases edge: rsn.afn.network.is_edge u v,
     {
-      have h1: rsn.afn.f u v ≥ 0 := rsn.afn.non_neg_flow u v,
-      have h2: d ≥ 0 := -- needs to be changed, we can use the definition of rsn and split into cases
-      begin
-        by_contradiction h',
-        have h3: d < 0 := lt_of_not_ge h',
-        have h4: ¬ d < 0 := not_lt_of_gt pos,
-        exact absurd h3 h4,
-      end,
-      linarith,
+      simp only [edge, if_true],
+      by_cases h: exists_path.in u v,
+      {
+        have nonneg: rsn.afn.f u v ≥ 0 := rsn.afn.non_neg_flow u v,
+        simp only [h, if_true],
+        linarith,
+      },
+      {
+        by_cases h': exists_path.in v u,
+        {
+          simp only [h, if_false, h', if_true],
+          have ine: d ≤ rsn.afn.f u v :=
+          begin
+            have minimality: d ≤ rsn.f' v u :=
+            begin
+              have min: ∀ f : ℝ , f ∈ flows → d ≤ f :=
+              by {intros f hf, exact finset.min'_le flows f hf},
+              have mem: rsn.f' v u ∈ flows :=
+              begin
+                have foo: ∃ y : V, exists_path.in v y := by {use u, exact h'},
+                simp only [set.mem_image, set.mem_to_finset, set.coe_to_finset, prod.exists],
+                  use [v, u],
+                  simp [foo, h'],
+                  sorry,
+              end,
+              exact min (rsn.f' v u) mem,
+            end,
+            have eq: rsn.f' v u = rsn.afn.f u v :=
+            begin
+              rw rsn.f_def,
+              unfold mk_rsf,
+              have notAnd := rsn.afn.network.nonsymmetric u v,
+              simp only [not_and] at notAnd,
+              have notEdge: ¬ rsn.afn.network.is_edge v u := notAnd edge,
+              simp only [notEdge, if_false, edge, if_true],
+            end,
+            rw ← eq,
+            exact minimality,
+          end,
+          linarith,
+        },
+        {
+          simp only [h, if_false, h', if_false],
+          exact rsn.afn.non_neg_flow u v,
+        },
+      },
     },
     {
-      by_cases h': exists_path.in v u,
-        {
-          have h1: rsn.f' v u = rsn.afn.f u v :=
-          begin
-            rw rsn.f_def,
-            have edge: rsn.afn.network.is_edge v u := by sorry,-- use h' and definition of path.in
-            unfold mk_rsf,
-            sorry, -- just use edge to get the wanted result
-          end,
-          have h2: rsn.f' v u ≥ d := by sorry, -- minimality of d
-          have h3: rsn.afn.f u v ≥ d := by {rw ←h1, exact h2},
-          linarith,
-        },
-        {
-          -- exact rsn.afn.non_neg_flow u v, -- should be correct, why is not working?
-          linarith,
-        },
+      simp only [edge, if_false],
+      linarith,
     },
   end,
   begin -- no_overflow
     intros u v,
-    by_cases h: exists_path.in u v,
+    by_cases edge: rsn.afn.network.is_edge u v,
     {
-      have h1: rsn.afn.f u v + d ≤ rsn.afn.network.to_capacity.c u v := by sorry,
-      -- begin
-      --   have h2: rsn.afn.f u v + rsn.f' u v ≤ rsn.afn.network.to_capacity.c u v := by def of rsn
-      --   have h3: d ≤ rsn.f' u v := by minimality of d
-      --   have h4: rsn.afn.f u v + d ≤ rsn.afn.f u v + rsn.f' u v := by {linarith},
-      --   exact le_trans h4 h2
-      -- end,
+      simp only [edge, if_true],
+      by_cases h: exists_path.in u v,
+      {
+        have h1: rsn.afn.f u v + d ≤ rsn.afn.network.to_capacity.c u v :=
+        begin
+          have h2: rsn.afn.f u v + rsn.f' u v ≤ rsn.afn.network.to_capacity.c u v :=
+          begin
+              have eq: rsn.f' u v = rsn.afn.network.c u v - rsn.afn.f u v :=
+              by {rw rsn.f_def, unfold mk_rsf, simp only [edge, if_true, h, if_true]},
+              rw eq,
+              linarith,
+          end,
+          have h3: d ≤ rsn.f' u v :=
+          begin
+            have min: ∀ f : ℝ , f ∈ flows → d ≤ f :=
+            by {intros f hf, exact finset.min'_le flows f hf},
+            have mem: rsn.f' u v ∈ flows :=
+            begin
+              have foo: ∃ y : V, exists_path.in u y := by {use v, exact h},
+              simp only [set.mem_image, set.mem_to_finset, set.coe_to_finset, prod.exists],
+              use [u, v],
+              simp [foo, h],
+              sorry,
+            end,
+            exact min (rsn.f' u v) mem,
+          end,
+          have h4: rsn.afn.f u v + d ≤ rsn.afn.f u v + rsn.f' u v := by {linarith},
+          exact le_trans h4 h2
+        end,
+        simp only [h, if_true],
+        exact h1,
+      },
+      {
+        by_cases h': exists_path.in v u,
+          {
+            have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v :=
+            rsn.afn.no_overflow u v,
+            simp only [h, if_false, h', if_true],
+            linarith,
+          },
+          {
+            simp only [h, if_false, h', if_false],
+            exact rsn.afn.no_overflow u v,
+          },
+      },
+    },
+    {
+      simp only [edge, if_false],
+      have cap: rsn.afn.network.c u v = 0 := rsn.afn.network.vanishes u v edge,
       linarith,
     },
-    {
-      by_cases h': exists_path.in v u,
-        {
-          have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v := rsn.afn.no_overflow u v,
-          linarith, -- maybe pos will have to be used when d is properly defined
-        },
-        {
-          have h1: rsn.afn.f u v ≤ rsn.afn.network.to_capacity.c u v := rsn.afn.no_overflow u v,
-          linarith,
-        },
-    },
   end,
-  begin --noEdgesInSource
-    exact rsn.afn.noEdgesInSource,
+  begin --no_edges_in_source
+    exact rsn.afn.no_edges_in_source,
   end,
-  begin --noEdgesOutSink
-    exact rsn.afn.noEdgesOutSink,
+  begin --no_edges_out_sink
+    exact rsn.afn.no_edges_out_sink,
   end,
   begin -- conservation
     intros v vNotSinkSource,
+      have union: ({s}: finset V) ∪ ({t}: finset V) = {s,t} := by refl,
+    have vNotSource: v ≠ rsn.afn.network.source :=
+    begin
+      by_contradiction h,
+      have vIn: v ∈ ({s}: finset V) ∪ ({t}: finset V) :=
+      begin
+        have vSource: v ∈ {s} := finset.mem_singleton.2 h,
+        have vOR: v ∈ {s} ∨ v ∈ {t} := or.intro_left (v ∈ {t}) vSource,
+        exact finset.mem_union.2 vOR,
+      end,
+      rw union at vIn,
+      have vNotIn: v ∉ ({s}: finset V) ∪ ({t}: finset V) :=
+      by {rw union, exact (finset.mem_sdiff.1 vNotSinkSource).2},
+      exact absurd vIn vNotIn,
+    end,
+    have vNotSink: v ≠ rsn.afn.network.sink :=
+    begin
+      by_contradiction h,
+      have vIn: v ∈ ({s}: finset V) ∪ ({t}: finset V) :=
+      begin
+        have vSink: v ∈ {t} := finset.mem_singleton.2 h,
+        have vOR: v ∈ {s} ∨ v ∈ {t} := or.intro_right (v ∈ {s}) vSink,
+        exact finset.mem_union.2 vOR,
+      end,
+      rw union at vIn,
+      have vNotIn: v ∉ ({s}: finset V) ∪ ({t}: finset V) :=
+      by {rw union, exact (finset.mem_sdiff.1 vNotSinkSource).2},
+      exact absurd vIn vNotIn,
+    end,
+    set newf := (λ (u v : V), ite (rsn.afn.network.is_edge u v)
+    (ite (path.in u v exists_path) (rsn.afn.f u v + d)
+    (ite (path.in v u exists_path) (rsn.afn.f u v - d) (rsn.afn.f u v))) 0),
     by_cases h: v ∈ vertices,
     {
-      -- Issues: How are we proving the cardinality of predecessor and ancestor is 1?
-      -- How exactly do we use that within the code to prove h2 and h3?
-      set predecessor := {u | exists_path.in u v},
-      set ancestor := {w | exists_path.in v w},
-      have h1: mk_out rsn.afn.f {v} = mk_in rsn.afn.f {v} := rsn.afn.conservation v vNotSinkSource,
-      -- have h2: mk_in f {v} = rsn.afn.mk_in {v} + d := by sorry, -- use the predecessor
-      -- have h3: mk_out f {v} = rsn.afn.mk_out {v} + d := by sorry, -- use the ancestor
-      -- rw [h2,h3,h1],
-      -- rfl,
+      -- Issues: How are we looking into cases for the cardinality of predecessor and ancestor?
+      -- How do we procced after for picking these edges?
+      -- Need to use the fact that x=t to show that there are always two edges for e given vertex outside {s,t}
+      -- set predecessor := {u | exists_path.in u v},
+      -- set ancestor := {w | exists_path.in v w},
+      -- have h1: mk_out rsn.afn.f {v} = mk_in rsn.afn.f {v} := rsn.afn.conservation v vNotSinkSource,
+      -- rw [h2,h3,h1]
       sorry,
     },
     {
-      sorry,
-      -- have h1: ∀ u : V, ¬exists_path.in u v :=
-      -- begin
-      --   by_contradiction h',
-      --   have ancestor: ∃w: exists_path.in v w := by v ≠ t,
-      --   have contr: v ∈ vertives := by def of vertices and ancestor,
-      --   contradiction -- with ¬v ∈ vertices,
-      -- end,
-      -- have h2: ∀ w : V, ¬exists_path.in u w :=
-      -- begin
-      --   by_contradiction h',
-      --   have contr: v ∈ vertives := by def of vertices,
-      --   contradiction -- with ¬v ∈ vertices
-      -- end,
-      -- have h3: ∀ u : V, better_flow.f u v = rsn.afn.f u v := by h1 and h2
-      -- have h4: ∀ w : V, better_flow.f v w = rsn.afn.f v w := by h1 and h2
-      -- rw [h3,h4],
-      -- exact rsn.afn.conservation v vNotSinkSource,
+      -- Problems in next two: How do we use the condition in the definition of the set to show inclusion?
+      have h1: ∀ u : V, ¬exists_path.in u v :=
+      begin
+        by_contradiction h',
+        push_neg at h',
+        have ancestor: ∃w : V, exists_path.in v w := by sorry, -- v ≠ t
+        have contr: v ∈ vertices :=
+        begin
+          simp only [set.mem_to_finset, set.mem_set_of_eq],
+          have mem: v ∈ {x_1 : V | ∃ (y : V), path.in x_1 y exists_path} :=
+          by {simp only [set.mem_set_of_eq], exact ancestor},
+          have or: v ∈ {t} ∨ v ∈ {x_1 : V | ∃ (y : V), path.in x_1 y exists_path} :=
+          or.intro_right (v ∈ {t}) mem,
+          exact (set.mem_union v {t} ({x_1 : V | ∃ (y : V), path.in x_1 y exists_path})).2 or,
+        end,
+        exact absurd contr h,
+      end,
+      have h2: ∀ w : V, ¬exists_path.in v w :=
+      begin
+        by_contradiction h',
+        push_neg at h',
+        have contr: v ∈ vertices :=
+        begin
+          simp only [set.mem_to_finset, set.mem_set_of_eq],
+          have mem: v ∈ {x_1 : V | ∃ (y : V), path.in x_1 y exists_path} :=
+          by {simp only [set.mem_set_of_eq], exact h'},
+          have or: v ∈ {t} ∨ v ∈ {x_1 : V | ∃ (y : V), path.in x_1 y exists_path} :=
+          or.intro_right (v ∈ {t}) mem,
+          exact (set.mem_union v {t} ({x_1 : V | ∃ (y : V), path.in x_1 y exists_path})).2 or,
+        end,
+        exact absurd contr h,
+      end,
+      have h3: ∀ u : V, newf u v = rsn.afn.f u v :=
+      begin
+        intro u,
+        by_cases edge: rsn.afn.network.is_edge u v,
+        {
+          have noEdge: ¬exists_path.in u v := h1 u,
+          have noReversedEdge: ¬exists_path.in v u := h2 u,
+          have simplify: newf u v = ite (rsn.afn.network.is_edge u v)
+          (ite (path.in u v exists_path) (rsn.afn.f u v + d)
+          (ite (path.in v u exists_path) (rsn.afn.f u v - d) (rsn.afn.f u v))) 0 := by simp,
+          rw simplify,
+          simp only [edge, if_true, noEdge, if_false, noReversedEdge, if_false],
+        },
+        {
+          have simplify: newf u v = ite (rsn.afn.network.is_edge u v)
+          (ite (path.in u v exists_path) (rsn.afn.f u v + d)
+          (ite (path.in v u exists_path) (rsn.afn.f u v - d) (rsn.afn.f u v))) 0 := by simp,
+          rw simplify,
+          simp only [edge, if_false],
+          have zeroFlow: rsn.afn.f u v = 0 := f_vanishes_outside_edge rsn.afn u v edge,
+          linarith,
+        },
+      end,
+      have h4: ∀ w : V, newf v w = rsn.afn.f v w :=
+      begin
+        intro w,
+        by_cases edge: rsn.afn.network.is_edge v w,
+        {
+          have noEdge: ¬exists_path.in w v := h1 w,
+          have noReversedEdge: ¬exists_path.in v w := h2 w,
+          have simplify: newf v w = ite (rsn.afn.network.is_edge v w)
+          (ite (path.in v w exists_path) (rsn.afn.f v w + d)
+          (ite (path.in w v exists_path) (rsn.afn.f v w - d) (rsn.afn.f v w))) 0 := by simp,
+          rw simplify,
+          simp only [edge, if_true, noReversedEdge, if_false, noEdge, if_false],
+      },
+      {
+        have simplify: newf v w = ite (rsn.afn.network.is_edge v w)
+        (ite (path.in v w exists_path) (rsn.afn.f v w + d)
+        (ite (path.in w v exists_path) (rsn.afn.f v w - d) (rsn.afn.f v w))) 0 := by simp,
+        rw simplify,
+        simp only [edge, if_false],
+        have zeroFlow: rsn.afn.f v w = 0 := f_vanishes_outside_edge rsn.afn v w edge,
+        linarith,
+      },
+      end,
+      have eqIn: mk_in newf {v} = mk_in rsn.afn.f {v} :=
+      begin
+        unfold mk_in,
+        have eq1:  ∑ (x : V) in V' \ {v}, ∑ (y : V) in {v}, newf x y =
+        ∑ (x : V) in V' \ {v}, newf x v := by simp,
+        have eq2: ∑ (x : V) in V' \ {v}, ∑ (y : V) in {v}, rsn.afn.f x y =
+        ∑ (x : V) in V' \ {v}, rsn.afn.f x v := by simp,
+        rw [eq1, eq2],
+        exact finset.sum_congr rfl (λ u h, h3 u),
+      end,
+      have eqOut: mk_out newf {v} = mk_out rsn.afn.f {v} :=
+      begin
+        unfold mk_out,
+        have eq1: ∑ (x : V) in {v}, ∑ (y : V) in V' \ {v}, newf x y =
+        ∑ (y : V) in V' \ {v}, newf v y := by simp,
+        have eq2: ∑ (x : V) in {v}, ∑ (y : V) in V' \ {v}, rsn.afn.f x y =
+        ∑ (y : V) in V' \ {v}, rsn.afn.f v y := by simp,
+        rw [eq1, eq2],
+        exact finset.sum_congr rfl (λ u h, h4 u),
+      end,
+      rw [eqIn,eqOut],
+      exact rsn.afn.conservation v vNotSinkSource,
     },
   end
   ⟩,
   have flow_value: F_value better_flow = F_value rsn.afn + d :=
   begin
     unfold F_value,
-    have h1: mk_out better_flow.f {better_flow.network.source} =
-    mk_out rsn.afn.f {rsn.afn.network.source} + d :=
+    set source := better_flow.network.source,
+    have h1: mk_out better_flow.f {source} =
+    mk_out rsn.afn.f {source} + d :=
     by sorry,
     -- take the edge with the added flow
-    -- Issue: How do we prove that there is exactly one edge? How do we use it to prove h1?
-    have h2: mk_in better_flow.f {better_flow.network.source} =
-    mk_in rsn.afn.f {rsn.afn.network.source} := by {linarith},
+    -- Issue: How do we prove that there is exactly one edge? How do we pick exactly that edge?
+    have h2: mk_in better_flow.f {source} =
+    mk_in rsn.afn.f {source} :=
+    begin
+      have h3: mk_in better_flow.f {source} = 0 :=
+      begin
+        unfold mk_in,
+        have eq: ∑ (x : V) in V' \ {source}, ∑ (y : V) in {source}, better_flow.f x y =
+        ∑ (x : V) in V' \ {source}, better_flow.f x source := by simp,
+        have zeroFlow: ∀ x : V, better_flow.f x source = 0 :=
+        begin
+          intro x,
+          have noEdge: ¬better_flow.network.is_edge x source :=
+          better_flow.no_edges_in_source x,
+          exact f_vanishes_outside_edge better_flow x source noEdge,
+        end,
+        rw eq,
+        exact finset.sum_eq_zero (λ x h, zeroFlow x),
+      end,
+      have h4: mk_in rsn.afn.f {source} = 0 :=
+      begin
+        unfold mk_in,
+        set s := rsn.afn.network.source,
+        have sameSource: s = source := by refl,
+        have eq: ∑ (x : V) in V' \ {s}, ∑ (y : V) in {s}, rsn.afn.f x y =
+        ∑ (x : V) in V' \ {s}, rsn.afn.f x s := by simp,
+        have zeroFlow: ∀ x : V, rsn.afn.f x s = 0 :=
+        begin
+          intro x,
+          have noEdge: ¬rsn.afn.network.is_edge x s :=
+          rsn.afn.no_edges_in_source x,
+          exact f_vanishes_outside_edge rsn.afn x s noEdge,
+        end,
+        rw eq,
+        exact finset.sum_eq_zero (λ x h, zeroFlow x),
+      end,
+      rw ← h4 at h3,
+      exact h3,
+    end,
     rw [h1,h2],
     linarith
   end,
   have le: F_value rsn.afn ≥ F_value better_flow :=
   begin
-    have same_net: better_flow.network = rsn.afn.network := by {simp},
+    have same_net: better_flow.network = rsn.afn.network := by simp,
     unfold is_max_flow at max_flow,
     exact max_flow better_flow same_net,
   end,
   have lt: F_value rsn.afn < F_value better_flow :=
   begin
     rw flow_value,
-    have h1: F_value rsn.afn - F_value rsn.afn < d :=
-    begin
-      have eq: F_value rsn.afn - F_value rsn.afn = 0 := by ring,
-      rw eq,
-      linarith
-    end,
+    have h1: F_value rsn.afn - F_value rsn.afn < d := by linarith,
     have h2: F_value rsn.afn < F_value rsn.afn + d := lt_add_of_sub_left_lt h1,
     exact gt_iff_lt.2 h2,
   end,
@@ -957,7 +1264,7 @@ def mk_cut_set {V : Type u} [inst' : fintype V] -- The source set for the minimu
 noncomputable
 def mk_cut_from_S {V : Type*} [inst' : fintype V]
   (rsn : residual_network V)
-  (hno_augumenting_path : no_augumenting_path rsn)
+  (hno_augmenting_path : no_augmenting_path rsn)
   (S : finset V) (hS : S = mk_cut_set rsn) : cut V :=
 ⟨rsn.afn.network, S, V' \ S,
   begin
@@ -971,13 +1278,13 @@ def mk_cut_from_S {V : Type*} [inst' : fintype V]
     unfold mk_cut_set,
     simp only [mem_sdiff, mem_univ, set.mem_to_finset, set.mem_set_of_eq, true_and],
     intro p,
-    unfold no_augumenting_path at hno_augumenting_path,
-    specialize hno_augumenting_path rsn.afn.network.sink ,
-    simp only [eq_self_iff_true, not_true] at hno_augumenting_path,
+    unfold no_augmenting_path at hno_augmenting_path,
+    specialize hno_augmenting_path rsn.afn.network.sink,
+    simp only [eq_self_iff_true, not_true] at hno_augmenting_path,
     apply exists.elim p,
     intros p h,
-    specialize hno_augumenting_path p,
-    exact hno_augumenting_path,
+    specialize hno_augmenting_path p,
+    exact hno_augmenting_path,
   end,
 rfl⟩
 
@@ -986,14 +1293,14 @@ lemma s_t_not_connected {V : Type*} [inst' : fintype V]
   (S : finset V) (hS : S = mk_cut_set rsn) :
   ∀ u ∈ S, ∀ v ∈ (V' \ S), ¬ rsn.is_edge u v :=
 begin
-  intros u h_u_in_S v h_v_in_T is_edge_u_v,
+  intros u uInS v vInT is_edge_u_v,
   rw hS at *,
   unfold mk_cut_set at *,
   simp only [set.mem_to_finset, set.mem_set_of_eq, mem_sdiff, mem_univ, true_and] at *,
-  apply exists.elim h_u_in_S,
+  apply exists.elim uInS,
   intros p _,
   have tmp := path.cons p is_edge_u_v,
-  apply h_v_in_T,
+  apply vInT,
   exact exists.intro tmp trivial,
 end
 
@@ -1004,8 +1311,8 @@ lemma residual_capacity_zero {V : Type*} [inst' : fintype V]
   (h: ∀ u ∈ ct.S, ∀ v ∈ ct.T, ¬ rsn.is_edge u v) :
   ∀ u ∈ ct.S, ∀ v ∈ ct.T, rsn.f' u v = 0 :=
 begin
-  intros u h_u_in_S v h_v_in_T,
-  specialize h u h_u_in_S v h_v_in_T,
+  intros u uInS v vInT,
+  specialize h u uInS v vInT,
   rw rsn.is_edge_def at h,
   simp only [not_lt] at h,
   have hge := residual_capacity_non_neg rsn u v,
@@ -1026,50 +1333,50 @@ begin
     specialize h u uInS v vInT,
     rw rsn.f_def at h,
     unfold mk_rsf at h,
-    have tmp := classical.em (rsn.afn.network.to_capacity.to_digraph.is_edge u v),
-    cases tmp,
+    have foo := classical.em (rsn.afn.network.to_capacity.to_digraph.is_edge u v),
+    cases foo,
     {
-      simp only [tmp, if_true] at h,
+      simp only [foo, if_true] at h,
       linarith,
     },
     {
-      simp only [tmp, if_false, ite_eq_right_iff] at h,
-      have foo := rsn.afn.network.vanishes u v tmp,
-      rw foo,
-      clear tmp h,
-      have foo := rsn.afn.non_neg_flow u v,
-      have bar := rsn.afn.no_overflow u v,
+      simp only [foo, if_false, ite_eq_right_iff] at h,
+      have bar := rsn.afn.network.vanishes u v foo,
+      rw bar,
+      clear foo h,
+      have baz := rsn.afn.non_neg_flow u v,
+      have bark := rsn.afn.no_overflow u v,
       linarith,
     }
   },
   {
-    intros v h_v_in_T u h_u_in_S,
-    specialize h u h_u_in_S v h_v_in_T,
+    intros v vInT u uInS,
+    specialize h u uInS v vInT,
     rw rsn.f_def at h,
     unfold mk_rsf at h,
-    have tmp := classical.em (rsn.afn.network.to_capacity.to_digraph.is_edge u v),
-    cases tmp,
+    have foo := classical.em (rsn.afn.network.to_capacity.to_digraph.is_edge u v),
+    cases foo,
     {
-      have foo := rsn.afn.network.hnonsymmetric u v,
-      simp only [not_and] at foo,
-      specialize foo tmp,
+      have bark := rsn.afn.network.nonsymmetric u v,
+      simp only [not_and] at bark,
+      specialize bark foo,
       have bar := rsn.afn.non_neg_flow v u,
       have baz := rsn.afn.no_overflow v u,
-      have blurg := rsn.afn.network.vanishes v u foo,
+      have blurg := rsn.afn.network.vanishes v u bark,
       linarith,
     },
     {
-      simp only [tmp, if_false, ite_eq_right_iff] at h,
-      clear tmp,
-      have tmp := classical.em (rsn.afn.network.to_capacity.to_digraph.is_edge v u),
-      cases tmp,
+      simp only [foo, if_false, ite_eq_right_iff] at h,
+      clear foo,
+      have bar := classical.em (rsn.afn.network.to_capacity.to_digraph.is_edge v u),
+      cases bar,
       {
-        exact h tmp,
+        exact h bar,
       },
       {
-        have foo := rsn.afn.non_neg_flow v u,
-        have bar := rsn.afn.no_overflow v u,
-        have baz := rsn.afn.network.vanishes v u tmp,
+        have blurg := rsn.afn.non_neg_flow v u,
+        have bark := rsn.afn.no_overflow v u,
+        have baz := rsn.afn.network.vanishes v u bar,
         linarith,
       },
     },
@@ -1112,11 +1419,11 @@ begin
   cases h with h_flow_eq_cap h_flow_zero,
   dsimp [cut_cap, mk_out],
   apply finset.sum_congr rfl,
-  intros x x_in_S,
+  intros x xInS,
   rw ← ct.Tcomp at *,
   apply finset.sum_congr rfl,
-  intros y y_in_T,
-  simp [h_eq_network, h_flow_eq_cap x x_in_S y y_in_T],
+  intros y yInT,
+  simp [h_eq_network, h_flow_eq_cap x xInS y yInT],
 end
 
 lemma eq_on_res_then_on_sum {V : Type*} [inst' : fintype V]
@@ -1125,10 +1432,10 @@ lemma eq_on_res_then_on_sum {V : Type*} [inst' : fintype V]
   ∑ (u : V) in A, ∑ (v : V) in B, f u v = ∑ (u : V) in A, ∑ (v : V) in B, g u v :=
 begin
   apply finset.sum_congr rfl,
-  intros a a_in_A,
+  intros a aInA,
   apply finset.sum_congr rfl,
-  intros b b_in_B,
-  exact eq_on_res a a_in_A b b_in_B,
+  intros b bInB,
+  exact eq_on_res a aInA b bInB,
 end
 
 /-!
@@ -1138,14 +1445,13 @@ end
 
 lemma existence_of_a_cut {V : Type*} [inst' : fintype V]
   (rsn : residual_network V)
-  (hno_augumenting_path : no_augumenting_path rsn) :
+  (hno_augmenting_path : no_augmenting_path rsn) :
   (∃c : cut V, rsn.afn.network = c.network ∧ cut_cap c = F_value rsn.afn) :=
 begin
   let S : finset V := mk_cut_set rsn,
   let T := V' \ S,
-  have SCutSet: S = mk_cut_set rsn := by refl,
-  let min_cut := mk_cut_from_S (rsn) (hno_augumenting_path) (S) (SCutSet),
-  have eq_net : rsn.afn.network = min_cut.network := by refl,
+  let min_cut := mk_cut_from_S (rsn) (hno_augmenting_path) (S) rfl,
+  have same_net : rsn.afn.network = min_cut.network := by refl,
   have subtract: ∀ x y : ℝ, (x=y) ↔ y-x=0 :=
   by {intros x y, split, intro heq, linarith, intro heq, linarith},
   have cf_vanishes_on_pipes: ∀ u ∈ min_cut.S, ∀ v ∈ V' \ min_cut.S, rsn.f' u v = 0 :=
@@ -1164,7 +1470,7 @@ begin
       end,
       contradiction
     end,
-    have notEdge: ¬ rsn.is_edge u v := by {exact s_t_not_connected rsn S SCutSet u uInS v vInNS},
+    have notEdge: ¬ rsn.is_edge u v := s_t_not_connected rsn S rfl u uInS v vInNS,
     contradiction
   end,
   have cf_vanishes_on_pipes_spec: ∀ u ∈ min_cut.S, ∀ v ∈ V' \ min_cut.S,
@@ -1181,33 +1487,27 @@ begin
   have eq_on_pipes: ∀ u ∈ min_cut.S, ∀ v ∈ V' \ min_cut.S, rsn.afn.f u v = rsn.afn.network.c u v :=
   begin
     intros u uInS v vInT,
-    cases classical.em (rsn.afn.network.is_edge u v),
+    by_cases edge: rsn.afn.network.is_edge u v,
     {
-      rw subtract (rsn.afn.f u v) (rsn.afn.network.to_capacity.c u v),
-      have mk_cf_spec: (rsn.f' u v = rsn.afn.network.c u v - rsn.afn.f u v) :=
-      begin
-        rw rsn.f_def,
-        unfold mk_rsf,
-        simp only [h, if_true],
-      end,
-      rw ← mk_cf_spec,
-      exact cf_vanishes_on_pipes u uInS v vInT,
+      have h: rsn.afn.network.to_capacity.c u v - rsn.afn.f u v = 0 :=
+      cf_vanishes_on_pipes_spec u uInS v vInT edge,
+      linarith,
     },
     {
-      rw rsn.afn.network.vanishes u v h,
-      exact f_vanishes_outside_edge (rsn.afn) (u) (v) (h),
+      rw rsn.afn.network.vanishes u v edge,
+      exact f_vanishes_outside_edge (rsn.afn) (u) (v) (edge),
     },
   end,
   have no_backflow: ∀ (u v : V), (u ∈ V' \ min_cut.S ∧ v ∈ min_cut.S) → rsn.afn.f u v = 0 :=
   begin
     intros u v hyp,
-    exact (min_max_cap_flow rsn min_cut eq_net cf_vanishes_on_pipes).2 u hyp.1 v hyp.2,
+    exact (min_max_cap_flow rsn min_cut same_net cf_vanishes_on_pipes).2 u hyp.1 v hyp.2,
   end,
   have cut_eq_flow: cut_cap min_cut = F_value rsn.afn :=
   begin
     rw F_value,
     simp only,
-    rw flow_value_source_in_S rsn.afn min_cut eq_net,
+    rw flow_value_source_in_S rsn.afn min_cut same_net,
     have no_input : mk_in rsn.afn.f min_cut.S = 0 :=
     begin
       rw mk_in,
@@ -1218,14 +1518,15 @@ begin
     have flow_eq_cap_on_cut : mk_out rsn.afn.f min_cut.S = mk_out rsn.afn.network.c min_cut.S :=
     begin
       unfold mk_out,
-      rw eq_on_res_then_on_sum (min_cut.S) (V' \ min_cut.S) (rsn.afn.f) (rsn.afn.network.to_capacity.c) (eq_on_pipes),
+      rw eq_on_res_then_on_sum
+      (min_cut.S) (V' \ min_cut.S) (rsn.afn.f) (rsn.afn.network.to_capacity.c) (eq_on_pipes),
     end,
     rw flow_eq_cap_on_cut,
     refl,
   end,
   use min_cut,
   split,
-  {exact eq_net},
+  {exact same_net},
   exact cut_eq_flow
 end
 
@@ -1239,13 +1540,13 @@ theorem max_flow_min_cut {V : Type*} [inst' : fintype V]
   (is_max_flow rsn.afn ∧ is_min_cut c) → (F_value rsn.afn = cut_cap c) :=
 begin
   rintros ⟨max_flow, min_cut⟩ ,
-  have noAugPath: no_augumenting_path rsn := by {exact no_augm_path rsn max_flow},
-  have existsCut: ∃cut:cut V, rsn.afn.network = cut.network ∧
+  have noAugPath: no_augmenting_path rsn := no_augm_path rsn max_flow,
+  have existsCut: ∃cut : cut V, rsn.afn.network = cut.network ∧
   cut_cap cut = F_value rsn.afn := existence_of_a_cut rsn noAugPath,
   have max_flow_min_cut: ∀ cut : cut V,
   (rsn.afn.network = cut.network ∧ cut_cap cut = F_value rsn.afn) → (F_value rsn.afn = cut_cap c) :=
   begin
-    rintros cut ⟨same_net, eq⟩ ,
+    rintros cut ⟨same_net, eq⟩,
     have h1: is_min_cut cut := min_cut_criterion rsn.afn cut same_net eq,
     have h2: is_min_cut c := min_cut,
     have same_net1: cut.network = c.network := by {rw ← same_network, rw ← same_net},

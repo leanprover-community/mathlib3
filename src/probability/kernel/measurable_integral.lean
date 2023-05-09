@@ -171,8 +171,8 @@ lemma measurable.lintegral_kernel_prod_right' {f : (α × β) → ℝ≥0∞} (h
   measurable (λ a, ∫⁻ b, f (a, b) ∂(κ a)) :=
 begin
   refine measurable.lintegral_kernel_prod_right _,
-  have : function.uncurry (λ (a : α) (b : β), f (a, b)) = f,
-  { ext x, rw [← @prod.mk.eta _ _ x, function.uncurry_apply_pair], },
+  have : uncurry (λ (a : α) (b : β), f (a, b)) = f,
+  { ext x, rw [← @prod.mk.eta _ _ x, uncurry_apply_pair], },
   rwa this,
 end
 
@@ -186,9 +186,10 @@ begin
   exact hf.comp (measurable_fst.snd.prod_mk measurable_snd),
 end
 
-lemma measurable.lintegral_kernel {f : β → ℝ≥0∞} (hf : measurable f) :
-  measurable (λ a, ∫⁻ b, f b ∂(κ a)) :=
-measurable.lintegral_kernel_prod_right (hf.comp measurable_snd)
+lemma measurable.set_lintegral_kernel_prod_right
+  {f : α → β → ℝ≥0∞} (hf : measurable (uncurry f)) {s : set β} (hs : measurable_set s) :
+  measurable (λ a, ∫⁻ b in s, f a b ∂(κ a)) :=
+by { simp_rw ← lintegral_restrict κ hs, exact hf.lintegral_kernel_prod_right }
 
 lemma measurable.lintegral_kernel_prod_left' {f : β × α → ℝ≥0∞} (hf : measurable f) :
   measurable (λ y, ∫⁻ x, f (x, y) ∂(κ y)) :=
@@ -199,12 +200,16 @@ lemma measurable.lintegral_kernel_prod_left
   measurable (λ y, ∫⁻ x, f x y ∂(κ y)) :=
 hf.lintegral_kernel_prod_left'
 
-lemma measurable.set_lintegral_kernel_prod_right
-  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
-  measurable (λ a, ∫⁻ b in s, f a b ∂(κ a)) :=
-by { simp_rw ← lintegral_restrict κ hs, exact hf.lintegral_kernel_prod_right }
+lemma measurable.set_lintegral_kernel_prod_left
+  {f : β → α → ℝ≥0∞} (hf : measurable (uncurry f)) {s : set β} (hs : measurable_set s) :
+  measurable (λ b, ∫⁻ a in s, f a b ∂(κ b)) :=
+by { simp_rw ← lintegral_restrict κ hs, exact hf.lintegral_kernel_prod_left }
 
-lemma measurable.set_lintegral_kernel_prod_right'
+lemma measurable.lintegral_kernel {f : β → ℝ≥0∞} (hf : measurable f) :
+  measurable (λ a, ∫⁻ b, f b ∂(κ a)) :=
+measurable.lintegral_kernel_prod_right (hf.comp measurable_snd)
+
+lemma measurable.set_lintegral_kernel
   {f : β → ℝ≥0∞} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f b ∂(κ a)) :=
 measurable.set_lintegral_kernel_prod_right (hf.comp measurable_snd) hs

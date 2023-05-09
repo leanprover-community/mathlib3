@@ -150,20 +150,22 @@ end
 open group_cohomology
 variables {G : Type} [group G] {A : Rep ℤ G} (F : two_cocycles A)
 -- WHY IS THIS ALL SO FUCKING SLOW
+-- JUST DONT USE DSIMP BRO
+
 def extend (F : two_cocycles A) := A × G
 def mul (x y : extend F) : extend F :=
 (x.1 + A.ρ x.2 y.1 + (F : G × G → A) (x.2, y.2), x.2 * y.2)
+set_option profiler true
 
 lemma mul_assoc (x y z : extend F) :
   mul F (mul F x y) z = mul F x (mul F y z) :=
+prod.ext
 begin
-  ext,
-  { have := (mem_two_cocycles_iff' A F).1 F.2 (x.2, (y.2, z.2)),
-    dsimp [mul] at this ⊢,
-    simp only [add_right_inj, map_add, add_assoc, ←linear_map.mul_apply, ←map_mul],
-    rw [←this, add_rotate'] },
-  { exact mul_assoc _ _ _ }
-end
+  have := (mem_two_cocycles_iff' A F).1 F.2 (x.2, (y.2, z.2)),
+  dsimp only [prod.fst, mul] at this ⊢,
+  simp only [add_right_inj, map_add, add_assoc, ←linear_map.mul_apply, ←map_mul],
+  rw [←this, add_rotate'],
+end (mul_assoc _ _ _)
 
 lemma two_cocycles_snd {k G : Type u} [comm_ring k] [group G]
   {A : Rep k G} (g : G) (f : two_cocycles A) :
@@ -263,20 +265,29 @@ def extension : extension (multiplicative A) G :=
   exact := extend_exact F }
 
 variables (G A)
-def Fucksake : G →* (mul_aut (multiplicative A)) :=
+
+def add_aut_mul_equiv_mul_aut_multiplicative (A : Type u) [add_comm_monoid A] :
+  add_aut A ≃* mul_aut (multiplicative A) :=
+{ map_mul' := λ x y, rfl, ..add_equiv.to_multiplicative }
+
+-- not in the mood work out the quickest way to get this using the library
+def Fucksake : G →* mul_aut (multiplicative A) :=
 { to_fun := λ g,
   { to_fun := A.ρ g,
     inv_fun := A.ρ g⁻¹,
-    left_inv := sorry,
-    right_inv := sorry,
+    left_inv := λ x, show (A.ρ g⁻¹ * A.ρ g) x = x,
+    by simpa only [←map_mul, inv_mul_self, map_one],
+    right_inv := λ x, show (A.ρ g * A.ρ g⁻¹) x = x,
+    by simpa only [←map_mul, mul_inv_self, map_one],
     map_mul' := map_add _ },
-  map_one' := sorry,
-  map_mul' := sorry }
+  map_one' := by ext; simpa only [map_one],
+  map_mul' := λ x y, by ext; simpa only [map_mul] }
 
 variables {G A}
 
 def equiv_of_coboundary_aux (f : G → A) :
-  extend ⟨d_one A f, sorry⟩ ≃* multiplicative A ⋊[Fucksake G A] G :=
+  extend ⟨d_one A f, linear_map.ext_iff.1 (d_two_comp_d_one.{0} A) f⟩
+    ≃* multiplicative A ⋊[Fucksake G A] G :=
 { to_fun := λ x, semidirect_product.mk (x.1 + f x.2 : A) x.2,
   inv_fun := λ x, (x.1 - f x.2, x.2),
   left_inv := λ x, prod.ext (add_sub_cancel _ _) rfl,
@@ -285,13 +296,14 @@ def equiv_of_coboundary_aux (f : G → A) :
   begin
     ext,
     { dsimp [extend_mul_def, Fucksake],
-      show _ = ((x.1 + f x.2) +  A.ρ x.2 (y.1 + f y.2) : A),
+      show _ = ((x.1 + f x.2) + A.ρ x.2 (y.1 + f y.2) : A),
       simp only [map_add, add_assoc, add_right_inj, sub_add_add_cancel, add_rotate' (f x.2)]},
     { refl }
   end }
 
 def equiv_of_coboundary (f : G → A) :
-  equiv (extension ⟨d_one A f, sorry⟩) (semidirect_product (multiplicative A) G (Fucksake G A)) :=
+  equiv (extension ⟨d_one A f, linear_map.ext_iff.1 (d_two_comp_d_one.{0} A) f⟩)
+    (semidirect_product (multiplicative A) G (Fucksake G A)) :=
 { f := equiv_of_coboundary_aux f,
   left :=
   begin
@@ -301,8 +313,40 @@ def equiv_of_coboundary (f : G → A) :
     { refl }
   end,
   right := by ext; refl }
+#check function.funext_iff
+def equiv_of_eq_aux (F1 F2 : two_cocycles A) (f : G → A) (hf : (F1 - F2 : G × G → A) = d_one A f) :
+  extend F1 ≃* extend F2 :=
+{ to_fun := λ x, (x.1 + f x.2, x.2),
+  inv_fun := λ x, (x.1 - f x.2, x.2),
+  left_inv := λ x,
+  begin
+    ext,
+    { dsimp only [prod.fst],
+      rw add_sub_cancel },
+    { refl },
+  end,
+  right_inv := λ x,
+  begin
+    ext,
+    { dsimp only [prod.fst],
+      rw sub_add_cancel },
+    { refl }
+  end,
+  map_mul' := λ x y,
+  begin
+    ext,
+    { dsimp only [prod.fst, extend_mul_def],
+      have := function.funext_iff.1 hf (x.2, y.2),
+      simp only [pi.sub_apply, d_one_apply] at this,
+      rw sub_add_eq_add_sub at this,
+      rw sub_eq_sub_iff_add_eq_add at this,
+      simp only [map_add, add_assoc, this, add_right_inj],
+      rw add_left_inj,
+      rw add_assoc,
+      rw add_rotate',
+      }
+  end }
 
-#exit
 
 def equiv_of_eq (F1 F2 : two_cocycles A)
   (H : (two_coboundaries A).mkq F1 = (two_coboundaries A).mkq F2) :

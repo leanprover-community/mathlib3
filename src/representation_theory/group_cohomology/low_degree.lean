@@ -229,18 +229,13 @@ begin
       nat.one_ne_zero, not_false_iff]},
 end
 
--- could prove this using d_zero_eq and d_one_eq but directly is easier...
-lemma range_d_zero_le_ker_d_one : (d_zero A).range ≤ (d_one A).ker :=
-begin
-  rintros x ⟨y, rfl⟩,
-  refine linear_map.mem_ker.2 (funext $ λ x, _),
-  simpa only [d_one_apply, d_zero_apply, map_sub, map_mul, linear_map.mul_apply,
-    sub_sub_sub_cancel_left, sub_add_sub_cancel, sub_self],
-end
+lemma d_one_comp_d_zero : d_one A ∘ₗ d_zero A = 0 :=
+by ext; simpa only [linear_map.coe_comp, function.comp_app, d_one_apply A, d_zero_apply A, map_sub,
+  map_mul, linear_map.mul_apply, sub_sub_sub_cancel_left, sub_add_sub_cancel, sub_self]
 
 abbreviation one_cocycles := (d_one A).ker
 abbreviation one_coboundaries := ((d_zero A).cod_restrict (one_cocycles A) $
-λ c, range_d_zero_le_ker_d_one A ⟨c, rfl⟩).range
+λ c, linear_map.ext_iff.1 (d_one_comp_d_zero.{u} A) c).range
 
 -- why doesn't it work...
 --@[priority 1000000] instance wtf : has_coe (one_cocycles A) (G → A) := by apply_instance
@@ -255,7 +250,8 @@ lemma mem_one_cocycles_iff' (f : G → A) :
 by simp_rw [mem_one_cocycles_iff, sub_add_eq_add_sub, sub_eq_zero, eq_comm]
 
 lemma mem_one_coboundaries_of_mem_range (f : G → A) (h : f ∈ (d_zero A).range) :
-  (⟨f, range_d_zero_le_ker_d_one A h⟩ : one_cocycles A) ∈ one_coboundaries A :=
+  (⟨f, by rcases h with ⟨x, rfl⟩; exact linear_map.ext_iff.1
+    (d_one_comp_d_zero.{u} A) x⟩ : one_cocycles A) ∈ one_coboundaries A :=
 by rcases h with ⟨x, rfl⟩; exact ⟨x, rfl⟩
 
 lemma mem_range_of_mem_one_coboundaries (f : one_coboundaries A) :
@@ -403,8 +399,7 @@ by apply (homology.map_iso _ _
     (zero_cochains_iso A) (one_cochains_iso A) (comp_d_zero_eq A))
   (arrow.iso_mk' ((inhomogeneous_cochains A).d 1 2) (Module.of_hom (d_one A))
     (one_cochains_iso A) (two_cochains_iso A) (comp_d_one_eq A)) rfl)
-  ≪≫ homology_iso (Module.of_hom $ d_zero A) (Module.of_hom $ d_one A)
-    (linear_map.range_le_ker_iff.1 $ range_d_zero_le_ker_d_one A)
+  ≪≫ homology_iso (Module.of_hom $ d_zero A) (Module.of_hom $ d_one A) (d_one_comp_d_zero A)
 
 end
 
@@ -497,14 +492,19 @@ begin
     finset.mem_singleton, bit0_eq_zero, nat.one_ne_zero, or_self, not_false_iff] },
 end
 
-lemma range_d_one_le_ker_d_two : (d_one A).range ≤ (d_two A).ker :=
-linear_map.range_le_ker_iff.2 $ show Module.of_hom (d_one A) ≫ Module.of_hom (d_two A) = _,
+lemma d_two_comp_d_one : d_two A ∘ₗ d_one A = 0 :=
+show Module.of_hom (d_one A) ≫ Module.of_hom (d_two A) = _,
 by simp only [(iso.eq_inv_comp _).2 (comp_d_two_eq A), (iso.eq_inv_comp _).2 (comp_d_one_eq A),
   category.assoc, iso.hom_inv_id_assoc, homological_complex.d_comp_d_assoc, zero_comp, comp_zero]
 
+/-lemma range_d_one_le_ker_d_two : (d_one A).range ≤ (d_two A).ker :=
+linear_map.range_le_ker_iff.2 $ show Module.of_hom (d_one A) ≫ Module.of_hom (d_two A) = _,
+by simp only [(iso.eq_inv_comp _).2 (comp_d_two_eq A), (iso.eq_inv_comp _).2 (comp_d_one_eq A),
+  category.assoc, iso.hom_inv_id_assoc, homological_complex.d_comp_d_assoc, zero_comp, comp_zero]-/
+
 def two_cocycles := (d_two A).ker
 def two_coboundaries := ((d_one A).cod_restrict (two_cocycles A) $
-λ c, range_d_one_le_ker_d_two A ⟨c, rfl⟩).range
+λ c, linear_map.ext_iff.1 (d_two_comp_d_one.{u} A) c).range
 
 -- don't know which helpful lemmas should exist. don't know how to organise API
 lemma mem_two_cocycles_iff (f : G × G → A) :
@@ -519,7 +519,8 @@ by simp_rw [mem_two_cocycles_iff, sub_eq_zero, sub_add_eq_add_sub, sub_eq_iff_eq
   eq_comm, add_comm (f (prod.fst _, _))]
 
 lemma mem_two_coboundaries_of_mem_range (f : G × G → A) (h : f ∈ (d_one A).range) :
-  (⟨f, range_d_one_le_ker_d_two A h⟩ : two_cocycles A) ∈ two_coboundaries A :=
+  (⟨f, by rcases h with ⟨x, rfl⟩; exact linear_map.ext_iff.1
+    (d_two_comp_d_one.{u} A) x⟩ : two_cocycles A) ∈ two_coboundaries A :=
 by rcases h with ⟨x, rfl⟩; exact ⟨x, rfl⟩
 
 lemma mem_range_of_mem_two_coboundaries (f : two_coboundaries A) :
@@ -535,8 +536,7 @@ by apply (homology.map_iso _ _
   (one_cochains_iso A) (two_cochains_iso A) (comp_d_one_eq A))
 (arrow.iso_mk' ((inhomogeneous_cochains A).d 2 3) (Module.of_hom (d_two A))
   (two_cochains_iso A) (three_cochains_iso A) (comp_d_two_eq A)) rfl)
-≪≫ homology_iso (Module.of_hom $ d_one A) (Module.of_hom $ d_two A)
-    (linear_map.range_le_ker_iff.1 $ range_d_one_le_ker_d_two A)
+≪≫ homology_iso (Module.of_hom $ d_one A) (Module.of_hom $ d_two A) (d_two_comp_d_one A)
 
 def two_cocycles_iso :
   ((inhomogeneous_cochains A).cycles 2 : Module.{u} k) ≅ Module.of k (two_cocycles A) :=

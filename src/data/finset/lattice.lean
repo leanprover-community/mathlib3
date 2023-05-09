@@ -449,7 +449,7 @@ variables [bounded_order α] [decidable_eq ι]
 
 --TODO: Extract out the obvious isomorphism `(insert i s).pi t ≃ t i ×ˢ s.pi t` from this proof
 lemma inf_sup {κ : ι → Type*} (s : finset ι) (t : Π i, finset (κ i)) (f : Π i, κ i → α) :
-  s.inf (λ i, (t i).sup (f i)) = (s.pi t).sup (λ g, s.attach.inf $ λ i, f _ $ g _ i.2) :=
+  s.inf (λ i, (t i).sup (f i)) = (s.pi t).sup (λ g, s.attach.inf $ λ i, f _ $ g _ i.prop) :=
 begin
   induction s using finset.induction with i s hi ih,
   { simp },
@@ -461,7 +461,7 @@ begin
     (hg _ $ mem_insert_self _ _) (λ j hj, hg _ $ mem_insert_of_mem hj), λ h a g ha hg, _⟩,
   -- TODO: The next hypothesis must be named, else the `simpa` afterwards fails
   have aux : ∀ j : {x // x ∈ s}, ↑j ≠ i := λ j : s, ne_of_mem_of_not_mem j.2 hi,
-  simpa only [subtype.val_eq_coe, cast_eq, dif_pos, function.comp, subtype.coe_mk, dif_neg, aux]
+  simpa only [cast_eq, dif_pos, function.comp, subtype.coe_mk, dif_neg, aux]
     using h (λ j hj, if hji : j = i then cast (congr_arg κ hji.symm) a
       else g _ $ mem_of_mem_insert_of_ne hj hji) _,
   simp_rw mem_insert,

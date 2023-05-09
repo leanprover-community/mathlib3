@@ -8,14 +8,17 @@ import probability.kernel.basic
 /-!
 # Measurability of the integral against a kernel
 
-The Lebesgue integral of a measurable function against a kernel is measurable.
+The Lebesgue integral of a measurable function against a kernel is measurable. The Bochner integral
+is strongly measurable.
 
 ## Main statements
 
-* `probability_theory.kernel.measurable_lintegral`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is
-  measurable, for an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that
-  `function.uncurry f` is measurable.
-
+* `probability_theory.measurable.lintegral_kernel_prod_right`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)`
+  is measurable, for an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that
+  `uncurry f` is measurable.
+* `measure_theory.strongly_measurable.integral_kernel_prod_right`: the function
+  `a ↦ ∫ b, f a b ∂(κ a)` is measurable, for an s-finite kernel `κ : kernel α β` and a function
+  `f : α → β → E` such that `uncurry f` is measurable.
 
 -/
 
@@ -33,51 +36,48 @@ namespace kernel
 /-- This is an auxiliary lemma for `measurable_kernel_prod_mk_left`. -/
 lemma measurable_kernel_prod_mk_left_of_finite {t : set (α × β)} (ht : measurable_set t)
   (hκs : ∀ a, is_finite_measure (κ a)) :
-  measurable (λ a, κ a {b | (a, b) ∈ t}) :=
+  measurable (λ a, κ a (prod.mk a ⁻¹' t)) :=
 begin
   -- `t` is a measurable set in the product `α × β`: we use that the product σ-algebra is generated
   -- by boxes to prove the result by induction.
   refine measurable_space.induction_on_inter generate_from_prod.symm is_pi_system_prod _ _ _ _ ht,
   { -- case `t = ∅`
-    simp only [set.mem_empty_iff_false, set.set_of_false, measure_empty, measurable_const], },
+    simp only [preimage_empty, measure_empty, measurable_const], },
   { -- case of a box: `t = t₁ ×ˢ t₂` for measurable sets `t₁` and `t₂`
     intros t' ht',
     simp only [set.mem_image2, set.mem_set_of_eq, exists_and_distrib_left] at ht',
     obtain ⟨t₁, ht₁, t₂, ht₂, rfl⟩ := ht',
-    simp only [set.prod_mk_mem_set_prod_eq],
     classical,
-    have h_eq_ite : (λ a, κ a {b : β | a ∈ t₁ ∧ b ∈ t₂}) = λ a, ite (a ∈ t₁) (κ a t₂) 0,
+    simp_rw mk_preimage_prod_right_eq_if,
+    have h_eq_ite : (λ a, κ a (ite (a ∈ t₁) t₂ ∅)) = λ a, ite (a ∈ t₁) (κ a t₂) 0,
     { ext1 a,
       split_ifs,
-      { simp only [h, true_and], refl, },
-      { simp only [h, false_and, set.set_of_false, set.inter_empty, measure_empty], }, },
+      exacts [rfl, measure_empty], },
     rw h_eq_ite,
     exact measurable.ite ht₁ (kernel.measurable_coe κ ht₂) measurable_const },
   { -- we assume that the result is true for `t` and we prove it for `tᶜ`
     intros t' ht' h_meas,
-    have h_eq_sdiff : ∀ a, {b : β | (a, b) ∈ t'ᶜ} = set.univ \ {b : β | (a, b) ∈ t'},
+    have h_eq_sdiff : ∀ a, (prod.mk a ⁻¹' t'ᶜ) = set.univ \ (prod.mk a ⁻¹' t'),
     { intro a,
       ext1 b,
-      simp only [set.mem_compl_iff, set.mem_set_of_eq, set.mem_diff, set.mem_univ, true_and], },
+      simp only [mem_compl_iff, mem_preimage, mem_diff, mem_univ, true_and], },
     simp_rw h_eq_sdiff,
-    have : (λ a, κ a (set.univ \ {b : β | (a, b) ∈ t'}))
-      = (λ a, (κ a set.univ - κ a {b : β | (a, b) ∈ t'})),
+    have : (λ a, κ a (set.univ \ (prod.mk a ⁻¹' t')))
+      = (λ a, (κ a set.univ - κ a (prod.mk a ⁻¹' t'))),
     { ext1 a,
-      rw [← set.diff_inter_self_eq_diff, set.inter_univ, measure_diff],
-      { exact set.subset_univ _, },
+      rw [← set.diff_inter_self_eq_diff, set.inter_univ, measure_diff (set.subset_univ _)],
       { exact (@measurable_prod_mk_left α β _ _ a) t' ht', },
       { exact measure_ne_top _ _, }, },
     rw this,
     exact measurable.sub (kernel.measurable_coe κ measurable_set.univ) h_meas, },
   { -- we assume that the result is true for a family of disjoint sets and prove it for their union
     intros f h_disj hf_meas hf,
-    have h_Union : (λ a, κ a {b : β | (a, b) ∈ ⋃ i, f i}) = λ a, κ a (⋃ i, {b : β | (a, b) ∈ f i}),
+    have h_Union : (λ a, κ a (prod.mk a ⁻¹' ⋃ i, f i)) = λ a, κ a (⋃ i, prod.mk a ⁻¹' f i),
     { ext1 a,
       congr' with b,
-      simp only [set.mem_Union, set.supr_eq_Union, set.mem_set_of_eq],
-      refl, },
+      simp only [mem_Union, mem_preimage], },
     rw h_Union,
-    have h_tsum : (λ a, κ a (⋃ i, {b : β | (a, b) ∈ f i})) = λ a, ∑' i, κ a {b : β | (a, b) ∈ f i},
+    have h_tsum : (λ a, κ a (⋃ i, prod.mk a ⁻¹' f i)) = λ a, ∑' i, κ a (prod.mk a ⁻¹' f i),
     { ext1 a,
       rw measure_Union,
       { intros i j hij s hsi hsj b hbs,
@@ -92,10 +92,10 @@ end
 
 lemma measurable_kernel_prod_mk_left [is_s_finite_kernel κ]
   {t : set (α × β)} (ht : measurable_set t) :
-  measurable (λ a, κ a {b | (a, b) ∈ t}) :=
+  measurable (λ a, κ a (prod.mk a ⁻¹' t)) :=
 begin
   rw ← kernel_sum_seq κ,
-  have : ∀ a, kernel.sum (seq κ) a {b : β | (a, b) ∈ t} = ∑' n, seq κ n a {b : β | (a, b) ∈ t},
+  have : ∀ a, kernel.sum (seq κ) a (prod.mk a ⁻¹' t) = ∑' n, seq κ n a (prod.mk a ⁻¹' t),
     from λ a, kernel.sum_apply' _ _ (measurable_prod_mk_left ht),
   simp_rw this,
   refine measurable.ennreal_tsum (λ n, _),
@@ -104,9 +104,9 @@ end
 
 lemma measurable_kernel_prod_mk_left' [is_s_finite_kernel η]
   {s : set (β × γ)} (hs : measurable_set s) (a : α) :
-  measurable (λ b, η (a, b) {c : γ | (b, c) ∈ s}) :=
+  measurable (λ b, η (a, b) (prod.mk b ⁻¹' s)) :=
 begin
-  have : ∀ b, {c : γ | (b, c) ∈ s} = {c | ((a, b), c) ∈ {p : (α × β) × γ | (p.1.2, p.2) ∈ s}},
+  have : ∀ b, prod.mk b ⁻¹' s = {c | ((a, b), c) ∈ {p : (α × β) × γ | (p.1.2, p.2) ∈ s}},
   { intro b, refl, },
   simp_rw this,
   refine (measurable_kernel_prod_mk_left _).comp measurable_prod_mk_left,
@@ -126,7 +126,9 @@ section lintegral
 
 variables [is_s_finite_kernel κ] [is_s_finite_kernel η]
 
-lemma measurable_lintegral_indicator_const {t : set (α × β)} (ht : measurable_set t) (c : ℝ≥0∞) :
+/-- Auxiliary lemma for `measurable.lintegral_kernel_prod_right`. -/
+lemma kernel.measurable_lintegral_indicator_const {t : set (α × β)} (ht : measurable_set t)
+  (c : ℝ≥0∞) :
   measurable (λ a, ∫⁻ b, t.indicator (function.const (α × β) c) (a, b) ∂(κ a)) :=
 begin
   simp_rw lintegral_indicator_const_comp measurable_prod_mk_left ht _,
@@ -134,27 +136,27 @@ begin
 end
 
 /-- For an s-finite kernel `κ` and a function `f : α → β → ℝ≥0∞` which is measurable when seen as a
-map from `α × β` (hypothesis `measurable (function.uncurry f)`), the integral
-`a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable. -/
-theorem measurable.lintegral_kernel {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) :
+map from `α × β` (hypothesis `measurable (uncurry f)`), the integral `a ↦ ∫⁻ b, f a b ∂(κ a)` is
+measurable. -/
+theorem measurable.lintegral_kernel_prod_right {f : α → β → ℝ≥0∞} (hf : measurable (uncurry f)) :
   measurable (λ a, ∫⁻ b, f a b ∂(κ a)) :=
 begin
-  let F : ℕ → simple_func (α × β) ℝ≥0∞ := simple_func.eapprox (function.uncurry f),
-  have h : ∀ a, (⨆ n, F n a) = function.uncurry f a,
-    from simple_func.supr_eapprox_apply (function.uncurry f) hf,
-  simp only [prod.forall, function.uncurry_apply_pair] at h,
+  let F : ℕ → simple_func (α × β) ℝ≥0∞ := simple_func.eapprox (uncurry f),
+  have h : ∀ a, (⨆ n, F n a) = uncurry f a,
+    from simple_func.supr_eapprox_apply (uncurry f) hf,
+  simp only [prod.forall, uncurry_apply_pair] at h,
   simp_rw ← h,
   have : ∀ a, ∫⁻ b, (⨆ n, F n (a, b)) ∂(κ a) = ⨆ n, ∫⁻ b, F n (a, b) ∂(κ a),
   { intro a,
     rw lintegral_supr,
     { exact λ n, (F n).measurable.comp measurable_prod_mk_left, },
-    { exact λ i j hij b, simple_func.monotone_eapprox (function.uncurry f) hij _, }, },
+    { exact λ i j hij b, simple_func.monotone_eapprox (uncurry f) hij _, }, },
   simp_rw this,
   refine measurable_supr (λ n, simple_func.induction _ _ (F n)),
   { intros c t ht,
     simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
       simple_func.coe_zero, set.piecewise_eq_indicator],
-    exact measurable_lintegral_indicator_const ht c, },
+    exact kernel.measurable_lintegral_indicator_const ht c, },
   { intros g₁ g₂ h_disj hm₁ hm₂,
     simp only [simple_func.coe_add, pi.add_apply],
     have h_add : (λ a, ∫⁻ b, g₁ (a, b) + g₂ (a, b) ∂(κ a))
@@ -165,22 +167,14 @@ begin
     exact measurable.add hm₁ hm₂, },
 end
 
-lemma measurable.lintegral_kernel' {f : β → ℝ≥0∞} (hf : measurable f) :
-  measurable (λ a, ∫⁻ b, f b ∂(κ a)) :=
-measurable.lintegral_kernel (hf.comp measurable_snd)
-
-lemma measurable.lintegral_kernel'' {f : (α × β) → ℝ≥0∞} (hf : measurable f) :
+lemma measurable.lintegral_kernel_prod_right' {f : (α × β) → ℝ≥0∞} (hf : measurable f) :
   measurable (λ a, ∫⁻ b, f (a, b) ∂(κ a)) :=
 begin
-  refine measurable.lintegral_kernel _,
+  refine measurable.lintegral_kernel_prod_right _,
   have : function.uncurry (λ (a : α) (b : β), f (a, b)) = f,
   { ext x, rw [← @prod.mk.eta _ _ x, function.uncurry_apply_pair], },
   rwa this,
 end
-
-lemma measurable.lintegral_kernel_prod_right' :
-  ∀ {f : α × β → ℝ≥0∞} (hf : measurable f), measurable (λ x, ∫⁻ y, f (x, y) ∂(κ x)) :=
-λ f hf, hf.lintegral_kernel''
 
 lemma measurable.lintegral_kernel_prod_right'' :
   ∀ {f : β × γ → ℝ≥0∞} (hf : measurable f), measurable (λ x, ∫⁻ y, f (x, y) ∂(η (a, x))) :=
@@ -192,9 +186,9 @@ begin
   exact hf.comp (measurable_fst.snd.prod_mk measurable_snd),
 end
 
-lemma measurable.lintegral_kernel_prod_right {f : α → β → ℝ≥0∞} (hf : measurable (uncurry f)) :
-  measurable (λ x, ∫⁻ y, f x y ∂(κ x)) :=
-hf.lintegral_kernel_prod_right'
+lemma measurable.lintegral_kernel {f : β → ℝ≥0∞} (hf : measurable f) :
+  measurable (λ a, ∫⁻ b, f b ∂(κ a)) :=
+measurable.lintegral_kernel_prod_right (hf.comp measurable_snd)
 
 lemma measurable.lintegral_kernel_prod_left' {f : β × α → ℝ≥0∞} (hf : measurable f) :
   measurable (λ y, ∫⁻ x, f (x, y) ∂(κ y)) :=
@@ -205,15 +199,15 @@ lemma measurable.lintegral_kernel_prod_left
   measurable (λ y, ∫⁻ x, f x y ∂(κ y)) :=
 hf.lintegral_kernel_prod_left'
 
-lemma measurable.set_lintegral_kernel
+lemma measurable.set_lintegral_kernel_prod_right
   {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂(κ a)) :=
-by { simp_rw ← lintegral_restrict κ hs, exact hf.lintegral_kernel }
+by { simp_rw ← lintegral_restrict κ hs, exact hf.lintegral_kernel_prod_right }
 
-lemma measurable.set_lintegral_kernel'
+lemma measurable.set_lintegral_kernel_prod_right'
   {f : β → ℝ≥0∞} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f b ∂(κ a)) :=
-measurable.set_lintegral_kernel (hf.comp measurable_snd) hs
+measurable.set_lintegral_kernel_prod_right (hf.comp measurable_snd) hs
 
 end lintegral
 
@@ -303,5 +297,16 @@ lemma strongly_measurable.integral_kernel_prod_left'
   ⦃f : β × α → E⦄ (hf : strongly_measurable f) :
   strongly_measurable (λ y, ∫ x, f (x, y) ∂(κ y)) :=
 (hf.comp_measurable measurable_swap).integral_kernel_prod_right'
+
+lemma strongly_measurable.integral_kernel_prod_left''
+  {f : γ × β → E} (hf : strongly_measurable f) :
+  strongly_measurable (λ y, ∫ x, f (x, y) ∂(η (a, y))) :=
+begin
+  change strongly_measurable ((λ y, ∫ x, (λ u : (α × β) × γ, f (u.2, u.1.2)) (y, x) ∂(η y))
+    ∘ (λ x, (a, x))),
+  refine strongly_measurable.comp_measurable _ measurable_prod_mk_left,
+  refine measure_theory.strongly_measurable.integral_kernel_prod_right' _,
+  exact hf.comp_measurable (measurable_snd.prod_mk measurable_fst.snd),
+end
 
 end measure_theory

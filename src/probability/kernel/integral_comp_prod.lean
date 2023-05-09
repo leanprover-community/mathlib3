@@ -14,8 +14,8 @@ import probability.kernel.composition
 
 ## Implementation details
 
-This file is to a large extent a copy of `measure_theory.constructions.prod`. The product of two
-measures is a particular case of composition-product of kernels and it turns out that once the
+This file is to a large extent a copy of part of `measure_theory.constructions.prod`. The product of
+two measures is a particular case of composition-product of kernels and it turns out that once the
 measurablity of the Lebesgue integral of a kernel is proved, almost all proofs about integral
 against products of measures extend with minimal modifications to the composition-product of two
 kernels.
@@ -66,10 +66,9 @@ end
 lemma comp_prod_null (a : α) {s : set (β × γ)} (hs : measurable_set s) :
   (κ ⊗ₖ η) a s = 0 ↔ (λ b, η (a, b) (prod.mk b ⁻¹' s)) =ᵐ[κ a] 0 :=
 begin
-  rw [kernel.comp_prod_apply _ _ _ hs,
-    lintegral_eq_zero_iff (kernel.measurable_kernel_prod_mk_left' hs a)],
+  rw [kernel.comp_prod_apply _ _ _ hs, lintegral_eq_zero_iff],
   { refl, },
-  { apply_instance, },
+  { exact kernel.measurable_kernel_prod_mk_left' hs a, },
 end
 
 lemma ae_null_of_comp_prod_null {s : set (β × γ)} (h : (κ ⊗ₖ η) a s = 0) :

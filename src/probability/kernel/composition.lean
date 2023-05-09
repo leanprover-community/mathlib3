@@ -164,7 +164,7 @@ begin
       rw [hp_eq_mk, function.uncurry_apply_pair], },
     rw this,
     exact measurable_kernel_prod_mk_left (measurable_fst.snd.prod_mk measurable_snd hs), },
-  exact measurable.lintegral_kernel h_meas,
+  exact measurable.lintegral_kernel_prod_right h_meas,
 end
 
 lemma measurable_comp_prod_fun (κ : kernel α β) [is_s_finite_kernel κ]
@@ -182,7 +182,7 @@ begin
       rw [hp_eq_mk, function.uncurry_apply_pair], },
     rw this,
     exact measurable_kernel_prod_mk_left (measurable_fst.snd.prod_mk measurable_snd hs), },
-  exact measurable.lintegral_kernel h_meas,
+  exact measurable.lintegral_kernel_prod_right h_meas,
 end
 
 /-- Composition-Product of kernels. It verifies
@@ -249,7 +249,7 @@ begin
       { ext1 ab, refl, },
       rw this,
       refine measurable.comp _ measurable_prod_mk_left,
-      exact (measurable.lintegral_kernel
+      exact (measurable.lintegral_kernel_prod_right
         ((simple_func.measurable _).comp (measurable_fst.snd.prod_mk measurable_snd))), },
   rw lintegral_supr,
   rotate,
@@ -658,7 +658,7 @@ lemma comp_assoc {δ : Type*} {mδ : measurable_space δ} (ξ : kernel γ δ) [i
   (ξ ∘ₖ η ∘ₖ κ) = ξ ∘ₖ (η ∘ₖ κ) :=
 begin
   refine ext_fun (λ a f hf, _),
-  simp_rw [lintegral_comp _ _ _ hf, lintegral_comp _ _ _ (measurable.lintegral_kernel' hf)],
+  simp_rw [lintegral_comp _ _ _ hf, lintegral_comp _ _ _ (measurable.lintegral_kernel hf)],
 end
 
 lemma deterministic_comp_eq_map (hf : measurable f) (κ : kernel α β) [is_s_finite_kernel κ] :

@@ -51,7 +51,7 @@ def with_density (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → 
     begin
       refine measure.measurable_of_measurable_coe _ (λ s hs, _),
       simp_rw with_density_apply _ hs,
-      exact measurable.set_lintegral_kernel hf hs,
+      exact hf.set_lintegral_kernel_prod_right hs,
     end, } : kernel α β))
   (λ hf, 0)
 

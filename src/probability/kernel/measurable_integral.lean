@@ -13,9 +13,9 @@ is strongly measurable.
 
 ## Main statements
 
-* `probability_theory.measurable.lintegral_kernel_prod_right`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)`
-  is measurable, for an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that
-  `uncurry f` is measurable.
+* `measurable.lintegral_kernel_prod_right`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable,
+  for an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `uncurry f`
+  is measurable.
 * `measure_theory.strongly_measurable.integral_kernel_prod_right`: the function
   `a ↦ ∫ b, f a b ∂(κ a)` is measurable, for an s-finite kernel `κ : kernel α β` and a function
   `f : α → β → E` such that `uncurry f` is measurable.
@@ -138,7 +138,8 @@ end
 /-- For an s-finite kernel `κ` and a function `f : α → β → ℝ≥0∞` which is measurable when seen as a
 map from `α × β` (hypothesis `measurable (uncurry f)`), the integral `a ↦ ∫⁻ b, f a b ∂(κ a)` is
 measurable. -/
-theorem measurable.lintegral_kernel_prod_right {f : α → β → ℝ≥0∞} (hf : measurable (uncurry f)) :
+lemma _root_.measurable.lintegral_kernel_prod_right {f : α → β → ℝ≥0∞}
+  (hf : measurable (uncurry f)) :
   measurable (λ a, ∫⁻ b, f a b ∂(κ a)) :=
 begin
   let F : ℕ → simple_func (α × β) ℝ≥0∞ := simple_func.eapprox (uncurry f),
@@ -167,7 +168,7 @@ begin
     exact measurable.add hm₁ hm₂, },
 end
 
-lemma measurable.lintegral_kernel_prod_right' {f : (α × β) → ℝ≥0∞} (hf : measurable f) :
+lemma _root_.measurable.lintegral_kernel_prod_right' {f : (α × β) → ℝ≥0∞} (hf : measurable f) :
   measurable (λ a, ∫⁻ b, f (a, b) ∂(κ a)) :=
 begin
   refine measurable.lintegral_kernel_prod_right _,
@@ -176,7 +177,7 @@ begin
   rwa this,
 end
 
-lemma measurable.lintegral_kernel_prod_right'' {f : β × γ → ℝ≥0∞} (hf : measurable f) :
+lemma _root_.measurable.lintegral_kernel_prod_right'' {f : β × γ → ℝ≥0∞} (hf : measurable f) :
   measurable (λ x, ∫⁻ y, f (x, y) ∂(η (a, x))) :=
 begin
   change measurable ((λ x, ∫⁻ y, (λ u : (α × β) × γ, f (u.1.2, u.2)) (x, y) ∂(η x))
@@ -185,30 +186,30 @@ begin
   exact hf.comp (measurable_fst.snd.prod_mk measurable_snd),
 end
 
-lemma measurable.set_lintegral_kernel_prod_right
+lemma _root_.measurable.set_lintegral_kernel_prod_right
   {f : α → β → ℝ≥0∞} (hf : measurable (uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂(κ a)) :=
 by { simp_rw ← lintegral_restrict κ hs, exact hf.lintegral_kernel_prod_right }
 
-lemma measurable.lintegral_kernel_prod_left' {f : β × α → ℝ≥0∞} (hf : measurable f) :
+lemma _root_.measurable.lintegral_kernel_prod_left' {f : β × α → ℝ≥0∞} (hf : measurable f) :
   measurable (λ y, ∫⁻ x, f (x, y) ∂(κ y)) :=
 (measurable_swap_iff.mpr hf).lintegral_kernel_prod_right'
 
-lemma measurable.lintegral_kernel_prod_left
+lemma _root_.measurable.lintegral_kernel_prod_left
   {f : β → α → ℝ≥0∞} (hf : measurable (uncurry f)) :
   measurable (λ y, ∫⁻ x, f x y ∂(κ y)) :=
 hf.lintegral_kernel_prod_left'
 
-lemma measurable.set_lintegral_kernel_prod_left
+lemma _root_.measurable.set_lintegral_kernel_prod_left
   {f : β → α → ℝ≥0∞} (hf : measurable (uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ b, ∫⁻ a in s, f a b ∂(κ b)) :=
 by { simp_rw ← lintegral_restrict κ hs, exact hf.lintegral_kernel_prod_left }
 
-lemma measurable.lintegral_kernel {f : β → ℝ≥0∞} (hf : measurable f) :
+lemma _root_.measurable.lintegral_kernel {f : β → ℝ≥0∞} (hf : measurable f) :
   measurable (λ a, ∫⁻ b, f b ∂(κ a)) :=
 measurable.lintegral_kernel_prod_right (hf.comp measurable_snd)
 
-lemma measurable.set_lintegral_kernel
+lemma _root_.measurable.set_lintegral_kernel
   {f : β → ℝ≥0∞} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f b ∂(κ a)) :=
 measurable.set_lintegral_kernel_prod_right (hf.comp measurable_snd) hs

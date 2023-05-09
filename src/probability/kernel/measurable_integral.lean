@@ -306,11 +306,11 @@ lemma strongly_measurable.integral_kernel_prod_left''
   {f : γ × β → E} (hf : strongly_measurable f) :
   strongly_measurable (λ y, ∫ x, f (x, y) ∂(η (a, y))) :=
 begin
-  change strongly_measurable ((λ y, ∫ x, (λ u : (α × β) × γ, f (u.2, u.1.2)) (y, x) ∂(η y))
+  change strongly_measurable ((λ y, ∫ x, (λ u : γ × (α × β), f (u.1, u.2.2)) (x, y) ∂(η y))
     ∘ (λ x, (a, x))),
   refine strongly_measurable.comp_measurable _ measurable_prod_mk_left,
-  refine measure_theory.strongly_measurable.integral_kernel_prod_right' _,
-  exact hf.comp_measurable (measurable_snd.prod_mk measurable_fst.snd),
+  refine measure_theory.strongly_measurable.integral_kernel_prod_left' _,
+  exact hf.comp_measurable (measurable_fst.prod_mk measurable_snd.snd),
 end
 
 end measure_theory

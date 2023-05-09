@@ -501,7 +501,7 @@ lemma mu_aux_apply (a b : α) :
   mu_aux 𝕜 α a b = if a = b then 1 else -∑ x in (Ico a b).attach, mu_aux 𝕜 α a x :=
 by { convert has_well_founded.wf.fix_eq _ _, refl }
 
-/-- The moebius function which inverts `zeta` as an element of the incidence algebra. -/
+/-- The Möbius function which inverts `zeta` as an element of the incidence algebra. -/
 def mu : incidence_algebra 𝕜 α := ⟨mu_aux 𝕜 α, λ a b, not_imp_comm.1 $ λ h, begin
   rw mu_aux_apply at h,
   split_ifs at h with hab hab,

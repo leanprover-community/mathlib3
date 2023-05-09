@@ -135,8 +135,8 @@ local attribute [-instance] adjoin_root.has_smul
 lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] : normal F E :=
 begin
   unfreezingI { rcases eq_or_ne p 0 with rfl | hp },
-  { have : is_splitting_field F F 0 := ⟨splits_zero _, subsingleton.elim _ _⟩,
-    exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F 0).trans
+  { haveI : is_splitting_field F F 0 := ⟨splits_zero _, subsingleton.elim _ _⟩,
+    exact (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F 0).trans
       (is_splitting_field.alg_equiv E 0).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
   have hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
@@ -147,7 +147,8 @@ begin
   haveI := fact.mk q_irred,
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
-  have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
+  have finrankED : finite_dimensional.finrank E D = q.nat_degree,
+  { rw [power_basis.finrank pbED, adjoin_root.power_basis_dim] },
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   rsuffices ⟨ϕ⟩ : nonempty (D →ₐ[F] E),
   { rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
@@ -184,7 +185,7 @@ begin
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
   apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C S),
   suffices : (algebra.adjoin C S).restrict_scalars F
-           = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
+            = (algebra.adjoin E {adjoin_root.root q}).restrict_scalars F,
   { rw [adjoin_root.adjoin_root_eq_top, subalgebra.restrict_scalars_top,
       ←@subalgebra.restrict_scalars_top F C] at this,
     exact top_le_iff.mpr (subalgebra.restrict_scalars_injective F this) },
@@ -281,6 +282,15 @@ lemma alg_hom.restrict_normal_comp [normal F E] :
   (ψ.restrict_normal E).comp (ϕ.restrict_normal E) = (ψ.comp ϕ).restrict_normal E :=
 alg_hom.ext (λ _, (algebra_map E K₃).injective
   (by simp only [alg_hom.comp_apply, alg_hom.restrict_normal_commutes]))
+
+lemma alg_hom.field_range_of_normal {E : intermediate_field F K} [normal F E] (f : E →ₐ[F] K) :
+  f.field_range = E :=
+begin
+  haveI : is_scalar_tower F E E := by apply_instance,
+  let g := f.restrict_normal' E,
+  rw [←show E.val.comp ↑g = f, from fun_like.ext_iff.mpr (f.restrict_normal_commutes E),
+    ←alg_hom.map_field_range, g.field_range_eq_top, ←E.val.field_range_eq_map, E.field_range_val],
+end
 
 /-- Restrict algebra isomorphism to a normal subfield -/
 def alg_equiv.restrict_normal [h : normal F E] : E ≃ₐ[F] E :=
@@ -438,6 +448,9 @@ begin
   λ f, f.to_linear_map.finite_dimensional_range,
   apply intermediate_field.finite_dimensional_supr_of_finite,
 end
+
+instance is_scalar_tower : is_scalar_tower F (normal_closure F K L) L :=
+is_scalar_tower.subalgebra' F L L _
 
 end normal_closure
 

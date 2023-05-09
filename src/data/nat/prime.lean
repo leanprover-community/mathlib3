@@ -600,11 +600,7 @@ theorem coprime_or_dvd_of_prime {p} (pp : prime p) (i : ℕ) : coprime p i ∨ p
 by rw [pp.dvd_iff_not_coprime]; apply em
 
 lemma prime_dvd_of_not_coprime {p} (pp : prime p) {n : ℕ} (h : ¬ n.coprime p) : p ∣ n :=
-begin
-  cases nat.coprime_or_dvd_of_prime pp n,
-  { exfalso, apply h h_1.symm, },
-  { assumption, },
-end
+(nat.coprime_or_dvd_of_prime pp n).resolve_left (λ h', h h'.symm)
 
 lemma coprime_of_lt_prime {n p} (n_pos : 0 < n) (hlt : n < p) (pp : prime p) :
   coprime p n :=

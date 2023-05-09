@@ -462,14 +462,12 @@ show dist x x ≤ ε, by rw dist_self; assumption
 @[simp] lemma closed_ball_eq_empty : closed_ball x ε = ∅ ↔ ε < 0 :=
 by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 
-/-- A ball of radius zero is the sphere of radius zero -/
-theorem closed_ball_zero_eq_sphere_zero : closed_ball x 0 = sphere x 0 :=
-set.ext $ λ _, iff.symm $ le_antisymm_iff.trans $ and_iff_left dist_nonneg
-
-@[simp] theorem closed_ball_eq_sphere_of_nonneg (hε : ε ≤ 0) : closed_ball x ε = sphere x ε :=
+/-- Closed balls and spheres coincide only when the radius is non-positive -/
+@[simp] theorem closed_ball_eq_sphere_of_nonpos (hε : ε ≤ 0) : closed_ball x ε = sphere x ε :=
 begin
   obtain rfl | hr := hε.eq_or_lt,
-  { exact closed_ball_zero_eq_sphere_zero },
+  { ext,
+    exact iff.symm (le_antisymm_iff.trans $ and_iff_left dist_nonneg) },
   { rw [closed_ball_eq_empty.mpr hr, sphere_eq_empty_of_neg hr] }
 end
 
@@ -1912,7 +1910,7 @@ lemma sphere_pi (x : Πb, π b) {r : ℝ} (h : 0 < r ∨ nonempty β) :
 begin
   obtain hr | rfl | hr := lt_trichotomy r 0,
   { simp [hr], },
-  { rw [closed_ball_zero_eq_sphere_zero, eq_comm, set.inter_eq_right_iff_subset],
+  { rw [closed_ball_eq_sphere_of_nonpos le_rfl, eq_comm, set.inter_eq_right_iff_subset],
     letI := h.resolve_left (lt_irrefl _),
     inhabit β,
     refine subset_Union_of_subset default _,

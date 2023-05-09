@@ -479,8 +479,8 @@ def solid_closure (s : set β) : set β := {y | ∃ x ∈ s, |y| ≤ |x|}
 lemma is_solid_solid_closure (s : set β) : is_solid (solid_closure s) :=
 λ x ⟨y, hy, hxy⟩ z hzx, ⟨y, hy, hzx.trans hxy⟩
 
-lemma solid_closure_min (s t : set β) (h1 : s ⊆ t) (h2 : is_solid t) :
-  solid_closure s ⊆ t := λ  _ ⟨_, hy, hxy⟩, h2 (h1 hy) hxy
+lemma solid_closure_min (s t : set β) (h1 : s ⊆ t) (h2 : is_solid t) : solid_closure s ⊆ t :=
+λ  _ ⟨_, hy, hxy⟩, h2 (h1 hy) hxy
 
 end solid
 

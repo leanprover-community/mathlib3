@@ -1624,56 +1624,6 @@ begin
     simp only [mem_Union, mem_singleton_iff], rintro ⟨r, rfl⟩, exact measurable_set_Iio }
 end
 
-lemma borel_eq_generate_from_Ioc_rat :
-  borel ℝ
-    = measurable_space.generate_from {S : set ℝ | ∃ (l u : ℚ) (h : l < u), Ioc ↑l ↑u = S} :=
-begin
-  refine le_antisymm _ _,
-  swap,
-  { refine measurable_space.generate_from_le (λ t ht, _),
-    obtain ⟨l, u, hlu, rfl⟩ := ht,
-    exact measurable_set_Ioc, },
-  rw real.borel_eq_generate_from_Ioo_rat,
-  refine measurable_space.generate_from_le (λ t ht, _),
-  simp_rw mem_Union at ht,
-  obtain ⟨l, u, hlu, ht⟩ := ht,
-  have : t = ⋃ (r : Iio u), Ioc l r,
-  { rw mem_singleton_iff.mp ht,
-    ext1 x,
-    simp only [mem_Ioo, coe_coe, Union_coe_set, mem_Iio, subtype.coe_mk, mem_Union, mem_Ioc,
-      exists_prop],
-    split; intro h,
-    { obtain ⟨r, hxr, hru⟩ := exists_rat_btwn h.2,
-      exact ⟨r, by exact_mod_cast hru, h.1, hxr.le⟩, },
-    { obtain ⟨r, hru, hlx, hxr⟩ := h,
-      refine ⟨hlx, hxr.trans_lt _⟩,
-      exact_mod_cast hru, }, },
-  rw this,
-  refine measurable_set.Union (λ r, _),
-  by_cases hlr : l < r,
-  { exact measurable_space.measurable_set_generate_from ⟨l, r, hlr, rfl⟩, },
-  { rw Ioc_eq_empty,
-    { exact @measurable_set.empty _
-      (measurable_space.generate_from {S : set ℝ | ∃ (l u : ℚ) (h : l < u), Ioc ↑l ↑u = S}), },
-    { exact_mod_cast hlr, }, },
-end
-
-lemma borel_eq_generate_from_Iic_rat :
-  borel ℝ = measurable_space.generate_from {S : set ℝ | ∃ (u : ℚ), Iic ↑u = S} :=
-begin
-  refine le_antisymm _ _,
-  { rw real.borel_eq_generate_from_Ioc_rat,
-    refine measurable_space.generate_from_le (λ t ht, _),
-    obtain ⟨l, u, hlu, rfl⟩ := ht,
-    rw ← Iic_diff_Iic,
-    refine measurable_set.diff _ _,
-    { exact measurable_space.measurable_set_generate_from ⟨u, rfl⟩, },
-    { exact measurable_space.measurable_set_generate_from ⟨l, rfl⟩, }, },
-  { refine measurable_space.generate_from_le (λ t ht, _),
-    obtain ⟨l, u, hlu, rfl⟩ := ht,
-    exact measurable_set_Iic, },
-end
-
 end real
 
 variable [measurable_space α]

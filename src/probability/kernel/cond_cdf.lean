@@ -179,27 +179,6 @@ begin
 end
 
 -- todo: move to measure_theory/pi_system
-lemma real.is_pi_system_Ioc_rat :
-  @is_pi_system ℝ {S | ∃ (l u : ℚ) (h : l < u), Ioc (l : ℝ) u = S} :=
-begin
-  rintros s ⟨ls, us, hlus, rfl⟩ t ⟨lt, ut, hlut, rfl⟩ hst,
-  rw [Ioc_inter_Ioc, sup_eq_max, inf_eq_min] at hst ⊢,
-  refine ⟨max ls lt, min us ut, _, _⟩,
-  { rw [nonempty_Ioc] at hst,
-    exact_mod_cast hst, },
-  { norm_cast, },
-end
-
--- todo: move to measure_theory/pi_system
-lemma real.is_pi_system_Iic_rat : @is_pi_system ℝ {S | ∃ (u : ℚ), Iic (u : ℝ) = S} :=
-begin
-  rintros s ⟨us, rfl⟩ t ⟨ut, rfl⟩ _,
-  rw [Iic_inter_Iic, inf_eq_min],
-  refine ⟨min us ut, _⟩,
-  norm_cast,
-end
-
--- todo: move to measure_theory/pi_system
 lemma is_pi_system_Iic [semilattice_inf α] : @is_pi_system α (range Iic) :=
 by { rintros s ⟨us, rfl⟩ t ⟨ut, rfl⟩ _, rw [Iic_inter_Iic], exact ⟨us ⊓ ut, rfl⟩, }
 

@@ -162,15 +162,15 @@ section
 
 variable [decidable_eq N]
 
-/-- Path from a generalized loop by currying $I^N → X$ into $I → (I^{N\setminus\{j\}} → X)$. -/
-@[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
+/-- Loop from a generalized loop by currying $I^N → X$ into $I → (I^{N\setminus\{j\}} → X)$. -/
+@[simps] def to_loop (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
 { to_fun := λ t, ⟨(p.val.comp (cube.insert_at i).to_continuous_map).curry t,
     λ y yH, p.property (cube.insert_at i (t, y)) (cube.insert_at_boundary i $ or.inr yH)⟩,
   source' := by { ext t, refine p.property (cube.insert_at i (0, t)) ⟨i, or.inl _⟩, simp },
   target' := by { ext t, refine p.property (cube.insert_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
-/-- Generalized loop from a path by uncurrying $I → (I^{N\setminus\{j\}} → X)$ into $I^N → X$. -/
-@[simps] def from_path (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : gen_loop N x :=
+/-- Generalized loop from a loop by uncurrying $I → (I^{N\setminus\{j\}} → X)$ into $I^N → X$. -/
+@[simps] def from_loop (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : gen_loop N x :=
 ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(cube _, X))).uncurry.comp
   (cube.split_at i).to_continuous_map,
 begin
@@ -183,26 +183,26 @@ begin
   { exact gen_loop.boundary _ _ ⟨⟨j, Hne⟩, Hj⟩ },
 end⟩
 
-lemma to_from (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : to_path i (from_path i p) = p :=
+lemma to_from (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : to_loop i (from_loop i p) = p :=
 begin
-  simp_rw [to_path, from_path, continuous_map.comp_assoc, to_continuous_map_as_coe,
+  simp_rw [to_loop, from_loop, continuous_map.comp_assoc, to_continuous_map_as_coe,
     to_continuous_map_comp_symm, continuous_map.comp_id], ext, refl,
 end
 
 /-- The `n+1`-dimensional loops are in bijection with the loops in the space of
   `n`-dimensional loops with base point `const`.
   We allow an arbitrary indexing type `N` in place of `fin n` here. -/
-@[simps] def path_equiv (i : N) : gen_loop N x ≃ Ω (gen_loop {j // j ≠ i} x) const :=
-{ to_fun := to_path i,
-  inv_fun := from_path i,
+@[simps] def loop_equiv (i : N) : gen_loop N x ≃ Ω (gen_loop {j // j ≠ i} x) const :=
+{ to_fun := to_loop i,
+  inv_fun := from_loop i,
   left_inv := λ p, by { ext, exact congr_arg p (equiv.apply_symm_apply _ _) },
   right_inv := to_from i }
 
-lemma to_path_apply (i : N) {p : gen_loop N x} {t} {tn} :
-  to_path i p t tn = p (cube.insert_at i ⟨t, tn⟩) := rfl
+lemma to_loop_apply (i : N) {p : gen_loop N x} {t} {tn} :
+  to_loop i p t tn = p (cube.insert_at i ⟨t, tn⟩) := rfl
 
-lemma from_path_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : cube N} :
-  from_path i p t = p (t i) (cube.split_at i t).snd := rfl
+lemma from_loop_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : cube N} :
+  from_loop i p t = p (t i) (cube.split_at i t).snd := rfl
 
 end
 
@@ -227,7 +227,7 @@ abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i},
   (c_comp_insert i).comp H.to_continuous_map.curry).uncurry
 
 lemma homotopic_to (i : N) {p q : gen_loop N x} :
-  homotopic p q → (to_path i p).homotopic (to_path i q) :=
+  homotopic p q → (to_loop i p).homotopic (to_loop i q) :=
 begin
   refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩, _⟩, _, _⟩, _⟩),
   { rintros y ⟨i, iH⟩,
@@ -239,19 +239,20 @@ begin
     split; ext; erw homotopy_to_apply_apply,
     apply H.eq_fst, work_on_goal 2 { apply H.eq_snd },
     all_goals { use i, rw [fun_split_at_symm_apply, dif_pos rfl], exact yH } },
-  all_goals { intro, ext, erw [homotopy_to_apply_apply, to_path_apply] },
+  all_goals { intro, ext, erw [homotopy_to_apply_apply, to_loop_apply] },
   exacts [H.apply_zero _, H.apply_one _],
 end
 
-/-- The converse to `gen_loop.homotopy_to`: a homotopy between two loops in the space of `n`-dimensional loops can be seen as a homotopy between two `n+1`-dimensional paths. -/
+/-- The converse to `gen_loop.homotopy_to`: a homotopy between two loops in the space of
+  `n`-dimensional loops can be seen as a homotopy between two `n+1`-dimensional paths. -/
 @[simps] def homotopy_from (i : N) {p q : gen_loop N x}
-  (H : (to_path i p).homotopy (to_path i q)) : C(I × cube N, X) :=
+  (H : (to_loop i p).homotopy (to_loop i q)) : C(I × cube N, X) :=
 ((⟨_, continuous_map.continuous_uncurry⟩ : C(_,_)).comp
   (c_coe.comp H.to_continuous_map).curry).uncurry.comp $
     (continuous_map.id I).prod_map (cube.split_at i).to_continuous_map
 
 lemma homotopic_from (i : N) {p q : gen_loop N x} :
-  (to_path i p).homotopic (to_path i q) → homotopic p q :=
+  (to_loop i p).homotopic (to_loop i q) → homotopic p q :=
 begin
   refine nonempty.map (λ H, ⟨⟨homotopy_from i H, _, _⟩, _⟩),
   show ∀ _ _ _, _,
@@ -289,7 +290,7 @@ def homotopy_group_equiv_fundamental_group (i : N) :
   homotopy_group N X x ≃ fundamental_group (gen_loop {j // j ≠ i} x) const :=
 begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
-  apply quotient.congr (path_equiv i),
+  apply quotient.congr (loop_equiv i),
   exact λ p q, ⟨homotopic_to i, homotopic_from i⟩,
 end
 
@@ -319,9 +320,8 @@ begin
       prop' := λ _ _ ⟨i,_⟩, i.elim0 }⟩]
 end
 
-/-- The 1-dimensional generalized loops based at `x` are in 1-1 correspondence with paths from `x`
-  to itself. -/
-@[simps] def gen_loop_one_equiv_path_self : gen_loop (fin 1) x ≃ Ω X x :=
+/-- The 1-dimensional generalized loops based at `x` are in 1-1 correspondence with loops at `x`. -/
+@[simps] def gen_loop_one_equiv_loop : gen_loop (fin 1) x ≃ Ω X x :=
 { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by continuity⟩
     (gen_loop.boundary _ (λ _, 0) ⟨0, or.inl rfl⟩)
     (gen_loop.boundary _ (λ _, 1) ⟨1, or.inr rfl⟩),
@@ -340,8 +340,7 @@ end
 def pi1_equiv_fundamental_group : π_ 1 X x ≃ fundamental_group X x :=
 begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
-  refine quotient.congr gen_loop_one_equiv_path_self _,
-  -- homotopic iff homotopic
+  refine quotient.congr gen_loop_one_equiv_loop _,
   intros, split; rintros ⟨H⟩,
   exacts
   [⟨{ to_fun := λ tx, H (tx.fst, λ _, tx.snd),
@@ -366,7 +365,7 @@ instance group : group (π_(n+1) X x) :=
 (homotopy_group_equiv_fundamental_group 0).group
 
 /-- Group structure on `homotopy_group` obtained by pulling back path composition along the
-  `i`th direction. The group structures for two different $i j : N` distribute over each
+  `i`th direction. The group structures for two different `i j : N` distribute over each
   other, and therefore are equal by the Eckmann-Hilton argument. When `N = fin (n+1)`,
   the group structure with `i = 0` is taken to be default and registered as an instance above. -/
 @[reducible] def aux_group (i : N) : group (homotopy_group N X x) :=
@@ -378,13 +377,13 @@ lemma is_unital_aux_group (i : N) :
 
 /-- Concatenation of two `gen_loop`s along the `i`th coordinate. -/
 def trans_at (i : N) (f g : gen_loop N x) : gen_loop N x :=
-copy ((path_equiv i).symm ((path_equiv i f).trans $ path_equiv i g))
+copy ((loop_equiv i).symm ((loop_equiv i f).trans $ loop_equiv i g))
   (λ t, if (t i : ℝ) ≤ 1/2
     then f (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
     else g (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j))
 begin
   ext1, symmetry,
-  dsimp only [path.trans, from_path, path.coe_mk, function.comp_app, path_equiv_symm_apply,
+  dsimp only [path.trans, from_loop, path.coe_mk, function.comp_app, loop_equiv_symm_apply,
     mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
     continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
   split_ifs, change f _ = _, swap, change g _ = _,
@@ -393,7 +392,7 @@ end
 
 /-- Reversal of a `gen_loop` along the `i`th coordinate. -/
 def symm_at (i : N) (f : gen_loop N x) : gen_loop N x :=
-copy ((path_equiv i).symm (path_equiv i f).symm)
+copy ((loop_equiv i).symm (loop_equiv i f).symm)
   (λ t, f $ λ j, if j = i then σ (t i) else t j) $
   by { ext1, change _ = f _, congr, ext1, simp }
 
@@ -404,12 +403,12 @@ begin
   split_ifs; { congr, ext1, apply ite_ite_comm, rintro rfl, exact h.symm },
 end
 
-lemma from_path_trans_to_path {p q : gen_loop N x} :
-  (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) = trans_at i p q :=
+lemma from_loop_trans_to_loop {p q : gen_loop N x} :
+  (loop_equiv i).symm ((loop_equiv i p).trans $ loop_equiv i q) = trans_at i p q :=
 (copy_eq _ _).symm
 
-lemma from_path_symm_to_path {p : gen_loop N x} :
-  (path_equiv i).symm (path_equiv i p).symm = symm_at i p := (copy_eq _ _).symm
+lemma from_loop_symm_to_loop {p : gen_loop N x} :
+  (loop_equiv i).symm (loop_equiv i p).symm = symm_at i p := (copy_eq _ _).symm
 
 lemma aux_group_indep (i j : N) : (aux_group i : group (homotopy_group N X x)) = aux_group j :=
 begin
@@ -417,19 +416,19 @@ begin
   refine group.ext (eckmann_hilton.mul (is_unital_aux_group i) (is_unital_aux_group j) _),
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩,
   apply congr_arg quotient.mk,
-  simp_rw [from_path_trans_to_path, trans_at_distrib h],
+  simp_rw [from_loop_trans_to_loop, trans_at_distrib h],
 end
 
 lemma trans_at_indep {i} (j) (f g : gen_loop N x) : ⟦trans_at i f g⟧ = ⟦trans_at j f g⟧ :=
 begin
-  simp_rw ← from_path_trans_to_path,
+  simp_rw ← from_loop_trans_to_loop,
   have := congr_arg (@group.mul _) (aux_group_indep i j),
   exact congr_fun₂ this ⟦g⟧ ⟦f⟧,
 end
 
 lemma symm_at_indep {i} (j) (f : gen_loop N x) : ⟦symm_at i f⟧ = ⟦symm_at j f⟧ :=
 begin
-  simp_rw ← from_path_symm_to_path,
+  simp_rw ← from_loop_symm_to_loop,
   have := congr_arg (@group.inv _) (aux_group_indep i j),
   exact congr_fun this ⟦f⟧,
 end
@@ -439,19 +438,19 @@ lemma const_spec : (1 : π_(n+1) X x) = ⟦const⟧ := rfl
 
 /-- Characterization of multiplication -/
 lemma mul_spec {i} {p q : gen_loop (fin (n+1)) x} : (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦trans_at i q p⟧ :=
-by { rw [trans_at_indep 0 q, ← from_path_trans_to_path], apply quotient.sound, refl }
+by { rw [trans_at_indep 0 q, ← from_loop_trans_to_loop], apply quotient.sound, refl }
 
 /-- Characterization of multiplicative inverse -/
 lemma inv_spec {i} {p : gen_loop (fin (n+1)) x} : (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦symm_at i p⟧ :=
-by { rw [symm_at_indep 0 p, ← from_path_symm_to_path], apply quotient.sound, refl }
+by { rw [symm_at_indep 0 p, ← from_loop_symm_to_loop], apply quotient.sound, refl }
 
-/-- Multiplication on `π_(n+2}` is commutative. -/
+/-- Multiplication on `π_(n+2)` is commutative. -/
 instance comm_group : comm_group (π_(n+2) X x) :=
 @eckmann_hilton.comm_group (π_(n+2) X x) _ 1 (is_unital_aux_group 1) _
 begin
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩,
   apply congr_arg quotient.mk,
-  simp_rw [from_path_trans_to_path, trans_at_distrib fin.zero_ne_one],
+  simp_rw [from_loop_trans_to_loop, trans_at_distrib fin.zero_ne_one],
 end
 
 end

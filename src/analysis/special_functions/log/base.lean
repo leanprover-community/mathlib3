@@ -52,6 +52,16 @@ by simp_rw [logb, log_div hx hy, sub_div]
 
 @[simp] lemma logb_inv (x : ℝ) : logb b (x⁻¹) = -logb b x := by simp [logb, neg_div]
 
+@[simp] lemma inv_logb {a b : ℝ} : (logb a b)⁻¹ = logb b a := by simp_rw [logb, inv_div]
+
+theorem inv_logb_mul {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0) :
+  (logb (a * b) c)⁻¹ = (logb a c)⁻¹ + (logb b c)⁻¹ :=
+by simp_rw [inv_logb]; exact logb_mul h₁ h₂
+
+theorem logb_mul_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
+  logb (a * b) c = ((logb a c)⁻¹ + (logb b c)⁻¹)⁻¹ :=
+by rw [←inv_logb_mul h₁ h₂, inv_inv]
+
 section b_pos_and_ne_one
 
 variable (b_pos : 0 < b)

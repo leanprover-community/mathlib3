@@ -10,6 +10,7 @@ import algebra.periodic
 import data.int.succ_pred
 import group_theory.quotient_group
 import order.circular
+
 /-!
 # Reducing to an interval modulo its length
 

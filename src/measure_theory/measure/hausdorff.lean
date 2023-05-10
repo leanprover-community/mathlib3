@@ -846,9 +846,6 @@ by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
 end isometry_equiv
 
-open_locale measure_theory
-open measure
-
 namespace measure_theory
 
 /-!

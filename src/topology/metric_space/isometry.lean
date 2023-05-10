@@ -436,10 +436,15 @@ variables (ι α)
 /-- `equiv.fun_unique` as an `isometry_equiv`. -/
 @[simps]
 def fun_unique [unique ι] [fintype ι] : (ι → α) ≃ᵢ α :=
-{ to_fun := λ f, f default,
-  inv_fun := λ a _, a,
-  isometry_to_fun := λ x hx, by rw [edist_pi_def, finset.univ_unique, finset.sup_singleton],
-  ..equiv.fun_unique ι α }
+{ to_equiv := equiv.fun_unique ι α,
+  isometry_to_fun := λ x hx, by simp [edist_pi_def, finset.univ_unique, finset.sup_singleton] }
+
+/-- `pi_fin_two_equiv` as an `isometry_equiv`. -/
+@[simps]
+def pi_fin_two (α : fin 2 → Type*) [Π i, pseudo_emetric_space (α i)] :
+  (Π i, α i) ≃ᵢ α 0 × α 1 :=
+{ to_equiv := pi_fin_two_equiv α,
+  isometry_to_fun := λ x hx, by simp [edist_pi_def, fin.univ_succ, prod.edist_eq] }
 
 end pseudo_emetric_space
 

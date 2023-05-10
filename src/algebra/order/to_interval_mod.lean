@@ -752,18 +752,16 @@ private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
     ∧ ¬to_Ico_mod hp x₃ x₄ ≤ to_Ioc_mod hp x₃ x₁ :=
 begin
   split,
-  { suffices h : to_Ico_mod hp x₃ x₂ = to_Ioc_mod hp x₃ x₂,
+  { suffices h : ¬x₃ ≡ x₂ [PMOD p],
     { have h₁₂₃' := to_Ixx_mod_cyclic_left _ (to_Ixx_mod_cyclic_left _ h₁₂₃.1),
       have h₂₃₄' := to_Ixx_mod_cyclic_left _ (to_Ixx_mod_cyclic_left _ h₂₃₄.1),
-      exact to_Ixx_mod_cyclic_left _ ((h₁₂₃'.trans h.ge).trans h₂₃₄') },
+      rw [(not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 h] at h₂₃₄',
+      exact to_Ixx_mod_cyclic_left _ (h₁₂₃'.trans h₂₃₄') },
     by_contra,
-    have hIco₃₂ : to_Ico_mod hp x₃ x₂ = x₃ :=
-      ((modeq_iff_to_Ico_mod_ne_to_Ioc_mod _).2 h).to_Ico_mod_eq_left _,
-    have hIco₃₁ : x₃ < to_Ioc_mod hp x₃ x₁ := left_lt_to_Ioc_mod _ _ _,
-    exact h₁₂₃.2 (hIco₃₂.le.trans hIco₃₁.le) },
-  { rw not_le,
-    have := to_Ico_mod_le_to_Ioc_mod hp x₃ x₂,
-    exact ((not_le.1 h₁₂₃.2).trans_le this).trans (not_le.1 h₂₃₄.2) },
+    rw [(modeq_iff_to_Ico_mod_eq_left hp).1 h] at h₁₂₃,
+    exact h₁₂₃.2 (left_lt_to_Ioc_mod _ _ _).le },
+  { rw [not_le] at h₁₂₃ h₂₃₄ ⊢,
+    exact (h₁₂₃.2.trans_le (to_Ico_mod_le_to_Ioc_mod _ x₃ x₂)).trans h₂₃₄.2 },
 end
 
 namespace quotient_add_group

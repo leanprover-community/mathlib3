@@ -33,8 +33,6 @@ interval.
 
 noncomputable theory
 
-open add_comm_group
-
 section linear_ordered_add_comm_group
 
 variables {α : Type*} [linear_ordered_add_comm_group α] [hα : archimedean α] {p : α} (hp : 0 < p)

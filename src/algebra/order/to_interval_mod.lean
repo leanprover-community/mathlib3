@@ -699,15 +699,14 @@ begin
 
   have h : x₂' ≤ to_Ioc_mod hp x₁ x₃' := by simpa,
 
-  have hIoc₂₁ : to_Ioc_mod hp x₂' x₁ = x₁ + p,
-  { apply (to_Ioc_mod_eq_iff hp).2,
+  cases le_or_lt x₃' (x₁ + p) with h₃₁ h₁₃,
+  { suffices hIoc₂₁ : to_Ioc_mod hp x₂' x₁ = x₁ + p,
+    { exact hIoc₂₁.symm.trans_ge h₃₁ },
+    apply (to_Ioc_mod_eq_iff hp).2,
     refine ⟨_, -1, _⟩,
     { simp only [set.mem_Ioc, add_le_add_iff_right],
       exact ⟨to_Ico_mod_lt_right _ _ _, left_le_to_Ico_mod _ _ _⟩ },
-    simp only [add_neg_cancel_right, one_smul, neg_smul] },
-
-  cases le_or_lt x₃' (x₁ + p) with h₃₁ h₁₃,
-  { exact hIoc₂₁.symm.trans_ge h₃₁ },
+    { simp only [add_neg_cancel_right, one_smul, neg_smul] } },
 
   have h₃₂ : x₃' - p < x₂' := sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _),
   have h₂₁ : x₂' < x₁ + p := to_Ico_mod_lt_right _ _ _,

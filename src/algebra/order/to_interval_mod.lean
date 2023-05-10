@@ -702,7 +702,7 @@ begin
   { suffices hIoc₂₁ : to_Ioc_mod hp x₂' x₁ = x₁ + p,
     { exact hIoc₂₁.symm.trans_ge h₃₁ },
     apply (to_Ioc_mod_eq_iff hp).2,
-    exact ⟨⟨h₂₁, by simp [left_le_to_Ico_mod hp x₁ x₂]⟩, -1, by simp⟩ },
+    exact ⟨⟨h₂₁, by simp [left_le_to_Ico_mod]⟩, -1, by simp⟩ },
 
   have hIoc₁₃ : to_Ioc_mod hp x₁ x₃' = x₃' - p,
   { apply (to_Ioc_mod_eq_iff hp).2,

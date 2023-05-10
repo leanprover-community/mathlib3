@@ -1180,6 +1180,20 @@ by simpa using is_o_zpow_exp_pos_mul_at_top k hb
 lemma is_o_rpow_exp_at_top (s : ℝ) : (λ x : ℝ, x ^ s) =o[at_top] exp :=
 by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
 
+/-- `exp (-a * x) = o(x ^ s)` as `x → ∞`, for any positive `a` and real `s`. -/
+lemma is_o_exp_neg_mul_rpow_at_top {a : ℝ} (ha : 0 < a) (b : ℝ) :
+  is_o at_top (λ x : ℝ, exp (-a * x)) (λ x : ℝ, x ^ b) :=
+begin
+  apply is_o_of_tendsto',
+  { refine (eventually_gt_at_top 0).mp (eventually_of_forall $ λ t ht h, _),
+    rw rpow_eq_zero_iff_of_nonneg ht.le at h,
+    exact (ht.ne' h.1).elim },
+  { refine (tendsto_exp_mul_div_rpow_at_top (-b) a ha).inv_tendsto_at_top.congr' _,
+    refine (eventually_ge_at_top 0).mp (eventually_of_forall $ λ t ht, _),
+    dsimp only,
+    rw [pi.inv_apply, inv_div, ←inv_div_inv, neg_mul, real.exp_neg, rpow_neg ht, inv_inv] }
+end
+
 lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : log =o[at_top] (λ x, x ^ r) :=
 calc log =O[at_top] (λ x, r * log x)   : is_O_self_const_mul _ hr.ne' _ _
      ... =ᶠ[at_top] (λ x, log (x ^ r)) :

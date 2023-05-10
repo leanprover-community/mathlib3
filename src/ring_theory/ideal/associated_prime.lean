@@ -5,9 +5,8 @@ Authors: Andrew Yang
 -/
 import linear_algebra.span
 import ring_theory.ideal.operations
-import ring_theory.finiteness
-import ring_theory.localization.ideal
-import ring_theory.ideal.minimal_prime
+import ring_theory.ideal.quotient_operations
+import ring_theory.noetherian
 
 /-!
 

@@ -15,7 +15,7 @@ We define
 * the map and comap of a kernel along a measurable function.
 * the composition `η ∘ₖ κ` of s-finite kernels `κ : kernel α β` and `η : kernel β γ`,
   a kernel from `α` to `γ`.
-* the product `prod κ η` of s-finite kernels `κ : kernel α β` and `η : kernel α γ`,
+* the product `κ ×ₖ η` of s-finite kernels `κ : kernel α β` and `η : kernel α γ`,
   a kernel from `α` to `β × γ`.
 
 A note on names:
@@ -38,7 +38,7 @@ Kernels built from other kernels:
   We define a notation `η ∘ₖ κ = comp η κ`.
   `∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
 * `prod (κ : kernel α β) (η : kernel α γ) : kernel α (β × γ)`: product of 2 s-finite kernels.
-  `∫⁻ bc, f bc ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f (b, c) ∂(η a) ∂(κ a)`
+  `∫⁻ bc, f bc ∂((κ ×ₖ η) a) = ∫⁻ b, ∫⁻ c, f (b, c) ∂(η a) ∂(κ a)`
 
 ## Main statements
 
@@ -53,6 +53,7 @@ Kernels built from other kernels:
 
 * `κ ⊗ₖ η = probability_theory.kernel.comp_prod κ η`
 * `η ∘ₖ κ = probability_theory.kernel.comp η κ`
+* `κ ×ₖ η = probability_theory.kernel.prod κ η`
 
 -/
 
@@ -692,31 +693,34 @@ def prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel α γ) [is_s_f
   kernel α (β × γ) :=
 κ ⊗ₖ (swap_left (prod_mk_left η β))
 
+localized "infix (name := kernel.prod) ` ×ₖ `:100 := probability_theory.kernel.prod" in
+  probability_theory
+
 lemma prod_apply (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel α γ) [is_s_finite_kernel η]
   (a : α) {s : set (β × γ)} (hs : measurable_set s) :
-  (prod κ η) a s = ∫⁻ (b : β), (η a) {c : γ | (b, c) ∈ s} ∂(κ a) :=
+  (κ ×ₖ η) a s = ∫⁻ (b : β), (η a) {c : γ | (b, c) ∈ s} ∂(κ a) :=
 by simp_rw [prod, comp_prod_apply _ _ _ hs, swap_left_apply _ _, prod_mk_left_apply,
   prod.swap_prod_mk]
 
 lemma lintegral_prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel α γ) [is_s_finite_kernel η]
   (a : α) {g : (β × γ) → ℝ≥0∞} (hg : measurable g) :
-  ∫⁻ c, g c ∂((prod κ η) a) = ∫⁻ b, ∫⁻ c, g (b, c) ∂(η a) ∂(κ a) :=
+  ∫⁻ c, g c ∂((κ ×ₖ η) a) = ∫⁻ b, ∫⁻ c, g (b, c) ∂(η a) ∂(κ a) :=
 by simp_rw [prod, lintegral_comp_prod _ _ _ hg, swap_left_apply, prod_mk_left_apply,
   prod.swap_prod_mk]
 
 instance is_markov_kernel.prod (κ : kernel α β) [is_markov_kernel κ]
   (η : kernel α γ) [is_markov_kernel η] :
-  is_markov_kernel (prod κ η) :=
+  is_markov_kernel (κ ×ₖ η) :=
 by { rw prod, apply_instance, }
 
 instance is_finite_kernel.prod (κ : kernel α β) [is_finite_kernel κ]
   (η : kernel α γ) [is_finite_kernel η] :
-  is_finite_kernel (prod κ η) :=
+  is_finite_kernel (κ ×ₖ η) :=
 by { rw prod, apply_instance, }
 
 instance is_s_finite_kernel.prod (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel α γ) [is_s_finite_kernel η] :
-  is_s_finite_kernel (prod κ η) :=
+  is_s_finite_kernel (κ ×ₖ η) :=
 by { rw prod, apply_instance, }
 
 end prod

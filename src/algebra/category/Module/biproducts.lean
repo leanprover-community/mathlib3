@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.group.pi
 import category_theory.limits.shapes.biproducts
-import algebra.category.Module.limits
 import algebra.category.Module.abelian
 import algebra.homology.short_exact.abelian
 

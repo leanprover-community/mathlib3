@@ -708,10 +708,9 @@ begin
       exact ⟨to_Ico_mod_lt_right _ _ _, left_le_to_Ico_mod _ _ _⟩ },
     simp only [add_neg_cancel_right, one_smul, neg_smul] },
 
-  by_cases hc : x₃' ≤ x₁ + p,
+  cases le_or_lt x₃' (x₁ + p) with hc hc,
   { exact hIoc₂₁.symm.trans_ge hc },
 
-  rw [not_le] at hc,
   have hIoc₁₃ : to_Ioc_mod hp x₁ x₃' = x₃' - p,
   { apply (to_Ioc_mod_eq_iff hp).2,
     refine ⟨_, 1, _⟩, swap,

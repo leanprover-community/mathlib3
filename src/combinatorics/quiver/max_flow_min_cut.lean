@@ -5,12 +5,10 @@ Authors: Aleksandar Milchev, Leo Okawa Ericson, Viggo Laakshoharju
 -/
 
 
-import data.real.basic
-import data.set.basic
-import tactic
-import data.finset.basic
-import tactic.induction
 import algebra.big_operators.order
+import data.real.basic
+import data.set.finite
+import tactic.induction
 
 /-!
 # Max flow Min cut theorem

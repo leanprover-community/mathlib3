@@ -690,15 +690,13 @@ private lemma to_Ixx_mod_cyclic_left {x₁ x₂ x₃ : α}
 begin
   let x₂' := to_Ico_mod hp x₁ x₂,
   let x₃' := to_Ico_mod hp x₂' x₃,
+  have h : x₂' ≤ to_Ioc_mod hp x₁ x₃' := by simpa,
+  have h₂₁ : x₂' < x₁ + p := to_Ico_mod_lt_right _ _ _,
+  have h₃₂ : x₃' - p < x₂' := sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _),
 
   suffices hequiv : x₃' ≤ to_Ioc_mod hp x₂' x₁,
-  { have hd : ∃ (z : ℤ), x₂ = x₂' + z • p := ((to_Ico_mod_eq_iff hp).1 rfl).2,
-    clear_value x₂',
-    obtain ⟨m₂, rfl⟩ := hd,
-    simpa using hequiv },
-
-  have h : x₂' ≤ to_Ioc_mod hp x₁ x₃' := by simpa,
-  have h₂₁ : x₂' < x₁ + p := to_Ico_mod_lt_right hp x₁ x₂,
+  { obtain ⟨z, hd⟩ : ∃ (z : ℤ), x₂ = x₂' + z • p := ((to_Ico_mod_eq_iff hp).1 rfl).2,
+    simpa [hd] },
 
   cases le_or_lt x₃' (x₁ + p) with h₃₁ h₁₃,
   { suffices hIoc₂₁ : to_Ioc_mod hp x₂' x₁ = x₁ + p,
@@ -706,7 +704,6 @@ begin
     apply (to_Ioc_mod_eq_iff hp).2,
     exact ⟨⟨h₂₁, by simp [left_le_to_Ico_mod hp x₁ x₂]⟩, -1, by simp⟩ },
 
-  have h₃₂ : x₃' - p < x₂' := sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right hp x₂' x₃),
   have hIoc₁₃ : to_Ioc_mod hp x₁ x₃' = x₃' - p,
   { apply (to_Ioc_mod_eq_iff hp).2,
     exact ⟨⟨lt_sub_iff_add_lt.2 h₁₃, le_of_lt (h₃₂.trans h₂₁)⟩, 1, by simp⟩ },

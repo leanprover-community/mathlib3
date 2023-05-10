@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.special_functions.pow
+import analysis.convex.between
 import measure_theory.constructions.borel_space
 import measure_theory.measure.lebesgue
+import measure_theory.measure.haar_of_inner
 import topology.metric_space.holder
 import topology.metric_space.metric_separated
 
@@ -381,6 +383,30 @@ begin
     apply le_trans _ (h_mono (diam_mono hst)),
     simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
 end
+
+lemma comap_mk_metric_eq_smul (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} {c : ℝ≥0∞} (hc : c ≠ ∞)
+  (hf : ∀ x₁ x₂, edist (f x₁) (f x₂) = c • edist x₁ x₂ )
+  (H : monotone m ∨ surjective f) :
+  comap f (mk_metric m) = c • mk_metric m :=
+begin
+  simp only [mk_metric, mk_metric', mk_metric'.pre, induced_outer_measure, comap_supr],
+  simp_rw [smul_supr, smul_bounded_by hc],
+  refine surjective_id.supr_congr id (λ ε, surjective_id.supr_congr id $ λ hε, _),
+  rw comap_bounded_by _ (H.imp (λ h_mono, _) _),
+  { congr' with s : 1,
+    simp_rw [pi.smul_apply],
+    simp_rw [extend],
+    apply extend_congr,
+    { simp [hf.ediam_image] },
+    { intros, simp [hf.injective.subsingleton_image_iff, hf.ediam_image] } },
+  { assume s t hst,
+    simp only [extend, le_infi_iff],
+    assume ht,
+    apply le_trans _ (h_mono (diam_mono hst)),
+    simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
+end
+
+#check surjective.supr_congr
 
 lemma isometry_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : isometry f)
   (H : monotone m ∨ surjective f) :
@@ -952,3 +978,32 @@ e.isometry.hausdorff_measure_image (or.inr e.surjective) s
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
 end isometry_equiv
+.
+
+lemma hausdorff_measure_segment
+  {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [finite_dimensional ℝ E]
+  [measurable_space E] [borel_space E] (x y : E) :
+  μH[1] (segment ℝ x y) = edist x y :=
+begin
+  by_cases h : x = y,
+  { haveI := no_atoms_hausdorff E one_pos,
+    simp [h] },
+  have hn : ‖y - x‖ ≠ 0,
+  { rwa [norm_ne_zero_iff, sub_ne_zero, ne_comm] },
+  suffices : μH[1] (
+    (λ z, x + z) '' (
+      (λ z, ‖y - x‖ • z) ''
+      ((λ θ : ℝ, θ • (‖y - x‖⁻¹ • (y - x))) ''
+        Icc 0 1))) = edist x y,
+  { simpa only [set.image_image, ←segment_eq_image', smul_comm (norm _),
+      inv_smul_smul₀ hn] using this },
+  rw (isometry_add_left x).hausdorff_measure_image (or.inl zero_le_one),
+  -- suffices :
+  --   (outer_measure.comap (λ θ : ℝ, θ • (y - x)) $ outer_measure.comap (λ z : E, x + z)
+  --     (outer_measure.mk_metric id))
+  --     (Icc 0 1) = edist x y,
+  -- { simp_rw [outer_measure.comap_apply, set.image_image, ←segment_eq_image',
+  --     outer_measure.coe_mk_metric] at this,
+  --   simp_rw [hausdorff_measure, ennreal.rpow_one],
+  --   exact this },
+end

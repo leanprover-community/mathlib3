@@ -21,16 +21,24 @@ then its value is equal to the capacity of a minimum cut in the same network.
 
 ## Main results
 
-- `weak_duality`         : the value of every flow is less than or equal to the capacity of every cut.
+- `weak_duality`        :
+  The value of every flow is less than or equal to the capacity of every cut.
 
-  direct consequences    :
-  - the value of a max flow is always less than or equal to the capacity of a min cut.
-  - `max_flow_criterion` : if a flow value is equal to a cut capacity in the same flow network, then the flow is maximum.
-  - `min_cut_criterion`  : if a capacity of a cut is equal to a flow value in the same network, then the cut is minimum.
+  direct consequences   :
+  - The value of a max flow is always less than or equal to the capacity of a min cut.
+  - `max_flow_criterion`:
+    If a flow value is equal to a cut capacity in the same flow network, then the flow is maximum.
+  - `min_cut_criterion` :
+    If a capacity of a cut is equal to a flow value in the same network, then the cut is minimum.
 
-- `no_augm_path`         : if the active flow gives a maximum flow, then there is no augmenting path in the residual network.
-- `existence_of_a_cut`   : there exists a cut with a capacity equal to the value of the maximum flow.
-- `max_flow_min_cut`     : if f is a max flow and c is a min cut in the same network, then their values are equal (max flow min cut theorem).
+- `no_augm_path`        :
+  If the active flow gives a maximum flow, then there is no augmenting path in the residual network.
+- `existence_of_a_cut`  :
+  there exists a cut with a capacity equal to the value of the maximum flow.
+- `max_flow_min_cut`    :
+  If f is a max flow and c is a min cut in the same network, then their values are equal.
+
+The `max_flow_min_cut` lemma is the statement of the max-flow min-cut theorem.
 
 ## Notation
 
@@ -417,7 +425,8 @@ begin
     exact absurd foo contr,
   end,
   by_contradiction notDisjoint,
-  have contr: ((V' \ S) ∩ (S \ {s})).nonempty := finset.not_disjoint_iff_nonempty_inter.1 notDisjoint,
+  have contr: ((V' \ S) ∩ (S \ {s})).nonempty :=
+  finset.not_disjoint_iff_nonempty_inter.1 notDisjoint,
   exact absurd contr bar,
 end
 
@@ -442,7 +451,8 @@ begin
   have foo: ∑ (x : V) in (S \ {s}), ∑ (y : V) in V' \ (S \ {s}), f x y =
   ∑ (y : V) in V' \ (S \ {s}), ∑ (x : V) in (S \ {s}), f x y := finset.sum_comm,
   have bar: ∑ (y : V) in V' \ (S \ {s}), ∑ (x : V) in (S \ {s}), f x y =
-  ∑ (y : V) in V' \ S, ∑ (x : V) in (S \ {s}), f x y + ∑ (y : V) in {s}, ∑ (x : V) in (S \ {s}), f x y :=
+  ∑ (y : V) in V' \ S, ∑ (x : V) in (S \ {s}), f x y +
+  ∑ (y : V) in {s}, ∑ (x : V) in (S \ {s}), f x y :=
   by {rw ← finset.sum_sdiff sInCompl, rw sdiff_finset_sdiff_singleton_eq_sdiff_singleton S s sInS},
   have baz: ∑ (y : V) in {s}, ∑ (x : V) in (S \ {s}), f x y = ∑ (x : V) in (S \ {s}), f x s :=
   by simp,
@@ -455,18 +465,21 @@ end
 lemma in_expansion {V : Type*}  [inst' : fintype V]
   (f : V → V → ℝ) (S : finset V) (s : V) :
   (s ∈ S) → ∑ (x : V) in V' \ S, ∑ (y : V) in S, f x y =
-  ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y + ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
+  ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y +
+  ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
 begin
   intro sInS,
   have sSubsetS: {s} ⊆  S := (finset.singleton_subset_iff).2 sInS,
-  have foo: ∑ (x : V) in V' \ S, ∑ (y : V) in S, f x y = ∑ (y : V) in S, ∑ (x : V) in V' \ S, f x y :=
-  finset.sum_comm,
+  have foo: ∑ (x : V) in V' \ S, ∑ (y : V) in S, f x y =
+  ∑ (y : V) in S, ∑ (x : V) in V' \ S, f x y := finset.sum_comm,
   have bar: ∑ (y : V) in S, ∑ (x : V) in V' \ S, f x y =
-  ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y + ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y :=
-  by {rw finset.sum_sdiff sSubsetS},
+  ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y +
+  ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y := by {rw finset.sum_sdiff sSubsetS},
   have swap:
-  ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y + ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y =
-  ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y + ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
+  ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y +
+  ∑ (y : V) in {s}, ∑ (x : V) in V' \ S, f x y =
+  ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y +
+  ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
   begin
     have swap1: ∑ (y : V) in (S \ {s}), ∑ (x : V) in V' \ S, f x y =
     ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y := finset.sum_comm,
@@ -496,7 +509,8 @@ begin
     exact finset.subset_sdiff.2 conj,
   end,
   have foo: ∑ (x : V) in V' \ (S \ {s}), ∑ (y : V) in S \ {s}, f x y =
-    ∑ (x : V) in V' \ S, ∑ (y : V) in S \ {s}, f x y + ∑ (x : V) in {s}, ∑ (y : V) in S \ {s}, f x y :=
+    ∑ (x : V) in V' \ S, ∑ (y : V) in S \ {s}, f x y +
+    ∑ (x : V) in {s}, ∑ (y : V) in S \ {s}, f x y :=
   by {rw ← finset.sum_sdiff sInCompl, rw sdiff_finset_sdiff_singleton_eq_sdiff_singleton S s sInS},
   have bar: ∑ (x : V) in {s}, ∑ (y : V) in S \ {s}, f x y = ∑ (u : V) in S \ {s}, f s u :=
   by simp,
@@ -604,7 +618,8 @@ begin
   begin
     unfold mk_out,
     have eq1: ∑ (x : V) in S, ∑ (y : V) in V' \ S, f x y =
-    ∑ (x : V) in (S \ {s}) , ∑ (y : V) in V' \ S, f x y + ∑ (x : V) in {s}, ∑ (y : V) in V' \ S, f x y :=
+    ∑ (x : V) in (S \ {s}) , ∑ (y : V) in V' \ S, f x y +
+    ∑ (x : V) in {s}, ∑ (y : V) in V' \ S, f x y :=
     by {rw finset.sum_sdiff sSubsetS},
     have eq2: ∑ (x : V) in {s}, ∑ (y : V) in V' \ S, f x y = ∑ (y : V) in V' \ S, f s y := by simp,
     have eq3: ∑ (x : V) in (S \ {s}), ∑ (y : V) in V' \ (S \ {s}), f x y =
@@ -626,7 +641,8 @@ begin
   begin
     unfold mk_in,
     have eq1: ∑ (x : V) in V' \ S, ∑ (y : V) in S, f x y =
-    ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y + ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
+    ∑ (x : V) in V' \ S, ∑ (y : V) in (S \ {s}), f x y +
+    ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y :=
     in_expansion f S s sInS,
     have eq2: ∑ (x : V) in V' \ S, ∑ (y : V) in {s}, f x y = ∑ (u : V) in V' \ S, f u s :=
     by simp,
@@ -838,7 +854,8 @@ begin
   --all vertices in the augmenting path
   set vertices := set.to_finset ({t} ∪ { x | (∃ y: V, exists_path.in x y) }),
   -- set of all flow values in the augmenting path
-  set flows := set.to_finset (function.uncurry rsn.f' '' {e ∈ vertices ×ˢ vertices | exists_path.in e.1 e.2}),
+  set flows :=
+  set.to_finset (function.uncurry rsn.f' '' {e ∈ vertices ×ˢ vertices | exists_path.in e.1 e.2}),
   have nonemp: flows.nonempty :=
   begin
     by_contradiction h,
@@ -1073,15 +1090,14 @@ begin
     {
       -- Issues: How are we looking into cases for the cardinality of predecessor and ancestor?
       -- How do we procced after for picking these edges?
-      -- Need to use the fact that x=t to show that there are always two edges for e given vertex outside {s,t}
       -- set predecessor := {u | exists_path.in u v},
       -- set ancestor := {w | exists_path.in v w},
-      -- have h1: mk_out rsn.afn.f {v} = mk_in rsn.afn.f {v} := rsn.afn.conservation v vNotSinkSource,
+      -- have h1: mk_out rsn.afn.f {v} = mk_in rsn.afn.f {v} :=
+      -- rsn.afn.conservation v vNotSinkSource,
       -- rw [h2,h3,h1]
       sorry,
     },
     {
-      -- Problems in next two: How do we use the condition in the definition of the set to show inclusion?
       have h1: ∀ u : V, ¬exists_path.in u v :=
       begin
         by_contradiction h',

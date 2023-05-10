@@ -72,19 +72,17 @@ end
 
 lemma snorm_inner_lt_top (f g : α →₂[μ] E) : snorm (λ (x : α), ⟪f x, g x⟫) 1 μ < ∞ :=
 begin
-  have h : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ‖f x‖ * ‖g x‖, from λ x, abs_inner_le_norm _ _,
-  have h' : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ is_R_or_C.abs (‖f x‖^2 + ‖g x‖^2),
-  { refine λ x, le_trans (h x) _,
-    rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
-    swap, { exact add_nonneg (by simp) (by simp), },
-    refine le_trans _ (half_le_self (add_nonneg (sq_nonneg _) (sq_nonneg _))),
-    refine (le_div_iff (zero_lt_two' ℝ)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
-    ring, },
-  simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
-  refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
+  have h : ∀ x, ‖⟪f x, g x⟫‖ ≤ ‖‖f x‖ ^ (2 : ℝ) + ‖g x‖ ^ (2 : ℝ)‖,
+  { intro x,
+    rw [← @nat.cast_two ℝ, real.rpow_nat_cast, real.rpow_nat_cast],
+    calc ‖⟪f x, g x⟫‖ ≤ ‖f x‖ * ‖g x‖ : norm_inner_le_norm _ _
+    ... ≤ 2 * ‖f x‖ * ‖g x‖ :
+      mul_le_mul_of_nonneg_right (le_mul_of_one_le_left (norm_nonneg _) one_le_two) (norm_nonneg _)
+    ... ≤ ‖‖f x‖^2 + ‖g x‖^2‖ : (two_mul_le_add_sq _ _).trans (le_abs_self _) },
+  refine (snorm_mono_ae (ae_of_all _ h)).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
   { exact ((Lp.ae_strongly_measurable f).norm.ae_measurable.pow_const _).ae_strongly_measurable },
   { exact ((Lp.ae_strongly_measurable g).norm.ae_measurable.pow_const _).ae_strongly_measurable },
-  simp only [nat.cast_bit0, ennreal.add_lt_top, nat.cast_one],
+  rw [ennreal.add_lt_top],
   exact ⟨snorm_rpow_two_norm_lt_top f, snorm_rpow_two_norm_lt_top g⟩,
 end
 

@@ -10,6 +10,9 @@ import data.fin.tuple.reflection
 /-!
 # Lemmas for concrete matrices `matrix (fin m) (fin n) α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains alternative definitions of common operators on matrices that expand
 definitionally to the expected expression when evaluated on `!![]` notation.
 

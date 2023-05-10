@@ -11,6 +11,9 @@ import ring_theory.finiteness
 
 /-! # Free modules over PID
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A free `R`-module `M` is a module with a basis over `R`,
 equivalently it is an `R`-module linearly equivalent to `ι →₀ R` for some `ι`.
 

@@ -8,6 +8,9 @@ import analysis.convex.combination
 /-!
 # Convex join
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the convex join of two sets. The convex join of `s` and `t` is the union of the
 segments with one end in `s` and the other in `t`. This is notably a useful gadget to deal with
 convex hulls of finite sets.

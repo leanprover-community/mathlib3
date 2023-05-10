@@ -312,6 +312,7 @@ def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
+-- TODO: generalize some of these (and subsequent lemmas about `smul`) to `with_top α`
 section actions
 
 /-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/

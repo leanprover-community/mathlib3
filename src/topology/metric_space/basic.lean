@@ -1577,12 +1577,13 @@ theorem closed_ball_prod_same (x : α) (y : β) (r : ℝ) :
   closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
-theorem sphere_prod (x : α) (y : β) (r : ℝ) :
-  sphere (x, y) r = sphere x r ×ˢ closed_ball y r ∪ closed_ball x r ×ˢ sphere y r :=
+theorem sphere_prod (x : α × β) (r : ℝ) :
+  sphere x r = sphere x.1 r ×ˢ closed_ball x.2 r ∪ closed_ball x.1 r ×ˢ sphere x.2 r :=
 begin
   obtain hr | rfl | hr := lt_trichotomy r 0,
   { simp [hr], },
-  { simp_rw [←closed_ball_eq_sphere_of_nonpos le_rfl, union_self, closed_ball_prod_same] },
+  { cases x,
+    simp_rw [←closed_ball_eq_sphere_of_nonpos le_rfl, union_self, closed_ball_prod_same] },
   { ext ⟨x', y'⟩,
     simp_rw [set.mem_union, set.mem_prod, metric.mem_closed_ball, metric.mem_sphere,
       prod.dist_eq, max_eq_iff],

@@ -10,6 +10,9 @@ import category_theory.preadditive.additive_functor
 /-!
 # Homology is an additive functor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `V` is preadditive, `homological_complex V c` is also preadditive,
 and `homology_functor` is additive.
 

@@ -14,6 +14,9 @@ import linear_algebra.multilinear.tensor_product
 /-!
 # Alternating Maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the bundled function `alternating_map`, which extends `multilinear_map` with all the
 arguments of the same type.
 

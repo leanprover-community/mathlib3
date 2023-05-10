@@ -14,6 +14,9 @@ import set_theory.cardinal.cofinality
 /-!
 # Dimension of modules and vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * The rank of a module is defined as `module.rank : cardinal`.
@@ -730,6 +733,12 @@ begin
   exact le_top,
 end
 
+/-- A version of `linear_independent_le_span` for `finset`. -/
+lemma linear_independent_le_span_finset {ι : Type*} (v : ι → M) (i : linear_independent R v)
+  (w : finset M) (s : span R (w : set M) = ⊤) :
+  #ι ≤ w.card :=
+by simpa only [finset.coe_sort_coe, fintype.card_coe] using linear_independent_le_span v i w s
+
 /--
 An auxiliary lemma for `linear_independent_le_basis`:
 we handle the case where the basis `b` is infinite.
@@ -1335,10 +1344,27 @@ begin
   exact linear_map.map_le_range,
 end
 
+lemma lift_rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') :
+  cardinal.lift.{v'} (rank (f.comp g)) ≤ cardinal.lift.{v''} (rank g) :=
+by rw [rank, rank, linear_map.range_comp]; exact lift_rank_map_le _ _
+
+/-- The rank of the composition of two maps is less than the minimum of their ranks. -/
+lemma lift_rank_comp_le (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') :
+  cardinal.lift.{v'} (rank (f.comp g)) ≤
+    min (cardinal.lift.{v'} (rank f)) (cardinal.lift.{v''} (rank g)) :=
+le_min (cardinal.lift_le.mpr $ rank_comp_le_left _ _) (lift_rank_comp_le_right _ _)
+
 variables [add_comm_group V'₁] [module K V'₁]
 
 lemma rank_comp_le_right (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
-by rw [rank, rank, linear_map.range_comp]; exact rank_map_le _ _
+by simpa only [cardinal.lift_id] using lift_rank_comp_le_right g f
+
+/-- The rank of the composition of two maps is less than the minimum of their ranks.
+
+See `lift_rank_comp_le` for the universe-polymorphic version. -/
+lemma rank_comp_le (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) :
+  rank (f.comp g) ≤ min (rank f) (rank g) :=
+by simpa only [cardinal.lift_id] using lift_rank_comp_le g f
 
 end ring
 

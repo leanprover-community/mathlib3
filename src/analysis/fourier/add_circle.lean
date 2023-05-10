@@ -11,6 +11,7 @@ import measure_theory.function.l2_space
 import measure_theory.group.integration
 import measure_theory.integral.periodic
 import topology.continuous_function.stone_weierstrass
+import measure_theory.integral.fund_thm_calculus
 
 /-!
 
@@ -263,7 +264,7 @@ lemma coe_fn_fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) :
 lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ∞) :
   (span ℂ (range (@fourier_Lp T _ p _))).topological_closure = ⊤ :=
 begin
-  convert (continuous_map.to_Lp_dense_range ℂ hp (@haar_add_circle T hT) ℂ
+  convert (continuous_map.to_Lp_dense_range ℂ (@haar_add_circle T hT) hp ℂ
     ).topological_closure_map_submodule (span_fourier_closure_eq_top),
   rw [map_span, range_comp],
   simp only [continuous_linear_map.coe_coe],

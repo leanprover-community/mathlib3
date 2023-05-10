@@ -12,6 +12,9 @@ import topology.algebra.module.basic
 /-!
 # Normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define (semi)normed spaces and algebras. We also prove some theorems
 about these definitions.
 -/
@@ -91,8 +94,8 @@ lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) 
   ‖n • x‖ = ‖(n : α)‖ * ‖x‖ :=
 by rw [← norm_smul, ← int.smul_one_eq_coe, smul_assoc, one_smul]
 
-@[simp] lemma abs_norm_eq_norm (z : β) : |‖z‖| = ‖z‖ :=
-  (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
+@[simp] lemma abs_norm (z : β) : |‖z‖| = ‖z‖ :=
+abs_of_nonneg $ norm_nonneg z
 
 lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
   ‖x‖⁻¹ • x ∈ closed_ball (0 : β) 1 :=
@@ -184,6 +187,14 @@ theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
+theorem interior_sphere [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
+  interior (sphere x r) = ∅ :=
+by rw [←frontier_closed_ball x hr, interior_frontier is_closed_ball]
+
+theorem frontier_sphere [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
+  frontier (sphere x r) = sphere x r :=
+by rw [is_closed_sphere.frontier_eq, interior_sphere x hr, diff_empty]
+
 instance {E : Type*} [normed_add_comm_group E] [normed_space ℚ E] (e : E) :
   discrete_topology $ add_subgroup.zmultiples e :=
 begin
@@ -214,8 +225,8 @@ noncomputable def homeomorph_unit_ball [normed_space ℝ E] :
 { to_fun := λ x, ⟨(1 + ‖x‖^2).sqrt⁻¹ • x, begin
     have : 0 < 1 + ‖x‖ ^ 2, by positivity,
     rw [mem_ball_zero_iff, norm_smul, real.norm_eq_abs, abs_inv, ← div_eq_inv_mul,
-      div_lt_one (abs_pos.mpr $ real.sqrt_ne_zero'.mpr this), ← abs_norm_eq_norm x, ← sq_lt_sq,
-      abs_norm_eq_norm, real.sq_sqrt this.le],
+      div_lt_one (abs_pos.mpr $ real.sqrt_ne_zero'.mpr this), ← abs_norm x, ← sq_lt_sq,
+      abs_norm, real.sq_sqrt this.le],
     exact lt_one_add _,
   end⟩,
   inv_fun := λ y, (1 - ‖(y : E)‖^2).sqrt⁻¹ • (y : E),
@@ -392,6 +403,14 @@ end
 theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
+
+@[simp] theorem interior_sphere' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
+  interior (sphere x r) = ∅ :=
+by rw [←frontier_closed_ball' x, interior_frontier is_closed_ball]
+
+@[simp] theorem frontier_sphere' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
+  frontier (sphere x r) = sphere x r :=
+by rw [is_closed_sphere.frontier_eq, interior_sphere' x, diff_empty]
 
 variables {α}
 

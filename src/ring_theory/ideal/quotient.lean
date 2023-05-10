@@ -72,6 +72,20 @@ instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
 { ..submodule.quotient.add_comm_group I,  -- to help with unification
   ..(quotient.ring_con I)^.quotient.comm_ring }
 
+-- this instance is harder to find than the one via `algebra α (R ⧸ I)`, so use a lower priority
+@[priority 100]
+instance is_scalar_tower_right {α} [has_smul α R] [is_scalar_tower α R R] :
+  is_scalar_tower α (R ⧸ I) (R ⧸ I) :=
+(quotient.ring_con I)^.is_scalar_tower_right
+
+instance smul_comm_class {α} [has_smul α R] [is_scalar_tower α R R] [smul_comm_class α R R] :
+  smul_comm_class α (R ⧸ I) (R ⧸ I) :=
+(quotient.ring_con I)^.smul_comm_class
+
+instance smul_comm_class' {α} [has_smul α R] [is_scalar_tower α R R] [smul_comm_class R α R] :
+  smul_comm_class (R ⧸ I) α (R ⧸ I) :=
+(quotient.ring_con I)^.smul_comm_class'
+
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal R) : R →+* (R ⧸ I) :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
@@ -162,18 +176,29 @@ end
 
 open_locale classical
 
-/-- quotient by maximal ideal is a field. def rather than instance, since users will have
-computable inverses in some applications.
+/-- The quotient by a maximal ideal is a group with zero. This is a `def` rather than `instance`,
+since users will have computable inverses in some applications.
+
 See note [reducible non-instances]. -/
 @[reducible]
-protected noncomputable def field (I : ideal R) [hI : I.is_maximal] : field (R ⧸ I) :=
+protected noncomputable def group_with_zero (I : ideal R) [hI : I.is_maximal] :
+  group_with_zero (R ⧸ I) :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),
   mul_inv_cancel := λ a (ha : a ≠ 0), show a * dite _ _ _ = _,
     by rw dif_neg ha;
     exact classical.some_spec (exists_inv ha),
   inv_zero := dif_pos rfl,
-  ..quotient.comm_ring I,
+  ..(by apply_instance : monoid_with_zero (R ⧸ I)),
   ..quotient.is_domain I }
+
+/-- The quotient by a maximal ideal is a field. This is a `def` rather than `instance`, since users
+will have computable inverses (and `qsmul`, `rat_cast`) in some applications.
+
+See note [reducible non-instances]. -/
+@[reducible]
+protected noncomputable def field (I : ideal R) [hI : I.is_maximal] : field (R ⧸ I) :=
+{ ..quotient.comm_ring I,
+  ..quotient.group_with_zero I }
 
 /-- If the quotient by an ideal is a field, then the ideal is maximal. -/
 theorem maximal_of_is_field (I : ideal R)

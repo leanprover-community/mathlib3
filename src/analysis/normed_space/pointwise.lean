@@ -10,6 +10,9 @@ import analysis.normed_space.basic
 /-!
 # Properties of pointwise scalar multiplication of sets in normed spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We explore the relationships between scalar multiplication of sets in vector spaces, and the norm.
 Notably, we express arbitrary balls as rescaling of other balls, and we show that the
 multiplication of bounded sets remain bounded.

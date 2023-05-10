@@ -11,6 +11,9 @@ import category_theory.preadditive.projective
 /-!
 # Profinite sets have enough projectives
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we show that `Profinite` has enough projectives.
 
 ## Main results

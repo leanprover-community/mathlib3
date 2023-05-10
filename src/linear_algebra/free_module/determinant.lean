@@ -10,6 +10,9 @@ import linear_algebra.free_module.finite.basic
 /-!
 # Determinants in free (finite) modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Quite a lot of our results on determinants (that you might know in vector spaces) will work for all
 free (finite) modules over any commutative ring.
 

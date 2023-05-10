@@ -191,13 +191,16 @@ instance : has_le cardinal.{u} :=
 ⟨λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
   λ α β γ δ ⟨e₁⟩ ⟨e₂⟩, propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
-instance : linear_order cardinal.{u} :=
+instance : partial_order cardinal.{u} :=
 { le           := (≤),
   le_refl      := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
   le_trans     := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
-  le_antisymm  := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) },
-  le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
-  decidable_le := classical.dec_rel _ }
+  le_antisymm  := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) }, }
+
+instance : linear_order cardinal.{u} :=
+{ le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
+  decidable_le := classical.dec_rel _,
+  ..cardinal.partial_order.{u}, }
 
 theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) :=
 iff.rfl
@@ -475,17 +478,25 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   le_self_add := λ a b, (add_zero a).ge.trans $ add_le_add_left (cardinal.zero_le _) _,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
-  ..cardinal.comm_semiring, ..cardinal.linear_order }
+  ..cardinal.comm_semiring, ..cardinal.partial_order }
 
 instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
 { ..cardinal.canonically_ordered_comm_semiring,
   ..cardinal.linear_order }
+
+-- Computable instance to prevent a non-computable one being found via the one above
+instance : canonically_ordered_add_monoid cardinal.{u} :=
+{ ..cardinal.canonically_ordered_comm_semiring }
 
 instance : linear_ordered_comm_monoid_with_zero cardinal.{u} :=
 { mul_le_mul_left := @mul_le_mul_left' _ _ _ _,
   zero_le_one := zero_le _,
   ..cardinal.comm_semiring,
   ..cardinal.linear_order }
+
+-- Computable instance to prevent a non-computable one being found via the one above
+instance : comm_monoid_with_zero cardinal.{u} :=
+{ ..cardinal.canonically_ordered_comm_semiring }
 
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }

@@ -89,7 +89,7 @@ def Action_diagonal_succ (G : Type u) [group G] : Π (n : ℕ),
   (equiv.pi_fin_succ_above_equiv (λ j, G) 0).symm.to_iso (λ g, rfl))
 
 lemma Action_diagonal_succ_hom_apply {G : Type u} [group G] {n : ℕ} (f : fin (n + 1) → G) :
-  (Action_diagonal_succ G n).hom.hom f = (f 0, λ i, (f i)⁻¹ * f i.succ) :=
+  (Action_diagonal_succ G n).hom.hom f = (f 0, λ i, (f i.cast_succ)⁻¹ * f i.succ) :=
 begin
   induction n with n hn,
   { exact prod.ext rfl (funext $ λ x, fin.elim0 x) },
@@ -100,7 +100,7 @@ begin
         left_regular_tensor_iso_hom_hom, tensor_iso_hom, mk_iso_hom_hom, equiv.to_iso_hom,
         tensor_hom, equiv.pi_fin_succ_above_equiv_symm_apply, tensor_apply, types_id_apply,
         tensor_rho, monoid_hom.one_apply, End.one_def, hn (λ (j : fin (n + 1)), f j.succ),
-        fin.coe_eq_cast_succ, fin.insert_nth_zero'],
+        fin.insert_nth_zero'],
       refine fin.cases (fin.cons_zero _ _) (λ i, _) x,
       { simp only [fin.cons_succ, mul_left_inj, inv_inj, fin.cast_succ_fin_succ], }}}
 end
@@ -145,7 +145,7 @@ variables {k G n}
 
 lemma diagonal_succ_hom_single (f : Gⁿ⁺¹) (a : k) :
   (diagonal_succ k G n).hom.hom (single f a) =
-  single (f 0) 1 ⊗ₜ single (λ i, (f i)⁻¹ * f i.succ) a :=
+  single (f 0) 1 ⊗ₜ single (λ i, (f i.cast_succ)⁻¹ * f i.succ) a :=
 begin
   dunfold diagonal_succ,
   simpa only [iso.trans_hom, iso.symm_hom, Action.comp_hom, Module.comp_def, linear_map.comp_apply,
@@ -232,25 +232,25 @@ module.free.of_basis (of_mul_action_basis k G n)
 end basis
 end group_cohomology.resolution
 namespace Rep
-variables (n) [group G]
+variables (n) [group G] (A : Rep k G)
 open group_cohomology.resolution
 
 /-- Given a `k`-linear `G`-representation `A`, the set of representation morphisms
 `Hom(k[Gⁿ⁺¹], A)` is `k`-linearly isomorphic to the set of functions `Gⁿ → A`. -/
-noncomputable def diagonal_hom_equiv (A : Rep k G) :
+noncomputable def diagonal_hom_equiv :
   (Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A) ≃ₗ[k] ((fin n → G) → A) :=
 linear.hom_congr k ((diagonal_succ k G n).trans
   ((representation.of_mul_action k G G).Rep_of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
   ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
   ≪≫ₗ (finsupp.llift A k k (fin n → G)).symm
 
-variables {n}
+variables {n A}
 
 /-- Given a `k`-linear `G`-representation `A`, `diagonal_hom_equiv` is a `k`-linear isomorphism of
 the set of representation morphisms `Hom(k[Gⁿ⁺¹], A)` with `Fun(Gⁿ, A)`. This lemma says that this
 sends a morphism of representations `f : k[Gⁿ⁺¹] ⟶ A` to the function
 `(g₁, ..., gₙ) ↦ f(1, g₁, g₁g₂, ..., g₁g₂...gₙ).` -/
-lemma diagonal_hom_equiv_apply {A : Rep k G} (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
+lemma diagonal_hom_equiv_apply (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
   (x : fin n → G) : diagonal_hom_equiv n A f x = f.hom (finsupp.single (fin.partial_prod x) 1) :=
 begin
   unfold diagonal_hom_equiv,
@@ -266,9 +266,9 @@ the set of representation morphisms `Hom(k[Gⁿ⁺¹], A)` with `Fun(Gⁿ, A)`. 
 inverse map sends a function `f : Gⁿ → A` to the representation morphism sending
 `(g₀, ... gₙ) ↦ ρ(g₀)(f(g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ))`, where `ρ` is the representation attached
 to `A`. -/
-lemma diagonal_hom_equiv_symm_apply {A : Rep k G} (f : (fin n → G) → A) (x : fin (n + 1) → G) :
+lemma diagonal_hom_equiv_symm_apply (f : (fin n → G) → A) (x : fin (n + 1) → G) :
   ((diagonal_hom_equiv n A).symm f).hom (finsupp.single x 1)
-    = A.ρ (x 0) (f (λ (i : fin n), (x ↑i)⁻¹ * x i.succ)) :=
+    = A.ρ (x 0) (f (λ (i : fin n), (x i.cast_succ)⁻¹ * x i.succ)) :=
 begin
   unfold diagonal_hom_equiv,
   simp only [linear_equiv.trans_symm, linear_equiv.symm_symm, linear_equiv.trans_apply,
@@ -279,6 +279,22 @@ begin
     finsupp.lift_apply, Rep.ihom_obj_ρ, representation.lin_hom_apply, finsupp.sum_single_index,
     zero_smul, one_smul, Rep.of_ρ, Rep.Action_ρ_eq_ρ, Rep.trivial_def (x 0)⁻¹,
     finsupp.llift_apply A k k],
+end
+
+/-- Auxiliary lemma for defining group cohomology, used to show that the isomorphism
+`diagonal_hom_equiv` commutes with the differentials in two complexes which compute
+group cohomology. -/
+lemma diagonal_hom_equiv_symm_partial_prod_succ
+  (f : (fin n → G) → A) (g : fin (n + 1) → G) (a : fin (n + 1)) :
+  ((diagonal_hom_equiv n A).symm f).hom (finsupp.single (fin.partial_prod g ∘ a.succ.succ_above) 1)
+    = f (fin.contract_nth a (*) g) :=
+begin
+  simp only [diagonal_hom_equiv_symm_apply, function.comp_app, fin.succ_succ_above_zero,
+    fin.partial_prod_zero, map_one, fin.succ_succ_above_succ,
+    linear_map.one_apply, fin.partial_prod_succ],
+  congr,
+  ext,
+  rw [←fin.partial_prod_succ, fin.inv_partial_prod_mul_eq_contract_nth],
 end
 
 end Rep

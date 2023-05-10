@@ -384,26 +384,92 @@ begin
     simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
 end
 
-lemma comap_mk_metric_eq_smul (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} {c : ℝ≥0∞} (hc : c ≠ ∞)
-  (hf : ∀ x₁ x₂, edist (f x₁) (f x₂) = c • edist x₁ x₂ )
-  (H : monotone m ∨ surjective f) :
-  comap f (mk_metric m) = c • mk_metric m :=
+@[simp] lemma extend_top {α : Type*} {P : α → Prop} :
+  extend (λ s h, ∞ : Π (s : α), P s → ℝ≥0∞) = ⊤ :=
+funext $ λ x, infi_eq_top.mpr $ λ i, rfl
+
+@[simp] lemma bounded_by_top {α : Type*} : bounded_by (⊤ : set α → ℝ≥0∞) = ⊤ :=
 begin
+  rw [eq_top_iff, le_bounded_by'],
+  intros s hs,
+  rw top_apply hs,
+  exact le_rfl,
+end
+
+@[simp] lemma bounded_by_zero {α : Type*} : bounded_by (0 : set α → ℝ≥0∞) = 0 :=
+begin
+  rw [←coe_bot, eq_bot_iff],
+  apply bounded_by_le,
+end
+
+@[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : outer_measure X) = ⊤ :=
+begin
+  simp_rw [mk_metric, mk_metric', mk_metric'.pre, extend_top, bounded_by_top, eq_top_iff],
+  rw le_supr_iff,
+  intros b hb,
+  simpa using hb ⊤,
+end
+
+-- lemma mk_metric_zero (m : ℝ≥0∞ → ℝ≥0∞):
+--   (mk_metric (0 : ℝ≥0∞ → ℝ≥0∞) : outer_measure X) = 0 :=
+-- begin
+--   simp_rw [mk_metric, mk_metric', mk_metric'.pre, pi.zero_apply,
+--     ← measure_theory.outer_measure.coe_bot, supr_eq_bot, eq_bot_iff],
+--   intros i hi,
+--   ext1 s,
+--   apply bounded_by_le,
+--   by_cases h : diam s ≤ i,
+--   { simp_rw [extend_eq] },
+--   sorry,
+--   rw [outer_measure.coe_zero, pi.zero_apply, bounded_by_eq_of_function, of_function_apply,
+--     ←ennreal.bot_eq_zero, infi_eq_bot],
+--   intros b hb,
+--   refine ⟨λ _, s, _⟩,
+--   simp,
+--   -- simp,
+--   -- rw outer_measure.le,
+-- end
+
+lemma mk_metric_smul (m : ℝ≥0∞ → ℝ≥0∞) {c : ℝ≥0∞} (hc : c ≠ ⊤) (hc' : c ≠ 0):
+  (mk_metric (c • m) : outer_measure X) = c • mk_metric m :=
+begin
+  simp only [mk_metric, mk_metric', mk_metric'.pre, induced_outer_measure,
+    ennreal.smul_supr],
+  simp_rw [smul_supr, smul_bounded_by hc, smul_extend _ hc', pi.smul_apply],
+end
+
+-- #check isometry.eq_of_forall_ge_iff
+
+lemma comap_mk_metric_eq_smul (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} {c : ℝ≥0∞} (hc : c ≠ ∞)
+  (hf : ∀ x₁ x₂, edist (f x₁) (f x₂) = c * edist x₁ x₂ )
+  (H : monotone m ∨ surjective f) :
+  comap f (mk_metric m) = mk_metric (c • m) :=
+begin
+  have hc0 : c ≠ 0, sorry,
+  have hdiam : ∀ s, diam (f '' s) = c * diam s,
+  { intro s,
+    apply eq_of_forall_ge_iff,
+    simp [ennreal.mul_le_iff_le_inv hc0 hc, emetric.diam_le_iff, hf]},
+  -- sorry,
   simp only [mk_metric, mk_metric', mk_metric'.pre, induced_outer_measure, comap_supr],
-  simp_rw [smul_supr, smul_bounded_by hc],
-  refine surjective_id.supr_congr id (λ ε, surjective_id.supr_congr id $ λ hε, _),
+  -- simp_rw [smul_supr, smul_bounded_by hc],
+  have hcs : function.surjective ((*) c⁻¹),
+  { intro x,
+    refine ⟨c * x, _⟩,
+    rw [←mul_assoc, ennreal.inv_mul_cancel hc0 hc, one_mul] },
+  refine hcs.supr_congr _ (λ ε,
+    supr_congr_Prop (ennreal.mul_pos_iff.trans $ and_iff_right $ ennreal.inv_pos.mpr hc) $
+      λ hε, _),
   rw comap_bounded_by _ (H.imp (λ h_mono, _) _),
-  { congr' with s : 1,
-    simp_rw [pi.smul_apply],
-    simp_rw [extend],
+  { congr' 1 with s : 1,
     apply extend_congr,
-    { simp [hf.ediam_image] },
-    { intros, simp [hf.injective.subsingleton_image_iff, hf.ediam_image] } },
-  { assume s t hst,
-    simp only [extend, le_infi_iff],
-    assume ht,
-    apply le_trans _ (h_mono (diam_mono hst)),
-    simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
+    { rw [hdiam, ennreal.mul_le_iff_le_inv hc0 hc], }, -- ←ennreal.mul_le_iff_le_inv,
+    { intros, simp [hdiam] } },
+  -- { assume s t hst,
+  --   simp only [extend, le_infi_iff],
+  --   assume ht,
+  --   apply le_trans _ (h_mono (diam_mono hst)),
+  --   simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
 end
 
 #check surjective.supr_congr
@@ -980,6 +1046,22 @@ by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 end isometry_equiv
 .
 
+open_locale pointwise
+
+lemma hausdorff_measure_smul
+  {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [finite_dimensional ℝ E]
+  [measurable_space E] [borel_space E]
+  (d : ℝ) (r : ℝ) (s : set E) :
+  μH[d] (r • s) = ‖r‖₊ ^ d • μH[d] s :=
+begin
+  simp_rw [hausdorff_measure, ← outer_measure.coe_mk_metric, ← outer_measure.comap_apply,
+    ←outer_measure.smul_apply, ennreal.smul_def],
+  rw ←outer_measure.mk_metric_smul _ ennreal.coe_ne_top,
+  simp_rw [pi.smul_def, ennreal.coe_rpow_of_ne_zero],
+  simp_rw [hausdorff_measure_apply, ennreal.smul_supr],
+end
+
+
 lemma hausdorff_measure_segment
   {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [finite_dimensional ℝ E]
   [measurable_space E] [borel_space E] (x y : E) :
@@ -998,6 +1080,8 @@ begin
   { simpa only [set.image_image, ←segment_eq_image', smul_comm (norm _),
       inv_smul_smul₀ hn] using this },
   rw (isometry_add_left x).hausdorff_measure_image (or.inl zero_le_one),
+  rw set.image_smul,
+  rw measure.map_smul
   -- suffices :
   --   (outer_measure.comap (λ θ : ℝ, θ • (y - x)) $ outer_measure.comap (λ z : E, x + z)
   --     (outer_measure.mk_metric id))

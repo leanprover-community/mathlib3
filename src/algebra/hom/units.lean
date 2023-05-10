@@ -278,7 +278,9 @@ h.eq_div_iff.2
 @[to_additive] protected lemma div_eq_one_iff_eq (h : is_unit b) : a / b = 1 ↔ a = b :=
 ⟨eq_of_div_eq_one, λ hab, hab.symm ▸ h.div_self⟩
 
-@[to_additive] protected lemma div_mul_left (h : is_unit b) : b / (a * b) = 1 / a :=
+/-- The `group` version of this lemma is `div_mul_cancel'''` -/ 
+@[to_additive "The `add_group` version of this lemma is `sub_add_cancel''`"]
+protected lemma div_mul_left (h : is_unit b) : b / (a * b) = 1 / a :=
 by rw [div_eq_mul_inv, mul_inv_rev, h.mul_inv_cancel_left, one_div]
 
 @[to_additive] protected lemma mul_div_mul_right (h : is_unit c) (a b : α) :

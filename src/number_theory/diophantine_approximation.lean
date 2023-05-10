@@ -3,13 +3,13 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Geißer, Michael Stoll
 -/
-import tactic.basic
-import data.real.irrational
-import combinatorics.pigeonhole
-import ring_theory.coprime.lemmas
-import data.int.units
-import algebra.continued_fractions.computation.translations
 import algebra.continued_fractions.computation.approximation_corollaries
+import algebra.continued_fractions.computation.translations
+import combinatorics.pigeonhole
+import data.int.units
+import data.real.irrational
+import ring_theory.coprime.lemmas
+import tactic.basic
 
 /-!
 # Diophantine Approximation

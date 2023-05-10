@@ -76,11 +76,11 @@ structure flow_network (V : Type*) [inst : fintype V]
   (sink : V)
 
 noncomputable
-def mk_in {V : Type* } [inst : fintype V]
+def mk_in {V : Type*} [inst : fintype V]
   (f : V -> V -> ℝ) (S : finset V) : ℝ := ∑ x in finset.univ \ S, ∑ y in S, f x y
 
 noncomputable
-def mk_out {V : Type* } [inst : fintype V]
+def mk_out {V : Type*} [inst : fintype V]
   (f : V -> V -> ℝ) (S : finset V) : ℝ := ∑ x in S, ∑ y in finset.univ \ S, f x y
 
 structure active_flow_network (V : Type*)  [fintype V] :=
@@ -150,7 +150,7 @@ begin
 end
 
 
-lemma mk_in_single_node { V : Type* }  [fintype V]
+lemma mk_in_single_node {V : Type*}  [fintype V]
   (p : V) (afn : active_flow_network V) :
   mk_in (afn.f) {p} = ∑ v in finset.univ, (afn.f) v p :=
 begin
@@ -164,11 +164,11 @@ begin
   simp only [mk_in, sum_singleton],
 end
 
-@[simp] lemma mk_in_single_node' { V : Type* }  [fintype V]
+@[simp] lemma mk_in_single_node' {V : Type*}  [fintype V]
   (p : V) (afn : active_flow_network V) :
   ∑ v in finset.univ, (afn.f) v p = mk_in (afn.f) {p} := by rw mk_in_single_node
 
-lemma mk_out_single_node { V : Type* }  [fintype V]
+lemma mk_out_single_node {V : Type*}  [fintype V]
   (p : V) (afn : active_flow_network V) :
   mk_out afn.f {p} = ∑ v in finset.univ, (afn.f) p v :=
 begin
@@ -182,7 +182,7 @@ begin
   simp only [mk_out, sum_singleton],
 end
 
-@[simp] lemma mk_out_single_node' { V : Type* }  [fintype V]
+@[simp] lemma mk_out_single_node' {V : Type*}  [fintype V]
   (p : V) (afn : active_flow_network V) :
   ∑ v in finset.univ, (afn.f) p v = mk_out afn.f {p} := by rw mk_out_single_node
 
@@ -784,7 +784,7 @@ def no_augmenting_path {V : Type*} [inst' : fintype V]
 /-
   Given two vertices $u and $v, returns true if and only if (u,v) is an edge in a given path.
 -/
-def path.in {V : Type u }
+def path.in {V : Type u}
   {is_edge : V -> V -> Prop}
   (u v : V)
   {s : V} : ∀ {t : V}, path is_edge s t -> Prop

@@ -312,6 +312,7 @@ def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
+-- TODO: generalize some of these (and subsequent lemmas about `smul`) to `with_top α`
 section actions
 
 /-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/
@@ -387,6 +388,14 @@ lemma top_mul : ∞ * a = (if a = 0 then 0 else ∞) :=
 begin split_ifs, { simp [h] }, { exact with_top.top_mul h } end
 
 @[simp] lemma top_mul_top : ∞ * ∞ = ∞ := with_top.top_mul_top
+
+lemma smul_top {R} [has_zero R] [smul_with_zero R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  [no_zero_smul_divisors R ℝ≥0∞] (c : R) :
+  c • ∞ = (if c = 0 then 0 else ∞) :=
+begin
+  rw [←smul_one_mul, mul_top],
+  simp_rw [smul_eq_zero, or_iff_left one_ne_zero],
+end
 
 lemma top_pow {n:ℕ} (h : 0 < n) : ∞^n = ∞ :=
 nat.le_induction (pow_one _) (λ m hm hm', by rw [pow_succ, hm', top_mul_top])

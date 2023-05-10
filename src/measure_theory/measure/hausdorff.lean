@@ -99,8 +99,7 @@ dimension.
 
 ## TODO
 
-* prove that `1`-dimensional Hausdorff measure on `ℝ` equals `volume`;
-* prove a similar statement for `ℝ × ℝ`.
+* prove a similar statement to `hausdorff_measure_real` and `hausdorff_measure_pi_real` for `ℝ × ℝ`.
 
 ## References
 
@@ -952,3 +951,22 @@ e.isometry.hausdorff_measure_image (or.inr e.surjective) s
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
 end isometry_equiv
+
+namespace measure_theory
+
+theorem hausdorff_measure_measure_preserving_fun_unique (ι) [unique ι] (r : ℝ) :
+  measure_preserving (measurable_equiv.fun_unique ι ℝ) (μH[r]) (μH[r]) :=
+⟨measurable_equiv.measurable _, begin
+  ext s hs : 1,
+  simp_rw [map_apply (measurable_equiv.fun_unique ι ℝ).measurable hs],
+  exact (isometry_equiv.fun_unique ι ℝ).hausdorff_measure_preimage _ _,
+end⟩
+
+/-- In the space `ℝ`, the Hausdorff measure coincides exactly with Lebesgue measure. -/
+@[simp] theorem hausdorff_measure_real {ι : Type*} [fintype ι] :
+  (μH[1] : measure ℝ) = volume :=
+by rw [←(volume_preserving_fun_unique unit ℝ).map_eq,
+    ←(hausdorff_measure_measure_preserving_fun_unique unit 1).map_eq,
+    ←hausdorff_measure_pi_real, fintype.card_unit, nat.cast_one]
+
+end measure_theory

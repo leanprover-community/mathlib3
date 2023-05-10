@@ -34,7 +34,7 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
 /-- A type synonym for `G` which acts via `•` as the `b`th slash action. -/
-@[derive group]
+@[nolint unused_arguments, derive [group, nonempty]]
 def slash_act {β : Type*} (G : Type*) [group G] (b : β) : Type* :=
 Gᵐᵒᵖ
 
@@ -51,6 +51,7 @@ f.op
 @[reducible] def slash_action (β G α : Type*) [group G] [add_monoid α] :=
 Π b : β, distrib_mul_action (slash_act G b) α
 
+/-- This definition provides `a ∣[b] g` notation, as a shorthand for `slash_act.of b g • a`. -/
 @[reducible] def slash_action.map {β G α : Type*} (b : β) [group G] [add_monoid α]
   [slash_action β G α] (g : G) (a : α) : α :=
 slash_act.of b g • a
@@ -158,7 +159,7 @@ instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) :=
     smul_zero := λ a, zero_slash z a.unop,
     smul_add := λ a b, slash_add z _ _ }
 
-instance [is_scalar_tower α ℂ ℂ] {z : ℤ} : smul_comm_class (slash_act GL(2, ℝ)⁺ z) α (ℍ → ℂ) :=
+instance {z : ℤ} : smul_comm_class (slash_act GL(2, ℝ)⁺ z) α (ℍ → ℂ) :=
 ⟨λ _ _ _, smul_slash z _ _ _⟩
 
 end

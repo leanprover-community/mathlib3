@@ -705,6 +705,20 @@ theorem le_bounded_by' {μ : outer_measure α} :
   μ ≤ bounded_by m ↔ ∀ s : set α, s.nonempty → μ s ≤ m s :=
 by { rw [le_bounded_by, forall_congr], intro s, cases s.eq_empty_or_nonempty with h h; simp [h] }
 
+@[simp] lemma bounded_by_top : bounded_by (⊤ : set α → ℝ≥0∞) = ⊤ :=
+begin
+  rw [eq_top_iff, le_bounded_by'],
+  intros s hs,
+  rw top_apply hs,
+  exact le_rfl,
+end
+
+@[simp] lemma bounded_by_zero : bounded_by (0 : set α → ℝ≥0∞) = 0 :=
+begin
+  rw [←coe_bot, eq_bot_iff],
+  apply bounded_by_le,
+end
+
 lemma smul_bounded_by {c : ℝ≥0∞} (hc : c ≠ ∞) : c • bounded_by m = bounded_by (c • m) :=
 begin
   simp only [bounded_by, smul_of_function hc],
@@ -1083,6 +1097,10 @@ lemma extend_congr {β : Type*} {Pb : β → Prop} {mb : Π s : β, Pb s → ℝ
   {sa : α} {sb : β} (hP : P sa ↔ Pb sb) (hm : ∀ (ha : P sa) (hb : Pb sb), m sa ha = mb sb hb) :
   extend m sa = extend mb sb :=
 infi_congr_Prop hP (λ h, hm _ _)
+
+@[simp] lemma extend_top {α : Type*} {P : α → Prop} :
+  extend (λ s h, ∞ : Π (s : α), P s → ℝ≥0∞) = ⊤ :=
+funext $ λ x, infi_eq_top.mpr $ λ i, rfl
 
 end extend
 

@@ -709,7 +709,7 @@ begin
   cases le_or_lt x₃' (x₁ + p) with h₃₁ h₁₃,
   { exact hIoc₂₁.symm.trans_ge h₃₁ },
 
-  have h₃₂ : x₃' - p < x₂' := (sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _)),
+  have h₃₂ : x₃' - p < x₂' := sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _),
   have h₂₁ : x₂' < x₁ + p := to_Ico_mod_lt_right _ _ _,
   have hIoc₁₃ : to_Ioc_mod hp x₁ x₃' = x₃' - p,
   { apply (to_Ioc_mod_eq_iff hp).2,

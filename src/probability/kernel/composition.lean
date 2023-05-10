@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
-import probability.kernel.basic
+import probability.kernel.measurable_integral
 
 /-!
 # Product and composition of kernels
@@ -93,7 +93,7 @@ def comp_prod_fun (κ : kernel α β) (η : kernel (α × β) γ) (a : α) (s : 
 lemma comp_prod_fun_empty (κ : kernel α β) (η : kernel (α × β) γ) (a : α) :
   comp_prod_fun κ η a ∅ = 0 :=
 by simp only [comp_prod_fun, set.mem_empty_iff_false, set.set_of_false, measure_empty,
-  lintegral_const, zero_mul]
+  measure_theory.lintegral_const, zero_mul]
 
 lemma comp_prod_fun_Union (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel η] (a : α)
   (f : ℕ → set (β × γ)) (hf_meas : ∀ i, measurable_set (f i)) (hf_disj : pairwise (disjoint on f)) :
@@ -336,7 +336,7 @@ begin
   let Cη := is_finite_kernel.bound η,
   calc ∫⁻ b, η (a, b) set.univ ∂(κ a)
       ≤ ∫⁻ b, Cη ∂(κ a) : lintegral_mono (λ b, measure_le_bound η (a, b) set.univ)
-  ... = Cη * κ a set.univ : lintegral_const Cη
+  ... = Cη * κ a set.univ : measure_theory.lintegral_const Cη
   ... = κ a set.univ * Cη : mul_comm _ _,
 end
 
@@ -462,7 +462,7 @@ open_locale probability_theory
 section fst_snd
 
 /-- Define a `kernel (γ × α) β` from a `kernel α β` by taking the comap of the projection. -/
-def prod_mk_left (κ : kernel α β) (γ : Type*) [measurable_space γ] : kernel (γ × α) β :=
+def prod_mk_left (γ : Type*) [measurable_space γ] (κ : kernel α β) : kernel (γ × α) β :=
 comap κ prod.snd measurable_snd
 
 variables {γ : Type*} {mγ : measurable_space γ} {f : β → γ} {g : γ → α}
@@ -470,24 +470,24 @@ variables {γ : Type*} {mγ : measurable_space γ} {f : β → γ} {g : γ → �
 include mγ
 
 lemma prod_mk_left_apply (κ : kernel α β) (ca : γ × α) :
-  prod_mk_left κ γ ca = κ ca.snd := rfl
+  prod_mk_left γ κ ca = κ ca.snd := rfl
 
 lemma prod_mk_left_apply' (κ : kernel α β) (ca : γ × α) (s : set β) :
-  prod_mk_left κ γ ca s = κ ca.snd s := rfl
+  prod_mk_left γ κ ca s = κ ca.snd s := rfl
 
 lemma lintegral_prod_mk_left (κ : kernel α β) (ca : γ × α) (g : β → ℝ≥0∞) :
-  ∫⁻ b, g b ∂(prod_mk_left κ γ ca) = ∫⁻ b, g b ∂(κ ca.snd) := rfl
+  ∫⁻ b, g b ∂(prod_mk_left γ κ ca) = ∫⁻ b, g b ∂(κ ca.snd) := rfl
 
 instance is_markov_kernel.prod_mk_left (κ : kernel α β) [is_markov_kernel κ] :
-  is_markov_kernel (prod_mk_left κ γ) :=
+  is_markov_kernel (prod_mk_left γ κ) :=
 by { rw prod_mk_left, apply_instance, }
 
 instance is_finite_kernel.prod_mk_left (κ : kernel α β) [is_finite_kernel κ] :
-  is_finite_kernel (prod_mk_left κ γ) :=
+  is_finite_kernel (prod_mk_left γ κ) :=
 by { rw prod_mk_left, apply_instance, }
 
 instance is_s_finite_kernel.prod_mk_left (κ : kernel α β) [is_s_finite_kernel κ] :
-  is_s_finite_kernel (prod_mk_left κ γ) :=
+  is_s_finite_kernel (prod_mk_left γ κ) :=
 by { rw prod_mk_left, apply_instance, }
 
 /-- Define a `kernel (β × α) γ` from a `kernel (α × β) γ` by taking the comap of `prod.swap`. -/
@@ -613,7 +613,7 @@ include mγ
 noncomputable
 def comp (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ] :
   kernel α γ :=
-snd (κ ⊗ₖ prod_mk_left η α)
+snd (κ ⊗ₖ prod_mk_left α η)
 
 localized "infix (name := kernel.comp) ` ∘ₖ `:100 := probability_theory.kernel.comp" in
   probability_theory
@@ -632,7 +632,7 @@ lemma lintegral_comp (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α
   ∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a) :=
 begin
   rw [comp, lintegral_snd _ _ hg],
-  change ∫⁻ bc, (λ a b, g b) bc.fst bc.snd ∂((κ ⊗ₖ prod_mk_left η α) a)
+  change ∫⁻ bc, (λ a b, g b) bc.fst bc.snd ∂((κ ⊗ₖ prod_mk_left α η) a)
     = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a),
   exact lintegral_comp_prod _ _ _ (hg.comp measurable_snd),
 end
@@ -662,7 +662,7 @@ begin
 end
 
 lemma deterministic_comp_eq_map (hf : measurable f) (κ : kernel α β) [is_s_finite_kernel κ] :
-  (deterministic hf ∘ₖ κ) = map κ f hf :=
+  (deterministic f hf ∘ₖ κ) = map κ f hf :=
 begin
   ext a s hs : 2,
   simp_rw [map_apply' _ _ _ hs, comp_apply _ _ _ hs, deterministic_apply' hf _ hs,
@@ -670,7 +670,7 @@ begin
 end
 
 lemma comp_deterministic_eq_comap (κ : kernel α β) [is_s_finite_kernel κ] (hg : measurable g) :
-  (κ ∘ₖ deterministic hg) = comap κ g hg :=
+  (κ ∘ₖ deterministic g hg) = comap κ g hg :=
 begin
   ext a s hs : 2,
   simp_rw [comap_apply' _ _ _ s, comp_apply _ _ _ hs, deterministic_apply hg a,
@@ -691,7 +691,7 @@ include mγ
 noncomputable
 def prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel α γ) [is_s_finite_kernel η] :
   kernel α (β × γ) :=
-κ ⊗ₖ (swap_left (prod_mk_left η β))
+κ ⊗ₖ (swap_left (prod_mk_left β η))
 
 localized "infix (name := kernel.prod) ` ×ₖ `:100 := probability_theory.kernel.prod" in
   probability_theory

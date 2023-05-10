@@ -216,7 +216,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     dual isomorphism in the euclidean case: 'inner_product_space.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
-    norm: 'inner_product_space.of_core.to_has_norm'
+    norm: 'inner_product_space.core.to_has_norm'
     orthonormal bases: 'maximal_orthonormal_iff_basis_of_finite_dimensional'
   Endomorphisms:
     orthogonal group: 'matrix.orthogonal_group'

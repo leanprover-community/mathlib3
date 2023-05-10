@@ -159,8 +159,9 @@ instance : inhabited (derivation R A M) := ⟨0⟩
 
 section scalar
 
-variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
-  [smul_comm_class S A M]
+variables {S T : Type*}
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M] [smul_comm_class S A M]
+variables [monoid T] [distrib_mul_action T M] [smul_comm_class R T M] [smul_comm_class T A M]
 
 @[priority 100]
 instance : has_smul S (derivation R A M) :=
@@ -190,15 +191,18 @@ instance [distrib_mul_action Sᵐᵒᵖ M] [is_central_scalar S M] :
   is_central_scalar S (derivation R A M) :=
 { op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _}
 
+instance [has_smul S T] [is_scalar_tower S T M] : is_scalar_tower S T (derivation R A M) :=
+⟨λ x y z, ext $ λ a, smul_assoc _ _ _⟩
+
+instance [smul_comm_class S T M] : smul_comm_class S T (derivation R A M) :=
+⟨λ x y z, ext $ λ a, smul_comm _ _ _⟩
+
 end scalar
 
 @[priority 100]
 instance {S : Type*} [semiring S] [module S M] [smul_comm_class R S M] [smul_comm_class S A M] :
   module S (derivation R A M) :=
 function.injective.module S coe_fn_add_monoid_hom coe_injective coe_smul
-
-instance [is_scalar_tower R A M] : is_scalar_tower R A (derivation R A M) :=
-⟨λ x y z, ext (λ a, smul_assoc _ _ _)⟩
 
 section push_forward
 

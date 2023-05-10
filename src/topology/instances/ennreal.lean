@@ -612,6 +612,16 @@ by simp only [Sup_eq_supr, mul_supr]
 lemma supr_mul {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f * a = ⨆i, f i * a :=
 by rw [mul_comm, mul_supr]; congr; funext; rw [mul_comm]
 
+lemma smul_supr {ι : Sort*} {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (f : ι → ℝ≥0∞) (c : R) :
+  c • (⨆ i, f i) = ⨆ i, c • f i :=
+by simp only [←smul_one_mul c (f _), ←smul_one_mul c (supr _), ennreal.mul_supr]
+
+lemma smul_Sup {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (s : set ℝ≥0∞) (c : R) :
+  c • Sup s = ⨆ i ∈ s, c • i :=
+by simp_rw [←smul_one_mul c (Sup _), ennreal.mul_Sup, smul_one_mul]
+
 lemma supr_div {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f / a = ⨆i, f i / a :=
 supr_mul
 

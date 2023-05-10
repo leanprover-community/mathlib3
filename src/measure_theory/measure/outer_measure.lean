@@ -346,8 +346,7 @@ by have := supr_apply (λ b, cond b m₁ m₂) s;
 theorem smul_supr [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] {ι}
   (f : ι → outer_measure α) (c : R) :
   c • (⨆ i, f i) = ⨆ i, c • f i :=
-ext $ λ s, by simp only [smul_apply, supr_apply, ←smul_one_mul c (f _ _),
-  ←smul_one_mul c (supr _), ennreal.mul_supr]
+ext $ λ s, by simp only [smul_apply, supr_apply, ennreal.smul_supr]
 
 end supremum
 

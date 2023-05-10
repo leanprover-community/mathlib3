@@ -746,8 +746,7 @@ section
 @[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
 begin
   classical,
-  exact
-  finsupp.sum_add_index
+  exact finsupp.sum_add_index
     (by simp [f.map_zero])
     (by simp [add_mul, f.map_add])
 end

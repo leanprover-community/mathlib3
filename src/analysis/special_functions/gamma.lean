@@ -7,6 +7,7 @@ import measure_theory.integral.exp_decay
 import analysis.special_functions.improper_integrals
 import analysis.convolution
 import analysis.special_functions.trigonometric.euler_sine_prod
+import analysis.mellin_transform
 
 /-!
 # The Gamma and Beta functions
@@ -487,65 +488,34 @@ end
 
 namespace complex
 
-/-- The derivative of the `Γ` integral, at any `s ∈ ℂ` with `1 < re s`, is given by the integral
-of `exp (-x) * log x * x ^ (s - 1)` over `[0, ∞)`. -/
-theorem has_deriv_at_Gamma_integral {s : ℂ} (hs : 1 < s.re) :
-  (integrable_on (λ x, real.exp (-x) * real.log x * x ^ (s - 1) : ℝ → ℂ) (Ioi 0) volume) ∧
-  (has_deriv_at Gamma_integral (∫ x:ℝ in Ioi 0, real.exp (-x) * real.log x * x ^ (s - 1)) s) :=
+/-- Rewrite the Gamma integral as an example of a Mellin transform. -/
+lemma Gamma_integral_eq_mellin :  Gamma_integral = mellin (λ x, real.exp (-x)) :=
+funext (λ s, by simp only [mellin, Gamma_integral, smul_eq_mul, mul_comm])
+
+/-- The derivative of the `Γ` integral, at any `s ∈ ℂ` with `1 < re s`, is given by the Melllin
+transform of `log t * exp (-t)`. -/
+theorem has_deriv_at_Gamma_integral {s : ℂ} (hs : 0 < s.re) :
+  has_deriv_at Gamma_integral (mellin (λ t, real.log t * real.exp (-t)) s) s :=
 begin
-  let ε := (s.re - 1) / 2,
-  let μ := volume.restrict (Ioi (0:ℝ)),
-  let bound := (λ x:ℝ, dGamma_integrand_real (s.re - ε) x + dGamma_integrand_real (s.re + ε) x),
-  have cont : ∀ (t : ℂ), continuous_on (λ x, real.exp (-x) * x ^ (t - 1) : ℝ → ℂ) (Ioi 0),
-  { intro t, apply (continuous_of_real.comp continuous_neg.exp).continuous_on.mul,
-    apply continuous_at.continuous_on, intros x hx,
-    refine (continuous_at_cpow_const _).comp continuous_of_real.continuous_at,
-    exact or.inl hx, },
-  have eps_pos: 0 < ε := div_pos (sub_pos.mpr hs) zero_lt_two,
-  have hF_meas : ∀ᶠ (t : ℂ) in 𝓝 s,
-    ae_strongly_measurable (λ x, real.exp(-x) * x ^ (t - 1) : ℝ → ℂ) μ,
-  { apply eventually_of_forall, intro t,
-    exact (cont t).ae_strongly_measurable measurable_set_Ioi, },
-  have hF'_meas : ae_strongly_measurable (dGamma_integrand s) μ,
-  { refine continuous_on.ae_strongly_measurable _ measurable_set_Ioi,
-    have : dGamma_integrand s = (λ x, real.exp (-x) * x ^ (s - 1) * real.log x : ℝ → ℂ),
-    { ext1, simp only [dGamma_integrand], ring },
-    rw this,
-    refine continuous_on.mul (cont s) (continuous_at.continuous_on _),
-    exact λ x hx, continuous_of_real.continuous_at.comp (continuous_at_log (mem_Ioi.mp hx).ne'), },
-  have h_bound : ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε → ‖ dGamma_integrand t x ‖ ≤ bound x,
-  { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
-    intros t ht,
-    rw [metric.mem_ball, complex.dist_eq] at ht,
-    replace ht := lt_of_le_of_lt (complex.abs_re_le_abs $ t - s ) ht,
-    rw [complex.sub_re, @abs_sub_lt_iff ℝ _ t.re s.re ((s.re - 1) / 2) ] at ht,
-    refine loc_unif_bound_dGamma_integrand _ _ hx,
-    all_goals { simp only [ε], linarith } },
-  have bound_integrable : integrable bound μ,
-  { apply integrable.add,
-    { refine dGamma_integral_abs_convergent (s.re - ε) _,
-      field_simp, rw one_lt_div,
-      { linarith }, { exact zero_lt_two }, },
-    { refine dGamma_integral_abs_convergent (s.re + ε) _, linarith, }, },
-  have h_diff : ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε
-    → has_deriv_at (λ u, real.exp (-x) * x ^ (u - 1) : ℂ → ℂ) (dGamma_integrand t x) t,
-  { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
-    intros t ht, rw mem_Ioi at hx,
-    simp only [dGamma_integrand],
-    rw mul_assoc,
-    apply has_deriv_at.const_mul,
-    rw [of_real_log hx.le, mul_comm],
-    have := ((has_deriv_at_id t).sub_const 1).const_cpow (or.inl (of_real_ne_zero.mpr hx.ne')),
-    rwa mul_one at this },
-  exact (has_deriv_at_integral_of_dominated_loc_of_deriv_le eps_pos hF_meas
-    (Gamma_integral_convergent (zero_lt_one.trans hs)) hF'_meas h_bound bound_integrable h_diff),
+  rw Gamma_integral_eq_mellin,
+  convert mellin_has_deriv_of_is_O_rpow _ _ (lt_add_one _) _ hs,
+  { refine (continuous.continuous_on _).locally_integrable_on measurable_set_Ioi,
+    exact continuous_of_real.comp (real.continuous_exp.comp continuous_neg), },
+  { rw [←is_O_norm_left],
+    simp_rw [is_R_or_C.norm_of_real, is_O_norm_left],
+    refine (is_o_rpow_of_is_O_exp_neg zero_lt_one _ _).is_O,
+    simp_rw neg_one_mul, exact is_O_refl _ _, },
+  { simp_rw [neg_zero, rpow_zero],
+    refine is_O_const_of_tendsto (_ : tendsto _ _ (𝓝 1)) one_ne_zero,
+    rw (by simp : (1 : ℂ) = real.exp (-0)),
+    exact (continuous_of_real.comp (real.continuous_exp.comp continuous_neg)).continuous_within_at }
 end
 
 lemma differentiable_at_Gamma_aux (s : ℂ) (n : ℕ) (h1 : (1 - s.re) < n ) (h2 : ∀ m : ℕ, s ≠ -m) :
   differentiable_at ℂ (Gamma_aux n) s :=
 begin
   induction n with n hn generalizing s,
-  { refine (has_deriv_at_Gamma_integral _).2.differentiable_at,
+  { refine (has_deriv_at_Gamma_integral _).differentiable_at,
     rw nat.cast_zero at h1, linarith },
   { dsimp only [Gamma_aux],
     specialize hn (s + 1),
@@ -1525,3 +1495,48 @@ end
 end real
 
 end gamma_reflection
+
+section inv_gamma
+open_locale real
+
+namespace complex
+/-! ## The reciprocal Gamma function
+
+We show that the reciprocal Gamma function `1 / Γ(s)` is entire. These lemmas show that (in this
+case at least) mathlib's conventions for division by zero do actually give a mathematically useful
+answer! (These results are useful in the theory of zeta and L-functions.) -/
+
+/-- A reformulation of the Gamma recurrence relation which is true for `s = 0` as well. -/
+lemma one_div_Gamma_eq_self_mul_one_div_Gamma_add_one (s : ℂ) :
+  1 / Gamma s = s * (1 / Gamma (s + 1)) :=
+begin
+  rcases ne_or_eq s 0 with h | rfl,
+  { rw [Gamma_add_one s h, mul_one_div, ←div_div, div_self h] },
+  { rw [zero_add, Gamma_zero, div_zero, zero_mul] }
+end
+
+/-- The reciprocal of the Gamma function is differentiable everywhere (including the points where
+Gamma itself is not). -/
+lemma differentiable_one_div_Gamma : differentiable ℂ (λ s : ℂ, 1 / Gamma s) :=
+begin
+  suffices : ∀ (n : ℕ), ∀ (s : ℂ) (hs : -s.re < n), differentiable_at ℂ (λ u : ℂ, 1 / Gamma u) s,
+    from λ s, let ⟨n, h⟩ := exists_nat_gt (-s.re) in this n s h,
+  intro n,
+  induction n with m hm,
+  { intros s hs,
+    rw [nat.cast_zero, neg_lt_zero] at hs,
+    suffices : ∀ (m : ℕ), s ≠ -↑m, from (differentiable_at_const _).div
+      (differentiable_at_Gamma _ this) (Gamma_ne_zero this),
+    contrapose! hs,
+    rcases hs with ⟨m, rfl⟩,
+    simpa only [neg_re, ←of_real_nat_cast, of_real_re, neg_nonpos] using nat.cast_nonneg m },
+  { intros s hs,
+    rw funext one_div_Gamma_eq_self_mul_one_div_Gamma_add_one,
+    specialize hm (s + 1) (by rwa [add_re, one_re, neg_add', sub_lt_iff_lt_add, ←nat.cast_succ]),
+    refine differentiable_at_id.mul (hm.comp s _),
+    exact differentiable_at_id.add (differentiable_at_const _) }
+end
+
+end complex
+
+end inv_gamma

@@ -706,23 +706,19 @@ begin
       exact ⟨to_Ico_mod_lt_right _ _ _, left_le_to_Ico_mod _ _ _⟩ },
     simp only [add_neg_cancel_right, one_smul, neg_smul] },
 
-  cases le_or_lt x₃' (x₁ + p) with hc hc,
-  { exact hIoc₂₁.symm.trans_ge hc },
+  cases le_or_lt x₃' (x₁ + p) with h₃₁ h₁₃,
+  { exact hIoc₂₁.symm.trans_ge h₃₁ },
 
+  have h₃₂ : x₃' - p < x₂' := (sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _)),
+  have h₂₁ : x₂' < x₁ + p := to_Ico_mod_lt_right _ _ _,
   have hIoc₁₃ : to_Ioc_mod hp x₁ x₃' = x₃' - p,
   { apply (to_Ioc_mod_eq_iff hp).2,
-    refine ⟨_, 1, _⟩, swap,
-    { simp only [sub_add_cancel, one_smul] },
-    simp only [set.mem_Ioc, add_le_add_iff_right],
-    split,
-    { exact lt_sub_iff_add_lt.2 hc },
-      have w₁ : x₃' - p < x₂' := (sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _)),
-      have w₂ : x₂' < x₁ + p := to_Ico_mod_lt_right _ _ _,
-      exact (le_of_lt w₁).trans (le_of_lt w₂) },
-
-  have h₃ : x₃' - p < x₂' := sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ x₃),
-  have not_h₃ := (h.trans hIoc₁₃.le).not_lt,
-  contradiction,
+    refine ⟨_, 1, _⟩,
+    { simp only [set.mem_Ioc, add_le_add_iff_right],
+      exact ⟨lt_sub_iff_add_lt.2 h₁₃, le_of_lt (h₃₂.trans h₂₁)⟩ },
+    { simp only [sub_add_cancel, one_smul] } },
+  have not_h₃₂ := (h.trans hIoc₁₃.le).not_lt,
+  contradiction
 end
 
 private lemma to_Ixx_mod_antisymm (h₁₂₃ : to_Ico_mod hp a b ≤ to_Ioc_mod hp a c)

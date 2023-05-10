@@ -116,7 +116,7 @@ def fst : C^n⟮I.prod I', M × M'; I, M⟯ := ⟨prod.fst, cont_mdiff_fst⟩
 /-- The second projection of a product, as a smooth map. -/
 def snd : C^n⟮I.prod I', M × M'; I', M'⟯ := ⟨prod.snd, cont_mdiff_snd⟩
 
-/-- Given two smooth maps `f` and `g`, this is the smooth map `(x, y) ↦ (f x, g y)`. -/
+/-- Given two smooth maps `f` and `g`, this is the smooth map `x ↦ (f x, g x)`. -/
 def prod_mk (f : C^n⟮J, N; I, M⟯) (g : C^n⟮J, N; I', M'⟯) : C^n⟮J, N; I.prod I', M × M'⟯ :=
 ⟨λ x, (f x, g x), f.2.prod_mk g.2⟩
 

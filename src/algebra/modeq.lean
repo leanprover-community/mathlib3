@@ -68,30 +68,28 @@ modeq_comm.trans $ by simp [modeq, ←neg_eq_iff_eq_neg]
 
 alias modeq_neg ↔ modeq.of_neg' modeq.neg'
 
-@[simp] lemma zsmul_modeq_zsmul [no_zero_smul_divisors ℤ α] (hn : z ≠ 0) :
-  z • a ≡ z • b [PMOD (z • p)] ↔ a ≡ b [PMOD p] :=
-exists_congr $ λ m, by rw [←smul_sub, smul_comm, smul_right_inj hn]; apply_instance
-
-@[simp] lemma nsmul_modeq_nsmul [no_zero_smul_divisors ℕ α] (hn : n ≠ 0) :
-  n • a ≡ n • b [PMOD (n • p)] ↔ a ≡ b [PMOD p] :=
-exists_congr $ λ m, by rw [←smul_sub, smul_comm, smul_right_inj hn]; apply_instance
-
-alias zsmul_modeq_zsmul ↔ modeq.zsmul_cancel _
-alias nsmul_modeq_nsmul ↔ modeq.nsmul_cancel _
-
 lemma modeq_sub (a b : α) : a ≡ b [PMOD b - a] := ⟨1, (one_smul _ _).symm⟩
 
 @[simp] lemma modeq_zero : a ≡ b [PMOD 0] ↔ a = b := by simp [modeq, sub_eq_zero, eq_comm]
 
-@[simp] lemma zsmul_modeq_zero (z : ℤ) : z • p ≡ 0 [PMOD p] := ⟨-z, by simp⟩
 @[simp] lemma self_modeq_zero : p ≡ 0 [PMOD p] := ⟨-1, by simp⟩
 
+@[simp] lemma zsmul_modeq_zero (z : ℤ) : z • p ≡ 0 [PMOD p] := ⟨-z, by simp⟩
 lemma add_zsmul_modeq (z : ℤ) : a + z • p ≡ a [PMOD p] := ⟨-z, by simp⟩
 lemma zsmul_add_modeq (z : ℤ) : z • p + a ≡ a [PMOD p] := ⟨-z, by simp⟩
 lemma add_nsmul_modeq (n : ℕ) : a + n • p ≡ a [PMOD p] := ⟨-n, by simp⟩
 lemma nsmul_add_modeq (n : ℕ) : n • p + a ≡ a [PMOD p] := ⟨-n, by simp⟩
 
 namespace modeq
+
+protected lemma add_zsmul (z : ℤ) : a ≡ b [PMOD p] → a + z • p ≡ b [PMOD p] :=
+(add_zsmul_modeq _).trans
+protected lemma zsmul_add (z : ℤ) : a ≡ b [PMOD p] → z • p + a ≡ b [PMOD p] :=
+(zsmul_add_modeq _).trans
+protected lemma add_nsmul (n : ℕ) : a ≡ b [PMOD p] → a + n • p ≡ b [PMOD p] :=
+(add_nsmul_modeq _).trans
+protected lemma nsmul_add (n : ℕ) : a ≡ b [PMOD p] → n • p + a ≡ b [PMOD p] :=
+(nsmul_add_modeq _).trans
 
 protected lemma of_zsmul : a ≡ b [PMOD (z • p)] → a ≡ b [PMOD p] :=
 λ ⟨m, hm⟩, ⟨m * z, by rwa [mul_smul]⟩
@@ -104,6 +102,21 @@ Exists.imp $ λ m hm, by rw [←smul_sub, hm, smul_comm]
 
 protected lemma nsmul : a ≡ b [PMOD p] → n • a ≡ n • b [PMOD (n • p)] :=
 Exists.imp $ λ m hm, by rw [←smul_sub, hm, smul_comm]
+
+end modeq
+
+@[simp] lemma zsmul_modeq_zsmul [no_zero_smul_divisors ℤ α] (hn : z ≠ 0) :
+  z • a ≡ z • b [PMOD (z • p)] ↔ a ≡ b [PMOD p] :=
+exists_congr $ λ m, by rw [←smul_sub, smul_comm, smul_right_inj hn]; apply_instance
+
+@[simp] lemma nsmul_modeq_nsmul [no_zero_smul_divisors ℕ α] (hn : n ≠ 0) :
+  n • a ≡ n • b [PMOD (n • p)] ↔ a ≡ b [PMOD p] :=
+exists_congr $ λ m, by rw [←smul_sub, smul_comm, smul_right_inj hn]; apply_instance
+
+alias zsmul_modeq_zsmul ↔ modeq.zsmul_cancel _
+alias nsmul_modeq_nsmul ↔ modeq.nsmul_cancel _
+
+namespace modeq
 
 @[simp] protected lemma add_iff_left :
   a₁ ≡ b₁ [PMOD p] → (a₁ + a₂ ≡ b₁ + b₂ [PMOD p] ↔ a₂ ≡ b₂ [PMOD p]) :=
@@ -148,15 +161,6 @@ modeq_rfl.sub_left_cancel
 
 protected lemma sub_right_cancel' (c : α) : a - c ≡ b - c [PMOD p] → a ≡ b [PMOD p] :=
 modeq_rfl.sub_right_cancel
-
-protected lemma add_zsmul (z : ℤ) : a ≡ b [PMOD p] → a + z • p ≡ b [PMOD p] :=
-(add_zsmul_modeq _).trans
-protected lemma zsmul_add (z : ℤ) : a ≡ b [PMOD p] → z • p + a ≡ b [PMOD p] :=
-(zsmul_add_modeq _).trans
-protected lemma add_nsmul (n : ℕ) : a ≡ b [PMOD p] → a + n • p ≡ b [PMOD p] :=
-(add_nsmul_modeq _).trans
-protected lemma nsmul_add (n : ℕ) : a ≡ b [PMOD p] → n • p + a ≡ b [PMOD p] :=
-(nsmul_add_modeq _).trans
 
 end modeq
 

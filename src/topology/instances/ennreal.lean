@@ -867,8 +867,8 @@ has_sum.tsum_eq this
 protected lemma tsum_mul_right : (∑'i, f i * a) = (∑'i, f i) * a :=
 by simp [mul_comm, ennreal.tsum_mul_left]
 
-protected lemma tsum_const_smul {ι : Sort*} {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
-  (a : R) : ∑' i, a • f i = a • ∑' i, f i :=
+protected lemma tsum_const_smul {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (a : R) :
+  ∑' i, a • f i = a • ∑' i, f i :=
 by simpa only [smul_one_mul] using @ennreal.tsum_mul_left _ (a • 1) _
 
 @[simp] lemma tsum_supr_eq {α : Type*} (a : α) {f : α → ℝ≥0∞} :

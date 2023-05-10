@@ -950,34 +950,37 @@ end isometry_equiv
 
 namespace measure_theory
 
-theorem hausdorff_measure_measure_preserving_fun_unique (ι) [unique ι] (r : ℝ) :
-  measure_preserving (measurable_equiv.fun_unique ι ℝ) (μH[r]) (μH[r]) :=
+variables (ι X)
+
+theorem hausdorff_measure_measure_preserving_fun_unique [unique ι]
+  [topological_space.second_countable_topology X] (d : ℝ) :
+  measure_preserving (measurable_equiv.fun_unique ι X) μH[d] μH[d] :=
 ⟨measurable_equiv.measurable _, begin
   ext s hs : 1,
-  simp_rw [map_apply (measurable_equiv.fun_unique ι ℝ).measurable hs],
-  exact (isometry_equiv.fun_unique ι ℝ).hausdorff_measure_preimage _ _,
+  simp_rw [map_apply (measurable_equiv.fun_unique ι X).measurable hs],
+  exact (isometry_equiv.fun_unique ι X).hausdorff_measure_preimage _ _,
 end⟩
 
-theorem hausdorff_measure_measure_preserving_pi_fin_two (ι) [unique ι] (r : ℝ) :
-  measure_preserving (measurable_equiv.pi_fin_two (λ i, ℝ)) (μH[r]) (μH[r]) :=
+theorem hausdorff_measure_measure_preserving_pi_fin_two (α : fin 2 → Type*)
+  [Π i, measurable_space (α i)] [Π i, emetric_space (α i)] [Π i, borel_space (α i)]
+  [Π i, topological_space.second_countable_topology (α i)] (d : ℝ) :
+  measure_preserving (measurable_equiv.pi_fin_two α) μH[d] μH[d] :=
 ⟨measurable_equiv.measurable _, begin
   ext s hs : 1,
-  simp_rw [map_apply (measurable_equiv.pi_fin_two (λ i, ℝ)).measurable hs],
-  exact (isometry_equiv.pi_fin_two (λ i, ℝ)).hausdorff_measure_preimage _ _,
+  simp_rw [map_apply (measurable_equiv.pi_fin_two α).measurable hs],
+  exact (isometry_equiv.pi_fin_two α).hausdorff_measure_preimage _ _,
 end⟩
 
 /-- In the space `ℝ`, the Hausdorff measure coincides exactly with Lebesgue measure. -/
-@[simp] theorem hausdorff_measure_real {ι : Type*} [fintype ι] :
-  (μH[1] : measure ℝ) = volume :=
+@[simp] theorem hausdorff_measure_real : (μH[1] : measure ℝ) = volume :=
 by rw [←(volume_preserving_fun_unique unit ℝ).map_eq,
-    ←(hausdorff_measure_measure_preserving_fun_unique unit 1).map_eq,
+    ←(hausdorff_measure_measure_preserving_fun_unique unit ℝ 1).map_eq,
     ←hausdorff_measure_pi_real, fintype.card_unit, nat.cast_one]
 
-/-- In the space `ℝ`, the Hausdorff measure coincides exactly with Lebesgue measure. -/
-@[simp] theorem hausdorff_measure_prod_real {ι : Type*} [fintype ι] :
-  (μH[1] : measure ℝ) = volume :=
-by rw [←(hausdorff_measure_measure_preserving_pi_fin_two (λ i, ℝ)).map_eq,
-    ←(hausdorff_measure_measure_preserving_fun_unique unit 1).map_eq,
-    ←hausdorff_measure_pi_real, fintype.card_fin, nat.cast_one]
+/-- In the space `ℝ × ℝ`, the Hausdorff measure coincides exactly with Lebesgue measure. -/
+@[simp] theorem hausdorff_measure_prod_real : (μH[2] : measure (ℝ × ℝ)) = volume :=
+by rw [←(volume_preserving_pi_fin_two (λ i, ℝ)).map_eq,
+    ←(hausdorff_measure_measure_preserving_pi_fin_two (λ i, ℝ) _).map_eq,
+    ←hausdorff_measure_pi_real, fintype.card_fin, nat.cast_two]
 
 end measure_theory

@@ -61,7 +61,8 @@ namespace finset
 section
 variables {α β : Type*} [preorder α] [preorder β] [locally_finite_order α] [locally_finite_order β]
   [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((≤) : β → β → Prop)]
-lemma prod_Icc (a b : α × β) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) := by rw prod.Icc_eq
+lemma prod_Icc (a b : α × β) : Icc a b = (Icc a.fst b.fst).product (Icc a.snd b.snd) :=
+by rw prod.Icc_eq
 end
 section pre
 variables {α : Type*} [preorder α] [locally_finite_order α] {a b c : α}

@@ -433,10 +433,10 @@ lemma inf_sup_distrib_right (s : finset ι) (f : ι → α) (a : α) :
 @sup_inf_distrib_right αᵒᵈ _ _ _ _ _ _
 
 protected lemma codisjoint_inf_right : codisjoint a (s.inf f) ↔ ∀ ⦃i⦄, i ∈ s → codisjoint a (f i) :=
-by simp only [codisjoint_iff, inf_sup_distrib_left, finset.inf_eq_top_iff]
+@finset.disjoint_sup_right αᵒᵈ _ _ _ _ _ _
 
 protected lemma codisjoint_inf_left : codisjoint (s.inf f) a ↔ ∀ ⦃i⦄, i ∈ s → codisjoint (f i) a :=
-by simp only [codisjoint_iff, inf_sup_distrib_right, finset.inf_eq_top_iff]
+@finset.disjoint_sup_left αᵒᵈ _ _ _ _ _ _
 
 lemma inf_sup_inf (s : finset ι) (t : finset κ) (f : ι → α) (g : κ → α) :
   s.inf f ⊔ t.inf g = (s ×ˢ t).inf (λ i, f i.1 ⊔ g i.2) :=
@@ -459,7 +459,7 @@ begin
     inf_insert, inf_image],
   refine ⟨λ h g hg, h (g i $ mem_insert_self _ _) (λ j hj, g j $ mem_insert_of_mem hj)
     (hg _ $ mem_insert_self _ _) (λ j hj, hg _ $ mem_insert_of_mem hj), λ h a g ha hg, _⟩,
-  -- TODO: The next hypothesis must be named, else the `simpa` afterwards fails
+  -- TODO: This `have` must be named to prevent it being shadowed by the internal `this` in `simpa`
   have aux : ∀ j : {x // x ∈ s}, ↑j ≠ i := λ j : s, ne_of_mem_of_not_mem j.2 hi,
   simpa only [cast_eq, dif_pos, function.comp, subtype.coe_mk, dif_neg, aux]
     using h (λ j hj, if hji : j = i then cast (congr_arg κ hji.symm) a

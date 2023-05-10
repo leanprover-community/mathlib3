@@ -1068,6 +1068,17 @@ variables (m : Π (s : α), P s → ℝ≥0∞)
   to all objects by defining it to be `∞` on the objects not in the class. -/
 def extend (s : α) : ℝ≥0∞ := ⨅ h : P s, m s h
 
+lemma smul_extend {R} [has_zero R] [smul_with_zero R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  [no_zero_smul_divisors R ℝ≥0∞] {c : R} (hc : c ≠ 0) :
+  c • extend m = extend (λ s h, c • m s h) :=
+begin
+  ext1 s,
+  dsimp [extend],
+  by_cases h : P s,
+  { simp [h] },
+  { simp [h, ennreal.smul_top, hc] },
+end
+
 lemma extend_eq {s : α} (h : P s) : extend m s = m s h :=
 by simp [extend, h]
 

@@ -208,7 +208,7 @@ end
 
 open emetric ennreal
 
-lemma inf_edist_smul₀ (c : 𝕜) (s : set E) (hc : c ≠ 0) (x : E) :
+lemma inf_edist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
   inf_edist (c • x) (c • s) = ‖c‖₊ • inf_edist x s :=
 begin
   simp_rw [inf_edist],

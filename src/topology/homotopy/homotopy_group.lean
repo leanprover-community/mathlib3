@@ -30,11 +30,12 @@ We give a group instance using path composition and show commutativity when `n >
 * group instance `group (π_(n+1) x)`,
 * commutative group instance `comm_group (π_(n+2) x)`.
 
-TODO: Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a group isomorphism.
-  Examples with 𝕊^n (π_n (𝕊^n) = ℤ, π_m (𝕊^n) trivial for m < n).
-  Actions of π_1 on π_n.
-  Group (up to homotopy) of Ω.
-  Lie algebra: ⁅π_(n+1), π_(m+1)⁆ contained in π_(n+m+1).
+TODO:
+* Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a group isomorphism.
+* Examples with `𝕊^n (π_n (𝕊^n) = ℤ`, `π_m (𝕊^n)` trivial for `m < n`.
+* Actions of π_1 on π_n.
+* Group (up to homotopy) of Ω.
+* Lie algebra: `⁅π_(n+1), π_(m+1)⁆` contained in `π_(n+m+1)`.
 
 -/
 

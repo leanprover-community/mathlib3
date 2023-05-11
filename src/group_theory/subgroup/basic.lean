@@ -1012,7 +1012,7 @@ eq_bot_iff.mpr $ by { rintros x ⟨y, _ , rfl⟩, simp }
 
 @[to_additive]
 lemma mem_map_equiv {f : G ≃* N} {K : subgroup G} {x : N} :
-  x ∈ K.map f.to_monoid_hom ↔ f.symm x ∈ K :=
+  x ∈ K.map (f : G →* N) ↔ f.symm x ∈ K :=
 @set.mem_image_equiv _ _ ↑K f.to_equiv x
 
 @[to_additive]
@@ -2286,7 +2286,7 @@ end
 @[to_additive "The image of the normalizer is equal to the normalizer of the image of an
 isomorphism."]
 lemma map_equiv_normalizer_eq (H : subgroup G)
-  (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map f.to_monoid_hom).normalizer :=
+  (f : G ≃* N) : H.normalizer.map (f : G →* N) = (H.map (f : G →* N)).normalizer :=
 begin
   ext x,
   simp only [mem_normalizer_iff, mem_map_equiv],

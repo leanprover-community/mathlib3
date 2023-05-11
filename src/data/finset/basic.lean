@@ -573,6 +573,8 @@ by simp only [mem_cons, or_imp_distrib, forall_and_distrib, forall_eq]
 @[simp] lemma mk_cons {s : multiset α} (h : (a ::ₘ s).nodup) :
   (⟨a ::ₘ s, h⟩ : finset α) = cons a ⟨s, (nodup_cons.1 h).2⟩ (nodup_cons.1 h).1 := rfl
 
+@[simp] lemma cons_empty (a : α) : cons a ∅ (not_mem_empty _) = {a} := rfl
+
 @[simp] lemma nonempty_cons (h : a ∉ s) : (cons a s h).nonempty := ⟨a, mem_cons.2 $ or.inl rfl⟩
 
 @[simp] lemma nonempty_mk {m : multiset α} {hm} : (⟨m, hm⟩ : finset α).nonempty ↔ m ≠ 0 :=

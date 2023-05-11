@@ -26,6 +26,26 @@ variables {𝕜 E : Type*} [normed_field 𝕜]
 section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
+lemma ediam_smul₀ (c : 𝕜) (s : set E) :
+  emetric.diam (c • s) = ‖c‖₊ • emetric.diam s :=
+begin
+  obtain rfl | hr := eq_or_ne c 0,
+  { obtain rfl | hs := s.eq_empty_or_nonempty,
+    { simp },
+    simp [zero_smul_set hs, ←set.singleton_zero], },
+  simp_rw [emetric.diam, ennreal.smul_supr, ←edist_smul₀],
+  have : function.surjective ((•) c : E → E) :=
+    function.right_inverse.surjective (smul_inv_smul₀ hr),
+  refine (this.supr_congr _ $ λ x, _).symm,
+  simp_rw smul_mem_smul_set_iff₀ hr,
+  congr' 1 with hx : 1,
+  refine (this.supr_congr _ $ λ y, _).symm,
+  simp_rw smul_mem_smul_set_iff₀ hr,
+end
+
+lemma diam_smul₀ (c : 𝕜) (x : set E) : diam (c • x) = ‖c‖ * diam x :=
+by simp_rw [diam, ediam_smul₀, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm, smul_eq_mul]
+
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (‖c‖ * r) :=
 begin

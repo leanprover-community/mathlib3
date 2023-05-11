@@ -6,8 +6,6 @@ Authors: Mario Carneiro, Anne Baanen
 import algebra.group_with_zero.units.lemmas
 import algebra.order.field.defs
 import algebra.order.hom.basic
-import algebra.order.ring.abs
-import algebra.ring.commute
 import algebra.ring.regular
 
 /-!

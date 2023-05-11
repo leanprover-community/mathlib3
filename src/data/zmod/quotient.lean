@@ -32,9 +32,6 @@ This file relates `zmod n` to the quotient group
 zmod, quotient group, quotient ring, ideal quotient
 -/
 
-@[simp, to_additive]
-lemma zpow_apply {α β T : Type*} [group α] [group β] (z : ℤ) (f : T) [monoid_hom_class T α β] (x : α) :
-f (x ^ z) = (f x) ^ z := sorry
 
 open quotient_add_group
 open zmod
@@ -105,28 +102,39 @@ open add_action subgroup add_subgroup function
 
 variables {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
 
-#check quotient_group.quotient.group
-#check quotient_add_group.quotient.add_group
 instance foo (h : subgroup α) [l : h.normal] : (subgroup.to_add_subgroup h).normal :=
 ⟨l.1⟩
 
-def hoo (h : subgroup α) [h.normal] :
-  additive (α ⧸ h) ≃+ additive α ⧸ h.to_add_subgroup :=
-⟨sorry, sorry, sorry, sorry, sorry⟩
+--todo also range
+@[simp] lemma aaa {α β : Type*} [group α] [group β] (f : α →* β) :
+  (monoid_hom.to_additive f).ker = f.ker.to_add_subgroup := rfl
+@[simp] lemma aaaa {α β : Type*} [group α] [group β] (f : α →* β) :
+  (monoid_hom.to_additive f).range = f.range.to_add_subgroup := rfl
+
+-- lemma dasd (h : subgroup α) [h.normal] : monoid_hom.to_additive (quotient_group.mk' h)
+-- = (quotient_add_group.mk' h.to_add_subgroup) := rfl
+
+noncomputable
+def hoo (h : subgroup α) [h.normal] : additive (α ⧸ h) ≃+ additive α ⧸ h.to_add_subgroup :=
+((quotient_add_group.congr _ _ (add_equiv.refl _) (by simp)).trans
+  (quotient_add_group.quotient_ker_equiv_of_surjective
+    (monoid_hom.to_additive (quotient_group.mk' h)) (quotient_group.mk'_surjective _))).symm
 
 @[simp]
 lemma hoo_apply (h : subgroup α) [h.normal] (x : α) :
-  hoo h (additive.of_mul (x : α ⧸ h)) =
-  (additive.of_mul x : additive α ⧸ h.to_add_subgroup) := sorry
+  hoo h (additive.of_mul (x : α ⧸ h)) = (additive.of_mul x : additive α ⧸ h.to_add_subgroup) :=
+begin
+  rw [hoo],
+  rw [add_equiv.symm_apply_eq],
+  simp [hoo],
+  refl,
+end
 
 lemma asad (x : α) : (zpowers x).to_add_subgroup = zmultiples (additive.of_mul x) := rfl
--- ⟨λ x, multiplicative.of_add.symm x, sorry, sorry, sorry, sorry⟩
--- local attribute [semireducible] mul_opposite
 
+@[simps]
 def additive_zpowers_equiv (x : α) : additive (zpowers x) ≃+ zmultiples (additive.of_mul x) :=
 add_equiv.refl _
--- ⟨λ x, multiplicative.of_add.symm x, sorry, sorry, sorry, sorry⟩
--- local attribute [semireducible] mul_opposite
 
 @[simp]
 lemma asdas : to_add_subgroup (stabilizer α b) = add_action.stabilizer (additive α) b := rfl
@@ -140,7 +148,7 @@ add_equiv.to_multiplicative'
   ((quotient_add_group.congr (stabilizer (zpowers a) b).to_add_subgroup _ (additive_zpowers_equiv a)
     begin
       ext,
-      simpa [add_subgroup.mem_map_equiv],
+      simp [add_subgroup.mem_map_equiv],
     end).trans
   (zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b)))
 -- let f := add_action.zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
@@ -156,7 +164,7 @@ add_equiv.to_multiplicative'
 attribute [simp] of_mul_pow of_mul_zpow of_add_nsmul of_add_zsmul-- in wrong namespace?
 
 lemma zpowers_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((•) a) b)) :
-  (zpowers_quotient_stabilizer_equiv a b).symm n = (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
+  (zpowers_quotient_stabilizer_equiv a b).symm (multiplicative.of_add n) = (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
 begin
   rw [mul_equiv.symm_apply_eq],
   simp only [add_equiv.to_multiplicative'_apply_apply,
@@ -165,9 +173,21 @@ begin
  add_monoid_hom.to_multiplicative'_apply_apply,
  mul_action.zpowers_quotient_stabilizer_equiv.equations._eqn_1,
  mul_action.hoo_apply],
- rw [of_mul_zpow, zsmul_apply, zsmul_apply, zsmul_apply],
- rw [of_add_zsmul],
+  rw [of_mul_zpow, map_zsmul, map_zsmul],
+--  rw [of_add_zsmul],
  simp only [zmod.cast_id', id.def, zmod.int_cast_cast, mul_action.hoo_apply], -- , zsmul_eq_mul not conf
+
+ simp only [quotient_add_group.congr_apply,
+ zmod.cast_id',
+ id.def,
+ zmod.int_cast_cast,
+ quotient_add_group.mk'_apply ],
+simp only [
+ mul_action.additive_zpowers_equiv_apply
+ ],
+ erw [← zmultiples_quotient_stabilizer_equiv_symm_apply],
+--   rw [← mul_equiv.symm_apply_eq],
+simp,
   -- refl,
 end
 

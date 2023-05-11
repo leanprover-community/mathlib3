@@ -698,14 +698,14 @@ variables [has_mul X] [has_continuous_mul X]
 @[to_additive "The continuous map `λ y, y + x"]
 protected def mul_right (x : X) : C(X, X) := mk _ (continuous_mul_right x)
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma coe_mul_right (x : X) : ⇑(continuous_map.mul_right x) = λ y, y * x := rfl
 
 /-- The continuous map `λ y, x * y` -/
 @[to_additive "The continuous map `λ y, x + y"]
 protected def mul_left (x : X) : C(X, X) := mk _ (continuous_mul_left x)
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma coe_mul_left (x : X) : ⇑(continuous_map.mul_left x) = λ y, x * y := rfl
 
 end continuous_map

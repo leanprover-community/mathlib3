@@ -371,6 +371,7 @@ theorem map_zpow [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) 
 map_zpow' f (map_inv f) g n
 
 /-- Additive group homomorphisms preserve integer scaling. -/
+@[simp]
 theorem map_zsmul [add_group G] [subtraction_monoid H] [add_monoid_hom_class F G H] (f : F)
   (n : ℤ) (g : G) :
   f (n • g) = n • f g :=

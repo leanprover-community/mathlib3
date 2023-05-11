@@ -226,23 +226,24 @@ def congr (e : G ≃* H) (he : G'.map ↑e = H') : G ⧸ G' ≃* H ⧸ H' :=
         mul_equiv.coe_monoid_hom_refl, map_id_apply],
   .. map G' H' ↑e (he ▸ G'.le_comap_map e) }
 
-@[simp] lemma congr_mk (e : G ≃* H) (he : G'.map ↑e = H')
+@[simp, to_additive] lemma congr_mk (e : G ≃* H) (he : G'.map ↑e = H')
   (x) : congr G' H' e he (mk x) = e x :=
 rfl
 
+@[to_additive]
 lemma congr_mk' (e : G ≃* H) (he : G'.map ↑e = H')
   (x) : congr G' H' e he (mk' G' x) = mk' H' (e x) :=
 rfl
 
-@[simp] lemma congr_apply (e : G ≃* H) (he : G'.map ↑e = H')
+@[simp, to_additive] lemma congr_apply (e : G ≃* H) (he : G'.map ↑e = H')
   (x : G) : congr G' H' e he x = mk' H' (e x) :=
 rfl
 
-@[simp] lemma congr_refl (he : G'.map (mul_equiv.refl G : G →* G) = G' := subgroup.map_id G') :
+@[simp, to_additive] lemma congr_refl (he : G'.map (mul_equiv.refl G : G →* G) = G' := subgroup.map_id G') :
   congr G' G' (mul_equiv.refl G) he = mul_equiv.refl (G ⧸ G') :=
 by { ext ⟨x⟩, refl }
 
-@[simp] lemma congr_symm (e : G ≃* H) (he : G'.map ↑e = H') :
+@[simp, to_additive] lemma congr_symm (e : G ≃* H) (he : G'.map ↑e = H') :
   (congr G' H' e he).symm = congr H' G' e.symm ((subgroup.map_symm_eq_iff_map_eq _).mpr he) :=
 rfl
 
@@ -327,6 +328,11 @@ noncomputable def quotient_ker_equiv_of_surjective (hφ : surjective φ) :
   G ⧸ (ker φ) ≃* H :=
 quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec
 
+@[simp, to_additive]
+lemma quotient_ker_equiv_of_surjective_mk (hφ : surjective φ) (x : G) :
+  quotient_ker_equiv_of_surjective φ hφ (mk x) = φ x :=
+rfl
+
 /-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
 isomorphic. -/
 @[to_additive "If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
@@ -338,7 +344,7 @@ def quotient_mul_equiv_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N
 
 @[simp, to_additive]
 lemma quotient_mul_equiv_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :
-  quotient_group.quotient_mul_equiv_of_eq h (quotient_group.mk x) = (quotient_group.mk x) :=
+  quotient_group.quotient_mul_equiv_of_eq h (mk x) = mk x :=
 rfl
 
 /-- Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,

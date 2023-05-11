@@ -151,7 +151,7 @@ end
 section
 variables (M) [comm_semigroup M]
 
-@[to_additive, simp] lemma center_eq_top : center M = ⊤ :=
+@[simp, to_additive] lemma center_eq_top : center M = ⊤ :=
 set_like.coe_injective (set.center_eq_univ M)
 
 end

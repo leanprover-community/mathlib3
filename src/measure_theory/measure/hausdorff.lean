@@ -476,13 +476,8 @@ end
 @[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : measure X) = ⊤ :=
 begin
   apply to_outer_measure_injective,
-  rw [mk_metric_to_outer_measure, outer_measure.mk_metric_top],
-  ext1,
-  simp only [measure_theory.coe_to_outer_measure],
-  rw measure.top
+  rw [mk_metric_to_outer_measure, outer_measure.mk_metric_top, to_outer_measure_top],
 end
-
-#exit
 
 /-- If `m₁ d ≤ m₂ d` for `d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝[≥] 0]` to state this), then
 `mk_metric m₁ hm₁ ≤ mk_metric m₂ hm₂`-/

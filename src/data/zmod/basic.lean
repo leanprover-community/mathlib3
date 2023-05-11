@@ -5,12 +5,15 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import data.fintype.units
 import data.nat.parity
-import algebra.group.conj_finite
 import tactic.fin_cases
 
 /-!
 # Integers mod `n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Definition of the integers mod n, and the field structure on the integers mod p.
 
@@ -29,6 +32,8 @@ Definition of the integers mod n, and the field structure on the integers mod p.
 This is a ring hom if the ring has characteristic dividing `n`
 
 -/
+
+open function
 
 namespace zmod
 
@@ -378,7 +383,7 @@ end universal_property
 
 lemma int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
-char_p.int_coe_eq_int_coe_iff (zmod c) c a b
+char_p.int_cast_eq_int_cast (zmod c) c
 
 lemma int_coe_eq_int_coe_iff' (a b : ℤ) (c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a % c = b % c :=
@@ -897,6 +902,8 @@ lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p
 by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq_zero_iff_dvd,
   ← hp.1.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
 
+variables {n a : ℕ}
+
 lemma val_min_abs_nat_abs_eq_min {n : ℕ} [hpos : ne_zero n] (a : zmod n) :
   a.val_min_abs.nat_abs = min a.val (n - a.val) :=
 begin
@@ -911,6 +918,30 @@ begin
       (nat.le_half_of_half_lt_sub _)) (le_of_not_ge h)),
     rw nat.sub_sub_self (nat.div_lt_self (lt_of_le_of_ne' (nat.zero_le _) hpos.1) one_lt_two),
     apply nat.lt_succ_self }
+end
+
+lemma val_min_abs_nat_cast_of_le_half (ha : a ≤ n / 2) : (a : zmod n).val_min_abs = a :=
+begin
+  cases n,
+  { simp },
+  { simp [val_min_abs_def_pos, val_nat_cast,
+      nat.mod_eq_of_lt (ha.trans_lt $ nat.div_lt_self' _ 0), ha] }
+end
+
+lemma val_min_abs_nat_cast_of_half_lt (ha : n / 2 < a) (ha' : a < n) :
+  (a : zmod n).val_min_abs = a - n :=
+begin
+  cases n,
+  { cases not_lt_bot ha' },
+  { simp [val_min_abs_def_pos, val_nat_cast, nat.mod_eq_of_lt ha', ha.not_le] }
+end
+
+@[simp] lemma val_min_nat_abs_nat_cast_eq_self [ne_zero n] :
+  (a : zmod n).val_min_abs = a ↔ a ≤ n / 2 :=
+begin
+  refine ⟨λ ha, _, val_min_abs_nat_cast_of_le_half⟩,
+  rw [←int.nat_abs_of_nat a, ←ha],
+  exact nat_abs_val_min_abs_le a,
 end
 
 lemma nat_abs_min_of_le_div_two (n : ℕ) (x y : ℤ)

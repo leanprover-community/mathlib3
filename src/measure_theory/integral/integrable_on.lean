@@ -114,20 +114,25 @@ lemma integrable_on.congr_set_ae (h : integrable_on f t μ) (hst : s =ᵐ[μ] t)
   integrable_on f s μ :=
 h.mono_set_ae hst.le
 
-lemma integrable_on.congr_fun' (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
+lemma integrable_on.congr_fun_ae (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
   integrable_on g s μ :=
 integrable.congr h hst
+
+lemma integrable_on_congr_fun_ae (hst : f =ᵐ[μ.restrict s] g) :
+  integrable_on f s μ ↔ integrable_on g s μ :=
+⟨λ h, h.congr_fun_ae hst, λ h, h.congr_fun_ae hst.symm⟩
 
 lemma integrable_on.congr_fun (h : integrable_on f s μ) (hst : eq_on f g s)
   (hs : measurable_set s) :
   integrable_on g s μ :=
-h.congr_fun' ((ae_restrict_iff' hs).2 (eventually_of_forall hst))
+h.congr_fun_ae ((ae_restrict_iff' hs).2 (eventually_of_forall hst))
+
+lemma integrable_on_congr_fun (hst : eq_on f g s) (hs : measurable_set s) :
+  integrable_on f s μ ↔ integrable_on g s μ :=
+⟨λ h, h.congr_fun hst hs, λ h, h.congr_fun hst.symm hs⟩
 
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
 h.mono_measure $ measure.restrict_le_self
-
-lemma integrable.integrable_on' (h : integrable f (μ.restrict s)) : integrable_on f s μ :=
-h
 
 lemma integrable_on.restrict (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable_on f s (μ.restrict t) :=
@@ -558,3 +563,100 @@ lemma continuous_on.strongly_measurable_at_filter_nhds_within {α β : Type*} [m
   (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
   strongly_measurable_at_filter f (𝓝[s] x) μ :=
 ⟨s, self_mem_nhds_within, hf.ae_strongly_measurable hs⟩
+
+/-! ### Lemmas about adding and removing interval boundaries
+
+The primed lemmas take explicit arguments about the measure being finite at the endpoint, while
+the unprimed ones use `[has_no_atoms μ]`.
+-/
+
+section partial_order
+
+variables [partial_order α] [measurable_singleton_class α]
+  {f : α → E} {μ : measure α} {a b : α}
+
+lemma integrable_on_Icc_iff_integrable_on_Ioc' (ha : μ {a} ≠ ∞) :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
+begin
+  by_cases hab : a ≤ b,
+  { rw [←Ioc_union_left hab, integrable_on_union, eq_true_intro
+      (integrable_on_singleton_iff.mpr $ or.inr ha.lt_top), and_true] },
+  { rw [Icc_eq_empty hab, Ioc_eq_empty],
+    contrapose! hab,
+    exact hab.le }
+end
+
+lemma integrable_on_Icc_iff_integrable_on_Ico' (hb : μ {b} ≠ ∞) :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ico a b) μ :=
+begin
+  by_cases hab : a ≤ b,
+  { rw [←Ico_union_right hab, integrable_on_union, eq_true_intro
+      (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true] },
+  { rw [Icc_eq_empty hab, Ico_eq_empty],
+    contrapose! hab,
+    exact hab.le }
+end
+
+lemma integrable_on_Ico_iff_integrable_on_Ioo' (ha : μ {a} ≠ ∞) :
+  integrable_on f (Ico a b) μ ↔ integrable_on f (Ioo a b) μ :=
+begin
+  by_cases hab : a < b,
+  { rw [←Ioo_union_left hab, integrable_on_union, eq_true_intro
+      (integrable_on_singleton_iff.mpr $ or.inr ha.lt_top), and_true] },
+  { rw [Ioo_eq_empty hab, Ico_eq_empty hab] }
+end
+
+lemma integrable_on_Ioc_iff_integrable_on_Ioo' (hb : μ {b} ≠ ∞) :
+  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+begin
+  by_cases hab : a < b,
+  { rw [←Ioo_union_right hab, integrable_on_union, eq_true_intro
+      (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true] },
+  { rw [Ioo_eq_empty hab, Ioc_eq_empty hab] }
+end
+
+lemma integrable_on_Icc_iff_integrable_on_Ioo' (ha : μ {a} ≠ ∞) (hb : μ {b} ≠ ∞) :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+by rw [integrable_on_Icc_iff_integrable_on_Ioc' ha, integrable_on_Ioc_iff_integrable_on_Ioo' hb]
+
+lemma integrable_on_Ici_iff_integrable_on_Ioi' (hb : μ {b} ≠ ∞) :
+  integrable_on f (Ici b) μ ↔ integrable_on f (Ioi b) μ :=
+by rw [←Ioi_union_left, integrable_on_union,
+  eq_true_intro (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true]
+
+lemma integrable_on_Iic_iff_integrable_on_Iio' (hb : μ {b} ≠ ∞) :
+  integrable_on f (Iic b) μ ↔ integrable_on f (Iio b) μ :=
+by rw [←Iio_union_right, integrable_on_union,
+  eq_true_intro (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true]
+
+variables [has_no_atoms μ]
+
+lemma integrable_on_Icc_iff_integrable_on_Ioc :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
+integrable_on_Icc_iff_integrable_on_Ioc' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Icc_iff_integrable_on_Ico :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ico a b) μ :=
+integrable_on_Icc_iff_integrable_on_Ico' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Ico_iff_integrable_on_Ioo :
+  integrable_on f (Ico a b) μ ↔ integrable_on f (Ioo a b) μ :=
+integrable_on_Ico_iff_integrable_on_Ioo' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Ioc_iff_integrable_on_Ioo :
+  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+integrable_on_Ioc_iff_integrable_on_Ioo' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Icc_iff_integrable_on_Ioo :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable_on_Ioo]
+
+lemma integrable_on_Ici_iff_integrable_on_Ioi :
+  integrable_on f (Ici b) μ ↔ integrable_on f (Ioi b) μ :=
+integrable_on_Ici_iff_integrable_on_Ioi' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Iic_iff_integrable_on_Iio :
+  integrable_on f (Iic b) μ ↔ integrable_on f (Iio b) μ :=
+integrable_on_Iic_iff_integrable_on_Iio' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+end partial_order

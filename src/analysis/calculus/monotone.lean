@@ -3,8 +3,6 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import measure_theory.measure.lebesgue
-import analysis.calculus.deriv
 import measure_theory.covering.one_dim
 import order.monotone.extension
 
@@ -30,7 +28,7 @@ limit of `(f y - f x) / (y - x)` by a lower and upper approximation argument fro
 behavior of `μ [x, y]`.
 -/
 
-open set filter function metric measure_theory measure_theory.measure is_doubling_measure
+open set filter function metric measure_theory measure_theory.measure is_unif_loc_doubling_measure
 open_locale topology
 
 /-- If `(f y - f x) / (y - x)` converges to a limit as `y` tends to `x`, then the same goes if

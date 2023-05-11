@@ -290,13 +290,11 @@ variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 
 lemma gauge_norm_smul (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (‖r‖ • x) = gauge s (r • x) :=
 begin
-  rw @is_R_or_C.real_smul_eq_coe_smul 𝕜,
-  obtain rfl | hr := eq_or_ne r 0,
-  { simp only [norm_zero, is_R_or_C.of_real_zero] },
   unfold gauge,
   congr' with θ,
+  rw @is_R_or_C.real_smul_eq_coe_smul 𝕜,
   refine and_congr_right (λ hθ, (hs.smul _).mem_smul_iff _),
-  rw [is_R_or_C.norm_of_real, norm_norm],
+  rw [is_R_or_C.norm_of_real, abs_norm],
 end
 
 /-- If `s` is balanced, then the Minkowski functional is ℂ-homogeneous. -/

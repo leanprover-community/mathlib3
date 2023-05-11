@@ -7,7 +7,7 @@ import analysis.normed_space.linear_isometry
 import analysis.normed.group.add_torsor
 import analysis.normed_space.basic
 import linear_algebra.affine_space.restrict
-import linear_algebra.affine_space.midpoint_zero
+import algebra.char_p.invertible
 
 /-!
 # Affine isometries

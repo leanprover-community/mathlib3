@@ -14,7 +14,7 @@ in `density_theorems.lean`. In this file, we expand the API for this theory in o
 by showing that intervals belong to the relevant Vitali family.
 -/
 
-open set measure_theory is_doubling_measure filter
+open set measure_theory is_unif_loc_doubling_measure filter
 open_locale topology
 
 namespace real

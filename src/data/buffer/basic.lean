@@ -7,6 +7,7 @@ General utility functions for buffers.
 -/
 import data.array.lemmas
 import control.traversable.instances
+import control.traversable.equiv
 
 namespace buffer
 

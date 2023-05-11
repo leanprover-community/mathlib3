@@ -9,6 +9,9 @@ import category_theory.triangulated.pretriangulated
 /-!
 # Triangulated Categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of triangulated categories, which are
 pretriangulated categories which satisfy the octahedron axiom.
 

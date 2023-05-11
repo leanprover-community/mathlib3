@@ -27,8 +27,9 @@ proofs or more geometrical content generally go in separate files.
 ## Implementation notes
 
 To declare `P` as the type of points in a Euclidean affine space with
-`V` as the type of vectors, use `[inner_product_space ℝ V] [metric_space P]
-[normed_add_torsor V P]`.  This works better with `out_param` to make
+`V` as the type of vectors, use
+`[normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]`.
+This works better with `out_param` to make
 `V` implicit in most cases than having a separate type alias for
 Euclidean affine spaces.
 
@@ -55,8 +56,9 @@ This section develops some geometrical definitions and results on
 Euclidean affine spaces.
 -/
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+variables [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P]
+variables [normed_add_torsor V P]
 include V
 
 /-- The midpoint of the segment AB is the same distance from A as it is from B. -/
@@ -84,12 +86,12 @@ in terms of the pairwise distances between the points in that
 combination. -/
 lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → ℝ} (p : ι → P)
     (h₁ : ∑ i in s, w₁ i = 1) (h₂ : ∑ i in s, w₂ i = 1) :
-  by have a₁ := s.affine_combination p w₁; have a₂ := s.affine_combination p w₂; exact
+  by have a₁ := s.affine_combination ℝ p w₁; have a₂ := s.affine_combination ℝ p w₂; exact
   dist a₁ a₂ * dist a₁ a₂ = (-∑ i₁ in s, ∑ i₂ in s,
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
-  rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
-      ←inner_self_eq_norm_mul_norm, finset.affine_combination_vsub],
+  rw [dist_eq_norm_vsub V (s.affine_combination ℝ p w₁) (s.affine_combination ℝ p w₂),
+      ←@inner_self_eq_norm_mul_norm ℝ, finset.affine_combination_vsub],
   have h : ∑ i in s, (w₁ - w₂) i = 0,
   { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
   exact inner_weighted_vsub p h p h

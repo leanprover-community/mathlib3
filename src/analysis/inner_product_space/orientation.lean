@@ -35,7 +35,7 @@ This file provides definitions and proves lemmas about orientations of real inne
 
 noncomputable theory
 
-variables {E : Type*} [inner_product_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
 open finite_dimensional
 open_locale big_operators real_inner_product_space
@@ -317,7 +317,8 @@ lemma abs_volume_form_apply_of_orthonormal (v : orthonormal_basis (fin n) ℝ E)
   |o.volume_form v| = 1 :=
 by simpa [o.volume_form_robust' v v] using congr_arg abs v.to_basis.det_self
 
-lemma volume_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = n)]
+lemma volume_form_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = n)]
   (φ : E ≃ₗᵢ[ℝ] F) (x : fin n → F) :
   (orientation.map (fin n) φ.to_linear_equiv o).volume_form x = o.volume_form (φ.symm ∘ x) :=
 begin

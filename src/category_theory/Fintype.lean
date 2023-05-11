@@ -13,6 +13,9 @@ import data.fintype.card
 /-!
 # The category of finite types.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the category of finite types, denoted `Fintype` as
 (bundled) types with a `fintype` instance.
 

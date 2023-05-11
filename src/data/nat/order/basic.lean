@@ -65,7 +65,7 @@ instance : canonically_linear_ordered_add_monoid ℕ :=
 { .. (infer_instance : canonically_ordered_add_monoid ℕ),
   .. nat.linear_order }
 
-variables {m n k l : ℕ}
+variables {a b m n k l : ℕ}
 namespace nat
 
 /-! ### Equalities and inequalities involving zero and one -/
@@ -94,7 +94,6 @@ lemma eq_zero_of_mul_le (hb : 2 ≤ n) (h : n * m ≤ m) : m = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
 lemma zero_max : max 0 n = n := max_eq_right (zero_le _)
-
 @[simp] lemma min_eq_zero_iff : min m n = 0 ↔ m = 0 ∨ n = 0 :=
 begin
   split,
@@ -242,17 +241,6 @@ end
 lemma sub_succ' (m n : ℕ) : m - n.succ = m - n - 1 := rfl
 
 /-! ### `mul` -/
-
-lemma mul_eq_one_iff : ∀ {m n : ℕ}, m * n = 1 ↔ m = 1 ∧ n = 1
-| 0     0     := dec_trivial
-| 0     1     := dec_trivial
-| 1     0     := dec_trivial
-| (m+2) 0     := by simp
-| 0     (n+2) := by simp
-| (m+1) (n+1) := ⟨
-  λ h, by simp only [add_mul, mul_add, mul_add, one_mul, mul_one,
-    (add_assoc _ _ _).symm, nat.succ_inj', add_eq_zero_iff] at h; simp [h.1.2, h.2],
-  λ h, by simp only [h, mul_one]⟩
 
 lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n := mul_pos (succ_pos m) hn
 

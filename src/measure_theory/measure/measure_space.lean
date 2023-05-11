@@ -10,6 +10,9 @@ import topology.algebra.order.liminf_limsup
 /-!
 # Measure spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The definition of a measure and a measure space are in `measure_theory.measure_space_def`, with
 only a few basic properties. This file provides many more properties of these objects.
 This separation allows the measurability tactic to import only the file `measure_space_def`, and to
@@ -945,6 +948,10 @@ lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
 
 @[simp] lemma measure_univ_eq_zero : μ univ = 0 ↔ μ = 0 :=
 ⟨λ h, bot_unique $ λ s hs, trans_rel_left (≤) (measure_mono (subset_univ s)) h, λ h, h.symm ▸ rfl⟩
+
+lemma measure_univ_ne_zero : μ univ ≠ 0 ↔ μ ≠ 0 := measure_univ_eq_zero.not
+
+@[simp] lemma measure_univ_pos : 0 < μ univ ↔ μ ≠ 0 := pos_iff_ne_zero.trans measure_univ_ne_zero
 
 /-! ### Pushforward and pullback -/
 

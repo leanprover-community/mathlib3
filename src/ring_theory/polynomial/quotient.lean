@@ -22,7 +22,7 @@ variables {R : Type*} [comm_ring R]
 isomorphism of $R$-algebras $R[X] / \langle X - x \rangle \cong R$. -/
 noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
   (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
-(alg_equiv.restrict_scalars R $ ideal.quotient_equiv_alg_of_eq R
+(ideal.quotient_equiv_alg_of_eq R
   (by exact ker_eval_ring_hom x : ring_hom.ker (aeval x).to_ring_hom = _)).symm.trans $
   ideal.quotient_ker_alg_equiv_of_right_inverse $ λ _, eval_C
 

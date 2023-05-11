@@ -11,6 +11,9 @@ import tactic.with_local_reducibility
 /-!
 # Tactics for measure theory
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Currently we have one domain-specific tactic for measure theory: `measurability`.
 
 This tactic is to a large extent a copy of the `continuity` tactic by Reid Barton.

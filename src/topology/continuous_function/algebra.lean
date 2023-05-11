@@ -18,6 +18,9 @@ import topology.uniform_space.compact_convergence
 /-!
 # Algebraic structures over continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define instances of algebraic structures over the type `continuous_map α β`
 (denoted `C(α, β)`) of **bundled** continuous maps from `α` to `β`. For example, `C(α, β)`
 is a group when `β` is a group, a ring when `β` is a ring, etc.

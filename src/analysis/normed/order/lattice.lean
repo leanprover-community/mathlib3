@@ -51,7 +51,7 @@ variables {α : Type*} [normed_add_comm_group α] [lattice α] [has_solid_norm �
 lemma norm_le_norm_of_abs_le_abs  {a b : α} (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ := has_solid_norm.solid h
 
 /-- If `α` has a solid norm, then the balls centered at the origin of `α` are solid sets. -/
-lemma is_solid_ball (r : ℝ) :
+lemma lattice_ordered_add_comm_group.is_solid_ball (r : ℝ) :
   lattice_ordered_add_comm_group.is_solid (metric.ball (0 : α) r) :=
 λ _ hx _ hxy, mem_ball_zero_iff.mpr ((has_solid_norm.solid hxy).trans_lt (mem_ball_zero_iff.mp hx))
 

@@ -111,11 +111,11 @@ lemma map_comp (f : β → γ) (g : α → β) (hf : continuous f) (hg : continu
 @[simp] lemma equiv_refl : compacts.equiv (homeomorph.refl α) = equiv.refl _ :=
 equiv.ext map_id
 
-lemma equiv_trans (f : α ≃ₜ β) (g : β ≃ₜ γ) :
+@[simp] lemma equiv_trans (f : α ≃ₜ β) (g : β ≃ₜ γ) :
   compacts.equiv (f.trans g) = (compacts.equiv f).trans (compacts.equiv g) :=
 equiv.ext $ map_comp _ _ _ _
 
-lemma equiv_symm (f : α ≃ₜ β) : compacts.equiv f.symm = (compacts.equiv f).symm :=
+@[simp] lemma equiv_symm (f : α ≃ₜ β) : compacts.equiv f.symm = (compacts.equiv f).symm :=
 rfl
 
 /-- The image of a compact set under a homeomorphism can also be expressed as a preimage. -/

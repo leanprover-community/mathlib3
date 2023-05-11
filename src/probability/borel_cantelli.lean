@@ -5,7 +5,7 @@ Authors: Kexing Ying
 -/
 import probability.martingale.borel_cantelli
 import probability.conditional_expectation
-import probability.independence.independence
+import probability.independence.basic
 
 /-!
 

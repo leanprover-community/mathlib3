@@ -45,8 +45,7 @@ begin
     rw [function.iterate_succ_apply', ih, deriv_const_mul_field, deriv_mul, pow_succ (-1 : ℝ),
         deriv_gaussian, hermite_succ, map_sub, map_mul, aeval_X, polynomial.deriv_aeval],
     ring,
-    { simp_rw [aeval_def, eval₂_eq_eval_map],
-      apply polynomial.differentiable },
+    { exact polynomial.differentiable_aeval },
     { simp } }
 end
 

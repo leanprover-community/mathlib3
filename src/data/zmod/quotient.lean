@@ -3,6 +3,7 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
+import algebra.hom.equiv.type_tags
 import data.zmod.basic
 import group_theory.group_action.quotient
 import ring_theory.int.basic
@@ -99,13 +100,41 @@ open add_action subgroup add_subgroup function
 
 variables {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
 
-local attribute [semireducible] mul_opposite
+#check quotient_group.quotient.group
+#check quotient_add_group.quotient.add_group
+instance foo (h : subgroup α) [l : h.normal] : (subgroup.to_add_subgroup h).normal :=
+⟨l.1⟩
+def hoo (h : subgroup α) [h.normal] :
+  additive (α ⧸ h) ≃+ additive α ⧸ subgroup.to_add_subgroup h :=
+⟨sorry, sorry, sorry, sorry, sorry⟩
+
+lemma asad (x : α) : (zpowers x).to_add_subgroup = zmultiples (additive.of_mul x) := rfl
+-- ⟨λ x, multiplicative.of_add.symm x, sorry, sorry, sorry, sorry⟩
+-- local attribute [semireducible] mul_opposite
+
+def additive_zpowers_equiv (x : α) : additive (zpowers x) ≃+ zmultiples (additive.of_mul x) :=
+add_equiv.refl _
+-- ⟨λ x, multiplicative.of_add.symm x, sorry, sorry, sorry, sorry⟩
+-- local attribute [semireducible] mul_opposite
 
 /-- The quotient `(a ^ ℤ) ⧸ (stabilizer b)` is cyclic of order `minimal_period ((•) a) b`. -/
 noncomputable def zpowers_quotient_stabilizer_equiv :
   zpowers a ⧸ stabilizer (zpowers a) b ≃* multiplicative (zmod (minimal_period ((•) a) b)) :=
-let f := zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
-⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
+add_equiv.to_multiplicative'
+((hoo _).trans ((quotient_add_group.congr (stabilizer (zpowers a) b).to_add_subgroup _ (additive_zpowers_equiv a)
+begin
+  ext,
+  simp,
+
+  let aadas := (additive_zpowers_equiv a).symm x,
+  simp,
+end).trans
+  (zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b)))
+-- let f := add_action.zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
+-- ⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
+
+-- let f := zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
+-- ⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
 
 lemma zpowers_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((•) a) b)) :
   (zpowers_quotient_stabilizer_equiv a b).symm n = (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=

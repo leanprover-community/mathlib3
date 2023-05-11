@@ -29,18 +29,18 @@ variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
 lemma ediam_smul₀ (c : 𝕜) (s : set E) :
   emetric.diam (c • s) = ‖c‖₊ • emetric.diam s :=
 begin
-  obtain rfl | hr := eq_or_ne c 0,
+  obtain rfl | hc := eq_or_ne c 0,
   { obtain rfl | hs := s.eq_empty_or_nonempty,
     { simp },
     simp [zero_smul_set hs, ←set.singleton_zero], },
   simp_rw [emetric.diam, ennreal.smul_supr, ←edist_smul₀],
   have : function.surjective ((•) c : E → E) :=
-    function.right_inverse.surjective (smul_inv_smul₀ hr),
+    function.right_inverse.surjective (smul_inv_smul₀ hc),
   refine (this.supr_congr _ $ λ x, _).symm,
-  simp_rw smul_mem_smul_set_iff₀ hr,
+  simp_rw smul_mem_smul_set_iff₀ hc,
   congr' 1 with hx : 1,
   refine (this.supr_congr _ $ λ y, _).symm,
-  simp_rw smul_mem_smul_set_iff₀ hr,
+  simp_rw smul_mem_smul_set_iff₀ hc,
 end
 
 lemma diam_smul₀ (c : 𝕜) (x : set E) : diam (c • x) = ‖c‖ * diam x :=
@@ -207,6 +207,19 @@ begin
 end
 
 open emetric ennreal
+
+lemma inf_edist_smul₀ (c : 𝕜) (s : set E) (hc : c ≠ 0) (x : E) :
+  inf_edist (c • x) (c • s) = ‖c‖₊ • inf_edist x s :=
+begin
+  simp_rw [inf_edist],
+  have : function.surjective ((•) c : E → E) :=
+    function.right_inverse.surjective (smul_inv_smul₀ hc),
+  transitivity ⨅ y (H : y ∈ s), ‖c‖₊ • edist x y,
+  { refine (this.infi_congr _ $ λ y, _).symm,
+    simp_rw [smul_mem_smul_set_iff₀ hc, edist_smul₀] },
+  { have : (‖c‖₊ : ennreal) ≠ 0 := by simp [hc],
+    simp_rw [ennreal.smul_def, smul_eq_mul, ennreal.mul_infi_of_ne this ennreal.coe_ne_top] },
+end
 
 @[simp] lemma inf_edist_thickening (hδ : 0 < δ) (s : set E) (x : E) :
   inf_edist x (thickening δ s) = inf_edist x s - ennreal.of_real δ :=

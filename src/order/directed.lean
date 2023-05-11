@@ -131,6 +131,10 @@ lemma directed_on_of_inf_mem [semilattice_inf α] {S : set α}
   (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊓ j ∈ S) : directed_on (≥) S :=
 λ a ha b hb, ⟨a ⊓ b, H ha hb, inf_le_left, inf_le_right⟩
 
+lemma is_total.directed [is_total α r] (f : ι → α) :
+  directed r f :=
+λ i j, or.cases_on (total_of r (f i) (f j)) (λ h, ⟨j, h, refl _⟩) (λ h, ⟨i, refl _, h⟩)
+
 /-- `is_directed α r` states that for any elements `a`, `b` there exists an element `c` such that
 `r a c` and `r b c`. -/
 class is_directed (α : Type*) (r : α → α → Prop) : Prop :=
@@ -150,7 +154,7 @@ lemma directed_on_univ_iff : directed_on r set.univ ↔ is_directed α r :=
 
 @[priority 100]  -- see Note [lower instance priority]
 instance is_total.to_is_directed [is_total α r] : is_directed α r :=
-⟨λ a b, or.cases_on (total_of r a b) (λ h, ⟨b, h, refl _⟩) (λ h, ⟨a, refl _, h⟩)⟩
+by rw ← directed_id_iff; exact is_total.directed _
 
 lemma is_directed_mono [is_directed α r] (h : ∀ ⦃a b⦄, r a b → s a b) : is_directed α s :=
 ⟨λ a b, let ⟨c, ha, hb⟩ := is_directed.directed a b in ⟨c, h ha, h hb⟩⟩

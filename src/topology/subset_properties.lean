@@ -232,6 +232,19 @@ by simpa only [disjoint.comm] using hs.disjoint_nhds_set_left
 
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
+lemma is_compact.elim_directed_family_closed {ι : Type v} [hι : nonempty ι] (hs : is_compact s)
+  (Z : ι → set α) (hZc : ∀ i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) (hdZ : directed (⊇) Z) :
+  ∃ i : ι, s ∩ Z i = ∅ :=
+let ⟨t, ht⟩ := hs.elim_directed_cover (compl ∘ Z) (λ i, (hZc i).is_open_compl)
+  (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
+    exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using hsZ)
+  (hdZ.mono_comp _ $ λ _ _, compl_subset_compl.mpr)
+    in
+⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
+    exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using ht⟩
+
+/-- For every family of closed sets whose intersection avoids a compact set,
+there exists a finite subfamily whose intersection avoids this compact set. -/
 lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : is_compact s)
   (Z : ι → set α) (hZc : ∀ i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
@@ -273,25 +286,16 @@ lemma is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
   (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, is_compact (Z i)) (hZcl : ∀ i, is_closed (Z i)) :
   (⋂ i, Z i).nonempty :=
 begin
-  apply hι.elim,
-  intro i₀,
-  let Z' := λ i, Z i ∩ Z i₀,
-  suffices : (⋂ i, Z' i).nonempty,
-  { exact this.mono (Inter_mono $ λ i, inter_subset_left (Z i) (Z i₀)) },
-  rw nonempty_iff_ne_empty,
-  intro H,
-  obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
-    from (hZc i₀).elim_finite_subfamily_closed Z'
-      (assume i, is_closed.inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
-  obtain ⟨i₁, hi₁⟩ : ∃ i₁ : ι, Z i₁ ⊆ Z i₀ ∧ ∀ i ∈ t, Z i₁ ⊆ Z' i,
-  { rcases directed.finset_le hZd t with ⟨i, hi⟩,
-    rcases hZd i i₀ with ⟨i₁, hi₁, hi₁₀⟩,
-    use [i₁, hi₁₀],
-    intros j hj,
-    exact subset_inter (subset.trans hi₁ (hi j hj)) hi₁₀ },
-  suffices : ((Z i₀) ∩ ⋂ (i ∈ t), Z' i).nonempty,
-  { rw nonempty_iff_ne_empty at this, contradiction },
-  exact (hZn i₁).mono (subset_inter hi₁.left $ subset_Inter₂ hi₁.right),
+  let i₀ := hι.some,
+  suffices : (Z i₀ ∩ ⋂ i, Z i).nonempty,
+    by rwa inter_eq_right_iff_subset.mpr (Inter_subset _ i₀) at this,
+  simp only [nonempty_iff_ne_empty] at hZn ⊢,
+  apply mt ((hZc i₀).elim_directed_family_closed Z hZcl),
+  push_neg,
+  simp only [← nonempty_iff_ne_empty] at hZn ⊢,
+  refine ⟨hZd, λ i, _⟩,
+  rcases hZd i₀ i with ⟨j, hji₀, hji⟩,
+  exact (hZn j).mono (subset_inter hji₀ hji)
 end
 
 /-- Cantor's intersection theorem for sequences indexed by `ℕ`:

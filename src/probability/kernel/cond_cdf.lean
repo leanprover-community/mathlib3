@@ -15,7 +15,7 @@ Given `ρ : measure (α × ℝ)`, we define the conditional cumulative distribut
 (conditional cdf) of `ρ`. It is a function `cond_cdf ρ : α → ℝ → ℝ` such that for all `a : α`,
 `cond_cdf ρ a` is monotone and right-continuous with limit 0 at -∞ and limit 1 at +∞, and such that
 for all `x : ℝ`, `a ↦ cond_cdf ρ a x` is measurable. For all `x : ℝ` and measurable set `s`, that
-function verifies `∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x)`.
+function satisfies `∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x)`.
 
 ## Main definitions
 

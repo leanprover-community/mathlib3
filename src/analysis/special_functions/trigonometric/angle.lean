@@ -27,6 +27,9 @@ def angle : Type := add_circle (2 * π)
 
 namespace angle
 
+instance : circular_order real.angle :=
+@add_circle.circular_order _ _ _ _ _ ⟨by norm_num [pi_pos]⟩ _
+
 @[continuity] lemma continuous_coe : continuous (coe : ℝ → angle) :=
 continuous_quotient_mk
 

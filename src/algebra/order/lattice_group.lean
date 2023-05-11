@@ -7,6 +7,8 @@ import algebra.group_power.basic -- Needed for squares
 import algebra.order.group.abs
 import tactic.nth_rewrite
 
+import order.closure
+
 /-!
 # Lattice ordered groups
 
@@ -61,12 +63,6 @@ lattice, ordered, group
 -/
 
 universe u
-
--- A linearly ordered additive commutative group is a lattice ordered commutative group
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_covariant_class (α : Type u)
-  [linear_ordered_comm_group α] : covariant_class α α (*) (≤) :=
-{ elim := λ a b c bc, linear_ordered_comm_group.mul_le_mul_left _ _ bc a }
 
 variables {α : Type u} [lattice α] [comm_group α]
 
@@ -476,6 +472,9 @@ def solid_closure (s : set β) : set β := {y | ∃ x ∈ s, |y| ≤ |x|}
 
 lemma is_solid_solid_closure (s : set β) : is_solid (solid_closure s) :=
 λ x ⟨y, hy, hxy⟩ z hzx, ⟨y, hy, hzx.trans hxy⟩
+
+lemma solid_closure_min (s t : set β) (h1 : s ⊆ t) (h2 : is_solid t) : solid_closure s ⊆ t :=
+λ _ ⟨_, hy, hxy⟩, h2 (h1 hy) hxy
 
 end solid
 

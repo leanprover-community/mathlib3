@@ -9,6 +9,9 @@ import topology.algebra.module.strong_topology
 /-!
 # Compact operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define compact linear operators between two topological vector spaces (TVS).
 
 ## Main definitions

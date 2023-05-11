@@ -321,9 +321,9 @@ def extend_restrict_scalars_adj {R : Type u₁} {S : Type u₂} [comm_ring R] [c
       induction x using tensor_product.induction_on,
       { simp only [map_zero]},
       { simp only [extend_restrict_scalars_adj.hom_equiv_symm_apply, linear_map.coe_mk,
-        extend_restrict_scalars_adj.hom_equiv.from_extend_scalars_apply, tensor_product.lift.tmul,
-        extend_restrict_scalars_adj.counit_app, Module.coe_comp, function.comp_app,
-        extend_scalars.map_tmul, extend_restrict_scalars_adj.counit.map_apply] },
+          extend_restrict_scalars_adj.hom_equiv.from_extend_scalars_apply, tensor_product.lift.tmul,
+          extend_restrict_scalars_adj.counit_app, Module.coe_comp, function.comp_app,
+          extend_scalars.map_tmul, extend_restrict_scalars_adj.counit.map_apply] },
       { simp only [map_add, *], }
     end }
 

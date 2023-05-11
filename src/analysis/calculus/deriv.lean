@@ -6,7 +6,6 @@ Authors: Gabriel Ebner, Sébastien Gouëzel
 import analysis.calculus.fderiv
 import data.polynomial.algebra_map
 import data.polynomial.derivative
-import data.polynomial.algebra_map
 import linear_algebra.affine_space.slope
 
 /-!

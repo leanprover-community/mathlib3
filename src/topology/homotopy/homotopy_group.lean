@@ -79,11 +79,11 @@ variable [decidable_eq N]
 
 /-- The forward direction of the homeomorphism
   between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/
-abbreviation split_at (i : N) := fun_split_at I i
+@[reducible] def split_at (i : N) : cube N ≃ₜ I × cube {j // j ≠ i} := fun_split_at I i
 
 /-- The backward direction of the homeomorphism
   between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/
-abbreviation insert_at (i : N) := (fun_split_at I i).symm
+@[reducible] def insert_at (i : N) : I × cube {j // j ≠ i} ≃ₜ cube N := (fun_split_at I i).symm
 
 lemma insert_at_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
   insert_at i ⟨t₀, t⟩ ∈ boundary N :=
@@ -98,10 +98,8 @@ end
 end cube
 
 /-- The space of paths with both endpoints equal to a specified point `x : X`. -/
-abbreviation loop_space (X : Type*) [topological_space X] (x : X) := path x x
+@[reducible] def loop_space (X : Type*) [topological_space X] (x : X) := path x x
 local notation `Ω` := loop_space
-
-instance loop_space.inhabited : inhabited (Ω X x) := ⟨path.refl x⟩
 
 /-- The `n`-dimensional generalized loops based at `x` in a space `X` are
   continuous functions `I^n → X` that sends the boundary to `x`.
@@ -211,12 +209,12 @@ section
 
 /-- The inclusion from the space of generalized loops to the space of all continuous functions
   (not necessarily constant on the boundary), as a continuous map. -/
-abbreviation c_coe : C(gen_loop N x, C(cube N, X)) := ⟨λ p, p.val, continuous_induced_dom⟩
+@[reducible] def c_coe : C(gen_loop N x, C(cube N, X)) := ⟨λ p, p.val, continuous_induced_dom⟩
 
 variable [decidable_eq N]
 
 /-- Composition with `cube.insert_at` as a continuous map. -/
-abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i}, X)) :=
+@[reducible] def c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i}, X)) :=
 ⟨λ f, f.comp (cube.insert_at i).to_continuous_map,
   (cube.insert_at i).to_continuous_map.continuous_comp_left⟩
 
@@ -280,7 +278,7 @@ end gen_loop
 def homotopy_group (N) (X : Type*) [topological_space X] (x : X) : Type _ :=
 quotient (gen_loop.homotopic.setoid N x)
 /-- Homotopy group of finite index. -/
-abbreviation pi (n) (X : Type*) [topological_space X] (x : X) := homotopy_group (fin n) _ x
+@[reducible] def pi (n) (X : Type*) [topological_space X] (x : X) := homotopy_group (fin n) _ x
 local notation `π_` := pi
 
 variable [decidable_eq N]

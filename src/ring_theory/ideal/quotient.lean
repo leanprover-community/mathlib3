@@ -39,18 +39,6 @@ open_locale big_operators
 variables {R : Type u} [comm_ring R] (I : ideal R) {a b : R}
 variables {S : Type v}
 
-/-- The quotient `R/I` of a ring `R` by an ideal `I`.
-
-The ideal quotient of `I` is defined to equal the quotient of `I` as an `R`-submodule of `R`.
-This definition is marked `reducible` so that typeclass instances can be shared between
-`ideal.quotient I` and `submodule.quotient I`.
--/
--- Note that at present `ideal` means a left-ideal,
--- so this quotient is only useful in a commutative ring.
--- We should develop quotients by two-sided ideals as well.
-@[reducible]
-instance : has_quotient R (ideal R) := submodule.has_quotient
-
 namespace quotient
 variables {I} {x y : R}
 

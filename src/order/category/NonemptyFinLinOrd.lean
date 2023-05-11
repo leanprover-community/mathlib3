@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import data.fintype.order
 import data.set.finite
+import order.category.FinPartOrd
 import order.category.LinOrd
 import category_theory.limits.shapes.images
 import category_theory.limits.shapes.regular_mono
@@ -17,6 +18,9 @@ import category_theory.limits.shapes.regular_mono
 
 This defines `NonemptyFinLinOrd`, the category of nonempty finite linear orders with monotone maps.
 This is the index category for simplicial objects.
+
+Note: `NonemptyFinLinOrd` is *not* a subcategory of `FinBddDistLat` because its morphisms do not
+preserve `⊥` and `⊤`.
 -/
 
 universes u v
@@ -68,6 +72,9 @@ instance (α : NonemptyFinLinOrd) : nonempty_fin_lin_ord α := α.str
 instance has_forget_to_LinOrd : has_forget₂ NonemptyFinLinOrd LinOrd :=
 bundled_hom.forget₂ _ _
 
+instance has_forget_to_FinPartOrd : has_forget₂ NonemptyFinLinOrd FinPartOrd :=
+{ forget₂ := { obj := λ X, FinPartOrd.of X, map := λ X Y, id } }
+
 /-- Constructs an equivalence between nonempty finite linear orders from an order isomorphism
 between them. -/
 @[simps] def iso.mk {α β : NonemptyFinLinOrd.{u}} (e : α ≃o β) : α ≅ β :=
@@ -80,7 +87,7 @@ between them. -/
 @[simps] def dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
 { obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
-/-- The equivalence between `FinPartOrd` and itself induced by `order_dual` both ways. -/
+/-- The equivalence between `NonemptyFinLinOrd` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=
 equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
@@ -182,3 +189,9 @@ end NonemptyFinLinOrd
 lemma NonemptyFinLinOrd_dual_comp_forget_to_LinOrd :
   NonemptyFinLinOrd.dual ⋙ forget₂ NonemptyFinLinOrd LinOrd =
     forget₂ NonemptyFinLinOrd LinOrd ⋙ LinOrd.dual := rfl
+
+/-- The forgetful functor `NonemptyFinLinOrd ⥤ FinPartOrd` and `order_dual` commute. -/
+def NonemptyFinLinOrd_dual_comp_forget_to_FinPartOrd :
+  NonemptyFinLinOrd.dual ⋙ forget₂ NonemptyFinLinOrd FinPartOrd ≅
+    forget₂ NonemptyFinLinOrd FinPartOrd ⋙ FinPartOrd.dual :=
+{ hom := { app := λ X, order_hom.id }, inv := { app := λ X, order_hom.id } }

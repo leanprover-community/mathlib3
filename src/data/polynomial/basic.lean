@@ -191,7 +191,7 @@ instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S R[X] :=
 function.injective.distrib_mul_action
   ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩ to_finsupp_injective to_finsupp_smul
 
-instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_smul S R] :
+instance {S} [smul_zero_class S R] [has_faithful_smul S R] :
   has_faithful_smul S R[X] :=
 { eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
@@ -199,12 +199,12 @@ instance {S} [semiring S] [module S R] : module S R[X] :=
 function.injective.module _
   ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩ to_finsupp_injective to_finsupp_smul
 
-instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [distrib_mul_action S₂ R]
+instance {S₁ S₂} [smul_zero_class S₁ R] [smul_zero_class S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_comm] }⟩
 
-instance {S₁ S₂} [has_smul S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
-  [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
+instance {S₁ S₂} [has_smul S₁ S₂] [smul_zero_class S₁ R] [smul_zero_class S₂ R]
+  [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_assoc] }⟩
 
 instance is_scalar_tower_right {α K : Type*} [semiring K] [distrib_smul α K]
@@ -212,7 +212,7 @@ instance is_scalar_tower_right {α K : Type*} [semiring K] [distrib_smul α K]
 ⟨by rintros _ ⟨⟩ ⟨⟩;
   simp_rw [smul_eq_mul, ← of_finsupp_smul, ← of_finsupp_mul, ← of_finsupp_smul, smul_mul_assoc]⟩
 
-instance {S} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
+instance {S} [smul_zero_class S R] [smul_zero_class Sᵐᵒᵖ R]
   [is_central_scalar S R] : is_central_scalar S R[X] :=
 ⟨by { rintros _ ⟨⟩, simp_rw [←of_finsupp_smul, op_smul_eq_smul] }⟩
 

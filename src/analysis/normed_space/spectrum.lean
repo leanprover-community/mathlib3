@@ -478,8 +478,7 @@ begin
   have hb : summable (λ n : ℕ, ((n + 1).factorial⁻¹ : 𝕜) • (a - ↑ₐz) ^ n),
   { refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial ‖a - ↑ₐz‖) _,
     filter_upwards [filter.eventually_cofinite_ne 0] with n hn,
-    rw [norm_smul, mul_comm, norm_inv, is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat,
-      ←div_eq_mul_inv],
+    rw [norm_smul, mul_comm, norm_inv, is_R_or_C.norm_nat_cast, ← div_eq_mul_inv],
     exact div_le_div (pow_nonneg (norm_nonneg _) n) (norm_pow_le' (a - ↑ₐz) (zero_lt_iff.mpr hn))
       (by exact_mod_cast nat.factorial_pos n)
       (by exact_mod_cast nat.factorial_le (lt_add_one n).le) },

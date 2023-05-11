@@ -12,7 +12,6 @@ import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.comm_sq
 import algebra.category.Ring.instances
-import topology.local_at_target
 
 /-!
 # Open immersions of structured spaces

@@ -8,6 +8,9 @@ import measure_theory.measure.ae_measurable
 /-!
 # Measure preserving maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that `f : α → β` is a measure preserving map w.r.t. measures `μ : measure α` and
 `ν : measure β` if `f` is measurable and `map f μ = ν`. In this file we define the predicate
 `measure_theory.measure_preserving` and prove its basic properties.

@@ -46,6 +46,19 @@ end
 lemma diam_smul₀ (c : 𝕜) (x : set E) : diam (c • x) = ‖c‖ * diam x :=
 by simp_rw [diam, ediam_smul₀, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm, smul_eq_mul]
 
+lemma inf_edist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
+  emetric.inf_edist (c • x) (c • s) = ‖c‖₊ • emetric.inf_edist x s :=
+begin
+  simp_rw [emetric.inf_edist],
+  have : function.surjective ((•) c : E → E) :=
+    function.right_inverse.surjective (smul_inv_smul₀ hc),
+  transitivity ⨅ y (H : y ∈ s), ‖c‖₊ • edist x y,
+  { refine (this.infi_congr _ $ λ y, _).symm,
+    simp_rw [smul_mem_smul_set_iff₀ hc, edist_smul₀] },
+  { have : (‖c‖₊ : ennreal) ≠ 0 := by simp [hc],
+    simp_rw [ennreal.smul_def, smul_eq_mul, ennreal.mul_infi_of_ne this ennreal.coe_ne_top] },
+end
+
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (‖c‖ * r) :=
 begin
@@ -207,19 +220,6 @@ begin
 end
 
 open emetric ennreal
-
-lemma inf_edist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
-  inf_edist (c • x) (c • s) = ‖c‖₊ • inf_edist x s :=
-begin
-  simp_rw [inf_edist],
-  have : function.surjective ((•) c : E → E) :=
-    function.right_inverse.surjective (smul_inv_smul₀ hc),
-  transitivity ⨅ y (H : y ∈ s), ‖c‖₊ • edist x y,
-  { refine (this.infi_congr _ $ λ y, _).symm,
-    simp_rw [smul_mem_smul_set_iff₀ hc, edist_smul₀] },
-  { have : (‖c‖₊ : ennreal) ≠ 0 := by simp [hc],
-    simp_rw [ennreal.smul_def, smul_eq_mul, ennreal.mul_infi_of_ne this ennreal.coe_ne_top] },
-end
 
 @[simp] lemma inf_edist_thickening (hδ : 0 < δ) (s : set E) (x : E) :
   inf_edist x (thickening δ s) = inf_edist x s - ennreal.of_real δ :=

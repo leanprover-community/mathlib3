@@ -30,9 +30,12 @@ $x^2 - d y^2 = 1$ has a nontrivial (i.e., with $y \ne 0$) solution in integers.
 
 See `pell.exists_of_not_is_square` and `pell.exists_nontrivial_of_not_is_square`.
 
-The next step (TODO) will be to define the *fundamental solution* as the solution
-with smallest $x$ among all solutions satisfying $x > 1$ and $y > 0$ and to show
-that every solution is a power of the fundamental solution up to a (common) sign.
+We then define the *fundamental solution* to be the solution
+with smallest $x$ among all solutions satisfying $x > 1$ and $y > 0$.
+We show that every solution is a power (in the sense of the group structure mentioned above)
+of the fundamental solution up to a (common) sign,
+see `pell.fundamental.eq_zpow_or_neg_zpow`, and that a (positive) solution has this property
+if and only if it is fundamental, see `pell.pos_generator_iff_fundamental`.
 
 ## References
 
@@ -45,8 +48,7 @@ Pell's equation
 
 ## TODO
 
-* Provide the structure theory of the solution set to Pell's equation
-  and furthermore also for `x ^ 2 - d * y ^ 2 = -1` and further generalizations.
+* Extend to `x ^ 2 - d * y ^ 2 = -1` and further generalizations.
 * Connect solutions to the continued fraction expansion of `√d`.
 -/
 
@@ -183,6 +185,23 @@ begin
   exact lt_irrefl _ (((one_lt_sq_iff $ zero_le_one.trans ha.le).mpr ha).trans_eq prop),
 end
 
+/-- If a solution has `x > 1`, then `d` is positive. -/
+lemma d_pos_of_one_lt_x {a : solution₁ d} (ha : 1 < a.x) : 0 < d :=
+begin
+  refine pos_of_mul_pos_left _ (sq_nonneg a.y),
+  rw [a.prop_y, sub_pos],
+  exact one_lt_pow ha two_ne_zero,
+end
+
+/-- If a solution has `x > 1`, then `d` is not a square. -/
+lemma d_nonsquare_of_one_lt_x {a : solution₁ d} (ha : 1 < a.x) : ¬ is_square d :=
+begin
+  have hp := a.prop,
+  rintros ⟨b, rfl⟩,
+  simp_rw [← sq, ← mul_pow, sq_sub_sq, int.mul_eq_one_iff_eq_one_or_neg_one] at hp,
+  rcases hp with ⟨hp₁, hp₂⟩ | ⟨hp₁, hp₂⟩; linarith [ha, hp₁, hp₂],
+end
+
 /-- A solution with `x = 1` is trivial. -/
 lemma eq_one_of_x_eq_one (h₀ : d ≠ 0) {a : solution₁ d} (ha : a.x = 1) : a = 1 :=
 begin
@@ -245,6 +264,17 @@ begin
     exact y_mul_pos hax hay (x_pow_pos hax _) ih, }
 end
 
+/-- If `(x, y)` is a solution with `x` and `y` positive, then all its powers with positive
+exponents have positive `y`. -/
+lemma y_zpow_pos {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y) {n : ℤ} (hn : 0 < n) :
+  0 < (a ^ n).y :=
+begin
+  lift n to ℕ using hn.le,
+  norm_cast at hn ⊢,
+  rw ← nat.succ_pred_eq_of_pos hn,
+  exact y_pow_succ_pos hax hay _,
+end
+
 /-- If `(x, y)` is a solution with `x` positive, then all its powers have positive `x`. -/
 lemma x_zpow_pos {a : solution₁ d} (hax : 0 < a.x) (n : ℤ) : 0 < (a ^ n).x :=
 begin
@@ -258,7 +288,7 @@ end
 /-- If `(x, y)` is a solution with `x` and `y` positive, then the `y` component of any power
 has the same sign as the exponent. -/
 lemma sign_y_zpow_eq_sign_of_x_pos_of_y_pos {a : solution₁ d} (hax : 0 < a.x) (hay : 0 < a.y)
-   (n : ℤ) :
+  (n : ℤ) :
   (a ^ n).y.sign = n.sign :=
 begin
   rcases n with (_ | _) | _,
@@ -397,5 +427,282 @@ end
 end solution₁
 
 end existence
+
+/-! ### Fundamental solutions
+
+We define the notion of a *fundamental solution* of Pell's equation and
+show that it exists and is unique (when `d` is positive and non-square)
+and generates the group of solutions up to sign.
+-/
+
+variables {d : ℤ}
+
+/-- We define a solution to be *fundamental* if it has `x > 1` and `y > 0`
+and its `x` is the smallest possible among solutions with `x > 1`. -/
+def is_fundamental (a : solution₁ d) : Prop :=
+1 < a.x ∧ 0 < a.y ∧ ∀ {b : solution₁ d}, 1 < b.x → a.x ≤ b.x
+
+namespace is_fundamental
+
+open solution₁
+
+/-- A fundamental solution has positive `x`. -/
+lemma x_pos {a : solution₁ d} (h : is_fundamental a) : 0 < a.x := zero_lt_one.trans h.1
+
+/-- If a fundamental solution exists, then `d` must be positive. -/
+lemma d_pos {a : solution₁ d} (h : is_fundamental a) : 0 < d := d_pos_of_one_lt_x h.1
+
+/-- If a fundamental solution exists, then `d` must be a non-square. -/
+lemma d_nonsquare {a : solution₁ d} (h : is_fundamental a) : ¬ is_square d :=
+d_nonsquare_of_one_lt_x h.1
+
+/-- If there is a fundamental solution, it is unique. -/
+lemma subsingleton {a b : solution₁ d} (ha : is_fundamental a) (hb : is_fundamental b) : a = b :=
+begin
+  have hx := le_antisymm (ha.2.2 hb.1) (hb.2.2 ha.1),
+  refine solution₁.ext hx _,
+  have : d * a.y ^ 2 = d * b.y ^ 2 := by rw [a.prop_y, b.prop_y, hx],
+  exact (sq_eq_sq ha.2.1.le hb.2.1.le).mp (int.eq_of_mul_eq_mul_left ha.d_pos.ne' this),
+end
+
+/-- If `d` is positive and not a square, then a fundamental solution exists. -/
+lemma exists_of_not_is_square (h₀ : 0 < d) (hd : ¬ is_square d) :
+  ∃ a : solution₁ d, is_fundamental a :=
+begin
+  obtain ⟨a, ha₁, ha₂⟩ := exists_pos_of_not_is_square h₀ hd,
+  -- convert to `x : ℕ` to be able to use `nat.find`
+  have P : ∃ x' : ℕ, 1 < x' ∧ ∃ y' : ℤ, 0 < y' ∧ (x' : ℤ) ^ 2 - d * y' ^ 2 = 1,
+  { have hax := a.prop,
+    lift a.x to ℕ using (by positivity) with ax,
+    norm_cast at ha₁,
+    exact ⟨ax, ha₁, a.y, ha₂, hax⟩, },
+  classical, -- to avoid having to show that the predicate is decidable
+  let x₁ := nat.find P,
+  obtain ⟨hx, y₁, hy₀, hy₁⟩ := nat.find_spec P,
+  refine ⟨mk x₁ y₁ hy₁, (by {rw x_mk, exact_mod_cast hx}), hy₀, λ b hb, _⟩,
+  rw x_mk,
+  have hb' := (int.to_nat_of_nonneg $ zero_le_one.trans hb.le).symm,
+  have hb'' := hb,
+  rw hb' at hb ⊢,
+  norm_cast at hb ⊢,
+  refine nat.find_min' P ⟨hb, |b.y|, abs_pos.mpr $ y_ne_zero_of_one_lt_x hb'', _⟩,
+  rw [← hb', sq_abs],
+  exact b.prop,
+end
+
+/-- The map sending an integer `n` to the `y`-coordinate of `a^n` for a fundamental
+solution `a` is stritcly increasing. -/
+lemma y_strict_mono {a : solution₁ d} (h : is_fundamental a) :
+  strict_mono (λ (n : ℤ), (a ^ n).y) :=
+begin
+  have H : ∀ (n : ℤ), 0 ≤ n → (a ^ n).y < (a ^ (n + 1)).y,
+  { intros n hn,
+    rw [← sub_pos, zpow_add, zpow_one, y_mul, add_sub_assoc],
+    rw show (a ^ n).y * a.x - (a ^ n).y = (a ^ n).y * (a.x - 1), from by ring,
+    refine add_pos_of_pos_of_nonneg (mul_pos (x_zpow_pos h.x_pos _) h.2.1)
+      (mul_nonneg _ (by {rw sub_nonneg, exact h.1.le})),
+    rcases hn.eq_or_lt with rfl | hn,
+    { simp only [zpow_zero, y_one], },
+    { exact (y_zpow_pos h.x_pos h.2.1 hn).le, } },
+  refine strict_mono_int_of_lt_succ (λ n, _),
+  cases le_or_lt 0 n with hn hn,
+  { exact H n hn, },
+  { let m : ℤ := -n - 1,
+    have hm : n = -m - 1 := by simp only [neg_sub, sub_neg_eq_add, add_tsub_cancel_left],
+    rw [hm, sub_add_cancel, ← neg_add', zpow_neg, zpow_neg, y_inv, y_inv, neg_lt_neg_iff],
+    exact H _ (by linarith [hn]), }
+end
+
+/-- If `a` is a fundamental solution, then `(a^m).y < (a^n).y` if and only if `m < n`. -/
+lemma zpow_y_lt_iff_lt {a : solution₁ d} (h : is_fundamental a) (m n : ℤ) :
+  (a ^ m).y < (a ^ n).y ↔ m < n :=
+begin
+  refine ⟨λ H, _, λ H, h.y_strict_mono H⟩,
+  contrapose! H,
+  exact h.y_strict_mono.monotone H,
+end
+
+/-- The `n`th power of a fundamental solution is trivial if and only if `n = 0`. -/
+lemma zpow_eq_one_iff {a : solution₁ d} (h : is_fundamental a) (n : ℤ) : a ^ n = 1 ↔ n = 0 :=
+begin
+  rw ← zpow_zero a,
+  exact ⟨λ H, h.y_strict_mono.injective (congr_arg solution₁.y H), λ H, H ▸ rfl⟩,
+end
+
+/-- A power of a fundamental solution is never equal to the negative of a power of this
+fundamental solution. -/
+lemma zpow_ne_neg_zpow {a : solution₁ d} (h : is_fundamental a) {n n' : ℤ} :
+   a ^ n ≠ -a ^ n' :=
+begin
+  intro hf,
+  apply_fun solution₁.x at hf,
+  have H := x_zpow_pos h.x_pos n,
+  rw [hf, x_neg, lt_neg, neg_zero] at H,
+  exact lt_irrefl _ ((x_zpow_pos h.x_pos n').trans H),
+end
+
+/-- The `x`-coordinate of a fundamental solution is a lower bound for the `x`-coordinate
+of any positive solution. -/
+lemma x_le_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x) :
+  a₁.x ≤ a.x :=
+h.2.2 hax
+
+/-- The `y`-coordinate of a fundamental solution is a lower bound for the `y`-coordinate
+of any positive solution. -/
+lemma y_le_y {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+  (hay : 0 < a.y) :
+  a₁.y ≤ a.y :=
+begin
+  have H : d * (a₁.y ^ 2 - a.y ^ 2) = a₁.x ^ 2 - a.x ^ 2 := by { rw [a.prop_x, a₁.prop_x], ring },
+  rw [← abs_of_pos hay, ← abs_of_pos h.2.1, ← sq_le_sq, ← mul_le_mul_left h.d_pos, ← sub_nonpos,
+      ← mul_sub, H, sub_nonpos, sq_le_sq, abs_of_pos (zero_lt_one.trans h.1),
+      abs_of_pos (zero_lt_one.trans hax)],
+  exact h.x_le_x hax,
+end
+
+-- helper lemma for the next three results
+lemma x_mul_y_le_y_mul_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d}
+  (hax : 1 < a.x) (hay : 0 < a.y) :
+  a.x * a₁.y ≤ a.y * a₁.x :=
+begin
+  rw [← abs_of_pos $ zero_lt_one.trans hax, ← abs_of_pos hay, ← abs_of_pos h.x_pos,
+      ← abs_of_pos h.2.1, ← abs_mul, ← abs_mul, ← sq_le_sq, mul_pow, mul_pow, a.prop_x, a₁.prop_x,
+      ← sub_nonneg],
+  ring_nf,
+  rw [sub_nonneg, sq_le_sq, abs_of_pos hay, abs_of_pos h.2.1],
+  exact h.y_le_y hax hay,
+end
+
+/-- If we multiply a positive solution with the inverse of a fundamental solution,
+the `y`-coordinate remains nonnegative. -/
+lemma mul_inv_y_nonneg {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+  (hay : 0 < a.y) :
+  0 ≤ (a * a₁⁻¹).y :=
+by simpa only [y_inv, mul_neg, y_mul, le_neg_add_iff_add_le, add_zero]
+     using h.x_mul_y_le_y_mul_x hax hay
+
+/-- If we multiply a positive solution with the inverse of a fundamental solution,
+the `x`-coordinate stays positive. -/
+lemma mul_inv_x_pos {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+  (hay : 0 < a.y) :
+  0 < (a * a₁⁻¹).x :=
+begin
+  simp only [x_mul, x_inv, y_inv, mul_neg, lt_add_neg_iff_add_lt, zero_add],
+  refine (mul_lt_mul_left $ zero_lt_one.trans hax).mp _,
+  rw [(by ring : a.x * (d * (a.y * a₁.y)) = (d * a.y) * (a.x * a₁.y))],
+  refine ((mul_le_mul_left $ mul_pos h.d_pos hay).mpr $ x_mul_y_le_y_mul_x h hax hay).trans_lt _,
+  rw [← mul_assoc, mul_assoc d, ← sq, a.prop_y, ← sub_pos],
+  ring_nf,
+  exact zero_lt_one.trans h.1,
+end
+
+/-- If we multiply a positive solution with the inverse of a fundamental solution,
+the `x`-coordinate decreases. -/
+lemma mul_inv_x_lt_x {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 1 < a.x)
+  (hay : 0 < a.y) :
+  (a * a₁⁻¹).x < a.x :=
+begin
+  simp only [x_mul, x_inv, y_inv, mul_neg, add_neg_lt_iff_le_add'],
+  refine (mul_lt_mul_left h.2.1).mp _,
+  rw [(by ring : a₁.y * (a.x * a₁.x) = a.x * a₁.y * a₁.x)],
+  refine ((mul_le_mul_right $ zero_lt_one.trans h.1).mpr $ x_mul_y_le_y_mul_x h hax hay).trans_lt _,
+  rw [mul_assoc, ← sq, a₁.prop_x, ← sub_neg],
+  ring_nf,
+  rw [sub_neg, ← abs_of_pos hay, ← abs_of_pos h.2.1, ← abs_of_pos $ zero_lt_one.trans hax,
+      ← abs_mul, ← sq_lt_sq, mul_pow, a.prop_x],
+  calc
+    a.y ^ 2 = 1 * a.y ^ 2                  : (one_mul _).symm
+        ... ≤ d * a.y ^ 2                  : (mul_le_mul_right $ sq_pos_of_pos hay).mpr h.d_pos
+        ... < d * a.y ^ 2 + 1              : lt_add_one _
+        ... = (1 + d * a.y ^ 2) * 1        : by rw [add_comm, mul_one]
+        ... ≤ (1 + d * a.y ^ 2) * a₁.y ^ 2
+              : (mul_le_mul_left (by {have := h.d_pos, positivity})).mpr (sq_pos_of_pos h.2.1),
+end
+
+/-- Any nonnegative solution is a power with nonnegative exponent of a fundamental solution. -/
+lemma eq_pow_of_nonneg {a₁ : solution₁ d} (h : is_fundamental a₁) {a : solution₁ d} (hax : 0 < a.x)
+  (hay : 0 ≤ a.y) :
+  ∃ n : ℕ, a = a₁ ^ n :=
+begin
+  lift a.x to ℕ using hax.le with ax hax',
+  induction ax using nat.strong_induction_on with x ih generalizing a,
+  cases hay.eq_or_lt with hy hy,
+  { -- case 1: `a = 1`
+    refine ⟨0, _⟩,
+    simp only [pow_zero],
+    ext; simp only [x_one, y_one],
+    { have prop := a.prop,
+      rw [← hy, sq (0 : ℤ), zero_mul, mul_zero, sub_zero, sq_eq_one_iff] at prop,
+      refine prop.resolve_right (λ hf, _),
+      have := (hax.trans_eq hax').le.trans_eq hf,
+      norm_num at this, },
+    { exact hy.symm, } },
+  { -- case 2: `a ≥ a₁`
+    have hx₁ : 1 < a.x := by nlinarith [a.prop, h.d_pos],
+    have hxx₁ := h.mul_inv_x_pos hx₁ hy,
+    have hxx₂ := h.mul_inv_x_lt_x hx₁ hy,
+    have hyy := h.mul_inv_y_nonneg hx₁ hy,
+    lift (a * a₁⁻¹).x to ℕ using hxx₁.le with x' hx',
+    obtain ⟨n, hn⟩ := ih x' (by exact_mod_cast hxx₂.trans_eq hax'.symm) hxx₁ hyy hx',
+    exact ⟨n + 1, by rw [pow_succ, ← hn, mul_comm a, ← mul_assoc, mul_inv_self, one_mul]⟩, },
+end
+
+/-- Every solution is, up to a sign, a power of a given fundamental solution. -/
+lemma eq_zpow_or_neg_zpow {a₁ : solution₁ d} (h : is_fundamental a₁) (a : solution₁ d) :
+  ∃ n : ℤ, a = a₁ ^ n ∨ a = -a₁ ^ n :=
+begin
+  obtain ⟨b, hbx, hby, hb⟩ := exists_pos_variant h.d_pos a,
+  obtain ⟨n, hn⟩ := h.eq_pow_of_nonneg hbx hby,
+  rcases hb with rfl | rfl | rfl | hb,
+  { exact ⟨n, or.inl (by exact_mod_cast hn)⟩, },
+  { exact ⟨-n, or.inl (by simp [hn])⟩, },
+  { exact ⟨n, or.inr (by simp [hn])⟩, },
+  { rw set.mem_singleton_iff at hb,
+    rw hb,
+    exact ⟨-n, or.inr (by simp [hn])⟩, }
+end
+
+end is_fundamental
+
+open solution₁ is_fundamental
+
+/-- When `d` is positive and not a square, then the group of solutions to the Pell equation
+`x^2 - d*y^2 = 1` has a unique positive generator (up to sign). -/
+theorem exists_unique_pos_generator (h₀ : 0 < d) (hd : ¬ is_square d) :
+  ∃! a₁ : solution₁ d, 1 < a₁.x ∧ 0 < a₁.y ∧ ∀ a : solution₁ d, ∃ n : ℤ, a = a₁ ^ n ∨ a = -a₁ ^ n :=
+begin
+  obtain ⟨a₁, ha₁⟩ := is_fundamental.exists_of_not_is_square h₀ hd,
+  refine ⟨a₁, ⟨ha₁.1, ha₁.2.1, ha₁.eq_zpow_or_neg_zpow⟩, λ a (H : 1 < _ ∧ _), _⟩,
+  obtain ⟨Hx, Hy, H⟩ := H,
+  obtain ⟨n₁, hn₁⟩ := H a₁,
+  obtain ⟨n₂, hn₂⟩ := ha₁.eq_zpow_or_neg_zpow a,
+  rcases hn₂ with rfl | rfl,
+  { rw [← zpow_mul, eq_comm, @eq_comm _ a₁, ← mul_inv_eq_one, ← @mul_inv_eq_one _ _ _ a₁,
+        ← zpow_neg_one, neg_mul, ← zpow_add, ← sub_eq_add_neg] at hn₁,
+    cases hn₁,
+    { rcases int.is_unit_iff.mp (is_unit_of_mul_eq_one _ _ $ sub_eq_zero.mp $
+                (ha₁.zpow_eq_one_iff (n₂ * n₁ - 1)).mp hn₁) with rfl | rfl,
+      { rw zpow_one, },
+      { rw [zpow_neg_one, y_inv, lt_neg, neg_zero] at Hy,
+        exact false.elim (lt_irrefl _ $ ha₁.2.1.trans Hy), } },
+    { rw [← zpow_zero a₁, eq_comm] at hn₁,
+      exact false.elim (ha₁.zpow_ne_neg_zpow hn₁), } },
+  { rw [x_neg, lt_neg] at Hx,
+    have := (x_zpow_pos (zero_lt_one.trans ha₁.1) n₂).trans Hx,
+    norm_num at this, }
+end
+
+/-- A positive solution is a generator (up to sign) of the group of all solutions to the
+Pell equation `x^2 - d*y^2 = 1` if and only if it is a fundamental solution. -/
+theorem pos_generator_iff_fundamental (a : solution₁ d) :
+  (1 < a.x ∧ 0 < a.y ∧ ∀ b : solution₁ d, ∃ n : ℤ, b = a ^ n ∨ b = -a ^ n) ↔ is_fundamental a :=
+begin
+  refine ⟨λ h, _, λ H, ⟨H.1, H.2.1, H.eq_zpow_or_neg_zpow⟩⟩,
+  have h₀ := d_pos_of_one_lt_x h.1,
+  have hd := d_nonsquare_of_one_lt_x h.1,
+  obtain ⟨a₁, ha₁⟩ := is_fundamental.exists_of_not_is_square h₀ hd,
+  obtain ⟨b, hb₁, hb₂⟩ := exists_unique_pos_generator h₀ hd,
+  rwa [hb₂ a h, ← hb₂ a₁ ⟨ha₁.1, ha₁.2.1, ha₁.eq_zpow_or_neg_zpow⟩],
+end
 
 end pell

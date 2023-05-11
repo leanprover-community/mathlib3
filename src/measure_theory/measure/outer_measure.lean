@@ -1345,6 +1345,8 @@ by simp [infi_subtype, infi_and, trim_eq_infi]
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
 trim_eq_trim_iff.2 $ λ s, m.trim_eq
 
+@[simp] theorem trim_top : (⊤ : outer_measure α).trim = ⊤ := eq_top_iff.2 $ le_trim _
+
 @[simp] theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm
   (le_trans ((trim 0).mono (subset_univ s)) $

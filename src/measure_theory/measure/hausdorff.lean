@@ -473,8 +473,14 @@ begin
   exact outer_measure.mk_metric_mono_smul hc h0 hle s
 end
 
-@[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : outer_measure X) = ⊤ :=
-sorry
+@[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : measure X) = ⊤ :=
+begin
+  apply to_outer_measure_injective,
+  rw [mk_metric_to_outer_measure, outer_measure.mk_metric_top],
+  ext1,
+  simp only [measure_theory.coe_to_outer_measure],
+  rw measure.top
+end
 
 #exit
 

@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.specific_limits.basic
 import topology.metric_space.isometry
+import topology.metric_space.isometric_smul
 import topology.instances.ennreal
 
 /-!
@@ -30,7 +31,7 @@ This files introduces:
 * `cthickening δ s`, the closed thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 noncomputable theory
-open_locale classical nnreal ennreal topology
+open_locale classical nnreal ennreal topology pointwise
 universes u v w
 
 open classical set function topological_space filter
@@ -166,6 +167,11 @@ end
 lemma inf_edist_image (hΦ : isometry Φ) :
   inf_edist (Φ x) (Φ '' t) = inf_edist x t :=
 by simp only [inf_edist, infi_image, hΦ.edist_eq]
+
+@[simp, to_additive] lemma inf_edist_smul {M} [has_smul M α] [has_isometric_smul M α]
+  (c : M) (x : α) (s : set α) :
+  inf_edist (c • x) (c • s) = inf_edist x s :=
+inf_edist_image (isometry_smul _ _)
 
 lemma _root_.is_open.exists_Union_is_closed {U : set α} (hU : is_open U) :
   ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ monotone F :=

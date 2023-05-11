@@ -150,6 +150,23 @@ end
 lemma borel_eq_generate_from_Ioi : borel α = generate_from (range Ioi) :=
 @borel_eq_generate_from_Iio αᵒᵈ _ (by apply_instance : second_countable_topology α) _ _
 
+lemma borel_eq_generate_from_Iic : borel α = measurable_space.generate_from (range Iic) :=
+begin
+  rw borel_eq_generate_from_Ioi,
+  refine le_antisymm _ _,
+  { refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨u, rfl⟩ := ht,
+    rw ← compl_Iic,
+    exact (measurable_space.measurable_set_generate_from (mem_range.mpr ⟨u, rfl⟩)).compl, },
+  { refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨u, rfl⟩ := ht,
+    rw ← compl_Ioi,
+    exact (measurable_space.measurable_set_generate_from (mem_range.mpr ⟨u, rfl⟩)).compl, },
+end
+
+lemma borel_eq_generate_from_Ici : borel α = measurable_space.generate_from (range Ici) :=
+@borel_eq_generate_from_Iic αᵒᵈ _ _ _ _
+
 end order_topology
 
 lemma borel_comap {f : α → β} {t : topological_space β} :

@@ -765,6 +765,8 @@ end
 
 open_locale pointwise
 
+/-- This is a version of `lipschitz_on_with.hausdorff_measure_image_le` for dilations where the
+bound is tight. -/
 lemma hausdorff_measure_smul
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   (d : ℝ) (r : ℝ) (hr : r ≠ 0) (hd : 0 ≤ d) (s : set E) :

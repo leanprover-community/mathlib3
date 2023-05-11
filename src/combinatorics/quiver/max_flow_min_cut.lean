@@ -765,7 +765,7 @@ structure residual_network  (V : Type*)  [inst' : fintype V] :=
 noncomputable
 def mk_rsn {V : Type*} [fintype V] -- stays for residual network
   (afn : active_flow_network V) : residual_network V :=
-  ⟨afn, mk_rsf afn, rfl, λ u v, mk_rsf afn u v > 0 , rfl ⟩
+  ⟨afn, mk_rsf afn, rfl, λ u v, mk_rsf afn u v > 0 , rfl⟩
 
 universe u
 

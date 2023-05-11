@@ -112,11 +112,34 @@ lemma nndist_smul₀ [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
 nnreal.eq $ dist_smul₀ s x y
 
+lemma edist_smul₀ [normed_space α β] (s : α) (x y : β) :
+  edist (s • x) (s • y) = ‖s‖₊ • edist x y :=
+by simp only [edist_nndist, nndist_smul₀, ennreal.coe_mul, ennreal.smul_def, smul_eq_mul]
+
 lemma lipschitz_with_smul [normed_space α β] (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
 lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul₀, coe_nnnorm]
 
 lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
   ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
+
+lemma ediam_smul₀ [normed_space α β] (r : α) (s : set β) :
+  emetric.diam (r • s) = ‖r‖₊ • emetric.diam s :=
+begin
+  obtain rfl | hr := eq_or_ne r 0,
+  { obtain rfl | hs := s.eq_empty_or_nonempty,
+    { simp },
+    simp [zero_smul_set hs, ←set.singleton_zero], },
+  simp_rw [emetric.diam, ennreal.smul_supr, ←edist_smul₀],
+  have : function.surjective ((•) r : β → β) := λ x, ⟨r⁻¹ • x, smul_inv_smul₀ hr _⟩,
+  refine (this.supr_congr _ $ λ x, _).symm,
+  simp_rw smul_mem_smul_set_iff₀ hr,
+  congr' 1 with hx : 1,
+  refine (this.supr_congr _ $ λ y, _).symm,
+  simp_rw smul_mem_smul_set_iff₀ hr,
+end
+
+lemma diam_smul₀ [normed_space α β] (r : α) (x : set β) : diam (r • x) = ‖r‖ * diam x :=
+by simp_rw [diam, ediam_smul₀, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm, smul_eq_mul]
 
 variables {E : Type*} [seminormed_add_comm_group E] [normed_space α E]
 variables {F : Type*} [seminormed_add_comm_group F] [normed_space α F]

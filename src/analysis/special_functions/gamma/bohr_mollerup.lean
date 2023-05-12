@@ -28,8 +28,8 @@ general form of the Euler limit formula valid for any real or complex `x`; see
 -/
 
 noncomputable theory
-open filter interval_integral set real measure_theory asymptotics
-open_locale nat ennreal topology big_operators complex_conjugate
+open filter set measure_theory
+open_locale nat ennreal topology big_operators
 
 namespace real
 

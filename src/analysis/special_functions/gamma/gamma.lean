@@ -42,7 +42,7 @@ Gamma
 
 noncomputable theory
 open filter interval_integral set real measure_theory asymptotics
-open_locale nat topology ennreal big_operators complex_conjugate
+open_locale nat topology complex_conjugate
 
 namespace real
 

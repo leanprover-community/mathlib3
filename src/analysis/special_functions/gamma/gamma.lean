@@ -382,92 +382,10 @@ end
 
 end Gamma_def
 
-end complex
-
 /-! Now check that the `Γ` function is differentiable, wherever this makes sense. -/
 
 section Gamma_has_deriv
 
-/-- Integrand for the derivative of the `Γ` function -/
-def dGamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp (-x) * log x * x ^ (s - 1)
-
-/-- Integrand for the absolute value of the derivative of the `Γ` function -/
-def dGamma_integrand_real (s x : ℝ) : ℝ := |exp (-x) * log x * x ^ (s - 1)|
-
-lemma dGamma_integrand_is_o_at_top (s : ℝ) :
-  (λ x : ℝ, exp (-x) * log x * x ^ (s - 1)) =o[at_top] (λ x, exp (-(1/2) * x)) :=
-begin
-  refine is_o_of_tendsto (λ x hx, _) _,
-  { exfalso, exact (-(1/2) * x).exp_pos.ne' hx, },
-  have : eventually_eq at_top (λ (x : ℝ), exp (-x) * log x * x ^ (s - 1) / exp (-(1 / 2) * x))
-    (λ (x : ℝ),  (λ z:ℝ, exp (1 / 2 * z) / z ^ s) x * (λ z:ℝ, z / log z) x)⁻¹,
-  { refine eventually_of_mem (Ioi_mem_at_top 1) _,
-    intros x hx, dsimp,
-    replace hx := lt_trans zero_lt_one (mem_Ioi.mp hx),
-    rw [real.exp_neg, neg_mul, real.exp_neg, rpow_sub hx],
-    have : exp x = exp(x/2) * exp(x/2),
-    { rw [←real.exp_add, add_halves], },
-    rw this, field_simp [hx.ne', exp_ne_zero (x/2)], ring, },
-  refine tendsto.congr' this.symm (tendsto.inv_tendsto_at_top _),
-  apply tendsto.at_top_mul_at_top (tendsto_exp_mul_div_rpow_at_top s (1/2) one_half_pos),
-  refine tendsto.congr' _ ((tendsto_exp_div_pow_at_top 1).comp tendsto_log_at_top),
-  apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
-  intros x hx, simp [exp_log hx],
-end
-
-/-- Absolute convergence of the integral which will give the derivative of the `Γ` function on
-`1 < re s`. -/
-lemma dGamma_integral_abs_convergent (s : ℝ) (hs : 1 < s) :
-  integrable_on (λ x:ℝ, ‖exp (-x) * log x * x ^ (s-1)‖) (Ioi 0) :=
-begin
-  rw [←Ioc_union_Ioi_eq_Ioi (@zero_le_one ℝ _ _ _ _), integrable_on_union],
-  refine ⟨⟨_, _⟩, _⟩,
-  { refine continuous_on.ae_strongly_measurable (continuous_on.mul _ _).norm measurable_set_Ioc,
-    { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
-      simp, },
-    { apply continuous_on_id.rpow_const, intros x hx, right, linarith }, },
-  { apply has_finite_integral_of_bounded,
-    swap, { exact 1 / (s - 1), },
-    refine (ae_restrict_iff' measurable_set_Ioc).mpr (ae_of_all _ (λ x hx, _)),
-    rw [norm_norm, norm_eq_abs, mul_assoc, abs_mul, ←one_mul (1 / (s - 1))],
-    refine mul_le_mul _ _ (abs_nonneg _) zero_le_one,
-    { rw [abs_of_pos (exp_pos(-x)), exp_le_one_iff, neg_le, neg_zero], exact hx.1.le },
-    { exact (abs_log_mul_self_rpow_lt x (s-1) hx.1 hx.2 (sub_pos.mpr hs)).le }, },
-  { have := (dGamma_integrand_is_o_at_top s).is_O.norm_left,
-    refine integrable_of_is_O_exp_neg one_half_pos (continuous_on.mul _ _).norm this,
-    { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
-      simp, },
-    { apply continuous_at.continuous_on (λ x hx, _),
-      apply continuous_at_id.rpow continuous_at_const,
-      dsimp, right, linarith, }, }
-end
-
-/-- A uniform bound for the `s`-derivative of the `Γ` integrand for `s` in vertical strips. -/
-lemma loc_unif_bound_dGamma_integrand {t : ℂ} {s1 s2 x : ℝ} (ht1 : s1 ≤ t.re)
-  (ht2: t.re ≤ s2) (hx : 0 < x) :
-  ‖dGamma_integrand t x‖ ≤ dGamma_integrand_real s1 x + dGamma_integrand_real s2 x :=
-begin
-  rcases le_or_lt 1 x with h|h,
-  { -- case 1 ≤ x
-    refine le_add_of_nonneg_of_le (abs_nonneg _) _,
-    rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, map_mul, abs_mul,
-      ←complex.of_real_mul, complex.abs_of_real],
-    refine mul_le_mul_of_nonneg_left _ (abs_nonneg _),
-    rw complex.abs_cpow_eq_rpow_re_of_pos hx,
-    refine le_trans _ (le_abs_self _),
-    apply rpow_le_rpow_of_exponent_le h,
-    rw [complex.sub_re, complex.one_re], linarith, },
-  { refine le_add_of_le_of_nonneg _ (abs_nonneg _),
-    rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, map_mul, abs_mul,
-      ←complex.of_real_mul, complex.abs_of_real],
-    refine mul_le_mul_of_nonneg_left _ (abs_nonneg _),
-    rw complex.abs_cpow_eq_rpow_re_of_pos hx,
-    refine le_trans _ (le_abs_self _),
-    apply rpow_le_rpow_of_exponent_ge hx h.le,
-    rw [complex.sub_re, complex.one_re], linarith, },
-end
-
-namespace complex
 
 /-- Rewrite the Gamma integral as an example of a Mellin transform. -/
 lemma Gamma_integral_eq_mellin :  Gamma_integral = mellin (λ x, real.exp (-x)) :=
@@ -476,7 +394,7 @@ funext (λ s, by simp only [mellin, Gamma_integral, smul_eq_mul, mul_comm])
 /-- The derivative of the `Γ` integral, at any `s ∈ ℂ` with `1 < re s`, is given by the Melllin
 transform of `log t * exp (-t)`. -/
 theorem has_deriv_at_Gamma_integral {s : ℂ} (hs : 0 < s.re) :
-  has_deriv_at Gamma_integral (mellin (λ t, real.log t * real.exp (-t)) s) s :=
+  has_deriv_at Gamma_integral (∫ (t : ℝ) in Ioi 0, t ^ (s - 1) * (real.log t * real.exp (-t))) s :=
 begin
   rw Gamma_integral_eq_mellin,
   convert mellin_has_deriv_of_is_O_rpow _ _ (lt_add_one _) _ hs,
@@ -528,9 +446,9 @@ begin
   apply Gamma_eq_Gamma_aux, linarith,
 end
 
-end complex
-
 end Gamma_has_deriv
+
+end complex
 
 namespace real
 

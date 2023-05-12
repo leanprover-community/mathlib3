@@ -27,7 +27,6 @@ refined properties of the Gamma function using these relations.
   `n ↦ n ^ s * n! / (s * (s + 1) * ... * (s + n))` is `Γ(s)`.
 * `complex.Gamma_mul_Gamma_one_sub`: Euler's reflection formula
   `Gamma s * Gamma (1 - s) = π / sin π s`.
-* `complex.differentiable_one_div_Gamma`: the function `1 / Γ(s)` is differentiable everywhere.
 * `real.Gamma_ne_zero`, `real.Gamma_seq_tendsto_Gamma`,
   `real.Gamma_mul_Gamma_one_sub`: real versions of the above results.
 -/

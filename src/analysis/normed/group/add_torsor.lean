@@ -68,21 +68,15 @@ lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
 lemma dist_eq_norm_vsub (x y : P) : dist x y = ‖x -ᵥ y‖ := normed_add_torsor.dist_eq_norm' x y
 
+lemma nndist_eq_nnnorm_vsub (x y : P) : nndist x y = ‖x -ᵥ y‖₊ :=
+nnreal.eq $ dist_eq_norm_vsub V x y
+
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub'` sometimes doesn't work. -/
 lemma dist_eq_norm_vsub' (x y : P) : dist x y = ‖y -ᵥ x‖ :=
 (dist_comm _ _).trans (dist_eq_norm_vsub _ _ _)
 
-/-- The distance equals the norm of subtracting two points. In this
-lemma, it is necessary to have `V` as an explicit argument; otherwise
-`rw nndist_eq_nnnorm_vsub` sometimes doesn't work. -/
-lemma nndist_eq_nnnorm_vsub (x y : P) : nndist x y = ‖x -ᵥ y‖₊ :=
-nnreal.eq $ dist_eq_norm_vsub V x y
-
-/-- The distance equals the norm of subtracting two points. In this
-lemma, it is necessary to have `V` as an explicit argument; otherwise
-`rw nndist_eq_nnnorm_vsub'` sometimes doesn't work. -/
 lemma nndist_eq_nnnorm_vsub' (x y : P) : nndist x y = ‖y -ᵥ x‖₊ :=
 nnreal.eq $ dist_eq_norm_vsub' V x y
 
@@ -96,11 +90,21 @@ dist_vadd _ _ _
   dist (v₁ +ᵥ x) (v₂ +ᵥ x) = dist v₁ v₂ :=
 by rw [dist_eq_norm_vsub V, dist_eq_norm, vadd_vsub_vadd_cancel_right]
 
+@[simp] lemma nndist_vadd_cancel_right (v₁ v₂ : V) (x : P) :
+  nndist (v₁ +ᵥ x) (v₂ +ᵥ x) = nndist v₁ v₂ :=
+nnreal.eq $ dist_vadd_cancel_right _ _ _
+
 @[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ‖v‖ :=
 by simp [dist_eq_norm_vsub V _ x]
 
+@[simp] lemma nndist_vadd_left (v : V) (x : P) : nndist (v +ᵥ x) x = ‖v‖₊ :=
+nnreal.eq $ dist_vadd_left _ _
+
 @[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ‖v‖ :=
 by rw [dist_comm, dist_vadd_left]
+
+@[simp] lemma nndist_vadd_right (v : V) (x : P) : nndist x (v +ᵥ x) = ‖v‖₊ :=
+nnreal.eq $ dist_vadd_right _ _
 
 /-- Isometry between the tangent space `V` of a (semi)normed add torsor `P` and `P` given by
 addition/subtraction of `x : P`. -/
@@ -120,18 +124,21 @@ subtraction from `x : P`. -/
 @[simp] lemma dist_vsub_cancel_right (x y z : P) : dist (x -ᵥ z) (y -ᵥ z) = dist x y :=
 (isometry_equiv.vadd_const z).symm.dist_eq x y
 
+@[simp] lemma nndist_vsub_cancel_right (x y z : P) : nndist (x -ᵥ z) (y -ᵥ z) = nndist x y :=
+nnreal.eq $ dist_vsub_cancel_right _ _ _
+
 lemma dist_vadd_vadd_le (v v' : V) (p p' : P) :
   dist (v +ᵥ p) (v' +ᵥ p') ≤ dist v v' + dist p p' :=
 by simpa using dist_triangle (v +ᵥ p) (v' +ᵥ p) (v' +ᵥ p')
+
+lemma nndist_vadd_vadd_le (v v' : V) (p p' : P) :
+  nndist (v +ᵥ p) (v' +ᵥ p') ≤ nndist v v' + nndist p p' :=
+dist_vadd_vadd_le _ _ _ _
 
 lemma dist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
   dist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ dist p₁ p₃ + dist p₂ p₄ :=
 by { rw [dist_eq_norm, vsub_sub_vsub_comm, dist_eq_norm_vsub V, dist_eq_norm_vsub V],
  exact norm_sub_le _ _ }
-
-lemma nndist_vadd_vadd_le (v v' : V) (p p' : P) :
-  nndist (v +ᵥ p) (v' +ᵥ p') ≤ nndist v v' + nndist p p' :=
-by simp only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vadd_vadd_le]
 
 lemma nndist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
   nndist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ nndist p₁ p₃ + nndist p₂ p₄ :=

@@ -186,8 +186,6 @@ begin
     -- refl,
 end
 
-variables [group β] (f : α ≃* β)
-#simp f.to_monoid_hom
 
 /-- The orbit `(a ^ ℤ) • b` is a cycle of order `minimal_period ((•) a) b`. -/
 noncomputable def orbit_zpowers_equiv : orbit (zpowers a) b ≃ zmod (minimal_period ((•) a) b) :=

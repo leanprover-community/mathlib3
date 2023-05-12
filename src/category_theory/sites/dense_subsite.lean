@@ -202,7 +202,7 @@ end
 begin
   refine ((ℱ'.cond _ (H.is_cover X)).valid_glue
     (pushforward_family_compatible H α x) f.unop (presieve.in_cover_by_image G f.unop)).trans _,
-  apply pushforward_family_apply,
+  apply pushforward_family_apply
 end
 
 @[simp] lemma app_hom_valid_glue {X : D} {Y : C} (f : op X ⟶ op (G.obj Y)) :

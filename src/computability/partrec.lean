@@ -10,6 +10,9 @@ import data.pfun
 /-!
 # The partial recursive functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The partial recursive functions are defined similarly to the primitive
 recursive functions, but now all functions are partial, implemented
 using the `part` monad, and there is an additional operation, called

@@ -153,8 +153,10 @@ def pushforward_family {X} (x : ℱ.obj (op X)) :
   family_of_elements ℱ'.val (cover_by_image G X) := λ Y f hf,
 ℱ'.val.map hf.some.lift.op $ α.app (op _) (ℱ.map hf.some.map.op x : _)
 
+include H
+
 /-- (Implementation). The `pushforward_family` defined is compatible. -/
-lemma pushforward_family_compatible (H : cover_dense K G) {X} (x : ℱ.obj (op X)) :
+lemma pushforward_family_compatible {X} (x : ℱ.obj (op X)) :
   (pushforward_family α x).compatible :=
 begin
   intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ e,
@@ -174,12 +176,14 @@ begin
   simp [e]
 end
 
+omit H
+
 /-- (Implementation). The morphism `ℱ(X) ⟶ ℱ'(X)` given by gluing the `pushforward_family`. -/
 noncomputable
 def app_hom (X : D) : ℱ.obj (op X) ⟶ ℱ'.val.obj (op X) := λ x,
   (ℱ'.cond _ (H.is_cover X)).amalgamate
     (pushforward_family α x)
-    (pushforward_family_compatible α H x)
+    (pushforward_family_compatible H α x)
 
 @[simp] lemma pushforward_family_apply {X} (x : ℱ.obj (op X)) {Y : C} (f : G.obj Y ⟶ X) :
   pushforward_family α x f (presieve.in_cover_by_image G f) = α.app (op Y) (ℱ.map f.op x) :=
@@ -197,7 +201,7 @@ end
   ℱ'.val.map f (app_hom H α X x) = α.app (op Y) (ℱ.map f x) :=
 begin
   refine ((ℱ'.cond _ (H.is_cover X)).valid_glue
-    (pushforward_family_compatible α H x) f.unop (presieve.in_cover_by_image G f.unop)).trans _,
+    (pushforward_family_compatible H α x) f.unop (presieve.in_cover_by_image G f.unop)).trans _,
   apply pushforward_family_apply,
 end
 

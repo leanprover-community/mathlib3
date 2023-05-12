@@ -473,6 +473,7 @@ variables {A : Type w} [category.{max u v} A] [limits.has_limits A]
 variables (Hd : cover_dense K G) (Hp : cover_preserving J K G) (Hl : cover_lifting J K G)
 
 include Hd Hp Hl
+
 /--
 Given a functor between small sites that is cover-dense, cover-preserving, and cover-lifting,
 it induces an equivalence of category of sheaves valued in a complete category.

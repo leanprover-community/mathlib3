@@ -1348,8 +1348,7 @@ begin
       linarith,
     }
   },
-  {
-    intros v vInT u uInS,
+  { intros v vInT u uInS,
     specialize h u uInS v vInT,
     rw rsn.f_def at h,
     unfold mk_rsf at h,
@@ -1364,22 +1363,15 @@ begin
       have blurg := rsn.afn.network.vanishes v u bark,
       linarith,
     },
-    {
-      simp only [foo, if_false, ite_eq_right_iff] at h,
+    { simp only [foo, if_false, ite_eq_right_iff] at h,
       clear foo,
       have bar := classical.em (rsn.afn.network.to_capacity.to_digraph.is_edge v u),
       cases bar,
-      {
-        exact h bar,
-      },
-      {
-        have blurg := rsn.afn.non_neg_flow v u,
+      { exact h bar, },
+      { have blurg := rsn.afn.non_neg_flow v u,
         have bark := rsn.afn.no_overflow v u,
         have baz := rsn.afn.network.vanishes v u bar,
-        linarith,
-      },
-    },
-  }
+        linarith, }, }, }
 end
 
 lemma f_value_eq_out {V : Type*} [inst' : fintype V]

@@ -1126,4 +1126,34 @@ begin
     hausdorff_measure_real, real.volume_Icc, sub_zero, ennreal.of_real_one, mul_one],
 end
 
+lemma hausdorff_measure_affine_segment {E P : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
+  [measurable_space P] [metric_space P] [normed_add_torsor E P]
+  [borel_space P]
+  (x y : P) :
+  μH[1] (affine_segment ℝ x y) = edist x y :=
+begin
+  borelize E,
+  by_cases h : x = y,
+  { haveI := no_atoms_hausdorff P one_pos,
+    simp [h, affine_segment] },
+  have hn : ‖y -ᵥ x‖ ≠ 0,
+  { rwa [norm_ne_zero_iff, vsub_ne_zero, ne_comm] },
+  suffices : μH[1] (
+    isometry_equiv.vadd_const x '' (
+      (λ z, ‖y -ᵥ x‖ • z) ''
+      ((λ θ : ℝ, θ • (‖y -ᵥ x‖⁻¹ • (y -ᵥ x))) ''
+        Icc 0 1))) = edist x y,
+  { simpa only [set.image_image, ←segment_eq_image', smul_comm (norm _),
+      inv_smul_smul₀ hn] using this },
+  have iso_smul : isometry (λ θ : ℝ, θ • (‖y -ᵥ x‖⁻¹ • (y -ᵥ x))),
+  { show isometry (linear_map.to_span_singleton ℝ E (‖y -ᵥ x‖⁻¹ • (y -ᵥ x))),
+    refine add_monoid_hom_class.isometry_of_norm _ (λ x, (norm_smul _ _).trans _),
+    rw [norm_smul, norm_inv, norm_norm, inv_mul_cancel hn, mul_one, linear_map.id_apply] },
+  rw [(isometry_equiv.isometry _).hausdorff_measure_image (or.inl zero_le_one),
+    set.image_smul, measure.hausdorff_measure_smul₀ zero_le_one hn,
+    nnnorm_norm, nnreal.rpow_one, iso_smul.hausdorff_measure_image (or.inl $ zero_le_one' ℝ),
+    edist_nndist, nndist_eq_nnnorm_vsub', ennreal.smul_def, smul_eq_mul,
+    hausdorff_measure_real, real.volume_Icc, sub_zero, ennreal.of_real_one, mul_one],
+end
+
 end measure_theory

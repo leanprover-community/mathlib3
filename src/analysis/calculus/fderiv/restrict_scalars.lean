@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.fderiv.basic
-import analysis.calculus.fderiv.linear
-import analysis.calculus.fderiv.comp
-import analysis.calculus.fderiv.prod
-import analysis.calculus.fderiv.bilinear
 
 open filter asymptotics continuous_linear_map set metric
 open_locale topology classical nnreal filter asymptotics ennreal

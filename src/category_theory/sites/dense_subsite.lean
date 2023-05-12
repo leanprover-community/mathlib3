@@ -141,7 +141,6 @@ lemma sheaf_eq_amalgamation (ℱ : Sheaf K A) {X : A} {U : D} {T : sieve U} (hT)
   t = (ℱ.cond X T hT).amalgamate x hx :=
 (ℱ.cond X T hT).is_separated_for x t _ h ((ℱ.cond X T hT).is_amalgamation hx)
 
-include H
 variable [full G]
 namespace types
 variables {ℱ : Dᵒᵖ ⥤ Type v} {ℱ' : SheafOfTypes.{v} K} (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val)
@@ -154,9 +153,11 @@ def pushforward_family {X} (x : ℱ.obj (op X)) :
   family_of_elements ℱ'.val (cover_by_image G X) := λ Y f hf,
 ℱ'.val.map hf.some.lift.op $ α.app (op _) (ℱ.map hf.some.map.op x : _)
 
+include H
+
 /-- (Implementation). The `pushforward_family` defined is compatible. -/
 lemma pushforward_family_compatible {X} (x : ℱ.obj (op X)) :
-  (pushforward_family H α x).compatible :=
+  (pushforward_family α x).compatible :=
 begin
   intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ e,
   apply H.ext,
@@ -179,11 +180,11 @@ end
 noncomputable
 def app_hom (X : D) : ℱ.obj (op X) ⟶ ℱ'.val.obj (op X) := λ x,
   (ℱ'.cond _ (H.is_cover X)).amalgamate
-    (pushforward_family H α x)
+    (pushforward_family α x)
     (pushforward_family_compatible H α x)
 
 @[simp] lemma pushforward_family_apply {X} (x : ℱ.obj (op X)) {Y : C} (f : G.obj Y ⟶ X) :
-  pushforward_family H α x f (presieve.in_cover_by_image G f) = α.app (op Y) (ℱ.map f.op x) :=
+  pushforward_family α x f (presieve.in_cover_by_image G f) = α.app (op Y) (ℱ.map f.op x) :=
 begin
   unfold pushforward_family,
   refine congr_fun _ x,
@@ -199,7 +200,7 @@ end
 begin
   refine ((ℱ'.cond _ (H.is_cover X)).valid_glue
     (pushforward_family_compatible H α x) f.unop (presieve.in_cover_by_image G f.unop)).trans _,
-  apply pushforward_family_apply
+  apply pushforward_family_apply H,
 end
 
 @[simp] lemma app_hom_valid_glue {X : D} {Y : C} (f : op X ⟶ op (G.obj Y)) :
@@ -287,7 +288,7 @@ def sheaf_coyoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
 (Implementation). `sheaf_coyoneda_hom` but the order of the arguments of the functor are swapped.
 -/
 noncomputable
-def sheaf_yoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
+def sheaf_yoneda_hom (H : cover_dense K G) (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
   ℱ ⋙ yoneda ⟶ ℱ'.val ⋙ yoneda :=
 begin
   let α := sheaf_coyoneda_hom H α,
@@ -318,7 +319,7 @@ where `G` is full and cover-dense, and `ℱ', ℱ` are sheaves,
 we may obtain a natural isomorphism between presheaves.
 -/
 @[simps] noncomputable
-def presheaf_iso {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) :
+def presheaf_iso (H : cover_dense K G) {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) :
   ℱ.val ≅ ℱ'.val :=
 begin
   haveI : ∀ (X : Dᵒᵖ), is_iso ((sheaf_hom H i.hom).app X),
@@ -408,7 +409,7 @@ def restrict_hom_equiv_hom : (G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) ≃ (ℱ ⟶ �
 Given a full and cover-dense functor `G` and a natural transformation of sheaves `α : ℱ ⟶ ℱ'`,
 if the pullback of `α` along `G` is iso, then `α` is also iso.
 -/
-lemma iso_of_restrict_iso {ℱ ℱ' : Sheaf K A} (α : ℱ ⟶ ℱ')
+lemma iso_of_restrict_iso (H : cover_dense K G) {ℱ ℱ' : Sheaf K A} (α : ℱ ⟶ ℱ')
   (i : is_iso (whisker_left G.op α.val)) : is_iso α :=
 begin
   convert is_iso.of_iso (sheaf_iso H (as_iso (whisker_left G.op α.val))) using 1,
@@ -417,7 +418,7 @@ begin
 end
 
 /-- A fully faithful cover-dense functor preserves compatible families. -/
-lemma compatible_preserving [faithful G] : compatible_preserving K G :=
+lemma compatible_preserving [faithful G] (H : cover_dense K G) : compatible_preserving K G :=
 begin
   constructor,
   intros ℱ Z T x hx Y₁ Y₂ X f₁ f₂ g₁ g₂ hg₁ hg₂ eq,

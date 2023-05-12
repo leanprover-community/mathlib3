@@ -74,6 +74,19 @@ lemma, it is necessary to have `V` as an explicit argument; otherwise
 lemma dist_eq_norm_vsub' (x y : P) : dist x y = ‖y -ᵥ x‖ :=
 (dist_comm _ _).trans (dist_eq_norm_vsub _ _ _)
 
+
+/-- The distance equals the norm of subtracting two points. In this
+lemma, it is necessary to have `V` as an explicit argument; otherwise
+`rw nndist_eq_nnnorm_vsub` sometimes doesn't work. -/
+lemma nndist_eq_nnnorm_vsub (x y : P) : nndist x y = ‖x -ᵥ y‖₊ :=
+nnreal.eq $ dist_eq_norm_vsub V x y
+
+/-- The distance equals the norm of subtracting two points. In this
+lemma, it is necessary to have `V` as an explicit argument; otherwise
+`rw nndist_eq_nnnorm_vsub'` sometimes doesn't work. -/
+lemma nndist_eq_nnnorm_vsub' (x y : P) : nndist x y = ‖y -ᵥ x‖₊ :=
+nnreal.eq $ dist_eq_norm_vsub' V x y
+
 end
 
 lemma dist_vadd_cancel_left (v : V) (x y : P) :

@@ -5,6 +5,16 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.fderiv.prod
 
+/-!
+# The derivative of bounded bilinear maps
+
+For detailed documentation of the Fréchet derivative,
+see the module docstring of `analysis/calculus/fderiv/basic.lean`.
+
+This file contains the usual formulas (and existence assertions) for the derivative of
+bounded bilinear maps.
+-/
+
 open filter asymptotics continuous_linear_map set metric
 open_locale topology classical nnreal filter asymptotics ennreal
 

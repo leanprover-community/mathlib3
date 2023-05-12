@@ -5,6 +5,16 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.fderiv.basic
 
+/-!
+# The derivative of bounded linear maps
+
+For detailed documentation of the Fréchet derivative,
+see the module docstring of `analysis/calculus/fderiv/basic.lean`.
+
+This file contains the usual formulas (and existence assertions) for the derivative of
+bounded linear maps.
+-/
+
 open filter asymptotics continuous_linear_map set metric
 open_locale topology classical nnreal filter asymptotics ennreal
 
@@ -110,3 +120,5 @@ lemma is_bounded_linear_map.differentiable_on (h : is_bounded_linear_map 𝕜 f)
 h.differentiable.differentiable_on
 
 end continuous_linear_map
+
+end

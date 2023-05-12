@@ -37,17 +37,18 @@ the folder `analysis/calculus/fderiv/` contains the usual formulas
 (and existence assertions) for the derivative of
 * constants
 * the identity
-* bounded linear maps
-* bounded bilinear maps
-* sum of two functions
-* sum of finitely many functions
-* multiplication of a function by a scalar constant
-* negative of a function
-* subtraction of two functions
-* multiplication of a function by a scalar function
-* multiplication of two scalar functions
-* composition of functions (the chain rule)
-* inverse function (assuming that it exists; the inverse function theorem is in `inverse.lean`)
+* bounded linear maps (`linear.lean`)
+* bounded bilinear maps (`bilinear.lean`)
+* sum of two functions (`add.lean`)
+* sum of finitely many functions (`add.lean`)
+* multiplication of a function by a scalar constant (`add.lean`)
+* negative of a function (`add.lean`)
+* subtraction of two functions (`add.lean`)
+* multiplication of a function by a scalar function (`mul.lean`)
+* multiplication of two scalar functions (`mul.lean`)
+* composition of functions (the chain rule) (`comp.lean`)
+* inverse function (`mul.lean`)
+  (assuming that it exists; the inverse function theorem is in `../inverse.lean`)
 
 For most binary operations we also define `const_op` and `op_const` theorems for the cases when
 the first or second argument is a constant. This makes writing chains of `has_deriv_at`'s easier,

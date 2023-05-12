@@ -6,6 +6,20 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 import analysis.calculus.fderiv.linear
 import analysis.calculus.fderiv.comp
 
+/-!
+# Additive operations on derivatives
+
+For detailed documentation of the Fréchet derivative,
+see the module docstring of `analysis/calculus/fderiv/basic.lean`.
+
+This file contains the usual formulas (and existence assertions) for the derivative of
+
+* sum of finitely many functions
+* multiplication of a function by a scalar constant
+* negative of a function
+* subtraction of two functions
+-/
+
 open filter asymptotics continuous_linear_map set metric
 open_locale topology classical nnreal filter asymptotics ennreal
 

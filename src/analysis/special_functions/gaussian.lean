@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.special_functions.gamma
+import analysis.special_functions.gamma.gamma
 import analysis.special_functions.polar_coord
 import analysis.convex.complex
 import analysis.complex.cauchy_integral

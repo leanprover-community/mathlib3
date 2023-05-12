@@ -286,11 +286,12 @@ def sheaf_coyoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
     simp
   end }
 
+include H
 /--
 (Implementation). `sheaf_coyoneda_hom` but the order of the arguments of the functor are swapped.
 -/
 noncomputable
-def sheaf_yoneda_hom (H : cover_dense K G) (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
+def sheaf_yoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
   ℱ ⋙ yoneda ⟶ ℱ'.val ⋙ yoneda :=
 begin
   let α := sheaf_coyoneda_hom H α,
@@ -302,6 +303,8 @@ begin
     ext X x,
     exact congr_fun ((α.app X).naturality i) x },
 end
+
+omit H
 
 /--
 Given an natural transformation `G ⋙ ℱ ⟶ G ⋙ ℱ'` between presheaves of arbitrary category,
@@ -315,13 +318,14 @@ let α' := sheaf_yoneda_hom H α in
   { app := λ X, yoneda.preimage (α'.app X),
     naturality' := λ X Y f, yoneda.map_injective (by simpa using α'.naturality f) }
 
+include H
 /--
 Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of arbitrary category,
 where `G` is full and cover-dense, and `ℱ', ℱ` are sheaves,
 we may obtain a natural isomorphism between presheaves.
 -/
 @[simps] noncomputable
-def presheaf_iso (H : cover_dense K G) {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) :
+def presheaf_iso {ℱ ℱ' : Sheaf K A} (i : G.op ⋙ ℱ.val ≅ G.op ⋙ ℱ'.val) :
   ℱ.val ≅ ℱ'.val :=
 begin
   haveI : ∀ (X : Dᵒᵖ), is_iso ((sheaf_hom H i.hom).app X),
@@ -338,6 +342,7 @@ begin
   apply as_iso (sheaf_hom H i.hom),
 end
 
+omit H
 /--
 Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of arbitrary category,
 where `G` is full and cover-dense, and `ℱ', ℱ` are sheaves,

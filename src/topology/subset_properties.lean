@@ -230,8 +230,8 @@ lemma is_compact.disjoint_nhds_set_right {l : filter α} (hs : is_compact s) :
   disjoint l (𝓝ˢ s) ↔ ∀ x ∈ s, disjoint l (𝓝 x) :=
 by simpa only [disjoint.comm] using hs.disjoint_nhds_set_left
 
-/-- For every family of closed sets whose intersection avoids a compact set,
-there exists a finite subfamily whose intersection avoids this compact set. -/
+/-- For every directed family of closed sets whose intersection avoids a compact set,
+there exists a single element of the family which itself avoids this compact set. -/
 lemma is_compact.elim_directed_family_closed {ι : Type v} [hι : nonempty ι] (hs : is_compact s)
   (Z : ι → set α) (hZc : ∀ i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) (hdZ : directed (⊇) Z) :
   ∃ i : ι, s ∩ Z i = ∅ :=

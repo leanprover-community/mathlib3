@@ -153,8 +153,6 @@ def pushforward_family {X} (x : ℱ.obj (op X)) :
   family_of_elements ℱ'.val (cover_by_image G X) := λ Y f hf,
 ℱ'.val.map hf.some.lift.op $ α.app (op _) (ℱ.map hf.some.map.op x : _)
 
-include H
-
 /-- (Implementation). The `pushforward_family` defined is compatible. -/
 lemma pushforward_family_compatible {X} (x : ℱ.obj (op X)) :
   (pushforward_family α x).compatible :=
@@ -461,8 +459,6 @@ variables {G : C ⥤ D} [full G] [faithful G]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 variables {A : Type w} [category.{max u v} A] [limits.has_limits A]
 variables (Hd : cover_dense K G) (Hp : cover_preserving J K G) (Hl : cover_lifting J K G)
-
-include Hd Hp Hl
 
 /--
 Given a functor between small sites that is cover-dense, cover-preserving, and cover-lifting,

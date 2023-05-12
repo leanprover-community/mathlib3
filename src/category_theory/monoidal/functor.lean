@@ -160,6 +160,14 @@ def monoidal_functor.μ_iso (F : monoidal_functor.{v₁ v₂} C D) (X Y : C) :
   (F.obj X) ⊗ (F.obj Y) ≅ F.obj (X ⊗ Y) :=
 as_iso (F.μ X Y)
 
+@[simps] noncomputable def monoidal_functor.μ_iso₂ (F : monoidal_functor.{v₁ v₂} C D) (X Y Z : C) :
+  (F.obj X) ⊗ (F.obj Y) ⊗ (F.obj Z) ≅ F.obj (X ⊗ Y ⊗ Z) :=
+(tensor_iso (iso.refl _) (F.μ_iso _ _)).trans (F.μ_iso X (Y ⊗ Z))
+
+@[simps] noncomputable def monoidal_functor.μ_iso₂' (F : monoidal_functor.{v₁ v₂} C D) (X Y Z : C) :
+  ((F.obj X) ⊗ (F.obj Y)) ⊗ (F.obj Z) ≅ F.obj ((X ⊗ Y) ⊗ Z) :=
+(tensor_iso (F.μ_iso _ _) (iso.refl _)).trans (F.μ_iso (X ⊗ Y) Z)
+
 end
 
 open monoidal_category
@@ -188,6 +196,11 @@ variable (F : monoidal_functor.{v₁ v₂} C D)
 lemma map_tensor {X Y X' Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y') :
   F.map (f ⊗ g) = inv (F.μ X X') ≫ ((F.map f) ⊗ (F.map g)) ≫ F.μ Y Y' :=
 by simp
+
+lemma map_tensor' {X Y X' Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y') :
+  F.map f ⊗ F.map g = (F.μ X X') ≫ F.map (f ⊗ g) ≫ inv (F.μ Y Y') :=
+by rw [map_tensor, category.assoc, category.assoc, is_iso.hom_inv_id,
+    category.comp_id, ←category.assoc, is_iso.hom_inv_id, category.id_comp]
 
 lemma map_left_unitor (X : C) :
   F.map (λ_ X).hom = inv (F.μ (𝟙_ C) X) ≫ (inv F.ε ⊗ 𝟙 (F.obj X)) ≫ (λ_ (F.obj X)).hom :=

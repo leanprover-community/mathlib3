@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.natural_transformation
+import category_theory.monoidal.Mon_
 
 /-!
 # Transport a monoidal structure along an equivalence.
@@ -236,5 +237,6 @@ def transported_monoidal_counit_iso (e : C ≌ D) :
   (from_transported e).to_lax_monoidal_functor ⊗⋙ lax_to_transported e ≅
     lax_monoidal_functor.id (transported e) :=
 as_iso (monoidal_counit (to_transported e))
+
 
 end category_theory.monoidal

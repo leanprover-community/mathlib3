@@ -412,11 +412,12 @@ def restrict_hom_equiv_hom : (G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) ≃ (ℱ ⟶ �
   left_inv := sheaf_hom_restrict_eq H,
   right_inv := sheaf_hom_eq H }
 
+include H
 /--
 Given a full and cover-dense functor `G` and a natural transformation of sheaves `α : ℱ ⟶ ℱ'`,
 if the pullback of `α` along `G` is iso, then `α` is also iso.
 -/
-lemma iso_of_restrict_iso (H : cover_dense K G) {ℱ ℱ' : Sheaf K A} (α : ℱ ⟶ ℱ')
+lemma iso_of_restrict_iso {ℱ ℱ' : Sheaf K A} (α : ℱ ⟶ ℱ')
   (i : is_iso (whisker_left G.op α.val)) : is_iso α :=
 begin
   convert is_iso.of_iso (sheaf_iso H (as_iso (whisker_left G.op α.val))) using 1,
@@ -425,7 +426,7 @@ begin
 end
 
 /-- A fully faithful cover-dense functor preserves compatible families. -/
-lemma compatible_preserving [faithful G] (H : cover_dense K G) : compatible_preserving K G :=
+lemma compatible_preserving [faithful G] : compatible_preserving K G :=
 begin
   constructor,
   intros ℱ Z T x hx Y₁ Y₂ X f₁ f₂ g₁ g₂ hg₁ hg₂ eq,
@@ -438,6 +439,8 @@ begin
   apply G.map_injective,
   simp [eq]
 end
+
+omit H
 
 noncomputable
 instance sites.pullback.full [faithful G] (Hp : cover_preserving J K G) :

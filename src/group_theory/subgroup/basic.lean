@@ -2291,7 +2291,7 @@ end
 @[to_additive "The image of the normalizer is equal to the normalizer of the image of an
 isomorphism."]
 lemma map_equiv_normalizer_eq (H : subgroup G)
-  (f : G ≃* N) : H.normalizer.map (f : G →* N) = (H.map (f : G →* N)).normalizer :=
+  (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map (f : G →* N)).normalizer :=
 begin
   ext x,
   simp only [mem_normalizer_iff, mem_map_equiv],

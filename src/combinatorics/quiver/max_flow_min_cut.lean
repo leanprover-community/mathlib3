@@ -303,8 +303,7 @@ begin
   rw eq1,
   have xIn: x ∈ V' := finset.mem_univ x,
   split,
-  {
-    intro hyp,
+  { intro hyp,
     have xIn1: x ∈ V' \ (S \ {s}) := (finset.mem_inter.1 hyp).1,
     have xIn2: x ∈ V' \ {s} := (finset.mem_inter.1 hyp).2,
     have xOut: x ∉ S :=
@@ -325,8 +324,7 @@ begin
       exact finset.not_mem_union.2 xOutAnd,
     end,
     have concl: x ∈ V' ∧ x ∉ S := and.intro xIn xOut,
-    exact finset.mem_sdiff.2 concl,
-  },
+    exact finset.mem_sdiff.2 concl, },
   intro hyp,
   have xOutS: x ∉ S := (finset.mem_sdiff.1 hyp).2,
   have xOut: x ∉ S \ {s} :=
@@ -357,8 +355,7 @@ begin
   ext x,
   have xIn: x ∈ V' := finset.mem_univ x,
   split,
-  {
-    intro hyp,
+  { intro hyp,
     have foo: x ∈ V' \ S ∨ x ∈ S \ {s} := finset.mem_union.1 hyp,
     have bar: x ∈ V' \ S → x ∈ V' \ {s} :=
     begin
@@ -380,23 +377,18 @@ begin
       have concl: x ∈ V' ∧ x ∉ {s} := and.intro xIn xNotIns,
       exact finset.mem_sdiff.2 concl,
     end,
-    exact or.elim foo bar baz,
-  },
+    exact or.elim foo bar baz, },
   intro hyp,
   have xNotIns: x ∉ {s} := (finset.mem_sdiff.1 hyp).2,
   by_cases h' : x ∈ S,
-  {
-    have and: x ∈ S ∧ x ∉ {s} := and.intro h' xNotIns,
+  { have and: x ∈ S ∧ x ∉ {s} := and.intro h' xNotIns,
     have xInSs: x ∈ S \ {s} := finset.mem_sdiff.2 and,
     have conj: x ∈ V' \ S ∨ x ∈ S \ {s} := or.intro_right (x ∈ V' \ S) xInSs,
-    exact finset.mem_union.2 conj,
-  },
-  {
-    have and: x ∈ V' ∧ x ∉ S := and.intro xIn h',
+    exact finset.mem_union.2 conj, },
+  { have and: x ∈ V' ∧ x ∉ S := and.intro xIn h',
     have xInVS: x ∈ V' \ S := finset.mem_sdiff.2 and,
     have conj: x ∈ V' \ S ∨ x ∈ S \ {s} := or.intro_left (x ∈ S \ {s}) xInVS,
-    exact finset.mem_union.2 conj,
-  },
+    exact finset.mem_union.2 conj, },
 end
 
 lemma disjoint_sdiff_finset_sdiff_singleton {V : Type*}  [inst' : fintype V]
@@ -801,22 +793,14 @@ end
 --   unfold mk_rsf,
 --   have foo := classical.em (rsn_afn.network.to_capacity.to_digraph.is_edge u v),
 --   cases foo,
---   {
---     simp only [foo, if_true, sub_nonneg, rsn_afn.no_overflow],
---   },
---   {
---     simp only [foo, if_false], clear foo,
+--   { simp only [foo, if_true, sub_nonneg, rsn_afn.no_overflow], },
+--   { simp only [foo, if_false], clear foo,
 --     have bar := classical.em (rsn_afn.network.to_capacity.to_digraph.is_edge v u),
 --     cases bar,
---     {
---       have h := rsn_afn.non_neg_flow v u,
+--     { have h := rsn_afn.non_neg_flow v u,
 --       simp only [bar, h, if_true],
---       linarith,
---     },
---     {
---       simp only [bar, if_false],
---     },
---   },
+--       linarith, },
+--     { simp only [bar, if_false] }, },
 -- end
 
 -- lemma positive_residual_flow {V : Type*} [inst' : fintype V]
@@ -876,16 +860,17 @@ end
 --       have contr: rsn.f' v t ∈ flows :=
 --       begin
 --         simp only [true_and, set.singleton_union, finset.mem_univ, set.to_finset_congr,
---           true_or, eq_self_iff_true, set.to_finset_set_of, finset.mem_insert, set.to_finset_insert,
---           finset.mem_filter, vertices] at v_in_vertices,
+--           true_or, eq_self_iff_true, set.to_finset_set_of, finset.mem_insert,
+--           set.to_finset_insert, finset.mem_filter, vertices] at v_in_vertices,
 --         apply v_in_vertices.elim;
 --         intro hypo,
 --         {
---           simp only [hypo, set.mem_to_finset, set.coe_to_finset, set.singleton_union, set.mem_image,
---             set.mem_sep_iff, set.mem_prod, set.mem_insert_iff, set.mem_set_of_eq, prod.exists,
---             function.uncurry_apply_pair, set.to_finset_nonempty, set.nonempty_image_iff,
---             set.to_finset_eq_empty, set.image_eq_empty,set.sep_eq_empty_iff_mem_false, and_imp,
---             prod.forall, eq_self_iff_true, true_or] at *,
+--           simp only [hypo, set.mem_to_finset, set.coe_to_finset, set.singleton_union,
+--             set.mem_image, set.mem_sep_iff, set.mem_prod, set.mem_insert_iff, set.mem_set_of_eq,
+--             prod.exists, function.uncurry_apply_pair, set.to_finset_nonempty,
+--             set.nonempty_image_iff, set.to_finset_eq_empty,
+--             set.image_eq_empty,set.sep_eq_empty_iff_mem_false, and_imp, prod.forall,
+--             eq_self_iff_true, true_or] at *,
 --           use [t, t],
 --           simpa,
 --         },
@@ -1266,7 +1251,7 @@ end
 -- end
 
 -- /-!
---   Now, we will prove that there exists a cut with value equal to the max flow in the same network.
+--   We will prove that there exists a cut with value equal to the max flow in the same network.
 --   We will use a constructive proof, so we will construct our minimum cut.
 -- -/
 
@@ -1453,8 +1438,8 @@ end
 -- end
 
 -- /-!
---   Here is our last big lemma, if there is no augmenting path in the resiual network,
---   then there exists a cut with a capacity equal to the value of the active flow in the same network.
+--   Here is our last big lemma, if there is no augmenting path in the resiual network, then
+--   there exists a cut with a capacity equal to the value of the active flow in the same network.
 -- -/
 
 -- lemma existence_of_a_cut {V : Type*} [inst' : fintype V]
@@ -1498,7 +1483,8 @@ end
 --     rw h2,
 --     exact cf_vanishes_on_pipes u uInS v vInT,
 --   end,
---   have eq_on_pipes: ∀ u ∈ min_cut.S, ∀ v ∈ V' \ min_cut.S, rsn.afn.f u v = rsn.afn.network.c u v :=
+--   have eq_on_pipes: ∀ u ∈ min_cut.S, ∀ v ∈ V' \ min_cut.S, rsn.afn.f u v =
+--   rsn.afn.network.c u v :=
 --   begin
 --     intros u uInS v vInT,
 --     by_cases edge: rsn.afn.network.is_edge u v,
@@ -1546,7 +1532,7 @@ end
 
 -- /-!
 --   Finally, our biggest result, the max-flow min-cut theorem!
---   If a maximum flow exists, its value is equal to the capacity of the min cut in the same network.
+--   If a maximum flow exists, its value is equal to the capacity of the min-cut.
 -- -/
 
 -- theorem max_flow_min_cut {V : Type*} [inst' : fintype V]
@@ -1558,7 +1544,8 @@ end
 --   have existsCut: ∃cut : cut V, rsn.afn.network = cut.network ∧
 --   cut_cap cut = F_value rsn.afn := existence_of_a_cut rsn noAugPath,
 --   have max_flow_min_cut: ∀ cut : cut V,
---   (rsn.afn.network = cut.network ∧ cut_cap cut = F_value rsn.afn) → (F_value rsn.afn = cut_cap c) :=
+--   (rsn.afn.network = cut.network ∧ cut_cap cut = F_value rsn.afn) →
+--   (F_value rsn.afn = cut_cap c) :=
 --   begin
 --     rintros cut ⟨same_net, eq⟩,
 --     have h1: is_min_cut cut := min_cut_criterion rsn.afn cut same_net eq,

@@ -763,46 +763,6 @@ begin
       simp only [zero_le, measure_singleton] } }
 end
 
-open_locale pointwise
-
-/-- This is a version of `lipschitz_on_with.hausdorff_measure_image_le` for dilations where the
-bound is tight. -/
-lemma hausdorff_measure_smul
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  (d : ℝ) (r : ℝ) (hr : r ≠ 0) (hd : 0 ≤ d) (s : set E) :
-  μH[d] (r • s) = ‖r‖₊ ^ d • μH[d] s :=
-begin
-  have hnr : ‖r‖₊ ≠ 0,
-  { simp [hr] },
-  have hnrc : (‖r‖₊ : ennreal) ≠ 0,
-  { simp [hr] },
-  have hrd : (↑(‖r‖₊ ^ d) : ℝ≥0∞) ≠ 0,
-  { simp [hr] },
-  -- simp_rw [hausdorff_measure, ← outer_measure.coe_mk_metric,
-  --   ←outer_measure.smul_apply, ennreal.smul_def],
-  -- rw ←outer_measure.mk_metric_smul _ ennreal.coe_ne_top,
-  -- simp_rw [pi.smul_def, ennreal.coe_rpow_of_ne_zero],
-  simp_rw [hausdorff_measure_apply, ennreal.smul_supr, ennreal.smul_def, smul_eq_mul,
-    ennreal.mul_infi_of_ne hrd ennreal.coe_ne_top, ←ennreal.tsum_mul_left, ennreal.mul_supr,
-    ←ennreal.coe_rpow_of_ne_zero hnr, ←ennreal.mul_rpow_of_nonneg _ _ hd],
-  -- refine (mul_left_surjective₀ hr).supr_congr _ (λ R, _),
-  have : function.surjective ((•) ‖r‖₊ : ℝ≥0∞ → ℝ≥0∞) :=
-    function.right_inverse.surjective (smul_inv_smul₀ hnr),
-  symmetry,
-  refine this.supr_congr _ (λ R, supr_congr_Prop _ $ λ hR, _),
-  { rw [ennreal.smul_def, smul_eq_mul, ennreal.mul_pos_iff, and_iff_right],
-    rw pos_iff_ne_zero,
-    exact hnrc, },
-  have : function.surjective ((•) r : (ℕ → set E) → (ℕ → set E)),
-  { intro x,
-    exact ⟨r⁻¹ • x, funext $ λ i, smul_inv_smul₀ hr _⟩ },
-  symmetry,
-  refine this.infi_congr _ (λ t, _),
-  simp_rw [pi.smul_apply, smul_set_nonempty, ←smul_set_Union, ediam_smul₀, ennreal.smul_def,
-    smul_eq_mul, ennreal.mul_le_mul_left hnrc ennreal.coe_ne_top,
-    set_smul_subset_set_smul_iff₀ hr],
-end
-
 end measure
 
 end measure_theory
@@ -886,6 +846,27 @@ lemma hausdorff_measure_image_le (h : lipschitz_with K f) {d : ℝ} (hd : 0 ≤ 
 (h.lipschitz_on_with s).hausdorff_measure_image_le hd
 
 end lipschitz_with
+
+open_locale pointwise
+
+lemma measure_theory.measure.hausdorff_measure_smul₀
+  {𝕜 E : Type*} [normed_add_comm_group E] [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space E]
+  [borel_space E]
+  {d : ℝ} (hd : 0 ≤ d) {r : 𝕜} (hr : r ≠ 0) (s : set E) :
+  μH[d] (r • s) = ‖r‖₊ ^ d • μH[d] s :=
+begin
+  simp_rw [←set.image_smul, ennreal.smul_def, smul_eq_mul, ← ennreal.coe_rpow_of_nonneg _ hd],
+  refine le_antisymm _ _,
+  { exact (@lipschitz_with_smul _ E _ _ _ r).hausdorff_measure_image_le hd s },
+  { have := ennreal.mul_le_iff_le_inv
+      (ennreal.rpow_pos
+        (pos_iff_ne_zero.2 $ ennreal.coe_ne_zero.2 $ nnnorm_ne_zero_iff.2 hr)
+        ennreal.coe_ne_top).ne'
+      (ennreal.rpow_ne_top_of_nonneg hd ennreal.coe_ne_top),
+    rw [this, ←ennreal.inv_rpow, ←ennreal.coe_inv (nnnorm_ne_zero_iff.2 hr), ←nnnorm_inv],
+    refine eq.trans_le _ ((@lipschitz_with_smul _ E _ _ _ r⁻¹).hausdorff_measure_image_le hd _),
+    simp_rw [set.image_image, inv_smul_smul₀ hr, image_id'] },
+end
 
 /-!
 ### Antilipschitz maps do not decrease Hausdorff measures and dimension
@@ -977,6 +958,13 @@ by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 end isometry_equiv
 
 namespace measure_theory
+
+@[to_additive]
+lemma hausdorff_measure_smul
+  {α : Type*} [has_smul α X] [has_isometric_smul α X]
+  {d : ℝ} (c : α) (h : 0 ≤ d ∨ surjective ((•) c : X → X)) (s : set X) :
+  μH[d] (c • s) = μH[d] s :=
+(isometry_smul X c).hausdorff_measure_image h _
 
 /-!
 ### Hausdorff measure and Lebesgue measure
@@ -1132,18 +1120,10 @@ begin
     refine add_monoid_hom_class.isometry_of_norm _ (λ x, (norm_smul _ _).trans _),
     rw [norm_smul, norm_inv, norm_norm, inv_mul_cancel hn, mul_one, linear_map.id_apply] },
   rw [(isometry_add_left x).hausdorff_measure_image (or.inl zero_le_one),
-    set.image_smul, hausdorff_measure_smul _ _ hn (zero_le_one),
+    set.image_smul, measure.hausdorff_measure_smul₀ zero_le_one hn,
     nnnorm_norm, nnreal.rpow_one, iso_smul.hausdorff_measure_image (or.inl $ zero_le_one' ℝ),
     edist_comm, edist_eq_coe_nnnorm_sub, ennreal.smul_def, smul_eq_mul,
     hausdorff_measure_real, real.volume_Icc, sub_zero, ennreal.of_real_one, mul_one],
-  -- suffices :
-  --   (outer_measure.comap (λ θ : ℝ, θ • (y - x)) $ outer_measure.comap (λ z : E, x + z)
-  --     (outer_measure.mk_metric id))
-  --     (Icc 0 1) = edist x y,
-  -- { simp_rw [outer_measure.comap_apply, set.image_image, ←segment_eq_image',
-  --     outer_measure.coe_mk_metric] at this,
-  --   simp_rw [hausdorff_measure, ennreal.rpow_one],
-  --   exact this },
 end
 
 end measure_theory

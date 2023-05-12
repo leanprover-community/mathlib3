@@ -137,6 +137,9 @@ def additive_zpowers_equiv (x : α) : additive (zpowers x) ≃+ zmultiples (addi
 add_equiv.refl _
 
 @[simp]
+lemma asdsad (x : α) (t : zpowers x) : additive_zpowers_equiv x (additive.of_mul t) = t := rfl
+
+@[simp]
 lemma asdas : to_add_subgroup (stabilizer α b) = add_action.stabilizer (additive α) b := rfl
 attribute [simps] add_equiv.to_multiplicative'
 
@@ -148,7 +151,7 @@ add_equiv.to_multiplicative'
   ((quotient_add_group.congr (stabilizer (zpowers a) b).to_add_subgroup _ (additive_zpowers_equiv a)
     begin
       ext,
-      simp [add_subgroup.mem_map_equiv],
+      simp [add_subgroup.mem_map_equiv_coe],
     end).trans
   (zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b)))
 -- let f := add_action.zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
@@ -167,29 +170,24 @@ lemma zpowers_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((�
   (zpowers_quotient_stabilizer_equiv a b).symm (multiplicative.of_add n) = (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
 begin
   rw [mul_equiv.symm_apply_eq],
-  simp only [add_equiv.to_multiplicative'_apply_apply,
- add_equiv.coe_to_add_monoid_hom,
- add_equiv.trans_apply,
- add_monoid_hom.to_multiplicative'_apply_apply,
- mul_action.zpowers_quotient_stabilizer_equiv.equations._eqn_1,
- mul_action.hoo_apply],
+  simp only [add_equiv.to_multiplicative'_apply_apply, add_equiv.coe_to_add_monoid_hom,
+    add_equiv.trans_apply, add_monoid_hom.to_multiplicative'_apply_apply,
+    mul_action.zpowers_quotient_stabilizer_equiv.equations._eqn_1, mul_action.hoo_apply],
   rw [of_mul_zpow, map_zsmul, map_zsmul],
---  rw [of_add_zsmul],
- simp only [zmod.cast_id', id.def, zmod.int_cast_cast, mul_action.hoo_apply], -- , zsmul_eq_mul not conf
+  --  rw [of_add_zsmul],
+  simp only [zmod.cast_id',  mul_action.hoo_apply], -- , zsmul_eq_mul not conf
 
- simp only [quotient_add_group.congr_apply,
- zmod.cast_id',
- id.def,
- zmod.int_cast_cast,
- quotient_add_group.mk'_apply ],
-simp only [
- mul_action.additive_zpowers_equiv_apply
- ],
- erw [← zmultiples_quotient_stabilizer_equiv_symm_apply],
---   rw [← mul_equiv.symm_apply_eq],
-simp,
-  -- refl,
+  simp only [quotient_add_group.congr_apply, quotient_add_group.mk'_apply],
+  rw [mul_action.additive_zpowers_equiv_apply],
+  erw [asdsad],
+  erw [← zmultiples_quotient_stabilizer_equiv_symm_apply],
+  --   rw [← mul_equiv.symm_apply_eq],
+  simp,
+    -- refl,
 end
+
+variables [group β] (f : α ≃* β)
+#simp f.to_monoid_hom
 
 /-- The orbit `(a ^ ℤ) • b` is a cycle of order `minimal_period ((•) a) b`. -/
 noncomputable def orbit_zpowers_equiv : orbit (zpowers a) b ≃ zmod (minimal_period ((•) a) b) :=

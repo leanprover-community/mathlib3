@@ -22,10 +22,10 @@ open finset set
 
 namespace real
 
-/-- The real power function `x^y`, defined as the real part of the complex power function.
-For `x > 0`, it is equal to `exp(y log x)`. For `x = 0`, one sets `0^0=1` and `0^y=0` for `y ≠ 0`.
-For `x < 0`, the definition is somewhat arbitary as it depends on the choice of a complex
-determination of the logarithm. With our conventions, it is equal to `exp (y log x) cos (πy)`. -/
+/-- The real power function `x ^ y`, defined as the real part of the complex power function.
+For `x > 0`, it is equal to `exp (y log x)`. For `x = 0`, one sets `0 ^ 0=1` and `0 ^ y=0` for
+`y ≠ 0`. For `x < 0`, the definition is somewhat arbitary as it depends on the choice of a complex
+determination of the logarithm. With our conventions, it is equal to `exp (y log x) cos (π y)`. -/
 noncomputable def rpow (x y : ℝ) := ((x : ℂ) ^ (y : ℂ)).re
 
 noncomputable instance : has_pow ℝ ℝ := ⟨rpow⟩
@@ -147,6 +147,68 @@ end
 lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ‖x ^ y‖ = ‖x‖ ^ y :=
 by { simp_rw real.norm_eq_abs, exact abs_rpow_of_nonneg hx_nonneg, }
 
+
+variables {x y z : ℝ}
+
+lemma rpow_add (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
+by simp only [rpow_def_of_pos hx, mul_add, exp_add]
+
+lemma rpow_add' (hx : 0 ≤ x) (h : y + z ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
+begin
+  rcases hx.eq_or_lt with rfl|pos,
+  { rw [zero_rpow h, zero_eq_mul],
+    have : y ≠ 0 ∨ z ≠ 0, from not_and_distrib.1 (λ ⟨hy, hz⟩, h $ hy.symm ▸ hz.symm ▸ zero_add 0),
+    exact this.imp zero_rpow zero_rpow },
+  { exact rpow_add pos _ _ }
+end
+
+lemma rpow_add_of_nonneg (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z) :
+  x ^ (y + z) = x ^ y * x ^ z :=
+begin
+  rcases hy.eq_or_lt with rfl|hy,
+  { rw [zero_add, rpow_zero, one_mul] },
+  exact rpow_add' hx (ne_of_gt $ add_pos_of_pos_of_nonneg hy hz)
+end
+
+/-- For `0 ≤ x`, the only problematic case in the equality `x ^ y * x ^ z = x ^ (y + z)` is for
+`x = 0` and `y + z = 0`, where the right hand side is `1` while the left hand side can vanish.
+The inequality is always true, though, and given in this lemma. -/
+lemma le_rpow_add {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ y * x ^ z ≤ x ^ (y + z) :=
+begin
+  rcases le_iff_eq_or_lt.1 hx with H|pos,
+  { by_cases h : y + z = 0,
+    { simp only [H.symm, h, rpow_zero],
+      calc (0 : ℝ) ^ y * 0 ^ z ≤ 1 * 1 :
+        mul_le_mul (zero_rpow_le_one y) (zero_rpow_le_one z) (zero_rpow_nonneg z) zero_le_one
+      ... = 1 : by simp },
+    { simp [rpow_add', ← H, h] } },
+  { simp [rpow_add pos] }
+end
+
+lemma rpow_sum_of_pos {ι : Type*} {a : ℝ} (ha : 0 < a) (f : ι → ℝ) (s : finset ι) :
+  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
+@add_monoid_hom.map_sum ℝ ι (additive ℝ) _ _ ⟨λ x : ℝ, (a ^ x : ℝ), rpow_zero a, rpow_add ha⟩ f s
+
+lemma rpow_sum_of_nonneg {ι : Type*} {a : ℝ} (ha : 0 ≤ a) {s : finset ι} {f : ι → ℝ}
+  (h : ∀ x ∈ s, 0 ≤ f x) :
+  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
+begin
+  induction s using finset.cons_induction with i s hi ihs,
+  { rw [sum_empty, finset.prod_empty, rpow_zero] },
+  { rw forall_mem_cons at h,
+    rw [sum_cons, prod_cons, ← ihs h.2, rpow_add_of_nonneg ha h.1 (sum_nonneg h.2)] }
+end
+
+lemma rpow_neg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : x ^ -y = (x ^ y)⁻¹ :=
+by simp only [rpow_def_of_nonneg hx]; split_ifs; simp [*, exp_neg] at *
+
+lemma rpow_sub {x : ℝ} (hx : 0 < x) (y z : ℝ) : x ^ (y - z) = x ^ y / x ^ z :=
+by simp only [sub_eq_add_neg, rpow_add hx, rpow_neg (le_of_lt hx), div_eq_mul_inv]
+
+lemma rpow_sub' {x : ℝ} (hx : 0 ≤ x) {y z : ℝ} (h : y - z ≠ 0) :
+  x ^ (y - z) = x ^ y / x ^ z :=
+by { simp only [sub_eq_add_neg] at h ⊢, simp only [rpow_add' hx h, rpow_neg hx, div_eq_mul_inv] }
+
 end real
 
 /-!
@@ -216,77 +278,18 @@ end
 end complex
 
 /-!
-## Further properties of real powers
+## Further algebraic properties of `rpow`
 -/
 
 namespace real
 
 variables {x y z : ℝ}
 
-lemma rpow_add (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
-by simp only [rpow_def_of_pos hx, mul_add, exp_add]
-
-lemma rpow_add' (hx : 0 ≤ x) (h : y + z ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
-begin
-  rcases hx.eq_or_lt with rfl|pos,
-  { rw [zero_rpow h, zero_eq_mul],
-    have : y ≠ 0 ∨ z ≠ 0, from not_and_distrib.1 (λ ⟨hy, hz⟩, h $ hy.symm ▸ hz.symm ▸ zero_add 0),
-    exact this.imp zero_rpow zero_rpow },
-  { exact rpow_add pos _ _ }
-end
-
-lemma rpow_add_of_nonneg (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z) :
-  x ^ (y + z) = x ^ y * x ^ z :=
-begin
-  rcases hy.eq_or_lt with rfl|hy,
-  { rw [zero_add, rpow_zero, one_mul] },
-  exact rpow_add' hx (ne_of_gt $ add_pos_of_pos_of_nonneg hy hz)
-end
-
-/-- For `0 ≤ x`, the only problematic case in the equality `x ^ y * x ^ z = x ^ (y + z)` is for
-`x = 0` and `y + z = 0`, where the right hand side is `1` while the left hand side can vanish.
-The inequality is always true, though, and given in this lemma. -/
-lemma le_rpow_add {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ y * x ^ z ≤ x ^ (y + z) :=
-begin
-  rcases le_iff_eq_or_lt.1 hx with H|pos,
-  { by_cases h : y + z = 0,
-    { simp only [H.symm, h, rpow_zero],
-      calc (0 : ℝ) ^ y * 0 ^ z ≤ 1 * 1 :
-        mul_le_mul (zero_rpow_le_one y) (zero_rpow_le_one z) (zero_rpow_nonneg z) zero_le_one
-      ... = 1 : by simp },
-    { simp [rpow_add', ← H, h] } },
-  { simp [rpow_add pos] }
-end
-
-lemma rpow_sum_of_pos {ι : Type*} {a : ℝ} (ha : 0 < a) (f : ι → ℝ) (s : finset ι) :
-  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
-@add_monoid_hom.map_sum ℝ ι (additive ℝ) _ _ ⟨λ x : ℝ, (a ^ x : ℝ), rpow_zero a, rpow_add ha⟩ f s
-
-lemma rpow_sum_of_nonneg {ι : Type*} {a : ℝ} (ha : 0 ≤ a) {s : finset ι} {f : ι → ℝ}
-  (h : ∀ x ∈ s, 0 ≤ f x) :
-  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
-begin
-  induction s using finset.cons_induction with i s hi ihs,
-  { rw [sum_empty, finset.prod_empty, rpow_zero] },
-  { rw forall_mem_cons at h,
-    rw [sum_cons, prod_cons, ← ihs h.2, rpow_add_of_nonneg ha h.1 (sum_nonneg h.2)] }
-end
-
 lemma rpow_mul {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ (y * z) = (x ^ y) ^ z :=
 by rw [← complex.of_real_inj, complex.of_real_cpow (rpow_nonneg_of_nonneg hx _),
     complex.of_real_cpow hx, complex.of_real_mul, complex.cpow_mul, complex.of_real_cpow hx];
   simp only [(complex.of_real_mul _ _).symm, (complex.of_real_log hx).symm,
     complex.of_real_im, neg_lt_zero, pi_pos, le_of_lt pi_pos]
-
-lemma rpow_neg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : x ^ -y = (x ^ y)⁻¹ :=
-by simp only [rpow_def_of_nonneg hx]; split_ifs; simp [*, exp_neg] at *
-
-lemma rpow_sub {x : ℝ} (hx : 0 < x) (y z : ℝ) : x ^ (y - z) = x ^ y / x ^ z :=
-by simp only [sub_eq_add_neg, rpow_add hx, rpow_neg (le_of_lt hx), div_eq_mul_inv]
-
-lemma rpow_sub' {x : ℝ} (hx : 0 ≤ x) {y z : ℝ} (h : y - z ≠ 0) :
-  x ^ (y - z) = x ^ y / x ^ z :=
-by { simp only [sub_eq_add_neg] at h ⊢, simp only [rpow_add' hx h, rpow_neg hx, div_eq_mul_inv] }
 
 lemma rpow_add_int {x : ℝ} (hx : x ≠ 0) (y : ℝ) (n : ℤ) : x ^ (y + n) = x ^ y * x ^ n :=
 by rw [rpow_def, complex.of_real_add, complex.cpow_add _ _ (complex.of_real_ne_zero.mpr hx),
@@ -600,5 +603,39 @@ begin
 end
 
 end sqrt
+
+variables {n : ℕ}
+
+lemma exists_rat_pow_btwn_rat_aux (hn : n ≠ 0) (x y : ℝ) (h : x < y) (hy : 0 < y) :
+  ∃ q : ℚ, 0 < q ∧ x < q^n ∧ ↑q^n < y :=
+begin
+  have hn' : 0 < (n : ℝ) := by exact_mod_cast hn.bot_lt,
+  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn (rpow_lt_rpow (le_max_left 0 x) (max_lt hy h) $
+    inv_pos.mpr hn'),
+  have := rpow_nonneg_of_nonneg (le_max_left 0 x) n⁻¹,
+  have hq := this.trans_lt hxq,
+  replace hxq := rpow_lt_rpow this hxq hn',
+  replace hqy := rpow_lt_rpow hq.le hqy hn',
+  rw [rpow_nat_cast, rpow_nat_cast, rpow_nat_inv_pow_nat _ hn] at hxq hqy,
+  exact ⟨q, by exact_mod_cast hq, (le_max_right _ _).trans_lt hxq, hqy⟩,
+  { exact le_max_left _ _ },
+  { exact hy.le }
+end
+
+lemma exists_rat_pow_btwn_rat (hn : n ≠ 0) {x y : ℚ} (h : x < y) (hy : 0 < y) :
+  ∃ q : ℚ, 0 < q ∧ x < q^n ∧ q^n < y :=
+by apply_mod_cast exists_rat_pow_btwn_rat_aux hn x y; assumption
+
+/-- There is a rational power between any two positive elements of an archimedean ordered field. -/
+lemma exists_rat_pow_btwn {α : Type*} [linear_ordered_field α] [archimedean α] (hn : n ≠ 0)
+  {x y : α} (h : x < y) (hy : 0 < y) : ∃ q : ℚ, 0 < q ∧ x < q^n ∧ (q^n : α) < y :=
+begin
+  obtain ⟨q₂, hx₂, hy₂⟩ := exists_rat_btwn (max_lt h hy),
+  obtain ⟨q₁, hx₁, hq₁₂⟩ := exists_rat_btwn hx₂,
+  have : (0 : α) < q₂ := (le_max_right _ _).trans_lt hx₂,
+  norm_cast at hq₁₂ this,
+  obtain ⟨q, hq, hq₁, hq₂⟩ := exists_rat_pow_btwn_rat hn hq₁₂ this,
+  refine ⟨q, hq, (le_max_left _ _).trans_lt $ hx₁.trans _, hy₂.trans' _⟩; assumption_mod_cast,
+end
 
 end real

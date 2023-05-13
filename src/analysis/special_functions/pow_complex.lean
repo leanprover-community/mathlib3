@@ -16,9 +16,9 @@ open filter finset set
 
 namespace complex
 
-/-- The complex power function `x^y`, given by `x^y = exp(y log x)` (where `log` is the principal
-determination of the logarithm), unless `x = 0` where one sets `0^0 = 1` and `0^y = 0` for
-`y ≠ 0`. -/
+/-- The complex power function `x ^ y`, given by `x ^ y = exp(y log x)` (where `log` is the
+principal determination of the logarithm), unless `x = 0` where one sets `0 ^ 0 = 1` and
+`0 ^ y = 0` for `y ≠ 0`. -/
 noncomputable def cpow (x y : ℂ) : ℂ :=
 if x = 0
   then if y = 0
@@ -139,7 +139,6 @@ begin
   rw [cpow_def_of_ne_zero (mul_ne_zero ha'' hb''), log_of_real_mul ha' hb'', of_real_log ha,
     add_mul, exp_add, ←cpow_def_of_ne_zero ha'', ←cpow_def_of_ne_zero hb'']
 end
-
 
 lemma inv_cpow_eq_ite (x : ℂ) (n : ℂ) :
   x⁻¹ ^ n = if x.arg = π then conj (x ^ conj n)⁻¹ else (x ^ n)⁻¹ :=

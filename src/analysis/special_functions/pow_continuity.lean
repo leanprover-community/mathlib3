@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
   Rémy Degenne, David Loeffler
 -/
-import analysis.special_functions.pow_nnreal
+import analysis.special_functions.pow_asymptotics
 
 /-!
-# Limits and continuity for power functions
+# Continuity of power functions
 
-This file contains lemmas about limiting behaviour, asymptotics and continuity for the power
-functions on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`.
+This file contains lemmas about continuity of the power functions on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`.
 -/
 
 noncomputable theory
@@ -18,11 +17,11 @@ noncomputable theory
 open_locale classical real topology nnreal ennreal filter big_operators complex_conjugate
 open filter finset set
 
-/-!
-## Limits and continuity for complex powers
--/
+section cpow_limits
 
-section lim
+/-!
+## Continuity for complex powers
+-/
 
 open complex
 
@@ -149,14 +148,15 @@ lemma continuous_on.cpow_const {b : ℂ} (hf : continuous_on f s)
   continuous_on (λ x, (f x) ^ b) s :=
 hf.cpow continuous_on_const h
 
-end lim
+end cpow_limits
 
-
-namespace real
+section rpow_limits
 
 /-!
 ## Continuity for real powers
 -/
+
+namespace real
 
 lemma continuous_at_const_rpow {a b : ℝ} (h : a ≠ 0) : continuous_at (rpow a) b :=
 begin
@@ -244,82 +244,6 @@ end
 
 end real
 
-/-!
-## Limits involving real powers
--/
-
-section limits
-open real filter
-
-/-- The function `x ^ y` tends to `+∞` at `+∞` for any positive real `y`. -/
-lemma tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ y) at_top at_top :=
-begin
-  rw tendsto_at_top_at_top,
-  intro b,
-  use (max b 0) ^ (1/y),
-  intros x hx,
-  exact le_of_max_le_left
-    (by { convert rpow_le_rpow (rpow_nonneg_of_nonneg (le_max_right b 0) (1/y)) hx (le_of_lt hy),
-      rw [← rpow_mul (le_max_right b 0), (eq_div_iff (ne_of_gt hy)).mp rfl, rpow_one] }),
-end
-
-/-- The function `x ^ (-y)` tends to `0` at `+∞` for any positive real `y`. -/
-lemma tendsto_rpow_neg_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ (-y)) at_top (𝓝 0) :=
-tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (rpow_neg (le_of_lt hx) y).symm))
-  (tendsto_rpow_at_top hy).inv_tendsto_at_top
-
-/-- The function `x ^ (a / (b * x + c))` tends to `1` at `+∞`, for any real numbers `a`, `b`, and
-`c` such that `b` is nonzero. -/
-lemma tendsto_rpow_div_mul_add (a b c : ℝ) (hb : 0 ≠ b) :
-  tendsto (λ x, x ^ (a / (b*x+c))) at_top (𝓝 1) :=
-begin
-  refine tendsto.congr' _ ((tendsto_exp_nhds_0_nhds_1.comp
-    (by simpa only [mul_zero, pow_one] using ((@tendsto_const_nhds _ _ _ a _).mul
-      (tendsto_div_pow_mul_exp_add_at_top b c 1 hb)))).comp tendsto_log_at_top),
-  apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
-  intros x hx,
-  simp only [set.mem_Ioi, function.comp_app] at hx ⊢,
-  rw [exp_log hx, ← exp_log (rpow_pos_of_pos hx (a / (b * x + c))), log_rpow hx (a / (b * x + c))],
-  field_simp,
-end
-
-/-- The function `x ^ (1 / x)` tends to `1` at `+∞`. -/
-lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, funext, congr' 2, ring }
-
-/-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
-lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, funext, congr' 2, ring }
-
-/-- The function `exp(x) / x ^ s` tends to `+∞` at `+∞`, for any real number `s`. -/
-lemma tendsto_exp_div_rpow_at_top (s : ℝ) : tendsto (λ x : ℝ, exp x / x ^ s) at_top at_top :=
-begin
-  cases archimedean_iff_nat_lt.1 (real.archimedean) s with n hn,
-  refine tendsto_at_top_mono' _ _ (tendsto_exp_div_pow_at_top n),
-  filter_upwards [eventually_gt_at_top (0 : ℝ), eventually_ge_at_top (1 : ℝ)] with x hx₀ hx₁,
-  rw [div_le_div_left (exp_pos _) (pow_pos hx₀ _) (rpow_pos_of_pos hx₀ _), ←rpow_nat_cast],
-  exact rpow_le_rpow_of_exponent_le hx₁ hn.le,
-end
-
-/-- The function `exp (b * x) / x ^ s` tends to `+∞` at `+∞`, for any real `s` and `b > 0`. -/
-lemma tendsto_exp_mul_div_rpow_at_top (s : ℝ) (b : ℝ) (hb : 0 < b) :
-  tendsto (λ x : ℝ, exp (b * x) / x ^ s) at_top at_top :=
-begin
-  refine ((tendsto_rpow_at_top hb).comp (tendsto_exp_div_rpow_at_top (s / b))).congr' _,
-  filter_upwards [eventually_ge_at_top (0 : ℝ)] with x hx₀,
-  simp [div_rpow, (exp_pos x).le, rpow_nonneg_of_nonneg, ←rpow_mul, ←exp_mul, mul_comm x, hb.ne', *]
-end
-
-/-- The function `x ^ s * exp (-b * x)` tends to `0` at `+∞`, for any real `s` and `b > 0`. -/
-lemma tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 (s : ℝ) (b : ℝ) (hb : 0 < b):
-  tendsto (λ x : ℝ, x ^ s * exp (-b * x)) at_top (𝓝 0) :=
-begin
-  refine (tendsto_exp_mul_div_rpow_at_top s b hb).inv_tendsto_at_top.congr' _,
-  filter_upwards with x using by simp [exp_neg, inv_div, div_eq_mul_inv _ (exp _)]
-end
-
-end limits
-
 section
 
 variable {α : Type*}
@@ -373,6 +297,96 @@ continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.rpow_const (h x)
 
 end
 
+end rpow_limits
+
+/-! ## Continuity results for `cpow`, part II
+
+These results involve relating real and complex powers, so cannot be done higher up.
+-/
+section cpow_limits2
+
+namespace complex
+
+/-- See also `continuous_at_cpow` and `complex.continuous_at_cpow_of_re_pos`. -/
+lemma continuous_at_cpow_zero_of_re_pos {z : ℂ} (hz : 0 < z.re) :
+  continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) (0, z) :=
+begin
+  have hz₀ : z ≠ 0, from ne_of_apply_ne re hz.ne',
+  rw [continuous_at, zero_cpow hz₀, tendsto_zero_iff_norm_tendsto_zero],
+  refine squeeze_zero (λ _, norm_nonneg _) (λ _, abs_cpow_le _ _) _,
+  simp only [div_eq_mul_inv, ← real.exp_neg],
+  refine tendsto.zero_mul_is_bounded_under_le _ _,
+  { convert (continuous_fst.norm.tendsto _).rpow ((continuous_re.comp continuous_snd).tendsto _) _;
+      simp [hz, real.zero_rpow hz.ne'] },
+  { simp only [(∘), real.norm_eq_abs, abs_of_pos (real.exp_pos _)],
+    rcases exists_gt (|im z|) with ⟨C, hC⟩,
+    refine ⟨real.exp (π * C), eventually_map.2 _⟩,
+    refine (((continuous_im.comp continuous_snd).abs.tendsto (_, z)).eventually
+      (gt_mem_nhds hC)).mono (λ z hz, real.exp_le_exp.2 $ (neg_le_abs_self _).trans _),
+    rw _root_.abs_mul,
+    exact mul_le_mul (abs_le.2 ⟨(neg_pi_lt_arg _).le, arg_le_pi _⟩) hz.le
+      (_root_.abs_nonneg _) real.pi_pos.le }
+end
+
+/-- See also `continuous_at_cpow` for a version that assumes `p.1 ≠ 0` but makes no
+assumptions about `p.2`. -/
+lemma continuous_at_cpow_of_re_pos {p : ℂ × ℂ} (h₁ : 0 ≤ p.1.re ∨ p.1.im ≠ 0) (h₂ : 0 < p.2.re) :
+  continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
+begin
+  cases p with z w,
+  rw [← not_lt_zero_iff, lt_iff_le_and_ne, not_and_distrib, ne.def, not_not, not_le_zero_iff] at h₁,
+  rcases h₁ with h₁|(rfl : z = 0),
+  exacts [continuous_at_cpow h₁, continuous_at_cpow_zero_of_re_pos h₂]
+end
+
+/-- See also `continuous_at_cpow_const` for a version that assumes `z ≠ 0` but makes no
+assumptions about `w`. -/
+lemma continuous_at_cpow_const_of_re_pos {z w : ℂ} (hz : 0 ≤ re z ∨ im z ≠ 0) (hw : 0 < re w) :
+  continuous_at (λ x, x ^ w) z :=
+tendsto.comp (@continuous_at_cpow_of_re_pos (z, w) hz hw)
+  (continuous_at_id.prod continuous_at_const)
+
+/-- Continuity of `(x, y) ↦ x ^ y` as a function on `ℝ × ℂ`. -/
+lemma continuous_at_of_real_cpow (x : ℝ) (y : ℂ) (h : 0 < y.re ∨ x ≠ 0) :
+  continuous_at (λ p, ↑p.1 ^ p.2 : ℝ × ℂ → ℂ) (x, y) :=
+begin
+  rcases lt_trichotomy 0 x with hx | rfl | hx,
+  { -- x > 0 : easy case
+    have : continuous_at (λ p, ⟨↑p.1, p.2⟩ : ℝ × ℂ → ℂ × ℂ) (x, y),
+      from continuous_of_real.continuous_at.prod_map continuous_at_id,
+    refine (continuous_at_cpow (or.inl _)).comp this,
+    rwa of_real_re },
+  { -- x = 0 : reduce to continuous_at_cpow_zero_of_re_pos
+    have A : continuous_at (λ p, p.1 ^ p.2 : ℂ × ℂ → ℂ) ⟨↑(0:ℝ), y⟩,
+    { rw of_real_zero,
+      apply continuous_at_cpow_zero_of_re_pos,
+      tauto },
+    have B : continuous_at (λ p, ⟨↑p.1, p.2⟩ : ℝ × ℂ → ℂ × ℂ) ⟨0, y⟩,
+      from continuous_of_real.continuous_at.prod_map continuous_at_id,
+    exact @continuous_at.comp (ℝ × ℂ) (ℂ × ℂ) ℂ _ _ _ _ (λ p, ⟨↑p.1, p.2⟩) ⟨0, y⟩ A B },
+  { -- x < 0 : difficult case
+    suffices : continuous_at (λ p, (-↑p.1) ^ p.2 * exp (π * I * p.2) : ℝ × ℂ → ℂ) (x, y),
+    { refine this.congr (eventually_of_mem (prod_mem_nhds (Iio_mem_nhds hx) univ_mem) _),
+      exact λ p hp, (of_real_cpow_of_nonpos (le_of_lt hp.1) p.2).symm },
+    have A : continuous_at (λ p, ⟨-↑p.1, p.2⟩ : ℝ × ℂ → ℂ × ℂ) (x, y),
+      from continuous_at.prod_map (continuous_of_real.continuous_at.neg) continuous_at_id,
+    apply continuous_at.mul,
+    { refine (continuous_at_cpow (or.inl _)).comp A,
+      rwa [neg_re, of_real_re, neg_pos] },
+    { exact (continuous_exp.comp (continuous_const.mul continuous_snd)).continuous_at } },
+end
+
+lemma continuous_at_of_real_cpow_const (x : ℝ) (y : ℂ) (h : 0 < y.re ∨ x ≠ 0) :
+  continuous_at (λ a, a ^ y : ℝ → ℂ) x :=
+@continuous_at.comp _ _ _ _ _ _ _ _ x (continuous_at_of_real_cpow x y h)
+  (continuous_id.prod_mk continuous_const).continuous_at
+
+lemma continuous_of_real_cpow_const {y : ℂ} (hs : 0 < y.re) : continuous (λ x, x ^ y : ℝ → ℂ) :=
+continuous_iff_continuous_at.mpr (λ x, continuous_at_of_real_cpow_const x y (or.inl hs))
+
+end complex
+
+end cpow_limits2
 
 /-! ## Limits and continuity for `ℝ≥0` powers -/
 namespace nnreal
@@ -414,7 +428,6 @@ tendsto.comp (nnreal.continuous_at_rpow h) (hx.prod_mk_nhds hy)
 
 namespace nnreal
 
-
 lemma continuous_at_rpow_const {x : ℝ≥0} {y : ℝ} (h : x ≠ 0 ∨ 0 ≤ y) :
   continuous_at (λ z, z^y) x :=
 h.elim (λ h, tendsto_id.nnrpow tendsto_const_nhds (or.inl h)) $
@@ -426,20 +439,9 @@ lemma continuous_rpow_const {y : ℝ} (h : 0 ≤ y) :
   continuous (λ x : ℝ≥0, x^y) :=
 continuous_iff_continuous_at.2 $ λ x, continuous_at_rpow_const (or.inr h)
 
-theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
-  tendsto (λ (x : ℝ≥0), x ^ y) at_top at_top :=
-begin
-  rw filter.tendsto_at_top_at_top,
-  intros b,
-  obtain ⟨c, hc⟩ := tendsto_at_top_at_top.mp (tendsto_rpow_at_top hy) b,
-  use c.to_nnreal,
-  intros a ha,
-  exact_mod_cast hc a (real.to_nnreal_le_iff_le_coe.mp ha),
-end
-
 end nnreal
 
-/-! ## Limits and continuity for `ℝ≥0∞` powers -/
+/-! ## Continuity for `ℝ≥0∞` powers -/
 namespace ennreal
 
 lemma eventually_pow_one_div_le {x : ℝ≥0∞} (hx : x ≠ ∞) {y : ℝ≥0∞} (hy : 1 < y) :
@@ -452,24 +454,6 @@ begin
     have := nnreal.eventually_pow_one_div_le x (by exact_mod_cast hy : 1 < y),
     refine this.congr (eventually_of_forall $ λ n, _),
     rw [coe_rpow_of_nonneg x (by positivity : 0 ≤ (1 / n : ℝ)), coe_le_coe] },
-end
-
-theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
-  tendsto (λ (x : ℝ≥0∞), x ^ y) (𝓝 ⊤) (𝓝 ⊤) :=
-begin
-  rw tendsto_nhds_top_iff_nnreal,
-  intros x,
-  obtain ⟨c, _, hc⟩ :=
-    (at_top_basis_Ioi.tendsto_iff at_top_basis_Ioi).mp (nnreal.tendsto_rpow_at_top hy) x trivial,
-  have hc' : set.Ioi (↑c) ∈ 𝓝 (⊤ : ℝ≥0∞) := Ioi_mem_nhds coe_lt_top,
-  refine eventually_of_mem hc' _,
-  intros a ha,
-  by_cases ha' : a = ⊤,
-  { simp [ha', hy] },
-  lift a to ℝ≥0 using ha',
-  change ↑c < ↑a at ha,
-  rw coe_rpow_of_nonneg _ hy.le,
-  exact_mod_cast hc a (by exact_mod_cast ha),
 end
 
 private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :

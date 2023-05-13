@@ -60,6 +60,10 @@ lemma left_mem_affine_segment (x y : P) : x ∈ affine_segment R x y :=
 lemma right_mem_affine_segment (x y : P) : y ∈ affine_segment R x y :=
 ⟨1, set.right_mem_Icc.2 zero_le_one, line_map_apply_one _ _⟩
 
+@[simp] lemma affine_segment_same (x : P) : affine_segment R x x = {x} :=
+by simp_rw [affine_segment, line_map_same, affine_map.coe_const,
+    (set.nonempty_Icc.mpr zero_le_one).image_const]
+
 include V'
 
 variables {R}

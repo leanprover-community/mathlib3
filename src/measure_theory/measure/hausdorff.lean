@@ -1128,7 +1128,7 @@ begin
   { haveI := no_atoms_hausdorff P one_pos,
     obtain rfl | hs := s.eq_empty_or_nonempty,
     { simp },
-    simp [affine_segment, hs] },
+    simp [hs] },
   have hn : ‖y -ᵥ x‖ ≠ 0,
   { rwa [norm_ne_zero_iff, vsub_ne_zero, ne_comm] },
   -- break line_map into pieces

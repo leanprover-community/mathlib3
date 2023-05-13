@@ -31,7 +31,7 @@ localized "notation (name := nat.double_factorial) n `‼`:10000 := nat.double_f
 
 lemma double_factorial_add_two (n : ℕ) : (n + 2)‼ = (n + 2) * n‼ := rfl
 
-lemma double_factorial_def' (n : ℕ) : (n + 1)‼ = (n + 1) * (n - 1)‼ := by { cases n; refl }
+lemma double_factorial_add_one (n : ℕ) : (n + 1)‼ = (n + 1) * (n - 1)‼ := by { cases n; refl }
 
 lemma factorial_eq_mul_double_factorial : ∀ (n : ℕ), (n + 1)! = (n + 1)‼ * n‼
 | 0 := rfl

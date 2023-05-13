@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Almost everywhere measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function is almost everywhere measurable if it coincides almost everywhere with a measurable
 function. This property, called `ae_measurable f μ`, is defined in the file `measure_space_def`.
 We discuss several of its properties that are analogous to properties of measurable functions.

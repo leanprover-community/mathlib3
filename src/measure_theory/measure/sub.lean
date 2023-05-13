@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Subtraction of measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `μ - ν` to be the least measure `τ` such that `μ ≤ τ + ν`.
 It is the equivalent of `(μ - ν) ⊔ 0` if `μ` and `ν` were signed measures.
 Compare with `ennreal.has_sub`.

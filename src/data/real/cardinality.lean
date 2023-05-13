@@ -11,6 +11,9 @@ import set_theory.cardinal.continuum
 /-!
 # The cardinality of the reals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that the real numbers have cardinality continuum, i.e. `#ℝ = 𝔠`.
 
 We show that `#ℝ ≤ 𝔠` by noting that every real number is determined by a Cauchy-sequence of the

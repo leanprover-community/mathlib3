@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv.basic
-import analysis.normed_space.multilinear
 import analysis.calculus.formal_multilinear_series
-import data.enat.basic
 
 /-!
 # Higher differentiability
@@ -247,6 +245,16 @@ begin
     { assume m hm,
       apply (H m).cont m le_rfl } }
 end
+
+/-- In the case that `n = ∞` we don't need the continuity assumption in
+`has_ftaylor_series_up_to_on`. -/
+lemma has_ftaylor_series_up_to_on_top_iff' : has_ftaylor_series_up_to_on ∞ f p s ↔
+  (∀ x ∈ s, (p x 0).uncurry0 = f x) ∧
+  (∀ (m : ℕ), ∀ x ∈ s, has_fderiv_within_at (λ y, p y m) (p x m.succ).curry_left s x) :=
+-- Everything except for the continuity is trivial:
+⟨λ h, ⟨h.1, λ m, h.2 m (with_top.coe_lt_top m)⟩, λ h, ⟨h.1, λ m _, h.2 m, λ m _ x hx,
+  -- The continuity follows from the existence of a derivative:
+  (h.2 m x hx).continuous_within_at⟩⟩
 
 /-- If a function has a Taylor series at order at least `1`, then the term of order `1` of this
 series is a derivative of `f`. -/
@@ -1233,6 +1241,18 @@ lemma has_ftaylor_series_up_to_zero_iff :
   has_ftaylor_series_up_to 0 f p ↔ continuous f ∧ (∀ x, (p x 0).uncurry0 = f x) :=
 by simp [has_ftaylor_series_up_to_on_univ_iff.symm, continuous_iff_continuous_on_univ,
          has_ftaylor_series_up_to_on_zero_iff]
+
+lemma has_ftaylor_series_up_to_top_iff : has_ftaylor_series_up_to ∞ f p ↔
+  ∀ (n : ℕ), has_ftaylor_series_up_to n f p :=
+by simp only [← has_ftaylor_series_up_to_on_univ_iff, has_ftaylor_series_up_to_on_top_iff]
+
+/-- In the case that `n = ∞` we don't need the continuity assumption in
+`has_ftaylor_series_up_to`. -/
+lemma has_ftaylor_series_up_to_top_iff' : has_ftaylor_series_up_to ∞ f p ↔
+  (∀ x, (p x 0).uncurry0 = f x) ∧
+  (∀ (m : ℕ) x, has_fderiv_at (λ y, p y m) (p x m.succ).curry_left x) :=
+by simp only [← has_ftaylor_series_up_to_on_univ_iff, has_ftaylor_series_up_to_on_top_iff',
+  mem_univ, forall_true_left, has_fderiv_within_at_univ]
 
 /-- If a function has a Taylor series at order at least `1`, then the term of order `1` of this
 series is a derivative of `f`. -/

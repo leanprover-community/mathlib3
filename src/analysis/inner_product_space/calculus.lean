@@ -364,7 +364,7 @@ begin
     refl, },
   refine cont_diff_at.congr_of_eventually_eq _ hf,
   suffices : cont_diff_at ℝ n (λy, (1 - ‖(y : E)‖^2).sqrt⁻¹) y, { exact this.smul cont_diff_at_id },
-  have h : 0 < 1 - ‖(y : E)‖^2, by rwa [mem_ball_zero_iff, ← _root_.abs_one, ← abs_norm_eq_norm,
+  have h : 0 < 1 - ‖(y : E)‖^2, by rwa [mem_ball_zero_iff, ← _root_.abs_one, ← abs_norm,
     ← sq_lt_sq, one_pow, ← sub_pos] at hy,
   refine cont_diff_at.inv _ (real.sqrt_ne_zero'.mpr h),
   refine cont_diff_at.comp _ (cont_diff_at_sqrt h.ne.symm) _,

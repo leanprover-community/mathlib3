@@ -43,16 +43,9 @@ noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
     have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k ≤ 0 := sorry,
     nat.find h
 
-lemma agrees_converges {a b : ℕ → ℝ} (k : ℕ) (h : ∀ n : ℕ, k ≤ n → a n = b n) :
-  (∃ C, tendsto (partial_sum a) at_top (𝓝 C)) ↔ (∃ C, tendsto (partial_sum b) at_top (𝓝 C)) :=
+lemma converges_of_agrees_converges {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C)) : ∃ C, tendsto (partial_sum b) at_top (𝓝 C) :=
 begin
-  wlog h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C),
-  { specialize this k (λ n hn, (h n hn).symm),
-    split,
-    { tauto },
-    { exact λ h, (this h).mp h } },
-  suffices : (∃ C, tendsto (partial_sum b) at_top (𝓝 C)),
-  { tauto },
   cases h₁ with C ha,
   let D := partial_sum b k - partial_sum a k,
   use C + D,
@@ -63,6 +56,14 @@ begin
   intros n hn,
   rw set.mem_preimage,
   sorry
+end
+
+lemma agrees_converges {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n) :
+  (∃ C, tendsto (partial_sum a) at_top (𝓝 C)) ↔ (∃ C, tendsto (partial_sum b) at_top (𝓝 C)) :=
+begin
+  split; intro h₁,
+  { exact converges_of_agrees_converges h h₁ },
+  { exact converges_of_agrees_converges (λ n hn, (h n hn).symm) h₁ }
 end
 
 theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))

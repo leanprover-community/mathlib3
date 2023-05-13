@@ -112,7 +112,7 @@ instance : has_zero (proper_cone 𝕜 E) :=
 instance : inhabited (proper_cone 𝕜 E) := ⟨0⟩
 
 @[simp] lemma mem_zero (x : E) : x ∈ (0 : proper_cone 𝕜 E) ↔ x = 0 := iff.rfl
-@[simp] lemma coe_zero : ↑(0 : proper_cone 𝕜 E) = (0 : convex_cone 𝕜 E) := rfl
+@[simp, norm_cast] lemma coe_zero : ↑(0 : proper_cone 𝕜 E) = (0 : convex_cone 𝕜 E) := rfl
 
 lemma pointed_zero : (0 : proper_cone 𝕜 E).pointed := by simp [convex_cone.pointed_zero]
 

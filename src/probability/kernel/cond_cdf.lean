@@ -85,15 +85,28 @@ begin
   exact exists_rat_lt x,
 end
 
-lemma ennreal.tendsto_at_top_zero_of_tendsto_at_top_at_bot [nonempty ι] [semilattice_sup ι]
-  {f : ι → ℝ≥0∞} (h : tendsto f at_top at_bot) :
-  tendsto f at_top (𝓝 0) :=
+-- todo after the port: move to order/filter/at_top_bot
+lemma at_bot_le_nhds_bot {α : Type*} [topological_space α] [linear_order α] [order_bot α]
+  [order_topology α] :
+  (at_bot : filter α) ≤ 𝓝 ⊥ :=
 begin
-  rw tendsto_at_bot at h,
-  obtain ⟨i, hi⟩ := eventually_at_top.mp (h 0),
-  rw ennreal.tendsto_at_top_zero,
-  exact λ ε hε, ⟨i, λ n hn, (hi n hn).trans (zero_le _)⟩,
+  casesI subsingleton_or_nontrivial α,
+  { simp only [nhds_discrete, le_pure_iff, mem_at_bot_sets, mem_singleton_iff,
+      eq_iff_true_of_subsingleton, implies_true_iff, exists_const], },
+  have h : at_bot.has_basis (λ _ : α, true) Iic := @at_bot_basis α _ _,
+  have h_nhds : (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a, Iio a) := @nhds_bot_basis α _ _ _ _ _,
+  intro s,
+  rw [h.mem_iff, h_nhds.mem_iff],
+  rintros ⟨a, ha_bot_lt, h_Iio_a_subset_s⟩,
+  refine ⟨⊥, trivial, subset_trans _ h_Iio_a_subset_s⟩,
+  simpa only [Iic_bot, singleton_subset_iff, mem_Iio],
 end
+
+-- todo after the port: move to order/filter/at_top_bot
+lemma at_top_le_nhds_top {α : Type*} [topological_space α] [linear_order α] [order_top α]
+  [order_topology α] :
+  (at_top : filter α) ≤ 𝓝 ⊤ :=
+@at_bot_le_nhds_bot αᵒᵈ _ _ _ _
 
 -- todo: move to topology/algebra/order/monotone_convergence
 lemma tendsto_of_antitone {ι α : Type*} [preorder ι] [topological_space α]
@@ -453,7 +466,7 @@ begin
     have h_tendsto : tendsto (λ r, pre_cdf ρ (-r) a) at_top at_bot
       ∨ ∃ l, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 l) := tendsto_of_antitone h_anti,
     cases h_tendsto with h_bot h_tendsto,
-    { exact ⟨0, ennreal.tendsto_at_top_zero_of_tendsto_at_top_at_bot h_bot⟩, },
+    { exact ⟨0, tendsto.mono_right h_bot at_bot_le_nhds_bot⟩, },
     { exact h_tendsto, }, },
   classical,
   let F : α → ℝ≥0∞ := λ a,

@@ -43,6 +43,30 @@ noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
     have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k ≤ 0 := sorry,
     nat.find h
 
+lemma diff_partial_sums_of_agrees' {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n) (n : ℕ)
+  : partial_sum a (n + k) - partial_sum b (n + k) = partial_sum a k - partial_sum b k :=
+begin
+  induction n with n hi,
+  { simp },
+  /-rw (show (n + 1 + k) = (n + k) + 1, by ring),
+  rw partial_sum_next,
+  rw partial_sum_next,
+  rw (show a (n + k) + partial_sum a (n + k) - (b (n + k) + partial_sum b (n + k)) =
+    (a (n + k) - b (n + k)) + (partial_sum a (n + k) - partial_sum b (n + k)), by ring),
+  simp [hi, h (n + k) (le_add_self)],-/
+  have : a (n + k) + partial_sum a (n + k) - (b (n + k) + partial_sum b (n + k)) =
+    (a (n + k) - b (n + k)) + (partial_sum a (n + k) - partial_sum b (n + k)) := by ring,
+  simp [this, (show n + 1 + k = n + k + 1, by ring), partial_sum_next, hi, h (n + k) (le_add_self)]
+end
+
+lemma diff_partial_sums_of_agrees {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n) {n : ℕ}
+  (hn : k ≤ n) : partial_sum a n - partial_sum b n = partial_sum a k - partial_sum b k :=
+begin
+  have := diff_partial_sums_of_agrees' h (n - k),
+  rw nat.sub_add_cancel hn at this,
+  exact this,
+end
+
 lemma converges_of_agrees_converges {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C)) : ∃ C, tendsto (partial_sum b) at_top (𝓝 C) :=
 begin

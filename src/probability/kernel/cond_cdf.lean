@@ -822,10 +822,6 @@ begin
   exact ⟨r, hrx⟩,
 end
 
-/-- The conditional cdf is monotone for all `a : α`. -/
-lemma monotone_cond_cdf (ρ : measure (α × ℝ)) (a : α) : monotone (cond_cdf ρ a) :=
-(cond_cdf ρ a).mono
-
 /-- The conditional cdf tends to 0 at -∞ for all `a : α`. -/
 lemma tendsto_cond_cdf_at_bot (ρ : measure (α × ℝ)) (a : α) :
   tendsto (cond_cdf ρ a) at_bot (𝓝 0) :=
@@ -842,7 +838,7 @@ begin
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
     ((tendsto_cond_cdf_rat_at_bot ρ a).comp hqs_tendsto) (cond_cdf_nonneg ρ a) (λ x, _),
   rw [function.comp_apply, ← cond_cdf_eq_cond_cdf_rat],
-  exact monotone_cond_cdf ρ a (h_exists x).some_spec.1.le,
+  exact (cond_cdf ρ a).mono (h_exists x).some_spec.1.le,
 end
 
 /-- The conditional cdf tends to 1 at +∞ for all `a : α`. -/
@@ -861,7 +857,7 @@ begin
     ((tendsto_cond_cdf_rat_at_top ρ a).comp hqs_tendsto) tendsto_const_nhds _ (cond_cdf_le_one ρ a),
   intro x,
   rw [function.comp_apply, ← cond_cdf_eq_cond_cdf_rat],
-  exact monotone_cond_cdf ρ a (le_of_lt (h_exists x).some_spec.2),
+  exact (cond_cdf ρ a).mono (le_of_lt (h_exists x).some_spec.2),
 end
 
 lemma cond_cdf_ae_eq (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ) :
@@ -922,7 +918,7 @@ begin
     simp_rw h_coe,
     rw [set_lintegral_cond_cdf_rat ρ _ hs],
     exact measure_ne_top ρ _, },
-  { refine monotone.directed_ge (λ i j hij a, ennreal.of_real_le_of_real (monotone_cond_cdf ρ a _)),
+  { refine monotone.directed_ge (λ i j hij a, ennreal.of_real_le_of_real ((cond_cdf ρ a).mono _)),
     rw [h_coe, h_coe],
     exact_mod_cast hij, },
   simp_rw [h_coe, set_lintegral_cond_cdf_rat ρ _ hs],

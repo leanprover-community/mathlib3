@@ -37,8 +37,6 @@ open continuous_linear_map filter set
 
 namespace convex_cone
 
-section has_smul
-
 variables {𝕜 : Type*} [ordered_semiring 𝕜]
 variables {E : Type*} [add_comm_monoid E] [topological_space E] [has_continuous_add E]
   [has_smul 𝕜 E] [has_continuous_const_smul 𝕜 E]
@@ -59,32 +57,6 @@ protected def closure (K : convex_cone 𝕜 E) : convex_cone 𝕜 E :=
 lemma closure_eq_iff_is_closed {K : convex_cone 𝕜 E} : K.closure = K ↔ is_closed (K : set E) :=
 ⟨ (λ h, by rw [← closure_eq_iff_is_closed, ← coe_closure, h]),
   (λ h, set_like.coe_injective $ closure_eq_iff_is_closed.2 h) ⟩
-
-end has_smul
-
-section complete_space
-
-variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
-variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
-
-/-- The image of a convex cone under an adjoint is a convex cone. -/
-protected def adjoint (f : E →L[ℝ] F) (S : convex_cone ℝ F) : convex_cone ℝ E :=
-{ carrier := (adjoint f)''S,
-  smul_mem' := λ c hc _ ⟨y, h1, h2⟩,
-    ⟨c • y, S.smul_mem hc h1, by rw [← h2,continuous_linear_map.map_smul] ⟩,
-  add_mem' := λ x ⟨a, ha1, ha2⟩ y ⟨b, hb1, hb2⟩,
-    ⟨a + b, S.add_mem ha1 hb1, by rw [← ha2, ← hb2, continuous_linear_map.map_add ] ⟩ }
-
-@[simp] lemma coe_adjoint (f : E →L[ℝ] F) (S : convex_cone ℝ F) :
-  (convex_cone.adjoint f S : set E) = (adjoint f)''S := rfl
-
-@[simp] lemma mem_adjoint {f : E →L[ℝ] F} {S : convex_cone ℝ F} {x : E} :
-  x ∈ convex_cone.adjoint f S ↔ x ∈ (adjoint f)''S := iff.rfl
-
-@[simp] lemma adjoint_id (S : convex_cone ℝ E) :
-  convex_cone.adjoint (continuous_linear_map.id ℝ E) S = S := set_like.coe_injective $ by simp
-
-end complete_space
 
 end convex_cone
 
@@ -194,7 +166,8 @@ noncomputable def comap (f : E →L[ℝ] F) (S : proper_cone ℝ F) : proper_con
     apply is_closed.preimage f.2 S.is_closed,
   end }
 
-@[simp] lemma coe_comap (f : E →L[ℝ] F) (S : proper_cone ℝ F) : (S.comap f : set E) = f ⁻¹' S := rfl
+@[simp] lemma coe_comap (f : E →L[ℝ] F) (S : proper_cone ℝ F) : (S.comap f : set E) = f ⁻¹' S :=
+rfl
 
 @[simp] lemma comap_id (S : convex_cone ℝ E) : S.comap linear_map.id = S :=
 set_like.coe_injective preimage_id
@@ -225,7 +198,8 @@ theorem hyperplane_separation (K : proper_cone ℝ E) {f : E →L[ℝ] F} {b : F
   b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ K.dual → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
 begin
   -- suppose `b ∈ K.map f`
-  simp only [proper_cone.mem_map, proper_cone.mem_dual, adjoint_inner_right, convex_cone.mem_closure, mem_closure_iff_seq_limit],
+  simp only [proper_cone.mem_map, proper_cone.mem_dual, adjoint_inner_right,
+    convex_cone.mem_closure, mem_closure_iff_seq_limit],
 
   -- there is a sequence `seq : ℕ → F` in the image of `f` that converges to `b`
   rintros ⟨seq, hmem, htends⟩ y hinner,

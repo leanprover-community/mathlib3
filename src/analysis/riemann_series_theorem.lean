@@ -33,16 +33,6 @@ begin
   exact finset.not_mem_range_self
 end
 
-noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
-| 0 := 0
-| (n+1) :=
-  if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement ↑x) ≤ M then
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k := sorry,
-    nat.find h
-  else
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k ≤ 0 := sorry,
-    nat.find h
-
 lemma diff_partial_sums_of_agrees' {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n) (n : ℕ)
   : partial_sum a (n + k) - partial_sum b (n + k) = partial_sum a k - partial_sum b k :=
 begin
@@ -128,6 +118,16 @@ begin
   { exact converges_of_agrees_converges h h₁ },
   { exact converges_of_agrees_converges (λ n hn, (h n hn).symm) h₁ }
 end
+
+noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
+| 0 := 0
+| (n+1) :=
+  if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement ↑x) ≤ M then
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k := sorry,
+    nat.find h
+  else
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k ≤ 0 := sorry,
+    nat.find h
 
 theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))
   (h₂ : ¬∃ C : ℝ, tendsto (partial_sum (λ k, ‖a k‖)) at_top (nhds C)) (M : ℝ) : ∃ (p : equiv.perm ℕ),

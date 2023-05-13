@@ -82,9 +82,6 @@ begin
     intros x hx,
     unfold uniform_space.ball at hx hS,
     apply hS,
-    rw set.mem_preimage at hx ⊢,
-    change (c - d, x) ∈ (λ (x : R × R), (x.fst + d, x.snd + d)) ⁻¹' V at hx,
-    rw set.mem_preimage at hx,
     simpa using hx,
   end,
   exact ⟨hV, h₁⟩,
@@ -101,15 +98,7 @@ begin
 
   -- U is the neighborhood that results from shifting S by D units
   let U := {x : ℝ | x + D ∈ S},
-  have hU : U ∈ 𝓝 C := begin
-    sorry
-    /-
-    rw uniform_space.mem_nhds_iff at ⊢ hS,
-    rcases hS with ⟨V, hV, hS⟩,
-    have := @uniform_continuous_sub ℝ _ _ _,
-    rw uniform_continuous_def at this,
-    -/
-  end,
+  have hU : U ∈ 𝓝 C := by simpa using shift_neighborhood hS D,
 
   -- By hypothesis, there exists an N such that for all n ≥ N, partial_sum a n ∈ U.
   specialize ha U hU,

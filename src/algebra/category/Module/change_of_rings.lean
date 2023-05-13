@@ -329,9 +329,7 @@ identity functor.
 
 end restriction_coextension_adj
 
-/--
-restriction of scalars ⊣ coextension of scalars
--/
+/-- Restriction of scalars is left adjoint to coextension of scalars. -/
 @[simps] def restrict_coextend_scalars_adj {R : Type u₁} {S : Type u₂} [ring R] [ring S]
   (f : R →+* S) : restrict_scalars f ⊣ coextend_scalars f :=
 { hom_equiv := λ X Y,

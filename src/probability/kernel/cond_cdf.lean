@@ -12,10 +12,11 @@ import measure_theory.decomposition.radon_nikodym
 # Conditional cumulative distribution function
 
 Given `ρ : measure (α × ℝ)`, we define the conditional cumulative distribution function
-(conditional cdf) of `ρ`. It is a function `cond_cdf ρ : α → ℝ → ℝ` such that for all `a : α`,
-`cond_cdf ρ a` is monotone and right-continuous with limit 0 at -∞ and limit 1 at +∞, and such that
-for all `x : ℝ`, `a ↦ cond_cdf ρ a x` is measurable. For all `x : ℝ` and measurable set `s`, that
-function satisfies `∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x)`.
+(conditional cdf) of `ρ`. It is a function `cond_cdf ρ : α → ℝ → ℝ` such that if `ρ` is a finite
+measure, then for all `a : α` `cond_cdf ρ a` is monotone and right-continuous with limit 0 at -∞
+and limit 1 at +∞, and such that for all `x : ℝ`, `a ↦ cond_cdf ρ a x` is measurable. For all
+`x : ℝ` and measurable set `s`, that function satisfies
+`∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x)`.
 
 ## Main definitions
 

@@ -399,8 +399,13 @@ end
 lemma tendsto_pre_cdf_at_top_one (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 1) :=
 begin
+  -- We show first that `pre_cdf` has a limit almost everywhere. That limit has to be at most 1.
+  -- We then show that the integral of `pre_cdf` tends to the integral of 1, and that it also tends
+  -- to the integral of the limit. Since the limit is at most 1 and has same integral as 1, it is
+  -- equal to 1 a.e.
   have h_mono := monotone_pre_cdf ρ,
   have h_le_one := pre_cdf_le_one ρ,
+  -- `pre_cdf` has a limit a.e.
   have h_exists : ∀ᵐ a ∂ρ.fst, ∃ l, tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 l),
   { filter_upwards [h_mono, h_le_one] with a ha_mono ha_le_one,
     have h_tendsto : tendsto (λ r, pre_cdf ρ r a) at_top at_top
@@ -411,6 +416,7 @@ begin
       exact absurd (hr.trans (ha_le_one r)) ennreal.one_lt_two.not_le, },
     { exact h_tendsto, }, },
   classical,
+  -- let `F` be the pointwise limit of `pre_cdf` where it exists, and 0 elsewhere.
   let F : α → ℝ≥0∞ := λ a,
     if h : ∃ l, tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 l) then h.some else 0,
   have h_tendsto_ℚ : ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 (F a)),
@@ -424,9 +430,12 @@ begin
     exact measurable_pre_cdf.ae_measurable, },
   have hF_le_one : ∀ᵐ a ∂ρ.fst, F a ≤ 1,
   { filter_upwards [h_tendsto_ℚ, h_le_one] with a ha ha_le using le_of_tendsto' ha ha_le, },
+  -- it suffices to show that the limit `F` is 1 a.e.
   suffices : ∀ᵐ a ∂ρ.fst, F a = 1,
   { filter_upwards [h_tendsto_ℚ, this] with a ha_tendsto ha_eq,
     rwa ha_eq at ha_tendsto, },
+  -- since `F` is at most 1, proving that its integral is the same as the integral of 1 will tell
+  -- us that `F` is 1 a.e.
   have h_lintegral_eq : ∫⁻ a, F a ∂ρ.fst = ∫⁻ a, 1 ∂ρ.fst,
   { have h_lintegral : tendsto (λ r : ℕ, ∫⁻ a, pre_cdf ρ r a ∂ρ.fst) at_top
       (𝓝 (∫⁻ a, F a ∂ρ.fst)),
@@ -455,6 +464,9 @@ end
 lemma tendsto_pre_cdf_at_bot_zero (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 0) :=
 begin
+  -- We show first that `pre_cdf` has a limit in ℝ≥0∞ almost everywhere.
+  -- We then show that the integral of `pre_cdf` tends to 0, and that it also tends
+  -- to the integral of the limit. Since the limit is has integral 0, it is equal to 0 a.e.
   suffices : ∀ᵐ a ∂ρ.fst, tendsto (λ r, pre_cdf ρ (-r) a) at_top (𝓝 0),
   { filter_upwards [this] with a ha,
     have h_eq_neg : (λ (r : ℚ), pre_cdf ρ r a) = (λ (r : ℚ), pre_cdf ρ (- -r) a),

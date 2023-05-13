@@ -112,6 +112,8 @@ instance : has_zero (proper_cone 𝕜 E) :=
 
 instance : inhabited (proper_cone 𝕜 E) := ⟨0⟩
 
+@[simp] lemma zero_coe : ↑(0 : proper_cone 𝕜 E) = (0 : convex_cone  𝕜 E) := rfl
+
 end module
 
 section inner_product_space
@@ -162,7 +164,7 @@ section complete_space
 variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [complete_space E]
 
 /-- The dual of the dual of a proper cone is itself. -/
-theorem dual_dual (K : proper_cone ℝ E) : K.dual.dual = K := proper_cone.ext' $
+@[simp] theorem dual_dual (K : proper_cone ℝ E) : K.dual.dual = K := proper_cone.ext' $
   (K : convex_cone ℝ E).inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed
 
 end complete_space

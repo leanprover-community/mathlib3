@@ -33,6 +33,43 @@ begin
   exact finset.not_mem_range_self
 end
 
+lemma partial_sum_neg {R : Type u} [add_comm_group R] (f : ℕ → R) (n : ℕ) :
+  partial_sum (λ m, - (f m)) n = - (partial_sum f n) :=
+begin
+  induction n with n hi,
+  { simp },
+  { simp [partial_sum_next, hi, add_comm] }
+end
+
+lemma converges_absolutely_iff_converges_of_all_terms_nonneg (a : ℕ → ℝ) (h : ∀ n, 0 ≤ a n) :
+  (∃ C, tendsto (partial_sum a) at_top (𝓝 C)) ↔
+    (∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) :=
+begin
+  have : (λ n, ‖a n‖) = a := begin
+    funext n,
+    exact real.norm_of_nonneg (h n),
+  end,
+  rw this
+end
+
+lemma converges_neg_iff_converges (a : ℕ → ℝ) (C : ℝ) : tendsto a at_top (𝓝 C) ↔
+  tendsto (λ n, -(a n)) at_top (𝓝 (-C)) :=
+begin
+  split; intro h,
+  { exact tendsto.neg h },
+  { simpa using tendsto.neg h }
+end
+
+lemma converges_absolutely_iff_converges_of_all_terms_nonpos (a : ℕ → ℝ) (h : ∀ n, a n ≤ 0) :
+  (∃ C, tendsto (partial_sum a) at_top (𝓝 C)) ↔
+    (∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) :=
+begin
+  rw show (λ n, ‖a n‖) = (λ n, - a n), from funext (λ (n : ℕ), real.norm_of_nonpos (h n)),
+  have : (partial_sum (λ n, - a n)) = λ n, - (partial_sum a n) := funext (λ n, partial_sum_neg a n),
+  rw this,
+  split; rintros ⟨C, hC⟩; use -C; rw converges_neg_iff_converges; simpa using hC
+end
+
 lemma diff_partial_sums_of_agrees' {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n) (n : ℕ)
   : partial_sum a (n + k) - partial_sum b (n + k) = partial_sum a k - partial_sum b k :=
 begin

@@ -113,7 +113,7 @@ instance : has_zero (proper_cone 𝕜 E) :=
 
 instance : inhabited (proper_cone 𝕜 E) := ⟨0⟩
 
-@[simp] lemma zero_coe : ↑(0 : proper_cone 𝕜 E) = (0 : convex_cone 𝕜 E) := rfl
+@[simp, norm_cast] lemma coe_zero : ↑(0 : proper_cone 𝕜 E) = (0 : convex_cone 𝕜 E) := rfl
 
 end module
 

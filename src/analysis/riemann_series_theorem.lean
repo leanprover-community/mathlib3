@@ -52,22 +52,16 @@ begin
   rw this
 end
 
-lemma converges_neg_iff_converges (a : ℕ → ℝ) (C : ℝ) : tendsto a at_top (𝓝 C) ↔
-  tendsto (λ n, -(a n)) at_top (𝓝 (-C)) :=
-begin
-  split; intro h,
-  { exact tendsto.neg h },
-  { simpa using tendsto.neg h }
-end
-
 lemma converges_absolutely_iff_converges_of_all_terms_nonpos (a : ℕ → ℝ) (h : ∀ n, a n ≤ 0) :
   (∃ C, tendsto (partial_sum a) at_top (𝓝 C)) ↔
     (∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) :=
 begin
   rw show (λ n, ‖a n‖) = (λ n, - a n), from funext (λ (n : ℕ), real.norm_of_nonpos (h n)),
-  have : (partial_sum (λ n, - a n)) = λ n, - (partial_sum a n) := funext (λ n, partial_sum_neg a n),
-  rw this,
-  split; rintros ⟨C, hC⟩; use -C; rw converges_neg_iff_converges; simpa using hC
+  rw show (partial_sum (λ n, - a n)) = λ n, - (partial_sum a n),
+    from funext (λ n, partial_sum_neg a n),
+  split; rintros ⟨C, hC⟩; use -C,
+  { exact tendsto.neg hC },
+  { simpa using tendsto.neg hC }
 end
 
 lemma diff_partial_sums_of_agrees' {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n) (n : ℕ)

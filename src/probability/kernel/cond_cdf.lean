@@ -185,13 +185,13 @@ end aux_lemmas_to_be_moved
 
 namespace measure_theory.measure
 
-variables {α β : Type*} {mα : measurable_space α}
+variables {α β : Type*} {mα : measurable_space α} (ρ : measure (α × ℝ))
 
 include mα
 
 /-- Measure on `α` such that for a measurable set `s`, `ρ.Iic_snd r s = ρ (s ×ˢ Iic r)`. -/
 noncomputable
-def Iic_snd (ρ : measure (α × ℝ)) (r : ℚ) : measure α :=
+def Iic_snd (r : ℝ) : measure α :=
 measure.of_measurable (λ s hs, ρ (s ×ˢ Iic r))
   (by simp only [empty_prod, measure_empty])
   (λ f hf_meas hf_disj,
@@ -203,15 +203,14 @@ measure.of_measurable (λ s hs, ρ (s ×ˢ Iic r))
       { exact λ i, measurable_set.prod (hf_meas i) measurable_set_Iic, }
     end)
 
-lemma Iic_snd_apply (ρ : measure (α × ℝ)) (r : ℚ) {s : set α} (hs : measurable_set s) :
+lemma Iic_snd_apply (r : ℝ) {s : set α} (hs : measurable_set s) :
   ρ.Iic_snd r s = ρ (s ×ˢ Iic r) :=
 measure.of_measurable_apply s hs
 
-lemma Iic_snd_univ (ρ : measure (α × ℝ)) (r : ℚ) : ρ.Iic_snd r univ = ρ (univ ×ˢ Iic r) :=
+lemma Iic_snd_univ (r : ℝ) : ρ.Iic_snd r univ = ρ (univ ×ˢ Iic r) :=
 Iic_snd_apply ρ r measurable_set.univ
 
-lemma Iic_snd_mono (ρ : measure (α × ℝ)) {r r' : ℚ} (h_le : r ≤ r') :
-  ρ.Iic_snd r ≤ ρ.Iic_snd r' :=
+lemma Iic_snd_mono {r r' : ℝ} (h_le : r ≤ r') : ρ.Iic_snd r ≤ ρ.Iic_snd r' :=
 begin
   intros s hs,
   simp_rw Iic_snd_apply ρ _ hs,
@@ -219,21 +218,20 @@ begin
   exact_mod_cast h_le,
 end
 
-lemma Iic_snd_le_fst (ρ : measure (α × ℝ)) (r : ℚ) : ρ.Iic_snd r ≤ ρ.fst :=
+lemma Iic_snd_le_fst (r : ℝ) : ρ.Iic_snd r ≤ ρ.fst :=
 begin
   intros s hs,
   simp_rw [fst_apply hs, Iic_snd_apply ρ r hs],
   exact measure_mono (prod_subset_preimage_fst _ _),
 end
 
-lemma Iic_snd_ac_fst (ρ : measure (α × ℝ)) (r : ℚ) : ρ.Iic_snd r ≪ ρ.fst :=
+lemma Iic_snd_ac_fst (r : ℝ) : ρ.Iic_snd r ≪ ρ.fst :=
 measure.absolutely_continuous_of_le (Iic_snd_le_fst ρ r)
 
-instance {ρ : measure (α × ℝ)} [is_finite_measure ρ] (r : ℚ) : is_finite_measure (ρ.Iic_snd r) :=
+instance {ρ : measure (α × ℝ)} [is_finite_measure ρ] (r : ℝ) : is_finite_measure (ρ.Iic_snd r) :=
 is_finite_measure_of_le _ (Iic_snd_le_fst ρ _)
 
-lemma infi_Iic_snd_gt (ρ : measure (α × ℝ)) (t : ℚ) {s : set α} (hs : measurable_set s)
-  [is_finite_measure ρ] :
+lemma infi_Iic_snd_gt (t : ℚ) {s : set α} (hs : measurable_set s) [is_finite_measure ρ] :
   (⨅ r : {r' : ℚ // t < r'}, ρ.Iic_snd r s) = ρ.Iic_snd t s :=
 begin
   simp_rw [ρ.Iic_snd_apply _ hs],
@@ -248,12 +246,13 @@ begin
   { exact λ _, hs.prod measurable_set_Iic, },
   { refine monotone.directed_ge (λ r r' hrr', prod_subset_prod_iff.mpr (or.inl ⟨subset_rfl, _⟩)),
     refine Iic_subset_Iic.mpr _,
+    simp_rw coe_coe,
     exact_mod_cast hrr', },
   { exact ⟨⟨t+1, lt_add_one _⟩, measure_ne_top ρ _⟩, },
 end
 
-lemma tendsto_Iic_snd_at_top (ρ : measure (α × ℝ)) {s : set α} (hs : measurable_set s) :
-  tendsto (λ r, ρ.Iic_snd r s) at_top (𝓝 (ρ.fst s)) :=
+lemma tendsto_Iic_snd_at_top {s : set α} (hs : measurable_set s) :
+  tendsto (λ r : ℚ, ρ.Iic_snd r s) at_top (𝓝 (ρ.fst s)) :=
 begin
   simp_rw [ρ.Iic_snd_apply _ hs, fst_apply hs, ← prod_univ],
   rw [← real.Union_Iic_rat, prod_Union],
@@ -263,9 +262,8 @@ begin
   exact_mod_cast hr_le_q,
 end
 
-lemma tendsto_Iic_snd_at_bot (ρ : measure (α × ℝ)) [is_finite_measure ρ]
-  {s : set α} (hs : measurable_set s) :
-  tendsto (λ r, ρ.Iic_snd r s) at_bot (𝓝 0) :=
+lemma tendsto_Iic_snd_at_bot [is_finite_measure ρ] {s : set α} (hs : measurable_set s) :
+  tendsto (λ r : ℚ, ρ.Iic_snd r s) at_bot (𝓝 0) :=
 begin
   simp_rw [ρ.Iic_snd_apply _ hs],
   have h_empty : ρ (s ×ˢ ∅) = 0, by simp only [prod_empty, measure_empty],
@@ -354,7 +352,7 @@ begin
   refine le_antisymm _ _,
   { have h : ∀ q : Ioi t, ∫⁻ x in s, ⨅ r : Ioi t, pre_cdf ρ r x ∂ρ.fst ≤ ρ.Iic_snd q s,
     { intros q,
-      rw ← set_lintegral_pre_cdf_fst ρ _ hs,
+      rw [coe_coe, ← set_lintegral_pre_cdf_fst ρ _ hs],
       refine set_lintegral_mono_ae _ measurable_pre_cdf _,
       { exact measurable_infi (λ _, measurable_pre_cdf), },
       { filter_upwards [monotone_pre_cdf] with a ha_mono,

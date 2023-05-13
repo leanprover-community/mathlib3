@@ -541,17 +541,19 @@ section has_cond_cdf
 /-- A product measure on `α × ℝ` is said to have a conditional cdf at `a : α` if `pre_cdf` is
 monotone with limit 0 at -∞ and 1 at +∞, and is right continuous.
 This property holds almost everywhere (see `has_cond_cdf_ae`). -/
-def has_cond_cdf (ρ : measure (α × ℝ)) (a : α) : Prop :=
-monotone (λ r, pre_cdf ρ r a) ∧ (∀ r, pre_cdf ρ r a ≤ 1)
-  ∧ (tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 1)) ∧ (tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 0))
-  ∧ (∀ t : ℚ, (⨅ r : Ioi t, pre_cdf ρ r a) = pre_cdf ρ t a)
+structure has_cond_cdf (ρ : measure (α × ℝ)) (a : α) : Prop :=
+(mono : monotone (λ r, pre_cdf ρ r a))
+(le_one : ∀ r, pre_cdf ρ r a ≤ 1)
+(tendsto_at_top_one : tendsto (λ r, pre_cdf ρ r a) at_top (𝓝 1))
+(tendsto_at_bot_zero : tendsto (λ r, pre_cdf ρ r a) at_bot (𝓝 0))
+(infi_rat_gt_eq : ∀ t : ℚ, (⨅ r : Ioi t, pre_cdf ρ r a) = pre_cdf ρ t a)
 
 lemma has_cond_cdf_ae (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ∀ᵐ a ∂ρ.fst, has_cond_cdf ρ a :=
 begin
-  simp_rw [has_cond_cdf, eventually_and],
-  exact ⟨monotone_pre_cdf ρ, pre_cdf_le_one ρ, tendsto_pre_cdf_at_top_one ρ,
-    tendsto_pre_cdf_at_bot_zero ρ, inf_gt_pre_cdf ρ⟩,
+  filter_upwards [monotone_pre_cdf ρ, pre_cdf_le_one ρ, tendsto_pre_cdf_at_top_one ρ,
+    tendsto_pre_cdf_at_bot_zero ρ, inf_gt_pre_cdf ρ] with a h1 h2 h3 h4 h5,
+  exact ⟨h1, h2, h3, h4, h5⟩,
 end
 
 /-- A measurable set of elements of `α` such that `ρ` has a conditional cdf at all
@@ -604,7 +606,7 @@ begin
   { simp only [cond_cdf_rat, h, if_true, forall_const, and_self],
     intros r r' hrr',
     have h' := has_cond_cdf_of_mem_cond_cdf_set h,
-    have h_ne_top : ∀ r, pre_cdf ρ r a ≠ ∞ := λ r, ((h'.2.1 r).trans_lt ennreal.one_lt_top).ne,
+    have h_ne_top : ∀ r, pre_cdf ρ r a ≠ ∞ := λ r, ((h'.le_one r).trans_lt ennreal.one_lt_top).ne,
     rw ennreal.to_real_le_to_real (h_ne_top _) (h_ne_top _),
     exact h'.1 hrr', },
   { simp only [cond_cdf_rat, h, if_false],
@@ -633,7 +635,7 @@ begin
   split_ifs with h,
   { refine ennreal.to_real_le_of_le_of_real zero_le_one _,
     rw ennreal.of_real_one,
-    exact (has_cond_cdf_of_mem_cond_cdf_set h).2.1 r, },
+    exact (has_cond_cdf_of_mem_cond_cdf_set h).le_one r, },
   exacts [zero_le_one, le_rfl],
 end
 
@@ -643,9 +645,9 @@ begin
   unfold cond_cdf_rat,
   split_ifs with h,
   { rw [← ennreal.zero_to_real, ennreal.tendsto_to_real_iff],
-    { exact (has_cond_cdf_of_mem_cond_cdf_set h).2.2.2.1, },
+    { exact (has_cond_cdf_of_mem_cond_cdf_set h).tendsto_at_bot_zero, },
     { have h' := has_cond_cdf_of_mem_cond_cdf_set h,
-      exact λ r, ((h'.2.1 r).trans_lt ennreal.one_lt_top).ne, },
+      exact λ r, ((h'.le_one r).trans_lt ennreal.one_lt_top).ne, },
     { exact ennreal.zero_ne_top, }, },
   { refine (tendsto_congr' _).mp tendsto_const_nhds,
     rw [eventually_eq, eventually_at_bot],
@@ -660,8 +662,8 @@ begin
   split_ifs with h,
   { have h' := has_cond_cdf_of_mem_cond_cdf_set h,
     rw [← ennreal.one_to_real, ennreal.tendsto_to_real_iff],
-    { exact h'.2.2.1, },
-    { exact λ r, ((h'.2.1 r).trans_lt ennreal.one_lt_top).ne, },
+    { exact h'.tendsto_at_top_one, },
+    { exact λ r, ((h'.le_one r).trans_lt ennreal.one_lt_top).ne, },
     { exact ennreal.one_ne_top, }, },
   { refine (tendsto_congr' _).mp tendsto_const_nhds,
     rw [eventually_eq, eventually_at_top],
@@ -688,8 +690,8 @@ begin
     have ha' := has_cond_cdf_of_mem_cond_cdf_set ha,
     rw ← ennreal.to_real_infi,
     { suffices : (⨅ (i : ↥(Ioi t)), pre_cdf ρ ↑i a) = pre_cdf ρ t a, by rw this,
-      rw ← ha'.2.2.2.2, },
-    { exact λ r, ((ha'.2.1 r).trans_lt ennreal.one_lt_top).ne, }, },
+      rw ← ha'.infi_rat_gt_eq, },
+    { exact λ r, ((ha'.le_one r).trans_lt ennreal.one_lt_top).ne, }, },
   { simp_rw cond_cdf_rat_of_not_mem ρ a ha,
     have h_bdd : bdd_below (range (λ (r : ↥(Ioi t)), ite ((r : ℚ) < 0) (0 : ℝ) 1)),
     { refine ⟨0, λ x hx, _⟩,

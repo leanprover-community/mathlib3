@@ -150,6 +150,44 @@ begin
   { exact converges_of_agrees_converges (λ n hn, (h n hn).symm) h₁ }
 end
 
+lemma frequently_exists_nonneg_of_conditionally_converging {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : ∃ᶠ (n : ℕ) in at_top, 0 ≤ a n :=
+begin
+  rw filter.frequently_at_top,
+  intro k,
+  by_contra h,
+  push_neg at h,
+
+  let b := λ n, if k ≤ n then a n else 0,
+  have hb : ∀ n, k ≤ n → a n = b n := begin
+    intros n hn,
+    change a n = if k ≤ n then a n else 0,
+    rw if_pos hn,
+  end,
+
+  have hb' : ∀ n, k ≤ n → ‖a n‖ = ‖b n‖ := begin
+    intros n hn,
+    rw hb n hn
+  end,
+
+  have hb_nonpos : ∀ n, b n ≤ 0 := begin
+    intro n,
+    by_cases hn : k ≤ n,
+    { specialize h n hn,
+      rw (hb n hn) at h,
+      exact h.le },
+    { change (if k ≤ n then a n else 0) ≤ 0,
+      rw if_neg hn }
+  end,
+
+  have q₁ := converges_absolutely_iff_converges_of_all_terms_nonpos b hb_nonpos,
+  rw agrees_converges hb at h₁,
+  rw agrees_converges hb' at h₂,
+  exact absurd (q₁.mp h₁) h₂,
+end
+
 noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
 | 0 := 0
 | (n+1) :=

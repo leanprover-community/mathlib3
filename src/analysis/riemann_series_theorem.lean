@@ -61,6 +61,35 @@ begin
   exact this,
 end
 
+-- Shifts a neighborhood of a topological abelian group up d units
+lemma shift_neighborhood {R : Type*} [add_comm_group R] [topological_space R]
+  [topological_add_group R] {c : R} {S : set R} (hS : S ∈ 𝓝 c) (d : R)
+  : {x : R | x + d ∈ S} ∈ 𝓝 (c - d) :=
+begin
+  letI : uniform_space R := topological_add_group.to_uniform_space R,
+  haveI : uniform_add_group R := topological_add_comm_group_is_uniform,
+
+  rw uniform_space.mem_nhds_iff at ⊢ hS,
+  rcases hS with ⟨V, hV, hS⟩,
+
+  have := uniformity_translate_add d,
+  rw ←this at hV,
+  rw filter.mem_map at hV,
+
+  let W : set (R × R) := (λ (x : R × R), (x.fst + d, x.snd + d)) ⁻¹' V,
+  use W,
+  have h₁ : ∀ x : R, (x ∈ uniform_space.ball (c - d) W) → (x + d ∈ S) := begin
+    intros x hx,
+    unfold uniform_space.ball at hx hS,
+    apply hS,
+    rw set.mem_preimage at hx ⊢,
+    change (c - d, x) ∈ (λ (x : R × R), (x.fst + d, x.snd + d)) ⁻¹' V at hx,
+    rw set.mem_preimage at hx,
+    simpa using hx,
+  end,
+  exact ⟨hV, h₁⟩,
+end
+
 lemma converges_of_agrees_converges {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C)) : ∃ C, tendsto (partial_sum b) at_top (𝓝 C) :=
 begin
@@ -72,7 +101,15 @@ begin
 
   -- U is the neighborhood that results from shifting S by D units
   let U := {x : ℝ | x + D ∈ S},
-  have hU : U ∈ 𝓝 C := sorry,
+  have hU : U ∈ 𝓝 C := begin
+    sorry
+    /-
+    rw uniform_space.mem_nhds_iff at ⊢ hS,
+    rcases hS with ⟨V, hV, hS⟩,
+    have := @uniform_continuous_sub ℝ _ _ _,
+    rw uniform_continuous_def at this,
+    -/
+  end,
 
   -- By hypothesis, there exists an N such that for all n ≥ N, partial_sum a n ∈ U.
   specialize ha U hU,

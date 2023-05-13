@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
 import analysis.normed_space.conformal_linear_map
-import analysis.calculus.fderiv
+import analysis.calculus.fderiv.basic
 
 /-!
 # Conformal Maps

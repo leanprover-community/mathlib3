@@ -48,12 +48,6 @@ lemma diff_partial_sums_of_agrees' {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : �
 begin
   induction n with n hi,
   { simp },
-  /-rw (show (n + 1 + k) = (n + k) + 1, by ring),
-  rw partial_sum_next,
-  rw partial_sum_next,
-  rw (show a (n + k) + partial_sum a (n + k) - (b (n + k) + partial_sum b (n + k)) =
-    (a (n + k) - b (n + k)) + (partial_sum a (n + k) - partial_sum b (n + k)), by ring),
-  simp [hi, h (n + k) (le_add_self)],-/
   have : a (n + k) + partial_sum a (n + k) - (b (n + k) + partial_sum b (n + k)) =
     (a (n + k) - b (n + k)) + (partial_sum a (n + k) - partial_sum b (n + k)) := by ring,
   simp [this, (show n + 1 + k = n + k + 1, by ring), partial_sum_next, hi, h (n + k) (le_add_self)]

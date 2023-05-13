@@ -182,16 +182,16 @@ begin
       rw if_neg hn }
   end,
 
-  have q₁ := converges_absolutely_iff_converges_of_all_terms_nonpos b hb_nonpos,
+  have := converges_absolutely_iff_converges_of_all_terms_nonpos b hb_nonpos,
   rw agrees_converges hb at h₁,
   rw agrees_converges hb' at h₂,
-  exact absurd (q₁.mp h₁) h₂,
+  exact absurd (this.mp h₁) h₂
 end
 
-lemma frequently_exists_nonpos_of_conditionally_converging {a : ℕ → ℝ}
+lemma frequently_exists_neg_of_conditionally_converging {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  : ∃ᶠ (n : ℕ) in at_top, a n ≤ 0 :=
+  : ∃ᶠ (n : ℕ) in at_top, a n < 0 :=
 begin
   rw filter.frequently_at_top,
   intro k,
@@ -215,15 +215,15 @@ begin
     by_cases hn : k ≤ n,
     { specialize h n hn,
       rw (hb n hn) at h,
-      exact h.le },
+      exact h },
     { change 0 ≤ (if k ≤ n then a n else 0),
       rw if_neg hn }
   end,
 
-  have q₁ := converges_absolutely_iff_converges_of_all_terms_nonneg b hb_nonneg,
+  have := converges_absolutely_iff_converges_of_all_terms_nonneg b hb_nonneg,
   rw agrees_converges hb at h₁,
   rw agrees_converges hb' at h₂,
-  exact absurd (q₁.mp h₁) h₂,
+  exact absurd (this.mp h₁) h₂
 end
 
 noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ

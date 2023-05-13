@@ -21,8 +21,6 @@ The next steps are:
 - Prove the cone version of Farkas' lemma (2.3.4 in the reference).
 - Add comap, adjoint
 - Add convex_cone_class that extends set_like and replace the below instance
-- Show that proper cones are modules and topological spaces
-- Replace map with a bundled version: proper_cone ℝ E →L[ℝ] proper_cone ℝ F
 - Define the positive cone as a proper cone.
 - Define primal and dual cone programs and prove weak duality.
 - Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
@@ -128,8 +126,6 @@ variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
 protected lemma pointed (K : proper_cone ℝ E) : (K : convex_cone ℝ E).pointed :=
 (K : convex_cone ℝ E).pointed_of_nonempty_of_is_closed K.nonempty K.is_closed
 
--- TODO: Show that proper cones are modules and topological spaces
--- TODO: Replace map with a bundled version: proper_cone ℝ E →L[ℝ] proper_cone ℝ F
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. We
 use continuous maps here so that the adjoint of f is also a map between proper cones. -/
 noncomputable def map (f : E →L[ℝ] F) (K : proper_cone ℝ E) : proper_cone ℝ F :=

@@ -1116,6 +1116,30 @@ begin
     isometry_equiv.hausdorff_measure_image],
 end
 
+lemma hausdorff_measure_smul_right_image {E : Type*} [normed_add_comm_group E]
+  [normed_space ℝ E] [measurable_space E] [borel_space E] (v : E) (s : set ℝ) :
+  μH[1] ((λ r, r • v) '' s) = ‖v‖₊ • μH[1] s :=
+begin
+  obtain rfl | hv := eq_or_ne v 0,
+  { haveI := no_atoms_hausdorff E one_pos,
+    obtain rfl | hs := s.eq_empty_or_nonempty,
+    { simp },
+    simp [hs] },
+  have hn : ‖v‖ ≠ 0 := norm_ne_zero_iff.mpr hv,
+  -- break line_map into pieces
+  suffices : μH[1] (
+      ((•) ‖v‖) '' (linear_map.to_span_singleton ℝ E (‖v‖⁻¹ • v) '' s)) = ‖v‖₊ • μH[1] s,
+  { simpa only [set.image_image, smul_comm (norm _), inv_smul_smul₀ hn,
+      linear_map.to_span_singleton_apply] using this },
+  have iso_smul : isometry (linear_map.to_span_singleton ℝ E (‖v‖⁻¹ • v)),
+  { refine add_monoid_hom_class.isometry_of_norm _ (λ x, (norm_smul _ _).trans _),
+    rw [norm_smul, norm_inv, norm_norm, inv_mul_cancel hn, mul_one, linear_map.id_apply] },
+  borelize E,
+  rw [set.image_smul,
+    measure.hausdorff_measure_smul₀ zero_le_one hn, nnnorm_norm, nnreal.rpow_one,
+    iso_smul.hausdorff_measure_image (or.inl $ zero_le_one' ℝ)],
+end
+
 /-- Mapping a set of reals along a line segment scales the measure by the length of a segment.
 
 This is an auxiliary result used to prove `hausdorff_measure_affine_segment`. -/
@@ -1124,28 +1148,11 @@ lemma hausdorff_measure_line_map_image {E P : Type*} [normed_add_comm_group E]
   [borel_space P] (x y : P) (s : set ℝ) :
   μH[1] (affine_map.line_map x y '' s) = nndist x y • μH[1] s :=
 begin
-  obtain rfl | hxy := eq_or_ne x y,
-  { haveI := no_atoms_hausdorff P one_pos,
-    obtain rfl | hs := s.eq_empty_or_nonempty,
-    { simp },
-    simp [hs] },
-  have hn : ‖y -ᵥ x‖ ≠ 0,
-  { rwa [norm_ne_zero_iff, vsub_ne_zero, ne_comm] },
-  -- break line_map into pieces
-  suffices : μH[1] (
-    isometry_equiv.vadd_const x '' (
-      (λ z, ‖y -ᵥ x‖ • z) ''
-      (linear_map.to_span_singleton ℝ E (‖y -ᵥ x‖⁻¹ • (y -ᵥ x)) ''
-        s))) = nndist x y • μH[1] s,
-  { simpa only [set.image_image, ←segment_eq_image', smul_comm (norm _),
-      inv_smul_smul₀ hn, linear_map.to_span_singleton_apply] using this },
-  have iso_smul : isometry (linear_map.to_span_singleton ℝ E (‖y -ᵥ x‖⁻¹ • (y -ᵥ x))),
-  { refine add_monoid_hom_class.isometry_of_norm _ (λ x, (norm_smul _ _).trans _),
-    rw [norm_smul, norm_inv, norm_norm, inv_mul_cancel hn, mul_one, linear_map.id_apply] },
+  suffices : μH[1] (isometry_equiv.vadd_const x '' ((• y -ᵥ x) '' s)) = nndist x y • μH[1] s,
+  { simpa only [set.image_image] },
   borelize E,
-  rw [isometry_equiv.hausdorff_measure_image, set.image_smul,
-    measure.hausdorff_measure_smul₀ zero_le_one hn, nnnorm_norm, nnreal.rpow_one,
-    iso_smul.hausdorff_measure_image (or.inl $ zero_le_one' ℝ), nndist_eq_nnnorm_vsub' E],
+  rw [isometry_equiv.hausdorff_measure_image, hausdorff_measure_smul_right_image,
+    nndist_eq_nnnorm_vsub' E],
 end
 
 /-- The measure of a segment is the distance between its endpoints. -/

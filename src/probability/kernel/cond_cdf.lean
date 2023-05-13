@@ -85,32 +85,6 @@ begin
   exact exists_rat_lt x,
 end
 
-lemma infi_Ioi_eq_infi_rat_gt {f : ℝ → ℝ} (x : ℝ) (hf : bdd_below (f '' Ioi x))
-  (hf_mono : monotone f) :
-  (⨅ r : Ioi x, f r) = ⨅ q : {q' : ℚ // x < q'}, f q :=
-begin
-  refine le_antisymm _ _,
-  { haveI : nonempty {r' : ℚ // x < ↑r'},
-    { obtain ⟨r, hrx⟩ := exists_rat_gt x,
-      exact ⟨⟨r, hrx⟩⟩, },
-    refine le_cinfi (λ r, _),
-    obtain ⟨y, hxy, hyr⟩ := exists_rat_btwn r.prop,
-    refine cinfi_set_le hf (hxy.trans _),
-    exact_mod_cast hyr, },
-  { refine le_cinfi (λ q, _),
-    have hq := q.prop,
-    rw mem_Ioi at hq,
-    obtain ⟨y, hxy, hyq⟩ := exists_rat_btwn hq,
-    refine (cinfi_le _ _).trans _,
-    { exact ⟨y, hxy⟩, },
-    { refine ⟨hf.some, λ z, _⟩,
-      rintros ⟨u, rfl⟩,
-      suffices hfu : f u ∈ f '' Ioi x, from hf.some_spec hfu,
-      exact ⟨u, u.prop, rfl⟩, },
-    { refine hf_mono (le_trans _ hyq.le),
-      norm_cast, }, },
-end
-
 lemma ennreal.tendsto_at_top_zero_of_tendsto_at_top_at_bot [nonempty ι] [semilattice_sup ι]
   {f : ι → ℝ≥0∞} (h : tendsto f at_top at_bot) :
   tendsto f at_top (𝓝 0) :=
@@ -797,17 +771,6 @@ lemma cond_cdf_eq_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   cond_cdf ρ a r = cond_cdf_rat ρ a r :=
 cond_cdf'_eq_cond_cdf_rat ρ a r
 
-lemma cond_cdf_eq_infi_cond_cdf (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
-  cond_cdf ρ a x = ⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a r :=
-begin
-  have : (⨅ r : {r' : ℚ // x < ↑r'}, cond_cdf ρ a ↑r)
-    = ⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a (r : ℚ),
-  { congr, },
-  rw this,
-  simp_rw cond_cdf_eq_cond_cdf_rat ρ a,
-  refl,
-end
-
 /-- The conditional cdf is non-negative for all `a : α`. -/
 lemma cond_cdf_nonneg (ρ : measure (α × ℝ)) (a : α) (r : ℝ) :
   0 ≤ cond_cdf ρ a r :=
@@ -907,7 +870,7 @@ begin
   have h : ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst
     = ∫⁻ a in s, ennreal.of_real (⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a r) ∂ρ.fst,
   { congr' with a : 1,
-    rw cond_cdf_eq_infi_cond_cdf ρ a x, },
+    rw ← (cond_cdf ρ a).infi_rat_gt_eq x, },
   haveI h_nonempty : nonempty {r' : ℚ // x < ↑r'},
   { obtain ⟨r, hrx⟩ := exists_rat_gt x,
     exact ⟨⟨r, hrx⟩⟩, },

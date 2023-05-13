@@ -67,13 +67,32 @@ begin
   cases h₁ with C ha,
   let D := partial_sum b k - partial_sum a k,
   use C + D,
-  rw tendsto_def,
-  intros s hs,
+  rw tendsto_def at ⊢ ha,
+  intros S hS,
+
+  -- U is the neighborhood that results from shifting S by D units
+  let U := {x : ℝ | x + D ∈ S},
+  have hU : U ∈ 𝓝 C := sorry,
+
+  -- By hypothesis, there exists an N such that for all n ≥ N, partial_sum a n ∈ U.
+  specialize ha U hU,
+  rw mem_at_top_sets at ha,
+  cases ha with N ha,
+
+  -- We will show that for all m ≥ max N k, partial_sum b m ∈ S.
   rw mem_at_top_sets,
-  use k,
-  intros n hn,
+  use max N k,
+  intros m hm,
+
+  -- Since m ≥ N, partial_sum a m ∈ U.
+  specialize ha m (le_of_max_le_left hm),
+  rw set.mem_preimage at ha,
+
+  -- Since partial_sum b m - partial_sum a m = D, we know b m ∈ S.
+  change partial_sum a m + (partial_sum b k - partial_sum a k) ∈ S at ha,
+  rw ←diff_partial_sums_of_agrees (λ n hn, (h n hn).symm) (le_of_max_le_right hm) at ha,
   rw set.mem_preimage,
-  sorry
+  simpa using ha
 end
 
 lemma agrees_converges {a b : ℕ → ℝ} {k : ℕ} (h : ∀ n : ℕ, k ≤ n → a n = b n) :

@@ -5,7 +5,10 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
 import analysis.box_integral.partition.additive
-import analysis.calculus.fderiv.basic
+import analysis.calculus.fderiv.add
+import analysis.calculus.fderiv.mul
+import analysis.calculus.fderiv.equiv
+import analysis.calculus.fderiv.restrict_scalars
 
 /-!
 # Divergence integral for Henstock-Kurzweil integral

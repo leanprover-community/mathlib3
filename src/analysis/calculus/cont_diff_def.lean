@@ -3,7 +3,10 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.fderiv.basic
+import analysis.calculus.fderiv.add
+import analysis.calculus.fderiv.mul
+import analysis.calculus.fderiv.equiv
+import analysis.calculus.fderiv.restrict_scalars
 import analysis.calculus.formal_multilinear_series
 
 /-!

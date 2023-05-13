@@ -893,6 +893,9 @@ lemma set_lintegral_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (
   {s : set α} (hs : measurable_set s) :
   ∫⁻ a in s, ennreal.of_real (cond_cdf ρ a x) ∂ρ.fst = ρ (s ×ˢ Iic x) :=
 begin
+  -- We have the result for `x : ℚ` thanks to `set_lintegral_cond_cdf_rat`. We use the equality
+  -- `cond_cdf ρ a x = ⨅ r : {r' : ℚ // x < r'}, cond_cdf ρ a r` and a monotone convergence
+  -- argument to extend it to the reals.
   by_cases hρ_zero : ρ.fst.restrict s = 0,
   { rw [hρ_zero, lintegral_zero_measure],
     refine le_antisymm (zero_le _) _,

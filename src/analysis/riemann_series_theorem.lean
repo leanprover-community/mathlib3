@@ -188,6 +188,44 @@ begin
   exact absurd (q₁.mp h₁) h₂,
 end
 
+lemma frequently_exists_nonpos_of_conditionally_converging {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : ∃ᶠ (n : ℕ) in at_top, a n ≤ 0 :=
+begin
+  rw filter.frequently_at_top,
+  intro k,
+  by_contra h,
+  push_neg at h,
+
+  let b := λ n, if k ≤ n then a n else 0,
+  have hb : ∀ n, k ≤ n → a n = b n := begin
+    intros n hn,
+    change a n = if k ≤ n then a n else 0,
+    rw if_pos hn,
+  end,
+
+  have hb' : ∀ n, k ≤ n → ‖a n‖ = ‖b n‖ := begin
+    intros n hn,
+    rw hb n hn
+  end,
+
+  have hb_nonneg : ∀ n, 0 ≤ b n := begin
+    intro n,
+    by_cases hn : k ≤ n,
+    { specialize h n hn,
+      rw (hb n hn) at h,
+      exact h.le },
+    { change 0 ≤ (if k ≤ n then a n else 0),
+      rw if_neg hn }
+  end,
+
+  have q₁ := converges_absolutely_iff_converges_of_all_terms_nonneg b hb_nonneg,
+  rw agrees_converges hb at h₁,
+  rw agrees_converges hb' at h₂,
+  exact absurd (q₁.mp h₁) h₂,
+end
+
 noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
 | 0 := 0
 | (n+1) :=

@@ -298,6 +298,11 @@ begin
   exact ⟨hn₁, hn₂⟩
 end
 
+lemma rearrangement_fin_sum_def (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
+  : ∑ (x : fin n) in finset.univ, a (rearrangement a M ↑x) =
+    partial_sum (λ k, a (rearrangement a M k)) n :=
+fin.sum_univ_eq_sum_range (λ k, a (rearrangement a M k)) n
+
 lemma rearrangement_def {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)

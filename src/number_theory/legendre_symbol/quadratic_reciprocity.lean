@@ -199,6 +199,71 @@ end legendre_sym
 
 end legendre
 
+section quadratic_form
+
+/-!
+### Applications to binary quadratic forms
+-/
+
+namespace legendre_sym
+
+/-- The Legendre symbol `legendre_sym p a = 1` if there is a nontrivial solution in `ℤ/pℤ`
+of the equation `x^2 - a*y^2 = 0`. -/
+lemma eq_one_of_sq_sub_mul_sq_eq_zero {p : ℕ} [fact p.prime]
+  {a : ℤ} (ha : (a : zmod p) ≠ 0) {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 - a * y ^ 2 = 0) :
+  legendre_sym p a = 1 :=
+begin
+  apply_fun (* y⁻¹ ^ 2) at hxy,
+  simp only [zero_mul] at hxy,
+  rw [(by ring : (x ^ 2 - ↑a * y ^ 2) * y⁻¹ ^ 2 = (x * y⁻¹) ^ 2 - a * (y * y⁻¹) ^ 2),
+      mul_inv_cancel hy, one_pow, mul_one, sub_eq_zero, pow_two] at hxy,
+  exact (eq_one_iff p ha).mpr ⟨x * y⁻¹, hxy.symm⟩,
+end
+
+/-- The Legendre symbol `legendre_sym p a = 1` if there is a nontrivial solution in `ℤ/pℤ`
+of the equation `x^2 - a*y^2 = 0`. -/
+lemma eq_one_of_sq_sub_mul_sq_eq_zero' {p : ℕ} [fact p.prime]
+  {a : ℤ} (ha : (a : zmod p) ≠ 0) {x y : zmod p} (hx : x ≠ 0) (hxy : x ^ 2 - a * y ^ 2 = 0) :
+  legendre_sym p a = 1 :=
+begin
+  have hy : y ≠ 0,
+  { rintro rfl,
+    rw [zero_pow' 2 (by norm_num), mul_zero, sub_zero, pow_eq_zero_iff (by norm_num : 0 < 2)]
+      at hxy,
+    exacts [hx hxy, infer_instance], }, -- why is the instance not inferred automatically?
+  exact eq_one_of_sq_sub_mul_sq_eq_zero ha hy hxy,
+end
+
+/-- If `legendre_sym p a = -1`, then the only solution of `x^2 - a*y^2 = 0` in `ℤ/pℤ`
+is the trivial one. -/
+lemma eq_zero_mod_of_eq_neg_one {p : ℕ} [fact p.prime] {a : ℤ}
+  (h : legendre_sym p a = -1) {x y : zmod p} (hxy : x ^ 2 - a * y ^ 2 = 0) : x = 0 ∧ y = 0 :=
+begin
+  have ha : (a : zmod p) ≠ 0,
+  { intro hf,
+    rw (eq_zero_iff p a).mpr hf at h,
+    exact int.zero_ne_neg_of_ne zero_ne_one h, },
+  by_contra hf,
+  cases not_and_distrib.mp hf with hx hy,
+  { rw [eq_one_of_sq_sub_mul_sq_eq_zero' ha hx hxy, eq_neg_self_iff] at h,
+    exact one_ne_zero h, },
+  { rw [eq_one_of_sq_sub_mul_sq_eq_zero ha hy hxy, eq_neg_self_iff] at h,
+    exact one_ne_zero h, }
+end
+
+/-- If `legendre_sym p a = -1` and `p` divides `x^2 - a*y^2`, then `p` must divide `x` and `y`. -/
+lemma prime_dvd_of_eq_neg_one {p : ℕ} [fact p.prime] {a : ℤ}
+  (h : legendre_sym p a = -1) {x y : ℤ} (hxy : ↑p ∣ x ^ 2 - a * y ^ 2) : ↑p ∣ x ∧ ↑p ∣ y :=
+begin
+  simp_rw ← zmod.int_coe_zmod_eq_zero_iff_dvd at hxy ⊢,
+  push_cast at hxy,
+  exact eq_zero_mod_of_eq_neg_one h hxy,
+end
+
+end legendre_sym
+
+end quadratic_form
+
 section values
 
 /-!

@@ -201,6 +201,15 @@ end
 lemma mod_left' {a₁ a₂ : ℤ} {b : ℕ} (h : a₁ % b = a₂ % b) : J(a₁ | b) = J(a₂ | b) :=
 by rw [mod_left, h, ← mod_left]
 
+/-- If `p` is prime, `J(a | p) = -1` and `p` divides `x^2 - a*y^2`, then `p` must divide
+`x` and `y`. -/
+lemma prime_dvd_of_eq_neg_one {p : ℕ} [fact p.prime] {a : ℤ} (h : J(a | p) = -1)
+  {x y : ℤ} (hxy : ↑p ∣ x ^ 2 - a * y ^ 2) : ↑p ∣ x ∧ ↑p ∣ y :=
+begin
+  rw [← legendre_sym.to_jacobi_sym] at h,
+  exact legendre_sym.prime_dvd_of_eq_neg_one h hxy,
+end
+
 end jacobi_sym
 
 namespace zmod

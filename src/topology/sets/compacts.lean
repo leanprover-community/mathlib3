@@ -369,15 +369,6 @@ lemma map_comp (f : β → γ) (g : α → β) (hf : continuous f) (hg : continu
   K.map (f ∘ g) (hf.comp hg) (hf'.comp hg') = (K.map g hg hg').map f hf hf' :=
 compact_opens.ext $ set.image_comp _ _ _
 
-@[simp] lemma map_id (K : compact_opens α) : K.map id continuous_id is_open_map.id = K :=
-compact_opens.ext $ set.image_id _
-
-lemma map_comp (f : β → γ) (g : α → β) (hf : continuous f) (hg : continuous g)
-  (hf' : is_open_map f) (hg' : is_open_map g)
-  (K : compact_opens α) :
-  K.map (f ∘ g) (hf.comp hg) (hf'.comp hg') = (K.map g hg hg').map f hf hf' :=
-compact_opens.ext $ set.image_comp _ _ _
-
 /-- The product of two `compact_opens`, as a `compact_opens` in the product space. -/
 protected def prod (K : compact_opens α) (L : compact_opens β) :
   compact_opens (α × β) :=

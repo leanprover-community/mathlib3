@@ -447,6 +447,7 @@ def minkowski_bound : ennreal := volume (zspan.fundamental_domain (lattice_basis
 
 lemma minkowski_bound_lt_top : minkowski_bound K < ⊤ :=
 begin
+  haveI : measure.is_add_haar_measure complex.measure_space.volume := infer_instance,
   refine ennreal.mul_lt_top _ _,
   { exact ne_of_lt (zspan.fundamental_domain_bounded (lattice_basis K)).measure_lt_top, },
   { exact ne_of_lt (ennreal.pow_lt_top (lt_top_iff_ne_top.mpr ennreal.two_ne_top) _), },

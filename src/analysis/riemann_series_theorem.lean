@@ -290,6 +290,30 @@ noncomputable def rearrangement {a : ℕ → ℝ}
     end,
     nat.find h
 
+lemma exists_nonneg_terms_not_in_range_fin_rearrangement {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
+  : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement h₁ h₂ M ↑x) ∧ 0 ≤ a k :=
+begin
+  obtain ⟨n, hn₁, hn₂⟩ := exists_pos_not_in_finset_of_conditionally_converging h₁ h₂
+        ((set.range (λ x : fin (n + 1), rearrangement h₁ h₂ M ↑x)).to_finset),
+  use n,
+  rw ←set.mem_to_finset,
+  exact ⟨hn₁, hn₂.le⟩
+end
+
+lemma exists_neg_terms_not_in_range_fin_rearrangement {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
+  : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement h₁ h₂ M ↑x) ∧ a k < 0 :=
+begin
+  obtain ⟨n, hn₁, hn₂⟩ := exists_neg_not_in_finset_of_conditionally_converging h₁ h₂
+        ((set.range (λ x : fin (n + 1), rearrangement h₁ h₂ M ↑x)).to_finset),
+  use n,
+  rw ←set.mem_to_finset,
+  exact ⟨hn₁, hn₂⟩
+end
+
 theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))
   (h₂ : ¬∃ C : ℝ, tendsto (partial_sum (λ k, ‖a k‖)) at_top (nhds C)) (M : ℝ) : ∃ (p : equiv.perm ℕ),
     filter.tendsto (partial_sum (λ n, a (p n))) filter.at_top (𝓝 M) := sorry

@@ -210,6 +210,41 @@ begin
   exact legendre_sym.prime_dvd_of_eq_neg_one h hxy,
 end
 
+/-- We can pull out a product over a list in the first argument of the Jacobi symbol. -/
+lemma mul_left_list {l : list ℤ} {n : ℕ} :
+  J(l.prod | n) = (l.map (λ a, J(a | n))).prod :=
+begin
+  induction l with n l' ih,
+  { simp only [list.prod_nil, list.map_nil, one_left], },
+  { rw [list.map, list.prod_cons, list.prod_cons, mul_left, ih], }
+end
+
+/-- We can pull out a product over a list in the second argument of the Jacobi symbol. -/
+lemma mul_right_list {a : ℤ} {l : list ℕ} (hl : ∀ n ∈ l, n ≠ 0) :
+  J(a | l.prod) = (l.map (λ n, J(a | n))).prod :=
+begin
+  induction l with n l' ih,
+  { simp only [list.prod_nil, one_right, list.map_nil], },
+  { have hn := hl n (list.mem_cons_self n l'), -- `n ≠ 0`
+    have hl' := list.prod_ne_zero (λ hf, hl 0 (list.mem_cons_of_mem _ hf) rfl), -- `l'.prod ≠ 0`
+    have h := λ m hm, hl m (list.mem_cons_of_mem _ hm), -- `∀ (m : ℕ), m ∈ l' → m ≠ 0`
+    rw [list.map, list.prod_cons, list.prod_cons, mul_right' a hn hl', ih h], }
+end
+
+/-- If `J(a | n) = -1`, then `n` has a prime divisor `p` such that `J(a | p) = -1`. -/
+lemma eq_neg_one_at_prime_divisor_of_eq_neg_one {a : ℤ} {n : ℕ} (h : J(a | n) = -1) :
+  ∃ (p : ℕ) (hp : p.prime), p ∣ n ∧ J(a | p) = -1 :=
+begin
+  have hn₀ : n ≠ 0,
+  { rintro rfl,
+    rw [zero_right, eq_neg_self_iff] at h,
+    exact one_ne_zero h, },
+  have hf₀ : ∀ p ∈ n.factors, p ≠ 0 := λ p hp, (nat.pos_of_mem_factors hp).ne.symm,
+  rw [← nat.prod_factors hn₀, mul_right_list hf₀] at h,
+  obtain ⟨p, hmem, hj⟩ := list.mem_map.mp (list.neg_one_mem_of_prod_eq_neg_one h),
+  exact ⟨p, nat.prime_of_mem_factors hmem, nat.dvd_of_mem_factors hmem, hj⟩,
+end
+
 end jacobi_sym
 
 namespace zmod

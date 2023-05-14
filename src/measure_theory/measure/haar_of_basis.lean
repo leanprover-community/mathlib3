@@ -180,8 +180,7 @@ end add_comm_group
 
 section normed_space
 
-variables [normed_add_comm_group E] [normed_space ℝ E]
-variables [normed_add_comm_group F] [normed_space ℝ F]
+variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space ℝ E] [normed_space ℝ F]
 
 /-- The parallelepiped spanned by a basis, as a compact set with nonempty interior. -/
 def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
@@ -202,13 +201,23 @@ def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
       rwa [← homeomorph.image_interior, nonempty_image_iff],
     end }
 
-#check positive_compacts.i
+@[simp] lemma basis.coe_parallelepiped (b : basis ι ℝ E) :
+  (b.parallelepiped : set E) = parallelepiped b :=
+rfl
+
+@[simp] lemma basis.parallelepiped_reindex (b : basis ι ℝ E) (e : ι ≃ ι') :
+  (b.reindex e).parallelepiped = b.parallelepiped :=
+positive_compacts.ext $
+  (congr_arg parallelepiped (b.coe_reindex _)).trans (parallelepiped_comp_equiv b e.symm)
 
 lemma basis.parallelepiped_map (b : basis ι ℝ E) (e : E ≃ₗ[ℝ] F) :
-  (b.map e).parallelepiped = b.parallelepiped.map _ _ :=
-sorry
+  (b.map e).parallelepiped = b.parallelepiped.map e
+    (by haveI := finite_dimensional.of_fintype_basis b; exact
+      e.to_linear_map.continuous_of_finite_dimensional)
+    (by haveI := finite_dimensional.of_fintype_basis (b.map e); exact
+      e.to_linear_map.is_open_map_of_finite_dimensional e.surjective) :=
+positive_compacts.ext (image_parallelepiped e.to_linear_map _).symm
 
-#exit
 variables [measurable_space E] [borel_space E]
 
 /-- The Lebesgue measure associated to a basis, giving measure `1` to the parallelepiped spanned

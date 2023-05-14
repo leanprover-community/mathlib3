@@ -1084,18 +1084,15 @@ begin
       have h3: ∀ u : V, newf u v = rsn.afn.f u v :=
       begin
         intro u,
+        have simplify: newf u v = ite (rsn.afn.network.is_edge u v)
+          (ite (path.in u v exists_path) (rsn.afn.f u v + d)
+          (ite (path.in v u exists_path) (rsn.afn.f u v - d) (rsn.afn.f u v))) 0 := by simp,
         by_cases edge: rsn.afn.network.is_edge u v,
         { have noEdge: ¬exists_path.in u v := h1 u,
           have noReversedEdge: ¬exists_path.in v u := h2 u,
-          have simplify: newf u v = ite (rsn.afn.network.is_edge u v)
-          (ite (path.in u v exists_path) (rsn.afn.f u v + d)
-          (ite (path.in v u exists_path) (rsn.afn.f u v - d) (rsn.afn.f u v))) 0 := by simp,
           rw simplify,
           simp only [edge, if_true, noEdge, if_false, noReversedEdge, if_false], },
-        { have simplify: newf u v = ite (rsn.afn.network.is_edge u v)
-          (ite (path.in u v exists_path) (rsn.afn.f u v + d)
-          (ite (path.in v u exists_path) (rsn.afn.f u v - d) (rsn.afn.f u v))) 0 := by simp,
-          rw simplify,
+        { rw simplify,
           simp only [edge, if_false],
           have zeroFlow: rsn.afn.f u v = 0 := f_vanishes_outside_edge rsn.afn u v edge,
           linarith, },
@@ -1103,18 +1100,15 @@ begin
       have h4: ∀ w : V, newf v w = rsn.afn.f v w :=
       begin
         intro w,
-        by_cases edge: rsn.afn.network.is_edge v w,
-        { have noEdge: ¬exists_path.in w v := h1 w,
-          have noReversedEdge: ¬exists_path.in v w := h2 w,
           have simplify: newf v w = ite (rsn.afn.network.is_edge v w)
           (ite (path.in v w exists_path) (rsn.afn.f v w + d)
           (ite (path.in w v exists_path) (rsn.afn.f v w - d) (rsn.afn.f v w))) 0 := by simp,
+        by_cases edge: rsn.afn.network.is_edge v w,
+        { have noEdge: ¬exists_path.in w v := h1 w,
+          have noReversedEdge: ¬exists_path.in v w := h2 w,
           rw simplify,
           simp only [edge, if_true, noReversedEdge, if_false, noEdge, if_false], },
-      { have simplify: newf v w = ite (rsn.afn.network.is_edge v w)
-        (ite (path.in v w exists_path) (rsn.afn.f v w + d)
-        (ite (path.in w v exists_path) (rsn.afn.f v w - d) (rsn.afn.f v w))) 0 := by simp,
-        rw simplify,
+      { rw simplify,
         simp only [edge, if_false],
         have zeroFlow: rsn.afn.f v w = 0 := f_vanishes_outside_edge rsn.afn v w edge,
         linarith, },

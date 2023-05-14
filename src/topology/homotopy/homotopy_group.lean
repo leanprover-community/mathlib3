@@ -48,42 +48,37 @@ universes u
 variables {X : Type u} [topological_space X]
 variables {N : Type*} {x : X}
 
-/-- We allow an arbitrary indexing type `N`, not just `fin n`, in the definition of `cube`, so as to
-  be able to identify facets of a cube to cubes indexed by subtypes of `N`, which is more
-  convenient than using `fin (n-1)`. -/
-@[derive [has_zero, has_one, topological_space]]
-def cube (N : Type*) := N → I
-local notation `I^` n := cube (fin n)
+local notation `I^` N := N → I
 
 namespace cube
 
-instance compact_space : compact_space (cube N) :=
+instance compact_space : compact_space (I^N) :=
 by { convert pi.compact_space, intro, apply_instance }
 
-instance locally_compact_space : locally_compact_space (cube N) :=
+instance locally_compact_space : locally_compact_space (I^N) :=
 by convert locally_compact_space.pi; intro; apply_instance
 
 /-- The points in a cube with at least one projection equal to 0 or 1. -/
-def boundary (N) : set (cube N) := {y | ∃ i, y i = 0 ∨ y i = 1}
+def boundary (N : Type*) : set (I^N) := {y | ∃ i, y i = 0 ∨ y i = 1}
 
 variable {n : ℕ}
 /-- The first projection of a positive-dimensional cube. -/
-@[simps] def head : C(I^(n+1), I) := ⟨λ t, t 0, continuous_apply 0⟩
+@[simps] def head : C(I^fin (n+1), I) := ⟨λ t, t 0, continuous_apply 0⟩
 
-instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
+instance unique_cube0 : unique (I^fin 0) := pi.unique_of_is_empty _
 
-lemma one_char (f : I^1) : f = λ _, f 0 := eq_const_of_unique f
+lemma one_char (f : I^fin 1) : f = λ _, f 0 := eq_const_of_unique f
 
 section
 variable [decidable_eq N]
 
 /-- The forward direction of the homeomorphism
   between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/
-@[reducible] def split_at (i : N) : cube N ≃ₜ I × cube {j // j ≠ i} := fun_split_at I i
+@[reducible] def split_at (i : N) : (I^N) ≃ₜ I × I^{j // j ≠ i} := fun_split_at I i
 
 /-- The backward direction of the homeomorphism
   between the cube $I^N$ and $I × I^{N\setminus\{j\}}$. -/
-@[reducible] def insert_at (i : N) : I × cube {j // j ≠ i} ≃ₜ cube N := (fun_split_at I i).symm
+@[reducible] def insert_at (i : N) : I × (I^{j // j ≠ i}) ≃ₜ I^N := (fun_split_at I i).symm
 
 lemma insert_at_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
   insert_at i ⟨t₀, t⟩ ∈ boundary N :=
@@ -104,30 +99,30 @@ local notation `Ω` := loop_space
 /-- The `n`-dimensional generalized loops based at `x` in a space `X` are
   continuous functions `I^n → X` that sends the boundary to `x`.
   We allow an arbitrary indexing type `N` in place of `fin n` here. -/
-def gen_loop (N) (x : X) : set C(cube N, X) := {p | ∀ y ∈ cube.boundary N, p y = x}
+def gen_loop (N : Type*) (x : X) : set C(I^N, X) := {p | ∀ y ∈ cube.boundary N, p y = x}
 
 namespace gen_loop
 
 /-- Copy of a `gen_loop` with a new map from the unit cube equal to the old one.
   Useful to fix definitional equalities. -/
-def copy (f : gen_loop N x) (g : cube N → X) (h : g = f) : gen_loop N x :=
+def copy (f : gen_loop N x) (g : (I^N) → X) (h : g = f) : gen_loop N x :=
 ⟨⟨g, h.symm ▸ f.1.2⟩, by { convert f.2, ext1, simp_rw h, refl }⟩
 
-lemma coe_copy (f : gen_loop N x) {g : cube N → X} (h : g = f) : ⇑(copy f g h) = g := rfl
+lemma coe_copy (f : gen_loop N x) {g : (I^N) → X} (h : g = f) : ⇑(copy f g h) = g := rfl
 
-lemma copy_eq (f : gen_loop N x) {g : cube N → X} (h : g = f) : copy f g h = f :=
+lemma copy_eq (f : gen_loop N x) {g : (I^N) → X} (h : g = f) : copy f g h = f :=
 by { ext x, exact congr_fun h x }
 
 lemma boundary (f : gen_loop N x) : ∀ y ∈ cube.boundary N, f y = x := f.2
 
-instance fun_like : fun_like (gen_loop N x) (cube N) (λ _, X) :=
+instance fun_like : fun_like (gen_loop N x) (I^N) (λ _, X) :=
 { coe := λ f, f.1,
   coe_injective' := λ ⟨⟨f, _⟩, _⟩ ⟨⟨g, _⟩, _⟩ h, by { congr, exact h } }
 
 @[ext] lemma ext (f g : gen_loop N x) (H : ∀ y, f y = g y) : f = g :=
 fun_like.coe_injective' (funext H)
 
-@[simp] lemma mk_apply (f : C(cube N, X)) (H y) : (⟨f, H⟩ : gen_loop N x) y = f y := rfl
+@[simp] lemma mk_apply (f : C(I^N, X)) (H y) : (⟨f, H⟩ : gen_loop N x) y = f y := rfl
 
 /-- The constant `gen_loop` at `x`. -/
 def const : gen_loop N x := ⟨continuous_map.const _ x, λ _ _, rfl⟩
@@ -170,7 +165,7 @@ variable [decidable_eq N]
 
 /-- Generalized loop from a loop by uncurrying $I → (I^{N\setminus\{j\}} → X)$ into $I^N → X$. -/
 @[simps] def from_loop (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : gen_loop N x :=
-⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(cube _, X))).uncurry.comp
+⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(_, X))).uncurry.comp
   (cube.split_at i).to_continuous_map,
 begin
   rintros y ⟨j, Hj⟩,
@@ -200,7 +195,7 @@ end
 lemma to_loop_apply (i : N) {p : gen_loop N x} {t} {tn} :
   to_loop i p t tn = p (cube.insert_at i ⟨t, tn⟩) := rfl
 
-lemma from_loop_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : cube N} :
+lemma from_loop_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : I^N} :
   from_loop i p t = p (t i) (cube.split_at i t).snd := rfl
 
 end
@@ -209,46 +204,55 @@ section
 
 /-- The inclusion from the space of generalized loops to the space of all continuous functions
   (not necessarily constant on the boundary), as a continuous map. -/
-@[reducible] def c_coe : C(gen_loop N x, C(cube N, X)) := ⟨λ p, p.val, continuous_induced_dom⟩
+@[reducible] def c_coe : C(gen_loop N x, C(I^N, X)) := ⟨λ p, p.val, continuous_induced_dom⟩
 
 variable [decidable_eq N]
 
 /-- Composition with `cube.insert_at` as a continuous map. -/
-@[reducible] def c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i}, X)) :=
+@[reducible] def c_comp_insert (i : N) : C(C(I^N, X), C(I × I^{j // j ≠ i}, X)) :=
 ⟨λ f, f.comp (cube.insert_at i).to_continuous_map,
   (cube.insert_at i).to_continuous_map.continuous_comp_left⟩
 
 /-- A homotopy between `n+1`-dimensional loops `p` and `q` constant on the boundary
   seen as a homotopy between two paths in the space of `n`-dimensional paths. -/
-@[simps] def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
-  C(I × I, C(cube {j // j ≠ i}, X)) :=
+def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
+  C(I × I, C(I^{j // j ≠ i}, X)) :=
 ((⟨_, continuous_map.continuous_curry⟩: C(_,_)).comp $
   (c_comp_insert i).comp H.to_continuous_map.curry).uncurry
+
+-- Should be generated with `@[simps]` but it times out.
+lemma homotopy_to_apply (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 $ cube.boundary N)
+  (t : I × I) (tₙ : I^{j // j ≠ i}) :
+    homotopy_to i H t tₙ = H (t.fst, cube.insert_at i (t.snd, tₙ)) := rfl
 
 lemma homotopic_to (i : N) {p q : gen_loop N x} :
   homotopic p q → (to_loop i p).homotopic (to_loop i q) :=
 begin
   refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩, _⟩, _, _⟩, _⟩),
   { rintros y ⟨i, iH⟩,
-    rw homotopy_to_apply_apply, rw H.eq_fst, rw p.2,
+    rw homotopy_to_apply, rw H.eq_fst, rw p.2,
     all_goals { apply cube.insert_at_boundary, right, exact ⟨i, iH⟩} },
   { continuity },
   show ∀ _ _ _, _,
   { intros t y yH,
-    split; ext; erw homotopy_to_apply_apply,
+    split; ext; erw homotopy_to_apply,
     apply H.eq_fst, work_on_goal 2 { apply H.eq_snd },
     all_goals { use i, rw [fun_split_at_symm_apply, dif_pos rfl], exact yH } },
-  all_goals { intro, ext, erw [homotopy_to_apply_apply, to_loop_apply] },
+  all_goals { intro, ext, erw [homotopy_to_apply, to_loop_apply] },
   exacts [H.apply_zero _, H.apply_one _],
 end
 
 /-- The converse to `gen_loop.homotopy_to`: a homotopy between two loops in the space of
   `n`-dimensional loops can be seen as a homotopy between two `n+1`-dimensional paths. -/
-@[simps] def homotopy_from (i : N) {p q : gen_loop N x}
-  (H : (to_loop i p).homotopy (to_loop i q)) : C(I × cube N, X) :=
+def homotopy_from (i : N) {p q : gen_loop N x}
+  (H : (to_loop i p).homotopy (to_loop i q)) : C(I × I^N, X) :=
 ((⟨_, continuous_map.continuous_uncurry⟩ : C(_,_)).comp
   (c_coe.comp H.to_continuous_map).curry).uncurry.comp $
     (continuous_map.id I).prod_map (cube.split_at i).to_continuous_map
+
+-- Should be generated with `@[simps]` but it times out.
+lemma homotopy_from_apply (i : N) {p q : gen_loop N x} (H : (to_loop i p).homotopy (to_loop i q))
+  (t : I × I^N) : homotopy_from i H t = H (t.fst, t.snd i) (λ j, t.snd ↑j) := rfl
 
 lemma homotopic_from (i : N) {p q : gen_loop N x} :
   (to_loop i p).homotopic (to_loop i q) → homotopic p q :=
@@ -326,11 +330,11 @@ end
     (gen_loop.boundary _ (λ _, 1) ⟨1, or.inr rfl⟩),
   inv_fun := λ p,
   begin
-    refine ⟨⟨λ (c : I^1), p c.head, by continuity⟩, _⟩,
+    refine ⟨⟨λ (c : I^fin 1), p (cube.head c), by continuity⟩, _⟩,
     rintro y ⟨i, iH|iH⟩; cases unique.eq_default i;
     apply (congr_arg p iH).trans, exacts [p.source, p.target],
   end,
-  left_inv := λ p, by { ext, exact congr_arg p y.one_char.symm },
+  left_inv := λ p, by { ext, exact congr_arg p (cube.one_char y).symm },
   right_inv := λ p, by { ext, refl } }
 
 /-- The first homotopy group at `x` is equivalent to the fundamental group, i.e. the loops based at
@@ -346,13 +350,13 @@ begin
       map_zero_left' := λ _, by convert H.apply_zero _,
       map_one_left' := λ _, by convert H.apply_one _,
       prop' := λ t y iH, H.prop' _ _ ⟨0, iH⟩ }⟩,
-   ⟨{ to_fun := λ tx, H (tx.fst, tx.snd.head),
-      map_zero_left' := λ y, by { convert H.apply_zero _, exact y.one_char },
-      map_one_left' := λ y, by { convert H.apply_one _, exact y.one_char },
+   ⟨{ to_fun := λ tx, H (tx.fst, (cube.head tx.snd)),
+      map_zero_left' := λ y, by { convert H.apply_zero _, exact cube.one_char y },
+      map_one_left' := λ y, by { convert H.apply_one _, exact cube.one_char y },
       prop' := λ t y ⟨i, iH⟩, begin
         cases unique.eq_default i, split,
-        { convert H.eq_fst _ _, exacts [y.one_char, iH] },
-        { convert H.eq_snd _ _, exacts [y.one_char, iH] },
+        { convert H.eq_fst _ _, exacts [cube.one_char y, iH] },
+        { convert H.eq_snd _ _, exacts [cube.one_char y, iH] },
       end }⟩],
 end
 

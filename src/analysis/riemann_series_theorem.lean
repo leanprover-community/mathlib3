@@ -150,11 +150,10 @@ begin
   { exact converges_of_agrees_converges (λ n hn, (h n hn).symm) h₁ }
 end
 
--- TODO: Consider changing to proving the existence of positive terms instead of nonnegative terms
-lemma frequently_exists_nonneg_of_conditionally_converging {a : ℕ → ℝ}
+lemma frequently_exists_pos_of_conditionally_converging {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  : ∃ᶠ (n : ℕ) in at_top, 0 ≤ a n :=
+  : ∃ᶠ (n : ℕ) in at_top, 0 < a n :=
 begin
   rw filter.frequently_at_top,
   intro k,
@@ -178,7 +177,7 @@ begin
     by_cases hn : k ≤ n,
     { specialize h n hn,
       rw (hb n hn) at h,
-      exact h.le },
+      exact h },
     { change (if k ≤ n then a n else 0) ≤ 0,
       rw if_neg hn }
   end,
@@ -227,12 +226,12 @@ begin
   exact absurd (this.mp h₁) h₂
 end
 
-lemma exists_nonneg_not_in_finset_of_conditionally_converging {a : ℕ → ℝ}
+lemma exists_pos_not_in_finset_of_conditionally_converging {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (s : finset ℕ)
-  : ∃ n, n ∉ s ∧ 0 ≤ a n :=
+  : ∃ n, n ∉ s ∧ 0 < a n :=
 begin
-  have := frequently_exists_nonneg_of_conditionally_converging h₁ h₂,
+  have := frequently_exists_pos_of_conditionally_converging h₁ h₂,
   obtain ⟨n, hn₁, hn₂⟩ := frequently_at_top.mp this (if h : s.nonempty then s.max' h + 1 else 0),
   use n,
   split,

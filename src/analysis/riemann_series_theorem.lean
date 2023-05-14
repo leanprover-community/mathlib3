@@ -264,14 +264,30 @@ begin
   { exact hn₂ }
 end
 
-noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
+noncomputable def rearrangement {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) : ℕ → ℕ
 | 0 := 0
 | (n+1) :=
   if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement ↑x) ≤ M then
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k := sorry,
+    -- We could demonstrate that there exist a positive `a k` rather than a nonnegative one but then
+    -- this function wouldn't be surjective
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k := begin
+      obtain ⟨n, hn₁, hn₂⟩ := exists_pos_not_in_finset_of_conditionally_converging h₁ h₂
+        ((set.range (λ x : fin (n + 1), rearrangement ↑x)).to_finset),
+      use n,
+      rw ←set.mem_to_finset,
+      exact ⟨hn₁, hn₂.le⟩
+    end,
     nat.find h
   else
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k ≤ 0 := sorry,
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k < 0 := begin
+      obtain ⟨n, hn₁, hn₂⟩ := exists_neg_not_in_finset_of_conditionally_converging h₁ h₂
+        ((set.range (λ x : fin (n + 1), rearrangement ↑x)).to_finset),
+      use n,
+      rw ←set.mem_to_finset,
+      exact ⟨hn₁, hn₂⟩
+    end,
     nat.find h
 
 theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))

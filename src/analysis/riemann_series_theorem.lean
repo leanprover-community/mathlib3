@@ -264,39 +264,23 @@ begin
   { exact hn₂ }
 end
 
-noncomputable def rearrangement {a : ℕ → ℝ}
-  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
-  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) : ℕ → ℕ
+noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
 | 0 := 0
 | (n+1) :=
   if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement ↑x) ≤ M then
     -- We could demonstrate that there exist a positive `a k` rather than a nonnegative one but then
     -- this function wouldn't be surjective
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k := begin
-      obtain ⟨n, hn₁, hn₂⟩ := exists_pos_not_in_finset_of_conditionally_converging h₁ h₂
-        ((set.range (λ x : fin (n + 1), rearrangement ↑x)).to_finset),
-      use n,
-      rw ←set.mem_to_finset,
-      exact ⟨hn₁, hn₂.le⟩
-    end,
-    nat.find h
+    Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k}
   else
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k < 0 := begin
-      obtain ⟨n, hn₁, hn₂⟩ := exists_neg_not_in_finset_of_conditionally_converging h₁ h₂
-        ((set.range (λ x : fin (n + 1), rearrangement ↑x)).to_finset),
-      use n,
-      rw ←set.mem_to_finset,
-      exact ⟨hn₁, hn₂⟩
-    end,
-    nat.find h
+    Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ a k < 0}
 
 lemma exists_nonneg_terms_not_in_range_fin_rearrangement {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
-  : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement h₁ h₂ M ↑x) ∧ 0 ≤ a k :=
+  : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k :=
 begin
   obtain ⟨n, hn₁, hn₂⟩ := exists_pos_not_in_finset_of_conditionally_converging h₁ h₂
-        ((set.range (λ x : fin (n + 1), rearrangement h₁ h₂ M ↑x)).to_finset),
+        ((set.range (λ x : fin (n + 1), rearrangement a M ↑x)).to_finset),
   use n,
   rw ←set.mem_to_finset,
   exact ⟨hn₁, hn₂.le⟩
@@ -305,10 +289,10 @@ end
 lemma exists_neg_terms_not_in_range_fin_rearrangement {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
-  : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement h₁ h₂ M ↑x) ∧ a k < 0 :=
+  : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0 :=
 begin
   obtain ⟨n, hn₁, hn₂⟩ := exists_neg_not_in_finset_of_conditionally_converging h₁ h₂
-        ((set.range (λ x : fin (n + 1), rearrangement h₁ h₂ M ↑x)).to_finset),
+        ((set.range (λ x : fin (n + 1), rearrangement a M ↑x)).to_finset),
   use n,
   rw ←set.mem_to_finset,
   exact ⟨hn₁, hn₂⟩

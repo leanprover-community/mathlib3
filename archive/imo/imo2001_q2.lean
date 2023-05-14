@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tian Chen
 -/
 
-import analysis.special_functions.pow
+import analysis.special_functions.pow_real
 
 /-!
 # IMO 2001 Q2

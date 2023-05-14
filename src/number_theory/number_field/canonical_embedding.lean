@@ -36,6 +36,7 @@ noncomputable theory
 
 open function finite_dimensional finset fintype number_field number_field.infinite_place metric
 module
+
 open_locale classical number_field
 
 variables (K : Type*) [field K]
@@ -52,9 +53,9 @@ lemma space_rank [number_field K] :
 begin
   haveI : module.free ℝ ℂ := infer_instance,
   rw [finrank_prod, finrank_pi, finrank_pi_fintype, complex.finrank_real_complex,
-    finset.sum_const, finset.card_univ, ← card_real_embeddings, algebra.id.smul_eq_mul, mul_comm,
-    ← card_complex_embeddings, ← number_field.embeddings.card K ℂ, fintype.card_subtype_compl,
-    nat.add_sub_of_le (fintype.card_subtype_le _)],
+    sum_const, card_univ, ← card_real_embeddings, algebra.id.smul_eq_mul, mul_comm,
+    ← card_complex_embeddings, ← number_field.embeddings.card K ℂ, card_subtype_compl,
+    nat.add_sub_of_le (card_subtype_le _)],
 end
 
 lemma non_trivial_space [number_field K] : nontrivial E :=
@@ -90,26 +91,26 @@ lemma apply_at_complex_infinite_place (w : { w : infinite_place K // is_complex 
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
 lemma nnnorm_eq [number_field K] (x : K) :
-  ‖canonical_embedding K x‖₊ = finset.univ.sup (λ w : infinite_place K, ⟨w x, map_nonneg w x⟩) :=
+  ‖canonical_embedding K x‖₊ = univ.sup (λ w : infinite_place K, ⟨w x, map_nonneg w x⟩) :=
 begin
   rw [prod.nnnorm_def', pi.nnnorm_def, pi.nnnorm_def],
-  rw ( _ : finset.univ = {w : infinite_place K | is_real w}.to_finset
+  rw ( _ : univ = {w : infinite_place K | is_real w}.to_finset
     ∪ {w : infinite_place K | is_complex w}.to_finset),
-  { rw [finset.sup_union, sup_eq_max],
+  { rw [sup_union, sup_eq_max],
     refine congr_arg2 _ _ _,
-    { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K, is_real w))
+    { convert (univ.sup_map (embedding.subtype (λ w : infinite_place K, is_real w))
         (λ w, (⟨w x, map_nonneg w x⟩ : nnreal))).symm using 2,
       ext w,
       simp only [apply_at_real_infinite_place, coe_nnnorm, real.norm_eq_abs,
-        function.embedding.coe_subtype, subtype.coe_mk, is_real.abs_embedding_apply], },
-    { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K,
+        embedding.coe_subtype, subtype.coe_mk, is_real.abs_embedding_apply], },
+    { convert (univ.sup_map (embedding.subtype (λ w : infinite_place K,
         is_complex w)) (λ w, (⟨w x, map_nonneg w x⟩ : nnreal))).symm using 2,
       ext w,
       simp only [apply_at_complex_infinite_place, subtype.val_eq_coe, coe_nnnorm,
-        complex.norm_eq_abs, function.embedding.coe_subtype, subtype.coe_mk, abs_embedding], }},
+        complex.norm_eq_abs, embedding.coe_subtype, subtype.coe_mk, abs_embedding], }},
   { ext w,
-    simp only [w.is_real_or_is_complex, set.mem_set_of_eq, finset.mem_union, set.mem_to_finset,
-      finset.mem_univ], },
+    simp only [w.is_real_or_is_complex, set.mem_set_of_eq, mem_union, set.mem_to_finset,
+      mem_univ], },
 end
 
 lemma norm_le_iff [number_field K] (x : K) (r : ℝ) :
@@ -120,7 +121,7 @@ begin
     exact iff_of_false (hr.trans_le $ norm_nonneg _).not_le
       (λ h, hr.not_le $ (map_nonneg w _).trans $ h _) },
   { lift r to nnreal using hr,
-    simp_rw [← coe_nnnorm, nnnorm_eq, nnreal.coe_le_coe, finset.sup_le_iff, finset.mem_univ,
+    simp_rw [← coe_nnnorm, nnnorm_eq, nnreal.coe_le_coe, finset.sup_le_iff, mem_univ,
       forall_true_left, ←nnreal.coe_le_coe, subtype.coe_mk] }
 end
 
@@ -264,7 +265,7 @@ begin
     replace : linear_independent ℝ (λ i, full_embedding K (integral_basis K i)),
     { refine (linear_independent_equiv' e.symm _).mpr this,
       ext1 φ,
-      simp only [equiv.apply_symm_apply, function.comp_app], },
+      simp only [equiv.apply_symm_apply, comp_app], },
     replace : linear_independent ℝ (λ i, (comm_map K ∘ full_embedding K) (integral_basis K i)),
     { exact linear_independent.map this
         (linear_map.disjoint_ker.mpr (λ x hx hc, comm_map_eq_zero K hx hc)), },
@@ -317,10 +318,10 @@ begin
         exact ⟨a, ⟨a, trivial, rfl⟩, rfl⟩, }},
     { rw ← set.range_comp,
       refine congr_arg _ _,
-      ext, simpa only [integral_basis_apply, function.comp_app, alg_hom.to_linear_map_apply], }},
+      ext, simpa only [integral_basis_apply, comp_app, alg_hom.to_linear_map_apply], }},
   { rw ← set.range_comp,
     refine congr_arg _ _,
-    ext1, simpa only [lattice_basis_apply, integral_basis_apply, function.comp_app,
+    ext1, simpa only [lattice_basis_apply, integral_basis_apply, comp_app,
       alg_hom.to_linear_map_apply], },
 end
 
@@ -330,18 +331,18 @@ section convex_body
 
 open measure_theory
 
+-- TODO: use big_operators
+
 /-- The real part of the convex body defined by `f`, see `convex_body`. -/
 def convex_body_real (f : infinite_place K → nnreal) : set ({w : infinite_place K // is_real w} → ℝ)
-:= set.pi set.univ (λ w, metric.ball 0 (f w))
+:= set.pi set.univ (λ w, ball 0 (f w))
 
 /-- The complex part of the convex body defined by `f`, see `convex_body`. -/
 def convex_body_complex (f : infinite_place K → nnreal) :
-  set ({w : infinite_place K // is_complex w} → ℂ) :=
-set.pi set.univ (λ w, metric.ball 0 (f w))
+  set ({w : infinite_place K // is_complex w} → ℂ) := set.pi set.univ (λ w, ball 0 (f w))
 
 /-- The convex body defined by `f`: the set of points `x : E` such that `x w < f w` for all
 infinite places `w`. -/
-@[reducible]
 def convex_body (f : infinite_place K → nnreal): set E :=
 (convex_body_real K f) ×ˢ (convex_body_complex K f)
 
@@ -366,64 +367,53 @@ lemma convex_body_mem (f : infinite_place K → nnreal) (x : K) :
 begin
   suffices : (∀ w : infinite_place K, w x < f w) ↔
     (∀ w : infinite_place K, w.is_real ∨ w.is_complex → w x < f w),
-  { simp only [this, ball_or_left_distrib, set.mem_prod, convex_body_real, convex_body_complex,
-    set.mem_univ_pi, apply_at_real_infinite_place, mem_ball_zero_iff, real.norm_eq_abs,
-    is_real.abs_embedding_apply, subtype.forall, subtype.coe_mk, apply_at_complex_infinite_place,
-    complex.norm_eq_abs, abs_embedding], },
+  { simp only [convex_body, this, ball_or_left_distrib, set.mem_prod, convex_body_real,
+    convex_body_complex, set.mem_univ_pi, apply_at_real_infinite_place, mem_ball_zero_iff,
+    real.norm_eq_abs, is_real.abs_embedding_apply, subtype.forall, subtype.coe_mk,
+    apply_at_complex_infinite_place, complex.norm_eq_abs, abs_embedding], },
   simp only [← infinite_place.not_is_real_iff_is_complex, em, forall_true_left],
 end
 
 variable [number_field K]
 
-/-- The complex Haar measure giving measure 1 to the unit box in `ℂ ≃ ℝ × ℝ`. -/
-@[reducible]
-def unit_measure : measure E :=
-measure.prod (measure.pi (λ _, volume)) (measure.pi (λ _, complex.basis_one_I.add_haar))
-
-instance : measure.is_add_haar_measure (unit_measure K) :=
+instance is_add_haar_measure_volume : @measure.is_add_haar_measure E _ _ _ volume :=
 begin
-  haveI : measure.is_add_haar_measure complex.basis_one_I.add_haar := infer_instance,
-  haveI : has_measurable_add ℂ := infer_instance,
-  have : measure.is_add_haar_measure (measure.pi (λ w : { w : infinite_place K // is_complex w },
-    complex.basis_one_I.add_haar)) := @measure.pi.is_add_haar_measure _ _ _ _ _ _ _ _ _ _,
+  haveI : measure.is_add_haar_measure complex.measure_space.volume := infer_instance,
   convert measure.prod.is_add_haar_measure _ _,
+  { exact measure_theory.is_add_haar_measure_volume_pi _, },
+  { exact measure.is_add_haar_measure.mk, },
   any_goals { apply_instance, },
 end
 
 lemma convex_body_real.volume (f : infinite_place K → nnreal) :
-  measure.pi (λ _, volume) (convex_body_real K f) =
-    2 ^ card {w : infinite_place K // is_real w} *
-    finset.univ.prod (λ w : {w : infinite_place K // is_real w}, f w) :=
-by simp_rw [convex_body_real, measure.pi_pi, real.volume_ball,
-  ennreal.of_real_mul (by norm_num : 0 ≤ (2 : ℝ)), ennreal.of_real_bit0, ennreal.of_real_one,
-  ennreal.of_real_coe_nnreal, finset.prod_mul_distrib, finset.prod_const, finset.card_univ]
+  volume (convex_body_real K f) = 2 ^ card {w : infinite_place K // is_real w} *
+    univ.prod (λ w : {w : infinite_place K // is_real w}, f w) :=
+by simp_rw [convex_body_real, volume_pi, measure.pi_pi, real.volume_ball,
+    ennreal.of_real_mul (by norm_num : 0 ≤ (2 : ℝ)), ennreal.of_real_bit0, ennreal.of_real_one,
+    ennreal.of_real_coe_nnreal, prod_mul_distrib, prod_const, card_univ]
 
 lemma convex_body_complex.volume (f : infinite_place K → nnreal) :
-  (measure.pi (λ _, complex.basis_one_I.add_haar)) (convex_body_complex K f) =
-  (complex.basis_one_I.add_haar) (metric.ball 0 1) ^
-  card {w : infinite_place K // is_complex w} *
-  finset.univ.prod (λ w : {w : infinite_place K // is_complex w}, (f w) ^ 2) :=
+  volume (convex_body_complex K f) =
+    volume (ball (0 : ℂ) 1) ^ card {w : infinite_place K // is_complex w} *
+    univ.prod (λ w : {w : infinite_place K // is_complex w}, (f w) ^ 2) :=
 begin
-  haveI : measure.is_add_haar_measure complex.basis_one_I.add_haar := infer_instance,
-  haveI : has_measurable_add ℂ := infer_instance,
-  haveI : measure.is_add_haar_measure (measure.pi (λ w : { w : infinite_place K // is_complex w },
-    complex.basis_one_I.add_haar)) := @measure.pi.is_add_haar_measure _ _ _ _ _ _ _ _ _ _,
-  rw [ convex_body_complex, measure.pi_pi],
+  haveI : measure.is_add_haar_measure complex.measure_space.volume := infer_instance,
+  rw [convex_body_complex, volume_pi, measure.pi_pi],
   conv { to_lhs, congr, skip, funext,
-    rw measure.add_haar_ball complex.basis_one_I.add_haar 0 (f i).prop,
+    rw measure.add_haar_ball volume (0 : ℂ) (f i).prop,
     rw ennreal.of_real_pow (f i).prop, },
-  simp_rw [finset.prod_mul_distrib, finset.prod_const, mul_comm, complex.finrank_real_complex,
-    finset.card_univ, ennreal.of_real_coe_nnreal],
+  simp_rw [prod_mul_distrib, prod_const, mul_comm, complex.finrank_real_complex, card_univ,
+    ennreal.of_real_coe_nnreal],
 end
 
 /-- The fudge factor that appears in the formula for the volume of `convex_body`.-/
 def constant_volume : ennreal := 2 ^ card {w : infinite_place K // is_real w} *
-  (complex.basis_one_I.add_haar) (metric.ball 0 1) ^ card {w : infinite_place K // is_complex w}
+  volume (ball (0 : ℂ) 1) ^ card {w : infinite_place K // is_complex w}
 
 lemma constant_volume_pos : 0 < (constant_volume K) :=
 begin
   refine ennreal.mul_pos (ne_zero.ne _) _,
-  exact ennreal.pow_ne_zero (ne_of_gt (metric.measure_ball_pos _ _ (by norm_num))) _,
+  exact ennreal.pow_ne_zero (ne_of_gt (measure_ball_pos _ _ (by norm_num))) _,
 end
 
 lemma constant_volume_lt_top : (constant_volume K) < ⊤ :=
@@ -434,31 +424,25 @@ begin
 end
 
 lemma convex_body.volume (f : infinite_place K → nnreal) :
-  (unit_measure K) (convex_body K f) = (constant_volume K) *
-    finset.univ.prod (λ w : infinite_place K, (ite (w.is_real) (f w) (f w ^ 2))) :=
+  volume (convex_body K f) = (constant_volume K) *
+    univ.prod (λ w : infinite_place K, (ite (w.is_real) (f w) (f w ^ 2))) :=
 begin
-  haveI : sigma_finite complex.basis_one_I.add_haar := infer_instance,
-  haveI : sigma_finite (measure.pi (λ w : { w : infinite_place K // is_complex w},
-    complex.basis_one_I.add_haar)) := infer_instance,
-  rw [measure.prod_prod, convex_body_real.volume, constant_volume, mul_assoc, mul_assoc,
-    ennreal.mul_eq_mul_left _ _],
-  { rw [mul_comm, finset.prod_ite, convex_body_complex.volume, mul_assoc,
-      ennreal.mul_eq_mul_left _ _],
-    { rw mul_comm,
-      refine congr_arg2 _ _ _;
-      { rw eq_comm,
-        refine finset.prod_subtype _ _ _,
-        simp only [finset.mem_filter, finset.mem_univ, true_and, iff_self, forall_const,
-          not_is_real_iff_is_complex], }},
-    { exact ennreal.pow_ne_zero (ne_of_gt (metric.measure_ball_pos _ _ (by norm_num))) _, },
-    { exact ne_of_lt (ennreal.pow_lt_top measure_ball_lt_top _), }},
-  { exact ne_zero.ne _, },
-  { exact ne_of_lt (ennreal.pow_lt_top (lt_top_iff_ne_top.mpr ennreal.two_ne_top) _), },
+  haveI : measure.is_add_haar_measure complex.measure_space.volume := infer_instance,
+  simp_rw [measure.volume_eq_prod, convex_body, measure.prod_prod, convex_body_real.volume,
+    convex_body_complex.volume, constant_volume, prod_ite, ← prod_subtype_eq_prod_filter],
+  rw (by { ext, simp only [mem_subtype, mem_univ], } :
+    finset.subtype (λ (w : infinite_place K), is_real w) univ = univ),
+  rw ( by { ext, simp only [mem_subtype, mem_univ], } :
+    finset.subtype (λ (w : infinite_place K), ¬ is_real w) univ = univ),
+  rw ← equiv.prod_comp (equiv.subtype_equiv_right
+    (λ w, (@infinite_place.not_is_real_iff_is_complex K _ w).symm)) _,
+  simp_rw [equiv.subtype_equiv_right_apply_coe],
+  ring,
 end
 
 /-- The bound that appears in Minkowski theorem, see
 `exists_ne_zero_mem_lattice_of_measure_mul_two_pow_lt_measure`.-/
-def minkowski_bound : ennreal := (unit_measure K) (zspan.fundamental_domain (lattice_basis K)) *
+def minkowski_bound : ennreal := volume (zspan.fundamental_domain (lattice_basis K)) *
   2 ^ (finrank ℝ E)
 
 lemma minkowski_bound_lt_top : minkowski_bound K < ⊤ :=
@@ -469,14 +453,14 @@ begin
 end
 
 lemma exists_ne_zero_mem_ring_of_integers_lt {f : (infinite_place K) → nnreal}
-  (hf : minkowski_bound K < (unit_measure K) (convex_body K f)) :
+  (hf : minkowski_bound K < volume (convex_body K f)) :
   ∃ (a : 𝓞 K), a ≠ 0 ∧ ∀ w : infinite_place K, w a < f w :=
 begin
   haveI : countable (submodule.span ℤ (set.range (lattice_basis K))).to_add_subgroup,
   { change countable (submodule.span ℤ (set.range (lattice_basis K)) : set E),
     rw lattice_basis_span,
     exact integer_lattice.countable K, },
-  have h_funddomain := zspan.is_add_fundamental_domain (lattice_basis K) (unit_measure K),
+  have h_funddomain := zspan.is_add_fundamental_domain (lattice_basis K) volume,
   obtain ⟨⟨x, hx⟩, hnz, hmem⟩ := exists_ne_zero_mem_lattice_of_measure_mul_two_pow_lt_measure
     h_funddomain hf (convex_body.symmetric K f) (convex_body.convex K f),
   rw [submodule.mem_to_add_subgroup, ← set_like.mem_coe, lattice_basis_span] at hx,

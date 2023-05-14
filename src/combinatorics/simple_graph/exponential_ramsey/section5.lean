@@ -949,7 +949,7 @@ begin
   exact hk.trans_lt this,
 end
 
-lemma five_one_case_a {α : ℝ} (X Y : finset V) {x : V} (hx : x ∈ X)
+lemma five_one_case_a {α : ℝ} (X Y : finset V) {x : V}
   (hxX : (red_neighbors χ x ∩ X).nonempty) (hxY : (red_neighbors χ x ∩ Y).nonempty) :
     - α * ((red_neighbors χ x ∩ X).card * (red_neighbors χ x ∩ Y).card) / Y.card ≤
       ∑ y in red_neighbors χ x ∩ X, pair_weight χ X Y x y →
@@ -1215,7 +1215,7 @@ begin
   exact hε k hlk,
 end
 
-lemma five_one (μ p₀_lower : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
+lemma five_one (μ p₀_lower : ℝ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
   ∀ n : ℕ,
@@ -1263,8 +1263,7 @@ begin
     exact hi.1 },
   cases le_or_lt (-α * ((red_neighbors χ x ∩ C.X).card * Yr.card) / C.Y.card)
     (∑ y in red_neighbors χ x ∩ C.X, pair_weight χ C.X C.Y x y) with hα hα,
-  { exact or.inl (five_one_case_a C.X C.Y (book_config.get_central_vertex_mem_X _ _ _)
-      (red_neighbors_X_nonempty hμ₁ (hkμ k hlk) hl₁ _) hYr hα) },
+  { exact or.inl (five_one_case_a _ _ (red_neighbors_X_nonempty hμ₁ (hkμ k hlk) hl₁ _) hYr hα) },
   replace h₁ : C.p * β * (C.X.card * Yr.card) + α * (1 - β) * (1 - ε) * (C.X.card * Yr.card) ≤
     ∑ y in blue_neighbors χ x ∩ C.X, (red_neighbors χ y ∩ Yr).card := h₁ k hlk n χ ini hini i hi hα,
   replace h₂ : (blue_neighbors χ x ∩ C.X).nonempty := h₂ k hlk n χ ini hini i hi hα,
@@ -1286,7 +1285,7 @@ begin
   rw [mul_right_comm, mul_rotate],
 end
 
-lemma five_two (μ p₀_lower : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
+lemma five_two (μ p₀_lower : ℝ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
   ∀ n : ℕ,
@@ -1300,7 +1299,7 @@ lemma five_two (μ p₀_lower : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀_
     α_function k (height k ini.p (algorithm μ k l ini i).p) ≤
       (algorithm μ k l ini (i + 1)).p - (algorithm μ k l ini i).p :=
 begin
-  filter_upwards [five_one μ p₀_lower hμ₀ hμ₁ hp₀_lower] with l hl
+  filter_upwards [five_one μ p₀_lower hμ₁ hp₀_lower] with l hl
     k hlk n χ ini hini i hi,
   have hi' := hi,
   simp only [density_steps, mem_image, subtype.coe_mk, mem_filter, mem_attach, true_and,
@@ -1314,7 +1313,7 @@ begin
   refl,
 end
 
-lemma blue_X_ratio_pos (μ p₀_lower : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
+lemma blue_X_ratio_pos (μ p₀_lower : ℝ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
   ∀ n : ℕ,
@@ -1324,11 +1323,11 @@ lemma blue_X_ratio_pos (μ p₀_lower : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1)
   ∀ i : ℕ,
   i ∈ density_steps μ k l ini → 0 < blue_X_ratio μ k l ini i :=
 begin
-  filter_upwards [five_two μ p₀_lower hμ₀ hμ₁ hp₀_lower] with l hl k hlk n χ ini hini i hi,
+  filter_upwards [five_two μ p₀_lower hμ₁ hp₀_lower] with l hl k hlk n χ ini hini i hi,
   exact (hl k hlk n χ ini hini i hi).1,
 end
 
-lemma five_three_left (μ p₀_lower : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
+lemma five_three_left (μ p₀_lower : ℝ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
   ∀ n : ℕ,
@@ -1339,7 +1338,7 @@ lemma five_three_left (μ p₀_lower : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) 
     i ∈ density_steps μ k l ini →
   (algorithm μ k l ini i).p ≤ (algorithm μ k l ini (i + 1)).p :=
 begin
-  filter_upwards [five_two μ p₀_lower hμ₀ hμ₁ hp₀_lower,
+  filter_upwards [five_two μ p₀_lower hμ₁ hp₀_lower,
     top_adjuster ε_lt_one] with l hl hε
     k hlk n χ ini hini i hi,
   rw ←sub_nonneg,
@@ -1349,7 +1348,7 @@ begin
   exact blue_X_ratio_le_one,
 end
 
-lemma five_three_right (μ p₀_lower : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
+lemma five_three_right (μ p₀_lower : ℝ) (hμ₁ : μ < 1) (hp₀_lower : 0 < p₀_lower) :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
   ∀ n : ℕ,
@@ -1366,7 +1365,7 @@ begin
   have h := (tendsto_at_top_add_const_right _ (-2) h34).at_top_mul_at_top h54,
   have := tendsto_rpow_neg_at_top (show (0 : ℝ) < 1 / 4, by norm_num),
   have := eventually_le_of_tendsto_lt (show (0 : ℝ) < 1 - 2⁻¹, by norm_num) this,
-  filter_upwards [five_two μ p₀_lower hμ₀ hμ₁ hp₀_lower,
+  filter_upwards [five_two μ p₀_lower hμ₁ hp₀_lower,
     top_adjuster (t.eventually this),
     top_adjuster (t.eventually_gt_at_top 0),
     top_adjuster ((h.comp t).eventually_ge_at_top 1)] with l hl hl' hk₀ hk'

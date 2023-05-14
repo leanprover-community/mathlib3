@@ -376,15 +376,6 @@ end
 
 variable [number_field K]
 
-instance is_add_haar_measure_volume : @measure.is_add_haar_measure E _ _ _ volume :=
-begin
-  haveI : measure.is_add_haar_measure complex.measure_space.volume := infer_instance,
-  convert measure.prod.is_add_haar_measure _ _,
-  { exact measure_theory.is_add_haar_measure_volume_pi _, },
-  { exact measure.is_add_haar_measure.mk, },
-  any_goals { apply_instance, },
-end
-
 lemma convex_body_real.volume (f : infinite_place K → nnreal) :
   volume (convex_body_real K f) = 2 ^ card {w : infinite_place K // is_real w} *
     univ.prod (λ w : {w : infinite_place K // is_real w}, f w) :=
@@ -457,6 +448,13 @@ lemma exists_ne_zero_mem_ring_of_integers_lt {f : (infinite_place K) → nnreal}
   (hf : minkowski_bound K < volume (convex_body K f)) :
   ∃ (a : 𝓞 K), a ≠ 0 ∧ ∀ w : infinite_place K, w a < f w :=
 begin
+  haveI : @measure.is_add_haar_measure E _ _ _ volume,
+  begin
+    haveI : measure.is_add_haar_measure complex.measure_space.volume := infer_instance,
+    haveI : @measure.is_add_haar_measure ({w : infinite_place K // is_complex w} → ℂ) _ _ _ volume
+      := measure.is_add_haar_measure.mk,
+    exact measure.prod.is_add_haar_measure volume volume,
+  end,
   haveI : countable (submodule.span ℤ (set.range (lattice_basis K))).to_add_subgroup,
   { change countable (submodule.span ℤ (set.range (lattice_basis K)) : set E),
     rw lattice_basis_span,

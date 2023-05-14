@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.complex.module
+import data.complex.exponential
 import data.is_R_or_C.basic
-import topology.algebra.module.infinite_sum
+import topology.algebra.infinite_sum.module
 import topology.instances.real_vector_space
 
 /-!
@@ -37,11 +38,14 @@ noncomputable theory
 
 namespace complex
 
-open_locale complex_conjugate topological_space
+open_locale complex_conjugate topology
 
 instance : has_norm ℂ := ⟨abs⟩
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ‖z‖ = abs z := rfl
+
+lemma norm_exp_of_real_mul_I (t : ℝ) : ‖exp (t * I)‖ = 1 :=
+by simp only [norm_eq_abs, abs_exp_of_real_mul_I]
 
 instance : normed_add_comm_group ℂ :=
 add_group_norm.to_normed_add_comm_group
@@ -308,10 +312,7 @@ noncomputable instance : is_R_or_C ℂ :=
   conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
   norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
     add_monoid_hom.coe_mk, complex.norm_eq_abs],
-  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
-    complex.of_real_eq_coe, complex.norm_eq_abs],
-  div_I_ax := complex.div_I }
+  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im] }
 
 lemma _root_.is_R_or_C.re_eq_complex_re : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl
 lemma _root_.is_R_or_C.im_eq_complex_im : ⇑(is_R_or_C.im : ℂ →+ ℝ) = complex.im := rfl
@@ -320,38 +321,143 @@ section complex_order
 open_locale complex_order
 
 lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑‖z‖ :=
-by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
+by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, _root_.abs_of_nonneg (complex.le_def.2 hz).1]
 
 end complex_order
-
-lemma has_sum_iff {α} (f : α → ℂ) (c : ℂ) :
-  has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
-begin
-  -- For some reason, `continuous_linear_map.has_sum` is orders of magnitude faster than
-  -- `has_sum.mapL` here:
-  refine ⟨λ h, ⟨re_clm.has_sum h, im_clm.has_sum h⟩, _⟩,
-  rintro ⟨h₁, h₂⟩,
-  convert (h₁.prod_mk h₂).mapL equiv_real_prod_clm.symm.to_continuous_linear_map,
-  { ext x; refl },
-  { cases c, refl }
-end
 
 end complex
 
 namespace is_R_or_C
 
+open_locale complex_conjugate
+
 local notation `reC` := @is_R_or_C.re ℂ _
 local notation `imC` := @is_R_or_C.im ℂ _
 local notation `IC` := @is_R_or_C.I ℂ _
-local notation `absC` := @is_R_or_C.abs ℂ _
 local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 
 @[simp] lemma re_to_complex {x : ℂ} : reC x = x.re := rfl
 @[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
 @[simp] lemma I_to_complex : IC = complex.I := rfl
-@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
-by simp [is_R_or_C.norm_sq, complex.norm_sq]
-@[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
-by simp [is_R_or_C.abs, complex.abs]
+@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x := rfl
+
+section tsum
+variables {α : Type*} (𝕜 : Type*) [is_R_or_C 𝕜]
+
+@[simp] lemma has_sum_conj {f : α → 𝕜} {x : 𝕜} :
+  has_sum (λ x, conj (f x)) x ↔ has_sum f (conj x) :=
+conj_cle.has_sum
+
+lemma has_sum_conj' {f : α → 𝕜} {x : 𝕜} : has_sum (λ x, conj (f x)) (conj x) ↔ has_sum f x :=
+conj_cle.has_sum'
+
+@[simp] lemma summable_conj {f : α → 𝕜} : summable (λ x, conj (f x)) ↔ summable f :=
+summable_star_iff
+
+variables {𝕜}
+
+lemma conj_tsum (f : α → 𝕜) : conj (∑' a, f a) = ∑' a, conj (f a) :=
+tsum_star
+
+variables (𝕜)
+
+@[simp, norm_cast] lemma has_sum_of_real {f : α → ℝ} {x : ℝ} :
+  has_sum (λ x, (f x : 𝕜)) x ↔ has_sum f x :=
+⟨λ h, by simpa only [is_R_or_C.re_clm_apply, is_R_or_C.of_real_re] using re_clm.has_sum h,
+  of_real_clm.has_sum⟩
+
+@[simp, norm_cast] lemma summable_of_real {f : α → ℝ} : summable (λ x, (f x : 𝕜)) ↔ summable f :=
+⟨λ h, by simpa only [is_R_or_C.re_clm_apply, is_R_or_C.of_real_re] using re_clm.summable h,
+  of_real_clm.summable⟩
+
+@[norm_cast] lemma of_real_tsum (f : α → ℝ) : (↑(∑' a, f a) : 𝕜) = ∑' a, f a :=
+begin
+  by_cases h : summable f,
+  { exact continuous_linear_map.map_tsum of_real_clm h },
+  { rw [tsum_eq_zero_of_not_summable h,
+    tsum_eq_zero_of_not_summable ((summable_of_real _).not.mpr h), of_real_zero] }
+end
+
+lemma has_sum_re {f : α → 𝕜} {x : 𝕜} (h : has_sum f x) : has_sum (λ x, re (f x)) (re x) :=
+re_clm.has_sum h
+
+lemma has_sum_im {f : α → 𝕜} {x : 𝕜} (h : has_sum f x) : has_sum (λ x, im (f x)) (im x) :=
+im_clm.has_sum h
+
+lemma re_tsum {f : α → 𝕜} (h : summable f) : re (∑' a, f a) = ∑' a, re (f a) :=
+re_clm.map_tsum h
+
+lemma im_tsum {f : α → 𝕜} (h : summable f) : im (∑' a, f a) = ∑' a, im (f a) :=
+im_clm.map_tsum h
+
+variables {𝕜}
+
+lemma has_sum_iff (f : α → 𝕜) (c : 𝕜) :
+  has_sum f c ↔ has_sum (λ x, re (f x)) (re c) ∧ has_sum (λ x, im (f x)) (im c) :=
+begin
+  refine ⟨λ h, ⟨has_sum_re _ h, has_sum_im _ h⟩, _⟩,
+  rintro ⟨h₁, h₂⟩,
+  rw ←is_R_or_C.re_add_im c,
+  convert ((has_sum_of_real 𝕜).mpr h₁).add (((has_sum_of_real 𝕜).mpr h₂).mul_right I),
+  simp_rw is_R_or_C.re_add_im,
+end
+
+end tsum
 
 end is_R_or_C
+
+namespace complex
+/-!
+We have to repeat the lemmas about `is_R_or_C.re` and `is_R_or_C.im` as they are not syntactic
+matches for `complex.re` and `complex.im`.
+
+We do not have this problem with `of_real` and `conj`, although we repeat them anyway for
+discoverability and to avoid the need to unify `𝕜`.
+-/
+section tsum
+variables {α : Type*}
+
+open_locale complex_conjugate
+
+@[simp] lemma has_sum_conj {f : α → ℂ} {x : ℂ} :
+  has_sum (λ x, conj (f x)) x ↔ has_sum f (conj x) :=
+is_R_or_C.has_sum_conj _
+
+lemma has_sum_conj' {f : α → ℂ} {x : ℂ} : has_sum (λ x, conj (f x)) (conj x) ↔ has_sum f x :=
+is_R_or_C.has_sum_conj' _
+
+@[simp] lemma summable_conj {f : α → ℂ} : summable (λ x, conj (f x)) ↔ summable f :=
+is_R_or_C.summable_conj _
+
+lemma conj_tsum (f : α → ℂ) : conj (∑' a, f a) = ∑' a, conj (f a) :=
+is_R_or_C.conj_tsum _
+
+@[simp, norm_cast] lemma has_sum_of_real {f : α → ℝ} {x : ℝ} :
+  has_sum (λ x, (f x : ℂ)) x ↔ has_sum f x :=
+is_R_or_C.has_sum_of_real _
+
+@[simp, norm_cast] lemma summable_of_real {f : α → ℝ} : summable (λ x, (f x : ℂ)) ↔ summable f :=
+is_R_or_C.summable_of_real _
+
+@[norm_cast] lemma of_real_tsum (f : α → ℝ) : (↑(∑' a, f a) : ℂ) = ∑' a, f a :=
+is_R_or_C.of_real_tsum _ _
+
+lemma has_sum_re {f : α → ℂ} {x : ℂ} (h : has_sum f x) : has_sum (λ x, (f x).re) x.re :=
+is_R_or_C.has_sum_re _ h
+
+lemma has_sum_im {f : α → ℂ} {x : ℂ} (h : has_sum f x) : has_sum (λ x, (f x).im) x.im :=
+is_R_or_C.has_sum_im _ h
+
+lemma re_tsum {f : α → ℂ} (h : summable f) : (∑' a, f a).re = ∑' a, (f a).re :=
+is_R_or_C.re_tsum _ h
+
+lemma im_tsum {f : α → ℂ} (h : summable f) : (∑' a, f a).im = ∑' a, (f a).im :=
+is_R_or_C.im_tsum _ h
+
+lemma has_sum_iff (f : α → ℂ) (c : ℂ) :
+  has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
+is_R_or_C.has_sum_iff _ _
+
+end tsum
+
+end complex

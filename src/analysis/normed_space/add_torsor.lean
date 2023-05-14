@@ -5,18 +5,21 @@ Authors: Joseph Myers, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import analysis.normed.group.add_torsor
-import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.midpoint_zero
 import linear_algebra.affine_space.affine_subspace
 import topology.instances.real_vector_space
 
 /-!
 # Torsors of normed space actions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about normed additive torsors over normed spaces.
 -/
 
 noncomputable theory
-open_locale nnreal topological_space
+open_locale nnreal topology
 open filter
 
 variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]

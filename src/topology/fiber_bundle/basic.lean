@@ -8,6 +8,9 @@ import topology.fiber_bundle.trivialization
 /-!
 # Fiber bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Mathematically, a (topological) fiber bundle with fiber `F` over a base `B` is a space projecting on
 `B` for which the fibers are all homeomorphic to `F`, such that the local situation around each
 point is a direct product.
@@ -80,24 +83,24 @@ typeclass containing data)?
 In their initial mathlib implementations, both fiber and vector bundles were defined
 propositionally. For vector bundles, this turns out to be mathematically wrong: in infinite
 dimension, the transition function between two trivializations is not automatically continuous as a
-map from the base `B` to the endomorphisms `F →L[R] F` of the fibre (considered with the
+map from the base `B` to the endomorphisms `F →L[R] F` of the fiber (considered with the
 operator-norm topology), and so the definition needs to be modified by restricting consideration to
 a family of trivializations (constituting the data) which are all mutually-compatible in this sense.
 The PRs #13052 and #13175 implemented this change.
 
 There is still the choice about whether to hold this data at the level of fiber bundles or of vector
 bundles. As of PR #17505, the data is all held in `fiber_bundle`, with `vector_bundle` a
-(propositional) mixin stating fibrewise-linearity.
+(propositional) mixin stating fiberwise-linearity.
 
 This allows bundles to carry instances of typeclasses in which the scalar field, `R`, does not
-appear as a parameter. Notably, we would like a vector bundle over `R` with fibre `F` over base `B`
+appear as a parameter. Notably, we would like a vector bundle over `R` with fiber `F` over base `B`
 to be a `charted_space (B × F)`, with the trivializations providing the charts. This would be a
 dangerous instance for typeclass inference, because `R` does not appear as a parameter in
 `charted_space (B × F)`. But if the data of the trivializations is held in `fiber_bundle`, then a
-fibre bundle with fibre `F` over base `B` can be a `charted_space (B × F)`, and this is safe for
+fiber bundle with fiber `F` over base `B` can be a `charted_space (B × F)`, and this is safe for
 typeclass inference.
 
-We expect that this choice of definition will also streamline constructions of fibre bundles with
+We expect that this choice of definition will also streamline constructions of fiber bundles with
 similar underlying structure (e.g., the same bundle being both a real and complex vector bundle).
 
 ### Core construction
@@ -164,12 +167,12 @@ for the initial bundle.
 Fiber bundle, topological bundle, structure group
 -/
 
-variables {ι : Type*} {B : Type*} {F : Type*}
+variables {ι B F X : Type*} [topological_space X]
 
 open topological_space filter set bundle
-open_locale topological_space classical bundle
+open_locale topology classical bundle
 
-attribute [mfld_simps] total_space.proj total_space_mk coe_fst coe_snd coe_snd_map_apply
+attribute [mfld_simps] total_space_mk coe_fst coe_snd coe_snd_map_apply
   coe_snd_map_smul total_space.mk_cast
 
 /-! ### General definition of fiber bundles -/
@@ -196,7 +199,7 @@ variables {F E}
 /-- Given a type `E` equipped with a fiber bundle structure, this is a `Prop` typeclass
 for trivializations of `E`, expressing that a trivialization is in the designated atlas for the
 bundle.  This is needed because lemmas about the linearity of trivializations or the continuity (as
-functions to `F →L[R] F`, where `F` is the model fibre) of the transition functions are only
+functions to `F →L[R] F`, where `F` is the model fiber) of the transition functions are only
 expected to hold for trivializations in the designated atlas. -/
 @[mk_iff]
 class mem_trivialization_atlas [fiber_bundle F E] (e : trivialization F (π E)) : Prop :=
@@ -236,6 +239,47 @@ lemma quotient_map_proj [nonempty F] : quotient_map (π E) :=
 
 lemma continuous_total_space_mk (x : B) : continuous (@total_space_mk B E x) :=
 (total_space_mk_inducing F E x).continuous
+
+variables {E F}
+
+@[simp, mfld_simps]
+lemma mem_trivialization_at_proj_source {x : total_space E} :
+  x ∈ (trivialization_at F E x.proj).source :=
+(trivialization.mem_source _).mpr $ mem_base_set_trivialization_at F E x.proj
+
+@[simp, mfld_simps]
+lemma trivialization_at_proj_fst {x : total_space E} :
+  ((trivialization_at F E x.proj) x).1 = x.proj :=
+trivialization.coe_fst' _ $ mem_base_set_trivialization_at F E x.proj
+
+variable (F)
+open trivialization
+
+/-- Characterization of continuous functions (at a point, within a set) into a fiber bundle. -/
+lemma continuous_within_at_total_space (f : X → total_space E) {s : set X} {x₀ : X} :
+  continuous_within_at f s x₀ ↔
+  continuous_within_at (λ x, (f x).proj) s x₀ ∧
+  continuous_within_at (λ x, ((trivialization_at F E (f x₀).proj) (f x)).2) s x₀ :=
+begin
+  refine (and_iff_right_iff_imp.2 $ λ hf, _).symm.trans (and_congr_right $ λ hf, _),
+  { refine (continuous_proj F E).continuous_within_at.comp hf (maps_to_image f s) },
+  have h1 : (λ x, (f x).proj) ⁻¹' (trivialization_at F E (f x₀).proj).base_set ∈ 𝓝[s] x₀ :=
+    hf.preimage_mem_nhds_within ((open_base_set _).mem_nhds (mem_base_set_trivialization_at F E _)),
+  have h2 : continuous_within_at (λ x, (trivialization_at F E (f x₀).proj (f x)).1) s x₀,
+  { refine hf.congr_of_eventually_eq (eventually_of_mem h1 $ λ x hx, _) trivialization_at_proj_fst,
+    rw [coe_fst'],
+    exact hx },
+  rw [(trivialization_at F E (f x₀).proj).continuous_within_at_iff_continuous_within_at_comp_left],
+  { simp_rw [continuous_within_at_prod_iff, function.comp, trivialization.coe_coe, h2, true_and] },
+  { apply mem_trivialization_at_proj_source },
+  { rwa [source_eq, preimage_preimage] }
+end
+
+/-- Characterization of continuous functions (at a point) into a fiber bundle. -/
+lemma continuous_at_total_space (f : X → total_space E) {x₀ : X} :
+  continuous_at f x₀ ↔ continuous_at (λ x, (f x).proj) x₀ ∧
+  continuous_at (λ x, ((trivialization_at F E (f x₀).proj) (f x)).2) x₀ :=
+by { simp_rw [← continuous_within_at_univ], exact continuous_within_at_total_space F f }
 
 end fiber_bundle
 
@@ -693,7 +737,7 @@ begin
   exact le_supr₂ e he,
 end
 
-lemma is_open_source (e : pretrivialization F (π E)) : @is_open _ a.total_space_topology e.source :=
+lemma is_open_source (e : pretrivialization F (π E)) : is_open[a.total_space_topology] e.source :=
 begin
   letI := a.total_space_topology,
   refine is_open_supr_iff.mpr (λ e', _),

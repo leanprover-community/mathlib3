@@ -11,6 +11,7 @@ import ring_theory.finite_presentation
 import ring_theory.finite_type
 import ring_theory.power_basis
 import ring_theory.principal_ideal_domain
+import ring_theory.quotient_noetherian
 
 /-!
 # Adjoining roots of polynomials
@@ -88,17 +89,40 @@ quotient.induction_on' x ih
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
 def of : R →+* adjoin_root f := (mk f).comp C
 
-instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
-ideal.quotient.algebra S
+instance [distrib_smul S R] [is_scalar_tower S R R] : has_smul S (adjoin_root f) :=
+submodule.quotient.has_smul' _
 
-instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algebra K R]
-  [is_scalar_tower S K R] :
-  is_scalar_tower S K (adjoin_root f) :=
+instance [distrib_smul S R] [is_scalar_tower S R R] : distrib_smul S (adjoin_root f) :=
+submodule.quotient.distrib_smul' _
+
+@[simp]
+lemma smul_mk [distrib_smul S R] [is_scalar_tower S R R] (a : S) (x : R[X]) :
+  a • mk f x = mk f (a • x) := rfl
+
+lemma smul_of [distrib_smul S R] [is_scalar_tower S R R] (a : S) (x : R) :
+  a • of f x = of f (a • x) :=
+by rw [of, ring_hom.comp_apply, ring_hom.comp_apply, smul_mk, smul_C]
+
+instance (R₁ R₂ : Type*) [has_smul R₁ R₂] [distrib_smul R₁ R] [distrib_smul R₂ R]
+  [is_scalar_tower R₁ R R] [is_scalar_tower R₂ R R] [is_scalar_tower R₁ R₂ R] (f : R[X]) :
+  is_scalar_tower R₁ R₂ (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
 
-instance [comm_semiring S] [comm_semiring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
-  smul_comm_class S K (adjoin_root f) :=
+instance (R₁ R₂ : Type*) [distrib_smul R₁ R] [distrib_smul R₂ R]
+  [is_scalar_tower R₁ R R] [is_scalar_tower R₂ R R] [smul_comm_class R₁ R₂ R] (f : R[X]) :
+  smul_comm_class R₁ R₂ (adjoin_root f) :=
 submodule.quotient.smul_comm_class _ _
+
+instance is_scalar_tower_right [distrib_smul S R] [is_scalar_tower S R R] :
+  is_scalar_tower S (adjoin_root f) (adjoin_root f) :=
+ideal.quotient.is_scalar_tower_right
+
+instance [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] (f : R[X]) :
+  distrib_mul_action S (adjoin_root f) :=
+submodule.quotient.distrib_mul_action' _
+
+instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
+ideal.quotient.algebra S
 
 @[simp] lemma algebra_map_eq : algebra_map R (adjoin_root f) = of f := rfl
 
@@ -285,7 +309,16 @@ instance span_maximal_of_irreducible [fact (irreducible f)] : (span {f}).is_maxi
 principal_ideal_ring.is_maximal_of_irreducible $ fact.out _
 
 noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
-{ ..adjoin_root.comm_ring f,
+{ rat_cast := λ a, of f (a : K),
+  rat_cast_mk := λ a b h1 h2,
+  begin
+    letI : group_with_zero (adjoin_root f) := ideal.quotient.group_with_zero _,
+    rw [rat.cast_mk', _root_.map_mul, _root_.map_int_cast, map_inv₀, map_nat_cast],
+  end,
+  qsmul := (•),
+  qsmul_eq_mul' := λ a x, adjoin_root.induction_on _ x (λ p,
+    by { rw [smul_mk, of, ring_hom.comp_apply, ← (mk f).map_mul, polynomial.rat_smul_eq_C_mul] }),
+  ..adjoin_root.comm_ring f,
   ..ideal.quotient.field (span {f} : ideal K[X]) }
 
 lemma coe_injective (h : degree f ≠ 0) : function.injective (coe : K → adjoin_root f) :=

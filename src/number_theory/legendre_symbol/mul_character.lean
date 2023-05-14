@@ -5,7 +5,7 @@ Authors: Michael Stoll
 -/
 import algebra.char_p.basic
 import algebra.euclidean_domain.instances
-import algebra.group.conj_finite
+import data.fintype.units
 
 /-!
 # Multiplicative characters of finite rings and fields

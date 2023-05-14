@@ -70,6 +70,14 @@ by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 
 variables {R}
 
+lemma norm_eq_one_of_not_module_finite (h : ¬ module.finite R S) (x : S) :
+  norm R x = 1 :=
+begin
+  refine norm_eq_one_of_not_exists_basis _ (mt _ h) _,
+  rintro ⟨s, ⟨b⟩⟩,
+  exact module.finite.of_basis b,
+end
+
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma norm_eq_matrix_det [fintype ι] [decidable_eq ι] (b : basis ι R S) (s : S) :
   norm R s = matrix.det (algebra.left_mul_matrix b s) :=
@@ -130,42 +138,56 @@ end eq_prod_roots
 section eq_zero_iff
 variables [finite ι]
 
-lemma norm_eq_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
-  algebra.norm R x = 0 ↔ x = 0 :=
+@[simp] lemma norm_zero [nontrivial S] [module.free R S] [module.finite R S] :
+  norm R (0 : S) = 0 :=
 begin
-  casesI nonempty_fintype ι,
-  have hι : nonempty ι := b.index_nonempty,
-  letI := classical.dec_eq ι,
-  rw algebra.norm_eq_matrix_det b,
+  nontriviality,
+  rw [norm_apply, coe_lmul_eq_mul, map_zero, linear_map.det_zero' (module.free.choose_basis R S)]
+end
+
+@[simp] lemma norm_eq_zero_iff [is_domain R] [is_domain S] [module.free R S] [module.finite R S]
+  {x : S} :
+  norm R x = 0 ↔ x = 0 :=
+begin
   split,
-  { rw ← matrix.exists_mul_vec_eq_zero_iff,
+  let b := module.free.choose_basis R S,
+  swap, { rintro rfl, exact norm_zero },
+  { letI := classical.dec_eq (module.free.choose_basis_index R S),
+    rw [norm_eq_matrix_det b,
+        ← matrix.exists_mul_vec_eq_zero_iff],
     rintros ⟨v, v_ne, hv⟩,
     rw [← b.equiv_fun.apply_symm_apply v, b.equiv_fun_symm_apply, b.equiv_fun_apply,
-        algebra.left_mul_matrix_mul_vec_repr] at hv,
+        left_mul_matrix_mul_vec_repr] at hv,
     refine (mul_eq_zero.mp (b.ext_elem $ λ i, _)).resolve_right (show ∑ i, v i • b i ≠ 0, from _),
     { simpa only [linear_equiv.map_zero, pi.zero_apply] using congr_fun hv i },
     { contrapose! v_ne with sum_eq,
       apply b.equiv_fun.symm.injective,
       rw [b.equiv_fun_symm_apply, sum_eq, linear_equiv.map_zero] } },
-  { rintro rfl,
-    rw [alg_hom.map_zero, matrix.det_zero hι] },
+end
+
+lemma norm_ne_zero_iff [is_domain R] [is_domain S] [module.free R S] [module.finite R S]
+  {x : S} :
+  norm R x ≠ 0 ↔ x ≠ 0 :=
+not_iff_not.mpr norm_eq_zero_iff
+
+/-- This is `algebra.norm_eq_zero_iff` composed with `algebra.norm_apply`. -/
+@[simp]
+lemma norm_eq_zero_iff' [is_domain R] [is_domain S] [module.free R S] [module.finite R S]
+  {x : S} :
+  linear_map.det (linear_map.mul R S x) = 0 ↔ x = 0 :=
+norm_eq_zero_iff
+
+lemma norm_eq_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
+  algebra.norm R x = 0 ↔ x = 0 :=
+begin
+  haveI : module.free R S := module.free.of_basis b,
+  haveI : module.finite R S := module.finite.of_basis b,
+  exact norm_eq_zero_iff
 end
 
 lemma norm_ne_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
-not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
-
-/-- See also `algebra.norm_eq_zero_iff'` if you already have rewritten with `algebra.norm_apply`. -/
-@[simp]
-lemma norm_eq_zero_iff {K L : Type*} [field K] [comm_ring L] [algebra K L] [is_domain L]
-  [finite_dimensional K L] {x : L} : algebra.norm K x = 0 ↔ x = 0 :=
-algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
-
-/-- This is `algebra.norm_eq_zero_iff` composed with `algebra.norm_apply`. -/
-@[simp]
-lemma norm_eq_zero_iff' {K L : Type*} [field K] [comm_ring L] [algebra K L] [is_domain L]
-  [finite_dimensional K L] {x : L} : linear_map.det (linear_map.mul K L x) = 0 ↔ x = 0 :=
-algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
+not_iff_not.mpr (norm_eq_zero_iff_of_basis b)
 
 end eq_zero_iff
 
@@ -191,7 +213,7 @@ variable {K}
 section intermediate_field
 
 lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_one {x : L}
-  (hx : ¬_root_.is_integral K x) : norm K (adjoin_simple.gen K x) = 1 :=
+  (hx : ¬is_integral K x) : norm K (adjoin_simple.gen K x) = 1 :=
 begin
   rw [norm_eq_one_of_not_exists_basis],
   contrapose! hx,
@@ -207,9 +229,9 @@ lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots (x : L)
     ((minpoly K x).map (algebra_map K F)).roots.prod :=
 begin
   have injKxL := (algebra_map K⟮x⟯ L).injective,
-  by_cases hx : _root_.is_integral K x, swap,
+  by_cases hx : is_integral K x, swap,
   { simp [minpoly.eq_zero hx, intermediate_field.adjoin_simple.norm_gen_eq_one hx] },
-  have hx' : _root_.is_integral K (adjoin_simple.gen K x),
+  have hx' : is_integral K (adjoin_simple.gen K x),
   { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
     apply_instance },
   rw [← adjoin.power_basis_gen hx, power_basis.norm_gen_eq_prod_roots];
@@ -272,7 +294,7 @@ variable (K)
 of `K`, the norm (down to `K`) of an element `x` of `L` is equal to the product of the images
 of `x` over all the `K`-embeddings `σ`  of `L` into `E`. -/
 lemma norm_eq_prod_embeddings [finite_dimensional K L] [is_separable K L] [is_alg_closed E]
-  {x : L} : algebra_map K E (norm K x) = ∏ σ : L →ₐ[K] E, σ x :=
+  (x : L) : algebra_map K E (norm K x) = ∏ σ : L →ₐ[K] E, σ x :=
 begin
   have hx := is_separable.is_integral K x,
   rw [norm_eq_norm_adjoin K x, ring_hom.map_pow, ← adjoin.power_basis_gen hx,
@@ -297,10 +319,10 @@ begin
 end
 
 lemma is_integral_norm [algebra R L] [algebra R K] [is_scalar_tower R K L]
-  [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral R x) :
-  _root_.is_integral R (norm K x) :=
+  [is_separable K L] [finite_dimensional K L] {x : L} (hx : is_integral R x) :
+  is_integral R (norm K x) :=
 begin
-  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower hx,
+  have hx' : is_integral K x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
       norm_eq_prod_roots],
   { refine (is_integral.multiset_prod (λ y hy, _)).pow _,
@@ -311,6 +333,42 @@ begin
   { apply is_alg_closed.splits_codomain },
   { apply_instance }
 end
+
+variables {F} (L)
+
+-- TODO. Generalize this proof to rings
+lemma norm_norm [algebra L F] [is_scalar_tower K L F] [is_separable K F] (x : F) :
+  norm K (norm L x) = norm K x :=
+begin
+  by_cases hKF : finite_dimensional K F,
+  { haveI := hKF,
+    let A := algebraic_closure K,
+    apply (algebra_map K A).injective,
+    haveI : finite_dimensional L F := finite_dimensional.right K L F,
+    haveI : finite_dimensional K L := finite_dimensional.left K L F,
+    haveI : is_separable K L := is_separable_tower_bot_of_is_separable K L F,
+    haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
+    letI : ∀ (σ : L →ₐ[K] A), by haveI := σ.to_ring_hom.to_algebra; exact fintype (F →ₐ[L] A) :=
+      λ _, infer_instance,
+    rw [norm_eq_prod_embeddings K A (_ : F), fintype.prod_equiv alg_hom_equiv_sigma
+      (λ σ : F →ₐ[K] A, σ x) (λ π : (Σ f : L →ₐ[K] A, _), (π.2 : F → A) x) (λ _, rfl)],
+    suffices : ∀ σ : L →ₐ[K] A,
+      by haveI := σ.to_ring_hom.to_algebra; exact ∏ π : F →ₐ[L] A, π x = σ (norm L x),
+    { simp_rw [← finset.univ_sigma_univ, finset.prod_sigma, this, norm_eq_prod_embeddings], },
+    { intro σ,
+      letI : algebra L A := σ.to_ring_hom.to_algebra,
+      rw ← norm_eq_prod_embeddings L A (_ : F),
+      refl, }},
+  { rw norm_eq_one_of_not_module_finite hKF,
+    by_cases hKL : finite_dimensional K L,
+    { have hLF : ¬ finite_dimensional L F,
+      { refine (mt _) hKF,
+        introI hKF,
+        exact finite_dimensional.trans K L F },
+      rw [norm_eq_one_of_not_module_finite hLF, _root_.map_one], },
+    { rw norm_eq_one_of_not_module_finite hKL, }},
+end
+
 
 end eq_prod_embeddings
 

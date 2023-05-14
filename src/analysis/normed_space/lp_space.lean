@@ -610,7 +610,7 @@ end
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
 { norm_smul_le := λ c f, begin
-    have hp : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
+    have hp : 0 < p := zero_lt_one.trans_le (fact.out _),
     simp [norm_const_smul hp.ne']
   end }
 
@@ -944,7 +944,7 @@ by linarith [lp.norm_sub_norm_compl_sub_single hp f s]
 protected lemma has_sum_single [fact (1 ≤ p)] (hp : p ≠ ⊤) (f : lp E p) :
   has_sum (λ i : α, lp.single p i (f i : E i)) f :=
 begin
-  have hp₀ : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
+  have hp₀ : 0 < p := zero_lt_one.trans_le (fact.out _),
   have hp' : 0 < p.to_real := ennreal.to_real_pos hp₀.ne' hp,
   have := lp.has_sum_norm hp' f,
   rw [has_sum, metric.tendsto_nhds] at this ⊢,
@@ -961,7 +961,7 @@ begin
   rw ← H at hs,
   have : |‖∑ i in s, lp.single p i (f i : E i) - f‖ ^ p.to_real|
     = ‖∑ i in s, lp.single p i (f i : E i) - f‖ ^ p.to_real,
-  { simp only [real.abs_rpow_of_nonneg (norm_nonneg _), abs_norm_eq_norm] },
+  { simp only [real.abs_rpow_of_nonneg (norm_nonneg _), abs_norm] },
   linarith
 end
 
@@ -970,12 +970,12 @@ end single
 section topology
 
 open filter
-open_locale topological_space uniformity
+open_locale topology uniformity
 
 /-- The coercion from `lp E p` to `Π i, E i` is uniformly continuous. -/
 lemma uniform_continuous_coe [_i : fact (1 ≤ p)] : uniform_continuous (coe : lp E p → Π i, E i) :=
 begin
-  have hp : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
+  have hp : p ≠ 0 := (zero_lt_one.trans_le _i.elim).ne',
   rw uniform_continuous_pi,
   intros i,
   rw normed_add_comm_group.uniformity_basis_dist.uniform_continuous_iff
@@ -1008,7 +1008,7 @@ lemma sum_rpow_le_of_tendsto (hp : p ≠ ∞) {C : ℝ} {F : ι → lp E p} (hCF
   {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (s : finset α) :
   ∑ (i : α) in s, ‖f i‖ ^ p.to_real ≤ C ^ p.to_real :=
 begin
-  have hp' : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
+  have hp' : p ≠ 0 := (zero_lt_one.trans_le _i.elim).ne',
   have hp'' : 0 < p.to_real := ennreal.to_real_pos hp' hp,
   let G : (Π a, E a) → ℝ := λ f, ∑ a in s, ‖f a‖ ^ p.to_real,
   have hG : continuous G,
@@ -1034,7 +1034,7 @@ begin
   unfreezingI { rcases eq_top_or_lt_top p with rfl | hp },
   { apply norm_le_of_forall_le hC,
     exact norm_apply_le_of_tendsto hCF hf, },
-  { have : 0 < p := ennreal.zero_lt_one.trans_le _i.elim,
+  { have : 0 < p := zero_lt_one.trans_le _i.elim,
     have hp' : 0 < p.to_real := ennreal.to_real_pos this.ne' hp.ne,
     apply norm_le_of_forall_sum_le hp' hC,
     exact sum_rpow_le_of_tendsto hp.ne hCF hf, }

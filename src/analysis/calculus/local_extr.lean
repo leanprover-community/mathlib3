@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import data.polynomial.field_division
 import topology.algebra.order.extend_from
 import topology.algebra.polynomial
-import topology.local_extr
 
 /-!
 # Local extrema of smooth functions
@@ -65,7 +63,7 @@ local extremum, Fermat's Theorem, Rolle's Theorem
 universes u v
 
 open filter set
-open_locale topological_space classical polynomial
+open_locale topology classical polynomial
 
 section module
 

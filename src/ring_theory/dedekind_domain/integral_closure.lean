@@ -3,7 +3,9 @@ Copyright (c) 2020 Kenji Nakagawa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
+import linear_algebra.free_module.pid
 import ring_theory.dedekind_domain.basic
+import ring_theory.localization.module
 import ring_theory.trace
 
 /-!
@@ -48,10 +50,40 @@ of a number field is a Dedekind domain. -/
 open algebra
 open_locale big_operators
 
-variables {A K} [algebra A K] [is_fraction_ring A K]
-variables {L : Type*} [field L] (C : Type*) [comm_ring C]
-variables [algebra K L] [finite_dimensional K L] [algebra A L] [is_scalar_tower A K L]
+variables (A K) [algebra A K] [is_fraction_ring A K]
+variables (L : Type*) [field L] (C : Type*) [comm_ring C]
+variables [algebra K L]  [algebra A L] [is_scalar_tower A K L]
 variables [algebra C L] [is_integral_closure C A L] [algebra A C] [is_scalar_tower A C L]
+
+/- If `L` is a separable extension of `K = Frac(A)` and `L` has no zero smul divisors by `A`,
+then `L` is the localization of the integral closure `C` of `A` in `L` at `A⁰`. -/
+lemma is_integral_closure.is_localization [is_separable K L] [no_zero_smul_divisors A L] :
+  is_localization (algebra.algebra_map_submonoid C A⁰) L :=
+begin
+  haveI : is_domain C :=
+    (is_integral_closure.equiv A C L (integral_closure A L)).to_ring_equiv.is_domain
+      (integral_closure A L),
+  haveI : no_zero_smul_divisors A C := is_integral_closure.no_zero_smul_divisors A L,
+  refine ⟨_, λ z, _, λ x y, ⟨λ h, ⟨1, _⟩, _⟩⟩,
+  { rintros ⟨_, x, hx, rfl⟩,
+    rw [is_unit_iff_ne_zero, map_ne_zero_iff _ (is_integral_closure.algebra_map_injective C A L),
+      subtype.coe_mk, map_ne_zero_iff _ (no_zero_smul_divisors.algebra_map_injective A C)],
+    exact mem_non_zero_divisors_iff_ne_zero.mp hx, },
+  { obtain ⟨m, hm⟩ := is_integral.exists_multiple_integral_of_is_localization A⁰ z
+      (is_separable.is_integral K z),
+    obtain ⟨x, hx⟩ : ∃ x, algebra_map C L x = m • z := is_integral_closure.is_integral_iff.mp hm,
+    refine ⟨⟨x, algebra_map A C m, m, set_like.coe_mem m, rfl⟩, _⟩,
+    rw [subtype.coe_mk, ← is_scalar_tower.algebra_map_apply, hx, mul_comm, submonoid.smul_def,
+      smul_def], },
+  { simp only [is_integral_closure.algebra_map_injective C A L h], },
+  { rintros ⟨⟨_, m, hm, rfl⟩, h⟩,
+    refine congr_arg (algebra_map C L) ((mul_right_inj' _).mp h),
+    rw [subtype.coe_mk, map_ne_zero_iff _ (no_zero_smul_divisors.algebra_map_injective A C)],
+    exact mem_non_zero_divisors_iff_ne_zero.mp hm, },
+end
+
+variable [finite_dimensional K L]
+variables {A K L}
 
 lemma is_integral_closure.range_le_span_dual_basis [is_separable K L]
   {ι : Type*} [fintype ι] [decidable_eq ι] (b : basis ι K L)
@@ -178,6 +210,32 @@ Noetherian. -/
 lemma is_integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetherian_ring A] :
   is_noetherian_ring C :=
 is_noetherian_ring_iff.mpr $ is_noetherian_of_tower A (is_integral_closure.is_noetherian A K L C)
+
+/- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a principal ring
+and `L` has no zero smul divisors by `A`, the integral closure `C` of `A` in `L` is
+a free `A`-module. -/
+lemma is_integral_closure.module_free [no_zero_smul_divisors A L] [is_principal_ideal_ring A] :
+  module.free A C :=
+begin
+  haveI : no_zero_smul_divisors A C := is_integral_closure.no_zero_smul_divisors A L,
+  haveI : is_noetherian A C := is_integral_closure.is_noetherian A K L _,
+  exact module.free_of_finite_type_torsion_free',
+end
+
+/- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is a principal ring
+and `L` has no zero smul divisors by `A`, the `A`-rank of the integral closure `C` of `A` in `L`
+is equal to the `K`-rank of `L`. -/
+lemma is_integral_closure.rank [is_principal_ideal_ring A] [no_zero_smul_divisors A L] :
+  finite_dimensional.finrank A C = finite_dimensional.finrank K L :=
+begin
+  haveI : module.free A C := is_integral_closure.module_free A K L C,
+  haveI : is_noetherian A C := is_integral_closure.is_noetherian A K L C,
+  haveI : is_localization (algebra.algebra_map_submonoid C A⁰) L :=
+    is_integral_closure.is_localization A K L C,
+  let b := basis.localization_localization K A⁰ L (module.free.choose_basis A C),
+  rw [finite_dimensional.finrank_eq_card_choose_basis_index,
+    finite_dimensional.finrank_eq_card_basis b],
+end
 
 variables {A K}
 

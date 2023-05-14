@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import measure_theory.constructions.borel_space
 import measure_theory.function.strongly_measurable.basic
-import tactic.ring_exp
 
 /-!
 # Derivative is measurable
@@ -76,7 +74,7 @@ noncomputable theory
 
 open set metric asymptotics filter continuous_linear_map
 open topological_space (second_countable_topology) measure_theory
-open_locale topological_space
+open_locale topology
 
 namespace continuous_linear_map
 

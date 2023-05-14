@@ -9,6 +9,9 @@ import linear_algebra.determinant
 /-!
 # Matrix results for barycentric co-ordinates
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Results about the matrix of barycentric co-ordinates for a family of points in an affine space, with
 respect to some affine basis.
 -/
@@ -39,7 +42,7 @@ noncomputable def to_matrix {ι' : Type*} (q : ι' → P) : matrix ι' ι k :=
 rfl
 
 @[simp] lemma to_matrix_self [decidable_eq ι] :
-  b.to_matrix b.points = (1 : matrix ι ι k) :=
+  b.to_matrix b = (1 : matrix ι ι k) :=
 begin
   ext i j,
   rw [to_matrix_apply, coord_apply, matrix.one_eq_pi_single, pi.single_apply],
@@ -74,7 +77,7 @@ coordinates of `p` with respect `b` has a left inverse, then `p` spans the entir
 lemma affine_span_eq_top_of_to_matrix_left_inv [decidable_eq ι] [nontrivial k]
   (p : ι' → P) {A : matrix ι ι' k} (hA : A ⬝ b.to_matrix p = 1) : affine_span k (range p) = ⊤ :=
 begin
-  suffices : ∀ i, b.points i ∈ affine_span k (range p),
+  suffices : ∀ i, b i ∈ affine_span k (range p),
   { rw [eq_top_iff, ← b.tot, affine_span_le],
     rintros q ⟨i, rfl⟩,
     exact this i, },
@@ -85,7 +88,7 @@ begin
                 ... = ∑ l, ∑ j, (A i j) * b.to_matrix p j l : by rw finset.sum_comm
                 ... = ∑ l, (A ⬝ b.to_matrix p) i l : rfl
                 ... = 1 : by simp [hA, matrix.one_apply, finset.filter_eq], },
-  have hbi : b.points i = finset.univ.affine_combination p (A i),
+  have hbi : b i = finset.univ.affine_combination k p (A i),
   { apply b.ext_elem,
     intros j,
     rw [b.coord_apply, finset.univ.map_affine_combination _ _ hAi,
@@ -100,7 +103,7 @@ end
 
 See also `affine_basis.to_matrix_inv_mul_affine_basis_to_matrix`. -/
 @[simp] lemma to_matrix_vec_mul_coords (x : P) :
-  (b.to_matrix b₂.points).vec_mul (b₂.coords x) = b.coords x :=
+  (b.to_matrix b₂).vec_mul (b₂.coords x) = b.coords x :=
 begin
   ext j,
   change _ = b.coord j x,
@@ -112,17 +115,17 @@ end
 variables [decidable_eq ι]
 
 lemma to_matrix_mul_to_matrix :
-  (b.to_matrix b₂.points) ⬝ (b₂.to_matrix b.points) = 1 :=
+  (b.to_matrix b₂) ⬝ (b₂.to_matrix b) = 1 :=
 begin
   ext l m,
-  change (b₂.to_matrix b.points).vec_mul (b.coords (b₂.points l)) m = _,
+  change (b₂.to_matrix b).vec_mul (b.coords (b₂ l)) m = _,
   rw [to_matrix_vec_mul_coords, coords_apply, ← to_matrix_apply, to_matrix_self],
 end
 
 lemma is_unit_to_matrix :
-  is_unit (b.to_matrix b₂.points) :=
-⟨{ val     := b.to_matrix b₂.points,
-   inv     := b₂.to_matrix b.points,
+  is_unit (b.to_matrix b₂) :=
+⟨{ val     := b.to_matrix b₂,
+   inv     := b₂.to_matrix b,
    val_inv := b.to_matrix_mul_to_matrix b₂,
    inv_val := b₂.to_matrix_mul_to_matrix b, }, rfl⟩
 
@@ -136,7 +139,7 @@ begin
            b.affine_span_eq_top_of_to_matrix_left_inv p hA'⟩, },
   { rintros ⟨h_tot, h_ind⟩,
     let b' : affine_basis ι k P := ⟨p, h_tot, h_ind⟩,
-    change is_unit (b.to_matrix b'.points),
+    change is_unit (b.to_matrix b'),
     exact b.is_unit_to_matrix b', },
 end
 
@@ -150,7 +153,7 @@ variables (b b₂ : affine_basis ι k P)
 
 See also `affine_basis.to_matrix_vec_mul_coords`. -/
 @[simp] lemma to_matrix_inv_vec_mul_to_matrix (x : P) :
-  (b.to_matrix b₂.points)⁻¹.vec_mul (b.coords x) = b₂.coords x :=
+  (b.to_matrix b₂)⁻¹.vec_mul (b.coords x) = b₂.coords x :=
 begin
   have hu := b.is_unit_to_matrix b₂,
   rw matrix.is_unit_iff_is_unit_det at hu,
@@ -161,7 +164,7 @@ end
 /-- If we fix a background affine basis `b`, then for any other basis `b₂`, we can characterise
 the barycentric coordinates provided by `b₂` in terms of determinants relative to `b`. -/
 lemma det_smul_coords_eq_cramer_coords (x : P) :
-  (b.to_matrix b₂.points).det • b₂.coords x = (b.to_matrix b₂.points)ᵀ.cramer (b.coords x) :=
+  (b.to_matrix b₂).det • b₂.coords x = (b.to_matrix b₂)ᵀ.cramer (b.coords x) :=
 begin
   have hu := b.is_unit_to_matrix b₂,
   rw matrix.is_unit_iff_is_unit_det at hu,

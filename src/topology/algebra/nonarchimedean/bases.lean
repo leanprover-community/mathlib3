@@ -11,6 +11,9 @@ import algebra.module.submodule.pointwise
 /-!
 # Neighborhood bases for non-archimedean rings and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files contains special families of filter bases on rings and modules that give rise to
 non-archimedean topologies.
 
@@ -28,7 +31,7 @@ sub-modules in a commutative algebra. This important example gives rises to the 
 -/
 
 open set filter function lattice add_group_with_zero_nhd
-open_locale topological_space filter pointwise
+open_locale topology filter pointwise
 
 /-- A family of additive subgroups on a ring `A` is a subgroups basis if it satisfies some
 axioms ensuring there is a topology on `A` which is compatible with the ring structure and

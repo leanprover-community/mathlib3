@@ -9,6 +9,9 @@ import category_theory.abelian.basic
 /-!
 # Equivalence between subobjects and quotients in an abelian category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open category_theory category_theory.limits opposite

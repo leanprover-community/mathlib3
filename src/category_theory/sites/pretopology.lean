@@ -9,6 +9,9 @@ import category_theory.sites.grothendieck
 /-!
 # Grothendieck pretopologies
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition and lemmas about Grothendieck pretopologies.
 A Grothendieck pretopology for a category `C` is a set of families of morphisms with fixed codomain,
 satisfying certain closure conditions.

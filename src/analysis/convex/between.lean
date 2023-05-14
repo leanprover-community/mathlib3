@@ -7,6 +7,7 @@ import data.set.intervals.group
 import analysis.convex.segment
 import linear_algebra.affine_space.finite_dimensional
 import tactic.field_simp
+import algebra.char_p.invertible
 
 /-!
 # Betweenness in affine spaces
@@ -454,20 +455,14 @@ lemma sbtw.trans_wbtw_right_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ :
   (h₂ : wbtw R x y z) : w ≠ y :=
 h₁.wbtw.trans_right_ne h₂ h₁.left_ne
 
-/- Calls to `affine_combination` are slow to elaborate (generally, not just for this lemma), and
-without the use of `@finset.affine_combination R V _ _ _ _ _ _` for at least three of the six
-calls in this lemma statement, elaboration of the statement times out (even if the proof is
-replaced by `sorry`). -/
 lemma sbtw.affine_combination_of_mem_affine_span_pair [no_zero_divisors R]
   [no_zero_smul_divisors R V] {ι : Type*} {p : ι → P} (ha : affine_independent R p)
   {w w₁ w₂ : ι → R} {s : finset ι} (hw : ∑ i in s, w i = 1) (hw₁ : ∑ i in s, w₁ i = 1)
   (hw₂ : ∑ i in s, w₂ i = 1)
-  (h : s.affine_combination p w ∈
-    line[R, s.affine_combination p w₁, s.affine_combination p w₂]) {i : ι} (his : i ∈ s)
-  (hs : sbtw R (w₁ i) (w i) (w₂ i)) :
-  sbtw R (@finset.affine_combination R V _ _ _ _ _ _ s p w₁)
-    (@finset.affine_combination R V _ _ _ _ _ _ s p w)
-    (@finset.affine_combination R V _ _ _ _ _ _ s p w₂) :=
+  (h : s.affine_combination R p w ∈
+    line[R, s.affine_combination R p w₁, s.affine_combination R p w₂])
+  {i : ι} (his : i ∈ s) (hs : sbtw R (w₁ i) (w i) (w₂ i)) :
+  sbtw R (s.affine_combination R p w₁) (s.affine_combination R p w) (s.affine_combination R p w₂) :=
 begin
   rw affine_combination_mem_affine_span_pair ha hw hw₁ hw₂ at h,
   rcases h with ⟨r, hr⟩,

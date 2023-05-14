@@ -89,7 +89,7 @@ begin
   { ext i,
     have : ∀ j, (trace A B) (b i * b j) * g j = (trace A B) (((g j) • (b j)) * b i),
     { intro j, simp [mul_comm], },
-    simp only [mul_vec, dot_product, trace_matrix, pi.zero_apply, trace_form_apply,
+    simp only [mul_vec, dot_product, trace_matrix_apply, pi.zero_apply, trace_form_apply,
       λ j, this j, ← linear_map.map_sum, ← sum_mul, hg, zero_mul, linear_map.map_zero] },
   by_contra h,
   rw discr_def at h,
@@ -128,9 +128,9 @@ begin
   { have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
       (finrank_eq_card_basis b).symm,
     classical,
-    rw [discr_def, trace_matrix_def],
+    rw [discr_def, trace_matrix],
     simp_rw [← basis.mk_apply b.linear_independent this.ge],
-    rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
+    rw [← trace_matrix, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
     exact trace_form_nondegenerate _ _ },
 end
 
@@ -260,8 +260,6 @@ end
 section integral
 
 variables {R : Type z} [comm_ring R] [algebra R K] [algebra R L] [is_scalar_tower R K L]
-
-local notation `is_integral` := _root_.is_integral
 
 /-- If `K` and `L` are fields and `is_scalar_tower R K L`, and `b : ι → L` satisfies
 ` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`. -/

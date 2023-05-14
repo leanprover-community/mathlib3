@@ -12,6 +12,9 @@ import data.rat.big_operators
 /-!
 # Miscellaneous definitions, lemmas, and constructions using finsupp
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main declarations
 
 * `finsupp.graph`: the finset of input and output pairs with non-zero outputs.
@@ -1256,16 +1259,16 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
 `[]`. See note [implicit instance arguments].
 -/
 
-@[simp] lemma coe_smul [add_monoid M] [distrib_smul R M]
+@[simp] lemma coe_smul [has_zero M] [smul_zero_class R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
-lemma smul_apply [add_monoid M] [distrib_smul R M]
+lemma smul_apply [has_zero M] [smul_zero_class R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
 
-lemma _root_.is_smul_regular.finsupp [add_monoid M] [distrib_smul R M] {k : R}
+lemma _root_.is_smul_regular.finsupp [has_zero M] [smul_zero_class R M] {k : R}
   (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=
 λ _ _ h, ext $ λ i, hk (congr_fun h i)
 
-instance [nonempty α] [add_monoid M] [distrib_smul R M] [has_faithful_smul R M] :
+instance [nonempty α] [has_zero M] [smul_zero_class R M] [has_faithful_smul R M] :
   has_faithful_smul R (α →₀ M) :=
 { eq_of_smul_eq_smul := λ r₁ r₂ h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ m : M,
     by simpa using congr_fun (h (single a m)) a }
@@ -1283,18 +1286,16 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action
   mul_smul  := λ r s x, ext $ λ _, mul_smul _ _ _,
   ..finsupp.distrib_smul _ _ }
 
-instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action S M]
-  [has_smul R S] [is_scalar_tower R S M] :
-  is_scalar_tower R S (α →₀ M) :=
+instance [has_zero M] [smul_zero_class R M] [smul_zero_class S M] [has_smul R S]
+  [is_scalar_tower R S M] : is_scalar_tower R S (α →₀ M) :=
 { smul_assoc := λ r s a, ext $ λ _, smul_assoc _ _ _ }
 
-instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action S M]
-  [smul_comm_class R S M] :
-  smul_comm_class R S (α →₀ M) :=
+instance [has_zero M] [smul_zero_class R M] [smul_zero_class S M]
+  [smul_comm_class R S M] : smul_comm_class R S (α →₀ M) :=
 { smul_comm := λ r s a, ext $ λ _, smul_comm _ _ _ }
 
-instance [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action Rᵐᵒᵖ M]
-  [is_central_scalar R M] : is_central_scalar R (α →₀ M) :=
+instance [has_zero M] [smul_zero_class R M] [smul_zero_class Rᵐᵒᵖ M] [is_central_scalar R M] :
+  is_central_scalar R (α →₀ M) :=
 { op_smul_eq_smul := λ r a, ext $ λ _, op_smul_eq_smul _ _ }
 
 instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) :=
@@ -1305,7 +1306,7 @@ instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) 
 
 variables {α M} {R}
 
-lemma support_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {b : R} {g : α →₀ M} :
+lemma support_smul [add_monoid M] [smul_zero_class R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by { simp only [smul_apply, mem_support_iff, ne.def], exact mt (λ h, h.symm ▸ smul_zero _) }
 
@@ -1329,7 +1330,7 @@ lemma map_domain_smul {_ : monoid R} [add_comm_monoid M] [distrib_mul_action R M
    {f : α → β} (b : R) (v : α →₀ M) : map_domain f (b • v) = b • map_domain f v :=
 map_domain_map_range _ _ _ _ (smul_add b)
 
-@[simp] lemma smul_single {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
+@[simp] lemma smul_single [has_zero M] [smul_zero_class R M]
   (c : R) (a : α) (b : M) : c • finsupp.single a b = finsupp.single a (c • b) :=
 map_range_single
 

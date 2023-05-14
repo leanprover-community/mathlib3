@@ -111,7 +111,7 @@ dimension.
 Hausdorff measure, measure, metric measure
 -/
 
-open_locale nnreal ennreal topological_space big_operators
+open_locale nnreal ennreal topology big_operators
 
 open emetric set function filter encodable finite_dimensional topological_space
 
@@ -184,7 +184,7 @@ begin
   `μ (s ∩ t) + μ (⋃ n, S n) ≤ μ s`. We can't pass to the limit because
   `μ` is only an outer measure. -/
   by_cases htop : μ (s \ t) = ∞,
-  { rw [htop, ennreal.add_top, ← htop],
+  { rw [htop, add_top, ← htop],
     exact μ.mono (diff_subset _ _) },
   suffices : μ (⋃ n, S n) ≤ ⨆ n, μ (S n),
   calc μ (s ∩ t) + μ (s \ t) = μ (s ∩ t) + μ (⋃ n, S n) :
@@ -198,7 +198,7 @@ begin
   and the second term tends to zero, see `outer_measure.Union_nat_of_monotone_of_tsum_ne_top`
   for details. -/
   have : ∀ n, S n ⊆ S (n + 1), from λ n x hx,
-    ⟨hx.1, le_trans (ennreal.inv_le_inv.2 $ ennreal.coe_nat_le_coe_nat.2 n.le_succ) hx.2⟩,
+    ⟨hx.1, le_trans (ennreal.inv_le_inv.2 $ nat.cast_le.2 n.le_succ) hx.2⟩,
   refine (μ.Union_nat_of_monotone_of_tsum_ne_top this _).le, clear this,
   /- While the sets `S (k + 1) \ S k` are not pairwise metric separated, the sets in each
   subsequence `S (2 * k + 1) \ S (2 * k)` and `S (2 * k + 2) \ S (2 * k)` are metric separated,
@@ -217,7 +217,7 @@ begin
       (λ h, (this j i h).symm.mono  (λ x hx, ⟨hx.1.1, hx.2⟩) (inter_subset_left _ _)),
   intros i j hj,
   have A : ((↑(2 * j + r))⁻¹ : ℝ≥0∞) < (↑(2 * i + 1 + r))⁻¹,
-    by { rw [ennreal.inv_lt_inv, ennreal.coe_nat_lt_coe_nat], linarith },
+    by { rw [ennreal.inv_lt_inv, nat.cast_lt], linarith },
   refine ⟨(↑(2 * i + 1 + r))⁻¹ - (↑(2 * j + r))⁻¹, by simpa using A, λ x hx y hy, _⟩,
   have : inf_edist y t < (↑(2 * j + r))⁻¹, from not_le.1 (λ hle, hy.2 ⟨hy.1, hle⟩),
   rcases inf_edist_lt_iff.mp this with ⟨z, hzt, hyz⟩,
@@ -344,7 +344,7 @@ lemma mk_metric_mono_smul {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} {c : ℝ≥0�
   (mk_metric m₁ : outer_measure X) ≤ c • mk_metric m₂ :=
 begin
   classical,
-  rcases (mem_nhds_within_Ici_iff_exists_Ico_subset' ennreal.zero_lt_one).1 hle with ⟨r, hr0, hr⟩,
+  rcases (mem_nhds_within_Ici_iff_exists_Ico_subset' zero_lt_one).1 hle with ⟨r, hr0, hr⟩,
   refine λ s, le_of_tendsto_of_tendsto (mk_metric'.tendsto_pre _ s)
     (ennreal.tendsto.const_mul (mk_metric'.tendsto_pre _ s) (or.inr hc))
     (mem_of_superset (Ioo_mem_nhds_within_Ioi ⟨le_rfl, hr0⟩) (λ r' hr', _)),
@@ -358,11 +358,19 @@ begin
   { simp [h0] }
 end
 
+@[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : outer_measure X) = ⊤ :=
+begin
+  simp_rw [mk_metric, mk_metric', mk_metric'.pre, extend_top, bounded_by_top, eq_top_iff],
+  rw le_supr_iff,
+  intros b hb,
+  simpa using hb ⊤,
+end
+
 /-- If `m₁ d ≤ m₂ d` for `d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝[≥] 0]` to state this), then
 `mk_metric m₁ hm₁ ≤ mk_metric m₂ hm₂`-/
 lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[𝓝[≥] 0] m₂) :
   (mk_metric m₁ : outer_measure X) ≤ mk_metric m₂ :=
-by { convert mk_metric_mono_smul ennreal.one_ne_top ennreal.zero_lt_one.ne' _; simp * }
+by { convert mk_metric_mono_smul ennreal.one_ne_top one_ne_zero _; simp * }
 
 lemma isometry_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : isometry f)
   (H : monotone m ∨ surjective f) :
@@ -465,11 +473,17 @@ begin
   exact outer_measure.mk_metric_mono_smul hc h0 hle s
 end
 
+@[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : measure X) = ⊤ :=
+begin
+  apply to_outer_measure_injective,
+  rw [mk_metric_to_outer_measure, outer_measure.mk_metric_top, to_outer_measure_top],
+end
+
 /-- If `m₁ d ≤ m₂ d` for `d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝[≥] 0]` to state this), then
 `mk_metric m₁ hm₁ ≤ mk_metric m₂ hm₂`-/
 lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[𝓝[≥] 0] m₂) :
   (mk_metric m₁ : measure X) ≤ mk_metric m₂ :=
-by { convert mk_metric_mono_smul ennreal.one_ne_top ennreal.zero_lt_one.ne' _; simp * }
+by { convert mk_metric_mono_smul ennreal.one_ne_top one_ne_zero _; simp * }
 
 /-- A formula for `measure_theory.measure.mk_metric`. -/
 lemma mk_metric_apply (m : ℝ≥0∞ → ℝ≥0∞) (s : set X) :
@@ -603,10 +617,9 @@ begin
     (or.inr $ mt ennreal.coe_eq_zero.1 hc)],
   rcases eq_or_ne r 0 with rfl|hr₀,
   { rcases lt_or_le 0 d₂ with h₂|h₂,
-    { simp only [h₂, ennreal.zero_rpow_of_pos, zero_le', ennreal.coe_nonneg, ennreal.zero_div,
-        ennreal.coe_zero] },
-    { simp only [h.trans_le h₂, ennreal.div_top, zero_le', ennreal.coe_nonneg,
-        ennreal.zero_rpow_of_neg, ennreal.coe_zero] } },
+    { simp only [h₂, ennreal.zero_rpow_of_pos, zero_le, ennreal.zero_div, ennreal.coe_zero] },
+    { simp only [h.trans_le h₂, ennreal.div_top, zero_le, ennreal.zero_rpow_of_neg,
+        ennreal.coe_zero] } },
   { have : (r : ℝ≥0∞) ≠ 0, by simpa only [ennreal.coe_eq_zero, ne.def] using hr₀,
     rw [← ennreal.rpow_sub _ _ this ennreal.coe_ne_top],
     refine (ennreal.rpow_lt_rpow hrc (sub_pos.2 h)).le.trans _,
@@ -648,7 +661,7 @@ begin
     suffices : (1 : ℝ≥0∞) ≤ ⨅ (t : ℕ → set X) (hts : {x} ⊆ ⋃ n, t n)
       (ht : ∀ n, diam (t n) ≤ 1), ∑' n, ⨆ (h : (t n).nonempty), (diam (t n)) ^ (0 : ℝ),
     { apply le_trans this _,
-      convert le_supr₂ (1 : ℝ≥0∞) (ennreal.zero_lt_one),
+      convert le_supr₂ (1 : ℝ≥0∞) zero_lt_one,
       refl },
     simp only [ennreal.rpow_zero, le_infi_iff],
     assume t hst h't,

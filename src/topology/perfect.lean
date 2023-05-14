@@ -3,11 +3,14 @@ Copyright (c) 2022 Felix Weilacher. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Felix Weilacher
 -/
-import topology.separation
-import topology.bases
+import topology.metric_space.polish
+import topology.metric_space.cantor_scheme
 
 /-!
 # Perfect Sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define perfect subsets of a topological space, and prove some basic properties,
 including a version of the Cantor-Bendixson Theorem.
@@ -25,6 +28,8 @@ including a version of the Cantor-Bendixson Theorem.
 * `exists_countable_union_perfect_of_is_closed`: One version of the **Cantor-Bendixson Theorem**:
   A closed set in a second countable space can be written as the union of a countable set and a
   perfect set.
+* `perfect.exists_nat_bool_injection`: A perfect nonempty set in a complete metric space
+  admits an embedding from the Cantor space.
 
 ## Implementation Notes
 
@@ -36,16 +41,18 @@ see `preperfect_iff_perfect_closure`.
 
 ## References
 
-* [kechris1995] (Chapter 6)
+* [kechris1995] (Chapters 6-7)
 
 ## Tags
 
-accumulation point, perfect set, Cantor-Bendixson.
+accumulation point, perfect set, cantor-bendixson.
 
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open topological_space filter set
+
+section basic
 
 variables {α : Type*} [topological_space α] {C : set α}
 
@@ -211,3 +218,119 @@ begin
 end
 
 end kernel
+end basic
+
+section cantor_inj_metric
+
+open function
+open_locale ennreal
+variables {α : Type*} [metric_space α] {C : set α} (hC : perfect C) {ε : ℝ≥0∞}
+include hC
+
+private lemma perfect.small_diam_aux (ε_pos : 0 < ε) {x : α} (xC : x ∈ C) :
+  let D := closure (emetric.ball x (ε / 2) ∩ C) in
+  perfect D ∧ D.nonempty ∧ D ⊆ C ∧ emetric.diam D ≤ ε :=
+begin
+  have : x ∈ (emetric.ball x (ε / 2)),
+  { apply emetric.mem_ball_self,
+    rw ennreal.div_pos_iff,
+    exact ⟨ne_of_gt ε_pos, by norm_num⟩, },
+  have := hC.closure_nhds_inter x xC this emetric.is_open_ball,
+  refine ⟨this.1, this.2, _, _⟩,
+  { rw is_closed.closure_subset_iff hC.closed,
+    apply inter_subset_right, },
+  rw emetric.diam_closure,
+  apply le_trans (emetric.diam_mono (inter_subset_left _ _)),
+  convert emetric.diam_ball,
+  rw [mul_comm, ennreal.div_mul_cancel]; norm_num,
+end
+
+variable (hnonempty : C.nonempty)
+include hnonempty
+
+/-- A refinement of `perfect.splitting` for metric spaces, where we also control
+the diameter of the new perfect sets. -/
+lemma perfect.small_diam_splitting (ε_pos : 0 < ε) : ∃ C₀ C₁ : set α,
+  (perfect C₀ ∧ C₀.nonempty ∧ C₀ ⊆ C ∧ emetric.diam C₀ ≤ ε) ∧
+  (perfect C₁ ∧ C₁.nonempty ∧ C₁ ⊆ C ∧ emetric.diam C₁ ≤ ε) ∧ disjoint C₀ C₁ :=
+begin
+  rcases hC.splitting hnonempty with ⟨D₀, D₁, ⟨perf0, non0, sub0⟩, ⟨perf1, non1, sub1⟩, hdisj⟩,
+  cases non0 with x₀ hx₀,
+  cases non1 with x₁ hx₁,
+  rcases perf0.small_diam_aux ε_pos hx₀ with ⟨perf0', non0', sub0', diam0⟩,
+  rcases perf1.small_diam_aux ε_pos hx₁ with ⟨perf1', non1', sub1', diam1⟩,
+  refine ⟨closure (emetric.ball x₀ (ε / 2) ∩ D₀), closure (emetric.ball x₁ (ε / 2) ∩ D₁),
+    ⟨perf0', non0', sub0'.trans sub0, diam0⟩, ⟨perf1', non1', sub1'.trans sub1, diam1⟩, _⟩,
+  apply disjoint.mono _ _ hdisj; assumption,
+end
+
+open cantor_scheme
+
+/-- Any nonempty perfect set in a complete metric space admits a continuous injection
+from the cantor space, `ℕ → bool`. -/
+theorem perfect.exists_nat_bool_injection [complete_space α] :
+  ∃ f : (ℕ → bool) → α, (range f) ⊆ C ∧ continuous f ∧ injective f :=
+begin
+  obtain ⟨u, -, upos', hu⟩ := exists_seq_strict_anti_tendsto' (zero_lt_one' ℝ≥0∞),
+  have upos := λ n, (upos' n).1,
+  let P := subtype (λ E : set α, perfect E ∧ E.nonempty),
+  choose C0 C1 h0 h1 hdisj using λ {C : set α} (hC : perfect C) (hnonempty : C.nonempty)
+    {ε : ℝ≥0∞} (hε : 0 < ε), hC.small_diam_splitting hnonempty hε,
+  let DP : list bool → P := λ l,
+  begin
+    induction l with a l ih, { exact ⟨C, ⟨hC, hnonempty⟩⟩ },
+    cases a,
+    { use C0 ih.property.1 ih.property.2 (upos l.length.succ),
+      exact ⟨(h0 _ _ _).1, (h0 _ _ _).2.1⟩, },
+    use C1 ih.property.1 ih.property.2 (upos l.length.succ),
+    exact ⟨(h1 _ _ _).1, (h1 _ _ _).2.1⟩,
+  end,
+  let D : list bool → set α := λ l, (DP l).val,
+  have hanti : closure_antitone D,
+  { refine antitone.closure_antitone _ (λ l, (DP l).property.1.closed),
+    intros l a,
+    cases a,
+    { exact (h0 _ _ _).2.2.1, },
+    exact (h1 _ _ _).2.2.1, },
+  have hdiam : vanishing_diam D,
+  { intro x,
+    apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hu,
+    { simp },
+    rw eventually_at_top,
+    refine ⟨1, λ m (hm : 1 ≤ m), _⟩,
+    rw nat.one_le_iff_ne_zero at hm,
+    rcases nat.exists_eq_succ_of_ne_zero hm with ⟨n, rfl⟩,
+    dsimp,
+    cases (x n),
+    { convert (h0 _ _ _).2.2.2,
+      rw pi_nat.res_length },
+    convert (h1 _ _ _).2.2.2,
+    rw pi_nat.res_length, },
+  have hdisj' : cantor_scheme.disjoint D,
+  { rintros l (a | a) (b | b) hab; try { contradiction },
+    { exact hdisj _ _ _, },
+    exact (hdisj _ _ _).symm, },
+  have hdom : ∀ {x : ℕ → bool}, x ∈ (induced_map D).1 := λ x,
+    by simp [hanti.map_of_vanishing_diam hdiam (λ l, (DP l).property.2)],
+  refine ⟨λ x, (induced_map D).2 ⟨x, hdom⟩, _, _, _⟩,
+  { rintros y ⟨x, rfl⟩,
+    exact map_mem ⟨_, hdom⟩ 0, },
+  { continuity,
+    exact hdiam.map_continuous, },
+  intros x y hxy,
+  simpa only [← subtype.val_inj] using hdisj'.map_injective hxy,
+end
+
+end cantor_inj_metric
+
+/-- Any closed uncountable subset of a Polish space admits a continuous injection
+from the Cantor space `ℕ → bool`.-/
+theorem is_closed.exists_nat_bool_injection_of_not_countable {α : Type*}
+  [topological_space α] [polish_space α] {C : set α} (hC : is_closed C) (hunc : ¬ C.countable) :
+  ∃ f : (ℕ → bool) → α, (range f) ⊆ C ∧ continuous f ∧ function.injective f :=
+begin
+  letI := upgrade_polish_space α,
+  obtain ⟨D, hD, Dnonempty, hDC⟩ := exists_perfect_nonempty_of_is_closed_of_not_countable hC hunc,
+  obtain ⟨f, hfD, hf⟩ := hD.exists_nat_bool_injection Dnonempty,
+  exact ⟨f, hfD.trans hDC, hf⟩,
+end

@@ -7,10 +7,12 @@ import analysis.specific_limits.basic
 import measure_theory.pi_system
 import data.countable.basic
 import data.fin.vec_notation
-import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An outer measure is a function `μ : set α → ℝ≥0∞`, from the powerset of a type to the extended
 nonnegative real numbers that satisfies the following conditions:
@@ -54,7 +56,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set function filter topological_space (second_countable_topology)
-open_locale classical big_operators nnreal topological_space ennreal measure_theory
+open_locale classical big_operators nnreal topology ennreal measure_theory
 
 namespace measure_theory
 
@@ -344,8 +346,7 @@ by have := supr_apply (λ b, cond b m₁ m₂) s;
 theorem smul_supr [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] {ι}
   (f : ι → outer_measure α) (c : R) :
   c • (⨆ i, f i) = ⨆ i, c • f i :=
-ext $ λ s, by simp only [smul_apply, supr_apply, ←smul_one_mul c (f _ _),
-  ←smul_one_mul c (supr _), ennreal.mul_supr]
+ext $ λ s, by simp only [smul_apply, supr_apply, ennreal.smul_supr]
 
 end supremum
 
@@ -702,6 +703,20 @@ end
 theorem le_bounded_by' {μ : outer_measure α} :
   μ ≤ bounded_by m ↔ ∀ s : set α, s.nonempty → μ s ≤ m s :=
 by { rw [le_bounded_by, forall_congr], intro s, cases s.eq_empty_or_nonempty with h h; simp [h] }
+
+@[simp] lemma bounded_by_top : bounded_by (⊤ : set α → ℝ≥0∞) = ⊤ :=
+begin
+  rw [eq_top_iff, le_bounded_by'],
+  intros s hs,
+  rw top_apply hs,
+  exact le_rfl,
+end
+
+@[simp] lemma bounded_by_zero : bounded_by (0 : set α → ℝ≥0∞) = 0 :=
+begin
+  rw [←coe_bot, eq_bot_iff],
+  apply bounded_by_le,
+end
 
 lemma smul_bounded_by {c : ℝ≥0∞} (hc : c ≠ ∞) : c • bounded_by m = bounded_by (c • m) :=
 begin
@@ -1067,6 +1082,17 @@ variables (m : Π (s : α), P s → ℝ≥0∞)
   to all objects by defining it to be `∞` on the objects not in the class. -/
 def extend (s : α) : ℝ≥0∞ := ⨅ h : P s, m s h
 
+lemma smul_extend {R} [has_zero R] [smul_with_zero R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  [no_zero_smul_divisors R ℝ≥0∞] {c : R} (hc : c ≠ 0) :
+  c • extend m = extend (λ s h, c • m s h) :=
+begin
+  ext1 s,
+  dsimp [extend],
+  by_cases h : P s,
+  { simp [h] },
+  { simp [h, ennreal.smul_top, hc] },
+end
+
 lemma extend_eq {s : α} (h : P s) : extend m s = m s h :=
 by simp [extend, h]
 
@@ -1081,6 +1107,10 @@ lemma extend_congr {β : Type*} {Pb : β → Prop} {mb : Π s : β, Pb s → ℝ
   {sa : α} {sb : β} (hP : P sa ↔ Pb sb) (hm : ∀ (ha : P sa) (hb : Pb sb), m sa ha = mb sb hb) :
   extend m sa = extend mb sb :=
 infi_congr_Prop hP (λ h, hm _ _)
+
+@[simp] lemma extend_top {α : Type*} {P : α → Prop} :
+  extend (λ s h, ∞ : Π (s : α), P s → ℝ≥0∞) = ⊤ :=
+funext $ λ x, infi_eq_top.mpr $ λ i, rfl
 
 end extend
 
@@ -1324,6 +1354,8 @@ by simp [infi_subtype, infi_and, trim_eq_infi]
 
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
 trim_eq_trim_iff.2 $ λ s, m.trim_eq
+
+@[simp] theorem trim_top : (⊤ : outer_measure α).trim = ⊤ := eq_top_iff.2 $ le_trim _
 
 @[simp] theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm

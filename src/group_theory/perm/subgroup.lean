@@ -9,6 +9,9 @@ import group_theory.subgroup.finite
 /-!
 # Lemmas about subgroups within the permutations (self-equivalences) of a type `α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides extra lemmas about some `subgroup`s that exist within `equiv.perm α`.
 `group_theory.subgroup` depends on `group_theory.perm.basic`, so these need to be in a separate
 file.

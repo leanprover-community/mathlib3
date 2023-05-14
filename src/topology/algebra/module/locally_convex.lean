@@ -29,7 +29,7 @@ In a module, this is equivalent to `0` satisfying such properties.
 
 open topological_space filter set
 
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 section semimodule
 

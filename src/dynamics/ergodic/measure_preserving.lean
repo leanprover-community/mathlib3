@@ -8,6 +8,9 @@ import measure_theory.measure.ae_measurable
 /-!
 # Measure preserving maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that `f : α → β` is a measure preserving map w.r.t. measures `μ : measure α` and
 `ν : measure β` if `f` is measurable and `map f μ = ν`. In this file we define the predicate
 `measure_theory.measure_preserving` and prove its basic properties.
@@ -137,12 +140,11 @@ begin
     by simpa only [B, nsmul_eq_mul, finset.sum_const, finset.card_range],
   rcases exists_nonempty_inter_of_measure_univ_lt_sum_measure μ (λ m hm, A m) this
     with ⟨i, hi, j, hj, hij, x, hxi, hxj⟩,
-  -- without `tactic.skip` Lean closes the extra goal but it takes a long time; not sure why
-  wlog hlt : i < j := hij.lt_or_lt using [i j, j i] tactic.skip,
-  { simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
-    refine ⟨f^[i] x, hxi, j - i, ⟨tsub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
-    rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le] },
-  { exact λ hi hj hij hxi hxj, this hj hi hij.symm hxj hxi }
+  wlog hlt : i < j generalizing i j,
+  { exact this j hj i hi hij.symm hxj hxi (hij.lt_or_lt.resolve_left hlt) },
+  simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
+  refine ⟨f^[i] x, hxi, j - i, ⟨tsub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
+  rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le]
 end
 
 /-- A self-map preserving a finite measure is conservative: if `μ s ≠ 0`, then at least one point

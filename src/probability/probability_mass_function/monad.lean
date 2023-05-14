@@ -8,6 +8,9 @@ import probability.probability_mass_function.basic
 /-!
 # Monad Operations for Probability Mass Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs two operations on `pmf` that give it a monad structure.
 `pure a` is the distribution where a single value `a` has probability `1`.
 `bind pa pb : pmf β` is the distribution given by sampling `a : α` from `pa : pmf α`,
@@ -21,6 +24,7 @@ so that the second argument only needs to be defined on the support of the first
 noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
+open measure_theory
 
 namespace pmf
 
@@ -38,6 +42,10 @@ variables (a a' : α)
 
 lemma mem_support_pure_iff: a' ∈ (pure a).support ↔ a' = a := by simp
 
+@[simp] lemma pure_apply_self : pure a a = 1 := if_pos rfl
+
+lemma pure_apply_of_ne (h : a' ≠ a) : pure a a' = 0 := if_neg h
+
 instance [inhabited α] : inhabited (pmf α) := ⟨pure default⟩
 
 section measure
@@ -54,10 +62,19 @@ begin
     exact ite_eq_right_iff.2 (λ hb, ite_eq_right_iff.2 (λ h, (ha $ h ▸ hb).elim)) }
 end
 
+variable [measurable_space α]
+
 /-- The measure of a set under `pure a` is `1` for sets containing `a` and `0` otherwise -/
-@[simp] lemma to_measure_pure_apply [measurable_space α] (hs : measurable_set s) :
+@[simp] lemma to_measure_pure_apply (hs : measurable_set s) :
   (pure a).to_measure s = if a ∈ s then 1 else 0 :=
 (to_measure_apply_eq_to_outer_measure_apply (pure a) s hs).trans (to_outer_measure_pure_apply a s)
+
+lemma to_measure_pure : (pure a).to_measure = measure.dirac a :=
+measure.ext (λ s hs, by simpa only [to_measure_pure_apply a s hs, measure.dirac_apply' a hs])
+
+@[simp] lemma to_pmf_dirac [countable α] [h : measurable_singleton_class α] :
+  (measure.dirac a).to_pmf = pure a :=
+by rw [to_pmf_eq_iff_to_measure_eq, to_measure_pure]
 
 end measure
 
@@ -86,9 +103,11 @@ have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
 by ext b; simp [this]
 
 @[simp] lemma bind_pure : p.bind pure = p :=
-have ∀ a a', (p a * ite (a' = a) 1 0) = ite (a = a') (p a') 0, from
-  assume a a', begin split_ifs; try { subst a }; try { subst a' }; simp * at * end,
-by ext b; simp [this]
+pmf.ext (λ x, (bind_apply _ _ _).trans (trans (tsum_eq_single x $
+  (λ y hy, by rw [pure_apply_of_ne _ _ hy.symm, mul_zero])) $ by rw [pure_apply_self, mul_one]))
+
+@[simp] lemma bind_const (p : pmf α) (q : pmf β) : p.bind (λ _, q) = q :=
+pmf.ext (λ x, by rw [bind_apply, ennreal.tsum_mul_right, tsum_coe, one_mul])
 
 @[simp] lemma bind_bind : (p.bind f).bind g = p.bind (λ a, (f a).bind g) :=
 pmf.ext (λ b, by simpa only [ennreal.coe_eq_coe.symm, bind_apply, ennreal.tsum_mul_left.symm,

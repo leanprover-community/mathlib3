@@ -8,6 +8,9 @@ import analysis.specific_limits.normed
 
 /-! # Extending a backward bound on a normed group homomorphism from a dense set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Possible TODO (from the PR's review, https://github.com/leanprover-community/mathlib/pull/8498 ):
 "This feels a lot like the second step in the proof of the Banach open mapping theorem
 (`exists_preimage_norm_le`) ... wonder if it would be possible to refactor it using one of [the
@@ -15,7 +18,7 @@ lemmas in this file]."
 -/
 
 open filter finset
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 variables {G : Type*} [normed_add_comm_group G] [complete_space G]
 variables {H : Type*} [normed_add_comm_group H]

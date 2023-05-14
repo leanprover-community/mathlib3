@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.convex.basic
+import analysis.inner_product_space.orthogonal
 import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
 import data.is_R_or_C.lemmas
@@ -40,9 +41,10 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 noncomputable theory
 
 open is_R_or_C real filter linear_map (ker range)
-open_locale big_operators topological_space
+open_locale big_operators topology
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
+variables [normed_add_comm_group E] [normed_add_comm_group F]
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 local notation `absR` := has_abs.abs
@@ -116,7 +118,7 @@ begin
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
         rw [eq₁, eq₂],
       end
-      ... = 2 * (‖a‖ * ‖a‖ + ‖b‖ * ‖b‖) : parallelogram_law_with_norm _ _,
+      ... = 2 * (‖a‖ * ‖a‖ + ‖b‖ * ‖b‖) : parallelogram_law_with_norm ℝ _ _,
     have eq : δ ≤ ‖u - half • (wq + wp)‖,
     { rw smul_add,
       apply δ_le', apply h₂,
@@ -204,7 +206,7 @@ begin
       end
       ... = ‖u - v‖^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*‖w - v‖^2 :
       begin
-        rw [norm_sub_sq, inner_smul_right, norm_smul],
+        rw [@norm_sub_sq ℝ, inner_smul_right, norm_smul],
         simp only [sq],
         show ‖u-v‖*‖u-v‖-2*(θ*inner(u-v)(w-v))+absR (θ)*‖w-v‖*(absR (θ)*‖w-v‖)=
                 ‖u-v‖*‖u-v‖-2*θ*inner(u-v)(w-v)+θ*θ*(‖w-v‖*‖w-v‖),
@@ -246,7 +248,7 @@ begin
       ‖u - v‖ * ‖u - v‖ ≤ ‖u - v‖ * ‖u - v‖ - 2 * inner (u - v) ((w:F) - v) : by linarith
       ... ≤ ‖u - v‖^2 - 2 * inner (u - v) ((w:F) - v) + ‖(w:F) - v‖^2 :
         by { rw sq, refine le_add_of_nonneg_right _, exact sq_nonneg _ }
-      ... = ‖(u - v) - (w - v)‖^2 : norm_sub_sq.symm
+      ... = ‖(u - v) - (w - v)‖^2 : (@norm_sub_sq ℝ _ _ _ _ _ _).symm
       ... = ‖u - w‖ * ‖u - w‖ :
         by { have : (u - v) - (w - v) = u - w, abel, rw [this, sq] } },
   { show (⨅ (w : K), ‖u - w‖) ≤ (λw:K, ‖u - w‖) ⟨v, hv⟩,
@@ -382,7 +384,7 @@ lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero
   {u v : E} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫ = 0) :
   orthogonal_projection_fn K u = v :=
 begin
-  rw [←sub_eq_zero, ←inner_self_eq_zero],
+  rw [←sub_eq_zero, ←@inner_self_eq_zero 𝕜],
   have hvs : orthogonal_projection_fn K u - v ∈ K :=
     submodule.sub_mem K (orthogonal_projection_fn_mem u) hvm,
   have huo : ⟪u - orthogonal_projection_fn K u, orthogonal_projection_fn K u - v⟫ = 0 :=
@@ -456,7 +458,7 @@ orthogonal_projection_fn_inner_eq_zero v
   v - orthogonal_projection K v ∈ Kᗮ :=
 begin
   intros w hw,
-  rw inner_eq_zero_sym,
+  rw inner_eq_zero_symm,
   exact orthogonal_projection_inner_eq_zero _ _ hw
 end
 
@@ -499,8 +501,10 @@ begin
   { simp }
 end
 
-lemma linear_isometry.map_orthogonal_projection {E E' : Type*} [inner_product_space 𝕜 E]
-  [inner_product_space 𝕜 E'] (f : E →ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
+lemma linear_isometry.map_orthogonal_projection {E E' : Type*}
+  [normed_add_comm_group E] [normed_add_comm_group E']
+  [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+  (f : E →ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
   (x : E) :
   f (orthogonal_projection p x) = orthogonal_projection (p.map f.to_linear_map) (f x) :=
 begin
@@ -511,8 +515,10 @@ begin
   rw [← f.map_sub, f.inner_map_map, orthogonal_projection_inner_eq_zero x x' hx']
 end
 
-lemma linear_isometry.map_orthogonal_projection' {E E' : Type*} [inner_product_space 𝕜 E]
-  [inner_product_space 𝕜 E'] (f : E →ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
+lemma linear_isometry.map_orthogonal_projection' {E E' : Type*}
+  [normed_add_comm_group E] [normed_add_comm_group E']
+  [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+  (f : E →ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
   (x : E) :
   f (orthogonal_projection p x) = orthogonal_projection (p.map f) (f x) :=
 begin
@@ -524,8 +530,10 @@ begin
 end
 
 /-- Orthogonal projection onto the `submodule.map` of a subspace. -/
-lemma orthogonal_projection_map_apply {E E' : Type*} [inner_product_space 𝕜 E]
-  [inner_product_space 𝕜 E'] (f : E ≃ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
+lemma orthogonal_projection_map_apply {E E' : Type*}
+  [normed_add_comm_group E] [normed_add_comm_group E']
+  [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+  (f : E ≃ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [complete_space p]
   (x : E') :
   (orthogonal_projection (p.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x : E')
   = f (orthogonal_projection p (f.symm x)) :=
@@ -554,9 +562,9 @@ begin
     use ⟪v, w⟫ },
   { intros x hx,
     obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
-    have hv : ↑‖v‖ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
+    have hv : ↑‖v‖ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [@norm_sq_eq_inner 𝕜] },
     simp [inner_sub_left, inner_smul_left, inner_smul_right, map_div₀, mul_comm, hv,
-      inner_product_space.conj_sym, hv] }
+      inner_product_space.conj_symm, hv] }
 end
 
 /-- Formula for orthogonal projection onto a single vector. -/
@@ -658,13 +666,17 @@ lemma reflection_mem_subspace_eq_self {x : E} (hx : x ∈ K) : reflection K x = 
 (reflection_eq_self_iff x).mpr hx
 
 /-- Reflection in the `submodule.map` of a subspace. -/
-lemma reflection_map_apply {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+lemma reflection_map_apply {E E' : Type*}
+  [normed_add_comm_group E] [normed_add_comm_group E']
+  [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
   (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [complete_space K] (x : E') :
   reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x = f (reflection K (f.symm x)) :=
 by simp [bit0, reflection_apply, orthogonal_projection_map_apply f K x]
 
 /-- Reflection in the `submodule.map` of a subspace. -/
-lemma reflection_map {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+lemma reflection_map {E E' : Type*}
+  [normed_add_comm_group E] [normed_add_comm_group E']
+  [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
   (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [complete_space K] :
   reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) = f.symm.trans ((reflection K).trans f) :=
 linear_isometry_equiv.ext $ reflection_map_apply f K
@@ -719,11 +731,11 @@ begin
   { obtain ⟨y, hy, z, hz, rfl⟩ := K.exists_sum_mem_mem_orthogonal v,
     intros hv,
     have hz' : z = 0,
-    { have hyz : ⟪z, y⟫ = 0 := by simp [hz y hy, inner_eq_zero_sym],
+    { have hyz : ⟪z, y⟫ = 0 := by simp [hz y hy, inner_eq_zero_symm],
       simpa [inner_add_right, hyz] using hv z hz },
     simp [hy, hz'] },
   { intros hv w hw,
-    rw inner_eq_zero_sym,
+    rw inner_eq_zero_symm,
     exact hw v hv }
 end
 
@@ -758,7 +770,7 @@ orthogonal projection. -/
 lemma eq_orthogonal_projection_of_mem_orthogonal
   [complete_space K] {u v : E} (hv : v ∈ K) (hvo : u - v ∈ Kᗮ) :
   (orthogonal_projection K u : E) = v :=
-eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hv (λ w, inner_eq_zero_sym.mp ∘ (hvo w))
+eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hv (λ w, inner_eq_zero_symm.mp ∘ (hvo w))
 
 /-- A point in `K` with the orthogonality property (here characterized in terms of `Kᗮ`) must be the
 orthogonal projection. -/
@@ -772,6 +784,39 @@ lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
   [complete_space K] {v : E} (hv : v ∈ Kᗮ) :
   orthogonal_projection K v = 0 :=
 by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
+
+/-- The projection into `U` from an orthogonal submodule `V` is the zero map. -/
+lemma submodule.is_ortho.orthogonal_projection_comp_subtypeL {U V : submodule 𝕜 E}
+  [complete_space U] (h : U ⟂ V) :
+  orthogonal_projection U ∘L V.subtypeL = 0 :=
+continuous_linear_map.ext $ λ v,
+  orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero $ h.symm v.prop
+
+/-- The projection into `U` from `V` is the zero map if and only if `U` and `V` are orthogonal. -/
+lemma orthogonal_projection_comp_subtypeL_eq_zero_iff {U V : submodule 𝕜 E}
+  [complete_space U] :
+  orthogonal_projection U ∘L V.subtypeL = 0 ↔ U ⟂ V :=
+⟨λ h u hu v hv, begin
+  convert orthogonal_projection_inner_eq_zero v u hu using 2,
+  have : orthogonal_projection U v = 0 := fun_like.congr_fun h ⟨_, hv⟩,
+  rw [this, submodule.coe_zero, sub_zero]
+end, submodule.is_ortho.orthogonal_projection_comp_subtypeL⟩
+
+lemma orthogonal_projection_eq_linear_proj [complete_space K] (x : E) :
+  orthogonal_projection K x =
+    K.linear_proj_of_is_compl _ submodule.is_compl_orthogonal_of_complete_space x :=
+begin
+  have : is_compl K Kᗮ := submodule.is_compl_orthogonal_of_complete_space,
+  nth_rewrite 0 [← submodule.linear_proj_add_linear_proj_of_is_compl_eq_self this x],
+  rw [map_add, orthogonal_projection_mem_subspace_eq_self,
+      orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (submodule.coe_mem _),
+      add_zero]
+end
+
+lemma orthogonal_projection_coe_linear_map_eq_linear_proj [complete_space K] :
+  (orthogonal_projection K : E →ₗ[𝕜] K) =
+    K.linear_proj_of_is_compl _ submodule.is_compl_orthogonal_of_complete_space :=
+linear_map.ext $ orthogonal_projection_eq_linear_proj
 
 /-- The reflection in `K` of an element of `Kᗮ` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_complement_eq_neg
@@ -977,7 +1022,7 @@ calc ⟪orthogonal_projection K v, u⟫
 
 @[simp] lemma inner_orthogonal_projection_eq_of_mem_left [complete_space K] (u : K) (v : E) :
   ⟪u, orthogonal_projection K v⟫ = ⟪(u : E), v⟫ :=
-by rw [← inner_conj_sym, ← inner_conj_sym (u : E), inner_orthogonal_projection_eq_of_mem_right]
+by rw [← inner_conj_symm, ← inner_conj_symm (u : E), inner_orthogonal_projection_eq_of_mem_right]
 
 /-- The orthogonal projection is self-adjoint. -/
 lemma inner_orthogonal_projection_left_eq_right
@@ -1002,7 +1047,7 @@ lemma submodule.finrank_add_inf_finrank_orthogonal {K₁ K₂ : submodule 𝕜 E
 begin
   haveI := submodule.finite_dimensional_of_le h,
   haveI := proper_is_R_or_C 𝕜 K₁,
-  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
+  have hd := submodule.finrank_sup_add_finrank_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
       submodule.sup_orthogonal_inf_of_complete_space h] at hd,
   rw add_zero at hd,
@@ -1155,7 +1200,7 @@ variables {ι : Type*}
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
 lemma orthogonal_family.is_internal_iff_of_is_complete [decidable_eq ι]
-  {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ))
   (hc : is_complete (↑(supr V) : set E)) :
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
@@ -1168,7 +1213,7 @@ end
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
 lemma orthogonal_family.is_internal_iff [decidable_eq ι] [finite_dimensional 𝕜 E]
-  {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) :
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
   haveI h := finite_dimensional.proper_is_R_or_C 𝕜 ↥(supr V),
@@ -1224,7 +1269,7 @@ begin
           intros hbe',
           apply hab',
           simp [ha, hbe'] },
-        rw inner_eq_zero_sym,
+        rw inner_eq_zero_symm,
         simpa [ha] using h_end b hb },
       rintros ⟨b, hb'⟩ hab',
       cases eq_or_mem_of_mem_insert hb' with hb hb,

@@ -5,7 +5,6 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.measure.finite_measure
 import measure_theory.integral.average
-import probability.conditional_probability
 
 /-!
 # Probability measures
@@ -69,7 +68,7 @@ open measure_theory
 open set
 open filter
 open bounded_continuous_function
-open_locale topological_space ennreal nnreal bounded_continuous_function
+open_locale topology ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 

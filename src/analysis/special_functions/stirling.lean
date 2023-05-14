@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
-import analysis.special_functions.log.deriv
-import tactic.positivity
 import data.real.pi.wallis
 
 /-!
@@ -31,7 +29,7 @@ and prove that $a = \sqrt{\pi}$. Here the main ingredient is the convergence of 
 formula for `π`.
 -/
 
-open_locale topological_space real big_operators nat
+open_locale topology real big_operators nat
 open finset filter nat real
 
 namespace stirling

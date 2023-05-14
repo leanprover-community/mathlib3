@@ -3,7 +3,6 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.order.field.basic
 import analysis.specific_limits.basic
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
@@ -204,7 +203,7 @@ open bernstein_approximation
 open bounded_continuous_function
 open filter
 
-open_locale topological_space
+open_locale topology
 
 /--
 The Bernstein approximations
@@ -228,7 +227,7 @@ begin
   have npos : 0 < (n:ℝ) := by exact_mod_cast npos',
   -- Two easy inequalities we'll need later:
   have w₁ : 0 ≤ 2 * ‖f‖ := mul_nonneg (by norm_num) (norm_nonneg f),
-  have w₂ : 0 ≤ 2 * ‖f‖ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
+  have w₂ : 0 ≤ 2 * ‖f‖ * δ^(-2 : ℤ) := mul_nonneg w₁ (zpow_neg_two_nonneg _),
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
   rw (continuous_map.norm_lt_iff _ h),
   intro x,
@@ -293,7 +292,7 @@ begin
                                   : mul_le_mul_of_nonneg_left
                                       (finset.sum_le_univ_sum_of_nonneg
                                         (λ k, mul_nonneg
-                                          (mul_nonneg pow_minus_two_nonneg (sq_nonneg _))
+                                          (mul_nonneg (zpow_neg_two_nonneg _) (sq_nonneg _))
                                           bernstein_nonneg)) w₁
         ... = (2 * ‖f‖) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
                                   : by conv_rhs

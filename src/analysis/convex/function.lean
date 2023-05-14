@@ -8,6 +8,9 @@ import analysis.convex.basic
 /-!
 # Convex and concave functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines convex and concave functions in vector spaces and proves the finite Jensen
 inequality. The integral version can be found in `analysis.convex.integral`.
 
@@ -342,9 +345,10 @@ lemma linear_order.convex_on_of_lt (hs : convex 𝕜 s)
     f (a • x + b • y) ≤ a • f x + b • f y) : convex_on 𝕜 s f :=
 begin
   refine convex_on_iff_pairwise_pos.2 ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
-  wlog h : x ≤ y using [x y a b, y x b a],
-  { exact le_total _ _ },
-  exact hf hx hy (h.lt_of_ne hxy) ha hb hab,
+  wlog h : x < y,
+  { rw [add_comm (a • x), add_comm (a • f x)], rw add_comm at hab,
+    refine this hs hf y hy x hx hxy.symm b a hb ha hab (hxy.lt_or_lt.resolve_left h), },
+  exact hf hx hy h ha hb hab,
 end
 
 /-- For a function on a convex set in a linearly ordered space (where the order and the algebraic
@@ -365,9 +369,10 @@ lemma linear_order.strict_convex_on_of_lt (hs : convex 𝕜 s)
     f (a • x + b • y) < a • f x + b • f y) : strict_convex_on 𝕜 s f :=
 begin
   refine ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
-  wlog h : x ≤ y using [x y a b, y x b a],
-  { exact le_total _ _ },
-  exact hf hx hy (h.lt_of_ne hxy) ha hb hab,
+  wlog h : x < y,
+  { rw [add_comm (a • x), add_comm (a • f x)], rw add_comm at hab,
+    refine this hs hf y hy x hx hxy.symm b a hb ha hab (hxy.lt_or_lt.resolve_left h), },
+  exact hf hx hy h ha hb hab,
 end
 
 /-- For a function on a convex set in a linearly ordered space (where the order and the algebraic

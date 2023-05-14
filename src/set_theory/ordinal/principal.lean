@@ -9,6 +9,9 @@ import set_theory.ordinal.fixed_point
 /-!
 ### Principal ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define principal or indecomposable ordinals, and we prove the standard properties about them.
 
 ### Main definitions and results

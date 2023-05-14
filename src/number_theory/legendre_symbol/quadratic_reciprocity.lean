@@ -207,8 +207,8 @@ section quadratic_form
 
 namespace legendre_sym
 
-/-- The Legendre symbol `legendre_sym p a = 1` if there is a nontrivial solution in `ℤ/pℤ`
-of the equation `x^2 - a*y^2 = 0`. -/
+/-- The Legendre symbol `legendre_sym p a = 1` if there is a solution in `ℤ/pℤ`
+of the equation `x^2 - a*y^2 = 0` with `y ≠ 0`. -/
 lemma eq_one_of_sq_sub_mul_sq_eq_zero {p : ℕ} [fact p.prime]
   {a : ℤ} (ha : (a : zmod p) ≠ 0) {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 - a * y ^ 2 = 0) :
   legendre_sym p a = 1 :=
@@ -220,8 +220,8 @@ begin
   exact (eq_one_iff p ha).mpr ⟨x * y⁻¹, hxy.symm⟩,
 end
 
-/-- The Legendre symbol `legendre_sym p a = 1` if there is a nontrivial solution in `ℤ/pℤ`
-of the equation `x^2 - a*y^2 = 0`. -/
+/-- The Legendre symbol `legendre_sym p a = 1` if there is a solution in `ℤ/pℤ`
+of the equation `x^2 - a*y^2 = 0` with `x ≠ 0`. -/
 lemma eq_one_of_sq_sub_mul_sq_eq_zero' {p : ℕ} [fact p.prime]
   {a : ℤ} (ha : (a : zmod p) ≠ 0) {x y : zmod p} (hx : x ≠ 0) (hxy : x ^ 2 - a * y ^ 2 = 0) :
   legendre_sym p a = 1 :=

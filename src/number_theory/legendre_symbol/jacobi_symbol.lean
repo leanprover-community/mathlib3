@@ -211,7 +211,7 @@ begin
 end
 
 /-- We can pull out a product over a list in the first argument of the Jacobi symbol. -/
-lemma mul_left_list {l : list ℤ} {n : ℕ} :
+lemma list_prod_left {l : list ℤ} {n : ℕ} :
   J(l.prod | n) = (l.map (λ a, J(a | n))).prod :=
 begin
   induction l with n l' ih,
@@ -220,7 +220,7 @@ begin
 end
 
 /-- We can pull out a product over a list in the second argument of the Jacobi symbol. -/
-lemma mul_right_list {a : ℤ} {l : list ℕ} (hl : ∀ n ∈ l, n ≠ 0) :
+lemma list_prod_right {a : ℤ} {l : list ℕ} (hl : ∀ n ∈ l, n ≠ 0) :
   J(a | l.prod) = (l.map (λ n, J(a | n))).prod :=
 begin
   induction l with n l' ih,
@@ -240,7 +240,7 @@ begin
     rw [zero_right, eq_neg_self_iff] at h,
     exact one_ne_zero h, },
   have hf₀ : ∀ p ∈ n.factors, p ≠ 0 := λ p hp, (nat.pos_of_mem_factors hp).ne.symm,
-  rw [← nat.prod_factors hn₀, mul_right_list hf₀] at h,
+  rw [← nat.prod_factors hn₀, list_prod_right hf₀] at h,
   obtain ⟨p, hmem, hj⟩ := list.mem_map.mp (list.neg_one_mem_of_prod_eq_neg_one h),
   exact ⟨p, nat.prime_of_mem_factors hmem, nat.dvd_of_mem_factors hmem, hj⟩,
 end

@@ -687,6 +687,27 @@ variables {R : Type*} [semiring R] [category_theory.linear R V] [category_theory
 instance map_Action_linear [F.additive] [F.linear R] : (F.map_Action G).linear R := {}
 
 end category_theory.functor
+namespace category_theory.equivalence
+
+variables (G : Mon.{u}) {V} {W : Type (u+1)} [large_category W]
+
+@[simps] def map_Action_equivalence (F : V ≌ W) : Action V G ≌ Action W G :=
+{ functor := F.functor.map_Action G,
+  inverse := F.inverse.map_Action G,
+  unit_iso := nat_iso.of_components (λ X, Action.mk_iso
+    (F.unit_iso.app X.V) (λ g, by dsimp; simp only [equivalence.inv_fun_map,
+      iso.hom_inv_id_app_assoc])) (λ X Y f, by dsimp; ext; simp only [equivalence.inv_fun_map,
+      iso.hom_inv_id_app_assoc, Action.comp_hom, Action.mk_iso_hom_hom, iso.app_hom,
+      category_theory.functor.map_Action_map_hom]),
+  counit_iso := nat_iso.of_components (λ X, Action.mk_iso (F.counit_iso.app X.V) (λ g,
+      by dsimp; simp only [equivalence.fun_inv_map, category.assoc, iso.inv_hom_id_app,
+      nat_iso.cancel_nat_iso_hom_left]; exact category.comp_id _))
+    (λ X Y f, by dsimp; ext; simp only [equivalence.fun_inv_map, category.assoc, iso.inv_hom_id_app,
+      nat_iso.cancel_nat_iso_hom_left, Action.comp_hom, category_theory.functor.map_Action_map_hom,
+      Action.mk_iso_hom_hom, iso.app_hom]; exact category.comp_id _),
+  functor_unit_iso_comp' := λ X, by ext; exact F.functor_unit_iso_comp _ }
+
+end category_theory.equivalence
 
 namespace category_theory.monoidal_functor
 

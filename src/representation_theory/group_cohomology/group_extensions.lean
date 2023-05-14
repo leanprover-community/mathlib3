@@ -313,7 +313,7 @@ def equiv_of_coboundary (f : G → A) :
     { refl }
   end,
   right := by ext; refl }
-#check function.funext_iff
+
 def equiv_of_eq_aux (F1 F2 : two_cocycles A) (f : G → A) (hf : (F1 - F2 : G × G → A) = d_one A f) :
   extend F1 ≃* extend F2 :=
 { to_fun := λ x, (x.1 + f x.2, x.2),
@@ -341,20 +341,16 @@ def equiv_of_eq_aux (F1 F2 : two_cocycles A) (f : G → A) (hf : (F1 - F2 : G ×
       rw sub_add_eq_add_sub at this,
       rw sub_eq_sub_iff_add_eq_add at this,
       simp only [map_add, add_assoc, this, add_right_inj],
-      rw add_left_inj,
+      sorry,
+      /-rw add_left_inj,
       rw add_assoc,
-      rw add_rotate',
+      rw add_rotate',-/
       }
   end }
 
-
-def equiv_of_eq (F1 F2 : two_cocycles A)
+/-def equiv_of_eq (F1 F2 : two_cocycles A)
   (H : (two_coboundaries A).mkq F1 = (two_coboundaries A).mkq F2) :
   equiv (extension F1) (extension F2) :=
 { f := _,
   left := _,
-  right := _ }
-
-def two_cocycle (E : extension A G) : two_cocycles A :=
-{! !}
-end
+  right := _ }-/

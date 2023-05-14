@@ -268,7 +268,7 @@ noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ
 | 0 := 0
 | (n+1) :=
   if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement ↑x) ≤ M then
-    -- We could demonstrate that there exist a positive `a k` rather than a nonnegative one but then
+    -- We could demonstrate that there exists a positive `a k` rather than a nonnegative one but then
     -- this function wouldn't be surjective
     Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement ↑x) ∧ 0 ≤ a k}
   else
@@ -303,13 +303,11 @@ lemma rearrangement_def {a : ℕ → ℝ}
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
   : rearrangement a M (n + 1) =
     if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x) ≤ M then
-      have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
-      from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n,
-      nat.find h
+      nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
+        from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n)
     else
-      have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0,
-      from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n,
-      nat.find h :=
+      nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0,
+        from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) :=
 begin
   unfold rearrangement,
   rw nat.Inf_def (show set.nonempty {k : ℕ | k ∉ set.range
@@ -326,9 +324,8 @@ lemma rearrangement_nonneg {a : ℕ → ℝ}
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
   (h : ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x) ≤ M)
   : rearrangement a M (n + 1) =
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
-    from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n,
-    nat.find h :=
+    nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
+      from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) :=
 begin
   rw rearrangement_def,
   exact if_pos h
@@ -339,13 +336,15 @@ lemma rearrangement_neg {a : ℕ → ℝ}
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
   (h : M < ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x))
   : rearrangement a M (n + 1) =
-    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0,
-    from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n,
-    nat.find h :=
+    nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0,
+      from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) :=
 begin
   rw rearrangement_def,
   exact if_neg (by { push_neg, exact h })
 end
+
+lemma rearrangement_zero (a : ℕ → ℝ) (M : ℝ) : rearrangement a M 0 = 0 :=
+by unfold rearrangement
 
 theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))
   (h₂ : ¬∃ C : ℝ, tendsto (partial_sum (λ k, ‖a k‖)) at_top (nhds C)) (M : ℝ) : ∃ (p : equiv.perm ℕ),

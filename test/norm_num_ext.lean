@@ -9,7 +9,7 @@ import data.int.gcd
 import data.nat.fib
 import data.nat.prime
 import data.nat.sqrt_norm_num
-import analysis.special_functions.pow
+import analysis.special_functions.pow_tactic
 import number_theory.legendre_symbol.norm_num
 
 /-!

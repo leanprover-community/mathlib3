@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import analysis.specific_limits.basic
-import analysis.special_functions.pow
+import analysis.special_functions.pow_real
 
 /-!
 # Results on discretized exponentials

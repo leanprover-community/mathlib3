@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.pow_nnreal
 
 /-!
 # Convergence of `p`-series

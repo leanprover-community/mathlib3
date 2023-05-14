@@ -100,45 +100,46 @@ local notation `Ω` := loop_space
   continuous functions `I^n → X` that sends the boundary to `x`.
   We allow an arbitrary indexing type `N` in place of `fin n` here. -/
 def gen_loop (N : Type*) (x : X) : set C(I^N, X) := {p | ∀ y ∈ cube.boundary N, p y = x}
+local notation `Ω^` := gen_loop
 
 namespace gen_loop
 
 /-- Copy of a `gen_loop` with a new map from the unit cube equal to the old one.
   Useful to fix definitional equalities. -/
-def copy (f : gen_loop N x) (g : (I^N) → X) (h : g = f) : gen_loop N x :=
+def copy (f : Ω^N x) (g : (I^N) → X) (h : g = f) : Ω^N x :=
 ⟨⟨g, h.symm ▸ f.1.2⟩, by { convert f.2, ext1, simp_rw h, refl }⟩
 
-lemma coe_copy (f : gen_loop N x) {g : (I^N) → X} (h : g = f) : ⇑(copy f g h) = g := rfl
+lemma coe_copy (f : Ω^N x) {g : (I^N) → X} (h : g = f) : ⇑(copy f g h) = g := rfl
 
-lemma copy_eq (f : gen_loop N x) {g : (I^N) → X} (h : g = f) : copy f g h = f :=
+lemma copy_eq (f : Ω^N x) {g : (I^N) → X} (h : g = f) : copy f g h = f :=
 by { ext x, exact congr_fun h x }
 
-lemma boundary (f : gen_loop N x) : ∀ y ∈ cube.boundary N, f y = x := f.2
+lemma boundary (f : Ω^N x) : ∀ y ∈ cube.boundary N, f y = x := f.2
 
-instance fun_like : fun_like (gen_loop N x) (I^N) (λ _, X) :=
+instance fun_like : fun_like (Ω^N x) (I^N) (λ _, X) :=
 { coe := λ f, f.1,
   coe_injective' := λ ⟨⟨f, _⟩, _⟩ ⟨⟨g, _⟩, _⟩ h, by { congr, exact h } }
 
-@[ext] lemma ext (f g : gen_loop N x) (H : ∀ y, f y = g y) : f = g :=
+@[ext] lemma ext (f g : Ω^N x) (H : ∀ y, f y = g y) : f = g :=
 fun_like.coe_injective' (funext H)
 
-@[simp] lemma mk_apply (f : C(I^N, X)) (H y) : (⟨f, H⟩ : gen_loop N x) y = f y := rfl
+@[simp] lemma mk_apply (f : C(I^N, X)) (H y) : (⟨f, H⟩ : Ω^N x) y = f y := rfl
 
 /-- The constant `gen_loop` at `x`. -/
-def const : gen_loop N x := ⟨continuous_map.const _ x, λ _ _, rfl⟩
+def const : Ω^N x := ⟨continuous_map.const _ x, λ _ _, rfl⟩
 
 @[simp] lemma const_apply {t} : (@const X _ N x) t = x := rfl
 
-instance inhabited : inhabited (gen_loop N x) := ⟨const⟩
+instance inhabited : inhabited (Ω^N x) := ⟨const⟩
 
 /-- The "homotopic relative to boundary" relation between `gen_loop`s. -/
-def homotopic (f g : gen_loop N x) : Prop := f.1.homotopic_rel g.1 (cube.boundary N)
+def homotopic (f g : Ω^N x) : Prop := f.1.homotopic_rel g.1 (cube.boundary N)
 
 namespace homotopic
 section
-variables {f g h : gen_loop N x}
+variables {f g h : Ω^N x}
 
-@[refl] lemma refl (f : gen_loop N x) : homotopic f f := continuous_map.homotopic_rel.refl _
+@[refl] lemma refl (f : Ω^N x) : homotopic f f := continuous_map.homotopic_rel.refl _
 
 @[symm] lemma symm (H : homotopic f g) : homotopic g f := H.symm
 
@@ -147,7 +148,7 @@ variables {f g h : gen_loop N x}
 lemma equiv : equivalence (@homotopic X _ N x) :=
 ⟨homotopic.refl, λ _ _, homotopic.symm, λ _ _ _, homotopic.trans⟩
 
-instance setoid (N) (x : X) : setoid (gen_loop N x) := ⟨homotopic, equiv⟩
+instance setoid (N) (x : X) : setoid (Ω^N x) := ⟨homotopic, equiv⟩
 
 end
 end homotopic
@@ -157,14 +158,14 @@ section
 variable [decidable_eq N]
 
 /-- Loop from a generalized loop by currying $I^N → X$ into $I → (I^{N\setminus\{j\}} → X)$. -/
-@[simps] def to_loop (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
+@[simps] def to_loop (i : N) : Ω^N x → Ω (Ω^{j // j ≠ i} x) const := λ p,
 { to_fun := λ t, ⟨(p.val.comp (cube.insert_at i).to_continuous_map).curry t,
     λ y yH, p.property (cube.insert_at i (t, y)) (cube.insert_at_boundary i $ or.inr yH)⟩,
   source' := by { ext t, refine p.property (cube.insert_at i (0, t)) ⟨i, or.inl _⟩, simp },
   target' := by { ext t, refine p.property (cube.insert_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
 /-- Generalized loop from a loop by uncurrying $I → (I^{N\setminus\{j\}} → X)$ into $I^N → X$. -/
-@[simps] def from_loop (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : gen_loop N x :=
+@[simps] def from_loop (i : N) (p : Ω (Ω^{j // j ≠ i} x) const) : Ω^N x :=
 ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(_, X))).uncurry.comp
   (cube.split_at i).to_continuous_map,
 begin
@@ -177,7 +178,7 @@ begin
   { exact gen_loop.boundary _ _ ⟨⟨j, Hne⟩, Hj⟩ },
 end⟩
 
-lemma to_from (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : to_loop i (from_loop i p) = p :=
+lemma to_from (i : N) (p : Ω (Ω^{j // j ≠ i} x) const) : to_loop i (from_loop i p) = p :=
 begin
   simp_rw [to_loop, from_loop, continuous_map.comp_assoc, to_continuous_map_as_coe,
     to_continuous_map_comp_symm, continuous_map.comp_id], ext, refl,
@@ -186,16 +187,16 @@ end
 /-- The `n+1`-dimensional loops are in bijection with the loops in the space of
   `n`-dimensional loops with base point `const`.
   We allow an arbitrary indexing type `N` in place of `fin n` here. -/
-@[simps] def loop_equiv (i : N) : gen_loop N x ≃ Ω (gen_loop {j // j ≠ i} x) const :=
+@[simps] def loop_equiv (i : N) : Ω^N x ≃ Ω (Ω^{j // j ≠ i} x) const :=
 { to_fun := to_loop i,
   inv_fun := from_loop i,
   left_inv := λ p, by { ext, exact congr_arg p (equiv.apply_symm_apply _ _) },
   right_inv := to_from i }
 
-lemma to_loop_apply (i : N) {p : gen_loop N x} {t} {tn} :
+lemma to_loop_apply (i : N) {p : Ω^N x} {t} {tn} :
   to_loop i p t tn = p (cube.insert_at i ⟨t, tn⟩) := rfl
 
-lemma from_loop_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : I^N} :
+lemma from_loop_apply (i : N) {p : Ω (Ω^{j // j ≠ i} x) const} {t : I^N} :
   from_loop i p t = p (t i) (cube.split_at i t).snd := rfl
 
 end
@@ -204,7 +205,7 @@ section
 
 /-- The inclusion from the space of generalized loops to the space of all continuous functions
   (not necessarily constant on the boundary), as a continuous map. -/
-@[reducible] def c_coe : C(gen_loop N x, C(I^N, X)) := ⟨λ p, p.val, continuous_induced_dom⟩
+@[reducible] def c_coe : C(Ω^N x, C(I^N, X)) := ⟨λ p, p.val, continuous_induced_dom⟩
 
 variable [decidable_eq N]
 
@@ -215,17 +216,17 @@ variable [decidable_eq N]
 
 /-- A homotopy between `n+1`-dimensional loops `p` and `q` constant on the boundary
   seen as a homotopy between two paths in the space of `n`-dimensional paths. -/
-def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
+def homotopy_to (i : N) {p q : Ω^N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
   C(I × I, C(I^{j // j ≠ i}, X)) :=
 ((⟨_, continuous_map.continuous_curry⟩: C(_,_)).comp $
   (c_comp_insert i).comp H.to_continuous_map.curry).uncurry
 
 -- Should be generated with `@[simps]` but it times out.
-lemma homotopy_to_apply (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 $ cube.boundary N)
+lemma homotopy_to_apply (i : N) {p q : Ω^N x} (H : p.1.homotopy_rel q.1 $ cube.boundary N)
   (t : I × I) (tₙ : I^{j // j ≠ i}) :
     homotopy_to i H t tₙ = H (t.fst, cube.insert_at i (t.snd, tₙ)) := rfl
 
-lemma homotopic_to (i : N) {p q : gen_loop N x} :
+lemma homotopic_to (i : N) {p q : Ω^N x} :
   homotopic p q → (to_loop i p).homotopic (to_loop i q) :=
 begin
   refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩, _⟩, _, _⟩, _⟩),
@@ -244,17 +245,17 @@ end
 
 /-- The converse to `gen_loop.homotopy_to`: a homotopy between two loops in the space of
   `n`-dimensional loops can be seen as a homotopy between two `n+1`-dimensional paths. -/
-def homotopy_from (i : N) {p q : gen_loop N x}
+def homotopy_from (i : N) {p q : Ω^N x}
   (H : (to_loop i p).homotopy (to_loop i q)) : C(I × I^N, X) :=
 ((⟨_, continuous_map.continuous_uncurry⟩ : C(_,_)).comp
   (c_coe.comp H.to_continuous_map).curry).uncurry.comp $
     (continuous_map.id I).prod_map (cube.split_at i).to_continuous_map
 
 -- Should be generated with `@[simps]` but it times out.
-lemma homotopy_from_apply (i : N) {p q : gen_loop N x} (H : (to_loop i p).homotopy (to_loop i q))
+lemma homotopy_from_apply (i : N) {p q : Ω^N x} (H : (to_loop i p).homotopy (to_loop i q))
   (t : I × I^N) : homotopy_from i H t = H (t.fst, t.snd i) (λ j, t.snd ↑j) := rfl
 
-lemma homotopic_from (i : N) {p q : gen_loop N x} :
+lemma homotopic_from (i : N) {p q : Ω^N x} :
   (to_loop i p).homotopic (to_loop i q) → homotopic p q :=
 begin
   refine nonempty.map (λ H, ⟨⟨homotopy_from i H, _, _⟩, _⟩),
@@ -276,7 +277,7 @@ end
 
 end gen_loop
 
-/-- The `n`th homotopy group at `x` defined as the quotient of `gen_loop n x` by the
+/-- The `n`th homotopy group at `x` defined as the quotient of `Ω^n x` by the
   `gen_loop.homotopic` relation. -/
 @[derive inhabited]
 def homotopy_group (N) (X : Type*) [topological_space X] (x : X) : Type _ :=
@@ -288,9 +289,9 @@ local notation `π_` := pi
 variable [decidable_eq N]
 open gen_loop
 /-- Equivalence between the homotopy group of X and the fundamental group of
-  `gen_loop {j // j ≠ i} x`. -/
+  `Ω^{j // j ≠ i} x`. -/
 def homotopy_group_equiv_fundamental_group (i : N) :
-  homotopy_group N X x ≃ fundamental_group (gen_loop {j // j ≠ i} x) const :=
+  homotopy_group N X x ≃ fundamental_group (Ω^{j // j ≠ i} x) const :=
 begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
   apply quotient.congr (loop_equiv i),
@@ -300,7 +301,7 @@ end
 namespace homotopy_group
 
 /-- The 0-dimensional generalized loops based at `x` are in 1-1 correspondence with `X`. -/
-def gen_loop_zero_equiv : gen_loop (fin 0) x ≃ X :=
+def gen_loop_zero_equiv : Ω^(fin 0) x ≃ X :=
 { to_fun := λ f, f 0,
   inv_fun := λ x, ⟨continuous_map.const _ x, λ _ ⟨f0,_⟩, f0.elim0⟩,
   left_inv := λ f, by { ext, exact congr_arg f (subsingleton.elim _ _) },
@@ -324,7 +325,7 @@ begin
 end
 
 /-- The 1-dimensional generalized loops based at `x` are in 1-1 correspondence with loops at `x`. -/
-@[simps] def gen_loop_one_equiv_loop : gen_loop (fin 1) x ≃ Ω X x :=
+@[simps] def gen_loop_one_equiv_loop : Ω^(fin 1) x ≃ Ω X x :=
 { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by continuity⟩
     (gen_loop.boundary _ (λ _, 0) ⟨0, or.inl rfl⟩)
     (gen_loop.boundary _ (λ _, 1) ⟨1, or.inr rfl⟩),
@@ -379,7 +380,7 @@ lemma is_unital_aux_group (i : N) :
 ⟨⟨(aux_group i).one_mul⟩, ⟨(aux_group i).mul_one⟩⟩
 
 /-- Concatenation of two `gen_loop`s along the `i`th coordinate. -/
-def trans_at (i : N) (f g : gen_loop N x) : gen_loop N x :=
+def trans_at (i : N) (f g : Ω^N x) : Ω^N x :=
 copy ((loop_equiv i).symm ((loop_equiv i f).trans $ loop_equiv i g))
   (λ t, if (t i : ℝ) ≤ 1/2
     then f (function.update t i $ set.proj_Icc 0 1 zero_le_one (2 * t i))
@@ -394,12 +395,12 @@ begin
 end
 
 /-- Reversal of a `gen_loop` along the `i`th coordinate. -/
-def symm_at (i : N) (f : gen_loop N x) : gen_loop N x :=
+def symm_at (i : N) (f : Ω^N x) : Ω^N x :=
 copy ((loop_equiv i).symm (loop_equiv i f).symm)
   (λ t, f $ λ j, if j = i then σ (t i) else t j) $
   by { ext1, change _ = f _, congr, ext1, simp }
 
-lemma trans_at_distrib {i j : N} (h : i ≠ j) (a b c d : gen_loop N x) :
+lemma trans_at_distrib {i j : N} (h : i ≠ j) (a b c d : Ω^N x) :
   trans_at i (trans_at j a b) (trans_at j c d) = trans_at j (trans_at i a c) (trans_at i b d) :=
 begin
   ext, simp_rw [trans_at, coe_copy, function.update_apply, if_neg h, if_neg h.symm],
@@ -407,11 +408,11 @@ begin
     apply ite_ite_comm, rintro rfl, exact h.symm },
 end
 
-lemma from_loop_trans_to_loop {p q : gen_loop N x} :
+lemma from_loop_trans_to_loop {p q : Ω^N x} :
   (loop_equiv i).symm ((loop_equiv i p).trans $ loop_equiv i q) = trans_at i p q :=
 (copy_eq _ _).symm
 
-lemma from_loop_symm_to_loop {p : gen_loop N x} :
+lemma from_loop_symm_to_loop {p : Ω^N x} :
   (loop_equiv i).symm (loop_equiv i p).symm = symm_at i p := (copy_eq _ _).symm
 
 lemma aux_group_indep (i j : N) : (aux_group i : group (homotopy_group N X x)) = aux_group j :=
@@ -423,14 +424,14 @@ begin
   simp_rw [from_loop_trans_to_loop, trans_at_distrib h],
 end
 
-lemma trans_at_indep {i} (j) (f g : gen_loop N x) : ⟦trans_at i f g⟧ = ⟦trans_at j f g⟧ :=
+lemma trans_at_indep {i} (j) (f g : Ω^N x) : ⟦trans_at i f g⟧ = ⟦trans_at j f g⟧ :=
 begin
   simp_rw ← from_loop_trans_to_loop,
   have := congr_arg (@group.mul _) (aux_group_indep i j),
   exact congr_fun₂ this ⟦g⟧ ⟦f⟧,
 end
 
-lemma symm_at_indep {i} (j) (f : gen_loop N x) : ⟦symm_at i f⟧ = ⟦symm_at j f⟧ :=
+lemma symm_at_indep {i} (j) (f : Ω^N x) : ⟦symm_at i f⟧ = ⟦symm_at j f⟧ :=
 begin
   simp_rw ← from_loop_symm_to_loop,
   have := congr_arg (@group.inv _) (aux_group_indep i j),
@@ -441,11 +442,11 @@ end
 lemma const_spec : (1 : π_(n+1) X x) = ⟦const⟧ := rfl
 
 /-- Characterization of multiplication -/
-lemma mul_spec {i} {p q : gen_loop (fin (n+1)) x} : (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦trans_at i q p⟧ :=
+lemma mul_spec {i} {p q : Ω^(fin (n+1)) x} : (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦trans_at i q p⟧ :=
 by { rw [trans_at_indep 0 q, ← from_loop_trans_to_loop], apply quotient.sound, refl }
 
 /-- Characterization of multiplicative inverse -/
-lemma inv_spec {i} {p : gen_loop (fin (n+1)) x} : (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦symm_at i p⟧ :=
+lemma inv_spec {i} {p : Ω^(fin (n+1)) x} : (⟦p⟧⁻¹ : π_(n+1) X x) = ⟦symm_at i p⟧ :=
 by { rw [symm_at_indep 0 p, ← from_loop_symm_to_loop], apply quotient.sound, refl }
 
 /-- Multiplication on `π_(n+2)` is commutative. -/

@@ -378,15 +378,15 @@ lemma is_unital_aux_group (i : N) :
 def trans_at (i : N) (f g : gen_loop N x) : gen_loop N x :=
 copy ((loop_equiv i).symm ((loop_equiv i f).trans $ loop_equiv i g))
   (λ t, if (t i : ℝ) ≤ 1/2
-    then f (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
-    else g (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j))
+    then f (function.update t i $ set.proj_Icc 0 1 zero_le_one (2 * t i))
+    else g (function.update t i $ set.proj_Icc 0 1 zero_le_one (2 * t i - 1)))
 begin
   ext1, symmetry,
   dsimp only [path.trans, from_loop, path.coe_mk, function.comp_app, loop_equiv_symm_apply,
     mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
     continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
   split_ifs, change f _ = _, swap, change g _ = _,
-  all_goals { congr' 1, ext, rw [to_continuous_map_apply, fun_split_at_symm_apply], refl },
+  all_goals { congr' 1 }
 end
 
 /-- Reversal of a `gen_loop` along the `i`th coordinate. -/
@@ -398,8 +398,9 @@ copy ((loop_equiv i).symm (loop_equiv i f).symm)
 lemma trans_at_distrib {i j : N} (h : i ≠ j) (a b c d : gen_loop N x) :
   trans_at i (trans_at j a b) (trans_at j c d) = trans_at j (trans_at i a c) (trans_at i b d) :=
 begin
-  ext, simp_rw [trans_at, coe_copy, if_neg h, if_neg h.symm],
-  split_ifs; { congr, ext1, apply ite_ite_comm, rintro rfl, exact h.symm },
+  ext, simp_rw [trans_at, coe_copy, function.update_apply, if_neg h, if_neg h.symm],
+  split_ifs; { congr' 1, ext1, simp only [function.update, eq_rec_constant, dite_eq_ite],
+    apply ite_ite_comm, rintro rfl, exact h.symm },
 end
 
 lemma from_loop_trans_to_loop {p q : gen_loop N x} :

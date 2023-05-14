@@ -3,6 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Alex Kontorovich, Heather Macbeth
 -/
+import measure_theory.measure.haar_lebesgue
 import measure_theory.measure.haar_quotient
 import measure_theory.integral.interval_integral
 import topology.algebra.order.floor
@@ -107,7 +108,7 @@ begin
   { simp [hε, min_eq_left (by linarith : T ≤ 2 * ε)], },
 end
 
-instance : is_doubling_measure (volume : measure (add_circle T)) :=
+instance : is_unif_loc_doubling_measure (volume : measure (add_circle T)) :=
 begin
   refine ⟨⟨real.to_nnreal 2, filter.eventually_of_forall $ λ ε x, _⟩⟩,
   simp only [volume_closed_ball],

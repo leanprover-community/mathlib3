@@ -8,6 +8,9 @@ import analysis.normed.field.basic
 /-!
 # The integers as normed ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains basic facts about the integers as normed ring.
 
 Recall that `‖n‖` denotes the norm of `n` as real number.

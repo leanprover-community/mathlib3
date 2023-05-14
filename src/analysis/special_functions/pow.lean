@@ -1180,6 +1180,20 @@ by simpa using is_o_zpow_exp_pos_mul_at_top k hb
 lemma is_o_rpow_exp_at_top (s : ℝ) : (λ x : ℝ, x ^ s) =o[at_top] exp :=
 by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
 
+/-- `exp (-a * x) = o(x ^ s)` as `x → ∞`, for any positive `a` and real `s`. -/
+lemma is_o_exp_neg_mul_rpow_at_top {a : ℝ} (ha : 0 < a) (b : ℝ) :
+  is_o at_top (λ x : ℝ, exp (-a * x)) (λ x : ℝ, x ^ b) :=
+begin
+  apply is_o_of_tendsto',
+  { refine (eventually_gt_at_top 0).mp (eventually_of_forall $ λ t ht h, _),
+    rw rpow_eq_zero_iff_of_nonneg ht.le at h,
+    exact (ht.ne' h.1).elim },
+  { refine (tendsto_exp_mul_div_rpow_at_top (-b) a ha).inv_tendsto_at_top.congr' _,
+    refine (eventually_ge_at_top 0).mp (eventually_of_forall $ λ t ht, _),
+    dsimp only,
+    rw [pi.inv_apply, inv_div, ←inv_div_inv, neg_mul, real.exp_neg, rpow_neg ht, inv_inv] }
+end
+
 lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : log =o[at_top] (λ x, x ^ r) :=
 calc log =O[at_top] (λ x, r * log x)   : is_O_self_const_mul _ hr.ne' _ _
      ... =ᶠ[at_top] (λ x, log (x ^ r)) :
@@ -1941,7 +1955,7 @@ end
 lemma rpow_pos_of_nonneg {p : ℝ} {x : ℝ≥0∞} (hx_pos : 0 < x) (hp_nonneg : 0 ≤ p) : 0 < x^p :=
 begin
   by_cases hp_zero : p = 0,
-  { simp [hp_zero, ennreal.zero_lt_one], },
+  { simp [hp_zero, zero_lt_one], },
   { rw ←ne.def at hp_zero,
     have hp_pos := lt_of_le_of_ne hp_nonneg hp_zero.symm,
     rw ←zero_rpow_of_pos hp_pos, exact rpow_lt_rpow hx_pos hp_pos, },
@@ -1972,7 +1986,7 @@ end
 lemma rpow_lt_one_of_one_lt_of_neg {x : ℝ≥0∞} {z : ℝ} (hx : 1 < x) (hz : z < 0) : x^z < 1 :=
 begin
   cases x,
-  { simp [top_rpow_of_neg hz, ennreal.zero_lt_one] },
+  { simp [top_rpow_of_neg hz, zero_lt_one] },
   { simp only [some_eq_coe, one_lt_coe_iff] at hx,
     simp [coe_rpow_of_ne_zero (ne_of_gt (lt_trans zero_lt_one hx)),
           nnreal.rpow_lt_one_of_one_lt_of_neg hx hz] },
@@ -1981,7 +1995,7 @@ end
 lemma rpow_le_one_of_one_le_of_neg {x : ℝ≥0∞} {z : ℝ} (hx : 1 ≤ x) (hz : z < 0) : x^z ≤ 1 :=
 begin
   cases x,
-  { simp [top_rpow_of_neg hz, ennreal.zero_lt_one] },
+  { simp [top_rpow_of_neg hz, zero_lt_one] },
   { simp only [one_le_coe_iff, some_eq_coe] at hx,
     simp [coe_rpow_of_ne_zero (ne_of_gt (lt_of_lt_of_le zero_lt_one hx)),
           nnreal.rpow_le_one_of_one_le_of_nonpos hx (le_of_lt hz)] },

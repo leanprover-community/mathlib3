@@ -14,6 +14,9 @@ import ring_theory.multiplicity
 
 # Unique factorization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * `wf_dvd_monoid` holds for `monoid`s for which a strict divisibility relation is
   well-founded.
@@ -860,12 +863,12 @@ lemma pow_eq_pow_iff {a : R} (ha0 : a ≠ 0) (ha1 : ¬ is_unit a) {i j : ℕ} :
 (pow_right_injective ha0 ha1).eq_iff
 
 section multiplicity
-variables [nontrivial R] [normalization_monoid R] [decidable_eq R]
+variables [nontrivial R] [normalization_monoid R]
 variables [dec_dvd : decidable_rel (has_dvd.dvd : R → R → Prop)]
 open multiplicity multiset
 
 include dec_dvd
-lemma le_multiplicity_iff_replicate_le_normalized_factors {a b : R} {n : ℕ}
+lemma le_multiplicity_iff_replicate_le_normalized_factors [decidable_eq R] {a b : R} {n : ℕ}
   (ha : irreducible a) (hb : b ≠ 0) :
   ↑n ≤ multiplicity a b ↔ replicate n (normalize a) ≤ normalized_factors b :=
 begin
@@ -891,8 +894,8 @@ the normalized factor occurs in the `normalized_factors`.
 See also `count_normalized_factors_eq` which expands the definition of `multiplicity`
 to produce a specification for `count (normalized_factors _) _`..
 -/
-lemma multiplicity_eq_count_normalized_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0) :
-  multiplicity a b = (normalized_factors b).count (normalize a) :=
+lemma multiplicity_eq_count_normalized_factors [decidable_eq R] {a b : R} (ha : irreducible a)
+ (hb : b ≠ 0) : multiplicity a b = (normalized_factors b).count (normalize a) :=
 begin
   apply le_antisymm,
   { apply part_enat.le_of_lt_add_one,
@@ -909,8 +912,8 @@ the number of times it divides `x`.
 
 See also `multiplicity_eq_count_normalized_factors` if `n` is given by `multiplicity p x`.
 -/
-lemma count_normalized_factors_eq {p x : R} (hp : irreducible p) (hnorm : normalize p = p) {n : ℕ}
-  (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
+lemma count_normalized_factors_eq [decidable_eq R] {p x : R} (hp : irreducible p)
+  (hnorm : normalize p = p) {n : ℕ} (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
   (normalized_factors x).count p = n :=
 begin
   letI : decidable_rel ((∣) : R → R → Prop) := λ _ _, classical.prop_decidable _,
@@ -928,8 +931,8 @@ the number of times it divides `x`. This is a slightly more general version of
 
 See also `multiplicity_eq_count_normalized_factors` if `n` is given by `multiplicity p x`.
 -/
-lemma count_normalized_factors_eq' {p x : R} (hp : p = 0 ∨ irreducible p) (hnorm : normalize p = p)
-  {n : ℕ} (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
+lemma count_normalized_factors_eq' [decidable_eq R] {p x : R} (hp : p = 0 ∨ irreducible p)
+  (hnorm : normalize p = p) {n : ℕ} (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
   (normalized_factors x).count p = n :=
 begin
   rcases hp with rfl|hp,
@@ -938,6 +941,18 @@ begin
     { rw [zero_pow (nat.succ_pos _)] at hle hlt,
       exact absurd hle hlt } },
   { exact count_normalized_factors_eq hp hnorm hle hlt }
+end
+
+lemma max_power_factor {a₀ : R} {x : R} (h : a₀ ≠ 0) (hx : irreducible x) :
+  ∃ n : ℕ, ∃ a : R, ¬ x ∣ a ∧ a₀ = x ^ n * a :=
+begin
+  classical,
+  let n := (normalized_factors a₀).count (normalize x),
+  obtain ⟨a, ha1, ha2⟩ := (@exists_eq_pow_mul_and_not_dvd R _ _ x a₀
+    (ne_top_iff_finite.mp (part_enat.ne_top_iff.mpr _))),
+  simp_rw [← (multiplicity_eq_count_normalized_factors hx h).symm] at ha1,
+  use [n, a, ha2, ha1],
+  use [n, (multiplicity_eq_count_normalized_factors hx h)],
 end
 
 end multiplicity

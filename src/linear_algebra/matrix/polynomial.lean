@@ -10,6 +10,9 @@ import linear_algebra.matrix.determinant
 /-!
 # Matrices of polynomials and polynomials of matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove results about matrices over a polynomial ring.
 In particular, we give results about the polynomial given by
 `det (t * I + A)`.

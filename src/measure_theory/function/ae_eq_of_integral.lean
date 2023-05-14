@@ -52,7 +52,8 @@ section ae_eq_of_forall
 
 variables {α E 𝕜 : Type*} {m : measurable_space α} {μ : measure α} [is_R_or_C 𝕜]
 
-lemma ae_eq_zero_of_forall_inner [inner_product_space 𝕜 E] [second_countable_topology E]
+lemma ae_eq_zero_of_forall_inner
+  [normed_add_comm_group E] [inner_product_space 𝕜 E] [second_countable_topology E]
   {f : α → E} (hf : ∀ c : E, (λ x, (inner c (f x) : 𝕜)) =ᵐ[μ] 0) :
   f =ᵐ[μ] 0 :=
 begin
@@ -60,7 +61,7 @@ begin
   have hs : dense_range s := dense_range_dense_seq E,
   have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, inner (s n) (f x) = (0 : 𝕜), from ae_all_iff.mpr (λ n, hf (s n)),
   refine hf'.mono (λ x hx, _),
-  rw [pi.zero_apply, ← inner_self_eq_zero],
+  rw [pi.zero_apply, ← @inner_self_eq_zero 𝕜],
   have h_closed : is_closed {c : E | inner c (f x) = (0 : 𝕜)},
     from is_closed_eq (continuous_id.inner continuous_const) continuous_const,
   exact @is_closed_property ℕ E _ s (λ c, inner c (f x) = (0 : 𝕜)) hs h_closed (λ n, hx n) _,

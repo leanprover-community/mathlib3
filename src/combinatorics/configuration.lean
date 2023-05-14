@@ -437,7 +437,7 @@ begin
     convert (fintype.card_subtype_compl _).trans (congr_arg _ (fintype.card_subtype_eq p)) },
   have h2 : ∀ l : {l : L // p ∈ l}, fintype.card {q // q ∈ l.1 ∧ q ≠ p} = order P L,
   { intro l,
-    rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter _ _),
+    rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter (∈ l.val) (≠ p)),
       fintype.card_subtype_compl (λ (x : subtype (∈ l.val)), x.val = p), ←nat.card_eq_fintype_card],
     refine tsub_eq_of_eq_add ((point_count_eq P l.1).trans _),
     rw ← fintype.card_subtype_eq (⟨p, l.2⟩ : {q : P // q ∈ l.1}),

@@ -349,8 +349,8 @@ begin
   --   * The `f' n` converge to `g'` at `x`
   conv
   { congr, funext,
-    rw [←norm_norm, ←norm_inv,←@is_R_or_C.norm_of_real 𝕜 _ _,
-      is_R_or_C.of_real_inv, ←norm_smul], },
+    rw [← abs_norm, ← abs_inv, ← @is_R_or_C.norm_of_real 𝕜 _ _,
+      is_R_or_C.of_real_inv, ← norm_smul], },
   rw ←tendsto_zero_iff_norm_tendsto_zero,
   have : (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
     (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +

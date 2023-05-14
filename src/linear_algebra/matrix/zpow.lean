@@ -8,6 +8,9 @@ import linear_algebra.matrix.nonsingular_inverse
 /-!
 # Integer powers of square matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define integer power of matrices, relying on
 the nonsingular inverse definition for negative powers.
 

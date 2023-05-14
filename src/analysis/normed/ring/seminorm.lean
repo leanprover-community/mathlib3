@@ -8,6 +8,9 @@ import analysis.normed.field.basic
 /-!
 # Seminorms and norms on rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines seminorms and norms on rings. These definitions are useful when one needs to
 consider multiple (semi)norms on a given ring.
 

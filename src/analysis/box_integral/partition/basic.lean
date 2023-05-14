@@ -9,6 +9,9 @@ import analysis.box_integral.box.basic
 /-!
 # Partitions of rectangular boxes in `ℝⁿ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define (pre)partitions of rectangular boxes in `ℝⁿ`.  A partition of a box `I` in
 `ℝⁿ` (see `box_integral.prepartition` and `box_integral.prepartition.is_partition`) is a finite set
 of pairwise disjoint boxes such that their union is exactly `I`. We use `boxes : finset (box ι)` to

@@ -9,6 +9,9 @@ import category_theory.functor.functorial
 /-!
 # Unbundled lax monoidal functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Design considerations
 The essential problem I've encountered that requires unbundled functors is
 having an existing (non-monoidal) functor `F : C ⥤ D` between monoidal categories,

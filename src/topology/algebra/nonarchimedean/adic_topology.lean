@@ -6,9 +6,14 @@ Authors: Patrick Massot
 
 import ring_theory.ideal.operations
 import topology.algebra.nonarchimedean.bases
+import topology.uniform_space.completion
 import topology.algebra.uniform_ring
+
 /-!
 # Adic topology
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a commutative ring `R` and an ideal `I` in `R`, this file constructs the unique
 topology on `R` which is compatible with the ring structure and such that a set is a neighborhood

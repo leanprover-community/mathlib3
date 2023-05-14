@@ -3,9 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.deriv
 import analysis.calculus.mean_value
-import analysis.convex.topology
 
 /-!
 # Symmetry of the second derivative

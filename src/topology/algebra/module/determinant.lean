@@ -9,6 +9,9 @@ import linear_algebra.determinant
 
 /-!
 # The determinant of a continuous linear map.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace continuous_linear_map

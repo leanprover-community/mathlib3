@@ -346,6 +346,54 @@ end
 lemma rearrangement_zero (a : ℕ → ℝ) (M : ℝ) : rearrangement a M 0 = 0 :=
 by unfold rearrangement
 
+lemma rearrangement_nonneg_spec {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x) ≤ M)
+  : rearrangement a M (n + 1) ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧
+    0 ≤ a (rearrangement a M (n + 1)) :=
+begin
+  have := nat.find_spec (exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
+  rw rearrangement_nonneg h₁ h₂ h,
+  exact this
+end
+
+lemma rearrangement_neg_spec {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : M < ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x))
+  : rearrangement a M (n + 1) ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧
+    a (rearrangement a M (n + 1)) < 0 :=
+begin
+  have := nat.find_spec (exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
+  rw rearrangement_neg h₁ h₂ h,
+  exact this
+end
+
+lemma rearrangement_nonneg_min' {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x) ≤ M)
+  {m : ℕ} (hm : m ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a m)
+  : rearrangement a M (n + 1) ≤ m :=
+begin
+  have := nat.find_min' (exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) hm,
+  rw rearrangement_nonneg h₁ h₂ h,
+  exact this
+end
+
+lemma rearrangement_neg_min' {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : M < ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x))
+  {m : ℕ} (hm : m ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a m < 0)
+  : rearrangement a M (n + 1) ≤ m :=
+begin
+  have := nat.find_min' (exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) hm,
+  rw rearrangement_neg h₁ h₂ h,
+  exact this
+end
+
 theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))
   (h₂ : ¬∃ C : ℝ, tendsto (partial_sum (λ k, ‖a k‖)) at_top (nhds C)) (M : ℝ) : ∃ (p : equiv.perm ℕ),
     filter.tendsto (partial_sum (λ n, a (p n))) filter.at_top (𝓝 M) := sorry

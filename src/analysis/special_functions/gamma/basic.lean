@@ -5,7 +5,7 @@ Authors: David Loeffler
 -/
 import measure_theory.integral.exp_decay
 import analysis.special_functions.improper_integrals
-import analysis.mellin_transform
+import analysis.calculus.parametric_integral
 
 /-!
 # The Gamma function

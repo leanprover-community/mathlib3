@@ -5,7 +5,7 @@ Authors: David Loeffler
 -/
 import analysis.convolution
 import analysis.special_functions.trigonometric.euler_sine_prod
-import analysis.special_functions.gamma.gamma
+import analysis.special_functions.gamma.basic
 
 /-!
 # The Beta function, and further properties of the Gamma function

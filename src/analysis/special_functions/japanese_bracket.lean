@@ -5,6 +5,7 @@ Authors: Moritz Doll
 -/
 import measure_theory.measure.haar_lebesgue
 import measure_theory.integral.layercake
+import analysis.special_functions.pow_tactic
 
 /-!
 # Japanese Bracket

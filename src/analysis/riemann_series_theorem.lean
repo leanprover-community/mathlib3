@@ -232,23 +232,18 @@ lemma exists_nonneg_not_in_finset_of_conditionally_converging {a : ℕ → ℝ}
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (s : finset ℕ)
   : ∃ n, n ∉ s ∧ 0 ≤ a n :=
 begin
-  by_cases hs : s.nonempty,
-  { have := frequently_exists_nonneg_of_conditionally_converging h₁ h₂,
-    rw frequently_at_top at this,
-    specialize this ((s.max' hs) + 1),
-    rcases this with ⟨n, hn₁, hn₂⟩,
-    use n,
-    split,
-    { intro h,
-      have := finset.le_max' s n h,
-      have := not_le_of_lt (nat.lt_of_succ_le hn₁),
-      contradiction },
-    { exact hn₂ } },
-  { unfold finset.nonempty at hs,
-    push_neg at hs,
-    have := (frequently_exists_nonneg_of_conditionally_converging h₁ h₂).exists,
-    cases this with n hn,
-    exact ⟨n, hs n, hn⟩ }
+  have := frequently_exists_nonneg_of_conditionally_converging h₁ h₂,
+  obtain ⟨n, hn₁, hn₂⟩ := frequently_at_top.mp this (if h : s.nonempty then s.max' h + 1 else 0),
+  use n,
+  split,
+  { by_cases hs : s.nonempty,
+    { rw dif_pos hs at hn₁,
+      intro h,
+      exact absurd (finset.le_max' s n h) (not_le_of_lt (nat.lt_of_succ_le hn₁)) },
+    { unfold finset.nonempty at hs,
+      push_neg at hs,
+      exact hs n } },
+  { exact hn₂ }
 end
 
 noncomputable def rearrangement (a : ℕ → ℝ) (M : ℝ) : ℕ → ℕ

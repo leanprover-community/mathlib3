@@ -298,6 +298,55 @@ begin
   exact ⟨hn₁, hn₂⟩
 end
 
+lemma rearrangement_def {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
+  : rearrangement a M (n + 1) =
+    if ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x) ≤ M then
+      have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
+      from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n,
+      nat.find h
+    else
+      have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0,
+      from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n,
+      nat.find h :=
+begin
+  unfold rearrangement,
+  rw nat.Inf_def (show set.nonempty {k : ℕ | k ∉ set.range
+    (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k},
+      from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
+  rw nat.Inf_def (show set.nonempty {k : ℕ | k ∉ set.range
+    (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0},
+      from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
+  simp
+end
+
+lemma rearrangement_nonneg {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x) ≤ M)
+  : rearrangement a M (n + 1) =
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
+    from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n,
+    nat.find h :=
+begin
+  rw rearrangement_def,
+  exact if_pos h
+end
+
+lemma rearrangement_neg {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : M < ∑ (x : fin (n + 1)) in finset.univ, a (rearrangement a M ↑x))
+  : rearrangement a M (n + 1) =
+    have h : ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0,
+    from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n,
+    nat.find h :=
+begin
+  rw rearrangement_def,
+  exact if_neg (by { push_neg, exact h })
+end
+
 theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))
   (h₂ : ¬∃ C : ℝ, tendsto (partial_sum (λ k, ‖a k‖)) at_top (nhds C)) (M : ℝ) : ∃ (p : equiv.perm ℕ),
     filter.tendsto (partial_sum (λ n, a (p n))) filter.at_top (𝓝 M) := sorry

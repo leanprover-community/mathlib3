@@ -110,12 +110,12 @@ variables (α : Type*)
 
 @[to_additive]
 private lemma mul_aux [decidable_eq S] (x : marked_group m) :
-  ∃ n (l : free_group S), m l = x ∧ l.to_word.length ≤ n :=
+  ∃ n (l : free_group S), to_marked_group (m l) = x ∧ l.to_word.length ≤ n :=
 by { classical, obtain ⟨l, rfl⟩ := m.coe_surjective x, exact ⟨_, _, rfl, le_rfl⟩ }
 
 @[to_additive]
 private lemma mul_aux' [decidable_eq S] (x : marked_group m) :
-  ∃ n (l : free_group S), m l = x ∧ l.to_word.length = n :=
+  ∃ n (l : free_group S), to_marked_group (m l) = x ∧ l.to_word.length = n :=
 by { classical, obtain ⟨l, rfl⟩ := m.coe_surjective x, exact ⟨_, _, rfl, rfl⟩ }
 
 @[to_additive]
@@ -128,7 +128,7 @@ le_antisymm (nat.find_mono $ λ n, Exists.imp $ λ l, and.imp_right le_of_eq) $
 noncomputable instance : normed_group (marked_group m) :=
 group_norm.to_normed_group
 { to_fun := λ x, by classical; exact nat.find (mul_aux x),
-  map_one' := cast_eq_zero.2 $ (find_eq_zero $ mul_aux _).2 ⟨1, map_one _, le_rfl⟩,
+  map_one' := cast_eq_zero.2 $ (find_eq_zero $ mul_aux _).2 ⟨1, by simp_rw map_one, le_rfl⟩,
   mul_le' := λ x y, begin
     norm_cast,
     obtain ⟨a, rfl, ha⟩ := nat.find_spec (mul_aux x),
@@ -149,7 +149,7 @@ group_norm.to_normed_group
   eq_one_of_map_eq_zero' := λ x hx, begin
     obtain ⟨l, rfl, hl⟩ := (find_eq_zero $ mul_aux _).1 (cast_eq_zero.1 hx),
     rw [le_zero_iff, length_eq_zero, ←free_group.to_word_one] at hl,
-    rw [free_group.to_word_injective hl, map_one],
+    rw [free_group.to_word_injective hl, map_one, map_one],
   end }
 
 @[to_additive] instance :
@@ -162,9 +162,14 @@ namespace marked_group
 congr_arg coe (find_mul_aux _)
 
 @[simp, to_additive] lemma norm_eq_one (x : marked_group m) :
-  ‖x‖ = 1 ↔ ∃ s, to_marked_group (m $ free_group.of s) = x :=
+  ‖x‖ = 1 ↔ ∃ s, to_marked_group (m $ free_group.mk s) = x :=
 begin
-  rw [norm_def, nat.cast_eq_one, nat.find_eq_iff],
+  simp_rw [norm_def, nat.cast_eq_one, nat.find_eq_iff, length_eq_one],
+  split,
+  { rintro ⟨⟨l, rfl, s, hl⟩, hn⟩,
+    refine ⟨[s], _⟩,
+    simp,
+     },
   sorry
 end
 

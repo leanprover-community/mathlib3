@@ -315,7 +315,7 @@
   title  : The Cauchy-Schwarz Inequality
   decls  :
     - inner_mul_inner_self_le
-    - abs_inner_le_norm
+    - norm_inner_le_norm
   author : Zhouhang Zhou
 79:
   title  : The Intermediate Value Theorem

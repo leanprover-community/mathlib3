@@ -35,13 +35,6 @@ variables {G : Type u''} {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
 
-/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`.
-
-Note that only `R` is marked as `out_param` since `M` is already supplied by the `set_like` class.
--/
-class submodule_class (S : Type*) (R : out_param $ Type*) (M : Type*) [add_zero_class M]
-  [has_smul R M] [set_like S M] [add_submonoid_class S M] extends smul_mem_class S R M
-
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
@@ -66,7 +59,7 @@ instance : add_submonoid_class (submodule R M) M :=
 { zero_mem := zero_mem',
   add_mem := add_mem' }
 
-instance : submodule_class (submodule R M) R M :=
+instance : smul_mem_class (submodule R M) R M :=
 { smul_mem := smul_mem' }
 
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
@@ -139,23 +132,23 @@ to_sub_mul_action_strict_mono.monotone
 
 end submodule
 
-namespace submodule_class
+namespace smul_mem_class
 
 variables [semiring R] [add_comm_monoid M] [module R M] {A : Type*} [set_like A M]
-  [add_submonoid_class A M] [hA : submodule_class A R M] (S' : A)
+  [add_submonoid_class A M] [hA : smul_mem_class A R M] (S' : A)
 
 include hA
 /-- A submodule of a `module` is a `module`.  -/
-@[priority 75] -- Prefer subclasses of `module` over `submodule_class`.
+@[priority 75] -- Prefer subclasses of `module` over `smul_mem_class`.
 instance to_module : module R S' :=
 subtype.coe_injective.module R (add_submonoid_class.subtype S') (set_like.coe_smul S')
 
 /-- The natural `R`-linear map from a submodule of an `R`-module `M` to `M`. -/
 protected def subtype : S' →ₗ[R] M := ⟨coe, λ _ _, rfl, λ _ _, rfl⟩
 
-@[simp] protected theorem coe_subtype : (submodule_class.subtype S' : S' → M) = coe := rfl
+@[simp] protected theorem coe_subtype : (smul_mem_class.subtype S' : S' → M) = coe := rfl
 
-end submodule_class
+end smul_mem_class
 
 namespace submodule
 

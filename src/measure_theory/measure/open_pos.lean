@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Measures positive on nonempty opens
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a typeclass for measures that are positive on nonempty opens, see
 `measure_theory.measure.is_open_pos_measure`. Examples include (additive) Haar measures, as well as
 measures that have positive density with respect to a Haar measure. We also prove some basic facts

@@ -26,7 +26,7 @@ of the basis).
 -/
 
 open set topological_space measure_theory measure_theory.measure finite_dimensional
-open_locale big_operators
+open_locale big_operators pointwise
 
 noncomputable theory
 
@@ -103,6 +103,76 @@ begin
     rw A,
     simp only [←image_comp, mul_neg, mul_one, finset.sum_singleton, image_neg, preimage_neg_Icc,
       neg_zero, finset.univ_unique] },
+end
+
+lemma parallelepiped_eq_sum_segment (v : ι → E) : parallelepiped v = ∑ i, segment ℝ 0 (v i) :=
+begin
+  ext,
+  simp only [mem_parallelepiped_iff, set.mem_finset_sum, finset.mem_univ, forall_true_left,
+    segment_eq_image, smul_zero, zero_add, ←set.pi_univ_Icc, set.mem_univ_pi],
+  split,
+  { rintro ⟨t, ht, rfl⟩,
+    exact ⟨t • v, λ i, ⟨t i, ht _, by simp⟩, rfl⟩ },
+  rintro ⟨g, hg, rfl⟩,
+  change ∀ i, _ at hg,
+  choose t ht hg using hg,
+  refine ⟨t, ht, _⟩,
+  simp_rw hg,
+end
+
+lemma convex_parallelepiped (v : ι → E) : convex ℝ (parallelepiped v) :=
+begin
+  rw parallelepiped_eq_sum_segment,
+  -- TODO: add `convex.sum` to match `convex.add`
+  let : add_submonoid (set E) :=
+  { carrier := { s | convex ℝ s}, zero_mem' := convex_singleton _, add_mem' := λ x y, convex.add },
+  exact this.sum_mem (λ i hi, convex_segment  _ _),
+end
+
+/-- A `parallelepiped` is the convex hull of its vertices -/
+lemma parallelepiped_eq_convex_hull (v : ι → E) :
+  parallelepiped v = convex_hull ℝ (∑ i, {(0 : E), v i}) :=
+begin
+  -- TODO: add `convex_hull_sum` to match `convex_hull_add`
+  let : set E →+ set E :=
+  { to_fun := convex_hull ℝ,
+    map_zero' := convex_hull_singleton _,
+    map_add' := convex_hull_add },
+  simp_rw [parallelepiped_eq_sum_segment, ←convex_hull_pair],
+  exact (this.map_sum _ _).symm,
+end
+
+/-- The axis aligned parallelepiped over `ι → ℝ` is a cuboid. -/
+lemma parallelepiped_single [decidable_eq ι] (a : ι → ℝ) :
+  parallelepiped (λ i, pi.single i (a i)) = set.uIcc 0 a :=
+begin
+  ext,
+  simp_rw [set.uIcc, mem_parallelepiped_iff, set.mem_Icc, pi.le_def, ←forall_and_distrib,
+    pi.inf_apply, pi.sup_apply, ←pi.single_smul', pi.one_apply, pi.zero_apply, ←pi.smul_apply',
+    finset.univ_sum_single (_ : ι → ℝ)],
+  split,
+  { rintros ⟨t, ht, rfl⟩ i,
+    specialize ht i,
+    simp_rw [smul_eq_mul, pi.mul_apply],
+    cases le_total (a i) 0 with hai hai,
+    { rw [sup_eq_left.mpr hai, inf_eq_right.mpr hai],
+      exact ⟨le_mul_of_le_one_left hai ht.2, mul_nonpos_of_nonneg_of_nonpos ht.1 hai⟩ },
+    { rw [sup_eq_right.mpr hai, inf_eq_left.mpr hai],
+      exact ⟨mul_nonneg ht.1 hai, mul_le_of_le_one_left hai ht.2⟩ } },
+  { intro h,
+    refine ⟨λ i, x i / a i, λ i, _, funext $ λ i, _⟩,
+    { specialize h i,
+      cases le_total (a i) 0 with hai hai,
+      { rw [sup_eq_left.mpr hai, inf_eq_right.mpr hai] at h,
+        exact ⟨div_nonneg_of_nonpos h.2 hai, div_le_one_of_ge h.1 hai⟩ },
+      { rw [sup_eq_right.mpr hai, inf_eq_left.mpr hai] at h,
+        exact ⟨div_nonneg h.1 hai, div_le_one_of_le h.2 hai⟩ } },
+    { specialize h i,
+      simp only [smul_eq_mul, pi.mul_apply],
+      cases eq_or_ne (a i) 0 with hai hai,
+      { rw [hai, inf_idem, sup_idem, ←le_antisymm_iff] at h,
+        rw [hai, ← h, zero_div, zero_mul] },
+      { rw div_mul_cancel _ hai } } },
 end
 
 end add_comm_group
@@ -201,3 +271,25 @@ is proved in `orthonormal_basis.volume_parallelepiped`. -/
 /- This instance should not be necessary, but Lean has difficulties to find it in product
 situations if we do not declare it explicitly. -/
 instance real.measure_space : measure_space ℝ := by apply_instance
+
+/-! # Miscellaneous instances for `euclidean_space`
+
+In combination with `measure_space_of_inner_product_space`, these put a `measure_space` structure
+on `euclidean_space`. -/
+namespace euclidean_space
+variables (ι)
+
+-- TODO: do we want these instances for `pi_Lp` too?
+instance : measurable_space (euclidean_space ℝ ι) := measurable_space.pi
+instance : borel_space (euclidean_space ℝ ι) := pi.borel_space
+
+/-- `pi_Lp.equiv` as a `measurable_equiv`. -/
+@[simps to_equiv]
+protected def measurable_equiv : euclidean_space ℝ ι ≃ᵐ (ι → ℝ) :=
+{ to_equiv := pi_Lp.equiv _ _,
+  measurable_to_fun := measurable_id,
+  measurable_inv_fun := measurable_id }
+
+lemma coe_measurable_equiv : ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.equiv 2 _ := rfl
+
+end euclidean_space

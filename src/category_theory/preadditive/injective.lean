@@ -8,6 +8,9 @@ import category_theory.preadditive.projective
 /-!
 # Injective objects and categories with enough injectives
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
 -/
 
@@ -290,7 +293,7 @@ lemma injective_of_map_injective (adj : F ⊣ G) [full G] [faithful G] (I : D)
   (hI : injective (G.obj I)) : injective I :=
 ⟨λ X Y f g, begin
   introI,
-  haveI := adj.right_adjoint_preserves_limits,
+  haveI : preserves_limits_of_size.{0 0} G := adj.right_adjoint_preserves_limits,
   rcases hI.factors (G.map f) (G.map g),
   use inv (adj.counit.app _) ≫ F.map w ≫ adj.counit.app _,
   refine faithful.map_injective G _,
@@ -304,7 +307,9 @@ def map_injective_presentation (adj : F ⊣ G) [F.preserves_monomorphisms] (X : 
 { J := G.obj I.J,
   injective := adj.map_injective _ I.injective,
   f := G.map I.f,
-  mono := by haveI := adj.right_adjoint_preserves_limits; apply_instance }
+  mono := by
+    haveI : preserves_limits_of_size.{0 0} G := adj.right_adjoint_preserves_limits;
+    apply_instance }
 
 end adjunction
 namespace equivalence

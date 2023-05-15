@@ -12,8 +12,8 @@ import analysis.special_functions.pow.nnreal
 This file contains extensions to the `norm_num` and `positivity` tactics to handle power operations
 on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`.
 
-TODO: Split up the contents of this file and merge with other files in `analysis/special_functions/pow/`,
-to keep the tactics together with the corresponding definitions.
+TODO: Split up the contents of this file and merge with other files in
+`analysis/special_functions/pow/`, to keep the tactics together with the corresponding definitions.
 
 -/
 

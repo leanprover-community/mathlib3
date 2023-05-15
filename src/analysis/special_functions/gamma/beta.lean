@@ -521,25 +521,24 @@ answer! (These results are useful in the theory of zeta and L-functions.) -/
 
 /-- A reformulation of the Gamma recurrence relation which is true for `s = 0` as well. -/
 lemma one_div_Gamma_eq_self_mul_one_div_Gamma_add_one (s : ℂ) :
-  1 / Gamma s = s * (1 / Gamma (s + 1)) :=
+  (Gamma s)⁻¹ = s / Gamma (s + 1) :=
 begin
   rcases ne_or_eq s 0 with h | rfl,
-  { rw [Gamma_add_one s h, mul_one_div, ←div_div, div_self h] },
-  { rw [zero_add, Gamma_zero, div_zero, zero_mul] }
+  { rw [Gamma_add_one s h, ←div_div, div_self h, one_div] },
+  { rw [zero_add, Gamma_zero, inv_zero, zero_div] }
 end
 
 /-- The reciprocal of the Gamma function is differentiable everywhere (including the points where
 Gamma itself is not). -/
-lemma differentiable_one_div_Gamma : differentiable ℂ (λ s : ℂ, 1 / Gamma s) :=
+lemma differentiable_one_div_Gamma : differentiable ℂ (λ s : ℂ, (Gamma s)⁻¹) :=
 begin
-  suffices : ∀ (n : ℕ), ∀ (s : ℂ) (hs : -s.re < n), differentiable_at ℂ (λ u : ℂ, 1 / Gamma u) s,
+  suffices : ∀ (n : ℕ), ∀ (s : ℂ) (hs : -s.re < n), differentiable_at ℂ (λ u : ℂ, (Gamma u)⁻¹) s,
     from λ s, let ⟨n, h⟩ := exists_nat_gt (-s.re) in this n s h,
   intro n,
   induction n with m hm,
   { intros s hs,
     rw [nat.cast_zero, neg_lt_zero] at hs,
-    suffices : ∀ (m : ℕ), s ≠ -↑m, from (differentiable_at_const _).div
-      (differentiable_at_Gamma _ this) (Gamma_ne_zero this),
+    suffices : ∀ (m : ℕ), s ≠ -↑m, from (differentiable_at_Gamma _ this).inv (Gamma_ne_zero this),
     contrapose! hs,
     rcases hs with ⟨m, rfl⟩,
     simpa only [neg_re, ←of_real_nat_cast, of_real_re, neg_nonpos] using nat.cast_nonneg m },

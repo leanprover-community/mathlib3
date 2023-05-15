@@ -96,18 +96,6 @@ instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :
 by { rw ← add_haar_measure_eq_volume_pi, apply_instance }
 
 
-lemma euclidean_space.volume_preserving_pi_Lp_equiv (ι : Type*) [fintype ι] :
-  measure_preserving (pi_Lp.equiv _ _) (volume : measure (euclidean_space ℝ ι)) volume :=
-begin
-  refine ⟨measurable_equiv.measurable (euclidean_space.measurable_equiv ι), _⟩,
-  rw ←add_haar_measure_eq_volume_pi,
-  dsimp only [measure_space_of_inner_product_space, basis.add_haar],
-  ext1 s hs,
-  rw measure.map_apply _ hs,
-  convert measure.map_id,
-  sorry,
-end
-
 namespace measure
 
 /-!
@@ -448,6 +436,24 @@ by rw [integral_comp_inv_smul μ f R, abs_of_nonneg ((pow_nonneg hR _))]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/
+
+lemma euclidean_space.volume_preserving_pi_Lp_equiv (ι : Type*) [fintype ι] :
+  measure_preserving (pi_Lp.equiv _ _) (volume : measure (euclidean_space ℝ ι)) volume :=
+begin
+  change measure_preserving (euclidean_space.measurable_equiv ι) _ _,
+  refine ⟨measurable_equiv.measurable _, _⟩,
+  rw ←add_haar_measure_eq_volume_pi,
+  dsimp only [measure_space_of_inner_product_space, basis.add_haar],
+  ext1 s hs,
+  rw measure.map_apply (measurable_equiv.measurable _) hs,
+  rw [(show ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.continuous_linear_equiv _ _ _, from rfl)],
+  rw add_haar_preimage_continuous_linear_equiv,
+  -- rw add_haar_measure
+  sorry,
+end
+
+#exit
+
 
 /-! ### Measure of balls -/
 

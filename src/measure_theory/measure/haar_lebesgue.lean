@@ -95,7 +95,6 @@ instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :
   is_add_haar_measure (volume : measure (ι → ℝ)) :=
 by { rw ← add_haar_measure_eq_volume_pi, apply_instance }
 
-
 namespace measure
 
 /-!

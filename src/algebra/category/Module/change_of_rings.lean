@@ -24,13 +24,12 @@ import ring_theory.tensor_product
   then `coextend_scalars : Module R ⥤ Module S` is defined by `M ↦ (S →ₗ[R] M)` where `S` is seen as
   `R-module` by restriction of scalars and `l ↦ l ∘ _`.
 
-* `category_theory.Module.restrict_coextend_scalars_adj`: given rings `R, S` and a ring homomorphism
-  `f : R ⟶ S` then `coextend_scalars f` is the right adjoint of `restrict_scalars f`.
-
 ## Main results
 
 * `category_theory.Module.extend_restrict_scalars_adj`: given commutative rings `R, S` and a ring
   homomorphism `f : R →+* S`, the extension and restriction of scalars by `f` are adjoint functors.
+* `category_theory.Module.restrict_coextend_scalars_adj`: given rings `R, S` and a ring homomorphism
+  `f : R ⟶ S` then `coextend_scalars f` is the right adjoint of `restrict_scalars f`.
 
 ## List of notations
 Let `R, S` be rings and `f : R →+* S`
@@ -264,7 +263,7 @@ instance (M : Module R) : has_coe_to_fun ((coextend_scalars f).obj M) (λ g, S �
 lemma smul_apply (M : Module R) (g : (coextend_scalars f).obj M) (s s' : S) :
   (s • g) s' = g (s' * s) := rfl
 
-lemma map_apply {M M' : Module R} (g : M ⟶ M') (x) (s : S) :
+@[simp] lemma map_apply {M M' : Module R} (g : M ⟶ M') (x) (s : S) :
   (coextend_scalars f).map g x s = g (x s) := rfl
 
 end coextend_scalars

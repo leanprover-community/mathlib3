@@ -52,8 +52,8 @@ lemma witt_poly_prod_vars (n : ℕ) : (witt_poly_prod p n).vars ⊆ univ ×ˢ ra
 begin
   rw [witt_poly_prod],
   apply subset.trans (vars_mul _ _),
-  apply union_subset;
-  { apply subset.trans (vars_rename _ _),
+  refine union_subset _ _;
+  { refine subset.trans (vars_rename _ _) _,
     simp [witt_polynomial_vars,image_subset_iff] }
 end
 
@@ -65,11 +65,11 @@ lemma witt_poly_prod_remainder_vars (n : ℕ) :
   (witt_poly_prod_remainder p n).vars ⊆ univ ×ˢ range n :=
 begin
   rw [witt_poly_prod_remainder],
-  apply subset.trans (vars_sum_subset _ _),
+  refine subset.trans (vars_sum_subset _ _) _,
   rw bUnion_subset,
   intros x hx,
   apply subset.trans (vars_mul _ _),
-  apply union_subset,
+  refine union_subset _ _,
   { apply subset.trans (vars_pow _ _),
     have : (p : mv_polynomial (fin 2 × ℕ) ℤ) = (C (p : ℤ)),
     { simp only [int.cast_coe_nat, eq_int_cast] },
@@ -103,8 +103,8 @@ lemma remainder_vars (n : ℕ) : (remainder p n).vars ⊆ univ ×ˢ range (n + 1
 begin
   rw [remainder],
   apply subset.trans (vars_mul _ _),
-  apply union_subset;
-  { apply subset.trans (vars_sum_subset _ _),
+  refine union_subset _ _;
+  { refine subset.trans (vars_sum_subset _ _) _,
     rw bUnion_subset,
     intros x hx,
     rw [rename_monomial, vars_monomial, finsupp.map_domain_single],
@@ -207,7 +207,7 @@ lemma mul_poly_of_interest_vars (n : ℕ) :
 begin
   rw mul_poly_of_interest_aux5,
   apply subset.trans (vars_sub_subset _ _),
-  apply union_subset,
+  refine union_subset _ _,
   { apply remainder_vars },
   { apply witt_poly_prod_remainder_vars }
 end

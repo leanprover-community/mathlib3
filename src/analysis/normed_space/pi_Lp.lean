@@ -707,7 +707,7 @@ lemma norm_equiv_symm_one {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) [
 
 variables (𝕜 p)
 
-/-- `pi_Lp.equiv` as a linear map. -/
+/-- `pi_Lp.equiv` as a linear equivalence. -/
 @[simps {fully_applied := ff}]
 protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=
 { to_fun := pi_Lp.equiv _ _,
@@ -718,8 +718,8 @@ protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=
 @[simps {fully_applied := ff}]
 protected def continuous_linear_equiv : pi_Lp p β ≃L[𝕜] Π i, β i :=
 { to_linear_equiv := pi_Lp.linear_equiv _ _ _,
-  continuous_to_fun := continuous_id,
-  continuous_inv_fun := continuous_id }
+  continuous_to_fun := continuous_equiv _ _,
+  continuous_inv_fun := continuous_equiv_symm _ _ }
 
 section basis
 

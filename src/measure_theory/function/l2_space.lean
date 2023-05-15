@@ -22,7 +22,7 @@ is also an inner product space, with inner product defined as `inner f g = ∫ a
 -/
 
 noncomputable theory
-open topological_space measure_theory measure_theory.Lp
+open topological_space measure_theory measure_theory.Lp filter
 open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
@@ -56,6 +56,11 @@ end
 end
 
 section inner_product_space
+
+variables {α : Type*} {m : measurable_space α} {p : ℝ≥0∞} {μ : measure α}
+variables {E 𝕜 : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
 lemma mem_ℒp.const_inner (c : E) {f : α → E} (hf : mem_ℒp f p μ) :
   mem_ℒp (λ a, ⟪c, f a⟫) p μ :=

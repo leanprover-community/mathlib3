@@ -269,18 +269,17 @@ add_haar_preimage_linear_map μ hf s
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_linear_equiv
   (f : E ≃ₗ[ℝ] E) (s : set E) :
-  μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
+  μ (f ⁻¹' s) = ennreal.of_real (abs f.det⁻¹) * μ s :=
 begin
   have A : (f : E →ₗ[ℝ] E).det ≠ 0 := (linear_equiv.is_unit_det' f).ne_zero,
   convert add_haar_preimage_linear_map μ A s,
-  simp only [linear_equiv.det_coe_symm]
 end
 
 /-- The preimage of a set `s` under a continuous linear equiv `f` has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_continuous_linear_equiv
   (f : E ≃L[ℝ] E) (s : set E) :
-  μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
+  μ (f ⁻¹' s) = ennreal.of_real (abs f.det⁻¹) * μ s :=
 add_haar_preimage_linear_equiv μ _ s
 
 /-- The image of a set `s` under a linear map `f` has measure
@@ -292,11 +291,10 @@ begin
   rcases ne_or_eq f.det 0 with hf|hf,
   { let g := (f.equiv_of_det_ne_zero hf).to_continuous_linear_equiv,
     change μ (g '' s) = _,
-    rw [continuous_linear_equiv.image_eq_preimage g s, add_haar_preimage_continuous_linear_equiv],
-    congr,
-    ext x,
-    simp only [linear_equiv.coe_to_continuous_linear_equiv, linear_equiv.of_is_unit_det_apply,
-               linear_equiv.coe_coe, continuous_linear_equiv.symm_symm], },
+    rw [continuous_linear_equiv.image_eq_preimage g s, add_haar_preimage_continuous_linear_equiv,
+      continuous_linear_equiv.symm_to_linear_equiv, linear_equiv.det_symm, units.coe_inv, inv_inv,
+      linear_equiv.coe_det, linear_equiv.to_linear_equiv_to_continuous_linear_equiv,
+      linear_equiv.coe_of_is_unit_det] },
   { simp only [hf, zero_mul, ennreal.of_real_zero, abs_zero],
     have : μ f.range = 0 :=
       add_haar_submodule μ _ (linear_map.range_lt_top_of_det_eq_zero hf).ne,
@@ -435,25 +433,6 @@ by rw [integral_comp_inv_smul μ f R, abs_of_nonneg ((pow_nonneg hR _))]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/
-
-lemma euclidean_space.volume_preserving_pi_Lp_equiv (ι : Type*) [fintype ι] :
-  measure_preserving (pi_Lp.equiv _ _) (volume : measure (euclidean_space ℝ ι)) volume :=
-begin
-  change measure_preserving (euclidean_space.measurable_equiv ι) _ _,
-  refine ⟨measurable_equiv.measurable _, _⟩,
-  rw ←add_haar_measure_eq_volume_pi,
-  dsimp only [measure_space_of_inner_product_space, basis.add_haar],
-  ext1 s hs,
-  rw measure.map_apply (measurable_equiv.measurable _) hs,
-  rw [(show ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.continuous_linear_equiv _ ℝ _, from rfl)],
-  rw add_haar_preimage_continuous_linear_equiv,
-  convert one_mul _,
-  -- rw add_haar_measure
-  sorry,
-end
-
-#exit
-
 
 /-! ### Measure of balls -/
 

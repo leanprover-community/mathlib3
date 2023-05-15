@@ -68,3 +68,19 @@ begin
   rw ← o.measure_eq_volume,
   exact o.measure_orthonormal_basis b,
 end
+
+lemma euclidean_space.volume_preserving_pi_Lp_equiv (ι : Type*) [fintype ι] :
+  measure_preserving (pi_Lp.equiv _ _) (volume : measure (euclidean_space ℝ ι)) volume :=
+begin
+  change measure_preserving (euclidean_space.measurable_equiv ι) _ _,
+  refine ⟨measurable_equiv.measurable _, _⟩,
+  rw ←add_haar_measure_eq_volume_pi,
+  ext1 s hs,
+  rw measure.map_apply (measurable_equiv.measurable _) hs,
+  rw [(show ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.continuous_linear_equiv _ ℝ _, from rfl)],
+  rw [add_haar_preimage_continuous_linear_equiv, pi_Lp.continuous_linear_equiv_to_linear_equiv,
+    pi_Lp.det_linear_equiv, units.coe_one, inv_one, abs_one, ennreal.of_real_one, one_mul],
+  -- congr' 1,
+end
+
+#exit

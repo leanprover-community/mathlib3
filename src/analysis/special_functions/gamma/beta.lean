@@ -521,11 +521,11 @@ answer! (These results are useful in the theory of zeta and L-functions.) -/
 
 /-- A reformulation of the Gamma recurrence relation which is true for `s = 0` as well. -/
 lemma one_div_Gamma_eq_self_mul_one_div_Gamma_add_one (s : ℂ) :
-  (Gamma s)⁻¹ = s / Gamma (s + 1) :=
+  (Gamma s)⁻¹ = s * (Gamma (s + 1))⁻¹ :=
 begin
   rcases ne_or_eq s 0 with h | rfl,
-  { rw [Gamma_add_one s h, ←div_div, div_self h, one_div] },
-  { rw [zero_add, Gamma_zero, inv_zero, zero_div] }
+  { rw [Gamma_add_one s h, mul_inv, mul_inv_cancel_left₀ h] },
+  { rw [zero_add, Gamma_zero, inv_zero, zero_mul] }
 end
 
 /-- The reciprocal of the Gamma function is differentiable everywhere (including the points where

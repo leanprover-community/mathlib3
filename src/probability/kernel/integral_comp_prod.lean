@@ -41,29 +41,31 @@ variables {α β γ E : Type*}
 
 namespace probability_theory
 
-lemma ae_kernel_lt_top (a : α) {s : set (β × γ)} (hs : measurable_set s) (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
+lemma le_comp_prod_apply {α β γ : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ}
+  (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
+  [is_s_finite_kernel η] (a : α) (s : set (β × γ)) :
+  ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂(κ a) ≤ (κ ⊗ₖ η) a s :=
+calc ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂(κ a)
+    ≤ ∫⁻ b, η (a, b) {c | (b, c) ∈ (to_measurable ((κ ⊗ₖ η) a) s)} ∂(κ a) :
+      lintegral_mono (λ b, measure_mono (λ _ h_mem, subset_to_measurable _ _ h_mem))
+... = (κ ⊗ₖ η) a (to_measurable ((κ ⊗ₖ η) a) s) :
+      (kernel.comp_prod_apply_eq_comp_prod_fun κ η a (measurable_set_to_measurable _ _)).symm
+... = (κ ⊗ₖ η) a s : measure_to_measurable s
+
+lemma ae_kernel_lt_top (a : α) {s : set (β × γ)} (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
   ∀ᵐ b ∂(κ a), η (a, b) (prod.mk b ⁻¹' s) < ∞ :=
 begin
-  rw kernel.comp_prod_apply _ _ _ hs at h2s,
-  exact ae_lt_top (kernel.measurable_kernel_prod_mk_left' hs a) h2s,
-end
-
-lemma integrable_kernel_prod_mk_left (a : α)
-  {s : set (β × γ)} (hs : measurable_set s) (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
-  integrable (λ b, (η (a, b) (prod.mk b ⁻¹' s)).to_real) (κ a) :=
-begin
-  refine ⟨(kernel.measurable_kernel_prod_mk_left' hs a).ennreal_to_real.ae_strongly_measurable, _⟩,
-  simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
-  convert h2s.lt_top using 1,
-  rw kernel.comp_prod_apply _ _ _ hs,
-  apply lintegral_congr_ae,
-  refine (ae_kernel_lt_top a hs h2s).mp _,
-  apply eventually_of_forall,
-  intros x hx,
-  rw [lt_top_iff_ne_top] at hx,
-  simp only,
-  rw of_real_to_real hx,
-  refl,
+  let t := to_measurable ((κ ⊗ₖ η) a) s,
+  have : ∀ (b : β), η (a, b) (prod.mk b ⁻¹' s) ≤ η (a, b) (prod.mk b ⁻¹' t),
+  { exact λ b, measure_mono (preimage_mono (subset_to_measurable _ _)), },
+  have ht : measurable_set t := measurable_set_to_measurable _ _,
+  have h2t : (κ ⊗ₖ η) a t ≠ ∞, by rwa measure_to_measurable,
+  have ht_lt_top : ∀ᵐ b ∂(κ a), η (a, b) (prod.mk b ⁻¹' t) < ∞,
+  { rw kernel.comp_prod_apply _ _ _ ht at h2t,
+    exact ae_lt_top (kernel.measurable_kernel_prod_mk_left' ht a) h2t, },
+  filter_upwards [ht_lt_top] with b hb,
+  exact (this b).trans_lt hb,
 end
 
 lemma comp_prod_null (a : α) {s : set (β × γ)} (hs : measurable_set s) :
@@ -88,6 +90,29 @@ end
 lemma ae_ae_of_ae_comp_prod {p : β × γ → Prop} (h : ∀ᵐ bc ∂((κ ⊗ₖ η) a), p bc) :
   ∀ᵐ b ∂(κ a), ∀ᵐ c ∂(η (a, b)), p (b, c) :=
 ae_null_of_comp_prod_null h
+
+lemma has_finite_integral_prod_mk_left (a : α) {s : set (β × γ)} (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
+  has_finite_integral (λ b, (η (a, b) (prod.mk b ⁻¹' s)).to_real) (κ a) :=
+begin
+  let t := to_measurable ((κ ⊗ₖ η) a) s,
+  have h2t : (κ ⊗ₖ η) a t ≠ ∞, by rwa measure_to_measurable,
+  simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
+  refine lt_of_le_of_lt _ h2t.lt_top,
+  refine le_trans _ (le_comp_prod_apply _ _ _ _),
+  refine lintegral_mono_ae _,
+  filter_upwards [ae_kernel_lt_top a h2s] with b hb,
+  rw of_real_to_real hb.ne,
+  exact measure_mono (preimage_mono (subset_to_measurable _ _)),
+end
+
+lemma integrable_kernel_prod_mk_left (a : α)
+  {s : set (β × γ)} (hs : measurable_set s) (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
+  integrable (λ b, (η (a, b) (prod.mk b ⁻¹' s)).to_real) (κ a) :=
+begin
+  split,
+  { exact (kernel.measurable_kernel_prod_mk_left' hs a).ennreal_to_real.ae_strongly_measurable },
+  { exact has_finite_integral_prod_mk_left a h2s, },
+end
 
 lemma comp_prod_restrict {s : set β} {t : set γ} (hs : measurable_set s) (ht : measurable_set t) :
   (kernel.restrict κ hs) ⊗ₖ (kernel.restrict η ht) = kernel.restrict (κ ⊗ₖ η) (hs.prod ht) :=
@@ -308,7 +333,7 @@ begin
     rw integral_to_real,
     rotate,
     { exact (kernel.measurable_kernel_prod_mk_left' hs _).ae_measurable, },
-    { exact (ae_kernel_lt_top a hs h2s.ne), },
+    { exact (ae_kernel_lt_top a h2s.ne), },
     rw kernel.comp_prod_apply _ _ _ hs,
     refl, },
   { intros f g hfg i_f i_g hf hg,

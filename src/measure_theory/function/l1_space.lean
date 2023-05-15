@@ -1013,20 +1013,6 @@ by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 
 end is_R_or_C
 
-section inner_product
-variables {𝕜 E : Type*}
-variables [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E] {f : α → E}
-
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-
-lemma integrable.const_inner (c : E) (hf : integrable f μ) : integrable (λ x, ⟪c, f x⟫) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner c, }
-
-lemma integrable.inner_const (hf : integrable f μ) (c : E) : integrable (λ x, ⟪f x, c⟫) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.inner_const c, }
-
-end inner_product
-
 section trim
 
 variables {H : Type*} [normed_add_comm_group H] {m0 : measurable_space α} {μ' : measure α}

@@ -48,6 +48,8 @@ but we reference them here because all theorems about set integrals are in this 
 
 -/
 
+assert_not_exists inner_product_space
+
 noncomputable theory
 open set filter topological_space measure_theory function
 open_locale classical topology interval big_operators filter ennreal nnreal measure_theory

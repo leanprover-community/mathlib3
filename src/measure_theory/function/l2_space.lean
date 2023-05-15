@@ -3,8 +3,8 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import measure_theory.integral.set_integral
 import measure_theory.function.strongly_measurable.inner
+import measure_theory.integral.set_integral
 
 /-! # `L^2` space
 

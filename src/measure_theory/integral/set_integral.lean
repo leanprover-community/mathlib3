@@ -1171,29 +1171,6 @@ begin
     simp_rw [integrable_smul_const hc, hf, not_false_iff] }
 end
 
-section inner
-
-variables {E' : Type*}
-variables [normed_add_comm_group E'] [inner_product_space 𝕜 E']
-variables [complete_space E'] [normed_space ℝ E']
-
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
-
-lemma integral_inner {f : α → E'} (hf : integrable f μ) (c : E') :
-  ∫ x, ⟪c, f x⟫ ∂μ = ⟪c, ∫ x, f x ∂μ⟫ :=
-((innerSL 𝕜 c).restrict_scalars ℝ).integral_comp_comm hf
-
-variables (𝕜)
--- variable binder update doesn't work for lemmas which refer to `𝕜` only via the notation
-local notation (name := inner_with_explicit) `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
-
-lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : integrable f μ)
-  (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫ ∂μ = 0) :
-  ∫ x, f x ∂μ = 0 :=
-by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
-
-end inner
-
 lemma integral_with_density_eq_integral_smul
   {f : α → ℝ≥0} (f_meas : measurable f) (g : α → E) :
   ∫ a, g a ∂(μ.with_density (λ x, f x)) = ∫ a, f a • g a ∂μ :=

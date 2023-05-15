@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.group.inj_surj
-import data.list.big_operators
-import data.list.range
+import data.list.big_operators.basic
+import data.list.fin_range
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 import data.set_like.basic
@@ -13,6 +13,9 @@ import data.sigma.basic
 
 /-!
 # Additively-graded multiplicative structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module provides a set of heterogeneous typeclasses for defining a multiplicative structure
 over the sigma type `graded_monoid A` such that `(*) : A i → A j → A (i + j)`; that is to say, `A`

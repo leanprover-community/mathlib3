@@ -1,3 +1,5 @@
+import data.list.basic
+import topology.basic
 import tactic.induction
 import tactic.linarith
 

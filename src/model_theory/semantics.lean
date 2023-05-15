@@ -8,6 +8,9 @@ import model_theory.syntax
 
 /-!
 # Basics on First-Order Semantics
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines the interpretations of first-order terms, formulas, sentences, and theories
 in a style inspired by the [Flypitch project](https://flypitch.github.io/).
 
@@ -449,6 +452,18 @@ begin
   { exact is_empty_elim R }
 end
 
+@[simp] lemma realize_relabel_equiv {g : α ≃ β} {k} {φ : L.bounded_formula α k}
+  {v : β → M} {xs : fin k → M} :
+  (relabel_equiv g φ).realize v xs ↔ φ.realize (v ∘ g) xs :=
+begin
+  simp only [relabel_equiv, map_term_rel_equiv_apply, equiv.coe_refl],
+  refine realize_map_term_rel_id (λ n t xs, _) (λ _ _ _, rfl),
+  simp only [relabel_equiv_apply, term.realize_relabel],
+  refine congr (congr rfl _) rfl,
+  ext (i | i);
+  refl,
+end
+
 variables [nonempty M]
 
 lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
@@ -658,6 +673,38 @@ infix (name := sentence.realize) ` ⊨ `:51 := sentence.realize
 @[simp] lemma sentence.realize_not {φ : L.sentence} :
   M ⊨ φ.not ↔ ¬ M ⊨ φ :=
 iff.rfl
+
+namespace formula
+
+@[simp] lemma realize_equiv_sentence_symm_con
+  [L[[α]].Structure M] [(L.Lhom_with_constants α).is_expansion_on M]
+  (φ : L[[α]].sentence) :
+  (equiv_sentence.symm φ).realize (λ a, (L.con a : M)) ↔ φ.realize M :=
+begin
+  simp only [equiv_sentence, equiv.symm_symm, equiv.coe_trans, realize,
+    bounded_formula.realize_relabel_equiv],
+  refine trans _ bounded_formula.realize_constants_vars_equiv,
+  congr' with (i | i),
+  { refl },
+  { exact i.elim }
+end
+
+@[simp] lemma realize_equiv_sentence
+  [L[[α]].Structure M] [(L.Lhom_with_constants α).is_expansion_on M]
+  (φ : L.formula α) :
+  (equiv_sentence φ).realize M ↔ φ.realize (λ a, (L.con a : M)) :=
+by rw [← realize_equiv_sentence_symm_con M (equiv_sentence φ),
+    _root_.equiv.symm_apply_apply]
+
+lemma realize_equiv_sentence_symm (φ : L[[α]].sentence) (v : α → M) :
+  (equiv_sentence.symm φ).realize v ↔ @sentence.realize _ M
+    (@language.with_constants_Structure L M _ α (constants_on.Structure v)) φ :=
+begin
+  letI := constants_on.Structure v,
+  exact realize_equiv_sentence_symm_con M φ,
+end
+
+end formula
 
 @[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (ψ : L.sentence) :
@@ -932,14 +979,14 @@ lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : se
   M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
 begin
   simp only [distinct_constants_theory, Theory.model_iff, set.mem_image,
-    set.mem_inter_iff, set.mem_prod, set.mem_compl_iff, prod.exists, forall_exists_index, and_imp],
+    set.mem_inter, set.mem_prod, set.mem_compl, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,
-    have h' := h _ a b as bs ab rfl,
+    have h' := h _ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants] at h',
     exact h', },
-  { rintros h φ a b as bs ab rfl,
+  { rintros h φ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants],
     exact λ contra, ab (h as bs contra) }
@@ -981,7 +1028,6 @@ lemma infinite_iff (h : M ≅[L] N) : infinite M ↔ infinite N :=
 lemma infinite [Mi : infinite M] (h : M ≅[L] N) : infinite N := h.infinite_iff.1 Mi
 
 end elementarily_equivalent
-
 
 end language
 end first_order

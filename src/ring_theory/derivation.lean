@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri, Andrew Yang
 -/
 
-import ring_theory.adjoin.basic
 import algebra.lie.of_associative
-import ring_theory.tensor_product
-import ring_theory.ideal.cotangent
+import ring_theory.adjoin.basic
+import ring_theory.ideal.quotient_operations
 
 /-!
 # Derivations
@@ -23,17 +22,11 @@ This file defines derivation. A derivation `D` from the `R`-algebra `A` to the `
 - `derivation.lie_algebra`: The `R`-derivations from `A` to `A` form an lie algebra over `R`.
 - `derivation_to_square_zero_equiv_lift`: The `R`-derivations from `A` into a square-zero ideal `I`
   of `B` corresponds to the lifts `A →ₐ[R] B` of the map `A →ₐ[R] B ⧸ I`.
-- `kaehler_differential`: The module of kaehler differentials. For an `R`-algebra `S`, we provide
-  the notation `Ω[S⁄R]` for `kaehler_differential R S`.
-  Note that the slash is `\textfractionsolidus`.
-- `kaehler_differential.D`: The derivation into the module of kaehler differentials.
-- `kaehler_differential.span_range_derivation`: The image of `D` spans `Ω[S⁄R]` as an `S`-module.
-- `kaehler_differential.linear_map_equiv_derivation`:
-  The isomorphism `Hom_R(Ω[S⁄R], M) ≃ₗ[S] Der_R(S, M)`.
 
 ## Future project
 
-Generalize this into bimodules.
+- Generalize derivations into bimodules.
+
 -/
 
 open algebra
@@ -166,8 +159,9 @@ instance : inhabited (derivation R A M) := ⟨0⟩
 
 section scalar
 
-variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
-  [smul_comm_class S A M]
+variables {S T : Type*}
+variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M] [smul_comm_class S A M]
+variables [monoid T] [distrib_mul_action T M] [smul_comm_class R T M] [smul_comm_class T A M]
 
 @[priority 100]
 instance : has_smul S (derivation R A M) :=
@@ -197,6 +191,12 @@ instance [distrib_mul_action Sᵐᵒᵖ M] [is_central_scalar S M] :
   is_central_scalar S (derivation R A M) :=
 { op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _}
 
+instance [has_smul S T] [is_scalar_tower S T M] : is_scalar_tower S T (derivation R A M) :=
+⟨λ x y z, ext $ λ a, smul_assoc _ _ _⟩
+
+instance [smul_comm_class S T M] : smul_comm_class S T (derivation R A M) :=
+⟨λ x y z, ext $ λ a, smul_comm _ _ _⟩
+
 end scalar
 
 @[priority 100]
@@ -204,14 +204,11 @@ instance {S : Type*} [semiring S] [module S M] [smul_comm_class R S M] [smul_com
   module S (derivation R A M) :=
 function.injective.module S coe_fn_add_monoid_hom coe_injective coe_smul
 
-instance [is_scalar_tower R A M] : is_scalar_tower R A (derivation R A M) :=
-⟨λ x y z, ext (λ a, smul_assoc _ _ _)⟩
-
 section push_forward
 
 variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A M]
   [is_scalar_tower R A N]
-variables (f : M →ₗ[A] N)
+variables (f : M →ₗ[A] N) (e : M ≃ₗ[A] N)
 
 /-- We can push forward derivations using linear maps, i.e., the composition of a derivation with a
 linear map is a derivation. Furthermore, this operation is linear on the spaces of derivations. -/
@@ -233,12 +230,38 @@ rfl
 rfl
 
 /-- The composition of a derivation with a linear map as a bilinear map -/
+@[simps]
 def llcomp : (M →ₗ[A] N) →ₗ[A] derivation R A M →ₗ[R] derivation R A N :=
 { to_fun := λ f, f.comp_der,
   map_add' := λ f₁ f₂, by { ext, refl },
   map_smul' := λ r D, by { ext, refl } }
 
+/-- Pushing a derivation foward through a linear equivalence is an equivalence. -/
+def _root_.linear_equiv.comp_der : derivation R A M ≃ₗ[R] derivation R A N :=
+{ inv_fun := e.symm.to_linear_map.comp_der,
+  left_inv := λ D, by { ext a, exact e.symm_apply_apply (D a) },
+  right_inv := λ D, by { ext a, exact e.apply_symm_apply (D a) },
+  ..e.to_linear_map.comp_der }
+
+
 end push_forward
+
+section restrict_scalars
+
+variables {S : Type*} [comm_semiring S]
+variables [algebra S A] [module S M] [linear_map.compatible_smul A M R S]
+
+variables (R)
+
+/-- If `A` is both an `R`-algebra and an `S`-algebra; `M` is both an `R`-module and an `S`-module,
+then an `S`-derivation `A → M` is also an `R`-derivation if it is also `R`-linear. -/
+protected
+def restrict_scalars (d : derivation S A M) : derivation R A M :=
+{ map_one_eq_zero' := d.map_one_eq_zero,
+  leibniz' := d.leibniz,
+  to_linear_map := d.to_linear_map.restrict_scalars R }
+
+end restrict_scalars
 
 end
 
@@ -356,7 +379,7 @@ section to_square_zero
 
 universes u v w
 
-variables {R : Type u} {A : Type u} {B : Type w} [comm_semiring R] [comm_semiring A] [comm_ring B]
+variables {R : Type u} {A : Type v} {B : Type w} [comm_semiring R] [comm_semiring A] [comm_ring B]
 variables [algebra R A] [algebra R B] (I : ideal B) (hI : I ^ 2 = ⊥)
 
 /-- If `f₁ f₂ : A →ₐ[R] B` are two lifts of the same `A →ₐ[R] B ⧸ I`,
@@ -416,29 +439,28 @@ lemma derivation_to_square_zero_of_lift_apply (f : A →ₐ[R] B)
 
 /-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`, each `R`-derivation
 from `A` to `I` corresponds to a lift `A →ₐ[R] B` of the canonical map `A →ₐ[R] B ⧸ I`. -/
+@[simps {attrs := []}]
 def lift_of_derivation_to_square_zero (f : derivation R A I) :
   A →ₐ[R] B :=
-{ map_one' := show (f 1 : B) + algebra_map A B 1 = 1,
-   by rw [map_one, f.map_one_eq_zero, submodule.coe_zero, zero_add],
+{ to_fun := λ x, f x + algebra_map A B x,
+  map_one' := by rw [map_one, f.map_one_eq_zero, submodule.coe_zero, zero_add],
   map_mul' := λ x y, begin
     have : (f x : B) * (f y) = 0,
     { rw [← ideal.mem_bot, ← hI, pow_two], convert (ideal.mul_mem_mul (f x).2 (f y).2) using 1 },
-    dsimp,
     simp only [map_mul, f.leibniz, add_mul, mul_add, submodule.coe_add,
       submodule.coe_smul_of_tower, algebra.smul_def, this],
     ring
   end,
-  commutes' := λ r, by { dsimp, simp [← is_scalar_tower.algebra_map_apply R A B r] },
+  commutes' := λ r,
+    by simp only [derivation.map_algebra_map, eq_self_iff_true, zero_add, submodule.coe_zero,
+      ←is_scalar_tower.algebra_map_apply R A B r],
   map_zero' := ((I.restrict_scalars R).subtype.comp f.to_linear_map +
     (is_scalar_tower.to_alg_hom R A B).to_linear_map).map_zero,
   ..((I.restrict_scalars R).subtype.comp f.to_linear_map +
-    (is_scalar_tower.to_alg_hom R A B).to_linear_map) }
-
-lemma lift_of_derivation_to_square_zero_apply (f : derivation R A I) (x : A) :
-  lift_of_derivation_to_square_zero I hI f x = f x + algebra_map A B x := rfl
+    (is_scalar_tower.to_alg_hom R A B).to_linear_map : A →ₗ[R] B) }
 
 @[simp] lemma lift_of_derivation_to_square_zero_mk_apply (d : derivation R A I) (x : A) :
-    ideal.quotient.mk I (lift_of_derivation_to_square_zero I hI d x) = algebra_map A (B ⧸ I) x :=
+  ideal.quotient.mk I (lift_of_derivation_to_square_zero I hI d x) = algebra_map A (B ⧸ I) x :=
 by { rw [lift_of_derivation_to_square_zero_apply, map_add,
   ideal.quotient.eq_zero_iff_mem.mpr (d x).prop, zero_add], refl }
 
@@ -458,267 +480,3 @@ begin
 end
 
 end to_square_zero
-
-section kaehler_differential
-
-open_locale tensor_product
-
-variables (R S : Type*) [comm_ring R] [comm_ring S] [algebra R S]
-
-/-- The kernel of the multiplication map `S ⊗[R] S →ₐ[R] S`. -/
-abbreviation kaehler_differential.ideal : ideal (S ⊗[R] S) :=
-ring_hom.ker (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S)
-
-variable {S}
-
-lemma kaehler_differential.one_smul_sub_smul_one_mem_ideal (a : S) :
-  (1 : S) ⊗ₜ[R] a - a ⊗ₜ[R] (1 : S) ∈ kaehler_differential.ideal R S :=
-by simp [ring_hom.mem_ker]
-
-variables {R}
-
-variables {M : Type*} [add_comm_group M] [module R M] [module S M] [is_scalar_tower R S M]
-
-/-- For a `R`-derivation `S → M`, this is the map `S ⊗[R] S →ₗ[S] M` sending `s ⊗ₜ t ↦ s • D t`. -/
-def derivation.tensor_product_to (D : derivation R S M) : S ⊗[R] S →ₗ[S] M :=
-tensor_product.algebra_tensor_module.lift ((linear_map.lsmul S (S →ₗ[R] M)).flip D.to_linear_map)
-
-lemma derivation.tensor_product_to_tmul (D : derivation R S M) (s t : S) :
-  D.tensor_product_to (s ⊗ₜ t) = s • D t :=
-tensor_product.lift.tmul s t
-
-lemma derivation.tensor_product_to_mul (D : derivation R S M) (x y : S ⊗[R] S) :
-  D.tensor_product_to (x * y) = tensor_product.lmul' R x • D.tensor_product_to y +
-    tensor_product.lmul' R y • D.tensor_product_to x :=
-begin
-  apply tensor_product.induction_on x,
-  { rw [zero_mul, map_zero, map_zero, zero_smul, smul_zero, add_zero] },
-  swap, { rintros, simp only [add_mul, map_add, add_smul, *, smul_add], rw add_add_add_comm },
-  intros x₁ x₂,
-  apply tensor_product.induction_on y,
-  { rw [mul_zero, map_zero, map_zero, zero_smul, smul_zero, add_zero] },
-  swap, { rintros, simp only [mul_add, map_add, add_smul, *, smul_add], rw add_add_add_comm },
-  intros x y,
-  simp only [tensor_product.tmul_mul_tmul, derivation.tensor_product_to,
-    tensor_product.algebra_tensor_module.lift_apply, tensor_product.lift.tmul',
-    tensor_product.lmul'_apply_tmul],
-  dsimp,
-  rw D.leibniz,
-  simp only [smul_smul, smul_add, mul_comm (x * y) x₁, mul_right_comm x₁ x₂, ← mul_assoc],
-end
-
-variables (R S)
-
-/-- The kernel of `S ⊗[R] S →ₐ[R] S` is generated by `1 ⊗ s - s ⊗ 1` as a `S`-module. -/
-lemma kaehler_differential.submodule_span_range_eq_ideal :
-  submodule.span S (set.range $ λ s : S, (1 : S) ⊗ₜ[R] s - s ⊗ₜ[R] (1 : S)) =
-    (kaehler_differential.ideal R S).restrict_scalars S :=
-begin
-  apply le_antisymm,
-  { rw submodule.span_le,
-    rintros _ ⟨s, rfl⟩,
-    exact kaehler_differential.one_smul_sub_smul_one_mem_ideal _ _ },
-  { rintros x (hx : _ = _),
-    have : x - (tensor_product.lmul' R x) ⊗ₜ[R] (1 : S)   = x,
-    { rw [hx, tensor_product.zero_tmul, sub_zero] },
-    rw ← this,
-    clear this hx,
-    apply tensor_product.induction_on x; clear x,
-    { rw [map_zero, tensor_product.zero_tmul, sub_zero], exact zero_mem _ },
-    { intros x y,
-      convert_to x • (1 ⊗ₜ y - y ⊗ₜ 1) ∈ _,
-      { rw [tensor_product.lmul'_apply_tmul, smul_sub, tensor_product.smul_tmul',
-          tensor_product.smul_tmul', smul_eq_mul, smul_eq_mul, mul_one] },
-      { refine submodule.smul_mem _ x _,
-        apply submodule.subset_span,
-        exact set.mem_range_self y } },
-    { intros x y hx hy,
-      rw [map_add, tensor_product.add_tmul, ← sub_add_sub_comm],
-      exact add_mem hx hy } }
-end
-
-lemma kaehler_differential.span_range_eq_ideal :
-  ideal.span (set.range $ λ s : S, (1 : S) ⊗ₜ[R] s - s ⊗ₜ[R] (1 : S)) =
-    kaehler_differential.ideal R S :=
-begin
-  apply le_antisymm,
-  { rw ideal.span_le,
-    rintros _ ⟨s, rfl⟩,
-    exact kaehler_differential.one_smul_sub_smul_one_mem_ideal _ _ },
-  { change (kaehler_differential.ideal R S).restrict_scalars S ≤ (ideal.span _).restrict_scalars S,
-    rw [← kaehler_differential.submodule_span_range_eq_ideal, ideal.span],
-    conv_rhs { rw ← submodule.span_span_of_tower S },
-    exact submodule.subset_span }
-end
-
-/--
-The module of Kähler differentials (Kahler differentials, Kaehler differentials).
-This is implemented as `I / I ^ 2` with `I` the kernel of the multiplication map `S ⊗[R] S →ₐ[R] S`.
-To view elements as a linear combination of the form `s • D s'`, use
-`kaehler_differential.tensor_product_to_surjective` and `derivation.tensor_product_to_tmul`.
-
-We also provide the notation `Ω[S⁄R]` for `kaehler_differential R S`.
-Note that the slash is `\textfractionsolidus`.
--/
-@[derive [add_comm_group, module R, module S, module (S ⊗[R] S)]]
-def kaehler_differential : Type* := (kaehler_differential.ideal R S).cotangent
-
-notation `Ω[`:100 S `⁄`:0 R `]`:0 := kaehler_differential R S
-
-instance : nonempty Ω[S⁄R] := ⟨0⟩
-
-instance : is_scalar_tower S (S ⊗[R] S) Ω[S⁄R] :=
-ideal.cotangent.is_scalar_tower _
-
-instance kaehler_differential.is_scalar_tower' : is_scalar_tower R S Ω[S⁄R] :=
-begin
-  haveI : is_scalar_tower R S (kaehler_differential.ideal R S),
-  { constructor, intros x y z, ext1, exact smul_assoc x y z.1 },
-  exact submodule.quotient.is_scalar_tower _ _
-end
-
-/-- (Implementation) The underlying linear map of the derivation into `Ω[S⁄R]`. -/
-def kaehler_differential.D_linear_map : S →ₗ[R] Ω[S⁄R] :=
-((kaehler_differential.ideal R S).to_cotangent.restrict_scalars R).comp
-  ((tensor_product.include_right.to_linear_map - tensor_product.include_left.to_linear_map :
-    S →ₗ[R] S ⊗[R] S).cod_restrict ((kaehler_differential.ideal R S).restrict_scalars R)
-      (kaehler_differential.one_smul_sub_smul_one_mem_ideal R) : _ →ₗ[R] _)
-
-lemma kaehler_differential.D_linear_map_apply (s : S) :
-  kaehler_differential.D_linear_map R S s = (kaehler_differential.ideal R S).to_cotangent
-    ⟨1 ⊗ₜ s - s ⊗ₜ 1, kaehler_differential.one_smul_sub_smul_one_mem_ideal R s⟩ :=
-rfl
-
-/-- The universal derivation into `Ω[S⁄R]`. -/
-def kaehler_differential.D : derivation R S Ω[S⁄R] :=
-{ map_one_eq_zero' := begin
-    dsimp [kaehler_differential.D_linear_map_apply],
-    rw [ideal.to_cotangent_eq_zero, subtype.coe_mk, sub_self],
-    exact zero_mem _
-  end,
-  leibniz' := λ a b, begin
-    dsimp [kaehler_differential.D_linear_map_apply],
-    rw [← linear_map.map_smul_of_tower, ← linear_map.map_smul_of_tower, ← map_add,
-      ideal.to_cotangent_eq, pow_two],
-    convert submodule.mul_mem_mul (kaehler_differential.one_smul_sub_smul_one_mem_ideal R a : _)
-      (kaehler_differential.one_smul_sub_smul_one_mem_ideal R b : _) using 1,
-    simp only [add_subgroup_class.coe_sub, submodule.coe_add, submodule.coe_mk,
-      tensor_product.tmul_mul_tmul, mul_sub, sub_mul, mul_comm b,
-      submodule.coe_smul_of_tower, smul_sub, tensor_product.smul_tmul', smul_eq_mul, mul_one],
-    ring_nf,
-  end,
-  ..(kaehler_differential.D_linear_map R S) }
-
-lemma kaehler_differential.D_apply (s : S) :
-  kaehler_differential.D R S s = (kaehler_differential.ideal R S).to_cotangent
-    ⟨1 ⊗ₜ s - s ⊗ₜ 1, kaehler_differential.one_smul_sub_smul_one_mem_ideal R s⟩ :=
-rfl
-
-lemma kaehler_differential.span_range_derivation :
-  submodule.span S (set.range $ kaehler_differential.D R S) = ⊤ :=
-begin
-  rw _root_.eq_top_iff,
-  rintros x -,
-  obtain ⟨⟨x, hx⟩, rfl⟩ := ideal.to_cotangent_surjective _ x,
-  have : x ∈ (kaehler_differential.ideal R S).restrict_scalars S := hx,
-  rw ← kaehler_differential.submodule_span_range_eq_ideal at this,
-  suffices : ∃ hx, (kaehler_differential.ideal R S).to_cotangent ⟨x, hx⟩ ∈
-    submodule.span S (set.range $ kaehler_differential.D R S),
-  { exact this.some_spec },
-  apply submodule.span_induction this,
-  { rintros _ ⟨x, rfl⟩,
-    refine ⟨kaehler_differential.one_smul_sub_smul_one_mem_ideal R x, _⟩,
-    apply submodule.subset_span,
-    exact ⟨x, kaehler_differential.D_linear_map_apply R S x⟩ },
-  { exact ⟨zero_mem _, zero_mem _⟩ },
-  { rintros x y ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, exact ⟨add_mem hx₁ hy₁, add_mem hx₂ hy₂⟩ },
-  { rintros r x ⟨hx₁, hx₂⟩, exact ⟨((kaehler_differential.ideal R S).restrict_scalars S).smul_mem
-      r hx₁, submodule.smul_mem _ r hx₂⟩ }
-end
-
-variables {R S}
-
-/-- The linear map from `Ω[S⁄R]`, associated with a derivation. -/
-def derivation.lift_kaehler_differential (D : derivation R S M) : Ω[S⁄R] →ₗ[S] M :=
-begin
-  refine ((kaehler_differential.ideal R S • ⊤ :
-    submodule (S ⊗[R] S) (kaehler_differential.ideal R S)).restrict_scalars S).liftq _ _,
-  { exact D.tensor_product_to.comp ((kaehler_differential.ideal R S).subtype.restrict_scalars S) },
-  { intros x hx,
-    change _ = _,
-    apply submodule.smul_induction_on hx; clear hx x,
-    { rintros x (hx : _ = _) ⟨y, hy : _ = _⟩ -,
-      dsimp,
-      rw [derivation.tensor_product_to_mul, hx, hy, zero_smul, zero_smul, zero_add] },
-    { intros x y ex ey, rw [map_add, ex, ey, zero_add] } }
-end
-
-lemma derivation.lift_kaehler_differential_apply (D : derivation R S M) (x) :
-  D.lift_kaehler_differential
-    ((kaehler_differential.ideal R S).to_cotangent x) = D.tensor_product_to x :=
-rfl
-
-lemma derivation.lift_kaehler_differential_comp (D : derivation R S M) :
-  D.lift_kaehler_differential.comp_der (kaehler_differential.D R S) = D :=
-begin
-  ext a,
-  dsimp [kaehler_differential.D_apply],
-  refine (D.lift_kaehler_differential_apply _).trans _,
-  rw [subtype.coe_mk, map_sub, derivation.tensor_product_to_tmul,
-    derivation.tensor_product_to_tmul, one_smul, D.map_one_eq_zero, smul_zero, sub_zero],
-end
-
-@[ext]
-lemma derivation.lift_kaehler_differential_unique
-  (f f' : Ω[S⁄R] →ₗ[S] M)
-  (hf : f.comp_der (kaehler_differential.D R S) =
-    f'.comp_der (kaehler_differential.D R S)) :
-  f = f' :=
-begin
-  apply linear_map.ext,
-  intro x,
-  have : x ∈ submodule.span S (set.range $ kaehler_differential.D R S),
-  { rw kaehler_differential.span_range_derivation, trivial },
-  apply submodule.span_induction this,
-  { rintros _ ⟨x, rfl⟩, exact congr_arg (λ D : derivation R S M, D x) hf },
-  { rw [map_zero, map_zero] },
-  { intros x y hx hy, rw [map_add, map_add, hx, hy] },
-  { intros a x e, rw [map_smul, map_smul, e] }
-end
-
-variables (R S)
-
-lemma derivation.lift_kaehler_differential_D :
-  (kaehler_differential.D R S).lift_kaehler_differential = linear_map.id :=
-derivation.lift_kaehler_differential_unique _ _
-  (kaehler_differential.D R S).lift_kaehler_differential_comp
-
-variables {R S}
-
-lemma kaehler_differential.D_tensor_product_to (x : kaehler_differential.ideal R S) :
-  (kaehler_differential.D R S).tensor_product_to x =
-    (kaehler_differential.ideal R S).to_cotangent x :=
-begin
-  rw [← derivation.lift_kaehler_differential_apply, derivation.lift_kaehler_differential_D],
-  refl,
-end
-
-variables (R S)
-
-lemma kaehler_differential.tensor_product_to_surjective :
-  function.surjective (kaehler_differential.D R S).tensor_product_to :=
-begin
-  intro x, obtain ⟨x, rfl⟩ := (kaehler_differential.ideal R S).to_cotangent_surjective x,
-  exact ⟨x, kaehler_differential.D_tensor_product_to x⟩
-end
-
-/-- The `S`-linear maps from `Ω[S⁄R]` to `M` are (`S`-linearly) equivalent to `R`-derivations
-from `S` to `M`.  -/
-def kaehler_differential.linear_map_equiv_derivation : (Ω[S⁄R] →ₗ[S] M) ≃ₗ[S] derivation R S M :=
-{ inv_fun := derivation.lift_kaehler_differential,
-  left_inv := λ f, derivation.lift_kaehler_differential_unique _ _
-    (derivation.lift_kaehler_differential_comp _),
-  right_inv := derivation.lift_kaehler_differential_comp,
-  ..(derivation.llcomp.flip $ kaehler_differential.D R S) }
-
-end kaehler_differential

@@ -5,11 +5,13 @@ Authors: Johannes Hölzl
 -/
 import logic.function.basic
 import tactic.ext
-import tactic.lint
 import tactic.simps
 
 /-!
 # Subtypes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides basic API for subtypes, which are defined in core.
 

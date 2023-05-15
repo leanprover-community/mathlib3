@@ -3,12 +3,16 @@ Copyright (c) 2020 Yury Kudryashov, Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Anne Baanen
 -/
-import data.fintype.card
+import data.fintype.big_operators
 import data.fintype.fin
+import data.list.fin_range
 import logic.equiv.fin
 
 /-!
 # Big operators and `fin`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Some results about products and sums over the type `fin`.
 
@@ -16,6 +20,9 @@ The most important results are the induction formulas `fin.prod_univ_cast_succ`
 and `fin.prod_univ_succ`, and the formula `fin.prod_const` for the product of a
 constant function. These results have variants for sums instead of products.
 
+## Main declarations
+
+* `fin_function_fin_equiv`: An explicit equivalence between `fin n → fin m` and `fin (m ^ n)`.
 -/
 
 open_locale big_operators
@@ -146,7 +153,7 @@ begin
   rw fintype.prod_equiv fin_sum_fin_equiv.symm f (λ i, f (fin_sum_fin_equiv.to_fun i)), swap,
   { intro x,
     simp only [equiv.to_fun_as_coe, equiv.apply_symm_apply], },
-  apply prod_on_sum,
+  apply fintype.prod_sum_type,
 end
 
 @[to_additive]
@@ -187,23 +194,173 @@ begin
 end)
 
 @[to_additive] lemma partial_prod_right_inv {G : Type*} [group G]
-  (g : G) (f : fin n → G) (i : fin n) :
-  ((g • partial_prod f) i)⁻¹ * (g • partial_prod f) i.succ = f i :=
+  (f : fin n → G) (i : fin n) :
+  (partial_prod f i.cast_succ)⁻¹ * partial_prod f i.succ = f i :=
 begin
   cases i with i hn,
   induction i with i hi generalizing hn,
-  { simp [←fin.succ_mk, partial_prod_succ] },
+  { simp [-fin.succ_mk, partial_prod_succ] },
   { specialize hi (lt_trans (nat.lt_succ_self i) hn),
-    simp only [mul_inv_rev, fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk,
-      smul_eq_mul, pi.smul_apply] at hi ⊢,
+    simp only [fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk] at hi ⊢,
     rw [←fin.succ_mk _ _ (lt_trans (nat.lt_succ_self _) hn), ←fin.succ_mk],
     simp only [partial_prod_succ, mul_inv_rev, fin.cast_succ_mk],
     assoc_rw [hi, inv_mul_cancel_left] }
 end
 
+/-- Let `(g₀, g₁, ..., gₙ)` be a tuple of elements in `Gⁿ⁺¹`.
+Then if `k < j`, this says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ = gₖ`.
+If `k = j`, it says `(g₀g₁...gₖ₋₁)⁻¹ * g₀g₁...gₖ₊₁ = gₖgₖ₊₁`.
+If `k > j`, it says `(g₀g₁...gₖ)⁻¹ * g₀g₁...gₖ₊₁ = gₖ₊₁.`
+Useful for defining group cohomology. -/
+@[to_additive "Let `(g₀, g₁, ..., gₙ)` be a tuple of elements in `Gⁿ⁺¹`.
+Then if `k < j`, this says `-(g₀ + g₁ + ... + gₖ₋₁) + (g₀ + g₁ + ... + gₖ) = gₖ`.
+If `k = j`, it says `-(g₀ + g₁ + ... + gₖ₋₁) + (g₀ + g₁ + ... + gₖ₊₁) = gₖ + gₖ₊₁`.
+If `k > j`, it says `-(g₀ + g₁ + ... + gₖ) + (g₀ + g₁ + ... + gₖ₊₁) = gₖ₊₁.`
+Useful for defining group cohomology."]
+lemma inv_partial_prod_mul_eq_contract_nth {G : Type*} [group G]
+  (g : fin (n + 1) → G) (j : fin (n + 1)) (k : fin n) :
+  (partial_prod g (j.succ.succ_above k.cast_succ))⁻¹ * partial_prod g (j.succ_above k).succ
+    = j.contract_nth has_mul.mul g k :=
+begin
+  rcases lt_trichotomy (k : ℕ) j with (h|h|h),
+  { rwa [succ_above_below, succ_above_below, partial_prod_right_inv, contract_nth_apply_of_lt],
+    { assumption },
+    { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
+      exact le_of_lt h }},
+  { rwa [succ_above_below, succ_above_above, partial_prod_succ, cast_succ_fin_succ, ←mul_assoc,
+      partial_prod_right_inv, contract_nth_apply_of_eq],
+    { simpa only [le_iff_coe_le_coe, ←h] },
+    { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
+      exact le_of_eq h }},
+  { rwa [succ_above_above, succ_above_above, partial_prod_succ, partial_prod_succ,
+      cast_succ_fin_succ, partial_prod_succ, inv_mul_cancel_left, contract_nth_apply_of_gt],
+    { exact le_iff_coe_le_coe.2 (le_of_lt h) },
+    { rw [le_iff_coe_le_coe, coe_succ],
+      exact nat.succ_le_of_lt h }},
+end
+
 end partial_prod
 
 end fin
+
+/-- Equivalence between `fin n → fin m` and `fin (m ^ n)`. -/
+@[simps] def fin_function_fin_equiv {m n : ℕ} : (fin n → fin m) ≃ fin (m ^ n) :=
+equiv.of_right_inverse_of_card_le
+  (le_of_eq $ by simp_rw [fintype.card_fun, fintype.card_fin])
+  (λ f, ⟨∑ i, f i * m ^ (i : ℕ), begin
+    induction n with n ih generalizing f,
+    { simp },
+    cases m,
+    { exact is_empty_elim (f $ fin.last _) },
+    simp_rw [fin.sum_univ_cast_succ, fin.coe_cast_succ, fin.coe_last],
+    refine (add_lt_add_of_lt_of_le (ih _) $ mul_le_mul_right' (fin.is_le _) _).trans_eq _,
+    rw [←one_add_mul, add_comm, pow_succ],
+  end⟩)
+  (λ a b, ⟨a / m ^ (b : ℕ) % m, begin
+    cases n,
+    { exact b.elim0 },
+    cases m,
+    { rw zero_pow n.succ_pos at a,
+      exact a.elim0 },
+    { exact nat.mod_lt _ m.succ_pos }
+  end⟩)
+  (λ a, begin
+    dsimp,
+    induction n with n ih generalizing a,
+    { haveI : subsingleton (fin (m ^ 0)) := (fin.cast $ pow_zero _).to_equiv.subsingleton,
+      exact subsingleton.elim _ _ },
+    simp_rw [fin.forall_iff, fin.ext_iff, fin.coe_mk] at ih,
+    ext,
+    simp_rw [fin.coe_mk, fin.sum_univ_succ, fin.coe_zero, fin.coe_succ, pow_zero, nat.div_one,
+      mul_one, pow_succ, ←nat.div_div_eq_div_mul, mul_left_comm _ m, ←mul_sum],
+    rw [ih _ (nat.div_lt_of_lt_mul a.is_lt), nat.mod_add_div],
+  end)
+
+lemma fin_function_fin_equiv_apply {m n : ℕ} (f : fin n → fin m):
+  (fin_function_fin_equiv f : ℕ) = ∑ (i : fin n), ↑(f i) * m ^ (i : ℕ) := rfl
+
+lemma fin_function_fin_equiv_single {m n : ℕ} [ne_zero m] (i : fin n) (j : fin m) :
+  (fin_function_fin_equiv (pi.single i j) : ℕ) = j * m ^ (i : ℕ) :=
+begin
+  rw [fin_function_fin_equiv_apply, fintype.sum_eq_single i, pi.single_eq_same],
+  rintro x hx,
+  rw [pi.single_eq_of_ne hx, fin.coe_zero, zero_mul],
+end
+
+/-- Equivalence between `Π i : fin m, fin (n i)` and `fin (∏ i : fin m, n i)`. -/
+def fin_pi_fin_equiv {m : ℕ} {n : fin m → ℕ} :
+  (Π i : fin m, fin (n i)) ≃ fin (∏ i : fin m, n i) :=
+equiv.of_right_inverse_of_card_le
+  (le_of_eq $ by simp_rw [fintype.card_pi, fintype.card_fin])
+  (λ f, ⟨∑ i, f i * ∏ j, n (fin.cast_le i.is_lt.le j), begin
+    induction m with m ih generalizing f,
+    { simp },
+    rw [fin.prod_univ_cast_succ, fin.sum_univ_cast_succ],
+    suffices : ∀ (n : fin m → ℕ) (nn : ℕ) (f : Π i : fin m, fin (n i)) (fn : fin nn),
+      ∑ i : fin m, ↑(f i) * ∏ j : fin i, n (fin.cast_le i.prop.le j) + ↑fn * ∏ j, n j
+          < (∏ i : fin m, n i) * nn,
+    { replace this := this (fin.init n) (n (fin.last _)) (fin.init f) (f (fin.last _)),
+      rw ←fin.snoc_init_self f,
+      simp only [←fin.snoc_init_self n] { single_pass := tt },
+      simp_rw [fin.snoc_cast_succ, fin.init_snoc, fin.snoc_last, fin.snoc_init_self n],
+      exact this },
+    intros n nn f fn,
+    cases nn,
+    { exact is_empty_elim fn },
+    refine (add_lt_add_of_lt_of_le (ih _) $ mul_le_mul_right' (fin.is_le _) _).trans_eq _,
+    rw [←one_add_mul, mul_comm, add_comm],
+  end⟩)
+  (λ a b, ⟨a / (∏ j : fin b, n (fin.cast_le b.is_lt.le j)) % n b, begin
+    cases m,
+    { exact b.elim0 },
+    cases h : n b with nb,
+    { rw prod_eq_zero (finset.mem_univ _) h at a,
+      exact is_empty_elim a },
+    exact nat.mod_lt _ nb.succ_pos,
+  end⟩)
+  (begin
+    intro a, revert a, dsimp only [fin.coe_mk],
+    refine fin.cons_induction _ _ n,
+    { intro a,
+      haveI : subsingleton (fin (∏ i : fin 0, i.elim0)) :=
+        (fin.cast $ prod_empty).to_equiv.subsingleton,
+      exact subsingleton.elim _ _ },
+    { intros n x xs ih a,
+      simp_rw [fin.forall_iff, fin.ext_iff, fin.coe_mk] at ih,
+      ext,
+      simp_rw [fin.coe_mk, fin.sum_univ_succ, fin.cons_succ],
+      have := λ i : fin n, fintype.prod_equiv (fin.cast $ fin.coe_succ i).to_equiv
+        (λ j, (fin.cons x xs : _ → ℕ) (fin.cast_le (fin.is_lt _).le j))
+        (λ j, (fin.cons x xs : _ → ℕ) (fin.cast_le (nat.succ_le_succ (fin.is_lt _).le) j))
+        (λ j, rfl),
+      simp_rw [this], clear this,
+      dsimp only [fin.coe_zero],
+      simp_rw [fintype.prod_empty, nat.div_one, mul_one, fin.cons_zero, fin.prod_univ_succ],
+      change _ + ∑ y : _, ((_ / (x * _)) % _) * (x * _) = _,
+      simp_rw [←nat.div_div_eq_div_mul, mul_left_comm (_ % _ : ℕ), ←mul_sum],
+      convert nat.mod_add_div _ _,
+      refine eq.trans _ (ih (a / x) (nat.div_lt_of_lt_mul $ a.is_lt.trans_eq _)),
+      swap,
+      { convert fin.prod_univ_succ (fin.cons x xs : (Π _, ℕ)),
+        simp_rw fin.cons_succ },
+      congr' with i,
+      congr' with j,
+      { cases j, refl },
+      { cases j, refl } }
+  end)
+
+lemma fin_pi_fin_equiv_apply {m : ℕ} {n : fin m → ℕ} (f : Π i : fin m, fin (n i)):
+  (fin_pi_fin_equiv f : ℕ) = ∑ i, f i * ∏ j, n (fin.cast_le i.is_lt.le j) := rfl
+
+lemma fin_pi_fin_equiv_single {m : ℕ} {n : fin m → ℕ} [Π i, ne_zero (n i)]
+  (i : fin m) (j : fin (n i)) :
+  (fin_pi_fin_equiv (pi.single i j : Π i : fin m, fin (n i)) : ℕ)
+    = j * ∏ j, n (fin.cast_le i.is_lt.le j) :=
+begin
+  rw [fin_pi_fin_equiv_apply, fintype.sum_eq_single i, pi.single_eq_same],
+  rintro x hx,
+  rw [pi.single_eq_of_ne hx, fin.coe_zero, zero_mul],
+end
 
 namespace list
 

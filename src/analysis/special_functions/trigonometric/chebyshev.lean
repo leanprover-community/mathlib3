@@ -3,13 +3,16 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import analysis.complex.basic
 import data.complex.exponential
+import data.complex.module
 import data.polynomial.algebra_map
 import ring_theory.polynomial.chebyshev
 
 /-!
 # Multiple angle formulas in terms of Chebyshev polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file gives the trigonometric characterizations of Chebyshev polynomials, for both the real
 (`real.cos`) and complex (`complex.cos`) cosine.
@@ -28,11 +31,11 @@ by rw [aeval_def, eval₂_eq_eval_map, map_U]
 
 @[simp] lemma algebra_map_eval_T (x : R) (n : ℕ) :
   algebra_map R A ((T R n).eval x) = (T A n).eval (algebra_map R A x) :=
-by rw [←aeval_algebra_map_apply, aeval_T]
+by rw [←aeval_algebra_map_apply_eq_algebra_map_eval, aeval_T]
 
 @[simp] lemma algebra_map_eval_U (x : R) (n : ℕ) :
   algebra_map R A ((U R n).eval x) = (U A n).eval (algebra_map R A x) :=
-by rw [←aeval_algebra_map_apply, aeval_U]
+by rw [←aeval_algebra_map_apply_eq_algebra_map_eval, aeval_U]
 
 @[simp, norm_cast] lemma complex_of_real_eval_T : ∀ x n, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
 @algebra_map_eval_T ℝ ℂ _ _ _

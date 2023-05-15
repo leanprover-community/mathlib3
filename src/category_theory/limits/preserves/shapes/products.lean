@@ -9,6 +9,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Preserving products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructions to relate the notions of preserving products and reflecting products
 to concrete fans.
 

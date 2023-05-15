@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     # timeout-minutes: 3
     steps:
-      - uses: styfle/cancel-workflow-action@0.9.0
+      - uses: styfle/cancel-workflow-action@0.11.0
         with:
           all_but_latest: true
           access_token: ${{ github.token }}
@@ -18,17 +18,27 @@ jobs:
     name: Lint styleJOB_NAME
     runs-on: STYLE_LINT_RUNNER
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Install bibtool
+        if: ${{ 'STYLE_LINT_RUNNER' == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bibtool
 
       - name: install Python
         if: ${{ 'STYLE_LINT_RUNNER' == 'ubuntu-latest' }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
-      - name: lint
+      - name: lint style
         run: |
           ./scripts/lint-style.sh
+
+      - name: lint references.bib
+        run: |
+          ./scripts/lint-bib.sh
 
   build:
     if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
@@ -40,7 +50,7 @@ jobs:
     outputs:
       artifact_name: ${{ steps.setup_precompiled.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: ${{ env.GIT_HISTORY_DEPTH }}
 
@@ -54,7 +64,7 @@ jobs:
 
       - name: install Python
         if: ${{ ! IS_SELF_HOSTED }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -66,7 +76,7 @@ jobs:
         run: |
           set -o pipefail
           leanpkg configure
-          echo "::set-output name=started::true"
+          echo "started=true" >> $GITHUB_OUTPUT
           lean --json -T100000 --make src | python3 scripts/detect_errors.py
           lean --json -T400000 --make src | python3 scripts/detect_errors.py
 
@@ -87,7 +97,7 @@ jobs:
           touch workspace.tar
           tar -cf workspace.tar --exclude=*.tar* .
           git_hash="$(git log -1 --pretty=format:%h)"
-          echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+          echo "artifact_name=precompiled-mathlib-$short_lean_version-$git_hash" >> $GITHUB_OUTPUT
 
       - name: upload precompiled mathlib zip file
         if: always() && steps.build.outputs.started == 'true'
@@ -119,7 +129,7 @@ jobs:
         run: rm -rf ./* ./.??*
 
       - name: retrieve build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
@@ -156,7 +166,7 @@ jobs:
         run: rm -rf ./* ./.??*
 
       - name: retrieve build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
@@ -172,18 +182,31 @@ jobs:
 
       - name: install Python
         if: ${{ ! IS_SELF_HOSTED }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
       - name: install Python dependencies
         if: ${{ ! IS_SELF_HOSTED }}
-        run: python3 -m pip install --upgrade pip pyyaml requests
+        run: python3 -m pip install --upgrade pip pyyaml requests mathlibtools
 
       - name: tests
         run: |
           set -o pipefail
           lean --json -T100000 --make docs archive roadmap test counterexamples | python3 scripts/detect_errors.py
+
+      - name: check archive and counterexample directories have unique identifiers
+        run: |
+          pip install mathlibtools
+          (cd archive && python -m mathlibtools.leanproject mk-all && mv all.lean archive_all.lean)
+          (cd counterexamples && python -m mathlibtools.leanproject mk-all && mv all.lean counterexamples_all.lean)
+          python -m mathlibtools.leanproject mk-all
+          echo "import all" >> all_all.lean
+          echo "import counterexamples_all" >> all_all.lean
+          echo "import archive_all" >> all_all.lean
+          echo "path ./archive" >> leanpkg.path
+          echo "path ./counterexamples" >> leanpkg.path
+          lean --json -T100000 --make all_all.lean | python3 scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
         if: ${{ ! IS_SELF_HOSTED }}
@@ -220,10 +243,10 @@ jobs:
     needs: [style_lint, build, lint, tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - id: PR
-        uses: 8BitJonny/gh-get-current-pr@1.2.0
+        uses: 8BitJonny/gh-get-current-pr@2.2.0
         # TODO: this may not work properly if the same commit is pushed to multiple branches:
         # https://github.com/8BitJonny/gh-get-current-pr/issues/8
         with:

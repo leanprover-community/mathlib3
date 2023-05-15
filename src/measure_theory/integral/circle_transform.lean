@@ -3,9 +3,6 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import analysis.complex.cauchy_integral
-import analysis.analytic.basic
-import analysis.calculus.parametric_interval_integral
 import data.complex.basic
 import measure_theory.integral.circle_integral
 /-!
@@ -25,7 +22,7 @@ open_locale interval real
 
 noncomputable theory
 
-variables {E : Type} [normed_add_comm_group E] [normed_space ℂ E] (R : ℝ) (z w : ℂ)
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] (R : ℝ) (z w : ℂ)
 
 namespace complex
 
@@ -131,16 +128,19 @@ lemma abs_circle_transform_bounding_function_le {R r : ℝ} (hr : r < R) (hr' : 
 begin
   have cts := continuous_on_abs_circle_transform_bounding_function hr z,
   have comp : is_compact (closed_ball z r ×ˢ [0, 2 * π]),
-  { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
-  have none := (nonempty_closed_ball.2 hr').prod nonempty_interval,
-  simpa using is_compact.exists_forall_ge comp none (cts.mono (by { intro z, simp, tauto })),
+  { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_uIcc], },
+  have none : (closed_ball z r ×ˢ [0, 2 * π]).nonempty :=
+    (nonempty_closed_ball.2 hr').prod nonempty_uIcc,
+  have := is_compact.exists_forall_ge comp none (cts.mono
+    (by { intro z, simp only [mem_prod, mem_closed_ball, mem_univ, and_true, and_imp], tauto })),
+  simpa only [set_coe.forall, subtype.coe_mk, set_coe.exists],
 end
 
 /-- The derivative of a `circle_transform` is locally bounded. -/
 lemma circle_transform_deriv_bound {R : ℝ} (hR : 0 < R) {z x : ℂ} {f : ℂ → ℂ}
   (hx : x ∈ ball z R) (hf : continuous_on f (sphere z R)) :
   ∃ (B ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
-  (∀ (t : ℝ) (y ∈ ball x ε), ∥circle_transform_deriv R z y f t∥ ≤ B) :=
+  (∀ (t : ℝ) (y ∈ ball x ε), ‖circle_transform_deriv R z y f t‖ ≤ B) :=
 begin
   obtain ⟨r, hr, hrx⟩ := exists_lt_mem_ball_of_mem_ball hx,
   obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hrx,
@@ -158,7 +158,7 @@ begin
   obtain ⟨y1, hy1, hfun⟩ := periodic.exists_mem_Ico₀
     (circle_transform_deriv_periodic R z v f) real.two_pi_pos y,
   have hy2: y1 ∈ [0, 2*π], by {convert (Ico_subset_Icc_self hy1),
-    simp [interval_of_le real.two_pi_pos.le]},
+    simp [uIcc_of_le real.two_pi_pos.le]},
   have := mul_le_mul (hab ⟨⟨v, y1⟩, ⟨ball_subset_closed_ball (H hv), hy2⟩⟩)
    (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1))
    (complex.abs.nonneg _) (complex.abs.nonneg _),

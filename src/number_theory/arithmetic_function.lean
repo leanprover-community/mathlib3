@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.big_operators.ring
+import algebra.module.big_operators
 import number_theory.divisors
 import data.nat.squarefree
+import data.nat.gcd.big_operators
 import algebra.invertible
 import data.nat.factorization.basic
 
@@ -335,78 +337,33 @@ lemma zeta_apply {x : ℕ} : ζ x = if (x = 0) then 0 else 1 := rfl
 
 lemma zeta_apply_ne {x : ℕ} (h : x ≠ 0) : ζ x = 1 := if_neg h
 
-@[simp]
-theorem coe_zeta_mul_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
-  (↑ζ * f) x = ∑ i in divisors x, f i :=
-begin
-  rw mul_apply,
-  transitivity ∑ i in divisors_antidiagonal x, f i.snd,
-  { apply sum_congr rfl,
-    intros i hi,
-    rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
-    rw [nat_coe_apply, zeta_apply_ne (left_ne_zero_of_mul h), cast_one, one_mul] },
-  { apply sum_bij (λ i h, prod.snd i),
-    { rintros ⟨a, b⟩ h, simp [snd_mem_divisors_of_mem_antidiagonal h] },
-    { rintros ⟨a, b⟩ h, refl },
-    { rintros ⟨a1, b1⟩ ⟨a2, b2⟩ h1 h2 h,
-      dsimp at h,
-      rw h at *,
-      rw mem_divisors_antidiagonal at *,
-      ext, swap, {refl},
-      simp only [prod.fst, prod.snd] at *,
-      apply nat.eq_of_mul_eq_mul_right _ (eq.trans h1.1 h2.1.symm),
-      rcases h1 with ⟨rfl, h⟩,
-      apply nat.pos_of_ne_zero (right_ne_zero_of_mul h) },
-    { intros a ha,
-      rcases mem_divisors.1 ha with ⟨⟨b, rfl⟩, ne0⟩,
-      use (b, a),
-      simp [ne0, mul_comm] } }
-end
-
-theorem coe_zeta_smul_apply {M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+@[simp] theorem coe_zeta_smul_apply {M} [semiring R] [add_comm_monoid M] [module R M]
   {f : arithmetic_function M} {x : ℕ} :
   ((↑ζ : arithmetic_function R) • f) x = ∑ i in divisors x, f i :=
 begin
   rw smul_apply,
   transitivity ∑ i in divisors_antidiagonal x, f i.snd,
-  { apply sum_congr rfl,
-    intros i hi,
+  { refine sum_congr rfl (λ i hi, _),
     rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
     rw [nat_coe_apply, zeta_apply_ne (left_ne_zero_of_mul h), cast_one, one_smul] },
-  { apply sum_bij (λ i h, prod.snd i),
-    { rintros ⟨a, b⟩ h, simp [snd_mem_divisors_of_mem_antidiagonal h] },
-    { rintros ⟨a, b⟩ h, refl },
-    { rintros ⟨a1, b1⟩ ⟨a2, b2⟩ h1 h2 h,
-      dsimp at h,
-      rw h at *,
-      rw mem_divisors_antidiagonal at *,
-      ext, swap, {refl},
-      simp only [prod.fst, prod.snd] at *,
-      apply nat.eq_of_mul_eq_mul_right _ (eq.trans h1.1 h2.1.symm),
-      rcases h1 with ⟨rfl, h⟩,
-      apply nat.pos_of_ne_zero (right_ne_zero_of_mul h) },
-    { intros a ha,
-      rcases mem_divisors.1 ha with ⟨⟨b, rfl⟩, ne0⟩,
-      use (b, a),
-      simp [ne0, mul_comm] } }
+  { rw [← map_div_left_divisors, sum_map, function.embedding.coe_fn_mk] }
 end
+
+@[simp]
+theorem coe_zeta_mul_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
+  (↑ζ * f) x = ∑ i in divisors x, f i :=
+coe_zeta_smul_apply
 
 @[simp]
 theorem coe_mul_zeta_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
   (f * ζ) x = ∑ i in divisors x, f i :=
 begin
-  apply mul_opposite.op_injective,
-  rw [op_sum],
-  convert @coe_zeta_mul_apply Rᵐᵒᵖ _ { to_fun := mul_opposite.op ∘ f, map_zero' := by simp} x,
-  rw [mul_apply, mul_apply, op_sum],
-  conv_lhs { rw ← map_swap_divisors_antidiagonal, },
-  rw sum_map,
-  apply sum_congr rfl,
-  intros y hy,
-  by_cases h1 : y.fst = 0,
-  { simp [function.comp_apply, h1] },
-  { simp only [h1, mul_one, one_mul, prod.fst_swap, function.embedding.coe_fn_mk, prod.snd_swap,
-      if_false, zeta_apply, zero_hom.coe_mk, nat_coe_apply, cast_one] }
+  rw mul_apply,
+  transitivity ∑ i in divisors_antidiagonal x, f i.1,
+  { refine sum_congr rfl (λ i hi, _),
+    rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
+    rw [nat_coe_apply, zeta_apply_ne (right_ne_zero_of_mul h), cast_one, mul_one] },
+  { rw [← map_div_right_divisors, sum_map, function.embedding.coe_fn_mk] }
 end
 
 theorem zeta_mul_apply {f : arithmetic_function ℕ} {x : ℕ} :
@@ -699,7 +656,7 @@ begin
   rcases eq_or_ne m 1 with rfl | hm',
   { simp },
   rw [one_apply_ne, one_apply_ne hm', zero_mul],
-  rw [ne.def, nat.mul_eq_one_iff, not_and_distrib],
+  rw [ne.def, mul_eq_one, not_and_distrib],
   exact or.inl hm'
 end⟩
 
@@ -775,7 +732,7 @@ end
 card_factors_eq_one_iff_prime.2 hp
 
 @[simp] lemma card_factors_apply_prime_pow {p k : ℕ} (hp : p.prime) : Ω (p ^ k) = k :=
-by rw [card_factors_apply, hp.factors_pow, list.length_repeat]
+by rw [card_factors_apply, hp.factors_pow, list.length_replicate]
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
@@ -796,7 +753,7 @@ lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠
 begin
   rw [squarefree_iff_nodup_factors h0, card_distinct_factors_apply],
   split; intro h,
-  { rw ← list.eq_of_sublist_of_length_eq n.factors.dedup_sublist h,
+  { rw ←n.factors.dedup_sublist.eq_of_length h,
     apply list.nodup_dedup },
   { rw h.dedup,
     refl }
@@ -804,7 +761,7 @@ end
 
 @[simp] lemma card_distinct_factors_apply_prime_pow {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) :
   ω (p ^ k) = 1 :=
-by rw [card_distinct_factors_apply, hp.factors_pow, list.repeat_dedup hk, list.length_singleton]
+by rw [card_distinct_factors_apply, hp.factors_pow, list.replicate_dedup hk, list.length_singleton]
 
 @[simp] lemma card_distinct_factors_apply_prime {p : ℕ} (hp : p.prime) : ω p = 1 :=
 by rw [←pow_one p, card_distinct_factors_apply_prime_pow hp one_ne_zero]

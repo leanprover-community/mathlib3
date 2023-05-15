@@ -3,11 +3,15 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.algebra.infinite_sum
-import topology.algebra.group_with_zero
+import topology.algebra.infinite_sum.order
+import topology.algebra.infinite_sum.ring
+import topology.instances.real
 
 /-!
 # Topology on `ℝ≥0`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 
@@ -21,7 +25,7 @@ Instances for the following typeclasses are defined:
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
 * `has_continuous_inv₀ ℝ≥0` (continuity of `x⁻¹` away from `0`)
-* `has_continuous_smul ℝ≥0 ℝ`
+* `has_continuous_smul ℝ≥0 α` (whenever `α` has a continuous `mul_action ℝ α`)
 
 Everything is inherited from the corresponding structures on the reals.
 
@@ -45,7 +49,7 @@ a few of which rely on the fact that subtraction is continuous.
 -/
 noncomputable theory
 open set topological_space metric filter
-open_locale topological_space
+open_locale topology
 
 namespace nnreal
 open_locale nnreal big_operators filter
@@ -99,9 +103,17 @@ lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
   tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
 tendsto_Ici_at_top.symm
 
-lemma tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
+lemma _root_.tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
   tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
 (continuous_real_to_nnreal.tendsto _).comp h
+
+lemma _root_.tendsto_real_to_nnreal_at_top : tendsto real.to_nnreal at_top at_top :=
+begin
+  rw ← tendsto_coe_at_top,
+  apply tendsto_id.congr' _,
+  filter_upwards [Ici_mem_at_top (0 : ℝ)] with x hx,
+  simp only [max_eq_left (set.mem_Ici.1 hx), id.def, real.coe_to_nnreal'],
+end
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot]
@@ -116,9 +128,9 @@ instance : has_continuous_inv₀ ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
 
-instance : has_continuous_smul ℝ≥0 ℝ :=
-{ continuous_smul := real.continuous_mul.comp $
-    (continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd }
+instance [topological_space α] [mul_action ℝ α] [has_continuous_smul ℝ α] :
+  has_continuous_smul ℝ≥0 α :=
+{ continuous_smul := (continuous_induced_dom.comp continuous_fst).smul continuous_snd }
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=

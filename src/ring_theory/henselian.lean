@@ -138,7 +138,7 @@ begin
   { intros H, constructor, intros f hf a₀ h₁ h₂,
     specialize H f hf (residue R a₀),
     have aux := flip mem_nonunits_iff.mp h₂,
-    simp only [aeval_def, ring_hom.algebra_map_to_algebra, eval₂_at_apply,
+    simp only [aeval_def, residue_field.algebra_map_eq, eval₂_at_apply,
       ← ideal.quotient.eq_zero_iff_mem, ← local_ring.mem_maximal_ideal] at H h₁ aux,
     obtain ⟨a, ha₁, ha₂⟩ := H h₁ aux,
     refine ⟨a, ha₁, _⟩,

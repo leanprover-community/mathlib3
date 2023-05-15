@@ -8,6 +8,9 @@ import data.matrix.basic
 /-!
 # Block Matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `matrix.from_blocks`: build a block matrix out of 4 blocks
@@ -24,9 +27,13 @@ import data.matrix.basic
 variables {l m n o p q : Type*} {m' n' p' : o → Type*}
 variables {R : Type*} {S : Type*} {α : Type*} {β : Type*}
 
-open_locale matrix
+open_locale big_operators matrix
 
 namespace matrix
+
+lemma dot_product_block [fintype m] [fintype n] [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :
+  v ⬝ᵥ w = v ∘ sum.inl ⬝ᵥ w ∘ sum.inl + v ∘ sum.inr ⬝ᵥ w ∘ sum.inr :=
+fintype.sum_sum_type _
 
 section block_matrices
 
@@ -103,6 +110,19 @@ rfl
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   (from_blocks A B C D).to_blocks₂₂ = D :=
 rfl
+
+/-- Two block matrices are equal if their blocks are equal. -/
+lemma ext_iff_blocks {A B : matrix (n ⊕ o) (l ⊕ m) α} :
+  A = B ↔ A.to_blocks₁₁ = B.to_blocks₁₁ ∧ A.to_blocks₁₂ = B.to_blocks₁₂ ∧
+          A.to_blocks₂₁ = B.to_blocks₂₁ ∧ A.to_blocks₂₂ = B.to_blocks₂₂ :=
+⟨λ h, h ▸ ⟨rfl, rfl, rfl, rfl⟩, λ ⟨h₁₁, h₁₂, h₂₁, h₂₂⟩,
+  by rw [←from_blocks_to_blocks A, ←from_blocks_to_blocks B, h₁₁, h₁₂, h₂₁, h₂₂]⟩
+
+@[simp] lemma from_blocks_inj
+  {A : matrix n l α} {B : matrix n m α} {C : matrix o l α} {D : matrix o m α}
+  {A' : matrix n l α} {B' : matrix n m α} {C' : matrix o l α} {D' : matrix o m α} :
+  from_blocks A B C D = from_blocks A' B' C' D' ↔ A = A' ∧ B = B' ∧ C = C' ∧ D = D' :=
+ext_iff_blocks
 
 lemma from_blocks_map
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : α → β) :
@@ -182,6 +202,10 @@ begin
   ext i j, cases i; cases j; simp [from_blocks],
 end
 
+@[simp] lemma from_blocks_zero [has_zero α] :
+  from_blocks (0 : matrix n l α) 0 0 (0 : matrix o m α) = 0 :=
+by { ext i j, rcases i; rcases j; refl }
+
 lemma from_blocks_add [has_add α]
   (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
   (A' : matrix n l α) (B' : matrix n m α) (C' : matrix o l α) (D' : matrix o m α) :
@@ -220,15 +244,49 @@ by { ext i, cases i; simp [vec_mul, dot_product] }
 
 variables [decidable_eq l] [decidable_eq m]
 
-@[simp] lemma from_blocks_diagonal [has_zero α] (d₁ : l → α) (d₂ : m → α) :
+section has_zero
+variables [has_zero α]
+
+lemma to_block_diagonal_self (d : m → α) (p : m → Prop) :
+  matrix.to_block (diagonal d) p p = diagonal (λ i : subtype p, d ↑i) :=
+begin
+  ext i j,
+  by_cases i = j,
+  { simp [h] },
+  { simp [has_one.one, h, λ h', h $ subtype.ext h'], }
+end
+
+lemma to_block_diagonal_disjoint (d : m → α) {p q : m → Prop} (hpq : disjoint p q) :
+  matrix.to_block (diagonal d) p q = 0 :=
+begin
+  ext ⟨i, hi⟩ ⟨j, hj⟩,
+  have : i ≠ j, from λ heq, hpq.le_bot i ⟨hi, heq.symm ▸ hj⟩,
+  simp [diagonal_apply_ne d this]
+end
+
+@[simp] lemma from_blocks_diagonal (d₁ : l → α) (d₂ : m → α) :
   from_blocks (diagonal d₁) 0 0 (diagonal d₂) = diagonal (sum.elim d₁ d₂) :=
 begin
   ext i j, rcases i; rcases j; simp [diagonal],
 end
 
-@[simp] lemma from_blocks_one [has_zero α] [has_one α] :
+end has_zero
+
+section has_zero_has_one
+variables [has_zero α] [has_one α]
+
+@[simp] lemma from_blocks_one :
   from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
 by { ext i j, rcases i; rcases j; simp [one_apply] }
+
+@[simp] lemma to_block_one_self (p : m → Prop) : matrix.to_block (1 : matrix m m α) p p = 1 :=
+to_block_diagonal_self _ p
+
+lemma to_block_one_disjoint {p q : m → Prop} (hpq : disjoint p q) :
+  matrix.to_block (1 : matrix m m α) p q = 0 :=
+to_block_diagonal_disjoint _ hpq
+
+end has_zero_has_one
 
 end block_matrices
 
@@ -244,8 +302,13 @@ the diagonal and zero elsewhere.
 
 See also `matrix.block_diagonal'` if the matrices may not have the same size everywhere.
 -/
-def block_diagonal (M : o → matrix m n α) : matrix (m × o) (n × o) α
-| ⟨i, k⟩ ⟨j, k'⟩ := if k = k' then M k i j else 0
+def block_diagonal (M : o → matrix m n α) : matrix (m × o) (n × o) α :=
+of $ (λ ⟨i, k⟩ ⟨j, k'⟩, if k = k' then M k i j else 0 : m × o → n × o → α)
+
+-- TODO: set as an equation lemma for `block_diagonal`, see mathlib4#3024
+lemma block_diagonal_apply' (M : o → matrix m n α) (i k j k') :
+  block_diagonal M ⟨i, k⟩ ⟨j, k'⟩ = if k = k' then M k i j else 0 :=
+rfl
 
 lemma block_diagonal_apply (M : o → matrix m n α) (ik jk) :
   block_diagonal M ik jk = if ik.2 = jk.2 then M ik.2 ik.1 jk.1 else 0 :=
@@ -294,7 +357,7 @@ by { ext, simp [block_diagonal_apply] }
   block_diagonal (λ k, diagonal (d k)) = diagonal (λ ik, d ik.2 ik.1) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, diagonal, prod.mk.inj_iff, ← ite_and],
+  simp only [block_diagonal_apply, diagonal_apply, prod.mk.inj_iff, ← ite_and],
   congr' 1,
   rw and_comm,
 end
@@ -370,8 +433,12 @@ section block_diag
 /-- Extract a block from the diagonal of a block diagonal matrix.
 
 This is the block form of `matrix.diag`, and the left-inverse of `matrix.block_diagonal`. -/
-def block_diag (M : matrix (m × o) (n × o) α) (k : o) : matrix m n α
-| i j := M (i, k) (j, k)
+def block_diag (M : matrix (m × o) (n × o) α) (k : o) : matrix m n α :=
+of $ λ i j, M (i, k) (j, k)
+
+-- TODO: set as an equation lemma for `block_diag`, see mathlib4#3024
+lemma block_diag_apply (M : matrix (m × o) (n × o) α) (k : o) (i j) :
+  block_diag M k i j = M (i, k) (j, k) := rfl
 
 lemma block_diag_map (M : matrix (m × o) (n × o) α) (f : α → β) :
   block_diag (M.map f) = λ k, (block_diag M k).map f :=
@@ -397,14 +464,22 @@ rfl
   block_diag (diagonal d) k = diagonal (λ i, d (i, k)) :=
 ext $ λ i j, begin
   obtain rfl | hij := decidable.eq_or_ne i j,
-  { rw [block_diag, diagonal_apply_eq, diagonal_apply_eq] },
-  { rw [block_diag, diagonal_apply_ne _ hij, diagonal_apply_ne _ (mt _ hij)],
+  { rw [block_diag_apply, diagonal_apply_eq, diagonal_apply_eq] },
+  { rw [block_diag_apply, diagonal_apply_ne _ hij, diagonal_apply_ne _ (mt _ hij)],
     exact prod.fst_eq_iff.mpr },
 end
 
 @[simp] lemma block_diag_block_diagonal [decidable_eq o] (M : o → matrix m n α) :
   block_diag (block_diagonal M) = M :=
-funext $ λ k, ext $ λ i j, block_diagonal_apply_eq _ _ _ _
+funext $ λ k, ext $ λ i j, block_diagonal_apply_eq M i j _
+
+lemma block_diagonal_injective [decidable_eq o] :
+  function.injective (block_diagonal : (o → matrix m n α) → matrix _ _ α) :=
+function.left_inverse.injective block_diag_block_diagonal
+
+@[simp] lemma block_diagonal_inj [decidable_eq o] {M N : o → matrix m n α} :
+  block_diagonal M = block_diagonal N ↔ M = N :=
+block_diagonal_injective.eq_iff
 
 @[simp] lemma block_diag_one [decidable_eq o] [decidable_eq m] [has_one α] :
   block_diag (1 : matrix (m × o) (m × o) α) = 1 :=
@@ -452,8 +527,15 @@ variables [has_zero α] [has_zero β]
 and zero elsewhere.
 
 This is the dependently-typed version of `matrix.block_diagonal`. -/
-def block_diagonal' (M : Π i, matrix (m' i) (n' i) α) : matrix (Σ i, m' i) (Σ i, n' i) α
-| ⟨k, i⟩ ⟨k', j⟩ := if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0
+def block_diagonal' (M : Π i, matrix (m' i) (n' i) α) : matrix (Σ i, m' i) (Σ i, n' i) α :=
+of $ (λ ⟨k, i⟩ ⟨k', j⟩, if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0 :
+  (Σ i, m' i) → (Σ i, n' i) → α)
+
+-- TODO: set as an equation lemma for `block_diagonal'`, see mathlib4#3024
+lemma block_diagonal'_apply' (M : Π i, matrix (m' i) (n' i) α) (k i k' j) :
+  block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ =
+    if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0 :=
+rfl
 
 lemma block_diagonal'_eq_block_diagonal (M : o → matrix m n α) {k k'} (i j) :
   block_diagonal M (i, k) (j, k') = block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ :=
@@ -591,8 +673,12 @@ section block_diag'
 /-- Extract a block from the diagonal of a block diagonal matrix.
 
 This is the block form of `matrix.diag`, and the left-inverse of `matrix.block_diagonal'`. -/
-def block_diag' (M : matrix (Σ i, m' i) (Σ i, n' i) α) (k : o) : matrix (m' k) (n' k) α
-| i j := M ⟨k, i⟩ ⟨k, j⟩
+def block_diag' (M : matrix (Σ i, m' i) (Σ i, n' i) α) (k : o) : matrix (m' k) (n' k) α :=
+of $ λ i j, M ⟨k, i⟩ ⟨k, j⟩
+
+-- TODO: set as an equation lemma for `block_diag'`, see mathlib4#3024
+lemma block_diag'_apply (M : matrix (Σ i, m' i) (Σ i, n' i) α) (k : o) (i j) :
+  block_diag' M k i j = M ⟨k, i⟩ ⟨k, j⟩ := rfl
 
 lemma block_diag'_map (M : matrix (Σ i, m' i) (Σ i, n' i) α) (f : α → β) :
   block_diag' (M.map f) = λ k, (block_diag' M k).map f :=
@@ -619,14 +705,22 @@ rfl
   block_diag' (diagonal d) k = diagonal (λ i, d ⟨k, i⟩) :=
 ext $ λ i j, begin
   obtain rfl | hij := decidable.eq_or_ne i j,
-  { rw [block_diag', diagonal_apply_eq, diagonal_apply_eq] },
-  { rw [block_diag', diagonal_apply_ne _ hij, diagonal_apply_ne _ (mt (λ h, _) hij)],
+  { rw [block_diag'_apply, diagonal_apply_eq, diagonal_apply_eq] },
+  { rw [block_diag'_apply, diagonal_apply_ne _ hij, diagonal_apply_ne _ (mt (λ h, _) hij)],
     cases h, refl },
 end
 
 @[simp] lemma block_diag'_block_diagonal' [decidable_eq o] (M : Π i, matrix (m' i) (n' i) α) :
   block_diag' (block_diagonal' M) = M :=
-funext $ λ k, ext $ λ i j, block_diagonal'_apply_eq _ _ _ _
+funext $ λ k, ext $ λ i j, block_diagonal'_apply_eq M _ _ _
+
+lemma block_diagonal'_injective [decidable_eq o] :
+  function.injective (block_diagonal' : (Π i, matrix (m' i) (n' i) α) → matrix _ _ α) :=
+function.left_inverse.injective block_diag'_block_diagonal'
+
+@[simp] lemma block_diagonal'_inj [decidable_eq o] {M N : Π i, matrix (m' i) (n' i) α} :
+  block_diagonal' M = block_diagonal' N ↔ M = N :=
+block_diagonal'_injective.eq_iff
 
 @[simp] lemma block_diag'_one [decidable_eq o] [Π i, decidable_eq (m' i)] [has_one α] :
   block_diag' (1 : matrix (Σ i, m' i) (Σ i, m' i) α) = 1 :=
@@ -661,5 +755,32 @@ map_sub (block_diag'_add_monoid_hom m' n' α) M N
 rfl
 
 end block_diag'
+
+section
+variables [comm_ring R]
+
+lemma to_block_mul_eq_mul {m n k : Type*} [fintype n] (p : m → Prop) (q : k → Prop)
+  (A : matrix m n R) (B : matrix n k R) :
+  (A ⬝ B).to_block p q = A.to_block p ⊤ ⬝ B.to_block ⊤ q :=
+begin
+  ext i k,
+  simp only [to_block_apply, mul_apply],
+  rw finset.sum_subtype,
+  simp [has_top.top, complete_lattice.top, bounded_order.top],
+end
+
+lemma to_block_mul_eq_add
+  {m n k : Type*} [fintype n] (p : m → Prop) (q : n → Prop) [decidable_pred q] (r : k → Prop)
+  (A : matrix m n R) (B : matrix n k R) :
+  (A ⬝ B).to_block p r =
+    A.to_block p q ⬝ B.to_block q r + A.to_block p (λ i, ¬ q i) ⬝ B.to_block (λ i, ¬ q i) r :=
+begin
+  classical,
+  ext i k,
+  simp only [to_block_apply, mul_apply, pi.add_apply],
+  convert (fintype.sum_subtype_add_sum_subtype q (λ x, A ↑i x * B x ↑k)).symm
+end
+
+end
 
 end matrix

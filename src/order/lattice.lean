@@ -3,13 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.monotone
-import order.rel_classes
+import order.monotone.basic
 import tactic.simps
 import tactic.pi_instances
 
 /-!
 # (Semi-)lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Semilattices are partially ordered sets with join (greatest lower bound, or `sup`) or
 meet (least upper bound, or `inf`) operations. Lattices are posets that are both
@@ -72,6 +74,7 @@ end
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
+@[protect_proj, ancestor has_sup partial_order]
 class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
@@ -232,6 +235,9 @@ lemma sup_eq_sup_iff_left : a ⊔ b = a ⊔ c ↔ b ≤ a ⊔ c ∧ c ≤ a ⊔ 
 lemma sup_eq_sup_iff_right : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔ c :=
 ⟨λ h, ⟨h ▸ le_sup_left, h.symm ▸ le_sup_left⟩, λ h, sup_congr_right h.1 h.2⟩
 
+lemma ne.lt_sup_or_lt_sup (hab : a ≠ b) : a < a ⊔ b ∨ b < a ⊔ b :=
+hab.symm.not_le_or_not_le.imp left_lt_sup.2 right_lt_sup.2
+
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
   (hf : monotone f) (hg : antitone g) (h : f ≤ g) (m n : α) :
@@ -267,6 +273,7 @@ end semilattice_sup
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
+@[protect_proj, ancestor has_inf partial_order]
 class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
@@ -386,6 +393,8 @@ lemma inf_eq_inf_iff_left : a ⊓ b = a ⊓ c ↔ a ⊓ c ≤ b ∧ a ⊓ b ≤ 
 lemma inf_eq_inf_iff_right : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤ b :=
 @sup_eq_sup_iff_right αᵒᵈ _ _ _ _
 
+lemma ne.inf_lt_or_inf_lt : a ≠ b → a ⊓ b < a ∨ a ⊓ b < b := @ne.lt_sup_or_lt_sup αᵒᵈ _ _ _
+
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by haveI := A; exact (x ⊓ y)) = x ⊓ y :=
@@ -431,7 +440,8 @@ end
 -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-@[protect_proj] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[protect_proj, ancestor semilattice_sup semilattice_inf]
+class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 instance (α) [lattice α] : lattice αᵒᵈ :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
@@ -494,19 +504,22 @@ variables [lattice α] {a b c d : α}
 
 lemma inf_le_sup : a ⊓ b ≤ a ⊔ b := inf_le_left.trans le_sup_left
 
-@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b :=
-begin
-  split,
-  { rintro H rfl, simpa using H },
-  { refine λ Hne, lt_iff_le_and_ne.2 ⟨inf_le_sup, λ Heq, Hne _⟩,
-    refine le_antisymm _ _,
-    exacts [le_sup_left.trans (Heq.symm.trans_le inf_le_right),
-      le_sup_right.trans (Heq.symm.trans_le inf_le_left)] }
-end
-
 @[simp] lemma sup_le_inf : a ⊔ b ≤ a ⊓ b ↔ a = b :=
 ⟨λ h, le_antisymm (le_sup_left.trans $ h.trans inf_le_right)
   (le_sup_right.trans $ h.trans inf_le_left), by { rintro rfl, simp }⟩
+
+@[simp] lemma inf_eq_sup : a ⊓ b = a ⊔ b ↔ a = b := by rw [←inf_le_sup.ge_iff_eq, sup_le_inf]
+@[simp] lemma sup_eq_inf : a ⊔ b = a ⊓ b ↔ a = b := eq_comm.trans inf_eq_sup
+@[simp] lemma inf_lt_sup : a ⊓ b < a ⊔ b ↔ a ≠ b := by rw [inf_le_sup.lt_iff_ne, ne.def, inf_eq_sup]
+
+lemma inf_eq_and_sup_eq_iff : a ⊓ b = c ∧ a ⊔ b = c ↔ a = c ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl := sup_eq_inf.1 (h.2.trans h.1.symm),
+    simpa using h },
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨inf_idem, sup_idem⟩ }
+end
 
 /-!
 #### Distributivity laws
@@ -554,6 +567,7 @@ A classic example of a distributive lattice
 is the lattice of subsets of a set, and in fact this example is
 generic in the sense that every distributive lattice is realizable
 as a sublattice of a powerset lattice. -/
+@[protect_proj, ancestor lattice]
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
 
@@ -626,7 +640,7 @@ instance linear_order.to_lattice {α : Type u} [o : linear_order α] :
   ..o }
 
 section linear_order
-variables [linear_order α] {a b c : α}
+variables [linear_order α] {a b c d : α}
 
 lemma sup_eq_max : a ⊔ b = max a b := rfl
 lemma inf_eq_min : a ⊓ b = min a b := rfl
@@ -655,6 +669,14 @@ lemma inf_ind (a b : α) {p : α → Prop} : p a → p b → p (a ⊓ b) := @sup
 @[simp] lemma inf_lt_iff : b ⊓ c < a ↔ b < a ∨ c < a := @lt_sup_iff αᵒᵈ _ _ _ _
 @[simp] lemma lt_inf_iff : a < b ⊓ c ↔ a < b ∧ a < c := @sup_lt_iff αᵒᵈ _ _ _ _
 
+variables (a b c d)
+
+lemma max_max_max_comm : max (max a b) (max c d) = max (max a c) (max b d) :=
+sup_sup_sup_comm _ _ _ _
+
+lemma min_min_min_comm : min (min a b) (min c d) = min (min a c) (min b d) :=
+inf_inf_inf_comm _ _ _ _
+
 end linear_order
 
 lemma sup_eq_max_default [semilattice_sup α] [decidable_rel ((≤) : α → α → Prop)]
@@ -663,12 +685,17 @@ begin
   ext x y,
   dunfold max_default,
   split_ifs with h',
-  exacts [sup_of_le_left h', sup_of_le_right $ (total_of (≤) x y).resolve_right h']
+  exacts [sup_of_le_right h', sup_of_le_left $ (total_of (≤) x y).resolve_left h']
 end
 
 lemma inf_eq_min_default [semilattice_inf α] [decidable_rel ((≤) : α → α → Prop)]
   [is_total α (≤)] : (⊓) = (min_default : α → α → α) :=
-@sup_eq_max_default αᵒᵈ _ _ _
+begin
+  ext x y,
+  dunfold min_default,
+  split_ifs with h',
+  exacts [inf_of_le_left h', inf_of_le_right $ (total_of (≤) x y).resolve_left h']
+end
 
 /-- A lattice with total order is a linear order.
 
@@ -749,6 +776,19 @@ instance [Π i, distrib_lattice (α' i)] : distrib_lattice (Π i, α' i) :=
 by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
 
 end pi
+
+namespace function
+variables {ι : Type*} {π : ι → Type*} [decidable_eq ι]
+
+lemma update_sup [Π i, semilattice_sup (π i)] (f : Π i, π i) (i : ι) (a b : π i) :
+  f.update i (a ⊔ b) = f.update i a ⊔ f.update i b :=
+funext $ λ j, by obtain rfl | hji := eq_or_ne j i; simp [update_noteq, *]
+
+lemma update_inf [Π i, semilattice_inf (π i)] (f : Π i, π i) (i : ι) (a b : π i) :
+  f.update i (a ⊓ b) = f.update i a ⊓ f.update i b :=
+funext $ λ j, by obtain rfl | hji := eq_or_ne j i; simp [update_noteq, *]
+
+end function
 
 /-!
 ### Monotone functions and lattices
@@ -904,6 +944,24 @@ variables (α β)
 
 instance [has_sup α] [has_sup β] : has_sup (α × β) := ⟨λp q, ⟨p.1 ⊔ q.1, p.2 ⊔ q.2⟩⟩
 instance [has_inf α] [has_inf β] : has_inf (α × β) := ⟨λp q, ⟨p.1 ⊓ q.1, p.2 ⊓ q.2⟩⟩
+
+@[simp] lemma mk_sup_mk [has_sup α] [has_sup β] (a₁ a₂ : α) (b₁ b₂ : β) :
+  (a₁, b₁) ⊔ (a₂, b₂) = (a₁ ⊔ a₂, b₁ ⊔ b₂) := rfl
+
+@[simp] lemma mk_inf_mk [has_inf α] [has_inf β] (a₁ a₂ : α) (b₁ b₂ : β) :
+  (a₁, b₁) ⊓ (a₂, b₂) = (a₁ ⊓ a₂, b₁ ⊓ b₂) := rfl
+
+@[simp] lemma fst_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).fst = p.fst ⊔ q.fst := rfl
+@[simp] lemma fst_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).fst = p.fst ⊓ q.fst := rfl
+
+@[simp] lemma snd_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).snd = p.snd ⊔ q.snd := rfl
+@[simp] lemma snd_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).snd = p.snd ⊓ q.snd := rfl
+
+@[simp] lemma swap_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).swap = p.swap ⊔ q.swap := rfl
+@[simp] lemma swap_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).swap = p.swap ⊓ q.swap := rfl
+
+lemma sup_def [has_sup α] [has_sup β] (p q : α × β) : p ⊔ q = (p.fst ⊔ q.fst, p.snd ⊔ q.snd) := rfl
+lemma inf_def [has_inf α] [has_inf β] (p q : α × β) : p ⊓ q = (p.fst ⊓ q.fst, p.snd ⊓ q.snd) := rfl
 
 instance [semilattice_sup α] [semilattice_sup β] : semilattice_sup (α × β) :=
 { sup_le := assume a b c h₁ h₂, ⟨sup_le h₁.1 h₂.1, sup_le h₁.2 h₂.2⟩,

@@ -3,10 +3,8 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Eric Wieser
 -/
-
 import algebra.direct_sum.internal
 import algebra.graded_monoid
-import data.fintype.card
 import data.mv_polynomial.variables
 
 /-!
@@ -231,7 +229,6 @@ end is_homogeneous
 
 section
 noncomputable theory
-open_locale classical
 open finset
 
 /-- `homogeneous_component n φ` is the part of `φ` that is homogeneous of degree `n`.
@@ -267,7 +264,8 @@ lemma homogeneous_component_zero : homogeneous_component 0 φ = C (coeff 0 φ) :
 begin
   ext1 d,
   rcases em (d = 0) with (rfl|hd),
-  { simp only [coeff_homogeneous_component, sum_eq_zero_iff, finsupp.zero_apply, if_true, coeff_C,
+  { classical,
+    simp only [coeff_homogeneous_component, sum_eq_zero_iff, finsupp.zero_apply, if_true, coeff_C,
       eq_self_iff_true, forall_true_iff] },
   { rw [coeff_homogeneous_component, if_neg, coeff_C, if_neg (ne.symm hd)],
     simp only [finsupp.ext_iff, finsupp.zero_apply] at hd,

@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
-import field_theory.normal
 import field_theory.primitive_element
 import field_theory.fixed
-import ring_theory.power_basis
 import group_theory.group_action.fixing_subgroup
 
 /-!
@@ -339,7 +337,7 @@ lemma of_separable_splitting_field_aux
   fintype.card (K⟮x⟯.restrict_scalars F →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
-  have h : is_integral K x := is_integral_of_is_scalar_tower x
+  have h : is_integral K x := is_integral_of_is_scalar_tower
     (is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
@@ -425,3 +423,21 @@ end
 end is_galois
 
 end galois_equivalent_definitions
+
+section normal_closure
+
+variables (k K F : Type*) [field k] [field K] [field F] [algebra k K] [algebra k F]
+  [algebra K F] [is_scalar_tower k K F] [is_galois k F]
+
+instance is_galois.normal_closure : is_galois k (normal_closure k K F) :=
+{ to_is_separable := is_separable_tower_bot_of_is_separable k _ F }
+
+end normal_closure
+
+section is_alg_closure
+
+@[priority 100]
+instance is_alg_closure.is_galois (k K : Type*) [field k] [field K] [algebra k K]
+  [is_alg_closure k K] [char_zero k] : is_galois k K := { }
+
+end is_alg_closure

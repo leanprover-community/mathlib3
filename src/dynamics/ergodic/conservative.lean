@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 import dynamics.ergodic.measure_preserving
 import combinatorics.pigeonhole
 
@@ -38,7 +38,7 @@ conservative dynamical system, Poincare recurrence theorem
 noncomputable theory
 
 open classical set filter measure_theory finset function topological_space
-open_locale classical topological_space
+open_locale classical topology
 
 variables {ι : Type*} {α : Type*} [measurable_space α] {f : α → α} {s : set α} {μ : measure α}
 

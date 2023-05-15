@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.basic
-import analysis.normed_space.lattice_ordered_group
-import analysis.normed_space.ordered
+import analysis.convex.hull
+import analysis.normed_space.basic
 
 /-!
 # Local convexity
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines absorbent and balanced sets.
 
@@ -37,7 +40,7 @@ absorbent, balanced, locally convex, LCTVS
 -/
 
 open set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {𝕜 𝕝 E  : Type*} {ι : Sort*} {κ : ι → Sort*}
 
@@ -49,7 +52,7 @@ variables (𝕜) [has_smul 𝕜 E]
 
 /-- A set `A` absorbs another set `B` if `B` is contained in all scalings of `A` by elements of
 sufficiently large norm. -/
-def absorbs (A B : set E) := ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → B ⊆ a • A
+def absorbs (A B : set E) := ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ‖a‖ → B ⊆ a • A
 
 variables {𝕜} {s t u v A B : set E}
 
@@ -99,7 +102,7 @@ end
 variables (𝕜)
 
 /-- A set is absorbent if it absorbs every singleton. -/
-def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → x ∈ a • A
+def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ‖a‖ → x ∈ a • A
 
 variables {𝕜}
 
@@ -115,7 +118,7 @@ by simp_rw [absorbs, absorbent, singleton_subset_iff]
 lemma absorbent.absorbs (hs : absorbent 𝕜 s) {x : E} : absorbs 𝕜 s {x} :=
 absorbent_iff_forall_absorbs_singleton.1 hs _
 
-lemma absorbent_iff_nonneg_lt : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ ∀ ⦃a : 𝕜⦄, r < ∥a∥ → x ∈ a • A :=
+lemma absorbent_iff_nonneg_lt : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ ∀ ⦃a : 𝕜⦄, r < ‖a‖ → x ∈ a • A :=
 forall_congr $ λ x, ⟨λ ⟨r, hr, hx⟩, ⟨r, hr.le, λ a ha, hx a ha.le⟩, λ ⟨r, hr, hx⟩,
   ⟨r + 1, add_pos_of_nonneg_of_pos hr zero_lt_one,
     λ a ha, hx ((lt_add_of_pos_right r zero_lt_one).trans_le ha)⟩⟩
@@ -130,11 +133,11 @@ end
 variables (𝕜)
 
 /-- A set `A` is balanced if `a • A` is contained in `A` whenever `a` has norm at most `1`. -/
-def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
+def balanced (A : set E) := ∀ a : 𝕜, ‖a‖ ≤ 1 → a • A ⊆ A
 
 variables {𝕜}
 
-lemma balanced_iff_smul_mem : balanced 𝕜 s ↔ ∀ ⦃a : 𝕜⦄, ∥a∥ ≤ 1 → ∀ ⦃x : E⦄, x ∈ s → a • x ∈ s :=
+lemma balanced_iff_smul_mem : balanced 𝕜 s ↔ ∀ ⦃a : 𝕜⦄, ‖a‖ ≤ 1 → ∀ ⦃x : E⦄, x ∈ s → a • x ∈ s :=
 forall₂_congr $ λ a ha, smul_set_subset_iff
 
 alias balanced_iff_smul_mem ↔ balanced.smul_mem _
@@ -204,7 +207,7 @@ variables [normed_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_c
   [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {x : E} {a b : 𝕜}
 
 /-- Scalar multiplication (by possibly different types) of a balanced set is monotone. -/
-lemma balanced.smul_mono (hs : balanced 𝕝 s) {a : 𝕝} {b : 𝕜} (h : ∥a∥ ≤ ∥b∥) : a • s ⊆ b • s :=
+lemma balanced.smul_mono (hs : balanced 𝕝 s) {a : 𝕝} {b : 𝕜} (h : ‖a‖ ≤ ‖b‖) : a • s ⊆ b • s :=
 begin
   obtain rfl | hb := eq_or_ne b 0,
   { rw norm_zero at h,
@@ -230,7 +233,7 @@ begin
   exact inv_le_one ha,
 end
 
-lemma balanced.subset_smul (hA : balanced 𝕜 A) (ha : 1 ≤ ∥a∥) : A ⊆ a • A :=
+lemma balanced.subset_smul (hA : balanced 𝕜 A) (ha : 1 ≤ ‖a‖) : A ⊆ a • A :=
 begin
   refine (subset_set_smul_iff₀ _).2 (hA (a⁻¹) _),
   { rintro rfl,
@@ -240,10 +243,10 @@ begin
     exact inv_le_one ha }
 end
 
-lemma balanced.smul_eq (hA : balanced 𝕜 A) (ha : ∥a∥ = 1) : a • A = A :=
+lemma balanced.smul_eq (hA : balanced 𝕜 A) (ha : ‖a‖ = 1) : a • A = A :=
 (hA _ ha.le).antisymm $ hA.subset_smul ha.ge
 
-lemma balanced.mem_smul_iff (hs : balanced 𝕜 s) (h : ∥a∥ = ∥b∥) : a • x ∈ s ↔ b • x ∈ s :=
+lemma balanced.mem_smul_iff (hs : balanced 𝕜 s) (h : ‖a‖ = ‖b‖) : a • x ∈ s ↔ b • x ∈ s :=
 begin
   obtain rfl | hb := eq_or_ne b 0,
   { rw [norm_zero, norm_eq_zero] at h,
@@ -291,10 +294,10 @@ begin
     (by rwa [mem_preimage, zero_smul]),
   have hr₃ := inv_pos.mpr (half_pos hr₁),
   refine ⟨(r / 2)⁻¹, hr₃, λ a ha₁, _⟩,
-  have ha₂ : 0 < ∥a∥ := hr₃.trans_le ha₁,
+  have ha₂ : 0 < ‖a‖ := hr₃.trans_le ha₁,
   refine (mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp ha₂) _ _).2 (hw₁ $ hr₂ _),
   rw [metric.mem_ball, dist_zero_right, norm_inv],
-  calc ∥a∥⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
+  calc ‖a‖⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
   ...       < r : half_lt_self hr₁,
 end
 
@@ -341,6 +344,19 @@ end
 
 lemma absorbent.zero_mem (hs : absorbent 𝕜 s) : (0 : E) ∈ s :=
 absorbs_zero_iff.1 $ absorbent_iff_forall_absorbs_singleton.1 hs _
+
+variables [module ℝ E] [smul_comm_class ℝ 𝕜 E]
+
+lemma balanced_convex_hull_of_balanced (hs : balanced 𝕜 s) : balanced 𝕜 (convex_hull ℝ s) :=
+begin
+  suffices : convex ℝ {x | ∀ a : 𝕜, ‖a‖ ≤ 1 → a • x ∈ convex_hull ℝ s},
+  { rw balanced_iff_smul_mem at hs ⊢,
+    refine λ a ha x hx, convex_hull_min _ this hx a ha,
+    exact λ y hy a ha, subset_convex_hull ℝ s (hs ha hy) },
+  intros x hx y hy u v hu hv huv a ha,
+  simp only [smul_add, ← smul_comm],
+  exact convex_convex_hull ℝ s (hx a ha) (hy a ha) hu hv huv
+end
 
 end nontrivially_normed_field
 

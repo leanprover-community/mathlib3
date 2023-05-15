@@ -5,7 +5,7 @@ Authors: Rémy Degenne, Kexing Ying
 -/
 import analysis.special_functions.pow
 import measure_theory.function.egorov
-import measure_theory.function.lp_space.basic
+import measure_theory.function.lp_space
 
 /-!
 # Convergence in measure

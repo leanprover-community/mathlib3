@@ -714,14 +714,6 @@ protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=
   inv_fun := (pi_Lp.equiv _ _).symm,
   ..linear_equiv.refl _ _}
 
-@[simp] lemma det_linear_equiv : (pi_Lp.linear_equiv p 𝕜 β : pi_Lp p β ≃ₗ[𝕜] Π i, β i).det = 1 :=
-linear_map.det_id
-
-#check basis.det
-
-@[simp] lemma det_linear_equiv_symm : (pi_Lp.linear_equiv p 𝕜 β).symm.det = 1 :=
-linear_equiv.det_refl
-
 /-- `pi_Lp.equiv` as a continuous linear equivalence. -/
 @[simps {fully_applied := ff}]
 protected def continuous_linear_equiv : pi_Lp p β ≃L[𝕜] Π i, β i :=

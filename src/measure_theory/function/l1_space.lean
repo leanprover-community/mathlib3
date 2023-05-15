@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import measure_theory.function.lp_order
+import measure_theory.function.lp_space.order
 
 
 /-!

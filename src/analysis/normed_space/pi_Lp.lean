@@ -737,6 +737,10 @@ by simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi
   (basis_fun p 𝕜 ι).repr x i = x i :=
 rfl
 
+@[simp] lemma basis_fun_equiv_fun :
+  (basis_fun p 𝕜 ι).equiv_fun = pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜) :=
+basis.equiv_fun_of_equiv_fun e
+
 lemma basis_fun_eq_pi_basis_fun :
   basis_fun p 𝕜 ι = (pi.basis_fun 𝕜 ι).map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜)).symm :=
 rfl

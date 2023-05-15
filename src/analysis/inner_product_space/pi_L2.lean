@@ -229,25 +229,6 @@ lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜)
   ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
 by simp [apply_ite conj, mul_comm]
 
-@[simp] lemma euclidean_space.norm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
-  ‖euclidean_space.single i (a : 𝕜)‖ = ‖a‖ :=
-by rw [@norm_eq_sqrt_inner 𝕜 _ _ _ _ (euclidean_space.single i a),
-  euclidean_space.inner_single_left, euclidean_space.single_apply, if_pos rfl,
-  @norm_eq_sqrt_inner 𝕜, is_R_or_C.inner_apply]
-
-@[simp] lemma euclidean_space.nnnorm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
-  ‖euclidean_space.single i (a : 𝕜)‖₊ = ‖a‖₊ :=
-nnreal.eq $ euclidean_space.norm_single _ _
-
-@[simp] lemma euclidean_space.dist_single_of_eq [decidable_eq ι] (i : ι) (a b : 𝕜) :
-  dist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = dist a b :=
-by rw [pi_Lp.dist_eq_sum, finset.sum_eq_single i, euclidean_space.single_apply, if_pos rfl]
-
-@[simp] lemma euclidean_space.nnnorm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
-  ‖euclidean_space.single i (a : 𝕜)‖₊ = ‖a‖₊ :=
-nnreal.eq $ euclidean_space.norm_single _ _
-
-
 lemma euclidean_space.pi_Lp_congr_left_single [decidable_eq ι] {ι' : Type*} [fintype ι']
   [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') :
   linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e (euclidean_space.single i' (1:𝕜)) =

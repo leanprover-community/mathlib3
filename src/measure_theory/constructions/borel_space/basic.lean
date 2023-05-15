@@ -3,14 +3,13 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import analysis.complex.basic
+import analysis.normed.group.basic
 import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice
 import measure_theory.measure.open_pos
 import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
-import topology.instances.add_circle
 import topology.instances.ereal
 import topology.metric_space.hausdorff_distance
 import topology.G_delta
@@ -1326,11 +1325,6 @@ instance nat.borel_space : borel_space ℕ := ⟨borel_eq_top_of_discrete.symm�
 instance int.borel_space : borel_space ℤ := ⟨borel_eq_top_of_discrete.symm⟩
 instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_countable.symm⟩
 
-@[priority 900]
-instance is_R_or_C.measurable_space {𝕜 : Type*} [is_R_or_C 𝕜] : measurable_space 𝕜 := borel 𝕜
-@[priority 900]
-instance is_R_or_C.borel_space {𝕜 : Type*} [is_R_or_C 𝕜] : borel_space 𝕜 := ⟨rfl⟩
-
 /- Instances on `real` and `complex` are special cases of `is_R_or_C` but without these instances,
 Lean fails to prove `borel_space (ι → ℝ)`, so we leave them here. -/
 
@@ -1345,18 +1339,6 @@ instance ennreal.borel_space : borel_space ℝ≥0∞ := ⟨rfl⟩
 
 instance ereal.measurable_space : measurable_space ereal := borel ereal
 instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
-
-instance complex.measurable_space : measurable_space ℂ := borel ℂ
-instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
-
-instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
-borel (add_circle a)
-
-instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
-
-@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
-  measurable (coe : ℝ → add_circle a) :=
-continuous.measurable $ add_circle.continuous_mk' a
 
 /-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
 gives a way to compute the measure of a set in terms of sets on which a given function `f` does not

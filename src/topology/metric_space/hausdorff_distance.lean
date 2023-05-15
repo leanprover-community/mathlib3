@@ -10,6 +10,9 @@ import topology.instances.ennreal
 /-!
 # Hausdorff distance
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Hausdorff distance on subsets of a metric (or emetric) space.
 
 Given two subsets `s` and `t` of a metric space, their Hausdorff distance is the smallest `d`
@@ -27,7 +30,7 @@ This files introduces:
 * `cthickening δ s`, the closed thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 noncomputable theory
-open_locale classical nnreal ennreal topological_space
+open_locale classical nnreal ennreal topology
 universes u v w
 
 open classical set function topological_space filter
@@ -167,7 +170,7 @@ by simp only [inf_edist, infi_image, hΦ.edist_eq]
 lemma _root_.is_open.exists_Union_is_closed {U : set α} (hU : is_open U) :
   ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ monotone F :=
 begin
-  obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between (ennreal.zero_lt_one),
+  obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between zero_lt_one,
   let F := λ (n : ℕ), (λ x, inf_edist x Uᶜ) ⁻¹' (Ici (a^n)),
   have F_subset : ∀ n, F n ⊆ U,
   { assume n x hx,
@@ -178,7 +181,7 @@ begin
   show monotone F,
   { assume m n hmn x hx,
     simp only [mem_Ici, mem_preimage] at hx ⊢,
-    apply le_trans (ennreal.pow_le_pow_of_le_one a_lt_one.le hmn) hx },
+    apply le_trans (pow_le_pow_of_le_one' a_lt_one.le hmn) hx },
   show (⋃ n, F n) = U,
   { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
     have : ¬(x ∈ Uᶜ), by simpa using hx,
@@ -421,6 +424,14 @@ open emetric
 
 /-- The minimal distance of a point to a set -/
 def inf_dist (x : α) (s : set α) : ℝ := ennreal.to_real (inf_edist x s)
+
+theorem inf_dist_eq_infi : inf_dist x s = ⨅ y : s, dist x y :=
+begin
+  rw [inf_dist, inf_edist, infi_subtype', ennreal.to_real_infi],
+  { simp only [dist_edist],
+    refl },
+  { exact λ _, edist_ne_top _ _ }
+end
 
 /-- the minimal distance is always nonnegative -/
 lemma inf_dist_nonneg : 0 ≤ inf_dist x s := by simp [inf_dist]
@@ -883,6 +894,23 @@ lemma mem_thickening_iff_exists_edist_lt {δ : ℝ} (E : set α) (x : α) :
   x ∈ thickening δ E ↔ ∃ z ∈ E, edist x z < ennreal.of_real δ :=
 inf_edist_lt_iff
 
+/-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
+lemma frontier_thickening_subset (E : set α) {δ : ℝ} :
+  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
+frontier_lt_subset_eq continuous_inf_edist continuous_const
+
+lemma frontier_thickening_disjoint (A : set α) :
+  pairwise (disjoint on (λ (r : ℝ), frontier (thickening r A))) :=
+begin
+  refine (pairwise_disjoint_on _).2 (λ r₁ r₂ hr, _),
+  cases le_total r₁ 0 with h₁ h₁,
+  { simp [thickening_of_nonpos h₁] },
+  refine ((disjoint_singleton.2 $ λ h, hr.ne _).preimage _).mono
+    (frontier_thickening_subset _) (frontier_thickening_subset _),
+  apply_fun ennreal.to_real at h,
+  rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
+end
+
 variables {X : Type u} [pseudo_metric_space X]
 
 /-- A point in a metric space belongs to the (open) `δ`-thickening of a subset `E` if and only if
@@ -904,6 +932,9 @@ end
   thickening δ ({x} : set X) = ball x δ :=
 by { ext, simp [mem_thickening_iff] }
 
+lemma ball_subset_thickening {x : X} {E : set X} (hx : x ∈ E) (δ : ℝ) : ball x δ ⊆ thickening δ E :=
+subset.trans (by simp) (thickening_subset_of_subset δ $ singleton_subset_iff.mpr hx)
+
 /-- The (open) `δ`-thickening `thickening δ E` of a subset `E` in a metric space equals the
 union of balls of radius `δ` centered at points of `E`. -/
 lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
@@ -920,23 +951,6 @@ begin
   rcases mem_thickening_iff.1 hy with ⟨z, zE, hz⟩,
   calc dist y x ≤ dist z x + dist y z : by { rw add_comm, exact dist_triangle _ _ _ }
   ... ≤ R + δ : add_le_add (hR zE) hz.le
-end
-
-/-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
-lemma frontier_thickening_subset (E : set α) {δ : ℝ} :
-  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
-frontier_lt_subset_eq continuous_inf_edist continuous_const
-
-lemma frontier_thickening_disjoint (A : set X) :
-  pairwise (disjoint on (λ (r : ℝ), frontier (thickening r A))) :=
-begin
-  refine (pairwise_disjoint_on _).2 (λ r₁ r₂ hr, _),
-  cases le_total r₁ 0 with h₁ h₁,
-  { simp [thickening_of_nonpos h₁] },
-  refine ((disjoint_singleton.2 $ λ h, hr.ne _).preimage _).mono
-    (frontier_thickening_subset _) (frontier_thickening_subset _),
-  apply_fun ennreal.to_real at h,
-  rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
 end
 
 end thickening --section
@@ -1108,7 +1122,7 @@ begin
     add_le_add hyy'.le $ edist_le_diam_of_mem hy' hx').trans_eq _),
   -- Now we're done, but `ring` won't do it because we're on `ennreal` :(
   rw [←add_assoc, ←two_mul, mul_add,
-    ennreal.mul_div_cancel' ennreal.two_ne_zero ennreal.two_ne_top],
+    ennreal.mul_div_cancel' two_ne_zero ennreal.two_ne_top],
   abel,
 end
 
@@ -1120,9 +1134,10 @@ lemma diam_cthickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (h�
 begin
   by_cases hs : bounded (cthickening ε s),
   { replace hs := hs.mono (self_subset_cthickening _),
-    have : (2 : ℝ≥0∞) * @coe ℝ≥0 _ _ ⟨ε, hε⟩ ≠ ⊤ := by simp,
+    lift ε to ℝ≥0 using hε,
+    have : (2 : ℝ≥0∞) * ε ≠ ⊤ := by simp [ennreal.mul_eq_top],
     refine (ennreal.to_real_mono (ennreal.add_ne_top.2 ⟨hs.ediam_ne_top, this⟩) $
-      ediam_cthickening_le ⟨ε, hε⟩).trans_eq _,
+      ediam_cthickening_le ε).trans_eq _,
     simp [ennreal.to_real_add hs.ediam_ne_top this, diam] },
   { rw diam_eq_zero_of_unbounded hs,
     positivity }
@@ -1163,7 +1178,7 @@ begin
   refine (h x hx y hy).not_le _,
   calc edist x y ≤ edist z x + edist z y : edist_triangle_left _ _ _
   ... ≤ ↑(r / 2) + ↑(r / 2) : add_le_add hzx.le hzy.le
-  ... = r : by rw [← ennreal.coe_add, nnreal.add_halves]
+  ... = r : by rw [← ennreal.coe_add, add_halves]
 end
 
 lemma _root_.disjoint.exists_cthickenings (hst : disjoint s t) (hs : is_compact s)

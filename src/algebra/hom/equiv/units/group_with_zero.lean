@@ -10,7 +10,6 @@ import algebra.group_with_zero.units.basic
 # Multiplication by a nonzero element in a `group_with_zero` is a permutation.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/901
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

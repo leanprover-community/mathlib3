@@ -8,6 +8,9 @@ import category_theory.comma
 /-!
 # The category of arrows
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The category of arrows, with morphisms commutative squares.
 We set this up as a specialization of the comma category `comma L R`,
 where `L` and `R` are both the identity functor.

@@ -10,6 +10,9 @@ import data.nat.choose.sum
 /-!
 # Exponential, trigonometric and hyperbolic trigonometric functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definitions of the real and complex exponential, sine, cosine, tangent,
 hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
@@ -337,7 +340,7 @@ the complex exponential function -/
 ⟨λ n, ∑ m in range n, z ^ m / m!, is_cau_exp z⟩
 
 /-- The complex exponential function, defined via its Taylor series -/
-@[pp_nodot] def exp (z : ℂ) : ℂ := lim (exp' z)
+@[irreducible, pp_nodot] def exp (z : ℂ) : ℂ := lim (exp' z)
 
 /-- The complex sine function, defined via `exp` -/
 @[pp_nodot] def sin (z : ℂ) : ℂ := ((exp (-z * I) - exp (z * I)) * I) / 2
@@ -392,8 +395,9 @@ namespace complex
 variables (x y : ℂ)
 
 @[simp] lemma exp_zero : exp 0 = 1 :=
-lim_eq_of_equiv_const $
-  λ ε ε0, ⟨1, λ j hj, begin
+begin
+  rw exp,
+  refine lim_eq_of_equiv_const (λ ε ε0, ⟨1, λ j hj, _⟩),
   convert ε0,
   cases j,
   { exact absurd hj (not_le_of_gt zero_lt_one) },
@@ -403,33 +407,29 @@ lim_eq_of_equiv_const $
     { rw ← ih dec_trivial,
       simp only [sum_range_succ, pow_succ],
       simp } }
-end⟩
+end
 
 lemma exp_add : exp (x + y) = exp x * exp y :=
-show lim (⟨_, is_cau_exp (x + y)⟩ : cau_seq ℂ abs) =
-  lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp x⟩)
-  * lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp y⟩),
-from
-have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
-    ∑ i in range j, ∑ k in range (i + 1), x ^ k / k! * (y ^ (i - k) / (i - k)!),
-  from assume j,
-    finset.sum_congr rfl (λ m hm, begin
-      rw [add_pow, div_eq_mul_inv, sum_mul],
-      refine finset.sum_congr rfl (λ i hi, _),
-      have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
-        (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
-      have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
-      rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv, mul_inv],
-      simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
-        mul_comm (m.choose i : ℂ)],
-      rw inv_mul_cancel h₁,
-      simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm]
-    end),
-by rw lim_mul_lim;
-  exact eq.symm (lim_eq_lim_of_equiv (by dsimp; simp only [hj];
-    exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)))
-
-attribute [irreducible] complex.exp
+begin
+  have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
+      ∑ i in range j, ∑ k in range (i + 1), x ^ k / k! * (y ^ (i - k) / (i - k)!),
+  { assume j,
+    refine finset.sum_congr rfl (λ m hm, _),
+    rw [add_pow, div_eq_mul_inv, sum_mul],
+    refine finset.sum_congr rfl (λ i hi, _),
+    have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
+      (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
+    have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
+    rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv, mul_inv],
+    simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
+      mul_comm (m.choose i : ℂ)],
+    rw inv_mul_cancel h₁,
+    simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm] },
+  simp_rw [exp, exp', lim_mul_lim],
+  apply (lim_eq_lim_of_equiv _).symm,
+  simp only [hj],
+  exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)
+end
 
 lemma exp_list_sum (l : list ℂ) : exp l.sum = (l.map exp).prod :=
 @monoid_hom.map_list_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ l
@@ -474,7 +474,7 @@ begin
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
-eq_conj_iff_re.1 $ by rw [← exp_conj, conj_of_real]
+conj_eq_iff_re.1 $ by rw [← exp_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_exp (x : ℝ) : (real.exp x : ℂ) = exp x :=
 of_real_exp_of_real_re _
@@ -537,7 +537,7 @@ by rw [sinh, ← ring_hom.map_neg, exp_conj, exp_conj, ← ring_hom.map_sub, sin
   map_div₀, conj_bit0, ring_hom.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
-eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
+conj_eq_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_sinh (x : ℝ) : (real.sinh x : ℂ) = sinh x :=
 of_real_sinh_of_real_re _
@@ -554,7 +554,7 @@ begin
 end
 
 lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
-eq_conj_iff_re.1 $ by rw [← cosh_conj, conj_of_real]
+conj_eq_iff_re.1 $ by rw [← cosh_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_cosh (x : ℝ) : (real.cosh x : ℂ) = cosh x :=
 of_real_cosh_of_real_re _
@@ -574,7 +574,7 @@ lemma tanh_conj : tanh (conj x) = conj (tanh x) :=
 by rw [tanh, sinh_conj, cosh_conj, ← map_div₀, tanh]
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
-eq_conj_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
+conj_eq_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_tanh (x : ℝ) : (real.tanh x : ℂ) = tanh x :=
 of_real_tanh_of_real_re _
@@ -757,7 +757,7 @@ by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        mul_neg, sinh_neg, sinh_mul_I, mul_neg]
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
-eq_conj_iff_re.1 $ by rw [← sin_conj, conj_of_real]
+conj_eq_iff_re.1 $ by rw [← sin_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_sin (x : ℝ) : (real.sin x : ℂ) = sin x :=
 of_real_sin_of_real_re _
@@ -772,7 +772,7 @@ by rw [← cosh_mul_I, ← conj_neg_I, ← ring_hom.map_mul, ← cosh_mul_I,
        cosh_conj, mul_neg, cosh_neg]
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
-eq_conj_iff_re.1 $ by rw [← cos_conj, conj_of_real]
+conj_eq_iff_re.1 $ by rw [← cos_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_cos (x : ℝ) : (real.cos x : ℂ) = cos x :=
 of_real_cos_of_real_re _
@@ -795,7 +795,7 @@ lemma tan_conj : tan (conj x) = conj (tan x) :=
 by rw [tan, sin_conj, cos_conj, ← map_div₀, tan]
 
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
-eq_conj_iff_re.1 $ by rw [← tan_conj, conj_of_real]
+conj_eq_iff_re.1 $ by rw [← tan_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_tan (x : ℝ) : (real.tan x : ℂ) = tan x :=
 of_real_tan_of_real_re _
@@ -1626,6 +1626,18 @@ begin
   cases le_or_lt 0 x,
   { exact real.add_one_le_exp_of_nonneg h },
   exact add_one_le_exp_of_nonpos h.le,
+end
+
+lemma one_sub_div_pow_le_exp_neg {n : ℕ} {t : ℝ} (ht' : t ≤ n) : (1 - t / n) ^ n ≤ exp (-t) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp, rwa nat.cast_zero at ht' },
+  convert pow_le_pow_of_le_left _ (add_one_le_exp (-(t / n))) n,
+  { abel },
+  { rw ←real.exp_nat_mul, congr' 1,
+    field_simp [nat.cast_ne_zero.mpr hn], ring },
+  { rwa [add_comm, ←sub_eq_add_neg, sub_nonneg, div_le_one],
+    positivity }
 end
 
 end real

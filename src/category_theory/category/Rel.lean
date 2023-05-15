@@ -7,7 +7,6 @@ import category_theory.category.basic
 
 /-!
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/822
 > Any changes to this file require a corresponding PR to mathlib4.
 
 The category of types with binary relations as morphisms.

@@ -9,6 +9,9 @@ import category_theory.abelian.diagram_lemmas.four
 /-!
 # Short exact sequences in abelian categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In an abelian category, a left-split or right-split short exact sequence admits a splitting.
 -/
 

@@ -30,7 +30,7 @@ second step is implemented in `diff_cont_on_cl.ball_subset_image_closed_ball`.
 -/
 
 open set filter metric complex
-open_locale topological_space
+open_locale topology
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {U : set E}
   {f : ℂ → ℂ} {g : E → ℂ} {z₀ w : ℂ} {ε r m : ℝ}
@@ -140,7 +140,7 @@ begin
       simpa [gray, ray] using h w e2 },
     have h4 : ‖z - z₀‖ < r := by simpa [dist_eq_norm] using mem_ball.mp hz,
     replace h4 : ↑‖z - z₀‖ ∈ ball (0 : ℂ) r := by simpa only [mem_ball_zero_iff, norm_eq_abs,
-      abs_of_real, abs_norm_eq_norm],
+      abs_of_real, abs_norm],
     simpa only [gray, ray, smul_smul, mul_inv_cancel h', one_smul, add_sub_cancel'_right,
       function.comp_app, coe_smul] using h3 ↑‖z - z₀‖ h4 },
   { right, -- Otherwise, it is open along at least one direction and that implies the result

@@ -10,6 +10,9 @@ import algebra.module.submodule.bilinear
 /-!
 # Tensor product of modules over commutative semirings.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs the tensor product of modules over commutative semirings. Given a semiring
 `R` and modules over it `M` and `N`, the standard construction of the tensor product is
 `tensor_product R M N`. It is also a module over `R`.
@@ -418,8 +421,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
 
-lemma lift_aux_tmul (m n) : lift_aux f (m ⊗ₜ n) = f m n :=
-zero_add _
+lemma lift_aux_tmul (m n) : lift_aux f (m ⊗ₜ n) = f m n := rfl
 
 variable {f}
 
@@ -437,11 +439,8 @@ def lift : M ⊗ N →ₗ[R] P :=
   .. lift_aux f }
 variable {f}
 
-@[simp] lemma lift.tmul (x y) : lift f (x ⊗ₜ y) = f x y :=
-zero_add _
-
-@[simp] lemma lift.tmul' (x y) : (lift f).1 (x ⊗ₜ y) = f x y :=
-lift.tmul _ _
+@[simp] lemma lift.tmul (x y) : lift f (x ⊗ₜ y) = f x y := rfl
+@[simp] lemma lift.tmul' (x y) : (lift f).1 (x ⊗ₜ y) = f x y := rfl
 
 theorem ext' {g h : (M ⊗[R] N) →ₗ[R] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
@@ -668,11 +667,11 @@ variables [add_comm_monoid Q'] [module R Q']
 
 lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
   map (f₂.comp f₁) (g₂.comp g₁) = (map f₂ g₂).comp (map f₁ g₁) :=
-ext' $ λ _ _, by simp only [linear_map.comp_apply, map_tmul]
+ext' $ λ _ _, rfl
 
 lemma lift_comp_map (i : P →ₗ[R] Q →ₗ[R] Q') (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (lift i).comp (map f g) = lift ((i.comp f).compl₂ g) :=
-ext' $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply]
+ext' $ λ _ _, rfl
 
 local attribute [ext] ext
 
@@ -740,8 +739,7 @@ lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
 
 @[simp]
 lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
-  hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g :=
-by simp only [hom_tensor_hom_map, lift.tmul, map_bilinear_apply]
+  hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g := rfl
 
 end
 
@@ -803,8 +801,8 @@ variables {M N P Q}
   tensor_tensor_tensor_comm R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
 rfl
 
-@[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
-  (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+@[simp] lemma tensor_tensor_tensor_comm_symm :
+  (tensor_tensor_tensor_comm R M N P Q).symm = tensor_tensor_tensor_comm R M P N Q :=
 rfl
 
 variables (M N P Q)

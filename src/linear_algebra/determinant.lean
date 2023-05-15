@@ -3,6 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.finite_dimensional
+import linear_algebra.general_linear_group
 import linear_algebra.matrix.reindex
 import tactic.field_simp
 import linear_algebra.matrix.nonsingular_inverse
@@ -10,6 +12,9 @@ import linear_algebra.matrix.basis
 
 /-!
 # Determinant of families of vectors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the determinant of an endomorphism, and of a family of vectors
 with respect to some basis. For the determinant of a matrix, see the file
@@ -128,7 +133,7 @@ there is no good way to generalize over universe parameters, so we can't fully s
 type that it does not depend on the choice of basis. Instead you can use the `det_aux_def'` lemma,
 or avoid mentioning a basis at all using `linear_map.det`.
 -/
-def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
+@[irreducible] def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift
   (λ b : basis ι A M,
     (det_monoid_hom).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
@@ -140,10 +145,7 @@ See also `det_aux_def'` which allows you to vary the basis.
 -/
 lemma det_aux_def (b : basis ι A M) (f : M →ₗ[A] M) :
   linear_map.det_aux (trunc.mk b) f = matrix.det (linear_map.to_matrix b b f) :=
-rfl
-
--- Discourage the elaborator from unfolding `det_aux` and producing a huge term.
-attribute [irreducible] linear_map.det_aux
+by  { rw [det_aux], refl }
 
 lemma det_aux_def' {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (tb : trunc $ basis ι A M) (b' : basis ι' A M) (f : M →ₗ[A] M) :
@@ -454,12 +456,14 @@ multilinear map. -/
 def basis.det : alternating_map R M R ι :=
 { to_fun := λ v, det (e.to_matrix v),
   map_add' := begin
-    intros v i x y,
-    simp only [e.to_matrix_update, linear_equiv.map_add],
-    apply det_update_column_add
+    intros inst v i x y,
+    cases subsingleton.elim inst ‹_›,
+    simp only [e.to_matrix_update, linear_equiv.map_add, finsupp.coe_add],
+    exact det_update_column_add _ _ _ _,
   end,
   map_smul' := begin
-    intros u i c x,
+    intros inst u i c x,
+    cases subsingleton.elim inst ‹_›,
     simp only [e.to_matrix_update, algebra.id.smul_eq_mul, linear_equiv.map_smul],
     apply det_update_column_smul
   end,
@@ -518,13 +522,16 @@ begin
   simp [alternating_map.map_perm, basis.det_self]
 end
 
-@[simp] lemma alternating_map.map_basis_eq_zero_iff {ι : Type*} [decidable_eq ι] [finite ι]
+@[simp] lemma alternating_map.map_basis_eq_zero_iff {ι : Type*} [finite ι]
   (e : basis ι R M) (f : alternating_map R M R ι) :
   f e = 0 ↔ f = 0 :=
-⟨λ h, by { casesI nonempty_fintype ι, simpa [h] using f.eq_smul_basis_det e },
-  λ h, h.symm ▸ alternating_map.zero_apply _⟩
+⟨λ h, begin
+  casesI nonempty_fintype ι,
+  letI := classical.dec_eq ι,
+  simpa [h] using f.eq_smul_basis_det e
+end, λ h, h.symm ▸ alternating_map.zero_apply _⟩
 
-lemma alternating_map.map_basis_ne_zero_iff {ι : Type*} [decidable_eq ι] [finite ι]
+lemma alternating_map.map_basis_ne_zero_iff {ι : Type*} [finite ι]
   (e : basis ι R M) (f : alternating_map R M R ι) :
   f e ≠ 0 ↔ f ≠ 0 :=
 not_congr $ f.map_basis_eq_zero_iff e

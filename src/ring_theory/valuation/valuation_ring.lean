@@ -7,7 +7,7 @@ import ring_theory.valuation.integers
 import ring_theory.ideal.local_ring
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
-import ring_theory.discrete_valuation_ring
+import ring_theory.discrete_valuation_ring.basic
 import ring_theory.bezout
 import tactic.field_simp
 
@@ -129,8 +129,7 @@ instance : linear_ordered_comm_group_with_zero (value_group A K) :=
       rw [← mul_smul, algebra.smul_def] at hf,
       nth_rewrite 1 ← one_mul b at hf,
       rw ← (algebra_map A K).map_one at hf,
-      exact is_fraction_ring.injective _ _
-        (cancel_comm_monoid_with_zero.mul_right_cancel_of_ne_zero hb hf).symm },
+      exact is_fraction_ring.injective _ _ (mul_right_cancel₀ hb hf).symm },
     apply quotient.sound',
     use [this.unit, rfl],
   end,

@@ -7,7 +7,7 @@ Authors: Jireh Loreaux
 import topology.algebra.algebra
 import topology.continuous_function.compact
 import topology.urysohns_lemma
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import analysis.normed_space.units
 import topology.algebra.module.character_space
 
@@ -260,7 +260,7 @@ begin
       ext,
       simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, coe_mul, coe_star,
         pi.mul_apply, pi.star_apply, star_def, continuous_map.coe_coe],
-      simpa only [norm_sq_eq_def', conj_mul_eq_norm_sq_left, of_real_pow], }, },
+      simpa only [norm_sq_eq_def', is_R_or_C.conj_mul, of_real_pow], }, },
   /- Get the function `g'` which is guaranteed to exist above. By the extreme value theorem and
   compactness of `t`, there is some `0 < c` such that `c ≤ g' x` for all `x ∈ t`. Then by
   `main_lemma_aux` there is some `g` for which `g * g'` is the desired function. -/
@@ -315,7 +315,7 @@ variable (X)
   galois_insertion (opens_of_ideal : ideal C(X, 𝕜) → opens X) (λ s, ideal_of_set 𝕜 s) :=
 { choice := λ I hI, opens_of_ideal I.closure,
   gc := λ I s, ideal_gc X 𝕜 I s,
-  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.prop).ge,
+  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.is_open).ge,
   choice_eq := λ I hI, congr_arg _ $ ideal.ext (set.ext_iff.mp (is_closed_of_closure_subset $
     (ideal_of_set_of_ideal_eq_closure I ▸ hI : I.closure ≤ I)).closure_eq) }
 

@@ -35,7 +35,7 @@ A slightly more elaborate corollary is that if `E` is complete and `T` is a comp
 -/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜]
-variables {E : Type*} [inner_product_space 𝕜 E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 open_locale nnreal
@@ -67,7 +67,7 @@ begin
     let c : 𝕜 := ↑‖x‖⁻¹ * r,
     have : c ≠ 0 := by simp [c, hx, hr.ne'],
     refine ⟨c • x, _, _⟩,
-    { field_simp [norm_smul, is_R_or_C.norm_eq_abs, abs_of_nonneg hr.le] },
+    { field_simp [norm_smul, abs_of_pos hr] },
     { rw T.rayleigh_smul x this,
       exact hxT } },
   { rintros ⟨x, hx, hxT⟩,
@@ -89,13 +89,13 @@ end continuous_linear_map
 namespace is_self_adjoint
 
 section real
-variables {F : Type*} [inner_product_space ℝ F]
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
 
 lemma _root_.linear_map.is_symmetric.has_strict_fderiv_at_re_apply_inner_self
   {T : F →L[ℝ] F} (hT : (T : F →ₗ[ℝ] F).is_symmetric) (x₀ : F) :
-  has_strict_fderiv_at T.re_apply_inner_self (_root_.bit0 (innerSL (T x₀) : F →L[ℝ] ℝ)) x₀ :=
+  has_strict_fderiv_at T.re_apply_inner_self (_root_.bit0 (innerSL ℝ (T x₀))) x₀ :=
 begin
-  convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
+  convert T.has_strict_fderiv_at.inner _ (has_strict_fderiv_at_id x₀),
   ext y,
   simp_rw [_root_.bit0, continuous_linear_map.comp_apply, continuous_linear_map.add_apply,
     innerSL_apply, fderiv_inner_clm_apply, id.def, continuous_linear_map.prod_apply,
@@ -120,7 +120,7 @@ begin
   refine ⟨a, b, h₁, _⟩,
   apply (inner_product_space.to_dual_map ℝ F).injective,
   simp only [linear_isometry.map_add, linear_isometry.map_smul, linear_isometry.map_zero],
-  change a • innerSL x₀ + b • innerSL (T x₀) = 0,
+  change a • innerSL _ x₀ + b • innerSL _ (T x₀) = 0,
   apply smul_right_injective (F →L[ℝ] ℝ) (two_ne_zero : (2:ℝ) ≠ 0),
   simpa only [_root_.bit0, add_smul, smul_add, one_smul, add_zero] using h₂
 end

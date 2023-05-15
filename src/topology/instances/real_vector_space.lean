@@ -9,6 +9,9 @@ import topology.instances.rat
 /-!
 # Continuous additive maps are `ℝ`-linear
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a continuous map `f : E →+ F` between two topological vector spaces
 over `ℝ` is `ℝ`-linear
 -/

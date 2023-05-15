@@ -10,6 +10,9 @@ import analysis.asymptotics.asymptotics
 /-!
 # Zero and Bounded at filter
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a filter `l` we define the notion of a function being `zero_at_filter` as well as being
 `bounded_at_filter`. Alongside this we construct the `submodule`, `add_submonoid` of functions
 that are `zero_at_filter`. Similarly, we construct the `submodule` and `subalgebra` of functions
@@ -21,7 +24,7 @@ namespace filter
 
 variables {α β : Type*}
 
-open_locale topological_space
+open_locale topology
 
 /-- If `l` is a filter on `α`, then a function `f : α → β` is `zero_at_filter l`
   if it tends to zero along `l`. -/

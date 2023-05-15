@@ -9,6 +9,9 @@ import data.set.prod
 /-!
 # Intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In any preorder `α`, we define intervals (which on each side can be either infinite, open, or
 closed) using the following naming conventions:
 - `i`: infinite
@@ -404,6 +407,19 @@ lemma _root_.is_min.Iio_eq (h : is_min a) : Iio a = ∅ := eq_empty_of_subset_em
 lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
 ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
 
+lemma not_mem_Icc_of_lt (ha : c < a) : c ∉ Icc a b := λ h, ha.not_le h.1
+lemma not_mem_Icc_of_gt (hb : b < c) : c ∉ Icc a b := λ h, hb.not_le h.2
+lemma not_mem_Ico_of_lt (ha : c < a) : c ∉ Ico a b := λ h, ha.not_le h.1
+lemma not_mem_Ioc_of_gt (hb : b < c) : c ∉ Ioc a b := λ h, hb.not_le h.2
+
+@[simp] lemma not_mem_Ioi_self : a ∉ Ioi a := lt_irrefl _
+@[simp] lemma not_mem_Iio_self : b ∉ Iio b := lt_irrefl _
+
+lemma not_mem_Ioc_of_le (ha : c ≤ a) : c ∉ Ioc a b := λ h, lt_irrefl _ $ h.1.trans_le ha
+lemma not_mem_Ico_of_ge (hb : b ≤ c) : c ∉ Ico a b := λ h, lt_irrefl _ $ h.2.trans_le hb
+lemma not_mem_Ioo_of_le (ha : c ≤ a) : c ∉ Ioo a b := λ h, lt_irrefl _ $ h.1.trans_le ha
+lemma not_mem_Ioo_of_ge (hb : b ≤ c) : c ∉ Ioo a b := λ h, lt_irrefl _ $ h.2.trans_le hb
+
 end preorder
 
 section partial_order
@@ -591,37 +607,9 @@ lemma not_mem_Ici : c ∉ Ici a ↔ c < a := not_le
 
 lemma not_mem_Iic : c ∉ Iic b ↔ b < c := not_le
 
-lemma not_mem_Icc_of_lt (ha : c < a) : c ∉ Icc a b :=
-not_mem_subset Icc_subset_Ici_self $ not_mem_Ici.mpr ha
-
-lemma not_mem_Icc_of_gt (hb : b < c) : c ∉ Icc a b :=
-not_mem_subset Icc_subset_Iic_self $ not_mem_Iic.mpr hb
-
-lemma not_mem_Ico_of_lt (ha : c < a) : c ∉ Ico a b :=
-not_mem_subset Ico_subset_Ici_self $ not_mem_Ici.mpr ha
-
-lemma not_mem_Ioc_of_gt (hb : b < c) : c ∉ Ioc a b :=
-not_mem_subset Ioc_subset_Iic_self $ not_mem_Iic.mpr hb
-
 lemma not_mem_Ioi : c ∉ Ioi a ↔ c ≤ a := not_lt
 
 lemma not_mem_Iio : c ∉ Iio b ↔ b ≤ c := not_lt
-
-@[simp] lemma not_mem_Ioi_self : a ∉ Ioi a := lt_irrefl _
-
-@[simp] lemma not_mem_Iio_self : b ∉ Iio b := lt_irrefl _
-
-lemma not_mem_Ioc_of_le (ha : c ≤ a) : c ∉ Ioc a b :=
-not_mem_subset Ioc_subset_Ioi_self $ not_mem_Ioi.mpr ha
-
-lemma not_mem_Ico_of_ge (hb : b ≤ c) : c ∉ Ico a b :=
-not_mem_subset Ico_subset_Iio_self $ not_mem_Iio.mpr hb
-
-lemma not_mem_Ioo_of_le (ha : c ≤ a) : c ∉ Ioo a b :=
-not_mem_subset Ioo_subset_Ioi_self $ not_mem_Ioi.mpr ha
-
-lemma not_mem_Ioo_of_ge (hb : b ≤ c) : c ∉ Ioo a b :=
-not_mem_subset Ioo_subset_Iio_self $ not_mem_Iio.mpr hb
 
 @[simp] lemma compl_Iic : (Iic a)ᶜ = Ioi a := ext $ λ _, not_le
 @[simp] lemma compl_Ici : (Ici a)ᶜ = Iio a := ext $ λ _, not_le

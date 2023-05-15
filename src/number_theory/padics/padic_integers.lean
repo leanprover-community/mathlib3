@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro, Johan Commelin
 -/
 import number_theory.padics.padic_numbers
-import ring_theory.discrete_valuation_ring
-import topology.metric_space.cau_seq_filter
+import ring_theory.discrete_valuation_ring.basic
 
 /-!
 # p-adic integers
@@ -314,7 +313,7 @@ begin
   { simp [hx] },
   have h : (1 : ℝ) < p := by exact_mod_cast hp.1.one_lt,
   rw [← neg_nonpos, ← (zpow_strict_mono h).le_iff_le],
-  show (p : ℝ) ^ -valuation x ≤ p ^ 0,
+  show (p : ℝ) ^ -valuation x ≤ p ^ (0 : ℤ),
   rw [← norm_eq_pow_val hx],
   simpa using x.property
 end
@@ -574,7 +573,7 @@ instance is_fraction_ring : is_fraction_ring ℤ_[p] ℚ_[p] :=
     rw [algebra_map_apply, algebra_map_apply, subtype.coe_inj],
     refine ⟨λ h, ⟨1, by rw h⟩, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
-    exact (mul_eq_mul_right_iff.mp h).resolve_right (mem_non_zero_divisors_iff_ne_zero.mp hc)
+    exact (mul_eq_mul_left_iff.mp h).resolve_right (mem_non_zero_divisors_iff_ne_zero.mp hc)
   end }
 
 end fraction_ring

@@ -3,10 +3,8 @@ Copyright (c) 2022 Moritz Doll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
-
 import analysis.calculus.iterated_deriv
 import analysis.calculus.mean_value
-import data.polynomial.basic
 import data.polynomial.module
 
 /-!
@@ -42,7 +40,7 @@ Taylor polynomial, Taylor's theorem
 -/
 
 
-open_locale big_operators interval topological_space nat
+open_locale big_operators interval topology nat
 open set
 
 variables {𝕜 E F : Type*}

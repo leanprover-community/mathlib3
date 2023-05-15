@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris Van Doorn, Yury Kudryashov
 -/
 
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 
 /-!
 # Regular measures
@@ -128,7 +128,7 @@ proofs or statements do not apply directly.
 -/
 
 open set filter
-open_locale ennreal topological_space nnreal big_operators
+open_locale ennreal topology nnreal big_operators
 
 namespace measure_theory
 namespace measure
@@ -259,10 +259,9 @@ lemma _root_.set.exists_is_open_le_add (A : set α) (μ : measure α) [outer_reg
   {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ U ⊇ A, is_open U ∧ μ U ≤ μ A + ε :=
 begin
-  rcases le_or_lt ∞ (μ A) with H|H,
-  { exact ⟨univ, subset_univ _, is_open_univ,
-      by simp only [top_le_iff.mp H, ennreal.top_add, le_top]⟩ },
-  { rcases A.exists_is_open_lt_add H.ne hε with ⟨U, AU, U_open, hU⟩,
+  rcases eq_or_ne (μ A) ∞ with H|H,
+  { exact ⟨univ, subset_univ _, is_open_univ, by simp only [H, _root_.top_add, le_top]⟩ },
+  { rcases A.exists_is_open_lt_add H hε with ⟨U, AU, U_open, hU⟩,
     exact ⟨U, AU, U_open, hU.le⟩ }
 end
 

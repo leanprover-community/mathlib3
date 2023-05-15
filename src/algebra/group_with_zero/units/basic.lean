@@ -12,7 +12,6 @@ import tactic.assert_exists
 # Lemmas about units in a `monoid_with_zero` or a `group_with_zero`.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/735
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We also define `ring.inverse`, a globally defined function on any ring
@@ -208,14 +207,6 @@ instance group_with_zero.no_zero_divisors : no_zero_divisors G₀ :=
     end,
   .. (‹_› : group_with_zero G₀) }
 
-@[priority 10] -- see Note [lower instance priority]
-instance group_with_zero.cancel_monoid_with_zero : cancel_monoid_with_zero G₀ :=
-{ mul_left_cancel_of_ne_zero := λ x y z hx h,
-    by rw [← inv_mul_cancel_left₀ hx y, h, inv_mul_cancel_left₀ hx z],
-  mul_right_cancel_of_ne_zero := λ x y z hy h,
-    by rw [← mul_inv_cancel_right₀ hy x, h, mul_inv_cancel_right₀ hy z],
-  .. (‹_› : group_with_zero G₀) }
-
 -- Can't be put next to the other `mk0` lemmas because it depends on the
 -- `no_zero_divisors` instance, which depends on `mk0`.
 @[simp] lemma units.mk0_mul (x y : G₀) (hxy) :
@@ -248,8 +239,8 @@ section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c d : G₀}
 
 @[priority 10] -- see Note [lower instance priority]
-instance comm_group_with_zero.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
-{ ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
+instance comm_group_with_zero.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
+{ ..group_with_zero.to_cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
 
 @[priority 100] -- See note [lower instance priority]
 instance comm_group_with_zero.to_division_comm_monoid : division_comm_monoid G₀ :=

@@ -9,6 +9,9 @@ import data.nat.size
 /-!
 # Square root of natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines an efficient binary implementation of the square root function that returns the
 unique `r` such that `r * r ≤ n < (r + 1) * (r + 1)`. It takes advantage of the binary
 representation by replacing the multiplication by 2 appearing in

@@ -9,6 +9,9 @@ import data.set.intervals.basic
 /-!
 # Bounded and unbounded sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove miscellaneous lemmas about bounded and unbounded sets. Many of these are just variations on
 the same ideas, or similar results with a few minor differences. The file is divided into these
 different general ideas.

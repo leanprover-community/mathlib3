@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import topology.algebra.uniform_convergence
-import topology.algebra.module.locally_convex
 
 /-!
 # Strong topologies on the space of continuous linear maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define the strong topologies on `E →L[𝕜] F` associated with a family
 `𝔖 : set (set E)` to be the topology of uniform convergence on the elements of `𝔖` (also called
@@ -47,7 +49,6 @@ sets).
 
 ## TODO
 
-* show that these topologies are T₂ and locally convex if the topology on `F` is
 * add a type alias for continuous linear maps with the topology of `𝔖`-convergence?
 
 ## Tags
@@ -55,7 +56,7 @@ sets).
 uniform convergence, bounded convergence
 -/
 
-open_locale topological_space uniform_convergence
+open_locale topology uniform_convergence
 
 namespace continuous_linear_map
 
@@ -170,20 +171,6 @@ lemma strong_topology.has_basis_nhds_zero [topological_space F] [topological_add
     (λ SV, {f : E →SL[σ] F | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
 strong_topology.has_basis_nhds_zero_of_basis σ F 𝔖 h𝔖₁ h𝔖₂ (𝓝 0).basis_sets
 
-lemma strong_topology.locally_convex_space [topological_space F']
-  [topological_add_group F'] [has_continuous_const_smul ℝ F'] [locally_convex_space ℝ F']
-  (𝔖 : set (set E')) (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
-  @locally_convex_space ℝ (E' →L[ℝ] F') _ _ _ (strong_topology (ring_hom.id ℝ) F' 𝔖) :=
-begin
-  letI : topological_space (E' →L[ℝ] F') := strong_topology (ring_hom.id ℝ) F' 𝔖,
-  haveI : topological_add_group (E' →L[ℝ] F') := strong_topology.topological_add_group _ _ _,
-  refine locally_convex_space.of_basis_zero _ _ _ _
-    (strong_topology.has_basis_nhds_zero_of_basis _ _ _ h𝔖₁ h𝔖₂
-      (locally_convex_space.convex_basis_zero ℝ F')) _,
-  rintros ⟨S, V⟩ ⟨hS, hVmem, hVconvex⟩ f hf g hg a b ha hb hab x hx,
-  exact hVconvex (hf x hx) (hg x hx) ha hb hab,
-end
-
 end general
 
 section bounded_sets
@@ -236,12 +223,6 @@ protected lemma has_basis_nhds_zero [topological_space F]
     (λ SV : set E × set F, bornology.is_vonN_bounded 𝕜₁ SV.1 ∧ SV.2 ∈ (𝓝 0 : filter F))
     (λ SV, {f : E →SL[σ] F | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
 continuous_linear_map.has_basis_nhds_zero_of_basis (𝓝 0).basis_sets
-
-instance [topological_space E'] [topological_space F'] [topological_add_group F']
-  [has_continuous_const_smul ℝ F'] [locally_convex_space ℝ F'] :
-  locally_convex_space ℝ (E' →L[ℝ] F') :=
-strong_topology.locally_convex_space _ ⟨∅, bornology.is_vonN_bounded_empty ℝ E'⟩
-  (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union)
 
 end bounded_sets
 

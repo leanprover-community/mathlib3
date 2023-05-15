@@ -3,10 +3,14 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
+import topology.algebra.ring.ideal
 import analysis.specific_limits.normed
 
 /-!
 # The group of units of a complete normed ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains the basic theory for the group of units (invertible elements) of a complete
 normed ring (Banach algebras being a notable special case).
@@ -28,7 +32,7 @@ a unit and 0 if not.  The other major results of this file (notably `inverse_add
 -/
 
 noncomputable theory
-open_locale topological_space
+open_locale topology
 variables {R : Type*} [normed_ring R] [complete_space R]
 
 namespace units

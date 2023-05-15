@@ -10,7 +10,6 @@ import control.traversable.basic
 # Traversing collections
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/948
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic properties of traversable and applicative functors and defines

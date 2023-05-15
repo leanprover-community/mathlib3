@@ -242,17 +242,14 @@ lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ‖a‖₊ • measure.map ((*) a) volume = volume :=
 begin
   refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
+  rw [measure.smul_apply, measure.map_apply (measurable_const_mul a) measurable_set_Ioo],
   cases lt_or_gt_of_ne h with h h,
-  { simp_rw [measure.smul_apply,
-      measure.map_apply (measurable_const_mul a) measurable_set_Ioo,
-      preimage_const_mul_Ioo_of_neg _ _ h, real.volume_Ioo],
-    simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
-      measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
-      neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub, smul_eq_mul,
-      mul_div_cancel' _ (ne_of_lt h)] },
-  { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
-      measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
-      abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h), smul_eq_mul] }
+  { simp_rw [preimage_const_mul_Ioo_of_neg _ _ h, real.volume_Ioo, ←ennreal.of_real_nnreal_smul,
+      nnreal.smul_def, coe_nnnorm, smul_eq_mul, norm_eq_abs, abs_of_neg h, mul_sub, neg_mul,
+      neg_sub_neg, mul_div_cancel' _ (ne_of_lt h)] },
+  { simp_rw [preimage_const_mul_Ioo _ _ h, real.volume_Ioo, ←ennreal.of_real_nnreal_smul,
+      nnreal.smul_def, coe_nnnorm, smul_eq_mul, norm_eq_abs, abs_of_pos h, mul_sub,
+      mul_div_cancel' _ (ne_of_gt h)] }
 end
 
 lemma map_volume_mul_left {a : ℝ} (h : a ≠ 0) :

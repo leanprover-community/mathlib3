@@ -239,11 +239,14 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
 -/
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
-  ennreal.of_real (|a|) • measure.map ((*) a) volume = volume :=
+  ‖a‖₊ • measure.map ((*) a) volume = volume :=
 begin
   refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
   cases lt_or_gt_of_ne h with h h,
-  { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
+  { simp_rw [measure.smul_apply,
+      measure.map_apply (measurable_const_mul a) measurable_set_Ioo,
+      preimage_const_mul_Ioo_of_neg _ _ h, real.volume_Ioo],
+    simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
       neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub, smul_eq_mul,
       mul_div_cancel' _ (ne_of_lt h)] },
@@ -253,30 +256,28 @@ begin
 end
 
 lemma map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
-  measure.map ((*) a) volume = ennreal.of_real (|a⁻¹|) • volume :=
-by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
-  ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel h, abs_one, ennreal.of_real_one,
-  one_smul] }
+  measure.map ((*) a) volume = ‖a⁻¹‖₊ • volume :=
+by rw [nnnorm_inv, eq_inv_smul_iff₀ (nnnorm_ne_zero_iff.mpr h), smul_map_volume_mul_left h]
 
 @[simp] lemma volume_preimage_mul_left {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
-  volume (((*) a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
+  volume (((*) a) ⁻¹' s) = ‖a⁻¹‖₊ • volume s :=
 calc volume (((*) a) ⁻¹' s) = measure.map ((*) a) volume s :
   ((homeomorph.mul_left₀ a h).to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_left h, refl }
+... = ‖a⁻¹‖₊ * volume s : by { rw map_volume_mul_left h, refl }
 
 lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
-  ennreal.of_real (|a|) • measure.map (* a) volume = volume :=
+  ‖a‖₊ • measure.map (* a) volume = volume :=
 by simpa only [mul_comm] using real.smul_map_volume_mul_left h
 
 lemma map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
-  measure.map (* a) volume = ennreal.of_real (|a⁻¹|) • volume :=
+  measure.map (* a) volume = ‖a⁻¹‖₊ • volume :=
 by simpa only [mul_comm] using real.map_volume_mul_left h
 
 @[simp] lemma volume_preimage_mul_right {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
-  volume ((* a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
+  volume ((* a) ⁻¹' s) = ‖a⁻¹‖₊ • volume s :=
 calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
   ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
+... = ‖a⁻¹‖₊ • volume s : by { rw map_volume_mul_right h, refl }
 
 /-!
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
@@ -288,7 +289,7 @@ open matrix
 `real.map_matrix_volume_pi_eq_smul_volume_pi`, that one should use instead (and whose proof
 uses this particular case). -/
 lemma smul_map_diagonal_volume_pi [decidable_eq ι] {D : ι → ℝ} (h : det (diagonal D) ≠ 0) :
-  ennreal.of_real (abs (det (diagonal D))) • measure.map ((diagonal D).to_lin') volume = volume :=
+  ‖det (diagonal D)‖₊ • measure.map ((diagonal D).to_lin') volume = volume :=
 begin
   refine (measure.pi_eq (λ s hs, _)).symm,
   simp only [det_diagonal, measure.coe_smul, algebra.id.smul_eq_mul, pi.smul_apply],
@@ -299,14 +300,13 @@ begin
   { ext f,
     simp only [linear_map.coe_proj, algebra.id.smul_eq_mul, linear_map.smul_apply, mem_univ_pi,
       mem_preimage, linear_map.pi_apply, diagonal_to_lin'] },
-  have B : ∀ i, of_real (abs (D i)) * volume (has_mul.mul (D i) ⁻¹' s i) = volume (s i),
+  have B : ∀ i, ‖D i‖₊ • volume (has_mul.mul (D i) ⁻¹' s i) = volume (s i),
   { assume i,
     have A : D i ≠ 0,
     { simp only [det_diagonal, ne.def] at h,
       exact finset.prod_ne_zero_iff.1 h i (finset.mem_univ i) },
-    rw [volume_preimage_mul_left A, ← mul_assoc, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul,
-      mul_inv_cancel A, abs_one, ennreal.of_real_one, one_mul] },
-  rw [this, volume_pi_pi, finset.abs_prod,
+    rw [volume_preimage_mul_left A, nnnorm_inv, smul_inv_smul₀ (nnnorm_ne_zero_iff.mpr A)] },
+  rw [this, volume_pi_pi, finset.nnnorm_prod,
     ennreal.of_real_prod_of_nonneg (λ i hi, abs_nonneg (D i)), ← finset.prod_mul_distrib],
   simp only [B]
 end
@@ -356,19 +356,18 @@ end
 /-- Any invertible matrix rescales Lebesgue measure through the absolute value of its
 determinant. -/
 lemma map_matrix_volume_pi_eq_smul_volume_pi [decidable_eq ι] {M : matrix ι ι ℝ} (hM : det M ≠ 0) :
-  measure.map M.to_lin' volume = ennreal.of_real (abs (det M)⁻¹) • volume :=
+  measure.map M.to_lin' volume = ‖(det M)⁻¹‖₊ • volume :=
 begin
   -- This follows from the cases we have already proved, of diagonal matrices and transvections,
   -- as these matrices generate all invertible matrices.
   apply diagonal_transvection_induction_of_det_ne_zero _ M hM (λ D hD, _) (λ t, _)
     (λ A B hA hB IHA IHB, _),
   { conv_rhs { rw [← smul_map_diagonal_volume_pi hD] },
-    rw [smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel hD, abs_one,
-      ennreal.of_real_one, one_smul] },
+    rw [nnnorm_inv, inv_smul_smul₀ (nnnorm_ne_zero_iff.mpr hD)] },
   { simp only [matrix.transvection_struct.det, ennreal.of_real_one,
-      (volume_preserving_transvection_struct _).map_eq, one_smul, _root_.inv_one, abs_one] },
-  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, measure.map_smul,
-      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv],
+      (volume_preserving_transvection_struct _).map_eq, one_smul, _root_.inv_one, nnnorm_one] },
+  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, measure.map_smul_nnreal,
+      IHA, smul_smul, ← nnnorm_mul, _root_.mul_inv_rev],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },
     { apply continuous.measurable,
@@ -378,7 +377,7 @@ end
 /-- Any invertible linear map rescales Lebesgue measure through the absolute value of its
 determinant. -/
 lemma map_linear_map_volume_pi_eq_smul_volume_pi {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0) :
-  measure.map f volume = ennreal.of_real (abs (f.det)⁻¹) • volume :=
+  measure.map f volume = ‖f.det⁻¹‖₊ • volume :=
 begin
   -- this is deduced from the matrix case
   classical,

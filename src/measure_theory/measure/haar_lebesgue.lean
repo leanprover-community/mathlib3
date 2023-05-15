@@ -202,7 +202,7 @@ linear equiv maps Haar measure to Haar measure.
 lemma map_linear_map_add_haar_pi_eq_smul_add_haar
   {ι : Type*} [finite ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
   (μ : measure (ι → ℝ)) [is_add_haar_measure μ] :
-  measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
+  measure.map f μ = ‖(f.det)⁻¹‖₊ • μ :=
 begin
   casesI nonempty_fintype ι,
   /- We have already proved the result for the Lebesgue product measure, using matrices.
@@ -218,7 +218,7 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable
 
 lemma map_linear_map_add_haar_eq_smul_add_haar
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) :
-  measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
+  measure.map f μ = ‖(f.det)⁻¹‖₊ • μ :=
 begin
   -- we reduce to the case of `E = ι → ℝ`, for which we have already proved the result using
   -- matrices in `map_linear_map_add_haar_pi_eq_smul_add_haar`.
@@ -243,7 +243,7 @@ begin
   haveI : is_add_haar_measure (map e μ) := (e : E ≃+ (ι → ℝ)).is_add_haar_measure_map μ Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,
+  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul_nnreal,
     map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 
@@ -251,25 +251,25 @@ end
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_linear_map
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) (s : set E) :
-  μ (f ⁻¹' s) = ennreal.of_real (abs (f.det)⁻¹) * μ s :=
+  μ (f ⁻¹' s) = ‖(f.det)⁻¹‖₊ • μ s :=
 calc μ (f ⁻¹' s) = measure.map f μ s :
   ((f.equiv_of_det_ne_zero hf).to_continuous_linear_equiv.to_homeomorph
     .to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs (f.det)⁻¹) * μ s :
+... = ‖(f.det)⁻¹‖₊ * μ s :
   by { rw map_linear_map_add_haar_eq_smul_add_haar μ hf, refl }
 
 /-- The preimage of a set `s` under a continuous linear map `f` with nonzero determinant has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_continuous_linear_map
   {f : E →L[ℝ] E} (hf : linear_map.det (f : E →ₗ[ℝ] E) ≠ 0) (s : set E) :
-  μ (f ⁻¹' s) = ennreal.of_real (abs (linear_map.det (f : E →ₗ[ℝ] E))⁻¹) * μ s :=
+  μ (f ⁻¹' s) = ‖(linear_map.det (f : E →ₗ[ℝ] E))⁻¹‖₊ • μ s :=
 add_haar_preimage_linear_map μ hf s
 
 /-- The preimage of a set `s` under a linear equiv `f` has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_linear_equiv
   (f : E ≃ₗ[ℝ] E) (s : set E) :
-  μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
+  μ (f ⁻¹' s) = ‖(f.symm : E →ₗ[ℝ] E).det‖₊ • μ s :=
 begin
   have A : (f : E →ₗ[ℝ] E).det ≠ 0 := (linear_equiv.is_unit_det' f).ne_zero,
   convert add_haar_preimage_linear_map μ A s,
@@ -280,14 +280,14 @@ end
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_continuous_linear_equiv
   (f : E ≃L[ℝ] E) (s : set E) :
-  μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
+  μ (f ⁻¹' s) = ‖(f.symm : E →ₗ[ℝ] E).det‖₊ • μ s :=
 add_haar_preimage_linear_equiv μ _ s
 
 /-- The image of a set `s` under a linear map `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_linear_map
   (f : E →ₗ[ℝ] E) (s : set E) :
-  μ (f '' s) = ennreal.of_real (abs f.det) * μ s :=
+  μ (f '' s) = ‖f.det‖₊ • μ s :=
 begin
   rcases ne_or_eq f.det 0 with hf|hf,
   { let g := (f.equiv_of_det_ne_zero hf).to_continuous_linear_equiv,
@@ -297,7 +297,7 @@ begin
     ext x,
     simp only [linear_equiv.coe_to_continuous_linear_equiv, linear_equiv.of_is_unit_det_apply,
                linear_equiv.coe_coe, continuous_linear_equiv.symm_symm], },
-  { simp only [hf, zero_mul, ennreal.of_real_zero, abs_zero],
+  { simp only [hf, zero_smul, ennreal.of_real_zero, nnnorm_zero],
     have : μ f.range = 0 :=
       add_haar_submodule μ _ (linear_map.range_lt_top_of_det_eq_zero hf).ne,
     exact le_antisymm (le_trans (measure_mono (image_subset_range _ _)) this.le) (zero_le _) }
@@ -307,14 +307,14 @@ end
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_continuous_linear_map
   (f : E →L[ℝ] E) (s : set E) :
-  μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
+  μ (f '' s) =‖(f : E →ₗ[ℝ] E).det‖₊ • μ s :=
 add_haar_image_linear_map μ _ s
 
 /-- The image of a set `s` under a continuous linear equiv `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_continuous_linear_equiv
   (f : E ≃L[ℝ] E) (s : set E) :
-  μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
+  μ (f '' s) = ‖(f : E →ₗ[ℝ] E).det‖₊ • μ s :=
 μ.add_haar_image_linear_map (f : E →ₗ[ℝ] E) s
 
 /-!
@@ -322,7 +322,7 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
 -/
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
-  measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
+  measure.map ((•) r) μ = ‖(r ^ (finrank ℝ E))⁻¹‖₊ • μ :=
 begin
   let f : E →ₗ[ℝ] E := r • 1,
   change measure.map f μ = _,
@@ -335,32 +335,31 @@ begin
 end
 
 @[simp] lemma add_haar_preimage_smul {r : ℝ} (hr : r ≠ 0) (s : set E) :
-  μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) * μ s :=
+  μ (((•) r) ⁻¹' s) = ‖(r ^ finrank ℝ E)⁻¹‖₊ • μ s :=
 calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   ((homeomorph.smul (is_unit_iff_ne_zero.2 hr).unit).to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s : by { rw map_add_haar_smul μ hr, refl }
+... = ‖(r^finrank ℝ E)⁻¹‖₊ • μ s : by { rw map_add_haar_smul μ hr, refl }
 
 /-- Rescaling a set by a factor `r` multiplies its measure by `abs (r ^ dim)`. -/
 @[simp] lemma add_haar_smul (r : ℝ) (s : set E) :
-  μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+  μ (r • s) = ‖r ^ finrank ℝ E‖₊ • μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
   { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow, inv_inv] },
   rcases eq_empty_or_nonempty s with rfl|hs,
-  { simp only [measure_empty, mul_zero, smul_set_empty] },
+  { simp only [measure_empty, smul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],
   by_cases h : finrank ℝ E = 0,
   { haveI : subsingleton E := finrank_zero_iff.1 h,
-    simp only [h, one_mul, ennreal.of_real_one, abs_one, subsingleton.eq_univ_of_nonempty hs,
+    simp only [h, one_smul, nnnorm_one, subsingleton.eq_univ_of_nonempty hs,
       pow_zero, subsingleton.eq_univ_of_nonempty (singleton_nonempty (0 : E))] },
   { haveI : nontrivial E := nontrivial_of_finrank_pos (bot_lt_iff_ne_bot.2 h),
-    simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
-      measure_singleton] }
+    simp only [h, zero_smul, nnnorm_zero, ne.def, not_false_iff, zero_pow', measure_singleton] }
 end
 
 lemma add_haar_smul_of_nonneg {r : ℝ} (hr : 0 ≤ r) (s : set E) :
-  μ (r • s) = ennreal.of_real (r ^ finrank ℝ E) * μ s :=
-by rw [add_haar_smul, abs_pow, abs_of_nonneg hr]
+  μ (r • s) = (⟨r, hr⟩ ^ finrank ℝ E : ℝ≥0) • μ s :=
+by rw [add_haar_smul, nnnorm_pow, real.nnnorm_of_nonneg]
 
 variables {μ} {s : set E}
 
@@ -376,16 +375,16 @@ begin
   obtain ⟨t, ht, hst⟩ := hs,
   refine ⟨_, ht.const_smul_of_ne_zero hr, _⟩,
   rw ←measure_symm_diff_eq_zero_iff at ⊢ hst,
-  rw [←smul_set_symm_diff₀ hr, add_haar_smul μ, hst, mul_zero],
+  rw [←smul_set_symm_diff₀ hr, add_haar_smul μ, hst, smul_zero],
 end
 
 variables (μ)
 
 @[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
-  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+  μ (affine_map.homothety x r '' s) = ‖r ^ finrank ℝ E‖₊ • μ s :=
 calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
   by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
-... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
+... = ‖r ^ finrank ℝ E‖₊ • μ s :
   by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
 
 /-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
@@ -457,7 +456,7 @@ begin
 end
 
 lemma add_haar_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
-  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
+  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) • μ (ball 0 s) :=
 begin
   have : ball (0 : E) (r * s) = r • ball 0 s,
     by simp only [smul_ball hr.ne' (0 : E) s, real.norm_eq_abs, abs_of_nonneg hr.le, smul_zero],
@@ -465,7 +464,7 @@ begin
 end
 
 lemma add_haar_ball_of_pos (x : E) {r : ℝ} (hr : 0 < r) :
-  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) • μ (ball 0 1) :=
 by rw [← add_haar_ball_mul_of_pos μ x hr, mul_one]
 
 lemma add_haar_ball_mul [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) (s : ℝ) :

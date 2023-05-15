@@ -307,7 +307,7 @@ end
 
 @[simp] protected lemma coe_to_basis_repr (b : orthonormal_basis ι 𝕜 E) :
   b.to_basis.equiv_fun = b.repr.to_linear_equiv :=
-basis.equiv_fun_of_equiv_fun
+basis.equiv_fun_of_equiv_fun _
 
 @[simp] protected lemma coe_to_basis_repr_apply (b : orthonormal_basis ι 𝕜 E) (x : E) (i : ι) :
   b.to_basis.repr x i = b.repr x i :=

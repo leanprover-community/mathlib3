@@ -27,7 +27,7 @@ example (r : k) (x : bundled k G V) :
   r • x = ((•) : k → V → V) r x := -- `rfl' fails! They aren't definitionally equal.
 begin
 -- but the statement is still true!
-  rw restrict_scalars_smul_def,
+  rw restrict_scalars.smul_def,
   dunfold algebra_map algebra.to_ring_hom,
   dsimp,
   rw [←finsupp.smul_single_one, @smul_assoc _ _ _ _ _ _ H, ←monoid_algebra.one_def,
@@ -35,6 +35,6 @@ begin
   refl,
 end
 
-/- See the file `algebra.category.Module.algebra` for more comments on this. -/
+/- The file `algebra.category.Module.algebra` warns of this issue. -/
 
 end ITP

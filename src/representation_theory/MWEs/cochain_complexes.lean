@@ -35,7 +35,7 @@ begin
   of `X.d (n - 1 + 1)`, we get an error 'motive is not type correct'; this is the problem with
   `rewriting` a type. -/
   -- rw int.sub_add_cancel n 1,
-  sorry -- It is unclear what we can do!
+  sorry -- It is unclear what we can do! Working with `heq` can be difficult and unintuitive.
 end
 
 /- However, here is one possibility: Lean uses inductive types, and equality is an inductive type
@@ -44,7 +44,7 @@ end
 inductive eq {α : Sort*} (a : α) : α → Prop
 | refl [] : eq a
 
-Therefore `eq` has an elimination principle: the `cases` tactic can "eliminate" a term of type
+Therefore `eq` has an elimination principle: the `cases` tactic can eliminate a term of type
 `H : i = j` in the local context of a lemma, replacing all occurrences of `i` with `j` in the
 goal - even in types. Informally, we are case-splitting on the possible inductive constructors of
 an inequality - but there is only one, the case when '`i` is `j`'.

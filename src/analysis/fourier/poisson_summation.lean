@@ -7,7 +7,7 @@ import analysis.fourier.add_circle
 import analysis.fourier.fourier_transform
 import analysis.p_series
 import analysis.schwartz_space
-import analysis.special_functions.pow_tactic
+import analysis.special_functions.pow.tactic
 
 /-!
 # Poisson's summation formula

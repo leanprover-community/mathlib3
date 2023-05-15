@@ -10,7 +10,7 @@ import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
 import tactic.positivity
-import analysis.special_functions.pow_real
+import analysis.special_functions.pow.real
 
 /-!
 # Schwartz space

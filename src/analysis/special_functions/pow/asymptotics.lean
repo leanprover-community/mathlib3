@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
   Rémy Degenne, David Loeffler
 -/
-import analysis.special_functions.pow_nnreal
+import analysis.special_functions.pow.nnreal
 
 /-!
 # Limits and asymptotics of power functions at `+∞`

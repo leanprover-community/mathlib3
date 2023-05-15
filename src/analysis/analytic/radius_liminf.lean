@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.analytic.basic
-import analysis.special_functions.pow_nnreal
+import analysis.special_functions.pow.nnreal
 
 /-!
 # Representation of `formal_multilinear_series.radius` as a `liminf`

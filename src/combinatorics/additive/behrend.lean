@@ -7,7 +7,7 @@ import analysis.inner_product_space.pi_L2
 import combinatorics.additive.salem_spencer
 import combinatorics.pigeonhole
 import data.complex.exponential_bounds
-import analysis.special_functions.pow_tactic
+import analysis.special_functions.pow.tactic
 
 /-!
 # Behrend's bound on Roth numbers

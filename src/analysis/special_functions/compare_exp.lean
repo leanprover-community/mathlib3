@@ -3,7 +3,7 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.special_functions.pow_asymptotics
+import analysis.special_functions.pow.asymptotics
 import analysis.asymptotics.asymptotic_equivalent
 import analysis.asymptotics.specific_asymptotics
 

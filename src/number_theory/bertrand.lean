@@ -7,7 +7,7 @@ import data.nat.choose.factorization
 import data.nat.prime_norm_num
 import number_theory.primorial
 import analysis.convex.specific_functions
-import analysis.special_functions.pow_tactic
+import analysis.special_functions.pow.tactic
 
 /-!
 # Bertrand's Postulate

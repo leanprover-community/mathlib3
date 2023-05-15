@@ -4,13 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
   Rémy Degenne, David Loeffler
 -/
-import analysis.special_functions.pow_nnreal
+import analysis.special_functions.pow.nnreal
 
 /-!
 # Tactics for power functions
 
 This file contains extensions to the `norm_num` and `positivity` tactics to handle power operations
 on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`.
+
+TODO: Split up the contents of this file and merge with other files in `analysis/special_functions/pow/`,
+to keep the tactics together with the corresponding definitions.
+
 -/
 
 open_locale nnreal ennreal

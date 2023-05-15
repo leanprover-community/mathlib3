@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébastien Gouëzel,
   Rémy Degenne, David Loeffler
 -/
-import analysis.special_functions.pow_real
+import analysis.special_functions.pow.real
 
 /-!
 # Power function on `ℝ≥0` and `ℝ≥0∞`

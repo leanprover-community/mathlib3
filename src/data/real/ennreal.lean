@@ -1708,6 +1708,11 @@ lemma of_real_nsmul {x : ℝ} {n : ℕ} :
   ennreal.of_real (n • x) = n • ennreal.of_real x :=
 by simp only [nsmul_eq_mul, ← of_real_coe_nat n, ← of_real_mul n.cast_nonneg]
 
+lemma of_real_nnreal_smul (c : ℝ≥0) (x : ℝ) :
+  ennreal.of_real (c • x) = c • ennreal.of_real x :=
+by simp_rw [nnreal.smul_def, smul_eq_mul, of_real_mul c.coe_nonneg, of_real_coe_nnreal, smul_def,
+  smul_eq_mul]
+
 lemma of_real_inv_of_pos {x : ℝ} (hx : 0 < x) :
   (ennreal.of_real x)⁻¹ = ennreal.of_real x⁻¹ :=
 by rw [ennreal.of_real, ennreal.of_real, ←@coe_inv (real.to_nnreal x) (by simp [hx]), coe_eq_coe,

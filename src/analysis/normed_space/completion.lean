@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.normed.group.completion
-import analysis.normed_space.operator_norm
+import analysis.normed_space.continuous_linear_map
+import analysis.normed_space.linear_isometry
 import topology.algebra.uniform_ring
 
 /-!
@@ -54,10 +55,6 @@ def to_complL : E →L[𝕜] completion E :=
 to_complₗᵢ.to_continuous_linear_map
 
 @[simp] lemma coe_to_complL : ⇑(to_complL : E →L[𝕜] completion E) = coe := rfl
-
-@[simp] lemma norm_to_complL {𝕜 E : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
-  [normed_space 𝕜 E] [nontrivial E] : ‖(to_complL : E →L[𝕜] completion E)‖ = 1 :=
-(to_complₗᵢ : E →ₗᵢ[𝕜] completion E).norm_to_continuous_linear_map
 
 section algebra
 

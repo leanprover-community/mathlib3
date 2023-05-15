@@ -30,6 +30,15 @@ open_locale measure_theory nnreal ennreal
 
 local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
 
+noncomputable instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
+borel (add_circle a)
+
+instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
+
+@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
+  measurable (coe : ℝ → add_circle a) :=
+continuous.measurable $ add_circle.continuous_mk' a
+
 lemma is_add_fundamental_domain_Ioc {T : ℝ} (hT : 0 < T) (t : ℝ) (μ : measure ℝ . volume_tac) :
   is_add_fundamental_domain (add_subgroup.zmultiples T) (Ioc t (t + T)) μ :=
 begin

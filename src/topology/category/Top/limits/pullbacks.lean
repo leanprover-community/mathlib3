@@ -9,6 +9,9 @@ import category_theory.concrete_category.elementwise
 /-!
 # Pullbacks in the category of topological spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open topological_space

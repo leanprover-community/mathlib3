@@ -52,12 +52,6 @@ local notation `I^` N := N → I
 
 namespace cube
 
-instance compact_space : compact_space (I^N) :=
-by { convert pi.compact_space, intro, apply_instance }
-
-instance locally_compact_space : locally_compact_space (I^N) :=
-by convert locally_compact_space.pi; intro; apply_instance
-
 /-- The points in a cube with at least one projection equal to 0 or 1. -/
 def boundary (N : Type*) : set (I^N) := {y | ∃ i, y i = 0 ∨ y i = 1}
 
@@ -203,10 +197,6 @@ end
 
 section
 
-/-- The inclusion from the space of generalized loops to the space of all continuous functions
-  (not necessarily constant on the boundary), as a continuous map. -/
-@[reducible] def c_coe : C(Ω^N x, C(I^N, X)) := ⟨λ p, p.val, continuous_induced_dom⟩
-
 variable [decidable_eq N]
 
 /-- Composition with `cube.insert_at` as a continuous map. -/
@@ -247,8 +237,8 @@ end
   `n`-dimensional loops can be seen as a homotopy between two `n+1`-dimensional paths. -/
 def homotopy_from (i : N) {p q : Ω^N x}
   (H : (to_loop i p).homotopy (to_loop i q)) : C(I × I^N, X) :=
-((⟨_, continuous_map.continuous_uncurry⟩ : C(_,_)).comp
-  (c_coe.comp H.to_continuous_map).curry).uncurry.comp $
+(continuous_map.comp ⟨_, continuous_map.continuous_uncurry⟩
+  (continuous_map.comp ⟨coe⟩ H.to_continuous_map).curry).uncurry.comp $
     (continuous_map.id I).prod_map (cube.split_at i).to_continuous_map
 
 -- Should be generated with `@[simps]` but it times out.
@@ -383,8 +373,8 @@ lemma is_unital_aux_group (i : N) :
 def trans_at (i : N) (f g : Ω^N x) : Ω^N x :=
 copy ((loop_equiv i).symm ((loop_equiv i f).trans $ loop_equiv i g))
   (λ t, if (t i : ℝ) ≤ 1/2
-    then f (function.update t i $ set.proj_Icc 0 1 zero_le_one (2 * t i))
-    else g (function.update t i $ set.proj_Icc 0 1 zero_le_one (2 * t i - 1)))
+    then f (t.update i $ set.proj_Icc 0 1 zero_le_one (2 * t i))
+    else g (t.update i $ set.proj_Icc 0 1 zero_le_one (2 * t i - 1)))
 begin
   ext1, symmetry,
   dsimp only [path.trans, from_loop, path.coe_mk, function.comp_app, loop_equiv_symm_apply,

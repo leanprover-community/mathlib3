@@ -1050,6 +1050,8 @@ by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact is_compact_univ_pi (λ i, is_compact_univ) }⟩
 
+instance function.compact_space [compact_space β] : compact_space (ι → β) := pi.compact_space
+
 /-- **Tychonoff's theorem** formulated in terms of filters: `filter.cocompact` on an indexed product
 type `Π d, κ d` the `filter.Coprod` of filters `filter.cocompact` on `κ d`. -/
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
@@ -1130,6 +1132,12 @@ instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compac
     { rw if_pos h, exact hc i, },
     { rw if_neg h, exact compact_space.is_compact_univ, } },
 end⟩
+
+instance locally_compact_space.function_finite [finite ι] [locally_compact_space β]:
+  locally_compact_space (ι → β) := locally_compact_space.pi_finite
+
+instance locally_compact_space.function [locally_compact_space β] [compact_space β] :
+  locally_compact_space (ι → β) := locally_compact_space.pi
 
 end pi
 

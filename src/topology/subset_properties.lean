@@ -1133,7 +1133,7 @@ instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compac
     { rw if_neg h, exact compact_space.is_compact_univ, } },
 end⟩
 
-instance locally_compact_space.function_finite [finite ι] [locally_compact_space β]:
+instance locally_compact_space.function_finite [finite ι] [locally_compact_space β] :
   locally_compact_space (ι → β) := locally_compact_space.pi_finite
 
 instance locally_compact_space.function [locally_compact_space β] [compact_space β] :

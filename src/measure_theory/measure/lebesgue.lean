@@ -303,9 +303,9 @@ begin
     { simp only [det_diagonal, ne.def] at h,
       exact finset.prod_ne_zero_iff.1 h i (finset.mem_univ i) },
     rw [volume_preimage_mul_left A, nnnorm_inv, smul_inv_smul₀ (nnnorm_ne_zero_iff.mpr A)] },
-  rw [this, volume_pi_pi, finset.nnnorm_prod,
-    ennreal.of_real_prod_of_nonneg (λ i hi, abs_nonneg (D i)), ← finset.prod_mul_distrib],
-  simp only [B]
+  simp_rw [this, volume_pi_pi, nnnorm_prod, ennreal.smul_def, smul_eq_mul, ennreal.coe_finset_prod,
+    ← finset.prod_mul_distrib, ←smul_eq_mul, ←ennreal.smul_def],
+  simp only [B],
 end
 
 /-- A transvection preserves Lebesgue measure. -/

@@ -180,7 +180,7 @@ variables (M : Type v) [add_comm_monoid M] [module R M]
 local notation `S'` := (restrict_scalars f).obj ⟨S⟩
 
 /--
- Given an `R`-module M, consider the Hom(S, M) -- the `R`-linear maps between S (as an `R`-module by
+ Given an `R`-module M, consider Hom(S, M) -- the `R`-linear maps between S (as an `R`-module by
  means of restriction of scalars) and M. `S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)`
  -/
 instance has_smul : has_smul S $ S' →ₗ[R] M :=

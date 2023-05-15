@@ -445,8 +445,9 @@ begin
   dsimp only [measure_space_of_inner_product_space, basis.add_haar],
   ext1 s hs,
   rw measure.map_apply (measurable_equiv.measurable _) hs,
-  rw [(show ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.continuous_linear_equiv _ _ _, from rfl)],
+  rw [(show ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.continuous_linear_equiv _ ℝ _, from rfl)],
   rw add_haar_preimage_continuous_linear_equiv,
+  convert one_mul _,
   -- rw add_haar_measure
   sorry,
 end

@@ -3,8 +3,9 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
+import analysis.normed_space.finite_dimension
 import analysis.normed_space.bounded_linear_maps
-import topology.metric_space.metrizable
+import measure_theory.constructions.borel_space.metrizable
 import measure_theory.integral.lebesgue
 import measure_theory.function.simple_func_dense
 

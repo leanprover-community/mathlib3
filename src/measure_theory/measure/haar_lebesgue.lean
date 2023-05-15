@@ -456,7 +456,7 @@ begin
 end
 
 lemma add_haar_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
-  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) • μ (ball 0 s) :=
+  μ (ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 s) :=
 begin
   have : ball (0 : E) (r * s) = r • ball 0 s,
     by simp only [smul_ball hr.ne' (0 : E) s, real.norm_eq_abs, abs_of_nonneg hr.le, smul_zero],
@@ -464,11 +464,11 @@ begin
 end
 
 lemma add_haar_ball_of_pos (x : E) {r : ℝ} (hr : 0 < r) :
-  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) • μ (ball 0 1) :=
+  μ (ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [← add_haar_ball_mul_of_pos μ x hr, mul_one]
 
 lemma add_haar_ball_mul [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) (s : ℝ) :
-  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
+  μ (ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 s) :=
 begin
   rcases has_le.le.eq_or_lt hr with h|h,
   { simp only [← h, zero_pow finrank_pos, measure_empty, zero_mul, ennreal.of_real_zero,
@@ -477,11 +477,11 @@ begin
 end
 
 lemma add_haar_ball [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [← add_haar_ball_mul μ x hr, mul_one]
 
 lemma add_haar_closed_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
-  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
+  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
     by simp [smul_closed_ball' hr.ne' (0 : E), abs_of_nonneg hr.le],
@@ -489,7 +489,7 @@ begin
 end
 
 lemma add_haar_closed_ball_mul (x : E) {r : ℝ} (hr : 0 ≤ r) {s : ℝ} (hs : 0 ≤ s) :
-  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
+  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
     by simp [smul_closed_ball r (0 : E) hs, abs_of_nonneg hr],
@@ -500,15 +500,15 @@ end
 Use instead `add_haar_closed_ball`, which uses the measure of the open unit ball as a standard
 form. -/
 lemma add_haar_closed_ball' (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 1) :=
+  μ (closed_ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 1) :=
 by rw [← add_haar_closed_ball_mul μ x hr zero_le_one, mul_one]
 
 lemma add_haar_closed_unit_ball_eq_add_haar_unit_ball :
   μ (closed_ball (0 : E) 1) = μ (ball 0 1) :=
 begin
   apply le_antisymm _ (measure_mono ball_subset_closed_ball),
-  have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
-    (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
+  have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball (0 : E) 1))
+    (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ finrank ℝ E) * μ (closed_ball (0 : E) 1))),
   { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
     exact ennreal.tendsto_of_real ((tendsto_id'.2 nhds_within_le_nhds).pow _) },
   simp only [one_pow, one_mul, ennreal.of_real_one] at A,
@@ -520,7 +520,7 @@ begin
 end
 
 lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (closed_ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
 
 lemma add_haar_closed_ball_eq_add_haar_ball [nontrivial E] (x : E) (r : ℝ) :
@@ -577,7 +577,7 @@ calc
 @[priority 100] instance is_unif_loc_doubling_measure_of_is_add_haar_measure :
   is_unif_loc_doubling_measure μ :=
 begin
-  refine ⟨⟨(2 : ℝ≥0) ^ (finrank ℝ E), _⟩⟩,
+  refine ⟨⟨(2 : ℝ≥0) ^ finrank ℝ E, _⟩⟩,
   filter_upwards [self_mem_nhds_within] with r hr x,
   rw [add_haar_closed_ball_mul μ x zero_le_two (le_of_lt hr), add_haar_closed_ball_center μ x,
     ennreal.of_real, real.to_nnreal_pow zero_le_two],

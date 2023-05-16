@@ -845,7 +845,7 @@ e.isometry.hausdorff_measure_image (or.inr e.surjective) s
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
 @[simp] lemma map_hausdorff_measure (e : X ≃ᵢ Y) (d : ℝ) : measure.map e μH[d] = μH[d] :=
-e.isometry.map_hausdorff_measure (or.inr e.surjective)
+by rw [e.isometry.map_hausdorff_measure (or.inr e.surjective), e.surjective.range_eq, restrict_univ]
 
 lemma measure_preserving_hausdorff_measure (e : X ≃ᵢ Y) (d : ℝ) :
   measure_preserving e μH[d] μH[d] :=

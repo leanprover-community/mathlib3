@@ -45,14 +45,18 @@ lemma has_finite_integral_prod_mk_left (a : α) {s : set (β × γ)} (h2s : (κ 
   has_finite_integral (λ b, (η (a, b) (prod.mk b ⁻¹' s)).to_real) (κ a) :=
 begin
   let t := to_measurable ((κ ⊗ₖ η) a) s,
-  have h2t : (κ ⊗ₖ η) a t ≠ ∞, by rwa measure_to_measurable,
   simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
-  refine lt_of_le_of_lt _ h2t.lt_top,
-  refine le_trans _ (le_comp_prod_apply _ _ _ _),
-  refine lintegral_mono_ae _,
-  filter_upwards [ae_kernel_lt_top a h2s] with b hb,
-  rw of_real_to_real hb.ne,
-  exact measure_mono (preimage_mono (subset_to_measurable _ _)),
+  calc ∫⁻ b, ennreal.of_real (η (a, b) (prod.mk b ⁻¹' s)).to_real ∂(κ a)
+      ≤ ∫⁻ b, η (a, b) (prod.mk b ⁻¹' t) ∂(κ a) :
+      begin
+        refine lintegral_mono_ae _,
+        filter_upwards [ae_kernel_lt_top a h2s] with b hb,
+        rw of_real_to_real hb.ne,
+        exact measure_mono (preimage_mono (subset_to_measurable _ _)),
+      end
+  ... ≤ (κ ⊗ₖ η) a t : le_comp_prod_apply _ _ _ _
+  ... = (κ ⊗ₖ η) a s : measure_to_measurable s
+  ... < ⊤ : h2s.lt_top,
 end
 
 lemma integrable_kernel_prod_mk_left (a : α)
@@ -75,10 +79,8 @@ lemma _root_.measure_theory.ae_strongly_measurable.comp_prod_mk_left
   {δ : Type*} [topological_space δ] {f : β × γ → δ}
   (hf : ae_strongly_measurable f ((κ ⊗ₖ η) a)) :
   ∀ᵐ x ∂(κ a), ae_strongly_measurable (λ y, f (x, y)) (η (a, x)) :=
-begin
-  filter_upwards [ae_ae_of_ae_comp_prod hf.ae_eq_mk] with x hx,
-  exact ⟨λ y, hf.mk f (x, y), hf.strongly_measurable_mk.comp_measurable measurable_prod_mk_left, hx⟩
-end
+by filter_upwards [ae_ae_of_ae_comp_prod hf.ae_eq_mk] with x hx using
+  ⟨λ y, hf.mk f (x, y), hf.strongly_measurable_mk.comp_measurable measurable_prod_mk_left, hx⟩
 
 /-! ### Integrability -/
 
@@ -120,12 +122,12 @@ begin
       using integral_congr_ae (eventually_eq.fun_comp hx _), },
 end
 
-lemma integrable_comp_prod_iff ⦃f : β × γ → E⦄ (h1f : ae_strongly_measurable f ((κ ⊗ₖ η) a)) :
+lemma integrable_comp_prod_iff ⦃f : β × γ → E⦄ (hf : ae_strongly_measurable f ((κ ⊗ₖ η) a)) :
   integrable f ((κ ⊗ₖ η) a) ↔
     (∀ᵐ x ∂(κ a), integrable (λ y, f (x, y)) (η (a, x)))
     ∧ integrable (λ x, ∫ y, ‖f (x, y)‖ ∂(η (a, x))) (κ a) :=
-by simp only [integrable, has_finite_integral_comp_prod_iff' h1f,
-  h1f.norm.integral_kernel_prod_right', h1f, h1f.comp_prod_mk_left, eventually_and, true_and]
+by simp only [integrable, has_finite_integral_comp_prod_iff' hf,
+  hf.norm.integral_kernel_prod_right', hf, hf.comp_prod_mk_left, eventually_and, true_and]
 
 lemma _root_.measure_theory.integrable.comp_prod_right_ae
   ⦃f : β × γ → E⦄ (hf : integrable f ((κ ⊗ₖ η) a)) :
@@ -221,11 +223,12 @@ begin
   show tendsto (λ (i : β × γ →₁[(κ ⊗ₖ η) a] E),
     ∫⁻ x, ∫⁻ (y : γ), ‖i (x, y) - g (x, y)‖₊ ∂(η (a, x)) ∂(κ a)) (𝓝 g) (𝓝 0),
   have : ∀ (i : α × β →₁[(κ ⊗ₖ η) a] E), measurable (λ z, (‖i z - g z‖₊ : ℝ≥0∞)) :=
-  λ i, ((Lp.strongly_measurable i).sub (Lp.strongly_measurable g)).ennnorm,
+    λ i, ((Lp.strongly_measurable i).sub (Lp.strongly_measurable g)).ennnorm,
   simp_rw [← kernel.lintegral_comp_prod _ _ _ (this _), ← L1.of_real_norm_sub_eq_lintegral,
     ← of_real_zero],
   refine (continuous_of_real.tendsto 0).comp _,
-  rw [← tendsto_iff_norm_tendsto_zero], exact tendsto_id
+  rw [← tendsto_iff_norm_tendsto_zero],
+  exact tendsto_id
 end
 
 lemma integral_comp_prod : ∀ {f : β × γ → E} (hf : integrable f ((κ ⊗ₖ η) a)),
@@ -246,12 +249,13 @@ begin
   { intros f g hfg i_f i_g hf hg,
     simp_rw [integral_add' i_f i_g, kernel.integral_integral_add' i_f i_g, hf, hg] },
   { exact is_closed_eq continuous_integral kernel.continuous_integral_integral },
-  { intros f g hfg i_f hf, convert hf using 1,
+  { intros f g hfg i_f hf,
+    convert hf using 1,
     { exact integral_congr_ae hfg.symm },
     { refine integral_congr_ae _,
       refine (ae_ae_of_ae_comp_prod hfg).mp _,
-      apply eventually_of_forall, intros x hfgx,
-      exact integral_congr_ae (ae_eq_symm hfgx) } }
+      apply eventually_of_forall,
+      exact λ x hfgx, integral_congr_ae (ae_eq_symm hfgx) } }
 end
 
 lemma set_integral_comp_prod {f : β × γ → E} {s : set β} {t : set γ}

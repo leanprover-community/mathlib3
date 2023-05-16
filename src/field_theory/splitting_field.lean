@@ -208,6 +208,16 @@ protected def zpow (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]
   ℤ → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, ih)
 
+-- I'm not sure why these two lemmas break, but inlining them seems to not work.
+private lemma nsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+  (x : splitting_field_aux n f), (0 : ℕ) • x = splitting_field_aux.zero n :=
+nat.rec_on n (λ K fK f, by exactI zero_nsmul) (λ n ih K fK f, by exactI ih)
+
+private lemma nsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+  (k : ℕ) (x : splitting_field_aux n f),
+  (k + 1) • x = splitting_field_aux.add n x (k • x) :=
+nat.rec_on n (λ K fK f n x, by exactI succ_nsmul x n) (λ n ih K fK f, by exactI ih)
+
 instance field (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   field (splitting_field_aux n f) :=
 begin
@@ -240,8 +250,8 @@ begin
     nat_cast_zero := have h : _ := @comm_ring.nat_cast_zero, _,
     nat_cast_succ := have h : _ := @comm_ring.nat_cast_succ, _,
     nsmul := (•),
-    nsmul_zero' := have h : _ := @nsmul_zero, _,
-    nsmul_succ' := have h : _ := @succ_nsmul, _,
+    nsmul_zero' := nsmul_zero n,
+    nsmul_succ' := nsmul_succ n,
     int_cast := splitting_field_aux.mk n ∘ (coe : ℤ → K),
     int_cast_of_nat := have h : _ := @comm_ring.int_cast_of_nat, _,
     int_cast_neg_succ_of_nat := have h : _ := @comm_ring.int_cast_neg_succ_of_nat, _,
@@ -305,8 +315,6 @@ instance inhabited {n : ℕ} {f : K[X]} :
     exact hk _ _
   end }
 
--- Note that all fields of this algebra instance are equal to the `{nat/int/rat}_cast` and
--- `{n/z/q}smul`; this can be done by using `mk_hom`, definitionally equal to `mk`.
 instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K]
   [algebra R K] {f : K[X]} : algebra R (splitting_field_aux n f) :=
 { to_fun := (splitting_field_aux.mk_hom n).comp (algebra_map R K),

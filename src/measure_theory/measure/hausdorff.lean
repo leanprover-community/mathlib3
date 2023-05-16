@@ -844,6 +844,17 @@ e.isometry.hausdorff_measure_image (or.inr e.surjective) s
   μH[d] (e ⁻¹' s) = μH[d] s :=
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
+
+@[simp] lemma hausdorff_measure_map (e : X ≃ᵢ Y) (d : ℝ) : μH[d].map e = μH[d] :=
+begin
+  ext s hs : 1,
+  rw [measure.map_apply e.continuous.measurable hs, hausdorff_measure_preimage],
+end
+
+lemma measure_preserving_hausdorff_measure (e : X ≃ᵢ Y) (d : ℝ) :
+  measure_preserving e μH[d] μH[d] :=
+⟨e.continuous.measurable, hausdorff_measure_map _ _⟩
+
 end isometry_equiv
 
 namespace measure_theory
@@ -952,21 +963,13 @@ variables (ι X)
 theorem hausdorff_measure_measure_preserving_fun_unique [unique ι]
   [topological_space.second_countable_topology X] (d : ℝ) :
   measure_preserving (measurable_equiv.fun_unique ι X) μH[d] μH[d] :=
-⟨measurable_equiv.measurable _, begin
-  ext s hs : 1,
-  simp_rw [map_apply (measurable_equiv.fun_unique ι X).measurable hs],
-  exact (isometry_equiv.fun_unique ι X).hausdorff_measure_preimage _ _,
-end⟩
+(isometry_equiv.fun_unique ι X).measure_preserving_hausdorff_measure _
 
 theorem hausdorff_measure_measure_preserving_pi_fin_two (α : fin 2 → Type*)
   [Π i, measurable_space (α i)] [Π i, emetric_space (α i)] [Π i, borel_space (α i)]
   [Π i, topological_space.second_countable_topology (α i)] (d : ℝ) :
   measure_preserving (measurable_equiv.pi_fin_two α) μH[d] μH[d] :=
-⟨measurable_equiv.measurable _, begin
-  ext s hs : 1,
-  simp_rw [map_apply (measurable_equiv.pi_fin_two α).measurable hs],
-  exact (isometry_equiv.pi_fin_two α).hausdorff_measure_preimage _ _,
-end⟩
+(isometry_equiv.pi_fin_two α).measure_preserving_hausdorff_measure _
 
 /-- In the space `ℝ`, the Hausdorff measure coincides exactly with the Lebesgue measure. -/
 @[simp] theorem hausdorff_measure_real : (μH[1] : measure ℝ) = volume :=

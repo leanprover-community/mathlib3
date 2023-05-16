@@ -179,21 +179,13 @@ include mα
 
 /-- Measure on `α` such that for a measurable set `s`, `ρ.Iic_snd r s = ρ (s ×ˢ Iic r)`. -/
 noncomputable
-def Iic_snd (r : ℝ) : measure α :=
-measure.of_measurable (λ s hs, ρ (s ×ˢ Iic r))
-  (by simp only [empty_prod, measure_empty])
-  (λ f hf_meas hf_disj,
-    begin
-      rw [set.Union_prod_const, measure_Union],
-      { intros i j hij,
-        rw [function.on_fun, disjoint_prod],
-        exact or.inl (hf_disj hij), },
-      { exact λ i, measurable_set.prod (hf_meas i) measurable_set_Iic, }
-    end)
+def Iic_snd (r : ℝ) : measure α := (ρ.restrict (univ ×ˢ Iic r)).fst
 
 lemma Iic_snd_apply (r : ℝ) {s : set α} (hs : measurable_set s) :
   ρ.Iic_snd r s = ρ (s ×ˢ Iic r) :=
-measure.of_measurable_apply s hs
+by rw [Iic_snd, fst_apply hs,
+  restrict_apply' (measurable_set.univ.prod (measurable_set_Iic : measurable_set (Iic r))),
+  ← prod_univ, prod_inter_prod, inter_univ, univ_inter]
 
 lemma Iic_snd_univ (r : ℝ) : ρ.Iic_snd r univ = ρ (univ ×ˢ Iic r) :=
 Iic_snd_apply ρ r measurable_set.univ

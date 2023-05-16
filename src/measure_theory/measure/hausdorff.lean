@@ -844,13 +844,12 @@ e.isometry.hausdorff_measure_image (or.inr e.surjective) s
   μH[d] (e ⁻¹' s) = μH[d] s :=
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
-
-@[simp] lemma hausdorff_measure_map (e : X ≃ᵢ Y) (d : ℝ) : μH[d].map e = μH[d] :=
+@[simp] lemma map_hausdorff_measure (e : X ≃ᵢ Y) (d : ℝ) : measure.map e μH[d] = μH[d] :=
 e.isometry.map_hausdorff_measure (or.inr e.surjective)
 
 lemma measure_preserving_hausdorff_measure (e : X ≃ᵢ Y) (d : ℝ) :
   measure_preserving e μH[d] μH[d] :=
-⟨e.continuous.measurable, hausdorff_measure_map _ _⟩
+⟨e.continuous.measurable, map_hausdorff_measure _ _⟩
 
 end isometry_equiv
 

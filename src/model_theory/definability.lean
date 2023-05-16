@@ -8,6 +8,9 @@ import model_theory.semantics
 
 /-!
 # Definable Sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines what it means for a set over a first-order structure to be definable.
 
 ## Main Definitions

@@ -3,7 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov, Sébastien Gouëzel
 -/
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 import topology.algebra.order.left_right_lim
 
 /-!

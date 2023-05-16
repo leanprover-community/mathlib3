@@ -3,8 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.special_functions.pow
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 import measure_theory.measure.lebesgue
 import topology.metric_space.holder
 import topology.metric_space.metric_separated
@@ -358,6 +357,14 @@ begin
   { simp [h0] }
 end
 
+@[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : outer_measure X) = ⊤ :=
+begin
+  simp_rw [mk_metric, mk_metric', mk_metric'.pre, extend_top, bounded_by_top, eq_top_iff],
+  rw le_supr_iff,
+  intros b hb,
+  simpa using hb ⊤,
+end
+
 /-- If `m₁ d ≤ m₂ d` for `d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝[≥] 0]` to state this), then
 `mk_metric m₁ hm₁ ≤ mk_metric m₂ hm₂`-/
 lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[𝓝[≥] 0] m₂) :
@@ -463,6 +470,12 @@ begin
   intros s hs,
   rw [← outer_measure.coe_mk_metric, coe_smul, ← outer_measure.coe_mk_metric],
   exact outer_measure.mk_metric_mono_smul hc h0 hle s
+end
+
+@[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : measure X) = ⊤ :=
+begin
+  apply to_outer_measure_injective,
+  rw [mk_metric_to_outer_measure, outer_measure.mk_metric_top, to_outer_measure_top],
 end
 
 /-- If `m₁ d ≤ m₂ d` for `d < ε` for some `ε > 0` (we use `≤ᶠ[𝓝[≥] 0]` to state this), then

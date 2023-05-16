@@ -61,39 +61,6 @@ begin
   simp_rw kernel.prod_mk_left_apply,
 end
 
-lemma restrict_fst {α β : Type*} {mα : measurable_space α} {mβ : measurable_space β}
-  {μ : measure (α × β)} {s : set α} (hs : measurable_set s) :
-  μ.fst.restrict s = (μ.restrict (s ×ˢ univ)).fst :=
-begin
-  ext1 t ht,
-  rw [measure.fst_apply ht, measure.restrict_apply ht,
-    measure.restrict_apply (measurable_fst ht), measure.fst_apply (ht.inter hs), prod_univ,
-    preimage_inter],
-end
-
-lemma fst_comp_prod {α β γ : Type*} {mα : measurable_space α} {mβ : measurable_space β}
-  {mγ : measurable_space γ}
-  {κ : kernel α β} {η : kernel (α × β) γ} [is_s_finite_kernel κ] [is_markov_kernel η] :
-  kernel.fst (κ ⊗ₖ η) = κ :=
-begin
-  ext a s hs : 2,
-  rw kernel.fst_apply' _ _ hs,
-  rw kernel.comp_prod_apply,
-  swap, { exact (measurable_fst hs), },
-  simp only [mem_set_of_eq],
-  rw ← lintegral_add_compl _ hs,
-  rw ← add_zero (κ a s),
-  congr,
-  { have : ∀ x ∈ s, η (a, x) {c : γ | x ∈ s} = 1,
-    { intros x hx, simp only [hx, set_of_true, measure_univ], },
-    rw set_lintegral_congr_fun hs (eventually_of_forall this),
-    simp only,
-    rw [set_lintegral_const, one_mul], },
-  { have : ∀ x ∈ sᶜ, η (a, x) {c : γ | x ∈ s} = 0,
-    { intros x hx, simp only [(mem_compl_iff s x).mp hx, set_of_false, measure_empty], },
-    rw [set_lintegral_congr_fun hs.compl (eventually_of_forall this), lintegral_zero], },
-end
-
 lemma set_integral_cond_kernel_fst {mα : measurable_space α} (ρ : measure (α × Ω))
   [is_finite_measure ρ]
   {f : α × Ω → F} (hf : integrable f ρ) {t : set α} (ht : measurable_set t) :
@@ -108,6 +75,53 @@ begin
   { rw measure_eq_comp_prod ρ at hf,
     exact hf.integrable_on, },
 end
+
+lemma restrict_fst {α β : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  {μ : measure (α × β)} {s : set α} (hs : measurable_set s) :
+  μ.fst.restrict s = (μ.restrict (s ×ˢ univ)).fst :=
+begin
+  ext1 t ht,
+  rw [measure.fst_apply ht, measure.restrict_apply ht, measure.restrict_apply (measurable_fst ht),
+    measure.fst_apply (ht.inter hs), prod_univ, preimage_inter],
+end
+
+lemma fst_comp_prod {α β γ : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ}
+  {κ : kernel α β} {η : kernel (α × β) γ} [is_s_finite_kernel κ] [is_markov_kernel η] :
+  kernel.fst (κ ⊗ₖ η) = κ :=
+begin
+  ext a s hs : 2,
+  rw [kernel.fst_apply' _ _ hs, kernel.comp_prod_apply],
+  swap, { exact (measurable_fst hs), },
+  simp only [mem_set_of_eq],
+  rw [← lintegral_add_compl _ hs, ← add_zero (κ a s)],
+  congr,
+  { have : ∀ x ∈ s, η (a, x) {c : γ | x ∈ s} = 1,
+    { intros x hx, simp only [hx, set_of_true, measure_univ], },
+    rw set_lintegral_congr_fun hs (eventually_of_forall this),
+    simp only,
+    rw [set_lintegral_const, one_mul], },
+  { have : ∀ x ∈ sᶜ, η (a, x) {c : γ | x ∈ s} = 0,
+    { intros x hx, simp only [(mem_compl_iff s x).mp hx, set_of_false, measure_empty], },
+    rw [set_lintegral_congr_fun hs.compl (eventually_of_forall this), lintegral_zero], },
+end
+
+lemma fst_map_prod_mk₀ {Ω : Type*} {Y : α → Ω} {mΩ : measurable_space Ω} {mE : measurable_space E}
+  {mα : measurable_space α} {X : α → E} {μ : measure α}
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ) :
+  (μ.map (λ ω, (X ω, Y ω))).fst = μ.map X :=
+begin
+  ext1 s hs,
+  rw [measure.fst_apply hs, measure.map_apply_of_ae_measurable (hX.prod_mk hY) (measurable_fst hs),
+    measure.map_apply_of_ae_measurable hX hs, ← prod_univ, mk_preimage_prod, preimage_univ,
+    inter_univ],
+end
+
+lemma fst_map_prod_mk {Ω : Type*} {Y : α → Ω} {mΩ : measurable_space Ω} {mE : measurable_space E}
+  {mα : measurable_space α} {X : α → E} {μ : measure α}
+  (hX : measurable X) (hY : measurable Y) :
+  (μ.map (λ ω, (X ω, Y ω))).fst = μ.map X :=
+fst_map_prod_mk₀ hX.ae_measurable hY.ae_measurable
 
 localized "notation (name := measurable_space.comap)
   `σₘ[` X ` ; ` m `]` := measurable_space.comap X m" in probability_theory
@@ -130,6 +144,11 @@ def condexp_kernel {mα : measurable_space α} [measurable_space E]
   kernel E Ω :=
 cond_kernel (μ.map (λ a, (X a, Y a)))
 
+noncomputable
+def condexp_kernel_trim (μ : measure Ω) [is_finite_measure μ] (m : measurable_space Ω) :
+  @kernel Ω Ω m _inst_2 :=
+@condexp_kernel Ω Ω Ω _ _inst_2 _ _ _ _inst_2 m id id μ _
+
 instance [measurable_space E] : is_markov_kernel (condexp_kernel Y X μ) :=
 by { rw condexp_kernel, apply_instance, }
 
@@ -149,15 +168,6 @@ begin
         ≤ ∫⁻ ω, 1 ∂μ : lintegral_mono (λ ω, prob_le_one)
     ... = μ univ : lintegral_one
     ... < ∞ : measure_lt_top _ _, },
-end
-
-lemma fst_map_prod_mk {Ω : Type*} {Y : α → Ω} {mΩ : measurable_space Ω} {mE : measurable_space E}
-  {mα : measurable_space α} {μ : measure α} (hX : measurable X) (hY : measurable Y) :
-  (μ.map (λ ω, (X ω, Y ω))).fst = μ.map X :=
-begin
-  ext1 s hs,
-  rw [measure.fst_apply hs,  measure.map_apply (hX.prod_mk hY) (measurable_fst hs),
-    measure.map_apply hX hs, ← prod_univ, mk_preimage_prod, preimage_univ, inter_univ],
 end
 
 lemma set_lintegral_cond_kernel_prod {mE : measurable_space E} (ρ : measure (E × Ω))
@@ -195,11 +205,8 @@ end
 lemma set_lintegral_condexp_kernel_of_measurable {mE : measurable_space E}
   (hX : measurable X) (hY : measurable Y)
   {s : set Ω} (hs : measurable_set s) {t : set α} (ht : measurable_set[σₘ[X ; mE]] t) :
-  ∫⁻ ω in t, condexp_kernel Y X μ (X ω) s ∂μ = μ (Y ⁻¹' s ∩ t) :=
-begin
-  obtain ⟨tₑ, htₑ, rfl⟩ := ht,
-  rw [set_lintegral_preimage_condexp_kernel hX hY hs htₑ, inter_comm],
-end
+  ∫⁻ ω in t, condexp_kernel Y X μ (X ω) s ∂μ = μ (t ∩ Y ⁻¹' s) :=
+by { obtain ⟨tₑ, htₑ, rfl⟩ := ht, rw set_lintegral_preimage_condexp_kernel hX hY hs htₑ, }
 
 lemma condexp_kernel_ae_eq {mE : measurable_space E} (hX : measurable X) (hY : measurable Y)
   {s : set Ω} (hs : measurable_set s) :
@@ -209,11 +216,10 @@ begin
   { exact (integrable_const _).indicator (hY hs),  },
   { exact λ t ht _, (integrable_condexp_kernel_to_real hX hs).integrable_on, },
   { intros t ht _,
-    rw integral_to_real ((measurable_condexp_kernel hs).mono hX.comap_le le_rfl).ae_measurable
-      (eventually_of_forall (λ ω, measure_lt_top (condexp_kernel Y X μ (X ω)) _)),
-    rw [integral_indicator_const _ (hY hs), measure.restrict_apply (hY hs), smul_eq_mul, mul_one],
-    congr' 1,
-    exact set_lintegral_condexp_kernel_of_measurable hX hY hs ht, },
+    rw [integral_to_real ((measurable_condexp_kernel hs).mono hX.comap_le le_rfl).ae_measurable
+        (eventually_of_forall (λ ω, measure_lt_top (condexp_kernel Y X μ (X ω)) _)),
+      integral_indicator_const _ (hY hs), measure.restrict_apply (hY hs), smul_eq_mul, mul_one,
+      inter_comm, set_lintegral_condexp_kernel_of_measurable hX hY hs ht], },
   { refine (measurable.strongly_measurable _).ae_strongly_measurable',
     refine @measurable.ennreal_to_real _ σₘ[X ; mE] _ _,
     exact measurable_condexp_kernel hs, },
@@ -273,14 +279,54 @@ by { rw ← fst_map_prod_mk hX hY, exact hf.integral_cond_kernel, }
 
 open measure_theory
 
+lemma measure.map_comap_ac {α γ : Type*}
+  {m0 : measurable_space α} {mγ : measurable_space γ}
+  {μ : measure α} {g : γ → α} (hg : measurable g) :
+  (μ.comap g).map g ≪ μ :=
+begin
+  intros s hμs,
+  let t := to_measurable μ s,
+  suffices : (μ.comap g).map g t = 0, from measure_mono_null (subset_to_measurable μ s) this,
+  have hμt: μ t = 0, by rwa measure_to_measurable,
+  rw measure.map_apply hg (measurable_set_to_measurable _ _),
+  by_cases hg' : function.injective g ∧ ∀ s', measurable_set s' → null_measurable_set (g '' s') μ,
+  { rw measure.comap_apply₀ g _ hg'.1 hg'.2 _,
+    { exact measure_mono_null (image_preimage_subset _ _) hμt, },
+    { exact measurable_set.null_measurable_set (hg (measurable_set_to_measurable _ _))}, },
+  { classical,
+    rw [measure.comap, dif_neg hg', measure.coe_zero, pi.zero_apply], },
+end
+
+lemma _root_.measure_theory.ae_strongly_measurable.comp_measurable''
+  {α β γ : Type*} [topological_space β] {m0 : measurable_space α} {mγ : measurable_space γ}
+  {f : α → β} {μ : measure α} (hf : ae_strongly_measurable f μ) {g : γ → α} (hg : measurable g) :
+  ae_strongly_measurable' (measurable_space.comap g m0) (f ∘ g) (μ.comap g) :=
+begin
+  let f' := hf.mk f,
+  refine ⟨f' ∘ g, _, _⟩,
+  { exact hf.strongly_measurable_mk.comp_measurable (measurable_iff_comap_le.mpr le_rfl), },
+  { exact ae_eq_comp' hg.ae_measurable hf.ae_eq_mk (measure.map_comap_ac hg), },
+end
+
+lemma _root_.measure_theory.ae_strongly_measurable.comp_measurable'
+  {α β γ : Type*} [topological_space β] {m0 : measurable_space α} {mγ : measurable_space γ}
+  {f : α → β} {μ : measure γ} {g : γ → α}
+  (hf : ae_strongly_measurable f (μ.map g)) (hg : measurable g) :
+  ae_strongly_measurable' (measurable_space.comap g m0) (f ∘ g) μ :=
+begin
+  let f' := hf.mk f,
+  refine ⟨f' ∘ g, _, _⟩,
+  { exact hf.strongly_measurable_mk.comp_measurable (measurable_iff_comap_le.mpr le_rfl), },
+  { exact ae_eq_comp hg.ae_measurable hf.ae_eq_mk, },
+end
+
+open measure_theory
+
 lemma ae_strongly_measurable'_integral_condexp_kernel {mE : measurable_space E}
   (hX : measurable X) (hY : measurable Y)
   {f : E × Ω → F} (hf_int : integrable f (μ.map (λ ω, (X ω, Y ω)))) :
-  ae_strongly_measurable' σₘ[X ; mE]
-    (λ (ω : α), ∫ (y : Ω), f (X ω, y) ∂(condexp_kernel Y X μ (X ω))) μ :=
-begin
-  sorry,
-end
+  ae_strongly_measurable' σₘ[X ; mE] (λ ω, ∫ y, f (X ω, y) ∂(condexp_kernel Y X μ (X ω))) μ :=
+(hf_int.1.integral_condexp_kernel hX hY).comp_measurable' hX
 
 lemma todo'' {mE : measurable_space E} (hX : measurable X) (hY : measurable Y)
   {f : E × Ω → F} (hf_int : integrable f (μ.map (λ ω, (X ω, Y ω)))) :
@@ -288,10 +334,8 @@ lemma todo'' {mE : measurable_space E} (hX : measurable X) (hY : measurable Y)
 begin
   have hf_int' : integrable (λ ω, f (X ω, Y ω)) μ,
   { exact (integrable_map_measure hf_int.1 (hX.prod_mk hY).ae_measurable).mp hf_int, },
-  symmetry,
-  refine ae_eq_condexp_of_forall_set_integral_eq hX.comap_le hf_int' (λ s hs hμs, _) _ _,
-  { refine integrable.integrable_on _,
-    exact integrable_condexp_kernel hX hY hf_int, },
+  refine (ae_eq_condexp_of_forall_set_integral_eq hX.comap_le hf_int' (λ s hs hμs, _) _ _).symm,
+  { exact (integrable_condexp_kernel hX hY hf_int).integrable_on, },
   { rintros s ⟨t, ht, rfl⟩ _,
     change ∫ ω in X ⁻¹' t, ((λ x', ∫ y, f (x', y) ∂(condexp_kernel Y X μ) x') ∘ X) ω ∂μ
       = ∫ ω in X ⁻¹' t, f (X ω, Y ω) ∂μ,
@@ -299,12 +343,10 @@ begin
     swap,
     { rw ← measure.restrict_map hX ht,
       exact (hf_int.1.integral_condexp_kernel hX hY).restrict, },
-    rw ← measure.restrict_map hX ht,
-    rw ← fst_map_prod_mk hX hY,
-    rw condexp_kernel,
-    rw set_integral_cond_kernel_fst _ hf_int ht,
-    rw set_integral_map (ht.prod measurable_set.univ) hf_int.1 (hX.prod_mk hY).ae_measurable,
-    rw [mk_preimage_prod, preimage_univ, inter_univ], },
+    rw [← measure.restrict_map hX ht, ← fst_map_prod_mk hX hY, condexp_kernel,
+      set_integral_cond_kernel_fst _ hf_int ht,
+      set_integral_map (ht.prod measurable_set.univ) hf_int.1 (hX.prod_mk hY).ae_measurable,
+      mk_preimage_prod, preimage_univ, inter_univ], },
   { exact ae_strongly_measurable'_integral_condexp_kernel hX hY hf_int, },
 end
 
@@ -321,8 +363,17 @@ end
 lemma todo' {Ω} [normed_add_comm_group Ω] [normed_space ℝ Ω] [complete_space Ω]
   [measurable_space Ω] [borel_space Ω] [second_countable_topology Ω] {Y : α → Ω}
   {mE : measurable_space E}
-  (hX : measurable X) (hY : measurable Y) (hY_int : integrable Y μ):
+  (hX : measurable X) (hY : measurable Y) (hY_int : integrable Y μ) :
   μ[Y | X; mE] =ᵐ[μ] λ ω, ∫ y, y ∂(condexp_kernel Y X μ (X ω)) :=
 todo hX hY measurable_snd.strongly_measurable hY_int
+
+lemma condexp_ae_eq_integral_kernel [second_countable_topology F]
+  {Ω : Type*} [topological_space Ω] (m : measurable_space Ω) {mΩ : measurable_space Ω}
+  [borel_space Ω] [polish_space Ω] [nonempty Ω]
+  {μ : measure Ω} [is_finite_measure μ] {f : Ω → F} (hf : strongly_measurable f) :
+  μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel_trim μ m ω) :=
+begin
+  sorry,
+end
 
 end probability_theory

@@ -240,7 +240,7 @@ begin
     nat_cast_zero := have h : _ := @comm_ring.nat_cast_zero, _,
     nat_cast_succ := have h : _ := @comm_ring.nat_cast_succ, _,
     nsmul := (•),
-    nsmul_zero' := have h : _ := @zero_nsmul, _,
+    nsmul_zero' := have h : _ := @nsmul_zero, _,
     nsmul_succ' := have h : _ := @succ_nsmul, _,
     int_cast := splitting_field_aux.mk n ∘ (coe : ℤ → K),
     int_cast_of_nat := have h : _ := @comm_ring.int_cast_of_nat, _,

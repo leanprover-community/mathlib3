@@ -639,3 +639,79 @@ begin
 end
 
 end real
+
+section tactics
+/-!
+## Tactic extensions for real powers
+-/
+
+namespace norm_num
+open tactic
+
+theorem rpow_pos (a b : ℝ) (b' : ℕ) (c : ℝ) (hb : (b':ℝ) = b) (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, ← hb, real.rpow_nat_cast]
+
+theorem rpow_neg (a b : ℝ) (b' : ℕ) (c c' : ℝ)
+  (a0 : 0 ≤ a) (hb : (b':ℝ) = b) (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, ← hb, real.rpow_neg a0, real.rpow_nat_cast]
+
+/-- Evaluate `real.rpow a b` where `a` is a rational numeral and `b` is an integer.
+(This cannot go via the generalized version `prove_rpow'` because `rpow_pos` has a side condition;
+we do not attempt to evaluate `a ^ b` where `a` and `b` are both negative because it comes
+out to some garbage.) -/
+meta def prove_rpow (a b : expr) : tactic (expr × expr) := do
+  na ← a.to_rat,
+  ic ← mk_instance_cache `(ℝ),
+  match match_sign b with
+  | sum.inl b := do
+    (ic, a0) ← guard (na ≥ 0) >> prove_nonneg ic a,
+    nc ← mk_instance_cache `(ℕ),
+    (ic, nc, b', hb) ← prove_nat_uncast ic nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    cr ← c.to_rat,
+    (ic, c', hc) ← prove_inv ic c cr,
+    pure (c', (expr.const ``rpow_neg []).mk_app [a, b, b', c, c', a0, hb, h, hc])
+  | sum.inr ff := pure (`(1:ℝ), expr.const ``real.rpow_zero [] a)
+  | sum.inr tt := do
+    nc ← mk_instance_cache `(ℕ),
+    (ic, nc, b', hb) ← prove_nat_uncast ic nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    pure (c, (expr.const ``rpow_pos []).mk_app [a, b, b', c, hb, h])
+  end
+
+/-- Evaluates expressions of the form `rpow a b` and `a ^ b` in the special case where
+`b` is an integer and `a` is a positive rational (so it's really just a rational power). -/
+@[norm_num] meta def eval_rpow : expr → tactic (expr × expr)
+| `(@has_pow.pow _ _ real.has_pow %%a %%b) := b.to_int >> prove_rpow a b
+| `(real.rpow %%a %%b) := b.to_int >> prove_rpow a b
+| _ := tactic.failed
+end norm_num
+
+namespace tactic
+namespace positivity
+
+/-- Auxiliary definition for the `positivity` tactic to handle real powers of reals. -/
+meta def prove_rpow (a b : expr) : tactic strictness :=
+do
+  strictness_a ← core a,
+  match strictness_a with
+  | nonnegative p := nonnegative <$> mk_app ``real.rpow_nonneg_of_nonneg [p, b]
+  | positive p := positive <$> mk_app ``real.rpow_pos_of_pos [p, b]
+  | _ := failed
+  end
+
+end positivity
+
+open positivity
+
+/-- Extension for the `positivity` tactic: exponentiation by a real number is nonnegative when the
+base is nonnegative and positive when the base is positive. -/
+@[positivity]
+meta def positivity_rpow : expr → tactic strictness
+| `(@has_pow.pow _ _ real.has_pow %%a %%b) := prove_rpow a b
+| `(real.rpow %%a %%b) := prove_rpow a b
+| _ := failed
+
+end tactic
+
+end tactics

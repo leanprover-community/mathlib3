@@ -177,3 +177,55 @@ lemma cpow_conj (x : ℂ) (n : ℂ) (hx : x.arg ≠ π) : x ^ conj n = conj (con
 by rw [conj_cpow _ _ hx, conj_conj]
 
 end complex
+
+section tactics
+/-!
+## Tactic extensions for complex powers
+-/
+
+namespace norm_num
+
+theorem cpow_pos (a b : ℂ) (b' : ℕ) (c : ℂ) (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, hb, complex.cpow_nat_cast]
+
+theorem cpow_neg (a b : ℂ) (b' : ℕ) (c c' : ℂ)
+  (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, complex.cpow_neg, complex.cpow_nat_cast]
+
+open tactic
+
+/-- Generalized version of `prove_cpow`, `prove_nnrpow`, `prove_ennrpow`. -/
+meta def prove_rpow' (pos neg zero : name) (α β one a b : expr) : tactic (expr × expr) := do
+  na ← a.to_rat,
+  icα ← mk_instance_cache α,
+  icβ ← mk_instance_cache β,
+  match match_sign b with
+  | sum.inl b := do
+    nc ← mk_instance_cache `(ℕ),
+    (icβ, nc, b', hb) ← prove_nat_uncast icβ nc b,
+    (icα, c, h) ← prove_pow a na icα b',
+    cr ← c.to_rat,
+    (icα, c', hc) ← prove_inv icα c cr,
+    pure (c', (expr.const neg []).mk_app [a, b, b', c, c', hb, h, hc])
+  | sum.inr ff := pure (one, expr.const zero [] a)
+  | sum.inr tt := do
+    nc ← mk_instance_cache `(ℕ),
+    (icβ, nc, b', hb) ← prove_nat_uncast icβ nc b,
+    (icα, c, h) ← prove_pow a na icα b',
+    pure (c, (expr.const pos []).mk_app [a, b, b', c, hb, h])
+  end
+
+/-- Evaluate `complex.cpow a b` where `a` is a rational numeral and `b` is an integer. -/
+meta def prove_cpow : expr → expr → tactic (expr × expr) :=
+prove_rpow' ``cpow_pos ``cpow_neg ``complex.cpow_zero `(ℂ) `(ℂ) `(1:ℂ)
+
+/-- Evaluates expressions of the form `cpow a b` and `a ^ b` in the special case where
+`b` is an integer and `a` is a positive rational (so it's really just a rational power). -/
+@[norm_num] meta def eval_cpow : expr → tactic (expr × expr)
+| `(@has_pow.pow _ _ complex.has_pow %%a %%b) := b.to_int >> prove_cpow a b
+| `(complex.cpow %%a %%b) := b.to_int >> prove_cpow a b
+| _ := tactic.failed
+
+end norm_num
+
+end tactics

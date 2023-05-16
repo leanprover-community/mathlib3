@@ -171,31 +171,6 @@ protected def sub (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_sub.sub K _) (λ n ih K fK f, ih)
 
-private lemma nsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
-  (x : splitting_field_aux n f), (0 : ℕ) • x = splitting_field_aux.zero n :=
-nat.rec_on n (λ K fK f, by exactI zero_nsmul) (λ n ih K fK f, by exactI ih)
-
-private lemma nsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
-  (k : ℕ) (x : splitting_field_aux n f),
-  (k + 1) • x = splitting_field_aux.add n x (k • x) :=
-nat.rec_on n (λ K fK f n x, by exactI succ_nsmul x n) (λ n ih K fK f, by exactI ih)
-
-private lemma zsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
-  (x : splitting_field_aux n f), (0 : ℤ) • x = splitting_field_aux.zero n :=
-nat.rec_on n (λ K fK f, by exactI zero_zsmul) (λ n ih K fK f, by exactI ih)
-
-private lemma zsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
-  (k : ℕ) (x : splitting_field_aux n f),
-  (↑(k + 1) : ℤ) • x = splitting_field_aux.add n x ((k : ℤ) • x) :=
-nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_succ' K _ k x)
-  (λ n ih K fK f, by exactI ih)
-
-private lemma zsmul_neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
-  (k : ℕ) (x : splitting_field_aux n f),
-  -[1+ k] • x = splitting_field_aux.neg n ((k + 1 : ℤ) • x) :=
-nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_neg' K _ k x)
-  (λ n ih K fK f, by exactI ih)
-
 /-- Splitting fields have a one. -/
 protected def one (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f :=
@@ -265,15 +240,15 @@ begin
     nat_cast_zero := have h : _ := @comm_ring.nat_cast_zero, _,
     nat_cast_succ := have h : _ := @comm_ring.nat_cast_succ, _,
     nsmul := (•),
-    nsmul_zero' := nsmul_zero n,
-    nsmul_succ' := nsmul_succ n,
+    nsmul_zero' := have h : _ := @zero_nsmul, _,
+    nsmul_succ' := have h : _ := @succ_nsmul, _,
     int_cast := splitting_field_aux.mk n ∘ (coe : ℤ → K),
     int_cast_of_nat := have h : _ := @comm_ring.int_cast_of_nat, _,
     int_cast_neg_succ_of_nat := have h : _ := @comm_ring.int_cast_neg_succ_of_nat, _,
     zsmul := (•),
-    zsmul_zero' := zsmul_zero n,
-    zsmul_succ' := zsmul_succ n,
-    zsmul_neg' := zsmul_neg n,
+    zsmul_zero' := have h : _ := @subtraction_comm_monoid.zsmul_zero', _,
+    zsmul_succ' := have h : _ := @subtraction_comm_monoid.zsmul_succ', _,
+    zsmul_neg' := have h : _ := @subtraction_comm_monoid.zsmul_neg', _,
     rat_cast := splitting_field_aux.mk n ∘ (coe : ℚ → K),
     rat_cast_mk := have h : _ := @field.rat_cast_mk, _,
     qsmul := (•),

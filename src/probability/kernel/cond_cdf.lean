@@ -703,9 +703,13 @@ end
 
 /-- Conditional cdf of the measure given the value on `α`, as a plain function. This is an auxiliary
 definition used to define `cond_cdf`. -/
-noncomputable
+@[irreducible] noncomputable
 def cond_cdf' (ρ : measure (α × ℝ)) : α → ℝ → ℝ :=
 λ a t, ⨅ r : {r' : ℚ // t < r'}, cond_cdf_rat ρ a r
+
+lemma cond_cdf'_def {ρ : measure (α × ℝ)} {a : α} {x : ℝ} :
+  cond_cdf' ρ a x = ⨅ r : {r : ℚ // x < r}, cond_cdf_rat ρ a r :=
+by rw cond_cdf'
 
 lemma cond_cdf'_eq_cond_cdf_rat (ρ : measure (α × ℝ)) (a : α) (r : ℚ) :
   cond_cdf' ρ a r = cond_cdf_rat ρ a r :=
@@ -727,6 +731,7 @@ begin
   haveI : nonempty {r' : ℚ // r < ↑r'},
   { obtain ⟨r, hrx⟩ := exists_rat_gt r,
     exact ⟨⟨r, hrx⟩⟩, },
+  rw cond_cdf'_def,
   exact le_cinfi (λ r', cond_cdf_rat_nonneg ρ a _),
 end
 
@@ -740,6 +745,7 @@ begin
   haveI : nonempty {r' : ℚ // y < ↑r'},
   { obtain ⟨r, hrx⟩ := exists_rat_gt y,
     exact ⟨⟨r, hrx⟩⟩, },
+  simp_rw cond_cdf'_def,
   refine le_cinfi (λ r, (cinfi_le _ _).trans_eq _),
   { exact ⟨r.1, hxy.trans_lt r.prop⟩, },
   { exact bdd_below_range_cond_cdf_rat_gt ρ a x, },
@@ -761,8 +767,9 @@ begin
     = ⨅ r : {r' : ℚ // x < r'}, cond_cdf_rat ρ a r,
   { congr' with r,
     exact cond_cdf'_eq_cond_cdf_rat ρ a r, },
-  rw [h', h''],
-  refl,
+  rw [h', h'', continuous_within_at],
+  congr,
+  exact cond_cdf'_def,
 end
 
 /-! ### Conditional cdf -/
@@ -788,6 +795,8 @@ lemma cond_cdf_le_one (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
   cond_cdf ρ a x ≤ 1 :=
 begin
   obtain ⟨r, hrx⟩ := exists_rat_gt x,
+  rw ← stieltjes_function.infi_rat_gt_eq,
+  simp_rw [coe_coe, cond_cdf_eq_cond_cdf_rat],
   refine cinfi_le_of_le (bdd_below_range_cond_cdf_rat_gt ρ a x) _ (cond_cdf_rat_le_one _ _ _),
   exact ⟨r, hrx⟩,
 end
@@ -846,7 +855,16 @@ end
 /-- The conditional cdf is a measurable function of `a : α` for all `x : ℝ`. -/
 lemma measurable_cond_cdf (ρ : measure (α × ℝ)) (x : ℝ) :
   measurable (λ a, cond_cdf ρ a x) :=
-measurable_cinfi (λ q, measurable_cond_cdf_rat ρ q) (λ a, bdd_below_range_cond_cdf_rat_gt ρ a _)
+begin
+  have : (λ a, cond_cdf ρ a x) = λ a, (⨅ (r : {r' // x < ↑r'}), cond_cdf_rat ρ a ↑r),
+  { ext1 a,
+    rw ← stieltjes_function.infi_rat_gt_eq,
+    congr' with q,
+    rw [coe_coe, cond_cdf_eq_cond_cdf_rat], },
+  rw this,
+  exact measurable_cinfi (λ q, measurable_cond_cdf_rat ρ q)
+    (λ a, bdd_below_range_cond_cdf_rat_gt ρ a _),
+end
 
 /-- Auxiliary lemma for `set_lintegral_cond_cdf`. -/
 lemma set_lintegral_cond_cdf_rat (ρ : measure (α × ℝ)) [is_finite_measure ρ] (r : ℚ)

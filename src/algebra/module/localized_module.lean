@@ -11,6 +11,9 @@ import algebra.algebra.restrict_scalars
 /-!
 # Localized Module
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-module `M`, we can localize
 `M` by `S`. This gives us a `localization S`-module.
 

@@ -9,6 +9,9 @@ import data.nat.factorization.basic
 /-!
 # Real logarithm
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `real.log` to be the logarithm of a real number. As usual, we extend it from
 its domain `(0, +∞)` to a globally defined function. We choose to do it so that `log 0 = 0` and
 `log (-x) = log x`.

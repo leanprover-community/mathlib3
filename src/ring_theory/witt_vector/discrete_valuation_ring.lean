@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis, Heather Macbeth, Johan Commelin
 
 import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.mul_coeff
-import ring_theory.discrete_valuation_ring
+import ring_theory.discrete_valuation_ring.basic
 import tactic.linear_combination
 
 /-!

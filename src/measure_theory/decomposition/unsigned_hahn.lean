@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Unsigned Hahn decomposition theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the unsigned version of the Hahn decomposition theorem.
 
 ## Main statements

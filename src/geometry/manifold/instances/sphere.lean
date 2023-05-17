@@ -283,7 +283,7 @@ def stereographic (hv : ‖v‖ = 1) : local_homeomorph (sphere (0:E) 1) (ℝ �
   open_source := is_open_compl_singleton,
   open_target := is_open_univ,
   continuous_to_fun := continuous_on_stereo_to_fun.comp continuous_subtype_coe.continuous_on
-    (λ w h, h ∘ subtype.ext ∘ eq.symm ∘ (inner_eq_norm_mul_iff_of_norm_one hv (by simp)).mp),
+    (λ w h, h ∘ subtype.ext ∘ eq.symm ∘ (inner_eq_one_iff_of_norm_one hv (by simp)).mp),
   continuous_inv_fun := (continuous_stereo_inv_fun hv).continuous_on }
 
 lemma stereographic_apply (hv : ‖v‖ = 1) (x : sphere (0 : E) 1) :
@@ -363,7 +363,7 @@ section smooth_manifold
 
 lemma sphere_ext_iff (u v : sphere (0:E) 1) :
   u = v ↔ ⟪(u:E), v⟫_ℝ = 1 :=
-by simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one]
+by simp [subtype.ext_iff, inner_eq_one_iff_of_norm_one]
 
 lemma stereographic'_symm_apply {n : ℕ} [fact (finrank ℝ E = n + 1)]
     (v : sphere (0:E) 1) (x : euclidean_space ℝ (fin n)) :
@@ -448,7 +448,7 @@ begin
   ext x,
   have hfxv : f x = -↑v ↔ ⟪f x, -↑v⟫_ℝ = 1,
   { have hfx : ‖f x‖ = 1 := by simpa using hf' x,
-    rw inner_eq_norm_mul_iff_of_norm_one hfx,
+    rw inner_eq_one_iff_of_norm_one hfx,
     exact norm_eq_of_mem_sphere (-v) },
   dsimp [chart_at],
   simp [not_iff_not, subtype.ext_iff, hfxv, real_inner_comm]

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.continuous_linear_map
 import measure_theory.function.strongly_measurable.basic
-import tactic.ring_exp
 
 /-!
 # Derivative is measurable

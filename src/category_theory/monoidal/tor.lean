@@ -9,6 +9,9 @@ import category_theory.monoidal.preadditive
 /-!
 # Tor, the left-derived functor of tensor product
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `Tor C n : C ⥤ C ⥤ C`, by left-deriving in the second factor of `(X, Y) ↦ X ⊗ Y`.
 
 For now we have almost nothing to say about it!

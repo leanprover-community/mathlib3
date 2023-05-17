@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import measure_theory.measure.haar
 import analysis.inner_product_space.pi_L2
-import measure_theory.constructions.pi
 
 /-!
 # Additive Haar measure constructed from a basis
@@ -27,7 +26,7 @@ of the basis).
 -/
 
 open set topological_space measure_theory measure_theory.measure finite_dimensional
-open_locale big_operators
+open_locale big_operators pointwise
 
 noncomputable theory
 
@@ -106,11 +105,81 @@ begin
       neg_zero, finset.univ_unique] },
 end
 
+lemma parallelepiped_eq_sum_segment (v : ι → E) : parallelepiped v = ∑ i, segment ℝ 0 (v i) :=
+begin
+  ext,
+  simp only [mem_parallelepiped_iff, set.mem_finset_sum, finset.mem_univ, forall_true_left,
+    segment_eq_image, smul_zero, zero_add, ←set.pi_univ_Icc, set.mem_univ_pi],
+  split,
+  { rintro ⟨t, ht, rfl⟩,
+    exact ⟨t • v, λ i, ⟨t i, ht _, by simp⟩, rfl⟩ },
+  rintro ⟨g, hg, rfl⟩,
+  change ∀ i, _ at hg,
+  choose t ht hg using hg,
+  refine ⟨t, ht, _⟩,
+  simp_rw hg,
+end
+
+lemma convex_parallelepiped (v : ι → E) : convex ℝ (parallelepiped v) :=
+begin
+  rw parallelepiped_eq_sum_segment,
+  -- TODO: add `convex.sum` to match `convex.add`
+  let : add_submonoid (set E) :=
+  { carrier := { s | convex ℝ s}, zero_mem' := convex_singleton _, add_mem' := λ x y, convex.add },
+  exact this.sum_mem (λ i hi, convex_segment  _ _),
+end
+
+/-- A `parallelepiped` is the convex hull of its vertices -/
+lemma parallelepiped_eq_convex_hull (v : ι → E) :
+  parallelepiped v = convex_hull ℝ (∑ i, {(0 : E), v i}) :=
+begin
+  -- TODO: add `convex_hull_sum` to match `convex_hull_add`
+  let : set E →+ set E :=
+  { to_fun := convex_hull ℝ,
+    map_zero' := convex_hull_singleton _,
+    map_add' := convex_hull_add },
+  simp_rw [parallelepiped_eq_sum_segment, ←convex_hull_pair],
+  exact (this.map_sum _ _).symm,
+end
+
+/-- The axis aligned parallelepiped over `ι → ℝ` is a cuboid. -/
+lemma parallelepiped_single [decidable_eq ι] (a : ι → ℝ) :
+  parallelepiped (λ i, pi.single i (a i)) = set.uIcc 0 a :=
+begin
+  ext,
+  simp_rw [set.uIcc, mem_parallelepiped_iff, set.mem_Icc, pi.le_def, ←forall_and_distrib,
+    pi.inf_apply, pi.sup_apply, ←pi.single_smul', pi.one_apply, pi.zero_apply, ←pi.smul_apply',
+    finset.univ_sum_single (_ : ι → ℝ)],
+  split,
+  { rintros ⟨t, ht, rfl⟩ i,
+    specialize ht i,
+    simp_rw [smul_eq_mul, pi.mul_apply],
+    cases le_total (a i) 0 with hai hai,
+    { rw [sup_eq_left.mpr hai, inf_eq_right.mpr hai],
+      exact ⟨le_mul_of_le_one_left hai ht.2, mul_nonpos_of_nonneg_of_nonpos ht.1 hai⟩ },
+    { rw [sup_eq_right.mpr hai, inf_eq_left.mpr hai],
+      exact ⟨mul_nonneg ht.1 hai, mul_le_of_le_one_left hai ht.2⟩ } },
+  { intro h,
+    refine ⟨λ i, x i / a i, λ i, _, funext $ λ i, _⟩,
+    { specialize h i,
+      cases le_total (a i) 0 with hai hai,
+      { rw [sup_eq_left.mpr hai, inf_eq_right.mpr hai] at h,
+        exact ⟨div_nonneg_of_nonpos h.2 hai, div_le_one_of_ge h.1 hai⟩ },
+      { rw [sup_eq_right.mpr hai, inf_eq_left.mpr hai] at h,
+        exact ⟨div_nonneg h.1 hai, div_le_one_of_le h.2 hai⟩ } },
+    { specialize h i,
+      simp only [smul_eq_mul, pi.mul_apply],
+      cases eq_or_ne (a i) 0 with hai hai,
+      { rw [hai, inf_idem, sup_idem, ←le_antisymm_iff] at h,
+        rw [hai, ← h, zero_div, zero_mul] },
+      { rw div_mul_cancel _ hai } } },
+end
+
 end add_comm_group
 
 section normed_space
 
-variables [normed_add_comm_group E] [normed_space ℝ E]
+variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space ℝ E] [normed_space ℝ F]
 
 /-- The parallelepiped spanned by a basis, as a compact set with nonempty interior. -/
 def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
@@ -130,6 +199,23 @@ def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
           zero_lt_one, implies_true_iff] },
       rwa [← homeomorph.image_interior, nonempty_image_iff],
     end }
+
+@[simp] lemma basis.coe_parallelepiped (b : basis ι ℝ E) :
+  (b.parallelepiped : set E) = parallelepiped b :=
+rfl
+
+@[simp] lemma basis.parallelepiped_reindex (b : basis ι ℝ E) (e : ι ≃ ι') :
+  (b.reindex e).parallelepiped = b.parallelepiped :=
+positive_compacts.ext $
+  (congr_arg parallelepiped (b.coe_reindex _)).trans (parallelepiped_comp_equiv b e.symm)
+
+lemma basis.parallelepiped_map (b : basis ι ℝ E) (e : E ≃ₗ[ℝ] F) :
+  (b.map e).parallelepiped = b.parallelepiped.map e
+    (by haveI := finite_dimensional.of_fintype_basis b; exact
+      e.to_linear_map.continuous_of_finite_dimensional)
+    (by haveI := finite_dimensional.of_fintype_basis (b.map e); exact
+      e.to_linear_map.is_open_map_of_finite_dimensional e.surjective) :=
+positive_compacts.ext (image_parallelepiped e.to_linear_map _).symm
 
 variables [measurable_space E] [borel_space E]
 

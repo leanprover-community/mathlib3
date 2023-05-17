@@ -11,6 +11,9 @@ import tactic.interval_cases
 /-!
 # Finite dimensional vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition and basic properties of finite dimensional vector spaces, of their dimensions, and
 of linear maps on such spaces.
 

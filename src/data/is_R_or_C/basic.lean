@@ -10,6 +10,9 @@ import analysis.normed_space.continuous_linear_map
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the typeclass `is_R_or_C` intended to have only two instances:
 ℝ and ℂ. It is meant for definitions and theorems which hold for both the real and the complex case,
 and in particular when the real case follows directly from the complex case by setting `re` to `id`,

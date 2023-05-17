@@ -1636,7 +1636,7 @@ Here is an example that shows the difference:
 ```
 example {x₀ : α} (f : α → α → β) (hf : continuous_at (Function.uncurry f) (x₀, x₀)) :
   continuous_at (λ x => f x x) x₀ :=
--- hf.comp (x := x₀) (continuous_at_id.prod continuous_at_id) -- type mismatch
+-- hf.comp x (continuous_at_id.prod continuous_at_id) -- type mismatch
 -- hf.comp_of_eq (continuous_at_id.prod continuous_at_id) rfl -- works
 ```
 -/

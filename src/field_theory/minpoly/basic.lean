@@ -57,12 +57,11 @@ dif_neg hx
 lemma minpoly_alg_hom (f : B →ₐ[A] B') (hf : function.injective f) (x : B) :
   minpoly A (f x) = minpoly A x :=
 begin
-  rw [minpoly, minpoly],
+  refine dif_ctx_congr (is_integral_alg_hom_iff _ hf) (λ _, _) (λ _, rfl),
   simp_rw [←polynomial.aeval_def, aeval_alg_hom, alg_hom.comp_apply, _root_.map_eq_zero_iff f hf],
-  exact dif_ctx_congr (is_integral_alg_hom_iff _ hf) (λ _, rfl) (λ _, rfl),
 end
 
-lemma minpoly_alg_equiv (f : B ≃ₐ[A] B') (x : B) : minpoly A (f x) = minpoly A x :=
+@[simp] lemma minpoly_alg_equiv (f : B ≃ₐ[A] B') (x : B) : minpoly A (f x) = minpoly A x :=
 minpoly_alg_hom (f : B →ₐ[A] B') f.injective x
 
 variables (A x)

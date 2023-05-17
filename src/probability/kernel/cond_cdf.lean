@@ -207,7 +207,8 @@ end
 lemma Iic_snd_ac_fst (r : ℝ) : ρ.Iic_snd r ≪ ρ.fst :=
 measure.absolutely_continuous_of_le (Iic_snd_le_fst ρ r)
 
-instance {ρ : measure (α × ℝ)} [is_finite_measure ρ] (r : ℝ) : is_finite_measure (ρ.Iic_snd r) :=
+lemma is_finite_measure.Iic_snd {ρ : measure (α × ℝ)} [is_finite_measure ρ] (r : ℝ) :
+  is_finite_measure (ρ.Iic_snd r) :=
 is_finite_measure_of_le _ (Iic_snd_le_fst ρ _)
 
 lemma infi_Iic_snd_gt (t : ℚ) {s : set α} (hs : measurable_set s) [is_finite_measure ρ] :
@@ -275,6 +276,8 @@ namespace probability_theory
 variables {α β ι : Type*} {mα : measurable_space α}
 
 include mα
+
+local attribute [instance] measure_theory.measure.is_finite_measure.Iic_snd
 
 /-! ### Auxiliary definitions
 

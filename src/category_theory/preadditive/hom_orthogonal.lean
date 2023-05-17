@@ -10,6 +10,9 @@ import linear_algebra.matrix.invariant_basis_number
 /-!
 # Hom orthogonal families.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A family of objects in a category with zero morphisms is "hom orthogonal" if the only
 morphism between distinct objects is the zero morphism.
 

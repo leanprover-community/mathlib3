@@ -3,10 +3,11 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.fderiv
-import analysis.normed_space.multilinear
+import analysis.calculus.fderiv.add
+import analysis.calculus.fderiv.mul
+import analysis.calculus.fderiv.equiv
+import analysis.calculus.fderiv.restrict_scalars
 import analysis.calculus.formal_multilinear_series
-import data.enat.basic
 
 /-!
 # Higher differentiability
@@ -247,6 +248,16 @@ begin
     { assume m hm,
       apply (H m).cont m le_rfl } }
 end
+
+/-- In the case that `n = ∞` we don't need the continuity assumption in
+`has_ftaylor_series_up_to_on`. -/
+lemma has_ftaylor_series_up_to_on_top_iff' : has_ftaylor_series_up_to_on ∞ f p s ↔
+  (∀ x ∈ s, (p x 0).uncurry0 = f x) ∧
+  (∀ (m : ℕ), ∀ x ∈ s, has_fderiv_within_at (λ y, p y m) (p x m.succ).curry_left s x) :=
+-- Everything except for the continuity is trivial:
+⟨λ h, ⟨h.1, λ m, h.2 m (with_top.coe_lt_top m)⟩, λ h, ⟨h.1, λ m _, h.2 m, λ m _ x hx,
+  -- The continuity follows from the existence of a derivative:
+  (h.2 m x hx).continuous_within_at⟩⟩
 
 /-- If a function has a Taylor series at order at least `1`, then the term of order `1` of this
 series is a derivative of `f`. -/
@@ -620,6 +631,15 @@ def cont_diff_on (n : ℕ∞) (f : E → F) (s : set E) : Prop :=
 ∀ x ∈ s, cont_diff_within_at 𝕜 n f s x
 
 variable {𝕜}
+
+lemma has_ftaylor_series_up_to_on.cont_diff_on {f' : E → formal_multilinear_series 𝕜 E F}
+  (hf : has_ftaylor_series_up_to_on n f f' s) : cont_diff_on 𝕜 n f s :=
+begin
+  intros x hx m hm,
+  use s,
+  simp only [set.insert_eq_of_mem hx, self_mem_nhds_within, true_and],
+  exact ⟨f', hf.of_le hm⟩,
+end
 
 lemma cont_diff_on.cont_diff_within_at (h : cont_diff_on 𝕜 n f s) (hx : x ∈ s) :
   cont_diff_within_at 𝕜 n f s x :=
@@ -1078,6 +1098,17 @@ begin
   rwa fderiv_within_inter (is_open.mem_nhds o_open hy.2) (hs y hy.1) at A
 end
 
+lemma cont_diff_on_succ_iff_has_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :
+  cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔ ∃ (f' : E → (E →L[𝕜] F)),
+    cont_diff_on 𝕜 n f' s ∧ ∀ x, x ∈ s → has_fderiv_within_at f (f' x) s x :=
+begin
+  rw cont_diff_on_succ_iff_fderiv_within hs,
+  refine ⟨λ h, ⟨fderiv_within 𝕜 f s, h.2, λ x hx, (h.1 x hx).has_fderiv_within_at⟩, λ h, _⟩,
+  rcases h with ⟨f', h1, h2⟩,
+  refine ⟨λ x hx, (h2 x hx).differentiable_within_at, λ x hx, _⟩,
+  exact (h1 x hx).congr' (λ y hy, (h2 y hy).fderiv_within (hs y hy)) hx,
+end
+
 /-- A function is `C^(n + 1)` on an open domain if and only if it is
 differentiable there, and its derivative (expressed with `fderiv`) is `C^n`. -/
 theorem cont_diff_on_succ_iff_fderiv_of_open {n : ℕ} (hs : is_open s) :
@@ -1214,6 +1245,18 @@ lemma has_ftaylor_series_up_to_zero_iff :
 by simp [has_ftaylor_series_up_to_on_univ_iff.symm, continuous_iff_continuous_on_univ,
          has_ftaylor_series_up_to_on_zero_iff]
 
+lemma has_ftaylor_series_up_to_top_iff : has_ftaylor_series_up_to ∞ f p ↔
+  ∀ (n : ℕ), has_ftaylor_series_up_to n f p :=
+by simp only [← has_ftaylor_series_up_to_on_univ_iff, has_ftaylor_series_up_to_on_top_iff]
+
+/-- In the case that `n = ∞` we don't need the continuity assumption in
+`has_ftaylor_series_up_to`. -/
+lemma has_ftaylor_series_up_to_top_iff' : has_ftaylor_series_up_to ∞ f p ↔
+  (∀ x, (p x 0).uncurry0 = f x) ∧
+  (∀ (m : ℕ) x, has_fderiv_at (λ y, p y m) (p x m.succ).curry_left x) :=
+by simp only [← has_ftaylor_series_up_to_on_univ_iff, has_ftaylor_series_up_to_on_top_iff',
+  mem_univ, forall_true_left, has_fderiv_within_at_univ]
+
 /-- If a function has a Taylor series at order at least `1`, then the term of order `1` of this
 series is a derivative of `f`. -/
 lemma has_ftaylor_series_up_to.has_fderiv_at
@@ -1326,6 +1369,10 @@ def cont_diff (n : ℕ∞) (f : E → F) : Prop :=
 
 variable {𝕜}
 
+/-- If `f` has a Taylor series up to `n`, then it is `C^n`. -/
+lemma has_ftaylor_series_up_to.cont_diff {f' : E → formal_multilinear_series 𝕜 E F}
+  (hf : has_ftaylor_series_up_to n f f') : cont_diff 𝕜 n f := ⟨f', hf⟩
+
 theorem cont_diff_on_univ : cont_diff_on 𝕜 n f univ ↔ cont_diff 𝕜 n f :=
 begin
   split,
@@ -1390,6 +1437,11 @@ lemma cont_diff_iff_forall_nat_le :
   cont_diff 𝕜 n f ↔ ∀ m : ℕ, ↑m ≤ n → cont_diff 𝕜 m f :=
 by { simp_rw [← cont_diff_on_univ], exact cont_diff_on_iff_forall_nat_le }
 
+/-- A function is `C^(n+1)` iff it has a `C^n` derivative. -/
+lemma cont_diff_succ_iff_has_fderiv {n : ℕ} : cont_diff 𝕜 ((n + 1) : ℕ) f ↔
+  ∃ (f' : E → (E →L[𝕜] F)), cont_diff 𝕜 n f' ∧ ∀ x, has_fderiv_at f (f' x) x :=
+by simp only [← cont_diff_on_univ, ← has_fderiv_within_at_univ,
+    cont_diff_on_succ_iff_has_fderiv_within (unique_diff_on_univ), set.mem_univ, forall_true_left]
 
 /-! ### Iterated derivative -/
 

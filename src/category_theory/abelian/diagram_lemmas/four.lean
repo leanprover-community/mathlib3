@@ -8,6 +8,9 @@ import category_theory.abelian.pseudoelements
 /-!
 # The four and five lemmas
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Consider the following commutative diagram with exact rows in an abelian category:
 
 ```

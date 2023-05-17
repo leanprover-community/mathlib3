@@ -377,6 +377,29 @@ begin
   exact lintegral_Lp_add_le_aux hpq hf hf_top hg hg_top h0 htop,
 end
 
+/-- Variant of Minkowski's inequality for functions `α → ℝ≥0∞` in `ℒp` with `p ≤ 1`: the `ℒp`
+seminorm of the sum of two functions is bounded by a constant multiple of the sum
+of their `ℒp` seminorms. -/
+theorem lintegral_Lp_add_le_of_le_one {p : ℝ} {f g : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) (hp0 : 0 ≤ p) (hp1 : p ≤ 1) :
+  (∫⁻ a, ((f + g) a)^p ∂ μ) ^ (1/p) ≤
+    2^(1/p-1) * ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p)) :=
+begin
+  rcases eq_or_lt_of_le hp0 with rfl|hp,
+  { simp only [pi.add_apply, rpow_zero, lintegral_one, _root_.div_zero, zero_sub],
+    norm_num,
+    rw [rpow_neg, rpow_one, ennreal.inv_mul_cancel two_ne_zero two_ne_top],
+    exact le_rfl },
+  calc (∫⁻ a, (f + g) a ^ p ∂μ) ^ (1 / p) ≤ (∫⁻ a, (f a)^p ∂ μ + ∫⁻ a, (g a)^p ∂ μ) ^ (1/p) :
+    begin
+      apply rpow_le_rpow _ (div_nonneg zero_le_one hp0),
+      rw ← lintegral_add_left' (hf.pow_const p),
+      exact lintegral_mono (λ a, rpow_add_le_add_rpow _ _ hp0 hp1)
+    end
+  ... ≤ 2 ^ (1/p-1) * ((∫⁻ a, f a ^ p ∂μ) ^ (1/p) + (∫⁻ a, g a ^ p ∂μ) ^ (1/p)) :
+    rpow_add_le_mul_rpow_add_rpow _ _ ((one_le_div hp).2 hp1)
+end
+
 end ennreal
 
 /-- Hölder's inequality for functions `α → ℝ≥0`. The integral of the product of two functions

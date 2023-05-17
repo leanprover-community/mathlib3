@@ -7,6 +7,7 @@ import ring_theory.ideal.cotangent
 import ring_theory.dedekind_domain.basic
 import ring_theory.valuation.valuation_ring
 import ring_theory.nakayama
+
 /-!
 
 # Equivalent conditions for DVR

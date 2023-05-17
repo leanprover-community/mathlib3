@@ -11,6 +11,9 @@ import tactic.interval_cases
 /-!
 # Finite dimensional vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition and basic properties of finite dimensional vector spaces, of their dimensions, and
 of linear maps on such spaces.
 
@@ -358,18 +361,7 @@ span_of_finite K $ s.finite_to_set
 /-- Pushforwards of finite-dimensional submodules are finite-dimensional. -/
 instance (f : V →ₗ[K] V₂) (p : submodule K V) [h : finite_dimensional K p] :
   finite_dimensional K (p.map f) :=
-begin
-  unfreezingI { rw [finite_dimensional, ← iff_fg, is_noetherian.iff_rank_lt_aleph_0] at h ⊢ },
-  rw [← cardinal.lift_lt.{v' v}],
-  rw [← cardinal.lift_lt.{v v'}] at h,
-  rw [cardinal.lift_aleph_0] at h ⊢,
-  exact (lift_rank_map_le f p).trans_lt h
-end
-
-/-- Pushforwards of finite-dimensional submodules have a smaller finrank. -/
-lemma finrank_map_le (f : V →ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
-  finrank K (p.map f) ≤ finrank K p :=
-by simpa [← finrank_eq_rank', -finrank_eq_rank] using lift_rank_map_le f p
+module.finite.map _ _
 
 variable {K}
 
@@ -781,32 +773,6 @@ section division_ring
 variables [division_ring K] [add_comm_group V] [module K V]
 {V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
-/--
-Two finite-dimensional vector spaces are isomorphic if they have the same (finite) dimension.
--/
-theorem nonempty_linear_equiv_of_finrank_eq [finite_dimensional K V] [finite_dimensional K V₂]
-  (cond : finrank K V = finrank K V₂) : nonempty (V ≃ₗ[K] V₂) :=
-nonempty_linear_equiv_of_lift_rank_eq $ by simp only [← finrank_eq_rank, cond, lift_nat_cast]
-
-/--
-Two finite-dimensional vector spaces are isomorphic if and only if they have the same (finite)
-dimension.
--/
-theorem nonempty_linear_equiv_iff_finrank_eq [finite_dimensional K V] [finite_dimensional K V₂] :
-  nonempty (V ≃ₗ[K] V₂) ↔ finrank K V = finrank K V₂ :=
-⟨λ ⟨h⟩, h.finrank_eq, λ h, nonempty_linear_equiv_of_finrank_eq h⟩
-
-variables (V V₂)
-
-/--
-Two finite-dimensional vector spaces are isomorphic if they have the same (finite) dimension.
--/
-noncomputable def linear_equiv.of_finrank_eq [finite_dimensional K V] [finite_dimensional K V₂]
-  (cond : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
-classical.choice $ nonempty_linear_equiv_of_finrank_eq cond
-
-variables {V}
-
 lemma eq_of_le_of_finrank_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (hle : S₁ ≤ S₂)
   (hd : finrank K S₂ ≤ finrank K S₁) : S₁ = S₂ :=
 begin
@@ -821,12 +787,7 @@ lemma eq_of_le_of_finrank_eq {S₁ S₂ : submodule K V} [finite_dimensional K S
   (hd : finrank K S₁ = finrank K S₂) : S₁ = S₂ :=
 eq_of_le_of_finrank_le hle hd.ge
 
-@[simp]
-lemma finrank_map_subtype_eq (p : submodule K V) (q : submodule K p) :
-  finite_dimensional.finrank K (q.map p.subtype) = finite_dimensional.finrank K q :=
-(submodule.equiv_subtype_map p q).symm.finrank_eq
-
-variables {V₂} [finite_dimensional K V] [finite_dimensional K V₂]
+variables [finite_dimensional K V] [finite_dimensional K V₂]
 
 /-- Given isomorphic subspaces `p q` of vector spaces `V` and `V₁` respectively,
   `p.quotient` is isomorphic to `q.quotient`. -/
@@ -875,7 +836,7 @@ module.finite.of_surjective f $ range_eq_top.1 hf
 /-- The range of a linear map defined on a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_range [finite_dimensional K V] (f : V →ₗ[K] V₂) :
   finite_dimensional K f.range :=
-f.quot_ker_equiv_range.finite_dimensional
+module.finite.range f
 
 /-- On a finite-dimensional space, a linear map is injective if and only if it is surjective. -/
 lemma injective_iff_surjective [finite_dimensional K V] {f : V →ₗ[K] V} :
@@ -1053,11 +1014,6 @@ variables [division_ring K] [add_comm_group V] [module K V]
 lemma eq_top_of_finrank_eq [finite_dimensional K V] {S : submodule K V}
   (h : finrank K S = finrank K V) :
   S = ⊤ := finite_dimensional.eq_of_le_of_finrank_eq le_top (by simp [h, finrank_top])
-
-lemma finrank_le_finrank_of_le {s t : submodule K V} [finite_dimensional K t]
-  (hst : s ≤ t) : finrank K s ≤ finrank K t :=
-calc  finrank K s = finrank K (comap t.subtype s) : (comap_subtype_equiv_of_le hst).finrank_eq.symm
-... ≤ finrank K t : finrank_le _
 
 lemma finrank_mono [finite_dimensional K V] :
   monotone (λ (s : submodule K V), finrank K s) :=

@@ -109,7 +109,7 @@ end
 begin
   rsuffices ⟨r, hr⟩ : ∃ r : ℝ, ⟪T x, x⟫ = r,
   { simp [hr, T.re_apply_inner_self_apply] },
-  rw ← eq_conj_iff_real,
+  rw ← conj_eq_iff_real,
   exact hT.conj_inner_sym x x
 end
 
@@ -165,8 +165,8 @@ begin
   { simp_rw [h, zero_mul, sub_zero, add_zero, map_add, map_sub, inner_add_left,
       inner_add_right, inner_sub_left, inner_sub_right, hT x, ← inner_conj_symm x (T y)],
     suffices : (re ⟪T y, x⟫ : 𝕜) = ⟪T y, x⟫,
-    { rw eq_conj_iff_re.mpr this,
-      ring_nf, },
+    { rw conj_eq_iff_re.mpr this,
+      ring, },
     { rw ← re_add_im ⟪T y, x⟫,
       simp_rw [h, mul_zero, add_zero],
       norm_cast, } },
@@ -178,7 +178,7 @@ end
 
 /-- A symmetric linear map `T` is zero if and only if `⟪T x, x⟫_ℝ = 0` for all `x`.
 See `inner_map_self_eq_zero` for the complex version without the symmetric assumption. -/
-lemma is_symmetric.inner_map_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
+lemma is_symmetric.inner_map_self_eq_zero {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
   (∀ x, ⟪T x, x⟫ = 0) ↔ T = 0 :=
 begin
   simp_rw [linear_map.ext_iff, zero_apply],

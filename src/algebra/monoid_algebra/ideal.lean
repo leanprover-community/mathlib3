@@ -9,6 +9,9 @@ import ring_theory.ideal.basic
 
 /-!
 # Lemmas about ideals of `monoid_algebra` and `add_monoid_algebra`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {k A G : Type*}

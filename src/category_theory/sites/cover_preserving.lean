@@ -10,6 +10,9 @@ import tactic.apply_fun
 /-!
 # Cover-preserving functors between sites.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define cover-preserving functors between sites as functors that push covering sieves to
 covering sieves. A cover-preserving and compatible-preserving functor `G : C ⥤ D` then pulls
 sheaves on `D` back to sheaves on `C` via `G.op ⋙ -`.

@@ -12,6 +12,9 @@ import tactic.congrm
 /-!
 # The Minkowksi functional
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the Minkowski functional, aka gauge.
 
 The Minkowski functional of a set `s` is the function which associates each point to how much you

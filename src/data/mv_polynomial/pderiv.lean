@@ -47,7 +47,7 @@ namespace mv_polynomial
 
 
 open set function finsupp add_monoid_algebra
-open_locale classical big_operators
+open_locale big_operators
 
 variables {R : Type u} {σ : Type v} {a a' a₁ a₂ : R} {s : σ →₀ ℕ}
 
@@ -57,12 +57,16 @@ variables {R} [comm_semiring R]
 
 /-- `pderiv i p` is the partial derivative of `p` with respect to `i` -/
 def pderiv (i : σ) : derivation R (mv_polynomial σ R) (mv_polynomial σ R) :=
-mk_derivation R $ pi.single i 1
+by letI := classical.dec_eq σ; exact (mk_derivation R $ pi.single i 1)
+
+lemma pderiv_def [decidable_eq σ] (i : σ) : pderiv i = mk_derivation R (pi.single i 1) :=
+by convert rfl
 
 @[simp] lemma pderiv_monomial {i : σ} :
   pderiv i (monomial s a) = monomial (s - single i 1) (a * (s i)) :=
 begin
-  simp only [pderiv, mk_derivation_monomial, finsupp.smul_sum, smul_eq_mul,
+  classical,
+  simp only [pderiv_def, mk_derivation_monomial, finsupp.smul_sum, smul_eq_mul,
     ← smul_mul_assoc, ← (monomial _).map_smul],
   refine (finset.sum_eq_single i (λ j hj hne, _) (λ hi, _)).trans _,
   { simp [pi.single_eq_of_ne hne] },
@@ -74,14 +78,15 @@ lemma pderiv_C {i : σ} : pderiv i (C a) = 0 := derivation_C _ _
 
 lemma pderiv_one {i : σ} : pderiv i (1 : mv_polynomial σ R) = 0 := pderiv_C
 
-@[simp] lemma pderiv_X [d : decidable_eq σ] (i j : σ) :
-  pderiv i (X j : mv_polynomial σ R) = @pi.single σ _ d _ i 1 j :=
-(mk_derivation_X _ _ _).trans (by congr)
+@[simp] lemma pderiv_X [decidable_eq σ] (i j : σ) :
+  pderiv i (X j : mv_polynomial σ R) = @pi.single _ _ _ _ i 1 j :=
+by rw [pderiv_def, mk_derivation_X]
 
-@[simp] lemma pderiv_X_self (i : σ) : pderiv i (X i : mv_polynomial σ R) = 1 := by simp
+@[simp] lemma pderiv_X_self (i : σ) : pderiv i (X i : mv_polynomial σ R) = 1 :=
+by classical; simp
 
 @[simp] lemma pderiv_X_of_ne {i j : σ} (h : j ≠ i) : pderiv i (X j : mv_polynomial σ R) = 0 :=
-by simp [h]
+by classical; simp [h]
 
 lemma pderiv_eq_zero_of_not_mem_vars {i : σ} {f : mv_polynomial σ R} (h : i ∉ f.vars) :
   pderiv i f = 0 :=

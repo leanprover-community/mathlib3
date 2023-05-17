@@ -154,6 +154,9 @@ include hp
 
 variables (a : 𝕜) [archimedean 𝕜]
 
+instance : circular_order (add_circle p) :=
+quotient_add_group.circular_order
+
 /-- The equivalence between `add_circle p` and the half-open interval `[a, a + p)`, whose inverse
 is the natural quotient map. -/
 def equiv_Ico : add_circle p ≃ Ico a (a + p) := quotient_add_group.equiv_Ico_mod hp.out a

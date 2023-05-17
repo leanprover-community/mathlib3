@@ -19,6 +19,7 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
 
 ## Results
 
+* `polynomial.hermite_succ`: the recursion `hermite (n+1) = (x - d/dx) (hermite n)`
 * `polynomial.coeff_hermite_of_odd_add`: for `n`,`k` where `n+k` is odd, `(hermite n).coeff k` is
   zero.
 * `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
@@ -39,6 +40,7 @@ noncomputable def hermite : ℕ → polynomial ℤ
 | 0     := 1
 | (n+1) := X * (hermite n) - (hermite n).derivative
 
+/-- The recursion `hermite (n+1) = (x - d/dx) (hermite n)` -/
 @[simp] lemma hermite_succ (n : ℕ) : hermite (n+1) = X * (hermite n) - (hermite n).derivative :=
 by rw hermite
 

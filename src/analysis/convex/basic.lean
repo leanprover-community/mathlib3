@@ -197,7 +197,7 @@ variables (𝕜 E)
 
 /-- The convex sets form an additive submonoid under pointwise addition. -/
 def convex_add_submonoid : add_submonoid (set E) :=
-{ carrier := { s : set E | convex 𝕜 s},
+{ carrier := {s : set E | convex 𝕜 s},
   zero_mem' := convex_zero,
   add_mem' := λ s t, convex.add }
 

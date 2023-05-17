@@ -56,6 +56,11 @@ begin
     simp_rw [ennreal.smul_def, smul_eq_mul, ennreal.mul_infi_of_ne this ennreal.coe_ne_top] },
 end
 
+lemma inf_dist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
+  metric.inf_dist (c • x) (c • s) = ‖c‖ * metric.inf_dist x s :=
+by simp_rw [metric.inf_dist, inf_edist_smul₀ hc, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm,
+  smul_eq_mul]
+
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (‖c‖ * r) :=
 begin

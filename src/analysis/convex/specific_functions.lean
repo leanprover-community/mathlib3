@@ -222,15 +222,6 @@ begin
   fin_cases hm; cc,
 end
 
--- move this
-lemma log_lt_sub_one_of_pos {x : ℝ} (hx1 : 0 < x) (hx2 : x ≠ 1) : log x < x - 1 :=
-begin
-  have h : log x ≠ 0,
-  { rw [← log_one, log_inj_on_pos.ne_iff hx1 zero_lt_one],
-    exact hx2 },
-  linarith [add_one_lt_exp_of_nonzero h, exp_log hx1],
-end
-
 lemma strict_concave_on_log_Ioi : strict_concave_on ℝ (Ioi 0) log :=
 begin
   apply strict_concave_on_of_slope_strict_anti_adjacent (convex_Ioi (0:ℝ)),

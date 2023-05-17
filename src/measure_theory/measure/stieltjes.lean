@@ -63,7 +63,6 @@ lemma right_lim_eq_of_tendsto {α β : Type*} [linear_order α] [topological_spa
 @left_lim_eq_of_tendsto αᵒᵈ _ _ _ _ _ _ f a y h h'
 
 -- todo after the port: move to topology/algebra/order/left_right_lim
--- todo: use `(𝓝[>] x).ne_bot` instead of `𝓝[>] x ≠ ⊥`?
 lemma right_lim_eq_Inf {α β : Type*} [linear_order α] [topological_space β]
   [conditionally_complete_linear_order β] [order_topology β] {f : α → β}
   (hf : monotone f) {x : α}

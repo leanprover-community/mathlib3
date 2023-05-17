@@ -1247,12 +1247,12 @@ lemma mul_le_iff_le_inv {a b r : ℝ≥0∞} (hr₀ : r ≠ 0) (hr₁ : r ≠ �
 by rw [←@ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ←mul_assoc, ennreal.mul_inv_cancel hr₀ hr₁, one_mul]
 
 /-- A variant of `le_inv_smul_iff` that holds for `ennreal`. -/
-lemma le_inv_smul_iff {a b : ℝ≥0∞} {r : ℝ≥0} (hr₀ : r ≠ 0) : a ≤ r⁻¹ • b ↔ r • a ≤ b :=
+protected lemma le_inv_smul_iff {a b : ℝ≥0∞} {r : ℝ≥0} (hr₀ : r ≠ 0) : a ≤ r⁻¹ • b ↔ r • a ≤ b :=
 by simpa [hr₀, ennreal.smul_def] using (mul_le_iff_le_inv (coe_ne_zero.mpr hr₀) coe_ne_top).symm
 
 /-- A variant of `inv_smul_le_iff` that holds for `ennreal`. -/
-lemma inv_smul_le_iff {a b : ℝ≥0∞} {r : ℝ≥0} (hr₀ : r ≠ 0) : r⁻¹ • a ≤ b ↔ a ≤ r • b :=
-by simpa only [inv_inv] using (le_inv_smul_iff (inv_ne_zero hr₀)).symm
+protected lemma inv_smul_le_iff {a b : ℝ≥0∞} {r : ℝ≥0} (hr₀ : r ≠ 0) : r⁻¹ • a ≤ b ↔ a ≤ r • b :=
+by simpa only [inv_inv] using (ennreal.le_inv_smul_iff (inv_ne_zero hr₀)).symm
 
 lemma le_of_forall_nnreal_lt {x y : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r < x → ↑r ≤ y) : x ≤ y :=
 begin

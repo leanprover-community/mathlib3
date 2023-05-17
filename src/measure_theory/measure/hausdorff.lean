@@ -3,7 +3,6 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.special_functions.pow
 import analysis.convex.between
 import measure_theory.constructions.borel_space.basic
 import measure_theory.measure.lebesgue
@@ -385,32 +384,6 @@ begin
     assume ht,
     apply le_trans _ (h_mono (diam_mono hst)),
     simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
-end
-
-@[simp] lemma extend_top {α : Type*} {P : α → Prop} :
-  extend (λ s h, ∞ : Π (s : α), P s → ℝ≥0∞) = ⊤ :=
-funext $ λ x, infi_eq_top.mpr $ λ i, rfl
-
-@[simp] lemma bounded_by_top {α : Type*} : bounded_by (⊤ : set α → ℝ≥0∞) = ⊤ :=
-begin
-  rw [eq_top_iff, le_bounded_by'],
-  intros s hs,
-  rw top_apply hs,
-  exact le_rfl,
-end
-
-@[simp] lemma bounded_by_zero {α : Type*} : bounded_by (0 : set α → ℝ≥0∞) = 0 :=
-begin
-  rw [←coe_bot, eq_bot_iff],
-  apply bounded_by_le,
-end
-
-@[simp] lemma mk_metric_top : (mk_metric (λ _, ∞ : ℝ≥0∞ → ℝ≥0∞) : outer_measure X) = ⊤ :=
-begin
-  simp_rw [mk_metric, mk_metric', mk_metric'.pre, extend_top, bounded_by_top, eq_top_iff],
-  rw le_supr_iff,
-  intros b hb,
-  simpa using hb ⊤,
 end
 
 -- lemma mk_metric_zero (m : ℝ≥0∞ → ℝ≥0∞):

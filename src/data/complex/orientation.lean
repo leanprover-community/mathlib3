@@ -9,6 +9,9 @@ import linear_algebra.orientation
 /-!
 # The standard orientation on `ℂ`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This had previously been in `linear_algebra.orientation`,
 but keeping it separate results in a significant import reduction.
 -/

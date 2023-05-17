@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 import algebra.indicator_function
 import algebra.support
 

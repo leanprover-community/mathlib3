@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel, Felix Weilacher
 -/
 import data.real.cardinality
 import topology.perfect
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 
 /-!
 # The Borel sigma-algebra on Polish spaces

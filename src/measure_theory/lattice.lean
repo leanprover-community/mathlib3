@@ -9,6 +9,9 @@ import measure_theory.measure.ae_measurable
 /-!
 # Typeclasses for measurability of lattice operations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define classes `has_measurable_sup` and `has_measurable_inf` and prove dot-style
 lemmas (`measurable.sup`, `ae_measurable.sup` etc). For binary operations we define two typeclasses:
 

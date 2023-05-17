@@ -5,6 +5,7 @@ Authors: Yury Kudryashov, Sébastien Gouëzel
 -/
 import analysis.special_functions.pow.deriv
 import analysis.special_functions.sqrt
+import tactic.linear_combination
 
 /-!
 # Collection of convex functions
@@ -34,20 +35,75 @@ open_locale big_operators nnreal
 
 /-- `exp` is strictly convex on the whole real line. -/
 lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
-strict_convex_on_univ_of_deriv2_pos continuous_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
+begin
+  apply strict_convex_on_of_slope_strict_mono_adjacent convex_univ,
+  rintros x y z - - hxy hyz,
+  transitivity exp y,
+  { have h1 : 0 < y - x := by linarith,
+    have h2 : x - y < 0 := by linarith,
+    rw div_lt_iff h1,
+    calc exp y - exp x = exp y - exp y * exp (x - y) : by rw ← exp_add; ring_nf
+    ... = exp y * (1 - exp (x - y)) : by ring
+    ... < exp y * (-(x - y)) : mul_lt_mul_of_pos_left _ y.exp_pos
+    ... = exp y * (y - x) : by ring,
+    linarith [add_one_lt_exp_of_nonzero h2.ne] },
+  { have h1 : 0 < z - y := by linarith,
+    rw lt_div_iff h1,
+    calc exp y * (z - y) < exp y * (exp (z - y) - 1) : mul_lt_mul_of_pos_left _ y.exp_pos
+    ... = exp (z - y) * exp y - exp y : by ring
+    ... ≤ exp z - exp y : by rw ← exp_add; ring_nf,
+    linarith [add_one_lt_exp_of_nonzero h1.ne'] },
+end
 
 /-- `exp` is convex on the whole real line. -/
 lemma convex_on_exp : convex_on ℝ univ exp := strict_convex_on_exp.convex_on
 
+/-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n` -/
+lemma convex_on_pow (n : ℕ) : convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
+begin
+  induction n with k IH,
+  { exact convex_on_const (1:ℝ) (convex_Ici _) },
+  refine ⟨convex_Ici _, _⟩,
+  rintros a (ha : 0 ≤ a) b (hb : 0 ≤ b) μ ν hμ hν h,
+  have H := IH.2 ha hb hμ hν h,
+  have : 0 ≤ (b ^ k - a ^ k) * (b - a) * μ * ν,
+  { cases le_or_lt a b with hab hab,
+    { have : a ^ k ≤ b ^ k := pow_le_pow_of_le_left ha hab k,
+      have : 0 ≤ (b ^ k - a ^ k) * (b - a) := by nlinarith,
+      positivity, },
+    { have : b ^ k ≤ a ^ k := pow_le_pow_of_le_left hb hab.le k,
+      have : 0 ≤ (b ^ k - a ^ k) * (b - a) := by nlinarith,
+      positivity, } },
+  calc (μ * a + ν * b) ^ k.succ = (μ * a + ν * b) * (μ * a + ν * b) ^ k : by ring_exp
+  ... ≤ (μ * a + ν * b) * (μ * a ^ k + ν * b ^ k) : mul_le_mul_of_nonneg_left H (by positivity)
+  ... ≤ (μ * a + ν * b) * (μ * a ^ k + ν * b ^ k) + (b ^ k - a ^ k) * (b - a) * μ * ν : by linarith
+  ... = (μ + ν) * (μ * a ^ k.succ + ν * b ^ k.succ) : by ring_exp
+  ... = μ * a ^ k.succ + ν * b ^ k.succ : by rw h; ring_exp,
+end
+
+/-- `x^n`, `n : ℕ` is strictly convex on `[0, +∞)` for all `n` greater than `2`. -/
+lemma strict_convex_on_pow {n : ℕ} (hn : 2 ≤ n) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
+begin
+  apply strict_mono_on.strict_convex_on_of_deriv (convex_Ici _) (continuous_on_pow _),
+  rw [deriv_pow', interior_Ici],
+  exact λ x (hx : 0 < x) y hy hxy, mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_left hxy hx.le $
+    nat.sub_pos_of_lt hn) (nat.cast_pos.2 $ zero_lt_two.trans_le hn),
+end
+
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
 lemma even.convex_on_pow {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
-  apply convex_on_univ_of_deriv2_nonneg (differentiable_pow n),
-  { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
-  { intro x,
-    obtain ⟨k, hk⟩ := (hn.tsub $ even_bit0 _).exists_two_nsmul _,
-    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, nsmul_eq_mul, pow_mul'],
-    exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
+  refine ⟨convex_univ, _⟩,
+  intros a ha b hb μ ν hμ hν h,
+  obtain ⟨k, rfl⟩ := hn.exists_two_nsmul _,
+  have : 0 ≤ (a - b) ^ 2 * μ * ν := by positivity,
+  calc (μ * a + ν * b) ^ (2 * k) = ((μ * a + ν * b) ^ 2) ^ k : by rw pow_mul
+  ... ≤ ((μ + ν) * (μ * a ^ 2 + ν * b ^ 2)) ^ k : pow_le_pow_of_le_left (by positivity) _ k
+  ... = (μ * a ^ 2 + ν * b ^ 2) ^ k : by rw h; ring_exp
+  ... ≤ μ * (a ^ 2) ^ k + ν * (b ^ 2) ^ k : _
+  ... ≤ μ * a ^ (2 * k) + ν * b ^ (2 * k) : by ring_exp,
+  { linarith },
+  { refine (convex_on_pow k).2 _ _ hμ hν h; dsimp; positivity },
 end
 
 /-- `x^n`, `n : ℕ` is strictly convex on the whole real line whenever `n ≠ 0` is even. -/
@@ -59,26 +115,6 @@ begin
   replace h := nat.pos_of_ne_zero h,
   exact strict_mono.const_mul (odd.strict_mono_pow $ nat.even.sub_odd h hn $ nat.odd_iff.2 rfl)
     (nat.cast_pos.2 h),
-end
-
-/-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n` -/
-lemma convex_on_pow (n : ℕ) : convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
-begin
-  apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on
-    (differentiable_on_pow n),
-  { simp only [deriv_pow'], exact (@differentiable_on_pow ℝ _ _ _).const_mul (n : ℝ) },
-  { intros x hx,
-    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub],
-    exact mul_nonneg (nat.cast_nonneg _) (pow_nonneg (interior_subset hx) _) }
-end
-
-/-- `x^n`, `n : ℕ` is strictly convex on `[0, +∞)` for all `n` greater than `2`. -/
-lemma strict_convex_on_pow {n : ℕ} (hn : 2 ≤ n) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
-begin
-  apply strict_mono_on.strict_convex_on_of_deriv (convex_Ici _) (continuous_on_pow _),
-  rw [deriv_pow', interior_Ici],
-  exact λ x (hx : 0 < x) y hy hxy, mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_left hxy hx.le $
-    nat.sub_pos_of_lt hn) (nat.cast_pos.2 $ zero_lt_two.trans_le hn),
 end
 
 /-- Specific case of Jensen's inequality for sums of powers -/
@@ -141,19 +177,34 @@ begin
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` -/
-lemma convex_on_zpow (m : ℤ) : convex_on ℝ (Ioi 0) (λ x : ℝ, x^m) :=
+lemma convex_on_zpow : ∀ m : ℤ, convex_on ℝ (Ioi 0) (λ x : ℝ, x^m)
+| (n : ℕ) :=
 begin
-  have : ∀ n : ℤ, differentiable_on ℝ (λ x, x ^ n) (Ioi (0 : ℝ)),
-    from λ n, differentiable_on_zpow _ _ (or.inl $ lt_irrefl _),
-  apply convex_on_of_deriv2_nonneg (convex_Ioi 0);
-    try { simp only [interior_Ioi, deriv_zpow'] },
-  { exact (this _).continuous_on },
-  { exact this _ },
-  { exact (this _).const_mul _ },
-  { intros x hx,
-    rw iter_deriv_zpow,
-    refine mul_nonneg _ (zpow_nonneg (le_of_lt hx) _),
-    exact_mod_cast int_prod_range_nonneg _ _ (even_bit0 1) }
+  simp_rw zpow_coe_nat,
+  exact (convex_on_pow n).subset Ioi_subset_Ici_self (convex_Ioi _)
+end
+| -[1+ n] :=
+begin
+  simp_rw zpow_neg_succ_of_nat,
+  refine ⟨convex_Ioi _, _⟩,
+  rintros a (ha : 0 < a) b (hb : 0 < b) μ ν hμ hν h,
+  have ha' : 0 < a ^ (n + 1) := by positivity,
+  have hb' : 0 < b ^ (n + 1) := by positivity,
+  field_simp [ha.ne', hb.ne', ha'.ne', hb'.ne'],
+  rw div_le_div_iff,
+  { calc 1 * (a ^ (n + 1) * b ^ (n + 1))
+        = ((μ + ν) ^ 2 * (a * b)) ^ (n + 1) : by rw h; ring_exp
+    ... ≤ ((μ * b + ν * a) * (μ * a + ν * b)) ^ (n + 1) : pow_le_pow_of_le_left _ _ _
+    ... = (μ * b + ν * a) ^ (n + 1) * (μ * a + ν * b) ^ (n + 1) : by rw mul_pow
+    ... ≤ (μ * b ^ (n + 1) + ν * a ^ (n + 1)) * (μ * a + ν * b) ^ (n + 1) : _,
+    { positivity },
+    { have : 0 ≤ μ * ν * (a - b) ^ 2 := by positivity,
+      linarith },
+    { apply mul_le_mul_of_nonneg_right ((convex_on_pow (n + 1)).2 hb.le ha.le hμ hν h),
+      positivity } },
+  { have : 0 < μ * a + ν * b := by cases le_or_lt a b; nlinarith,
+    positivity },
+  { positivity },
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` except `0` and `1`. -/
@@ -171,56 +222,144 @@ begin
   fin_cases hm; cc,
 end
 
-lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
+-- move this
+lemma log_lt_sub_one_of_pos {x : ℝ} (hx1 : 0 < x) (hx2 : x ≠ 1) : log x < x - 1 :=
 begin
-  have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp] },
-  apply convex_on_of_deriv2_nonneg (convex_Ici 0),
-  { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp)) },
-  { exact (differentiable_rpow_const hp).differentiable_on },
-  { rw A,
-    assume x hx,
-    replace hx : x ≠ 0, by { simp at hx, exact ne_of_gt hx },
-    simp [differentiable_at.differentiable_within_at, hx] },
-  { assume x hx,
-    replace hx : 0 < x, by simpa using hx,
-    suffices : 0 ≤ p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
-    apply mul_nonneg (le_trans zero_le_one hp),
-    exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg hx.le _) }
-end
-
-lemma strict_convex_on_rpow {p : ℝ} (hp : 1 < p) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
-begin
-  have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp.le] },
-  apply strict_convex_on_of_deriv2_pos (convex_Ici 0),
-  { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp.le)) },
-  rw interior_Ici,
-  rintro x (hx : 0 < x),
-  suffices : 0 < p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
-  exact mul_pos (zero_lt_one.trans hp) (mul_pos (sub_pos_of_lt hp) (rpow_pos_of_pos hx _)),
+  have h : log x ≠ 0,
+  { rw [← log_one, log_inj_on_pos.ne_iff hx1 zero_lt_one],
+    exact hx2 },
+  linarith [add_one_lt_exp_of_nonzero h, exp_log hx1],
 end
 
 lemma strict_concave_on_log_Ioi : strict_concave_on ℝ (Ioi 0) log :=
 begin
-  have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
-  { exact λ x (hx : 0 < x) (hx' : x = 0), hx.ne' hx' },
-  refine strict_concave_on_of_deriv2_neg' (convex_Ioi 0)
-    (continuous_on_log.mono h₁) (λ x (hx : 0 < x), _),
-  rw [function.iterate_succ, function.iterate_one],
-  change (deriv (deriv log)) x < 0,
-  rw [deriv_log', deriv_inv],
-  exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne'),
+  apply strict_concave_on_of_slope_strict_anti_adjacent (convex_Ioi (0:ℝ)),
+  rintros x y z (hx : 0 < x) (hz : 0 < z) hxy hyz,
+  have hy : 0 < y := hx.trans hxy,
+  transitivity y⁻¹,
+  { have h : 0 < z - y := by linarith,
+    rw div_lt_iff h,
+    have hyz' : 0 < z / y := by positivity,
+    have hyz'' : z / y ≠ 1,
+    { contrapose! h,
+      rw div_eq_one_iff_eq hy.ne' at h,
+      simp [h] },
+    calc log z - log y = log (z / y) : by rw ← log_div hz.ne' hy.ne'
+    ... < z / y - 1 : log_lt_sub_one_of_pos hyz' hyz''
+    ... = y⁻¹ * (z - y) : by field_simp [hy.ne'] },
+  { have h : 0 < y - x := by linarith,
+    rw lt_div_iff h,
+    have hxy' : 0 < x / y := by positivity,
+    have hxy'' : x / y ≠ 1,
+    { contrapose! h,
+      rw div_eq_one_iff_eq hy.ne' at h,
+      simp [h] },
+    calc y⁻¹ * (y - x) = 1 - x / y : by field_simp [hy.ne']
+    ... < - log (x / y) : by linarith [log_lt_sub_one_of_pos hxy' hxy'']
+    ... = - (log x - log y) : by rw log_div hx.ne' hy.ne'
+    ... = log y - log x : by ring },
+end
+
+/-- **Bernoulli's inequality** for real exponents, strict version: for `1 < p` and `-1 ≤ s`, with
+`s ≠ 0`, we have `1 + p * s < (1 + s) ^ p`. -/
+lemma one_add_mul_self_lt_rpow_one_add {s : ℝ} (hs : -1 ≤ s) (hs' : s ≠ 0) {p : ℝ} (hp : 1 < p) :
+  1 + p * s < (1 + s) ^ p :=
+begin
+  rcases eq_or_lt_of_le hs with rfl | hs,
+  { have : p ≠ 0 := by positivity,
+    simpa [zero_rpow this], },
+  have hs1 : 0 < 1 + s := by linarith,
+  cases le_or_lt (1 + p * s) 0 with hs2 hs2,
+  { exact hs2.trans_lt (rpow_pos_of_pos hs1 _) },
+  rw [rpow_def_of_pos hs1, ← exp_log hs2],
+  apply exp_strict_mono,
+  have hp : 0 < p := by positivity,
+  have hs3 : 1 + s ≠ 1 := by contrapose! hs'; linarith,
+  have hs4 : 1 + p * s ≠ 1 := by contrapose! hs'; nlinarith,
+  cases lt_or_gt_of_ne hs' with hs' hs',
+  { rw [← div_lt_iff hp, ← div_lt_div_right_of_neg hs'],
+    convert strict_concave_on_log_Ioi.secant_mono zero_lt_one hs2 hs1 hs4 hs3 _ using 1,
+    { field_simp [log_one] },
+    { field_simp [log_one] },
+    { nlinarith } },
+  { rw [← div_lt_iff hp, ← div_lt_div_right hs'],
+    convert strict_concave_on_log_Ioi.secant_mono zero_lt_one hs1 hs2 hs3 hs4 _ using 1,
+    { field_simp [log_one, hp.ne'], },
+    { field_simp [log_one] },
+    { nlinarith } },
+end
+
+/-- **Bernoulli's inequality** for real exponents, non-strict version: for `1 ≤ p` and `-1 ≤ s`
+we have `1 + p * s ≤ (1 + s) ^ p`. -/
+lemma one_add_mul_self_le_rpow_one_add {s : ℝ} (hs : -1 ≤ s) {p : ℝ} (hp : 1 ≤ p) :
+  1 + p * s ≤ (1 + s) ^ p :=
+begin
+  rcases eq_or_lt_of_le hp with rfl | hp,
+  { simp },
+  by_cases hs' : s = 0,
+  { simp [hs'] },
+  exact (one_add_mul_self_lt_rpow_one_add hs hs' hp).le,
+end
+
+lemma strict_convex_on_rpow {p : ℝ} (hp : 1 < p) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
+begin
+  apply strict_convex_on_of_slope_strict_mono_adjacent (convex_Ici (0:ℝ)),
+  rintros x y z (hx : 0 ≤ x) (hz : 0 ≤ z) hxy hyz,
+  have hy : 0 < y := by linarith,
+  have hy' : 0 < y ^ p := rpow_pos_of_pos hy _,
+  have H1 : y ^ ((p - 1) + 1) = y ^ (p - 1) * y := rpow_add_one hy.ne' _,
+  ring_nf at H1,
+  transitivity p * y ^ (p - 1),
+  { have hyz' : x - y < 0 := by linarith only [hxy],
+    have h3 : 0 < y - x := by linarith only [hxy],
+    have hyz'' : x / y < 1 := by rwa div_lt_one hy,
+    have hyz''' : x / y - 1 < 0 := by linarith only [hyz''],
+    have hyz'''' : 0 ≤ x / y := by positivity,
+    have hyz''''' : -1 ≤ x / y - 1 := by linarith only [hyz''''],
+    have : 1 - (1 + ((x / y) - 1)) ^ p < - p * ((x / y) - 1),
+    { linarith [one_add_mul_self_lt_rpow_one_add hyz''''' hyz'''.ne hp] },
+    rw [div_lt_iff h3, ← div_lt_div_right hy'],
+    convert this using 1,
+    { have H : (x / y) ^ p = x ^ p / y ^ p := div_rpow hx hy.le _,
+      ring_nf at ⊢ H,
+      field_simp [hy.ne', hy'.ne'] at ⊢ H,
+      linear_combination H },
+    { field_simp [hy.ne', hy'.ne'],
+      linear_combination p * (-y + x) * H1 }, },
+  { have hyz' : 0 < z - y := by linarith only [hyz],
+    have hyz'' : 1 < z / y := by rwa one_lt_div hy,
+    have hyz''' : 0 < z / y - 1 := by linarith only [hyz''],
+    have hyz'''' : -1 ≤ z / y - 1 := by linarith only [hyz''],
+    have : p * ((z / y) - 1) < (1 + ((z / y) - 1)) ^ p - 1,
+    { linarith [one_add_mul_self_lt_rpow_one_add hyz'''' hyz'''.ne' hp] },
+    rw [lt_div_iff hyz', ← div_lt_div_right hy'],
+    convert this using 1,
+    { field_simp [hy.ne', hy'.ne'],
+      linear_combination - p * (z - y) * H1, },
+    { have H : (z / y) ^ p = z ^ p / y ^ p := div_rpow hz hy.le _,
+      ring_nf at ⊢ H,
+      field_simp [hy.ne', hy'.ne'] at ⊢ H,
+      linear_combination -H } },
+end
+
+lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
+begin
+  rcases eq_or_lt_of_le hp with rfl | hp,
+  { simpa using convex_on_id (convex_Ici _), },
+  exact (strict_convex_on_rpow hp).convex_on,
 end
 
 lemma strict_concave_on_log_Iio : strict_concave_on ℝ (Iio 0) log :=
 begin
-  have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
-  { exact λ x (hx : x < 0) (hx' : x = 0), hx.ne hx' },
-  refine strict_concave_on_of_deriv2_neg' (convex_Iio 0)
-    (continuous_on_log.mono h₁) (λ x (hx : x < 0), _),
-  rw [function.iterate_succ, function.iterate_one],
-  change (deriv (deriv log)) x < 0,
-  rw [deriv_log', deriv_inv],
-  exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne),
+  refine ⟨convex_Iio _, _⟩,
+  rintros x (hx : x < 0) y (hy : y < 0) hxy a b ha hb hab,
+  have hx' : 0 < -x := by linarith,
+  have hy' : 0 < -y := by linarith,
+  have hxy' : - x ≠ - y := by contrapose! hxy; linarith,
+  calc a • log x + b • log y = a • log (-x) + b • log (-y) : by simp_rw [log_neg_eq_log]
+  ... < log (a • (-x) + b • (-y)) : strict_concave_on_log_Ioi.2 hx' hy' hxy' ha hb hab
+  ... = log (- (a • x + b • y)) : by congr' 1; simp only [algebra.id.smul_eq_mul]; ring
+  ... = _ : by rw log_neg_eq_log,
 end
 
 section sqrt_mul_log

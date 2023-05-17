@@ -1159,23 +1159,31 @@ by rw ← of_real_inj; simp [sinh_three_mul]
 
 open is_absolute_value
 
+lemma quadratic_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : 1 + x + x ^ 2 / 2 ≤ exp x :=
+calc 1 + x + x ^ 2 / 2
+    = ∑ i in range 3, x ^ i / i! : by simp [finset.sum_range_succ]
+... ≤ lim (⟨_, is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
+  begin
+    refine le_lim (cau_seq.le_of_exists ⟨3, λ j hj, _⟩),
+    simp only [exp', const_apply, mk_to_fun, re_sum],
+    norm_cast,
+    rw [← nat.add_sub_of_le hj, finset.sum_range_add],
+    refine le_add_of_nonneg_right (sum_nonneg (λ i hi, _)),
+    positivity,
+  end
+... = exp x : by rw [exp, complex.exp, ← cau_seq_re, lim_re]
+
+lemma add_one_lt_exp_of_pos {x : ℝ} (hx : 0 < x) : x + 1 < exp x :=
+(by nlinarith : x + 1 < 1 + x + x ^ 2 / 2).trans_le (quadratic_le_exp_of_nonneg hx.le)
+
 /-- This is an intermediate result that is later replaced by `real.add_one_le_exp`; use that lemma
 instead. -/
 lemma add_one_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
-calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
-  le_lim (cau_seq.le_of_exists ⟨2,
-    λ j hj, show x + (1 : ℝ) ≤ (∑ m in range j, (x ^ m / m! : ℂ)).re,
-      from have h₁ : (((λ m : ℕ, (x ^ m / m! : ℂ)) ∘ nat.succ) 0).re = x, by simp,
-      have h₂ : ((x : ℂ) ^ 0 / 0!).re = 1, by simp,
-      begin
-        rw [← tsub_add_cancel_of_le hj, sum_range_succ', sum_range_succ',
-          add_re, add_re, h₁, h₂, add_assoc,
-          ← coe_re_add_group_hom, (re_add_group_hom).map_sum, coe_re_add_group_hom ],
-        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) le_rfl,
-        rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
-        exact div_nonneg (pow_nonneg hx _) (nat.cast_nonneg _),
-      end⟩)
-... = exp x : by rw [exp, complex.exp, ← cau_seq_re, lim_re]
+begin
+  rcases eq_or_lt_of_le hx with rfl | h,
+  { simp },
+  exact (add_one_lt_exp_of_pos h).le
+end
 
 lemma one_le_exp {x : ℝ} (hx : 0 ≤ x) : 1 ≤ exp x :=
 by linarith [add_one_le_exp_of_nonneg hx]
@@ -1561,71 +1569,57 @@ calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
           zero_le_two) _
   ... < 0 : by norm_num
 
-lemma exp_bound_div_one_sub_of_interval_approx  {x : ℝ} (h1 : 0 ≤ x) (h2 : x ≤ 1) :
-  ∑ (j : ℕ) in finset.range 3, x ^ j / (j.factorial)
-  + x ^ 3 * ((3 : ℕ) + 1) / ((3 : ℕ).factorial * (3 : ℕ))
-  ≤ ∑ j in (finset.range 3), x ^ j :=
-begin
-  norm_num [finset.sum],
-  rw [add_assoc, add_comm (x + 1) (x ^ 3 * 4 / 18), ← add_assoc, add_le_add_iff_right,
-      ← add_le_add_iff_left (-(x ^ 2 / 2)), ← add_assoc, comm_ring.add_left_neg (x ^ 2 / 2),
-      zero_add, neg_add_eq_sub, sub_half, sq, pow_succ, sq],
-  have i1 : x * 4 / 18 ≤ 1 / 2 := by linarith,
-  have i2 : 0 ≤ x * 4 / 18 := by linarith,
-  have i3 := mul_le_mul h1 h1 le_rfl h1,
-  rw zero_mul at i3,
-  have t := mul_le_mul le_rfl i1 i2 i3,
-  rw ← mul_assoc,
-  rwa [mul_one_div, ← mul_div_assoc, ← mul_assoc] at t,
-end
+lemma exp_bound_div_one_sub_of_interval' {x : ℝ} (h1 : 0 < x) (h2 : x < 1) :
+  real.exp x < 1 / (1 - x) :=
+have H : 0 < 1 - (1 + x + x ^ 2) * (1 - x) :=
+calc 0 < x ^ 3 : by positivity
+... = 1 - (1 + x + x ^ 2) * (1 - x) : by ring,
+calc exp x ≤ _ : exp_bound' h1.le h2.le zero_lt_three
+... ≤ 1 + x + x ^ 2 : by norm_num [finset.sum]; nlinarith
+... < 1 / (1 - x) : by rw lt_div_iff; nlinarith
 
 lemma exp_bound_div_one_sub_of_interval {x : ℝ} (h1 : 0 ≤ x) (h2 : x < 1) :
   real.exp x ≤ 1 / (1 - x) :=
 begin
-  have h : ∑ j in (finset.range 3), x ^ j ≤ 1 / (1 - x),
-  { norm_num [finset.sum],
-    have h1x : 0 < 1 - x := by simpa,
-    rw le_div_iff h1x,
-    norm_num [← add_assoc, mul_sub_left_distrib, mul_one, add_mul,
-              sub_add_eq_sub_sub, pow_succ' x 2],
-    have hx3 : 0 ≤ x ^ 3,
-    { norm_num,
-      exact h1 },
-    linarith },
-  exact (exp_bound' h1 h2.le $ by linarith).trans
-        ((exp_bound_div_one_sub_of_interval_approx h1 h2.le).trans h),
+  rcases eq_or_lt_of_le h1 with rfl | h1,
+  { simp },
+  { exact (exp_bound_div_one_sub_of_interval' h1 h2).le }
 end
 
-lemma one_sub_le_exp_minus_of_pos {y : ℝ} (h : 0 ≤ y) : 1 - y ≤ real.exp (-y) :=
+lemma one_sub_lt_exp_minus_of_pos {y : ℝ} (h : 0 < y) : 1 - y < real.exp (-y) :=
 begin
-  rw real.exp_neg,
-  have r1 : (1 - y) * (real.exp y) ≤ 1,
-  { cases le_or_lt (1 - y) 0,
-    { have h'' : (1 - y) * y.exp ≤ 0,
-      { rw mul_nonpos_iff,
-        right,
-        exact ⟨h_1, y.exp_pos.le⟩ },
-    linarith },
-    have hy1 : y < 1 := by linarith,
-    rw  ← le_div_iff' h_1,
-    exact exp_bound_div_one_sub_of_interval h hy1 },
-  rw inv_eq_one_div,
-  rw le_div_iff' y.exp_pos,
-  rwa mul_comm at r1,
+  cases le_or_lt 1 y with h' h',
+  { linarith [(-y).exp_pos] },
+  rw [exp_neg, lt_inv _ y.exp_pos, inv_eq_one_div],
+  { exact exp_bound_div_one_sub_of_interval' h h' },
+  { linarith },
 end
 
-lemma add_one_le_exp_of_nonpos {x : ℝ} (h : x ≤ 0) : x + 1 ≤ real.exp x :=
+lemma one_sub_le_exp_minus_of_nonneg {y : ℝ} (h : 0 ≤ y) : 1 - y ≤ real.exp (-y) :=
 begin
-  rw add_comm,
-  have h1 : 0 ≤ -x := by linarith,
-  simpa using one_sub_le_exp_minus_of_pos h1
+  rcases eq_or_lt_of_le h with rfl | h,
+  { simp },
+  { exact (one_sub_lt_exp_minus_of_pos h).le }
+end
+
+lemma add_one_lt_exp_of_neg {x : ℝ} (h : x < 0) : x + 1 < real.exp x :=
+begin
+  have h1 : 0 < -x := by linarith,
+  simpa [add_comm] using one_sub_lt_exp_minus_of_pos h1
+end
+
+lemma add_one_lt_exp_of_nonzero {x : ℝ} (hx : x ≠ 0) : x + 1 < real.exp x :=
+begin
+  cases lt_or_gt_of_ne hx,
+  { exact real.add_one_lt_exp_of_neg h },
+  exact add_one_lt_exp_of_pos h,
 end
 
 lemma add_one_le_exp (x : ℝ) : x + 1 ≤ real.exp x :=
 begin
   cases le_or_lt 0 x,
   { exact real.add_one_le_exp_of_nonneg h },
-  exact add_one_le_exp_of_nonpos h.le,
+  exact (add_one_lt_exp_of_neg h).le,
 end
 
 lemma one_sub_div_pow_le_exp_neg {n : ℕ} {t : ℝ} (ht' : t ≤ n) : (1 - t / n) ^ n ≤ exp (-t) :=

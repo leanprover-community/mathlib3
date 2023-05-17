@@ -20,6 +20,14 @@ This file defines group markings and induces a norm on marked groups.
 * `marked_group.normed_group`: A marked group is normed by its marking.
 -/
 
+namespace free_group
+variables {α : Type*} [decidable_eq α]
+
+@[simp, to_additive] lemma reduce_nil : reduce ([] : list (α × bool)) = [] := rfl
+@[to_additive] lemma reduce_singleton (s : α × bool) : reduce [s] = [s] := rfl
+
+end free_group
+
 set_option old_structure_cmd true
 
 open function list nat
@@ -162,14 +170,16 @@ namespace marked_group
 congr_arg coe (find_mul_aux _)
 
 @[simp, to_additive] lemma norm_eq_one (x : marked_group m) :
-  ‖x‖ = 1 ↔ ∃ s, to_marked_group (m $ free_group.mk s) = x :=
+  ‖x‖ = 1 ↔ ∃ s, to_marked_group (m $ free_group.mk [s]) = x :=
 begin
   simp_rw [norm_def, nat.cast_eq_one, nat.find_eq_iff, length_eq_one],
   split,
   { rintro ⟨⟨l, rfl, s, hl⟩, hn⟩,
-    refine ⟨[s], _⟩,
-    simp,
-     },
+    refine ⟨s, _⟩,
+    rw [←hl, free_group.mk_to_word] },
+  rintro ⟨s, rfl⟩,
+  refine ⟨⟨_, rfl, s, _⟩, _⟩,
+  simp only [free_group.to_word_mk, free_group.reduce_singleton],
   sorry
 end
 

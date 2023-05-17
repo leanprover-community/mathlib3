@@ -10,6 +10,9 @@ import topology.category.Top.limits.konig
 /-!
 # Cofiltered systems
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with properties of cofiltered (and inverse) systems.
 
 ## Main definitions

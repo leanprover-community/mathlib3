@@ -102,6 +102,21 @@ lemma decompose_of_mem {x : M} {i : ι} (hx : x ∈ ℳ i) :
   decompose ℳ x = direct_sum.of (λ i, ℳ i) i ⟨x, hx⟩ :=
 decompose_coe _ ⟨x, hx⟩
 
+lemma decomposition.degree_uniq_of_nonzero {i j : ι} (x : M) (hi : x ∈ ℳ i) (hj : x ∈ ℳ j)
+  (h : x ≠ 0) : i = j :=
+begin
+  classical,
+  have eq0 := decompose_of_mem ℳ hi,
+  rw decompose_of_mem ℳ hj at eq0,
+  have eq1 : dfinsupp.support (direct_sum.of _ i (⟨x, hi⟩ : ℳ i)) =
+    dfinsupp.support (direct_sum.of _ j (⟨x, hj⟩ : ℳ j)),
+  { erw eq0, refl, },
+  rw [direct_sum.support_of, direct_sum.support_of] at eq1,
+  rwa finset.singleton_inj at eq1,
+  { intros r, rw subtype.ext_iff_val at r, exact h r },
+  { intros r, rw subtype.ext_iff_val at r, exact h r },
+end
+
 lemma decompose_of_mem_same {x : M} {i : ι} (hx : x ∈ ℳ i) :
   (decompose ℳ x i : M) = x :=
 by rw [decompose_of_mem _ hx, direct_sum.of_eq_same, subtype.coe_mk]

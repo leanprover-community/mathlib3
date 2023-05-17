@@ -5,6 +5,7 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baan
 -/
 import ring_theory.adjoin_root
 import ring_theory.localization.basic
+import ring_theory.localization.integer
 
 /-!
 # Localizations away from an element
@@ -167,6 +168,35 @@ noncomputable
 abbreviation away_map (f : R →+* P) (r : R) :
   localization.away r →+* localization.away (f r) :=
 is_localization.away.map _ _ f r
+
+section clear_denominator
+
+variables {A : Type*} [comm_ring A]
+
+open localization
+
+-- this is a wrapper around `is_localization.exist_integer_multiples_of_finset`, the main purpose
+-- of this lemma is to make the degree of denominator explicit.
+lemma away.clear_denominator {f : A} (s : finset (away f)) :
+  ∃ (n : ℕ), ∀ (x : away f), x ∈ s →
+    x * (mk (f^n) 1 : away f) ∈
+    (λ y, (mk y 1 : localization.away f)) '' set.univ :=
+begin
+  rcases is_localization.exist_integer_multiples_of_finset (submonoid.powers f) s with
+    ⟨⟨_, ⟨n, rfl⟩⟩, h⟩,
+  refine ⟨n, λ x hx, _⟩,
+  rcases h x hx with ⟨a, eq1⟩,
+  induction x using localization.induction_on with data,
+  rcases data with ⟨x, y⟩,
+  dsimp at *,
+  change mk a 1 = f^n • _ at eq1,
+  rw [algebra.smul_def, show algebra_map A (away f) _ = mk (f^_) 1, from rfl, mk_mul,
+    one_mul] at eq1,
+  rw [mk_mul, mul_one, mul_comm, ← eq1],
+  refine ⟨a, trivial, rfl⟩,
+end
+
+end clear_denominator
 
 end localization
 

@@ -53,4 +53,25 @@ variables (L)
 lemma card (hS : S ≤ R⁰) : #R = #L :=
 (cardinal.mk_le_of_injective (is_localization.injective L hS)).antisymm (card_le S)
 
+lemma eq_one_of_zero_mem (h : (0 : R) ∈ S) (x : L) : x = 1 :=
+suffices eq0 : mk' L (sec S x).1 (sec S x).2 = mk' L 1 (1 : S),
+by rwa [mk'_sec, mk'_one, map_one] at eq0,
+is_localization.eq.mpr ⟨⟨0, h⟩, by rw [subtype.coe_mk, mul_zero, mul_zero]⟩
+
+lemma subsingleton_of_zero_mem (h : (0 : R) ∈ S) : subsingleton L :=
+⟨λ x y, by rw [eq_one_of_zero_mem S L h x, eq_one_of_zero_mem S L h y]⟩
+
+lemma zero_mem_of_subsingleton [subsingleton L] : (0 : R) ∈ S :=
+begin
+  have eq0 : mk' L 0 (1 : S) = mk' L 1 (1 : S) := subsingleton.elim _ _,
+  rw [is_localization.eq, submonoid.coe_one, zero_mul, one_mul] at eq0,
+  obtain ⟨c, hc⟩ := eq0,
+  rw [one_mul, zero_mul] at hc,
+  rw hc,
+  exact c.2,
+end
+
+lemma subsingleton_iff_zero_mem : subsingleton L ↔ (0 : R) ∈ S :=
+⟨λ h, by exactI zero_mem_of_subsingleton S L, subsingleton_of_zero_mem _ _⟩
+
 end is_localization

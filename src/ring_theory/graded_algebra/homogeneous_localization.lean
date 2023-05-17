@@ -401,6 +401,11 @@ instance homogeneous_localization_algebra :
   commutes' := λ p q, mul_comm _ _,
   smul_def' := λ p q, rfl }
 
+@[simp] lemma sum_val {α : Type*}
+  (f : α → homogeneous_localization 𝒜 x) (s : finset α) :
+  (∑ i in s, f i).val = ∑ i in s, (f i).val :=
+map_sum (algebra_map (homogeneous_localization 𝒜 x) (localization x)) f s
+
 end homogeneous_localization
 
 namespace homogeneous_localization
@@ -452,6 +457,15 @@ lemma ext_iff_val (f g : homogeneous_localization 𝒜 x) : f = g ↔ f.val = g.
     unfold homogeneous_localization.val at h,
     simpa only [quotient.lift_on'_mk] using h,
   end }
+
+lemma mk'_zero (m : ι) (d : 𝒜 m) (hd : (d : A) ∈ x) :
+  (quotient.mk' ⟨m, ⟨0, submodule.zero_mem _⟩, d, hd⟩ : homogeneous_localization 𝒜 x) =
+  (0 : homogeneous_localization 𝒜 x) :=
+begin
+  rw [ext_iff_val, val_mk', zero_val],
+  dsimp only [subtype.coe_mk],
+  exact localization.mk_zero _,
+end
 
 section
 

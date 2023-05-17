@@ -275,3 +275,18 @@ by { lift b to 𝒜 i using b_mem, rwa [decompose_mul, decompose_coe, coe_mul_of
 end direct_sum
 
 end canonical_order
+
+section
+
+variables [comm_ring R] [comm_ring A] [algebra R A]
+variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
+
+lemma graded_algebra.proj_hom_mul (a b : A) (i j : ℕ) (a_mem : a ∈ 𝒜 i) :
+  graded_algebra.proj 𝒜 (i + j) (a * b) = a * graded_algebra.proj 𝒜 j b :=
+begin
+  rw graded_algebra.proj_apply,
+  rw direct_sum.coe_decompose_mul_add_of_left_mem _ a_mem,
+  refl,
+end
+
+end

@@ -256,7 +256,8 @@ begin
         have h_le : (λ a, cond_kernel_real ρ a {x : ℝ | (a, x) ∈ t})
           ≤ᵐ[ρ.fst] λ a, cond_kernel_real ρ a univ,
         { exact eventually_of_forall (λ a, measure_mono (subset_univ _)), },
-        rw lintegral_sub (kernel.measurable_prod_mk_mem _ ht) _ h_le,
+        rw lintegral_sub _ _ h_le,
+        { exact kernel.measurable_kernel_prod_mk_left ht, },
         refine ((lintegral_mono_ae h_le).trans_lt _).ne,
         rw lintegral_cond_kernel_real_univ,
         exact measure_lt_top ρ univ,
@@ -283,7 +284,7 @@ begin
           by { congr' with a : 1,
             rw measure_Union (h_disj a) (λ i, measurable_prod_mk_left (hf_meas i)), }
     ... = ∑' i, ∫⁻ a, cond_kernel_real ρ a {x | (a, x) ∈ f i} ∂ρ.fst : lintegral_tsum
-          (λ i, (kernel.measurable_prod_mk_mem (cond_kernel_real ρ) (hf_meas i)).ae_measurable)
+          (λ i, (kernel.measurable_kernel_prod_mk_left (hf_meas i)).ae_measurable)
     ... = ∑' i, ρ (f i) : by simp_rw hf_eq
     ... = ρ (Union f) : (measure_Union hf_disj hf_meas).symm, },
 end

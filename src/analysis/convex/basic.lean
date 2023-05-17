@@ -203,7 +203,7 @@ def convex_add_submonoid : add_submonoid (set E) :=
 
 variables {𝕜 E}
 
-@[simp] lemma mem_convex_add_submonoid_iff {s : set E} :
+@[simp] lemma mem_convex_add_submonoid {s : set E} :
   s ∈ convex_add_submonoid 𝕜 E ↔ convex 𝕜 s :=
 iff.rfl
 

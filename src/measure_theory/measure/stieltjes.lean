@@ -29,6 +29,47 @@ section move_this
 open filter set
 open_locale topology
 
+lemma infi_Ioi_eq_infi_rat_gt {f : ℝ → ℝ} (x : ℝ) (hf : bdd_below (f '' Ioi x))
+  (hf_mono : monotone f) :
+  (⨅ r : Ioi x, f r) = ⨅ q : {q' : ℚ // x < q'}, f q :=
+begin
+  refine le_antisymm _ _,
+  { haveI : nonempty {r' : ℚ // x < ↑r'},
+    { obtain ⟨r, hrx⟩ := exists_rat_gt x,
+      exact ⟨⟨r, hrx⟩⟩, },
+    refine le_cinfi (λ r, _),
+    obtain ⟨y, hxy, hyr⟩ := exists_rat_btwn r.prop,
+    refine cinfi_set_le hf (hxy.trans _),
+    exact_mod_cast hyr, },
+  { refine le_cinfi (λ q, _),
+    have hq := q.prop,
+    rw mem_Ioi at hq,
+    obtain ⟨y, hxy, hyq⟩ := exists_rat_btwn hq,
+    refine (cinfi_le _ _).trans _,
+    { exact ⟨y, hxy⟩, },
+    { refine ⟨hf.some, λ z, _⟩,
+      rintros ⟨u, rfl⟩,
+      suffices hfu : f u ∈ f '' Ioi x, from hf.some_spec hfu,
+      exact ⟨u, u.prop, rfl⟩, },
+    { refine hf_mono (le_trans _ hyq.le),
+      norm_cast, }, },
+end
+
+-- todo after the port: move to topology/algebra/order/left_right_lim
+lemma right_lim_eq_of_tendsto {α β : Type*} [linear_order α] [topological_space β]
+  [hα : topological_space α] [h'α : order_topology α] [t2_space β]
+  {f : α → β} {a : α} {y : β} (h : 𝓝[>] a ≠ ⊥) (h' : tendsto f (𝓝[>] a) (𝓝 y)) :
+  function.right_lim f a = y :=
+@left_lim_eq_of_tendsto αᵒᵈ _ _ _ _ _ _ f a y h h'
+
+-- todo after the port: move to topology/algebra/order/left_right_lim
+lemma right_lim_eq_Inf {α β : Type*} [linear_order α] [topological_space β]
+  [conditionally_complete_linear_order β] [order_topology β] {f : α → β}
+  (hf : monotone f) {x : α}
+  [topological_space α] [order_topology α] (h : 𝓝[>] x ≠ ⊥) :
+  function.right_lim f x = Inf (f '' (Ioi x)) :=
+right_lim_eq_of_tendsto h (hf.tendsto_nhds_within_Ioi x)
+
 -- todo after the port: move to order/filter/at_top_bot
 lemma exists_seq_monotone_tendsto_at_top_at_top (α : Type*) [semilattice_sup α] [nonempty α]
   [(at_top : filter α).is_countably_generated] :
@@ -171,6 +212,33 @@ variable (f : stieltjes_function)
 lemma mono : monotone f := f.mono'
 
 lemma right_continuous (x : ℝ) : continuous_within_at f (Ici x) x := f.right_continuous' x
+
+lemma right_lim_eq (f : stieltjes_function) (x : ℝ) :
+  function.right_lim f x = f x :=
+begin
+  rw [← f.mono.continuous_within_at_Ioi_iff_right_lim_eq, continuous_within_at_Ioi_iff_Ici],
+  exact f.right_continuous' x,
+end
+
+lemma infi_Ioi_eq (f : stieltjes_function) (x : ℝ) :
+  (⨅ r : Ioi x, f r) = f x :=
+begin
+  suffices : function.right_lim f x = ⨅ r : Ioi x, f r,
+  { rw [← this, f.right_lim_eq], },
+  rw [right_lim_eq_Inf f.mono, Inf_image'],
+  rw ← ne_bot_iff,
+  apply_instance,
+end
+
+lemma infi_rat_gt_eq (f : stieltjes_function) (x : ℝ) :
+  (⨅ r : {r' : ℚ // x < r'}, f r) = f x :=
+begin
+  rw ← infi_Ioi_eq f x,
+  refine (infi_Ioi_eq_infi_rat_gt _ _ f.mono).symm,
+  refine ⟨f x, λ y, _⟩,
+  rintros ⟨y, hy_mem, rfl⟩,
+  exact f.mono (le_of_lt hy_mem),
+end
 
 /-- The identity of `ℝ` as a Stieltjes function, used to construct Lebesgue measure. -/
 @[simps] protected def id : stieltjes_function :=

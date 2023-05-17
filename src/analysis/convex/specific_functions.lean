@@ -33,7 +33,10 @@ For `p : ℝ`, prove that `λ x, x ^ p` is concave when `0 ≤ p ≤ 1` and stri
 open real set
 open_locale big_operators nnreal
 
-/-- `exp` is strictly convex on the whole real line. -/
+/-- `exp` is strictly convex on the whole real line.
+
+We give an elementary proof rather than using the second derivative test, since this lemma is
+needed early in the analysis library. -/
 lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
 begin
   apply strict_convex_on_of_slope_strict_mono_adjacent convex_univ,
@@ -58,7 +61,10 @@ end
 /-- `exp` is convex on the whole real line. -/
 lemma convex_on_exp : convex_on ℝ univ exp := strict_convex_on_exp.convex_on
 
-/-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n` -/
+/-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n`.
+
+We give an elementary proof rather than using the second derivative test, since this lemma is
+needed early in the analysis library. -/
 lemma convex_on_pow (n : ℕ) : convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
 begin
   induction n with k IH,
@@ -90,7 +96,10 @@ begin
     nat.sub_pos_of_lt hn) (nat.cast_pos.2 $ zero_lt_two.trans_le hn),
 end
 
-/-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
+/-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even.
+
+We give an elementary proof rather than using the second derivative test, since this lemma is
+needed early in the analysis library. -/
 lemma even.convex_on_pow {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
   refine ⟨convex_univ, _⟩,
@@ -176,7 +185,10 @@ begin
   exact ⟨int.coe_zero_le _, int.coe_nat_lt.2 $ finset.mem_range.1 ha⟩,
 end
 
-/-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` -/
+/-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m`.
+
+We give an elementary proof rather than using the second derivative test, since this lemma is
+needed early in the analysis library. -/
 lemma convex_on_zpow : ∀ m : ℤ, convex_on ℝ (Ioi 0) (λ x : ℝ, x^m)
 | (n : ℕ) :=
 begin
@@ -222,6 +234,10 @@ begin
   fin_cases hm; cc,
 end
 
+/- `real.log` is strictly concave on $(0, +∞)$.
+
+We give an elementary proof rather than using the second derivative test, since this lemma is
+needed early in the analysis library. -/
 lemma strict_concave_on_log_Ioi : strict_concave_on ℝ (Ioi 0) log :=
 begin
   apply strict_concave_on_of_slope_strict_anti_adjacent (convex_Ioi (0:ℝ)),
@@ -292,6 +308,10 @@ begin
   exact (one_add_mul_self_lt_rpow_one_add hs hs' hp).le,
 end
 
+/- For `p : ℝ` with `1 < p`, `λ x, x ^ p` is strictly convex on $[0, +∞)$.
+
+We give an elementary proof rather than using the second derivative test, since this lemma is
+needed early in the analysis library. -/
 lemma strict_convex_on_rpow {p : ℝ} (hp : 1 < p) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
 begin
   apply strict_convex_on_of_slope_strict_mono_adjacent (convex_Ici (0:ℝ)),
@@ -301,14 +321,14 @@ begin
   have H1 : y ^ ((p - 1) + 1) = y ^ (p - 1) * y := rpow_add_one hy.ne' _,
   ring_nf at H1,
   transitivity p * y ^ (p - 1),
-  { have hyz' : x - y < 0 := by linarith only [hxy],
+  { have hyx' : x - y < 0 := by linarith only [hxy],
     have h3 : 0 < y - x := by linarith only [hxy],
-    have hyz'' : x / y < 1 := by rwa div_lt_one hy,
-    have hyz''' : x / y - 1 < 0 := by linarith only [hyz''],
-    have hyz'''' : 0 ≤ x / y := by positivity,
-    have hyz''''' : -1 ≤ x / y - 1 := by linarith only [hyz''''],
+    have hyx'' : x / y < 1 := by rwa div_lt_one hy,
+    have hyx''' : x / y - 1 < 0 := by linarith only [hyx''],
+    have hyx'''' : 0 ≤ x / y := by positivity,
+    have hyx''''' : -1 ≤ x / y - 1 := by linarith only [hyx''''],
     have : 1 - (1 + ((x / y) - 1)) ^ p < - p * ((x / y) - 1),
-    { linarith [one_add_mul_self_lt_rpow_one_add hyz''''' hyz'''.ne hp] },
+    { linarith [one_add_mul_self_lt_rpow_one_add hyx''''' hyx'''.ne hp] },
     rw [div_lt_iff h3, ← div_lt_div_right hy'],
     convert this using 1,
     { have H : (x / y) ^ p = x ^ p / y ^ p := div_rpow hx hy.le _,

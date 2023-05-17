@@ -38,10 +38,7 @@ end
   bounded s ∨ bounded t :=
 begin
   contrapose! hst,
-  obtain ⟨a, ha⟩ : s.nonempty,
-  { rw nonempty_iff_ne_empty,
-    rintro rfl,
-    simpa using hst.1 },
+  obtain ⟨a, ha⟩ : s.nonempty := nonempty_of_unbounded hst.1,
   have : ¬bounded({a} * t),
   { intro h,
     apply hst.2,

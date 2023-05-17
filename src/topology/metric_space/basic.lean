@@ -2107,6 +2107,13 @@ end
 @[simp] lemma bounded_empty : bounded (∅ : set α) :=
 ⟨0, by simp⟩
 
+lemma nonempty_of_unbounded (h : ¬ bounded s) : s.nonempty :=
+begin
+  rw nonempty_iff_ne_empty,
+  rintro rfl,
+  exact h bounded_empty
+end
+
 lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
 ⟨λ h _ _, h, λ H,
   s.eq_empty_or_nonempty.elim

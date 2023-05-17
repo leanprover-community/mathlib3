@@ -117,8 +117,9 @@ end
 
 /-- The key lemma for Poisson summation: the `m`-th Fourier coefficient of the periodic function
 `∑' n : ℤ, f (x + n)` is the value at `m` of the Fourier transform of `f`. -/
-lemma real.fourier_coeff_tsum_comp_add' {f : ℝ → ℂ} (f_ℒ_1 : integrable f) (F_ae_measurable : ae_strongly_measurable (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) haar_add_circle)
-(m : ℤ) :
+lemma real.fourier_coeff_tsum_comp_add' {f : ℝ → ℂ} (f_ℒ_1 : integrable f) (F_ae_measurable :
+  ae_strongly_measurable (quotient_add_group.automorphize f :
+  (add_circle (1:ℝ)) → ℂ) haar_add_circle) (m : ℤ) :
   fourier_coeff (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) m = 𝓕 f m :=
 begin
   dsimp [fourier_coeff],
@@ -145,7 +146,165 @@ begin
     { apply measure_theory.is_probability_measure.ne_zero, }, },
 end
 
----- STOPPED HERE 4/28/23
+
+--- WORKING 5/17/23
+
+--move to `topology.continuous_function.compact` next to `continuous_map.summable_of_locally_summable_norm`
+theorem continuous_map.summable_iff_locally_summable_norm {X : Type*} [topological_space X] [t2_space X] [locally_compact_space X] {E : Type*} [normed_add_comm_group E] [complete_space E] {ι : Type*} {F : ι → C(X, E)} :
+(∀ (K : topological_space.compacts X), summable (λ (i : ι), ‖continuous_map.restrict ↑K (F i)‖)) ↔
+summable F :=
+begin
+  split,
+  {
+    apply continuous_map.summable_of_locally_summable_norm,
+  },
+  intros hF K,
+  sorry,
+end
+
+
+--move to `topology.continuous_function.compact` next to `continuous_map.summable_of_locally_summable_norm`
+theorem continuous_map.summable_iff_locally_summable_nnnorm {X : Type*} [topological_space X] [t2_space X] [locally_compact_space X] {E : Type*} [normed_add_comm_group E] [complete_space E] {ι : Type*} {F : ι → C(X, E)} :
+(∀ (K : topological_space.compacts X), summable (λ (i : ι), ‖continuous_map.restrict ↑K (F i)‖₊)) ↔
+summable F := sorry
+
+
+/-- **Poisson's summation formula**, most general form. -/
+theorem real.tsum_eq_tsum_fourier_integral' {f : C(ℝ, ℂ)}
+  (h_norm : summable (λ n : ℤ, f.comp $ continuous_map.add_right n))
+  (h_sum : summable (λ n : ℤ, 𝓕 f n)) :
+  ∑' (n : ℤ), f n = ∑' (n : ℤ), 𝓕 f n :=
+begin
+  have f_ae_str_meas := f.continuous_to_fun.ae_strongly_measurable,
+  have hf : integrable f,
+  { refine ⟨f_ae_str_meas, _⟩,
+    dsimp [has_finite_integral],
+    rw (is_add_fundamental_domain_Ioc' (by norm_num : (0:ℝ) < 1) 0).lintegral_eq_tsum,
+    norm_cast,
+    let K : compacts ℝ := ⟨Icc 0 1, is_compact_Icc⟩,
+    have := continuous_map.summable_iff_locally_summable_nnnorm.mpr h_norm K,
+
+    calc
+    ∑' (g : (add_subgroup.opposite (add_subgroup.zmultiples (1:ℝ)))), ∫⁻ (x : ℝ) in g +ᵥ Ioc 0 1, (‖f x‖₊ : ennreal)
+      ≤
+      ∑' (i : ℤ), ‖restrict ↑K (f.comp (continuous_map.add_right ↑i))‖₊ : _
+    ... < ⊤ : _,
+
+
+
+    obtain ⟨x, hx⟩ := h_norm,
+    have := hx.tsum_eq,
+
+  },
+  let F : C(unit_add_circle, ℂ) := ⟨(f.periodic_tsum_comp_add_zsmul 1).lift,
+    continuous_coinduced_dom.mpr (map_continuous _)⟩,
+  have F_eq_aut_f : (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) = F,
+  {
+    sorry,
+  },
+  have : summable (fourier_coeff F),
+  { convert h_sum,
+    ext1 m,
+    convert real.fourier_coeff_tsum_comp_add' hf sorry m,
+    exact F_eq_aut_f.symm, },
+  convert (has_pointwise_sum_fourier_series_of_summable this 0).tsum_eq.symm using 1,
+  { rw ←F_eq_aut_f,
+    sorry,
+    -- simp [quotient_add_group.automorphize, add_action.automorphize],
+
+
+
+    -- have := (has_sum_apply (summable_of_locally_summable_norm h_norm).has_sum 0).tsum_eq,
+    -- simpa only [coe_mk, ←quotient_add_group.coe_zero, periodic.lift_coe, zsmul_one, comp_apply,
+    --   coe_add_right, zero_add] using this
+  },
+  { congr' 1 with n : 1,
+    rw [←real.fourier_coeff_tsum_comp_add' hf sorry n, ← F_eq_aut_f, fourier_eval_zero, smul_eq_mul, mul_one], },
+end
+
+#exit
+
+--- WORK 5/17/23
+
+-- -- second countable space. countable sum of measurable functions is measurable
+
+
+-- -- If f is continuous, then so is its automorphization
+-- lemma continuous_of_automorphize {f : C(ℝ, ℂ)} (f_ℒ_1 : integrable f) :
+--   ae_strongly_measurable (quotient_add_group.automorphize f :
+--   (add_circle (1:ℝ)) → ℂ) haar_add_circle :=
+-- begin
+--   dsimp [ae_strongly_measurable],
+--   refine ⟨(quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ), _, by refl⟩,
+
+-- end
+
+-- -- If f is continuous, then its automorphization is ae_strongly_measurable
+-- lemma ae_strongly_measurable_of_automorphize {f : C(ℝ, ℂ)} (f_ℒ_1 : integrable f) :
+--   ae_strongly_measurable (quotient_add_group.automorphize f :
+--   (add_circle (1:ℝ)) → ℂ) haar_add_circle :=
+-- begin
+--   dsimp [ae_strongly_measurable],
+--   refine ⟨(quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ), _, by refl⟩,
+--   dsimp [strongly_measurable],
+
+--   apply continuous.strongly_measurable,
+-- end
+
+-- #exit
+
+-- WORKING 5/15/23
+
+
+lemma continous_automorphization_of_L1_etc {f : C(ℝ, ℂ)} (f_ℒ_1 : integrable f) :
+  continuous (quotient_add_group.automorphize f : (add_circle (1:ℝ)) → ℂ) :=
+begin
+  F(x+e) - F(x) = sum (n :ℤ ) f(x + n+ e) - f(x+n)
+end
+#exit
+
+/-- **Poisson's summation formula**, most general form. -/
+theorem real.tsum_eq_tsum_fourier_integral {f : C(ℝ, ℂ)}
+  -- (h_norm : summable (λ n : ℤ, f.comp $ continuous_map.add_right n))
+  (f_ℒ_1 : integrable f)
+  -- (F_ae_measurable :
+  -- ae_strongly_measurable (quotient_add_group.automorphize f :
+  -- (add_circle (1:ℝ)) → ℂ) haar_add_circle)
+
+  (h_sum : summable (λ n : ℤ, 𝓕 f n)) :
+  ∑' (n : ℤ), f n = ∑' (n : ℤ), 𝓕 f n :=
+begin
+
+
+
+  let F : C(unit_add_circle, ℂ) := ⟨(f.periodic_tsum_comp_add_zsmul 1).lift,
+    continuous_coinduced_dom.mpr (map_continuous _)⟩,
+  have : summable (fourier_coeff F),
+  { convert h_sum,
+    exact funext (λ n, real.fourier_coeff_tsum_comp_add h_norm n) },
+  convert (has_pointwise_sum_fourier_series_of_summable this 0).tsum_eq.symm using 1,
+  { have := (has_sum_apply (summable_of_locally_summable_norm h_norm).has_sum 0).tsum_eq,
+    simpa only [coe_mk, ←quotient_add_group.coe_zero, periodic.lift_coe, zsmul_one, comp_apply,
+      coe_add_right, zero_add] using this },
+  { congr' 1 with n : 1,
+    rw [←real.fourier_coeff_tsum_comp_add h_norm n, fourier_eval_zero, smul_eq_mul, mul_one],
+    refl },
+end
+
+#exit
+
+/-- The key lemma for Poisson summation: the `m`-th Fourier coefficient of the periodic function
+`∑' n : ℤ, f (x + n)` is the value at `m` of the Fourier transform of `f`. -/
+lemma real.fourier_coeff_tsum_comp_add {f : C(ℝ, ℂ)}
+  (hf : summable (λ n : ℤ, f.comp (continuous_map.add_right n)))
+  (m : ℤ) :
+  fourier_coeff (periodic.lift $ f.periodic_tsum_comp_add_zsmul 1) m = 𝓕 f m :=
+begin
+  convert real.fourier_coeff_tsum_comp_add' _ _ m using 2,
+  {
+
+  },
+end
 
 #exit
 

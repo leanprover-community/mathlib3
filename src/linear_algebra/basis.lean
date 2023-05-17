@@ -1424,3 +1424,52 @@ let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
   (prod_equiv_of_is_compl q p hq.symm)
 
 end division_ring
+
+section restrict_scalars
+
+variables {S : Type*} [comm_ring R] [ring S] [nontrivial S] [add_comm_group M]
+variables [algebra R S] [module S M] [module R M]
+variables [is_scalar_tower R S M] [no_zero_smul_divisors R S] (b : basis ι S M)
+variables (R)
+
+open submodule
+
+/-- Let `b` be a `S`-basis of `M`. Let `R` be a comm_ring such that `algebra R S` with no zero
+smul divisors, then the submodule of `M` spanned by `b` over `R` admits `b` as a `R`-basis. -/
+noncomputable def basis.restrict_scalars : basis ι R (span R (set.range b)) :=
+basis.span (b.linear_independent.restrict_scalars (smul_left_injective R one_ne_zero))
+
+@[simp]
+lemma basis.restrict_scalars_apply (i : ι) : (b.restrict_scalars R i : M) = b i :=
+by simp only [basis.restrict_scalars, basis.span_apply]
+
+@[simp]
+lemma basis.restrict_scalars_repr_apply (m : span R (set.range b)) (i : ι) :
+  algebra_map R S ((b.restrict_scalars R).repr m i) = b.repr m i :=
+begin
+  suffices : finsupp.map_range.linear_map (algebra.linear_map R S) ∘ₗ
+      (b.restrict_scalars R).repr.to_linear_map
+      = ((b.repr : M →ₗ[S] (ι →₀ S)).restrict_scalars R).dom_restrict _,
+  { exact finsupp.congr_fun (linear_map.congr_fun this m) i, },
+  refine basis.ext (b.restrict_scalars R) (λ _, _),
+  simp only [linear_map.coe_comp, linear_equiv.coe_to_linear_map, function.comp_app, map_one,
+    basis.repr_self, finsupp.map_range.linear_map_apply, finsupp.map_range_single,
+    algebra.linear_map_apply, linear_map.dom_restrict_apply, linear_equiv.coe_coe,
+    basis.restrict_scalars_apply, linear_map.coe_restrict_scalars_eq_coe],
+end
+
+/-- Let `b` be a `S`-basis of `M`. Then `m : M` lies in the `R`-module spanned by `b` iff all the
+coordinates of `m` on the basis `b` are in `R` (see `basis.mem_span` for the case `R = S`). -/
+lemma basis.mem_span_iff_repr_mem (m : M) :
+  m ∈ span R (set.range b) ↔ ∀ i, b.repr m i ∈ set.range (algebra_map R S) :=
+begin
+  refine ⟨λ hm i, ⟨(b.restrict_scalars R).repr ⟨m, hm⟩ i,
+    (b.restrict_scalars_repr_apply R ⟨m, hm⟩ i)⟩, λ h, _⟩,
+  rw [← b.total_repr m, finsupp.total_apply S _],
+  refine sum_mem (λ i _, _),
+  obtain ⟨_, h⟩ := h i,
+  simp_rw [← h, algebra_map_smul],
+  exact smul_mem _ _ (subset_span (set.mem_range_self i)),
+end
+
+end restrict_scalars

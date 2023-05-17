@@ -9,6 +9,9 @@ import data.complex.module
 /-!
 # Convexity of half spaces in ℂ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The open and closed half-spaces in ℂ given by an inequality on either the real or imaginary part
 are all convex over ℝ.
 -/

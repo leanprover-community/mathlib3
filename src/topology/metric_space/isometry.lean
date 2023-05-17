@@ -23,7 +23,7 @@ theory for `pseudo_metric_space` and we specialize to `metric_space` when needed
 noncomputable theory
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w}
 
 open function set
 open_locale topology ennreal
@@ -430,6 +430,21 @@ complete_space_of_is_complete_univ $ is_complete_of_complete_image e.isometry.un
 
 lemma complete_space_iff (e : α ≃ᵢ β) : complete_space α ↔ complete_space β :=
 by { split; introI H, exacts [e.symm.complete_space, e.complete_space] }
+
+variables (ι α)
+
+/-- `equiv.fun_unique` as an `isometry_equiv`. -/
+@[simps]
+def fun_unique [unique ι] [fintype ι] : (ι → α) ≃ᵢ α :=
+{ to_equiv := equiv.fun_unique ι α,
+  isometry_to_fun := λ x hx, by simp [edist_pi_def, finset.univ_unique, finset.sup_singleton] }
+
+/-- `pi_fin_two_equiv` as an `isometry_equiv`. -/
+@[simps]
+def pi_fin_two (α : fin 2 → Type*) [Π i, pseudo_emetric_space (α i)] :
+  (Π i, α i) ≃ᵢ α 0 × α 1 :=
+{ to_equiv := pi_fin_two_equiv α,
+  isometry_to_fun := λ x hx, by simp [edist_pi_def, fin.univ_succ, prod.edist_eq] }
 
 end pseudo_emetric_space
 

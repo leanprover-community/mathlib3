@@ -3,20 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import analysis.complex.basic
-import analysis.normed_space.finite_dimension
+import analysis.normed.group.basic
 import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice
 import measure_theory.measure.open_pos
 import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
-import topology.instances.add_circle
 import topology.instances.ereal
+import topology.metric_space.hausdorff_distance
 import topology.G_delta
 import topology.order.lattice
 import topology.semicontinuous
-import topology.metric_space.metrizable
 
 /-!
 # Borel (measurable) space
@@ -150,6 +148,23 @@ end
 lemma borel_eq_generate_from_Ioi : borel α = generate_from (range Ioi) :=
 @borel_eq_generate_from_Iio αᵒᵈ _ (by apply_instance : second_countable_topology α) _ _
 
+lemma borel_eq_generate_from_Iic : borel α = measurable_space.generate_from (range Iic) :=
+begin
+  rw borel_eq_generate_from_Ioi,
+  refine le_antisymm _ _,
+  { refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨u, rfl⟩ := ht,
+    rw ← compl_Iic,
+    exact (measurable_space.measurable_set_generate_from (mem_range.mpr ⟨u, rfl⟩)).compl, },
+  { refine measurable_space.generate_from_le (λ t ht, _),
+    obtain ⟨u, rfl⟩ := ht,
+    rw ← compl_Ioi,
+    exact (measurable_space.measurable_set_generate_from (mem_range.mpr ⟨u, rfl⟩)).compl, },
+end
+
+lemma borel_eq_generate_from_Ici : borel α = measurable_space.generate_from (range Ici) :=
+@borel_eq_generate_from_Iic αᵒᵈ _ _ _ _
+
 end order_topology
 
 lemma borel_comap {f : α → β} {t : topological_space β} :
@@ -257,6 +272,16 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
   [h : opens_measurable_space α] (s : set α) :
   opens_measurable_space s :=
 ⟨by { rw [borel_comap], exact comap_mono h.1 }⟩
+
+@[priority 100]
+instance borel_space.countably_generated {α : Type*} [topological_space α] [measurable_space α]
+  [borel_space α] [second_countable_topology α] : countably_generated α :=
+begin
+  obtain ⟨b, bct, -, hb⟩ := exists_countable_basis α,
+  refine ⟨⟨b, bct, _⟩⟩,
+  borelize α,
+  exact hb.borel_eq_generate_from,
+end
 
 theorem _root_.measurable_set.induction_on_open [topological_space α] [measurable_space α]
   [borel_space α] {C : set α → Prop} (h_open : ∀ U, is_open U → C U)
@@ -1269,6 +1294,25 @@ begin
     exact measurable_set.bInter hs (λ i hi, measurable_set_le (hf i) measurable_const) }
 end
 
+lemma measurable_cInf {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_below ((λ i, f i x) '' s)) :
+  measurable (λ x, Inf ((λ i, f i x) '' s)) :=
+@measurable_cSup αᵒᵈ _ _ _ _ _ _ _ _ _ _ _ hs hf bdd
+
+lemma measurable_csupr {ι : Type*} [countable ι] {f : ι → δ → α}
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above (range (λ i, f i x))) :
+  measurable (λ x, ⨆ i, f i x) :=
+begin
+  change measurable (λ x, Sup (range (λ i : ι, f i x))),
+  simp_rw ← image_univ at bdd ⊢,
+  refine measurable_cSup countable_univ hf bdd,
+end
+
+lemma measurable_cinfi {ι : Type*} [countable ι] {f : ι → δ → α}
+  (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_below (range (λ i, f i x))) :
+  measurable (λ x, ⨅ i, f i x) :=
+@measurable_csupr αᵒᵈ _ _ _ _ _ _ _ _ _ _ _ hf bdd
+
 end conditionally_complete_linear_order
 
 /-- Convert a `homeomorph` to a `measurable_equiv`. -/
@@ -1298,11 +1342,6 @@ instance nat.borel_space : borel_space ℕ := ⟨borel_eq_top_of_discrete.symm�
 instance int.borel_space : borel_space ℤ := ⟨borel_eq_top_of_discrete.symm⟩
 instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_countable.symm⟩
 
-@[priority 900]
-instance is_R_or_C.measurable_space {𝕜 : Type*} [is_R_or_C 𝕜] : measurable_space 𝕜 := borel 𝕜
-@[priority 900]
-instance is_R_or_C.borel_space {𝕜 : Type*} [is_R_or_C 𝕜] : borel_space 𝕜 := ⟨rfl⟩
-
 /- Instances on `real` and `complex` are special cases of `is_R_or_C` but without these instances,
 Lean fails to prove `borel_space (ι → ℝ)`, so we leave them here. -/
 
@@ -1317,18 +1356,6 @@ instance ennreal.borel_space : borel_space ℝ≥0∞ := ⟨rfl⟩
 
 instance ereal.measurable_space : measurable_space ereal := borel ereal
 instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
-
-instance complex.measurable_space : measurable_space ℂ := borel ℂ
-instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
-
-instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
-borel (add_circle a)
-
-instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
-
-@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
-  measurable (coe : ℝ → add_circle a) :=
-continuous.measurable $ add_circle.continuous_mk' a
 
 /-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
 gives a way to compute the measure of a set in terms of sets on which a given function `f` does not
@@ -1870,237 +1897,3 @@ lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurabl
 measurable_ennnorm.comp_ae_measurable hf
 
 end normed_add_comm_group
-
-section limits
-
-variables [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
-
-open metric
-
-/-- A limit (over a general filter) of measurable `ℝ≥0∞` valued functions is measurable. -/
-lemma measurable_of_tendsto_ennreal' {ι} {f : ι → α → ℝ≥0∞} {g : α → ℝ≥0∞} (u : filter ι)
-  [ne_bot u] [is_countably_generated u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
-  measurable g :=
-begin
-  rcases u.exists_seq_tendsto with ⟨x, hx⟩,
-  rw [tendsto_pi_nhds] at lim,
-  have : (λ y, liminf (λ n, (f (x n) y : ℝ≥0∞)) at_top) = g :=
-    by { ext1 y, exact ((lim y).comp hx).liminf_eq, },
-  rw ← this,
-  show measurable (λ y, liminf (λ n, (f (x n) y : ℝ≥0∞)) at_top),
-  exact measurable_liminf (λ n, hf (x n)),
-end
-
-/-- A sequential limit of measurable `ℝ≥0∞` valued functions is measurable. -/
-lemma measurable_of_tendsto_ennreal {f : ℕ → α → ℝ≥0∞} {g : α → ℝ≥0∞}
-  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
-measurable_of_tendsto_ennreal' at_top hf lim
-
-/-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable. -/
-lemma measurable_of_tendsto_nnreal' {ι} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
-  [ne_bot u] [is_countably_generated u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
-  measurable g :=
-begin
-  simp_rw [← measurable_coe_nnreal_ennreal_iff] at hf ⊢,
-  refine measurable_of_tendsto_ennreal' u hf _,
-  rw tendsto_pi_nhds at lim ⊢,
-  exact λ x, (ennreal.continuous_coe.tendsto (g x)).comp (lim x),
-end
-
-/-- A sequential limit of measurable `ℝ≥0` valued functions is measurable. -/
-lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ≥0}
-  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
-measurable_of_tendsto_nnreal' at_top hf lim
-
-/-- A limit (over a general filter) of measurable functions valued in a (pseudo) metrizable space is
-measurable. -/
-lemma measurable_of_tendsto_metrizable' {ι} {f : ι → α → β} {g : α → β}
-  (u : filter ι) [ne_bot u] [is_countably_generated u]
-  (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
-  measurable g :=
-begin
-  letI : pseudo_metric_space β := pseudo_metrizable_space_pseudo_metric β,
-  apply measurable_of_is_closed', intros s h1s h2s h3s,
-  have : measurable (λ x, inf_nndist (g x) s),
-  { suffices : tendsto (λ i x, inf_nndist (f i x) s) u (𝓝 (λ x, inf_nndist (g x) s)),
-      from measurable_of_tendsto_nnreal' u (λ i, (hf i).inf_nndist) this,
-    rw [tendsto_pi_nhds] at lim ⊢, intro x,
-    exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
-  have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
-  { ext x, simp [h1s, ← h1s.mem_iff_inf_dist_zero h2s, ← nnreal.coe_eq_zero] },
-  rw [h4s], exact this (measurable_set_singleton 0),
-end
-
-/-- A sequential limit of measurable functions valued in a (pseudo) metrizable space is
-measurable. -/
-lemma measurable_of_tendsto_metrizable {f : ℕ → α → β} {g : α → β}
-  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) :
-  measurable g :=
-measurable_of_tendsto_metrizable' at_top hf lim
-
-lemma ae_measurable_of_tendsto_metrizable_ae {ι}
-  {μ : measure α} {f : ι → α → β} {g : α → β}
-  (u : filter ι) [hu : ne_bot u] [is_countably_generated u]
-  (hf : ∀ n, ae_measurable (f n) μ) (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
-  ae_measurable g μ :=
-begin
-  rcases u.exists_seq_tendsto with ⟨v, hv⟩,
-  have h'f : ∀ n, ae_measurable (f (v n)) μ := λ n, hf (v n),
-  set p : α → (ℕ → β) → Prop := λ x f', tendsto (λ n, f' n) at_top (𝓝 (g x)),
-  have hp : ∀ᵐ x ∂μ, p x (λ n, f (v n) x),
-    by filter_upwards [h_tendsto] with x hx using hx.comp hv,
-  set ae_seq_lim := λ x, ite (x ∈ ae_seq_set h'f p) (g x) (⟨f (v 0) x⟩ : nonempty β).some with hs,
-  refine ⟨ae_seq_lim, measurable_of_tendsto_metrizable' at_top (ae_seq.measurable h'f p)
-    (tendsto_pi_nhds.mpr (λ x, _)), _⟩,
-  { simp_rw [ae_seq, ae_seq_lim],
-    split_ifs with hx,
-    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set h'f hx,
-      exact @ae_seq.fun_prop_of_mem_ae_seq_set _ α β _ _ _ _ _ h'f x hx, },
-    { exact tendsto_const_nhds } },
-  { exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f (v 0) x⟩ : nonempty β).some)
-      (ae_seq_set h'f p) (ae_seq.measure_compl_ae_seq_set_eq_zero h'f hp)).symm },
-end
-
-lemma ae_measurable_of_tendsto_metrizable_ae' {μ : measure α} {f : ℕ → α → β} {g : α → β}
-  (hf : ∀ n, ae_measurable (f n) μ)
-  (h_ae_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
-  ae_measurable g μ :=
-ae_measurable_of_tendsto_metrizable_ae at_top hf h_ae_tendsto
-
-lemma ae_measurable_of_unif_approx {β} [measurable_space β] [pseudo_metric_space β] [borel_space β]
-  {μ : measure α} {g : α → β}
-  (hf : ∀ ε > (0 : ℝ), ∃ (f : α → β), ae_measurable f μ ∧ ∀ᵐ x ∂μ, dist (f x) (g x) ≤ ε) :
-  ae_measurable g μ :=
-begin
-  obtain ⟨u, u_anti, u_pos, u_lim⟩ :
-    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
-      exists_seq_strict_anti_tendsto (0 : ℝ),
-  choose f Hf using λ (n : ℕ), hf (u n) (u_pos n),
-  have : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)),
-  { have : ∀ᵐ x ∂ μ, ∀ n, dist (f n x) (g x) ≤ u n := ae_all_iff.2 (λ n, (Hf n).2),
-    filter_upwards [this],
-    assume x hx,
-    rw tendsto_iff_dist_tendsto_zero,
-    exact squeeze_zero (λ n, dist_nonneg) hx u_lim },
-  exact ae_measurable_of_tendsto_metrizable_ae' (λ n, (Hf n).1) this,
-end
-
-lemma measurable_of_tendsto_metrizable_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β}
-  {g : α → β} (hf : ∀ n, measurable (f n))
-  (h_ae_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
-  measurable g :=
-ae_measurable_iff_measurable.mp
-  (ae_measurable_of_tendsto_metrizable_ae' (λ i, (hf i).ae_measurable) h_ae_tendsto)
-
-lemma measurable_limit_of_tendsto_metrizable_ae {ι} [countable ι] [nonempty ι] {μ : measure α}
-  {f : ι → α → β} {L : filter ι} [L.is_countably_generated] (hf : ∀ n, ae_measurable (f n) μ)
-  (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, tendsto (λ n, f n x) L (𝓝 l)) :
-  ∃ (f_lim : α → β) (hf_lim_meas : measurable f_lim),
-    ∀ᵐ x ∂μ, tendsto (λ n, f n x) L (𝓝 (f_lim x)) :=
-begin
-  inhabit ι,
-  unfreezingI { rcases eq_or_ne L ⊥ with rfl | hL },
-  { exact ⟨(hf default).mk _, (hf default).measurable_mk,
-      eventually_of_forall $ λ x, tendsto_bot⟩ },
-  haveI : ne_bot L := ⟨hL⟩,
-  let p : α → (ι → β) → Prop := λ x f', ∃ l : β, tendsto (λ n, f' n) L (𝓝 l),
-  have hp_mem : ∀ x ∈ ae_seq_set hf p, p x (λ n, f n x),
-    from λ x hx, ae_seq.fun_prop_of_mem_ae_seq_set hf hx,
-  have h_ae_eq : ∀ᵐ x ∂μ, ∀ n, ae_seq hf p n x = f n x,
-    from ae_seq.ae_seq_eq_fun_ae hf h_ae_tendsto,
-  let f_lim : α → β := λ x, dite (x ∈ ae_seq_set hf p) (λ h, (hp_mem x h).some)
-    (λ h, (⟨f default x⟩ : nonempty β).some),
-  have hf_lim : ∀ x, tendsto (λ n, ae_seq hf p n x) L (𝓝 (f_lim x)),
-  { intros x,
-    simp only [f_lim, ae_seq],
-    split_ifs,
-    { refine (hp_mem x h).some_spec.congr (λ n, _),
-      exact (ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h n).symm },
-    { exact tendsto_const_nhds, }, },
-  have h_ae_tendsto_f_lim : ∀ᵐ x ∂μ, tendsto (λ n, f n x) L (𝓝 (f_lim x)),
-    from h_ae_eq.mono (λ x hx, (hf_lim x).congr hx),
-  have h_f_lim_meas : measurable f_lim,
-    from measurable_of_tendsto_metrizable' L (ae_seq.measurable hf p)
-      (tendsto_pi_nhds.mpr (λ x, hf_lim x)),
-  exact ⟨f_lim, h_f_lim_meas, h_ae_tendsto_f_lim⟩,
-end
-
-end limits
-
-namespace continuous_linear_map
-
-variables {𝕜 : Type*} [normed_field 𝕜]
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [measurable_space E]
-  [opens_measurable_space E] {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-  [measurable_space F] [borel_space F]
-
-@[measurability]
-protected lemma measurable (L : E →L[𝕜] F) : measurable L :=
-L.continuous.measurable
-
-lemma measurable_comp (L : E →L[𝕜] F) {φ : α → E} (φ_meas : measurable φ) :
-  measurable (λ (a : α), L (φ a)) :=
-L.measurable.comp φ_meas
-
-end continuous_linear_map
-
-namespace continuous_linear_map
-
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-          {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-
-instance : measurable_space (E →L[𝕜] F) := borel _
-
-instance : borel_space (E →L[𝕜] F) := ⟨rfl⟩
-
-@[measurability]
-lemma measurable_apply [measurable_space F] [borel_space F] (x : E) :
-  measurable (λ f : E →L[𝕜] F, f x) :=
-(apply 𝕜 F x).continuous.measurable
-
-@[measurability]
-lemma measurable_apply' [measurable_space E] [opens_measurable_space E]
-  [measurable_space F] [borel_space F] :
-  measurable (λ (x : E) (f : E →L[𝕜] F), f x) :=
-measurable_pi_lambda _ $ λ f, f.measurable
-
-@[measurability]
-lemma measurable_coe [measurable_space F] [borel_space F] :
-  measurable (λ (f : E →L[𝕜] F) (x : E), f x) :=
-measurable_pi_lambda _ measurable_apply
-
-end continuous_linear_map
-
-section continuous_linear_map_nontrivially_normed_field
-
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [measurable_space E]
-  [borel_space E] {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-
-@[measurability]
-lemma measurable.apply_continuous_linear_map  {φ : α → F →L[𝕜] E} (hφ : measurable φ) (v : F) :
-  measurable (λ a, φ a v) :=
-(continuous_linear_map.apply 𝕜 E v).measurable.comp hφ
-
-@[measurability]
-lemma ae_measurable.apply_continuous_linear_map {φ : α → F →L[𝕜] E} {μ : measure α}
-  (hφ : ae_measurable φ μ) (v : F) : ae_measurable (λ a, φ a v) μ :=
-(continuous_linear_map.apply 𝕜 E v).measurable.comp_ae_measurable hφ
-
-end continuous_linear_map_nontrivially_normed_field
-
-section normed_space
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
-variables [borel_space 𝕜] {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  [measurable_space E] [borel_space E]
-
-lemma measurable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
-  measurable (λ x, f x • c) ↔ measurable f :=
-(closed_embedding_smul_left hc).measurable_embedding.measurable_comp_iff
-
-lemma ae_measurable_smul_const {f : α → 𝕜} {μ : measure α} {c : E} (hc : c ≠ 0) :
-  ae_measurable (λ x, f x • c) μ ↔ ae_measurable f μ :=
-(closed_embedding_smul_left hc).measurable_embedding.ae_measurable_comp_iff
-
-end normed_space

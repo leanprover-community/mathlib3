@@ -630,3 +630,30 @@ begin
 end
 
 end summable_norm_Icc
+
+/-!
+### Substituting `-x` for `x`
+
+These lemmas are stated in terms of either `Iic` or `Ioi` (neglecting `Iio` and `Ici`) to match
+mathlib's conventions for integrals over finite intervals (see `interval_integral`). For the case
+of finite integrals, see `interval_integral.integral_comp_neg`.
+-/
+
+@[simp] lemma integral_comp_neg_Iic {E : Type*}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E] (c : ℝ) (f : ℝ → E) :
+  ∫ x in Iic c, f (-x) = ∫ x in Ioi (-c), f x :=
+begin
+  have A : measurable_embedding (λ x : ℝ, -x),
+    from (homeomorph.neg ℝ).closed_embedding.measurable_embedding,
+  have := A.set_integral_map f (Ici (-c)),
+  rw measure.map_neg_eq_self (volume : measure ℝ) at this,
+  simp_rw [←integral_Ici_eq_integral_Ioi, this, neg_preimage, preimage_neg_Ici, neg_neg],
+end
+
+@[simp] lemma integral_comp_neg_Ioi {E : Type*}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E] (c : ℝ) (f : ℝ → E) :
+  ∫ x in Ioi c, f (-x) = ∫ x in Iic (-c), f x :=
+begin
+  rw [←neg_neg c, ←integral_comp_neg_Iic],
+  simp only [neg_neg],
+end

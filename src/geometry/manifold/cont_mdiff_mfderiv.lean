@@ -100,9 +100,9 @@ section mfderiv
 
 include Is I's Js
 
-/-- The function that sends `x` to the `y`-derivative of `f(x,y)` at `g(x)` is `C^n` at `x₀`,
+/-- The function that sends `x` to the `y`-derivative of `f(x,y)` at `g(x)` is `C^m` at `x₀`,
 where the derivative is taken as a continuous linear map.
-We have to assume that `f` is `C^(n+1)` at `(x₀, g(x₀))` and `g` is `C^n` at `x₀`.
+We have to assume that `f` is `C^n` at `(x₀, g(x₀))` for `n ≥ m + 1` and `g` is `C^m` at `x₀`.
 We have to insert a coordinate change from `x₀` to `x` to make the derivative sensible.
 This result is used to show that maps into the 1-jet bundle and cotangent bundle are smooth.
 `cont_mdiff_at.mfderiv_id` and `cont_mdiff_at.mfderiv_const` are special cases of this.
@@ -198,30 +198,19 @@ end
 
 omit Js
 
-/-- The function `x ↦ D_yf(x,y)` is `C^n` at `x₀`, where the derivative is taken as a continuous
-linear map. We have to assume that `f` is `C^(n+1)` at `(x₀, x₀)`.
+/-- The derivative `D_yf(y)` is `C^m` at `x₀`, where the derivative is taken as a continuous
+linear map. We have to assume that `f` is `C^n` at `x₀` for some `n ≥ m + 1`.
 We have to insert a coordinate change from `x₀` to `x` to make the derivative sensible.
-This is a special case of `cont_mdiff_at.mfderiv` (with `g = id`),
-and `cont_mdiff_at.mfderiv_const` is a special case of this.
--/
-lemma cont_mdiff_at.mfderiv_id {x₀ : M} (f : M → M → M')
-  (hf : cont_mdiff_at (I.prod I) I' n (function.uncurry f) (x₀, x₀)) (hmn : m + 1 ≤ n) :
-  cont_mdiff_at I 𝓘(𝕜, E →L[𝕜] E') m
-    (in_tangent_coordinates I I' id (λ x, f x x) (λ x, mfderiv I I' (f x) x) x₀) x₀ :=
-hf.mfderiv f id cont_mdiff_at_id hmn
-
-/-- The derivative `D_yf(y)` is `C^n` at `x₀`, where the derivative is taken as a continuous
-linear map. We have to assume that `f` is `C^(n+1)` at `x₀`.
-We have to insert a coordinate change from `x₀` to `x` to make the derivative sensible.
-This is a special case of See `cont_mdiff_at.mfderiv_id` where `f` does not contain any parameters.
+This is a special case of `cont_mdiff_at.mfderiv` where `f` does not contain any parameters and
+`g = id`.
 -/
 lemma cont_mdiff_at.mfderiv_const {x₀ : M} {f : M → M'}
   (hf : cont_mdiff_at I I' n f x₀) (hmn : m + 1 ≤ n) :
   cont_mdiff_at I 𝓘(𝕜, E →L[𝕜] E') m (in_tangent_coordinates I I' id f (mfderiv I I' f) x₀) x₀ :=
 begin
   have : cont_mdiff_at (I.prod I) I' n (λ x : M × M, f x.2) (x₀, x₀) :=
-  cont_mdiff_at.comp (x₀, x₀) hf cont_mdiff_at_snd,
-  apply cont_mdiff_at.mfderiv_id (λ x, f) this hmn,
+    cont_mdiff_at.comp (x₀, x₀) hf cont_mdiff_at_snd,
+  exact this.mfderiv (λ x, f) id cont_mdiff_at_id hmn,
 end
 
 include Js

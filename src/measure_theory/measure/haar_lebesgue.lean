@@ -60,6 +60,15 @@ def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
     univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
+/-- The parallelepiped formed from the standard basis for `ι → ℝ` is `[0,1]^ι` -/
+lemma basis.parallelepiped_basis_fun (ι : Type*) [fintype ι] :
+  (pi.basis_fun ℝ ι).parallelepiped = topological_space.positive_compacts.pi_Icc01 ι :=
+set_like.coe_injective $ begin
+  refine eq.trans _ ((uIcc_of_le _).trans (set.pi_univ_Icc _ _).symm),
+  { convert (parallelepiped_single 1) },
+  { exact zero_le_one },
+end
+
 namespace measure_theory
 
 open measure topological_space.positive_compacts finite_dimensional
@@ -313,7 +322,7 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
 -/
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
-  measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
+  measure.map ((•) r) μ = ennreal.of_real (abs (r ^ finrank ℝ E)⁻¹) • μ :=
 begin
   let f : E →ₗ[ℝ] E := r • 1,
   change measure.map f μ = _,
@@ -326,14 +335,14 @@ begin
 end
 
 @[simp] lemma add_haar_preimage_smul {r : ℝ} (hr : r ≠ 0) (s : set E) :
-  μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) * μ s :=
+  μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r ^ finrank ℝ E)⁻¹) * μ s :=
 calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   ((homeomorph.smul (is_unit_iff_ne_zero.2 hr).unit).to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s : by { rw map_add_haar_smul μ hr, refl }
+... = ennreal.of_real (abs (r^finrank ℝ E)⁻¹) * μ s : by { rw map_add_haar_smul μ hr, refl }
 
 /-- Rescaling a set by a factor `r` multiplies its measure by `abs (r ^ dim)`. -/
 @[simp] lemma add_haar_smul (r : ℝ) (s : set E) :
-  μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+  μ (r • s) = ennreal.of_real (abs (r ^ finrank ℝ E)) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
   { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow, inv_inv] },
@@ -373,10 +382,10 @@ end
 variables (μ)
 
 @[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
-  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ finrank ℝ E)) * μ s :=
 calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
   by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
-... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
+... = ennreal.of_real (abs (r ^ finrank ℝ E)) * μ s :
   by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
 
 /-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
@@ -448,7 +457,7 @@ begin
 end
 
 lemma add_haar_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
-  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
+  μ (ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 s) :=
 begin
   have : ball (0 : E) (r * s) = r • ball 0 s,
     by simp only [smul_ball hr.ne' (0 : E) s, real.norm_eq_abs, abs_of_nonneg hr.le, smul_zero],
@@ -456,11 +465,11 @@ begin
 end
 
 lemma add_haar_ball_of_pos (x : E) {r : ℝ} (hr : 0 < r) :
-  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [← add_haar_ball_mul_of_pos μ x hr, mul_one]
 
 lemma add_haar_ball_mul [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) (s : ℝ) :
-  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
+  μ (ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 s) :=
 begin
   rcases has_le.le.eq_or_lt hr with h|h,
   { simp only [← h, zero_pow finrank_pos, measure_empty, zero_mul, ennreal.of_real_zero,
@@ -469,11 +478,11 @@ begin
 end
 
 lemma add_haar_ball [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [← add_haar_ball_mul μ x hr, mul_one]
 
 lemma add_haar_closed_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
-  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
+  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
     by simp [smul_closed_ball' hr.ne' (0 : E), abs_of_nonneg hr.le],
@@ -481,7 +490,7 @@ begin
 end
 
 lemma add_haar_closed_ball_mul (x : E) {r : ℝ} (hr : 0 ≤ r) {s : ℝ} (hs : 0 ≤ s) :
-  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
+  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
     by simp [smul_closed_ball r (0 : E) hs, abs_of_nonneg hr],
@@ -492,15 +501,15 @@ end
 Use instead `add_haar_closed_ball`, which uses the measure of the open unit ball as a standard
 form. -/
 lemma add_haar_closed_ball' (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 1) :=
+  μ (closed_ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 1) :=
 by rw [← add_haar_closed_ball_mul μ x hr zero_le_one, mul_one]
 
 lemma add_haar_closed_unit_ball_eq_add_haar_unit_ball :
   μ (closed_ball (0 : E) 1) = μ (ball 0 1) :=
 begin
   apply le_antisymm _ (measure_mono ball_subset_closed_ball),
-  have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
-    (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
+  have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball (0 : E) 1))
+    (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ finrank ℝ E) * μ (closed_ball (0 : E) 1))),
   { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
     exact ennreal.tendsto_of_real ((tendsto_id'.2 nhds_within_le_nhds).pow _) },
   simp only [one_pow, one_mul, ennreal.of_real_one] at A,
@@ -512,7 +521,7 @@ begin
 end
 
 lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (closed_ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
 
 lemma add_haar_closed_ball_eq_add_haar_ball [nontrivial E] (x : E) (r : ℝ) :
@@ -569,7 +578,7 @@ calc
 @[priority 100] instance is_unif_loc_doubling_measure_of_is_add_haar_measure :
   is_unif_loc_doubling_measure μ :=
 begin
-  refine ⟨⟨(2 : ℝ≥0) ^ (finrank ℝ E), _⟩⟩,
+  refine ⟨⟨(2 : ℝ≥0) ^ finrank ℝ E, _⟩⟩,
   filter_upwards [self_mem_nhds_within] with r hr x,
   rw [add_haar_closed_ball_mul μ x zero_le_two (le_of_lt hr), add_haar_closed_ball_center μ x,
     ennreal.of_real, real.to_nnreal_pow zero_le_two],

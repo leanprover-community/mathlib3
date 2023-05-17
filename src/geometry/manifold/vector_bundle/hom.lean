@@ -10,7 +10,7 @@ import topology.vector_bundle.hom
 
 Here we show that `bundle.continuous_linear_map` is a smooth vector bundle.
 
-Note that we only do this for of bundles linear maps, not for bundles of arbitrary semilinear maps.
+Note that we only do this for bundles of linear maps, not for bundles of arbitrary semilinear maps.
 To do it for semilinear maps, we would need to generalize `continuous_linear_map.cont_mdiff`
 (and `continuous_linear_map.cont_diff`) to semilinear maps.
 -/
@@ -72,9 +72,9 @@ end
 
 variables [∀ x, has_continuous_add (E₂ x)] [∀ x, has_continuous_smul 𝕜 (E₂ x)]
 
-lemma hom_chart (x₀ x : LE₁E₂) :
-  chart_at (model_prod HB (F₁ →L[𝕜] F₂)) x₀ x =
-  (chart_at HB x₀.1 x.1, in_coordinates F₁ E₁ F₂ E₂ x₀.1 x.1 x₀.1 x.1 x.2) :=
+lemma hom_chart (y₀ y : LE₁E₂) :
+  chart_at (model_prod HB (F₁ →L[𝕜] F₂)) y₀ y =
+  (chart_at HB y₀.1 y.1, in_coordinates F₁ E₁ F₂ E₂ y₀.1 y.1 y₀.1 y.1 y.2) :=
 by simp_rw [fiber_bundle.charted_space_chart_at, trans_apply, local_homeomorph.prod_apply,
   trivialization.coe_coe, local_homeomorph.refl_apply, function.id_def, hom_trivialization_at_apply]
 
@@ -85,7 +85,7 @@ lemma cont_mdiff_at_hom_bundle (f : M → LE₁E₂) {x₀ : M} {n : ℕ∞} :
   cont_mdiff_at IM IB n (λ x, (f x).1) x₀ ∧
   cont_mdiff_at IM 𝓘(𝕜, F₁ →L[𝕜] F₂) n
   (λ x, in_coordinates F₁ E₁ F₂ E₂ (f x₀).1 (f x).1 (f x₀).1 (f x).1 (f x).2) x₀ :=
-by  apply cont_mdiff_at_total_space
+by apply cont_mdiff_at_total_space
 
 lemma smooth_at_hom_bundle (f : M → LE₁E₂) {x₀ : M} :
   smooth_at IM (IB.prod 𝓘(𝕜, F₁ →L[𝕜] F₂)) f x₀ ↔

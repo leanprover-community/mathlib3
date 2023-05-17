@@ -52,7 +52,7 @@ metric, pseudo_metric, dist
 
 open set filter topological_space bornology
 
-open_locale uniformity topology big_operators filter nnreal ennreal pointwise
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X ι : Type*}
@@ -2388,8 +2388,6 @@ diam_subsingleton subsingleton_empty
 /-- A singleton has zero diameter -/
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
 diam_subsingleton subsingleton_singleton
-
-@[simp, to_additive] lemma diam_one [has_one α] : diam (1 : set α) = 0 := diam_singleton
 
 -- Does not work as a simp-lemma, since {x, y} reduces to (insert y {x})
 lemma diam_pair : diam ({x, y} : set α) = dist x y :=

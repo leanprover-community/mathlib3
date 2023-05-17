@@ -219,12 +219,12 @@ lemma strict_concave_on_iff_slope_strict_anti_adjacent :
 
 lemma convex_on.secant_mono_aux1 (hf : convex_on 𝕜 s f)
   {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
-  f y * (z - x) ≤ (z - y) * f x + (y - x) * f z :=
+  (z - x) * f y ≤ (z - y) * f x + (y - x) * f z :=
 begin
   have hxy' : 0 < y - x := by linarith,
   have hyz' : 0 < z - y := by linarith,
   have hxz' : 0 < z - x := by linarith,
-  rw ← le_div_iff hxz',
+  rw ← le_div_iff' hxz',
   have ha : 0 ≤ (z - y) / (z - x) := by positivity,
   have hb : 0 ≤ (y - x) / (z - x) := by positivity,
   calc f y = f ((z - y) / (z - x) * x + (y - x) / (z - x) * z) : _
@@ -276,12 +276,12 @@ end
 
 lemma strict_convex_on.secant_strict_mono_aux1 (hf : strict_convex_on 𝕜 s f)
   {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
-  f y * (z - x) < (z - y) * f x + (y - x) * f z :=
+  (z - x) * f y < (z - y) * f x + (y - x) * f z :=
 begin
   have hxy' : 0 < y - x := by linarith,
   have hyz' : 0 < z - y := by linarith,
   have hxz' : 0 < z - x := by linarith,
-  rw ← lt_div_iff hxz',
+  rw ← lt_div_iff' hxz',
   have ha : 0 < (z - y) / (z - x) := by positivity,
   have hb : 0 < (y - x) / (z - x) := by positivity,
   calc f y = f ((z - y) / (z - x) * x + (y - x) / (z - x) * z) : _

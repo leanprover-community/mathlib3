@@ -55,6 +55,18 @@ eq_of_forall_le_iff $ λ r, by simp_rw [le_inf_edist, ←image_inv, ball_image_i
 lemma inf_edist_inv_inv (x : E) (s : set E) : inf_edist x⁻¹ s⁻¹ = inf_edist x s :=
 by rw [inf_edist_inv, inv_inv]
 
+@[to_additive] lemma diam_mul_le (x y : set E) :
+  emetric.diam (x * y) ≤ emetric.diam x + emetric.diam y :=
+begin
+  refine emetric.diam_le _,
+  intros x' hx' y' hy',
+  simp_rw set.mem_mul at hx' hy',
+  obtain ⟨xx, xy, hxx, hxy, rfl⟩ := hx',
+  obtain ⟨yx, yy, hyx, hyy, rfl⟩ := hy',
+  exact (edist_mul_mul_le _ _ _ _).trans
+    (add_le_add (emetric.edist_le_diam_of_mem hxx hyx) (emetric.edist_le_diam_of_mem hxy hyy)),
+end
+
 end emetric
 
 variables (ε δ s t x y)

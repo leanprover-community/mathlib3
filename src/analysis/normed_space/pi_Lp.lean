@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Jireh Loreaux
 -/
 import analysis.mean_inequalities
 import data.fintype.order
+import linear_algebra.matrix.basis
 
 /-!
 # `L^p` distance on finite products of metric spaces

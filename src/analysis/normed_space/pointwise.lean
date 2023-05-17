@@ -33,14 +33,10 @@ begin
   { obtain rfl | hs := s.eq_empty_or_nonempty,
     { simp },
     simp [zero_smul_set hs, ←set.singleton_zero], },
-  simp_rw [emetric.diam, ennreal.smul_supr, ←edist_smul₀],
-  have : function.surjective ((•) c : E → E) :=
-    function.right_inverse.surjective (smul_inv_smul₀ hc),
-  refine (this.supr_congr _ $ λ x, _).symm,
-  simp_rw smul_mem_smul_set_iff₀ hc,
-  congr' 1 with hx : 1,
-  refine (this.supr_congr _ $ λ y, _).symm,
-  simp_rw smul_mem_smul_set_iff₀ hc,
+  refine le_antisymm _ _,
+  { simpa using (lipschitz_with_smul c).ediam_image_le s },
+  { simpa [←set.image_smul, set.image_image, inv_smul_smul₀, hc, ←ennreal.mul_le_iff_le_inv]
+      using (lipschitz_with_smul c⁻¹).ediam_image_le (c • s) }
 end
 
 lemma diam_smul₀ (c : 𝕜) (x : set E) : diam (c • x) = ‖c‖ * diam x :=

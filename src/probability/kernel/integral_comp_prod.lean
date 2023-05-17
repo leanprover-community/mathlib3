@@ -253,8 +253,7 @@ begin
     convert hf using 1,
     { exact integral_congr_ae hfg.symm },
     { refine integral_congr_ae _,
-      refine (ae_ae_of_ae_comp_prod hfg).mp _,
-      apply eventually_of_forall,
+      refine (ae_ae_of_ae_comp_prod hfg).mp (eventually_of_forall _),
       exact λ x hfgx, integral_congr_ae (ae_eq_symm hfgx) } }
 end
 
@@ -270,11 +269,11 @@ end
 lemma set_integral_comp_prod_univ_right (f : β × γ → E) {s : set β}
   (hs : measurable_set s) (hf : integrable_on f (s ×ˢ univ) ((κ ⊗ₖ η) a)) :
   ∫ z in s ×ˢ univ, f z ∂((κ ⊗ₖ η) a) = ∫ x in s, ∫ y, f (x, y) ∂(η (a, x)) ∂(κ a) :=
-by { rw set_integral_comp_prod hs measurable_set.univ hf, simp_rw measure.restrict_univ, }
+by simp_rw [set_integral_comp_prod hs measurable_set.univ hf, measure.restrict_univ]
 
 lemma set_integral_comp_prod_univ_left (f : β × γ → E) {t : set γ}
   (ht : measurable_set t) (hf : integrable_on f (univ ×ˢ t) ((κ ⊗ₖ η) a)) :
   ∫ z in univ ×ˢ t, f z ∂((κ ⊗ₖ η) a) = ∫ x, ∫ y in t, f (x, y) ∂(η (a, x)) ∂(κ a) :=
-by { rw set_integral_comp_prod measurable_set.univ ht hf, simp_rw measure.restrict_univ, }
+by simp_rw [set_integral_comp_prod measurable_set.univ ht hf, measure.restrict_univ]
 
 end probability_theory

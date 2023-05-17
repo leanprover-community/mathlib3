@@ -279,6 +279,42 @@ ae_null_of_comp_prod_null h
 
 end ae
 
+section restrict
+
+variables {κ : kernel α β} [is_s_finite_kernel κ] {η : kernel (α × β) γ} [is_s_finite_kernel η]
+  {a : α}
+
+lemma comp_prod_restrict {s : set β} {t : set γ} (hs : measurable_set s) (ht : measurable_set t) :
+  (kernel.restrict κ hs) ⊗ₖ (kernel.restrict η ht) = kernel.restrict (κ ⊗ₖ η) (hs.prod ht) :=
+begin
+  ext a u hu : 2,
+  rw [comp_prod_apply _ _ _ hu, restrict_apply' _ _ _ hu,
+    comp_prod_apply _ _ _ (hu.inter (hs.prod ht))],
+  simp only [kernel.restrict_apply, measure.restrict_apply' ht, set.mem_inter_iff,
+    set.prod_mk_mem_set_prod_eq],
+  have : ∀ b, η (a, b) {c : γ | (b, c) ∈ u ∧ b ∈ s ∧ c ∈ t}
+    = s.indicator (λ b, η (a, b) ({c : γ | (b, c) ∈ u} ∩ t)) b,
+  { intro b,
+    classical,
+    rw set.indicator_apply,
+    split_ifs with h,
+    { simp only [h, true_and],
+      refl, },
+    { simp only [h, false_and, and_false, set.set_of_false, measure_empty], }, },
+  simp_rw this,
+  rw lintegral_indicator _ hs,
+end
+
+lemma comp_prod_restrict_left {s : set β} (hs : measurable_set s) :
+  (kernel.restrict κ hs) ⊗ₖ η = kernel.restrict (κ ⊗ₖ η) (hs.prod measurable_set.univ) :=
+by { rw ← comp_prod_restrict, congr, exact kernel.restrict_univ.symm, }
+
+lemma comp_prod_restrict_right {t : set γ} (ht : measurable_set t) :
+  κ ⊗ₖ (kernel.restrict η ht) = kernel.restrict (κ ⊗ₖ η) (measurable_set.univ.prod ht) :=
+by { rw ← comp_prod_restrict, congr, exact kernel.restrict_univ.symm, }
+
+end restrict
+
 section lintegral
 /-! ### Lebesgue integral -/
 
@@ -363,6 +399,25 @@ begin
   exact hf.measurable_mk,
 end
 
+lemma set_lintegral_comp_prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
+  [is_s_finite_kernel η] (a : α) {f : β × γ → ℝ≥0∞} (hf : measurable f)
+  {s : set β} {t : set γ} (hs : measurable_set s) (ht : measurable_set t) :
+  ∫⁻ z in s ×ˢ t, f z ∂((κ ⊗ₖ η) a) = ∫⁻ x in s, ∫⁻ y in t, f (x, y) ∂(η (a, x)) ∂(κ a) :=
+by simp_rw [← kernel.restrict_apply (κ ⊗ₖ η) (hs.prod ht), ← comp_prod_restrict,
+    lintegral_comp_prod _ _ _ hf, kernel.restrict_apply]
+
+lemma set_lintegral_comp_prod_univ_right (κ : kernel α β) [is_s_finite_kernel κ]
+  (η : kernel (α × β) γ) [is_s_finite_kernel η] (a : α) {f : β × γ → ℝ≥0∞} (hf : measurable f)
+  {s : set β} (hs : measurable_set s) :
+  ∫⁻ z in s ×ˢ set.univ, f z ∂((κ ⊗ₖ η) a) = ∫⁻ x in s, ∫⁻ y, f (x, y) ∂(η (a, x)) ∂(κ a) :=
+by simp_rw [set_lintegral_comp_prod κ η a hf hs measurable_set.univ, measure.restrict_univ]
+
+lemma set_lintegral_comp_prod_univ_left (κ : kernel α β) [is_s_finite_kernel κ]
+  (η : kernel (α × β) γ) [is_s_finite_kernel η] (a : α) {f : β × γ → ℝ≥0∞} (hf : measurable f)
+  {t : set γ} (ht : measurable_set t) :
+  ∫⁻ z in set.univ ×ˢ t, f z ∂((κ ⊗ₖ η) a) = ∫⁻ x, ∫⁻ y in t, f (x, y) ∂(η (a, x)) ∂(κ a) :=
+by simp_rw [set_lintegral_comp_prod κ η a hf measurable_set.univ ht, measure.restrict_univ]
+
 end lintegral
 
 lemma comp_prod_eq_tsum_comp_prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
@@ -432,42 +487,6 @@ begin
   rw comp_prod_eq_sum_comp_prod,
   exact kernel.is_s_finite_kernel_sum (λ n, kernel.is_s_finite_kernel_sum infer_instance),
 end
-
-section restrict
-
-variables {κ : kernel α β} [is_s_finite_kernel κ] {η : kernel (α × β) γ} [is_s_finite_kernel η]
-  {a : α}
-
-lemma comp_prod_restrict {s : set β} {t : set γ} (hs : measurable_set s) (ht : measurable_set t) :
-  (kernel.restrict κ hs) ⊗ₖ (kernel.restrict η ht) = kernel.restrict (κ ⊗ₖ η) (hs.prod ht) :=
-begin
-  ext a u hu : 2,
-  rw [comp_prod_apply _ _ _ hu, restrict_apply' _ _ _ hu,
-    comp_prod_apply _ _ _ (hu.inter (hs.prod ht))],
-  simp only [kernel.restrict_apply, measure.restrict_apply' ht, set.mem_inter_iff,
-    set.prod_mk_mem_set_prod_eq],
-  have : ∀ b, η (a, b) {c : γ | (b, c) ∈ u ∧ b ∈ s ∧ c ∈ t}
-    = s.indicator (λ b, η (a, b) ({c : γ | (b, c) ∈ u} ∩ t)) b,
-  { intro b,
-    classical,
-    rw set.indicator_apply,
-    split_ifs with h,
-    { simp only [h, true_and],
-      refl, },
-    { simp only [h, false_and, and_false, set.set_of_false, measure_empty], }, },
-  simp_rw this,
-  rw lintegral_indicator _ hs,
-end
-
-lemma comp_prod_restrict_left {s : set β} (hs : measurable_set s) :
-  (kernel.restrict κ hs) ⊗ₖ η = kernel.restrict (κ ⊗ₖ η) (hs.prod measurable_set.univ) :=
-by { rw ← comp_prod_restrict, congr, exact kernel.restrict_univ.symm, }
-
-lemma comp_prod_restrict_right {t : set γ} (ht : measurable_set t) :
-  κ ⊗ₖ (kernel.restrict η ht) = kernel.restrict (κ ⊗ₖ η) (measurable_set.univ.prod ht) :=
-by { rw ← comp_prod_restrict, congr, exact kernel.restrict_univ.symm, }
-
-end restrict
 
 end composition_product
 

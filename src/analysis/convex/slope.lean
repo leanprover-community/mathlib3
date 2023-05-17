@@ -227,9 +227,9 @@ begin
   rw ← le_div_iff hxz',
   have ha : 0 ≤ (z - y) / (z - x) := by positivity,
   have hb : 0 ≤ (y - x) / (z - x) := by positivity,
-  calc _ = _ : _
-  ... ≤ _ : hf.2 hx hz ha hb _
-  ... = _ : _,
+  calc f y = f ((z - y) / (z - x) * x + (y - x) / (z - x) * z) : _
+  ... ≤ (z - y) / (z - x) * f x + (y - x) / (z - x) * f z : hf.2 hx hz ha hb _
+  ... = ((z - y) * f x + (y - x) * f z) / (z - x) : _,
   { congr' 1,
     field_simp [hxy'.ne', hyz'.ne', hxz'.ne'],
     ring },
@@ -284,9 +284,9 @@ begin
   rw ← lt_div_iff hxz',
   have ha : 0 < (z - y) / (z - x) := by positivity,
   have hb : 0 < (y - x) / (z - x) := by positivity,
-  calc _ = _ : _
-  ... < _ : hf.2 hx hz (by linarith) ha hb _
-  ... = _ : _,
+  calc f y = f ((z - y) / (z - x) * x + (y - x) / (z - x) * z) : _
+  ... < (z - y) / (z - x) * f x + (y - x) / (z - x) * f z : hf.2 hx hz (by linarith) ha hb _
+  ... = ((z - y) * f x + (y - x) * f z) / (z - x) : _,
   { congr' 1,
     field_simp [hxy'.ne', hyz'.ne', hxz'.ne'],
     ring },

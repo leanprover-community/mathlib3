@@ -201,7 +201,8 @@ omit Js
 /-- The derivative `D_yf(y)` is `C^m` at `x₀`, where the derivative is taken as a continuous
 linear map. We have to assume that `f` is `C^n` at `x₀` for some `n ≥ m + 1`.
 We have to insert a coordinate change from `x₀` to `x` to make the derivative sensible.
-This is a special case of `cont_mdiff_at.mfderiv` where `f` does not contain any parameters and `g = id`.
+This is a special case of `cont_mdiff_at.mfderiv` where `f` does not contain any parameters and
+`g = id`.
 -/
 lemma cont_mdiff_at.mfderiv_const {x₀ : M} {f : M → M'}
   (hf : cont_mdiff_at I I' n f x₀) (hmn : m + 1 ≤ n) :

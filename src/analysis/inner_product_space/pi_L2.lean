@@ -252,7 +252,6 @@ by simp [apply_ite conj, mul_comm]
 /-- `euclidean_space.single` forms an orthonormal family. -/
 lemma euclidean_space.orthonormal_single [decidable_eq ι] :
   orthonormal 𝕜 (λ i : ι, euclidean_space.single i (1 : 𝕜)) :=
-
 begin
   simp_rw [orthonormal_iff_ite, euclidean_space.inner_single_left, map_one, one_mul,
     euclidean_space.single_apply],

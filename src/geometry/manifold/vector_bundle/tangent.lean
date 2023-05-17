@@ -367,7 +367,7 @@ end
 in charts around `g x`, `in_tangent_coordinates I I' f g ϕ x₀ x` is a coordinate change of
 this continuous linear map that makes sense from charts around `f x₀` to charts around `g x₀`
 by composing it with appropriate coordinate changes.
-Note that in the type of `ϕ` is more accurately
+Note that the type of `ϕ` is more accurately
 `Π x : N, tangent_space I (f x) →L[𝕜] tangent_space I' (g x)`.
 We are unfolding `tangent_space` in this type so that Lean recognizes that the type of `ϕ` doesn't
 actually depend on `f` or `g`.

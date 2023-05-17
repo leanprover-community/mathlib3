@@ -1159,12 +1159,10 @@ by rw ← of_real_inj; simp [sinh_three_mul]
 
 open is_absolute_value
 
-lemma quadratic_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : 1 + x + x ^ 2 / 2 ≤ exp x :=
-calc 1 + x + x ^ 2 / 2
-    = ∑ i in range 3, x ^ i / i! : by simp [finset.sum_range_succ]
-... ≤ lim (⟨_, is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
+lemma sum_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) (n : ℕ) : ∑ i in range n, x ^ i / i! ≤ exp x :=
+calc ∑ i in range n, x ^ i / i! ≤ lim (⟨_, is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
   begin
-    refine le_lim (cau_seq.le_of_exists ⟨3, λ j hj, _⟩),
+    refine le_lim (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
     simp only [exp', const_apply, mk_to_fun, re_sum],
     norm_cast,
     rw [← nat.add_sub_of_le hj, finset.sum_range_add],
@@ -1172,6 +1170,10 @@ calc 1 + x + x ^ 2 / 2
     positivity,
   end
 ... = exp x : by rw [exp, complex.exp, ← cau_seq_re, lim_re]
+
+lemma quadratic_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : 1 + x + x ^ 2 / 2 ≤ exp x :=
+calc 1 + x + x ^ 2 / 2 = ∑ i in range 3, x ^ i / i! : by simp [finset.sum_range_succ]
+... ≤ exp x : sum_le_exp_of_nonneg hx 3
 
 lemma add_one_lt_exp_of_pos {x : ℝ} (hx : 0 < x) : x + 1 < exp x :=
 (by nlinarith : x + 1 < 1 + x + x ^ 2 / 2).trans_le (quadratic_le_exp_of_nonneg hx.le)

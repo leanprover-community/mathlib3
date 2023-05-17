@@ -34,9 +34,10 @@ begin
     { simp },
     simp [zero_smul_set hs, ←set.singleton_zero], },
   refine le_antisymm _ _,
-  { simpa using (lipschitz_with_smul c).ediam_image_le s },
-  { simpa [←set.image_smul, set.image_image, inv_smul_smul₀, hc, ←ennreal.mul_le_iff_le_inv]
-      using (lipschitz_with_smul c⁻¹).ediam_image_le (c • s) }
+  { exact (lipschitz_with_smul c).ediam_image_le s },
+  { have := (lipschitz_with_smul c⁻¹).ediam_image_le (c • s),
+    rwa [← smul_eq_mul, ←ennreal.smul_def, set.image_smul, inv_smul_smul₀ hc s, nnnorm_inv,
+      ennreal.le_inv_smul_iff (nnnorm_ne_zero_iff.mpr hc)] at this }
 end
 
 lemma diam_smul₀ (c : 𝕜) (x : set E) : diam (c • x) = ‖c‖ * diam x :=

@@ -351,7 +351,6 @@ begin
 end
 
 lemma todo {mE : measurable_space E} (hX : measurable X) (hY : measurable Y)
-  [second_countable_topology F]
   {f : E × Ω → F} (hf : strongly_measurable f) (hf_int : integrable (λ ω, f (X ω, Y ω)) μ) :
   μ[(λ ω, f (X ω, Y ω)) | X; mE] =ᵐ[μ] λ ω, ∫ y, f (X ω, y) ∂(condexp_kernel Y X μ (X ω)) :=
 begin
@@ -367,13 +366,18 @@ lemma todo' {Ω} [normed_add_comm_group Ω] [normed_space ℝ Ω] [complete_spac
   μ[Y | X; mE] =ᵐ[μ] λ ω, ∫ y, y ∂(condexp_kernel Y X μ (X ω)) :=
 todo hX hY measurable_snd.strongly_measurable hY_int
 
-lemma condexp_ae_eq_integral_kernel [second_countable_topology F]
-  {Ω : Type*} [topological_space Ω] (m : measurable_space Ω) {mΩ : measurable_space Ω}
-  [borel_space Ω] [polish_space Ω] [nonempty Ω]
-  {μ : measure Ω} [is_finite_measure μ] {f : Ω → F} (hf : strongly_measurable f) :
+lemma condexp_ae_eq_integral_kernel {Ω : Type*} [topological_space Ω] (m : measurable_space Ω)
+  {mΩ : measurable_space Ω} [borel_space Ω] [polish_space Ω] [nonempty Ω] (hm : m ≤ mΩ)
+  {μ : measure Ω} [is_finite_measure μ]
+  {f : Ω → F} (hf : strongly_measurable f) (hf_int : integrable f μ) :
   μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel_trim μ m ω) :=
 begin
-  sorry,
+  have hX : @measurable Ω Ω mΩ m id := measurable_id.mono le_rfl hm,
+  have hY : measurable (id : Ω → Ω) := measurable_id,
+  have hf' : @strongly_measurable (Ω × Ω) F _ (m.prod mΩ) (λ x : Ω × Ω, f x.2) :=
+    hf.comp_measurable measurable_id.snd,
+  refine eventually_eq.trans _ (todo hX hY hf' hf_int),
+  simp only [measurable_space.comap_id, id.def],
 end
 
 end probability_theory

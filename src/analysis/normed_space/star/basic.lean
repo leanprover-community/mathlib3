@@ -259,11 +259,8 @@ variables {𝕜}
 lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 @[simp] lemma starₗᵢ_to_continuous_linear_equiv :
-  (starₗᵢ 𝕜 : E ≃ₗᵢ⋆[𝕜] E).to_continuous_linear_equiv = (begin
-      have := starL 𝕜,
-
-  end) :=
-continuous_linear_equiv.ext $ λ _, rfl
+  (starₗᵢ 𝕜 : E ≃ₗᵢ⋆[𝕜] E).to_continuous_linear_equiv = (starL 𝕜 : E ≃L⋆[𝕜] E) :=
+continuous_linear_equiv.ext rfl
 
 end starₗᵢ
 

@@ -15,10 +15,12 @@ import topology.algebra.star
 then `star` is a continuous semilinear equivalence. -/
 @[simps]
 def starL (R : Type*) {A : Type*}
-  [comm_semiring R] [star_ring R] [semiring A] [star_ring A] [module R A] [star_module R A]
-  [topological_space A] [has_continuous_star A]:
+  [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A] [module R A]
+  [star_module R A] [topological_space A] [has_continuous_star A] :
     A ≃SL[star_ring_end R] A :=
-{ to_linear_equiv := (star_linear_equiv R : A ≃ₗ⋆[R] A),
+{ to_linear_equiv :=
+  -- TODO: can't use `star_linear_equiv` here, it needs stronger typceclass assumptions?
+  { map_smul' := star_smul, ..star_add_equiv },
   continuous_to_fun := continuous_star,
   continuous_inv_fun := continuous_star }
 

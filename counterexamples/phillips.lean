@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.hahn_banach.extension
+import measure_theory.integral.set_integral
 import measure_theory.measure.lebesgue.basic
+import topology.continuous_function.bounded
 
 /-!
 # A counterexample on Pettis integrability

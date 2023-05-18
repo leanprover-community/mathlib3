@@ -22,6 +22,19 @@ def starL (R : Type*) {A : Type*}
   continuous_to_fun := continuous_star,
   continuous_inv_fun := continuous_star }
 
+/-- If `A` is a topological module over a commutative `R` with trivial star and compatible actions,
+then `star` is a continuous linear equivalence. -/
+@[simps]
+def starL' (R : Type*) {A : Type*}
+  [comm_semiring R] [star_ring R] [has_trivial_star R] [add_comm_monoid A] [star_add_monoid A]
+  [module R A] [star_module R A] [topological_space A] [has_continuous_star A] :
+    A ≃L[R] A :=
+(starL R : A ≃L⋆[R] A).trans
+  ({ map_smul' := λ r a, by simp [star_ring_end_apply],
+    continuous_to_fun := continuous_id,
+    continuous_inv_fun := continuous_id,
+    ..add_equiv.refl A, } : A ≃L⋆[R] A)
+
 variables (R : Type*) (A : Type*)
   [semiring R] [star_semigroup R] [has_trivial_star R]
   [add_comm_group A] [module R A] [star_add_monoid A] [star_module R A]

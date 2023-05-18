@@ -10,19 +10,18 @@ import measure_theory.constructions.polish
 # Disintegration of measures on product spaces
 
 Let `ρ` be a finite measure on `α × Ω`, where `Ω` is a standard Borel space. In mathlib terms, `Ω`
-verifies `[topological_space Ω] [polish_space Ω] [measurable_space Ω] [borel_space Ω]`.
+verifies `[nonempty Ω] [topological_space Ω] [polish_space Ω] [measurable_space Ω] [borel_space Ω]`.
 
 For any measurable space `γ`, there exists a kernel `cond_kernel ρ : kernel α Ω` such that we
 have a disintegration of the constant kernel from `γ` with value `ρ`:
-`kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) γ)`,
+`kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel ρ))`,
 where `ρ.fst` is the marginal measure of `ρ` on `α`. In particular,
-`ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) ()`.
+`ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ))) ()`.
 
 In order to obtain a disintegration for any standard Borel space, we use that these spaces embed
 measurably into `ℝ`: it then suffices to define a suitable kernel for `Ω = ℝ`. In the real case,
-we define a conditional kernel for each `a : α` by taking the measure associated to the Stieltjes
-function `cond_cdf ρ a` (the conditional cumulative distribution function) and we show that this
-defines a measurable map.
+we define a conditional kernel by taking for each `a : α` the measure associated to the Stieltjes
+function `cond_cdf ρ a` (the conditional cumulative distribution function).
 
 ## Main definitions
 
@@ -45,40 +44,6 @@ defines a measurable map.
   we obtain.
 
 -/
-
-section todo_move
-namespace measure_theory
-
-lemma measurable_embedding.prod_mk {α β γ δ : Type*} {mα : measurable_space α}
-  {mβ : measurable_space β} {mγ : measurable_space γ} {mδ : measurable_space δ}
-  {f : α → β} {g : γ → δ} (hg : measurable_embedding g) (hf : measurable_embedding f) :
-  measurable_embedding (λ x : γ × α, (g x.1, f x.2)) :=
-begin
-  have h_inj : function.injective (λ x : γ × α, (g x.fst, f x.snd)),
-  { intros x y hxy,
-    rw [← @prod.mk.eta _ _ x, ← @prod.mk.eta _ _ y],
-    simp only [prod.mk.inj_iff] at hxy ⊢,
-    exact ⟨hg.injective hxy.1, hf.injective hxy.2⟩, },
-  refine ⟨h_inj, _, _⟩,
-  { exact (hg.measurable.comp measurable_fst).prod_mk (hf.measurable.comp measurable_snd), },
-  { refine λ s hs, @measurable_space.induction_on_inter _
-      (λ s, measurable_set ((λ (x : γ × α), (g x.fst, f x.snd)) '' s)) _ _ generate_from_prod.symm
-      is_pi_system_prod _ _ _ _ _ hs,
-    { simp only [set.image_empty, measurable_set.empty], },
-    { rintros t ⟨t₁, t₂, ht₁, ht₂, rfl⟩,
-      rw ← set.prod_image_image_eq,
-      exact (hg.measurable_set_image.mpr ht₁).prod (hf.measurable_set_image.mpr ht₂), },
-    { intros t ht ht_m,
-      rw [← set.range_diff_image h_inj, ← set.prod_range_range_eq],
-      exact measurable_set.diff
-        (measurable_set.prod hg.measurable_set_range hf.measurable_set_range) ht_m, },
-    { intros g hg_disj hg_meas hg,
-      simp_rw set.image_Union,
-      exact measurable_set.Union hg, }, },
-end
-
-end measure_theory
-end todo_move
 
 open measure_theory set filter
 
@@ -392,9 +357,9 @@ end
 
 variables [nonempty Ω]
 
-/-- **Regular conditional probability distribution**, or conditional kernel: a Markov kernel such
-that `ρ : measure (α × Ω) = (ρ.fst : measure α) ⊗ₖ (cond_kernel ρ : kernel α Ω)` (up to
-augmentations of the spaces to make that expression valid: see `measure_eq_comp_prod`). -/
+/-- Conditional kernel of a measure on a product space: a Markov kernel such that
+`ρ : measure (α × Ω) = (ρ.fst : measure α) ⊗ₖ (cond_kernel ρ : kernel α Ω)` (up to augmentations
+of the spaces to make that expression valid: see `probability_theory.measure_eq_comp_prod`). -/
 noncomputable
 def cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ] : kernel α Ω :=
 (exists_cond_kernel ρ unit).some
@@ -410,7 +375,7 @@ lemma kernel.const_unit_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measur
 /-- **Disintegration** of finite product measures on `α × Ω`, where `Ω` is Polish Borel. Such a
 measure can be written as the composition-product of the constant kernel with value `ρ.fst`
 (marginal measure over `α`) and a Markov kernel from `α` to `Ω`. We call that Markov kernel
-`cond_kernel ρ`. -/
+`probability_theory.cond_kernel ρ`. -/
 theorem measure_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ))) () :=
 by rw [← kernel.const_unit_eq_comp_prod, kernel.const_apply]
@@ -418,7 +383,7 @@ by rw [← kernel.const_unit_eq_comp_prod, kernel.const_apply]
 /-- **Disintegration** of constant kernels. A constant kernel on a product space `α × Ω`, where `Ω`
 is Polish Borel, can be written as the composition-product of the constant kernel with value `ρ.fst`
 (marginal measure over `α`) and a Markov kernel from `α` to `Ω`. We call that Markov kernel
-`cond_kernel ρ`. -/
+`probability_theory.cond_kernel ρ`. -/
 theorem kernel.const_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ]
   (γ : Type*) [measurable_space γ] :
   kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel ρ)) :=

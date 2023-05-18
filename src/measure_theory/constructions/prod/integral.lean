@@ -7,61 +7,32 @@ import measure_theory.constructions.prod.basic
 import measure_theory.integral.set_integral
 
 /-!
-# The product measure
+# Integration with respect to the product measure
 
-In this file we define and prove properties about the binary product measure. If `α` and `β` have
-σ-finite measures `μ` resp. `ν` then `α × β` can be equipped with a σ-finite measure `μ.prod ν` that
-satisfies `(μ.prod ν) s = ∫⁻ x, ν {y | (x, y) ∈ s} ∂μ`.
-We also have `(μ.prod ν) (s ×ˢ t) = μ s * ν t`, i.e. the measure of a rectangle is the product of
-the measures of the sides.
-
-We also prove Tonelli's theorem and Fubini's theorem.
-
-## Main definition
-
-* `measure_theory.measure.prod`: The product of two measures.
+In this file we prove Fubini's theorem.
 
 ## Main results
 
-* `measure_theory.measure.prod_apply` states `μ.prod ν s = ∫⁻ x, ν {y | (x, y) ∈ s} ∂μ`
-  for measurable `s`. `measure_theory.measure.prod_apply_symm` is the reversed version.
-* `measure_theory.measure.prod_prod` states `μ.prod ν (s ×ˢ t) = μ s * ν t` for measurable sets
-  `s` and `t`.
-* `measure_theory.lintegral_prod`: Tonelli's theorem. It states that for a measurable function
-  `α × β → ℝ≥0∞` we have `∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ`. The version
-  for functions `α → β → ℝ≥0∞` is reversed, and called `lintegral_lintegral`. Both versions have
-  a variant with `_symm` appended, where the order of integration is reversed.
-  The lemma `measurable.lintegral_prod_right'` states that the inner integral of the right-hand side
-  is measurable.
 * `measure_theory.integrable_prod_iff` states that a binary function is integrable iff both
   * `y ↦ f (x, y)` is integrable for almost every `x`, and
   * the function `x ↦ ∫ ‖f (x, y)‖ dy` is integrable.
 * `measure_theory.integral_prod`: Fubini's theorem. It states that for a integrable function
   `α × β → E` (where `E` is a second countable Banach space) we have
   `∫ z, f z ∂(μ.prod ν) = ∫ x, ∫ y, f (x, y) ∂ν ∂μ`. This theorem has the same variants as
-  Tonelli's theorem. The lemma `measure_theory.integrable.integral_prod_right` states that the
-  inner integral of the right-hand side is integrable.
-
-## Implementation Notes
-
-Many results are proven twice, once for functions in curried form (`α → β → γ`) and one for
-functions in uncurried form (`α × β → γ`). The former often has an assumption
-`measurable (uncurry f)`, which could be inconvenient to discharge, but for the latter it is more
-common that the function has to be given explicitly, since Lean cannot synthesize the function by
-itself. We name the lemmas about the uncurried form with a prime.
-Tonelli's theorem and Fubini's theorem have a different naming scheme, since the version for the
-uncurried version is reversed.
+  Tonelli's theorem (see `measure_theory.lintegral_prod`). The lemma
+  `measure_theory.integrable.integral_prod_right` states that the inner integral of the right-hand
+  side is integrable.
 
 ## Tags
 
-product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
+product measure, Fubini's theorem, Fubini-Tonelli theorem
 -/
 
 noncomputable theory
 open_locale classical topology ennreal measure_theory
 open set function real ennreal
 open measure_theory measurable_space measure_theory.measure
-open topological_space (hiding generate_from)
+open topological_space
 open filter (hiding prod_eq map)
 
 variables {α α' β β' γ E : Type*}

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.constructions.prod.basic
-import measure_theory.group.measure.basic
+import measure_theory.group.measure
 import topology.constructions
 
 /-!

@@ -7,7 +7,7 @@ import analysis.normed_space.pointwise
 import linear_algebra.finite_dimensional
 import measure_theory.group.pointwise
 import measure_theory.measure.lebesgue.basic
-import measure_theory.measure.haar
+import measure_theory.measure.haar.basic
 import measure_theory.measure.doubling
 
 /-!

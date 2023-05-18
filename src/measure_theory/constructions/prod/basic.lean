@@ -17,7 +17,7 @@ satisfies `(μ.prod ν) s = ∫⁻ x, ν {y | (x, y) ∈ s} ∂μ`.
 We also have `(μ.prod ν) (s ×ˢ t) = μ s * ν t`, i.e. the measure of a rectangle is the product of
 the measures of the sides.
 
-We also prove Tonelli's theorem and Fubini's theorem.
+We also prove Tonelli's theorem.
 
 ## Main definition
 
@@ -35,14 +35,6 @@ We also prove Tonelli's theorem and Fubini's theorem.
   a variant with `_symm` appended, where the order of integration is reversed.
   The lemma `measurable.lintegral_prod_right'` states that the inner integral of the right-hand side
   is measurable.
-* `measure_theory.integrable_prod_iff` states that a binary function is integrable iff both
-  * `y ↦ f (x, y)` is integrable for almost every `x`, and
-  * the function `x ↦ ∫ ‖f (x, y)‖ dy` is integrable.
-* `measure_theory.integral_prod`: Fubini's theorem. It states that for a integrable function
-  `α × β → E` (where `E` is a second countable Banach space) we have
-  `∫ z, f z ∂(μ.prod ν) = ∫ x, ∫ y, f (x, y) ∂ν ∂μ`. This theorem has the same variants as
-  Tonelli's theorem. The lemma `measure_theory.integrable.integral_prod_right` states that the
-  inner integral of the right-hand side is integrable.
 
 ## Implementation Notes
 
@@ -51,12 +43,12 @@ functions in uncurried form (`α × β → γ`). The former often has an assumpt
 `measurable (uncurry f)`, which could be inconvenient to discharge, but for the latter it is more
 common that the function has to be given explicitly, since Lean cannot synthesize the function by
 itself. We name the lemmas about the uncurried form with a prime.
-Tonelli's theorem and Fubini's theorem have a different naming scheme, since the version for the
-uncurried version is reversed.
+Tonelli's theorem has a different naming scheme, since the version for the uncurried version is
+reversed.
 
 ## Tags
 
-product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
+product measure, Tonelli's theorem, Fubini-Tonelli theorem
 -/
 
 noncomputable theory

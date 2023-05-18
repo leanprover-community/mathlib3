@@ -26,7 +26,7 @@ More properties of the Lebesgue measure are deduced from this in `lebesgue.eq_ha
 are proved more generally for any additive Haar measure on a finite-dimensional real vector space.
 -/
 
-assert_not_exists integral
+assert_not_exists measure_theory.integral
 
 noncomputable theory
 open classical set filter measure_theory measure_theory.measure topological_space

@@ -41,7 +41,7 @@ density one for the rescaled copies `{x} + r • t` of a given set `t` with posi
 small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
-assert_not_exists integral
+assert_not_exists measure_theory.integral
 
 open topological_space set filter metric
 open_locale ennreal pointwise topology nnreal

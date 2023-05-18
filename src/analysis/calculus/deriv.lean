@@ -7,6 +7,7 @@ import analysis.calculus.fderiv.add
 import analysis.calculus.fderiv.mul
 import analysis.calculus.fderiv.equiv
 import analysis.calculus.fderiv.restrict_scalars
+import analysis.calculus.fderiv.star
 import data.polynomial.algebra_map
 import data.polynomial.derivative
 import linear_algebra.affine_space.slope
@@ -1669,6 +1670,41 @@ by simp [div_eq_inv_mul, deriv_within_const_mul, hc, hxs]
 by simp only [div_eq_mul_inv, deriv_mul_const_field]
 
 end division
+
+
+section star
+variables [star_ring 𝕜] [has_trivial_star 𝕜] [star_add_monoid F] [has_continuous_star F]
+variable [star_module 𝕜 F]
+/-! ### Derivative of the starative of a function -/
+
+theorem has_deriv_at_filter.star (h : has_deriv_at_filter f f' x L) :
+  has_deriv_at_filter (λ x, star (f x)) (star f') x L :=
+by simpa using h.star.has_deriv_at_filter
+
+theorem has_deriv_within_at.star (h : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ x, star (f x)) (star f') s x :=
+h.star
+
+theorem has_deriv_at.star (h : has_deriv_at f f' x) : has_deriv_at (λ x, star (f x)) (star f') x :=
+h.star
+
+theorem has_strict_deriv_at.star (h : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, star (f x)) (star f') x :=
+by simpa using h.star.has_strict_deriv_at
+
+lemma deriv_within.star (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (λy, star (f y)) s x = star (deriv_within f s x) :=
+by simp only [deriv_within, fderiv_within_star hxs, continuous_linear_map.comp_apply,
+  continuous_linear_equiv.coe_apply, starL'_apply]
+
+lemma deriv.star : deriv (λy, star (f y)) x = star (deriv f x) :=
+by simp only [deriv, fderiv_star, continuous_linear_map.comp_apply,
+  continuous_linear_equiv.coe_apply, starL'_apply]
+
+@[simp] lemma deriv.star' : deriv (λy, star (f y)) = (λ x, star (deriv f x)) :=
+funext $ λ x, deriv.star
+
+end star
 
 section clm_comp_apply
 /-! ### Derivative of the pointwise composition/application of continuous linear maps -/

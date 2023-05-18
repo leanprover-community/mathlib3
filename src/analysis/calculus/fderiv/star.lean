@@ -14,7 +14,8 @@ For detailed documentation of the Fréchet derivative,
 see the module docstring of `analysis/calculus/fderiv/basic.lean`.
 
 This file contains the usual formulas (and existence assertions) for the derivative of the star
-operation
+operation. Note that these only apply when the field that the derivative is respect to has a trivial
+star operation; which as should be expected rules out `𝕜 = ℂ`.
 -/
 
 open_locale classical
@@ -22,8 +23,8 @@ open_locale classical
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [star_ring 𝕜] [has_trivial_star 𝕜]
 variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_add_comm_group F] [star_add_monoid F] [normed_space 𝕜 F] [star_module 𝕜 F]
-  [has_continuous_star F]
+variables {F : Type*} [normed_add_comm_group F] [star_add_monoid F] [normed_space 𝕜 F]
+  [star_module 𝕜 F] [has_continuous_star F]
 
 variables {f : E → F}
 variables {f' : E →L[𝕜] F}

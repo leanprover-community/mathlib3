@@ -6,7 +6,7 @@ Authors: Luke Mantle
 
 import data.polynomial.derivative
 import data.nat.parity
-
+import data.nat.factorial.double_factorial
 /-!
 # Hermite polynomials
 
@@ -126,5 +126,59 @@ begin
 end
 
 end coeff
+
+section coeff_explicit
+
+open_locale nat
+
+lemma hermite_coeff_explicit : ∀ (n k : ℕ),
+coeff (hermite (2 * n + k)) k = (-1)^n * (2 * n - 1)‼ * nat.choose (2 * n + k) k
+| 0 _ := by simp
+| (n + 1) 0 := begin
+  convert coeff_hermite_succ_zero (2 * n + 1) using 1,
+  rw [hermite_coeff_explicit n 1,
+      (by ring_nf : 2 * (n + 1) - 1 = 2 * n + 1), nat.double_factorial_add_one,
+      nat.choose_zero_right, nat.choose_one_right, pow_succ],
+  push_cast,
+  ring,
+end
+| (n + 1) (k + 1) :=
+let hermite_explicit : ℕ → ℕ → ℤ :=
+    λ n k, (-1)^n * (2*n-1)‼ * nat.choose (2*n+k) k in
+have hermite_explicit_recur :
+    ∀ (n k : ℕ),
+      hermite_explicit (n + 1) (k + 1) =
+      hermite_explicit (n + 1) k - (k + 2) * hermite_explicit n (k + 2) :=
+  begin
+    intros n k,
+    simp only [hermite_explicit],
+    -- Factor out (-1)'s.
+    rw [mul_comm (↑k + _), sub_eq_add_neg],
+    nth_rewrite 2 neg_eq_neg_one_mul,
+    simp only [mul_assoc, ← mul_add, pow_succ],
+    congr' 2,
+    -- Factor out double factorials.
+    norm_cast,
+    rw [(by ring_nf : 2 * (n + 1) - 1 = 2 * n + 1),
+        nat.double_factorial_add_one, mul_comm (2 * n + 1)],
+    simp only [mul_assoc, ← mul_add],
+    congr' 1,
+    -- Match up binomial coefficients using `nat.choose_succ_right_eq`.
+    rw [(by ring : 2 * (n + 1) + (k + 1) = (2 * n + 1) + (k + 1) + 1),
+        (by ring : 2 * (n + 1) + k = (2 * n + 1) + (k + 1)),
+        (by ring : 2 * n + (k + 2) = (2 * n + 1) + (k + 1))],
+    rw [nat.choose, nat.choose_succ_right_eq ((2 * n + 1) + (k + 1)) (k + 1),
+        nat.add_sub_cancel],
+    ring,
+  end,
+begin
+  change _ = hermite_explicit _ _,
+  rw [← add_assoc, coeff_hermite_succ_succ, hermite_explicit_recur],
+  congr,
+  { rw hermite_coeff_explicit (n + 1) k },
+  { rw [(by ring : 2 * (n + 1) + k = 2 * n + (k + 2)), hermite_coeff_explicit n (k + 2)] },
+end
+
+end coeff_explicit
 
 end polynomial

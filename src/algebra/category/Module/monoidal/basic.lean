@@ -3,25 +3,26 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Scott Morrison, Jakob von Raumer
 -/
-import category_theory.monoidal.braided
-import category_theory.closed.monoidal
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
 import category_theory.linear.yoneda
 import category_theory.monoidal.linear
 
 /-!
-# The symmetric monoidal category structure on R-modules
+# The monoidal category structure on R-modules
 
 Mostly this uses existing machinery in `linear_algebra.tensor_product`.
 We just need to provide a few small missing pieces to build the
-`monoidal_category` instance and then the `symmetric_category` instance.
+`monoidal_category` instance.
+The `symmetric_category` instance is in `algebra.category.Module.monoidal.symmetric`
+to reduce imports.
 
 Note the universe level of the modules must be at least the universe level of the ring,
 so that we have a monoidal unit.
 For now, we simplify by insisting both universe levels are the same.
 
-We then construct the monoidal closed structure on `Module R`.
+We construct the monoidal closed structure on `Module R` in
+`algebra.category.Module.monoidal.closed`.
 
 If you're happy using the bundled `Module R`, it may be possible to mostly
 use this as an interface and not need to interact much with the implementation details.
@@ -215,57 +216,6 @@ lemma associator_inv_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
 
 end monoidal_category
 
-/-- (implementation) the braiding for R-modules -/
-def braiding (M N : Module R) : tensor_obj M N ≅ tensor_obj N M :=
-linear_equiv.to_Module_iso (tensor_product.comm R M N)
-
-@[simp] lemma braiding_naturality {X₁ X₂ Y₁ Y₂ : Module.{u} R} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :
-  (f ⊗ g) ≫ (Y₁.braiding Y₂).hom =
-    (X₁.braiding X₂).hom ≫ (g ⊗ f) :=
-begin
-  apply tensor_product.ext',
-  intros x y,
-  refl
-end
-
-@[simp] lemma hexagon_forward (X Y Z : Module.{u} R) :
-  (α_ X Y Z).hom ≫ (braiding X _).hom ≫ (α_ Y Z X).hom =
-  ((braiding X Y).hom ⊗ 𝟙 Z) ≫ (α_ Y X Z).hom ≫ (𝟙 Y ⊗ (braiding X Z).hom) :=
-begin
-  apply tensor_product.ext_threefold,
-  intros x y z,
-  refl,
-end
-
-@[simp] lemma hexagon_reverse (X Y Z : Module.{u} R) :
-  (α_ X Y Z).inv ≫ (braiding _ Z).hom ≫ (α_ Z X Y).inv =
-  (𝟙 X ⊗ (Y.braiding Z).hom) ≫ (α_ X Z Y).inv ≫ ((X.braiding Z).hom ⊗ 𝟙 Y) :=
-begin
-  apply (cancel_epi (α_ X Y Z).hom).1,
-  apply tensor_product.ext_threefold,
-  intros x y z,
-  refl,
-end
-
-local attribute [ext] tensor_product.ext
-
-/-- The symmetric monoidal structure on `Module R`. -/
-instance symmetric_category : symmetric_category (Module.{u} R) :=
-{ braiding := braiding,
-  braiding_naturality' := λ X₁ X₂ Y₁ Y₂ f g, braiding_naturality f g,
-  hexagon_forward' := hexagon_forward,
-  hexagon_reverse' := hexagon_reverse, }
-
-namespace monoidal_category
-
-@[simp] lemma braiding_hom_apply {M N : Module.{u} R} (m : M) (n : N) :
-  ((β_ M N).hom : M ⊗ N ⟶ N ⊗ M) (m ⊗ₜ n) = n ⊗ₜ m := rfl
-
-@[simp] lemma braiding_inv_apply {M N : Module.{u} R} (m : M) (n : N) :
-  ((β_ M N).inv : N ⊗ M ⟶ M ⊗ N) (n ⊗ₜ m) = m ⊗ₜ n := rfl
-
-end monoidal_category
-
 open opposite
 
 instance : monoidal_preadditive (Module.{u} R) :=
@@ -280,68 +230,5 @@ by refine ⟨_, _⟩; dsimp only [auto_param]; intros;
   refine tensor_product.ext (linear_map.ext $ λ x, linear_map.ext $ λ y, _);
   simp only [linear_map.compr₂_apply, tensor_product.mk_apply, monoidal_category.hom_apply,
     linear_map.smul_apply, tensor_product.tmul_smul, tensor_product.smul_tmul]
-
-/--
-Auxiliary definition for the `monoidal_closed` instance on `Module R`.
-(This is only a separate definition in order to speed up typechecking. )
--/
-@[simps]
-def monoidal_closed_hom_equiv (M N P : Module.{u} R) :
-  ((monoidal_category.tensor_left M).obj N ⟶ P) ≃
-    (N ⟶ ((linear_coyoneda R (Module R)).obj (op M)).obj P) :=
-{ to_fun := λ f, linear_map.compr₂ (tensor_product.mk R N M) ((β_ N M).hom ≫ f),
-  inv_fun := λ f, (β_ M N).hom ≫ tensor_product.lift f,
-  left_inv := λ f, begin ext m n,
-    simp only [tensor_product.mk_apply, tensor_product.lift.tmul, linear_map.compr₂_apply,
-      function.comp_app, coe_comp, monoidal_category.braiding_hom_apply],
-  end,
-  right_inv := λ f, begin ext m n,
-    simp only [tensor_product.mk_apply, tensor_product.lift.tmul, linear_map.compr₂_apply,
-      symmetric_category.symmetry_assoc],
-  end, }
-
-instance : monoidal_closed (Module.{u} R) :=
-{ closed' := λ M,
-  { is_adj :=
-    { right := (linear_coyoneda R (Module.{u} R)).obj (op M),
-      adj := adjunction.mk_of_hom_equiv
-      { hom_equiv := λ N P, monoidal_closed_hom_equiv M N P, } } } }
-
-lemma ihom_map_apply {M N P : Module.{u} R} (f : N ⟶ P) (g : Module.of R (M ⟶ N)) :
-  (ihom M).map f g = g ≫ f := rfl
-
--- I can't seem to express the function coercion here without writing `@coe_fn`.
-@[simp]
-lemma monoidal_closed_curry {M N P : Module.{u} R} (f : M ⊗ N ⟶ P) (x : M) (y : N) :
-  @coe_fn _ _ linear_map.has_coe_to_fun ((monoidal_closed.curry f : N →ₗ[R] (M →ₗ[R] P)) y) x =
-    f (x ⊗ₜ[R] y) :=
-rfl
-
-@[simp]
-lemma monoidal_closed_uncurry {M N P : Module.{u} R}
-  (f : N ⟶ (M ⟶[Module.{u} R] P)) (x : M) (y : N) :
-  monoidal_closed.uncurry f (x ⊗ₜ[R] y) = (@coe_fn _ _ linear_map.has_coe_to_fun (f y)) x :=
-rfl
-
-/-- Describes the counit of the adjunction `M ⊗ - ⊣ Hom(M, -)`. Given an `R`-module `N` this
-should give a map `M ⊗ Hom(M, N) ⟶ N`, so we flip the order of the arguments in the identity map
-`Hom(M, N) ⟶ (M ⟶ N)` and uncurry the resulting map `M ⟶ Hom(M, N) ⟶ N.` -/
-lemma ihom_ev_app (M N : Module.{u} R) :
-  (ihom.ev M).app N = tensor_product.uncurry _ _ _ _ linear_map.id.flip :=
-begin
-  ext,
-  exact Module.monoidal_closed_uncurry _ _ _,
-end
-
-/-- Describes the unit of the adjunction `M ⊗ - ⊣ Hom(M, -)`. Given an `R`-module `N` this should
-define a map `N ⟶ Hom(M, M ⊗ N)`, which is given by flipping the arguments in the natural
-`R`-bilinear map `M ⟶ N ⟶ M ⊗ N`. -/
-lemma ihom_coev_app (M N : Module.{u} R) :
-  (ihom.coev M).app N = (tensor_product.mk _ _ _).flip :=
-rfl
-
-lemma monoidal_closed_pre_app {M N : Module.{u} R} (P : Module.{u} R) (f : N ⟶ M) :
-  (monoidal_closed.pre f).app P = linear_map.lcomp R _ f :=
-rfl
 
 end Module

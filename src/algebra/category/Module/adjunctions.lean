@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
-import algebra.category.Module.monoidal
+import algebra.category.Module.monoidal.basic
 import category_theory.monoidal.functorial
 import category_theory.monoidal.types
 import linear_algebra.direct_sum.finsupp

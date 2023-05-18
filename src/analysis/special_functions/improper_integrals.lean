@@ -7,7 +7,7 @@ import analysis.special_functions.integrals
 import measure_theory.group.integration
 import measure_theory.integral.exp_decay
 import measure_theory.integral.integral_eq_improper
-import measure_theory.measure.lebesgue.bochner
+import measure_theory.measure.lebesgue.integral
 
 /-!
 # Evaluation of specific improper integrals

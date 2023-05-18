@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.inverse
 import measure_theory.constructions.borel_space.continuous_linear_map
 import measure_theory.covering.besicovitch_vector_space
-import measure_theory.measure.haar_lebesgue.basic
+import measure_theory.measure.lebesgue.eq_haar
 import analysis.normed_space.pointwise
 import measure_theory.constructions.polish
 

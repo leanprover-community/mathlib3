@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.convex.topology
 import analysis.normed_space.add_torsor_bases
-import measure_theory.measure.haar_lebesgue.basic
+import measure_theory.measure.lebesgue.eq_haar
 
 /-!
 # Convex sets are null-measurable

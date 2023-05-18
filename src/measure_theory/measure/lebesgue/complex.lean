@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import measure_theory.constructions.borel_space.complex
 import measure_theory.measure.lebesgue.basic
-import measure_theory.measure.haar_of_basis
+import measure_theory.measure.haar.of_basis
 
 /-!
 # Lebesgue measure on `ℂ`

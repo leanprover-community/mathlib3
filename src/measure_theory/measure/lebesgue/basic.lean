@@ -9,7 +9,7 @@ import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.transvection
 import measure_theory.constructions.pi
 import measure_theory.measure.stieltjes
-import measure_theory.measure.haar_of_basis
+import measure_theory.measure.haar.of_basis
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
@@ -22,7 +22,7 @@ Lebesgue measure on `ℝⁿ`. In particular, we prove that they are translation 
 We show that, on `ℝⁿ`, a linear map acts on Lebesgue measure by rescaling it through the absolute
 value of its determinant, in `real.map_linear_map_volume_pi_eq_smul_volume_pi`.
 
-More properties of the Lebesgue measure are deduced from this in `haar_lebesgue.basic.lean`, where they
+More properties of the Lebesgue measure are deduced from this in `lebesgue.eq_haar.lean`, where they
 are proved more generally for any additive Haar measure on a finite-dimensional real vector space.
 -/
 

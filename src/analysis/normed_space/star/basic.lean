@@ -10,6 +10,7 @@ import analysis.normed_space.linear_isometry
 import algebra.star.self_adjoint
 import algebra.star.unitary
 import topology.algebra.star_subalgebra
+import topology.algebra.module.star
 
 /-!
 # Normed star rings and algebras
@@ -256,6 +257,13 @@ variables {𝕜}
 @[simp] lemma coe_starₗᵢ : (starₗᵢ 𝕜 : E → E) = star := rfl
 
 lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
+
+@[simp] lemma starₗᵢ_to_continuous_linear_equiv :
+  (starₗᵢ 𝕜 : E ≃ₗᵢ⋆[𝕜] E).to_continuous_linear_equiv = (begin
+      have := starL 𝕜,
+
+  end) :=
+continuous_linear_equiv.ext $ λ _, rfl
 
 end starₗᵢ
 

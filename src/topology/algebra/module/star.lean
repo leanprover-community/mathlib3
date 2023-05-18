@@ -15,7 +15,7 @@ import topology.algebra.star
 then `star` is a continuous semilinear equivalence. -/
 @[simps]
 def starL (R : Type*) {A : Type*}
-  [comm_ring R] [star_ring R] [semiring A] [star_ring A] [module R A] [star_module R A]
+  [comm_semiring R] [star_ring R] [semiring A] [star_ring A] [module R A] [star_module R A]
   [topological_space A] [has_continuous_star A]:
     A ≃SL[star_ring_end R] A :=
 { to_linear_equiv := (star_linear_equiv R : A ≃ₗ⋆[R] A),
@@ -57,8 +57,8 @@ lemma continuous_decompose_prod_adjoint_symm [topological_add_group A] :
 
 /-- The decomposition of elements of a star module into their self- and skew-adjoint parts,
 as a continuous linear equivalence. -/
-def star_module.decompose_prod_adjointL[topological_add_group A] :
-    A ≃L[R] self_adjoint A × skew_adjoint A :=
+@[simps] def star_module.decompose_prod_adjointL [topological_add_group A] :
+  A ≃L[R] self_adjoint A × skew_adjoint A :=
 { to_linear_equiv := star_module.decompose_prod_adjoint R A,
   continuous_to_fun := continuous_decompose_prod_adjoint _ _,
   continuous_inv_fun := continuous_decompose_prod_adjoint_symm _ _ }

@@ -95,6 +95,7 @@ by rw [nat_degree_remove_factor, hfn, n.add_sub_cancel]
 
 /-- Auxiliary construction to a splitting field of a polynomial, which removes
 `n` (arbitrarily-chosen) factors.
+
 Uses recursion on the degree. For better definitional behaviour, structures
 including `splitting_field_aux` (such as instances) should be defined using
 this recursion in each field, rather than defining the whole tuple through

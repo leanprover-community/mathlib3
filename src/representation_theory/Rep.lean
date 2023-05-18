@@ -7,7 +7,7 @@ import representation_theory.basic
 import representation_theory.Action
 import algebra.category.Module.abelian
 import algebra.category.Module.colimits
-import algebra.category.Module.monoidal.basic
+import algebra.category.Module.monoidal.symmetric
 import algebra.category.Module.adjunctions
 import category_theory.closed.functor_category
 

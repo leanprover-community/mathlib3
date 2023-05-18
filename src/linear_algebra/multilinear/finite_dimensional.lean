@@ -8,6 +8,9 @@ import linear_algebra.free_module.finite.matrix
 
 /-! # Multilinear maps over finite dimensional spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main results are that multilinear maps over finitely-generated, free modules are
 finitely-generated and free.
 

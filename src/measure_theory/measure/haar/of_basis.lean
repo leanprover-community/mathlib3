@@ -3,7 +3,7 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import measure_theory.measure.haar
+import measure_theory.measure.haar.basic
 import analysis.inner_product_space.pi_L2
 
 /-!

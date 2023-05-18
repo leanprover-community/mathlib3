@@ -5,7 +5,7 @@ Authors: Scott Morrison, Johan Commelin
 -/
 import algebra.category.Module.monoidal
 import category_theory.monoidal.functorial
-import category_theory.monoidal.types
+import category_theory.monoidal.types.basic
 import linear_algebra.direct_sum.finsupp
 import category_theory.linear.linear_functor
 

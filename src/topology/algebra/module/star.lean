@@ -17,7 +17,7 @@ then `star` is a continuous semilinear equivalence. -/
 def starL (R : Type*) {A : Type*}
   [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A] [module R A]
   [star_module R A] [topological_space A] [has_continuous_star A] :
-    A ≃SL[star_ring_end R] A :=
+    A ≃L⋆[R] A :=
 { to_linear_equiv := star_linear_equiv R,
   continuous_to_fun := continuous_star,
   continuous_inv_fun := continuous_star }

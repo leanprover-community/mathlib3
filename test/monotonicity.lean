@@ -6,7 +6,7 @@ Authors: Simon Hudon
 import tactic.monotonicity
 import tactic.norm_num
 import algebra.order.ring.defs
-import measure_theory.measure.lebesgue
+import measure_theory.measure.lebesgue.basic
 import measure_theory.function.locally_integrable
 import data.list.defs
 

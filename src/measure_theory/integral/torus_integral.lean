@@ -3,6 +3,7 @@ Copyright (c) 2022 Cuma Kökmen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cuma Kökmen, Yury Kudryashov
 -/
+import measure_theory.constructions.prod.bochner
 import measure_theory.integral.circle_integral
 
 /-!

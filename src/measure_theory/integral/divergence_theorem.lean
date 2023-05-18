@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
 import analysis.calculus.deriv
+import measure_theory.constructions.prod.bochner
 import measure_theory.integral.interval_integral
 
 /-!

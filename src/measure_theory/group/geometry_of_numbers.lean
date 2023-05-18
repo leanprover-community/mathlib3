@@ -5,7 +5,7 @@ Authors: Alex J. Best
 -/
 import analysis.convex.measure
 import measure_theory.group.fundamental_domain
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.haar_lebesgue.basic
 
 /-!
 # Geometry of numbers

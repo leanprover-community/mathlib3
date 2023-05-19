@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
 import linear_algebra.quadratic_form.isometry
-import analysis.special_functions.pow
+import analysis.special_functions.pow.complex
 
 /-!
 # Quadratic forms over the complex numbers

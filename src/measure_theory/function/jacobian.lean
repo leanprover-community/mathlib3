@@ -3,8 +3,10 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.calculus.inverse
+import measure_theory.constructions.borel_space.continuous_linear_map
 import measure_theory.covering.besicovitch_vector_space
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.lebesgue.eq_haar
 import analysis.normed_space.pointwise
 import measure_theory.constructions.polish
 
@@ -340,7 +342,7 @@ begin
       by simp only [abs_of_nonneg r0, add_haar_smul, image_add_left, abs_pow, singleton_add,
                     measure_preimage_add]
     ... ≤ ennreal.of_real (r ^ finrank ℝ E) * (m * μ (closed_ball 0 1)) :
-      by { rw add_comm, exact ennreal.mul_le_mul le_rfl hε.le }
+      by { rw add_comm, exact mul_le_mul_left' hε.le _ }
     ... = m * μ (closed_ball x r) :
       by { simp only [add_haar_closed_ball' _ _ r0], ring } },
   -- covering `s` by closed balls with total measure very close to `μ s`, one deduces that the
@@ -366,7 +368,7 @@ begin
     ... ≤ ∑' (x : t), m * μ (closed_ball x (r x)) :
       ennreal.tsum_le_tsum (λ x, I x (r x) (ts x.2) (rpos x x.2).le)
     ... ≤ m * (μ s + a) :
-      by { rw ennreal.tsum_mul_left, exact ennreal.mul_le_mul le_rfl μt } },
+      by { rw ennreal.tsum_mul_left, exact mul_le_mul_left' μt _ } },
   -- taking the limit in `a`, one obtains the conclusion
   have L : tendsto (λ a, (m : ℝ≥0∞) * (μ s + a)) (𝓝[>] 0) (𝓝 (m * (μ s + 0))),
   { apply tendsto.mono_left _ nhds_within_le_nhds,
@@ -415,7 +417,7 @@ begin
     { simp only [h, true_or, eventually_const] },
     simp only [h, false_or],
     apply Iio_mem_nhds,
-    simpa only [h, false_or, nnreal.inv_pos] using B.subsingleton_or_nnnorm_symm_pos },
+    simpa only [h, false_or, inv_pos] using B.subsingleton_or_nnnorm_symm_pos },
   have L2 : ∀ᶠ δ in 𝓝 (0 : ℝ≥0),
     ‖(B.symm : E →L[ℝ] E)‖₊ * (‖(B.symm : E →L[ℝ] E)‖₊⁻¹ - δ)⁻¹ * δ < δ₀,
   { have : tendsto (λ δ, ‖(B.symm : E →L[ℝ] E)‖₊ * (‖(B.symm : E →L[ℝ] E)‖₊⁻¹ - δ)⁻¹ * δ)
@@ -587,7 +589,7 @@ begin
     end
   ... ≤ ∑' n, (real.to_nnreal (|(A n).det|) + 1 : ℝ≥0) * 0 :
     begin
-      refine ennreal.tsum_le_tsum (λ n, ennreal.mul_le_mul le_rfl _),
+      refine ennreal.tsum_le_tsum (λ n, mul_le_mul_left' _ _),
       exact le_trans (measure_mono (inter_subset_left _ _)) (le_of_eq hs),
     end
   ... = 0 : by simp only [tsum_zero, mul_zero]
@@ -642,7 +644,7 @@ begin
   ... ≤ ε * ∑' n, μ (closed_ball 0 R ∩ t n) :
     begin
       rw ennreal.tsum_mul_left,
-      refine ennreal.mul_le_mul le_rfl (ennreal.tsum_le_tsum (λ n, measure_mono _)),
+      refine mul_le_mul_left' (ennreal.tsum_le_tsum (λ n, measure_mono _)) _,
       exact inter_subset_inter_left _ hs,
     end
   ... = ε * μ (⋃ n, closed_ball 0 R ∩ t n) :
@@ -655,7 +657,7 @@ begin
   ... ≤ ε * μ (closed_ball 0 R) :
     begin
       rw ← inter_Union,
-      exact ennreal.mul_le_mul le_rfl (measure_mono (inter_subset_left _ _)),
+      exact mul_le_mul_left' (measure_mono (inter_subset_left _ _)) _,
     end
 end
 
@@ -990,7 +992,7 @@ begin
     { assume t g htg,
       rcases eq_or_ne (μ t) ∞ with ht|ht,
       { simp only [ht, εpos.ne', with_top.mul_top, ennreal.coe_eq_zero, le_top, ne.def,
-                   not_false_iff, ennreal.add_top] },
+                   not_false_iff, _root_.add_top] },
       have := h t g (htg.mono_num (min_le_left _ _)),
       rwa [with_top.coe_sub, ennreal.sub_mul, tsub_le_iff_right] at this,
       simp only [ht, implies_true_iff, ne.def, not_false_iff] } },

@@ -7,9 +7,13 @@ import category_theory.abelian.subobject
 import category_theory.limits.essentially_small
 import category_theory.preadditive.injective
 import category_theory.preadditive.generator
+import category_theory.abelian.opposite
 
 /-!
 # A complete abelian category with enough injectives and a separator has an injective coseparator
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Future work
 * Once we know that Grothendieck categories have enough injectives, we can use this to conclude

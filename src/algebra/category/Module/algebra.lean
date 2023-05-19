@@ -25,7 +25,7 @@ these instances will not necessarily agree with the original ones.
 
 It seems without making a parallel version `Module' k A`, for modules over a `k`-algebra `A`,
 that carries these typeclasses, this seems hard to achieve.
-(An alternative would be to always require these typeclasses,
+(An alternative would be to always require these typeclasses, and remove the original `Module`,
 requiring users to write `Module' ℤ A` when `A` is merely a ring.)
 -/
 

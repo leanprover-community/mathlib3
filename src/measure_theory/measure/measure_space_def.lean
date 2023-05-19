@@ -9,6 +9,9 @@ import order.filter.countable_Inter
 /-!
 # Measure spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines measure spaces, the almost-everywhere filter and ae_measurable functions.
 See `measure_theory.measure_space` for their properties and for extended documentation.
 
@@ -16,10 +19,10 @@ Given a measurable space `α`, a measure on `α` is a function that sends measur
 extended nonnegative reals that satisfies the following conditions:
 1. `μ ∅ = 0`;
 2. `μ` is countably additive. This means that the measure of a countable union of pairwise disjoint
-   sets is equal to the measure of the individual sets.
+   sets is equal to the sum of the measures of the individual sets.
 
 Every measure can be canonically extended to an outer measure, so that it assigns values to
-all subsets, not just the measurable subsets. On the other hand, a measure that is countably
+all subsets, not just the measurable subsets. On the other hand, an outer measure that is countably
 additive on measurable sets can be restricted to measurable sets to obtain a measure.
 In this file a measure is defined to be an outer measure that is countably additive on
 measurable sets, with the additional assumption that the outer measure is the canonical

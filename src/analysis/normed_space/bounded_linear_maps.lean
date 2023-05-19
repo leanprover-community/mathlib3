@@ -49,7 +49,7 @@ artifact, really.
 -/
 
 noncomputable theory
-open_locale classical big_operators topology
+open_locale big_operators topology
 
 open filter (tendsto) metric continuous_linear_map
 
@@ -183,7 +183,7 @@ end
 end is_bounded_linear_map
 
 section
-variables {ι : Type*} [decidable_eq ι] [fintype ι]
+variables {ι : Type*} [fintype ι]
 
 /-- Taking the cartesian product of two continuous multilinear maps
 is a bounded linear operation. -/
@@ -441,7 +441,7 @@ lemma is_bounded_bilinear_map_smul_right :
 /-- The composition of a continuous linear map with a continuous multilinear map is a bounded
 bilinear operation. -/
 lemma is_bounded_bilinear_map_comp_multilinear {ι : Type*} {E : ι → Type*}
-[decidable_eq ι] [fintype ι] [∀ i, normed_add_comm_group (E i)] [∀ i, normed_space 𝕜 (E i)] :
+  [fintype ι] [∀ i, normed_add_comm_group (E i)] [∀ i, normed_space 𝕜 (E i)] :
   is_bounded_bilinear_map 𝕜 (λ p : (F →L[𝕜] G) × (continuous_multilinear_map 𝕜 E F),
     p.1.comp_continuous_multilinear_map p.2) :=
 (comp_continuous_multilinear_mapL 𝕜 E F G).is_bounded_bilinear_map

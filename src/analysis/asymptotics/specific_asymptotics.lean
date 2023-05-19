@@ -9,6 +9,9 @@ import analysis.asymptotics.asymptotics
 /-!
 # A collection of specific asymptotic results
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains specific lemmas about asymptotics which don't have their place in the general
 theory developped in `analysis.asymptotics.asymptotics`.
 -/

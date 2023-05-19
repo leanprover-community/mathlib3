@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.category.BoundedDistribLattice
+import order.category.BddDistLat
 import order.heyting.hom
 
 /-!
@@ -41,8 +41,8 @@ instance bundled_hom : bundled_hom heyting_hom :=
 attribute [derive [large_category, concrete_category]] HeytAlg
 
 @[simps]
-instance has_forget_to_Lattice : has_forget₂ HeytAlg BoundedDistribLattice :=
-{ forget₂ := { obj := λ X, BoundedDistribLattice.of X,
+instance has_forget_to_Lat : has_forget₂ HeytAlg BddDistLat :=
+{ forget₂ := { obj := λ X, BddDistLat.of X,
                map := λ X Y f, (f : bounded_lattice_hom X Y) } }
 
 /-- Constructs an isomorphism of Heyting algebras from an order isomorphism between them. -/

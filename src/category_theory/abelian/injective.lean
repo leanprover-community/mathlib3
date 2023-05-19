@@ -6,7 +6,8 @@ Authors: Jakob von Raumer
 
 import category_theory.abelian.exact
 import category_theory.preadditive.injective
-import category_theory.preadditive.yoneda
+import category_theory.preadditive.yoneda.limits
+import category_theory.preadditive.yoneda.injective
 
 /-!
 # Injective objects in abelian categories

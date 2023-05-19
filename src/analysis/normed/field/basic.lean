@@ -10,6 +10,9 @@ import topology.instances.ennreal
 /-!
 # Normed fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define (semi)normed rings and fields. We also prove some theorems about these
 definitions.
 -/
@@ -140,6 +143,10 @@ instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [finty
   norm_one_class (Π i, α i) :=
 ⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
 
+instance mul_opposite.norm_one_class [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
+  norm_one_class αᵐᵒᵖ :=
+⟨@norm_one α _ _ _⟩
+
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
 
@@ -210,6 +217,11 @@ instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
     ... ≤ finset.univ.sup (λ i, ‖x i‖₊) * finset.univ.sup (λ i, ‖y i‖₊) :
             finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
   ..pi.seminormed_add_comm_group }
+
+instance mul_opposite.non_unital_semi_normed_ring : non_unital_semi_normed_ring αᵐᵒᵖ :=
+{ norm_mul := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y,
+    (norm_mul_le y x).trans_eq (mul_comm _ _),
+  ..mul_opposite.seminormed_add_comm_group }
 
 end non_unital_semi_normed_ring
 
@@ -326,6 +338,10 @@ instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
 { ..pi.non_unital_semi_normed_ring,
   ..pi.seminormed_add_comm_group, }
 
+instance mul_opposite.semi_normed_ring : semi_normed_ring αᵐᵒᵖ :=
+{ ..mul_opposite.non_unital_semi_normed_ring,
+  ..mul_opposite.seminormed_add_comm_group }
+
 end semi_normed_ring
 
 section non_unital_normed_ring
@@ -348,6 +364,10 @@ instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_u
   non_unital_normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
+
+instance mul_opposite.non_unital_normed_ring : non_unital_normed_ring αᵐᵒᵖ :=
+{ norm_mul := norm_mul_le,
+  ..mul_opposite.normed_add_comm_group }
 
 end non_unital_normed_ring
 
@@ -375,6 +395,10 @@ instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π 
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
+
+instance mul_opposite.normed_ring : normed_ring αᵐᵒᵖ :=
+{ norm_mul := norm_mul_le,
+  ..mul_opposite.normed_add_comm_group }
 
 end normed_ring
 
@@ -453,6 +477,15 @@ nnreal.eq $ by simp
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ‖a ^ n‖₊ = ‖a‖₊ ^ n :=
 map_zpow₀ (nnnorm_hom : α →*₀ ℝ≥0)
 
+lemma dist_inv_inv₀ {z w : α} (hz : z ≠ 0) (hw : w ≠ 0) :
+  dist z⁻¹ w⁻¹ = (dist z w) / (‖z‖ * ‖w‖) :=
+by rw [dist_eq_norm, inv_sub_inv' hz hw, norm_mul, norm_mul, norm_inv, norm_inv, mul_comm ‖z‖⁻¹,
+  mul_assoc, dist_eq_norm', div_eq_mul_inv, mul_inv]
+
+lemma nndist_inv_inv₀ {z w : α} (hz : z ≠ 0) (hw : w ≠ 0) :
+  nndist z⁻¹ w⁻¹ = (nndist z w) / (‖z‖₊ * ‖w‖₊) :=
+by { rw ← nnreal.coe_eq, simp [-nnreal.coe_eq, dist_inv_inv₀ hz hw], }
+
 /-- Multiplication on the left by a nonzero element of a normed division ring tends to infinity at
 infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
 lemma filter.tendsto_mul_left_cobounded {a : α} (ha : a ≠ 0) :
@@ -486,6 +519,11 @@ begin
   refine (((continuous_const.sub continuous_id).norm.div_const _).div_const _).tendsto' _ _ _,
   simp,
 end
+
+/-- A normed division ring is a topological division ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_ring.to_topological_division_ring : topological_division_ring α :=
+{ }
 
 lemma norm_map_one_of_pow_eq_one [monoid β] (φ : β →* α) {x : β} {k : ℕ+}
   (h : x ^ (k : ℕ) = 1) :

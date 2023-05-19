@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.triv_sq_zero_ext
-import topology.algebra.infinite_sum
+import topology.algebra.infinite_sum.basic
 import topology.algebra.module.basic
 
 /-!
 # Topology on `triv_sq_zero_ext R M`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The type `triv_sq_zero_ext R M` inherits the topology from `R × M`.
 

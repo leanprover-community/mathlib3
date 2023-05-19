@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Mon.basic
 import category_theory.monoidal.CommMon_
-import category_theory.monoidal.types
+import category_theory.monoidal.types.symmetric
 
 /-!
 # `Mon_ (Type u) ≌ Mon.{u}`

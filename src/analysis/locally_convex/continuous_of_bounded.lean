@@ -9,6 +9,9 @@ import data.is_R_or_C.basic
 /-!
 # Continuity and Von Neumann boundedness
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files proves that for `E` and `F` two topological vector spaces over `ℝ` or `ℂ`,
 if `E` is first countable, then every locally bounded linear map `E →ₛₗ[σ] F` is continuous
 (this is `linear_map.continuous_of_locally_bounded`).
@@ -108,10 +111,9 @@ begin
       rw ←hy,
       refine (bE1 (n+1)).2.smul_mem  _ hx,
       have h' : 0 < (n : ℝ) + 1 := n.cast_add_one_pos,
-      rw [norm_inv, ←nat.cast_one, ←nat.cast_add, is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat,
-        nat.cast_add, nat.cast_one, inv_le h' zero_lt_one],
-      norm_cast,
-      simp, },
+      rw [norm_inv, ←nat.cast_one, ←nat.cast_add, is_R_or_C.norm_nat_cast, nat.cast_add,
+        nat.cast_one, inv_le h' zero_lt_one],
+      simp },
     intros n hn,
     -- The converse direction follows from continuity of the scalar multiplication
     have hcont : continuous_at (λ (x : E), (n : 𝕜) • x) 0 :=
@@ -149,7 +151,7 @@ begin
   cases exists_nat_gt r with n hn,
   -- We now find a contradiction between `f (u n) ∉ V` and the absorbing property
   have h1 : r ≤ ‖(n : 𝕜')‖ :=
-  by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat], exact hn.le },
+  by { rw [is_R_or_C.norm_nat_cast], exact hn.le },
   have hn' : 0 < ‖(n : 𝕜')‖ := lt_of_lt_of_le hr h1,
   rw [norm_pos_iff, ne.def, nat.cast_eq_zero] at hn',
   have h'' : f (u n) ∈ V :=

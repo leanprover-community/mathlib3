@@ -12,6 +12,9 @@ import category_theory.limits.types
 /-!
 # Final and initial functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A functor `F : C ⥤ D` is final if for every `d : D`,
 the comma category of morphisms `d ⟶ F.obj c` is connected.
 
@@ -173,7 +176,7 @@ def induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Sort*)
 begin
   apply nonempty.some,
   apply @is_preconnected_induction _ _ _
-    (λ (Y : structured_arrow d F), Z Y.right Y.hom) _ _ { right := X₀, hom := k₀, } z,
+    (λ (Y : structured_arrow d F), Z Y.right Y.hom) _ _ (structured_arrow.mk k₀) z,
   { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
   { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
 end
@@ -351,7 +354,7 @@ begin
     fconstructor,
     swap 2, fconstructor,
     left, fsplit,
-    exact { right := f, } },
+    exact structured_arrow.hom_mk f (by tidy), },
   case eqv_gen.refl
   { fconstructor, },
   case eqv_gen.symm : x y h ih
@@ -426,7 +429,7 @@ def induction {d : D} (Z : Π (X : C) (k : F.obj X ⟶ d), Sort*)
 begin
   apply nonempty.some,
   apply @is_preconnected_induction _ _ _
-    (λ Y : costructured_arrow F d, Z Y.left Y.hom) _ _ { left := X₀, hom := k₀ } z,
+    (λ Y : costructured_arrow F d, Z Y.left Y.hom) _ _ (costructured_arrow.mk k₀) z,
   { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
   { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
 end

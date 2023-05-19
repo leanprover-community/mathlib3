@@ -3,11 +3,15 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.algebra.infinite_sum
-import topology.algebra.group_with_zero
+import topology.algebra.infinite_sum.order
+import topology.algebra.infinite_sum.ring
+import topology.instances.real
 
 /-!
 # Topology on `ℝ≥0`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 

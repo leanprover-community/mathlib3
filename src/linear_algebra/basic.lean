@@ -14,6 +14,9 @@ import data.finsupp.basic
 /-!
 # Linear algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the basics of linear algebra. It sets up the "categorical/lattice structure" of
 modules over a ring, submodules, and linear maps.
 
@@ -1130,7 +1133,7 @@ omit sc
 
 lemma ker_cod_restrict {τ₂₁ : R₂ →+* R} (p : submodule R M) (f : M₂ →ₛₗ[τ₂₁] M) (hf) :
   ker (cod_restrict p f hf) = ker f :=
-by rw [ker, comap_cod_restrict, map_bot]; refl
+by rw [ker, comap_cod_restrict, submodule.map_bot]; refl
 
 lemma range_cod_restrict {τ₂₁ : R₂ →+* R} [ring_hom_surjective τ₂₁] (p : submodule R M)
   (f : M₂ →ₛₗ[τ₂₁] M) (hf) :

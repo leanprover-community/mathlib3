@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.maps
-import topology.locally_finite
 import order.filter.pi
 
 /-!
@@ -757,9 +756,13 @@ lemma nhds_inl (x : α) : 𝓝 (inl x : α ⊕ β) = map inl (𝓝 x) :=
 lemma nhds_inr (x : β) : 𝓝 (inr x : α ⊕ β) = map inr (𝓝 x) :=
 (open_embedding_inr.map_nhds_eq _).symm
 
+theorem continuous_sum_dom {f : α ⊕ β → γ} :
+    continuous f ↔ continuous (f ∘ sum.inl) ∧ continuous (f ∘ sum.inr) :=
+by simp only [continuous_sup_dom, continuous_coinduced_dom]
+
 lemma continuous_sum_elim {f : α → γ} {g : β → γ} :
   continuous (sum.elim f g) ↔ continuous f ∧ continuous g :=
-by simp only [continuous_sup_dom, continuous_coinduced_dom, sum.elim_comp_inl, sum.elim_comp_inr]
+continuous_sum_dom
 
 @[continuity] lemma continuous.sum_elim {f : α → γ} {g : β → γ}
   (hf : continuous f) (hg : continuous g) : continuous (sum.elim f g) :=
@@ -861,43 +864,6 @@ nhds_induced _ _
 lemma tendsto_subtype_rng {β : Type*} {p : α → Prop} {b : filter β} {f : β → subtype p} :
   ∀{a:subtype p}, tendsto f b (𝓝 a) ↔ tendsto (λx, (f x : α)) b (𝓝 (a : α))
 | ⟨a, ha⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff, subtype.coe_mk]
-
-lemma continuous_subtype_nhds_cover {ι : Sort*} {f : α → β} {c : ι → α → Prop}
-  (c_cover : ∀x:α, ∃i, {x | c i x} ∈ 𝓝 x)
-  (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x)) :
-  continuous f :=
-continuous_iff_continuous_at.mpr $ assume x,
-  let ⟨i, (c_sets : {x | c i x} ∈ 𝓝 x)⟩ := c_cover x in
-  let x' : subtype (c i) := ⟨x, mem_of_mem_nhds c_sets⟩ in
-  calc map f (𝓝 x) = map f (map coe (𝓝 x')) :
-      congr_arg (map f) (map_nhds_subtype_coe_eq _ $ c_sets).symm
-    ... = map (λx:subtype (c i), f x) (𝓝 x') : rfl
-    ... ≤ 𝓝 (f x) : continuous_iff_continuous_at.mp (f_cont i) x'
-
-lemma continuous_subtype_is_closed_cover {ι : Sort*} {f : α → β} (c : ι → α → Prop)
-  (h_lf : locally_finite (λi, {x | c i x}))
-  (h_is_closed : ∀i, is_closed {x | c i x})
-  (h_cover : ∀x, ∃i, c i x)
-  (f_cont  : ∀i, continuous (λ(x : subtype (c i)), f x)) :
-  continuous f :=
-continuous_iff_is_closed.mpr $
-  assume s hs,
-  have ∀i, is_closed ((coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
-    from assume i,
-    (closed_embedding_subtype_coe (h_is_closed _)).is_closed_map _ (hs.preimage (f_cont i)),
-  have is_closed (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
-    from locally_finite.is_closed_Union
-      (h_lf.subset $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
-      this,
-  have f ⁻¹' s = (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
-  begin
-    apply set.ext,
-    have : ∀ (x : α), f x ∈ s ↔ ∃ (i : ι), c i x ∧ f x ∈ s :=
-      λ x, ⟨λ hx, let ⟨i, hi⟩ := h_cover x in ⟨i, hi, hx⟩,
-            λ ⟨i, hi, hx⟩, hx⟩,
-    simpa [and.comm, @and.left_comm (c _ _), ← exists_and_distrib_right],
-  end,
-  by rwa [this]
 
 lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=

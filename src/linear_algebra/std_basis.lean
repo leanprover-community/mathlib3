@@ -10,8 +10,11 @@ import linear_algebra.pi
 /-!
 # The standard basis
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the standard basis `pi.basis (s : ∀ j, basis (ι j) R (M j))`,
-which is the `Σ j, ι j`-indexed basis of Π j, M j`. The basis vectors are given by
+which is the `Σ j, ι j`-indexed basis of `Π j, M j`. The basis vectors are given by
 `pi.basis s ⟨j, i⟩ j' = linear_map.std_basis R M j' (s j) i = if j = j' then s i else 0`.
 
 The standard basis on `R^η`, i.e. `η → R` is called `pi.basis_fun`.

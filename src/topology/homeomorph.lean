@@ -76,6 +76,8 @@ lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α �
 @[ext] lemma ext {h h' : α ≃ₜ β} (H : ∀ x, h x = h' x) : h = h' :=
 to_equiv_injective $ equiv.ext H
 
+@[simp] lemma symm_symm (h : α ≃ₜ β) : h.symm.symm = h := ext $ λ _, rfl
+
 /-- Identity map as a homeomorphism. -/
 @[simps apply {fully_applied := ff}]
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=

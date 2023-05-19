@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import geometry.euclidean.angle.sphere
+import geometry.euclidean.sphere.second_inter
 
 /-!
 # IMO 2019 Q2
@@ -62,7 +63,8 @@ open_locale affine euclidean_geometry real
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
-variables (V : Type*) (Pt : Type*) [inner_product_space ℝ V] [metric_space Pt]
+variables (V : Type*) (Pt : Type*)
+variables [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space Pt]
 variables [normed_add_torsor V Pt] [hd2 : fact (finrank ℝ V = 2)]
 include hd2
 

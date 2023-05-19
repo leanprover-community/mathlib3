@@ -8,6 +8,9 @@ import group_theory.quotient_group
 
 /-!
 # Monomorphisms and epimorphisms in `Group`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file, we prove monomorphisms in category of group are injective homomorphisms and
 epimorphisms are surjective homomorphisms.
 -/

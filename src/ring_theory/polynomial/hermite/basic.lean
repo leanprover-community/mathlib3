@@ -23,6 +23,8 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
 * `polynomial.coeff_hermite_of_odd_add`: for `n`,`k` where `n+k` is odd, `(hermite n).coeff k` is
   zero.
 * `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
+* `polynomial.coeff_hermite_explicit`: a closed formula for (nonvanishing) coefficients in terms
+  of binomial coefficients and double factorials.
 
 ## References
 
@@ -131,12 +133,13 @@ section coeff_explicit
 
 open_locale nat
 
-lemma hermite_coeff_explicit : ∀ (n k : ℕ),
+/- Because of `coeff_hermite_of_odd_add`, every nonzero coefficient is described as follows.  -/
+lemma coeff_hermite_explicit : ∀ (n k : ℕ),
 coeff (hermite (2 * n + k)) k = (-1)^n * (2 * n - 1)‼ * nat.choose (2 * n + k) k
 | 0 _ := by simp
 | (n + 1) 0 := begin
   convert coeff_hermite_succ_zero (2 * n + 1) using 1,
-  rw [hermite_coeff_explicit n 1,
+  rw [coeff_hermite_explicit n 1,
       (by ring_nf : 2 * (n + 1) - 1 = 2 * n + 1), nat.double_factorial_add_one,
       nat.choose_zero_right, nat.choose_one_right, pow_succ],
   push_cast,
@@ -175,8 +178,8 @@ begin
   change _ = hermite_explicit _ _,
   rw [← add_assoc, coeff_hermite_succ_succ, hermite_explicit_recur],
   congr,
-  { rw hermite_coeff_explicit (n + 1) k },
-  { rw [(by ring : 2 * (n + 1) + k = 2 * n + (k + 2)), hermite_coeff_explicit n (k + 2)] },
+  { rw coeff_hermite_explicit (n + 1) k },
+  { rw [(by ring : 2 * (n + 1) + k = 2 * n + (k + 2)), coeff_hermite_explicit n (k + 2)] },
 end
 
 end coeff_explicit

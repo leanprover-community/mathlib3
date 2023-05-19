@@ -50,9 +50,9 @@ contained in the corresponding witness of non-uniformity.
 
 /-- The portion of `szemeredi_regularity.increment` which partitions `U`. -/
 noncomputable def chunk : finpartition U :=
-dite (U.card = m * 4 ^ P.parts.card + (card α/P.parts.card - m * 4 ^ P.parts.card))
-  (λ hUcard, (atomise U $ P.nonuniform_witnesses G ε U).equitabilise $ card_aux₁ hUcard)
-  (λ hUcard, (atomise U $ P.nonuniform_witnesses G ε U).equitabilise $ card_aux₂ hP hU hUcard)
+if hUcard : U.card = m * 4 ^ P.parts.card + (card α/P.parts.card - m * 4 ^ P.parts.card
+  then (atomise U $ P.nonuniform_witnesses G ε U).equitabilise $ card_aux₁ hUcard)
+  else (atomise U $ P.nonuniform_witnesses G ε U).equitabilise $ card_aux₂ hP hU hUcard)
 -- `hP` and `hU` are used to get that `U` has size
 -- `m * 4 ^ P.parts.card + a or m * 4 ^ P.parts.card + a + 1`
 

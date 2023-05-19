@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import algebra.big_operators.order
 import algebra.module.basic
 import combinatorics.simple_graph.density
+import data.rat.big_operators
 
 /-!
 # Energy of a partition
@@ -43,5 +44,9 @@ div_le_of_nonneg_of_le_mul (sq_nonneg _) zero_le_one $
             G.edge_density_le_one _ _
     ... = P.parts.off_diag.card : nat.smul_one_eq_coe _
     ... ≤ _ : by { rw [off_diag_card, one_mul, ←nat.cast_pow, nat.cast_le, sq], exact tsub_le_self }
+
+@[simp, norm_cast] lemma coe_energy {𝕜 : Type*} [linear_ordered_field 𝕜] :
+  (P.energy G : 𝕜) = (∑ uv in P.parts.off_diag, G.edge_density uv.1 uv.2 ^ 2) / P.parts.card ^ 2 :=
+by { rw energy, norm_cast }
 
 end finpartition

@@ -6,7 +6,7 @@ Authors: David Loeffler
 
 import analysis.complex.circle
 import measure_theory.group.integration
-import measure_theory.measure.haar_of_basis
+import measure_theory.measure.haar.of_basis
 
 /-!
 # The Fourier transform

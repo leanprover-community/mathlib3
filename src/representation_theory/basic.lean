@@ -223,10 +223,6 @@ end
 
 end monoid_algebra
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/master
 section add_comm_group
 
 variables {k G V : Type*} [comm_ring k] [monoid G] [I : add_comm_group V] [module k V]
@@ -236,10 +232,6 @@ instance : add_comm_group ρ.as_module := I
 
 end add_comm_group
 
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/master
 section mul_action
 variables (k : Type*) [comm_semiring k] (G : Type*) [monoid G] (H : Type*) [mul_action G H]
 

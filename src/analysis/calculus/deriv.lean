@@ -1672,11 +1672,11 @@ by simp only [div_eq_mul_inv, deriv_mul_const_field]
 
 end division
 
-
 section star
+/-! ### Derivative of `x ↦ star x` -/
+
 variables [star_ring 𝕜] [has_trivial_star 𝕜] [star_add_monoid F] [has_continuous_star F]
 variable [star_module 𝕜 F]
-/-! ### Derivative of the starative of a function -/
 
 theorem has_deriv_at_filter.star (h : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ x, star (f x)) (star f') x L :=

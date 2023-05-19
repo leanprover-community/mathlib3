@@ -189,7 +189,7 @@ begin
   induction n with n IH generalizing x,
   { simp },
   { rw [iterated_deriv_within_succ (hs x hx), function.iterate_succ'],
-    exact deriv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx) }
+    exact deriv_within_congr (λ y hy, IH hy) (IH hx) }
 end
 
 /-- The `n+1`-th iterated derivative within a set with unique derivatives can be obtained by

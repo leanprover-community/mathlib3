@@ -129,6 +129,10 @@ begin
   { refine λ h u, eventually_congr (h.mono $ λ x h, _), rw [h] }
 end
 
+@[simp] lemma nhds_within_eventually_eq_nhds_within {s t : set α} {x : α} :
+  (λ y, 𝓝[s] y) =ᶠ[𝓝 x] (λ y, 𝓝[t] y) ↔ 𝓝[s] x = 𝓝[t] x :=
+by simp only [nhds_within_eq_iff_eventually_eq, eventually_eq, eventually_eventually_nhds]
+
 lemma nhds_within_le_iff {s t : set α} {x : α} : 𝓝[s] x ≤ 𝓝[t] x ↔ t ∈ 𝓝[s] x :=
 begin
   simp_rw [filter.le_def, mem_nhds_within_iff_eventually],

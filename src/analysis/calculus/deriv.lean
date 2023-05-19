@@ -441,9 +441,9 @@ lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
 @[simp] lemma deriv_within_univ : deriv_within f univ = deriv f :=
 by { ext, unfold deriv_within deriv, rw fderiv_within_univ }
 
-lemma deriv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s x) :
+lemma deriv_within_inter (ht : t ∈ 𝓝 x) :
   deriv_within f (s ∩ t) x = deriv_within f s x :=
-by { unfold deriv_within, rw fderiv_within_inter ht hs }
+by { unfold deriv_within, rw fderiv_within_inter ht }
 
 lemma deriv_within_of_open (hs : is_open s) (hx : x ∈ s) :
   deriv_within f s x = deriv f x :=
@@ -514,15 +514,13 @@ lemma has_deriv_at.congr_of_eventually_eq (h : has_deriv_at f f' x)
   (h₁ : f₁ =ᶠ[𝓝 x] f) : has_deriv_at f₁ f' x :=
 has_deriv_at_filter.congr_of_eventually_eq h h₁ (mem_of_mem_nhds h₁ : _)
 
-lemma filter.eventually_eq.deriv_within_eq (hs : unique_diff_within_at 𝕜 s x)
-  (hL : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
+lemma filter.eventually_eq.deriv_within_eq (hL : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
-by { unfold deriv_within, rw hL.fderiv_within_eq hs hx }
+by { unfold deriv_within, rw hL.fderiv_within_eq hx }
 
-lemma deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
-  (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
+lemma deriv_within_congr (hs : eq_on f₁ f s) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
-by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
+by { unfold deriv_within, rw fderiv_within_congr hs hx }
 
 lemma filter.eventually_eq.deriv_eq (hL : f₁ =ᶠ[𝓝 x] f) : deriv f₁ x = deriv f x :=
 by { unfold deriv, rwa filter.eventually_eq.fderiv_eq }

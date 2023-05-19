@@ -517,7 +517,7 @@ begin
 end
 
 lemma differentiable_within_at.mono_of_mem (h : differentiable_within_at 𝕜 f s x) {t : set E}
-  (hst : s ∈ nhds_within x t) :
+  (hst : s ∈ 𝓝[t] x) :
   differentiable_within_at 𝕜 f t x :=
 (h.has_fderiv_within_at.mono_of_mem hst).differentiable_within_at
 
@@ -527,27 +527,11 @@ by simp only [differentiable_within_at, has_fderiv_within_at_univ, differentiabl
 
 lemma differentiable_within_at_inter (ht : t ∈ 𝓝 x) :
   differentiable_within_at 𝕜 f (s ∩ t) x ↔ differentiable_within_at 𝕜 f s x :=
-by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
-    nhds_within_restrict' s ht]
+by simp only [differentiable_within_at, has_fderiv_within_at_inter ht]
 
 lemma differentiable_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   differentiable_within_at 𝕜 f (s ∩ t) x ↔ differentiable_within_at 𝕜 f s x :=
-by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
-    nhds_within_restrict'' s ht]
-
-lemma differentiable_within_at.antimono (h : differentiable_within_at 𝕜 f s x) (hst : s ⊆ t)
-  (hx : s ∈ 𝓝[t] x) :
-  differentiable_within_at 𝕜 f t x :=
-by rwa [← differentiable_within_at_inter' hx, inter_eq_self_of_subset_right hst]
-
-lemma has_fderiv_within_at.antimono (h : has_fderiv_within_at f f' s x) (hst : s ⊆ t)
-  (hs : unique_diff_within_at 𝕜 s x) (hx : s ∈ 𝓝[t] x) :
-  has_fderiv_within_at f f' t x :=
-begin
-  have h' : has_fderiv_within_at f _ t x :=
-    (h.differentiable_within_at.antimono hst hx).has_fderiv_within_at,
-  rwa hs.eq h (h'.mono hst),
-end
+by simp only [differentiable_within_at, has_fderiv_within_at_inter' ht]
 
 lemma differentiable_at.differentiable_within_at
   (h : differentiable_at 𝕜 f x) : differentiable_within_at 𝕜 f s x :=
@@ -587,47 +571,32 @@ lemma fderiv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   fderiv_within 𝕜 f s x = fderiv_within 𝕜 f t x :=
 ((differentiable_within_at.has_fderiv_within_at h).mono st).fderiv_within ht
 
-lemma fderiv_within_subset' (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x) (hx : s ∈ 𝓝[t] x)
-  (h : differentiable_within_at 𝕜 f s x) :
+lemma fderiv_within_congr_set (h : 𝓝[s] x = 𝓝[t] x) :
   fderiv_within 𝕜 f s x = fderiv_within 𝕜 f t x :=
-fderiv_within_subset st ht (h.antimono st hx)
+by simp only [fderiv_within, has_fderiv_within_at, h]
 
-@[simp] lemma fderiv_within_univ : fderiv_within 𝕜 f univ = fderiv 𝕜 f :=
-begin
-  ext x : 1,
-  by_cases h : differentiable_at 𝕜 f x,
-  { apply has_fderiv_within_at.fderiv_within _ unique_diff_within_at_univ,
-    rw has_fderiv_within_at_univ,
-    apply h.has_fderiv_at },
-  { have : ¬ differentiable_within_at 𝕜 f univ x,
-    { rwa differentiable_within_at_univ },
-    rw [fderiv_zero_of_not_differentiable_at h,
-        fderiv_within_zero_of_not_differentiable_within_at this] }
-end
+lemma fderiv_within_eventually_congr_set (h : 𝓝[s] x = 𝓝[t] x) :
+  fderiv_within 𝕜 f s =ᶠ[𝓝 x] fderiv_within 𝕜 f t :=
+(nhds_within_eventually_eq_nhds_within.2 h).mono $ λ _, fderiv_within_congr_set
 
-lemma fderiv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s x) :
+lemma fderiv_within_subset' (st : s ⊆ t) (hx : s ∈ 𝓝[t] x) :
+  fderiv_within 𝕜 f s x = fderiv_within 𝕜 f t x :=
+fderiv_within_congr_set $ le_antisymm (nhds_within_mono x st) (nhds_within_le_of_mem hx)
+
+lemma fderiv_within_inter (ht : t ∈ 𝓝 x) :
   fderiv_within 𝕜 f (s ∩ t) x = fderiv_within 𝕜 f s x :=
-begin
-  by_cases h : differentiable_within_at 𝕜 f (s ∩ t) x,
-  { apply fderiv_within_subset (inter_subset_left _ _) _ ((differentiable_within_at_inter ht).1 h),
-    apply hs.inter ht },
-  { have : ¬ differentiable_within_at 𝕜 f s x,
-    { rwa ←differentiable_within_at_inter ht },
-    rw [fderiv_within_zero_of_not_differentiable_within_at h,
-        fderiv_within_zero_of_not_differentiable_within_at this] }
-end
+by simp only [fderiv_within, has_fderiv_within_at_inter ht]
 
 lemma fderiv_within_of_mem_nhds (h : s ∈ 𝓝 x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
-begin
-  have : s = univ ∩ s, by simp only [univ_inter],
-  rw [this, ← fderiv_within_univ],
-  exact fderiv_within_inter h (unique_diff_on_univ _ (mem_univ _))
-end
+by simp only [fderiv, fderiv_within, has_fderiv_at, has_fderiv_within_at, nhds_within_eq_nhds.2 h]
+
+@[simp] lemma fderiv_within_univ : fderiv_within 𝕜 f univ = fderiv 𝕜 f :=
+funext $ λ _, fderiv_within_of_mem_nhds univ_mem
 
 lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
-fderiv_within_of_mem_nhds (is_open.mem_nhds hs hx)
+fderiv_within_of_mem_nhds (hs.mem_nhds hx)
 
 lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_at 𝕜 f x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
@@ -780,17 +749,17 @@ theorem filter.eventually_eq.differentiable_within_at_iff_of_mem (h : f₀ =ᶠ[
   differentiable_within_at 𝕜 f₀ s x ↔ differentiable_within_at 𝕜 f₁ s x :=
 h.differentiable_within_at_iff (h.eq_of_nhds_within hx)
 
-lemma has_fderiv_within_at.congr_mono (h : has_fderiv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
+lemma has_fderiv_within_at.congr_mono (h : has_fderiv_within_at f f' s x) (ht : eq_on f₁ f t)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_fderiv_within_at f₁ f' t x :=
 has_fderiv_at_filter.congr_of_eventually_eq (h.mono h₁) (filter.mem_inf_of_right ht) hx
 
-lemma has_fderiv_within_at.congr (h : has_fderiv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+lemma has_fderiv_within_at.congr (h : has_fderiv_within_at f f' s x) (hs : eq_on f₁ f s)
   (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
 h.congr_mono hs hx (subset.refl _)
 
-lemma has_fderiv_within_at.congr' (h : has_fderiv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+lemma has_fderiv_within_at.congr' (h : has_fderiv_within_at f f' s x) (hs : eq_on f₁ f s)
   (hx : x ∈ s) : has_fderiv_within_at f₁ f' s x :=
-h.congr hs (hs x hx)
+h.congr hs (hs hx)
 
 lemma has_fderiv_within_at.congr_of_eventually_eq (h : has_fderiv_within_at f f' s x)
   (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
@@ -801,8 +770,8 @@ lemma has_fderiv_at.congr_of_eventually_eq (h : has_fderiv_at f f' x)
 has_fderiv_at_filter.congr_of_eventually_eq h h₁ (mem_of_mem_nhds h₁ : _)
 
 lemma differentiable_within_at.congr_mono (h : differentiable_within_at 𝕜 f s x)
-  (ht : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (h₁ : t ⊆ s) : differentiable_within_at 𝕜 f₁ t x :=
-(has_fderiv_within_at.congr_mono h.has_fderiv_within_at ht hx h₁).differentiable_within_at
+  (ht : eq_on f₁ f t) (hx : f₁ x = f x) (h₁ : t ⊆ s) : differentiable_within_at 𝕜 f₁ t x :=
+(h.has_fderiv_within_at.congr_mono ht hx h₁).differentiable_within_at
 
 lemma differentiable_within_at.congr (h : differentiable_within_at 𝕜 f s x)
   (ht : ∀x ∈ s, f₁ x = f x) (hx : f₁ x = f x) : differentiable_within_at 𝕜 f₁ s x :=
@@ -831,48 +800,39 @@ lemma differentiable_at.congr_of_eventually_eq (h : differentiable_at 𝕜 f x) 
 hL.differentiable_at_iff.2 h
 
 lemma differentiable_within_at.fderiv_within_congr_mono (h : differentiable_within_at 𝕜 f s x)
-  (hs : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (hxt : unique_diff_within_at 𝕜 t x) (h₁ : t ⊆ s) :
+  (hs : eq_on f₁ f t) (hx : f₁ x = f x) (hxt : unique_diff_within_at 𝕜 t x) (h₁ : t ⊆ s) :
   fderiv_within 𝕜 f₁ t x = fderiv_within 𝕜 f s x :=
 (has_fderiv_within_at.congr_mono h.has_fderiv_within_at hs hx h₁).fderiv_within hxt
 
-lemma filter.eventually_eq.fderiv_within_eq (hs : unique_diff_within_at 𝕜 s x)
-  (hL : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
+lemma filter.eventually_eq.fderiv_within_eq (hs : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
-if h : differentiable_within_at 𝕜 f s x
-then has_fderiv_within_at.fderiv_within (h.has_fderiv_within_at.congr_of_eventually_eq hL hx) hs
-else
-  have h' : ¬ differentiable_within_at 𝕜 f₁ s x,
-  from mt (λ h, h.congr_of_eventually_eq (hL.mono $ λ x, eq.symm) hx.symm) h,
-  by rw [fderiv_within_zero_of_not_differentiable_within_at h,
-    fderiv_within_zero_of_not_differentiable_within_at h']
+by simp only [fderiv_within, hs.has_fderiv_within_at_iff hx]
 
-lemma filter.eventually_eq.fderiv_within_eq_nhds (hs : unique_diff_within_at 𝕜 s x)
-  (hL : f₁ =ᶠ[𝓝 x] f) :
+lemma filter.eventually_eq.fderiv_within' (hs : f₁ =ᶠ[𝓝[s] x] f) (ht : t ⊆ s) :
+  fderiv_within 𝕜 f₁ t =ᶠ[𝓝[s] x] fderiv_within 𝕜 f t :=
+(eventually_nhds_within_nhds_within.2 hs).mp $ eventually_mem_nhds_within.mono $ λ y hys hs,
+  filter.eventually_eq.fderiv_within_eq (hs.filter_mono $ nhds_within_mono _ ht)
+    (hs.self_of_nhds_within hys)
+
+protected lemma filter.eventually_eq.fderiv_within (hs : f₁ =ᶠ[𝓝[s] x] f) :
+  fderiv_within 𝕜 f₁ s =ᶠ[𝓝[s] x] fderiv_within 𝕜 f s :=
+hs.fderiv_within' subset.rfl
+
+lemma filter.eventually_eq.fderiv_within_eq_nhds (h : f₁ =ᶠ[𝓝 x] f) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
-(show f₁ =ᶠ[𝓝[s] x] f, from nhds_within_le_nhds hL).fderiv_within_eq hs (mem_of_mem_nhds hL : _)
+(h.filter_mono nhds_within_le_nhds).fderiv_within_eq h.self_of_nhds
 
-lemma fderiv_within_congr (hs : unique_diff_within_at 𝕜 s x)
-  (hL : ∀ y ∈ s, f₁ y = f y) (hx : f₁ x = f x) :
+lemma fderiv_within_congr (hs : eq_on f₁ f s) (hx : f₁ x = f x) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
-begin
-  apply filter.eventually_eq.fderiv_within_eq hs _ hx,
-  apply mem_of_superset self_mem_nhds_within,
-  exact hL
-end
+(hs.eventually_eq.filter_mono inf_le_right).fderiv_within_eq hx
 
-lemma fderiv_within_congr' (hs : unique_diff_within_at 𝕜 s x)
-  (hL : ∀ y ∈ s, f₁ y = f y) (hx : x ∈ s) :
+lemma fderiv_within_congr' (hs : eq_on f₁ f s) (hx : x ∈ s) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
-fderiv_within_congr hs hL (hL x hx)
+fderiv_within_congr hs (hs hx)
 
-lemma filter.eventually_eq.fderiv_eq (hL : f₁ =ᶠ[𝓝 x] f) :
+lemma filter.eventually_eq.fderiv_eq (h : f₁ =ᶠ[𝓝 x] f) :
   fderiv 𝕜 f₁ x = fderiv 𝕜 f x :=
-begin
-  have A : f₁ x = f x := hL.eq_of_nhds,
-  rw [← fderiv_within_univ, ← fderiv_within_univ],
-  rw ← nhds_within_univ at hL,
-  exact hL.fderiv_within_eq unique_diff_within_at_univ A
-end
+by rw [← fderiv_within_univ, ← fderiv_within_univ, h.fderiv_within_eq_nhds]
 
 protected lemma filter.eventually_eq.fderiv (h : f₁ =ᶠ[𝓝 x] f) :
   fderiv 𝕜 f₁ =ᶠ[𝓝 x] fderiv 𝕜 f :=
@@ -1019,11 +979,12 @@ variables (𝕜 : Type*) {E F : Type*} [nontrivially_normed_field 𝕜] [normed_
 lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=
 begin
   intros x,
-  rw [← not_imp_not],
-  intro h2x,
-  rw [not_mem_tsupport_iff_eventually_eq] at h2x,
-  exact nmem_support.mpr (h2x.fderiv_eq.trans $ fderiv_const_apply 0),
+  rw [← not_imp_not, not_mem_tsupport_iff_eventually_eq, nmem_support],
+  exact λ hx, (hx.fderiv_eq.trans $ fderiv_const_apply 0),
 end
+
+lemma tsupport_fderiv_subset : tsupport (fderiv 𝕜 f) ⊆ tsupport f :=
+closure_minimal (support_fderiv_subset 𝕜) is_closed_closure
 
 lemma has_compact_support.fderiv (hf : has_compact_support f) : has_compact_support (fderiv 𝕜 f) :=
 hf.mono' $ support_fderiv_subset 𝕜

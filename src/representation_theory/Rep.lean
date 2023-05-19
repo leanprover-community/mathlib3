@@ -403,7 +403,7 @@ variables {k G : Type u} [comm_ring k] [monoid G]
 
 noncomputable theory
 
-/-- Auxilliary lemma for `to_Module_monoid_algebra`. -/
+/-- Auxiliary lemma for `to_Module_monoid_algebra`. -/
 lemma to_Module_monoid_algebra_map_aux {k G : Type*} [comm_ring k] [monoid G]
   (V W : Type*) [add_comm_group V] [add_comm_group W] [module k V] [module k W]
   (ρ : G →* V →ₗ[k] V) (σ : G →* W →ₗ[k] W)
@@ -422,7 +422,7 @@ begin
       linear_map.smul_apply, linear_map.map_smulₛₗ], }
 end
 
-/-- Auxilliary definition for `to_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `to_Module_monoid_algebra`. -/
 def to_Module_monoid_algebra_map {V W : Rep k G} (f : V ⟶ W) :
   Module.of (monoid_algebra k G) V.ρ.as_module ⟶ Module.of (monoid_algebra k G) W.ρ.as_module :=
 { map_smul' := λ r x, to_Module_monoid_algebra_map_aux V.V W.V V.ρ W.ρ f.hom f.comm r x,
@@ -448,7 +448,7 @@ lemma of_Module_monoid_algebra_obj_coe (M : Module.{u} (monoid_algebra k G)) :
 lemma of_Module_monoid_algebra_obj_ρ (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra.obj M).ρ = representation.of_module k G M := rfl
 
-/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `equivalence_Module_monoid_algebra`. -/
 def counit_iso_add_equiv {M : Module.{u} (monoid_algebra k G)} :
   ((of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M) ≃+ M :=
 begin
@@ -456,7 +456,7 @@ begin
   refine (representation.of_module k G ↥M).as_module_equiv.trans (restrict_scalars.add_equiv _ _ _),
 end
 
-/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `equivalence_Module_monoid_algebra`. -/
 def unit_iso_add_equiv {V : Rep k G} :
   V ≃+ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
 begin
@@ -465,7 +465,7 @@ begin
   exact (restrict_scalars.add_equiv _ _ _).symm,
 end
 
-/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `equivalence_Module_monoid_algebra`. -/
 def counit_iso (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M ≅ M :=
 linear_equiv.to_Module_iso'
@@ -485,7 +485,7 @@ begin
     representation.as_module_equiv_symm_map_rho, representation.of_module_as_module_act],
 end
 
-/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `equivalence_Module_monoid_algebra`. -/
 def unit_iso (V : Rep k G) :
   V ≅ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
 Action.mk_iso (linear_equiv.to_Module_iso'
@@ -511,7 +511,7 @@ example : monoidal_linear k (Rep k G) := by apply_instance
 
 noncomputable theory
 
-/-- Auxilliary lemma for `to_Module_monoid_algebra`. -/
+/-- Auxiliary lemma for `to_Module_monoid_algebra`. -/
 lemma to_Module_monoid_algebra_map_aux {k G : Type*} [comm_ring k] [monoid G]
   (V W : Type*) [add_comm_group V] [add_comm_group W] [module k V] [module k W]
   (ρ : G →* V →ₗ[k] V) (σ : G →* W →ₗ[k] W)
@@ -530,7 +530,7 @@ begin
       linear_map.smul_apply, linear_map.map_smulₛₗ], }
 end
 
-/-- Auxilliary definition for `to_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `to_Module_monoid_algebra`. -/
 def to_Module_monoid_algebra_map {V W : Rep k G} (f : V ⟶ W) :
   Module.of (monoid_algebra k G) V.ρ.as_module ⟶ Module.of (monoid_algebra k G) W.ρ.as_module :=
 { map_smul' := λ r x, to_Module_monoid_algebra_map_aux V.V W.V V.ρ W.ρ f.hom f.comm r x,
@@ -556,7 +556,7 @@ lemma of_Module_monoid_algebra_obj_coe (M : Module.{u} (monoid_algebra k G)) :
 lemma of_Module_monoid_algebra_obj_ρ (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra.obj M).ρ = representation.of_module k G M := rfl
 
-/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `equivalence_Module_monoid_algebra`. -/
 def counit_iso_add_equiv {M : Module.{u} (monoid_algebra k G)} :
   ((of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M) ≃+ M :=
 begin
@@ -564,7 +564,7 @@ begin
   refine (representation.of_module k G ↥M).as_module_equiv.trans (restrict_scalars.add_equiv _ _ _),
 end
 
-/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `equivalence_Module_monoid_algebra`. -/
 def unit_iso_add_equiv {V : Rep k G} :
   V ≃+ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
 begin
@@ -573,7 +573,7 @@ begin
   exact (restrict_scalars.add_equiv _ _ _).symm,
 end
 
-/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `equivalence_Module_monoid_algebra`. -/
 def counit_iso (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M ≅ M :=
 linear_equiv.to_Module_iso'
@@ -593,7 +593,7 @@ begin
     representation.as_module_equiv_symm_map_rho, representation.of_module_as_module_act],
 end
 
-/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
+/-- Auxiliary definition for `equivalence_Module_monoid_algebra`. -/
 def unit_iso (V : Rep k G) :
   V ≅ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
 Action.mk_iso (linear_equiv.to_Module_iso'

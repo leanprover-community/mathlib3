@@ -226,10 +226,9 @@ lemma mem_residual {s : set α} :
 begin
   split,
   { rw mem_residual_iff,
-    rintros ⟨S, hS, Sct, Ss⟩,
-    refine ⟨_, Ss, ⟨_, λ t ht, (hS t ht).1, Sct, rfl⟩, _⟩,
-    simp_rw forall_and_distrib at hS,
-    exact dense_sInter_of_open hS.1 Sct hS.2, },
+    rintros ⟨S, hSo, hSd, Sct, Ss⟩,
+    refine ⟨_, Ss, ⟨_, λ t ht, hSo _ ht, Sct, rfl⟩, _⟩,
+    exact dense_sInter_of_open hSo Sct hSd, },
   rintros ⟨t, ts, ho, hd⟩,
   exact mem_of_superset (residual_of_dense_Gδ ho hd) ts,
 end

@@ -22,6 +22,9 @@ def starL (R : Type*) {A : Type*}
   continuous_to_fun := continuous_star,
   continuous_inv_fun := continuous_star }
 
+-- TODO: this could be replaced with something like `(starL R).restrict_scalarsₛₗ h` if we
+-- implemented the idea in
+-- https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Star-semilinear.20maps.20are.20semilinear.20when.20star.20is.20trivial/near/359557835
 /-- If `A` is a topological module over a commutative `R` with trivial star and compatible actions,
 then `star` is a continuous linear equivalence. -/
 @[simps]

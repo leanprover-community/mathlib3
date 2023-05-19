@@ -11,6 +11,9 @@ import data.rat.big_operators
 /-!
 # Energy of a partition
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the energy of a partition.
 
 The energy is the auxiliary quantity that drives the induction process in the proof of Szemerédi's

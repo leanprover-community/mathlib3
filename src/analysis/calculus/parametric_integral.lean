@@ -3,8 +3,8 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import measure_theory.integral.set_integral
 import analysis.calculus.mean_value
+import measure_theory.integral.set_integral
 
 /-!
 # Derivatives of integrals depending on parameters

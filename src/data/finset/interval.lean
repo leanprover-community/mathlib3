@@ -8,6 +8,9 @@ import data.finset.locally_finite
 /-!
 # Intervals of finsets as finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the `locally_finite_order` instance for `finset α` and calculates the cardinality
 of finite intervals of finsets.
 

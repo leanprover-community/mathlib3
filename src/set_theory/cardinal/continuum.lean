@@ -8,6 +8,9 @@ import set_theory.cardinal.ordinal
 /-!
 # Cardinality of continuum
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `cardinal.continuum` (notation: `𝔠`, localized in `cardinal`) to be `2 ^ ℵ₀`.
 We also prove some `simp` lemmas about cardinal arithmetic involving `𝔠`.
 
@@ -35,6 +38,18 @@ by rw [←two_power_aleph_0, lift_two_power, lift_aleph_0, two_power_aleph_0]
 /-!
 ### Inequalities
 -/
+
+@[simp] lemma continuum_le_lift {c : cardinal.{u}} : 𝔠 ≤ lift.{v} c ↔ 𝔠 ≤ c :=
+by rw [←lift_continuum, lift_le]
+
+@[simp] lemma lift_le_continuum {c : cardinal.{u}} : lift.{v} c ≤ 𝔠 ↔ c ≤ 𝔠 :=
+by rw [←lift_continuum, lift_le]
+
+@[simp] lemma continuum_lt_lift {c : cardinal.{u}} : 𝔠 < lift.{v} c ↔ 𝔠 < c :=
+by rw [←lift_continuum, lift_lt]
+
+@[simp] lemma lift_lt_continuum {c : cardinal.{u}} : lift.{v} c < 𝔠 ↔ c < 𝔠 :=
+by rw [←lift_continuum, lift_lt]
 
 lemma aleph_0_lt_continuum : ℵ₀ < 𝔠 := cantor ℵ₀
 

@@ -3,11 +3,11 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.specific_functions
 import analysis.calculus.series
 import analysis.convolution
+import analysis.inner_product_space.euclidean_dist
+import measure_theory.measure.haar.normed_space
 import data.set.pointwise.support
-import measure_theory.measure.haar_lebesgue
 
 /-!
 # Bump functions in finite-dimensional vector spaces
@@ -16,9 +16,8 @@ Let `E` be a finite-dimensional real normed vector space. We show that any open 
 exactly the support of a smooth function taking values in `[0, 1]`,
 in `is_open.exists_smooth_support_eq`.
 
-TODO: use this construction to construct bump functions with nice behavior in any finite-dimensional
-real normed vector space, by convolving the indicator function of `closed_ball 0 1` with a
-function as above with `s = ball 0 D`.
+Then we use this construction to construct bump functions with nice behavior, by convolving
+the indicator function of `closed_ball 0 1` with a function as above with `s = ball 0 D`.
 -/
 
 noncomputable theory
@@ -41,7 +40,7 @@ theorem exists_smooth_tsupport_subset {s : set E} {x : E} (hs : s ∈ 𝓝 x) :
 begin
   obtain ⟨d, d_pos, hd⟩ : ∃ (d : ℝ) (hr : 0 < d), euclidean.closed_ball x d ⊆ s,
     from euclidean.nhds_basis_closed_ball.mem_iff.1 hs,
-  let c : cont_diff_bump_of_inner (to_euclidean x) :=
+  let c : cont_diff_bump (to_euclidean x) :=
   { r := d/2,
     R := d,
     r_pos := half_pos d_pos,
@@ -218,7 +217,7 @@ begin
     from A.exists_smooth_support_eq,
   have B : ∀ x, f x ∈ Icc (0 : ℝ) 1 := λ x, f_range (mem_range_self x),
   refine ⟨λ x, (f x + f (-x)) / 2, _, _, _, _⟩,
-  { exact (f_smooth.add (f_smooth.comp cont_diff_neg)).div_const },
+  { exact (f_smooth.add (f_smooth.comp cont_diff_neg)).div_const _ },
   { assume x,
     split,
     { linarith [(B x).1, (B (-x)).1] },
@@ -478,25 +477,6 @@ variable {E}
 
 end helper_definitions
 
-/-- The base function from which one will construct a family of bump functions. One could
-add more properties if they are useful and satisfied in the examples of inner product spaces
-and finite dimensional vector spaces, notably derivative norm control in terms of `R - 1`.
-TODO: move to the right file and use this to refactor bump functions in general. -/
-@[nolint has_nonempty_instance]
-structure _root_.cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
-(to_fun : ℝ → E → ℝ)
-(mem_Icc   : ∀ (R : ℝ) (x : E), to_fun R x ∈ Icc (0 : ℝ) 1)
-(symmetric : ∀ (R : ℝ) (x : E), to_fun R (-x) = to_fun R x)
-(smooth    : cont_diff_on ℝ ⊤ (uncurry to_fun) ((Ioi (1 : ℝ)) ×ˢ (univ : set E)))
-(eq_one    : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : ‖x‖ ≤ 1), to_fun R x = 1)
-(support   : ∀ (R : ℝ) (hR : 1 < R), support (to_fun R) = metric.ball (0 : E) R)
-
-/-- A class registering that a real vector space admits bump functions. This will be instantiated
-first for inner product spaces, and then for finite-dimensional normed spaces.
-We use a specific class instead of `nonempty (cont_diff_bump_base E)` for performance reasons. -/
-class _root_.has_cont_diff_bump (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] : Prop :=
-(out : nonempty (cont_diff_bump_base E))
-
 @[priority 100]
 instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
   has_cont_diff_bump E :=
@@ -533,7 +513,7 @@ begin
           dsimp only,
           linarith, },
         { apply cont_diff_on.smul _ cont_diff_on_snd,
-          refine (cont_diff_on_fst.add cont_diff_on_const).div_const.inv _,
+          refine ((cont_diff_on_fst.add cont_diff_on_const).div_const _).inv _,
           rintros ⟨R, x⟩ ⟨(hR : 1 < R), hx⟩,
           apply ne_of_gt,
           dsimp only,

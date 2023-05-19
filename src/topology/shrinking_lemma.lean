@@ -8,6 +8,9 @@ import topology.separation
 /-!
 # The shrinking lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few versions of the shrinking lemma. The lemma says that in a normal
 topological space a point finite open covering can be “shrunk”: for a point finite open covering
 `u : ι → set X` there exists a refinement `v : ι → set X` such that `closure (v i) ⊆ u i`.

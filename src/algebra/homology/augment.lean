@@ -7,6 +7,9 @@ import algebra.homology.single
 
 /-!
 # Augmentation and truncation of `ℕ`-indexed (co)chain complexes.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory

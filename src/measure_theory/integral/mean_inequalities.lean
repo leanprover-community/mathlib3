@@ -114,9 +114,9 @@ begin
   end
   ... ≤ npf * nqg :
   begin
-    rw lintegral_mul_const' (npf * nqg) _ (by simp [hf_nontop, hg_nontop, hf_nonzero, hg_nonzero]),
-    nth_rewrite 1 ←one_mul (npf * nqg),
-    refine mul_le_mul _ (le_refl (npf * nqg)),
+    rw lintegral_mul_const' (npf * nqg) _
+      (by simp [hf_nontop, hg_nontop, hf_nonzero, hg_nonzero, ennreal.mul_eq_top]),
+    refine mul_le_of_le_one_left' _,
     have hf1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.pos hf_nonzero hf_nontop,
     have hg1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.symm.pos hg_nonzero hg_nontop,
     exact lintegral_mul_le_one_of_lintegral_rpow_eq_one hpq (hf.mul_const _) hf1 hg1,
@@ -194,20 +194,20 @@ begin
     { rw [←ennreal.zero_rpow_of_pos hp0_lt],
       exact ennreal.rpow_lt_rpow (by simp [zero_lt_one]) hp0_lt, },
     have h_rw : (1 / 2) ^ p * (2:ℝ≥0∞) ^ (p - 1) = 1 / 2,
-    { rw [sub_eq_add_neg, ennreal.rpow_add _ _ ennreal.two_ne_zero ennreal.coe_ne_top,
+    { rw [sub_eq_add_neg, ennreal.rpow_add _ _ two_ne_zero ennreal.coe_ne_top,
         ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, one_div,
-        ennreal.inv_mul_cancel ennreal.two_ne_zero ennreal.coe_ne_top, ennreal.one_rpow,
+        ennreal.inv_mul_cancel two_ne_zero ennreal.coe_ne_top, ennreal.one_rpow,
         one_mul, ennreal.rpow_neg_one], },
     rw ←ennreal.mul_le_mul_left (ne_of_lt h_zero_lt_half_rpow).symm _,
     { rw [mul_add, ← mul_assoc, ← mul_assoc, h_rw, ←ennreal.mul_rpow_of_nonneg _ _ hp0, mul_add],
       refine ennreal.rpow_arith_mean_le_arith_mean2_rpow (1/2 : ℝ≥0∞) (1/2 : ℝ≥0∞)
         (f a) (g a) _ hp1,
       rw [ennreal.div_add_div_same, one_add_one_eq_two,
-        ennreal.div_self ennreal.two_ne_zero ennreal.coe_ne_top], },
+        ennreal.div_self two_ne_zero ennreal.coe_ne_top], },
     { rw ← lt_top_iff_ne_top,
       refine ennreal.rpow_lt_top_of_nonneg hp0 _,
       rw [one_div, ennreal.inv_ne_top],
-      exact ennreal.two_ne_zero, },
+      exact two_ne_zero, },
   end
   ... < ⊤ :
   begin
@@ -375,6 +375,29 @@ begin
     rw ← lt_top_iff_ne_top at hf_top hg_top ⊢,
     exact lintegral_rpow_add_lt_top_of_lintegral_rpow_lt_top hf hf_top hg_top hp1, },
   exact lintegral_Lp_add_le_aux hpq hf hf_top hg hg_top h0 htop,
+end
+
+/-- Variant of Minkowski's inequality for functions `α → ℝ≥0∞` in `ℒp` with `p ≤ 1`: the `ℒp`
+seminorm of the sum of two functions is bounded by a constant multiple of the sum
+of their `ℒp` seminorms. -/
+theorem lintegral_Lp_add_le_of_le_one {p : ℝ} {f g : α → ℝ≥0∞}
+  (hf : ae_measurable f μ) (hp0 : 0 ≤ p) (hp1 : p ≤ 1) :
+  (∫⁻ a, ((f + g) a)^p ∂ μ) ^ (1/p) ≤
+    2^(1/p-1) * ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p)) :=
+begin
+  rcases eq_or_lt_of_le hp0 with rfl|hp,
+  { simp only [pi.add_apply, rpow_zero, lintegral_one, _root_.div_zero, zero_sub],
+    norm_num,
+    rw [rpow_neg, rpow_one, ennreal.inv_mul_cancel two_ne_zero two_ne_top],
+    exact le_rfl },
+  calc (∫⁻ a, (f + g) a ^ p ∂μ) ^ (1 / p) ≤ (∫⁻ a, (f a)^p ∂ μ + ∫⁻ a, (g a)^p ∂ μ) ^ (1/p) :
+    begin
+      apply rpow_le_rpow _ (div_nonneg zero_le_one hp0),
+      rw ← lintegral_add_left' (hf.pow_const p),
+      exact lintegral_mono (λ a, rpow_add_le_add_rpow _ _ hp0 hp1)
+    end
+  ... ≤ 2 ^ (1/p-1) * ((∫⁻ a, f a ^ p ∂μ) ^ (1/p) + (∫⁻ a, g a ^ p ∂μ) ^ (1/p)) :
+    rpow_add_le_mul_rpow_add_rpow _ _ ((one_le_div hp).2 hp1)
 end
 
 end ennreal

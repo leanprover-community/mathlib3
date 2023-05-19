@@ -9,6 +9,9 @@ import data.polynomial.field_division
 /-!
 # Absolute value on polynomials over a finite field.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `Fq` be a finite field of cardinality `q`, then the map sending a polynomial `p`
 to `q ^ degree p` (where `q ^ degree 0 = 0`) is an absolute value.
 

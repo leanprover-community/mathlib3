@@ -57,8 +57,8 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry points_with_circumcenter_index
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The Monge point of a simplex (in 2 or more dimensions) is a
@@ -126,7 +126,7 @@ include V
 `points_with_circumcenter`. -/
 lemma monge_point_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P (n + 2)) :
-  s.monge_point = (univ : finset (points_with_circumcenter_index (n + 2))).affine_combination
+  s.monge_point = (univ : finset (points_with_circumcenter_index (n + 2))).affine_combination ℝ
     s.points_with_circumcenter (monge_point_weights_with_circumcenter n) :=
 begin
   rw [monge_point_eq_smul_vsub_vadd_circumcenter,
@@ -367,14 +367,11 @@ by rw [altitude_def,
 
 /-- The vector span of the opposite face lies in the direction
 orthogonal to an altitude. -/
-lemma vector_span_le_altitude_direction_orthogonal  {n : ℕ} (s : simplex ℝ P (n + 1))
-    (i : fin (n + 2)) :
-  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ≤ (s.altitude i).directionᗮ :=
+lemma vector_span_is_ortho_altitude_direction {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
+  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ⟂ (s.altitude i).direction :=
 begin
   rw direction_altitude,
-  exact le_trans
-    (vector_span ℝ (s.points '' ↑(finset.univ.erase i))).le_orthogonal_orthogonal
-    (submodule.orthogonal_le inf_le_left)
+  exact (submodule.is_ortho_orthogonal_right _).mono_right inf_le_left,
 end
 
 open finite_dimensional
@@ -443,8 +440,8 @@ namespace triangle
 
 open euclidean_geometry finset simplex affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- The orthocenter of a triangle is the intersection of its
@@ -594,7 +591,7 @@ begin
   have hle : (t₁.altitude i₃).directionᗮ ≤
     line[ℝ, t₁.orthocenter, t₁.points i₃].directionᗮ :=
       submodule.orthogonal_le (direction_le (affine_span_orthocenter_point_le_altitude _ _)),
-  refine hle ((t₁.vector_span_le_altitude_direction_orthogonal i₃) _),
+  refine hle ((t₁.vector_span_is_ortho_altitude_direction i₃) _),
   have hui : finset.univ.erase i₃ = {i₁, i₂}, { clear hle h₂ h₃, dec_trivial! },
   rw [hui, finset.coe_insert, finset.coe_singleton, set.image_insert_eq, set.image_singleton],
   refine vsub_mem_vector_span ℝ (set.mem_insert _ _)
@@ -626,8 +623,8 @@ namespace euclidean_geometry
 
 open affine affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 
 include V
 

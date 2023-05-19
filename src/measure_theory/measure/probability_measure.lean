@@ -5,7 +5,6 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.measure.finite_measure
 import measure_theory.integral.average
-import probability.conditional_probability
 
 /-!
 # Probability measures

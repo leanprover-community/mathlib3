@@ -10,6 +10,9 @@ import ring_theory.subsemiring.basic
 /-!
 # Subrings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a ring. This file defines the "bundled" subring type `subring R`, a type
 whose terms correspond to subrings of `R`. This is the preferred way to talk
 about subrings in mathlib. Unbundled subrings (`s : set R` and `is_subring s`)

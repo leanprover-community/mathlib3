@@ -7,7 +7,7 @@ import algebra.punit_instances
 import linear_algebra.finsupp
 import ring_theory.ideal.over
 import ring_theory.ideal.prod
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
 import ring_theory.nilpotent
 import topology.sets.closeds
 import topology.sober
@@ -672,14 +672,14 @@ section basic_open
 
 /-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
 def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
-{ val := { x | r ∉ x.as_ideal },
-  property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
+{ carrier := { x | r ∉ x.as_ideal },
+  is_open' := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
 @[simp] lemma mem_basic_open (f : R) (x : prime_spectrum R) :
   x ∈ basic_open f ↔ f ∉ x.as_ideal := iff.rfl
 
 lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum R)) :=
-(basic_open a).property
+(basic_open a).is_open
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : R) :
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
@@ -693,8 +693,8 @@ topological_space.opens.ext $ by simp
 
 lemma basic_open_le_basic_open_iff (f g : R) :
   basic_open f ≤ basic_open g ↔ f ∈ (ideal.span ({g} : set R)).radical :=
-by rw [topological_space.opens.le_def, basic_open_eq_zero_locus_compl,
-    basic_open_eq_zero_locus_compl, set.le_eq_subset, set.compl_subset_compl,
+by rw [← set_like.coe_subset_coe, basic_open_eq_zero_locus_compl,
+    basic_open_eq_zero_locus_compl, set.compl_subset_compl,
     zero_locus_subset_zero_locus_singleton_iff]
 
 lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
@@ -758,7 +758,7 @@ end
 lemma basic_open_eq_bot_iff (f : R) :
   basic_open f = ⊥ ↔ is_nilpotent f :=
 begin
-  rw [← subtype.coe_injective.eq_iff, basic_open_eq_zero_locus_compl],
+  rw [← topological_space.opens.coe_inj, basic_open_eq_zero_locus_compl],
   simp only [set.eq_univ_iff_forall, set.singleton_subset_iff,
     topological_space.opens.coe_bot, nilpotent_iff_mem_prime, set.compl_empty_iff, mem_zero_locus,
     set_like.mem_coe],

@@ -11,6 +11,9 @@ import data.set.lattice
 /-!
 # Languages
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and operations on formal languages over an alphabet. Note strings
 are implemented as lists over the alphabet.
 The operations in this file define a [Kleene algebra](https://en.wikipedia.org/wiki/Kleene_algebra)

@@ -6,7 +6,7 @@ Authors: Aaron Anderson
 import analysis.normed_space.finite_dimension
 import analysis.p_series
 import number_theory.arithmetic_function
-import topology.algebra.infinite_sum
+import topology.algebra.infinite_sum.basic
 
 /-!
 # L-series

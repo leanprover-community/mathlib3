@@ -8,6 +8,9 @@ import topology.uniform_space.separation
 
 /-!
 # Indexed product of uniform spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory

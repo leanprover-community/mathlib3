@@ -37,8 +37,14 @@ theorem cast_injective [add_group_with_one α] [char_zero α] : function.injecti
 theorem cast_ne_zero [add_group_with_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
+@[simp] lemma cast_eq_one [add_group_with_one α] [char_zero α] {n : ℤ} : (n : α) = 1 ↔ n = 1 :=
+by rw [←cast_one, cast_inj]
+
+lemma cast_ne_one [add_group_with_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 1 ↔ n ≠ 1 :=
+cast_eq_one.not
+
 @[simp, norm_cast]
-theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℤ}
+theorem cast_div_char_zero {k : Type*} [division_ring k] [char_zero k] {m n : ℤ}
   (n_dvd : n ∣ m) : ((m / n : ℤ) : k) = m / n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,

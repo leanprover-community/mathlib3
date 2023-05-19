@@ -12,6 +12,9 @@ import tactic.derive_fintype
 /-!
 # Encodings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of a (finite) encoding, a map from a type to
 strings in an alphabet, used in defining computability by Turing machines.
 It also contains several examples:

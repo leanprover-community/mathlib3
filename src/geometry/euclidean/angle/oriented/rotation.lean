@@ -3,6 +3,7 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Heather Macbeth
 -/
+import analysis.special_functions.complex.circle
 import geometry.euclidean.angle.oriented.basic
 
 /-!
@@ -26,7 +27,9 @@ namespace orientation
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 local attribute [instance] complex.finrank_real_complex_fact
 
-variables {V V' : Type*} [inner_product_space ℝ V] [inner_product_space ℝ V']
+variables {V V' : Type*}
+variables [normed_add_comm_group V] [normed_add_comm_group V']
+variables [inner_product_space ℝ V] [inner_product_space ℝ V']
 variables [fact (finrank ℝ V = 2)] [fact (finrank ℝ V' = 2)] (o : orientation ℝ V (fin 2))
 
 local notation `J` := o.right_angle_rotation
@@ -183,7 +186,7 @@ by rw [neg_rotation, ←real.angle.coe_add, neg_div, ←sub_eq_add_neg, sub_half
 
 /-- Negating a rotation by π / 2 is equivalent to rotation by -π / 2. -/
 lemma neg_rotation_pi_div_two (x : V) : -o.rotation (π / 2 : ℝ) x = o.rotation (-π / 2 : ℝ) x :=
-neg_eq_iff_neg_eq.1 $ o.neg_rotation_neg_pi_div_two _
+(neg_eq_iff_eq_neg.mp $ o.neg_rotation_neg_pi_div_two _).symm
 
 /-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos (-θ) + sin (-θ) * I`.
 -/

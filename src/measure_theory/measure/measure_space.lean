@@ -10,6 +10,9 @@ import topology.algebra.order.liminf_limsup
 /-!
 # Measure spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The definition of a measure and a measure space are in `measure_theory.measure_space_def`, with
 only a few basic properties. This file provides many more properties of these objects.
 This separation allows the measurability tactic to import only the file `measure_space_def`, and to
@@ -695,8 +698,11 @@ instance [measurable_space α] : has_zero (measure α) :=
 
 @[simp, norm_cast] theorem coe_zero {m : measurable_space α} : ⇑(0 : measure α) = 0 := rfl
 
+instance [is_empty α] {m : measurable_space α} : subsingleton (measure α) :=
+⟨λ μ ν, by{ ext1 s hs, simp only [eq_empty_of_is_empty s, measure_empty] }⟩
+
 lemma eq_zero_of_is_empty [is_empty α] {m : measurable_space α} (μ : measure α) : μ = 0 :=
-ext $ λ s hs, by simp only [eq_empty_of_is_empty s, measure_empty]
+subsingleton.elim μ 0
 
 instance [measurable_space α] : inhabited (measure α) := ⟨0⟩
 
@@ -932,6 +938,17 @@ instance [measurable_space α] : complete_lattice (measure α) :=
 
 end Inf
 
+@[simp] lemma _root_.measure_theory.outer_measure.to_measure_top [measurable_space α] :
+  (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top)
+    = (⊤ : measure α) :=
+top_unique $ λ s hs,
+    by cases s.eq_empty_or_nonempty with h h;
+      simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply]
+
+@[simp] lemma to_outer_measure_top [measurable_space α] :
+  (⊤ : measure α).to_outer_measure = (⊤ : outer_measure α) :=
+by rw [←outer_measure.to_measure_top, to_measure_to_outer_measure, outer_measure.trim_top]
+
 @[simp] lemma top_add : ⊤ + μ = ⊤ := top_unique $ measure.le_add_right le_rfl
 @[simp] lemma add_top : μ + ⊤ = ⊤ := top_unique $ measure.le_add_left le_rfl
 
@@ -942,6 +959,10 @@ lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
 
 @[simp] lemma measure_univ_eq_zero : μ univ = 0 ↔ μ = 0 :=
 ⟨λ h, bot_unique $ λ s hs, trans_rel_left (≤) (measure_mono (subset_univ s)) h, λ h, h.symm ▸ rfl⟩
+
+lemma measure_univ_ne_zero : μ univ ≠ 0 ↔ μ ≠ 0 := measure_univ_eq_zero.not
+
+@[simp] lemma measure_univ_pos : 0 < μ univ ↔ μ ≠ 0 := pos_iff_ne_zero.trans measure_univ_ne_zero
 
 /-! ### Pushforward and pullback -/
 

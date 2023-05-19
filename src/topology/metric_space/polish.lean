@@ -11,6 +11,9 @@ import analysis.normed.field.basic
 /-!
 # Polish spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological space is Polish if its topology is second-countable and there exists a compatible
 complete metric. This is the class of spaces that is well-behaved with respect to measure theory.
 In this file, we establish the basic properties of Polish spaces.

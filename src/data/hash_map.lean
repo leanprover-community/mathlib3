@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import data.array.lemmas
 import data.list.join
 import data.list.range
+import data.list.nodup
 import data.pnat.defs
 
 /-!

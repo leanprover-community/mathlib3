@@ -17,6 +17,9 @@ import linear_algebra.pi
 /-!
 # Determinant of a matrix
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the determinant of a matrix, `matrix.det`, and its essential properties.
 
 ## Main definitions

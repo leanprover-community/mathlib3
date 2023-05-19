@@ -9,6 +9,9 @@ import category_theory.concrete_category.basic
 /-!
 # Use the `elementwise` attribute to create applied versions of lemmas.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Usually we would use `@[elementwise]` at the point of definition,
 however some early parts of the category theory library are imported by `tactic.elementwise`,
 so we need to add the attribute after the fact.

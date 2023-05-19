@@ -3,7 +3,8 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import analysis.inner_product_space.basic
+import data.is_R_or_C.lemmas
+import measure_theory.function.strongly_measurable.inner
 import measure_theory.integral.set_integral
 
 /-! # `L^2` space
@@ -22,7 +23,7 @@ is also an inner product space, with inner product defined as `inner f g = ∫ a
 -/
 
 noncomputable theory
-open topological_space measure_theory measure_theory.Lp
+open topological_space measure_theory measure_theory.Lp filter
 open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
@@ -55,10 +56,52 @@ end
 
 end
 
+section inner_product_space
+
+variables {α : Type*} {m : measurable_space α} {p : ℝ≥0∞} {μ : measure α}
+variables {E 𝕜 : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E]
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+
+lemma mem_ℒp.const_inner (c : E) {f : α → E} (hf : mem_ℒp f p μ) :
+  mem_ℒp (λ a, ⟪c, f a⟫) p μ :=
+hf.of_le_mul (ae_strongly_measurable.inner ae_strongly_measurable_const hf.1)
+  (eventually_of_forall (λ x, norm_inner_le_norm _ _))
+
+lemma mem_ℒp.inner_const {f : α → E} (hf : mem_ℒp f p μ) (c : E) :
+  mem_ℒp (λ a, ⟪f a, c⟫) p μ :=
+hf.of_le_mul (ae_strongly_measurable.inner hf.1 ae_strongly_measurable_const)
+  (eventually_of_forall (λ x, by { rw mul_comm, exact norm_inner_le_norm _ _, }))
+
+variables {f : α → E}
+
+lemma integrable.const_inner (c : E) (hf : integrable f μ) : integrable (λ x, ⟪c, f x⟫) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner c, }
+
+lemma integrable.inner_const (hf : integrable f μ) (c : E) : integrable (λ x, ⟪f x, c⟫) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.inner_const c, }
+
+variables [complete_space E] [normed_space ℝ E]
+
+lemma _root_.integral_inner {f : α → E} (hf : integrable f μ) (c : E) :
+  ∫ x, ⟪c, f x⟫ ∂μ = ⟪c, ∫ x, f x ∂μ⟫ :=
+((innerSL 𝕜 c).restrict_scalars ℝ).integral_comp_comm hf
+
+variables (𝕜)
+-- variable binder update doesn't work for lemmas which refer to `𝕜` only via the notation
+local notation (name := inner_with_explicit) `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+
+lemma _root_.integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E) (hf : integrable f μ)
+  (hf_int : ∀ (c : E), ∫ x, ⟪c, f x⟫ ∂μ = 0) :
+  ∫ x, f x ∂μ = 0 :=
+by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
+
+end inner_product_space
+
 namespace L2
 
 variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
-  [inner_product_space 𝕜 E] [normed_add_comm_group F]
+  [normed_add_comm_group E] [inner_product_space 𝕜 E] [normed_add_comm_group F]
 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
@@ -72,19 +115,17 @@ end
 
 lemma snorm_inner_lt_top (f g : α →₂[μ] E) : snorm (λ (x : α), ⟪f x, g x⟫) 1 μ < ∞ :=
 begin
-  have h : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ‖f x‖ * ‖g x‖, from λ x, abs_inner_le_norm _ _,
-  have h' : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ is_R_or_C.abs (‖f x‖^2 + ‖g x‖^2),
-  { refine λ x, le_trans (h x) _,
-    rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
-    swap, { exact add_nonneg (by simp) (by simp), },
-    refine le_trans _ (half_le_self (add_nonneg (sq_nonneg _) (sq_nonneg _))),
-    refine (le_div_iff (zero_lt_two' ℝ)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
-    ring, },
-  simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
-  refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
+  have h : ∀ x, ‖⟪f x, g x⟫‖ ≤ ‖‖f x‖ ^ (2 : ℝ) + ‖g x‖ ^ (2 : ℝ)‖,
+  { intro x,
+    rw [← @nat.cast_two ℝ, real.rpow_nat_cast, real.rpow_nat_cast],
+    calc ‖⟪f x, g x⟫‖ ≤ ‖f x‖ * ‖g x‖ : norm_inner_le_norm _ _
+    ... ≤ 2 * ‖f x‖ * ‖g x‖ :
+      mul_le_mul_of_nonneg_right (le_mul_of_one_le_left (norm_nonneg _) one_le_two) (norm_nonneg _)
+    ... ≤ ‖‖f x‖^2 + ‖g x‖^2‖ : (two_mul_le_add_sq _ _).trans (le_abs_self _) },
+  refine (snorm_mono_ae (ae_of_all _ h)).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
   { exact ((Lp.ae_strongly_measurable f).norm.ae_measurable.pow_const _).ae_strongly_measurable },
   { exact ((Lp.ae_strongly_measurable g).norm.ae_measurable.pow_const _).ae_strongly_measurable },
-  simp only [nat.cast_bit0, ennreal.add_lt_top, nat.cast_one],
+  rw [ennreal.add_lt_top],
   exact ⟨snorm_rpow_two_norm_lt_top f, snorm_rpow_two_norm_lt_top g⟩,
 end
 
@@ -158,7 +199,7 @@ end
 
 instance inner_product_space : inner_product_space 𝕜 (α →₂[μ] E) :=
 { norm_sq_eq_inner := norm_sq_eq_inner',
-  conj_sym := λ _ _, by simp_rw [inner_def, ← integral_conj, inner_conj_sym],
+  conj_symm := λ _ _, by simp_rw [inner_def, ← integral_conj, inner_conj_symm],
   add_left := add_left',
   smul_left := smul_left', }
 
@@ -195,7 +236,7 @@ begin
       from indicator_const_Lp_coe_fn_nmem,
     refine h_indicator.mono (λ x hx hxs, _),
     rw hx hxs,
-    exact inner_zero_left, },
+    exact inner_zero_left _, },
   rw [h_left, h_right, add_zero],
 end
 

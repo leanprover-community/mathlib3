@@ -13,6 +13,9 @@ import logic.equiv.fintype
 /-!
 # Cyclic permutations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops the theory of cycles in permutations.
 
 ## Main definitions
@@ -733,7 +736,7 @@ lemma is_cycle_on.zpow_apply_eq {s : finset α} (hf : f.is_cycle_on s) (ha : a �
   ∀ {n : ℤ}, (f ^ n) a = a ↔ (s.card : ℤ) ∣ n
 | (int.of_nat n) := (hf.pow_apply_eq ha).trans int.coe_nat_dvd.symm
 | (int.neg_succ_of_nat n) := by { rw [zpow_neg_succ_of_nat, ←inv_pow],
-    exact (hf.inv.pow_apply_eq ha).trans ((dvd_neg _ _).trans int.coe_nat_dvd).symm }
+    exact (hf.inv.pow_apply_eq ha).trans (dvd_neg.trans int.coe_nat_dvd).symm }
 
 lemma is_cycle_on.pow_apply_eq_pow_apply {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s)
   {m n : ℕ} : (f ^ m) a = (f ^ n) a ↔ m ≡ n [MOD s.card] :=

@@ -9,6 +9,9 @@ import algebra.hom.equiv.type_tags
 /-!
 # Equivalence between `Group` and `AddGroup`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains two equivalences:
 * `Group_AddGroup_equivalence` : the equivalence between `Group` and `AddGroup` by sending
   `X : Group` to `additive X` and `Y : AddGroup` to `multiplicative Y`.

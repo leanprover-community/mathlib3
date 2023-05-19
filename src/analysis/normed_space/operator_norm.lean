@@ -12,6 +12,9 @@ import topology.algebra.module.strong_topology
 /-!
 # Operator norm on the space of continuous linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define the operator norm on the space of continuous (semi)linear maps between normed spaces, and
 prove its basic properties. In particular, show that this space is itself a normed space.
 
@@ -789,9 +792,12 @@ linear_map.mk_continuous₂
                                    function.comp_app, pi.smul_apply] }))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
-variables {𝕜 σ₁₂ σ₂₃ E F G}
-
 include σ₁₃
+
+lemma norm_compSL_le : ‖compSL E F G σ₁₂ σ₂₃‖ ≤ 1 :=
+linear_map.mk_continuous₂_norm_le _ zero_le_one _
+
+variables {𝕜 σ₁₂ σ₂₃ E F G}
 
 @[simp] lemma compSL_apply (f : F →SL[σ₂₃] G) (g : E →SL[σ₁₂] F) :
   compSL E F G σ₁₂ σ₂₃ f g = f.comp g := rfl
@@ -811,7 +817,10 @@ variables (𝕜 σ₁₂ σ₂₃ E Fₗ Gₗ)
 
 /-- Composition of continuous linear maps as a continuous bilinear map. -/
 def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E →L[𝕜] Gₗ) :=
-  compSL E Fₗ Gₗ (ring_hom.id 𝕜) (ring_hom.id 𝕜)
+compSL E Fₗ Gₗ (ring_hom.id 𝕜) (ring_hom.id 𝕜)
+
+lemma norm_compL_le : ‖compL 𝕜 E Fₗ Gₗ‖ ≤ 1 :=
+norm_compSL_le _ _ _ _ _
 
 @[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
 
@@ -824,6 +833,14 @@ def precompR (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : E →L[𝕜] (Eₗ →L[�
 /-- Apply `L(-,y)` pointwise to bilinear maps, as a continuous bilinear map -/
 def precompL (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : (Eₗ →L[𝕜] E) →L[𝕜] Fₗ →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
 (precompR Eₗ (flip L)).flip
+
+lemma norm_precompR_le (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : ‖precompR Eₗ L‖ ≤ ‖L‖ := calc
+‖precompR Eₗ L‖ ≤ ‖compL 𝕜 Eₗ Fₗ Gₗ‖ * ‖L‖ : op_norm_comp_le _ _
+...            ≤ 1 * ‖L‖ : mul_le_mul_of_nonneg_right (norm_compL_le _ _ _ _) (norm_nonneg _)
+...            = ‖L‖ : by rw one_mul
+
+lemma norm_precompL_le (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : ‖precompL Eₗ L‖ ≤ ‖L‖ :=
+by { rw [precompL, op_norm_flip, ← op_norm_flip L], exact norm_precompR_le _ L.flip }
 
 section prod
 
@@ -908,6 +925,9 @@ def mul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (linear_map.mul 𝕜 𝕜')
 @[simp] lemma op_norm_mul_apply_le (x : 𝕜') : ‖mul 𝕜 𝕜' x‖ ≤ ‖x‖ :=
 (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
 
+lemma op_norm_mul_le : ‖mul 𝕜 𝕜'‖ ≤ 1 :=
+linear_map.mk_continuous₂_norm_le _ zero_le_one _
+
 /-- Simultaneous left- and right-multiplication in a non-unital normed algebra, considered as a
 continuous trilinear map. This is akin to its non-continuous version `linear_map.mul_left_right`,
 but there is a minor difference: `linear_map.mul_left_right` is uncurried. -/
@@ -962,7 +982,7 @@ variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
-  λ c x, by simpa only [one_mul] using (norm_smul c x).le
+  λ c x, by simpa only [one_mul] using norm_smul_le c x
 
 @[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
 
@@ -980,7 +1000,7 @@ end
 variables {𝕜}
 
 lemma op_norm_lsmul_apply_le (x : 𝕜') : ‖(lsmul 𝕜 𝕜' x : E →L[𝕜] E)‖ ≤ ‖x‖ :=
-continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) $ λ y, (norm_smul x y).le
+continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) $ λ y, norm_smul_le x y
 
 /-- The norm of `lsmul` is at most 1 in any semi-normed group. -/
 lemma op_norm_lsmul_le : ‖(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)‖ ≤ 1 :=

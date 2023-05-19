@@ -10,6 +10,9 @@ import data.set_like.basic
 /-!
 # Ends
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a definition of the ends of a simple graph, as sections of the inverse system
 assigning, to each finite set of vertices, the connected components of its complement.
 -/
@@ -45,7 +48,7 @@ end
 lemma component_compl.supp_inj {C D : G.component_compl K} : C.supp = D.supp ↔ C = D :=
 component_compl.supp_injective.eq_iff
 
-instance : set_like (G.component_compl K) V :=
+instance component_compl.set_like : set_like (G.component_compl K) V :=
 { coe := component_compl.supp,
   coe_injective' := λ C D, (component_compl.supp_inj).mp, }
 

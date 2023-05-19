@@ -35,20 +35,23 @@ open_locale real_inner_product_space
 
 namespace quaternion
 
-instance : has_inner ℝ ℍ := ⟨λ a b, (a * b.conj).re⟩
+instance : has_inner ℝ ℍ := ⟨λ a b, (a * star b).re⟩
 
 lemma inner_self (a : ℍ) : ⟪a, a⟫ = norm_sq a := rfl
 
-lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * b.conj).re := rfl
+lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * star b).re := rfl
 
-noncomputable instance : inner_product_space ℝ ℍ :=
-inner_product_space.of_core
-{ inner := has_inner.inner,
-  conj_sym := λ x y, by simp [inner_def, mul_comm],
+noncomputable instance : normed_add_comm_group ℍ :=
+@inner_product_space.core.to_normed_add_comm_group ℝ ℍ _ _ _
+{ to_has_inner := infer_instance,
+  conj_symm := λ x y, by simp [inner_def, mul_comm],
   nonneg_re := λ x, norm_sq_nonneg,
   definite := λ x, norm_sq_eq_zero.1,
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
   smul_left := λ x y r, by simp [inner_def] }
+
+noncomputable instance : inner_product_space ℝ ℍ :=
+inner_product_space.of_core _
 
 lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ‖a‖ * ‖a‖ :=
 by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
@@ -62,11 +65,11 @@ by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, re
 @[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ‖(a : ℍ)‖₊ = ‖a‖₊ :=
 subtype.ext $ norm_coe a
 
-@[simp] lemma norm_conj (a : ℍ) : ‖conj a‖ = ‖a‖ :=
-by simp_rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_conj]
+@[simp] lemma norm_star (a : ℍ) : ‖star a‖ = ‖a‖ :=
+by simp_rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_star]
 
-@[simp] lemma nnnorm_conj (a : ℍ) : ‖conj a‖₊ = ‖a‖₊ :=
-subtype.ext $ norm_conj a
+@[simp] lemma nnnorm_star (a : ℍ) : ‖star a‖₊ = ‖a‖₊ :=
+subtype.ext $ norm_star a
 
 noncomputable instance : normed_division_ring ℍ :=
 { dist_eq := λ _ _, rfl,
@@ -74,11 +77,11 @@ noncomputable instance : normed_division_ring ℍ :=
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
 instance : normed_algebra ℝ ℍ :=
-{ norm_smul_le := λ a x, (norm_smul a x).le,
+{ norm_smul_le := norm_smul_le,
   to_algebra := (quaternion.algebra : algebra ℝ ℍ) }
 
 instance : cstar_ring ℍ :=
-{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ‖x‖) (norm_conj x) }
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ‖x‖) (norm_star x) }
 
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩
 
@@ -125,9 +128,6 @@ noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_spa
   ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
       (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
 
-@[continuity] lemma continuous_conj : continuous (conj : ℍ → ℍ) :=
-continuous_star
-
 @[continuity] lemma continuous_coe : continuous (coe : ℝ → ℍ) :=
 continuous_algebra_map ℝ ℍ
 
@@ -156,5 +156,30 @@ begin
     linear_isometry_equiv_tuple.to_continuous_linear_equiv.symm.uniform_embedding,
   exact (complete_space_congr this).1 (by apply_instance)
 end
+
+section infinite_sum
+variables {α : Type*}
+
+@[simp, norm_cast] lemma has_sum_coe {f : α → ℝ} {r : ℝ} :
+  has_sum (λ a, (f a : ℍ)) (↑r : ℍ) ↔ has_sum f r :=
+⟨λ h, by simpa only using
+  h.map (show ℍ →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _) continuous_re,
+  λ h, by simpa only using h.map (algebra_map ℝ ℍ) (continuous_algebra_map _ _)⟩
+
+@[simp, norm_cast]
+lemma summable_coe {f : α → ℝ} : summable (λ a, (f a : ℍ)) ↔ summable f :=
+by simpa only using summable.map_iff_of_left_inverse (algebra_map ℝ ℍ)
+  (show ℍ →ₗ[ℝ] ℝ, from quaternion_algebra.re_lm _ _)
+  (continuous_algebra_map _ _) continuous_re coe_re
+
+@[norm_cast] lemma tsum_coe (f : α → ℝ) : ∑' a, (f a : ℍ) = ↑(∑' a, f a) :=
+begin
+  by_cases hf : summable f,
+  { exact (has_sum_coe.mpr hf.has_sum).tsum_eq, },
+  { simp [tsum_eq_zero_of_not_summable hf,
+      tsum_eq_zero_of_not_summable (summable_coe.not.mpr hf)] },
+end
+
+end infinite_sum
 
 end quaternion

@@ -8,6 +8,9 @@ import category_theory.sites.dense_subsite
 /-!
 # Induced Topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a functor `G : C ⥤ (D, K)` is locally dense if for each covering sieve `T` in `D` of
 some `X : C`, `T ∩ mor(C)` generates a covering sieve of `X` in `D`. A locally dense fully faithful
 functor then induces a topology on `C` via `{ T ∩ mor(C) | T ∈ K }`. Note that this is equal to

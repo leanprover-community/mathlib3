@@ -12,6 +12,9 @@ import topology.bornology.constructions
 /-!
 # Metric spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines metric spaces. Many definitions and theorems expected
 on metric spaces are already introduced on uniform spaces and topological spaces.
 For example: open and closed sets, compactness, completeness, continuity and uniform continuity
@@ -1643,6 +1646,9 @@ is_closed_eq (continuous_id.dist continuous_const) continuous_const
 
 @[simp] theorem closure_closed_ball : closure (closed_ball x ε) = closed_ball x ε :=
 is_closed_ball.closure_eq
+
+@[simp] theorem closure_sphere : closure (sphere x ε) = sphere x ε :=
+is_closed_sphere.closure_eq
 
 theorem closure_ball_subset_closed_ball : closure (ball x ε) ⊆ closed_ball x ε :=
 closure_minimal ball_subset_closed_ball is_closed_ball

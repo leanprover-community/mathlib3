@@ -6,10 +6,12 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 import analysis.asymptotics.theta
 import analysis.complex.basic
 import analysis.specific_limits.normed
-import data.complex.exponential
 
 /-!
 # Complex and real exponential
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove continuity of `complex.exp` and `real.exp`. We also prove a few facts about
 limits of `real.exp` at infinity.

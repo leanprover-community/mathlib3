@@ -5,10 +5,15 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.char_p.basic
+import data.polynomial.algebra_map
+import data.mv_polynomial.variables
 import linear_algebra.finsupp_vector_space
 
 /-!
 # Multivariate polynomials over commutative rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains basic facts about multivariate polynomials over commutative rings, for example
 that the monomials form a basis.
@@ -33,8 +38,6 @@ Generalise to noncommutative (semi)rings
 -/
 
 noncomputable theory
-
-open_locale classical
 
 open set linear_map submodule
 open_locale big_operators polynomial
@@ -94,10 +97,10 @@ begin
   refl
 end
 
-lemma mem_restrict_degree_iff_sup (p : mv_polynomial σ R) (n : ℕ) :
+lemma mem_restrict_degree_iff_sup [decidable_eq σ] (p : mv_polynomial σ R) (n : ℕ) :
   p ∈ restrict_degree σ R n ↔ ∀i, p.degrees.count i ≤ n :=
 begin
-  simp only [mem_restrict_degree, degrees, multiset.count_finset_sup, finsupp.count_to_multiset,
+  simp only [mem_restrict_degree, degrees_def, multiset.count_finset_sup, finsupp.count_to_multiset,
     finset.sup_le_iff],
   exact ⟨assume h n s hs, h s hs n, assume h s hs n, h n s hs⟩
 end
@@ -123,7 +126,7 @@ end mv_polynomial
 /- this is here to avoid import cycle issues -/
 namespace polynomial
 
-/-- The monomials form a basis on `polynomial R`. -/
+/-- The monomials form a basis on `R[X]`. -/
 noncomputable def basis_monomials : basis ℕ R R[X] :=
 basis.of_repr (to_finsupp_iso_alg R).to_linear_equiv
 

@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Almost everywhere measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function is almost everywhere measurable if it coincides almost everywhere with a measurable
 function. This property, called `ae_measurable f μ`, is defined in the file `measure_space_def`.
 We discuss several of its properties that are analogous to properties of measurable functions.
@@ -58,7 +61,7 @@ lemma ae_inf_principal_eq_mk {s} (h : ae_measurable f (μ.restrict s)) :
 le_ae_restrict h.ae_eq_mk
 
 @[measurability]
-lemma sum_measure [encodable ι] {μ : ι → measure α} (h : ∀ i, ae_measurable f (μ i)) :
+lemma sum_measure [countable ι] {μ : ι → measure α} (h : ∀ i, ae_measurable f (μ i)) :
   ae_measurable f (sum μ) :=
 begin
   nontriviality β, inhabit β,
@@ -77,7 +80,7 @@ begin
     refine ⟨⋃ i, ((h i).mk f ⁻¹' t) ∩ (s i)ᶜ, measurable_set.Union $
       λ i, (measurable_mk _ ht).inter (measurable_set_to_measurable _ _).compl, _⟩,
     ext ⟨x, hx⟩,
-    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_eq,
+    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_iff,
       mem_compl_iff] at hx ⊢,
     split,
     { rintro ⟨i, hxt, hxs⟩, rwa hs _ _ hxs },
@@ -87,7 +90,7 @@ begin
     exact λ h, hx (mem_Inter.1 h i) }
 end
 
-@[simp] lemma _root_.ae_measurable_sum_measure_iff [encodable ι] {μ : ι → measure α} :
+@[simp] lemma _root_.ae_measurable_sum_measure_iff [countable ι] {μ : ι → measure α} :
   ae_measurable f (sum μ) ↔ ∀ i, ae_measurable f (μ i) :=
 ⟨λ h i, h.mono_measure (le_sum _ _), sum_measure⟩
 
@@ -101,11 +104,11 @@ lemma add_measure {f : α → β} (hμ : ae_measurable f μ) (hν : ae_measurabl
 ae_measurable_add_measure_iff.2 ⟨hμ, hν⟩
 
 @[measurability]
-protected lemma Union [encodable ι] {s : ι → set α} (h : ∀ i, ae_measurable f (μ.restrict (s i))) :
+protected lemma Union [countable ι] {s : ι → set α} (h : ∀ i, ae_measurable f (μ.restrict (s i))) :
   ae_measurable f (μ.restrict (⋃ i, s i)) :=
 (sum_measure h).mono_measure $ restrict_Union_le
 
-@[simp] lemma _root_.ae_measurable_Union_iff [encodable ι] {s : ι → set α} :
+@[simp] lemma _root_.ae_measurable_Union_iff [countable ι] {s : ι → set α} :
   ae_measurable f (μ.restrict (⋃ i, s i)) ↔ ∀ i, ae_measurable f (μ.restrict (s i)) :=
 ⟨λ h i, h.mono_measure $ restrict_mono (subset_Union _ _) le_rfl, ae_measurable.Union⟩
 
@@ -129,9 +132,9 @@ lemma comp_measurable {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
-lemma comp_measurable' {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
-  (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
-(hg.mono' h).comp_measurable hf
+lemma comp_quasi_measure_preserving {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
+  (hf : quasi_measure_preserving f μ ν) : ae_measurable (g ∘ f) μ :=
+(hg.mono' hf.absolutely_continuous).comp_measurable hf.measurable
 
 lemma map_map_of_ae_measurable {g : β → γ} {f : α → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
@@ -171,7 +174,7 @@ begin
     { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
       contrapose! hx,
       apply subset_to_measurable,
-      simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
+      simp only [hx, mem_compl_iff, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
         {contextual := tt} } },
   { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
     { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
@@ -181,7 +184,7 @@ begin
     simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
     contrapose! hx,
     apply subset_to_measurable,
-    simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
+    simp only [hx, mem_compl_iff, mem_set_of_eq, false_and, not_false_iff] }
 end
 
 lemma exists_measurable_nonneg {β} [preorder β] [has_zero β] {mβ : measurable_space β} {f : α → β}
@@ -208,10 +211,19 @@ let ⟨g, hgm, hg⟩ := h in hgm.null_measurable.congr hg.symm
 
 end ae_measurable
 
-lemma ae_measurable_interval_oc_iff [linear_order α] {f : α → β} {a b : α} :
+lemma ae_measurable_const' (h : ∀ᵐ x y ∂μ, f x = f y) : ae_measurable f μ :=
+begin
+  rcases eq_or_ne μ 0 with rfl | hμ,
+  { exact ae_measurable_zero_measure },
+  { haveI := ae_ne_bot.2 hμ,
+    rcases h.exists with ⟨x, hx⟩,
+    exact ⟨const α (f x), measurable_const, eventually_eq.symm hx⟩ }
+end
+
+lemma ae_measurable_uIoc_iff [linear_order α] {f : α → β} {a b : α} :
   (ae_measurable f $ μ.restrict $ Ι a b) ↔
     (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
-by rw [interval_oc_eq_union, ae_measurable_union_iff]
+by rw [uIoc_eq_union, ae_measurable_union_iff]
 
 lemma ae_measurable_iff_measurable [μ.is_complete] :
   ae_measurable f μ ↔ measurable f :=
@@ -274,18 +286,15 @@ lemma ae_measurable_Ioi_of_forall_Ioc {β} {mβ : measurable_space β}
   ae_measurable g (μ.restrict (Ioi x)) :=
 begin
   haveI : nonempty α := ⟨x⟩,
-  haveI : (at_top : filter α).ne_bot := at_top_ne_bot,
   obtain ⟨u, hu_tendsto⟩ := exists_seq_tendsto (at_top : filter α),
   have Ioi_eq_Union : Ioi x = ⋃ n : ℕ, Ioc x (u n),
   { rw Union_Ioc_eq_Ioi_self_iff.mpr _,
-    rw tendsto_at_top_at_top at hu_tendsto,
-    exact λ y _, ⟨(hu_tendsto y).some, (hu_tendsto y).some_spec (hu_tendsto y).some le_rfl⟩, },
+    exact λ y _, (hu_tendsto.eventually (eventually_ge_at_top y)).exists },
   rw [Ioi_eq_Union, ae_measurable_Union_iff],
   intros n,
   cases lt_or_le x (u n),
   { exact g_meas (u n) h, },
-  { rw Ioc_eq_empty (not_lt.mpr h),
-    simp only [measure.restrict_empty],
+  { rw [Ioc_eq_empty (not_lt.mpr h), measure.restrict_empty],
     exact ae_measurable_zero_measure, },
 end
 

@@ -9,6 +9,9 @@ import data.matrix.basic
 /-!
 # Incidence matrix of a simple graph
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the unoriented incidence matrix of a simple graph.
 
 ## Main definitions
@@ -70,7 +73,7 @@ lemma inc_matrix_apply_mul_inc_matrix_apply :
 begin
   classical,
   simp only [inc_matrix, set.indicator_apply, ←ite_and_mul_zero,
-    pi.one_apply, mul_one, set.mem_inter_eq],
+    pi.one_apply, mul_one, set.mem_inter_iff],
 end
 
 lemma inc_matrix_apply_mul_inc_matrix_apply_of_not_adj (hab : a ≠ b) (h : ¬ G.adj a b) :
@@ -97,7 +100,7 @@ begin
 end
 
 lemma inc_matrix_apply_eq_one_iff : G.inc_matrix R a e = 1 ↔ e ∈ G.incidence_set a :=
-by { convert one_ne_zero.ite_eq_left_iff, assumption }
+by { convert one_ne_zero.ite_eq_left_iff, apply_instance }
 
 end mul_zero_one_class
 

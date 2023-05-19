@@ -3,10 +3,11 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
+import algebra.dual_number
 import algebra.quaternion_basis
 import data.complex.module
 import linear_algebra.clifford_algebra.conjugation
-import algebra.dual_number
+import linear_algebra.clifford_algebra.star
 import linear_algebra.quadratic_form.prod
 
 /-!
@@ -46,8 +47,8 @@ is the same as `clifford_algebra.involute`.
 We show additionally that this equivalence sends `quaternion_algebra.conj` to the clifford conjugate
 and vice-versa:
 
-* `clifford_algebra_quaternion.to_quaternion_involute_reverse`
-* `clifford_algebra_quaternion.of_quaternion_conj`
+* `clifford_algebra_quaternion.to_quaternion_star`
+* `clifford_algebra_quaternion.of_quaternion_star`
 
 ## Dual numbers
 
@@ -270,22 +271,22 @@ lemma to_quaternion_ι (v : R × R) :
   to_quaternion (ι (Q c₁ c₂) v) = (⟨0, v.1, v.2, 0⟩ : ℍ[R,c₁,c₂]) :=
 clifford_algebra.lift_ι_apply _ _ v
 
-/-- The "clifford conjugate" (aka `involute ∘ reverse = reverse ∘ involute`) maps to the quaternion
-conjugate. -/
-lemma to_quaternion_involute_reverse (c : clifford_algebra (Q c₁ c₂)) :
-  to_quaternion (involute (reverse c)) = quaternion_algebra.conj (to_quaternion c) :=
+/-- The "clifford conjugate" maps to the quaternion conjugate. -/
+lemma to_quaternion_star (c : clifford_algebra (Q c₁ c₂)) :
+  to_quaternion (star c) = star (to_quaternion c) :=
 begin
+  simp only [clifford_algebra.star_def'],
   induction c using clifford_algebra.induction,
   case h_grade0 : r
   { simp only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
-      quaternion_algebra.conj_coe], },
+      quaternion_algebra.star_coe], },
   case h_grade1 : x
   { rw [reverse_ι, involute_ι, to_quaternion_ι, alg_hom.map_neg, to_quaternion_ι,
-      quaternion_algebra.neg_mk, conj_mk, neg_zero], },
+      quaternion_algebra.neg_mk, star_mk, neg_zero], },
   case h_mul : x₁ x₂ hx₁ hx₂
-  { simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
+  { simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, star_mul] },
   case h_add : x₁ x₂ hx₁ hx₂
-  { simp only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
+  { simp only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, star_add] },
 end
 
 /-- Map a quaternion into the clifford algebra. -/
@@ -337,12 +338,11 @@ alg_equiv.of_alg_hom to_quaternion of_quaternion
   to_quaternion_comp_of_quaternion
   of_quaternion_comp_to_quaternion
 
-/-- The quaternion conjugate maps to the "clifford conjugate" (aka
-`involute ∘ reverse = reverse ∘ involute`). -/
-@[simp] lemma of_quaternion_conj (q : ℍ[R,c₁,c₂]) :
-  of_quaternion (q.conj) = (of_quaternion q).reverse.involute :=
+/-- The quaternion conjugate maps to the "clifford conjugate" (aka `star`). -/
+@[simp] lemma of_quaternion_star (q : ℍ[R,c₁,c₂]) :
+  of_quaternion (star q) = star (of_quaternion q) :=
 clifford_algebra_quaternion.equiv.injective $
-  by rw [equiv_apply, equiv_apply, to_quaternion_involute_reverse, to_quaternion_of_quaternion,
+  by rw [equiv_apply, equiv_apply, to_quaternion_star, to_quaternion_of_quaternion,
     to_quaternion_of_quaternion]
 
 -- this name is too short for us to want it visible after `open clifford_algebra_quaternion`

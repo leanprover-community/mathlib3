@@ -28,7 +28,7 @@ variables [comm_ring R] [add_comm_group M] [add_comm_group N] [add_comm_group N'
 variables [module R M] [module R N] [module R N']
 
 -- This instance can't be found where it's needed if we don't remind lean that it exists.
-instance alternating_map.module_add_comm_group {ι : Type*} [decidable_eq ι] :
+instance alternating_map.module_add_comm_group {ι : Type*} :
   module R (alternating_map R M N ι) :=
 by apply_instance
 
@@ -137,7 +137,7 @@ begin
   { rw [lift_alternating_algebra_map, ι_multi_zero_apply, algebra.algebra_map_eq_smul_one] },
   { rw [map_add, hx, hy] },
   { simp_rw [lift_alternating_ι_mul, ι_multi_succ_curry_left, lift_alternating_comp,
-      linear_map.comp_apply, algebra.lmul_left_apply, hx] },
+      linear_map.comp_apply, linear_map.mul_left_apply, hx] },
 end
 
 /-- `exterior_algebra.lift_alternating` is an equivalence. -/

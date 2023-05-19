@@ -5,7 +5,6 @@ Authors: Anatole Dedecker
 -/
 import analysis.normed_space.exponential
 import analysis.calculus.fderiv_analytic
-import data.complex.exponential
 import topology.metric_space.cau_seq_filter
 
 /-!
@@ -45,11 +44,11 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 -/
 
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
-open_locale nat topological_space big_operators ennreal
+open_locale nat topology big_operators ennreal
 
 section any_field_any_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
 /-- The exponential in a Banach-algebra `𝔸` over a normed field `𝕂` has strict Fréchet-derivative
@@ -73,7 +72,7 @@ end any_field_any_algebra
 
 section any_field_comm_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
 /-- The exponential map in a commutative Banach-algebra `𝔸` over a normed field `𝕂` of
@@ -110,7 +109,7 @@ end any_field_comm_algebra
 
 section deriv
 
-variables {𝕂 : Type*} [nondiscrete_normed_field 𝕂] [complete_space 𝕂]
+variables {𝕂 : Type*} [nontrivially_normed_field 𝕂] [complete_space 𝕂]
 
 /-- The exponential map in a complete normed field `𝕂` of characteristic zero has strict derivative
 `exp 𝕂 x` at any point `x` in the disk of convergence. -/
@@ -202,8 +201,6 @@ has_strict_deriv_at_exp_zero.has_deriv_at
 
 end deriv_R_or_C
 
-section complex
-
 lemma complex.exp_eq_exp_ℂ : complex.exp = exp ℂ :=
 begin
   refine funext (λ x, _),
@@ -212,18 +209,5 @@ begin
     (exp_series_div_summable ℝ x).has_sum.tendsto_sum_nat
 end
 
-end complex
-
-section real
-
 lemma real.exp_eq_exp_ℝ : real.exp = exp ℝ :=
-begin
-  refine funext (λ x, _),
-  rw [real.exp, complex.exp_eq_exp_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp_eq_tsum, exp_eq_tsum_div,
-      ← re_to_complex, ← re_clm_apply, re_clm.map_tsum (exp_series_summable' (x : ℂ))],
-  refine tsum_congr (λ n, _),
-  rw [re_clm.map_smul, ← complex.of_real_pow, re_clm_apply, re_to_complex, complex.of_real_re,
-      smul_eq_mul, div_eq_inv_mul]
-end
-
-end real
+by { ext x, exact_mod_cast congr_fun complex.exp_eq_exp_ℂ x }

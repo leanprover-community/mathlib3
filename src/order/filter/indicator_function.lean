@@ -9,6 +9,9 @@ import order.filter.at_top_bot
 /-!
 # Indicator function and filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Properties of indicator functions involving `=ᶠ` and `≤ᶠ`.
 
 ## Tags

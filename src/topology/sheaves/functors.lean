@@ -19,15 +19,15 @@ TODO: pullback for presheaves and sheaves
 
 noncomputable theory
 
-universes v u u₁
+universes w v u
 
 open category_theory
 open category_theory.limits
 open topological_space
 
-variables {C : Type u₁} [category.{v} C]
-variables {X Y : Top.{v}} (f : X ⟶ Y)
-variables ⦃ι : Type v⦄ {U : ι → opens Y}
+variables {C : Type u} [category.{v} C]
+variables {X Y : Top.{w}} (f : X ⟶ Y)
+variables ⦃ι : Type w⦄ {U : ι → opens Y}
 
 namespace Top
 namespace presheaf.sheaf_condition_pairwise_intersections
@@ -66,13 +66,11 @@ namespace sheaf
 
 open presheaf
 
-variables [has_products.{v} C]
-
 /--
 The pushforward of a sheaf (by a continuous map) is a sheaf.
 -/
 theorem pushforward_sheaf_of_sheaf
-  {F : presheaf C X} (h : F.is_sheaf) : (f _* F).is_sheaf :=
+  {F : X.presheaf C} (h : F.is_sheaf) : (f _* F).is_sheaf :=
 by rw is_sheaf_iff_is_sheaf_pairwise_intersections at h ⊢;
    exact sheaf_condition_pairwise_intersections.pushforward_sheaf_of_sheaf f h
 
@@ -81,7 +79,7 @@ The pushforward functor.
 -/
 def pushforward (f : X ⟶ Y) : X.sheaf C ⥤ Y.sheaf C :=
 { obj := λ ℱ, ⟨f _* ℱ.1, pushforward_sheaf_of_sheaf f ℱ.2⟩,
-  map := λ _ _, pushforward_map f }
+  map := λ _ _ g, ⟨pushforward_map f g.1⟩ }
 
 end sheaf
 

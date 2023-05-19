@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen, Yaël Dillies
 -/
 import algebra.punit_instances
-import order.hom.lattice
 import tactic.abel
 import tactic.ring
+import order.hom.lattice
 
 /-!
 # Boolean rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A Boolean ring is a ring where multiplication is idempotent. They are equivalent to Boolean
 algebras.
@@ -63,7 +66,7 @@ calc -a = -a + 0      : by rw add_zero
     ... = -a + -a + a : by rw [←neg_add_self, add_assoc]
     ... = a           : by rw [add_self, zero_add]
 
-lemma add_eq_zero : a + b = 0 ↔ a = b :=
+lemma add_eq_zero' : a + b = 0 ↔ a = b :=
 calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
            ... ↔ a = b  : by rw neg_eq
 
@@ -82,7 +85,7 @@ by rw [sub_eq_add_neg, add_right_inj, neg_eq]
 
 @[priority 100] -- Note [lower instance priority]
 instance boolean_ring.to_comm_ring : comm_ring α :=
-{ mul_comm := λ a b, by rw [←add_eq_zero, mul_add_mul],
+{ mul_comm := λ a b, by rw [←add_eq_zero', mul_add_mul],
   .. (infer_instance : boolean_ring α) }
 
 end boolean_ring
@@ -164,7 +167,6 @@ The data is defined so that:
 * `a \ b` unfolds to `a * (1 + b)`
 -/
 def to_boolean_algebra : boolean_algebra α :=
-boolean_algebra.of_core
 { le_sup_inf := le_sup_inf,
   top := 1,
   le_top := λ a, show a + 1 + a * 1 = 1, by assoc_rw [mul_one, add_comm, add_self, add_zero],
@@ -360,7 +362,7 @@ from `α` to `β` considered as Boolean rings. -/
 { to_fun := to_boolring ∘ f ∘ of_boolring,
   map_zero' := f.map_bot',
   map_one' := f.map_top',
-  map_add' := map_symm_diff f,
+  map_add' := map_symm_diff' f,
   map_mul' := f.map_inf' }
 
 @[simp] lemma bounded_lattice_hom.as_boolring_id :

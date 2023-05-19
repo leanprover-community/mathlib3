@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.group.defs
-import logic.equiv.basic
+import logic.equiv.defs
 import logic.nontrivial
 
 /-!
 # Multiplicative opposite and algebraic operations on it
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `mul_opposite α = αᵐᵒᵖ` to be the multiplicative opposite of `α`. It inherits
 all additive algebraic structures on `α` (in other files), and reverses the order of multipliers in
@@ -206,6 +209,6 @@ instance [has_involutive_inv α] : has_involutive_inv αᵃᵒᵖ :=
 instance [has_div α] : has_div αᵃᵒᵖ := { div := λ a b, op (unop a / unop b) }
 
 @[simp] lemma op_div [has_div α] (a b : α) : op (a / b) = op a / op b := rfl
-@[simp] lemma unop_div [has_div α] (a b : α) : unop (a / b) = unop a / unop b := rfl
+@[simp] lemma unop_div [has_div α] (a b : αᵃᵒᵖ) : unop (a / b) = unop a / unop b := rfl
 
 end add_opposite

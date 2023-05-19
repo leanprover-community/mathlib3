@@ -6,9 +6,13 @@ Authors: Sébastien Gouëzel
 import analysis.specific_limits.basic
 import order.filter.countable_Inter
 import topology.G_delta
+import topology.sets.compacts
 
 /-!
 # Baire theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In a complete metric space, a countable intersection of dense open subsets is dense.
 
@@ -24,7 +28,7 @@ has the countable intersection property.
 
 noncomputable theory
 
-open_locale classical topological_space filter ennreal
+open_locale classical topology filter ennreal
 
 open filter encodable set topological_space
 
@@ -164,14 +168,14 @@ begin
   /- Prove that ̀`⋂ n : ℕ, K n` is inside `U ∩ ⋂ n : ℕ, (f n)`. -/
   have hK_subset : (⋂ n, K n : set α) ⊆ U ∩ (⋂ n, f n),
   { intros x hx,
-    simp only [mem_inter_eq, mem_Inter] at hx ⊢,
+    simp only [mem_inter_iff, mem_Inter] at hx ⊢,
     exact ⟨hK₀ $ hx 0, λ n, (hK_decreasing n (hx (n + 1))).1⟩ },
   /- Prove that `⋂ n : ℕ, K n` is not empty, as an intersection of a decreasing sequence
   of nonempty compact subsets.-/
   have hK_nonempty : (⋂ n, K n : set α).nonempty,
     from is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed _
       (λ n, (hK_decreasing n).trans (inter_subset_right _ _))
-      (λ n, (K n).nonempty) (K 0).compact (λ n, (K n).compact.is_closed),
+      (λ n, (K n).nonempty) (K 0).is_compact (λ n, (K n).is_compact.is_closed),
   exact hK_nonempty.mono hK_subset
 end
 
@@ -188,7 +192,7 @@ theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS :
 begin
   cases S.eq_empty_or_nonempty with h h,
   { simp [h] },
-  { rcases hS.exists_surjective h with ⟨f, hf⟩,
+  { rcases hS.exists_eq_range h with ⟨f, hf⟩,
     have F : ∀n, f n ∈ S := λn, by rw hf; exact mem_range_self _,
     rw [hf, sInter_range],
     exact dense_Inter_of_open_nat (λn, ho _ (F n)) (λn, hd _ (F n)) }

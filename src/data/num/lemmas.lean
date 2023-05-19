@@ -5,11 +5,15 @@ Authors: Mario Carneiro
 -/
 import data.num.bitwise
 import data.int.char_zero
-import data.nat.gcd
+import data.nat.gcd.basic
 import data.nat.psub
+import data.nat.size
 
 /-!
 # Properties of the binary representation of integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 local attribute [simp] add_assoc
@@ -320,8 +324,7 @@ try { intros, refl }; try { transfer };
 simp [add_comm, mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm]
 
 instance : ordered_cancel_add_comm_monoid num :=
-{ add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
-  lt                         := (<),
+{ lt                         := (<),
   lt_iff_le_not_le           := by {intros a b, transfer_rw, apply lt_iff_le_not_le},
   le                         := (≤),
   le_refl                    := by transfer,
@@ -991,9 +994,9 @@ variables {α : Type*}
 have (↑b + -↑a : α) = -↑a + ↑b, by rw [← pos_num.cast_to_int a, ← pos_num.cast_to_int b,
   ← int.cast_neg, ← int.cast_add (-a)]; simp [add_comm],
 (pos_num.cast_sub' _ _).trans $ (sub_eq_add_neg _ _).trans this
-| (neg a) (neg b) := show -(↑(a + b) : α) = -a + -b, by rw [
-  pos_num.cast_add, neg_eq_iff_neg_eq, neg_add_rev, neg_neg, neg_neg,
-  ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add]; simp [add_comm]
+| (neg a) (neg b) := show -(↑(a + b) : α) = -a + -b, by  rw [
+  pos_num.cast_add, neg_eq_iff_eq_neg, neg_add_rev, neg_neg, neg_neg,
+  ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add, ← int.cast_add, add_comm]
 
 @[simp] theorem cast_succ [add_group_with_one α] (n) : ((succ n : znum) : α) = n + 1 :=
 by rw [← add_one, cast_add, cast_one]

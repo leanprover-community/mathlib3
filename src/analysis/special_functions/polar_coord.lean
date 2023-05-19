@@ -3,6 +3,7 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.special_functions.trigonometric.deriv
 import measure_theory.function.jacobian
 
 /-!
@@ -19,7 +20,7 @@ It satisfies the following change of variables formula (see `integral_comp_polar
 noncomputable theory
 
 open real set measure_theory
-open_locale real topological_space
+open_locale real topology
 
 /-- The polar coordinates local homeomorphism in `ℝ^2`, mapping `(r cos θ, r sin θ)` to `(r, θ)`.
 It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. -/
@@ -69,7 +70,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
   begin
     rintros ⟨x, y⟩ hxy,
     have A : sqrt (x ^ 2 + y ^ 2) = complex.abs (x + y * complex.I),
-      by simp only [complex.abs, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
+      by simp only [complex.abs_def, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
         complex.add_re, complex.of_real_re, complex.mul_re, complex.I_re, mul_zero,
         complex.of_real_im, complex.I_im, sub_self, add_zero, complex.add_im,
         complex.mul_im, mul_one, zero_add],
@@ -91,7 +92,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
     { rintros ⟨x, y⟩ hxy, simpa only using hxy },
     apply continuous_on.comp (λ z hz, _) _ A,
     { exact (complex.continuous_at_arg hz).continuous_within_at },
-    { exact complex.equiv_real_prodₗ.symm.continuous.continuous_on }
+    { exact complex.equiv_real_prod_clm.symm.continuous.continuous_on }
   end }
 
 lemma has_fderiv_at_polar_coord_symm (p : ℝ × ℝ) :
@@ -111,7 +112,7 @@ lemma polar_coord_source_ae_eq_univ :
 begin
   have A : polar_coord.sourceᶜ ⊆ (linear_map.snd ℝ ℝ ℝ).ker,
   { assume x hx,
-    simp only [polar_coord_source, compl_union, mem_inter_eq, mem_compl_eq, mem_set_of_eq, not_lt,
+    simp only [polar_coord_source, compl_union, mem_inter_iff, mem_compl_iff, mem_set_of_eq, not_lt,
       not_not] at hx,
     exact hx.2 },
   have B : volume ((linear_map.snd ℝ ℝ ℝ).ker : set (ℝ × ℝ)) = 0,
@@ -125,7 +126,7 @@ begin
 end
 
 theorem integral_comp_polar_coord_symm
-  {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E] (f : ℝ × ℝ → E) :
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E] (f : ℝ × ℝ → E) :
   ∫ p in polar_coord.target, p.1 • f (polar_coord.symm p) = ∫ p, f p :=
 begin
   set B : (ℝ × ℝ) → ((ℝ × ℝ) →L[ℝ] (ℝ × ℝ)) := λ p,

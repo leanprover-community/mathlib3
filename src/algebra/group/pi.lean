@@ -3,22 +3,31 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import logic.pairwise
 import algebra.hom.group_instances
 import data.pi.algebra
 import data.set.function
-import data.set.pairwise
 import tactic.pi_instances
 
 /-!
 # Pi instances for groups and monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for group, monoid, semigroup and related structures on Pi types.
 -/
 
 universes u v w
+variables {ι α : Type*}
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
-variables (x y : Π i, f i) (i : I)
+variables (x y : Π i, f i) (i j : I)
+
+@[to_additive]
+lemma set.preimage_one {α β : Type*} [has_one β] (s : set β) [decidable ((1 : β) ∈ s)] :
+  (1 : α → β) ⁻¹' s = if (1 : β) ∈ s then set.univ else ∅ :=
+set.preimage_const 1 s
 
 namespace pi
 
@@ -42,10 +51,6 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, (x i) ^ n };
 tactic.pi_instance_derive_field
-
--- the attributes are intentionally out of order. `smul_apply` proves `nsmul_apply`.
-@[to_additive, simp]
-lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n := rfl
 
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
@@ -144,6 +149,38 @@ namespace mul_hom
 end mul_hom
 
 section mul_hom
+
+/-- A family of mul_hom `f a : γ →ₙ* β a` defines a mul_hom `pi.mul_hom f : γ →ₙ* Π a, β a`
+given by `pi.mul_hom f x b = f b x`. -/
+@[to_additive "A family of add_hom `f a : γ → β a` defines a add_hom `pi.add_hom
+f : γ → Π a, β a` given by `pi.add_hom f x b = f b x`.", simps]
+def pi.mul_hom {γ : Type w} [Π i, has_mul (f i)] [has_mul γ]
+  (g : Π i, γ →ₙ* f i) : γ →ₙ* Π i, f i :=
+{ to_fun := λ x i, g i x,
+  map_mul' := λ x y, funext $ λ i, (g i).map_mul x y, }
+
+@[to_additive]
+lemma pi.mul_hom_injective {γ : Type w} [nonempty I]
+  [Π i, has_mul (f i)] [has_mul γ] (g : Π i, γ →ₙ* f i)
+  (hg : ∀ i, function.injective (g i)) : function.injective (pi.mul_hom g) :=
+λ x y h, let ⟨i⟩ := ‹nonempty I› in hg i ((function.funext_iff.mp h : _) i)
+
+/-- A family of monoid homomorphisms `f a : γ →* β a` defines a monoid homomorphism
+`pi.monoid_mul_hom f : γ →* Π a, β a` given by `pi.monoid_mul_hom f x b = f b x`. -/
+@[to_additive "A family of additive monoid homomorphisms `f a : γ →+ β a` defines a monoid
+homomorphism `pi.add_monoid_hom f : γ →+ Π a, β a` given by `pi.add_monoid_hom f x b
+= f b x`.", simps]
+def pi.monoid_hom {γ : Type w} [Π i, mul_one_class (f i)] [mul_one_class γ]
+  (g : Π i, γ →* f i) : γ →* Π i, f i :=
+{ to_fun := λ x i, g i x,
+  map_one' := funext $ λ i, (g i).map_one,
+  .. pi.mul_hom (λ i, (g i).to_mul_hom) }
+
+@[to_additive]
+lemma pi.monoid_hom_injective {γ : Type w} [nonempty I]
+  [Π i, mul_one_class (f i)] [mul_one_class γ] (g : Π i, γ →* f i)
+  (hg : ∀ i, function.injective (g i)) : function.injective (pi.monoid_hom g) :=
+pi.mul_hom_injective (λ i, (g i).to_mul_hom) hg
 
 variables (f) [Π i, has_mul (f i)]
 
@@ -278,6 +315,16 @@ This is the `mul_hom` version of `pi.single`. -/
 variables {f}
 
 @[to_additive]
+lemma pi.mul_single_sup [Π i, semilattice_sup (f i)] [Π i, has_one (f i)] (i : I) (x y : f i) :
+  pi.mul_single i (x ⊔ y) = pi.mul_single i x ⊔ pi.mul_single i y :=
+function.update_sup _ _ _ _
+
+@[to_additive]
+lemma pi.mul_single_inf [Π i, semilattice_inf (f i)] [Π i, has_one (f i)] (i : I) (x y : f i) :
+  pi.mul_single i (x ⊓ y) = pi.mul_single i x ⊓ pi.mul_single i y :=
+function.update_inf _ _ _ _
+
+@[to_additive]
 lemma pi.mul_single_mul [Π i, mul_one_class $ f i] (i : I) (x y : f i) :
   mul_single i (x * y) = mul_single i x * mul_single i y :=
 (monoid_hom.single f i).map_mul x y
@@ -295,6 +342,22 @@ lemma pi.single_div [Π i, group $ f i] (i : I) (x y : f i) :
 lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
+
+lemma pi.single_mul_left_apply [Π i, mul_zero_class $ f i] (a : f i) :
+  pi.single i (a * x i) j = pi.single i a j * x j :=
+(pi.apply_single (λ i, (* x i)) (λ i, zero_mul _) _ _ _).symm
+
+lemma pi.single_mul_right_apply [Π i, mul_zero_class $ f i] (a : f i) :
+  pi.single i (x i * a) j = x j * pi.single i a j :=
+(pi.apply_single (λ i, ((*) (x i))) (λ i, mul_zero _) _ _ _).symm
+
+lemma pi.single_mul_left [Π i, mul_zero_class $ f i] (a : f i) :
+  pi.single i (a * x i) = pi.single i a * x :=
+funext $ λ j, pi.single_mul_left_apply _ _ _ _
+
+lemma pi.single_mul_right [Π i, mul_zero_class $ f i] (a : f i) :
+  pi.single i (x i * a) = x * pi.single i a :=
+funext $ λ j, pi.single_mul_right_apply _ _ _ _
 
 /-- The injection into a pi group at different indices commutes.
 
@@ -318,7 +381,7 @@ lemma pi.mul_single_apply_commute [Π i, mul_one_class $ f i] (x : Π i, f i) (i
 begin
   obtain rfl | hij := decidable.eq_or_ne i j,
   { refl },
-  { exact pi.mul_single_commute _ _ hij _ _, },
+  { exact pi.mul_single_commute hij _ _, },
 end
 
 @[to_additive update_eq_sub_add_single]
@@ -391,6 +454,11 @@ lemma update_div [Π i, has_div (f i)] [decidable_eq I]
   update (f₁ / f₂) i (x₁ / x₂) = update f₁ i x₁ / update f₂ i x₂ :=
 funext $ λ j, (apply_update₂ (λ i, (/)) f₁ f₂ i x₁ x₂ j).symm
 
+variables [has_one α] [nonempty ι] {a : α}
+
+@[simp, to_additive] lemma const_eq_one : const ι a = 1 ↔ a = 1 := @const_inj _ _ _ _ 1
+@[to_additive] lemma const_ne_one : const ι a ≠ 1 ↔ a ≠ 1 := const_eq_one.not
+
 end function
 
 section piecewise
@@ -417,7 +485,7 @@ end piecewise
 
 section extend
 
-variables {ι : Type u} {η : Type v} (R : Type w) (s : ι → η)
+variables {η : Type v} (R : Type w) (s : ι → η)
 
 /-- `function.extend s f 1` as a bundled hom. -/
 @[to_additive function.extend_by_zero.hom "`function.extend s f 0` as a bundled hom.", simps]
@@ -427,3 +495,14 @@ noncomputable def function.extend_by_one.hom [mul_one_class R] : (ι → R) →*
   map_mul' := λ f g, by { simpa using function.extend_mul s f g 1 1 } }
 
 end extend
+
+namespace pi
+variables [decidable_eq I] [Π i, preorder (f i)] [Π i, has_one (f i)]
+
+@[to_additive] lemma mul_single_mono : monotone (pi.mul_single i : f i → Π i, f i) :=
+function.update_mono
+
+@[to_additive] lemma mul_single_strict_mono : strict_mono (pi.mul_single i : f i → Π i, f i) :=
+function.update_strict_mono
+
+end pi

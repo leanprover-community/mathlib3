@@ -10,6 +10,9 @@ import category_theory.punit
 /-!
 # The category of elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the category of elements, also known as (a special case of) the Grothendieck
 construction.
 
@@ -40,7 +43,7 @@ variables {C : Type u} [category.{v} C]
 The type of objects for the category of elements of a functor `F : C ⥤ Type`
 is a pair `(X : C, x : F.obj X)`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def functor.elements (F : C ⥤ Type w) := (Σ c : C, F.obj c)
 
 /-- The category structure on `F.elements`, for `F : C ⥤ Type`.
@@ -120,7 +123,7 @@ def structured_arrow_equivalence : F.elements ≌ structured_arrow punit F :=
 equivalence.mk (to_structured_arrow F) (from_structured_arrow F)
   (nat_iso.of_components (λ X, eq_to_iso (by tidy)) (by tidy))
   (nat_iso.of_components
-    (λ X, { hom := { right := 𝟙 _ }, inv := { right := 𝟙 _ } })
+    (λ X, structured_arrow.iso_mk (iso.refl _) (by tidy))
     (by tidy))
 
 open opposite

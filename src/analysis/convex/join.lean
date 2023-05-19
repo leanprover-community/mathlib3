@@ -8,6 +8,9 @@ import analysis.convex.combination
 /-!
 # Convex join
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the convex join of two sets. The convex join of `s` and `t` is the union of the
 segments with one end in `s` and the other in `t`. This is notably a useful gadget to deal with
 convex hulls of finite sets.
@@ -57,11 +60,11 @@ by simp [convex_join]
 
 @[simp] lemma convex_join_union_left (s₁ s₂ t : set E) :
   convex_join 𝕜 (s₁ ∪ s₂) t = convex_join 𝕜 s₁ t ∪ convex_join 𝕜 s₂ t :=
-by simp_rw [convex_join, mem_union_eq, Union_or, Union_union_distrib]
+by simp_rw [convex_join, mem_union, Union_or, Union_union_distrib]
 
 @[simp] lemma convex_join_union_right (s t₁ t₂ : set E) :
   convex_join 𝕜 s (t₁ ∪ t₂) = convex_join 𝕜 s t₁ ∪ convex_join 𝕜 s t₂ :=
-by simp_rw [convex_join, mem_union_eq, Union_or, Union_union_distrib]
+by simp_rw [convex_join, mem_union, Union_or, Union_union_distrib]
 
 @[simp] lemma convex_join_Union_left (s : ι → set E) (t : set E) :
   convex_join 𝕜 (⋃ i, s i) t = ⋃ i, convex_join 𝕜 (s i) t :=
@@ -184,7 +187,7 @@ protected lemma convex.convex_join (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
 begin
   rw convex_iff_segment_subset at ⊢ ht hs,
   simp_rw mem_convex_join,
-  rintro x y ⟨xa, hxa, xb, hxb, hx⟩ ⟨ya, hya, yb, hyb, hy⟩,
+  rintro x ⟨xa, hxa, xb, hxb, hx⟩ y ⟨ya, hya, yb, hyb, hy⟩,
   refine (segment_subset_convex_join hx hy).trans _,
   have triv : ({xa, xb, ya, yb} : set E) = {xa, ya, xb, yb} := by simp only [set.insert_comm],
   rw [convex_join_segments, triv, ←convex_join_segments],

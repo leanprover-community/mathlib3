@@ -3,11 +3,13 @@ Copyright (c) 2021 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
-import field_theory.abel_ruffini
 import analysis.calculus.local_extr
+import data.nat.prime_norm_num
+import field_theory.abel_ruffini
 import ring_theory.eisenstein_criterion
+
 /-!
-Construction of an algebraic number that is not solvable by radicals.
+# Construction of an algebraic number that is not solvable by radicals.
 
 The main ingredients are:
  * `solvable_by_rad.is_solvable'` in `field_theory/abel_ruffini` :
@@ -131,7 +133,7 @@ begin
   have q_ne_zero : Φ ℚ a b ≠ 0 := (monic_Phi a b).ne_zero,
   obtain ⟨x, y, hxy, hx, hy⟩ := real_roots_Phi_ge_aux a b hab,
   have key : ↑({x, y} : finset ℝ) ⊆ (Φ ℚ a b).root_set ℝ,
-  { simp [set.insert_subset, mem_root_set q_ne_zero, hx, hy] },
+  { simp [set.insert_subset, mem_root_set_of_ne q_ne_zero, hx, hy] },
   convert fintype.card_le_of_embedding (set.embedding_of_subset _ _ key),
   simp only [finset.coe_sort_coe, fintype.card_coe, finset.card_singleton,
              finset.card_insert_of_not_mem (mt finset.mem_singleton.mp hxy)]

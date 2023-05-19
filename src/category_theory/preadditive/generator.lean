@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.generator
-import category_theory.preadditive.yoneda
+import category_theory.preadditive.yoneda.basic
 
 /-!
 # Separators in preadditive categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains characterizations of separating sets and objects that are valid in all
 preadditive categories.

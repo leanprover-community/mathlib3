@@ -11,6 +11,9 @@ import algebraic_topology.dold_kan.notations
 
 # Construction of homotopies for the Dold-Kan correspondence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 (The general strategy of proof of the Dold-Kan correspondence is explained

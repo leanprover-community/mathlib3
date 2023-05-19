@@ -11,6 +11,9 @@ import tactic.ring
 /-!
 # Equivalence of Recursive and Direct Computations of `gcf` Convergents
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We show the equivalence of two computations of convergents (recurrence relation (`convergents`) vs.
@@ -65,6 +68,7 @@ fractions, recurrence, equivalence
 
 variables {K : Type*} {n : ℕ}
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 variables {g : generalized_continued_fraction K} {s : seq $ pair K}
 

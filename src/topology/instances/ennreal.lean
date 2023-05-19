@@ -5,11 +5,15 @@ Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
 import topology.algebra.order.monotone_continuity
-import analysis.normed.group.basic
 import topology.algebra.infinite_sum.real
+import topology.algebra.order.liminf_limsup
+import topology.metric_space.lipschitz
 
 /-!
 # Extended non-negative reals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory
@@ -608,6 +612,16 @@ by simp only [Sup_eq_supr, mul_supr]
 lemma supr_mul {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f * a = ⨆i, f i * a :=
 by rw [mul_comm, mul_supr]; congr; funext; rw [mul_comm]
 
+lemma smul_supr {ι : Sort*} {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (f : ι → ℝ≥0∞) (c : R) :
+  c • (⨆ i, f i) = ⨆ i, c • f i :=
+by simp only [←smul_one_mul c (f _), ←smul_one_mul c (supr _), ennreal.mul_supr]
+
+lemma smul_Sup {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (s : set ℝ≥0∞) (c : R) :
+  c • Sup s = ⨆ i ∈ s, c • i :=
+by simp_rw [←smul_one_mul c (Sup _), ennreal.mul_Sup, smul_one_mul]
+
 lemma supr_div {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f / a = ⨆i, f i / a :=
 supr_mul
 
@@ -659,18 +673,18 @@ end topological_space
 section liminf
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (‖x n‖₊ : ℝ≥0∞)) l ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, ((x n).nnabs : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, x n < R :=
 begin
   by_contra h,
   simp_rw [not_exists, not_frequently, not_lt] at h,
   refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, le_Liminf_of_le (by is_bounded_default) _),
   simp only [eventually_map, ennreal.coe_le_coe],
-  filter_upwards [h r] with i hi using hi.trans ((coe_nnnorm (x i)).symm ▸ le_abs_self (x i)),
+  filter_upwards [h r] with i hi using hi.trans (le_abs_self (x i))
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (‖x n‖₊ : ℝ≥0∞)) l ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, ((x n).nnabs : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, R < x n :=
 begin
   by_contra h,
@@ -682,7 +696,7 @@ end
 
 lemma exists_upcrossings_of_not_bounded_under
   {ι : Type*} {l : filter ι} {x : ι → ℝ}
-  (hf : liminf (λ i, (‖x i‖₊ : ℝ≥0∞)) l ≠ ∞)
+  (hf : liminf (λ i, ((x i).nnabs : ℝ≥0∞)) l ≠ ∞)
   (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
   ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
 begin
@@ -852,6 +866,10 @@ has_sum.tsum_eq this
 
 protected lemma tsum_mul_right : (∑'i, f i * a) = (∑'i, f i) * a :=
 by simp [mul_comm, ennreal.tsum_mul_left]
+
+protected lemma tsum_const_smul {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (a : R) :
+  ∑' i, a • f i = a • ∑' i, f i :=
+by simpa only [smul_one_mul] using @ennreal.tsum_mul_left _ (a • 1) _
 
 @[simp] lemma tsum_supr_eq {α : Type*} (a : α) {f : α → ℝ≥0∞} :
   ∑'b:α, (⨆ (h : a = b), f b) = f a :=

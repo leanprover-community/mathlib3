@@ -14,6 +14,9 @@ import topology.sequences
 /-!
 # Normed (semi)groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define 10 classes:
 
 * `has_norm`, `has_nnnorm`: auxiliary classes endowing a type `α` with a function `norm : α → ℝ`
@@ -837,7 +840,7 @@ by simp [metric.mem_closure_iff, dist_eq_norm_div]
 @[to_additive norm_le_zero_iff'] lemma norm_le_zero_iff''' [t0_space E] {a : E} : ‖a‖ ≤ 0 ↔ a = 1 :=
 begin
   letI : normed_group E :=
-    { to_metric_space := metric.of_t0_pseudo_metric_space E, ..‹seminormed_group E› },
+    { to_metric_space := metric_space.of_t0_pseudo_metric_space E, ..‹seminormed_group E› },
   rw [←dist_one_right, dist_le_zero],
 end
 

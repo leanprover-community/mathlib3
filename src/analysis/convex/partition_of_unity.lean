@@ -9,6 +9,9 @@ import analysis.convex.combination
 /-!
 # Partition of unity and convex sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following lemma, see `exists_continuous_forall_mem_convex_of_local`. Let
 `X` be a normal paracompact topological space (e.g., any extended metric space). Let `E` be a
 topological real vector space. Let `t : X → set E` be a family of convex sets. Suppose that for each

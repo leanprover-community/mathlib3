@@ -8,6 +8,9 @@ import geometry.manifold.charted_space
 /-!
 # Local properties invariant under a groupoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We study properties of a triple `(g, s, x)` where `g` is a function between two spaces `H` and `H'`,
 `s` is a subset of `H` and `x` is a point of `H`. Our goal is to register how such a property
 should behave to make sense in charted spaces modelled on `H` and `H'`.
@@ -678,6 +681,7 @@ variables {H₁ : Type*} [topological_space H₁] {H₂ : Type*} [topological_sp
    {G₁ : structure_groupoid H₁} [has_groupoid H₂ G₁] [closed_under_restriction G₁]
    (G₂ : structure_groupoid H₂) [has_groupoid H₃ G₂]
 
+variables (G₂)
 lemma has_groupoid.comp
   (H : ∀ e ∈ G₂, lift_prop_on (is_local_structomorph_within_at G₁) (e : H₂ → H₂) e.source) :
   @has_groupoid H₁ _ H₃ _ (charted_space.comp H₁ H₂ H₃) G₁ :=

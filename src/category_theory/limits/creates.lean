@@ -8,6 +8,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Creating (co)limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that `F` creates limits of `K` if, given any limit cone `c` for `K ⋙ F`
 (i.e. below) we can lift it to a cone "above", and further that `F` reflects
 limits for `K`.

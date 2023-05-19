@@ -11,6 +11,9 @@ import linear_algebra.tensor_product
 /-!
 # Facts about algebras involving bilinear maps and tensor products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We move a few basic statements about algebras out of `algebra.algebra.basic`,
 in order to avoid importing `linear_algebra.bilinear_map` and
 `linear_algebra.tensor_product` unnecessarily.

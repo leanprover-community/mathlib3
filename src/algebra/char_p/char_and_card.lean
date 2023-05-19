@@ -9,6 +9,9 @@ import group_theory.perm.cycle.type
 /-!
 # Characteristic and cardinality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove some results relating characteristic and cardinality of finite rings
 
 ## Tags

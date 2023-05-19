@@ -12,6 +12,9 @@ import category_theory.limits.types
 /-!
 # Final and initial functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A functor `F : C ⥤ D` is final if for every `d : D`,
 the comma category of morphisms `d ⟶ F.obj c` is connected.
 

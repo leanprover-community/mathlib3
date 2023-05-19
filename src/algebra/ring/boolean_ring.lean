@@ -11,6 +11,9 @@ import order.hom.lattice
 /-!
 # Boolean rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Boolean ring is a ring where multiplication is idempotent. They are equivalent to Boolean
 algebras.
 
@@ -63,7 +66,7 @@ calc -a = -a + 0      : by rw add_zero
     ... = -a + -a + a : by rw [←neg_add_self, add_assoc]
     ... = a           : by rw [add_self, zero_add]
 
-lemma add_eq_zero : a + b = 0 ↔ a = b :=
+lemma add_eq_zero' : a + b = 0 ↔ a = b :=
 calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
            ... ↔ a = b  : by rw neg_eq
 
@@ -82,7 +85,7 @@ by rw [sub_eq_add_neg, add_right_inj, neg_eq]
 
 @[priority 100] -- Note [lower instance priority]
 instance boolean_ring.to_comm_ring : comm_ring α :=
-{ mul_comm := λ a b, by rw [←add_eq_zero, mul_add_mul],
+{ mul_comm := λ a b, by rw [←add_eq_zero', mul_add_mul],
   .. (infer_instance : boolean_ring α) }
 
 end boolean_ring

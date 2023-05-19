@@ -310,6 +310,20 @@ begin
     simp [←nat_add_nat_add] },
 end
 
+/-- Appending a one-tuple to the left is the same as `fin.cons`. -/
+lemma append_left_eq_cons {α : Type*} {n : ℕ} (x₀ : fin 1 → α) (x : fin n → α):
+  fin.append x₀ x = fin.cons (x₀ 0) x ∘ fin.cast (add_comm _ _) :=
+begin
+  ext i,
+  refine fin.add_cases _ _ i; clear i,
+  { intro i,
+    rw [subsingleton.elim i 0, fin.append_left, function.comp_apply, eq_comm],
+    exact fin.cons_zero _ _, },
+  { intro i,
+    rw [fin.append_right, function.comp_apply, fin.cast_nat_add, eq_comm, fin.add_nat_one],
+    exact fin.cons_succ _ _ _ },
+end
+
 end append
 
 section repeat
@@ -532,6 +546,20 @@ begin
     simp [h, this, snoc, cast_succ_cast_lt] },
   { rw eq_last_of_not_lt h,
     simp }
+end
+
+/-- Appending a one-tuple to the right is the same as `fin.snoc`. -/
+lemma append_right_eq_snoc {α : Type*} {n : ℕ} (x : fin n → α) (x₀ : fin 1 → α) :
+  fin.append x x₀ = fin.snoc x (x₀ 0) :=
+begin
+  ext i,
+  refine fin.add_cases _ _ i; clear i,
+  { intro i,
+    rw [fin.append_left],
+    exact (@snoc_cast_succ _ (λ _, α) _ _ i).symm, },
+  { intro i,
+    rw [subsingleton.elim i 0, fin.append_right],
+    exact (@snoc_last _ (λ _, α) _ _).symm, },
 end
 
 lemma comp_init {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
@@ -819,6 +847,46 @@ lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
 mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
+section contract_nth
+
+variables {α : Type*}
+
+/-- Sends `(g₀, ..., gₙ)` to `(g₀, ..., op gⱼ gⱼ₊₁, ..., gₙ)`. -/
+def contract_nth (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α) (k : fin n) : α :=
+if (k : ℕ) < j then g k.cast_succ else
+if (k : ℕ) = j then op (g k.cast_succ) (g k.succ)
+else g k.succ
+
+lemma contract_nth_apply_of_lt (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (h : (k : ℕ) < j) :
+  contract_nth j op g k = g k.cast_succ := if_pos h
+
+lemma contract_nth_apply_of_eq (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (h : (k : ℕ) = j) :
+  contract_nth j op g k = op (g k.cast_succ) (g k.succ) :=
+begin
+  have : ¬(k : ℕ) < j, from not_lt.2 (le_of_eq h.symm),
+  rw [contract_nth, if_neg this, if_pos h],
+end
+
+lemma contract_nth_apply_of_gt (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (h : (j : ℕ) < k) :
+  contract_nth j op g k = g k.succ :=
+by rw [contract_nth, if_neg (not_lt_of_gt h), if_neg (ne.symm $ ne_of_lt h)]
+
+lemma contract_nth_apply_of_ne (j : fin (n + 1)) (op : α → α → α) (g : fin (n + 1) → α)
+  (k : fin n) (hjk : (j : ℕ) ≠ k) :
+  contract_nth j op g k = g (j.succ_above k) :=
+begin
+  rcases lt_trichotomy (k : ℕ) j with (h|h|h),
+  { rwa [j.succ_above_below, contract_nth_apply_of_lt],
+    { rwa [ fin.lt_iff_coe_lt_coe] }},
+  { exact false.elim (hjk h.symm) },
+  { rwa [j.succ_above_above, contract_nth_apply_of_gt],
+    { exact fin.le_iff_coe_le_coe.2 (le_of_lt h) }}
+end
+
+end contract_nth
 
 /-- To show two sigma pairs of tuples agree, it to show the second elements are related via
 `fin.cast`. -/

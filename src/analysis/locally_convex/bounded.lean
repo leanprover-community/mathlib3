@@ -13,6 +13,9 @@ import topology.uniform_space.cauchy
 /-!
 # Von Neumann Boundedness
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines natural or von Neumann bounded sets and proves elementary properties.
 
 ## Main declarations

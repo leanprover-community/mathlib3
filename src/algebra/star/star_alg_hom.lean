@@ -11,6 +11,9 @@ import algebra.algebra.prod
 /-!
 # Morphisms of star algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines morphisms between `R`-algebras (unital or non-unital) `A` and `B` where both
 `A` and `B` are equipped with a `star` operation. These morphisms, namely `star_alg_hom` and
 `non_unital_star_alg_hom` are direct extensions of their non-`star`red counterparts with a field

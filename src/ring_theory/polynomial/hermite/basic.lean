@@ -134,8 +134,8 @@ section coeff_explicit
 open_locale nat
 
 /- Because of `coeff_hermite_of_odd_add`, every nonzero coefficient is described as follows.  -/
-lemma coeff_hermite_explicit : ∀ (n k : ℕ),
-coeff (hermite (2 * n + k)) k = (-1)^n * (2 * n - 1)‼ * nat.choose (2 * n + k) k
+lemma coeff_hermite_explicit :
+  ∀ (n k : ℕ), coeff (hermite (2 * n + k)) k = (-1)^n * (2 * n - 1)‼ * nat.choose (2 * n + k) k
 | 0 _ := by simp
 | (n + 1) 0 := begin
   convert coeff_hermite_succ_zero (2 * n + 1) using 1,

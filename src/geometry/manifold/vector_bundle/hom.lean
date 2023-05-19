@@ -20,17 +20,27 @@ noncomputable theory
 open bundle set local_homeomorph continuous_linear_map pretrivialization
 open_locale manifold bundle
 
-variables {𝕜 B F F₁ F₂ M M₁ M₂ : Type*}
+/-
+def continuous_linear_map.to_normed_space {𝕜 : Type u_1} {𝕜₂ : Type u_2} {E : Type u_4}
+{F : Type u_6} [seminormed_add_comm_group E] [seminormed_add_comm_group F]
+[nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [normed_space 𝕜 E] [normed_space 𝕜₂ F]
+ {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂] {𝕜' : Type u_3} [normed_field 𝕜'] [normed_space 𝕜' F]
+ [smul_comm_class 𝕜₂ 𝕜' F] :
+normed_space 𝕜' (E →SL[σ₁₂] F)
+-/
+
+variables {𝕜 K K₁ K₂ B F F₁ F₂ M M₁ M₂ : Type*}
   {E : B → Type*} {E₁ : B → Type*} {E₂ : B → Type*}
-  [nontrivially_normed_field 𝕜]
-  [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
-  [normed_add_comm_group F] [normed_space 𝕜 F]
+  [nontrivially_normed_field 𝕜] [nontrivially_normed_field K] [nontrivially_normed_field K₁] [nontrivially_normed_field K₂]
+  [algebra 𝕜 K] [algebra 𝕜 K₁] [algebra 𝕜 K₂]
+  [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)] [∀ x, module K (E x)] [∀ x, is_scalar_tower 𝕜 K (E x)]
+  [normed_add_comm_group F] [normed_space 𝕜 F] [normed_space K F] [is_scalar_tower 𝕜 K F]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
-  [∀ x, add_comm_monoid (E₁ x)] [∀ x, module 𝕜 (E₁ x)]
-  [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
+  [∀ x, add_comm_monoid (E₁ x)] [∀ x, module 𝕜 (E₁ x)] [∀ x, module K₁ (E₁ x)] [∀ x, is_scalar_tower 𝕜 K₁ (E₁ x)]
+  [normed_add_comm_group F₁] [normed_space 𝕜 F₁] [normed_space K₁ F₁] [is_scalar_tower 𝕜 K₁ F₁]
   [topological_space (total_space E₁)] [∀ x, topological_space (E₁ x)]
-  [∀ x, add_comm_monoid (E₂ x)] [∀ x, module 𝕜 (E₂ x)]
-  [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
+  [∀ x, add_comm_monoid (E₂ x)] [∀ x, module 𝕜 (E₂ x)] [∀ x, module K₂ (E₂ x)] [∀ x, is_scalar_tower 𝕜 K₂ (E₂ x)]
+  [normed_add_comm_group F₂] [normed_space 𝕜 F₂] [normed_space K₂ F₂] [is_scalar_tower 𝕜 K₂ F₂]
   [topological_space (total_space E₂)] [∀ x, topological_space (E₂ x)]
 
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
@@ -40,11 +50,17 @@ variables {𝕜 B F F₁ F₂ M M₁ M₂ : Type*}
   {HM : Type*} [topological_space HM] {IM : model_with_corners 𝕜 EM HM}
   [topological_space M] [charted_space HM M] [Is : smooth_manifold_with_corners IM M]
   {n : ℕ∞}
-  [fiber_bundle F₁ E₁] [vector_bundle 𝕜 F₁ E₁]
-  [fiber_bundle F₂ E₂] [vector_bundle 𝕜 F₂ E₂]
+  [fiber_bundle F₁ E₁] [vector_bundle 𝕜 F₁ E₁] [vector_bundle K₁ F₁ E₁] -- plus typeclass about commuting
+  [fiber_bundle F₂ E₂] [vector_bundle 𝕜 F₂ E₂] [vector_bundle K₂ F₂ E₂] -- plus typeclass about commuting
   {e₁ e₁' : trivialization F₁ (π E₁)} {e₂ e₂' : trivialization F₂ (π E₂)}
+  (σ : K₁ →+* K₂) [ring_hom_isometric σ]
 
-local notation `LE₁E₂` := total_space (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂)
+-- #check @continuous_linear_map.to_normed_space K₁ K₂ F₁ F₂ _ _ _ _ _ _ σ _ 𝕜 _ _ _
+-- instance : normed_add_comm_group (F₁ →SL[σ] F₂) := sorry
+example : normed_space 𝕜 (F₁ →SL[σ] F₂) := by apply_instance
+
+-- #exit
+local notation `LE₁E₂` := total_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)
 
 /- This proof is slow, especially the `simp only` and the elaboration of `h₂`. -/
 lemma smooth_on_continuous_linear_map_coord_change
@@ -52,8 +68,8 @@ lemma smooth_on_continuous_linear_map_coord_change
   [smooth_vector_bundle F₁ E₁ IB] [smooth_vector_bundle F₂ E₂ IB]
   [mem_trivialization_atlas e₁] [mem_trivialization_atlas e₁']
   [mem_trivialization_atlas e₂] [mem_trivialization_atlas e₂'] :
-  smooth_on IB 𝓘(𝕜, ((F₁ →L[𝕜] F₂) →L[𝕜] (F₁ →L[𝕜] F₂)))
-    (continuous_linear_map_coord_change (ring_hom.id 𝕜) e₁ e₁' e₂ e₂')
+  smooth_on IB 𝓘(𝕜, ((F₁ →SL[σ] F₂) →L[𝕜] (F₁ →SL[σ] F₂)))
+    ((continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂').restrict_scalars 𝕜)
     ((e₁.base_set ∩ e₂.base_set) ∩ (e₁'.base_set ∩ e₂'.base_set)) :=
 begin
   let L₁ := compL 𝕜 F₁ F₂ F₂,

@@ -21,6 +21,10 @@ This entire file is internal to the proof of Szemerédi Regularity Lemma.
 * `szemeredi_regularity.initial_bound`: The size of the partition we start the induction with.
 * `szemeredi_regularity.bound`: The upper bound on the size of the partition produced by our version
   of Szemerédi's regularity lemma.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset fintype function real

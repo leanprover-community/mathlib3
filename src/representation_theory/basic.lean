@@ -250,7 +250,6 @@ lemma of_mul_action_single (g : G) (x : H) (r : k) :
 finsupp.map_domain_single
 
 end mul_action
-
 section group
 
 variables {k G V : Type*} [comm_semiring k] [group G] [add_comm_monoid V] [module k V]

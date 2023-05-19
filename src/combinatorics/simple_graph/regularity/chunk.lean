@@ -23,6 +23,11 @@ This entire file is internal to the proof of Szemerédi Regularity Lemma.
   density between uniform parts too much.
 * `szemeredi_regularity.edge_density_chunk_not_uniform`: `chunk` locally increases the edge density
   between non-uniform parts.
+
+## TODO
+
+Once ported to mathlib4, this file will be a great golfing ground for Heather's new tactic
+`rel_congr`.
 -/
 
 open finpartition finset fintype rel nat

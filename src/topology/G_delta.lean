@@ -184,10 +184,10 @@ variable [topological_space α]
 
 /-- A set `s` is called *residual* if it includes a countable intersection of dense open sets. -/
 def residual (α : Type*) [topological_space α] : filter α :=
-filter.countable_generate (λ t, is_open t ∧ dense t)
+filter.countable_generate {t | is_open t ∧ dense t}
 
 instance countable_Inter_filter_residual : countable_Inter_filter (residual α) :=
-by rw[residual]; apply_instance
+by rw [residual]; apply_instance
 
 /-- Dense open sets are residual. -/
 lemma residual_of_dense_open {s : set α} (ho : is_open s) (hd : dense s) : s ∈ residual α :=
@@ -203,7 +203,7 @@ end
 
 /-- A set is residual iff it includes a countable intersection of dense open sets. -/
 lemma mem_residual_iff {s : set α} : s ∈ residual α ↔
-  ∃ (S : set (set α)), (∀ t ∈ S, is_open t ∧ dense t) ∧ S.countable ∧ ⋂₀ S ⊆ s :=
-mem_countable_generate_iff _
+  ∃ (S : set (set α)), (∀ t ∈ S, is_open t) ∧ (∀ t ∈ S, dense t) ∧ S.countable ∧ ⋂₀ S ⊆ s :=
+mem_countable_generate_iff.trans $ by simp only [forall_and_distrib, and_assoc]
 
 end residual

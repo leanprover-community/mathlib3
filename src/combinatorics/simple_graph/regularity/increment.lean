@@ -3,8 +3,8 @@ Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import .chunk
-import .energy
+import combinatorics.simple_graph.regularity.chunk
+import combinatorics.simple_graph.regularity.energy
 
 /-!
 # Increment partition for Szemerédi Regularity Lemma

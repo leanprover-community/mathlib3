@@ -146,7 +146,7 @@ begin
   { exact G.right_nonuniform_witnesses_subset (λ i, h i.symm) }
 end
 
-lemma nonuniform_witness_card_le (h : ¬ G.is_uniform ε s t) :
+lemma le_card_nonuniform_witness (h : ¬ G.is_uniform ε s t) :
   (s.card : 𝕜) * ε ≤ (G.nonuniform_witness ε s t).card :=
 begin
   unfold nonuniform_witness,

@@ -7,7 +7,7 @@ import category_theory.monoidal.rigid.basic
 import category_theory.monoidal.subcategory
 import linear_algebra.coevaluation
 import linear_algebra.free_module.finite.matrix
-import algebra.category.Module.monoidal
+import algebra.category.Module.monoidal.closed
 
 /-!
 # The category of finitely generated modules over a ring

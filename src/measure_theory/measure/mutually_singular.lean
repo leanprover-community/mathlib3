@@ -7,6 +7,9 @@ import measure_theory.measure.measure_space
 
 /-! # Mutually singular measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Two measures `μ`, `ν` are said to be mutually singular (`measure_theory.measure.mutually_singular`,
 localized notation `μ ⟂ₘ ν`) if there exists a measurable set `s` such that `μ s = 0` and
 `ν sᶜ = 0`. The measurability of `s` is an unnecessary assumption (see

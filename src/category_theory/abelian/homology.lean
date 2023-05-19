@@ -9,6 +9,9 @@ import category_theory.limits.preserves.shapes.kernels
 import category_theory.limits.preserves.shapes.images
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 The object `homology f g w`, where `w : f ≫ g = 0`, can be identified with either a
 cokernel or a kernel. The isomorphism with a cokernel is `homology_iso_cokernel_lift`, which

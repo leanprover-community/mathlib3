@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Reichert, Yaël Dillies
 -/
 import analysis.normed_space.add_torsor_bases
-import analysis.normed_space.linear_isometry
 
 /-!
 # Intrinsic frontier and interior

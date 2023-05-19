@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
+import analysis.special_functions.pow.continuity
 import topology.algebra.order.liminf_limsup
 
 /-!
@@ -961,7 +962,7 @@ begin
   rw ← H at hs,
   have : |‖∑ i in s, lp.single p i (f i : E i) - f‖ ^ p.to_real|
     = ‖∑ i in s, lp.single p i (f i : E i) - f‖ ^ p.to_real,
-  { simp only [real.abs_rpow_of_nonneg (norm_nonneg _), abs_norm_eq_norm] },
+  { simp only [real.abs_rpow_of_nonneg (norm_nonneg _), abs_norm] },
   linarith
 end
 

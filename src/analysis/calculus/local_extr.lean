@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import data.polynomial.field_division
 import topology.algebra.order.extend_from
 import topology.algebra.polynomial
-import topology.local_extr
 
 /-!
 # Local extrema of smooth functions

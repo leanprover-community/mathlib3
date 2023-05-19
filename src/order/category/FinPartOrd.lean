@@ -11,8 +11,8 @@ import order.category.PartOrd
 
 This defines `FinPartOrd`, the category of finite partial orders.
 
-Note: `FinPartOrd` is NOT a subcategory of `BddOrd` because its morphisms do not
-preserve `⊥` and `⊤`.
+Note: `FinPartOrd` is *not* a subcategory of `BddOrd` because finite orders are not necessarily
+bounded.
 
 ## TODO
 

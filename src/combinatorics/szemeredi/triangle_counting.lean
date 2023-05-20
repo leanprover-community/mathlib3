@@ -3,7 +3,6 @@ Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import .mathlib
 import combinatorics.simple_graph.regularity.uniform
 import combinatorics.simple_graph.triangle.basic
 import data.real.basic
@@ -13,26 +12,34 @@ import order.partition.equipartition
 # Triangle counting lemma
 
 In this file, we prove the triangle counting lemma.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
-open finset fintype
-open_locale big_operators classical
+-- TODO: This instance is bad because it creates data out of a Prop
+local attribute [-instance] decidable_eq_of_subsingleton
 
-variables {α : Type*} (G : simple_graph α) {ε : ℝ} {X Y Z : finset α}
+open finset fintype
+open_locale big_operators
+
+variables {α : Type*} (G : simple_graph α) {ε : ℝ} {s t u : finset α}
 
 namespace simple_graph
 
 /-- The pairs of vertices whose density is big. -/
-noncomputable def bad_vertices (ε : ℝ) (X Y : finset α) :=
-X.filter (λ x, ((Y.filter (G.adj x)).card : ℝ) < (G.edge_density X Y - ε) * Y.card)
+private noncomputable def bad_vertices (G : simple_graph α) (ε : ℝ) (s t : finset α) :=
+by classical;
+  exact s.filter (λ x, ((t.filter (G.adj x)).card : ℝ) < (G.edge_density s t - ε) * t.card)
 
 lemma of_mem_bad_vertices :
-  ∀ x ∈ G.bad_vertices ε X Y, ((Y.filter (G.adj x)).card : ℝ) ≤ (G.edge_density X Y - ε) * Y.card :=
+  ∀ x ∈ bad_vertices G ε s t, ((t.filter (G.adj x)).card : ℝ) ≤ (G.edge_density s t - ε) * t.card :=
 λ x hx, (mem_filter.1 hx).2.le
 
-lemma bad_vertices_eq :
-  rel.interedges G.adj (G.bad_vertices ε X Y) Y =
-    (G.bad_vertices ε X Y).bUnion (λ x, (Y.filter (G.adj x)).image (λ y, (x, y))) :=
+lemma interedges_bad_vertices :
+  rel.interedges G.adj (bad_vertices G ε s t) t =
+    (bad_vertices G ε s t).bUnion (λ x, (t.filter (G.adj x)).image (λ y, (x, y))) :=
 begin
   ext ⟨x, y⟩,
   simp only [mem_bUnion, mem_image, exists_prop, mem_filter, prod.mk.inj_iff,
@@ -40,19 +47,18 @@ begin
 end
 
 lemma pairs_card_bad_le :
-  ((rel.interedges G.adj (G.bad_vertices ε X Y) Y).card : ℝ) ≤
-    (G.bad_vertices ε X Y).card * Y.card * (G.edge_density X Y - ε) :=
+  ((rel.interedges G.adj (bad_vertices G ε s t) t).card : ℝ) ≤
+    (bad_vertices G ε s t).card * t.card * (G.edge_density s t - ε) :=
 begin
-  refine (nat.cast_le.2 (card_le_of_subset $ subset_of_eq G.bad_vertices_eq)).trans _,
-  refine (nat.cast_le.2 card_bUnion_le).trans _,
-  rw nat.cast_sum,
-  simp_rw [card_image_of_injective _ (prod.mk.inj_left _)],
-  apply (sum_le_sum G.of_mem_bad_vertices).trans,
-  rw [sum_const, nsmul_eq_mul, mul_comm (_ - _), mul_assoc],
+  refine (nat.cast_le.2 $ (card_le_of_subset $ subset_of_eq G.interedges_bad_vertices).trans
+    card_bUnion_le).trans _,
+  simp_rw [nat.cast_sum, card_image_of_injective _ (prod.mk.inj_left _), ←nsmul_eq_mul,
+    smul_mul_assoc, mul_comm (t.card : ℝ)],
+  exact sum_le_card_nsmul _ _ _ (λ x hx, (mem_filter.1 hx).2.le),
 end
 
-lemma edge_density_bad_vertices (hε : 0 ≤ ε) (dXY : 2 * ε ≤ G.edge_density X Y) :
-  (G.edge_density (G.bad_vertices ε X Y) Y : ℝ) ≤ G.edge_density X Y - ε :=
+lemma edge_density_bad_vertices (hε : 0 ≤ ε) (dXY : 2 * ε ≤ G.edge_density s t) :
+  (G.edge_density (bad_vertices G ε s t) t : ℝ) ≤ G.edge_density s t - ε :=
 begin
   rw edge_density_def,
   push_cast,
@@ -63,25 +69,25 @@ begin
     exact G.pairs_card_bad_le }
 end
 
-lemma few_bad_vertices (hε₀ : 0 ≤ ε) (hε : ε ≤ 1) (dXY : 2 * ε ≤ G.edge_density X Y)
-  (uXY : G.is_uniform ε X Y) :
-  ((G.bad_vertices ε X Y).card : ℝ) ≤ X.card * ε :=
+lemma few_bad_vertices (hε₀ : 0 ≤ ε) (hε : ε ≤ 1) (dXY : 2 * ε ≤ G.edge_density s t)
+  (hst : G.is_uniform ε s t) :
+  ((bad_vertices G ε s t).card : ℝ) ≤ s.card * ε :=
 begin
   by_contra,
   rw not_le at h,
   have := G.edge_density_bad_vertices hε₀ dXY,
-  have : |(G.edge_density (G.bad_vertices ε X Y) Y : ℝ) - G.edge_density X Y| < ε :=
-    uXY (filter_subset _ _) subset.rfl h.le (mul_le_of_le_one_right (nat.cast_nonneg _) hε),
+  have : |(G.edge_density (bad_vertices G ε s t) t : ℝ) - G.edge_density s t| < ε :=
+    hst (filter_subset _ _) subset.rfl h.le (mul_le_of_le_one_right (nat.cast_nonneg _) hε),
   rw abs_sub_lt_iff at this,
   linarith,
 end
 
 -- A subset of the triangles constructed in a weird way to make them easy to count
 lemma triangle_split_helper :
-  (X \ (G.bad_vertices ε X Y ∪ G.bad_vertices ε X Z)).bUnion
-    (λ x, (((Y.filter (G.adj x)).product (Z.filter (G.adj x))).filter
+  (s \ (bad_vertices G ε s t ∪ bad_vertices G ε s u)).bUnion
+    (λ x, ((t.filter (G.adj x) ×ˢ u.filter (G.adj x)).filter
       (λ (yz : _ × _), G.adj yz.1 yz.2)).image (prod.mk x)) ⊆
-  (X.product (Y.product Z)).filter
+  (s ×ˢ t ×ˢ u).filter
     (λ (xyz : α × α × α), G.adj xyz.1 xyz.2.1 ∧ G.adj xyz.1 xyz.2.2 ∧ G.adj xyz.2.1 xyz.2.2) :=
 begin
   rintro ⟨x, y, z⟩,
@@ -91,13 +97,10 @@ begin
   exact ⟨hx, hy, hz, xy, xz, yz⟩,
 end
 
-lemma good_vertices_triangle_card (hε : 0 ≤ ε)
-  (dXY : 2 * ε ≤ G.edge_density X Y)
-  (dXZ : 2 * ε ≤ G.edge_density X Z)
-  (dYZ : 2 * ε ≤ G.edge_density Y Z)
-  (uYZ : G.is_uniform ε Y Z) (x : α)
-  (hx : x ∈ X \ (G.bad_vertices ε X Y ∪ G.bad_vertices ε X Z))  :
-  ε^3 * Y.card * Z.card ≤ ((((Y.filter (G.adj x)).product (Z.filter (G.adj x))).filter
+lemma good_vertices_triangle_card (hε : 0 ≤ ε) (dXY : 2 * ε ≤ G.edge_density s t)
+  (dXZ : 2 * ε ≤ G.edge_density s u) (dYZ : 2 * ε ≤ G.edge_density t u) (uYZ : G.is_uniform ε t u)
+  (x : α) (hx : x ∈ s \ (bad_vertices G ε s t ∪ bad_vertices G ε s u)) :
+  ε^3 * t.card * u.card ≤ ((((t.filter (G.adj x)) ×ˢ (u.filter (G.adj x))).filter
       (λ (yz : _ × _), G.adj yz.1 yz.2)).image (prod.mk x)).card :=
 begin
   simp only [mem_sdiff, bad_vertices, mem_union, not_or_distrib, mem_filter, not_and_distrib,
@@ -105,13 +108,13 @@ begin
   rw [←or_and_distrib_left, and_or_distrib_left] at hx,
   simp only [false_or, and_not_self, mul_comm ((_ : ℝ) - _)] at hx,
   rcases hx with ⟨hx, hxY, hxZ⟩,
-  have hY : (Y.card : ℝ) * ε ≤ (filter (G.adj x) Y).card,
+  have hY : (t.card : ℝ) * ε ≤ (filter (G.adj x) t).card,
   { exact (mul_le_mul_of_nonneg_left (by linarith) (nat.cast_nonneg _)).trans hxY },
-  have hZ : (Z.card : ℝ) * ε ≤ (filter (G.adj x) Z).card,
+  have hZ : (u.card : ℝ) * ε ≤ (filter (G.adj x) u).card,
   { exact (mul_le_mul_of_nonneg_left (by linarith) (nat.cast_nonneg _)).trans hxZ },
   rw card_image_of_injective _ (prod.mk.inj_left _),
   have := uYZ (filter_subset (G.adj x) _) (filter_subset (G.adj x) _) hY hZ,
-  have : ε ≤ G.edge_density (filter (G.adj x) Y) (filter (G.adj x) Z),
+  have : ε ≤ G.edge_density (filter (G.adj x) t) (filter (G.adj x) u),
   { rw abs_sub_lt_iff at this,
     linarith },
   rw [edge_density_def] at this,
@@ -124,30 +127,30 @@ end
 
 -- can probably golf things by relaxing < to ≤
 lemma triangle_counting (hε₀ : 0 < ε) (hε₁ : ε ≤ 1)
-  (dXY : 2 * ε ≤ G.edge_density X Y) (uXY : G.is_uniform ε X Y)
-  (dXZ : 2 * ε ≤ G.edge_density X Z) (uXZ : G.is_uniform ε X Z)
-  (dYZ : 2 * ε ≤ G.edge_density Y Z) (uYZ : G.is_uniform ε Y Z) :
-  (1 - 2 * ε) * ε^3 * X.card * Y.card * Z.card ≤
-    ((X.product $ Y.product Z).filter $ λ (xyz : α × α × α),
+  (dXY : 2 * ε ≤ G.edge_density s t) (hst : G.is_uniform ε s t)
+  (dXZ : 2 * ε ≤ G.edge_density s u) (uXZ : G.is_uniform ε s u)
+  (dYZ : 2 * ε ≤ G.edge_density t u) (uYZ : G.is_uniform ε t u) :
+  (1 - 2 * ε) * ε^3 * s.card * t.card * u.card ≤
+    ((s ×ˢ t ×ˢ u).filter $ λ xyz : α × α × α,
       G.adj xyz.1 xyz.2.1 ∧ G.adj xyz.1 xyz.2.2 ∧ G.adj xyz.2.1 xyz.2.2).card :=
 begin
-  have h₁ : ((G.bad_vertices ε X Y).card : ℝ) ≤ X.card * ε := G.few_bad_vertices hε₀.le hε₁ dXY uXY,
-  have h₂ : ((G.bad_vertices ε X Z).card : ℝ) ≤ X.card * ε := G.few_bad_vertices hε₀.le hε₁ dXZ uXZ,
-  let X' := X \ (G.bad_vertices ε X Y ∪ G.bad_vertices ε X Z),
-  have : X'.bUnion _ ⊆ (X.product (Y.product Z)).filter
+  have h₁ : ((bad_vertices G ε s t).card : ℝ) ≤ s.card * ε := G.few_bad_vertices hε₀.le hε₁ dXY hst,
+  have h₂ : ((bad_vertices G ε s u).card : ℝ) ≤ s.card * ε := G.few_bad_vertices hε₀.le hε₁ dXZ uXZ,
+  let X' := s \ (bad_vertices G ε s t ∪ bad_vertices G ε s u),
+  have : X'.bUnion _ ⊆ (s.product (t.product u)).filter
     (λ (xyz : α × α × α), G.adj xyz.1 xyz.2.1 ∧ G.adj xyz.1 xyz.2.2 ∧ G.adj xyz.2.1 xyz.2.2),
   { apply triangle_split_helper },
-  refine le_trans _ (nat.cast_le.2 (card_le_of_subset this)),
+  refine le_trans _ (nat.cast_le.2 $ card_le_of_subset this),
   rw [card_bUnion, nat.cast_sum],
   { have := λ x hx, G.good_vertices_triangle_card hε₀.le dXY dXZ dYZ uYZ x hx,
     apply le_trans _ (card_nsmul_le_sum X' _ _ this),
     rw nsmul_eq_mul,
-    have hX' : (1 - 2 * ε) * X.card ≤ X'.card,
-    { have i : G.bad_vertices ε X Y ∪ G.bad_vertices ε X Z ⊆ X,
+    have hX' : (1 - 2 * ε) * s.card ≤ X'.card,
+    { have i : bad_vertices G ε s t ∪ bad_vertices G ε s u ⊆ s,
       { apply union_subset (filter_subset _ _) (filter_subset _ _) },
       rw [sub_mul, one_mul, card_sdiff i, nat.cast_sub (card_le_of_subset i), sub_le_sub_iff_left,
         mul_assoc, mul_comm ε, two_mul],
-      refine (nat.cast_le.2 (card_union_le _ _)).trans _,
+      refine (nat.cast_le.2 $ card_union_le _ _).trans _,
       rw nat.cast_add,
       exact add_le_add h₁ h₂ },
     exact eq.trans_le (by ring) (mul_le_mul_of_nonneg_right hX' $ by positivity) },
@@ -160,14 +163,14 @@ begin
 end
 
 private lemma triple_eq_triple_of_mem [decidable_eq α]
-  {X Y Z : finset α} (hXY : disjoint X Y) (hXZ : disjoint X Z) (hYZ : disjoint Y Z)
+  (hst : disjoint s t) (hsu : disjoint s u) (htu : disjoint t u)
   {x₁ x₂ y₁ y₂ z₁ z₂ : α} (h : ({x₁, y₁, z₁} : finset α) = {x₂, y₂, z₂})
-  (hx₁ : x₁ ∈ X) (hx₂ : x₂ ∈ X) (hy₁ : y₁ ∈ Y) (hy₂ : y₂ ∈ Y) (hz₁ : z₁ ∈ Z) (hz₂ : z₂ ∈ Z) :
+  (hx₁ : x₁ ∈ s) (hx₂ : x₂ ∈ s) (hy₁ : y₁ ∈ t) (hy₂ : y₂ ∈ t) (hz₁ : z₁ ∈ u) (hz₂ : z₂ ∈ u) :
   (x₁, y₁, z₁) = (x₂, y₂, z₂) :=
 begin
   simp only [finset.subset.antisymm_iff, subset_iff, mem_insert, mem_singleton, forall_eq_or_imp,
     forall_eq] at h,
-  rw disjoint_left at hXY hXZ hYZ,
+  rw disjoint_left at hst hsu htu,
   rw [prod.mk.inj_iff, prod.mk.inj_iff],
   simp only [and.assoc, @or.left_comm _ (y₁ = y₂), @or.comm _ (z₁ = z₂),
     @or.left_comm _ (z₁ = z₂)] at h,
@@ -177,13 +180,13 @@ begin
     solve_by_elim }
 end
 
-variables [fintype α]
+variables [fintype α] {P : finpartition (univ : finset α)}
 
-lemma triangle_counting2 {X Y Z : finset α} {ε : ℝ}
-  (dXY : 2 * ε ≤ G.edge_density X Y) (uXY : G.is_uniform ε X Y) (hXY : disjoint X Y)
-  (dXZ : 2 * ε ≤ G.edge_density X Z) (uXZ : G.is_uniform ε X Z) (hXZ : disjoint X Z)
-  (dYZ : 2 * ε ≤ G.edge_density Y Z) (uYZ : G.is_uniform ε Y Z) (hYZ : disjoint Y Z) :
-  (1 - 2 * ε) * ε^3 * X.card * Y.card * Z.card ≤ (G.clique_finset 3).card :=
+lemma triangle_counting2
+  (dXY : 2 * ε ≤ G.edge_density s t) (hst : G.is_uniform ε s t) (hsu : disjoint s t)
+  (dXZ : 2 * ε ≤ G.edge_density s u) (uXZ : G.is_uniform ε s u) (hXZ : disjoint s u)
+  (dYZ : 2 * ε ≤ G.edge_density t u) (uYZ : G.is_uniform ε t u) (hYZ : disjoint t u) :
+  (1 - 2 * ε) * ε^3 * s.card * t.card * u.card ≤ (G.clique_finset 3).card :=
 begin
   cases le_or_lt ε 0 with hε₀ hε₀,
   { apply le_trans _ (nat.cast_nonneg _),
@@ -194,7 +197,7 @@ begin
   { apply le_trans _ (nat.cast_nonneg _),
     rw [mul_assoc, mul_assoc, mul_assoc],
     exact mul_nonpos_of_nonpos_of_nonneg (by linarith) (by positivity) },
-  apply (G.triangle_counting hε₀ hε₁ dXY uXY dXZ uXZ dYZ uYZ).trans _,
+  apply (G.triangle_counting hε₀ hε₁ dXY hst dXZ uXZ dYZ uYZ).trans _,
   rw nat.cast_le,
   refine card_le_card_of_inj_on (λ xyz, {xyz.1, xyz.2.1, xyz.2.2}) _ _,
   { rintro ⟨x, y, z⟩,
@@ -204,7 +207,7 @@ begin
     exact ⟨xy, xz, yz⟩ },
   rintro ⟨x₁, y₁, z₁⟩ h₁ ⟨x₂, y₂, z₂⟩ h₂ t,
   simp only [mem_filter, mem_product] at h₁ h₂,
-  apply triple_eq_triple_of_mem hXY hXZ hYZ t;
+  apply triple_eq_triple_of_mem hsu hXZ hYZ t;
   tauto
 end
 
@@ -223,7 +226,7 @@ have high edge density. -/
 
 variables {G}
 
-lemma reduced_graph_le {ε : ℝ} {P : finpartition univ} : reduced_graph G ε P ≤ G := λ x y, and.left
+lemma reduced_graph_le : reduced_graph G ε P ≤ G := λ x y, and.left
 
 lemma far_from_triangle_free_of_disjoint_triangles_aux
   (tris : finset (finset α)) (htris : tris ⊆ G.clique_finset 3)
@@ -255,25 +258,25 @@ begin
   { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfy t₂ ht₂) (hfy t₁ ht₁) $ t.2.symm ▸ hfx t₂ ht₂) }
 end
 
-lemma far_from_triangle_free_of_disjoint_triangles {ε : ℝ}
+lemma far_from_triangle_free_of_disjoint_triangles
   (tris : finset (finset α)) (htris : tris ⊆ G.clique_finset 3)
   (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1))
   (tris_big : ε * (card α ^ 2 : ℕ) ≤ tris.card) :
   G.far_from_triangle_free ε :=
 begin
   refine far_from_triangle_free_iff.2 (λ G' hG hG', _),
-  rw ←nat.cast_sub (card_le_of_subset (edge_finset_mono hG)),
+  rw ←nat.cast_sub (card_le_of_subset $ edge_finset_mono hG),
   exact tris_big.trans
     (nat.cast_le.2 $ far_from_triangle_free_of_disjoint_triangles_aux tris htris pd G' hG hG'),
 end
 
-lemma reduced_double_edges {ε : ℝ} {P : finpartition univ} :
-  univ.filter (λ (xy : α × α), G.adj xy.1 xy.2) \
-    univ.filter (λ (xy : α × α), (reduced_graph G ε P).adj xy.1 xy.2) ⊆
-      (P.non_uniforms G (ε/8)).bUnion (λ UV, UV.1.product UV.2) ∪
-        P.parts.bUnion (λ U, U.off_diag) ∪
-          (P.parts.off_diag.filter (λ (UV : _ × _), ↑(G.edge_density UV.1 UV.2) < ε/4)).bUnion
-            (λ UV, (UV.1.product UV.2).filter (λ xy, G.adj xy.1 xy.2)) :=
+lemma reduced_double_edges :
+  univ.filter (λ xy : α × α, G.adj xy.1 xy.2) \
+    univ.filter (λ xy : α × α, (reduced_graph G ε P).adj xy.1 xy.2) ⊆
+      (P.non_uniforms G (ε/8)).bUnion (λ UV, UV.1 ×ˢ UV.2) ∪
+        P.parts.bUnion off_diag ∪
+          (P.parts.off_diag.filter $ λ UV : _ × _, ↑(G.edge_density UV.1 UV.2) < ε/4).bUnion
+            (λ UV, (UV.1 ×ˢ UV.2).filter $ λ xy, G.adj xy.1 xy.2) :=
 begin
   rintro ⟨x, y⟩,
   simp only [mem_sdiff, mem_filter, mem_univ, true_and, reduced_graph_adj, not_and, not_exists,
@@ -291,16 +294,15 @@ begin
 end
 
 -- We will break up the sum more later
-lemma non_uniform_killed_card {ε : ℝ} {P : finpartition univ} :
-  (((P.non_uniforms G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) ≤
-    (∑ i in P.non_uniforms G ε, i.1.card * i.2.card : ℝ) :=
+lemma non_uniform_killed_card :
+  (((P.non_uniforms G ε).bUnion $ λ UV, UV.1 ×ˢ UV.2).card : ℝ) ≤
+    ∑ i in P.non_uniforms G ε, i.1.card * i.2.card :=
 by { norm_cast, simp_rw ←card_product, exact card_bUnion_le }
 
-lemma internal_killed_card [nonempty α] {P : finpartition (univ : finset α)}
-  (hP : P.is_equipartition) :
-  ((P.parts.bUnion (λ U, U.off_diag)).card : ℝ) ≤ card α * (card α + P.parts.card) / P.parts.card :=
+lemma internal_killed_card (hP : P.is_equipartition) :
+  ((P.parts.bUnion off_diag).card : ℝ) ≤ card α * (card α + P.parts.card) / P.parts.card :=
 begin
-  have : (P.parts.bUnion (λ U, U.off_diag)).card ≤
+  have : (P.parts.bUnion off_diag).card ≤
     P.parts.card * (card α / P.parts.card) * (card α / P.parts.card + 1),
   { rw mul_assoc,
     refine card_bUnion_le_card_mul _ _ _ (λ U hU, _),
@@ -310,6 +312,8 @@ begin
     refine nat.mul_le_mul ((nat.sub_le_sub_right this 1).trans _) this,
     simp only [nat.add_succ_sub_one, add_zero, card_univ] },
   refine (nat.cast_le.2 this).trans _,
+  casesI is_empty_or_nonempty α,
+  { simp [fintype.card_eq_zero] },
   have i : (_ : ℝ) ≠ 0 := nat.cast_ne_zero.2 (P.parts_nonempty univ_nonempty.ne_empty).card_pos.ne',
   rw [mul_div_assoc, div_add_same i, nat.cast_mul, nat.cast_add_one],
   refine mul_le_mul _ _ (by positivity) (by positivity),
@@ -318,9 +322,9 @@ begin
   exact add_le_add_right nat.cast_div_le _,
 end
 
-lemma sparse_card {P : finpartition univ} (hP : P.is_equipartition) {ε : ℝ} (hε : 0 ≤ ε) :
-  (((P.parts.off_diag.filter $ λ (UV : _ × _), ↑(G.edge_density UV.1 UV.2) < ε).bUnion $
-      λ UV, (UV.1.product UV.2).filter $ λ xy, G.adj xy.1 xy.2).card : ℝ) ≤
+lemma sparse_card (hP : P.is_equipartition) (hε : 0 ≤ ε) :
+  (((P.parts.off_diag.filter $ λ UV : _ × _, ↑(G.edge_density UV.1 UV.2) < ε).bUnion $
+      λ UV, (UV.1 ×ˢ UV.2).filter $ λ xy, G.adj xy.1 xy.2).card : ℝ) ≤
     ε * (card α + P.parts.card)^2 :=
 begin
   refine (nat.cast_le.2 card_bUnion_le).trans _,
@@ -328,10 +332,9 @@ begin
   change ∑ x in _, ↑(G.interedges _ _).card ≤ _,
   have : ∀ UV ∈ P.parts.off_diag.filter (λ (UV : _ × _), ↑(G.edge_density UV.1 UV.2) < ε),
     ↑(G.interedges UV.1 UV.2).card ≤ ε * (UV.1.card * UV.2.card),
-  { rintro ⟨U, V⟩,
     simp only [and_imp, mem_off_diag, mem_filter, ne.def, simple_graph.edge_density_def],
-    intros hU hV hUV e,
-    push_cast at e,
+  { push_cast,
+    rintro ⟨U, V⟩ hU hV hUV e,
     apply le_of_lt,
     rwa ←div_lt_iff,
     have := P.nonempty_of_mem_parts hU,
@@ -344,18 +347,14 @@ begin
   refine mul_le_mul_of_nonneg_left _ hε,
   refine (sum_le_card_nsmul P.parts.off_diag (λ i, (i.1.card * i.2.card : ℝ))
     ((card α / P.parts.card + 1)^2 : ℕ) _).trans _,
-  { simp only [prod.forall, finpartition.mk_mem_non_uniforms_iff, and_imp, mem_off_diag],
+  { simp only [prod.forall, finpartition.mk_mem_non_uniforms_iff, and_imp, mem_off_diag, sq],
     rintro U V hU hV -,
-    rw [sq, ←nat.cast_mul, nat.cast_le],
-    exact nat.mul_le_mul (hP.card_part_le_average_add_one hU)
+    exact_mod_cast nat.mul_le_mul (hP.card_part_le_average_add_one hU)
       (hP.card_part_le_average_add_one hV) },
   rw [nsmul_eq_mul, ←nat.cast_mul, ←nat.cast_add, ←nat.cast_pow, nat.cast_le, off_diag_card,
-    nat.mul_sub_right_distrib],
-  apply (nat.sub_le _ _).trans,
-  rw [←sq, ←mul_pow],
-  apply nat.pow_le_pow_of_le_left,
-  rw [mul_add, mul_one],
-  exact add_le_add_right (nat.mul_div_le _ _) _,
+    nat.mul_sub_right_distrib, ←sq, ←mul_pow, mul_add_one],
+  exact (nat.sub_le _ _).trans
+    (nat.pow_le_pow_of_le_left (add_le_add_right (nat.mul_div_le _ _) _) _),
 end
 
 private lemma aux {i j : ℕ} (hj : 0 < j) : j * (j - 1) * (i / j + 1) ^ 2 < (i + j) ^ 2 :=
@@ -368,8 +367,8 @@ begin
   exact nat.pow_le_pow_of_le_left (add_le_add_right (nat.mul_div_le i j) _) _,
 end
 
-lemma sum_irreg_pairs_le_of_uniform [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)
-  (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
+lemma sum_irreg_pairs_le_of_uniform [nonempty α] (hε : 0 < ε) (hP : P.is_equipartition)
+  (hG : P.is_uniform G ε) :
   (∑ i in P.non_uniforms G ε, i.1.card * i.2.card : ℝ) < ε * (card α + P.parts.card)^2 :=
 begin
   refine (sum_le_card_nsmul (P.non_uniforms G ε) (λ i, (i.1.card * i.2.card : ℝ))
@@ -380,54 +379,52 @@ begin
     exact nat.mul_le_mul (hP.card_part_le_average_add_one hU)
       (hP.card_part_le_average_add_one hV) },
   rw nsmul_eq_mul,
-  refine (mul_le_mul_of_nonneg_right hG (nat.cast_nonneg _)).trans_lt _,
+  refine (mul_le_mul_of_nonneg_right hG $ nat.cast_nonneg _).trans_lt _,
   rw [mul_right_comm _ ε, mul_comm ε],
   apply mul_lt_mul_of_pos_right _ hε,
   norm_cast,
   exact aux (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos,
 end
 
-lemma sum_irreg_pairs_le_of_uniform' [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)
-  (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
-  (((P.non_uniforms G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) < 4 * ε * (card α)^2 :=
+lemma sum_irreg_pairs_le_of_uniform' [nonempty α] (hε : 0 < ε) (hP : P.is_equipartition)
+  (hG : P.is_uniform G ε) :
+  (((P.non_uniforms G ε).bUnion $ λ UV, UV.1 ×ˢ UV.2).card : ℝ) < 4 * ε * (card α)^2 :=
 begin
-  apply non_uniform_killed_card.trans_lt,
-  apply (sum_irreg_pairs_le_of_uniform hε P hP hG).trans_le,
+  refine (non_uniform_killed_card.trans_lt $ sum_irreg_pairs_le_of_uniform hε hP hG).trans_le _,
   suffices : ε * ((card α) + P.parts.card)^2 ≤ ε * (card α + card α)^2,
-  { exact this.trans (le_of_eq (by ring)) },
-  apply mul_le_mul_of_nonneg_left _ hε.le,
-  refine pow_le_pow_of_le_left (by positivity) _ _,
+  { exact this.trans_eq (by ring) },
+  refine mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left (by positivity) _ _) hε.le,
   exact add_le_add_left (nat.cast_le.2 P.card_parts_le_card) _,
 end
 
-lemma sum_sparse {ε : ℝ} (hε : 0 ≤ ε) (P : finpartition univ) (hP : P.is_equipartition) :
-  (((P.parts.off_diag.filter (λ (UV : _ × _), ↑(G.edge_density UV.1 UV.2) < ε)).bUnion
-            (λ UV, (UV.1.product UV.2).filter (λ xy, G.adj xy.1 xy.2))).card : ℝ) ≤
+lemma sum_sparse (hε : 0 ≤ ε) (hP : P.is_equipartition) :
+  (((P.parts.off_diag.filter $ λ (UV : _ × _), ↑(G.edge_density UV.1 UV.2) < ε).bUnion $
+            λ UV, (UV.1 ×ˢ UV.2).filter $ λ xy, G.adj xy.1 xy.2).card : ℝ) ≤
               4 * ε * (card α)^2 :=
 begin
   refine (sparse_card hP hε).trans _,
   suffices : ε * ((card α) + P.parts.card)^2 ≤ ε * (card α + card α)^2,
   { exact this.trans_eq (by ring) },
-  refine mul_le_mul_of_nonneg_left _ hε,
-  refine pow_le_pow_of_le_left (by positivity) _ _,
+  refine mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left (by positivity) _ _) hε,
   exact add_le_add_left (nat.cast_le.2 P.card_parts_le_card) _,
 end
 
-lemma internal_killed_card' [nonempty α] {ε : ℝ} (hε : 0 < ε)
-  {P : finpartition (univ : finset α)} (hP : P.is_equipartition) (hP' : 4 / ε ≤ P.parts.card) :
-  ((P.parts.bUnion (λ U, U.off_diag)).card : ℝ) ≤ ε / 2 * (card α)^2 :=
+lemma internal_killed_card' (hε : 0 < ε) (hP : P.is_equipartition) (hP' : 4 / ε ≤ P.parts.card) :
+  ((P.parts.bUnion off_diag).card : ℝ) ≤ ε / 2 * (card α)^2 :=
 begin
+  casesI is_empty_or_nonempty α,
+  { rw [subsingleton.elim (P.parts.bUnion off_diag) ∅, finset.card_empty, nat.cast_zero],
+    positivity },
   have := P.parts_nonempty univ_nonempty.ne_empty,
   apply (internal_killed_card hP).trans,
   rw div_le_iff (by positivity : 0 < (P.parts.card : ℝ)),
   have : (card α : ℝ) + P.parts.card ≤ 2 * card α,
   { rw two_mul,
-    apply add_le_add_left,
-    exact nat.cast_le.2 P.card_parts_le_card },
+    exact add_le_add_left (nat.cast_le.2 P.card_parts_le_card) _ },
   refine (mul_le_mul_of_nonneg_left this $ by positivity).trans _,
-  suffices : 1 ≤ (ε/4) * P.parts.card,
+  suffices : 1 ≤ ε/4 * P.parts.card,
   { rw [mul_left_comm, ←sq],
-    convert mul_le_mul_of_nonneg_left this (mul_nonneg zero_le_two (sq_nonneg (card α))) using 1;
+    convert mul_le_mul_of_nonneg_left this (mul_nonneg zero_le_two $ sq_nonneg (card α)) using 1;
     ring },
   rwa [←div_le_iff', one_div_div],
   positivity,

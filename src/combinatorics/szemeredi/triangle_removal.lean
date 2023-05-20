@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
+import .mathlib
 import .regularity_lemma
 import .triangle_counting
 
@@ -10,6 +11,10 @@ import .triangle_counting
 # Triangle removal lemma
 
 In this file, we prove the triangle removal lemma.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset fintype nat szemeredi_regularity
@@ -101,11 +106,11 @@ begin
     (card_le_of_subset reduced_double_edges).trans $ card_union_le _ _).trans_lt _,
   rw cast_add,
   refine (add_le_add (cast_le.2 $ card_union_le _ _) $
-    sum_sparse (by positivity) P hP).trans_lt _,
+    sum_sparse (by positivity) hP).trans_lt _,
   rw [cast_add, add_right_comm],
   refine (add_le_add_left (internal_killed_card' hε hP hP') _).trans_lt _,
   rw add_assoc,
-  refine (add_lt_add_right (sum_irreg_pairs_le_of_uniform' (by positivity) P hP hPε) _).trans_eq _,
+  refine (add_lt_add_right (sum_irreg_pairs_le_of_uniform' (by positivity) hP hPε) _).trans_eq _,
   ring,
 end
 

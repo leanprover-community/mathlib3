@@ -149,7 +149,7 @@ begin
   obtain ⟨u, v, huv⟩ : is_coprime x n,
   { have hc2 : is_coprime (x ^ 2) (y ^ 2) := hc.pow,
     rw show y ^ 2 = n + (-1) * x ^ 2, from by {rw h, ring} at hc2,
-    exact (is_coprime.pow_left_iff zero_lt_two).mp (is_coprime.of_add_mul_right_right hc2), },
+    exact (is_coprime.pow_left_iff zero_lt_two).mp hc2.of_add_mul_right_right, },
   have H : (u * y) * (u * y) - (-1) = n * (-v ^ 2 * n + u ^ 2 + 2 * v) :=
     by linear_combination -u ^ 2 * h + (n * v - u * x - 1) * huv,
   refine ⟨u * y, _⟩,

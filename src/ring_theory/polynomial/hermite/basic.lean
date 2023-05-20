@@ -20,11 +20,14 @@ This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomi
 ## Results
 
 * `polynomial.hermite_succ`: the recursion `hermite (n+1) = (x - d/dx) (hermite n)`
-* `polynomial.coeff_hermite_of_odd_add`: for `n`,`k` where `n+k` is odd, `(hermite n).coeff k` is
-  zero.
-* `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
 * `polynomial.coeff_hermite_explicit`: a closed formula for (nonvanishing) coefficients in terms
   of binomial coefficients and double factorials.
+* `polynomial.coeff_hermite_of_odd_add`: for `n`,`k` where `n+k` is odd, `(hermite n).coeff k` is
+  zero.
+* `polynomial.coeff_hermite_of_even_add`: a closed formula for `(hermite n).coeff k` when `n+k` is
+  even, equivalent to `polynomial.coeff_hermite_explicit`.
+* `polynomial.monic_hermite`: for all `n`, `hermite n` is monic.
+* `polynomial.degree_hermite`: for all `n`, `hermite n` has degree `n`.
 
 ## References
 

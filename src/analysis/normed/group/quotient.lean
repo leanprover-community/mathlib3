@@ -10,6 +10,9 @@ import ring_theory.ideal.quotient_operations
 /-!
 # Quotients of seminormed groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For any `seminormed_add_comm_group M` and any `S : add_subgroup M`, we provide a
 `seminormed_add_comm_group`, the group quotient `M ⧸ S`.
 If `S` is closed, we provide `normed_add_comm_group (M ⧸ S)` (regardless of whether `M` itself is

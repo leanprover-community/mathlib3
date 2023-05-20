@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import linear_algebra.bilinear_form
 import linear_algebra.tensor_product
-import linear_algebra.contraction
 
 /-!
 # The bilinear form on a tensor product

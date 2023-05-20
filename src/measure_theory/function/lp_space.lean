@@ -5,10 +5,10 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 -/
 import analysis.normed_space.indicator_function
 import analysis.normed.group.hom
+import analysis.special_functions.pow.continuity
 import measure_theory.function.ess_sup
 import measure_theory.function.ae_eq_fun
 import measure_theory.integral.mean_inequalities
-import measure_theory.function.strongly_measurable.inner
 import topology.continuous_function.compact
 
 /-!
@@ -1456,34 +1456,19 @@ lemma mem_ℒp.re (hf : mem_ℒp f p μ) : mem_ℒp (λ x, is_R_or_C.re (f x)) p
 begin
   have : ∀ x, ‖is_R_or_C.re (f x)‖ ≤ 1 * ‖f x‖,
     by { intro x, rw one_mul, exact is_R_or_C.norm_re_le_norm (f x), },
-  exact hf.of_le_mul hf.1.re (eventually_of_forall this),
+  refine hf.of_le_mul _ (eventually_of_forall this),
+  exact is_R_or_C.continuous_re.comp_ae_strongly_measurable hf.1,
 end
 
 lemma mem_ℒp.im (hf : mem_ℒp f p μ) : mem_ℒp (λ x, is_R_or_C.im (f x)) p μ :=
 begin
   have : ∀ x, ‖is_R_or_C.im (f x)‖ ≤ 1 * ‖f x‖,
     by { intro x, rw one_mul, exact is_R_or_C.norm_im_le_norm (f x), },
-  exact hf.of_le_mul hf.1.im (eventually_of_forall this),
+  refine hf.of_le_mul _ (eventually_of_forall this),
+  exact is_R_or_C.continuous_im.comp_ae_strongly_measurable hf.1,
 end
 
 end is_R_or_C
-
-section inner_product
-variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E'] [inner_product_space 𝕜 E']
-
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
-
-lemma mem_ℒp.const_inner (c : E') {f : α → E'} (hf : mem_ℒp f p μ) :
-  mem_ℒp (λ a, ⟪c, f a⟫) p μ :=
-hf.of_le_mul (ae_strongly_measurable.inner ae_strongly_measurable_const hf.1)
-  (eventually_of_forall (λ x, norm_inner_le_norm _ _))
-
-lemma mem_ℒp.inner_const {f : α → E'} (hf : mem_ℒp f p μ) (c : E') :
-  mem_ℒp (λ a, ⟪f a, c⟫) p μ :=
-hf.of_le_mul (ae_strongly_measurable.inner hf.1 ae_strongly_measurable_const)
-  (eventually_of_forall (λ x, by { rw mul_comm, exact norm_inner_le_norm _ _, }))
-
-end inner_product
 
 section liminf
 

@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
 
-import measure_theory.function.continuous_map_dense
-import measure_theory.integral.integral_eq_improper
-import measure_theory.group.integration
-import topology.continuous_function.zero_at_infty
 import analysis.fourier.fourier_transform
 import analysis.inner_product_space.dual
-import topology.metric_space.emetric_paracompact
 import analysis.inner_product_space.euclidean_dist
+import measure_theory.function.continuous_map_dense
+import measure_theory.group.integration
+import measure_theory.integral.set_integral
+import measure_theory.measure.haar.normed_space
+import topology.metric_space.emetric_paracompact
 
 /-!
 # The Riemann-Lebesgue Lemma

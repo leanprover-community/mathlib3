@@ -451,6 +451,9 @@ by rw [div_eq_mul_inv, mul_right_inv a]
 lemma mul_div_cancel'' (a b : G) : a * b / b = a :=
 by rw [div_eq_mul_inv, mul_inv_cancel_right a b]
 
+@[simp, to_additive sub_add_cancel'']
+lemma div_mul_cancel''' (a b : G) : a / (b * a) = b⁻¹ := by rw [←inv_div, mul_div_cancel'']
+
 @[simp, to_additive]
 lemma mul_div_mul_right_eq_div (a b c : G) : (a * c) / (b * c) = a / b :=
 by rw [div_mul_eq_div_div_swap]; simp only [mul_left_inj, eq_self_iff_true, mul_div_cancel'']

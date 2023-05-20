@@ -8,6 +8,9 @@ import computability.partrec
 /-!
 # Gödel Numbering for Partial Recursive Functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `nat.partrec.code`, an inductive datatype describing code for partial
 recursive functions on ℕ. It defines an encoding for these codes, and proves that the constructors
 are primitive recursive with respect to the encoding.

@@ -10,6 +10,9 @@ import analysis.specific_limits.basic
 /-!
 # A collection of specific limit computations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains important specific limit computations in (semi-)normed groups/rings/spaces, as
 as well as such computations in `ℝ` when the natural proof passes through a fact about normed
 spaces.

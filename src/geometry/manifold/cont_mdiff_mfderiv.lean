@@ -479,15 +479,13 @@ begin
   simp only [bundle.zero_section, tangent_map, mfderiv, total_space.proj_mk, A,
     if_pos, chart_at, fiber_bundle.charted_space_chart_at, tangent_bundle.trivialization_at_apply,
     tangent_bundle_core, function.comp, continuous_linear_map.map_zero] with mfld_simps,
-  rw ← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)) at B,
-  rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],
+  rw [← fderiv_within_inter N] at B,
+  rw [← fderiv_within_inter N, ← B],
   congr' 2,
-  apply fderiv_within_congr _ (λ y hy, _),
-  { simp only [prod.mk.inj_iff] with mfld_simps },
-  { apply unique_diff_within_at.inter (I.unique_diff _ _) N,
-    simp only with mfld_simps },
+  refine fderiv_within_congr (λ y hy, _) _,
   { simp only with mfld_simps at hy,
     simp only [hy, prod.mk.inj_iff] with mfld_simps },
+  { simp only [prod.mk.inj_iff] with mfld_simps },
 end
 
 end tangent_bundle

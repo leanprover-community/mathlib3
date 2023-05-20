@@ -104,9 +104,9 @@ by rw [iterated_deriv_within_eq_equiv_comp, linear_isometry_equiv.norm_map]
   iterated_deriv_within 0 f s = f :=
 by { ext x, simp [iterated_deriv_within] }
 
-@[simp] lemma iterated_deriv_within_one (hs : unique_diff_on 𝕜 s) {x : 𝕜} (hx : x ∈ s):
+@[simp] lemma iterated_deriv_within_one {x : 𝕜} (h : unique_diff_within_at 𝕜 s x):
   iterated_deriv_within 1 f s x = deriv_within f s x :=
-by { simp [iterated_deriv_within, iterated_fderiv_within_one_apply hs hx], refl }
+by { simp only [iterated_deriv_within, iterated_fderiv_within_one_apply h], refl }
 
 /-- If the first `n` derivatives within a set of a function are continuous, and its first `n-1`
 derivatives are differentiable, then the function is `C^n`. This is not an equivalence in general,
@@ -146,14 +146,19 @@ lemma cont_diff_on.continuous_on_iterated_deriv_within {n : ℕ∞} {m : ℕ}
 by simpa only [iterated_deriv_within_eq_equiv_comp, linear_isometry_equiv.comp_continuous_on_iff]
   using h.continuous_on_iterated_fderiv_within hmn hs
 
+lemma cont_diff_within_at.differentiable_within_at_iterated_deriv_within {n : ℕ∞} {m : ℕ}
+  (h : cont_diff_within_at 𝕜 n f s x) (hmn : (m : ℕ∞) < n) (hs : unique_diff_on 𝕜 (insert x s)) :
+  differentiable_within_at 𝕜 (iterated_deriv_within m f s) s x :=
+by simpa only [iterated_deriv_within_eq_equiv_comp,
+  linear_isometry_equiv.comp_differentiable_within_at_iff]
+  using h.differentiable_within_at_iterated_fderiv_within hmn hs
+
 /-- On a set with unique derivatives, a `C^n` function has derivatives less than `n` which are
 differentiable. -/
 lemma cont_diff_on.differentiable_on_iterated_deriv_within {n : ℕ∞} {m : ℕ}
   (h : cont_diff_on 𝕜 n f s) (hmn : (m : ℕ∞) < n) (hs : unique_diff_on 𝕜 s) :
   differentiable_on 𝕜 (iterated_deriv_within m f s) s :=
-by simpa only [iterated_deriv_within_eq_equiv_comp,
-  linear_isometry_equiv.comp_differentiable_on_iff]
-  using h.differentiable_on_iterated_fderiv_within hmn hs
+λ x hx, (h x hx).differentiable_within_at_iterated_deriv_within hmn $ by rwa [insert_eq_of_mem hx]
 
 /-- The property of being `C^n`, initially defined in terms of the Fréchet derivative, can be
 reformulated in terms of the one-dimensional derivative on sets with unique derivatives. -/

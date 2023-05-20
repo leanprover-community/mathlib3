@@ -79,7 +79,6 @@ within the set `range I ⊆ E` at `I (i x) : E`. -/
   coord_change_self := λ i x hx v, begin
     rw [filter.eventually_eq.fderiv_within_eq, fderiv_within_id', continuous_linear_map.id_apply],
     { exact I.unique_diff_at_image },
-    { exact I.unique_diff_at_image },
     { filter_upwards [i.1.extend_target_mem_nhds_within I hx] with y hy,
       exact (i.1.extend I).right_inv hy },
     { simp_rw [function.comp_apply, i.1.extend_left_inv I hx] }
@@ -93,7 +92,6 @@ within the set `range I ⊆ E` at `I (i x) : E`. -/
   coord_change_comp := begin
     rintro i j k x ⟨⟨hxi, hxj⟩, hxk⟩ v,
     rw [fderiv_within_fderiv_within, filter.eventually_eq.fderiv_within_eq],
-    { exact I.unique_diff_at_image },
     { have := i.1.extend_preimage_mem_nhds I hxi (j.1.extend_source_mem_nhds I hxj),
       filter_upwards [nhds_within_le_nhds this] with y hy,
       simp_rw [function.comp_apply, (j.1.extend I).left_inv hy] },

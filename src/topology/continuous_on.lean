@@ -107,39 +107,17 @@ end
 
 lemma mem_nhds_within_iff_eventually {s t : set α} {x : α} :
   t ∈ 𝓝[s] x ↔ ∀ᶠ y in 𝓝 x, y ∈ s → y ∈ t :=
-begin
-  rw [mem_nhds_within_iff_exists_mem_nhds_inter],
-  split,
-  { rintro ⟨u, hu, hut⟩, exact eventually_of_mem hu (λ x hxu hxs, hut ⟨hxu, hxs⟩) },
-  { refine λ h, ⟨_, h, λ y hy, hy.1 hy.2⟩ }
-end
+set_eventually_le_iff_mem_inf_principal.symm
 
 lemma mem_nhds_within_iff_eventually_eq {s t : set α} {x : α} :
   t ∈ 𝓝[s] x ↔ s =ᶠ[𝓝 x] (s ∩ t : set α) :=
 by simp_rw [mem_nhds_within_iff_eventually, eventually_eq_set, mem_inter_iff, iff_self_and]
 
 lemma nhds_within_eq_iff_eventually_eq {s t : set α} {x : α} : 𝓝[s] x = 𝓝[t] x ↔ s =ᶠ[𝓝 x] t :=
-begin
-  simp_rw [filter.ext_iff, mem_nhds_within_iff_eventually, eventually_eq_set],
-  split,
-  { intro h,
-    filter_upwards [(h t).mpr (eventually_of_forall $ λ x, id),
-      (h s).mp (eventually_of_forall $ λ x, id)],
-    exact λ x, iff.intro, },
-  { refine λ h u, eventually_congr (h.mono $ λ x h, _), rw [h] }
-end
-
-@[simp] lemma nhds_within_eventually_eq_nhds_within {s t : set α} {x : α} :
-  (λ y, 𝓝[s] y) =ᶠ[𝓝 x] (λ y, 𝓝[t] y) ↔ 𝓝[s] x = 𝓝[t] x :=
-by simp only [nhds_within_eq_iff_eventually_eq, eventually_eq, eventually_eventually_nhds]
+set_eventually_eq_iff_inf_principal.symm
 
 lemma nhds_within_le_iff {s t : set α} {x : α} : 𝓝[s] x ≤ 𝓝[t] x ↔ t ∈ 𝓝[s] x :=
-begin
-  simp_rw [filter.le_def, mem_nhds_within_iff_eventually],
-  split,
-  { exact λ h, (h t $ eventually_of_forall (λ x, id)).mono (λ x, id) },
-  { exact λ h u hu, (h.and hu).mono (λ x hx h, hx.2 $ hx.1 h) }
-end
+set_eventually_le_iff_inf_principal_le.symm.trans set_eventually_le_iff_mem_inf_principal
 
 lemma preimage_nhds_within_coinduced' {π : α → β} {s : set β} {t : set α} {a : α}
   (h : a ∈ t) (ht : is_open t)

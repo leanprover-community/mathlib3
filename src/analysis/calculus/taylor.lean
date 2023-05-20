@@ -146,34 +146,29 @@ begin
   simp only [nat.cast_add, nat.cast_one],
 end
 
-lemma has_deriv_within_at_taylor_coeff_within {f : ℝ → E} {x y : ℝ} {k : ℕ} {s s' : set ℝ}
-  (hs'_unique : unique_diff_within_at ℝ s' y)
-  (hs' : s' ∈ 𝓝[s] y) (hy : y ∈ s') (h : s' ⊆ s)
-  (hf' : differentiable_on ℝ (iterated_deriv_within (k+1) f s) s') :
-  has_deriv_within_at (λ t,
-    (((k+1 : ℝ) * k!)⁻¹ * (x - t)^(k+1)) • iterated_deriv_within (k+1) f s t)
+lemma has_deriv_within_at_taylor_coeff_within {f : ℝ → E} {x y : ℝ} {k : ℕ} {s t : set ℝ}
+  (ht : unique_diff_within_at ℝ t y) (hs : s ∈ 𝓝[t] y)
+  (hf : differentiable_within_at ℝ (iterated_deriv_within (k+1) f s) s y) :
+  has_deriv_within_at (λ z,
+    (((k+1 : ℝ) * k!)⁻¹ * (x - z)^(k+1)) • iterated_deriv_within (k+1) f s z)
     ((((k+1 : ℝ) * k!)⁻¹ * (x - y)^(k+1)) • iterated_deriv_within (k+2) f s y -
-    ((k! : ℝ)⁻¹ * (x - y)^k) • iterated_deriv_within (k+1) f s y) s' y :=
+    ((k! : ℝ)⁻¹ * (x - y)^k) • iterated_deriv_within (k+1) f s y) t y :=
 begin
-  have hf'' : has_deriv_within_at (λ t, iterated_deriv_within (k+1) f s t)
-    (iterated_deriv_within (k+2) f s y) s' y :=
+  replace hf : has_deriv_within_at (iterated_deriv_within (k+1) f s)
+    (iterated_deriv_within (k+2) f s y) t y :=
   begin
-    convert (hf' y hy).has_deriv_within_at,
-    rw iterated_deriv_within_succ (hs'_unique.mono h),
-    refine (deriv_within_subset h hs'_unique _).symm,
-    exact (hf' y hy).antimono h hs',
+    convert (hf.mono_of_mem hs).has_deriv_within_at,
+    rw iterated_deriv_within_succ (ht.mono_nhds (nhds_within_le_iff.mpr hs)),
+    exact (deriv_within_of_mem hs ht hf).symm
   end,
   have : has_deriv_within_at (λ t, (((k+1 : ℝ) * k!)⁻¹ * (x - t)^(k+1)))
-    (-((k! : ℝ)⁻¹ * (x - y)^k)) s' y :=
-  begin
-    -- Commuting the factors:
-    have : (-((k! : ℝ)⁻¹ * (x - y)^k)) =
-      (((k+1 : ℝ) * k!)⁻¹ * (-(k+1) *(x - y)^k)) :=
-    by { field_simp [nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k], ring_nf },
+    (-((k! : ℝ)⁻¹ * (x - y)^k)) t y,
+  { -- Commuting the factors:
+    have : (-((k! : ℝ)⁻¹ * (x - y)^k)) = (((k+1 : ℝ) * k!)⁻¹ * (-(k+1) *(x - y)^k)),
+    { field_simp [nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k], ring_nf },
     rw this,
-    exact (monomial_has_deriv_aux y x _).has_deriv_within_at.const_mul _,
-  end,
-  convert this.smul hf'',
+    exact (monomial_has_deriv_aux y x _).has_deriv_within_at.const_mul _ },
+  convert this.smul hf,
   field_simp [nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k],
   rw [neg_div, neg_smul, sub_eq_add_neg],
 end
@@ -181,34 +176,31 @@ end
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`.
 
 Version for arbitrary sets -/
-lemma has_deriv_within_at_taylor_within_eval {f : ℝ → E} {x y : ℝ} {n : ℕ} {s s' : set ℝ}
-  (hs'_unique : unique_diff_within_at ℝ s' y) (hs_unique : unique_diff_on ℝ s)
-  (hs' : s' ∈ 𝓝[s] y) (hy : y ∈ s') (h : s' ⊆ s)
-  (hf : cont_diff_on ℝ n f s)
-  (hf' : differentiable_on ℝ (iterated_deriv_within n f s) s') :
-  has_deriv_within_at (λ t, taylor_within_eval f n s t x)
-    (((n! : ℝ)⁻¹ * (x - y)^n) • (iterated_deriv_within (n+1) f s y)) s' y :=
+lemma has_deriv_within_at_taylor_within_eval {f : ℝ → E} {x y : ℝ} {n : ℕ} {s t : set ℝ}
+  (ht : unique_diff_on ℝ t) (hy : y ∈ t) (hs : s ∈ 𝓝[t] y) (hf' : cont_diff_within_at ℝ n f s y)
+  (hf : differentiable_within_at ℝ (iterated_deriv_within n f s) s y) :
+  has_deriv_within_at (λ x₀, taylor_within_eval f n s x₀ x)
+    (((n! : ℝ)⁻¹ * (x - y)^n) • (iterated_deriv_within (n+1) f s y)) t y :=
 begin
   induction n with k hk,
   { simp only [taylor_within_zero_eval, nat.factorial_zero, nat.cast_one, inv_one, pow_zero,
       mul_one, zero_add, one_smul],
-    simp only [iterated_deriv_within_zero] at hf',
-    rw iterated_deriv_within_one hs_unique (h hy),
-    refine has_deriv_within_at.mono _ h,
-    refine differentiable_within_at.has_deriv_within_at _,
-    exact (hf' y hy).antimono h hs' },
+    simp only [iterated_deriv_within_zero] at hf,
+    rw [iterated_deriv_within_one ((ht y hy).mono_nhds $ nhds_within_le_iff.mpr hs)],
+    exact hf.has_deriv_within_at.mono_of_mem hs },
   simp_rw [nat.add_succ, taylor_within_eval_succ],
-  simp only [add_zero, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
-  have hdiff : differentiable_on ℝ (iterated_deriv_within k f s) s' :=
-  begin
-    have coe_lt_succ : (k : with_top ℕ) < k.succ :=
-    by { rw [with_top.coe_lt_coe], exact lt_add_one k },
-    refine differentiable_on.mono _ h,
-    exact hf.differentiable_on_iterated_deriv_within coe_lt_succ hs_unique,
-  end,
-  specialize hk (cont_diff_on.of_succ hf) hdiff,
-  convert hk.add (has_deriv_within_at_taylor_coeff_within hs'_unique hs' hy h hf'),
-  exact (add_sub_cancel'_right _ _).symm,
+  convert (hk (hf'.of_le $ nat.cast_le.2 $ k.le_succ) _).add
+    (has_deriv_within_at_taylor_coeff_within (ht y hy) hs hf),
+  { simp },
+  { exact hf'.differentiable_within_at_iterated_deriv_within (nat.cast_lt.2 k.lt_succ_self) _ },
+  -- simp only [add_zero, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
+  -- have hdiff : differentiable_on ℝ (iterated_deriv_within k f s) t,
+  -- { have coe_lt_succ : (k : with_top ℕ) < k.succ :=
+  --   by { rw [with_top.coe_lt_coe], exact lt_add_one k },
+  --   refine differentiable_on.mono _ hs's,
+  --   exact hf.differentiable_on_iterated_deriv_within coe_lt_succ hs_unique },
+  -- specialize hk (cont_diff_on.of_succ hf) hdiff,
+  -- exact (add_sub_cancel'_right _ _).symm,
 end
 
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`.

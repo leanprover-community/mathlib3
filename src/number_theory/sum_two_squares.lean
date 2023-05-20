@@ -10,13 +10,15 @@ import tactic.linear_combination
 /-!
 # Sums of two squares
 
-Proof of Fermat's theorem on the sum of two squares. Every prime congruent to 1 mod 4 is the sum
-of two squares.
+Fermat's theorem on the sum of two squares. Every prime `p` congruent to 1 mod 4 is the
+sum of two squares; see `nat.prime.sq_add_sq` (which has the weaker assumption `p % 4 ≠ 3`).
 
-# Todo
+We also give the result that characterizes the (positive) natural numbers that are sums
+of two squares as those numbers `n` such that for every prime `q` congruent to 3 mod 4, the
+largest power of `q` dividing `n` is even; see `nat.eq_sq_add_sq_iff`.
 
-Fully characterize the natural numbers that are the sum of two squares: those such that for every
-prime p congruent to 3 mod 4, the largest power of p dividing them is even.
+There is an alternative characterization as the numbers of the form `a^2 * b`, where `b` is a
+natural number such that `-1` is a square modulo `b`; see `nat.eq_sq_add_sq_iff_eq_sq_mul`.
 -/
 
 section Fermat

@@ -121,6 +121,67 @@ begin
       (ih (squarefree.of_mul_right hn) (λ q hqp hqd, H q hqp $ dvd_mul_of_dvd_right hqd _)), }
 end
 
+/-!
+### Relation to sums of two squares
+-/
 
+/-- If `-1` is a square modulo the natural number `n`, then `n` is a sum of two squares. -/
+lemma nat.eq_sq_add_sq_of_is_square_mod_neg_one {n : ℕ} (h : is_square (-1 : zmod n)) :
+  ∃ x y : ℕ, n = x ^ 2 + y ^ 2 :=
+begin
+  induction n using induction_on_primes with p n hpp ih,
+  { exact ⟨0, 0, rfl⟩, },
+  { exact ⟨0, 1, rfl⟩, },
+  { haveI : fact p.prime := ⟨hpp⟩,
+    have hp : is_square (-1 : zmod p) := zmod.is_square_cast_neg_one ⟨n, rfl⟩ h,
+    obtain ⟨u, v, huv⟩ := nat.prime.sq_add_sq' (zmod.exists_sq_eq_neg_one_iff.mp hp),
+    obtain ⟨x, y, hxy⟩ := ih (zmod.is_square_cast_neg_one ⟨p, mul_comm _ _⟩ h),
+    exact nat.sq_add_sq_mul huv.symm hxy, }
+end
+
+/-- If the integer `n` is a sum of two squares of coprime integers,
+then `-1` is a square modulo `n`. -/
+lemma zmod.is_square_neg_one_of_eq_sq_add_sq_of_is_coprime {n x y : ℤ} (h : n = x ^ 2 + y ^ 2)
+  (hc : is_coprime x y) : is_square (-1 : zmod n.nat_abs) :=
+begin
+  obtain ⟨u, v, huv⟩ : is_coprime x n,
+  { have hc2 : is_coprime (x ^ 2) (y ^ 2) := hc.pow,
+    rw show y ^ 2 = n + (-1) * x ^ 2, from by {rw h, ring} at hc2,
+    exact (is_coprime.pow_left_iff zero_lt_two).mp (is_coprime.of_add_mul_right_right hc2), },
+  have H : (u * y) * (u * y) - (-1) = n * (-v ^ 2 * n + u ^ 2 + 2 * v) :=
+    by linear_combination -u ^ 2 * h + (n * v - u * x - 1) * huv,
+  refine ⟨u * y, _⟩,
+  norm_cast,
+  rw (by push_cast : (-1 : zmod n.nat_abs) = (-1 : ℤ)),
+  exact (zmod.int_coe_eq_int_coe_iff_dvd_sub _ _ _).mpr (int.nat_abs_dvd.mpr ⟨_, H⟩),
+end
+
+/-- If the natural number `n` is a sum of two squares of coprime natural numbers, then
+`-1` is a square modulo `n`. -/
+lemma zmod.is_square_neg_one_of_eq_sq_add_sq_of_coprime {n x y : ℕ} (h : n = x ^ 2 + y ^ 2)
+  (hc : x.coprime y) : is_square (-1 : zmod n) :=
+begin
+  zify at *,
+  exact zmod.is_square_neg_one_of_eq_sq_add_sq_of_is_coprime h hc.is_coprime,
+end
+
+/-- A natural number `n` is a sum of two squares if and only if `n = a^2 * b` with natural
+numbers `a` and `b` such that `-1` is a square modulo `b`. -/
+lemma nat.eq_sq_add_sq_iff_eq_sq_mul {n : ℕ} :
+  (∃ x y : ℕ, n = x ^ 2 + y ^ 2) ↔ ∃ a b : ℕ, n = a ^ 2 * b ∧ is_square (-1 : zmod b) :=
+begin
+  split; intro H,
+  { obtain ⟨x, y, h⟩ := H,
+    by_cases hxy : x = 0 ∧ y = 0,
+    { exact ⟨0, 1, by rw [h, hxy.1, hxy.2, zero_pow zero_lt_two, add_zero, zero_mul],
+             ⟨0, by rw [zero_mul, neg_eq_zero, fin.one_eq_zero_iff]⟩⟩, },
+    have hg := nat.pos_of_ne_zero (mt nat.gcd_eq_zero_iff.mp hxy),
+    obtain ⟨g, x₁, y₁, h₁, h₂, h₃, h₄⟩ := nat.exists_coprime' hg,
+    exact ⟨g, x₁ ^ 2 + y₁ ^ 2, by {rw [h, h₃, h₄], ring},
+           zmod.is_square_neg_one_of_eq_sq_add_sq_of_coprime rfl h₂⟩, },
+  { obtain ⟨a, b, h₁, h₂⟩ := H,
+    obtain ⟨x', y', h⟩ := nat.eq_sq_add_sq_of_is_square_mod_neg_one h₂,
+    exact ⟨a * x', a * y', by {rw [h₁, h], ring}⟩, }
+end
 
 end neg_one_square

@@ -24,7 +24,7 @@ local attribute [-instance] decidable_eq_of_subsingleton
 open finset fintype
 open_locale big_operators
 
-variables {α : Type*} (G : simple_graph α) {ε : ℝ} {s t u : finset α}
+variables {α : Type*} (G G' : simple_graph α) {ε : ℝ} {s t u : finset α}
 
 namespace simple_graph
 
@@ -211,29 +211,13 @@ begin
   tauto
 end
 
-/-- The reduction of the graph `G` along partition `P` has edges between uniform pairs of parts that
-have high edge density. -/
-@[simps] def reduced_graph (ε : ℝ) (P : finpartition (univ : finset α)) : simple_graph α :=
-{ adj := λ x y, G.adj x y ∧
-    ∃ U V ∈ P.parts, x ∈ U ∧ y ∈ V ∧ U ≠ V ∧ G.is_uniform (ε/8) U V ∧ ε/4 ≤ G.edge_density U V,
-  symm := λ x y,
-  begin
-    rintro ⟨xy, U, UP, V, VP, xU, yV, UV, GUV, εUV⟩,
-    refine ⟨G.symm xy, V, VP, U, UP, yV, xU, UV.symm, GUV.symm, _⟩,
-    rwa edge_density_comm,
-  end,
-  loopless := λ x ⟨h, _⟩, G.loopless x h }
+variables {G G'}
 
-variables {G}
-
-lemma reduced_graph_le : reduced_graph G ε P ≤ G := λ x y, and.left
-
-lemma far_from_triangle_free_of_disjoint_triangles_aux
-  (tris : finset (finset α)) (htris : tris ⊆ G.clique_finset 3)
-  (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1)) :
-  ∀ (G' ≤ G), G'.clique_free 3 → tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
+lemma far_from_triangle_free_of_disjoint_triangles_aux (tris : finset (finset α))
+  (htris : tris ⊆ G.clique_finset 3)
+  (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1)) (hGG' : G' ≤ G)
+  (hG' : G'.clique_free 3) : tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
 begin
-  intros G' hGG' hG',
   rw [←card_sdiff (edge_finset_mono hGG'), ←card_attach],
   by_contra' hG,
   have : ∀ t ∈ tris, ∃ x y ∈ t, x ≠ y ∧ ⟦(x, y)⟧ ∈ G.edge_finset \ G'.edge_finset,
@@ -267,19 +251,19 @@ begin
   refine far_from_triangle_free_iff.2 (λ G' hG hG', _),
   rw ←nat.cast_sub (card_le_of_subset $ edge_finset_mono hG),
   exact tris_big.trans
-    (nat.cast_le.2 $ far_from_triangle_free_of_disjoint_triangles_aux tris htris pd G' hG hG'),
+    (nat.cast_le.2 $ far_from_triangle_free_of_disjoint_triangles_aux tris htris pd hG hG'),
 end
 
 lemma reduced_double_edges :
   univ.filter (λ xy : α × α, G.adj xy.1 xy.2) \
-    univ.filter (λ xy : α × α, (reduced_graph G ε P).adj xy.1 xy.2) ⊆
+    univ.filter (λ xy : α × α, (G.reduced P (ε/8) (ε/4)).adj xy.1 xy.2) ⊆
       (P.non_uniforms G (ε/8)).bUnion (λ UV, UV.1 ×ˢ UV.2) ∪
         P.parts.bUnion off_diag ∪
           (P.parts.off_diag.filter $ λ UV : _ × _, ↑(G.edge_density UV.1 UV.2) < ε/4).bUnion
             (λ UV, (UV.1 ×ˢ UV.2).filter $ λ xy, G.adj xy.1 xy.2) :=
 begin
   rintro ⟨x, y⟩,
-  simp only [mem_sdiff, mem_filter, mem_univ, true_and, reduced_graph_adj, not_and, not_exists,
+  simp only [mem_sdiff, mem_filter, mem_univ, true_and, reduced_adj, not_and, not_exists,
     not_le, mem_bUnion, mem_union, exists_prop, mem_product, prod.exists, mem_off_diag, and_imp,
     or.assoc, and.assoc, P.mk_mem_non_uniforms_iff],
   intros h h',

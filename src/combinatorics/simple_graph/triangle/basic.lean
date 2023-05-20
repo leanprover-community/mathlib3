@@ -28,6 +28,18 @@ This module defines and proves properties about triangles in simple graphs.
 * Find a better name for `far_from_triangle_free`. Added 4/26/2022. Remove this TODO if it gets old.
 -/
 
+namespace simple_graph
+variables {V : Type*}
+
+@[simp] lemma edge_set_top : (⊤ : simple_graph V).edge_set = {e : sym2 V | ¬ e.is_diag} :=
+by ext x; induction x using sym2.ind; simp
+
+@[simp] lemma edge_finset_top [fintype V] [decidable_eq V] [fintype (⊤ : simple_graph V).edge_set] :
+  (⊤ : simple_graph V).edge_finset = finset.univ.filter (λ e, ¬ e.is_diag) :=
+by ext x; induction x using sym2.ind; simp
+
+end simple_graph
+
 open finset fintype nat
 open_locale classical
 
@@ -58,6 +70,20 @@ nonempty_of_ne_empty $ H.clique_finset_eq_empty_iff.not.2 $ λ hH',
   (hG.le_card_sub_card hH hH').not_lt hcard
 
 variables [nonempty α]
+
+lemma far_from_triangle_free.lt_one (hG : G.far_from_triangle_free ε) : ε < 1 :=
+begin
+  by_contra' hε,
+  have := hG.le_card_sub_card bot_le (clique_free_bot $ by norm_num),
+  simp only [set.to_finset_card (edge_set ⊥), card_of_finset, edge_set_bot, cast_zero,
+    finset.card_empty, tsub_zero] at this,
+  refine (this.trans $ le_mul_of_one_le_left (by positivity) hε).not_lt
+    ((mul_lt_mul_left $ zero_lt_one.trans_le hε).2 _),
+  norm_cast,
+  refine (card_mono $ edge_finset_mono le_top).trans_lt _,
+  simp,
+  sorry,
+end
 
 lemma far_from_triangle_free.nonpos (h₀ : G.far_from_triangle_free ε) (h₁ : G.clique_free 3) :
   ε ≤ 0 :=

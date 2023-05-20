@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
+import algebra.order.floor
 import combinatorics.simple_graph.degree_sum
 
 /-! # Things that belong to mathlib -/
@@ -46,26 +47,22 @@ end tactic
 
 attribute [protected] nat.div_mul_div_comm
 
-section linear_ordered_semifield
-variables [linear_ordered_semifield α] {x y z : α}
+namespace nat
+variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
-lemma mul_le_of_nonneg_of_le_div (hy : 0 ≤ y) (hz : 0 ≤ z) (h : x ≤ y / z) : x * z ≤ y :=
-begin
-  obtain rfl | hz := hz.eq_or_lt,
-  { simpa using hy },
-  { rwa le_div_iff hz at h }
-end
+lemma ceil_of_nonpos (ha : a ≤ 0) : ⌈a⌉₊ = 0 :=
+nonpos_iff_eq_zero.1 $ ceil_le.2 $ ha.trans_eq cast_zero.symm
 
-end linear_ordered_semifield
+end nat
 
 namespace simple_graph
 variables {G G' : simple_graph α} {s : finset α}
 
-@[simp] protected lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.is_adj
+attribute [simp] dart.is_adj
 
 variables [decidable_eq α] [decidable_rel G.adj] [fintype α]
 
-lemma double_edge_finset_card_eq :
+lemma two_mul_card_edge_finset :
   2 * G.edge_finset.card = (univ.filter $ λ xy : α × α, G.adj xy.1 xy.2).card :=
 begin
   rw [←dart_card_eq_twice_card_edges, ←card_univ],

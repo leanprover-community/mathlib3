@@ -20,21 +20,25 @@ In this file, we prove the triangle removal lemma.
 open finset fintype nat szemeredi_regularity
 open_locale classical
 
-variables {α : Type*} [fintype α] {G : simple_graph α} {ε : ℝ}
+variables {α : Type*} [fintype α] {G : simple_graph α} {X t : finset α}
+  {P : finpartition (univ : finset α)} {ε : ℝ}
 
 namespace simple_graph
 
 /-- An explicit form for the constant in the triangle removal lemma. -/
 noncomputable def triangle_removal_bound (ε : ℝ) : ℝ :=
-min (1 / (2 * ⌈4/ε⌉₊^3)) ((1 - ε/4) * (ε/(16 * bound (ε/8) ⌈4/ε⌉₊))^3)
+min (2 * ⌈4/ε⌉₊^3)⁻¹ ((1 - ε/4) * (ε/(16 * bound (ε/8) ⌈4/ε⌉₊))^3)
 
 lemma triangle_removal_bound_pos (hε : 0 < ε) (hε₁ : ε ≤ 1) : 0 < triangle_removal_bound ε :=
 by { have : ε / 4 < 1 := by linarith, unfold triangle_removal_bound, positivity }
 
+lemma triangle_removal_bound_nonpos (hε : ε ≤ 0) : triangle_removal_bound ε ≤ 0 :=
+by rw [triangle_removal_bound, nat.ceil_of_nonpos (div_nonpos_of_nonneg_of_nonpos _ hε)]; simp
+
 lemma triangle_removal_bound_mul_cube_lt (hε : 0 < ε) : triangle_removal_bound ε * ⌈4/ε⌉₊^3 < 1 :=
 begin
   refine (mul_le_mul_of_nonneg_right (min_le_left _ _) $ by positivity).trans_lt _,
-  rw [←div_div, div_mul_cancel],
+  rw [mul_inv, inv_mul_cancel_right₀],
   { norm_num },
   { positivity }
 end
@@ -47,21 +51,20 @@ begin
   simpa using nat.mul_le_mul_left k ((nat.one_le_div_iff hk).2 hn),
 end
 
-lemma card_bound [nonempty α] {ε : ℝ} {X : finset α} {P : finpartition (univ : finset α)}
-  (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊) (hX : X ∈ P.parts) :
-  (card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊) ≤ X.card :=
+private lemma card_bound (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊)
+  (hX : X ∈ P.parts) : (card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊) ≤ X.card :=
 begin
+  casesI is_empty_or_nonempty α,
+  { simp [fintype.card_eq_zero] },
   refine le_trans _ (cast_le.2 $ hP₁.average_le_card_part hX),
   rw div_le_iff',
-  { norm_cast,
-    exact (aux (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
+  { exact_mod_cast (aux (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
       P.card_parts_le_card).le.trans (mul_le_mul_right' (mul_le_mul_left' hP₃ _) _) },
   positivity,
 end
 
-lemma triangle_removal_aux [nonempty α] {ε : ℝ} (hε : 0 < ε) {P : finpartition univ}
-  (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊)
-  {t : finset α} (ht : t ∈ (G.reduced_graph ε P).clique_finset 3) :
+private lemma triangle_removal_aux (hε : 0 < ε) (hP₁ : P.is_equipartition)
+  (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊) (ht : t ∈ (G.reduced P (ε/8) (ε/4)).clique_finset 3) :
   triangle_removal_bound ε * ↑(card α) ^ 3 ≤ (G.clique_finset 3).card :=
 begin
   rw [mem_clique_finset_iff, is_3_clique_iff] at ht,
@@ -90,23 +93,23 @@ begin
   exact mul_le_mul (card_bound hP₁ hP₃ hY) (card_bound hP₁ hP₃ hZ) (by positivity) (by positivity),
 end
 
-lemma reduced_edges_card_aux [nonempty α] {ε : ℝ} {P : finpartition (univ : finset α)} (hε : 0 < ε)
-  (hP : P.is_equipartition) (hPε : P.is_uniform G (ε/8)) (hP' : 4 / ε ≤ P.parts.card) :
-  2 * (G.edge_finset.card - (reduced_graph G ε P).edge_finset.card : ℝ) < 2 * ε * (card α ^2 : ℕ) :=
+lemma reduced_edges_card_aux [nonempty α] (hε : 0 < ε) (hP : P.is_equipartition)
+  (hPε : P.is_uniform G (ε/8)) (hP' : 4 / ε ≤ P.parts.card) :
+  2 * (G.edge_finset.card - (G.reduced P (ε/8) (ε/4)).edge_finset.card : ℝ)
+    < 2 * ε * (card α ^2 : ℕ) :=
 begin
-  have i : univ.filter (λ xy : α × α, (G.reduced_graph ε P).adj xy.1 xy.2) ⊆
+  have i : univ.filter (λ xy : α × α, (G.reduced P (ε/8) (ε/4)).adj xy.1 xy.2) ⊆
     univ.filter (λ xy, G.adj xy.1 xy.2),
-  { exact monotone_filter_right _ (λ xy hxy, reduced_graph_le hxy) },
+  { exact monotone_filter_right _ (λ xy hxy, reduced_le hxy) },
   rw mul_sub,
   norm_cast,
-  rw [double_edge_finset_card_eq, double_edge_finset_card_eq, ←cast_sub (card_le_of_subset i),
+  rw [two_mul_card_edge_finset, two_mul_card_edge_finset, ←cast_sub (card_le_of_subset i),
     ←card_sdiff i],
   push_cast,
   refine (cast_le.2 $
     (card_le_of_subset reduced_double_edges).trans $ card_union_le _ _).trans_lt _,
   rw cast_add,
-  refine (add_le_add (cast_le.2 $ card_union_le _ _) $
-    sum_sparse (by positivity) hP).trans_lt _,
+  refine (add_le_add (cast_le.2 $ card_union_le _ _) $ sum_sparse (by positivity) hP).trans_lt _,
   rw [cast_add, add_right_comm],
   refine (add_le_add_left (internal_killed_card' hε hP hP') _).trans_lt _,
   rw add_assoc,
@@ -114,16 +117,21 @@ begin
   ring,
 end
 
-lemma triangle_removal_2 {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) (hG : G.far_from_triangle_free ε) :
+/-- **Triangle Removal Lemma**. If not all triangles can be removed by removing few edges (on the
+order of `(card α)^2`), then there were many triangles to start with (on the order of
+`(card α)^3`). -/
+lemma far_from_triangle_free.le_card_clique_finset (hG : G.far_from_triangle_free ε) :
   triangle_removal_bound ε * (card α)^3 ≤ (G.clique_finset 3).card :=
 begin
-  let l : ℕ := ⌈4 / ε⌉₊,
-  have hl : 4/ε ≤ l := le_ceil (4/ε),
   casesI is_empty_or_nonempty α,
   { simp [fintype.card_eq_zero] },
+  obtain hε | hε := le_or_lt ε 0,
+  { apply (mul_nonpos_of_nonpos_of_nonneg (triangle_removal_bound_nonpos hε) _).trans; positivity },
+  let l : ℕ := ⌈4 / ε⌉₊,
+  have hl : 4/ε ≤ l := le_ceil (4/ε),
   cases le_total (card α) l with hl' hl',
   { refine (mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left (cast_nonneg _) (cast_le.2 hl') _)
-      (triangle_removal_bound_pos hε hε₁).le).trans _,
+      (triangle_removal_bound_pos hε hG.lt_one.le).le).trans _,
     apply (triangle_removal_bound_mul_cube_lt hε).le.trans,
     simp only [one_le_cast],
     exact (hG.clique_finset_nonempty hε).card_pos },
@@ -132,20 +140,21 @@ begin
   have k := reduced_edges_card_aux hε hP₁ hP₄ this,
   rw mul_assoc at k,
   replace k := lt_of_mul_lt_mul_left k zero_le_two,
-  obtain ⟨t, ht⟩ := hG.clique_finset_nonempty' reduced_graph_le k,
+  obtain ⟨t, ht⟩ := hG.clique_finset_nonempty' reduced_le k,
   exact triangle_removal_aux hε hP₁ hP₃ ht,
 end
 
-/-- If there are not too many triangles, then you can remove some edges to remove all triangles. -/
-lemma triangle_removal {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1)
+/-- **Triangle Removal Lemma**. If there are not too many triangles (on the order of `(card α)^3`),
+then they can all be removed by removing a few edges (on the order of `(card α)^2`). -/
+lemma triangle_removal
   (hG : ((G.clique_finset 3).card : ℝ) < triangle_removal_bound ε * (card α)^3) :
   ∃ G' ≤ G,
     (G.edge_finset.card - G'.edge_finset.card : ℝ) < ε * (card α^2 : ℕ) ∧ G'.clique_free 3 :=
 begin
   by_contra,
   push_neg at h,
-  exact hG.not_le (triangle_removal_2 hε hε₁ $ far_from_triangle_free_iff.2 $
-    λ G' hG hG', le_of_not_lt $ λ i, h G' hG i hG'),
+  exact hG.not_le ((far_from_triangle_free_iff.2 $
+    λ G' hG hG', le_of_not_lt $ λ i, h G' hG i hG').le_card_clique_finset),
 end
 
 end simple_graph

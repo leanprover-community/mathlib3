@@ -177,7 +177,7 @@ end simple_graph
 /-! ### Uniform partitions -/
 
 variables [decidable_eq α] {A : finset α} (P : finpartition A) (G : simple_graph α)
-  [decidable_rel G.adj] {ε : 𝕜}
+  [decidable_rel G.adj] {ε δ : 𝕜}
 
 namespace finpartition
 open_locale classical
@@ -249,3 +249,34 @@ lemma nonuniform_witness_mem_nonuniform_witnesses (h : ¬ G.is_uniform ε s t) (
 mem_image_of_mem _ $ mem_filter.2 ⟨ht, hst, h⟩
 
 end finpartition
+
+/-! ### Reduced graph -/
+
+namespace simple_graph
+variables [fintype α]
+
+/-- The reduction of the graph `G` along partition `P` has edges between `ε`-uniform pairs of parts
+that have edge density at least `δ`. -/
+@[simps] def reduced (ε δ : 𝕜) : simple_graph α :=
+{ adj := λ a b, G.adj a b ∧
+    ∃ U V ∈ P.parts, a ∈ U ∧ b ∈ V ∧ U ≠ V ∧ G.is_uniform ε U V ∧ δ ≤ G.edge_density U V,
+  symm := λ a b,
+  begin
+    rintro ⟨ab, U, UP, V, VP, xU, yV, UV, GUV, εUV⟩,
+    refine ⟨G.symm ab, V, VP, U, UP, yV, xU, UV.symm, GUV.symm, _⟩,
+    rwa simple_graph.edge_density_comm,
+  end,
+  loopless := λ a ⟨h, _⟩, G.loopless a h }
+
+variables {G P}
+
+lemma reduced_le : G.reduced P ε δ ≤ G := λ x y, and.left
+
+lemma reduced_mono {ε₁ ε₂ : 𝕜} (hε : ε₁ ≤ ε₂) : G.reduced P ε₁ δ ≤ G.reduced P ε₂ δ :=
+λ a b ⟨hab, U, hU, V, hV, ha, hb, hUV, hGε, hGδ⟩, ⟨hab, U, hU, V, hV, ha, hb, hUV, hGε.mono hε, hGδ⟩
+
+lemma reduced_anti {δ₁ δ₂ : 𝕜} (hδ : δ₁ ≤ δ₂) : G.reduced P ε δ₂ ≤ G.reduced P ε δ₁ :=
+λ a b ⟨hab, U, hU, V, hV, ha, hb, hUV, hUVε, hUVδ⟩,
+  ⟨hab, U, hU, V, hV, ha, hb, hUV, hUVε, hδ.trans hUVδ⟩
+
+end simple_graph

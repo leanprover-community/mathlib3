@@ -11,6 +11,10 @@ import combinatorics.pigeonhole
 # The corners theorem and Roth's theorem
 
 This file proves the corners theorem and Roth's theorem.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset function simple_graph sum sum3

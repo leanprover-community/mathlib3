@@ -8,7 +8,24 @@ import combinatorics.simple_graph.regularity.increment
 /-!
 # Szemerédi's Regularity Lemma
 
-In this file, we prove Szemerédi's Regularity Lemma.
+In this file, we prove Szemerédi's Regularity Lemma. This is a landmark result in combinatorics
+roughly stating that any sufficiently big graph behaves like a random graph. This is useful because
+random graphs are well-behaved in many aspects.
+
+This file only contains the proof of the final result. The supporting material is spread across the
+`combinatorics.simple_graph.regularity` folder.
+
+## TODO
+
+We currently only prove the equipartition version of SRL.
+
+* Prove the diagonal version.
+* Prove the degree version.
+* Define the regularity of a partition and prove the corresponding version.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open_locale classical
@@ -17,7 +34,7 @@ open finpartition finset fintype function szemeredi_regularity
 variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ) (l : ℕ)
 
-/-- Effective **Szemerédi Regularity Lemma**: For any sufficiently big graph, there is an
+/-- Effective **Szemerédi Regularity Lemma**: For any sufficiently large graph, there is an
 `ε`-uniform equipartition of bounded size (where the bound does not depend on the graph). -/
 theorem szemeredi_regularity {ε : ℝ} (l : ℕ) (hε : 0 < ε) (hl : l ≤ card α) :
   ∃ (P : finpartition univ),

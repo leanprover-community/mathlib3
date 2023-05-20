@@ -10,6 +10,9 @@ import category_theory.pempty
 /-!
 # The monoidal structure on a category with chosen finite products.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This is a variant of the development in `category_theory.monoidal.of_has_finite_products`,
 which uses specified choices of the terminal object and binary product,
 enabling the construction of a cartesian category with specific definitions of the tensor unit

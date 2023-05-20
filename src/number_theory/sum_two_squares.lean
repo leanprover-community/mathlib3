@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 
 import number_theory.zsqrtd.gaussian_int
+import tactic.linear_combination
 
 /-!
 # Sums of two squares

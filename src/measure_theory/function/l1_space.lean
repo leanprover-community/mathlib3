@@ -397,10 +397,6 @@ lemma has_finite_integral.mul_const [normed_ring 𝕜] {f : α → 𝕜} (h : ha
 
 end normed_space
 
-section normed_algebra
-
-end normed_algebra
-
 /-! ### The predicate `integrable` -/
 
 -- variables [measurable_space β] [measurable_space γ] [measurable_space δ]

@@ -192,7 +192,7 @@ begin
     obtain ⟨m, hm⟩ := hnk,
     rw [(by linarith : n = 2 * m + k), nat.add_sub_cancel,
         nat.mul_div_cancel_left _ (nat.succ_pos 1), coeff_hermite_explicit] },
-  simp [nat.choose_eq_zero_of_lt h_lt, coeff_hermite_of_lt h_lt],
+  { simp [nat.choose_eq_zero_of_lt h_lt, coeff_hermite_of_lt h_lt] },
 end
 
 end coeff_explicit

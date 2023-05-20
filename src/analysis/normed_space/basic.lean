@@ -57,6 +57,10 @@ instance : module ℝ ℝ := by apply_instance
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, norm_mul_le a b }
 
+-- shortcut instance
+instance normed_field.to_has_bounded_smul : has_bounded_smul α α :=
+normed_space.has_bounded_smul
+
 lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) :
   ‖n • x‖ = ‖(n : α)‖ * ‖x‖ :=
 by rw [← norm_smul, ← int.smul_one_eq_coe, smul_assoc, one_smul]

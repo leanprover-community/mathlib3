@@ -3,12 +3,14 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
-import algebra.order.to_interval_mod
 import analysis.special_functions.trigonometric.angle
 import analysis.special_functions.trigonometric.inverse
 
 /-!
 # The argument of a complex number.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define `arg : ℂ → ℝ`, returing a real number in the range (-π, π],
 such that for `x ≠ 0`, `sin (arg x) = x.im / x.abs` and `cos (arg x) = x.re / x.abs`,

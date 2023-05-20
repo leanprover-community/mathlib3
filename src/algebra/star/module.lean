@@ -63,7 +63,8 @@ end smul_lemmas
 then `star` is a semilinear equivalence. -/
 @[simps]
 def star_linear_equiv (R : Type*) {A : Type*}
-  [comm_ring R] [star_ring R] [semiring A] [star_ring A] [module R A] [star_module R A]  :
+  [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A] [module R A]
+  [star_module R A] :
     A ≃ₗ⋆[R] A :=
 { to_fun := star,
   map_smul' := star_smul,

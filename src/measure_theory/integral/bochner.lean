@@ -139,6 +139,8 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 
 -/
 
+assert_not_exists differentiable
+
 noncomputable theory
 open_locale topology big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
@@ -1531,6 +1533,27 @@ end
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
+
+lemma set_integral_dirac' {mα : measurable_space α} {f : α → E} (hf : strongly_measurable f)
+  (a : α) {s : set α} (hs : measurable_set s) [decidable (a ∈ s)] :
+  ∫ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
+begin
+  rw [restrict_dirac' hs],
+  swap, { apply_instance, },
+  split_ifs,
+  { exact integral_dirac' _ _ hf, },
+  { exact integral_zero_measure _, },
+end
+
+lemma set_integral_dirac [measurable_space α] [measurable_singleton_class α] (f : α → E)
+  (a : α) (s : set α) [decidable (a ∈ s)] :
+  ∫ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
+begin
+  rw [restrict_dirac],
+  split_ifs,
+  { exact integral_dirac _ _, },
+  { exact integral_zero_measure _, },
+end
 
 lemma mul_meas_ge_le_integral_of_nonneg [is_finite_measure μ] {f : α → ℝ} (hf_nonneg : 0 ≤ f)
   (hf_int : integrable f μ) (ε : ℝ) :

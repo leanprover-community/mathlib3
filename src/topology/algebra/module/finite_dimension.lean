@@ -11,6 +11,9 @@ import topology.algebra.module.determinant
 /-!
 # Finite dimensional topological vector spaces over complete fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `𝕜` be a complete nontrivially normed field, and `E` a topological vector space (TVS) over
 `𝕜` (i.e we have `[add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]`
 and `[has_continuous_smul 𝕜 E]`).

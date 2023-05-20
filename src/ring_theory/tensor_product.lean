@@ -11,6 +11,9 @@ import linear_algebra.direct_sum.finsupp
 /-!
 # The tensor product of R-algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a (semi)ring and `A` an `R`-algebra.
 In this file we:
 

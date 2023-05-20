@@ -12,6 +12,9 @@ import linear_algebra.linear_pmap
 /-!
 # Injective modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `module.injective`: an `R`-module `Q` is injective if and only if every injective `R`-linear

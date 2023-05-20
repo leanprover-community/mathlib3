@@ -18,6 +18,8 @@ Fully characterize the natural numbers that are the sum of two squares: those su
 prime p congruent to 3 mod 4, the largest power of p dividing them is even.
 -/
 
+section Fermat
+
 open gaussian_int
 
 /-- **Fermat's theorem on the sum of two squares**. Every prime congruent to 1 mod 4 is the sum
@@ -29,3 +31,5 @@ begin
   rw [principal_ideal_ring.irreducible_iff_prime, prime_iff_mod_four_eq_three_of_nat_prime p, hp],
   norm_num
 end
+
+end Fermat

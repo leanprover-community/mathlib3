@@ -11,6 +11,9 @@ import analysis.normed.field.basic
 
 Lemmas which hold only in `normed_space α β` are provided in another file.
 
+Notably we prove that `non_unital_semi_normed_ring`s have bounded actions by left- and right-
+multiplication. This allows downstream files to write general results about `bounded_smul`, and then
+deduce `const_mul` and `mul_const` results as an immediate corollary.
 -/
 
 variables {α β : Type*}

@@ -134,7 +134,7 @@ begin
   { exact ⟨0, 1, rfl⟩, },
   { haveI : fact p.prime := ⟨hpp⟩,
     have hp : is_square (-1 : zmod p) := zmod.is_square_cast_neg_one ⟨n, rfl⟩ h,
-    obtain ⟨u, v, huv⟩ := nat.prime.sq_add_sq' (zmod.exists_sq_eq_neg_one_iff.mp hp),
+    obtain ⟨u, v, huv⟩ := nat.prime.sq_add_sq (zmod.exists_sq_eq_neg_one_iff.mp hp),
     obtain ⟨x, y, hxy⟩ := ih (zmod.is_square_cast_neg_one ⟨p, mul_comm _ _⟩ h),
     exact nat.sq_add_sq_mul huv.symm hxy, }
 end

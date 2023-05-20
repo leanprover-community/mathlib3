@@ -19,6 +19,10 @@ This file defines the energy of a partition.
 The energy is the auxiliary quantity that drives the induction process in the proof of Szemerédi's
 Regularity Lemma. As long as we do not have a suitable equipartition, we will find a new one that
 has an energy greater than the previous one plus some fixed constant.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset

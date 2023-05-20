@@ -33,6 +33,10 @@ is less than `ε`.
 * `finpartition.is_uniform`: Uniformity of a partition.
 * `finpartition.nonuniform_witnesses`: For each non-uniform pair of parts of a partition, pick
   witnesses of non-uniformity and dump them all together.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset

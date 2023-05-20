@@ -259,12 +259,14 @@ Top.to_sSet_monoidal ⊗⋙
 
 section
 variables {V : Type*} [category V] [monoidal_category V]
-  [has_zero_morphisms V] [has_finite_biproducts V]
+  [has_zero_object V] [has_zero_morphisms V] [has_finite_biproducts V]
+
+open_locale zero_object
 
 instance : monoidal_category (graded_object ℕ V) :=
-{ tensor_unit := sorry,
+{ tensor_unit := pi.single 0 (𝟙_ V),
   tensor_obj := λ X Y k, biproduct (λ p : finset.nat.antidiagonal k, X p.1.1 ⊗ Y p.1.2),
-  tensor_hom := sorry,
+  tensor_hom := λ W X Y Z f g k, biproduct.map sorry,
   associator := sorry,
   left_unitor := sorry,
   right_unitor := sorry, }
@@ -279,6 +281,10 @@ section
 variables {V : Type*} [category V] [preadditive V] [monoidal_category V]
   [has_finite_biproducts V]
 
+/-- The morphism between a pair of objects in a family,
+which is either the identity if the two objects are the same,
+or zero otherwise.
+ -/
 def id_or_zero {β : Type*} [decidable_eq β] (X : β → V) (i j : β) : X i ⟶ X j :=
 if h : i = j then
   eq_to_hom (congr_arg X h)
@@ -305,7 +311,7 @@ def tensor_hom {W X Y Z : chain_complex V ℕ} (f : W ⟶ X) (g : Y ⟶ Z) :
   comm' := sorry, }
 
 instance : monoidal_category (chain_complex V ℕ) :=
-{ tensor_unit := sorry,
+{ tensor_unit := (chain_complex.single₀ V).obj (𝟙_ V),
   tensor_obj := tensor_obj,
   tensor_hom := λ W X Y Z f g, tensor_hom f g,
   associator := sorry,
@@ -314,10 +320,18 @@ instance : monoidal_category (chain_complex V ℕ) :=
   tensor_id' := sorry,
   tensor_comp' := sorry, }
 
+-- TODO this should be done generally:
+-- a quotient of a monoidal category by a monoidal congruence is monoidal.
 instance : monoidal_category (homotopy_category V (complex_shape.down ℕ)) :=
-sorry
+{ tensor_unit := sorry,
+  tensor_obj := λ X Y, { as := X.as ⊗ Y.as },
+  tensor_hom := sorry,
+  associator := sorry,
+  left_unitor := sorry,
+  right_unitor := sorry, }
 
 variables [has_equalizers V] [has_images V] [has_image_maps V] [has_cokernels V]
+variables (V)
 
 def graded_homology_lax : lax_monoidal_functor (chain_complex V ℕ) (graded_object ℕ V) :=
 { ε := sorry,
@@ -340,14 +354,13 @@ def graded_homology_lax : lax_monoidal_functor (chain_complex V ℕ) (graded_obj
 -- you still need to show that `Mon_ (chain_complex (Module R) ℕ)` really "is" a CDGA.
 
 instance graded_homology_tensorator_mono (X Y : chain_complex V ℕ) :
-  mono (graded_homology_lax.μ X Y) := sorry
+  mono ((graded_homology_lax V).μ X Y) := sorry
 
 instance graded_object.mono_apply
   {X Y : graded_object ℕ V} (f : X ⟶ Y) [mono f] (k : ℕ) : mono (f k) :=
 sorry
 
 namespace homotopy_category
-variables (V)
 
 def graded_homology_functor {α : Type*} (c : complex_shape α) :
   (homotopy_category V c) ⥤ (graded_object α V) :=
@@ -358,6 +371,8 @@ def graded_homology_factors {α : Type*} (c : complex_shape α) :
   quotient V c ⋙ graded_homology_functor V c ≅ _root_.graded_homology_functor V c :=
 category_theory.quotient.lift.is_lift _ _ _
 
+-- TODO this really should be constructed using a monoidal version of
+-- `category_theory.quotient.lift`
 def graded_homology_lax :
   lax_monoidal_functor (homotopy_category V (complex_shape.down ℕ)) (graded_object ℕ V) :=
 { ε := sorry,
@@ -368,6 +383,11 @@ def graded_homology_lax :
     sorry,
   end,
   ..graded_homology_functor V _ }
+
+@[simp] lemma graded_homology_lax_μ (X Y : chain_complex V ℕ) :
+  (graded_homology_lax V).μ ((quotient _ _).obj X) ((quotient _ _).obj Y) =
+    (_root_.graded_homology_lax V).μ X Y :=
+rfl -- Really faking it here: both are `sorry`.
 
 instance graded_homology_tensorator_mono
   (X Y : homotopy_category V (complex_shape.down ℕ)) :
@@ -402,7 +422,7 @@ abbreviation H' (n : ℕ) (X : chain_complex (Module.{0} R) ℕ) : Module.{0} R 
 
 def chain_complex.kunneth.cokernel_iso (X Y : chain_complex (Module.{0} R) ℕ)
   (free : ∀ i, module.free R (X.X i)) (k : ℕ) :
-  cokernel (graded_homology_lax.μ X Y k) ≅
+  cokernel ((graded_homology_lax _).μ X Y k) ≅
     biproduct (λ p : finset.nat.antidiagonal_prev k, ((Tor _ 1).obj (H' p.1.1 X)).obj (H' p.1.2 Y)) :=
 -- This is the hardest sorry so far today.
 sorry
@@ -471,11 +491,12 @@ open chain_complex.kunneth
 
 theorem chain_complex.kunneth (X Y : chain_complex (Module.{0} R) ℕ)
   (free : ∀ i, module.free R (X.X i)) (k : ℕ) :
-  short_exact (graded_homology_lax.μ X Y k)
-    (cokernel.π (graded_homology_lax.μ X Y k) ≫ (cokernel_iso X Y free k).hom) :=
+  short_exact ((graded_homology_lax _).μ X Y k)
+    (cokernel.π ((graded_homology_lax _).μ X Y k) ≫ (cokernel_iso X Y free k).hom) :=
 of_mono_cokernel_iso _
 
 theorem homotopy_category.kunneth (X Y : homotopy_category (Module.{0} R) (complex_shape.down ℕ))
+  -- FIXME free!
   (k : ℕ) :
   short_exact ((homotopy_category.graded_homology_lax _).μ X Y k)
     (cokernel.π ((homotopy_category.graded_homology_lax _).μ X Y k) ≫ (homotopy_category.kunneth.cokernel_iso X Y k).hom) :=
@@ -535,9 +556,10 @@ theorem kunneth' (k : ℕ) (X Y : Top.{0}) : short_exact (kunneth_mono' k X Y) (
 begin
   dsimp only [kunneth_mono', singular_homology_lax],
   dsimp only [lax_monoidal_functor.comp_μ],
-  have := chain_complex.kunneth ((singular_chains ℤ).obj X) ((singular_chains ℤ).obj Y) _,
+  have := chain_complex.kunneth ((singular_chains ℤ).obj X) ((singular_chains ℤ).obj Y) _ k,
   -- change short_exact (_ ≫ (homotopy_category.graded_homology_lax (Module.{0} ℤ)).μ _ _ k) _,
   -- dsimp,
   apply (category_theory.short_exact.comp_iso_middle _).mpr,
+  have := homotopy_category.graded_homology_factors (Module.{0} ℤ) (complex_shape.down ℕ),
   -- convert this k,
 end

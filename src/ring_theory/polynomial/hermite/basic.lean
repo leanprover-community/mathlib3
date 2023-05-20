@@ -133,7 +133,7 @@ section coeff_explicit
 
 open_locale nat
 
-/- Because of `coeff_hermite_of_odd_add`, every nonzero coefficient is described as follows.  -/
+/-- Because of `coeff_hermite_of_odd_add`, every nonzero coefficient is described as follows.  -/
 lemma coeff_hermite_explicit : ∀ (n k : ℕ),
 coeff (hermite (2 * n + k)) k = (-1)^n * (2 * n - 1)‼ * nat.choose (2 * n + k) k
 | 0 _ := by simp
@@ -145,41 +145,51 @@ coeff (hermite (2 * n + k)) k = (-1)^n * (2 * n - 1)‼ * nat.choose (2 * n + k)
   push_cast,
   ring,
 end
-| (n + 1) (k + 1) :=
-let hermite_explicit : ℕ → ℕ → ℤ :=
-    λ n k, (-1)^n * (2*n-1)‼ * nat.choose (2*n+k) k in
-have hermite_explicit_recur :
-    ∀ (n k : ℕ),
-      hermite_explicit (n + 1) (k + 1) =
-      hermite_explicit (n + 1) k - (k + 2) * hermite_explicit n (k + 2) :=
-  begin
-    intros n k,
-    simp only [hermite_explicit],
-    -- Factor out (-1)'s.
-    rw [mul_comm (↑k + _), sub_eq_add_neg],
-    nth_rewrite 2 neg_eq_neg_one_mul,
-    simp only [mul_assoc, ← mul_add, pow_succ],
-    congr' 2,
-    -- Factor out double factorials.
-    norm_cast,
-    rw [(by ring_nf : 2 * (n + 1) - 1 = 2 * n + 1),
-        nat.double_factorial_add_one, mul_comm (2 * n + 1)],
-    simp only [mul_assoc, ← mul_add],
-    congr' 1,
-    -- Match up binomial coefficients using `nat.choose_succ_right_eq`.
-    rw [(by ring : 2 * (n + 1) + (k + 1) = (2 * n + 1) + (k + 1) + 1),
-        (by ring : 2 * (n + 1) + k = (2 * n + 1) + (k + 1)),
-        (by ring : 2 * n + (k + 2) = (2 * n + 1) + (k + 1))],
-    rw [nat.choose, nat.choose_succ_right_eq ((2 * n + 1) + (k + 1)) (k + 1),
-        nat.add_sub_cancel],
-    ring,
-  end,
-begin
+| (n + 1) (k + 1) := begin
+  let hermite_explicit : ℕ → ℕ → ℤ :=
+      λ n k, (-1)^n * (2*n-1)‼ * nat.choose (2*n+k) k,
+  have hermite_explicit_recur :
+      ∀ (n k : ℕ),
+        hermite_explicit (n + 1) (k + 1) =
+        hermite_explicit (n + 1) k - (k + 2) * hermite_explicit n (k + 2) :=
+    begin
+      intros n k,
+      simp only [hermite_explicit],
+      -- Factor out (-1)'s.
+      rw [mul_comm (↑k + _), sub_eq_add_neg],
+      nth_rewrite 2 neg_eq_neg_one_mul,
+      simp only [mul_assoc, ← mul_add, pow_succ],
+      congr' 2,
+      -- Factor out double factorials.
+      norm_cast,
+      rw [(by ring_nf : 2 * (n + 1) - 1 = 2 * n + 1),
+          nat.double_factorial_add_one, mul_comm (2 * n + 1)],
+      simp only [mul_assoc, ← mul_add],
+      congr' 1,
+      -- Match up binomial coefficients using `nat.choose_succ_right_eq`.
+      rw [(by ring : 2 * (n + 1) + (k + 1) = (2 * n + 1) + (k + 1) + 1),
+          (by ring : 2 * (n + 1) + k = (2 * n + 1) + (k + 1)),
+          (by ring : 2 * n + (k + 2) = (2 * n + 1) + (k + 1))],
+      rw [nat.choose, nat.choose_succ_right_eq ((2 * n + 1) + (k + 1)) (k + 1),
+          nat.add_sub_cancel],
+      ring,
+    end,
   change _ = hermite_explicit _ _,
   rw [← add_assoc, coeff_hermite_succ_succ, hermite_explicit_recur],
   congr,
   { rw coeff_hermite_explicit (n + 1) k },
   { rw [(by ring : 2 * (n + 1) + k = 2 * n + (k + 2)), coeff_hermite_explicit n (k + 2)] },
+end
+
+lemma coeff_hermite_of_even_add {n k : ℕ} (hnk : even (n + k)) :
+  coeff (hermite n) k = (-1)^((n - k) / 2) * (n - k - 1)‼ * nat.choose n k :=
+begin
+  cases le_or_lt k n with h_le h_lt,
+  { rw [nat.even_add, ← (nat.even_sub h_le)] at hnk,
+    obtain ⟨m, hm⟩ := hnk,
+    rw [(by linarith : n = 2 * m + k), nat.add_sub_cancel,
+        nat.mul_div_cancel_left _ (nat.succ_pos 1), coeff_hermite_explicit] },
+  simp [nat.choose_eq_zero_of_lt h_lt, coeff_hermite_of_lt h_lt],
 end
 
 end coeff_explicit

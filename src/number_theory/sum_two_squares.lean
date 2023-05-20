@@ -185,3 +185,47 @@ begin
 end
 
 end neg_one_square
+
+/-!
+### Characterization in terms of the prime factorization
+-/
+
+section main
+
+/-- A (positive) natural number `n` is a sum of two squares if and only if the exponent of
+every prime `q` such that `q%4 = 3` in the prime factorization of `n` is even.
+(The assumption `0 < n` is not present, since for `n = 0`, both sides are satisfied;
+the right hand side holds, since `padic_val_nat q 0 = 0` by definition.) -/
+lemma nat.eq_sq_add_sq_iff {n : ℕ} :
+  (∃ x y : ℕ, n = x ^ 2 + y ^ 2) ↔
+    ∀ {q : ℕ} (hq : q.prime) (h : q % 4 = 3), even (padic_val_nat q n) :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn₀,
+  { exact ⟨λ H q hq h, (@padic_val_nat.zero q).symm ▸ even_zero, λ H, ⟨0, 0, rfl⟩⟩, },
+  -- now `0 < n`
+  rw nat.eq_sq_add_sq_iff_eq_sq_mul,
+  refine ⟨λ H q hq h, _, λ H, _⟩,
+  { obtain ⟨a, b, h₁, h₂⟩ := H,
+    have hqb := padic_val_nat.eq_zero_of_not_dvd
+                  (λ hf, (hq.mod_four_ne_three_of_dvd_is_square_neg_one hf h₂) h),
+    have hab : a ^ 2 * b ≠ 0 := h₁ ▸ hn₀.ne',
+    have ha₂ := left_ne_zero_of_mul hab,
+    have ha := mt sq_eq_zero_iff.mpr ha₂,
+    have hb := right_ne_zero_of_mul hab,
+    haveI hqi : fact q.prime := ⟨hq⟩,
+    -- Using `rw` necessitates giving either `q` or `hqi` to `padic_val_nat.mul` ...
+    simp_rw [h₁, padic_val_nat.mul ha₂ hb, padic_val_nat.pow 2 ha, hqb, add_zero],
+    exact even_two_mul _, },
+  { obtain ⟨b, a, hb₀, ha₀, hab, hb⟩ := nat.sq_mul_squarefree_of_pos hn₀,
+    refine ⟨a, b, hab.symm, (zmod.is_square_neg_one_iff hb).mpr (λ q hqp hqb hq4, _)⟩,
+    refine nat.odd_iff_not_even.mp _ (H hqp hq4),
+    have hqb' : padic_val_nat q b = 1 :=
+      b.factorization_def hqp ▸ le_antisymm (nat.squarefree.factorization_le_one _ hb)
+                                            ((hqp.dvd_iff_one_le_factorization hb₀.ne').mp hqb),
+    haveI hqi : fact q.prime := ⟨hqp⟩,
+    simp_rw [← hab, padic_val_nat.mul (pow_ne_zero 2 ha₀.ne') hb₀.ne', hqb',
+             padic_val_nat.pow 2 ha₀.ne'],
+    exact odd_two_mul_add_one _, }
+end
+
+end main

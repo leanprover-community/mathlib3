@@ -19,7 +19,6 @@ linear programs, the results from this file can be used to prove duality theorem
 
 The next steps are:
 - Add convex_cone_class that extends set_like and replace the below instance
-- Replace map with a bundled version: proper_cone ℝ E →L[ℝ] proper_cone ℝ F
 - Define the positive cone as a proper cone.
 - Define primal and dual cone programs and prove weak duality.
 - Prove regular and strong duality for cone programs using Farkas' lemma (see reference).
@@ -110,6 +109,11 @@ instance : has_zero (proper_cone 𝕜 E) :=
 
 instance : inhabited (proper_cone 𝕜 E) := ⟨0⟩
 
+@[simp] lemma mem_zero (x : E) : x ∈ (0 : proper_cone 𝕜 E) ↔ x = 0 := iff.rfl
+@[simp, norm_cast] lemma coe_zero : ↑(0 : proper_cone 𝕜 E) = (0 : convex_cone 𝕜 E) := rfl
+
+lemma pointed_zero : (0 : proper_cone 𝕜 E).pointed := by simp [convex_cone.pointed_zero]
+
 end module
 
 section inner_product_space
@@ -121,7 +125,6 @@ variables {G : Type*} [normed_add_comm_group G] [inner_product_space ℝ G]
 protected lemma pointed (K : proper_cone ℝ E) : (K : convex_cone ℝ E).pointed :=
 (K : convex_cone ℝ E).pointed_of_nonempty_of_is_closed K.nonempty K.is_closed
 
--- TODO: Replace map with a bundled version: proper_cone ℝ E →L[ℝ] proper_cone ℝ F
 /-- The closure of image of a proper cone under a continuous `ℝ`-linear map is a proper cone. We
 use continuous maps here so that the comap of f is also a map between proper cones. -/
 noncomputable def map (f : E →L[ℝ] F) (K : proper_cone ℝ E) : proper_cone ℝ F :=
@@ -187,7 +190,7 @@ variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [com
 variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [complete_space F]
 
 /-- The dual of the dual of a proper cone is itself. -/
-theorem dual_dual (K : proper_cone ℝ E) : K.dual.dual = K := proper_cone.ext' $
+@[simp] theorem dual_dual (K : proper_cone ℝ E) : K.dual.dual = K := proper_cone.ext' $
   (K : convex_cone ℝ E).inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed
 
 /-- This is a relative version of

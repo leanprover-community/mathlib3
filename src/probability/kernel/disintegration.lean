@@ -358,8 +358,8 @@ end
 variables [nonempty Ω]
 
 /-- Conditional kernel of a measure on a product space: a Markov kernel such that
-`ρ : measure (α × Ω) = (ρ.fst : measure α) ⊗ₖ (cond_kernel ρ : kernel α Ω)` (up to augmentations
-of the spaces to make that expression valid: see `probability_theory.measure_eq_comp_prod`). -/
+`ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) ()`
+(see `probability_theory.measure_eq_comp_prod`). -/
 noncomputable
 def cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ] : kernel α Ω :=
 (exists_cond_kernel ρ unit).some

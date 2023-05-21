@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.clique
+import data.nat.parity
+import data.sym.card
 
 /-!
 # Triangles in graphs
@@ -71,19 +73,28 @@ nonempty_of_ne_empty $ H.clique_finset_eq_empty_iff.not.2 $ λ hH',
 
 variables [nonempty α]
 
-lemma far_from_triangle_free.lt_one (hG : G.far_from_triangle_free ε) : ε < 1 :=
+lemma far_from_triangle_free.lt_half (hG : G.far_from_triangle_free ε) : ε < 2⁻¹ :=
 begin
   by_contra' hε,
   have := hG.le_card_sub_card bot_le (clique_free_bot $ by norm_num),
   simp only [set.to_finset_card (edge_set ⊥), card_of_finset, edge_set_bot, cast_zero,
     finset.card_empty, tsub_zero] at this,
-  refine (this.trans $ le_mul_of_one_le_left (by positivity) hε).not_lt
-    ((mul_lt_mul_left $ zero_lt_one.trans_le hε).2 _),
+  have hε₀ : 0 < ε := hε.trans_lt' (by norm_num),
+  rw inv_pos_le_iff_one_le_mul (zero_lt_two' 𝕜) at hε,
+  refine (this.trans $ le_mul_of_one_le_left (by positivity) hε).not_lt _,
+  rw [mul_assoc, mul_lt_mul_left hε₀],
   norm_cast,
-  refine (card_mono $ edge_finset_mono le_top).trans_lt _,
-  simp,
-  sorry,
+  refine (mul_le_mul_left' (card_mono $ edge_finset_mono le_top) _).trans_lt _,
+  rw [edge_finset_top, filter_not, card_sdiff (subset_univ _), card_univ, sym2.card],
+  simp_rw [sym2.is_diag_iff_mem_range_diag, univ_filter_mem_range, mul_tsub,
+    nat.mul_div_cancel' (card α).even_mul_succ_self.two_dvd],
+  rw [card_image_of_injective _ sym2.diag_injective, card_univ, mul_add_one, two_mul, sq,
+    add_tsub_add_eq_tsub_right],
+  exact tsub_lt_self (mul_pos fintype.card_pos fintype.card_pos) fintype.card_pos,
 end
+
+lemma far_from_triangle_free.lt_one (hG : G.far_from_triangle_free ε) : ε < 1 :=
+hG.lt_half.trans $ by norm_num
 
 lemma far_from_triangle_free.nonpos (h₀ : G.far_from_triangle_free ε) (h₁ : G.clique_free 3) :
   ε ≤ 0 :=

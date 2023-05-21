@@ -8,6 +8,7 @@ import analysis.normed_space.exponential
 import analysis.quaternion
 import algebra.lie.of_associative
 import analysis.special_functions.exponential
+import analysis.calculus.fderiv_symmetric
 
 /-! More lemmas aboutderiviatives of `exp`.
 
@@ -51,6 +52,7 @@ begin
       have deriv_comm : deriv (λ (y : ℝ), deriv (λ (x : ℝ), exp ℝ (y • A x)) r) t =
         deriv (λ (x : ℝ), deriv (λ (y : ℝ), exp ℝ (y • A x)) t) r,
       { -- this one is probably really annoying
+        have := @second_derivative_symmetric,
         sorry },
       { rw deriv_comm,
         simp_rw [(has_deriv_at_exp_smul_const _ _).deriv],

@@ -8,6 +8,9 @@ import ring_theory.jacobson_ideal
 /-!
 # Nakayama's lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some alternative statements of Nakayama's Lemma as found in
 [Stacks: Nakayama's Lemma](https://stacks.math.columbia.edu/tag/00DV).
 

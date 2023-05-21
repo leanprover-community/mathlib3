@@ -15,6 +15,9 @@ import topology.instances.matrix
 /-!
 # Finite dimensional normed spaces over complete fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Over a complete nontrivially normed field, in finite dimension, all norms are equivalent and all
 linear maps are continuous. Moreover, a finite-dimensional subspace is always complete and closed.
 

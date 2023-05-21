@@ -139,6 +139,8 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 
 -/
 
+assert_not_exists differentiable
+
 noncomputable theory
 open_locale topology big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric

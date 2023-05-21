@@ -11,6 +11,9 @@ import linear_algebra.tensor_product_basis
 /-!
 # Connections between `tensor_product` and `matrix`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results about the matrices corresponding to maps between tensor product types,
 where the correspondance is induced by `basis.tensor_product`
 

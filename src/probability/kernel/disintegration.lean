@@ -31,14 +31,14 @@ function `cond_cdf ρ a` (the conditional cumulative distribution function).
 
 ## Main statements
 
-* `probability_theory.kernel.const_eq_comp_prod`:
-  `kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ ρ.cond_kernel)`
-* `probability_theory.measure_eq_comp_prod`:
-  `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel)) ()`
 * `probability_theory.lintegral_cond_kernel`:
   `∫⁻ a, ∫⁻ ω, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x, f x ∂ρ`
 * `probability_theory.lintegral_cond_kernel_mem`:
   `∫⁻ a, ρ.cond_kernel a {x | (a, x) ∈ s} ∂ρ.fst = ρ s`
+* `probability_theory.kernel.const_eq_comp_prod`:
+  `kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ ρ.cond_kernel)`
+* `probability_theory.measure_eq_comp_prod`:
+  `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel)) ()`
 
 -/
 
@@ -209,8 +209,8 @@ begin
     ... = ρ (Union f) : (measure_Union hf_disj hf_meas).symm, },
 end
 
-theorem kernel.const_eq_comp_prod_real (ρ : measure (α × ℝ)) [is_finite_measure ρ]
-  (γ : Type*) [measurable_space γ] :
+theorem kernel.const_eq_comp_prod_real (γ : Type*) [measurable_space γ]
+  (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel_real ρ)) :=
 begin
   ext a s hs : 2,
@@ -221,7 +221,7 @@ end
 
 theorem measure_eq_comp_prod_real (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel_real ρ))) () :=
-by rw [← kernel.const_eq_comp_prod_real ρ unit, kernel.const_apply]
+by rw [← kernel.const_eq_comp_prod_real unit ρ, kernel.const_apply]
 
 lemma lintegral_cond_kernel_real (ρ : measure (α × ℝ)) [is_finite_measure ρ]
   {f : α × ℝ → ℝ≥0∞} (hf : measurable f) :
@@ -331,7 +331,7 @@ begin
     refine ⟨λ h, ⟨x.1, x.2, h, rfl, rfl⟩, _⟩,
     rintros ⟨a, b, h_mem, rfl, hf_eq⟩,
     rwa hf.injective hf_eq at h_mem, },
-  rw [this, kernel.const_eq_comp_prod_real ρ'],
+  rw [this, kernel.const_eq_comp_prod_real _ ρ'],
   ext c t ht : 2,
   rw [kernel.comap_right_apply' _ _ _ ht,
     kernel.comp_prod_apply _ _ _ (h_prod_embed.measurable_set_image.mpr ht), kernel.const_apply,
@@ -381,8 +381,8 @@ by rw [← kernel.const_unit_eq_comp_prod, kernel.const_apply]
 is Polish Borel, can be written as the composition-product of the constant kernel with value `ρ.fst`
 (marginal measure over `α`) and a Markov kernel from `α` to `Ω`. We call that Markov kernel
 `probability_theory.cond_kernel ρ`. -/
-theorem kernel.const_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ]
-  (γ : Type*) [measurable_space γ] :
+theorem kernel.const_eq_comp_prod (γ : Type*) [measurable_space γ]
+  (ρ : measure (α × Ω)) [is_finite_measure ρ] :
   kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ ρ.cond_kernel) :=
 begin
   ext a s hs : 2,

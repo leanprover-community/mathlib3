@@ -75,12 +75,14 @@ begin
           -- uh oh, this looks circular
           sorry }, },
       { exact ((has_deriv_at_exp_smul_const _ _).scomp _ (has_deriv_at_neg _)).differentiable_at },
-      sorry },
+      { sorry } },
     { sorry },
     { sorry },
-    { refine (continuous_at.mul _ continuous_at_const).mul _,
-      sorry,
-      sorry, }, },
+    { have h : continuous_at (λ t : ℝ, exp ℝ (t • A r)) t,
+      { sorry },
+      have hn : continuous_at (λ t : ℝ, exp ℝ (-t • A r)) t,
+      { sorry },
+      refine (hn.mul continuous_at_const).mul h,}, },
 end
 
 /-- Non-commutative version of `deriv_exp`. -/

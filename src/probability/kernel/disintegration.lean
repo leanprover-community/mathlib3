@@ -36,13 +36,6 @@ function `cond_cdf ρ a` (the conditional cumulative distribution function).
 * `probability_theory.lintegral_cond_kernel`:
   `∫⁻ a, ∫⁻ ω, f (a, ω) ∂(cond_kernel ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ`
 
-## TODO
-
-* The finite measure hypothesis can be weakened to σ-finite. The proof uses the finite case.
-* Beyond measures, we can find a disintegration for a kernel `α → Ω × Ω'` by applying the
-  construction used here for all `a : α` and showing additional measurability properties of the map
-  we obtain.
-
 -/
 
 open measure_theory set filter

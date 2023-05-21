@@ -25,7 +25,7 @@ function `cond_cdf ρ a` (the conditional cumulative distribution function).
 
 ## Main definitions
 
-* `probability_theory.cond_kernel ρ : kernel α Ω`: conditional kernel described above.
+* `measure_theory.measure.cond_kernel ρ : kernel α Ω`: conditional kernel described above.
 
 ## Main statements
 
@@ -350,18 +350,19 @@ begin
 end
 
 /-- Conditional kernel of a measure on a product space: a Markov kernel such that
-`ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ))) ()`
+`ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel)) ()`
 (see `probability_theory.measure_eq_comp_prod`). -/
 noncomputable
-def cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ] : kernel α Ω :=
+def _root_.measure_theory.measure.cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ] :
+  kernel α Ω :=
 (exists_cond_kernel ρ unit).some
 
-instance (ρ : measure (α × Ω)) [is_finite_measure ρ] : is_markov_kernel (cond_kernel ρ) :=
+instance (ρ : measure (α × Ω)) [is_finite_measure ρ] : is_markov_kernel ρ.cond_kernel :=
 (exists_cond_kernel ρ unit).some_spec.some
 
 lemma kernel.const_unit_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ] :
   kernel.const unit ρ
-    = (kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ)) :=
+    = (kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel) :=
 (exists_cond_kernel ρ unit).some_spec.some_spec
 
 /-- **Disintegration** of finite product measures on `α × Ω`, where `Ω` is Polish Borel. Such a
@@ -369,7 +370,7 @@ measure can be written as the composition-product of the constant kernel with va
 (marginal measure over `α`) and a Markov kernel from `α` to `Ω`. We call that Markov kernel
 `probability_theory.cond_kernel ρ`. -/
 theorem measure_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ] :
-  ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ))) () :=
+  ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel)) () :=
 by rw [← kernel.const_unit_eq_comp_prod, kernel.const_apply]
 
 /-- **Disintegration** of constant kernels. A constant kernel on a product space `α × Ω`, where `Ω`
@@ -378,7 +379,7 @@ is Polish Borel, can be written as the composition-product of the constant kerne
 `probability_theory.cond_kernel ρ`. -/
 theorem kernel.const_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ]
   (γ : Type*) [measurable_space γ] :
-  kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel ρ)) :=
+  kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ ρ.cond_kernel) :=
 begin
   ext a s hs : 2,
   simpa only [kernel.const_apply, kernel.comp_prod_apply _ _ _ hs, kernel.prod_mk_left_apply']
@@ -387,7 +388,7 @@ end
 
 lemma lintegral_cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ]
   {f : α × Ω → ℝ≥0∞} (hf : measurable f) :
-  ∫⁻ a, ∫⁻ ω, f (a, ω) ∂(cond_kernel ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ :=
+  ∫⁻ a, ∫⁻ ω, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x, f x ∂ρ :=
 begin
   conv_rhs { rw measure_eq_comp_prod ρ, },
   rw [kernel.lintegral_comp_prod _ _ _ hf, kernel.const_apply],

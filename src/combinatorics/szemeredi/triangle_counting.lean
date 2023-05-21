@@ -33,10 +33,6 @@ private noncomputable def bad_vertices (G : simple_graph α) (ε : ℝ) (s t : f
 by classical;
   exact s.filter (λ x, ((t.filter (G.adj x)).card : ℝ) < (G.edge_density s t - ε) * t.card)
 
-lemma of_mem_bad_vertices :
-  ∀ x ∈ bad_vertices G ε s t, ((t.filter (G.adj x)).card : ℝ) ≤ (G.edge_density s t - ε) * t.card :=
-λ x hx, (mem_filter.1 hx).2.le
-
 lemma interedges_bad_vertices :
   rel.interedges G.adj (bad_vertices G ε s t) t =
     (bad_vertices G ε s t).bUnion (λ x, (t.filter (G.adj x)).image (λ y, (x, y))) :=
@@ -57,29 +53,27 @@ begin
   exact sum_le_card_nsmul _ _ _ (λ x hx, (mem_filter.1 hx).2.le),
 end
 
-lemma edge_density_bad_vertices (hε : 0 ≤ ε) (dXY : 2 * ε ≤ G.edge_density s t) :
+lemma edge_density_bad_vertices (hε : 0 ≤ ε) (dst : 2 * ε ≤ G.edge_density s t) :
   (G.edge_density (bad_vertices G ε s t) t : ℝ) ≤ G.edge_density s t - ε :=
 begin
   rw edge_density_def,
   push_cast,
-  refine div_le_of_nonneg_of_le_mul (by positivity) _ _,
-  { apply sub_nonneg_of_le,
-    linarith },
-  { rw mul_comm,
-    exact G.pairs_card_bad_le }
+  refine div_le_of_nonneg_of_le_mul (by positivity) (sub_nonneg_of_le $ by linarith) _,
+  rw mul_comm,
+  exact G.pairs_card_bad_le,
 end
 
-lemma few_bad_vertices (hε₀ : 0 ≤ ε) (hε : ε ≤ 1) (dXY : 2 * ε ≤ G.edge_density s t)
-  (hst : G.is_uniform ε s t) :
+lemma few_bad_vertices (dst : 2 * ε ≤ G.edge_density s t) (hst : G.is_uniform ε s t) :
   ((bad_vertices G ε s t).card : ℝ) ≤ s.card * ε :=
 begin
+  have hε : ε ≤ 1 := (le_mul_of_one_le_of_le_of_nonneg (by norm_num) le_rfl hst.pos.le).trans
+    (dst.trans $ by exact_mod_cast edge_density_le_one _ _ _),
   by_contra,
   rw not_le at h,
-  have := G.edge_density_bad_vertices hε₀ dXY,
   have : |(G.edge_density (bad_vertices G ε s t) t : ℝ) - G.edge_density s t| < ε :=
     hst (filter_subset _ _) subset.rfl h.le (mul_le_of_le_one_right (nat.cast_nonneg _) hε),
   rw abs_sub_lt_iff at this,
-  linarith,
+  linarith [G.edge_density_bad_vertices hst.pos.le dst],
 end
 
 -- A subset of the triangles constructed in a weird way to make them easy to count
@@ -97,8 +91,8 @@ begin
   exact ⟨hx, hy, hz, xy, xz, yz⟩,
 end
 
-lemma good_vertices_triangle_card (hε : 0 ≤ ε) (dXY : 2 * ε ≤ G.edge_density s t)
-  (dXZ : 2 * ε ≤ G.edge_density s u) (dYZ : 2 * ε ≤ G.edge_density t u) (uYZ : G.is_uniform ε t u)
+lemma good_vertices_triangle_card (dst : 2 * ε ≤ G.edge_density s t)
+  (dsu : 2 * ε ≤ G.edge_density s u) (dtu : 2 * ε ≤ G.edge_density t u) (utu : G.is_uniform ε t u)
   (x : α) (hx : x ∈ s \ (bad_vertices G ε s t ∪ bad_vertices G ε s u)) :
   ε^3 * t.card * u.card ≤ ((((t.filter (G.adj x)) ×ˢ (u.filter (G.adj x))).filter
       (λ (yz : _ × _), G.adj yz.1 yz.2)).image (prod.mk x)).card :=
@@ -107,53 +101,54 @@ begin
     not_lt] at hx,
   rw [←or_and_distrib_left, and_or_distrib_left] at hx,
   simp only [false_or, and_not_self, mul_comm ((_ : ℝ) - _)] at hx,
-  rcases hx with ⟨hx, hxY, hxZ⟩,
+  rcases hx with ⟨hx, hxY, hsu⟩,
   have hY : (t.card : ℝ) * ε ≤ (filter (G.adj x) t).card,
   { exact (mul_le_mul_of_nonneg_left (by linarith) (nat.cast_nonneg _)).trans hxY },
   have hZ : (u.card : ℝ) * ε ≤ (filter (G.adj x) u).card,
-  { exact (mul_le_mul_of_nonneg_left (by linarith) (nat.cast_nonneg _)).trans hxZ },
+  { exact (mul_le_mul_of_nonneg_left (by linarith) (nat.cast_nonneg _)).trans hsu },
   rw card_image_of_injective _ (prod.mk.inj_left _),
-  have := uYZ (filter_subset (G.adj x) _) (filter_subset (G.adj x) _) hY hZ,
+  have := utu (filter_subset (G.adj x) _) (filter_subset (G.adj x) _) hY hZ,
   have : ε ≤ G.edge_density (filter (G.adj x) t) (filter (G.adj x) u),
   { rw abs_sub_lt_iff at this,
     linarith },
   rw [edge_density_def] at this,
   push_cast at this,
+  have hε := utu.pos.le,
   refine le_trans _ (mul_le_of_nonneg_of_le_div (nat.cast_nonneg _) (by positivity) this),
   refine eq.trans_le _ (mul_le_mul_of_nonneg_left (mul_le_mul hY hZ (by positivity) $
     by positivity) hε),
   ring,
 end
 
--- can probably golf things by relaxing < to ≤
-lemma triangle_counting (hε₀ : 0 < ε) (hε₁ : ε ≤ 1)
-  (dXY : 2 * ε ≤ G.edge_density s t) (hst : G.is_uniform ε s t)
-  (dXZ : 2 * ε ≤ G.edge_density s u) (uXZ : G.is_uniform ε s u)
-  (dYZ : 2 * ε ≤ G.edge_density t u) (uYZ : G.is_uniform ε t u) :
+lemma triangle_counting
+  (dst : 2 * ε ≤ G.edge_density s t) (hst : G.is_uniform ε s t)
+  (dsu : 2 * ε ≤ G.edge_density s u) (uXZ : G.is_uniform ε s u)
+  (dtu : 2 * ε ≤ G.edge_density t u) (utu : G.is_uniform ε t u) :
   (1 - 2 * ε) * ε^3 * s.card * t.card * u.card ≤
     ((s ×ˢ t ×ˢ u).filter $ λ xyz : α × α × α,
       G.adj xyz.1 xyz.2.1 ∧ G.adj xyz.1 xyz.2.2 ∧ G.adj xyz.2.1 xyz.2.2).card :=
 begin
-  have h₁ : ((bad_vertices G ε s t).card : ℝ) ≤ s.card * ε := G.few_bad_vertices hε₀.le hε₁ dXY hst,
-  have h₂ : ((bad_vertices G ε s u).card : ℝ) ≤ s.card * ε := G.few_bad_vertices hε₀.le hε₁ dXZ uXZ,
+  have h₁ : ((bad_vertices G ε s t).card : ℝ) ≤ s.card * ε := G.few_bad_vertices dst hst,
+  have h₂ : ((bad_vertices G ε s u).card : ℝ) ≤ s.card * ε := G.few_bad_vertices dsu uXZ,
   let X' := s \ (bad_vertices G ε s t ∪ bad_vertices G ε s u),
   have : X'.bUnion _ ⊆ (s.product (t.product u)).filter
     (λ (xyz : α × α × α), G.adj xyz.1 xyz.2.1 ∧ G.adj xyz.1 xyz.2.2 ∧ G.adj xyz.2.1 xyz.2.2),
   { apply triangle_split_helper },
   refine le_trans _ (nat.cast_le.2 $ card_le_of_subset this),
   rw [card_bUnion, nat.cast_sum],
-  { have := λ x hx, G.good_vertices_triangle_card hε₀.le dXY dXZ dYZ uYZ x hx,
+  { have := λ x hx, G.good_vertices_triangle_card dst dsu dtu utu x hx,
     apply le_trans _ (card_nsmul_le_sum X' _ _ this),
     rw nsmul_eq_mul,
-    have hX' : (1 - 2 * ε) * s.card ≤ X'.card,
-    { have i : bad_vertices G ε s t ∪ bad_vertices G ε s u ⊆ s,
-      { apply union_subset (filter_subset _ _) (filter_subset _ _) },
-      rw [sub_mul, one_mul, card_sdiff i, nat.cast_sub (card_le_of_subset i), sub_le_sub_iff_left,
-        mul_assoc, mul_comm ε, two_mul],
-      refine (nat.cast_le.2 $ card_union_le _ _).trans _,
-      rw nat.cast_add,
-      exact add_le_add h₁ h₂ },
-    exact eq.trans_le (by ring) (mul_le_mul_of_nonneg_right hX' $ by positivity) },
+    have := hst.pos.le,
+    suffices hX' : (1 - 2 * ε) * s.card ≤ X'.card,
+    { exact eq.trans_le (by ring) (mul_le_mul_of_nonneg_right hX' $ by positivity) },
+    have i : bad_vertices G ε s t ∪ bad_vertices G ε s u ⊆ s,
+    { apply union_subset (filter_subset _ _) (filter_subset _ _) },
+    rw [sub_mul, one_mul, card_sdiff i, nat.cast_sub (card_le_of_subset i), sub_le_sub_iff_left,
+      mul_assoc, mul_comm ε, two_mul],
+    refine (nat.cast_le.2 $ card_union_le _ _).trans _,
+    rw nat.cast_add,
+    exact add_le_add h₁ h₂ },
   rintro x hx y hy t,
   rw disjoint_left,
   simp only [prod.forall, mem_image, not_exists, exists_prop, mem_filter, prod.mk.inj_iff,
@@ -162,8 +157,7 @@ begin
   exact t rfl,
 end
 
-private lemma triple_eq_triple_of_mem [decidable_eq α]
-  (hst : disjoint s t) (hsu : disjoint s u) (htu : disjoint t u)
+private lemma triple_eq_triple_of_mem (hst : disjoint s t) (hsu : disjoint s u) (htu : disjoint t u)
   {x₁ x₂ y₁ y₂ z₁ z₂ : α} (h : ({x₁, y₁, z₁} : finset α) = {x₂, y₂, z₂})
   (hx₁ : x₁ ∈ s) (hx₂ : x₂ ∈ s) (hy₁ : y₁ ∈ t) (hy₂ : y₂ ∈ t) (hz₁ : z₁ ∈ u) (hz₂ : z₂ ∈ u) :
   (x₁, y₁, z₁) = (x₂, y₂, z₂) :=
@@ -183,76 +177,24 @@ end
 variables [fintype α] {P : finpartition (univ : finset α)}
 
 lemma triangle_counting2
-  (dXY : 2 * ε ≤ G.edge_density s t) (hst : G.is_uniform ε s t) (hsu : disjoint s t)
-  (dXZ : 2 * ε ≤ G.edge_density s u) (uXZ : G.is_uniform ε s u) (hXZ : disjoint s u)
-  (dYZ : 2 * ε ≤ G.edge_density t u) (uYZ : G.is_uniform ε t u) (hYZ : disjoint t u) :
+  (dst : 2 * ε ≤ G.edge_density s t) (ust : G.is_uniform ε s t) (hst : disjoint s t)
+  (dsu : 2 * ε ≤ G.edge_density s u) (uXZ : G.is_uniform ε s u) (hsu : disjoint s u)
+  (dtu : 2 * ε ≤ G.edge_density t u) (utu : G.is_uniform ε t u) (htu : disjoint t u) :
   (1 - 2 * ε) * ε^3 * s.card * t.card * u.card ≤ (G.clique_finset 3).card :=
 begin
-  cases le_or_lt ε 0 with hε₀ hε₀,
-  { apply le_trans _ (nat.cast_nonneg _),
-    rw [mul_assoc, mul_assoc],
-    refine mul_nonpos_of_nonpos_of_nonneg _ (by positivity),
-    exact mul_nonpos_of_nonneg_of_nonpos (by linarith) (pow_bit1_nonpos_iff.2 hε₀) },
-  cases lt_or_le 1 ε with hε₁ hε₁,
-  { apply le_trans _ (nat.cast_nonneg _),
-    rw [mul_assoc, mul_assoc, mul_assoc],
-    exact mul_nonpos_of_nonpos_of_nonneg (by linarith) (by positivity) },
-  apply (G.triangle_counting hε₀ hε₁ dXY hst dXZ uXZ dYZ uYZ).trans _,
+  apply (G.triangle_counting dst ust dsu uXZ dtu utu).trans _,
   rw nat.cast_le,
   refine card_le_card_of_inj_on (λ xyz, {xyz.1, xyz.2.1, xyz.2.2}) _ _,
   { rintro ⟨x, y, z⟩,
-    simp only [and_imp, mem_filter, mem_product],
-    intros hx hy hz xy xz yz,
-    rw [mem_clique_finset_iff, is_3_clique_triple_iff],
-    exact ⟨xy, xz, yz⟩ },
+    simp only [and_imp, mem_filter, mem_product, mem_clique_finset_iff, is_3_clique_triple_iff],
+    exact λ hx hy hz xy xz yz, ⟨xy, xz, yz⟩ },
   rintro ⟨x₁, y₁, z₁⟩ h₁ ⟨x₂, y₂, z₂⟩ h₂ t,
   simp only [mem_filter, mem_product] at h₁ h₂,
-  apply triple_eq_triple_of_mem hsu hXZ hYZ t;
+  apply triple_eq_triple_of_mem hst hsu htu t;
   tauto
 end
 
 variables {G G'}
-
-lemma far_from_triangle_free_of_disjoint_triangles_aux (tris : finset (finset α))
-  (htris : tris ⊆ G.clique_finset 3)
-  (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1)) (hGG' : G' ≤ G)
-  (hG' : G'.clique_free 3) : tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
-begin
-  rw [←card_sdiff (edge_finset_mono hGG'), ←card_attach],
-  by_contra' hG,
-  have : ∀ t ∈ tris, ∃ x y ∈ t, x ≠ y ∧ ⟦(x, y)⟧ ∈ G.edge_finset \ G'.edge_finset,
-  { intros t ht,
-    by_contra' h,
-    refine hG' t _,
-    simp only [not_and, mem_sdiff, not_not, mem_edge_finset, mem_edge_set] at h,
-    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := is_3_clique_iff.1 (G.mem_clique_finset_iff.1 $ htris ht),
-    rw is_3_clique_triple_iff,
-    refine ⟨h _ _ _ _ xy.ne xy, h _ _ _ _ xz.ne xz, h _ _ _ _ yz.ne yz⟩; simp },
-  choose fx hfx fy hfy hfne fmem using this,
-  let f : {x // x ∈ tris} → sym2 α := λ t, ⟦(fx _ t.2, fy _ t.2)⟧,
-  have hf : ∀ x ∈ tris.attach, f x ∈ G.edge_finset \ G'.edge_finset := λ x hx, fmem _ _,
-  obtain ⟨⟨t₁, ht₁⟩, -, ⟨t₂, ht₂⟩, -, tne, t : ⟦_⟧ = ⟦_⟧⟩ :=
-    exists_ne_map_eq_of_card_lt_of_maps_to hG hf,
-  dsimp at t,
-  have i := pd ht₁ ht₂ (subtype.val_injective.ne tne),
-  simp only [finset.card_le_one_iff, mem_inter, and_imp] at i,
-  rw sym2.eq_iff at t,
-  cases t,
-  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfx t₂ ht₂) (hfy t₁ ht₁) $ t.2.symm ▸ hfy t₂ ht₂) },
-  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfy t₂ ht₂) (hfy t₁ ht₁) $ t.2.symm ▸ hfx t₂ ht₂) }
-end
-
-lemma far_from_triangle_free_of_disjoint_triangles
-  (tris : finset (finset α)) (htris : tris ⊆ G.clique_finset 3)
-  (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1))
-  (tris_big : ε * (card α ^ 2 : ℕ) ≤ tris.card) :
-  G.far_from_triangle_free ε :=
-begin
-  refine far_from_triangle_free_iff.2 (λ G' hG hG', _),
-  rw ←nat.cast_sub (card_le_of_subset $ edge_finset_mono hG),
-  exact tris_big.trans
-    (nat.cast_le.2 $ far_from_triangle_free_of_disjoint_triangles_aux tris htris pd hG hG'),
-end
 
 lemma reduced_double_edges :
   univ.filter (λ xy : α × α, G.adj xy.1 xy.2) \

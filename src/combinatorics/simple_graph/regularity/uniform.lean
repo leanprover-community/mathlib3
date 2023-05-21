@@ -69,22 +69,6 @@ variables (G)
 
 lemma is_uniform_comm : is_uniform G ε s t ↔ is_uniform G ε t s := ⟨λ h, h.symm, λ h, h.symm⟩
 
-lemma is_uniform_singleton (hε : 0 < ε) : G.is_uniform ε {a} {b} :=
-begin
-  intros s' hs' t' ht' hs ht,
-  rw [card_singleton, nat.cast_one, one_mul] at hs ht,
-  obtain rfl | rfl := finset.subset_singleton_iff.1 hs',
-  { replace hs : ε ≤ 0 := by simpa using hs,
-    exact (hε.not_le hs).elim },
-  obtain rfl | rfl := finset.subset_singleton_iff.1 ht',
-  { replace ht : ε ≤ 0 := by simpa using ht,
-    exact (hε.not_le ht).elim },
-  { rwa [sub_self, abs_zero] }
-end
-
-lemma not_is_uniform_zero : ¬ G.is_uniform (0 : 𝕜) s t :=
-λ h, (abs_nonneg _).not_lt $ h (empty_subset _) (empty_subset _) (by simp) (by simp)
-
 lemma is_uniform_one : G.is_uniform (1 : 𝕜) s t :=
 begin
   intros s' hs' t' ht' hs ht,
@@ -96,9 +80,27 @@ end
 
 variables {G}
 
+lemma is_uniform.pos (hG : G.is_uniform ε s t) : 0 < ε :=
+not_le.1 $ λ hε, (hε.trans $ abs_nonneg _).not_lt $ hG (empty_subset _) (empty_subset _)
+  (by simpa using mul_nonpos_of_nonneg_of_nonpos (nat.cast_nonneg _) hε)
+  (by simpa using mul_nonpos_of_nonneg_of_nonpos (nat.cast_nonneg _) hε)
+
+@[simp] lemma is_uniform_singleton : G.is_uniform ε {a} {b} ↔ 0 < ε :=
+begin
+  refine ⟨is_uniform.pos, λ hε s' hs' t' ht' hs ht, _⟩,
+  rw [card_singleton, nat.cast_one, one_mul] at hs ht,
+  obtain rfl | rfl := finset.subset_singleton_iff.1 hs',
+  { replace hs : ε ≤ 0 := by simpa using hs,
+    exact (hε.not_le hs).elim },
+  obtain rfl | rfl := finset.subset_singleton_iff.1 ht',
+  { replace ht : ε ≤ 0 := by simpa using ht,
+    exact (hε.not_le ht).elim },
+  { rwa [sub_self, abs_zero] }
+end
+
 lemma not_is_uniform_iff :
   ¬ G.is_uniform ε s t ↔ ∃ s', s' ⊆ s ∧ ∃ t', t' ⊆ t ∧ ↑s.card * ε ≤ s'.card ∧
-    ↑t.card * ε ≤ t'.card ∧  ε ≤ |G.edge_density s' t' - G.edge_density s t| :=
+    ↑t.card * ε ≤ t'.card ∧ ε ≤ |G.edge_density s' t' - G.edge_density s t| :=
 by { unfold is_uniform, simp only [not_forall, not_lt, exists_prop] }
 
 open_locale classical
@@ -201,7 +203,7 @@ begin
   simp only [finpartition.mk_mem_non_uniforms_iff, finpartition.parts_bot, mem_map, not_and,
     not_not, exists_imp_distrib],
   rintro x hx rfl y hy rfl h,
-  exact G.is_uniform_singleton hε,
+  exact simple_graph.is_uniform_singleton.2 hε,
 end
 
 /-- A finpartition of a graph's vertex set is `ε`-uniform (aka `ε`-regular) iff the proportion of

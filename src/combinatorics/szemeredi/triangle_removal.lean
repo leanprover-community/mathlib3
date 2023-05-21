@@ -135,7 +135,7 @@ begin
     apply (triangle_removal_bound_mul_cube_lt hε).le.trans,
     simp only [one_le_cast],
     exact (hG.clique_finset_nonempty hε).card_pos },
-  obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := szemeredi_regularity G l (by positivity : 0 < ε / 8) hl',
+  obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := szemeredi_regularity G (by positivity : 0 < ε / 8) hl',
   have : 4/ε ≤ P.parts.card := hl.trans (cast_le.2 hP₂),
   have k := reduced_edges_card_aux hε hP₁ hP₄ this,
   rw mul_assoc at k,

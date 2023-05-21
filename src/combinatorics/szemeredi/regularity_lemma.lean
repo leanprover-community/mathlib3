@@ -8,12 +8,45 @@ import combinatorics.simple_graph.regularity.increment
 /-!
 # Szemerédi's Regularity Lemma
 
-In this file, we prove Szemerédi's Regularity Lemma. This is a landmark result in combinatorics
-roughly stating that any sufficiently big graph behaves like a random graph. This is useful because
-random graphs are well-behaved in many aspects.
+In this file, we prove Szemerédi's Regularity Lemma (aka SRL). This is a landmark result in
+combinatorics roughly stating that any sufficiently big graph behaves like a random graph. This is
+useful because random graphs are well-behaved in many aspects.
 
-This file only contains the proof of the final result. The supporting material is spread across the
-`combinatorics.simple_graph.regularity` folder.
+More precisely, SRL states that for any `ε > 0` and integer `l` there exists a bound `M` such that
+any graph on at least `l` vertices can be partitioned into at least `l` parts and at most `M` parts
+such that the resulting partitioned graph is `ε`-uniform.
+
+This statement is very robust to tweaking and many different versions exist. Here, we prove the
+version where the resulting partition is equitable (aka an *equipartition*), namely all parts have
+the same size up to a difference of `1`.
+
+The proof we formalise goes as follows:
+1. Define an auxiliary measure of edge density, the *energy* of a partition.
+2. Start with an arbitrary equipartition of size `l`.
+3. Repeatedly break up the parts of the current equipartition in a big but controlled number of
+  parts. The key point is to break along the witnesses of non-uniformity, so that a lesser portion
+  of the pairs parts are non-`ε`-uniform.
+4. Check that this results in an equipartition with an energy greater than the energy of the current
+  partition, plus some constant.
+5. Since the energy is between zero and one, we can't run this process forever. Check that when the
+  process stops we have an `ε`-uniform equipartition.
+
+This file only contains the final result. The supporting material is spread across the
+`combinatorics.simple_graph.regularity` folder:
+* `combinatorics.simple_graph.regularity.bound`: Definition of the bound on the number of parts.
+  Numerical inequalities involving the lemma constants.
+* `combinatorics.simple_graph.regularity.energy`: Definition of the energy of a simple graph along a
+  partition.
+* `combinatorics.simple_graph.regularity.uniform`: Definition of uniformity of a simple graph along
+  a pair of parts and along a partition.
+* `combinatorics.simple_graph.regularity.equitabilise`: Construction of an equipartition with
+  a prescribed number of parts of each size and almost refining a given partition.
+* `combinatorics.simple_graph.regularity.chunk`: Break up one part of the current equipartition.
+  Check that density between non-uniform parts increases, and that density between uniform parts
+  doesn't decrease too much.
+* `combinatorics.simple_graph.regularity.increment`: Gather all those broken up parts into the new
+  equipartition (aka *increment partition*). Check that energy increases by at least a fixed amount.
+* `combinatorics.simple_graph.regularity.lemma`: Wrap everything up into an induction on the energy.
 
 ## TODO
 
@@ -28,16 +61,15 @@ We currently only prove the equipartition version of SRL.
 [Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
-open_locale classical
 open finpartition finset fintype function szemeredi_regularity
+open_locale classical
 
-variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
-  (G : simple_graph α) (ε : ℝ) (l : ℕ)
+variables {α : Type*} [fintype α] (G : simple_graph α) {ε : ℝ} {l : ℕ}
 
 /-- Effective **Szemerédi Regularity Lemma**: For any sufficiently large graph, there is an
 `ε`-uniform equipartition of bounded size (where the bound does not depend on the graph). -/
-theorem szemeredi_regularity {ε : ℝ} (l : ℕ) (hε : 0 < ε) (hl : l ≤ card α) :
-  ∃ (P : finpartition univ),
+theorem szemeredi_regularity (hε : 0 < ε) (hl : l ≤ card α) :
+  ∃ P : finpartition univ,
     P.is_equipartition ∧ l ≤ P.parts.card ∧ P.parts.card ≤ bound ε l ∧ P.is_uniform G ε :=
 begin
   obtain hα | hα := le_total (card α) (bound ε l),
@@ -57,17 +89,17 @@ begin
     exact (bound_pos _ _).trans_le hα },
   suffices h : ∀ i, ∃ P : finpartition (univ : finset α), P.is_equipartition ∧
     t ≤ P.parts.card ∧ P.parts.card ≤ (step_bound^[i]) t ∧
-      (P.is_uniform G ε ∨ ε^5 / 4 * i ≤ P.energy G),
-  { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (⌊4 / ε^5⌋₊ + 1),
+      (P.is_uniform G ε ∨ ε ^ 5 / 4 * i ≤ P.energy G),
+  { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (⌊4 / ε ^ 5⌋₊ + 1),
     refine ⟨P, hP₁, (le_initial_bound _ _).trans hP₂, hP₃.trans _,
       hP₄.resolve_right $ λ hPenergy, lt_irrefl (1 : ℝ) _⟩,
-    { rw function.iterate_succ_apply',
+    { rw iterate_succ_apply',
       exact mul_le_mul_left' (pow_le_pow_of_le_left (by norm_num) (by norm_num) _) _ },
     calc
       1 = ε ^ 5 / 4 * (4 / ε ^ 5)
           : by { rw [mul_comm, div_mul_div_cancel 4 (pow_pos hε 5).ne'], norm_num }
       ... < ε ^ 5 / 4 * (⌊4 / ε ^ 5⌋₊ + 1)
-          : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (nat.lt_floor_add_one _)
+          : (mul_lt_mul_left $ by positivity).2 (nat.lt_floor_add_one _)
       ... ≤ (P.energy G : ℝ) : by rwa ←nat.cast_add_one
       ... ≤ 1 : by exact_mod_cast P.energy_le_one G },
   intro i,
@@ -78,27 +110,27 @@ begin
   obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := ih,
   by_cases huniform : P.is_uniform G ε,
   { refine ⟨P, hP₁, hP₂, _, or.inl huniform⟩,
-    rw function.iterate_succ_apply',
+    rw iterate_succ_apply',
     exact hP₃.trans (le_step_bound _) },
   replace hP₄ := hP₄.resolve_left huniform,
   have hεl' : 100 < 4 ^ P.parts.card * ε ^ 5,
   { exact (hundred_lt_pow_initial_bound_mul hε l).trans_le
       (mul_le_mul_of_nonneg_right (pow_le_pow (by norm_num) hP₂) $ by positivity) },
-  have hi : (i : ℝ) ≤ 4 / ε^5,
+  have hi : (i : ℝ) ≤ 4 / ε ^ 5,
   { have hi : ε ^ 5 / 4 * ↑i ≤ 1 := hP₄.trans (by exact_mod_cast P.energy_le_one G),
     rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 4, by norm_num)] at hi,
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },
-  have hsize : P.parts.card ≤ (step_bound^[⌊4 / ε^5⌋₊] t) :=
+  have hsize : P.parts.card ≤ (step_bound^[⌊4 / ε ^ 5⌋₊] t) :=
     hP₃.trans (monotone_iterate_of_id_le le_step_bound (nat.le_floor hi) _),
-  have hPα : P.parts.card * 16^P.parts.card ≤ card α :=
+  have hPα : P.parts.card * 16 ^ P.parts.card ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨increment hP₁ G ε, increment_is_equipartition hP₁ G ε, _, _,
     or.inr $ le_trans _ $ energy_increment hP₁ ((seven_le_initial_bound ε l).trans hP₂)
       hεl' hPα huniform hε₁⟩,
   { rw card_increment hPα huniform,
     exact hP₂.trans (le_step_bound _) },
-  { rw [card_increment hPα huniform, function.iterate_succ_apply'],
+  { rw [card_increment hPα huniform, iterate_succ_apply'],
     exact step_bound_mono hP₃ },
   { rw [nat.cast_succ, mul_add, mul_one],
     exact add_le_add_right hP₄ _ }

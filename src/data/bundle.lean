@@ -3,12 +3,13 @@ Copyright © 2021 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
-
-import tactic.basic
 import algebra.module.basic
 
 /-!
 # Bundle
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
 should contain all possible results that do not involve any topology.
 
@@ -46,6 +47,9 @@ variables {E}
 /-- `bundle.total_space.proj` is the canonical projection `bundle.total_space E → B` from the
 total space to the base space. -/
 @[simp, reducible] def total_space.proj : total_space E → B := sigma.fst
+
+-- this notation won't be used in the pretty-printer
+localized "notation `π` := @bundle.total_space.proj _" in bundle
 
 /-- Constructor for the total space of a bundle. -/
 @[simp, reducible] def total_space_mk (b : B) (a : E b) :

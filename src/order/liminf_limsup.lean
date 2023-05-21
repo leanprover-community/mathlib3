@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Johannes Hölzl, Rémy Degenne
 -/
 import order.filter.cofinite
+import order.hom.complete_lattice
 
 /-!
 # liminfs and limsups of functions and filters
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Defines the Liminf/Limsup of a function taking values in a conditionally complete lattice, with
 respect to an arbitrary filter.
@@ -438,6 +442,20 @@ begin
   exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
+lemma blimsup_congr {f : filter β} {u v : β → α} {p : β → Prop} (h : ∀ᶠ a in f, p a → u a = v a) :
+  blimsup u f p = blimsup v f p :=
+begin
+  rw blimsup_eq,
+  congr' with b,
+  refine eventually_congr (h.mono $ λ x hx, ⟨λ h₁ h₂, _, λ h₁ h₂, _⟩),
+  { rw ← hx h₂, exact h₁ h₂, },
+  { rw hx h₂, exact h₁ h₂, },
+end
+
+lemma bliminf_congr {f : filter β} {u v : β → α} {p : β → Prop} (h : ∀ᶠ a in f, p a → u a = v a) :
+  bliminf u f p = bliminf v f p :=
+@blimsup_congr αᵒᵈ _ _ _ _ _ _ h
+
 lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : liminf u f = liminf v f :=
 @limsup_congr βᵒᵈ _ _ _ _ _ h
@@ -529,6 +547,23 @@ theorem has_basis.limsup_eq_infi_supr {p : ι → Prop} {s : ι → set β} {f :
   (h : f.has_basis p s) : limsup u f = ⨅ i (hi : p i), ⨆ a ∈ s i, u a :=
 (h.map u).Limsup_eq_infi_Sup.trans $ by simp only [Sup_image, id]
 
+lemma blimsup_congr' {f : filter β} {p q : β → Prop} {u : β → α}
+  (h : ∀ᶠ x in f, u x ≠ ⊥ → (p x ↔ q x)) :
+  blimsup u f p = blimsup u f q :=
+begin
+  simp only [blimsup_eq],
+  congr,
+  ext a,
+  refine eventually_congr (h.mono $ λ b hb, _),
+  cases eq_or_ne (u b) ⊥ with hu hu, { simp [hu], },
+  rw hb hu,
+end
+
+lemma bliminf_congr' {f : filter β} {p q : β → Prop} {u : β → α}
+  (h : ∀ᶠ x in f, u x ≠ ⊤ → (p x ↔ q x)) :
+  bliminf u f p = bliminf u f q :=
+@blimsup_congr' αᵒᵈ β _ _ _ _ _ h
+
 lemma blimsup_eq_infi_bsupr {f : filter β} {p : β → Prop} {u : β → α} :
   blimsup u f p = ⨅ s ∈ f, ⨆ b (hb : p b ∧ b ∈ s), u b :=
 begin
@@ -542,6 +577,12 @@ begin
     simp_rw imp.swap at hs',
     exact (le_infi_iff.mp (ha s) hs).trans (by simpa only [supr₂_le_iff, and_imp]), },
 end
+
+lemma blimsup_eq_infi_bsupr_of_nat {p : ℕ → Prop} {u : ℕ → α} :
+  blimsup u at_top p = ⨅ i, ⨆ j (hj : p j ∧ i ≤ j), u j :=
+by simp only [blimsup_eq_limsup_subtype, mem_preimage, mem_Ici, function.comp_app, cinfi_pos,
+  supr_subtype, (at_top_basis.comap (coe : {x | p x} → ℕ)).limsup_eq_infi_supr, mem_set_of_eq,
+  subtype.coe_mk, supr_and]
 
 /-- In a complete lattice, the liminf of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
@@ -561,6 +602,10 @@ theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f :
 lemma bliminf_eq_supr_binfi {f : filter β} {p : β → Prop} {u : β → α} :
   bliminf u f p = ⨆ s ∈ f, ⨅ b (hb : p b ∧ b ∈ s), u b :=
 @blimsup_eq_infi_bsupr αᵒᵈ β _ f p u
+
+lemma bliminf_eq_supr_binfi_of_nat {p : ℕ → Prop} {u : ℕ → α} :
+  bliminf u at_top p = ⨆ i, ⨅ j (hj : p j ∧ i ≤ j), u j :=
+@blimsup_eq_infi_bsupr_of_nat αᵒᵈ _ p u
 
 lemma limsup_eq_Inf_Sup {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
   limsup a F = Inf ((λ I, Sup (a '' I)) '' F.sets) :=
@@ -607,6 +652,25 @@ lemma le_limsup_of_frequently_le' {α β} [complete_lattice β]
   x ≤ limsup u f :=
 @liminf_le_of_frequently_le' _ βᵒᵈ _ _ _ _ h
 
+/-- If `f : α → α` is a morphism of complete lattices, then the limsup of its iterates of any
+`a : α` is a fixed point. -/
+@[simp] lemma complete_lattice_hom.apply_limsup_iterate (f : complete_lattice_hom α α) (a : α) :
+  f (limsup (λ n, f^[n] a) at_top) = limsup (λ n, f^[n] a) at_top :=
+begin
+  rw [limsup_eq_infi_supr_of_nat', map_infi],
+  simp_rw [_root_.map_supr, ← function.comp_apply f, ← function.iterate_succ' f, ← nat.add_succ],
+  conv_rhs { rw infi_split _ ((<) (0 : ℕ)), },
+  simp only [not_lt, le_zero_iff, infi_infi_eq_left, add_zero, infi_nat_gt_zero_eq, left_eq_inf],
+  refine (infi_le (λ i, ⨆ j, (f^[j + (i + 1)]) a) 0).trans _,
+  simp only [zero_add, function.comp_app, supr_le_iff],
+  exact λ i, le_supr (λ i, (f^[i] a)) (i + 1),
+end
+
+/-- If `f : α → α` is a morphism of complete lattices, then the liminf of its iterates of any
+`a : α` is a fixed point. -/
+lemma complete_lattice_hom.apply_liminf_iterate (f : complete_lattice_hom α α) (a : α) :
+  f (liminf (λ n, f^[n] a) at_top) = liminf (λ n, f^[n] a) at_top :=
+(complete_lattice_hom.dual f).apply_limsup_iterate _
 variables {f g : filter β} {p q : β → Prop} {u v : β → α}
 
 lemma blimsup_mono (h : ∀ x, p x → q x) :
@@ -617,19 +681,19 @@ lemma bliminf_antitone (h : ∀ x, p x → q x) :
   bliminf u f q ≤ bliminf u f p :=
 Sup_le_Sup $ λ a ha, ha.mono $ by tauto
 
-lemma mono_blimsup' (h : ∀ᶠ x in f, u x ≤ v x) :
+lemma mono_blimsup' (h : ∀ᶠ x in f, p x → u x ≤ v x) :
   blimsup u f p ≤ blimsup v f p :=
-Inf_le_Inf $ λ a ha, (ha.and h).mono $ λ x hx hx', hx.2.trans (hx.1 hx')
+Inf_le_Inf $ λ a ha, (ha.and h).mono $ λ x hx hx', (hx.2 hx').trans (hx.1 hx')
 
-lemma mono_blimsup (h : ∀ x, u x ≤ v x) :
+lemma mono_blimsup (h : ∀ x, p x → u x ≤ v x) :
   blimsup u f p ≤ blimsup v f p :=
 mono_blimsup' $ eventually_of_forall h
 
-lemma mono_bliminf' (h : ∀ᶠ x in f, u x ≤ v x) :
+lemma mono_bliminf' (h : ∀ᶠ x in f, p x → u x ≤ v x) :
   bliminf u f p ≤ bliminf v f p :=
-Sup_le_Sup $ λ a ha, (ha.and h).mono $ λ x hx hx', (hx.1 hx').trans hx.2
+Sup_le_Sup $ λ a ha, (ha.and h).mono $ λ x hx hx', (hx.1 hx').trans (hx.2 hx')
 
-lemma mono_bliminf (h : ∀ x, u x ≤ v x) :
+lemma mono_bliminf (h : ∀ x, p x → u x ≤ v x) :
   bliminf u f p ≤ bliminf v f p :=
 mono_bliminf' $ eventually_of_forall h
 
@@ -659,6 +723,32 @@ sup_le (blimsup_mono $ by tauto) (blimsup_mono $ by tauto)
   bliminf u f (λ x, p x ∨ q x) ≤ bliminf u f p ⊓ bliminf u f q :=
 @blimsup_sup_le_or αᵒᵈ β _ f p q u
 
+lemma order_iso.apply_blimsup [complete_lattice γ] (e : α ≃o γ) :
+  e (blimsup u f p) = blimsup (e ∘ u) f p :=
+begin
+  simp only [blimsup_eq, map_Inf, function.comp_app],
+  congr,
+  ext c,
+  obtain ⟨a, rfl⟩ := e.surjective c,
+  simp,
+end
+
+lemma order_iso.apply_bliminf [complete_lattice γ] (e : α ≃o γ) :
+  e (bliminf u f p) = bliminf (e ∘ u) f p :=
+@order_iso.apply_blimsup αᵒᵈ β γᵒᵈ _ f p u _ e.dual
+
+lemma Sup_hom.apply_blimsup_le [complete_lattice γ] (g : Sup_hom α γ) :
+  g (blimsup u f p) ≤ blimsup (g ∘ u) f p :=
+begin
+  simp only [blimsup_eq_infi_bsupr],
+  refine ((order_hom_class.mono g).map_infi₂_le _).trans _,
+  simp only [_root_.map_supr],
+end
+
+lemma Inf_hom.le_apply_bliminf [complete_lattice γ] (g : Inf_hom α γ) :
+  bliminf (g ∘ u) f p ≤ g (bliminf u f p) :=
+@Sup_hom.apply_blimsup_le αᵒᵈ β γᵒᵈ _ f p u _ g.dual
+
 end complete_lattice
 
 section complete_distrib_lattice
@@ -678,7 +768,71 @@ end
   bliminf u f (λ x, p x ∨ q x) = bliminf u f p ⊓ bliminf u f q :=
 @blimsup_or_eq_sup αᵒᵈ β _ f p q u
 
+lemma sup_limsup [ne_bot f] (a : α) :
+  a ⊔ limsup u f = limsup (λ x, a ⊔ u x) f :=
+begin
+  simp only [limsup_eq_infi_supr, supr_sup_eq, sup_binfi_eq],
+  congr, ext s, congr, ext hs, congr,
+  exact (bsupr_const (nonempty_of_mem hs)).symm,
+end
+
+lemma inf_liminf [ne_bot f] (a : α) :
+  a ⊓ liminf u f = liminf (λ x, a ⊓ u x) f :=
+@sup_limsup αᵒᵈ β _ f _ _ _
+
+lemma sup_liminf (a : α) :
+  a ⊔ liminf u f = liminf (λ x, a ⊔ u x) f :=
+begin
+  simp only [liminf_eq_supr_infi],
+  rw [sup_comm, bsupr_sup (⟨univ, univ_mem⟩ : ∃ (i : set β), i ∈ f)],
+  simp_rw [binfi_sup_eq, @sup_comm _ _ a],
+end
+
+lemma inf_limsup (a : α) :
+  a ⊓ limsup u f = limsup (λ x, a ⊓ u x) f :=
+@sup_liminf αᵒᵈ β _ f _ _
+
 end complete_distrib_lattice
+
+section complete_boolean_algebra
+
+variables [complete_boolean_algebra α] (f : filter β) (u : β → α)
+
+lemma limsup_compl :
+  (limsup u f)ᶜ = liminf (compl ∘ u) f :=
+by simp only [limsup_eq_infi_supr, liminf_eq_supr_infi, compl_infi, compl_supr]
+
+lemma liminf_compl :
+  (liminf u f)ᶜ = limsup (compl ∘ u) f :=
+by simp only [limsup_eq_infi_supr, liminf_eq_supr_infi, compl_infi, compl_supr]
+
+lemma limsup_sdiff (a : α) :
+  (limsup u f) \ a = limsup (λ b, (u b) \ a) f :=
+begin
+  simp only [limsup_eq_infi_supr, sdiff_eq],
+  rw binfi_inf (⟨univ, univ_mem⟩ : ∃ (i : set β), i ∈ f),
+  simp_rw [inf_comm, inf_bsupr_eq, inf_comm],
+end
+
+lemma liminf_sdiff [ne_bot f] (a : α) :
+  (liminf u f) \ a = liminf (λ b, (u b) \ a) f :=
+by simp only [sdiff_eq, @inf_comm _ _ _ aᶜ, inf_liminf]
+
+lemma sdiff_limsup [ne_bot f] (a : α) :
+  a \ limsup u f = liminf (λ b, a \ u b) f :=
+begin
+  rw ← compl_inj_iff,
+  simp only [sdiff_eq, liminf_compl, (∘), compl_inf, compl_compl, sup_limsup],
+end
+
+lemma sdiff_liminf (a : α) :
+  a \ liminf u f = limsup (λ b, a \ u b) f :=
+begin
+  rw ← compl_inj_iff,
+  simp only [sdiff_eq, limsup_compl, (∘), compl_inf, compl_compl, sup_liminf],
+end
+
+end complete_boolean_algebra
 
 section set_lattice
 
@@ -715,6 +869,28 @@ finitely often. -/
 lemma cofinite.liminf_set_eq :
   liminf s cofinite = { x | { n | x ∉ s n }.finite } :=
 by simp only [← cofinite.bliminf_true s, cofinite.bliminf_set_eq, true_and]
+
+lemma exists_forall_mem_of_has_basis_mem_blimsup
+  {l : filter β} {b : ι → set β} {q : ι → Prop} (hl : l.has_basis q b)
+  {u : β → set α} {p : β → Prop} {x : α} (hx : x ∈ blimsup u l p) :
+  ∃ f : {i | q i} → β, ∀ i, x ∈ u (f i) ∧ p (f i) ∧ f i ∈ b i :=
+begin
+  rw blimsup_eq_infi_bsupr at hx,
+  simp only [supr_eq_Union, infi_eq_Inter, mem_Inter, mem_Union, exists_prop] at hx,
+  choose g hg hg' using hx,
+  refine ⟨λ (i : {i | q i}), g (b i) (hl.mem_of_mem i.2), λ i, ⟨_, _⟩⟩,
+  { exact hg' (b i) (hl.mem_of_mem i.2), },
+  { exact hg (b i) (hl.mem_of_mem i.2), },
+end
+
+lemma exists_forall_mem_of_has_basis_mem_blimsup'
+  {l : filter β} {b : ι → set β} (hl : l.has_basis (λ _, true) b)
+  {u : β → set α} {p : β → Prop} {x : α} (hx : x ∈ blimsup u l p) :
+  ∃ f : ι → β, ∀ i, x ∈ u (f i) ∧ p (f i) ∧ f i ∈ b i :=
+begin
+  obtain ⟨f, hf⟩ := exists_forall_mem_of_has_basis_mem_blimsup hl hx,
+  exact ⟨λ i, f ⟨i, trivial⟩, λ i, hf ⟨i, trivial⟩⟩,
+end
 
 end set_lattice
 

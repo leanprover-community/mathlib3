@@ -3,9 +3,9 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.deriv
 import analysis.analytic.basic
-import analysis.calculus.cont_diff
+import analysis.calculus.deriv
+import analysis.calculus.cont_diff_def
 
 /-!
 # Frechet derivatives of analytic functions.
@@ -30,7 +30,7 @@ lemma has_fpower_series_at.has_strict_fderiv_at (h : has_fpower_series_at f p x)
   has_strict_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p 1)) x :=
 begin
   refine h.is_O_image_sub_norm_mul_norm_sub.trans_is_o (is_o.of_norm_right _),
-  refine is_o_iff_exists_eq_mul.2 ⟨λ y, ∥y - (x, x)∥, _, eventually_eq.rfl⟩,
+  refine is_o_iff_exists_eq_mul.2 ⟨λ y, ‖y - (x, x)‖, _, eventually_eq.rfl⟩,
   refine (continuous_id.sub continuous_const).norm.tendsto' _ _ _,
   rw [_root_.id, sub_self, norm_zero]
 end
@@ -64,12 +64,12 @@ lemma analytic_on.differentiable_on (h : analytic_on 𝕜 f s) :
 λ y hy, (h y hy).differentiable_within_at
 
 lemma has_fpower_series_on_ball.has_fderiv_at [complete_space F]
-  (h : has_fpower_series_on_ball f p x r) {y : E} (hy : (∥y∥₊ : ℝ≥0∞) < r) :
+  (h : has_fpower_series_on_ball f p x r) {y : E} (hy : (‖y‖₊ : ℝ≥0∞) < r) :
   has_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p.change_origin y 1)) (x + y) :=
 (h.change_origin hy).has_fpower_series_at.has_fderiv_at
 
 lemma has_fpower_series_on_ball.fderiv_eq [complete_space F]
-  (h : has_fpower_series_on_ball f p x r) {y : E} (hy : (∥y∥₊ : ℝ≥0∞) < r) :
+  (h : has_fpower_series_on_ball f p x r) {y : E} (hy : (‖y‖₊ : ℝ≥0∞) < r) :
   fderiv 𝕜 f (x + y) = continuous_multilinear_curry_fin1 𝕜 E F (p.change_origin y 1) :=
 (h.has_fderiv_at hy).fderiv
 

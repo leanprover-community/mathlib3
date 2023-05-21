@@ -3,12 +3,16 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
+import linear_algebra.general_linear_group
 import linear_algebra.matrix.to_lin
 import linear_algebra.matrix.nonsingular_inverse
 import algebra.star.unitary
 
 /-!
 # The Unitary Group
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines elements of the unitary group `unitary_group n α`, where `α` is a `star_ring`.
 This consists of all `n` by `n` matrices with entries in `α` such that the star-transpose is its

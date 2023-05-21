@@ -55,7 +55,7 @@ lemma paracompact_of_compact {X : Type u} [topological_space X] [compact_space X
 begin
   refine ⟨λ α u uo uc, _⟩,
   obtain ⟨s, _, sf, sc⟩ :=
-    compact_univ.elim_finite_subcover_image (λ a _, uo a) (by rwa [univ_subset_iff, bUnion_univ]),
+    is_compact_univ.elim_finite_subcover_image (λ a _, uo a) (by rwa [univ_subset_iff, bUnion_univ]),
   refine ⟨s, λ b, u b.val, λ b, uo b.val, _, _, λ b, ⟨b.val, subset.refl _⟩⟩,
   { todo },
   { intro x,

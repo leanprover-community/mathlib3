@@ -10,6 +10,9 @@ import tactic.fin_cases
 /-!
 # Block matrices and their determinant
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a predicate `matrix.block_triangular` saying a matrix
 is block triangular, and proves the value of the determinant for various
 matrices built out of blocks.
@@ -273,6 +276,7 @@ begin
   let q := λ i, ¬ b i < k,
   have h_sum : M⁻¹.to_block q p ⬝ M.to_block p p + M⁻¹.to_block q q ⬝ M.to_block q p = 0,
   { rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_disjoint],
+    rw disjoint_iff_inf_le,
     exact λ i h, h.1 h.2 },
   have h_zero : M.to_block q p = 0,
   { ext i j,

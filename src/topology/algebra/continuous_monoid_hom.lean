@@ -46,6 +46,9 @@ When you extend this structure, make sure to extend `continuous_add_monoid_hom_c
 structure continuous_monoid_hom extends A →* B :=
 (continuous_to_fun : continuous to_fun)
 
+section
+set_option old_structure_cmd true
+
 /-- `continuous_add_monoid_hom_class F A B` states that `F` is a type of continuous additive monoid
 homomorphisms.
 
@@ -61,6 +64,11 @@ You should also extend this typeclass when you extend `continuous_monoid_hom`. -
 @[to_additive]
 class continuous_monoid_hom_class extends monoid_hom_class F A B :=
 (map_continuous (f : F) : continuous f)
+
+attribute [to_additive continuous_add_monoid_hom_class.to_add_monoid_hom_class]
+  continuous_monoid_hom_class.to_monoid_hom_class
+
+end
 
 /-- Reinterpret a `continuous_monoid_hom` as a `monoid_hom`. -/
 add_decl_doc continuous_monoid_hom.to_monoid_hom
@@ -216,7 +224,7 @@ variables (A B C D E)
   refine λ f, ⟨_, _⟩,
   { rintros ⟨f, rfl⟩,
     exact ⟨λ h, h (map_one f), λ x y U V W hU hV hW h ⟨⟨hfU, hfV⟩, hfW⟩,
-      h ⟨set.mul_mem_mul hfU hfV, (congr_arg (∈ W) (map_mul f x y)).mp hfW⟩⟩ },
+      h.le_bot ⟨set.mul_mem_mul hfU hfV, (congr_arg (∈ W) (map_mul f x y)).mp hfW⟩⟩ },
   { rintros ⟨hf1, hf2⟩,
     suffices : ∀ x y, f (x * y) = f x * f y,
     { refine ⟨({ map_one' := of_not_not hf1, map_mul' := this, .. f } : continuous_monoid_hom A B),

@@ -5,11 +5,13 @@ Authors: Scott Morrison
 -/
 import topology.algebra.polynomial
 import topology.continuous_function.algebra
-import topology.continuous_function.compact
 import topology.unit_interval
 
 /-!
 # Constructions relating polynomial functions and continuous functions.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -74,7 +76,7 @@ noncomputable theory
 variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The algebra map from `polynomial R` to continuous functions `C(R, R)`.
+The algebra map from `R[X]` to continuous functions `C(R, R)`.
 -/
 @[simps]
 def to_continuous_map_alg_hom : R[X] →ₐ[R] C(R, R) :=
@@ -86,7 +88,7 @@ def to_continuous_map_alg_hom : R[X] →ₐ[R] C(R, R) :=
   commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
 
 /--
-The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any subset `X` of `R`.
+The algebra map from `R[X]` to continuous functions `C(X, R)`, for any subset `X` of `R`.
 -/
 @[simps]
 def to_continuous_map_on_alg_hom (X : set R) : R[X] →ₐ[R] C(X, R)  :=

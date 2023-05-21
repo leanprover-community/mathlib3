@@ -8,6 +8,7 @@ import linear_algebra.matrix.trace
 import linear_algebra.contraction
 import linear_algebra.tensor_product_basis
 import linear_algebra.free_module.strong_rank_condition
+import linear_algebra.free_module.finite.rank
 import linear_algebra.projection
 
 /-!
@@ -164,7 +165,7 @@ trace_eq_contract_of_basis' (module.free.choose_basis R M)
 @[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=
 begin
   have b := module.free.choose_basis R M,
-  rw [trace_eq_matrix_trace R b, to_matrix_one, module.free.finrank_eq_card_choose_basis_index],
+  rw [trace_eq_matrix_trace R b, to_matrix_one, finrank_eq_card_choose_basis_index],
   simp,
 end
 

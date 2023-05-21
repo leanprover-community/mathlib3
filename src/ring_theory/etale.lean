@@ -3,9 +3,8 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import ring_theory.nilpotent
-import linear_algebra.isomorphisms
-import ring_theory.derivation
+import ring_theory.quotient_nilpotent
+import ring_theory.kaehler
 
 /-!
 
@@ -233,6 +232,7 @@ end of_equiv
 
 section polynomial
 
+open_locale polynomial
 variables (R : Type u) [comm_semiring R]
 
 instance formally_smooth.mv_polynomial (σ : Type u) : formally_smooth R (mv_polynomial σ R) :=
@@ -248,7 +248,7 @@ begin
   refl,
 end
 
-instance formally_smooth.polynomial : formally_smooth R (polynomial R) :=
+instance formally_smooth.polynomial : formally_smooth R R[X] :=
 @@formally_smooth.of_equiv _ _ _ _ _
   (formally_smooth.mv_polynomial R punit) (mv_polynomial.punit_alg_equiv R)
 

@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 
 import data.mv_polynomial.rename
 import data.polynomial.algebra_map
-import data.polynomial.lifts
 import data.mv_polynomial.variables
 import data.finsupp.fin
 import logic.equiv.fin
@@ -15,6 +14,9 @@ import algebra.big_operators.fin
 
 /-!
 # Equivalences between polynomial rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file establishes a number of equivalences between polynomial rings,
 based on equivalences between the underlying types.
@@ -44,7 +46,7 @@ equivalence, isomorphism, morphism, ring hom, hom
 
 noncomputable theory
 
-open_locale classical big_operators polynomial
+open_locale big_operators polynomial
 
 open set function finsupp add_monoid_algebra
 

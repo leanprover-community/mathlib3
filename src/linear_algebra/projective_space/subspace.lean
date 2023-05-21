@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Blyth
 -/
 
-import linear_algebra.projective_space.independence
+import linear_algebra.projective_space.basic
 
 /-!
 # Subspaces of Projective Space
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define subspaces of a projective space, and show that the subspaces of a projective
 space form a complete lattice under inclusion.

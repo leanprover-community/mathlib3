@@ -9,6 +9,9 @@ import combinatorics.quiver.path
 
 /-!
 # The category paths on a quiver.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 When `C` is a quiver, `paths C` is the category of paths.
 
 ## When the quiver is itself a category
@@ -46,14 +49,14 @@ variables {V}
 The inclusion of a quiver `V` into its path category, as a prefunctor.
 -/
 @[simps]
-def of : prefunctor V (paths V) :=
+def of : V ⥤q (paths V) :=
 { obj := λ X, X,
   map := λ X Y f, f.to_path, }
 
 local attribute [ext] functor.ext
 
 /-- Any prefunctor from `V` lifts to a functor from `paths V` -/
-def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
+def lift {C} [category C] (φ : V ⥤q C) : paths V ⥤ C :=
 { obj := φ.obj,
   map := λ X Y f, @quiver.path.rec V _ X (λ Y f, φ.obj X ⟶ φ.obj Y) (𝟙 $ φ.obj X)
                   (λ Y Z p f ihp, ihp ≫ (φ.map f)) Y f,
@@ -64,18 +67,18 @@ def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
     { have : f ≫ g'.cons p = (f ≫ g').cons p, by apply quiver.path.comp_cons,
       rw this, simp only, rw [ih, category.assoc], } } }
 
-@[simp] lemma lift_nil {C} [category C] (φ : prefunctor V C) (X : V) :
+@[simp] lemma lift_nil {C} [category C] (φ : V ⥤q C) (X : V) :
   (lift φ).map (quiver.path.nil) = 𝟙 (φ.obj X) := rfl
 
-@[simp] lemma lift_cons {C} [category C] (φ : prefunctor V C) {X Y Z : V}
+@[simp] lemma lift_cons {C} [category C] (φ : V ⥤q C) {X Y Z : V}
   (p : quiver.path X Y) (f : Y ⟶ Z) :
   (lift φ).map (p.cons f) = (lift φ).map p ≫ (φ.map f) := rfl
 
-@[simp] lemma lift_to_path {C} [category C] (φ : prefunctor V C) {X Y : V} (f : X ⟶ Y) :
+@[simp] lemma lift_to_path {C} [category C] (φ : V ⥤q C) {X Y : V} (f : X ⟶ Y) :
   (lift φ).map f.to_path = φ.map f := by {dsimp [quiver.hom.to_path,lift], simp, }
 
-lemma lift_spec {C} [category C] (φ : prefunctor V C) :
-  of.comp (lift φ).to_prefunctor = φ :=
+lemma lift_spec {C} [category C] (φ : V ⥤q C) :
+  of ⋙q (lift φ).to_prefunctor = φ :=
 begin
   apply prefunctor.ext, rotate,
   { rintro X, refl, },
@@ -84,8 +87,8 @@ begin
     simp only [category.id_comp], },
 end
 
-lemma lift_unique {C} [category C] (φ : prefunctor V C) (Φ : paths V ⥤ C)
-  (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = lift φ :=
+lemma lift_unique {C} [category C] (φ : V ⥤q C) (Φ : paths V ⥤ C)
+  (hΦ : of ⋙q Φ.to_prefunctor = φ) : Φ = lift φ :=
 begin
   subst_vars,
   apply functor.ext, rotate,
@@ -122,8 +125,7 @@ end paths
 variables (W : Type u₂) [quiver.{v₂+1} W]
 
 -- A restatement of `prefunctor.map_path_comp` using `f ≫ g` instead of `f.comp g`.
-@[simp] lemma prefunctor.map_path_comp' (F : prefunctor V W)
-  {X Y Z : paths V} (f : X ⟶ Y) (g : Y ⟶ Z) :
+@[simp] lemma prefunctor.map_path_comp' (F : V ⥤q W) {X Y Z : paths V} (f : X ⟶ Y) (g : Y ⟶ Z) :
   F.map_path (f ≫ g) = (F.map_path f).comp (F.map_path g) :=
 prefunctor.map_path_comp _ _ _
 

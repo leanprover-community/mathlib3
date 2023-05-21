@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import topology.metric_space.lipschitz
-import analysis.special_functions.pow
+import analysis.special_functions.pow.continuity
 
 /-!
 # Hölder continuous functions
@@ -35,7 +35,7 @@ Hölder continuity, Lipschitz continuity
 variables {X Y Z : Type*}
 
 open filter set
-open_locale nnreal ennreal topological_space
+open_locale nnreal ennreal topology
 
 section emetric
 

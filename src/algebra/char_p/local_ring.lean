@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jon Eugster
 -/
 import algebra.char_p.basic
-import data.nat.factorization.prime_pow
 import ring_theory.ideal.local_ring
+import algebra.is_prime_pow
+import data.nat.factorization.basic
 
 /-!
 # Characteristics of local rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main result
 
@@ -61,15 +65,11 @@ begin
     end,
     have q_eq_rn := nat.dvd_antisymm ((char_p.cast_eq_zero_iff R q (r ^ n)).mp rn_cast_zero)
       rn_dvd_q,
-    have n_pos : n ≠ 0 :=
-    begin
-      by_contradiction n_zero,
-      simp [n_zero] at q_eq_rn,
-      exact absurd q_eq_rn (char_p.char_ne_one R q),
-    end,
+    have n_pos : n ≠ 0,
+      from λ n_zero, absurd (by simpa [n_zero] using q_eq_rn) (char_p.char_ne_one R q),
 
     /- Definition of prime power: `∃ r n, prime r ∧ 0 < n ∧ r ^ n = q`. -/
-    exact ⟨r, ⟨n, ⟨nat.prime_iff.mp r_prime, ⟨pos_iff_ne_zero.mpr n_pos, q_eq_rn.symm⟩⟩⟩⟩},
+    exact ⟨r, ⟨n, ⟨r_prime.prime, ⟨pos_iff_ne_zero.mpr n_pos, q_eq_rn.symm⟩⟩⟩⟩},
   { haveI K_char_p_0 := ring_char.of_eq r_zero,
     haveI K_char_zero: char_zero K := char_p.char_p_to_char_zero K,
     haveI R_char_zero := ring_hom.char_zero (local_ring.residue R),

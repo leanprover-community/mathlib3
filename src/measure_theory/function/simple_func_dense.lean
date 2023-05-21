@@ -3,9 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
-import measure_theory.integral.mean_inequalities
-import topology.continuous_function.compact
-import topology.metric_space.metrizable
+import measure_theory.function.simple_func
 
 /-!
 # Density of simple functions
@@ -33,7 +31,7 @@ by a sequence of simple functions.
 -/
 
 open set function filter topological_space ennreal emetric finset
-open_locale classical topological_space ennreal measure_theory big_operators
+open_locale classical topology ennreal measure_theory big_operators
 variables {α β ι E F 𝕜 : Type*}
 
 noncomputable theory

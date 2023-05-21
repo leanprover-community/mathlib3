@@ -10,6 +10,9 @@ import ring_theory.valuation.basic
 /-!
 # Multiplicity of a divisor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a commutative monoid, this file introduces the notion of multiplicity of a divisor and proves
 several basic results on it.
 
@@ -145,8 +148,10 @@ end
 @[simp] lemma unit_left (a : α) (u : αˣ) : multiplicity (u : α) a = ⊤ :=
 is_unit_left a u.is_unit
 
-lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
-by { rw [← nat.cast_zero, eq_coe_iff], simpa }
+lemma multiplicity_eq_zero {a b : α} : multiplicity a b = 0 ↔ ¬ a ∣ b :=
+by { rw [← nat.cast_zero, eq_coe_iff], simp }
+
+lemma multiplicity_ne_zero {a b : α} : multiplicity a b ≠ 0 ↔ a ∣ b := multiplicity_eq_zero.not_left
 
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 part.eq_none_iff'
@@ -274,10 +279,7 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 part.eq_none_iff.2 (λ n ⟨⟨k, hk⟩, _⟩, hk (dvd_zero _))
 
 @[simp] lemma multiplicity_zero_eq_zero_of_ne_zero (a : α) (ha : a ≠ 0) : multiplicity 0 a = 0 :=
-begin
-  apply multiplicity.multiplicity_eq_zero_of_not_dvd,
-  rwa zero_dvd_iff,
-end
+multiplicity.multiplicity_eq_zero.2 $ mt zero_dvd_iff.1 ha
 
 end monoid_with_zero
 
@@ -328,8 +330,8 @@ variables [ring α] [decidable_rel ((∣) : α → α → Prop)]
 @[simp] protected lemma neg (a b : α) : multiplicity a (-b) = multiplicity a b :=
 part.ext' (by simp only [multiplicity, part_enat.find, dvd_neg])
   (λ h₁ h₂, part_enat.coe_inj.1 (by rw [part_enat.coe_get]; exact
-    eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
-      (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))
+    eq.symm (unique (pow_multiplicity_dvd _).neg_right
+      (mt dvd_neg.1 (is_greatest' _ (lt_succ_self _))))))
 
 theorem int.nat_abs (a : ℕ) (b : ℤ) : multiplicity a b.nat_abs = multiplicity (a : ℤ) b :=
 begin
@@ -344,8 +346,8 @@ begin
   apply le_antisymm,
   { apply part_enat.le_of_lt_add_one,
     cases part_enat.ne_top_iff.mp (part_enat.ne_top_of_lt h) with k hk,
-    rw [hk], rw_mod_cast [multiplicity_lt_iff_neg_dvd], intro h_dvd,
-    rw [← dvd_add_iff_right] at h_dvd,
+    rw [hk], rw_mod_cast [multiplicity_lt_iff_neg_dvd, dvd_add_right],
+    intro h_dvd,
     apply multiplicity.is_greatest _ h_dvd, rw [hk], apply_mod_cast nat.lt_succ_self,
     rw [pow_dvd_iff_le_multiplicity, nat.cast_add, ← hk, nat.cast_one],
     exact part_enat.add_one_le_of_lt h },

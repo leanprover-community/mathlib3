@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker, Jon Eugster
 -/
 import algebra.group.basic
-import logic.nontrivial
+import logic.unique
+import tactic.nontriviality
 
 /-!
 # Units (i.e., invertible elements) of a monoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An element of a `monoid` is a unit if it has a two-sided inverse.
 
@@ -324,6 +328,17 @@ by rw [divp_eq_iff_mul_eq, divp_mul_eq_mul_divp, divp_eq_iff_mul_eq]
   (x /ₚ ux) * (y /ₚ uy) = (x * y) /ₚ (ux * uy) :=
 by rw [divp_mul_eq_mul_divp, divp_assoc', divp_divp_eq_divp_mul]
 
+variables [subsingleton αˣ] {a b : α}
+
+@[to_additive] lemma eq_one_of_mul_right (h : a * b = 1) : a = 1 :=
+congr_arg units.inv $ subsingleton.elim (units.mk _ _ (by rwa mul_comm) h) 1
+
+@[to_additive] lemma eq_one_of_mul_left (h : a * b = 1) : b = 1 :=
+congr_arg units.inv $ subsingleton.elim (units.mk _ _ h $ by rwa mul_comm) 1
+
+@[simp, to_additive] lemma mul_eq_one : a * b = 1 ↔ a = 1 ∧ b = 1 :=
+⟨λ h, ⟨eq_one_of_mul_right h, eq_one_of_mul_left h⟩, by { rintro ⟨rfl, rfl⟩, exact mul_one _ }⟩
+
 end comm_monoid
 
 /-!
@@ -454,6 +469,7 @@ lemma coe_inv_mul (h : is_unit a) : ↑(h.unit)⁻¹ * a = 1 := units.mul_inv _
 by convert h.unit.mul_inv
 
 /-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
+@[to_additive "`is_add_unit x` is decidable if we can decide if `x` comes from `add_units M"]
 instance (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
 
 @[to_additive] lemma mul_left_inj (h : is_unit a) : b * a = c * a ↔ b = c :=

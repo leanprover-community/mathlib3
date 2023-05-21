@@ -8,6 +8,9 @@ import probability.conditional_probability
 /-!
 # Classical probability
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The classical formulation of probability states that the probability of an event occurring in a
 finite probability space is the ratio of that event to all possible events.
 This notion can be expressed with measure theory using
@@ -127,8 +130,7 @@ begin
   suffices : s ∩ t = s,
   { exact this ▸ λ x hx, hx.2 },
   rw ← @set.finite.to_finset_inj _ _ _ (hsf.inter_of_left _) hsf,
-  exact finset.eq_of_subset_of_card_le
-    (set.finite.to_finset_subset.2 (s.inter_subset_left t)) h.symm.le
+  exact finset.eq_of_subset_of_card_le (set.finite.to_finset_mono $ s.inter_subset_left t) h.ge,
 end
 
 lemma cond_count_eq_zero_iff (hs : s.finite) :

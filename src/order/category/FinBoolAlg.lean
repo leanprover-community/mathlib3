@@ -3,8 +3,9 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import data.fintype.powerset
 import order.category.BoolAlg
-import order.category.FinPartialOrder
+import order.category.FinBddDistLat
 import order.hom.complete_lattice
 
 /-!
@@ -55,15 +56,19 @@ induced_category.concrete_category FinBoolAlg.to_BoolAlg
 instance has_forget_to_BoolAlg : has_forget₂ FinBoolAlg BoolAlg :=
 induced_category.has_forget₂ FinBoolAlg.to_BoolAlg
 
+instance has_forget_to_FinBddDistLat : has_forget₂ FinBoolAlg FinBddDistLat :=
+{ forget₂ := { obj := λ X, FinBddDistLat.of X, map := λ X Y f, f },
+  forget_comp := rfl }
+
 instance forget_to_BoolAlg_full : full (forget₂ FinBoolAlg BoolAlg) := induced_category.full _
 instance forget_to_BoolAlg_faithful : faithful (forget₂ FinBoolAlg BoolAlg) :=
 induced_category.faithful _
 
-@[simps] instance has_forget_to_FinPartialOrder : has_forget₂ FinBoolAlg FinPartialOrder :=
-{ forget₂ := { obj := λ X, FinPartialOrder.of X, map := λ X Y f,
+@[simps] instance has_forget_to_FinPartOrd : has_forget₂ FinBoolAlg FinPartOrd :=
+{ forget₂ := { obj := λ X, FinPartOrd.of X, map := λ X Y f,
     show order_hom X Y, from ↑(show bounded_lattice_hom X Y, from f) } }
 
-instance forget_to_FinPartialOrder_faithful : faithful (forget₂ FinBoolAlg FinPartialOrder) :=
+instance forget_to_FinPartOrd_faithful : faithful (forget₂ FinBoolAlg FinPartOrd) :=
 ⟨λ X Y f g h, by { have := congr_arg (coe_fn : _ → X → Y) h, exact fun_like.coe_injective this }⟩
 
 /-- Constructs an equivalence between finite Boolean algebras from an order isomorphism between
@@ -85,6 +90,10 @@ equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end FinBoolAlg
+
+lemma FinBoolAlg_dual_comp_forget_to_FinBddDistLat :
+  FinBoolAlg.dual ⋙ forget₂ FinBoolAlg FinBddDistLat =
+    forget₂ FinBoolAlg FinBddDistLat ⋙ FinBddDistLat.dual := rfl
 
 /-- The powerset functor. `set` as a functor. -/
 @[simps] def Fintype_to_FinBoolAlg_op : Fintype ⥤ FinBoolAlgᵒᵖ :=

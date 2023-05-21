@@ -9,6 +9,9 @@ import data.nat.factorization.basic
 /-!
 # Real logarithm
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `real.log` to be the logarithm of a real number. As usual, we extend it from
 its domain `(0, +∞)` to a globally defined function. We choose to do it so that `log 0 = 0` and
 `log (-x) = log x`.
@@ -21,7 +24,7 @@ logarithm, continuity
 -/
 
 open set filter function
-open_locale topological_space
+open_locale topology
 noncomputable theory
 
 namespace real
@@ -166,6 +169,14 @@ end
 lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
 strict_mono_on_log.inj_on
 
+lemma log_lt_sub_one_of_pos (hx1 : 0 < x) (hx2 : x ≠ 1) : log x < x - 1 :=
+begin
+  have h : log x ≠ 0,
+  { rw [← log_one, log_inj_on_pos.ne_iff hx1 zero_lt_one],
+    exact hx2 },
+  linarith [add_one_lt_exp_of_nonzero h, exp_log hx1],
+end
+
 lemma eq_one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
 log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)
 
@@ -177,9 +188,9 @@ begin
   split,
   { intros h,
     rcases lt_trichotomy x 0 with x_lt_zero | rfl | x_gt_zero,
-    { refine or.inr (or.inr (eq_neg_iff_eq_neg.mp _)),
+    { refine or.inr (or.inr (neg_eq_iff_eq_neg.mp _)),
       rw [←log_neg_eq_log x] at h,
-      exact (eq_one_of_pos_of_log_eq_zero (neg_pos.mpr x_lt_zero) h).symm, },
+      exact eq_one_of_pos_of_log_eq_zero (neg_pos.mpr x_lt_zero) h, },
     { exact or.inl rfl },
     { exact or.inr (or.inl (eq_one_of_pos_of_log_eq_zero x_gt_zero h)), }, },
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
@@ -325,3 +336,30 @@ lemma continuous_on.log (hf : continuous_on f s) (h₀ : ∀ x ∈ s, f x ≠ 0)
 λ x hx, (hf x hx).log (h₀ x hx)
 
 end continuity
+
+
+section tendsto_comp_add_sub
+
+open filter
+namespace real
+
+lemma tendsto_log_comp_add_sub_log (y : ℝ) :
+  tendsto (λ x:ℝ, log (x + y) - log x) at_top (𝓝 0) :=
+begin
+  refine tendsto.congr' (_ :  ∀ᶠ (x : ℝ) in at_top, log (1 + y / x) = _) _,
+  { refine eventually.mp ((eventually_ne_at_top 0).and (eventually_gt_at_top (-y)))
+    (eventually_of_forall (λ x hx, _)),
+    rw ← log_div _ hx.1,
+    { congr' 1,
+      field_simp [hx.1] },
+    { linarith [hx.2] } },
+  { suffices : tendsto (λ (x : ℝ), log (1 + y / x)) at_top (𝓝 (log (1 + 0))), by simpa,
+    refine tendsto.log _ (by simp),
+    exact tendsto_const_nhds.add (tendsto_const_nhds.div_at_top tendsto_id) },
+end
+
+lemma tendsto_log_nat_add_one_sub_log : tendsto (λ (k : ℕ), log (k + 1) - log k) at_top (𝓝 0) :=
+(tendsto_log_comp_add_sub_log 1).comp tendsto_coe_nat_at_top_at_top
+
+end real
+end tendsto_comp_add_sub

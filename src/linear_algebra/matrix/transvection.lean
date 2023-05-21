@@ -6,12 +6,14 @@ Authors: Sébastien Gouëzel
 import data.matrix.basis
 import data.matrix.dmatrix
 import linear_algebra.matrix.determinant
-import linear_algebra.matrix.trace
 import linear_algebra.matrix.reindex
 import tactic.field_simp
 
 /-!
 # Transvections
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Transvections are matrices of the form `1 + std_basis_matrix i j c`, where `std_basis_matrix i j c`
 is the basic matrix with a `c` at position `(i, j)`. Multiplying by such a transvection on the left
@@ -91,13 +93,13 @@ begin
   casesI nonempty_fintype n,
   ext a b,
   by_cases ha : i = a, by_cases hb : j = b,
-  { simp only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_same,
-      pi.add_apply, one_apply_eq, pi.smul_apply, mul_one, algebra.id.smul_eq_mul], },
-  { simp only [update_row, transvection, ha, hb, std_basis_matrix.apply_of_ne, function.update_same,
-      pi.add_apply, ne.def, not_false_iff, pi.smul_apply, and_false, one_apply_ne,
+  { simp only [update_row_self, transvection, ha, hb, pi.add_apply,
+      std_basis_matrix.apply_same, one_apply_eq, pi.smul_apply, mul_one, algebra.id.smul_eq_mul], },
+  { simp only [update_row_self, transvection, ha, hb, std_basis_matrix.apply_of_ne, pi.add_apply,
+      ne.def, not_false_iff, pi.smul_apply, and_false, one_apply_ne,
       algebra.id.smul_eq_mul, mul_zero] },
-  { simp only [update_row, transvection, ha, ne.symm ha, std_basis_matrix.apply_of_ne, add_zero,
-      algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, dmatrix.add_apply,
+  { simp only [update_row_ne, transvection, ha, ne.symm ha, std_basis_matrix.apply_of_ne, add_zero,
+      algebra.id.smul_eq_mul, ne.def, not_false_iff, dmatrix.add_apply,
       pi.smul_apply, mul_zero, false_and] },
 end
 

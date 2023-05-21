@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Jujian Zhang
 -/
 import category_theory.abelian.functor_category
+import category_theory.preadditive.additive_functor
 import category_theory.preadditive.functor_category
 import category_theory.abelian.transfer
 import category_theory.sites.left_exact
 
 /-!
 # Category of sheaves is abelian
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Let `C, D` be categories and `J` be a grothendieck topology on `C`, when `D` is abelian and
 sheafification is possible in `C`, `Sheaf J D` is abelian as well (`Sheaf_is_abelian`).
 
@@ -35,7 +39,7 @@ instance : abelian (Cᵒᵖ ⥤ D) := @abelian.functor_category_abelian.{v} Cᵒ
 
 -- This also needs to be specified manually, but I don't know why.
 instance : has_finite_products (Sheaf J D) :=
-{ out := λ j ij, { has_limit := by { introI, apply_instance } } }
+{ out := λ j, { has_limit := λ F, by apply_instance } }
 
 -- sheafification assumptions
 variables [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]

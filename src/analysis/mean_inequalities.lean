@@ -3,7 +3,9 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
-import analysis.convex.specific_functions
+import analysis.convex.jensen
+import analysis.convex.specific_functions.basic
+import analysis.special_functions.pow.nnreal
 import data.real.conjugate_exponents
 
 /-!

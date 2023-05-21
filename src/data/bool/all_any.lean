@@ -8,6 +8,9 @@ import data.list.basic
 /-!
 # Boolean quantifiers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This proves a few properties about `list.all` and `list.any`, which are the `bool` universal and
 existential quantifiers. Their definitions are in core Lean.
 -/

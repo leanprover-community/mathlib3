@@ -3,13 +3,14 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.subgroup.basic
 import algebra.graded_monoid
 import algebra.direct_sum.basic
-import algebra.big_operators.pi
 
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module provides a set of heterogeneous typeclasses for defining a multiplicative structure
 over `⨁ i, A i` such that `(*) : A i → A j → A (i + j)`; that is to say, `A` forms an

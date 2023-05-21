@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.elementwise
-import category_theory.sites.compatible_sheafification
-import category_theory.limits.constructions.epi_mono
 import category_theory.adjunction.evaluation
+import category_theory.sites.sheafification
 
 /-!
 
 # Subsheaf of types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the sub(pre)sheaf of a type valued presheaf.
 

@@ -12,6 +12,9 @@ import topology.algebra.order.monotone_continuity
 /-!
 # Translation number of a monotone real map that commutes with `x ↦ x + 1`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `f : ℝ → ℝ` be a monotone map such that `f (x + 1) = f x + 1` for all `x`. Then the limit
 $$
   \tau(f)=\lim_{n\to\infty}{f^n(x)-x}{n}
@@ -116,7 +119,7 @@ circle homeomorphism, rotation number
 -/
 
 open filter set function (hiding commute) int
-open_locale topological_space classical
+open_locale topology classical
 
 /-!
 ### Definition and monoid structure
@@ -540,7 +543,7 @@ begin
   convert (div_lt_div_right this).2 ((f^(2^n)).dist_map_map_zero_lt (f^(2^n))),
   simp_rw [transnum_aux_seq, real.dist_eq],
   rw [← abs_div, sub_div, pow_succ', pow_succ, ← two_mul,
-    mul_div_mul_left _ _ (@two_ne_zero ℝ _ _),
+    mul_div_mul_left _ _ (two_ne_zero' ℝ),
     pow_mul, sq, mul_apply]
 end
 

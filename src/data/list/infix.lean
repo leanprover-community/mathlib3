@@ -8,6 +8,9 @@ import data.list.basic
 /-!
 # Prefixes, subfixes, infixes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves properties about
 * `list.prefix`: `l₁` is a prefix of `l₂` if `l₂` starts with `l₁`.
 * `list.subfix`: `l₁` is a subfix of `l₂` if `l₂` ends with `l₁`.
@@ -211,6 +214,17 @@ lemma take_subset (n) (l : list α) : take n l ⊆ l := (take_sublist n l).subse
 lemma drop_subset (n) (l : list α) : drop n l ⊆ l := (drop_sublist n l).subset
 lemma mem_of_mem_take (h : a ∈ l.take n) : a ∈ l := take_subset n l h
 lemma mem_of_mem_drop (h : a ∈ l.drop n) : a ∈ l := drop_subset n l h
+
+lemma slice_sublist (n m : ℕ) (l : list α) : l.slice n m <+ l :=
+begin
+  rw list.slice_eq,
+  conv_rhs {rw ←list.take_append_drop n l},
+  rw [list.append_sublist_append_left, add_comm, list.drop_add],
+  exact list.drop_sublist _ _,
+end
+lemma slice_subset (n m : ℕ) (l : list α) : l.slice n m ⊆ l := (slice_sublist n m l).subset
+lemma mem_of_mem_slice {n m : ℕ} {l : list α} {a : α} (h : a ∈ l.slice n m) : a ∈ l :=
+slice_subset n m l h
 
 lemma take_while_prefix (p : α → Prop) [decidable_pred p] : l.take_while p <+: l :=
 ⟨l.drop_while p, take_while_append_drop p l⟩

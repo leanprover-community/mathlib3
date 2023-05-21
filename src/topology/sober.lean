@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import topology.separation
-import topology.continuous_function.basic
 
 /-!
 # Sober spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A quasi-sober space is a topological space where every
 irreducible closed subset has a generic point.

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.group_action.basic
-import group_theory.subgroup.basic
-import algebra.group_ring_action
+import group_theory.subgroup.zpowers
+import algebra.group_ring_action.basic
 /-!
 # Conjugation action of a group on itself
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the conjugation action of a group on itself. See also `mul_aut.conj` for
 the definition of conjugation as a homomorphism into the automorphism group.
@@ -183,6 +186,10 @@ begin
   ext x,
   simp [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
 end
+
+lemma stabilizer_eq_centralizer (g : G) : stabilizer (conj_act G) g = (zpowers g).centralizer :=
+le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
+  (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm)
 
 /-- As normal subgroups are closed under conjugation, they inherit the conjugation action
   of the underlying group. -/

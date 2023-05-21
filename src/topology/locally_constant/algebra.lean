@@ -3,11 +3,14 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.algebra.basic
+import algebra.algebra.pi
 import topology.locally_constant.basic
 
 /-!
 # Algebraic structure on locally constant functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file puts algebraic structure (`add_group`, etc)
 on the type of locally constant functions.
@@ -192,7 +195,7 @@ variables {R : Type*}
 instance [has_smul R Y] : has_smul R (locally_constant X Y) :=
 { smul := λ r f,
   { to_fun := r • f,
-    is_locally_constant := ((is_locally_constant f).comp ((•) r) : _), } }
+    is_locally_constant := (f.is_locally_constant.comp ((•) r) : _), } }
 
 @[simp] lemma coe_smul [has_smul R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying, Rémy Degenne
 -/
 import probability.process.filtration
+import topology.instances.discrete
 
 /-!
 # Adapted and progressively measurable processes
@@ -32,7 +33,7 @@ adapted, progressively measurable
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 
@@ -161,7 +162,7 @@ end arithmetic
 
 end prog_measurable
 
-lemma prog_measurable_of_tendsto' {γ} [measurable_space ι] [metrizable_space β]
+lemma prog_measurable_of_tendsto' {γ} [measurable_space ι] [pseudo_metrizable_space β]
   (fltr : filter γ) [fltr.ne_bot] [fltr.is_countably_generated] {U : γ → ι → Ω → β}
   (h : ∀ l, prog_measurable f (U l)) (h_tendsto : tendsto U fltr (𝓝 u)) :
   prog_measurable f u :=
@@ -176,7 +177,7 @@ begin
   exact λ s hs h_mem, h_tendsto {g | g x.snd ∈ s} (hs.preimage (continuous_apply x.snd)) h_mem,
 end
 
-lemma prog_measurable_of_tendsto [measurable_space ι] [metrizable_space β]
+lemma prog_measurable_of_tendsto [measurable_space ι] [pseudo_metrizable_space β]
   {U : ℕ → ι → Ω → β}
   (h : ∀ l, prog_measurable f (U l)) (h_tendsto : tendsto U at_top (𝓝 u)) :
   prog_measurable f u :=
@@ -184,37 +185,23 @@ prog_measurable_of_tendsto' at_top h h_tendsto
 
 /-- A continuous and adapted process is progressively measurable. -/
 theorem adapted.prog_measurable_of_continuous
-  [topological_space ι] [metrizable_space ι] [measurable_space ι]
-  [second_countable_topology ι] [opens_measurable_space ι] [metrizable_space β]
+  [topological_space ι] [metrizable_space ι] [second_countable_topology ι]
+  [measurable_space ι] [opens_measurable_space ι]
+  [pseudo_metrizable_space β]
   (h : adapted f u) (hu_cont : ∀ ω, continuous (λ i, u i ω)) :
   prog_measurable f u :=
 λ i, @strongly_measurable_uncurry_of_continuous_of_strongly_measurable _ _ (set.Iic i) _ _ _ _ _ _ _
   (f i) _ (λ ω, (hu_cont ω).comp continuous_induced_dom) (λ j, (h j).mono (f.mono j.prop))
 
-/-- For filtrations indexed by `ℕ`, `adapted` and `prog_measurable` are equivalent. This lemma
-provides `adapted f u → prog_measurable f u`. See `prog_measurable.adapted` for the reverse
-direction, which is true more generally. -/
-lemma adapted.prog_measurable_of_nat {f : filtration ℕ m} {u : ℕ → Ω → β}
-  [add_comm_monoid β] [has_continuous_add β]
-  (h : adapted f u) : prog_measurable f u :=
-begin
-  intro i,
-  have : (λ p : ↥(set.Iic i) × Ω, u ↑(p.fst) p.snd)
-    = λ p : ↥(set.Iic i) × Ω, ∑ j in finset.range (i + 1), if ↑p.fst = j then u j p.snd else 0,
-  { ext1 p,
-    rw finset.sum_ite_eq,
-    have hp_mem : (p.fst : ℕ) ∈ finset.range (i + 1) := finset.mem_range_succ_iff.mpr p.fst.prop,
-    simp only [hp_mem, if_true], },
-  rw this,
-  refine finset.strongly_measurable_sum _ (λ j hj, strongly_measurable.ite _ _ _),
-  { suffices h_meas : measurable[measurable_space.prod _ (f i)]
-        (λ a : ↥(set.Iic i) × Ω, (a.fst : ℕ)),
-      from h_meas (measurable_set_singleton j),
-    exact measurable_fst.subtype_coe, },
-  { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
-    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable measurable_snd, },
-  { exact strongly_measurable_const, },
-end
+/-- For filtrations indexed by a discrete order, `adapted` and `prog_measurable` are equivalent.
+This lemma provides `adapted f u → prog_measurable f u`.
+See `prog_measurable.adapted` for the reverse direction, which is true more generally. -/
+lemma adapted.prog_measurable_of_discrete [topological_space ι] [discrete_topology ι]
+  [second_countable_topology ι] [measurable_space ι] [opens_measurable_space ι]
+  [pseudo_metrizable_space β]
+  (h : adapted f u) :
+  prog_measurable f u :=
+h.prog_measurable_of_continuous (λ _, continuous_of_discrete_topology)
 
 -- this dot notation will make more sense once we have a more general definition for predictable
 lemma predictable.adapted {f : filtration ℕ m} {u : ℕ → Ω → β}

@@ -3,8 +3,9 @@ Copyright (c) 2022 Rémy Degenne, Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
-
+import analysis.special_functions.pow.real
 import measure_theory.function.egorov
+import measure_theory.function.lp_space
 
 /-!
 # Convergence in measure
@@ -36,7 +37,7 @@ convergence in measure and other notions of convergence.
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory topological_space
+open_locale nnreal ennreal measure_theory topology
 
 namespace measure_theory
 
@@ -52,7 +53,7 @@ def tendsto_in_measure [has_dist E] {m : measurable_space α}
 lemma tendsto_in_measure_iff_norm [seminormed_add_comm_group E] {l : filter ι}
   {f : ι → α → E} {g : α → E} :
   tendsto_in_measure μ f l g
-  ↔ ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ ∥f i x - g x∥}) l (𝓝 0) :=
+  ↔ ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ ‖f i x - g x‖}) l (𝓝 0) :=
 by simp_rw [tendsto_in_measure, dist_eq_norm]
 
 namespace tendsto_in_measure
@@ -223,7 +224,7 @@ begin
     refine ⟨max N (k - 1), λ n hn_ge, lt_of_le_of_lt _ hk_lt_ε⟩,
     specialize hNx n ((le_max_left _ _).trans hn_ge),
     have h_inv_n_le_k : (2 : ℝ)⁻¹ ^ n ≤ 2 * 2⁻¹ ^ k,
-    { rw [mul_comm, ← inv_mul_le_iff' (@two_pos ℝ _ _)],
+    { rw [mul_comm, ← inv_mul_le_iff' (zero_lt_two' ℝ)],
       conv_lhs { congr, rw ← pow_one (2 : ℝ)⁻¹ },
       rw [← pow_add, add_comm],
       exact pow_le_pow_of_le_one ((one_div (2 : ℝ)) ▸ one_half_pos.le) (inv_le_one one_le_two)
@@ -339,7 +340,7 @@ begin
   refine hfg.mono (λ n hn, _),
   simp only [true_and, gt_iff_lt, ge_iff_le, zero_tsub, zero_le, zero_add, set.mem_Icc,
     pi.sub_apply] at *,
-  have : ess_sup (λ (x : α), (∥f n x - g x∥₊ : ℝ≥0∞)) μ < ennreal.of_real δ :=
+  have : ess_sup (λ (x : α), (‖f n x - g x‖₊ : ℝ≥0∞)) μ < ennreal.of_real δ :=
     lt_of_le_of_lt hn (ennreal.half_lt_self (ennreal.of_real_pos.2 hδ).ne.symm
       ennreal.of_real_lt_top.ne),
   refine ((le_of_eq _).trans (ae_lt_of_ess_sup_lt this).le).trans hε.le,
@@ -366,7 +367,7 @@ end
 lemma tendsto_in_measure_of_tendsto_Lp [hp : fact (1 ≤ p)]
   {f : ι → Lp E p μ} {g : Lp E p μ} {l : filter ι} (hfg : tendsto f l (𝓝 g)) :
   tendsto_in_measure μ (λ n, f n) l g :=
-tendsto_in_measure_of_tendsto_snorm (ennreal.zero_lt_one.trans_le hp.elim).ne.symm
+tendsto_in_measure_of_tendsto_snorm (zero_lt_one.trans_le hp.elim).ne.symm
   (λ n, Lp.ae_strongly_measurable _) (Lp.ae_strongly_measurable _)
   ((Lp.tendsto_Lp_iff_tendsto_ℒp' _ _).mp hfg)
 

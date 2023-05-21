@@ -3,9 +3,10 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import topology.category.Top
 import category_theory.glue_data
 import category_theory.concrete_category.elementwise
+import topology.category.Top.limits.pullbacks
+import topology.category.Top.opens
 
 /-!
 # Gluing Topological spaces
@@ -258,7 +259,7 @@ begin
   rw preimage_image_eq_image,
   apply (D.f_open _ _).is_open_map,
   apply (D.t j i ≫ D.f i j).continuous_to_fun.is_open_preimage,
-  exact U.property
+  exact U.is_open
 end
 
 lemma ι_open_embedding (i : D.J) : open_embedding (𝖣 .ι i) :=

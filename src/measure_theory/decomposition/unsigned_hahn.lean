@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Unsigned Hahn decomposition theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the unsigned version of the Hahn decomposition theorem.
 
 ## Main statements
@@ -22,16 +25,11 @@ Hahn decomposition
 -/
 
 open set filter
-open_locale classical topological_space ennreal
+open_locale classical topology ennreal
 
 namespace measure_theory
 
 variables {α : Type*} [measurable_space α] {μ ν : measure α}
-
--- suddenly this is necessary?!
-private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
-  γ - 2 * (1 / 2) ^ m + (1 / 2) ^ m ≤ d :=
-by linarith
 
 /-- **Hahn decomposition theorem** -/
 lemma hahn_decomposition [is_finite_measure μ] [is_finite_measure ν] :
@@ -61,7 +59,7 @@ begin
       ennreal.to_nnreal_add (hμ _) (hμ _), ennreal.to_nnreal_add (hν _) (hν _),
       nnreal.coe_add, nnreal.coe_add],
     simp only [sub_eq_add_neg, neg_add],
-    ac_refl },
+    abel },
 
   have d_Union : ∀(s : ℕ → set α), monotone s →
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋃n, s n))),
@@ -127,7 +125,7 @@ begin
     { have := he₂ m,
       simp only [f],
       rw [nat.Ico_succ_singleton, finset.inf_singleton],
-      exact aux this },
+      linarith },
     { assume n (hmn : m ≤ n) ih,
       have : γ + (γ - 2 * (1 / 2)^m + (1 / 2) ^ (n + 1)) ≤ γ + d (f m (n + 1)),
       { calc γ + (γ - 2 * (1 / 2)^m + (1 / 2) ^ (n+1)) ≤
@@ -138,7 +136,7 @@ begin
             linarith
           end
           ... = (γ - (1 / 2)^(n+1)) + (γ - 2 * (1 / 2)^m + (1 / 2)^n) :
-            by simp only [sub_eq_add_neg]; ac_refl
+            by simp only [sub_eq_add_neg]; abel
           ... ≤ d (e (n + 1)) + d (f m n) : add_le_add (le_of_lt $ he₂ _) ih
           ... ≤ d (e (n + 1)) + d (f m n \ e (n + 1)) + d (f m (n + 1)) :
             by rw [f_succ _ _ hmn, d_split (f m n) (e (n + 1)) (hf _ _) (he₁ _), add_assoc]
@@ -146,7 +144,7 @@ begin
             begin
               rw [d_split (e (n + 1) ∪ f m n) (e (n + 1)),
                 union_diff_left, union_inter_cancel_left],
-              ac_refl,
+              abel,
               exact (he₁ _).union (hf _ _),
               exact (he₁ _)
             end
@@ -157,7 +155,8 @@ begin
   let s := ⋃ m, ⋂n, f m n,
   have γ_le_d_s : γ ≤ d s,
   { have hγ : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 γ),
-    { suffices : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 (γ - 2 * 0)), { simpa },
+    { suffices : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 (γ - 2 * 0)),
+      { simpa only [mul_zero, tsub_zero] },
       exact (tendsto_const_nhds.sub $ tendsto_const_nhds.mul $
         tendsto_pow_at_top_nhds_0_of_lt_1
           (le_of_lt $ half_pos $ zero_lt_one) (half_lt_self zero_lt_one)) },
@@ -190,11 +189,8 @@ begin
     exact ((add_le_add_iff_left γ).1 $
       calc γ + d t ≤ d s + d t : add_le_add γ_le_d_s le_rfl
         ... = d (s ∪ t) :
-        begin
-          rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
-            diff_eq_self.2],
-          exact assume a ⟨hat, has⟩, hts hat has
-        end
+          by rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
+            (subset_compl_iff_disjoint_left.1 hts).sdiff_eq_left]
         ... ≤ γ + 0 : by rw [add_zero]; exact d_le_γ _ (hs.union ht)),
     rw [← to_nnreal_μ, ← to_nnreal_ν, ennreal.coe_le_coe, ← nnreal.coe_le_coe],
     simpa only [d, sub_le_iff_le_add, zero_add] using this }

@@ -27,7 +27,7 @@ open opposite
 
 variables {C : Type u} [category.{v} C] [has_colimits C]
 
-local attribute [tidy] tactic.op_induction'
+local attribute [tidy] tactic.op_induction' tactic.auto_cases_opens
 
 open Top.presheaf
 

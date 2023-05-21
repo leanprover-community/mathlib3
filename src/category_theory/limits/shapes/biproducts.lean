@@ -3,14 +3,15 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Jakob von Raumer
 -/
-import algebra.group.ext
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
-import category_theory.preadditive
 import category_theory.limits.shapes.kernels
 
 /-!
 # Biproducts and binary biproducts
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the notion of (finite) biproducts and binary biproducts.
 
@@ -239,12 +240,12 @@ def biproduct.is_colimit (F : J → C) [has_biproduct F] :
 (get_biproduct_data F).is_bilimit.is_colimit
 
 @[priority 100]
-instance has_product_of_has_biproduct [has_biproduct F] : has_limit (discrete.functor F) :=
+instance has_product_of_has_biproduct [has_biproduct F] : has_product F :=
 has_limit.mk { cone := (biproduct.bicone F).to_cone,
   is_limit := biproduct.is_limit F, }
 
 @[priority 100]
-instance has_coproduct_of_has_biproduct [has_biproduct F] : has_colimit (discrete.functor F) :=
+instance has_coproduct_of_has_biproduct [has_biproduct F] : has_coproduct F :=
 has_colimit.mk { cocone := (biproduct.bicone F).to_cocone,
   is_colimit := biproduct.is_colimit F, }
 
@@ -256,27 +257,40 @@ a limit and a colimit, with the same cone points,
 of every function `F : J → C`.
 -/
 class has_biproducts_of_shape : Prop :=
-(has_biproduct : Π F : J → C, has_biproduct F)
+(has_biproduct : ∀ F : J → C, has_biproduct F)
 
 attribute [instance, priority 100] has_biproducts_of_shape.has_biproduct
 
 /-- `has_finite_biproducts C` represents a choice of biproduct for every family of objects in `C`
 indexed by a finite type. -/
 class has_finite_biproducts : Prop :=
-(has_biproducts_of_shape : Π (J : Type) [fintype J],
-  has_biproducts_of_shape J C)
+(out [] : ∀ n, has_biproducts_of_shape (fin n) C)
 
-attribute [instance, priority 100] has_finite_biproducts.has_biproducts_of_shape
+variables {J}
+
+lemma has_biproducts_of_shape_of_equiv {K : Type w'} [has_biproducts_of_shape K C] (e : J ≃ K) :
+  has_biproducts_of_shape J C :=
+⟨λ F, let ⟨⟨h⟩⟩ := has_biproducts_of_shape.has_biproduct (F ∘ e.symm), ⟨c, hc⟩ := h
+  in has_biproduct.mk $ by simpa only [(∘), e.symm_apply_apply]
+    using limit_bicone.mk (c.whisker e) ((c.whisker_is_bilimit_iff _).2 hc)⟩
+
+@[priority 100] instance has_biproducts_of_shape_finite [has_finite_biproducts C] [finite J] :
+  has_biproducts_of_shape J C :=
+begin
+  rcases finite.exists_equiv_fin J with ⟨n, ⟨e⟩⟩,
+  haveI := has_finite_biproducts.out C n,
+  exact has_biproducts_of_shape_of_equiv C e
+end
 
 @[priority 100]
 instance has_finite_products_of_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_products C :=
-{ out := λ J _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩ }
+{ out := λ n, ⟨λ F, has_limit_of_iso discrete.nat_iso_functor.symm⟩ }
 
 @[priority 100]
 instance has_finite_coproducts_of_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_coproducts C :=
-{ out := λ J _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩ }
+{ out := λ n, ⟨λ F, has_colimit_of_iso discrete.nat_iso_functor⟩ }
 
 variables {J C}
 

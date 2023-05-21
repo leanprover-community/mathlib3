@@ -3,10 +3,21 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import algebra.group_power.order
+import algebra.group_power.basic
+import algebra.group_with_zero.divisibility
+import data.nat.order.lemmas
 
 /-!
-# Definitions and properties of `gcd`, `lcm`, and `coprime`
+# Definitions and properties of `nat.gcd`, `nat.lcm`, and `nat.coprime`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+Generalizations of these are provided in a later file as `gcd_monoid.gcd` and
+`gcd_monoid.lcm`.
+
+Note that the global `is_coprime` is not a straightforward generalization of `nat.coprime`, see
+`nat.is_coprime_iff_coprime` for the connection between the two.
 
 -/
 
@@ -92,9 +103,9 @@ end
 
 theorem gcd_div {m n k : ℕ} (H1 : k ∣ m) (H2 : k ∣ n) :
   gcd (m / k) (n / k) = gcd m n / k :=
-or.elim (nat.eq_zero_or_pos k)
+(decidable.eq_or_ne k 0).elim
   (λk0, by rw [k0, nat.div_zero, nat.div_zero, nat.div_zero, gcd_zero_right])
-  (λH3, nat.eq_of_mul_eq_mul_right H3 $ by rw [
+  (λH3, mul_right_cancel₀ H3 $ by rw [
     nat.div_mul_cancel (dvd_gcd H1 H2), ←gcd_mul_right,
     nat.div_mul_cancel H1, nat.div_mul_cancel H2])
 
@@ -254,6 +265,9 @@ dvd_antisymm
 
 theorem lcm_ne_zero {m n : ℕ} (hm : m ≠ 0) (hn : n ≠ 0) : lcm m n ≠ 0 :=
 by { intro h, simpa [h, hm, hn] using gcd_mul_lcm m n, }
+
+lemma lcm_pos {m n : ℕ} : 0 < m → 0 < n → 0 < m.lcm n :=
+by { simp_rw pos_iff_ne_zero, exact lcm_ne_zero }
 
 /-!
 ### `coprime`
@@ -483,31 +497,45 @@ lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) 
   (λ hm, ⟨hm, n.coprime_zero_left.mp $ hm ▸ h⟩)
   (λ hn, ⟨m.coprime_zero_left.mp $ hn ▸ h.symm, hn⟩)
 
-/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
+/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`.
+
+See `exists_dvd_and_dvd_of_dvd_mul` for the more general but less constructive version for other
+`gcd_monoid`s. -/
 def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
   { d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1 * d.2 } :=
 begin
-cases h0 : (gcd k m),
-case nat.zero
-{ obtain rfl : k = 0 := eq_zero_of_gcd_eq_zero_left h0,
-  obtain rfl : m = 0 := eq_zero_of_gcd_eq_zero_right h0,
-  exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
-case nat.succ : tmp
-{ have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
-  have hd : gcd k m * (k / gcd k m) = k := (nat.mul_div_cancel' (gcd_dvd_left k m)),
-  refine ⟨⟨⟨gcd k m,  gcd_dvd_right k m⟩, ⟨k / gcd k m, _⟩⟩, hd.symm⟩,
-  apply dvd_of_mul_dvd_mul_left hpos,
-  rw [hd, ← gcd_mul_right],
-  exact dvd_gcd (dvd_mul_right _ _) H }
+  cases h0 : (gcd k m),
+  case nat.zero
+  { obtain rfl : k = 0 := eq_zero_of_gcd_eq_zero_left h0,
+    obtain rfl : m = 0 := eq_zero_of_gcd_eq_zero_right h0,
+    exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
+  case nat.succ : tmp
+  { have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
+    have hd : gcd k m * (k / gcd k m) = k := (nat.mul_div_cancel' (gcd_dvd_left k m)),
+    refine ⟨⟨⟨gcd k m,  gcd_dvd_right k m⟩, ⟨k / gcd k m, _⟩⟩, hd.symm⟩,
+    apply dvd_of_mul_dvd_mul_left hpos,
+    rw [hd, ← gcd_mul_right],
+    exact dvd_gcd (dvd_mul_right _ _) H }
+end
+
+lemma dvd_mul {x m n : ℕ} :
+  x ∣ (m * n) ↔ ∃ y z, y ∣ m ∧ z ∣ n ∧ y * z = x :=
+begin
+  split,
+  { intro h,
+    obtain ⟨⟨⟨y, hy⟩, ⟨z, hz⟩⟩, rfl⟩ := prod_dvd_and_dvd_of_dvd_prod h,
+    exact ⟨y, z, hy, hz, rfl⟩, },
+  { rintro ⟨y, z, hy, hz, rfl⟩,
+    exact mul_dvd_mul hy hz },
 end
 
 theorem gcd_mul_dvd_mul_gcd (k m n : ℕ) : gcd k (m * n) ∣ gcd k m * gcd k n :=
 begin
-rcases (prod_dvd_and_dvd_of_dvd_prod $ gcd_dvd_right k (m * n)) with ⟨⟨⟨m', hm'⟩, ⟨n', hn'⟩⟩, h⟩,
-replace h : gcd k (m * n) = m' * n' := h,
-rw h,
-have hm'n' : m' * n' ∣ k := h ▸ gcd_dvd_left _ _,
-apply mul_dvd_mul,
+  rcases (prod_dvd_and_dvd_of_dvd_prod $ gcd_dvd_right k (m * n)) with ⟨⟨⟨m', hm'⟩, ⟨n', hn'⟩⟩, h⟩,
+  replace h : gcd k (m * n) = m' * n' := h,
+  rw h,
+  have hm'n' : m' * n' ∣ k := h ▸ gcd_dvd_left _ _,
+  apply mul_dvd_mul,
   { have hm'k : m' ∣ k := (dvd_mul_right m' n').trans hm'n',
     exact dvd_gcd hm'k hm' },
   { have hn'k : n' ∣ k := (dvd_mul_left n' m').trans hm'n',

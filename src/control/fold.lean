@@ -3,8 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Sean Leather
 -/
+import algebra.group.opposite
 import algebra.free_monoid.basic
-import algebra.opposites
 import control.traversable.instances
 import control.traversable.lemmas
 import category_theory.endomorphism
@@ -13,6 +13,9 @@ import category_theory.category.Kleisli
 /-!
 
 # List folds generalized to `traversable`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Informally, we can think of `foldl` as a special case of `traverse` where we do not care about the
 reconstructed data structure and, in a state monad, we care about the final state.

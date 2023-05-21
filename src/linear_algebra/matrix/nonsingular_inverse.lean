@@ -3,12 +3,13 @@ Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
-import algebra.regular.smul
 import linear_algebra.matrix.adjugate
-import linear_algebra.matrix.polynomial
 
 /-!
 # Nonsingular inverses
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define an inverse for square matrices of invertible determinant.
 
@@ -50,7 +51,7 @@ matrix inverse, cramer, cramer's rule, adjugate
 
 namespace matrix
 universes u u' v
-variables {m : Type u} {n : Type u'} {α : Type v}
+variables {l : Type*} {m : Type u} {n : Type u'} {α : Type v}
 open_locale matrix big_operators
 open equiv equiv.perm finset
 
@@ -453,6 +454,8 @@ begin
   rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
 end
 
+section diagonal
+
 /-- `diagonal v` is invertible if `v` is -/
 def diagonal_invertible {α} [non_assoc_semiring α] (v : n → α) [invertible v] :
   invertible (diagonal v) :=
@@ -460,8 +463,11 @@ invertible.map (diagonal_ring_hom n α) v
 
 lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
   ⅟(diagonal v) = diagonal (⅟v) :=
-by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _),
-  convert subsingleton.elim _ _, apply invertible.subsingleton }
+begin
+  letI := diagonal_invertible v,
+  haveI := invertible.subsingleton (diagonal v),
+  convert (rfl : ⅟(diagonal v) = _),
+end
 
 /-- `v` is invertible if `diagonal v` is -/
 def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=
@@ -507,6 +513,8 @@ begin
     rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero, ring.inverse_non_unit _ this] }
 end
 
+end diagonal
+
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=
 begin
   by_cases h : is_unit A.det,
@@ -542,6 +550,74 @@ end
 by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_inv, ← det_transpose,
     Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
 
+/-! ### Inverses of permutated matrices
+
+Note that the simp-normal form of `matrix.reindex` is `matrix.submatrix`, so we prove most of these
+results about only the latter.
+-/
+
+section submatrix
+variables [fintype m]
+variables [decidable_eq m]
+
+/-- `A.submatrix e₁ e₂` is invertible if `A` is -/
+def submatrix_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m) [invertible A] :
+  invertible (A.submatrix e₁ e₂) :=
+invertible_of_right_inverse _ ((⅟A).submatrix e₂ e₁) $
+  by rw [matrix.submatrix_mul_equiv, matrix.mul_inv_of_self, submatrix_one_equiv]
+
+/-- `A` is invertible if `A.submatrix e₁ e₂` is -/
+def invertible_of_submatrix_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m)
+  [invertible (A.submatrix e₁ e₂)] : invertible A :=
+invertible_of_right_inverse _ ((⅟(A.submatrix e₁ e₂)).submatrix e₂.symm e₁.symm) $ begin
+  have : A = (A.submatrix e₁ e₂).submatrix e₁.symm e₂.symm := by simp,
+  conv in (_ ⬝ _) { congr, rw this },
+  rw [matrix.submatrix_mul_equiv, matrix.mul_inv_of_self, submatrix_one_equiv]
+end
+
+lemma inv_of_submatrix_equiv_eq (A : matrix m m α) (e₁ e₂ : n ≃ m)
+  [invertible A] [invertible (A.submatrix e₁ e₂)] :
+  ⅟(A.submatrix e₁ e₂) = (⅟A).submatrix e₂ e₁ :=
+begin
+  letI := submatrix_equiv_invertible A e₁ e₂,
+  haveI := invertible.subsingleton (A.submatrix e₁ e₂),
+  convert (rfl : ⅟(A.submatrix e₁ e₂) = _),
+end
+
+/-- Together `matrix.submatrix_equiv_invertible` and
+`matrix.invertible_of_submatrix_equiv_invertible` form an equivalence, although both sides of the
+equiv are subsingleton anyway. -/
+@[simps]
+def submatrix_equiv_invertible_equiv_invertible (A : matrix m m α) (e₁ e₂ : n ≃ m) :
+  invertible (A.submatrix e₁ e₂) ≃ invertible A :=
+{ to_fun := λ _, by exactI invertible_of_submatrix_equiv_invertible A e₁ e₂,
+  inv_fun := λ _, by exactI submatrix_equiv_invertible A e₁ e₂,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- When lowered to a prop, `matrix.invertible_of_submatrix_equiv_invertible` forms an `iff`. -/
+@[simp] lemma is_unit_submatrix_equiv {A : matrix m m α} (e₁ e₂ : n ≃ m) :
+  is_unit (A.submatrix e₁ e₂) ↔ is_unit A :=
+by simp only [← nonempty_invertible_iff_is_unit,
+  (submatrix_equiv_invertible_equiv_invertible A _ _).nonempty_congr]
+
+@[simp] lemma inv_submatrix_equiv (A : matrix m m α) (e₁ e₂ : n ≃ m) :
+  (A.submatrix e₁ e₂)⁻¹ = (A⁻¹).submatrix e₂ e₁ :=
+begin
+  by_cases h : is_unit A,
+  { casesI h.nonempty_invertible,
+    letI := submatrix_equiv_invertible A e₁ e₂,
+    rw [←inv_of_eq_nonsing_inv, ←inv_of_eq_nonsing_inv, inv_of_submatrix_equiv_eq] },
+  { have := (is_unit_submatrix_equiv e₁ e₂).not.mpr h,
+    simp_rw [nonsing_inv_eq_ring_inverse, ring.inverse_non_unit _ h, ring.inverse_non_unit _ this,
+      submatrix_zero, pi.zero_apply] }
+end
+
+lemma inv_reindex (e₁ e₂ : n ≃ m) (A : matrix n n α) : (reindex e₁ e₂ A)⁻¹ = reindex e₂ e₁ (A⁻¹) :=
+inv_submatrix_equiv A e₁.symm e₂.symm
+
+end submatrix
+
 /-! ### More results about determinants -/
 
 section det
@@ -556,69 +632,6 @@ by rw [←h.unit_spec, ←coe_units_inv, det_units_conj]
 lemma det_conj' {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
   det (M⁻¹ ⬝ N ⬝ M) = det N :=
 by rw [←h.unit_spec, ←coe_units_inv, det_units_conj']
-
-/-- Determinant of a 2×2 block matrix, expanded around an invertible top left element in terms of
-the Schur complement. -/
-lemma det_from_blocks₁₁ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
-  [invertible A] : (matrix.from_blocks A B C D).det = det A * det (D - C ⬝ (⅟A) ⬝ B) :=
-begin
-  have : from_blocks A B C D =
-    from_blocks 1 0 (C ⬝ ⅟A) 1 ⬝ from_blocks A 0 0 (D - C ⬝ (⅟A) ⬝ B) ⬝ from_blocks 1 (⅟A ⬝ B) 0 1,
-  { simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
-      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
-        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right] },
-  rw [this, det_mul, det_mul, det_from_blocks_zero₂₁, det_from_blocks_zero₂₁,
-    det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one],
-end
-
-@[simp] lemma det_from_blocks_one₁₁ (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) :
-  (matrix.from_blocks 1 B C D).det = det (D - C ⬝ B) :=
-begin
-  haveI : invertible (1 : matrix m m α) := invertible_one,
-  rw [det_from_blocks₁₁, inv_of_one, matrix.mul_one, det_one, one_mul],
-end
-
-/-- Determinant of a 2×2 block matrix, expanded around an invertible bottom right element in terms
-of the Schur complement. -/
-lemma det_from_blocks₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
-  [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
-begin
-  have : from_blocks A B C D = (from_blocks D C B A).submatrix (sum_comm _ _) (sum_comm _ _),
-  { ext i j,
-    cases i; cases j; refl },
-  rw [this, det_submatrix_equiv_self, det_from_blocks₁₁],
-end
-
-@[simp] lemma det_from_blocks_one₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) :
-  (matrix.from_blocks A B C 1).det = det (A - B ⬝ C) :=
-begin
-  haveI : invertible (1 : matrix n n α) := invertible_one,
-  rw [det_from_blocks₂₂, inv_of_one, matrix.mul_one, det_one, one_mul],
-end
-
-/-- The **Weinstein–Aronszajn identity**. Note the `1` on the LHS is of shape m×m, while the `1` on
-the RHS is of shape n×n. -/
-lemma det_one_add_mul_comm (A : matrix m n α) (B : matrix n m α) :
-  det (1 + A ⬝ B) = det (1 + B ⬝ A) :=
-calc  det (1 + A ⬝ B)
-    = det (from_blocks 1 (-A) B 1) : by rw [det_from_blocks_one₂₂, matrix.neg_mul, sub_neg_eq_add]
-... = det (1 + B ⬝ A)              : by rw [det_from_blocks_one₁₁, matrix.mul_neg, sub_neg_eq_add]
-
-/-- Alternate statement of the **Weinstein–Aronszajn identity** -/
-lemma det_mul_add_one_comm (A : matrix m n α) (B : matrix n m α) :
-  det (A ⬝ B + 1) = det (B ⬝ A + 1) :=
-by rw [add_comm, det_one_add_mul_comm, add_comm]
-
-lemma det_one_sub_mul_comm (A : matrix m n α) (B : matrix n m α) :
-  det (1 - A ⬝ B) = det (1 - B ⬝ A) :=
-by rw [sub_eq_add_neg, ←matrix.neg_mul, det_one_add_mul_comm, matrix.mul_neg, ←sub_eq_add_neg]
-
-/-- A special case of the **Matrix determinant lemma** for when `A = I`.
-
-TODO: show this more generally. -/
-lemma det_one_add_col_mul_row (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
-by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_apply_eq,
-       matrix.row_mul_col_apply]
 
 end det
 

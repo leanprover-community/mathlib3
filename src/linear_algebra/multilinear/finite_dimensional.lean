@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import linear_algebra.multilinear.basic
-import linear_algebra.free_module.finite.basic
+import linear_algebra.free_module.finite.matrix
 
 /-! # Multilinear maps over finite dimensional spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The main results are that multilinear maps over finitely-generated, free modules are
 finitely-generated and free.
@@ -21,7 +24,7 @@ there.
 namespace multilinear_map
 
 variables {ι R M₂ : Type*} {M₁ : ι → Type*}
-variables [decidable_eq ι] [finite ι]
+variables [finite ι]
 variables [comm_ring R] [add_comm_group M₂] [module R M₂]
 variables [Π i, add_comm_group (M₁ i)] [Π i, module R (M₁ i)]
 variables [module.finite R M₂] [module.free R M₂]

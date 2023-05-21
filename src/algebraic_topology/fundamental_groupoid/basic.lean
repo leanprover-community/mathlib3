@@ -11,6 +11,9 @@ import topology.homotopy.path
 /-!
 # Fundamental groupoid of a space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a topological space `X`, we can define the fundamental groupoid of `X` to be the category with
 objects being points of `X`, and morphisms `x ⟶ y` being paths from `x` to `y`, quotiented by
 homotopy equivalence. With this, the fundamental group of `X` based at `x` is just the automorphism

@@ -3,10 +3,14 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import algebra.big_operators.option
 import analysis.box_integral.box.basic
 
 /-!
 # Partitions of rectangular boxes in `ℝⁿ`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define (pre)partitions of rectangular boxes in `ℝⁿ`.  A partition of a box `I` in
 `ℝⁿ` (see `box_integral.prepartition` and `box_integral.prepartition.is_partition`) is a finite set
@@ -64,7 +68,7 @@ lemma disjoint_coe_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (h : J₁ �
 
 lemma eq_of_mem_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (hx₁ : x ∈ J₁) (hx₂ : x ∈ J₂) :
   J₁ = J₂ :=
-by_contra $ λ H, π.disjoint_coe_of_mem h₁ h₂ H ⟨hx₁, hx₂⟩
+by_contra $ λ H, (π.disjoint_coe_of_mem h₁ h₂ H).le_bot ⟨hx₁, hx₂⟩
 
 lemma eq_of_le_of_le (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (hle₁ : J ≤ J₁) (hle₂ : J ≤ J₂) :
   J₁ = J₂ :=
@@ -190,8 +194,8 @@ lemma Union_subset : π.Union ⊆ I := Union₂_subset π.le_of_mem'
 
 lemma disjoint_boxes_of_disjoint_Union (h : disjoint π₁.Union π₂.Union) :
   disjoint π₁.boxes π₂.boxes :=
-finset.disjoint_left.2 $ λ J h₁ h₂, h.mono (π₁.subset_Union h₁) (π₂.subset_Union h₂)
-  ⟨J.upper_mem, J.upper_mem⟩
+finset.disjoint_left.2 $ λ J h₁ h₂,
+  disjoint.le_bot (h.mono (π₁.subset_Union h₁) (π₂.subset_Union h₂)) ⟨J.upper_mem, J.upper_mem⟩
 
 lemma le_iff_nonempty_imp_le_and_Union_subset : π₁ ≤ π₂ ↔
   (∀ (J ∈ π₁) (J' ∈ π₂), (J ∩ J' : set (ι → ℝ)).nonempty → J ≤ J') ∧ π₁.Union ⊆ π₂.Union :=
@@ -226,7 +230,9 @@ function. -/
   pairwise_disjoint :=
     begin
       simp only [set.pairwise, finset.mem_coe, finset.mem_bUnion],
-      rintro J₁' ⟨J₁, hJ₁, hJ₁'⟩ J₂' ⟨J₂, hJ₂, hJ₂'⟩ Hne x ⟨hx₁, hx₂⟩, apply Hne,
+      rintro J₁' ⟨J₁, hJ₁, hJ₁'⟩ J₂' ⟨J₂, hJ₂, hJ₂'⟩ Hne,
+      rw [function.on_fun, set.disjoint_left],
+      rintros x hx₁ hx₂, apply Hne,
       obtain rfl : J₁ = J₂,
         from π.eq_of_mem_of_mem hJ₁ hJ₂ ((πi J₁).le_of_mem hJ₁' hx₁)
           ((πi J₂).le_of_mem hJ₂' hx₂),
@@ -629,7 +635,7 @@ lemma Union_bUnion_partition (h : ∀ J ∈ π, (πi J).is_partition) : (π.bUni
   Union_congr_of_surjective id surjective_id $ λ hJ, (h J hJ).Union_eq
 
 lemma is_partition_disj_union_of_eq_diff (h : π₂.Union = I \ π₁.Union) :
-  is_partition (π₁.disj_union π₂ (h.symm ▸ disjoint_diff)) :=
+  is_partition (π₁.disj_union π₂ $ h.symm ▸ disjoint_sdiff_self_right) :=
 is_partition_iff_Union_eq.2 $ (Union_disj_union _).trans $ by simp [h, π₁.Union_subset]
 
 end prepartition

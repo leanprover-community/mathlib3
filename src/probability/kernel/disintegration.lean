@@ -86,7 +86,9 @@ lemma lintegral_cond_kernel_real_univ (ρ : measure (α × ℝ)) :
 by rw [← set_lintegral_univ, set_lintegral_cond_kernel_real_univ ρ measurable_set.univ,
   univ_prod_univ]
 
-lemma set_lintegral_cond_kernel_real_prod (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+variables (ρ : measure (α × ℝ)) [is_finite_measure ρ]
+
+lemma set_lintegral_cond_kernel_real_prod
   {s : set α} (hs : measurable_set s) {t : set ℝ} (ht : measurable_set t) :
   ∫⁻ a in s, cond_kernel_real ρ a t ∂ρ.fst = ρ (s ×ˢ t) :=
 begin
@@ -130,8 +132,7 @@ begin
     { exact λ i, measurable_set.prod hs (hf_meas i), }, },
 end
 
-lemma lintegral_cond_kernel_real_mem (ρ : measure (α × ℝ)) [is_finite_measure ρ]
-  {s : set (α × ℝ)} (hs : measurable_set s) :
+lemma lintegral_cond_kernel_real_mem {s : set (α × ℝ)} (hs : measurable_set s) :
   ∫⁻ a, cond_kernel_real ρ a {x | (a, x) ∈ s} ∂ρ.fst = ρ s :=
 begin
   -- `set_lintegral_cond_kernel_real_prod` gives the result for sets of the form `t₁ × t₂`. These
@@ -219,12 +220,11 @@ begin
   rw lintegral_cond_kernel_real_mem ρ hs,
 end
 
-theorem measure_eq_comp_prod_real (ρ : measure (α × ℝ)) [is_finite_measure ρ] :
+theorem measure_eq_comp_prod_real :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel_real ρ))) () :=
 by rw [← kernel.const_eq_comp_prod_real unit ρ, kernel.const_apply]
 
-lemma lintegral_cond_kernel_real (ρ : measure (α × ℝ)) [is_finite_measure ρ]
-  {f : α × ℝ → ℝ≥0∞} (hf : measurable f) :
+lemma lintegral_cond_kernel_real {f : α × ℝ → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, ∫⁻ y, f (a, y) ∂(cond_kernel_real ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ :=
 begin
   nth_rewrite 1 measure_eq_comp_prod_real ρ,
@@ -232,8 +232,7 @@ begin
   simp_rw kernel.prod_mk_left_apply,
 end
 
-lemma ae_cond_kernel_real_eq_one (ρ : measure (α × ℝ)) [is_finite_measure ρ]
-  {s : set ℝ} (hs : measurable_set s) (hρ : ρ {x | x.snd ∈ sᶜ} = 0) :
+lemma ae_cond_kernel_real_eq_one {s : set ℝ} (hs : measurable_set s) (hρ : ρ {x | x.snd ∈ sᶜ} = 0) :
   ∀ᵐ a ∂ρ.fst, cond_kernel_real ρ a s = 1 :=
 begin
   have h : ρ {x | x.snd ∈ sᶜ}
@@ -266,10 +265,10 @@ property on `ℝ` to all these spaces. -/
 
 variables {Ω : Type*} [topological_space Ω] [polish_space Ω] [measurable_space Ω] [borel_space Ω]
   [nonempty Ω]
+  (ρ : measure (α × Ω)) [is_finite_measure ρ]
 
 /-- Existence of a conditional kernel. Use the definition `cond_kernel` to get that kernel. -/
-lemma exists_cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ] (γ : Type*)
-  [measurable_space γ] :
+lemma exists_cond_kernel (γ : Type*) [measurable_space γ] :
   ∃ (η : kernel α Ω) (h : is_markov_kernel η),
   kernel.const γ ρ
     = @kernel.comp_prod γ α _ _ Ω _ (kernel.const γ ρ.fst) _ (kernel.prod_mk_left γ η)
@@ -357,14 +356,13 @@ end
 `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel)) ()`
 (see `probability_theory.measure_eq_comp_prod`). -/
 noncomputable
-def _root_.measure_theory.measure.cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ] :
-  kernel α Ω :=
+def _root_.measure_theory.measure.cond_kernel : kernel α Ω :=
 (exists_cond_kernel ρ unit).some
 
-instance (ρ : measure (α × Ω)) [is_finite_measure ρ] : is_markov_kernel ρ.cond_kernel :=
+instance : is_markov_kernel ρ.cond_kernel :=
 (exists_cond_kernel ρ unit).some_spec.some
 
-lemma kernel.const_unit_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ] :
+lemma kernel.const_unit_eq_comp_prod :
   kernel.const unit ρ
     = (kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel) :=
 (exists_cond_kernel ρ unit).some_spec.some_spec
@@ -373,7 +371,7 @@ lemma kernel.const_unit_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measur
 measure can be written as the composition-product of the constant kernel with value `ρ.fst`
 (marginal measure over `α`) and a Markov kernel from `α` to `Ω`. We call that Markov kernel
 `probability_theory.cond_kernel ρ`. -/
-theorem measure_eq_comp_prod (ρ : measure (α × Ω)) [is_finite_measure ρ] :
+theorem measure_eq_comp_prod :
   ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel)) () :=
 by rw [← kernel.const_unit_eq_comp_prod, kernel.const_apply]
 
@@ -390,16 +388,14 @@ begin
     using kernel.ext_iff'.mp (kernel.const_unit_eq_comp_prod ρ) () s hs,
 end
 
-lemma lintegral_cond_kernel_mem (ρ : measure (α × Ω)) [is_finite_measure ρ]
-  {s : set (α × Ω)} (hs : measurable_set s) :
+lemma lintegral_cond_kernel_mem {s : set (α × Ω)} (hs : measurable_set s) :
   ∫⁻ a, ρ.cond_kernel a {x | (a, x) ∈ s} ∂ρ.fst = ρ s :=
 begin
   conv_rhs { rw measure_eq_comp_prod ρ, },
   simp_rw [kernel.comp_prod_apply _ _ _ hs, kernel.const_apply, kernel.prod_mk_left_apply],
 end
 
-lemma lintegral_cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ]
-  {f : α × Ω → ℝ≥0∞} (hf : measurable f) :
+lemma lintegral_cond_kernel {f : α × Ω → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, ∫⁻ ω, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x, f x ∂ρ :=
 begin
   conv_rhs { rw measure_eq_comp_prod ρ, },

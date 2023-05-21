@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.constructions.pi
 import measure_theory.integral.interval_integral
 import measure_theory.integral.mean_inequalities
+import geometry.manifold.cont_mdiff_map
 
 /-!
 # Marginals of multivariate functions
@@ -14,7 +15,7 @@ import measure_theory.integral.mean_inequalities
 
 noncomputable theory
 
-open_locale classical big_operators topological_space ennreal
+open_locale classical big_operators topology ennreal
 
 variables {ι ι' : Type*}
 section finset
@@ -79,16 +80,16 @@ lemma fderiv_update {x : Π i, E i} {i : ι} (y : E i) :
 sorry
 
 lemma continuous_linear_map.norm_le_norm_pi (f : Πi, F →L[𝕜] E i) (i : ι) :
-  ∥f i∥ ≤ ∥continuous_linear_map.pi f∥ :=
+  ‖f i‖ ≤ ‖continuous_linear_map.pi f‖ :=
 sorry
 
 lemma continuous_linear_map.norm_pi [nonempty ι] (f : Πi, F →L[𝕜] E i) :
-  ∥continuous_linear_map.pi f∥ = (finset.univ.image $ λ i, ∥f i∥).max' (finset.univ_nonempty.image _) :=
+  ‖continuous_linear_map.pi f‖ = (finset.univ.image $ λ i, ‖f i‖).max' (finset.univ_nonempty.image _) :=
 sorry
 
 variable (E)
 lemma continuous_linear_map.norm_pi_update_eq_one {i : ι} :
-  ∥continuous_linear_map.pi (function.update 0 i (continuous_linear_map.id 𝕜 (E i)))∥ = 1 :=
+  ‖continuous_linear_map.pi (function.update 0 i (continuous_linear_map.id 𝕜 (E i)))‖ = 1 :=
 sorry
 
 end calculus
@@ -551,8 +552,8 @@ end
 
 /-- The Sobolev inequality -/
 theorem integral_pow_le (hu : cont_diff ℝ 1 u) (h2u : has_compact_support u) :
-  ∫ x, ∥u x∥ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
-  (∫ x, ∥fderiv ℝ u x∥)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
+  ∫ x, ‖u x‖ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
+  (∫ x, ‖fderiv ℝ u x‖)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
 begin
   refine le_trans _ (integral_prod_integral_pow_le (λ _, volume) _ $ λ x, norm_nonneg _),
   refine integral_mono sorry sorry (λ x, _),
@@ -580,7 +581,7 @@ begin
   rw fderiv.comp y (hu.differentiable le_rfl).differentiable_at sorry,
   rw [continuous_linear_map.comp_apply],
   refine (continuous_linear_map.le_op_norm _ _).trans _,
-  conv_rhs { rw [← mul_one ∥_∥] },
+  conv_rhs { rw [← mul_one ‖_‖] },
   simp_rw [fderiv_update],
   refine mul_le_mul_of_nonneg_left _ (norm_nonneg _),
   refine (continuous_linear_map.le_op_norm _ _).trans_eq _,
@@ -589,8 +590,8 @@ begin
 end
 
 /-- The Sobolev inequality -/
-theorem lintegral_pow_le : ∫⁻ x, ∥u x∥₊ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
-  (∫⁻ x, ∥fderiv ℝ u x∥₊)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
+theorem lintegral_pow_le : ∫⁻ x, ‖u x‖₊ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
+  (∫⁻ x, ‖fderiv ℝ u x‖₊)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
 begin
   sorry
 end

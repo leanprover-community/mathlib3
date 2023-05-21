@@ -9,6 +9,9 @@ import data.int.log
 /-!
 # Real logarithm base `b`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `real.logb` to be the logarithm of a real number in a given base `b`. We
 define this as the division of the natural logarithms of the argument and the base, so that we have
 a globally defined function with `logb b 0 = 0`, `logb b (-x) = logb b x` `logb 0 x = 0` and

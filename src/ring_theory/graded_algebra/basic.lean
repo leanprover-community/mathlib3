@@ -11,6 +11,9 @@ import algebra.direct_sum.ring
 /-!
 # Internally-graded rings and algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the typeclass `graded_algebra 𝒜`, for working with an algebra `A` that is
 internally graded by a collection of submodules `𝒜 : ι → submodule R A`.
 See the docstring of that typeclass for more information.

@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.constructions.pi
 import measure_theory.integral.interval_integral
 import measure_theory.integral.mean_inequalities
+import measure_theory.constructions.prod.integral
 import geometry.manifold.cont_mdiff_map
 
 /-!
@@ -333,8 +334,6 @@ lemma integral_of_is_empty {α} [measurable_space α] [is_empty α] (μ : measur
   ∫ x, f x ∂μ = 0 :=
 begin
   convert integral_zero_measure f,
-  ext1,
-  convert measure_empty,
 end
 
 lemma _root_.has_compact_support.integral_deriv_eq {f : ℝ → E} (hf : cont_diff ℝ 1 f)
@@ -396,12 +395,12 @@ lemma marginal_union (f : (Π i, π i) → E) (hf : measurable f) {s t : finset 
   (hst : disjoint s t) :
   ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
 begin
-  have : s ∩ t ⊆ ∅, { exact_mod_cast hst },
+  have : s ∩ t ⊆ ∅, { exact hst.le_bot },
   let e : (s ∪ t : finset δ) ≃ s ⊕ t :=
   sorry, --(finset_union s t).trans (equiv.set.union this),
   ext x,
   simp_rw [marginal, ← measure.pi_map_left _ e.symm],
-  rw [integral_map, ← measure.pi_sum, integral_map, integral_prod_symm],
+  rw [integral_map, ← measure.pi_sum, integral_map, integral_prod],
   -- dsimp only [e, set.union_symm_apply_left],
   all_goals {sorry},
 

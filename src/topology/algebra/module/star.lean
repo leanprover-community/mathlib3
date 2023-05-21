@@ -9,6 +9,9 @@ import topology.algebra.star
 
 /-!
 # The star operation, bundled as a continuous star-linear equiv
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 /-- If `A` is a topological module over a commutative `R` with compatible actions,

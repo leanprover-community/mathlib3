@@ -30,9 +30,9 @@ function `cond_cdf ρ a` (the conditional cumulative distribution function).
 ## Main statements
 
 * `probability_theory.kernel.const_eq_comp_prod`:
-  `kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) γ)`
+  `kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel ρ))`
 * `probability_theory.measure_eq_comp_prod`:
-  `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) ()`
+  `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ))) ()`
 * `probability_theory.lintegral_cond_kernel`:
   `∫⁻ a, ∫⁻ ω, f (a, ω) ∂(cond_kernel ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ`
 
@@ -268,9 +268,10 @@ Since every standard Borel space embeds measurably into `ℝ`, we can generalize
 property on `ℝ` to all these spaces. -/
 
 variables {Ω : Type*} [topological_space Ω] [polish_space Ω] [measurable_space Ω] [borel_space Ω]
+  [nonempty Ω]
 
 /-- Existence of a conditional kernel. Use the definition `cond_kernel` to get that kernel. -/
-lemma exists_cond_kernel [nonempty Ω] (ρ : measure (α × Ω)) [is_finite_measure ρ] (γ : Type*)
+lemma exists_cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ] (γ : Type*)
   [measurable_space γ] :
   ∃ (η : kernel α Ω) (h : is_markov_kernel η),
   kernel.const γ ρ
@@ -355,10 +356,8 @@ begin
   rw [h1, h2],
 end
 
-variables [nonempty Ω]
-
 /-- Conditional kernel of a measure on a product space: a Markov kernel such that
-`ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left (cond_kernel ρ) unit)) ()`
+`ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ))) ()`
 (see `probability_theory.measure_eq_comp_prod`). -/
 noncomputable
 def cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ] : kernel α Ω :=

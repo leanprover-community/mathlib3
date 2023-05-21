@@ -177,22 +177,24 @@ end
 
 Version for arbitrary sets -/
 lemma has_deriv_within_at_taylor_within_eval {f : ℝ → E} {x y : ℝ} {n : ℕ} {s t : set ℝ}
-  (ht : unique_diff_on ℝ t) (hy : y ∈ t) (hs : s ∈ 𝓝[t] y) (hf' : cont_diff_within_at ℝ n f s y)
-  (hf : differentiable_within_at ℝ (iterated_deriv_within n f s) s y) :
-  has_deriv_within_at (λ x₀, taylor_within_eval f n s x₀ x)
+  (hs_unique : unique_diff_within_at ℝ s y)
+  (hcd : cont_diff_on ℝ n f s)
+  (hd : differentiable_within_at ℝ (iterated_deriv_within n f s) t y) :
+  has_deriv_within_at (λ z, taylor_within_eval f n s z x)
     (((n! : ℝ)⁻¹ * (x - y)^n) • (iterated_deriv_within (n+1) f s y)) t y :=
 begin
   induction n with k hk,
   { simp only [taylor_within_zero_eval, nat.factorial_zero, nat.cast_one, inv_one, pow_zero,
-      mul_one, zero_add, one_smul],
-    simp only [iterated_deriv_within_zero] at hf,
-    rw [iterated_deriv_within_one ((ht y hy).mono_nhds $ nhds_within_le_iff.mpr hs)],
-    exact hf.has_deriv_within_at.mono_of_mem hs },
+      mul_one, zero_add, one_smul, iterated_deriv_within_one hs_unique],
+    simp only [iterated_deriv_within_zero] at hd,
+    sorry },
   simp_rw [nat.add_succ, taylor_within_eval_succ],
-  convert (hk (hf'.of_le $ nat.cast_le.2 $ k.le_succ) _).add
-    (has_deriv_within_at_taylor_coeff_within (ht y hy) hs hf),
+  convert (hk (hf.of_le $ nat.cast_le.2 $ k.le_succ) _).add
+    (has_deriv_within_at_taylor_coeff_within ht_unique _ _),
   { simp },
-  { exact hf'.differentiable_within_at_iterated_deriv_within (nat.cast_lt.2 k.lt_succ_self) _ },
+  { exact hf.differentiable_on_iterated_deriv_within (nat.cast_lt.2 k.lt_succ_self) _ },
+  { sorry },
+  { sorry },
   -- simp only [add_zero, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
   -- have hdiff : differentiable_on ℝ (iterated_deriv_within k f s) t,
   -- { have coe_lt_succ : (k : with_top ℕ) < k.succ :=

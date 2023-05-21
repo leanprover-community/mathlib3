@@ -48,7 +48,7 @@ lemma sq_add_sq_mul {R} [comm_ring R] {a b x y u v : R} (ha : a = x ^ 2 + y ^ 2)
   (hb : b = u ^ 2 + v ^ 2) : ∃ r s : R, a * b = r ^ 2 + s ^ 2 :=
 ⟨x * u - y * v, x * v + y * u, by {rw [ha, hb], ring}⟩
 
-/-- The set of naturals numbers that are sums of two squqares is closed under multiplication. -/
+/-- The set of natural numbers that are sums of two squqares is closed under multiplication. -/
 lemma nat.sq_add_sq_mul {a b x y u v : ℕ} (ha : a = x ^ 2 + y ^ 2) (hb : b = u ^ 2 + v ^ 2) :
   ∃ r s : ℕ, a * b = r ^ 2 + s ^ 2 :=
 begin

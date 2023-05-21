@@ -11,8 +11,10 @@ import measure_theory.constructions.polish
 
 Let `ρ` be a finite measure on `α × Ω`, where `Ω` is a standard Borel space. In mathlib terms, `Ω`
 verifies `[nonempty Ω] [topological_space Ω] [polish_space Ω] [measurable_space Ω] [borel_space Ω]`.
+Then there exists a kernel `ρ.cond_kernel : kernel α Ω` such that for any measurable set
+`s : set (α × Ω)`, `ρ s = ∫⁻ a, ρ.cond_kernel a {x | (a, x) ∈ s} ∂ρ.fst`.
 
-For any measurable space `γ`, there exists a kernel `cond_kernel ρ : kernel α Ω` such that we
+In terms of kernels, `ρ.cond_kernel` is such that for any measurable space `γ`, we
 have a disintegration of the constant kernel from `γ` with value `ρ`:
 `kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel ρ))`,
 where `ρ.fst` is the marginal measure of `ρ` on `α`. In particular,
@@ -30,11 +32,13 @@ function `cond_cdf ρ a` (the conditional cumulative distribution function).
 ## Main statements
 
 * `probability_theory.kernel.const_eq_comp_prod`:
-  `kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ (cond_kernel ρ))`
+  `kernel.const γ ρ = (kernel.const γ ρ.fst) ⊗ₖ (kernel.prod_mk_left γ ρ.cond_kernel)`
 * `probability_theory.measure_eq_comp_prod`:
-  `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit (cond_kernel ρ))) ()`
+  `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel)) ()`
 * `probability_theory.lintegral_cond_kernel`:
-  `∫⁻ a, ∫⁻ ω, f (a, ω) ∂(cond_kernel ρ a) ∂ρ.fst = ∫⁻ x, f x ∂ρ`
+  `∫⁻ a, ∫⁻ ω, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x, f x ∂ρ`
+* `probability_theory.lintegral_cond_kernel_mem`:
+  `∫⁻ a, ρ.cond_kernel a {x | (a, x) ∈ s} ∂ρ.fst = ρ s`
 
 -/
 
@@ -384,6 +388,14 @@ begin
   ext a s hs : 2,
   simpa only [kernel.const_apply, kernel.comp_prod_apply _ _ _ hs, kernel.prod_mk_left_apply']
     using kernel.ext_iff'.mp (kernel.const_unit_eq_comp_prod ρ) () s hs,
+end
+
+lemma lintegral_cond_kernel_mem (ρ : measure (α × Ω)) [is_finite_measure ρ]
+  {s : set (α × Ω)} (hs : measurable_set s) :
+  ∫⁻ a, ρ.cond_kernel a {x | (a, x) ∈ s} ∂ρ.fst = ρ s :=
+begin
+  conv_rhs { rw measure_eq_comp_prod ρ, },
+  simp_rw [kernel.comp_prod_apply _ _ _ hs, kernel.const_apply, kernel.prod_mk_left_apply],
 end
 
 lemma lintegral_cond_kernel (ρ : measure (α × Ω)) [is_finite_measure ρ]

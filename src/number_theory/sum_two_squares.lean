@@ -27,8 +27,8 @@ open gaussian_int
 
 /-- **Fermat's theorem on the sum of two squares**. Every prime not congruent to 3 mod 4 is the sum
 of two squares. Also known as **Fermat's Christmas theorem**. -/
-theorem nat.prime.sq_add_sq {p : ℕ} [pp : fact (nat.prime p)] (hp : p % 4 ≠ 3) :
-  ∃ (a b : ℕ), a ^ 2 + b ^ 2 = p :=
+theorem nat.prime.sq_add_sq {p : ℕ} [fact (nat.prime p)] (hp : p % 4 ≠ 3) :
+  ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
 begin
   apply sq_add_sq_of_nat_prime_of_not_irreducible p,
   rwa [principal_ideal_ring.irreducible_iff_prime, prime_iff_mod_four_eq_three_of_nat_prime p],

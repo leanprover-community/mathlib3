@@ -3,10 +3,13 @@ Copyright (c) 2021 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 
 /-!
 # Logarithm Tonality
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we describe the tonality of the logarithm function when multiplied by functions of the
 form `x ^ a`.

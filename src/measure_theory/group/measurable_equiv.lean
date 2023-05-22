@@ -8,6 +8,9 @@ import measure_theory.group.arithmetic
 /-!
 # (Scalar) multiplication and (vector) addition as measurable equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the following measurable equivalences:
 
 * `measurable_equiv.smul`: if a group `G` acts on `α` by measurable maps, then each element `c : G`

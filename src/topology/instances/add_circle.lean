@@ -14,6 +14,9 @@ import topology.instances.real
 /-!
 # The additive circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the additive circle `add_circle p` as the quotient `𝕜 ⧸ (ℤ ∙ p)` for some period `p : 𝕜`.
 
 See also `circle` and `real.angle`.  For the normed group structure on `add_circle`, see

@@ -6,6 +6,7 @@ Authors: Yury Kudryashov, Heather Macbeth
 import analysis.convex.cone.basic
 import analysis.normed_space.is_R_or_C
 import analysis.normed_space.extend
+import data.is_R_or_C.lemmas
 
 /-!
 # Extension Hahn-Banach theorem

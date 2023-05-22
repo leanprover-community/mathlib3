@@ -12,6 +12,9 @@ import ring_theory.ideal.quotient_operations
 /-!
 # Multiplicity in Number Theory
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results in number theory relating to multiplicity.
 
 ## Main statements

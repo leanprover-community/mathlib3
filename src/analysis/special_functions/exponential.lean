@@ -222,6 +222,7 @@ by { ext x, exact_mod_cast congr_fun complex.exp_eq_exp_ℂ x }
 
 section exp_smul
 variables {𝕂 𝔸 𝔹 : Type*}
+variables (𝕂)
 
 open_locale topology
 open asymptotics filter
@@ -272,7 +273,7 @@ lemma has_fderiv_at_exp_smul_const_of_mem_ball'
   has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
 begin
-  convert has_fderiv_at_exp_smul_const_of_mem_ball _ _ htx using 1,
+  convert has_fderiv_at_exp_smul_const_of_mem_ball 𝕂 _ _ htx using 1,
   ext t',
   show commute (t' • x) (exp 𝕂 (t • x)),
   exact (((commute.refl x).smul_left t').smul_right t).exp_right 𝕂,
@@ -287,7 +288,7 @@ have deriv₁ : has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x)) _ t,
   from hp.has_strict_fderiv_at.comp t
     ((continuous_linear_map.id 𝕂 𝔸).smul_right x).has_strict_fderiv_at,
 have deriv₂ : has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x)) _ t,
-  from has_fderiv_at_exp_smul_const_of_mem_ball x t htx,
+  from has_fderiv_at_exp_smul_const_of_mem_ball 𝕂 x t htx,
 (deriv₁.has_fderiv_at.unique deriv₂) ▸ deriv₁
 
 lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball' (t : 𝔸) (x : 𝔹)
@@ -296,22 +297,24 @@ lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball' (t : 𝔸) (x : 𝔹)
     (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
 let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball (t • x) htx in
 begin
-  convert has_strict_fderiv_at_exp_smul_const_of_mem_ball _ _ htx using 1,
+  convert has_strict_fderiv_at_exp_smul_const_of_mem_ball 𝕂 _ _ htx using 1,
   ext t',
   show commute (t' • x) (exp 𝕂 (t • x)),
   exact (((commute.refl x).smul_left t').smul_right t).exp_right 𝕂,
 end
 
+variables {𝕂}
+
 lemma has_strict_deriv_at_exp_smul_const_of_mem_ball (t : 𝕂) (x : 𝔹)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
-by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball t x htx).has_strict_deriv_at
+by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball 𝕂 t x htx).has_strict_deriv_at
 
 
 lemma has_strict_deriv_at_exp_smul_const_of_mem_ball' (t : 𝕂) (x : 𝔹)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
-by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball' t x htx).has_strict_deriv_at
+by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 t x htx).has_strict_deriv_at
 
 lemma has_deriv_at_exp_smul_const_of_mem_ball (t : 𝕂) (x : 𝔹)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
@@ -332,29 +335,33 @@ variables [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹] [algebra 𝔸 �
 variables [is_scalar_tower 𝕂 𝔸 𝔹]
 variables [complete_space 𝔹]
 
+variables (𝕂)
+
 lemma has_fderiv_at_exp_smul_const (x : 𝔹) (t : 𝔸) :
   has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
-has_fderiv_at_exp_smul_const_of_mem_ball _ _ $
+has_fderiv_at_exp_smul_const_of_mem_ball 𝕂 _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
 lemma has_fderiv_at_exp_smul_const' (x : 𝔹) (t : 𝔸) :
   has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
-has_fderiv_at_exp_smul_const_of_mem_ball' _ _ $
+has_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
 lemma has_strict_fderiv_at_exp_smul_const (t : 𝔸) (x : 𝔹) :
   has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
-has_strict_fderiv_at_exp_smul_const_of_mem_ball _ _ $
+has_strict_fderiv_at_exp_smul_const_of_mem_ball 𝕂 _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
 lemma has_strict_fderiv_at_exp_smul_const' (t : 𝔸) (x : 𝔹) :
   has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
-has_strict_fderiv_at_exp_smul_const_of_mem_ball' _ _ $
+has_strict_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+variables {𝕂}
 
 lemma has_strict_deriv_at_exp_smul_const (t : 𝕂) (x : 𝔹) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=

@@ -207,17 +207,22 @@ instance [distrib_mul_action Sᵐᵒᵖ N] [is_central_scalar S N] :
 
 end has_smul
 
+/-- The cartesian product of two alternating maps, as a multilinear map. -/
 def prod {N'} [add_comm_monoid N'] [module R N'] (f : alternating_map R M N ι)
   (g : alternating_map R M N' ι) : alternating_map R M (N × N') ι :=
 { map_eq_zero_of_eq' := λ v i j h hne, prod.ext (f.map_eq_zero_of_eq _ h hne)
     (g.map_eq_zero_of_eq _ h hne),
   .. f.to_multilinear_map.prod g.to_multilinear_map }
 
-def pi {α : Type*} {N : α → Type*} [∀ a, add_comm_monoid (N a)] [∀ a, module R (N a)]
-  (f : ∀ a, alternating_map R M (N a) ι) : alternating_map R M (∀ a, N a) ι :=
+/-- Combine a family of alternating maps with the same domain and codomains `N i` into an
+alternating map taking values in the space of functions `Π i, N i`. -/
+def pi {ι' : Type*} {N : ι' → Type*} [∀ i, add_comm_monoid (N i)] [∀ i, module R (N i)]
+  (f : ∀ i, alternating_map R M (N i) ι) : alternating_map R M (∀ i, N i) ι :=
 { map_eq_zero_of_eq' := λ v i j h hne, funext $ λ a, (f a).map_eq_zero_of_eq _ h hne,
   .. multilinear_map.pi (λ a, (f a).to_multilinear_map) }
 
+/-- Given an alternating `R`-multilinear map `f` taking values in `R`, `f.smul_right z` is the map
+sending `m` to `f m • z`. -/
 def smul_right {R M₁ M₂ ι : Type*} [comm_semiring R]
   [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂]
   (f : alternating_map R M₁ R ι) (z : M₂) : alternating_map R M₁ M₂ ι :=

@@ -57,7 +57,7 @@ We also show the existence and compute the derivatives of:
   - negation
   - subtraction
   - multiplication
-  - `star`
+  - star
   - inverse `x → x⁻¹`
   - multiplication of two functions in `𝕜 → 𝕜`
   - multiplication of a function in `𝕜 → 𝕜` and of a function in `𝕜 → E`

@@ -29,7 +29,7 @@ open_locale unit_interval
 open path continuous_map set.Icc topological_space
 
 /--
-An topological space `X` is an H-space if it behaves like a (potentially non-associative)
+A topological space `X` is an H-space if it behaves like a (potentially non-associative)
 topological group, but where the axioms for a group only hold up to homotopy.
 -/
 class H_space (X : Type u) [topological_space X] :=
@@ -69,7 +69,25 @@ def H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topological_sp
           homotopy_rel.eq_fst (H_space.e_Hmul) t (set.mem_singleton_iff.mpr h.2)⟩,
         prod.mk.inj_iff.mpr ⟨((H_space.e_Hmul).2 t x h.1).2, ((H_space.e_Hmul).2 t y h.2).2⟩⟩ },
   end,
-  Hmul_e := sorry, }
+  Hmul_e :=
+  begin
+    let G : I × (X × Y) → X × Y :=
+      (λ p, (H_space.Hmul_e (p.1, p.2.1), H_space.Hmul_e (p.1, p.2.2))),
+    have hG : continuous G := (continuous.comp H_space.Hmul_e.1.1.2 (continuous_fst.prod_mk
+      (continuous_fst.comp continuous_snd))).prod_mk (continuous.comp H_space.Hmul_e.1.1.2
+      (continuous_fst.prod_mk (continuous_snd.comp continuous_snd))),
+    use ⟨G, hG⟩,
+    { rintros ⟨x, y⟩,
+      exacts prod.mk.inj_iff.mpr ⟨(H_space.Hmul_e).1.2 x, (H_space.Hmul_e).1.2 y⟩ },
+    { rintros ⟨x, y⟩,
+      exact prod.mk.inj_iff.mpr ⟨(H_space.Hmul_e).1.3 x, (H_space.Hmul_e).1.3 y⟩ },
+    { rintros t ⟨x, y⟩ h,
+      replace h := prod.mk.inj_iff.mp (set.mem_singleton_iff.mp h),
+      exact
+        ⟨prod.mk.inj_iff.mpr ⟨homotopy_rel.eq_fst (H_space.Hmul_e) t (set.mem_singleton_iff.mpr h.1),
+          homotopy_rel.eq_fst (H_space.Hmul_e) t (set.mem_singleton_iff.mpr h.2)⟩,
+        prod.mk.inj_iff.mpr ⟨((H_space.Hmul_e).2 t x h.1).2, ((H_space.Hmul_e).2 t y h.2).2⟩⟩ },
+  end, }
 
 namespace topological_group
 

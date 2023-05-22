@@ -148,7 +148,8 @@ end
 
 /-- If there are `ε * (card α)^2` disjoint triangles, then the graph is `ε`-far from being
 triangle-free. -/
-lemma far_from_triangle_free_of_disjoint_triangles (htris : tris ⊆ G.clique_finset 3)
+lemma far_from_triangle_free_of_disjoint_triangles (tris : finset (finset α))
+  (htris : tris ⊆ G.clique_finset 3)
   (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1))
   (tris_big : ε * (card α ^ 2 : ℕ) ≤ tris.card) :
   G.far_from_triangle_free ε :=

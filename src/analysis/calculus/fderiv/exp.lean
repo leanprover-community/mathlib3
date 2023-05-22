@@ -197,15 +197,16 @@ lemma deriv_exp_aux (A : ℝ → 𝔸) (r t : ℝ)
 begin
   revert t,
   rw ←function.funext_iff,
-  -- apply eq_of_fderiv_eq,
-  -- two functions agree if their derivatives agree and they agree at zero.
-  do { `(%%lhs = %%rhs) ← tactic.target,
-    let t := ``(%%lhs 0 = %%rhs 0 ∧ deriv %%lhs = deriv %%rhs),
-    tactic.interactive.suffices none (some t)},
+  refine eq_of_fderiv_eq (_ : differentiable ℝ _) _ _ (0 : ℝ) _,
+  { refine differentiable.mul _ _,
+    sorry,
+    sorry, },
   { sorry },
-  split,
+  swap,
   { simp },
-  { ext t,
+  { intro t,
+    ext1,
+    rw [←deriv,←deriv],
     rw interval_integral.deriv_integral_right,
     { rw deriv_mul,
       have deriv_comm : deriv (λ (y : ℝ), deriv (λ (x : ℝ), exp ℝ (y • A x)) r) t =

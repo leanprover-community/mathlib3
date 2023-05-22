@@ -18,7 +18,7 @@ noncomputable theory
 
 open_locale classical big_operators topology ennreal
 
-variables {ι ι' : Type*}
+variables {ι ι' ι'' : Type*}
 section finset
 open finset
 
@@ -95,12 +95,18 @@ sorry
 
 end calculus
 
-variables {α : ι → Type*}
-
 section logic
+
+open sum
 
 @[simp] lemma imp_and_neg_imp_iff (p q : Prop) [decidable p] : (p → q) ∧ (¬ p → q) ↔ q :=
 by simp_rw [imp_iff_or_not, not_not, ← or_and_distrib_left, not_and_self, or_false]
+
+@[simp]
+lemma cast_sum_rec {α β : Type*} {P : α ⊕ β → Sort*} (f : Π i, P (inl i)) (g : Π j, P (inr j))
+  (x y : α ⊕ β) (h : x = y) :
+  cast (congr_arg P h) (@sum.rec _ _ _ f g x) = @sum.rec _ _ _ f g y :=
+by { cases h, refl }
 
 end logic
 
@@ -109,6 +115,8 @@ open _root_.set
 
 attribute [simps] equiv.Pi_congr_left
 attribute [simps apply symm_apply] subtype_equiv_right
+
+variables {α : ι → Type*}
 
 lemma Pi_congr_left_symm_preimage_pi (f : ι' ≃ ι) (s : set ι) (t : ∀ i, set (α i)) :
   (f.Pi_congr_left α).symm ⁻¹' (f ⁻¹' s).pi (λ i', t $ f i') = s.pi t :=
@@ -148,6 +156,22 @@ lemma set.union_apply_right' {α} {s t : set α} [decidable_pred (λ x, x ∈ s)
   {a : α} (ha : a ∈ t) : equiv.set.union H ⟨a, set.mem_union_right _ ha⟩ = sum.inr ⟨a, ha⟩ :=
 dif_neg $ λ h, H ⟨h, ha⟩
 
+lemma sum_rec_congr (P : ι ⊕ ι' → Sort*) (f : Π i, P (inl i)) (g : Π i, P (inr i)) {x y : ι ⊕ ι'}
+  (h : x = y) : @sum.rec _ _ _ f g x = cast (congr_arg P h.symm) (@sum.rec _ _ _ f g y) :=
+by { cases h, refl }
+
+lemma Pi_congr_left_sum_inl (π : ι'' → Type*) (e : ι ⊕ ι' ≃ ι'')
+  (f : Π i, π (e (inl i))) (g : Π i, π (e (inr i))) (i : ι) :
+  Pi_congr_left π e (Pi_sum (π ∘ e) (f, g)) (e (inl i)) = f i :=
+by simp_rw [Pi_congr_left_apply, Pi_sum_apply, sum_rec_congr _ _ _ (e.symm_apply_apply (inl i)),
+    cast_cast, cast_eq]
+
+lemma Pi_congr_left_sum_inr (π : ι'' → Type*) (e : ι ⊕ ι' ≃ ι'')
+  (f : Π i, π (e (inl i))) (g : Π i, π (e (inr i))) (j : ι') :
+  Pi_congr_left π e (Pi_sum (π ∘ e) (f, g)) (e (inr j)) = g j :=
+by simp_rw [Pi_congr_left_apply, Pi_sum_apply, sum_rec_congr _ _ _ (e.symm_apply_apply (inr j)),
+    cast_cast, cast_eq]
+
 end equiv
 
 namespace option
@@ -171,6 +195,8 @@ open function measure_theory.outer_measure measurable_space equiv
 section function
 
 open set
+
+variables {α : ι → Type*}
 
 /-- Given one value over a unique, we get a dependent function. -/
 def unique_elim [unique ι] (x : α (default : ι)) (i : ι) : α i :=
@@ -203,6 +229,43 @@ open set
 def equiv.finset_union {α} (s t : finset α) : ((s ∪ t : finset α) : set α) ≃ (s ∪ t : set α) :=
 subtype_equiv_right $ by simp
 
+def finset_union_equiv_sum {α} (s t : finset α) (h : disjoint s t) : (s ∪ t : finset α) ≃ s ⊕ t :=
+(equiv.finset_union s t).trans $ equiv.set.union $ by { rw [← finset.coe_inter], exact h.le_bot }
+
+@[simp]
+lemma finset_union_equiv_sum_symm_inl {α} {s t : finset α} (h : disjoint s t) (x : s) :
+  (finset_union_equiv_sum s t h).symm (sum.inl x) = ⟨x, finset.mem_union.mpr $ or.inl x.2⟩ :=
+rfl
+
+@[simp]
+lemma finset_union_equiv_sum_symm_inr {α} {s t : finset α} (h : disjoint s t) (y : t) :
+  (finset_union_equiv_sum s t h).symm (sum.inr y) = ⟨y, finset.mem_union.mpr $ or.inr y.2⟩ :=
+rfl
+
+@[simp]
+lemma finset_union_equiv_sum_symm_inl' {α} {s t : finset α} (h : disjoint s t) (x : α)
+  (hx : x ∈ s) (h2x : x ∈ s ∪ t) :
+  (finset_union_equiv_sum s t h).symm (sum.inl ⟨x, hx⟩) = ⟨x, h2x⟩ :=
+rfl
+
+@[simp]
+lemma finset_union_equiv_sum_symm_inr' {α} {s t : finset α} (h : disjoint s t) (y : t) :
+  (finset_union_equiv_sum s t h).symm (sum.inr y) = ⟨y, finset.mem_union.mpr $ or.inr y.2⟩ :=
+rfl
+
+
+@[simp]
+lemma finset_union_equiv_sum_left {α} {s t : finset α} (h : disjoint s t) (x : s ∪ t)
+  (hx : ↑x ∈ s) :
+  finset_union_equiv_sum s t h x = sum.inl ⟨x, hx⟩ :=
+sorry -- equiv.set.union_apply_left _ $ finset.mem_coe.mp hx
+
+@[simp]
+lemma finset_union_equiv_sum_right {α} {s t : finset α} (h : disjoint s t) (x : s ∪ t)
+  (hx : ↑x ∈ t) :
+  finset_union_equiv_sum s t h x = sum.inr ⟨x, hx⟩ :=
+sorry
+
 lemma Union_univ_pi {ι ι₂} {α : ι → Type*} (t : ∀ i, ι₂ → set (α i)) :
   (⋃ (x : ι → ι₂), pi univ (λ i, t i (x i))) = pi univ (λ i, ⋃ (j : ι₂), t i j) :=
 by { ext, simp [classical.skolem] }
@@ -232,6 +295,8 @@ end set
 section measurable
 open set
 
+variables {α : ι → Type*}
+
 lemma measurable_unique_elim [unique ι] [∀ i, measurable_space (α i)] :
   measurable (unique_elim : α (default : ι) → Π i, α i) :=
 by { simp_rw [measurable_pi_iff, unique.forall_iff, unique_elim_default], exact measurable_id }
@@ -243,10 +308,12 @@ measurable_set.pi finite_univ.countable (λ i _, ht i)
 
 end measurable
 
-variables [∀ i, measurable_space (α i)]
 
 section measurable_on_family
 
+
+variables {α : ι → Type*}
+variables [∀ i, measurable_space (α i)]
 variables (α)
 lemma measurable_eq_mp {i i' : ι} (h : i = i') : measurable (congr_arg α h).mp :=
 by { cases h, exact measurable_id }
@@ -271,6 +338,14 @@ open finset
 
 namespace measure_theory
 
+lemma subsingleton.measurable_singleton_class {α} [measurable_space α] [subsingleton α] :
+  measurable_singleton_class α :=
+begin
+  refine ⟨λ i, _⟩,
+  convert measurable_set.univ,
+  simp [set.eq_univ_iff_forall],
+end
+
 /-- A version of Hölder with multiple arguments -/
 theorem integral_prod_norm_pow_le {α} [measurable_space α] {μ : measure α} (s : finset ι)
   {f : ι → α → ℝ} (h2f : ∀ i ∈ s, 0 ≤ f i) {p : ι → ℝ} (hp : ∑ i in s, p i = 1)
@@ -281,6 +356,8 @@ sorry
 
 namespace measure
 
+variables {α : ι → Type*}
+variables [∀ i, measurable_space (α i)]
 variables [fintype ι] [fintype ι']
 variables {m : Π i, outer_measure (α i)}
 variables [Π i, measurable_space (α i)] {μ : Π i, measure (α i)}
@@ -321,13 +398,40 @@ end
 
 end measure
 
+section
+
+variables {α E : Type*} [measurable_space α] [normed_add_comm_group E]
+
+lemma measurable.has_finite_integral_dirac {f : α → E}
+  (hf : measurable (λ x, ‖f x‖₊ : α → ℝ≥0∞)) {x : α} : has_finite_integral f (measure.dirac x) :=
+begin
+  rw [has_finite_integral, lintegral_dirac' _ hf],
+  exact ennreal.coe_lt_top
+end
+
+lemma has_finite_integral_dirac [measurable_singleton_class α] {f : α → E} {x : α} :
+  has_finite_integral f (measure.dirac x) :=
+begin
+  rw [has_finite_integral, lintegral_dirac],
+  exact ennreal.coe_lt_top
+end
+
+lemma strongly_measurable.integrable_dirac [measurable_space E] [borel_space E]
+  {f : α → E}
+  (hf : strongly_measurable f) {x : α} : integrable f (measure.dirac x) :=
+⟨hf.ae_strongly_measurable, hf.measurable.ennnorm.has_finite_integral_dirac⟩
+
+
+end
+
 section marginal
 
 open finset topological_space
 variables {δ : Type*} {π : δ → Type*} [∀ x, measurable_space (π x)]
 variables {μ : ∀ i, measure (π i)} [∀ i, sigma_finite (μ i)]
-variables {E : Type*} [normed_add_comm_group E] [second_countable_topology E]
-  [normed_space ℝ E] [complete_space E] [measurable_space E] [borel_space E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  [measurable_space E] [borel_space E]
+
 
 
 lemma integral_of_is_empty {α} [measurable_space α] [is_empty α] (μ : measure α) (f : α → E) :
@@ -344,45 +448,94 @@ begin
 end
 
 
+variables {s t : finset δ} {f g : (Π i, π i) → E} {x y : Π i, π i} {i : δ}
 
-/-- Integrate `f(x₁,…,xₙ)` over all variables `xᵢ` where `i ∈ s`. Return a function in the
-  remaining variables (it will be constant in the `xᵢ` for `i ∈ s`).
-  This is the marginal distribution of all variables not in `s`. -/
-def marginal (μ : ∀ i, measure (π i)) (s : finset δ) (f : (Π i, π i) → E) (x : Π i, π i) :
-  E :=
-∫ y : Π i : s, π i, f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)
-  ∂(measure.pi (λ i : s, μ i))
+def update' (s : finset δ) (f : (Π i, π i) → E) (x : Π i, π i) : (Π i : s, π i) → E :=
+  λ y, f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)
 
-/-- The integrand of `marginal _ _ f` is measurable if `f` is. -/
-lemma _root_.measurable.marginal_aux {f : (Π i, π i) → E} (hf : measurable f) {s : finset δ}
-  {x : Π i, π i} :
-  measurable (λ (y : Π i : (s : set δ), π i), f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)) :=
+lemma update'_empty {y} : update' ∅ f x y = f x := rfl
+
+lemma measurable_update_aux :
+  measurable (λ y i, if hi : i ∈ s then y ⟨i, hi⟩ else x i : (Π i : s, π i) → Π i, π i) :=
 begin
-  refine hf.comp _,
   rw measurable_pi_iff, intro i,
   by_cases h : i ∈ s,
   { simp [h, measurable_pi_apply] },
   { simp [h] }
 end
 
+/-- The integrand of `marginal _ _ f` is measurable if `f` is. -/
+lemma _root_.measurable.update' (hf : measurable f) {s : finset δ}
+  {x : Π i, π i} : measurable (update' s f x) :=
+hf.comp measurable_update_aux
+
+/-- The integrand of `marginal _ _ f` is measurable if `f` is. -/
+lemma _root_.measure_theory.strongly_measurable.update'
+  (hf : strongly_measurable f) {s : finset δ} {x : Π i, π i} :
+  strongly_measurable (update' s f x) :=
+hf.comp_measurable measurable_update_aux
+
+-- def update'_comp (h : s ⊆ t) : update' s f x ∘ (λ (z : Π (i : t), π i) i, z ⟨i, h i.2⟩) =
+--   update' t f x :=
+-- begin
+--   ext x,
+--   simp_rw [function.comp, update'],
+--   congr', ext i,
+--   split_ifs; try {refl},
+--   exfalso, exact h_2 (h h_1),
+-- end
+
+/-- `f` is integrable w.r.t. coordinates `xᵢ` where `i ∈ s`. -/
+def integrable_wrt (μ : ∀ i, measure (π i)) (s : finset δ) (f : (Π i, π i) → E) : Prop :=
+strongly_measurable f ∧
+∀ (x : Π i, π i), has_finite_integral (update' s f x) (measure.pi (λ i : s, μ i))
+
+lemma integrable_wrt_empty : integrable_wrt μ ∅ f ↔ strongly_measurable f :=
+begin
+  simp_rw [integrable_wrt, and_iff_left_iff_imp],
+  intros hf x,
+  simp_rw [measure.pi_of_empty (λ i : (∅ : finset δ), μ i)],
+  haveI : measurable_singleton_class (Π i : (∅ : finset δ), π i),
+  { exact subsingleton.measurable_singleton_class },
+  exact has_finite_integral_dirac,
+end
+
+lemma integrable_wrt.integrable_update' (hf : integrable_wrt μ s f) :
+  integrable (update' s f x) (measure.pi (λ i : s, μ i)) :=
+⟨hf.1.update'.ae_strongly_measurable, hf.2 x⟩
+
+/-- Integrate `f(x₁,…,xₙ)` over all variables `xᵢ` where `i ∈ s`. Return a function in the
+  remaining variables (it will be constant in the `xᵢ` for `i ∈ s`).
+  This is the marginal distribution of all variables not in `s`. -/
+def marginal (μ : ∀ i, measure (π i)) (s : finset δ) (f : (Π i, π i) → E) (x : Π i, π i) :
+  E :=
+∫ y : Π i : s, π i, update' s f x y ∂(measure.pi (λ i : s, μ i))
+
 /- Note: this notation is not a binder. This is more convenient since it returns a function. -/
 notation `∫⋯∫_` s `, ` f ` ∂` μ:70 := marginal μ s f
 notation `∫⋯∫_` s `, ` f := marginal volume s f
 
+lemma _root_.measurable.marginal (hf : strongly_measurable f) :
+  strongly_measurable (∫⋯∫_ s, f ∂μ) :=
+begin
+  refine measure_theory.strongly_measurable.integral_prod_right _,
+  sorry
+end
 
 lemma marginal_empty (f : (Π i, π i) → E) : ∫⋯∫_ ∅, f ∂μ = f :=
 begin
   ext x,
   simp_rw [marginal, measure.pi_of_empty (λ i : (∅ : finset δ), μ i)],
-  exact (integral_dirac' _ _ $ subsingleton.strongly_measurable' _).trans (by simp)
+  exact integral_dirac' _ _ (subsingleton.strongly_measurable' _)
 end
 
-lemma marginal_eq {s : finset δ} {x y : Π i, π i} (f : (Π i, π i) → E)
+/-- The marginal distribution is independent of the variables in `s`. -/
+lemma marginal_eq {x y : Π i, π i} (f : (Π i, π i) → E)
   (h : ∀ i ∉ s, x i = y i) : (∫⋯∫_ s, f ∂μ) x = (∫⋯∫_ s, f ∂μ) y :=
-by { dsimp [marginal], rcongr, exact h _ ‹_› }
+by { dsimp [marginal, update'], rcongr, exact h _ ‹_› }
 
 variable (μ)
-lemma marginal_update {s : finset δ} (x : Π i, π i) (f : (Π i, π i) → E) {i : δ} (y : π i)
+lemma marginal_update (x : Π i, π i) (f : (Π i, π i) → E) {i : δ} (y : π i)
   (hi : i ∈ s) : (∫⋯∫_ s, f ∂μ) (function.update x i y) = (∫⋯∫_ s, f ∂μ) x :=
 begin
   refine marginal_eq f (λ j hj, _),
@@ -391,16 +544,45 @@ begin
   apply update_noteq this,
 end
 
-lemma marginal_union (f : (Π i, π i) → E) (hf : measurable f) {s t : finset δ}
+
+lemma marginal_union (f : (Π i, π i) → E) (hf : integrable_wrt μ (s ∪ t) f)
+  (hst : disjoint s t) :
+  ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ s, ∫⋯∫_ t, f ∂μ ∂μ :=
+begin
+  ext x,
+  simp_rw [marginal, update', ← measure.pi_map_left _ (finset_union_equiv_sum s t hst).symm],
+  rw [integral_map, ← measure.pi_sum, integral_map, integral_prod],
+  dsimp only [finset_union_equiv_sum_symm_inl, finset_union_equiv_sum_symm_inr, subtype.coe_mk],
+  congr' 1, ext x, congr' 1, ext y, congr' 1, ext i,
+  by_cases his : i ∈ s; by_cases hit : i ∈ t; simp only [his, hit, dif_pos, dif_neg,
+    finset.mem_union, true_or, false_or, not_false_iff],
+  { exfalso, exact finset.disjoint_left.mp hst his hit },
+  -- this is ugly, but applying lemmas basically doesn't work because of dependent types
+  { change Pi_congr_left (λ (b : ↥(s ∪ t)), π ↑b) (finset_union_equiv_sum s t hst).symm
+      (Pi_sum (λ (i : s ⊕ t), π ↑((finset_union_equiv_sum s t hst).symm i)) (x, y))
+      ((finset_union_equiv_sum s t hst).symm $ sum.inl ⟨i, his⟩) = x ⟨i, his⟩,
+    rw [Pi_congr_left_sum_inl] },
+  { change Pi_congr_left (λ (b : ↥(s ∪ t)), π ↑b) (finset_union_equiv_sum s t hst).symm
+      (Pi_sum (λ (i : s ⊕ t), π ↑((finset_union_equiv_sum s t hst).symm i)) (x, y))
+      ((finset_union_equiv_sum s t hst).symm $ sum.inr ⟨i, hit⟩) = y ⟨i, hit⟩,
+    rw [Pi_congr_left_sum_inr] },
+  -- simp_rw [cast_sum_rec],
+  -- simp only [Pi_congr_left_apply, Pi_sum_apply, dif_neg, not_false_iff],
+  -- dsimp only [equiv.symm_symm],
+
+  -- dsimp only [e, set.union_symm_apply_left],
+  all_goals {sorry},
+end
+
+lemma marginal_union' (f : (Π i, π i) → E) (hf : measurable f) {s t : finset δ}
   (hst : disjoint s t) :
   ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
 begin
-  have : s ∩ t ⊆ ∅, { exact hst.le_bot },
-  let e : (s ∪ t : finset δ) ≃ s ⊕ t :=
-  sorry, --(finset_union s t).trans (equiv.set.union this),
   ext x,
-  simp_rw [marginal, ← measure.pi_map_left _ e.symm],
+  simp_rw [marginal, ← measure.pi_map_left _ (finset_union_equiv_sum s t hst).symm],
   rw [integral_map, ← measure.pi_sum, integral_map, integral_prod],
+  dsimp only [finset_union_equiv_sum_symm_inl, finset_union_equiv_sum_symm_inr, subtype.coe_mk],
+  congr' 1,
   -- dsimp only [e, set.union_symm_apply_left],
   all_goals {sorry},
 
@@ -421,12 +603,10 @@ variable {μ}
 lemma marginal_singleton (f : (Π i, π i) → E) (hf : measurable f) (i : δ) :
   ∫⋯∫_ {i}, f ∂μ = λ x, ∫ xᵢ, f (function.update x i xᵢ) ∂(μ i) :=
 begin
-  letI : unique ({i} : finset δ) := -- maybe remove the double coercion
-  -- by exact_mod_cast set.unique_singleton i,
+  letI : unique ({i} : finset δ) :=
     ⟨⟨⟨i, mem_singleton_self i⟩⟩, λ j, subtype.ext $ mem_singleton.mp j.2⟩,
-  -- have hi : ((default : (({i} : finset δ) : set δ)) : δ) = i := rfl,
   ext x,
-  simp_rw [marginal, measure.pi_unique_left _],
+  simp_rw [marginal, update', measure.pi_unique_left _],
   rw [integral_map],
   congr' with y, congr' with j,
   by_cases hj : j = i,
@@ -441,26 +621,40 @@ lemma integral_update (f : (Π i, π i) → E) (hf : measurable f) (i : δ) (x :
   (∫ xᵢ, f (function.update x i xᵢ) ∂(μ i)) = (∫⋯∫_ {i}, f ∂μ) x :=
 by simp_rw [marginal_singleton f hf i]
 
-lemma marginal_insert (f : (Π i, π i) → E) (hf : measurable f) {i : δ} {s : finset δ}
-  (hi : i ∉ s) :
-  ∫⋯∫_ insert i s, f ∂μ = λ x, ∫ xᵢ, (∫⋯∫_ s, λ x, f (function.update x i xᵢ) ∂μ) x ∂(μ i) :=
-sorry
+-- lemma marginal_insert (f : (Π i, π i) → E) (hf : measurable f) {i : δ}
+--   (hi : i ∉ s) :
+--   ∫⋯∫_ insert i s, f ∂μ = λ x, ∫ xᵢ, (∫⋯∫_ s, λ x, f (function.update x i xᵢ) ∂μ) x ∂(μ i) :=
+-- begin
+--   ext x,
+--   rw [insert_eq, marginal_union, marginal_singleton],
+--   dsimp only,
+-- end
 
-lemma marginal_insert_rev (f : (Π i, π i) → E) (hf : measurable f) {i : δ} {s : finset δ}
+lemma marginal_insert_rev (f : (Π i, π i) → E) (hf : measurable f) {i : δ}
   (hi : i ∉ s) (x : Π i, π i) :
   ∫ xᵢ, (∫⋯∫_ s, f ∂μ) (function.update x i xᵢ) ∂(μ i) = (∫⋯∫_ insert i s, f ∂μ) x :=
-sorry
+begin
+  rw [insert_eq, marginal_union, marginal_singleton],
+  dsimp only,
+end
 
-lemma marginal_mono {f g : (Π i, π i) → ℝ} (hf : measurable f) (hg : measurable g) {s : finset δ}
+open filter
+lemma marginal_mono_of_nonneg {f g : (Π i, π i) → ℝ} (hf : 0 ≤ f) (hg : integrable_wrt μ s g)
   (hfg : f ≤ g) : ∫⋯∫_ s, f ∂μ ≤ ∫⋯∫_ s, g ∂μ :=
-sorry
+λ x, integral_mono_of_nonneg (eventually_of_forall $ λ x, hf _) hg.integrable_update'
+  (eventually_of_forall $ λ y, hfg _)
+
+lemma marginal_mono {f g : (Π i, π i) → ℝ}
+  (hf : integrable_wrt μ s f) (hg : integrable_wrt μ s g) (hfg : f ≤ g) :
+  ∫⋯∫_ s, f ∂μ ≤ ∫⋯∫_ s, g ∂μ :=
+λ x, integral_mono hf.integrable_update' hg.integrable_update' (λ y, hfg _)
 
 lemma marginal_univ [fintype δ] (f : (Π i, π i) → E) :
   ∫⋯∫_ univ, f ∂μ = λ _, ∫ x, f x ∂(measure.pi μ) :=
 begin
   let e : { j // j ∈ univ} ≃ δ := equiv.subtype_univ_equiv mem_univ,
   ext x,
-  simp_rw [marginal, ← measure.pi_map_left μ e],
+  simp_rw [marginal, update', ← measure.pi_map_left μ e],
   rw [integral_map], congr' with y, congr' with i, simp [e], dsimp [e], refl,
   sorry, sorry
 end
@@ -528,8 +722,8 @@ lemma marginal_rhs_aux_empty_le (f : (Π i, π i) → ℝ) (hf : ∀ x, 0 ≤ f 
 begin
   induction s using finset.induction with i s hi ih,
   { rw [marginal_empty], refl', },
-  { have hi' : disjoint s {i} := sorry,
-    conv_lhs { rw [finset.insert_eq, finset.union_comm, marginal_union μ _ sorry hi'] },
+  { have hi' : disjoint {i} s := sorry,
+    conv_lhs { rw [finset.insert_eq, marginal_union μ _ sorry hi'] },
     refine (marginal_mono sorry sorry ih).trans _,
     exact marginal_rhs_aux_le μ f hf s i hi }
 end

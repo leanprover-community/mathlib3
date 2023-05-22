@@ -9,6 +9,9 @@ import measure_theory.constructions.borel_space.basic
 /-!
 # Measurable functions in normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open measure_theory

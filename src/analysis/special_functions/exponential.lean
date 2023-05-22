@@ -224,7 +224,7 @@ Note that since for `x : 𝔹` we have `normed_ring 𝔹` not `normed_comm_ring 
 these results from `has_fderiv_at_exp_of_mem_ball`.
 
 We could deduce them from the more general non-commutive case,
-$$\frac{d}{dt}e^x(t) = \int_0^1 e^{sx(t)} \left(\frac{d}{dt}e^{x(t)}\right) e^{(1-s)x(t)} ds$$
+$$\frac{d}{dt}e^{x(t)} = \int_0^1 e^{sx(t)} \left(\frac{d}{dt}e^{x(t)}\right) e^{(1-s)x(t)} ds$$
 but this is harder to prove, and typically is shown by going via these results first.
 
 TODO: prove this result too!

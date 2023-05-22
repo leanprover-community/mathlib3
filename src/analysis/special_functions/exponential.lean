@@ -237,7 +237,7 @@ variables [complete_space 𝔹]
 lemma has_fderiv_at_exp_smul_const_of_mem_ball
   (x : 𝔹) (t : 𝔸) (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
-    (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
+    (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) t :=
 begin
   have hpos : 0 < (exp_series 𝕂 𝔹).radius := (zero_le _).trans_lt htx,
   rw has_fderiv_at_iff_is_o_nhds_zero,
@@ -245,11 +245,11 @@ begin
     (λ h, exp 𝕂 (t • x) * (exp 𝕂 ((0 + h) • x) - exp 𝕂 ((0 : 𝔸) • x)
       - ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x) h))
     =ᶠ[𝓝 0] (λ h, exp 𝕂 ((t + h) • x) - exp 𝕂 (t • x)
-      - (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) h),
+      - (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) h),
   { refine (is_o.const_mul_left _ _).congr' this (eventually_eq.refl _ _),
     rw ← @has_fderiv_at_iff_is_o_nhds_zero _ _ _ _ _ _ _ _
       (λ u, exp 𝕂 (u • x)) ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x) 0,
-    have : has_fderiv_at (exp 𝕂) (1 : 𝔹 →L[𝕂] 𝔹) (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x) 0),
+    have : has_fderiv_at (exp 𝕂) (1 : 𝔹 →L[𝕂] 𝔹) ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x 0),
     { rw [continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply, zero_smul],
       exact has_fderiv_at_exp_zero_of_radius_pos hpos },
     exact this.comp 0 ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).has_fderiv_at },
@@ -282,7 +282,7 @@ end
 lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball (t : 𝔸) (x : 𝔹)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
-    (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
+    (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) t :=
 let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball (t • x) htx in
 have deriv₁ : has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x)) _ t,
   from hp.has_strict_fderiv_at.comp t
@@ -339,7 +339,7 @@ variables (𝕂)
 
 lemma has_fderiv_at_exp_smul_const (x : 𝔹) (t : 𝔸) :
   has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
-    (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
+    (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) t :=
 has_fderiv_at_exp_smul_const_of_mem_ball 𝕂 _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
@@ -351,7 +351,7 @@ has_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 _ _ $
 
 lemma has_strict_fderiv_at_exp_smul_const (t : 𝔸) (x : 𝔹) :
   has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
-    (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
+    (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) t :=
 has_strict_fderiv_at_exp_smul_const_of_mem_ball 𝕂 _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 

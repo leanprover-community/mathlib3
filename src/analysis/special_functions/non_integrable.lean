@@ -148,3 +148,21 @@ begin
     (A.mono (λ x hx, hx.differentiable_at)) B
     (hf.congr' (A.mono $ λ x hx, hx.deriv.symm) eventually_eq.rfl) hne hc
 end
+
+/-- The function `λ x, (x - c)⁻¹` is integrable on `a..b` if and only if `a = b` or `c ∉ [a, b]`. -/
+@[simp] lemma interval_integrable_sub_inv_iff {a b c : ℝ} :
+  interval_integrable (λ x, (x - c)⁻¹) volume a b ↔ a = b ∨ c ∉ [a, b] :=
+begin
+  split,
+  { refine λ h, or_iff_not_imp_left.2 (λ hne hc, _),
+    exact not_interval_integrable_of_sub_inv_is_O_punctured (is_O_refl _ _) hne hc h },
+  { rintro (rfl|h₀),
+    { exact interval_integrable.refl },
+    refine ((continuous_sub_right c).continuous_on.inv₀ _).interval_integrable,
+    exact λ x hx, sub_ne_zero.2 $ ne_of_mem_of_not_mem hx h₀ }
+end
+
+/-- The function `λ x, x⁻¹` is integrable on `a..b` if and only if `a = b` or `0 ∉ [a, b]`. -/
+@[simp] lemma interval_integrable_inv_iff {a b : ℝ} :
+  interval_integrable (λ x, x⁻¹) volume a b ↔ a = b ∨ (0 : ℝ) ∉ [a, b] :=
+by simp only [← interval_integrable_sub_inv_iff, sub_zero]

@@ -647,7 +647,7 @@ theorem eq_on_of_fderiv_within_eq (hs : convex ℝ s)
 begin
   intros y hy,
   suffices : f x - g x = f y - g y,
-  { by rwa [hfgx, sub_self, eq_comm, sub_eq_zero] at this },
+  { rwa [hfgx, sub_self, eq_comm, sub_eq_zero] at this },
   refine hs.is_const_of_fderiv_within_eq_zero (hf.sub hg) _ hx hy,
   intros z hz,
   rw [fderiv_within_sub (hs' _ hz) (hf _ hz) (hg _ hz), sub_eq_zero, hf' _ hz],

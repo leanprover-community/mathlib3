@@ -355,17 +355,20 @@ end
 /-- Conditional kernel of a measure on a product space: a Markov kernel such that
 `ρ = ((kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel)) ()`
 (see `probability_theory.measure_eq_comp_prod`). -/
-noncomputable
+@[irreducible] noncomputable
 def _root_.measure_theory.measure.cond_kernel : kernel α Ω :=
 (exists_cond_kernel ρ unit).some
 
+lemma cond_kernel_def : ρ.cond_kernel = (exists_cond_kernel ρ unit).some :=
+by rw measure_theory.measure.cond_kernel
+
 instance : is_markov_kernel ρ.cond_kernel :=
-(exists_cond_kernel ρ unit).some_spec.some
+by { rw cond_kernel_def, exact (exists_cond_kernel ρ unit).some_spec.some, }
 
 lemma kernel.const_unit_eq_comp_prod :
   kernel.const unit ρ
     = (kernel.const unit ρ.fst) ⊗ₖ (kernel.prod_mk_left unit ρ.cond_kernel) :=
-(exists_cond_kernel ρ unit).some_spec.some_spec
+by { simp_rw cond_kernel_def, exact (exists_cond_kernel ρ unit).some_spec.some_spec, }
 
 /-- **Disintegration** of finite product measures on `α × Ω`, where `Ω` is Polish Borel. Such a
 measure can be written as the composition-product of the constant kernel with value `ρ.fst`

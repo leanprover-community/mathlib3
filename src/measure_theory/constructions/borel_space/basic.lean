@@ -19,6 +19,9 @@ import topology.semicontinuous
 /-!
 # Borel (measurable) space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `borel α` : the least `σ`-algebra that contains all open sets;

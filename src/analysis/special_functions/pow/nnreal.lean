@@ -9,6 +9,9 @@ import analysis.special_functions.pow.real
 /-!
 # Power function on `ℝ≥0` and `ℝ≥0∞`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the power functions `x ^ y` where
 * `x` is a nonnegative real number and `y` is a real number;
 * `x` is a number from `[0, +∞]` (a.k.a. `ℝ≥0∞`) and `y` is a real number.

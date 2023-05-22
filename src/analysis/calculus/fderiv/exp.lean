@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2023 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Eric Wieser
+Authors: Eric Wieser, Anatole Dedecker
 -/
 import measure_theory.integral.fund_thm_calculus
 import analysis.normed_space.exponential
@@ -14,7 +14,100 @@ import analysis.calculus.fderiv_symmetric
 
 This follows https://physics.stackexchange.com/a/41671/185147. -/
 
-variables {𝔸 𝔹 : Type*}
+variables {𝕂 𝔸 𝔹 : Type*}
+
+open_locale topology
+open asymptotics filter
+
+section
+
+lemma has_fderiv_at_exp_smul_const_of_mem_ball
+  [nontrivially_normed_field 𝕂] [char_zero 𝕂]
+  [normed_comm_ring 𝔸] [normed_comm_ring 𝔹]
+  [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
+  [complete_space 𝔸] [complete_space 𝔹]
+  [algebra 𝔹 𝔸] [has_continuous_smul 𝔹 𝔸] [is_scalar_tower 𝕂 𝔹 𝔸]
+  (x : 𝔸) (t : 𝔹) (htx : t • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  has_fderiv_at (λ (u : 𝔹), exp 𝕂 (u • x))
+    (exp 𝕂 (t • x) • ((1 : 𝔹 →L[𝕂] 𝔹).smul_right x)) t :=
+begin
+  have hpos : 0 < (exp_series 𝕂 𝔸).radius := (zero_le _).trans_lt htx,
+  rw has_fderiv_at_iff_is_o_nhds_zero,
+  suffices :
+    (λ h, exp 𝕂 (t • x) * (exp 𝕂 ((0 + h) • x) - exp 𝕂 ((0 : 𝔹) • x)
+      - ((1 : 𝔹 →L[𝕂] 𝔹).smul_right x) h))
+    =ᶠ[𝓝 0] (λ h, exp 𝕂 ((t + h) • x) - exp 𝕂 (t • x)
+      - (exp 𝕂 (t • x) • ((1 : 𝔹 →L[𝕂] 𝔹).smul_right x)) h),
+  { refine (is_o.const_mul_left _ _).congr' this (eventually_eq.refl _ _),
+    rw ← @has_fderiv_at_iff_is_o_nhds_zero _ _ _ _ _ _ _ _
+      (λ u, exp 𝕂 (u • x)) ((1 : 𝔹 →L[𝕂] 𝔹).smul_right x) 0,
+    have : has_fderiv_at (exp 𝕂) (1 : 𝔸 →L[𝕂] 𝔸) (((1 : 𝔹 →L[𝕂] 𝔹).smul_right x) 0),
+    { rw [continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply, zero_smul],
+      exact has_fderiv_at_exp_zero_of_radius_pos hpos },
+    exact this.comp 0 ((1 : 𝔹 →L[𝕂] 𝔹).smul_right x).has_fderiv_at },
+  have : tendsto (λ h : 𝔹, h • x) (𝓝 0) (𝓝 0),
+  { rw ← zero_smul 𝔹 x,
+    exact tendsto_id.smul_const x },
+  have : ∀ᶠ h in 𝓝 (0 : 𝔹), h • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius :=
+    this.eventually (emetric.ball_mem_nhds _ hpos),
+  filter_upwards [this],
+  intros h hh,
+  have : commute (t • x) (h • x) := ((commute.refl x).smul_left t).smul_right h,
+  rw [add_smul t h, exp_add_of_commute_of_mem_ball this htx hh, zero_add, zero_smul, exp_zero,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
+      continuous_linear_map.smul_apply, continuous_linear_map.smul_right_apply,
+      continuous_linear_map.one_apply, smul_eq_mul, mul_sub_left_distrib, mul_sub_left_distrib,
+      mul_one],
+end
+.
+#check asymptotics.is_o.congr'
+.
+#check @is_o.mul
+
+lemma has_fderiv_at_exp_smul_const_of_mem_ball'
+  [nontrivially_normed_field 𝕂] [char_zero 𝕂]
+  [normed_comm_ring 𝔸] [normed_comm_ring 𝔹]
+  [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
+  [complete_space 𝔸] [complete_space 𝔹] [algebra 𝔹 𝔸]
+  [has_continuous_smul 𝔹 𝔸] [is_scalar_tower 𝕂 𝔹 𝔸]
+  (x : 𝔸) (t : 𝔹) (htx : t • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  has_fderiv_at (λ (u : 𝔹), exp 𝕂 (u • x))
+    (((1 : 𝔹 →L[𝕂] 𝔹).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
+begin
+  have hpos : 0 < (exp_series 𝕂 𝔸).radius := (zero_le _).trans_lt htx,
+  rw has_fderiv_at_iff_is_o_nhds_zero,
+  suffices :
+    (λ h, (exp 𝕂 ((0 + h) • x) - exp 𝕂 ((0 : 𝔹) • x)
+      - ((1 : 𝔹 →L[𝕂] 𝔹).smul_right x) h) * exp 𝕂 (t • x))
+    =ᶠ[𝓝 0] (λ h, exp 𝕂 ((t + h) • x) - exp 𝕂 (t • x)
+      - (((1 : 𝔹 →L[𝕂] 𝔹).smul_right x).smul_right (exp 𝕂 (t • x))) h),
+  { refine asymptotics.is_o.congr' _ this (eventually_eq.refl _ _),
+    conv { congr, skip, skip, funext, rw ←one_mul h },
+    refine (is_o.mul _ _), --this (eventually_eq.refl _ _),
+    rw ← @has_fderiv_at_iff_is_o_nhds_zero _ _ _ _ _ _ _ _
+      (λ u, exp 𝕂 (u • x)) ((1 : 𝔹 →L[𝕂] 𝔹).smul_right x) 0,
+    have : has_fderiv_at (exp 𝕂) (1 : 𝔸 →L[𝕂] 𝔸) (((1 : 𝔹 →L[𝕂] 𝔹).smul_right x) 0),
+    { rw [continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply, zero_smul],
+      exact has_fderiv_at_exp_zero_of_radius_pos hpos },
+    exact this.comp 0 ((1 : 𝔹 →L[𝕂] 𝔹).smul_right x).has_fderiv_at },
+  have : tendsto (λ h : 𝔹, h • x) (𝓝 0) (𝓝 0),
+  { rw ← zero_smul 𝔹 x,
+    exact tendsto_id.smul_const x },
+  have : ∀ᶠ h in 𝓝 (0 : 𝔹), h • x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius :=
+    this.eventually (emetric.ball_mem_nhds _ hpos),
+  filter_upwards [this],
+  intros h hh,
+  have : commute (t • x) (h • x) := ((commute.refl x).smul_left t).smul_right h,
+  rw [add_smul t h, exp_add_of_commute_of_mem_ball this htx hh, zero_add, zero_smul, exp_zero,
+      continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
+      continuous_linear_map.smul_apply, continuous_linear_map.smul_right_apply,
+      continuous_linear_map.one_apply, smul_eq_mul, mul_sub_left_distrib, mul_sub_left_distrib,
+      mul_one],
+end
+
+
+end
+
 variables [normed_ring 𝔸] [normed_algebra ℝ 𝔸] [complete_space 𝔸]
 
 -- to make the goal view readable

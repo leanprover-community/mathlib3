@@ -207,6 +207,23 @@ instance [distrib_mul_action Sᵐᵒᵖ N] [is_central_scalar S N] :
 
 end has_smul
 
+def prod {N'} [add_comm_monoid N'] [module R N'] (f : alternating_map R M N ι)
+  (g : alternating_map R M N' ι) : alternating_map R M (N × N') ι :=
+{ map_eq_zero_of_eq' := λ v i j h hne, prod.ext (f.map_eq_zero_of_eq _ h hne)
+    (g.map_eq_zero_of_eq _ h hne),
+  .. f.to_multilinear_map.prod g.to_multilinear_map }
+
+def pi {α : Type*} {N : α → Type*} [∀ a, add_comm_monoid (N a)] [∀ a, module R (N a)]
+  (f : ∀ a, alternating_map R M (N a) ι) : alternating_map R M (∀ a, N a) ι :=
+{ map_eq_zero_of_eq' := λ v i j h hne, funext $ λ a, (f a).map_eq_zero_of_eq _ h hne,
+  .. multilinear_map.pi (λ a, (f a).to_multilinear_map) }
+
+def smul_right {R M₁ M₂ ι : Type*} [comm_semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂]
+  (f : alternating_map R M₁ R ι) (z : M₂) : alternating_map R M₁ M₂ ι :=
+{ map_eq_zero_of_eq' := λ v i j h hne, by simp [f.map_eq_zero_of_eq v h hne],
+  .. f.to_multilinear_map.smul_right z }
+
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
   { map_eq_zero_of_eq' :=
@@ -292,6 +309,8 @@ def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R M M ι :=
 { to_fun := function.eval i,
   map_eq_zero_of_eq' := λ v i j hv hij, (hij $ subsingleton.elim _ _).elim,
   ..multilinear_map.of_subsingleton R M i }
+
+variable (ι)
 
 /-- The constant map is alternating when `ι` is empty. -/
 @[simps {fully_applied := ff}]
@@ -1052,7 +1071,7 @@ end
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] :
   N'' ≃ₗ[R'] alternating_map R' M'' N'' ι :=
-{ to_fun    := alternating_map.const_of_is_empty R' M'',
+{ to_fun    := alternating_map.const_of_is_empty R' M'' ι,
   map_add'  := λ x y, rfl,
   map_smul' := λ t x, rfl,
   inv_fun   := λ f, f 0,

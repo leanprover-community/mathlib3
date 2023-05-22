@@ -181,7 +181,7 @@ alternating form uniquely defined by compatibility with the orientation and inne
 begin
   classical,
   unfreezingI { cases n },
-  { let opos : alternating_map ℝ E ℝ (fin 0) := alternating_map.const_of_is_empty ℝ E (1:ℝ),
+  { let opos : alternating_map ℝ E ℝ (fin 0) := alternating_map.const_of_is_empty (fin 0) ℝ E (1:ℝ),
     exact o.eq_or_eq_neg_of_is_empty.by_cases (λ _, opos) (λ _, -opos) },
   { exact (o.fin_orthonormal_basis n.succ_pos _i.out).to_basis.det }
 end

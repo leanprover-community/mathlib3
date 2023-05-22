@@ -170,8 +170,8 @@ numbers `a` and `b` such that `-1` is a square modulo `b`. -/
 lemma nat.eq_sq_add_sq_iff_eq_sq_mul {n : ℕ} :
   (∃ x y : ℕ, n = x ^ 2 + y ^ 2) ↔ ∃ a b : ℕ, n = a ^ 2 * b ∧ is_square (-1 : zmod b) :=
 begin
-  split; intro H,
-  { obtain ⟨x, y, h⟩ := H,
+  split,
+  { rintros ⟨x, y, h⟩,
     by_cases hxy : x = 0 ∧ y = 0,
     { exact ⟨0, 1, by rw [h, hxy.1, hxy.2, zero_pow zero_lt_two, add_zero, zero_mul],
              ⟨0, by rw [zero_mul, neg_eq_zero, fin.one_eq_zero_iff]⟩⟩, },
@@ -179,7 +179,7 @@ begin
       obtain ⟨g, x₁, y₁, h₁, h₂, h₃, h₄⟩ := nat.exists_coprime' hg,
       exact ⟨g, x₁ ^ 2 + y₁ ^ 2, by {rw [h, h₃, h₄], ring},
              zmod.is_square_neg_one_of_eq_sq_add_sq_of_coprime rfl h₂⟩, } },
-  { obtain ⟨a, b, h₁, h₂⟩ := H,
+  { rintros ⟨a, b, h₁, h₂⟩,
     obtain ⟨x', y', h⟩ := nat.eq_sq_add_sq_of_is_square_mod_neg_one h₂,
     exact ⟨a * x', a * y', by {rw [h₁, h], ring}⟩, }
 end

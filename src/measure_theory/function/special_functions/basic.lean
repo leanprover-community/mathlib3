@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 
 import analysis.special_functions.pow.nnreal
-import data.is_R_or_C.lemmas
 import measure_theory.constructions.borel_space.complex
 
 /-!
@@ -77,16 +76,6 @@ measurable.ite (is_closed_le continuous_const continuous_re).measurable_set A $
 
 end complex
 
-namespace is_R_or_C
-
-variables {𝕜 : Type*} [is_R_or_C 𝕜]
-
-@[measurability] lemma measurable_re : measurable (re : 𝕜 → ℝ) := continuous_re.measurable
-
-@[measurability] lemma measurable_im : measurable (im : 𝕜 → ℝ) := continuous_im.measurable
-
-end is_R_or_C
-
 section real_composition
 open real
 variables {α : Type*} {m : measurable_space α} {f : α → ℝ} (hf : measurable f)
@@ -141,63 +130,6 @@ measurable_log.comp hf
 
 end complex_composition
 
-section is_R_or_C_composition
-
-variables {α 𝕜 : Type*} [is_R_or_C 𝕜] {m : measurable_space α}
-  {f : α → 𝕜} {μ : measure_theory.measure α}
-
-include m
-
-@[measurability] lemma measurable.re (hf : measurable f) : measurable (λ x, is_R_or_C.re (f x)) :=
-is_R_or_C.measurable_re.comp hf
-
-@[measurability] lemma ae_measurable.re (hf : ae_measurable f μ) :
-  ae_measurable (λ x, is_R_or_C.re (f x)) μ :=
-is_R_or_C.measurable_re.comp_ae_measurable hf
-
-@[measurability] lemma measurable.im (hf : measurable f) : measurable (λ x, is_R_or_C.im (f x)) :=
-is_R_or_C.measurable_im.comp hf
-
-@[measurability] lemma ae_measurable.im (hf : ae_measurable f μ) :
-  ae_measurable (λ x, is_R_or_C.im (f x)) μ :=
-is_R_or_C.measurable_im.comp_ae_measurable hf
-
-omit m
-
-end is_R_or_C_composition
-
-section
-
-variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α]
-  {f : α → 𝕜} {μ : measure_theory.measure α}
-
-@[measurability] lemma is_R_or_C.measurable_of_real : measurable (coe : ℝ → 𝕜) :=
-is_R_or_C.continuous_of_real.measurable
-
-lemma measurable_of_re_im
-  (hre : measurable (λ x, is_R_or_C.re (f x)))
-  (him : measurable (λ x, is_R_or_C.im (f x))) : measurable f :=
-begin
-  convert (is_R_or_C.measurable_of_real.comp hre).add
-    ((is_R_or_C.measurable_of_real.comp him).mul_const is_R_or_C.I),
-  { ext1 x,
-    exact (is_R_or_C.re_add_im _).symm },
-  all_goals { apply_instance },
-end
-
-lemma ae_measurable_of_re_im
-  (hre : ae_measurable (λ x, is_R_or_C.re (f x)) μ)
-  (him : ae_measurable (λ x, is_R_or_C.im (f x)) μ) : ae_measurable f μ :=
-begin
-  convert (is_R_or_C.measurable_of_real.comp_ae_measurable hre).add
-    ((is_R_or_C.measurable_of_real.comp_ae_measurable him).mul_const is_R_or_C.I),
-  { ext1 x,
-    exact (is_R_or_C.re_add_im _).symm },
-  all_goals { apply_instance },
-end
-
-end
-
 section pow_instances
 
 instance complex.has_measurable_pow : has_measurable_pow ℂ ℂ :=
@@ -230,3 +162,4 @@ end pow_instances
 -- Guard against import creep:
 assert_not_exists inner_product_space
 assert_not_exists real.arctan
+assert_not_exists finite_dimensional.proper

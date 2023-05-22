@@ -5,8 +5,8 @@ Authors: Yury Kudryashov
 -/
 import analysis.convex.between
 import measure_theory.constructions.borel_space.basic
-import measure_theory.measure.lebesgue
-import measure_theory.measure.haar_of_inner
+import measure_theory.measure.haar.inner_product_space
+import measure_theory.measure.lebesgue.basic
 import topology.metric_space.holder
 import topology.metric_space.metric_separated
 

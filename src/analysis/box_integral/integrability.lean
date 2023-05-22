@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
+import measure_theory.integral.set_integral
 import measure_theory.measure.regular
 
 /-!

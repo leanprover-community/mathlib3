@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
 
-import measure_theory.measure.haar
+import measure_theory.measure.haar.basic
 import measure_theory.group.fundamental_domain
 import algebra.group.opposite
 

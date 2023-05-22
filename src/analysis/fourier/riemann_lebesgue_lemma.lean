@@ -60,10 +60,14 @@ variables [normed_add_comm_group V] [measurable_space V] [borel_space V]
 lemma fourier_integrand_integrable (w : V) :
   integrable f ↔ integrable (λ v : V, e [-⟪v, w⟫] • f v) :=
 begin
-  have hL : continuous (λ p : V × V, bilin_form_of_real_inner.to_lin p.1 p.2) := continuous_inner,
+  have hL : continuous (λ p : V × V, innerₛₗ ℝ p.1 p.2) := continuous_inner,
+  -- TODO: remove the continuity assumption from `vector_fourier.fourier_integral_convergent_iff`
   rw vector_fourier.fourier_integral_convergent_iff real.continuous_fourier_char hL w,
-  { simp only [bilin_form.to_lin_apply, bilin_form_of_real_inner_apply] },
+  { simp only [innerₛₗ_apply] },
   { apply_instance },
+  -- Porting note: proof is just
+  -- `exact vector_fourier.fourier_integral_convergent_iff real.continuous_fourier_char hL w`
+  -- but this elaborates very slowly in mathlib3
 end
 
 variables [complete_space E]
@@ -212,8 +216,7 @@ begin
     simp_rw [←integral_sub ((fourier_integrand_integrable w).mp hfi)
       ((fourier_integrand_integrable w).mp (hg_cont.integrable_of_has_compact_support hg_supp)),
       ←smul_sub, ←pi.sub_apply],
-    exact vector_fourier.norm_fourier_integral_le_integral_norm e volume
-      bilin_form_of_real_inner.to_lin (f - g) w },
+    exact vector_fourier.norm_fourier_integral_le_integral_norm e volume (innerₛₗ ℝ) (f - g) w },
   replace := add_lt_add_of_le_of_lt this hI,
   rw add_halves at this,
   refine ((le_of_eq _).trans (norm_add_le _ _)).trans_lt this,

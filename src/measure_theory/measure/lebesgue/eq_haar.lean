@@ -71,6 +71,25 @@ set_like.coe_injective $ begin
   { exact zero_le_one },
 end
 
+/-- A parallelepiped can be exressed on the standard basis -/
+lemma basis.parallelepiped_eq_map {ι M : Type*} [fintype ι] [normed_add_comm_group M]
+  [normed_space ℝ M] (b : basis ι ℝ M) :
+  b.parallelepiped = (topological_space.positive_compacts.pi_Icc01 ι).map b.equiv_fun.symm
+    b.equiv_funL.symm.continuous
+    (by haveI := finite_dimensional.of_fintype_basis b; exact
+      b.equiv_funL.symm.to_linear_map.is_open_map_of_finite_dimensional
+        b.equiv_fun.symm.surjective) :=
+begin
+  rw ← basis.parallelepiped_basis_fun,
+  refine (congr_arg _ _).trans (basis.parallelepiped_map _ _),
+  ext i,
+  rw [basis.map_apply, basis.apply_eq_iff],
+  ext j,
+  classical,
+  rw [←basis.coord_apply b, basis.coord_equiv_fun_symm, pi.basis_fun_apply],
+  refl,
+end
+
 namespace measure_theory
 
 open measure topological_space.positive_compacts finite_dimensional

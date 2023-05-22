@@ -72,23 +72,28 @@ end
 lemma euclidean_space.volume_preserving_pi_Lp_equiv (ι : Type*) [fintype ι] :
   measure_preserving (pi_Lp.equiv _ _) (volume : measure (euclidean_space ℝ ι)) volume :=
 begin
-  let b : orthonormal_basis ι ℝ (euclidean_space ℝ ι),
-  { classical,
-    refine (pi_Lp.basis_fun 2 ℝ ι).to_orthonormal_basis ⟨λ i, _, λ i j hij, _⟩,
-    simp [pi_Lp.basis_fun_apply], },
-  -- have : fact (finrank ℝ (euclidean_space ℝ ι) = fintype.card ι) := ⟨_⟩
-  -- let o : orientation ℝ (euclidean_space ℝ ι) (fin $ fintype.card ι) :=
-  --   orientation.map _ (pi_Lp.linear_equiv 2 ℝ (λ _, ℝ)).symm _,
-  -- rw ←o.measure_eq_volume,
-  -- change measure_preserving (euclidean_space.measurable_equiv ι) _ _,
-  -- refine ⟨measurable_equiv.measurable _, _⟩,
-  -- rw ←add_haar_measure_eq_volume_pi,
-  -- ext1 s hs,
-  -- rw measure.map_apply (measurable_equiv.measurable _) hs,
-  -- rw [(show ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.continuous_linear_equiv _ ℝ _, from rfl)],
-  -- -- rw [add_haar_preimage_continuous_linear_equiv, pi_Lp.continuous_linear_equiv_to_linear_equiv,
-  -- --   pi_Lp.det_linear_equiv, units.coe_one, inv_one, abs_one, ennreal.of_real_one, one_mul],
-  -- -- congr' 1,
+  let b : orthonormal_basis ι ℝ (euclidean_space ℝ ι) := default,
+  haveI : fact (finrank ℝ (euclidean_space ℝ ι) = fintype.card ι) := ⟨finrank_euclidean_space⟩,
+  classical,
+  obtain ⟨ιe⟩ := fintype.trunc_equiv_fin ι,
+  let o : orientation ℝ (euclidean_space ℝ ι) (fin $ fintype.card ι) :=
+    basis.orientation ((pi_Lp.basis_fun 2 _ _).reindex ιe),
+    -- orientation.map _ (pi_Lp.linear_equiv 2 ℝ (λ _, ℝ)).symm
+    --   (orientation.comp _ _),
+  rw ←o.measure_eq_volume,
+  change measure_preserving (euclidean_space.measurable_equiv ι) _ _,
+  refine ⟨measurable_equiv.measurable _, _⟩,
+  rw ←add_haar_measure_eq_volume_pi,
+  ext1 s hs,
+  rw measure.map_apply (measurable_equiv.measurable _) hs,
+  rw [(show ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.continuous_linear_equiv _ ℝ _, from rfl)],
+  dsimp [measure_space_of_inner_product_space, o, basis.orientation],
+  simp_rw basis.det_reindex,
+  sorry,
+  sorry,
+  -- rw [add_haar_preimage_continuous_linear_equiv, pi_Lp.continuous_linear_equiv_to_linear_equiv,
+  --   pi_Lp.det_linear_equiv, units.coe_one, inv_one, abs_one, ennreal.of_real_one, one_mul],
+  -- congr' 1,
 end
 
 #check basis.to_orthonormal_basis

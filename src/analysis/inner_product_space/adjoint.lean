@@ -205,21 +205,9 @@ instance : cstar_ring (E →L[𝕜] E) :=
             : by rw [mul_assoc, real.sqrt_mul (norm_nonneg _), real.sqrt_mul_self (norm_nonneg _)] }
 end⟩
 
-section real
-
-variables {E' : Type*} {F' : Type*}
-variables [normed_add_comm_group E'] [normed_add_comm_group F']
-variables [inner_product_space ℝ E'] [inner_product_space ℝ F']
-variables [complete_space E'] [complete_space F']
-
--- Todo: Generalize this to `is_R_or_C`.
-lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
-  linear_map.is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
-  (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A (A†) :=
-λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left, to_linear_map_eq_coe,
-  coe_coe]
-
-end real
+lemma is_adjoint_pair_innerₛₗ (A : E →L[𝕜] F) :
+  (@innerₛₗ 𝕜 E _ _ _).flip.is_adjoint_pair (@innerₛₗ 𝕜 F _ _ _).flip A (A†) :=
+λ _ _, by simp only [adjoint_inner_left, coe_coe, linear_map.flip_apply, innerₛₗ_apply]
 
 end continuous_linear_map
 
@@ -403,20 +391,9 @@ lemma is_symmetric_iff_is_self_adjoint (A : E →ₗ[𝕜] E) :
   is_symmetric A ↔ is_self_adjoint A :=
 by { rw [is_self_adjoint_iff', is_symmetric, ← linear_map.eq_adjoint_iff], exact eq_comm }
 
-section real
-
-variables {E' : Type*} {F' : Type*}
-variables [normed_add_comm_group E'] [normed_add_comm_group F']
-variables [inner_product_space ℝ E'] [inner_product_space ℝ F']
-variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
-
--- Todo: Generalize this to `is_R_or_C`.
-lemma is_adjoint_pair_inner (A : E' →ₗ[ℝ] F') :
-  is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
-  (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A A.adjoint :=
-λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left]
-
-end real
+lemma is_adjoint_pair_innerₛₗ (A : E →ₗ[𝕜] F) :
+  (@innerₛₗ 𝕜 E _ _ _).flip.is_adjoint_pair (@innerₛₗ 𝕜 F _ _ _).flip A A.adjoint :=
+λ _ _, by simp only [adjoint_inner_left, coe_coe, linear_map.flip_apply, innerₛₗ_apply]
 
 /-- The Gram operator T†T is symmetric. -/
 lemma is_symmetric_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_symmetric (T.adjoint * T) :=

@@ -14,12 +14,12 @@ import analysis.calculus.fderiv_symmetric
 
 This follows https://physics.stackexchange.com/a/41671/185147. -/
 
-variables {𝕂 𝕃 𝔸 𝔹 : Type*}
+variables {𝕂 𝔸 𝔹 : Type*}
 
 open_locale topology
 open asymptotics filter
 
-section
+section mem_ball
 variables [nontrivially_normed_field 𝕂] [char_zero 𝕂]
 variables [normed_comm_ring 𝔸] [normed_ring 𝔹]
 variables [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹] [algebra 𝔸 𝔹] [has_continuous_smul 𝔸 𝔹]
@@ -28,7 +28,7 @@ variables [complete_space 𝔹]
 
 lemma has_fderiv_at_exp_smul_const_of_mem_ball
   (x : 𝔹) (t : 𝔸) (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
-  has_fderiv_at (λ (u : 𝔸), exp 𝕂 (u • x))
+  has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
 begin
   have hpos : 0 < (exp_series 𝕂 𝔹).radius := (zero_le _).trans_lt htx,
@@ -62,7 +62,7 @@ end
 
 lemma has_fderiv_at_exp_smul_const_of_mem_ball'
   (x : 𝔹) (t : 𝔸) (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
-  has_fderiv_at (λ (u : 𝔸), exp 𝕂 (u • x))
+  has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
 begin
   convert has_fderiv_at_exp_smul_const_of_mem_ball _ _ htx using 1,
@@ -71,7 +71,52 @@ begin
   exact (((commute.refl x).smul_left t').smul_right t).exp_right 𝕂,
 end
 
+lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball (t : 𝔸) (x : 𝔹)
+  (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
+  has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
+    (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
+let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball (t • x) htx in
+have deriv₁ : has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x)) _ t,
+  from hp.has_strict_fderiv_at.comp t
+    ((continuous_linear_map.id 𝕂 𝔸).smul_right x).has_strict_fderiv_at,
+have deriv₂ : has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x)) _ t,
+  from has_fderiv_at_exp_smul_const_of_mem_ball x t htx,
+(deriv₁.has_fderiv_at.unique deriv₂) ▸ deriv₁
+
+lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball' (t : 𝔸) (x : 𝔹)
+  (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
+  has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
+    (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
+let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball (t • x) htx in
+begin
+  convert has_strict_fderiv_at_exp_smul_const_of_mem_ball _ _ htx using 1,
+  ext t',
+  show commute (t' • x) (exp 𝕂 (t • x)),
+  exact (((commute.refl x).smul_left t').smul_right t).exp_right 𝕂,
 end
+
+lemma has_strict_deriv_at_exp_smul_const_of_mem_ball (t : 𝕂) (x : 𝔹)
+  (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
+  has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
+by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball t x htx).has_strict_deriv_at
+
+
+lemma has_strict_deriv_at_exp_smul_const_of_mem_ball' (t : 𝕂) (x : 𝔹)
+  (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
+  has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
+by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball' t x htx).has_strict_deriv_at
+
+lemma has_deriv_at_exp_smul_const_of_mem_ball (t : 𝕂) (x : 𝔹)
+  (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
+  has_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
+(has_strict_deriv_at_exp_smul_const_of_mem_ball t x htx).has_deriv_at
+
+lemma has_deriv_at_exp_smul_const_of_mem_ball' (t : 𝕂) (x : 𝔹)
+  (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
+  has_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
+(has_strict_deriv_at_exp_smul_const_of_mem_ball' t x htx).has_deriv_at
+
+end mem_ball
 
 variables [normed_ring 𝔸] [normed_algebra ℝ 𝔸] [complete_space 𝔸]
 

@@ -12,6 +12,9 @@ import algebra.gcd_monoid.basic
 
 # Chains of divisors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The results in this file show that in the monoid `associates M` of a `unique_factorization_monoid`
 `M`, an element `a` is an n-th prime power iff its set of divisors is a strictly increasing chain
 of length `n + 1`, meaning that we can find a strictly increasing bijection between `fin (n + 1)`

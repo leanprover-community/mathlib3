@@ -3,7 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Alex Kontorovich, Heather Macbeth
 -/
-import measure_theory.measure.haar_quotient
+import measure_theory.measure.lebesgue.eq_haar
+import measure_theory.measure.haar.quotient
 import measure_theory.integral.interval_integral
 import topology.algebra.order.floor
 
@@ -28,6 +29,15 @@ open set function measure_theory measure_theory.measure topological_space add_su
 open_locale measure_theory nnreal ennreal
 
 local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
+
+noncomputable instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
+borel (add_circle a)
+
+instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
+
+@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
+  measurable (coe : ℝ → add_circle a) :=
+continuous.measurable $ add_circle.continuous_mk' a
 
 lemma is_add_fundamental_domain_Ioc {T : ℝ} (hT : 0 < T) (t : ℝ) (μ : measure ℝ . volume_tac) :
   is_add_fundamental_domain (add_subgroup.zmultiples T) (Ioc t (t + T)) μ :=
@@ -107,7 +117,7 @@ begin
   { simp [hε, min_eq_left (by linarith : T ≤ 2 * ε)], },
 end
 
-instance : is_doubling_measure (volume : measure (add_circle T)) :=
+instance : is_unif_loc_doubling_measure (volume : measure (add_circle T)) :=
 begin
   refine ⟨⟨real.to_nnreal 2, filter.eventually_of_forall $ λ ε x, _⟩⟩,
   simp only [volume_closed_ball],

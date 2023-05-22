@@ -10,6 +10,9 @@ import linear_algebra.finsupp_vector_space
 
 /-!
 # The category of `R`-modules has enough projectives.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes v u

@@ -5,6 +5,8 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
+import analysis.calculus.deriv
+import measure_theory.constructions.prod.integral
 import measure_theory.integral.interval_integral
 
 /-!
@@ -407,7 +409,7 @@ begin
   { simp only [uIcc_of_le hab, min_eq_left hab, max_eq_right hab] at *,
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi },
   { simp only [uIcc_of_ge hab, min_eq_right hab, max_eq_left hab] at *,
-    rw [interval_integral.integral_symm, neg_eq_iff_neg_eq, neg_sub, eq_comm],
+    rw [interval_integral.integral_symm, neg_eq_iff_eq_neg, neg_sub],
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi.symm }
 end
 

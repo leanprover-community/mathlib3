@@ -10,6 +10,9 @@ import tactic.positivity
 /-!
 # Square root of a real number
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `nnreal.sqrt` to be the square root of a nonnegative real number.

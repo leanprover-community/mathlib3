@@ -85,7 +85,7 @@ private meta def eval_simp : tactic unit :=
 
 private meta def C_simp : tactic unit := `[simp only [C_0, C_1, C_neg, C_add, C_sub, C_mul, C_pow]]
 
-universes u v
+universes u v w
 
 variable {R : Type u}
 
@@ -180,11 +180,12 @@ by { dsimp, ring1 }
 
 end variable_change
 
+variables (A : Type v) [comm_ring A] [algebra R A] (B : Type w) [comm_ring B] [algebra R B]
+  [algebra A B] [is_scalar_tower R A B]
+
 section base_change
 
 /-! ### Base changes -/
-
-variables (A : Type v) [comm_ring A] [algebra R A]
 
 /-- The Weierstrass curve over `R` base changed to `A`. -/
 @[simps] def base_change : weierstrass_curve A :=
@@ -212,6 +213,11 @@ by { simp only [c₆, base_change_b₂, base_change_b₄, base_change_b₆], map
 
 @[simp, nolint simp_nf] lemma base_change_Δ : (W.base_change A).Δ = algebra_map R A W.Δ :=
 by { simp only [Δ, base_change_b₂, base_change_b₄, base_change_b₆, base_change_b₈], map_simp }
+
+lemma base_change_self : W.base_change R = W := by ext; refl
+
+lemma base_change_base_change : (W.base_change A).base_change B = W.base_change B :=
+by ext; exact (is_scalar_tower.algebra_map_apply R A B _).symm
 
 end base_change
 
@@ -321,6 +327,20 @@ begin
   ring1
 end
 
+lemma equation_iff_base_change [nontrivial A] [no_zero_smul_divisors R A] (x y : R) :
+  W.equation x y ↔ (W.base_change A).equation (algebra_map R A x) (algebra_map R A y) :=
+begin
+  simp only [equation_iff],
+  refine ⟨λ h, _, λ h, _⟩,
+  { convert congr_arg (algebra_map R A) h; { map_simp, refl } },
+  { apply no_zero_smul_divisors.algebra_map_injective R A, map_simp, exact h }
+end
+
+lemma equation_iff_base_change_of_base_change [nontrivial B] [no_zero_smul_divisors A B] (x y : A) :
+  (W.base_change A).equation x y
+    ↔ (W.base_change B).equation (algebra_map A B x) (algebra_map A B y) :=
+by rw [equation_iff_base_change (W.base_change A) B, base_change_base_change]
+
 /-! ### Nonsingularity of Weierstrass curves -/
 
 /-- The partial derivative $W_X(X, Y)$ of $W(X, Y)$ with respect to $X$.
@@ -375,6 +395,21 @@ begin
       nonsingular_zero, variable_change_a₃, variable_change_a₄, inv_one, units.coe_one],
   congr' 4; ring1
 end
+
+lemma nonsingular_iff_base_change [nontrivial A] [no_zero_smul_divisors R A] (x y : R) :
+  W.nonsingular x y ↔ (W.base_change A).nonsingular (algebra_map R A x) (algebra_map R A y) :=
+begin
+  rw [nonsingular_iff, nonsingular_iff, and_congr $ W.equation_iff_base_change A x y],
+  refine ⟨or.imp (not_imp_not.mpr $ λ h, _) (not_imp_not.mpr $ λ h, _),
+    or.imp (not_imp_not.mpr $ λ h, _) (not_imp_not.mpr $ λ h, _)⟩,
+  any_goals { apply no_zero_smul_divisors.algebra_map_injective R A, map_simp, exact h },
+  any_goals { convert congr_arg (algebra_map R A) h; { map_simp, refl } }
+end
+
+lemma nonsingular_iff_base_change_of_base_change [nontrivial B] [no_zero_smul_divisors A B]
+  (x y : A) : (W.base_change A).nonsingular x y
+    ↔ (W.base_change B).nonsingular (algebra_map A B x) (algebra_map A B y) :=
+by rw [nonsingular_iff_base_change (W.base_change A) B, base_change_base_change]
 
 lemma nonsingular_zero_of_Δ_ne_zero (h : W.equation 0 0) (hΔ : W.Δ ≠ 0) : W.nonsingular 0 0 :=
 by { simp only [equation_zero, nonsingular_zero] at *, contrapose! hΔ, simp [h, hΔ] }

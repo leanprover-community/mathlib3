@@ -8,6 +8,9 @@ import topology.local_homeomorph
 /-!
 # Charted spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A smooth manifold is a topological space `M` locally modelled on a euclidean space (or a euclidean
 half-space for manifolds with boundaries, or an infinite dimensional vector space for more general
 notions of manifolds), i.e., the manifold is covered by open subsets on which there are local

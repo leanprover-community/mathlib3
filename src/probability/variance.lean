@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Kexing Ying
 -/
 import probability.notation
 import probability.integration
+import measure_theory.function.l2_space
 
 /-!
 # Variance of random variables
@@ -55,7 +56,7 @@ lemma _root_.measure_theory.mem_ℒp.evariance_lt_top [is_finite_measure μ] (hX
   evariance X μ < ∞ :=
 begin
   have := ennreal.pow_lt_top (hX.sub $ mem_ℒp_const $ μ[X]).2 2,
-  rw [snorm_eq_lintegral_rpow_nnnorm ennreal.two_ne_zero ennreal.two_ne_top,
+  rw [snorm_eq_lintegral_rpow_nnnorm two_ne_zero ennreal.two_ne_top,
     ← ennreal.rpow_two] at this,
   simp only [pi.sub_apply, ennreal.to_real_bit0, ennreal.one_to_real, one_div] at this,
   rw [← ennreal.rpow_mul, inv_mul_cancel (two_ne_zero : (2 : ℝ) ≠ 0), ennreal.rpow_one] at this,
@@ -71,7 +72,7 @@ begin
   rw [← ne.def, ← lt_top_iff_ne_top] at h,
   have : mem_ℒp (λ ω, X ω - μ[X]) 2 μ,
   { refine ⟨hXm.sub ae_strongly_measurable_const, _⟩,
-    rw snorm_eq_lintegral_rpow_nnnorm ennreal.two_ne_zero ennreal.two_ne_top,
+    rw snorm_eq_lintegral_rpow_nnnorm two_ne_zero ennreal.two_ne_top,
     simp only [ennreal.to_real_bit0, ennreal.one_to_real, ennreal.rpow_two, ne.def],
     exact ennreal.rpow_lt_top_of_nonneg (by simp) h.ne },
   refine hX _,
@@ -117,7 +118,7 @@ begin
   simp_rw [hXint, sub_zero],
   { refl },
   { exact integral_nonneg (λ ω, pow_two_nonneg _) },
-  { convert hX.integrable_norm_rpow ennreal.two_ne_zero ennreal.two_ne_top,
+  { convert hX.integrable_norm_rpow two_ne_zero ennreal.two_ne_top,
     ext ω,
     simp only [pi.sub_apply, real.norm_eq_abs, ennreal.to_real_bit0, ennreal.one_to_real,
       real.rpow_two, pow_bit0_abs] },
@@ -133,7 +134,7 @@ begin
   { refl },
   { exact integral_nonneg (λ ω, pow_two_nonneg _) },
   { convert (hX.sub $ mem_ℒp_const (μ[X])).integrable_norm_rpow
-      ennreal.two_ne_zero ennreal.two_ne_top,
+      two_ne_zero ennreal.two_ne_top,
     ext ω,
     simp only [pi.sub_apply, real.norm_eq_abs, ennreal.to_real_bit0, ennreal.one_to_real,
       real.rpow_two, pow_bit0_abs] },
@@ -267,7 +268,7 @@ begin
     refine ⟨_, ennreal.of_real_ne_top⟩,
     rw [mem_ℒp, not_and] at hℒ,
     specialize hℒ hX,
-    simp only [snorm_eq_lintegral_rpow_nnnorm ennreal.two_ne_zero ennreal.two_ne_top, not_lt,
+    simp only [snorm_eq_lintegral_rpow_nnnorm two_ne_zero ennreal.two_ne_top, not_lt,
       top_le_iff, ennreal.to_real_bit0, ennreal.one_to_real, ennreal.rpow_two, one_div,
       ennreal.rpow_eq_top_iff, inv_lt_zero, inv_pos, zero_lt_bit0, zero_lt_one, and_true,
       or_iff_not_imp_left, not_and_distrib] at hℒ,
@@ -281,11 +282,11 @@ theorem meas_ge_le_evariance_div_sq {X : Ω → ℝ}
 begin
   have A : (c : ℝ≥0∞) ≠ 0, { rwa [ne.def, ennreal.coe_eq_zero] },
   have B : ae_strongly_measurable (λ (ω : Ω), 𝔼[X]) ℙ := ae_strongly_measurable_const,
-  convert meas_ge_le_mul_pow_snorm ℙ ennreal.two_ne_zero ennreal.two_ne_top (hX.sub B) A,
+  convert meas_ge_le_mul_pow_snorm ℙ two_ne_zero ennreal.two_ne_top (hX.sub B) A,
   { ext ω,
     simp only [pi.sub_apply, ennreal.coe_le_coe, ← real.norm_eq_abs, ← coe_nnnorm,
       nnreal.coe_le_coe, ennreal.of_real_coe_nnreal] },
-  { rw snorm_eq_lintegral_rpow_nnnorm ennreal.two_ne_zero ennreal.two_ne_top,
+  { rw snorm_eq_lintegral_rpow_nnnorm two_ne_zero ennreal.two_ne_top,
     simp only [ennreal.to_real_bit0, ennreal.one_to_real, pi.sub_apply, one_div],
     rw [div_eq_mul_inv, ennreal.inv_pow, mul_comm, ennreal.rpow_two],
     congr,

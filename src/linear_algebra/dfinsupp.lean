@@ -9,6 +9,9 @@ import linear_algebra.basis
 /-!
 # Properties of the module `Π₀ i, M i`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an indexed collection of `R`-modules `M i`, the `R`-module structure on `Π₀ i, M i`
 is defined in `data.dfinsupp`.
 

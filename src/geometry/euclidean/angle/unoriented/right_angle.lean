@@ -32,7 +32,7 @@ open_locale real_inner_product_space
 
 namespace inner_product_geometry
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/
 lemma norm_add_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two (x y : V) :
@@ -387,8 +387,8 @@ namespace euclidean_geometry
 
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- **Pythagorean theorem**, if-and-only-if angle-at-point form. -/

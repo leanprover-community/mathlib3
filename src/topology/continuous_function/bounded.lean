@@ -13,6 +13,9 @@ import topology.metric_space.equicontinuity
 /-!
 # Bounded continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of bounded continuous functions taking values in a metric space, with
 the uniform distance.
 
@@ -308,10 +311,16 @@ begin
 end
 
 /-- Composition of a bounded continuous function and a continuous function. -/
-@[simps { fully_applied := ff }]
 def comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) : δ →ᵇ β :=
 { to_continuous_map := f.1.comp g,
   map_bounded' := f.map_bounded'.imp (λ C hC x y, hC _ _) }
+
+@[simp] lemma coe_comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) :
+  coe_fn (f.comp_continuous g) = f ∘ g := rfl
+
+@[simp] lemma comp_continuous_apply {δ : Type*} [topological_space δ]
+  (f : α →ᵇ β) (g : C(δ, α)) (x : δ) : f.comp_continuous g x = f (g x) :=
+rfl
 
 lemma lipschitz_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, α)) :
   lipschitz_with 1 (λ f : α →ᵇ β, f.comp_continuous g) :=
@@ -322,9 +331,12 @@ lemma continuous_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, 
 (lipschitz_comp_continuous g).continuous
 
 /-- Restrict a bounded continuous function to a set. -/
-@[simps apply { fully_applied := ff }]
 def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β :=
 f.comp_continuous $ (continuous_map.id _).restrict s
+
+@[simp] lemma coe_restrict (f : α →ᵇ β) (s : set α) : coe_fn (f.restrict s) = f ∘ coe := rfl
+
+@[simp] lemma restrict_apply (f : α →ᵇ β) (s : set α) (x : s) : f.restrict s x = f x := rfl
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
@@ -1156,7 +1168,7 @@ functions from `α` to `𝕜`. -/
 instance has_smul' : has_smul (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_add_comm_group (λ x, (f x) • (g x))
 (f.continuous.smul g.continuous) (‖f‖ * ‖g‖) (λ x, calc
-  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : normed_space.norm_smul_le _ _
+  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : norm_smul_le _ _
   ... ≤ ‖f‖ * ‖g‖ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
     (norm_nonneg _)) ⟩
 
@@ -1319,7 +1331,7 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
   solid :=
   begin
     intros f g h,
-    have i1: ∀ t, ‖f t‖ ≤ ‖g t‖ := λ t, solid (h t),
+    have i1: ∀ t, ‖f t‖ ≤ ‖g t‖ := λ t, has_solid_norm.solid (h t),
     rw norm_le (norm_nonneg _),
     exact λ t, (i1 t).trans (norm_coe_le_norm g t),
   end,

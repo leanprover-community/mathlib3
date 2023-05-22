@@ -9,6 +9,9 @@ import set_theory.cardinal.basic
 
 /-!
 # Basics on First-Order Structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines first-order languages and structures in the style of the
 [Flypitch project](https://flypitch.github.io/), as well as several important maps between
 structures.

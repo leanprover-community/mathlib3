@@ -8,13 +8,15 @@ import analysis.normed_space.add_torsor
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.normed_space.riesz_lemma
-import linear_algebra.matrix.to_lin
 import topology.algebra.module.finite_dimension
-import topology.algebra.module.infinite_sum
+import topology.algebra.infinite_sum.module
 import topology.instances.matrix
 
 /-!
 # Finite dimensional normed spaces over complete fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Over a complete nontrivially normed field, in finite dimension, all norms are equivalent and all
 linear maps are continuous. Moreover, a finite-dimensional subspace is always complete and closed.
@@ -244,68 +246,14 @@ lemma is_open_set_of_linear_independent {ι : Type*} [finite ι] :
   is_open {f : ι → E | linear_independent 𝕜 f} :=
 is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
 
-lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ rank (f : E →ₗ[𝕜] F)} :=
+lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ (f : E →ₗ[𝕜] F).rank } :=
 begin
-  simp only [le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
+  simp only [linear_map.le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
   refine is_open_bUnion (λ t ht, _),
   have : continuous (λ f : E →L[𝕜] F, (λ x : (t : set E), f x)),
     from continuous_pi (λ x, (continuous_linear_map.apply 𝕜 F (x : E)).continuous),
   exact is_open_set_of_linear_independent.preimage this
 end
-
-/-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
-(finite) dimension. -/
-theorem finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq
-  [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] (cond : finrank 𝕜 E = finrank 𝕜 F) :
-  nonempty (E ≃L[𝕜] F) :=
-(nonempty_linear_equiv_of_finrank_eq cond).map linear_equiv.to_continuous_linear_equiv
-
-/-- Two finite-dimensional normed spaces are continuously linearly equivalent if and only if they
-have the same (finite) dimension. -/
-theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_finrank_eq
-  [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
-   nonempty (E ≃L[𝕜] F) ↔ finrank 𝕜 E = finrank 𝕜 F :=
-⟨ λ ⟨h⟩, h.to_linear_equiv.finrank_eq,
-  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq h ⟩
-
-/-- A continuous linear equivalence between two finite-dimensional normed spaces of the same
-(finite) dimension. -/
-def continuous_linear_equiv.of_finrank_eq [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
-  (cond : finrank 𝕜 E = finrank 𝕜 F) :
-  E ≃L[𝕜] F :=
-(linear_equiv.of_finrank_eq E F cond).to_continuous_linear_equiv
-
-variables {ι : Type*} [fintype ι]
-
-/-- Construct a continuous linear map given the value at a finite basis. -/
-def basis.constrL (v : basis ι 𝕜 E) (f : ι → F) :
-  E →L[𝕜] F :=
-by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
-  exact (v.constr 𝕜 f).to_continuous_linear_map
-
-@[simp, norm_cast] lemma basis.coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
-  (v.constrL f : E →ₗ[𝕜] F) = v.constr 𝕜 f := rfl
-
-/-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and
-functions from its basis indexing type to `𝕜`. -/
-def basis.equiv_funL (v : basis ι 𝕜 E) : E ≃L[𝕜] (ι → 𝕜) :=
-{ continuous_to_fun := begin
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v,
-    exact v.equiv_fun.to_linear_map.continuous_of_finite_dimensional,
-  end,
-  continuous_inv_fun := begin
-    change continuous v.equiv_fun.symm.to_fun,
-    exact v.equiv_fun.symm.to_linear_map.continuous_of_finite_dimensional,
-  end,
-  ..v.equiv_fun }
-
-@[simp] lemma basis.constrL_apply (v : basis ι 𝕜 E) (f : ι → F) (e : E) :
-  (v.constrL f) e = ∑ i, (v.equiv_fun e i) • f i :=
-v.constr_apply_fintype 𝕜 _ _
-
-@[simp] lemma basis.constrL_basis (v : basis ι 𝕜 E) (f : ι → F) (i : ι) :
-  (v.constrL f) (v i) = f i :=
-v.constr_basis 𝕜 _ _
 
 lemma basis.op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} (M : ℝ≥0)
   (hu : ∀ i, ‖u (v i)‖₊ ≤ M) :
@@ -398,7 +346,7 @@ explicitly when needed. -/
 variables (𝕜 E)
 lemma finite_dimensional.complete [finite_dimensional 𝕜 E] : complete_space E :=
 begin
-  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ (finrank 𝕜 E)).symm,
+  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ _ (finrank 𝕜 E)).symm,
   have : uniform_embedding e.to_linear_equiv.to_equiv.symm := e.symm.uniform_embedding,
   exact (complete_space_congr this).1 (by apply_instance)
 end
@@ -626,7 +574,7 @@ properness of `𝕜`, and the search for `𝕜` as an unknown metavariable. Decl
 explicitly when needed. -/
 lemma finite_dimensional.proper [finite_dimensional 𝕜 E] : proper_space E :=
 begin
-  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ (finrank 𝕜 E)).symm,
+  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ _ (finrank 𝕜 E)).symm,
   exact e.symm.antilipschitz.proper_space e.symm.continuous e.symm.surjective
 end
 

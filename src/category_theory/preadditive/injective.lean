@@ -3,14 +3,13 @@ Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Kevin Buzzard
 -/
-
-import algebra.homology.exact
-import category_theory.types
 import category_theory.preadditive.projective
-import category_theory.limits.shapes.biproducts
 
 /-!
 # Injective objects and categories with enough injectives
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
 -/
@@ -188,33 +187,6 @@ lemma injective_of_adjoint (adj : L ⊣ R) (J : D) [injective J] : injective $ R
 
 end adjunction
 
-section preadditive
-variables [preadditive C]
-
-lemma injective_iff_preserves_epimorphisms_preadditive_yoneda_obj (J : C) :
-  injective J ↔ (preadditive_yoneda.obj J).preserves_epimorphisms :=
-begin
-  rw injective_iff_preserves_epimorphisms_yoneda_obj,
-  refine ⟨λ (h : (preadditive_yoneda.obj J ⋙ (forget _)).preserves_epimorphisms), _, _⟩,
-  { exactI functor.preserves_epimorphisms_of_preserves_of_reflects (preadditive_yoneda.obj J)
-      (forget _) },
-  { introI,
-    exact (infer_instance : (preadditive_yoneda.obj J ⋙ forget _).preserves_epimorphisms) }
-end
-
-lemma injective_iff_preserves_epimorphisms_preadditive_yoneda_obj' (J : C) :
-  injective J ↔ (preadditive_yoneda_obj J).preserves_epimorphisms :=
-begin
-  rw injective_iff_preserves_epimorphisms_yoneda_obj,
-  refine ⟨λ (h : (preadditive_yoneda_obj J ⋙ (forget _)).preserves_epimorphisms), _, _⟩,
-  { exactI functor.preserves_epimorphisms_of_preserves_of_reflects (preadditive_yoneda_obj J)
-      (forget _) },
-  { introI,
-    exact (infer_instance : (preadditive_yoneda_obj J ⋙ forget _).preserves_epimorphisms) }
-end
-
-end preadditive
-
 section enough_injectives
 variable [enough_injectives C]
 
@@ -321,7 +293,7 @@ lemma injective_of_map_injective (adj : F ⊣ G) [full G] [faithful G] (I : D)
   (hI : injective (G.obj I)) : injective I :=
 ⟨λ X Y f g, begin
   introI,
-  haveI := adj.right_adjoint_preserves_limits,
+  haveI : preserves_limits_of_size.{0 0} G := adj.right_adjoint_preserves_limits,
   rcases hI.factors (G.map f) (G.map g),
   use inv (adj.counit.app _) ≫ F.map w ≫ adj.counit.app _,
   refine faithful.map_injective G _,
@@ -335,7 +307,9 @@ def map_injective_presentation (adj : F ⊣ G) [F.preserves_monomorphisms] (X : 
 { J := G.obj I.J,
   injective := adj.map_injective _ I.injective,
   f := G.map I.f,
-  mono := by haveI := adj.right_adjoint_preserves_limits; apply_instance }
+  mono := by
+    haveI : preserves_limits_of_size.{0 0} G := adj.right_adjoint_preserves_limits;
+    apply_instance }
 
 end adjunction
 namespace equivalence

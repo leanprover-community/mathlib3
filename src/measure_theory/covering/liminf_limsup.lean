@@ -6,17 +6,17 @@ Authors: Oliver Nash
 import measure_theory.covering.density_theorem
 
 /-!
-# Liminf, limsup, and doubling measures.
+# Liminf, limsup, and uniformly locally doubling measures.
 
 This file is a place to collect lemmas about liminf and limsup for subsets of a metric space
-carrying a doubling measure.
+carrying a uniformly locally doubling measure.
 
 ## Main results:
 
  * `blimsup_cthickening_mul_ae_eq`: the limsup of the closed thickening of a sequence of subsets
-   of a metric space is unchanged almost everywhere for a doubling measure if the sequence of
-   distances is multiplied by a positive scale factor. This is a generalisation of a result of
-   Cassels, appearing as Lemma 9 on page 217 of
+   of a metric space is unchanged almost everywhere for a uniformly locally doubling measure if the
+   sequence of distances is multiplied by a positive scale factor. This is a generalisation of a
+   result of Cassels, appearing as Lemma 9 on page 217 of
    [J.W.S. Cassels, *Some metrical theorems in Diophantine approximation. I*](cassels1950).
  * `blimsup_thickening_mul_ae_eq`: a variant of `blimsup_cthickening_mul_ae_eq` for thickenings
    rather than closed thickenings.
@@ -28,7 +28,7 @@ open_locale nnreal ennreal topology
 
 variables {α : Type*} [metric_space α] [second_countable_topology α] [measurable_space α]
   [borel_space α]
-variables (μ : measure α) [is_locally_finite_measure μ] [is_doubling_measure μ]
+variables (μ : measure α) [is_locally_finite_measure μ] [is_unif_loc_doubling_measure μ]
 
 /-- This is really an auxiliary result en route to `blimsup_cthickening_ae_le_of_eventually_mul_le`
 (which is itself an auxiliary result en route to `blimsup_cthickening_mul_ae_eq`).
@@ -56,7 +56,8 @@ begin
 
   We obtain our contradiction by showing that there exists `η < 1` such that
   `μ (W ∩ (B j)) / μ (B j) ≤ η` for sufficiently large `j`. In fact we claim that `η = 1 - C⁻¹`
-  is such a value where `C` is the scaling constant of `M⁻¹` for the doubling measure `μ`.
+  is such a value where `C` is the scaling constant of `M⁻¹` for the uniformly locally doubling
+  measure `μ`.
 
   To prove the claim, let `b j = closed_ball (w j) (M * r₁ (f j))` and for given `j` consider the
   sets `b j` and `W ∩ (B j)`. These are both subsets of `B j` and are disjoint for large enough `j`
@@ -76,7 +77,7 @@ begin
     tendsto δ l (𝓝[>] 0) → (∀ᶠ j in l, d ∈ closed_ball (w j) (2 * δ j)) →
     tendsto (λ j, μ (W ∩ closed_ball (w j) (δ j)) / μ (closed_ball (w j) (δ j))) l (𝓝 1) :=
     measure.exists_mem_of_measure_ne_zero_of_ae contra
-      (is_doubling_measure.ae_tendsto_measure_inter_div μ W 2),
+      (is_unif_loc_doubling_measure.ae_tendsto_measure_inter_div μ W 2),
   replace hd : d ∈ blimsup Y₁ at_top p := ((mem_diff _).mp hd).1,
   obtain ⟨f : ℕ → ℕ, hf⟩ := exists_forall_mem_of_has_basis_mem_blimsup' at_top_basis hd,
   simp only [forall_and_distrib] at hf,
@@ -96,16 +97,16 @@ begin
     { exact mem_Union₂.mp (cthickening_subset_Union_closed_ball_of_lt (s (f j)) (by positivity)
         (lt_two_mul_self hrp') (hf₀ j)), }, },
   choose w hw hw' using hf₀,
-  let C := is_doubling_measure.scaling_constant_of μ M⁻¹,
+  let C := is_unif_loc_doubling_measure.scaling_constant_of μ M⁻¹,
   have hC : 0 < C :=
-    lt_of_lt_of_le zero_lt_one (is_doubling_measure.one_le_scaling_constant_of μ M⁻¹),
+    lt_of_lt_of_le zero_lt_one (is_unif_loc_doubling_measure.one_le_scaling_constant_of μ M⁻¹),
   suffices : ∃ (η < (1 : ℝ≥0)), ∀ᶠ j in at_top,
     μ (W ∩ closed_ball (w j) (r₁ (f j))) / μ (closed_ball (w j) (r₁ (f j))) ≤ η,
   { obtain ⟨η, hη, hη'⟩ := this,
     replace hη' : 1 ≤ η := by simpa only [ennreal.one_le_coe_iff] using
       le_of_tendsto (hd' w (λ j, r₁ (f j)) hr $ eventually_of_forall hw') hη',
     exact (lt_self_iff_false _).mp (lt_of_lt_of_le hη hη'), },
-  refine ⟨1 - C⁻¹, tsub_lt_self zero_lt_one (nnreal.inv_pos.mpr hC), _⟩,
+  refine ⟨1 - C⁻¹, tsub_lt_self zero_lt_one (inv_pos.mpr hC), _⟩,
   replace hC : C ≠ 0 := ne_of_gt hC,
   let b : ℕ → set α := λ j, closed_ball (w j) (M * r₁ (f j)),
   let B : ℕ → set α := λ j, closed_ball (w j) (r₁ (f j)),
@@ -123,7 +124,7 @@ begin
     simp only [mem_Union, exists_prop],
     exact ⟨f j, ⟨hf₁ j, hj.le.trans (hf₂ j)⟩, ha⟩, },
   have h₄ : ∀ᶠ j in at_top, μ (B j) ≤ C * μ (b j) :=
-    (hr.eventually (is_doubling_measure.eventually_measure_le_scaling_constant_mul'
+    (hr.eventually (is_unif_loc_doubling_measure.eventually_measure_le_scaling_constant_mul'
       μ M hM)).mono (λ j hj, hj (w j)),
   refine (h₃.and h₄).mono (λ j hj₀, _),
   change μ (W ∩ B j) / μ (B j) ≤ ↑(1 - C⁻¹),
@@ -175,8 +176,8 @@ end
 
 /-- Given a sequence of subsets `sᵢ` of a metric space, together with a sequence of radii `rᵢ`
 such that `rᵢ → 0`, the set of points which belong to infinitely many of the closed
-`rᵢ`-thickenings of `sᵢ` is unchanged almost everywhere for a doubling measure if the `rᵢ` are all
-scaled by a positive constant.
+`rᵢ`-thickenings of `sᵢ` is unchanged almost everywhere for a uniformly locally doubling measure if
+the `rᵢ` are all scaled by a positive constant.
 
 This lemma is a generalisation of Lemma 9 appearing on page 217 of
 [J.W.S. Cassels, *Some metrical theorems in Diophantine approximation. I*](cassels1950).
@@ -256,8 +257,8 @@ end
 
 /-- Given a sequence of subsets `sᵢ` of a metric space, together with a sequence of radii `rᵢ`
 such that `rᵢ → 0`, the set of points which belong to infinitely many of the
-`rᵢ`-thickenings of `sᵢ` is unchanged almost everywhere for a doubling measure if the `rᵢ` are all
-scaled by a positive constant.
+`rᵢ`-thickenings of `sᵢ` is unchanged almost everywhere for a uniformly locally doubling measure if
+the `rᵢ` are all scaled by a positive constant.
 
 This lemma is a generalisation of Lemma 9 appearing on page 217 of
 [J.W.S. Cassels, *Some metrical theorems in Diophantine approximation. I*](cassels1950).

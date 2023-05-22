@@ -13,6 +13,9 @@ import analysis.normed_space.affine_isometry
 /-!
 # Strictly convex spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines strictly convex spaces. A normed space is strictly convex if all closed balls are
 strictly convex. This does **not** mean that the norm is strictly convex (in fact, it never is).
 

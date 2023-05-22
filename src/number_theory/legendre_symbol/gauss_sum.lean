@@ -207,7 +207,7 @@ end
 
 /-- When `F` and `F'` are finite fields and `χ : F → F'` is a nontrivial quadratic character,
 then `(χ(-1) * #F)^(#F'/2) = χ(#F')`. -/
-lemma char.card_pow_card {F : Type} [field F] [fintype F] {F' : Type} [field F'] [fintype F']
+lemma char.card_pow_card {F : Type*} [field F] [fintype F] {F' : Type*} [field F'] [fintype F']
   {χ : mul_char F F'} (hχ₁ : is_nontrivial χ) (hχ₂ : is_quadratic χ)
   (hch₁ : ring_char F' ≠ ring_char F) (hch₂ : ring_char F' ≠ 2) :
   (χ (-1) * fintype.card F) ^ (fintype.card F' / 2) = χ (fintype.card F') :=

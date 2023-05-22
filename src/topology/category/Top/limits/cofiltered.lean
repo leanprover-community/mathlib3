@@ -8,6 +8,9 @@ import topology.category.Top.limits.basic
 /-!
 # Cofiltered limits in Top.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a *compatible* collection of topological bases for the factors in a cofiltered limit
 which contain `set.univ` and are closed under intersections, the induced *naive* collection
 of sets in the limit is, in fact, a topological basis.

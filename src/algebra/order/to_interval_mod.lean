@@ -3,11 +3,13 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
+import algebra.modeq
 import algebra.module.basic
 import algebra.order.archimedean
 import algebra.periodic
 import data.int.succ_pred
 import group_theory.quotient_group
+import order.circular
 
 /-!
 # Reducing to an interval modulo its length
@@ -27,12 +29,6 @@ interval.
 * `to_Ioc_div hp a b` (where `hp : 0 < p`): The unique integer such that this multiple of `p`,
   subtracted from `b`, is in `Ioc a (a + p)`.
 * `to_Ioc_mod hp a b` (where `hp : 0 < p`): Reduce `b` to the interval `Ioc a (a + p)`.
-* `a ≡ b [PMOD p]`: `a` and `b` are congruent modulo a multiple of `p`. See also `smodeq` which is a
-  more general version in arbitrary submodules. This is notation for `add_comm_group.modeq p a b`.
-
-## TODO
-
-Unify `smodeq` and `add_comm_group.modeq`, which were originally developed independently.
 -/
 
 noncomputable theory
@@ -450,41 +446,49 @@ end
 /-! ### Links between the `Ico` and `Ioc` variants applied to the same element -/
 
 section Ico_Ioc
+variables {a b}
 
 namespace add_comm_group
+
+lemma modeq_iff_to_Ico_mod_eq_left : a ≡ b [PMOD p] ↔ to_Ico_mod hp a b = a :=
+modeq_iff_eq_add_zsmul.trans ⟨by { rintro ⟨n, rfl⟩,
+  rw [to_Ico_mod_add_zsmul, to_Ico_mod_apply_left] }, λ h, ⟨to_Ico_div hp a b, eq_add_of_sub_eq h⟩⟩
+
+lemma modeq_iff_to_Ioc_mod_eq_right : a ≡ b [PMOD p] ↔ to_Ioc_mod hp a b = a + p :=
+begin
+  refine modeq_iff_eq_add_zsmul.trans ⟨_, λ h, ⟨to_Ioc_div hp a b + 1, _⟩⟩,
+  { rintro ⟨z, rfl⟩,
+    rw [to_Ioc_mod_add_zsmul, to_Ioc_mod_apply_left] },
+  { rwa [add_one_zsmul, add_left_comm, ←sub_eq_iff_eq_add'] }
+end
+
+alias modeq_iff_to_Ico_mod_eq_left ↔ modeq.to_Ico_mod_eq_left _
+alias modeq_iff_to_Ioc_mod_eq_right ↔ modeq.to_Ico_mod_eq_right _
+
 variables (a b)
-omit hα
-/-- `add_comm_group.modeq p a b` means that `b` does not lie in the open interval `(a, a + p)`
-modulo `p`.
-
-Equivalently (as shown below), `b` is congruent to `a` modulo `p`, or `to_Ico_mod hp a` disagrees
-with `to_Ioc_mod hp a` at `b`, or `to_Ico_div hp a` disagrees with `to_Ioc_div hp a` at `b`. -/
-def modeq (p a b : α) : Prop := ∀ z : ℤ, b - z • p ∉ set.Ioo a (a + p)
-include hα
-
-notation a ` ≡ `:50 b ` [PMOD `:50 p `]`:0 := modeq p a b
 
 lemma tfae_modeq :
-  tfae [a ≡ b [PMOD p],
+  tfae [
+    a ≡ b [PMOD p],
+    ∀ z : ℤ, b - z • p ∉ set.Ioo a (a + p),
     to_Ico_mod hp a b ≠ to_Ioc_mod hp a b,
-    to_Ico_mod hp a b + p = to_Ioc_mod hp a b,
-    to_Ico_mod hp a b = a] :=
+    to_Ico_mod hp a b + p = to_Ioc_mod hp a b] :=
 begin
-  rw modeq,
-  tfae_have : 2 → 1,
+  rw modeq_iff_to_Ico_mod_eq_left hp,
+  tfae_have : 3 → 2,
   { rw [←not_exists, not_imp_not],
     exact λ ⟨i, hi⟩,
       ((to_Ico_mod_eq_iff hp).2 ⟨set.Ioo_subset_Ico_self hi, i, (sub_add_cancel b _).symm⟩).trans
       ((to_Ioc_mod_eq_iff hp).2 ⟨set.Ioo_subset_Ioc_self hi, i, (sub_add_cancel b _).symm⟩).symm },
-  tfae_have : 3 → 2,
-  { intro h, rw [←h, ne, eq_comm, add_right_eq_self], exact hp.ne' },
   tfae_have : 4 → 3,
+  { intro h, rw [←h, ne, eq_comm, add_right_eq_self], exact hp.ne' },
+  tfae_have : 1 → 4,
   { intro h,
     rw [h, eq_comm, to_Ioc_mod_eq_iff, set.right_mem_Ioc],
     refine ⟨lt_add_of_pos_right a hp, to_Ico_div hp a b - 1, _⟩,
     rw [sub_one_zsmul, add_add_add_comm, add_right_neg, add_zero],
     conv_lhs { rw [← to_Ico_mod_add_to_Ico_div_zsmul hp a b, h] } },
-  tfae_have : 1 → 4,
+  tfae_have : 2 → 1,
   { rw [←not_exists, not_imp_comm],
     have h' := to_Ico_mod_mem_Ico hp a b,
     exact λ h, ⟨_, h'.1.lt_of_ne' h, h'.2⟩ },
@@ -493,24 +497,16 @@ end
 
 variables {a b}
 
+lemma modeq_iff_not_forall_mem_Ioo_mod :
+  a ≡ b [PMOD p] ↔ ∀ z : ℤ, b - z • p ∉ set.Ioo a (a + p) := (tfae_modeq hp a b).out 0 1
 lemma modeq_iff_to_Ico_mod_ne_to_Ioc_mod :
-  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b ≠ to_Ioc_mod hp a b := (tfae_modeq hp a b).out 0 1
+  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b ≠ to_Ioc_mod hp a b := (tfae_modeq hp a b).out 0 2
 lemma modeq_iff_to_Ico_mod_add_period_eq_to_Ioc_mod :
-  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b + p = to_Ioc_mod hp a b := (tfae_modeq hp a b).out 0 2
-lemma modeq_iff_to_Ico_mod_eq_left :
-  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b = a := (tfae_modeq hp a b).out 0 3
+  a ≡ b [PMOD p] ↔ to_Ico_mod hp a b + p = to_Ioc_mod hp a b := (tfae_modeq hp a b).out 0 3
 
 lemma not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod :
   ¬a ≡ b [PMOD p] ↔ to_Ico_mod hp a b = to_Ioc_mod hp a b :=
 (modeq_iff_to_Ico_mod_ne_to_Ioc_mod _).not_left
-
-lemma modeq_iff_to_Ioc_mod_eq_right : a ≡ b [PMOD p] ↔ to_Ioc_mod hp a b = a + p :=
-begin
-  rw [modeq_iff_to_Ico_mod_ne_to_Ioc_mod hp, ne, to_Ico_mod_eq_iff hp, not_iff_comm],
-  obtain ⟨h₁, h₂⟩ := to_Ioc_mod_mem_Ioc hp a b,
-  exact ⟨λ h, ⟨⟨h₁.le, h₂.lt_of_ne h⟩, _, (to_Ioc_mod_add_to_Ioc_div_zsmul _ _ _).symm⟩,
-    λ h, h.1.2.ne⟩,
-end
 
 lemma not_modeq_iff_to_Ico_div_eq_to_Ioc_div :
   ¬a ≡ b [PMOD p] ↔ to_Ico_div hp a b = to_Ioc_div hp a b :=
@@ -523,37 +519,21 @@ by rw [modeq_iff_to_Ico_mod_add_period_eq_to_Ioc_mod hp, to_Ico_mod, to_Ioc_mod,
        ← eq_sub_iff_add_eq, sub_sub, sub_right_inj, ← add_one_zsmul,
        (zsmul_strict_mono_left hp).injective.eq_iff]
 
-include hp
-
-lemma modeq_iff_eq_add_zsmul : a ≡ b [PMOD p] ↔ ∃ z : ℤ, b = a + z • p :=
-begin
-  rw [modeq_iff_to_Ico_mod_eq_left hp],
-  split; intro h,
-  { rw ← h,
-    exact ⟨_, (to_Ico_mod_add_to_Ico_div_zsmul _ _ _).symm⟩ },
-  { rw [to_Ico_mod_eq_iff, set.left_mem_Ico],
-    exact ⟨lt_add_of_pos_right a hp, h⟩, },
-end
-
-lemma not_modeq_iff_ne_add_zsmul : ¬a ≡ b [PMOD p] ↔ ∀ z : ℤ, b ≠ a + z • p :=
-by rw [modeq_iff_eq_add_zsmul hp, not_exists]
-
-lemma modeq_iff_eq_mod_zmultiples :
-  a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
-by simp_rw [modeq_iff_eq_add_zsmul hp, quotient_add_group.eq_iff_sub_mem,
-    add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
-
-lemma not_modeq_iff_ne_mod_zmultiples :
-  ¬a ≡ b [PMOD p] ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
-(modeq_iff_eq_mod_zmultiples hp).not
-
 end add_comm_group
+
+open add_comm_group
+
+/-- If `a` and `b` fall within the same cycle WRT `c`, then they are congruent modulo `p`. -/
+@[simp] lemma to_Ico_mod_inj {c : α} : to_Ico_mod hp c a = to_Ico_mod hp c b ↔ a ≡ b [PMOD p] :=
+by simp_rw [to_Ico_mod_eq_to_Ico_mod, modeq_iff_eq_add_zsmul, sub_eq_iff_eq_add']
+
+alias to_Ico_mod_inj ↔ _ add_comm_group.modeq.to_Ico_mod_eq_to_Ico_mod
 
 lemma Ico_eq_locus_Ioc_eq_Union_Ioo :
   {b | to_Ico_mod hp a b = to_Ioc_mod hp a b} = ⋃ z : ℤ, set.Ioo (a + z • p) (a + p + z • p) :=
 begin
   ext1, simp_rw [set.mem_set_of, set.mem_Union, ← set.sub_mem_Ioo_iff_left,
-    ←add_comm_group.not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod, add_comm_group.modeq, not_forall,
+    ←not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod, modeq_iff_not_forall_mem_Ioo_mod hp, not_forall,
     not_not],
 end
 
@@ -561,8 +541,8 @@ lemma to_Ioc_div_wcovby_to_Ico_div (a b : α) : to_Ioc_div hp a b ⩿ to_Ico_div
 begin
   suffices : to_Ioc_div hp a b = to_Ico_div hp a b ∨ to_Ioc_div hp a b + 1 = to_Ico_div hp a b,
   { rwa [wcovby_iff_eq_or_covby, ←order.succ_eq_iff_covby] },
-  rw [eq_comm, ←add_comm_group.not_modeq_iff_to_Ico_div_eq_to_Ioc_div,
-    eq_comm, ←add_comm_group.modeq_iff_to_Ico_div_eq_to_Ioc_div_add_one],
+  rw [eq_comm, ←not_modeq_iff_to_Ico_div_eq_to_Ioc_div,
+    eq_comm, ←modeq_iff_to_Ico_div_eq_to_Ioc_div_add_one],
   exact em' _,
 end
 
@@ -580,6 +560,8 @@ begin
 end
 
 end Ico_Ioc
+
+open add_comm_group
 
 lemma to_Ico_mod_eq_self : to_Ico_mod hp a b = b ↔ b ∈ set.Ico a (a + p) :=
 by { rw [to_Ico_mod_eq_iff, and_iff_left], exact ⟨0, by simp⟩ }
@@ -609,6 +591,37 @@ to_Ico_mod_add_right hp a
 lemma to_Ioc_mod_periodic (a : α) : function.periodic (to_Ioc_mod hp a) p :=
 to_Ioc_mod_add_right hp a
 
+-- helper lemmas for when `a = 0`
+section zero
+
+lemma to_Ico_mod_zero_sub_comm (a b : α) : to_Ico_mod hp 0 (a - b) = p - to_Ioc_mod hp 0 (b - a) :=
+by rw [←neg_sub, to_Ico_mod_neg, neg_zero]
+
+lemma to_Ioc_mod_zero_sub_comm (a b : α) : to_Ioc_mod hp 0 (a - b) = p - to_Ico_mod hp 0 (b - a) :=
+by rw [←neg_sub, to_Ioc_mod_neg, neg_zero]
+
+lemma to_Ico_div_eq_sub (a b : α) : to_Ico_div hp a b = to_Ico_div hp 0 (b - a) :=
+by rw [to_Ico_div_sub_eq_to_Ico_div_add, zero_add]
+
+lemma to_Ioc_div_eq_sub (a b : α) : to_Ioc_div hp a b = to_Ioc_div hp 0 (b - a) :=
+by rw [to_Ioc_div_sub_eq_to_Ioc_div_add, zero_add]
+
+lemma to_Ico_mod_eq_sub (a b : α) : to_Ico_mod hp a b = to_Ico_mod hp 0 (b - a) + a :=
+by rw [to_Ico_mod_sub_eq_sub, zero_add, sub_add_cancel]
+
+lemma to_Ioc_mod_eq_sub (a b : α) : to_Ioc_mod hp a b = to_Ioc_mod hp 0 (b - a) + a :=
+by rw [to_Ioc_mod_sub_eq_sub, zero_add, sub_add_cancel]
+
+lemma to_Ico_mod_add_to_Ioc_mod_zero (a b : α) :
+  to_Ico_mod hp 0 (a - b) + to_Ioc_mod hp 0 (b - a) = p :=
+by rw [to_Ico_mod_zero_sub_comm, sub_add_cancel]
+
+lemma to_Ioc_mod_add_to_Ico_mod_zero (a b : α) :
+  to_Ioc_mod hp 0 (a - b) + to_Ico_mod hp 0 (b - a) = p :=
+by rw [add_comm, to_Ico_mod_add_to_Ioc_mod_zero]
+
+end zero
+
 /-- `to_Ico_mod` as an equiv from the quotient. -/
 @[simps symm_apply]
 def quotient_add_group.equiv_Ico_mod (a : α) :
@@ -629,7 +642,12 @@ lemma quotient_add_group.equiv_Ico_mod_coe (a b : α) :
   quotient_add_group.equiv_Ico_mod hp a ↑b = ⟨to_Ico_mod hp a b, to_Ico_mod_mem_Ico hp a _⟩ :=
 rfl
 
-/-- `to_Ioc_mod` as an equiv  from the quotient. -/
+@[simp]
+lemma quotient_add_group.equiv_Ico_mod_zero (a : α) :
+  quotient_add_group.equiv_Ico_mod hp a 0 = ⟨to_Ico_mod hp a 0, to_Ico_mod_mem_Ico hp a _⟩ :=
+rfl
+
+/-- `to_Ioc_mod` as an equiv from the quotient. -/
 @[simps symm_apply]
 def quotient_add_group.equiv_Ioc_mod (a : α) :
   (α ⧸ add_subgroup.zmultiples p) ≃ set.Ioc a (a + p) :=
@@ -649,7 +667,169 @@ lemma quotient_add_group.equiv_Ioc_mod_coe (a b : α) :
   quotient_add_group.equiv_Ioc_mod hp a ↑b = ⟨to_Ioc_mod hp a b, to_Ioc_mod_mem_Ioc hp a _⟩ :=
 rfl
 
+@[simp]
+lemma quotient_add_group.equiv_Ioc_mod_zero (a : α) :
+  quotient_add_group.equiv_Ioc_mod hp a 0 = ⟨to_Ioc_mod hp a 0, to_Ioc_mod_mem_Ioc hp a _⟩ :=
+rfl
+
+/-!
+### The circular order structure on `α ⧸ add_subgroup.zmultiples p`
+-/
+
+section circular
+
+private lemma to_Ixx_mod_iff (x₁ x₂ x₃ : α) :
+  to_Ico_mod hp x₁ x₂ ≤ to_Ioc_mod hp x₁ x₃ ↔
+  to_Ico_mod hp 0 (x₂ - x₁) + to_Ico_mod hp 0 (x₁ - x₃) ≤ p :=
+by rw [to_Ico_mod_eq_sub, to_Ioc_mod_eq_sub _ x₁, add_le_add_iff_right, ←neg_sub x₁ x₃,
+    to_Ioc_mod_neg, neg_zero, le_sub_iff_add_le]
+
+private lemma to_Ixx_mod_cyclic_left {x₁ x₂ x₃ : α}
+  (h : to_Ico_mod hp x₁ x₂ ≤ to_Ioc_mod hp x₁ x₃) :
+  to_Ico_mod hp x₂ x₃ ≤ to_Ioc_mod hp x₂ x₁ :=
+begin
+  let x₂' := to_Ico_mod hp x₁ x₂,
+  let x₃' := to_Ico_mod hp x₂' x₃,
+  have h : x₂' ≤ to_Ioc_mod hp x₁ x₃' := by simpa,
+  have h₂₁ : x₂' < x₁ + p := to_Ico_mod_lt_right _ _ _,
+  have h₃₂ : x₃' - p < x₂' := sub_lt_iff_lt_add.2 (to_Ico_mod_lt_right _ _ _),
+
+  suffices hequiv : x₃' ≤ to_Ioc_mod hp x₂' x₁,
+  { obtain ⟨z, hd⟩ : ∃ (z : ℤ), x₂ = x₂' + z • p := ((to_Ico_mod_eq_iff hp).1 rfl).2,
+    simpa [hd] },
+
+  cases le_or_lt x₃' (x₁ + p) with h₃₁ h₁₃,
+  { suffices hIoc₂₁ : to_Ioc_mod hp x₂' x₁ = x₁ + p,
+    { exact hIoc₂₁.symm.trans_ge h₃₁ },
+    apply (to_Ioc_mod_eq_iff hp).2,
+    exact ⟨⟨h₂₁, by simp [left_le_to_Ico_mod]⟩, -1, by simp⟩ },
+
+  have hIoc₁₃ : to_Ioc_mod hp x₁ x₃' = x₃' - p,
+  { apply (to_Ioc_mod_eq_iff hp).2,
+    exact ⟨⟨lt_sub_iff_add_lt.2 h₁₃, le_of_lt (h₃₂.trans h₂₁)⟩, 1, by simp⟩ },
+  have not_h₃₂ := (h.trans hIoc₁₃.le).not_lt,
+  contradiction
+end
+
+private lemma to_Ixx_mod_antisymm (h₁₂₃ : to_Ico_mod hp a b ≤ to_Ioc_mod hp a c)
+  (h₁₃₂ : to_Ico_mod hp a c ≤ to_Ioc_mod hp a b) :
+  b ≡ a [PMOD p] ∨ c ≡ b [PMOD p] ∨ a ≡ c [PMOD p] :=
+begin
+  by_contra' h,
+  rw modeq_comm at h,
+  rw ←(not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp).mp h.2.2 at h₁₂₃,
+  rw ←(not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp).mp h.1 at h₁₃₂,
+  exact h.2.1 ((to_Ico_mod_inj _).1 $ h₁₃₂.antisymm h₁₂₃),
+end
+
+private lemma to_Ixx_mod_total' (a b c : α) :
+  to_Ico_mod hp b a ≤ to_Ioc_mod hp b c ∨ to_Ico_mod hp b c ≤ to_Ioc_mod hp b a :=
+begin
+  /- an essential ingredient is the lemma sabing {a-b} + {b-a} = period if a ≠ b (and = 0 if a = b).
+  Thus if a ≠ b and b ≠ c then ({a-b} + {b-c}) + ({c-b} + {b-a}) = 2 * period, so one of
+  `{a-b} + {b-c}` and `{c-b} + {b-a}` must be `≤ period` -/
+  have := congr_arg2 (+)
+    (to_Ico_mod_add_to_Ioc_mod_zero hp a b) (to_Ico_mod_add_to_Ioc_mod_zero hp c b),
+  rw [add_add_add_comm, add_comm (to_Ioc_mod _ _ _), add_add_add_comm, ←two_nsmul] at this,
+  replace := min_le_of_add_le_two_nsmul this.le,
+  rw min_le_iff at this,
+  rw [to_Ixx_mod_iff, to_Ixx_mod_iff],
+  refine this.imp (le_trans $ add_le_add_left _ _) (le_trans $ add_le_add_left _ _),
+  { apply to_Ico_mod_le_to_Ioc_mod },
+  { apply to_Ico_mod_le_to_Ioc_mod }
+end
+
+private lemma to_Ixx_mod_total (a b c : α) :
+  to_Ico_mod hp a b ≤ to_Ioc_mod hp a c ∨ to_Ico_mod hp c b ≤ to_Ioc_mod hp c a :=
+(to_Ixx_mod_total' _ _ _ _).imp_right $ to_Ixx_mod_cyclic_left _
+
+private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
+  (h₁₂₃ : to_Ico_mod hp x₁ x₂ ≤ to_Ioc_mod hp x₁ x₃
+    ∧ ¬to_Ico_mod hp x₃ x₂ ≤ to_Ioc_mod hp x₃ x₁)
+  (h₂₃₄ : to_Ico_mod hp x₂ x₄ ≤ to_Ioc_mod hp x₂ x₃
+    ∧ ¬to_Ico_mod hp x₃ x₄ ≤ to_Ioc_mod hp x₃ x₂) :
+  to_Ico_mod hp x₁ x₄ ≤ to_Ioc_mod hp x₁ x₃
+    ∧ ¬to_Ico_mod hp x₃ x₄ ≤ to_Ioc_mod hp x₃ x₁ :=
+begin
+  split,
+  { suffices h : ¬x₃ ≡ x₂ [PMOD p],
+    { have h₁₂₃' := to_Ixx_mod_cyclic_left _ (to_Ixx_mod_cyclic_left _ h₁₂₃.1),
+      have h₂₃₄' := to_Ixx_mod_cyclic_left _ (to_Ixx_mod_cyclic_left _ h₂₃₄.1),
+      rw [(not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 h] at h₂₃₄',
+      exact to_Ixx_mod_cyclic_left _ (h₁₂₃'.trans h₂₃₄') },
+    by_contra,
+    rw [(modeq_iff_to_Ico_mod_eq_left hp).1 h] at h₁₂₃,
+    exact h₁₂₃.2 (left_lt_to_Ioc_mod _ _ _).le },
+  { rw [not_le] at h₁₂₃ h₂₃₄ ⊢,
+    exact (h₁₂₃.2.trans_le (to_Ico_mod_le_to_Ioc_mod _ x₃ x₂)).trans h₂₃₄.2 },
+end
+
+namespace quotient_add_group
+variables [hp' : fact (0 < p)]
+include hp'
+
+instance : has_btw (α ⧸ add_subgroup.zmultiples p) :=
+{ btw := λ x₁ x₂ x₃, (equiv_Ico_mod hp'.out 0 (x₂ - x₁) : α) ≤ equiv_Ioc_mod hp'.out 0 (x₃ - x₁) }
+
+lemma btw_coe_iff' {x₁ x₂ x₃ : α} :
+  has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples p) x₂ x₃ ↔
+    to_Ico_mod hp'.out 0 (x₂ - x₁) ≤ to_Ioc_mod hp'.out 0 (x₃ - x₁) :=
+iff.rfl
+
+-- maybe harder to use than the primed one?
+lemma btw_coe_iff {x₁ x₂ x₃ : α} :
+  has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples p) x₂ x₃ ↔
+    to_Ico_mod hp'.out x₁ x₂ ≤ to_Ioc_mod hp'.out x₁ x₃ :=
+by rw [btw_coe_iff', to_Ioc_mod_sub_eq_sub, to_Ico_mod_sub_eq_sub, zero_add, sub_le_sub_iff_right]
+
+instance circular_preorder : circular_preorder (α ⧸ add_subgroup.zmultiples p) :=
+{ btw_refl := λ x, show _ ≤ _, by simp [sub_self, hp'.out.le],
+  btw_cyclic_left := λ x₁ x₂ x₃ h, begin
+    induction x₁ using quotient_add_group.induction_on',
+    induction x₂ using quotient_add_group.induction_on',
+    induction x₃ using quotient_add_group.induction_on',
+    simp_rw [btw_coe_iff] at h ⊢,
+    apply to_Ixx_mod_cyclic_left _ h,
+  end,
+  sbtw := _,
+  sbtw_iff_btw_not_btw := λ _ _ _, iff.rfl,
+  sbtw_trans_left := λ x₁ x₂ x₃ x₄ (h₁₂₃ : _ ∧ _) (h₂₃₄ : _ ∧ _), show _ ∧ _, begin
+    induction x₁ using quotient_add_group.induction_on',
+    induction x₂ using quotient_add_group.induction_on',
+    induction x₃ using quotient_add_group.induction_on',
+    induction x₄ using quotient_add_group.induction_on',
+    simp_rw [btw_coe_iff] at h₁₂₃ h₂₃₄ ⊢,
+    apply to_Ixx_mod_trans _ h₁₂₃ h₂₃₄,
+  end }
+
+instance circular_order : circular_order (α ⧸ add_subgroup.zmultiples p) :=
+{ btw_antisymm := λ x₁ x₂ x₃ h₁₂₃ h₃₂₁, begin
+    induction x₁ using quotient_add_group.induction_on',
+    induction x₂ using quotient_add_group.induction_on',
+    induction x₃ using quotient_add_group.induction_on',
+    rw btw_cyclic at h₃₂₁,
+    simp_rw [btw_coe_iff] at h₁₂₃ h₃₂₁,
+    simp_rw ←modeq_iff_eq_mod_zmultiples,
+    exact to_Ixx_mod_antisymm _ h₁₂₃ h₃₂₁,
+  end,
+  btw_total := λ x₁ x₂ x₃, begin
+    induction x₁ using quotient_add_group.induction_on',
+    induction x₂ using quotient_add_group.induction_on',
+    induction x₃ using quotient_add_group.induction_on',
+    simp_rw [btw_coe_iff] at ⊢,
+    apply to_Ixx_mod_total,
+  end,
+  ..quotient_add_group.circular_preorder }
+
+end quotient_add_group
+
+end circular
+
 end linear_ordered_add_comm_group
+
+/-!
+### Connections to `int.floor` and `int.fract`
+-/
 
 section linear_ordered_field
 

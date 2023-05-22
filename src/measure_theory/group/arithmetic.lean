@@ -8,6 +8,9 @@ import measure_theory.measure.ae_measurable
 /-!
 # Typeclasses for measurability of operations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define classes `has_measurable_mul` etc and prove dot-style lemmas
 (`measurable.mul`, `ae_measurable.mul` etc). For binary operations we define two typeclasses:
 

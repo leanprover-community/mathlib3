@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 
 import analysis.special_functions.trigonometric.arctan
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 
 /-!
 # Measurability of arctan

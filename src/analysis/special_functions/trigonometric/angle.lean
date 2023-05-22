@@ -11,6 +11,9 @@ import topology.instances.sign
 /-!
 # The type of angles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `real.angle` to be the quotient group `ℝ/2πℤ` and prove a few simple lemmas
 about trigonometric functions and angles.
 -/
@@ -26,6 +29,9 @@ namespace real
 def angle : Type := add_circle (2 * π)
 
 namespace angle
+
+instance : circular_order real.angle :=
+@add_circle.circular_order _ _ _ _ _ ⟨by norm_num [pi_pos]⟩ _
 
 @[continuity] lemma continuous_coe : continuous (coe : ℝ → angle) :=
 continuous_quotient_mk

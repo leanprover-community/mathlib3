@@ -12,6 +12,9 @@ import topology.instances.real_vector_space
 /-!
 # Normed space structure on `ℂ`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gathers basic facts on complex numbers of an analytic nature.
 
 ## Main results

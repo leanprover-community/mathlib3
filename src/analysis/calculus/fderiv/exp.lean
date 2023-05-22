@@ -9,6 +9,7 @@ import analysis.quaternion
 import algebra.lie.of_associative
 import analysis.special_functions.exponential
 import analysis.calculus.fderiv_symmetric
+import analysis.calculus.mean_value
 
 /-! More lemmas aboutderiviatives of `exp`.
 
@@ -118,19 +119,73 @@ lemma has_deriv_at_exp_smul_const_of_mem_ball' (t : 𝕂) (x : 𝔹)
 
 end mem_ball
 
+section is_R_or_C
+variables [is_R_or_C 𝕂]
+variables [normed_comm_ring 𝔸] [normed_ring 𝔹]
+variables [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹] [algebra 𝔸 𝔹] [has_continuous_smul 𝔸 𝔹]
+variables [is_scalar_tower 𝕂 𝔸 𝔹]
+variables [complete_space 𝔹]
+
+lemma has_fderiv_at_exp_smul_const (x : 𝔹) (t : 𝔸) :
+  has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
+    (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
+has_fderiv_at_exp_smul_const_of_mem_ball _ _ $
+  (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+lemma has_fderiv_at_exp_smul_const' (x : 𝔹) (t : 𝔸) :
+  has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
+    (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
+has_fderiv_at_exp_smul_const_of_mem_ball' _ _ $
+  (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+lemma has_strict_fderiv_at_exp_smul_const (t : 𝔸) (x : 𝔹) :
+  has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
+    (exp 𝕂 (t • x) • ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x)) t :=
+has_strict_fderiv_at_exp_smul_const_of_mem_ball _ _ $
+  (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+lemma has_strict_fderiv_at_exp_smul_const' (t : 𝔸) (x : 𝔹) :
+  has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
+    (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
+has_strict_fderiv_at_exp_smul_const_of_mem_ball' _ _ $
+  (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+lemma has_strict_deriv_at_exp_smul_const (t : 𝕂) (x : 𝔹) :
+  has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
+has_strict_deriv_at_exp_smul_const_of_mem_ball _ _ $
+  (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+lemma has_strict_deriv_at_exp_smul_const' (t : 𝕂) (x : 𝔹) :
+  has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
+has_strict_deriv_at_exp_smul_const_of_mem_ball' _ _ $
+  (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+lemma has_deriv_at_exp_smul_const (t : 𝕂) (x : 𝔹) :
+  has_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
+has_deriv_at_exp_smul_const_of_mem_ball _ _ $
+  (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+lemma has_deriv_at_exp_smul_const' (t : 𝕂) (x : 𝔹) :
+  has_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
+has_deriv_at_exp_smul_const_of_mem_ball' _ _ $
+  (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
+
+end is_R_or_C
+
 variables [normed_ring 𝔸] [normed_algebra ℝ 𝔸] [complete_space 𝔸]
 
 -- to make the goal view readable
 notation (name := deriv) `∂` binders `, ` r:(scoped:67 f, deriv f) := r
 local notation `e` := exp ℝ
 
-lemma has_deriv_at_exp_smul_const (A : 𝔸) (t : ℝ) :
-  has_deriv_at (λ t : ℝ, exp ℝ (t • A)) (A * exp ℝ (t • A)) t := sorry
+lemma has_deriv_at_exp_smul_const2 (A : 𝔸) (t : ℝ) :
+  has_deriv_at (λ t : ℝ, exp ℝ (t • A)) (A * exp ℝ (t • A)) t :=
+has_deriv_at_exp_smul_const' _ _
 
-lemma has_deriv_at_exp_smul_const' (A : 𝔸) (t : ℝ) :
+lemma has_deriv_at_exp_smul_const2' (A : 𝔸) (t : ℝ) :
   has_deriv_at (λ t : ℝ, exp ℝ (t • A)) (exp ℝ (t • A) * A) t :=
 begin
-  convert has_deriv_at_exp_smul_const A t using 1,
+  convert has_deriv_at_exp_smul_const2 A t using 1,
   refine commute.exp_left _ _,
   refine (commute.refl _).smul_left _,
 end
@@ -142,6 +197,7 @@ lemma deriv_exp_aux (A : ℝ → 𝔸) (r t : ℝ)
 begin
   revert t,
   rw ←function.funext_iff,
+  -- apply eq_of_fderiv_eq,
   -- two functions agree if their derivatives agree and they agree at zero.
   do { `(%%lhs = %%rhs) ← tactic.target,
     let t := ``(%%lhs 0 = %%rhs 0 ∧ deriv %%lhs = deriv %%rhs),
@@ -158,26 +214,26 @@ begin
         have := @second_derivative_symmetric,
         sorry },
       { rw deriv_comm,
-        simp_rw [(has_deriv_at_exp_smul_const _ _).deriv],
+        simp_rw [(has_deriv_at_exp_smul_const' t (_ : 𝔸)).deriv],
         rw deriv_mul,
         simp_rw [mul_add, ←add_assoc, ←mul_assoc],
         rw [add_right_comm],
         convert zero_add _,
         rw [←add_mul],
         convert zero_mul _,
-        rw [←(has_deriv_at_exp_smul_const' _ _).deriv, ←eq_neg_iff_add_eq_zero],
+        rw [←(has_deriv_at_exp_smul_const _ (_ : 𝔸)).deriv, ←eq_neg_iff_add_eq_zero],
         change deriv ((λ t : ℝ, exp ℝ (t • A r)) ∘ has_neg.neg) t = _,
         rw [deriv.scomp t, deriv_neg, neg_one_smul],
         { exact (has_deriv_at_exp_smul_const _ _).differentiable_at },
         { exact differentiable_at_id.neg },
-        { apply_instance },
         { apply_instance },
         { exact hA },
         { change differentiable_at ℝ (exp ℝ ∘ _) _,
           refine differentiable_at.comp _ _ (hA.const_smul _),
           -- uh oh, this looks circular
           sorry }, },
-      { exact ((has_deriv_at_exp_smul_const _ _).scomp _ (has_deriv_at_neg _)).differentiable_at },
+      { exact has_deriv_at.differentiable_at
+          ((has_deriv_at_exp_smul_const' (-t) (A r)).scomp _ (has_deriv_at_neg _)) },
       { sorry } },
     { sorry },
     { sorry },

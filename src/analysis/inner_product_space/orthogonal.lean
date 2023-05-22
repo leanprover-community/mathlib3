@@ -3,8 +3,8 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
-import linear_algebra.bilinear_form
 import analysis.inner_product_space.basic
+import linear_algebra.sesquilinear_form
 
 /-!
 # Orthogonal complements of submodules
@@ -201,9 +201,15 @@ lemma orthogonal_family_self :
 end submodule
 
 @[simp]
-lemma bilin_form_of_real_inner_orthogonal {E} [normed_add_comm_group E] [inner_product_space ℝ E]
-  (K : submodule ℝ E) :
-  bilin_form_of_real_inner.orthogonal K = Kᗮ := rfl
+lemma sesq_form_of_inner_orthogonal (K : submodule 𝕜 E) :
+  K.orthogonal_bilin sesq_form_of_inner = Kᗮ :=
+begin
+  ext x,
+  rw [submodule.mem_orthogonal_bilin_iff, submodule.mem_orthogonal],
+  refine forall₂_congr (λ y hy, _),
+  rw [linear_map.is_ortho_def, sesq_form_of_inner_apply_apply],
+  exact inner_eq_zero_symm,
+end
 
 /-!
 ### Orthogonality of submodules

@@ -12,6 +12,9 @@ import algebra.char_p.invertible
 /-!
 # Affine isometries
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `affine_isometry 𝕜 P P₂` to be an affine isometric embedding of normed
 add-torsors `P` into `P₂` over normed `𝕜`-spaces and `affine_isometry_equiv` to be an affine
 isometric equivalence between `P` and `P₂`.

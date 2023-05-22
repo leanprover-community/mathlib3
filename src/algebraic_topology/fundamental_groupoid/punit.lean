@@ -9,6 +9,9 @@ import algebraic_topology.fundamental_groupoid.basic
 /-!
 # Fundamental groupoid of punit
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The fundamental groupoid of punit is naturally isomorphic to `category_theory.discrete punit`
 -/
 

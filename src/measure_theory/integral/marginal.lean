@@ -636,6 +636,9 @@ lemma marginal_insert_rev (f : (Π i, π i) → E) (hf : measurable f) {i : δ}
 begin
   rw [insert_eq, marginal_union, marginal_singleton],
   dsimp only,
+  sorry,
+  sorry,
+  sorry
 end
 
 open filter

@@ -414,7 +414,7 @@ variables {𝕜}
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ := (linear_map.flip (innerₛₗ 𝕜) x).map_sum
+  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ := ((innerₛₗ 𝕜).flip x).map_sum
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :

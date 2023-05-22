@@ -10,6 +10,9 @@ import measure_theory.constructions.borel_space.basic
 /-!
 # The Borel sigma-algebra on Polish spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We discuss several results pertaining to the relationship between the topology and the Borel
 structure on Polish spaces.
 

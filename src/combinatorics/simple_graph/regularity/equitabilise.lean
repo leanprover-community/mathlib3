@@ -22,6 +22,10 @@ This file allows to blow partitions up into parts of controlled size. Given a pa
 * `finpartition.equitabilise`: `P.equitabilise h` where `h : a * m + b * (m + 1)` is a partition
   with `a` parts of size `m` and `b` parts of size `m + 1` which almost refines `P`.
 * `finpartition.exists_equipartition_card_eq`: We can find equipartitions of arbitrary size.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset nat

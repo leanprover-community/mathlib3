@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.inner_product_space.orientation
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.lebesgue.eq_haar
 
 /-!
 # Volume forms and measures on inner product spaces

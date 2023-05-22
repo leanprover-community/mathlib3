@@ -196,7 +196,7 @@ begin
   rintro ⟨h⟩,
   refine not_lt.mpr (h (single (0 : F) (1 : F)) (_ : single 1 1 ≤ single 0 1)) ⟨1, _⟩,
   { exact or.inr ⟨0, by simp [(by boom : ∀ j : F, j < 0 ↔ false)]⟩ },
-  { simp only [(by boom : ∀ j : F, j < 1 ↔ j = 0), of_lex_add, finsupp.coe_add, pi.to_lex_apply,
+  { simp only [(by boom : ∀ j : F, j < 1 ↔ j = 0), of_lex_add, coe_add, pi.to_lex_apply,
       pi.add_apply, forall_eq, f010, f1, eq_self_iff_true, f011, f111, zero_add, and_self] },
 end
 

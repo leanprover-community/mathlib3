@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Measures positive on nonempty opens
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a typeclass for measures that are positive on nonempty opens, see
 `measure_theory.measure.is_open_pos_measure`. Examples include (additive) Haar measures, as well as
 measures that have positive density with respect to a Haar measure. We also prove some basic facts
@@ -15,7 +18,7 @@ about these measures.
 
 -/
 
-open_locale topological_space ennreal measure_theory
+open_locale topology ennreal measure_theory
 open set function filter
 
 namespace measure_theory
@@ -40,7 +43,7 @@ lemma _root_.is_open.measure_pos (hU : is_open U) (hne : U.nonempty) : 0 < μ U 
 (hU.measure_ne_zero μ hne).bot_lt
 
 lemma _root_.is_open.measure_pos_iff (hU : is_open U) : 0 < μ U ↔ U.nonempty :=
-⟨λ h, ne_empty_iff_nonempty.1 $ λ he, h.ne' $ he.symm ▸ measure_empty, hU.measure_pos μ⟩
+⟨λ h, nonempty_iff_ne_empty.2 $ λ he, h.ne' $ he.symm ▸ measure_empty, hU.measure_pos μ⟩
 
 lemma _root_.is_open.measure_eq_zero_iff (hU : is_open U) : μ U = 0 ↔ U = ∅ :=
 by simpa only [not_lt, nonpos_iff_eq_zero, not_nonempty_iff_eq_empty]

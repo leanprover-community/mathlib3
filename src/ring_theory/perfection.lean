@@ -8,7 +8,7 @@ import algebra.char_p.pi
 import algebra.char_p.quotient
 import algebra.char_p.subring
 import algebra.ring.pi
-import analysis.special_functions.pow
+import analysis.special_functions.pow.nnreal
 import field_theory.perfect_closure
 import ring_theory.localization.fraction_ring
 import ring_theory.subring.basic
@@ -550,11 +550,13 @@ end
 end classical
 
 instance : is_domain (pre_tilt K v O hv p) :=
-{ exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.1.ne_one).1,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ f g hfg,
+begin
+  haveI : nontrivial (pre_tilt K v O hv p) := ⟨(char_p.nontrivial_of_char_ne_one hp.1.ne_one).1⟩,
+  haveI : no_zero_divisors (pre_tilt K v O hv p) := ⟨λ f g hfg,
     by { simp_rw ← map_eq_zero at hfg ⊢, contrapose! hfg, rw valuation.map_mul,
-      exact mul_ne_zero hfg.1 hfg.2 },
-  .. (infer_instance : comm_ring (pre_tilt K v O hv p)) }
+    exact mul_ne_zero hfg.1 hfg.2 }⟩,
+  exact no_zero_divisors.to_is_domain _
+end
 
 end pre_tilt
 

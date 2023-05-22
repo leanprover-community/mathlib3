@@ -10,6 +10,9 @@ import model_theory.encoding
 
 /-!
 # First-Order Substructures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines substructures of first-order structures in a similar manner to the various
 substructures appearing in the algebra library.
 

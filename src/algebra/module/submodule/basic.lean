@@ -6,9 +6,14 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 import algebra.module.linear_map
 import algebra.module.equiv
 import group_theory.group_action.sub_mul_action
+import group_theory.submonoid.membership
+
 /-!
 
 # Submodules of a module
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -29,10 +34,6 @@ universes u'' u' u v w
 variables {G : Type u''} {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
-
-/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`. -/
-class submodule_class (S : Type*) (R M : out_param $ Type*) [add_zero_class M]
-  [has_smul R M] [set_like S M] [add_submonoid_class S M] extends smul_mem_class S R M
 
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
@@ -58,7 +59,7 @@ instance : add_submonoid_class (submodule R M) M :=
 { zero_mem := zero_mem',
   add_mem := add_mem' }
 
-instance : submodule_class (submodule R M) R M :=
+instance : smul_mem_class (submodule R M) R M :=
 { smul_mem := smul_mem' }
 
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
@@ -131,23 +132,23 @@ to_sub_mul_action_strict_mono.monotone
 
 end submodule
 
-namespace submodule_class
+namespace smul_mem_class
 
 variables [semiring R] [add_comm_monoid M] [module R M] {A : Type*} [set_like A M]
-  [add_submonoid_class A M] [hA : submodule_class A R M] (S' : A)
+  [add_submonoid_class A M] [hA : smul_mem_class A R M] (S' : A)
 
 include hA
 /-- A submodule of a `module` is a `module`.  -/
-@[priority 75] -- Prefer subclasses of `module` over `submodule_class`.
+@[priority 75] -- Prefer subclasses of `module` over `smul_mem_class`.
 instance to_module : module R S' :=
 subtype.coe_injective.module R (add_submonoid_class.subtype S') (set_like.coe_smul S')
 
 /-- The natural `R`-linear map from a submodule of an `R`-module `M` to `M`. -/
 protected def subtype : S' →ₗ[R] M := ⟨coe, λ _ _, rfl, λ _ _, rfl⟩
 
-@[simp] protected theorem coe_subtype : (submodule_class.subtype S' : S' → M) = coe := rfl
+@[simp] protected theorem coe_subtype : (smul_mem_class.subtype S' : S' → M) = coe := rfl
 
-end submodule_class
+end smul_mem_class
 
 namespace submodule
 
@@ -208,20 +209,12 @@ protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
-instance : coe_is_linear_map R p M :=
-{ coe_smulₛₗ' := λ _ _, rfl }
-
 variables {p}
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
 (set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
-
--- The following lemmas can be proven by `simp` lemmas for `coe_is_add_monoid_hom` or
--- `coe_is_linear_map` but are worthwile to keep since they are eligible for `dsimp`.
-@[simp, norm_cast] protected lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
-@[simp, norm_cast] protected lemma coe_zero : ((0 : p) : M) = 0 := rfl
--- Not `simp` since it is subsumed by `coe_smul_of_tower`
-@[norm_cast] protected lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
-
+@[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
+@[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_smul_of_tower [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
@@ -245,7 +238,7 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
-linear_map.coe _ _ _
+by refine {to_fun := coe, ..}; simp [coe_smul]
 
 theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
@@ -255,7 +248,39 @@ lemma injective_subtype : injective p.subtype := subtype.coe_injective
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
-p.subtype.map_sum
+map_sum p.subtype _ _
+
+section add_action
+
+/-! ### Additive actions by `submodule`s
+
+These instances transfer the action by an element `m : M` of a `R`-module `M` written as `m +ᵥ a`
+onto the action by an element `s : S` of a submodule `S : submodule R M` such that
+`s +ᵥ a = (s : M) +ᵥ a`.
+
+These instances work particularly well in conjunction with `add_group.to_add_action`, enabling
+`s +ᵥ m` as an alias for `↑s + m`.
+
+-/
+
+variables {α β : Type*}
+
+instance [has_vadd M α] : has_vadd p α := p.to_add_submonoid.has_vadd
+
+instance vadd_comm_class [has_vadd M β] [has_vadd α β] [vadd_comm_class M α β] :
+  vadd_comm_class p α β := ⟨λ a, (vadd_comm (a : M) : _)⟩
+
+instance [has_vadd M α] [has_faithful_vadd M α] :
+  has_faithful_vadd p α := ⟨λ x y h, subtype.ext $ eq_of_vadd_eq_vadd h⟩
+
+/-- The action by a submodule is the action by the underlying module. -/
+instance [add_action M α] : add_action p α := add_action.comp_hom _ p.subtype.to_add_monoid_hom
+
+variable {p}
+
+lemma vadd_def [has_vadd M α] (g : p) (m : α) : g +ᵥ m = (g : M) +ᵥ m := rfl
+
+end add_action
 
 section restrict_scalars
 variables (S) [semiring S] [module S M] [module R M] [has_smul S R] [is_scalar_tower S R M]
@@ -462,5 +487,5 @@ end submodule
 
 /-- Subspace of a vector space. Defined to equal `submodule`. -/
 abbreviation subspace (R : Type u) (M : Type v)
-  [field R] [add_comm_group M] [module R M] :=
+  [division_ring R] [add_comm_group M] [module R M] :=
 submodule R M

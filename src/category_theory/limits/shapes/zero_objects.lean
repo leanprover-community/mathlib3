@@ -8,6 +8,9 @@ import category_theory.limits.shapes.terminal
 /-!
 # Zero objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category "has a zero object" if it has an object which is both initial and terminal. Having a
 zero object provides zero morphisms, as the unique morphisms factoring through the zero object;
 see `category_theory.limits.shapes.zero_morphisms`.
@@ -99,6 +102,14 @@ begin
   { rw ← cancel_mono e.hom, apply hY.eq_of_tgt, },
 end
 
+lemma op (h : is_zero X) : is_zero (opposite.op X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_src _ _)⟩⟩⟩
+
+lemma unop {X : Cᵒᵖ} (h : is_zero X) : is_zero (opposite.unop X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_src _ _)⟩⟩⟩
+
 end is_zero
 
 end limits
@@ -148,9 +159,14 @@ localized "attribute [instance] category_theory.limits.has_zero_object.has_zero"
 lemma is_zero_zero : is_zero (0 : C) :=
 has_zero_object.zero.some_spec
 
+instance has_zero_object_op : has_zero_object Cᵒᵖ := ⟨⟨opposite.op 0, is_zero.op (is_zero_zero C)⟩⟩
+
 end
 
 open_locale zero_object
+
+lemma has_zero_object_unop [has_zero_object Cᵒᵖ] : has_zero_object C :=
+⟨⟨opposite.unop 0, is_zero.unop (is_zero_zero Cᵒᵖ)⟩⟩
 
 variables {C}
 

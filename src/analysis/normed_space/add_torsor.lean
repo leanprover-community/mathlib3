@@ -5,18 +5,21 @@ Authors: Joseph Myers, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import analysis.normed.group.add_torsor
-import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.midpoint_zero
 import linear_algebra.affine_space.affine_subspace
 import topology.instances.real_vector_space
 
 /-!
 # Torsors of normed space actions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about normed additive torsors over normed spaces.
 -/
 
 noncomputable theory
-open_locale nnreal topological_space
+open_locale nnreal topology
 open filter
 
 variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]
@@ -32,7 +35,7 @@ lemma affine_subspace.is_closed_direction_iff (s : affine_subspace 𝕜 Q) :
   is_closed (s.direction : set W) ↔ is_closed (s : set Q) :=
 begin
   rcases s.eq_bot_or_nonempty with rfl|⟨x, hx⟩, { simp [is_closed_singleton] },
-  rw [← (isometric.vadd_const x).to_homeomorph.symm.is_closed_image,
+  rw [← (isometry_equiv.vadd_const x).to_homeomorph.symm.is_closed_image,
     affine_subspace.coe_direction_eq_vsub_set_right hx],
   refl
 end

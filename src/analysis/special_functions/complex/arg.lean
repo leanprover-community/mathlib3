@@ -3,12 +3,14 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
-import algebra.order.to_interval_mod
 import analysis.special_functions.trigonometric.angle
 import analysis.special_functions.trigonometric.inverse
 
 /-!
 # The argument of a complex number.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define `arg : ℂ → ℝ`, returing a real number in the range (-π, π],
 such that for `x ≠ 0`, `sin (arg x) = x.im / x.abs` and `cos (arg x) = x.re / x.abs`,
@@ -19,7 +21,7 @@ noncomputable theory
 
 namespace complex
 
-open_locale complex_conjugate real topological_space
+open_locale complex_conjugate real topology
 open filter set
 
 /-- `arg` returns values in the range (-π, π], such that for `x ≠ 0`,
@@ -169,7 +171,7 @@ end
 by simp [arg, zero_le_one]
 
 @[simp] lemma arg_neg_one : arg (-1) = π :=
-by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _ _)]
+by simp [arg, le_refl, not_le.2 (zero_lt_one' ℝ)]
 
 @[simp] lemma arg_I : arg I = π / 2 :=
 by simp [arg, le_refl]
@@ -389,23 +391,23 @@ begin
 end
 
 lemma arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod {r : ℝ} (hr : 0 < r) (θ : ℝ) :
-  arg (r * (cos θ + sin θ * I)) = to_Ioc_mod (-π) real.two_pi_pos θ :=
+  arg (r * (cos θ + sin θ * I)) = to_Ioc_mod real.two_pi_pos (-π) θ :=
 begin
-  have hi : to_Ioc_mod (-π) real.two_pi_pos θ ∈ Ioc (-π) π,
-  { convert to_Ioc_mod_mem_Ioc _ real.two_pi_pos _,
+  have hi : to_Ioc_mod real.two_pi_pos (-π) θ ∈ Ioc (-π) π,
+  { convert to_Ioc_mod_mem_Ioc _ _ _,
     ring },
   convert arg_mul_cos_add_sin_mul_I hr hi using 3,
-  simp [to_Ioc_mod, cos_add_int_mul_two_pi, sin_add_int_mul_two_pi]
+  simp [to_Ioc_mod, cos_sub_int_mul_two_pi, sin_sub_int_mul_two_pi]
 end
 
 lemma arg_cos_add_sin_mul_I_eq_to_Ioc_mod (θ : ℝ) :
-  arg (cos θ + sin θ * I) = to_Ioc_mod (-π) real.two_pi_pos θ :=
+  arg (cos θ + sin θ * I) = to_Ioc_mod real.two_pi_pos (-π) θ :=
 by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod zero_lt_one]
 
 lemma arg_mul_cos_add_sin_mul_I_sub {r : ℝ} (hr : 0 < r) (θ : ℝ) :
   arg (r * (cos θ + sin θ * I)) - θ = 2 * π * ⌊(π - θ) / (2 * π)⌋ :=
 begin
-  rw [arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod hr, to_Ioc_mod_sub_self, to_Ioc_div_eq_floor,
+  rw [arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod hr, to_Ioc_mod_sub_self, to_Ioc_div_eq_neg_floor,
       zsmul_eq_mul],
   ring_nf
 end

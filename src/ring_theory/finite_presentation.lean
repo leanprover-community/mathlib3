@@ -6,9 +6,13 @@ Authors: Johan Commelin
 
 import ring_theory.finite_type
 import ring_theory.mv_polynomial.tower
+import ring_theory.ideal.quotient_operations
 
 /-!
 # Finiteness conditions in commutative algebra
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define several notions of finiteness that are common in commutative algebra.
 

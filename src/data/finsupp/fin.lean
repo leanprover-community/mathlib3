@@ -8,6 +8,9 @@ import data.finsupp.defs
 /-!
 # `cons` and `tail` for maps `fin n →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We interpret maps `fin n →₀ M` as `n`-tuples of elements of `M`,
 We define the following operations:
 * `finsupp.tail` : the tail of a map `fin (n + 1) →₀ M`, i.e., its last `n` entries;
@@ -26,11 +29,11 @@ variables {n : ℕ} (i : fin n) {M : Type*} [has_zero M] (y : M)
 
 /-- `tail` for maps `fin (n + 1) →₀ M`. See `fin.tail` for more details. -/
 def tail (s : fin (n + 1) →₀ M) : fin n →₀ M :=
-finsupp.equiv_fun_on_fintype.symm (fin.tail s)
+finsupp.equiv_fun_on_finite.symm (fin.tail s)
 
 /-- `cons` for maps `fin n →₀ M`. See `fin.cons` for more details. -/
 def cons (y : M) (s : fin n →₀ M) : fin (n + 1) →₀ M :=
-finsupp.equiv_fun_on_fintype.symm (fin.cons y s : fin (n + 1) → M)
+finsupp.equiv_fun_on_finite.symm (fin.cons y s : fin (n + 1) → M)
 
 lemma tail_apply : tail t i = t i.succ := rfl
 

@@ -8,11 +8,14 @@ import topology.algebra.uniform_convergence
 /-!
 # Strong topologies on the space of continuous linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the strong topologies on `E →L[𝕜] F` associated with a family
 `𝔖 : set (set E)` to be the topology of uniform convergence on the elements of `𝔖` (also called
 the topology of `𝔖`-convergence).
 
-The lemma `uniform_convergence_on.has_continuous_smul_of_image_bounded` tells us that this is a
+The lemma `uniform_on_fun.has_continuous_smul_of_image_bounded` tells us that this is a
 vector space topology if the continuous linear image of any element of `𝔖` is bounded (in the sense
 of `bornology.is_vonN_bounded`).
 
@@ -46,22 +49,23 @@ sets).
 
 ## TODO
 
-* show that these topologies are T₂ and locally convex if the topology on `F` is
+* add a type alias for continuous linear maps with the topology of `𝔖`-convergence?
 
 ## Tags
 
 uniform convergence, bounded convergence
 -/
 
-open_locale topological_space
+open_locale topology uniform_convergence
 
 namespace continuous_linear_map
 
 section general
 
 variables {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂] (σ : 𝕜₁ →+* 𝕜₂)
-  {E : Type*} (F : Type*) [add_comm_group E] [module 𝕜₁ E]
-  [add_comm_group F] [module 𝕜₂ F] [topological_space E]
+  {E E' F F' : Type*} [add_comm_group E] [module 𝕜₁ E] [add_comm_group E'] [module ℝ E']
+  [add_comm_group F] [module 𝕜₂ F] [add_comm_group F'] [module ℝ F']
+  [topological_space E] [topological_space E'] (F)
 
 /-- Given `E` and `F` two topological vector spaces and `𝔖 : set (set E)`, then
 `strong_topology σ F 𝔖` is the "topology of uniform convergence on the elements of `𝔖`" on
@@ -71,7 +75,7 @@ If the continuous linear image of any element of `𝔖` is bounded, this makes `
 topological vector space. -/
 def strong_topology [topological_space F] [topological_add_group F]
   (𝔖 : set (set E)) : topological_space (E →SL[σ] F) :=
-(@uniform_convergence_on.topological_space E F
+(@uniform_on_fun.topological_space E F
   (topological_add_group.to_uniform_space F) 𝔖).induced coe_fn
 
 /-- The uniform structure associated with `continuous_linear_map.strong_topology`. We make sure
@@ -79,7 +83,7 @@ that this has nice definitional properties. -/
 def strong_uniformity [uniform_space F] [uniform_add_group F]
   (𝔖 : set (set E)) : uniform_space (E →SL[σ] F) :=
 @uniform_space.replace_topology _ (strong_topology σ F 𝔖)
-  ((uniform_convergence_on.uniform_space E F 𝔖).comap coe_fn)
+  ((uniform_on_fun.uniform_space E F 𝔖).comap coe_fn)
   (by rw [strong_topology, uniform_add_group.to_uniform_space_eq]; refl)
 
 @[simp] lemma strong_uniformity_topology_eq [uniform_space F] [uniform_add_group F]
@@ -87,14 +91,29 @@ def strong_uniformity [uniform_space F] [uniform_add_group F]
   (strong_uniformity σ F 𝔖).to_topological_space = strong_topology σ F 𝔖 :=
 rfl
 
+lemma strong_uniformity.uniform_embedding_coe_fn [uniform_space F] [uniform_add_group F]
+  (𝔖 : set (set E)) :
+  @uniform_embedding (E →SL[σ] F) (E →ᵤ[𝔖] F) (strong_uniformity σ F 𝔖)
+  (uniform_on_fun.uniform_space E F 𝔖) coe_fn :=
+begin
+  letI : uniform_space (E →SL[σ] F) := strong_uniformity σ F 𝔖,
+  exact ⟨⟨rfl⟩, fun_like.coe_injective⟩
+end
+
+lemma strong_topology.embedding_coe_fn [uniform_space F] [uniform_add_group F]
+  (𝔖 : set (set E)) :
+  @embedding (E →SL[σ] F) (E →ᵤ[𝔖] F) (strong_topology σ F 𝔖)
+  (uniform_on_fun.topological_space E F 𝔖)
+  (uniform_on_fun.of_fun 𝔖 ∘ coe_fn) :=
+@uniform_embedding.embedding _ _ (_root_.id _) _ _
+  (strong_uniformity.uniform_embedding_coe_fn _ _ _)
+
 lemma strong_uniformity.uniform_add_group [uniform_space F] [uniform_add_group F]
   (𝔖 : set (set E)) : @uniform_add_group (E →SL[σ] F) (strong_uniformity σ F 𝔖) _ :=
 begin
-  letI : uniform_space (E → F) := uniform_convergence_on.uniform_space E F 𝔖,
   letI : uniform_space (E →SL[σ] F) := strong_uniformity σ F 𝔖,
-  haveI : uniform_add_group (E → F) := uniform_convergence_on.uniform_add_group,
   rw [strong_uniformity, uniform_space.replace_topology_eq],
-  let φ : (E →SL[σ] F) →+ E → F := ⟨(coe_fn : (E →SL[σ] F) → E → F), rfl, λ _ _, rfl⟩,
+  let φ : (E →SL[σ] F) →+ E →ᵤ[𝔖] F := ⟨(coe_fn : (E →SL[σ] F) → E →ᵤ F), rfl, λ _ _, rfl⟩,
   exact uniform_add_group_comap φ
 end
 
@@ -108,6 +127,16 @@ begin
   apply_instance
 end
 
+lemma strong_topology.t2_space [topological_space F] [topological_add_group F] [t2_space F]
+  (𝔖 : set (set E)) (h𝔖 : ⋃₀ 𝔖 = set.univ) : @t2_space (E →SL[σ] F) (strong_topology σ F 𝔖) :=
+begin
+  letI : uniform_space F := topological_add_group.to_uniform_space F,
+  haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
+  letI : topological_space (E →SL[σ] F) := strong_topology σ F 𝔖,
+  haveI : t2_space (E →ᵤ[𝔖] F) := uniform_on_fun.t2_space_of_covering h𝔖,
+  exact (strong_topology.embedding_coe_fn σ F 𝔖).t2_space
+end
+
 lemma strong_topology.has_continuous_smul [ring_hom_surjective σ] [ring_hom_isometric σ]
   [topological_space F] [topological_add_group F] [has_continuous_smul 𝕜₂ F] (𝔖 : set (set E))
   (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) (h𝔖₃ : ∀ S ∈ 𝔖, bornology.is_vonN_bounded 𝕜₁ S) :
@@ -115,10 +144,10 @@ lemma strong_topology.has_continuous_smul [ring_hom_surjective σ] [ring_hom_iso
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
   haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
-  letI : topological_space (E → F) := uniform_convergence_on.topological_space E F 𝔖,
   letI : topological_space (E →SL[σ] F) := strong_topology σ F 𝔖,
-  let φ : (E →SL[σ] F) →ₗ[𝕜₂] E → F := ⟨(coe_fn : (E →SL[σ] F) → E → F), λ _ _, rfl, λ _ _, rfl⟩,
-  exact uniform_convergence_on.has_continuous_smul_induced_of_image_bounded 𝕜₂ E F (E →SL[σ] F)
+  let φ : (E →SL[σ] F) →ₗ[𝕜₂] E →ᵤ[𝔖] F :=
+    ⟨(coe_fn : (E →SL[σ] F) → E → F), λ _ _, rfl, λ _ _, rfl⟩,
+  exact uniform_on_fun.has_continuous_smul_induced_of_image_bounded 𝕜₂ E F (E →SL[σ] F)
     h𝔖₁ h𝔖₂ φ ⟨rfl⟩ (λ u s hs, (h𝔖₃ s hs).image u)
 end
 
@@ -132,7 +161,7 @@ begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
   haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
   rw nhds_induced,
-  exact (uniform_convergence_on.has_basis_nhds_zero_of_basis 𝔖 h𝔖₁ h𝔖₂ h).comap coe_fn
+  exact (uniform_on_fun.has_basis_nhds_zero_of_basis 𝔖 h𝔖₁ h𝔖₂ h).comap coe_fn
 end
 
 lemma strong_topology.has_basis_nhds_zero [topological_space F] [topological_add_group F]
@@ -146,8 +175,10 @@ end general
 
 section bounded_sets
 
-variables {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂] {σ : 𝕜₁ →+* 𝕜₂} {E F : Type*}
-  [add_comm_group E] [module 𝕜₁ E] [add_comm_group F] [module 𝕜₂ F] [topological_space E]
+variables {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂] {σ : 𝕜₁ →+* 𝕜₂} {E E' F F' : Type*}
+  [add_comm_group E] [module 𝕜₁ E] [add_comm_group E'] [module ℝ E']
+  [add_comm_group F] [module 𝕜₂ F] [add_comm_group F'] [module ℝ F']
+  [topological_space E]
 
 /-- The topology of bounded convergence on `E →L[𝕜] F`. This coincides with the topology induced by
 the operator norm when `E` and `F` are normed spaces. -/
@@ -170,6 +201,11 @@ strong_uniformity σ F {S | bornology.is_vonN_bounded 𝕜₁ S}
 
 instance [uniform_space F] [uniform_add_group F] : uniform_add_group (E →SL[σ] F) :=
 strong_uniformity.uniform_add_group σ F _
+
+instance [topological_space F] [topological_add_group F] [has_continuous_smul 𝕜₁ E] [t2_space F] :
+  t2_space (E →SL[σ] F) :=
+strong_topology.t2_space σ F _ (set.eq_univ_of_forall $ λ x,
+  set.mem_sUnion_of_mem (set.mem_singleton x) (bornology.is_vonN_bounded_singleton x))
 
 protected lemma has_basis_nhds_zero_of_basis [topological_space F]
   [topological_add_group F] {ι : Type*} {p : ι → Prop} {b : ι → set F}

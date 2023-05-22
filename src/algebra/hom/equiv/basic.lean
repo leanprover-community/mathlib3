@@ -11,6 +11,9 @@ import data.pi.algebra
 /-!
 # Multiplicative and additive equivs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two extensions of `equiv` called `add_equiv` and `mul_equiv`, which are
 datatypes representing isomorphisms of `add_monoid`s/`add_group`s and `monoid`s/`group`s.
 
@@ -450,16 +453,16 @@ def Pi_congr_right {η : Type*}
   map_mul' := λ x y, funext $ λ j, (es j).map_mul (x j) (y j),
   .. equiv.Pi_congr_right (λ j, (es j).to_equiv) }
 
-@[simp]
+@[simp, to_additive]
 lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*} [Π j, has_mul (Ms j)] :
   Pi_congr_right (λ j, mul_equiv.refl (Ms j)) = mul_equiv.refl _ := rfl
 
-@[simp]
+@[simp, to_additive]
 lemma Pi_congr_right_symm {η : Type*}
   {Ms Ns : η → Type*} [Π j, has_mul (Ms j)] [Π j, has_mul (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) : (Pi_congr_right es).symm = (Pi_congr_right $ λ i, (es i).symm) := rfl
 
-@[simp]
+@[simp, to_additive]
 lemma Pi_congr_right_trans {η : Type*}
   {Ms Ns Ps : η → Type*} [Π j, has_mul (Ms j)] [Π j, has_mul (Ns j)]
   [Π j, has_mul (Ps j)]

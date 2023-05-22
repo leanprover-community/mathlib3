@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.category.Group.preadditive
-import category_theory.linear.default
+import category_theory.linear.basic
 import category_theory.elementwise
 import linear_algebra.basic
 import category_theory.conj
@@ -12,6 +12,9 @@ import category_theory.preadditive.additive_functor
 
 /-!
 # The category of `R`-modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 `Module.{v} R` is the category of bundled `R`-modules with carrier in the universe `v`. We show
 that it is preadditive and show that being an isomorphism, monomorphism and epimorphism is

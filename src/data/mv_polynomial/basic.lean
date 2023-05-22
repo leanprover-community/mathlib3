@@ -13,6 +13,9 @@ import ring_theory.adjoin.basic
 /-!
 # Multivariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines polynomial rings over a base ring (or even semiring),
 with variables from a general type `σ` (which could be infinite).
 
@@ -69,7 +72,7 @@ polynomial, multivariate polynomial, multivariable polynomial
 
 noncomputable theory
 
-open_locale classical big_operators
+open_locale big_operators
 
 open set function finsupp add_monoid_algebra
 open_locale big_operators
@@ -99,24 +102,27 @@ instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] :
   distrib_mul_action R (mv_polynomial σ S₁) :=
 add_monoid_algebra.distrib_mul_action
 
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithful_smul R S₁] :
+instance [comm_semiring S₁] [smul_zero_class R S₁] : smul_zero_class R (mv_polynomial σ S₁) :=
+add_monoid_algebra.smul_zero_class
+
+instance [comm_semiring S₁] [smul_zero_class R S₁] [has_faithful_smul R S₁] :
   has_faithful_smul R (mv_polynomial σ S₁) :=
 add_monoid_algebra.has_faithful_smul
 
 instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
 add_monoid_algebra.module
 
-instance [monoid R] [monoid S₁] [comm_semiring S₂]
-  [has_smul R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
+instance [comm_semiring S₂]
+  [has_smul R S₁] [smul_zero_class R S₂] [smul_zero_class S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.is_scalar_tower
 
-instance [monoid R] [monoid S₁][comm_semiring S₂]
-  [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
+instance [comm_semiring S₂]
+  [smul_zero_class R S₂] [smul_zero_class S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
 
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mul_action Rᵐᵒᵖ S₁]
+instance [comm_semiring S₁] [smul_zero_class R S₁] [smul_zero_class Rᵐᵒᵖ S₁]
   [is_central_scalar R S₁] :
   is_central_scalar R (mv_polynomial σ S₁) :=
 add_monoid_algebra.is_central_scalar
@@ -215,6 +221,9 @@ lemma smul_eq_C_mul (p : mv_polynomial σ R) (a : R) : a • p = C a * p := C_mu
 lemma C_eq_smul_one : (C a : mv_polynomial σ R) = a • 1 :=
 by rw [← C_mul', mul_one]
 
+lemma smul_monomial {S₁ : Type*} [smul_zero_class S₁ R] (r : S₁) :
+  r • monomial s a = monomial s (r • a) := finsupp.smul_single _ _ _
+
 lemma X_injective [nontrivial R] : function.injective (X : σ → mv_polynomial σ R) :=
 (monomial_left_injective one_ne_zero).comp (finsupp.single_left_injective one_ne_zero)
 
@@ -239,8 +248,7 @@ variables {σ R}
 @[simp] lemma monomial_one_hom_apply :
   monomial_one_hom R σ s = (monomial s 1 : mv_polynomial σ R) := rfl
 
-lemma X_pow_eq_monomial : X n ^ e = monomial (single n e) (1 : R) :=
-by simp [X, monomial_pow]
+lemma X_pow_eq_monomial : X n ^ e = monomial (single n e) (1 : R) := by simp [X, monomial_pow]
 
 lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e) :=
 by rw [X_pow_eq_monomial, monomial_mul, mul_one]
@@ -248,12 +256,13 @@ by rw [X_pow_eq_monomial, monomial_mul, mul_one]
 lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a) :=
 by rw [X_pow_eq_monomial, monomial_mul, one_mul]
 
-lemma monomial_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
-  monomial (single s n) a = C a * (X s)^n :=
+lemma C_mul_X_pow_eq_monomial {s : σ} {a : R} {n : ℕ} : C a * X s ^ n = monomial (single s n) a :=
 by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
-@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 :=
-single_zero _
+lemma C_mul_X_eq_monomial {s : σ} {a : R} : C a * X s = monomial (single s 1) a :=
+by rw [← C_mul_X_pow_eq_monomial, pow_one]
+
+@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 := single_zero _
 
 @[simp] lemma monomial_zero' : (monomial (0 : σ →₀ ℕ) : R → mv_polynomial σ R) = C := rfl
 
@@ -408,18 +417,22 @@ by convert rfl
 lemma support_monomial_subset : (monomial s a).support ⊆ {s} :=
 support_single_subset
 
-lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.support_add
+lemma support_add [decidable_eq σ] : (p + q).support ⊆ p.support ∪ q.support := finsupp.support_add
 
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
-by rw [X, support_monomial, if_neg]; exact one_ne_zero
+by classical; rw [X, support_monomial, if_neg]; exact one_ne_zero
 
 lemma support_X_pow [nontrivial R] (s : σ) (n : ℕ) :
   (X s ^ n : mv_polynomial σ R).support = {finsupp.single s n} :=
-by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
+by classical; rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 
-lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :
+lemma support_smul {S₁ : Type*} [smul_zero_class S₁ R] {a : S₁} {f : mv_polynomial σ R} :
+  (a • f).support ⊆ f.support :=
+finsupp.support_smul
+
+lemma support_sum {α : Type*} [decidable_eq σ] {s : finset α} {f : α → mv_polynomial σ R} :
   (∑ x in s, f x).support ⊆ s.bUnion (λ x, (f x).support) := finsupp.support_finset_sum
 
 end support
@@ -442,7 +455,7 @@ lemma sum_def {A} [add_comm_monoid A] {p : mv_polynomial σ R} {b : (σ →₀ �
   p.sum b = ∑ m in p.support, b m (p.coeff m) :=
 by simp [support, finsupp.sum, coeff]
 
-lemma support_mul (p q : mv_polynomial σ R) :
+lemma support_mul [decidable_eq σ] (p q : mv_polynomial σ R) :
   (p * q).support ⊆ p.support.bUnion (λ a, q.support.bUnion $ λ b, {a + b}) :=
 by convert add_monoid_algebra.support_mul p q; ext; convert iff.rfl
 
@@ -456,7 +469,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply p q m
 
-@[simp] lemma coeff_smul {S₁ : Type*} [monoid S₁] [distrib_mul_action S₁ R]
+@[simp] lemma coeff_smul {S₁ : Type*} [smul_zero_class S₁ R]
   (m : σ →₀ ℕ) (c : S₁) (p : mv_polynomial σ R) :
   coeff m (c • p) = c • coeff m p := smul_apply c p m
 
@@ -512,11 +525,12 @@ by rw [← coeff_X_pow, pow_one]
 
 @[simp] lemma coeff_X (i : σ) :
   coeff (single i 1) (X i : mv_polynomial σ R) = 1 :=
-by rw [coeff_X', if_pos rfl]
+by classical; rw [coeff_X', if_pos rfl]
 
 @[simp] lemma coeff_C_mul (m) (a : R) (p : mv_polynomial σ R) :
   coeff m (C a * p) = a * coeff m p :=
 begin
+  classical,
   rw [mul_def, sum_C],
   { simp [sum_def, coeff_sum] {contextual := tt} },
   simp
@@ -550,6 +564,10 @@ add_monoid_algebra.support_mul_single p _ (by simp) _
   (X s * p).support = p.support.map (add_left_embedding (single s 1)) :=
 add_monoid_algebra.support_single_mul p _ (by simp) _
 
+@[simp] lemma support_smul_eq {S₁ : Type*} [semiring S₁] [module S₁ R] [no_zero_smul_divisors S₁ R]
+  {a : S₁} (h : a ≠ 0) (p : mv_polynomial σ R) : (a • p).support = p.support :=
+finsupp.support_smul_eq h
+
 lemma support_sdiff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
   p.support \ q.support ⊆ (p + q).support :=
 begin
@@ -572,6 +590,7 @@ end
 lemma coeff_mul_monomial' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
   coeff m (p * monomial s r) = if s ≤ m then coeff (m - s) p * r else 0 :=
 begin
+  classical,
   obtain rfl | hr := eq_or_ne r 0,
   { simp only [monomial_zero, coeff_zero, mul_zero, if_t_t], },
   haveI : nontrivial R := nontrivial_of_ne _ _ hr,
@@ -618,6 +637,9 @@ by { rw ext_iff, simp only [coeff_zero], }
 lemma ne_zero_iff {p : mv_polynomial σ R} :
   p ≠ 0 ↔ ∃ d, coeff d p ≠ 0 :=
 by { rw [ne.def, eq_zero_iff], push_neg, }
+
+@[simp] lemma support_eq_empty {p : mv_polynomial σ R} : p.support = ∅ ↔ p = 0 :=
+finsupp.support_eq_empty
 
 lemma exists_coeff_ne_zero {p : mv_polynomial σ R} (h : p ≠ 0) :
   ∃ d, coeff d p ≠ 0 :=
@@ -667,6 +689,10 @@ variables (R)
 @[simp] lemma constant_coeff_X (i : σ) : constant_coeff (X i : mv_polynomial σ R) = 0 :=
 by simp [constant_coeff_eq]
 variables {R}
+
+@[simp] lemma constant_coeff_smul {R : Type*} [smul_zero_class R S₁]
+  (a : R) (f : mv_polynomial σ S₁) :
+  constant_coeff (a • f) = a • constant_coeff f := rfl
 
 lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
@@ -718,9 +744,12 @@ finsupp.sum_zero_index
 section
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
-finsupp.sum_add_index
-  (by simp [f.map_zero])
-  (by simp [add_mul, f.map_add])
+begin
+  classical,
+  exact finsupp.sum_add_index
+    (by simp [f.map_zero])
+    (by simp [add_mul, f.map_add])
+end
 
 @[simp] lemma eval₂_monomial : (monomial s a).eval₂ f g = f a * s.prod (λn e, g n ^ e) :=
 finsupp.sum_single_index (by simp [f.map_zero])
@@ -737,6 +766,7 @@ by simp [eval₂_monomial, f.map_one, X, prod_single_index, pow_one]
 lemma eval₂_mul_monomial :
   ∀{s a}, (p * monomial s a).eval₂ f g = p.eval₂ f g * f a * s.prod (λn e, g n ^ e) :=
 begin
+  classical,
   apply mv_polynomial.induction_on p,
   { assume a' s a,
     simp [C_mul_monomial, eval₂_monomial, f.map_mul] },
@@ -891,6 +921,22 @@ begin
   congr' with a, simp
 end
 
+@[simp]
+theorem eval₂_id (p : mv_polynomial σ R) (g : σ → R) : eval₂ (ring_hom.id _) g p = eval g p :=
+  rfl
+
+theorem eval_eval₂ {τ : Type*} (f : R →+* mv_polynomial τ S₁) (g : σ → mv_polynomial τ S₁)
+  (p : mv_polynomial σ R) (x : τ → S₁) :
+  eval x (eval₂ f g p) = eval₂ ((eval x).comp f) (λ s, eval x (g s)) p :=
+begin
+  apply induction_on p,
+  { simp, },
+  { intros p q hp hq,
+    simp [hp, hq] },
+  { intros p n hp,
+    simp [hp] }
+end
+
 end eval
 
 section map
@@ -954,6 +1000,7 @@ end
 
 lemma coeff_map (p : mv_polynomial σ R) : ∀ (m : σ →₀ ℕ), coeff m (map f p) = f (coeff m p) :=
 begin
+  classical,
   apply mv_polynomial.induction_on p; clear p,
   { intros r m, rw [map_C], simp only [coeff_C], split_ifs, {refl}, rw f.map_zero },
   { intros p q hp hq m, simp only [hp, hq, (map f).map_add, coeff_add], rw f.map_add },
@@ -1091,6 +1138,9 @@ section aeval
 
 variables [algebra R S₁] [comm_semiring S₂]
 variables (f : σ → S₁)
+
+lemma algebra_map_apply (r : R) :
+  algebra_map R (mv_polynomial σ S₁) r = C (algebra_map R S₁ r) := rfl
 
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/
@@ -1253,6 +1303,44 @@ by { ext, simp only [aeval_tower_X, aeval_X] }
 by { ext, simp only [aeval_X, aeval_tower_X] }
 
 end aeval_tower
+
+section eval_mem
+
+variables {S subS : Type*} [comm_semiring S] [set_like subS S] [subsemiring_class subS S]
+
+theorem eval₂_mem {f : R →+* S}
+  {p : mv_polynomial σ R} {s : subS}
+  (hs : ∀ i ∈ p.support, f (p.coeff i) ∈ s) {v : σ → S} (hv : ∀ i, v i ∈ s) :
+     mv_polynomial.eval₂ f v p ∈ s :=
+begin
+  classical,
+  replace hs : ∀ i, f (p.coeff i) ∈ s,
+  { intro i,
+    by_cases hi : i ∈ p.support,
+    { exact hs i hi },
+    { rw [mv_polynomial.not_mem_support_iff.1 hi, f.map_zero],
+      exact zero_mem s } },
+  induction p using mv_polynomial.induction_on''' with a a b f ha hb0 ih generalizing hs,
+  { simpa using hs 0 },
+  rw [eval₂_add, eval₂_monomial],
+  refine add_mem (mul_mem _ $ prod_mem $ λ i hi, pow_mem (hv _) _) (ih $ λ i, _),
+  { simpa only [coeff_add, coeff_monomial, if_pos rfl,
+      mv_polynomial.not_mem_support_iff.1 ha, add_zero] using hs a },
+  have := hs i,
+  rw [coeff_add, coeff_monomial] at this,
+  split_ifs at this with h h,
+  { subst h,
+    rw [mv_polynomial.not_mem_support_iff.1 ha, map_zero],
+    exact zero_mem _ },
+  { rwa zero_add at this }
+end
+
+theorem eval_mem {p : mv_polynomial σ S} {s : subS}
+  (hs : ∀ i ∈ p.support, p.coeff i ∈ s) {v : σ → S} (hv : ∀ i, v i ∈ s) :
+    mv_polynomial.eval v p ∈ s :=
+eval₂_mem hs hv
+
+end eval_mem
 
 end comm_semiring
 

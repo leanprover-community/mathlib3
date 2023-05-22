@@ -3,12 +3,15 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import analysis.normed_space.operator_norm
 import analysis.normed_space.pointwise
 
 /-!
 # Normed spaces over R or C
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file is about results on normed spaces over the fields `ℝ` and `ℂ`.
 
@@ -46,7 +49,7 @@ lemma norm_smul_inv_norm' {r : ℝ} (r_nonneg : 0 ≤ r) {x : E} (hx : x ≠ 0) 
   ‖(r * ‖x‖⁻¹ : 𝕜) • x‖ = r :=
 begin
   have : ‖x‖ ≠ 0 := by simp [hx],
-  field_simp [norm_smul, is_R_or_C.norm_eq_abs, r_nonneg] with is_R_or_C_simps
+  field_simp [norm_smul, r_nonneg] with is_R_or_C_simps
 end
 
 lemma linear_map.bound_of_sphere_bound

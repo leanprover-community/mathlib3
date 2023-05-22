@@ -3,14 +3,17 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash, Eric Wieser
 -/
-import topology.algebra.infinite_sum
-import topology.algebra.ring
+import topology.algebra.infinite_sum.basic
+import topology.algebra.ring.basic
 import topology.algebra.star
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.trace
 
 /-!
 # Topological properties of matrices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file is a place to collect topological results about matrices.
 
@@ -247,7 +250,7 @@ lemma continuous.matrix_block_diagonal' [has_zero R] [decidable_eq l]
   {A : X → Π i, matrix (m' i) (n' i) R} (hA : continuous A) :
   continuous (λ x, block_diagonal' (A x)) :=
 continuous_matrix $ λ ⟨i₁, i₂⟩ ⟨j₁, j₂⟩, begin
-  dsimp only [block_diagonal'],
+  dsimp only [block_diagonal'_apply'],
   split_ifs,
   { subst h,
     exact ((continuous_apply i₁).comp hA).matrix_elem i₂ j₂ },

@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import algebra.star.basic
+import data.set.finite
 import data.set.pointwise.basic
 
 /-!
 # Pointwise star operation on sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the star operation pointwise on sets and provides the basic API.
 Besides basic facts about about how the star operation acts on sets (e.g., `(s ∩ t)⋆ = s⋆ ∩ t⋆`),
@@ -113,7 +117,7 @@ instance [has_star α] [has_trivial_star α] : has_trivial_star (set α) :=
 protected lemma star_inv [group α] [star_semigroup α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
 by { ext, simp only [mem_star, mem_inv, star_inv] }
 
-protected lemma star_inv' [division_ring α] [star_ring α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
+protected lemma star_inv' [division_semiring α] [star_ring α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
 by { ext, simp only [mem_star, mem_inv, star_inv'] }
 
 end set

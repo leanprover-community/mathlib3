@@ -3,12 +3,16 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.basic
+import data.set.image
 import order.lattice
 import order.max
+import order.bounds.basic
 
 /-!
 # Directed indexed families and sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines directed indexed families and directed sets. An indexed family/set is
 directed iff each pair of elements has a shared upper bound.
@@ -19,6 +23,11 @@ directed iff each pair of elements has a shared upper bound.
 * `directed_on r s`: Predicate stating that the set `s` is `r`-directed.
 * `is_directed α r`: Prop-valued mixin stating that `α` is `r`-directed. Follows the style of the
   unbundled relation classes such as `is_total`.
+* `scott_continuous`: Predicate stating that a function between preorders preserves
+  `is_lub` on directed sets.
+
+## References
+* [Gierz et al, *A Compendium of Continuous Lattices*][GierzEtAl1980]
 -/
 
 open function
@@ -42,6 +51,10 @@ theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe :
 by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 
 alias directed_on_iff_directed ↔ directed_on.directed_coe _
+
+theorem directed_on_range {f : ι → α} :
+  directed r f ↔ directed_on r (set.range f) :=
+by simp_rw [directed, directed_on, set.forall_range_iff, set.exists_range_iff]
 
 theorem directed_on_image {s} {f : β → α} :
   directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
@@ -97,7 +110,7 @@ begin
   { use e i, simp [function.extend_apply' _ _ _ hb] },
   rcases hf i j with ⟨k, hi, hj⟩,
   use (e k),
-  simp only [function.extend_apply he, *, true_and]
+  simp only [he.extend_apply, *, true_and]
 end
 
 /-- An antitone function on an inf-semilattice is directed. -/
@@ -154,6 +167,37 @@ by assumption
 instance order_dual.is_directed_le [has_le α] [is_directed α (≥)] : is_directed αᵒᵈ (≤) :=
 by assumption
 
+section reflexive
+
+lemma directed_on.insert (h : reflexive r) (a : α) {s : set α} (hd : directed_on r s)
+  (ha : ∀ b ∈ s, ∃ c ∈ s, a ≼ c ∧ b ≼ c) : directed_on r (insert a s) :=
+begin
+  rintros x (rfl | hx) y (rfl | hy),
+  { exact ⟨y, set.mem_insert _ _, h _, h _⟩ },
+  { obtain ⟨w, hws, hwr⟩ := ha y hy,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
+  { obtain ⟨w, hws, hwr⟩ := ha x hx,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr.symm⟩ },
+  { obtain ⟨w, hws, hwr⟩ := hd x hx y hy,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
+end
+
+lemma directed_on_singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=
+λ x hx y hy, ⟨x, hx, h _, hx.symm ▸ hy.symm ▸ h _⟩
+
+lemma directed_on_pair (h : reflexive r) {a b : α} (hab : a ≼ b) :
+  directed_on r ({a, b} : set α) :=
+(directed_on_singleton h _).insert h _ $ λ c hc, ⟨c, hc, hc.symm ▸ hab, h _⟩
+
+lemma directed_on_pair' (h : reflexive r) {a b : α} (hab : a ≼ b) :
+  directed_on r ({b, a} : set α) :=
+begin
+  rw set.pair_comm,
+  apply directed_on_pair h hab,
+end
+
+end reflexive
+
 section preorder
 variables [preorder α] {a : α}
 
@@ -162,6 +206,14 @@ protected lemma is_min.is_bot [is_directed α (≥)] (h : is_min a) : is_bot a :
 
 protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
 h.to_dual.is_bot
+
+lemma directed_on.is_bot_of_is_min {s : set α} (hd : directed_on (≥) s)
+  {m} (hm : m ∈ s) (hmin : ∀ a ∈ s, a ≤ m → m ≤ a) : ∀ a ∈ s, m ≤ a :=
+λ a as, let ⟨x, xs, xm, xa⟩ := hd m hm a as in (hmin x xs xm).trans xa
+
+lemma directed_on.is_top_of_is_max {s : set α} (hd : directed_on (≤) s)
+  {m} (hm : m ∈ s) (hmax : ∀ a ∈ s, m ≤ a → a ≤ m) : ∀ a ∈ s, a ≤ m :=
+@directed_on.is_bot_of_is_min αᵒᵈ _ s hd m hm hmax
 
 lemma is_top_or_exists_gt [is_directed α (≤)] (a : α) : is_top a ∨ (∃ b, a < b) :=
 (em (is_max a)).imp is_max.is_top not_is_max_iff.mp
@@ -203,3 +255,42 @@ instance order_top.to_is_directed_le [has_le α] [order_top α] : is_directed α
 @[priority 100]  -- see Note [lower instance priority]
 instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (≥) :=
 ⟨λ a b, ⟨⊥, bot_le, bot_le⟩⟩
+
+section scott_continuous
+
+variables [preorder α] {a : α}
+
+/--
+A function between preorders is said to be Scott continuous if it preserves `is_lub` on directed
+sets. It can be shown that a function is Scott continuous if and only if it is continuous wrt the
+Scott topology.
+
+The dual notion
+
+```lean
+∀ ⦃d : set α⦄, d.nonempty → directed_on (≥) d → ∀ ⦃a⦄, is_glb d a → is_glb (f '' d) (f a)
+```
+
+does not appear to play a significant role in the literature, so is omitted here.
+-/
+def scott_continuous [preorder β] (f : α → β) : Prop :=
+∀ ⦃d : set α⦄, d.nonempty → directed_on (≤) d → ∀ ⦃a⦄, is_lub d a → is_lub (f '' d) (f a)
+
+protected lemma scott_continuous.monotone [preorder β] {f : α → β}
+  (h : scott_continuous f) :
+  monotone f :=
+begin
+  intros a b hab,
+  have e1 : is_lub (f '' {a, b}) (f b),
+  { apply h,
+    { exact set.insert_nonempty _ _ },
+    { exact directed_on_pair le_refl hab },
+    { rw [is_lub, upper_bounds_insert, upper_bounds_singleton,
+        set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)],
+      exact is_least_Ici } },
+  apply e1.1,
+  rw set.image_pair,
+  exact set.mem_insert _ _,
+end
+
+end scott_continuous

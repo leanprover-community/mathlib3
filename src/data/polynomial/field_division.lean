@@ -10,6 +10,9 @@ import ring_theory.euclidean_domain
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file starts looking like the ring theory of $ R[X] $
 
 -/
@@ -24,20 +27,6 @@ variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ
 section is_domain
 variables [comm_ring R] [is_domain R]
 
-lemma roots_C_mul (p : R[X]) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
-begin
-  by_cases hpzero : p = 0,
-  { simp only [hpzero, mul_zero] },
-  rw multiset.ext,
-  intro b,
-  have prodzero : C a * p ≠ 0,
-  { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
-  rw [count_roots, count_roots, root_multiplicity_mul prodzero],
-  have mulzero : root_multiplicity b (C a) = 0,
-  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
-  simp only [mulzero, zero_add]
-end
-
 lemma derivative_root_multiplicity_of_root [char_zero R] {p : R[X]} {t : R} (hpt : p.is_root t) :
   p.derivative.root_multiplicity t = p.root_multiplicity t - 1 :=
 begin
@@ -50,12 +39,12 @@ begin
   have hn : n + 1 = _ := tsub_add_cancel_of_le ((root_multiplicity_pos hp).mpr hpt),
   rw ←hn,
   set q := p /ₘ (X - C t) ^ (n + 1) with hq,
-  convert_to root_multiplicity t ((X - C t) ^ n * (derivative q * (X - C t) + q * ↑(n + 1))) = n,
+  convert_to root_multiplicity t ((X - C t) ^ n * (derivative q * (X - C t) + q * C ↑(n + 1))) = n,
   { congr,
     rw [mul_add, mul_left_comm $ (X - C t) ^ n, ←pow_succ'],
     congr' 1,
     rw [mul_left_comm $ (X - C t) ^ n, mul_comm $ (X - C t) ^ n] },
-  have h : (derivative q * (X - C t) + q * ↑(n + 1)).eval t ≠ 0,
+  have h : (derivative q * (X - C t) + q * C ↑(n + 1)).eval t ≠ 0,
   { suffices : eval t q * ↑(n + 1) ≠ 0,
     { simpa },
     refine mul_ne_zero _ (nat.cast_ne_zero.mpr n.succ_ne_zero),
@@ -160,20 +149,6 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
       conv in p { rw eq_C_of_degree_le_zero this },
       rw [← C_mul, _root_.mul_inv_cancel hc, C_1]
     end⟩⟩
-
-theorem irreducible_of_monic {p : R[X]} (hp1 : p.monic) (hp2 : p ≠ 1) :
-  irreducible p ↔ (∀ f g : R[X], f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
-⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.is_unit_or_is_unit hfg.symm)
-  (assume huf : is_unit f, or.inl $ eq_one_of_is_unit_of_monic hf huf)
-  (assume hug : is_unit g, or.inr $ eq_one_of_is_unit_of_monic hg hug),
-λ hp3, ⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
-have hf : f ≠ 0, from λ hf, by { rw [hp, hf, zero_mul] at hp1, exact not_monic_zero hp1 },
-have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_monic_zero hp1 },
-or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
-hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
-  (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
-by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv, ← leading_coeff_mul,
-    ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See `polynomial.div_by_monic` for more details.-/
 def div (p q : R[X]) :=
@@ -340,29 +315,16 @@ by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_if
 
 lemma mem_roots_map [comm_ring k] [is_domain k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
   x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
-begin
-  rw mem_roots (show p.map f ≠ 0, by exact map_ne_zero hp),
-  dsimp only [is_root],
-  rw polynomial.eval_map,
-end
-
-lemma mem_root_set [comm_ring k] [is_domain k] [algebra R k] {x : k} (hp : p ≠ 0) :
-  x ∈ p.root_set k ↔ aeval x p = 0 :=
-iff.trans multiset.mem_to_finset (mem_roots_map hp)
-
-lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
-  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
-begin
-  ext x,
-  rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, aeval_X_pow, mul_eq_zero],
-  { simp_rw [_root_.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
-    exact λ ha', (ha ha').elim },
-  { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
-end
+by rw [mem_roots (map_ne_zero hp), is_root, polynomial.eval_map]; apply_instance
 
 lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
-by rw [←C_mul_X_pow_eq_monomial, root_set_C_mul_X_pow hn ha]
+by rw [root_set, map_monomial, roots_monomial ((_root_.map_ne_zero (algebra_map R S)).2 ha),
+  multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton, finset.coe_singleton]
+
+lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
+by rw [C_mul_X_pow_eq_monomial, root_set_monomial hn ha]
 
 lemma root_set_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) : (X ^ n : R[X]).root_set S = {0} :=

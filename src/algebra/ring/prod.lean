@@ -11,6 +11,9 @@ import algebra.order.monoid.prod
 /-!
 # Semiring, ring etc structures on `R × S`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two-binop (`semiring`, `ring` etc) structures on `R × S`. We also prove
 trivial `simp` lemmas, and define the following operations on `ring_hom`s and similarly for
 `non_unital_ring_hom`s:
@@ -252,7 +255,7 @@ end ring_equiv
 lemma false_of_nontrivial_of_product_domain (R S : Type*) [ring R] [ring S]
   [is_domain (R × S)] [nontrivial R] [nontrivial S] : false :=
 begin
-  have := is_domain.eq_zero_or_eq_zero_of_mul_eq_zero
+  have := no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero
     (show ((0 : R), (1 : S)) * (1, 0) = 0, by simp),
   rw [prod.mk_eq_zero,prod.mk_eq_zero] at this,
   rcases this with (⟨_,h⟩|⟨h,_⟩),

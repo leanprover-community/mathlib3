@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro, Johan Commelin
 -/
 import number_theory.padics.padic_numbers
-import ring_theory.discrete_valuation_ring
-import topology.metric_space.cau_seq_filter
+import ring_theory.discrete_valuation_ring.basic
 
 /-!
 # p-adic integers
@@ -113,6 +112,8 @@ instance : has_one ℤ_[p] := ⟨⟨1, by norm_num⟩⟩
 
 lemma coe_eq_zero (z : ℤ_[p]) : (z : ℚ_[p]) = 0 ↔ z = 0 :=
 by rw [← coe_zero, subtype.coe_inj]
+
+lemma coe_ne_zero (z : ℤ_[p]) : (z : ℚ_[p]) ≠ 0 ↔ z ≠ 0 := z.coe_eq_zero.not
 
 instance : add_comm_group ℤ_[p] :=
 (by apply_instance : add_comm_group (subring p))
@@ -312,7 +313,7 @@ begin
   { simp [hx] },
   have h : (1 : ℝ) < p := by exact_mod_cast hp.1.one_lt,
   rw [← neg_nonpos, ← (zpow_strict_mono h).le_iff_le],
-  show (p : ℝ) ^ -valuation x ≤ p ^ 0,
+  show (p : ℝ) ^ -valuation x ≤ p ^ (0 : ℤ),
   rw [← norm_eq_pow_val hx],
   simpa using x.property
 end
@@ -419,7 +420,7 @@ begin
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
   { apply pow_pos, exact_mod_cast hp.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
-  have : p ^ n ≤ p ^ k ↔ n ≤ k := (strict_mono_pow hp.1.one_lt).le_iff_le,
+  have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_strict_mono_right hp.1.one_lt).le_iff_le,
   rw [← this],
   norm_cast
 end
@@ -534,16 +535,14 @@ end dvr
 
 section fraction_ring
 
-instance algebra : algebra ℤ_[p] ℚ_[p] := ring_hom.to_algebra (padic_int.coe.ring_hom)
+instance algebra : algebra ℤ_[p] ℚ_[p] := algebra.of_subring (subring p)
 
 @[simp] lemma algebra_map_apply (x : ℤ_[p]) : algebra_map ℤ_[p] ℚ_[p] x = x := rfl
 
 instance is_fraction_ring : is_fraction_ring ℤ_[p] ℚ_[p] :=
 { map_units := λ ⟨x, hx⟩,
-  begin
-    rw [set_like.coe_mk, algebra_map_apply, is_unit_iff_ne_zero, ne.def, padic_int.coe_eq_zero],
-    exact mem_non_zero_divisors_iff_ne_zero.mp hx,
-  end,
+  by rwa [set_like.coe_mk, algebra_map_apply, is_unit_iff_ne_zero, padic_int.coe_ne_zero,
+      ←mem_non_zero_divisors_iff_ne_zero],
   surj := λ x,
   begin
     by_cases hx : ‖ x ‖ ≤ 1,
@@ -561,8 +560,8 @@ instance is_fraction_ring : is_fraction_ring ℤ_[p] ℚ_[p] :=
         { intro h0,
           rw [h0, norm_zero] at hx,
           exact hx (zero_le_one) },
-        rw [ha, padic_norm_e.mul, ← zpow_coe_nat, padic_norm_e.norm_p_pow,
-          padic.norm_eq_pow_val hx, ← zpow_add' , hn_coe, neg_neg, add_left_neg, zpow_zero],
+        rw [ha, padic_norm_e.mul, padic_norm_e.norm_p_pow,
+          padic.norm_eq_pow_val hx, ← zpow_add', hn_coe, neg_neg, add_left_neg, zpow_zero],
         exact or.inl (nat.cast_ne_zero.mpr (ne_zero.ne p)), },
       use (⟨a, le_of_eq ha_norm⟩,
         ⟨(p^n : ℤ_[p]), mem_non_zero_divisors_iff_ne_zero.mpr (ne_zero.ne _)⟩),
@@ -574,7 +573,7 @@ instance is_fraction_ring : is_fraction_ring ℤ_[p] ℚ_[p] :=
     rw [algebra_map_apply, algebra_map_apply, subtype.coe_inj],
     refine ⟨λ h, ⟨1, by rw h⟩, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
-    exact (mul_eq_mul_right_iff.mp h).resolve_right (mem_non_zero_divisors_iff_ne_zero.mp hc)
+    exact (mul_eq_mul_left_iff.mp h).resolve_right (mem_non_zero_divisors_iff_ne_zero.mp hc)
   end }
 
 end fraction_ring

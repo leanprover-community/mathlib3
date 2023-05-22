@@ -8,40 +8,41 @@ import measure_theory.covering.vitali
 import measure_theory.covering.differentiation
 
 /-!
-# Doubling measures and Lebesgue's density theorem
+# Uniformly locally doubling measures and Lebesgue's density theorem
 
 Lebesgue's density theorem states that given a set `S` in a sigma compact metric space with
-locally-finite doubling measure `μ` then for almost all points `x` in `S`, for any sequence of
-closed balls `B₀, B₁, B₂, ...` containing `x`, the limit `μ (S ∩ Bⱼ) / μ (Bⱼ) → 1` as `j → ∞`.
+locally-finite uniformly locally doubling measure `μ` then for almost all points `x` in `S`, for any
+sequence of closed balls `B₀, B₁, B₂, ...` containing `x`, the limit `μ (S ∩ Bⱼ) / μ (Bⱼ) → 1` as
+`j → ∞`.
 
-In this file we combine general results about existence of Vitali families for doubling measures
-with results about differentiation along a Vitali family to obtain an explicit form of Lebesgue's
-density theorem.
+In this file we combine general results about existence of Vitali families for uniformly locally
+doubling measures with results about differentiation along a Vitali family to obtain an explicit
+form of Lebesgue's density theorem.
 
 ## Main results
-  * `is_doubling_measure.ae_tendsto_measure_inter_div`: a version of Lebesgue's density theorem for
-  sequences of balls converging on a point but whose centres are not required to be fixed.
+  * `is_unif_loc_doubling_measure.ae_tendsto_measure_inter_div`: a version of Lebesgue's density
+  theorem for sequences of balls converging on a point but whose centres are not required to be
+  fixed.
 
 -/
 
 noncomputable theory
 
 open set filter metric measure_theory topological_space
-open_locale nnreal topological_space
+open_locale nnreal topology
 
-local attribute [instance] emetric.second_countable_of_sigma_compact
+namespace is_unif_loc_doubling_measure
 
-namespace is_doubling_measure
-
-variables {α : Type*} [metric_space α] [measurable_space α] (μ : measure α) [is_doubling_measure μ]
+variables {α : Type*} [metric_space α] [measurable_space α]
+          (μ : measure α) [is_unif_loc_doubling_measure μ]
 
 section
 variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
 
-open_locale topological_space
+open_locale topology
 
-/-- A Vitali family in a space with a doubling measure, designed so that the sets at `x` contain
-all `closed_ball y r` when `dist x y ≤ K * r`. -/
+/-- A Vitali family in a space with a uniformly locally doubling measure, designed so that the sets
+at `x` contain all `closed_ball y r` when `dist x y ≤ K * r`. -/
 @[irreducible] def vitali_family (K : ℝ) : vitali_family μ :=
 begin
   /- the Vitali covering theorem gives a family that works well at small scales, thanks to the
@@ -61,8 +62,8 @@ begin
     (R / 4) (by linarith),
 end
 
-/-- In the Vitali family `is_doubling_measure.vitali_family K`, the sets based at `x` contain all
-balls `closed_ball y r` when `dist x y ≤ K * r`. -/
+/-- In the Vitali family `is_unif_loc_doubling_measure.vitali_family K`, the sets based at `x`
+contain all balls `closed_ball y r` when `dist x y ≤ K * r`. -/
 lemma closed_ball_mem_vitali_family_of_dist_le_mul
   {K : ℝ} {x y : α} {r : ℝ} (h : dist x y ≤ K * r) (rpos : 0 < r) :
   closed_ball y r ∈ (vitali_family μ K).sets_at x :=
@@ -135,7 +136,7 @@ end
 end
 
 section applications
-variables [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ]
+variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
   {E : Type*} [normed_add_comm_group E]
 
 /-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centers are
@@ -173,4 +174,4 @@ using hx.comp (tendsto_closed_ball_filter_at μ _ _ δlim xmem)
 
 end applications
 
-end is_doubling_measure
+end is_unif_loc_doubling_measure

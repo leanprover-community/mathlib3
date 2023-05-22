@@ -8,6 +8,9 @@ import measure_theory.measure.ae_disjoint
 /-!
 # Null measurable sets and complete measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 ### Null measurable sets and functions
@@ -279,6 +282,10 @@ by rw [← measure_union_add_inter₀ s ht, hd.eq, add_zero]
 lemma measure_union₀' (hs : null_measurable_set s μ) (hd : ae_disjoint μ s t) :
   μ (s ∪ t) = μ s + μ t :=
 by rw [union_comm, measure_union₀ hs hd.symm, add_comm]
+
+lemma measure_add_measure_compl₀ {s : set α} (hs : null_measurable_set s μ) :
+  μ s + μ sᶜ = μ univ :=
+by rw [← measure_union₀' hs ae_disjoint_compl_right, union_compl_self]
 
 section measurable_singleton_class
 

@@ -10,6 +10,9 @@ import algebra.order.smul
 /-!
 # Ordered algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An ordered algebra is an ordered semiring, which is an algebra over an ordered commutative semiring,
 for which scalar multiplication is "compatible" with the two orders.
 

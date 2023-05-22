@@ -10,6 +10,9 @@ import linear_algebra.basis
 /-!
 # (Semi-)linear isometries
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `linear_isometry σ₁₂ E E₂` (notation: `E →ₛₗᵢ[σ₁₂] E₂`) to be a semilinear
 isometric embedding of `E` into `E₂` and `linear_isometry_equiv` (notation: `E ≃ₛₗᵢ[σ₁₂] E₂`) to be
 a semilinear isometric equivalence between `E` and `E₂`.  The notation for the associated purely
@@ -456,24 +459,24 @@ to_linear_isometry_injective.eq_iff
 
 protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 
-/-- Reinterpret a `linear_isometry_equiv` as an `isometric`. -/
-def to_isometric : E ≃ᵢ E₂ := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
+/-- Reinterpret a `linear_isometry_equiv` as an `isometry_equiv`. -/
+def to_isometry_equiv : E ≃ᵢ E₂ := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
-lemma to_isometric_injective :
-  function.injective (to_isometric : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ᵢ E₂) :=
-λ x y h, coe_injective (congr_arg _ h : ⇑x.to_isometric = _)
+lemma to_isometry_equiv_injective :
+  function.injective (to_isometry_equiv : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ᵢ E₂) :=
+λ x y h, coe_injective (congr_arg _ h : ⇑x.to_isometry_equiv = _)
 
-@[simp] lemma to_isometric_inj {f g : E ≃ₛₗᵢ[σ₁₂] E₂} :
-  f.to_isometric = g.to_isometric ↔ f = g :=
-to_isometric_injective.eq_iff
+@[simp] lemma to_isometry_equiv_inj {f g : E ≃ₛₗᵢ[σ₁₂] E₂} :
+  f.to_isometry_equiv = g.to_isometry_equiv ↔ f = g :=
+to_isometry_equiv_injective.eq_iff
 
-@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+@[simp] lemma coe_to_isometry_equiv : ⇑e.to_isometry_equiv = e := rfl
 
 lemma range_eq_univ (e : E ≃ₛₗᵢ[σ₁₂] E₂) : set.range e = set.univ :=
-by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+by { rw ← coe_to_isometry_equiv, exact isometry_equiv.range_eq_univ _, }
 
 /-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
-def to_homeomorph : E ≃ₜ E₂ := e.to_isometric.to_homeomorph
+def to_homeomorph : E ≃ₜ E₂ := e.to_isometry_equiv.to_homeomorph
 
 lemma to_homeomorph_injective :
   function.injective (to_homeomorph : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ₜ E₂) :=
@@ -514,6 +517,11 @@ variables (R E)
 /-- Identity map as a `linear_isometry_equiv`. -/
 def refl : E ≃ₗᵢ[R] E := ⟨linear_equiv.refl R E, λ x, rfl⟩
 
+/-- Linear isometry equiv between a space and its lift to another universe. -/
+def ulift : ulift E ≃ₗᵢ[R] E :=
+{ norm_map' := λ x, rfl,
+  .. continuous_linear_equiv.ulift }
+
 variables {R E}
 
 instance : inhabited (E ≃ₗᵢ[R] E) := ⟨refl R E⟩
@@ -531,7 +539,7 @@ def symm : E₂ ≃ₛₗᵢ[σ₂₁] E :=
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
 @[simp] lemma to_linear_equiv_symm : e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
-@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_isometry_equiv_symm : e.to_isometry_equiv.symm = e.symm.to_isometry_equiv := rfl
 @[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
@@ -624,7 +632,7 @@ include σ₂₁
 
 /-- Reinterpret a `linear_isometry_equiv` as a `continuous_linear_equiv`. -/
 instance : has_coe_t (E ≃ₛₗᵢ[σ₁₂] E₂) (E ≃SL[σ₁₂] E₂) :=
-⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩⟩
+⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometry_equiv.symm.continuous⟩⟩
 
 instance : has_coe_t (E ≃ₛₗᵢ[σ₁₂] E₂) (E →SL[σ₁₂] E₂) := ⟨λ e, ↑(e : E ≃SL[σ₁₂] E₂)⟩
 
@@ -678,27 +686,27 @@ e.isometry.diam_image s
 
 @[simp] lemma preimage_ball (x : E₂) (r : ℝ) :
   e ⁻¹' (metric.ball x r) = metric.ball (e.symm x) r :=
-e.to_isometric.preimage_ball x r
+e.to_isometry_equiv.preimage_ball x r
 
 @[simp] lemma preimage_sphere (x : E₂) (r : ℝ) :
   e ⁻¹' (metric.sphere x r) = metric.sphere (e.symm x) r :=
-e.to_isometric.preimage_sphere x r
+e.to_isometry_equiv.preimage_sphere x r
 
 @[simp] lemma preimage_closed_ball (x : E₂) (r : ℝ) :
   e ⁻¹' (metric.closed_ball x r) = metric.closed_ball (e.symm x) r :=
-e.to_isometric.preimage_closed_ball x r
+e.to_isometry_equiv.preimage_closed_ball x r
 
 @[simp] lemma image_ball (x : E) (r : ℝ) :
   e '' (metric.ball x r) = metric.ball (e x) r :=
-e.to_isometric.image_ball x r
+e.to_isometry_equiv.image_ball x r
 
 @[simp] lemma image_sphere (x : E) (r : ℝ) :
   e '' (metric.sphere x r) = metric.sphere (e x) r :=
-e.to_isometric.image_sphere x r
+e.to_isometry_equiv.image_sphere x r
 
 @[simp] lemma image_closed_ball (x : E) (r : ℝ) :
   e '' (metric.closed_ball x r) = metric.closed_ball (e x) r :=
-e.to_isometric.image_closed_ball x r
+e.to_isometry_equiv.image_closed_ball x r
 
 variables {α : Type*} [topological_space α]
 
@@ -720,7 +728,7 @@ noncomputable def of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂)
   (hfr : function.surjective f) :
   F ≃ₛₗᵢ[σ₁₂] E₂ :=
 { norm_map' := f.norm_map,
-  .. linear_equiv.of_bijective f.to_linear_map f.injective hfr }
+  .. linear_equiv.of_bijective f.to_linear_map ⟨f.injective, hfr⟩ }
 
 @[simp] lemma coe_of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂) (hfr : function.surjective f) :
   ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=

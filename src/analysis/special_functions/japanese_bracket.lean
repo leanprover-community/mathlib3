@@ -3,11 +3,8 @@ Copyright (c) 2022 Moritz Doll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
-
-import analysis.special_functions.integrals
-import analysis.special_functions.pow
+import measure_theory.measure.lebesgue.eq_haar
 import measure_theory.integral.layercake
-import tactic.positivity
 
 /-!
 # Japanese Bracket
@@ -27,7 +24,7 @@ than the dimension.
 
 noncomputable theory
 
-open_locale big_operators nnreal filter topological_space ennreal
+open_locale big_operators nnreal filter topology ennreal
 
 open asymptotics filter set real measure_theory finite_dimensional
 

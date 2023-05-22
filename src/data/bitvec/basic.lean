@@ -5,6 +5,7 @@ Authors: Simon Hudon
 -/
 import data.bitvec.core
 import data.fin.basic
+import tactic.monotonicity
 import tactic.norm_num
 
 namespace bitvec
@@ -21,7 +22,7 @@ by rw [of_fin,to_nat_of_nat,nat.mod_eq_of_lt]; apply i.is_lt
 
 /-- convert `bitvec` to `fin` -/
 def to_fin {n : ℕ} (i : bitvec n) : fin $ 2^n :=
-fin.of_nat' i.to_nat
+i.to_nat
 
 lemma add_lsb_eq_twice_add_one {x b} :
   add_lsb x b = 2 * x + cond b 1 0 :=
@@ -76,7 +77,7 @@ begin
 end
 
 lemma to_fin_val {n : ℕ} (v : bitvec n) : (to_fin v : ℕ) = v.to_nat :=
-by rw [to_fin, fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt]; apply to_nat_lt
+by rw [to_fin, fin.coe_of_nat_eq_mod, nat.mod_eq_of_lt]; apply to_nat_lt
 
 lemma to_fin_le_to_fin_of_le {n} {v₀ v₁ : bitvec n} (h : v₀ ≤ v₁) : v₀.to_fin ≤ v₁.to_fin :=
 show (v₀.to_fin : ℕ) ≤ v₁.to_fin,

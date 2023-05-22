@@ -181,12 +181,11 @@ end
 /-- A module is Artinian iff every nonempty set of submodules has a minimal submodule among them.
 -/
 theorem set_has_minimal_iff_artinian :
-  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M') ↔
-  is_artinian R M :=
-by rw [is_artinian_iff_well_founded, well_founded.well_founded_iff_has_min']
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, ¬ I < M') ↔ is_artinian R M :=
+by rw [is_artinian_iff_well_founded, well_founded.well_founded_iff_has_min]
 
 theorem is_artinian.set_has_minimal [is_artinian R M] (a : set $ submodule R M) (ha : a.nonempty) :
-  ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M' :=
+  ∃ M' ∈ a, ∀ I ∈ a, ¬ I < M' :=
 set_has_minimal_iff_artinian.mpr ‹_› a ha
 
 /-- A module is Artinian iff every decreasing chain of submodules stabilizes. -/
@@ -414,19 +413,19 @@ begin
     simpa only [this, top_smul, ideal.zero_eq_bot] using hJ },
   by_contradiction hJ, change J ≠ ⊤ at hJ,
   rcases is_artinian.set_has_minimal {J' : ideal R | J < J'} ⟨⊤, hJ.lt_top⟩
-    with ⟨J', hJJ' : J < J', hJ' : ∀ I, J < I → I ≤ J' → I = J'⟩,
+    with ⟨J', hJJ' : J < J', hJ' : ∀ I, J < I → ¬ I < J'⟩,
   rcases set_like.exists_of_lt hJJ' with ⟨x, hxJ', hxJ⟩,
   obtain rfl : J ⊔ ideal.span {x} = J',
-  { refine hJ' (J ⊔ ideal.span {x}) _ _,
+  { apply eq_of_le_of_not_lt _ (hJ' (J ⊔ ideal.span {x}) _),
+    { exact (sup_le hJJ'.le (span_le.2 (singleton_subset_iff.2 hxJ'))) },
     { rw set_like.lt_iff_le_and_exists,
-      exact ⟨le_sup_left, ⟨x, mem_sup_right (mem_span_singleton_self x), hxJ⟩⟩ },
-    { exact (sup_le hJJ'.le (span_le.2 (singleton_subset_iff.2 hxJ'))) } },
+      exact ⟨le_sup_left, ⟨x, mem_sup_right (mem_span_singleton_self x), hxJ⟩⟩ } },
   have : J ⊔ Jac • ideal.span {x} ≤ J ⊔ ideal.span {x},
     from sup_le_sup_left (smul_le.2 (λ _ _ _, submodule.smul_mem _ _)) _,
   have : Jac * ideal.span {x} ≤ J, --Need version 4 of Nakayamas lemma on Stacks
   { classical, by_contradiction H,
     refine H (smul_sup_le_of_le_smul_of_le_jacobson_bot
-      (fg_span_singleton _) le_rfl (hJ' _ _ this).ge),
+      (fg_span_singleton _) le_rfl (this.eq_of_not_lt (hJ' _ _)).ge),
     exact lt_of_le_of_ne le_sup_left (λ h, H $ h.symm ▸ le_sup_right) },
   have : ideal.span {x} * Jac ^ (n + 1) ≤ ⊥,
     calc ideal.span {x} * Jac ^ (n + 1) = ideal.span {x} * Jac * Jac ^ n :
@@ -456,8 +455,8 @@ begin
   rw [smul_eq_mul, smul_eq_mul, pow_succ', mul_assoc] at hr,
   apply_fun algebra_map R L at hr,
   simp only [map_mul, ←submonoid.coe_pow] at hr,
-  rw [←is_localization.mk'_one L, is_localization.mk'_eq_iff_eq, one_mul, submonoid.coe_one,
-      ←(is_localization.map_units L (s ^ n)).mul_left_cancel hr, map_mul, mul_comm],
+  rw [←is_localization.mk'_one L, is_localization.mk'_eq_iff_eq, mul_one, submonoid.coe_one,
+      ←(is_localization.map_units L (s ^ n)).mul_left_cancel hr, map_mul],
 end
 
 lemma localization_artinian : is_artinian_ring L :=

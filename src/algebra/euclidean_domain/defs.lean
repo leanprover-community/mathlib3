@@ -11,6 +11,9 @@ import algebra.ring.defs
 /-!
 # Euclidean domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces Euclidean domains and provides the extended Euclidean algorithm. To be precise,
 a slightly more general version is provided which is sometimes called a transfinite Euclidean domain
 and differs in the fact that the degree function need not take values in `ℕ` but can take values in
@@ -29,10 +32,10 @@ don't satisfy the classical notion were provided independently by Hiblot and Nag
 
 ## Main statements
 
-See `algebra.euclidean_domain.basic` for most of the theorems about Eucliean domains,
+See `algebra.euclidean_domain.basic` for most of the theorems about Euclidean domains,
 including Bézout's lemma.
 
-See `algebra.euclidean_domain.instances` for that facts that `ℤ` is a Euclidean domain,
+See `algebra.euclidean_domain.instances` for the fact that `ℤ` is a Euclidean domain,
 as is any field.
 
 ## Notation

@@ -11,6 +11,9 @@ import tactic.field_simp
 /-!
 # Equal and mixed characteristic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In commutative algebra, some statments are simpler when working over a `ℚ`-algebra `R`, in which
 case one also says that the ring has "equal characteristic zero". A ring that is not a
 `ℚ`-algebra has either positive characteristic or there exists a prime ideal `I ⊂ R` such that

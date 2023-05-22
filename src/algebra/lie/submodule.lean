@@ -116,7 +116,7 @@ protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
   (S.copy s hs : set M) = s := rfl
 
 lemma copy_eq (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) : S.copy s hs = S :=
-coe_submodule_injective (set_like.coe_injective hs)
+set_like.coe_injective hs
 
 instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,

@@ -3,12 +3,13 @@ Copyright (c) 2022 Praneeth Kolichala. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
-import tactic.generalize_proofs
-import tactic.norm_num
-import algebra.char_zero
+import data.nat.basic
 
 /-!
 # Additional properties of binary recursion on `nat`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file documents additional properties of binary recursion,
 which allows us to more easily work with operations which do depend
@@ -21,8 +22,86 @@ and `nat.digits`.
 
 namespace nat
 
+universe u
+variables {n : ℕ}
+
+/-! ### `bodd_div2` and `bodd` -/
+
+@[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
+by unfold bodd div2; cases bodd_div2 n; refl
+
+@[simp] lemma bodd_bit0 (n) : bodd (bit0 n) = ff := bodd_bit ff n
+@[simp] lemma bodd_bit1 (n) : bodd (bit1 n) = tt := bodd_bit tt n
+
+@[simp] lemma div2_bit0 (n) : div2 (bit0 n) = n := div2_bit ff n
+@[simp] lemma div2_bit1 (n) : div2 (bit1 n) = n := div2_bit tt n
+
+/-! ### `bit0` and `bit1` -/
+
+-- There is no need to prove `bit0_eq_zero : bit0 n = 0 ↔ n = 0`
+-- as this is true for any `[semiring R] [no_zero_divisors R] [char_zero R]`
+
+-- However the lemmas `bit0_eq_bit0`, `bit1_eq_bit1`, `bit1_eq_one`, `one_eq_bit1`
+-- need `[ring R] [no_zero_divisors R] [char_zero R]` in general,
+-- so we prove `ℕ` specialized versions here.
+@[simp] lemma bit0_eq_bit0 {m n : ℕ} : bit0 m = bit0 n ↔ m = n :=
+⟨nat.bit0_inj, λ h, by subst h⟩
+
+@[simp] lemma bit1_eq_bit1 {m n : ℕ} : bit1 m = bit1 n ↔ m = n :=
+⟨nat.bit1_inj, λ h, by subst h⟩
+
+@[simp] lemma bit1_eq_one {n : ℕ} : bit1 n = 1 ↔ n = 0 :=
+⟨@nat.bit1_inj n 0, λ h, by subst h⟩
+@[simp] lemma one_eq_bit1 {n : ℕ} : 1 = bit1 n ↔ n = 0 :=
+⟨λ h, (@nat.bit1_inj 0 n h).symm, λ h, by subst h⟩
+
+theorem bit_add : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit ff n + bit b m
+| tt := bit1_add
+| ff := bit0_add
+
+theorem bit_add' : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit b n + bit ff m
+| tt := bit1_add'
+| ff := bit0_add
+
+theorem bit_ne_zero (b) {n} (h : n ≠ 0) : bit b n ≠ 0 :=
+by cases b; [exact nat.bit0_ne_zero h, exact nat.bit1_ne_zero _]
+
+lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
+
+lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
+
+lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
+by { cases n, cases h, apply succ_pos, }
+
+@[simp] lemma bit_cases_on_bit {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (b : bool) (n : ℕ) :
+  bit_cases_on (bit b n) H = H b n :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [bodd_bit, div2_bit]
+
+@[simp] lemma bit_cases_on_bit0 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
+  bit_cases_on (bit0 n) H = H ff n :=
+bit_cases_on_bit H ff n
+
+@[simp] lemma bit_cases_on_bit1 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
+  bit_cases_on (bit1 n) H = H tt n :=
+bit_cases_on_bit H tt n
+
+lemma bit_cases_on_injective {C : ℕ → Sort u} :
+  function.injective (λ H : Π b n, C (bit b n), λ n, bit_cases_on n H) :=
+begin
+  intros H₁ H₂ h,
+  ext b n,
+  simpa only [bit_cases_on_bit] using congr_fun h (bit b n)
+end
+
+@[simp] lemma bit_cases_on_inj {C : ℕ → Sort u} (H₁ H₂ : Π b n, C (bit b n)) :
+  (λ n, bit_cases_on n H₁) = (λ n, bit_cases_on n H₂) ↔ H₁ = H₂ :=
+bit_cases_on_injective.eq_iff
+
+protected lemma bit0_eq_zero {n : ℕ} : bit0 n = 0 ↔ n = 0 :=
+⟨nat.eq_zero_of_add_eq_zero_left, λ h, by simp [h]⟩
+
 lemma bit_eq_zero_iff {n : ℕ} {b : bool} : bit b n = 0 ↔ n = 0 ∧ b = ff :=
-by { split, { cases b; simp [nat.bit], }, rintro ⟨rfl, rfl⟩, refl, }
+by { split, { cases b; simp [nat.bit, nat.bit0_eq_zero], }, rintro ⟨rfl, rfl⟩, refl, }
 
 /-- The same as binary_rec_eq, but that one unfortunately requires `f` to be the identity when
   appending `ff` to `0`. Here, we allow you to explicitly say that that case is not happening, i.e.
@@ -70,7 +149,8 @@ bits_append_bit n tt (λ _, rfl)
 
 @[simp] lemma one_bits : nat.bits 1 = [tt] := by { convert bit1_bits 0, simp, }
 
-example : bits 3423 = [tt, tt, tt, tt, tt, ff, tt, ff, tt, ff, tt, tt] := by norm_num
+-- TODO Find somewhere this can live.
+-- example : bits 3423 = [tt, tt, tt, tt, tt, ff, tt, ff, tt, ff, tt, tt] := by norm_num
 
 lemma bodd_eq_bits_head (n : ℕ) : n.bodd = n.bits.head :=
 begin
@@ -82,14 +162,6 @@ lemma div2_bits_eq_tail (n : ℕ) : n.div2.bits = n.bits.tail :=
 begin
   induction n using nat.binary_rec' with b n h ih, { simp, },
   simp [div2_bit, bits_append_bit _ _ h],
-end
-
-lemma size_eq_bits_len (n : ℕ) : n.bits.length = n.size :=
-begin
-  induction n using nat.binary_rec' with b n h ih, { simp, },
-  rw [size_bit, bits_append_bit _ _ h],
-  { simp [ih], },
-  { simpa [bit_eq_zero_iff], }
 end
 
 end nat

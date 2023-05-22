@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
+import measure_theory.integral.set_integral
 import measure_theory.measure.regular
 
 /-!
@@ -18,7 +19,7 @@ Henstock and `⊥` integrable) with the same integral. The proof is based on
 integral, McShane integral, Bochner integral
 -/
 
-open_locale classical nnreal ennreal topological_space big_operators
+open_locale classical nnreal ennreal topology big_operators
 
 universes u v
 

@@ -28,7 +28,7 @@ Linear algebra:
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
-    rank of a linear map: 'rank'
+    rank of a linear map: 'linear_map.rank'
     rank of a set of vectors: 'set.finrank'
     rank of a system of linear equations: 'https://www.math.tamu.edu/~fnarc/psfiles/rank2005.pdf'
     isomorphism with bidual: 'module.eval_equiv'
@@ -216,7 +216,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     dual isomorphism in the euclidean case: 'inner_product_space.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
-    norm: 'inner_product_space.of_core.to_has_norm'
+    norm: 'inner_product_space.core.to_has_norm'
     orthonormal bases: 'maximal_orthonormal_iff_basis_of_finite_dimensional'
   Endomorphisms:
     orthogonal group: 'matrix.orthogonal_group'
@@ -348,8 +348,10 @@ Single Variable Real Analysis:
     pointwise convergence: 'tendsto_pi_nhds'
     uniform convergence: 'tendsto_uniformly'
     normal convergence: 'https://en.wikipedia.org/wiki/Normal_convergence'
-    continuity of the limit: 'continuous_of_uniform_approx_of_continuous'
-    differentiability of the limit: 'https://en.wikipedia.org/wiki/Uniform_convergence#To_differentiability'
+    continuity of the limit of a sequence of functions: 'continuous_of_uniform_approx_of_continuous'
+    continuity of the sum of a series of functions: 'continuous_tsum'
+    differentiability of the limit of a sequence of functions: 'has_fderiv_at_of_tendsto_uniformly'
+    differentiability of the sum of a series of functions: 'differentiable_tsum'
     Weierstrass polynomial approximation theorem: 'polynomial_functions_closure_eq_top'
     Weierstrass trigonometric approximation theorem: 'span_fourier_closure_eq_top'
   Convexity:
@@ -367,8 +369,13 @@ Single Variable Complex Analysis:
     differentiability with respect to the complex variable: 'has_fpower_series_on_ball.differentiable_on'
     antiderivative: ''
     complex exponential: 'complex.exp'
-    extension of trigonometric functions to the complex plane: 'complex.sin'
-    power series expansion of elementary functions: ''
+    extension of trigonometric functions to the complex plane:
+      cos: 'complex.cos'
+      sin: 'complex.sin'
+    power series expansion of elementary functions:
+      cos: 'complex.has_sum_cos'
+      sin: 'complex.has_sum_sin'
+      log: ''
   Functions on one complex variable:
     holomorphic functions: 'differentiable_on'
     Cauchy-Riemann conditions: ''
@@ -377,7 +384,7 @@ Single Variable Complex Analysis:
     representations of the $\log$ function on $\C$: ''
     theorem of holomorphic functions under integral domains: ''
     winding number of a closed curve in $\C$ with respect to a point: ''
-    Cauchy formulas: ''
+    Cauchy formulas: 'complex.two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable'
     analyticity of a holomorphic function: 'differentiable_on.analytic_at'
     principle of isolated zeros: 'analytic_at.eventually_eq_zero_or_eventually_ne_zero'
     principle of analytic continuation: 'analytic_on.eq_on_of_preconnected_of_frequently_eq'
@@ -387,7 +394,7 @@ Single Variable Complex Analysis:
     meromorphic functions: ''
     residue theorem: ''
     sequences and series of holomorphic functions: ''
-    holomorphic stability under uniform convergence: ''
+    holomorphic stability under uniform convergence: 'tendsto_locally_uniformly_on.differentiable_on'
 
 # 8.
 Topology:
@@ -434,7 +441,7 @@ Topology:
     inner product space $L^2$: 'measure_theory.L2.inner_product_space'
     its completeness: 'measure_theory.Lp.complete_space'
     Hilbert bases: 'hilbert_basis' # the document specifies "in the separable case" but we don't require this
-    example, the Hilbert basis of trigonometric polynomials: 'fourier_series'
+    example, the Hilbert basis of trigonometric polynomials: 'fourier_basis'
     example, classical Hilbert bases of orthogonal polynomials: ''
     Lax-Milgram theorem: 'is_coercive.continuous_linear_equiv_of_bilin'
     $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem: ''
@@ -498,7 +505,7 @@ Measures and integral calculus:
     Lebesgue measure: 'measure_theory.measure_space'
     product measure: 'measurable_space.pi'
     measurable functions: 'measurable'
-    approximation by step functions: 'measure_theory/simple_func_dense.html'
+    approximation by step functions: 'measure_theory.simple_func.tendsto_approx_on'
   Integration:
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
@@ -516,15 +523,15 @@ Measures and integral calculus:
     change of variables to polar co-ordinates: 'integral_comp_polar_coord_symm '
     change of variables to spherical co-ordinates: ''
     convolution: 'convolution'
-    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    approximation by convolution: 'cont_diff_bump.convolution_tendsto_right'
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
-    Fourier series of locally integrable periodic real-valued functions: ''
-    Riemann-Lebesgue lemma: ''
+    Fourier series of locally integrable periodic real-valued functions: 'fourier_basis'
+    Riemann-Lebesgue lemma: 'tendsto_integral_exp_smul_cocompact'
     convolution product of periodic functions: ''
     Dirichlet theorem: ''
     Fejer theorem: ''
-    Parseval theorem: 'tsum_sq_fourier_series_repr'
+    Parseval theorem: 'tsum_sq_fourier_coeff'
     Fourier transforms on $\mathrm{L}^1(\R^d)$ and $\mathrm{L}^2(\R^d)$: ''
     Plancherel’s theorem: ''
 
@@ -664,4 +671,3 @@ Numerical Analysis:
   Fourier transform:
     discrete Fourier transform on a finite abelian group: ''
     fast Fourier transform: ''
-   

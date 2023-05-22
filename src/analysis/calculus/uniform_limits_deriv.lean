@@ -93,7 +93,7 @@ uniform convergence, limits of derivatives
 -/
 
 open filter
-open_locale uniformity filter topological_space
+open_locale uniformity filter topology
 
 section limits_of_derivatives
 
@@ -349,8 +349,8 @@ begin
   --   * The `f' n` converge to `g'` at `x`
   conv
   { congr, funext,
-    rw [←norm_norm, ←norm_inv,←@is_R_or_C.norm_of_real 𝕜 _ _,
-      is_R_or_C.of_real_inv, ←norm_smul], },
+    rw [← abs_norm, ← abs_inv, ← @is_R_or_C.norm_of_real 𝕜 _ _,
+      is_R_or_C.of_real_inv, ← norm_smul], },
   rw ←tendsto_zero_iff_norm_tendsto_zero,
   have : (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
     (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +
@@ -406,6 +406,35 @@ begin
     exact (f' n.1 x - g' x).le_op_norm (n.2 - x), },
 end
 
+lemma has_fderiv_at_of_tendsto_locally_uniformly_on [ne_bot l] {s : set E} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on f' g' l s)
+  (hf : ∀ n, ∀ x ∈ s, has_fderiv_at (f n) (f' n x) x)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_fderiv_at g (g' x) x :=
+begin
+  have h1 : s ∈ 𝓝 x := hs.mem_nhds hx,
+  have h3 : set.univ ×ˢ s ∈ l ×ᶠ 𝓝 x := by simp only [h1, prod_mem_prod_iff, univ_mem, and_self],
+  have h4 : ∀ᶠ (n : ι × E) in l ×ᶠ 𝓝 x, has_fderiv_at (f n.1) (f' n.1 n.2) n.2,
+    from eventually_of_mem h3 (λ ⟨n, z⟩ ⟨hn, hz⟩, hf n z hz),
+  refine has_fderiv_at_of_tendsto_uniformly_on_filter _ h4 (eventually_of_mem h1 hfg),
+  simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
+end
+
+/-- A slight variant of `has_fderiv_at_of_tendsto_locally_uniformly_on` with the assumption stated
+in terms of `differentiable_on` rather than `has_fderiv_at`. This makes a few proofs nicer in
+complex analysis where holomorphicity is assumed but the derivative is not known a priori. -/
+lemma has_fderiv_at_of_tendsto_locally_uniformly_on' [ne_bot l] {s : set E} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on (fderiv 𝕜 ∘ f) g' l s)
+  (hf : ∀ n, differentiable_on 𝕜 (f n) s)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_fderiv_at g (g' x) x :=
+begin
+  refine has_fderiv_at_of_tendsto_locally_uniformly_on hs hf' (λ n z hz, _) hfg hx,
+  exact ((hf n z hz).differentiable_at (hs.mem_nhds hz)).has_fderiv_at
+end
+
 /-- `(d/dx) lim_{n → ∞} f n x = lim_{n → ∞} f' n x` when the `f' n` converge
 _uniformly_ to their limit on an open set containing `x`. -/
 lemma has_fderiv_at_of_tendsto_uniformly_on [ne_bot l]
@@ -414,22 +443,7 @@ lemma has_fderiv_at_of_tendsto_uniformly_on [ne_bot l]
   (hf : ∀ (n : ι), ∀ (x : E), x ∈ s → has_fderiv_at (f n) (f' n x) x)
   (hfg : ∀ (x : E), x ∈ s → tendsto (λ n, f n x) l (𝓝 (g x))) :
   ∀ (x : E), x ∈ s → has_fderiv_at g (g' x) x :=
-begin
-  intros x hx,
-  have hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2,
-  { exact eventually_prod_iff.mpr ⟨(λ y, true), (by simp), (λ y, y ∈ s),
-      eventually_mem_set.mpr (mem_nhds_iff.mpr ⟨s, rfl.subset, hs, hx⟩),
-      (λ n hn y hy, hf n y hy)⟩, },
-
-  have hfg : ∀ᶠ y in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y)),
-  { exact eventually_iff.mpr (mem_nhds_iff.mpr ⟨s, set.subset_def.mpr hfg, hs, hx⟩), },
-
-  have hfg' := hf'.tendsto_uniformly_on_filter.mono_right (calc
-    𝓝 x = 𝓝[s] x : ((hs.nhds_within_eq hx).symm)
-    ... ≤ 𝓟 s : (by simp only [nhds_within, inf_le_right])),
-
-  exact has_fderiv_at_of_tendsto_uniformly_on_filter hfg' hf hfg,
-end
+λ x, has_fderiv_at_of_tendsto_locally_uniformly_on hs hf'.tendsto_locally_uniformly_on hf hfg
 
 /-- `(d/dx) lim_{n → ∞} f n x = lim_{n → ∞} f' n x` when the `f' n` converge
 _uniformly_ to their limit. -/
@@ -546,34 +560,51 @@ begin
   exact has_fderiv_at_of_tendsto_uniformly_on_filter hf' hf hfg,
 end
 
+lemma has_deriv_at_of_tendsto_locally_uniformly_on [ne_bot l] {s : set 𝕜} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on f' g' l s)
+  (hf : ∀ᶠ n in l, ∀ x ∈ s, has_deriv_at (f n) (f' n x) x)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_deriv_at g (g' x) x :=
+begin
+  have h1 : s ∈ 𝓝 x := hs.mem_nhds hx,
+  have h2 : ∀ᶠ (n : ι × 𝕜) in l ×ᶠ 𝓝 x, has_deriv_at (f n.1) (f' n.1 n.2) n.2,
+    from eventually_prod_iff.2 ⟨_, hf, λ x, x ∈ s, h1, λ n, id⟩,
+  refine has_deriv_at_of_tendsto_uniformly_on_filter _ h2 (eventually_of_mem h1 hfg),
+  simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
+end
+
+/-- A slight variant of `has_deriv_at_of_tendsto_locally_uniformly_on` with the assumption stated in
+terms of `differentiable_on` rather than `has_deriv_at`. This makes a few proofs nicer in complex
+analysis where holomorphicity is assumed but the derivative is not known a priori. -/
+lemma has_deriv_at_of_tendsto_locally_uniformly_on' [ne_bot l] {s : set 𝕜} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on (deriv ∘ f) g' l s)
+  (hf : ∀ᶠ n in l, differentiable_on 𝕜 (f n) s)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_deriv_at g (g' x) x :=
+begin
+  refine has_deriv_at_of_tendsto_locally_uniformly_on hs hf' _ hfg hx,
+  filter_upwards [hf] with n h z hz using ((h z hz).differentiable_at (hs.mem_nhds hz)).has_deriv_at
+end
+
 lemma has_deriv_at_of_tendsto_uniformly_on [ne_bot l]
   {s : set 𝕜} (hs : is_open s)
   (hf' : tendsto_uniformly_on f' g' l s)
-  (hf : ∀ (n : ι), ∀ (x : 𝕜), x ∈ s → has_deriv_at (f n) (f' n x) x)
+  (hf : ∀ᶠ n in l, ∀ (x : 𝕜), x ∈ s → has_deriv_at (f n) (f' n x) x)
   (hfg : ∀ (x : 𝕜), x ∈ s → tendsto (λ n, f n x) l (𝓝 (g x))) :
   ∀ (x : 𝕜), x ∈ s → has_deriv_at g (g' x) x :=
-begin
-  intros x hx,
-  have hsx : s ∈ 𝓝 x, { exact mem_nhds_iff.mpr ⟨s, rfl.subset, hs, hx⟩, },
-  rw tendsto_uniformly_on_iff_tendsto_uniformly_on_filter at hf',
-  have hf' := hf'.mono_right (le_principal_iff.mpr hsx),
-  have hfg : ∀ᶠ y in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y)),
-  { exact eventually_iff_exists_mem.mpr ⟨s, hsx, hfg⟩, },
-  have hf : ∀ᶠ (n : ι × 𝕜) in (l ×ᶠ 𝓝 x), has_deriv_at (f n.1) (f' n.1 n.2) n.2,
-  { rw eventually_prod_iff,
-    refine ⟨(λ y, true), by simp, (λ y, y ∈ s), _, (λ n hn y hy, hf n y hy)⟩,
-    exact eventually_mem_set.mpr hsx, },
-  exact has_deriv_at_of_tendsto_uniformly_on_filter hf' hf hfg,
-end
+λ x, has_deriv_at_of_tendsto_locally_uniformly_on hs hf'.tendsto_locally_uniformly_on hf hfg
 
 lemma has_deriv_at_of_tendsto_uniformly [ne_bot l]
   (hf' : tendsto_uniformly f' g' l)
-  (hf : ∀ (n : ι), ∀ (x : 𝕜), has_deriv_at (f n) (f' n x) x)
+  (hf : ∀ᶠ n in l, ∀ (x : 𝕜), has_deriv_at (f n) (f' n x) x)
   (hfg : ∀ (x : 𝕜), tendsto (λ n, f n x) l (𝓝 (g x))) :
   ∀ (x : 𝕜), has_deriv_at g (g' x) x :=
 begin
   intros x,
-  have hf : ∀ (n : ι), ∀ (x : 𝕜), x ∈ set.univ → has_deriv_at (f n) (f' n x) x, { simp [hf], },
+  have hf : ∀ᶠ n in l, ∀ (x : 𝕜), x ∈ set.univ → has_deriv_at (f n) (f' n x) x,
+    by filter_upwards [hf] with n h x hx using h x,
   have hfg : ∀ (x : 𝕜), x ∈ set.univ → tendsto (λ n, f n x) l (𝓝 (g x)), { simp [hfg], },
   have hf' : tendsto_uniformly_on f' g' l set.univ, { rwa tendsto_uniformly_on_univ, },
   exact has_deriv_at_of_tendsto_uniformly_on is_open_univ hf' hf hfg x (set.mem_univ x),

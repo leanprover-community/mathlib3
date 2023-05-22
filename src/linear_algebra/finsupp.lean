@@ -10,6 +10,9 @@ import linear_algebra.span
 /-!
 # Properties of the module `α →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `R`-module `M`, the `R`-module structure on `α →₀ M` is defined in
 `data.finsupp.basic`.
 
@@ -85,6 +88,15 @@ lhom_ext $ λ a, linear_map.congr_fun (h a)
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
 def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
 { map_smul' := assume a b, rfl, ..finsupp.apply_add_hom a }
+
+/-- Forget that a function is finitely supported.
+
+This is the linear version of `finsupp.to_fun`. -/
+@[simps]
+def lcoe_fun : (α →₀ M) →ₗ[R] α → M :=
+{ to_fun := coe_fn,
+  map_add' := λ x y, by { ext, simp },
+  map_smul' := λ x y, by { ext, simp } }
 
 section lsubtype_domain
 variables (s : set α)
@@ -248,7 +260,7 @@ begin
   haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
   suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤
     ⨆ i, supported M R (s i),
-  { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
+  { rwa [linear_map.range_comp, range_restrict_dom, submodule.map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩,
   apply finsupp.induction l, { exact zero_mem _ },
@@ -332,7 +344,7 @@ theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
 end lsum
 
 section
-variables (M) (R) (X : Type*)
+variables (M) (R) (X : Type*) (S) [module S M] [smul_comm_class R S M]
 
 /--
 A slight rearrangement from `lsum` gives us
@@ -350,6 +362,24 @@ lemma lift_apply (f) (g) :
   ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
 rfl
 
+/-- Given compatible `S` and `R`-module structures on `M` and a type `X`, the set of functions
+`X → M` is `S`-linearly equivalent to the `R`-linear maps from the free `R`-module
+on `X` to `M`. -/
+noncomputable def llift : (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
+{ map_smul' :=
+  begin
+    intros,
+    dsimp,
+    ext,
+    simp only [coe_comp, function.comp_app, lsingle_apply, lift_apply, pi.smul_apply,
+      sum_single_index, zero_smul, one_smul, linear_map.smul_apply],
+  end, ..lift M R X }
+
+@[simp] lemma llift_apply (f : X → M) (x : X →₀ R) :
+  llift M R S X f x = lift M R X f x := rfl
+
+@[simp] lemma llift_symm_apply (f : (X →₀ R) →ₗ[R] M) (x : X) :
+  (llift M R S X).symm f x = f (single x 1) := rfl
 end
 
 section lmap_domain
@@ -412,6 +442,23 @@ begin
 end
 
 end lmap_domain
+
+section lcomap_domain
+
+variables {β : Type*} {R M}
+
+/-- Given `f : α → β` and a proof `hf` that `f` is injective, `lcomap_domain f hf` is the linear map
+sending  `l : β →₀ M` to the finitely supported function from `α` to `M` given by composing
+`l` with `f`.
+
+This is the linear version of `finsupp.comap_domain`. -/
+def lcomap_domain (f : α → β) (hf : function.injective f) :
+  (β →₀ M) →ₗ[R] α →₀ M:=
+{ to_fun := λ l, finsupp.comap_domain f l (hf.inj_on _),
+  map_add' := λ x y, by { ext, simp },
+  map_smul' := λ c x, by { ext, simp } }
+
+end lcomap_domain
 
 section total
 variables (α) {α' : Type*} (M) {M' : Type*} (R)
@@ -586,7 +633,8 @@ variables {α} {M} {v}
 theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ :=
 begin
   rw [finsupp.total_on, linear_map.range_eq_map, linear_map.map_cod_restrict,
-    ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype],
+    ← linear_map.range_le_iff_comap, range_subtype, submodule.map_top, linear_map.range_comp,
+    range_subtype],
   exact (span_image_eq_map_total _ _).le
 end
 
@@ -866,7 +914,7 @@ end
 variables (S)
 
 lemma finsupp.total_eq_fintype_total_apply (x : α → R) :
-  finsupp.total α M R v ((finsupp.linear_equiv_fun_on_fintype R R α).symm x) =
+  finsupp.total α M R v ((finsupp.linear_equiv_fun_on_finite R R α).symm x) =
     fintype.total R S v x :=
 begin
   apply finset.sum_subset,
@@ -877,7 +925,7 @@ begin
 end
 
 lemma finsupp.total_eq_fintype_total :
-  (finsupp.total α M R v).comp (finsupp.linear_equiv_fun_on_fintype R R α).symm.to_linear_map =
+  (finsupp.total α M R v).comp (finsupp.linear_equiv_fun_on_finite R R α).symm.to_linear_map =
     fintype.total R S v :=
 linear_map.ext $ finsupp.total_eq_fintype_total_apply R S v
 
@@ -899,7 +947,7 @@ lemma mem_span_range_iff_exists_fun :
   x ∈ span R (range v) ↔ ∃ (c : α → R), ∑ i, c i • v i = x :=
 begin
   simp only [finsupp.mem_span_range_iff_exists_finsupp,
-    finsupp.equiv_fun_on_fintype.surjective.exists, finsupp.equiv_fun_on_fintype_apply],
+    finsupp.equiv_fun_on_finite.surjective.exists, finsupp.equiv_fun_on_finite_apply],
   exact exists_congr (λ c, eq.congr_left $ finsupp.sum_fintype _ _ $ λ i, zero_smul _ _)
 end
 
@@ -927,14 +975,16 @@ variables (R)
 Pick some representation of `x : span R w` as a linear combination in `w`,
 using the axiom of choice.
 -/
-def span.repr (w : set M) (x : span R w) : w →₀ R :=
+@[irreducible] def span.repr (w : set M) (x : span R w) : w →₀ R :=
 ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
 
 @[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
   finsupp.total w M R coe (span.repr R w x) = x :=
-((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+begin
+  rw span.repr,
+  exact ((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+end
 
-attribute [irreducible] span.repr
 
 end
 
@@ -1027,7 +1077,7 @@ lemma splitting_of_finsupp_surjective_injective (f : M →ₗ[R] (α →₀ R)) 
 def splitting_of_fun_on_fintype_surjective [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   (α → R) →ₗ[R] M :=
 (finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)).comp
-  (linear_equiv_fun_on_fintype R R α).symm.to_linear_map
+  (linear_equiv_fun_on_finite R R α).symm.to_linear_map
 
 lemma splitting_of_fun_on_fintype_surjective_splits
   [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
@@ -1035,7 +1085,7 @@ lemma splitting_of_fun_on_fintype_surjective_splits
 begin
   ext x y,
   dsimp [splitting_of_fun_on_fintype_surjective],
-  rw [linear_equiv_fun_on_fintype_symm_single, finsupp.sum_single_index, one_smul,
+  rw [linear_equiv_fun_on_finite_symm_single, finsupp.sum_single_index, one_smul,
     (s (finsupp.single x 1)).some_spec, finsupp.single_eq_pi_single],
   rw [zero_smul],
 end

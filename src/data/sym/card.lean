@@ -10,6 +10,9 @@ import data.fintype.sum
 /-!
 # Stars and bars
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove (in `sym.card_sym_eq_multichoose`) that the function `multichoose n k`
 defined in `data/nat/choose/basic` counts the number of multisets of cardinality `k` over an
 alphabet of cardinality `n`. In conjunction with `nat.multichoose_eq` proved in
@@ -82,7 +85,7 @@ protected def E2 {n k : ℕ} :
     (mt mem_map.1) (not_exists.2 (λ t, (not_and.2 (λ _, (fin.succ_above_ne _ t)))))⟩,
   left_inv  := λ s, by
   { obtain ⟨s, hs⟩ := s,
-    simp only [fin.zero_succ_above, map_map, comp_app],
+    simp only [map_map, comp_app],
     nth_rewrite_rhs 0 ←(map_id' s),
     refine sym.map_congr (λ v hv,  _),
     simp [fin.pred_above_zero (ne_of_mem_of_not_mem hv hs)] },
@@ -90,7 +93,7 @@ protected def E2 {n k : ℕ} :
   { simp only [fin.zero_succ_above, map_map, comp_app],
     nth_rewrite_rhs 0 ←(map_id' s),
     refine sym.map_congr (λ v hv,  _),
-    rw [←fin.zero_succ_above v, ←fin.cast_succ_zero, fin.pred_above_succ_above 0 v] } }
+    rw [←fin.zero_succ_above v, ←@fin.cast_succ_zero n.succ, fin.pred_above_succ_above 0 v] } }
 
 lemma card_sym_fin_eq_multichoose (n k : ℕ) : card (sym (fin n) k) = multichoose n k :=
 begin
@@ -103,7 +106,7 @@ begin
   { intros x y h1 h2,
     rw [multichoose_succ_succ, ←h1, ←h2, add_comm],
     cases x,
-    { simp only [card_eq_zero_iff, nat.nat_zero_eq_zero, card_unique, self_eq_add_right],
+    { simp only [card_eq_zero_iff, card_unique, self_eq_add_right],
       apply_instance },
     rw ←card_sum,
     refine fintype.card_congr (equiv.symm _),

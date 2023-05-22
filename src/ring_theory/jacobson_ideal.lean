@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Devon Tuma
 -/
 import ring_theory.ideal.quotient
-import ring_theory.polynomial.basic
+import ring_theory.polynomial.quotient
 
 /-!
 # Jacobson radical
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The Jacobson radical of a ring `R` is defined to be the intersection of all maximal ideals of `R`.
 This is similar to how the nilradical is equal to the intersection of all prime ideals of `R`.

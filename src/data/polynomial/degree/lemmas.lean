@@ -8,6 +8,9 @@ import data.polynomial.eval
 /-!
 # Theory of degrees of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some of the main results include
 - `nat_degree_comp_le` : The degree of the composition is at most the product of degrees
 
@@ -33,7 +36,7 @@ else with_bot.coe_le_coe.1 $
   calc ↑(nat_degree (p.comp q)) = degree (p.comp q) : (degree_eq_nat_degree h0).symm
   ... = _ : congr_arg degree comp_eq_sum_left
   ... ≤ _ : degree_sum_le _ _
-  ... ≤ _ : sup_le (λ n hn,
+  ... ≤ _ : finset.sup_le (λ n hn,
     calc degree (C (coeff p n) * q ^ n)
         ≤ degree (C (coeff p n)) + degree (q ^ n) : degree_mul_le _ _
     ... ≤ nat_degree (C (coeff p n)) + n • (degree q) :
@@ -322,6 +325,14 @@ begin
     refine le_antisymm nat_degree_comp_le (le_nat_degree_of_ne_zero _),
     simp only [coeff_comp_degree_mul_degree q0, p0, mul_eq_zero, leading_coeff_eq_zero, or_self,
       ne_zero_of_nat_degree_gt (nat.pos_of_ne_zero q0), pow_ne_zero, ne.def, not_false_iff] }
+end
+
+@[simp] theorem nat_degree_iterate_comp (k : ℕ) :
+  (p.comp^[k] q).nat_degree = p.nat_degree ^ k * q.nat_degree :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [function.iterate_succ_apply', nat_degree_comp, IH, pow_succ, mul_assoc] }
 end
 
 lemma leading_coeff_comp (hq : nat_degree q ≠ 0) :

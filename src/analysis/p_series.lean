@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.pow.nnreal
 
 /-!
 # Convergence of `p`-series
@@ -26,7 +26,7 @@ p-series, Cauchy condensation test
 -/
 
 open filter
-open_locale big_operators ennreal nnreal topological_space
+open_locale big_operators ennreal nnreal topology
 
 /-!
 ### Cauchy condensation test
@@ -122,7 +122,7 @@ begin
   split; intro h,
   { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf (zero_lt_one.trans hm) hmn),
-    simpa [h, ennreal.add_eq_top] using (ennreal.tsum_condensed_le hf) },
+    simpa [h, ennreal.add_eq_top, ennreal.mul_eq_top] using ennreal.tsum_condensed_le hf },
   { replace hf : ∀ m n, 0 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf hm hmn),
     simpa [h, ennreal.add_eq_top] using (ennreal.le_tsum_condensed hf) }
@@ -202,6 +202,26 @@ by simp only [← rpow_nat_cast, real.summable_nat_rpow_inv, nat.one_lt_cast]
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_pow {p : ℕ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
 by simp
+
+/-- Summability of the `p`-series over `ℤ`. -/
+lemma real.summable_one_div_int_pow {p : ℕ} : summable (λ n:ℤ, 1 / (n : ℝ) ^ p) ↔ 1 < p :=
+begin
+  refine ⟨λ h, real.summable_one_div_nat_pow.mp (h.comp_injective nat.cast_injective),
+    λ h, summable_int_of_summable_nat (real.summable_one_div_nat_pow.mpr h)
+    (((real.summable_one_div_nat_pow.mpr h).mul_left $ 1 / (-1) ^ p).congr $ λ n, _)⟩,
+  conv_rhs { rw [int.cast_neg, neg_eq_neg_one_mul, mul_pow, ←div_div] },
+  conv_lhs { rw [mul_div, mul_one], },
+  refl,
+end
+
+lemma real.summable_abs_int_rpow {b : ℝ} (hb : 1 < b) : summable (λ n : ℤ, |(n : ℝ)| ^ (-b)) :=
+begin
+  refine summable_int_of_summable_nat (_ : summable (λ n : ℕ, |(n : ℝ)| ^ _))
+    (_ : summable (λ n : ℕ, |((-n : ℤ) : ℝ)| ^ _)),
+  work_on_goal 2 { simp_rw [int.cast_neg, int.cast_coe_nat, abs_neg] },
+  all_goals { simp_rw (λ n : ℕ, abs_of_nonneg (n.cast_nonneg : 0 ≤ (n : ℝ))),
+    rwa [real.summable_nat_rpow, neg_lt_neg_iff] },
+end
 
 /-- Harmonic series is not unconditionally summable. -/
 lemma real.not_summable_nat_cast_inv : ¬summable (λ n, n⁻¹ : ℕ → ℝ) :=

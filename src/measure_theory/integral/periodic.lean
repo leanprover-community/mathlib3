@@ -3,7 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Alex Kontorovich, Heather Macbeth
 -/
-import measure_theory.measure.haar_quotient
+import measure_theory.measure.lebesgue.eq_haar
+import measure_theory.measure.haar.quotient
 import measure_theory.integral.interval_integral
 import topology.algebra.order.floor
 
@@ -28,6 +29,15 @@ open set function measure_theory measure_theory.measure topological_space add_su
 open_locale measure_theory nnreal ennreal
 
 local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
+
+noncomputable instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
+borel (add_circle a)
+
+instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
+
+@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
+  measurable (coe : ℝ → add_circle a) :=
+continuous.measurable $ add_circle.continuous_mk' a
 
 lemma is_add_fundamental_domain_Ioc {T : ℝ} (hT : 0 < T) (t : ℝ) (μ : measure ℝ . volume_tac) :
   is_add_fundamental_domain (add_subgroup.zmultiples T) (Ioc t (t + T)) μ :=
@@ -107,7 +117,7 @@ begin
   { simp [hε, min_eq_left (by linarith : T ≤ 2 * ε)], },
 end
 
-instance : is_doubling_measure (volume : measure (add_circle T)) :=
+instance : is_unif_loc_doubling_measure (volume : measure (add_circle T)) :=
 begin
   refine ⟨⟨real.to_nnreal 2, filter.eventually_of_forall $ λ ε x, _⟩⟩,
   simp only [volume_closed_ball],
@@ -117,40 +127,78 @@ begin
   exact min_le_min (by linarith [hT.out]) (le_refl _),
 end
 
-/-- The integral of a measurable function over `add_circle T` is equal to the integral over an
+/-- The isomorphism `add_circle T ≃ Ioc a (a + T)` whose inverse is the natural quotient map,
+  as an equivalence of measurable spaces. -/
+noncomputable def measurable_equiv_Ioc (a : ℝ) : add_circle T ≃ᵐ Ioc a (a + T) :=
+{ measurable_to_fun   := measurable_of_measurable_on_compl_singleton _
+                          (continuous_on_iff_continuous_restrict.mp $ continuous_at.continuous_on $
+                          λ x hx, continuous_at_equiv_Ioc T a hx).measurable,
+  measurable_inv_fun  := add_circle.measurable_mk'.comp measurable_subtype_coe,
+                      .. equiv_Ioc T a }
+
+/-- The isomorphism `add_circle T ≃ Ico a (a + T)` whose inverse is the natural quotient map,
+  as an equivalence of measurable spaces. -/
+noncomputable def measurable_equiv_Ico (a : ℝ) : add_circle T ≃ᵐ Ico a (a + T) :=
+{ measurable_to_fun   := measurable_of_measurable_on_compl_singleton _
+                          (continuous_on_iff_continuous_restrict.mp $ continuous_at.continuous_on $
+                          λ x hx, continuous_at_equiv_Ico T a hx).measurable,
+  measurable_inv_fun  := add_circle.measurable_mk'.comp measurable_subtype_coe,
+                      .. equiv_Ico T a }
+
+/-- The lower integral of a function over `add_circle T` is equal to the lower integral over an
 interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
-protected lemma lintegral_preimage (t : ℝ) {f : add_circle T → ℝ≥0∞} (hf : measurable f) :
+protected lemma lintegral_preimage (t : ℝ) (f : add_circle T → ℝ≥0∞) :
   ∫⁻ a in Ioc t (t + T), f a = ∫⁻ b : add_circle T, f b :=
-by rw [← lintegral_map hf add_circle.measurable_mk',
-  (add_circle.measure_preserving_mk T t).map_eq]
+begin
+  have m : measurable_set (Ioc t (t + T)) := measurable_set_Ioc,
+  have := lintegral_map_equiv f (measurable_equiv_Ioc T t).symm,
+  swap, exact volume,
+  simp only [measurable_equiv_Ioc, equiv_Ioc, quotient_add_group.equiv_Ioc_mod,
+    measurable_equiv.symm_mk, measurable_equiv.coe_mk, equiv.coe_fn_symm_mk] at this,
+  rw ←(add_circle.measure_preserving_mk T t).map_eq,
+  convert this.symm using 1, -- TODO : there is no "set_lintegral_eq_subtype"?
+  { rw ←(map_comap_subtype_coe m _),
+    exact measurable_embedding.lintegral_map (measurable_embedding.subtype_coe m) _, },
+  { congr' 1,
+    have : (coe : Ioc t (t + T) → add_circle T) = (coe : ℝ → add_circle T) ∘ (coe : _ → ℝ),
+    { ext1 x, refl, },
+    simp_rw [this, ←map_map add_circle.measurable_mk' measurable_subtype_coe,
+      ←map_comap_subtype_coe m],
+    refl, }
+end
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 /-- The integral of an almost-everywhere strongly measurable function over `add_circle T` is equal
 to the integral over an interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
-protected lemma integral_preimage (t : ℝ) {f : add_circle T → E}
-  (hf : ae_strongly_measurable f volume) :
+protected lemma integral_preimage (t : ℝ) (f : add_circle T → E) :
   ∫ a in Ioc t (t + T), f a = ∫ b : add_circle T, f b :=
 begin
-  rw ← (add_circle.measure_preserving_mk T t).map_eq at ⊢ hf,
-  rw integral_map add_circle.measurable_mk'.ae_measurable hf,
+  have m : measurable_set (Ioc t (t + T)) := measurable_set_Ioc,
+  have := integral_map_equiv (measurable_equiv_Ioc T t).symm f,
+  simp only [measurable_equiv_Ioc, equiv_Ioc, quotient_add_group.equiv_Ioc_mod,
+    measurable_equiv.symm_mk, measurable_equiv.coe_mk, equiv.coe_fn_symm_mk, coe_coe] at this,
+  rw [←(add_circle.measure_preserving_mk T t).map_eq, set_integral_eq_subtype m, ←this],
+  have : (coe : Ioc t (t + T) → add_circle T) = (coe : ℝ → add_circle T) ∘ (coe : _ → ℝ),
+  { ext1 x, refl, },
+  simp_rw [this, ←map_map add_circle.measurable_mk' measurable_subtype_coe,
+    ←map_comap_subtype_coe m],
+  refl,
 end
 
 /-- The integral of an almost-everywhere strongly measurable function over `add_circle T` is equal
 to the integral over an interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
-protected lemma interval_integral_preimage (t : ℝ) {f : add_circle T → E}
-  (hf : ae_strongly_measurable f volume) :
+protected lemma interval_integral_preimage (t : ℝ) (f : add_circle T → E) :
   ∫ a in t..(t + T), f a = ∫ b : add_circle T, f b :=
 begin
-  rw [integral_of_le, add_circle.integral_preimage T t hf],
+  rw [integral_of_le, add_circle.integral_preimage T t f],
   linarith [hT.out],
 end
 
 end add_circle
 
 namespace unit_add_circle
-private lemma fact_zero_lt_one : fact ((0:ℝ) < 1) := ⟨zero_lt_one⟩
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
 noncomputable instance measure_space : measure_space unit_add_circle := add_circle.measure_space 1
 
@@ -169,25 +217,23 @@ add_circle.measure_preserving_mk 1 t
 
 /-- The integral of a measurable function over `unit_add_circle` is equal to the integral over an
 interval (t, t + 1] in `ℝ` of its lift to `ℝ`. -/
-protected lemma lintegral_preimage (t : ℝ) {f : unit_add_circle → ℝ≥0∞} (hf : measurable f) :
+protected lemma lintegral_preimage (t : ℝ) (f : unit_add_circle → ℝ≥0∞) :
   ∫⁻ a in Ioc t (t + 1), f a = ∫⁻ b : unit_add_circle, f b :=
-add_circle.lintegral_preimage 1 t hf
+add_circle.lintegral_preimage 1 t f
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 /-- The integral of an almost-everywhere strongly measurable function over `unit_add_circle` is
 equal to the integral over an interval (t, t + 1] in `ℝ` of its lift to `ℝ`. -/
-protected lemma integral_preimage (t : ℝ) {f : unit_add_circle → E}
-  (hf : ae_strongly_measurable f volume) :
+protected lemma integral_preimage (t : ℝ) (f : unit_add_circle → E) :
   ∫ a in Ioc t (t + 1), f a = ∫ b : unit_add_circle, f b :=
-add_circle.integral_preimage 1 t hf
+add_circle.integral_preimage 1 t f
 
 /-- The integral of an almost-everywhere strongly measurable function over `unit_add_circle` is
 equal to the integral over an interval (t, t + 1] in `ℝ` of its lift to `ℝ`. -/
-protected lemma interval_integral_preimage (t : ℝ) {f : unit_add_circle → E}
-  (hf : ae_strongly_measurable f volume) :
+protected lemma interval_integral_preimage (t : ℝ) (f : unit_add_circle → E) :
   ∫ a in t..(t + 1), f a = ∫ b : unit_add_circle, f b :=
-add_circle.interval_integral_preimage 1 t hf
+add_circle.interval_integral_preimage 1 t f
 
 end unit_add_circle
 

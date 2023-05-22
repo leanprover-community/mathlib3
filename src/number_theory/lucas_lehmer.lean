@@ -14,6 +14,9 @@ import tactic.ring_exp
 /-!
 # The Lucas-Lehmer test for Mersenne primes.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `lucas_lehmer_residue : Π p : ℕ, zmod (2^p - 1)`, and
 prove `lucas_lehmer_residue p = 0 → prime (mersenne p)`.
 
@@ -245,11 +248,8 @@ instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 @[simp] lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) := rfl
 
 @[norm_cast]
-protected lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
+lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
 by { ext; simp; ring }
-
-instance : coe_is_mul_hom ℤ (X q) :=
-{ coe_mul := lucas_lehmer.X.coe_mul }
 
 @[norm_cast]
 lemma coe_nat (n : ℕ) : ((n : ℤ) : X q) = (n : X q) :=
@@ -389,7 +389,7 @@ theorem order_ω (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   order_of (ω_unit (p'+2)) = 2^(p'+2) :=
 begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow, -- the order of ω divides 2^p
-  { norm_num, },
+  { exact nat.prime_two, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
     replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :

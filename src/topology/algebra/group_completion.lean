@@ -10,6 +10,9 @@ import topology.uniform_space.completion
 /-!
 # Completion of topological groups:
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files endows the completion of a topological abelian group with a group structure.
 More precisely the instance `uniform_space.completion.add_group` builds an abelian group structure
 on the completion of an abelian group endowed with a compatible uniform structure.
@@ -42,10 +45,7 @@ instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 instance [has_sub α] : has_sub (completion α) := ⟨completion.map₂ has_sub.sub⟩
 
 @[norm_cast]
-protected lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
-
-instance [has_zero α] : coe_is_zero_hom α (completion α) := ⟨uniform_space.completion.coe_zero⟩
-
+lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
 end group
 
 namespace uniform_space.completion
@@ -57,9 +57,9 @@ instance [uniform_space α] [monoid_with_zero M] [has_zero α] [mul_action_with_
   [has_uniform_continuous_const_smul M α] :
   mul_action_with_zero M (completion α) :=
 { smul := (•),
-  smul_zero := λ r, by rw [← completion.coe_zero, ← coe_smul, mul_action_with_zero.smul_zero r],
+  smul_zero := λ r, by rw [← coe_zero, ← coe_smul, mul_action_with_zero.smul_zero r],
   zero_smul := ext' (continuous_const_smul _) continuous_const $ λ a,
-    by rw [← coe_smul, zero_smul, completion.coe_zero],
+    by rw [← coe_smul, zero_smul, coe_zero],
   .. completion.mul_action M α }
 
 end has_zero
@@ -68,15 +68,15 @@ section uniform_add_group
 variables [uniform_space α] [add_group α] [uniform_add_group α]
 
 @[norm_cast]
-protected lemma coe_neg (a : α) : ((- a : α) : completion α) = - a :=
+lemma coe_neg (a : α) : ((- a : α) : completion α) = - a :=
 (map_coe uniform_continuous_neg a).symm
 
 @[norm_cast]
-protected lemma coe_sub (a b : α) : ((a - b : α) : completion α) = a - b :=
+lemma coe_sub (a b : α) : ((a - b : α) : completion α) = a - b :=
 (map₂_coe_coe a b has_sub.sub uniform_continuous_sub).symm
 
 @[norm_cast]
-protected lemma coe_add (a b : α) : ((a + b : α) : completion α) = a + b :=
+lemma coe_add (a b : α) : ((a + b : α) : completion α) = a + b :=
 (map₂_coe_coe a b (+) uniform_continuous_add).symm
 
 instance : add_monoid (completion α) :=
@@ -99,15 +99,11 @@ instance : add_monoid (completion α) :=
       by repeat { rw_mod_cast add_assoc }),
   nsmul := (•),
   nsmul_zero' := λ a, completion.induction_on a (is_closed_eq continuous_map continuous_const)
-    (λ a, by rw [←coe_smul, ←completion.coe_zero, zero_smul]),
+    (λ a, by rw [←coe_smul, ←coe_zero, zero_smul]),
   nsmul_succ' := λ n a, completion.induction_on a
     (is_closed_eq continuous_map $ continuous_map₂ continuous_id continuous_map)
     (λ a, by rw_mod_cast succ_nsmul ),
   .. completion.has_zero, ..completion.has_add, }
-
-instance : coe_is_add_monoid_hom α (completion α) :=
-{ coe_add := λ a b, (map₂_coe_coe a b (+) uniform_continuous_add).symm,
-  .. uniform_space.completion.coe_is_zero_hom }
 
 instance : sub_neg_monoid (completion α) :=
 { sub_eq_add_neg := λ a b, completion.induction_on₂ a b
@@ -123,7 +119,7 @@ instance : sub_neg_monoid (completion α) :=
                           from sub_neg_monoid.zsmul_succ' n a) ),
   zsmul_neg' := λ n a, completion.induction_on a
     (is_closed_eq continuous_map $ completion.continuous_map.comp continuous_map)
-    (λ a, by rw [←coe_smul, ←coe_smul, ←completion.coe_neg, show -[1+ n] • a = -((n.succ : ℤ) • a),
+    (λ a, by rw [←coe_smul, ←coe_smul, ←coe_neg, show -[1+ n] • a = -((n.succ : ℤ) • a),
                                                  from sub_neg_monoid.zsmul_neg' n a]),
   .. completion.add_monoid, .. completion.has_neg, .. completion.has_sub }
 
@@ -143,7 +139,7 @@ instance {M} [monoid M] [distrib_mul_action M α] [has_uniform_continuous_const_
     (is_closed_eq ((continuous_fst.add continuous_snd).const_smul _)
       ((continuous_fst.const_smul _).add (continuous_snd.const_smul _)))
     (λ a b, by simp only [← coe_add, ← coe_smul, smul_add]),
-  smul_zero := λ r, by rw [← @coe_zero α, ← coe_smul, smul_zero r],
+  smul_zero := λ r, by rw [← coe_zero, ← coe_smul, smul_zero r],
   .. completion.mul_action M α }
 
 /-- The map from a group to its completion as a group hom. -/
@@ -196,7 +192,7 @@ def add_monoid_hom.extension [complete_space β] [separated_space β] (f : α �
   (hf : continuous f) : completion α →+ β :=
 have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_continuous hf,
 { to_fun := completion.extension f,
-  map_zero' := by rw [← @coe_zero α, extension_coe hf, f.map_zero],
+  map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
   map_add' := assume a b, completion.induction_on₂ a b
   (is_closed_eq
     (continuous_extension.comp continuous_add)

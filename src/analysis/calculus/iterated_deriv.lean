@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.deriv
-import analysis.calculus.cont_diff
+import analysis.calculus.cont_diff_def
 
 /-!
 # One-dimensional iterated derivatives
@@ -41,7 +41,7 @@ iterated Fréchet derivative.
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators
+open_locale classical topology big_operators
 open filter asymptotics set
 
 
@@ -95,6 +95,10 @@ begin
   rw [iterated_deriv_within_eq_iterated_fderiv_within, ← continuous_multilinear_map.map_smul_univ],
   simp
 end
+
+lemma norm_iterated_fderiv_within_eq_norm_iterated_deriv_within :
+  ‖iterated_fderiv_within 𝕜 n f s x‖ = ‖iterated_deriv_within n f s x‖ :=
+by rw [iterated_deriv_within_eq_equiv_comp, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_deriv_within_zero :
   iterated_deriv_within 0 f s = f :=
@@ -221,6 +225,10 @@ multiplied by the product of the `m i`s. -/
 lemma iterated_fderiv_apply_eq_iterated_deriv_mul_prod {m : (fin n) → 𝕜} :
   (iterated_fderiv 𝕜 n f x : ((fin n) → 𝕜) → F) m = (∏ i, m i) • iterated_deriv n f x :=
 by { rw [iterated_deriv_eq_iterated_fderiv, ← continuous_multilinear_map.map_smul_univ], simp }
+
+lemma norm_iterated_fderiv_eq_norm_iterated_deriv :
+  ‖iterated_fderiv 𝕜 n f x‖ = ‖iterated_deriv n f x‖ :=
+by rw [iterated_deriv_eq_equiv_comp, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_deriv_zero :
   iterated_deriv 0 f = f :=

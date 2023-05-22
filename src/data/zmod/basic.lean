@@ -5,10 +5,15 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import data.fintype.units
+import data.nat.parity
 import tactic.fin_cases
 
 /-!
 # Integers mod `n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Definition of the integers mod n, and the field structure on the integers mod p.
 
@@ -27,6 +32,8 @@ Definition of the integers mod n, and the field structure on the integers mod p.
 This is a ring hom if the ring has characteristic dividing `n`
 
 -/
+
+open function
 
 namespace zmod
 
@@ -126,10 +133,6 @@ def cast : Π {n : ℕ}, zmod n → R
 
 -- see Note [coercion into rings]
 @[priority 900] instance (n : ℕ) : has_coe_t (zmod n) R := ⟨cast⟩
-
-/-- The cast from `zmod n` to `R` is a morphism if the characteristic of `R` divides `n`,
-so in the case `n = 0` it is always a homomorphism -/
-instance : coe_is_add_monoid_hom (zmod 0) R := int.coe_is_add_monoid_hom _
 
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by cases n; simp
@@ -380,7 +383,7 @@ end universal_property
 
 lemma int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
-char_p.int_coe_eq_int_coe_iff (zmod c) c a b
+char_p.int_cast_eq_int_cast (zmod c) c
 
 lemma int_coe_eq_int_coe_iff' (a b : ℤ) (c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a % c = b % c :=
@@ -726,6 +729,25 @@ end
 | 0     a := int.nat_abs_eq_zero
 | (n+1) a := by { rw fin.ext_iff, exact iff.rfl }
 
+lemma neg_eq_self_iff {n : ℕ} (a : zmod n) : -a = a ↔ a = 0 ∨ 2 * a.val = n :=
+begin
+  rw [neg_eq_iff_add_eq_zero, ← two_mul],
+  cases n,
+  { rw [@mul_eq_zero ℤ, @mul_eq_zero ℕ, val_eq_zero],
+    exact ⟨λ h, h.elim dec_trivial or.inl, λ h, or.inr (h.elim id $ λ h, h.elim dec_trivial id)⟩ },
+  conv_lhs
+  { rw [← a.nat_cast_zmod_val, ← nat.cast_two, ← nat.cast_mul, nat_coe_zmod_eq_zero_iff_dvd] },
+  split,
+  { rintro ⟨m, he⟩, cases m,
+    { rw [mul_zero, mul_eq_zero] at he,
+      rcases he with ⟨⟨⟩⟩|he,
+      exact or.inl (a.val_eq_zero.1 he) },
+    cases m, { right, rwa mul_one at he },
+    refine (a.val_lt.not_le $ nat.le_of_mul_le_mul_left _ zero_lt_two).elim,
+    rw [he, mul_comm], apply nat.mul_le_mul_left, dec_trivial },
+  { rintro (rfl|h), { rw [val_zero, mul_zero], apply dvd_zero }, { rw h } },
+end
+
 lemma val_cast_of_lt {n : ℕ} {a : ℕ} (h : a < n) : (a : zmod n).val = a :=
 by rw [val_nat_cast, nat.mod_eq_of_lt h]
 
@@ -761,7 +783,7 @@ begin
   { refl }
 end
 
-@[simp] lemma coe_val_min_abs : ∀ {n : ℕ} (x : zmod n), (x.val_min_abs : zmod n) = x
+@[simp, norm_cast] lemma coe_val_min_abs : ∀ {n : ℕ} (x : zmod n), (x.val_min_abs : zmod n) = x
 | 0       x := int.cast_id x
 | k@(n+1) x :=
 begin
@@ -772,22 +794,60 @@ begin
       sub_zero] }
 end
 
+lemma injective_val_min_abs {n : ℕ} : (val_min_abs : zmod n → ℤ).injective :=
+function.injective_iff_has_left_inverse.2 ⟨_, coe_val_min_abs⟩
+
+lemma _root_.nat.le_div_two_iff_mul_two_le {n m : ℕ} : m ≤ n / 2 ↔ (m : ℤ) * 2 ≤ n :=
+by rw [nat.le_div_iff_mul_le zero_lt_two, ← int.coe_nat_le, int.coe_nat_mul, nat.cast_two]
+
+lemma val_min_abs_nonneg_iff {n : ℕ} [ne_zero n] (x : zmod n) :
+  0 ≤ x.val_min_abs ↔ x.val ≤ n / 2 :=
+begin
+  rw [val_min_abs_def_pos], split_ifs,
+  { exact iff_of_true (nat.cast_nonneg _) h },
+  { exact iff_of_false (sub_lt_zero.2 $ int.coe_nat_lt.2 x.val_lt).not_le h },
+end
+
+lemma val_min_abs_mul_two_eq_iff {n : ℕ} (a : zmod n) : a.val_min_abs * 2 = n ↔ 2 * a.val = n :=
+begin
+  cases n, { simp },
+  by_cases a.val ≤ n.succ / 2,
+  { rw [val_min_abs, if_pos h, ← int.coe_nat_inj', nat.cast_mul, nat.cast_two, mul_comm] },
+  apply iff_of_false (λ he, _) (mt _ h),
+  { rw [← a.val_min_abs_nonneg_iff, ← mul_nonneg_iff_left_nonneg_of_pos, he] at h,
+    exacts [h (nat.cast_nonneg _), zero_lt_two] },
+  { rw [mul_comm], exact λ h, (nat.le_div_iff_mul_le zero_lt_two).2 h.le },
+end
+
+lemma val_min_abs_mem_Ioc {n : ℕ} [ne_zero n] (x : zmod n) :
+  x.val_min_abs * 2 ∈ set.Ioc (-n : ℤ) n :=
+begin
+  simp_rw [val_min_abs_def_pos, nat.le_div_two_iff_mul_two_le], split_ifs,
+  { refine ⟨(neg_lt_zero.2 $ by exact_mod_cast ne_zero.pos n).trans_le (mul_nonneg _ _), h⟩,
+    exacts [nat.cast_nonneg _, zero_le_two] },
+  { refine ⟨_, trans (mul_nonpos_of_nonpos_of_nonneg _ zero_le_two) $ nat.cast_nonneg _⟩,
+    { linarith only [h] },
+    { rw [sub_nonpos, int.coe_nat_le], exact x.val_lt.le } },
+end
+
+lemma val_min_abs_spec {n : ℕ} [ne_zero n] (x : zmod n) (y : ℤ) :
+  x.val_min_abs = y ↔ x = y ∧ y * 2 ∈ set.Ioc (-n : ℤ) n :=
+⟨by { rintro rfl, exact ⟨x.coe_val_min_abs.symm, x.val_min_abs_mem_Ioc⟩ }, λ h, begin
+  rw ← sub_eq_zero,
+  apply @int.eq_zero_of_abs_lt_dvd n,
+  { rw [← int_coe_zmod_eq_zero_iff_dvd, int.cast_sub, coe_val_min_abs, h.1, sub_self] },
+  rw [← mul_lt_mul_right (@zero_lt_two ℤ _ _ _ _ _)],
+  nth_rewrite 0 ← abs_eq_self.2 (@zero_le_two ℤ _ _ _ _),
+  rw [← abs_mul, sub_mul, abs_lt], split;
+  linarith only [x.val_min_abs_mem_Ioc.1, x.val_min_abs_mem_Ioc.2, h.2.1, h.2.2],
+end⟩
+
 lemma nat_abs_val_min_abs_le {n : ℕ} [ne_zero n] (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
 begin
-  rw zmod.val_min_abs_def_pos,
-  split_ifs with h, { exact h },
-  have : (x.val - n : ℤ) ≤ 0,
-  { rw [sub_nonpos, int.coe_nat_le], exact x.val_le, },
-  rw [← int.coe_nat_le, int.of_nat_nat_abs_of_nonpos this, neg_sub],
-  conv_lhs { congr, rw [← nat.mod_add_div n 2, int.coe_nat_add, int.coe_nat_mul,
-    int.coe_nat_bit0, int.coe_nat_one] },
-  suffices : ((n % 2 : ℕ) + (n / 2) : ℤ) ≤ (val x),
-  { rw ← sub_nonneg at this ⊢, apply le_trans this (le_of_eq _), ring },
-  norm_cast,
-  calc (n : ℕ) % 2 + n / 2 ≤ 1 + n / 2 :
-    nat.add_le_add_right (nat.le_of_lt_succ (nat.mod_lt _ dec_trivial)) _
-                       ... ≤ x.val     :
-    by { rw add_comm, exact nat.succ_le_of_lt (lt_of_not_ge h) }
+  rw [nat.le_div_two_iff_mul_two_le],
+  cases x.val_min_abs.nat_abs_eq,
+  { rw ← h, exact x.val_min_abs_mem_Ioc.2 },
+  { rw [← neg_le_neg_iff, ← neg_mul, ← h], exact x.val_min_abs_mem_Ioc.1.le },
 end
 
 @[simp] lemma val_min_abs_zero : ∀ n, (0 : zmod n).val_min_abs = 0
@@ -798,12 +858,8 @@ end
   x.val_min_abs = 0 ↔ x = 0 :=
 begin
   cases n, { simp },
-  split,
-  { simp only [val_min_abs_def_pos, int.coe_nat_succ],
-    split_ifs with h h; assume h0,
-    { apply val_injective, rwa [int.coe_nat_eq_zero] at h0, },
-    { apply absurd h0, rw sub_eq_zero, apply ne_of_lt, exact_mod_cast x.val_lt } },
-  { rintro rfl, rw val_min_abs_zero }
+  rw ← val_min_abs_zero n.succ,
+  apply injective_val_min_abs.eq_iff,
 end
 
 lemma nat_cast_nat_abs_val_min_abs {n : ℕ} [ne_zero n] (a : zmod n) :
@@ -811,53 +867,108 @@ lemma nat_cast_nat_abs_val_min_abs {n : ℕ} [ne_zero n] (a : zmod n) :
 begin
   have : (a.val : ℤ) - n ≤ 0,
     by { erw [sub_nonpos, int.coe_nat_le], exact a.val_le, },
-  rw [zmod.val_min_abs_def_pos],
+  rw [val_min_abs_def_pos],
   split_ifs,
   { rw [int.nat_abs_of_nat, nat_cast_zmod_val] },
-  { rw [← int.cast_coe_nat, int.of_nat_nat_abs_of_nonpos this, int.cast_neg, int.cast_sub],
-    rw [int.cast_coe_nat, int.cast_coe_nat, nat_cast_self, sub_zero, nat_cast_zmod_val], }
+  { rw [← int.cast_coe_nat, int.of_nat_nat_abs_of_nonpos this, int.cast_neg, int.cast_sub,
+      int.cast_coe_nat, int.cast_coe_nat, nat_cast_self, sub_zero, nat_cast_zmod_val], }
+end
+
+lemma val_min_abs_neg_of_ne_half {n : ℕ} {a : zmod n} (ha : 2 * a.val ≠ n) :
+  (-a).val_min_abs = -a.val_min_abs :=
+begin
+  casesI eq_zero_or_ne_zero n, { subst h, refl },
+  refine (val_min_abs_spec _ _).2 ⟨_, _, _⟩,
+  { rw [int.cast_neg, coe_val_min_abs] },
+  { rw [neg_mul, neg_lt_neg_iff],
+    exact a.val_min_abs_mem_Ioc.2.lt_of_ne (mt a.val_min_abs_mul_two_eq_iff.1 ha) },
+  { linarith only [a.val_min_abs_mem_Ioc.1] },
 end
 
 @[simp] lemma nat_abs_val_min_abs_neg {n : ℕ} (a : zmod n) :
   (-a).val_min_abs.nat_abs = a.val_min_abs.nat_abs :=
 begin
-  cases n, { simp only [int.nat_abs_neg, val_min_abs_def_zero], },
-  by_cases ha0 : a = 0, { rw [ha0, neg_zero] },
-  by_cases haa : -a = a, { rw [haa] },
-  suffices hpa : (n+1 : ℕ) - a.val ≤ (n+1) / 2 ↔ (n+1 : ℕ) / 2 < a.val,
-  { rw [val_min_abs_def_pos, val_min_abs_def_pos],
-    rw ← not_le at hpa,
-    simp only [if_neg ha0, neg_val, hpa, int.coe_nat_sub a.val_le],
-    split_ifs,
-    all_goals { rw [← int.nat_abs_neg], congr' 1, ring } },
-  suffices : (((n+1 : ℕ) % 2) + 2 * ((n + 1) / 2)) - a.val ≤ (n+1) / 2 ↔ (n+1 : ℕ) / 2 < a.val,
-  by rwa [nat.mod_add_div] at this,
-  suffices : (n + 1) % 2 + (n + 1) / 2 ≤ val a ↔ (n + 1) / 2 < val a,
-  by rw [tsub_le_iff_tsub_le, two_mul, ← add_assoc, add_tsub_cancel_right, this],
-  cases (n + 1 : ℕ).mod_two_eq_zero_or_one with hn0 hn1,
-  { split,
-    { assume h,
-      apply lt_of_le_of_ne (le_trans (nat.le_add_left _ _) h),
-      contrapose! haa,
-      rw [← zmod.nat_cast_zmod_val a, ← haa, neg_eq_iff_add_eq_zero, ← nat.cast_add],
-      rw [char_p.cast_eq_zero_iff (zmod (n+1)) (n+1)],
-      rw [← two_mul, ← zero_add (2 * _), ← hn0, nat.mod_add_div] },
-    { rw [hn0, zero_add], exact le_of_lt } },
-  { rw [hn1, add_comm, nat.succ_le_iff] }
+  by_cases h2a : 2 * a.val = n,
+  { rw a.neg_eq_self_iff.2 (or.inr h2a) },
+  { rw [val_min_abs_neg_of_ne_half h2a, int.nat_abs_neg] }
 end
 
 lemma val_eq_ite_val_min_abs {n : ℕ} [ne_zero n] (a : zmod n) :
   (a.val : ℤ) = a.val_min_abs + if a.val ≤ n / 2 then 0 else n :=
-by { rw [zmod.val_min_abs_def_pos], split_ifs; simp only [add_zero, sub_add_cancel] }
+by { rw val_min_abs_def_pos, split_ifs; simp only [add_zero, sub_add_cancel] }
 
 lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p ≠ q) :
   (q : zmod p) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq_zero_iff_dvd,
   ← hp.1.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
 
-end zmod
+variables {n a : ℕ}
 
-namespace zmod
+lemma val_min_abs_nat_abs_eq_min {n : ℕ} [hpos : ne_zero n] (a : zmod n) :
+  a.val_min_abs.nat_abs = min a.val (n - a.val) :=
+begin
+  rw val_min_abs_def_pos,
+  split_ifs with h h,
+  { rw int.nat_abs_of_nat, symmetry,
+    apply min_eq_left (le_trans h (le_trans
+      (nat.half_le_of_sub_le_half _) (nat.sub_le_sub_left n h))),
+    rw nat.sub_sub_self (nat.div_le_self _ _) },
+  { rw [←int.nat_abs_neg, neg_sub, ←nat.cast_sub a.val_le], symmetry,
+    apply min_eq_right (le_trans (le_trans (nat.sub_le_sub_left n (lt_of_not_ge h))
+      (nat.le_half_of_half_lt_sub _)) (le_of_not_ge h)),
+    rw nat.sub_sub_self (nat.div_lt_self (lt_of_le_of_ne' (nat.zero_le _) hpos.1) one_lt_two),
+    apply nat.lt_succ_self }
+end
+
+lemma val_min_abs_nat_cast_of_le_half (ha : a ≤ n / 2) : (a : zmod n).val_min_abs = a :=
+begin
+  cases n,
+  { simp },
+  { simp [val_min_abs_def_pos, val_nat_cast,
+      nat.mod_eq_of_lt (ha.trans_lt $ nat.div_lt_self' _ 0), ha] }
+end
+
+lemma val_min_abs_nat_cast_of_half_lt (ha : n / 2 < a) (ha' : a < n) :
+  (a : zmod n).val_min_abs = a - n :=
+begin
+  cases n,
+  { cases not_lt_bot ha' },
+  { simp [val_min_abs_def_pos, val_nat_cast, nat.mod_eq_of_lt ha', ha.not_le] }
+end
+
+@[simp] lemma val_min_nat_abs_nat_cast_eq_self [ne_zero n] :
+  (a : zmod n).val_min_abs = a ↔ a ≤ n / 2 :=
+begin
+  refine ⟨λ ha, _, val_min_abs_nat_cast_of_le_half⟩,
+  rw [←int.nat_abs_of_nat a, ←ha],
+  exact nat_abs_val_min_abs_le a,
+end
+
+lemma nat_abs_min_of_le_div_two (n : ℕ) (x y : ℤ)
+  (he : (x : zmod n) = y) (hl : x.nat_abs ≤ n / 2) : x.nat_abs ≤ y.nat_abs :=
+begin
+  rw int_coe_eq_int_coe_iff_dvd_sub at he,
+  obtain ⟨m, he⟩ := he,
+  rw sub_eq_iff_eq_add at he,
+  subst he,
+  obtain rfl|hm := eq_or_ne m 0,
+  { rw [mul_zero, zero_add] },
+  apply hl.trans,
+  rw ← add_le_add_iff_right x.nat_abs,
+  refine trans (trans ((add_le_add_iff_left _).2 hl) _) (int.nat_abs_sub_le _ _),
+  rw [add_sub_cancel, int.nat_abs_mul, int.nat_abs_of_nat],
+  refine trans _ (nat.le_mul_of_pos_right $ int.nat_abs_pos_of_ne_zero hm),
+  rw ← mul_two, apply nat.div_mul_le_self,
+end
+
+lemma nat_abs_val_min_abs_add_le {n : ℕ} (a b : zmod n) :
+  (a + b).val_min_abs.nat_abs ≤ (a.val_min_abs + b.val_min_abs).nat_abs :=
+begin
+  cases n, { refl },
+  apply nat_abs_min_of_le_div_two n.succ,
+  { simp_rw [int.cast_add, coe_val_min_abs] },
+  { apply nat_abs_val_min_abs_le },
+end
 
 variables (p : ℕ) [fact p.prime]
 

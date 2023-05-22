@@ -9,6 +9,9 @@ import analysis.special_functions.log.basic
 /-!
 # The complex `log` function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Basic properties, relationship with `exp`.
 -/
 
@@ -18,7 +21,7 @@ namespace complex
 
 open set filter
 
-open_locale real topological_space complex_conjugate
+open_locale real topology complex_conjugate
 
 /-- Inverse of the `exp` function. Returns values such that `(log x).im > - π` and `(log x).im ≤ π`.
   `log 0 = 0`-/
@@ -188,7 +191,7 @@ end complex
 section log_deriv
 
 open complex filter
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*}
 

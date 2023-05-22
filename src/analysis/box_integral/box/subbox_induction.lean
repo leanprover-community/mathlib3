@@ -9,6 +9,9 @@ import analysis.specific_limits.basic
 /-!
 # Induction on subboxes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following induction principle for `box_integral.box`, see
 `box_integral.box.subbox_induction_on`. Let `p` be a predicate on `box_integral.box ι`, let `I` be a
 box. Suppose that the following two properties hold true.
@@ -27,7 +30,7 @@ rectangular box, induction
 -/
 
 open set finset function filter metric
-open_locale classical topological_space filter ennreal
+open_locale classical topology filter ennreal
 noncomputable theory
 
 namespace box_integral
@@ -147,7 +150,7 @@ begin
   { suffices : tendsto (λ m, (J m).upper - (J m).lower) at_top (𝓝 0), by simpa using hJlz.add this,
     refine tendsto_pi_nhds.2 (λ i, _),
     simpa [hJsub] using tendsto_const_nhds.div_at_top
-      (tendsto_pow_at_top_at_top_of_one_lt $ @one_lt_two ℝ _) },
+      (tendsto_pow_at_top_at_top_of_one_lt one_lt_two) },
   replace hJlz : tendsto (λ m, (J m).lower) at_top (𝓝[Icc I.lower I.upper] z),
     from tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ hJlz
       (eventually_of_forall hJl_mem),

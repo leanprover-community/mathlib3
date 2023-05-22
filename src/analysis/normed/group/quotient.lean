@@ -3,10 +3,15 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Riccardo Brasca
 -/
+import analysis.normed_space.basic
 import analysis.normed.group.hom
+import ring_theory.ideal.quotient_operations
 
 /-!
 # Quotients of seminormed groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For any `seminormed_add_comm_group M` and any `S : add_subgroup M`, we provide a
 `seminormed_add_comm_group`, the group quotient `M ⧸ S`.
@@ -91,7 +96,7 @@ noncomputable theory
 
 
 open quotient_add_group metric set
-open_locale topological_space nnreal
+open_locale topology nnreal
 
 variables {M N : Type*} [seminormed_add_comm_group M] [seminormed_add_comm_group N]
 
@@ -132,7 +137,7 @@ begin
     rw ← norm_neg,
     exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
-    exact ⟨-m, by simpa [eq_comm] using eq_neg_iff_eq_neg.mp ((mk'_apply _ _).symm.trans hm)⟩ }
+    exact ⟨-m, by simpa using neg_eq_iff_eq_neg.mpr ((mk'_apply _ _).symm.trans hm)⟩ }
 end
 
 lemma quotient_norm_sub_rev {S : add_subgroup M} (x y : M ⧸ S) : ‖x - y‖ = ‖y - x‖ :=

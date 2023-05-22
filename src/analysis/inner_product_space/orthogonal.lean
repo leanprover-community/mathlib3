@@ -202,14 +202,7 @@ end submodule
 
 @[simp]
 lemma sesq_form_of_inner_orthogonal (K : submodule 𝕜 E) :
-  K.orthogonal_bilin sesq_form_of_inner = Kᗮ :=
-begin
-  ext x,
-  rw [submodule.mem_orthogonal_bilin_iff, submodule.mem_orthogonal],
-  refine forall₂_congr (λ y hy, _),
-  rw [linear_map.is_ortho_def, sesq_form_of_inner_apply_apply],
-  exact inner_eq_zero_symm,
-end
+  K.orthogonal_bilin (innerₛₗ 𝕜) = Kᗮ := rfl
 
 /-!
 ### Orthogonality of submodules

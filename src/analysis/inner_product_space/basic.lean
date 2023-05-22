@@ -399,25 +399,26 @@ inner_smul_right _ _ _
 lemma inner_smul_real_right (x y : E) (r : ℝ) : ⟪x, (r : 𝕜) • y⟫ = r • ⟪x, y⟫ :=
 by { rw [inner_smul_right, algebra.smul_def], refl }
 
-/-- The inner product as a sesquilinear form.
+variables (𝕜)
 
-Note that in the case `𝕜 = ℝ` this is a bilinear form. -/
-@[simps]
-def sesq_form_of_inner : E →ₗ[𝕜] E →ₗ⋆[𝕜] 𝕜 :=
-linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
-  (λ x y, ⟪y, x⟫)
-  (λ x y z, inner_add_right _ _ _)
-  (λ r x y, inner_smul_right _ _ _)
-  (λ x y z, inner_add_left _ _ _)
-  (λ r x y, inner_smul_left _ _ _)
+/-- The inner product as a sesquilinear map. -/
+def innerₛₗ : E →ₗ⋆[𝕜] E →ₗ[𝕜] 𝕜 :=
+linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) inner_add_left (λ _ _ _, inner_smul_left _ _ _)
+  inner_add_right (λ _ _ _, inner_smul_right _ _ _)
+
+@[simp] lemma innerₛₗ_apply_coe (v : E) : ⇑(innerₛₗ 𝕜 v) = λ w, ⟪v, w⟫ := rfl
+
+@[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ 𝕜 v w = ⟪v, w⟫ := rfl
+
+variables {𝕜}
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ := (sesq_form_of_inner x).map_sum
+  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ := (linear_map.flip (innerₛₗ 𝕜) x).map_sum
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
-  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ := (linear_map.flip sesq_form_of_inner x).map_sum
+  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ := (innerₛₗ 𝕜 x).map_sum
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
@@ -1513,15 +1514,6 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
 variables (𝕜)
-
-/-- The inner product as a sesquilinear map. -/
-def innerₛₗ : E →ₗ⋆[𝕜] E →ₗ[𝕜] 𝕜 :=
-linear_map.mk₂'ₛₗ _ _ (λ v w, ⟪v, w⟫) inner_add_left (λ _ _ _, inner_smul_left _ _ _)
-  inner_add_right (λ _ _ _, inner_smul_right _ _ _)
-
-@[simp] lemma innerₛₗ_apply_coe (v : E) : ⇑(innerₛₗ 𝕜 v) = λ w, ⟪v, w⟫ := rfl
-
-@[simp] lemma innerₛₗ_apply (v w : E) : innerₛₗ 𝕜 v w = ⟪v, w⟫ := rfl
 
 /-- The inner product as a continuous sesquilinear map. Note that `to_dual_map` (resp. `to_dual`)
 in `inner_product_space.dual` is a version of this given as a linear isometry (resp. linear

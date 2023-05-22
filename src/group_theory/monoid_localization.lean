@@ -1466,6 +1466,35 @@ by simp_rw [mk_eq_mk_iff, r_iff_exists, mul_left_cancel_iff, exists_const]
 @[to_additive] instance decidable_eq [decidable_eq α] : decidable_eq (localization s) :=
 λ a b, localization.rec_on_subsingleton₂ a b $ λ a₁ a₂ b₁ b₂, decidable_of_iff' _ mk_eq_mk_iff'
 
+def inv (z : localization (⊤ : submonoid α)) : localization (⊤ : submonoid α) :=
+localization.lift_on z
+  (λ m s, (localization.mk s ⟨m, submonoid.mem_top m⟩ : localization (⊤ : submonoid α))) begin
+    intros m₁ s₁ m₂ s₂ h,
+    rw [mk_eq_monoid_of_mk', submonoid.localization_map.mk'_eq_iff_eq'],
+    simp only [r_iff_exists, mul_right_inj, exists_const] at h,
+    congr' 1,
+    exact h.symm,
+  end
+
+instance : has_inv (localization (⊤ : submonoid α)) :=
+{ inv := inv }
+
+@[simp]
+lemma mk_inv (m : α) (s : (⊤ : submonoid α)) :
+  (localization.mk m s)⁻¹ = (localization.mk s ⟨m, submonoid.mem_top m⟩) := rfl
+
+/-- The Grothendieck group is a group -/
+instance : comm_group (localization (⊤ : submonoid α)) :=
+{ mul_left_inv := begin
+    intro a,
+    induction a using localization.ind,
+    rw [mk_inv, mk_eq_monoid_of_mk', ←submonoid.localization_map.mk'_mul],
+    convert submonoid.localization_map.mk'_self' _ _,
+    rw [mul_comm, submonoid.coe_mul, set_like.coe_mk],
+  end,
+  .. localization.has_inv,
+  .. localization.comm_monoid _ }
+
 end localization
 
 /-! ### Order -/

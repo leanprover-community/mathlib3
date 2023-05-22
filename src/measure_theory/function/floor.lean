@@ -8,6 +8,9 @@ import measure_theory.constructions.borel_space.basic
 /-!
 # Measurability of `⌊x⌋` etc
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `int.floor`, `int.ceil`, `int.fract`, `nat.floor`, and `nat.ceil` are
 measurable under some assumptions on the (semi)ring.
 -/

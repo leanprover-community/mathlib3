@@ -249,6 +249,12 @@ lemma mem_one_cocycles_iff' (f : G → A) :
   f ∈ one_cocycles A ↔ ∀ g : G × G, f (g.1 * g.2) = A.ρ g.1 (f g.2) + f g.1 :=
 by simp_rw [mem_one_cocycles_iff, sub_add_eq_add_sub, sub_eq_zero, eq_comm]
 
+lemma one_cocycles_map_one (f : one_cocycles A) : (f : G → A) 1 = 0 :=
+begin
+  have := (mem_one_cocycles_iff (f : G → A)).1 f.2 (1, 1),
+  simpa only [map_one, linear_map.one_apply, mul_one, sub_self, zero_add],
+end
+
 lemma mem_one_coboundaries_of_mem_range (f : G → A) (h : f ∈ (d_zero A).range) :
   (⟨f, by rcases h with ⟨x, rfl⟩; exact linear_map.ext_iff.1
     (d_one_comp_d_zero.{u} A) x⟩ : one_cocycles A) ∈ one_coboundaries A :=

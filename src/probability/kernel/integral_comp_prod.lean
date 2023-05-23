@@ -69,7 +69,7 @@ begin
   { exact has_finite_integral_prod_mk_left a h2s, },
 end
 
-lemma _root_.measure_theory.ae_strongly_measurable.integral_kernel_prod_right'
+lemma _root_.measure_theory.ae_strongly_measurable.integral_kernel_comp_prod
   [normed_space ℝ E] [complete_space E]
   ⦃f : β × γ → E⦄ (hf : ae_strongly_measurable f ((κ ⊗ₖ η) a)) :
   ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(η (a, x))) (κ a) :=
@@ -128,23 +128,23 @@ lemma integrable_comp_prod_iff ⦃f : β × γ → E⦄ (hf : ae_strongly_measur
     (∀ᵐ x ∂(κ a), integrable (λ y, f (x, y)) (η (a, x)))
     ∧ integrable (λ x, ∫ y, ‖f (x, y)‖ ∂(η (a, x))) (κ a) :=
 by simp only [integrable, has_finite_integral_comp_prod_iff' hf,
-  hf.norm.integral_kernel_prod_right', hf, hf.comp_prod_mk_left, eventually_and, true_and]
+  hf.norm.integral_kernel_comp_prod, hf, hf.comp_prod_mk_left, eventually_and, true_and]
 
-lemma _root_.measure_theory.integrable.comp_prod_right_ae
+lemma _root_.measure_theory.integrable.comp_prod_mk_left_ae
   ⦃f : β × γ → E⦄ (hf : integrable f ((κ ⊗ₖ η) a)) :
   ∀ᵐ x ∂(κ a), integrable (λ y, f (x, y)) (η (a, x)) :=
 ((integrable_comp_prod_iff hf.ae_strongly_measurable).mp hf).1
 
-lemma _root_.measure_theory.integrable.integral_norm_comp_prod_left
+lemma _root_.measure_theory.integrable.integral_norm_comp_prod
   ⦃f : β × γ → E⦄ (hf : integrable f ((κ ⊗ₖ η) a)) :
   integrable (λ x, ∫ y, ‖f (x, y)‖ ∂(η (a, x))) (κ a) :=
 ((integrable_comp_prod_iff hf.ae_strongly_measurable).mp hf).2
 
-lemma _root_.measure_theory.integrable.integral_comp_prod_left [normed_space ℝ E] [complete_space E]
+lemma _root_.measure_theory.integrable.integral_comp_prod [normed_space ℝ E] [complete_space E]
   ⦃f : β × γ → E⦄ (hf : integrable f ((κ ⊗ₖ η) a)) :
   integrable (λ x, ∫ y, f (x, y) ∂(η (a, x))) (κ a) :=
-integrable.mono hf.integral_norm_comp_prod_left
-  hf.ae_strongly_measurable.integral_kernel_prod_right' $
+integrable.mono hf.integral_norm_comp_prod
+  hf.ae_strongly_measurable.integral_kernel_comp_prod $
   eventually_of_forall $ λ x, (norm_integral_le_integral_norm _).trans_eq $
   (norm_of_nonneg $ integral_nonneg_of_ae $ eventually_of_forall $
   λ y, (norm_nonneg (f (x, y)) : _)).symm
@@ -160,7 +160,7 @@ lemma kernel.integral_fn_integral_add ⦃f g : β × γ → E⦄ (F : E → E')
     = ∫ x, F (∫ y, f (x, y) ∂(η (a, x)) + ∫ y, g (x, y) ∂(η (a, x))) ∂(κ a) :=
 begin
   refine integral_congr_ae _,
-  filter_upwards [hf.comp_prod_right_ae, hg.comp_prod_right_ae] with _ h2f h2g,
+  filter_upwards [hf.comp_prod_mk_left_ae, hg.comp_prod_mk_left_ae] with _ h2f h2g,
   simp [integral_add h2f h2g],
 end
 
@@ -170,7 +170,7 @@ lemma kernel.integral_fn_integral_sub ⦃f g : β × γ → E⦄ (F : E → E')
     = ∫ x, F (∫ y, f (x, y) ∂(η (a, x)) - ∫ y, g (x, y) ∂(η (a, x))) ∂(κ a) :=
 begin
   refine integral_congr_ae _,
-  filter_upwards [hf.comp_prod_right_ae, hg.comp_prod_right_ae] with _ h2f h2g,
+  filter_upwards [hf.comp_prod_mk_left_ae, hg.comp_prod_mk_left_ae] with _ h2f h2g,
   simp [integral_sub h2f h2g],
 end
 
@@ -180,7 +180,7 @@ lemma kernel.lintegral_fn_integral_sub ⦃f g : β × γ → E⦄
     = ∫⁻ x, F (∫ y, f (x, y) ∂(η (a, x)) - ∫ y, g (x, y) ∂(η (a, x))) ∂(κ a) :=
 begin
   refine lintegral_congr_ae _,
-  filter_upwards [hf.comp_prod_right_ae, hg.comp_prod_right_ae] with _ h2f h2g,
+  filter_upwards [hf.comp_prod_mk_left_ae, hg.comp_prod_mk_left_ae] with _ h2f h2g,
   simp [integral_sub h2f h2g],
 end
 
@@ -189,7 +189,7 @@ lemma kernel.integral_integral_add ⦃f g : β × γ → E⦄
   ∫ x, ∫ y, f (x, y) + g (x, y) ∂(η (a, x)) ∂(κ a)
     = ∫ x, ∫ y, f (x, y) ∂(η (a, x)) ∂(κ a) + ∫ x, ∫ y, g (x, y) ∂(η (a, x)) ∂(κ a) :=
 (kernel.integral_fn_integral_add id hf hg).trans $
-  integral_add hf.integral_comp_prod_left hg.integral_comp_prod_left
+  integral_add hf.integral_comp_prod hg.integral_comp_prod
 
 lemma kernel.integral_integral_add' ⦃f g : β × γ → E⦄
   (hf : integrable f ((κ ⊗ₖ η) a)) (hg : integrable g ((κ ⊗ₖ η) a)) :
@@ -202,7 +202,7 @@ lemma kernel.integral_integral_sub ⦃f g : β × γ → E⦄
   ∫ x, ∫ y, f (x, y) - g (x, y) ∂(η (a, x)) ∂(κ a)
     = ∫ x, ∫ y, f (x, y) ∂(η (a, x)) ∂(κ a) - ∫ x, ∫ y, g (x, y) ∂(η (a, x)) ∂(κ a) :=
 (kernel.integral_fn_integral_sub id hf hg).trans $
-  integral_sub hf.integral_comp_prod_left hg.integral_comp_prod_left
+  integral_sub hf.integral_comp_prod hg.integral_comp_prod
 
 lemma kernel.integral_integral_sub' ⦃f g : β × γ → E⦄
   (hf : integrable f ((κ ⊗ₖ η) a)) (hg : integrable g ((κ ⊗ₖ η) a)) :
@@ -214,8 +214,8 @@ lemma kernel.continuous_integral_integral :
   continuous (λ (f : α × β →₁[(κ ⊗ₖ η) a] E), ∫ x, ∫ y, f (x, y) ∂(η (a, x)) ∂(κ a)) :=
 begin
   rw [continuous_iff_continuous_at], intro g,
-  refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_comp_prod_left
-    (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_comp_prod_left) _,
+  refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_comp_prod
+    (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_comp_prod) _,
   simp_rw [← kernel.lintegral_fn_integral_sub (λ x, (‖x‖₊ : ℝ≥0∞)) (L1.integrable_coe_fn _)
     (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,

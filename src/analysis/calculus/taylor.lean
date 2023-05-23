@@ -176,33 +176,30 @@ end
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`.
 
 Version for arbitrary sets -/
-lemma has_deriv_within_at_taylor_within_eval {f : ℝ → E} {x y : ℝ} {n : ℕ} {s t : set ℝ}
-  (hs_unique : unique_diff_within_at ℝ s y)
-  (hcd : cont_diff_on ℝ n f s)
-  (hd : differentiable_within_at ℝ (iterated_deriv_within n f s) t y) :
-  has_deriv_within_at (λ z, taylor_within_eval f n s z x)
-    (((n! : ℝ)⁻¹ * (x - y)^n) • (iterated_deriv_within (n+1) f s y)) t y :=
+lemma has_deriv_within_at_taylor_within_eval {f : ℝ → E} {x y : ℝ} {n : ℕ} {s s' : set ℝ}
+  (hs'_unique : unique_diff_within_at ℝ s' y) (hs_unique : unique_diff_on ℝ s)
+  (hs' : s' ∈ 𝓝[s] y) (hy : y ∈ s') (h : s' ⊆ s)
+  (hf : cont_diff_on ℝ n f s)
+  (hf' : differentiable_within_at ℝ (iterated_deriv_within n f s) s y) :
+  has_deriv_within_at (λ t, taylor_within_eval f n s t x)
+    (((n! : ℝ)⁻¹ * (x - y)^n) • (iterated_deriv_within (n+1) f s y)) s' y :=
 begin
   induction n with k hk,
   { simp only [taylor_within_zero_eval, nat.factorial_zero, nat.cast_one, inv_one, pow_zero,
-      mul_one, zero_add, one_smul, iterated_deriv_within_one hs_unique],
-    simp only [iterated_deriv_within_zero] at hd,
-    sorry },
+      mul_one, zero_add, one_smul],
+    simp only [iterated_deriv_within_zero] at hf',
+    rw iterated_deriv_within_one (hs_unique _ (h hy)),
+    exact hf'.has_deriv_within_at.mono h },
   simp_rw [nat.add_succ, taylor_within_eval_succ],
-  convert (hk (hf.of_le $ nat.cast_le.2 $ k.le_succ) _).add
-    (has_deriv_within_at_taylor_coeff_within ht_unique _ _),
-  { simp },
-  { exact hf.differentiable_on_iterated_deriv_within (nat.cast_lt.2 k.lt_succ_self) _ },
-  { sorry },
-  { sorry },
-  -- simp only [add_zero, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
-  -- have hdiff : differentiable_on ℝ (iterated_deriv_within k f s) t,
-  -- { have coe_lt_succ : (k : with_top ℕ) < k.succ :=
-  --   by { rw [with_top.coe_lt_coe], exact lt_add_one k },
-  --   refine differentiable_on.mono _ hs's,
-  --   exact hf.differentiable_on_iterated_deriv_within coe_lt_succ hs_unique },
-  -- specialize hk (cont_diff_on.of_succ hf) hdiff,
-  -- exact (add_sub_cancel'_right _ _).symm,
+  simp only [add_zero, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
+  have hdiff : differentiable_on ℝ (iterated_deriv_within k f s) s',
+  { have coe_lt_succ : (k : with_top ℕ) < k.succ := nat.cast_lt.2 k.lt_succ_self,
+    refine differentiable_on.mono _ h,
+    exact hf.differentiable_on_iterated_deriv_within coe_lt_succ hs_unique },
+  specialize hk hf.of_succ ((hdiff y hy).mono_of_mem hs'),
+  convert hk.add (has_deriv_within_at_taylor_coeff_within hs'_unique
+    (nhds_within_mono _ h self_mem_nhds_within) hf'),
+  exact (add_sub_cancel'_right _ _).symm
 end
 
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`.
@@ -214,12 +211,10 @@ lemma taylor_within_eval_has_deriv_at_Ioo {f : ℝ → E} {a b t : ℝ} (x : ℝ
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc a b)) (Ioo a b)) :
   has_deriv_at (λ y, taylor_within_eval f n (Icc a b) y x)
     (((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t)) t :=
-begin
-  have h_nhds := is_open.mem_nhds is_open_Ioo ht,
-  exact (has_deriv_within_at_taylor_within_eval (unique_diff_within_at_Ioo ht)
-    (unique_diff_on_Icc hx) (nhds_within_le_nhds h_nhds) ht Ioo_subset_Icc_self hf hf')
-    .has_deriv_at h_nhds,
-end
+have h_nhds : Ioo a b ∈ 𝓝 t := is_open_Ioo.mem_nhds ht,
+have h_nhds' : Ioo a b ∈ 𝓝[Icc a b] t := nhds_within_le_nhds h_nhds,
+(has_deriv_within_at_taylor_within_eval (unique_diff_within_at_Ioo ht) (unique_diff_on_Icc hx)
+  h_nhds' ht Ioo_subset_Icc_self hf $ (hf' t ht).mono_of_mem h_nhds').has_deriv_at h_nhds
 
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`.
 
@@ -230,7 +225,7 @@ lemma has_deriv_within_taylor_within_eval_at_Icc {f : ℝ → E} {a b t : ℝ} (
   has_deriv_within_at (λ y, taylor_within_eval f n (Icc a b) y x)
     (((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t)) (Icc a b) t :=
 has_deriv_within_at_taylor_within_eval (unique_diff_on_Icc hx t ht) (unique_diff_on_Icc hx)
-  self_mem_nhds_within ht rfl.subset hf hf'
+  self_mem_nhds_within ht rfl.subset hf (hf' t ht)
 
 /-! ### Taylor's theorem with mean value type remainder estimate -/
 

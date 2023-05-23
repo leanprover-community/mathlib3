@@ -3,6 +3,7 @@ Copyright (c) 2022 Filippo A. E. Nuccio Mortarino Majno di Capriglio. All rights
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio, Junyan Xu
 -/
+import algebraic_topology.fundamental_groupoid.basic
 import topology.compact_open
 import topology.homotopy.path
 
@@ -44,7 +45,7 @@ class H_space (X : Type u) [topological_space X] :=
 /- We use the notation `⋀`, typeset as \And, to denote the binary operation `Hmul` on a H-space -/
 localized "notation (name := H_space.Hmul) x `⋀` y := H_space.Hmul (x, y) " in H_spaces
 
-def H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topological_space Y]
+instance H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topological_space Y]
 [H_space X] [H_space Y] : H_space (X × Y) :=
 { Hmul := ⟨λ p, ((p.1.1 ⋀ p.2.1),  p.1.2 ⋀ p.2.2), by continuity⟩,
   e := (H_space.e, H_space.e),
@@ -101,6 +102,11 @@ namespace topological_group
 
 lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl
+
+lemma prod_eq_H_space_prod {G G' : Type u} [topological_space G] [group G] [topological_group G]
+  [topological_space G'] [group G'] [topological_group G'] :
+  topological_group.H_space (G × G') = H_space.prod G G' := rfl
+
 
 end topological_group
 
@@ -180,18 +186,22 @@ by simp only [delayed_refl_left, delayed_refl_right_zero, trans_symm, refl_symm,
 lemma delayed_refl_left_one (γ : path x y) : delayed_refl_left 1 γ = γ :=
 by simp only [delayed_refl_left, delayed_refl_right_one, path.symm_symm]
 
-notation ` Ω_[` x `]` := path x x
+/--
+The loop space at x carries a structure of a `H-space`. Note that the field `e_Hmul`
+(resp. `Hmul_e`) neither implies nor is implied by `path.homotopy.refl_trans`
+(resp. `path.homotopy.trans_refl`).
+-/
 
-instance (x : X) : H_space Ω_[x] :=
+instance (x : X) : H_space (path x x) :=
 { Hmul := ⟨λ ρ, ρ.1.trans ρ.2, continuous_trans⟩,
   e := refl x,
   Hmul_e_e := refl_trans_refl,
   e_Hmul :=
-  { to_homotopy := ⟨⟨λ p : I × Ω_[x], delayed_refl_left p.1 p.2,
+  { to_homotopy := ⟨⟨λ p : I × (path x x), delayed_refl_left p.1 p.2,
       continuous_delayed_refl_left⟩, delayed_refl_left_zero, delayed_refl_left_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } },
   Hmul_e :=
-  { to_homotopy := ⟨⟨λ p : I × Ω_[x], delayed_refl_right p.1 p.2,
+  { to_homotopy := ⟨⟨λ p : I × (path x x), delayed_refl_right p.1 p.2,
       continuous_delayed_refl_right⟩, delayed_refl_right_zero, delayed_refl_right_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } } }
 

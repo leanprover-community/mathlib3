@@ -431,7 +431,7 @@ lemma set_lintegral_cond_kernel {f : α × Ω → ℝ≥0∞} (hf : measurable f
   ∫⁻ a in s, ∫⁻ ω in t, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x in s ×ˢ t, f x ∂ρ :=
 begin
   conv_rhs { rw measure_eq_comp_prod ρ, },
-  simp_rw [← kernel.restrict_apply _ (hs.prod ht), ← comp_prod_restrict,
+  simp_rw [← kernel.restrict_apply _ (hs.prod ht), ← kernel.comp_prod_restrict,
     kernel.lintegral_comp_prod _ _ _ hf, kernel.restrict_apply, kernel.const_apply,
     kernel.prod_mk_left_apply],
 end
@@ -455,7 +455,7 @@ lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_kernel
   ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(ρ.cond_kernel x)) ρ.fst :=
 begin
   rw measure_eq_comp_prod ρ at hf,
-  exact ae_strongly_measurable.integral_kernel_prod_right' hf,
+  exact ae_strongly_measurable.integral_kernel_comp_prod hf,
 end
 
 lemma integral_cond_kernel {ρ : measure (α × Ω)} [is_finite_measure ρ]

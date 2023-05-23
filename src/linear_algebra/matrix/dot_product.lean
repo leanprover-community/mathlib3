@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 
 import data.matrix.basic
 import linear_algebra.std_basis
+import algebra.star.order
 
 /-!
 # Dot product of two vectors

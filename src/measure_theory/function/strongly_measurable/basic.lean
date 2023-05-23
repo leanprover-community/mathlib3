@@ -450,7 +450,8 @@ lemma _root_.strongly_measurable_const_smul_iff {m : measurable_space α} (c : G
   strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
-lemma is_unit.strongly_measurable_const_smul_iff {m : measurable_space α} {c : M} (hc : is_unit c) :
+lemma _root_.is_unit.strongly_measurable_const_smul_iff {m : measurable_space α} {c : M}
+  (hc : is_unit c) :
   strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
 let ⟨u, hu⟩ := hc in hu ▸ strongly_measurable_const_smul_iff u
 
@@ -1671,7 +1672,7 @@ lemma _root_.ae_strongly_measurable_const_smul_iff (c : G) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
-lemma is_unit.ae_strongly_measurable_const_smul_iff {c : M} (hc : is_unit c) :
+lemma _root_.is_unit.ae_strongly_measurable_const_smul_iff {c : M} (hc : is_unit c) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
 let ⟨u, hu⟩ := hc in hu ▸ ae_strongly_measurable_const_smul_iff u
 

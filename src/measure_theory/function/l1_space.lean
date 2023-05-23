@@ -931,15 +931,17 @@ hf.neg.pos_part
 end pos_part
 
 section has_bounded_smul
-variables {𝕜 : Type*} [normed_add_comm_group 𝕜] [smul_zero_class 𝕜 β] [has_bounded_smul 𝕜 β]
+variables {𝕜 : Type*}
 
-lemma integrable.smul (c : 𝕜) {f : α → β}
+lemma integrable.smul [normed_add_comm_group 𝕜] [smul_zero_class 𝕜 β] [has_bounded_smul 𝕜 β]
+  (c : 𝕜) {f : α → β}
   (hf : integrable f μ) : integrable (c • f) μ :=
 ⟨hf.ae_strongly_measurable.const_smul c, hf.has_finite_integral.smul c⟩
 
-lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
+lemma is_unit.integrable_smul_iff [normed_ring 𝕜] [module 𝕜 β] [has_bounded_smul 𝕜 β]
+  {c : 𝕜} (hc : is_unit c) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
-and_congr (ae_strongly_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
+and_congr (hc.ae_strongly_measurable_const_smul_iff) (has_finite_integral_smul_iff hc f)
 
 end has_bounded_smul
 
@@ -948,7 +950,7 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
-and_congr (ae_strongly_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
+(is_unit.mk0 _ hc).integrable_smul_iff
 
 lemma integrable.smul_of_top_right {f : α → β} {φ : α → 𝕜}
   (hf : integrable f μ) (hφ : mem_ℒp φ ∞ μ) :

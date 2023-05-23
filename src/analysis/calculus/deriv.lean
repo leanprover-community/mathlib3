@@ -1695,15 +1695,13 @@ protected theorem has_strict_deriv_at.star (h : has_strict_deriv_at f f' x) :
 by simpa using h.star.has_strict_deriv_at
 
 protected lemma deriv_within.star (hxs : unique_diff_within_at 𝕜 s x) :
-  deriv_within (λy, star (f y)) s x = star (deriv_within f s x) :=
-by simp only [deriv_within, fderiv_within_star hxs, continuous_linear_map.comp_apply,
-  continuous_linear_equiv.coe_apply, starL'_apply]
+  deriv_within (λ y, star (f y)) s x = star (deriv_within f s x) :=
+fun_like.congr_fun (fderiv_within_star hxs) _
 
-protected lemma deriv.star : deriv (λy, star (f y)) x = star (deriv f x) :=
-by simp only [deriv, fderiv_star, continuous_linear_map.comp_apply,
-  continuous_linear_equiv.coe_apply, starL'_apply]
+protected lemma deriv.star : deriv (λ y, star (f y)) x = star (deriv f x) :=
+fun_like.congr_fun fderiv_star _
 
-@[simp] protected lemma deriv.star' : deriv (λy, star (f y)) = (λ x, star (deriv f x)) :=
+@[simp] protected lemma deriv.star' : deriv (λ y, star (f y)) = (λ x, star (deriv f x)) :=
 funext $ λ x, deriv.star
 
 end star

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import geometry.manifold.local_invariant_properties
-import topology.sets.opens
 
 /-! # Further facts about of `local_invariant_prop` -/
 

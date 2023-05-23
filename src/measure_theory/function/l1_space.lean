@@ -1009,12 +1009,7 @@ hc.integrable_smul_iff f
 
 lemma integrable_mul_const_iff {c : 𝕜} (hc : is_unit c) (f : α → 𝕜) :
   integrable (λ x, f x * c) μ ↔ integrable f μ :=
-begin
-  have h : is_unit (mul_opposite.op c),
-  { obtain ⟨u, rfl⟩ := hc,
-    exact ⟨units.op_equiv.symm (mul_opposite.op u), rfl⟩, },
-  exact h.integrable_smul_iff f
-end
+hc.op.integrable_smul_iff f
 
 lemma integrable.bdd_mul' {f g : α → 𝕜} {c : ℝ} (hg : integrable g μ)
   (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :

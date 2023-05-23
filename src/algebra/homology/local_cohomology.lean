@@ -51,17 +51,19 @@ open category_theory.limits
 
 noncomputable theory
 
+universes u v w
+
 section local_cohomology
 
-variables (R : Type) [comm_ring R]
+variables {R : Type u} [comm_ring R]
 
-variables {D : Type} [category.{0} D] (I : Dᵒᵖ ⥤ ideal R)
+variables {D : Type} [small_category D] (I : Dᵒᵖ ⥤ ideal R)
 
 local attribute [ext] quiver.hom.unop_inj
 
 /--  The directed system of `R`-modules of the form `R/J`, where `J` is an ideal of `R`,
 determined by the functor `I`, represented as a functor  -/
-def ring_mod_ideals : D ⥤ (Module.{0} R)ᵒᵖ :=
+def ring_mod_ideals : D ⥤ (Module.{u} R)ᵒᵖ :=
 { obj := λ t, op $ Module.of R $ R ⧸ (I.obj (op t)),
   map := λ s t w, quiver.hom.op $
   submodule.mapq (I.obj (op t)) (I.obj (op s)) (linear_map.id)
@@ -70,14 +72,14 @@ def ring_mod_ideals : D ⥤ (Module.{0} R)ᵒᵖ :=
 /-- The diagram we will take the colimit of to define local cohomology, corresponding to the
 directed system determined by the functor `I` -/
 def local_cohomology_diagram (i : ℕ) :
-   D ⥤ Module.{0} R ⥤ Module.{0} R :=
-ring_mod_ideals R I ⋙ Ext R (Module.{0} R) i
+   D ⥤ Module.{u} R ⥤ Module.{u} R :=
+ring_mod_ideals I ⋙ Ext R (Module.{u} R) i
 
 /-- local_cohomology `R` `I` `i` is `i`-th the local cohomology module of a module `M` over a
 commutative ring `R` with support in an ideal whose powers are cofinal with a collection of ideals
 of `R` that is represented as a functor `I` -/
-def local_cohomology (i : ℕ) : Module.{0} R ⥤ Module.{0} R :=
-colimit (local_cohomology_diagram R I i)
+def local_cohomology (i : ℕ) : Module.{u} R ⥤ Module.{u} R :=
+colimit (local_cohomology_diagram I i)
 
 /-- The functor sending a natural number `i` to the `i`-th power of the ideal `J` -/
 def ideal_powers (J : ideal R) : ℕᵒᵖ ⥤ ideal R := {
@@ -86,7 +88,7 @@ def ideal_powers (J : ideal R) : ℕᵒᵖ ⥤ ideal R := {
 
 /-- local_cohomology_powers `R` `J` `i` is `i`-th the local cohomology module of a module `M` over
 a commutative ring `R` with support in the ideal `J` of `R` -/
-def local_cohomology_powers (J : ideal R) (M : Module.{0} R) :=
-  local_cohomology R (ideal_powers R J)
+def local_cohomology_powers (J : ideal R) (M : Module.{} R) :=
+  local_cohomology (ideal_powers J)
 
 end local_cohomology

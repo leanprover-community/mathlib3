@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import probability.kernel.cond_cdf
 import measure_theory.constructions.polish
+import probability.kernel.integral_comp_prod
 
 /-!
 # Disintegration of measures on product spaces
@@ -398,6 +399,25 @@ begin
   simp_rw [kernel.comp_prod_apply _ _ _ hs, kernel.const_apply, kernel.prod_mk_left_apply],
 end
 
+lemma set_lintegral_cond_kernel_eq_measure_prod {s : set α} (hs : measurable_set s)
+  {t : set Ω} (ht : measurable_set t) :
+  ∫⁻ a in s, ρ.cond_kernel a t ∂ρ.fst = ρ (s ×ˢ t) :=
+begin
+  have : ρ (s ×ˢ t) = ((kernel.const unit ρ.fst ⊗ₖ kernel.prod_mk_left unit ρ.cond_kernel) ())
+    (s ×ˢ t),
+  { congr, exact measure_eq_comp_prod ρ, },
+  rw [this, kernel.comp_prod_apply _ _ _ (hs.prod ht)],
+  simp only [prod_mk_mem_set_prod_eq, kernel.lintegral_const, kernel.prod_mk_left_apply],
+  rw ← lintegral_indicator _ hs,
+  congr,
+  ext1 x,
+  classical,
+  rw indicator_apply,
+  split_ifs with hx,
+  { simp only [hx, if_true, true_and, set_of_mem_eq], },
+  { simp only [hx, if_false, false_and, set_of_false, measure_empty], },
+end
+
 lemma lintegral_cond_kernel {f : α × Ω → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, ∫⁻ ω, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x, f x ∂ρ :=
 begin
@@ -405,6 +425,74 @@ begin
   rw [kernel.lintegral_comp_prod _ _ _ hf, kernel.const_apply],
   simp_rw kernel.prod_mk_left_apply,
 end
+
+lemma set_lintegral_cond_kernel {f : α × Ω → ℝ≥0∞} (hf : measurable f)
+  {s : set α} (hs : measurable_set s) {t : set Ω} (ht : measurable_set t) :
+  ∫⁻ a in s, ∫⁻ ω in t, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x in s ×ˢ t, f x ∂ρ :=
+begin
+  conv_rhs { rw measure_eq_comp_prod ρ, },
+  simp_rw [← kernel.restrict_apply _ (hs.prod ht), ← comp_prod_restrict,
+    kernel.lintegral_comp_prod _ _ _ hf, kernel.restrict_apply, kernel.const_apply,
+    kernel.prod_mk_left_apply],
+end
+
+lemma set_lintegral_cond_kernel_univ_right {f : α × Ω → ℝ≥0∞} (hf : measurable f)
+  {s : set α} (hs : measurable_set s) :
+  ∫⁻ a in s, ∫⁻ ω, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x in s ×ˢ univ, f x ∂ρ :=
+by { rw ← set_lintegral_cond_kernel ρ hf hs measurable_set.univ, simp_rw measure.restrict_univ, }
+
+lemma set_lintegral_cond_kernel_univ_left {f : α × Ω → ℝ≥0∞} (hf : measurable f)
+  {t : set Ω} (ht : measurable_set t) :
+  ∫⁻ a, ∫⁻ ω in t, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫⁻ x in univ ×ˢ t, f x ∂ρ :=
+by { rw ← set_lintegral_cond_kernel ρ hf measurable_set.univ ht, simp_rw measure.restrict_univ, }
+
+section integral_cond_kernel
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+
+lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_kernel
+  {f : α × Ω → E} (hf : ae_strongly_measurable f ρ) :
+  ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(ρ.cond_kernel x)) ρ.fst :=
+begin
+  rw measure_eq_comp_prod ρ at hf,
+  exact ae_strongly_measurable.integral_kernel_prod_right' hf,
+end
+
+lemma integral_cond_kernel {ρ : measure (α × Ω)} [is_finite_measure ρ]
+  {f : α × Ω → E} (hf : integrable f ρ) :
+  ∫ a, ∫ x, f (a, x) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫ ω, f ω ∂ρ :=
+begin
+  conv_rhs { rw measure_eq_comp_prod ρ, },
+  have hf' : integrable f ((kernel.const unit ρ.fst ⊗ₖ kernel.prod_mk_left unit ρ.cond_kernel) ()),
+  { rwa measure_eq_comp_prod ρ at hf, },
+  rw [integral_comp_prod hf', kernel.const_apply],
+  simp_rw kernel.prod_mk_left_apply,
+end
+
+lemma set_integral_cond_kernel {ρ : measure (α × Ω)} [is_finite_measure ρ]
+  {f : α × Ω → E} {s : set α} (hs : measurable_set s)
+  {t : set Ω} (ht : measurable_set t) (hf : integrable_on f (s ×ˢ t) ρ) :
+  ∫ a in s, ∫ ω in t, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫ x in s ×ˢ t, f x ∂ρ :=
+begin
+  conv_rhs { rw measure_eq_comp_prod ρ, },
+  rw set_integral_comp_prod hs ht,
+  { simp_rw [kernel.prod_mk_left_apply, kernel.const_apply], },
+  { rwa measure_eq_comp_prod ρ at hf, },
+end
+
+lemma set_integral_cond_kernel_univ_left {ρ : measure (α × Ω)} [is_finite_measure ρ]
+  {f : α × Ω → E} {s : set α} (hs : measurable_set s)
+  (hf : integrable_on f (s ×ˢ univ) ρ) :
+  ∫ a in s, ∫ ω, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫ x in s ×ˢ univ, f x ∂ρ :=
+by { rw ← set_integral_cond_kernel hs measurable_set.univ hf, simp_rw measure.restrict_univ, }
+
+lemma set_integral_cond_kernel_univ_right {ρ : measure (α × Ω)} [is_finite_measure ρ]
+  {f : α × Ω → E} {t : set Ω} (ht : measurable_set t)
+  (hf : integrable_on f (univ ×ˢ t) ρ) :
+  ∫ a, ∫ ω in t, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫ x in univ ×ˢ t, f x ∂ρ :=
+by { rw ← set_integral_cond_kernel measurable_set.univ ht hf, simp_rw measure.restrict_univ, }
+
+end integral_cond_kernel
 
 end polish
 

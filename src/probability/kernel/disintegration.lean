@@ -499,6 +499,9 @@ end polish
 end probability_theory
 
 namespace measure_theory
+/-! ### Integrability
+
+We place these lemmas in the `measure_theory` namespace to enable dot notation. -/
 
 open probability_theory
 

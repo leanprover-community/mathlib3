@@ -40,15 +40,16 @@ by using the "alternating face map" functor. -/
 def singular_chains (R : Type) [ring R] : Top.{0} ⥤ chain_complex (Module R) ℕ :=
 Top.to_sModule R ⋙ alternating_face_map_complex _
 
-/-- Compute the `n`-th singular homology of a topological space,
-by applying the homology functor to the singular chain complex for the space. -/
--- def singular_homology (n : ℕ) (R : Type) [ring R] : Top.{0} ⥤ Module R :=
--- singular_chains R ⋙ homology_functor _ _ n
-
 def singular_homology (n : ℕ) (R : Type) [ring R] : Top.{0} ⥤ Module R :=
 (singular_chains R ⋙ homotopy_category.quotient _ _) ⋙ homotopy_category.homology_functor _ _ n
 
 abbreviation H := (λ n, singular_homology n ℤ)
+
+
+
+
+
+
 
 /-!
 # Let's think about computing examples!
@@ -69,6 +70,17 @@ def Hn (n : ℕ) (h : 2 ≤ n) : (H n).obj ℝℙ2 ≅ Module.of _ unit := sorry
 
 end ℝℙ2
 
+
+
+
+
+
+
+
+
+
+
+
 instance : monoidal_category Top.{u} :=
 { tensor_unit := Top.of punit.{u+1},
   tensor_obj := λ X Y, Top.of (X × Y),
@@ -82,15 +94,20 @@ instance : monoidal_category Top.{u} :=
 
 instance : symmetric_category Top := sorry
 
--- namespace ℝℙ2xℝℙ2
+namespace ℝℙ2xℝℙ2
 
--- def H0 : (H 0).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ ℤ := sorry
--- def H1 : (H 1).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ (zmod 2 × zmod 2) := sorry
--- def H2 : (H 1).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ (zmod 2) := sorry
--- def H3 : (H 1).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ (zmod 2) := sorry
--- def Hn (n : ℕ) (h : 4 ≤ n) : (H n).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ unit := sorry
+def H0 : (H 0).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ ℤ := sorry
+def H1 : (H 1).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ (zmod 2 × zmod 2) := sorry
+def H2 : (H 1).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ (zmod 2) := sorry
+def H3 : (H 1).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ (zmod 2) := sorry
+def Hn (n : ℕ) (h : 4 ≤ n) : (H n).obj (ℝℙ2 ⊗ ℝℙ2) ≅ Module.of _ unit := sorry
 
--- end ℝℙ2xℝℙ2
+end ℝℙ2xℝℙ2
+
+
+
+
+
 
 open category_theory.limits
 
@@ -108,9 +125,20 @@ else
 
 def kunneth_epi (k : ℕ) (X Y : Top.{0}) :
   (H k).obj (X ⊗ Y) ⟶
-    biproduct (λ p : finset.nat.antidiagonal_prev k, ((Tor _ 1).obj ((H p.1.1).obj X)).obj ((H p.1.2).obj Y)) := sorry
+    biproduct (λ p : finset.nat.antidiagonal_prev k,
+      ((Tor _ 1).obj ((H p.1.1).obj X)).obj ((H p.1.2).obj Y)) :=
+sorry
 
-theorem kunneth (k : ℕ) (X Y : Top.{0}) : short_exact (kunneth_mono k X Y) (kunneth_epi k X Y) := sorry
+theorem kunneth (k : ℕ) (X Y : Top.{0}) : short_exact (kunneth_mono k X Y) (kunneth_epi k X Y) :=
+sorry
+
+
+
+
+
+
+
+
 
 -- Some missing API about short exact sequences.
 namespace category_theory.short_exact
@@ -127,6 +155,21 @@ theorem is_iso_right_of_is_zero_left (w : short_exact f g) (h : is_zero A) : is_
 -- Certainly they are true in an abelian category.
 
 end category_theory.short_exact
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 section
 variables {C : Type _} [category C] [has_zero_morphisms C] [has_finite_biproducts C]
@@ -157,6 +200,14 @@ def biproduct_nat_antidiagonal_prev_3 (f : ℕ → ℕ → C) :
 sorry
 
 end
+
+
+
+
+
+
+
+
 
 namespace ℝℙ2xℝℙ2
 
@@ -190,6 +241,15 @@ end
 
 end ℝℙ2xℝℙ2
 
+
+
+
+
+
+
+
+
+
 /-!
 # The plan
 
@@ -208,6 +268,17 @@ The Kunneth formula we wrote above factors into three separate ideas:
   * the "laxitor" `H X ⊗ H Y ⟶ H (X ⊗ Y)` is a monomorphism,
   * we can explicitly identify the cokernel of the laxitor as a sum of `Tor` groups.
 -/
+
+
+
+
+
+
+
+
+
+
+
 
 /-!
 # Step 1, `Top.to_sModule` is a monoidal functor.
@@ -238,21 +309,46 @@ def Top.to_sSet_monoidal : monoidal_functor Top.{0} sSet :=
   μ_is_iso := sorry,
   ..Top.to_sSet, }
 
-def simplicial_object.whiskering_monoidal
-  (C : Type u) [category C] [monoidal_category C] (D : Type u) [category D] [monoidal_category D] :
-  (monoidal_functor C D) ⥤ monoidal_functor (simplicial_object C) (simplicial_object D) :=
+def whiskering_right_monoidal
+  (C : Type*) [category C]
+  {D : Type*} [category D] [monoidal_category D]
+  {E : Type*} [category E] [monoidal_category E] :
+  (monoidal_functor D E) ⥤ (monoidal_functor (C ⥤ D) (C ⥤ E)) :=
 { obj := λ F,
-  { ε := sorry,
-    μ := sorry,
+  { ε :=
+    { app := λ X, F.ε,
+      naturality' := sorry, },
+    μ := λ G H,
+    { app := λ X, F.μ _ _,
+      naturality' := sorry, },
     ε_is_iso := sorry,
     μ_is_iso := sorry,
-    ..(simplicial_object.whiskering C D).obj F.to_functor },
+    ..(whiskering_right C D E).obj F.to_functor },
   map := sorry, }
+
+def simplicial_object.map_monoidal
+  (C : Type u) [category C] [monoidal_category C] (D : Type u) [category D] [monoidal_category D] :
+  (monoidal_functor C D) ⥤ monoidal_functor (simplicial_object C) (simplicial_object D) :=
+whiskering_right_monoidal _
 
 def Top.to_sModule_monoidal (R : Type) [comm_ring R] :
   monoidal_functor Top.{0} (simplicial_object (Module.{0} R)) :=
 Top.to_sSet_monoidal ⊗⋙
-  ((simplicial_object.whiskering_monoidal _ _).obj (Module.monoidal_free R))
+  ((simplicial_object.map_monoidal _ _).obj (Module.monoidal_free R))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /-!
 # Step 3, the homological Kunneth formula. -/
@@ -276,6 +372,19 @@ instance : monoidal_category (graded_object ℕ V) :=
 rfl
 
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 section
 variables {V : Type*} [category V] [preadditive V] [monoidal_category V]
@@ -320,15 +429,49 @@ instance : monoidal_category (chain_complex V ℕ) :=
   tensor_id' := sorry,
   tensor_comp' := sorry, }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 -- TODO this should be done generally:
 -- a quotient of a monoidal category by a monoidal congruence is monoidal.
 instance : monoidal_category (homotopy_category V (complex_shape.down ℕ)) :=
 { tensor_unit := sorry,
   tensor_obj := λ X Y, { as := X.as ⊗ Y.as },
-  tensor_hom := sorry,
+  tensor_hom := sorry, -- This is a calculation that if `f ~ g`, then `f ⊗ h ~ g ⊗ h`, etc.
   associator := sorry,
   left_unitor := sorry,
   right_unitor := sorry, }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 variables [has_equalizers V] [has_images V] [has_image_maps V] [has_cokernels V]
 variables (V)
@@ -359,7 +502,22 @@ def graded_homology_lax : lax_monoidal_functor (chain_complex V ℕ) (graded_obj
 -- `lax_braided_functor.map_CommMon`.)
 -- To count as a solution to Reid's CDGA challenge
 -- https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/CDGAs
--- you still need to show that `Mon_ (chain_complex (Module R) ℕ)` really "is" a CDGA.
+-- you still need to believe that `Mon_ (chain_complex (Module R) ℕ)` really "is" a CDGA!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 instance graded_homology_tensorator_mono (X Y : chain_complex V ℕ) :
   mono ((graded_homology_lax V).μ X Y) := sorry
@@ -368,13 +526,21 @@ instance graded_object.mono_apply
   {X Y : graded_object ℕ V} (f : X ⟶ Y) [mono f] (k : ℕ) : mono (f k) :=
 sorry
 
--- instance graded_object.epi_apply
---   {X Y : graded_object ℕ V} (f : X ⟶ Y) [epi f] (k : ℕ) : epi (f k) :=
--- sorry
-
 instance graded_object.is_iso_apply
   {X Y : graded_object ℕ V} (f : X ⟶ Y) [is_iso f] (k : ℕ) : is_iso (f k) :=
 sorry
+
+
+
+
+
+
+
+
+
+
+
+
 
 namespace homotopy_category
 
@@ -387,8 +553,7 @@ def graded_homology_factors {α : Type*} (c : complex_shape α) :
   quotient V c ⋙ graded_homology_functor V c ≅ _root_.graded_homology_functor V c :=
 category_theory.quotient.lift.is_lift _ _ _
 
--- TODO this really should be constructed using a monoidal version of
--- `category_theory.quotient.lift`
+-- TODO this really should be constructed using a monoidal version of `category_theory.quotient.lift`
 def graded_homology_lax :
   lax_monoidal_functor (homotopy_category V (complex_shape.down ℕ)) (graded_object ℕ V) :=
 { ε := sorry,
@@ -412,6 +577,20 @@ end homotopy_category
 
 end
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 section
 variables {R : Type} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 
@@ -432,6 +611,20 @@ example : abelian (Module.{0} R) := by apply_instance
 example : enough_projectives (Module.{0} R) := by apply_instance
 example : has_projective_resolutions (Module.{0} R) := by apply_instance
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 abbreviation H' (n : ℕ) (X : chain_complex (Module.{0} R) ℕ) : Module.{0} R :=
   (homology_functor (Module.{0} R) _ n).obj X
 
@@ -445,18 +638,26 @@ sorry
 abbreviation H'' (n : ℕ) (X : homotopy_category (Module.{0} R) (complex_shape.down ℕ)) : Module.{0} R :=
   (homotopy_category.homology_functor (Module.{0} R) _ n).obj X
 
--- FIXME why does this time out?
-
-def foo (X Y : homotopy_category (Module.{0} R) (complex_shape.down ℕ)) (k : ℕ) : Module.{0} R :=
-(cokernel ((homotopy_category.graded_homology_lax (Module.{0} R)).μ X Y k))
-
-def bar (X Y : homotopy_category (Module.{0} R) (complex_shape.down ℕ)) (k : ℕ) : Module.{0} R :=
-(biproduct (λ p : finset.nat.antidiagonal_prev k, ((Tor _ 1).obj (H'' p.1.1 X)).obj (H'' p.1.2 Y)))
-
 def homotopy_category.kunneth.cokernel_iso (X Y : homotopy_category (Module.{0} R) (complex_shape.down ℕ))
   (free : ∀ i, module.free R (X.as.X i)) (k : ℕ) :
-  (foo X Y k) ≅ (bar X Y k) :=
+  (cokernel ((homotopy_category.graded_homology_lax (Module.{0} R)).μ X Y k)) ≅
+    (biproduct (λ p : finset.nat.antidiagonal_prev k,
+      ((Tor _ 1).obj (H'' p.1.1 X)).obj (H'' p.1.2 Y))) :=
+-- This should be purely formal in terms of the previous one!
 sorry
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- Some more missing API about short exact sequences.
 -- Perhaps some of this generalizes beyond abelian categories?
@@ -504,6 +705,22 @@ sorry
 
 end category_theory.short_exact
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 open category_theory.short_exact
 open chain_complex.kunneth
 
@@ -519,8 +736,20 @@ theorem homotopy_category.kunneth (X Y : homotopy_category (Module.{0} R) (compl
     (cokernel.π ((homotopy_category.graded_homology_lax _).μ X Y k) ≫ (homotopy_category.kunneth.cokernel_iso X Y free k).hom) :=
 of_mono_cokernel_iso _
 
-
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /-!
 # Step 2, Eilenberg-Zilber
@@ -559,11 +788,30 @@ def alternating_face_map_complex_monoidal :
 
 end
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /-!
 # Putting it all together!
 
 We now give a proof of the Kunneth formula for topological spaces
-in terms of the Kunneth formula for complexes, Eilenberg-Zilber
+in terms of the Kunneth formula for complexes and Eilenberg-Zilber.
+
+No more sorries from here. :-)
 -/
 
 def singular_chains_monoidal (R : Type) [comm_ring R] :
@@ -588,6 +836,18 @@ begin
   dsimp [singular_chains, Top.to_sModule],
   apply_instance,
 end
+
+
+
+
+
+
+
+
+
+
+
+
 
 def kunneth_mono' (k : ℕ) (X Y : Top.{0}) :
   biproduct (λ p : finset.nat.antidiagonal k, (H p.1.1).obj X ⊗ (H p.1.2).obj Y)
@@ -615,7 +875,5 @@ begin
           refl, },
         apply_instance, },
       { -- Have to remember that singular chains are free.
-        exact singular_chains_free X, }, },
-
-  },
+        exact singular_chains_free X, }, }, },
 end

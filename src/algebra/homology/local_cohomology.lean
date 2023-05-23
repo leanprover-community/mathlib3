@@ -43,8 +43,6 @@ local cohomology, local cohomology modules
 * Establish long exact sequence(s) in local cohomology
 -/
 
-
-
 open opposite
 open category_theory
 open category_theory.limits
@@ -79,6 +77,7 @@ def ideal_powers (J : ideal R) : ℕᵒᵖ ⥤ ideal R := {
   obj := λ t, J^(unop t),
   map := λ s t w, ⟨⟨ideal.pow_le_pow w.unop.down.down⟩⟩, }
 
+set_option pp.universes true
 /-- `local_cohomology_powers J i` is `i`-th the local cohomology module of a module `M` over
 a commutative ring `R` with support in the ideal `J` of `R` -/
 def local_cohomology_powers (J : ideal R) (i : ℕ) : Module.{0} R ⥤ Module.{0} R :=

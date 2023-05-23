@@ -59,4 +59,7 @@ instance Module_enough_projectives : enough_projectives (Module.{max u v} R) :=
     epi := (epi_iff_range_eq_top _).mpr
       (range_eq_top.2 (λ m, ⟨finsupp.single m (1 : R), by simp [basis.constr]⟩)) }⟩, }
 
+instance Module_enough_projectives' : enough_projectives (Module.{u} R) :=
+  Module.Module_enough_projectives.{u}
+
 end Module

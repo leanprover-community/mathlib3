@@ -10,6 +10,9 @@ import measure_theory.covering.vitali_family
 /-!
 # Vitali covering theorems
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The topological Vitali covering theorem, in its most classical version, states the following.
 Consider a family of balls `(B (x_i, r_i))_{i ∈ I}` in a metric space, with uniformly bounded
 radii. Then one can extract a disjoint subfamily indexed by `J ⊆ I`, such that any `B (x_i, r_i)`

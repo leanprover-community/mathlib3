@@ -10,6 +10,9 @@ import combinatorics.pigeonhole
 /-!
 # Conservative systems
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `f : α → α` to be a *conservative* system w.r.t a measure `μ` if `f` is
 non-singular (`measure_theory.quasi_measure_preserving`) and for every measurable set `s` of
 positive measure at least one point `x ∈ s` returns back to `s` after some number of iterations of

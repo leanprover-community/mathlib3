@@ -10,6 +10,9 @@ import set_theory.cardinal.finite
 
 /-!
 # Configurations of Points and lines
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file introduces abstract configurations of points and lines, and proves some basic properties.
 
 ## Main definitions

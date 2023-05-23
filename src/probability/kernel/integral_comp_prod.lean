@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import probability.kernel.composition
+import measure_theory.integral.set_integral
 
 /-!
 # Bochner integral of a function against the composition-product of two kernels
@@ -23,7 +24,7 @@ same equality for the Bochner integral.
 
 This file is to a large extent a copy of part of `measure_theory.constructions.prod`. The product of
 two measures is a particular case of composition-product of kernels and it turns out that once the
-measurablity of the Lebesgue integral of a kernel is proved, almost all proofs about integral
+measurablity of the Lebesgue integral of a kernel is proved, almost all proofs about integrals
 against products of measures extend with minimal modifications to the composition-product of two
 kernels.
 -/

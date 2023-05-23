@@ -231,21 +231,22 @@ noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ
 @[simp] lemma sigma_curry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
   sigma_curry f i j = f ⟨i, j⟩ := @dfinsupp.sigma_curry_apply _ _ δ _ f i j
 
+include dec_ι
+
 /--The natural map between `⨁ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
-def sigma_uncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+def sigma_uncurry :
   (⨁ i j, δ i j) →+ ⨁ (i : Σ i, _), δ i.1 i.2 :=
 { to_fun := dfinsupp.sigma_uncurry,
   map_zero' := dfinsupp.sigma_uncurry_zero,
   map_add' := dfinsupp.sigma_uncurry_add }
 
-@[simp] lemma sigma_uncurry_apply [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)]
+@[simp] lemma sigma_uncurry_apply
   (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j := dfinsupp.sigma_uncurry_apply f i j
 
 /--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
-noncomputable def sigma_curry_equiv
-  [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+noncomputable def sigma_curry_equiv :
   (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
 { ..sigma_curry, ..dfinsupp.sigma_curry_equiv }
 

@@ -224,19 +224,20 @@ noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i
 @[simp] lemma sigma_lcurry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
   sigma_lcurry R f i j = f ⟨i, j⟩ := sigma_curry_apply f i j
 
+include dec_ι
+
 /--`uncurry` as a linear map.-/
-def sigma_luncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+def sigma_luncurry :
   (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
 { map_smul' := dfinsupp.sigma_uncurry_smul,
   ..sigma_uncurry }
 
-@[simp] lemma sigma_luncurry_apply [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)]
+@[simp] lemma sigma_luncurry_apply
   (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_luncurry R f ⟨i, j⟩ = f i j := sigma_uncurry_apply f i j
 
 /--`curry_equiv` as a linear equiv.-/
-noncomputable def sigma_lcurry_equiv
-  [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+noncomputable def sigma_lcurry_equiv :
   (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
 { ..sigma_curry_equiv, ..sigma_lcurry R }
 

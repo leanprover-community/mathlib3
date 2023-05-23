@@ -5,10 +5,12 @@ Authors: Johannes Hölzl, Kenny Lau
 -/
 import algebra.module.linear_map
 import algebra.big_operators.basic
+import data.finset.preimage
+import data.fintype.quotient
+import data.setoid.basic
 import data.set.finite
 import group_theory.submonoid.membership
 import group_theory.group_action.big_operators
-import data.finset.preimage
 
 /-!
 # Dependent functions with finite support
@@ -1165,7 +1167,7 @@ def equiv_congr_left [Π i, has_zero (β i)] (h : ι ≃ κ) : (Π₀ i, β i) �
   right_inv := λ f, by { ext k, rw [comap_domain'_apply, map_range_apply, comap_domain'_apply,
     equiv.cast_eq_iff_heq, h.apply_symm_apply] } }
 
-section curry
+section sigma_curry
 variables {α : ι → Type*} {δ : Π i, α i → Type v}
 
 -- lean can't find these instances
@@ -1242,49 +1244,43 @@ begin
     simpa using hi },
 end
 
+include dec
+
 /--The natural map between `Π₀ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
-`curry`.-/
-def sigma_uncurry [Π i j, has_zero (δ i j)]
-  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] (f : Π₀ i j, δ i j) :
+`sigma_curry`.-/
+def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) :
   Π₀ (i : Σ i, _), δ i.1 i.2 :=
 { to_fun := λ i, f i.1 i.2,
-  support' := f.support'.map $ λ s,
-    ⟨(multiset.bind ↑s $ λ i, ((f i).support.map ⟨sigma.mk i, sigma_mk_injective⟩).val), λ i, begin
-      simp_rw [multiset.mem_bind, map_val, multiset.mem_map, function.embedding.coe_fn_mk,
-        ←finset.mem_def, mem_support_to_fun],
-      obtain hi | (hi : f i.1 = 0) := s.prop i.1,
-      { by_cases hi' : f i.1 i.2 = 0,
-        { exact or.inr hi' },
-        { exact or.inl ⟨_, hi, i.2, hi', sigma.eta _⟩ } },
-      { right,
-        rw [hi, zero_apply] }
-    end⟩ }
+  support' := f.support'.bind (λ ⟨m, hm⟩, begin
+    refine @fintype.quotient_lift_on _ _ _ _ (λ _, true_setoid) _
+      (λ i : {i // i ∈ m}, (f i).support') _ (λ _ _ _, subsingleton.elim _ _),
+    refine λ ss, trunc.mk ⟨(m.pmap (λ i hi, (ss ⟨i, hi⟩).1.map (sigma.mk i)) (λ i, id)).join, _⟩,
+    rintros ⟨i, j⟩,
+    rw [multiset.mem_join, or_iff_not_imp_right], simp_rw [multiset.mem_pmap],
+    exact λ h, ⟨_, ⟨i, (hm i).resolve_right (λ H, h (fun_like.congr_fun H j)), rfl⟩,
+      multiset.mem_map.mpr ⟨j, ((ss ⟨i, _⟩).2 j).resolve_right h, rfl⟩⟩,
+  end) }
 
 @[simp] lemma sigma_uncurry_apply [Π i j, has_zero (δ i j)]
-  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
   (f : Π₀ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j :=
 rfl
 
-@[simp] lemma sigma_uncurry_zero [Π i j, has_zero (δ i j)]
-  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]:
+@[simp] lemma sigma_uncurry_zero [Π i j, has_zero (δ i j)] :
   sigma_uncurry (0 : Π₀ i j, δ i j) = 0 :=
 rfl
 
 @[simp] lemma sigma_uncurry_add [Π i j, add_zero_class (δ i j)]
-  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
   (f g : Π₀ i j, δ i j) :
   sigma_uncurry (f + g) = sigma_uncurry f + sigma_uncurry g :=
 coe_fn_injective rfl
 
 @[simp] lemma sigma_uncurry_smul [monoid γ] [Π i j, add_monoid (δ i j)]
-  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
   [Π i j, distrib_mul_action γ (δ i j)] (r : γ) (f : Π₀ i j, δ i j) :
   sigma_uncurry (r • f) = r • sigma_uncurry f :=
 coe_fn_injective rfl
 
 @[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)]
-  [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
   (i) (j : α i) (x : δ i j) :
   sigma_uncurry (single i (single j x : Π₀ (j : α i), δ i j)) = single ⟨i, j⟩ x:=
 begin
@@ -1304,15 +1300,14 @@ end
 /--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.
 
 This is the dfinsupp version of `equiv.Pi_curry`. -/
-noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)]
-  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] :
+noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)] :
   (Π₀ (i : Σ i, _), δ i.1 i.2) ≃ Π₀ i j, δ i j :=
 { to_fun := sigma_curry,
   inv_fun := sigma_uncurry,
   left_inv := λ f, by { ext ⟨i, j⟩, rw [sigma_uncurry_apply, sigma_curry_apply] },
   right_inv := λ f, by { ext i j, rw [sigma_curry_apply, sigma_uncurry_apply] } }
 
-end curry
+end sigma_curry
 
 variables {α : option ι → Type v}
 

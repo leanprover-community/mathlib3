@@ -9,6 +9,9 @@ import topology.vector_bundle.basic
 /-!
 # Standard constructions on vector bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains several standard constructions on vector bundles:
 
 * `bundle.trivial.vector_bundle 𝕜 B F`: the trivial vector bundle with scalar field `𝕜` and model

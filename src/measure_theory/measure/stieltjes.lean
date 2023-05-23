@@ -9,6 +9,9 @@ import topology.algebra.order.left_right_lim
 /-!
 # Stieltjes measures on the real line
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Consider a function `f : ℝ → ℝ` which is monotone and right-continuous. Then one can define a
 corrresponding measure, giving mass `f b - f a` to the interval `(a, b]`.
 

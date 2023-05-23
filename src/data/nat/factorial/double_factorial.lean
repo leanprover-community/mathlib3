@@ -9,6 +9,9 @@ import tactic.ring
 /-!
 # Double factorials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the double factorial,
   `n‼ := n * (n - 2) * (n - 4) * ...`.
 

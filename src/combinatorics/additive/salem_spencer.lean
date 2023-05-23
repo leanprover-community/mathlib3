@@ -10,6 +10,9 @@ import analysis.convex.strict_convex_space
 /-!
 # Salem-Spencer sets and Roth numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Salem-Spencer sets and the Roth number of a set.
 
 A Salem-Spencer set is a set without arithmetic progressions of length `3`. Equivalently, the

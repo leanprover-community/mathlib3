@@ -11,6 +11,9 @@ import group_theory.perm.list
 
 # Properties of cyclic permutations constructed from lists/cycles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In the following, `{α : Type*} [fintype α] [decidable_eq α]`.
 
 ## Main definitions

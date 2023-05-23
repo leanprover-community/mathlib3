@@ -158,7 +158,7 @@ begin
     { rintro x ⟨hx, h2x⟩,
       simp_rw [written_in_ext_chart_at, function.comp_apply],
       rw [(ext_chart_at I (g x₂)).left_inv hx, (ext_chart_at I' (f x₂ (g x₂))).left_inv h2x] },
-    refine filter.eventually_eq.fderiv_within_eq_nhds (I.unique_diff _ $ mem_range_self _) _,
+    refine filter.eventually_eq.fderiv_within_eq_nhds _,
     refine eventually_of_mem (inter_mem _ _) this,
     { exact ext_chart_at_preimage_mem_nhds' _ _ hx₂ (ext_chart_at_source_mem_nhds I (g x₂)) },
     refine ext_chart_at_preimage_mem_nhds' _ _ hx₂ _,

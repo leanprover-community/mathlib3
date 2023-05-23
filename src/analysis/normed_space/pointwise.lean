@@ -21,20 +21,30 @@ multiplication of bounded sets remain bounded.
 open metric set
 open_locale pointwise topology
 
-variables {𝕜 E : Type*} [normed_field 𝕜]
+variables {𝕜 E : Type*}
 
-section seminormed_add_comm_group
-variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
+section smul_zero_class
+variables [seminormed_add_comm_group 𝕜] [seminormed_add_comm_group E]
+variables [smul_zero_class 𝕜 E] [has_bounded_smul 𝕜 E]
+
+lemma ediam_smul_le (c : 𝕜) (s : set E) :
+  emetric.diam (c • s) ≤ ‖c‖₊ • emetric.diam s :=
+(lipschitz_with_smul c).ediam_image_le s
+
+end smul_zero_class
+
+section division_ring
+variables [normed_division_ring 𝕜] [seminormed_add_comm_group E]
+variables [module 𝕜 E] [has_bounded_smul 𝕜 E]
 
 lemma ediam_smul₀ (c : 𝕜) (s : set E) :
   emetric.diam (c • s) = ‖c‖₊ • emetric.diam s :=
 begin
+  refine le_antisymm (ediam_smul_le c s) _,
   obtain rfl | hc := eq_or_ne c 0,
   { obtain rfl | hs := s.eq_empty_or_nonempty,
     { simp },
     simp [zero_smul_set hs, ←set.singleton_zero], },
-  refine le_antisymm _ _,
-  { exact (lipschitz_with_smul c).ediam_image_le s },
   { have := (lipschitz_with_smul c⁻¹).ediam_image_le (c • s),
     rwa [← smul_eq_mul, ←ennreal.smul_def, set.image_smul, inv_smul_smul₀ hc s, nnnorm_inv,
       ennreal.le_inv_smul_iff (nnnorm_ne_zero_iff.mpr hc)] at this }
@@ -60,6 +70,13 @@ lemma inf_dist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
   metric.inf_dist (c • x) (c • s) = ‖c‖ * metric.inf_dist x s :=
 by simp_rw [metric.inf_dist, inf_edist_smul₀ hc, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm,
   smul_eq_mul]
+
+end division_ring
+
+variables [normed_field 𝕜]
+
+section seminormed_add_comm_group
+variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (‖c‖ * r) :=

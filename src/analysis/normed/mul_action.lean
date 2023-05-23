@@ -34,6 +34,10 @@ by simpa only [dist_eq_norm, sub_zero] using dist_smul_pair s x y
 lemma nndist_smul_le (s : α) (x y : β) : nndist (s • x) (s • y) ≤ ‖s‖₊ * nndist x y :=
 dist_smul_le s x y
 
+lemma edist_smul_le (s : α) (x y : β) :
+  edist (s • x) (s • y) ≤ ‖s‖₊ • edist x y :=
+by simp only [edist_nndist, nndist_smul_le, ennreal.coe_mul, ennreal.smul_def, smul_eq_mul]
+
 lemma lipschitz_with_smul  (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
 lipschitz_with_iff_dist_le_mul.2 $ dist_smul_le _
 

@@ -363,27 +363,18 @@ def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
     refl
   end }.
 
-instance has_colimits_Module : has_colimits (Module.{max v u} R) :=
+instance has_colimits_of_size (R : Type u) [ring R] :
+  has_colimits_of_size.{w v} (Module.{max u v w} R) :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
       is_colimit := colimit_cocone_is_colimit F } } }
 
--- We manually add a `has_colimits` instance with universe parameters swapped, for otherwise
--- the instance is not found by typeclass search.
-instance has_colimits_Module' (R : Type u) [ring R] :
-  has_colimits (Module.{max u v} R) :=
-Module.colimits.has_colimits_Module.{u v}
-
--- We manually add a `has_colimits` instance with equal universe parameters, for otherwise
--- the instance is not found by typeclass search.
-instance has_colimits_Module'' (R : Type u) [ring R] :
-  has_colimits (Module.{u} R) :=
-Module.colimits.has_colimits_Module.{u u}
-
 -- Sanity checks, just to make sure typeclass search can find the instances we want.
 example (R : Type u) [ring R] : has_colimits (Module.{max v u} R) := infer_instance
 example (R : Type u) [ring R] : has_colimits (Module.{max u v} R) := infer_instance
 example (R : Type u) [ring R] : has_colimits (Module.{u} R) := infer_instance
+example (J : Type w) [category.{v} J] (R : Type u) [ring R] (F : J ⥤ Module.{max u v w} R) :
+  has_colimit F := infer_instance
 
 end Module.colimits

@@ -35,7 +35,7 @@ set -exo pipefail
 
 touch scripts/style-exceptions.txt
 
-find src archive counterexamples -name '*.lean' | xargs ./scripts/lint-style.py
+find src -name '*.lean' | xargs ./scripts/lint-style.py
 
 # 2. Global checks on the mathlib repository
 
@@ -49,4 +49,3 @@ then
 	echo "$executable_files"
 	exit 1
 fi
-

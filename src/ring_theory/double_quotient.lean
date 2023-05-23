@@ -5,6 +5,14 @@ Authors: Mario Carneiro, Chris Hughes
 -/
 import ring_theory.adjoin_root
 
+/-!
+
+# Double quotients
+
+This file continues the work of `adjoin_root`, giving results about quotienting out
+a ring by two ideals in succession.
+
+-/
 noncomputable theory
 open_locale classical
 open_locale big_operators polynomial

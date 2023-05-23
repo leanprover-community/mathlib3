@@ -55,12 +55,11 @@ abbreviation H := (λ n, singular_homology n ℤ)
 # Let's think about computing examples!
 -/
 
--- TODO this needs the correct instances!
-instance (K V : Type*) [division_ring K] [add_comm_group V] [module K V] :
+instance (K V : Type*) [division_ring K] [add_comm_group V] [module K V] [topological_space V] :
   topological_space (ℙ K V) :=
-sorry
+topological_space.coinduced (projectivization.mk' K) infer_instance
 
-def ℝℙ2 : Top.{0} := Top.of (ℙ ℝ (fin 2 → ℝ))
+def ℝℙ2 : Top.{0} := Top.of (ℙ ℝ (fin 3 → ℝ))
 
 namespace ℝℙ2
 
@@ -298,7 +297,7 @@ end
 
 def Top.to_sSet_monoidal : monoidal_functor Top.{0} sSet :=
 { ε :=
-  { app := λ n x, by split, },
+  { app := λ n x, continuous_map.const _ x },
   μ := λ X Y,
   { app := λ n x, continuous_map.prod_mk x.1 x.2 },
   μ_natural' := sorry,

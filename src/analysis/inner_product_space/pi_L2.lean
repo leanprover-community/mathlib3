@@ -226,17 +226,44 @@ by simp [apply_ite conj]
 
 lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜)
   (v : euclidean_space 𝕜 ι) :
-  ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
+  ⟪v, euclidean_space.single i (a : 𝕜)⟫ = a * conj (v i) :=
 by simp [apply_ite conj, mul_comm]
 
-lemma euclidean_space.pi_Lp_congr_left_single [decidable_eq ι] {ι' : Type*} [fintype ι']
-  [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') :
-  linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e (euclidean_space.single i' (1:𝕜)) =
-    euclidean_space.single (e i') (1:𝕜) :=
+@[simp] lemma euclidean_space.norm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  ‖euclidean_space.single i (a : 𝕜)‖ = ‖a‖ :=
+(pi_Lp.norm_equiv_symm_single 2 (λ i, 𝕜) i a : _)
+
+@[simp] lemma euclidean_space.nnnorm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  ‖euclidean_space.single i (a : 𝕜)‖₊ = ‖a‖₊ :=
+(pi_Lp.nnnorm_equiv_symm_single 2 (λ i, 𝕜) i a : _)
+
+@[simp] lemma euclidean_space.dist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  dist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = dist a b :=
+(pi_Lp.dist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+@[simp] lemma euclidean_space.nndist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  nndist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = nndist a b :=
+(pi_Lp.nndist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+@[simp] lemma euclidean_space.edist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  edist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = edist a b :=
+(pi_Lp.edist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+/-- `euclidean_space.single` forms an orthonormal family. -/
+lemma euclidean_space.orthonormal_single [decidable_eq ι] :
+  orthonormal 𝕜 (λ i : ι, euclidean_space.single i (1 : 𝕜)) :=
 begin
-  ext i,
-  simpa using if_congr e.symm_apply_eq rfl rfl
+  simp_rw [orthonormal_iff_ite, euclidean_space.inner_single_left, map_one, one_mul,
+    euclidean_space.single_apply],
+  intros i j,
+  refl,
 end
+
+lemma euclidean_space.pi_Lp_congr_left_single [decidable_eq ι] {ι' : Type*} [fintype ι']
+  [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') (v : 𝕜):
+  linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e (euclidean_space.single i' v) =
+    euclidean_space.single (e i') v :=
+linear_isometry_equiv.pi_Lp_congr_left_single e i' _
 
 variables (ι 𝕜 E)
 
@@ -307,12 +334,7 @@ end
 
 @[simp] protected lemma coe_to_basis_repr (b : orthonormal_basis ι 𝕜 E) :
   b.to_basis.equiv_fun = b.repr.to_linear_equiv :=
-begin
-  change (basis.of_equiv_fun b.repr.to_linear_equiv).equiv_fun = b.repr.to_linear_equiv,
-  ext x j,
-  simp only [basis.of_equiv_fun_repr_apply, linear_isometry_equiv.coe_to_linear_equiv,
-    basis.equiv_fun_apply],
-end
+basis.equiv_fun_of_equiv_fun _
 
 @[simp] protected lemma coe_to_basis_repr_apply (b : orthonormal_basis ι 𝕜 E) (x : E) (i : ι) :
   b.to_basis.repr x i = b.repr x i :=

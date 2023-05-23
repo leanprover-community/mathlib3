@@ -255,6 +255,9 @@ by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
   (pi.basis_fun R η).repr x i = x i :=
 by simp [basis_fun]
 
+@[simp] lemma basis_fun_equiv_fun : (pi.basis_fun R η).equiv_fun = linear_equiv.refl _ _ :=
+basis.equiv_fun_of_equiv_fun _
+
 end
 
 end module

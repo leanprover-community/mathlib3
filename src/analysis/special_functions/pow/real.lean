@@ -8,6 +8,9 @@ import analysis.special_functions.pow.complex
 
 /-! # Power function on `ℝ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the power functions `x ^ y`, where `x` and `y` are real numbers.
 -/
 

@@ -10,6 +10,9 @@ import data.finsupp.to_dfinsupp
 /-!
 # Conversion between `add_monoid_algebra` and homogenous `direct_sum`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides conversions between `add_monoid_algebra` and `direct_sum`.
 The latter is essentially a dependent version of the former.
 

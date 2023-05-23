@@ -8,6 +8,9 @@ import ring_theory.tensor_product
 /-!
 # Bimodules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 One frequently encounters situations in which several sets of scalars act on a single space, subject
 to compatibility condition(s). A distinguished instance of this is the theory of bimodules: one has
 two rings `R`, `S` acting on an additive group `M`, with `R` acting covariantly ("on the left")

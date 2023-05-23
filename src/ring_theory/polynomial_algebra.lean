@@ -11,6 +11,9 @@ import data.matrix.dmatrix
 /-!
 # Algebra isomorphism between matrices of polynomials and polynomials of matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given `[comm_ring R] [ring A] [algebra R A]`
 we show `A[X] ≃ₐ[R] (A ⊗[R] R[X])`.
 Combining this with the isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)` proved earlier

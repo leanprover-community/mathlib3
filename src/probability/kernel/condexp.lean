@@ -296,7 +296,7 @@ begin
     { rw ← measure.restrict_map hX ht,
       exact (hf_int.1.integral_cond_distrib hX hY).restrict, },
     rw [← measure.restrict_map hX ht, ← fst_map_prod_mk hX hY, cond_distrib,
-      set_integral_cond_kernel_univ_left ht hf_int.integrable_on,
+      set_integral_cond_kernel_univ_right ht hf_int.integrable_on,
       set_integral_map (ht.prod measurable_set.univ) hf_int.1 (hX.prod_mk hY).ae_measurable,
       mk_preimage_prod, preimage_univ, inter_univ], },
   { exact ae_strongly_measurable'_integral_cond_distrib hX hY hf_int, },

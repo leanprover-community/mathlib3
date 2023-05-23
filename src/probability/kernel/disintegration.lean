@@ -480,13 +480,13 @@ begin
   { rwa measure_eq_comp_prod ρ at hf, },
 end
 
-lemma set_integral_cond_kernel_univ_left {ρ : measure (α × Ω)} [is_finite_measure ρ]
+lemma set_integral_cond_kernel_univ_right {ρ : measure (α × Ω)} [is_finite_measure ρ]
   {f : α × Ω → E} {s : set α} (hs : measurable_set s)
   (hf : integrable_on f (s ×ˢ univ) ρ) :
   ∫ a in s, ∫ ω, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫ x in s ×ˢ univ, f x ∂ρ :=
 by { rw ← set_integral_cond_kernel hs measurable_set.univ hf, simp_rw measure.restrict_univ, }
 
-lemma set_integral_cond_kernel_univ_right {ρ : measure (α × Ω)} [is_finite_measure ρ]
+lemma set_integral_cond_kernel_univ_left {ρ : measure (α × Ω)} [is_finite_measure ρ]
   {f : α × Ω → E} {t : set Ω} (ht : measurable_set t)
   (hf : integrable_on f (univ ×ˢ t) ρ) :
   ∫ a, ∫ ω in t, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫ x in univ ×ˢ t, f x ∂ρ :=

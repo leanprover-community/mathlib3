@@ -135,6 +135,8 @@ lemma coe_sub (s t : Cₛ^n⟮I; F, V⟯) : ⇑(s - t) = s - t := rfl
 instance has_zero : has_zero Cₛ^n⟮I; F, V⟯ :=
 ⟨⟨λ x, 0, (smooth_zero_section 𝕜 V).of_le le_top⟩⟩
 
+instance inhabited : inhabited Cₛ^n⟮I; F, V⟯ := ⟨0⟩
+
 @[simp]
 lemma coe_zero : ⇑(0 : Cₛ^n⟮I; F, V⟯) = 0 := rfl
 
@@ -145,7 +147,7 @@ begin
   have hs := s.cont_mdiff x₀,
   rw [cont_mdiff_at_section] at hs ⊢,
   set e := trivialization_at F V x₀,
-  refine (cont_mdiff_at_const.smul hs).congr_of_eventually_eq _, -- todo: hs.const_smul
+  refine (cont_mdiff_at_const.smul hs).congr_of_eventually_eq _,
   { exact c },
   refine eventually_of_mem (e.open_base_set.mem_nhds $ mem_base_set_trivialization_at F V x₀) _,
   intros x hx,
@@ -199,6 +201,7 @@ instance add_comm_group : add_comm_group Cₛ^n⟮I; F, V⟯ :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub coe_nsmul coe_zsmul
 
 variables (I F V n)
+/-- The additive morphism from smooth sections to dependent maps. -/
 def coe_add_hom : Cₛ^n⟮I; F, V⟯ →+ Π x, V x :=
 { to_fun := coe_fn,
   map_zero' := coe_zero,

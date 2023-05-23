@@ -53,7 +53,9 @@ begin
   rintros ⟨x, hx : x ∈ U⟩,
   rw mdifferentiable_at_iff_lift_prop_at,
   apply (differentiable_within_at_local_invariant_prop I I).bar',
-  apply_instance,
+  -- { intro y,
+  sorry,
+  sorry,
 end
 
 end

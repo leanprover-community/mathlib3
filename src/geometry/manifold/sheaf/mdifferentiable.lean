@@ -61,8 +61,18 @@ def mdifferentiable_presheaf_Ring : Top.presheaf Ring (Top.of M) :=
   map := λ U V h, Ring.of_hom $
     differentiable_within_at_local_invariant_prop_restrict I I' M' $
     category_theory.le_of_hom h.unop,
-  map_id' := sorry,
-  map_comp' := sorry }
+  map_id' := begin
+    intro U,
+    ext1 x,
+    let E := mdifferentiable_sheaf I I' M M',
+    change (E.val.map (𝟙 U)) x = x,
+    simp
+  end,
+  map_comp' := begin
+    intros U V W f g,
+    ext1 x,
+    refl,
+  end }
 
 /-- The presheaf of (`I`, `I'`)-differentiable functions from `M` to `M'`, for `M'` a smooth ring,
 as a presheaf of rings. -/

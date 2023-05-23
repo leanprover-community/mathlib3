@@ -52,6 +52,7 @@ noncomputable theory
 
 universes u v
 
+/- We define local cohomology, implemented as a direct limit of Ext(R/J, --). -/
 section local_cohomology
 
 section
@@ -60,7 +61,7 @@ variables {R : Type u} [comm_ring R] {D : Type v} [small_category D]
 local attribute [ext] quiver.hom.unop_inj
 
 /--  The directed system of `R`-modules of the form `R/J`, where `J` is an ideal of `R`,
-determined by the functor `I`, represented as a functor  -/
+determined by the functor `I`  -/
 def ring_mod_ideals (I : D ⥤ ideal R) : D ⥤ Module.{u} R :=
 { obj := λ t, Module.of R $ R ⧸ (I.obj t),
   map := λ s t w, submodule.mapq _ _ (linear_map.id) (I.map w).down.down }
@@ -77,15 +78,29 @@ section
 -- along diagrams either in Type, or in the same universe as the ring, and we need to cover both.
 variables {R : Type max u v} [comm_ring R] {D : Type v} [small_category D]
 
-/-- `local_cohomology I i` is `i`-th the local cohomology module of a module `M` over a
-commutative ring `R` with support in an ideal whose powers are cofinal with a collection of ideals
-of `R` that is represented as a functor `I` -/
-def local_cohomology_of_diagram (I : D ⥤ ideal R) (i : ℕ) : Module.{max u v} R ⥤ Module.{max u v} R :=
+/-- `local_cohomology I i` is the the functor sending an module `M` over a commutative ring `R`
+to the direct limit of `Ext^i(R/J, M)`, where `J` ranges over a collection of ideals of `R`
+that is represented as a functor `I`.
+
+In this definition we do not assume any special property of the diagram `I`, but the relevant case
+will be where `I` is cofinal with the diagram of powers of a single given ideal.
+
+Below, we give two equivalent (to be shown) definitions of the usual local cohomology with support
+in an ideal `J`, `local_cohomology_powers` and `local_cohomology_univ`.
+
+TODO: Show that any functor cofinal with `I` gives the same result.
+ -/
+def local_cohomology (I : D ⥤ ideal R) (i : ℕ) :
+  Module.{max u v} R ⥤ Module.{max u v} R :=
 colimit (local_cohomology_diagram.{(max u v) v} I i)
 
 end
 
-section
+/- We give two models for the local cohomology with support in an ideal `J`: first in terms of
+the powers of `J` (`local_cohomology_powers`), then in terms of all ideals with the same radical
+as `J` (`local_cohomology_univ`). -/
+section models_for_local_cohomology
+
 variables {R : Type u} [comm_ring R]
 
 /-- The functor sending a natural number `i` to the `i`-th power of the ideal `J` -/
@@ -94,35 +109,54 @@ def ideal_powers (J : ideal R) : ℕᵒᵖ ⥤ ideal R :=
   map := λ s t w, ⟨⟨ideal.pow_le_pow w.unop.down.down⟩⟩, }
 
 /-- `local_cohomology_powers J i` is `i`-th the local cohomology module of a module `M` over
-a commutative ring `R` with support in the ideal `J` of `R` -/
+a commutative ring `R` with support in the ideal `J` of `R`, defined as the direct limit
+of Ext(R/J^t, M) over all powers `t`. -/
 def local_cohomology_powers (J : ideal R) (i : ℕ) : Module.{u} R ⥤ Module.{u} R :=
-  local_cohomology_of_diagram (ideal_powers J) i
+  local_cohomology (ideal_powers J) i
 
-/-- The directed system of all ideals with the same radical as a given ideal -/
+/-- The full subcategory of all ideals with the same radical as a given ideal `J` -/
 @[reducible] def ideals_with_same_radical (J : ideal R) : Type u :=
 full_subcategory (λ J' : ideal R, J.radical ≤ J'.radical)
 
-/-- The diagram of all ideals with the same radical as `J`. This is the "largest" diagram
-that computes local cohomology with support in `J`. -/
+/-- The diagram of all ideals with the same radical as `J`, represented as a functor.
+This is the "largest" diagram that computes local cohomology with support in `J`. -/
 def same_radical_diagram (J : ideal R) : (ideals_with_same_radical J) ⥤ ideal R :=
 full_subcategory_inclusion _
 
-/-- Local cohomology as the direct limit of Ext(R/J, M) over all ideals with the same radical
+/-- Local cohomology as the direct limit of Ext(R/J, M) over *all* ideals with the same radical
 as `J`. -/
 def local_cohomology_univ (J : ideal R) (i : ℕ) :
   Module.{u} R ⥤ Module.{u} R :=
-local_cohomology_of_diagram.{u} (same_radical_diagram.{u} J) i
+local_cohomology.{u} (same_radical_diagram.{u} J) i
 -- TODO: Construct `local_cohomology_powers J i ≅ local_cohomology_univ J i`
 
-end
+end models_for_local_cohomology
 
 section local_cohomology_powers_equiv_univ
 
-variables {R : Type} [comm_ring R] (I J : ideal R)
+variables {R : Type u} [comm_ring R] (I J : ideal R)
 
-/-- This lemma essentially says that `ideal_powers I` is final in `same_radical_diagram I`.
+/-- Lifting the `ideal_powers J` diagram from a diagram valued in `ideals R` to a diagram
+valued in `ideals_with_same_radical J`. -/
+def ideal_powers_same_radical (J : ideal R) : ℕᵒᵖ ⥤ ideals_with_same_radical J :=
+full_subcategory.lift _ (ideal_powers J)
+(λ k, begin
+  change _ ≤ (J^(unop k)).radical,
+  cases (unop k),
+  { simp only [ideal.radical_mono, pow_zero, ideal.one_eq_top, le_top] },
+  { calc J.radical ≤ J.radical            : le_refl _
+              ...  = (J ^ n.succ).radical : (J.radical_pow _ n.succ_pos).symm },
+end)
 
-Porting note: This lemma should probably be moved to `ring_theory/finiteness.lean`
+/-- The composition with the inclusion into `ideals R` is isomorphic to `ideal_powers J`. -/
+def ideal_powers_same_radical_lift_comp_inclusion (J : ideal R) :
+ideal_powers_same_radical J ⋙ same_radical_diagram J ≅ ideal_powers J :=
+  full_subcategory.lift_comp_inclusion _ _ _
+
+/-- For our purposes, the lemma below essentially says that `ideal_powers_same_radical I` is
+initial in `same_radical_diagram I`.
+
+PORTING NOTE: This lemma should probably be moved to `ring_theory/finiteness.lean`
 to be near `ideal.exists_radical_pow_le_of_fg` -/
 lemma exists_pow_le_of_radical_le_of_fg (hIJ : I.radical ≤ J.radical) (hJ : J.radical.fg) :
   ∃ (k : ℕ), I^k ≤ J :=
@@ -134,35 +168,6 @@ begin
        ... ≤ J           : hk,
 end
 
-def powers_same_radical (J : ideal R) : ℕᵒᵖ ⥤ ideals_with_same_radical J :=
-  full_subcategory.lift _ (ideal_powers J)
-  (λ k, begin
-    change _ ≤ (J^(unop k)).radical,
-    cases (unop k),
-    { simp only [ideal.radical_mono, pow_zero, ideal.one_eq_top, le_top] },
-    { calc J.radical ≤ J.radical            : le_refl _
-                ...  = (J ^ n.succ).radical : (J.radical_pow _ n.succ_pos).symm },
-  end)
-
 end local_cohomology_powers_equiv_univ
-
-section
-
-variables {R : Type u} [comm_ring R]
-
-def P (J : ideal R) : ℕᵒᵖ ⥤ ideals_with_same_radical J := sorry
-def e (J : ideal R) : P J ⋙ same_radical_diagram J ≅ ideal_powers J := sorry
-theorem P_final (J : ideal R) : functor.final (P J) := sorry
-
--- This is timing out, even with the proof by `sorry`!?
-def foo (J : ideal R) (i : ℕ) :
-  local_cohomology_powers J i ≅ local_cohomology_univ J i :=
-sorry
-
-def bar {I J : ideal R} (w : I.radical = J.radical) (i : ℕ) :
-  local_cohomology_univ I i ≅ local_cohomology_univ J i :=
-sorry
-
-end
 
 end local_cohomology

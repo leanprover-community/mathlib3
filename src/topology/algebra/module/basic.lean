@@ -964,7 +964,8 @@ rfl
 
 
 lemma coprod_inl_inr [has_continuous_add M₁] [has_continuous_add M'₁] :
-  (continuous_linear_map.inl R₁ M₁ M'₁).coprod (continuous_linear_map.inr R₁ M₁ M'₁) = continuous_linear_map.id R₁ (M₁ × M'₁) :=
+  (continuous_linear_map.inl R₁ M₁ M'₁).coprod (continuous_linear_map.inr R₁ M₁ M'₁) =
+  continuous_linear_map.id R₁ (M₁ × M'₁) :=
 by { apply coe_injective, apply linear_map.coprod_inl_inr }
 
 section

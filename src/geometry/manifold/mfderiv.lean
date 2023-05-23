@@ -1460,7 +1460,7 @@ begin
     mfderiv_fst, mfderiv_snd, mfderiv_const, mfderiv_const],
   symmetry,
   convert continuous_linear_map.comp_id _,
-  { exact continuous_linear_map.fst_prod_zero_add_zero_prod_snd },
+  { exact continuous_linear_map.coprod_inl_inr },
   simp_rw [prod.mk.eta],
   all_goals { apply_instance }
 end

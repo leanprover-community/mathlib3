@@ -36,7 +36,7 @@ dist_smul_le s x y
 
 lemma edist_smul_le (s : α) (x y : β) :
   edist (s • x) (s • y) ≤ ‖s‖₊ • edist x y :=
-by simp only [edist_nndist, nndist_smul_le, ennreal.coe_mul, ennreal.smul_def, smul_eq_mul]
+by simpa only [edist_nndist, ennreal.coe_mul] using ennreal.coe_le_coe.mpr (nndist_smul_le s x y)
 
 lemma lipschitz_with_smul  (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
 lipschitz_with_iff_dist_le_mul.2 $ dist_smul_le _

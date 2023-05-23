@@ -100,7 +100,7 @@ def local_cohomology_powers (J : ideal R) (i : ℕ) : Module.{u} R ⥤ Module.{u
 
 /-- The directed system of all ideals with the same radical as a given ideal -/
 @[reducible] def ideals_with_same_radical (J : ideal R) : Type u :=
-full_subcategory (λ J' : ideal R, J'.radical = J.radical)
+full_subcategory (λ J' : ideal R, J.radical ≤ J'.radical)
 
 /-- The diagram of all ideals with the same radical as `J`. This is the "largest" diagram
 that computes local cohomology with support in `J`. -/
@@ -133,6 +133,16 @@ begin
        ... ≤ J.radical^k : ideal.pow_mono hIJ _
        ... ≤ J           : hk,
 end
+
+def powers_same_radical (J : ideal R) : ℕᵒᵖ ⥤ ideals_with_same_radical J :=
+  full_subcategory.lift _ (ideal_powers J)
+  (λ k, begin
+    change _ ≤ (J^(unop k)).radical,
+    cases (unop k),
+    { simp only [ideal.radical_mono, pow_zero, ideal.one_eq_top, le_top] },
+    { calc J.radical ≤ J.radical            : le_refl _
+                ...  = (J ^ n.succ).radical : (J.radical_pow _ n.succ_pos).symm },
+  end)
 
 end local_cohomology_powers_equiv_univ
 

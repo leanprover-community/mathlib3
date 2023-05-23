@@ -87,6 +87,7 @@ def local_cohomology_powers (J : ideal R) (i : ℕ) : Module.{0} R ⥤ Module.{0
 /-- The directed system of all ideals with the same radical as a given ideal -/
 @[reducible] def ideals_with_same_radical (J : ideal R) :=
 full_subcategory (λ J' : ideal R, J'.radical = J.radical)
+/-- The diagram of all ideals with the same radical as a given ideal -/
 def same_radical_diagram (J : ideal R) : (ideals_with_same_radical J) ⥤ ideal R :=
 full_subcategory_inclusion _
 
@@ -101,49 +102,5 @@ as `J`. -/
 def local_cohomology_univ (J : ideal R) (i : ℕ) : Module.{0} R ⥤ Module.{0} R :=
 colimit (local_cohomology_univ_diagram J i)
 -- TODO: Construct `local_cohomology_powers J i ≅ local_cohomology_univ J i`
-
-end local_cohomology
-
---- REPLACEMENT STUFF
-
-section local_cohomology
-
-/-- The diagram of quotient modules R / (I.obj t) -/
-def ring_mod_ideals (I : D ⥤ ideal R) : D ⥤ Module.{0} R :=
-{ obj := λ t, Module.of R $ R ⧸ (I.obj t),
-  map := λ s t w, submodule.mapq _ _ (linear_map.id) (I.map w).down.down }
-
-/-- The diagram we will take the colimit of to define local cohomology -/
-def local_cohomology_diagram (I : D ⥤ ideal R) (i : ℕ) : Dᵒᵖ ⥤ Module.{0} R ⥤ Module.{0} R :=
-(ring_mod_ideals I).op ⋙ Ext R (Module.{0} R) i
-
-/-- Local cohomology as the direct limit of Ext(R/I, M) for any indexed family of ideals I -/
-def local_cohomology_ideals (I : D ⥤ ideal R) (i : ℕ) : Module.{0} R ⥤ Module.{0} R :=
-colimit (local_cohomology_diagram I i)
-
-/-- The directed system of powers of an ideal I -/
-def ideal_powers (I : ideal R) : ℕᵒᵖ ⥤ ideal R :=
-{ obj := λ t, I^(unop t),
-  map := λ s t w, ⟨⟨ideal.pow_le_pow w.unop.down.down⟩⟩ }
-
-/-- Local cohomology as the direct limit of Ext(R/I^t, M) for powers of a single ideal I -/
-def local_cohomology_powers (I : ideal R) (i : ℕ) : Module.{0} R ⥤ Module.{0} R :=
-  local_cohomology_ideals (ideal_powers I) i
-
-/-- The directed system of all ideals with the same radical as a given ideal -/
-@[reducible] def same_radical (I : ideal R) :=
-full_subcategory (λ J : ideal R, J.radical = I.radical)
-def same_radical_diagram (I : ideal R) : (same_radical I) ⥤ ideal R :=
-full_subcategory_inclusion _
-
-/-- Local cohomology as the direct limit of Ext(R/J, M) over the directed system of all ideals
-with the same radical as I -/
-def local_cohomology_univ_diagram (I : ideal R) (i : ℕ) :
-  (same_radical I)ᵒᵖ ⥤ Module.{0} R ⥤ Module.{0} R :=
-local_cohomology_diagram (same_radical_diagram I) i
-
-def local_cohomology_univ (I : ideal R) (i : ℕ) : Module.{0} R ⥤ Module.{0} R :=
-colimit (local_cohomology_univ_diagram I i)
--- TODO: Construct `local_cohomology_powers I i ≅ local_cohomology_univ I i`
 
 end local_cohomology

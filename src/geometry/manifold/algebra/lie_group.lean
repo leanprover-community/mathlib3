@@ -96,36 +96,90 @@ lemma topological_group_of_lie_group : topological_group G :=
 end
 
 @[to_additive]
-lemma smooth.inv {f : M → G}
-  (hf : smooth I' I f) : smooth I' I (λx, (f x)⁻¹) :=
-(smooth_inv I).comp hf
+lemma cont_mdiff_within_at.inv {f : M → G} {s : set M} {x₀ : M}
+  (hf : cont_mdiff_within_at I' I n f s x₀) : cont_mdiff_within_at I' I n (λx, (f x)⁻¹) s x₀ :=
+((smooth_inv I).of_le le_top).cont_mdiff_at.cont_mdiff_within_at.comp x₀ hf $ set.maps_to_univ _ _
 
-@[to_additive]
-lemma smooth_on.inv {f : M → G} {s : set M}
-  (hf : smooth_on I' I f s) : smooth_on I' I (λx, (f x)⁻¹) s :=
-(smooth_inv I).comp_smooth_on hf
-
-@[to_additive]
-lemma smooth.div {f g : M → G}
-  (hf : smooth I' I f) (hg : smooth I' I g) : smooth I' I (f / g) :=
-by { rw div_eq_mul_inv, exact ((smooth_mul I).comp (hf.prod_mk hg.inv) : _), }
-
-@[to_additive]
-lemma smooth_on.div {f g : M → G} {s : set M}
-  (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) : smooth_on I' I (f / g) s :=
-by { rw div_eq_mul_inv, exact ((smooth_mul I).comp_smooth_on (hf.prod_mk hg.inv) : _), }
-
--- todo: many variants
 @[to_additive]
 lemma cont_mdiff_at.inv {f : M → G} {x₀ : M}
   (hf : cont_mdiff_at I' I n f x₀) : cont_mdiff_at I' I n (λx, (f x)⁻¹) x₀ :=
 ((smooth_inv I).of_le le_top).cont_mdiff_at.comp x₀ hf
 
 @[to_additive]
+lemma cont_mdiff_on.inv {f : M → G} {s : set M}
+  (hf : cont_mdiff_on I' I n f s) : cont_mdiff_on I' I n (λx, (f x)⁻¹) s :=
+λ x hx, (hf x hx).inv
+
+@[to_additive]
+lemma cont_mdiff.inv {f : M → G}
+  (hf : cont_mdiff I' I n f) : cont_mdiff I' I n (λx, (f x)⁻¹) :=
+λ x, (hf x).inv
+
+@[to_additive]
+lemma smooth_within_at.inv {f : M → G} {s : set M} {x₀ : M}
+  (hf : smooth_within_at I' I f s x₀) : smooth_within_at I' I (λx, (f x)⁻¹) s x₀ :=
+hf.inv
+
+@[to_additive]
+lemma smooth_at.inv {f : M → G} {x₀ : M}
+  (hf : smooth_at I' I f x₀) : smooth_at I' I (λx, (f x)⁻¹) x₀ :=
+hf.inv
+
+@[to_additive]
+lemma smooth_on.inv {f : M → G} {s : set M}
+  (hf : smooth_on I' I f s) : smooth_on I' I (λx, (f x)⁻¹) s :=
+hf.inv
+
+@[to_additive]
+lemma smooth.inv {f : M → G}
+  (hf : smooth I' I f) : smooth I' I (λx, (f x)⁻¹) :=
+hf.inv
+
+@[to_additive]
+lemma cont_mdiff_within_at.div {f g : M → G} {s : set M} {x₀ : M}
+  (hf : cont_mdiff_within_at I' I n f s x₀) (hg : cont_mdiff_within_at I' I n g s x₀) :
+  cont_mdiff_within_at I' I n (λ x, f x / g x) s x₀ :=
+by { simp_rw div_eq_mul_inv, exact hf.mul hg.inv }
+
+@[to_additive]
 lemma cont_mdiff_at.div {f g : M → G} {x₀ : M}
   (hf : cont_mdiff_at I' I n f x₀) (hg : cont_mdiff_at I' I n g x₀) :
   cont_mdiff_at I' I n (λ x, f x / g x) x₀ :=
 by { simp_rw div_eq_mul_inv, exact hf.mul hg.inv }
+
+@[to_additive]
+lemma cont_mdiff_on.div {f g : M → G} {s : set M}
+  (hf : cont_mdiff_on I' I n f s) (hg : cont_mdiff_on I' I n g s) :
+  cont_mdiff_on I' I n (λ x, f x / g x) s :=
+by { simp_rw div_eq_mul_inv, exact hf.mul hg.inv }
+
+@[to_additive]
+lemma cont_mdiff.div {f g : M → G}
+  (hf : cont_mdiff I' I n f) (hg : cont_mdiff I' I n g) :
+  cont_mdiff I' I n (λ x, f x / g x) :=
+by { simp_rw div_eq_mul_inv, exact hf.mul hg.inv }
+
+@[to_additive]
+lemma smooth_within_at.div {f g : M → G} {s : set M} {x₀ : M}
+  (hf : smooth_within_at I' I f s x₀) (hg : smooth_within_at I' I g s x₀) :
+  smooth_within_at I' I (λ x, f x / g x) s x₀ :=
+hf.div hg
+
+@[to_additive]
+lemma smooth_at.div {f g : M → G} {x₀ : M}
+  (hf : smooth_at I' I f x₀) (hg : smooth_at I' I g x₀) :
+  smooth_at I' I (λ x, f x / g x) x₀ :=
+hf.div hg
+
+@[to_additive]
+lemma smooth_on.div {f g : M → G} {s : set M}
+  (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) : smooth_on I' I (f / g) s :=
+hf.div hg
+
+@[to_additive]
+lemma smooth.div {f g : M → G}
+  (hf : smooth I' I f) (hg : smooth I' I g) : smooth I' I (f / g) :=
+hf.div hg
 
 end lie_group
 

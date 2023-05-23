@@ -1,12 +1,12 @@
 /-
-Copyright © 2022 Heather Macbeth. All rights reserved.
+Copyright © 2023 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import geometry.manifold.local_invariant_properties
-import topology.sheaves.local_predicate
+import topology.category.Top.opens
 
-/-! # Generic construction of a sheaf from a `local_invariant_prop` on a manifold -/
+/-! # Further facts about of `local_invariant_prop` -/
 
 open_locale manifold topological_space
 open set topological_space structure_groupoid structure_groupoid.local_invariant_prop opposite
@@ -14,8 +14,8 @@ open set topological_space structure_groupoid structure_groupoid.local_invariant
 variables {H : Type*} [topological_space H]
   {H' : Type*} [topological_space H']
   {G : structure_groupoid H} [closed_under_restriction G] {G' : structure_groupoid H'}
-  (M : Type) [topological_space M] [charted_space H M] [has_groupoid M G]
-  (M' : Type) [topological_space M'] [charted_space H' M'] [has_groupoid M' G']
+  (M : Type*) [topological_space M] [charted_space H M] [has_groupoid M G]
+  (M' : Type*) [topological_space M'] [charted_space H' M'] [has_groupoid M' G']
   {P : (H → H') → (set H) → H → Prop}
 
 instance Top.of.charted_space : charted_space H (Top.of M) := (infer_instance : charted_space H M)
@@ -25,12 +25,18 @@ instance Top.of.has_groupoid : has_groupoid (Top.of M) G := (infer_instance : ha
 namespace structure_groupoid.local_invariant_prop
 variables {M M'}
 
-lemma bar (hG : local_invariant_prop G G' P) {U : opens (Top.of M)} {f : M → M'} {x : U} :
-  lift_prop_at P (f ∘ (coe : U → Top.of M)) x ↔ lift_prop_at P f x.val :=
-begin
-  -- refine ⟨λ h, ⟨_, _⟩, λ h, ⟨_, _⟩⟩,
-  sorry,
-end
+-- lemma mdifferentiable_inclusion {U V : opens M} (h : U ≤ V) :
+--   mdifferentiable I I (set.inclusion h : U → V) :=
+-- lemma bar {Q : (H → H) → (set H) → H → Prop} (hG : local_invariant_prop G G Q)
+--   {U V : opens (Top.of M)} (i : U ⟶ V) :
+--   lift_prop Q i :=
+-- begin
+--   -- refine ⟨λ h, ⟨_, _⟩, λ h, ⟨_, _⟩⟩,
+--   sorry,
+-- end
+
+-- lemma bar (hG : local_invariant_prop G G' P) {U : opens (Top.of M)} {f : M → M'} {x : U} :
+--   lift_prop_at P (f ∘ (coe : U → Top.of M)) x ↔ lift_prop_at P f x.val :=
 
 
 lemma foo₁ (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}
@@ -99,36 +105,18 @@ begin
     { exact he'y } },
 end
 
-lemma foo (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}
-  {x : U} :
+lemma foo (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} (i : U ⟶ V) (f : V → M')
+  (x : U) :
   lift_prop_at P f (i x) ↔ lift_prop_at P (f ∘ i) x :=
 ⟨λh, ⟨(foo₁ hG).1 h.1, (foo₂ hG _).1 h.2⟩, λh, ⟨(foo₁ hG).2 h.1, (foo₂ hG _).2 h.2⟩⟩
 
+lemma bar' {Q : (H → H) → (set H) → H → Prop} (hG : local_invariant_prop G G Q)
+  (hQ : ∀ y, Q id univ y) {U V : opens M} (h : U ≤ V) :
+  lift_prop Q (set.inclusion h : U → V) :=
+begin
+  intro x,
+  refine (foo hG (category_theory.hom_of_le h) id x).mp _,
+  apply hG.lift_prop_id hQ,
+end
+
 end structure_groupoid.local_invariant_prop
-
-/-- Let `M`, `M'` be charted spaces with transition functions in the groupoids `G`, `G'`, and let
-`P` be a `local_invariant_prop` for functions between spaces with these groupoids.  Then there is an
-induced `local_predicate` for the sheaf of functions from `M` to `M'`. -/
-def local_predicate_of_local_invariant_prop (hG : local_invariant_prop G G' P) :
-  Top.local_predicate (λ (x : Top.of M), M') :=
-{ pred := λ {U : opens (Top.of M)}, λ (f : U → M'), lift_prop P f,
-  res := begin
-    intros U V i f h x,
-    exact hG.foo.1 (h (i x)),
-  end,
-  locality := begin
-    intros V f h x,
-    obtain ⟨U, hxU, i, hU : lift_prop P (f ∘ i)⟩ := h x,
-    let x' : U := ⟨x, hxU⟩,
-    convert hG.foo.2 (hU x'),
-    ext1,
-    refl
-  end }
-
-def structure_groupoid.local_invariant_prop.sheaf (hG : local_invariant_prop G G' P) :
-  Top.sheaf Type (Top.of M) :=
-Top.subsheaf_to_Types (local_predicate_of_local_invariant_prop M M' hG)
-
-instance (hG : local_invariant_prop G G' P) (U : (opens (Top.of M))ᵒᵖ) :
-  has_coe_to_fun ((hG.sheaf M M').val.obj U) (λ _, (unop U) → M') :=
-{ coe := λ a, a.1 }

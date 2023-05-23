@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import geometry.manifold.algebra.structures
+import geometry.manifold.local_invariant_properties_aux
 
 /-! supplement to `geometry.manifold.algebra.*` -/
 
@@ -44,9 +45,16 @@ lemma mdifferentiable_at.prod_mk
   mdifferentiable_at I (I'.prod I') (λ x, (f x, g x)) x :=
 ⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
 
+include _i
+
 lemma mdifferentiable_inclusion {U V : opens M} (h : U ≤ V) :
   mdifferentiable I I (set.inclusion h : U → V) :=
-sorry
+begin
+  rintros ⟨x, hx : x ∈ U⟩,
+  rw mdifferentiable_at_iff_lift_prop_at,
+  apply (differentiable_within_at_local_invariant_prop I I).bar',
+  apply_instance,
+end
 
 end
 

@@ -6,6 +6,7 @@ Authors: Anne Baanen, Paul Lezeau
 
 import ring_theory.dedekind_domain.ideal
 import ring_theory.is_adjoin_root
+import ring_theory.double_quotient
 
 /-!
 # Kummer-Dedekind theorem

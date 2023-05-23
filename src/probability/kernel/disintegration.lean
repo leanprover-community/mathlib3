@@ -492,21 +492,53 @@ lemma set_integral_cond_kernel_univ_left {ρ : measure (α × Ω)} [is_finite_me
   ∫ a, ∫ ω in t, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫ x in univ ×ˢ t, f x ∂ρ :=
 by { rw ← set_integral_cond_kernel measurable_set.univ ht hf, simp_rw measure.restrict_univ, }
 
-lemma _root_.measure_theory.integrable.integral_norm_cond_kernel
-  {F : Type*} [normed_add_comm_group F]
-  {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → F} (hf_int : integrable f ρ) :
+end integral_cond_kernel
+
+end polish
+
+end probability_theory
+
+namespace measure_theory
+
+open probability_theory
+
+variables {α Ω E F : Type*} {mα : measurable_space α} [measurable_space Ω] [topological_space Ω]
+  [borel_space Ω] [polish_space Ω] [nonempty Ω]
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group F]
+  {ρ : measure (α × Ω)} [is_finite_measure ρ]
+
+include mα
+
+lemma ae_strongly_measurable.ae_integrable_cond_kernel_iff
+  {f : α × Ω → F} (hf : ae_strongly_measurable f ρ) :
+  (∀ᵐ a ∂ρ.fst, integrable (λ ω, f (a, ω)) (ρ.cond_kernel a))
+    ∧ integrable (λ a, ∫ ω, ‖f (a, ω)‖ ∂(ρ.cond_kernel a)) ρ.fst
+  ↔ integrable f ρ :=
+begin
+  rw measure_eq_comp_prod ρ at hf,
+  conv_rhs { rw measure_eq_comp_prod ρ, },
+  rw integrable_comp_prod_iff hf,
+  simp_rw [kernel.prod_mk_left_apply, kernel.const_apply],
+end
+
+lemma integrable.cond_kernel_ae {f : α × Ω → F} (hf_int : integrable f ρ) :
+  ∀ᵐ a ∂ρ.fst, integrable (λ ω, f (a, ω)) (ρ.cond_kernel a) :=
+begin
+  have hf_ae : ae_strongly_measurable f ρ := hf_int.1,
+  rw ← hf_ae.ae_integrable_cond_kernel_iff at hf_int,
+  exact hf_int.1,
+end
+
+lemma integrable.integral_norm_cond_kernel {f : α × Ω → F} (hf_int : integrable f ρ) :
   integrable (λ x, ∫ y, ‖f (x, y)‖ ∂(ρ.cond_kernel x)) ρ.fst :=
 begin
   have hf_ae : ae_strongly_measurable f ρ := hf_int.1,
-  nth_rewrite 0 measure_eq_comp_prod ρ at hf_int,
-  rw integrable_comp_prod_iff at hf_int,
-  { simp_rw [kernel.prod_mk_left_apply, kernel.const_apply] at hf_int,
-    exact hf_int.2, },
-  { rwa ← measure_eq_comp_prod ρ, },
+  rw ← hf_ae.ae_integrable_cond_kernel_iff at hf_int,
+  exact hf_int.2,
 end
 
-lemma _root_.measure_theory.integrable.norm_integral_cond_kernel
-  {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → E} (hf_int : integrable f ρ) :
+lemma integrable.norm_integral_cond_kernel {f : α × Ω → E} (hf_int : integrable f ρ) :
   integrable (λ x, ‖∫ y, f (x, y) ∂(ρ.cond_kernel x)‖) ρ.fst :=
 begin
   refine hf_int.integral_norm_cond_kernel.mono hf_int.1.integral_cond_kernel.norm _,
@@ -516,13 +548,8 @@ begin
   exact integral_nonneg_of_ae (eventually_of_forall (λ y, norm_nonneg _)),
 end
 
-lemma _root_.measure_theory.integrable.integral_cond_kernel
-  {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → E} (hf_int : integrable f ρ) :
+lemma integrable.integral_cond_kernel {f : α × Ω → E} (hf_int : integrable f ρ) :
   integrable (λ x, ∫ y, f (x, y) ∂(ρ.cond_kernel x)) ρ.fst :=
 (integrable_norm_iff hf_int.1.integral_cond_kernel).mp hf_int.norm_integral_cond_kernel
 
-end integral_cond_kernel
-
-end polish
-
-end probability_theory
+end measure_theory

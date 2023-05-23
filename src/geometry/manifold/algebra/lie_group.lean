@@ -74,7 +74,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {M : Type*} [topological_space M] [charted_space H' M]
 {E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
-{M' : Type*} [topological_space M'] [charted_space H'' M']
+{M' : Type*} [topological_space M'] [charted_space H'' M'] {n : ℕ∞}
 
 section
 
@@ -114,6 +114,18 @@ by { rw div_eq_mul_inv, exact ((smooth_mul I).comp (hf.prod_mk hg.inv) : _), }
 lemma smooth_on.div {f g : M → G} {s : set M}
   (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) : smooth_on I' I (f / g) s :=
 by { rw div_eq_mul_inv, exact ((smooth_mul I).comp_smooth_on (hf.prod_mk hg.inv) : _), }
+
+-- todo: many variants
+@[to_additive]
+lemma cont_mdiff_at.inv {f : M → G} {x₀ : M}
+  (hf : cont_mdiff_at I' I n f x₀) : cont_mdiff_at I' I n (λx, (f x)⁻¹) x₀ :=
+((smooth_inv I).of_le le_top).cont_mdiff_at.comp x₀ hf
+
+@[to_additive]
+lemma cont_mdiff_at.div {f g : M → G} {x₀ : M}
+  (hf : cont_mdiff_at I' I n f x₀) (hg : cont_mdiff_at I' I n g x₀) :
+  cont_mdiff_at I' I n (λ x, f x / g x) x₀ :=
+by { simp_rw div_eq_mul_inv, exact hf.mul hg.inv }
 
 end lie_group
 

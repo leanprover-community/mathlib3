@@ -175,7 +175,7 @@ end
 lemma delay_refl_right_one (γ : path x y) : delay_refl_right 1 γ = γ :=
 by { ext t, exact congr_arg γ (Q_right_one_right t) }
 
-/-- This is the function on p. 475 of [serre1951]], defining a homotopy from a path `γ` to the
+/-- This is the function on p. 475 of [serre1951], defining a homotopy from a path `γ` to the
 product path `e ∧ γ`.-/
 def delay_refl_left (θ : I) (γ : path x y) : path x y := (delay_refl_right θ γ.symm).symm
 

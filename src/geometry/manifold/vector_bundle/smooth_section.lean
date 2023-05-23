@@ -61,7 +61,8 @@ instance : has_coe_to_fun Cₛ^n⟮I; F, V⟯ (λ s, Π x, V x) := ⟨cont_mdiff
 
 variables {s t : Cₛ^n⟮I; F, V⟯}
 
-@[simp] lemma coe_fn_mk (s : Π x, V x) (hs : cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space_mk x (s x))) :
+@[simp] lemma coe_fn_mk (s : Π x, V x)
+  (hs : cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space_mk x (s x))) :
   (mk s hs : Π x, V x) = s :=
 rfl
 

@@ -573,11 +573,11 @@ def cyclotomic_ring : Type w := adjoin A { b : (cyclotomic_field n K) | b ^ (n :
 
 namespace cyclotomic_ring
 
-/-- The `A`-algebra structure on `cyclotomic_ring n A K`.
-This is not an instance since it causes diamonds when `A = ℤ`. -/
-def algebra_base : algebra A (cyclotomic_ring n A K) := (adjoin A _).algebra
+/-- The `A`-algebra structure on `cyclotomic_ring n A K`. -/
+instance algebra_base : algebra A (cyclotomic_ring n A K) := (adjoin A _).algebra
 
-local attribute [instance] cyclotomic_ring.algebra_base
+-- Ensure that there is no diamonds with ℤ.
+example {n : ℕ+} : cyclotomic_ring.algebra_base n ℤ ℚ = algebra_int _ := rfl
 
 instance : no_zero_smul_divisors A (cyclotomic_ring n A K) := (adjoin A _).no_zero_smul_divisors_bot
 

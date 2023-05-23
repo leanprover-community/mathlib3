@@ -217,6 +217,12 @@ lemma pi_apply {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   pi f m j = f j m :=
 rfl
 
+/-- Restrict the codomain of a continuous multilinear map to a submodule. -/
+@[simps]
+def cod_restrict (f : continuous_multilinear_map R M₁ M₂) (p : submodule R M₂) (h : ∀ v, f v ∈ p) :
+  continuous_multilinear_map R M₁ p :=
+⟨f.1.cod_restrict p h, f.cont.subtype_mk _⟩
+
 section
 variables (R M₂)
 

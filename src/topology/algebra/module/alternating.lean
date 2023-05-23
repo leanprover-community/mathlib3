@@ -66,8 +66,25 @@ f.map_smul' m i c x
 lemma map_coord_zero {m : ι → M} (i : ι) (h : m i = 0) : f m = 0 :=
 f.to_multilinear_map.map_coord_zero i h
 
+@[simp] lemma map_update_zero [decidable_eq ι] (m : ι → M) (i : ι) : f (update m i 0) = 0 :=
+f.to_multilinear_map.map_update_zero m i
+
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
 f.to_multilinear_map.map_zero
+
+lemma map_eq_zero_of_eq (v : ι → M) {i j : ι} (h : v i = v j) (hij : i ≠ j) :
+  f v = 0 :=
+f.map_eq_zero_of_eq' v i j h hij
+
+lemma map_eq_zero_of_not_injective (v : ι → M) (hv : ¬function.injective v) : f v = 0 :=
+f.to_alternating_map.map_eq_zero_of_not_injective v hv
+
+/-- Restrict the codomain of a continuous multilinear map to a submodule. -/
+@[simps]
+def cod_restrict (f : continuous_alternating_map R M N ι) (p : submodule R N) (h : ∀ v, f v ∈ p) :
+  continuous_alternating_map R M p ι :=
+{ to_continuous_multilinear_map := f.1.cod_restrict p h,
+  .. f.to_alternating_map.cod_restrict p h }
 
 instance : has_zero (continuous_alternating_map R M N ι) :=
 ⟨⟨0, (0 : alternating_map R M N ι).map_eq_zero_of_eq⟩⟩

@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
 import tactic.positivity
+import algebra.star.order
 
 /-!
 # Square root of a real number

@@ -11,6 +11,9 @@ import algebra.ring.equiv
 /-!
 # Category instances for semiring, ring, comm_semiring, and comm_ring.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the bundled categories:
 * `SemiRing`
 * `Ring`

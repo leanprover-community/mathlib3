@@ -6,6 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.algebra.pi
 import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
+import analysis.normed.mul_action
 import data.real.sqrt
 import topology.algebra.module.basic
 
@@ -45,31 +46,9 @@ end prio
 
 variables [normed_field α] [seminormed_add_comm_group β]
 
--- note: while these are currently strictly weaker than the versions without `le`, they will cease
--- to be if we eventually generalize `normed_space` from `normed_field α` to `normed_ring α`.
-section le
-
-lemma norm_smul_le [normed_space α β] (r : α) (x : β) : ‖r • x‖ ≤ ‖r‖ * ‖x‖ :=
-normed_space.norm_smul_le _ _
-
-lemma nnnorm_smul_le [normed_space α β] (s : α) (x : β) : ‖s • x‖₊ ≤ ‖s‖₊ * ‖x‖₊ :=
-norm_smul_le s x
-
-lemma dist_smul_le [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) ≤ ‖s‖ * dist x y :=
-by simpa only [dist_eq_norm, ←smul_sub] using norm_smul_le _ _
-
-lemma nndist_smul_le [normed_space α β] (s : α) (x y : β) :
-  nndist (s • x) (s • y) ≤ ‖s‖₊ * nndist x y :=
-dist_smul_le s x y
-
-end le
-
 @[priority 100] -- see Note [lower instance priority]
 instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul α β :=
-{ dist_smul_pair' := λ x y₁ y₂,
-    by simpa [dist_eq_norm, smul_sub] using norm_smul_le x (y₁ - y₂),
-  dist_pair_smul' := λ x₁ x₂ y,
-    by simpa [dist_eq_norm, sub_smul] using norm_smul_le (x₁ - x₂) y }
+has_bounded_smul.of_norm_smul_le normed_space.norm_smul_le
 
 -- Shortcut instance, as otherwise this will be found by `normed_space.to_module` and be
 -- noncomputable.
@@ -78,17 +57,9 @@ instance : module ℝ ℝ := by apply_instance
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, norm_mul_le a b }
 
-lemma norm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖ = ‖s‖ * ‖x‖ :=
-begin
-  by_cases h : s = 0,
-  { simp [h] },
-  { refine le_antisymm (norm_smul_le s x) _,
-    calc ‖s‖ * ‖x‖ = ‖s‖ * ‖s⁻¹ • s • x‖     : by rw [inv_smul_smul₀ h]
-               ... ≤ ‖s‖ * (‖s⁻¹‖ * ‖s • x‖) :
-      mul_le_mul_of_nonneg_left (norm_smul_le _ _) (norm_nonneg _)
-               ... = ‖s • x‖                 :
-      by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
-end
+-- shortcut instance
+instance normed_field.to_has_bounded_smul : has_bounded_smul α α :=
+normed_space.has_bounded_smul
 
 lemma norm_zsmul (α) [normed_field α] [normed_space α β] (n : ℤ) (x : β) :
   ‖n • x‖ = ‖(n : α)‖ * ‖x‖ :=
@@ -101,23 +72,6 @@ lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
   ‖x‖⁻¹ • x ∈ closed_ball (0 : β) 1 :=
 by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
   div_self_le_one]
-
-lemma dist_smul₀ [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
-by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
-
-lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : ‖s • x‖₊ = ‖s‖₊ * ‖x‖₊ :=
-nnreal.eq $ norm_smul s x
-
-lemma nndist_smul₀ [normed_space α β] (s : α) (x y : β) :
-  nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
-nnreal.eq $ dist_smul₀ s x y
-
-lemma edist_smul₀ [normed_space α β] (s : α) (x y : β) :
-  edist (s • x) (s • y) = ‖s‖₊ • edist x y :=
-by simp only [edist_nndist, nndist_smul₀, ennreal.coe_mul, ennreal.smul_def, smul_eq_mul]
-
-lemma lipschitz_with_smul [normed_space α β] (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
-lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul₀, coe_nnnorm]
 
 lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
   ‖t • x‖ = t * ‖x‖ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
@@ -283,7 +237,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_c
   end }
 
 instance mul_opposite.normed_space : normed_space α Eᵐᵒᵖ :=
-{ norm_smul_le := λ s x, norm_smul_le s x.unop,
+{ norm_smul_le := λ s x, (norm_smul_le s x.unop : _),
   ..mul_opposite.normed_add_comm_group,
   ..mul_opposite.module _ }
 
@@ -292,7 +246,7 @@ instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field
   {E : Type*} [seminormed_add_comm_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] (s : submodule R E) :
   normed_space 𝕜 s :=
-{ norm_smul_le := λc x, norm_smul_le c (x : E) }
+{ norm_smul_le := λc x, (norm_smul_le c (x : E) : _) }
 
 /-- If there is a scalar `c` with `‖c‖>1`, then any element with nonzero norm can be
 moved by scalar multiplication to any shell of width `‖c‖`. Also recap information on the norm of

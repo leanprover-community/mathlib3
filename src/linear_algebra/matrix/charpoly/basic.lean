@@ -11,6 +11,9 @@ import tactic.squeeze
 /-!
 # Characteristic polynomials and the Cayley-Hamilton theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define characteristic polynomials of matrices and
 prove the Cayley–Hamilton theorem over arbitrary commutative rings.
 

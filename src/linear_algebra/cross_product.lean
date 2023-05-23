@@ -12,6 +12,9 @@ import algebra.lie.basic
 /-!
 # Cross products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines the cross product of vectors in $R^3$ for $R$ a commutative ring,
 as a bilinear map.
 

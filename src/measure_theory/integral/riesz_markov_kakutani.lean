@@ -9,6 +9,9 @@ import topology.sets.compacts
 /-!
 #  Riesz–Markov–Kakutani representation theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file will prove different versions of the Riesz-Markov-Kakutani representation theorem.
 The theorem is first proven for compact spaces, from which the statements about linear functionals
 on bounded continuous functions or compactly supported functions on locally compact spaces follow.

@@ -90,7 +90,3 @@ def local_cohomology_powers (J : ideal R) (M : Module.{0} R) :=
   local_cohomology R (ideal_powers R J)
 
 end local_cohomology
-
-
-
-end

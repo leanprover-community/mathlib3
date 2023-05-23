@@ -9,9 +9,10 @@ import category_theory.abelian.projective
 import algebra.homology.homology
 import linear_algebra.projective_space.basic
 import category_theory.monoidal.braided
-import category_theory.monoidal.Tor
+import category_theory.monoidal.tor
 import category_theory.monoidal.functor_category
 import algebra.homology.short_exact.abelian
+import category_theory.monoidal.of_chosen_finite_products.symmetric
 
 open category_theory
 open algebraic_topology
@@ -79,19 +80,21 @@ end ℝℙ2
 
 
 
+.
+namespace Top
+
+def terminal_limit_cone : limits.limit_cone (functor.empty Top) :=
+⟨Top.limit_cone _, Top.limit_cone_is_limit _⟩
+def binary_product_limit_cone (G H : Top.{u}) : limits.limit_cone (category_theory.limits.pair G H) :=
+⟨Top.limit_cone _, Top.limit_cone_is_limit _⟩
+
+end Top
 
 instance : monoidal_category Top.{u} :=
-{ tensor_unit := Top.of punit.{u+1},
-  tensor_obj := λ X Y, Top.of (X × Y),
-  tensor_hom := λ W X Y Z f g, continuous_map.prod_map f g,
-  associator := sorry,
-  left_unitor := sorry,
-  right_unitor := sorry, }
+monoidal_of_chosen_finite_products (Top.terminal_limit_cone.{u u}) (Top.binary_product_limit_cone)
 
--- This should probably instead be by something like:
--- monoidal_of_chosen_finite_products (Top.terminal_limit_cone) (Top.binary_product_limit_cone)
-
-instance : symmetric_category Top := sorry
+instance : symmetric_category Top :=
+category_theory.symmetric_of_chosen_finite_products _ _
 
 namespace ℝℙ2xℝℙ2
 

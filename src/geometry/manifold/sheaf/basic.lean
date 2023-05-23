@@ -18,6 +18,10 @@ variables {H : Type*} [topological_space H]
   (M' : Type) [topological_space M'] [charted_space H' M'] [has_groupoid M' G']
   {P : (H → H') → (set H) → H → Prop}
 
+instance Top.of.charted_space : charted_space H (Top.of M) := (infer_instance : charted_space H M)
+
+instance Top.of.has_groupoid : has_groupoid (Top.of M) G := (infer_instance : has_groupoid M G)
+
 /-- Let `M`, `M'` be charted spaces with transition functions in the groupoids `G`, `G'`, and let
 `P` be a `local_invariant_prop` for functions between spaces with these groupoids.  Then there is an
 induced `local_predicate` for the sheaf of functions from `M` to `M'`. -/
@@ -26,13 +30,13 @@ def local_predicate_of_local_invariant_prop (hG : local_invariant_prop G G' P) :
 { pred := λ {U : opens (Top.of M)}, λ (f : U → M'), lift_prop P f,
   res := begin
     intros U V i f h x,
-    exact (hG.foo _ _ _).1 (h (i x)),
+    exact (hG.foo (category_theory.le_of_hom i) _ _).1 (h (i x)),
   end,
   locality := begin
     intros V f h x,
     obtain ⟨U, hxU, i, hU : lift_prop P (f ∘ i)⟩ := h x,
     let x' : U := ⟨x, hxU⟩,
-    convert (hG.foo _ _ _).2 (hU x'),
+    convert (hG.foo (category_theory.le_of_hom i) _ _).2 (hU x'),
     ext1,
     refl
   end }

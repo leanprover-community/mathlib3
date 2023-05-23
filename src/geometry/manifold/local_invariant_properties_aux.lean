@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import geometry.manifold.local_invariant_properties
-import topology.category.Top.opens
+import topology.sets.opens
 
 /-! # Further facts about of `local_invariant_prop` -/
 
 open_locale manifold topological_space
-open set topological_space structure_groupoid structure_groupoid.local_invariant_prop opposite
+open set topological_space structure_groupoid structure_groupoid.local_invariant_prop
 
 variables {H : Type*} [topological_space H]
   {H' : Type*} [topological_space H']
@@ -18,47 +18,29 @@ variables {H : Type*} [topological_space H]
   (M' : Type*) [topological_space M'] [charted_space H' M'] [has_groupoid M' G']
   {P : (H → H') → (set H) → H → Prop}
 
-instance Top.of.charted_space : charted_space H (Top.of M) := (infer_instance : charted_space H M)
-
-instance Top.of.has_groupoid : has_groupoid (Top.of M) G := (infer_instance : has_groupoid M G)
-
 namespace structure_groupoid.local_invariant_prop
 variables {M M'}
 
--- lemma mdifferentiable_inclusion {U V : opens M} (h : U ≤ V) :
---   mdifferentiable I I (set.inclusion h : U → V) :=
--- lemma bar {Q : (H → H) → (set H) → H → Prop} (hG : local_invariant_prop G G Q)
---   {U V : opens (Top.of M)} (i : U ⟶ V) :
---   lift_prop Q i :=
--- begin
---   -- refine ⟨λ h, ⟨_, _⟩, λ h, ⟨_, _⟩⟩,
---   sorry,
--- end
-
--- lemma bar (hG : local_invariant_prop G G' P) {U : opens (Top.of M)} {f : M → M'} {x : U} :
---   lift_prop_at P (f ∘ (coe : U → Top.of M)) x ↔ lift_prop_at P f x.val :=
-
-
-lemma foo₁ (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}
-  {x : U} :
-  continuous_within_at f univ (i x) ↔ continuous_within_at (f ∘ i) univ x :=
+lemma foo₁ (hG : local_invariant_prop G G' P) {U V : opens M} {hUV : U ≤ V} {f : V → M'} {x : U} :
+  continuous_within_at f univ (set.inclusion hUV x)
+  ↔ continuous_within_at (f ∘ set.inclusion hUV) univ x :=
 begin
   simp only [continuous_within_at_univ],
-  have hUV : U ≤ V := category_theory.le_of_hom i,
   split,
   { intro h,
     exact h.comp (continuous_inclusion hUV).continuous_at },
   { intro h,
-    have hi : open_embedding i := topological_space.opens.open_embedding_of_le hUV,
-    simpa [hi.continuous_at_iff] using h }
+    simpa [(topological_space.opens.open_embedding_of_le hUV).continuous_at_iff] using h }
 end
 
 -- this should be a lot shorter!!! clean up with `mfld_set_tac` and/or better simp-lemmas
-lemma foo₂ (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}
-  (e : M' →H') {x : U} :
-  P (e ∘ f ∘ (chart_at H (i x)).symm) univ (chart_at H (i x) (i x))
-  ↔ P (e ∘ (f ∘ i) ∘ ((chart_at H x).symm)) univ (chart_at H x x) :=
+lemma foo₂ (hG : local_invariant_prop G G' P) {U V : opens M} {hUV : U ≤ V} {f : V → M'}
+  (e : M' → H') {x : U} :
+  P (e ∘ f ∘ (chart_at H (set.inclusion hUV x : V)).symm) univ
+    (chart_at H (set.inclusion hUV x : V) (set.inclusion hUV x))
+  ↔ P (e ∘ (f ∘ set.inclusion hUV) ∘ ((chart_at H x).symm)) univ (chart_at H x x) :=
 begin
+  set i := set.inclusion hUV,
   haveI : nonempty U := ⟨x⟩,
   haveI : nonempty V := ⟨i x⟩,
   set e' := chart_at H x.val,
@@ -82,7 +64,7 @@ begin
       exact hy.2 },
     have he'y : e'.symm y ∈ V.local_homeomorph_subtype_coe.target,
     { rw V.local_homeomorph_subtype_coe_target,
-      exact category_theory.le_of_hom i hy', },
+      exact hUV hy', },
     rw [local_homeomorph.subtype_restr_def],
     rw [local_homeomorph.subtype_restr_def],
     have ht : ∀ t, V.local_homeomorph_subtype_coe (i t) = U.local_homeomorph_subtype_coe t,
@@ -105,9 +87,9 @@ begin
     { exact he'y } },
 end
 
-lemma foo (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} (i : U ⟶ V) (f : V → M')
+lemma foo (hG : local_invariant_prop G G' P) {U V : opens M} (hUV : U ≤ V) (f : V → M')
   (x : U) :
-  lift_prop_at P f (i x) ↔ lift_prop_at P (f ∘ i) x :=
+  lift_prop_at P f (set.inclusion hUV x) ↔ lift_prop_at P (f ∘ set.inclusion hUV : U → M') x :=
 ⟨λh, ⟨(foo₁ hG).1 h.1, (foo₂ hG _).1 h.2⟩, λh, ⟨(foo₁ hG).2 h.1, (foo₂ hG _).2 h.2⟩⟩
 
 lemma bar' {Q : (H → H) → (set H) → H → Prop} (hG : local_invariant_prop G G Q)
@@ -115,7 +97,7 @@ lemma bar' {Q : (H → H) → (set H) → H → Prop} (hG : local_invariant_prop
   lift_prop Q (set.inclusion h : U → V) :=
 begin
   intro x,
-  refine (foo hG (category_theory.hom_of_le h) id x).mp _,
+  refine (foo hG h id x).mp _,
   apply hG.lift_prop_id hQ,
 end
 

@@ -492,6 +492,35 @@ lemma set_integral_cond_kernel_univ_left {ρ : measure (α × Ω)} [is_finite_me
   ∫ a, ∫ ω in t, f (a, ω) ∂(ρ.cond_kernel a) ∂ρ.fst = ∫ x in univ ×ˢ t, f x ∂ρ :=
 by { rw ← set_integral_cond_kernel measurable_set.univ ht hf, simp_rw measure.restrict_univ, }
 
+lemma _root_.measure_theory.integrable.integral_norm_cond_kernel
+  {F : Type*} [normed_add_comm_group F]
+  {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → F} (hf_int : integrable f ρ) :
+  integrable (λ x, ∫ y, ‖f (x, y)‖ ∂(ρ.cond_kernel x)) ρ.fst :=
+begin
+  have hf_ae : ae_strongly_measurable f ρ := hf_int.1,
+  nth_rewrite 0 measure_eq_comp_prod ρ at hf_int,
+  rw integrable_comp_prod_iff at hf_int,
+  { simp_rw [kernel.prod_mk_left_apply, kernel.const_apply] at hf_int,
+    exact hf_int.2, },
+  { rwa ← measure_eq_comp_prod ρ, },
+end
+
+lemma _root_.measure_theory.integrable.norm_integral_cond_kernel
+  {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → E} (hf_int : integrable f ρ) :
+  integrable (λ x, ‖∫ y, f (x, y) ∂(ρ.cond_kernel x)‖) ρ.fst :=
+begin
+  refine hf_int.integral_norm_cond_kernel.mono hf_int.1.integral_cond_kernel.norm _,
+  refine eventually_of_forall (λ x, _),
+  rw norm_norm,
+  refine (norm_integral_le_integral_norm _).trans_eq (real.norm_of_nonneg _).symm,
+  exact integral_nonneg_of_ae (eventually_of_forall (λ y, norm_nonneg _)),
+end
+
+lemma _root_.measure_theory.integrable.integral_cond_kernel
+  {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → E} (hf_int : integrable f ρ) :
+  integrable (λ x, ∫ y, f (x, y) ∂(ρ.cond_kernel x)) ρ.fst :=
+(integrable_norm_iff hf_int.1.integral_cond_kernel).mp hf_int.norm_integral_cond_kernel
+
 end integral_cond_kernel
 
 end polish

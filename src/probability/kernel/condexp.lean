@@ -226,48 +226,15 @@ begin
     exact measurable_cond_distrib hs, },
 end
 
-lemma integrable_integral_norm_cond_kernel {F : Type*} {mβ : measurable_space β}
-  {ρ : measure (β × Ω)} [is_finite_measure ρ]
-  [normed_add_comm_group F] {f : β × Ω → F} (hf_int : integrable f ρ) :
-  integrable (λ x, ∫ y, ‖f (x, y)‖ ∂(ρ.cond_kernel x)) ρ.fst :=
-begin
-  have hf_int' := hf_int,
-  nth_rewrite 0 measure_eq_comp_prod ρ at hf_int,
-  rw integrable_comp_prod_iff at hf_int,
-  swap,
-  { rw ←measure_eq_comp_prod ρ,
-    exact hf_int'.1, },
-  simp_rw [kernel.prod_mk_left_apply, kernel.const_apply] at hf_int,
-  exact hf_int.2,
-end
-
-lemma integrable_norm_integral_cond_kernel {mβ : measurable_space β}
-  {ρ : measure (β × Ω)} [is_finite_measure ρ] {f : β × Ω → F} (hf_int : integrable f ρ) :
-  integrable (λ x, ‖∫ y, f (x, y) ∂(ρ.cond_kernel x)‖) ρ.fst :=
-begin
-  refine integrable.mono (integrable_integral_norm_cond_kernel hf_int)
-    hf_int.1.integral_cond_kernel.norm _,
-  refine eventually_of_forall (λ x, _),
-  rw norm_norm,
-  refine (norm_integral_le_integral_norm _).trans_eq _,
-  { rw real.norm_of_nonneg,
-    exact integral_nonneg_of_ae (eventually_of_forall (λ y, norm_nonneg _)), },
-end
-
-lemma integrable_integral_cond_kernel {mβ : measurable_space β}
-  {ρ : measure (β × Ω)} [is_finite_measure ρ] {f : β × Ω → F} (hf_int : integrable f ρ) :
-  integrable (λ x, ∫ y, f (x, y) ∂(ρ.cond_kernel x)) ρ.fst :=
-(integrable_norm_iff (ae_strongly_measurable.integral_cond_kernel hf_int.1)).mp
-  (integrable_norm_integral_cond_kernel hf_int)
-
-lemma integrable_cond_distrib {mβ : measurable_space β} (hX : measurable X) (hY : measurable Y)
+lemma _root_.measure_theory.integrable.integral_cond_distrib {mβ : measurable_space β}
+  (hX : measurable X) (hY : measurable Y)
   {f : β × Ω → F} (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
   integrable (λ ω, ∫ y, f (X ω, y) ∂(cond_distrib Y X μ (X ω))) μ :=
 begin
   change integrable ((λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) ∘ X) μ,
   refine integrable.comp_measurable _ hX,
   rw [← fst_map_prod_mk hX hY, cond_distrib],
-  exact integrable_integral_cond_kernel hf_int,
+  exact hf_int.integral_cond_kernel,
 end
 
 lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib
@@ -289,7 +256,7 @@ begin
   have hf_int' : integrable (λ ω, f (X ω, Y ω)) μ,
   { exact (integrable_map_measure hf_int.1 (hX.prod_mk hY).ae_measurable).mp hf_int, },
   refine (ae_eq_condexp_of_forall_set_integral_eq hX.comap_le hf_int' (λ s hs hμs, _) _ _).symm,
-  { exact (integrable_cond_distrib hX hY hf_int).integrable_on, },
+  { exact (hf_int.integral_cond_distrib hX hY).integrable_on, },
   { rintros s ⟨t, ht, rfl⟩ _,
     change ∫ ω in X ⁻¹' t, ((λ x', ∫ y, f (x', y) ∂(cond_distrib Y X μ) x') ∘ X) ω ∂μ
       = ∫ ω in X ⁻¹' t, f (X ω, Y ω) ∂μ,

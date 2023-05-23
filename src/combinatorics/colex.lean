@@ -26,13 +26,12 @@ fixed size. If the size is 3, colex on ℕ starts
 
 ## Main statements
 
-* `colex.to_colex_image_lt_to_colex_image`: strictly monotone functions preserve colex
 * Colex order properties - linearity, decidability and so on.
-* `forall_lt_of_colex_lt_of_forall_lt`: if `A < B` in colex, and everything
-  in `B` is < t, then everything in `A` is < t. This confirms the idea that
-  an enumeration under colex will exhaust all sets using elements < t before
-  allowing `t` to be included.
-* `sum_two_pow_le_iff_lt`: colex for α = ℕ is the same as binary
+* `finset.colex.forall_lt_mono`: if `s < t` in colex, and everything in `t` is `< a`, then
+  everything in `s` is `< a`. This confirms the idea that an enumeration under colex will exhaust
+  all sets using elements `< a` before allowing `a` to be included.
+* `finset.to_colex_image_lt_to_colex_image`: Strictly monotone functions preserve colex.
+* `finset.sum_two_pow_le_iff_colex_le`: colex for α = ℕ is the same as binary
   (this also proves binary expansions are unique)
 
 ## See also
@@ -143,18 +142,16 @@ instance : is_irrefl (colex α) (<) := ⟨by simp [(<)]⟩
 @[simp] lemma sdiff_lt_sdiff_iff_lt [decidable_eq α] (s t : finset α) :
   (s \ t).to_colex < (t \ s).to_colex ↔ s.to_colex < t.to_colex :=
 begin
-  rw [colex.lt_def, colex.lt_def],
+  rw [lt_def, lt_def],
   refine exists_congr (λ k, _),
   simp only [mem_sdiff, not_and, not_not],
   split,
   { rintro ⟨z, kAB, kB, kA⟩,
-    refine ⟨_, kA, kB⟩,
-    { intros x hx,
-      specialize z hx,
-      tauto } },
+    refine ⟨λ x hx, _, kA, kB⟩,
+    specialize z hx,
+    tauto },
   { rintro ⟨z, kA, kB⟩,
-    refine ⟨_, λ _, kB, kB, kA⟩,
-    intros x hx,
+    refine ⟨λ x hx, _, λ _, kB, kB, kA⟩,
     rw z hx }
 end
 
@@ -162,50 +159,21 @@ end has_lt
 
 section linear_order
 variables [linear_order α] [linear_order β] {f : α → β} {𝒜 𝒜₁ 𝒜₂ : finset (finset α)}
-  {s t : finset α} {r : ℕ}
+  {s t : finset α} {a b : α} {r : ℕ}
 
-instance : is_strict_order (colex α) (<) :=
+instance : is_strict_total_order (colex α) (<) :=
 { irrefl := irrefl_of (<),
   trans := λ s t u, begin
     rintro ⟨k₁, k₁z, notinA, inB⟩ ⟨k₂, k₂z, notinB, inC⟩,
-    cases lt_or_gt_of_ne (ne_of_mem_of_not_mem inB notinB),
+    cases (ne_of_mem_of_not_mem inB notinB).lt_or_lt,
     { refine ⟨k₂, λ x hx, _, by rwa k₁z h, inC⟩,
       rw ← k₂z hx,
       exact k₁z (trans h hx) },
     { refine ⟨k₁, λ x hx, _, notinA, by rwa ← k₂z h⟩,
       rw k₁z hx,
       exact k₂z (trans h hx) }
-  end }
-
-instance : partial_order (colex α) := partial_order_of_SO (<)
-
-/-- Strictly monotone functions preserve the colex ordering. -/
-lemma to_colex_image_lt_to_colex_image (hf : strict_mono f) :
-  (s.image f).to_colex < (t.image f).to_colex ↔ s.to_colex < t.to_colex :=
-begin
-  simp only [lt_def, not_exists, mem_image, exists_prop, not_and],
-  split,
-  { rintro ⟨k, z, q, k', _, rfl⟩,
-    exact ⟨k', λ x hx, by simpa [hf.injective.eq_iff] using z (hf hx), λ t, q _ t rfl, ‹k' ∈ t›⟩ },
-  rintro ⟨k, z, ka, _⟩,
-  refine ⟨f k, λ x hx, _, _, k, ‹k ∈ t›, rfl⟩,
-  { split,
-    any_goals
-    { rintro ⟨x', hx', rfl⟩,
-      refine ⟨x', _, rfl⟩,
-      rwa ← z _ <|> rwa z _,
-      rwa strict_mono.lt_iff_lt hf at hx } },
-  { simp only [hf.injective, function.injective.eq_iff],
-    exact λ x hx, ne_of_mem_of_not_mem hx ka }
-end
-
-/-- Strictly monotone functions preserve the colex ordering. -/
-lemma to_colex_image_le_to_colex_image (hf : strict_mono f) :
-  (s.image f).to_colex ≤ (t.image f).to_colex ↔ s.to_colex ≤ t.to_colex :=
-by simp [le_iff_lt_or_eq, to_colex_image_lt_to_colex_image hf, hf.injective.finset_image.eq_iff]
-
-instance : is_strict_total_order (colex α) (<) :=
-{ trichotomous := λ s t, begin
+  end,
+  trichotomous := λ s t, begin
     classical,
     obtain rfl | hts := eq_or_ne t s,
     { simp },
@@ -228,71 +196,6 @@ instance decidable_lt : @decidable_rel (colex α) (<) :=
 
 instance : linear_order (colex α) := linear_order_of_STO (<)
 
-/-- Strictly monotone functions preserve the colex ordering. -/
-lemma hom_le_iff {β : Type*} [linear_order β]
-  {f : α → β} (h₁ : strict_mono f) (A B : finset α) :
-  (A.image f).to_colex ≤ (B.image f).to_colex ↔ A.to_colex ≤ B.to_colex :=
-by rw [le_iff_le_iff_lt_iff_lt, to_colex_image_lt_to_colex_image h₁]
-
-/-- A special case of `colex_hom` which is sometimes useful. -/
-@[simp] lemma hom_fin_le_iff {n : ℕ} (A B : finset (fin n)) :
-  (A.image (λ i : fin n, (i : ℕ))).to_colex ≤ (B.image (λ i : fin n, (i : ℕ))).to_colex
-   ↔ A.to_colex ≤ B.to_colex :=
-colex.hom_le_iff (λ x y k, k) _ _
-
-/--
-If `A` is before `B` in colex, and everything in `B` is small, then everything in `A` is small.
--/
-lemma forall_lt_of_colex_lt_of_forall_lt {A B : finset α}
-  (t : α) (h₁ : A.to_colex < B.to_colex) (h₂ : ∀ x ∈ B, x < t) :
-  ∀ x ∈ A, x < t :=
-begin
-  rw colex.lt_def at h₁,
-  rcases h₁ with ⟨k, z, _, _⟩,
-  intros x hx,
-  apply lt_of_not_ge,
-  intro a,
-  refine not_lt_of_ge a (h₂ x _),
-  rwa ← z,
-  apply lt_of_lt_of_le (h₂ k ‹_›) a,
-end
-
-/-- `s.to_colex < {r}.to_colex` iff all elements of `s` are less than `r`. -/
-lemma lt_singleton_iff_mem_lt {r : α} {s : finset α} :
-  s.to_colex < ({r} : finset α).to_colex ↔ ∀ x ∈ s, x < r :=
-begin
-  simp only [lt_def, mem_singleton, ←and_assoc, exists_eq_right],
-  split,
-  { intros t x hx,
-    rw ←not_le,
-    intro h,
-    rcases lt_or_eq_of_le h with h₁ | rfl,
-    { exact ne_of_irrefl h₁ ((t.1 h₁).1 hx).symm },
-    { exact t.2 hx } },
-  { exact λ h, ⟨λ z hz, ⟨λ i, (asymm hz (h _ i)).elim, λ i, (hz.ne' i).elim⟩, by simpa using h r⟩ }
-end
-
-/-- If {r} is less than or equal to s in the colexicographical sense,
-  then s contains an element greater than or equal to r. -/
-lemma mem_le_of_singleton_le {r : α} {s : finset α}:
-  ({r} : finset α).to_colex ≤ s.to_colex ↔ ∃ x ∈ s, r ≤ x :=
-by { rw ←not_lt, simp [lt_singleton_iff_mem_lt] }
-
-/-- Colex is an extension of the base ordering on α. -/
-lemma singleton_lt_iff_lt {r s : α} :
-  ({r} : finset α).to_colex < ({s} : finset α).to_colex ↔ r < s :=
-by simp [lt_singleton_iff_mem_lt]
-
-/-- Colex is an extension of the base ordering on α. -/
-lemma singleton_le_iff_le {r s : α} :
-  ({r} : finset α).to_colex ≤ ({s} : finset α).to_colex ↔ r ≤ s :=
-by rw [le_iff_le_iff_lt_iff_lt, singleton_lt_iff_lt]
-
-/-- Colex doesn't care if you remove the other set -/
-@[simp] lemma sdiff_le_sdiff_iff_le (A B : finset α) :
-  (A \ B).to_colex ≤ (B \ A).to_colex ↔ A.to_colex ≤ B.to_colex :=
-by rw [le_iff_le_iff_lt_iff_lt, sdiff_lt_sdiff_iff_lt]
-
 instance : order_bot (colex α) :=
 { bot := (∅ : finset α).to_colex,
   bot_le := λ s, begin
@@ -309,6 +212,11 @@ instance : order_bot (colex α) :=
 --TODO: This lemma should be simp, but its LHS is not in simp normal form because
 -- `finset.bot_eq_empty` (wrongfully) applies
 lemma of_colex_bot : of_colex (⊥ : colex α) = ∅ := rfl
+
+/-- Colex doesn't care if you remove the other set -/
+@[simp] lemma sdiff_le_sdiff_iff_le (A B : finset α) :
+  (A \ B).to_colex ≤ (B \ A).to_colex ↔ A.to_colex ≤ B.to_colex :=
+by rw [le_iff_le_iff_lt_iff_lt, sdiff_lt_sdiff_iff_lt]
 
 /-- If `A ⊂ B`, then `A` is less than `B` in the colex order. Note the converse does not hold, as
 `⊆` is not a linear order. -/
@@ -333,6 +241,68 @@ instance [fintype α] : bounded_order (colex α) :=
 --TODO: This lemma should be simp, but its LHS is not in simp normal form because
 -- `finset.top_eq_univ` (wrongfully) applies
 lemma of_colex_top [fintype α] : of_colex (⊤ : colex α) = univ := rfl
+
+/-- `s < {a}` in colex iff all elements of `s` are strictly less than `a`. -/
+lemma to_colex_lt_singleton : s.to_colex < ({a} : finset α).to_colex ↔ ∀ x ∈ s, x < a :=
+begin
+  simp only [lt_def, mem_singleton, ←and_assoc, exists_eq_right],
+  split,
+  { intros t x hx,
+    rw ←not_le,
+    intro h,
+    rcases lt_or_eq_of_le h with h₁ | rfl,
+    { exact ne_of_irrefl h₁ ((t.1 h₁).1 hx).symm },
+    { exact t.2 hx } },
+  { exact λ h, ⟨λ z hz, ⟨λ i, (asymm hz (h _ i)).elim, λ i, (hz.ne' i).elim⟩, by simpa using h a⟩ }
+end
+
+/-- `{a} ≤ s` in colex iff `r` contains an element greated than or equal to `a`. -/
+lemma singleton_le_to_colex : ({a} : finset α).to_colex ≤ s.to_colex ↔ ∃ x ∈ s, a ≤ x :=
+by simp [←not_lt, to_colex_lt_singleton]
+
+/-- Colex is an extension of the base order. -/
+lemma singleton_lt_singleton : ({a} : finset α).to_colex < ({b} : finset α).to_colex ↔ a < b :=
+by simp [to_colex_lt_singleton]
+
+/-- Colex is an extension of the base order. -/
+lemma singleton_le_singleton : ({a} : finset α).to_colex ≤ ({b} : finset α).to_colex ↔ a ≤ b :=
+by rw [le_iff_le_iff_lt_iff_lt, singleton_lt_singleton]
+
+/-- If `s` is before `t` in colex, and everything in `t` is small, then everything in `s` is small.
+-/
+lemma forall_lt_mono (h₁ : s.to_colex ≤ t.to_colex) (h₂ : ∀ x ∈ t, x < a) : ∀ x ∈ s, x < a :=
+begin
+  rw le_def at h₁,
+  obtain rfl | ⟨k, z, -, hk⟩ := h₁,
+  { assumption },
+  { refine λ x hx, lt_of_not_le (λ h, h.not_lt $ h₂ x _),
+    rwa ←z ((h₂ k hk).trans_le h) }
+end
+
+/-- Strictly monotone functions preserve the colex ordering. -/
+lemma _root_.finset.to_colex_image_lt_to_colex_image (hf : strict_mono f) :
+  (s.image f).to_colex < (t.image f).to_colex ↔ s.to_colex < t.to_colex :=
+begin
+  simp only [lt_def, not_exists, mem_image, exists_prop, not_and],
+  split,
+  { rintro ⟨k, z, q, k', _, rfl⟩,
+    exact ⟨k', λ x hx, by simpa [hf.injective.eq_iff] using z (hf hx), λ t, q _ t rfl, ‹k' ∈ t›⟩ },
+  rintro ⟨k, z, ka, _⟩,
+  refine ⟨f k, λ x hx, _, _, k, ‹k ∈ t›, rfl⟩,
+  { split,
+    any_goals
+    { rintro ⟨x', hx', rfl⟩,
+      refine ⟨x', _, rfl⟩,
+      rwa ← z _ <|> rwa z _,
+      rwa strict_mono.lt_iff_lt hf at hx } },
+  { simp only [hf.injective, function.injective.eq_iff],
+    exact λ x hx, ne_of_mem_of_not_mem hx ka }
+end
+
+/-- Strictly monotone functions preserve the colex ordering. -/
+lemma _root_.finset.to_colex_image_le_to_colex_image (hf : strict_mono f) :
+  (s.image f).to_colex ≤ (t.image f).to_colex ↔ s.to_colex ≤ t.to_colex :=
+by rw [le_iff_le_iff_lt_iff_lt, to_colex_image_lt_to_colex_image hf]
 
 /-! ### Initial segments -/
 
@@ -404,6 +374,9 @@ lemma is_init_seg_init_seg : is_init_seg (init_seg s) s.card :=
 (is_init_seg_iff_exists_init_seg.2 ⟨s, rfl, rfl⟩).2
 
 end linear_order
+end colex
+
+open colex
 
 /-!
 ### Colex on `ℕ`
@@ -414,19 +387,13 @@ binary expansion.
 
 section nat
 
-/-- A special case of `colex.to_colex_image_lt_to_colex_image` which is sometimes useful. -/
-@[simp] lemma hom_fin_lt_iff {n : ℕ} (A B : finset (fin n)) :
-  (A.image (λ i : fin n, (i : ℕ))).to_colex < (B.image (λ i : fin n, (i : ℕ))).to_colex
-    ↔ A.to_colex < B.to_colex :=
-colex.to_colex_image_lt_to_colex_image $ λ x y, id
-
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_colex_lt (A B : finset ℕ) :
   ∑ i in A, 2^i < ∑ i in B, 2^i ↔ A.to_colex < B.to_colex :=
 begin
   have z : ∀ (A B : finset ℕ), A.to_colex < B.to_colex → ∑ i in A, 2^i < ∑ i in B, 2^i,
   { intros A B,
-    rw [← sdiff_lt_sdiff_iff_lt, colex.lt_def],
+    rw [← sdiff_lt_sdiff_iff_lt, lt_def],
     rintro ⟨k, z, kA, kB⟩,
     rw ← sdiff_union_inter A B,
     conv_rhs { rw ← sdiff_union_inter B A },
@@ -436,7 +403,7 @@ begin
     { apply single_le_sum (λ _ _, nat.zero_le _) kB },
     intros x hx,
     apply lt_of_le_of_ne (le_of_not_lt (λ kx, _)),
-    { apply (ne_of_mem_of_not_mem hx kA) },
+    { exact (ne_of_mem_of_not_mem hx kA) },
     have := (z kx).1 hx,
     rw mem_sdiff at this hx,
     exact hx.2 this.1 },
@@ -444,7 +411,7 @@ begin
     (λ h₁, h₁.elim _ (not_lt_of_gt h ∘ z _ _)), z A B⟩,
   rw to_colex_inj,
   rintro rfl,
-  apply irrefl _ h
+  exact irrefl _ h,
 end
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
@@ -453,5 +420,4 @@ lemma sum_two_pow_le_iff_colex_le (A B : finset ℕ) :
 by rw [le_iff_le_iff_lt_iff_lt, sum_two_pow_lt_iff_colex_lt]
 
 end nat
-end colex
 end finset

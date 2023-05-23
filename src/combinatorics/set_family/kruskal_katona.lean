@@ -161,13 +161,13 @@ begin
   rcases lt_trichotomy k a with lt | rfl | gt,
   { apply mem_insert_of_mem,
     rw z lt,
-    apply mem_erase_of_ne_of_mem _ ha,
-    apply ne_of_gt (lt_of_le_of_lt _ lt),
+    refine mem_erase_of_ne_of_mem (lt_of_le_of_lt _ lt).ne' ha,
     apply min'_le _ _ (mem_of_mem_erase ‹_›) },
   { rw r₁, apply mem_insert_self },
-  { apply mem_insert_of_mem, rw ←r₁ at gt,
+  { apply mem_insert_of_mem,
+    rw ←r₁ at gt,
     by_contra,
-    apply not_lt_of_le (min'_le tᶜ _ _) gt,
+    apply (min'_le tᶜ _ _).not_lt gt,
     rwa mem_compl }
 end
 
@@ -409,8 +409,8 @@ If `|𝒜| ≥ k choose r`, (and everything in `𝒜` has size `r`) then the ini
 is just all the subsets of `{0, ..., k - 1}` of size `r`. The `i`-th iterated shadow of this is all
 the subsets of `{0, ..., k - 1}` of size `r - i`, so the `i`-th iterated shadow of `𝒜` has at least
 `k.choose (r - i)` elements. -/
-theorem lovasz_form {𝒜 : finset (finset X)} (hir : i ≤ r)
-  (hrk : r ≤ k) (hkn : k ≤ n) (h₁ : (𝒜 : set (finset X)).sized r) (h₂ : k.choose r ≤ 𝒜.card) :
+theorem lovasz_form (hir : i ≤ r) (hrk : r ≤ k) (hkn : k ≤ n) (h₁ : (𝒜 : set (finset X)).sized r)
+  (h₂ : k.choose r ≤ 𝒜.card) :
   k.choose (r - i) ≤ (shadow^[i] 𝒜).card :=
 begin
   set range'k : finset X := attach_fin (range k)
@@ -433,17 +433,14 @@ begin
     intros t th,
     rw [mem_attach_fin, mem_range],
     have : (image coe B).to_colex < (image coe A).to_colex,
-    { rwa colex.hom_fin_lt_iff },
-    apply colex.forall_lt_of_colex_lt_of_forall_lt k this _ t.val _,
-      intros x hx,
-      rw mem_image at hx,
-      rw mem_powerset_len at hA,
-      rcases hx with ⟨a, ha, q⟩,
-      rw [←q, ←mem_range],
-      have := hA.1 ha,
-      rwa mem_attach_fin at this,
-    rw mem_image,
-    exact ⟨t, th, rfl⟩ },
+    { rwa to_colex_image_lt_to_colex_image fin.coe_strict_mono },
+    apply colex.forall_lt_mono this.le _ t (mem_image.2 ⟨t, th, rfl⟩),
+    simp_rw mem_image,
+    rintro _  ⟨a, ha, q⟩,
+    rw mem_powerset_len at hA,
+    rw [←q, ←mem_range],
+    have := hA.1 ha,
+    rwa mem_attach_fin at this },
   suffices : (shadow^[i] 𝒞) = powerset_len (r-i) range'k,
   { rw [this, card_powerset_len, card_attach_fin, card_range] },
   ext B,
@@ -453,14 +450,13 @@ begin
     rw mem_powerset_len at Ah,
     refine ⟨subset.trans BsubA Ah.1, _⟩,
     symmetry,
-    rw [nat.sub_eq_iff_eq_add hir, ←Ah.2, ←card_sdiff_i,
-        ←card_disjoint_union disjoint_sdiff,
-        union_sdiff_of_subset BsubA] },
+    rw [nat.sub_eq_iff_eq_add hir, ←Ah.2, ←card_sdiff_i, ←card_disjoint_union disjoint_sdiff,
+      union_sdiff_of_subset BsubA] },
   rintro ⟨hBk, hB⟩,
-  rcases exists_intermediate_set i _ hBk with ⟨C, BsubC, Csubrange, cards⟩,
+  obtain ⟨C, BsubC, Csubrange, cards⟩ := exists_intermediate_set i _ hBk,
   rw [hB, ←nat.add_sub_assoc hir, nat.add_sub_cancel_left] at cards,
   refine ⟨C, _, BsubC, _⟩, rw mem_powerset_len, exact ⟨Csubrange, cards⟩,
-  rw [card_sdiff BsubC, cards, hB, nat.sub_sub_self hir],
+  { rw [card_sdiff BsubC, cards, hB, nat.sub_sub_self hir] },
   { rwa [hB, card_attach_fin, card_range, ←nat.add_sub_assoc hir, nat.add_sub_cancel_left] }
 end
 
@@ -525,7 +521,7 @@ begin
     convert lt_of_le_of_lt (add_le_add_left kk _) (add_lt_add_right size _),
     convert nat.choose_succ_succ _ _,
     any_goals {rwa [nat.sub_one, nat.succ_pred_eq_of_pos]},
-  apply not_le_of_lt this,
+  apply this.not_le,
   convert set.sized.card_le _,
   rw fintype.card_fin,
   rw [coe_union, set.sized_union],

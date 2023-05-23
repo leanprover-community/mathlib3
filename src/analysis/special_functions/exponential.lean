@@ -249,6 +249,8 @@ lemma has_fderiv_at_exp_smul_const_of_mem_ball
   has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) t :=
 begin
+  -- TODO: prove this via `has_fderiv_at_exp_of_mem_ball` using the commutative ring
+  -- `algebra.elemental_algebra 𝔸 x`. See leanprover-community/mathlib#19062 for discussion.
   have hpos : 0 < (exp_series 𝕂 𝔹).radius := (zero_le _).trans_lt htx,
   rw has_fderiv_at_iff_is_o_nhds_zero,
   suffices :

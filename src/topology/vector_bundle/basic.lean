@@ -496,6 +496,24 @@ by { ext v, rw [coord_changeL_apply e e' hb], refl }
 
 end trivialization
 
+section hom
+
+variables {B' F' B'' F'' : Type*} {E' : B' → Type*} {E'' : B'' → Type*}
+  [Π x, add_comm_monoid (E' x)] [Π x, module R (E' x)] [Π x, topological_space (E' x)]
+  [normed_add_comm_group F'] [normed_space R F'] [topological_space B']
+  [topological_space (total_space E')] [fiber_bundle F' E']
+  [Π x, add_comm_monoid (E'' x)] [Π x, module R (E'' x)] [Π x, topological_space (E'' x)]
+  [normed_add_comm_group F''] [normed_space R F''] [topological_space B'']
+  [topological_space (total_space E'')] [fiber_bundle F'' E'']
+
+variables (R F E F' E')
+structure vector_bundle_hom :=
+  (to_fun : C(B, B'))
+  (to_clm : Π b, E b →L[R] E' (to_fun b))
+  (cont : continuous (λ x : total_space E, total_space_mk (to_fun x.proj) (to_clm x.proj x.2)))
+
+end hom
+
 include R F
 
 /-! ### Constructing vector bundles -/

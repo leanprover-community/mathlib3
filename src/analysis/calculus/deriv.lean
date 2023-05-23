@@ -1678,31 +1678,32 @@ section star
 variables [star_ring 𝕜] [has_trivial_star 𝕜] [star_add_monoid F] [has_continuous_star F]
 variable [star_module 𝕜 F]
 
-theorem has_deriv_at_filter.star (h : has_deriv_at_filter f f' x L) :
+protected theorem has_deriv_at_filter.star (h : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ x, star (f x)) (star f') x L :=
 by simpa using h.star.has_deriv_at_filter
 
-theorem has_deriv_within_at.star (h : has_deriv_within_at f f' s x) :
+protected theorem has_deriv_within_at.star (h : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, star (f x)) (star f') s x :=
 h.star
 
-theorem has_deriv_at.star (h : has_deriv_at f f' x) : has_deriv_at (λ x, star (f x)) (star f') x :=
+protected theorem has_deriv_at.star (h : has_deriv_at f f' x) :
+  has_deriv_at (λ x, star (f x)) (star f') x :=
 h.star
 
-theorem has_strict_deriv_at.star (h : has_strict_deriv_at f f' x) :
+protected theorem has_strict_deriv_at.star (h : has_strict_deriv_at f f' x) :
   has_strict_deriv_at (λ x, star (f x)) (star f') x :=
 by simpa using h.star.has_strict_deriv_at
 
-lemma deriv_within.star (hxs : unique_diff_within_at 𝕜 s x) :
+protected lemma deriv_within.star (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λy, star (f y)) s x = star (deriv_within f s x) :=
 by simp only [deriv_within, fderiv_within_star hxs, continuous_linear_map.comp_apply,
   continuous_linear_equiv.coe_apply, starL'_apply]
 
-lemma deriv.star : deriv (λy, star (f y)) x = star (deriv f x) :=
+protected lemma deriv.star : deriv (λy, star (f y)) x = star (deriv f x) :=
 by simp only [deriv, fderiv_star, continuous_linear_map.comp_apply,
   continuous_linear_equiv.coe_apply, starL'_apply]
 
-@[simp] lemma deriv.star' : deriv (λy, star (f y)) = (λ x, star (deriv f x)) :=
+@[simp] protected lemma deriv.star' : deriv (λy, star (f y)) = (λ x, star (deriv f x)) :=
 funext $ λ x, deriv.star
 
 end star

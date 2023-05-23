@@ -451,7 +451,7 @@ section integral_cond_kernel
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_kernel
-  {f : α × Ω → E} (hf : ae_strongly_measurable f ρ) :
+  {ρ : measure (α × Ω)} [is_finite_measure ρ] {f : α × Ω → E} (hf : ae_strongly_measurable f ρ) :
   ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(ρ.cond_kernel x)) ρ.fst :=
 begin
   rw measure_eq_comp_prod ρ at hf,

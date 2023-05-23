@@ -53,9 +53,13 @@ begin
   rintros ⟨x, hx : x ∈ U⟩,
   rw mdifferentiable_at_iff_lift_prop_at,
   apply (differentiable_within_at_local_invariant_prop I I).bar',
-  -- { intro y,
-  sorry,
-  sorry,
+  { intros y,
+    dsimp [differentiable_within_at_prop],
+    rw [set.univ_inter],
+    refine differentiable_within_at_id.congr _ _,
+    { exact I.right_inv_on },
+    { exact congr_arg I (I.left_inv y) } },
+  apply_instance
 end
 
 end

@@ -164,7 +164,7 @@ variables {mα : measurable_space α} {μ : measure α} {X : α → β} {Y : α 
 
 /-- **Regular conditional probability distribution**: kernel associated with the conditional
 expectation of `Y` given `X`. -/
-noncomputable
+@[irreducible] noncomputable
 def cond_distrib {mα : measurable_space α} [measurable_space β]
   (Y : α → Ω) (X : α → β) (μ : measure α) [is_finite_measure μ] :
   kernel β Ω :=
@@ -241,7 +241,7 @@ lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib
   {mβ : measurable_space β} (hX : measurable X) (hY : measurable Y)
   {f : β × Ω → F} (hf : ae_strongly_measurable f (μ.map (λ ω, (X ω, Y ω)))) :
   ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) (μ.map X) :=
-by { rw ← fst_map_prod_mk hX hY, exact hf.integral_cond_kernel, }
+by { rw ← fst_map_prod_mk hX hY, rw cond_distrib, exact hf.integral_cond_kernel, }
 
 lemma ae_strongly_measurable'_integral_cond_distrib {mβ : measurable_space β}
   (hX : measurable X) (hY : measurable Y)

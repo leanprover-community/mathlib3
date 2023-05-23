@@ -308,6 +308,32 @@ end gluing
 
 end continuous_map
 
+namespace quotient_map
+
+variables {X Y Z Z' : Type*} [topological_space X] [topological_space Y] [topological_space Z]
+  [topological_space Z']
+
+/-- Lift a continuous map that factors through a quotient map. See the docstring of
+`function.factors_through.surj_lift` for similar constructions with other assumptions. -/
+@[simps { fully_applied := ff }]
+noncomputable def lift {f : X → Y} (hf : quotient_map f) (g : C(X, Z)) (hg : factors_through g f) :
+  C(Y, Z) :=
+⟨hg.surj_lift hf.1, (hf.continuous_surj_lift hg).2 g.continuous⟩
+
+@[simp] lemma lift_comp {f : C(X, Y)} (hf : quotient_map f) (g : C(X, Z))
+  (hg : factors_through g f) : (hf.lift g hg).comp f = g :=
+fun_like.ext _ _ $ hg.surj_lift_eq _
+
+lemma comp_lift {f : C(X, Y)} (hf : quotient_map f) {g : C(X, Z)} (hg : factors_through g f)
+  (g' : C(Z, Z')) : g'.comp (hf.lift g hg) = hf.lift (g'.comp g) (hg.comp_left g') :=
+fun_like.ext' $ hg.comp_surj_lift _ _
+
+lemma lift_uniq {f : C(X, Y)} (hf : quotient_map f) {g : C(X, Z)} {g' : C(Y, Z)}
+  (h : g'.comp f = g) : g' = hf.lift g (factors_through.of_comp_eq $ fun_like.ext'_iff.1 h) :=
+fun_like.ext' $ factors_through.surj_lift_uniq _ (fun_like.ext'_iff.1 h)
+
+end quotient_map
+
 namespace homeomorph
 variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
 variables (f : α ≃ₜ β) (g : β ≃ₜ γ)

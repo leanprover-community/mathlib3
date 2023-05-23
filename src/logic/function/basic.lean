@@ -640,6 +640,53 @@ lemma bijective.comp_right (hf : bijective f) :
 
 end extend
 
+namespace factors_through
+
+local attribute [instance, priority 10] classical.prop_decidable
+variables {α β γ δ : Sort*} {f : α → β} {g : α → γ}
+
+protected theorem rfl : factors_through f f := λ _ _, id
+
+theorem comp_left (h : factors_through g f) (g' : γ → δ) :
+  factors_through (g' ∘ g) f :=
+λ x y hxy, show g' (g x) = g' (g y), from congr_arg g' (h hxy)
+
+theorem of_comp_eq {g' : β → γ} (h : g' ∘ f = g) : factors_through g f :=
+h ▸ factors_through.rfl.comp_left g'
+
+theorem comp_right (h : factors_through g f) (g' : δ → α) :
+  factors_through (g ∘ g') (f ∘ g') :=
+λ x y hxy, h hxy
+
+/-- Lift a map `g : α → γ` that factors through a surjective map `f : α → β` to a map `β → γ`.
+If `f` is `quotient.mk`, then a computable version is available as `quotient.lift`.
+If `γ` is nonempty, then `function.extend` can be used to achieve the same result. -/
+noncomputable def surj_lift (hg : factors_through g f) (hf : surjective f) :
+  β → γ :=
+g ∘ surj_inv hf
+
+lemma surj_lift_eq_extend (hg : factors_through g f) (hf : surjective f) (f' : β → γ) :
+  hg.surj_lift hf = extend f g f' :=
+funext $ λ y, by simp only [surj_lift, surj_inv, extend, dif_pos (hf y), (∘)]
+
+@[simp] lemma surj_lift_eq (hg : factors_through g f) (hf : surjective f) (x : α) :
+  hg.surj_lift hf (f x) = g x :=
+hg (surj_inv_eq _ _)
+
+@[simp] lemma surj_lift_comp (hg : factors_through g f) (hf : surjective f) :
+  hg.surj_lift hf ∘ f = g :=
+funext (hg.surj_lift_eq hf)
+
+lemma surj_lift_uniq (hf : surjective f) {g' : β → γ} (hg : g' ∘ f = g) :
+  g' = surj_lift (of_comp_eq hg) hf :=
+hf.injective_comp_right $ hg.trans ((of_comp_eq hg).surj_lift_comp hf).symm
+
+lemma comp_surj_lift (hg : factors_through g f) (hf : surjective f) (g' : γ → δ) :
+  g' ∘ hg.surj_lift hf = (hg.comp_left g').surj_lift hf :=
+surj_lift_uniq hf $ by rw [comp.assoc, surj_lift_comp]
+
+end factors_through
+
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
 rfl
 

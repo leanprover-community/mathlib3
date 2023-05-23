@@ -259,6 +259,10 @@ protected lemma continuous_iff (hf : quotient_map f) :
   continuous g ↔ continuous (g ∘ f) :=
 by rw [continuous_iff_coinduced_le, continuous_iff_coinduced_le, hf.right, coinduced_compose]
 
+lemma continuous_surj_lift {g : α → γ} (hf : quotient_map f) (hg : factors_through g f) :
+  continuous (hg.surj_lift hf.1) ↔ continuous g :=
+by rw [hf.continuous_iff, hg.surj_lift_comp]
+
 protected lemma continuous (hf : quotient_map f) : continuous f :=
 hf.continuous_iff.mp continuous_id
 

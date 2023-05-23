@@ -1494,6 +1494,19 @@ h.mono $ λ x, mt
   (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
 h.inter h'.compl
 
+lemma set_eventually_le_iff_mem_inf_principal {s t : set α} {l : filter α} :
+  s ≤ᶠ[l] t ↔ t ∈ l ⊓ 𝓟 s :=
+mem_inf_principal.symm
+
+lemma set_eventually_le_iff_inf_principal_le {s t : set α} {l : filter α} :
+  s ≤ᶠ[l] t ↔ l ⊓ 𝓟 s ≤ l ⊓ 𝓟 t :=
+set_eventually_le_iff_mem_inf_principal.trans $
+  by simp only [le_inf_iff, inf_le_left, true_and, le_principal_iff]
+
+lemma set_eventually_eq_iff_inf_principal {s t : set α} {l : filter α} :
+  s =ᶠ[l] t ↔ l ⊓ 𝓟 s = l ⊓ 𝓟 t :=
+by simp only [eventually_le_antisymm_iff, le_antisymm_iff, set_eventually_le_iff_inf_principal_le]
+
 lemma eventually_le.mul_le_mul
   [mul_zero_class β] [partial_order β] [pos_mul_mono β] [mul_pos_mono β]
   {l : filter α} {f₁ f₂ g₁ g₂ : α → β}

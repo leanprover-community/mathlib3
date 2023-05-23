@@ -696,11 +696,53 @@ end
 
 omit Is I's
 
-lemma mdifferentiable_at.prod_mk {f : M → M'} {g : M → M''} {x : M}
+lemma mdifferentiable_within_at.prod_mk {f : M → M'} {g : M → M''}
+  (hf : mdifferentiable_within_at I I' f s x)
+  (hg : mdifferentiable_within_at I I'' g s x) :
+  mdifferentiable_within_at I (I'.prod I'') (λ x, (f x, g x)) s x :=
+⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
+
+lemma mdifferentiable_at.prod_mk {f : M → M'} {g : M → M''}
   (hf : mdifferentiable_at I I' f x)
   (hg : mdifferentiable_at I I'' g x) :
   mdifferentiable_at I (I'.prod I'') (λ x, (f x, g x)) x :=
 ⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
+
+lemma mdifferentiable_on.prod_mk {f : M → M'} {g : M → M''}
+  (hf : mdifferentiable_on I I' f s)
+  (hg : mdifferentiable_on I I'' g s) :
+  mdifferentiable_on I (I'.prod I'') (λ x, (f x, g x)) s :=
+λ x hx, (hf x hx).prod_mk (hg x hx)
+
+lemma mdifferentiable.prod_mk {f : M → M'} {g : M → M''}
+  (hf : mdifferentiable I I' f)
+  (hg : mdifferentiable I I'' g) :
+  mdifferentiable I (I'.prod I'') (λ x, (f x, g x)) :=
+λ x, (hf x).prod_mk (hg x)
+
+lemma mdifferentiable_within_at.prod_mk_space {f : M → E'} {g : M → E''}
+  (hf : mdifferentiable_within_at I 𝓘(𝕜, E') f s x)
+  (hg : mdifferentiable_within_at I 𝓘(𝕜, E'') g s x) :
+  mdifferentiable_within_at I 𝓘(𝕜, E' × E'') (λ x, (f x, g x)) s x :=
+⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
+
+lemma mdifferentiable_at.prod_mk_space {f : M → E'} {g : M → E''}
+  (hf : mdifferentiable_at I 𝓘(𝕜, E') f x)
+  (hg : mdifferentiable_at I 𝓘(𝕜, E'') g x) :
+  mdifferentiable_at I 𝓘(𝕜, E' × E'') (λ x, (f x, g x)) x :=
+⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
+
+lemma mdifferentiable_on.prod_mk_space {f : M → E'} {g : M → E''}
+  (hf : mdifferentiable_on I 𝓘(𝕜, E') f s)
+  (hg : mdifferentiable_on I 𝓘(𝕜, E'') g s) :
+  mdifferentiable_on I 𝓘(𝕜, E' × E'') (λ x, (f x, g x)) s :=
+λ x hx, (hf x hx).prod_mk_space (hg x hx)
+
+lemma mdifferentiable.prod_mk_space {f : M → E'} {g : M → E''}
+  (hf : mdifferentiable I 𝓘(𝕜, E') f)
+  (hg : mdifferentiable I 𝓘(𝕜, E'') g) :
+  mdifferentiable I 𝓘(𝕜, E' × E'') (λ x, (f x, g x)) :=
+λ x, (hf x).prod_mk_space (hg x)
 
 /-! ### Congruence lemmas for derivatives on manifolds -/
 
@@ -1397,6 +1439,9 @@ begin
   rw [mfderiv_id, mfderiv_const, continuous_linear_map.inr]
 end
 
+/-- The total derivative of a function in two variables is the sum of the partial derivatives.
+  Note that to state this (without casts) we need to be able to see through the definition of
+  `tangent_space`. -/
 lemma mfderiv_prod_eq_add {f : M × M' → M''} {p : M × M'}
   (hf : mdifferentiable_at (I.prod I') I'' f p) :
   mfderiv (I.prod I') I'' f p =

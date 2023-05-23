@@ -1629,12 +1629,12 @@ this, for example by giving `f` explicitly, or to force Lean to elaborate `hf` b
 Another better solution is to reformulate composition lemmas to have the following shape
 `continuous_at g y → continuous_at f x → f x = y → continuous_at (g ∘ f) x`.
 This is even useful if the proof of `f x = y` is `rfl`.
-The reason that this works better is because the type of `hg` doesn't mention of `f`.
+The reason that this works better is because the type of `hg` doesn't mention `f`.
 Only after elaborating the two `continuous_at` arguments, Lean will try to unify `f x` with `y`,
 which is often easy after having chosen the correct functions for `f` and `g`.
 Here is an example that shows the difference:
 ```
-example {x₀ : α} (f : α → α → β) (hf : continuous_at (Function.uncurry f) (x₀, x₀)) :
+example {x₀ : α} (f : α → α → β) (hf : continuous_at (function.uncurry f) (x₀, x₀)) :
   continuous_at (λ x => f x x) x₀ :=
 -- hf.comp x (continuous_at_id.prod continuous_at_id) -- type mismatch
 -- hf.comp_of_eq (continuous_at_id.prod continuous_at_id) rfl -- works

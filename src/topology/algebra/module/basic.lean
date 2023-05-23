@@ -935,20 +935,6 @@ rfl
   ⇑(f₁.prod_map f₂) = prod.map f₁ f₂ :=
 rfl
 
-lemma fst_prod_zero_add_zero_prod_snd [has_continuous_add M₁] [has_continuous_add M'₁] :
-  (continuous_linear_map.fst R₁ M₁ M'₁).prod 0 +
-  continuous_linear_map.prod 0 (continuous_linear_map.snd R₁ M₁ M'₁) =
-  continuous_linear_map.id R₁ (M₁ × M'₁) :=
-begin
-  rw [continuous_linear_map.ext_iff],
-  intro x,
-  simp_rw [continuous_linear_map.add_apply, continuous_linear_map.id_apply,
-    continuous_linear_map.prod_apply, continuous_linear_map.coe_fst',
-    continuous_linear_map.coe_snd', continuous_linear_map.zero_apply, prod.mk_add_mk, add_zero,
-    zero_add, prod.mk.eta]
-end
-
-
 /-- The continuous linear map given by `(x, y) ↦ f₁ x + f₂ y`. -/
 def coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃] (f₁ : M₁ →L[R₁] M₃)
   (f₂ : M₂ →L[R₁] M₃) :
@@ -975,6 +961,11 @@ lemma comp_fst_add_comp_snd [module R₁ M₂] [module R₁ M₃] [has_continuou
   g.comp (continuous_linear_map.snd R₁ M₁ M₂) =
   f.coprod g :=
 rfl
+
+
+lemma coprod_inl_inr [has_continuous_add M₁] [has_continuous_add M'₁] :
+  (continuous_linear_map.inl R₁ M₁ M'₁).coprod (continuous_linear_map.inr R₁ M₁ M'₁) = continuous_linear_map.id R₁ (M₁ × M'₁) :=
+by { apply coe_injective, apply linear_map.coprod_inl_inr }
 
 section
 

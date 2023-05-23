@@ -103,7 +103,11 @@ namespace topological_group
 lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl
 
-lemma prod_eq_H_space_prod {G G' : Type u} [topological_space G] [group G] [topological_group G]
+/-
+In the following example we see that the `H-space` structure on the product of two topological
+groups is definitionally equally to the product `H-space`-structure of the two groups.
+-/
+example {G G' : Type u} [topological_space G] [group G] [topological_group G]
   [topological_space G'] [group G'] [topological_group G'] :
   topological_group.H_space (G × G') = H_space.prod G G' := rfl
 

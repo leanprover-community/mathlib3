@@ -73,6 +73,8 @@ def local_cohomology_diagram (I : D ⥤ ideal R) (i : ℕ) : Dᵒᵖ ⥤ Module.
 end
 
 section
+-- We momentarily need to work with a type inequality, as later we will take colimits
+-- along diagrams either in Type, or in the same universe as the ring, and we need to cover both.
 variables {R : Type max u v} [comm_ring R] {D : Type v} [small_category D]
 
 /-- `local_cohomology I i` is `i`-th the local cohomology module of a module `M` over a
@@ -129,5 +131,24 @@ begin
 end
 
 end local_cohomology_powers_equiv_univ
+
+section
+
+variables {R : Type u} [comm_ring R]
+
+def P (J : ideal R) : ℕᵒᵖ ⥤ ideals_with_same_radical J := sorry
+def e (J : ideal R) : P J ⋙ same_radical_diagram J ≅ ideal_powers J := sorry
+theorem P_final (J : ideal R) : functor.final (P J) := sorry
+
+-- This is timing out, even with the proof by `sorry`!?
+def foo (J : ideal R) (i : ℕ) :
+  local_cohomology_powers J i ≅ local_cohomology_univ J i :=
+sorry
+
+def bar {I J : ideal R} (w : I.radical = J.radical) (i : ℕ) :
+  local_cohomology_univ I i ≅ local_cohomology_univ J i :=
+sorry
+
+end
 
 end local_cohomology

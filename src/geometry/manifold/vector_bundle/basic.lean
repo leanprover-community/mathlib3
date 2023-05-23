@@ -174,7 +174,7 @@ lemma cont_mdiff_at_total_space (f : M → total_space E) (x₀ : M) :
   cont_mdiff_at IM 𝓘(𝕜, F) n (λ x, (trivialization_at F E (f x₀).proj (f x)).2) x₀ :=
 by { simp_rw [← cont_mdiff_within_at_univ], exact cont_mdiff_within_at_total_space f }
 
-/-- Characterization of C^n functions into a smooth vector bundle. -/
+/-- Characterization of C^n sections of a smooth vector bundle. -/
 lemma cont_mdiff_at_section (s : Π x, E x) (x₀ : B) :
   cont_mdiff_at IB (IB.prod (𝓘(𝕜, F))) n (λ x, total_space_mk x (s x)) x₀ ↔
   cont_mdiff_at IB 𝓘(𝕜, F) n (λ x, (trivialization_at F E x₀ (total_space_mk x (s x))).2) x₀ :=

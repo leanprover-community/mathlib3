@@ -442,9 +442,11 @@ continuous_smul.comp_strongly_measurable (hf.prod_mk strongly_measurable_const)
 end arithmetic
 
 section mul_action
-
-variables [topological_space β] {M G : Type*} [monoid M] [group G] [mul_action M β] [mul_action G β]
-  [has_continuous_const_smul M β] [has_continuous_const_smul G β]
+variables {M G G₀ : Type*}
+variables [topological_space β]
+variables [monoid M] [mul_action M β] [has_continuous_const_smul M β]
+variables [group G] [mul_action G β] [has_continuous_const_smul G β]
+variables [group_with_zero G₀] [mul_action G₀ β] [has_continuous_const_smul G₀ β]
 
 lemma _root_.strongly_measurable_const_smul_iff {m : measurable_space α} (c : G) :
   strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
@@ -454,9 +456,6 @@ lemma _root_.is_unit.strongly_measurable_const_smul_iff {m : measurable_space α
   (hc : is_unit c) :
   strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
 let ⟨u, hu⟩ := hc in hu ▸ strongly_measurable_const_smul_iff u
-
-variables {G₀ : Type*} [group_with_zero G₀] [mul_action G₀ β]
-  [has_continuous_const_smul G₀ β]
 
 lemma _root_.strongly_measurable_const_smul_iff₀ {m : measurable_space α} {c : G₀} (hc : c ≠ 0) :
   strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
@@ -1665,8 +1664,10 @@ end normed_space
 
 section mul_action
 
-variables {M G : Type*} [monoid M] [group G] [mul_action M β] [mul_action G β]
-  [has_continuous_const_smul M β] [has_continuous_const_smul G β]
+variables {M G G₀ : Type*}
+variables [monoid M] [mul_action M β] [has_continuous_const_smul M β]
+variables [group G] [mul_action G β] [has_continuous_const_smul G β]
+variables [group_with_zero G₀] [mul_action G₀ β] [has_continuous_const_smul G₀ β]
 
 lemma _root_.ae_strongly_measurable_const_smul_iff (c : G) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
@@ -1675,9 +1676,6 @@ lemma _root_.ae_strongly_measurable_const_smul_iff (c : G) :
 lemma _root_.is_unit.ae_strongly_measurable_const_smul_iff {c : M} (hc : is_unit c) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
 let ⟨u, hu⟩ := hc in hu ▸ ae_strongly_measurable_const_smul_iff u
-
-variables {G₀ : Type*} [group_with_zero G₀] [mul_action G₀ β]
-  [has_continuous_const_smul G₀ β]
 
 lemma _root_.ae_strongly_measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=

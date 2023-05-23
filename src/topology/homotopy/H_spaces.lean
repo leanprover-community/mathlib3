@@ -64,9 +64,9 @@ instance H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topologic
       exact prod.mk.inj_iff.mpr ⟨(H_space.e_Hmul).1.3 x, (H_space.e_Hmul).1.3 y⟩ },
     { rintros t ⟨x, y⟩ h,
       replace h := prod.mk.inj_iff.mp (set.mem_singleton_iff.mp h),
-      exact
-        ⟨prod.mk.inj_iff.mpr ⟨homotopy_rel.eq_fst (H_space.e_Hmul) t (set.mem_singleton_iff.mpr h.1),
-          homotopy_rel.eq_fst (H_space.e_Hmul) t (set.mem_singleton_iff.mpr h.2)⟩,
+      exact ⟨prod.mk.inj_iff.mpr ⟨homotopy_rel.eq_fst (H_space.e_Hmul) t
+        (set.mem_singleton_iff.mpr h.1),
+        homotopy_rel.eq_fst (H_space.e_Hmul) t (set.mem_singleton_iff.mpr h.2)⟩,
         prod.mk.inj_iff.mpr ⟨((H_space.e_Hmul).2 t x h.1).2, ((H_space.e_Hmul).2 t y h.2).2⟩⟩ },
   end,
   Hmul_e :=
@@ -83,10 +83,10 @@ instance H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topologic
       exact prod.mk.inj_iff.mpr ⟨(H_space.Hmul_e).1.3 x, (H_space.Hmul_e).1.3 y⟩ },
     { rintros t ⟨x, y⟩ h,
       replace h := prod.mk.inj_iff.mp (set.mem_singleton_iff.mp h),
-      exact
-        ⟨prod.mk.inj_iff.mpr ⟨homotopy_rel.eq_fst (H_space.Hmul_e) t (set.mem_singleton_iff.mpr h.1),
-          homotopy_rel.eq_fst (H_space.Hmul_e) t (set.mem_singleton_iff.mpr h.2)⟩,
-        prod.mk.inj_iff.mpr ⟨((H_space.Hmul_e).2 t x h.1).2, ((H_space.Hmul_e).2 t y h.2).2⟩⟩ },
+      exact ⟨prod.mk.inj_iff.mpr ⟨homotopy_rel.eq_fst (H_space.Hmul_e) t
+        (set.mem_singleton_iff.mpr h.1), homotopy_rel.eq_fst (H_space.Hmul_e) t
+        (set.mem_singleton_iff.mpr h.2)⟩, prod.mk.inj_iff.mpr ⟨((H_space.Hmul_e).2 t x h.1).2,
+        ((H_space.Hmul_e).2 t y h.2).2⟩⟩ },
   end, }
 
 namespace topological_group
@@ -116,7 +116,7 @@ end topological_group
 namespace unit_interval
 
 /-- `Q_right` is analogous to the function `Q` defined on p. 475 of [serre1951] that helps proving
-continuity of `delayed_refl_right`.-/
+continuity of `delay_refl_right`.-/
 def Q_right (p : I × I) : I := set.proj_Icc 0 1 zero_le_one (2 * p.1 / (1 + p.2))
 
 lemma continuous_Q_right : continuous Q_right :=
@@ -152,42 +152,42 @@ variables {X : Type u} [topological_space X] {x y : X}
 
 /-- This is the function analogous to the one on p. 475 of [serre1951], defining a homotopy from
 the product path `γ ∧ e` to `γ`.-/
-def delayed_refl_right (θ : I) (γ : path x y) : path x y :=
+def delay_refl_right (θ : I) (γ : path x y) : path x y :=
 { to_fun := λ t, γ (Q_right (t, θ)),
   continuous_to_fun := γ.continuous.comp (continuous_Q_right.comp $ continuous.prod.mk_left θ),
   source' := by { dsimp only, rw [Q_right_zero_left, γ.source] },
   target' := by { dsimp only, rw [Q_right_one_left, γ.target] } }
 
-lemma continuous_delayed_refl_right : continuous (λ p : I × path x y, delayed_refl_right p.1 p.2) :=
-continuous_uncurry_iff.mp $ (continuous_snd.comp continuous_fst).path_eval $
+lemma continuous_delay_refl_right : continuous (λ p : I × path x y, delay_refl_right p.1 p.2) :=
+  continuous_uncurry_iff.mp $ (continuous_snd.comp continuous_fst).path_eval $
   continuous_Q_right.comp $ continuous_snd.prod_mk $ continuous_fst.comp continuous_fst
 
-lemma delayed_refl_right_zero (γ : path x y) : delayed_refl_right 0 γ = γ.trans (path.refl y) :=
+lemma delay_refl_right_zero (γ : path x y) : delay_refl_right 0 γ = γ.trans (path.refl y) :=
 begin
   ext t,
-  simp only [delayed_refl_right,
+  simp only [delay_refl_right,
     trans_apply, refl_extend, path.coe_mk, function.comp_app, refl_apply],
   split_ifs, swap, conv_rhs { rw ← γ.target },
   all_goals { apply congr_arg γ, ext1, rw Q_right_zero_right },
   exacts [if_neg h, if_pos h],
 end
 
-lemma delayed_refl_right_one (γ : path x y) : delayed_refl_right 1 γ = γ :=
+lemma delay_refl_right_one (γ : path x y) : delay_refl_right 1 γ = γ :=
 by { ext t, exact congr_arg γ (Q_right_one_right t) }
 
 /-- This is the function on p. 475 of [serre1951]], defining a homotopy from a path `γ` to the
 product path `e ∧ γ`.-/
-def delayed_refl_left (θ : I) (γ : path x y) : path x y := (delayed_refl_right θ γ.symm).symm
+def delay_refl_left (θ : I) (γ : path x y) : path x y := (delay_refl_right θ γ.symm).symm
 
-lemma continuous_delayed_refl_left : continuous (λ p : I × path x y, delayed_refl_left p.1 p.2) :=
-path.continuous_symm.comp $ continuous_delayed_refl_right.comp $ continuous_fst.prod_mk $
+lemma continuous_delay_refl_left : continuous (λ p : I × path x y, delay_refl_left p.1 p.2) :=
+path.continuous_symm.comp $ continuous_delay_refl_right.comp $ continuous_fst.prod_mk $
   path.continuous_symm.comp continuous_snd
 
-lemma delayed_refl_left_zero (γ : path x y) : delayed_refl_left 0 γ = (path.refl x).trans γ :=
-by simp only [delayed_refl_left, delayed_refl_right_zero, trans_symm, refl_symm, path.symm_symm]
+lemma delay_refl_left_zero (γ : path x y) : delay_refl_left 0 γ = (path.refl x).trans γ :=
+by simp only [delay_refl_left, delay_refl_right_zero, trans_symm, refl_symm, path.symm_symm]
 
-lemma delayed_refl_left_one (γ : path x y) : delayed_refl_left 1 γ = γ :=
-by simp only [delayed_refl_left, delayed_refl_right_one, path.symm_symm]
+lemma delay_refl_left_one (γ : path x y) : delay_refl_left 1 γ = γ :=
+by simp only [delay_refl_left, delay_refl_right_one, path.symm_symm]
 
 /--
 The loop space at x carries a structure of a `H-space`. Note that the field `e_Hmul`
@@ -200,12 +200,12 @@ instance (x : X) : H_space (path x x) :=
   e := refl x,
   Hmul_e_e := refl_trans_refl,
   e_Hmul :=
-  { to_homotopy := ⟨⟨λ p : I × (path x x), delayed_refl_left p.1 p.2,
-      continuous_delayed_refl_left⟩, delayed_refl_left_zero, delayed_refl_left_one⟩,
+  { to_homotopy := ⟨⟨λ p : I × (path x x), delay_refl_left p.1 p.2,
+      continuous_delay_refl_left⟩, delay_refl_left_zero, delay_refl_left_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } },
   Hmul_e :=
-  { to_homotopy := ⟨⟨λ p : I × (path x x), delayed_refl_right p.1 p.2,
-      continuous_delayed_refl_right⟩, delayed_refl_right_zero, delayed_refl_right_one⟩,
+  { to_homotopy := ⟨⟨λ p : I × (path x x), delay_refl_right p.1 p.2,
+      continuous_delay_refl_right⟩, delay_refl_right_zero, delay_refl_right_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } } }
 
 end path

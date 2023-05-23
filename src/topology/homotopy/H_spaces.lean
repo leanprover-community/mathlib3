@@ -3,7 +3,6 @@ Copyright (c) 2022 Filippo A. E. Nuccio Mortarino Majno di Capriglio. All rights
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio, Junyan Xu
 -/
-import algebraic_topology.fundamental_groupoid.basic
 import topology.compact_open
 import topology.homotopy.path
 

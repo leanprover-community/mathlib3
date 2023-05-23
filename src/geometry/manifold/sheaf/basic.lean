@@ -39,6 +39,7 @@ begin
     simpa [hi.continuous_at_iff] using h }
 end
 
+-- this should be a lot shorter!!! clean up with `mfld_set_tac` and/or better simp-lemmas
 lemma foo₂ (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}
   (e : M' →H') {x : U} :
   P (e ∘ f ∘ (chart_at H (i x)).symm) univ (chart_at H (i x) (i x))
@@ -51,10 +52,43 @@ begin
   apply filter.eventually_eq_of_mem,
   apply (e'.subtype_restr U).symm.open_source.mem_nhds,
   { show e' x ∈ (e'.subtype_restr U).symm.source,
-    sorry },
+    rw [local_homeomorph.subtype_restr_def, local_homeomorph.symm_source],
+    dsimp,
+    have hxe' : (x.1 :M) ∈ e'.source := mem_chart_source _ _,
+    refine ⟨e'.map_source hxe', _⟩,
+    rw [U.local_homeomorph_subtype_coe_target],
+    convert x.prop,
+    exact e'.left_inv_on hxe' },
   { show ∀ y ∈ (e'.subtype_restr U).symm.source,
       e (f ((e'.subtype_restr V).symm y)) = e (f (i ((e'.subtype_restr U).symm y))),
-    sorry },
+    intros y hy,
+    have hy' : e'.symm y ∈ U,
+    { rw [local_homeomorph.subtype_restr_def, local_homeomorph.symm_source] at hy,
+      simp at hy,
+      exact hy.2 },
+    have he'y : e'.symm y ∈ V.local_homeomorph_subtype_coe.target,
+    { rw V.local_homeomorph_subtype_coe_target,
+      exact category_theory.le_of_hom i hy', },
+    rw [local_homeomorph.subtype_restr_def],
+    rw [local_homeomorph.subtype_restr_def],
+    have ht : ∀ t, V.local_homeomorph_subtype_coe (i t) = U.local_homeomorph_subtype_coe t,
+    { intro t,
+      refl, },
+    have hVU : V.local_homeomorph_subtype_coe ∘ i = U.local_homeomorph_subtype_coe := funext ht,
+    congr' 2,
+    dsimp,
+    apply V.local_homeomorph_subtype_coe.inj_on,
+    { rw ←local_homeomorph.symm_target,
+      apply local_homeomorph.map_source,
+      rw local_homeomorph.symm_source,
+      exact he'y },
+    { exact mem_univ _ },
+    rw V.local_homeomorph_subtype_coe.right_inv,
+    rw ht,
+    rw U.local_homeomorph_subtype_coe.right_inv,
+    { rw U.local_homeomorph_subtype_coe_target,
+      exact hy' },
+    { exact he'y } },
 end
 
 lemma foo (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}

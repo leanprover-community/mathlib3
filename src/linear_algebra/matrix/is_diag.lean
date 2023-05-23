@@ -10,6 +10,9 @@ import data.matrix.kronecker
 /-!
 # Diagonal matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and basic results about diagonal matrices.
 
 ## Main results
@@ -110,9 +113,9 @@ ha.transpose.map (star_zero _)
   Aᴴ.is_diag ↔ A.is_diag :=
 ⟨ λ ha, by {convert ha.conj_transpose, simp}, is_diag.conj_transpose ⟩
 
-lemma is_diag.minor [has_zero α]
+lemma is_diag.submatrix [has_zero α]
   {A : matrix n n α} (ha : A.is_diag) {f : m → n} (hf : injective f) :
-  (A.minor f f).is_diag :=
+  (A.submatrix f f).is_diag :=
 λ i j h, ha (hf.ne h)
 
 /-- `(A ⊗ B).is_diag` if both `A` and `B` are diagonal. -/

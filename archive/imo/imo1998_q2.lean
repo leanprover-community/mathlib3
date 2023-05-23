@@ -3,7 +3,7 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.fintype.basic
+import data.fintype.prod
 import data.int.parity
 import algebra.big_operators.order
 import tactic.ring
@@ -138,7 +138,7 @@ lemma norm_bound_of_odd_sum {x y z : ℤ} (h : x + y = 2*z + 1) :
   2*z*z + 2*z + 1 ≤ x*x + y*y :=
 begin
   suffices : 4*z*z + 4*z + 1 + 1 ≤ 2*x*x + 2*y*y,
-  { rw ← mul_le_mul_left (@zero_lt_two _ _ int.nontrivial), convert this; ring, },
+  { rw ← mul_le_mul_left (zero_lt_two' ℤ), convert this; ring, },
   have h' : (x + y) * (x + y) = 4*z*z + 4*z + 1, { rw h, ring, },
   rw [← add_sq_add_sq_sub, h', add_le_add_iff_left],
   suffices : 0 < (x - y) * (x - y), { apply int.add_one_le_of_lt this, },
@@ -190,18 +190,16 @@ end
 
 end
 
-local notation x `/` y := (x : ℚ) / y
-
 lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
-  (b - 1) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
+  (b - 1 : ℚ) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
 by rw div_le_div_iff; norm_cast; simp [ha, hb]
 
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
   (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :
-  (b - 1) / (2 * b) ≤ k / a :=
+  (b - 1 : ℚ) / (2 * b) ≤ k / a :=
 begin
-  rw clear_denominators ha (nat.odd_gt_zero hb),
+  rw clear_denominators ha hb.pos,
   obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
   have h := le_trans (A_card_lower_bound r hJ) (A_card_upper_bound r hk),
   rw [hC, hJ] at h,

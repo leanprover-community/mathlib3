@@ -9,6 +9,9 @@ import analysis.special_functions.complex.log
 /-!
 # Maps on the unit circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some basic lemmas about `exp_map_circle` and the restriction of `complex.arg`
 to the unit circle. These two maps define a local equivalence between `circle` and `ℝ`, see
 `circle.arg_local_equiv` and `circle.arg_equiv`, that sends the whole circle to `(-π, π]`.
@@ -94,6 +97,12 @@ periodic_exp_map_circle.lift θ
 @[simp] lemma real.angle.exp_map_circle_coe (x : ℝ) :
   real.angle.exp_map_circle x = exp_map_circle x :=
 rfl
+
+lemma real.angle.coe_exp_map_circle (θ : real.angle) : (θ.exp_map_circle : ℂ) = θ.cos + θ.sin * I :=
+begin
+  induction θ using real.angle.induction_on,
+  simp [complex.exp_mul_I],
+end
 
 @[simp] lemma real.angle.exp_map_circle_zero :
   real.angle.exp_map_circle 0 = 1 :=

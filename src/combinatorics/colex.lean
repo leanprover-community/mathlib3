@@ -9,6 +9,9 @@ import algebra.geom_sum
 /-!
 # Colex
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the colex ordering for finite sets, and give a couple of important
 lemmas and properties relating to it.
 

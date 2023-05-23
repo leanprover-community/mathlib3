@@ -10,6 +10,9 @@ import topology.continuous_function.algebra
 /-!
 # The algebra morphism from locally constant functions to continuous functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 namespace locally_constant

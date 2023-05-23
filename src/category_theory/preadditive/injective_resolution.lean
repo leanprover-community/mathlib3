@@ -9,6 +9,9 @@ import algebra.homology.single
 /-!
 # Injective resolutions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A injective resolution `I : InjectiveResolution Z` of an object `Z : C` consists of
 a `ℕ`-indexed cochain complex `I.cocomplex` of injective objects,
 along with a cochain map `I.ι` from cochain complex consisting just of `Z` in degree zero to `C`,
@@ -49,7 +52,7 @@ you will not typically need to use this bundled object, and will instead use
   `injective_resolution Z` (all the components are equipped with `mono` instances,
   and when the category is `abelian` we will show `ι` is a quasi-iso).
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure InjectiveResolution (Z : C) :=
 (cocomplex : cochain_complex C ℕ)
 (ι: ((cochain_complex.single₀ C).obj Z) ⟶ cocomplex)

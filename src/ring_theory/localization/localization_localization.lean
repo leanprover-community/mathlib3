@@ -10,6 +10,9 @@ import ring_theory.localization.fraction_ring
 /-!
 # Localizations of localizations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Implementation notes
 
 See `src/ring_theory/localization/basic.lean` for a design overview.
@@ -87,7 +90,7 @@ end
 
 lemma localization_localization_eq_iff_exists [is_localization N T] (x y : R) :
   algebra_map R T x = algebra_map R T y ↔
-    ∃ (c : localization_localization_submodule M N), x * c = y * c :=
+    ∃ (c : localization_localization_submodule M N), ↑c * x = ↑c * y :=
 begin
   rw [is_scalar_tower.algebra_map_apply R S T, is_scalar_tower.algebra_map_apply R S T,
       is_localization.eq_iff_exists N T],
@@ -95,19 +98,20 @@ begin
   { rintros ⟨z, eq₁⟩,
     rcases is_localization.surj M (z : S) with ⟨⟨z', s⟩, eq₂⟩,
     dsimp only at eq₂,
-    obtain ⟨c, eq₃ : x * z' * ↑ c = y * z' * ↑ c⟩ := (is_localization.eq_iff_exists M S).mp _,
-    swap, { rw [ring_hom.map_mul, ring_hom.map_mul, ← eq₂, ← mul_assoc, ← mul_assoc, ← eq₁] },
-    use z' * c,
+    obtain ⟨c, eq₃ :  ↑c * (x * z') = ↑c * (y * z')⟩ := (is_localization.eq_iff_exists M S).mp _,
+    swap,
+    { rw [map_mul, map_mul, ←eq₂, ←mul_assoc, ←mul_assoc, mul_comm _ ↑z, eq₁, mul_comm _ ↑z] },
+    use c * z',
     { rw mem_localization_localization_submodule,
-      refine ⟨z, s * c, _⟩,
-      rw [ring_hom.map_mul, ← eq₂, mul_assoc, ← ring_hom.map_mul, submonoid.coe_mul] },
-    { simpa only [mul_assoc] using eq₃ } },
-  { rintro ⟨⟨c, hc⟩, eq₁ : x * c = y * c⟩,
+      refine ⟨z, c * s, _⟩,
+      rw [map_mul, ← eq₂, submonoid.coe_mul, map_mul, mul_left_comm] },
+    { rwa [mul_comm _ z', mul_comm _ z', ←mul_assoc, ←mul_assoc] at eq₃ } },
+  { rintro ⟨⟨c, hc⟩, eq₁ : c * x = c * y⟩,
     rw mem_localization_localization_submodule at hc,
     rcases hc with ⟨z₁, z, eq₂⟩,
     use z₁,
-    refine (is_localization.map_units S z).mul_left_inj.mp _,
-    rw [mul_assoc, mul_assoc, ← eq₂, ← ring_hom.map_mul, ← ring_hom.map_mul, eq₁] }
+    refine (is_localization.map_units S z).mul_right_inj.mp _,
+    rw [←mul_assoc, mul_comm _ ↑z₁, ←eq₂, ←map_mul, eq₁, map_mul, eq₂, ←mul_assoc, mul_comm _ ↑z₁] }
 end
 
 /--
@@ -129,7 +133,7 @@ localization is a localization.
 -/
 lemma localization_localization_is_localization_of_has_all_units
   [is_localization N T] (H : ∀ (x : S), is_unit x → x ∈ N) :
-  is_localization (N.comap (algebra_map R S).to_monoid_hom) T :=
+  is_localization (N.comap (algebra_map R S)) T :=
 begin
   convert localization_localization_is_localization M N T,
   symmetry,
@@ -187,7 +191,7 @@ def localization_algebra_of_submonoid_le
 localization maps -/
 lemma localization_is_scalar_tower_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
-  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_scalar _ :=
+  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_smul _ :=
 begin
   letI := localization_algebra_of_submonoid_le S T M N h,
   exact is_scalar_tower.of_algebra_map_eq' (is_localization.lift_comp _).symm
@@ -203,7 +207,7 @@ localization_algebra_of_submonoid_le _ _ x.prime_compl (non_zero_divisors R)
 lemma is_localization_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T]
   [algebra S T] [is_scalar_tower R S T] :
-  is_localization (N.map (algebra_map R S).to_monoid_hom) T :=
+  is_localization (N.map (algebra_map R S)) T :=
 { map_units := begin
     rintro ⟨_, ⟨y, hy, rfl⟩⟩,
     convert is_localization.map_units T ⟨y, hy⟩,
@@ -217,7 +221,7 @@ lemma is_localization_of_submonoid_le
   eq_iff_exists := λ x₁ x₂, begin
     obtain ⟨⟨y₁, s₁⟩, e₁⟩ := is_localization.surj M x₁,
     obtain ⟨⟨y₂, s₂⟩, e₂⟩ := is_localization.surj M x₂,
-    refine iff.trans _ (set.exists_image_iff (algebra_map R S) N (λ c, x₁ * c = x₂ * c)).symm,
+    refine iff.trans _ (set.exists_image_iff (algebra_map R S) N (λ c, c * x₁ = c * x₂)).symm,
     dsimp only at e₁ e₂ ⊢,
     suffices : algebra_map R T (y₁ * s₂) = algebra_map R T (y₂ * s₁) ↔
       ∃ (a : N), algebra_map R S (a * (y₁ * s₂)) = algebra_map R S (a * (y₂ * s₁)),
@@ -254,7 +258,7 @@ lemma is_localization_of_is_exists_mul_mem (M N : submonoid R) [is_localization 
     rintros ⟨x, h⟩,
     obtain ⟨m, hm⟩ := h' x,
     refine ⟨⟨_, hm⟩, _⟩,
-    simp [mul_comm m, ← mul_assoc, h]
+    simp [h, mul_assoc],
   end }
 
 end localization_localization
@@ -300,7 +304,7 @@ begin
   intro hx',
   apply @zero_ne_one S,
   rw [← (algebra_map R S).map_one, ← @mk'_one R _ M, @comm _ eq, mk'_eq_zero_iff],
-  exact ⟨⟨_, hx⟩, (one_mul x).symm ▸ hx'⟩,
+  exact ⟨⟨x, hx⟩, by simp [hx'] ⟩,
 end
 
 end is_fraction_ring

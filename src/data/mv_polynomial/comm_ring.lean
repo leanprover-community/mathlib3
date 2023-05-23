@@ -9,6 +9,9 @@ import data.mv_polynomial.variables
 /-!
 # Multivariate polynomials over a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many results about polynomials hold when the coefficient ring is a commutative semiring.
 Some stronger results can be derived when we assume this semiring is a ring.
 
@@ -34,8 +37,6 @@ This will give rise to a monomial in `mv_polynomial σ R` which mathematicians m
 -/
 
 noncomputable theory
-
-open_locale classical big_operators
 
 open set function finsupp add_monoid_algebra
 open_locale big_operators
@@ -67,7 +68,8 @@ variables (σ a a')
 @[simp] lemma support_neg : (- p).support = p.support :=
 finsupp.support_neg p
 
-lemma support_sub (p q : mv_polynomial σ R) : (p - q).support ⊆ p.support ∪ q.support :=
+lemma support_sub [decidable_eq σ] (p q : mv_polynomial σ R) :
+  (p - q).support ⊆ p.support ∪ q.support :=
 finsupp.support_sub
 
 variables {σ} (p)
@@ -77,9 +79,9 @@ section degrees
 lemma degrees_neg (p : mv_polynomial σ R) : (- p).degrees = p.degrees :=
 by rw [degrees, support_neg]; refl
 
-lemma degrees_sub (p q : mv_polynomial σ R) :
+lemma degrees_sub [decidable_eq σ] (p q : mv_polynomial σ R) :
   (p - q).degrees ≤ p.degrees ⊔ q.degrees :=
-by simpa only [sub_eq_add_neg] using le_trans (degrees_add p (-q)) (by rw degrees_neg)
+by classical; simpa only [sub_eq_add_neg, degrees_neg] using degrees_add p (-q)
 
 end degrees
 
@@ -90,13 +92,14 @@ variables (p q)
 @[simp] lemma vars_neg : (-p).vars = p.vars :=
 by simp [vars, degrees_neg]
 
-lemma vars_sub_subset : (p - q).vars ⊆ p.vars ∪ q.vars :=
+lemma vars_sub_subset [decidable_eq σ] : (p - q).vars ⊆ p.vars ∪ q.vars :=
 by convert vars_add_subset p (-q) using 2; simp [sub_eq_add_neg]
 
 variables {p q}
 
 @[simp]
-lemma vars_sub_of_disjoint (hpq : disjoint p.vars q.vars) : (p - q).vars = p.vars ∪ q.vars :=
+lemma vars_sub_of_disjoint [decidable_eq σ] (hpq : disjoint p.vars q.vars) :
+  (p - q).vars = p.vars ∪ q.vars :=
 begin
   rw ←vars_neg q at hpq,
   convert vars_add_of_disjoint hpq using 2;
@@ -116,7 +119,7 @@ variables (f : R →+* S) (g : σ → S)
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := (eval₂_hom f g).map_neg _
 
 lemma hom_C (f : mv_polynomial σ ℤ →+* S) (n : ℤ) : f (C n) = (n : S) :=
-(f.comp C).eq_int_cast n
+eq_int_cast (f.comp C) n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
@@ -124,7 +127,7 @@ is determined by the evaluations f(X_1), f(X_2), ... -/
   (f : mv_polynomial R ℤ →+* S) (x : mv_polynomial R ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { rw [hom_C f, eval₂_C], exact c.eq_int_cast n })
+(λ n, by { rw [hom_C f, eval₂_C], exact eq_int_cast c n })
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (f.map_add _ _).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (f.map_mul _ _).symm })
 
@@ -145,6 +148,7 @@ lemma degree_of_sub_lt {x : σ} {f g : mv_polynomial σ R} {k : ℕ} (h : 0 < k)
   (hg : ∀ (m : σ →₀ ℕ), m ∈ g.support → (k ≤ m x) → coeff m f = coeff m g) :
   degree_of x (f - g) < k :=
 begin
+  classical,
   rw degree_of_lt_iff h,
   intros m hm,
   by_contra hc,
@@ -166,9 +170,12 @@ by simp only [total_degree, support_neg]
 
 lemma total_degree_sub (a b : mv_polynomial σ R) :
   (a - b).total_degree ≤ max a.total_degree b.total_degree :=
-calc (a - b).total_degree = (a + -b).total_degree                : by rw sub_eq_add_neg
-                      ... ≤ max a.total_degree (-b).total_degree : total_degree_add a (-b)
-                      ... = max a.total_degree b.total_degree    : by rw total_degree_neg
+begin
+  classical,
+  calc (a - b).total_degree = (a + -b).total_degree                : by rw sub_eq_add_neg
+                        ... ≤ max a.total_degree (-b).total_degree : total_degree_add a (-b)
+                        ... = max a.total_degree b.total_degree    : by rw total_degree_neg
+end
 
 end total_degree
 

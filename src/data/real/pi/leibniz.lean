@@ -10,8 +10,8 @@ import analysis.special_functions.trigonometric.arctan_deriv
 namespace real
 
 open filter set
-open_locale classical big_operators topological_space real
-local notation `|`x`|` := abs x
+open_locale classical big_operators topology real
+local notation (name := abs) `|`x`|` := abs x
 
 /-- This theorem establishes **Leibniz's series for `π`**: The alternating sum of the reciprocals
   of the odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent
@@ -68,7 +68,7 @@ begin
   -- We show that `U` is indeed in [0,1]
   have hU1 : (U:ℝ) ≤ 1,
   { by_cases hk : k = 0,
-    { simpa only [U, hk] using zero_rpow_le_one _ },
+    { simp [u, U, hk] },
     { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
         (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
           (neg_neg_iff_pos.mpr zero_lt_one) (by { norm_cast, exact nat.succ_pos' }))) } },

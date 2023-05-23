@@ -3,10 +3,13 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Seul Baek
 -/
-import data.nat.basic
+import data.nat.order.basic
 
 /-!
 # Lists as Functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Definitions for using lists as finite representations of finitely-supported functions with domain
 ℕ.
@@ -50,7 +53,8 @@ elements
 | (h::as) (k+1) := h::(set as k)
 | []      (k+1) := default::(set ([] : list α) k)
 
-localized "notation as ` {` m ` ↦ ` a `}` := list.func.set a as m" in list.func
+localized "notation (name := list.func.set)
+  as ` {` m ` ↦ ` a `}` := list.func.set a as m" in list.func
 
 /-- Get element of a list by index. If the index is out of range, return the default element -/
 @[simp] def get : ℕ → list α → α
@@ -350,7 +354,7 @@ by {apply get_pointwise, apply sub_zero}
   (sub xs ys).length = max xs.length ys.length :=
 @length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
-@[simp] lemma nil_sub {α : Type} [add_group α]
+@[simp] lemma nil_sub {α : Type*} [add_group α]
   (as : list α) : sub [] as = neg as :=
 begin
   rw [sub, nil_pointwise],
@@ -358,7 +362,7 @@ begin
   rw [zero_sub]
 end
 
-@[simp] lemma sub_nil {α : Type} [add_group α]
+@[simp] lemma sub_nil {α : Type*} [add_group α]
   (as : list α) : sub as [] = as :=
 begin
   rw [sub, pointwise_nil],

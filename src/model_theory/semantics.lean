@@ -8,6 +8,9 @@ import model_theory.syntax
 
 /-!
 # Basics on First-Order Semantics
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines the interpretations of first-order terms, formulas, sentences, and theories
 in a style inspired by the [Flypitch project](https://flypitch.github.io/).
 
@@ -134,6 +137,48 @@ begin
     exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
 end
 
+@[simp] lemma realize_constants_to_vars [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {t : L[[α]].term β} {v : β → M} :
+  t.constants_to_vars.realize (sum.elim (λ a, ↑(L.con a)) v) = t.realize v :=
+begin
+  induction t with _ n f _ ih,
+  { simp },
+  { cases n,
+    { cases f,
+      { simp [ih], },
+      { simp only [realize, constants_to_vars, sum.elim_inl, fun_map_eq_coe_constants],
+        refl } },
+    { cases f,
+      { simp [ih] },
+      { exact is_empty_elim f } } }
+end
+
+@[simp] lemma realize_vars_to_constants [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {t : L.term (α ⊕ β)} {v : β → M} :
+  t.vars_to_constants.realize v = t.realize (sum.elim (λ a, ↑(L.con a)) v) :=
+begin
+  induction t with ab n f ts ih,
+  { cases ab;
+    simp [language.con], },
+  { simp [ih], }
+end
+
+lemma realize_constants_vars_equiv_left [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {t : L[[α]].term (β ⊕ fin n)} {v : β → M} {xs : fin n → M} :
+  (constants_vars_equiv_left t).realize (sum.elim (sum.elim (λ a, ↑(L.con a)) v) xs) =
+    t.realize (sum.elim v xs) :=
+begin
+  simp only [constants_vars_equiv_left, realize_relabel, equiv.coe_trans, function.comp_app,
+    constants_vars_equiv_apply, relabel_equiv_symm_apply],
+  refine trans _ (realize_constants_to_vars),
+  rcongr,
+  rcases x with (a | (b | i));
+  simp,
+end
+
 end term
 
 namespace Lhom
@@ -144,7 +189,7 @@ namespace Lhom
 begin
   induction t with _ n f ts ih,
   { refl },
-  { simp only [term.realize, Lhom.on_term, Lhom.is_expansion_on.map_on_function, ih] }
+  { simp only [term.realize, Lhom.on_term, Lhom.map_on_function, ih] }
 end
 
 end Lhom
@@ -393,6 +438,32 @@ begin
   { simp [restrict_free_var, realize, ih3] },
 end
 
+lemma realize_constants_vars_equiv [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {φ : L[[α]].bounded_formula β n} {v : β → M} {xs : fin n → M} :
+  (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize v xs :=
+begin
+  refine realize_map_term_rel_id (λ n t xs, realize_constants_vars_equiv_left) (λ n R xs, _),
+  rw ← (Lhom_with_constants L α).map_on_relation (equiv.sum_empty (L.relations n)
+    ((constants_on α).relations n) R) xs,
+  rcongr,
+  cases R,
+  { simp, },
+  { exact is_empty_elim R }
+end
+
+@[simp] lemma realize_relabel_equiv {g : α ≃ β} {k} {φ : L.bounded_formula α k}
+  {v : β → M} {xs : fin k → M} :
+  (relabel_equiv g φ).realize v xs ↔ φ.realize (v ∘ g) xs :=
+begin
+  simp only [relabel_equiv, map_term_rel_equiv_apply, equiv.coe_refl],
+  refine realize_map_term_rel_id (λ n t xs, _) (λ _ _ _, rfl),
+  simp only [relabel_equiv_apply, term.realize_relabel],
+  refine congr (congr rfl _) rfl,
+  ext (i | i);
+  refl,
+end
+
 variables [nonempty M]
 
 lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
@@ -486,7 +557,7 @@ begin
   { refl },
   { simp only [on_bounded_formula, realize_bd_equal, realize_on_term],
     refl, },
-  { simp only [on_bounded_formula, realize_rel, realize_on_term, is_expansion_on.map_on_relation],
+  { simp only [on_bounded_formula, realize_rel, realize_on_term, Lhom.map_on_relation],
     refl, },
   { simp only [on_bounded_formula, ih1, ih2, realize_imp], },
   { simp only [on_bounded_formula, ih3, realize_all], },
@@ -596,11 +667,44 @@ variable (M)
 def sentence.realize (φ : L.sentence) : Prop :=
 φ.realize (default : _ → M)
 
-infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := sentence.realize) ` ⊨ `:51 := sentence.realize
 
 @[simp] lemma sentence.realize_not {φ : L.sentence} :
   M ⊨ φ.not ↔ ¬ M ⊨ φ :=
 iff.rfl
+
+namespace formula
+
+@[simp] lemma realize_equiv_sentence_symm_con
+  [L[[α]].Structure M] [(L.Lhom_with_constants α).is_expansion_on M]
+  (φ : L[[α]].sentence) :
+  (equiv_sentence.symm φ).realize (λ a, (L.con a : M)) ↔ φ.realize M :=
+begin
+  simp only [equiv_sentence, equiv.symm_symm, equiv.coe_trans, realize,
+    bounded_formula.realize_relabel_equiv],
+  refine trans _ bounded_formula.realize_constants_vars_equiv,
+  congr' with (i | i),
+  { refl },
+  { exact i.elim }
+end
+
+@[simp] lemma realize_equiv_sentence
+  [L[[α]].Structure M] [(L.Lhom_with_constants α).is_expansion_on M]
+  (φ : L.formula α) :
+  (equiv_sentence φ).realize M ↔ φ.realize (λ a, (L.con a : M)) :=
+by rw [← realize_equiv_sentence_symm_con M (equiv_sentence φ),
+    _root_.equiv.symm_apply_apply]
+
+lemma realize_equiv_sentence_symm (φ : L[[α]].sentence) (v : α → M) :
+  (equiv_sentence.symm φ).realize v ↔ @sentence.realize _ M
+    (@language.with_constants_Structure L M _ α (constants_on.Structure v)) φ :=
+begin
+  letI := constants_on.Structure v,
+  exact realize_equiv_sentence_symm_con M φ,
+end
+
+end formula
 
 @[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (ψ : L.sentence) :
@@ -617,8 +721,8 @@ variable (N)
 /-- Two structures are elementarily equivalent when they satisfy the same sentences. -/
 def elementarily_equivalent : Prop := L.complete_theory M = L.complete_theory N
 
-localized "notation A ` ≅[`:25 L `] ` B:50 := first_order.language.elementarily_equivalent L A B"
-  in first_order
+localized "notation (name := elementarily_equivalent) A ` ≅[`:25 L `] ` B:50 :=
+  first_order.language.elementarily_equivalent L A B" in first_order
 
 variables {L} {M} {N}
 
@@ -633,7 +737,8 @@ variables (M)
 class Theory.model (T : L.Theory) : Prop :=
 (realize_of_mem : ∀ φ ∈ T, M ⊨ φ)
 
-infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := Theory.model) ` ⊨ `:51 := Theory.model
 
 variables {M} (T : L.Theory)
 
@@ -661,7 +766,7 @@ lemma model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
 lemma model.union {T' : L.Theory} (h : M ⊨ T) (h' : M ⊨ T') :
   M ⊨ T ∪ T' :=
 begin
-  simp only [model_iff, set.mem_union_eq] at *,
+  simp only [model_iff, set.mem_union] at *,
   exact λ φ hφ, hφ.elim (h _) (h' _),
 end
 
@@ -676,6 +781,9 @@ by simp
 theorem model_iff_subset_complete_theory :
   M ⊨ T ↔ T ⊆ L.complete_theory M :=
 T.model_iff
+
+theorem complete_theory.subset [MT : M ⊨ T] : T ⊆ L.complete_theory M :=
+model_iff_subset_complete_theory.1 MT
 
 end Theory
 
@@ -785,6 +893,9 @@ by rw [sentence.realize, sentence.realize, ← g.realize_formula, unique.eq_defa
 lemma Theory_model (g : M ≃[L] N) [M ⊨ T] : N ⊨ T :=
 ⟨λ φ hφ, (g.realize_sentence φ).1 (Theory.realize_sentence_of_mem T hφ)⟩
 
+lemma elementarily_equivalent (g : M ≃[L] N) : M ≅[L] N :=
+elementarily_equivalent_iff.2 g.realize_sentence
+
 end equiv
 
 namespace relations
@@ -868,14 +979,14 @@ lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : se
   M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
 begin
   simp only [distinct_constants_theory, Theory.model_iff, set.mem_image,
-    set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
+    set.mem_inter, set.mem_prod, set.mem_compl, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,
-    have h' := h _ a b as bs ab rfl,
+    have h' := h _ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants] at h',
     exact h', },
-  { rintros h φ a b as bs ab rfl,
+  { rintros h φ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants],
     exact λ contra, ab (h as bs contra) }
@@ -887,6 +998,36 @@ lemma card_le_of_model_distinct_constants_theory (s : set α) (M : Type w) [L[[�
 lift_mk_le'.2 ⟨⟨_, set.inj_on_iff_injective.1 ((L.model_distinct_constants_theory s).1 h)⟩⟩
 
 end cardinality
+
+namespace elementarily_equivalent
+
+@[symm] lemma symm (h : M ≅[L] N) : N ≅[L] M := h.symm
+
+@[trans] lemma trans (MN : M ≅[L] N) (NP : N ≅[L] P) : M ≅[L] P := MN.trans NP
+
+lemma complete_theory_eq (h : M ≅[L] N) : L.complete_theory M = L.complete_theory N := h
+
+lemma realize_sentence (h : M ≅[L] N) (φ : L.sentence) : M ⊨ φ ↔ N ⊨ φ :=
+(elementarily_equivalent_iff.1 h) φ
+
+lemma Theory_model_iff (h : M ≅[L] N) : M ⊨ T ↔ N ⊨ T :=
+by rw [Theory.model_iff_subset_complete_theory, Theory.model_iff_subset_complete_theory,
+    h.complete_theory_eq]
+
+lemma Theory_model [MT : M ⊨ T] (h : M ≅[L] N) : N ⊨ T :=
+h.Theory_model_iff.1 MT
+
+lemma nonempty_iff (h : M ≅[L] N) : nonempty M ↔ nonempty N :=
+(model_nonempty_theory_iff L).symm.trans (h.Theory_model_iff.trans (model_nonempty_theory_iff L))
+
+lemma nonempty [Mn : nonempty M] (h : M ≅[L] N) : nonempty N := h.nonempty_iff.1 Mn
+
+lemma infinite_iff (h : M ≅[L] N) : infinite M ↔ infinite N :=
+(model_infinite_theory_iff L).symm.trans (h.Theory_model_iff.trans (model_infinite_theory_iff L))
+
+lemma infinite [Mi : infinite M] (h : M ≅[L] N) : infinite N := h.infinite_iff.1 Mi
+
+end elementarily_equivalent
 
 end language
 end first_order

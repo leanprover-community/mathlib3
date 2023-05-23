@@ -3,8 +3,9 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import measure_theory.constructions.prod
+import measure_theory.constructions.prod.basic
 import measure_theory.group.measure
+import topology.constructions
 
 /-!
 # Product measures
@@ -33,12 +34,12 @@ where `pi univ s` is the product of the sets `{s i | i : ι}`.
 We then show that this induces a product of measures, called `measure_theory.measure.pi`.
 For a collection of σ-finite measures `μ` and a collection of measurable sets `s` we show that
 `measure.pi μ (pi univ s) = ∏ i, m i (s i)`. To do this, we follow the following steps:
-* We know that there is some ordering on `ι`, given by an element of `[encodable ι]`.
+* We know that there is some ordering on `ι`, given by an element of `[countable ι]`.
 * Using this, we have an equivalence `measurable_equiv.pi_measurable_equiv_tprod` between
   `Π ι, α i` and an iterated product of `α i`, called `list.tprod α l` for some list `l`.
 * On this iterated product we can easily define a product measure `measure_theory.measure.tprod`
   by iterating `measure_theory.measure.prod`
-* Using the previous two steps we construct `measure_theory.measure.pi'` on `Π ι, α i` for encodable
+* Using the previous two steps we construct `measure_theory.measure.pi'` on `Π ι, α i` for countable
   `ι`.
 * We know that `measure_theory.measure.pi'` sends products of sets to products of measures, and
   since `measure_theory.measure.pi` is the maximal such measure (or at least, it comes from an outer
@@ -53,7 +54,7 @@ finitary product measure
 
 noncomputable theory
 open function set measure_theory.outer_measure filter measurable_space encodable
-open_locale classical big_operators topological_space ennreal
+open_locale classical big_operators topology ennreal
 
 universes u v
 
@@ -75,7 +76,8 @@ lemma is_pi_system_pi [Π i, measurable_space (α i)] :
   is_pi_system (pi univ '' pi univ (λ i, {s : set (α i) | measurable_set s})) :=
 is_pi_system.pi (λ i, is_pi_system_measurable_set)
 
-variables [fintype ι] [fintype ι']
+section finite
+variables [finite ι] [finite ι']
 
 /-- Boxes of countably spanning sets are countably spanning. -/
 lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
@@ -83,7 +85,7 @@ lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
   is_countably_spanning (pi univ '' pi univ C) :=
 begin
   choose s h1s h2s using hC,
-  haveI := fintype.to_encodable ι,
+  casesI nonempty_encodable (ι → ℕ),
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, s i (e n i)), λ n, mem_image_of_mem _ (λ i _, h1s i _), _⟩,
   simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, s i (x i))),
@@ -96,7 +98,7 @@ lemma generate_from_pi_eq {C : Π i, set (set (α i))}
   (hC : ∀ i, is_countably_spanning (C i)) :
   @measurable_space.pi _ _ (λ i, generate_from (C i)) = generate_from (pi univ '' pi univ C) :=
 begin
-  haveI := fintype.to_encodable ι,
+  casesI nonempty_encodable ι,
   apply le_antisymm,
   { refine supr_le _, intro i, rw [comap_generate_from],
     apply generate_from_le, rintro _ ⟨s, hs, rfl⟩, dsimp,
@@ -132,9 +134,11 @@ lemma generate_from_pi [Π i, measurable_space (α i)] :
   measurable_space.pi :=
 generate_from_eq_pi (λ i, generate_from_measurable_set) (λ i, is_countably_spanning_measurable_set)
 
+end finite
+
 namespace measure_theory
 
-variables {m : Π i, outer_measure (α i)}
+variables [fintype ι] {m : Π i, outer_measure (α i)}
 
 /-- An upper bound for the measure in a finite product space.
   It is defined to by taking the image of the set under all projections, and taking the product
@@ -275,12 +279,12 @@ lemma pi_pi_aux [∀ i, sigma_finite (μ i)] (s : Π i, set (α i)) (hs : ∀ i,
   measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
   refine le_antisymm _ _,
-  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i))],
+  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi countable_univ (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
   { haveI : encodable ι := fintype.to_encodable ι,
     rw [← pi'_pi μ s],
-    simp_rw [← pi'_pi μ s, measure.pi,
-      to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
+    simp_rw [← pi'_pi μ s, measure.pi, to_measure_apply _ _ (measurable_set.pi countable_univ
+      (λ i _, hs i)), ← to_outer_measure_apply],
     suffices : (pi' μ).to_outer_measure ≤ outer_measure.pi (λ i, (μ i).to_outer_measure),
     { exact this _ },
     clear hs s,
@@ -321,7 +325,7 @@ end
 /-- A measure on a finite product space equals the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
 lemma pi_eq_generate_from {C : Π i, set (set (α i))}
-  (hC : ∀ i, generate_from (C i) = _inst_3 i)
+  (hC : ∀ i, generate_from (C i) = by apply_assumption)
   (h2C : ∀ i, is_pi_system (C i))
   (h3C : ∀ i, (μ i).finite_spanning_sets_in (C i))
   {μν : measure (Π i, α i)}
@@ -428,7 +432,7 @@ lemma ae_le_pi {β : ι → Type*} [Π i, preorder (β i)] {f f' : Π i, α i �
 
 lemma ae_le_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i ≤ᵐ[μ i] t i) :
   (set.pi I s) ≤ᵐ[measure.pi μ] (set.pi I t) :=
-((eventually_all_finite (finite.of_fintype I)).2
+((eventually_all_finite I.to_finite).2
   (λ i hi, tendsto_eval_ae_ae.eventually (h i hi))).mono $
     λ x hst hx i hi, hst i hi $ hx i hi
 
@@ -510,11 +514,19 @@ variable (μ)
 @[to_additive] instance pi.is_mul_left_invariant [∀ i, group (α i)] [∀ i, has_measurable_mul (α i)]
   [∀ i, is_mul_left_invariant (μ i)] : is_mul_left_invariant (measure.pi μ) :=
 begin
-  refine ⟨λ x, (measure.pi_eq (λ s hs, _)).symm⟩,
-  have h : has_mul.mul x ⁻¹' (pi univ s) = set.pi univ (λ i, (λ y, x i * y) ⁻¹' s i),
-  { ext, simp },
-  simp_rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi_fintype hs), h,
-    pi_pi, measure_preimage_mul]
+  refine ⟨λ v, (pi_eq $ λ s hs, _).symm⟩,
+  rw [map_apply (measurable_const_mul _) (measurable_set.univ_pi hs),
+    (show (*) v ⁻¹' univ.pi s = univ.pi (λ i, (*) (v i) ⁻¹' s i), by refl), pi_pi],
+  simp_rw measure_preimage_mul,
+end
+
+@[to_additive] instance pi.is_mul_right_invariant [Π i, group (α i)] [∀ i, has_measurable_mul (α i)]
+  [∀ i, is_mul_right_invariant (μ i)] : is_mul_right_invariant (measure.pi μ) :=
+begin
+  refine ⟨λ v, (pi_eq $ λ s hs, _).symm⟩,
+  rw [map_apply (measurable_mul_const _) (measurable_set.univ_pi hs),
+    (show (* v)  ⁻¹' univ.pi s = univ.pi (λ i, (* v i) ⁻¹' s i), by refl), pi_pi],
+  simp_rw measure_preimage_mul_right,
 end
 
 @[to_additive] instance pi.is_inv_invariant [∀ i, group (α i)] [∀ i, has_measurable_inv (α i)]
@@ -523,9 +535,40 @@ begin
   refine ⟨(measure.pi_eq (λ s hs, _)).symm⟩,
   have A : has_inv.inv ⁻¹' (pi univ s) = set.pi univ (λ i, has_inv.inv ⁻¹' s i),
   { ext, simp },
-  simp_rw [measure.inv, measure.map_apply measurable_inv (measurable_set.univ_pi_fintype hs), A,
+  simp_rw [measure.inv, measure.map_apply measurable_inv (measurable_set.univ_pi hs), A,
     pi_pi, measure_preimage_inv]
 end
+
+instance pi.is_open_pos_measure [Π i, topological_space (α i)] [Π i, is_open_pos_measure (μ i)] :
+  is_open_pos_measure (measure_theory.measure.pi μ) :=
+begin
+  constructor,
+  rintros U U_open ⟨a, ha⟩,
+  obtain ⟨s, ⟨hs, hsU⟩⟩ := is_open_pi_iff'.1 U_open a ha,
+  refine ne_of_gt (lt_of_lt_of_le _ (measure_mono hsU)),
+  simp only [pi_pi],
+  rw canonically_ordered_comm_semiring.prod_pos,
+  intros i _,
+  apply ((hs i).1.measure_pos (μ i) ⟨a i, (hs i).2⟩),
+end
+
+instance pi.is_finite_measure_on_compacts [Π i, topological_space (α i)]
+  [Π i, is_finite_measure_on_compacts (μ i)] :
+  is_finite_measure_on_compacts (measure_theory.measure.pi μ) :=
+begin
+  constructor,
+  intros K hK,
+  suffices : measure.pi μ (set.univ.pi ( λ j, (function.eval j) '' K)) < ⊤,
+  { exact lt_of_le_of_lt (measure_mono (univ.subset_pi_eval_image K)) this, },
+  rw measure.pi_pi,
+  refine with_top.prod_lt_top _,
+  exact λ i _, ne_of_lt (is_compact.measure_lt_top (is_compact.image hK (continuous_apply i))),
+end
+
+@[to_additive]
+instance pi.is_haar_measure [Π i, group (α i)] [Π i, topological_space (α i)]
+  [Π i, is_haar_measure (μ i)] [Π i, has_measurable_mul (α i)] :
+  is_haar_measure (measure.pi μ) := {}
 
 end measure
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=

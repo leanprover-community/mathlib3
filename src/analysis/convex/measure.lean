@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.convex.topology
 import analysis.normed_space.add_torsor_bases
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.lebesgue.eq_haar
 
 /-!
 # Convex sets are null-measurable
@@ -16,10 +16,10 @@ convex set in `E`. Then the frontier of `s` has measure zero (see `convex.add_ha
 -/
 
 open measure_theory measure_theory.measure set metric filter finite_dimensional (finrank)
-open_locale topological_space nnreal ennreal
+open_locale topology nnreal ennreal
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ] {s : set E}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E]
+  [borel_space E] [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ] {s : set E}
 
 namespace convex
 

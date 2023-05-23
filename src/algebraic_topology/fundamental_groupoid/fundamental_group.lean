@@ -3,7 +3,6 @@ Copyright (c) 2021 Mark Lavrentyev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mark Lavrentyev
 -/
-import category_theory.category.Groupoid
 import category_theory.groupoid
 import topology.category.Top.basic
 import topology.path_connected
@@ -12,6 +11,9 @@ import algebraic_topology.fundamental_groupoid.basic
 
 /-!
 # Fundamental group of a space
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a topological space `X` and a basepoint `x`, the fundamental group is the automorphism group
 of `x` i.e. the group with elements being loops based at `x` (quotiented by homotopy equivalence).

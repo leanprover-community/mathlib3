@@ -3,11 +3,16 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.order.field
-import data.rat.defs
+import algebra.order.field.defs
+import data.rat.basic
+import data.int.cast.lemmas
+import tactic.assert_exists
 
 /-!
 # Order for Rational Numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Summary
 
@@ -37,9 +42,9 @@ begin
   have d0 := int.coe_nat_lt.2 h₁,
   have := (mk_eq (ne_of_gt h) (ne_of_gt d0)).1 ha,
   constructor; intro h₂,
-  { apply nonneg_of_mul_nonneg_right _ d0,
+  { apply nonneg_of_mul_nonneg_left _ d0,
     rw this, exact mul_nonneg h₂ (le_of_lt h) },
-  { apply nonneg_of_mul_nonneg_right _ h,
+  { apply nonneg_of_mul_nonneg_left _ h,
     rw ← this, exact mul_nonneg h₂ (int.coe_zero_le _) },
 end
 
@@ -212,3 +217,13 @@ begin
 end
 
 end rat
+
+-- We make some assertions here about declarations that do not need to be in the import dependencies
+-- for this file, but have been in the past.
+assert_not_exists fintype
+assert_not_exists set.Icc
+assert_not_exists galois_connection
+-- These are less significant, but should not be relaxed until at least after port to Lean 4.
+assert_not_exists linear_ordered_comm_group_with_zero
+-- This one doesn't exist anywhere!
+-- assert_not_exists positive.add_comm_semigroup

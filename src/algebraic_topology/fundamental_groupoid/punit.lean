@@ -3,11 +3,14 @@ Copyright (c) 2022 Praneeth Kolichala. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
-import algebraic_topology.fundamental_groupoid.induced_maps
 import category_theory.punit
+import algebraic_topology.fundamental_groupoid.basic
 
 /-!
 # Fundamental groupoid of punit
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The fundamental groupoid of punit is naturally isomorphic to `category_theory.discrete punit`
 -/

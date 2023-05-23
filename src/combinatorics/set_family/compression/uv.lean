@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.set_family.shadow
-import data.finset.card
+import data.finset.sort
 
 /-!
 # UV-compressions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines UV-compression. It is an operation on a set family that reduces its shadow.
 
@@ -25,7 +28,9 @@ minimise the shadow.
   It is the compressions of the elements of `s` whose compression is not already in `s` along with
   the element whose compression is already in `s`. This way of splitting into what moves and what
   does not ensures the compression doesn't squash the set family, which is proved by
-  `uv.card_compress`.
+  `uv.card_compression`.
+* `uv.card_shadow_compression_le`: Compressing reduces the size of the shadow. This is a key fact in
+  the proof of Kruskal-Katona.
 
 ## Notation
 
@@ -35,11 +40,6 @@ minimise the shadow.
 
 Even though our emphasis is on `finset α`, we define UV-compressions more generally in a generalized
 boolean algebra, so that one can use it for `set α`.
-
-## TODO
-
-Prove that compressing reduces the size of shadow. This result and some more already exist on the
-branch `combinatorics`.
 
 ## References
 
@@ -77,8 +77,9 @@ variables [generalized_boolean_algebra α] [decidable_rel (@disjoint α _ _)]
 
 local attribute [instance] decidable_eq_of_decidable_le
 
-/-- To UV-compress `a`, if it doesn't touch `U` and does contain `V`, we remove `V` and
-put `U` in. We'll only really use this when `|U| = |V|` and `U ∩ V = ∅`. -/
+/-- UV-compressing `a` means removing `v` from it and adding `u` if `a` and `u` are disjoint and
+`v ≤ a` (it replaces the `v` part of `a` by the `u` part). Else, UV-compressing `a` doesn't do
+anything. This is most useful when `u` and `v` are disjoint finsets of the same size. -/
 def compress (u v a : α) : α := if disjoint u a ∧ v ≤ a then (a ⊔ u) \ v else a
 
 /-- To UV-compress a set family, we compress each of its elements, except that we don't want to
@@ -86,7 +87,7 @@ reduce the cardinality, so we keep all elements whose compression is already pre
 def compression (u v : α) (s : finset α) :=
 s.filter (λ a, compress u v a ∈ s) ∪ (s.image $ compress u v).filter (λ a, a ∉ s)
 
-localized "notation `𝓒 ` := uv.compression" in finset_family
+localized "notation (name := uv.compression) `𝓒 ` := uv.compression" in finset_family
 
 /-- `is_compressed u v s` expresses that `s` is UV-compressed. -/
 def is_compressed (u v : α) (s : finset α) := 𝓒 u v s = s
@@ -95,11 +96,19 @@ lemma compress_of_disjoint_of_le (hua : disjoint u a) (hva : v ≤ a) :
   compress u v a = (a ⊔ u) \ v :=
 if_pos ⟨hua, hva⟩
 
+lemma compress_of_disjoint_of_le' (hva : disjoint v a) (hua : u ≤ a) :
+  compress u v ((a ⊔ v) \ u) = a :=
+by rw [compress_of_disjoint_of_le disjoint_sdiff_self_right
+  (le_sdiff.2 ⟨(le_sup_right : v ≤ a ⊔ v), hva.mono_right hua⟩),
+  sdiff_sup_cancel (le_sup_of_le_left hua), hva.symm.sup_sdiff_cancel_right]
+
 /-- `a` is in the UV-compressed family iff it's in the original and its compression is in the
 original, or it's not in the original but it's the compression of something in the original. -/
 lemma mem_compression :
   a ∈ 𝓒 u v s ↔ a ∈ s ∧ compress u v a ∈ s ∨ a ∉ s ∧ ∃ b ∈ s, compress u v b = a :=
 by simp_rw [compression, mem_union, mem_filter, mem_image, and_comm (a ∉ s)]
+
+protected lemma is_compressed.eq (h : is_compressed u v s) : 𝓒 u v s = s := h
 
 @[simp] lemma compress_self (u a : α) : compress u u a = a :=
 begin
@@ -123,6 +132,14 @@ end
 
 /-- Any family is compressed along two identical elements. -/
 lemma is_compressed_self (u : α) (s : finset α) : is_compressed u u s := compression_self u s
+
+/-- An element can be compressed to any other element by removing/adding the differences. -/
+@[simp] lemma compress_sdiff_sdiff (a b : α) : compress (a \ b) (b \ a) b = a :=
+begin
+  refine (compress_of_disjoint_of_le disjoint_sdiff_self_left sdiff_le).trans _,
+  rw [sup_sdiff_self_right, sup_sdiff, disjoint_sdiff_self_right.sdiff_eq_left, sup_eq_right],
+  exact sdiff_sdiff_le,
+end
 
 lemma compress_disjoint (u v : α) :
   disjoint (s.filter (λ a, compress u v a ∈ s)) ((s.image $ compress u v).filter (λ a, a ∉ s)) :=
@@ -167,12 +184,12 @@ begin
 end
 
 /-- Compressing a family doesn't change its size. -/
-lemma card_compression (u v : α) (s : finset α) : (𝓒 u v s).card = s.card :=
+@[simp] lemma card_compression (u v : α) (s : finset α) : (𝓒 u v s).card = s.card :=
 begin
   rw [compression, card_disjoint_union (compress_disjoint _ _), image_filter, card_image_of_inj_on,
     ←card_disjoint_union, filter_union_filter_neg_eq],
   { rw disjoint_iff_inter_eq_empty,
-    exact filter_inter_filter_neg_eq _ _ },
+    exact filter_inter_filter_neg_eq _ _ _ },
   intros a ha b hb hab,
   dsimp at hab,
   rw [mem_coe, mem_filter, function.comp_app] at ha hb,
@@ -183,6 +200,43 @@ begin
     { exact sup_sdiff_inj_on u v has hbs hab },
     { exact (hb.2 hb.1).elim } },
   { exact (ha.2 ha.1).elim }
+end
+
+lemma le_of_mem_compression_of_not_mem (h : a ∈ 𝓒 u v s) (ha : a ∉ s) : u ≤ a :=
+begin
+  rw mem_compression at h,
+  obtain _ | ⟨-, b, hb, hba⟩ := h,
+  { cases ha h.1 },
+  unfold compress at hba,
+  split_ifs at hba,
+  { rw [←hba, le_sdiff],
+    exact ⟨le_sup_right, h.1.mono_right h.2⟩ },
+  { cases ne_of_mem_of_not_mem hb ha hba }
+end
+
+lemma disjoint_of_mem_compression_of_not_mem (h : a ∈ 𝓒 u v s) (ha : a ∉ s) : disjoint v a :=
+begin
+  rw mem_compression at h,
+  obtain _ | ⟨-, b, hb, hba⟩ := h,
+  { cases ha h.1 },
+  unfold compress at hba,
+  split_ifs at hba,
+  { rw ←hba,
+    exact disjoint_sdiff_self_right },
+  { cases ne_of_mem_of_not_mem hb ha hba }
+end
+
+lemma sup_sdiff_mem_of_mem_compression_of_not_mem (h : a ∈ 𝓒 u v s) (ha : a ∉ s) :
+  (a ⊔ v) \ u ∈ s :=
+begin
+  rw mem_compression at h,
+  obtain _ | ⟨-, b, hb, hba⟩ := h,
+  { cases ha h.1 },
+  unfold compress at hba,
+  split_ifs at hba,
+  { rwa [←hba, sdiff_sup_cancel (le_sup_of_le_left h.2), sup_sdiff_right_self,
+      h.1.symm.sdiff_eq_left] },
+  { cases ne_of_mem_of_not_mem hb ha hba }
 end
 
 /-- If `a` is in the family compression and can be compressed, then its compression is in the
@@ -217,8 +271,7 @@ begin
   unfold compress at h,
   split_ifs at h,
   { rw [←h, le_sdiff_iff] at hva,
-    rw [hvu hva, hva, sup_bot_eq, sdiff_bot] at h,
-    rwa ←h },
+    rwa [←h, hvu hva, hva, sup_bot_eq, sdiff_bot] },
   { rwa ←h }
 end
 
@@ -228,172 +281,132 @@ end generalized_boolean_algebra
 
 open_locale finset_family
 
-variables [decidable_eq α] {𝒜 : finset (finset α)} {U V A : finset α}
+variables [decidable_eq α] {𝒜 : finset (finset α)} {u v a : finset α}
 
 /-- Compressing a finset doesn't change its size. -/
-lemma card_compress (hUV : U.card = V.card) (A : finset α) : (compress U V A).card = A.card :=
+lemma card_compress (hUV : u.card = v.card) (A : finset α) : (compress u v A).card = A.card :=
 begin
   unfold compress,
   split_ifs,
   { rw [card_sdiff (h.2.trans le_sup_left), sup_eq_union, card_disjoint_union h.1.symm, hUV,
-    add_tsub_cancel_right] },
+      add_tsub_cancel_right] },
   { refl }
 end
 
-/-- If `A` is not in the original family but is in the compressed family, then `A` has been
-compressed, and its original was in the original family. -/
-lemma compress_moved (h₁ : A ∈ 𝓒 U V 𝒜) (h₂ : A ∉ 𝒜) :
-  U ⊆ A ∧ disjoint V A ∧ (A ∪ V) \ U ∈ 𝒜 :=
-begin
-  rw mem_compression at h₁,
-  obtain _ | ⟨_, B, H, HB⟩ := h₁,
-  { tauto },
-  { unfold compress at HB,
-    split_ifs at HB,
-    { rw ← HB at *,
-      refine ⟨_, disjoint_sdiff, _⟩,
-        have : disjoint U V := disjoint_of_subset_right h.2 h.1,
-        rw sup_sdiff,
-        rw sdiff_eq_self_of_disjoint this,
-        apply subset_union_right _ _,
-      rwa [sdiff_union_of_subset, sup_sdiff_right_self,
-            sdiff_eq_self_of_disjoint h.1.symm],
-      apply trans h.2 (subset_union_left _ _) },
-    { rw HB at *, tauto } }
-end
+private lemma aux (huv : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
+  v = ∅ → u = ∅ :=
+by { rintro rfl, refine eq_empty_of_forall_not_mem (λ a ha, _), obtain ⟨_, ⟨⟩, -⟩ := huv a ha }
 
-lemma sdiff_sdiff {A B C : finset α} (h : C ⊆ A) : A \ (B \ C) = A \ B ∪ C :=
+/-- UV-compression reduces the size of the shadow of `𝒜` if, for all `x ∈ u` there is `y ∈ v` such
+that `𝒜` is `(u.erase x, v.erase y)`-compressed. This is the key fact about compression for
+Kruskal-Katona. -/
+lemma shadow_compression_subset_compression_shadow (u v : finset α)
+  (huv : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
+  ∂ (𝓒 u v 𝒜) ⊆ 𝓒 u v (∂ 𝒜) :=
 begin
-  ext1 i,
-  simp only [mem_union, not_and, mem_sdiff],
-  push_neg,
-  refine ⟨_, _⟩,
-  rintro ⟨iA, iBC⟩,
-  by_cases (i ∈ C),
-  right, exact h,
-  left,
-  refine ⟨iA, mt iBC h⟩,
-  rintro (⟨iA, niB⟩ | iC),
-  refine ⟨iA, λ iB, (niB iB).elim⟩,
-  refine ⟨h iC, λ _, iC⟩,
-end
-
-/-- Here's the key fact about compression for Kruskal-Katona. If, for all `x ∈ U` there is
-`y ∈ V` such that `𝒜` is `(U-x,V-y)`-compressed, then UV-compression will reduce the size of the
-shadow of `𝒜`. -/
-theorem card_shadow_compression_le {U V : finset α}
-  (h₁ : ∀ x ∈ U, ∃ y ∈ V, is_compressed (erase U x) (erase V y) 𝒜) (hvu : V = ∅ → U = ∅) :
-  (∂ (𝓒 U V 𝒜)).card ≤ (∂𝒜).card :=
-begin
-  set 𝒜' := 𝓒 U V 𝒜,
-  suffices : (∂𝒜' \ ∂𝒜).card ≤ (∂𝒜 \ ∂𝒜').card,
-  { suffices z : (∂𝒜' \ ∂𝒜 ∪ ∂𝒜' ∩ ∂𝒜).card ≤ (∂𝒜 \ ∂𝒜' ∪ ∂𝒜 ∩ ∂𝒜').card,
-    { rwa [sdiff_union_inter, sdiff_union_inter] at z },
-    rw [card_disjoint_union, card_disjoint_union, inter_comm],
-    apply add_le_add_right ‹_›,
-    any_goals { apply disjoint_sdiff_inter } },
-
-  -- We'll define an injection ∂𝒜' \ ∂𝒜 → ∂𝒜 \ ∂𝒜'. First, let's prove
-  -- a few facts about things in the domain:
-  suffices q₁ : ∀ B ∈ ∂𝒜' \ ∂𝒜, U ⊆ B ∧ disjoint V B ∧ (B ∪ V) \ U ∈ ∂𝒜 \ ∂𝒜',
-  { apply card_le_card_of_inj_on (λ B, (B ∪ V) \ U) (λ B HB, (q₁ B HB).2.2),
-    intros B₁ HB₁ B₂ HB₂ k,
-    exact sup_sdiff_inj_on _ _ ⟨(q₁ B₁ HB₁).2.1, (q₁ B₁ HB₁).1⟩ ⟨(q₁ B₂ HB₂).2.1, (q₁ B₂ HB₂).1⟩ k },
-  intros B HB,
-  obtain ⟨k, k'⟩: B ∈ ∂𝒜' ∧ B ∉ ∂𝒜 := mem_sdiff.1 HB,
+  set 𝒜' := 𝓒 u v 𝒜,
+  suffices H : ∀ s, s ∈ ∂ 𝒜' → s ∉ ∂ 𝒜 →
+    u ⊆ s ∧ disjoint v s ∧ (s ∪ v) \ u ∈ ∂ 𝒜 ∧ (s ∪ v) \ u ∉ ∂ 𝒜',
+  { rintro s hs',
+    rw mem_compression,
+    by_cases hs : s ∈ 𝒜.shadow, swap,
+    { obtain ⟨hus, hvs, h, _⟩ := H _ hs' hs,
+      exact or.inr ⟨hs, _, h, compress_of_disjoint_of_le' hvs hus⟩ },
+    refine or.inl ⟨hs, _⟩,
+    rw compress,
+    split_ifs with huvs, swap,
+    { exact hs },
+    rw mem_shadow_iff at hs',
+    obtain ⟨t, Ht, a, hat, rfl⟩ := hs',
+    have hav : a ∉ v := not_mem_mono huvs.2 (not_mem_erase a t),
+    have hvt : v ≤ t := huvs.2.trans (erase_subset _ t),
+    have ht : t ∈ 𝒜 := mem_of_mem_compression Ht hvt (aux huv),
+    by_cases hau : a ∈ u,
+    { obtain ⟨b, hbv, Hcomp⟩ := huv a hau,
+      refine mem_shadow_iff_insert_mem.2 ⟨b, not_mem_sdiff_of_mem_right hbv, _⟩,
+      rw ←Hcomp.eq at ht,
+      have hsb := sup_sdiff_mem_of_mem_compression ht ((erase_subset _ _).trans hvt)
+        (disjoint_erase_comm.2 huvs.1),
+      rwa [sup_eq_union, sdiff_erase (mem_union_left _ $ hvt hbv), union_erase_of_mem hat,
+        ←erase_union_of_mem hau] at hsb },
+    { refine mem_shadow_iff.2 ⟨(t ⊔ u) \ v, sup_sdiff_mem_of_mem_compression Ht hvt $
+        disjoint_of_erase_right hau huvs.1, a, _, _⟩,
+      { rw [sup_eq_union, mem_sdiff, mem_union],
+        exact ⟨or.inl hat, hav⟩ },
+      { rw [←erase_sdiff_comm, sup_eq_union, erase_union_distrib, erase_eq_of_not_mem hau] } } },
+  intros s hs𝒜' hs𝒜,
   -- This is gonna be useful a couple of times so let's name it.
-  have m: ∀ y ∉ B, insert y B ∉ 𝒜 := λ y H a, k' (mem_shadow_iff_insert_mem.2 ⟨y, H, a⟩),
-  rcases mem_shadow_iff_insert_mem.1 k with ⟨x, _, _⟩,
-  have q := compress_moved ‹insert x B ∈ 𝒜'› (m _ ‹x ∉ B›),
-  have : disjoint V B := (disjoint_insert_right.1 q.2.1).2,
-  have dVU : disjoint V U := disjoint_of_subset_right q.1 q.2.1,
-  have : V \ U = V := sdiff_eq_self_of_disjoint ‹disjoint V U›,
-  -- The first key part is that x ∉ U
-  have : x ∉ U,
-  { intro a,
-    rcases h₁ x ‹x ∈ U› with ⟨y, Hy, xy_comp⟩,
-    -- If `x ∈ U`, we can get `y ∈ V` so that `𝒜` is `(U-x,V-y)`-compressed
-    apply m y (disjoint_left.1 ‹disjoint V B› Hy),
-    -- and we'll use this `y` to contradict `m`.
-    rw is_compressed at xy_comp,
-    have : (insert x B ∪ V) \ U ∈ 𝓒 (erase U x) (erase V y) 𝒜,
-      rw xy_comp, exact q.2.2,
-    -- So we'd like to show insert y B ∈ 𝒜.
+  have m : ∀ y ∉ s, insert y s ∉ 𝒜 := λ y h a, hs𝒜 (mem_shadow_iff_insert_mem.2 ⟨y, h, a⟩),
+  obtain ⟨x, _, _⟩ := mem_shadow_iff_insert_mem.1 hs𝒜',
+  have hus : u ⊆ insert x s := le_of_mem_compression_of_not_mem ‹_ ∈ 𝒜'› (m _ ‹x ∉ s›),
+  have hvs : disjoint v (insert x s) := disjoint_of_mem_compression_of_not_mem ‹_› (m _ ‹x ∉ s›),
+  have : (insert x s ∪ v) \ u ∈ 𝒜 := sup_sdiff_mem_of_mem_compression_of_not_mem ‹_› (m _ ‹x ∉ s›),
+  have hsv : disjoint s v := hvs.symm.mono_left (subset_insert _ _),
+  have hvu : disjoint v u := disjoint_of_subset_right hus hvs,
+  have hxv : x ∉ v := disjoint_right.1 hvs (mem_insert_self _ _),
+  have : v \ u = v := ‹disjoint v u›.sdiff_eq_left,
+  -- The first key part is that `x ∉ u`
+  have : x ∉ u,
+  { intro hxu,
+    obtain ⟨y, hyv, hxy⟩ := huv x hxu,
+    -- If `x ∈ u`, we can get `y ∈ v` so that `𝒜` is `(u.erase x, v.erase y)`-compressed
+    apply m y (disjoint_right.1 hsv hyv),
+    -- and we will use this `y` to contradict `m`, so we would like to show `insert y s ∈ 𝒜`.
     -- We do this by showing the below
-    have : ((insert x B ∪ V) \ U ∪ erase U x) \ erase V y ∈ 𝒜,
-      apply sup_sdiff_mem_of_mem_compression this _,
-        apply disjoint_of_subset_left (erase_subset _ _) disjoint_sdiff,
-      rw [union_sdiff_distrib, ‹V \ U = V›],
-      apply subset.trans (erase_subset _ _) (subset_union_right _ _),
+    have : ((insert x s ∪ v) \ u ∪ erase u x) \ erase v y ∈ 𝒜,
+    { refine sup_sdiff_mem_of_mem_compression (by rwa hxy.eq) _
+        (disjoint_of_subset_left (erase_subset _ _) disjoint_sdiff),
+      rw [union_sdiff_distrib, ‹v \ u = v›],
+      exact (erase_subset _ _).trans (subset_union_right _ _) },
     -- and then arguing that it's the same
-    suffices : ((insert x B ∪ V) \ U ∪ erase U x) \ erase V y = insert y B,
-      rwa ← this,
-    have : x ∉ B ∪ V := not_mem_union.2 ⟨‹x ∉ B›, disjoint_right.1 ‹disjoint V U› a⟩,
-    have : erase U x ⊆ insert x B ∪ V := trans (erase_subset x _)
-                                          (trans q.1 (subset_union_left _ V)),
-    -- which is just a pain.
-    rw [← sdiff_sdiff ‹U.erase x ⊆ insert x B ∪ V›, finset.sdiff_erase ‹x ∈ U›,
-        sdiff_singleton_eq_erase, insert_union, erase_insert ‹x ∉ B ∪ V›, union_sdiff_distrib,
-        sdiff_erase ‹y ∈ V›, sdiff_eq_self_of_disjoint, union_comm, insert_eq],
-    rw [disjoint.comm],
-    apply disjoint_of_subset_left (erase_subset _ _) ‹disjoint V B› },
-  -- Now that that's done, it's immediate that U ⊆ B
-  have : U ⊆ B, rw [← erase_eq_of_not_mem ‹x ∉ U›, ← subset_insert_iff], exact q.1,
-  -- and we already had that V and B are disjoint
-  refine ⟨‹_›, ‹_›, _⟩,
-  -- so it only remains to get (B ∪ V) \ U ∈ ∂𝒜 \ ∂𝒜'
-  rw mem_sdiff,
-  have : x ∉ V := disjoint_right.1 q.2.1 (mem_insert_self _ _),
-  split,
-    -- (B ∪ V) \ U ∈ ∂𝒜 is pretty direct:
-  { rw mem_shadow_iff_insert_mem,
-    refine ⟨x, _, _⟩,
-    { simp [mem_sdiff, mem_union], tauto! },
-    convert q.2.2,
-    rw [insert_eq, insert_eq, union_assoc, union_sdiff_distrib _ (B ∪ V),
-        sdiff_eq_self_of_disjoint (disjoint_singleton_left.2 ‹x ∉ U›)] },
-  -- For (B ∪ V) \ U ∉ ∂𝒜', we split up based on w ∈ U
-  rw mem_shadow_iff_insert_mem,
+    convert this,
+    rw [sdiff_union_erase_cancel (hus.trans $ subset_union_left _ _) ‹x ∈ u›, erase_union_distrib,
+      erase_insert ‹x ∉ s›, erase_eq_of_not_mem ‹x ∉ v›, sdiff_erase (mem_union_right _ hyv),
+      union_sdiff_cancel_right hsv] },
+  -- Now that this is done, it's immediate that `u ⊆ s`
+  have hus : u ⊆ s,
+  { rwa [←erase_eq_of_not_mem ‹x ∉ u›, ←subset_insert_iff] },
+  -- and we already had that `v` and `s` are disjoint,
+  -- so it only remains to get `(s ∪ v) \ u ∈ ∂ 𝒜 \ ∂ 𝒜'`
+  simp_rw [mem_shadow_iff_insert_mem],
+  refine ⟨hus, hsv.symm, ⟨x, _, _⟩, _⟩,
+  -- `(s ∪ v) \ u ∈ ∂ 𝒜` is pretty direct:
+  { exact not_mem_sdiff_of_not_mem_left (not_mem_union.2 ⟨‹x ∉ s›, ‹x ∉ v›⟩) },
+  { rwa [←insert_sdiff_of_not_mem _ ‹x ∉ u›, ←insert_union] },
+  -- For (s ∪ v) \ u ∉ ∂ 𝒜', we split up based on w ∈ u
   rintro ⟨w, hwB, hw𝒜'⟩,
-  by_cases (w ∈ U),
-    -- If w ∈ U, we find z ∈ V, and contradict m again
-  { rcases h₁ w ‹w ∈ U› with ⟨z, Hz, xy_comp⟩,
-    apply m z (disjoint_left.1 ‹disjoint V B› Hz),
-    have : insert w ((B ∪ V) \ U) ∈ 𝒜,
-    { refine mem_of_mem_compression hw𝒜' (subset.trans _ (subset_insert _ _)) hvu,
-      rw union_sdiff_distrib, rw ‹V \ U = V›, apply subset_union_right },
-    have : (insert w ((B ∪ V) \ U) ∪ erase U w) \ erase V z ∈ 𝒜,
-    { refine sup_sdiff_mem_of_mem_compression _ _ _,
-          rw is_compressed at xy_comp, rwa xy_comp,
-        apply subset.trans (erase_subset _ _),
-        apply subset.trans _ (subset_insert _ _),
-        rw [union_sdiff_distrib, ‹V \ U = V›], apply subset_union_right,
-      rw disjoint_insert_right, split, apply not_mem_erase,
-      apply disjoint_of_subset_left (erase_subset _ _), apply disjoint_sdiff },
-    have : (insert w ((B ∪ V) \ U) ∪ erase U w) \ erase V z = insert z B,
-    { rw [insert_union, ← union_insert, insert_erase h,
-        sdiff_union_of_subset (subset.trans ‹U ⊆ B› (subset_union_left _ _)),
-        union_sdiff_distrib, sdiff_eq_self_of_disjoint
-        (disjoint_of_subset_right (erase_subset _ _) ‹disjoint V B›.symm),
-        ← sdiff_singleton_eq_erase, sdiff_sdiff_self_left,
-        inter_singleton_of_mem Hz, union_comm],
-      refl },
-    rwa ← this },
-  -- If w ∉ U, we contradict m again
-  rw [mem_sdiff, ← not_imp, not_not] at hwB,
-  have : w ∉ V := h ∘ hwB ∘ mem_union_right _,
-  have : w ∉ B := h ∘ hwB ∘ mem_union_left _,
-  apply m w this,
-
-  have : (insert w ((B ∪ V) \ U) ∪ U) \ V ∈ 𝒜,
-    refine sup_sdiff_mem_of_mem_compression ‹insert w ((B ∪ V) \ U) ∈ 𝒜'›
-            (trans _ (subset_insert _ _)) _,
-      rw [union_sdiff_distrib, ‹V \ U = V›], apply subset_union_right,
-      rw disjoint_insert_right, exact ⟨‹_›, disjoint_sdiff⟩,
-  convert this, rw [insert_union, sdiff_union_of_subset (trans ‹U ⊆ B› (subset_union_left _ _)),
-                    ← insert_union, union_sdiff_self], symmetry,
-  rw [_root_.sdiff_eq_self_iff_disjoint],
-  exact disjoint_insert_right.2 ⟨‹w ∉ V›, ‹disjoint V B›⟩,
+  have : v ⊆ insert w ((s ∪ v) \ u) := (subset_sdiff.2 ⟨subset_union_right _ _, hvu⟩).trans
+    (subset_insert _ _),
+  by_cases hwu : w ∈ u,
+    -- If `w ∈ u`, we find `z ∈ v`, and contradict `m` again
+  { obtain ⟨z, hz, hxy⟩ := huv w hwu,
+    apply m z (disjoint_right.1 hsv hz),
+    have : insert w ((s ∪ v) \ u) ∈ 𝒜 := mem_of_mem_compression hw𝒜' ‹_› (aux huv),
+    have : (insert w ((s ∪ v) \ u) ∪ erase u w) \ erase v z ∈ 𝒜,
+    { refine sup_sdiff_mem_of_mem_compression (by rwa hxy.eq) ((erase_subset _ _).trans ‹_›) _,
+      rw ←sdiff_erase (mem_union_left _ $ hus hwu),
+      exact disjoint_sdiff },
+    convert this,
+    rw [insert_union_comm, insert_erase ‹w ∈ u›, sdiff_union_of_subset
+      (hus.trans $ subset_union_left _ _), sdiff_erase (mem_union_right _ ‹z ∈ v›),
+      union_sdiff_cancel_right hsv] },
+  -- If `w ∉ u`, we contradict `m` again
+  rw [mem_sdiff, ←not_imp, not_not] at hwB,
+  apply m w (hwu ∘ hwB ∘ mem_union_left _),
+  have : (insert w ((s ∪ v) \ u) ∪ u) \ v ∈ 𝒜 := sup_sdiff_mem_of_mem_compression
+    ‹insert w ((s ∪ v) \ u) ∈ 𝒜'› ‹_› (disjoint_insert_right.2 ⟨‹_›, disjoint_sdiff⟩),
+  convert this,
+  rw [insert_union, sdiff_union_of_subset (hus.trans $ subset_union_left _ _),
+    insert_sdiff_of_not_mem _ (hwu ∘ hwB ∘ mem_union_right _), union_sdiff_cancel_right hsv],
 end
+
+/-- UV-compression reduces the size of the shadow of `𝒜` if, for all `x ∈ u` there is `y ∈ v`
+such that `𝒜` is `(u.erase x, v.erase y)`-compressed. This is the key UV-compression fact needed for
+Kruskal-Katona. -/
+lemma card_shadow_compression_le (u v : finset α)
+  (huv : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
+  (∂ (𝓒 u v 𝒜)).card ≤ (∂ 𝒜).card :=
+(card_le_of_subset $ shadow_compression_subset_compression_shadow _ _ huv).trans
+  (card_compression _ _ _).le
 
 end uv

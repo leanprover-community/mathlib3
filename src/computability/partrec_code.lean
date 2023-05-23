@@ -8,6 +8,9 @@ import computability.partrec
 /-!
 # Gödel Numbering for Partial Recursive Functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `nat.partrec.code`, an inductive datatype describing code for partial
 recursive functions on ℕ. It defines an encoding for these codes, and proves that the constructors
 are primitive recursive with respect to the encoding.
@@ -738,8 +741,8 @@ end
 
 theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
 ⟨λ h, begin
-  suffices : ∃ k, x ∈ evaln (k+1) c n,
-  { exact let ⟨k, h⟩ := this in ⟨k+1, h⟩ },
+  rsuffices ⟨k, h⟩ : ∃ k, x ∈ evaln (k+1) c n,
+  { exact ⟨k + 1, h⟩ },
   induction c generalizing n x;
     simp [eval, evaln, pure, pfun.pure, (<*>), (>>)] at h ⊢,
   iterate 4 { exact ⟨⟨_, le_rfl⟩, h.symm⟩ },

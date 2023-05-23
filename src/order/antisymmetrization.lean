@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.hom.basic
+import logic.relation
 
 /-!
 # Turning a preorder into a partial order
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file allows to make a preorder into a partial order by quotienting out the elements `a`, `b`
 such that `a ≤ b` and `b ≤ a`.
@@ -108,6 +112,20 @@ instance : partial_order (antisymmetrization α (≤)) :=
   lt_iff_le_not_le := λ a b, quotient.induction_on₂' a b $ λ a b, lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂' a b $ λ a b hab hba, quotient.sound' ⟨hab, hba⟩ }
 
+lemma antisymmetrization_fibration :
+  relation.fibration (<) (<) (@to_antisymmetrization α (≤) _) :=
+by { rintro a ⟨b⟩ h, exact ⟨b, h, rfl⟩ }
+
+lemma acc_antisymmetrization_iff : acc (<) (to_antisymmetrization (≤) a) ↔ acc (<) a :=
+acc_lift_on₂'_iff
+
+lemma well_founded_antisymmetrization_iff :
+  well_founded (@has_lt.lt (antisymmetrization α (≤)) _) ↔ well_founded (@has_lt.lt α _) :=
+well_founded_lift_on₂'_iff
+
+instance [well_founded_lt α] : well_founded_lt (antisymmetrization α (≤)) :=
+⟨well_founded_antisymmetrization_iff.2 is_well_founded.wf⟩
+
 instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
   linear_order (antisymmetrization α (≤)) :=
 { le_total := λ a b, quotient.induction_on₂' a b $ total_of (≤),
@@ -124,13 +142,11 @@ instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
 
 @[simp] lemma of_antisymmetrization_le_of_antisymmetrization_iff {a b : antisymmetrization α (≤)} :
   of_antisymmetrization (≤) a ≤ of_antisymmetrization (≤) b ↔ a ≤ b :=
-by convert to_antisymmetrization_le_to_antisymmetrization_iff.symm;
-  exact (to_antisymmetrization_of_antisymmetrization _ _).symm
+rel_embedding.map_rel_iff (quotient.out'_rel_embedding _)
 
 @[simp] lemma of_antisymmetrization_lt_of_antisymmetrization_iff {a b : antisymmetrization α (≤)} :
   of_antisymmetrization (≤) a < of_antisymmetrization (≤) b ↔ a < b :=
-by convert to_antisymmetrization_lt_to_antisymmetrization_iff.symm;
-  exact (to_antisymmetrization_of_antisymmetrization _ _).symm
+(quotient.out'_rel_embedding _).map_rel_iff
 
 @[mono] lemma to_antisymmetrization_mono : monotone (@to_antisymmetrization α (≤) _) := λ a b, id
 
@@ -164,8 +180,7 @@ variables (α)
 /-- `of_antisymmetrization` as an order embedding. -/
 @[simps] noncomputable def order_embedding.of_antisymmetrization : antisymmetrization α (≤) ↪o α :=
 { to_fun := of_antisymmetrization _,
-  inj' := λ _ _, quotient.out_inj.1,
-  map_rel_iff' := λ a b, of_antisymmetrization_le_of_antisymmetrization_iff }
+  ..quotient.out'_rel_embedding _ }
 
 /-- `antisymmetrization` and `order_dual` commute. -/
 def order_iso.dual_antisymmetrization :

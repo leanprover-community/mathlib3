@@ -3,11 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.category.Group.basic
 import category_theory.category.Bipointed
+import algebra.category.Mon.basic
 
 /-!
 # The category of groups with zero
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `GroupWithZero`, the category of groups with zero.
 -/

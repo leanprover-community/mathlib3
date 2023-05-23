@@ -3,14 +3,18 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-
 import algebra.hom.iterate
 import data.list.cycle
+import data.pnat.basic
 import data.nat.prime
 import dynamics.fixed_points.basic
+import group_theory.group_action.group
 
 /-!
 # Periodic points
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A point `x : α` is a periodic point of `f : α → α` of period `n` if `f^[n] x = x`.
 
@@ -338,7 +342,7 @@ lemma not_is_periodic_pt_of_pos_of_lt_minimal_period :
 
 lemma is_periodic_pt.minimal_period_dvd (hx : is_periodic_pt f n x) : minimal_period f x ∣ n :=
 (eq_or_lt_of_le $ n.zero_le).elim (λ hn0, hn0 ▸ dvd_zero _) $ λ hn0,
-(nat.dvd_iff_mod_eq_zero _ _).2 $
+nat.dvd_iff_mod_eq_zero.2 $
 (hx.mod $ is_periodic_pt_minimal_period f x).eq_zero_of_lt_minimal_period $
 nat.mod_lt _ $ hx.minimal_period_pos hn0
 

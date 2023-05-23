@@ -8,6 +8,9 @@ import logic.equiv.basic
 /-!
 # Extra lemmas about `ulift` and `plift`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide `subsingleton`, `unique`, `decidable_eq`, and `is_empty` instances for
 `ulift α` and `plift α`. We also prove `ulift.forall`, `ulift.exists`, `plift.forall`, and
 `plift.exists`.
@@ -21,6 +24,7 @@ namespace plift
 variables {α : Sort u} {β : Sort v}
 
 instance [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
+instance [nonempty α] : nonempty (plift α) := equiv.plift.nonempty
 instance [unique α] : unique (plift α) := equiv.plift.unique
 instance [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
 instance [is_empty α] : is_empty (plift α) := equiv.plift.is_empty
@@ -47,6 +51,7 @@ namespace ulift
 variables {α : Type u} {β : Type v}
 
 instance [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
+instance [nonempty α] : nonempty (ulift α) := equiv.ulift.nonempty
 instance [unique α] : unique (ulift α) := equiv.ulift.unique
 instance [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
 instance [is_empty α] : is_empty (ulift α) := equiv.ulift.is_empty

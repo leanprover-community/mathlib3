@@ -6,6 +6,8 @@ Authors: Bhavik Mehta
 import combinatorics.colex
 import combinatorics.set_family.basic
 import combinatorics.set_family.compression.uv
+import combinatorics.set_family.intersecting
+import data.finset.fin
 
 /-!
 # Kruskal-Katona theorem
@@ -22,20 +24,20 @@ The key results proved here are:
   segments of colex.
 
 theorem kruskal_katona {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset α)).sized r)
-  (h₂ : 𝒜.card = 𝒞.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
+  (h₂ : 𝒜.card = 𝒞.card) (h₃ : is_init_seg 𝒞 r) :
   (∂𝒞).card ≤ (∂𝒜).card :=
 
 * A strengthened form, giving the same result under a weaker constraint.
 
 theorem strengthened_kk {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset α)).sized r)
-  (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
+  (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg 𝒞 r) :
   (∂𝒞).card ≤ (∂𝒜).card :=
 
 * An iterated form, giving that the minimum iterated shadow size is given
   by initial segments of colex.
 
 theorem iterated_kk {r k : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset α)).sized r)
-  (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
+  (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg 𝒞 r) :
   (shadow^[k] 𝒞).card ≤ (shadow^[k] 𝒜).card :=
 
 * A special case of iterated_kk which is often more practical to use.
@@ -61,71 +63,20 @@ theorem EKR {𝒜 : finset (finset X)} {r : ℕ}
 kruskal-katona, kruskal, katona, shadow, initial segments, intersecting
 -/
 
-open nat uv
-open_locale finset_family
+namespace colex
+variables {α : Type*} [linear_order α]
 
-section generalized_boolean_algebra
-variables {α : Type*} [generalized_boolean_algebra α] {x y z : α}
-
-lemma eq_of_sdiff_eq_sdiff (hxz : x ≤ z) (hyz : y ≤ z) (h : z \ x = z \ y) : x = y :=
-by rw [←sdiff_sdiff_eq_self hxz, h, sdiff_sdiff_eq_self hyz]
-
-lemma sdiff_sdiff_le : x \ (x \ y) ≤ y := sdiff_le_iff.2 le_sdiff_sup
-
-lemma eq_bot_of_sdiff_eq (h : x \ y = y) : y = ⊥ :=
-begin
-  refine disjoint_self.1 _,
-  convert disjoint_sdiff_self_right,
-  exact h.symm,
-end
-
-variables [decidable_rel (@disjoint α _ _)] [decidable_rel ((≤) : α → α → Prop)]
-
-@[simp] lemma compress_sdiff_sdiff (a b : α) : compress (a \ b) (b \ a) b = a :=
-begin
-  refine (compress_of_disjoint_of_le disjoint_sdiff_self_left sdiff_le).trans _,
-  rw [sup_sdiff_self_right, sup_sdiff, disjoint_sdiff_self_right.sdiff_eq_left, sup_eq_right],
-  exact sdiff_sdiff_le,
-end
-
-protected lemma uv.is_compressed.eq {u v : α} {s : finset α} (h : is_compressed u v s) :
-  𝓒 u v s = s := h
-
-end generalized_boolean_algebra
-
-namespace set
-variables {α : Type*} [generalized_boolean_algebra α] {s t : set α} {a b c : α}
-
-/-- A set family is intersecting if every pair of elements is non-disjoint. -/
-def intersecting (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → ¬ disjoint a b
-
-lemma intersecting.mono (hs : s.intersecting) (h : t ⊆ s) : t.intersecting :=
-λ a ha b hb, hs (h ha) (h hb)
-
-lemma intersecting.not_bot_mem (hs : s.intersecting) : ⊥ ∉ s := λ h, hs h h disjoint_bot_left
-
-lemma intersecting.ne_bot (hs : s.intersecting) (ha : a ∈ s) : a ≠ ⊥ :=
-ne_of_mem_of_not_mem ha hs.not_bot_mem
-
-end set
-
-open finset nat uv
-open_locale finset_family
-
-variable {α : Type*}
-variables {n : ℕ}
-
-/-- `is_init_seg_of_colex 𝒜 r` means that everything in `𝒜` has size `r`, and that if `B` is below
+/-- `𝒜` is an initial segment of the colexigraphic order on sets of `r`, and that if `B` is below
 `A` in colex where `B` has size `r` and `A` is in `𝒜`, then `B` is also in `𝒜`. In effect, `𝒜` is
 downwards closed with respect to colex among sets of size `r`. -/
-def is_init_seg_of_colex [has_lt α] (𝒜 : finset (finset α)) (r : ℕ) : Prop :=
+def is_init_seg [has_lt α] (𝒜 : finset (finset α)) (r : ℕ) : Prop :=
 (𝒜 : set (finset α)).sized r ∧
   ∀ ⦃A B : finset α⦄, A ∈ 𝒜 → B.to_colex < A.to_colex ∧ B.card = r → B ∈ 𝒜
 
 /-- Initial segments are nested in some way. In particular, if they're the same size they're equal.
 -/
 lemma init_seg_total [linear_order α] {𝒜₁ 𝒜₂ : finset (finset α)} (r : ℕ)
-  (h₁ : is_init_seg_of_colex 𝒜₁ r) (h₂ : is_init_seg_of_colex 𝒜₂ r) :
+  (h₁ : is_init_seg 𝒜₁ r) (h₂ : is_init_seg 𝒜₂ r) :
   𝒜₁ ⊆ 𝒜₂ ∨ 𝒜₂ ⊆ 𝒜₁ :=
 begin
   classical,
@@ -142,16 +93,24 @@ begin
   { exact hB.2 (h₁.2 Ah.1 ⟨gt, h₂.1 hB.1⟩) }
 end
 
+end colex
+
+open colex finset nat uv
+open_locale finset_family
+
+variable {α : Type*}
+variables {n : ℕ}
+
 namespace UV
 section
 
 /-- Applying the compression makes the set smaller in colex. This is intuitive since a portion of
 the set is being "shifted 'down" as `max U < max V`. -/
-lemma compression_reduces_set [linear_order α] {U V : finset α}
-  {hU : U.nonempty} {hV : V.nonempty} (A : finset α) (h : max' U hU < max' V hV):
-  compress U V A ≠ A → (compress U V A).to_colex < A.to_colex :=
+lemma compression_reduces_set [linear_order α] {U V : finset α} {hU : U.nonempty} {hV : V.nonempty}
+  (A : finset α) (h : max' U hU < max' V hV) (hA : compress U V A ≠ A) :
+  (compress U V A).to_colex < A.to_colex :=
 begin
-  rw compress,
+  rw [compress, if_pos (ite_ne_right_iff.1 hA).1],
   -- split_ifs with h₁,
   -- { intro h₂,
   --   exact max' V hV },
@@ -168,12 +127,12 @@ end
 /-- This measures roughly how compressed the family is. (Note that it does depend on the ordering of
 the ground set, unlike Kruskal-Katona itself). -/
 def family_measure (𝒜 : finset (finset (fin n))) : ℕ :=
-𝒜.sum $ λ A, (image subtype.val A).sum (pow 2)
+𝒜.sum $ λ A, (image fin.val A).sum (pow 2)
 
 /-- Applying a compression strictly decreases the measure. This helps show that "compress until we
 can't any more" is a terminating process. -/
-lemma compression_reduces_family {U V : finset (fin n)}
-  {hU : U.nonempty} {hV : V.nonempty} (h : max' U hU < max' V hV)
+lemma compression_reduces_family {U V : finset (fin n)} {hU : U.nonempty} {hV : V.nonempty}
+  (h : max' U hU < max' V hV)
   {𝒜 : finset (finset (fin n))} (a : 𝓒 U V 𝒜 ≠ 𝒜) :
   family_measure (𝓒 U V 𝒜) < family_measure 𝒜 :=
 begin
@@ -223,8 +182,7 @@ lemma compression_improved [linear_order α] (U V : finset α)
   (∂ (𝓒 U V 𝒜)).card ≤ (∂𝒜).card :=
 begin
   obtain ⟨UVd, same_size, hU, hV, max_lt⟩ := h₁,
-  refine card_shadow_compression_le _ (λ h, (hV.ne_empty h).elim),
-  refine λ x Hx, ⟨min' V hV, min'_mem _ _, _⟩,
+  refine card_shadow_compression_le _ _ (λ x Hx, ⟨min' V hV, min'_mem _ _, _⟩),
   obtain hU' | hU' := eq_or_lt_of_le (succ_le_iff.2 hU.card_pos),
   { rw ←hU' at same_size,
     have : erase U x = ∅,
@@ -283,8 +241,8 @@ begin
   { rintro U₁ V₁ huseful hUcard,
     by_contra,
     exact hUcard.not_le (t ⟨U₁, V₁⟩ $ mem_filter.2 ⟨mem_univ _, huseful, h⟩) },
-  have p1 : (∂𝓒 U V A).card ≤ (∂A).card,
-  sorry,
+  have p1 : (∂(𝓒 U V A)).card ≤ (∂A).card,
+  refine card_shadow_compression_le _ _ _,
   sorry
   --   compression_improved _ _ _ uvh.2.1 h₂,
   -- rcases uvh.2.1 with ⟨_, _, _, same_size, max_lt⟩,
@@ -300,7 +258,7 @@ key Kruskal-Katona part. -/
 lemma init_seg_of_compressed [linear_order α]
   {ℬ : finset (finset α)} {r : ℕ} (h₁ : (ℬ  : set (finset α)).sized r)
   (h₂ : ∀ U V, useful_compression U V → is_compressed U V ℬ):
-  is_init_seg_of_colex ℬ r :=
+  is_init_seg ℬ r :=
 begin
   refine ⟨h₁, _⟩,
   rintro A B hA ⟨hBA, sizeA⟩,
@@ -399,10 +357,10 @@ end
 
 /-- Being a nonempty initial segment of colex if equivalent to being an `everything_up_to`. -/
 lemma IS_iff_le_max (𝒜 : finset (finset α)) (r : ℕ) :
-  𝒜.nonempty ∧ is_init_seg_of_colex 𝒜 r ↔
+  𝒜.nonempty ∧ is_init_seg 𝒜 r ↔
   ∃ (A : finset α), A ∈ 𝒜 ∧ A.card = r ∧ 𝒜 = everything_up_to A :=
 begin
-  rw is_init_seg_of_colex, split,
+  rw is_init_seg, split,
   { rintro ⟨ne, layer, IS⟩,
     have Ah := @max'_mem (colex α) _ 𝒜 ne,
     refine ⟨@max' (colex α) _ 𝒜 ne, Ah, layer Ah, _⟩,
@@ -426,7 +384,7 @@ end
 
 /-- `everything_up_to` is automatically an initial segment. -/
 lemma up_to_is_IS {A : finset α} {r : ℕ} (h₁ : A.card = r) :
-  is_init_seg_of_colex (everything_up_to A) r :=
+  is_init_seg (everything_up_to A) r :=
 and.right $ (IS_iff_le_max _ _).2
   (by refine ⟨A, _, h₁, rfl⟩; simp [mem_everything_up_to, @refl_of (colex α)])
 
@@ -536,8 +494,8 @@ begin
 end
 
 /-- The shadow of an initial segment is also an initial segment. -/
-lemma shadow_of_IS {𝒜 : finset (finset α)} (r : ℕ) (h₁ : is_init_seg_of_colex 𝒜 r) :
-  is_init_seg_of_colex (∂𝒜) (r - 1) :=
+lemma shadow_of_IS {𝒜 : finset (finset α)} (r : ℕ) (h₁ : is_init_seg 𝒜 r) :
+  is_init_seg (∂𝒜) (r - 1) :=
 begin
   rcases nat.eq_zero_or_pos r with rfl | hr,
     have : 𝒜 ⊆ {∅},
@@ -546,7 +504,7 @@ begin
       exact h₁.1 hA },
     have := shadow_monotone this,
     simp only [shadow, subset_empty, sup_singleton, image_empty] at this,
-    simp [shadow, this, is_init_seg_of_colex, set.sized],
+    simp [shadow, this, is_init_seg, set.sized],
   obtain rfl | h𝒜 := 𝒜.eq_empty_or_nonempty,
   { rw sup_empty, simp },
   replace h₁ := and.intro h𝒜 h₁, rw IS_iff_le_max at h₁,
@@ -573,11 +531,11 @@ colex.
 Proof notes: Most of the work was done in Kruskal-Katona helper; it gives a `ℬ` which is fully
 compressed, and so we know it's an initial segment, which by uniqueness is the same as `𝒞`. -/
 theorem kruskal_katona {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset (fin n))).sized r)
-  (h₂ : 𝒜.card = 𝒞.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
+  (h₂ : 𝒜.card = 𝒞.card) (h₃ : is_init_seg 𝒞 r) :
   (∂𝒞).card ≤ (∂𝒜).card :=
 begin
   rcases UV.kruskal_katona_helper 𝒜 h₁ with ⟨ℬ, card_le, t, layerB, fully_comp⟩,
-  have : is_init_seg_of_colex ℬ r := UV.init_seg_of_compressed layerB fully_comp,
+  have : is_init_seg ℬ r := UV.init_seg_of_compressed layerB fully_comp,
   convert card_le,
   have z: card ℬ = card 𝒞 := t.symm.trans h₂,
   cases init_seg_total r this h₃ with BC CB,
@@ -588,7 +546,7 @@ end
 /--  We can strengthen Kruskal-Katona slightly: note the middle and has been relaxed to a `≤`.
 This shows that the minimum possible shadow size is attained by initial segments. -/
 theorem strengthened_kk {r : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset (fin n))).sized r)
-  (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
+  (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg 𝒞 r) :
   (∂𝒞).card ≤ (∂𝒜).card :=
 begin
   rcases exists_smaller_set 𝒜 𝒞.card h₂ with ⟨𝒜', prop, size⟩,
@@ -600,7 +558,7 @@ end
 /--An iterated form of the Kruskal-Katona theorem. In particular, the minimum possible iterated
 shadow size is attained by initial segments. -/
 theorem iterated_kk {r k : ℕ} {𝒜 𝒞 : finset (finset X)} (h₁ : (𝒜 : set (finset (fin n))).sized r)
-  (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg_of_colex 𝒞 r) :
+  (h₂ : 𝒞.card ≤ 𝒜.card) (h₃ : is_init_seg 𝒞 r) :
   (shadow^[k] 𝒞).card ≤ (shadow^[k] 𝒜).card :=
 begin
   induction k generalizing r 𝒜 𝒞, simpa,
@@ -668,41 +626,6 @@ begin
 end
 
 end KK
-
-/-- The maximum size of an intersecting family is `2^(n - 1)`. This is attained by
-taking, for instance, everything with a `0` in it. -/
-lemma intersecting_all {𝒜 : finset (finset X)} (h𝒜 : set.intersecting (𝒜 : set (finset X))) :
-  𝒜.card ≤ 2^(n-1) :=
-begin
-  cases nat.eq_zero_or_pos n with b hn,
-  { convert nat.zero_le _,
-    rw [finset.card_eq_zero, eq_empty_iff_forall_not_mem],
-    refine λ A HA, h𝒜 HA HA _,
-    rw [disjoint_self_iff_empty, eq_empty_iff_forall_not_mem],
-    intro x,
-    rw b at x,
-    exact fin.elim0 x },
-  set f : finset X → finset (finset X) := λ A, insert (univ \ A) {A},
-  have disjs : set.pairwise_disjoint (𝒜 : set (finset X)) f,
-  { intros A hA B hB hAB,
-    simp only [function.on_fun, not_or_distrib, and_assoc, disjoint_insert_right, mem_insert,
-      mem_singleton, disjoint_insert_left, disjoint_singleton, ne.def],
-    refine ⟨λ h, hAB $ eq_of_sdiff_eq_sdiff le_top le_top h, _, _, hAB⟩,
-    { rintro rfl,
-      exact h𝒜 hA hB disjoint_sdiff },
-    { rintro rfl,
-      exact h𝒜 hA hB sdiff_disjoint } },
-  have q := (𝒜.bUnion f).card_le_univ,
-  rw card_bUnion disjs at q,
-  dsimp at q,
-  have : ∀ u ∈ 𝒜, card (f u) = 2,
-  { intros u hu,
-    rw [card_insert_of_not_mem, card_singleton],
-    exact not_mem_singleton.2 (λ h, h𝒜.ne_bot hu $ eq_bot_of_sdiff_eq h) },
-  rw [sum_const_nat this, ←nat.le_div_iff_mul_le' zero_lt_two] at q,
-  conv_rhs at q { rw ←nat.sub_add_cancel hn },
-  rwa [fintype.card_finset, fintype.card_fin, pow_succ', nat.mul_div_cancel _ zero_lt_two] at q,
-end
 
 /-- The **Erdős–Ko–Rado theorem**: The maximum size of an intersecting family in `α` where all sets
 have size `r` is bounded by `(card α - 1).choose (r - 1)`. This bound is sharp. -/

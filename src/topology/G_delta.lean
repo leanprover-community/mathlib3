@@ -5,9 +5,13 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import topology.uniform_space.basic
 import topology.separation
+import order.filter.countable_Inter
 
 /-!
 # `Gδ` sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `Gδ` sets and prove their basic properties.
 
@@ -16,11 +20,8 @@ In this file we define `Gδ` sets and prove their basic properties.
 * `is_Gδ`: a set `s` is a `Gδ` set if it can be represented as an intersection
   of countably many open sets;
 
-* `residual`: the filter of residual sets. A set `s` is called *residual* if it includes a dense
-  `Gδ` set. In a Baire space (e.g., in a complete (e)metric space), residual sets form a filter.
-
-  For technical reasons, we define `residual` in any topological space but the definition agrees
-  with the description above only in Baire spaces.
+* `residual`: the σ-filter of residual sets. A set `s` is called *residual* if it includes a
+  countable intersection of dense open sets.
 
 ## Main results
 
@@ -33,7 +34,7 @@ Gδ set, residual set
 -/
 
 noncomputable theory
-open_locale classical topological_space filter uniformity
+open_locale classical topology filter uniformity
 
 open filter encodable set
 
@@ -111,7 +112,7 @@ lemma is_closed.is_Gδ {α} [uniform_space α] [is_countably_generated (𝓤 α)
 begin
   rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -⟩,
   rw [← hs.closure_eq, ← hU.bInter_bUnion_ball],
-  refine is_Gδ_bInter (countable_encodable _) (λ n hn, is_open.is_Gδ _),
+  refine is_Gδ_bInter (to_countable _) (λ n hn, is_open.is_Gδ _),
   exact is_open_bUnion (λ x hx, uniform_space.is_open_ball _ (hUo _).2)
 end
 
@@ -145,7 +146,7 @@ lemma is_Gδ_singleton (a : α) : is_Gδ ({a} : set α) :=
 begin
   rcases (nhds_basis_opens a).exists_antitone_subbasis with ⟨U, hU, h_basis⟩,
   rw [← bInter_basis_nhds h_basis.to_has_basis],
-  exact is_Gδ_bInter (countable_encodable _) (λ n hn, (hU n).2.is_Gδ),
+  exact is_Gδ_bInter (to_countable _) (λ n hn, (hU n).2.is_Gδ),
 end
 
 lemma set.finite.is_Gδ {s : set α} (hs : s.finite) : is_Gδ s :=
@@ -177,10 +178,34 @@ end
 
 end continuous_at
 
-/-- A set `s` is called *residual* if it includes a dense `Gδ` set. If `α` is a Baire space
-(e.g., a complete metric space), then residual sets form a filter, see `mem_residual`.
+section residual
 
-For technical reasons we define the filter `residual` in any topological space but in a non-Baire
-space it is not useful because it may contain some non-residual sets. -/
+variable [topological_space α]
+
+/-- A set `s` is called *residual* if it includes a countable intersection of dense open sets. -/
+@[derive countable_Inter_filter]
 def residual (α : Type*) [topological_space α] : filter α :=
-⨅ t (ht : is_Gδ t) (ht' : dense t), 𝓟 t
+filter.countable_generate {t | is_open t ∧ dense t}
+
+instance countable_Inter_filter_residual : countable_Inter_filter (residual α) :=
+by rw [residual]; apply_instance
+
+/-- Dense open sets are residual. -/
+lemma residual_of_dense_open {s : set α} (ho : is_open s) (hd : dense s) : s ∈ residual α :=
+countable_generate_sets.basic ⟨ho, hd⟩
+
+/-- Dense Gδ sets are residual. -/
+lemma residual_of_dense_Gδ {s : set α} (ho : is_Gδ s) (hd : dense s) : s ∈ residual α :=
+begin
+  rcases ho with ⟨T, To, Tct, rfl⟩,
+  exact (countable_sInter_mem Tct).mpr (λ t tT, residual_of_dense_open (To t tT)
+    (hd.mono (sInter_subset_of_mem tT))),
+end
+
+/-- A set is residual iff it includes a countable intersection of dense open sets. -/
+lemma mem_residual_iff {s : set α} : s ∈ residual α ↔
+  ∃ (S : set (set α)), (∀ t ∈ S, is_open t) ∧ (∀ t ∈ S, dense t) ∧ S.countable ∧ ⋂₀ S ⊆ s :=
+mem_countable_generate_iff.trans $ by simp_rw
+  [subset_def, mem_set_of, forall_and_distrib, and_assoc]
+
+end residual

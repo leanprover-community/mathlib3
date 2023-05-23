@@ -5,11 +5,12 @@ Authors: Oliver Nash, Antoine Labelle
 -/
 import linear_algebra.dual
 import linear_algebra.matrix.to_lin
-import linear_algebra.tensor_product_basis
-import linear_algebra.free_module.finite.rank
 
 /-!
 # Contractions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given modules $M, N$ over a commutative ring $R$, this file defines the natural linear maps:
 $M^* \otimes M \to R$, $M \otimes M^* \to R$, and $M^* \otimes N → Hom(M, N)$, as well as proving
@@ -50,14 +51,14 @@ def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
 variables {R M N P Q}
 
 @[simp] lemma contract_left_apply (f : module.dual R M) (m : M) :
-  contract_left R M (f ⊗ₜ m) = f m := by apply uncurry_apply
+  contract_left R M (f ⊗ₜ m) = f m := rfl
 
 @[simp] lemma contract_right_apply (f : module.dual R M) (m : M) :
-  contract_right R M (m ⊗ₜ f) = f m := by apply uncurry_apply
+  contract_right R M (m ⊗ₜ f) = f m := rfl
 
 @[simp] lemma dual_tensor_hom_apply (f : module.dual R M) (m : M) (n : N) :
   dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n :=
-by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
+rfl
 
 @[simp] lemma transpose_dual_tensor_hom (f : module.dual R M) (m : M) :
   dual.transpose (dual_tensor_hom R M M (f ⊗ₜ m)) = dual_tensor_hom R _ _ (dual.eval R M m ⊗ₜ f) :=
@@ -201,6 +202,7 @@ begin
   have h : function.surjective e.to_linear_map := e.surjective,
   refine (cancel_right h).1 _,
   ext p f q m,
+  dsimp [ltensor_hom_equiv_hom_ltensor],
   simp only [ltensor_hom_equiv_hom_ltensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
   linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,
   dual_tensor_hom_equiv_of_basis_apply, linear_equiv.trans_apply, congr_tmul,

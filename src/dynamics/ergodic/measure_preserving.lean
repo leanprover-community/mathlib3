@@ -8,6 +8,9 @@ import measure_theory.measure.ae_measurable
 /-!
 # Measure preserving maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that `f : α → β` is a measure preserving map w.r.t. measures `μ : measure α` and
 `ν : measure β` if `f` is measurable and `map f μ = ν`. In this file we define the predicate
 `measure_theory.measure_preserving` and prove its basic properties.
@@ -83,10 +86,26 @@ protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preservin
   quasi_measure_preserving f μa μb :=
 ⟨hf.1, hf.2.absolutely_continuous⟩
 
-lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
+protected lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
   (hf : measure_preserving f μa μb) :
   measure_preserving (g ∘ f) μa μc :=
 ⟨hg.1.comp hf.1, by rw [← map_map hg.1 hf.1, hf.2, hg.2]⟩
+
+protected lemma comp_left_iff {g : α → β} {e : β ≃ᵐ γ} (h : measure_preserving e μb μc) :
+  measure_preserving (e ∘ g) μa μc ↔ measure_preserving g μa μb :=
+begin
+  refine ⟨λ hg, _, λ hg, h.comp hg⟩,
+  convert (measure_preserving.symm e h).comp hg,
+  simp [← function.comp.assoc e.symm e g],
+end
+
+protected lemma comp_right_iff {g : α → β} {e : γ ≃ᵐ α} (h : measure_preserving e μc μa) :
+  measure_preserving (g ∘ e) μc μb ↔ measure_preserving g μa μb :=
+begin
+  refine ⟨λ hg, _, λ hg, hg.comp h⟩,
+  convert hg.comp (measure_preserving.symm e h),
+  simp [function.comp.assoc g e e.symm],
+end
 
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=
@@ -121,12 +140,11 @@ begin
     by simpa only [B, nsmul_eq_mul, finset.sum_const, finset.card_range],
   rcases exists_nonempty_inter_of_measure_univ_lt_sum_measure μ (λ m hm, A m) this
     with ⟨i, hi, j, hj, hij, x, hxi, hxj⟩,
-  -- without `tactic.skip` Lean closes the extra goal but it takes a long time; not sure why
-  wlog hlt : i < j := hij.lt_or_lt using [i j, j i] tactic.skip,
-  { simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
-    refine ⟨f^[i] x, hxi, j - i, ⟨tsub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
-    rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le] },
-  { exact λ hi hj hij hxi hxj, this hj hi hij.symm hxj hxi }
+  wlog hlt : i < j generalizing i j,
+  { exact this j hj i hi hij.symm hxj hxi (hij.lt_or_lt.resolve_left hlt) },
+  simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
+  refine ⟨f^[i] x, hxi, j - i, ⟨tsub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
+  rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le]
 end
 
 /-- A self-map preserving a finite measure is conservative: if `μ s ≠ 0`, then at least one point
@@ -144,4 +162,11 @@ end
 
 end measure_preserving
 
+namespace measurable_equiv
+
+lemma measure_preserving_symm (μ : measure α) (e : α ≃ᵐ β) :
+  measure_preserving e.symm (map e μ) μ :=
+(e.measurable.measure_preserving μ).symm _
+
+end measurable_equiv
 end measure_theory

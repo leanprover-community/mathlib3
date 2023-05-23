@@ -3,9 +3,10 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import topology.category.Top
 import category_theory.glue_data
 import category_theory.concrete_category.elementwise
+import topology.category.Top.limits.pullbacks
+import topology.category.Top.opens
 
 /-!
 # Gluing Topological spaces
@@ -77,7 +78,7 @@ that the `U i`'s are open subspaces of the glued space.
 Most of the times it would be easier to use the constructor `Top.glue_data.mk'` where the conditions
 are stated in a less categorical way.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data extends glue_data Top :=
   (f_open : ∀ i j, open_embedding (f i j))
   (f_mono := λ i j, (Top.mono_iff_injective _).mpr (f_open i j).to_embedding.inj)
@@ -184,7 +185,7 @@ begin
     generalize : (sigma_iso_sigma.{u} D.V).hom x = x',
     obtain ⟨⟨i,j⟩,y⟩ := x',
     unfold inv_image multispan_index.fst_sigma_map multispan_index.snd_sigma_map,
-    simp only [opens.inclusion_to_fun, Top.comp_app, sigma_iso_sigma_inv_apply,
+    simp only [opens.inclusion_apply, Top.comp_app, sigma_iso_sigma_inv_apply,
       category_theory.limits.colimit.ι_desc_apply, cofan.mk_ι_app,
       sigma_iso_sigma_hom_ι_apply, continuous_map.to_fun_eq_coe],
     erw [sigma_iso_sigma_hom_ι_apply, sigma_iso_sigma_hom_ι_apply],
@@ -258,7 +259,7 @@ begin
   rw preimage_image_eq_image,
   apply (D.f_open _ _).is_open_map,
   apply (D.t j i ≫ D.f i j).continuous_to_fun.is_open_preimage,
-  exact U.property
+  exact U.is_open
 end
 
 lemma ι_open_embedding (i : D.J) : open_embedding (𝖣 .ι i) :=
@@ -279,7 +280,7 @@ such that
 
 We can then glue the topological spaces `U i` together by identifying `V i j` with `V j i`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mk_core :=
 {J : Type u}
 (U : J → Top.{u})

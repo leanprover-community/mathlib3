@@ -7,11 +7,13 @@ Authors: Johan Commelin
 import algebra.polynomial.big_operators
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
-import data.polynomial.degree.lemmas
 import data.polynomial.derivative
 
 /-!
 # Hasse derivative of polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The `k`th Hasse derivative of a polynomial `∑ a_i X^i` is `∑ (i.choose k) a_i X^(i-k)`.
 It is a variant of the usual derivative, and satisfies `k! * (hasse_deriv k f) = derivative^[k] f`.
@@ -87,7 +89,7 @@ begin
 end
 
 lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=
-by simp only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
+by simp only [hasse_deriv_apply, derivative_apply, ← C_mul_X_pow_eq_monomial, nat.choose_one_right,
     (nat.cast_commute _ _).eq]
 
 @[simp] lemma hasse_deriv_one : @hasse_deriv R _ 1 = derivative :=
@@ -159,7 +161,7 @@ begin
     { push_neg at hil, rw [← tsub_lt_iff_right hil] at hikl,
       rw [choose_eq_zero_of_lt hikl , zero_mul], }, },
   push_neg at hikl, apply @cast_injective ℚ,
-  have h1 : l ≤ i     := nat.le_of_add_le_right hikl,
+  have h1 : l ≤ i     := le_of_add_le_right hikl,
   have h2 : k ≤ i - l := le_tsub_of_add_le_right hikl,
   have h3 : k ≤ k + l := le_self_add,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },

@@ -72,13 +72,15 @@ def local_cohomology_diagram (I : D ⥤ ideal R) (i : ℕ) : Dᵒᵖ ⥤ Module.
 end
 
 section
+-- We momentarily need to work with a type inequality, as later we will take colimits
+-- along diagrams either in Type, or in the same universe as the ring, and we need to cover both.
 variables {R : Type max u v} [comm_ring R] {D : Type v} [small_category D]
 
 /-- `local_cohomology I i` is `i`-th the local cohomology module of a module `M` over a
 commutative ring `R` with support in an ideal whose powers are cofinal with a collection of ideals
 of `R` that is represented as a functor `I` -/
 def local_cohomology (I : D ⥤ ideal R) (i : ℕ) : Module.{max u v} R ⥤ Module.{max u v} R :=
-colimit (local_cohomology_diagram.{(max u v) v} I i)
+colimit (local_cohomology_diagram I i)
 
 end
 
@@ -100,7 +102,7 @@ def local_cohomology_powers (J : ideal R) (i : ℕ) : Module.{u} R ⥤ Module.{u
 full_subcategory (λ J' : ideal R, J'.radical = J.radical)
 
 /-- The diagram of all ideals with the same radical as a given ideal -/
-def same_radical_diagram (J : ideal R) : (ideals_with_same_radical J) ⥤ ideal R :=
+def same_radical_diagram (J : ideal R) : ideals_with_same_radical J ⥤ ideal R :=
 full_subcategory_inclusion _
 
 /-- The diagram of all ideals with the same radical as `J`. This is the "largest" diagram that
@@ -113,6 +115,25 @@ local_cohomology_diagram (same_radical_diagram J) i
 as `J`. -/
 def local_cohomology_univ (J : ideal R) (i : ℕ) : Module.{u} R ⥤ Module.{u} R :=
 colimit (local_cohomology_univ_diagram J i)
+
+end
+
+section
+
+variables {R : Type u} [comm_ring R]
+
+def P (J : ideal R) : ℕᵒᵖ ⥤ ideals_with_same_radical J := sorry
+def e (J : ideal R) : P J ⋙ same_radical_diagram J ≅ ideal_powers J := sorry
+theorem P_final (J : ideal R) : functor.final (P J) := sorry
+
+-- This is timing out, even with the proof by `sorry`!?
+def foo (J : ideal R) (i : ℕ) :
+  local_cohomology_powers J i ≅ local_cohomology_univ J i :=
+sorry
+
+def bar {I J : ideal R} (w : I.radical = J.radical) (i : ℕ) :
+  local_cohomology_univ I i ≅ local_cohomology_univ J i :=
+sorry
 
 end
 

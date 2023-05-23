@@ -18,10 +18,51 @@ variables {H : Type*} [topological_space H]
   (M' : Type) [topological_space M'] [charted_space H' M'] [has_groupoid M' G']
   {P : (H → H') → (set H) → H → Prop}
 
-instance Top.of.charted_space : charted_space H (Top.of M) :=
-(by apply_instance : charted_space H M)
+instance Top.of.charted_space : charted_space H (Top.of M) := (infer_instance : charted_space H M)
 
-instance Top.of.has_groupoid : has_groupoid (Top.of M) G := (by apply_instance : has_groupoid M G)
+instance Top.of.has_groupoid : has_groupoid (Top.of M) G := (infer_instance : has_groupoid M G)
+
+namespace structure_groupoid.local_invariant_prop
+variables {M M'}
+
+lemma foo₁ (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}
+  {x : U} :
+  continuous_within_at f univ (i x) ↔ continuous_within_at (f ∘ i) univ x :=
+begin
+  simp only [continuous_within_at_univ],
+  have hUV : U ≤ V := category_theory.le_of_hom i,
+  split,
+  { intro h,
+    exact h.comp (continuous_inclusion hUV).continuous_at },
+  { intro h,
+    have hi : open_embedding i := topological_space.opens.open_embedding_of_le hUV,
+    simpa [hi.continuous_at_iff] using h }
+end
+
+lemma foo₂ (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}
+  (e : M' →H') {x : U} :
+  P (e ∘ f ∘ (chart_at H (i x)).symm) univ (chart_at H (i x) (i x))
+  ↔ P (e ∘ (f ∘ i) ∘ ((chart_at H x).symm)) univ (chart_at H x x) :=
+begin
+  haveI : nonempty U := ⟨x⟩,
+  haveI : nonempty V := ⟨i x⟩,
+  set e' := chart_at H x.val,
+  apply hG.congr_iff,
+  apply filter.eventually_eq_of_mem,
+  apply (e'.subtype_restr U).symm.open_source.mem_nhds,
+  { show e' x ∈ (e'.subtype_restr U).symm.source,
+    sorry },
+  { show ∀ y ∈ (e'.subtype_restr U).symm.source,
+      e (f ((e'.subtype_restr V).symm y)) = e (f (i ((e'.subtype_restr U).symm y))),
+    sorry },
+end
+
+lemma foo (hG : local_invariant_prop G G' P) {U V : opens (Top.of M)} {i : U ⟶ V} {f : V → M'}
+  {x : U} :
+  lift_prop_at P f (i x) ↔ lift_prop_at P (f ∘ i) x :=
+⟨λh, ⟨(foo₁ hG).1 h.1, (foo₂ hG _).1 h.2⟩, λh, ⟨(foo₁ hG).2 h.1, (foo₂ hG _).2 h.2⟩⟩
+
+end structure_groupoid.local_invariant_prop
 
 /-- Let `M`, `M'` be charted spaces with transition functions in the groupoids `G`, `G'`, and let
 `P` be a `local_invariant_prop` for functions between spaces with these groupoids.  Then there is an
@@ -31,33 +72,15 @@ def local_predicate_of_local_invariant_prop (hG : local_invariant_prop G G' P) :
 { pred := λ {U : opens (Top.of M)}, λ (f : U → M'), lift_prop P f,
   res := begin
     intros U V i f h x,
-    have hUV : U ≤ V := category_theory.le_of_hom i,
-    let I : U → V := set.inclusion hUV,
-    obtain ⟨h₁, h₂⟩ := h (I x),
-    refine ⟨h₁.comp (continuous_inclusion hUV).continuous_within_at (maps_to_univ _ _), _⟩,
-    sorry
-    -- rw lift_prop_at at *,
-    -- rw lift_prop_within_at at *,
-    -- refine lift_prop_at_congr_of_eventually_eq hG (h (I x)) _,
-    -- refine filter.eventually_eq_of_mem (is_open.mem_nhds U.prop hx) _,
-    -- intros y hy,
-    -- unfold extend,
-    -- rw dif_pos hy,
-    -- rw dif_pos (hUV hy),
-    -- refl,
+    exact hG.foo.1 (h (i x)),
   end,
   locality := begin
     intros V f h x,
-    sorry
-    -- rcases h ⟨x, hx⟩ with ⟨U, hx, i, hU⟩,
-    -- have hUV : U ≤ V := category_theory.le_of_hom i,
-    -- refine lift_prop_at_congr_of_eventually_eq hG (hU x hx) _,
-    -- refine filter.eventually_eq_of_mem (is_open.mem_nhds U.prop hx) _,
-    -- intros y hy,
-    -- unfold extend,
-    -- rw dif_pos hy,
-    -- rw dif_pos (hUV hy),
-    -- refl,
+    obtain ⟨U, hxU, i, hU : lift_prop P (f ∘ i)⟩ := h x,
+    let x' : U := ⟨x, hxU⟩,
+    convert hG.foo.2 (hU x'),
+    ext1,
+    refl
   end }
 
 def structure_groupoid.local_invariant_prop.sheaf (hG : local_invariant_prop G G' P) :

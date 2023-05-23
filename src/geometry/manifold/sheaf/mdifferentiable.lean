@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import geometry.manifold.sheaf.basic
 import geometry.manifold.algebra.mdifferentiable
+import category_theory.sites.whiskering
 
 /-! # The sheaf of differentiable functions on a manifold -/
 
@@ -63,14 +64,12 @@ def mdifferentiable_presheaf_Ring : Top.presheaf Ring (Top.of M) :=
     category_theory.le_of_hom h.unop,
   map_id' := begin
     intro U,
-    ext1 x,
-    let E := mdifferentiable_sheaf I I' M M',
-    change (E.val.map (𝟙 U)) x = x,
-    simp
+    ext ⟨_,_⟩ ⟨_,_⟩,
+    refl,
   end,
   map_comp' := begin
     intros U V W f g,
-    ext1 x,
+    ext1,
     refl,
   end }
 
@@ -84,5 +83,9 @@ def mdifferentiable_sheaf_Ring : Top.sheaf Ring (Top.of M) :=
     { exact category_theory.Sheaf.cond (mdifferentiable_sheaf I I' M M') },
     { apply_instance },
   end }
+
+example : (category_theory.Sheaf_compose _ (category_theory.forget Ring)).obj
+  (mdifferentiable_sheaf_Ring I I' M M') =
+  (mdifferentiable_sheaf I I' M M') := rfl
 
 end smooth_ring

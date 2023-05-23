@@ -85,34 +85,39 @@ section
 variables {D E : Type} [category.{0} D] [category.{0} E]
   (F : D ⥤ E) [is_filtered D] [quiver.is_thin E]
 
-lemma foo (e : E) (w : ∀ e, ∃ d, nonempty(e ⟶ F.obj d)) : nonempty (structured_arrow e F) :=
-sorry
+lemma foo (w : ∀ e, ∃ d, nonempty (e ⟶ F.obj d)) : ∀ e, nonempty (structured_arrow e F) :=
+λ e, ⟨structured_arrow.mk (classical.some_spec (w e)).some⟩
 
-def bar (X : Type) [category X] (x1 x2 y : X) (f : x1 ⟶ y) (g : x2 ⟶ y) : zigzag x1 x2 :=
-sorry
+lemma zigzag_of_cofork {J : Type*} [category J] {j₁ j₂ j₃ : J} (f : j₁ ⟶ j₃) (g : j₂ ⟶ j₃) :
+  zigzag j₁ j₂ :=
+begin
+show_term {
+  apply relation.refl_trans_gen.tail,
+  apply relation.refl_trans_gen.tail,
+  apply relation.refl_trans_gen.refl,
+  left,
+  split, assumption,
+  right,
+  split, assumption,
+},
+end
 
 lemma final_of_filtered_of_thin_of_exists (w : ∀ e, ∃ d, nonempty(e ⟶ F.obj d)) : F.final :=
-{ out := λ e, @zigzag_is_connected _ _ (foo _ e w) begin
-  -- rintros ⟨p, d1, f1 : e ⟶ _⟩ ⟨p', d2, f2 : e ⟶ _⟩,
-  intros j1 j2,
-  have f := is_filtered.left_to_max j1.right j2.right,
-  have g := is_filtered.right_to_max j1.right j2.right,
-  apply bar _ _ _ (structured_arrow.mk _),
-  show D,
-  exact (is_filtered.max j1.right j2.right),
-  show e ⟶ _,
-  exact j1.hom ≫ F.map f,
-  -- apply bar (is_filtered.max j1.right j2.right),
-  fapply structured_arrow.hom_mk,
-
-  exact f,
-  apply subsingleton.elim,
-  fapply structured_arrow.hom_mk,
-
-  exact g,
-  apply subsingleton.elim,
-end,
-}
+{ out := λ e, @zigzag_is_connected _ _ (foo _  w e)
+  begin
+    intros j1 j2,
+    have f := is_filtered.left_to_max j1.right j2.right,
+    have g := is_filtered.right_to_max j1.right j2.right,
+    apply @zigzag_of_cofork _ _ _ _ (structured_arrow.mk _),
+    show D, exact (is_filtered.max j1.right j2.right),
+    show e ⟶ _, exact j1.hom ≫ F.map f,
+    { fapply structured_arrow.hom_mk,
+      exact f,
+      apply subsingleton.elim, },
+    { fapply structured_arrow.hom_mk,
+      exact g,
+      apply subsingleton.elim, },
+  end, }
 
 
 end

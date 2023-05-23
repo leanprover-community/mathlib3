@@ -53,28 +53,37 @@ universes u v
 
 section local_cohomology
 
--- We require that the indexing category `D` for colimits lives in the same universe as the ring.
--- This will require slight gymnastics when indexing along `ℕ`.
-variables {R : Type max u v} [comm_ring R] {D : Type v} [small_category D]
+section
+variables {R : Type u} [comm_ring R] {D : Type v} [small_category D]
 
 local attribute [ext] quiver.hom.unop_inj
 
 /--  The directed system of `R`-modules of the form `R/J`, where `J` is an ideal of `R`,
 determined by the functor `I`, represented as a functor  -/
-def ring_mod_ideals (I : D ⥤ ideal R) : D ⥤ Module.{max u v} R :=
+def ring_mod_ideals (I : D ⥤ ideal R) : D ⥤ Module.{u} R :=
 { obj := λ t, Module.of R $ R ⧸ (I.obj t),
   map := λ s t w, submodule.mapq _ _ (linear_map.id) (I.map w).down.down }
 
 /-- The diagram we will take the colimit of to define local cohomology, corresponding to the
 directed system determined by the functor `I` -/
-def local_cohomology_diagram (I : D ⥤ ideal R) (i : ℕ) : Dᵒᵖ ⥤ Module.{max u v} R ⥤ Module.{max u v} R :=
-(ring_mod_ideals I).op ⋙ Ext R (Module.{max u v} R) i
+def local_cohomology_diagram (I : D ⥤ ideal R) (i : ℕ) : Dᵒᵖ ⥤ Module.{u} R ⥤ Module.{u} R :=
+(ring_mod_ideals I).op ⋙ Ext R (Module.{u} R) i
+
+end
+
+section
+variables {R : Type max u v} [comm_ring R] {D : Type v} [small_category D]
 
 /-- `local_cohomology I i` is `i`-th the local cohomology module of a module `M` over a
 commutative ring `R` with support in an ideal whose powers are cofinal with a collection of ideals
 of `R` that is represented as a functor `I` -/
 def local_cohomology (I : D ⥤ ideal R) (i : ℕ) : Module.{max u v} R ⥤ Module.{max u v} R :=
-colimit (local_cohomology_diagram I i)
+colimit (local_cohomology_diagram.{(max u v) v} I i)
+
+end
+
+section
+variables {R : Type u} [comm_ring R]
 
 /-- The functor sending a natural number `i` to the `i`-th power of the ideal `J` -/
 def ideal_powers (J : ideal R) : ℕᵒᵖ ⥤ ideal R :=
@@ -83,11 +92,11 @@ def ideal_powers (J : ideal R) : ℕᵒᵖ ⥤ ideal R :=
 
 /-- `local_cohomology_powers J i` is `i`-th the local cohomology module of a module `M` over
 a commutative ring `R` with support in the ideal `J` of `R` -/
-def local_cohomology_powers (J : ideal R) (i : ℕ) : Module.{max u v} R ⥤ Module.{max u v} R :=
+def local_cohomology_powers (J : ideal R) (i : ℕ) : Module.{u} R ⥤ Module.{u} R :=
   local_cohomology (ideal_powers J) i
 
 /-- The directed system of all ideals with the same radical as a given ideal -/
-@[reducible] def ideals_with_same_radical (J : ideal R) : Type max u v :=
+@[reducible] def ideals_with_same_radical (J : ideal R) : Type u :=
 full_subcategory (λ J' : ideal R, J'.radical = J.radical)
 
 /-- The diagram of all ideals with the same radical as a given ideal -/
@@ -97,13 +106,14 @@ full_subcategory_inclusion _
 /-- The diagram of all ideals with the same radical as `J`. This is the "largest" diagram that
 computes local cohomology with support in `J`. -/
 def local_cohomology_univ_diagram (J : ideal R) (i : ℕ) :
-  (ideals_with_same_radical J)ᵒᵖ ⥤ Module.{max u v} R ⥤ Module.{max u v} R :=
-local_cohomology_diagram.{u} (same_radical_diagram J) i
+  (ideals_with_same_radical J)ᵒᵖ ⥤ Module.{u} R ⥤ Module.{u} R :=
+local_cohomology_diagram (same_radical_diagram J) i
 
 /-- Local cohomology as the direct limit of Ext(R/J, M) over all ideals with the same radical
 as `J`. -/
-def local_cohomology_univ (J : ideal R) (i : ℕ) : Module.{max u v} R ⥤ Module.{max u v} R :=
+def local_cohomology_univ (J : ideal R) (i : ℕ) : Module.{u} R ⥤ Module.{u} R :=
 colimit (local_cohomology_univ_diagram J i)
--- TODO: Construct `local_cohomology_powers J i ≅ local_cohomology_univ J i`
+
+end
 
 end local_cohomology

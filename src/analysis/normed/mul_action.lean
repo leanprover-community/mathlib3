@@ -34,11 +34,10 @@ by simpa only [dist_eq_norm, sub_zero] using dist_smul_pair s x y
 lemma nndist_smul_le (s : α) (x y : β) : nndist (s • x) (s • y) ≤ ‖s‖₊ * nndist x y :=
 dist_smul_le s x y
 
-lemma edist_smul_le (s : α) (x y : β) :
-  edist (s • x) (s • y) ≤ ‖s‖₊ • edist x y :=
+lemma edist_smul_le (s : α) (x y : β) : edist (s • x) (s • y) ≤ ‖s‖₊ • edist x y :=
 by simpa only [edist_nndist, ennreal.coe_mul] using ennreal.coe_le_coe.mpr (nndist_smul_le s x y)
 
-lemma lipschitz_with_smul  (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
+lemma lipschitz_with_smul (s : α) : lipschitz_with ‖s‖₊ ((•) s : β → β) :=
 lipschitz_with_iff_dist_le_mul.2 $ dist_smul_le _
 
 end seminormed_add_group
@@ -95,12 +94,10 @@ variables [module α β] [has_bounded_smul α β]
 lemma dist_smul₀ (s : α) (x y : β) : dist (s • x) (s • y) = ‖s‖ * dist x y :=
 by simp_rw [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 
-lemma nndist_smul₀ (s : α) (x y : β) :
-  nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
+lemma nndist_smul₀ (s : α) (x y : β) : nndist (s • x) (s • y) = ‖s‖₊ * nndist x y :=
 nnreal.eq $ dist_smul₀ s x y
 
-lemma edist_smul₀ (s : α) (x y : β) :
-  edist (s • x) (s • y) = ‖s‖₊ • edist x y :=
+lemma edist_smul₀ (s : α) (x y : β) : edist (s • x) (s • y) = ‖s‖₊ • edist x y :=
 by simp only [edist_nndist, nndist_smul₀, ennreal.coe_mul, ennreal.smul_def, smul_eq_mul]
 
 end normed_division_ring_module

@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import analysis.calculus.fderiv.linear
 import analysis.calculus.fderiv.comp
+import analysis.calculus.fderiv.equiv
 import analysis.normed_space.star.basic
 
 /-!
@@ -55,7 +56,7 @@ h.has_fderiv_within_at.star.differentiable_within_at
 
 @[simp] lemma differentiable_within_at_star_iff :
   differentiable_within_at 𝕜 (λ y, star (f y)) s x ↔ differentiable_within_at 𝕜 f s x :=
-⟨λ h, by simpa only [star_star] using h.star, λ h, h.star⟩
+(starL' 𝕜 : F ≃L[𝕜] F).comp_differentiable_within_at_iff
 
 lemma differentiable_at.star (h : differentiable_at 𝕜 f x) :
   differentiable_at 𝕜 (λ y, star (f y)) x :=
@@ -63,35 +64,28 @@ h.has_fderiv_at.star.differentiable_at
 
 @[simp] lemma differentiable_at_star_iff :
   differentiable_at 𝕜 (λ y, star (f y)) x ↔ differentiable_at 𝕜 f x :=
-⟨λ h, by simpa only [star_star] using h.star, λ h, h.star⟩
+(starL' 𝕜 : F ≃L[𝕜] F).comp_differentiable_at_iff
 
 lemma differentiable_on.star (h : differentiable_on 𝕜 f s) :
   differentiable_on 𝕜 (λ y, star (f y)) s :=
-λx hx, (h x hx).star
+λ x hx, (h x hx).star
 
 @[simp] lemma differentiable_on_star_iff :
   differentiable_on 𝕜 (λ y, star (f y)) s ↔ differentiable_on 𝕜 f s :=
-⟨λ h, by simpa only [star_star] using h.star, λ h, h.star⟩
+(starL' 𝕜 : F ≃L[𝕜] F).comp_differentiable_on_iff
 
 lemma differentiable.star (h : differentiable 𝕜 f) :
   differentiable 𝕜 (λ y, star (f y)) :=
 λx, (h x).star
 
 @[simp] lemma differentiable_star_iff : differentiable 𝕜 (λ y, star (f y)) ↔ differentiable 𝕜 f :=
-⟨λ h, by simpa only [star_star] using h.star, λ h, h.star⟩
+(starL' 𝕜 : F ≃L[𝕜] F).comp_differentiable_iff
 
 lemma fderiv_within_star (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (λ y, star (f y)) s x =
     ((starL' 𝕜 : F ≃L[𝕜] F) : F →L[𝕜] F) ∘L fderiv_within 𝕜 f s x :=
-if h : differentiable_within_at 𝕜 f s x
-then h.has_fderiv_within_at.star.fderiv_within hxs
-else begin
-  rw [fderiv_within_zero_of_not_differentiable_within_at h,
-  fderiv_within_zero_of_not_differentiable_within_at],
-  { ext, simp },
-  { simpa }
-end
+(starL' 𝕜 : F ≃L[𝕜] F).comp_fderiv_within hxs
 
 @[simp] lemma fderiv_star :
   fderiv 𝕜 (λ y, star (f y)) x = ((starL' 𝕜 : F ≃L[𝕜] F) : F →L[𝕜] F) ∘L fderiv 𝕜 f x :=
-by simp only [← fderiv_within_univ, fderiv_within_star unique_diff_within_at_univ]
+(starL' 𝕜 : F ≃L[𝕜] F).comp_fderiv

@@ -297,7 +297,7 @@ end
 
 def Top.to_sSet_monoidal : monoidal_functor Top.{0} sSet :=
 { ε :=
-  { app := λ n x, by split, },
+  { app := λ n x, continuous_map.const _ x },
   μ := λ X Y,
   { app := λ n x, continuous_map.prod_mk x.1 x.2 },
   μ_natural' := sorry,

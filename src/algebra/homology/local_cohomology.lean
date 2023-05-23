@@ -120,6 +120,10 @@ section local_cohomology_powers_equiv_univ
 
 variables {R : Type} [comm_ring R] (I J : ideal R)
 
+/-- This lemma essentially says that `ideal_powers I` is final in `same_radical_diagram I`.
+
+Porting note: This lemma should probably be moved to `ring_theory/finiteness.lean`
+to be near `ideal.exists_radical_pow_le_of_fg` -/
 lemma exists_pow_le_of_radical_le_of_fg (hIJ : I.radical ≤ J.radical) (hJ : J.radical.fg) :
   ∃ (k : ℕ), I^k ≤ J :=
 begin

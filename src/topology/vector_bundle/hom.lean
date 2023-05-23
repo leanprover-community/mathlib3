@@ -37,6 +37,48 @@ using a norm on the fiber model if this helps.
 
 noncomputable theory
 
+open continuous_linear_map
+-- move this
+def continuous_linear_equiv.arrow_congrSL' {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {𝕜₄ : Type*}
+  {E : Type*} {F : Type*} {G : Type*} {H : Type*}
+  [add_comm_group E] [add_comm_group F] [add_comm_group G] [add_comm_group H]
+  [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
+    [nontrivially_normed_field 𝕜₄]
+  [module 𝕜 E] [module 𝕜₂ F] [module 𝕜₃ G] [module 𝕜₄ H]
+  [topological_space E] [topological_space F] [topological_space G] [topological_space H]
+  [topological_add_group G] [topological_add_group H]
+  [has_continuous_const_smul 𝕜₃ G] [has_continuous_const_smul 𝕜₄ H]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} {σ₃₄ : 𝕜₃ →+* 𝕜₄}
+    {σ₄₃ : 𝕜₄ →+* 𝕜₃} {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [ring_hom_inv_pair σ₃₄ σ₄₃]
+    [ring_hom_inv_pair σ₄₃ σ₃₄]
+  [ring_hom_isometric σ₂₁] [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
+    [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄] [ring_hom_isometric σ₁₃]
+    [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₃₄]
+  [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+    [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+  (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  (E →SL[σ₁₄] H) ≃SL[σ₄₃] F →SL[σ₂₃] G :=
+{ -- given explicitly to help `simps`
+  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
+  -- given explicitly to help `simps`
+  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
+  map_add' := λ f g, by rw [add_comp, comp_add],
+  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
+  continuous_to_fun :=
+  begin
+    -- have :=clm_comp_const,
+    -- refine (continuous_id.clm_comp_const _).const_clm_comp _,
+  end,
+  continuous_inv_fun :=
+  begin
+    sorry
+  end,
+  .. e₁₂.arrow_congr_equiv e₄₃, }
+
+
+
+
 open_locale bundle
 open bundle set continuous_linear_map
 
@@ -277,7 +319,7 @@ def _root_.bundle.continuous_linear_map.vector_prebundle :
   begin
     intros b,
     dsimp [bundle.continuous_linear_map.topological_space, bundle.continuous_linear_map],
-    let f : (E₁ b →SL[σ] E₂ b) → (F₁ →SL[σ] F₂),
+    let f : (E₁ b →SL[σ] E₂ b) ≃L[𝕜] (F₁ →SL[σ] F₂),
     { intro v,
       let e₁ := trivialization_at F₁ E₁ b,
       let e₂ := trivialization_at F₂ E₂ b,

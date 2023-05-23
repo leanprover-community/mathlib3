@@ -244,38 +244,41 @@ variables [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹] [algebra 𝔸 �
 variables [is_scalar_tower 𝕂 𝔸 𝔹]
 variables [complete_space 𝔹]
 
+instance subalgebra.normed_algebra' {R' : Type*} {R : Type*} {A : Type*} [comm_ring R]
+  [semi_normed_ring A]
+  [algebra R A] (S : subalgebra R A) [normed_field R'] [algebra R' R]
+  [normed_algebra R' A] [is_scalar_tower R' R A] : normed_algebra R' ↥S :=
+@normed_algebra.induced _ R' S A _ (subring_class.to_ring S) S.algebra' _ _ _
+  (S.val.restrict_scalars R')
+
+instance elemental_algebra.normed_comm_ring (R) {A} [comm_ring R] [normed_ring A] [algebra R A] (a : A):
+  normed_comm_ring (algebra.elemental_algebra R a) :=
+{ ..algebra.elemental_algebra.comm_ring,
+  ..subalgebra.normed_ring  (algebra.elemental_algebra R a) }
+
+instance elemental_algebra.is_closed (R) {A} [comm_ring R] [ring A] [algebra R A]
+  [uniform_space A] [topological_ring A] [complete_space A] (a : A):
+  complete_space (algebra.elemental_algebra R a) :=
+is_closed.complete_space_coe $ subalgebra.is_closed_topological_closure _
+
 lemma has_fderiv_at_exp_smul_const_of_mem_ball
   (x : 𝔹) (t : 𝔸) (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) t :=
 begin
-  have hpos : 0 < (exp_series 𝕂 𝔹).radius := (zero_le _).trans_lt htx,
-  rw has_fderiv_at_iff_is_o_nhds_zero,
-  suffices :
-    (λ h, exp 𝕂 (t • x) * (exp 𝕂 ((0 + h) • x) - exp 𝕂 ((0 : 𝔸) • x)
-      - ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x) h))
-    =ᶠ[𝓝 0] (λ h, exp 𝕂 ((t + h) • x) - exp 𝕂 (t • x)
-      - (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) h),
-  { refine (is_o.const_mul_left _ _).congr' this (eventually_eq.refl _ _),
-    rw ← @has_fderiv_at_iff_is_o_nhds_zero _ _ _ _ _ _ _ _
-      (λ u, exp 𝕂 (u • x)) ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x) 0,
-    have : has_fderiv_at (exp 𝕂) (1 : 𝔹 →L[𝕂] 𝔹) ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x 0),
-    { rw [continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply, zero_smul],
-      exact has_fderiv_at_exp_zero_of_radius_pos hpos },
-    exact this.comp 0 ((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).has_fderiv_at },
-  have : tendsto (λ h : 𝔸, h • x) (𝓝 0) (𝓝 0),
-  { rw ← zero_smul 𝔸 x,
-    exact tendsto_id.smul_const x },
-  have : ∀ᶠ h in 𝓝 (0 : 𝔸), h • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius :=
-    this.eventually (emetric.ball_mem_nhds _ hpos),
-  filter_upwards [this],
-  intros h hh,
-  have : commute (t • x) (h • x) := ((commute.refl x).smul_left t).smul_right h,
-  rw [add_smul t h, exp_add_of_commute_of_mem_ball this htx hh, zero_add, zero_smul, exp_zero,
-      continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
-      continuous_linear_map.smul_apply, continuous_linear_map.smul_right_apply,
-      continuous_linear_map.one_apply, smul_eq_mul, mul_sub_left_distrib, mul_sub_left_distrib,
-      mul_one],
+  let 𝔹' := (algebra.elemental_algebra 𝔸 x),
+  letI : normed_comm_ring 𝔹' := elemental_algebra.normed_comm_ring 𝔸 x,
+  letI : normed_algebra 𝕂 𝔹' := subalgebra.normed_algebra' _,
+  letI : is_closed ↑𝔹' := subalgebra.is_closed_topological_closure _,
+  let x' : 𝔹' := t • ⟨x, algebra.self_mem_elemental_algebra _ _⟩,
+  let s := (exp_series 𝕂 𝔹'),
+  have hx' : x' ∈ emetric.ball (0 : 𝔹') (exp_series 𝕂 𝔹').radius,
+  { rw [mem_emetric_ball_zero_iff] at htx ⊢,
+    refine htx.trans_le _,
+    let coeL : 𝔹' →L[𝕂] 𝔹 := (𝔹'.to_submodule.subtypeL : _).restrict_scalars 𝕂,
+    have := (exp_series 𝕂 𝔹').radius_le_radius_continuous_linear_map_comp coeL,
+    sorry },
+  have := has_fderiv_at_exp_of_mem_ball hx',
 end
 
 lemma has_fderiv_at_exp_smul_const_of_mem_ball'

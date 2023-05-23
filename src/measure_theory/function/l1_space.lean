@@ -950,7 +950,7 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
-(is_unit.mk0 _ hc).integrable_smul_iff
+(is_unit.mk0 _ hc).integrable_smul_iff f
 
 lemma integrable.smul_of_top_right {f : α → β} {φ : α → 𝕜}
   (hf : integrable f μ) (hφ : mem_ℒp φ ∞ μ) :
@@ -1005,11 +1005,16 @@ integrable.mul_const h c
 
 lemma integrable_const_mul_iff {c : 𝕜} (hc : is_unit c) (f : α → 𝕜) :
   integrable (λ x, c * f x) μ ↔ integrable f μ :=
-let ⟨u, hc⟩ := hc in hc ▸ ⟨λ h, by simpa using h.const_mul ↑(u⁻¹), λ h, h.const_mul _⟩
+hc.integrable_smul_iff f
 
 lemma integrable_mul_const_iff {c : 𝕜} (hc : is_unit c) (f : α → 𝕜) :
   integrable (λ x, f x * c) μ ↔ integrable f μ :=
-let ⟨u, hc⟩ := hc in hc ▸ ⟨λ h, by simpa using h.mul_const ↑(u⁻¹), λ h, h.mul_const _⟩
+begin
+  have h : is_unit (mul_opposite.op c),
+  { obtain ⟨u, rfl⟩ := hc,
+    exact ⟨units.op_equiv.symm (mul_opposite.op u), rfl⟩, },
+  exact h.integrable_smul_iff f
+end
 
 lemma integrable.bdd_mul' {f g : α → 𝕜} {c : ℝ} (hg : integrable g μ)
   (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :

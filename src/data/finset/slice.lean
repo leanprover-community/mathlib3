@@ -35,12 +35,15 @@ open_locale big_operators
 variables {α : Type*} {ι : Sort*} {κ : ι → Sort*}
 
 namespace set
-variables {A B : set (finset α)} {r : ℕ}
+variables {A B : set (finset α)} {s : finset α} {r : ℕ}
 
 /-! ### Families of `r`-sets -/
 
 /-- `sized r A` means that every finset in `A` has size `r`. -/
 def sized (r : ℕ) (A : set (finset α)) : Prop := ∀ ⦃x⦄, x ∈ A → card x = r
+
+@[simp] lemma sized_empty : (∅ : set (finset α)).sized r := by simp [sized]
+@[simp] lemma sized_singleton : ({s} : set (finset α)).sized r ↔ s.card = r := by simp [sized]
 
 lemma sized.mono (h : A ⊆ B) (hB : B.sized r) : A.sized r := λ x hx, hB $ h hx
 

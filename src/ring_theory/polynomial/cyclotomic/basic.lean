@@ -30,13 +30,11 @@ with coefficients in any ring `R`.
 
 ## Main results
 
-* `int_coeff_of_cycl` : If there is a primitive `n`-th root of unity in `K`, then `cyclotomic' n K`
-comes from a polynomial with integer coefficients.
-* `deg_of_cyclotomic` : The degree of `cyclotomic n` is `totient n`.
-* `prod_cyclotomic_eq_X_pow_sub_one` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`.
-* `cyclotomic_eq_prod_X_pow_sub_one_pow_moebius` : The Möbius inversion formula for
+* `polynomial.degree_cyclotomic` : The degree of `cyclotomic n` is `totient n`.
+* `polynomial.prod_cyclotomic_eq_X_pow_sub_one` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i`
+  divides `n`.
+* `polynomial.cyclotomic_eq_prod_X_pow_sub_one_pow_moebius` : The Möbius inversion formula for
   `cyclotomic n R` over an abstract fraction field for `R[X]`.
-* `cyclotomic.irreducible` : `cyclotomic n ℤ` is irreducible.
 
 ## Implementation details
 

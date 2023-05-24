@@ -10,6 +10,9 @@ import category_theory.discrete_category
 /-!
 # The monoidal coherence theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove the monoidal coherence theorem, stated in the following form: the free
 monoidal category over any type `C` is thin.
 

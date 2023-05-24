@@ -10,6 +10,9 @@ import algebra.support
 /-!
 # Simple functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function `f` from a measurable space to any type is called *simple*, if every preimage `f ⁻¹' {x}`
 is measurable, and the range is finite. In this file, we define simple functions and establish their
 basic properties; and we construct a sequence of simple functions approximating an arbitrary Borel

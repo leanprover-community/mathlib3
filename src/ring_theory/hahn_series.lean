@@ -13,6 +13,9 @@ import algebra.order.group.with_top
 
 /-!
 # Hahn Series
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of formal series over `Γ` with
 coefficients in `R`, whose supports are partially well-ordered. With further structure on `R` and
 `Γ`, we can add further structure on `hahn_series Γ R`, with the most studied case being when `Γ` is

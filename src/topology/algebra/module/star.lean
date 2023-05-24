@@ -9,6 +9,9 @@ import topology.algebra.star
 
 /-!
 # The star operation, bundled as a continuous star-linear equiv
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 /-- If `A` is a topological module over a commutative `R` with compatible actions,
@@ -21,6 +24,22 @@ def starL (R : Type*) {A : Type*}
 { to_linear_equiv := star_linear_equiv R,
   continuous_to_fun := continuous_star,
   continuous_inv_fun := continuous_star }
+
+-- TODO: this could be replaced with something like `(starL R).restrict_scalarsₛₗ h` if we
+-- implemented the idea in
+-- https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Star-semilinear.20maps.20are.20semilinear.20when.20star.20is.20trivial/near/359557835
+/-- If `A` is a topological module over a commutative `R` with trivial star and compatible actions,
+then `star` is a continuous linear equivalence. -/
+@[simps]
+def starL' (R : Type*) {A : Type*}
+  [comm_semiring R] [star_ring R] [has_trivial_star R] [add_comm_monoid A] [star_add_monoid A]
+  [module R A] [star_module R A] [topological_space A] [has_continuous_star A] :
+    A ≃L[R] A :=
+(starL R : A ≃L⋆[R] A).trans
+  ({ map_smul' := λ r a, by simp [star_ring_end_apply],
+    continuous_to_fun := continuous_id,
+    continuous_inv_fun := continuous_id,
+    ..add_equiv.refl A, } : A ≃L⋆[R] A)
 
 variables (R : Type*) (A : Type*)
   [semiring R] [star_semigroup R] [has_trivial_star R]

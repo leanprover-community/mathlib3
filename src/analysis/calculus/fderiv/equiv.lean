@@ -9,6 +9,9 @@ import analysis.calculus.fderiv.comp
 /-!
 # The derivative of a linear equivalence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For detailed documentation of the Fréchet derivative,
 see the module docstring of `analysis/calculus/fderiv/basic.lean`.
 

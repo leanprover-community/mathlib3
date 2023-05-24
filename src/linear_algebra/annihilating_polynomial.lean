@@ -9,6 +9,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Annihilating Ideal
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative ring `R` and an `R`-algebra `A`
 Every element `a : A` defines
 an ideal `polynomial.ann_ideal a ⊆ R[X]`.

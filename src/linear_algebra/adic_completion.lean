@@ -11,6 +11,9 @@ import ring_theory.jacobson_ideal
 /-!
 # Completion of a module with respect to an ideal.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the notions of Hausdorff, precomplete, and complete for an `R`-module `M`
 with respect to an ideal `I`:
 

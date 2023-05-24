@@ -8,7 +8,7 @@ import topology.sheaves.local_predicate
 
 /-! # Generic construction of a sheaf from a `local_invariant_prop` on a manifold -/
 
-open_locale manifold topological_space
+open_locale manifold topology
 open set topological_space structure_groupoid structure_groupoid.local_invariant_prop opposite
 
 universe u
@@ -50,3 +50,8 @@ Top.subsheaf_to_Types (local_predicate_of_local_invariant_prop M M' hG)
 instance (hG : local_invariant_prop G G' P) (U : (opens (Top.of M))ᵒᵖ) :
   has_coe_to_fun ((hG.sheaf M M').val.obj U) (λ _, (unop U) → M') :=
 { coe := λ a, a.1 }
+
+lemma structure_groupoid.local_invariant_prop.section_spec (hG : local_invariant_prop G G' P)
+  (U : (opens (Top.of M))ᵒᵖ) (f : (hG.sheaf M M').val.obj U) :
+  lift_prop P f :=
+f.2

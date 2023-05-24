@@ -34,6 +34,15 @@ instance mdifferentiable_sheaf.has_coe_to_fun (U : (opens (Top.of M))ᵒᵖ) :
   has_coe_to_fun ((mdifferentiable_sheaf I I' M M').val.obj U) (λ _, unop U → M') :=
 obj.has_coe_to_fun M M' _ U
 
+lemma mdifferentiable_sheaf.section_spec
+  (U : (opens (Top.of M))ᵒᵖ) (f : (mdifferentiable_sheaf I I' M M').val.obj U) :
+  mdifferentiable I I' f :=
+begin
+  intro x,
+  rw mdifferentiable_at_iff_lift_prop_at,
+  exact (differentiable_within_at_local_invariant_prop I I').section_spec _ _ _ _ x
+end
+
 variables {I I' M M'}
 
 lemma mdifferentiable_section {U : (opens (Top.of M))ᵒᵖ}

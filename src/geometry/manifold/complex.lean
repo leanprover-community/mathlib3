@@ -6,6 +6,7 @@ Authors: Heather Macbeth
 import analysis.complex.abs_max
 import analysis.locally_convex.with_seminorms
 import geometry.manifold.mfderiv
+import geometry.manifold.sheaf.mdifferentiable
 import topology.locally_constant.basic
 
 /-! # Holomorphic functions on complex manifolds
@@ -113,3 +114,24 @@ lemma exists_eq_const_of_compact_space [preconnected_space M]
 hf.is_locally_constant.exists_eq_const
 
 end mdifferentiable
+
+section sheaf
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℂ F] [strict_convex_space ℝ F]
+
+variables {M : Type} [topological_space M] [compact_space M] [charted_space E M]
+  [smooth_manifold_with_corners 𝓘(ℂ, E) M]
+
+open opposite
+
+example (f : (mdifferentiable_sheaf_Ring 𝓘(ℂ, E) 𝓘(ℂ, ℂ) M ℂ).val.obj (op ⊤)) :
+  is_locally_constant (id f.1 : (⊤ : topological_space.opens M) → ℂ) :=
+begin
+  haveI : compact_space (⊤ : topological_space.opens M),
+  { erw ←is_compact_iff_compact_space,
+    apply is_compact_univ, },
+  exact mdifferentiable.is_locally_constant (mdifferentiable_sheaf.section_spec _ _ M ℂ _ f),
+end
+
+end sheaf

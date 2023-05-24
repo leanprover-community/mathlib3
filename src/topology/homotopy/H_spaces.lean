@@ -12,7 +12,7 @@ import topology.homotopy.path
 This file defines H-spaces mainly following the approach proposed by Serre in his paper
 *Homologie singulière des espaces fibrés*. The idea beaneath `H-spaces` is that they are topological
 spaces with a binary operation `⋀ : X → X → X` that is a homotopic-theoretic weakening of an
-operation what would make `X` into a topological group. In particular, there exists a "neutral
+operation what would make `X` into a topological monoid. In particular, there exists a "neutral
 element" `e : X` such that `λ x, e ⋀ x` and `λ x, x ⋀ e` are homotopic to the identity on `X`, see
 [the Wikipedia page of H-spaces](https://en.wikipedia.org/wiki/H-space).
 
@@ -116,7 +116,8 @@ instance H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topologic
 
 namespace topological_group
 
-@[priority 600, to_additive] instance H_space (M : Type u) [mul_one_class M] [topological_space M]
+@[to_additive]
+definition to_H_space (M : Type u) [mul_one_class M] [topological_space M]
   [has_continuous_mul M] : H_space M :=
   { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
   e := 1,
@@ -125,8 +126,7 @@ namespace topological_group
   Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply mul_one}) }
 
 @[priority 600, to_additive] instance topological_group.to_H_space (G : Type u)
-[topological_space G] [group G] [topological_group G] : H_space G := infer_instance
-
+[topological_space G] [group G] [topological_group G] : H_space G := to_H_space G
 
 lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl
@@ -137,8 +137,7 @@ groups is definitionally equally to the product `H-space`-structure of the two g
 -/
 example {G G' : Type u} [topological_space G] [group G] [topological_group G]
   [topological_space G'] [group G'] [topological_group G'] :
-  topological_group.H_space (G × G') = H_space.prod G G' := rfl
-
+  to_H_space (G × G') = H_space.prod G G' := rfl
 
 end topological_group
 

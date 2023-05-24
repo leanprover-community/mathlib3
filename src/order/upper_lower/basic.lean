@@ -136,10 +136,10 @@ iff.rfl
 @[simp] lemma is_upper_set_preimage_to_dual_iff {s : set αᵒᵈ} :
   is_upper_set (to_dual ⁻¹' s) ↔ is_lower_set s := iff.rfl
 
-alias is_lower_set_preimage_of_dual_iff ↔ _ is_upper_set.of_dual
-alias is_upper_set_preimage_of_dual_iff ↔ _ is_lower_set.of_dual
-alias is_lower_set_preimage_to_dual_iff ↔ _ is_upper_set.to_dual
-alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
+alias is_lower_set_preimage_of_dual_iff ↔ _ is_upper_set.to_dual
+alias is_upper_set_preimage_of_dual_iff ↔ _ is_lower_set.to_dual
+alias is_lower_set_preimage_to_dual_iff ↔ _ is_upper_set.of_dual
+alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.of_dual
 
 end has_le
 
@@ -270,16 +270,6 @@ end partial_order
 section linear_order
 variables [linear_order α] {s t : set α}
 
-lemma is_lower_set.total (hs : is_lower_set s) (ht : is_lower_set t) : s ⊆ t ∨ t ⊆ s :=
-begin
-  by_contra' h,
-  simp_rw set.not_subset at h,
-  obtain ⟨⟨a, has, hat⟩, b, hbt, hbs⟩ := h,
-  obtain hab | hba := le_total a b,
-  { exact hat (ht hab hbt) },
-  { exact hbs (hs hba has) }
-end
-
 lemma is_upper_set.total (hs : is_upper_set s) (ht : is_upper_set t) : s ⊆ t ∨ t ⊆ s :=
 begin
   by_contra' h,
@@ -289,6 +279,9 @@ begin
   { exact hbs (hs hab has) },
   { exact hat (ht hba hbt) }
 end
+
+lemma is_lower_set.total (hs : is_lower_set s) (ht : is_lower_set t) : s ⊆ t ∨ t ⊆ s :=
+hs.to_dual.total ht.to_dual
 
 end linear_order
 

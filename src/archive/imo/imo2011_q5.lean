@@ -15,6 +15,8 @@ of positive integers.  Suppose that, for any two integers
 `f(m) ≤ f(n)`, the number `f(n)` is divisible by `f(m)`.
 -/
 
+namespace archive
+
 open int
 
 theorem imo2011_q5 (f : ℤ → ℤ) (hpos : ∀ n : ℤ, 0 < f n)
@@ -57,3 +59,5 @@ begin
   { -- m = n
     rw h_fm_eq_fn }
 end
+
+end archive

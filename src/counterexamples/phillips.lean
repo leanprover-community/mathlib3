@@ -72,6 +72,8 @@ on a discrete copy of the original type, as mathlib only contains the space of a
 continuous functions (which is the useful one).
 -/
 
+namespace counterexamples
+
 universe u
 variables {α : Type u}
 open set bounded_continuous_function measure_theory
@@ -606,3 +608,5 @@ begin
 end
 
 end phillips_1940
+
+end counterexamples

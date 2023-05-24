@@ -30,6 +30,8 @@ Prove that the Sorgenfrey line is a paracompact space.
 
 -/
 
+namespace counterexamples
+
 open set filter topological_space
 open_locale topology filter
 noncomputable theory
@@ -294,3 +296,5 @@ lemma not_second_countable_topology : ¬second_countable_topology ℝₗ :=
 by { introI, exact not_metrizable_space (metrizable_space_of_t3_second_countable _) }
 
 end sorgenfrey_line
+
+end counterexamples

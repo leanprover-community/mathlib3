@@ -38,6 +38,8 @@ be phrased in terms of counting walks.
 
 -/
 
+namespace archive.friendship_graphs
+
 open_locale classical big_operators
 noncomputable theory
 
@@ -336,3 +338,5 @@ begin
   { exact npG (hG.exists_politician_of_degree_le_two dreg (nat.lt_succ_iff.mp dle2)) },
   { exact hG.false_of_three_le_degree dreg dge3 },
 end
+
+end archive.friendship_graphs

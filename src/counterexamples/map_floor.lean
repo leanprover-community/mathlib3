@@ -33,6 +33,8 @@ But it does not preserve floors (nor ceils) as `⌊-ε⌋ = -1` while `⌊f (-ε
 (`int_with_epsilons.forget_epsilons_floor_lt`, `int_with_epsilons.lt_forget_epsilons_ceil`).
 -/
 
+namespace counterexamples
+
 noncomputable theory
 
 open function int polynomial
@@ -124,3 +126,5 @@ begin
 end
 
 end int_with_epsilon
+
+end counterexamples

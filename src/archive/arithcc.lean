@@ -41,6 +41,8 @@ described by McCarthy and Painter, which is considered the first proof of compil
 compiler
 -/
 
+namespace archive
+
 namespace arithcc
 
 section types
@@ -402,3 +404,5 @@ rfl
 end test
 
 end arithcc
+
+end archive.sensitivity

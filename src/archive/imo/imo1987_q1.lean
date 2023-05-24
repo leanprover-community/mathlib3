@@ -22,6 +22,8 @@ The original problem assumes `n ≥ 1`. It turns out that a version with `n * (n
 holds true for `n = 0` as well, so we first prove it, then deduce the original version in the case
 `n ≥ 1`. -/
 
+namespace archive
+
 variables (α : Type*) [fintype α] [decidable_eq α]
 
 open_locale big_operators nat
@@ -90,3 +92,5 @@ theorem main {n : ℕ} (hn : 1 ≤ n) :
 by rw [main₀, nat.mul_factorial_pred (zero_lt_one.trans_le hn)]
 
 end imo_1987_q1
+
+end archive

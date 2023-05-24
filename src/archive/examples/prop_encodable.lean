@@ -24,6 +24,8 @@ We mark the auxiliary constructions `private`, since their only purpose is to
 show encodability.
 -/
 
+namespace archive.prop_encodable
+
 /-- Propositional formulas with labels from `α`. -/
 inductive prop_form (α : Type*)
 | var : α → prop_form
@@ -96,3 +98,5 @@ begin
 end
 
 end prop_form
+
+end archive.prop_encodable

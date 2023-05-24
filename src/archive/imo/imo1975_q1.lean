@@ -22,6 +22,8 @@ noting that `∑ yᵢ ^ 2 = ∑ zᵢ ^ 2`, it remains to prove that `∑ xᵢ * 
 by the Rearrangement Inequality
 -/
 
+namespace archive
+
 open_locale big_operators
 
 /- Let `n` be a natural number, `x` and `y` be as in the problem statement and `σ` be the
@@ -31,7 +33,7 @@ variables (hx : antitone_on x (finset.Icc 1 n))
 variables (hy : antitone_on y (finset.Icc 1 n))
 include hx hy hσ
 
-theorem IMO_1975_Q1 :
+theorem imo1975_q1 :
   ∑ i in finset.Icc 1 n, (x i - y i) ^ 2 ≤ ∑ i in finset.Icc 1 n, (x i - y (σ i)) ^ 2 :=
 begin
   simp only [sub_sq, finset.sum_add_distrib, finset.sum_sub_distrib],
@@ -46,3 +48,5 @@ begin
   -- them being `decreasing`
   exact antitone_on.monovary_on hx hy
 end
+
+end archive

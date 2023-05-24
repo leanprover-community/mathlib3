@@ -3,7 +3,7 @@ Copyright (c) 2020 Gihan Marasingha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gihan Marasingha
 -/
-import .basic
+import archive.miu_language.basic
 import data.list.count
 import data.nat.modeq
 import tactic.ring
@@ -21,7 +21,7 @@ Using this, we give a negative answer to the question: is `"MU"` derivable?
 miu, decision procedure
 -/
 
-namespace miu
+namespace archive.miu
 
 open miu_atom nat list
 
@@ -218,4 +218,4 @@ begin
   { exact count_equiv_one_or_two_mod3_of_derivable en h, },
 end
 
-end miu
+end archive.miu

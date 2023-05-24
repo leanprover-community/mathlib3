@@ -35,6 +35,8 @@ Originally ported from Isabelle/HOL. The
 polynomial, cubic, root
 -/
 
+namespace archive.solution_of_cubic
+
 section field
 
 open polynomial
@@ -184,3 +186,5 @@ begin
 end
 
 end field
+
+end archive.solution_of_cubic

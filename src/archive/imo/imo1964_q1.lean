@@ -24,7 +24,7 @@ integers which are a multiple of 3.
 
 open nat
 
-namespace imo1964_q1
+namespace archive.imo1964_q1
 
 lemma two_pow_three_mul_mod_seven (m : ℕ) : 2 ^ (3 * m) ≡ 1 [MOD 7] :=
 begin
@@ -105,3 +105,5 @@ begin
     rw modeq_iff_dvd at this,
     norm_num at this },
 end
+
+end archive

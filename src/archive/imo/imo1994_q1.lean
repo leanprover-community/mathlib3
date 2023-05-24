@@ -28,6 +28,9 @@ Indeed, if we had `aᵢ + aₘ₊₁₋ᵢ ≤ n`, then `a₁ + aₘ₊₁₋ᵢ
 would be `m` elements of the set of `aᵢ`'s all larger than `aₘ₊₁₋ᵢ`, which is impossible.
 -/
 
+namespace archive
+namespace imo1994_q1
+
 open_locale big_operators
 
 open finset
@@ -42,6 +45,9 @@ begin
   rw [fin.coe_mk, this, nat.add_mod_right, nat.mod_eq_of_lt, nat.add_sub_cancel],
   linarith
 end
+
+end imo1994_q1
+open imo1994_q1
 
 theorem imo1994_q1 (n : ℕ) (m : ℕ) (A : finset ℕ) (hm : A.card = m + 1)
   (hrange : ∀ a ∈ A, 0 < a ∧ a ≤ n) (hadd : ∀ (a b ∈ A), a + b ≤ n → a + b ∈ A) :
@@ -97,3 +103,5 @@ begin
   -- A set of size `k+1` embed in one of size `k`, which yields a contradiction
   simpa [fin.coe_sub, tedious] using card_le_of_subset hf,
 end
+
+end archive

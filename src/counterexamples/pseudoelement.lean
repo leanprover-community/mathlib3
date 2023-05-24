@@ -29,6 +29,8 @@ given by `t ↦ (t, 2 * t)` and `y : ℚ ⟶ ℚ ⊞ ℚ` given by `t ↦ (t, t)
 * [F. Borceux, *Handbook of Categorical Algebra 2*][borceux-vol2]
 -/
 
+namespace counterexamples
+
 open category_theory.abelian category_theory category_theory.limits Module linear_map
 
 noncomputable theory
@@ -120,3 +122,5 @@ lemma exist_ne_and_fst_eq_fst_and_snd_eq_snd : ∃ x y : (of ℤ ℚ) ⊞ (of �
 ⟨⟦x⟧, ⟦y⟧, mk_x_ne_mk_y, fst_mk_x_eq_fst_mk_y, snd_mk_x_eq_snd_mk_y⟩
 
 end category_theory.abelian.pseudoelement
+
+end counterexamples

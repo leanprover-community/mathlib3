@@ -16,11 +16,11 @@ We follow the proof described here:
 http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 -/
 
+namespace archive.cubing_a_cube
+
 open real set function fin
 
 noncomputable theory
-
-namespace «82»
 
 variable {n : ℕ}
 
@@ -519,4 +519,4 @@ begin
     ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end
 
-end «82»
+namespace archive.cubing_a_cube

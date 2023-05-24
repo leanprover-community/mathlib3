@@ -23,8 +23,12 @@ Now for `n ≥ 6` we have `RHS < 2 ^ (n ^ 2) < (n(n-1)/2)! < k!`. We then treat 
 individually.
 -/
 
+namespace archive
+
 open_locale nat big_operators
 open finset multiplicity nat (hiding zero_le prime)
+
+namespace imo2019_q4
 
 theorem imo2019_q4_upper_bound {k n : ℕ} (hk : k > 0)
   (h : (k! : ℤ) = ∏ i in range n, (2 ^ n - 2 ^ i)) : n < 6 :=
@@ -67,6 +71,9 @@ begin
   convert add_le_add_left (add_le_add_left h5 (2 * n')) (n' * n') using 1, ring
 end
 
+end imo2019_q4
+open imo2019_q4
+
 theorem imo2019_q4 {k n : ℕ} (hk : k > 0) (hn : n > 0) :
   (k! : ℤ) = (∏ i in range n, (2 ^ n - 2 ^ i)) ↔ (k, n) = (1, 1) ∨ (k, n) = (3, 2) :=
 begin
@@ -92,3 +99,5 @@ begin
   /- n = 5 -/
   { refine monotone_factorial.ne_of_lt_of_lt_nat 10 _ _ _ h; norm_num },
 end
+
+end archive

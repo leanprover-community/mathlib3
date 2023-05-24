@@ -3,7 +3,7 @@ Copyright (c) 2020 Gihan Marasingha. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gihan Marasingha
 -/
-import .decision_nec
+import archive.miu_language.decision_nec
 import tactic.linarith
 
 /-!
@@ -44,7 +44,7 @@ introduce an additional `U` and ensure that the final number of `U`s will be eve
 miu, decision procedure, decidability, decidable_pred, decidable
 -/
 
-namespace miu
+namespace archive.miu
 
 open miu_atom list nat
 
@@ -377,4 +377,4 @@ dec_trivial
 example : derivable "MUIUIUIIIIIUUUIUII" :=
 dec_trivial
 
-end miu
+end archive.miu

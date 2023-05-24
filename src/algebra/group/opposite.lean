@@ -359,7 +359,7 @@ let ⟨u, hu⟩ := h in hu ▸ ⟨unop (units.op_equiv u), rfl⟩
 lemma is_unit_op {M} [monoid M] {m : M} : is_unit (op m) ↔ is_unit m := ⟨is_unit.unop, is_unit.op⟩
 
 @[simp, to_additive]
-lemma is_unit.unop {M} [monoid M] {m : Mᵐᵒᵖ} : is_unit (unop m) ↔ is_unit m :=
+lemma is_unit_unop {M} [monoid M] {m : Mᵐᵒᵖ} : is_unit (unop m) ↔ is_unit m :=
 ⟨is_unit.op, is_unit.unop⟩
 
 /-- A semigroup homomorphism `M →ₙ* N` can equivalently be viewed as a semigroup homomorphism

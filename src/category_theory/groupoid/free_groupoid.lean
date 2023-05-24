@@ -14,6 +14,9 @@ import combinatorics.quiver.symmetric
 /-!
 # Free groupoid on a quiver
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the free groupoid on a quiver, the lifting of a prefunctor to its unique
 extension as a functor from the free groupoid, and proves uniqueness of this extension.
 

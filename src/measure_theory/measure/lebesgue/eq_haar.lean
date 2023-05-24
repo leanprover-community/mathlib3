@@ -3,11 +3,11 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Sébastien Gouëzel
 -/
-import measure_theory.measure.lebesgue
-import measure_theory.measure.haar
-import linear_algebra.finite_dimensional
 import analysis.normed_space.pointwise
+import linear_algebra.finite_dimensional
 import measure_theory.group.pointwise
+import measure_theory.measure.lebesgue.basic
+import measure_theory.measure.haar.basic
 import measure_theory.measure.doubling
 
 /-!
@@ -40,6 +40,8 @@ density one for the rescaled copies `{x} + r • t` of a given set `t` with posi
 `tendsto_add_haar_inter_smul_one_of_density_one`. In particular, `s` intersects `{x} + r • t` for
 small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
+
+assert_not_exists measure_theory.integral
 
 open topological_space set filter metric
 open_locale ennreal pointwise topology nnreal
@@ -322,7 +324,7 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
 -/
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
-  measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
+  measure.map ((•) r) μ = ennreal.of_real (abs (r ^ finrank ℝ E)⁻¹) • μ :=
 begin
   let f : E →ₗ[ℝ] E := r • 1,
   change measure.map f μ = _,
@@ -335,14 +337,14 @@ begin
 end
 
 @[simp] lemma add_haar_preimage_smul {r : ℝ} (hr : r ≠ 0) (s : set E) :
-  μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) * μ s :=
+  μ (((•) r) ⁻¹' s) = ennreal.of_real (abs (r ^ finrank ℝ E)⁻¹) * μ s :=
 calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   ((homeomorph.smul (is_unit_iff_ne_zero.2 hr).unit).to_measurable_equiv.map_apply s).symm
-... = ennreal.of_real (abs (r^(finrank ℝ E))⁻¹) * μ s : by { rw map_add_haar_smul μ hr, refl }
+... = ennreal.of_real (abs (r^finrank ℝ E)⁻¹) * μ s : by { rw map_add_haar_smul μ hr, refl }
 
 /-- Rescaling a set by a factor `r` multiplies its measure by `abs (r ^ dim)`. -/
 @[simp] lemma add_haar_smul (r : ℝ) (s : set E) :
-  μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+  μ (r • s) = ennreal.of_real (abs (r ^ finrank ℝ E)) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
   { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow, inv_inv] },
@@ -382,56 +384,11 @@ end
 variables (μ)
 
 @[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
-  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ finrank ℝ E)) * μ s :=
 calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
   by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
-... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
+... = ennreal.of_real (abs (r ^ finrank ℝ E)) * μ s :
   by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
-
-/-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
-integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
-thanks to the convention that a non-integrable function has integral zero. -/
-lemma integral_comp_smul (f : E → F) (R : ℝ) :
-  ∫ x, f (R • x) ∂μ = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ :=
-begin
-  rcases eq_or_ne R 0 with rfl|hR,
-  { simp only [zero_smul, integral_const],
-    rcases nat.eq_zero_or_pos (finrank ℝ E) with hE|hE,
-    { haveI : subsingleton E, from finrank_zero_iff.1 hE,
-      have : f = (λ x, f 0), { ext x, rw subsingleton.elim x 0 },
-      conv_rhs { rw this },
-      simp only [hE, pow_zero, inv_one, abs_one, one_smul, integral_const] },
-    { haveI : nontrivial E, from finrank_pos_iff.1 hE,
-      simp only [zero_pow hE, measure_univ_of_is_add_left_invariant, ennreal.top_to_real, zero_smul,
-        inv_zero, abs_zero]} },
-  { calc ∫ x, f (R • x) ∂μ = ∫ y, f y ∂(measure.map (λ x, R • x) μ) :
-      (integral_map_equiv (homeomorph.smul (is_unit_iff_ne_zero.2 hR).unit)
-        .to_measurable_equiv f).symm
-    ... = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ :
-      by simp only [map_add_haar_smul μ hR, integral_smul_measure, ennreal.to_real_of_real,
-                    abs_nonneg] }
-end
-
-/-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
-integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
-thanks to the convention that a non-integrable function has integral zero. -/
-lemma integral_comp_smul_of_nonneg (f : E → F) (R : ℝ) {hR : 0 ≤ R} :
-  ∫ x, f (R • x) ∂μ = (R ^ finrank ℝ E)⁻¹ • ∫ x, f x ∂μ :=
-by rw [integral_comp_smul μ f R, abs_of_nonneg (inv_nonneg.2 (pow_nonneg hR _))]
-
-/-- The integral of `f (R⁻¹ • x)` with respect to an additive Haar measure is a multiple of the
-integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
-thanks to the convention that a non-integrable function has integral zero. -/
-lemma integral_comp_inv_smul (f : E → F) (R : ℝ) :
-  ∫ x, f (R⁻¹ • x) ∂μ = |(R ^ finrank ℝ E)| • ∫ x, f x ∂μ :=
-by rw [integral_comp_smul μ f (R⁻¹), inv_pow, inv_inv]
-
-/-- The integral of `f (R⁻¹ • x)` with respect to an additive Haar measure is a multiple of the
-integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
-thanks to the convention that a non-integrable function has integral zero. -/
-lemma integral_comp_inv_smul_of_nonneg (f : E → F) {R : ℝ} (hR : 0 ≤ R) :
-  ∫ x, f (R⁻¹ • x) ∂μ = R ^ finrank ℝ E • ∫ x, f x ∂μ :=
-by rw [integral_comp_inv_smul μ f R, abs_of_nonneg ((pow_nonneg hR _))]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/
@@ -457,7 +414,7 @@ begin
 end
 
 lemma add_haar_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
-  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
+  μ (ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 s) :=
 begin
   have : ball (0 : E) (r * s) = r • ball 0 s,
     by simp only [smul_ball hr.ne' (0 : E) s, real.norm_eq_abs, abs_of_nonneg hr.le, smul_zero],
@@ -465,11 +422,11 @@ begin
 end
 
 lemma add_haar_ball_of_pos (x : E) {r : ℝ} (hr : 0 < r) :
-  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [← add_haar_ball_mul_of_pos μ x hr, mul_one]
 
 lemma add_haar_ball_mul [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) (s : ℝ) :
-  μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
+  μ (ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 s) :=
 begin
   rcases has_le.le.eq_or_lt hr with h|h,
   { simp only [← h, zero_pow finrank_pos, measure_empty, zero_mul, ennreal.of_real_zero,
@@ -478,11 +435,11 @@ begin
 end
 
 lemma add_haar_ball [nontrivial E] (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [← add_haar_ball_mul μ x hr, mul_one]
 
 lemma add_haar_closed_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
-  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
+  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
     by simp [smul_closed_ball' hr.ne' (0 : E), abs_of_nonneg hr.le],
@@ -490,7 +447,7 @@ begin
 end
 
 lemma add_haar_closed_ball_mul (x : E) {r : ℝ} (hr : 0 ≤ r) {s : ℝ} (hs : 0 ≤ s) :
-  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
+  μ (closed_ball x (r * s)) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
     by simp [smul_closed_ball r (0 : E) hs, abs_of_nonneg hr],
@@ -501,15 +458,15 @@ end
 Use instead `add_haar_closed_ball`, which uses the measure of the open unit ball as a standard
 form. -/
 lemma add_haar_closed_ball' (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 1) :=
+  μ (closed_ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball 0 1) :=
 by rw [← add_haar_closed_ball_mul μ x hr zero_le_one, mul_one]
 
 lemma add_haar_closed_unit_ball_eq_add_haar_unit_ball :
   μ (closed_ball (0 : E) 1) = μ (ball 0 1) :=
 begin
   apply le_antisymm _ (measure_mono ball_subset_closed_ball),
-  have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
-    (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
+  have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ finrank ℝ E) * μ (closed_ball (0 : E) 1))
+    (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ finrank ℝ E) * μ (closed_ball (0 : E) 1))),
   { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
     exact ennreal.tendsto_of_real ((tendsto_id'.2 nhds_within_le_nhds).pow _) },
   simp only [one_pow, one_mul, ennreal.of_real_one] at A,
@@ -521,7 +478,7 @@ begin
 end
 
 lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
+  μ (closed_ball x r) = ennreal.of_real (r ^ finrank ℝ E) * μ (ball 0 1) :=
 by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
 
 lemma add_haar_closed_ball_eq_add_haar_ball [nontrivial E] (x : E) (r : ℝ) :
@@ -578,7 +535,7 @@ calc
 @[priority 100] instance is_unif_loc_doubling_measure_of_is_add_haar_measure :
   is_unif_loc_doubling_measure μ :=
 begin
-  refine ⟨⟨(2 : ℝ≥0) ^ (finrank ℝ E), _⟩⟩,
+  refine ⟨⟨(2 : ℝ≥0) ^ finrank ℝ E, _⟩⟩,
   filter_upwards [self_mem_nhds_within] with r hr x,
   rw [add_haar_closed_ball_mul μ x zero_le_two (le_of_lt hr), add_haar_closed_ball_center μ x,
     ennreal.of_real, real.to_nnreal_pow zero_le_two],

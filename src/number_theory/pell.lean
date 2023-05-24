@@ -28,13 +28,13 @@ We then prove the following
 **Theorem.** Let $d$ be a positive integer that is not a square. Then the equation
 $x^2 - d y^2 = 1$ has a nontrivial (i.e., with $y \ne 0$) solution in integers.
 
-See `pell.exists_of_not_is_square` and `pell.exists_nontrivial_of_not_is_square`.
+See `pell.exists_of_not_is_square` and `pell.solution₁.exists_nontrivial_of_not_is_square`.
 
 We then define the *fundamental solution* to be the solution
 with smallest $x$ among all solutions satisfying $x > 1$ and $y > 0$.
 We show that every solution is a power (in the sense of the group structure mentioned above)
 of the fundamental solution up to a (common) sign,
-see `pell.fundamental.eq_zpow_or_neg_zpow`, and that a (positive) solution has this property
+see `pell.is_fundamental.eq_zpow_or_neg_zpow`, and that a (positive) solution has this property
 if and only if it is fundamental, see `pell.pos_generator_iff_fundamental`.
 
 ## References

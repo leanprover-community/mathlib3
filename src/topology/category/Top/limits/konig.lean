@@ -8,6 +8,9 @@ import topology.category.Top.limits.basic
 /-!
 # Topological Kőnig's lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological version of Kőnig's lemma is that the inverse limit of nonempty compact Hausdorff
 spaces is nonempty.  (Note: this can be generalized further to inverse limits of nonempty compact
 T0 spaces, where all the maps are closed maps; see [Stone1979] --- however there is an erratum

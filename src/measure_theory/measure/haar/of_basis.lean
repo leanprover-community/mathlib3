@@ -3,7 +3,7 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import measure_theory.measure.haar
+import measure_theory.measure.haar.basic
 import analysis.inner_product_space.pi_L2
 
 /-!
@@ -179,7 +179,7 @@ end add_comm_group
 
 section normed_space
 
-variables [normed_add_comm_group E] [normed_space ℝ E]
+variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space ℝ E] [normed_space ℝ F]
 
 /-- The parallelepiped spanned by a basis, as a compact set with nonempty interior. -/
 def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
@@ -199,6 +199,23 @@ def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
           zero_lt_one, implies_true_iff] },
       rwa [← homeomorph.image_interior, nonempty_image_iff],
     end }
+
+@[simp] lemma basis.coe_parallelepiped (b : basis ι ℝ E) :
+  (b.parallelepiped : set E) = parallelepiped b :=
+rfl
+
+@[simp] lemma basis.parallelepiped_reindex (b : basis ι ℝ E) (e : ι ≃ ι') :
+  (b.reindex e).parallelepiped = b.parallelepiped :=
+positive_compacts.ext $
+  (congr_arg parallelepiped (b.coe_reindex _)).trans (parallelepiped_comp_equiv b e.symm)
+
+lemma basis.parallelepiped_map (b : basis ι ℝ E) (e : E ≃ₗ[ℝ] F) :
+  (b.map e).parallelepiped = b.parallelepiped.map e
+    (by haveI := finite_dimensional.of_fintype_basis b; exact
+      e.to_linear_map.continuous_of_finite_dimensional)
+    (by haveI := finite_dimensional.of_fintype_basis (b.map e); exact
+      e.to_linear_map.is_open_map_of_finite_dimensional e.surjective) :=
+positive_compacts.ext (image_parallelepiped e.to_linear_map _).symm
 
 variables [measurable_space E] [borel_space E]
 

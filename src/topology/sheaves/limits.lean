@@ -9,6 +9,9 @@ import category_theory.limits.functor_category
 
 /-!
 # Presheaves in `C` have limits and colimits when `C` does.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory

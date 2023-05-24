@@ -220,13 +220,14 @@ begin
   exact (norm_add_le _ _).trans (add_le_add (hT.2 s hs hμs) (hT'.2 s hs hμs)),
 end
 
-lemma smul [normed_field 𝕜] [normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
-  (c : 𝕜) :
+lemma smul [semi_normed_ring 𝕜] [distrib_mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
+  (hT : dominated_fin_meas_additive μ T C) (c : 𝕜) :
   dominated_fin_meas_additive μ (λ s, c • (T s)) (‖c‖ * C) :=
 begin
   refine ⟨hT.1.smul c, λ s hs hμs, _⟩,
   dsimp only,
-  rw [norm_smul, mul_assoc],
+  refine (norm_smul_le _ _).trans _,
+  rw [mul_assoc],
   exact mul_le_mul le_rfl (hT.2 s hs hμs) (norm_nonneg _) (norm_nonneg _),
 end
 

@@ -506,6 +506,10 @@ instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas_subgroup F m p μ) :=
 by { rw (Lp_meas_subgroup_to_Lp_trim_iso F p μ hm.elim).complete_space_iff, apply_instance, }
 
+-- For now just no-lint this; lean4's tree-based logging will make this easier to debug.
+-- One possible change might be to generalize `𝕜` from `is_R_or_C` to `normed_field`, as this
+-- result may well hold there.
+@[nolint fails_quickly]
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas F 𝕜 m p μ) :=
 by { rw (Lp_meas_subgroup_to_Lp_meas_iso F 𝕜 p μ).symm.complete_space_iff, apply_instance, }

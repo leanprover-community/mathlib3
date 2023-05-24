@@ -34,18 +34,9 @@ begin
   casesI is_empty_or_nonempty n,
   { have hdeg := charpoly_nat_degree_eq_dim A,
     rw [det_eq_sign_charpoly_coeff, ← hdeg,
-      polynomial.prod_roots_eq_coeff_zero_of_monic_of_split,
-      ← mul_assoc, ← pow_two, ← pow_mul ],
-
-    by_cases h2: ring_char R ≠ 2,
-    { have hstupid: -1 ≠ (1:R), {exact ring.neg_one_ne_one_of_char_ne_two h2,},
-      have hs2 : even(A.charpoly.nat_degree*2), {simp only [even.mul_left, even_two],},
-      rw [(neg_one_pow_eq_one_iff_even hstupid).2 hs2, one_mul],},
-    { rw [ne.def, not_not] at h2,
-      rw [neg_one_eq_one_iff.2 h2, one_pow, one_mul],},
-
-    apply matrix.charpoly_monic,
-    exact is_alg_closed.splits A.charpoly, },
+      polynomial.prod_roots_eq_coeff_zero_of_monic_of_split A.charpoly_monic
+        (is_alg_closed.splits _),
+      ← mul_assoc, ← pow_two, pow_right_comm, neg_one_sq, one_pow, one_mul] },
   { rw not_nonempty_iff at hn,
     rw matrix.charpoly,
     repeat {rw det_eq_one_of_card_eq_zero (fintype.card_eq_zero_iff.2 hn)},

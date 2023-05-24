@@ -28,7 +28,7 @@ open matrix polynomial
 open linear_map module.End
 open_locale matrix big_operators
 
-lemma det_eq_prod_roots_charpoly (A : matrix n n R):
+lemma prod_roots_charpoly_eq_det (A : matrix n n R) :
   A.det = (matrix.charpoly A).roots.prod :=
 begin
   by_cases hn: nonempty n,

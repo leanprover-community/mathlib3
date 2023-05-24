@@ -11,6 +11,9 @@ import category_theory.limits.shapes.finite_products
 /-!
 # Products in the over category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Shows that products in the over category can be derived from wide pullbacks in the base category.
 The main result is `over_product_of_wide_pullback`, which says that if `C` has `J`-indexed wide
 pullbacks, then `over B` has `J`-indexed products.

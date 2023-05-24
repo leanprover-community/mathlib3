@@ -9,6 +9,9 @@ import topology.continuous_function.bounded
 /-!
 # Urysohn's lemma for bounded continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we reformulate Urysohn's lemma `exists_continuous_zero_one_of_closed` in terms of
 bounded continuous functions `X →ᵇ ℝ`. These lemmas live in a separate file because
 `topology.continuous_function.bounded` imports too many other files.

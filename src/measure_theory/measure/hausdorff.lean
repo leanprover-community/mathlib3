@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import measure_theory.constructions.borel_space.basic
-import measure_theory.measure.lebesgue
+import measure_theory.measure.lebesgue.basic
 import topology.metric_space.holder
 import topology.metric_space.metric_separated
 

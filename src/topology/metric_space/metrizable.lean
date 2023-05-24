@@ -11,6 +11,9 @@ import topology.uniform_space.cauchy
 /-!
 # Metrizability of a T₃ topological space with second countable topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define metrizable topological spaces, i.e., topological spaces for which there
 exists a metric space structure that generates the same topology.
 

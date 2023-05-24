@@ -9,6 +9,9 @@ import linear_algebra.matrix.to_lin
 /-!
 # Contractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given modules $M, N$ over a commutative ring $R$, this file defines the natural linear maps:
 $M^* \otimes M \to R$, $M \otimes M^* \to R$, and $M^* \otimes N → Hom(M, N)$, as well as proving
 some basic properties of these maps.

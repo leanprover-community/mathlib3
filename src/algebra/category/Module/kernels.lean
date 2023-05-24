@@ -8,6 +8,9 @@ import category_theory.concrete_category.elementwise
 
 /-!
 # The concrete (co)kernels in the category of modules are (co)kernels in the categorical sense.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

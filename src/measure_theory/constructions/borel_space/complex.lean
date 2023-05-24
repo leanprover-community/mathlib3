@@ -6,7 +6,10 @@ Authors: Yury Kudryashov
 import analysis.complex.basic
 import measure_theory.constructions.borel_space.basic
 
-/-! # Equip `ℂ` with the Borel sigma-algebra -/
+/-! # Equip `ℂ` with the Borel sigma-algebra 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 noncomputable theory
 

@@ -189,6 +189,35 @@ begin
   exact measurable_measure_prod_mk_right hs
 end
 
+lemma measurable_embedding.prod_mk {α β γ δ : Type*} {mα : measurable_space α}
+  {mβ : measurable_space β} {mγ : measurable_space γ} {mδ : measurable_space δ}
+  {f : α → β} {g : γ → δ} (hg : measurable_embedding g) (hf : measurable_embedding f) :
+  measurable_embedding (λ x : γ × α, (g x.1, f x.2)) :=
+begin
+  have h_inj : function.injective (λ x : γ × α, (g x.fst, f x.snd)),
+  { intros x y hxy,
+    rw [← @prod.mk.eta _ _ x, ← @prod.mk.eta _ _ y],
+    simp only [prod.mk.inj_iff] at hxy ⊢,
+    exact ⟨hg.injective hxy.1, hf.injective hxy.2⟩, },
+  refine ⟨h_inj, _, _⟩,
+  { exact (hg.measurable.comp measurable_fst).prod_mk (hf.measurable.comp measurable_snd), },
+  { -- Induction using the π-system of rectangles
+    refine λ s hs, @measurable_space.induction_on_inter _
+      (λ s, measurable_set ((λ (x : γ × α), (g x.fst, f x.snd)) '' s)) _ _ generate_from_prod.symm
+      is_pi_system_prod _ _ _ _ _ hs,
+    { simp only [set.image_empty, measurable_set.empty], },
+    { rintros t ⟨t₁, t₂, ht₁, ht₂, rfl⟩,
+      rw ← set.prod_image_image_eq,
+      exact (hg.measurable_set_image.mpr ht₁).prod (hf.measurable_set_image.mpr ht₂), },
+    { intros t ht ht_m,
+      rw [← set.range_diff_image h_inj, ← set.prod_range_range_eq],
+      exact measurable_set.diff
+        (measurable_set.prod hg.measurable_set_range hf.measurable_set_range) ht_m, },
+    { intros g hg_disj hg_meas hg,
+      simp_rw set.image_Union,
+      exact measurable_set.Union hg, }, },
+end
+
 /-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   Tonelli's theorem is measurable. -/
 lemma measurable.lintegral_prod_right' [sigma_finite ν] :

@@ -10,6 +10,9 @@ import topology.fiber_bundle.basic
 /-!
 # Vector bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define (topological) vector bundles.
 
 Let `B` be the base space, let `F` be a normed space over a normed field `R`, and let

@@ -107,6 +107,9 @@ def ideal_powers (J : ideal R) : ℕᵒᵖ ⥤ ideal R :=
 @[derive category] def self_le_radical (J : ideal R) : Type u :=
 full_subcategory (λ J' : ideal R, J ≤ J'.radical)
 
+instance self_le_radical.inhabited (J : ideal R) : inhabited (self_le_radical J) :=
+{ default := ⟨J, ideal.le_radical⟩}
+
 /-- The diagram of all ideals with radical containing `J`, represented as a functor.
 This is the "largest" diagram that computes local cohomology with support in `J`. -/
 def self_le_radical_diagram (J : ideal R) : (self_le_radical J) ⥤ ideal R :=

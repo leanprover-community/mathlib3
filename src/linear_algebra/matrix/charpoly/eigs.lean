@@ -46,7 +46,7 @@ end
 lemma trace_eq_sum_roots_charpoly (A: matrix n n R) :
   A.trace = (matrix.charpoly A).roots.sum :=
 begin
-  by_cases hn: (nonempty n),
+  casesI is_empty_or_nonempty n,
   { haveI hn1 := hn,
     apply_fun (has_neg.neg),
     rw ← polynomial.sum_roots_eq_next_coeff_of_monic_of_split ,

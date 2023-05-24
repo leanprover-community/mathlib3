@@ -248,9 +248,9 @@ begin
     exact (hf i (s.mem_insert_self i)).add (ih (λ j hj, hf j (finset.mem_insert_of_mem hj))), },
 end
 
-section normed_space
+section has_bounded_smul
 
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)]
 
 lemma const_smul {f : Π i, E i} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (c • f) p :=
 begin
@@ -261,17 +261,21 @@ begin
   { obtain ⟨A, hA⟩ := hf.bdd_above,
     refine mem_ℓp_infty ⟨‖c‖ * A, _⟩,
     rintros a ⟨i, rfl⟩,
-    simpa [norm_smul] using mul_le_mul_of_nonneg_left (hA ⟨i, rfl⟩) (norm_nonneg c) },
+    refine (norm_smul_le _ _).trans _,
+    exact mul_le_mul_of_nonneg_left (hA ⟨i, rfl⟩) (norm_nonneg c) },
   { apply mem_ℓp_gen,
-    convert (hf.summable hp).mul_left (‖c‖ ^ p.to_real),
-    ext i,
-    simp [norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg (f i))] },
+    have := (hf.summable hp).mul_left (↑(‖c‖₊ ^ p.to_real) : ℝ),
+    simp_rw [← coe_nnnorm, ←nnreal.coe_rpow, ←nnreal.coe_mul, nnreal.summable_coe,
+      ←nnreal.mul_rpow] at this ⊢,
+    refine nnreal.summable_of_le _ this,
+    intro i,
+    exact nnreal.rpow_le_rpow (nnnorm_smul_le _ _) (ennreal.to_real_nonneg), },
 end
 
 lemma const_mul {f : α → 𝕜} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (λ x, c * f x) p :=
-@mem_ℓp.const_smul α (λ i, 𝕜) _ _ 𝕜 _ _ _ hf c
+@mem_ℓp.const_smul α (λ i, 𝕜) _ _ 𝕜 _ _ (λ i, by apply_instance) _ hf c
 
-end normed_space
+end has_bounded_smul
 
 end mem_ℓp
 
@@ -564,7 +568,7 @@ end compare_pointwise
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)]
 
 instance : module 𝕜 (pre_lp E) := pi.module α E 𝕜
 
@@ -587,6 +591,41 @@ instance : module 𝕜 (lp E p) :=
 { .. (lp_submodule E p 𝕜).module }
 
 @[simp] lemma coe_fn_smul (c : 𝕜) (f : lp E p) : ⇑(c • f) = c • f := rfl
+
+lemma norm_const_smul_le (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ ≤ ‖c‖ * ‖f‖ :=
+begin
+  rcases p.trichotomy with rfl | rfl | hp,
+  { exact absurd rfl hp },
+  { cases is_empty_or_nonempty α; resetI,
+    { simp [lp.eq_zero' f], },
+    -- surely I'm missing some `is_lub` API here.
+    have hcf := lp.is_lub_norm (c • f),
+    have hfc := (lp.is_lub_norm f).mul_left (norm_nonneg c),
+    simp_rw [←set.range_comp, function.comp] at hfc,
+    refine hcf.right _,
+    have := hfc.left,
+    simp_rw [mem_upper_bounds, set.mem_range, forall_exists_index, forall_apply_eq_imp_iff'] at this ⊢,
+    intro a,
+    refine (norm_smul_le _ _).trans (this a) },
+  { letI : has_nnnorm (lp E p) := ⟨λ f, ⟨‖f‖, norm_nonneg' _⟩⟩,
+    have coe_nnnorm : ∀ f : lp E p, ↑‖f‖₊ = ‖f‖ := λ _, rfl,
+    suffices : ‖c • f‖₊ ^ p.to_real ≤ (‖c‖₊ * ‖f‖₊) ^ p.to_real,
+    { rwa nnreal.rpow_le_rpow_iff hp at this },
+    have nnnorm_rpow_eq_tsum : ∀ (f : lp E p), ‖f‖₊ ^ p.to_real = ∑' i, ‖f i‖₊ ^ p.to_real,
+    { intro f,
+      ext,
+      simp_rw [nnreal.coe_tsum, nnreal.coe_rpow, coe_nnnorm],
+      exact norm_rpow_eq_tsum hp f },
+    rw [nnreal.mul_rpow, nnnorm_rpow_eq_tsum, nnnorm_rpow_eq_tsum, ←nnreal.tsum_mul_left],
+    simp_rw [←nnreal.mul_rpow],
+    have := (lp.has_sum_norm hp (c • f)),
+    have := (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
+    apply (lp.has_sum_norm hp (c • f)).unique,
+    convert (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
+    { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
+    have hf : 0 ≤ ‖f‖ := lp.norm_nonneg' f,
+    simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
+end
 
 lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ = ‖c‖ * ‖f‖ :=
 begin

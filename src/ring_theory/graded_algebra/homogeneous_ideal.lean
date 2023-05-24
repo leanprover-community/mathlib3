@@ -10,6 +10,9 @@ import ring_theory.graded_algebra.basic
 /-!
 # Homogeneous ideals of a graded algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homogeneous ideals of `graded_ring 𝒜` where `𝒜 : ι → submodule R A` and
 operations on them.
 

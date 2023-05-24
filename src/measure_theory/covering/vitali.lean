@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.basic
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 import measure_theory.covering.vitali_family
 
 /-!
 # Vitali covering theorems
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The topological Vitali covering theorem, in its most classical version, states the following.
 Consider a family of balls `(B (x_i, r_i))_{i ∈ I}` in a metric space, with uniformly bounded

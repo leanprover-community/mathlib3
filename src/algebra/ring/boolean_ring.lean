@@ -11,6 +11,9 @@ import order.hom.lattice
 /-!
 # Boolean rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Boolean ring is a ring where multiplication is idempotent. They are equivalent to Boolean
 algebras.
 

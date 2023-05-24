@@ -10,6 +10,9 @@ import category_theory.limits.shapes.terminal
 
 # Algebras of endofunctors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (co)algebras of an endofunctor, and provides the category instance for them.
 It also defines the forgetful functor from the category of (co)algebras. It is shown that the
 structure map of the initial algebra of an endofunctor is an isomorphism. Furthermore, it is shown

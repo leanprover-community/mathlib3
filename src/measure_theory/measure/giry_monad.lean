@@ -8,6 +8,9 @@ import measure_theory.integral.lebesgue
 /-!
 # The Giry monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let X be a measurable space. The collection of all measures on X again
 forms a measurable space. This construction forms a monad on
 measurable spaces and measurable functions, called the Giry monad.

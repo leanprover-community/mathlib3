@@ -12,6 +12,9 @@ import tactic.field_simp
 /-!
 # Correctness of Terminating Continued Fraction Computations (`generalized_continued_fraction.of`)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We show the correctness of the

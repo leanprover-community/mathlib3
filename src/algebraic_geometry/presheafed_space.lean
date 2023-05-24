@@ -9,6 +9,9 @@ import category_theory.adjunction.fully_faithful
 /-!
 # Presheafed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Introduces the category of topological spaces equipped with a presheaf (taking values in an
 arbitrary target category `C`.)
 

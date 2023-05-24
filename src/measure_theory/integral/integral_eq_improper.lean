@@ -914,6 +914,15 @@ begin
   funext, congr, rw abs_of_nonneg hp.le,
 end
 
+end Ioi_change_variables
+
+section Ioi_integrability
+
+open real
+open_locale interval
+
+variables {E : Type*} {f : ℝ → E} [normed_add_comm_group E] [normed_space ℝ E]
+
 /-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability. -/
 lemma integrable_on_Ioi_comp_rpow_iff (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
   integrable_on (λ x, (|p| * x ^ (p - 1)) • g (x ^ p)) (Ioi 0) ↔ integrable_on g (Ioi 0) :=
@@ -953,6 +962,6 @@ begin
   { rw abs_of_nonneg (le_of_lt hp') },
 end
 
-end Ioi_change_variables
+end Ioi_integrability
 
 end measure_theory

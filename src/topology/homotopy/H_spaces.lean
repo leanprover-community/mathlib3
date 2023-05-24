@@ -29,7 +29,7 @@ starting with two topological groups `G, G'`, the `H`-space structure on `G × G
 equal to the product of `H-space` structures on `G` and `G'`.
 * The loop space based at every `x : X` carries a structure of an `H-spaces`.
 
-# To Do
+## To Do
 * Prove that for all `z : ℝ`, the operation `λ x y, (x + y)/2` defines a `H-space` structure with
 `z` as a "neutral element".
 * Prove that `S^0`, `S^1`, `S^3` and `S^7` are the unique spheres that are `H-spaces`, where the

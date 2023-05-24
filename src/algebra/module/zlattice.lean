@@ -83,7 +83,7 @@ def fract (m : E) : E := m - floor b m
 lemma fract_apply (m : E) : fract b m = m - floor b m := rfl
 
 @[simp]
-lemma repr_fract_apply [decidable_eq ι] (m : E) (i : ι):
+lemma repr_fract_apply (m : E) (i : ι):
   b.repr (fract b m) i = int.fract (b.repr m i) :=
 by rw [fract, map_sub, finsupp.coe_sub, pi.sub_apply, repr_floor_apply, int.fract]
 

@@ -240,7 +240,7 @@ open asymptotics filter
 section mem_ball
 variables [nontrivially_normed_field 𝕂] [char_zero 𝕂]
 variables [normed_comm_ring 𝔸] [normed_ring 𝔹]
-variables [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹] [algebra 𝔸 𝔹] [has_continuous_smul 𝔸 𝔹]
+variables [normed_space 𝕂 𝔸] [normed_algebra 𝕂 𝔹] [algebra 𝔸 𝔹] [has_continuous_smul 𝔸 𝔹]
 variables [is_scalar_tower 𝕂 𝔸 𝔹]
 variables [complete_space 𝔹]
 
@@ -321,8 +321,6 @@ lemma has_strict_deriv_at_exp_smul_const_of_mem_ball (t : 𝕂) (x : 𝔹)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
 by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball 𝕂 t x htx).has_strict_deriv_at
-
-
 lemma has_strict_deriv_at_exp_smul_const_of_mem_ball' (t : 𝕂) (x : 𝔹)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=

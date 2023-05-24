@@ -43,6 +43,10 @@ Related files are:
 * `data.sigma.order`: Lexicographic order on `Σ i, α i`.
 * `data.prod.lex`: Lexicographic order on `α × β`.
 
+## TODO
+
+* Generalise `colex.init_seg` so that it applies to `ℕ`.
+
 ## References
 
 * https://github.com/b-mehta/maths-notes/blob/master/iii/mich/combinatorics.pdf

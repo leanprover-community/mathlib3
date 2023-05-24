@@ -53,6 +53,14 @@ theorem EKR {𝒜 : finset (finset X)} {r : ℕ}
   (h₁ : intersecting 𝒜) (h₂ : (𝒜 : set (finset α)).sized r) (h₃ : r ≤ n/2) :
   𝒜.card ≤ choose (n-1) (r-1) :=
 
+## TODO
+
+* Define the `k`-cascade representation of a natural and prove the corresponding version of
+  Kruskal-Katona.
+* Abstract away from `fin n` so that it also applies to `ℕ`. Probably `locally_finite_order_bot`
+  will help here.
+* Characterise the equality case.
+
 ## References
 
 * http://b-mehta.github.io/maths-notes/iii/mich/combinatorics.pdf

@@ -33,8 +33,7 @@ open_locale nnreal ennreal measure_theory topology probability_theory
 
 namespace measure_theory
 
-lemma measure.map_comap_ac {α γ : Type*}
-  {m0 : measurable_space α} {mγ : measurable_space γ}
+lemma measure.map_comap_ac {α γ : Type*} {m0 : measurable_space α} {mγ : measurable_space γ}
   {μ : measure α} {g : γ → α} (hg : measurable g) :
   (μ.comap g).map g ≪ μ :=
 begin
@@ -53,7 +52,8 @@ end
 
 lemma ae_strongly_measurable.comp_measurable''
   {α β γ : Type*} [topological_space β] {m0 : measurable_space α} {mγ : measurable_space γ}
-  {f : α → β} {μ : measure α} (hf : ae_strongly_measurable f μ) {g : γ → α} (hg : measurable g) :
+  {f : α → β} {μ : measure α} (hf : ae_strongly_measurable f μ)
+  {g : γ → α} (hg : measurable g) :
   ae_strongly_measurable' (measurable_space.comap g m0) (f ∘ g) (μ.comap g) :=
 begin
   let f' := hf.mk f,
@@ -62,16 +62,16 @@ begin
   { exact ae_eq_comp' hg.ae_measurable hf.ae_eq_mk (measure.map_comap_ac hg), },
 end
 
-lemma ae_strongly_measurable.comp_measurable'
+lemma ae_strongly_measurable.comp_ae_measurable'
   {α β γ : Type*} [topological_space β] {m0 : measurable_space α} {mγ : measurable_space γ}
   {f : α → β} {μ : measure γ} {g : γ → α}
-  (hf : ae_strongly_measurable f (μ.map g)) (hg : measurable g) :
+  (hf : ae_strongly_measurable f (μ.map g)) (hg : ae_measurable g μ) :
   ae_strongly_measurable' (measurable_space.comap g m0) (f ∘ g) μ :=
 begin
   let f' := hf.mk f,
   refine ⟨f' ∘ g, _, _⟩,
   { exact hf.strongly_measurable_mk.comp_measurable (measurable_iff_comap_le.mpr le_rfl), },
-  { exact ae_eq_comp hg.ae_measurable hf.ae_eq_mk, },
+  { exact ae_eq_comp hg hf.ae_eq_mk, },
 end
 
 section fst_snd
@@ -175,12 +175,12 @@ lemma measurable_cond_distrib {mβ : measurable_space β}
   measurable[mβ.comap X] (λ ω, cond_distrib Y X μ (X ω) s) :=
 (kernel.measurable_coe _ hs).comp (measurable.of_comap_le le_rfl)
 
-lemma integrable_to_real_cond_distrib [measurable_space β]
-  (hX : measurable X) {s : set Ω} (hs : measurable_set s) :
+lemma integrable_to_real_cond_distrib {mβ : measurable_space β}
+  (hX : ae_measurable X μ) {s : set Ω} (hs : measurable_set s) :
   integrable (λ ω, (cond_distrib Y X μ (X ω) s).to_real) μ :=
 begin
-  refine integrable_to_real_of_lintegral_ne_top (measurable.ae_measurable _) _,
-  { exact (kernel.measurable_coe _ hs).comp hX, },
+  refine integrable_to_real_of_lintegral_ne_top _ _,
+  { exact measurable.comp_ae_measurable (kernel.measurable_coe _ hs) hX, },
   { refine ne_of_lt _,
     calc ∫⁻ ω, cond_distrib Y X μ (X ω) s ∂μ
         ≤ ∫⁻ ω, 1 ∂μ : lintegral_mono (λ ω, prob_le_one)
@@ -189,42 +189,43 @@ begin
 end
 
 lemma _root_.measure_theory.integrable.integral_cond_distrib {mβ : measurable_space β}
-  (hX : measurable X) (hY : measurable Y)
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
   {f : β × Ω → F} (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
   integrable (λ ω, ∫ y, f (X ω, y) ∂(cond_distrib Y X μ (X ω))) μ :=
 begin
   change integrable ((λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) ∘ X) μ,
-  refine integrable.comp_measurable _ hX,
-  rw [← fst_map_prod_mk hX hY, cond_distrib],
+  refine integrable.comp_ae_measurable _ hX,
+  rw [← fst_map_prod_mk₀ hX hY, cond_distrib],
   exact hf_int.integral_cond_kernel,
 end
 
-lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib
-  {mβ : measurable_space β} (hX : measurable X) (hY : measurable Y)
+lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib {mβ : measurable_space β}
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
   {f : β × Ω → F} (hf : ae_strongly_measurable f (μ.map (λ ω, (X ω, Y ω)))) :
   ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) (μ.map X) :=
-by { rw ← fst_map_prod_mk hX hY, rw cond_distrib, exact hf.integral_cond_kernel, }
+by { rw ← fst_map_prod_mk₀ hX hY, rw cond_distrib, exact hf.integral_cond_kernel, }
 
 lemma ae_strongly_measurable'_integral_cond_distrib {mβ : measurable_space β}
-  (hX : measurable X) (hY : measurable Y)
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
   {f : β × Ω → F} (hf_int : integrable f (μ.map (λ ω, (X ω, Y ω)))) :
   ae_strongly_measurable' (mβ.comap X) (λ ω, ∫ y, f (X ω, y) ∂(cond_distrib Y X μ (X ω))) μ :=
-(hf_int.1.integral_cond_distrib hX hY).comp_measurable' hX
+(hf_int.1.integral_cond_distrib hX hY).comp_ae_measurable' hX
 
 lemma set_lintegral_preimage_cond_distrib {mβ : measurable_space β}
-  (hX : measurable X) (hY : measurable Y)
+  (hX : measurable X) (hY : ae_measurable Y μ)
   {s : set Ω} (hs : measurable_set s) {t : set β} (ht : measurable_set t) :
   ∫⁻ ω in X ⁻¹' t, cond_distrib Y X μ (X ω) s ∂μ = μ (X ⁻¹' t ∩ Y ⁻¹' s) :=
 begin
   change ∫⁻ ω in X ⁻¹' t, ((λ x, cond_distrib Y X μ x s) ∘ X) ω ∂μ = μ (X ⁻¹' t ∩ Y ⁻¹' s),
   rw [lintegral_comp (kernel.measurable_coe _ hs) hX, cond_distrib,
-    ← measure.restrict_map hX ht, ← fst_map_prod_mk hX hY,
+    ← measure.restrict_map hX ht, ← fst_map_prod_mk₀ hX.ae_measurable hY,
     set_lintegral_cond_kernel_eq_measure_prod _ ht hs,
-    measure.map_apply (hX.prod_mk hY) (ht.prod hs), mk_preimage_prod],
+    measure.map_apply_of_ae_measurable (hX.ae_measurable.prod_mk hY) (ht.prod hs),
+    mk_preimage_prod],
 end
 
 lemma set_lintegral_cond_distrib_of_measurable {mβ : measurable_space β}
-  (hX : measurable X) (hY : measurable Y)
+  (hX : measurable X) (hY : ae_measurable Y μ)
   {s : set Ω} (hs : measurable_set s) {t : set α} (ht : measurable_set[mβ.comap X] t) :
   ∫⁻ ω in t, cond_distrib Y X μ (X ω) s ∂μ = μ (t ∩ Y ⁻¹' s) :=
 by { obtain ⟨tₑ, htₑ, rfl⟩ := ht, rw set_lintegral_preimage_cond_distrib hX hY hs htₑ, }
@@ -235,59 +236,59 @@ lemma cond_distrib_ae_eq_condexp {mβ : measurable_space β} (hX : measurable X)
 begin
   refine ae_eq_condexp_of_forall_set_integral_eq hX.comap_le _ _ _ _,
   { exact (integrable_const _).indicator (hY hs),  },
-  { exact λ t ht _, (integrable_to_real_cond_distrib hX hs).integrable_on, },
+  { exact λ t ht _, (integrable_to_real_cond_distrib hX.ae_measurable hs).integrable_on, },
   { intros t ht _,
     rw [integral_to_real ((measurable_cond_distrib hs).mono hX.comap_le le_rfl).ae_measurable
         (eventually_of_forall (λ ω, measure_lt_top (cond_distrib Y X μ (X ω)) _)),
       integral_indicator_const _ (hY hs), measure.restrict_apply (hY hs), smul_eq_mul, mul_one,
-      inter_comm, set_lintegral_cond_distrib_of_measurable hX hY hs ht], },
+      inter_comm, set_lintegral_cond_distrib_of_measurable hX hY.ae_measurable hs ht], },
   { refine (measurable.strongly_measurable _).ae_strongly_measurable',
     refine @measurable.ennreal_to_real _ (mβ.comap X) _ _,
     exact measurable_cond_distrib hs, },
 end
 
-lemma todo'' {mβ : measurable_space β} (hX : measurable X) (hY : measurable Y)
+lemma todo'' {mβ : measurable_space β} (hX : measurable X) (hY : ae_measurable Y μ)
   {f : β × Ω → F} (hf_int : integrable f (μ.map (λ ω, (X ω, Y ω)))) :
   μ[(λ ω, f (X ω, Y ω)) | X; mβ] =ᵐ[μ] λ ω, ∫ y, f (X ω, y) ∂(cond_distrib Y X μ (X ω)) :=
 begin
   have hf_int' : integrable (λ ω, f (X ω, Y ω)) μ,
-  { exact (integrable_map_measure hf_int.1 (hX.prod_mk hY).ae_measurable).mp hf_int, },
+  { exact (integrable_map_measure hf_int.1 (hX.ae_measurable.prod_mk hY)).mp hf_int, },
   refine (ae_eq_condexp_of_forall_set_integral_eq hX.comap_le hf_int' (λ s hs hμs, _) _ _).symm,
-  { exact (hf_int.integral_cond_distrib hX hY).integrable_on, },
+  { exact (hf_int.integral_cond_distrib hX.ae_measurable hY).integrable_on, },
   { rintros s ⟨t, ht, rfl⟩ _,
     change ∫ ω in X ⁻¹' t, ((λ x', ∫ y, f (x', y) ∂(cond_distrib Y X μ) x') ∘ X) ω ∂μ
       = ∫ ω in X ⁻¹' t, f (X ω, Y ω) ∂μ,
     rw ← integral_map hX.ae_measurable,
     swap,
     { rw ← measure.restrict_map hX ht,
-      exact (hf_int.1.integral_cond_distrib hX hY).restrict, },
-    rw [← measure.restrict_map hX ht, ← fst_map_prod_mk hX hY, cond_distrib,
+      exact (hf_int.1.integral_cond_distrib hX.ae_measurable hY).restrict, },
+    rw [← measure.restrict_map hX ht, ← fst_map_prod_mk₀ hX.ae_measurable hY, cond_distrib,
       set_integral_cond_kernel_univ_right ht hf_int.integrable_on,
-      set_integral_map (ht.prod measurable_set.univ) hf_int.1 (hX.prod_mk hY).ae_measurable,
+      set_integral_map (ht.prod measurable_set.univ) hf_int.1 (hX.ae_measurable.prod_mk hY),
       mk_preimage_prod, preimage_univ, inter_univ], },
-  { exact ae_strongly_measurable'_integral_cond_distrib hX hY hf_int, },
+  { exact ae_strongly_measurable'_integral_cond_distrib hX.ae_measurable hY hf_int, },
 end
 
-lemma todo₀ {mβ : measurable_space β} (hX : measurable X) (hY : measurable Y)
+lemma todo₀ {mβ : measurable_space β} (hX : measurable X) (hY : ae_measurable Y μ)
   {f : β × Ω → F} (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a))))
   (hf_int : integrable (λ ω, f (X ω, Y ω)) μ) :
   μ[(λ ω, f (X ω, Y ω)) | X; mβ] =ᵐ[μ] λ ω, ∫ y, f (X ω, y) ∂(cond_distrib Y X μ (X ω)) :=
 begin
   have hf_int' : integrable f (μ.map (λ ω, (X ω, Y ω))),
-  { rwa integrable_map_measure hf (hX.prod_mk hY).ae_measurable, },
+  { rwa integrable_map_measure hf (hX.ae_measurable.prod_mk hY), },
   exact todo'' hX hY hf_int',
 end
 
-lemma todo {mβ : measurable_space β} (hX : measurable X) (hY : measurable Y)
+lemma todo {mβ : measurable_space β} (hX : measurable X) (hY : ae_measurable Y μ)
   {f : β × Ω → F} (hf : strongly_measurable f) (hf_int : integrable (λ ω, f (X ω, Y ω)) μ) :
   μ[(λ ω, f (X ω, Y ω)) | X; mβ] =ᵐ[μ] λ ω, ∫ y, f (X ω, y) ∂(cond_distrib Y X μ (X ω)) :=
 begin
   have hf_int' : integrable f (μ.map (λ ω, (X ω, Y ω))),
-  { rwa integrable_map_measure hf.ae_strongly_measurable (hX.prod_mk hY).ae_measurable, },
+  { rwa integrable_map_measure hf.ae_strongly_measurable (hX.ae_measurable.prod_mk hY), },
   exact todo'' hX hY hf_int',
 end
 
-lemma todo_right {mβ : measurable_space β} (hX : measurable X) (hY : measurable Y)
+lemma todo_right {mβ : measurable_space β} (hX : measurable X) (hY : ae_measurable Y μ)
   {f : Ω → F} (hf : strongly_measurable f) (hf_int : integrable (λ ω, f (Y ω)) μ) :
   μ[(λ ω, f (Y ω)) | X; mβ] =ᵐ[μ] λ ω, ∫ y, f y ∂(cond_distrib Y X μ (X ω)) :=
 todo hX hY (hf.comp_measurable measurable_snd) hf_int
@@ -295,9 +296,9 @@ todo hX hY (hf.comp_measurable measurable_snd) hf_int
 lemma todo' {Ω} [normed_add_comm_group Ω] [normed_space ℝ Ω] [complete_space Ω]
   [measurable_space Ω] [borel_space Ω] [second_countable_topology Ω] {Y : α → Ω}
   {mβ : measurable_space β}
-  (hX : measurable X) (hY : measurable Y) (hY_int : integrable Y μ) :
+  (hX : measurable X) (hY_int : integrable Y μ) :
   μ[Y | X; mβ] =ᵐ[μ] λ ω, ∫ y, y ∂(cond_distrib Y X μ (X ω)) :=
-todo_right hX hY strongly_measurable_id hY_int
+todo_right hX hY_int.1.ae_measurable strongly_measurable_id hY_int
 
 /-- Kernel associated with the conditional expectation with respect to a σ-algebra. -/
 noncomputable
@@ -314,7 +315,7 @@ lemma condexp_ae_eq_integral_condexp_kernel {Ω : Type*} [topological_space Ω]
   μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω) :=
 begin
   have hX : @measurable Ω Ω mΩ m id := measurable_id.mono le_rfl hm,
-  have hY : measurable (id : Ω → Ω) := measurable_id,
+  have hY : ae_measurable (id : Ω → Ω) μ := ae_measurable_id,
   have hf' : @strongly_measurable (Ω × Ω) F _ (m.prod mΩ) (λ x : Ω × Ω, f x.2) :=
     hf.comp_measurable measurable_id.snd,
   refine eventually_eq.trans _ (todo hX hY hf' hf_int),

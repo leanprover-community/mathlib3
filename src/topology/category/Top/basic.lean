@@ -25,6 +25,7 @@ open topological_space
 universe u
 
 /-- The category of topological spaces and continuous maps. -/
+@[to_additive Top]
 def Top : Type (u+1) := bundled topological_space
 
 namespace Top

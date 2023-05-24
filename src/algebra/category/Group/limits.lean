@@ -252,13 +252,17 @@ instance forget₂_CommMon_preserves_limits_of_size :
 The forgetful functor from commutative groups to types preserves all limits. (That is, the
 underlying types could have been computed instead as limits in the category of types.)
 -/
-@[to_additive AddCommGroup.forget_preserves_limits
+@[to_additive
 "The forgetful functor from additive commutative groups to types preserves all limits. (That is,
 the underlying types could have been computed instead as limits in the category of types.)"]
 instance forget_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget CommGroup.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, limits.comp_preserves_limit (forget₂ CommGroup Group) (forget Group) } }
+
+@[to_additive]
+instance forget_preserves_limits : preserves_limits (forget CommGroup.{u}) :=
+CommGroup.forget_preserves_limits_of_size.{u u}
 
 -- Verify we can form limits indexed over smaller categories.
 example (f : ℕ → AddCommGroup) : has_product f := by apply_instance

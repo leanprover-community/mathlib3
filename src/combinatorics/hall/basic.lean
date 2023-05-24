@@ -10,6 +10,9 @@ import data.rel
 /-!
 # Hall's Marriage Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a list of finite subsets $X_1, X_2, \dots, X_n$ of some given set
 $S$, P. Hall in [Hall1935] gave a necessary and sufficient condition for
 there to be a list of distinct elements $x_1, x_2, \dots, x_n$ with

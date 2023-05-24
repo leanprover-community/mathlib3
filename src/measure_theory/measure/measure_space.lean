@@ -938,6 +938,17 @@ instance [measurable_space α] : complete_lattice (measure α) :=
 
 end Inf
 
+@[simp] lemma _root_.measure_theory.outer_measure.to_measure_top [measurable_space α] :
+  (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top)
+    = (⊤ : measure α) :=
+top_unique $ λ s hs,
+    by cases s.eq_empty_or_nonempty with h h;
+      simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply]
+
+@[simp] lemma to_outer_measure_top [measurable_space α] :
+  (⊤ : measure α).to_outer_measure = (⊤ : outer_measure α) :=
+by rw [←outer_measure.to_measure_top, to_measure_to_outer_measure, outer_measure.trim_top]
+
 @[simp] lemma top_add : ⊤ + μ = ⊤ := top_unique $ measure.le_add_right le_rfl
 @[simp] lemma add_top : μ + ⊤ = ⊤ := top_unique $ measure.le_add_left le_rfl
 

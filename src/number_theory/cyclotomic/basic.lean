@@ -553,12 +553,13 @@ variables [is_domain A] [algebra A K] [is_fraction_ring A K]
 section cyclotomic_ring
 
 /-- If `K` is the fraction field of `A`, the `A`-algebra structure on `cyclotomic_field n K`.
-This is not an instance since it causes diamonds when `A = ℤ`. -/
+-/
 @[nolint unused_arguments]
-def cyclotomic_field.algebra_base : algebra A (cyclotomic_field n K) :=
-((algebra_map K (cyclotomic_field n K)).comp (algebra_map A K)).to_algebra
+instance cyclotomic_field.algebra_base : algebra A (cyclotomic_field n K) :=
+splitting_field.algebra' (cyclotomic n K)
 
-local attribute [instance] cyclotomic_field.algebra_base
+/-- Ensure there are no diamonds when `A = ℤ`. -/
+example : algebra_int (cyclotomic_field n ℚ) = cyclotomic_field.algebra_base _ _ _ := rfl
 
 instance cyclotomic_field.no_zero_smul_divisors : no_zero_smul_divisors A (cyclotomic_field n K) :=
 no_zero_smul_divisors.of_algebra_map_injective $ function.injective.comp
@@ -572,11 +573,11 @@ def cyclotomic_ring : Type w := adjoin A { b : (cyclotomic_field n K) | b ^ (n :
 
 namespace cyclotomic_ring
 
-/-- The `A`-algebra structure on `cyclotomic_ring n A K`.
-This is not an instance since it causes diamonds when `A = ℤ`. -/
-def algebra_base : algebra A (cyclotomic_ring n A K) := (adjoin A _).algebra
+/-- The `A`-algebra structure on `cyclotomic_ring n A K`. -/
+instance algebra_base : algebra A (cyclotomic_ring n A K) := (adjoin A _).algebra
 
-local attribute [instance] cyclotomic_ring.algebra_base
+-- Ensure that there is no diamonds with ℤ.
+example {n : ℕ+} : cyclotomic_ring.algebra_base n ℤ ℚ = algebra_int _ := rfl
 
 instance : no_zero_smul_divisors A (cyclotomic_ring n A K) := (adjoin A _).no_zero_smul_divisors_bot
 

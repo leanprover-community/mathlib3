@@ -12,6 +12,9 @@ import topology.algebra.module.strong_topology
 /-!
 # Operator norm on the space of continuous linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define the operator norm on the space of continuous (semi)linear maps between normed spaces, and
 prove its basic properties. In particular, show that this space is itself a normed space.
 

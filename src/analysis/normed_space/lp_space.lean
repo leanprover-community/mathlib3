@@ -567,10 +567,23 @@ norm_le_of_tsum_le hp hC (tsum_le_of_sum_le ((lp.mem_ℓp f).summable hp) hf)
 end compare_pointwise
 
 section has_bounded_smul
-variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)]
-variables {𝕜' : Type*} [normed_ring 𝕜'] [Π i, module 𝕜' (E i)] [Π i, has_bounded_smul 𝕜' (E i)]
+variables {𝕜 : Type*} {𝕜' : Type*}
+variables [normed_ring 𝕜] [normed_ring 𝕜']
+variables [Π i, module 𝕜 (E i)] [Π i, module 𝕜' (E i)]
 
 instance : module 𝕜 (pre_lp E) := pi.module α E 𝕜
+
+instance [Π i, smul_comm_class 𝕜' 𝕜 (E i)] : smul_comm_class 𝕜' 𝕜 (pre_lp E) :=
+pi.smul_comm_class
+
+instance [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] : is_scalar_tower 𝕜' 𝕜 (pre_lp E) :=
+pi.is_scalar_tower
+
+instance [Π i, module 𝕜ᵐᵒᵖ (E i)] [Π i, is_central_scalar 𝕜 (E i)] :
+  is_central_scalar 𝕜 (pre_lp E) :=
+pi.is_central_scalar
+
+variables [Π i, has_bounded_smul 𝕜 (E i)] [Π i, has_bounded_smul 𝕜' (E i)]
 
 lemma mem_lp_const_smul (c : 𝕜) (f : lp E p) : c • (f : pre_lp E) ∈ lp E p :=
 (lp.mem_ℓp f).const_smul c
@@ -592,9 +605,15 @@ instance : module 𝕜 (lp E p) :=
 
 @[simp] lemma coe_fn_smul (c : 𝕜) (f : lp E p) : ⇑(c • f) = c • f := rfl
 
-instance [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
-  is_scalar_tower 𝕜' 𝕜 (lp E p) :=
-⟨λ r c f, subtype.ext $ (lp.coe_fn_smul _ _).trans (smul_assoc _ _ _)⟩
+instance [Π i, smul_comm_class 𝕜' 𝕜 (E i)] : smul_comm_class 𝕜' 𝕜 (lp E p) :=
+⟨λ r c f, subtype.ext $ smul_comm _ _ _⟩
+
+instance [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] : is_scalar_tower 𝕜' 𝕜 (lp E p) :=
+⟨λ r c f, subtype.ext $ smul_assoc _ _ _⟩
+
+instance [Π i, module 𝕜ᵐᵒᵖ (E i)] [Π i, is_central_scalar 𝕜 (E i)] :
+  is_central_scalar 𝕜 (lp E p) :=
+⟨λ r f, subtype.ext $ op_smul_eq_smul _ _⟩
 
 theorem _root_.nnreal.has_sum_mono {α : Type u_1} {f g : α → nnreal} {sf sg : nnreal}
   (hf : has_sum f sf) (hg : has_sum g sg) (h : f ≤ g) :
@@ -633,7 +652,7 @@ begin
     refine nnreal.has_sum_mono hLHS hRHS (λ i, _),
     dsimp only,
     rw [←nnreal.mul_rpow],
-    exact  nnreal.rpow_le_rpow (nnnorm_smul_le _ _) ennreal.to_real_nonneg }
+    exact nnreal.rpow_le_rpow (nnnorm_smul_le _ _) ennreal.to_real_nonneg }
 end
 
 instance [fact (1 ≤ p)] : has_bounded_smul 𝕜 (lp E p) :=
@@ -710,8 +729,8 @@ instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
     { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
   end }
 
-variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
-variables [Π i, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
+variables {𝕜 : Type*} [has_star 𝕜] [normed_ring 𝕜]
+variables [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
 
 instance : star_module 𝕜 (lp E p) := { star_smul := λ r f, ext $ star_smul _ _ }
 
@@ -753,12 +772,14 @@ instance : non_unital_normed_ring (lp B ∞) :=
 
 -- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
 
-instance infty_is_scalar_tower {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+instance infty_is_scalar_tower
+  {𝕜} [normed_ring 𝕜] [Π i, module 𝕜 (B i)] [Π i, has_bounded_smul 𝕜 (B i)]
   [Π i, is_scalar_tower 𝕜 (B i) (B i)] :
   is_scalar_tower 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_assoc r ⇑f ⇑g⟩
 
-instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+instance infty_smul_comm_class
+  {𝕜} [normed_ring 𝕜] [Π i, module 𝕜 (B i)] [Π i, has_bounded_smul 𝕜 (B i)]
   [Π i, smul_comm_class 𝕜 (B i) (B i)] :
   smul_comm_class 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_comm r ⇑f ⇑g⟩
@@ -890,7 +911,7 @@ instance infty_normed_algebra : normed_algebra 𝕜 (lp B ∞) :=
 end algebra
 
 section single
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)]
 variables [decidable_eq α]
 
 /-- The element of `lp E p` which is `a : E i` at the index `i`, and zero elsewhere. -/

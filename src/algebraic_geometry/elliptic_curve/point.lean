@@ -9,7 +9,7 @@ import algebraic_geometry.elliptic_curve.weierstrass
 import ring_theory.class_group
 
 /-!
-# The group of nonsingular rational points on a Weierstrass curve over a field
+# Nonsingular rational points on Weierstrass curves
 
 This file defines the type of nonsingular rational points on a Weierstrass curve over a field and
 (TODO) proves that it forms an abelian group under a geometric secant-and-tangent process.

@@ -441,9 +441,11 @@ abbreviation function_field : Type u := fraction_ring W.coordinate_ring
 
 namespace coordinate_ring
 
+open ideal
+
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
-(ideal.quotient.is_domain_iff_prime _).mpr $
-by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
+(quotient.is_domain_iff_prime _).mpr $
+by simpa only [span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
    using W.irreducible_polynomial
 
 instance is_domain_of_field {F : Type u} [field F] (W : weierstrass_curve F) :
@@ -467,33 +469,22 @@ adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (X_sub_C_ne_zero y) $
   by { rw [nat_degree_polynomial, nat_degree_X_sub_C], norm_num1 }
 
 /-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
-@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {X_class W x}
+@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := span {X_class W x}
 
 /-- The ideal $\langle Y - y(X) \rangle$ of $R[W]$ for some $y(X) \in R[X]$. -/
-@[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {Y_class W y}
+@[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := span {Y_class W y}
 
 /-- The ideal $\langle X - x, Y - y(X) \rangle$ of $R[W]$ for some $x \in R$ and $y(X) \in R[X]$. -/
 @[simp] noncomputable def XY_ideal (x : R) (y : R[X]) : ideal W.coordinate_ring :=
-ideal.span {X_class W x, Y_class W y}
-
-/-- The $R$-algebra isomorphism from $R[X, Y] / \langle X - x, Y - y(X) \rangle$ to $R$ obtained by
-evaluation at $y(X)$ and at $x$, a consequence of the first and third isomorphism theorems. -/
-noncomputable def quotient_span_XY_equiv :
-  (R[X][Y] ⧸ (ideal.span {C (X - C x), Y - C y} : ideal $ R[X][Y])) ≃ₐ[R] R :=
-(ideal.quotient_equiv_alg_of_eq _ $ by rw [ideal.span_insert, sup_comm]).trans $
-(double_quot.quot_quot_equiv_quot_supₐ _ _ _).symm.trans $
-(ideal.quotient_equiv_alg _ _ ((quotient_span_X_sub_C_alg_equiv y).restrict_scalars R) rfl).trans $
-(ideal.quotient_equiv_alg_of_eq _ $
-  by { simp only [ideal.map_span, set.image_singleton], congr' 2, exact eval_C }).trans $
-quotient_span_X_sub_C_alg_equiv x
+span {X_class W x, Y_class W y}
 
 -- TODO: generalise to arbitrary `y ∈ R[X]` and use `neg_polynomial`
 lemma span_polynomial_le_span_XY {x y : R} (h : W.equation x y) :
-  (ideal.span {W.polynomial} : ideal $ R[X][Y]) ≤ ideal.span {C (X - C x), Y - C (C y)} :=
+  (span {W.polynomial} : ideal $ R[X][Y]) ≤ span {C (X - C x), Y - C (C y)} :=
 begin
   intros _ hz,
-  rcases ideal.mem_span_singleton'.mp hz with ⟨z, rfl⟩,
-  exact ideal.mem_span_pair.mpr
+  rcases mem_span_singleton'.mp hz with ⟨z, rfl⟩,
+  exact mem_span_pair.mpr
     ⟨z * (C (C (W.a₁ * y) - (X ^ 2 + C (x + W.a₂) * X + C (x ^ 2 + W.a₂ * x + W.a₄)))),
     z * (C (C y) - (-Y - C (C W.a₁ * X + C W.a₃))),
     by linear_combination -z * (congr_arg C $ congr_arg C $ (W.equation_iff x y).mp h)
@@ -502,11 +493,11 @@ end
 
 /-! ### The coordinate ring as an `R[X]`-algebra -/
 
-noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
+noncomputable instance : algebra R[X] W.coordinate_ring := quotient.algebra R[X]
 
-noncomputable instance algebra' : algebra R W.coordinate_ring := ideal.quotient.algebra R
+noncomputable instance algebra' : algebra R W.coordinate_ring := quotient.algebra R
 
-instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_tower R R[X] _
+instance : is_scalar_tower R R[X] W.coordinate_ring := quotient.is_scalar_tower R R[X] _
 
 instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
 
@@ -514,10 +505,11 @@ instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleto
 evaluation at $y(X)$ and at $x$ provided that $W(x, y(x)) = 0$. -/
 noncomputable def quotient_XY_ideal_equiv {x y : R} (h : W.equation x y) :
   (W.coordinate_ring ⧸ XY_ideal W x (C y)) ≃ₐ[R] R :=
-(ideal.quotient_equiv_alg_of_eq R $
-  by simpa only [XY_ideal, X_class, Y_class, ← set.image_pair, ← ideal.map_span]).trans $
-(double_quot.quot_quot_equiv_quot_of_leₐ R $ span_polynomial_le_span_XY W h).trans $
-by convert quotient_span_XY_equiv x (C y)
+(quotient_equiv_alg_of_eq R $
+  by simpa only [XY_ideal, X_class, Y_class, ← set.image_pair, ← map_span]).trans $
+  (double_quot.quot_quot_equiv_quot_of_leₐ R $ span_polynomial_le_span_XY W h).trans $
+    ((quotient_span_C_X_sub_C_alg_equiv (X - C x) $ C y).restrict_scalars R).trans $
+      quotient_span_X_sub_C_alg_equiv x
 
 /-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
 
@@ -571,7 +563,7 @@ variable (W)
 lemma smul_basis_mul_C (p q : R[X]) :
   (p • 1 + q • adjoin_root.mk W.polynomial Y) * adjoin_root.mk W.polynomial (C y)
     = ((p * y) • 1 + (q * y) • adjoin_root.mk W.polynomial Y) :=
-by { simp only [smul, map_mul], ring1 }
+by { simp only [smul, _root_.map_mul], ring1 }
 
 lemma smul_basis_mul_Y (p q : R[X]) :
   (p • 1 + q • adjoin_root.mk W.polynomial Y) * adjoin_root.mk W.polynomial Y
@@ -581,7 +573,7 @@ begin
   have Y_sq : adjoin_root.mk W.polynomial Y ^ 2 = adjoin_root.mk W.polynomial
     (C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - C (C W.a₁ * X + C W.a₃) * Y) :=
   adjoin_root.mk_eq_mk.mpr ⟨1, by { simp only [weierstrass_curve.polynomial], ring1 }⟩,
-  simp only [smul, add_mul, mul_assoc, ← sq, Y_sq, map_sub, map_mul],
+  simp only [smul, add_mul, mul_assoc, ← sq, Y_sq, map_sub, _root_.map_mul],
   ring1
 end
 

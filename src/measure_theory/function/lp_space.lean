@@ -1462,13 +1462,11 @@ by simp_rw [snorm_ess_sup,  pi.smul_apply, nnnorm_smul, ennreal.coe_mul, ennreal
 lemma snorm_const_smul (c : 𝕜) (f : α → F) :
   snorm (c • f) p μ = (‖c‖₊ : ℝ≥0∞) * snorm f p μ :=
 begin
-  by_cases h0 : p = 0,
-  { simp [h0], },
-  by_cases h_top : p = ∞,
-  { simp [h_top, snorm_ess_sup_const_smul], },
-  repeat { rw snorm_eq_snorm' h0 h_top, },
-  rw ←ne.def at h0,
-  exact snorm'_const_smul c (ennreal.to_real_pos h0 h_top),
+  obtain rfl | hc := eq_or_ne c 0,
+  { simp, },
+  refine le_antisymm (snorm_const_smul_le _ _) _,
+  have : snorm _ p μ ≤ _:= snorm_const_smul_le (c⁻¹) (c • f),
+  rwa [inv_smul_smul₀ hc, nnnorm_inv, ennreal.le_inv_smul_iff (nnnorm_ne_zero_iff.mpr hc)] at this,
 end
 
 end normed_space

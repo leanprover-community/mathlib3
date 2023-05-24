@@ -217,7 +217,8 @@ example {C : Type} [category C] [monoidal_category C] :
 by pure_coherence
 ```
 
-Users will typically just use the `coherence` tactic, which can also cope with identities of the form
+Users will typically just use the `coherence` tactic,
+which can also cope with identities of the form
 `a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
 where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`
 

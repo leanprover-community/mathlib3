@@ -98,5 +98,51 @@ lemma integral_comp_inv_smul_of_nonneg (f : E → F) {R : ℝ} (hR : 0 ≤ R) :
   ∫ x, f (R⁻¹ • x) ∂μ = R ^ finrank ℝ E • ∫ x, f x ∂μ :=
 by rw [integral_comp_inv_smul μ f R, abs_of_nonneg ((pow_nonneg hR _))]
 
+lemma integral_comp_mul_left (g : ℝ → F) (a : ℝ) :
+  ∫ x : ℝ, g (a * x) = |a⁻¹| • ∫ y : ℝ, g y :=
+by simp_rw [←smul_eq_mul, measure.integral_comp_smul, finite_dimensional.finrank_self, pow_one]
+
+lemma integral_comp_inv_mul_left (g : ℝ → F) (a : ℝ) :
+  ∫ x : ℝ, g (a⁻¹ * x) = |a| • ∫ y : ℝ, g y :=
+by simp_rw [←smul_eq_mul, measure.integral_comp_inv_smul, finite_dimensional.finrank_self, pow_one]
+
+lemma integral_comp_mul_right (g : ℝ → F) (a : ℝ) :
+  ∫ x : ℝ, g (x * a) = |a⁻¹| • ∫ y : ℝ, g y :=
+by simpa only [mul_comm] using integral_comp_mul_left g a
+
+lemma integral_comp_inv_mul_right (g : ℝ → F) (a : ℝ) :
+  ∫ x : ℝ, g (x * a⁻¹) = |a| • ∫ y : ℝ, g y :=
+by simpa only [mul_comm] using integral_comp_inv_mul_left g a
+
+lemma integral_comp_div (g : ℝ → F) (a : ℝ) :
+  ∫ x : ℝ, g (x / a) = |a| • ∫ y : ℝ, g y :=
+integral_comp_inv_mul_right g a
+
 end measure
+
+variables {F : Type*} [normed_add_comm_group F]
+
+lemma integrable.comp_smul {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [measurable_space E] [borel_space E] [finite_dimensional ℝ E]
+  (μ : measure E) [is_add_haar_measure μ] {f : E → F} (hf : integrable f μ) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, f (R • x)) μ :=
+begin
+  let t := ((homeomorph.smul (is_unit_iff_ne_zero.2 hR).unit).to_measurable_equiv : E ≃ᵐ E),
+  refine (integrable_map_equiv t f).mp (_ : integrable f (map (has_smul.smul R) μ)),
+  rwa [map_add_haar_smul μ hR, integrable_smul_measure _ ennreal.of_real_ne_top],
+  simpa only [ne.def, ennreal.of_real_eq_zero, not_le, abs_pos] using inv_ne_zero (pow_ne_zero _ hR)
+end
+
+lemma integrable.comp_mul_left {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (R * x)) volume :=
+by simpa only [smul_eq_mul] using hg.comp_smul volume hR
+
+lemma integrable.comp_mul_right {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (x * R)) volume :=
+by simpa only [mul_comm, smul_eq_mul] using hg.comp_smul volume hR
+
+lemma integrable.comp_div {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (x / R)) volume :=
+hg.comp_mul_right (inv_ne_zero hR)
+
 end measure_theory

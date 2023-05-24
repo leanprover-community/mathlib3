@@ -914,6 +914,45 @@ begin
   funext, congr, rw abs_of_nonneg hp.le,
 end
 
+/-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability. -/
+lemma integrable_on_Ioi_comp_rpow_iff (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  integrable_on (λ x, (|p| * x ^ (p - 1)) • g (x ^ p)) (Ioi 0) ↔ integrable_on g (Ioi 0) :=
+begin
+  let S := Ioi (0 : ℝ),
+  have a1 : ∀ x:ℝ, x ∈ S → has_deriv_within_at (λ (t:ℝ), t ^ p) (p * x ^ (p - 1)) S x :=
+    λ x hx, (has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne')).has_deriv_within_at,
+  have a2 : inj_on (λ x:ℝ, x ^ p) S,
+  { rcases lt_or_gt_of_ne hp,
+    { apply strict_anti_on.inj_on,
+      intros x hx y hy hxy,
+      rw [←inv_lt_inv (rpow_pos_of_pos hx p) (rpow_pos_of_pos hy p),
+      ←rpow_neg (le_of_lt hx), ←rpow_neg (le_of_lt hy)],
+      exact rpow_lt_rpow (le_of_lt hx) hxy (neg_pos.mpr h), },
+    exact strict_mono_on.inj_on (λ x hx y hy hxy, rpow_lt_rpow (mem_Ioi.mp hx).le hxy h) },
+  have a3 : (λ (t : ℝ), t ^ p) '' S = S,
+  { ext1, rw mem_image, split,
+    { rintro ⟨y, hy, rfl⟩, exact rpow_pos_of_pos hy p },
+    { intro hx, refine ⟨x ^ (1 / p), rpow_pos_of_pos hx _, _⟩,
+      rw [←rpow_mul (le_of_lt hx), one_div_mul_cancel hp, rpow_one], } },
+  have := integrable_on_image_iff_integrable_on_abs_deriv_smul measurable_set_Ioi a1 a2 g,
+  rw a3 at this,
+  rw this,
+  refine integrable_on_congr_fun (λ x hx, _) measurable_set_Ioi,
+  simp_rw [abs_mul, abs_of_nonneg (rpow_nonneg_of_nonneg (le_of_lt hx) _)],
+end
+
+/-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability (version
+without absolute values) -/
+lemma integrable_on_Ioi_comp_rpow_iff' (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  integrable_on (λ x, (p * x ^ (p - 1)) • g (x ^ p)) (Ioi 0) ↔ integrable_on g (Ioi 0) :=
+begin
+  rw ←integrable_on_Ioi_comp_rpow_iff g hp,
+  rcases lt_or_gt_of_ne hp with hp' | hp',
+  { simp_rw [(show |p| = -p, by rw abs_of_neg hp'), neg_mul, neg_smul],
+    apply integrable_neg_iff.symm },
+  { rw abs_of_nonneg (le_of_lt hp') },
+end
+
 end Ioi_change_variables
 
 end measure_theory

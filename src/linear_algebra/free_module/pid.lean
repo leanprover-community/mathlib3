@@ -608,6 +608,10 @@ begin
   simp [hi]
 end
 
+instance (F : Type u) [comm_ring F] [algebra F R] (b : basis ι R S) {I : ideal S} (hI : I ≠ ⊥) :
+  Π i, module F (R ⧸ ideal.span ({I.smith_coeffs b hI i} : set R)) :=
+λ _, quotient.module' _
+
 end ideal
 
 end smith_normal

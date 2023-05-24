@@ -29,6 +29,12 @@ theorem to_continuous_multilinear_map_injective :
     continuous_alternating_map R M N ι → continuous_multilinear_map R (λ i : ι, M) N)
 | ⟨f, hf⟩ ⟨g, hg⟩ rfl := rfl
 
+theorem range_to_continuous_multilinear_map :
+  set.range (to_continuous_multilinear_map : continuous_alternating_map R M N ι →
+    continuous_multilinear_map R (λ i : ι, M) N) =
+    {f | ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), f v = 0} :=
+set.ext $ λ f, ⟨λ ⟨g, hg⟩, hg ▸ g.2, λ h, ⟨⟨f, h⟩, rfl⟩⟩
+
 instance continuous_map_class :
   continuous_map_class (continuous_alternating_map R M N ι) (ι → M) N :=
 { coe := λ f, f.to_fun,
@@ -54,6 +60,11 @@ fun_like.ext_iff
 
 @[simps { simp_rhs := true }]
 def to_alternating_map : alternating_map R M N ι := { .. f }
+
+@[simp] theorem range_to_alternating_map :
+  set.range (to_alternating_map : continuous_alternating_map R M N ι → alternating_map R M N ι) =
+    {f | continuous f} :=
+set.ext $ λ f, ⟨λ ⟨g, hg⟩, hg ▸ g.cont, λ h, ⟨{ cont := h, .. f}, fun_like.ext' rfl⟩⟩
 
 @[simp] lemma map_add [decidable_eq ι] (m : ι → M) (i : ι) (x y : M) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
@@ -170,6 +181,10 @@ def apply_add_hom (v : ι → M) : continuous_alternating_map R M N ι →+ N :=
 @[simp] lemma sum_apply {α : Type*} (f : α → continuous_alternating_map R M N ι)
   (m : ι → M) {s : finset α} : (∑ a in s, f a) m = ∑ a in s, f a m :=
 (apply_add_hom m).map_sum f s
+
+def to_multilinear_add_hom :
+  continuous_alternating_map R M N ι →+ continuous_multilinear_map R (λ _ : ι, M) N :=
+⟨λ f, f.1, rfl, λ _ _, rfl⟩
 
 end has_continuous_add
 

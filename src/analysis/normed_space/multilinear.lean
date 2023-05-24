@@ -446,17 +446,22 @@ end
 section
 variables (𝕜 G)
 
+lemma norm_of_subsingleton_le [subsingleton ι] (i' : ι) : ‖of_subsingleton 𝕜 G i'‖ ≤ 1 :=
+op_norm_le_bound _ zero_le_one $ λ m,
+  by rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply]
+
 @[simp] lemma norm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :
   ‖of_subsingleton 𝕜 G i'‖ = 1 :=
 begin
-  apply le_antisymm,
-  { refine op_norm_le_bound _ zero_le_one (λ m, _),
-    rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply] },
-  { obtain ⟨g, hg⟩ := exists_ne (0 : G),
-    rw ←norm_ne_zero_iff at hg,
-    have := (of_subsingleton 𝕜 G i').ratio_le_op_norm (λ _, g),
-    rwa [fintype.prod_subsingleton _ i', of_subsingleton_apply, div_self hg] at this },
+  apply le_antisymm (norm_of_subsingleton_le 𝕜 G i'),
+  obtain ⟨g, hg⟩ := exists_ne (0 : G),
+  rw ←norm_ne_zero_iff at hg,
+  have := (of_subsingleton 𝕜 G i').ratio_le_op_norm (λ _, g),
+  rwa [fintype.prod_subsingleton _ i', of_subsingleton_apply, div_self hg] at this,
 end
+
+lemma nnnorm_of_subsingleton_le [subsingleton ι] (i' : ι) : ‖of_subsingleton 𝕜 G i'‖₊ ≤ 1 :=
+norm_of_subsingleton_le _ _ _
 
 @[simp] lemma nnnorm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :
   ‖of_subsingleton 𝕜 G i'‖₊ = 1 :=
@@ -518,18 +523,22 @@ variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜
 variables [normed_space 𝕜' G] [is_scalar_tower 𝕜' 𝕜 G]
 variables [Π i, normed_space 𝕜' (E i)] [∀ i, is_scalar_tower 𝕜' 𝕜 (E i)]
 
-@[simp] lemma norm_restrict_scalars : ‖f.restrict_scalars 𝕜'‖ = ‖f‖ :=
-by simp only [norm_def, coe_restrict_scalars]
+@[simp] lemma norm_restrict_scalars : ‖f.restrict_scalars 𝕜'‖ = ‖f‖ := rfl
 
 variable (𝕜')
 
-/-- `continuous_multilinear_map.restrict_scalars` as a `continuous_multilinear_map`. -/
-def restrict_scalars_linear :
-  continuous_multilinear_map 𝕜 E G →L[𝕜'] continuous_multilinear_map 𝕜' E G :=
-linear_map.mk_continuous
+/-- `continuous_multilinear_map.restrict_scalars` as a `linear_isometry`. -/
+def restrict_scalarsₗᵢ :
+  continuous_multilinear_map 𝕜 E G →ₗᵢ[𝕜'] continuous_multilinear_map 𝕜' E G :=
 { to_fun := restrict_scalars 𝕜',
   map_add' := λ m₁ m₂, rfl,
-  map_smul' := λ c m, rfl } 1 $ λ f, by simp
+  map_smul' := λ c m, rfl,
+  norm_map' := λ f, rfl }
+
+/-- `continuous_multilinear_map.restrict_scalars` as a `continuous_linear_map`. -/
+def restrict_scalars_linear :
+  continuous_multilinear_map 𝕜 E G →L[𝕜'] continuous_multilinear_map 𝕜' E G :=
+(restrict_scalarsₗᵢ 𝕜').to_continuous_linear_map
 
 variable {𝕜'}
 

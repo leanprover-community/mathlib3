@@ -11,13 +11,15 @@ import algebra.char_p.two
 /-!
 # Eigenvalues are characteristic polynomial roots.
 
-## Two Lemmas
-In algebraically closed fields the following two lemmas are available:
-  (or when one is willing to extend the working field to such fields like ℝ to ℂ):
-- `det_eq_prod_roots_charpoly` determinant is the product of the roots of the characteristic
+
+In algebraically closed fields, we show:
+* `matrix.det_eq_prod_roots_charpoly`: the determinant is the product of the roots of the characteristic
 polynomial.
-- `trace_eq_sum_roots_charpoly` trace of a matrix is the sum of the roots of the characteristic
+* `matrix.trace_eq_sum_roots_charpoly`: the trace is the sum of the roots of the characteristic
 polynomial.
+
+Note that over other fields such as ` ℝ`, these results can be used by using `A.map (algebra_map ℝ ℂ)` as the matrix,
+and then applying `ring_hom.map_det`.
 -/
 variables {n: Type*}[fintype n][decidable_eq n]
 variables {R: Type*}[field R][is_alg_closed R]

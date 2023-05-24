@@ -148,7 +148,7 @@ variables {R : Type u} [comm_ring R] (I J : ideal R)
 
 /-- Lifting the `ideal_powers J` diagram from a diagram valued in `ideals R` to a diagram
 valued in `ideals_with_same_radical J`. -/
-def ideal_powers_same_radical (J : ideal R) : ℕᵒᵖ ⥤ ideals_with_same_radical J :=
+def local_cohomology.ideal_powers_same_radical (J : ideal R) : ℕᵒᵖ ⥤ ideals_with_same_radical J :=
 full_subcategory.lift _ (ideal_powers J)
 (λ k, begin
   change _ ≤ (J^(unop k)).radical,
@@ -159,8 +159,8 @@ full_subcategory.lift _ (ideal_powers J)
 end)
 
 /-- The composition with the inclusion into `ideals R` is isomorphic to `ideal_powers J`. -/
-def ideal_powers_same_radical_lift_comp_inclusion (J : ideal R) :
-ideal_powers_same_radical J ⋙ same_radical_diagram J ≅ ideal_powers J :=
+def local_cohomology.ideal_powers_same_radical_lift_comp_inclusion (J : ideal R) :
+local_cohomology.ideal_powers_same_radical J ⋙ same_radical_diagram J ≅ ideal_powers J :=
   full_subcategory.lift_comp_inclusion _ _ _
 
 /-- For our purposes, the lemma below essentially says that `ideal_powers_same_radical I` is
@@ -168,7 +168,7 @@ initial in `same_radical_diagram I`.
 
 PORTING NOTE: This lemma should probably be moved to `ring_theory/finiteness.lean`
 to be near `ideal.exists_radical_pow_le_of_fg` -/
-lemma exists_pow_le_of_radical_le_of_fg (hIJ : I.radical ≤ J.radical) (hJ : J.radical.fg) :
+lemma ideal.exists_pow_le_of_radical_le_of_fg (hIJ : I.radical ≤ J.radical) (hJ : J.radical.fg) :
   ∃ (k : ℕ), I^k ≤ J :=
 begin
   obtain ⟨k, hk⟩ := J.exists_radical_pow_le_of_fg hJ,

@@ -27,7 +27,7 @@ open linear_map module.End
 open_locale matrix big_operators
 
 lemma det_eq_prod_roots_charpoly (A : matrix n n R):
-  (matrix.charpoly A).roots.prod = A.det :=
+  A.det = (matrix.charpoly A).roots.prod :=
 begin
   by_cases hn: nonempty n,
   { have hdeg := charpoly_nat_degree_eq_dim A,
@@ -51,7 +51,7 @@ begin
 end
 
 lemma trace_eq_sum_roots_charpoly (A: matrix n n R) :
-  (matrix.charpoly A).roots.sum = A.trace  :=
+  A.trace = (matrix.charpoly A).roots.sum :=
 begin
   by_cases hn: (nonempty n),
   { haveI hn1 := hn,

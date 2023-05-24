@@ -291,7 +291,7 @@ begin
   exact (((commute.refl x).smul_left t').smul_right t).exp_right 𝕂,
 end
 
-lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball (t : 𝔸) (x : 𝔹)
+lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball (x : 𝔹) (t : 𝔸)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) t :=
@@ -303,7 +303,7 @@ have deriv₂ : has_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x)) _ t,
   from has_fderiv_at_exp_smul_const_of_mem_ball 𝕂 x t htx,
 (deriv₁.has_fderiv_at.unique deriv₂) ▸ deriv₁
 
-lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball' (t : 𝔸) (x : 𝔹)
+lemma has_strict_fderiv_at_exp_smul_const_of_mem_ball' (x : 𝔹) (t : 𝔸)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
@@ -317,24 +317,25 @@ end
 
 variables {𝕂}
 
-lemma has_strict_deriv_at_exp_smul_const_of_mem_ball (t : 𝕂) (x : 𝔹)
+lemma has_strict_deriv_at_exp_smul_const_of_mem_ball (x : 𝔹) (t : 𝕂)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
-by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball 𝕂 t x htx).has_strict_deriv_at
-lemma has_strict_deriv_at_exp_smul_const_of_mem_ball' (t : 𝕂) (x : 𝔹)
+by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball 𝕂 x t htx).has_strict_deriv_at
+
+lemma has_strict_deriv_at_exp_smul_const_of_mem_ball' (x : 𝔹) (t : 𝕂)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
-by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 t x htx).has_strict_deriv_at
+by simpa using (has_strict_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 x t htx).has_strict_deriv_at
 
-lemma has_deriv_at_exp_smul_const_of_mem_ball (t : 𝕂) (x : 𝔹)
+lemma has_deriv_at_exp_smul_const_of_mem_ball (x : 𝔹) (t : 𝕂)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
-(has_strict_deriv_at_exp_smul_const_of_mem_ball t x htx).has_deriv_at
+(has_strict_deriv_at_exp_smul_const_of_mem_ball x t htx).has_deriv_at
 
-lemma has_deriv_at_exp_smul_const_of_mem_ball' (t : 𝕂) (x : 𝔹)
+lemma has_deriv_at_exp_smul_const_of_mem_ball' (x : 𝔹) (t : 𝕂)
   (htx : t • x ∈ emetric.ball (0 : 𝔹) (exp_series 𝕂 𝔹).radius) :
   has_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
-(has_strict_deriv_at_exp_smul_const_of_mem_ball' t x htx).has_deriv_at
+(has_strict_deriv_at_exp_smul_const_of_mem_ball' x t htx).has_deriv_at
 
 end mem_ball
 
@@ -359,13 +360,13 @@ lemma has_fderiv_at_exp_smul_const' (x : 𝔹) (t : 𝔸) :
 has_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
-lemma has_strict_fderiv_at_exp_smul_const (t : 𝔸) (x : 𝔹) :
+lemma has_strict_fderiv_at_exp_smul_const (x : 𝔹) (t : 𝔸) :
   has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x) t :=
 has_strict_fderiv_at_exp_smul_const_of_mem_ball 𝕂 _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
-lemma has_strict_fderiv_at_exp_smul_const' (t : 𝔸) (x : 𝔹) :
+lemma has_strict_fderiv_at_exp_smul_const' (x : 𝔹) (t : 𝔸) :
   has_strict_fderiv_at (λ u : 𝔸, exp 𝕂 (u • x))
     (((1 : 𝔸 →L[𝕂] 𝔸).smul_right x).smul_right (exp 𝕂 (t • x))) t :=
 has_strict_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 _ _ $
@@ -373,22 +374,22 @@ has_strict_fderiv_at_exp_smul_const_of_mem_ball' 𝕂 _ _ $
 
 variables {𝕂}
 
-lemma has_strict_deriv_at_exp_smul_const (t : 𝕂) (x : 𝔹) :
+lemma has_strict_deriv_at_exp_smul_const (x : 𝔹) (t : 𝕂) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
 has_strict_deriv_at_exp_smul_const_of_mem_ball _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
-lemma has_strict_deriv_at_exp_smul_const' (t : 𝕂) (x : 𝔹) :
+lemma has_strict_deriv_at_exp_smul_const' (x : 𝔹) (t : 𝕂) :
   has_strict_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
 has_strict_deriv_at_exp_smul_const_of_mem_ball' _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
-lemma has_deriv_at_exp_smul_const (t : 𝕂) (x : 𝔹) :
+lemma has_deriv_at_exp_smul_const (x : 𝔹) (t : 𝕂) :
   has_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (exp 𝕂 (t • x) * x) t :=
 has_deriv_at_exp_smul_const_of_mem_ball _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _
 
-lemma has_deriv_at_exp_smul_const' (t : 𝕂) (x : 𝔹) :
+lemma has_deriv_at_exp_smul_const' (x : 𝔹) (t : 𝕂) :
   has_deriv_at (λ u : 𝕂, exp 𝕂 (u • x)) (x * exp 𝕂 (t • x)) t :=
 has_deriv_at_exp_smul_const_of_mem_ball' _ _ $
   (exp_series_radius_eq_top 𝕂 𝔹).symm ▸ edist_lt_top _ _

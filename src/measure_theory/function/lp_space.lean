@@ -1451,13 +1451,8 @@ begin
   obtain rfl | hc := eq_or_ne c 0,
   { simp [snorm', hq_pos], },
   refine le_antisymm (snorm'_const_smul_le _ _ hq_pos) _,
-  -- TODO: use `ennreal.le_inv_smul` from #1899
-  have ennreal.le_inv_smul : ∀ {a b : ℝ≥0∞} {r : ℝ≥0} (hr₀ : r ≠ 0), a ≤ r⁻¹ • b ↔ r • a ≤ b,
-  { intros,
-    simpa [hr₀, ennreal.smul_def]
-      using (ennreal.mul_le_iff_le_inv (ennreal.coe_ne_zero.mpr hr₀) ennreal.coe_ne_top).symm },
   have : snorm' _ q μ ≤ _:= snorm'_const_smul_le (c⁻¹) (c • f) hq_pos,
-  rwa [inv_smul_smul₀ hc, nnnorm_inv, ennreal.le_inv_smul (nnnorm_ne_zero_iff.mpr hc)] at this,
+  rwa [inv_smul_smul₀ hc, nnnorm_inv, ennreal.le_inv_smul_iff (nnnorm_ne_zero_iff.mpr hc)] at this,
 end
 
 lemma snorm_ess_sup_const_smul (c : 𝕜) (f : α → F) :

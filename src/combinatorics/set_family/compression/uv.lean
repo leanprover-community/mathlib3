@@ -75,22 +75,10 @@ section generalized_boolean_algebra
 variables [generalized_boolean_algebra α] [decidable_rel (@disjoint α _ _)]
   [decidable_rel ((≤) : α → α → Prop)] {s : finset α} {u v a b : α}
 
-local attribute [instance] decidable_eq_of_decidable_le
-
 /-- UV-compressing `a` means removing `v` from it and adding `u` if `a` and `u` are disjoint and
 `v ≤ a` (it replaces the `v` part of `a` by the `u` part). Else, UV-compressing `a` doesn't do
 anything. This is most useful when `u` and `v` are disjoint finsets of the same size. -/
 def compress (u v a : α) : α := if disjoint u a ∧ v ≤ a then (a ⊔ u) \ v else a
-
-/-- To UV-compress a set family, we compress each of its elements, except that we don't want to
-reduce the cardinality, so we keep all elements whose compression is already present. -/
-def compression (u v : α) (s : finset α) :=
-s.filter (λ a, compress u v a ∈ s) ∪ (s.image $ compress u v).filter (λ a, a ∉ s)
-
-localized "notation (name := uv.compression) `𝓒 ` := uv.compression" in finset_family
-
-/-- `is_compressed u v s` expresses that `s` is UV-compressed. -/
-def is_compressed (u v : α) (s : finset α) := 𝓒 u v s = s
 
 lemma compress_of_disjoint_of_le (hua : disjoint u a) (hva : v ≤ a) :
   compress u v a = (a ⊔ u) \ v :=
@@ -102,14 +90,6 @@ by rw [compress_of_disjoint_of_le disjoint_sdiff_self_right
   (le_sdiff.2 ⟨(le_sup_right : v ≤ a ⊔ v), hva.mono_right hua⟩),
   sdiff_sup_cancel (le_sup_of_le_left hua), hva.symm.sup_sdiff_cancel_right]
 
-/-- `a` is in the UV-compressed family iff it's in the original and its compression is in the
-original, or it's not in the original but it's the compression of something in the original. -/
-lemma mem_compression :
-  a ∈ 𝓒 u v s ↔ a ∈ s ∧ compress u v a ∈ s ∨ a ∉ s ∧ ∃ b ∈ s, compress u v b = a :=
-by simp_rw [compression, mem_union, mem_filter, mem_image, and_comm (a ∉ s)]
-
-protected lemma is_compressed.eq (h : is_compressed u v s) : 𝓒 u v s = s := h
-
 @[simp] lemma compress_self (u a : α) : compress u u a = a :=
 begin
   unfold compress,
@@ -117,6 +97,58 @@ begin
   { exact h.1.symm.sup_sdiff_cancel_right },
   { refl }
 end
+
+/-- An element can be compressed to any other element by removing/adding the differences. -/
+@[simp] lemma compress_sdiff_sdiff (a b : α) : compress (a \ b) (b \ a) b = a :=
+begin
+  refine (compress_of_disjoint_of_le disjoint_sdiff_self_left sdiff_le).trans _,
+  rw [sup_sdiff_self_right, sup_sdiff, disjoint_sdiff_self_right.sdiff_eq_left, sup_eq_right],
+  exact sdiff_sdiff_le,
+end
+
+/-- Compressing an element is idempotent. -/
+@[simp] lemma compress_idem (u v a : α) : compress u v (compress u v a) = compress u v a :=
+begin
+  unfold compress,
+  split_ifs with h h',
+  { rw [le_sdiff_iff.1 h'.2, sdiff_bot, sdiff_bot, sup_assoc, sup_idem] },
+  { refl },
+  { refl }
+end
+
+variables [decidable_eq α]
+
+/-- To UV-compress a set family, we compress each of its elements, except that we don't want to
+reduce the cardinality, so we keep all elements whose compression is already present. -/
+def compression (u v : α) (s : finset α) :=
+s.filter (λ a, compress u v a ∈ s) ∪ (s.image $ compress u v).filter (λ a, a ∉ s)
+
+localized "notation (name := uv.compression) `𝓒 ` := uv.compression" in finset_family
+
+/-- `is_compressed u v s` expresses that `s` is UV-compressed. -/
+def is_compressed (u v : α) (s : finset α) := 𝓒 u v s = s
+
+/-- UV-compression is injective on the sets that are not UV-compressed. -/
+lemma compress_inj_on : set.inj_on (compress u v) ↑(s.filter $ λ a, compress u v a ∉ s) :=
+begin
+  intros a ha b hb hab,
+  rw [mem_coe, mem_filter] at ha hb,
+  rw compress at ha hab,
+  split_ifs at ha hab with has,
+  { rw compress at hb hab,
+    split_ifs at hb hab with hbs,
+    { exact sup_sdiff_inj_on u v has hbs hab },
+    { exact (hb.2 hb.1).elim } },
+  { exact (ha.2 ha.1).elim }
+end
+
+/-- `a` is in the UV-compressed family iff it's in the original and its compression is in the
+original, or it's not in the original but it's the compression of something in the original. -/
+lemma mem_compression :
+  a ∈ 𝓒 u v s ↔ a ∈ s ∧ compress u v a ∈ s ∨ a ∉ s ∧ ∃ b ∈ s, compress u v b = a :=
+by simp_rw [compression, mem_union, mem_filter, mem_image, and_comm (a ∉ s)]
+
+protected lemma is_compressed.eq (h : is_compressed u v s) : 𝓒 u v s = s := h
 
 @[simp] lemma compression_self (u : α) (s : finset α) : 𝓒 u u s = s :=
 begin
@@ -133,27 +165,9 @@ end
 /-- Any family is compressed along two identical elements. -/
 lemma is_compressed_self (u : α) (s : finset α) : is_compressed u u s := compression_self u s
 
-/-- An element can be compressed to any other element by removing/adding the differences. -/
-@[simp] lemma compress_sdiff_sdiff (a b : α) : compress (a \ b) (b \ a) b = a :=
-begin
-  refine (compress_of_disjoint_of_le disjoint_sdiff_self_left sdiff_le).trans _,
-  rw [sup_sdiff_self_right, sup_sdiff, disjoint_sdiff_self_right.sdiff_eq_left, sup_eq_right],
-  exact sdiff_sdiff_le,
-end
-
-lemma compress_disjoint (u v : α) :
-  disjoint (s.filter (λ a, compress u v a ∈ s)) ((s.image $ compress u v).filter (λ a, a ∉ s)) :=
+lemma compress_disjoint :
+  disjoint (s.filter $ λ a, compress u v a ∈ s) ((s.image $ compress u v).filter (∉ s)) :=
 disjoint_left.2 $ λ a ha₁ ha₂, (mem_filter.1 ha₂).2 (mem_filter.1 ha₁).1
-
-/-- Compressing an element is idempotent. -/
-@[simp] lemma compress_idem (u v a : α) : compress u v (compress u v a) = compress u v a :=
-begin
-  unfold compress,
-  split_ifs with h h',
-  { rw [le_sdiff_iff.1 h'.2, sdiff_bot, sdiff_bot, sup_assoc, sup_idem] },
-  { refl },
-  { refl }
-end
 
 lemma compress_mem_compression (ha : a ∈ s) : compress u v a ∈ 𝓒 u v s :=
 begin
@@ -185,22 +199,8 @@ end
 
 /-- Compressing a family doesn't change its size. -/
 @[simp] lemma card_compression (u v : α) (s : finset α) : (𝓒 u v s).card = s.card :=
-begin
-  rw [compression, card_disjoint_union (compress_disjoint _ _), image_filter, card_image_of_inj_on,
-    ←card_disjoint_union, filter_union_filter_neg_eq],
-  { rw disjoint_iff_inter_eq_empty,
-    exact filter_inter_filter_neg_eq _ _ _ },
-  intros a ha b hb hab,
-  dsimp at hab,
-  rw [mem_coe, mem_filter, function.comp_app] at ha hb,
-  rw compress at ha hab,
-  split_ifs at ha hab with has,
-  { rw compress at hb hab,
-    split_ifs at hb hab with hbs,
-    { exact sup_sdiff_inj_on u v has hbs hab },
-    { exact (hb.2 hb.1).elim } },
-  { exact (ha.2 ha.1).elim }
-end
+by rw [compression, card_disjoint_union compress_disjoint, image_filter,
+  card_image_of_inj_on compress_inj_on, ←card_disjoint_union (disjoint_filter_filter_neg s _ _), filter_union_filter_neg_eq]
 
 lemma le_of_mem_compression_of_not_mem (h : a ∈ 𝓒 u v s) (ha : a ∉ s) : u ≤ a :=
 begin
@@ -281,7 +281,7 @@ end generalized_boolean_algebra
 
 open_locale finset_family
 
-variables [decidable_eq α] {𝒜 : finset (finset α)} {u v a : finset α}
+variables [decidable_eq α] {𝒜 : finset (finset α)} {u v a : finset α} {r : ℕ}
 
 /-- Compressing a finset doesn't change its size. -/
 lemma card_compress (hUV : u.card = v.card) (A : finset α) : (compress u v A).card = A.card :=
@@ -291,6 +291,15 @@ begin
   { rw [card_sdiff (h.2.trans le_sup_left), sup_eq_union, card_disjoint_union h.1.symm, hUV,
       add_tsub_cancel_right] },
   { refl }
+end
+
+lemma _root_.set.sized.uv_compression (huv : u.card = v.card) (h𝒜 : (𝒜 : set (finset α)).sized r) :
+  (𝓒 u v 𝒜 : set (finset α)).sized r :=
+begin
+  simp_rw [set.sized, mem_coe, mem_compression],
+  rintro s (hs | ⟨huvt, t, ht, rfl⟩),
+  { exact h𝒜 hs.1 },
+  { rw [card_compress huv, h𝒜 ht] }
 end
 
 private lemma aux (huv : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
@@ -408,5 +417,14 @@ lemma card_shadow_compression_le (u v : finset α)
   (∂ (𝓒 u v 𝒜)).card ≤ (∂ 𝒜).card :=
 (card_le_of_subset $ shadow_compression_subset_compression_shadow _ _ huv).trans
   (card_compression _ _ _).le
+
+end uv
+
+
+namespace uv
+variables [decidable_eq α]
+
+open finset
+open_locale finset_family
 
 end uv

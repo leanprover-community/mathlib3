@@ -82,11 +82,10 @@ variables {α : Type*} [linear_order α] {𝒜 𝒜₁ 𝒜₂ : finset (finset 
 
 open_locale finset_family
 
-variables [fintype α]
-
 /-- This is important for iterating Kruskal-Katona: the shadow of an initial segment is also an
 initial segment. -/
-lemma shadow_init_seg (hs : s.nonempty) : ∂ (init_seg s) = init_seg (erase s (min' s hs)) :=
+lemma shadow_init_seg [fintype α] (hs : s.nonempty) :
+  ∂ (init_seg s) = init_seg (erase s (min' s hs)) :=
 begin
   -- This is a pretty painful proof, with lots of cases.
   ext t,
@@ -172,8 +171,9 @@ begin
 end
 
 /-- The shadow of an initial segment is also an initial segment. -/
-protected lemma is_init_seg.shadow (h₁ : is_init_seg 𝒜 r) : is_init_seg (∂𝒜) (r - 1) :=
+protected lemma is_init_seg.shadow [finite α] (h₁ : is_init_seg 𝒜 r) : is_init_seg (∂𝒜) (r - 1) :=
 begin
+  casesI nonempty_fintype α,
   obtain rfl | hr := nat.eq_zero_or_pos r,
   { have : 𝒜 ⊆ {∅},
     { intros A hA,
@@ -192,7 +192,7 @@ end
 end colex
 
 open finset colex nat uv
-open_locale finset_family
+open_locale big_operators finset_family
 
 variables {α : Type*} [linear_order α] {s U V : finset α} {n : ℕ}
 
@@ -212,7 +212,7 @@ begin
 end
 
 /-- These are the compressions which we will apply to decrease the "measure" of a family of sets.-/
-def useful_compression (U V : finset α) : Prop :=
+private def useful_compression (U V : finset α) : Prop :=
 disjoint U V ∧ U.card = V.card ∧ ∃ (HU : U.nonempty) (HV : V.nonempty), max' U HU < max' V HV
 
 instance useful_compression.decidable_rel : @decidable_rel (finset α) (useful_compression) :=
@@ -222,7 +222,7 @@ instance useful_compression.decidable_rel : @decidable_rel (finset α) (useful_c
 shadow. In particular, 'good' means it's useful, and every smaller compression won't make a
 difference. -/
 lemma compression_improved (𝒜 : finset (finset α)) (h₁ : useful_compression U V)
-  (h₂ : ∀ ⦃U₁ V₁⦄, useful_compression U₁ V₁ ∧ U₁.card < U.card → is_compressed U₁ V₁ 𝒜) :
+  (h₂ : ∀ ⦃U₁ V₁⦄, useful_compression U₁ V₁ → U₁.card < U.card → is_compressed U₁ V₁ 𝒜) :
   (∂ (𝓒 U V 𝒜)).card ≤ (∂𝒜).card :=
 begin
   obtain ⟨UVd, same_size, hU, hV, max_lt⟩ := h₁,
@@ -235,7 +235,7 @@ begin
     { rw [←finset.card_eq_zero, card_erase_of_mem (min'_mem _ _), ←same_size] },
     rw [‹erase U x = ∅›, ‹erase V (min' V hV) = ∅›],
     exact is_compressed_self _ _ },
-  refine h₂ ⟨⟨UVd.mono (erase_subset _ _) (erase_subset _ _), _, _, _, _⟩, card_erase_lt_of_mem Hx⟩,
+  refine h₂ ⟨UVd.mono (erase_subset _ _) (erase_subset _ _), _, _, _, _⟩ (card_erase_lt_of_mem Hx),
   { rw [card_erase_of_mem (min'_mem _ _), card_erase_of_mem Hx, same_size] },
   { rwa [←card_pos, card_erase_of_mem Hx, tsub_pos_iff_lt] },
   { rwa [←finset.card_pos, card_erase_of_mem (min'_mem _ _), ←same_size, tsub_pos_iff_lt] },
@@ -273,9 +273,11 @@ begin
   exact mem_compression.2 (or.inr ⟨hB, A, hA, compress_sdiff_sdiff _ _⟩),
 end
 
-/-- This measures roughly how compressed the family is. (Note that it does depend on the ordering of
+/-- This measures roughly how compressed the family is. (Note that it does depend on the order of
 the ground set, unlike Kruskal-Katona itself). -/
-def family_measure (𝒜 : finset (finset (fin n))) : ℕ := 𝒜.sum $ λ A, (image fin.val A).sum (pow 2)
+private def family_measure (𝒜 : finset (finset (fin n))) : ℕ := ∑ A in 𝒜, ∑ a in A, 2 ^ (a : ℕ)
+
+local attribute [-instance] fintype.decidable_forall_fintype
 
 /-- Applying a compression strictly decreases the measure. This helps show that "compress until we
 can't any more" is a terminating process. -/
@@ -285,35 +287,25 @@ lemma family_measure_compression_lt_family_measure {U V : finset (fin n)} {hU : 
 begin
   rw compression at ⊢ a,
   have q : ∀ Q ∈ filter (λ A, compress U V A ∉ 𝒜) 𝒜, compress U V Q ≠ Q,
-    intros Q HQ, rw mem_filter at HQ, intro z, rw z at HQ, exact HQ.2 HQ.1,
-  set CA₁ := filter (λ A, compress U V A ∈ 𝒜) 𝒜,
-  have uA: CA₁ ∪ filter (λ A, compress U V A ∉ 𝒜) 𝒜 = 𝒜 :=
+  { simp_rw mem_filter,
+    intros Q hQ h,
+    rw h at hQ,
+    exact hQ.2 hQ.1 },
+  have uA : 𝒜.filter (λ A, compress U V A ∈ 𝒜) ∪ filter (λ A, compress U V A ∉ 𝒜) 𝒜 = 𝒜 :=
     filter_union_filter_neg_eq _ _,
-  have ne₂ : finset.nonempty (filter (λ A, compress U V A ∉ 𝒜) 𝒜),
-  { rw nonempty_iff_ne_empty,
-    refine λ z, a _,
-    rw image_filter,
-    dsimp,
-    change _ ∪ image _ (𝒜.filter $ λ A, compress U V A ∉ 𝒜) = _,
-    rw [z, image_empty, empty_union],
-    rw [z, union_empty] at uA,
-    exact a uA },
-  rw [family_measure, family_measure, sum_union (compress_disjoint U V)],
-  conv_rhs {rw ←uA},
-    rw [sum_union, add_comm, add_lt_add_iff_left, sum_image],
-      apply sum_lt_sum_of_nonempty ne₂,
-      intros A hA,
-      -- rw [colex.sum_two_pow_le_iff_colex_le, colex_hom_fin],
-      sorry, sorry,
-      /-apply to_colex_compress_lt_to_colex A h (q _ hA),
-    intros x Hx y Hy k, have cx := q x Hx, have cy := q y Hy,
-    rw compress at k cx, split_ifs at k cx,
-      rw compress at k cy, split_ifs at k cy,
-        exact inj_ish h_1 h_2 k,
-      exfalso, apply cy rfl,
-    exfalso, apply cx rfl,-/
-  rw disjoint_iff_inter_eq_empty,
-  apply filter_inter_filter_neg_eq
+  have ne₂ : (𝒜.filter $ λ A, compress U V A ∉ 𝒜).nonempty,
+  { refine nonempty_iff_ne_empty.2 (λ z, a _),
+    simp_rw [image_filter, function.comp],
+    rw [z, image_empty, union_empty],
+    rwa [z, union_empty] at uA },
+  rw [family_measure, family_measure, sum_union compress_disjoint],
+  conv_rhs { rw ←uA },
+  rw [sum_union (disjoint_filter_filter_neg _ _ _), add_lt_add_iff_left, image_filter,
+    sum_image compress_inj_on],
+  refine sum_lt_sum_of_nonempty ne₂ (λ A hA, _),
+  simp_rw ←sum_image (fin.coe_injective.inj_on _),
+  rw [sum_two_pow_lt_iff_colex_lt, to_colex_image_lt_to_colex_image fin.coe_strict_mono],
+  exact to_colex_compress_lt_to_colex h (q _ hA),
 end
 
 /-- The main Kruskal-Katona helper: use induction with our measure to keep compressing until
@@ -322,8 +314,8 @@ want. -/
 lemma kruskal_katona_helper {r : ℕ} (𝒜 : finset (finset (fin n)))
   (h : (𝒜 : set (finset (fin n))).sized r) :
   ∃ ℬ : finset (finset (fin n)),
-    (∂ℬ).card ≤ (∂𝒜).card ∧ 𝒜.card = ℬ.card ∧ (ℬ  : set (finset (fin n))).sized r
-  ∧ (∀ U V, useful_compression U V → is_compressed U V ℬ) :=
+    (∂ℬ).card ≤ (∂𝒜).card ∧ 𝒜.card = ℬ.card ∧ (ℬ  : set (finset (fin n))).sized r ∧
+      ∀ U V, useful_compression U V → is_compressed U V ℬ :=
 begin
   classical,
   revert h, apply well_founded.recursion (measure_wf family_measure) 𝒜,
@@ -345,12 +337,12 @@ begin
     by_contra,
     exact hUcard.not_le (t ⟨U₁, V₁⟩ $ mem_filter.2 ⟨mem_univ _, huseful, h⟩) },
   have p1 : (∂(𝓒 U V A)).card ≤ (∂A).card := compression_improved _ uvh.2.1 h₂,
-  -- rcases uvh.2.1 with ⟨_, _, _, same_size, max_lt⟩,
-  -- rw [measure, inv_image] at ih,
-  -- rcases ih (𝓒 U V A) _ _ with ⟨t, q1, q2, q3, q4⟩,
-  -- { exact ⟨t, trans q1 p1, trans (compressed_size _ _).symm q2, q3, q4⟩ },
-  -- { apply family_measure_compression_lt_family_measure max_lt uvh.2.2 },
-  -- { apply 𝓒_sized same_size h }
+  obtain ⟨-, huv, hu, hv, max_lt⟩ := uvh.2.1,
+  rw [measure, inv_image] at ih,
+  obtain ⟨t, q1, q2, q3, q4⟩ := ih (𝓒 U V A) _ _,
+  { exact ⟨t, q1.trans p1, (card_compression _ _ _).symm.trans q2, q3, q4⟩ },
+  { exact family_measure_compression_lt_family_measure max_lt uvh.2.2 },
+  { exact h.uv_compression huv }
 end
 
 end UV

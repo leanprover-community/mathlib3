@@ -195,6 +195,15 @@ begin
   { simp [nat.choose_eq_zero_of_lt h_lt, coeff_hermite_of_lt h_lt] },
 end
 
+lemma coeff_hermite {n k : ℕ} :
+  coeff (hermite n) k =
+  if even (n + k) then (-1)^((n - k) / 2) * (n - k - 1)‼ * nat.choose n k else 0 :=
+begin
+  split_ifs with h,
+  exact coeff_hermite_of_even_add h,
+  exact coeff_hermite_of_odd_add (nat.odd_iff_not_even.mpr h),
+end
+
 end coeff_explicit
 
 end polynomial

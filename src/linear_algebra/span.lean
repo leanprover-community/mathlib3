@@ -891,9 +891,11 @@ variables (R M) [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors 
 /-- Given a nonzero element `x` of a torsion-free module `M` over a ring `R`, the natural
 isomorphism from `R` to the span of `x` given by $r \mapsto r \cdot x$. -/
 def to_span_nonzero_singleton : R ≃ₗ[R] R ∙ x :=
-linear_equiv.of_bijective (linear_map.id.smul_right ⟨x, submodule.mem_span_singleton_self x⟩) $
-  ⟨λ _ _ he, smul_left_injective R h (subtype.ext_iff.1 he),
-    λ y, by { simp_rw subtype.ext_iff, exact submodule.mem_span_singleton.1 y.2 }⟩
+linear_equiv.trans
+  (linear_equiv.of_injective
+    (linear_map.to_span_singleton R M x) (ker_eq_bot.1 $ ker_to_span_singleton h))
+    (linear_equiv.of_eq (to_span_singleton R M x).range (R ∙ x)
+      (span_singleton_eq_range R M x).symm)
 
 lemma to_span_nonzero_singleton_one :
   linear_equiv.to_span_nonzero_singleton R M x h 1 =

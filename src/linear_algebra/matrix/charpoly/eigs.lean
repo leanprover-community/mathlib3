@@ -13,19 +13,20 @@ import algebra.char_p.two
 
 
 In algebraically closed fields, we show:
-* `matrix.prod_roots_charpoly_eq_det`: the determinant is the product of the roots of the characteristic
-polynomial.
+* `matrix.prod_roots_charpoly_eq_det`: the determinant is the product of the roots of the
+characteristic polynomial.
 * `matrix.sum_roots_charpoly_eq_trace`: the trace is the sum of the roots of the characteristic
 polynomial.
 
-Note that over other fields such as ` ℝ`, these results can be used by using `A.map (algebra_map ℝ ℂ)` as the matrix,
-and then applying `ring_hom.map_det`.
+Note that over other fields such as ` ℝ`, these results can be used by using
+`A.map (algebra_map ℝ ℂ)` as the matrix, and then applying `ring_hom.map_det`.
 
-The two lemmas `matrix.prod_roots_charpoly_eq_det` and `matrix.sum_roots_charpoly_eq_trace` are more commonly stated as
-trace is the sum of eigenvalues and determinant is the product of eigenvalues. Mathlib has already defined eigenvalues in
-`linear_algebra.eigenspace` as the roots of the minimal polynomial of a linear endomorphism. These do not have correct
-multiplicity and cannot be used in the theorems above. Hence we express these theorems in terms of the roots of the
-characteristic polynomial directly.
+The two lemmas `matrix.prod_roots_charpoly_eq_det` and `matrix.sum_roots_charpoly_eq_trace` are more
+commonly stated as trace is the sum of eigenvalues and determinant is the product of eigenvalues.
+Mathlib has already defined eigenvalues in `linear_algebra.eigenspace` as the roots of the minimal
+polynomial of a linear endomorphism. These do not have correct multiplicity and cannot be used in
+the theorems above. Hence we express these theorems in terms of the roots of the characteristic
+polynomial directly.
 -/
 variables {n: Type*}[fintype n][decidable_eq n]
 variables {R: Type*}[field R][is_alg_closed R]

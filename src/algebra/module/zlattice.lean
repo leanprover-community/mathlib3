@@ -24,7 +24,7 @@ The ℤ-lattice `L` can be defined in two ways:
 
 -/
 
-open_locale big_operators classical
+open_locale big_operators
 
 noncomputable theory
 
@@ -65,16 +65,16 @@ def ceil (m : E) : span ℤ (set.range b) := ∑ i, ⌈b.repr m i⌉ • b.restr
 @[simp]
 lemma repr_floor_apply (m : E) (i : ι) :
   b.repr (floor b m) i = ⌊b.repr m i⌋ :=
-by simp only [floor, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply, finset.sum_apply',
-  basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq', finset.mem_univ, if_true,
-  coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply, linear_equiv.map_sum]
+by { classical ; simp only [floor, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
+  finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq', coe_sum,
+  finset.mem_univ, if_true, coe_smul_of_tower, basis.restrict_scalars_apply, linear_equiv.map_sum] }
 
 @[simp]
 lemma repr_ceil_apply (m : E) (i : ι) :
   b.repr (ceil b m) i = ⌈b.repr m i⌉ :=
-by simp only [ceil, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply, finset.sum_apply',
-  basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq', finset.mem_univ, if_true,
-  coe_sum, coe_smul_of_tower, basis.restrict_scalars_apply, linear_equiv.map_sum]
+by { classical ; simp only [ceil, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp.single_apply,
+  finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq', coe_sum,
+  finset.mem_univ, if_true, coe_smul_of_tower, basis.restrict_scalars_apply, linear_equiv.map_sum] }
 
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,
 see `zspan.fract_mem_fundamental_domain`. -/
@@ -83,18 +83,19 @@ def fract (m : E) : E := m - floor b m
 lemma fract_apply (m : E) : fract b m = m - floor b m := rfl
 
 @[simp]
-lemma repr_fract_apply (m : E) (i : ι):
+lemma repr_fract_apply [decidable_eq ι] (m : E) (i : ι):
   b.repr (fract b m) i = int.fract (b.repr m i) :=
 by rw [fract, map_sub, finsupp.coe_sub, pi.sub_apply, repr_floor_apply, int.fract]
 
 @[simp]
 lemma fract_fract (m : E) : fract b (fract b m) = fract b m :=
-basis.ext_elem b (λ _, by simp only [repr_fract_apply, int.fract_fract])
+basis.ext_elem b (λ _, by { classical ; simp only [repr_fract_apply, int.fract_fract] })
 
 @[simp]
 lemma fract_zspan_add (m : E) {v : E} (h : v ∈ span ℤ (set.range b)) :
   fract b (v + m) = fract b m :=
 begin
+  classical,
   refine (basis.ext_elem_iff b).mpr (λ i, _),
   simp_rw [repr_fract_apply, int.fract_eq_fract],
   use (b.restrict_scalars ℤ).repr ⟨v, h⟩ i,
@@ -110,8 +111,8 @@ variable {b}
 
 lemma fract_eq_self {x : E} :
   fract b x = x ↔ x ∈ fundamental_domain b :=
-by simp only [basis.ext_elem_iff b, repr_fract_apply, int.fract_eq_self, mem_fundamental_domain,
-  set.mem_Ico]
+by { classical ; simp only [basis.ext_elem_iff b, repr_fract_apply, int.fract_eq_self,
+  mem_fundamental_domain, set.mem_Ico] }
 
 variable (b)
 
@@ -121,6 +122,7 @@ lemma fract_mem_fundamental_domain (x : E) :
 lemma fract_eq_fract (m n : E) :
   fract b m = fract b n ↔ -m + n ∈ span ℤ (set.range b) :=
 begin
+  classical,
   rw [eq_comm, basis.ext_elem_iff b],
   simp_rw [repr_fract_apply, int.fract_eq_fract, eq_comm, basis.mem_span_iff_repr_mem,
     sub_eq_neg_add, map_add, linear_equiv.map_neg, finsupp.coe_add, finsupp.coe_neg, pi.add_apply,
@@ -130,6 +132,7 @@ end
 lemma norm_fract_le [has_solid_norm K] (m : E) :
   ‖fract b m‖ ≤ ∑ i, ‖b i‖ :=
 begin
+  classical,
   calc
     ‖fract b m‖ = ‖∑ i, b.repr (fract b m) i • b i‖ : by rw b.sum_repr
             ... = ‖∑ i, int.fract (b.repr m i) • b i‖ : by simp_rw repr_fract_apply

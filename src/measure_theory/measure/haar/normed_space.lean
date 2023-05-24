@@ -133,16 +133,16 @@ begin
   simpa only [ne.def, ennreal.of_real_eq_zero, not_le, abs_pos] using inv_ne_zero (pow_ne_zero _ hR)
 end
 
-lemma integrable.comp_mul_left {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
+lemma integrable.comp_mul_left' {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
   integrable (λ x, g (R * x)) volume :=
 by simpa only [smul_eq_mul] using hg.comp_smul volume hR
 
-lemma integrable.comp_mul_right {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
+lemma integrable.comp_mul_right' {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
   integrable (λ x, g (x * R)) volume :=
 by simpa only [mul_comm, smul_eq_mul] using hg.comp_smul volume hR
 
 lemma integrable.comp_div {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
   integrable (λ x, g (x / R)) volume :=
-hg.comp_mul_right (inv_ne_zero hR)
+hg.comp_mul_right' (inv_ne_zero hR)
 
 end measure_theory

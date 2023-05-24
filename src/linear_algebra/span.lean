@@ -851,6 +851,14 @@ ext_on hv (set.forall_range_iff.2 h)
 
 end add_comm_monoid
 
+section no_zero_divisors
+variables [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+
+lemma ker_to_span_singleton {x : M} (h : x ≠ 0) : (to_span_singleton R M x).ker = ⊥ :=
+set_like.ext $ λ c, smul_eq_zero.trans $ or_iff_left_of_imp $ λ h', (h h').elim
+
+end no_zero_divisors
+
 section field
 
 variables {K V} [field K] [add_comm_group V] [module K V]
@@ -866,20 +874,6 @@ eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
       by rw [linear_map.mem_ker, f.map_sub, f.map_smul, smul_eq_mul, mul_assoc,
              inv_mul_cancel hx, mul_one, sub_self],
       by simp only [add_sub_cancel'_right]⟩⟩)
-
-variables (K V)
-
-lemma ker_to_span_singleton {x : V} (h : x ≠ 0) : (to_span_singleton K V x).ker = ⊥ :=
-begin
-  ext c, split,
-  { intros hc, rw submodule.mem_bot, rw mem_ker at hc, by_contra hc',
-    have : x = 0,
-      calc x = c⁻¹ • (c • x) : by rw [← mul_smul, inv_mul_cancel hc', one_smul]
-      ... = c⁻¹ • ((to_span_singleton K V x) c) : rfl
-      ... = 0 : by rw [hc, smul_zero],
-    tauto },
-  { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
-end
 
 end field
 

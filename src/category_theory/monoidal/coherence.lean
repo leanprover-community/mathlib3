@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Yuma Mizuno, Oleksandr Manzyuk
 -/
 import category_theory.monoidal.free.coherence
-import category_theory.bicategory.coherence_tactic
 
 /-!
 # A `coherence` tactic for monoidal categories, and `⊗≫` (composition up to associators)
@@ -22,6 +21,10 @@ are equal.
 We also provide `f ⊗≫ g`, the `monoidal_comp` operation,
 which automatically inserts associators and unitors as needed
 to make the target of `f` match the source of `g`.
+
+Porting note:
+This file used to import `category_theory.bicategory.coherence_tactic`,
+but this has been removed to avoid holding up the port.
 -/
 
 noncomputable theory
@@ -214,11 +217,14 @@ example {C : Type} [category C] [monoidal_category C] :
 by pure_coherence
 ```
 
-Users will typicall just use the `coherence` tactic, which can also cope with identities of the form
+Users will typically just use the `coherence` tactic, which can also cope with identities of the form
 `a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
 where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`
+
+Porting note: once `category_theory.bicategory.coherence_tactic` is ported,
+change the definition here back to `monoidal_coherence <|> bicategorical_coherence`.
 -/
-meta def pure_coherence : tactic unit := monoidal_coherence <|> bicategorical_coherence
+meta def pure_coherence : tactic unit := monoidal_coherence
 
 example (X₁ X₂ : C) :
   ((λ_ (𝟙_ C)).inv ⊗ 𝟙 (X₁ ⊗ X₂)) ≫ (α_ (𝟙_ C) (𝟙_ C) (X₁ ⊗ X₂)).hom ≫
@@ -254,7 +260,10 @@ do
   o ← get_options, set_options $ o.set_nat `class.instance_max_depth 128,
   try `[simp only [monoidal_comp, category_theory.category.assoc]] >>
     `[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
-    try `[simp only [tactic.coherence.assoc_lift_hom, tactic.bicategory.coherence.assoc_lift_hom₂]]
+    -- Porting note: in the next line add back in
+    -- `tactic.bicategory.coherence.assoc_lift_hom₂` to the simp set
+    -- once `category_theory.bicategory.coherence_tactic` is ported.
+    try `[simp only [tactic.coherence.assoc_lift_hom]]
 
 example {W X Y Z : C} (f : Y ⟶ Z) (g) (w : false) : (λ_ _).hom ≫ f = g :=
 begin
@@ -318,10 +327,12 @@ using e.g. `set_option class.instance_max_depth 500`.)
 -/
 meta def coherence : tactic unit :=
 do
-  try `[simp only [bicategorical_comp]],
+  -- Porting note: restore this line when `category_theory.bicategory.coherence_tactic` is ported.
+  -- try `[simp only [bicategorical_comp]],
   try `[simp only [monoidal_comp]],
   -- TODO: put similar normalization simp lemmas for monoidal categories
-  try bicategory.whisker_simps,
+  -- Porting note: restore this line when `category_theory.bicategory.coherence_tactic` is ported.
+  -- try bicategory.whisker_simps,
   coherence_loop
 
 run_cmd add_interactive [`pure_coherence, `coherence]

@@ -9,6 +9,9 @@ import ring_theory.ideal.local_ring
 
 /-!
 # Ring-theoretic results in terms of categorical languages
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

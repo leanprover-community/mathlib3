@@ -616,11 +616,11 @@ begin
   rw mdifferentiable_within_at_univ
 end
 
-lemma mfderiv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_mdiff_within_at I s x) :
+lemma mfderiv_within_inter (ht : t ∈ 𝓝 x) :
   mfderiv_within I I' f (s ∩ t) x = mfderiv_within I I' f s x :=
 by rw [mfderiv_within, mfderiv_within, ext_chart_at_preimage_inter_eq,
   mdifferentiable_within_at_inter ht,
-  fderiv_within_inter (ext_chart_at_preimage_mem_nhds I x ht) hs]
+  fderiv_within_inter (ext_chart_at_preimage_mem_nhds I x ht)]
 
 lemma mdifferentiable_at_iff_of_mem_source {x' : M} {y : M'}
   (hx : x' ∈ (charted_space.chart_at H x).source)

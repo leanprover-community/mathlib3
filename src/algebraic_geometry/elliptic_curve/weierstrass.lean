@@ -476,16 +476,6 @@ adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (X_sub_C_ne_zero y) $
 @[simp] noncomputable def XY_ideal (x : R) (y : R[X]) : ideal W.coordinate_ring :=
 ideal.span {X_class W x, Y_class W y}
 
-/-! ### The coordinate ring as an `R[X]`-algebra -/
-
-noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
-
-noncomputable instance algebra' : algebra R W.coordinate_ring := ideal.quotient.algebra R
-
-instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_tower R R[X] _
-
-instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
-
 /-- The $R$-algebra isomorphism from $R[X, Y] / \langle X - x, Y - y(X) \rangle$ to $R$ obtained by
 evaluation at $y(X)$ and at $x$, a consequence of the first and third isomorphism theorems. -/
 noncomputable def quotient_span_XY_equiv :
@@ -509,6 +499,16 @@ begin
     by linear_combination -z * (congr_arg C $ congr_arg C $ (W.equation_iff x y).mp h)
       with { normalization_tactic := `[rw [weierstrass_curve.polynomial], C_simp, ring1] }⟩
 end
+
+/-! ### The coordinate ring as an `R[X]`-algebra -/
+
+noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
+
+noncomputable instance algebra' : algebra R W.coordinate_ring := ideal.quotient.algebra R
+
+instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_tower R R[X] _
+
+instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
 
 /-- The $R$-algebra isomorphism from $R[W] / \langle X - x, Y - y(X) \rangle$ to $R$ obtained by
 evaluation at $y(X)$ and at $x$ provided that $W(x, y(x)) = 0$. -/

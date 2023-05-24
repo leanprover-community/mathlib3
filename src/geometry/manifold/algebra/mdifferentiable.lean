@@ -20,6 +20,14 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 
 section /-! # general facts -/
 
+/-- For `φ : A → B` and a group `G`, the "right-composition" homomorphism from `B → G` to `A → G`.
+-/
+@[to_additive]
+def monoid_hom.comp_right {A B G : Type*} [group G] (φ : A → B) : (B → G) →* (A → G) :=
+{ to_fun := λ f, f ∘ φ,
+  map_one' := rfl,
+  map_mul' := λ f g, rfl }
+
 /-- For `φ : A → B` and a ring `R`, the "right-composition" homomorphism from `B → R` to `A → R`. -/
 def ring_hom.comp_right {A B R : Type*} [ring R] (φ : A → B) : (B → R) →+* (A → R) :=
 { to_fun := λ f, f ∘ φ,
@@ -31,20 +39,6 @@ def ring_hom.comp_right {A B R : Type*} [ring R] (φ : A → B) : (B → R) →+
 end
 
 section /-! # general facts for `mdfderiv` file -/
-
-variables {M' : Type*} [topological_space M'] [charted_space H' M']
-  {f g : M → M'} {s : set M} {x : M}
-
-lemma mdifferentiable_within_at.prod_mk
-  (hf : mdifferentiable_within_at I I' f s x) (hg : mdifferentiable_within_at I I' g s x) :
-  mdifferentiable_within_at I (I'.prod I') (λ x, (f x, g x)) s x :=
-⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
-
-lemma mdifferentiable_at.prod_mk
-  (hf : mdifferentiable_at I I' f x) (hg : mdifferentiable_at I I' g x) :
-  mdifferentiable_at I (I'.prod I') (λ x, (f x, g x)) x :=
-⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
-
 include _i
 
 lemma mdifferentiable_inclusion {U V : opens M} (h : U ≤ V) :
@@ -64,60 +58,72 @@ end
 
 end
 
-section has_smooth_mul
-variables {G : Type*} [has_mul G] [topological_space G] [charted_space H' G] [has_smooth_mul I' G]
-variables {f g : M → G} {s : set M} {x : M}
+section lie_group
+variables (G : Type*) [group G] [topological_space G] [charted_space H' G] [lie_group I' G]
 include _i
 
+variables (I I' M)
+
+/-- For a Lie group `G`, the subring of `M → G` consisting of the `mdifferentiable` functions.
+-/
+@[to_additive] def mdifferentiable_subgroup : subgroup (M → G) :=
+{ carrier := {f | mdifferentiable I I' f},
+  mul_mem' := λ f g hf hg, mdifferentiable.mul' hf hg,
+  one_mem' := (mdifferentiable_const I I' : mdifferentiable I I' (λ _, (1:G))),
+  inv_mem' := λ f hf, mdifferentiable.inv' hf }
+
+/-- For a `I'`-Lie group `G` and `I`-smooth manifold `M`, the subring of `M → G` consisting of
+the `lift_prop (differentiable_within_at_prop I I')` functions. -/
+@[to_additive] def differentiable_within_at_local_invariant_prop_subgroup : subgroup (M → G) :=
+(mdifferentiable_subgroup I M I' G).copy
+  {f | lift_prop (differentiable_within_at_prop I I') f}
+  begin
+    ext f,
+    apply forall_congr,
+    intros x,
+    exact (mdifferentiable_at_iff_lift_prop_at I I' f x).symm
+  end
+
+variables {M}
+
+/-- For a Lie group `G`, the "restriction" group homomorphism from
+`mdifferentiable_subgroup I V I' G` to `mdifferentiable_subgroup I U I' G`. -/
+@[to_additive] def mdifferentiable_subgroup_restrict {U V : opens M} (h : U ≤ V) :
+  mdifferentiable_subgroup I V I' G →* mdifferentiable_subgroup I U I' G :=
+monoid_hom.cod_restrict
+  (monoid_hom.restrict
+    (monoid_hom.comp_right (set.inclusion h) : (V → G) →* (U → G))
+    (mdifferentiable_subgroup I V I' G))
+  (mdifferentiable_subgroup I U I' G)
+  (λ f, mdifferentiable.comp f.prop (mdifferentiable_inclusion h))
+
+/-- For a Lie group `G`, the "restriction" group homomorphism from
+`mdifferentiable_subgroup I V I' G` to `mdifferentiable_subgroup I U I' G`. -/
 @[to_additive]
-lemma mdifferentiable_within_at.mul'
-  (hf : mdifferentiable_within_at I I' f s x)
-  (hg : mdifferentiable_within_at I I' g s x) : mdifferentiable_within_at I I' (f * g) s x :=
-((smooth_mul I').smooth_at.mdifferentiable_within_at le_top).comp x (hf.prod_mk hg) le_top
+def differentiable_within_at_local_invariant_prop_subgroup_restrict {U V : opens M} (h : U ≤ V) :
+  differentiable_within_at_local_invariant_prop_subgroup I V I' G
+  →* differentiable_within_at_local_invariant_prop_subgroup I U I' G :=
+monoid_hom.cod_restrict
+  (monoid_hom.restrict
+    (monoid_hom.comp_right (set.inclusion h) : (V → G) →* (U → G))
+    (differentiable_within_at_local_invariant_prop_subgroup I V I' G))
+  (differentiable_within_at_local_invariant_prop_subgroup I U I' G)
+  begin
+    let i : U → V := set.inclusion h,
+    rintros ⟨f : V → G, hf⟩ x,
+    change lift_prop_at (differentiable_within_at_prop I I')  _ _,
+    have H : lift_prop_at (differentiable_within_at_prop I I') (f : V → G) (i x) := hf (i x),
+    rw ← mdifferentiable_at_iff_lift_prop_at at *,
+    exact H.comp x (mdifferentiable_inclusion h x),
+  end
 
-@[to_additive]
-lemma mdifferentiable_at.mul'
-  (hf : mdifferentiable_at I I' f x)
-  (hg : mdifferentiable_at I I' g x) : mdifferentiable_at I I' (f * g) x :=
-begin
-  have h₂ : mdifferentiable_at (I'.prod I') I' (λ p : G × G, p.1 * p.2) (f x, g x),
-  { apply (smooth_mul I').smooth_at.mdifferentiable_at,
-    apply_instance },
-  exact h₂.comp x (hf.prod_mk hg),
-end
-
-@[to_additive]
-lemma mdifferentiable.mul'
-  (hf : mdifferentiable I I' f)
-  (hg : mdifferentiable I I' g) : mdifferentiable I I' (f * g) :=
-λ x, (hf x).mul' (hg x)
-
-end has_smooth_mul
-
+end lie_group
 
 section smooth_ring
-variables {R : Type*} [ring R] [topological_space R] [charted_space H' R] [smooth_ring I' R]
-variables {f g : M → R} {s : set M} {x : M}
+variables (R : Type*) [ring R] [topological_space R] [charted_space H' R] [smooth_ring I' R]
 include _i
 
-lemma mdifferentiable_within_at.neg'
-  (hf : mdifferentiable_within_at I I' f s x) : mdifferentiable_within_at I I' (-f) s x :=
-((smooth_neg I').smooth_at.mdifferentiable_within_at le_top).comp x hf le_top
-
-lemma mdifferentiable_at.neg'
-  (hf : mdifferentiable_at I I' f x) : mdifferentiable_at I I' (-f) x :=
-begin
-  have h₂ : mdifferentiable_at I' I' (λ p : R, -p) (f x),
-  { apply (smooth_neg I').smooth_at.mdifferentiable_at,
-    apply_instance },
-  exact h₂.comp x hf,
-end
-
-lemma mdifferentiable.neg'
-  (hf : mdifferentiable I I' f) : mdifferentiable I I' (-f) :=
-λ x, (hf x).neg'
-
-variables (I I' M R)
+variables (I I' M)
 
 /-- For a smooth ring `R`, the subring of `M → R` consisting of the `mdifferentiable` functions.
 -/
@@ -145,7 +151,7 @@ variables {M}
 
 /-- For a smooth ring `R`, the "restriction" ring homomorphism from
 `mdifferentiable_subring I V I' R` to `mdifferentiable_subring I U I' R`. -/
-def mdifferentiable_restrict {U V : opens M} (h : U ≤ V) :
+def mdifferentiable_subring_restrict {U V : opens M} (h : U ≤ V) :
   mdifferentiable_subring I V I' R →+* mdifferentiable_subring I U I' R :=
 ring_hom.cod_restrict
   (ring_hom.dom_restrict
@@ -156,7 +162,7 @@ ring_hom.cod_restrict
 
 /-- For a smooth ring `R`, the "restriction" ring homomorphism from
 `mdifferentiable_subring I V I' R` to `mdifferentiable_subring I U I' R`. -/
-def differentiable_within_at_local_invariant_prop_restrict {U V : opens M} (h : U ≤ V) :
+def differentiable_within_at_local_invariant_prop_subring_restrict {U V : opens M} (h : U ≤ V) :
   differentiable_within_at_local_invariant_prop_subring I V I' R
   →+* differentiable_within_at_local_invariant_prop_subring I U I' R :=
 ring_hom.cod_restrict

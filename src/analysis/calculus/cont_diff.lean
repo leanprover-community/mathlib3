@@ -6,12 +6,22 @@ Authors: Sébastien Gouëzel, Floris van Doorn
 import analysis.calculus.cont_diff_def
 import analysis.calculus.mean_value
 import analysis.normed_space.finite_dimension
+import data.nat.choose.cast
 
 /-!
 # Higher differentiability of usual operations
 
 We prove that the usual operations (addition, multiplication, difference, composition, and
-so on) preserve `C^n` functions. We also expand the API aound `C^n` functions.
+so on) preserve `C^n` functions. We also expand the API around `C^n` functions.
+
+## Main results
+
+* `cont_diff.comp` states that the composition of two `C^n` functions is `C^n`.
+* `norm_iterated_fderiv_comp_le` gives the bound `n! * C * D ^ n` for the `n`-th derivative
+  of `g ∘ f` assuming that the derivatives of `g` are bounded by `C` and the `i`-th
+  derivative of `f` is bounded by `D ^ i`.
+
+Similar results are given for `C^n` functions on domains.
 
 ## Notations
 
@@ -26,7 +36,7 @@ derivative, differentiability, higher derivative, `C^n`, multilinear, Taylor ser
 -/
 
 noncomputable theory
-open_locale classical big_operators nnreal
+open_locale classical big_operators nnreal nat
 
 local notation `∞` := (⊤ : ℕ∞)
 
@@ -166,6 +176,21 @@ by { rw [subsingleton.elim f (λ _, 0)], exact cont_diff_within_at_const }
   cont_diff_on 𝕜 n f s :=
 by { rw [subsingleton.elim f (λ _, 0)], exact cont_diff_on_const }
 
+lemma iterated_fderiv_succ_const (n : ℕ) (c : F) : iterated_fderiv 𝕜 (n + 1) (λ (y : E), c) = 0 :=
+begin
+  ext x m,
+  simp only [iterated_fderiv_succ_apply_right, fderiv_const, pi.zero_apply,
+    iterated_fderiv_zero_fun, continuous_multilinear_map.zero_apply,
+    continuous_linear_map.zero_apply],
+end
+
+lemma iterated_fderiv_const_of_ne {n : ℕ} (hn : n ≠ 0) (c : F) :
+  iterated_fderiv 𝕜 n (λ (y : E), c) = 0 :=
+begin
+  cases nat.exists_eq_succ_of_ne_zero hn with k hk,
+  rw [hk, iterated_fderiv_succ_const],
+end
+
 /-! ### Smoothness of linear functions -/
 
 /--
@@ -269,7 +294,7 @@ cont_diff_on_univ.1 $ cont_diff_on.continuous_linear_map_comp
 obtained by applying the linear map to the iterated derivative. -/
 lemma continuous_linear_map.iterated_fderiv_within_comp_left
   {f : E → F} (g : F →L[𝕜] G) (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
-  {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+  {i : ℕ} (hi : (i : ℕ∞) ≤ n) :
   iterated_fderiv_within 𝕜 i (g ∘ f) s x =
     g.comp_continuous_multilinear_map (iterated_fderiv_within 𝕜 i f s x) :=
 (((hf.ftaylor_series_within hs).continuous_linear_map_comp g).eq_ftaylor_series_of_unique_diff_on
@@ -278,7 +303,7 @@ lemma continuous_linear_map.iterated_fderiv_within_comp_left
 /-- The iterated derivative of the composition with a linear map on the left is
 obtained by applying the linear map to the iterated derivative. -/
 lemma continuous_linear_map.iterated_fderiv_comp_left
-  {f : E → F} (g : F →L[𝕜] G) (hf : cont_diff 𝕜 n f) (x : E) {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+  {f : E → F} (g : F →L[𝕜] G) (hf : cont_diff 𝕜 n f) (x : E) {i : ℕ} (hi : (i : ℕ∞) ≤ n) :
   iterated_fderiv 𝕜 i (g ∘ f) x = g.comp_continuous_multilinear_map (iterated_fderiv 𝕜 i f x) :=
 begin
   simp only [← iterated_fderiv_within_univ],
@@ -302,7 +327,7 @@ begin
     have Z : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (g ∘ f) s) s x =
       fderiv_within 𝕜 (λ y, g.comp_continuous_multilinear_mapL (λ (j : fin i), E)
         (iterated_fderiv_within 𝕜 i f s y)) s x,
-      from fderiv_within_congr' (hs x hx) (λ y hy, IH hy) hx,
+      from fderiv_within_congr' @IH hx,
     simp_rw Z,
     rw (g.comp_continuous_multilinear_mapL (λ (j : fin i), E)).comp_fderiv_within (hs x hx),
     simp only [continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe, comp_app,
@@ -315,7 +340,7 @@ end
 derivative within a set. -/
 lemma linear_isometry.norm_iterated_fderiv_within_comp_left
   {f : E → F} (g : F →ₗᵢ[𝕜] G) (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
-  {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+  {i : ℕ} (hi : (i : ℕ∞) ≤ n) :
   ‖iterated_fderiv_within 𝕜 i (g ∘ f) s x‖ = ‖iterated_fderiv_within 𝕜 i f s x‖ :=
 begin
   have : iterated_fderiv_within 𝕜 i (g ∘ f) s x =
@@ -328,7 +353,7 @@ end
 /-- Composition with a linear isometry on the left preserves the norm of the iterated
 derivative. -/
 lemma linear_isometry.norm_iterated_fderiv_comp_left
-  {f : E → F} (g : F →ₗᵢ[𝕜] G) (hf : cont_diff 𝕜 n f) (x : E) {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+  {f : E → F} (g : F →ₗᵢ[𝕜] G) (hf : cont_diff 𝕜 n f) (x : E) {i : ℕ} (hi : (i : ℕ∞) ≤ n) :
   ‖iterated_fderiv 𝕜 i (g ∘ f) x‖ = ‖iterated_fderiv 𝕜 i f x‖ :=
 begin
   simp only [← iterated_fderiv_within_univ],
@@ -447,7 +472,7 @@ obtained by composing the iterated derivative with the linear map. -/
 lemma continuous_linear_map.iterated_fderiv_within_comp_right
   {f : E → F} (g : G →L[𝕜] E) (hf : cont_diff_on 𝕜 n f s)
   (hs : unique_diff_on 𝕜 s) (h's : unique_diff_on 𝕜 (g⁻¹' s)) {x : G}
-  (hx : g x ∈ s) {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+  (hx : g x ∈ s) {i : ℕ} (hi : (i : ℕ∞) ≤ n) :
   iterated_fderiv_within 𝕜 i (f ∘ g) (g ⁻¹' s) x =
     (iterated_fderiv_within 𝕜 i f s (g x)).comp_continuous_linear_map (λ _, g) :=
 (((hf.ftaylor_series_within hs).comp_continuous_linear_map g).eq_ftaylor_series_of_unique_diff_on
@@ -470,7 +495,7 @@ begin
     have : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (f ∘ ⇑g) (⇑g ⁻¹' s)) (⇑g ⁻¹' s) x
       = fderiv_within 𝕜 (λ y, continuous_multilinear_map.comp_continuous_linear_map_equivL _
         (λ (_x : fin i), g) (iterated_fderiv_within 𝕜 i f s (g y))) (g ⁻¹' s) x,
-      from fderiv_within_congr' (g.unique_diff_on_preimage_iff.2 hs x hx) (λ y hy, IH hy) hx,
+      from fderiv_within_congr' @IH hx,
     rw [this],
     rw continuous_linear_equiv.comp_fderiv_within _ (g.unique_diff_on_preimage_iff.2 hs x hx),
     simp only [continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe, comp_app,
@@ -483,7 +508,7 @@ end
 /-- The iterated derivative of the composition with a linear map on the right is
 obtained by composing the iterated derivative with the linear map. -/
 lemma continuous_linear_map.iterated_fderiv_comp_right
-  (g : G →L[𝕜] E) {f : E → F} (hf : cont_diff 𝕜 n f) (x : G) {i : ℕ} (hi : (i : with_top ℕ) ≤ n) :
+  (g : G →L[𝕜] E) {f : E → F} (hf : cont_diff 𝕜 n f) (x : G) {i : ℕ} (hi : (i : ℕ∞) ≤ n) :
   iterated_fderiv 𝕜 i (f ∘ g) x =
     (iterated_fderiv 𝕜 i f (g x)).comp_continuous_linear_map (λ _, g) :=
 begin
@@ -1307,14 +1332,10 @@ begin
         = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (f + g) s) s x (h 0) (fin.tail h) : rfl
     ... = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s + iterated_fderiv_within 𝕜 i g s) s x
               (h 0) (fin.tail h) :
-            begin
-              congr' 2,
-              exact fderiv_within_congr (hu x hx) (λ _, hi hcdf hcdg) (hi hcdf hcdg hx),
-            end
+          by { rw [fderiv_within_congr' (λ _, hi hcdf hcdg) hx], refl }
     ... = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s +
-            fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i g s) s)
-              x (h 0) (fin.tail h) :
-            by rw [pi.add_def, fderiv_within_add (hu x hx) (hdf x hx) (hdg x hx)]; refl
+            fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i g s) s) x (h 0) (fin.tail h) :
+          by { rw [pi.add_def, fderiv_within_add (hu x hx) (hdf x hx) (hdg x hx)], refl }
     ... = (iterated_fderiv_within 𝕜 (i+1) f s + iterated_fderiv_within 𝕜 (i+1) g s) x h : rfl }
 end
 
@@ -1384,14 +1405,10 @@ begin
       with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
     calc iterated_fderiv_within 𝕜 (i+1) (-f) s x h
         = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (-f) s) s x (h 0) (fin.tail h) : rfl
-    ... = fderiv_within 𝕜 (-iterated_fderiv_within 𝕜 i f s) s x
-              (h 0) (fin.tail h) :
-            begin
-              congr' 2,
-              exact fderiv_within_congr (hu x hx) (λ _, hi) (hi hx),
-            end
+    ... = fderiv_within 𝕜 (-iterated_fderiv_within 𝕜 i f s) s x (h 0) (fin.tail h) :
+            by { rw [fderiv_within_congr' @hi hx], refl }
     ... = -(fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s) x (h 0) (fin.tail h) :
-            by rw [pi.neg_def, fderiv_within_neg (hu x hx)]; refl
+            by { rw [pi.neg_def, fderiv_within_neg (hu x hx)], refl }
     ... = - (iterated_fderiv_within 𝕜 (i+1) f s) x h : rfl }
 end
 
@@ -1650,12 +1667,9 @@ begin
     calc iterated_fderiv_within 𝕜 (i+1) (a • f) s x h
         = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (a • f) s) s x (h 0) (fin.tail h) : rfl
     ... = fderiv_within 𝕜 (a • iterated_fderiv_within 𝕜 i f s) s x (h 0) (fin.tail h) :
-            begin
-              congr' 2,
-              exact fderiv_within_congr (hu x hx) (λ _, hi hcdf) (hi hcdf hx),
-            end
+            by { rw [fderiv_within_congr' (λ _, hi hcdf) hx], refl }
     ... = (a • fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s)) s x (h 0) (fin.tail h) :
-            by rw [pi.smul_def, fderiv_within_const_smul (hu x hx) (hdf x hx)]; refl
+            by { rw [pi.smul_def, fderiv_within_const_smul (hu x hx) (hdf x hx)], refl }
     ... = a • iterated_fderiv_within 𝕜 (i+1) f s x h : rfl }
 end
 
@@ -2271,6 +2285,16 @@ lemma cont_diff.continuous_deriv (h : cont_diff 𝕜 n f₂) (hn : 1 ≤ n) :
   continuous (deriv f₂) :=
 (cont_diff_succ_iff_deriv.mp (h.of_le hn)).2.continuous
 
+lemma cont_diff.iterate_deriv :
+  ∀ (n : ℕ) {f₂ : 𝕜 → F} (hf : cont_diff 𝕜 ∞ f₂), cont_diff 𝕜 ∞ (deriv^[n] f₂)
+| 0       f₂ hf := hf
+| (n + 1) f₂ hf := cont_diff.iterate_deriv n (cont_diff_top_iff_deriv.mp hf).2
+
+lemma cont_diff.iterate_deriv' (n : ℕ) :
+  ∀ (k : ℕ) {f₂ : 𝕜 → F} (hf : cont_diff 𝕜 (n + k : ℕ) f₂), cont_diff 𝕜 n (deriv^[k] f₂)
+| 0       f₂ hf := hf
+| (n + 1) f₂ hf := cont_diff.iterate_deriv' n (cont_diff_succ_iff_deriv.mp hf).2
+
 end deriv
 
 section restrict_scalars
@@ -2353,7 +2377,7 @@ begin
     apply ((B (f x)).le_op_norm (g x)).trans,
     apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
     exact B.le_op_norm (f x) },
-  { have In : (n : with_top ℕ) + 1 ≤ n.succ, by simp only [nat.cast_succ, le_refl],
+  { have In : (n : ℕ∞) + 1 ≤ n.succ, by simp only [nat.cast_succ, le_refl],
     have I1 :
       ‖iterated_fderiv_within 𝕜 n (λ (y : Du), B.precompR Du (f y) (fderiv_within 𝕜 g s y)) s x‖ ≤
       ‖B‖ * ∑ (i : ℕ) in finset.range (n + 1), n.choose i *
@@ -2397,8 +2421,8 @@ begin
       (λ (y : Du), fderiv_within 𝕜 (λ (y : Du), B (f y) (g y)) s y) s x
       = iterated_fderiv_within 𝕜 n (λ y, B.precompR Du (f y) (fderiv_within 𝕜 g s y)
         + B.precompL Du (fderiv_within 𝕜 f s y) (g y)) s x,
-    { apply iterated_fderiv_within_congr hs (λ y hy, _) hx,
-      have L : (1 : with_top ℕ) ≤ n.succ,
+    { apply iterated_fderiv_within_congr (λ y hy, _) hx,
+      have L : (1 : ℕ∞) ≤ n.succ,
         by simpa only [enat.coe_one, nat.one_le_cast] using nat.succ_pos n,
       exact B.fderiv_within_of_bilinear (hf.differentiable_on L y hy)
         (hg.differentiable_on L y hy) (hs y hy) },
@@ -2421,9 +2445,9 @@ end
 iterated derivatives of `f` and `g` when `B` is bilinear:
 `‖D^n (x ↦ B (f x) (g x))‖ ≤ ‖B‖ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
 lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear
-  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ} {s : set D} {x : D}
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : ℕ∞} {s : set D} {x : D}
   (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
-  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  {n : ℕ} (hn : (n : ℕ∞) ≤ N) :
   ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
     ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
@@ -2505,9 +2529,9 @@ end
 iterated derivatives of `f` and `g` when `B` is bilinear:
 `‖D^n (x ↦ B (f x) (g x))‖ ≤ ‖B‖ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
 lemma continuous_linear_map.norm_iterated_fderiv_le_of_bilinear
-  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ}
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : ℕ∞}
   (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g) (x : D)
-  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  {n : ℕ} (hn : (n : ℕ∞) ≤ N) :
   ‖iterated_fderiv 𝕜 n (λ y, B (f y) (g y)) x‖
     ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
@@ -2521,9 +2545,9 @@ end
 iterated derivatives of `f` and `g` when `B` is bilinear of norm at most `1`:
 `‖D^n (x ↦ B (f x) (g x))‖ ≤ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
 lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear_of_le_one
-  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ} {s : set D} {x : D}
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : ℕ∞} {s : set D} {x : D}
   (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
-  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) (hB : ‖B‖ ≤ 1) :
+  {n : ℕ} (hn : (n : ℕ∞) ≤ N) (hB : ‖B‖ ≤ 1) :
   ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
@@ -2537,9 +2561,9 @@ end
 iterated derivatives of `f` and `g` when `B` is bilinear of norm at most `1`:
 `‖D^n (x ↦ B (f x) (g x))‖ ≤ ∑_{k ≤ n} n.choose k ‖D^k f‖ ‖D^{n-k} g‖` -/
 lemma continuous_linear_map.norm_iterated_fderiv_le_of_bilinear_of_le_one
-  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ}
+  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : ℕ∞}
   (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g) (x : D)
-  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) (hB : ‖B‖ ≤ 1) :
+  {n : ℕ} (hn : (n : ℕ∞) ≤ N) (hB : ‖B‖ ≤ 1) :
   ‖iterated_fderiv 𝕜 n (λ y, B (f y) (g y)) x‖
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
@@ -2555,8 +2579,8 @@ variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'] [norm
   [is_scalar_tower 𝕜 𝕜' F]
 
 lemma norm_iterated_fderiv_within_smul_le
-  {f : E → 𝕜'} {g : E → F} {N : with_top ℕ} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s)
-  (hs : unique_diff_on 𝕜 s) {x : E} (hx : x ∈ s) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  {f : E → 𝕜'} {g : E → F} {N : ℕ∞} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s)
+  (hs : unique_diff_on 𝕜 s) {x : E} (hx : x ∈ s) {n : ℕ} (hn : (n : ℕ∞) ≤ N) :
   ‖iterated_fderiv_within 𝕜 n (λ y, f y • g y) s x‖
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
@@ -2565,8 +2589,8 @@ lemma norm_iterated_fderiv_within_smul_le
   continuous_linear_map.op_norm_lsmul_le
 
 lemma norm_iterated_fderiv_smul_le
-  {f : E → 𝕜'} {g : E → F} {N : with_top ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
-  (x : E) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  {f : E → 𝕜'} {g : E → F} {N : ℕ∞} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
+  (x : E) {n : ℕ} (hn : (n : ℕ∞) ≤ N) :
   ‖iterated_fderiv 𝕜 n (λ y, f y • g y) x‖
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
@@ -2580,8 +2604,8 @@ section
 variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A]
 
 lemma norm_iterated_fderiv_within_mul_le
-  {f : E → A} {g : E → A} {N : with_top ℕ} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s)
-  (hs : unique_diff_on 𝕜 s) {x : E} (hx : x ∈ s) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  {f : E → A} {g : E → A} {N : ℕ∞} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s)
+  (hs : unique_diff_on 𝕜 s) {x : E} (hx : x ∈ s) {n : ℕ} (hn : (n : ℕ∞) ≤ N) :
   ‖iterated_fderiv_within 𝕜 n (λ y, f y * g y) s x‖
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
@@ -2590,8 +2614,8 @@ lemma norm_iterated_fderiv_within_mul_le
   (continuous_linear_map.op_norm_mul_le _ _)
 
 lemma norm_iterated_fderiv_mul_le
-  {f : E → A} {g : E → A} {N : with_top ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
-  (x : E) {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
+  {f : E → A} {g : E → A} {N : ℕ∞} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g)
+  (x : E) {n : ℕ} (hn : (n : ℕ∞) ≤ N) :
   ‖iterated_fderiv 𝕜 n (λ y, f y * g y) x‖
     ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ)
       * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
@@ -2602,3 +2626,262 @@ begin
 end
 
 end
+
+/-- If the derivatives within a set of `g` at `f x` are bounded by `C`, and the `i`-th derivative
+within a set of `f` at `x` is bounded by `D^i` for all `1 ≤ i ≤ n`, then the `n`-th derivative
+of `g ∘ f` is bounded by `n! * C * D^n`.
+This lemma proves this estimate assuming additionally that two of the spaces live in the same
+universe, to make an induction possible. Use instead `norm_iterated_fderiv_within_comp_le` that
+removes this assumption. -/
+lemma norm_iterated_fderiv_within_comp_le_aux
+  {Fu Gu : Type u} [normed_add_comm_group Fu] [normed_space 𝕜 Fu]
+  [normed_add_comm_group Gu] [normed_space 𝕜 Gu]
+  {g : Fu → Gu} {f : E → Fu} {n : ℕ} {s : set E} {t : set Fu} {x : E}
+  (hg : cont_diff_on 𝕜 n g t) (hf : cont_diff_on 𝕜 n f s)
+  (ht : unique_diff_on 𝕜 t) (hs : unique_diff_on 𝕜 s)
+  (hst : maps_to f s t) (hx : x ∈ s)
+  {C : ℝ} {D : ℝ} (hC : ∀ i, i ≤ n → ‖iterated_fderiv_within 𝕜 i g t (f x)‖ ≤ C)
+  (hD : ∀ i, 1 ≤ i → i ≤ n → ‖iterated_fderiv_within 𝕜 i f s x‖ ≤ D^i) :
+  ‖iterated_fderiv_within 𝕜 n (g ∘ f) s x‖ ≤ n! * C * D^n :=
+begin
+  /- We argue by induction on `n`, using that `D^(n+1) (g ∘ f) = D^n (g ' ∘ f ⬝ f')`. The successive
+  derivatives of `g' ∘ f` are controlled thanks to the inductive assumption, and those of `f'` are
+  controlled by assumption.
+  As composition of linear maps is a bilinear map, one may use
+  `continuous_linear_map.norm_iterated_fderiv_le_of_bilinear_of_le_one` to get from these a bound
+  on `D^n (g ' ∘ f ⬝ f')`. -/
+  unfreezingI { induction n using nat.case_strong_induction_on with n IH generalizing Gu },
+  { simpa only [norm_iterated_fderiv_within_zero, nat.factorial_zero, algebra_map.coe_one,
+      one_mul, pow_zero, mul_one] using hC 0 le_rfl },
+  have M : (n : ℕ∞) < n.succ := nat.cast_lt.2 n.lt_succ_self,
+  have Cnonneg : 0 ≤ C := (norm_nonneg _).trans (hC 0 bot_le),
+  have Dnonneg : 0 ≤ D,
+  { have : 1 ≤ n+1, by simp only [le_add_iff_nonneg_left, zero_le'],
+    simpa only [pow_one] using (norm_nonneg _).trans (hD 1 le_rfl this) },
+  -- use the inductive assumption to bound the derivatives of `g' ∘ f`.
+  have I : ∀ i ∈ finset.range (n+1),
+    ‖iterated_fderiv_within 𝕜 i ((fderiv_within 𝕜 g t) ∘ f) s x‖ ≤ i! * C * D^i,
+  { assume i hi,
+    simp only [finset.mem_range_succ_iff] at hi,
+    apply IH i hi,
+    apply hf.of_le (nat.cast_le.2 (hi.trans n.le_succ)),
+    { assume j hj h'j,
+      exact hD j hj (h'j.trans (hi.trans n.le_succ)) },
+    { apply hg.fderiv_within ht,
+      simp only [nat.cast_succ],
+      exact add_le_add_right (nat.cast_le.2 hi) _ },
+    { assume j hj,
+      have : ‖iterated_fderiv_within 𝕜 j (fderiv_within 𝕜 g t) t (f x)‖
+        = ‖iterated_fderiv_within 𝕜 (j+1) g t (f x)‖,
+      by rw [iterated_fderiv_within_succ_eq_comp_right ht (hst hx), linear_isometry_equiv.norm_map],
+      rw this,
+      exact hC (j+1) (add_le_add (hj.trans hi) le_rfl) } },
+  -- reformulate `hD` as a bound for the derivatives of `f'`.
+  have J : ∀ i, ‖iterated_fderiv_within 𝕜 (n - i) (fderiv_within 𝕜 f s) s x‖ ≤ D ^ (n - i + 1),
+  { assume i,
+    have : ‖iterated_fderiv_within 𝕜 (n - i) (fderiv_within 𝕜 f s) s x‖
+        = ‖iterated_fderiv_within 𝕜 (n - i + 1) f s x‖,
+      by rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map],
+    rw this,
+    apply hD,
+    { simp only [le_add_iff_nonneg_left, zero_le'] },
+    { apply nat.succ_le_succ tsub_le_self } },
+  -- Now put these together: first, notice that we have to bound `D^n (g' ∘ f ⬝ f')`.
+  calc
+  ‖iterated_fderiv_within 𝕜 (n+1) (g ∘ f) s x‖ =
+        ‖iterated_fderiv_within 𝕜 n (λ (y : E), fderiv_within 𝕜 (g ∘ f) s y) s x‖ :
+    by rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map]
+  ... = ‖iterated_fderiv_within 𝕜 n (λ (y : E), continuous_linear_map.compL 𝕜 E Fu Gu
+        (fderiv_within 𝕜 g t (f y)) (fderiv_within 𝕜 f s y)) s x‖ :
+  begin
+    have L : (1 : ℕ∞) ≤ n.succ, by simpa only [enat.coe_one, nat.one_le_cast] using n.succ_pos,
+    congr' 1,
+    refine iterated_fderiv_within_congr (λ y hy, _) hx _,
+    apply fderiv_within.comp _ _ _ hst (hs y hy),
+    { exact hg.differentiable_on L _ (hst hy) },
+    { exact hf.differentiable_on L _ hy }
+  end
+  -- bound it using the fact that the composition of linear maps is a bilinear operation,
+  -- for which we have bounds for the`n`-th derivative.
+  ... ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ) *
+          ‖iterated_fderiv_within 𝕜 i ((fderiv_within 𝕜 g t) ∘ f) s x‖
+            * ‖iterated_fderiv_within 𝕜 (n-i) (fderiv_within 𝕜 f s) s x‖ :
+  begin
+    have A : cont_diff_on 𝕜 n ((fderiv_within 𝕜 g t) ∘ f) s,
+    { apply cont_diff_on.comp _ (hf.of_le M.le) hst,
+      apply hg.fderiv_within ht,
+      simp only [nat.cast_succ, le_refl] },
+    have B : cont_diff_on 𝕜 n (fderiv_within 𝕜 f s) s,
+    { apply hf.fderiv_within hs,
+      simp only [nat.cast_succ, le_refl] },
+    exact (continuous_linear_map.compL 𝕜 E Fu Gu)
+      .norm_iterated_fderiv_within_le_of_bilinear_of_le_one A B hs hx
+        le_rfl (continuous_linear_map.norm_compL_le 𝕜 E Fu Gu),
+  end
+  -- bound each of the terms using the estimates on previous derivatives (that use the inductive
+  -- assumption for `g' ∘ f`).
+  ... ≤ ∑ i in finset.range (n+1), (n.choose i : ℝ) * (i! * C * D^i) * (D^(n-i+1)) :
+  begin
+    apply finset.sum_le_sum (λ i hi, _),
+    simp only [mul_assoc (n.choose i : ℝ)],
+    refine mul_le_mul_of_nonneg_left _ (nat.cast_nonneg _),
+    apply mul_le_mul (I i hi) (J i) (norm_nonneg _),
+    positivity,
+  end
+  -- We are left with trivial algebraic manipulations to see that this is smaller than
+  -- the claimed bound.
+  ... = ∑ i in finset.range (n+1), (n! : ℝ) * (i!⁻¹ * i!) * C * (D^i * D^(n-i+1)) * (n-i)!⁻¹ :
+  begin
+    apply finset.sum_congr rfl (λ i hi, _),
+    simp only [nat.cast_choose ℝ (finset.mem_range_succ_iff.1 hi), div_eq_inv_mul, mul_inv],
+    ring,
+  end
+  ... = ∑ i in finset.range (n+1), (n! : ℝ) * 1 * C * D^(n+1) * (n-i)!⁻¹ :
+  begin
+    apply finset.sum_congr rfl (λ i hi, _),
+    congr' 2,
+    { congr,
+      apply inv_mul_cancel,
+      simpa only [ne.def, nat.cast_eq_zero] using i.factorial_ne_zero },
+    { rw ← pow_add,
+      congr' 1,
+      rw [nat.add_succ, nat.succ_inj'],
+      exact nat.add_sub_of_le (finset.mem_range_succ_iff.1 hi) }
+  end
+  ... ≤ ∑ i in finset.range (n+1), (n! : ℝ) * 1 * C * D^(n+1) * 1 :
+  begin
+    apply finset.sum_le_sum (λ i hi, _),
+    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    apply inv_le_one,
+    simpa only [nat.one_le_cast] using (n-i).factorial_pos,
+  end
+  ... = (n+1)! * C * D^(n+1) :
+  by simp only [mul_assoc, mul_one, finset.sum_const, finset.card_range, nsmul_eq_mul,
+      nat.factorial_succ, nat.cast_mul],
+end
+
+/-- If the derivatives within a set of `g` at `f x` are bounded by `C`, and the `i`-th derivative
+within a set of `f` at `x` is bounded by `D^i` for all `1 ≤ i ≤ n`, then the `n`-th derivative
+of `g ∘ f` is bounded by `n! * C * D^n`. -/
+lemma norm_iterated_fderiv_within_comp_le
+  {g : F → G} {f : E → F} {n : ℕ} {s : set E} {t : set F} {x : E} {N : ℕ∞}
+  (hg : cont_diff_on 𝕜 N g t) (hf : cont_diff_on 𝕜 N f s) (hn : (n : ℕ∞) ≤ N)
+  (ht : unique_diff_on 𝕜 t) (hs : unique_diff_on 𝕜 s)
+  (hst : maps_to f s t) (hx : x ∈ s)
+  {C : ℝ} {D : ℝ} (hC : ∀ i, i ≤ n → ‖iterated_fderiv_within 𝕜 i g t (f x)‖ ≤ C)
+  (hD : ∀ i, 1 ≤ i → i ≤ n → ‖iterated_fderiv_within 𝕜 i f s x‖ ≤ D^i) :
+  ‖iterated_fderiv_within 𝕜 n (g ∘ f) s x‖ ≤ n! * C * D^n :=
+begin
+  /- We reduce the bound to the case where all spaces live in the same universe (in which we
+  already have proved the result), by using linear isometries between the spaces and their `ulift`
+  to a common universe. These linear isometries preserve the norm of the iterated derivative. -/
+  let Fu : Type (max uF uG) := ulift.{uG uF} F,
+  let Gu : Type (max uF uG) := ulift.{uF uG} G,
+  have isoF : Fu ≃ₗᵢ[𝕜] F := linear_isometry_equiv.ulift 𝕜 F,
+  have isoG : Gu ≃ₗᵢ[𝕜] G := linear_isometry_equiv.ulift 𝕜 G,
+  -- lift `f` and `g` to versions `fu` and `gu` on the lifted spaces.
+  let fu : E → Fu := isoF.symm ∘ f,
+  let gu : Fu → Gu := isoG.symm ∘ g ∘ isoF,
+  let tu := isoF ⁻¹' t,
+  have htu : unique_diff_on 𝕜 tu,
+    from isoF.to_continuous_linear_equiv.unique_diff_on_preimage_iff.2 ht,
+  have hstu : maps_to fu s tu,
+  { assume y hy,
+    simpa only [mem_preimage, linear_isometry_equiv.apply_symm_apply] using hst hy },
+  have Ffu : isoF (fu x) = f x, by simp only [linear_isometry_equiv.apply_symm_apply],
+  -- All norms are preserved by the lifting process.
+  have hfu : cont_diff_on 𝕜 n fu s, from isoF.symm.cont_diff.comp_cont_diff_on (hf.of_le hn),
+  have hgu : cont_diff_on 𝕜 n gu tu, from isoG.symm.cont_diff.comp_cont_diff_on
+    ((hg.of_le hn).comp_continuous_linear_map (isoF : Fu →L[𝕜] F)),
+  have Nfu : ∀ i, ‖iterated_fderiv_within 𝕜 i fu s x‖ = ‖iterated_fderiv_within 𝕜 i f s x‖,
+  { assume i,
+    rw linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ hs hx },
+  simp_rw [← Nfu] at hD,
+  have Ngu : ∀ i, ‖iterated_fderiv_within 𝕜 i gu tu (fu x)‖
+                    = ‖iterated_fderiv_within 𝕜 i g t (f x)‖,
+  { assume i,
+    rw linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ htu (hstu hx),
+    rw [linear_isometry_equiv.norm_iterated_fderiv_within_comp_right _ _ ht, Ffu],
+    rw Ffu,
+    exact hst hx },
+  simp_rw [← Ngu] at hC,
+  have Nfgu : ‖iterated_fderiv_within 𝕜 n (g ∘ f) s x‖ = ‖iterated_fderiv_within 𝕜 n (gu ∘ fu) s x‖,
+  { have : gu ∘ fu = isoG.symm ∘ g ∘ f,
+    { ext x,
+      simp only [comp_app, linear_isometry_equiv.map_eq_iff,
+        linear_isometry_equiv.apply_symm_apply] },
+    rw [this, linear_isometry_equiv.norm_iterated_fderiv_within_comp_left _ _ hs hx] },
+  -- deduce the required bound from the one for `gu ∘ fu`.
+  rw Nfgu,
+  exact norm_iterated_fderiv_within_comp_le_aux hgu hfu htu hs hstu hx hC hD,
+end
+
+/-- If the derivatives of `g` at `f x` are bounded by `C`, and the `i`-th derivative
+of `f` at `x` is bounded by `D^i` for all `1 ≤ i ≤ n`, then the `n`-th derivative
+of `g ∘ f` is bounded by `n! * C * D^n`. -/
+lemma norm_iterated_fderiv_comp_le
+  {g : F → G} {f : E → F} {n : ℕ} {N : ℕ∞}
+  (hg : cont_diff 𝕜 N g) (hf : cont_diff 𝕜 N f) (hn : (n : ℕ∞) ≤ N) (x : E)
+  {C : ℝ} {D : ℝ} (hC : ∀ i, i ≤ n → ‖iterated_fderiv 𝕜 i g (f x)‖ ≤ C)
+  (hD : ∀ i, 1 ≤ i → i ≤ n → ‖iterated_fderiv 𝕜 i f x‖ ≤ D^i) :
+  ‖iterated_fderiv 𝕜 n (g ∘ f) x‖ ≤ n! * C * D^n :=
+begin
+  simp_rw [← iterated_fderiv_within_univ] at ⊢ hC hD,
+  exact norm_iterated_fderiv_within_comp_le hg.cont_diff_on hf.cont_diff_on hn unique_diff_on_univ
+    unique_diff_on_univ (maps_to_univ _ _) (mem_univ x) hC hD,
+end
+section apply
+
+lemma norm_iterated_fderiv_within_clm_apply {f : E → (F →L[𝕜] G)} {g : E → F} {s : set E} {x : E}
+  {N : ℕ∞} {n : ℕ} (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s) (hs : unique_diff_on 𝕜 s)
+  (hx : x ∈ s) (hn : ↑n ≤ N) :
+    ‖iterated_fderiv_within 𝕜 n (λ y, (f y) (g y)) s x‖ ≤
+    (finset.range (n + 1)).sum (λ i, ↑(n.choose i) * ‖iterated_fderiv_within 𝕜 i f s x‖ *
+      ‖iterated_fderiv_within 𝕜 (n - i) g s x‖) :=
+begin
+  let B : (F →L[𝕜] G) →L[𝕜] F →L[𝕜] G :=
+  continuous_linear_map.flip (continuous_linear_map.apply 𝕜 G),
+  have hB : ‖B‖ ≤ 1 :=
+  begin
+    simp only [continuous_linear_map.op_norm_flip, continuous_linear_map.apply],
+    refine continuous_linear_map.op_norm_le_bound _ zero_le_one (λ f, _),
+    simp only [continuous_linear_map.coe_id', id.def, one_mul],
+  end,
+  exact B.norm_iterated_fderiv_within_le_of_bilinear_of_le_one hf hg hs hx hn hB,
+end
+
+lemma norm_iterated_fderiv_clm_apply {f : E → (F →L[𝕜] G)} {g : E → F}
+  {N : ℕ∞} {n : ℕ} (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g) (x : E) (hn : ↑n ≤ N):
+    ‖iterated_fderiv 𝕜 n (λ (y : E), (f y) (g y)) x‖ ≤
+      (finset.range (n + 1)).sum (λ (i : ℕ), ↑(n.choose i) * ‖iterated_fderiv 𝕜 i f x‖ *
+        ‖iterated_fderiv 𝕜 (n - i) g x‖) :=
+begin
+  simp only [← iterated_fderiv_within_univ],
+  exact norm_iterated_fderiv_within_clm_apply hf.cont_diff_on hg.cont_diff_on unique_diff_on_univ
+    (set.mem_univ x) hn,
+end
+
+lemma norm_iterated_fderiv_within_clm_apply_const {f : E → (F →L[𝕜] G)} {c : F} {s : set E} {x : E}
+  {N : ℕ∞} {n : ℕ} (hf : cont_diff_on 𝕜 N f s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
+  (hn : ↑n ≤ N) : ‖iterated_fderiv_within 𝕜 n (λ (y : E), (f y) c) s x‖ ≤
+    ‖c‖ * ‖iterated_fderiv_within 𝕜 n f s x‖ :=
+begin
+  let g : (F →L[𝕜] G) →L[𝕜] G := continuous_linear_map.apply 𝕜 G c,
+  have h := g.norm_comp_continuous_multilinear_map_le (iterated_fderiv_within 𝕜 n f s x),
+  rw ← g.iterated_fderiv_within_comp_left hf hs hx hn at h,
+  refine h.trans (mul_le_mul_of_nonneg_right _ (norm_nonneg _)),
+  refine g.op_norm_le_bound (norm_nonneg _) (λ f, _),
+  rw [continuous_linear_map.apply_apply, mul_comm],
+  exact f.le_op_norm c,
+end
+
+lemma norm_iterated_fderiv_clm_apply_const {f : E → (F →L[𝕜] G)} {c : F} {x : E} {N : ℕ∞} {n : ℕ}
+  (hf : cont_diff 𝕜 N f) (hn : ↑n ≤ N) :
+    ‖iterated_fderiv 𝕜 n (λ (y : E), (f y) c) x‖ ≤ ‖c‖ * ‖iterated_fderiv 𝕜 n f x‖ :=
+begin
+  simp only [← iterated_fderiv_within_univ],
+  refine norm_iterated_fderiv_within_clm_apply_const hf.cont_diff_on unique_diff_on_univ
+    (set.mem_univ x) hn,
+end
+
+end apply

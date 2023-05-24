@@ -15,6 +15,9 @@ import category_theory.Fintype
 /-!
 # The category of Profinite Types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the category of profinite topological spaces,
 often called profinite sets -- perhaps they could be called
 profinite types in Lean.

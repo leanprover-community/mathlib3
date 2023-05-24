@@ -3,8 +3,10 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.calculus.inverse
+import measure_theory.constructions.borel_space.continuous_linear_map
 import measure_theory.covering.besicovitch_vector_space
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.lebesgue.eq_haar
 import analysis.normed_space.pointwise
 import measure_theory.constructions.polish
 

@@ -216,7 +216,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     dual isomorphism in the euclidean case: 'inner_product_space.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
-    norm: 'inner_product_space.of_core.to_has_norm'
+    norm: 'inner_product_space.core.to_has_norm'
     orthonormal bases: 'maximal_orthonormal_iff_basis_of_finite_dimensional'
   Endomorphisms:
     orthogonal group: 'matrix.orthogonal_group'
@@ -527,7 +527,7 @@ Measures and integral calculus:
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: 'fourier_basis'
-    Riemann-Lebesgue lemma: ''
+    Riemann-Lebesgue lemma: 'tendsto_integral_exp_smul_cocompact'
     convolution product of periodic functions: ''
     Dirichlet theorem: ''
     Fejer theorem: ''

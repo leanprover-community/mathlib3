@@ -31,7 +31,7 @@ open_locale matrix big_operators
 lemma prod_roots_charpoly_eq_det (A : matrix n n R) :
   A.det = (matrix.charpoly A).roots.prod :=
 begin
-  by_cases hn: nonempty n,
+  casesI is_empty_or_nonempty n,
   { have hdeg := charpoly_nat_degree_eq_dim A,
     rw [det_eq_sign_charpoly_coeff, ← hdeg,
       polynomial.prod_roots_eq_coeff_zero_of_monic_of_split,

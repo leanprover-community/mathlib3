@@ -330,6 +330,7 @@ open finite_dimensional
 
 lemma zlattice.rank : finrank ℤ L = finrank K E :=
 begin
+  classical,
   haveI : module.finite ℤ L := zlattice.module.finite K hd hs,
   haveI : module.free ℤ L := zlattice.module.free K hd hs,
   haveI : module ℚ E := module.comp_hom E (algebra_map ℚ K),

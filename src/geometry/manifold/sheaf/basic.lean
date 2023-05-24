@@ -11,11 +11,13 @@ import topology.sheaves.local_predicate
 open_locale manifold topological_space
 open set topological_space structure_groupoid structure_groupoid.local_invariant_prop opposite
 
+universe u
+
 variables {H : Type*} [topological_space H]
   {H' : Type*} [topological_space H']
   {G : structure_groupoid H} [closed_under_restriction G] {G' : structure_groupoid H'}
-  (M : Type) [topological_space M] [charted_space H M] [has_groupoid M G]
-  (M' : Type) [topological_space M'] [charted_space H' M'] [has_groupoid M' G']
+  (M : Type u) [topological_space M] [charted_space H M] [has_groupoid M G]
+  (M' : Type u) [topological_space M'] [charted_space H' M'] [has_groupoid M' G']
   {P : (H → H') → (set H) → H → Prop}
 
 instance Top.of.charted_space : charted_space H (Top.of M) := (infer_instance : charted_space H M)
@@ -42,7 +44,7 @@ def local_predicate_of_local_invariant_prop (hG : local_invariant_prop G G' P) :
   end }
 
 def structure_groupoid.local_invariant_prop.sheaf (hG : local_invariant_prop G G' P) :
-  Top.sheaf Type (Top.of M) :=
+  Top.sheaf (Type u) (Top.of M) :=
 Top.subsheaf_to_Types (local_predicate_of_local_invariant_prop M M' hG)
 
 instance (hG : local_invariant_prop G G' P) (U : (opens (Top.of M))ᵒᵖ) :

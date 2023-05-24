@@ -13,19 +13,21 @@ noncomputable theory
 open_locale manifold
 open topological_space opposite
 
+universe u
+
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 variables {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
-(M : Type) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-(M' : Type) [topological_space M'] [charted_space H' M']
+(M : Type u) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+(M' : Type u) [topological_space M'] [charted_space H' M']
 
 section type
 variables [smooth_manifold_with_corners I' M']
 
 /-- The sheaf of (`I`, `I'`)-differentiable functions from `M` to `M'`, as a sheaf of types. -/
-def mdifferentiable_sheaf : Top.sheaf Type (Top.of M) :=
+def mdifferentiable_sheaf : Top.sheaf (Type u) (Top.of M) :=
 (differentiable_within_at_local_invariant_prop I I').sheaf M M'
 
 instance mdifferentiable_sheaf.has_coe_to_fun (U : (opens (Top.of M))ᵒᵖ) :
@@ -57,7 +59,7 @@ subring.to_ring $
 
 /-- The presheaf of (`I`, `I'`)-differentiable functions from `M` to `M'`, for `M'` a smooth ring,
 as a presheaf of rings. -/
-def mdifferentiable_presheaf_Ring : Top.presheaf Ring (Top.of M) :=
+def mdifferentiable_presheaf_Ring : Top.presheaf Ring.{u} (Top.of M) :=
 { obj := λ U, Ring.of ((mdifferentiable_sheaf I I' M M').val.obj U),
   map := λ U V h, Ring.of_hom $
     differentiable_within_at_local_invariant_prop_restrict I I' M' $
@@ -75,7 +77,7 @@ def mdifferentiable_presheaf_Ring : Top.presheaf Ring (Top.of M) :=
 
 /-- The presheaf of (`I`, `I'`)-differentiable functions from `M` to `M'`, for `M'` a smooth ring,
 as a presheaf of rings. -/
-def mdifferentiable_sheaf_Ring : Top.sheaf Ring (Top.of M) :=
+def mdifferentiable_sheaf_Ring : Top.sheaf Ring.{u} (Top.of M) :=
 { val := mdifferentiable_presheaf_Ring I I' M M',
   cond := begin
     change category_theory.presheaf.is_sheaf _ _,
@@ -85,7 +87,7 @@ def mdifferentiable_sheaf_Ring : Top.sheaf Ring (Top.of M) :=
   end }
 
 example : (category_theory.Sheaf_compose _ (category_theory.forget Ring)).obj
-  (mdifferentiable_sheaf_Ring I I' M M') =
+  (mdifferentiable_sheaf_Ring.{u} I I' M M') =
   (mdifferentiable_sheaf I I' M M') := rfl
 
 end smooth_ring

@@ -9,6 +9,9 @@ import analysis.convex.strict_convex_space
 /-!
 # Betweenness in affine spaces for strictly convex spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves results about betweenness for points in an affine space for a strictly convex
 space.
 

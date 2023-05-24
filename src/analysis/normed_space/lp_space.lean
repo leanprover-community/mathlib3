@@ -566,9 +566,9 @@ norm_le_of_tsum_le hp hC (tsum_le_of_sum_le ((lp.mem_ℓp f).summable hp) hf)
 
 end compare_pointwise
 
-section normed_space
-
+section has_bounded_smul
 variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)]
+variables {𝕜' : Type*} [normed_ring 𝕜'] [Π i, module 𝕜' (E i)] [Π i, has_bounded_smul 𝕜' (E i)]
 
 instance : module 𝕜 (pre_lp E) := pi.module α E 𝕜
 
@@ -592,7 +592,20 @@ instance : module 𝕜 (lp E p) :=
 
 @[simp] lemma coe_fn_smul (c : 𝕜) (f : lp E p) : ⇑(c • f) = c • f := rfl
 
-lemma norm_const_smul_le (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ ≤ ‖c‖ * ‖f‖ :=
+instance [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
+  is_scalar_tower 𝕜' 𝕜 (lp E p) :=
+⟨λ r c f, subtype.ext $ (lp.coe_fn_smul _ _).trans (smul_assoc _ _ _)⟩
+
+theorem _root_.nnreal.has_sum_mono {α : Type u_1} {f g : α → nnreal} {sf sg : nnreal}
+  (hf : has_sum f sf) (hg : has_sum g sg) (h : f ≤ g) :
+  sf ≤ sg :=
+begin
+  obtain rfl | hlt := eq_or_lt_of_le h,
+  { exact (hf.unique hg).le },
+  { exact (nnreal.has_sum_strict_mono hf hg hlt).le },
+end
+
+lemma norm_const_smul_le (hp : p ≠ 0) (c : 𝕜) (f : lp E p) : ‖c • f‖ ≤ ‖c‖ * ‖f‖ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { exact absurd rfl hp },
@@ -607,25 +620,29 @@ begin
     simp_rw [mem_upper_bounds, set.mem_range, forall_exists_index, forall_apply_eq_imp_iff'] at this ⊢,
     intro a,
     refine (norm_smul_le _ _).trans (this a) },
-  { letI : has_nnnorm (lp E p) := ⟨λ f, ⟨‖f‖, norm_nonneg' _⟩⟩,
+  { letI inst : has_nnnorm (lp E p) := ⟨λ f, ⟨‖f‖, norm_nonneg' _⟩⟩,
     have coe_nnnorm : ∀ f : lp E p, ↑‖f‖₊ = ‖f‖ := λ _, rfl,
     suffices : ‖c • f‖₊ ^ p.to_real ≤ (‖c‖₊ * ‖f‖₊) ^ p.to_real,
     { rwa nnreal.rpow_le_rpow_iff hp at this },
-    have nnnorm_rpow_eq_tsum : ∀ (f : lp E p), ‖f‖₊ ^ p.to_real = ∑' i, ‖f i‖₊ ^ p.to_real,
-    { intro f,
-      ext,
-      simp_rw [nnreal.coe_tsum, nnreal.coe_rpow, coe_nnnorm],
-      exact norm_rpow_eq_tsum hp f },
-    rw [nnreal.mul_rpow, nnnorm_rpow_eq_tsum, nnnorm_rpow_eq_tsum, ←nnreal.tsum_mul_left],
-    simp_rw [←nnreal.mul_rpow],
-    have := (lp.has_sum_norm hp (c • f)),
-    have := (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
-    apply (lp.has_sum_norm hp (c • f)).unique,
-    convert (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
-    { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
-    have hf : 0 ≤ ‖f‖ := lp.norm_nonneg' f,
-    simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
+    unfreezingI { clear_value inst },
+    rw [nnreal.mul_rpow],
+    have hLHS := (lp.has_sum_norm hp (c • f)),
+    have hRHS := (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
+    simp_rw [←coe_nnnorm, ←_root_.coe_nnnorm, ←nnreal.coe_rpow, ←nnreal.coe_mul,
+      nnreal.has_sum_coe] at hRHS hLHS,
+    refine nnreal.has_sum_mono hLHS hRHS (λ i, _),
+    dsimp only,
+    rw [←nnreal.mul_rpow],
+    exact  nnreal.rpow_le_rpow (nnnorm_smul_le _ _) ennreal.to_real_nonneg }
 end
+
+instance [fact (1 ≤ p)] : has_bounded_smul 𝕜 (lp E p) :=
+has_bounded_smul.of_norm_smul_le $ norm_const_smul_le (zero_lt_one.trans_le $ fact.out (1 ≤ p)).ne'
+
+end has_bounded_smul
+
+section normed_space
+variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ = ‖c‖ * ‖f‖ :=
 begin
@@ -649,20 +666,7 @@ begin
 end
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
-{ norm_smul_le := λ c f, begin
-    have hp : 0 < p := zero_lt_one.trans_le (fact.out _),
-    simp [norm_const_smul hp.ne']
-  end }
-
-variables {𝕜' : Type*} [normed_field 𝕜']
-
-instance [Π i, normed_space 𝕜' (E i)] [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
-  is_scalar_tower 𝕜' 𝕜 (lp E p) :=
-begin
-  refine ⟨λ r c f, _⟩,
-  ext1,
-  exact (lp.coe_fn_smul _ _).trans (smul_assoc _ _ _)
-end
+{ norm_smul_le := λ c f, norm_smul_le _ _}
 
 end normed_space
 

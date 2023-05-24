@@ -216,8 +216,7 @@ lemma weighted_smul_union (s t : set α) (hs : measurable_set s) (ht : measurabl
   (weighted_smul μ (s ∪ t) : F →L[ℝ] F) = weighted_smul μ s + weighted_smul μ t :=
 weighted_smul_union' s t ht hs_finite ht_finite h_inter
 
-lemma weighted_smul_smul [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
-  (c : 𝕜) (s : set α) (x : F) :
+lemma weighted_smul_smul [has_smul 𝕜 F] [smul_comm_class ℝ 𝕜 F] (c : 𝕜) (s : set α) (x : F) :
   weighted_smul μ s (c • x) = c • weighted_smul μ s x :=
 by { simp_rw [weighted_smul_apply, smul_comm], }
 

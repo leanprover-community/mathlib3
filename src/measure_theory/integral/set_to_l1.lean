@@ -511,8 +511,8 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = c • set_to_simple_func T f :
 by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
-lemma set_to_simple_func_smul {E} [normed_add_comm_group E] [normed_field 𝕜]
-  [normed_space 𝕜 E] [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
+lemma set_to_simple_func_smul {E} [normed_add_comm_group E]
+  [smul_zero_class 𝕜 E] [normed_space ℝ E] [distrib_smul 𝕜 F] (T : set α → E →L[ℝ] F)
   (h_add : fin_meas_additive μ T) (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
   (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
   set_to_simple_func T (c • f) = c • set_to_simple_func T f :=

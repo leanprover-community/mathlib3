@@ -58,14 +58,12 @@ begin
     rw det_eq_one_of_card_eq_zero (fintype.card_eq_zero_iff.2 h),
     rw polynomial.roots_one,
     simp only [multiset.empty_eq_zero, multiset.sum_zero],},
-  { have hneg := neg_injective,
-    have fne := (ne_of_lt (@fintype.card_pos _ _ h)).symm,
-    rw ne.def at fne,
-    apply_fun (has_neg.neg),
-    rw [ ← polynomial.sum_roots_eq_next_coeff_of_monic_of_split A.charpoly_monic
+  { rw [← neg_inj, ← polynomial.sum_roots_eq_next_coeff_of_monic_of_split A.charpoly_monic
       (is_alg_closed.splits A.charpoly),
       trace_eq_neg_charpoly_coeff, next_coeff, neg_neg,
       charpoly_nat_degree_eq_dim],
+    have fne := (ne_of_lt (@fintype.card_pos _ _ h)).symm,
+    rw ne.def at fne,
     split_ifs,
     refl, },
 end

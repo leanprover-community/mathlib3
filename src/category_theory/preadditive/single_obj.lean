@@ -9,6 +9,9 @@ import category_theory.single_obj
 /-!
 # `single_obj α` is preadditive when `α` is a ring.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 namespace category_theory

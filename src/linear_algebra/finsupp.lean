@@ -10,6 +10,9 @@ import linear_algebra.span
 /-!
 # Properties of the module `α →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `R`-module `M`, the `R`-module structure on `α →₀ M` is defined in
 `data.finsupp.basic`.
 
@@ -257,7 +260,7 @@ begin
   haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
   suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤
     ⨆ i, supported M R (s i),
-  { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
+  { rwa [linear_map.range_comp, range_restrict_dom, submodule.map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩,
   apply finsupp.induction l, { exact zero_mem _ },
@@ -377,7 +380,6 @@ noncomputable def llift : (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
 
 @[simp] lemma llift_symm_apply (f : (X →₀ R) →ₗ[R] M) (x : X) :
   (llift M R S X).symm f x = f (single x 1) := rfl
-
 end
 
 section lmap_domain
@@ -631,7 +633,8 @@ variables {α} {M} {v}
 theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ :=
 begin
   rw [finsupp.total_on, linear_map.range_eq_map, linear_map.map_cod_restrict,
-    ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype],
+    ← linear_map.range_le_iff_comap, range_subtype, submodule.map_top, linear_map.range_comp,
+    range_subtype],
   exact (span_image_eq_map_total _ _).le
 end
 

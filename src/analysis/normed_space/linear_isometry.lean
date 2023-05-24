@@ -10,6 +10,9 @@ import linear_algebra.basis
 /-!
 # (Semi-)linear isometries
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `linear_isometry σ₁₂ E E₂` (notation: `E →ₛₗᵢ[σ₁₂] E₂`) to be a semilinear
 isometric embedding of `E` into `E₂` and `linear_isometry_equiv` (notation: `E ≃ₛₗᵢ[σ₁₂] E₂`) to be
 a semilinear isometric equivalence between `E` and `E₂`.  The notation for the associated purely
@@ -513,6 +516,11 @@ variables (R E)
 
 /-- Identity map as a `linear_isometry_equiv`. -/
 def refl : E ≃ₗᵢ[R] E := ⟨linear_equiv.refl R E, λ x, rfl⟩
+
+/-- Linear isometry equiv between a space and its lift to another universe. -/
+def ulift : ulift E ≃ₗᵢ[R] E :=
+{ norm_map' := λ x, rfl,
+  .. continuous_linear_equiv.ulift }
 
 variables {R E}
 

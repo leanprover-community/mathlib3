@@ -8,6 +8,9 @@ import algebra.continued_fractions.translations
 /-!
 # Basic Translation Lemmas Between Structures Defined for Computing Continued Fractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 This is a collection of simple lemmas between the different structures used for the computation
@@ -38,6 +41,7 @@ of three sections:
 
 namespace generalized_continued_fraction
 open generalized_continued_fraction (of)
+open stream.seq as seq
 
 /- Fix a discrete linear ordered floor field and a value `v`. -/
 variables {K : Type*} [linear_ordered_field K] [floor_ring K] {v : K}
@@ -193,7 +197,7 @@ option.map_eq_none
 
 lemma of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none :
   (of v).terminated_at n ↔ int_fract_pair.stream v (n + 1) = none :=
-by rw [of_terminated_at_iff_int_fract_pair_seq1_terminated_at, seq.terminated_at,
+by rw [of_terminated_at_iff_int_fract_pair_seq1_terminated_at, stream.seq.terminated_at,
   int_fract_pair.nth_seq1_eq_succ_nth_stream]
 
 end termination

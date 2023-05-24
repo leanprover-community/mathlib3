@@ -5,10 +5,13 @@ Authors: Andreas Swerdlow, Kexing Ying
 -/
 
 import linear_algebra.dual
-import linear_algebra.matrix.to_lin
+import linear_algebra.free_module.finite.matrix
 
 /-!
 # Bilinear form
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a bilinear form over a module. Basic ideas
 such as orthogonality are also introduced, as well as reflexivive,
@@ -405,7 +408,7 @@ end equiv_lin
 
 namespace linear_map
 
-variables {R' : Type} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
+variables {R' : Type*} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
 
 /-- Apply a linear map on the output of a bilinear form. -/
 @[simps]
@@ -1180,7 +1183,7 @@ lemma finrank_add_finrank_orthogonal
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ b₁,
       ← to_lin_restrict_range_dual_coannihilator_eq_orthogonal _ _,
-      finrank_map_subtype_eq],
+      submodule.finrank_map_subtype_eq],
   conv_rhs { rw [← @subspace.finrank_add_finrank_dual_coannihilator_eq K V _ _ _ _
                   (B.to_lin.dom_restrict W).range,
                  add_comm, ← add_assoc, add_comm (finrank K ↥((B.to_lin.dom_restrict W).ker)),
@@ -1204,7 +1207,7 @@ begin
     exact hx₂ n hn },
   refine is_compl.of_eq this (eq_top_of_finrank_eq $ (submodule.finrank_le _).antisymm _),
   conv_rhs { rw ← add_zero (finrank K _) },
-  rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+  rw [← finrank_bot K V, ← this, submodule.finrank_sup_add_finrank_inf_eq,
       finrank_add_finrank_orthogonal b₁],
   exact le_self_add,
 end

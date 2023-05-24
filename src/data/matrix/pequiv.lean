@@ -9,6 +9,9 @@ import data.pequiv
 /-!
 # partial equivalences for matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Using partial equivalences to represent matrices.
 This file introduces the function `pequiv.to_matrix`, which returns a matrix containing ones and
 zeros. For any partial equivalence `f`, `f.to_matrix i j = 1 ↔ f i = some j`.
@@ -44,8 +47,13 @@ open_locale matrix
 
 /-- `to_matrix` returns a matrix containing ones and zeros. `f.to_matrix i j` is `1` if
   `f i = some j` and `0` otherwise -/
-def to_matrix [decidable_eq n] [has_zero α] [has_one α] (f : m ≃. n) : matrix m n α
-| i j := if j ∈ f i then 1 else 0
+def to_matrix [decidable_eq n] [has_zero α] [has_one α] (f : m ≃. n) : matrix m n α :=
+of $ λ i j, if j ∈ f i then (1 : α) else 0
+
+-- TODO: set as an equation lemma for `to_matrix`, see mathlib4#3024
+@[simp]
+lemma to_matrix_apply [decidable_eq n] [has_zero α] [has_one α] (f : m ≃. n) (i j) :
+  to_matrix f i j = if j ∈ f i then (1 : α) else 0 := rfl
 
 lemma mul_matrix_apply [fintype m] [decidable_eq m] [semiring α] (f : l ≃. m) (M : matrix m n α)
   (i j) : (f.to_matrix ⬝ M) i j = option.cases_on (f i) 0 (λ fi, M fi j) :=
@@ -59,11 +67,11 @@ end
 
 lemma to_matrix_symm [decidable_eq m] [decidable_eq n] [has_zero α] [has_one α] (f : m ≃. n) :
   (f.symm.to_matrix : matrix n m α) = f.to_matrixᵀ :=
-by ext; simp only [transpose, mem_iff_mem f, to_matrix]; congr
+by ext; simp only [transpose, mem_iff_mem f, to_matrix_apply]; congr
 
 @[simp] lemma to_matrix_refl [decidable_eq n] [has_zero α] [has_one α] :
   ((pequiv.refl n).to_matrix : matrix n n α) = 1 :=
-by ext; simp [to_matrix, one_apply]; congr
+by ext; simp [to_matrix_apply, one_apply]; congr
 
 lemma matrix_mul_apply [fintype m] [semiring α] [decidable_eq n] (M : matrix l m α) (f : m ≃. n)
   (i j) : (M ⬝ f.to_matrix) i j = option.cases_on (f.symm j) 0 (λ fj, M i fj) :=
@@ -104,7 +112,7 @@ begin
   classical,
   assume f g,
   refine not_imp_not.1 _,
-  simp only [matrix.ext_iff.symm, to_matrix, pequiv.ext_iff,
+  simp only [matrix.ext_iff.symm, to_matrix_apply, pequiv.ext_iff,
     not_forall, exists_imp_distrib],
   assume i hi,
   use i,

@@ -3,8 +3,10 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
+import analysis.normed_space.finite_dimension
 import analysis.normed_space.bounded_linear_maps
-import topology.metric_space.metrizable
+import measure_theory.constructions.borel_space.metrizable
+import measure_theory.integral.lebesgue
 import measure_theory.function.simple_func_dense
 
 /-!
@@ -234,7 +236,7 @@ lemma norm_approx_bounded_le {β} {f : α → β} [seminormed_add_comm_group β]
   ‖hf.approx_bounded c n x‖ ≤ c :=
 begin
   simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
-  refine (norm_smul _ _).le.trans _,
+  refine (norm_smul_le _ _).trans _,
   by_cases h0 : ‖hf.approx n x‖ = 0,
   { simp only [h0, div_zero, min_eq_right, zero_le_one, norm_zero, mul_zero],
     exact hc, },

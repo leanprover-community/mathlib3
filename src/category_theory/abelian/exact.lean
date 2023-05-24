@@ -14,6 +14,9 @@ import tactic.tfae
 /-!
 # Exact sequences in abelian categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In an abelian category, we get several interesting results related to exactness which are not
 true in more general settings.
 

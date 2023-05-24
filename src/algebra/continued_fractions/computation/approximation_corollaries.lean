@@ -6,7 +6,8 @@ Authors: Kevin Kappelmann
 import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.convergents_equiv
 import algebra.order.archimedean
-import topology.algebra.order.field
+import algebra.algebra.basic
+import topology.order.basic
 
 /-!
 # Corollaries From Approximation Lemmas (`algebra.continued_fractions.computation.approximations`)
@@ -70,7 +71,7 @@ lemma of_convergents_eq_convergents' :
 The recurrence relation for the `convergents` of the continued fraction expansion
 of an element `v` of `K` in terms of the convergents of the inverse of its fractional part.
 -/
-lemma convergents_succ (n : ℕ):
+lemma convergents_succ (n : ℕ) :
   (of v).convergents (n + 1) = ⌊v⌋ + 1 / (of (int.fract v)⁻¹).convergents n :=
 by rw [of_convergents_eq_convergents', convergents'_succ, of_convergents_eq_convergents']
 

@@ -565,7 +565,7 @@ begin
     apply (ennreal.mul_lt_mul_left hμs.ne' (measure_lt_top μ s).ne).2,
     rw ennreal.inv_lt_inv,
     conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
-    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+    exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) zero_lt_one },
   have B : μ (o ∩ v i) = ∑' (x : u i), μ (o ∩ closed_ball x (r x)),
   { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simp only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
@@ -750,13 +750,13 @@ begin
             ≤ (N/(N+1)) * μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd) :
               by { rw u_succ, exact (hF (u n) (Pu n)).2.2 }
         ... ≤ (N/(N+1))^n.succ * μ s :
-          by { rw [pow_succ, mul_assoc], exact ennreal.mul_le_mul le_rfl IH } },
+          by { rw [pow_succ, mul_assoc], exact mul_le_mul_left' IH _ } },
     have C : tendsto (λ (n : ℕ), ((N : ℝ≥0∞)/(N+1))^n * μ s) at_top (𝓝 (0 * μ s)),
     { apply ennreal.tendsto.mul_const _ (or.inr (measure_lt_top μ s).ne),
       apply ennreal.tendsto_pow_at_top_nhds_0_of_lt_1,
       rw [ennreal.div_lt_iff, one_mul],
       { conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
-        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
+        exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) zero_lt_one },
       { simp only [true_or, add_eq_zero_iff, ne.def, not_false_iff, one_ne_zero, and_false] },
       { simp only [ennreal.nat_ne_top, ne.def, not_false_iff, or_true] } },
     rw zero_mul at C,
@@ -1140,7 +1140,7 @@ to `1` when `r` tends to `0`, for almost every `x` in `s`.
 This shows that almost every point of `s` is a Lebesgue density point for `s`.
 A stronger version holds for measurable sets, see `ae_tendsto_measure_inter_div_of_measurable_set`.
 
-See also `is_doubling_measure.ae_tendsto_measure_inter_div`. -/
+See also `is_unif_loc_doubling_measure.ae_tendsto_measure_inter_div`. -/
 lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure μ] (s : set β) :
   ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ (closed_ball x r)) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 1) :=

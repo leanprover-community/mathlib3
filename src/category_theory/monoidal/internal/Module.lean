@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Module.monoidal
+import algebra.category.Module.monoidal.basic
 import algebra.category.Algebra.basic
 import category_theory.monoidal.Mon_
 

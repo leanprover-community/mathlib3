@@ -10,6 +10,9 @@ import category_theory.sites.cover_preserving
 /-!
 # Cover-lifting functors between sites.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define cover-lifting functors between sites as functors that pull covering sieves back to
 covering sieves. This concept is also known as *cocontinuous functors* or
 *cover-reflecting functors*, but we have chosen this name following [MM92] in order to avoid

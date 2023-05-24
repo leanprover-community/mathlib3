@@ -9,6 +9,9 @@ import topology.sets.compacts
 /-!
 #  Riesz–Markov–Kakutani representation theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file will prove different versions of the Riesz-Markov-Kakutani representation theorem.
 The theorem is first proven for compact spaces, from which the statements about linear functionals
 on bounded continuous functions or compactly supported functions on locally compact spaces follow.
@@ -93,9 +96,9 @@ begin
   intros ε εpos,
   --get test functions s.t. `λ(Ki) ≤ Λfi ≤ λ(Ki) + ε/2, i=1,2`
   obtain ⟨f1, f_test_function_K1⟩ := exists_lt_riesz_content_aux_add_pos Λ K1
-    (nnreal.half_pos εpos),
+    (half_pos εpos),
   obtain ⟨f2, f_test_function_K2⟩ := exists_lt_riesz_content_aux_add_pos Λ K2
-    (nnreal.half_pos εpos),
+    (half_pos εpos),
   --let `f := f1 + f2` test function for the content of `K`
   have f_test_function_union : (∀ x ∈ (K1 ⊔ K2), (1 : ℝ≥0) ≤ (f1 + f2) x),
   { rintros x (x_in_K1 | x_in_K2),
@@ -106,7 +109,7 @@ begin
   rw map_add,
   --use that `Λfi` are lower bounds for `λ(Ki) + ε/2`
   apply lt_of_lt_of_le (add_lt_add f_test_function_K1.right f_test_function_K2.right) (le_of_eq _),
-  rw [add_assoc, add_comm (ε/2), add_assoc, nnreal.add_halves ε, add_assoc],
+  rw [add_assoc, add_comm (ε/2), add_assoc, add_halves ε, add_assoc],
 end
 
 end riesz_subadditive

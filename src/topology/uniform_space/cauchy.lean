@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
+import topology.algebra.constructions
 import topology.bases
 import topology.uniform_space.basic
 /-!
@@ -370,6 +371,12 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
     ⟨(x1, x2), by rw [nhds_prod_eq, filter.prod_def];
       from filter.le_lift.2 (λ s hs, filter.le_lift'.2 $ λ t ht,
         inter_mem (hx1 hs) (hx2 ht))⟩ }
+
+@[to_additive]
+instance complete_space.mul_opposite [complete_space α] : complete_space αᵐᵒᵖ :=
+{ complete := λ f hf, mul_opposite.op_surjective.exists.mpr $
+    let ⟨x, hx⟩ := complete_space.complete (hf.map mul_opposite.uniform_continuous_unop) in
+    ⟨x, (map_le_iff_le_comap.mp hx).trans_eq $ mul_opposite.comap_unop_nhds _⟩}
 
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=

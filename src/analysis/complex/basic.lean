@@ -12,6 +12,9 @@ import topology.instances.real_vector_space
 /-!
 # Normed space structure on `ℂ`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gathers basic facts on complex numbers of an analytic nature.
 
 ## Main results
@@ -312,10 +315,7 @@ noncomputable instance : is_R_or_C ℂ :=
   conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
   norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
     add_monoid_hom.coe_mk, complex.norm_eq_abs],
-  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
-    complex.of_real_eq_coe, complex.norm_eq_abs],
-  div_I_ax := complex.div_I }
+  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im] }
 
 lemma _root_.is_R_or_C.re_eq_complex_re : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl
 lemma _root_.is_R_or_C.im_eq_complex_im : ⇑(is_R_or_C.im : ℂ →+ ℝ) = complex.im := rfl
@@ -324,7 +324,7 @@ section complex_order
 open_locale complex_order
 
 lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑‖z‖ :=
-by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
+by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, _root_.abs_of_nonneg (complex.le_def.2 hz).1]
 
 end complex_order
 
@@ -337,16 +337,12 @@ open_locale complex_conjugate
 local notation `reC` := @is_R_or_C.re ℂ _
 local notation `imC` := @is_R_or_C.im ℂ _
 local notation `IC` := @is_R_or_C.I ℂ _
-local notation `absC` := @is_R_or_C.abs ℂ _
 local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 
 @[simp] lemma re_to_complex {x : ℂ} : reC x = x.re := rfl
 @[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
 @[simp] lemma I_to_complex : IC = complex.I := rfl
-@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
-by simp [is_R_or_C.norm_sq, complex.norm_sq]
-@[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
-by simp [is_R_or_C.abs, complex.abs]
+@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x := rfl
 
 section tsum
 variables {α : Type*} (𝕜 : Type*) [is_R_or_C 𝕜]

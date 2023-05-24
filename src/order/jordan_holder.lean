@@ -11,6 +11,9 @@ import data.fintype.card
 /-!
 # Jordan-Hölder Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Jordan Hölder theorem for a `jordan_holder_lattice`, a class also defined in
 this file. Examples of `jordan_holder_lattice` include `subgroup G` if `G` is a group, and
 `submodule R M` if `M` is an `R`-module. Using this approach the theorem need not be proved

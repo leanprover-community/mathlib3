@@ -10,6 +10,9 @@ import topology.sets.compacts
 /-!
 # Contents
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we work with *contents*. A content `λ` is a function from a certain class of subsets
 (such as the compact subsets) to `ℝ≥0` that is
 * additive: If `K₁` and `K₂` are disjoint sets in the domain of `λ`,

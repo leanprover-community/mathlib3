@@ -9,6 +9,9 @@ import algebra.category.Mon.basic
 /-!
 # The category of groups with zero
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `GroupWithZero`, the category of groups with zero.
 -/
 

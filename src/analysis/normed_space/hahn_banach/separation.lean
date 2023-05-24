@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.cone.basic
 import analysis.convex.gauge
+import topology.algebra.module.finite_dimension
 import topology.algebra.module.locally_convex
 
 /-!

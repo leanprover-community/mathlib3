@@ -8,6 +8,9 @@ import topology.metric_space.isometry
 /-!
 # Group actions by isometries
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two typeclasses:
 
 - `has_isometric_smul M X` says that `M` multiplicatively acts on a (pseudo extended) metric space

@@ -11,6 +11,9 @@ import tactic.equiv_rw
 /-!
 # Limits in `C` give colimits in `Cᵒᵖ`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We also give special cases for (co)products,
 (co)equalizers, and pullbacks / pushouts.
 

@@ -7,6 +7,9 @@ import topology.algebra.uniform_convergence
 
 /-!
 # Algebra-related equicontinuity criterions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open function

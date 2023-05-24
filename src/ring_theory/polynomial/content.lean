@@ -11,6 +11,9 @@ import data.polynomial.cancel_leads
 /-!
 # GCD structures on polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definitions and basic results about polynomials over GCD domains, particularly their contents
 and primitive polynomials.
 

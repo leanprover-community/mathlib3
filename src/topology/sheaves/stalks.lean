@@ -12,6 +12,7 @@ import category_theory.limits.preserves.filtered
 import category_theory.limits.final
 import tactic.elementwise
 import algebra.category.Ring.colimits
+import category_theory.sites.pushforward
 
 /-!
 # Stalks

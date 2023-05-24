@@ -14,6 +14,7 @@ import category_theory.monoidal.rigid.of_equivalence
 import category_theory.monoidal.rigid.functor_category
 import category_theory.monoidal.linear
 import category_theory.monoidal.braided
+import category_theory.monoidal.types.symmetric
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
 import category_theory.conj
@@ -405,6 +406,13 @@ begin
   simp,
 end
 
+/-- Given an object `X` isomorphic to the tensor unit of `V`, `X` equipped with the trivial action
+is isomorphic to the tensor unit of `Action V G`. -/
+def tensor_unit_iso {X : V} (f : 𝟙_ V ≅ X) :
+  𝟙_ (Action V G) ≅ Action.mk X 1 :=
+Action.mk_iso f (λ g, by simp only [monoid_hom.one_apply, End.one_def, category.id_comp f.hom,
+  tensor_unit_rho, category.comp_id])
+
 variables (V G)
 
 /-- When `V` is monoidal the forgetful functor `Action V G` to `V` is monoidal. -/
@@ -463,10 +471,8 @@ by { change is_equivalence (Action.functor_category_equivalence _ _).functor, ap
   ((functor_category_monoidal_equivalence V G).μ A B).app punit.star = 𝟙 _ :=
 begin
   dunfold functor_category_monoidal_equivalence,
-  simp only [monoidal.from_transported_to_lax_monoidal_functor_μ, equivalence.symm_unit_iso,
-    functor_category_equivalence_counit_iso, iso.symm_hom, equivalence.equivalence_mk'_counit,
-    equivalence.symm_counit_iso, functor_category_equivalence_unit_iso, nat_trans.comp_app],
-  dsimp,
+  simp only [monoidal.from_transported_to_lax_monoidal_functor_μ],
+  show (𝟙 A.V ⊗ 𝟙 B.V) ≫ 𝟙 (A.V ⊗ B.V) ≫ (𝟙 A.V ⊗ 𝟙 B.V) = 𝟙 (A.V ⊗ B.V),
   simp only [monoidal_category.tensor_id, category.comp_id],
 end
 
@@ -483,10 +489,9 @@ end
   (functor_category_monoidal_equivalence V G).ε.app punit.star = 𝟙 _ :=
 begin
   dunfold functor_category_monoidal_equivalence,
-  simp only [monoidal.from_transported_to_lax_monoidal_functor_ε, equivalence.equivalence_mk'_unit,
-    equivalence.symm_unit_iso, Action.functor_category_equivalence_counit_iso, iso.symm_hom,
-    nat_trans.comp_app, functor_category_equivalence.counit_iso_inv_app_app, iso.refl_inv,
-    nat_iso.is_iso_inv_app, category.id_comp, equivalence.symm_inverse],
+  simp only [monoidal.from_transported_to_lax_monoidal_functor_ε],
+  show 𝟙 (monoidal_category.tensor_unit V) ≫ _ = 𝟙 (monoidal_category.tensor_unit V),
+  rw [nat_iso.is_iso_inv_app, category.id_comp],
   exact is_iso.inv_id,
 end
 
@@ -507,12 +512,12 @@ rfl
 rfl
 
 @[simp] lemma functor_category_monoidal_equivalence.functor_map {A B : Action V G} (f : A ⟶ B) :
-  (functor_category_monoidal_equivalence _ _).1.1.map f
+  (functor_category_monoidal_equivalence _ _).map f
     = functor_category_equivalence.functor.map f := rfl
 
 @[simp] lemma functor_category_monoidal_equivalence.inverse_map
   {A B : single_obj G ⥤ V} (f : A ⟶ B) :
-  (functor_category_monoidal_equivalence _ _).1.inv.map f
+  (functor_category_monoidal_equivalence _ _).inv.map f
     = functor_category_equivalence.inverse.map f := rfl
 
 variables (H : Group.{u})
@@ -656,6 +661,47 @@ def of_mul_action_limit_cone {ι : Type v} (G : Type (max v u)) [monoid G]
       congr,
     end } }
 
+/-- The `G`-set `G`, acting on itself by left multiplication. -/
+@[simps] def left_regular (G : Type u) [monoid G] : Action (Type u) (Mon.of G) :=
+Action.of_mul_action G G
+
+/-- The `G`-set `Gⁿ`, acting on itself by left multiplication. -/
+@[simps] def diagonal (G : Type u) [monoid G] (n : ℕ) : Action (Type u) (Mon.of G) :=
+Action.of_mul_action G (fin n → G)
+
+/-- We have `fin 1 → G ≅ G` as `G`-sets, with `G` acting by left multiplication. -/
+def diagonal_one_iso_left_regular (G : Type u) [monoid G] :
+  diagonal G 1 ≅ left_regular G := Action.mk_iso (equiv.fun_unique _ _).to_iso (λ g, rfl)
+
+/-- Given `X : Action (Type u) (Mon.of G)` for `G` a group, then `G × X` (with `G` acting as left
+multiplication on the first factor and by `X.ρ` on the second) is isomorphic as a `G`-set to
+`G × X` (with `G` acting as left multiplication on the first factor and trivially on the second).
+The isomorphism is given by `(g, x) ↦ (g, g⁻¹ • x)`. -/
+@[simps] def left_regular_tensor_iso (G : Type u) [group G]
+  (X : Action (Type u) (Mon.of G)) :
+  left_regular G ⊗ X ≅ left_regular G ⊗ Action.mk X.V 1 :=
+{ hom :=
+  { hom := λ g, ⟨g.1, (X.ρ (g.1⁻¹ : G) g.2 : X.V)⟩,
+    comm' := λ g, funext $ λ x, prod.ext rfl $
+      show (X.ρ ((g * x.1)⁻¹ : G) * X.ρ g) x.2 = _,
+      by simpa only [mul_inv_rev, ←X.ρ.map_mul, inv_mul_cancel_right] },
+  inv :=
+  { hom := λ g, ⟨g.1, X.ρ g.1 g.2⟩,
+    comm' := λ g, funext $ λ x, prod.ext rfl $
+      by simpa only [tensor_rho, types_comp_apply, tensor_apply, left_regular_ρ_apply, map_mul] },
+  hom_inv_id' := hom.ext _ _ (funext $ λ x, prod.ext rfl $
+    show (X.ρ x.1 * X.ρ (x.1⁻¹ : G)) x.2 = _,
+      by simpa only [←X.ρ.map_mul, mul_inv_self, X.ρ.map_one]),
+  inv_hom_id' := hom.ext _ _ (funext $ λ x, prod.ext rfl $
+    show (X.ρ (x.1⁻¹ : G) * X.ρ x.1) _ = _,
+      by simpa only [←X.ρ.map_mul, inv_mul_self, X.ρ.map_one]) }
+
+/-- The natural isomorphism of `G`-sets `Gⁿ⁺¹ ≅ G × Gⁿ`, where `G` acts by left multiplication on
+each factor. -/
+@[simps] def diagonal_succ (G : Type u) [monoid G] (n : ℕ) :
+  diagonal G (n + 1) ≅ left_regular G ⊗ diagonal G n :=
+mk_iso (equiv.pi_fin_succ_above_equiv _ 0).to_iso (λ g, rfl)
+
 end Action
 
 namespace category_theory.functor
@@ -713,10 +759,11 @@ namespace category_theory.monoidal_functor
 
 open Action
 variables {V} {W : Type (u+1)} [large_category W] [monoidal_category V] [monoidal_category W]
+  (F : monoidal_functor V W) (G : Mon.{u})
 
 /-- A monoidal functor induces a monoidal functor between
 the categories of `G`-actions within those categories. -/
-@[simps] def map_Action (F : monoidal_functor V W) (G : Mon.{u}) :
+@[simps] def map_Action :
   monoidal_functor (Action V G) (Action W G) :=
 { ε :=
   { hom := F.ε,
@@ -732,5 +779,21 @@ the categories of `G`-actions within those categories. -/
   left_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
   right_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
   ..F.to_functor.map_Action G, }
+
+@[simp] lemma map_Action_ε_inv_hom :
+  (inv (F.map_Action G).ε).hom = inv F.ε :=
+begin
+  ext,
+  simp only [←F.map_Action_to_lax_monoidal_functor_ε_hom G, ←Action.comp_hom,
+    is_iso.hom_inv_id, id_hom],
+end
+
+@[simp] lemma map_Action_μ_inv_hom (X Y : Action V G) :
+  (inv ((F.map_Action G).μ X Y)).hom = inv (F.μ X.V Y.V) :=
+begin
+  ext,
+  simpa only [←F.map_Action_to_lax_monoidal_functor_μ_hom G, ←Action.comp_hom,
+    is_iso.hom_inv_id, id_hom],
+end
 
 end category_theory.monoidal_functor

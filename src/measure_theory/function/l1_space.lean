@@ -943,14 +943,15 @@ lemma is_unit.integrable_smul_iff [normed_ring 𝕜] [module 𝕜 β] [has_bound
   integrable (c • f) μ ↔ integrable f μ :=
 and_congr (hc.ae_strongly_measurable_const_smul_iff) (has_finite_integral_smul_iff hc f)
 
+lemma integrable_smul_iff [normed_division_ring 𝕜] [module 𝕜 β] [has_bounded_smul 𝕜 β]
+  {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
+  integrable (c • f) μ ↔ integrable f μ :=
+(is_unit.mk0 _ hc).integrable_smul_iff f
+
 end has_bounded_smul
 
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
-
-lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
-  integrable (c • f) μ ↔ integrable f μ :=
-(is_unit.mk0 _ hc).integrable_smul_iff f
 
 lemma integrable.smul_of_top_right {f : α → β} {φ : α → 𝕜}
   (hf : integrable f μ) (hφ : mem_ℒp φ ∞ μ) :

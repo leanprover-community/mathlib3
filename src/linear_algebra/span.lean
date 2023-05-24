@@ -884,8 +884,6 @@ open linear_map
 
 namespace linear_equiv
 
-section
-
 variables (R M) [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
   (x : M) (h : x ≠ 0)
 
@@ -916,7 +914,5 @@ by rw [← to_span_nonzero_singleton_one R M x h, linear_equiv.symm_apply_apply]
 
 lemma coord_apply_smul (y : submodule.span R ({x} : set M)) : coord R M x h y • x = y :=
 subtype.ext_iff.1 $ (to_span_nonzero_singleton R M x h).apply_symm_apply _
-
-end
 
 end linear_equiv

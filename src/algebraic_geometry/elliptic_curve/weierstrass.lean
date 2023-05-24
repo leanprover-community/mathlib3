@@ -297,6 +297,7 @@ begin
   any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [h]; dec_trivial }
 end
 
+-- TODO: generalise to arbitrary `y ∈ R[X]`
 @[simp] lemma eval_polynomial (x y : R) :
   (W.polynomial.eval $ C y).eval x
     = y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) :=
@@ -485,50 +486,38 @@ instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_
 
 instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
 
-/-- The $R$-algebra homomorphism from $R[W]/\langle X - x, Y - y(X) \rangle$ to $R$ obtained by
-  evaluating at $y$ and then at $x$, provided $W(x, y(x)) = 0$. -/
-@[simps] noncomputable def of_quotient_XY_ideal {x : R} {y : R[X]}
-  (h : (W.polynomial.eval y).eval x = 0) :
-  (W.coordinate_ring ⧸ XY_ideal W x y) →ₐ[R] R :=
-ideal.quotient.liftₐ _ (ideal.quotient.liftₐ _
-  ((aeval x).comp $ (aeval y).restrict_scalars R) $ λ a ha,
-    by { obtain ⟨a, rfl⟩ := ideal.mem_span_singleton.1 ha, rw map_mul, convert zero_mul _ }) $
-  λ a ha, begin
-    obtain ⟨a, b, rfl⟩ := ideal.mem_span_pair.1 ha,
-    simp only [map_add, map_mul, ideal.quotient.liftₐ_apply, X_class, Y_class,
-      adjoin_root.mk, ideal.quotient.lift_mk, alg_hom.coe_to_ring_hom, alg_hom.comp_apply,
-      alg_hom.restrict_scalars_apply, aeval_C, map_sub, aeval_X, algebra.id.map_eq_self,
-      sub_self, mul_zero, add_zero],
-  end
+/-- The $R$-algebra isomorphism from $R[X, Y] / \langle X - x, Y - y(X) \rangle$ to $R$ obtained by
+evaluation at $y(X)$ and at $x$, a consequence of the first and third isomorphism theorems. -/
+noncomputable def quotient_span_XY_equiv :
+  (R[X][Y] ⧸ (ideal.span {C (X - C x), Y - C y} : ideal $ R[X][Y])) ≃ₐ[R] R :=
+(ideal.quotient_equiv_alg_of_eq _ $ by rw [ideal.span_insert, sup_comm]).trans $
+(double_quot.quot_quot_equiv_quot_supₐ _ _ _).symm.trans $
+(ideal.quotient_equiv_alg _ _ ((quotient_span_X_sub_C_alg_equiv y).restrict_scalars R) rfl).trans $
+(ideal.quotient_equiv_alg_of_eq _ $
+  by { simp only [ideal.map_span, set.image_singleton], congr' 2, exact eval_C }).trans $
+quotient_span_X_sub_C_alg_equiv x
 
-/-- The $R$-algebra isomorphism from $R[W]/\langle X - x, Y - y(X) \rangle$ to $R$ obtained by
-  evaluating at $y$ and then at $x$, provided $W(x, y(x)) = 0$. -/
-noncomputable def quotient_XY_ideal_equiv {x : R} {y : R[X]}
-  (h : (W.polynomial.eval y).eval x = 0) :
-  (W.coordinate_ring ⧸ XY_ideal W x y) ≃ₐ[R] R :=
-alg_equiv.of_alg_hom
-  (of_quotient_XY_ideal W h) (algebra.of_id R _) (alg_hom.ext $ alg_hom.commutes _)
+-- TODO: generalise to arbitrary `y ∈ R[X]` and use `neg_polynomial`
+lemma span_polynomial_le_span_XY {x y : R} (h : W.equation x y) :
+  (ideal.span {W.polynomial} : ideal $ R[X][Y]) ≤ ideal.span {C (X - C x), Y - C (C y)} :=
 begin
-  iterate 2 { apply ideal.quotient.alg_hom_ext },
-  apply polynomial.alg_hom_ext',
-  { apply polynomial.alg_hom_ext,
-    simp only [alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply, of_quotient_XY_ideal,
-      ideal.quotient.mkₐ_eq_mk, ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk,
-      alg_hom.coe_to_ring_hom, alg_hom.restrict_scalars_apply,
-      ← C_eq_algebra_map, aeval_C, algebra.id.map_eq_self, aeval_X],
-    symmetry, apply ideal.quotient.eq.2, apply ideal.subset_span, apply or.inl,
-    rw [X_class, C_sub], refl },
-  simp only [alg_hom.comp_apply, of_quotient_XY_ideal, ideal.quotient.mkₐ_eq_mk,
-    ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk, alg_hom.coe_to_ring_hom,
-    alg_hom.restrict_scalars_apply, aeval_X],
-  symmetry, apply ideal.quotient.eq.2, apply ideal.mem_span_pair.2,
-  obtain ⟨p, hp⟩ : (X - C x) ∣ (y - C (aeval x y)),
-  { rw [dvd_iff_is_root, is_root, eval_sub, eval_C], apply sub_self },
-  refine ⟨adjoin_root.mk _ (C p), 1, trans _ $ map_sub _ _ _⟩,
-  rw [X_class, Y_class, one_mul, ← map_mul, ← map_add, ← C_mul,
-      mul_comm, ← hp, add_comm, C_sub, add_sub, sub_add_cancel],
-  refl,
+  intros _ hz,
+  rcases ideal.mem_span_singleton'.mp hz with ⟨z, rfl⟩,
+  exact ideal.mem_span_pair.mpr
+    ⟨z * (C (C (W.a₁ * y) - (X ^ 2 + C (x + W.a₂) * X + C (x ^ 2 + W.a₂ * x + W.a₄)))),
+    z * (C (C y) - (-Y - C (C W.a₁ * X + C W.a₃))),
+    by linear_combination -z * (congr_arg C $ congr_arg C $ (W.equation_iff x y).mp h)
+      with { normalization_tactic := `[rw [weierstrass_curve.polynomial], C_simp, ring1] }⟩
 end
+
+/-- The $R$-algebra isomorphism from $R[W] / \langle X - x, Y - y(X) \rangle$ to $R$ obtained by
+evaluation at $y(X)$ and at $x$ provided that $W(x, y(x)) = 0$. -/
+noncomputable def quotient_XY_ideal_equiv {x y : R} (h : W.equation x y) :
+  (W.coordinate_ring ⧸ XY_ideal W x (C y)) ≃ₐ[R] R :=
+(ideal.quotient_equiv_alg_of_eq R $
+  by simpa only [XY_ideal, X_class, Y_class, ← set.image_pair, ← ideal.map_span]).trans $
+(double_quot.quot_quot_equiv_quot_of_leₐ R $ span_polynomial_le_span_XY W h).trans $
+by convert quotient_span_XY_equiv x (C y)
 
 /-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
 
@@ -610,10 +599,11 @@ begin
   ring1
 end
 
+-- TODO: use `neg_polynomial`
 lemma coe_norm_smul_basis (p q : R[X]) :
   ↑(algebra.norm R[X] $ p • 1 + q • adjoin_root.mk W.polynomial Y)
     = adjoin_root.mk W.polynomial
-      ((C p + C q * X) * (C p + C q * (-X - C (C W.a₁ * X + C W.a₃)))) :=
+      ((C p + C q * X) * (C p + C q * (-Y - C (C W.a₁ * X + C W.a₃)))) :=
 adjoin_root.mk_eq_mk.mpr
   ⟨C q ^ 2, by { rw [norm_smul_basis, weierstrass_curve.polynomial], C_simp, ring1 }⟩
 

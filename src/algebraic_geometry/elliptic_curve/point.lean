@@ -626,7 +626,7 @@ begin
   rw [XY_ideal_add_eq, X_ideal, mul_comm, W.XY_ideal_eq₁ x₁ y₁ $ W.slope x₁ x₂ y₁ y₂, XY_ideal,
       XY_ideal_eq₂ h₁' h₂' hxy, XY_ideal, span_pair_mul_span_pair],
   simp_rw [span_insert, sup_rw, sup_mul, span_singleton_mul_span_singleton],
-  rw [eq_neg_of_eq_neg $ coordinate_ring.C_add_polynomial_slope h₁' h₂' hxy,
+  rw [← neg_eq_iff_eq_neg.mpr $ coordinate_ring.C_add_polynomial_slope h₁' h₂' hxy,
       span_singleton_neg, coordinate_ring.C_add_polynomial, _root_.map_mul, Y_class],
   simp_rw [mul_comm $ X_class W x₁, mul_assoc, ← span_singleton_mul_span_singleton, ← mul_sup],
   rw [span_singleton_mul_span_singleton, ← span_insert,

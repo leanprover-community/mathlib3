@@ -3,10 +3,11 @@ Copyright (c) 2022 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
-import number_theory.number_field.embeddings
-import measure_theory.group.geometry_of_numbers
-import ring_theory.discriminant
 import algebra.module.zlattice
+import measure_theory.group.geometry_of_numbers
+import number_theory.number_field.embeddings
+import ring_theory.discriminant
+import measure_theory.measure.haar.normed_space
 
 /-!
 # Canonical embedding of a number field

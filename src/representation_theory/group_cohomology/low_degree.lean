@@ -255,6 +255,13 @@ begin
   simpa only [map_one, linear_map.one_apply, mul_one, sub_self, zero_add],
 end
 
+lemma one_cocycles_map_inv (f : one_cocycles A) (g : G) :
+  A.ρ g ((f : G → A) g⁻¹) = -(f : G → A) g :=
+begin
+  rw [←add_eq_zero_iff_eq_neg, ←one_cocycles_map_one f, ←mul_inv_self g,
+    (mem_one_cocycles_iff' (f : G → A)).1 f.2 (g, g⁻¹)],
+end
+
 lemma mem_one_coboundaries_of_mem_range (f : G → A) (h : f ∈ (d_zero A).range) :
   (⟨f, by rcases h with ⟨x, rfl⟩; exact linear_map.ext_iff.1
     (d_one_comp_d_zero.{u} A) x⟩ : one_cocycles A) ∈ one_coboundaries A :=

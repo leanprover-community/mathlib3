@@ -84,26 +84,17 @@ lemma rep_hom_pair {k : Type u} [comm_ring k] {G : Type u} [group G]
   compatible B A (monoid_hom.id G) f.hom :=
 λ g, linear_map.ext_iff.1 (f.comm _)
 
-/- not an aesthetically pleasing proof.
-lemma pair_chain_map_aux_comm (hp : compatible A B f φ) (n : ℕ) :
-  ((inhomogeneous_cochains A).d n (n + 1)).comp (compatible_chain_map_aux A B f φ n)
-    = (compatible_chain_map_aux A B f φ (n + 1)).comp ((inhomogeneous_cochains B).d n (n + 1)) :=
-begin
-  ext x g,
-  dsimp [compatible_chain_map_aux],
-  simp only [inhomogeneous_cochains.d_def, inhomogeneous_cochains.d_apply,
-    φ.map_add, φ.map_sum, φ.map_smul, hp (g 0)],
-  dsimp,
-  congr,
-  ext i,
-  congr,
-  ext j,
-  by_cases h : ((j : ℕ) < i),
-  { simp only [function.comp_app, fin.mul_nth_lt_apply _ h] },
-  { by_cases heq : ((j : ℕ) = i),
-    { simp only [fin.mul_nth_eq_apply _ heq, f.map_mul, function.comp_app] },
-    { simp only [fin.mul_nth_neg_apply _ h heq, function.comp_app] }}
-end-/
+def Ind (H : subgroup G) (A : Rep k H) : Rep k G :=
+sorry /-{ V := Module.of k (Rep.of_mul_action k H G ⟶ A),
+  ρ :=
+  { to_fun := λ g,
+    { to_fun := λ f,
+      { hom := finsupp.lift _ _ _ (λ g, _),
+        comm' := _ },
+      map_add' := _,
+      map_smul' := _ },
+    map_one' := _,
+    map_mul' := _ }}-/
 
 @[simps] def pair_chain_map (hp : compatible A B f φ) :
   inhomogeneous_cochains B ⟶ inhomogeneous_cochains A :=
@@ -221,12 +212,12 @@ end
 
 variables {G}
 
-noncomputable def cohomology_map {A B : Rep k G} (φ : A.V →ₗ[k] B.V)
+noncomputable def group_cohomology_map' {A B : Rep k G} (φ : A.V →ₗ[k] B.V)
   (hp : compatible B A (monoid_hom.id G) φ) (n : ℕ) :
   group_cohomology A n ⟶ group_cohomology B n :=
 (pair_cohomology_map B A (monoid_hom.id G) φ hp n)
 
-noncomputable def cohomology_map' {A B : Rep k G} (φ : A ⟶ B) (n : ℕ) :
+noncomputable def group_cohomology_map {A B : Rep k G} (φ : A ⟶ B) (n : ℕ) :
   group_cohomology A n ⟶ group_cohomology B n :=
 (pair_cohomology_map _ _ (monoid_hom.id G) φ.hom (rep_hom_pair φ) n)
 
@@ -347,7 +338,7 @@ begin
   rw [map_add, map_sub, ←linear_map.mul_apply, ←map_mul, this,
     sub_add_eq_add_sub, add_sub_assoc, sub_sub_self],
 end
-#check quotient_group.left_rel_eq
+
 lemma Inf_one_range_eq_Res_one_ker (S : subgroup G) [h1 : S.normal] :
   (Inf_one A S).range = (Res_one A S).ker :=
 le_antisymm (Inf_one_range_le_Res_one_ker A S) $ λ x,
@@ -356,42 +347,39 @@ begin
   intros y hy,
   rw [linear_map.mem_ker, Res_one_apply] at hy,
   obtain ⟨m, hm⟩ := (submodule.quotient.mk_eq_zero _).1 hy,
-  let F' : G ⧸ S → A := λ g, quotient.lift_on' g
-    (λ g, (y : G → A) g - A.ρ g m + m)
-    (λ a b hab, by
-    {dsimp,
-     congr' 1,
-     have := function.funext_iff.1 (subtype.ext_iff.1 hm) (⟨a⁻¹ * b,
+  refine ⟨quotient.mk' ⟨λ (g : G ⧸ S), quotient.lift_on' g (λ x : G, (⟨(y : G → A) x - A.ρ x m + m,
+    λ g, helper A S y m (λ h, _) x g⟩
+    : invariants (A.ρ.comp S.subtype))) (λ a b hab, _), _⟩, _⟩,
+  { simp only [subtype.ext_iff, function.funext_iff, Res_one_cocycles_apply] at hm,
+    exact (hm h).symm },
+  { ext,
+    dsimp only [subtype.coe_mk],
+    congr' 1,
+    have := function.funext_iff.1 (subtype.ext_iff.1 hm) (⟨a⁻¹ * b,
       quotient_group.eq.1 (quotient.eq'.2 hab)⟩),
-      simp only [Res_one_cocycles_apply, linear_map.cod_restrict_apply, d_zero_apply,
-        subgroup.coe_mk, Res_rep_apply] at this,
-     rw [one_cocycles_map_mul] at Hy,
-     replace Hy := congr_arg ((•) a) Hy,
-     simp only [smul_add, smul_sub, smul_inv_smul, mul_smul] at Hy,
-     rw [one_cocycles_map_inv, add_neg_eq_iff_eq_add] at Hy,
-     rw Hy,
-     abel }),
-  let F : G ⧸ S → invariants H M :=
-  λ g, ⟨F' g, by {refine g.induction_on' _, intro x, dsimp [F'], exact helper M H y m hm x}⟩,
-  have HF : F ∈ one_cocycles (G ⧸ H) (invariants H M) := λ g h,
-  begin
-    refine quotient.induction_on₂' g h _,
-    intros a b,
-    show _ - F (quotient.mk' (a * b)) + _ = _,
+    simp only [Res_one_cocycles_apply, linear_map.cod_restrict_apply, d_zero_apply,
+        subgroup.coe_mk, Res_rep_apply, (mem_one_cocycles_iff' (y : G → A)).1 y.2 (a⁻¹, b)] at this,
+    replace this := congr_arg (A.ρ a) this,
+    simp only [map_sub, ←linear_map.mul_apply, ←map_mul, map_add, mul_inv_cancel_left,
+      mul_inv_self, map_one, linear_map.one_apply, one_cocycles_map_inv, ←sub_eq_add_neg,
+      sub_eq_sub_iff_add_eq_add] at this,
+    rw [sub_eq_sub_iff_add_eq_add, add_comm, this] },
+  { refine (mem_one_cocycles_iff' _).2 _,
+    rintros ⟨g, h⟩,
+    refine quotient.induction_on₂' g h (λ w z, _),
+    show quotient.lift_on' (quotient.mk' (_ * _)) _ _ = _,
     ext,
-    dsimp [F, F', (•), quotient_action_aux],
-    rw [one_cocycles_map_mul, smul_add, smul_sub, mul_smul],
-    abel,
-  end,
-  let FF : firstcoh (G ⧸ H) (invariants H M) := (⟨F, HF⟩ : one_cocycles _ _),
-  use FF,
-  rw Inf_one_apply,
-  dsimp [FF, F, F'],
-  rw quotient_add_group.eq,
-  use m,
-  intro g,
-  dsimp,
-  abel,
+    simp only [quotient.lift_on'_mk', subtype.coe_mk, submodule.coe_add],
+    simp only [show quotient.mk' w = (w : G ⧸ S), from rfl, Inf_rep_apply, subtype.coe_mk, map_sub,
+      map_add, ←linear_map.mul_apply, ←map_mul, ←add_assoc, add_left_inj],
+    simp only [add_assoc, add_sub_cancel'_right, sub_add_eq_add_sub, sub_left_inj,
+        (mem_one_cocycles_iff' (y : G → A)).1 y.2 (w, z)] },
+  { rw Inf_one_apply,
+    refine (submodule.quotient.eq _).2 ⟨-m, subtype.ext (funext $ λ g, _)⟩,
+    simp only [linear_map.cod_restrict_apply, submodule.coe_sub, pi.sub_apply,
+      Inf_one_cocycles_apply],
+    simp only [d_zero_apply, subtype.coe_mk, quotient_group.quotient_lift_on_coe],
+    rw [map_neg, neg_sub_neg, eq_sub_iff_add_eq', ←add_sub_assoc, sub_add_eq_add_sub] }
 end
 
-end stuff
+end group_cohomology

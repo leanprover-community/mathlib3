@@ -34,6 +34,7 @@ instance bundled_hom : bundled_hom @continuous_map :=
 
 attribute [derive [large_category, concrete_category]] Top
 
+@[to_additive Top.has_coe_to_sort]
 instance : has_coe_to_sort Top Type* := bundled.has_coe_to_sort
 
 instance topological_space_unbundled (x : Top) : topological_space x := x.str

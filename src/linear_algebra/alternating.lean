@@ -379,6 +379,12 @@ def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ 
 lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) (m : ι → M) :
   g.comp_alternating_map f m = g (f m) := rfl
 
+lemma smul_right_eq_comp {R M₁ M₂ ι : Type*} [comm_semiring R]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂]
+  (f : alternating_map R M₁ R ι) (z : M₂) :
+  f.smul_right z = (linear_map.id.smul_right z).comp_alternating_map f :=
+rfl
+
 @[simp]
 lemma subtype_comp_alternating_map_cod_restrict (f : alternating_map R M N ι) (p : submodule R N)
   (h) :

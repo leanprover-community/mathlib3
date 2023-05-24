@@ -852,7 +852,8 @@ ext_on hv (set.forall_range_iff.2 h)
 end add_comm_monoid
 
 section no_zero_divisors
-variables [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+
+variables (R M) [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
 
 lemma ker_to_span_singleton {x : M} (h : x ≠ 0) : (to_span_singleton R M x).ker = ⊥ :=
 set_like.ext $ λ c, smul_eq_zero.trans $ or_iff_left_of_imp $ λ h', (h h').elim
@@ -893,7 +894,7 @@ isomorphism from `R` to the span of `x` given by $r \mapsto r \cdot x$. -/
 def to_span_nonzero_singleton : R ≃ₗ[R] R ∙ x :=
 linear_equiv.trans
   (linear_equiv.of_injective
-    (linear_map.to_span_singleton R M x) (ker_eq_bot.1 $ ker_to_span_singleton h))
+    (linear_map.to_span_singleton R M x) (ker_eq_bot.1 $ ker_to_span_singleton R M h))
     (linear_equiv.of_eq (to_span_singleton R M x).range (R ∙ x)
       (span_singleton_eq_range R M x).symm)
 

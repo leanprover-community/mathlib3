@@ -13,15 +13,15 @@ import algebra.char_p.two
 
 
 In algebraically closed fields, we show:
-* `matrix.prod_roots_charpoly_eq_det`: the determinant is the product of the roots of the
+* `matrix.det_eq_prod_roots_charpoly`: the determinant is the product of the roots of the
 characteristic polynomial.
-* `matrix.sum_roots_charpoly_eq_trace`: the trace is the sum of the roots of the characteristic
+* `matrix.trace_eq_sum_roots_charpoly`: the trace is the sum of the roots of the characteristic
 polynomial.
 
 Note that over other fields such as ` ℝ`, these results can be used by using
 `A.map (algebra_map ℝ ℂ)` as the matrix, and then applying `ring_hom.map_det`.
 
-The two lemmas `matrix.prod_roots_charpoly_eq_det` and `matrix.sum_roots_charpoly_eq_trace` are more
+The two lemmas `matrix.det_eq_prod_roots_charpoly` and `matrix.trace_eq_sum_roots_charpoly` are more
 commonly stated as trace is the sum of eigenvalues and determinant is the product of eigenvalues.
 Mathlib has already defined eigenvalues in `linear_algebra.eigenspace` as the roots of the minimal
 polynomial of a linear endomorphism. These do not have correct multiplicity and cannot be used in
@@ -35,7 +35,7 @@ open matrix polynomial
 open linear_map module.End
 open_locale matrix big_operators
 
-lemma prod_roots_charpoly_eq_det (A : matrix n n R) :
+lemma det_eq_prod_roots_charpoly (A : matrix n n R) :
   (matrix.charpoly A).roots.prod = A.det :=
 begin
   casesI is_empty_or_nonempty n,
@@ -49,7 +49,7 @@ begin
       ← mul_assoc, ← pow_two, pow_right_comm, neg_one_sq, one_pow, one_mul], },
 end
 
-lemma sum_roots_charpoly_eq_trace (A: matrix n n R) :
+lemma trace_eq_sum_roots_charpoly (A: matrix n n R) :
   A.trace = (matrix.charpoly A).roots.sum :=
 begin
   casesI is_empty_or_nonempty n,

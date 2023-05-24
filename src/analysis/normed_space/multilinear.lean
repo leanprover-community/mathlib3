@@ -9,6 +9,9 @@ import topology.algebra.module.multilinear
 /-!
 # Operator norm on the space of continuous multilinear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `f` is a continuous multilinear map in finitely many variables, we define its norm `‖f‖` as the
 smallest number such that `‖f m‖ ≤ ‖f‖ * ∏ i, ‖m i‖` for all `m`.
 

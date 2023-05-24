@@ -7,6 +7,9 @@ import model_theory.substructures
 
 /-!
 # Finitely Generated First-Order Structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines what it means for a first-order (sub)structure to be finitely or countably
 generated, similarly to other finitely-generated objects in the algebra library.
 

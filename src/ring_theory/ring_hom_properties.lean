@@ -6,7 +6,7 @@ Authors: Andrew Yang
 import algebra.category.Ring.constructions
 import algebra.category.Ring.colimits
 import category_theory.isomorphism
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
 import ring_theory.is_tensor_product
 
 /-!

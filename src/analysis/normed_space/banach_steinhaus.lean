@@ -9,6 +9,9 @@ import topology.algebra.module.basic
 /-!
 # The Banach-Steinhaus theorem: Uniform Boundedness Principle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Herein we prove the Banach-Steinhaus theorem: any collection of bounded linear maps
 from a Banach space into a normed space which is pointwise bounded is uniformly bounded.
 

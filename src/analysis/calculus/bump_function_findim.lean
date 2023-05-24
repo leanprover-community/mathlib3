@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.series
 import analysis.convolution
 import analysis.inner_product_space.euclidean_dist
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.haar.normed_space
 import data.set.pointwise.support
 
 /-!

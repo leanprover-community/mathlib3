@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import algebra.algebra.spectrum
-import analysis.special_functions.pow
 import analysis.complex.liouville
 import analysis.complex.polynomial
 import analysis.analytic.radius_liminf

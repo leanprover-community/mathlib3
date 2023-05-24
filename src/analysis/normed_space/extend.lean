@@ -11,6 +11,9 @@ import data.is_R_or_C.basic
 /-!
 # Extending a continuous `ℝ`-linear map to a continuous `𝕜`-linear map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide a way to extend a continuous `ℝ`-linear map to a continuous `𝕜`-linear map
 in a way that bounds the norm by the norm of the original map, when `𝕜` is either `ℝ` (the
 extension is trivial) or `ℂ`. We formulate the extension uniformly, by assuming `is_R_or_C 𝕜`.

@@ -10,6 +10,9 @@ import topology.algebra.ring.basic
 /-!
 # Category of topological commutative rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the category `TopCommRing` of topological commutative rings together with the relevant
 forgetful functors to topological spaces and commutative rings.
 -/

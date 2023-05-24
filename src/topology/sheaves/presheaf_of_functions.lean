@@ -11,6 +11,9 @@ import topology.continuous_function.algebra
 /-!
 # Presheaves of functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct some simple examples of presheaves of functions on a topological space.
 * `presheaf_to_Types X T`, where `T : X → Type`,
   is the presheaf of dependently-typed (not-necessarily continuous) functions

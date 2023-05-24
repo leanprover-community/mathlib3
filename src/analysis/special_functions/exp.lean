@@ -10,6 +10,9 @@ import analysis.specific_limits.normed
 /-!
 # Complex and real exponential
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove continuity of `complex.exp` and `real.exp`. We also prove a few facts about
 limits of `real.exp` at infinity.
 
@@ -45,8 +48,8 @@ begin
   have h_sq : ∀ z, ‖z‖ ≤ 1 → ‖exp (x + z) - exp x‖ ≤ ‖z‖ * ‖exp x‖ + ‖exp x‖ * ‖z‖ ^ 2,
   { intros z hz,
     have : ‖exp (x + z) - exp x - z • exp x‖ ≤ ‖exp x‖ * ‖z‖ ^ 2, from exp_bound_sq x z hz,
-    rw [← sub_le_iff_le_add',  ← norm_smul z],
-    exact (norm_sub_norm_le _ _).trans this, },
+    rw [← sub_le_iff_le_add',  ← norm_smul z (_ : ℂ)],
+    exact (norm_sub_norm_le _ _).trans this },
   calc ‖exp y - exp x‖ = ‖exp (x + (y - x)) - exp x‖ : by nth_rewrite 0 hy_eq
   ... ≤ ‖y - x‖ * ‖exp x‖ + ‖exp x‖ * ‖y - x‖ ^ 2 : h_sq (y - x) (hyx.le.trans hr_le)
   ... ≤ ‖y - x‖ * ‖exp x‖ + ‖exp x‖ * (r * ‖y - x‖) :

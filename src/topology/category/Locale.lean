@@ -8,6 +8,9 @@ import order.category.Frm
 /-!
 # The category of locales
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `Locale`, the category of locales. This is the opposite of the category of frames.
 -/
 

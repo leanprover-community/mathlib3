@@ -1911,6 +1911,10 @@ instance : module 𝕜 (Lp E p μ) :=
 
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p μ) : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 
+instance [module 𝕜ᵐᵒᵖ E] [has_bounded_smul 𝕜ᵐᵒᵖ E] [is_central_scalar 𝕜 E] :
+  is_central_scalar 𝕜 (Lp E p μ) :=
+{ op_smul_eq_smul := λ k f, subtype.ext $ op_smul_eq_smul k (f : α →ₘ[μ] E) }
+
 instance [fact (1 ≤ p)] : has_bounded_smul 𝕜 (Lp E p μ) :=
 -- TODO: add `has_bounded_smul.of_nnnorm_smul_le
 has_bounded_smul.of_norm_smul_le $ λ r f, begin

@@ -17,7 +17,7 @@ root of unity.
 
 * `is_primitive_root.is_root_cyclotomic` : Any `n`-th primitive root of unity is a root of
   `cyclotomic n R`.
-* `polynomial.is_root_cyclotomic_iff` : if `ne_zero (n : R)`, then `μ` is a root of `cyclotomic n R`
+* `is_root_cyclotomic_iff` : if `ne_zero (n : R)`, then `μ` is a root of `cyclotomic n R`
   if and only if `μ` is a primitive root of unity.
 * `polynomial.cyclotomic_eq_minpoly` : `cyclotomic n ℤ` is the minimal polynomial of a primitive
   `n`-th root of unity `μ`.
@@ -53,7 +53,7 @@ section is_domain
 
 variable [is_domain R]
 
-lemma _root_.is_root_of_unity_iff (h : 0 < n) [is_domain R]
+lemma _root_.is_root_of_unity_iff (h : 0 < n) (R : Type*) [comm_ring R] [is_domain R]
   {ζ : R} : ζ ^ n = 1 ↔ ∃ i ∈ n.divisors, (cyclotomic i R).is_root ζ :=
 by rw [←mem_nth_roots h, nth_roots, mem_roots $ X_pow_sub_C_ne_zero h _,
        C_1, ←prod_cyclotomic_eq_X_pow_sub_one h, is_root_prod]; apply_instance
@@ -74,7 +74,7 @@ begin
   have hnpos : 0 < n := (ne_zero.of_ne_zero_coe K).out.bot_lt,
   refine ⟨λ hμ, _, is_primitive_root.is_root_cyclotomic hnpos⟩,
   have hμn : μ ^ n = 1,
-  { rw is_root_of_unity_iff hnpos,
+  { rw is_root_of_unity_iff hnpos _,
     exact ⟨n, n.mem_divisors_self hnpos.ne', hμ⟩,
     all_goals { apply_instance } },
   by_contra hnμ,

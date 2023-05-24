@@ -36,7 +36,7 @@ open linear_map module.End
 open_locale matrix big_operators
 
 lemma det_eq_prod_roots_charpoly (A : matrix n n R) :
-  (matrix.charpoly A).roots.prod = A.det :=
+  A.det = (matrix.charpoly A).roots.prod :=
 begin
   casesI is_empty_or_nonempty n,
   { rw matrix.charpoly,

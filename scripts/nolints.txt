@@ -4,6 +4,96 @@ run_cmd tactic.skip
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
+-- archive/examples/prop_encodable.lean
+apply_nolint prop_form has_nonempty_instance
+
+-- archive/hundred_theorems_list/n37_solution_of_cubic.lean
+apply_nolint cube_root_of_unity_sum unused_arguments
+
+-- archive/hundred_theorems_list/n45_partition.lean
+apply_nolint mk_odd doc_blame
+
+-- archive/hundred_theorems_list/n54_konigsberg.lean
+apply_nolint konigsberg.verts has_nonempty_instance
+
+-- archive/hundred_theorems_list/n82_cubing_a_cube.lean
+apply_nolint 82.cannot_cube_a_cube ge_or_gt
+apply_nolint 82.cube has_nonempty_instance
+apply_nolint 82.cube.bottom doc_blame
+apply_nolint 82.cube.shift_up doc_blame
+apply_nolint 82.cube.tail doc_blame
+apply_nolint 82.cube.to_set doc_blame
+apply_nolint 82.cube.unit_cube doc_blame
+apply_nolint 82.cube.xm doc_blame
+apply_nolint 82.decreasing_sequence doc_blame
+apply_nolint 82.on_boundary unused_arguments
+
+-- archive/hundred_theorems_list/n93_birthday_problem.lean
+apply_nolint birthday ge_or_gt
+
+-- archive/imo/imo1960_q1.lean
+apply_nolint imo1960_q1.problem_predicate doc_blame
+apply_nolint imo1960_q1.search_up_to doc_blame
+apply_nolint imo1960_q1.solution_predicate doc_blame
+apply_nolint imo1960_q1.sum_of_squares doc_blame
+
+-- archive/imo/imo1962_q1.lean
+apply_nolint imo1962_q1.case_more_digits ge_or_gt
+apply_nolint imo1962_q1.no_smaller_solutions ge_or_gt
+apply_nolint imo1962_q1.problem_predicate doc_blame
+apply_nolint imo1962_q1.problem_predicate' doc_blame
+
+-- archive/imo/imo1962_q4.lean
+apply_nolint alt_formula doc_blame
+apply_nolint problem_equation doc_blame
+apply_nolint solution_set doc_blame
+
+-- archive/imo/imo1964_q1.lean
+apply_nolint imo1964_q1.problem_predicate doc_blame
+
+-- archive/imo/imo1981_q3.lean
+apply_nolint imo1981_q3.nat_predicate doc_blame
+apply_nolint imo1981_q3.problem_predicate doc_blame
+apply_nolint imo1981_q3.specified_set doc_blame
+
+-- archive/imo/imo1987_q1.lean
+apply_nolint imo_1987_q1.fixed_points_equiv unused_arguments
+
+-- archive/imo/imo2005_q3.lean
+apply_nolint imo2005_q3 ge_or_gt
+apply_nolint key_insight ge_or_gt
+
+-- archive/imo/imo2008_q2.lean
+apply_nolint imo2008_q2a ge_or_gt
+apply_nolint rational_solutions doc_blame
+
+-- archive/imo/imo2008_q3.lean
+apply_nolint imo2008_q3 ge_or_gt
+apply_nolint p_lemma ge_or_gt
+
+-- archive/imo/imo2008_q4.lean
+apply_nolint imo2008_q4 ge_or_gt
+
+-- archive/imo/imo2019_q4.lean
+apply_nolint imo2019_q4 ge_or_gt
+apply_nolint imo2019_q4_upper_bound ge_or_gt
+
+-- archive/miu_language/basic.lean
+apply_nolint miu.miustr has_nonempty_instance
+
+-- archive/miu_language/decision_nec.lean
+apply_nolint miu.goodm_of_rule1 unused_arguments
+apply_nolint miu.goodm_of_rule2 unused_arguments
+
+-- archive/miu_language/decision_suf.lean
+apply_nolint miu.der_cons_replicate_I_replicate_U_append_of_der_cons_replicate_I_append unused_arguments
+
+-- archive/sensitivity.lean
+apply_nolint V has_nonempty_instance
+apply_nolint dual_bases_e_ε def_lemma
+apply_nolint exists_eigenvalue ge_or_gt
+apply_nolint huang_degree_theorem ge_or_gt
+
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
 
@@ -122,6 +212,27 @@ apply_nolint tactic.interactive.traversable_law_starter doc_blame
 apply_nolint tactic.interactive.traverse_constructor unused_arguments
 apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
+
+-- counterexamples/direct_sum_is_internal.lean
+apply_nolint with_sign.independent def_lemma doc_blame
+
+-- counterexamples/homogeneous_prime_not_prime.lean
+apply_nolint counterexample_not_prime_but_homogeneous_prime.I_is_homogeneous check_type
+apply_nolint counterexample_not_prime_but_homogeneous_prime.grading.graded_algebra check_type
+apply_nolint counterexample_not_prime_but_homogeneous_prime.grading.left_inv check_type
+apply_nolint counterexample_not_prime_but_homogeneous_prime.grading.right_inv check_type
+apply_nolint counterexample_not_prime_but_homogeneous_prime.two doc_blame
+
+-- counterexamples/quadratic_form.lean
+apply_nolint B unused_arguments
+
+-- counterexamples/seminorm_lattice_not_distrib.lean
+apply_nolint seminorm_not_distrib.p doc_blame
+apply_nolint seminorm_not_distrib.q1 doc_blame
+apply_nolint seminorm_not_distrib.q2 doc_blame
+
+-- counterexamples/sorgenfrey_line.lean
+apply_nolint sorgenfrey_line has_nonempty_instance
 
 -- data/fintype/card_embedding.lean
 apply_nolint fintype.card_embedding_eq_of_infinite fintype_finite

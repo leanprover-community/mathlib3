@@ -12,6 +12,9 @@ import measure_theory.function.simple_func_dense
 /-!
 # Strongly measurable and finitely strongly measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function `f` is said to be strongly measurable if `f` is the sequential limit of simple functions.
 It is said to be finitely strongly measurable with respect to a measure `μ` if the supports
 of those simple functions have finite measure. We also provide almost everywhere versions of

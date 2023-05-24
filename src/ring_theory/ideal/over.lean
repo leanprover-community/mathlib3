@@ -11,6 +11,9 @@ import ring_theory.localization.integral
 /-!
 # Ideals over/under ideals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file concerns ideals lying over other ideals.
 Let `f : R →+* S` be a ring homomorphism (typically a ring extension), `I` an ideal of `R` and
 `J` an ideal of `S`. We say `J` lies over `I` (and `I` under `J`) if `I` is the `f`-preimage of `J`.

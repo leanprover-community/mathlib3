@@ -99,7 +99,7 @@ section diagrams
 variables {R : Type u} [comm_ring R]
 
 /-- The functor sending a natural number `i` to the `i`-th power of the ideal `J` -/
-def ideal_powers (J : ideal R) : ℕᵒᵖ ⥤ ideal R :=
+def ideal_powers_diagram (J : ideal R) : ℕᵒᵖ ⥤ ideal R :=
 { obj := λ t, J^(unop t),
   map := λ s t w, ⟨⟨ideal.pow_le_pow w.unop.down.down⟩⟩, }
 
@@ -132,7 +132,7 @@ variables {R : Type u} [comm_ring R]
 a commutative ring `R` with support in the ideal `J` of `R`, defined as the direct limit
 of `Ext^i(R/J^t, M)` over all powers `t : ℕ`. -/
 def local_cohomology (J : ideal R) (i : ℕ) : Module.{u} R ⥤ Module.{u} R :=
-  of_diagram (ideal_powers J) i
+  of_diagram (ideal_powers_diagram J) i
 
 /-- Local cohomology as the direct limit of `Ext^i(R/J', M)` over *all* ideals `J'` with radical
 containing `J`. -/
@@ -151,10 +151,10 @@ open local_cohomology
 
 variables {R : Type u} [comm_ring R] (I J : ideal R)
 
-/-- Lifting the `ideal_powers J` diagram from a diagram valued in `ideals R` to a diagram
+/-- Lifting `ideal_powers_diagram J` from a diagram valued in `ideals R` to a diagram
 valued in `self_le_radical J`. -/
 def local_cohomology.ideal_powers_to_self_le_radical (J : ideal R) : ℕᵒᵖ ⥤ self_le_radical J :=
-full_subcategory.lift _ (ideal_powers J)
+full_subcategory.lift _ (ideal_powers_diagram J)
 (λ k, begin
   change _ ≤ (J^(unop k)).radical,
   cases (unop k),
@@ -162,9 +162,10 @@ full_subcategory.lift _ (ideal_powers J)
   { simp only [J.radical_pow _ n.succ_pos, ideal.le_radical] },
 end)
 
-/-- The composition with the inclusion into `ideals R` is isomorphic to `ideal_powers J`. -/
+/-- The composition with the inclusion into `ideals R` is isomorphic to `ideal_powers_diagram J`. -/
 def local_cohomology.ideal_powers_to_self_le_radical_comp_inclusion (J : ideal R) :
-local_cohomology.ideal_powers_to_self_le_radical J ⋙ self_le_radical_diagram J ≅ ideal_powers J :=
+local_cohomology.ideal_powers_to_self_le_radical J ⋙ self_le_radical_diagram J
+  ≅ ideal_powers_diagram J :=
   full_subcategory.lift_comp_inclusion _ _ _
 
 /-- The lemma below essentially says that `ideal_powers_to_self_le_radical I` is initial in

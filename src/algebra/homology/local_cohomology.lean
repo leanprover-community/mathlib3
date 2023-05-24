@@ -132,7 +132,7 @@ def local_cohomology (J : ideal R) (i : ℕ) : Module.{u} R ⥤ Module.{u} R :=
 
 /-- Local cohomology as the direct limit of Ext(R/J, M) over *all* ideals with the same radical
 as `J`. -/
-def of_radical_eq_radical (J : ideal R) (i : ℕ) :
+def local_cohomology.of_radical_eq_radical (J : ideal R) (i : ℕ) :
   Module.{u} R ⥤ Module.{u} R :=
 of_diagram.{u} (same_radical_diagram.{u} J) i
 -- TODO: Construct `local_cohomology J i ≅ local_cohomology.of_radical_eq_radical J i`

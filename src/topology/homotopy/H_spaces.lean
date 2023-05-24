@@ -23,20 +23,21 @@ Some notable properties of `H-spaces` are
 
 ## Main Results
 
-* Every topological group `G` is an `H-space` using its operation `* : G → G → G`;
+* Every topological group `G` is an `H-space` using its operation `* : G → G → G` (this is already
+true if `G` has an instance of a `mul_one_class` and `continuous_mul`);
 * Given two `H-spaces` `X` and `Y`, their product is again an `H`-space. We show in an example that
 starting with two topological groups `G, G'`, the `H`-space structure on `G × G'` is definitionally
 equal to the product of `H-space` structures on `G` and `G'`.
 * The loop space based at every `x : X` carries a structure of an `H-spaces`.
 
 ## To Do
-* Prove that for all `z : ℝ`, the operation `λ x y, (x + y)/2` defines a `H-space` structure with
-`z` as a "neutral element".
+* Prove that for every `normed_add_torsor Z` and every `z : Z`, the operation
+`λ x y, midpoint x y` defines a `H-space` structure with `z` as a "neutral element".
 * Prove that `S^0`, `S^1`, `S^3` and `S^7` are the unique spheres that are `H-spaces`, where the
 first three inherit the structure because they are topological groups (they are Lie groups,
 actually), isomorphic to the invertible elements in `ℤ`, in `ℂ` and in the quaternion; and the
 fourth from the fact that `S^7` coincides with the octonions of norm 1 (it is not a group, in
-particular).
+particular, only has an instance of `mul_one_class`).
 
 ## References
 
@@ -115,13 +116,17 @@ instance H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topologic
 
 namespace topological_group
 
-@[priority 600, to_additive] instance H_space (G : Type u) [topological_space G] [group G]
-  [topological_group G] : H_space G :=
-{ Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
+@[priority 600, to_additive] instance H_space (M : Type u) [mul_one_class M] [topological_space M]
+  [has_continuous_mul M] : H_space M :=
+  { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
   e := 1,
   Hmul_e_e := one_mul 1,
   e_Hmul := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply one_mul}),
   Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply mul_one}) }
+
+@[priority 600, to_additive] instance topological_group.to_H_space (G : Type u)
+[topological_space G] [group G] [topological_group G] : H_space G := infer_instance
+
 
 lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl

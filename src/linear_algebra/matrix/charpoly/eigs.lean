@@ -29,7 +29,7 @@ open linear_map module.End
 open_locale matrix big_operators
 
 lemma prod_roots_charpoly_eq_det (A : matrix n n R) :
-  A.det = (matrix.charpoly A).roots.prod :=
+  (matrix.charpoly A).roots.prod = A.det :=
 begin
   casesI is_empty_or_nonempty n,
   { have hdeg := charpoly_nat_degree_eq_dim A,

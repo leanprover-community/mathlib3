@@ -10,9 +10,33 @@ import topology.homotopy.path
 # H-spaces
 
 This file defines H-spaces mainly following the approach proposed by Serre in his paper
-*Homologie singulière des espaces fibrés*. The main results are the H-space `instance` on every
-topological group, and the H-space structure on the loop space (based at `x : X` of any topological
-space `X`, for which we introduce the notation `Ω_[x]`.
+*Homologie singulière des espaces fibrés*. The idea beaneath `H-spaces` is that they are topological
+spaces with a binary operation `⋀ : X → X → X` that is a homotopic-theoretic weakening of an
+operation what would make `X` into a topological group. In particular, there exists a "neutral
+element" `e : X` such that `λ x, e ⋀ x` and `λ x, x ⋀ e` are homotopic to the identity on `X`, see
+[the Wikipedia page of H-spaces](https://en.wikipedia.org/wiki/H-space).
+
+Some notable properties of `H-spaces` are
+* Their fundamental group is always abelian (by the same argument for topological groups);
+* Their cohomology ring comes equipped with a structure of a Hopf-algebra;
+* The loop space based at every `x : X` carries a structure of an `H-spaces`.
+
+## Main Results
+
+* Every topological group `G` is an `H-space` using its operation `* : G → G → G`;
+* Given two `H-spaces` `X` and `Y`, their product is again an `H`-space. We show in an example that
+starting with two topological groups `G, G'`, the `H`-space structure on `G × G'` is definitionally
+equal to the product of `H-space` structures on `G` and `G'`.
+* The loop space based at every `x : X` carries a structure of an `H-spaces`.
+
+# To Do
+* Prove that for all `z : ℝ`, the operation `λ x y, (x + y)/2` defines a `H-space` structure with
+`z` as a "neutral element".
+* Prove that `S^0`, `S^1`, `S^3` and `S^7` are the unique spheres that are `H-spaces`, where the
+first three inherit the structure because they are topological groups (they are Lie groups,
+actually), isomorphic to the invertible elements in `ℤ`, in `ℂ` and in the quaternion; and the
+fourth from the fact that `S^7` coincides with the octonions of norm 1 (it is not a group, in
+particular).
 
 ## References
 

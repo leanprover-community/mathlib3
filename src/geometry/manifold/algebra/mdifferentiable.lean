@@ -70,22 +70,27 @@ variables {f g : M → G} {s : set M} {x : M}
 include _i
 
 @[to_additive]
-lemma mdifferentiable_within_at.mul
+lemma mdifferentiable_within_at.mul'
   (hf : mdifferentiable_within_at I I' f s x)
   (hg : mdifferentiable_within_at I I' g s x) : mdifferentiable_within_at I I' (f * g) s x :=
 ((smooth_mul I').smooth_at.mdifferentiable_within_at le_top).comp x (hf.prod_mk hg) le_top
 
 @[to_additive]
-lemma mdifferentiable_at.mul
+lemma mdifferentiable_at.mul'
   (hf : mdifferentiable_at I I' f x)
   (hg : mdifferentiable_at I I' g x) : mdifferentiable_at I I' (f * g) x :=
-((smooth_mul I').smooth_at.mdifferentiable_at le_top).comp x (hf.prod_mk hg)
+begin
+  have h₂ : mdifferentiable_at (I'.prod I') I' (λ p : G × G, p.1 * p.2) (f x, g x),
+  { apply (smooth_mul I').smooth_at.mdifferentiable_at,
+    apply_instance },
+  exact h₂.comp x (hf.prod_mk hg),
+end
 
 @[to_additive]
-lemma mdifferentiable.mul
+lemma mdifferentiable.mul'
   (hf : mdifferentiable I I' f)
   (hg : mdifferentiable I I' g) : mdifferentiable I I' (f * g) :=
-λ x, (hf x).mul (hg x)
+λ x, (hf x).mul' (hg x)
 
 end has_smooth_mul
 
@@ -95,17 +100,22 @@ variables {R : Type*} [ring R] [topological_space R] [charted_space H' R] [smoot
 variables {f g : M → R} {s : set M} {x : M}
 include _i
 
-lemma mdifferentiable_within_at.neg
+lemma mdifferentiable_within_at.neg'
   (hf : mdifferentiable_within_at I I' f s x) : mdifferentiable_within_at I I' (-f) s x :=
 ((smooth_neg I').smooth_at.mdifferentiable_within_at le_top).comp x hf le_top
 
-lemma mdifferentiable_at.neg
+lemma mdifferentiable_at.neg'
   (hf : mdifferentiable_at I I' f x) : mdifferentiable_at I I' (-f) x :=
-((smooth_neg I').smooth_at.mdifferentiable_at le_top).comp x hf
+begin
+  have h₂ : mdifferentiable_at I' I' (λ p : R, -p) (f x),
+  { apply (smooth_neg I').smooth_at.mdifferentiable_at,
+    apply_instance },
+  exact h₂.comp x hf,
+end
 
-lemma mdifferentiable.neg
+lemma mdifferentiable.neg'
   (hf : mdifferentiable I I' f) : mdifferentiable I I' (-f) :=
-λ x, (hf x).neg
+λ x, (hf x).neg'
 
 variables (I I' M R)
 
@@ -113,11 +123,11 @@ variables (I I' M R)
 -/
 def mdifferentiable_subring : subring (M → R) :=
 { carrier := {f | mdifferentiable I I' f},
-  mul_mem' := λ f g hf hg, mdifferentiable.mul hf hg,
+  mul_mem' := λ f g hf hg, mdifferentiable.mul' hf hg,
   one_mem' := (mdifferentiable_const I I' : mdifferentiable I I' (λ _, (1:R))),
-  add_mem' := λ f g hf hg, mdifferentiable.add hf hg,
+  add_mem' := λ f g hf hg, mdifferentiable.add' hf hg,
   zero_mem' := (mdifferentiable_const I I' : mdifferentiable I I' (λ _, (0:R))),
-  neg_mem' := λ f hf, mdifferentiable.neg hf }
+  neg_mem' := λ f hf, mdifferentiable.neg' hf }
 
 /-- For a `I'`-smooth ring `R` and `I`-smooth manifold `M`, the subring of `M → R` consisting of
 the `lift_prop (differentiable_within_at_prop I I')` functions. -/
@@ -138,7 +148,7 @@ variables {M}
 def mdifferentiable_restrict {U V : opens M} (h : U ≤ V) :
   mdifferentiable_subring I V I' R →+* mdifferentiable_subring I U I' R :=
 ring_hom.cod_restrict
-  (ring_hom.restrict
+  (ring_hom.dom_restrict
     (ring_hom.comp_right (set.inclusion h) : (V → R) →+* (U → R))
     (mdifferentiable_subring I V I' R))
   (mdifferentiable_subring I U I' R)
@@ -150,7 +160,7 @@ def differentiable_within_at_local_invariant_prop_restrict {U V : opens M} (h : 
   differentiable_within_at_local_invariant_prop_subring I V I' R
   →+* differentiable_within_at_local_invariant_prop_subring I U I' R :=
 ring_hom.cod_restrict
-  (ring_hom.restrict
+  (ring_hom.dom_restrict
     (ring_hom.comp_right (set.inclusion h) : (V → R) →+* (U → R))
     (differentiable_within_at_local_invariant_prop_subring I V I' R))
   (differentiable_within_at_local_invariant_prop_subring I U I' R)

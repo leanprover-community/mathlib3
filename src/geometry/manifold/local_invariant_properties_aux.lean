@@ -7,7 +7,7 @@ import geometry.manifold.local_invariant_properties
 
 /-! # Further facts about of `local_invariant_prop` -/
 
-open_locale manifold topological_space
+open_locale manifold topology
 open set topological_space structure_groupoid structure_groupoid.local_invariant_prop
 
 variables {H : Type*} [topological_space H]
@@ -52,8 +52,9 @@ begin
     have hxe' : (x.1 :M) ∈ e'.source := mem_chart_source _ _,
     refine ⟨e'.map_source hxe', _⟩,
     rw [U.local_homeomorph_subtype_coe_target],
-    convert x.prop,
-    exact e'.left_inv_on hxe' },
+    have hxe'' : e'.symm (e' x) = _ := e'.left_inv_on hxe',
+    rw [hxe''],
+    exact x.prop },
   { show ∀ y ∈ (e'.subtype_restr U).symm.source,
       e (f ((e'.subtype_restr V).symm y)) = e (f (i ((e'.subtype_restr U).symm y))),
     intros y hy,

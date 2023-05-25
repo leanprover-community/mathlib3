@@ -14,6 +14,9 @@ import ring_theory.localization.integer
 /-!
 # Matrices and linear equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gives the map `matrix.to_linear_equiv` from matrices with invertible determinant,
 to linear equivs.
 

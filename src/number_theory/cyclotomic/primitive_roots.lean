@@ -10,6 +10,7 @@ import number_theory.cyclotomic.basic
 import ring_theory.adjoin.power_basis
 import ring_theory.polynomial.cyclotomic.eval
 import ring_theory.norm
+import ring_theory.polynomial.cyclotomic.expand
 
 /-!
 # Primitive roots in cyclotomic fields

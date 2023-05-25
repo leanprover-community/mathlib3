@@ -615,15 +615,6 @@ instance [Π i, module 𝕜ᵐᵒᵖ (E i)] [Π i, is_central_scalar 𝕜 (E i)]
   is_central_scalar 𝕜 (lp E p) :=
 ⟨λ r f, subtype.ext $ op_smul_eq_smul _ _⟩
 
-theorem _root_.nnreal.has_sum_mono {α : Type u_1} {f g : α → nnreal} {sf sg : nnreal}
-  (hf : has_sum f sf) (hg : has_sum g sg) (h : f ≤ g) :
-  sf ≤ sg :=
-begin
-  obtain rfl | hlt := eq_or_lt_of_le h,
-  { exact (hf.unique hg).le },
-  { exact (nnreal.has_sum_strict_mono hf hg hlt).le },
-end
-
 lemma norm_const_smul_le (hp : p ≠ 0) (c : 𝕜) (f : lp E p) : ‖c • f‖ ≤ ‖c‖ * ‖f‖ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
@@ -650,7 +641,7 @@ begin
     have hRHS := (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
     simp_rw [←coe_nnnorm, ←_root_.coe_nnnorm, ←nnreal.coe_rpow, ←nnreal.coe_mul,
       nnreal.has_sum_coe] at hRHS hLHS,
-    refine nnreal.has_sum_mono hLHS hRHS (λ i, _),
+    refine has_sum_mono hLHS hRHS (λ i, _),
     dsimp only,
     rw [←nnreal.mul_rpow],
     exact nnreal.rpow_le_rpow (nnnorm_smul_le _ _) ennreal.to_real_nonneg }

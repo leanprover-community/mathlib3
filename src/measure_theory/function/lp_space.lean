@@ -1417,18 +1417,19 @@ end normed_space
 
 section monotonicity
 
-lemma snorm_le_mul_snorm_aux_of_nonneg {f : α → F} {g : α → G} {c : ℝ}
-  (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) (hc : 0 ≤ c) (p : ℝ≥0∞) :
-  snorm f p μ ≤ (ennreal.of_real c) * snorm g p μ :=
+lemma snorm_le_nnreal_smul_snorm_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ≥0}
+  (h : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ c * ‖g x‖₊) (p : ℝ≥0∞) :
+  snorm f p μ ≤ c • snorm g p μ :=
 begin
-  lift c to ℝ≥0 using hc,
-  rw [ennreal.of_real_coe_nnreal, ← c.nnnorm_eq, ← snorm_norm g, ← snorm_const_smul (c : ℝ)],
+  rw [← snorm_norm g, ←c.nnnorm_eq, ennreal.smul_def, smul_eq_mul, ← snorm_const_smul (c : ℝ)],
   swap, apply_instance,
-  refine snorm_mono_ae _,
-  simpa
+  refine snorm_mono_nnnorm_ae (h.mono $ λ x hx, hx.trans_eq _),
+  rw [pi.smul_apply, smul_eq_mul, nnnorm_mul, nnreal.nnnorm_eq, nnnorm_norm],
 end
 
-lemma snorm_le_mul_snorm_aux_of_neg {f : α → F} {g : α → G} {c : ℝ}
+/-- When `c` is negative, `‖f x‖ ≤ c * ‖g x‖` is nonsense and forces both `f` and `g` to have an
+`snorm` of `0`. -/
+lemma snorm_eq_zero_and_zero_of_ae_le_mul_neg {f : α → F} {g : α → G} {c : ℝ}
   (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) (hc : c < 0) (p : ℝ≥0∞) :
   snorm f p μ = 0 ∧ snorm g p μ = 0 :=
 begin
@@ -1444,11 +1445,8 @@ end
 lemma snorm_le_mul_snorm_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ}
   (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) (p : ℝ≥0∞) :
   snorm f p μ ≤ (ennreal.of_real c) * snorm g p μ :=
-begin
-  cases le_or_lt 0 c with hc hc,
-  { exact snorm_le_mul_snorm_aux_of_nonneg h hc p },
-  { simp [snorm_le_mul_snorm_aux_of_neg h hc p] }
-end
+snorm_le_nnreal_smul_snorm_of_ae_le_mul
+  (h.mono $ λ x hx, hx.trans $ mul_le_mul_of_nonneg_right c.le_coe_to_nnreal (norm_nonneg _)) _
 
 lemma mem_ℒp.of_le_mul {f : α → E} {g : α → F} {c : ℝ}
   (hg : mem_ℒp g p μ) (hf : ae_strongly_measurable f μ) (hfg : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) :
@@ -1748,7 +1746,7 @@ begin
     rwa [← ennreal.to_real_le_to_real, ennreal.to_real_mul, ennreal.to_real_of_real hc] at this,
     { exact (Lp.mem_ℒp _).snorm_ne_top },
     { exact ennreal.mul_ne_top ennreal.of_real_ne_top (Lp.mem_ℒp _).snorm_ne_top } },
-  { have := snorm_le_mul_snorm_aux_of_neg h hc p,
+  { have := snorm_eq_zero_and_zero_of_ae_le_mul_neg h hc p,
     simp [this] }
 end
 

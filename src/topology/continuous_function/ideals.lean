@@ -77,7 +77,8 @@ open topological_space
 
 section topological_ring
 
-variables {X R : Type*} [topological_space X] [semiring R] [topological_space R] [topological_semiring R]
+variables {X R : Type*} [topological_space X] [semiring R]
+variables [topological_space R] [topological_semiring R]
 
 variable (R)
 

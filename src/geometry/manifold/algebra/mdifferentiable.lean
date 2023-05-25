@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import geometry.manifold.algebra.structures
-import geometry.manifold.local_invariant_properties_aux
 
 /-! supplement to `geometry.manifold.algebra.*` -/
 

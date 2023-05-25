@@ -58,7 +58,7 @@ begin
 end
 
 instance Top.of.smooth_manifold_with_corners : smooth_manifold_with_corners IM (Top.of M) :=
-(by apply_instance : smooth_manifold_with_corners IM M)
+(infer_instance : smooth_manifold_with_corners IM M)
 
 end type
 

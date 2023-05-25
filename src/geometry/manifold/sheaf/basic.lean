@@ -3,7 +3,7 @@ Copyright © 2022 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import geometry.manifold.local_invariant_properties_aux
+import geometry.manifold.local_invariant_properties
 import topology.sheaves.local_predicate
 
 /-! # Generic construction of a sheaf from a `local_invariant_prop` on a manifold -/

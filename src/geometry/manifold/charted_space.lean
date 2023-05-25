@@ -984,6 +984,20 @@ instance [closed_under_restriction G] : has_groupoid s G :=
     { exact preimage_open_of_open_symm (chart_at H x) s.2 },
   end }
 
+lemma chart_at_inclusion_eventually_eq {U V : opens M} (hUV : U ≤ V) {x : U} :
+  let i := set.inclusion hUV in
+  (chart_at H (i x)).symm =ᶠ[𝓝 (chart_at H (i x) (i x))] i ∘ (chart_at H x).symm :=
+begin
+  intro i,
+  set e := chart_at H (x:M),
+  haveI : nonempty U := ⟨x⟩,
+  haveI : nonempty V := ⟨i x⟩,
+  have heUx_nhds : (e.subtype_restr U).target ∈ 𝓝 (e x),
+  { apply (e.subtype_restr U).open_target.mem_nhds,
+    exact e.map_subtype_source (mem_chart_source _ _) },
+  exact filter.eventually_eq_of_mem heUx_nhds (e.subtype_restr_eq_on_of_le hUV),
+end
+
 end topological_space.opens
 
 /-! ### Structomorphisms -/

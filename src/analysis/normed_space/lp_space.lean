@@ -666,23 +666,11 @@ variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ = ‖c‖ * ‖f‖ :=
 begin
-  rcases p.trichotomy with rfl | rfl | hp,
-  { exact absurd rfl hp },
-  { cases is_empty_or_nonempty α; resetI,
-    { simp [lp.eq_zero' f], },
-    apply (lp.is_lub_norm (c • f)).unique,
-    convert (lp.is_lub_norm f).mul_left (norm_nonneg c),
-    ext a,
-    simp [coe_fn_smul, norm_smul] },
-  { suffices : ‖c • f‖ ^ p.to_real = (‖c‖ * ‖f‖) ^ p.to_real,
-    { refine real.rpow_left_inj_on hp.ne' _ _ this,
-      { exact norm_nonneg' _ },
-      { exact mul_nonneg (norm_nonneg _) (norm_nonneg' _) } },
-    apply (lp.has_sum_norm hp (c • f)).unique,
-    convert (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
-    { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
-    have hf : 0 ≤ ‖f‖ := lp.norm_nonneg' f,
-    simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
+  obtain rfl | hc := eq_or_ne c 0,
+  { simp },
+  refine le_antisymm (norm_const_smul_le hp c f) _,
+  have := mul_le_mul_of_nonneg_left (norm_const_smul_le hp c⁻¹ (c • f)) (norm_nonneg c),
+  rwa [inv_smul_smul₀ hc, norm_inv, mul_inv_cancel_left₀ (norm_ne_zero_iff.mpr hc)] at this,
 end
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=

@@ -1213,6 +1213,21 @@ end
 
 end has_measurable_add
 
+lemma snorm'_le_nnreal_smul_snorm' {f : α → F} {g : α → G} {c : ℝ≥0}
+  (h : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ c * ‖g x‖₊) {p : ℝ} (hp : 0 < p) :
+  snorm' f p μ ≤ c • snorm' g p μ :=
+begin
+  simp_rw [snorm'],
+  rw [←ennreal.rpow_le_rpow_iff hp, ennreal.smul_def, smul_eq_mul,
+    ennreal.mul_rpow_of_nonneg _ _ hp.le],
+  simp_rw [←ennreal.rpow_mul, one_div, inv_mul_cancel hp.ne.symm, ennreal.rpow_one,
+    ennreal.coe_rpow_of_nonneg _ hp.le, ←lintegral_const_mul' _ _ ennreal.coe_ne_top,
+    ←ennreal.coe_mul],
+  apply lintegral_mono_ae,
+  simp_rw [ennreal.coe_le_coe, ←nnreal.mul_rpow, nnreal.rpow_le_rpow_iff hp],
+  exact h,
+end
+
 /-!
 ### Bounded actions by normed rings
 
@@ -1230,26 +1245,9 @@ lemma snorm'_comp_le {g : F → E} {K : ℝ≥0} (hg : lipschitz_with K g) (hg0 
   (f : α → F) (hq_pos : 0 < q) :
   snorm' (g ∘ f) q μ ≤ K • snorm' f q μ :=
 begin
-  rw snorm',
-  calc (∫⁻ (a : α), ↑‖g (f a)‖₊ ^ q ∂μ) ^ (1 / q)
-        ≤ (∫⁻ (a : α), ↑(K • ‖f a‖₊) ^ q ∂μ) ^ (1 / q) :
-          (ennreal.rpow_le_rpow_iff $ one_div_pos.mpr hq_pos).mpr $
-            lintegral_mono $ λ a, (ennreal.rpow_le_rpow_iff hq_pos).mpr $
-              ennreal.coe_le_coe.mpr $ _
-    ... = _ : _,
-  { -- TODO: add `lipschitz_with.nnnorm_sub_le` and `lipschitz_with.nnnorm_le`
-    simpa [hg0] using hg.norm_sub_le (f a) 0 },
-  simp_rw [ennreal.coe_smul, ennreal.smul_def, smul_eq_mul,
-    ennreal.mul_rpow_of_nonneg _ _ hq_pos.le],
-  suffices h_integral : ∫⁻ a, ↑(K) ^ q * ↑‖f a‖₊ ^ q ∂μ
-    = (K : ℝ≥0∞)^q * ∫⁻ a, ‖f a‖₊ ^ q ∂μ,
-  { apply_fun (λ x, x ^ (1/q)) at h_integral,
-    rw [h_integral, ennreal.mul_rpow_of_nonneg _ _ (by simp [hq_pos.le] : 0 ≤ 1 / q)],
-    congr,
-    simp_rw [←ennreal.rpow_mul, one_div, mul_inv_cancel hq_pos.ne.symm, ennreal.rpow_one], },
-  rw lintegral_const_mul',
-  rw ennreal.coe_rpow_of_nonneg _ hq_pos.le,
-  exact ennreal.coe_ne_top,
+  refine snorm'_le_nnreal_smul_snorm' (eventually_of_forall $ λ a, _) hq_pos,
+  -- TODO: add `lipschitz_with.nnnorm_sub_le` and `lipschitz_with.nnnorm_le`
+  simpa [hg0] using hg.norm_sub_le (f a) 0,
 end
 
 lemma ess_sup_comp_le {g : F → E} {K : ℝ≥0}

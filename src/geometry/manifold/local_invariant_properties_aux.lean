@@ -17,28 +17,21 @@ variables {H : Type*} [topological_space H]
   {M' : Type*} [topological_space M'] [charted_space H' M']
   {P : (H → H') → (set H) → H → Prop}
 
-namespace structure_groupoid.local_invariant_prop
-
--- this should be a lot shorter!!! clean up with `mfld_set_tac` and/or better simp-lemmas
-lemma foo₂ {U V : opens M} {hUV : U ≤ V} (f : V → H') {x : U} :
-  let i := set.inclusion hUV in
-  (chart_at H (i x)).symm =ᶠ[𝓝 (chart_at H (i x) (i x))] i ∘ (chart_at H x).symm :=
+lemma baz (e : local_homeomorph M H) {U : opens M} [nonempty U] (x : U) (hxe : (x:M) ∈ e.source) :
+  e x ∈ (e.subtype_restr U).target :=
 begin
-  intro i,
-  set e := chart_at H (x:M),
-  haveI : nonempty U := ⟨x⟩,
-  haveI : nonempty V := ⟨i x⟩,
-  have heUx_nhds : (e.subtype_restr U).symm.source ∈ 𝓝 (chart_at H x x),
-  { apply (e.subtype_restr U).symm.open_source.mem_nhds,
-    show e x ∈ (e.subtype_restr U).symm.source,
-    rw [local_homeomorph.subtype_restr_def, local_homeomorph.symm_source],
-    have hxe : (x : M) ∈ e.source := mem_chart_source _ _,
-    refine ⟨e.map_source hxe, _⟩,
-    rw [U.local_homeomorph_subtype_coe_target, mem_preimage, e.left_inv_on hxe],
-    exact x.prop },
-  apply filter.eventually_eq_of_mem heUx_nhds,
+  refine ⟨e.map_source hxe, _⟩,
+  rw [U.local_homeomorph_subtype_coe_target, mem_preimage, e.left_inv_on hxe],
+  exact x.prop
+end
+
+lemma bop {U V : opens M} [nonempty U] [nonempty V] (hUV : U ≤ V)
+  (e : local_homeomorph M H) :
+  eq_on (e.subtype_restr V).symm (set.inclusion hUV ∘ (e.subtype_restr U).symm)
+    (e.subtype_restr U).target :=
+begin
+  set i := set.inclusion hUV,
   intros y hy,
-  show (e.subtype_restr V).symm y = i ((e.subtype_restr U).symm y),
   dsimp [local_homeomorph.subtype_restr_def] at ⊢ hy,
   have hyV : e.symm y ∈ V.local_homeomorph_subtype_coe.target,
   { rw opens.local_homeomorph_subtype_coe_target at ⊢ hy,
@@ -51,6 +44,22 @@ begin
   { rw V.local_homeomorph_subtype_coe.right_inv hyV,
     show _ = U.local_homeomorph_subtype_coe _,
     rw U.local_homeomorph_subtype_coe.right_inv hy.2 }
+end
+
+namespace structure_groupoid.local_invariant_prop
+
+lemma foo₂ {U V : opens M} {hUV : U ≤ V} (f : V → H') {x : U} :
+  let i := set.inclusion hUV in
+  (chart_at H (i x)).symm =ᶠ[𝓝 (chart_at H (i x) (i x))] i ∘ (chart_at H x).symm :=
+begin
+  intro i,
+  set e := chart_at H (x:M),
+  haveI : nonempty U := ⟨x⟩,
+  haveI : nonempty V := ⟨i x⟩,
+  have heUx_nhds : (e.subtype_restr U).target ∈ 𝓝 (e x),
+  { apply (e.subtype_restr U).open_target.mem_nhds,
+    exact baz e x (mem_chart_source _ _) },
+  exact filter.eventually_eq_of_mem heUx_nhds (bop hUV e),
 end
 
 lemma foo (hG : local_invariant_prop G G' P) {U V : opens M} (hUV : U ≤ V) (f : V → M') (x : U) :

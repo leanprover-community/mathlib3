@@ -11,12 +11,12 @@ import algebra.char_p.two
 /-!
 # Eigenvalues are characteristic polynomial roots.
 
-
 In algebraically closed fields, we show:
+
 * `matrix.det_eq_prod_roots_charpoly`: the determinant is the product of the roots of the
-characteristic polynomial.
+  characteristic polynomial.
 * `matrix.trace_eq_sum_roots_charpoly`: the trace is the sum of the roots of the characteristic
-polynomial.
+  polynomial.
 
 Note that over other fields such as ` ℝ`, these results can be used by using
 `A.map (algebra_map ℝ ℂ)` as the matrix, and then applying `ring_hom.map_det`.
@@ -28,8 +28,8 @@ polynomial of a linear endomorphism. These do not have correct multiplicity and 
 the theorems above. Hence we express these theorems in terms of the roots of the characteristic
 polynomial directly.
 -/
-variables {n: Type*}[fintype n][decidable_eq n]
-variables {R: Type*}[field R][is_alg_closed R]
+variables {n : Type*} [fintype n] [decidable_eq n]
+variables {R : Type*} [field R] [is_alg_closed R]
 
 open matrix polynomial
 open_locale matrix big_operators

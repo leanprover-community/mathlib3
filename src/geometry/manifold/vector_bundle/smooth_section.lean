@@ -41,13 +41,13 @@ variables [Π x : M, topological_space (V x)]
   [vector_bundle 𝕜 F V]
   [smooth_vector_bundle F V I]
 
-/-- Bundled `n` times continuously differentiable maps. -/
+/-- Bundled `n` times continuously differentiable sections of a vector bundle. -/
 @[protect_proj]
 structure cont_mdiff_section :=
 (to_fun            : Π x, V x)
 (cont_mdiff_to_fun : cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space_mk x (to_fun x)))
 
-/-- Bundled smooth maps. -/
+/-- Bundled smooth sections of a vector bundle. -/
 @[reducible] def smooth_section := cont_mdiff_section I F ⊤ V
 
 localized "notation (name := cont_mdiff_section) `Cₛ^` n `⟮` I `; ` F `, ` V `⟯` :=

@@ -64,6 +64,10 @@ def ring_mod_ideals (I : D ⥤ ideal R) : D ⥤ Module.{u} R :=
 { obj := λ t, Module.of R $ R ⧸ (I.obj t),
   map := λ s t w, submodule.mapq _ _ (linear_map.id) (I.map w).down.down }
 
+/- TODO:  Once this file is ported, move this file to the right location. -/
+instance Module_enough_projectives' : enough_projectives (Module.{u} R) :=
+  Module.Module_enough_projectives.{u}
+
 /-- The diagram we will take the colimit of to define local cohomology, corresponding to the
 directed system determined by the functor `I` -/
 def diagram (I : D ⥤ ideal R) (i : ℕ) : Dᵒᵖ ⥤ Module.{u} R ⥤ Module.{u} R :=

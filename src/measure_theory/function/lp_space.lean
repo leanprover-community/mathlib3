@@ -1984,7 +1984,9 @@ rfl
 
 section has_bounded_smul
 
-variables {𝕜 : Type*} [normed_ring 𝕜] [module 𝕜 E] [has_bounded_smul 𝕜 E]
+variables {𝕜 𝕜' : Type*}
+variables [normed_ring 𝕜] [normed_ring 𝕜'] [module 𝕜 E] [module 𝕜' E]
+variables [has_bounded_smul 𝕜 E] [has_bounded_smul 𝕜' E]
 
 lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p μ) : c • ↑f ∈ Lp E p μ :=
 begin
@@ -2014,6 +2016,12 @@ lemma coe_fn_smul (c : 𝕜) (f : Lp E p μ) : ⇑(c • f) =ᵐ[μ] c • f := 
 instance [module 𝕜ᵐᵒᵖ E] [has_bounded_smul 𝕜ᵐᵒᵖ E] [is_central_scalar 𝕜 E] :
   is_central_scalar 𝕜 (Lp E p μ) :=
 { op_smul_eq_smul := λ k f, subtype.ext $ op_smul_eq_smul k (f : α →ₘ[μ] E) }
+
+instance [smul_comm_class 𝕜 𝕜' E] : smul_comm_class 𝕜 𝕜' (Lp E p μ) :=
+{ smul_comm := λ k k' f, subtype.ext $ smul_comm k k' (f : α →ₘ[μ] E) }
+
+instance [has_smul 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' E] : is_scalar_tower 𝕜 𝕜' (Lp E p μ) :=
+{ smul_assoc := λ k k' f, subtype.ext $ smul_assoc k k' (f : α →ₘ[μ] E) }
 
 instance [fact (1 ≤ p)] : has_bounded_smul 𝕜 (Lp E p μ) :=
 -- TODO: add `has_bounded_smul.of_nnnorm_smul_le

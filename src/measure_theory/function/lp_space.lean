@@ -1881,7 +1881,6 @@ example [fact (1 ≤ p)] :
   seminormed_add_group.to_has_nnnorm = (Lp.has_nnnorm : has_nnnorm (Lp E p μ)) :=
 rfl
 
-
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]

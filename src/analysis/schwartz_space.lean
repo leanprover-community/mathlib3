@@ -670,8 +670,8 @@ def comp_clm {g : D → E} (hg_smooth : cont_diff ℝ ⊤ g)
   (hg_upper : ∃ (k : ℕ) (C : ℝ) (hC : 1 ≤ C), ∀ x, 1 + ‖x‖ ≤ C * (1 + ‖g x‖)^k ) :
   𝓢(E, F) →L[ℝ] 𝓢(D, F) :=
 mk_clm (λ f x, (f (g x)))
-  (λ f f' x, by simp only [add_left_inj, pi.add_apply, eq_self_iff_true])
-  (λ a f x, by simp only [pi.smul_apply, ring_hom.id_apply])
+  (λ _ _ _, by simp only [add_left_inj, pi.add_apply, eq_self_iff_true])
+  (λ _ _ _, rfl)
   (λ f, f.smooth'.comp hg_smooth)
   (begin
     rintros ⟨k, n⟩,
@@ -712,7 +712,8 @@ mk_clm (λ f x, (f (g x)))
     pow_le_pow_of_le_left (norm_nonneg _) (by simp only [zero_le_one, le_add_iff_nonneg_left]) _,
     refine le_trans (mul_le_mul hxk this (by positivity) (by positivity)) _,
     have rearrange :
-      (1 + ‖x‖) ^ k * (n! * (2 ^ k' * seminorm_f / (1 + ‖g x‖) ^ k') * ((C + 1) * (1 + ‖x‖) ^ l) ^ n) =
+      (1 + ‖x‖) ^ k * (n! * (2 ^ k' * seminorm_f / (1 + ‖g x‖) ^ k') *
+        ((C + 1) * (1 + ‖x‖) ^ l) ^ n) =
       ((1 + ‖x‖)^(k + l * n) / (1 + ‖g x‖) ^ k') * ((C + 1)^n * n! * 2^k' * seminorm_f) :=
     begin
       rw [mul_pow, pow_add, ← pow_mul],

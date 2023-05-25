@@ -250,7 +250,7 @@ end
 
 section has_bounded_smul
 
-variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)]
+variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜 (E i)]
 
 lemma const_smul {f : Π i, E i} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (c • f) p :=
 begin
@@ -583,7 +583,7 @@ instance [Π i, module 𝕜ᵐᵒᵖ (E i)] [Π i, is_central_scalar 𝕜 (E i)]
   is_central_scalar 𝕜 (pre_lp E) :=
 pi.is_central_scalar
 
-variables [Π i, has_bounded_smul 𝕜 (E i)] [Π i, has_bounded_smul 𝕜' (E i)]
+variables [∀ i, has_bounded_smul 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜' (E i)]
 
 lemma mem_lp_const_smul (c : 𝕜) (f : lp E p) : c • (f : pre_lp E) ∈ lp E p :=
 (lp.mem_ℓp f).const_smul c
@@ -652,8 +652,9 @@ has_bounded_smul.of_norm_smul_le $ norm_const_smul_le (zero_lt_one.trans_le $ fa
 
 end has_bounded_smul
 
-section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+section division_ring
+variables {𝕜 : Type*}
+variables [normed_division_ring 𝕜] [Π i, module 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜 (E i)]
 
 lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ = ‖c‖ * ‖f‖ :=
 begin
@@ -663,6 +664,11 @@ begin
   have := mul_le_mul_of_nonneg_left (norm_const_smul_le hp c⁻¹ (c • f)) (norm_nonneg c),
   rwa [inv_smul_smul₀ hc, norm_inv, mul_inv_cancel_left₀ (norm_ne_zero_iff.mpr hc)] at this,
 end
+
+end division_ring
+
+section normed_space
+variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
 { norm_smul_le := λ c f, norm_smul_le _ _}
@@ -710,7 +716,7 @@ instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
   end }
 
 variables {𝕜 : Type*} [has_star 𝕜] [normed_ring 𝕜]
-variables [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
+variables [Π i, module 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
 
 instance : star_module 𝕜 (lp E p) := { star_smul := λ r f, ext $ star_smul _ _ }
 
@@ -753,13 +759,13 @@ instance : non_unital_normed_ring (lp B ∞) :=
 -- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
 
 instance infty_is_scalar_tower
-  {𝕜} [normed_ring 𝕜] [Π i, module 𝕜 (B i)] [Π i, has_bounded_smul 𝕜 (B i)]
+  {𝕜} [normed_ring 𝕜] [Π i, module 𝕜 (B i)] [∀ i, has_bounded_smul 𝕜 (B i)]
   [Π i, is_scalar_tower 𝕜 (B i) (B i)] :
   is_scalar_tower 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_assoc r ⇑f ⇑g⟩
 
 instance infty_smul_comm_class
-  {𝕜} [normed_ring 𝕜] [Π i, module 𝕜 (B i)] [Π i, has_bounded_smul 𝕜 (B i)]
+  {𝕜} [normed_ring 𝕜] [Π i, module 𝕜 (B i)] [∀ i, has_bounded_smul 𝕜 (B i)]
   [Π i, smul_comm_class 𝕜 (B i) (B i)] :
   smul_comm_class 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_comm r ⇑f ⇑g⟩
@@ -891,7 +897,7 @@ instance infty_normed_algebra : normed_algebra 𝕜 (lp B ∞) :=
 end algebra
 
 section single
-variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [Π i, has_bounded_smul 𝕜 (E i)]
+variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜 (E i)]
 variables [decidable_eq α]
 
 /-- The element of `lp E p` which is `a : E i` at the index `i`, and zero elsewhere. -/

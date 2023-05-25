@@ -25,7 +25,7 @@ variables {R M M' N N' ι : Type*} [semiring R]
   {n : ℕ} (f g : continuous_alternating_map R M N ι)
 
 theorem to_continuous_multilinear_map_injective :
-  function.injective (continuous_alternating_map.to_continuous_multilinear_map :
+  injective (continuous_alternating_map.to_continuous_multilinear_map :
     continuous_alternating_map R M N ι → continuous_multilinear_map R (λ i : ι, M) N)
 | ⟨f, hf⟩ ⟨g, hg⟩ rfl := rfl
 
@@ -51,6 +51,7 @@ initialize_simps_projections continuous_alternating_map
 @[continuity] lemma coe_continuous : continuous ⇑f := f.cont
 
 @[simp] lemma coe_to_continuous_multilinear_map : ⇑f.to_continuous_multilinear_map = f := rfl
+@[simp] lemma coe_mk (f : continuous_multilinear_map R (λ _ : ι, M) N) (h) : ⇑(mk f h) = f := rfl
 
 @[ext] theorem ext {f g : continuous_alternating_map R M N ι} (H : ∀ x, f x = g x) : f = g :=
 fun_like.ext _ _ H
@@ -60,6 +61,10 @@ fun_like.ext_iff
 
 @[simps { simp_rhs := true }]
 def to_alternating_map : alternating_map R M N ι := { .. f }
+
+lemma to_alternating_map_injective :
+  injective (to_alternating_map : continuous_alternating_map R M N ι → alternating_map R M N ι) :=
+λ f g h, fun_like.ext' $ by convert fun_like.ext'_iff.1 h
 
 @[simp] theorem range_to_alternating_map :
   set.range (to_alternating_map : continuous_alternating_map R M N ι → alternating_map R M N ι) =
@@ -501,3 +506,40 @@ continuous multilinear map sending `m` to `f m • z`. -/
 end smul_right
 
 end continuous_alternating_map
+
+namespace continuous_multilinear_map
+
+variables {R M N ι : Type*} [semiring R]
+  [add_comm_monoid M] [module R M] [topological_space M]
+  [add_comm_group N] [module R N] [topological_space N]
+  [topological_add_group N] [fintype ι] [decidable_eq ι]
+  (f g : continuous_multilinear_map R (λ _ : ι, M) N)
+
+-- note: squeezed simps to make it compile faster
+@[simps apply_to_continuous_multilinear_map { attrs := [] }]
+def alternatization :
+  continuous_multilinear_map R (λ i : ι, M) N →+ continuous_alternating_map R M N ι :=
+{ to_fun := λ f,
+    { to_continuous_multilinear_map := ∑ (σ : equiv.perm ι), σ.sign • f.dom_dom_congr σ,
+      map_eq_zero_of_eq' := λ v i j hv hne, by simpa only [multilinear_map.alternatization_apply,
+        multilinear_map.to_fun_eq_coe, coe_coe, sum_apply, alternating_map.to_fun_eq_coe]
+        using f.1.alternatization.map_eq_zero_of_eq' v i j hv hne },
+  map_zero' := by { ext, simp only [sum_apply, smul_apply, dom_dom_congr_apply,
+    continuous_alternating_map.coe_mk, zero_apply, smul_zero, finset.sum_const_zero,
+    continuous_alternating_map.coe_zero, pi.zero_apply] },
+  map_add' := λ _ _, by { ext, simp only [finset.sum_add_distrib,
+    continuous_alternating_map.coe_mk, continuous_alternating_map.coe_add,
+    pi.add_apply, add_apply, sum_apply, smul_apply, dom_dom_congr_apply, smul_add] } }
+
+lemma alternatization_apply_apply (v : ι → M) :
+  alternatization f v = ∑ σ : equiv.perm ι, σ.sign • f (v ∘ σ) :=
+by simp only [alternatization, add_monoid_hom.coe_mk, continuous_alternating_map.coe_mk, sum_apply,
+  smul_apply, dom_dom_congr_apply]
+
+@[simp]
+lemma alternatization_apply_to_alternating_map :
+  (alternatization f).to_alternating_map = f.1.alternatization :=
+by { ext v, simp [alternatization_apply_apply, multilinear_map.alternatization_apply] }
+
+end continuous_multilinear_map
+

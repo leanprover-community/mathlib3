@@ -282,6 +282,20 @@ def pi_equiv {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
 
+@[simps]
+def dom_dom_congr {ι' : Type*} (e : ι ≃ ι') (f : continuous_multilinear_map R (λ _ : ι, M₂) M₃) :
+  continuous_multilinear_map R (λ _ : ι', M₂) M₃ :=
+{ to_multilinear_map := f.dom_dom_congr e,
+  cont := f.cont.comp $ continuous_pi $ λ _, continuous_apply _ }
+
+@[simps]
+def dom_dom_congr_equiv {ι' : Type*} (e : ι ≃ ι') :
+  continuous_multilinear_map R (λ _ : ι, M₂) M₃ ≃ continuous_multilinear_map R (λ _ : ι', M₂) M₃ :=
+{ to_fun := dom_dom_congr e,
+  inv_fun := dom_dom_congr e.symm,
+  left_inv := λ _, ext $ λ _, by simp,
+  right_inv := λ _, ext $ λ _, by simp }
+
 /-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the
 additivity of a multilinear map along the first variable. -/

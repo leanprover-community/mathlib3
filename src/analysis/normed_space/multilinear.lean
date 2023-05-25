@@ -931,6 +931,7 @@ rfl
 
 /-- Flip arguments in `f : G →L[𝕜] continuous_multilinear_map 𝕜 E G'` to get
 `continuous_multilinear_map 𝕜 E (G →L[𝕜] G')` -/
+@[simps apply_apply]
 def flip_multilinear (f : G →L[𝕜] continuous_multilinear_map 𝕜 E G') :
   continuous_multilinear_map 𝕜 E (G →L[𝕜] G') :=
 multilinear_map.mk_continuous
@@ -1514,21 +1515,14 @@ variables (𝕜 G G')
 
 /-- An equivalence of the index set defines a linear isometric equivalence between the spaces
 of multilinear maps. -/
-def dom_dom_congr (σ : ι ≃ ι') :
+def dom_dom_congrₗᵢ (σ : ι ≃ ι') :
   continuous_multilinear_map 𝕜 (λ _ : ι, G) G' ≃ₗᵢ[𝕜]
     continuous_multilinear_map 𝕜 (λ _ : ι', G) G' :=
-linear_isometry_equiv.of_bounds
-  { to_fun := λ f, (multilinear_map.dom_dom_congr σ f.to_multilinear_map).mk_continuous ‖f‖ $
-      λ m, (f.le_op_norm (λ i, m (σ i))).trans_eq $ by rw [← σ.prod_comp],
-    inv_fun := λ f, (multilinear_map.dom_dom_congr σ.symm f.to_multilinear_map).mk_continuous ‖f‖ $
-      λ m, (f.le_op_norm (λ i, m (σ.symm i))).trans_eq $ by rw [← σ.symm.prod_comp],
-    left_inv := λ f, ext $ λ m, congr_arg f $ by simp only [σ.symm_apply_apply],
-    right_inv := λ f, ext $ λ m, congr_arg f $ by simp only [σ.apply_symm_apply],
-    map_add' := λ f g, rfl,
-    map_smul' := λ c f, rfl }
-  (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
-  (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
-
+  { map_add' := λ _ _, rfl,
+    map_smul' := λ _ _, rfl,
+    norm_map' := λ f, by simp [norm_def, linear_equiv.coe_mk, ← σ.prod_comp,
+      (σ.arrow_congr (equiv.refl G)).surjective.forall],
+    .. dom_dom_congr_equiv σ }
 variables {𝕜 G G'}
 
 section
@@ -1598,7 +1592,7 @@ values in the space of continuous multilinear maps of `l` variables. -/
 def curry_fin_finset {k l n : ℕ} {s : finset (fin n)}
   (hk : s.card = k) (hl : sᶜ.card = l) :
   (G [×n]→L[𝕜] G') ≃ₗᵢ[𝕜] (G [×k]→L[𝕜] G [×l]→L[𝕜] G') :=
-(dom_dom_congr 𝕜 G G' (fin_sum_equiv_of_finset hk hl).symm).trans
+(dom_dom_congrₗᵢ 𝕜 G G' (fin_sum_equiv_of_finset hk hl).symm).trans
   (curry_sum_equiv 𝕜 (fin k) (fin l) G G')
 
 variables {𝕜 G G'}

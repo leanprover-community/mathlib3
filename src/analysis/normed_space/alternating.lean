@@ -187,6 +187,15 @@ variables {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' G] [smul_comm
 instance normed_space : normed_space 𝕜' (continuous_alternating_map 𝕜 E G ι) :=
 ⟨λ c f, f.1.op_norm_smul_le c⟩
 
+variable (𝕜')
+
+@[simps]
+def to_continuous_multilinear_mapL :
+  continuous_alternating_map 𝕜 E G ι →L[𝕜'] continuous_multilinear_map 𝕜 (λ _ : ι, E) G :=
+⟨to_continuous_multilinear_map_linear⟩
+
+variable {𝕜'}
+
 theorem le_op_norm_mul_prod_of_le {b : ι → ℝ} (hm : ∀ i, ‖m i‖ ≤ b i) : ‖f m‖ ≤ ‖f‖ * ∏ i, b i :=
 f.1.le_op_norm_mul_prod_of_le m hm
 
@@ -249,7 +258,7 @@ section
 variables (𝕜 E E' G G')
 
 /-- `continuous_multilinear_map.prod` as a `linear_isometry_equiv`. -/
-def prodL :
+def prodₗᵢ :
   (continuous_alternating_map 𝕜 E G ι) × (continuous_alternating_map 𝕜 E G' ι) ≃ₗᵢ[𝕜]
     continuous_alternating_map 𝕜 E (G × G') ι :=
 { to_fun := λ f, f.1.prod f.2,
@@ -430,36 +439,22 @@ rfl
 
 /-- Flip arguments in `f : G →L[𝕜] continuous_alternating_map 𝕜 E G ι'` to get
 `continuous_alternating_map 𝕜 E (G →L[𝕜] G')` -/
-def flip_alternating (f : G →L[𝕜] continuous_alternating_map 𝕜 E G ι') :
-  continuous_alternating_map 𝕜 E (G →L[𝕜] G') :=
-multilinear_map.mk_continuous
-  { to_fun := λ m, linear_map.mk_continuous
-      { to_fun := λ x, f x m,
-        map_add' := λ x y, by simp only [map_add, continuous_alternating_map.add_apply],
-        map_smul' := λ c x, by simp only [continuous_alternating_map.smul_apply, map_smul,
-                                          ring_hom.id_apply] }
-      (‖f‖ * ∏ i, ‖m i‖) $ λ x,
-      by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },
-    map_add' := λ _ m i x y,
-      by { ext1, simp only [add_apply, continuous_alternating_map.map_add, linear_map.coe_mk,
-                            linear_map.mk_continuous_apply]},
-    map_smul' := λ _ m i c x,
-      by { ext1, simp only [coe_smul', continuous_alternating_map.map_smul, linear_map.coe_mk,
-                            linear_map.mk_continuous_apply, pi.smul_apply]} }
-  ‖f‖ $ λ m,
-  linear_map.mk_continuous_norm_le _
-    (mul_nonneg (norm_nonneg f) (prod_nonneg $ λ i hi, norm_nonneg (m i))) _
+def flip_alternating (f : G →L[𝕜] continuous_alternating_map 𝕜 E G' ι) :
+  continuous_alternating_map 𝕜 E (G →L[𝕜] G') ι :=
+{ to_continuous_multilinear_map :=
+    ((continuous_alternating_map.to_continuous_multilinear_mapL 𝕜).comp f).flip_multilinear,
+  map_eq_zero_of_eq' := λ v i j hv hne, by { ext x, simp [(f x).map_eq_zero_of_eq v hv hne] } }
 
 end continuous_linear_map
 
 lemma linear_isometry.norm_comp_continuous_alternating_map
   (g : G →ₗᵢ[𝕜] G') (f : continuous_alternating_map 𝕜 E G ι) :
   ‖g.to_continuous_linear_map.comp_continuous_alternating_map f‖ = ‖f‖ :=
-by simp only [continuous_linear_map.comp_continuous_alternating_map_coe,
-    linear_isometry.coe_to_continuous_linear_map, linear_isometry.norm_map,
-    continuous_alternating_map.norm_def]
+g.norm_comp_continuous_multilinear_map f.1
 
 open continuous_alternating_map
+
+/-
 
 namespace multilinear_map
 
@@ -1138,3 +1133,4 @@ end
 end continuous_alternating_map
 
 end currying
+-/

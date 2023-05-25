@@ -369,6 +369,12 @@ instance has_colimits_Module : has_colimits (Module.{max v u} R) :=
     { cocone := colimit_cocone F,
       is_colimit := colimit_cocone_is_colimit F } } }
 
+instance has_colimits_of_size_Module : has_colimits_of_size.{v} (Module.{max v u} R) :=
+has_colimits_of_size_shrink _
+
+instance has_colimits_of_size_zero_Module : has_colimits_of_size.{0} (Module.{max v u} R) :=
+@has_colimits_of_size_shrink.{0} (Module.{max v u} R) _ Module.colimits.has_colimits_Module
+
 -- We manually add a `has_colimits` instance with universe parameters swapped, for otherwise
 -- the instance is not found by typeclass search.
 instance has_colimits_Module' (R : Type u) [ring R] :

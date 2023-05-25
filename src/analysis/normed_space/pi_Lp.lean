@@ -267,7 +267,7 @@ lemma supr_edist_ne_top_aux {ι : Type*} [finite ι] {α : ι → Type*} [Π i, 
 begin
   casesI nonempty_fintype ι,
   obtain ⟨M, hM⟩ := fintype.exists_le (λ i, (⟨dist (f i) (g i), dist_nonneg⟩ : ℝ≥0)),
-  refine ne_of_lt ((supr_le $ λ i, _).trans_lt (@ennreal.coe_lt_top M)),
+  refine ne_of_lt ((_root_.supr_le $ λ i, _).trans_lt (@ennreal.coe_lt_top M)),
   simp only [edist, pseudo_metric_space.edist_dist, ennreal.of_real_eq_coe_nnreal dist_nonneg],
   exact_mod_cast hM i,
 end

@@ -2,50 +2,6 @@ import analysis.schwartz_space
 
 open_locale big_operators schwartz_space nnreal nat
 
-universes uD uE uF uG
-
-section mul_lemma
-
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{D : Type uD} [normed_add_comm_group D] [normed_space 𝕜 D]
-{E : Type uE} [normed_add_comm_group E] [normed_space 𝕜 E]
-{F : Type uF} [normed_add_comm_group F] [normed_space 𝕜 F]
-{G : Type uG} [normed_add_comm_group G] [normed_space 𝕜 G]
-
-lemma continuous_linear_map.norm_iterated_fderiv_within_le_of_bilinear
-  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ} {s : set D} {x : D}
-  (hf : cont_diff_on 𝕜 N f s) (hg : cont_diff_on 𝕜 N g s) (hs : unique_diff_on 𝕜 s) (hx : x ∈ s)
-  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
-  ‖iterated_fderiv_within 𝕜 n (λ y, B (f y) (g y)) s x‖
-      ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
-      * ‖iterated_fderiv_within 𝕜 i f s x‖ * ‖iterated_fderiv_within 𝕜 (n-i) g s x‖ :=
-begin
-  sorry,
-end
-
-lemma continuous_linear_map.norm_iterated_fderiv_le_of_bilinear
-  (B : E →L[𝕜] F →L[𝕜] G) {f : D → E} {g : D → F} {N : with_top ℕ}
-  (hf : cont_diff 𝕜 N f) (hg : cont_diff 𝕜 N g) (x : D)
-  {n : ℕ} (hn : (n : with_top ℕ) ≤ N) :
-  ‖iterated_fderiv 𝕜 n (λ y, B (f y) (g y)) x‖
-    ≤ ‖B‖ * ∑ i in finset.range (n+1), (n.choose i : ℝ)
-      * ‖iterated_fderiv 𝕜 i f x‖ * ‖iterated_fderiv 𝕜 (n-i) g x‖ :=
-begin
-  sorry,
-end
-
-lemma norm_iterated_fderiv_comp_le
-  {g : F → G} {f : E → F} {n : ℕ} {N : ℕ∞}
-  (hg : cont_diff 𝕜 N g) (hf : cont_diff 𝕜 N f) (hn : (n : ℕ∞) ≤ N) (x : E)
-  {C : ℝ} {D : ℝ} (hC : ∀ i, i ≤ n → ‖iterated_fderiv 𝕜 i g (f x)‖ ≤ C)
-  (hD : ∀ i, 1 ≤ i → i ≤ n → ‖iterated_fderiv 𝕜 i f x‖ ≤ D^i) :
-  ‖iterated_fderiv 𝕜 n (g ∘ f) x‖ ≤ n! * C * D^n :=
-begin
-  sorry,
-end
-
-end mul_lemma
-
 noncomputable theory
 
 open schwartz_map

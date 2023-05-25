@@ -59,6 +59,8 @@ Schwartz space, tempered distributions
 
 noncomputable theory
 
+open_locale big_operators nat
+
 variables {𝕜 𝕜' D E F G : Type*}
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
@@ -574,6 +576,161 @@ def mk_clm [ring_hom_isometric σ] (A : (D → E) → (F → G))
   to_linear_map := mk_lm A hadd hsmul hsmooth hbound }
 
 end clm
+
+section multiplication
+
+variables [normed_add_comm_group D] [normed_space ℝ D]
+variables [normed_add_comm_group G] [normed_space ℝ G]
+
+/-- Provided one can estimate each `iterated_fderiv ℝ n` by `C * (1 + ‖x‖)^k`,
+then one can find `C` and `k` independent of `n` such that the same estimate holds. -/
+lemma norm_iterated_fderiv_le_uniform_aux {g : D → F}
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ (x : D), ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) :
+  ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ) (hC : 0 ≤ C), ∀ (N : ℕ) (hN : N ≤ n) (x : D) ,
+    ‖iterated_fderiv ℝ N g x‖ ≤ C * (1 + ‖x‖)^k :=
+begin
+  intro n,
+  choose k C f using hg_growth,
+  use (finset.range (n+1)).sup k,
+  let C' := max (0 : ℝ) ((finset.range (n+1)).sup' (by simp) C),
+  have hC' : 0 ≤ C' := by simp only [le_refl, finset.le_sup'_iff, true_or, le_max_iff],
+  use [C', hC'],
+  intros N hN x,
+  rw ← finset.mem_range_succ_iff at hN,
+  refine le_trans (f N x) (mul_le_mul _ _ (by positivity) hC'),
+  { simp only [finset.le_sup'_iff, le_max_iff],
+    right,
+    exact ⟨N, hN, rfl.le⟩ },
+  refine pow_le_pow (by simp only [le_add_iff_nonneg_right, norm_nonneg]) _,
+  exact finset.le_sup hN,
+end
+
+/-- The multiplication with a smooth function of temperate growth is a continuous linear map on
+Schwartz space. -/
+def mul_clm (B : E →L[ℝ] F →L[ℝ] G) {g : D → F} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ (x : D), ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) :
+  𝓢(D, E) →L[ℝ] 𝓢(D, G) :=
+mk_clm (λ f x, B (f x) (g x))
+  (λ _ _ _, by simp only [map_add, add_left_inj, pi.add_apply, eq_self_iff_true,
+    continuous_linear_map.add_apply])
+  (λ _ _ _, by simp only [pi.smul_apply, continuous_linear_map.coe_smul',
+    continuous_linear_map.map_smul, ring_hom.id_apply])
+  (λ f, B.is_bounded_bilinear_map.cont_diff.comp (f.smooth'.prod hg_smooth))
+  (begin
+    -- Porting note: rewrite this proof with `rel_congr`
+    rintro ⟨k, n⟩,
+    rcases norm_iterated_fderiv_le_uniform_aux hg_growth n with ⟨l, C, hC, hgrowth'⟩,
+    use [finset.Iic (l+k,n), ‖B‖ * (n + 1) * n.choose (n / 2) * (C * 2^(l + k)), by positivity],
+    intros f x,
+    have hxk : 0 ≤ ‖x‖^k := by positivity,
+    have hnorm_mul :=
+    continuous_linear_map.norm_iterated_fderiv_le_of_bilinear B f.smooth' hg_smooth x le_top,
+    refine le_trans (mul_le_mul_of_nonneg_left hnorm_mul hxk) _,
+    rw [← mul_assoc (‖x‖^k), mul_comm (‖x‖^k)],
+    simp_rw [mul_assoc (‖B‖)],
+    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    rw [finset.mul_sum],
+    have : ∑ (x_1 : ℕ) in finset.range (n + 1), (1 : ℝ) = n + 1 := by simp,
+    repeat { rw [mul_assoc ((n : ℝ) + 1)] },
+    rw [← this, finset.sum_mul],
+    refine finset.sum_le_sum (λ i hi, _),
+    simp only [one_mul],
+    rw [← mul_assoc, mul_comm (‖x‖^k), mul_assoc, mul_assoc, mul_assoc],
+    refine mul_le_mul _ _ (by positivity) (by positivity),
+    { norm_cast,
+      exact i.choose_le_middle n },
+    specialize hgrowth' (n - i) (by simp only [tsub_le_self]) x,
+    rw [← mul_assoc],
+    refine le_trans (mul_le_mul_of_nonneg_left hgrowth' (by positivity)) _,
+    rw [mul_comm _ (C * _), mul_assoc, mul_assoc C],
+    refine mul_le_mul_of_nonneg_left _ hC,
+    nth_rewrite 1 mul_comm,
+    rw [← mul_assoc],
+    rw finset.mem_range_succ_iff at hi,
+    change i ≤ (l + k, n).snd at hi,
+    refine le_trans _ (one_add_le_sup_seminorm_apply le_rfl hi f x ),
+    refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+    rw [pow_add],
+    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    refine pow_le_pow_of_le_left (norm_nonneg _) _ _,
+    simp only [zero_le_one, le_add_iff_nonneg_left],
+  end)
+
+end multiplication
+
+section comp
+
+variables [normed_add_comm_group D] [normed_space ℝ D]
+variables [normed_add_comm_group G] [normed_space ℝ G]
+
+/-- Composition with a smooth function of temperate growth on the right is a continuous linear
+map on Schwartz space. -/
+def comp_clm {g : D → E} (hg_smooth : cont_diff ℝ ⊤ g)
+  (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ x, ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k)
+  (hg_upper : ∃ (k : ℕ) (C : ℝ) (hC : 1 ≤ C), ∀ x, 1 + ‖x‖ ≤ C * (1 + ‖g x‖)^k ) :
+  𝓢(E, F) →L[ℝ] 𝓢(D, F) :=
+mk_clm (λ f x, (f (g x)))
+  (λ f f' x, by simp only [add_left_inj, pi.add_apply, eq_self_iff_true])
+  (λ a f x, by simp only [pi.smul_apply, ring_hom.id_apply])
+  (λ f, f.smooth'.comp hg_smooth)
+  (begin
+    rintros ⟨k, n⟩,
+    rcases norm_iterated_fderiv_le_uniform_aux hg_growth n with ⟨l, C, hC, hgrowth'⟩,
+    rcases hg_upper with ⟨kg, Cg, hCg, hg_upper'⟩,
+    let k' := kg * (k + l * n),
+    use [finset.Iic (k',n), Cg ^ (k + l * n) * ((C + 1) ^ n * n! * 2 ^ k'), by positivity],
+    intros f x,
+    let seminorm_f := ((finset.Iic (k',n)).sup (schwartz_seminorm_family ℝ _ _)) f,
+    have hg_upper'' : (1 + ‖x‖)^(k + l * n) ≤ Cg^(k + l*n) * (1 + ‖g x‖)^k' :=
+    begin
+      rw [pow_mul, ← mul_pow],
+      exact pow_le_pow_of_le_left (by positivity) (hg_upper' x) _,
+    end,
+    have hbound : ∀ i, i ≤ n → ‖iterated_fderiv ℝ i f (g x)‖ ≤
+      2 ^ k' * seminorm_f / ((1 + ‖g x‖) ^ k'):=
+    begin
+      intros i hi,
+      have hpos : 0 < (1 + ‖g x‖) ^ k' := by positivity,
+      rw le_div_iff' hpos,
+      change i ≤ (k', n).snd at hi,
+      exact one_add_le_sup_seminorm_apply le_rfl hi _ _,
+    end,
+    have hgrowth'' : ∀ (N : ℕ) (hN₁ : 1 ≤ N) (hN₂ : N ≤ n),
+      ‖iterated_fderiv ℝ N g x‖ ≤ ((C + 1) * (1 + ‖x‖)^l)^N :=
+    begin
+      intros N hN₁ hN₂,
+      refine (hgrowth' N hN₂ x).trans _,
+      rw [mul_pow],
+      have hN₁' := (lt_of_lt_of_le zero_lt_one hN₁).ne.symm,
+      refine mul_le_mul _ _ (by positivity) (by positivity),
+      { exact le_trans (by simp [hC]) (le_self_pow (by simp [hC]) hN₁'), },
+      { refine le_self_pow (one_le_pow_of_one_le _ l) hN₁',
+      simp only [le_add_iff_nonneg_right, norm_nonneg] },
+    end,
+    have := norm_iterated_fderiv_comp_le f.smooth' hg_smooth le_top x hbound hgrowth'',
+    have hxk : ‖x‖^k ≤ (1 + ‖x‖)^k :=
+    pow_le_pow_of_le_left (norm_nonneg _) (by simp only [zero_le_one, le_add_iff_nonneg_left]) _,
+    refine le_trans (mul_le_mul hxk this (by positivity) (by positivity)) _,
+    have rearrange :
+      (1 + ‖x‖) ^ k * (n! * (2 ^ k' * seminorm_f / (1 + ‖g x‖) ^ k') * ((C + 1) * (1 + ‖x‖) ^ l) ^ n) =
+      ((1 + ‖x‖)^(k + l * n) / (1 + ‖g x‖) ^ k') * ((C + 1)^n * n! * 2^k' * seminorm_f) :=
+    begin
+      rw [mul_pow, pow_add, ← pow_mul],
+      ring,
+    end,
+    rw rearrange,
+    have hgxk' : 0 < (1 + ‖g x‖) ^ k' := by positivity,
+    rw ← div_le_iff hgxk' at hg_upper'',
+    have hpos : 0 ≤ (C + 1) ^ n * n! * 2 ^ k' * seminorm_f :=
+    begin
+      have : 0 ≤ seminorm_f := map_nonneg _ _,
+      positivity,
+    end,
+    refine le_trans (mul_le_mul_of_nonneg_right hg_upper'' hpos) _,
+    rw [← mul_assoc],
+  end)
+
+end comp
 
 section derivatives
 

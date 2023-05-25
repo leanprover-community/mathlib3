@@ -951,16 +951,11 @@ begin
 end
 
 /-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability (version
-without absolute values) -/
+without `|p|` factor) -/
 lemma integrable_on_Ioi_comp_rpow_iff' (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
-  integrable_on (λ x, (p * x ^ (p - 1)) • g (x ^ p)) (Ioi 0) ↔ integrable_on g (Ioi 0) :=
-begin
-  rw ←integrable_on_Ioi_comp_rpow_iff g hp,
-  rcases lt_or_gt_of_ne hp with hp' | hp',
-  { simp_rw [(show |p| = -p, by rw abs_of_neg hp'), neg_mul, neg_smul],
-    apply integrable_neg_iff.symm },
-  { rw abs_of_nonneg (le_of_lt hp') },
-end
+  integrable_on (λ x, x ^ (p - 1) • g (x ^ p)) (Ioi 0) ↔ integrable_on g (Ioi 0) :=
+by simpa only [←integrable_on_Ioi_comp_rpow_iff g hp, mul_smul]
+  using (integrable_smul_iff (abs_pos.mpr hp).ne' _).symm
 
 end Ioi_integrability
 

@@ -9,6 +9,9 @@ import category_theory.preadditive.additive_functor
 /-!
 # Short exact sequences, and splittings.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `short_exact f g` is the proposition that `0 ⟶ A -f⟶ B -g⟶ C ⟶ 0` is an exact sequence.
 
 We define when a short exact sequence is left-split, right-split, and split.

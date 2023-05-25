@@ -10,6 +10,9 @@ import category_theory.simple
 /-!
 # Artinian and noetherian categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An artinian category is a category in which objects do not
 have infinite decreasing sequences of subobjects.
 

@@ -6,9 +6,13 @@ Authors: Yury Kudryashov, Heather Macbeth
 import analysis.convex.cone.basic
 import analysis.normed_space.is_R_or_C
 import analysis.normed_space.extend
+import data.is_R_or_C.lemmas
 
 /-!
 # Extension Hahn-Banach theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the analytic Hahn-Banach theorem. For any continuous linear function on a
 subspace, we can extend it to a function on the entire space without changing its norm.
@@ -92,7 +96,7 @@ begin
   -- And we derive the equality of the norms by bounding on both sides.
   refine ⟨h, le_antisymm _ _⟩,
   { calc ‖g.extend_to_𝕜‖
-        ≤ ‖g‖ : g.extend_to_𝕜.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
+        = ‖g‖ : g.norm_extend_to_𝕜
     ... = ‖fr‖ : hnormeq
     ... ≤ ‖re_clm‖ * ‖f‖ : continuous_linear_map.op_norm_comp_le _ _
     ... = ‖f‖ : by rw [re_clm_norm, one_mul] },

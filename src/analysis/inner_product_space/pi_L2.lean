@@ -57,10 +57,11 @@ open_locale big_operators uniformity topology nnreal ennreal complex_conjugate d
 noncomputable theory
 
 variables {ι : Type*} {ι' : Type*}
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
-variables {E' : Type*} [inner_product_space 𝕜 E']
-variables {F : Type*} [inner_product_space ℝ F]
-variables {F' : Type*} [inner_product_space ℝ F']
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space 𝕜 E]
+variables {E' : Type*} [normed_add_comm_group E'] [inner_product_space 𝕜 E']
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
+variables {F' : Type*} [normed_add_comm_group F'] [inner_product_space ℝ F']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-
@@ -69,19 +70,19 @@ then `Π i, f i` is an inner product space as well. Since `Π i, f i` is endowed
 we use instead `pi_Lp 2 f` for the product space, which is endowed with the `L^2` norm.
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
-  [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 f) :=
-{ to_normed_add_comm_group := infer_instance,
-  inner := λ x y, ∑ i, inner (x i) (y i),
+  [Π i, normed_add_comm_group (f i)] [Π i, inner_product_space 𝕜 (f i)] :
+  inner_product_space 𝕜 (pi_Lp 2 f) :=
+{ inner := λ x y, ∑ i, inner (x i) (y i),
   norm_sq_eq_inner := λ x,
     by simp only [pi_Lp.norm_sq_eq_of_L2, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
-  conj_sym :=
+  conj_symm :=
   begin
     intros x y,
     unfold inner,
     rw ring_hom.map_sum,
     apply finset.sum_congr rfl,
     rintros z -,
-    apply inner_conj_sym,
+    apply inner_conj_symm,
   end,
   add_left := λ x y z,
     show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
@@ -91,7 +92,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     by simp only [finset.mul_sum, inner_smul_left] }
 
 @[simp] lemma pi_Lp.inner_apply {ι : Type*} [fintype ι] {f : ι → Type*}
-  [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 f) :
+  [Π i, normed_add_comm_group (f i)] [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 f) :
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
@@ -138,16 +139,19 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
 lemma euclidean_space.inner_eq_star_dot_product (x y : euclidean_space 𝕜 ι) :
   ⟪x, y⟫ = matrix.dot_product (star $ pi_Lp.equiv _ _ x) (pi_Lp.equiv _ _ y) := rfl
 
+lemma euclidean_space.inner_pi_Lp_equiv_symm (x y : ι → 𝕜) :
+  ⟪(pi_Lp.equiv 2 _).symm x, (pi_Lp.equiv 2 _).symm y⟫ = matrix.dot_product (star x) y := rfl
+
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
 def direct_sum.is_internal.isometry_L2_of_orthogonal_family
   [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.is_internal V)
-  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  (hV' : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) :
   E ≃ₗᵢ[𝕜] pi_Lp 2 (λ i, V i) :=
 begin
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
   let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV,
-  refine (e₂.symm.trans e₁).isometry_of_inner _,
+  refine linear_equiv.isometry_of_inner (e₂.symm.trans e₁) _,
   suffices : ∀ v w, ⟪v, w⟫ = ⟪e₂ (e₁.symm v), e₂ (e₁.symm w)⟫,
   { intros v₀ w₀,
     convert this (e₁ (e₂.symm v₀)) (e₁ (e₂.symm w₀));
@@ -160,7 +164,7 @@ end
 
 @[simp] lemma direct_sum.is_internal.isometry_L2_of_orthogonal_family_symm_apply
   [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.is_internal V)
-  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
+  (hV' : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ))
   (w : pi_Lp 2 (λ i, V i)) :
   (hV.isometry_L2_of_orthogonal_family hV').symm w = ∑ i, (w i : E) :=
 begin
@@ -222,17 +226,44 @@ by simp [apply_ite conj]
 
 lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜)
   (v : euclidean_space 𝕜 ι) :
-  ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
+  ⟪v, euclidean_space.single i (a : 𝕜)⟫ = a * conj (v i) :=
 by simp [apply_ite conj, mul_comm]
 
-lemma euclidean_space.pi_Lp_congr_left_single [decidable_eq ι] {ι' : Type*} [fintype ι']
-  [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') :
-  linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e (euclidean_space.single i' (1:𝕜)) =
-    euclidean_space.single (e i') (1:𝕜) :=
+@[simp] lemma euclidean_space.norm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  ‖euclidean_space.single i (a : 𝕜)‖ = ‖a‖ :=
+(pi_Lp.norm_equiv_symm_single 2 (λ i, 𝕜) i a : _)
+
+@[simp] lemma euclidean_space.nnnorm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  ‖euclidean_space.single i (a : 𝕜)‖₊ = ‖a‖₊ :=
+(pi_Lp.nnnorm_equiv_symm_single 2 (λ i, 𝕜) i a : _)
+
+@[simp] lemma euclidean_space.dist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  dist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = dist a b :=
+(pi_Lp.dist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+@[simp] lemma euclidean_space.nndist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  nndist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = nndist a b :=
+(pi_Lp.nndist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+@[simp] lemma euclidean_space.edist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  edist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = edist a b :=
+(pi_Lp.edist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+/-- `euclidean_space.single` forms an orthonormal family. -/
+lemma euclidean_space.orthonormal_single [decidable_eq ι] :
+  orthonormal 𝕜 (λ i : ι, euclidean_space.single i (1 : 𝕜)) :=
 begin
-  ext i,
-  simpa using if_congr e.symm_apply_eq rfl rfl
+  simp_rw [orthonormal_iff_ite, euclidean_space.inner_single_left, map_one, one_mul,
+    euclidean_space.single_apply],
+  intros i j,
+  refl,
 end
+
+lemma euclidean_space.pi_Lp_congr_left_single [decidable_eq ι] {ι' : Type*} [fintype ι']
+  [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') (v : 𝕜):
+  linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e (euclidean_space.single i' v) =
+    euclidean_space.single (e i') v :=
+linear_isometry_equiv.pi_Lp_congr_left_single e i' _
 
 variables (ι 𝕜 E)
 
@@ -303,12 +334,7 @@ end
 
 @[simp] protected lemma coe_to_basis_repr (b : orthonormal_basis ι 𝕜 E) :
   b.to_basis.equiv_fun = b.repr.to_linear_equiv :=
-begin
-  change (basis.of_equiv_fun b.repr.to_linear_equiv).equiv_fun = b.repr.to_linear_equiv,
-  ext x j,
-  simp only [basis.of_equiv_fun_repr_apply, linear_isometry_equiv.coe_to_linear_equiv,
-    basis.equiv_fun_apply],
-end
+basis.equiv_fun_of_equiv_fun _
 
 @[simp] protected lemma coe_to_basis_repr_apply (b : orthonormal_basis ι 𝕜 E) (x : E) (i : ι) :
   b.to_basis.repr x i = b.repr x i :=
@@ -326,7 +352,7 @@ by { simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
 protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :
   ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
 begin
-  have := congr_arg (@innerSL 𝕜 _ _ _ x) (b.sum_repr y),
+  have := congr_arg (innerSL 𝕜 x) (b.sum_repr y),
   rw map_sum at this,
   convert this,
   ext i,
@@ -341,16 +367,17 @@ by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
   using (b.sum_repr (orthogonal_projection U x)).symm
 
 /-- Mapping an orthonormal basis along a `linear_isometry_equiv`. -/
-protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
+protected def map {G : Type*}
+  [normed_add_comm_group G] [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
   (L : E ≃ₗᵢ[𝕜] G) :
   orthonormal_basis ι 𝕜 G :=
 { repr := L.symm.trans b.repr }
 
-@[simp] protected lemma map_apply {G : Type*} [inner_product_space 𝕜 G]
+@[simp] protected lemma map_apply {G : Type*} [normed_add_comm_group G] [inner_product_space 𝕜 G]
   (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) (i : ι) :
   b.map L i = L (b i) := rfl
 
-@[simp] protected lemma to_basis_map {G : Type*} [inner_product_space 𝕜 G]
+@[simp] protected lemma to_basis_map {G : Type*} [normed_add_comm_group G] [inner_product_space 𝕜 G]
   (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) :
   (b.map L).to_basis = b.to_basis.map L.to_linear_equiv :=
 rfl
@@ -592,7 +619,7 @@ variables {A : ι → submodule 𝕜 E}
 of the components of the direct sum, the disjoint union of these orthonormal bases is an
 orthonormal basis for `M`. -/
 noncomputable def direct_sum.is_internal.collected_orthonormal_basis
-  (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, A i) _ (λ i, (A i).subtypeₗᵢ))
+  (hV : orthogonal_family 𝕜 (λ i, A i) (λ i, (A i).subtypeₗᵢ))
   [decidable_eq ι] (hV_sum : direct_sum.is_internal (λ i, A i)) {α : ι → Type*}
   [Π i, fintype (α i)] (v_family : Π i, orthonormal_basis (α i) 𝕜 (A i)) :
   orthonormal_basis (Σ i, α i) 𝕜 E :=
@@ -602,7 +629,7 @@ by simpa using hV.orthonormal_sigma_orthonormal
 
 lemma direct_sum.is_internal.collected_orthonormal_basis_mem [decidable_eq ι]
   (h : direct_sum.is_internal A) {α : ι → Type*}
-  [Π i, fintype (α i)] (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, A i) _ (λ i, (A i).subtypeₗᵢ))
+  [Π i, fintype (α i)] (hV : orthogonal_family 𝕜 (λ i, A i) (λ i, (A i).subtypeₗᵢ))
   (v : Π i, orthonormal_basis (α i) 𝕜 (A i)) (a : Σ i, α i) :
   h.collected_orthonormal_basis hV v a ∈ A a.1 :=
 by simp [direct_sum.is_internal.collected_orthonormal_basis]
@@ -687,7 +714,7 @@ variables {n : ℕ} (hn : finrank 𝕜 E = n) [decidable_eq ι]
 /-- Exhibit a bijection between `fin n` and the index set of a certain basis of an `n`-dimensional
 inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
 @[irreducible] def direct_sum.is_internal.sigma_orthonormal_basis_index_equiv
-  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  (hV' : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) :
   (Σ i, fin (finrank 𝕜 (V i))) ≃ fin n :=
 let b := hV.collected_orthonormal_basis hV' (λ i, (std_orthonormal_basis 𝕜 (V i))) in
 fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b.to_basis).symm.trans hn
@@ -695,7 +722,7 @@ fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b.to_ba
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. -/
 @[irreducible] def direct_sum.is_internal.subordinate_orthonormal_basis
-  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  (hV' : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) :
   orthonormal_basis (fin n) 𝕜 E :=
 ((hV.collected_orthonormal_basis hV' (λ i, (std_orthonormal_basis 𝕜 (V i)))).reindex
   (hV.sigma_orthonormal_basis_index_equiv hn hV'))
@@ -704,13 +731,13 @@ sum has an orthonormal basis indexed by `fin n` and subordinate to that direct s
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. This function
 provides the mapping by which it is subordinate. -/
 @[irreducible] def direct_sum.is_internal.subordinate_orthonormal_basis_index
-  (a : fin n) (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) : ι :=
+  (a : fin n) (hV' : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) : ι :=
 ((hV.sigma_orthonormal_basis_index_equiv hn hV').symm a).1
 
 /-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is subordinate to
 the `orthogonal_family` in question. -/
 lemma direct_sum.is_internal.subordinate_orthonormal_basis_subordinate
-  (a : fin n) (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  (a : fin n) (hV' : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) :
   (hV.subordinate_orthonormal_basis hn hV' a) ∈
   V (hV.subordinate_orthonormal_basis_index hn a hV') :=
 by simpa only [direct_sum.is_internal.subordinate_orthonormal_basis,
@@ -734,7 +761,7 @@ def orthonormal_basis.from_orthogonal_span_singleton
 
 section linear_isometry
 
-variables {V : Type*} [inner_product_space 𝕜 V] [finite_dimensional 𝕜 V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space 𝕜 V] [finite_dimensional 𝕜 V]
 
 variables {S : submodule 𝕜 V} {L : S →ₗᵢ[𝕜] V}
 
@@ -815,18 +842,41 @@ section matrix
 
 open_locale matrix
 
-variables {n m : ℕ}
+variables {m n : Type*}
 
-local notation `⟪`x`, `y`⟫ₘ` := @inner 𝕜 (euclidean_space 𝕜 (fin m)) _ x y
-local notation `⟪`x`, `y`⟫ₙ` := @inner 𝕜 (euclidean_space 𝕜 (fin n)) _ x y
+namespace matrix
+variables [fintype m] [fintype n] [decidable_eq n]
 
-/-- The inner product of a row of A and a row of B is an entry of B ⬝ Aᴴ. -/
-lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
-  ⟪A i, B j⟫ₘ = (B ⬝ Aᴴ) j i := by {simp only [inner, matrix.mul_apply, star_ring_end_apply,
-    matrix.conj_transpose_apply,mul_comm]}
+/-- `matrix.to_lin'` adapted for `euclidean_space 𝕜 _`. -/
+def to_euclidean_lin : matrix m n 𝕜 ≃ₗ[𝕜] (euclidean_space 𝕜 n →ₗ[𝕜] euclidean_space 𝕜 m) :=
+matrix.to_lin' ≪≫ₗ linear_equiv.arrow_congr
+  (pi_Lp.linear_equiv _ 𝕜 (λ _ : n, 𝕜)).symm (pi_Lp.linear_equiv _ 𝕜 (λ _ : m, 𝕜)).symm
 
-/-- The inner product of a column of A and a column of B is an entry of Aᴴ ⬝ B -/
-lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
-  ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := rfl
+@[simp]
+lemma to_euclidean_lin_pi_Lp_equiv_symm (A : matrix m n 𝕜) (x : n → 𝕜) :
+  A.to_euclidean_lin ((pi_Lp.equiv _ _).symm x) = (pi_Lp.equiv _ _).symm (A.to_lin' x) := rfl
+
+@[simp]
+lemma pi_Lp_equiv_to_euclidean_lin (A : matrix m n 𝕜) (x : euclidean_space 𝕜 n) :
+  pi_Lp.equiv _ _ (A.to_euclidean_lin x) = A.to_lin' (pi_Lp.equiv _ _ x) := rfl
+
+/- `matrix.to_euclidean_lin` is the same as `matrix.to_lin` applied to `pi_Lp.basis_fun`, -/
+lemma to_euclidean_lin_eq_to_lin :
+  (to_euclidean_lin : matrix m n 𝕜 ≃ₗ[𝕜] _) =
+    matrix.to_lin (pi_Lp.basis_fun _ _ _) (pi_Lp.basis_fun _ _ _) := rfl
+
+end matrix
+
+local notation `⟪`x`, `y`⟫ₑ` := @inner 𝕜 _ _ ((pi_Lp.equiv 2 _).symm x) ((pi_Lp.equiv 2 _).symm y)
+
+/-- The inner product of a row of `A` and a row of `B` is an entry of `B ⬝ Aᴴ`. -/
+lemma inner_matrix_row_row [fintype n] (A B : matrix m n 𝕜) (i j : m) :
+  ⟪A i, B j⟫ₑ = (B ⬝ Aᴴ) j i :=
+by simp_rw [euclidean_space.inner_pi_Lp_equiv_symm, matrix.mul_apply', matrix.dot_product_comm,
+  matrix.conj_transpose_apply, pi.star_def]
+
+/-- The inner product of a column of `A` and a column of `B` is an entry of `Aᴴ ⬝ B`. -/
+lemma inner_matrix_col_col [fintype m] (A B : matrix m n 𝕜) (i j : n) :
+  ⟪Aᵀ i, Bᵀ j⟫ₑ = (Aᴴ ⬝ B) i j := rfl
 
 end matrix

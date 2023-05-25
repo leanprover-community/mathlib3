@@ -11,6 +11,9 @@ import ring_theory.int.basic
 /-!
 # Irrational real numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a predicate `irrational` on `ℝ`, prove that the `n`-th root of an integer
 number is irrational if it is not integer, and that `sqrt q` is irrational if and only if
 `rat.sqrt q * rat.sqrt q ≠ q ∧ 0 ≤ q`.

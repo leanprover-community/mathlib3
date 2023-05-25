@@ -201,18 +201,26 @@ h.sum_restrict_of_ac (refl _)
   ∫⁻ x, f x ∂μ = ∑' g : G, ∫⁻ x in g • s, f x ∂μ :=
 h.lintegral_eq_tsum_of_ac (refl _) f
 
-@[to_additive] lemma set_lintegral_eq_tsum' (h : is_fundamental_domain G s μ) (f : α → ℝ≥0∞)
+@[to_additive] lemma lintegral_eq_tsum' (h : is_fundamental_domain G s μ) (f : α → ℝ≥0∞) :
+  ∫⁻ x, f x ∂μ = ∑' g : G, ∫⁻ x in s, f (g⁻¹ • x) ∂μ :=
+calc ∫⁻ x, f x ∂μ = ∑' g : G, ∫⁻ x in g • s, f x ∂μ : h.lintegral_eq_tsum f
+... = ∑' g : G, ∫⁻ x in g⁻¹ • s, f x ∂μ : ((equiv.inv G).tsum_eq _).symm
+... = ∑' g : G, ∫⁻ x in s, f (g⁻¹ • x) ∂μ :
+  tsum_congr $ λ g, ((measure_preserving_smul g⁻¹ μ).set_lintegral_comp_emb
+    (measurable_embedding_const_smul _) _ _).symm
+
+@[to_additive] lemma set_lintegral_eq_tsum (h : is_fundamental_domain G s μ) (f : α → ℝ≥0∞)
   (t : set α) : ∫⁻ x in t, f x ∂μ = ∑' g : G, ∫⁻ x in t ∩ g • s, f x ∂μ :=
 calc ∫⁻ x in t, f x ∂μ = ∑' g : G, ∫⁻ x in g • s, f x ∂(μ.restrict t) :
   h.lintegral_eq_tsum_of_ac restrict_le_self.absolutely_continuous _
 ... = ∑' g : G, ∫⁻ x in t ∩ g • s, f x ∂μ :
   by simp only [h.restrict_restrict, inter_comm]
 
-@[to_additive] lemma set_lintegral_eq_tsum (h : is_fundamental_domain G s μ) (f : α → ℝ≥0∞)
+@[to_additive] lemma set_lintegral_eq_tsum' (h : is_fundamental_domain G s μ) (f : α → ℝ≥0∞)
   (t : set α) :
   ∫⁻ x in t, f x ∂μ = ∑' g : G, ∫⁻ x in g • t ∩ s, f (g⁻¹ • x) ∂μ :=
 calc ∫⁻ x in t, f x ∂μ = ∑' g : G, ∫⁻ x in t ∩ g • s, f x ∂μ :
-  h.set_lintegral_eq_tsum' f t
+  h.set_lintegral_eq_tsum f t
 ... = ∑' g : G, ∫⁻ x in t ∩ g⁻¹ • s, f x ∂μ : ((equiv.inv G).tsum_eq _).symm
 ... = ∑' g : G, ∫⁻ x in g⁻¹ • (g • t ∩ s), f (x) ∂μ :
   by simp only [smul_set_inter, inv_smul_smul]
@@ -234,7 +242,7 @@ h.measure_eq_tsum_of_ac absolutely_continuous.rfl t
 
 @[to_additive] lemma measure_eq_tsum (h : is_fundamental_domain G s μ) (t : set α) :
   μ t = ∑' g : G, μ (g • t ∩ s) :=
-by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum (λ _, 1) t
+by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum' (λ _, 1) t
 
 @[to_additive] lemma measure_zero_of_invariant (h : is_fundamental_domain G s μ) (t : set α)
   (ht : ∀ g : G, g • t = t) (hts : μ (t ∩ s) = 0) :
@@ -261,9 +269,9 @@ end
 @[to_additive] protected lemma set_lintegral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) (f : α → ℝ≥0∞) (hf : ∀ (g : G) x, f (g • x) = f x) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
-calc ∫⁻ x in s, f x ∂μ = ∑' g : G, ∫⁻ x in s ∩ g • t, f x ∂μ : ht.set_lintegral_eq_tsum' _ _
+calc ∫⁻ x in s, f x ∂μ = ∑' g : G, ∫⁻ x in s ∩ g • t, f x ∂μ : ht.set_lintegral_eq_tsum _ _
 ... = ∑' g : G, ∫⁻ x in g • t ∩ s, f (g⁻¹ • x) ∂μ            : by simp only [hf, inter_comm]
-... = ∫⁻ x in t, f x ∂μ                                      : (hs.set_lintegral_eq_tsum _ _).symm
+... = ∫⁻ x in t, f x ∂μ                                      : (hs.set_lintegral_eq_tsum' _ _).symm
 
 @[to_additive] lemma measure_set_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) {A : set α} (hA₀ : measurable_set A)
@@ -326,33 +334,55 @@ and_congr (hs.ae_strongly_measurable_on_iff ht hf) (hs.has_finite_integral_on_if
 
 variables [normed_space ℝ E] [complete_space E]
 
+@[to_additive] lemma integral_eq_tsum_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ)
+  (f : α → E) (hf : integrable f ν) : ∫ x, f x ∂ν = ∑' g : G, ∫ x in g • s, f x ∂ν :=
+begin
+  rw [← measure_theory.integral_sum_measure, h.sum_restrict_of_ac hν],
+  rw h.sum_restrict_of_ac hν, -- Weirdly, these rewrites seem not to be combinable
+  exact hf,
+end
+
+@[to_additive] lemma integral_eq_tsum (h : is_fundamental_domain G s μ)
+  (f : α → E) (hf : integrable f μ) : ∫ x, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂μ :=
+integral_eq_tsum_of_ac h (by refl) f hf
+
+@[to_additive] lemma integral_eq_tsum' (h : is_fundamental_domain G s μ)
+  (f : α → E) (hf : integrable f μ) : ∫ x, f x ∂μ = ∑' g : G, ∫ x in s, f (g⁻¹ • x) ∂μ :=
+calc ∫ x, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂μ : h.integral_eq_tsum f hf
+... = ∑' g : G, ∫ x in g⁻¹ • s, f x ∂μ : ((equiv.inv G).tsum_eq _).symm
+... = ∑' g : G, ∫ x in s, f (g⁻¹ • x) ∂μ :
+  tsum_congr $ λ g, (measure_preserving_smul g⁻¹ μ).set_integral_image_emb
+    (measurable_embedding_const_smul _) _ _
+
+@[to_additive] lemma set_integral_eq_tsum (h : is_fundamental_domain G s μ) {f : α → E}
+  {t : set α} (hf : integrable_on f t μ) :
+  ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :=
+calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
+  h.integral_eq_tsum_of_ac restrict_le_self.absolutely_continuous f hf
+... = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
+  by simp only [h.restrict_restrict, measure_smul, inter_comm]
+
+@[to_additive] lemma set_integral_eq_tsum' (h : is_fundamental_domain G s μ) {f : α → E}
+  {t : set α} (hf : integrable_on f t μ) :
+  ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ :=
+calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
+  h.set_integral_eq_tsum hf
+... = ∑' g : G, ∫ x in t ∩ g⁻¹ • s, f x ∂μ : ((equiv.inv G).tsum_eq _).symm
+... = ∑' g : G, ∫ x in g⁻¹ • (g • t ∩ s), f (x) ∂μ :
+  by simp only [smul_set_inter, inv_smul_smul]
+... = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ :
+  tsum_congr $ λ g, (measure_preserving_smul g⁻¹ μ).set_integral_image_emb
+    (measurable_embedding_const_smul _) _ _
+
 @[to_additive] protected lemma set_integral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) {f : α → E} (hf : ∀ (g : G) x, f (g • x) = f x) :
   ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
 begin
   by_cases hfs : integrable_on f s μ,
   { have hft : integrable_on f t μ, by rwa ht.integrable_on_iff hs hf,
-    have hac : ∀ {u}, μ.restrict u ≪ μ := λ u, restrict_le_self.absolutely_continuous,
-    calc ∫ x in s, f x ∂μ = ∫ x in ⋃ g : G, g • t, f x ∂(μ.restrict s) :
-      by rw [restrict_congr_set (hac ht.Union_smul_ae_eq), restrict_univ]
-    ... = ∑' g : G, ∫ x in g • t, f x ∂(μ.restrict s) :
-      integral_Union_ae (λ g, (ht.null_measurable_set_smul g).mono_ac hac)
-        (ht.pairwise_ae_disjoint_of_ac hac) hfs.integrable.integrable_on
-    ... = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ :
-      by simp only [ht.restrict_restrict, inter_comm]
-    ... = ∑' g : G, ∫ x in s ∩ g⁻¹ • t, f x ∂μ : ((equiv.inv G).tsum_eq _).symm
-    ... = ∑' g : G, ∫ x in g⁻¹ • (g • s ∩ t), f x ∂μ :
-      by simp only [smul_set_inter, inv_smul_smul]
-    ... = ∑' g : G, ∫ x in g • s ∩ t, f (g⁻¹ • x) ∂μ :
-      tsum_congr $ λ g, (measure_preserving_smul g⁻¹ μ).set_integral_image_emb
-        (measurable_embedding_const_smul _) _ _
-    ... = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
-      by simp only [hf, hs.restrict_restrict]
-    ... = ∫ x in ⋃ g : G, g • s, f x ∂(μ.restrict t) :
-      (integral_Union_ae (λ g, (hs.null_measurable_set_smul g).mono_ac hac)
-        (hs.ae_disjoint.mono $ λ i j h, hac h) hft.integrable.integrable_on).symm
-    ... = ∫ x in t, f x ∂μ :
-      by rw [restrict_congr_set (hac hs.Union_smul_ae_eq), restrict_univ] },
+    calc ∫ x in s, f x ∂μ = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ : ht.set_integral_eq_tsum hfs
+    ... = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ : by simp only [hf, inter_comm]
+    ... = ∫ x in t, f x ∂μ : (hs.set_integral_eq_tsum' hft).symm, },
   { rw [integral_undef hfs, integral_undef],
     rwa [hs.integrable_on_iff ht hf] at hfs }
 end

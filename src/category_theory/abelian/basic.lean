@@ -13,6 +13,9 @@ import category_theory.abelian.non_preadditive
 /-!
 # Abelian categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and basic properties of abelian categories.
 
 There are many definitions of abelian category. Our definition is as follows:
@@ -254,9 +257,14 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- An abelian category has finite biproducts. -/
-@[priority 100]
-instance has_finite_biproducts : has_finite_biproducts C :=
+-- Porting note: this should be an instance,
+-- but triggers https://github.com/leanprover/lean4/issues/2055
+-- We set it as a local instance instead.
+-- @[priority 100] instance
+theorem has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
+
+local attribute [instance] has_finite_biproducts
 
 @[priority 100]
 instance has_binary_biproducts : has_binary_biproducts C :=

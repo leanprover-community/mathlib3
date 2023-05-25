@@ -10,6 +10,9 @@ import data.sign
 /-!
 # The extended reals [-∞, ∞].
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `ereal`, the real numbers together with a top and bottom element,
 referred to as ⊤ and ⊥. It is implemented as `with_bot (with_top ℝ)`
 
@@ -405,7 +408,8 @@ by cases x; cases y; refl
         exact nnreal.coe_pos.2 (bot_lt_iff_ne_bot.2 h) },
       simp only [coe_nnreal_eq_coe_real, coe_ennreal_top, (*), ereal.mul, A, if_true] }
   end
-| (x : ℝ≥0) (y : ℝ≥0) := by simp [←ennreal.coe_mul, coe_nnreal_eq_coe_real]
+| (x : ℝ≥0) (y : ℝ≥0) := by simp only [← ennreal.coe_mul, coe_nnreal_eq_coe_real,
+    nnreal.coe_mul, ereal.coe_mul]
 
 @[norm_cast] lemma coe_ennreal_nsmul (n : ℕ) (x : ℝ≥0∞) : (↑(n • x) : ereal) = n • x :=
 map_nsmul (⟨coe, coe_ennreal_zero, coe_ennreal_add⟩ : ℝ≥0∞ →+ ereal) _ _
@@ -550,13 +554,13 @@ instance : has_involutive_neg ereal :=
 | (x : ℝ) := rfl
 
 @[simp] lemma neg_eq_top_iff {x : ereal} : - x = ⊤ ↔ x = ⊥ :=
-by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+neg_eq_iff_eq_neg
 
 @[simp] lemma neg_eq_bot_iff {x : ereal} : - x = ⊥ ↔ x = ⊤ :=
-by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+neg_eq_iff_eq_neg
 
 @[simp] lemma neg_eq_zero_iff {x : ereal} : - x = 0 ↔ x = 0 :=
-by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+by rw [neg_eq_iff_eq_neg, neg_zero]
 
 /-- if `-a ≤ b` then `-b ≤ a` on `ereal`. -/
 protected theorem neg_le_of_neg_le {a b : ereal} (h : -a ≤ b) : -b ≤ a :=

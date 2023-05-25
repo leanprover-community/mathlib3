@@ -1494,6 +1494,19 @@ h.mono $ λ x, mt
   (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
 h.inter h'.compl
 
+lemma set_eventually_le_iff_mem_inf_principal {s t : set α} {l : filter α} :
+  s ≤ᶠ[l] t ↔ t ∈ l ⊓ 𝓟 s :=
+mem_inf_principal.symm
+
+lemma set_eventually_le_iff_inf_principal_le {s t : set α} {l : filter α} :
+  s ≤ᶠ[l] t ↔ l ⊓ 𝓟 s ≤ l ⊓ 𝓟 t :=
+set_eventually_le_iff_mem_inf_principal.trans $
+  by simp only [le_inf_iff, inf_le_left, true_and, le_principal_iff]
+
+lemma set_eventually_eq_iff_inf_principal {s t : set α} {l : filter α} :
+  s =ᶠ[l] t ↔ l ⊓ 𝓟 s = l ⊓ 𝓟 t :=
+by simp only [eventually_le_antisymm_iff, le_antisymm_iff, set_eventually_le_iff_inf_principal_le]
+
 lemma eventually_le.mul_le_mul
   [mul_zero_class β] [partial_order β] [pos_mul_mono β] [mul_pos_mono β]
   {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
@@ -2531,6 +2544,10 @@ lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : 
   tendsto f (⨅ i, x i) y :=
 hi.mono_left $ infi_le _ _
 
+theorem tendsto_infi_infi {f : α → β} {x : ι → filter α} {y : ι → filter β}
+  (h : ∀ i, tendsto f (x i) (y i)) : tendsto f (infi x) (infi y) :=
+tendsto_infi.2 $ λ i, tendsto_infi' i (h i)
+
 @[simp] lemma tendsto_sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f (x₁ ⊔ x₂) y ↔ tendsto f x₁ y ∧ tendsto f x₂ y :=
 by simp only [tendsto, map_sup, sup_le_iff]
@@ -2542,6 +2559,10 @@ lemma tendsto.sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
 @[simp] lemma tendsto_supr {f : α → β} {x : ι → filter α} {y : filter β} :
   tendsto f (⨆ i, x i) y ↔ ∀ i, tendsto f (x i) y :=
 by simp only [tendsto, map_supr, supr_le_iff]
+
+theorem tendsto_supr_supr {f : α → β} {x : ι → filter α} {y : ι → filter β}
+  (h : ∀ i, tendsto f (x i) (y i)) : tendsto f (supr x) (supr y) :=
+tendsto_supr.2 $ λ i, (h i).mono_right $ le_supr _ _
 
 @[simp] lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
   tendsto f l (𝓟 s) ↔ ∀ᶠ a in l, f a ∈ s :=

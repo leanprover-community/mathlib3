@@ -13,6 +13,9 @@ import topology.metric_space.equicontinuity
 /-!
 # Bounded continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of bounded continuous functions taking values in a metric space, with
 the uniform distance.
 
@@ -1165,7 +1168,7 @@ functions from `α` to `𝕜`. -/
 instance has_smul' : has_smul (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_add_comm_group (λ x, (f x) • (g x))
 (f.continuous.smul g.continuous) (‖f‖ * ‖g‖) (λ x, calc
-  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : normed_space.norm_smul_le _ _
+  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : norm_smul_le _ _
   ... ≤ ‖f‖ * ‖g‖ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
     (norm_nonneg _)) ⟩
 
@@ -1328,7 +1331,7 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
   solid :=
   begin
     intros f g h,
-    have i1: ∀ t, ‖f t‖ ≤ ‖g t‖ := λ t, solid (h t),
+    have i1: ∀ t, ‖f t‖ ≤ ‖g t‖ := λ t, has_solid_norm.solid (h t),
     rw norm_le (norm_nonneg _),
     exact λ t, (i1 t).trans (norm_coe_le_norm g t),
   end,

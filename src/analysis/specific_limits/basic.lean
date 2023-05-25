@@ -12,6 +12,9 @@ import topology.algebra.algebra
 /-!
 # A collection of specific limit computations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file, by design, is independent of `normed_space` in the import hierarchy.  It contains
 important specific limit computations in metric spaces, in ordered rings/fields, and in specific
 instances of these such as `ℝ`, `ℝ≥0` and `ℝ≥0∞`.
@@ -506,7 +509,7 @@ begin
   refine ⟨λ i, δ' i / max 1 (w i), λ i, div_pos (Hpos _) (this i), _⟩,
   refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
   rw [coe_div (this i).ne'],
-  refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
+  refine mul_le_of_le_div' (mul_le_mul_left' (ennreal.inv_le_inv.2 _) _),
   exact coe_le_coe.2 (le_max_right _ _)
 end
 

@@ -9,6 +9,9 @@ import topology.instances.add_circle
 /-!
 # The additive circle as a normed group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the normed group structure on `add_circle p`, for `p : ℝ`. For example if `p = 1` then:
 `‖(x : add_circle 1)‖ = |x - round x|` for any `x : ℝ` (see `unit_add_circle.norm_eq`).
 

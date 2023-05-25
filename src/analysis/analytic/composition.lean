@@ -181,10 +181,12 @@ def comp_along_composition {n : ℕ}
   (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) :
   continuous_multilinear_map 𝕜 (λ i : fin n, E) G :=
 { to_fun    := λ v, f (p.apply_composition c v),
-  map_add'  := λ v i x y, by simp only [apply_composition_update,
-    continuous_multilinear_map.map_add],
-  map_smul' := λ v i c x, by simp only [apply_composition_update,
-    continuous_multilinear_map.map_smul],
+  map_add'  := λ _ v i x y, by
+  { cases subsingleton.elim ‹_› (fin.decidable_eq _),
+    simp only [apply_composition_update, continuous_multilinear_map.map_add] },
+  map_smul' := λ _ v i c x, by
+  { cases subsingleton.elim ‹_› (fin.decidable_eq _),
+    simp only [apply_composition_update, continuous_multilinear_map.map_smul] },
   cont := f.cont.comp $ continuous_pi $ λ i, (coe_continuous _).comp $ continuous_pi $ λ j,
     continuous_apply _, }
 
@@ -444,8 +446,8 @@ begin
   /- This follows from the fact that the growth rate of `‖qₙ‖` and `‖pₙ‖` is at most geometric,
   giving a geometric bound on each `‖q.comp_along_composition p op‖`, together with the
   fact that there are `2^(n-1)` compositions of `n`, giving at most a geometric loss. -/
-  rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min ennreal.zero_lt_one hq) with ⟨rq, rq_pos, hrq⟩,
-  rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min ennreal.zero_lt_one hp) with ⟨rp, rp_pos, hrp⟩,
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min zero_lt_one hq) with ⟨rq, rq_pos, hrq⟩,
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min zero_lt_one hp) with ⟨rp, rp_pos, hrp⟩,
   simp only [lt_min_iff, ennreal.coe_lt_one_iff, ennreal.coe_pos] at hrp hrq rp_pos rq_pos,
   obtain ⟨Cq, hCq0, hCq⟩ : ∃ Cq > 0, ∀ n, ‖q n‖₊ * rq^n ≤ Cq :=
     q.nnnorm_mul_pow_le_of_lt_radius hrq.2,

@@ -26,8 +26,9 @@ and `set.image2` already fulfills this task.
 open function
 
 namespace set
-variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {f f' : α → β → γ} {g g' : α → β → γ → δ}
-variables {s s' : set α} {t t' : set β} {u u' : set γ} {a a' : α} {b b' : β} {c c' : γ} {d d' : δ}
+variables {α α' β β' γ γ' δ δ' ε ε' ζ ζ' ν : Type*} {f f' : α → β → γ} {g g' : α → β → γ → δ}
+variables {s s' : set α} {t t' : set β} {u u' : set γ} {v : set δ} {a a' : α} {b b' : β} {c c' : γ}
+  {d d' : δ}
 
 
 /-- The image of a binary function `f : α → β → γ` as a function `set α → set β → set γ`.
@@ -66,6 +67,12 @@ lemma forall_image2_iff {p : γ → Prop} :
   image2 f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image2_iff
 
+lemma image2_subset_iff_left : image2 f s t ⊆ u ↔ ∀ a ∈ s, (λ b, f a b) '' t ⊆ u :=
+by simp_rw [image2_subset_iff, image_subset_iff, subset_def, mem_preimage]
+
+lemma image2_subset_iff_right : image2 f s t ⊆ u ↔ ∀ b ∈ t, (λ a, f a b) '' s ⊆ u :=
+by simp_rw [image2_subset_iff, image_subset_iff, subset_def, mem_preimage, @forall₂_swap α]
+
 variables (f)
 
 @[simp] lemma image_prod : (λ x : α × β, f x.1 x.2) '' s ×ˢ t = image2 f s t :=
@@ -82,6 +89,9 @@ image_prod _
   image2 (λ a b, f (a, b)) s t = f '' s ×ˢ t :=
 by simp [←image_uncurry_prod, uncurry]
 
+lemma image2_swap (s : set α) (t : set β) : image2 f s t = image2 (λ a b, f b a) t s :=
+by { ext, split; rintro ⟨a, b, ha, hb, rfl⟩; refine ⟨b, a, hb, ha, rfl⟩ }
+
 variables {f}
 
 lemma image2_union_left : image2 f (s ∪ s') t = image2 f s t ∪ image2 f s' t :=
@@ -94,13 +104,7 @@ begin
 end
 
 lemma image2_union_right : image2 f s (t ∪ t') = image2 f s t ∪ image2 f s t' :=
-begin
-  ext c,
-  split,
-  { rintro ⟨a, b, ha, h1b|h2b, rfl⟩;[left, right]; exact ⟨_, _, ‹_›, ‹_›, rfl⟩ },
-  { rintro (⟨_, _, _, _, rfl⟩|⟨_, _, _, _, rfl⟩); refine ⟨_, _, ‹_›, _, rfl⟩;
-    simp [mem_union, *] }
-end
+by rw [←image2_swap, image2_union_left, image2_swap f, image2_swap f]
 
 lemma image2_inter_left (hf : injective2 f) : image2 f (s ∩ s') t = image2 f s t ∩ image2 f s' t :=
 by simp_rw [←image_uncurry_prod, inter_prod, image_inter hf.uncurry]
@@ -136,6 +140,12 @@ by { rintro _ ⟨a, b, ha, ⟨h1b, h2b⟩, rfl⟩, split; exact ⟨_, _, ‹_›
 @[simp] lemma image2_singleton_right : image2 f s {b} = (λ a, f a b) '' s := ext $ λ x, by simp
 
 lemma image2_singleton : image2 f {a} {b} = {f a b} := by simp
+
+@[simp] lemma image2_insert_left : image2 f (insert a s) t = (λ b, f a b) '' t ∪ image2 f s t :=
+by rw [insert_eq, image2_union_left, image2_singleton_left]
+
+@[simp] lemma image2_insert_right : image2 f s (insert b t) = (λ a, f a b) '' s  ∪ image2 f s t :=
+by rw [insert_eq, image2_union_right, image2_singleton_right]
 
 @[congr] lemma image2_congr (h : ∀ (a ∈ s) (b ∈ t), f a b = f' a b) :
   image2 f s t = image2 f' s t :=
@@ -207,10 +217,6 @@ begin
   { rintro ⟨a, b, ha, hb, rfl⟩, refine ⟨a, _, ha, ⟨b, hb, rfl⟩, rfl⟩ }
 end
 
-lemma image2_swap (f : α → β → γ) (s : set α) (t : set β) :
-  image2 f s t = image2 (λ a b, f b a) t s :=
-by { ext, split; rintro ⟨a, b, ha, hb, rfl⟩; refine ⟨b, a, hb, ha, rfl⟩ }
-
 @[simp] lemma image2_left (h : t.nonempty) : image2 (λ x y, x) s t = s :=
 by simp [nonempty_def.mp h, ext_iff]
 
@@ -234,6 +240,19 @@ lemma image2_right_comm {f : δ → γ → ε} {g : α → β → δ} {f' : α �
   (h_right_comm : ∀ a b c, f (g a b) c = g' (f' a c) b) :
   image2 f (image2 g s t) u = image2 g' (image2 f' s u) t :=
 by { rw [image2_swap g, image2_swap g'], exact image2_assoc (λ _ _ _, h_right_comm _ _ _) }
+
+lemma image2_image2_image2_comm {f : ε → ζ → ν} {g : α → β → ε} {h : γ → δ → ζ} {f' : ε' → ζ' → ν}
+  {g' : α → γ → ε'} {h' : β → δ → ζ'}
+  (h_comm : ∀ a b c d, f (g a b) (h c d) = f' (g' a c) (h' b d)) :
+  image2 f (image2 g s t) (image2 h u v) = image2 f' (image2 g' s u) (image2 h' t v) :=
+begin
+  ext,
+  split,
+  { rintro ⟨_, _, ⟨a, b, ha, hb, rfl⟩, ⟨c, d, hc, hd, rfl⟩, rfl⟩,
+    exact ⟨_, _, ⟨a, c, ha, hc, rfl⟩, ⟨b, d, hb, hd, rfl⟩, (h_comm _ _ _ _).symm⟩ },
+  { rintro ⟨_, _, ⟨a, c, ha, hc, rfl⟩, ⟨b, d, hb, hd, rfl⟩, rfl⟩,
+    exact ⟨_, _, ⟨a, b, ha, hb, rfl⟩, ⟨c, d, hc, hd, rfl⟩, h_comm _ _ _ _⟩ }
+end
 
 lemma image_image2_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α → α'} {g₂ : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' (g₁ a) (g₂ b)) :
@@ -324,5 +343,24 @@ by rw [image2_singleton_left, show f a = id, from funext h, image_id]
 lemma image2_right_identity {f : α → β → α} {b : β} (h : ∀ a, f a b = a) (s : set α) :
   image2 f s {b} = s :=
 by rw [image2_singleton_right, funext h, image_id']
+
+lemma image2_inter_union_subset_union :
+  image2 f (s ∩ s') (t ∪ t') ⊆ image2 f s t ∪ image2 f s' t' :=
+by { rw image2_union_right, exact union_subset_union
+  (image2_subset_right $ inter_subset_left _ _) (image2_subset_right $ inter_subset_right _ _) }
+
+lemma image2_union_inter_subset_union :
+  image2 f (s ∪ s') (t ∩ t') ⊆ image2 f s t ∪ image2 f s' t' :=
+by { rw image2_union_left, exact union_subset_union
+  (image2_subset_left $ inter_subset_left _ _) (image2_subset_left $ inter_subset_right _ _) }
+
+lemma image2_inter_union_subset {f : α → α → β} {s t : set α} (hf : ∀ a b, f a b = f b a) :
+  image2 f (s ∩ t) (s ∪ t) ⊆ image2 f s t :=
+by { rw inter_comm,
+  exact image2_inter_union_subset_union.trans (union_subset (image2_comm hf).subset subset.rfl) }
+
+lemma image2_union_inter_subset {f : α → α → β} {s t : set α} (hf : ∀ a b, f a b = f b a) :
+  image2 f (s ∪ t) (s ∩ t) ⊆ image2 f s t :=
+by { rw image2_comm hf, exact image2_inter_union_subset hf }
 
 end set

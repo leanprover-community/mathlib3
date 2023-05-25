@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import ring_theory.ring_hom_properties
+import ring_theory.integral_closure
 
 /-!
 

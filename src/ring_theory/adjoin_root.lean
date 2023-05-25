@@ -16,6 +16,9 @@ import ring_theory.quotient_noetherian
 /-!
 # Adjoining roots of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the commutative ring `adjoin_root f`, the ring R[X]/(f) obtained from a
 commutative ring `R` and a polynomial `f : R[X]`. If furthermore `R` is a field and `f` is
 irreducible, the field structure on `adjoin_root f` is constructed.

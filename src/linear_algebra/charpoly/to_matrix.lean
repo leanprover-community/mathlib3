@@ -11,6 +11,9 @@ import linear_algebra.matrix.basis
 
 # Characteristic polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main result
 
 * `linear_map.charpoly_to_matrix f` : `charpoly f` is the characteristic polynomial of the matrix

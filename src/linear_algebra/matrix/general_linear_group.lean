@@ -10,6 +10,9 @@ import linear_algebra.matrix.special_linear_group
 /-!
 # The General Linear group $GL(n, R)$
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the elements of the General Linear group `general_linear_group n R`,
 consisting of all invertible `n` by `n` `R`-matrices.
 

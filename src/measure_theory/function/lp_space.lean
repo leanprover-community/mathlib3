@@ -359,7 +359,7 @@ end
 
 end const
 
-lemma snorm'_mono_ae {f : α → F} {g : α → G} (hq : 0 ≤ q) (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ ‖g x‖) :
+lemma snorm'_mono_nnnorm_ae {f : α → F} {g : α → G} (hq : 0 ≤ q) (h : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ ‖g x‖₊) :
   snorm' f q μ ≤ snorm' g q μ :=
 begin
   rw [snorm'],
@@ -368,75 +368,103 @@ begin
   exact ennreal.rpow_le_rpow (ennreal.coe_le_coe.2 hx) hq
 end
 
-lemma snorm'_congr_norm_ae {f g : α → F} (hfg : ∀ᵐ x ∂μ, ‖f x‖ = ‖g x‖) :
+lemma snorm'_mono_ae {f : α → F} {g : α → G} (hq : 0 ≤ q) (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ ‖g x‖) :
+  snorm' f q μ ≤ snorm' g q μ :=
+snorm'_mono_nnnorm_ae hq h
+
+lemma snorm'_congr_nnnorm_ae {f g : α → F} (hfg : ∀ᵐ x ∂μ, ‖f x‖₊ = ‖g x‖₊) :
   snorm' f q μ = snorm' g q μ :=
 begin
   have : (λ x, (‖f x‖₊ ^ q : ℝ≥0∞)) =ᵐ[μ] (λ x, ‖g x‖₊ ^ q),
-    from hfg.mono (λ x hx, by { simp only [← coe_nnnorm, nnreal.coe_eq] at hx, simp [hx] }),
+    from hfg.mono (λ x hx, by simp_rw hx),
   simp only [snorm', lintegral_congr_ae this]
 end
 
+lemma snorm'_congr_norm_ae {f g : α → F} (hfg : ∀ᵐ x ∂μ, ‖f x‖ = ‖g x‖) :
+  snorm' f q μ = snorm' g q μ :=
+snorm'_congr_nnnorm_ae $ hfg.mono $ λ x hx, nnreal.eq hx
+
 lemma snorm'_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm' f q μ = snorm' g q μ :=
-snorm'_congr_norm_ae (hfg.fun_comp _)
+snorm'_congr_nnnorm_ae (hfg.fun_comp _)
 
 lemma snorm_ess_sup_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) :
   snorm_ess_sup f μ = snorm_ess_sup g μ :=
 ess_sup_congr_ae (hfg.fun_comp (coe ∘ nnnorm))
 
-lemma snorm_mono_ae {f : α → F} {g : α → G} (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ ‖g x‖) :
+lemma snorm_mono_nnnorm_ae {f : α → F} {g : α → G} (h : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ ‖g x‖₊) :
   snorm f p μ ≤ snorm g p μ :=
 begin
   simp only [snorm],
   split_ifs,
   { exact le_rfl },
-  { refine ess_sup_mono_ae (h.mono $ λ x hx, _),
-    exact_mod_cast hx },
-  { exact snorm'_mono_ae ennreal.to_real_nonneg h }
+  { exact ess_sup_mono_ae (h.mono $ λ x hx, ennreal.coe_le_coe.mpr hx) },
+  { exact snorm'_mono_nnnorm_ae ennreal.to_real_nonneg h }
 end
+
+lemma snorm_mono_ae {f : α → F} {g : α → G} (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ ‖g x‖) :
+  snorm f p μ ≤ snorm g p μ :=
+snorm_mono_nnnorm_ae h
 
 lemma snorm_mono_ae_real {f : α → F} {g : α → ℝ} (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ g x) :
   snorm f p μ ≤ snorm g p μ :=
 snorm_mono_ae $ h.mono (λ x hx, hx.trans ((le_abs_self _).trans (real.norm_eq_abs _).symm.le))
 
+lemma snorm_mono_nnnorm {f : α → F} {g : α → G} (h : ∀ x, ‖f x‖₊ ≤ ‖g x‖₊) :
+  snorm f p μ ≤ snorm g p μ :=
+snorm_mono_nnnorm_ae (eventually_of_forall (λ x, h x))
+
 lemma snorm_mono {f : α → F} {g : α → G} (h : ∀ x, ‖f x‖ ≤ ‖g x‖) :
   snorm f p μ ≤ snorm g p μ :=
-snorm_mono_ae (eventually_of_forall (λ x, h x))
+snorm_mono_nnnorm h
 
 lemma snorm_mono_real {f : α → F} {g : α → ℝ} (h : ∀ x, ‖f x‖ ≤ g x) :
   snorm f p μ ≤ snorm g p μ :=
 snorm_mono_ae_real (eventually_of_forall (λ x, h x))
 
+lemma snorm_ess_sup_le_of_ae_nnnorm_bound {f : α → F} {C : ℝ≥0} (hfC : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ C) :
+  snorm_ess_sup f μ ≤ C :=
+ess_sup_le_of_ae_le C $ hfC.mono $ λ x hx, ennreal.coe_le_coe.mpr hx
+
 lemma snorm_ess_sup_le_of_ae_bound {f : α → F} {C : ℝ} (hfC : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
-  snorm_ess_sup f μ ≤ ennreal.of_real C:=
-begin
-  simp_rw [snorm_ess_sup, ← of_real_norm_eq_coe_nnnorm],
-  refine ess_sup_le_of_ae_le (ennreal.of_real C) (hfC.mono (λ x hx, _)),
-  exact ennreal.of_real_le_of_real hx,
-end
+  snorm_ess_sup f μ ≤ ennreal.of_real C :=
+snorm_ess_sup_le_of_ae_nnnorm_bound $ hfC.mono $ λ x hx, hx.trans C.le_coe_to_nnreal
+
+lemma snorm_ess_sup_lt_top_of_ae_nnnorm_bound {f : α → F} {C : ℝ≥0} (hfC : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ C) :
+  snorm_ess_sup f μ < ∞ :=
+(snorm_ess_sup_le_of_ae_nnnorm_bound hfC).trans_lt ennreal.coe_lt_top
 
 lemma snorm_ess_sup_lt_top_of_ae_bound {f : α → F} {C : ℝ} (hfC : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
   snorm_ess_sup f μ < ∞ :=
 (snorm_ess_sup_le_of_ae_bound hfC).trans_lt ennreal.of_real_lt_top
 
-lemma snorm_le_of_ae_bound {f : α → F} {C : ℝ} (hfC : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
-  snorm f p μ ≤ ((μ set.univ) ^ p.to_real⁻¹) * (ennreal.of_real C) :=
+lemma snorm_le_of_ae_nnnorm_bound {f : α → F} {C : ℝ≥0} (hfC : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ C) :
+  snorm f p μ ≤ C • (μ set.univ ^ p.to_real⁻¹) :=
 begin
   by_cases hμ : μ = 0,
   { simp [hμ] },
   haveI : μ.ae.ne_bot := ae_ne_bot.mpr hμ,
   by_cases hp : p = 0,
   { simp [hp] },
-  have hC : 0 ≤ C, from le_trans (norm_nonneg _) hfC.exists.some_spec,
-  have hC' : ‖C‖ = C := by rw [real.norm_eq_abs, abs_eq_self.mpr hC],
-  have : ∀ᵐ x ∂μ, ‖f x‖ ≤ ‖(λ _, C) x‖, from hfC.mono (λ x hx, hx.trans (le_of_eq hC'.symm)),
-  convert snorm_mono_ae this,
-  rw [snorm_const _ hp hμ, mul_comm, ← of_real_norm_eq_coe_nnnorm, hC', one_div]
+  have : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ ‖(C : ℝ)‖₊ := hfC.mono (λ x hx, hx.trans_eq C.nnnorm_eq.symm),
+  refine (snorm_mono_ae this).trans_eq _,
+  rw [snorm_const _ hp hμ, C.nnnorm_eq, one_div, ennreal.smul_def, smul_eq_mul],
 end
+
+lemma snorm_le_of_ae_bound {f : α → F} {C : ℝ} (hfC : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
+  snorm f p μ ≤ ((μ set.univ) ^ p.to_real⁻¹) * (ennreal.of_real C) :=
+begin
+  rw [←mul_comm],
+  exact snorm_le_of_ae_nnnorm_bound (hfC.mono $ λ x hx, hx.trans C.le_coe_to_nnreal),
+end
+
+lemma snorm_congr_nnnorm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, ‖f x‖₊ = ‖g x‖₊) :
+  snorm f p μ = snorm g p μ :=
+le_antisymm (snorm_mono_nnnorm_ae $ eventually_eq.le hfg)
+  (snorm_mono_nnnorm_ae $ (eventually_eq.symm hfg).le)
 
 lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, ‖f x‖ = ‖g x‖) :
   snorm f p μ = snorm g p μ :=
-le_antisymm (snorm_mono_ae $ eventually_eq.le hfg)
-  (snorm_mono_ae $ (eventually_eq.symm hfg).le)
+snorm_congr_nnnorm_ae $ hfg.mono $ λ x hx, nnreal.eq hx
 
 @[simp] lemma snorm'_norm {f : α → F} : snorm' (λ a, ‖f a‖) q μ = snorm' f q μ :=
 by simp [snorm']

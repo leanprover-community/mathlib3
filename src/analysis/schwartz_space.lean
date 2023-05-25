@@ -586,7 +586,7 @@ mk_clm (λ f x, f x m)
     rintro ⟨k, n⟩,
     use [{(k, n)}, ‖m‖, norm_nonneg _],
     intros f x,
-    refine le_trans (mul_le_mul_of_nonneg_left (iterated_fderiv_clm_apply_const f.2 le_top)
+    refine le_trans (mul_le_mul_of_nonneg_left (norm_iterated_fderiv_clm_apply_const f.2 le_top)
       (by positivity)) _,
     rw [← mul_assoc, ← mul_comm (‖m‖), mul_assoc],
     refine mul_le_mul_of_nonneg_left _ (norm_nonneg _),
@@ -660,19 +660,6 @@ begin
   by simp only [fin.tail_def, fin.succ_last],
   simp only [iterated_pderiv_succ_left, IH (fin.tail m), hmzero, hmtail, fin.tail_init_eq_init_tail]
 end
-
-lemma iterated_pderiv_apply {n : ℕ} (m : fin n → E) (f : 𝓢(E, F)) (x : E) :
-  iterated_pderiv 𝕜 m f x = iterated_fderiv ℝ n f x m :=
-begin
-  induction n with n IH generalizing f,
-  { simp only [iterated_pderiv_zero, iterated_fderiv_zero_apply] },
-  rw [iterated_pderiv_succ_right],
-  rw IH (fin.init m),
-  rw
-  sorry,
-end
-
-#exit
 
 end derivatives
 

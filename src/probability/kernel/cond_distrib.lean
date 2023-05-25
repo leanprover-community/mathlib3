@@ -77,16 +77,6 @@ open measure_theory
 
 namespace probability_theory
 
-localized "notation (name := condexp_fun_comap')
-  P `[` Y `|` X `;` m `]` := P[ Y | m.comap X]" in probability_theory
-
-localized "notation (name := condexp_indicator)
-  P `⟦` s `|` m `⟧` := P[ s.indicator (λ ω, (1 : ℝ)) | m]" in probability_theory
-
-localized "notation (name := condexp_fun_mem_comap)
-  P `⟦` Y `∈ₘ` s `|` m `⟧` := P[ (Y ⁻¹' s).indicator (λ ω, (1 : ℝ)) | m]"
-  in probability_theory
-
 variables {α β Ω F : Type*}
   [topological_space Ω] [measurable_space Ω] [polish_space Ω] [borel_space Ω] [nonempty Ω]
   [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
@@ -179,7 +169,7 @@ end
 
 lemma condexp_prod_ae_eq_integral_cond_distrib' (hX : measurable X) (hY : ae_measurable Y μ)
   (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
-  μ[(λ a, f (X a, Y a)) | X; mβ] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
+  μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
 begin
   have hf_int' : integrable (λ a, f (X a, Y a)) μ,
   { exact (integrable_map_measure hf_int.1 (hX.ae_measurable.prod_mk hY)).mp hf_int, },
@@ -202,7 +192,7 @@ end
 lemma condexp_prod_ae_eq_integral_cond_distrib₀ (hX : measurable X) (hY : ae_measurable Y μ)
   (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a))))
   (hf_int : integrable (λ a, f (X a, Y a)) μ) :
-  μ[(λ a, f (X a, Y a)) | X; mβ] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
+  μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
 begin
   have hf_int' : integrable f (μ.map (λ a, (X a, Y a))),
   { rwa integrable_map_measure hf (hX.ae_measurable.prod_mk hY), },
@@ -211,7 +201,7 @@ end
 
 lemma condexp_prod_ae_eq_integral_cond_distrib (hX : measurable X) (hY : ae_measurable Y μ)
   (hf : strongly_measurable f) (hf_int : integrable (λ a, f (X a, Y a)) μ) :
-  μ[(λ a, f (X a, Y a)) | X; mβ] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
+  μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
 begin
   have hf_int' : integrable f (μ.map (λ a, (X a, Y a))),
   { rwa integrable_map_measure hf.ae_strongly_measurable (hX.ae_measurable.prod_mk hY), },
@@ -220,13 +210,13 @@ end
 
 lemma condexp_ae_eq_integral_cond_distrib (hX : measurable X) (hY : ae_measurable Y μ)
   {f : Ω → F} (hf : strongly_measurable f) (hf_int : integrable (λ a, f (Y a)) μ) :
-  μ[(λ a, f (Y a)) | X; mβ] =ᵐ[μ] λ a, ∫ y, f y ∂(cond_distrib Y X μ (X a)) :=
+  μ[(λ a, f (Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f y ∂(cond_distrib Y X μ (X a)) :=
 condexp_prod_ae_eq_integral_cond_distrib hX hY (hf.comp_measurable measurable_snd) hf_int
 
 lemma condexp_ae_eq_integral_cond_distrib' {Ω} [normed_add_comm_group Ω] [normed_space ℝ Ω]
   [complete_space Ω] [measurable_space Ω] [borel_space Ω] [second_countable_topology Ω] {Y : α → Ω}
   (hX : measurable X) (hY_int : integrable Y μ) :
-  μ[Y | X; mβ] =ᵐ[μ] λ a, ∫ y, y ∂(cond_distrib Y X μ (X a)) :=
+  μ[Y | mβ.comap X] =ᵐ[μ] λ a, ∫ y, y ∂(cond_distrib Y X μ (X a)) :=
 condexp_ae_eq_integral_cond_distrib hX hY_int.1.ae_measurable strongly_measurable_id hY_int
 
 end probability_theory

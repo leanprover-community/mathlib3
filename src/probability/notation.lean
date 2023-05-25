@@ -40,10 +40,11 @@ localized "notation (name := condexp.probability)
 localized "notation (name := expected_value) `𝔼[` X `]` := ∫ a, X a" in probability_theory
 
 localized "notation (name := condexp_indicator)
-  P `⟦` s `|` m `⟧` := P[ s.indicator (λ ω, (1 : ℝ)) | m]" in probability_theory
+  P `⟦` s `|` m `⟧` := measure_theory.condexp m P (s.indicator (λ ω, (1 : ℝ)))"
+  in probability_theory
 
 localized "notation (name := condexp_fun_mem_comap)
-  P `⟦` Y `∈ₘ` s `|` m `⟧` := P[ (Y ⁻¹' s).indicator (λ ω, (1 : ℝ)) | m]"
+  P `⟦` Y `∈ₘ` s `|` m `⟧` := measure_theory.condexp m P ((Y ⁻¹' s).indicator (λ ω, (1 : ℝ)))"
   in probability_theory
 
 localized "notation (name := eq_ae_volume)

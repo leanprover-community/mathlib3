@@ -45,7 +45,7 @@ lemma ae_strongly_measurable.comp_ae_measurable'
   {α β γ : Type*} [topological_space β] {m0 : measurable_space α} {mγ : measurable_space γ}
   {f : α → β} {μ : measure γ} {g : γ → α}
   (hf : ae_strongly_measurable f (μ.map g)) (hg : ae_measurable g μ) :
-  ae_strongly_measurable' (measurable_space.comap g m0) (f ∘ g) μ :=
+  ae_strongly_measurable' (m0.comap g ) (f ∘ g) μ :=
 ⟨(hf.mk f) ∘ g, hf.strongly_measurable_mk.comp_measurable (measurable_iff_comap_le.mpr le_rfl),
   ae_eq_comp hg hf.ae_eq_mk⟩
 
@@ -138,16 +138,13 @@ lemma ae_strongly_measurable'_integral_cond_distrib
 lemma set_lintegral_preimage_cond_distrib (hX : measurable X) (hY : ae_measurable Y μ)
   (hs : measurable_set s) (ht : measurable_set t) :
   ∫⁻ a in X ⁻¹' t, cond_distrib Y X μ (X a) s ∂μ = μ (X ⁻¹' t ∩ Y ⁻¹' s) :=
-begin
-  change ∫⁻ a in X ⁻¹' t, ((λ x, cond_distrib Y X μ x s) ∘ X) a ∂μ = μ (X ⁻¹' t ∩ Y ⁻¹' s),
-  rw [lintegral_comp (kernel.measurable_coe _ hs) hX, cond_distrib,
-    ← measure.restrict_map hX ht, ← fst_map_prod_mk₀ hX.ae_measurable hY,
-    set_lintegral_cond_kernel_eq_measure_prod _ ht hs,
-    measure.map_apply_of_ae_measurable (hX.ae_measurable.prod_mk hY) (ht.prod hs),
-    mk_preimage_prod],
-end
+by rw [lintegral_comp (kernel.measurable_coe _ hs) hX, cond_distrib,
+  ← measure.restrict_map hX ht, ← fst_map_prod_mk₀ hX.ae_measurable hY,
+  set_lintegral_cond_kernel_eq_measure_prod _ ht hs,
+  measure.map_apply_of_ae_measurable (hX.ae_measurable.prod_mk hY) (ht.prod hs),
+  mk_preimage_prod]
 
-lemma set_lintegral_cond_distrib_of_measurable (hX : measurable X) (hY : ae_measurable Y μ)
+lemma set_lintegral_cond_distrib_of_measurable_set (hX : measurable X) (hY : ae_measurable Y μ)
   (hs : measurable_set s) {t : set α} (ht : measurable_set[mβ.comap X] t) :
   ∫⁻ a in t, cond_distrib Y X μ (X a) s ∂μ = μ (t ∩ Y ⁻¹' s) :=
 by { obtain ⟨tₑ, htₑ, rfl⟩ := ht, rw set_lintegral_preimage_cond_distrib hX hY hs htₑ, }
@@ -162,7 +159,7 @@ begin
     rw [integral_to_real ((measurable_cond_distrib hs).mono hX.comap_le le_rfl).ae_measurable
         (eventually_of_forall (λ ω, measure_lt_top (cond_distrib Y X μ (X ω)) _)),
       integral_indicator_const _ (hY hs), measure.restrict_apply (hY hs), smul_eq_mul, mul_one,
-      inter_comm, set_lintegral_cond_distrib_of_measurable hX hY.ae_measurable hs ht], },
+      inter_comm, set_lintegral_cond_distrib_of_measurable_set hX hY.ae_measurable hs ht], },
   { refine (measurable.strongly_measurable _).ae_strongly_measurable',
     exact @measurable.ennreal_to_real _ (mβ.comap X) _ (measurable_cond_distrib hs), },
 end

@@ -9,6 +9,9 @@ import algebra.category.Mon.filtered_colimits
 /-!
 # The forgetful functor from (commutative) (additive) groups preserves filtered colimits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Forgetful functors from algebraic categories usually don't preserve colimits. However, they tend
 to preserve _filtered_ colimits.
 

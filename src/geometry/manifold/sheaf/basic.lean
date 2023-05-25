@@ -32,13 +32,20 @@ def local_predicate_of_local_invariant_prop (hG : local_invariant_prop G G' P) :
 { pred := λ {U : opens (Top.of M)}, λ (f : U → M'), lift_prop P f,
   res := begin
     intros U V i f h x,
-    exact (hG.foo (category_theory.le_of_hom i) _ _).1 (h (i x)),
+    have hUV : U ≤ V := category_theory.le_of_hom i,
+    show lift_prop_at P (f ∘ set.inclusion hUV) x,
+    rw ← hG.lift_prop_at_iff_comp_inclusion hUV,
+    apply h,
   end,
   locality := begin
     intros V f h x,
     obtain ⟨U, hxU, i, hU : lift_prop P (f ∘ i)⟩ := h x,
     let x' : U := ⟨x, hxU⟩,
-    convert (hG.foo (category_theory.le_of_hom i) _ _).2 (hU x'),
+    have hUV : U ≤ V := category_theory.le_of_hom i,
+    have : lift_prop_at P f (inclusion hUV x'),
+    { rw hG.lift_prop_at_iff_comp_inclusion hUV,
+      exact hU x' },
+    convert this,
     ext1,
     refl
   end }

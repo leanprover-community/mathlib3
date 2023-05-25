@@ -62,7 +62,8 @@ begin
   exact filter.eventually_eq_of_mem heUx_nhds (bop hUV e),
 end
 
-lemma foo (hG : local_invariant_prop G G' P) {U V : opens M} (hUV : U ≤ V) (f : V → M') (x : U) :
+lemma lift_prop_at_iff_comp_inclusion (hG : local_invariant_prop G G' P) {U V : opens M}
+  (hUV : U ≤ V) (f : V → M') (x : U) :
   lift_prop_at P f (set.inclusion hUV x) ↔ lift_prop_at P (f ∘ set.inclusion hUV : U → M') x :=
 begin
   congrm _ ∧ _,
@@ -74,12 +75,13 @@ begin
     apply foo₂ (chart_at H' (f (set.inclusion hUV x)) ∘ f), },
 end
 
-lemma bar' {Q : (H → H) → (set H) → H → Prop} (hG : local_invariant_prop G G Q)
-  (hQ : ∀ y, Q id univ y) {U V : opens M} (h : U ≤ V) :
-  lift_prop Q (set.inclusion h : U → V) :=
+lemma lift_prop_inclusion {Q : (H → H) → (set H) → H → Prop} (hG : local_invariant_prop G G Q)
+  (hQ : ∀ y, Q id univ y) {U V : opens M} (hUV : U ≤ V) :
+  lift_prop Q (set.inclusion hUV : U → V) :=
 begin
   intro x,
-  refine (foo hG h id x).mp _,
+  show lift_prop_at Q (id ∘ inclusion hUV) x,
+  rw ← hG.lift_prop_at_iff_comp_inclusion hUV,
   apply hG.lift_prop_id hQ,
 end
 

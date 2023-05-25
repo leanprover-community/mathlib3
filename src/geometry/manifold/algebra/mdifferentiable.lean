@@ -48,14 +48,13 @@ lemma mdifferentiable_inclusion {U V : opens M} (h : U ≤ V) :
 begin
   rintros ⟨x, hx : x ∈ U⟩,
   rw mdifferentiable_at_iff_lift_prop_at,
-  apply (differentiable_within_at_local_invariant_prop IM IM).bar',
-  { intros y,
-    dsimp [differentiable_within_at_prop],
-    rw [set.univ_inter],
-    refine differentiable_within_at_id.congr _ _,
-    { exact IM.right_inv_on },
-    { exact congr_arg IM (IM.left_inv y) } },
-  apply_instance
+  apply (differentiable_within_at_local_invariant_prop IM IM).lift_prop_inclusion,
+  intros y,
+  dsimp [differentiable_within_at_prop],
+  rw [set.univ_inter],
+  refine differentiable_within_at_id.congr _ _,
+  { exact IM.right_inv_on },
+  { exact congr_arg IM (IM.left_inv y) },
 end
 
 end

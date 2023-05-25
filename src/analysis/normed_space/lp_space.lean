@@ -621,16 +621,16 @@ begin
   { exact absurd rfl hp },
   { cases is_empty_or_nonempty α; resetI,
     { simp [lp.eq_zero' f], },
-    -- surely I'm missing some `is_lub` API here.
     have hcf := lp.is_lub_norm (c • f),
     have hfc := (lp.is_lub_norm f).mul_left (norm_nonneg c),
     simp_rw [←set.range_comp, function.comp] at hfc,
+    -- TODO: some `is_lub` API should make it a one-liner from here.
     refine hcf.right _,
     have := hfc.left,
     simp_rw [mem_upper_bounds, set.mem_range, forall_exists_index,
       forall_apply_eq_imp_iff'] at this ⊢,
     intro a,
-    refine (norm_smul_le _ _).trans (this a) },
+    exact (norm_smul_le _ _).trans (this a) },
   { letI inst : has_nnnorm (lp E p) := ⟨λ f, ⟨‖f‖, norm_nonneg' _⟩⟩,
     have coe_nnnorm : ∀ f : lp E p, ↑‖f‖₊ = ‖f‖ := λ _, rfl,
     suffices : ‖c • f‖₊ ^ p.to_real ≤ (‖c‖₊ * ‖f‖₊) ^ p.to_real,

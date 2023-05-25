@@ -10,6 +10,9 @@ import analysis.normed.field.unit_ball
 /-!
 # The circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `circle` to be the metric sphere (`metric.sphere`) in `ℂ` centred at `0` of
 radius `1`.  We equip it with the following structure:
 

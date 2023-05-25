@@ -612,6 +612,16 @@ by simp only [Sup_eq_supr, mul_supr]
 lemma supr_mul {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f * a = ⨆i, f i * a :=
 by rw [mul_comm, mul_supr]; congr; funext; rw [mul_comm]
 
+lemma smul_supr {ι : Sort*} {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (f : ι → ℝ≥0∞) (c : R) :
+  c • (⨆ i, f i) = ⨆ i, c • f i :=
+by simp only [←smul_one_mul c (f _), ←smul_one_mul c (supr _), ennreal.mul_supr]
+
+lemma smul_Sup {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (s : set ℝ≥0∞) (c : R) :
+  c • Sup s = ⨆ i ∈ s, c • i :=
+by simp_rw [←smul_one_mul c (Sup _), ennreal.mul_Sup, smul_one_mul]
+
 lemma supr_div {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f / a = ⨆i, f i / a :=
 supr_mul
 
@@ -856,6 +866,10 @@ has_sum.tsum_eq this
 
 protected lemma tsum_mul_right : (∑'i, f i * a) = (∑'i, f i) * a :=
 by simp [mul_comm, ennreal.tsum_mul_left]
+
+protected lemma tsum_const_smul {R} [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (a : R) :
+  ∑' i, a • f i = a • ∑' i, f i :=
+by simpa only [smul_one_mul] using @ennreal.tsum_mul_left _ (a • 1) _
 
 @[simp] lemma tsum_supr_eq {α : Type*} (a : α) {f : α → ℝ≥0∞} :
   ∑'b:α, (⨆ (h : a = b), f b) = f a :=

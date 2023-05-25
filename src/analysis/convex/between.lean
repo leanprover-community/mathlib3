@@ -6,11 +6,14 @@ Authors: Joseph Myers
 import data.set.intervals.group
 import analysis.convex.segment
 import linear_algebra.affine_space.finite_dimensional
-import linear_algebra.affine_space.midpoint_zero
 import tactic.field_simp
+import algebra.char_p.invertible
 
 /-!
 # Betweenness in affine spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines notions of a point in an affine space being between two given points.
 

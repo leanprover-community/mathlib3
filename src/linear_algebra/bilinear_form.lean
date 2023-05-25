@@ -6,10 +6,12 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.free_module.finite.matrix
-import linear_algebra.matrix.to_lin
 
 /-!
 # Bilinear form
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a bilinear form over a module. Basic ideas
 such as orthogonality are also introduced, as well as reflexivive,

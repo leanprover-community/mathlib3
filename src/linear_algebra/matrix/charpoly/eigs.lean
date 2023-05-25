@@ -32,37 +32,28 @@ variables {n: Type*}[fintype n][decidable_eq n]
 variables {R: Type*}[field R][is_alg_closed R]
 
 open matrix polynomial
-open linear_map module.End
 open_locale matrix big_operators
 
 lemma det_eq_prod_roots_charpoly (A : matrix n n R) :
   A.det = (matrix.charpoly A).roots.prod :=
 begin
-  casesI is_empty_or_nonempty n,
-  { rw matrix.charpoly,
-    repeat {rw det_eq_one_of_card_eq_zero (fintype.card_eq_zero_iff.2 h)},
-    simp only [polynomial.roots_one, multiset.empty_eq_zero, multiset.prod_zero], },
-  { have hdeg := charpoly_nat_degree_eq_dim A,
-    rw [det_eq_sign_charpoly_coeff, ← hdeg,
-      polynomial.prod_roots_eq_coeff_zero_of_monic_of_split A.charpoly_monic
-        (is_alg_closed.splits _),
-      ← mul_assoc, ← pow_two, pow_right_comm, neg_one_sq, one_pow, one_mul], },
+  rw [det_eq_sign_charpoly_coeff, ← (charpoly_nat_degree_eq_dim A),
+    polynomial.prod_roots_eq_coeff_zero_of_monic_of_split A.charpoly_monic (is_alg_closed.splits _),
+    ← mul_assoc, ← pow_two, pow_right_comm, neg_one_sq, one_pow, one_mul],
 end
 
 lemma trace_eq_sum_roots_charpoly (A: matrix n n R) :
   A.trace = (matrix.charpoly A).roots.sum :=
 begin
   casesI is_empty_or_nonempty n,
-  { rw [matrix.trace, fintype.sum_empty],
-    rw matrix.charpoly,
-    rw det_eq_one_of_card_eq_zero (fintype.card_eq_zero_iff.2 h),
-    rw polynomial.roots_one,
-    simp only [multiset.empty_eq_zero, multiset.sum_zero],},
+  { rw [matrix.trace, fintype.sum_empty, matrix.charpoly,
+    det_eq_one_of_card_eq_zero (fintype.card_eq_zero_iff.2 h),
+    polynomial.roots_one, multiset.empty_eq_zero, multiset.sum_zero], },
   { rw [← neg_inj, ← polynomial.sum_roots_eq_next_coeff_of_monic_of_split A.charpoly_monic
-      (is_alg_closed.splits A.charpoly),
+      (is_alg_closed.splits _),
       trace_eq_neg_charpoly_coeff, next_coeff, neg_neg,
       charpoly_nat_degree_eq_dim],
-    have fne := (ne_of_lt (@fintype.card_pos _ _ h)).symm,
+    have fne := @fintype.card_ne_zero _ _ h,
     rw ne.def at fne,
     split_ifs,
     refl, },

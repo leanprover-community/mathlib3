@@ -1104,13 +1104,6 @@ begin
   { simp, },
 end
 
-@[simp, norm_cast] lemma to_local_homeomorph_symm_apply (x : β) :
-  (h.to_local_homeomorph f).symm x = f.symm x :=
-begin
-  rw [←congr_fun (h.to_local_homeomorph_apply f), local_homeomorph.left_inv],
-  exact set.mem_univ _
-end
-
 end open_embedding
 
 namespace topological_space.opens

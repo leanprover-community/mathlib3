@@ -16,14 +16,15 @@ open topological_space opposite
 universe u
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-{HM : Type*} [topological_space HM] (IM : model_with_corners 𝕜 E HM)
-variables {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-{H : Type*} [topological_space H] (I : model_with_corners 𝕜 E' H)
+{EM : Type*} [normed_add_comm_group EM] [normed_space 𝕜 EM]
+{HM : Type*} [topological_space HM] (IM : model_with_corners 𝕜 EM HM)
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+{H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E H')
 (M : Type u) [topological_space M] [charted_space HM M] [smooth_manifold_with_corners IM M]
-(N G A R : Type u) [topological_space N] [charted_space H N]
+(N G A A' R : Type u) [topological_space N] [charted_space H N]
 [topological_space G] [charted_space H G] [topological_space A] [charted_space H A]
-[topological_space R] [charted_space H R]
+[topological_space A'] [charted_space H' A'] [topological_space R] [charted_space H R]
 
 section type
 variables [smooth_manifold_with_corners I N]
@@ -103,7 +104,7 @@ def mdifferentiable_sheaf_Group : Top.sheaf Group.{u} (Top.of M) :=
 end lie_group
 
 section comm_lie_group
-variables [comm_group A] [lie_group I A]
+variables [comm_group A] [comm_group A'] [lie_group I A] [lie_group I' A']
 
 @[to_additive]
 instance (U : (opens (Top.of M))ᵒᵖ) : comm_group ((mdifferentiable_sheaf IM I M A).val.obj U) :=
@@ -141,6 +142,17 @@ def mdifferentiable_sheaf_CommGroup : Top.sheaf CommGroup.{u} (Top.of M) :=
     rw category_theory.presheaf.is_sheaf_iff_is_sheaf_forget _ _ (category_theory.forget CommGroup),
     { exact category_theory.Sheaf.cond (mdifferentiable_sheaf IM I M A) },
     { apply_instance },
+  end }
+
+@[to_additive] def mdifferentiable_sheaf_CommGroup.comp_right (φ : A →* A') (hφ : smooth I I' φ) :
+  mdifferentiable_sheaf_CommGroup IM I M A ⟶ mdifferentiable_sheaf_CommGroup IM I' M A' :=
+category_theory.Sheaf.hom.mk $
+{ app := λ U, CommGroup.of_hom $ φ.comp_right_mdifferentiable IM _ _ hφ,
+  naturality' :=
+  begin
+    intros U V f,
+    ext x,
+    refl,
   end }
 
 end comm_lie_group

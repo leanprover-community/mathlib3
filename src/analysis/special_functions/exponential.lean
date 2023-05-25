@@ -39,9 +39,9 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 - `has_strict_fderiv_at_exp` : if `𝔸` is commutative, then given any point `x`, `exp 𝕂` has strict
   Fréchet-derivative `exp 𝕂 x • 1 : 𝔸 →L[𝕂] 𝔸` at x (see also `has_strict_deriv_at_exp` for the
   case `𝔸 = 𝕂`)
-- `has_strict_fderiv_at_exp_smul_const`: `u ↦ exp 𝕂 (u • x)`, where `x` belongs to a
-  ring that may not be commutative, has strict Fréchet-derivative
-  `exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x` at `t`.
+- `has_strict_fderiv_at_exp_smul_const`: even when `𝔸` is non-commutative, if we have
+  an intermediate algebra `𝕊` which is commutative, then the function `(u : 𝕊) ↦ exp 𝕂 (u • x)`
+  still has strict Fréchet-derivative `exp 𝕂 (t • x) • (1 : 𝔸 →L[𝕂] 𝔸).smul_right x` at `t`.
 
 ### Compatibilty with `real.exp` and `complex.exp`
 
@@ -222,9 +222,18 @@ by { ext x, exact_mod_cast congr_fun complex.exp_eq_exp_ℂ x }
 /-! ### Derivative of $\exp (ux)$ by $u$
 
 Note that since for `x : 𝔸` we have `normed_ring 𝔸` not `normed_comm_ring 𝔸`, we cannot deduce
-these results from `has_fderiv_at_exp_of_mem_ball`.
+these results from `has_fderiv_at_exp_of_mem_ball` applied to the algebra `𝔸`.
 
-We could deduce them from the more general non-commutive case,
+One possible solution for that would be to apply `has_fderiv_at_exp_of_mem_ball` to the
+commutative algebra `algebra.elemental_algebra 𝕊 x`. Unfortunately we don't have all the required
+API, so we leave that to a future refactor (see leanprover-community/mathlib#19062 for discussion).
+
+We could also go the other way around and deduce `has_fderiv_at_exp_of_mem_ball` from
+`has_fderiv_at_exp_smul_const_of_mem_ball` applied to `𝕊 := 𝔸`, `x := (1 : 𝔸)`, and `t := x`.
+However, doing so would make the aformentioned `elemental_algebra` refactor harder, so for now we
+just prove these two lemmas independently.
+
+A last strategy would be to deduce everything from the more general non-commutative case,
 $$\frac{d}{dt}e^{x(t)} = \int_0^1 e^{sx(t)} \left(\frac{d}{dt}e^{x(t)}\right) e^{(1-s)x(t)} ds$$
 but this is harder to prove, and typically is shown by going via these results first.
 

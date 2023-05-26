@@ -276,13 +276,10 @@ begin
     continuous_linear_map.has_basis_nhds_zero,
   rintros ⟨sF, sG⟩ ⟨h1 : bornology.is_vonN_bounded 𝕜₂ sF, h2 : sG ∈ nhds (0:G)⟩,
   dsimp,
-  refine ⟨(e₁₂.symm '' sF, e₄₃ ⁻¹' sG), ⟨h1.image (e₁₂.symm : F →SL[σ₂₁] E), _⟩, _⟩,
-  { apply e₄₃.continuous.continuous_at,
-    simpa using h2 },
-  rintros f (h : ∀ x : E, x ∈ e₁₂.symm '' sF → e₄₃ (f x) ∈ sG) x hx,
-  apply h,
-  apply set.mem_image_of_mem,
-  exact hx,
+  refine ⟨(e₁₂.symm '' sF, e₄₃ ⁻¹' sG), ⟨h1.image (e₁₂.symm : F →SL[σ₂₁] E), _⟩,
+    λ _ h _ hx, h _ (set.mem_image_of_mem _ hx)⟩,
+  apply e₄₃.continuous.continuous_at,
+  simpa using h2,
 end
 
 variables [ring_hom_isometric σ₁₂]

@@ -292,7 +292,6 @@ def _root_.bundle.continuous_linear_map.vector_prebundle :
     ext x,
     dsimp [φ, pretrivialization.continuous_linear_map_apply],
     rw [trivialization.linear_map_at_def_of_mem _ (mem_base_set_trivialization_at _ _ _)],
-    dsimp,
     refl
   end }
 

@@ -18,7 +18,7 @@ In algebraically closed fields, we show:
 * `matrix.trace_eq_sum_roots_charpoly`: the trace is the sum of the roots of the characteristic
   polynomial.
 
-Note that over other fields such as ` ℝ`, these results can be used by using
+Note that over other fields such as `ℝ`, these results can be used by using
 `A.map (algebra_map ℝ ℂ)` as the matrix, and then applying `ring_hom.map_det`.
 
 The two lemmas `matrix.det_eq_prod_roots_charpoly` and `matrix.trace_eq_sum_roots_charpoly` are more

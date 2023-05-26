@@ -915,6 +915,20 @@ begin
   funext, congr, rw abs_of_nonneg hp.le,
 end
 
+lemma integral_comp_mul_left_Ioi (g : ℝ → E) (a : ℝ) {b : ℝ} (hb : 0 < b) :
+  ∫ x in Ioi a, g (b * x) = |b⁻¹| • ∫ x in Ioi (b * a), g x :=
+begin
+  have : ∀ c : ℝ, measurable_set (Ioi c) := λ c, measurable_set_Ioi,
+  rw [←integral_indicator (this a), ←integral_indicator (this $ b * a)],
+  convert measure.integral_comp_mul_left _ b,
+  ext1 x,
+  rw [←indicator_comp_right, preimage_const_mul_Ioi _ hb, mul_div_cancel_left _ hb.ne'],
+end
+
+lemma integral_comp_mul_right_Ioi (g : ℝ → E) (a : ℝ) {b : ℝ} (hb : 0 < b) :
+  ∫ x in Ioi a, g (x * b) = |b⁻¹| • ∫ x in Ioi (a * b), g x :=
+by simpa only [mul_comm] using integral_comp_mul_left_Ioi g a hb
+
 end Ioi_change_variables
 
 section Ioi_integrability

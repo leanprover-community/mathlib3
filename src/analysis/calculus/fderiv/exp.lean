@@ -199,3 +199,12 @@ end
 --   -- have := this.snd,
 --   -- sorry
 -- end
+
+-- an entirely different approach from 10.1007/978-3-540-44953-9_2, Chapter 2, pg 37
+
+lemma has_deriv_at_exp'' (A : ℝ → 𝔸) (A' : 𝔸) (r : ℝ) (h : has_deriv_at A A' r) :
+  has_deriv_at (λ x, exp ℝ (A x)) (∫ (s : ℝ) in 0..1, exp ℝ ((1 - s) • A r) * A' * exp ℝ (s • A r)) r :=
+begin
+  simp_rw exp_eq_tsum,
+  sorry
+end

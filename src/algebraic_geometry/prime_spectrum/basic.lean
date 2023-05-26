@@ -15,6 +15,9 @@ import topology.sober
 /-!
 # Prime spectrum of a commutative ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The prime spectrum of a commutative ring is the type of all prime ideals.
 It is naturally endowed with a topology: the Zariski topology.
 

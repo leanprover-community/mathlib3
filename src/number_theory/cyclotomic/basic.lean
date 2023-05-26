@@ -3,7 +3,7 @@ Copyright (c) 2021 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.roots
 import number_theory.number_field.basic
 import field_theory.galois
 
@@ -374,7 +374,8 @@ begin
                map_cyclotomic, mem_roots (cyclotomic_ne_zero n B)] at hx,
     simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq],
     rw is_root_of_unity_iff n.pos,
-    exact ⟨n, nat.mem_divisors_self n n.ne_zero, hx⟩ },
+    exact ⟨n, nat.mem_divisors_self n n.ne_zero, hx⟩,
+    all_goals { apply_instance } },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
     obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.pos,
     refine set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin _) _),
@@ -393,7 +394,8 @@ begin
     rw is_root_of_unity_iff n.pos,
     refine ⟨n, nat.mem_divisors_self n n.ne_zero, _⟩,
     rwa [finset.mem_coe, multiset.mem_to_finset,
-         map_cyclotomic, mem_roots $ cyclotomic_ne_zero n B] at hx },
+         map_cyclotomic, mem_roots $ cyclotomic_ne_zero n B] at hx,
+    all_goals { apply_instance } },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
     simpa only [hx, multiset.mem_to_finset, finset.mem_coe, map_cyclotomic,
                 mem_roots (cyclotomic_ne_zero n B)] using hζ.is_root_cyclotomic n.pos }
@@ -573,11 +575,11 @@ def cyclotomic_ring : Type w := adjoin A { b : (cyclotomic_field n K) | b ^ (n :
 
 namespace cyclotomic_ring
 
-/-- The `A`-algebra structure on `cyclotomic_ring n A K`.
-This is not an instance since it causes diamonds when `A = ℤ`. -/
-def algebra_base : algebra A (cyclotomic_ring n A K) := (adjoin A _).algebra
+/-- The `A`-algebra structure on `cyclotomic_ring n A K`. -/
+instance algebra_base : algebra A (cyclotomic_ring n A K) := (adjoin A _).algebra
 
-local attribute [instance] cyclotomic_ring.algebra_base
+-- Ensure that there is no diamonds with ℤ.
+example {n : ℕ+} : cyclotomic_ring.algebra_base n ℤ ℚ = algebra_int _ := rfl
 
 instance : no_zero_smul_divisors A (cyclotomic_ring n A K) := (adjoin A _).no_zero_smul_divisors_bot
 

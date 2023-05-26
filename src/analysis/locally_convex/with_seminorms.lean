@@ -12,6 +12,9 @@ import topology.algebra.module.locally_convex
 /-!
 # Topology induced by a family of seminorms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `seminorm_family.basis_sets`: The set of open seminorm balls for a family of seminorms.

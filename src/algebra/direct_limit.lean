@@ -10,6 +10,9 @@ import ring_theory.ideal.quotient
 /-!
 # Direct limit of modules, abelian groups, rings, and fields.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 See Atiyah-Macdonald PP.32-33, Matsumura PP.269-270
 
 Generalizes the notion of "union", or "gluing", of incomparable modules over the same ring,

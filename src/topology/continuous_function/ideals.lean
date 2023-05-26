@@ -14,7 +14,7 @@ import topology.algebra.module.character_space
 /-!
 # Ideals of continuous functions
 
-For a topological ring `R` and a topological space `X` there is a Galois connection between
+For a topological semiring `R` and a topological space `X` there is a Galois connection between
 `ideal C(X, R)` and `set X` given by sending each `I : ideal C(X, R)` to
 `{x : X | ∀ f ∈ I, f x = 0}ᶜ` and mapping `s : set X` to the ideal with carrier
 `{f : C(X, R) | ∀ x ∈ sᶜ, f x = 0}`, and we call these maps `continuous_map.set_of_ideal` and
@@ -77,7 +77,8 @@ open topological_space
 
 section topological_ring
 
-variables {X R : Type*} [topological_space X] [ring R] [topological_space R] [topological_ring R]
+variables {X R : Type*} [topological_space X] [semiring R]
+variables [topological_space R] [topological_semiring R]
 
 variable (R)
 

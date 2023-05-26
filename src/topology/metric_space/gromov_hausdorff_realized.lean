@@ -10,6 +10,9 @@ import topology.continuous_function.bounded
 /-!
 # The Gromov-Hausdorff distance is realized
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we construct of a good coupling between nonempty compact metric spaces, minimizing
 their Hausdorff distance. This construction is instrumental to study the Gromov-Hausdorff
 distance between nonempty compact metric spaces.

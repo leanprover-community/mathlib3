@@ -2565,15 +2565,10 @@ lemma add_comp_LpL [fact (1 ≤ p)] (L L' : E →L[𝕜] F) :
   (L + L').comp_LpL p μ = L.comp_LpL p μ + L'.comp_LpL p μ :=
 by { ext1 f, exact add_comp_Lp L L' f }
 
-lemma smul_comp_LpL [fact (1 ≤ p)] (c : 𝕜) (L : E →L[𝕜] F) :
-  (c • L).comp_LpL p μ  = c • (L.comp_LpL p μ) :=
-by { ext1 f, exact smul_comp_Lp c L f }
-
-/-- TODO: written in an "apply" way because of a missing `has_smul` instance. -/
-lemma smul_comp_LpL_apply [fact (1 ≤ p)] {𝕜'} [normed_ring 𝕜'] [module 𝕜' F]
+lemma smul_comp_LpL [fact (1 ≤ p)] {𝕜'} [normed_ring 𝕜'] [module 𝕜' F]
   [has_bounded_smul 𝕜' F] [smul_comm_class 𝕜 𝕜' F] (c : 𝕜') (L : E →L[𝕜] F) (f : Lp E p μ) :
-  (c • L).comp_LpL p μ f = c • (L.comp_LpL p μ f) :=
-smul_comp_Lp c L f
+  (c • L).comp_LpL p μ = c • (L.comp_LpL p μ) :=
+by { ext1 f, exact smul_comp_Lp c L f }
 
 lemma norm_compLpL_le [fact (1 ≤ p)] (L : E →L[𝕜] F) :
   ‖L.comp_LpL p μ‖ ≤ ‖L‖ :=

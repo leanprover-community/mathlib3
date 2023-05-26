@@ -38,7 +38,7 @@ variables [ordered_comm_monoid α] [topological_space α] [order_closed_topology
 
 @[to_additive]
 lemma has_prod_le (h : ∀ i, f i ≤ g i) (hf : has_prod f a₁) (hg : has_prod g a₂) : a₁ ≤ a₂ :=
-le_of_tendsto_of_tendsto' hf hg $ λ s, finset.prod_le_prod'' $ λ b _, h b
+le_of_tendsto_of_tendsto' hf hg $ λ s, finset.prod_le_prod' $ λ b _, h b
 
 @[to_additive]
 lemma has_prod_mono (hf : has_prod f a₁) (hg : has_prod g a₂) (h : f ≤ g) : a₁ ≤ a₂ :=

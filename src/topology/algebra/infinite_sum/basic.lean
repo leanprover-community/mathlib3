@@ -1120,7 +1120,7 @@ h.comp_injective $ λ c₁ c₂ h, (prod.ext_iff.1 h).2
 
 section loc_instances
 -- enable inferring a T3-topological space from a topological group
-local attribute [instance] topological_add_group.t3_space
+local attribute [instance] topological_group.t3_space
 -- disable getting a T0-space from a T3-space as this causes loops
 local attribute [-instance] t3_space.to_t0_space
 

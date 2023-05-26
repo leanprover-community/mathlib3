@@ -1268,7 +1268,7 @@ lemma condexp_ind_smul_smul' [normed_space ℝ F] [smul_comm_class ℝ 𝕜 F] (
   condexp_ind_smul hm hs hμs (c • x) = c • condexp_ind_smul hm hs hμs x :=
 by rw [condexp_ind_smul, condexp_ind_smul, to_span_singleton_smul',
   (to_span_singleton ℝ x).smul_comp_LpL c
-  ↑(condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)))]
+  ↑(condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))), smul_apply]
 
 lemma condexp_ind_smul_ae_eq_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : G) :
   condexp_ind_smul hm hs hμs x

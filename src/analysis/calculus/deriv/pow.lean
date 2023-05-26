@@ -1,16 +1,32 @@
+import analysis.calculus.deriv.mul
+import analysis.calculus.deriv.comp
 
-section pow
+universes u v w
+open_locale classical topology big_operators filter ennreal
+open filter asymptotics set
+open continuous_linear_map (smul_right smul_right_one_eq_iff)
+
+
+variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
+variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {E : Type w} [normed_add_comm_group E] [normed_space 𝕜 E]
+
+variables {f f₀ f₁ g : 𝕜 → F}
+variables {f' f₀' f₁' g' : F}
+variables {x : 𝕜}
+variables {s t : set 𝕜}
+variables {L L₁ L₂ : filter 𝕜}
+
 /-! ### Derivative of `x ↦ x^n` for `n : ℕ` -/
-variables {x : 𝕜} {s : set 𝕜} {c : 𝕜 → 𝕜} {c' : 𝕜}
+variables {c : 𝕜 → 𝕜} {c' : 𝕜}
 variable (n : ℕ)
 
-lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
-  has_strict_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
-begin
-  convert (polynomial.C (1 : 𝕜) * (polynomial.X)^n).has_strict_deriv_at x,
-  { simp },
-  { rw [polynomial.derivative_C_mul_X_pow], simp }
-end
+lemma has_strict_deriv_at_pow : ∀ (n : ℕ) (x : 𝕜),
+  has_strict_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x
+| 0 x := by simp [has_strict_deriv_at_const]
+| 1 x := by simpa using has_strict_deriv_at_id x
+| (n + 1 + 1) x := by simpa [pow_succ', add_mul, mul_assoc]
+  using (has_strict_deriv_at_pow (n + 1) x).mul (has_strict_deriv_at_id x)
 
 lemma has_deriv_at_pow (n : ℕ) (x : 𝕜) : has_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
 (has_strict_deriv_at_pow n x).has_deriv_at
@@ -57,6 +73,3 @@ lemma deriv_within_pow' (hc : differentiable_within_at 𝕜 c s x)
 @[simp] lemma deriv_pow'' (hc : differentiable_at 𝕜 c x) :
   deriv (λx, (c x)^n) x = (n : 𝕜) * (c x)^(n-1) * (deriv c x) :=
 (hc.has_deriv_at.pow n).deriv
-
-end pow
-

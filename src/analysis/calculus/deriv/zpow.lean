@@ -1,6 +1,20 @@
-section zpow
+import analysis.calculus.deriv.pow
+import analysis.calculus.deriv.inverse
+
+universes u v w
+open_locale classical topology big_operators filter ennreal
+open filter asymptotics set
+open continuous_linear_map (smul_right smul_right_one_eq_iff)
+
+
+variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
+variables {E : Type v} [normed_add_comm_group E] [normed_space 𝕜 E]
+
+variables {x : 𝕜}
+variables {s : set 𝕜}
+variables {m : ℤ}
+
 /-! ### Derivative of `x ↦ x^m` for `m : ℤ` -/
-variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {x : 𝕜} {s : set 𝕜} {m : ℤ}
 
 lemma has_strict_deriv_at_zpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   has_strict_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
@@ -117,4 +131,3 @@ lemma differentiable.zpow (hf : differentiable 𝕜 f) (h : (∀ x, f x ≠ 0) �
   differentiable 𝕜 (λ x, f x ^ m) :=
 λ x, (hf x).zpow $ h.imp_left (λ h, h x)
 
-end zpow

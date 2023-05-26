@@ -1,3 +1,22 @@
+import analysis.calculus.deriv.mul
+import analysis.calculus.deriv.comp
+
+universes u v w
+open_locale classical topology big_operators filter ennreal
+open filter asymptotics set
+open continuous_linear_map (smul_right smul_right_one_eq_iff)
+
+
+variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
+variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {E : Type w} [normed_add_comm_group E] [normed_space 𝕜 E]
+
+variables {f f₀ f₁ g : 𝕜 → F}
+variables {f' f₀' f₁' g' : F}
+variables {x : 𝕜}
+variables {s t : set 𝕜}
+variables {L L₁ L₂ : filter 𝕜}
+
 section inverse
 /-! ### Derivative of `x ↦ x⁻¹` -/
 
@@ -6,7 +25,7 @@ begin
   suffices : (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x * x)⁻¹ - (p.1 * p.2)⁻¹)) =o[𝓝 (x, x)]
     (λ p, (p.1 - p.2) * 1),
   { refine this.congr' _ (eventually_of_forall $ λ _, mul_one _),
-    refine eventually.mono (is_open.mem_nhds (is_open_ne.prod is_open_ne) ⟨hx, hx⟩) _,
+    refine eventually.mono ((is_open_ne.prod is_open_ne).mem_nhds ⟨hx, hx⟩) _,
     rintro ⟨y, z⟩ ⟨hy, hz⟩,
     simp only [mem_set_of_eq] at hy hz, -- hy : y ≠ 0, hz : z ≠ 0
     field_simp [hx, hy, hz], ring, },

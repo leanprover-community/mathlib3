@@ -29,7 +29,7 @@ the theorems above. Hence we express these theorems in terms of the roots of the
 polynomial directly.
 -/
 variables {n : Type*} [fintype n] [decidable_eq n]
-variables {R : Type*} [field R] [is_alg_closed R]
+variables {R : Type*} [field R] (h : (matrix.charpoly A).splits)
 
 open matrix polynomial
 open_locale matrix big_operators

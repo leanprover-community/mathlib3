@@ -680,11 +680,11 @@ lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : i
 ⟨by rw [prod.topological_space, prod.topological_space, hf.induced, hg.induced,
          induced_compose, induced_compose, induced_inf, induced_compose, induced_compose]⟩
 
-lemma inducing_const_prod {a : α} {f : β → γ} : inducing (λ x, (a, f x)) ↔ inducing f :=
+@[simp] lemma inducing_const_prod {a : α} {f : β → γ} : inducing (λ x, (a, f x)) ↔ inducing f :=
 by simp_rw [inducing_iff, prod.topological_space, induced_inf, induced_compose, function.comp,
     induced_const, top_inf_eq]
 
-lemma inducing_prod_const {b : β} {f : α → γ} : inducing (λ x, (f x, b)) ↔ inducing f :=
+@[simp] lemma inducing_prod_const {b : β} {f : α → γ} : inducing (λ x, (f x, b)) ↔ inducing f :=
 by simp_rw [inducing_iff, prod.topological_space, induced_inf, induced_compose, function.comp,
     induced_const, inf_top_eq]
 

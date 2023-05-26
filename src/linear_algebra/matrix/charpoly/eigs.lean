@@ -47,7 +47,7 @@ namespace matrix
 
 variables
 
-lemma det_eq_prod_roots_charpoly_of_splits (hAps : (matrix.charpoly A).splits (ring_hom.id R)) :
+lemma det_eq_prod_roots_charpoly_of_splits (hAps : A.charpoly.splits (ring_hom.id R)) :
   A.det = (matrix.charpoly A).roots.prod :=
 begin
   rw [det_eq_sign_charpoly_coeff, ← (charpoly_nat_degree_eq_dim A),

@@ -55,7 +55,7 @@ begin
     ← mul_assoc, ← pow_two, pow_right_comm, neg_one_sq, one_pow, one_mul],
 end
 
-lemma trace_eq_sum_roots_charpoly_of_splits (hAps : (matrix.charpoly A).splits (ring_hom.id R)) :
+lemma trace_eq_sum_roots_charpoly_of_splits (hAps : A.charpoly.splits (ring_hom.id R)) :
   A.trace = (matrix.charpoly A).roots.sum :=
 begin
   casesI is_empty_or_nonempty n,

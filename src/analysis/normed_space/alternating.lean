@@ -123,6 +123,8 @@ normed_add_comm_group.induced _ _
   (to_multilinear_add_hom : continuous_alternating_map 𝕜 E G ι →+ _)
   to_continuous_multilinear_map_injective
 
+@[simp] lemma norm_to_continuous_multilinear_map : ‖f.1‖ = ‖f‖ := rfl
+
 lemma embedding_to_continuous_multilinear_map :
   embedding (to_continuous_multilinear_map : continuous_alternating_map 𝕜 E G ι →
     continuous_multilinear_map 𝕜 (λ _ : ι, E) G) :=
@@ -170,6 +172,10 @@ theorem le_op_norm : ‖f m‖ ≤ ‖f‖ * ∏ i, ‖m i‖ := f.1.le_op_norm 
 
 theorem le_of_op_norm_le {C : ℝ} (h : ‖f‖ ≤ C) : ‖f m‖ ≤ C * ∏ i, ‖m i‖ :=
 f.1.le_of_op_norm_le m h
+
+theorem le_op_norm_of_le {C : ι → ℝ} (h : ∀ i, ‖m i‖ ≤ C i) : ‖f m‖ ≤ ‖f‖ * ∏ i, C i :=
+(f.le_op_norm m).trans $ mul_le_mul_of_nonneg_left
+  (prod_le_prod (λ _ _, norm_nonneg _) $ λ i hi, h i) (norm_nonneg _)
 
 lemma ratio_le_op_norm : ‖f m‖ / ∏ i, ‖m i‖ ≤ ‖f‖ := f.1.ratio_le_op_norm m
 
@@ -402,27 +408,12 @@ continuous linear equiv. -/
 def _root_.continuous_linear_equiv.comp_continuous_alternating_mapL (g : G ≃L[𝕜] G') :
   continuous_alternating_map 𝕜 E G ι ≃L[𝕜] continuous_alternating_map 𝕜 E G' ι :=
 { inv_fun := comp_continuous_alternating_mapL 𝕜 _ _ _ g.symm.to_continuous_linear_map,
-  left_inv := begin
-    assume f,
-    ext1 m,
-    simp only [comp_continuous_alternating_mapL, continuous_linear_equiv.coe_def_rev,
-      to_linear_map_eq_coe, linear_map.to_fun_eq_coe, coe_coe, linear_map.mk_continuous₂_apply,
-      linear_map.mk₂_apply, comp_continuous_alternating_map_coe, continuous_linear_equiv.coe_coe,
-      function.comp_app, continuous_linear_equiv.symm_apply_apply],
-  end,
-  right_inv := begin
-    assume f,
-    ext1 m,
-    simp only [comp_continuous_alternating_mapL, continuous_linear_equiv.coe_def_rev,
-      to_linear_map_eq_coe, linear_map.mk_continuous₂_apply, linear_map.mk₂_apply,
-      linear_map.to_fun_eq_coe, coe_coe, comp_continuous_alternating_map_coe,
-      continuous_linear_equiv.coe_coe, function.comp_app, continuous_linear_equiv.apply_symm_apply],
-  end,
   continuous_to_fun :=
     (comp_continuous_alternating_mapL 𝕜 _ _ _ g.to_continuous_linear_map).continuous,
   continuous_inv_fun :=
     (comp_continuous_alternating_mapL 𝕜 _ _ _ g.symm.to_continuous_linear_map).continuous,
-  .. comp_continuous_alternating_mapL 𝕜 _ _ _ g.to_continuous_linear_map }
+  .. comp_continuous_alternating_mapL 𝕜 _ _ _ g.to_continuous_linear_map,
+  .. g.comp_continuous_alternating_map }
 
 @[simp] lemma _root_.continuous_linear_equiv.comp_continuous_alternating_mapL_symm
   (g : G ≃L[𝕜] G') :
@@ -453,6 +444,37 @@ lemma linear_isometry.norm_comp_continuous_alternating_map
 g.norm_comp_continuous_multilinear_map f.1
 
 open continuous_alternating_map
+
+section
+
+variables {𝕜 E E' G G'}
+
+lemma continuous_alternating_map.norm_comp_continuous_linear_map_le
+  (f : continuous_alternating_map 𝕜 E' G ι) (g : E →L[𝕜] E') :
+  ‖f.comp_continuous_linear_map g‖ ≤ ‖f‖ * (‖g‖ ^ fintype.card ι) :=
+(f.1.norm_comp_continuous_linear_le _).trans_eq $ by simp [fintype.card]
+
+def continuous_alternating_map.comp_continuous_linear_mapL (f : E →L[𝕜] E') :
+  continuous_alternating_map 𝕜 E' G ι →L[𝕜] continuous_alternating_map 𝕜 E G ι :=
+linear_map.mk_continuous
+  { to_fun := λ g, g.comp_continuous_linear_map f,
+    map_add' := λ g g', by { ext, simp },
+    map_smul' := λ c g, by { ext, simp } }
+  (‖f‖ ^ fintype.card ι) $ λ g, (g.norm_comp_continuous_linear_map_le f).trans_eq (mul_comm _ _)
+
+def continuous_alternating_map.comp_continuous_linear_equivL (f : E ≃L[𝕜] E') :
+  continuous_alternating_map 𝕜 E G ι ≃L[𝕜] continuous_alternating_map 𝕜 E' G ι :=
+{ continuous_inv_fun := (continuous_alternating_map.comp_continuous_linear_mapL (f : E →L[𝕜] E')).cont,
+  continuous_to_fun := (continuous_alternating_map.comp_continuous_linear_mapL (f.symm : E' →L[𝕜] E)).cont,
+  .. continuous_alternating_map.comp_continuous_linear_mapL (f.symm : E' →L[𝕜] E),
+  .. f.continuous_alternating_map_comp }
+
+def continuous_linear_equiv.continuous_alternating_map_congrL (e : E ≃L[𝕜] E') (e' : G ≃L[𝕜] G') :
+  continuous_alternating_map 𝕜 E G ι ≃L[𝕜] continuous_alternating_map 𝕜 E' G' ι :=
+(continuous_alternating_map.comp_continuous_linear_equivL e).trans $
+  e'.comp_continuous_alternating_mapL E'
+
+end
 
 /-
 

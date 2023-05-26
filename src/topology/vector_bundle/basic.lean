@@ -885,7 +885,7 @@ variables [normed_space 𝕜₁ F] [Π x, module 𝕜₁ (E x)] [topological_spa
 variables {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜₂ F']
   {E' : B' → Type*} [Π x, add_comm_monoid (E' x)] [Π x, module 𝕜₂ (E' x)]
   [topological_space (total_space E')]
-variables [Π x, topological_space (E x)] [fiber_bundle F E] [vector_bundle 𝕜₁ F E]
+variables [fiber_bundle F E] [vector_bundle 𝕜₁ F E]
 variables [Π x, topological_space (E' x)] [fiber_bundle F' E'] [vector_bundle 𝕜₂ F' E']
 variables (F E F' E')
 

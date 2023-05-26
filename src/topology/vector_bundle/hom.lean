@@ -68,7 +68,6 @@ instance bundle.continuous_linear_map.add_monoid_hom_class (x : B) :
   add_monoid_hom_class (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) (E₁ x) (E₂ x) :=
 by delta_instance bundle.continuous_linear_map
 
--- variables [Π x, has_continuous_add (E₂ x)]
 variables [Π x, topological_add_group (E₂ x)]
 
 instance (x : B) : topological_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) :=
@@ -244,7 +243,7 @@ end
 end pretrivialization
 
 open pretrivialization
-variables (F₁ E₁ F₂ E₂) --[iσ : ring_hom_isometric σ]
+variables (F₁ E₁ F₂ E₂)
 variables [Π x : B, topological_space (E₁ x)] [fiber_bundle F₁ E₁] [vector_bundle 𝕜₁ F₁ E₁]
 variables [Π x : B, topological_space (E₂ x)] [fiber_bundle F₂ E₂] [vector_bundle 𝕜₂ F₂ E₂]
 variables [Π x, topological_add_group (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)]

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yourong Zang
 -/
 import analysis.calculus.cont_diff
+import analysis.calculus.deriv.linear
 import analysis.complex.conformal
 import analysis.calculus.conformal.normed_space
 

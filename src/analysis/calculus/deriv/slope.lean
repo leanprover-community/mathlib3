@@ -1,8 +1,26 @@
-import analysis.calculus.deriv
+import analysis.calculus.deriv.basic
+import linear_algebra.affine_space.slope
 
 /-!
 -/
 
+universes u v w
+noncomputable theory
+open_locale classical topology big_operators filter ennreal
+open filter asymptotics set
+open continuous_linear_map (smul_right smul_right_one_eq_iff)
+
+section normed_field
+
+variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
+variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {E : Type w} [normed_add_comm_group E] [normed_space 𝕜 E]
+
+variables {f f₀ f₁ g : 𝕜 → F}
+variables {f' f₀' f₁' g' : F}
+variables {x : 𝕜}
+variables {s t : set 𝕜}
+variables {L L₁ L₂ : filter 𝕜}
 
 /-- If the domain has dimension one, then Fréchet derivative is equivalent to the classical
 definition with a limit. In this version we have to take the limit along the subset `-{x}`,
@@ -36,6 +54,8 @@ end
 lemma has_deriv_at_iff_tendsto_slope :
   has_deriv_at f f' x ↔ tendsto (slope f x) (𝓝[≠] x) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope
+
+end normed_field
 
 /-! ### Upper estimates on liminf and limsup -/
 

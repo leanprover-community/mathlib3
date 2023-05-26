@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import analysis.calculus.cont_diff_def
+import analysis.calculus.deriv.local_inverse
 import analysis.calculus.mean_value
 import analysis.normed_space.finite_dimension
 import data.nat.choose.cast

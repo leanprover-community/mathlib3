@@ -1,26 +1,37 @@
-import analysis.calculus.deriv
+import analysis.calculus.deriv.pow
+import analysis.calculus.deriv.add
+import data.polynomial.algebra_map
+import data.polynomial.derivative
+
+universes u v w
+open_locale classical topology big_operators filter ennreal polynomial
+open filter asymptotics set
+open continuous_linear_map (smul_right smul_right_one_eq_iff)
+
+
+variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
+variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {E : Type w} [normed_add_comm_group E] [normed_space 𝕜 E]
+
+variables {f f₀ f₁ g : 𝕜 → F}
+variables {f' f₀' f₁' g' : F}
+variables {x : 𝕜}
+variables {s t : set 𝕜}
+variables {L L₁ L₂ : filter 𝕜}
 
 namespace polynomial
 /-! ### Derivative of a polynomial -/
 
 variables {R : Type*} [comm_semiring R] [algebra R 𝕜]
-variables (p : 𝕜[X]) (q : R[X]) {x : 𝕜} {s : set 𝕜}
+variables (p : 𝕜[X]) (q : R[X])
 
 /-- The derivative (in the analysis sense) of a polynomial `p` is given by `p.derivative`. -/
 protected lemma has_strict_deriv_at (x : 𝕜) :
   has_strict_deriv_at (λx, p.eval x) (p.derivative.eval x) x :=
 begin
-  apply p.induction_on,
-  { simp [has_strict_deriv_at_const] },
-  { assume p q hp hq,
-    convert hp.add hq;
-    simp },
-  { assume n a h,
-    convert h.mul (has_strict_deriv_at_id x),
-    { ext y, simp [pow_add, mul_assoc] },
-    { simp only [pow_add, pow_one, derivative_mul, derivative_C, zero_mul, derivative_X_pow,
-      derivative_X, mul_one, zero_add, eval_mul, eval_C, eval_add, eval_nat_cast, eval_pow, eval_X,
-      id.def], ring } }
+  induction p using polynomial.induction_on',
+  case h_add : p q hp hq { simpa using hp.add hq },
+  case h_monomial : n a { simpa [mul_assoc] using (has_strict_deriv_at_pow n x).const_mul a }
 end
 
 protected lemma has_strict_deriv_at_aeval (x : 𝕜) :

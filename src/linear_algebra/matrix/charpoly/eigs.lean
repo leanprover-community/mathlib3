@@ -29,29 +29,33 @@ the theorems above. Hence we express these theorems in terms of the roots of the
 polynomial directly.
 -/
 variables {n : Type*} [fintype n] [decidable_eq n]
-variables {R : Type*} [field R] (h : (matrix.charpoly A).splits)
+variables {R : Type*} [field R]
+variables {A : matrix n n R}
 
 open matrix polynomial
 open_locale matrix big_operators
 
 namespace matrix
 
-lemma det_eq_prod_roots_charpoly (A : matrix n n R) : A.det = (matrix.charpoly A).roots.prod :=
+variables
+
+lemma det_eq_prod_roots_charpoly {hAp_splits : (matrix.charpoly A).splits (ring_hom.id R)} :
+  A.det = (matrix.charpoly A).roots.prod :=
 begin
   rw [det_eq_sign_charpoly_coeff, ← (charpoly_nat_degree_eq_dim A),
-    polynomial.prod_roots_eq_coeff_zero_of_monic_of_split A.charpoly_monic (is_alg_closed.splits _),
+    polynomial.prod_roots_eq_coeff_zero_of_monic_of_split A.charpoly_monic (hAp_splits),
     ← mul_assoc, ← pow_two, pow_right_comm, neg_one_sq, one_pow, one_mul],
 end
 
-lemma trace_eq_sum_roots_charpoly (A : matrix n n R) : A.trace = (matrix.charpoly A).roots.sum :=
+lemma trace_eq_sum_roots_charpoly {hAp_splits : (matrix.charpoly A).splits (ring_hom.id R)} :
+  A.trace = (matrix.charpoly A).roots.sum :=
 begin
   casesI is_empty_or_nonempty n,
   { rw [matrix.trace, fintype.sum_empty, matrix.charpoly,
       det_eq_one_of_card_eq_zero (fintype.card_eq_zero_iff.2 h), polynomial.roots_one,
       multiset.empty_eq_zero, multiset.sum_zero], },
   { rw [trace_eq_neg_charpoly_coeff, neg_eq_iff_eq_neg,
-      ← polynomial.sum_roots_eq_next_coeff_of_monic_of_split A.charpoly_monic
-        (is_alg_closed.splits _),
+      ← polynomial.sum_roots_eq_next_coeff_of_monic_of_split A.charpoly_monic (hAp_splits),
       next_coeff, charpoly_nat_degree_eq_dim,
       if_neg (fintype.card_ne_zero : fintype.card n ≠ 0)], },
 end

@@ -387,7 +387,8 @@ by simpa [dist_eq_norm_div] using dist_triangle a 1 b
   ‖a₁ / a₂‖ ≤ r₁ + r₂ :=
 (norm_div_le a₁ a₂).trans $ add_le_add H₁ H₂
 
-@[to_additive] lemma dist_le_norm_mul_norm (a b : E) : dist a b ≤ ‖a‖ + ‖b‖ :=
+@[to_additive dist_le_norm_add_norm] lemma dist_le_norm_add_norm' (a b : E) :
+  dist a b ≤ ‖a‖ + ‖b‖ :=
 by { rw dist_eq_norm_div, apply norm_div_le }
 
 @[to_additive abs_norm_sub_norm_le] lemma abs_norm_sub_norm_le' (a b : E) : |‖a‖ - ‖b‖| ≤ ‖a / b‖ :=
@@ -656,9 +657,29 @@ by rw [emetric.mem_ball, edist_eq_coe_nnnorm']
   antilipschitz_with K f :=
 antilipschitz_with.of_le_mul_dist $ λ x y, by simpa only [dist_eq_norm_div, map_div] using h (x / y)
 
+@[to_additive lipschitz_with.norm_le_mul]
+lemma lipschitz_with.norm_le_mul' {f : E → F}
+  {K : ℝ≥0} (h : lipschitz_with K f) (hf : f 1 = 1) (x) : ‖f x‖ ≤ K * ‖x‖ :=
+by simpa only [dist_one_right, hf] using h.dist_le_mul x 1
+
+@[to_additive lipschitz_with.nnorm_le_mul]
+lemma lipschitz_with.nnorm_le_mul' {f : E → F}
+  {K : ℝ≥0} (h : lipschitz_with K f) (hf : f 1 = 1) (x) : ‖f x‖₊ ≤ K * ‖x‖₊ :=
+h.norm_le_mul' hf x
+
+@[to_additive antilipschitz_with.le_mul_norm]
+lemma antilipschitz_with.le_mul_norm' {f : E → F}
+  {K : ℝ≥0} (h : antilipschitz_with K f) (hf : f 1 = 1) (x) : ‖x‖ ≤ K * ‖f x‖ :=
+by simpa only [dist_one_right, hf] using h.le_mul_dist x 1
+
+@[to_additive antilipschitz_with.le_mul_nnnorm]
+lemma antilipschitz_with.le_mul_nnnorm' {f : E → F}
+  {K : ℝ≥0} (h : antilipschitz_with K f) (hf : f 1 = 1) (x) : ‖x‖₊ ≤ K * ‖f x‖₊ :=
+h.le_mul_norm' hf x
+
 @[to_additive] lemma monoid_hom_class.bound_of_antilipschitz [monoid_hom_class 𝓕 E F] (f : 𝓕)
   {K : ℝ≥0} (h : antilipschitz_with K f) (x) : ‖x‖ ≤ K * ‖f x‖ :=
-by simpa only [dist_one_right, map_one] using h.le_mul_dist x 1
+h.le_mul_nnnorm' (map_one f) x
 
 end nnnorm
 
@@ -1285,7 +1306,8 @@ end
   (hg : lipschitz_with Kg (g / f)) (hK : Kg < Kf⁻¹) : antilipschitz_with (Kf⁻¹ - Kg)⁻¹ g :=
 by simpa only [pi.div_apply, mul_div_cancel'_right] using hf.mul_lipschitz_with hg hK
 
-@[to_additive] lemma le_mul_norm_div {f : E → F} (hf : antilipschitz_with K f) (x y : E) :
+@[to_additive le_mul_norm_sub]
+lemma le_mul_norm_div {f : E → F} (hf : antilipschitz_with K f) (x y : E) :
   ‖x / y‖ ≤ K * ‖f x / f y‖ :=
 by simp [← dist_eq_norm_div, hf.le_mul_dist x y]
 

@@ -67,11 +67,12 @@ begin
       next_coeff, charpoly_nat_degree_eq_dim,
       if_neg (fintype.card_ne_zero : fintype.card n ≠ 0)], },
 end
+variables (A)
 
-lemma det_eq_prod_roots_charpoly [is_alg_closed R]: A.det = (matrix.charpoly A).roots.prod :=
-  det_eq_prod_roots_charpoly_of_splits (is_alg_closed.splits A.charpoly)
+lemma det_eq_prod_roots_charpoly [is_alg_closed R] : A.det = (matrix.charpoly A).roots.prod :=
+det_eq_prod_roots_charpoly_of_splits (is_alg_closed.splits A.charpoly)
 
 lemma trace_eq_sum_roots_charpoly [is_alg_closed R] : A.trace = (matrix.charpoly A).roots.sum :=
-  trace_eq_sum_roots_charpoly_of_splits (is_alg_closed.splits A.charpoly)
+trace_eq_sum_roots_charpoly_of_splits (is_alg_closed.splits A.charpoly)
 
 end matrix

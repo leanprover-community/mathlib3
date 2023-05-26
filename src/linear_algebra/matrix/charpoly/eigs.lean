@@ -6,7 +6,6 @@ Authors: Mohanad Ahmed
 
 import data.polynomial.basic
 import field_theory.is_alg_closed.basic
-import algebra.char_p.two
 
 /-!
 # Eigenvalues are characteristic polynomial roots.

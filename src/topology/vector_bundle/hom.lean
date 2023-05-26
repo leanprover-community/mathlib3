@@ -37,7 +37,76 @@ using a norm on the fiber model if this helps.
 
 noncomputable theory
 
+
+#check linear_equiv.arrow_congr
+
 open continuous_linear_map
+
+def continuous_linear_equiv.arrow_congr_sl {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {𝕜₄ : Type*}
+  {E : Type*} {F : Type*} {G : Type*} {H : Type*}
+  [add_comm_group E] [add_comm_group F] [add_comm_group G] [add_comm_group H]
+  [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
+    [nontrivially_normed_field 𝕜₄]
+  [module 𝕜 E] [module 𝕜₂ F] [module 𝕜₃ G] [module 𝕜₄ H]
+  [topological_space E] [topological_space F] [topological_space G] [topological_space H]
+  [topological_add_group G] [topological_add_group H]
+  [has_continuous_const_smul 𝕜₃ G] [has_continuous_const_smul 𝕜₄ H]
+  (σ₁₂ : 𝕜 →+* 𝕜₂) {σ₂₁ : 𝕜₂ →+* 𝕜} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} {σ₃₄ : 𝕜₃ →+* 𝕜₄}
+    (σ₄₃ : 𝕜₄ →+* 𝕜₃) {σ₂₄ : 𝕜₂ →+* 𝕜₄} (σ₁₄ : 𝕜 →+* 𝕜₄)
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [ring_hom_inv_pair σ₃₄ σ₄₃]
+    [ring_hom_inv_pair σ₄₃ σ₃₄]
+  [ring_hom_isometric σ₂₁] [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
+    [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄] [ring_hom_isometric σ₁₃]
+    [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₃₄]
+  [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+    [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+  (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  (E →SL[σ₁₄] H) ≃ₛₗ[σ₄₃] (F →SL[σ₂₃] G) :=
+{ -- given explicitly to help `simps`
+  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
+  -- given explicitly to help `simps`
+  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
+  map_add' := λ f g, by rw [add_comp, comp_add],
+  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
+  .. e₁₂.arrow_congr_equiv e₄₃, }
+
+lemma continuous_linear_equiv.arrow_congr_sl_continuous {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*}
+  {𝕜₄ : Type*} {E : Type*} {F : Type*} {G : Type*} {H : Type*}
+  [add_comm_group E] [add_comm_group F] [add_comm_group G] [add_comm_group H]
+  [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
+    [nontrivially_normed_field 𝕜₄]
+  [module 𝕜 E] [module 𝕜₂ F] [module 𝕜₃ G] [module 𝕜₄ H]
+  [topological_space E] [topological_space F] [topological_space G] [topological_space H]
+  [topological_add_group G] [topological_add_group H]
+  [has_continuous_const_smul 𝕜₃ G] [has_continuous_const_smul 𝕜₄ H]
+  (σ₁₂ : 𝕜 →+* 𝕜₂) {σ₂₁ : 𝕜₂ →+* 𝕜} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} {σ₃₄ : 𝕜₃ →+* 𝕜₄}
+    (σ₄₃ : 𝕜₄ →+* 𝕜₃) {σ₂₄ : 𝕜₂ →+* 𝕜₄} (σ₁₄ : 𝕜 →+* 𝕜₄)
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [ring_hom_inv_pair σ₃₄ σ₄₃]
+    [ring_hom_inv_pair σ₄₃ σ₃₄]
+  [ring_hom_isometric σ₂₁] [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
+    [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄] [ring_hom_isometric σ₁₃]
+    [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₃₄]
+  [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+    [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+  (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  continuous (e₁₂.arrow_congr_sl σ₁₂ σ₄₃ σ₁₄ e₄₃) :=
+begin
+  apply continuous_of_continuous_at_zero,
+  show filter.tendsto _ _ _,
+  simp_rw [map_zero],
+  rw continuous_linear_map.has_basis_nhds_zero.tendsto_iff
+    continuous_linear_map.has_basis_nhds_zero,
+  rintros ⟨sF, sG⟩ ⟨h1 : bornology.is_vonN_bounded 𝕜₂ sF, h2 : sG ∈ nhds (0:G)⟩,
+  dsimp,
+  refine ⟨(e₁₂.symm '' sF, e₄₃ ⁻¹' sG), ⟨h1.image (e₁₂.symm : F →SL[σ₂₁] E), _⟩, _⟩,
+  { apply e₄₃.continuous.continuous_at,
+    simpa using h2 },
+  rintros f (h : ∀ x : E, x ∈ e₁₂.symm '' sF → e₄₃ (f x) ∈ sG) x hx,
+  apply h,
+  apply set.mem_image_of_mem,
+  exact hx,
+end
+
 -- move this
 def continuous_linear_equiv.arrow_congrSL' {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {𝕜₄ : Type*}
   {E : Type*} {F : Type*} {G : Type*} {H : Type*}
@@ -48,36 +117,46 @@ def continuous_linear_equiv.arrow_congrSL' {𝕜 : Type*} {𝕜₂ : Type*} {�
   [topological_space E] [topological_space F] [topological_space G] [topological_space H]
   [topological_add_group G] [topological_add_group H]
   [has_continuous_const_smul 𝕜₃ G] [has_continuous_const_smul 𝕜₄ H]
-  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} {σ₃₄ : 𝕜₃ →+* 𝕜₄}
-    {σ₄₃ : 𝕜₄ →+* 𝕜₃} {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
+  (σ₁₂ : 𝕜 →+* 𝕜₂) {σ₂₁ : 𝕜₂ →+* 𝕜} {σ₂₃ : 𝕜₂ →+* 𝕜₃} --{σ₃₂ : 𝕜₃ →+* 𝕜₂}
+   {σ₁₃ : 𝕜 →+* 𝕜₃} {σ₃₄ : 𝕜₃ →+* 𝕜₄}
+    (σ₄₃ : 𝕜₄ →+* 𝕜₃) {σ₂₄ : 𝕜₂ →+* 𝕜₄} (σ₁₄ : 𝕜 →+* 𝕜₄)
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [ring_hom_inv_pair σ₃₄ σ₄₃]
-    [ring_hom_inv_pair σ₄₃ σ₃₄]
+    [ring_hom_inv_pair σ₄₃ σ₃₄] --[ring_hom_inv_pair σ₂₃ σ₃₂]
   [ring_hom_isometric σ₂₁] [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
     [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄] [ring_hom_isometric σ₁₃]
     [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₃₄]
   [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
     [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
   (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
-  (E →SL[σ₁₄] H) ≃SL[σ₄₃] F →SL[σ₂₃] G :=
-{ -- given explicitly to help `simps`
-  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
-  -- given explicitly to help `simps`
-  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
-  map_add' := λ f g, by rw [add_comp, comp_add],
-  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
-  continuous_to_fun :=
-  begin
-    -- have :=clm_comp_const,
-    -- refine (continuous_id.clm_comp_const _).const_clm_comp _,
-  end,
-  continuous_inv_fun :=
-  begin
-    sorry
-  end,
-  .. e₁₂.arrow_congr_equiv e₄₃, }
+  (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
+{ continuous_to_fun := e₁₂.arrow_congr_sl_continuous σ₁₂ σ₄₃ σ₁₄ e₄₃,
+  continuous_inv_fun := e₁₂.symm.arrow_congr_sl_continuous σ₂₁ σ₃₄ σ₂₃ e₄₃.symm,
+  .. e₁₂.arrow_congr_sl σ₁₂ σ₄₃ σ₁₄ e₄₃, }
 
-
-
+@[simp]
+def continuous_linear_equiv.arrow_congrSL'_apply {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {𝕜₄ : Type*}
+  {E : Type*} {F : Type*} {G : Type*} {H : Type*}
+  [add_comm_group E] [add_comm_group F] [add_comm_group G] [add_comm_group H]
+  [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
+    [nontrivially_normed_field 𝕜₄]
+  [module 𝕜 E] [module 𝕜₂ F] [module 𝕜₃ G] [module 𝕜₄ H]
+  [topological_space E] [topological_space F] [topological_space G] [topological_space H]
+  [topological_add_group G] [topological_add_group H]
+  [has_continuous_const_smul 𝕜₃ G] [has_continuous_const_smul 𝕜₄ H]
+  (σ₁₂ : 𝕜 →+* 𝕜₂) {σ₂₁ : 𝕜₂ →+* 𝕜} {σ₂₃ : 𝕜₂ →+* 𝕜₃} --{σ₃₂ : 𝕜₃ →+* 𝕜₂}
+   {σ₁₃ : 𝕜 →+* 𝕜₃} {σ₃₄ : 𝕜₃ →+* 𝕜₄}
+    (σ₄₃ : 𝕜₄ →+* 𝕜₃) {σ₂₄ : 𝕜₂ →+* 𝕜₄} (σ₁₄ : 𝕜 →+* 𝕜₄)
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [ring_hom_inv_pair σ₃₄ σ₄₃]
+    [ring_hom_inv_pair σ₄₃ σ₃₄] --[ring_hom_inv_pair σ₂₃ σ₃₂]
+  [ring_hom_isometric σ₂₁] [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
+    [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄] [ring_hom_isometric σ₁₃]
+    [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₃₄]
+  [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+    [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+  (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) (L : E →SL[σ₁₄] H) :
+  e₁₂.arrow_congr_sl σ₁₂ σ₄₃ σ₁₄ e₄₃ L
+  = (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)) :=
+rfl
 
 open_locale bundle
 open bundle set continuous_linear_map
@@ -284,10 +363,21 @@ end
 end pretrivialization
 
 open pretrivialization
-variables (F₁ E₁ F₂ E₂) [ring_hom_isometric σ]
+variables (F₁ E₁ F₂ E₂) --[iσ : ring_hom_isometric σ]
 variables [Π x : B, topological_space (E₁ x)] [fiber_bundle F₁ E₁] [vector_bundle 𝕜₁ F₁ E₁]
 variables [Π x : B, topological_space (E₂ x)] [fiber_bundle F₂ E₂] [vector_bundle 𝕜₂ F₂ E₂]
 variables [Π x, topological_add_group (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)]
+
+lemma inducing.const_prod {α β γ} [topological_space α] [topological_space β] [topological_space γ]
+  {b : β}
+  {f : α → γ} (hf : inducing f) : inducing (λ x, (b, f x)) :=
+begin
+  constructor,
+  simp_rw [prod.topological_space, hf.induced, induced_inf, induced_compose, function.comp,
+    ← hf.induced, induced_const, top_inf_eq]
+end
+
+include iσ
 
 /-- The continuous `σ`-semilinear maps between two topological vector bundles form a
 `vector_prebundle` (this is an auxiliary construction for the
@@ -319,21 +409,29 @@ def _root_.bundle.continuous_linear_map.vector_prebundle :
   begin
     intros b,
     dsimp [bundle.continuous_linear_map.topological_space, bundle.continuous_linear_map],
-    let f : (E₁ b →SL[σ] E₂ b) ≃L[𝕜] (F₁ →SL[σ] F₂),
-    { intro v,
-      let e₁ := trivialization_at F₁ E₁ b,
-      let e₂ := trivialization_at F₂ E₂ b,
-      -- refine ⟨b, _⟩,
-      exact continuous_linear_map.comp (e₂.continuous_linear_map_at 𝕜₂ b)
-      (v.comp (e₁.symmL 𝕜₁ b : F₁ →L[𝕜₁] E₁ b) : F₁ →SL[σ] E₂ b) },
-    change inducing (λ x, (b, f x)),
-    suffices : inducing f, sorry,
-    apply homeomorph.inducing,
-
-    -- have := inducing.prod_mk,
-    -- have : inducing f := sorry,
-
-    sorry
+    let f : (E₁ b →SL[σ] E₂ b) ≃L[𝕜₂] (F₁ →SL[σ] F₂) := continuous_linear_equiv.arrow_congrSL'
+      (ring_hom.id _) _ _
+      ((trivialization_at F₁ E₁ b).continuous_linear_equiv_at 𝕜₁ b _)
+      ((trivialization_at F₂ E₂ b).continuous_linear_equiv_at 𝕜₂ b _),
+    swap, apply mem_base_set_trivialization_at,
+    swap, apply mem_base_set_trivialization_at,
+    suffices : inducing (λ x, (b, f x)),
+    { convert this,
+      ext x,
+      { refl },
+      dsimp [f],
+      rw pretrivialization.continuous_linear_map_apply,
+      dsimp,
+      symmetry,
+      convert continuous_linear_equiv.arrow_congrSL'_apply _ _ _ _ _ _ using 1,
+      { ext,
+        simp,
+        rw [trivialization.linear_map_at_def_of_mem],
+        simp,
+        apply mem_base_set_trivialization_at,
+         },
+      all_goals { try { apply_instance } }, apply_instance },
+    exact f.to_homeomorph.inducing.const_prod,
   end }
 
 -- /-- Topology on the continuous `σ`-semilinear_maps between the respective fibers at a point of two

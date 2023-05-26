@@ -23,15 +23,16 @@ open_locale manifold bundle
 variables {𝕜 B F F₁ F₂ M M₁ M₂ : Type*}
   {E : B → Type*} {E₁ : B → Type*} {E₂ : B → Type*}
   [nontrivially_normed_field 𝕜]
-  [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
+  [∀ x, add_comm_group (E x)] [∀ x, module 𝕜 (E x)]
   [normed_add_comm_group F] [normed_space 𝕜 F]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
-  [∀ x, add_comm_monoid (E₁ x)] [∀ x, module 𝕜 (E₁ x)]
+  [∀ x, add_comm_group (E₁ x)] [∀ x, module 𝕜 (E₁ x)]
   [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
   [topological_space (total_space E₁)] [∀ x, topological_space (E₁ x)]
-  [∀ x, add_comm_monoid (E₂ x)] [∀ x, module 𝕜 (E₂ x)]
+  [∀ x, add_comm_group (E₂ x)] [∀ x, module 𝕜 (E₂ x)]
   [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
   [topological_space (total_space E₂)] [∀ x, topological_space (E₂ x)]
+  [∀ x, topological_add_group (E₂ x)]
 
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
@@ -67,10 +68,11 @@ begin
   { intros b hb, ext L v,
     simp only [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
       continuous_linear_equiv.arrow_congrSL_apply, comp_apply, function.comp, compL_apply,
-      flip_apply, continuous_linear_equiv.symm_symm] },
+      flip_apply, continuous_linear_equiv.symm_symm, linear_equiv.to_fun_eq_coe,
+      continuous_linear_equiv.arrow_congrₛₗ_apply, continuous_linear_map.coe_comp'] },
 end
 
-variables [∀ x, has_continuous_add (E₂ x)] [∀ x, has_continuous_smul 𝕜 (E₂ x)]
+variables [∀ x, has_continuous_smul 𝕜 (E₂ x)]
 
 lemma hom_chart (y₀ y : LE₁E₂) :
   chart_at (model_prod HB (F₁ →L[𝕜] F₂)) y₀ y =
@@ -106,15 +108,6 @@ instance bundle.continuous_linear_map.vector_prebundle.is_smooth :
       smooth_on_continuous_linear_map_coord_change IB,
       continuous_linear_map_coord_change_apply (ring_hom.id 𝕜) e₁ e₁' e₂ e₂'⟩
   end }
-
-/-- Todo: remove this definition. It is probably needed because of the type-class pi bug
-https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/vector.20bundles.20--.20typeclass.20inference.20issue
--/
-@[reducible]
-def smooth_vector_bundle.continuous_linear_map.aux (x) :
-  topological_space (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂ x) :=
-by apply_instance
-local attribute [instance, priority 1] smooth_vector_bundle.continuous_linear_map.aux
 
 instance smooth_vector_bundle.continuous_linear_map :
   smooth_vector_bundle (F₁ →L[𝕜] F₂) (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂)

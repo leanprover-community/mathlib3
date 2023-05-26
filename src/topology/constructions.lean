@@ -1306,6 +1306,10 @@ lemma embedding_ulift_down [topological_space α] :
   embedding (ulift.down : ulift.{v u} α → α) :=
 ⟨⟨rfl⟩, ulift.down_injective⟩
 
+lemma ulift.closed_embedding_down [topological_space α] :
+  closed_embedding (ulift.down : ulift.{v u} α → α) :=
+⟨embedding_ulift_down, by simp only [ulift.down_surjective.range_eq, is_closed_univ]⟩
+
 instance [topological_space α] [discrete_topology α] : discrete_topology (ulift α) :=
 embedding_ulift_down.discrete_topology
 

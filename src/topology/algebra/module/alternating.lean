@@ -283,6 +283,25 @@ def _root_.continuous_linear_map.comp_continuous_alternating_map
   ⇑(g.comp_continuous_alternating_map f) = g ∘ f :=
 rfl
 
+def _root_.continuous_linear_equiv.continuous_alternating_map_comp (e : M ≃L[R] M') :
+  continuous_alternating_map R M N ι ≃ continuous_alternating_map R M' N ι :=
+{ to_fun := λ f, f.comp_continuous_linear_map ↑e.symm,
+  inv_fun := λ f, f.comp_continuous_linear_map ↑e,
+  left_inv := λ f, by { ext, simp [(∘)] },
+  right_inv := λ f, by { ext, simp [(∘)] } }
+
+def _root_.continuous_linear_equiv.comp_continuous_alternating_map (e : N ≃L[R] N') :
+  continuous_alternating_map R M N ι ≃ continuous_alternating_map R M N' ι :=
+{ to_fun := (e : N →L[R] N').comp_continuous_alternating_map,
+  inv_fun := (e.symm : N' →L[R] N).comp_continuous_alternating_map,
+  left_inv := λ f, by { ext, simp [(∘)] },
+  right_inv := λ f, by { ext, simp [(∘)] } }
+
+def _root_.continuous_linear_equiv.congr_continuous_alternating_map
+  (e : M ≃L[R] M') (e' : N ≃L[R] N') :
+  continuous_alternating_map R M N ι ≃ continuous_alternating_map R M' N' ι :=
+e.continuous_alternating_map_comp.trans e'.comp_continuous_alternating_map
+
 /-- `continuous_multilinear_map.pi` as an `equiv`. -/
 @[simps]
 def pi_equiv {ι' : Type*} {N : ι' → Type*} [Π i, add_comm_monoid (N i)]

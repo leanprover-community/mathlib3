@@ -10,6 +10,9 @@ import group_theory.is_free_group
 /-!
 # The Nielsen-Schreier theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that a subgroup of a free group is itself free.
 
 ## Main result
@@ -88,7 +91,7 @@ lemma ext_functor {G} [groupoid.{v} G] [is_free_groupoid G] {X : Type v} [group 
 let ⟨_, _, u⟩ := @unique_lift G _ _ X _ (λ (a b : generators G) (e : a ⟶ b), g.map (of e)) in
 trans (u _ h) (u _ (λ _ _ _, rfl)).symm
 
-/-- An action groupoid over a free froup is free. More generally, one could show that the groupoid
+/-- An action groupoid over a free group is free. More generally, one could show that the groupoid
 of elements over a free groupoid is free, but this version is easier to prove and suffices for our
 purposes.
 

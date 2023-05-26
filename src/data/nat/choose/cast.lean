@@ -9,6 +9,9 @@ import data.nat.factorial.cast
 /-!
 # Cast of binomial coefficients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows calculating the binomial coefficient `a.choose b` as an element of a division ring
 of characteristic `0`.
 -/

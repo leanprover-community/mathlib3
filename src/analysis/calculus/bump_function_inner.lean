@@ -3,9 +3,10 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
+import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
-import analysis.inner_product_space.euclidean_dist
-import measure_theory.function.locally_integrable
+import analysis.inner_product_space.calculus
+import analysis.special_functions.exp_deriv
 import measure_theory.integral.set_integral
 
 /-!
@@ -235,6 +236,16 @@ zero_of_nonpos le_rfl
 @[simp] protected lemma one : smooth_transition 1 = 1 :=
 one_of_one_le le_rfl
 
+/-- Since `real.smooth_transition` is constant on $(-∞, 0]$ and $[1, ∞)$, applying it to the
+projection of `x : ℝ` to $[0, 1]$ gives the same result as applying it to `x`. -/
+@[simp] protected lemma proj_Icc :
+  smooth_transition (proj_Icc (0 : ℝ) 1 zero_le_one x) = smooth_transition x :=
+begin
+  refine congr_fun (Icc_extend_eq_self zero_le_one smooth_transition (λ x hx, _) (λ x hx, _)) x,
+  { rw [smooth_transition.zero, zero_of_nonpos hx.le] },
+  { rw [smooth_transition.one, one_of_one_le hx.le] }
+end
+
 lemma le_one (x : ℝ) : smooth_transition x ≤ 1 :=
 (div_le_one (pos_denom x)).2 $ le_add_of_nonneg_right (nonneg _)
 
@@ -258,6 +269,9 @@ smooth_transition.cont_diff.cont_diff_at
 
 protected lemma continuous : continuous smooth_transition :=
 (@smooth_transition.cont_diff 0).continuous
+
+protected lemma continuous_at : continuous_at smooth_transition x :=
+smooth_transition.continuous.continuous_at
 
 end smooth_transition
 
@@ -306,7 +320,7 @@ nonempty.some hb.out
 
 /-- Any inner product space has smooth bump functions. -/
 @[priority 100] instance has_cont_diff_bump_of_inner_product_space
-  (E : Type*) [inner_product_space ℝ E] : has_cont_diff_bump E :=
+  (E : Type*) [normed_add_comm_group E] [inner_product_space ℝ E] : has_cont_diff_bump E :=
 let e : cont_diff_bump_base E :=
 { to_fun := λ R x, real.smooth_transition ((R - ‖x‖) / (R - 1)),
   mem_Icc := λ R x, ⟨real.smooth_transition.nonneg _, real.smooth_transition.le_one _⟩,
@@ -331,7 +345,7 @@ let e : cont_diff_bump_base E :=
       exact cont_diff_at_const.congr_of_eventually_eq this },
     { refine real.smooth_transition.cont_diff_at.comp _ _,
       refine cont_diff_at.div _ _ (sub_pos.2 hR).ne',
-      { exact cont_diff_at_fst.sub (cont_diff_at_snd.norm hx) },
+      { exact cont_diff_at_fst.sub (cont_diff_at_snd.norm ℝ hx) },
       { exact cont_diff_at_fst.sub cont_diff_at_const } }
   end,
   eq_one := λ R hR x hx, real.smooth_transition.one_of_one_le $

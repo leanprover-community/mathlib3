@@ -8,6 +8,9 @@ import data.mv_polynomial.variables
 /-!
 # Polynomials supported by a set of variables
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and lemmas about `mv_polynomial.supported`.
 
 ## Main definitions
@@ -35,7 +38,6 @@ algebra.adjoin R (X '' s)
 
 variables {σ R}
 
-open_locale classical
 open algebra
 
 lemma supported_eq_range_rename (s : set σ) :
@@ -64,6 +66,7 @@ variables {s t : set σ}
 
 lemma mem_supported : p ∈ (supported R s) ↔ ↑p.vars ⊆ s :=
 begin
+  classical,
   rw [supported_eq_range_rename, alg_hom.mem_range],
   split,
   { rintros ⟨p, rfl⟩,

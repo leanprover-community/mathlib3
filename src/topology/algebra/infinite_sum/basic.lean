@@ -11,6 +11,9 @@ import topology.algebra.star
 /-!
 # Infinite sum/product over a topological monoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This sum is known as unconditionally convergent, as it sums to the same value under all possible
 permutations. For Euclidean spaces (finite dimensional Banach spaces) this is equivalent to absolute
 convergence.
@@ -1028,8 +1031,6 @@ begin
     exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
-local attribute [instance] topological_group.t3_space
-
 /-- The prod over the complement of a finset tends to `1` when the finset grows to cover the whole
 space. This does not need a summability assumption, as otherwise all prods are one. -/
 @[to_additive "The sum over the complement of a finset tends to `0`
@@ -1117,18 +1118,26 @@ ha.sigma' (λ b, ha.sigma_factor b)
   prodable (λ c, f (b, c)) :=
 h.comp_injective $ λ c₁ c₂ h, (prod.ext_iff.1 h).2
 
+section loc_instances
+-- enable inferring a T3-topological space from a topological group
+local attribute [instance] topological_add_group.t3_space
+-- disable getting a T0-space from a T3-space as this causes loops
+local attribute [-instance] t3_space.to_t0_space
+
 @[to_additive]
-lemma tprod_sigma [t1_space α] {γ : β → Type*} {f : (Σ b, γ b) → α} (ha : prodable f) :
+lemma tprod_sigma [t0_space α] {γ : β → Type*} {f : (Σ b, γ b) → α} (ha : prodable f) :
   ∏' p, f p = ∏' b c, f ⟨b, c⟩ :=
 tprod_sigma' (λ b, ha.sigma_factor b) ha
 
-@[to_additive tsum_prod] lemma tprod_prod [t1_space α] {f : β × γ → α} (h : prodable f) :
+@[to_additive tsum_prod] lemma tprod_prod [t0_space α] {f : β × γ → α} (h : prodable f) :
   ∏' p, f p = ∏' b c, f ⟨b, c⟩ :=
 tprod_prod' h h.prod_factor
 
-@[to_additive] lemma tprod_comm [t1_space α] {f : β → γ → α} (h : prodable (uncurry f)) :
+@[to_additive] lemma tprod_comm [t0_space α] {f : β → γ → α} (h : prodable (uncurry f)) :
   ∏' c b, f b c = ∏' b c, f b c :=
 tprod_comm' h h.prod_factor h.prod_symm.prod_factor
+
+end loc_instances
 
 @[to_additive]
 lemma tprod_subtype_mul_tprod_subtype_compl [t2_space α] (hf : prodable f) (s : set β) :

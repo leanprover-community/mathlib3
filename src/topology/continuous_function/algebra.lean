@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import algebra.algebra.pi
+import algebra.periodic
 import algebra.algebra.subalgebra.basic
 import algebra.star.star_alg_hom
 import tactic.field_simp
@@ -16,6 +17,9 @@ import topology.uniform_space.compact_convergence
 
 /-!
 # Algebraic structures over continuous functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define instances of algebraic structures over the type `continuous_map α β`
 (denoted `C(α, β)`) of **bundled** continuous maps from `α` to `β`. For example, `C(α, β)`
@@ -45,6 +49,8 @@ namespace continuous_map
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
+/- ### "mul" and "add" -/
+
 @[to_additive]
 instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
@@ -52,30 +58,44 @@ instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 @[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) : ⇑(f * g) = f * g := rfl
 
+@[simp, to_additive]
+lemma mul_apply [has_mul β] [has_continuous_mul β] (f g : C(α, β)) (x : α) :
+  (f * g) x = f x * g x := rfl
+
 @[simp, to_additive] lemma mul_comp [has_mul γ] [has_continuous_mul γ]
   (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
   (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
 rfl
 
-@[to_additive]
-instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
+/- ### "one" -/
 
-@[simp, norm_cast, to_additive]
-lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
+@[to_additive] instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
+
+@[simp, norm_cast, to_additive] lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
+
+@[simp, to_additive] lemma one_apply [has_one β] (x : α) : (1 : C(α, β)) x = 1 := rfl
 
 @[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
 
-instance [has_nat_cast β] : has_nat_cast C(α, β) :=
-⟨λ n, continuous_map.const _ n⟩
+/- ### "nat_cast" -/
 
-@[simp, norm_cast]
-lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
+instance [has_nat_cast β] : has_nat_cast C(α, β) := ⟨λ n, continuous_map.const _ n⟩
+
+@[simp, norm_cast] lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
+
+@[simp] lemma nat_cast_apply [has_nat_cast β] (n : ℕ) (x : α) : (n : C(α, β)) x = n := rfl
+
+/- ### "int_cast" -/
 
 instance [has_int_cast β] : has_int_cast C(α, β) :=
 ⟨λ n, continuous_map.const _ n⟩
 
 @[simp, norm_cast]
 lemma coe_int_cast [has_int_cast β] (n : ℤ) : ((n : C(α, β)) : α → β) = n := rfl
+
+@[simp] lemma int_cast_apply [has_int_cast β] (n : ℤ) (x : α) : (n : C(α, β)) x = n := rfl
+
+/- ### "nsmul" and "pow" -/
 
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_smul ℕ C(α, β) :=
 ⟨λ n f, ⟨n • f, f.continuous.nsmul n⟩⟩
@@ -88,8 +108,14 @@ instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
 
--- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul`
-attribute [simp] coe_pow
+@[to_additive] lemma pow_apply [monoid β] [has_continuous_mul β]
+  (f : C(α, β)) (n : ℕ) (x : α) :
+  (f ^ n) x = f x ^ n :=
+rfl
+
+-- don't make auto-generated `coe_nsmul` and `nsmul_apply` simp, as the linter complains they're
+-- redundant WRT `coe_smul`
+attribute [simp] coe_pow pow_apply
 
 @[to_additive] lemma pow_comp [monoid γ] [has_continuous_mul γ]
   (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
@@ -98,6 +124,8 @@ rfl
 
 -- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] pow_comp
+
+/- ### "inv" and "neg" -/
 
 @[to_additive]
 instance [group β] [topological_group β] : has_inv C(α, β) :=
@@ -108,9 +136,15 @@ lemma coe_inv [group β] [topological_group β] (f : C(α, β)) :
   ⇑(f⁻¹) = f⁻¹ :=
 rfl
 
+@[simp, to_additive] lemma inv_apply [group β] [topological_group β] (f : C(α, β)) (x : α) :
+  f⁻¹ x = (f x)⁻¹ :=
+rfl
+
 @[simp, to_additive] lemma inv_comp [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
   (f⁻¹).comp g = (f.comp g)⁻¹ :=
 rfl
+
+/- ### "div" and "sub" -/
 
 @[to_additive]
 instance [has_div β] [has_continuous_div β] : has_div C(α, β) :=
@@ -120,10 +154,16 @@ instance [has_div β] [has_continuous_div β] : has_div C(α, β) :=
 lemma coe_div [has_div β] [has_continuous_div β] (f g : C(α, β)) : ⇑(f / g) = f / g :=
 rfl
 
+@[simp, to_additive] lemma div_apply [has_div β] [has_continuous_div β] (f g : C(α, β)) (x : α) :
+  (f / g) x = f x / g x :=
+rfl
+
 @[simp, to_additive] lemma div_comp [has_div γ] [has_continuous_div γ]
   (f g : C(β, γ)) (h : C(α, β)) :
   (f / g).comp h = (f.comp h) / (g.comp h) :=
 rfl
+
+/- ### "zpow" and "zsmul" -/
 
 instance has_zsmul [add_group β] [topological_add_group β] : has_smul ℤ C(α, β) :=
 { smul := λ z f, ⟨z • f, f.continuous.zsmul z⟩ }
@@ -138,8 +178,14 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
--- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul`
-attribute [simp] coe_zpow
+@[to_additive] lemma zpow_apply [group β] [topological_group β]
+  (f : C(α, β)) (z : ℤ) (x : α) :
+  (f ^ z) x = f x ^ z :=
+rfl
+
+-- don't make auto-generated `coe_zsmul` and `zsmul_apply` simp as the linter complains they're
+-- redundant WRT `coe_smul`
+attribute [simp] coe_zpow zpow_apply
 
 @[to_additive]
 lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g : C(α, β)) :
@@ -165,7 +211,7 @@ section subtype
 /-- The `submonoid` of continuous maps `α → β`. -/
 @[to_additive "The `add_submonoid` of continuous maps `α → β`. "]
 def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
-  [monoid β] [has_continuous_mul β] : submonoid (α → β) :=
+  [mul_one_class β] [has_continuous_mul β] : submonoid (α → β) :=
 { carrier := { f : α → β | continuous f },
   one_mem' := @continuous_const _ _ _ _ 1,
   mul_mem' := λ f g fc gc, fc.mul gc }
@@ -336,7 +382,7 @@ section subtype
 
 /-- The subsemiring of continuous maps `α → β`. -/
 def continuous_subsemiring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
-  [semiring R] [topological_semiring R] : subsemiring (α → R) :=
+  [non_assoc_semiring R] [topological_semiring R] : subsemiring (α → R) :=
 { ..continuous_add_submonoid α R,
   ..continuous_submonoid α R }
 
@@ -667,7 +713,7 @@ writing it this way avoids having to deal with casts inside the set.
 where the functions would be continuous functions vanishing at infinity.)
 -/
 def set.separates_points_strongly (s : set C(α, 𝕜)) : Prop :=
-∀ (v : α → 𝕜) (x y : α), ∃ f : s, (f x : 𝕜) = v x ∧ f y = v y
+∀ (v : α → 𝕜) (x y : α), ∃ f ∈ s, (f x : 𝕜) = v x ∧ f y = v y
 
 variables [field 𝕜] [topological_ring 𝕜]
 
@@ -684,25 +730,15 @@ lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h 
 begin
   by_cases n : x = y,
   { subst n,
-    use ((v x) • 1 : C(α, 𝕜)),
-    { apply s.smul_mem,
-      apply s.one_mem, },
-    { simp [coe_fn_coe_base'] }, },
-  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
-  replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
+    refine ⟨_, ((v x) • 1 : s).prop, mul_one _, mul_one _⟩ },
+  obtain ⟨_, ⟨f, hf, rfl⟩, hxy⟩ := h n,
+  replace hxy : f x - f y ≠ 0 := sub_ne_zero_of_ne hxy,
   let a := v x,
   let b := v y,
-  let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
-  refine ⟨⟨f', _⟩, _, _⟩,
-  { simp only [f', set_like.mem_coe, subalgebra.mem_to_submodule],
-    -- TODO should there be a tactic for this?
-    -- We could add an attribute `@[subobject_mem]`, and a tactic
-    -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``
-    solve_by_elim
-      [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
-      { max_depth := 6 }, },
-  { simp [f', coe_fn_coe_base'], },
-  { simp [f', coe_fn_coe_base', inv_mul_cancel_right₀ w], },
+  let f' : s := ((b - a) * (f x - f y)⁻¹) • (algebra_map _ _ (f x) - ⟨f, hf⟩) + algebra_map _ _ a,
+  refine ⟨f', f'.prop, _, _⟩,
+  { simp [f'], },
+  { simp [f', inv_mul_cancel_right₀ hxy], },
 end
 
 end continuous_map
@@ -710,22 +746,17 @@ end continuous_map
 instance continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
   (R : Type*) [comm_semiring R] [topological_space R] [topological_semiring R]
   [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
-begin
-  fsplit,
-  intros s₁ s₂,
-  by_cases n : nonempty α,
-  { obtain ⟨x⟩ := n,
+⟨λ s₁ s₂, begin
+  casesI is_empty_or_nonempty α,
+  { haveI : subsingleton C(α, R) := fun_like.coe_injective.subsingleton,
+    exact subsingleton.elim _ _ },
+  { inhabit α,
     ext f,
-    have h : f = algebra_map R C(α, R) (f x),
+    have h : f = algebra_map R C(α, R) (f default),
     { ext x', simp only [mul_one, algebra.id.smul_eq_mul, algebra_map_apply], congr, },
     rw h,
     simp only [subalgebra.algebra_map_mem], },
-  { ext f,
-    have h : f = 0,
-    { ext x', exact false.elim (n ⟨x'⟩), },
-    subst h,
-    simp only [subalgebra.zero_mem], },
-end
+end⟩
 
 end algebra_structure
 
@@ -747,7 +778,7 @@ instance has_smul' {α : Type*} [topological_space α]
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance module' {α : Type*} [topological_space α]
-  (R : Type*) [ring R] [topological_space R] [topological_ring R]
+  (R : Type*) [semiring R] [topological_space R] [topological_semiring R]
   (M : Type*) [topological_space M] [add_comm_monoid M] [has_continuous_add M]
   [module R M] [has_continuous_smul R M] :
   module C(α, R) C(α, M) :=
@@ -880,6 +911,30 @@ star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
 lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
   comp_star_alg_hom' 𝕜 A (g.comp f) = (comp_star_alg_hom' 𝕜 A f).comp (comp_star_alg_hom' 𝕜 A g) :=
 star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
+section periodicity
+
+/-! ### Summing translates of a function -/
+
+/-- Summing the translates of `f` by `ℤ • p` gives a map which is periodic with period `p`.
+(This is true without any convergence conditions, since if the sum doesn't converge it is taken to
+be the zero map, which is periodic.) -/
+lemma periodic_tsum_comp_add_zsmul [locally_compact_space X] [add_comm_group X]
+  [topological_add_group X] [add_comm_monoid Y] [has_continuous_add Y] [t2_space Y]
+  (f : C(X, Y)) (p : X) :
+  function.periodic ⇑(∑' (n : ℤ), f.comp (continuous_map.add_right (n • p))) p :=
+begin
+  intro x,
+  by_cases h : summable (λ n : ℤ, f.comp (continuous_map.add_right (n • p))),
+  { convert congr_arg (λ f : C(X, Y), f x) ((equiv.add_right (1 : ℤ)).tsum_eq _) using 1,
+    simp_rw [←tsum_apply h, ←tsum_apply ((equiv.add_right (1 : ℤ)).summable_iff.mpr h),
+      equiv.coe_add_right, comp_apply, coe_add_right, add_one_zsmul, add_comm (_ • p) p,
+      ←add_assoc] },
+  { rw tsum_eq_zero_of_not_summable h,
+    simp only [coe_zero, pi.zero_apply] }
+end
+
+end periodicity
 
 end continuous_map
 

@@ -11,6 +11,9 @@ import category_theory.full_subcategory
 /-!
 # Connected components of a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines a type `connected_components J` indexing the connected components of a category, and the
 full subcategories giving each connected component: `component j : Type u₁`.
 We show that each `component j` is in fact connected.

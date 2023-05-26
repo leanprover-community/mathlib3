@@ -10,6 +10,9 @@ import linear_algebra.matrix.to_lin
 
 # Calyley-Hamilton theorem for f.g. modules.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a fixed finite spanning set `b : ι → M` of a `R`-module `M`, we say that a matrix `M`
 represents an endomorphism `f : M →ₗ[R] M` if the matrix as an endomorphism of `ι → R` commutes
 with `f` via the projection `(ι → R) →ₗ[R] M` given by `b`.

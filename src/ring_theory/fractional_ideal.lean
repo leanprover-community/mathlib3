@@ -14,6 +14,9 @@ import tactic.field_simp
 /-!
 # Fractional ideals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines fractional ideals of an integral domain and proves basic facts about them.
 
 ## Main definitions
@@ -494,6 +497,12 @@ instance : comm_semiring (fractional_ideal S P) :=
 function.injective.comm_semiring coe subtype.coe_injective
   coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow coe_nat_cast
 
+variables (S P)
+/-- `fractional_ideal.submodule.has_coe` as a bundled `ring_hom`. -/
+@[simps] def coe_submodule_hom : fractional_ideal S P →+* submodule R P :=
+⟨coe, coe_one, coe_mul, coe_zero, coe_add⟩
+variables {S P}
+
 section order
 
 lemma add_le_add_left {I J : fractional_ideal S P} (hIJ : I ≤ J) (J' : fractional_ideal S P) :
@@ -710,21 +719,11 @@ variables {S}
 
 lemma fg_unit (I : (fractional_ideal S P)ˣ) :
   fg (I : submodule R P) :=
-begin
-  have : (1 : P) ∈ (I * ↑I⁻¹ : fractional_ideal S P),
-  { rw units.mul_inv, exact one_mem_one _ },
-  obtain ⟨T, T', hT, hT', one_mem⟩ := mem_span_mul_finite_of_mem_mul this,
-  refine ⟨T, submodule.span_eq_of_le _ hT _⟩,
-  rw [← one_mul ↑I, ← mul_one (span R ↑T)],
-  conv_rhs { rw [← coe_one, ← units.mul_inv I, coe_mul, mul_comm ↑↑I, ← mul_assoc] },
-  refine submodule.mul_le_mul_left
-    (le_trans _ (submodule.mul_le_mul_right (submodule.span_le.mpr hT'))),
-  rwa [submodule.one_le, submodule.span_mul_span]
-end
+submodule.fg_unit $ units.map (coe_submodule_hom S P).to_monoid_hom I
 
 lemma fg_of_is_unit (I : fractional_ideal S P) (h : is_unit I) :
   fg (I : submodule R P) :=
-by { rcases h with ⟨I, rfl⟩, exact fg_unit I }
+fg_unit h.unit
 
 lemma _root_.ideal.fg_of_is_unit (inj : function.injective (algebra_map R P))
   (I : ideal R) (h : is_unit (I : fractional_ideal S P)) :

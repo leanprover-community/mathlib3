@@ -8,6 +8,9 @@ import topology.sheaves.sheaf_condition.sites
 /-!
 # Another version of the sheaf condition.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a family of open sets `U : ι → opens X` we can form the subcategory
 `{ V : opens X // ∃ i, V ≤ U i }`, which has `supr U` as a cocone.
 

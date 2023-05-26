@@ -8,6 +8,9 @@ import topology.category.Top.opens
 /-!
 # The category of open neighborhoods of a point
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an object `X` of the category `Top` of topological spaces and a point `x : X`, this file
 builds the type `open_nhds x` of open neighborhoods of `x` in `X` and endows it with the partial
 order given by inclusion and the corresponding category structure (as a full subcategory of the

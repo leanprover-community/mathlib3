@@ -7,6 +7,8 @@ Authors: Eric Wieser
 import analysis.normed_space.exponential
 import analysis.matrix
 import linear_algebra.matrix.zpow
+import linear_algebra.matrix.hermitian
+import linear_algebra.matrix.symmetric
 import topology.uniform_space.matrix
 
 /-!
@@ -118,6 +120,10 @@ lemma exp_conj_transpose [star_ring 𝔸] [has_continuous_star 𝔸] (A : matrix
   exp 𝕂 Aᴴ = (exp 𝕂 A)ᴴ :=
 ((star_exp A).symm : _)
 
+lemma is_hermitian.exp [star_ring 𝔸] [has_continuous_star 𝔸] {A : matrix m m 𝔸}
+  (h : A.is_hermitian) : (exp 𝕂 A).is_hermitian :=
+(exp_conj_transpose _ _).symm.trans $ congr_arg _ h
+
 end ring
 
 section comm_ring
@@ -126,6 +132,9 @@ variables [fintype m] [decidable_eq m] [field 𝕂]
 
 lemma exp_transpose (A : matrix m m 𝔸) : exp 𝕂 Aᵀ = (exp 𝕂 A)ᵀ :=
 by simp_rw [exp_eq_tsum, transpose_tsum, transpose_smul, transpose_pow]
+
+lemma is_symm.exp {A : matrix m m 𝔸} (h : A.is_symm) : (exp 𝕂 A).is_symm :=
+(exp_transpose _ _).symm.trans $ congr_arg _ h
 
 end comm_ring
 

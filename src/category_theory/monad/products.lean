@@ -10,6 +10,9 @@ import category_theory.limits.shapes.binary_products
 /-!
 # Algebras for the coproduct monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The functor `Y ↦ X ⨿ Y` forms a monad, whose category of monads is equivalent to the under category
 of `X`. Similarly, `Y ↦ X ⨯ Y` forms a comonad, whose category of comonads is equivalent to the
 over category of `X`.

@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebra.category.Ring.basic
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
 import ring_theory.ideal.local_ring
 
 /-!
 # Ring-theoretic results in terms of categorical languages
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

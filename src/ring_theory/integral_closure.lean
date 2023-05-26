@@ -15,6 +15,9 @@ import ring_theory.tensor_product
 /-!
 # Integral closure of a subring.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If A is an R-algebra then `a : A` is integral over R if it is a root of a monic polynomial
 with coefficients in R. Enough theory is developed to prove that integral elements
 form a sub-R-algebra of A.
@@ -760,6 +763,14 @@ show is_integral R (algebra_map A B x), from is_integral_iff.mpr ⟨x, rfl⟩
 theorem is_integral_algebra [algebra R A] [is_scalar_tower R A B] :
   algebra.is_integral R A :=
 λ x, is_integral_closure.is_integral R B x
+
+theorem no_zero_smul_divisors [algebra R A] [is_scalar_tower R A B] [no_zero_smul_divisors R B] :
+  no_zero_smul_divisors R A :=
+begin
+  refine function.injective.no_zero_smul_divisors
+      _ (is_integral_closure.algebra_map_injective A R B) (map_zero _) (λ _ _, _),
+  simp only [algebra.algebra_map_eq_smul_one, is_scalar_tower.smul_assoc],
+ end
 
 variables {R} (A) {B}
 

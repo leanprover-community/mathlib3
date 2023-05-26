@@ -9,6 +9,9 @@ import analysis.specific_limits.basic
 /-!
 # Induction on subboxes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following induction principle for `box_integral.box`, see
 `box_integral.box.subbox_induction_on`. Let `p` be a predicate on `box_integral.box ι`, let `I` be a
 box. Suppose that the following two properties hold true.

@@ -6,15 +6,23 @@ Authors: Yaël Dillies, Bhavik Mehta
 import algebra.big_operators.order
 import algebra.module.basic
 import combinatorics.simple_graph.density
+import data.rat.big_operators
 
 /-!
 # Energy of a partition
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the energy of a partition.
 
 The energy is the auxiliary quantity that drives the induction process in the proof of Szemerédi's
 Regularity Lemma. As long as we do not have a suitable equipartition, we will find a new one that
 has an energy greater than the previous one plus some fixed constant.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset
@@ -40,5 +48,9 @@ div_le_of_nonneg_of_le_mul (sq_nonneg _) zero_le_one $
             G.edge_density_le_one _ _
     ... = P.parts.off_diag.card : nat.smul_one_eq_coe _
     ... ≤ _ : by { rw [off_diag_card, one_mul, ←nat.cast_pow, nat.cast_le, sq], exact tsub_le_self }
+
+@[simp, norm_cast] lemma coe_energy {𝕜 : Type*} [linear_ordered_field 𝕜] :
+  (P.energy G : 𝕜) = (∑ uv in P.parts.off_diag, G.edge_density uv.1 uv.2 ^ 2) / P.parts.card ^ 2 :=
+by { rw energy, norm_cast }
 
 end finpartition

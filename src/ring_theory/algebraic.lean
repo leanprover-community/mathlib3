@@ -11,6 +11,9 @@ import data.polynomial.integral_normalization
 /-!
 # Algebraic elements and algebraic extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial.
 An R-algebra is algebraic over R if and only if all its elements are algebraic over R.
 The main result in this file proves transitivity of algebraicity:
@@ -299,7 +302,7 @@ lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : K[X]}
   (aeval_ne : aeval x (div_X p) ≠ 0) :
   x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
 begin
-  rw [inv_eq_iff_inv_eq, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
+  rw [inv_eq_iff_eq_inv, inv_div, eq_comm, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
   conv_lhs { rw ← div_X_mul_X_add p },
   rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C],
   exact aeval_ne

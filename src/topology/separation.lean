@@ -168,6 +168,18 @@ by simp only [t0_space_iff_inseparable, ne.def, not_imp_not]
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 t0_space.t0 h
 
+protected lemma inducing.injective [topological_space β] [t0_space α] {f : α → β}
+  (hf : inducing f) : injective f :=
+λ x y h, inseparable.eq $ hf.inseparable_iff.1 $ h ▸ inseparable.refl _
+
+protected lemma inducing.embedding [topological_space β] [t0_space α] {f : α → β}
+  (hf : inducing f) : embedding f :=
+⟨hf, hf.injective⟩
+
+lemma embedding_iff_inducing [topological_space β] [t0_space α] {f : α → β} :
+  embedding f ↔ inducing f :=
+⟨embedding.to_inducing, inducing.embedding⟩
+
 lemma t0_space_iff_nhds_injective (α : Type u) [topological_space α] :
   t0_space α ↔ injective (𝓝 : α → filter α) :=
 t0_space_iff_inseparable α
@@ -1196,13 +1208,20 @@ begin
     by rw [← diff_inter, hO.inter_eq, diff_empty]⟩
 end
 
-lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β} (h : continuous f) :
-  is_closed_map f :=
+/-- A continuous map from a compact space to a Hausdorff space is a closed map. -/
+protected lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β}
+  (h : continuous f) : is_closed_map f :=
 λ s hs, (hs.is_compact.image h).is_closed
 
+/-- An injective continuous map from a compact space to a Hausdorff space is a closed embedding. -/
 lemma continuous.closed_embedding [compact_space α] [t2_space β] {f : α → β} (h : continuous f)
   (hf : function.injective f) : closed_embedding f :=
 closed_embedding_of_continuous_injective_closed h hf h.is_closed_map
+
+/-- A surjective continuous map from a compact space to a Hausdorff space is a quotient map. -/
+lemma quotient_map.of_surjective_continuous [compact_space α] [t2_space β] {f : α → β}
+  (hsurj : surjective f) (hcont : continuous f) : quotient_map f :=
+hcont.is_closed_map.to_quotient_map hcont hsurj
 
 section
 open finset function

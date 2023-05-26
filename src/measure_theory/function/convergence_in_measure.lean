@@ -3,7 +3,7 @@ Copyright (c) 2022 Rémy Degenne, Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 import measure_theory.function.egorov
 import measure_theory.function.lp_space
 
@@ -367,7 +367,7 @@ end
 lemma tendsto_in_measure_of_tendsto_Lp [hp : fact (1 ≤ p)]
   {f : ι → Lp E p μ} {g : Lp E p μ} {l : filter ι} (hfg : tendsto f l (𝓝 g)) :
   tendsto_in_measure μ (λ n, f n) l g :=
-tendsto_in_measure_of_tendsto_snorm (ennreal.zero_lt_one.trans_le hp.elim).ne.symm
+tendsto_in_measure_of_tendsto_snorm (zero_lt_one.trans_le hp.elim).ne.symm
   (λ n, Lp.ae_strongly_measurable _) (Lp.ae_strongly_measurable _)
   ((Lp.tendsto_Lp_iff_tendsto_ℒp' _ _).mp hfg)
 

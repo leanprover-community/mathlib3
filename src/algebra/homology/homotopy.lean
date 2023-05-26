@@ -9,6 +9,9 @@ import tactic.abel
 /-!
 # Chain homotopies
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define chain homotopies, and prove that homotopic chain maps induce the same map on homology.
 -/
 

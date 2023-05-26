@@ -5,10 +5,13 @@ Authors: Michael Stoll
 -/
 import algebra.char_p.basic
 import algebra.euclidean_domain.instances
-import algebra.group.conj_finite
+import data.fintype.units
 
 /-!
 # Multiplicative characters of finite rings and fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Let `R` and `R'` be a commutative rings.
 A *multiplicative character* of `R` with values in `R'` is a morphism of

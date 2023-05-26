@@ -11,6 +11,9 @@ import linear_algebra.matrix.symmetric
 /-!
 # Adjacency Matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines the adjacency matrix of a graph, and provides theorems connecting graph
 properties to computational properties of the matrix.
 
@@ -148,11 +151,12 @@ variables (α)
 
 /-- `adj_matrix G α` is the matrix `A` such that `A i j = (1 : α)` if `i` and `j` are
   adjacent in the simple graph `G`, and otherwise `A i j = 0`. -/
-def adj_matrix [has_zero α] [has_one α] : matrix V V α
-| i j := if (G.adj i j) then 1 else 0
+def adj_matrix [has_zero α] [has_one α] : matrix V V α :=
+of $ λ i j, if (G.adj i j) then (1 : α) else 0
 
 variable {α}
 
+-- TODO: set as an equation lemma for `adj_matrix`, see mathlib4#3024
 @[simp]
 lemma adj_matrix_apply (v w : V) [has_zero α] [has_one α] :
   G.adj_matrix α v w = if (G.adj v w) then 1 else 0 := rfl

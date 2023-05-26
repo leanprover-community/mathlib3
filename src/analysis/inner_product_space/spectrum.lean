@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
+import algebra.direct_sum.decomposition
 
 /-! # Spectral theory of self-adjoint operators
 
@@ -44,7 +45,7 @@ self-adjoint operator, spectral theorem, diagonalization theorem
 -/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] [dec_𝕜 : decidable_eq 𝕜]
-variables {E : Type*} [inner_product_space 𝕜 E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
@@ -76,7 +77,7 @@ end
 
 /-- The eigenspaces of a self-adjoint operator are mutually orthogonal. -/
 lemma orthogonal_family_eigenspaces :
-  @orthogonal_family 𝕜 _ _ _ _ (λ μ, eigenspace T μ) _ (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
+  orthogonal_family 𝕜 (λ μ, eigenspace T μ) (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 begin
   rintros μ ν hμν ⟨v, hv⟩ ⟨w, hw⟩,
   by_cases hv' : v = 0,
@@ -88,8 +89,7 @@ begin
 end
 
 lemma orthogonal_family_eigenspaces' :
-  @orthogonal_family 𝕜 _ _ _ _ (λ μ : eigenvalues T, eigenspace T μ) _
-    (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
+  orthogonal_family 𝕜 (λ μ : eigenvalues T, eigenspace T μ) (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 hT.orthogonal_family_eigenspaces.comp subtype.coe_injective
 
 /-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on an inner
@@ -108,8 +108,8 @@ lemma orthogonal_supr_eigenspaces (μ : 𝕜) :
 begin
   set p : submodule 𝕜 E := (⨆ μ, eigenspace T μ)ᗮ,
   refine eigenspace_restrict_eq_bot hT.orthogonal_supr_eigenspaces_invariant _,
-  have H₂ : p ≤ (eigenspace T μ)ᗮ := submodule.orthogonal_le (le_supr _ _),
-  exact (eigenspace T μ).orthogonal_disjoint.mono_right H₂
+  have H₂ : eigenspace T μ ⟂ p := (submodule.is_ortho_orthogonal_right _).mono_left (le_supr _ _),
+  exact H₂.disjoint
 end
 
 /-! ### Finite-dimensional theory -/
@@ -131,8 +131,27 @@ show (⨆ μ : {μ // (eigenspace T μ) ≠ ⊥}, eigenspace T μ)ᗮ = ⊥,
 by rw [supr_ne_bot_subtype, hT.orthogonal_supr_eigenspaces_eq_bot]
 
 include dec_𝕜
+omit hT
+/-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` gives
+an internal direct sum decomposition of `E`.
 
-/-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
+Note this takes `hT` as a `fact` to allow it to be an instance. -/
+noncomputable instance direct_sum_decomposition [hT : fact T.is_symmetric] :
+  direct_sum.decomposition (λ μ : eigenvalues T, eigenspace T μ) :=
+begin
+  haveI h : ∀ μ : eigenvalues T, complete_space (eigenspace T μ) := λ μ, by apply_instance,
+  exact hT.out.orthogonal_family_eigenspaces'.decomposition
+    (submodule.orthogonal_eq_bot_iff.mp hT.out.orthogonal_supr_eigenspaces_eq_bot'),
+end
+
+lemma direct_sum_decompose_apply [hT : fact T.is_symmetric] (x : E) (μ : eigenvalues T) :
+  direct_sum.decompose (λ μ : eigenvalues T, eigenspace T μ) x μ
+    = orthogonal_projection (eigenspace T μ) x :=
+rfl
+
+include hT
+
+/-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` gives
 an internal direct sum decomposition of `E`. -/
 lemma direct_sum_is_internal :
   direct_sum.is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
@@ -160,13 +179,11 @@ lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
 begin
   suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
     (T (hT.diagonalization.symm w)) = hT.diagonalization.symm (λ μ, (μ : 𝕜) • w μ),
-  { simpa [linear_isometry_equiv.symm_apply_apply, -is_symmetric.diagonalization_symm_apply]
+  { simpa only [linear_isometry_equiv.symm_apply_apply, linear_isometry_equiv.apply_symm_apply]
       using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
   intros w,
-  have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
-  { intros μ,
-    simpa [mem_eigenspace_iff] using (w μ).prop },
-  simp [hwT],
+  have hwT : ∀ μ, T (w μ) = (μ : 𝕜) • w μ := λ μ, mem_eigenspace_iff.1 (w μ).2,
+  simp only [hwT, diagonalization_symm_apply, map_sum, submodule.coe_smul_of_tower],
 end
 
 end version1
@@ -208,7 +225,7 @@ begin
     have H₂ : v ≠ 0 := by simpa using (hT.eigenvector_basis hn).to_basis.ne_zero i,
     exact ⟨H₁, H₂⟩ },
   have re_μ : ↑(is_R_or_C.re μ) = μ,
-  { rw ← is_R_or_C.eq_conj_iff_re,
+  { rw ← is_R_or_C.conj_eq_iff_re,
     exact hT.conj_eigenvalue_eq_self (has_eigenvalue_of_has_eigenvector key) },
   simpa [re_μ] using key,
 end

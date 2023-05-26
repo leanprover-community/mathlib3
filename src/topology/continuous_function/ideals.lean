@@ -14,7 +14,7 @@ import topology.algebra.module.character_space
 /-!
 # Ideals of continuous functions
 
-For a topological ring `R` and a topological space `X` there is a Galois connection between
+For a topological semiring `R` and a topological space `X` there is a Galois connection between
 `ideal C(X, R)` and `set X` given by sending each `I : ideal C(X, R)` to
 `{x : X | ∀ f ∈ I, f x = 0}ᶜ` and mapping `s : set X` to the ideal with carrier
 `{f : C(X, R) | ∀ x ∈ sᶜ, f x = 0}`, and we call these maps `continuous_map.set_of_ideal` and
@@ -77,7 +77,8 @@ open topological_space
 
 section topological_ring
 
-variables {X R : Type*} [topological_space X] [ring R] [topological_space R] [topological_ring R]
+variables {X R : Type*} [topological_space X] [semiring R]
+variables [topological_space R] [topological_semiring R]
 
 variable (R)
 
@@ -260,7 +261,7 @@ begin
       ext,
       simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, coe_mul, coe_star,
         pi.mul_apply, pi.star_apply, star_def, continuous_map.coe_coe],
-      simpa only [norm_sq_eq_def', conj_mul_eq_norm_sq_left, of_real_pow], }, },
+      simpa only [norm_sq_eq_def', is_R_or_C.conj_mul, of_real_pow], }, },
   /- Get the function `g'` which is guaranteed to exist above. By the extreme value theorem and
   compactness of `t`, there is some `0 < c` such that `c ≤ g' x` for all `x ∈ t`. Then by
   `main_lemma_aux` there is some `g` for which `g * g'` is the desired function. -/

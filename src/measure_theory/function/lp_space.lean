@@ -1245,8 +1245,6 @@ end
 
 end has_measurable_add
 
-/-! ### Monotonicity -/
-
 section monotonicity
 
 lemma snorm'_le_nnreal_smul_snorm'_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ≥0}

@@ -963,7 +963,7 @@ lemma integrable_on_Ioi_comp_mul_left_iff (f : ℝ → E) (c : ℝ) {a : ℝ} (h
 begin
   rw [←integrable_indicator_iff (measurable_set_Ioi : measurable_set $ Ioi c)],
   rw [←integrable_indicator_iff (measurable_set_Ioi : measurable_set $ Ioi $ a * c)],
-  convert integrable.comp_mul_left' ((Ioi (a * c)).indicator f) ha.ne' using 2,
+  convert integrable_comp_mul_left_iff ((Ioi (a * c)).indicator f) ha.ne' using 2,
   ext1 x,
   rw [←indicator_comp_right, preimage_const_mul_Ioi _ ha, mul_comm a c, mul_div_cancel _ ha.ne'],
 end

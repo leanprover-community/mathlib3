@@ -340,7 +340,7 @@ rfl
 lemma trivialization.continuous_linear_map_apply
   (p : total_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)) :
   e₁.continuous_linear_map σ e₂ p =
-  ⟨p.1, continuous_linear_map.comp (e₂.continuous_linear_map_at 𝕜₂ p.1)
+  ⟨p.1, (e₂.continuous_linear_map_at 𝕜₂ p.1 : _ →L[𝕜₂] _).comp
     (p.2.comp (e₁.symmL 𝕜₁ p.1 : F₁ →L[𝕜₁] E₁ p.1) : F₁ →SL[σ] E₂ p.1)⟩ :=
 rfl
 

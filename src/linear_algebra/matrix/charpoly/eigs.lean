@@ -45,8 +45,6 @@ open_locale matrix big_operators
 
 namespace matrix
 
-variables
-
 lemma det_eq_prod_roots_charpoly_of_splits (hAps : A.charpoly.splits (ring_hom.id R)) :
   A.det = (matrix.charpoly A).roots.prod :=
 begin

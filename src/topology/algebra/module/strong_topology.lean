@@ -227,3 +227,89 @@ continuous_linear_map.has_basis_nhds_zero_of_basis (𝓝 0).basis_sets
 end bounded_sets
 
 end continuous_linear_map
+
+open continuous_linear_map
+
+namespace continuous_linear_equiv
+
+section semilinear
+
+variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {𝕜₄ : Type*}
+  {E : Type*} {F : Type*} {G : Type*} {H : Type*}
+  [add_comm_group E] [add_comm_group F] [add_comm_group G] [add_comm_group H]
+  [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
+    [nontrivially_normed_field 𝕜₄]
+  [module 𝕜 E] [module 𝕜₂ F] [module 𝕜₃ G] [module 𝕜₄ H]
+  [topological_space E] [topological_space F] [topological_space G] [topological_space H]
+  [topological_add_group G] [topological_add_group H]
+  [has_continuous_const_smul 𝕜₃ G] [has_continuous_const_smul 𝕜₄ H]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} {σ₃₄ : 𝕜₃ →+* 𝕜₄}
+    {σ₄₃ : 𝕜₄ →+* 𝕜₃} {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [ring_hom_inv_pair σ₃₄ σ₄₃]
+    [ring_hom_inv_pair σ₄₃ σ₃₄]
+  [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+    [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+
+include σ₁₄ σ₂₄ σ₁₃ σ₃₄ σ₂₁ σ₂₃
+
+/-- A pair of continuous (semi)linear equivalences generates a (semi)linear equivalence between the
+spaces of continuous (semi)linear maps. -/
+@[simps] def arrow_congrₛₗ (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  (E →SL[σ₁₄] H) ≃ₛₗ[σ₄₃] (F →SL[σ₂₃] G) :=
+{ -- given explicitly to help `simps`
+  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
+  -- given explicitly to help `simps`
+  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
+  map_add' := λ f g, by rw [add_comp, comp_add],
+  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
+  .. e₁₂.arrow_congr_equiv e₄₃, }
+
+variables [ring_hom_isometric σ₂₁]
+
+lemma arrow_congrₛₗ_continuous (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  continuous (id (e₁₂.arrow_congrₛₗ e₄₃ : (E →SL[σ₁₄] H) ≃ₛₗ[σ₄₃] (F →SL[σ₂₃] G))) :=
+begin
+  apply continuous_of_continuous_at_zero,
+  show filter.tendsto _ _ _,
+  simp_rw [(e₁₂.arrow_congrₛₗ e₄₃).map_zero],
+  rw continuous_linear_map.has_basis_nhds_zero.tendsto_iff
+    continuous_linear_map.has_basis_nhds_zero,
+  rintros ⟨sF, sG⟩ ⟨h1 : bornology.is_vonN_bounded 𝕜₂ sF, h2 : sG ∈ nhds (0:G)⟩,
+  dsimp,
+  refine ⟨(e₁₂.symm '' sF, e₄₃ ⁻¹' sG), ⟨h1.image (e₁₂.symm : F →SL[σ₂₁] E), _⟩, _⟩,
+  { apply e₄₃.continuous.continuous_at,
+    simpa using h2 },
+  rintros f (h : ∀ x : E, x ∈ e₁₂.symm '' sF → e₄₃ (f x) ∈ sG) x hx,
+  apply h,
+  apply set.mem_image_of_mem,
+  exact hx,
+end
+
+variables [ring_hom_isometric σ₁₂]
+
+/-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
+between the spaces of continuous (semi)linear maps. -/
+@[simps] def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
+{ continuous_to_fun := e₁₂.arrow_congrₛₗ_continuous e₄₃,
+  continuous_inv_fun := e₁₂.symm.arrow_congrₛₗ_continuous e₄₃.symm,
+  .. e₁₂.arrow_congrₛₗ e₄₃, }
+
+end semilinear
+
+section linear
+variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*} {H : Type*}
+  [add_comm_group E] [add_comm_group F] [add_comm_group G] [add_comm_group H]
+  [nontrivially_normed_field 𝕜] [module 𝕜 E] [module 𝕜 F] [module 𝕜 G] [module 𝕜 H]
+  [topological_space E] [topological_space F] [topological_space G] [topological_space H]
+  [topological_add_group G] [topological_add_group H]
+  [has_continuous_const_smul 𝕜 G] [has_continuous_const_smul 𝕜 H]
+
+/-- A pair of continuous linear equivalences generates an continuous linear equivalence between
+the spaces of continuous linear maps. -/
+def arrow_congr (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) : (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
+e₁.arrow_congrSL e₂
+
+end linear
+
+end continuous_linear_equiv

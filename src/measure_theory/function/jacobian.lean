@@ -1245,14 +1245,16 @@ begin
   refl
 end
 
-lemma det_smul_aux (v : ℝ) : ((1 : ℝ →L[ℝ] ℝ).smul_right v).det = v :=
+/- Porting note: move this to `topology.algebra.module.basic` when port is over -/
+lemma det_one_smul_right {𝕜 : Type*} [normed_field 𝕜] (v : 𝕜) :
+  ((1 : 𝕜 →L[𝕜] 𝕜).smul_right v).det = v :=
 begin
-  have : (1 : ℝ →L[ℝ] ℝ).smul_right v = v • (1 : ℝ →L[ℝ] ℝ),
+  have : (1 : 𝕜 →L[𝕜] 𝕜).smul_right v = v • (1 : 𝕜 →L[𝕜] 𝕜),
   { ext1 w,
     simp only [continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
     algebra.id.smul_eq_mul, one_mul, continuous_linear_map.coe_smul', pi.smul_apply, mul_one] },
   rw [this, continuous_linear_map.det, continuous_linear_map.coe_smul],
-  change ((1 : ℝ →L[ℝ] ℝ) : ℝ →ₗ[ℝ] ℝ) with linear_map.id,
+  change ((1 : 𝕜 →L[𝕜] 𝕜) : 𝕜 →ₗ[𝕜] 𝕜) with linear_map.id,
   rw [linear_map.det_smul, finite_dimensional.finrank_self, linear_map.det_id, pow_one, mul_one],
 end
 
@@ -1264,7 +1266,7 @@ theorem integrable_on_image_iff_integrable_on_abs_deriv_smul
   {s : set ℝ} {f : ℝ → ℝ} {f' : ℝ → ℝ} (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (hf : inj_on f s) (g : ℝ → F) :
   integrable_on g (f '' s) ↔ integrable_on (λ x, |(f' x)| • g (f x)) s :=
-by simpa only [det_smul_aux] using integrable_on_image_iff_integrable_on_abs_det_fderiv_smul
+by simpa only [det_one_smul_right] using integrable_on_image_iff_integrable_on_abs_det_fderiv_smul
   volume hs (λ x hx, (hf' x hx).has_fderiv_within_at) hf g
 
 /-- Change of variable formula for differentiable functions (one-variable version): if a function
@@ -1274,7 +1276,7 @@ theorem integral_image_eq_integral_abs_deriv_smul {s : set ℝ} {f : ℝ → ℝ
   [complete_space F] (hs : measurable_set s) (hf' : ∀ x ∈ s, has_deriv_within_at f (f' x) s x)
   (hf : inj_on f s) (g : ℝ → F) :
   ∫ x in f '' s, g x = ∫ x in s, |(f' x)| • g (f x) :=
-by simpa only [det_smul_aux] using integral_image_eq_integral_abs_det_fderiv_smul
+by simpa only [det_one_smul_right] using integral_image_eq_integral_abs_det_fderiv_smul
   volume hs (λ x hx, (hf' x hx).has_fderiv_within_at) hf g
 
 theorem integral_target_eq_integral_abs_det_fderiv_smul [complete_space F]

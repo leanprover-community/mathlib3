@@ -601,7 +601,7 @@ hf.subset (sInter_subset_of_mem ht)
 
 /-- If sets `s i` are finite for all `i` from a finite set `t` and are empty for `i ∉ t`, then the
 union `⋃ i, s i` is a finite set. -/
-lemma set.finite.Union {ι : Type*} {s : ι → set α} {t : set ι} (ht : t.finite)
+lemma finite.Union {ι : Type*} {s : ι → set α} {t : set ι} (ht : t.finite)
   (hs : ∀ i ∈ t, (s i).finite) (he : ∀ i ∉ t, s i = ∅) :
   (⋃ i, s i).finite :=
 begin

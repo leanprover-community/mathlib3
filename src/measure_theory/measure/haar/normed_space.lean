@@ -124,25 +124,35 @@ variables {F : Type*} [normed_add_comm_group F]
 
 lemma integrable.comp_smul {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [finite_dimensional ℝ E]
-  (μ : measure E) [is_add_haar_measure μ] {f : E → F} (hf : integrable f μ) {R : ℝ} (hR : R ≠ 0) :
-  integrable (λ x, f (R • x)) μ :=
+  (μ : measure E) [is_add_haar_measure μ] (f : E → F) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, f (R • x)) μ ↔ integrable f μ :=
 begin
-  let t := ((homeomorph.smul (is_unit_iff_ne_zero.2 hR).unit).to_measurable_equiv : E ≃ᵐ E),
-  refine (integrable_map_equiv t f).mp (_ : integrable f (map (has_smul.smul R) μ)),
-  rwa [map_add_haar_smul μ hR, integrable_smul_measure _ ennreal.of_real_ne_top],
-  simpa only [ne.def, ennreal.of_real_eq_zero, not_le, abs_pos] using inv_ne_zero (pow_ne_zero _ hR)
+  -- reduce to one-way implication
+  suffices : ∀ {g : E → F} (hg : integrable g μ) {S : ℝ} (hS : S ≠ 0),
+    integrable (λ x, g (S • x)) μ,
+  { refine ⟨λ hf, _, λ hf, this hf hR⟩,
+    convert this hf (inv_ne_zero hR),
+    ext1 x,
+    rw [←mul_smul, mul_inv_cancel hR, one_smul], },
+  -- now prove
+  intros g hg S hS,
+  let t := ((homeomorph.smul (is_unit_iff_ne_zero.2 hS).unit).to_measurable_equiv : E ≃ᵐ E),
+  refine (integrable_map_equiv t g).mp (_ : integrable g (map (has_smul.smul S) μ)),
+  rwa [map_add_haar_smul μ hS, integrable_smul_measure _ ennreal.of_real_ne_top],
+  simpa only [ne.def, ennreal.of_real_eq_zero, not_le, abs_pos]
+    using inv_ne_zero (pow_ne_zero _ hS),
 end
 
-lemma integrable.comp_mul_left' {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
-  integrable (λ x, g (R * x)) volume :=
-by simpa only [smul_eq_mul] using hg.comp_smul volume hR
+lemma integrable.comp_mul_left' (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (R * x)) ↔ integrable g :=
+by simpa only [smul_eq_mul] using integrable.comp_smul volume g hR
 
-lemma integrable.comp_mul_right' {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
-  integrable (λ x, g (x * R)) volume :=
-by simpa only [mul_comm, smul_eq_mul] using hg.comp_smul volume hR
+lemma integrable.comp_mul_right' (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (x * R)) ↔ integrable g :=
+by simpa only [mul_comm, smul_eq_mul] using integrable.comp_smul volume g hR
 
-lemma integrable.comp_div {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
-  integrable (λ x, g (x / R)) volume :=
-hg.comp_mul_right' (inv_ne_zero hR)
+lemma integrable.comp_div (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (x / R)) ↔ integrable g :=
+integrable.comp_mul_right' g (inv_ne_zero hR)
 
 end measure_theory

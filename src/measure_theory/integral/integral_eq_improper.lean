@@ -7,6 +7,7 @@ import analysis.special_functions.pow.deriv
 import measure_theory.integral.fund_thm_calculus
 import order.filter.at_top_bot
 import measure_theory.function.jacobian
+import measure_theory.measure.haar.normed_space
 
 /-!
 # Links between an integral and its "improper" version
@@ -921,11 +922,11 @@ section Ioi_integrability
 open real
 open_locale interval
 
-variables {E : Type*} {f : ℝ → E} [normed_add_comm_group E] [normed_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
 /-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability. -/
-lemma integrable_on_Ioi_comp_rpow_iff (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
-  integrable_on (λ x, (|p| * x ^ (p - 1)) • g (x ^ p)) (Ioi 0) ↔ integrable_on g (Ioi 0) :=
+lemma integrable_on_Ioi_comp_rpow_iff (f : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  integrable_on (λ x, (|p| * x ^ (p - 1)) • f (x ^ p)) (Ioi 0) ↔ integrable_on f (Ioi 0) :=
 begin
   let S := Ioi (0 : ℝ),
   have a1 : ∀ x:ℝ, x ∈ S → has_deriv_within_at (λ (t:ℝ), t ^ p) (p * x ^ (p - 1)) S x :=
@@ -943,7 +944,7 @@ begin
     { rintro ⟨y, hy, rfl⟩, exact rpow_pos_of_pos hy p },
     { intro hx, refine ⟨x ^ (1 / p), rpow_pos_of_pos hx _, _⟩,
       rw [←rpow_mul (le_of_lt hx), one_div_mul_cancel hp, rpow_one], } },
-  have := integrable_on_image_iff_integrable_on_abs_deriv_smul measurable_set_Ioi a1 a2 g,
+  have := integrable_on_image_iff_integrable_on_abs_deriv_smul measurable_set_Ioi a1 a2 f,
   rw a3 at this,
   rw this,
   refine integrable_on_congr_fun (λ x hx, _) measurable_set_Ioi,
@@ -952,10 +953,24 @@ end
 
 /-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability (version
 without `|p|` factor) -/
-lemma integrable_on_Ioi_comp_rpow_iff' (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
-  integrable_on (λ x, x ^ (p - 1) • g (x ^ p)) (Ioi 0) ↔ integrable_on g (Ioi 0) :=
-by simpa only [←integrable_on_Ioi_comp_rpow_iff g hp, mul_smul]
+lemma integrable_on_Ioi_comp_rpow_iff' (f : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  integrable_on (λ x, x ^ (p - 1) • f (x ^ p)) (Ioi 0) ↔ integrable_on f (Ioi 0) :=
+by simpa only [←integrable_on_Ioi_comp_rpow_iff f hp, mul_smul]
   using (integrable_smul_iff (abs_pos.mpr hp).ne' _).symm
+
+lemma integrable_on_Ioi_comp_mul_left_iff (f : ℝ → E) (c : ℝ) {a : ℝ} (ha : 0 < a) :
+  integrable_on (λ x, f (a * x)) (Ioi c) ↔ integrable_on f (Ioi $ a * c) :=
+begin
+  rw [←integrable_indicator_iff (measurable_set_Ioi : measurable_set $ Ioi c)],
+  rw [←integrable_indicator_iff (measurable_set_Ioi : measurable_set $ Ioi $ a * c)],
+  convert integrable.comp_mul_left' ((Ioi (a * c)).indicator f) ha.ne' using 2,
+  ext1 x,
+  rw [←indicator_comp_right, preimage_const_mul_Ioi _ ha, mul_comm a c, mul_div_cancel _ ha.ne'],
+end
+
+lemma integrable_on_Ioi_comp_mul_right_iff (f : ℝ → E) (c : ℝ) {a : ℝ} (ha : 0 < a) :
+  integrable_on (λ x, f (x * a)) (Ioi c) ↔ integrable_on f (Ioi $ c * a) :=
+by simpa only [mul_comm, mul_zero] using integrable_on_Ioi_comp_mul_left_iff f c ha
 
 end Ioi_integrability
 

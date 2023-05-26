@@ -922,10 +922,10 @@ section Ioi_integrability
 open real
 open_locale interval
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E]
 
 /-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability. -/
-lemma integrable_on_Ioi_comp_rpow_iff (f : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+lemma integrable_on_Ioi_comp_rpow_iff [normed_space ℝ E] (f : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
   integrable_on (λ x, (|p| * x ^ (p - 1)) • f (x ^ p)) (Ioi 0) ↔ integrable_on f (Ioi 0) :=
 begin
   let S := Ioi (0 : ℝ),
@@ -953,7 +953,7 @@ end
 
 /-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability (version
 without `|p|` factor) -/
-lemma integrable_on_Ioi_comp_rpow_iff' (f : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+lemma integrable_on_Ioi_comp_rpow_iff' [normed_space ℝ E] (f : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
   integrable_on (λ x, x ^ (p - 1) • f (x ^ p)) (Ioi 0) ↔ integrable_on f (Ioi 0) :=
 by simpa only [←integrable_on_Ioi_comp_rpow_iff f hp, mul_smul]
   using (integrable_smul_iff (abs_pos.mpr hp).ne' _).symm

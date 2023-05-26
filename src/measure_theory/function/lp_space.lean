@@ -1241,6 +1241,89 @@ end
 
 end has_measurable_add
 
+section monotonicity
+
+lemma snorm'_le_nnreal_smul_snorm'_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ≥0}
+  (h : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ c * ‖g x‖₊) {p : ℝ} (hp : 0 < p) :
+  snorm' f p μ ≤ c • snorm' g p μ :=
+begin
+  simp_rw [snorm'],
+  rw [←ennreal.rpow_le_rpow_iff hp, ennreal.smul_def, smul_eq_mul,
+    ennreal.mul_rpow_of_nonneg _ _ hp.le],
+  simp_rw [←ennreal.rpow_mul, one_div, inv_mul_cancel hp.ne.symm, ennreal.rpow_one,
+    ennreal.coe_rpow_of_nonneg _ hp.le, ←lintegral_const_mul' _ _ ennreal.coe_ne_top,
+    ←ennreal.coe_mul],
+  apply lintegral_mono_ae,
+  simp_rw [ennreal.coe_le_coe, ←nnreal.mul_rpow, nnreal.rpow_le_rpow_iff hp],
+  exact h,
+end
+
+lemma snorm_ess_sup_le_nnreal_smul_snorm_ess_sup_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ≥0}
+  (h : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ c * ‖g x‖₊) :
+  snorm_ess_sup f μ ≤ c • snorm_ess_sup g μ :=
+calc  ess_sup (λ x, (‖f x‖₊: ℝ≥0∞)) μ
+    ≤ ess_sup (λ x, (↑(c * ‖g x‖₊) : ℝ≥0∞)) μ
+          : ess_sup_mono_ae $ h.mono $ λ x hx, ennreal.coe_le_coe.mpr hx
+... = ess_sup (λ x, (c * ‖g x‖₊ : ℝ≥0∞)) μ : by simp_rw ennreal.coe_mul
+... = c • ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ : ennreal.ess_sup_const_mul
+
+lemma snorm_le_nnreal_smul_snorm_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ≥0}
+  (h : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ c * ‖g x‖₊) (p : ℝ≥0∞) :
+  snorm f p μ ≤ c • snorm g p μ :=
+begin
+  by_cases h0 : p = 0,
+  { simp [h0], },
+  by_cases h_top : p = ∞,
+  { rw h_top,
+    exact snorm_ess_sup_le_nnreal_smul_snorm_ess_sup_of_ae_le_mul h, },
+  simp_rw snorm_eq_snorm' h0 h_top,
+  exact snorm'_le_nnreal_smul_snorm'_of_ae_le_mul h (ennreal.to_real_pos h0 h_top),
+end
+
+-- TODO: add the whole family of lemmas?
+private lemma le_mul_iff_eq_zero_of_nonneg_of_neg_of_nonneg {α} [linear_ordered_semiring α]
+  {a b c : α} (ha : 0 ≤ a) (hb : b < 0) (hc : 0 ≤ c) : a ≤ b * c ↔ a = 0 ∧ c = 0 :=
+begin
+  split,
+  { intro h,
+    exact ⟨(h.trans (mul_nonpos_of_nonpos_of_nonneg hb.le hc)).antisymm ha,
+      (nonpos_of_mul_nonneg_right (ha.trans h) hb).antisymm hc⟩ },
+  { rintro ⟨rfl, rfl⟩,
+    rw mul_zero, }
+end
+
+/-- When `c` is negative, `‖f x‖ ≤ c * ‖g x‖` is nonsense and forces both `f` and `g` to have an
+`snorm` of `0`. -/
+lemma snorm_eq_zero_and_zero_of_ae_le_mul_neg {f : α → F} {g : α → G} {c : ℝ}
+  (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) (hc : c < 0) (p : ℝ≥0∞) :
+  snorm f p μ = 0 ∧ snorm g p μ = 0 :=
+begin
+  simp_rw [le_mul_iff_eq_zero_of_nonneg_of_neg_of_nonneg (norm_nonneg _) hc (norm_nonneg _),
+    norm_eq_zero, eventually_and] at h,
+  change f =ᵐ[μ] 0 ∧ g =ᵐ[μ] 0 at h,
+  simp [snorm_congr_ae h.1, snorm_congr_ae h.2],
+end
+
+lemma snorm_le_mul_snorm_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ}
+  (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) (p : ℝ≥0∞) :
+  snorm f p μ ≤ (ennreal.of_real c) * snorm g p μ :=
+snorm_le_nnreal_smul_snorm_of_ae_le_mul
+  (h.mono $ λ x hx, hx.trans $ mul_le_mul_of_nonneg_right c.le_coe_to_nnreal (norm_nonneg _)) _
+
+lemma mem_ℒp.of_nnnorm_le_mul {f : α → E} {g : α → F} {c : ℝ≥0}
+  (hg : mem_ℒp g p μ) (hf : ae_strongly_measurable f μ) (hfg : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ c * ‖g x‖₊) :
+  mem_ℒp f p μ :=
+⟨hf, (snorm_le_nnreal_smul_snorm_of_ae_le_mul hfg p).trans_lt $
+  ennreal.mul_lt_top ennreal.coe_ne_top hg.snorm_ne_top⟩
+
+lemma mem_ℒp.of_le_mul {f : α → E} {g : α → F} {c : ℝ}
+  (hg : mem_ℒp g p μ) (hf : ae_strongly_measurable f μ) (hfg : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) :
+  mem_ℒp f p μ :=
+⟨hf, (snorm_le_mul_snorm_of_ae_le_mul hfg p).trans_lt $
+  ennreal.mul_lt_top ennreal.of_real_ne_top hg.snorm_ne_top⟩
+
+end monotonicity
+
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
@@ -1414,62 +1497,6 @@ lemma mem_ℒp.smul_of_top_left {p : ℝ≥0∞} {f : α → E} {φ : α → �
 by { apply hf.smul hφ, simp only [ennreal.div_top, add_zero] }
 
 end normed_space
-
-section monotonicity
-
-lemma snorm_le_nnreal_smul_snorm_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ≥0}
-  (h : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ c * ‖g x‖₊) (p : ℝ≥0∞) :
-  snorm f p μ ≤ c • snorm g p μ :=
-begin
-  rw [← snorm_norm g, ←c.nnnorm_eq, ennreal.smul_def, smul_eq_mul, ← snorm_const_smul (c : ℝ)],
-  swap, apply_instance,
-  refine snorm_mono_nnnorm_ae (h.mono $ λ x hx, hx.trans_eq _),
-  rw [pi.smul_apply, smul_eq_mul, nnnorm_mul, nnreal.nnnorm_eq, nnnorm_norm],
-end
-
--- TODO: add the whole family of lemmas?
-private lemma le_mul_iff_eq_zero_of_nonneg_of_neg_of_nonneg {α} [linear_ordered_semiring α]
-  {a b c : α} (ha : 0 ≤ a) (hb : b < 0) (hc : 0 ≤ c) : a ≤ b * c ↔ a = 0 ∧ c = 0 :=
-begin
-  split,
-  { intro h,
-    exact ⟨(h.trans (mul_nonpos_of_nonpos_of_nonneg hb.le hc)).antisymm ha,
-      (nonpos_of_mul_nonneg_right (ha.trans h) hb).antisymm hc⟩ },
-  { rintro ⟨rfl, rfl⟩,
-    rw mul_zero, }
-end
-
-/-- When `c` is negative, `‖f x‖ ≤ c * ‖g x‖` is nonsense and forces both `f` and `g` to have an
-`snorm` of `0`. -/
-lemma snorm_eq_zero_and_zero_of_ae_le_mul_neg {f : α → F} {g : α → G} {c : ℝ}
-  (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) (hc : c < 0) (p : ℝ≥0∞) :
-  snorm f p μ = 0 ∧ snorm g p μ = 0 :=
-begin
-  simp_rw [le_mul_iff_eq_zero_of_nonneg_of_neg_of_nonneg (norm_nonneg _) hc (norm_nonneg _),
-    norm_eq_zero, eventually_and] at h,
-  change f =ᵐ[μ] 0 ∧ g =ᵐ[μ] 0 at h,
-  simp [snorm_congr_ae h.1, snorm_congr_ae h.2],
-end
-
-lemma snorm_le_mul_snorm_of_ae_le_mul {f : α → F} {g : α → G} {c : ℝ}
-  (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) (p : ℝ≥0∞) :
-  snorm f p μ ≤ (ennreal.of_real c) * snorm g p μ :=
-snorm_le_nnreal_smul_snorm_of_ae_le_mul
-  (h.mono $ λ x hx, hx.trans $ mul_le_mul_of_nonneg_right c.le_coe_to_nnreal (norm_nonneg _)) _
-
-lemma mem_ℒp.of_nnnorm_le_mul {f : α → E} {g : α → F} {c : ℝ≥0}
-  (hg : mem_ℒp g p μ) (hf : ae_strongly_measurable f μ) (hfg : ∀ᵐ x ∂μ, ‖f x‖₊ ≤ c * ‖g x‖₊) :
-  mem_ℒp f p μ :=
-⟨hf, (snorm_le_nnreal_smul_snorm_of_ae_le_mul hfg p).trans_lt $
-  ennreal.mul_lt_top ennreal.coe_ne_top hg.snorm_ne_top⟩
-
-lemma mem_ℒp.of_le_mul {f : α → E} {g : α → F} {c : ℝ}
-  (hg : mem_ℒp g p μ) (hf : ae_strongly_measurable f μ) (hfg : ∀ᵐ x ∂μ, ‖f x‖ ≤ c * ‖g x‖) :
-  mem_ℒp f p μ :=
-⟨hf, (snorm_le_mul_snorm_of_ae_le_mul hfg p).trans_lt $
-  ennreal.mul_lt_top ennreal.of_real_ne_top hg.snorm_ne_top⟩
-
-end monotonicity
 
 lemma snorm_indicator_ge_of_bdd_below (hp : p ≠ 0) (hp' : p ≠ ∞)
   {f : α → F} (C : ℝ≥0) {s : set α} (hs : measurable_set s)

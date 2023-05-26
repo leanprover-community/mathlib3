@@ -1227,21 +1227,6 @@ lemma mfderiv_within_const (hxs : unique_mdiff_within_at I s x) :
 
 end const
 
-section products
-variables {f g : M → M'} {I I'}
-
-lemma mdifferentiable_within_at.prod_mk
-  (hf : mdifferentiable_within_at I I' f s x) (hg : mdifferentiable_within_at I I' g s x) :
-  mdifferentiable_within_at I (I'.prod I') (λ x, (f x, g x)) s x :=
-⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
-
-lemma mdifferentiable_at.prod_mk
-  (hf : mdifferentiable_at I I' f x) (hg : mdifferentiable_at I I' g x) :
-  mdifferentiable_at I (I'.prod I') (λ x, (f x, g x)) x :=
-⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
-
-end products
-
 section arithmetic
 /-! #### Arithmetic
 

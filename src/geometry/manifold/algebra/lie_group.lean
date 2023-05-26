@@ -115,28 +115,6 @@ lemma smooth_on.div {f g : M → G} {s : set M}
   (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) : smooth_on I' I (f / g) s :=
 by { rw div_eq_mul_inv, exact ((smooth_mul I).comp_smooth_on (hf.prod_mk hg.inv) : _), }
 
-variables [smooth_manifold_with_corners I' M]
-
-@[to_additive]
-lemma mdifferentiable_within_at.inv' {f : M → G} {s : set M} {x : M}
-  (hf : mdifferentiable_within_at I' I f s x) : mdifferentiable_within_at I' I (λx, (f x)⁻¹) s x :=
-((smooth_inv I).smooth_at.mdifferentiable_within_at le_top).comp x hf le_top
-
-@[to_additive]
-lemma mdifferentiable_at.inv' {f : M → G} {x : M}
-  (hf : mdifferentiable_at I' I f x) : mdifferentiable_at I' I (λx, (f x)⁻¹) x :=
-begin
-  have h₂ : mdifferentiable_at I I (λ p : G, p⁻¹) (f x),
-  { apply (smooth_inv I).smooth_at.mdifferentiable_at,
-    apply_instance },
-  exact h₂.comp x hf,
-end
-
-@[to_additive]
-lemma mdifferentiable.inv' {f : M → G}
-  (hf : mdifferentiable I' I f) : mdifferentiable I' I (λx, (f x)⁻¹) :=
-λ x, (hf x).inv'
-
 end lie_group
 
 section prod_lie_group

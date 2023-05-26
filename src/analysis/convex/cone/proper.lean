@@ -137,7 +137,7 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone ℝ E) : proper_cone 
   y ∈ K.map f ↔ y ∈ (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := iff.rfl
 
 @[simp] lemma map_id (K : proper_cone ℝ E) : K.map (continuous_linear_map.id ℝ E) = K :=
-proper_cone.ext' $ by simpa using convex_cone.closure_eq_iff_is_closed.2 K.is_closed
+proper_cone.ext' $ by simpa using is_closed.closure_eq K.is_closed
 
 /-- The inner dual cone of a proper cone is a proper cone. -/
 def dual (K : proper_cone ℝ E): (proper_cone ℝ E) :=

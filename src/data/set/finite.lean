@@ -396,8 +396,6 @@ end set
 lemma equiv.set_finite_iff {s : set α} {t : set β} (hst : s ≃ t) :
   s.finite ↔ t.finite :=
 by simp_rw [← set.finite_coe_iff, hst.finite_iff]
-
-
 /-! ### Finset -/
 
 namespace finset

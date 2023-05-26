@@ -843,8 +843,6 @@ end
 section sep
 variables {p q : α → Prop} {x : α}
 
-theorem sep_eq_inter : {x ∈ s | p x} = s ∩ {x | p x} := rfl
-
 theorem mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} := ⟨xs, px⟩
 
 @[simp] theorem sep_mem_eq : {x ∈ s | x ∈ t} = s ∩ t := rfl

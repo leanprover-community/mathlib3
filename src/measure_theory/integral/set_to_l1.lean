@@ -699,9 +699,10 @@ end
 
 section set_to_L1s
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_ring 𝕜] [module 𝕜 E] [has_bounded_smul 𝕜 E]
 
 local attribute [instance] Lp.simple_func.module
+local attribute [instance] Lp.simple_func.has_bounded_smul
 local attribute [instance] Lp.simple_func.normed_space
 
 /-- Extend `set α → (E →L[ℝ] F')` to `(α →₁ₛ[μ] E) → F'`. -/
@@ -807,7 +808,7 @@ begin
 end
 
 lemma set_to_L1s_smul {E} [normed_add_comm_group E] [normed_space ℝ E]
-  [normed_space 𝕜 E] [normed_space 𝕜 F]
+  [module 𝕜 E] [module 𝕜 F] [has_bounded_smul 𝕜 E]
   (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α →₁ₛ[μ] E) :
@@ -890,23 +891,35 @@ end
 
 end order
 
-variables [normed_space 𝕜 F]
+variables [module 𝕜 F] [has_bounded_smul 𝕜 F]
 
 variables (α E μ 𝕜)
 /-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[𝕜] F`. -/
 def set_to_L1s_clm' {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) :
   (α →₁ₛ[μ] E) →L[𝕜] F :=
-linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
-  set_to_L1s_smul T (λ _, hT.eq_zero_of_measure_zero) hT.1 h_smul⟩ C
-  (λ f, norm_set_to_L1s_le T hT.2 f)
+-- TODO (leanprover-community/mathlib#19108): `linear_map.mk_continuous` doesn't work here
+{ to_linear_map :=
+  { to_fun := set_to_L1s T,
+    map_add' := set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
+    map_smul' := set_to_L1s_smul T (λ _, hT.eq_zero_of_measure_zero) hT.1 h_smul },
+  cont := begin
+    rw linear_map.to_fun_eq_coe,
+    exact add_monoid_hom_class.continuous_of_bound _ C (λ f, norm_set_to_L1s_le T hT.2 f)
+  end }
 
 /-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[ℝ] F`. -/
 def set_to_L1s_clm {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C) :
   (α →₁ₛ[μ] E) →L[ℝ] F :=
-linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
-  set_to_L1s_smul_real T (λ _, hT.eq_zero_of_measure_zero) hT.1⟩ C
-  (λ f, norm_set_to_L1s_le T hT.2 f)
+-- TODO (leanprover-community/mathlib#19108): `linear_map.mk_continuous` doesn't work here
+{ to_linear_map :=
+  { to_fun := set_to_L1s T,
+    map_add' := set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
+    map_smul' := set_to_L1s_smul_real T (λ _, hT.eq_zero_of_measure_zero) hT.1 },
+  cont := begin
+    rw linear_map.to_fun_eq_coe,
+    exact add_monoid_hom_class.continuous_of_bound _ C (λ f, norm_set_to_L1s_le T hT.2 f)
+  end }
 
 variables {α E μ 𝕜}
 
@@ -963,12 +976,12 @@ set_to_L1s_smul_left' T T' c h_smul f
 lemma norm_set_to_L1s_clm_le {T : set α → E →L[ℝ] F} {C : ℝ}
   (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C) :
   ‖set_to_L1s_clm α E μ hT‖ ≤ C :=
-linear_map.mk_continuous_norm_le _ hC _
+linear_map.mk_continuous_norm_le _ hC (norm_set_to_L1s_le T hT.2)
 
 lemma norm_set_to_L1s_clm_le' {T : set α → E →L[ℝ] F} {C : ℝ}
   (hT : dominated_fin_meas_additive μ T C) :
   ‖set_to_L1s_clm α E μ hT‖ ≤ max C 0 :=
-linear_map.mk_continuous_norm_le' _ _
+linear_map.mk_continuous_norm_le' _ (norm_set_to_L1s_le T hT.2)
 
 lemma set_to_L1s_clm_const [is_finite_measure μ] {T : set α → E →L[ℝ] F} {C : ℝ}
   (hT : dominated_fin_meas_additive μ T C) (x : E) :

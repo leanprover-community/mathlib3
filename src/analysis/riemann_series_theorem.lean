@@ -378,12 +378,14 @@ end
 lemma rearrangement_not_mem {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
-  : rearrangement a M (n + 1) ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) :=
+  : rearrangement a M n ∉ set.range (λ x : fin n, rearrangement a M ↑x) :=
 begin
-  by_cases h : partial_sum (λ k, a (rearrangement a M k)) (n + 1) ≤ M,
-  { exact (rearrangement_nonneg_spec h₁ h₂ h).left },
-  { push_neg at h,
-    exact (rearrangement_neg_spec h₁ h₂ h).left }
+  cases n,
+  { simp },
+  { by_cases h : partial_sum (λ k, a (rearrangement a M k)) (n + 1) ≤ M,
+    { exact (rearrangement_nonneg_spec h₁ h₂ h).left },
+    { push_neg at h,
+      exact (rearrangement_neg_spec h₁ h₂ h).left } }
 end
 
 lemma rearrangement_nonneg_min' {a : ℕ → ℝ}
@@ -408,6 +410,28 @@ begin
   have := nat.find_min' (exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) hm,
   rw rearrangement_neg h₁ h₂ h,
   exact this
+end
+
+lemma rearrangement_injective {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ)
+  : function.injective (rearrangement a M) :=
+begin
+  unfold function.injective,
+  intros n m,
+  contrapose,
+  intro hnm,
+  wlog h : n < m,
+  { push_neg at h,
+    specialize this h₁ h₂ M (ne.symm hnm) (lt_of_le_of_ne h (ne.symm hnm)),
+    exact ne.symm this },
+  clear hnm,
+  intro hr,
+  apply rearrangement_not_mem h₁ h₂ M m,
+  rw ←hr,
+  use n,
+  { exact h },
+  { refl }
 end
 
 theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))

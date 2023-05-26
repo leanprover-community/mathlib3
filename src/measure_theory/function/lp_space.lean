@@ -1328,6 +1328,128 @@ lemma mem_ℒp.of_le_mul {f : α → E} {g : α → F} {c : ℝ}
 ⟨hf, (snorm_le_mul_snorm_of_ae_le_mul hfg p).trans_lt $
   ennreal.mul_lt_top ennreal.of_real_ne_top hg.snorm_ne_top⟩
 
+lemma snorm'_le_snorm'_mul_snorm' {p q r : ℝ}
+  {f : α → E} (hf : ae_strongly_measurable f μ) {g : α → F} (hg : ae_strongly_measurable g μ)
+  (b : E → F → G) (h : ∀ᵐ x ∂μ, ‖b (f x) (g x)‖₊ ≤ ‖f x‖₊ * ‖g x‖₊)
+  (hp0_lt : 0 < p) (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) :
+  snorm' (λ x, b (f x) (g x)) p μ ≤ snorm' f q μ * snorm' g r μ :=
+begin
+  rw snorm',
+  calc (∫⁻ (a : α), ↑‖b (f a) (g a)‖₊ ^ p ∂μ) ^ (1 / p)
+        ≤ (∫⁻ (a : α), ↑(‖f a‖₊ * ‖g a‖₊) ^ p ∂μ) ^ (1 / p) :
+          (ennreal.rpow_le_rpow_iff $ one_div_pos.mpr (hp0_lt)).mpr $
+            lintegral_mono_ae $ h.mono $ λ a ha, (ennreal.rpow_le_rpow_iff (hp0_lt)).mpr $
+              ennreal.coe_le_coe.mpr $ ha
+    ... ≤ _ : _,
+  simp_rw [snorm', ennreal.coe_mul],
+  exact ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp0_lt hpq hpqr μ hf.ennnorm
+    hg.ennnorm,
+end
+
+lemma snorm_le_snorm_top_mul_snorm (p : ℝ≥0∞)
+  (f : α → E) {g : α → F} (hg : ae_strongly_measurable g μ) (b : E → F → G)
+  (h : ∀ᵐ x ∂μ, ‖b (f x) (g x)‖₊ ≤ ‖f x‖₊ * ‖g x‖₊) :
+  snorm (λ x, b (f x) (g x)) p μ ≤ snorm f ∞ μ * snorm g p μ :=
+begin
+  by_cases hp_top : p = ∞,
+  { simp_rw [hp_top, snorm_exponent_top],
+    refine le_trans (ess_sup_mono_ae $ h.mono $ λ a ha, _) (ennreal.ess_sup_mul_le _ _),
+    simp_rw [pi.mul_apply, ←ennreal.coe_mul, ennreal.coe_le_coe],
+    exact ha },
+  by_cases hp_zero : p = 0,
+  { simp only [hp_zero, snorm_exponent_zero, mul_zero, le_zero_iff], },
+  simp_rw [snorm_eq_lintegral_rpow_nnnorm hp_zero hp_top, snorm_exponent_top, snorm_ess_sup],
+  calc (∫⁻ x, ↑‖b (f x) (g x)‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real)
+      ≤ (∫⁻ x, ↑‖f x‖₊ ^ p.to_real * ↑‖g x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
+    begin
+      refine ennreal.rpow_le_rpow _ (one_div_nonneg.mpr ennreal.to_real_nonneg),
+      refine lintegral_mono_ae (h.mono $ λ a ha, _),
+      rw ←ennreal.mul_rpow_of_nonneg _ _ ennreal.to_real_nonneg,
+      refine ennreal.rpow_le_rpow _ ennreal.to_real_nonneg,
+      rw [←ennreal.coe_mul, ennreal.coe_le_coe],
+      exact ha,
+    end
+  ... ≤ (∫⁻ x, (ess_sup (λ x, ↑‖f x‖₊) μ) ^ p.to_real * ↑‖g x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
+    begin
+      refine ennreal.rpow_le_rpow _ _,
+      swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
+      refine lintegral_mono_ae _,
+      filter_upwards [@ennreal.ae_le_ess_sup _ _ μ (λ x, ↑‖f x‖₊)] with x hx,
+      exact mul_le_mul_right' (ennreal.rpow_le_rpow hx ennreal.to_real_nonneg) _
+    end
+  ... = ess_sup (λ x, ↑‖f x‖₊) μ * (∫⁻ x, ↑‖g x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
+    begin
+      rw lintegral_const_mul'',
+      swap, { exact hg.nnnorm.ae_measurable.coe_nnreal_ennreal.pow ae_measurable_const, },
+      rw ennreal.mul_rpow_of_nonneg,
+      swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
+      rw [← ennreal.rpow_mul, one_div, mul_inv_cancel, ennreal.rpow_one],
+      rw [ne.def, ennreal.to_real_eq_zero_iff, auto.not_or_eq],
+      exact ⟨hp_zero, hp_top⟩,
+    end
+end
+
+lemma snorm_le_snorm_mul_snorm_top (p : ℝ≥0∞)
+  {f : α → E} (hf : ae_strongly_measurable f μ) (g : α → F) (b : E → F → G)
+  (h : ∀ᵐ x ∂μ, ‖b (f x) (g x)‖₊ ≤ ‖f x‖₊ * ‖g x‖₊) :
+  snorm (λ x, b (f x) (g x)) p μ ≤ snorm f p μ * snorm g ∞ μ :=
+begin
+  rw [← snorm_norm f, ← snorm_norm g],
+  refine (snorm_mono_ae_real h).trans _,
+  simp_rw [mul_comm ‖f _‖₊, nnreal.coe_mul, coe_nnnorm],
+  rw mul_comm,
+  refine snorm_le_snorm_top_mul_snorm p (λ x, ‖g x‖) hf.norm _ (h.mono $ λ x hx, _),
+  simp_rw [nnnorm_mul],
+end
+
+/-- Hölder's inequality, as an inequality on the `ℒp` seminorm of an elementwise operation
+`λ x, b (f x) (g x)`. -/
+lemma snorm_le_snorm_mul_snorm {p q r : ℝ≥0∞}
+  {f : α → E} (hf : ae_strongly_measurable f μ) {g : α → F} (hg : ae_strongly_measurable g μ)
+  (b : E → F → G) (h : ∀ᵐ x ∂μ, ‖b (f x) (g x)‖₊ ≤ ‖f x‖₊ * ‖g x‖₊)
+  (hpqr : 1/p = 1/q + 1/r) :
+  snorm (λ x, b (f x) (g x)) p μ ≤ snorm f q μ * snorm g r μ :=
+begin
+  by_cases hp_zero : p = 0,
+  { simp [hp_zero], },
+  have hq_ne_zero : q ≠ 0,
+  { intro hq_zero,
+    simp only [hq_zero, hp_zero, one_div, ennreal.inv_zero, top_add,
+      ennreal.inv_eq_top] at hpqr,
+    exact hpqr, },
+  have hr_ne_zero : r ≠ 0,
+  { intro hr_zero,
+    simp only [hr_zero, hp_zero, one_div, ennreal.inv_zero, add_top,
+      ennreal.inv_eq_top] at hpqr,
+    exact hpqr, },
+  by_cases hq_top : q = ∞,
+  { have hpr : p = r,
+    { simpa only [hq_top, one_div, ennreal.div_top, zero_add, inv_inj] using hpqr, },
+    rw [← hpr, hq_top],
+    exact snorm_le_snorm_top_mul_snorm p f hg b h, },
+  by_cases hr_top : r = ∞,
+  { have hpq : p = q,
+    { simpa only [hr_top, one_div, ennreal.div_top, add_zero, inv_inj] using hpqr, },
+    rw [← hpq, hr_top],
+    exact snorm_le_snorm_mul_snorm_top p hf g b h, },
+  have hpq : p < q,
+  { suffices : 1 / q < 1 / p,
+    { rwa [one_div, one_div, ennreal.inv_lt_inv] at this, },
+    rw hpqr,
+    refine ennreal.lt_add_right _ _,
+    { simp only [hq_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
+    { simp only [hr_top, one_div, ne.def, ennreal.inv_eq_zero, not_false_iff], }, },
+  rw [snorm_eq_snorm' hp_zero (hpq.trans_le le_top).ne, snorm_eq_snorm' hq_ne_zero hq_top,
+    snorm_eq_snorm' hr_ne_zero hr_top],
+  refine snorm'_le_snorm'_mul_snorm' hf hg _ h _ _ _,
+  { exact ennreal.to_real_pos hp_zero (hpq.trans_le le_top).ne, },
+  { exact ennreal.to_real_strict_mono hq_top hpq, },
+  rw [← ennreal.one_to_real, ← ennreal.to_real_div, ← ennreal.to_real_div, ← ennreal.to_real_div,
+    hpqr, ennreal.to_real_add],
+  { simp only [hq_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
+  { simp only [hr_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
+end
+
 end monotonicity
 
 /-!
@@ -1404,119 +1526,25 @@ lemma snorm'_smul_le_mul_snorm' {p q r : ℝ}
   {f : α → E} (hf : ae_strongly_measurable f μ) {φ : α → 𝕜} (hφ : ae_strongly_measurable φ μ)
   (hp0_lt : 0 < p) (hpq : p < q) (hpqr : 1/p = 1/q + 1/r) :
   snorm' (φ • f) p μ ≤ snorm' φ q μ * snorm' f r μ :=
-begin
-  rw snorm',
-  calc (∫⁻ (a : α), ↑‖φ a • f a‖₊ ^ p ∂μ) ^ (1 / p)
-        ≤ (∫⁻ (a : α), ↑(‖φ a‖₊ • ‖f a‖₊) ^ p ∂μ) ^ (1 / p) :
-          (ennreal.rpow_le_rpow_iff $ one_div_pos.mpr (hp0_lt)).mpr $
-            lintegral_mono $ λ a, (ennreal.rpow_le_rpow_iff (hp0_lt)).mpr $
-              ennreal.coe_le_coe.mpr $ nnnorm_smul_le _ _
-    ... ≤ _ : _,
-  simp_rw [snorm', smul_eq_mul, ennreal.coe_mul],
-  exact ennreal.lintegral_Lp_mul_le_Lq_mul_Lr hp0_lt hpq hpqr μ hφ.ennnorm
-    hf.ennnorm,
-end
+snorm'_le_snorm'_mul_snorm' hφ hf (•)
+  (eventually_of_forall $ λ a, nnnorm_smul_le _ _) hp0_lt hpq hpqr
 
 lemma snorm_smul_le_snorm_top_mul_snorm (p : ℝ≥0∞)
   {f : α → E} (hf : ae_strongly_measurable f μ) (φ : α → 𝕜) :
   snorm (φ • f) p μ ≤ snorm φ ∞ μ * snorm f p μ :=
-begin
-  by_cases hp_top : p = ∞,
-  { simp_rw [hp_top, snorm_exponent_top],
-    refine le_trans (ess_sup_mono_ae $ ae_of_all _ $ λ a, _) (ennreal.ess_sup_mul_le _ _),
-    simp_rw [pi.mul_apply, ←ennreal.coe_mul, ennreal.coe_le_coe, pi.smul_apply'],
-    exact nnnorm_smul_le _ _ },
-  by_cases hp_zero : p = 0,
-  { simp only [hp_zero, snorm_exponent_zero, mul_zero, le_zero_iff], },
-  simp_rw [snorm_eq_lintegral_rpow_nnnorm hp_zero hp_top, snorm_exponent_top, snorm_ess_sup],
-  calc (∫⁻ x, ↑‖(φ • f) x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real)
-      ≤ (∫⁻ x, ↑‖φ x‖₊ ^ p.to_real * ↑‖f x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
-    begin
-      refine ennreal.rpow_le_rpow _ (one_div_nonneg.mpr ennreal.to_real_nonneg),
-      refine lintegral_mono (λ a, _),
-      simp_rw [pi.mul_apply],
-      rw ←ennreal.mul_rpow_of_nonneg _ _ ennreal.to_real_nonneg,
-      refine ennreal.rpow_le_rpow _ ennreal.to_real_nonneg,
-      rw [←ennreal.coe_mul, ennreal.coe_le_coe],
-      exact nnnorm_smul_le _ _,
-    end
-  ... ≤ (∫⁻ x, (ess_sup (λ x, ↑‖φ x‖₊) μ) ^ p.to_real * ↑‖f x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
-    begin
-      refine ennreal.rpow_le_rpow _ _,
-      swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
-      refine lintegral_mono_ae _,
-      filter_upwards [@ennreal.ae_le_ess_sup _ _ μ (λ x, ↑‖φ x‖₊)] with x hx,
-      exact mul_le_mul_right' (ennreal.rpow_le_rpow hx ennreal.to_real_nonneg) _
-    end
-  ... = ess_sup (λ x, ↑‖φ x‖₊) μ * (∫⁻ x, ↑‖f x‖₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
-    begin
-      rw lintegral_const_mul'',
-      swap, { exact hf.nnnorm.ae_measurable.coe_nnreal_ennreal.pow ae_measurable_const, },
-      rw ennreal.mul_rpow_of_nonneg,
-      swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
-      rw [← ennreal.rpow_mul, one_div, mul_inv_cancel, ennreal.rpow_one],
-      rw [ne.def, ennreal.to_real_eq_zero_iff, auto.not_or_eq],
-      exact ⟨hp_zero, hp_top⟩,
-    end
-end
+(snorm_le_snorm_top_mul_snorm p φ hf (•) (eventually_of_forall $ λ a, nnnorm_smul_le _ _) : _)
 
 lemma snorm_smul_le_snorm_mul_snorm_top (p : ℝ≥0∞)
   (f : α → E) {φ : α → 𝕜} (hφ : ae_strongly_measurable φ μ) :
   snorm (φ • f) p μ ≤ snorm φ p μ * snorm f ∞ μ :=
-begin
-  rw [← snorm_norm φ, ← snorm_norm f],
-  refine (snorm_mono_real (λ a, norm_smul_le (φ a) (f a))).trans _,
-  have : (λ x, ‖φ x‖ * ‖f x‖) = (λ x, ‖f x‖) • (λ x, ‖φ x‖),
-  { rw [smul_eq_mul, mul_comm], refl, },
-  rw [this, mul_comm],
-  exact snorm_smul_le_snorm_top_mul_snorm p hφ.norm (λ x, ‖f x‖),
-end
+(snorm_le_snorm_mul_snorm_top p hφ f (•) (eventually_of_forall $ λ a, nnnorm_smul_le _ _) : _)
 
 /-- Hölder's inequality, as an inequality on the `ℒp` seminorm of a scalar product `φ • f`. -/
 lemma snorm_smul_le_mul_snorm {p q r : ℝ≥0∞}
   {f : α → E} (hf : ae_strongly_measurable f μ) {φ : α → 𝕜} (hφ : ae_strongly_measurable φ μ)
   (hpqr : 1/p = 1/q + 1/r) :
   snorm (φ • f) p μ ≤ snorm φ q μ * snorm f r μ :=
-begin
-  by_cases hp_zero : p = 0,
-  { simp [hp_zero], },
-  have hq_ne_zero : q ≠ 0,
-  { intro hq_zero,
-    simp only [hq_zero, hp_zero, one_div, ennreal.inv_zero, top_add,
-      ennreal.inv_eq_top] at hpqr,
-    exact hpqr, },
-  have hr_ne_zero : r ≠ 0,
-  { intro hr_zero,
-    simp only [hr_zero, hp_zero, one_div, ennreal.inv_zero, add_top,
-      ennreal.inv_eq_top] at hpqr,
-    exact hpqr, },
-  by_cases hq_top : q = ∞,
-  { have hpr : p = r,
-    { simpa only [hq_top, one_div, ennreal.div_top, zero_add, inv_inj] using hpqr, },
-    rw [← hpr, hq_top],
-    exact snorm_smul_le_snorm_top_mul_snorm p hf φ, },
-  by_cases hr_top : r = ∞,
-  { have hpq : p = q,
-    { simpa only [hr_top, one_div, ennreal.div_top, add_zero, inv_inj] using hpqr, },
-    rw [← hpq, hr_top],
-    exact snorm_smul_le_snorm_mul_snorm_top p f hφ, },
-  have hpq : p < q,
-  { suffices : 1 / q < 1 / p,
-    { rwa [one_div, one_div, ennreal.inv_lt_inv] at this, },
-    rw hpqr,
-    refine ennreal.lt_add_right _ _,
-    { simp only [hq_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
-    { simp only [hr_top, one_div, ne.def, ennreal.inv_eq_zero, not_false_iff], }, },
-  rw [snorm_eq_snorm' hp_zero (hpq.trans_le le_top).ne, snorm_eq_snorm' hq_ne_zero hq_top,
-    snorm_eq_snorm' hr_ne_zero hr_top],
-  refine snorm'_smul_le_mul_snorm' hf hφ _ _ _,
-  { exact ennreal.to_real_pos hp_zero (hpq.trans_le le_top).ne, },
-  { exact ennreal.to_real_strict_mono hq_top hpq, },
-  rw [← ennreal.one_to_real, ← ennreal.to_real_div, ← ennreal.to_real_div, ← ennreal.to_real_div,
-    hpqr, ennreal.to_real_add],
-  { simp only [hq_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
-  { simp only [hr_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
-end
+(snorm_le_snorm_mul_snorm hφ hf (•) (eventually_of_forall $ λ a, nnnorm_smul_le _ _) hpqr : _)
 
 lemma mem_ℒp.smul {p q r : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
   (hf : mem_ℒp f r μ) (hφ : mem_ℒp φ q μ) (hpqr : 1/p = 1/q + 1/r) :

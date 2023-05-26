@@ -394,7 +394,7 @@ end with_topology
 
 namespace vector_prebundle
 
-variables {F E}
+variables [∀ x, topological_space (E x)] {F E}
 
 /-- Mixin for a `vector_prebundle` stating smoothness of coordinate changes. -/
 class is_smooth (a : vector_prebundle 𝕜 F E) : Prop :=
@@ -438,7 +438,7 @@ variables (IB)
 /-- Make a `smooth_vector_bundle` from a `smooth_vector_prebundle`.  -/
 lemma smooth_vector_bundle :
   @smooth_vector_bundle _ _ F E _ _ _ _ _ _ IB _ _ _ _ _ _ _
-    a.total_space_topology a.fiber_topology a.to_fiber_bundle a.to_vector_bundle :=
+    a.total_space_topology _ a.to_fiber_bundle a.to_vector_bundle :=
 { smooth_on_coord_change := begin
     rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
     refine (a.smooth_on_smooth_coord_change he he').congr _,

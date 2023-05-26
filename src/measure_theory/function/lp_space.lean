@@ -1460,56 +1460,18 @@ section has_bounded_smul
 variables {𝕜 : Type*} [normed_ring 𝕜] [mul_action_with_zero 𝕜 E] [mul_action_with_zero 𝕜 F]
 variables [has_bounded_smul 𝕜 E] [has_bounded_smul 𝕜 F]
 
-namespace lipschitz_with
-variables (μ)
-
-lemma snorm'_comp_le {g : F → E} {K : ℝ≥0} (hg : lipschitz_with K g) (hg0 : g 0 = 0) (f : α → F)
-  (hq_pos : 0 < q) :
-  snorm' (g ∘ f) q μ ≤ K • snorm' f q μ :=
-begin
-  refine snorm'_le_nnreal_smul_snorm'_of_ae_le_mul (eventually_of_forall $ λ a, _) hq_pos,
-  -- TODO: add `lipschitz_with.nnnorm_sub_le` and `lipschitz_with.nnnorm_le`
-  simpa [hg0] using hg.norm_sub_le (f a) 0,
-end
-
-lemma ess_sup_comp_le {g : F → E} {K : ℝ≥0} (hg : lipschitz_with K g) (hg0 : g 0 = 0) (f : α → F) :
-  snorm_ess_sup (g ∘ f) μ ≤ K • snorm_ess_sup f μ :=
-begin
-  refine snorm_ess_sup_le_nnreal_smul_snorm_ess_sup_of_ae_le_mul (eventually_of_forall $ λ a, _),
-  -- TODO: add `lipschitz_with.nnnorm_sub_le` and `lipschitz_with.nnnorm_le`
-  simpa [hg0] using hg.norm_sub_le (f a) 0,
-end
-
-lemma snorm_comp_le {g : F → E} {K : ℝ≥0} (hg : lipschitz_with K g) (hg0 : g 0 = 0) (f : α → F) :
-  snorm (g ∘ f) p μ ≤ K • snorm f p μ :=
-begin
-  refine snorm_le_nnreal_smul_snorm_of_ae_le_mul (eventually_of_forall $ λ a, _) _,
-  -- TODO: add `lipschitz_with.nnnorm_sub_le` and `lipschitz_with.nnnorm_le`
-  simpa [hg0] using hg.norm_sub_le (f a) 0,
-end
-
-end lipschitz_with
-
 lemma snorm'_const_smul_le (c : 𝕜) (f : α → F) (hq_pos : 0 < q) :
   snorm' (c • f) q μ ≤ ‖c‖₊ • snorm' f q μ :=
-begin
-  refine lipschitz_with.snorm'_comp_le μ _ (smul_zero c) f hq_pos,
-  exact (lipschitz_with_smul c),
-end
+snorm'_le_nnreal_smul_snorm'_of_ae_le_mul (eventually_of_forall $ λ a, nnnorm_smul_le _ _) hq_pos
 
 lemma snorm_ess_sup_const_smul_le (c : 𝕜) (f : α → F) :
   snorm_ess_sup (c • f) μ ≤ ‖c‖₊ • snorm_ess_sup f μ :=
-begin
-  refine (lipschitz_with.ess_sup_comp_le μ _ (smul_zero c) f : _),
-  exact lipschitz_with_smul c,
-end
+snorm_ess_sup_le_nnreal_smul_snorm_ess_sup_of_ae_le_mul
+  (eventually_of_forall $ λ a, nnnorm_smul_le _ _)
 
 lemma snorm_const_smul_le (c : 𝕜) (f : α → F) :
   snorm (c • f) p μ ≤ ‖c‖₊ • snorm f p μ :=
-begin
-  refine (lipschitz_with.snorm_comp_le μ _ (smul_zero c) f : _),
-  exact lipschitz_with_smul c,
-end
+snorm_le_nnreal_smul_snorm_of_ae_le_mul (eventually_of_forall $ λ a, nnnorm_smul_le _ _) _
 
 lemma mem_ℒp.const_smul {f : α → E} (hf : mem_ℒp f p μ) (c : 𝕜) :
   mem_ℒp (c • f) p μ :=

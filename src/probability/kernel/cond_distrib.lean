@@ -41,14 +41,6 @@ open_locale ennreal measure_theory probability_theory
 
 namespace measure_theory
 
-lemma ae_strongly_measurable.comp_ae_measurable'
-  {α β γ : Type*} [topological_space β] {m0 : measurable_space α} {mγ : measurable_space γ}
-  {f : α → β} {μ : measure γ} {g : γ → α}
-  (hf : ae_strongly_measurable f (μ.map g)) (hg : ae_measurable g μ) :
-  ae_strongly_measurable' (m0.comap g ) (f ∘ g) μ :=
-⟨(hf.mk f) ∘ g, hf.strongly_measurable_mk.comp_measurable (measurable_iff_comap_le.mpr le_rfl),
-  ae_eq_comp hg hf.ae_eq_mk⟩
-
 section fst_snd
 
 variables {α β γ : Type*} {Y : α → γ} {mγ : measurable_space γ} {mβ : measurable_space β}

@@ -83,7 +83,7 @@ lemma _root_.measure_theory.integrable.integral_cond_distrib
 begin
   change integrable ((λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) ∘ X) μ,
   refine integrable.comp_ae_measurable _ hX,
-  rw [← fst_map_prod_mk₀ hX hY, cond_distrib],
+  rw [← measure.fst_map_prod_mk₀ hX hY, cond_distrib],
   exact hf_int.integral_cond_kernel,
 end
 
@@ -91,7 +91,7 @@ lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib
   (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
   (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a)))) :
   ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) (μ.map X) :=
-by { rw ← fst_map_prod_mk₀ hX hY, rw cond_distrib, exact hf.integral_cond_kernel, }
+by { rw ← measure.fst_map_prod_mk₀ hX hY, rw cond_distrib, exact hf.integral_cond_kernel, }
 
 lemma ae_strongly_measurable'_integral_cond_distrib
   (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
@@ -103,7 +103,7 @@ lemma set_lintegral_preimage_cond_distrib (hX : measurable X) (hY : ae_measurabl
   (hs : measurable_set s) (ht : measurable_set t) :
   ∫⁻ a in X ⁻¹' t, cond_distrib Y X μ (X a) s ∂μ = μ (X ⁻¹' t ∩ Y ⁻¹' s) :=
 by rw [lintegral_comp (kernel.measurable_coe _ hs) hX, cond_distrib,
-  ← measure.restrict_map hX ht, ← fst_map_prod_mk₀ hX.ae_measurable hY,
+  ← measure.restrict_map hX ht, ← measure.fst_map_prod_mk₀ hX.ae_measurable hY,
   set_lintegral_cond_kernel_eq_measure_prod _ ht hs,
   measure.map_apply_of_ae_measurable (hX.ae_measurable.prod_mk hY) (ht.prod hs),
   mk_preimage_prod]
@@ -143,7 +143,7 @@ begin
     swap,
     { rw ← measure.restrict_map hX ht,
       exact (hf_int.1.integral_cond_distrib hX.ae_measurable hY).restrict, },
-    rw [← measure.restrict_map hX ht, ← fst_map_prod_mk₀ hX.ae_measurable hY, cond_distrib,
+    rw [← measure.restrict_map hX ht, ← measure.fst_map_prod_mk₀ hX.ae_measurable hY, cond_distrib,
       set_integral_cond_kernel_univ_right ht hf_int.integrable_on,
       set_integral_map (ht.prod measurable_set.univ) hf_int.1 (hX.ae_measurable.prod_mk hY),
       mk_preimage_prod, preimage_univ, inter_univ], },

@@ -63,7 +63,8 @@ by rw [ncard_def, @nat.card_eq_fintype_card _ hs.fintype,
 lemma ncard_le_of_subset (hst : s ⊆ t) (ht : t.finite . to_finite_tac) : s.ncard ≤ t.ncard :=
 @finite.card_le_of_embedding _ _ (finite_coe_iff.mpr ht) (set.embedding_of_subset _ _ hst)
 
-lemma ncard_mono [finite α] : @monotone (set α) _ _ _ ncard := λ _ _, ncard_le_of_subset
+lemma ncard_mono [finite α] : @monotone (set α) _ _ _ ncard :=
+λ _ _, ncard_le_of_subset
 
 @[simp] lemma ncard_eq_zero (hs : s.finite . to_finite_tac) : s.ncard = 0 ↔ s = ∅ :=
 by simp [ncard_def, @finite.card_eq_zero_iff _ hs.to_subtype]
@@ -83,7 +84,8 @@ begin
   rw [(@infinite_univ _ h).ncard, @nat.card_eq_zero_of_infinite _ h],
 end
 
-@[simp] lemma ncard_empty (α : Type*) : (∅ : set α).ncard = 0 := by simp only [ncard_eq_zero]
+@[simp] lemma ncard_empty (α : Type*) : (∅ : set α).ncard = 0 :=
+by simp only [ncard_eq_zero]
 
 lemma ncard_pos (hs : s.finite . to_finite_tac) : 0 < s.ncard ↔ s.nonempty :=
 by rw [pos_iff_ne_zero, ne.def, ncard_eq_zero hs, nonempty_iff_ne_empty]
@@ -94,12 +96,14 @@ lemma ncard_ne_zero_of_mem (h : a ∈ s) (hs : s.finite . to_finite_tac) : s.nca
 lemma finite_of_ncard_ne_zero (hs : s.ncard ≠ 0) : s.finite :=
 s.finite_or_infinite.elim id (λ h, (hs h.ncard).elim)
 
-lemma finite_of_ncard_pos (hs : 0 < s.ncard) : s.finite := finite_of_ncard_ne_zero hs.ne.symm
+lemma finite_of_ncard_pos (hs : 0 < s.ncard) : s.finite :=
+finite_of_ncard_ne_zero hs.ne.symm
 
 lemma nonempty_of_ncard_ne_zero (hs : s.ncard ≠ 0) : s.nonempty :=
 by { rw nonempty_iff_ne_empty, rintro rfl, simpa using hs }
 
-@[simp] lemma ncard_singleton (a : α) : ({a} : set α).ncard = 1 := by simp [ncard_eq_to_finset_card]
+@[simp] lemma ncard_singleton (a : α) : ({a} : set α).ncard = 1 :=
+by simp [ncard_eq_to_finset_card]
 
 lemma ncard_singleton_inter : ({a} ∩ s).ncard ≤ 1 :=
 begin
@@ -122,7 +126,8 @@ begin
   rwa [finite.mem_to_finset],
 end
 
-lemma ncard_insert_of_mem (h : a ∈ s) : ncard (insert a s) = s.ncard := by rw insert_eq_of_mem h
+lemma ncard_insert_of_mem (h : a ∈ s) : ncard (insert a s) = s.ncard :=
+by rw insert_eq_of_mem h
 
 lemma ncard_insert_le (a : α) (s : set α) : (insert a s).ncard ≤ s.ncard + 1 :=
 begin
@@ -318,7 +323,8 @@ begin
   rwa [finite.to_finset_ssubset_to_finset],
 end
 
-lemma ncard_strict_mono [finite α] : @strict_mono (set α) _ _ _ ncard := λ _ _ h, ncard_lt_ncard h
+lemma ncard_strict_mono [finite α] : @strict_mono (set α) _ _ _ ncard :=
+λ _ _ h, ncard_lt_ncard h
 
 lemma ncard_eq_of_bijective {n : ℕ} (f : ∀ i, i < n → α) (hf : ∀ a ∈ s, ∃ i, ∃ h : i < n, f i h = a)
   (hf' : ∀ i (h : i < n), f i h ∈ s)

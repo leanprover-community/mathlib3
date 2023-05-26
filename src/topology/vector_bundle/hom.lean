@@ -285,7 +285,7 @@ def _root_.bundle.continuous_linear_map.vector_prebundle :
     let L₂ : E₂ b ≃L[𝕜₂] F₂ := (trivialization_at F₂ E₂ b).continuous_linear_equiv_at 𝕜₂ b
       (mem_base_set_trivialization_at _ _ _),
     let φ : (E₁ b →SL[σ] E₂ b) ≃L[𝕜₂] (F₁ →SL[σ] F₂) := L₁.arrow_congrSL L₂,
-    have : inducing (λ x, (b, φ x)) := φ.to_homeomorph.inducing.const_prod,
+    have : inducing (λ x, (b, φ x)) := inducing_const_prod.mpr φ.to_homeomorph.inducing,
     convert this,
     ext f,
     { refl },

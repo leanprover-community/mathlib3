@@ -81,6 +81,18 @@ variables [∀ x, has_continuous_smul 𝕜₂ (E₂ x)]
 instance (x : B) : module 𝕜₂ (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) :=
 by delta_instance bundle.continuous_linear_map
 
+instance bundle.continuous_linear_map.semilinear_map_class (x : B) :
+  semilinear_map_class (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) σ (E₁ x) (E₂ x) :=
+by delta_instance bundle.continuous_linear_map
+
+instance bundle.continuous_linear_map.add_comm_group (F₁ : Type*) (E₁ : B → Type*)
+  [Π (x : B), add_comm_group (E₁ x)] [Π (x : B), module 𝕜₁ (E₁ x)]
+  [Π (x : B), topological_space (E₁ x)]
+  (F₂ : Type*) (E₂ : B → Type*) [Π (x : B), add_comm_group (E₂ x)] [Π (x : B), module 𝕜₂ (E₂ x)]
+  [Π (x : B), topological_space (E₂ x)] [∀ (x : B), topological_add_group (E₂ x)] (x : B) :
+  add_comm_group (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) :=
+by delta_instance bundle.continuous_linear_map
+
 end defs
 
 variables {𝕜₁ : Type*} [nontrivially_normed_field 𝕜₁] {𝕜₂ : Type*} [nontrivially_normed_field 𝕜₂]

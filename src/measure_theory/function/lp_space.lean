@@ -2399,11 +2399,11 @@ lemma lipschitz_with.comp_mem_ℒp {α E F} {K} [measurable_space α] {μ : meas
   [normed_add_comm_group E] [normed_add_comm_group F] {f : α → E} {g : E → F}
   (hg : lipschitz_with K g) (g0 : g 0 = 0) (hL : mem_ℒp f p μ) : mem_ℒp (g ∘ f) p μ  :=
 begin
-  have : ∀ᵐ x ∂μ, ‖g (f x)‖ ≤ K * ‖f x‖,
-  { apply filter.eventually_of_forall (λ x, _),
-    rw [← dist_zero_right, ← dist_zero_right, ← g0],
-    apply hg.dist_le_mul },
-  exact hL.of_le_mul (hg.continuous.comp_ae_strongly_measurable hL.1) this,
+  have : ∀ x, ‖g (f x)‖ ≤ K * ‖f x‖,
+  { intro a,
+    -- TODO: add `lipschitz_with.nnnorm_sub_le` and `lipschitz_with.nnnorm_le`
+    simpa [g0] using hg.norm_sub_le (f a) 0, },
+  exact hL.of_le_mul (hg.continuous.comp_ae_strongly_measurable hL.1) (eventually_of_forall this),
 end
 
 lemma measure_theory.mem_ℒp.of_comp_antilipschitz_with {α E F} {K'}
@@ -2411,13 +2411,14 @@ lemma measure_theory.mem_ℒp.of_comp_antilipschitz_with {α E F} {K'}
   {f : α → E} {g : E → F} (hL : mem_ℒp (g ∘ f) p μ)
   (hg : uniform_continuous g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) : mem_ℒp f p μ :=
 begin
-  have A : ∀ᵐ x ∂μ, ‖f x‖ ≤ K' * ‖g (f x)‖,
-  { apply filter.eventually_of_forall (λ x, _),
+  have A : ∀ x, ‖f x‖ ≤ K' * ‖g (f x)‖,
+  { intro x,
+    -- TODO: add `antilipschitz_with.le_mul_nnnorm_sub` and `antilipschitz_with.le_mul_norm`
     rw [← dist_zero_right, ← dist_zero_right, ← g0],
     apply hg'.le_mul_dist },
   have B : ae_strongly_measurable f μ :=
     ((hg'.uniform_embedding hg).embedding.ae_strongly_measurable_comp_iff.1 hL.1),
-  exact hL.of_le_mul B A,
+  exact hL.of_le_mul B (filter.eventually_of_forall A),
 end
 
 namespace lipschitz_with

@@ -141,6 +141,40 @@ smooth_const.mul smooth_id
 lemma smooth_mul_right {a : G} : smooth I I (λ b : G, b * a) :=
 smooth_id.mul smooth_const
 
+variables (I)
+
+@[to_additive]
+lemma mdifferentiable_mul : mdifferentiable (I.prod I) I (λ p : G×G, p.1 * p.2) :=
+(smooth_mul I).mdifferentiable
+
+variables {I} [smooth_manifold_with_corners I' M]
+
+@[to_additive]
+lemma mdifferentiable_within_at.mul'
+  (hf : mdifferentiable_within_at I' I f s x)
+  (hg : mdifferentiable_within_at I' I g s x) : mdifferentiable_within_at I' I (f * g) s x :=
+begin
+  have h : mdifferentiable_within_at (I.prod I) I (λ p : G × G, p.1 * p.2) set.univ (f x, g x),
+  { exact (mdifferentiable_mul I _).mdifferentiable_within_at, },
+  exact h.comp x (hf.prod_mk hg) le_top,
+end
+
+@[to_additive]
+lemma mdifferentiable_at.mul'
+  (hf : mdifferentiable_at I' I f x)
+  (hg : mdifferentiable_at I' I g x) : mdifferentiable_at I' I (f * g) x :=
+begin
+  have h : mdifferentiable_at (I.prod I) I (λ p : G × G, p.1 * p.2) (f x, g x),
+  { exact mdifferentiable_mul I _ },
+  exact h.comp x (hf.prod_mk hg),
+end
+
+@[to_additive]
+lemma mdifferentiable.mul'
+  (hf : mdifferentiable I' I f)
+  (hg : mdifferentiable I' I g) : mdifferentiable I' I (f * g) :=
+λ x, (hf x).mul' (hg x)
+
 end
 
 variables (I) (g h : G)

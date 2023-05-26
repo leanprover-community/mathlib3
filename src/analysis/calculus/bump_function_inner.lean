@@ -236,8 +236,8 @@ zero_of_nonpos le_rfl
 @[simp] protected lemma one : smooth_transition 1 = 1 :=
 one_of_one_le le_rfl
 
-/-- Since `real.smooth_transition` is constant on $(-∞, 0]$ and $[1, ∞)$, applying it to the projection
-of `x : ℝ` to $[0, 1]$ gives the same result as applying it to `x`. -/
+/-- Since `real.smooth_transition` is constant on $(-∞, 0]$ and $[1, ∞)$, applying it to the
+projection of `x : ℝ` to $[0, 1]$ gives the same result as applying it to `x`. -/
 @[simp] protected lemma proj_Icc :
   smooth_transition (proj_Icc (0 : ℝ) 1 zero_le_one x) = smooth_transition x :=
 begin

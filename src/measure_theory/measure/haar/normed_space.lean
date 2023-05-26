@@ -122,7 +122,7 @@ end measure
 
 variables {F : Type*} [normed_add_comm_group F]
 
-lemma integrable.comp_smul {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+lemma integrable_comp_smul_iff {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [finite_dimensional ℝ E]
   (μ : measure E) [is_add_haar_measure μ] (f : E → F) {R : ℝ} (hR : R ≠ 0) :
   integrable (λ x, f (R • x)) μ ↔ integrable f μ :=
@@ -143,16 +143,35 @@ begin
     using inv_ne_zero (pow_ne_zero _ hS),
 end
 
-lemma integrable.comp_mul_left' (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
+lemma integrable.comp_smul {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [measurable_space E] [borel_space E] [finite_dimensional ℝ E]
+  {μ : measure E} [is_add_haar_measure μ] {f : E → F} (hf : integrable f μ) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, f (R • x)) μ :=
+(integrable_comp_smul_iff μ f hR).2 hf
+
+lemma integrable_comp_mul_left_iff (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
   integrable (λ x, g (R * x)) ↔ integrable g :=
-by simpa only [smul_eq_mul] using integrable.comp_smul volume g hR
+by simpa only [smul_eq_mul] using integrable_comp_smul_iff volume g hR
 
-lemma integrable.comp_mul_right' (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
+lemma integrable.comp_mul_left' {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (R * x)) :=
+(integrable_comp_mul_left_iff g hR).2 hg
+
+lemma integrable_comp_mul_right_iff (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
   integrable (λ x, g (x * R)) ↔ integrable g :=
-by simpa only [mul_comm, smul_eq_mul] using integrable.comp_smul volume g hR
+by simpa only [mul_comm] using integrable_comp_mul_left_iff g hR
 
-lemma integrable.comp_div (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
+lemma integrable.comp_mul_right' {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (x * R)) :=
+(integrable_comp_mul_right_iff g hR).2 hg
+
+lemma integrable_comp_div_iff (g : ℝ → F) {R : ℝ} (hR : R ≠ 0) :
   integrable (λ x, g (x / R)) ↔ integrable g :=
-integrable.comp_mul_right' g (inv_ne_zero hR)
+integrable_comp_mul_right_iff g (inv_ne_zero hR)
+
+lemma integrable.comp_div {g : ℝ → F} (hg : integrable g) {R : ℝ} (hR : R ≠ 0) :
+  integrable (λ x, g (x / R)) :=
+(integrable_comp_div_iff g hR).2 hg
+
 
 end measure_theory

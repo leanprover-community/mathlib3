@@ -40,7 +40,6 @@ other inside the proof. A few of the lemmas, such as `ncard_union_le` do not req
 arguments; they are are true by coincidence due to junk values.
 -/
 
-open_locale classical
 open_locale big_operators
 
 variables {α β : Type*} {s t : set α} {a b x y : α} {f : α → β}
@@ -103,7 +102,7 @@ by {rw nonempty_iff_ne_empty, rintro rfl, simpa using hs}
 
 @[simp] lemma ncard_singleton (a : α) : ({a} : set α).ncard = 1 := by simp [ncard_eq_to_finset_card]
 
-lemma ncard_singleton_inter : ({a} ∩ s).ncard ≤ 1 :=
+lemma ncard_singleton_inter [decidable_eq α] : ({a} ∩ s).ncard ≤ 1 :=
 begin
   rw [←inter_self {a}, inter_assoc, ncard_eq_to_finset_card,
     finite.to_finset_inter, finite.to_finset_singleton],
@@ -113,7 +112,7 @@ end
 
 section insert_erase
 
-@[simp] lemma ncard_insert_of_not_mem (h : a ∉ s) (hs : s.finite . to_finite_tac) :
+@[simp] lemma ncard_insert_of_not_mem [decidable_eq α] (h : a ∉ s) (hs : s.finite . to_finite_tac) :
   (insert a s).ncard = s.ncard + 1 :=
 begin
   haveI := hs.fintype,
@@ -124,7 +123,7 @@ end
 
 lemma ncard_insert_of_mem (h : a ∈ s) : ncard (insert a s) = s.ncard := by rw insert_eq_of_mem h
 
-lemma ncard_insert_le (a : α) (s : set α) : (insert a s).ncard ≤ s.ncard + 1 :=
+lemma ncard_insert_le (a : α) (s : set α) [decidable_eq α] : (insert a s).ncard ≤ s.ncard + 1 :=
 begin
   obtain (hs | hs) := s.finite_or_infinite,
   { exact (em (a ∈ s)).elim (λ h, (ncard_insert_of_mem h).trans_le (nat.le_succ _))
@@ -133,7 +132,7 @@ begin
   exact nat.zero_le _,
 end
 
-lemma ncard_insert_eq_ite (hs : s.finite . to_finite_tac) :
+lemma ncard_insert_eq_ite [decidable_eq α] [decidable (a ∈ s)] (hs : s.finite . to_finite_tac) :
   ncard (insert a s) = if a ∈ s then s.ncard else s.ncard + 1 :=
 begin
   by_cases h : a ∈ s,
@@ -141,16 +140,17 @@ begin
   { rw [ncard_insert_of_not_mem h hs, if_neg h] }
 end
 
-lemma ncard_le_ncard_insert (a : α) (s : set α) : s.ncard ≤ (insert a s).ncard :=
+lemma ncard_le_ncard_insert [decidable_eq α] (a : α) (s : set α) [decidable (a ∈ s)] :
+  s.ncard ≤ (insert a s).ncard :=
 begin
   refine s.finite_or_infinite.elim (λ h, _) (λ h, by { rw h.ncard, exact nat.zero_le _ }),
-  rw ncard_insert_eq_ite h, split_ifs; simp,
+  rw [@ncard_insert_eq_ite _ _ _ _ ‹_› h], split_ifs; simp,
 end
 
-lemma ncard_pair (h : a ≠ b) : ({a, b} : set α).ncard = 2 :=
+lemma ncard_pair [decidable_eq α] (h : a ≠ b) : ({a, b} : set α).ncard = 2 :=
 by {rw [ncard_insert_of_not_mem, ncard_singleton], simpa}
 
-lemma ncard_diff_singleton_add_one (h : a ∈ s) (hs : s.finite . to_finite_tac) :
+lemma ncard_diff_singleton_add_one [decidable_eq α] (h : a ∈ s) (hs : s.finite . to_finite_tac) :
   (s \ {a}).ncard + 1 = s.ncard :=
 begin
   have h' : a ∉ s \ {a}, by {rw [mem_diff_singleton], tauto},
@@ -159,11 +159,11 @@ begin
   simpa,
 end
 
-lemma ncard_diff_singleton_of_mem (h : a ∈ s) (hs : s.finite . to_finite_tac) :
+lemma ncard_diff_singleton_of_mem [decidable_eq α] (h : a ∈ s) (hs : s.finite . to_finite_tac) :
   (s \ {a}).ncard = s.ncard - 1 :=
 eq_tsub_of_add_eq (ncard_diff_singleton_add_one h hs)
 
-lemma ncard_diff_singleton_lt_of_mem (h : a ∈ s) (hs : s.finite . to_finite_tac) :
+lemma ncard_diff_singleton_lt_of_mem [decidable_eq α] (h : a ∈ s) (hs : s.finite . to_finite_tac) :
   (s \ {a}).ncard < s.ncard :=
 by {rw [←ncard_diff_singleton_add_one h hs], apply lt_add_one}
 
@@ -175,7 +175,8 @@ begin
   exact (hs.diff (by simp : set.finite {a})).ncard,
 end
 
-lemma pred_ncard_le_ncard_diff_singleton (s : set α) (a : α) : s.ncard - 1 ≤ (s \ {a}).ncard :=
+lemma pred_ncard_le_ncard_diff_singleton [decidable_eq α] (s : set α) (a : α) :
+  s.ncard - 1 ≤ (s \ {a}).ncard :=
 begin
   cases s.finite_or_infinite with hs hs,
   { by_cases h : a ∈ s,
@@ -186,7 +187,8 @@ begin
   rw hs.ncard,
 end
 
-lemma ncard_exchange (ha : a ∉ s) (hb : b ∈ s) : (insert a (s \ {b})).ncard = s.ncard :=
+lemma ncard_exchange [decidable_eq α] (ha : a ∉ s) (hb : b ∈ s) :
+  (insert a (s \ {b})).ncard = s.ncard :=
 begin
   cases s.finite_or_infinite with h h,
   { haveI := h.to_subtype,
@@ -195,13 +197,14 @@ begin
   rw [((h.diff (set.to_finite {b})).mono (subset_insert _ _)).ncard, h.ncard],
 end
 
-lemma ncard_exchange' (ha : a ∉ s) (hb : b ∈ s) : ((insert a s) \ {b}).ncard = s.ncard :=
+lemma ncard_exchange' [decidable_eq α] (ha : a ∉ s) (hb : b ∈ s) :
+  ((insert a s) \ {b}).ncard = s.ncard :=
 by rw [←ncard_exchange ha hb, ←singleton_union, ←singleton_union, union_diff_distrib,
   @diff_singleton_eq_self _ b {a} (λ h, ha (by rwa ← mem_singleton_iff.mp h) )]
 
 end insert_erase
 
-lemma ncard_image_le (hs : s.finite . to_finite_tac) : (f '' s).ncard ≤ s.ncard :=
+lemma ncard_image_le [decidable_eq β] (hs : s.finite . to_finite_tac) : (f '' s).ncard ≤ s.ncard :=
 begin
   rw ncard_eq_to_finset_card s hs,
   haveI := hs.fintype,
@@ -221,7 +224,8 @@ begin
   rw [h.ncard, ((infinite_image_iff H).mpr h).ncard],
 end
 
-lemma inj_on_of_ncard_image_eq (h : (f '' s).ncard = s.ncard) (hs : s.finite . to_finite_tac) :
+lemma inj_on_of_ncard_image_eq [decidable_eq β] (h : (f '' s).ncard = s.ncard)
+  (hs : s.finite . to_finite_tac) :
   set.inj_on f s :=
 begin
   haveI := hs.fintype,
@@ -234,7 +238,8 @@ begin
   simp,
 end
 
-lemma ncard_image_iff (hs : s.finite . to_finite_tac) : (f '' s).ncard = s.ncard ↔ set.inj_on f s :=
+lemma ncard_image_iff [decidable_eq β] (hs : s.finite . to_finite_tac) :
+  (f '' s).ncard = s.ncard ↔ set.inj_on f s :=
 ⟨λ h, inj_on_of_ncard_image_eq h hs, ncard_image_of_inj_on⟩
 
 lemma ncard_image_of_injective (s : set α) (H : f.injective) : (f '' s).ncard = s.ncard :=
@@ -394,9 +399,10 @@ begin
   simp,
 end
 
-lemma inj_on_of_surj_on_of_ncard_le {t : set β} (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
-  (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha) (hst : s.ncard ≤ t.ncard) ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s)
-  (ha₂ : a₂ ∈ s) (ha₁a₂: f a₁ ha₁ = f a₂ ha₂) (hs : s.finite . to_finite_tac) :
+lemma inj_on_of_surj_on_of_ncard_le [decidable_eq β] {t : set β} (f : Π a ∈ s, β)
+  (hf : ∀ a ha, f a ha ∈ t) (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha) (hst : s.ncard ≤ t.ncard)
+  ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s) (ha₂ : a₂ ∈ s) (ha₁a₂: f a₁ ha₁ = f a₂ ha₂)
+  (hs : s.finite . to_finite_tac) :
   a₁ = a₂ :=
 begin
    set f' : s → t := λ x, ⟨f x.1 x.2, hf _ _⟩ with hf',
@@ -415,7 +421,7 @@ end
 
 section lattice
 
-lemma ncard_union_add_ncard_inter (s t : set α) (hs : s.finite . to_finite_tac)
+lemma ncard_union_add_ncard_inter [decidable_eq α] (s t : set α) (hs : s.finite . to_finite_tac)
   (ht : t.finite . to_finite_tac) :
   (s ∪ t).ncard + (s ∩ t).ncard = s.ncard + t.ncard :=
 begin
@@ -426,12 +432,12 @@ begin
   { exact finset.card_union_add_card_inter _ _},
 end
 
-lemma ncard_inter_add_ncard_union (s t : set α) (hs : s.finite . to_finite_tac)
+lemma ncard_inter_add_ncard_union [decidable_eq α] (s t : set α) (hs : s.finite . to_finite_tac)
   (ht : t.finite . to_finite_tac) :
   (s ∩ t).ncard + (s ∪ t).ncard = s.ncard + t.ncard :=
 by rw [add_comm, ncard_union_add_ncard_inter _ _ hs ht]
 
-lemma ncard_union_le (s t : set α) : (s ∪ t).ncard ≤ s.ncard + t.ncard :=
+lemma ncard_union_le [decidable_eq α] (s t : set α) : (s ∪ t).ncard ≤ s.ncard + t.ncard :=
 begin
   cases (s ∪ t).finite_or_infinite,
   { have hs := h.subset (subset_union_left s t),
@@ -443,7 +449,7 @@ begin
   rw h.ncard,
 end
 
-lemma ncard_union_eq (h : disjoint s t) (hs : s.finite . to_finite_tac)
+lemma ncard_union_eq [decidable_eq α] (h : disjoint s t) (hs : s.finite . to_finite_tac)
   (ht : t.finite . to_finite_tac) :
   (s ∪ t).ncard = s.ncard + t.ncard :=
 begin
@@ -453,7 +459,7 @@ begin
   rwa [finite.disjoint_to_finset],
 end
 
-lemma ncard_diff_add_ncard_eq_ncard (h : s ⊆ t) (ht : t.finite . to_finite_tac) :
+lemma ncard_diff_add_ncard_eq_ncard [decidable_eq α] (h : s ⊆ t) (ht : t.finite . to_finite_tac) :
   (t \ s).ncard + s.ncard = t.ncard :=
 begin
   rw [ncard_eq_to_finset_card _ ht, ncard_eq_to_finset_card _ (ht.subset h),
@@ -462,11 +468,11 @@ begin
   rwa finite.to_finset_subset_to_finset,
 end
 
-lemma ncard_diff (h : s ⊆ t) (ht : t.finite . to_finite_tac) :
+lemma ncard_diff [decidable_eq α] (h : s ⊆ t) (ht : t.finite . to_finite_tac) :
   (t \ s).ncard = t.ncard - s.ncard :=
 by rw [←ncard_diff_add_ncard_eq_ncard h ht, add_tsub_cancel_right]
 
-lemma ncard_le_ncard_diff_add_ncard (s t : set α) (ht : t.finite . to_finite_tac) :
+lemma ncard_le_ncard_diff_add_ncard [decidable_eq α] (s t : set α) (ht : t.finite . to_finite_tac) :
   s.ncard ≤ (s \ t).ncard + t.ncard :=
 begin
   cases s.finite_or_infinite,
@@ -477,7 +483,7 @@ begin
   rw h.ncard,
 end
 
-lemma le_ncard_diff (s t : set α) (hs : s.finite . to_finite_tac) :
+lemma le_ncard_diff [decidable_eq α] (s t : set α) (hs : s.finite . to_finite_tac) :
   t.ncard - s.ncard ≤ (t \ s).ncard :=
 begin
   refine tsub_le_iff_left.mpr _,
@@ -485,7 +491,7 @@ begin
   apply ncard_le_ncard_diff_add_ncard _ _ hs,
 end
 
-lemma ncard_diff_add_ncard (s t : set α) (hs : s.finite . to_finite_tac)
+lemma ncard_diff_add_ncard [decidable_eq α] (s t : set α) (hs : s.finite . to_finite_tac)
   (ht : t.finite . to_finite_tac) :
   (s \ t).ncard + t.ncard = (s ∪ t).ncard :=
 by rw [←union_diff_right,ncard_diff_add_ncard_eq_ncard (subset_union_right s t) (hs.union ht)]
@@ -501,29 +507,30 @@ lemma exists_mem_not_mem_of_ncard_lt_ncard (h : s.ncard < t.ncard) (hs : s.finit
   ∃ e, e ∈ t ∧ e ∉ s :=
 diff_nonempty_of_ncard_lt_ncard h hs
 
-@[simp] lemma ncard_inter_add_ncard_diff_eq_ncard (s t : set α) (hs : s.finite . to_finite_tac) :
+@[simp] lemma ncard_inter_add_ncard_diff_eq_ncard [decidable_eq α] (s t : set α)
+  (hs : s.finite . to_finite_tac) :
   (s ∩ t).ncard + (s \ t).ncard = s.ncard :=
 by rw [←ncard_diff_add_ncard_eq_ncard (diff_subset s t) hs, sdiff_sdiff_right_self, inf_eq_inter]
 
-lemma ncard_eq_ncard_iff_ncard_diff_eq_ncard_diff (hs : s.finite . to_finite_tac)
+lemma ncard_eq_ncard_iff_ncard_diff_eq_ncard_diff [decidable_eq α] (hs : s.finite . to_finite_tac)
   (ht : t.finite . to_finite_tac) :
   s.ncard = t.ncard ↔ (s \ t).ncard = (t \ s).ncard :=
 by rw [←ncard_inter_add_ncard_diff_eq_ncard s t hs, ←ncard_inter_add_ncard_diff_eq_ncard t s ht,
     inter_comm, add_right_inj]
 
-lemma ncard_le_ncard_iff_ncard_diff_le_ncard_diff (hs : s.finite . to_finite_tac)
+lemma ncard_le_ncard_iff_ncard_diff_le_ncard_diff [decidable_eq α] (hs : s.finite . to_finite_tac)
   (ht : t.finite . to_finite_tac)  :
   s.ncard ≤ t.ncard ↔ (s \ t).ncard ≤ (t \ s).ncard :=
 by rw [←ncard_inter_add_ncard_diff_eq_ncard s t hs, ←ncard_inter_add_ncard_diff_eq_ncard t s ht,
      inter_comm, add_le_add_iff_left]
 
-lemma ncard_lt_ncard_iff_ncard_diff_lt_ncard_diff (hs : s.finite . to_finite_tac)
+lemma ncard_lt_ncard_iff_ncard_diff_lt_ncard_diff [decidable_eq α] (hs : s.finite . to_finite_tac)
   (ht : t.finite . to_finite_tac)  :
   s.ncard < t.ncard ↔ (s \ t).ncard < (t \ s).ncard :=
 by rw [←ncard_inter_add_ncard_diff_eq_ncard s t hs, ←ncard_inter_add_ncard_diff_eq_ncard t s ht,
      inter_comm, add_lt_add_iff_left]
 
-lemma ncard_add_ncard_compl (s : set α) (hs : s.finite . to_finite_tac)
+lemma ncard_add_ncard_compl [decidable_eq α] (s : set α) (hs : s.finite . to_finite_tac)
   (hsc : sᶜ.finite . to_finite_tac) :
   s.ncard + sᶜ.ncard = nat.card α :=
 by rw [←ncard_univ, ←ncard_union_eq (@disjoint_compl_right _ _ s) hs hsc, union_compl_self]
@@ -571,8 +578,8 @@ begin
   simp,
 end
 
-lemma infinite.exists_supset_ncard_eq {s t : set α} (ht : t.infinite) (hst : s ⊆ t) (hs : s.finite)
-  {k : ℕ} (hsk : s.ncard ≤ k) :
+lemma infinite.exists_supset_ncard_eq [decidable_eq α] {s t : set α} (ht : t.infinite) (hst : s ⊆ t)
+  (hs : s.finite) {k : ℕ} (hsk : s.ncard ≤ k) :
   ∃ s', s ⊆ s' ∧ s' ⊆ t ∧ s'.ncard = k :=
 begin
   obtain ⟨s₁, hs₁, hs₁fin, hs₁card⟩ := (ht.diff hs).exists_subset_ncard_eq (k - s.ncard),
@@ -581,7 +588,8 @@ begin
     add_tsub_cancel_of_le],
 end
 
-lemma exists_subset_or_subset_of_two_mul_lt_ncard {n : ℕ} (hst : 2 * n < (s ∪ t).ncard) :
+lemma exists_subset_or_subset_of_two_mul_lt_ncard [decidable_eq α] {n : ℕ}
+  (hst : 2 * n < (s ∪ t).ncard) :
   ∃ (r : set α), n < r.ncard ∧ (r ⊆ s ∨ r ⊆ t) :=
 begin
   have hu := (finite_of_ncard_ne_zero ((nat.zero_le _).trans_lt hst).ne.symm),
@@ -601,7 +609,7 @@ begin
   exact h.imp (λ a ha, by rwa [←finite.to_finset_singleton, finite.to_finset_inj] at ha),
 end
 
-lemma exists_eq_insert_iff_ncard (hs : s.finite . to_finite_tac) :
+lemma exists_eq_insert_iff_ncard [decidable_eq α] (hs : s.finite . to_finite_tac) :
   (∃ a ∉ s, insert a s = t) ↔ s ⊆ t ∧ s.ncard + 1 = t.ncard :=
 begin
   split,
@@ -675,7 +683,7 @@ begin
   simpa only [finite.mem_to_finset] using finset.exists_ne_of_one_lt_card hs a,
 end
 
-lemma eq_insert_of_ncard_eq_succ {n : ℕ} (h : s.ncard = n + 1) :
+lemma eq_insert_of_ncard_eq_succ [decidable_eq α] {n : ℕ} (h : s.ncard = n + 1) :
   ∃ a t, a ∉ t ∧ insert a t = s ∧ t.ncard = n :=
 begin
   haveI := @fintype.of_finite _ (finite_of_ncard_pos (n.zero_lt_succ.trans_eq h.symm)).to_subtype,
@@ -687,7 +695,7 @@ begin
   simp only [to_finset_insert, finset.to_finset_coe],
 end
 
-lemma ncard_eq_succ {n : ℕ} (hs : s.finite . to_finite_tac) :
+lemma ncard_eq_succ [decidable_eq α] {n : ℕ} (hs : s.finite . to_finite_tac) :
   s.ncard = n + 1 ↔ ∃ a t, a ∉ t ∧ insert a t = s ∧ t.ncard = n :=
 begin
   refine ⟨eq_insert_of_ncard_eq_succ, _⟩,
@@ -695,7 +703,7 @@ begin
   rw [← h, ncard_insert_of_not_mem hat (hs.subset ((subset_insert a t).trans_eq h))]
 end
 
-lemma ncard_eq_two : s.ncard = 2 ↔ ∃ x y, x ≠ y ∧ s = {x, y} :=
+lemma ncard_eq_two [decidable_eq α] : s.ncard = 2 ↔ ∃ x y, x ≠ y ∧ s = {x, y} :=
 begin
   refine ⟨λ h, _, _⟩,
   { obtain ⟨x,t,hxt,rfl,ht⟩ :=  eq_insert_of_ncard_eq_succ h,
@@ -707,7 +715,8 @@ begin
   exact ⟨x,y,hxy, by {ext, simp}⟩,
 end
 
-lemma ncard_eq_three : s.ncard = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x, y, z} :=
+lemma ncard_eq_three [decidable_eq α] :
+  s.ncard = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x, y, z} :=
 begin
   refine ⟨λ h, _, _⟩,
   { obtain ⟨x,t,hxt,rfl,ht⟩ :=  eq_insert_of_ncard_eq_succ h,

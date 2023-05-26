@@ -143,13 +143,15 @@ begin
   { rw [ncard_insert_of_not_mem h hs, if_neg h] }
 end
 
-lemma ncard_le_ncard_insert (a : α) (s : set α) [decidable (a ∈ s)] :
-  s.ncard ≤ (insert a s).ncard :=
+lemma ncard_le_ncard_insert (a : α) (s : set α) : s.ncard ≤ (insert a s).ncard :=
 begin
   classical,
   refine s.finite_or_infinite.elim (λ h, _) (λ h, by { rw h.ncard, exact nat.zero_le _ }),
-  rw [@ncard_insert_eq_ite _ _ _ ‹_› h],
-  split_ifs; simp,
+  rw ncard_insert_eq_ite h,
+  split_ifs,
+  { refl },
+  { simp only [le_add_iff_nonneg_right, zero_le'] },
+  exact classical.dec (a ∈ s),
 end
 
 lemma ncard_pair (h : a ≠ b) : ({a, b} : set α).ncard = 2 :=
@@ -746,3 +748,5 @@ begin
 end
 
 end set
+
+#lint

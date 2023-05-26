@@ -248,15 +248,6 @@ variables [Π x : B, topological_space (E₁ x)] [fiber_bundle F₁ E₁] [vecto
 variables [Π x : B, topological_space (E₂ x)] [fiber_bundle F₂ E₂] [vector_bundle 𝕜₂ F₂ E₂]
 variables [Π x, topological_add_group (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)]
 
-lemma inducing.const_prod {α β γ} [topological_space α] [topological_space β] [topological_space γ]
-  {b : β}
-  {f : α → γ} (hf : inducing f) : inducing (λ x, (b, f x)) :=
-begin
-  constructor,
-  simp_rw [prod.topological_space, hf.induced, induced_inf, induced_compose, function.comp,
-    ← hf.induced, induced_const, top_inf_eq]
-end
-
 include iσ
 
 /-- The continuous `σ`-semilinear maps between two topological vector bundles form a

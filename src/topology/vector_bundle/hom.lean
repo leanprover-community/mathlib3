@@ -18,11 +18,11 @@ their respective scalar fields, we define `bundle.continuous_linear_map σ F₁ 
 type synonym for `λ x, E₁ x →SL[σ] E₂ x`. If the `E₁` and `E₂` are vector bundles with model fibers
 `F₁` and `F₂`, then this will be a vector bundle with fiber `F₁ →SL[σ] F₂`.
 
-The topology is constructed from the trivializations for `E₁` and `E₂` and the norm-topology on the
-model fiber `F₁ →SL[𝕜] F₂` using the `vector_prebundle` construction.  This is a bit awkward because
-it introduces a spurious (?) dependence on the normed space structure of the model fiber, rather
-than just its topological vector space structure; this might be fixable now that we have
-`continuous_linear_map.strong_topology`.
+The topology on the total space is constructed from the trivializations for `E₁` and `E₂` and the
+norm-topology on the model fiber `F₁ →SL[𝕜] F₂` using the `vector_prebundle` construction.  This is
+a bit awkward because it introduces a dependence on the normed space structure of the model fibers,
+rather than just their topological vector space structure; it is not clear whether this is
+necessary.
 
 Similar constructions should be possible (but are yet to be formalized) for tensor products of
 topological vector bundles, exterior algebras, and so on, where again the topology can be defined
@@ -36,10 +36,6 @@ using a norm on the fiber model if this helps.
 -/
 
 noncomputable theory
-
-
-
-open continuous_linear_map
 
 open_locale bundle
 open bundle set continuous_linear_map
@@ -104,8 +100,6 @@ variables {F₁ E₁ F₂ E₂} (e₁ e₁' : trivialization F₁ (π E₁)) (e�
 
 namespace pretrivialization
 
-include iσ
-
 /-- Assume `eᵢ` and `eᵢ'` are trivializations of the bundles `Eᵢ` over base `B` with fiber `Fᵢ`
 (`i ∈ {1,2}`), then `continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂'` is the coordinate change
 function between the two induced (pre)trivializations
@@ -121,6 +115,8 @@ variables {σ e₁ e₁' e₂ e₂'}
 variables [Π x, topological_space (E₁ x)] [fiber_bundle F₁ E₁]
 variables [Π x, topological_space (E₂ x)] [ita : Π x, topological_add_group (E₂ x)]
   [fiber_bundle F₂ E₂]
+
+include iσ
 
 lemma continuous_on_continuous_linear_map_coord_change
   [vector_bundle 𝕜₁ F₁ E₁] [vector_bundle 𝕜₂ F₂ E₂]
@@ -138,6 +134,7 @@ begin
   { mfld_set_tac },
   { intros b hb, ext L v,
     simp only [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
+      continuous_linear_equiv.arrow_congrₛₗ_apply, linear_equiv.to_fun_eq_coe, coe_comp',
       continuous_linear_equiv.arrow_congrSL_apply, comp_apply, function.comp, compSL_apply,
       flip_apply, continuous_linear_equiv.symm_symm] },
 end
@@ -225,7 +222,7 @@ begin
   rw [symm_apply], refl, exact hb
 end
 
-lemma continuous_linear_map_coord_change_apply [ring_hom_isometric σ] (b : B)
+lemma continuous_linear_map_coord_change_apply (b : B)
   (hb : b ∈ (e₁.base_set ∩ e₂.base_set) ∩ (e₁'.base_set ∩ e₂'.base_set)) (L : F₁ →SL[σ] F₂) :
   continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂' b L =
   (continuous_linear_map σ e₁' e₂'
@@ -233,7 +230,8 @@ lemma continuous_linear_map_coord_change_apply [ring_hom_isometric σ] (b : B)
 begin
   ext v,
   simp_rw [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
-    continuous_linear_equiv.arrow_congrSL_apply,
+    continuous_linear_equiv.arrow_congrSL_apply, linear_equiv.to_fun_eq_coe,
+    continuous_linear_equiv.arrow_congrₛₗ_apply,
     continuous_linear_map_apply, continuous_linear_map_symm_apply' σ e₁ e₂ hb.1,
     comp_apply, continuous_linear_equiv.coe_coe, continuous_linear_equiv.symm_symm,
     trivialization.continuous_linear_map_at_apply, trivialization.symmL_apply],
@@ -292,37 +290,21 @@ def _root_.bundle.continuous_linear_map.vector_prebundle :
   begin
     intros b,
     dsimp [bundle.continuous_linear_map.topological_space, bundle.continuous_linear_map],
-    let f : (E₁ b →SL[σ] E₂ b) ≃L[𝕜₂] (F₁ →SL[σ] F₂) := continuous_linear_equiv.arrow_congrSL'
-      (ring_hom.id _) _ _
-      ((trivialization_at F₁ E₁ b).continuous_linear_equiv_at 𝕜₁ b _)
-      ((trivialization_at F₂ E₂ b).continuous_linear_equiv_at 𝕜₂ b _),
-    swap, apply mem_base_set_trivialization_at,
-    swap, apply mem_base_set_trivialization_at,
-    suffices : inducing (λ x, (b, f x)),
-    { convert this,
-      ext x,
-      { refl },
-      dsimp [f],
-      rw pretrivialization.continuous_linear_map_apply,
-      dsimp,
-      symmetry,
-      convert continuous_linear_equiv.arrow_congrSL'_apply _ _ _ _ _ _ using 1,
-      { ext,
-        simp,
-        rw [trivialization.linear_map_at_def_of_mem],
-        simp,
-        apply mem_base_set_trivialization_at,
-         },
-      all_goals { try { apply_instance } }, apply_instance },
-    exact f.to_homeomorph.inducing.const_prod,
+    let L₁ : E₁ b ≃L[𝕜₁] F₁ := (trivialization_at F₁ E₁ b).continuous_linear_equiv_at 𝕜₁ b
+      (mem_base_set_trivialization_at _ _ _),
+    let L₂ : E₂ b ≃L[𝕜₂] F₂ := (trivialization_at F₂ E₂ b).continuous_linear_equiv_at 𝕜₂ b
+      (mem_base_set_trivialization_at _ _ _),
+    let φ : (E₁ b →SL[σ] E₂ b) ≃L[𝕜₂] (F₁ →SL[σ] F₂) := L₁.arrow_congrSL L₂,
+    have : inducing (λ x, (b, φ x)) := φ.to_homeomorph.inducing.const_prod,
+    convert this,
+    ext f,
+    { refl },
+    ext x,
+    dsimp [φ, pretrivialization.continuous_linear_map_apply],
+    rw [trivialization.linear_map_at_def_of_mem _ (mem_base_set_trivialization_at _ _ _)],
+    dsimp,
+    refl
   end }
-
--- /-- Topology on the continuous `σ`-semilinear_maps between the respective fibers at a point of two
--- "normable" vector bundles over the same base. Here "normable" means that the bundles have fibers
--- modelled on normed spaces `F₁`, `F₂` respectively.  The topology we put on the continuous
--- `σ`-semilinear_maps is the topology coming from the operator norm on maps from `F₁` to `F₂`. -/
--- instance (x : B) : topological_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) :=
--- (bundle.continuous_linear_map.vector_prebundle σ F₁ E₁ F₂ E₂).fiber_topology x
 
 /-- Topology on the total space of the continuous `σ`-semilinear_maps between two "normable" vector
 bundles over the same base. -/

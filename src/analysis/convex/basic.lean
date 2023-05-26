@@ -537,6 +537,8 @@ end submodule
 
 section simplex
 
+section ordered_semiring
+
 variables (𝕜) (ι : Type*) [ordered_semiring 𝕜] [fintype ι]
 
 /-- The standard simplex in the space of functions `ι → 𝕜` is the set of vectors with non-negative
@@ -557,9 +559,59 @@ begin
     exact hab }
 end
 
-variable {ι}
+@[nontriviality] lemma std_simplex_of_subsingleton [subsingleton 𝕜] : std_simplex 𝕜 ι = univ :=
+eq_univ_of_forall $ λ f, ⟨λ x, (subsingleton.elim _ _).le, subsingleton.elim _ _⟩
+
+/-- The standard simplex in the zero-dimensional space is empty. -/
+lemma std_simplex_of_empty [is_empty ι] [ne_zero (1 : 𝕜)] : std_simplex 𝕜 ι = ∅ :=
+eq_empty_of_forall_not_mem $ by { rintro f ⟨-, hf⟩, simpa using hf }
+
+lemma std_simplex_unique [unique ι] : std_simplex 𝕜 ι = {λ _, 1} :=
+begin
+  refine eq_singleton_iff_unique_mem.2 ⟨⟨λ _, zero_le_one, fintype.sum_unique _⟩, _⟩,
+  rintro f ⟨-, hf⟩,
+  rw [fintype.sum_unique] at hf,
+  exact funext (unique.forall_iff.2 hf)
+end
+
+variables {ι} [decidable_eq ι]
 
 lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:𝕜) 0) ∈ std_simplex 𝕜 ι :=
 ⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)]⟩
+
+lemma single_mem_std_simplex (i : ι) : pi.single i 1 ∈ std_simplex 𝕜 ι :=
+by simpa only [@eq_comm _ i, ← pi.single_apply] using ite_eq_mem_std_simplex 𝕜 i
+
+lemma edge_subset_std_simplex (i j : ι) : [pi.single i 1 -[𝕜] pi.single j 1] ⊆ std_simplex 𝕜 ι :=
+(convex_std_simplex 𝕜 ι).segment_subset (single_mem_std_simplex _ _) (single_mem_std_simplex _ _)
+
+lemma std_simplex_fin_two : std_simplex 𝕜 (fin 2) = [pi.single 0 1 -[𝕜] pi.single 1 1] :=
+begin
+  refine subset.antisymm _ (edge_subset_std_simplex 𝕜 (0 : fin 2) 1),
+  rintro f ⟨hf₀, hf₁⟩,
+  rw [fin.sum_univ_two] at hf₁,
+  refine ⟨f 0, f 1, hf₀ 0, hf₀ 1, hf₁, funext $ fin.forall_fin_two.2 _⟩,
+  simp
+end
+
+end ordered_semiring
+
+section ordered_ring
+
+variables (𝕜) [ordered_ring 𝕜]
+
+/-- The standard one-dimensional simplex in `fin 2 → 𝕜` is equivalent to the unit interval. -/
+def std_simplex_equiv_Icc : std_simplex 𝕜 (fin 2) ≃ Icc (0 : 𝕜) 1 :=
+{ to_fun := λ f, ⟨f.1 0, f.2.1 _, f.2.2 ▸
+    finset.single_le_sum (λ i _, f.2.1 i) (finset.mem_univ _) ⟩,
+  inv_fun := λ x, ⟨![x, 1 - x], fin.forall_fin_two.2 ⟨x.2.1, sub_nonneg.2 x.2.2⟩,
+    calc ∑ i : fin 2, ![(x : 𝕜), 1 - x] i = x + (1 - x) : fin.sum_univ_two _
+    ... = 1 : add_sub_cancel'_right _ _⟩,
+  left_inv := λ f, subtype.eq $ funext $ fin.forall_fin_two.2 ⟨rfl,
+      calc (1 : 𝕜) - f.1 0 = f.1 0 + f.1 1 - f.1 0 : by rw [← fin.sum_univ_two f.1, f.2.2]
+      ... = f.1 1 : add_sub_cancel' _ _ ⟩,
+  right_inv := λ x, subtype.eq rfl }
+
+end ordered_ring
 
 end simplex

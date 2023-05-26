@@ -68,6 +68,14 @@ lemma is_closed_std_simplex : is_closed (std_simplex ℝ ι) :=
 lemma is_compact_std_simplex : is_compact (std_simplex ℝ ι) :=
 metric.is_compact_iff_is_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
+/-- The standard one-dimensional simplex in `ℝ² = fin 2 → ℝ` is homeomorphic to the unit
+interval. -/
+def std_simplex_homeomorph_unit_interval : std_simplex ℝ (fin 2) ≃ₜ unit_interval :=
+{ to_equiv := std_simplex_equiv_Icc ℝ,
+  continuous_to_fun := continuous.subtype_mk ((continuous_apply 0).comp continuous_subtype_coe) _,
+  continuous_inv_fun := continuous.subtype_mk (continuous_pi $ fin.forall_fin_two.2
+    ⟨continuous_subtype_coe, continuous_const.sub continuous_subtype_coe⟩) _ }
+
 end std_simplex
 
 /-! ### Topological vector space -/

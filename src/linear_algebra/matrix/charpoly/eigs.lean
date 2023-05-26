@@ -47,15 +47,15 @@ namespace matrix
 
 variables
 
-lemma det_eq_prod_roots_charpoly_of_splits {hAp_splits : (matrix.charpoly A).splits (ring_hom.id R)} :
+lemma det_eq_prod_roots_charpoly_of_splits (hAps : (matrix.charpoly A).splits (ring_hom.id R)) :
   A.det = (matrix.charpoly A).roots.prod :=
 begin
   rw [det_eq_sign_charpoly_coeff, ← (charpoly_nat_degree_eq_dim A),
-    polynomial.prod_roots_eq_coeff_zero_of_monic_of_split A.charpoly_monic (hAp_splits),
+    polynomial.prod_roots_eq_coeff_zero_of_monic_of_split A.charpoly_monic (hAps),
     ← mul_assoc, ← pow_two, pow_right_comm, neg_one_sq, one_pow, one_mul],
 end
 
-lemma trace_eq_sum_roots_charpoly_of_splits {hAp_splits : (matrix.charpoly A).splits (ring_hom.id R)} :
+lemma trace_eq_sum_roots_charpoly_of_splits (hAps : (matrix.charpoly A).splits (ring_hom.id R)) :
   A.trace = (matrix.charpoly A).roots.sum :=
 begin
   casesI is_empty_or_nonempty n,
@@ -63,21 +63,15 @@ begin
       det_eq_one_of_card_eq_zero (fintype.card_eq_zero_iff.2 h), polynomial.roots_one,
       multiset.empty_eq_zero, multiset.sum_zero], },
   { rw [trace_eq_neg_charpoly_coeff, neg_eq_iff_eq_neg,
-      ← polynomial.sum_roots_eq_next_coeff_of_monic_of_split A.charpoly_monic (hAp_splits),
+      ← polynomial.sum_roots_eq_next_coeff_of_monic_of_split A.charpoly_monic (hAps),
       next_coeff, charpoly_nat_degree_eq_dim,
       if_neg (fintype.card_ne_zero : fintype.card n ≠ 0)], },
 end
 
 lemma det_eq_prod_roots_charpoly [is_alg_closed R]: A.det = (matrix.charpoly A).roots.prod :=
-begin
-  refine det_eq_prod_roots_charpoly_of_splits,
-  exact (is_alg_closed.splits A.charpoly),
-end
+  det_eq_prod_roots_charpoly_of_splits (is_alg_closed.splits A.charpoly)
 
 lemma trace_eq_sum_roots_charpoly [is_alg_closed R] : A.trace = (matrix.charpoly A).roots.sum :=
-begin
-  refine trace_eq_sum_roots_charpoly_of_splits,
-  exact (is_alg_closed.splits A.charpoly),
-end
+  trace_eq_sum_roots_charpoly_of_splits (is_alg_closed.splits A.charpoly)
 
 end matrix

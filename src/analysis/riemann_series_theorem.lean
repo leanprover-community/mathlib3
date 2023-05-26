@@ -375,6 +375,17 @@ begin
   exact this
 end
 
+lemma rearrangement_not_mem {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
+  : rearrangement a M (n + 1) ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) :=
+begin
+  by_cases h : partial_sum (λ k, a (rearrangement a M k)) (n + 1) ≤ M,
+  { exact (rearrangement_nonneg_spec h₁ h₂ h).left },
+  { push_neg at h,
+    exact (rearrangement_neg_spec h₁ h₂ h).left }
+end
+
 lemma rearrangement_nonneg_min' {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}

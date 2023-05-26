@@ -1,5 +1,5 @@
 import analysis.calculus.deriv.pow
-import analysis.calculus.deriv.inverse
+import analysis.calculus.deriv.inv
 
 universes u v w
 open_locale classical topology big_operators filter ennreal

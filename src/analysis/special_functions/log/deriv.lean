@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import analysis.calculus.deriv.pow
-import analysis.calculus.deriv.inverse
+import analysis.calculus.deriv.inv
 import analysis.special_functions.log.basic
 import analysis.special_functions.exp_deriv
 

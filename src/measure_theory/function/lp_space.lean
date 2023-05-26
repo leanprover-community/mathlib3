@@ -1402,7 +1402,7 @@ end
 
 /-- Hölder's inequality, as an inequality on the `ℒp` seminorm of an elementwise operation
 `λ x, b (f x) (g x)`. -/
-lemma snorm_le_snorm_mul_snorm {p q r : ℝ≥0∞}
+lemma snorm_le_snorm_mul_snorm_of_nnnorm {p q r : ℝ≥0∞}
   {f : α → E} (hf : ae_strongly_measurable f μ) {g : α → F} (hg : ae_strongly_measurable g μ)
   (b : E → F → G) (h : ∀ᵐ x ∂μ, ‖b (f x) (g x)‖₊ ≤ ‖f x‖₊ * ‖g x‖₊)
   (hpqr : 1/p = 1/q + 1/r) :
@@ -1447,6 +1447,15 @@ begin
   { simp only [hq_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
   { simp only [hr_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
 end
+
+/-- Hölder's inequality, as an inequality on the `ℒp` seminorm of an elementwise operation
+`λ x, b (f x) (g x)`. -/
+lemma snorm_le_snorm_mul_snorm'_of_norm {p q r : ℝ≥0∞}
+  {f : α → E} (hf : ae_strongly_measurable f μ) {g : α → F} (hg : ae_strongly_measurable g μ)
+  (b : E → F → G) (h : ∀ᵐ x ∂μ, ‖b (f x) (g x)‖ ≤ ‖f x‖ * ‖g x‖)
+  (hpqr : 1/p = 1/q + 1/r) :
+  snorm (λ x, b (f x) (g x)) p μ ≤ snorm f q μ * snorm g r μ :=
+snorm_le_snorm_mul_snorm_of_nnnorm hf hg b h hpqr
 
 end monotonicity
 
@@ -1504,7 +1513,8 @@ lemma snorm_smul_le_mul_snorm {p q r : ℝ≥0∞}
   {f : α → E} (hf : ae_strongly_measurable f μ) {φ : α → 𝕜} (hφ : ae_strongly_measurable φ μ)
   (hpqr : 1/p = 1/q + 1/r) :
   snorm (φ • f) p μ ≤ snorm φ q μ * snorm f r μ :=
-(snorm_le_snorm_mul_snorm hφ hf (•) (eventually_of_forall $ λ a, nnnorm_smul_le _ _) hpqr : _)
+(snorm_le_snorm_mul_snorm_of_nnnorm hφ hf (•)
+  (eventually_of_forall $ λ a, nnnorm_smul_le _ _) hpqr : _)
 
 lemma mem_ℒp.smul {p q r : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
   (hf : mem_ℒp f r μ) (hφ : mem_ℒp φ q μ) (hpqr : 1/p = 1/q + 1/r) :

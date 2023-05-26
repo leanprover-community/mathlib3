@@ -39,34 +39,6 @@ open measure_theory set filter topological_space
 
 open_locale ennreal measure_theory probability_theory
 
-namespace measure_theory
-
-section fst_snd
-
-variables {α β γ : Type*} {Y : α → γ} {mγ : measurable_space γ} {mβ : measurable_space β}
-  {mα : measurable_space α} {X : α → β} {μ : measure α}
-
-include mβ mγ
-
-lemma fst_map_prod_mk₀ (hX : ae_measurable X μ) (hY : ae_measurable Y μ) :
-  (μ.map (λ a, (X a, Y a))).fst = μ.map X :=
-begin
-  ext1 s hs,
-  rw [measure.fst_apply hs, measure.map_apply_of_ae_measurable (hX.prod_mk hY) (measurable_fst hs),
-    measure.map_apply_of_ae_measurable hX hs, ← prod_univ, mk_preimage_prod, preimage_univ,
-    inter_univ],
-end
-
-lemma fst_map_prod_mk (hX : measurable X) (hY : measurable Y) :
-  (μ.map (λ a, (X a, Y a))).fst = μ.map X :=
-fst_map_prod_mk₀ hX.ae_measurable hY.ae_measurable
-
-end fst_snd
-
-end measure_theory
-
-open measure_theory
-
 namespace probability_theory
 
 variables {α β Ω F : Type*}

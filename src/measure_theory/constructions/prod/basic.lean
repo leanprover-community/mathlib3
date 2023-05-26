@@ -746,6 +746,21 @@ instance [is_finite_measure ρ] : is_finite_measure ρ.fst := by { rw fst, apply
 instance [is_probability_measure ρ] : is_probability_measure ρ.fst :=
 { measure_univ := by { rw fst_univ, exact measure_univ, } }
 
+lemma fst_map_prod_mk₀ {X : α → β} {Y : α → γ} {μ : measure α}
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ) :
+  (μ.map (λ a, (X a, Y a))).fst = μ.map X :=
+begin
+  ext1 s hs,
+  rw [measure.fst_apply hs, measure.map_apply_of_ae_measurable (hX.prod_mk hY) (measurable_fst hs),
+    measure.map_apply_of_ae_measurable hX hs, ← prod_univ, mk_preimage_prod, preimage_univ,
+    inter_univ],
+end
+
+lemma fst_map_prod_mk {X : α → β} {Y : α → γ} {μ : measure α}
+  (hX : measurable X) (hY : measurable Y) :
+  (μ.map (λ a, (X a, Y a))).fst = μ.map X :=
+fst_map_prod_mk₀ hX.ae_measurable hY.ae_measurable
+
 /-- Marginal measure on `β` obtained from a measure on `ρ` `α × β`, defined by `ρ.map prod.snd`. -/
 noncomputable
 def snd (ρ : measure (α × β)) : measure β := ρ.map prod.snd
@@ -760,6 +775,21 @@ instance [is_finite_measure ρ] : is_finite_measure ρ.snd := by { rw snd, apply
 
 instance [is_probability_measure ρ] : is_probability_measure ρ.snd :=
 { measure_univ := by { rw snd_univ, exact measure_univ, } }
+
+lemma snd_map_prod_mk₀ {X : α → β} {Y : α → γ} {μ : measure α}
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ) :
+  (μ.map (λ a, (X a, Y a))).snd = μ.map Y :=
+begin
+  ext1 s hs,
+  rw [measure.snd_apply hs, measure.map_apply_of_ae_measurable (hX.prod_mk hY) (measurable_snd hs),
+    measure.map_apply_of_ae_measurable hY hs, ← univ_prod, mk_preimage_prod, preimage_univ,
+    univ_inter],
+end
+
+lemma snd_map_prod_mk {X : α → β} {Y : α → γ} {μ : measure α}
+  (hX : measurable X) (hY : measurable Y) :
+  (μ.map (λ a, (X a, Y a))).snd = μ.map Y :=
+snd_map_prod_mk₀ hX.ae_measurable hY.ae_measurable
 
 end measure
 

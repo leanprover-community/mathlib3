@@ -51,6 +51,7 @@ using `map_swap` as a definition, and does not require `has_neg N`.
 variables {R : Type*} [semiring R]
 variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
+variables {P : Type*} [add_comm_monoid P] [module R P]
 
 -- semiring / add_comm_group
 variables {M' : Type*} [add_comm_group M'] [module R M']
@@ -209,16 +210,15 @@ end has_smul
 
 /-- The cartesian product of two alternating maps, as a multilinear map. -/
 @[simps { simp_rhs := tt }]
-def prod {N'} [add_comm_monoid N'] [module R N'] (f : alternating_map R M N ι)
-  (g : alternating_map R M N' ι) : alternating_map R M (N × N') ι :=
+def prod (f : alternating_map R M N ι) (g : alternating_map R M P ι) :
+  alternating_map R M (N × P) ι :=
 { map_eq_zero_of_eq' := λ v i j h hne, prod.ext (f.map_eq_zero_of_eq _ h hne)
     (g.map_eq_zero_of_eq _ h hne),
   .. f.to_multilinear_map.prod g.to_multilinear_map }
 
 @[simp]
-lemma coe_prod {N'} [add_comm_monoid N'] [module R N'] (f : alternating_map R M N ι)
-  (g : alternating_map R M N' ι) :
-  (f.prod g : multilinear_map R (λ _ : ι, M) (N × N')) = multilinear_map.prod f g :=
+lemma coe_prod (f : alternating_map R M N ι) (g : alternating_map R M P ι) :
+  (f.prod g : multilinear_map R (λ _ : ι, M) (N × P)) = multilinear_map.prod f g :=
 rfl
 
 /-- Combine a family of alternating maps with the same domain and codomains `N i` into an

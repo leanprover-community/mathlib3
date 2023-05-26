@@ -11,6 +11,9 @@ import analysis.normed_space.star.basic
 /-!
 # Star operations on derivatives
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For detailed documentation of the Fréchet derivative,
 see the module docstring of `analysis/calculus/fderiv/basic.lean`.
 

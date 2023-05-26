@@ -13,6 +13,9 @@ import ring_theory.tensor_product
 /-!
 # Monoid representations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces monoid representations and their characters and defines a few ways to construct
 representations.
 

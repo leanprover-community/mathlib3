@@ -13,10 +13,11 @@ import measure_theory.integral.mean_inequalities
 # ℒp space
 
 This file describes properties of almost everywhere strongly measurable functions with finite
-seminorm, denoted by `snorm f p μ` and defined for `p:ℝ≥0∞` as `0` if `p=0`,
+`p`-seminorm, denoted by `snorm f p μ` and defined for `p:ℝ≥0∞` as `0` if `p=0`,
 `(∫ ‖f a‖^p ∂μ) ^ (1/p)` for `0 < p < ∞` and `ess_sup ‖f‖ μ` for `p=∞`.
 
-The Prop-valued `mem_ℒp f p μ` states that a function `f : α → E` has finite seminorm.
+The Prop-valued `mem_ℒp f p μ` states that a function `f : α → E` has finite `p`-seminorm
+and is almost everywhere strongly measurable.
 
 ## Main definitions
 
@@ -50,7 +51,7 @@ formula (for which we use the notation `snorm' f p μ`), and for `p = ∞` it is
 supremum (for which we use the notation `snorm_ess_sup f μ`).
 
 We also define a predicate `mem_ℒp f p μ`, requesting that a function is almost everywhere
-measurable and has finite `snorm f p μ`.
+strongly measurable and has finite `snorm f p μ`.
 
 This paragraph is devoted to the basic properties of these definitions. It is constructed as
 follows: for a given property, we prove it for `snorm'` and `snorm_ess_sup` when it makes sense,

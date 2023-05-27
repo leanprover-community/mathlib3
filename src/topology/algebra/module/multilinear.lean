@@ -282,12 +282,17 @@ def pi_equiv {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
 
+/-- An equivalence of the index set defines an equivalence between the spaces of continuous
+multilinear maps. This is the forward map of this equivalence. -/
 @[simps]
 def dom_dom_congr {ι' : Type*} (e : ι ≃ ι') (f : continuous_multilinear_map R (λ _ : ι, M₂) M₃) :
   continuous_multilinear_map R (λ _ : ι', M₂) M₃ :=
 { to_multilinear_map := f.dom_dom_congr e,
   cont := f.cont.comp $ continuous_pi $ λ _, continuous_apply _ }
 
+/-- An equivalence of the index set defines an equivalence between the spaces of continuous
+multilinear maps. In case of normed spaces, this is a linear isometric equivalence, see
+`continuous.multilinear_map.dom_dom_congrₗᵢ`. -/
 @[simps]
 def dom_dom_congr_equiv {ι' : Type*} (e : ι ≃ ι') :
   continuous_multilinear_map R (λ _ : ι, M₂) M₃ ≃ continuous_multilinear_map R (λ _ : ι', M₂) M₃ :=

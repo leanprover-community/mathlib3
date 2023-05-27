@@ -1,7 +1,27 @@
+/-
+Copyright (c) 2019 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import analysis.calculus.deriv.basic
 import linear_algebra.affine_space.slope
 
 /-!
+# Derivative as the limit of the slope
+
+In this file we relate the derivative of a function with its definition from a standard
+undergraduate course as the limit of the slope `(f y - f x) / (y - x)` as `y` tends to `𝓝[≠] x`.
+Since we are talking about functions taking values in a normed space instead of the base field, we
+use `slope f x y = (y - x)⁻¹ • (f y - f x)` instead of division.
+
+We also prove some estimates on the upper/lower limits of the slope in terms of the derivative.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative, slope
 -/
 
 universes u v w

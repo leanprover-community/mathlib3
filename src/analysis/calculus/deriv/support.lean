@@ -1,21 +1,27 @@
+/-
+Copyright (c) 2023 Floris van Doorn. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Floris van Doorn
+-/
 import analysis.calculus.deriv.basic
 
-universes u v w
-noncomputable theory
-open_locale classical topology big_operators filter ennreal
-open filter asymptotics set
-open continuous_linear_map (smul_right smul_right_one_eq_iff)
+/-!
+# Support of the derivative of a function
 
+In this file we prove that the (topological) support of a function includes the support of its
+derivative. As a corollary, we show that the derivative of a function with compact support has
+compact support.
+
+## Keywords
+
+derivative, support
+-/
+
+universes u v
 
 variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
-variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]
-variables {E : Type w} [normed_add_comm_group E] [normed_space 𝕜 E]
-
-variables {f f₀ f₁ g : 𝕜 → F}
-variables {f' f₀' f₁' g' : F}
-variables {x : 𝕜}
-variables {s t : set 𝕜}
-variables {L L₁ L₂ : filter 𝕜}
+variables {E : Type v} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {f : 𝕜 → E}
 
 /-! ### Support of derivatives -/
 

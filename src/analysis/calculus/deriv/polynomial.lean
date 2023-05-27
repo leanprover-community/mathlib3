@@ -1,7 +1,31 @@
+/-
+Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel, Eric Wieser
+-/
 import analysis.calculus.deriv.pow
 import analysis.calculus.deriv.add
 import data.polynomial.algebra_map
 import data.polynomial.derivative
+
+/-!
+# Derivatives of polynomials
+
+In this file we prove that derivatives of polynomials in the analysis sense agree with their
+derivatives in the algebraic sense.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## TODO
+
+* Add results about multivariable polynomials.
+* Generalize some (most?) results to an algebra over the base field.
+
+## Keywords
+
+derivative, polynomial
+-/
 
 universes u v w
 open_locale classical topology big_operators filter ennreal polynomial

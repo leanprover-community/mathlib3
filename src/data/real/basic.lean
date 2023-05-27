@@ -600,7 +600,7 @@ lemma infi_of_not_bdd_below  {α : Sort*} {f : α → ℝ} (hf : ¬ bdd_below (s
 
 /--
 As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it
-suffices to show that `S` is bounded below by `0` to show that `0 ≤ Inf S`.
+suffices to show that `S` is bounded below by `0` to show that `0 ≤ Sup S`.
 -/
 lemma Sup_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Sup S :=
 begin
@@ -610,14 +610,33 @@ begin
 end
 
 /--
+As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it
+suffices to show that `f i` is nonnegative to show that `0 ≤ ⨆ i, f i`.
+-/
+protected lemma supr_nonneg {ι : Sort*} {f : ι → ℝ} (hf : ∀ i, 0 ≤ f i) : 0 ≤ ⨆ i, f i :=
+Sup_nonneg _ $ set.forall_range_iff.2 hf
+
+/--
+As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it
+suffices to show that all elements of `S` are bounded by a nonnagative number to show that `Sup S`
+is bounded by this number.
+-/
+protected lemma Sup_le {S : set ℝ} {a : ℝ} (hS : ∀ x ∈ S, x ≤ a) (ha : 0 ≤ a) : Sup S ≤ a :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | hS₂,
+  exacts [Sup_empty.trans_le ha, cSup_le hS₂ hS],
+end
+
+protected lemma supr_le {ι : Sort*} {f : ι → ℝ} {a : ℝ} (hS : ∀ i, f i ≤ a) (ha : 0 ≤ a) :
+  (⨆ i, f i) ≤ a :=
+real.Sup_le (set.forall_range_iff.2 hS) ha
+
+/--
 As `0` is the default value for `real.Sup` of the empty set, it suffices to show that `S` is
 bounded above by `0` to show that `Sup S ≤ 0`.
 -/
 lemma Sup_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Sup S ≤ 0 :=
-begin
-  rcases S.eq_empty_or_nonempty with rfl | hS₂,
-  exacts [Sup_empty.le, cSup_le hS₂ hS],
-end
+real.Sup_le hS le_rfl
 
 /--
 As `0` is the default value for `real.Inf` of the empty set, it suffices to show that `S` is

@@ -17,8 +17,8 @@ the usual way this is considered.
 
 * `complex.same_ray_iff` : Two complex numbers are on the same ray iff one of them is zero, or they
   have the same argument.
-* `complex.abs_add_eq/complex.abs_sub_eq`: If two non zero complex numbers have different argument,
-  then the triangle inequality becomes strict.
+* `complex.abs_add_eq/complex.abs_sub_eq`: If two non zero complex numbers have the same argument,
+  then the triangle inequality is an equality.
 
 -/
 

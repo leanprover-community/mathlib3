@@ -206,7 +206,7 @@ coordinates but `i` equal to those of `m`, and varying the `i`-th coordinate. -/
   map_smul' := λc x, by simp }
 
 /-- The cartesian product of two multilinear maps, as a multilinear map. -/
-def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
+@[simps] def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
   multilinear_map R M₁ (M₂ × M₃) :=
 { to_fun    := λ m, (f m, g m),
   map_add'  := λ _ m i x y, by simp,

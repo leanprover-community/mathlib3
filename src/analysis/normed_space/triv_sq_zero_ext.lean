@@ -20,12 +20,14 @@ For now, this file contains results about `exp` for this type.
 * `triv_sq_zero_ext.exp_inr`
 
 ## TODO
+
 * Actually define a sensible norm on `triv_sq_zero_ext R M`, so that we have access to lemmas
   like `exp_add`.
-* Generalize more of these results to non-commutative `R`.
-  In principle, under sufficient conditions we should expect
-  `(exp 𝕜 x).snd = ∫ t in 0..1, exp 𝕜 (t • x.fst) • op (exp 𝕜 ((1 - t) • x.fst)) • x.snd`
-  ([Physics.SE](https://physics.stackexchange.com/a/41671/185147)).
+* Generalize more of these results to non-commutative `R`. In principle, under sufficient conditions
+  we should expect
+ `(exp 𝕜 x).snd = ∫ t in 0..1, exp 𝕜 (t • x.fst) • op (exp 𝕜 ((1 - t) • x.fst)) • x.snd`
+  ([Physics.SE](https://physics.stackexchange.com/a/41671/185147), and
+  https://link.springer.com/chapter/10.1007/978-3-540-44953-9_2).
 
 -/
 
@@ -39,7 +41,7 @@ section topology
 variables [topological_space R] [topological_space M]
 
 /-- If `exp R x.fst` converges to `e` then `(exp R x).fst` converges to `e`. -/
-lemma has_sum_fst_exp_series [field 𝕜] [char_zero 𝕜] [ring R]
+lemma has_sum_fst_exp_series [field 𝕜] [ring R]
   [add_comm_group M] [algebra 𝕜 R]
   [module R M] [module Rᵐᵒᵖ M] [smul_comm_class R Rᵐᵒᵖ M]
   [module 𝕜 M] [is_scalar_tower 𝕜 R M] [is_scalar_tower 𝕜 Rᵐᵒᵖ M]
@@ -47,7 +49,7 @@ lemma has_sum_fst_exp_series [field 𝕜] [char_zero 𝕜] [ring R]
   [has_continuous_smul R M] [has_continuous_smul Rᵐᵒᵖ M]
   (x : tsze R M)
   {e : R} (h : has_sum (λ n, exp_series 𝕜 R n (λ _, x.fst)) e) :
-  has_sum (λ n, fst (exp_series 𝕜 (tsze R M) n (λ _, x))) (e) :=
+  has_sum (λ n, fst (exp_series 𝕜 (tsze R M) n (λ _, x))) e :=
 by simpa [exp_series_apply_eq] using h
 
 /-- If `exp R x.fst` converges to `e` then `(exp R x).snd` converges to `e • x.snd`. -/

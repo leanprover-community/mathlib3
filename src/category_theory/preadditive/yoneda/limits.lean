@@ -9,6 +9,9 @@ import algebra.category.Module.abelian
 /-!
 # The Yoneda embedding for preadditive categories preserves limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Yoneda embedding for preadditive categories preserves limits.
 
 ## Implementation notes

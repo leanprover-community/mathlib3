@@ -10,6 +10,9 @@ import topology.sheaves.limits
 /-!
 # `PresheafedSpace C` has colimits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` has limits, then the category `PresheafedSpace C` has colimits,
 and the forgetful functor to `Top` preserves these colimits.
 

@@ -10,6 +10,9 @@ import algebra.homology.homotopy_category
 /-!
 # Main result
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When the underlying category is abelian:
 * `category_theory.InjectiveResolution.desc`: Given `I : InjectiveResolution X` and
   `J : InjectiveResolution Y`, any morphism `X ⟶ Y` admits a descent to a chain map

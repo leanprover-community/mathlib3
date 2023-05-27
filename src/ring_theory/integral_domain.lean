@@ -11,6 +11,9 @@ import algebra.geom_sum
 /-!
 # Integral domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Assorted theorems about integral domains.
 
 ## Main theorems

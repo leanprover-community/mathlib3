@@ -14,6 +14,9 @@ import linear_algebra.sesquilinear_form
 /-!
 # Sesquilinear form
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the conversion between sesquilinear forms and matrices.
 
 ## Main definitions

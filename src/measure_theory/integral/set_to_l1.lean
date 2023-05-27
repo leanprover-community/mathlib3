@@ -220,14 +220,13 @@ begin
   exact (norm_add_le _ _).trans (add_le_add (hT.2 s hs hμs) (hT'.2 s hs hμs)),
 end
 
-lemma smul [semi_normed_ring 𝕜] [distrib_mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
-  (hT : dominated_fin_meas_additive μ T C) (c : 𝕜) :
+lemma smul [normed_field 𝕜] [normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
+  (c : 𝕜) :
   dominated_fin_meas_additive μ (λ s, c • (T s)) (‖c‖ * C) :=
 begin
   refine ⟨hT.1.smul c, λ s hs hμs, _⟩,
   dsimp only,
-  refine (norm_smul_le _ _).trans _,
-  rw [mul_assoc],
+  rw [norm_smul, mul_assoc],
   exact mul_le_mul le_rfl (hT.2 s hs hμs) (norm_nonneg _) (norm_nonneg _),
 end
 
@@ -512,8 +511,8 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = c • set_to_simple_func T f :
 by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
-lemma set_to_simple_func_smul {E} [normed_add_comm_group E]
-  [smul_zero_class 𝕜 E] [normed_space ℝ E] [distrib_smul 𝕜 F] (T : set α → E →L[ℝ] F)
+lemma set_to_simple_func_smul {E} [normed_add_comm_group E] [normed_field 𝕜]
+  [normed_space 𝕜 E] [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
   (h_add : fin_meas_additive μ T) (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
   (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
   set_to_simple_func T (c • f) = c • set_to_simple_func T f :=
@@ -699,10 +698,9 @@ end
 
 section set_to_L1s
 
-variables [normed_ring 𝕜] [module 𝕜 E] [has_bounded_smul 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 local attribute [instance] Lp.simple_func.module
-local attribute [instance] Lp.simple_func.has_bounded_smul
 local attribute [instance] Lp.simple_func.normed_space
 
 /-- Extend `set α → (E →L[ℝ] F')` to `(α →₁ₛ[μ] E) → F'`. -/
@@ -808,7 +806,7 @@ begin
 end
 
 lemma set_to_L1s_smul {E} [normed_add_comm_group E] [normed_space ℝ E]
-  [module 𝕜 E] [module 𝕜 F] [has_bounded_smul 𝕜 E]
+  [normed_space 𝕜 E] [normed_space 𝕜 F]
   (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α →₁ₛ[μ] E) :
@@ -891,35 +889,23 @@ end
 
 end order
 
-variables [module 𝕜 F] [has_bounded_smul 𝕜 F]
+variables [normed_space 𝕜 F]
 
 variables (α E μ 𝕜)
 /-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[𝕜] F`. -/
 def set_to_L1s_clm' {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) :
   (α →₁ₛ[μ] E) →L[𝕜] F :=
--- TODO (leanprover-community/mathlib#19108): `linear_map.mk_continuous` doesn't work here
-{ to_linear_map :=
-  { to_fun := set_to_L1s T,
-    map_add' := set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
-    map_smul' := set_to_L1s_smul T (λ _, hT.eq_zero_of_measure_zero) hT.1 h_smul },
-  cont := begin
-    rw linear_map.to_fun_eq_coe,
-    exact add_monoid_hom_class.continuous_of_bound _ C (λ f, norm_set_to_L1s_le T hT.2 f)
-  end }
+linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
+  set_to_L1s_smul T (λ _, hT.eq_zero_of_measure_zero) hT.1 h_smul⟩ C
+  (λ f, norm_set_to_L1s_le T hT.2 f)
 
 /-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[ℝ] F`. -/
 def set_to_L1s_clm {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C) :
   (α →₁ₛ[μ] E) →L[ℝ] F :=
--- TODO (leanprover-community/mathlib#19108): `linear_map.mk_continuous` doesn't work here
-{ to_linear_map :=
-  { to_fun := set_to_L1s T,
-    map_add' := set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
-    map_smul' := set_to_L1s_smul_real T (λ _, hT.eq_zero_of_measure_zero) hT.1 },
-  cont := begin
-    rw linear_map.to_fun_eq_coe,
-    exact add_monoid_hom_class.continuous_of_bound _ C (λ f, norm_set_to_L1s_le T hT.2 f)
-  end }
+linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
+  set_to_L1s_smul_real T (λ _, hT.eq_zero_of_measure_zero) hT.1⟩ C
+  (λ f, norm_set_to_L1s_le T hT.2 f)
 
 variables {α E μ 𝕜}
 
@@ -976,12 +962,12 @@ set_to_L1s_smul_left' T T' c h_smul f
 lemma norm_set_to_L1s_clm_le {T : set α → E →L[ℝ] F} {C : ℝ}
   (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C) :
   ‖set_to_L1s_clm α E μ hT‖ ≤ C :=
-linear_map.mk_continuous_norm_le _ hC (norm_set_to_L1s_le T hT.2)
+linear_map.mk_continuous_norm_le _ hC _
 
 lemma norm_set_to_L1s_clm_le' {T : set α → E →L[ℝ] F} {C : ℝ}
   (hT : dominated_fin_meas_additive μ T C) :
   ‖set_to_L1s_clm α E μ hT‖ ≤ max C 0 :=
-linear_map.mk_continuous_norm_le' _ (norm_set_to_L1s_le T hT.2)
+linear_map.mk_continuous_norm_le' _ _
 
 lemma set_to_L1s_clm_const [is_finite_measure μ] {T : set α → E →L[ℝ] F} {C : ℝ}
   (hT : dominated_fin_meas_additive μ T C) (x : E) :

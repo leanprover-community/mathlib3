@@ -147,7 +147,7 @@ open set filter topological_space ennreal emetric
 
 namespace measure_theory
 
-variables {α E F 𝕜 R : Type*}
+variables {α E F 𝕜 : Type*}
 
 section weighted_smul
 
@@ -216,7 +216,8 @@ lemma weighted_smul_union (s t : set α) (hs : measurable_set s) (ht : measurabl
   (weighted_smul μ (s ∪ t) : F →L[ℝ] F) = weighted_smul μ s + weighted_smul μ t :=
 weighted_smul_union' s t ht hs_finite ht_finite h_inter
 
-lemma weighted_smul_smul [has_smul 𝕜 F] [smul_comm_class ℝ 𝕜 F] (c : 𝕜) (s : set α) (x : F) :
+lemma weighted_smul_smul [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+  (c : 𝕜) (s : set α) (x : F) :
   weighted_smul μ s (c • x) = c • weighted_smul μ s x :=
 by { simp_rw [weighted_smul_apply, smul_comm], }
 
@@ -357,7 +358,7 @@ begin
   { simp [hg0] }
 end
 
-variables [normed_space ℝ E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
 
 lemma integral_congr {f g : α →ₛ E} (hf : integrable f μ) (h : f =ᵐ[μ] g) :
   f.integral μ = g.integral μ :=
@@ -385,8 +386,7 @@ lemma integral_sub {f g : α →ₛ E} (hf : integrable f μ) (hg : integrable g
   integral μ (f - g) = integral μ f - integral μ g :=
 set_to_simple_func_sub _ weighted_smul_union hf hg
 
-lemma integral_smul [monoid R] [distrib_mul_action R E] [smul_comm_class ℝ R E] (c : R)
-  {f : α →ₛ E} (hf : integrable f μ) :
+lemma integral_smul (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
   integral μ (c • f) = c • integral μ f :=
 set_to_simple_func_smul _ weighted_smul_union weighted_smul_smul c hf
 
@@ -466,10 +466,9 @@ section simple_func_integral
 Define the Bochner integral on `α →₁ₛ[μ] E` by extension from the simple functions `α →₁ₛ[μ] E`,
 and prove basic properties of this integral. -/
 
-variables [normed_space ℝ E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
   {F' : Type*} [normed_add_comm_group F'] [normed_space ℝ F']
 
-local attribute [instance] Lp.simple_func.module Lp.simple_func.has_bounded_smul
 local attribute [instance] simple_func.normed_space
 
 /-- The Bochner integral over simple functions in L1 space. -/
@@ -490,8 +489,7 @@ simple_func.integral_congr (simple_func.integrable f) h
 lemma integral_add (f g : α →₁ₛ[μ] E) : integral (f + g) = integral f + integral g :=
 set_to_L1s_add _ (λ _ _, weighted_smul_null) weighted_smul_union _ _
 
-lemma integral_smul [normed_ring R] [module R E] [smul_comm_class ℝ R E] [has_bounded_smul R E]
-  (c : R) (f : α →₁ₛ[μ] E) :
+lemma integral_smul (c : 𝕜) (f : α →₁ₛ[μ] E) :
   integral (c • f) = c • integral f :=
 set_to_L1s_smul _ (λ _ _, weighted_smul_null) weighted_smul_union weighted_smul_smul c f
 
@@ -501,33 +499,26 @@ begin
   exact (to_simple_func f).norm_integral_le_integral_norm (simple_func.integrable f)
 end
 
-variables {E' : Type*} [normed_add_comm_group E'] [normed_space ℝ E']
-variables [normed_ring R] [module R E] [has_bounded_smul R E] [smul_comm_class ℝ R E]
+variables {E' : Type*} [normed_add_comm_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
 
 
-variables (α E μ R)
+variables (α E μ 𝕜)
 /-- The Bochner integral over simple functions in L1 space as a continuous linear map. -/
-def integral_clm' : (α →₁ₛ[μ] E) →L[R] E :=
-{ to_linear_map :=
-    { to_fun := integral, map_add' := integral_add, map_smul' := integral_smul },
-  cont := begin
-    rw linear_map.to_fun_eq_coe,
-    exact add_monoid_hom_class.continuous_of_bound _ _
-      (λf, (norm_integral_le_norm _).trans_eq $ (one_mul _).symm),
-  end}
+def integral_clm' : (α →₁ₛ[μ] E) →L[𝕜] E :=
+linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
+  1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
 /-- The Bochner integral over simple functions in L1 space as a continuous linear map over ℝ. -/
 def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E := integral_clm' α E ℝ μ
 
-variables {α E μ R}
+variables {α E μ 𝕜}
 
 local notation (name := simple_func.integral_clm) `Integral` := integral_clm α E μ
 
 open continuous_linear_map
 
 lemma norm_Integral_le_one : ‖Integral‖ ≤ 1 :=
-linear_map.mk_continuous_norm_le _ (zero_le_one)
-  (λ f, (norm_integral_le_norm _).trans_eq $ (one_mul _).symm)
+linear_map.mk_continuous_norm_le _ (zero_le_one) _
 
 section pos_part
 
@@ -608,8 +599,6 @@ open continuous_linear_map
 
 variables (𝕜)
 
--- TODO: can we generalize `𝕜` to a `normed_ring`? We were able to for `simple_func.integral_clm'`,
--- but `.extend` doesn't seem to let us keep that property.
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
 (integral_clm' α E 𝕜 μ).extend

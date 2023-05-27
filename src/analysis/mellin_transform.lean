@@ -169,12 +169,12 @@ by simp_rw [←rpow_neg_one, mellin_comp_rpow _ _ (neg_ne_zero.mpr one_ne_zero),
 shortens some arguments. -/
 def has_mellin (f : ℝ → E) (s : ℂ) (m : E) : Prop := mellin_convergent f s ∧ mellin f s = m
 
-lemma mellin_add {f g : ℝ → E} {s : ℂ} (hf : mellin_convergent f s) (hg : mellin_convergent g s) :
+lemma has_mellin_add {f g : ℝ → E} {s : ℂ} (hf : mellin_convergent f s) (hg : mellin_convergent g s) :
   has_mellin (λ t, f t + g t) s (mellin f s + mellin g s) :=
 ⟨by simpa only [mellin_convergent, smul_add] using hf.add hg,
   by simpa only [mellin, smul_add] using integral_add hf hg⟩
 
-lemma mellin_sub {f g : ℝ → E} {s : ℂ} (hf : mellin_convergent f s) (hg : mellin_convergent g s) :
+lemma has_mellin_sub {f g : ℝ → E} {s : ℂ} (hf : mellin_convergent f s) (hg : mellin_convergent g s) :
   has_mellin (λ t, f t - g t) s (mellin f s - mellin g s) :=
 ⟨by simpa only [mellin_convergent, smul_sub] using hf.sub hg,
   by simpa only [mellin, smul_sub] using integral_sub hf hg⟩
@@ -465,7 +465,7 @@ section mellin_Ioc
 -/
 
 /-- The Mellin transform of the indicator function of `Ioc 0 1`. -/
-lemma mellin_one_Ioc {s : ℂ} (hs : 0 < re s) :
+lemma has_mellin_one_Ioc {s : ℂ} (hs : 0 < re s) :
   has_mellin (indicator (Ioc 0 1) (λ t, 1 : ℝ → ℂ)) s (1 / s) :=
 begin
   have aux1 : -1 < (s - 1).re, by simpa only [sub_re, one_re, sub_eq_add_neg]
@@ -482,10 +482,10 @@ begin
 end
 
 /-- The Mellin transform of a power function restricted to `Ioc 0 1`. -/
-lemma mellin_cpow_Ioc (a : ℂ) {s : ℂ} (hs : 0 < re s + re a) :
+lemma has_mellin_cpow_Ioc (a : ℂ) {s : ℂ} (hs : 0 < re s + re a) :
   has_mellin (indicator (Ioc 0 1) (λ t, ↑t ^ a : ℝ → ℂ)) s (1 / (s + a)) :=
 begin
-  have := mellin_one_Ioc (by rwa add_re : 0 < (s + a).re),
+  have := has_mellin_one_Ioc (by rwa add_re : 0 < (s + a).re),
   simp_rw [has_mellin, ←mellin_convergent.cpow_smul, ←mellin_cpow_smul, ←indicator_smul,
     smul_eq_mul, mul_one] at this,
   exact this

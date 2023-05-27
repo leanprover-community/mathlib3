@@ -1,5 +1,23 @@
+/-
+Copyright (c) 2023 Gabriel Ebner. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Gabriel Ebner, Yury Kudryashov
+-/
 import analysis.calculus.deriv.basic
 import analysis.calculus.fderiv.linear
+
+/-!
+# Derivatives of continuous linear maps from the base field
+
+In this file we prove that `f : 𝕜 →L[𝕜] E` (or `f : 𝕜 →ₗ[𝕜] E`) has derivative `f 1`.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative, linear map
+-/
 
 universes u v w
 

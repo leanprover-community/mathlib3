@@ -169,12 +169,14 @@ by simp_rw [←rpow_neg_one, mellin_comp_rpow _ _ (neg_ne_zero.mpr one_ne_zero),
 shortens some arguments. -/
 def has_mellin (f : ℝ → E) (s : ℂ) (m : E) : Prop := mellin_convergent f s ∧ mellin f s = m
 
-lemma has_mellin_add {f g : ℝ → E} {s : ℂ} (hf : mellin_convergent f s) (hg : mellin_convergent g s) :
+lemma has_mellin_add {f g : ℝ → E} {s : ℂ}
+  (hf : mellin_convergent f s) (hg : mellin_convergent g s) :
   has_mellin (λ t, f t + g t) s (mellin f s + mellin g s) :=
 ⟨by simpa only [mellin_convergent, smul_add] using hf.add hg,
   by simpa only [mellin, smul_add] using integral_add hf hg⟩
 
-lemma has_mellin_sub {f g : ℝ → E} {s : ℂ} (hf : mellin_convergent f s) (hg : mellin_convergent g s) :
+lemma has_mellin_sub {f g : ℝ → E} {s : ℂ}
+  (hf : mellin_convergent f s) (hg : mellin_convergent g s) :
   has_mellin (λ t, f t - g t) s (mellin f s - mellin g s) :=
 ⟨by simpa only [mellin_convergent, smul_sub] using hf.sub hg,
   by simpa only [mellin, smul_sub] using integral_sub hf hg⟩

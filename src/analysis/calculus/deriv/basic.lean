@@ -44,21 +44,21 @@ one-dimensional derivatives coincide with the general Fréchet derivatives.
 We also show the existence and compute the derivatives of:
   - constants
   - the identity function
-  - linear maps
-  - addition
-  - sum of finitely many functions
-  - negation
-  - subtraction
-  - multiplication
-  - star
-  - inverse `x → x⁻¹`
-  - multiplication of two functions in `𝕜 → 𝕜`
-  - multiplication of a function in `𝕜 → 𝕜` and of a function in `𝕜 → E`
-  - composition of a function in `𝕜 → F` with a function in `𝕜 → 𝕜`
-  - composition of a function in `F → E` with a function in `𝕜 → F`
+  - linear maps (in `linear.lean`)
+  - addition (in `add.lean`)
+  - sum of finitely many functions (in `add.lean`)
+  - negation (in `add.lean`)
+  - subtraction (in `add.lean`)
+  - star  (in `star.lean`)
+  - multiplication of two functions in `𝕜 → 𝕜` (in `mul.lean`)
+  - multiplication of a function in `𝕜 → 𝕜` and of a function in `𝕜 → E` (in `mul.lean`)
+  - powers of a function (in `pow.lean` and `zpow.lean`)
+  - inverse `x → x⁻¹` (in `inv.lean`)
+  - division (in `inv.lean`)
+  - composition of a function in `𝕜 → F` with a function in `𝕜 → 𝕜` (in `comp.lean`)
+  - composition of a function in `F → E` with a function in `𝕜 → F` (in `comp.lean`)
   - inverse function (assuming that it exists; the inverse function theorem is in `inverse.lean`)
-  - division
-  - polynomials
+  - polynomials (in `polynomial.lean`)
 
 For most binary operations we also define `const_op` and `op_const` theorems for the cases when
 the first or second argument is a constant. This makes writing chains of `has_deriv_at`'s easier,

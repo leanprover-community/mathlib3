@@ -446,17 +446,22 @@ end
 section
 variables (𝕜 G)
 
+lemma norm_of_subsingleton_le [subsingleton ι] (i' : ι) : ‖of_subsingleton 𝕜 G i'‖ ≤ 1 :=
+op_norm_le_bound _ zero_le_one $ λ m,
+  by rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply]
+
 @[simp] lemma norm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :
   ‖of_subsingleton 𝕜 G i'‖ = 1 :=
 begin
-  apply le_antisymm,
-  { refine op_norm_le_bound _ zero_le_one (λ m, _),
-    rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply] },
-  { obtain ⟨g, hg⟩ := exists_ne (0 : G),
-    rw ←norm_ne_zero_iff at hg,
-    have := (of_subsingleton 𝕜 G i').ratio_le_op_norm (λ _, g),
-    rwa [fintype.prod_subsingleton _ i', of_subsingleton_apply, div_self hg] at this },
+  apply le_antisymm (norm_of_subsingleton_le 𝕜 G i'),
+  obtain ⟨g, hg⟩ := exists_ne (0 : G),
+  rw ←norm_ne_zero_iff at hg,
+  have := (of_subsingleton 𝕜 G i').ratio_le_op_norm (λ _, g),
+  rwa [fintype.prod_subsingleton _ i', of_subsingleton_apply, div_self hg] at this,
 end
+
+lemma nnnorm_of_subsingleton_le [subsingleton ι] (i' : ι) : ‖of_subsingleton 𝕜 G i'‖₊ ≤ 1 :=
+norm_of_subsingleton_le _ _ _
 
 @[simp] lemma nnnorm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :
   ‖of_subsingleton 𝕜 G i'‖₊ = 1 :=
@@ -518,18 +523,22 @@ variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜
 variables [normed_space 𝕜' G] [is_scalar_tower 𝕜' 𝕜 G]
 variables [Π i, normed_space 𝕜' (E i)] [∀ i, is_scalar_tower 𝕜' 𝕜 (E i)]
 
-@[simp] lemma norm_restrict_scalars : ‖f.restrict_scalars 𝕜'‖ = ‖f‖ :=
-by simp only [norm_def, coe_restrict_scalars]
+@[simp] lemma norm_restrict_scalars : ‖f.restrict_scalars 𝕜'‖ = ‖f‖ := rfl
 
 variable (𝕜')
 
-/-- `continuous_multilinear_map.restrict_scalars` as a `continuous_multilinear_map`. -/
-def restrict_scalars_linear :
-  continuous_multilinear_map 𝕜 E G →L[𝕜'] continuous_multilinear_map 𝕜' E G :=
-linear_map.mk_continuous
+/-- `continuous_multilinear_map.restrict_scalars` as a `linear_isometry`. -/
+def restrict_scalarsₗᵢ :
+  continuous_multilinear_map 𝕜 E G →ₗᵢ[𝕜'] continuous_multilinear_map 𝕜' E G :=
 { to_fun := restrict_scalars 𝕜',
   map_add' := λ m₁ m₂, rfl,
-  map_smul' := λ c m, rfl } 1 $ λ f, by simp
+  map_smul' := λ c m, rfl,
+  norm_map' := λ f, rfl }
+
+/-- `continuous_multilinear_map.restrict_scalars` as a `continuous_linear_map`. -/
+def restrict_scalars_linear :
+  continuous_multilinear_map 𝕜 E G →L[𝕜'] continuous_multilinear_map 𝕜' E G :=
+(restrict_scalarsₗᵢ 𝕜').to_continuous_linear_map
 
 variable {𝕜'}
 
@@ -922,6 +931,7 @@ rfl
 
 /-- Flip arguments in `f : G →L[𝕜] continuous_multilinear_map 𝕜 E G'` to get
 `continuous_multilinear_map 𝕜 E (G →L[𝕜] G')` -/
+@[simps apply_apply]
 def flip_multilinear (f : G →L[𝕜] continuous_multilinear_map 𝕜 E G') :
   continuous_multilinear_map 𝕜 E (G →L[𝕜] G') :=
 multilinear_map.mk_continuous
@@ -1505,21 +1515,14 @@ variables (𝕜 G G')
 
 /-- An equivalence of the index set defines a linear isometric equivalence between the spaces
 of multilinear maps. -/
-def dom_dom_congr (σ : ι ≃ ι') :
+def dom_dom_congrₗᵢ (σ : ι ≃ ι') :
   continuous_multilinear_map 𝕜 (λ _ : ι, G) G' ≃ₗᵢ[𝕜]
     continuous_multilinear_map 𝕜 (λ _ : ι', G) G' :=
-linear_isometry_equiv.of_bounds
-  { to_fun := λ f, (multilinear_map.dom_dom_congr σ f.to_multilinear_map).mk_continuous ‖f‖ $
-      λ m, (f.le_op_norm (λ i, m (σ i))).trans_eq $ by rw [← σ.prod_comp],
-    inv_fun := λ f, (multilinear_map.dom_dom_congr σ.symm f.to_multilinear_map).mk_continuous ‖f‖ $
-      λ m, (f.le_op_norm (λ i, m (σ.symm i))).trans_eq $ by rw [← σ.symm.prod_comp],
-    left_inv := λ f, ext $ λ m, congr_arg f $ by simp only [σ.symm_apply_apply],
-    right_inv := λ f, ext $ λ m, congr_arg f $ by simp only [σ.apply_symm_apply],
-    map_add' := λ f g, rfl,
-    map_smul' := λ c f, rfl }
-  (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
-  (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
-
+  { map_add' := λ _ _, rfl,
+    map_smul' := λ _ _, rfl,
+    norm_map' := λ f, by simp [norm_def, linear_equiv.coe_mk, ← σ.prod_comp,
+      (σ.arrow_congr (equiv.refl G)).surjective.forall],
+    .. dom_dom_congr_equiv σ }
 variables {𝕜 G G'}
 
 section
@@ -1589,7 +1592,7 @@ values in the space of continuous multilinear maps of `l` variables. -/
 def curry_fin_finset {k l n : ℕ} {s : finset (fin n)}
   (hk : s.card = k) (hl : sᶜ.card = l) :
   (G [×n]→L[𝕜] G') ≃ₗᵢ[𝕜] (G [×k]→L[𝕜] G [×l]→L[𝕜] G') :=
-(dom_dom_congr 𝕜 G G' (fin_sum_equiv_of_finset hk hl).symm).trans
+(dom_dom_congrₗᵢ 𝕜 G G' (fin_sum_equiv_of_finset hk hl).symm).trans
   (curry_sum_equiv 𝕜 (fin k) (fin l) G G')
 
 variables {𝕜 G G'}

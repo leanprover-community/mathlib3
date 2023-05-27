@@ -1,5 +1,18 @@
+/-
+Copyright (c) 2023 Eric Wieser. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Eric Wieser
+-/
 import analysis.calculus.deriv.basic
 import analysis.calculus.fderiv.star
+
+/-!
+# Star operations on derivatives
+
+This file contains the usual formulas (and existence assertions) for the derivative of the star
+operation. Note that these only apply when the field that the derivative is respect to has a trivial
+star operation; which as should be expected rules out `𝕜 = ℂ`.
+-/
 
 universes u v w
 noncomputable theory

@@ -1,5 +1,24 @@
+/-
+Copyright (c) 2023 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel, Yury Kudryashov
+-/
 import analysis.calculus.deriv.mul
 import analysis.calculus.deriv.comp
+
+/-!
+# Derivatives of `x ↦ x⁻¹` and `f x / g x`
+
+In this file we prove `(x⁻¹)' = -1 / x ^ 2`, `((f x)⁻¹)' = -f' x / (f x) ^ 2`, and
+`(f x / g x)' = (f' x * g x - f x * g' x) / (g x) ^ 2` for different notions of derivative.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative
+-/
 
 universes u v w
 open_locale classical topology big_operators filter ennreal
@@ -15,7 +34,7 @@ variables {f f₀ f₁ g : 𝕜 → F}
 variables {f' f₀' f₁' g' : F}
 variables {x : 𝕜}
 variables {s t : set 𝕜}
-variables {L L₁ L₂ : filter 𝕜}
+variables {L : filter 𝕜}
 
 section inverse
 /-! ### Derivative of `x ↦ x⁻¹` -/

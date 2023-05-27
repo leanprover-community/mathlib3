@@ -396,7 +396,7 @@ theorem has_deriv_at_Gamma_integral {s : ℂ} (hs : 0 < s.re) :
   has_deriv_at Gamma_integral (∫ (t : ℝ) in Ioi 0, t ^ (s - 1) * (real.log t * real.exp (-t))) s :=
 begin
   rw Gamma_integral_eq_mellin,
-  convert mellin_has_deriv_of_is_O_rpow _ _ (lt_add_one _) _ hs,
+  convert (mellin_has_deriv_of_is_O_rpow _ _ (lt_add_one _) _ hs).2,
   { refine (continuous.continuous_on _).locally_integrable_on measurable_set_Ioi,
     exact continuous_of_real.comp (real.continuous_exp.comp continuous_neg), },
   { rw [←is_O_norm_left],

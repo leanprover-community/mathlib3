@@ -1,13 +1,30 @@
+/-
+Copyright (c) 2019 Gabriel Ebner. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Gabriel Ebner, Anatole Dedecker, Yury Kudryashov
+-/
 import analysis.calculus.deriv.basic
 import analysis.calculus.fderiv.mul
 import analysis.calculus.fderiv.add
+
+/-!
+# Derivative of `f x * g x`
+
+In this file we prove formulas for `(f x * g x)'` and `(f x • g x)'`.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative, multiplication
+-/
 
 universes u v w
 noncomputable theory
 open_locale classical topology big_operators filter ennreal
 open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)
-
 
 variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
 variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]

@@ -1,12 +1,29 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import analysis.calculus.deriv.comp
 import analysis.calculus.fderiv.equiv
 
+/-!
+# Inverse function theorem - the easy half
+
+In this file we prove that `g' (f x) = (f' x)⁻¹` provided that `f` is strictly differentiable at
+`x`, `f' x ≠ 0`, and `g` is a local left inverse of `f` that is continuous at `f x`. This is the
+easy half of the inverse function theorem: the harder half states that `g` exists.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative, inverse function
+-/
+
 universes u v w
-noncomputable theory
 open_locale classical topology big_operators filter ennreal
 open filter asymptotics set
-open continuous_linear_map (smul_right smul_right_one_eq_iff)
-
 
 variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
 variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]

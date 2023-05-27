@@ -1,11 +1,27 @@
+/-
+Copyright (c) 2023 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel, Yury Kudryashov
+-/
 import analysis.calculus.deriv.pow
 import analysis.calculus.deriv.inv
 
-universes u v w
-open_locale classical topology big_operators filter ennreal
-open filter asymptotics set
-open continuous_linear_map (smul_right smul_right_one_eq_iff)
+/-!
+# Derivatives of `x ^ m`, `m : ℤ`
 
+In this file we prove theorems about (iterated) derivatives of `x ^ m`, `m : ℤ`.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative, power
+-/
+
+universes u v w
+open_locale classical topology big_operators filter
+open filter asymptotics set
 
 variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
 variables {E : Type v} [normed_add_comm_group E] [normed_space 𝕜 E]

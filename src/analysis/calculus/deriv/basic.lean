@@ -248,6 +248,16 @@ theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
   tendsto (λ x', ‖x' - x‖⁻¹ * ‖f x' - f x - (x' - x) • f'‖) (𝓝 x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
+theorem has_deriv_at_filter.is_O_sub (h : has_deriv_at_filter f f' x L) :
+  (λ x', f x' - f x) =O[L] (λ x', x' - x) :=
+has_fderiv_at_filter.is_O_sub h
+
+theorem has_deriv_at_filter.is_O_sub_rev (hf : has_deriv_at_filter f f' x L) (hf' : f' ≠ 0) :
+  (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
+suffices antilipschitz_with ‖f'‖₊⁻¹ (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f'), from hf.is_O_sub_rev this,
+add_monoid_hom_class.antilipschitz_of_bound (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') $
+  λ x, by simp [norm_smul, ← div_eq_inv_mul, mul_div_cancel _ (mt norm_eq_zero.1 hf')]
+
 theorem has_strict_deriv_at.has_deriv_at (h : has_strict_deriv_at f f' x) :
   has_deriv_at f f' x :=
 h.has_fderiv_at

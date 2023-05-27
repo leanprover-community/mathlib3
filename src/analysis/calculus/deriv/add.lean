@@ -1,12 +1,28 @@
+/-
+Copyright (c) 2023 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel, Yury Kudryashov, Gabriel Ebner, Anatole Dedecker
+-/
 import analysis.calculus.deriv.basic
 import analysis.calculus.fderiv.add
 
+/-!
+# One-dimensional derivatives of sums etc
+
+In this file we prove formulas about derivatives of `f + g`, `-f`, `f - g`, and `∑ i, f i x` for
+functions from the base field to a normed space over this field.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative
+-/
+
 universes u v w
-noncomputable theory
 open_locale classical topology big_operators filter ennreal
 open filter asymptotics set
-open continuous_linear_map (smul_right smul_right_one_eq_iff)
-
 
 variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
 variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]
@@ -16,7 +32,7 @@ variables {f f₀ f₁ g : 𝕜 → F}
 variables {f' f₀' f₁' g' : F}
 variables {x : 𝕜}
 variables {s t : set 𝕜}
-variables {L L₁ L₂ : filter 𝕜}
+variables {L : filter 𝕜}
 
 section add
 /-! ### Derivative of the sum of two functions -/
@@ -237,16 +253,6 @@ lemma deriv_within_sub (hxs : unique_diff_within_at 𝕜 s x)
   (hf : differentiable_at 𝕜 f x) (hg : differentiable_at 𝕜 g x) :
   deriv (λ y, f y - g y) x = deriv f x - deriv g x :=
 (hf.has_deriv_at.sub hg.has_deriv_at).deriv
-
-theorem has_deriv_at_filter.is_O_sub (h : has_deriv_at_filter f f' x L) :
-  (λ x', f x' - f x) =O[L] (λ x', x' - x) :=
-has_fderiv_at_filter.is_O_sub h
-
-theorem has_deriv_at_filter.is_O_sub_rev (hf : has_deriv_at_filter f f' x L) (hf' : f' ≠ 0) :
-  (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
-suffices antilipschitz_with ‖f'‖₊⁻¹ (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f'), from hf.is_O_sub_rev this,
-add_monoid_hom_class.antilipschitz_of_bound (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') $
-  λ x, by simp [norm_smul, ← div_eq_inv_mul, mul_div_cancel _ (mt norm_eq_zero.1 hf')]
 
 theorem has_deriv_at_filter.sub_const
   (hf : has_deriv_at_filter f f' x L) (c : F) :

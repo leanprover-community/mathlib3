@@ -1,12 +1,28 @@
+/-
+Copyright (c) 2019 Gabriel Ebner. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Gabriel Ebner, Yury Kudryashov
+-/
 import analysis.calculus.deriv.basic
 import analysis.calculus.fderiv.prod
 
-universes u v w
-noncomputable theory
-open_locale classical topology big_operators filter ennreal
-open filter asymptotics set
-open continuous_linear_map (smul_right smul_right_one_eq_iff)
+/-!
+# Derivatives of functions taking values in product types
 
+In this file we prove lemmas about derivatives of functions `f : 𝕜 → E × F` and of functions
+`f : 𝕜 → (Π i, E i)`.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative
+-/
+
+universes u v w
+open_locale classical topology big_operators filter
+open filter asymptotics set
 
 variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
 variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]

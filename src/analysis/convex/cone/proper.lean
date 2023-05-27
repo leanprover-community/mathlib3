@@ -3,11 +3,9 @@ Copyright (c) 2022 Apurva Nakade All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Apurva Nakade
 -/
-import analysis.convex.cone.basic
-import topology.algebra.monoid
+import analysis.convex.cone.dual
 
 /-!
-
 # Proper cones
 
 We define a proper cone as a nonempty, closed, convex cone. Proper cones are used in defining conic
@@ -41,7 +39,7 @@ variables {𝕜 : Type*} [ordered_semiring 𝕜]
 variables {E : Type*} [add_comm_monoid E] [topological_space E] [has_continuous_add E]
   [has_smul 𝕜 E] [has_continuous_const_smul 𝕜 E]
 
-/-- The closure of a convex cone inside a topological space is a convex cone. This
+/-- The closure of a convex cone inside a topological space as a convex cone. This
 construction is mainly used for defining maps between proper cones. -/
 protected def closure (K : convex_cone 𝕜 E) : convex_cone 𝕜 E :=
 { carrier := closure ↑K,
@@ -54,9 +52,8 @@ protected def closure (K : convex_cone 𝕜 E) : convex_cone 𝕜 E :=
 @[simp] protected lemma mem_closure {K : convex_cone 𝕜 E} {a : E} :
   a ∈ K.closure ↔ a ∈ closure (K : set E) := iff.rfl
 
-lemma closure_eq_iff_is_closed {K : convex_cone 𝕜 E} : K.closure = K ↔ is_closed (K : set E) :=
-⟨ (λ h, by rw [← closure_eq_iff_is_closed, ← coe_closure, h]),
-  (λ h, set_like.coe_injective $ closure_eq_iff_is_closed.2 h) ⟩
+@[simp] lemma closure_eq {K L : convex_cone 𝕜 E} : K.closure = L ↔ closure (K : set E) = L :=
+set_like.ext'_iff
 
 end convex_cone
 
@@ -141,7 +138,7 @@ noncomputable def map (f : E →L[ℝ] F) (K : proper_cone ℝ E) : proper_cone 
   y ∈ K.map f ↔ y ∈ (convex_cone.map (f : E →ₗ[ℝ] F) ↑K).closure := iff.rfl
 
 @[simp] lemma map_id (K : proper_cone ℝ E) : K.map (continuous_linear_map.id ℝ E) = K :=
-proper_cone.ext' $ by simpa using convex_cone.closure_eq_iff_is_closed.2 K.is_closed
+proper_cone.ext' $ by simpa using is_closed.closure_eq K.is_closed
 
 /-- The inner dual cone of a proper cone is a proper cone. -/
 def dual (K : proper_cone ℝ E): (proper_cone ℝ E) :=

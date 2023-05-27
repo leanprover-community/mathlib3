@@ -1052,7 +1052,7 @@ end
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] :
   N'' ≃ₗ[R'] alternating_map R' M'' N'' ι :=
-{ to_fun    := alternating_map.const_of_is_empty R' M'',
+{ to_fun    := alternating_map.const_of_is_empty R' M'' ι,
   map_add'  := λ x y, rfl,
   map_smul' := λ t x, rfl,
   inv_fun   := λ f, f 0,

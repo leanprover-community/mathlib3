@@ -579,6 +579,7 @@ section eval_clm
 
 variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
+/-- The applying a vector to Hom-valued Schwartz function as a continuous linear map. -/
 @[protected] def eval_clm (m : E) : 𝓢(E, E →L[ℝ] F) →L[𝕜] 𝓢(E, F) :=
 mk_clm (λ f x, f x m)
   (λ _ _ _, rfl) (λ _ _ _, rfl) (λ f, cont_diff.clm_apply f.2 cont_diff_const)
@@ -628,11 +629,15 @@ mk_clm (λ f, deriv f)
 
 @[simp] lemma deriv_clm_apply (f : 𝓢(ℝ, F)) (x : ℝ) : deriv_clm 𝕜 f x = deriv f x := rfl
 
+/-- The partial derivative (or directional derivative) in the direction `m : E` as a
+continuous linear map on Schwartz space. -/
 def pderiv_clm (m : E) : 𝓢(E, F) →L[𝕜] 𝓢(E, F) := (eval_clm m).comp (fderiv_clm 𝕜)
 
 @[simp]
 lemma pderiv_clm_apply (m : E) (f : 𝓢(E, F)) (x : E) : pderiv_clm 𝕜 m f x = fderiv ℝ f x m := rfl
 
+/-- The iterated partial derivative (or directional derivative) as a continuous linear map on
+Schwartz space. -/
 def iterated_pderiv {n : ℕ} : (fin n → E) → 𝓢(E, F) →L[𝕜] 𝓢(E, F) :=
 nat.rec_on n
   (λ x, continuous_linear_map.id 𝕜 _)
@@ -660,6 +665,8 @@ begin
   by simp only [fin.tail_def, fin.succ_last],
   simp only [iterated_pderiv_succ_left, IH (fin.tail m), hmzero, hmtail, fin.tail_init_eq_init_tail]
 end
+
+-- Todo: `iterated_pderiv 𝕜 m f x = iterated_fderiv ℝ f x m`
 
 end derivatives
 

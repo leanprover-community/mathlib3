@@ -14,6 +14,9 @@ import algebra.category.Ring.constructions
 /-!
 # Equivalent formulations of the sheaf condition
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We give an equivalent formulation of the sheaf condition.
 
 Given any indexed type `ι`, we define `overlap ι`,

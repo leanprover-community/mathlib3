@@ -15,6 +15,9 @@ import tactic.interval_cases
 /-!
 # p-groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a proof that if `G` is a `p`-group acting on a finite set `α`,
 then the number of fixed points of the action is congruent mod `p` to the cardinality of `α`.
 It also contains proofs of some corollaries of this lemma about existence of fixed points.

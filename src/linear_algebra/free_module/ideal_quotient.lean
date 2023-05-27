@@ -11,6 +11,9 @@ import linear_algebra.quotient_pi
 
 /-! # Ideals in free modules over PIDs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main results
 
  - `ideal.quotient_equiv_pi_span`: `S ⧸ I`, if `S` is finite free as a module over a PID `R`,

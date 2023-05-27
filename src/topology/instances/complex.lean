@@ -10,6 +10,9 @@ import topology.algebra.uniform_ring
 
 /-!
 # Some results about the topology of ℂ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 section complex_subfield

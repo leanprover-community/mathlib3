@@ -14,6 +14,9 @@ import group_theory.exponent
 /-!
 # Cyclic groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A group `G` is called cyclic if there exists an element `g : G` such that every element of `G` is of
 the form `g ^ n` for some `n : ℕ`. This file only deals with the predicate on a group to be cyclic.
 For the concrete cyclic group of order `n`, see `data.zmod.basic`.

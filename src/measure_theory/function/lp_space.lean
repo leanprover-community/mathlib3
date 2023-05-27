@@ -3,13 +3,8 @@ Copyright (c) 2020 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
-import analysis.normed_space.indicator_function
 import analysis.normed.group.hom
-import analysis.special_functions.pow.continuity
-import measure_theory.function.ess_sup
-import measure_theory.function.ae_eq_fun
 import measure_theory.function.lp_seminorm
-import measure_theory.integral.mean_inequalities
 import topology.continuous_function.compact
 
 /-!

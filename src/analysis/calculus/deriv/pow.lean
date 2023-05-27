@@ -1,11 +1,27 @@
+/-
+Copyright (c) 2023 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel
+-/
 import analysis.calculus.deriv.mul
 import analysis.calculus.deriv.comp
+
+/-!
+# Derivative of `(f x) ^ n`, `n : ℕ`
+
+In this file we prove that `(x ^ n)' = n * x ^ (n - 1)`, where `n` is a natural number.
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative, power
+-/
 
 universes u v w
 open_locale classical topology big_operators filter ennreal
 open filter asymptotics set
-open continuous_linear_map (smul_right smul_right_one_eq_iff)
-
 
 variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
 variables {F : Type v} [normed_add_comm_group F] [normed_space 𝕜 F]

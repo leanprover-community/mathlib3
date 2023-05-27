@@ -1,12 +1,33 @@
+/-
+Copyright (c) 2019 Gabriel Ebner. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Gabriel Ebner, Sébastien Gouëzel, Yury Kudryashov, Yuyang Zhao
+-/
 import analysis.calculus.deriv.basic
 import analysis.calculus.fderiv.comp
 import analysis.calculus.fderiv.restrict_scalars
 
 /-!
+# One-dimensional derivatives of compositions of functions
+
+In this file we prove the chain rule for the following cases:
+
+* `has_deriv_at.comp` etc: `f : 𝕜' → 𝕜'` composed with `g : 𝕜 → 𝕜'`;
+* `has_deriv_at.scomp` etc: `f : 𝕜' → E` composed with `g : 𝕜 → 𝕜'`;
+* `has_fderiv_at.comp_has_deriv_at` etc: `f : E → F` composed with `g : 𝕜 → E`;
+
+Here `𝕜` is the base normed field, `E` and `F` are normed spaces over `𝕜` and `𝕜'` is an algebra
+over `𝕜` (e.g., `𝕜'=𝕜` or `𝕜=ℝ`, `𝕜'=ℂ`).
+
+For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of
+`analysis/calculus/deriv/basic`.
+
+## Keywords
+
+derivative, chain rule
 -/
 
 universes u v w
-noncomputable theory
 open_locale classical topology big_operators filter ennreal
 open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)

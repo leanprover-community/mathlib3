@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2023 Sébastien Gouëzel. All rights reserved.
+Copyright (c) 2019 Gabriel Ebner All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel, Yury Kudryashov, Gabriel Ebner, Anatole Dedecker
+Authors: Gabriel Ebner, Sébastien Gouëzel, Yury Kudryashov, Anatole Dedecker
 -/
 import analysis.calculus.deriv.basic
 import analysis.calculus.fderiv.add

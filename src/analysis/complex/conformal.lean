@@ -10,6 +10,9 @@ import analysis.normed_space.finite_dimension
 /-!
 # Conformal maps between complex vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove the sufficient and necessary conditions for a real-linear map between complex vector spaces
 to be conformal.
 

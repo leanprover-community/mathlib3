@@ -9,6 +9,9 @@ import analysis.box_integral.partition.split
 /-!
 # Filters used in box-based integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 First we define a structure `box_integral.integration_params`. This structure will be used as an
 argument in the definition of `box_integral.integral` in order to use the same definition for a few
 well-known definitions of integrals based on partitions of a rectangular box into subboxes (Riemann

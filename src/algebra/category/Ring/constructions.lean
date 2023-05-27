@@ -13,6 +13,9 @@ import ring_theory.subring.basic
 /-!
 # Constructions of (co)limits in CommRing
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide the explicit (co)cones for various (co)limits in `CommRing`, including
 * tensor product is the pushout
 * `Z` is the initial object

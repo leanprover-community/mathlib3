@@ -12,6 +12,9 @@ import tactic.field_simp
 /-!
 # Bernoulli numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Bernoulli numbers are a sequence of rational numbers that frequently show up in
 number theory.
 

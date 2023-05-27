@@ -1245,24 +1245,39 @@ begin
   refl
 end
 
+/- Porting note: move this to `topology.algebra.module.basic` when port is over -/
+lemma det_one_smul_right {𝕜 : Type*} [normed_field 𝕜] (v : 𝕜) :
+  ((1 : 𝕜 →L[𝕜] 𝕜).smul_right v).det = v :=
+begin
+  have : (1 : 𝕜 →L[𝕜] 𝕜).smul_right v = v • (1 : 𝕜 →L[𝕜] 𝕜),
+  { ext1 w,
+    simp only [continuous_linear_map.smul_right_apply, continuous_linear_map.one_apply,
+    algebra.id.smul_eq_mul, one_mul, continuous_linear_map.coe_smul', pi.smul_apply, mul_one] },
+  rw [this, continuous_linear_map.det, continuous_linear_map.coe_smul],
+  change ((1 : 𝕜 →L[𝕜] 𝕜) : 𝕜 →ₗ[𝕜] 𝕜) with linear_map.id,
+  rw [linear_map.det_smul, finite_dimensional.finrank_self, linear_map.det_id, pow_one, mul_one],
+end
+
+/-- Integrability in the change of variable formula for differentiable functions (one-variable
+version): if a function `f` is injective and differentiable on a measurable set ``s ⊆ ℝ`, then a
+function `g : ℝ → F` is integrable on `f '' s` if and only if `|(f' x)| • g ∘ f` is integrable on
+`s`. -/
+theorem integrable_on_image_iff_integrable_on_abs_deriv_smul
+  {s : set ℝ} {f : ℝ → ℝ} {f' : ℝ → ℝ} (hs : measurable_set s)
+  (hf' : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (hf : inj_on f s) (g : ℝ → F) :
+  integrable_on g (f '' s) ↔ integrable_on (λ x, |(f' x)| • g (f x)) s :=
+by simpa only [det_one_smul_right] using integrable_on_image_iff_integrable_on_abs_det_fderiv_smul
+  volume hs (λ x hx, (hf' x hx).has_fderiv_within_at) hf g
+
 /-- Change of variable formula for differentiable functions (one-variable version): if a function
 `f` is injective and differentiable on a measurable set `s ⊆ ℝ`, then the Bochner integral of a
-function `g : ℝ → F` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
+function `g : ℝ → F` on `f '' s` coincides with the integral of `|(f' x)| • g ∘ f` on `s`. -/
 theorem integral_image_eq_integral_abs_deriv_smul {s : set ℝ} {f : ℝ → ℝ} {f' : ℝ → ℝ}
   [complete_space F] (hs : measurable_set s) (hf' : ∀ x ∈ s, has_deriv_within_at f (f' x) s x)
   (hf : inj_on f s) (g : ℝ → F) :
   ∫ x in f '' s, g x = ∫ x in s, |(f' x)| • g (f x) :=
-begin
-  convert integral_image_eq_integral_abs_det_fderiv_smul volume hs
-    (λ x hx, (hf' x hx).has_fderiv_within_at) hf g,
-  ext1 x,
-  rw (by { ext, simp } : (1 : ℝ →L[ℝ] ℝ).smul_right (f' x) = (f' x) • (1 : ℝ →L[ℝ] ℝ)),
-  rw [continuous_linear_map.det, continuous_linear_map.coe_smul],
-  have : ((1 : ℝ →L[ℝ] ℝ) : ℝ →ₗ[ℝ] ℝ) = (1 : ℝ →ₗ[ℝ] ℝ) := by refl,
-  rw [this, linear_map.det_smul, finite_dimensional.finrank_self],
-  suffices : (1 : ℝ →ₗ[ℝ] ℝ).det = 1, { rw this, simp },
-  exact linear_map.det_id,
-end
+by simpa only [det_one_smul_right] using integral_image_eq_integral_abs_det_fderiv_smul
+  volume hs (λ x hx, (hf' x hx).has_fderiv_within_at) hf g
 
 theorem integral_target_eq_integral_abs_det_fderiv_smul [complete_space F]
   {f : local_homeomorph E E} (hf' : ∀ x ∈ f.source, has_fderiv_at f (f' x) x) (g : E → F) :

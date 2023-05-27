@@ -477,7 +477,7 @@ local attribute [instance] simple_func.module
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def has_bounded_smul [fact (1 ≤ p)] : has_bounded_smul 𝕜 (Lp.simple_func E p μ) :=
+protected lemma has_bounded_smul [fact (1 ≤ p)] : has_bounded_smul 𝕜 (Lp.simple_func E p μ) :=
 has_bounded_smul.of_norm_smul_le $ λ r f, (norm_smul_le r (f : Lp E p μ) : _)
 
 local attribute [instance] simple_func.has_bounded_smul

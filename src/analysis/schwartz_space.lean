@@ -605,17 +605,19 @@ begin
   exact finset.le_sup hN,
 end
 
-/-- The multiplication with a smooth function of temperate growth is a continuous linear map on
-Schwartz space. -/
-def mul_clm (B : E →L[ℝ] F →L[ℝ] G) {g : D → F} (hg_smooth : cont_diff ℝ ⊤ g)
+/-- For a bilinear map `B` and a smooth function of temperate growth `g` the map
+The map `f ↦ (x ↦ B (f x) (g x))` as a continuous `𝕜`-linear map on Schwartz space,
+where `B` is a continuous `𝕜`-linear map and `g` is a smooth function of temperate growth. -/
+def bilin_left_clm (B : E →L[ℝ] F →L[ℝ] G) {g : D → F} (hg_smooth : cont_diff ℝ ⊤ g)
   (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ (x : D), ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k) :
   𝓢(D, E) →L[ℝ] 𝓢(D, G) :=
+  -- Todo (after port): generalize to `B : E →L[𝕜] F →L[𝕜] G` and `𝕜`-linear
 mk_clm (λ f x, B (f x) (g x))
   (λ _ _ _, by simp only [map_add, add_left_inj, pi.add_apply, eq_self_iff_true,
     continuous_linear_map.add_apply])
   (λ _ _ _, by simp only [pi.smul_apply, continuous_linear_map.coe_smul',
     continuous_linear_map.map_smul, ring_hom.id_apply])
-  (λ f, B.is_bounded_bilinear_map.cont_diff.comp (f.smooth'.prod hg_smooth))
+  (λ f, (B.is_bounded_bilinear_map.cont_diff.restrict_scalars ℝ).comp (f.smooth'.prod hg_smooth))
   (begin
     -- Porting note: rewrite this proof with `rel_congr`
     rintro ⟨k, n⟩,
@@ -660,15 +662,21 @@ end multiplication
 
 section comp
 
+variables (𝕜)
+variables [is_R_or_C 𝕜]
 variables [normed_add_comm_group D] [normed_space ℝ D]
 variables [normed_add_comm_group G] [normed_space ℝ G]
+variables [normed_space 𝕜 D] [smul_comm_class ℝ 𝕜 D]
+variables [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
+variables [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+variables [normed_space 𝕜 G] [smul_comm_class ℝ 𝕜 G]
 
-/-- Composition with a smooth function of temperate growth on the right is a continuous linear
-map on Schwartz space. -/
+/-- Composition with a smooth function on the right is a continuous linear map on Schwartz space
+provided that the function is temperated and growths polynomially near infinity. -/
 def comp_clm {g : D → E} (hg_smooth : cont_diff ℝ ⊤ g)
   (hg_growth : ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ x, ‖iterated_fderiv ℝ n g x‖ ≤ C * (1 + ‖x‖)^k)
   (hg_upper : ∃ (k : ℕ) (C : ℝ) (hC : 1 ≤ C), ∀ x, 1 + ‖x‖ ≤ C * (1 + ‖g x‖)^k ) :
-  𝓢(E, F) →L[ℝ] 𝓢(D, F) :=
+  𝓢(E, F) →L[𝕜] 𝓢(D, F) :=
 mk_clm (λ f x, (f (g x)))
   (λ _ _ _, by simp only [add_left_inj, pi.add_apply, eq_self_iff_true])
   (λ _ _ _, rfl)
@@ -680,7 +688,7 @@ mk_clm (λ f x, (f (g x)))
     let k' := kg * (k + l * n),
     use [finset.Iic (k',n), Cg ^ (k + l * n) * ((C + 1) ^ n * n! * 2 ^ k'), by positivity],
     intros f x,
-    let seminorm_f := ((finset.Iic (k',n)).sup (schwartz_seminorm_family ℝ _ _)) f,
+    let seminorm_f := ((finset.Iic (k',n)).sup (schwartz_seminorm_family 𝕜 _ _)) f,
     have hg_upper'' : (1 + ‖x‖)^(k + l * n) ≤ Cg^(k + l*n) * (1 + ‖g x‖)^k' :=
     begin
       rw [pow_mul, ← mul_pow],

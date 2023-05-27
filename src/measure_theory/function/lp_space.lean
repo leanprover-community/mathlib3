@@ -8,10 +8,11 @@ import measure_theory.function.lp_seminorm
 import topology.continuous_function.compact
 
 /-!
-# ℒp space and Lp space
+# Lp space
 
 This file provides the space `Lp E p μ` as the subtype of elements of `α →ₘ[μ] E` (see ae_eq_fun)
-such that `snorm f p μ` is finite. For `1 ≤ p`, `snorm` defines a norm and `Lp` is a complete metric space.
+such that `snorm f p μ` is finite. For `1 ≤ p`, `snorm` defines a norm and `Lp` is a complete metric
+space.
 
 ## Main definitions
 

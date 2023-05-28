@@ -340,11 +340,6 @@ lemma _root_.alg_hom.map_adjugate {R A B : Type*} [comm_semiring R] [comm_ring A
   (M : matrix n n A) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
 f.to_ring_hom.map_adjugate _
 
-lemma det_eq_sum_mul_adjugate_col {n : Type*} [decidable_eq n] [fintype n]
-  (A : matrix n n R) (j : n) :
-  det A = ∑ i : n, A i j * adjugate A j i :=
-by simpa only [det_transpose, ←adjugate_transpose] using det_eq_sum_mul_adjugate_row Aᵀ j
-
 lemma det_adjugate (A : matrix n n α) : (adjugate A).det = A.det ^ (fintype.card n - 1) :=
 begin
   -- get rid of the `- 1`
@@ -413,6 +408,10 @@ begin
   rw det_succ_row A' (e i),
   simp_rw [mul_assoc, mul_left_comm _ (A' _ _), ←adjugate_fin_succ_eq_det_submatrix],
 end
+
+lemma det_eq_sum_mul_adjugate_col (A : matrix n n R) (j : n) :
+  det A = ∑ i : n, A i j * adjugate A j i :=
+by simpa only [det_transpose, ←adjugate_transpose] using det_eq_sum_mul_adjugate_row Aᵀ j
 
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=
 begin

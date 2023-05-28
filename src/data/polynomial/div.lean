@@ -395,10 +395,13 @@ lemma mul_div_by_monic_eq_iff_is_root : (X - C a) * (p /ₘ (X - C a)) = p ↔ i
   by conv {to_rhs, rw ← mod_by_monic_add_div p (monic_X_sub_C a)};
     rw [mod_by_monic_X_sub_C_eq_C_eval, h, C_0, zero_add]⟩
 
-lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
+lemma dvd_iff_is_root : X - C a ∣ p ↔ is_root p a :=
 ⟨λ h, by rwa [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _),
     mod_by_monic_X_sub_C_eq_C_eval, ← C_0, C_inj] at h,
   λ h, ⟨(p /ₘ (X - C a)), by rw mul_div_by_monic_eq_iff_is_root.2 h⟩⟩
+
+lemma X_sub_C_dvd_sub_C_eval : X - C a ∣ p - C (p.eval a) :=
+by rw [dvd_iff_is_root, is_root, eval_sub, eval_C, sub_self]
 
 lemma mod_by_monic_X (p : R[X]) : p %ₘ X = C (p.eval 0) :=
 by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]

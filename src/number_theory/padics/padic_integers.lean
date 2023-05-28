@@ -9,6 +9,9 @@ import ring_theory.discrete_valuation_ring.basic
 /-!
 # p-adic integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `p`-adic integers `ℤ_[p]` as the subtype of `ℚ_[p]` with norm `≤ 1`.
 We show that `ℤ_[p]`
 * is complete,

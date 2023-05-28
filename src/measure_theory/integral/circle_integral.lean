@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import measure_theory.integral.interval_integral
+import analysis.calculus.deriv.zpow
 import analysis.normed_space.pointwise
 import analysis.special_functions.non_integrable
 import analysis.analytic.basic

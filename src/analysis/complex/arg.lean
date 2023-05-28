@@ -10,6 +10,9 @@ import analysis.special_functions.complex.arg
 /-!
 # Rays in the complex numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file links the definition `same_ray ℝ x y` with the equality of arguments of complex numbers,
 the usual way this is considered.
 
@@ -17,8 +20,8 @@ the usual way this is considered.
 
 * `complex.same_ray_iff` : Two complex numbers are on the same ray iff one of them is zero, or they
   have the same argument.
-* `complex.abs_add_eq/complex.abs_sub_eq`: If two non zero complex numbers have different argument,
-  then the triangle inequality becomes strict.
+* `complex.abs_add_eq/complex.abs_sub_eq`: If two non zero complex numbers have the same argument,
+  then the triangle inequality is an equality.
 
 -/
 

@@ -8,6 +8,9 @@ import measure_theory.function.strongly_measurable.basic
 /-!
 # Egorov theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the Egorov theorem which states that an almost everywhere convergent
 sequence on a finite measure space converges uniformly except on an arbitrarily small set.
 This theorem is useful for the Vitali convergence theorem as well as theorems regarding

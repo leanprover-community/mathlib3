@@ -11,6 +11,9 @@ import topology.sets.compacts
 /-!
 # Continuous functions on a compact space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Continuous functions `C(α, β)` from a compact space `α` to a metric space `β`
 are automatically bounded, and so acquire various structures inherited from `α →ᵇ β`.
 

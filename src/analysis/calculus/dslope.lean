@@ -3,7 +3,8 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.deriv
+import analysis.calculus.deriv.slope
+import analysis.calculus.deriv.inv
 
 /-!
 # Slope of a differentiable function

@@ -10,6 +10,9 @@ import analysis.locally_convex.polar
 /-!
 # The topological dual of a normed space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the topological dual `normed_space.dual` of a normed space, and the
 continuous linear map `normed_space.inclusion_in_double_dual` from a normed space into its double
 dual.

@@ -8,6 +8,9 @@ import ring_theory.integral_closure
 /-!
 # Minimal polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the minimal polynomial of an element `x` of an `A`-algebra `B`,
 under the assumption that x is integral over `A`, and derives some basic properties
 such as ireducibility under the assumption `B` is a domain.

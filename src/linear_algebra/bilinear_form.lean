@@ -10,6 +10,9 @@ import linear_algebra.free_module.finite.matrix
 /-!
 # Bilinear form
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a bilinear form over a module. Basic ideas
 such as orthogonality are also introduced, as well as reflexivive,
 symmetric, non-degenerate and alternating bilinear forms. Adjoints of

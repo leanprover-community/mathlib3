@@ -12,6 +12,9 @@ import analysis.calculus.fderiv.restrict_scalars
 /-!
 # Conformal Maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A continuous linear map between real normed spaces `X` and `Y` is `conformal_at` some point `x`
 if it is real differentiable at that point and its differential `is_conformal_linear_map`.
 

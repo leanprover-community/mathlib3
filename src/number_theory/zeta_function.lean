@@ -52,7 +52,7 @@ noncomputable theory
 def zeta_kernel₁ (t : ℝ) : ℂ := ∑' (n : ℕ), rexp (-π * t * (n + 1) ^ 2)
 
 /-- Modified zeta kernel, whose Mellin transform is entire. --/
-def zeta_kernel₂ : ℝ → ℂ  := zeta_kernel₁ + indicator (Ioc 0 1) (λ t, (1 - 1 / sqrt t) / 2)
+def zeta_kernel₂ : ℝ → ℂ := zeta_kernel₁ + indicator (Ioc 0 1) (λ t, (1 - 1 / sqrt t) / 2)
 
 /-- The completed Riemann zeta function with its poles removed, `Λ(s) + 1 / s - 1 / (s - 1)`. -/
 def riemann_completed_zeta₀ (s : ℂ) : ℂ := mellin zeta_kernel₂ (s / 2)
@@ -61,8 +61,9 @@ def riemann_completed_zeta₀ (s : ℂ) : ℂ := mellin zeta_kernel₂ (s / 2)
 `Λ(s) = π ^ (-s / 2) Γ(s / 2) ζ(s)` (up to a minor correction at `s = 0`). -/
 def riemann_completed_zeta (s : ℂ) : ℂ := riemann_completed_zeta₀ s - 1 / s + 1 / (s - 1)
 
-/-- The Riemann zeta function `ζ(s)`. -/
-def riemann_zeta := function.update
+/-- The Riemann zeta function `ζ(s)`. We set this to be irreducible to hide messy implementation
+details. -/
+@[irreducible] def riemann_zeta := function.update
   (λ s : ℂ, ↑π ^ (s / 2) * riemann_completed_zeta s / Gamma (s / 2)) 0 (-1 / 2)
 
 /- Note the next lemma is true by definition; what's hard is to show that with this definition, `ζ`
@@ -70,10 +71,11 @@ is continuous (and indeed analytic) at 0.
 
 TODO: Prove this -- this will be in a future PR. -/
 /-- We have `ζ(0) = -1 / 2`. -/
-lemma riemann_zeta_zero : riemann_zeta 0 = -1 / 2 := function.update_same _ _ _
-
-/- Set `riemann_zeta` to be irreducible to hide messy implementation details -/
-attribute [irreducible] riemann_zeta
+lemma riemann_zeta_zero : riemann_zeta 0 = -1 / 2 :=
+begin
+  unfold riemann_zeta,
+  exact function.update_same _ _ _
+end
 
 /-!
 ## First properties of the zeta kernels
@@ -91,7 +93,9 @@ begin
   rw [I_sq, mul_neg_one, ←of_real_neg, of_real_re, neg_mul, neg_mul],
 end
 
-/-- Relate `zeta_kernel₁` to the Jacobi theta function on `ℍ`. -/
+/-- Relate `zeta_kernel₁` to the Jacobi theta function on `ℍ`. (We don't use this as the definition
+of `zeta_kernel₁`, since the sum over `ℕ` rather than `ℤ` is more convenient for relating zeta to
+the Dirichlet series for `re s > 1`.) -/
 lemma zeta_kernel₁_eq_jacobi_theta {t : ℝ} (ht : 0 < t) :
   zeta_kernel₁ t = (jacobi_theta (t * I) - 1) / 2 :=
 begin

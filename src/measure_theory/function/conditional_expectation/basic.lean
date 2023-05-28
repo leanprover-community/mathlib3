@@ -191,7 +191,7 @@ lemma ae_strongly_measurable.comp_ae_measurable'
   {α β γ : Type*} [topological_space β] {mα : measurable_space α} {mγ : measurable_space γ}
   {f : α → β} {μ : measure γ} {g : γ → α}
   (hf : ae_strongly_measurable f (μ.map g)) (hg : ae_measurable g μ) :
-  ae_strongly_measurable' (mα.comap g ) (f ∘ g) μ :=
+  ae_strongly_measurable' (mα.comap g) (f ∘ g) μ :=
 ⟨(hf.mk f) ∘ g, hf.strongly_measurable_mk.comp_measurable (measurable_iff_comap_le.mpr le_rfl),
   ae_eq_comp hg hf.ae_eq_mk⟩
 

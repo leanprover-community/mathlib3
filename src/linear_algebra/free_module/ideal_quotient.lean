@@ -169,6 +169,8 @@ instance (b : basis ι F[X] S) {I : ideal S} (hI : I ≠ ⊥) (i : ι) :
   finite_dimensional F (F[X] ⧸ span ({I.smith_coeffs b hI i} : set F[X])) :=
 (adjoin_root.power_basis $ I.smith_coeffs_ne_zero b hI i).finite_dimensional
 
+open polynomial
+
 /-- For a nonzero element `f` in a `F[X]`-module `S`, the dimension of $S/\langle f \rangle$ as an
 `F`-vector space is the degree of the norm of `f` relative to `F[X]`. -/
 @[nolint fintype_finite] lemma finrank_quotient_span_eq_nat_degree_norm [algebra F S]
@@ -176,9 +178,8 @@ instance (b : basis ι F[X] S) {I : ideal S} (hI : I ≠ ⊥) (i : ι) :
   finite_dimensional.finrank F (S ⧸ span ({f} : set S)) = (algebra.norm F[X] f).nat_degree :=
 begin
   have h := span_singleton_eq_bot.not.2 hf,
-  rw [polynomial.nat_degree_eq_of_degree_eq $ polynomial.degree_eq_degree_of_associated $
-        associated_norm_prod_smith b hf, polynomial.nat_degree_prod _ _ $
-        λ i _, smith_coeffs_ne_zero b _ h i, finrank_quotient_eq_sum F b h],
+  rw [nat_degree_eq_of_degree_eq (degree_eq_degree_of_associated $ associated_norm_prod_smith b hf),
+      nat_degree_prod _ _ (λ i _, smith_coeffs_ne_zero b _ h i), finrank_quotient_eq_sum F b h],
   -- finrank_quotient_eq_sum slow
   congr' with i,
   exact (adjoin_root.power_basis $ smith_coeffs_ne_zero b _ h i).finrank

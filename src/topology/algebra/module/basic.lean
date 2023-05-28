@@ -990,7 +990,6 @@ lemma smul_right_comp [has_continuous_mul R₁] {x : M₂} {c : R₁} :
     smul_right (1 : R₁ →L[R₁] R₁) (c • x) :=
 by { ext, simp [mul_smul] }
 
-
 section to_span_singleton
 variables (R₁)
 variables [has_continuous_smul R₁ M₁]

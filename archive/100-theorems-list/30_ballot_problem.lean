@@ -31,6 +31,7 @@ throughout the count. The probability of this is `(p - q) / (p + q)`.
 
 open set probability_theory measure_theory
 
+namespace archive
 namespace ballot_problem
 
 /-- The set of nonempty lists of integers which suffix has positive sum. -/
@@ -413,6 +414,9 @@ begin
       simp [ne.def, ennreal.div_eq_top] } }
 end
 
+end ballot_problem
+open ballot_problem
+
 /-- The ballot problem. -/
 theorem ballot_problem :
   ∀ q p, q < p → cond_count (counted_sequence p q) stays_positive = (p - q) / (p + q) :=
@@ -435,4 +439,4 @@ begin
   apply_instance,
 end
 
-end ballot_problem
+end archive

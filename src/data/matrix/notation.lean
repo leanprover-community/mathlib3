@@ -314,6 +314,18 @@ empty_eq _
   submatrix A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (submatrix A row col) :=
 by { ext i j, refine fin.cases _ _ i; simp [submatrix] }
 
+/-- Updating a row them removing it is the same as removing it. -/
+@[simp] lemma submatrix_update_row_succ_above (A : matrix (fin m.succ) n' α)
+  (v : n' → α) (f : o' → n') (i : fin m.succ) :
+  (A.update_row i v).submatrix i.succ_above f = A.submatrix i.succ_above f :=
+ext $ λ r s, (congr_fun (update_row_ne (fin.succ_above_ne i r) : _ = A _) (f s) : _)
+
+/-- Updating a column them removing it is the same as removing it. -/
+@[simp] lemma submatrix_update_column_succ_above (A : matrix m' (fin n.succ) α)
+  (v : m' → α) (f : o' → m') (i : fin n.succ) :
+  (A.update_column i v).submatrix f i.succ_above = A.submatrix f i.succ_above:=
+ext $ λ r s, update_column_ne (fin.succ_above_ne i s)
+
 end submatrix
 
 section vec2_and_vec3

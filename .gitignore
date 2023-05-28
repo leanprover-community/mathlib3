@@ -1,4 +1,6 @@
 *.olean
+*.tlean
+*.ast.json
 /_target
 leanpkg.path
 _cache

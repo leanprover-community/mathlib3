@@ -16,7 +16,6 @@ measurable space `m0`, and another measurable space structure `m` with `hm : m �
   measurable space `m`. The similar `P[X|m]` for a measure `P` is defined in
   measure_theory.function.conditional_expectation.
 - `P⟦s|m⟧ = P[s.indicator (λ ω, (1 : ℝ)) | m]`, conditional probability of a set.
-- `P⟦Y ∈ₘ s | m⟧ = P⟦Y ⁻¹' s | m⟧`
 - `X =ₐₛ Y`: `X =ᵐ[volume] Y`
 - `X ≤ₐₛ Y`: `X ≤ᵐ[volume] Y`
 - `∂P/∂Q = P.rn_deriv Q`
@@ -41,10 +40,6 @@ localized "notation (name := expected_value) `𝔼[` X `]` := ∫ a, X a" in pro
 
 localized "notation (name := condexp_indicator)
   P `⟦` s `|` m `⟧` := measure_theory.condexp m P (s.indicator (λ ω, (1 : ℝ)))"
-  in probability_theory
-
-localized "notation (name := condexp_fun_mem_comap)
-  P `⟦` Y `∈ₘ` s `|` m `⟧` := measure_theory.condexp m P ((Y ⁻¹' s).indicator (λ ω, (1 : ℝ)))"
   in probability_theory
 
 localized "notation (name := eq_ae_volume)

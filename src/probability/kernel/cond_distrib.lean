@@ -12,9 +12,9 @@ import probability.notation
 We define the regular conditional probability distribution of `Y : α → Ω` given `X : α → β`, where
 `Ω` is a standard Borel space. This is a `kernel β Ω` such that for almost all `a`, `cond_distrib`
 evaluated at `X a` and a measurable set `s` is equal to the conditional expectation
-`μ⟦Y ∈ₘ s | mβ.comap X⟧` evaluated at `a`.
+`μ⟦Y ⁻¹' s | mβ.comap X⟧` evaluated at `a`.
 
-`μ⟦Y ∈ₘ s | mβ.comap X⟧` maps a measurable set `s` to a function `α → ℝ≥0∞`, and for all `s` that
+`μ⟦Y ⁻¹' s | mβ.comap X⟧` maps a measurable set `s` to a function `α → ℝ≥0∞`, and for all `s` that
 map is unique up tu a `μ`-null set. For all `a`, the map from sets to `ℝ≥0∞` that we obtain that way
 verifies some of the properties of a measure, but in general the fact that the `μ`-null set depends
 on `s` can prevent us from finding versions of the conditional expectation that combine into a true
@@ -28,7 +28,7 @@ measure. The standard Borel space assumption on `Ω` allows us to do so.
 ## Main statements
 
 * `cond_distrib_ae_eq_condexp`: for almost all `a`, `cond_distrib` evaluated at `X a` and a
-  measurable set `s` is equal to the conditional expectation `μ⟦Y ∈ₘ s | mβ.comap X⟧ a`.
+  measurable set `s` is equal to the conditional expectation `μ⟦Y ⁻¹' s | mβ.comap X⟧ a`.
 * `condexp_prod_ae_eq_integral_cond_distrib`: the conditional expectation
   `μ[(λ a, f (X a, Y a)) | X ; mβ]` is almost everywhere equal to the integral
   `∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))`.
@@ -116,7 +116,7 @@ by { obtain ⟨t', ht', rfl⟩ := ht, rw set_lintegral_preimage_cond_distrib hX 
 /-- For almost every `a : α`, the `cond_distrib Y X μ` kernel applied to `X a` and a measurable set
 `s` is equal to the conditional expectation of the indicator of `Y ⁻¹' s`. -/
 lemma cond_distrib_ae_eq_condexp (hX : measurable X) (hY : measurable Y) (hs : measurable_set s) :
-  (λ a, (cond_distrib Y X μ (X a) s).to_real) =ᵐ[μ] μ⟦Y ∈ₘ s | mβ.comap X⟧ :=
+  (λ a, (cond_distrib Y X μ (X a) s).to_real) =ᵐ[μ] μ⟦Y ⁻¹' s | mβ.comap X⟧ :=
 begin
   refine ae_eq_condexp_of_forall_set_integral_eq hX.comap_le _ _ _ _,
   { exact (integrable_const _).indicator (hY hs),  },

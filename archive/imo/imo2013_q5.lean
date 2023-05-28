@@ -27,6 +27,9 @@ We provide a direct translation of the solution found in
 https://www.imo-official.org/problems/IMO2013SL.pdf
 -/
 
+namespace archive
+namespace imo2013_q5
+
 open_locale big_operators
 
 lemma le_of_all_pow_lt_succ {x y : ℝ} (hx : 1 < x) (hy : 1 < y)
@@ -196,6 +199,9 @@ begin
   linarith [H5 x hx, H5 _ h_big_enough]
 end
 
+end imo2013_q5
+open imo2013_q5
+
 theorem imo2013_q5
   (f : ℚ → ℝ)
   (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
@@ -301,3 +307,5 @@ begin
        ... = (((x2num : ℚ) / (x2denom : ℚ) : ℚ) : ℝ) : by norm_cast
        ... = x                                       : by rw ←hrat_expand2
 end
+
+end archive

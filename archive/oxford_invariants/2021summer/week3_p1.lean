@@ -68,6 +68,8 @@ natural.
     `aₙ₊₁ * ((aₙ + aₙ₊₂)/aₙ₊₁ * b - (aₙ * b - a₀)/aₙ₊₁) - a₀ = aₙ₊₁aₙ₊₂b` is divisible by `aₙ₊₂`.
 -/
 
+namespace archive.oxford_invariants
+
 open_locale big_operators
 
 variables {α : Type*} [linear_ordered_field α]
@@ -138,3 +140,5 @@ begin
       nat.mul_div_cancel' han, add_tsub_tsub_cancel ha₀, add_tsub_cancel_right],
     exact dvd_mul_right _ _ }
 end
+
+end archive.oxford_invariants

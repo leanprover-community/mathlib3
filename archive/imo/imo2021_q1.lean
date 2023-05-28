@@ -41,7 +41,11 @@ Then, by the Pigeonhole principle, at least two numbers in the triplet must lie 
 which finishes the proof.
 -/
 
+namespace archive
+
 open real
+
+namespace imo2021_q1
 
 lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * l) :
   n + 4 * l ≤ 2 * l * l :=
@@ -150,7 +154,10 @@ begin
     rintros d (rfl|rfl|rfl); split; linarith only [hna, hab, hbc, hcn], },
 end
 
-theorem IMO_2021_Q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Icc n (2 * n)),
+end imo2021_q1
+open imo2021_q1
+
+theorem imo2021_q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Icc n (2 * n)),
   (∃ (a b ∈ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) ∨
   (∃ (a b ∈ finset.Icc n (2 * n) \ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) :=
 begin
@@ -178,3 +185,5 @@ begin
   cases hCA; [right, left];
   exact ⟨a, (hCA ha).2, b, (hCA hb).2, hab, h₁ a (hCA ha).1 b (hCA hb).1 hab⟩,
 end
+
+end archive

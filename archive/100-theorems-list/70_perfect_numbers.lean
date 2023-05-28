@@ -26,6 +26,8 @@ Euler proved the converse, that if `n` is even and perfect, then there exists `k
 https://en.wikipedia.org/wiki/Euclid%E2%80%93Euler_theorem
 -/
 
+namespace archive.perfect_numbers
+
 lemma odd_mersenne_succ (k : ℕ) : ¬ 2 ∣ mersenne (k + 1) :=
 by simp [← even_iff_two_dvd, ← nat.even_add_one] with parity_simps
 
@@ -126,3 +128,5 @@ begin
 end
 
 end nat
+
+end archive.perfect_numbers

@@ -38,6 +38,8 @@ The formalization follows Erdős's proof by upper and lower estimates.
 https://en.wikipedia.org/wiki/Divergence_of_the_sum_of_the_reciprocals_of_the_primes
 -/
 
+namespace archive.sum_of_prime_reciprocals_diverges
+
 open_locale big_operators
 open_locale classical
 open filter finset
@@ -246,3 +248,5 @@ begin
   ...          < x / 2 + x / 2               : add_lt_add_of_lt_of_le h3 h4
   ...          = x                           : add_halves ↑x,
 end
+
+end archive.sum_of_prime_reciprocals_diverges

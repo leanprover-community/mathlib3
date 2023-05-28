@@ -17,6 +17,8 @@ in terms of injective functions. The general result about `fintype.card (α ↪ 
 uses is `fintype.card_embedding_eq`.
 -/
 
+namespace archive.birthday_problem
+
 local notation (name := finset.card)  `|` x `|` := finset.card x
 local notation (name := fintype.card) `‖` x `‖` := fintype.card x
 
@@ -75,3 +77,5 @@ begin
 end
 
 end measure_theory
+
+end archive.birthday_problem

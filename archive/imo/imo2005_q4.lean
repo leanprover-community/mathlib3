@@ -15,6 +15,8 @@ This is quite an easy problem, in which the key point is a modular arithmetic ca
 the sequence `a n` relative to an arbitrary prime.
 -/
 
+namespace archive.imo2005_q4
+
 /-- The sequence considered in the problem, `2 ^ n + 3 ^ n + 6 ^ n - 1`. -/
 def a (n : ℕ) : ℤ := 2 ^ n + 3 ^ n + 6 ^ n - 1
 
@@ -93,3 +95,5 @@ begin
   -- Contradiction!
   contradiction,
 end
+
+end archive.imo2005_q4

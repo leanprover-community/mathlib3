@@ -18,6 +18,8 @@ Relevant Zulip chat:
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/mul_pos
 -/
 
+namespace counterexamples
+
 /--  The three element monoid. -/
 @[derive [decidable_eq]]
 inductive foo
@@ -85,3 +87,5 @@ end
 example : 0 < ε ∧ ε * ε = 0 := by boom
 
 end foo
+
+end counterexamples

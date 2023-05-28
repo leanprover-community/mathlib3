@@ -19,6 +19,8 @@ terms.  The version here using factors such as `a+3b+3c+3d` is from
 the official solutions.
 -/
 
+namespace archive
+
 open real
 
 theorem imo2020_q2 (a b c d : ℝ) (hd0 : 0 < d) (hdc : d ≤ c) (hcb : c ≤ b) (hba : b ≤ a)
@@ -44,3 +46,5 @@ begin
   ... = (a + b + c + d) ^ 3 : by ring
   ... = 1 : by simp [h1]
 end
+
+end archive

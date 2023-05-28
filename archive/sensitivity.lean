@@ -33,6 +33,8 @@ The project was developed at https://github.com/leanprover-community/lean-sensit
 archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
 -/
 
+namespace archive.sensitivity
+
 /-! The next two lines assert we do not want to give a constructive proof,
 but rather use classical logic. -/
 noncomputable theory
@@ -435,3 +437,5 @@ begin
         convert finset.inter_subset_inter_right coeffs_support
       end
 end
+
+end archive.sensitivity

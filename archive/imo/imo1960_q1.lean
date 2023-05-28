@@ -22,6 +22,7 @@ The strategy here is roughly brute force, checking the possible multiples of 11.
 
 open nat
 
+namespace archive
 namespace imo1960_q1
 
 def sum_of_squares (L : list ℕ) : ℕ := (L.map (λ x, x * x)).sum
@@ -101,8 +102,9 @@ lemma left_direction (n : ℕ) (spn : solution_predicate n) : problem_predicate 
 by rcases spn with (rfl | rfl); norm_num [problem_predicate, sum_of_squares]
 
 end imo1960_q1
-
 open imo1960_q1
 
 theorem imo1960_q1 (n : ℕ) : problem_predicate n ↔ solution_predicate n :=
 ⟨right_direction, left_direction n⟩
+
+end archive

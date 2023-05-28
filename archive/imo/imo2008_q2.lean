@@ -26,6 +26,8 @@ using `c`, `m` and `n`. We factor `LHS - 1` as a square, which finishes the proo
 set of rational solutions to the equation, and that `W` is infinite.
 -/
 
+namespace archive.imo2008_q2
+
 lemma subst_abc {x y z : ℝ} (h : x*y*z = 1) :
   ∃ a b c : ℝ, a ≠ 0 ∧ b ≠ 0 ∧ c ≠ 0 ∧ x = a/b ∧ y = b/c ∧ z = c /a :=
 begin
@@ -132,3 +134,5 @@ begin
 
   exact hW_inf.mono hW_sub_S,
 end
+
+end archive.imo2008_q2

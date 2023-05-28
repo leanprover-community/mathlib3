@@ -39,6 +39,9 @@ finitely supported function is lexicographic, matching the list notation.  The i
 `[0, 1] ≤ [1, 0]` holds.  However, adding `[1, 0]` to both sides yields the *reversed* inequality
 `[1, 1] > [1, 0]`.
 -/
+
+namespace counterexamples
+
 open finsupp add_monoid_algebra
 
 /--  This is a simple example showing that if `R` is a non-trivial ring and `A` is an additive
@@ -230,3 +233,5 @@ begin
   { simpa [unique_add] },
   exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
 end
+
+end counterexamples

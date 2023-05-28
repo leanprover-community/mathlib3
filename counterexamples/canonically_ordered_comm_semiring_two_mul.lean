@@ -23,6 +23,8 @@ Reference:
 https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
 -/
 
+namespace counterexamples
+
 namespace from_Bhavik
 
 /--  Bhavik Mehta's example.  There are only the initial definitions, but no proofs.  The Type
@@ -265,3 +267,5 @@ begin
 end
 
 end ex_L
+
+end counterexamples

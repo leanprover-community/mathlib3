@@ -19,6 +19,8 @@ This file demonstrates why `direct_sum.is_internal_submodule_of_independent_of_s
 take `ring R` and not `semiring R`.
 -/
 
+namespace counterexamples
+
 lemma units_int.one_ne_neg_one : (1 : ℤˣ) ≠ -1 := dec_trivial
 
 /-- Submodules of positive and negative integers, keyed by sign. -/
@@ -93,3 +95,5 @@ end
 /-- And so they do not represent an internal direct sum. -/
 lemma with_sign.not_internal : ¬direct_sum.is_internal with_sign :=
 with_sign.not_injective ∘ and.elim_left
+
+end counterexamples

@@ -15,6 +15,8 @@ The main result of this file is `bilin_form.not_inj_on_to_quadratic_form_is_symm
 The counterexample we use is $B (x, y) (x', y') ↦ xy' + x'y$ where `x y x' y' : zmod 2`.
 -/
 
+namespace counterexamples
+
 variables (F : Type*) [nontrivial F] [comm_ring F] [char_p F 2]
 
 open bilin_form
@@ -51,3 +53,5 @@ begin
   rw [bilin_form.to_quadratic_form_zero, bilin_form.to_quadratic_form_eq_zero],
   exact is_alt_B F,
 end
+
+end counterexamples

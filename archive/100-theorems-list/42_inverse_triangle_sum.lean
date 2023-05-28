@@ -19,6 +19,8 @@ We prove that the sum of the reciprocals of the first `n` triangular numbers is 
 discrete_sum
 -/
 
+namespace archive.inverse_triangle_sum
+
 open_locale big_operators
 open finset
 
@@ -34,3 +36,5 @@ begin
   field_simp [nat.cast_add_one_ne_zero],
   ring
 end
+
+end archive.inverse_triangle_sum

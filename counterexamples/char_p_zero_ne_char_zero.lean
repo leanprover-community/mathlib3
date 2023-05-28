@@ -18,6 +18,8 @@ This file shows that there are semiring `R` for which `char_p R 0` holds and `ch
 The example is `{0, 1}` with saturating addition.
 -/
 
+namespace counterexamples
+
 @[simp] lemma add_one_eq_one (x : with_zero unit) : x + 1 = 1 :=
 with_zero.cases_on x (by refl) (λ h, by refl)
 
@@ -26,3 +28,5 @@ lemma with_zero_unit_char_p_zero : char_p (with_zero unit) 0 :=
 
 lemma with_zero_unit_not_char_zero : ¬ char_zero (with_zero unit) :=
 λ ⟨h⟩, h.ne (by simp : 1 + 1 ≠ 0 + 1) (by simp)
+
+end counterexamples

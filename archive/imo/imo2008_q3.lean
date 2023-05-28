@@ -26,6 +26,9 @@ and we can take this `n` such that `n ≤ p/2`. Let `k = p - 2n ≥ 0`. Then we 
 Then `p = 2n + k ≥ 2n + √(p - 4) = 2n + √(2n + k - 4) > √(2n)` and we are done.
 -/
 
+namespace archive
+namespace imo2008_q3
+
 open real
 
 lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (hp_gt_20 : p > 20) :
@@ -77,6 +80,9 @@ begin
   exact ⟨n, hnat₁, by linarith only [hreal₆, hreal₁]⟩,
 end
 
+end imo2008_q3
+open imo2008_q3
+
 theorem imo2008_q3 : ∀ N : ℕ, ∃ n : ℕ, n ≥ N ∧
   ∃ p : ℕ, nat.prime p ∧ p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
@@ -90,3 +96,5 @@ begin
 
   exact ⟨n, hn_ge_N, p, hpp, hnat, hreal⟩,
 end
+
+end archive

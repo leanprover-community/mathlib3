@@ -40,6 +40,8 @@ continues to develop, it should eventually become possible to redefine `disc` an
 to the n-ball.
 -/
 
+namespace archive.area_of_a_circle
+
 open set real measure_theory interval_integral
 open_locale real nnreal
 
@@ -115,3 +117,5 @@ begin
                          hcont hderiv (continuous_const.mul hf).continuous_on.interval_integrable
   ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end
+
+end archive.area_of_a_circle

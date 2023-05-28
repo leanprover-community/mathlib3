@@ -23,8 +23,9 @@ First, define the problem in terms of finding the maximum of a set.
 We first generalize the problem to `{1, 2, ..., N}` and specialize to `N = 1981` at the very end.
 -/
 
+namespace archive.imo1981_q3
+
 open int nat set
-namespace imo1981_q3
 variable (N : ℕ) -- N = 1981
 
 @[mk_iff] structure problem_predicate (m n : ℤ) : Prop :=
@@ -205,3 +206,5 @@ begin
     by norm_num [fib_add_two]] at this,
   apply_mod_cast this; norm_num [problem_predicate_iff],
 end
+
+end archive

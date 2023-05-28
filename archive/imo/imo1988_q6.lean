@@ -23,7 +23,7 @@ and apply this to prove Q6 of IMO1988.
 To illustrate the technique, we also prove a similar result.
 -/
 
--- open_locale classical
+namespace archive.imo1988_q6
 
 local attribute [instance] classical.prop_decidable
 local attribute [simp] sq
@@ -296,3 +296,5 @@ begin
       obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply mul_left_cancel₀,
       exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end
+
+end archive.imo1988_q6

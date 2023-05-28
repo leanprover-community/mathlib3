@@ -15,6 +15,8 @@ We first prove the problem statement for `f : ℕ → ℕ`
 then we use it to prove the statement for positive naturals.
 -/
 
+namespace archive
+
 theorem imo1977_q6_nat (f : ℕ → ℕ) (h : ∀ n, f (f n) < f (n + 1)) :
   ∀ n, f n = n :=
 begin
@@ -42,3 +44,5 @@ begin
     { simp },
     { simpa using h _ } }
 end
+
+end archive

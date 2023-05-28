@@ -30,7 +30,9 @@ prime. But it is homogeneously prime, i.e. if `(a, b), (c, d)` are two homogeneo
 homogeneous, prime
 -/
 
-namespace counterexample_not_prime_but_homogeneous_prime
+namespace counterexamples
+
+namespace not_prime_but_homogeneous_prime
 
 open direct_sum
 local attribute [reducible] with_zero
@@ -151,4 +153,6 @@ begin
   dec_trivial!,
 end
 
-end counterexample_not_prime_but_homogeneous_prime
+end not_prime_but_homogeneous_prime
+
+end counterexamples

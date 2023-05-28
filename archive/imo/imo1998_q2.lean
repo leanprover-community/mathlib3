@@ -37,6 +37,8 @@ the lower bound: `a(b-1)^2/2 ≤ |A|`.
 Rearranging gives the result.
 -/
 
+namespace archive.imo1998_q2
+
 open_locale classical
 noncomputable theory
 
@@ -194,6 +196,9 @@ lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (b - 1 : ℚ) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
 by rw div_le_div_iff; norm_cast; simp [ha, hb]
 
+end imo1998_q2
+open imo1998_q2
+
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
   (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :
@@ -212,3 +217,5 @@ begin
   { simp, },
   { exact le_of_mul_le_mul_right h z.succ_pos, },
 end
+
+end archive

@@ -17,7 +17,7 @@ the number $z = n^4 + a$ is not prime for any natural number $n$.
 
 open int nat
 
-namespace imo1969_q1
+namespace archive.imo1969_q1
 
 /-- `good_nats` is the set of natural numbers satisfying the condition in the problem
 statement, namely the `a : ℕ` such that `n^4 + a` is not prime for any `n : ℕ`. -/
@@ -77,3 +77,5 @@ open imo1969_q1
 to the set `good_nats`. -/
 theorem imo1969_q1 : set.infinite {a : ℕ | ∀ n : ℕ, ¬ nat.prime (n^4 + a)} :=
 set.infinite_of_injective_forall_mem a_choice_strict_mono.injective a_choice_good
+
+end archive

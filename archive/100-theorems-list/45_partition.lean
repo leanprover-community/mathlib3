@@ -52,6 +52,8 @@ In particular, we
 https://en.wikipedia.org/wiki/Partition_(number_theory)#Odd_parts_and_distinct_parts
 -/
 
+namespace archive.partition
+
 open power_series
 noncomputable theory
 
@@ -521,3 +523,5 @@ begin
   rw odd_gf_prop n (n+1) (by linarith),
   apply same_coeffs (n+1) n n.le_succ,
 end
+
+end archive.partition

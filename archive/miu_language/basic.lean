@@ -60,7 +60,7 @@ miu, derivable strings
 
 -/
 
-namespace miu
+namespace archive.miu
 
 /-!
 ### Declarations and instance derivations for `miu_atom` and `miustr`
@@ -210,4 +210,4 @@ begin
   exact derivable.r3 h₃, -- We prove our main goal using rule 3
 end
 
-end miu
+namespace archive.miu

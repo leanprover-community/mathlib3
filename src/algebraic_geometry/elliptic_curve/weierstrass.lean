@@ -11,7 +11,7 @@ import tactic.linear_combination
 /-!
 # Weierstrass equations of elliptic curves
 
-We give a working definition of an elliptic curve as a nonsingular Weierstrass curve given by a
+This file defines the structure of an elliptic curve as a nonsingular Weierstrass curve given by a
 Weierstrass equation, which is mathematically accurate in many cases but also good for computation.
 
 ## Mathematical background

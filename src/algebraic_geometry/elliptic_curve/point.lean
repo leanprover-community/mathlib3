@@ -12,15 +12,15 @@ import ring_theory.class_group
 # Nonsingular rational points on Weierstrass curves
 
 This file defines the type of nonsingular rational points on a Weierstrass curve over a field and
-(TODO) proves that it forms an abelian group under a geometric secant-and-tangent process.
+proves that it forms an abelian group under a geometric secant-and-tangent process.
 
 ## Mathematical background
 
 Let `W` be a Weierstrass curve over a field `F`. A rational point on `W` is simply a point
-$[A:B:C]$ defined over `F` in the projective plane satisfying the homogeneous cubic equation
-$B^2C + a_1ABC + a_3BC^2 = A^3 + a_2A^2C + a_4AC^2 + a_6C^3$. Any such point either lies in the
-affine chart $C \ne 0$ and satisfies the Weierstrass equation obtained by setting $X := A/C$ and
-$Y := B/C$, or is the unique point at infinity $0 := [0:1:0]$ when $C = 0$. With this new
+$[X:Y:Z]$ defined over `F` in the projective plane satisfying the homogeneous cubic equation
+$Y^2Z + a_1XYZ + a_3YZ^2 = X^3 + a_2X^2Z + a_4XZ^2 + a_6Z^3$. Any such point either lies in the
+affine chart $Z \ne 0$ and satisfies the Weierstrass equation obtained by replacing $X/Z$ with $X$
+and $Y/Z$ with $Y$, or is the unique point at infinity $0 := [0:1:0]$ when $Z = 0$. With this new
 description, a nonsingular rational point on `W` is either $0$ or an affine point $(x, y)$ where
 the partial derivatives $W_X(X, Y)$ and $W_Y(X, Y)$ do not vanish simultaneously. For a field
 extension `K` of `F`, a `K`-rational point is simply a rational point on `W` base changed to `K`.
@@ -52,11 +52,12 @@ The group law on this set is then uniquely determined by these constructions.
 
 ## Main statements
 
- * TODO: the addition of two nonsingular rational points on `W` forms a group.
+ * `weierstrass_curve.point.add_comm_group`: the type of nonsingular rational points on `W` forms an
+    abelian group under addition.
 
 ## Notations
 
- * `W⟮K⟯`: the group of nonsingular rational points on a Weierstrass curve `W` base changed to `K`.
+ * `W⟮K⟯`: the group of nonsingular rational points on `W` base changed to `K`.
 
 ## References
 
@@ -749,13 +750,13 @@ end
 lemma to_class_eq_zero (P : W.point) : to_class P = 0 ↔ P = 0 :=
 ⟨begin
   intro hP,
-  rcases P with (_ | @⟨_, _, h⟩), { refl },
-  obtain ⟨f, h0, hf⟩ := (class_group.mk_eq_one_of_coe_ideal $ by refl).1 hP,
-  apply (f.nat_degree_norm_ne_one _).elim,
-  rw [← finrank_quotient_span_eq_nat_degree_norm W^.coordinate_ring.basis h0,
-      ← ((submodule.quot_equiv_of_eq _ _ hf).restrict_scalars F).finrank_eq,
-      (quotient_XY_ideal_equiv W h.left).to_linear_equiv.finrank_eq,
-      finite_dimensional.finrank_self]
+  rcases P with (_ | @⟨_, _, ⟨h, _⟩⟩),
+  { refl },
+  { rcases (class_group.mk_eq_one_of_coe_ideal $ by refl).mp hP with ⟨p, h0, hp⟩,
+    apply (p.nat_degree_norm_ne_one _).elim,
+    rw [← finrank_quotient_span_eq_nat_degree_norm W^.coordinate_ring.basis h0,
+        ← (quotient_equiv_alg_of_eq F hp).to_linear_equiv.finrank_eq,
+        (quotient_XY_ideal_equiv W h).to_linear_equiv.finrank_eq, finite_dimensional.finrank_self] }
 end, congr_arg to_class⟩
 
 lemma to_class_injective : function.injective $ @to_class _ _ W :=

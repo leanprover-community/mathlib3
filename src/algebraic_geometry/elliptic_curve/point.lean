@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
 
-import algebraic_geometry.elliptic_curve.auxiliary
 import algebraic_geometry.elliptic_curve.weierstrass
 import ring_theory.class_group
 

@@ -9,6 +9,9 @@ import model_theory.skolem
 
 /-!
 # First-Order Satisfiability
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file deals with the satisfiability of first-order theories, as well as equivalence over them.
 
 ## Main Definitions

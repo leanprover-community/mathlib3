@@ -11,6 +11,9 @@ import category_theory.preadditive.yoneda.projective
 /-!
 # Abelian categories with enough projectives have projective resolutions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `C` is abelian `projective.d f` and `f` are exact.
 Hence, starting from an epimorphism `P ⟶ X`, where `P` is projective,
 we can apply `projective.d` repeatedly to obtain a projective resolution of `X`.

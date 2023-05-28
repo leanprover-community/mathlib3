@@ -10,6 +10,9 @@ import topology.sheaves.sheaf_condition.pairwise_intersections
 /-!
 # The sheaf condition in terms of an equalizer of products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Here we set up the machinery for the "usual" definition of the sheaf condition,
 e.g. as in https://stacks.math.columbia.edu/tag/0072
 in terms of an equalizer diagram where the two objects are

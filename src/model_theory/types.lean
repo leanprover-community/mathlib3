@@ -7,6 +7,9 @@ import model_theory.satisfiability
 
 /-!
 # Type Spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines the space of complete types over a first-order theory.
 (Note that types in model theory are different from types in type theory.)
 

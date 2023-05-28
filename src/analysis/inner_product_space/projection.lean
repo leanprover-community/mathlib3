@@ -13,6 +13,9 @@ import data.is_R_or_C.lemmas
 /-!
 # The orthogonal projection
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a nonempty complete subspace `K` of an inner product space `E`, this file constructs
 `orthogonal_projection K : E →L[𝕜] K`, the orthogonal projection of `E` onto `K`.  This map
 satisfies: for any point `u` in `E`, the point `v = orthogonal_projection K u` in `K` minimizes the

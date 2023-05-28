@@ -9,6 +9,9 @@ import group_theory.exponent
 /-!
 # Dihedral Groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the dihedral groups `dihedral_group n`, with elements `r i` and `sr i` for `i : zmod n`.
 
 For `n ≠ 0`, `dihedral_group n` represents the symmetry group of the regular `n`-gon. `r i`

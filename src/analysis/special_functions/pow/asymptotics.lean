@@ -9,6 +9,9 @@ import analysis.special_functions.pow.nnreal
 /-!
 # Limits and asymptotics of power functions at `+∞`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results about the limiting behaviour of power functions at `+∞`. For convenience
 some results on asymptotics as `x → 0` (those which are not just continuity statements) are also
 located here.

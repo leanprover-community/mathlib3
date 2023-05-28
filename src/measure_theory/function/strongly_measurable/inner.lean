@@ -9,6 +9,9 @@ import analysis.inner_product_space.basic
 /-!
 # Inner products of strongly measurable functions are strongly measurable.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 variables {α : Type*}

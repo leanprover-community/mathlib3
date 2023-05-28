@@ -9,6 +9,9 @@ import algebra.quadratic_discriminant
 /-!
 # Euclidean spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file makes some definitions and proves very basic geometrical
 results about real inner product spaces and Euclidean affine spaces.
 Results about real inner product spaces that involve the norm and

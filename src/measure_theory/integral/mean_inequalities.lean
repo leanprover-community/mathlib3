@@ -11,6 +11,9 @@ import measure_theory.function.special_functions.basic
 /-!
 # Mean value inequalities for integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several inequalities on integrals, notably the Hölder inequality and
 the Minkowski inequality. The versions for finite sums are in `analysis.mean_inequalities`.
 

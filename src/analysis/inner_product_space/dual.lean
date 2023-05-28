@@ -10,6 +10,9 @@ import analysis.normed_space.star.basic
 /-!
 # The Fréchet-Riesz representation theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We consider an inner product space `E` over `𝕜`, which is either `ℝ` or `ℂ`. We define
 `to_dual_map`, a conjugate-linear isometric embedding of `E` into its dual, which maps an element
 `x` of the space to `λ y, ⟪x, y⟫`.

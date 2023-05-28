@@ -3,10 +3,12 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.calculus.deriv.add
+import analysis.calculus.fderiv.equiv
+import analysis.calculus.fderiv.prod
 import analysis.calculus.monotone
 import data.set.function
 import algebra.group.basic
-import tactic.swap_var
 import tactic.wlog
 
 /-!

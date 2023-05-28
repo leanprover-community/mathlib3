@@ -8,6 +8,9 @@ import analysis.special_functions.pow.nnreal
 /-!
 # Convergence of `p`-series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the series `∑' k in ℕ, 1 / k ^ p` converges if and only if `p > 1`.
 The proof is based on the
 [Cauchy condensation test](https://en.wikipedia.org/wiki/Cauchy_condensation_test): `∑ k, f k`

@@ -478,17 +478,14 @@ adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (X_sub_C_ne_zero y) $
 @[simp] noncomputable def XY_ideal (x : R) (y : R[X]) : ideal W.coordinate_ring :=
 span {X_class W x, Y_class W y}
 
--- TODO: generalise to arbitrary `y ∈ R[X]` and use `neg_polynomial`
+-- TODO: generalise to arbitrary `y ∈ R[X]`
 lemma span_polynomial_le_span_XY {x y : R} (h : W.equation x y) :
   (span {W.polynomial} : ideal $ R[X][Y]) ≤ span {C (X - C x), Y - C (C y)} :=
 begin
-  intros _ hz,
-  rcases mem_span_singleton'.mp hz with ⟨z, rfl⟩,
-  exact mem_span_pair.mpr
-    ⟨z * (C (C (W.a₁ * y) - (X ^ 2 + C (x + W.a₂) * X + C (x ^ 2 + W.a₂ * x + W.a₄)))),
-    z * (C (C y) - (-Y - C (C W.a₁ * X + C W.a₃))),
-    by linear_combination -z * (congr_arg C $ congr_arg C $ (W.equation_iff x y).mp h)
-      with { normalization_tactic := `[rw [weierstrass_curve.polynomial], C_simp, ring1] }⟩
+  cases dvd_iff_is_root.mpr h with p hp,
+  cases W.polynomial.X_sub_C_dvd_sub_C_eval (C y) with q hq,
+  exact (span_singleton_le_iff_mem _).mpr
+    (mem_span_pair.mpr ⟨C p, q, by rw [mul_comm, mul_comm q, eq_add_of_sub_eq' hq, hp, C_mul]⟩)
 end
 
 /-! ### The coordinate ring as an `R[X]`-algebra -/

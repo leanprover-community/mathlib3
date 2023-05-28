@@ -409,7 +409,7 @@ begin
   simp_rw [mul_assoc, mul_left_comm _ (A' _ _), ←adjugate_fin_succ_eq_det_submatrix],
 end
 
-lemma det_eq_sum_mul_adjugate_col (A : matrix n n R) (j : n) :
+lemma det_eq_sum_mul_adjugate_col (A : matrix n n α) (j : n) :
   det A = ∑ i : n, A i j * adjugate A j i :=
 by simpa only [det_transpose, ←adjugate_transpose] using det_eq_sum_mul_adjugate_row Aᵀ j
 

@@ -666,8 +666,6 @@ variables (𝕜)
 variables [is_R_or_C 𝕜]
 variables [normed_add_comm_group D] [normed_space ℝ D]
 variables [normed_add_comm_group G] [normed_space ℝ G]
-variables [normed_space 𝕜 D] [smul_comm_class ℝ 𝕜 D]
-variables [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
 variables [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 variables [normed_space 𝕜 G] [smul_comm_class ℝ 𝕜 G]
 

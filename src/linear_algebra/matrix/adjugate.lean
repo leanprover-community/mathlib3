@@ -340,21 +340,6 @@ lemma _root_.alg_hom.map_adjugate {R A B : Type*} [comm_semiring R] [comm_ring A
   (M : matrix n n A) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
 f.to_ring_hom.map_adjugate _
 
-lemma det_eq_sum_mul_adjugate_row (A : matrix n n α) (i : n) :
-  det A = ∑ j : n, A i j * adjugate A j i :=
-begin
-  haveI : nonempty n := ⟨i⟩,
-  obtain ⟨n', hn'⟩ := nat.exists_eq_succ_of_ne_zero (fintype.card_ne_zero : fintype.card n ≠ 0),
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin_of_card_eq hn',
-  let A' := reindex e e A,
-  suffices : det A' = ∑ j : fin n'.succ, A' (e i) j * adjugate A' j (e i),
-  { simp_rw [A', det_reindex_self, adjugate_reindex, reindex_apply, submatrix_apply, ←e.sum_comp,
-      equiv.symm_apply_apply] at this,
-    exact this },
-  rw det_succ_row A' (e i),
-  simp_rw [mul_assoc, mul_left_comm _ (A' _ _), ←adjugate_eq_det_submatrix],
-end
-
 lemma det_eq_sum_mul_adjugate_col {n : Type*} [decidable_eq n] [fintype n]
   (A : matrix n n R) (j : n) :
   det A = ∑ i : n, A i j * adjugate A j i :=
@@ -412,6 +397,21 @@ begin
   simp_rw [adjugate_apply, det_succ_row _ j, update_row_self, submatrix_update_row_succ_above],
   rw [fintype.sum_eq_single i (λ h hjk, _), pi.single_eq_same, mul_one],
   rw [pi.single_eq_of_ne hjk, mul_zero, zero_mul],
+end
+
+lemma det_eq_sum_mul_adjugate_row (A : matrix n n α) (i : n) :
+  det A = ∑ j : n, A i j * adjugate A j i :=
+begin
+  haveI : nonempty n := ⟨i⟩,
+  obtain ⟨n', hn'⟩ := nat.exists_eq_succ_of_ne_zero (fintype.card_ne_zero : fintype.card n ≠ 0),
+  obtain ⟨e⟩ := fintype.trunc_equiv_fin_of_card_eq hn',
+  let A' := reindex e e A,
+  suffices : det A' = ∑ j : fin n'.succ, A' (e i) j * adjugate A' j (e i),
+  { simp_rw [A', det_reindex_self, adjugate_reindex, reindex_apply, submatrix_apply, ←e.sum_comp,
+      equiv.symm_apply_apply] at this,
+    exact this },
+  rw det_succ_row A' (e i),
+  simp_rw [mul_assoc, mul_left_comm _ (A' _ _), ←adjugate_fin_succ_eq_det_submatrix],
 end
 
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=

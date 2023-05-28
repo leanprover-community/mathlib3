@@ -323,7 +323,7 @@ ext $ λ r s, (congr_fun (update_row_ne (fin.succ_above_ne i r) : _ = A _) (f s)
 /-- Updating a column them removing it is the same as removing it. -/
 @[simp] lemma submatrix_update_column_succ_above (A : matrix m' (fin n.succ) α)
   (v : m' → α) (f : o' → m') (i : fin n.succ) :
-  (A.update_column i v).submatrix f i.succ_above = A.submatrix f i.succ_above:=
+  (A.update_column i v).submatrix f i.succ_above = A.submatrix f i.succ_above :=
 ext $ λ r s, update_column_ne (fin.succ_above_ne i s)
 
 end submatrix

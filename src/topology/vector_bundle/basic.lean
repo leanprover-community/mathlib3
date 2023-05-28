@@ -733,7 +733,7 @@ end
 
 section
 variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_add_comm_group F] [normed_space R F] [topological_space B]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B] [∀ x, topological_space (E x)]
 
 open topological_space
 
@@ -760,6 +760,7 @@ structure vector_prebundle :=
   continuous_on f (e.base_set ∩ e'.base_set) ∧
   ∀ (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F),
     f b v = (e' (total_space_mk b (e.symm b v))).2)
+(total_space_mk_inducing : ∀ (b : B), inducing ((pretrivialization_at b) ∘ (total_space_mk b)))
 
 namespace vector_prebundle
 
@@ -845,21 +846,13 @@ a.to_fiber_prebundle.mem_trivialization_at_source b x
   (total_space_mk b) ⁻¹' (a.pretrivialization_at b).source = univ :=
 a.to_fiber_prebundle.total_space_mk_preimage_source b
 
-/-- Topology on the fibers `E b` induced by the map `E b → E.total_space`. -/
-def fiber_topology (b : B) : topological_space (E b) :=
-a.to_fiber_prebundle.fiber_topology b
-
-@[continuity] lemma inducing_total_space_mk (b : B) :
-  @inducing _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=
-a.to_fiber_prebundle.inducing_total_space_mk b
-
 @[continuity] lemma continuous_total_space_mk (b : B) :
-  @continuous _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=
+  @continuous _ _ _ a.total_space_topology (total_space_mk b) :=
 a.to_fiber_prebundle.continuous_total_space_mk b
 
 /-- Make a `fiber_bundle` from a `vector_prebundle`; auxiliary construction for
 `vector_prebundle.vector_bundle`. -/
-def to_fiber_bundle : @fiber_bundle B F _ _ _ a.total_space_topology a.fiber_topology :=
+def to_fiber_bundle : @fiber_bundle B F _ _ _ a.total_space_topology _ :=
 a.to_fiber_prebundle.to_fiber_bundle
 
 /-- Make a `vector_bundle` from a `vector_prebundle`.  Concretely this means
@@ -869,7 +862,7 @@ establishes that for the topology constructed on the sigma-type using
 `vector_prebundle.total_space_topology`, these "pretrivializations" are actually
 "trivializations" (i.e., homeomorphisms with respect to the constructed topology). -/
 lemma to_vector_bundle :
-  @vector_bundle R _ F E _ _ _ _ _ _ a.total_space_topology a.fiber_topology a.to_fiber_bundle :=
+  @vector_bundle R _ F E _ _ _ _ _ _ a.total_space_topology _ a.to_fiber_bundle :=
 { trivialization_linear' := begin
     rintros _ ⟨e, he, rfl⟩,
     apply linear_of_mem_pretrivialization_atlas,
@@ -895,7 +888,7 @@ variables [normed_space 𝕜₁ F] [Π x, module 𝕜₁ (E x)] [topological_spa
 variables {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜₂ F']
   {E' : B' → Type*} [Π x, add_comm_monoid (E' x)] [Π x, module 𝕜₂ (E' x)]
   [topological_space (total_space E')]
-variables [Π x, topological_space (E x)] [fiber_bundle F E] [vector_bundle 𝕜₁ F E]
+variables [fiber_bundle F E] [vector_bundle 𝕜₁ F E]
 variables [Π x, topological_space (E' x)] [fiber_bundle F' E'] [vector_bundle 𝕜₂ F' E']
 variables (F E F' E')
 

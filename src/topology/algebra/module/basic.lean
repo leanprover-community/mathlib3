@@ -990,8 +990,40 @@ lemma smul_right_comp [has_continuous_mul R₁] {x : M₂} {c : R₁} :
     smul_right (1 : R₁ →L[R₁] R₁) (c • x) :=
 by { ext, simp [mul_smul] }
 
-end semiring
+section to_span_singleton
+variables (R : Type*) {M : Type*}
+variables [semiring R] [add_comm_monoid M] [module R M]
+variables [topological_space R] [topological_space M] [has_continuous_smul R M]
 
+/-- Given an element `x` of a topological space `M` over a semiring `R`, the natural continuous
+linear map from `R` to `M` by taking multiples of `x`.-/
+def to_span_singleton (x : M) : R →L[R] M :=
+{ to_linear_map := linear_map.to_span_singleton R M x,
+  cont := continuous_id.smul continuous_const }
+
+lemma to_span_singleton_apply (x : M) (r : R) : to_span_singleton R x r = r • x :=
+rfl
+
+lemma to_span_singleton_add [has_continuous_add M] (x y : M) :
+  to_span_singleton R (x + y) = to_span_singleton R x + to_span_singleton R y :=
+by { ext1, simp [to_span_singleton_apply], }
+
+lemma to_span_singleton_smul' (R') [monoid R'] [distrib_mul_action R' M]
+  [has_continuous_const_smul R' M]
+  [smul_comm_class R R' M] (c : R') (x : M) :
+  to_span_singleton R (c • x) = c • to_span_singleton R x :=
+by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
+
+/-- A special case of `to_span_singleton_smul'` for when `R` is commutative. -/
+lemma to_span_singleton_smul (R) {M} [comm_semiring R] [add_comm_monoid M] [module R M]
+  [topological_space R] [topological_space M] [has_continuous_smul R M] (c : R) (x : M) :
+  to_span_singleton R (c • x) = c • to_span_singleton R x :=
+to_span_singleton_smul' R R c x
+
+end to_span_singleton
+
+end semiring
+#lint
 section pi
 variables
   {R : Type*} [semiring R]

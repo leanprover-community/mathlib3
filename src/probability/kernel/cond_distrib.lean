@@ -111,10 +111,12 @@ by rw [lintegral_comp (kernel.measurable_coe _ hs) hX, cond_distrib,
 lemma set_lintegral_cond_distrib_of_measurable_set (hX : measurable X) (hY : ae_measurable Y μ)
   (hs : measurable_set s) {t : set α} (ht : measurable_set[mβ.comap X] t) :
   ∫⁻ a in t, cond_distrib Y X μ (X a) s ∂μ = μ (t ∩ Y ⁻¹' s) :=
-by { obtain ⟨tₑ, htₑ, rfl⟩ := ht, rw set_lintegral_preimage_cond_distrib hX hY hs htₑ, }
+by { obtain ⟨t', ht', rfl⟩ := ht, rw set_lintegral_preimage_cond_distrib hX hY hs ht', }
 
+/-- For almost every `a : α`, the `cond_distrib Y X μ` kernel applied to `X a` and a measurable set
+`s` is equal to the conditional expectation of the indicator of `Y ⁻¹' s`. -/
 lemma cond_distrib_ae_eq_condexp (hX : measurable X) (hY : measurable Y) (hs : measurable_set s) :
-  (λ ω, (cond_distrib Y X μ (X ω) s).to_real) =ᵐ[μ] μ⟦Y ∈ₘ s | mβ.comap X⟧ :=
+  (λ a, (cond_distrib Y X μ (X a) s).to_real) =ᵐ[μ] μ⟦Y ∈ₘ s | mβ.comap X⟧ :=
 begin
   refine ae_eq_condexp_of_forall_set_integral_eq hX.comap_le _ _ _ _,
   { exact (integrable_const _).indicator (hY hs),  },
@@ -128,6 +130,8 @@ begin
     exact @measurable.ennreal_to_real _ (mβ.comap X) _ (measurable_cond_distrib hs), },
 end
 
+/-- The conditional expectation of a function `f` of the product `(X, Y)` is almost everywhere equal
+to the integral of `y ↦ f(X, y)` against the `cond_distrib` kernel. -/
 lemma condexp_prod_ae_eq_integral_cond_distrib' (hX : measurable X) (hY : ae_measurable Y μ)
   (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
   μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
@@ -150,6 +154,8 @@ begin
   { exact ae_strongly_measurable'_integral_cond_distrib hX.ae_measurable hY hf_int, },
 end
 
+/-- The conditional expectation of a function `f` of the product `(X, Y)` is almost everywhere equal
+to the integral of `y ↦ f(X, y)` against the `cond_distrib` kernel. -/
 lemma condexp_prod_ae_eq_integral_cond_distrib₀ (hX : measurable X) (hY : ae_measurable Y μ)
   (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a))))
   (hf_int : integrable (λ a, f (X a, Y a)) μ) :
@@ -160,6 +166,8 @@ begin
   exact condexp_prod_ae_eq_integral_cond_distrib' hX hY hf_int',
 end
 
+/-- The conditional expectation of a function `f` of the product `(X, Y)` is almost everywhere equal
+to the integral of `y ↦ f(X, y)` against the `cond_distrib` kernel. -/
 lemma condexp_prod_ae_eq_integral_cond_distrib (hX : measurable X) (hY : ae_measurable Y μ)
   (hf : strongly_measurable f) (hf_int : integrable (λ a, f (X a, Y a)) μ) :
   μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
@@ -174,6 +182,8 @@ lemma condexp_ae_eq_integral_cond_distrib (hX : measurable X) (hY : ae_measurabl
   μ[(λ a, f (Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f y ∂(cond_distrib Y X μ (X a)) :=
 condexp_prod_ae_eq_integral_cond_distrib hX hY (hf.comp_measurable measurable_snd) hf_int
 
+/-- The conditional expectation of `Y` given `X` is almost everywhere equal to the integral
+`∫ y, y ∂(cond_distrib Y X μ (X a))`. -/
 lemma condexp_ae_eq_integral_cond_distrib' {Ω} [normed_add_comm_group Ω] [normed_space ℝ Ω]
   [complete_space Ω] [measurable_space Ω] [borel_space Ω] [second_countable_topology Ω] {Y : α → Ω}
   (hX : measurable X) (hY_int : integrable Y μ) :

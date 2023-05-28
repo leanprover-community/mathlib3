@@ -38,6 +38,8 @@ def condexp_kernel (μ : measure Ω) [is_finite_measure μ] (m : measurable_spac
   @kernel Ω Ω m mΩ :=
 @cond_distrib Ω Ω Ω _ mΩ _ _ _ mΩ m id id μ _
 
+/-- The conditional expectation of `f` with respect to a σ-algebra `m` is almost everywhere equal to
+the integral `∫ y, f y ∂(condexp_kernel μ m ω)`. -/
 lemma condexp_ae_eq_integral_condexp_kernel (hm : m ≤ mΩ)
   {f : Ω → F} (hf : strongly_measurable f) (hf_int : integrable f μ) :
   μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω) :=

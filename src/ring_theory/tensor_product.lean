@@ -422,14 +422,14 @@ begin
   simp [H],
 end
 
-/-- The `S`-algebra morphism `A →ₐ[S] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
-def include_left [smul_comm_class R S A] : A →ₐ[S] A ⊗[R] B :=
+-- TODO: with `smul_comm_class R S A` we can have this as an `S`-algebra morphism
+/-- The `R`-algebra morphism `A →ₐ[R] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
+def include_left : A →ₐ[R] A ⊗[R] B :=
 { commutes' := by simp,
   ..include_left_ring_hom }
 
 @[simp]
-lemma include_left_apply [smul_comm_class R S A] (a : A) :
-  (include_left : A →ₐ[S] A ⊗[R] B) a = a ⊗ₜ 1 := rfl
+lemma include_left_apply (a : A) : (include_left : A →ₐ[R] A ⊗[R] B) a = a ⊗ₜ 1 := rfl
 
 /-- The algebra morphism `B →ₐ[R] A ⊗[R] B` sending `b` to `1 ⊗ₜ b`. -/
 def include_right : B →ₐ[R] A ⊗[R] B :=
@@ -451,7 +451,7 @@ lemma include_right_apply (b : B) : (include_right : B →ₐ[R] A ⊗[R] B) b =
 
 lemma include_left_comp_algebra_map {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
   [algebra R S] [algebra R T] :
-    ((include_left : S →ₐ[R] S ⊗[R] T).to_ring_hom.comp (algebra_map R S) : R →+* S ⊗[R] T) =
+    (include_left.to_ring_hom.comp (algebra_map R S) : R →+* S ⊗[R] T) =
       include_right.to_ring_hom.comp (algebra_map R T) :=
 by { ext, simp }
 

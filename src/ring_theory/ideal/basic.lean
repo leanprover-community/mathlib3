@@ -125,7 +125,7 @@ lemma span_singleton_le_iff_mem {x : α} : span {x} ≤ I ↔ x ∈ I :=
 submodule.span_singleton_le_iff_mem _ _
 
 lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
-  span ({a * x} : set α) = span {x} :=
+  span ({a * x} : set α) = span {x} := 
 begin
   apply le_antisymm; rw [span_singleton_le_iff_mem, mem_span_singleton'],
   exacts [⟨a, rfl⟩, ⟨_, h2.unit.inv_mul_cancel_left x⟩],

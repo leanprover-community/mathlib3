@@ -163,7 +163,7 @@ end comm_ring
 
 section field
 
-variables {F : Type*} [field F] [comm_ring S] [algebra F[X] S] [is_domain S] [finite ι]
+variables {F : Type*} [field F] [algebra F[X] S]
 
 instance (b : basis ι F[X] S) {I : ideal S} (hI : I ≠ ⊥) (i : ι) :
   finite_dimensional F (F[X] ⧸ span ({I.smith_coeffs b hI i} : set F[X])) :=
@@ -171,18 +171,17 @@ instance (b : basis ι F[X] S) {I : ideal S} (hI : I ≠ ⊥) (i : ι) :
 
 /-- For a nonzero element `f` in a `F[X]`-module `S`, the dimension of $S/\langle f \rangle$ as an
 `F`-vector space is the degree of the norm of `f` relative to `F[X]`. -/
-lemma finrank_quotient_span_eq_nat_degree_norm [algebra F S] [is_scalar_tower F F[X] S]
-  (b : basis ι F[X] S) {I : ideal S} (hI : I ≠ ⊥) (i : ι) {f : S} (hf : f ≠ 0) :
+@[nolint fintype_finite] lemma finrank_quotient_span_eq_nat_degree_norm [algebra F S]
+  [is_scalar_tower F F[X] S] (b : basis ι F[X] S) {f : S} (hf : f ≠ 0) :
   finite_dimensional.finrank F (S ⧸ span ({f} : set S)) = (algebra.norm F[X] f).nat_degree :=
 begin
-  have hI := span_singleton_eq_bot.not.2 hf,
-  haveI := fintype.of_finite ι,
+  have h := span_singleton_eq_bot.not.2 hf,
   rw [polynomial.nat_degree_eq_of_degree_eq $ polynomial.degree_eq_degree_of_associated $
-        associated_norm_prod_smith b hf, polynomial.nat_degree_prod _ _ $ λ i _,
-        smith_coeffs_ne_zero b _ hI i, finrank_quotient_eq_sum F b hI],
+        associated_norm_prod_smith b hf, polynomial.nat_degree_prod _ _ $
+        λ i _, smith_coeffs_ne_zero b _ h i, finrank_quotient_eq_sum F b h],
   -- finrank_quotient_eq_sum slow
   congr' with i,
-  exact (adjoin_root.power_basis $ smith_coeffs_ne_zero b _ hI i).finrank
+  exact (adjoin_root.power_basis $ smith_coeffs_ne_zero b _ h i).finrank
 end
 
 end field

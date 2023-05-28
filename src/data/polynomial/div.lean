@@ -400,6 +400,18 @@ lemma dvd_iff_is_root : X - C a ∣ p ↔ is_root p a :=
     mod_by_monic_X_sub_C_eq_C_eval, ← C_0, C_inj] at h,
   λ h, ⟨(p /ₘ (X - C a)), by rw mul_div_by_monic_eq_iff_is_root.2 h⟩⟩
 
+lemma mem_span_C_X_sub_C_X_sub_C_iff_eval_eval_eq_zero {b : R[X]} {P : R[X][X]} :
+  P ∈ (ideal.span {C (X - C a), X - C b} : ideal R[X][X]) ↔ (P.eval b).eval a = 0 :=
+begin
+  rw [ideal.mem_span_pair],
+  split; intro h,
+  { rcases h with ⟨_, _, rfl⟩,
+    simp only [eval_C, eval_X, eval_add, eval_sub, eval_mul, add_zero, mul_zero, sub_self] },
+  { cases dvd_iff_is_root.mpr h with p hp,
+    cases @X_sub_C_dvd_sub_C_eval _ b _ P with q hq,
+    exact ⟨C p, q, by rw [mul_comm, mul_comm q, eq_add_of_sub_eq' hq, hp, C_mul]⟩ }
+end
+
 lemma X_sub_C_dvd_sub_C_eval : X - C a ∣ p - C (p.eval a) :=
 by rw [dvd_iff_is_root, is_root, eval_sub, eval_C, sub_self]
 

@@ -478,16 +478,6 @@ adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (X_sub_C_ne_zero y) $
 @[simp] noncomputable def XY_ideal (x : R) (y : R[X]) : ideal W.coordinate_ring :=
 span {X_class W x, Y_class W y}
 
--- TODO: generalise to arbitrary `y ∈ R[X]`
-lemma span_polynomial_le_span_XY {x y : R} (h : W.equation x y) :
-  (span {W.polynomial} : ideal $ R[X][Y]) ≤ span {C (X - C x), Y - C (C y)} :=
-begin
-  cases dvd_iff_is_root.mpr h with p hp,
-  cases W.polynomial.X_sub_C_dvd_sub_C_eval (C y) with q hq,
-  exact (span_singleton_le_iff_mem _).mpr
-    (mem_span_pair.mpr ⟨C p, q, by rw [mul_comm, mul_comm q, eq_add_of_sub_eq' hq, hp, C_mul]⟩)
-end
-
 /-! ### The coordinate ring as an `R[X]`-algebra -/
 
 noncomputable instance : algebra R[X] W.coordinate_ring := quotient.algebra R[X]
@@ -498,13 +488,15 @@ instance : is_scalar_tower R R[X] W.coordinate_ring := quotient.is_scalar_tower 
 
 instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
 
+-- TODO: generalise to arbitrary `y ∈ R[X]`
 /-- The $R$-algebra isomorphism from $R[W] / \langle X - x, Y - y(X) \rangle$ to $R$ obtained by
 evaluation at $y(X)$ and at $x$ provided that $W(x, y(x)) = 0$. -/
 noncomputable def quotient_XY_ideal_equiv {x y : R} (h : W.equation x y) :
   (W.coordinate_ring ⧸ XY_ideal W x (C y)) ≃ₐ[R] R :=
 (quotient_equiv_alg_of_eq R $
   by simpa only [XY_ideal, X_class, Y_class, ← set.image_pair, ← map_span]).trans $
-  (double_quot.quot_quot_equiv_quot_of_leₐ R $ span_polynomial_le_span_XY W h).trans $
+  (double_quot.quot_quot_equiv_quot_of_leₐ R $ (span_singleton_le_iff_mem _).mpr $
+    mem_span_C_X_sub_C_X_sub_C_iff_eval_eval_eq_zero.mpr h).trans $
     ((quotient_span_C_X_sub_C_alg_equiv (X - C x) $ C y).restrict_scalars R).trans $
       quotient_span_X_sub_C_alg_equiv x
 

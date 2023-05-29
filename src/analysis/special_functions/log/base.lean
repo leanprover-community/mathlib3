@@ -64,11 +64,11 @@ by simp_rw inv_logb; exact logb_div h₁ h₂
 
 theorem logb_mul_base {a b : ℝ} (c : ℝ) (h₁ : a ≠ 0) (h₂ : b ≠ 0):
   logb (a * b) c = ((logb a c)⁻¹ + (logb b c)⁻¹)⁻¹ :=
-by rw [←inv_logb_mul_base h₁ h₂, inv_inv]
+by rw [←inv_logb_mul_base c h₁ h₂, inv_inv]
 
 theorem logb_div_base {a b : ℝ} (c : ℝ) (h₁ : a ≠ 0) (h₂ : b ≠ 0):
   logb (a / b) c = ((logb a c)⁻¹ - (logb b c)⁻¹)⁻¹ :=
-by rw [←inv_logb_div_base h₁ h₂, inv_inv]
+by rw [←inv_logb_div_base c h₁ h₂, inv_inv]
 
 theorem mul_logb {a b c : ℝ} (h₁ : b ≠ 0) (h₂ : b ≠ 1) (h₃ : b ≠ -1) :
   logb a b * logb b c = logb a c :=

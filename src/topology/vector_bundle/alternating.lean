@@ -33,6 +33,16 @@ using a norm on the fiber model if this helps.
 * `bundle.continuous_alternating_map.vector_bundle`: continuous alternating maps between
   vector bundles form a vector bundle.
 
+## Implementation notes
+
+The development of the alternating bundle here is unsatisfactory because it is linear rather than
+semilinear, so e.g. the bundle of alternating conjugate-linear maps, needed for Dolbeault
+cohomology, is not constructed.
+
+The wider development of linear-algebraic constructions on vector bundles (the hom-bundle, the
+alternating-maps bundle, the direct-sum bundle, possibly in the future the bundles of multilinear
+and symmetric maps) is also unsatisfactory, in not providing a general, unified construction.  But
+it is not clear what a suitable generalization would be which also covers the semilinear case.
 -/
 
 noncomputable theory

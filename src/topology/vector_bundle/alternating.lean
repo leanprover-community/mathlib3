@@ -31,7 +31,7 @@ using a norm on the fiber model if this helps.
 ## Main Definitions
 
 * `bundle.continuous_alternating_map.vector_bundle`: continuous alternating maps between
-  vector bundles form a vector bundle.
+  vector bundles form a vector bundle.  (Notation `Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯`.)
 
 ## Implementation notes
 
@@ -41,10 +41,11 @@ cohomology, is not constructed.
 
 The wider development of linear-algebraic constructions on vector bundles (the hom-bundle, the
 alternating-maps bundle, the direct-sum bundle, possibly in the future the bundles of multilinear
-and symmetric maps) is also unsatisfactory, in not providing a general, unified construction.  But
-it is not clear what a suitable generalization would be which also covers the semilinear case, as
-well as other important cases such as fractional powers of line bundles (needed for the density
-bundle).
+and symmetric maps) is also unsatisfactory, in proceeding construction by construction rather than
+according to some generalization which works for all of them. But it is not clear what a suitable
+generalization would be which also covers the semilinear case, as well as other important cases
+such as fractional powers of line bundles (needed for the density bundle).
+
 -/
 
 noncomputable theory
@@ -200,7 +201,7 @@ instance continuous_alternating_map.is_linear
       refl
     end, } }
 
-lemma continuous_alternating_map_apply (p : total_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :
+lemma continuous_alternating_map_apply (p : total_space Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :
   (continuous_alternating_map 𝕜 ι e₁ e₂) p =
   ⟨p.1, (e₂.continuous_linear_map_at 𝕜 p.1).comp_continuous_alternating_map $
       p.2.comp_continuous_linear_map $ e₁.symmL 𝕜 p.1⟩ :=
@@ -327,7 +328,7 @@ variables {e₁ e₂}
 rfl
 
 lemma trivialization.continuous_alternating_map_apply
-  (p : total_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :
+  (p : total_space Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :
   e₁.continuous_alternating_map 𝕜 ι e₂ p =
   ⟨p.1, (e₂.continuous_linear_map_at 𝕜 p.1).comp_continuous_alternating_map $
     p.2.comp_continuous_linear_map $ e₁.symmL 𝕜 p.1⟩ :=

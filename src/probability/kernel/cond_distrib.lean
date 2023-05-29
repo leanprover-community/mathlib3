@@ -15,10 +15,15 @@ evaluated at `X a` and a measurable set `s` is equal to the conditional expectat
 `μ⟦Y ⁻¹' s | mβ.comap X⟧` evaluated at `a`.
 
 `μ⟦Y ⁻¹' s | mβ.comap X⟧` maps a measurable set `s` to a function `α → ℝ≥0∞`, and for all `s` that
-map is unique up tu a `μ`-null set. For all `a`, the map from sets to `ℝ≥0∞` that we obtain that way
+map is unique up to a `μ`-null set. For all `a`, the map from sets to `ℝ≥0∞` that we obtain that way
 verifies some of the properties of a measure, but in general the fact that the `μ`-null set depends
 on `s` can prevent us from finding versions of the conditional expectation that combine into a true
 measure. The standard Borel space assumption on `Ω` allows us to do so.
+
+The case `Y = X = id` is developed in more detail in `probability/kernel/condexp.lean`: here `X` is
+understood as a map from `Ω` with a sub-σ-algebra to `Ω` with its default σ-algebra and the
+conditional distribution defines a kernel associated with the conditional expectation with respect
+to `m`.
 
 ## Main definitions
 

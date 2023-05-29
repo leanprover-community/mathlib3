@@ -43,9 +43,9 @@ variables {𝕜 : Type u} {n : ℕ}
   [normed_add_comm_group G] [normed_space 𝕜 G] [normed_add_comm_group G'] [normed_space 𝕜 G']
 
 /-!
-### Continuity properties of multilinear maps
+### Continuity properties of alternating maps
 
-We relate continuity of multilinear maps to the inequality `‖f m‖ ≤ C * ∏ i, ‖m i‖`, in
+We relate continuity of alternating maps to the inequality `‖f m‖ ≤ C * ∏ i, ‖m i‖`, in
 both directions. Along the way, we prove useful bounds on the difference `‖f m₁ - f m₂‖`.
 -/
 namespace alternating_map
@@ -58,7 +58,7 @@ lemma bound_of_shell {ε : ℝ} {C : ℝ} (hε : 0 < ε) {c : 𝕜} (hc : 1 < �
   (m : ι → E) : ‖f m‖ ≤ C * ∏ i, ‖m i‖ :=
 f.to_multilinear_map.bound_of_shell (λ _, hε) (λ _, hc) hf m
 
-/-- If a multilinear map in finitely many variables on normed spaces is continuous, then it
+/-- If a alternating map in finitely many variables on normed spaces is continuous, then it
 satisfies the inequality `‖f m‖ ≤ C * ∏ i, ‖m i‖`, for some `C` which can be chosen to be
 positive. -/
 theorem exists_bound_of_continuous (hf : continuous f) :
@@ -86,13 +86,13 @@ lemma norm_image_sub_le_of_bound {C : ℝ} (hC : 0 ≤ C)
   ‖f m₁ - f m₂‖ ≤ C * (fintype.card ι) * (max ‖m₁‖ ‖m₂‖) ^ (fintype.card ι - 1) * ‖m₁ - m₂‖ :=
 f.to_multilinear_map.norm_image_sub_le_of_bound hC H m₁ m₂
 
-/-- If a multilinear map satisfies an inequality `‖f m‖ ≤ C * ∏ i, ‖m i‖`, then it is
+/-- If a alternating map satisfies an inequality `‖f m‖ ≤ C * ∏ i, ‖m i‖`, then it is
 continuous. -/
 theorem continuous_of_bound (C : ℝ) (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖) :
   continuous f :=
 f.to_multilinear_map.continuous_of_bound C H
 
-/-- Constructing a continuous multilinear map from a multilinear map satisfying a boundedness
+/-- Constructing a continuous alternating map from a alternating map satisfying a boundedness
 condition. -/
 def mk_continuous (C : ℝ) (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖) : Λ^ι⟮𝕜; E; G⟯ :=
 { cont := f.continuous_of_bound C H, ..f }
@@ -104,9 +104,9 @@ rfl
 end alternating_map
 
 /-!
-### Continuous multilinear maps
+### Continuous alternating maps
 
-We define the norm `‖f‖` of a continuous multilinear map `f` in finitely many variables as the
+We define the norm `‖f‖` of a continuous alternating map `f` in finitely many variables as the
 smallest number such that `‖f m‖ ≤ ‖f‖ * ∏ i, ‖m i‖` for all `m`. We show that this
 defines a normed space structure on `continuous_multilinear_map 𝕜 E G`.
 -/
@@ -165,7 +165,7 @@ lemma bounds_bdd_below {f : Λ^ι⟮𝕜; E; G⟯} :
   bdd_below {c | 0 ≤ c ∧ ∀ m, ‖f m‖ ≤ c * ∏ i, ‖m i‖} :=
 continuous_multilinear_map.bounds_bdd_below
 
-/-- The fundamental property of the operator norm of a continuous multilinear map:
+/-- The fundamental property of the operator norm of a continuous alternating map:
 `‖f m‖` is bounded by `‖f‖` times the product of the `‖m i‖`. -/
 theorem le_op_norm : ‖f m‖ ≤ ‖f‖ * ∏ i, ‖m i‖ := f.1.le_op_norm m
 
@@ -178,7 +178,7 @@ theorem le_op_norm_of_le {C : ι → ℝ} (h : ∀ i, ‖m i‖ ≤ C i) : ‖f 
 
 lemma ratio_le_op_norm : ‖f m‖ / ∏ i, ‖m i‖ ≤ ‖f‖ := f.1.ratio_le_op_norm m
 
-/-- The image of the unit ball under a continuous multilinear map is bounded. -/
+/-- The image of the unit ball under a continuous alternating map is bounded. -/
 lemma unit_le_op_norm (h : ‖m‖ ≤ 1) : ‖f m‖ ≤ ‖f‖ := f.1.unit_le_op_norm m h
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `f`. -/
@@ -213,7 +213,7 @@ theorem le_op_norm_mul_pow_of_le (f : continuous_alternating_map 𝕜 E G (fin n
   ‖f m‖ ≤ ‖f‖ * b ^ n :=
 f.1.le_op_norm_mul_pow_of_le m hm
 
-/-- The fundamental property of the operator norm of a continuous multilinear map:
+/-- The fundamental property of the operator norm of a continuous alternating map:
 `‖f m‖` is bounded by `‖f‖` times the product of the `‖m i‖`, `nnnorm` version. -/
 theorem le_op_nnnorm : ‖f m‖₊ ≤ ‖f‖₊ * ∏ i, ‖m i‖₊ := f.1.le_op_nnnorm m
 
@@ -330,7 +330,7 @@ lemma norm_image_sub_le (m₁ m₂ : ι → E) :
   ‖f m₁ - f m₂‖ ≤ ‖f‖ * (fintype.card ι) * (max ‖m₁‖ ‖m₂‖) ^ (fintype.card ι - 1) * ‖m₁ - m₂‖ :=
 f.1.norm_image_sub_le m₁ m₂
 
-/-- Applying a multilinear map to a vector is continuous in both coordinates. -/
+/-- Applying a alternating map to a vector is continuous in both coordinates. -/
 lemma continuous_eval :
   continuous (λ p : Λ^ι⟮𝕜; E; G⟯ × (ι → E), p.1 p.2) :=
 (@continuous_multilinear_map.continuous_eval 𝕜 ι (λ _, E) G _ _ _ _ _ _).comp
@@ -365,14 +365,14 @@ instance [complete_space G] : complete_space (Λ^ι⟮𝕜; E; G⟯) :=
 
 end continuous_alternating_map
 
-/-- If a continuous multilinear map is constructed from a multilinear map via the constructor
+/-- If a continuous alternating map is constructed from a alternating map via the constructor
 `mk_continuous`, then its norm is bounded by the bound given to the constructor if it is
 nonnegative. -/
 lemma alternating_map.mk_continuous_norm_le (f : alternating_map 𝕜 E G ι) {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖) : ‖f.mk_continuous C H‖ ≤ C :=
 f.to_multilinear_map.mk_continuous_norm_le hC H
 
-/-- If a continuous multilinear map is constructed from a multilinear map via the constructor
+/-- If a continuous alternating map is constructed from a alternating map via the constructor
 `mk_continuous`, then its norm is bounded by the bound given to the constructor if it is
 nonnegative. -/
 lemma alternating_map.mk_continuous_norm_le' (f : alternating_map 𝕜 E G ι) {C : ℝ}

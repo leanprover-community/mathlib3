@@ -366,19 +366,15 @@ end
 def pi_1_equiv_fundamental_group : π_ 1 X x ≃ fundamental_group X x :=
 homotopy_group_equiv_fundamental_group_of_unique (fin 1)
 
--- mul_equiv
--- homeomorph
-
 section
 
-/-- Group structure on `homotopy_group N X x` for inhabited `N` (in particular `π_(n+1) X x`). -/
+/-- Group structure on `homotopy_group N X x` for nonempty `N` (in particular `π_(n+1) X x`). -/
 instance group (N) [decidable_eq N] [nonempty N] : group (homotopy_group N X x) :=
 (homotopy_group_equiv_fundamental_group $ classical.arbitrary N).group
 
 /-- Group structure on `homotopy_group` obtained by pulling back path composition along the
   `i`th direction. The group structures for two different `i j : N` distribute over each
-  other, and therefore are equal by the Eckmann-Hilton argument. When `N = fin (n+1)`,
-  the group structure with `i = 0` is taken to be default and registered as an instance above. -/
+  other, and therefore are equal by the Eckmann-Hilton argument. -/
 @[reducible] def aux_group (i : N) : group (homotopy_group N X x) :=
 (homotopy_group_equiv_fundamental_group i).group
 

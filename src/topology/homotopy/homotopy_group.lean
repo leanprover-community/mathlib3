@@ -366,8 +366,8 @@ homotopy_group_equiv_fundamental_group_of_unique (fin 1)
 section
 
 /-- Group structure on `homotopy_group N X x` for inhabited `N` (in particular `π_(n+1) X x`). -/
-instance group (N) [decidable_eq N] [inhabited N] : group (homotopy_group N X x) :=
-(homotopy_group_equiv_fundamental_group default).group
+instance group (N) [decidable_eq N] [nonempty N] : group (homotopy_group N X x) :=
+(homotopy_group_equiv_fundamental_group $ classical.arbitrary N).group
 
 /-- Group structure on `homotopy_group` obtained by pulling back path composition along the
   `i`th direction. The group structures for two different `i j : N` distribute over each
@@ -440,21 +440,21 @@ begin
 end
 
 /-- Characterization of multiplicative identity -/
-lemma one_def [inhabited N] : (1 : homotopy_group N X x) = ⟦const⟧ := rfl
+lemma one_def [nonempty N] : (1 : homotopy_group N X x) = ⟦const⟧ := rfl
 
 /-- Characterization of multiplication -/
-lemma mul_spec [inhabited N] {i} {p q : Ω^N X x} :
+lemma mul_spec [nonempty N] {i} {p q : Ω^N X x} :
   (⟦p⟧ * ⟦q⟧ : homotopy_group N X x) = ⟦trans_at i q p⟧ :=
 by { rw [trans_at_indep _ q, ← from_loop_trans_to_loop], apply quotient.sound, refl }
 
 /-- Characterization of multiplicative inverse -/
-lemma inv_spec [inhabited N] {i} {p : Ω^N X x} : (⟦p⟧⁻¹ : homotopy_group N X x) = ⟦symm_at i p⟧ :=
+lemma inv_spec [nonempty N] {i} {p : Ω^N X x} : (⟦p⟧⁻¹ : homotopy_group N X x) = ⟦symm_at i p⟧ :=
 by { rw [symm_at_indep _ p, ← from_loop_symm_to_loop], apply quotient.sound, refl }
 
 /-- Multiplication on `homotopy_group N X x` is commutative for nontrivial `N`.
   In particular, multiplication on `π_(n+2)` is commutative. -/
-instance comm_group [inhabited N] [nontrivial N] : comm_group (homotopy_group N X x) :=
-let h := exists_ne (default : N) in
+instance comm_group [nontrivial N] : comm_group (homotopy_group N X x) :=
+let h := exists_ne (classical.arbitrary N) in
 @eckmann_hilton.comm_group (homotopy_group N X x) _ 1 (is_unital_aux_group h.some) _
 begin
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩,

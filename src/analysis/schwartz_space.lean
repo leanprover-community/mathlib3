@@ -579,7 +579,7 @@ section eval_clm
 
 variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
-/-- The applying a vector to Hom-valued Schwartz function as a continuous linear map. -/
+/-- The map applying a vector to Hom-valued Schwartz function as a continuous linear map. -/
 @[protected] def eval_clm (m : E) : 𝓢(E, E →L[ℝ] F) →L[𝕜] 𝓢(E, F) :=
 mk_clm (λ f x, f x m)
   (λ _ _ _, rfl) (λ _ _ _, rfl) (λ f, cont_diff.clm_apply f.2 cont_diff_const)

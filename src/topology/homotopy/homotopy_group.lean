@@ -184,11 +184,10 @@ end
   `n`-dimensional loops with base point `const`.
   We allow an arbitrary indexing type `N` in place of `fin n` here. -/
 @[simps] def loop_homeo (i : N) : Ω^N X x ≃ₜ Ω (Ω^{j // j ≠ i} X x) const :=
-{ to_equiv :=
-  { to_fun := to_loop i,
-    inv_fun := from_loop i,
-    left_inv := λ p, by { ext, exact congr_arg p (equiv.apply_symm_apply _ _) },
-    right_inv := to_from i },
+{ to_fun := to_loop i,
+  inv_fun := from_loop i,
+  left_inv := λ p, by { ext, exact congr_arg p (equiv.apply_symm_apply _ _) },
+  right_inv := to_from i,
   continuous_to_fun := continuous_to_loop i,
   continuous_inv_fun := continuous_from_loop i }
 
@@ -293,11 +292,10 @@ localized "notation `π_` := pi" in topology
 
 /-- The 0-dimensional generalized loops based at `x` are in 1-1 correspondence with `X`. -/
 def gen_loop_homeo_of_is_empty (N) [is_empty N] : Ω^N X x ≃ₜ X :=
-{ to_equiv :=
-  { to_fun := λ f, f 0,
-    inv_fun := λ x, ⟨continuous_map.const _ x, λ _ ⟨i, _⟩, is_empty_elim i⟩,
-    left_inv := λ f, by { ext, exact congr_arg f (subsingleton.elim _ _) },
-    right_inv := λ _, rfl },
+{ to_fun := λ f, f 0,
+  inv_fun := λ y, ⟨continuous_map.const _ y, λ _ ⟨i, _⟩, is_empty_elim i⟩,
+  left_inv := λ f, by { ext, exact congr_arg f (subsingleton.elim _ _) },
+  right_inv := λ _, rfl,
   continuous_to_fun :=
     (continuous_map.continuous_eval_const' (0 : N → I)).comp continuous_induced_dom,
   continuous_inv_fun := (continuous_map.const'.2).subtype_mk _ }

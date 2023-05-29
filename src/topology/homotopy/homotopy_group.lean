@@ -291,7 +291,7 @@ namespace homotopy_group
 localized "notation `π_` := pi" in topology
 
 /-- The 0-dimensional generalized loops based at `x` are in 1-1 correspondence with `X`. -/
-def gen_loop_homeo_of_is_empty (N) [is_empty N] : Ω^N X x ≃ₜ X :=
+def gen_loop_homeo_of_is_empty (N x) [is_empty N] : Ω^N X x ≃ₜ X :=
 { to_fun := λ f, f 0,
   inv_fun := λ y, ⟨continuous_map.const _ y, λ _ ⟨i, _⟩, is_empty_elim i⟩,
   left_inv := λ f, by { ext, exact congr_arg f (subsingleton.elim _ _) },
@@ -302,9 +302,9 @@ def gen_loop_homeo_of_is_empty (N) [is_empty N] : Ω^N X x ≃ₜ X :=
 
 /-- The homotopy "group" indexed by an empty type is in bijection with
   the path components of `X`, aka the `zeroth_homotopy`. -/
-def homotopy_group_equiv_zeroth_homotopy_of_is_empty (N) [is_empty N] :
+def homotopy_group_equiv_zeroth_homotopy_of_is_empty (N x) [is_empty N] :
   homotopy_group N X x ≃ zeroth_homotopy X :=
-quotient.congr (gen_loop_homeo_of_is_empty N).to_equiv
+quotient.congr (gen_loop_homeo_of_is_empty N x).to_equiv
 begin
   -- joined iff homotopic
   intros, split; rintro ⟨H⟩,
@@ -320,7 +320,7 @@ end
 
 /-- The 0th homotopy "group" is in bijection with `zeroth_homotopy`. -/
 def pi_0_equiv_zeroth_homotopy : π_ 0 X x ≃ zeroth_homotopy X :=
-homotopy_group_equiv_zeroth_homotopy_of_is_empty (fin 0)
+homotopy_group_equiv_zeroth_homotopy_of_is_empty (fin 0) x
 
 /-- The 1-dimensional generalized loops based at `x` are in 1-1 correspondence with loops at `x`. -/
 @[simps] def gen_loop_equiv_of_unique (N) [unique N] : Ω^N X x ≃ Ω X x :=

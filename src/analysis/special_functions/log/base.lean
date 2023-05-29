@@ -54,19 +54,19 @@ by simp_rw [logb, log_div hx hy, sub_div]
 
 lemma inv_logb (a b : ℝ) : (logb a b)⁻¹ = logb b a := by simp_rw [logb, inv_div]
 
-theorem inv_logb_mul_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
+theorem inv_logb_mul_base {a b : ℝ} (c : ℝ) (h₁ : a ≠ 0) (h₂ : b ≠ 0):
   (logb (a * b) c)⁻¹ = (logb a c)⁻¹ + (logb b c)⁻¹ :=
 by simp_rw inv_logb; exact logb_mul h₁ h₂
 
-theorem inv_logb_div_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
+theorem inv_logb_div_base {a b : ℝ} (c : ℝ) (h₁ : a ≠ 0) (h₂ : b ≠ 0):
   (logb (a / b) c)⁻¹ = (logb a c)⁻¹ - (logb b c)⁻¹ :=
 by simp_rw inv_logb; exact logb_div h₁ h₂
 
-theorem logb_mul_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
+theorem logb_mul_base {a b : ℝ} (c : ℝ) (h₁ : a ≠ 0) (h₂ : b ≠ 0):
   logb (a * b) c = ((logb a c)⁻¹ + (logb b c)⁻¹)⁻¹ :=
 by rw [←inv_logb_mul_base h₁ h₂, inv_inv]
 
-theorem logb_div_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
+theorem logb_div_base {a b : ℝ} (c : ℝ) (h₁ : a ≠ 0) (h₂ : b ≠ 0):
   logb (a / b) c = ((logb a c)⁻¹ - (logb b c)⁻¹)⁻¹ :=
 by rw [←inv_logb_div_base h₁ h₂, inv_inv]
 

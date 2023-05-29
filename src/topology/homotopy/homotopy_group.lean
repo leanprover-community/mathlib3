@@ -322,44 +322,40 @@ end
 def pi_0_equiv_zeroth_homotopy : π_ 0 X x ≃ zeroth_homotopy X :=
 homotopy_group_equiv_zeroth_homotopy_of_is_empty (fin 0) x
 
+lemma is_empty_ne_of_unique (N) [unique N] : is_empty {j : N // j ≠ default} :=
+⟨λ j, j.2 $ subsingleton.elim _ _⟩
+
+local attribute [instance] is_empty_ne_of_unique
+
 /-- The 1-dimensional generalized loops based at `x` are in 1-1 correspondence with loops at `x`. -/
-@[simps] def gen_loop_equiv_of_unique (N) [unique N] : Ω^N X x ≃ Ω X x :=
-{ to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by continuity⟩
-    (gen_loop.boundary _ (λ _, 0) ⟨default, or.inl rfl⟩)
-    (gen_loop.boundary _ (λ _, 1) ⟨default, or.inr rfl⟩),
-  inv_fun := λ p, ⟨⟨λ c, p (c default), by continuity⟩,
-  begin
-    rintro y ⟨i, iH|iH⟩; cases unique.eq_default i; apply (congr_arg p iH).trans,
-    exacts [p.source, p.target],
-  end⟩,
-  left_inv := λ p, by { ext, exact congr_arg p (eq_const_of_unique y).symm },
-  right_inv := λ p, by { ext, refl } }
+-- @[simps] times out
+def gen_loop_equiv_of_unique (N) [unique N] : Ω^N X x ≃ Ω X x :=
+(loop_homeo default).to_equiv.trans
+{ to_fun := λ p, p.map (gen_loop_homeo_of_is_empty _ x).continuous,
+  inv_fun := λ p, p.map (gen_loop_homeo_of_is_empty _ x).symm.continuous,
+  left_inv := λ p, by { ext, simp },
+  right_inv := λ p, by { ext, simp } }
+/- We could use also `path.map_homeo`, which would introduce a redundant `path.cast`. -/
+
+lemma gen_loop_unique_map_is_empty (N) [unique N] (p : Ω^N X x) :
+  (gen_loop_equiv_of_unique N p).map (gen_loop_homeo_of_is_empty _ x).symm.continuous =
+  to_loop default p :=
+by { ext, simp [gen_loop_equiv_of_unique] }
 
 /-- The homotopy group at `x` indexed by a singleton is in bijection with the fundamental group,
   i.e. the loops based at `x` up to homotopy. -/
-/- TODO (?): deducing this from `homotopy_group_equiv_fundamental_group` would require
-  combination of `category_theory.functor.map_Aut` and
-  `fundamental_groupoid.fundamental_groupoid_functor` applied to `gen_loop_homeo_of_is_empty`,
-  with possibly worse defeq. -/
 def homotopy_group_equiv_fundamental_group_of_unique (N) [unique N] :
   homotopy_group N X x ≃ fundamental_group X x :=
 begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
   refine quotient.congr (gen_loop_equiv_of_unique N) _,
-  intros, split; rintros ⟨H⟩,
-  { exact
-    ⟨ { to_fun := λ tx, H (tx.fst, λ _, tx.snd),
-        map_zero_left' := λ _, H.apply_zero _,
-        map_one_left' := λ _, H.apply_one _,
-        prop' := λ t y iH, H.prop' _ _ ⟨default, iH⟩ } ⟩ },
-  refine ⟨⟨⟨⟨λ tx, H (tx.fst, tx.snd default), H.continuous.comp _⟩, λ y, _, λ y, _⟩, _⟩⟩,
-  { exact continuous_fst.prod_mk ((continuous_apply _).comp continuous_snd) },
-  { convert H.apply_zero _, exact eq_const_of_unique y },
-  { convert H.apply_one _, exact eq_const_of_unique y },
-  { rintro t y ⟨i, iH⟩,
-    cases unique.eq_default i, split,
-    { convert H.eq_fst _ _, exacts [eq_const_of_unique y, iH] },
-    { convert H.eq_snd _ _, exacts [eq_const_of_unique y, iH] } },
+  intros p q, split; intro H,
+  { exact (homotopic_to _ H).map (gen_loop_homeo_of_is_empty _ x).to_continuous_map },
+  { apply homotopic_from default,
+    convert ← H.map (gen_loop_homeo_of_is_empty _ x).symm.to_continuous_map,
+    iterate 2 { apply gen_loop_unique_map_is_empty } },
+  /- An iff version of `path.homotopic.map` could simplify the proof and
+    eliminate the need of `gen_loop_unique_map_is_empty`. -/
 end
 
 /-- The first homotopy group at `x` is in bijection with the fundamental group. -/

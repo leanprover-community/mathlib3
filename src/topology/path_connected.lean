@@ -332,6 +332,10 @@ def map (γ : path x y) {Y : Type*} [topological_space Y]
   source' := by simp,
   target' := by simp }
 
+lemma _root_.continuous.path_map {Y} [topological_space Y] {f : X → Y} (h : continuous f) :
+  continuous (λ γ : path x y, γ.map h) :=
+continuous_induced_rng.2 $ (continuous_map.continuous_comp ⟨f, h⟩).comp continuous_induced_dom
+
 @[simp] lemma map_coe (γ : path x y) {Y : Type*} [topological_space Y]
   {f : X → Y} (h : continuous f) :
   (γ.map h : I → Y) = f ∘ γ :=
@@ -369,6 +373,16 @@ def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
 @[simp] lemma cast_coe (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) :
   (γ.cast hx hy : I → X) = γ :=
 rfl
+
+@[simps] def map_homeo {Y} [topological_space Y]
+  {f : X ≃ₜ Y} : path x y ≃ₜ path (f x) (f y) :=
+{ to_fun := λ p, p.map f.continuous,
+  inv_fun := λ p, (p.map f.symm.continuous).cast (f.left_inv _).symm (f.left_inv _).symm,
+  left_inv := λ p, by { ext, simp },
+  right_inv := λ p, by { ext, simp },
+  continuous_to_fun := f.continuous.path_map,
+  continuous_inv_fun := continuous_induced_rng.2 $
+    (continuous_map.continuous_comp ⟨_, f.symm.continuous⟩).comp continuous_induced_dom }
 
 @[continuity]
 lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]

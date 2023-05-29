@@ -147,7 +147,7 @@ calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
 /--  The sum of the `k` initial terms of the Liouville number to base `m` is a ratio of natural
 numbers where the denominator is `m ^ k!`. -/
 lemma liouville_number_rat_initial_terms {m : ℕ} (hm : 0 < m) (k : ℕ) :
-  ∃ p : ℕ, liouville_number_initial_terms m k = p / m ^ k! :=
+∃ p : ℕ, liouville_number_initial_terms m k = p / m ^ k! :=
 begin
   induction k with k h,
   { exact ⟨1, by rw [liouville_number_initial_terms, range_one, sum_singleton, nat.cast_one]⟩ },
@@ -164,7 +164,7 @@ begin
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
 end
 
-theorem liouville_liouville_number {m : ℕ} (hm : 2 ≤ m) :
+theorem is_liouville {m : ℕ} (hm : 2 ≤ m) :
   liouville (liouville_number m) :=
 begin
   -- two useful inequalities
@@ -183,8 +183,10 @@ begin
     (aux_calc _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
 
-lemma transcendental_liouville_number {m : ℕ} (hm : 2 ≤ m) :
-  transcendental ℤ (liouville_number m) :=
-(liouville_liouville_number hm).transcendental
+/- Placing this lemma outside of the `open/closed liouville`-namespace would allow to remove
+`_root_.`, at the cost of some other small weirdness. -/
+lemma is_transcendental {m : ℕ} (hm : 2 ≤ m) :
+  _root_.transcendental ℤ (liouville_number m) :=
+transcendental (is_liouville hm)
 
 end liouville

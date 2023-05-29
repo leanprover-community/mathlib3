@@ -32,7 +32,7 @@ We provide a group instance using path composition and show commutativity when `
 
 TODO:
 * Functoriality of `Ω`.
-* `Ω^M (Ω^N X) ≃ Ω^(M+N) X`, and `Ω^M X ≃ Ω^N X` when `M ≃ N`. Similarly for `π_`.
+* `Ω^M (Ω^N X) ≃ Ω^(M⊕N) X`, and `Ω^M X ≃ Ω^N X` when `M ≃ N`. Similarly for `π_`.
 * Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a group isomorphism.
 * Examples with `𝕊^n`: `π_n (𝕊^n) = ℤ`, `π_m (𝕊^n)` trivial for `m < n`.
 * Actions of π_1 on π_n.
@@ -80,6 +80,8 @@ variables (N X : Type*) [topological_space X] (x : X)
 /-- The space of paths with both endpoints equal to a specified point `x : X`. -/
 @[reducible] def loop_space := path x x
 localized "notation `Ω` := loop_space" in topology
+
+instance loop_space.inhabited : inhabited (path x x) := ⟨path.refl x⟩
 
 /-- The `n`-dimensional generalized loops based at `x` in a space `X` are
   continuous functions `I^n → X` that sends the boundary to `x`.

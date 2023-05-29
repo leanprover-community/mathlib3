@@ -474,6 +474,12 @@ def continuous_linear_equiv.continuous_alternating_map_congrL (e : E ≃L[𝕜] 
 (continuous_alternating_map.comp_continuous_linear_equivL e).trans $
   e'.comp_continuous_alternating_mapL E'
 
+@[simp] lemma continuous_linear_equiv.continuous_alternating_map_congrL_apply (e : E ≃L[𝕜] E')
+  (e' : G ≃L[𝕜] G') (f : continuous_alternating_map 𝕜 E G ι) :
+  e.continuous_alternating_map_congrL e' f =
+  e'.comp_continuous_alternating_map (f.comp_continuous_linear_map ↑e.symm) :=
+rfl
+
 end
 
 /-

@@ -98,9 +98,8 @@ change function between the two induced (pre)trivializations
 def continuous_alternating_map_coord_change
   [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [e₂.is_linear 𝕜] [e₂'.is_linear 𝕜] (b : B) :
   (continuous_alternating_map 𝕜 F₁ F₂ ι) →L[𝕜] (continuous_alternating_map 𝕜 F₁ F₂ ι) :=
-sorry
--- ((e₁'.coord_changeL 𝕜 e₁ b).symm.arrow_congrSL (e₂.coord_changeL 𝕜 e₂' b) :
---   (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) ≃L[𝕜]_root_.continuous_alternating_map 𝕜 F₁ F₂ ι)
+((e₁'.coord_changeL 𝕜 e₁ b).symm.continuous_alternating_map_congrL (e₂.coord_changeL 𝕜 e₂' b) :
+  (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) ≃L[𝕜]_root_.continuous_alternating_map 𝕜 F₁ F₂ ι)
 
 variables {e₁ e₁' e₂ e₂'}
 variables [Π x, topological_space (E₁ x)] [fiber_bundle F₁ E₁]
@@ -216,17 +215,19 @@ lemma continuous_alternating_map_coord_change_apply (b : B)
   (continuous_alternating_map 𝕜 ι e₁' e₂'
     (total_space_mk b ((continuous_alternating_map 𝕜 ι e₁ e₂).symm b L))).2 :=
 begin
-  sorry
-  -- ext v,
-  -- simp_rw [continuous_alternating_map_coord_change, continuous_alternating_equiv.coe_coe,
-  --   continuous_alternating_equiv.arrow_congrSL_apply,
-  --   continuous_alternating_map_apply, continuous_alternating_map_symm_apply' σ e₁ e₂ hb.1,
-  --   comp_apply, continuous_alternating_equiv.coe_coe, continuous_alternating_equiv.symm_symm,
-  --   trivialization.continuous_alternating_map_at_apply, trivialization.symmL_apply],
-  -- dsimp only [total_space_mk],
-  -- rw [e₂.coord_changeL_apply e₂', e₁'.coord_changeL_apply e₁, e₁.coe_linear_map_at_of_mem hb.1.1,
-  --   e₂'.coe_linear_map_at_of_mem hb.2.2],
-  -- exacts [⟨hb.2.1, hb.1.1⟩, ⟨hb.1.2, hb.2.2⟩]
+  ext v,
+  have H : e₁'.coord_changeL 𝕜 e₁ b ∘ v = e₁.linear_map_at 𝕜 b ∘ e₁'.symm b ∘ v,
+  { ext i,
+    dsimp,
+    rw [e₁'.coord_changeL_apply e₁ ⟨hb.2.1, hb.1.1⟩, e₁.coe_linear_map_at_of_mem hb.1.1] },
+  simp_rw [pretrivialization.continuous_alternating_map_apply,
+    continuous_alternating_map_coord_change, continuous_linear_equiv.coe_coe,
+    continuous_linear_equiv.continuous_alternating_map_congrL_apply,
+    continuous_linear_equiv.symm_symm, continuous_linear_equiv.comp_continuous_alternating_map_coe,
+    function.comp_app, continuous_alternating_map.comp_continuous_linear_map_apply,
+    continuous_linear_equiv.coe_coe],
+  simp [pretrivialization.continuous_alternating_map_symm_apply' _ _ _ _ hb.1,
+    e₂.coord_changeL_apply e₂' ⟨hb.1.2, hb.2.2⟩, e₂'.coe_linear_map_at_of_mem hb.2.2, H],
 end
 
 end pretrivialization
@@ -323,12 +324,6 @@ lemma trivialization.continuous_alternating_map_apply
 rfl
 
 omit he₁ he₂
-
--- lemma hom_trivialization_at_apply (x₀ : B)
---   (x : total_space (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂)) :
---   trivialization_at (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂) x₀ x =
---   ⟨x.1, in_coordinates F₁ E₁ F₂ E₂ x₀ x.1 x₀ x.1 x.2⟩ :=
--- rfl
 
 @[simp, mfld_simps]
 lemma hom_trivialization_at_source (x₀ : B) :

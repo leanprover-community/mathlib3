@@ -297,6 +297,11 @@ def _root_.continuous_linear_equiv.comp_continuous_alternating_map (e : N ≃L[R
   left_inv := λ f, by { ext, simp [(∘)] },
   right_inv := λ f, by { ext, simp [(∘)] } }
 
+@[simp] lemma _root_.continuous_linear_equiv.comp_continuous_alternating_map_coe (e : N ≃L[R] N')
+  (f : continuous_alternating_map R M N ι) :
+  ⇑(e.comp_continuous_alternating_map f) = e ∘ f :=
+rfl
+
 def _root_.continuous_linear_equiv.continuous_alternating_map_congr
   (e : M ≃L[R] M') (e' : N ≃L[R] N') :
   continuous_alternating_map R M N ι ≃ continuous_alternating_map R M' N' ι :=
@@ -561,4 +566,3 @@ lemma alternatization_apply_to_alternating_map :
 by { ext v, simp [alternatization_apply_apply, multilinear_map.alternatization_apply] }
 
 end continuous_multilinear_map
-

@@ -94,8 +94,7 @@ f.to_multilinear_map.continuous_of_bound C H
 
 /-- Constructing a continuous multilinear map from a multilinear map satisfying a boundedness
 condition. -/
-def mk_continuous (C : ℝ) (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖) :
-  continuous_alternating_map 𝕜 E G ι :=
+def mk_continuous (C : ℝ) (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖) : Λ^ι⟮𝕜; E; G⟯ :=
 { cont := f.continuous_of_bound C H, ..f }
 
 @[simp] lemma coe_mk_continuous (C : ℝ) (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖) :
@@ -113,30 +112,30 @@ defines a normed space structure on `continuous_multilinear_map 𝕜 E G`.
 -/
 namespace continuous_alternating_map
 
-variables (c : 𝕜) (f g : continuous_alternating_map 𝕜 E G ι) (m : ι → E)
+variables (c : 𝕜) (f g : Λ^ι⟮𝕜; E; G⟯) (m : ι → E)
 
 theorem bound : ∃ (C : ℝ), 0 < C ∧ (∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖) :=
 f.to_continuous_multilinear_map.bound
 
-instance : normed_add_comm_group (continuous_alternating_map 𝕜 E G ι) :=
+instance : normed_add_comm_group (Λ^ι⟮𝕜; E; G⟯) :=
 normed_add_comm_group.induced _ _
-  (to_multilinear_add_hom : continuous_alternating_map 𝕜 E G ι →+ _)
+  (to_multilinear_add_hom : Λ^ι⟮𝕜; E; G⟯ →+ _)
   to_continuous_multilinear_map_injective
 
 @[simp] lemma norm_to_continuous_multilinear_map : ‖f.1‖ = ‖f‖ := rfl
 
 lemma embedding_to_continuous_multilinear_map :
-  embedding (to_continuous_multilinear_map : continuous_alternating_map 𝕜 E G ι →
+  embedding (to_continuous_multilinear_map : Λ^ι⟮𝕜; E; G⟯ →
     continuous_multilinear_map 𝕜 (λ _ : ι, E) G) :=
 to_continuous_multilinear_map_injective.embedding_induced
 
 lemma uniform_embedding_to_continuous_multilinear_map :
-  uniform_embedding (to_continuous_multilinear_map : continuous_alternating_map 𝕜 E G ι →
+  uniform_embedding (to_continuous_multilinear_map : Λ^ι⟮𝕜; E; G⟯ →
     continuous_multilinear_map 𝕜 (λ _ : ι, E) G) :=
 ⟨⟨rfl⟩, to_continuous_multilinear_map_injective⟩
 
 lemma is_closed_range_to_continuous_multilinear_map :
-  is_closed (set.range (to_continuous_multilinear_map : continuous_alternating_map 𝕜 E G ι →
+  is_closed (set.range (to_continuous_multilinear_map : Λ^ι⟮𝕜; E; G⟯ →
     continuous_multilinear_map 𝕜 (λ _ : ι, E) G)) :=
 begin
   simp only [range_to_continuous_multilinear_map, set.set_of_forall],
@@ -145,12 +144,12 @@ begin
 end
 
 lemma closed_embedding_to_continuous_multilinear_map :
-  closed_embedding (to_continuous_multilinear_map : continuous_alternating_map 𝕜 E G ι →
+  closed_embedding (to_continuous_multilinear_map : Λ^ι⟮𝕜; E; G⟯ →
     continuous_multilinear_map 𝕜 (λ _ : ι, E) G) :=
 ⟨embedding_to_continuous_multilinear_map, is_closed_range_to_continuous_multilinear_map⟩
 
 lemma continuous_to_continuous_multilinear_map :
-  continuous (to_continuous_multilinear_map : continuous_alternating_map 𝕜 E G ι →
+  continuous (to_continuous_multilinear_map : Λ^ι⟮𝕜; E; G⟯ →
     continuous_multilinear_map 𝕜 (λ _ : ι, E) G) :=
 embedding_to_continuous_multilinear_map.continuous
 
@@ -158,11 +157,11 @@ lemma norm_def : ‖f‖ = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ‖f m‖ ≤ c *
 
 -- So that invocations of `le_cInf` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
-lemma bounds_nonempty {f : continuous_alternating_map 𝕜 E G ι} :
+lemma bounds_nonempty {f : Λ^ι⟮𝕜; E; G⟯} :
   ∃ c, c ∈ {c | 0 ≤ c ∧ ∀ m, ‖f m‖ ≤ c * ∏ i, ‖m i‖} :=
 continuous_multilinear_map.bounds_nonempty
 
-lemma bounds_bdd_below {f : continuous_alternating_map 𝕜 E G ι} :
+lemma bounds_bdd_below {f : Λ^ι⟮𝕜; E; G⟯} :
   bdd_below {c | 0 ≤ c ∧ ∀ m, ‖f m‖ ≤ c * ∏ i, ‖m i‖} :=
 continuous_multilinear_map.bounds_bdd_below
 
@@ -190,14 +189,14 @@ f.1.op_norm_le_bound hMp hM
 section
 variables {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' G] [smul_comm_class 𝕜 𝕜' G]
 
-instance normed_space : normed_space 𝕜' (continuous_alternating_map 𝕜 E G ι) :=
+instance normed_space : normed_space 𝕜' (Λ^ι⟮𝕜; E; G⟯) :=
 ⟨λ c f, f.1.op_norm_smul_le c⟩
 
 variable (𝕜')
 
 @[simps]
 def to_continuous_multilinear_mapL :
-  continuous_alternating_map 𝕜 E G ι →L[𝕜'] continuous_multilinear_map 𝕜 (λ _ : ι, E) G :=
+  Λ^ι⟮𝕜; E; G⟯ →L[𝕜'] continuous_multilinear_map 𝕜 (λ _ : ι, E) G :=
 ⟨to_continuous_multilinear_map_linear⟩
 
 variable {𝕜'}
@@ -221,7 +220,7 @@ theorem le_op_nnnorm : ‖f m‖₊ ≤ ‖f‖₊ * ∏ i, ‖m i‖₊ := f.1.
 theorem le_of_op_nnnorm_le {C : ℝ≥0} (h : ‖f‖₊ ≤ C) : ‖f m‖₊ ≤ C * ∏ i, ‖m i‖₊ :=
 f.1.le_of_op_nnnorm_le m h
 
-lemma op_norm_prod (f : continuous_alternating_map 𝕜 E G ι)
+lemma op_norm_prod (f : Λ^ι⟮𝕜; E; G⟯)
   (g : continuous_alternating_map 𝕜 E G' ι) :
   ‖f.prod g‖ = max (‖f‖) (‖g‖) :=
 f.1.op_norm_prod g.1
@@ -265,7 +264,7 @@ variables (𝕜 E E' G G')
 
 /-- `continuous_multilinear_map.prod` as a `linear_isometry_equiv`. -/
 def prodₗᵢ :
-  (continuous_alternating_map 𝕜 E G ι) × (continuous_alternating_map 𝕜 E G' ι) ≃ₗᵢ[𝕜]
+  (Λ^ι⟮𝕜; E; G⟯) × (continuous_alternating_map 𝕜 E G' ι) ≃ₗᵢ[𝕜]
     continuous_alternating_map 𝕜 E (G × G') ι :=
 { to_fun := λ f, f.1.prod f.2,
   inv_fun := λ f, ((continuous_linear_map.fst 𝕜 G G').comp_continuous_alternating_map f,
@@ -280,7 +279,7 @@ def prodₗᵢ :
 def piₗᵢ {ι' : Type v'} [fintype ι'] {G : ι' → Type wE'} [Π i', normed_add_comm_group (G i')]
   [Π i', normed_space 𝕜 (G i')] :
   @linear_isometry_equiv 𝕜 𝕜 _ _ (ring_hom.id 𝕜) _ _ _
-    (Π i', continuous_alternating_map 𝕜 E (G i') ι) (continuous_alternating_map 𝕜 E (Π i, G i) ι)
+    (Π i', Λ^ι⟮𝕜; E; G i'⟯) Λ^ι⟮𝕜; E; Π i, G i⟯
       _ _ (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
 { to_linear_equiv := pi_linear_equiv,
   norm_map' := norm_pi }
@@ -299,9 +298,8 @@ variables [normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
 
 variable (𝕜')
 
-/-- `continuous_multilinear_map.restrict_scalars` as a `continuous_multilinear_map`. -/
-def restrict_scalarsₗᵢ :
-  continuous_alternating_map 𝕜 E G ι →ₗᵢ[𝕜'] continuous_alternating_map 𝕜' E G ι :=
+/-- `continuous_multilinear_map.restrict_scalars` as a `linear_isometry`. -/
+def restrict_scalarsₗᵢ : Λ^ι⟮𝕜; E; G⟯ →ₗᵢ[𝕜'] Λ^ι⟮𝕜'; E; G⟯ :=
 { to_fun := restrict_scalars 𝕜',
   map_add' := λ m₁ m₂, rfl,
   map_smul' := λ c m, rfl,
@@ -310,8 +308,7 @@ def restrict_scalarsₗᵢ :
 variable {𝕜'}
 
 lemma continuous_restrict_scalars :
-  continuous (restrict_scalars 𝕜' : continuous_alternating_map 𝕜 E G ι →
-    continuous_alternating_map 𝕜' E G ι) :=
+  continuous (restrict_scalars 𝕜' : Λ^ι⟮𝕜; E; G⟯ → Λ^ι⟮𝕜'; E; G⟯) :=
 (restrict_scalarsₗᵢ 𝕜').continuous
 
 end restrict_scalars
@@ -335,16 +332,16 @@ f.1.norm_image_sub_le m₁ m₂
 
 /-- Applying a multilinear map to a vector is continuous in both coordinates. -/
 lemma continuous_eval :
-  continuous (λ p : continuous_alternating_map 𝕜 E G ι × (ι → E), p.1 p.2) :=
+  continuous (λ p : Λ^ι⟮𝕜; E; G⟯ × (ι → E), p.1 p.2) :=
 (@continuous_multilinear_map.continuous_eval 𝕜 ι (λ _, E) G _ _ _ _ _ _).comp
   (continuous_to_continuous_multilinear_map.prod_map continuous_id)
 
 lemma continuous_eval_left (m : ι → E) :
-  continuous (λ p : continuous_alternating_map 𝕜 E G ι, p m) :=
+  continuous (λ p : Λ^ι⟮𝕜; E; G⟯, p m) :=
 (@continuous_eval 𝕜 E G ι _ _ _ _ _ _).comp₂ continuous_id continuous_const
 
-lemma has_sum_eval {α : Type*} {p : α → continuous_alternating_map 𝕜 E G ι}
-  {q : continuous_alternating_map 𝕜 E G ι}
+lemma has_sum_eval {α : Type*} {p : α → Λ^ι⟮𝕜; E; G⟯}
+  {q : Λ^ι⟮𝕜; E; G⟯}
   (h : has_sum p q) (m : ι → E) : has_sum (λ a, p a m) (q m) :=
 begin
   dsimp [has_sum] at h ⊢,
@@ -353,7 +350,7 @@ begin
   simp
 end
 
-lemma tsum_eval {α : Type*} {p : α → continuous_alternating_map 𝕜 E G ι} (hp : summable p)
+lemma tsum_eval {α : Type*} {p : α → Λ^ι⟮𝕜; E; G⟯} (hp : summable p)
   (m : ι → E) : (∑' a, p a) m = ∑' a, p a m :=
 (has_sum_eval hp.has_sum m).tsum_eq.symm
 
@@ -362,7 +359,7 @@ open filter
 
 /-- If the target space is complete, the space of continuous alternating maps with its norm is also
 complete. -/
-instance [complete_space G] : complete_space (continuous_alternating_map 𝕜 E G ι) :=
+instance [complete_space G] : complete_space (Λ^ι⟮𝕜; E; G⟯) :=
 (complete_space_iff_is_complete_range uniform_embedding_to_continuous_multilinear_map.1).2
   is_closed_range_to_continuous_multilinear_map.is_complete
 
@@ -386,8 +383,7 @@ continuous_multilinear_map.op_norm_le_bound _ (le_max_right _ _) $
 
 namespace continuous_linear_map
 
-lemma norm_comp_continuous_alternating_map_le (g : G →L[𝕜] G')
-  (f : continuous_alternating_map 𝕜 E G ι) :
+lemma norm_comp_continuous_alternating_map_le (g : G →L[𝕜] G') (f : Λ^ι⟮𝕜; E; G⟯) :
   ‖g.comp_continuous_alternating_map f‖ ≤ ‖g‖ * ‖f‖ :=
 g.norm_comp_continuous_multilinear_map_le f.1
 
@@ -395,7 +391,7 @@ variables (𝕜 E G G')
 
 /-- `continuous_linear_map.comp_continuous_alternating_map` as a bundled continuous bilinear map. -/
 def comp_continuous_alternating_mapL :
-  (G →L[𝕜] G') →L[𝕜] continuous_alternating_map 𝕜 E G ι →L[𝕜] continuous_alternating_map 𝕜 E G' ι :=
+  (G →L[𝕜] G') →L[𝕜] Λ^ι⟮𝕜; E; G⟯ →L[𝕜] Λ^ι⟮𝕜; E; G'⟯ :=
 linear_map.mk_continuous₂
   (linear_map.mk₂ 𝕜 comp_continuous_alternating_map (λ f₁ f₂ g, rfl) (λ c f g, rfl)
     (λ f g₁ g₂, by { ext1, apply f.map_add }) (λ c f g, by { ext1, simp }))
@@ -406,7 +402,7 @@ variables {𝕜 G G'}
 /-- `continuous_linear_map.comp_continuous_alternating_map` as a bundled
 continuous linear equiv. -/
 def _root_.continuous_linear_equiv.comp_continuous_alternating_mapL (g : G ≃L[𝕜] G') :
-  continuous_alternating_map 𝕜 E G ι ≃L[𝕜] continuous_alternating_map 𝕜 E G' ι :=
+  Λ^ι⟮𝕜; E; G⟯ ≃L[𝕜] Λ^ι⟮𝕜; E; G'⟯ :=
 { inv_fun := comp_continuous_alternating_mapL 𝕜 _ _ _ g.symm.to_continuous_linear_map,
   continuous_to_fun :=
     (comp_continuous_alternating_mapL 𝕜 _ _ _ g.to_continuous_linear_map).continuous,
@@ -418,28 +414,25 @@ def _root_.continuous_linear_equiv.comp_continuous_alternating_mapL (g : G ≃L[
 @[simp] lemma _root_.continuous_linear_equiv.comp_continuous_alternating_mapL_symm
   (g : G ≃L[𝕜] G') :
   (g.comp_continuous_alternating_mapL E :
-    continuous_alternating_map 𝕜 E G ι ≃L[𝕜] continuous_alternating_map 𝕜 E G' ι).symm =
+    Λ^ι⟮𝕜; E; G⟯ ≃L[𝕜] continuous_alternating_map 𝕜 E G' ι).symm =
     g.symm.comp_continuous_alternating_mapL E := rfl
 
 variables {E}
 
 @[simp] lemma _root_.continuous_linear_equiv.comp_continuous_alternating_mapL_apply
-  (g : G ≃L[𝕜] G') (f : continuous_alternating_map 𝕜 E G ι) :
+  (g : G ≃L[𝕜] G') (f : Λ^ι⟮𝕜; E; G⟯) :
   g.comp_continuous_alternating_mapL E f = (g : G →L[𝕜] G').comp_continuous_alternating_map f :=
 rfl
 
-/-- Flip arguments in `f : G →L[𝕜] continuous_alternating_map 𝕜 E G ι'` to get
-`continuous_alternating_map 𝕜 E (G →L[𝕜] G')` -/
-def flip_alternating (f : G →L[𝕜] continuous_alternating_map 𝕜 E G' ι) :
-  continuous_alternating_map 𝕜 E (G →L[𝕜] G') ι :=
+/-- Flip arguments in `f : G →L[𝕜] Λ^ι⟮𝕜; E; G⟯'` to get `Λ^ι⟮𝕜; E; G →L[𝕜] G'⟯` -/
+def flip_alternating (f : G →L[𝕜] Λ^ι⟮𝕜; E; G'⟯) : Λ^ι⟮𝕜; E; G →L[𝕜] G'⟯ :=
 { to_continuous_multilinear_map :=
     ((continuous_alternating_map.to_continuous_multilinear_mapL 𝕜).comp f).flip_multilinear,
   map_eq_zero_of_eq' := λ v i j hv hne, by { ext x, simp [(f x).map_eq_zero_of_eq v hv hne] } }
 
 end continuous_linear_map
 
-lemma linear_isometry.norm_comp_continuous_alternating_map
-  (g : G →ₗᵢ[𝕜] G') (f : continuous_alternating_map 𝕜 E G ι) :
+lemma linear_isometry.norm_comp_continuous_alternating_map (g : G →ₗᵢ[𝕜] G') (f : Λ^ι⟮𝕜; E; G⟯) :
   ‖g.to_continuous_linear_map.comp_continuous_alternating_map f‖ = ‖f‖ :=
 g.norm_comp_continuous_multilinear_map f.1
 
@@ -450,12 +443,12 @@ section
 variables {𝕜 E E' G G'}
 
 lemma continuous_alternating_map.norm_comp_continuous_linear_map_le
-  (f : continuous_alternating_map 𝕜 E' G ι) (g : E →L[𝕜] E') :
+  (f : Λ^ι⟮𝕜; E'; G⟯) (g : E →L[𝕜] E') :
   ‖f.comp_continuous_linear_map g‖ ≤ ‖f‖ * (‖g‖ ^ fintype.card ι) :=
 (f.1.norm_comp_continuous_linear_le _).trans_eq $ by simp [fintype.card]
 
 def continuous_alternating_map.comp_continuous_linear_mapL (f : E →L[𝕜] E') :
-  continuous_alternating_map 𝕜 E' G ι →L[𝕜] continuous_alternating_map 𝕜 E G ι :=
+  Λ^ι⟮𝕜; E'; G⟯ →L[𝕜] Λ^ι⟮𝕜; E; G⟯ :=
 linear_map.mk_continuous
   { to_fun := λ g, g.comp_continuous_linear_map f,
     map_add' := λ g g', by { ext, simp },
@@ -463,19 +456,19 @@ linear_map.mk_continuous
   (‖f‖ ^ fintype.card ι) $ λ g, (g.norm_comp_continuous_linear_map_le f).trans_eq (mul_comm _ _)
 
 def continuous_alternating_map.comp_continuous_linear_equivL (f : E ≃L[𝕜] E') :
-  continuous_alternating_map 𝕜 E G ι ≃L[𝕜] continuous_alternating_map 𝕜 E' G ι :=
+  Λ^ι⟮𝕜; E; G⟯ ≃L[𝕜] Λ^ι⟮𝕜; E'; G⟯ :=
 { continuous_inv_fun := (continuous_alternating_map.comp_continuous_linear_mapL (f : E →L[𝕜] E')).cont,
   continuous_to_fun := (continuous_alternating_map.comp_continuous_linear_mapL (f.symm : E' →L[𝕜] E)).cont,
   .. continuous_alternating_map.comp_continuous_linear_mapL (f.symm : E' →L[𝕜] E),
   .. f.continuous_alternating_map_comp }
 
 def continuous_linear_equiv.continuous_alternating_map_congrL (e : E ≃L[𝕜] E') (e' : G ≃L[𝕜] G') :
-  continuous_alternating_map 𝕜 E G ι ≃L[𝕜] continuous_alternating_map 𝕜 E' G' ι :=
+  Λ^ι⟮𝕜; E; G⟯ ≃L[𝕜] Λ^ι⟮𝕜; E'; G'⟯ :=
 (continuous_alternating_map.comp_continuous_linear_equivL e).trans $
   e'.comp_continuous_alternating_mapL E'
 
 @[simp] lemma continuous_linear_equiv.continuous_alternating_map_congrL_apply (e : E ≃L[𝕜] E')
-  (e' : G ≃L[𝕜] G') (f : continuous_alternating_map 𝕜 E G ι) :
+  (e' : G ≃L[𝕜] G') (f : Λ^ι⟮𝕜; E; G⟯) :
   e.continuous_alternating_map_congrL e' f =
   e'.comp_continuous_alternating_map (f.comp_continuous_linear_map ↑e.symm) :=
 rfl
@@ -488,15 +481,15 @@ namespace multilinear_map
 
 /-- Given a map `f : G →ₗ[𝕜] alternating_map 𝕜 E G ι'` and an estimate
 `H : ∀ x m, ‖f x m‖ ≤ C * ‖x‖ * ∏ i, ‖m i‖`, construct a continuous linear
-map from `G` to `continuous_alternating_map 𝕜 E G ι'`.
+map from `G` to `Λ^ι⟮𝕜; E; G⟯'`.
 
 In order to lift, e.g., a map `f : (alternating_map 𝕜 E G ι) →ₗ[𝕜] multilinear_map 𝕜 E' G'`
-to a map `(continuous_alternating_map 𝕜 E G ι) →L[𝕜] continuous_alternating_map 𝕜 E' G'`,
+to a map `(Λ^ι⟮𝕜; E; G⟯) →L[𝕜] continuous_alternating_map 𝕜 E' G'`,
 one can apply this construction to `f.comp continuous_alternating_map.to_alternating_map_linear`
-which is a linear map from `continuous_alternating_map 𝕜 E G ι` to `multilinear_map 𝕜 E' G'`. -/
+which is a linear map from `Λ^ι⟮𝕜; E; G⟯` to `multilinear_map 𝕜 E' G'`. -/
 def mk_continuous_linear (f : G →ₗ[𝕜] alternating_map 𝕜 E G ι') (C : ℝ)
   (H : ∀ x m, ‖f x m‖ ≤ C * ‖x‖ * ∏ i, ‖m i‖) :
-  G →L[𝕜] continuous_alternating_map 𝕜 E G ι' :=
+  G →L[𝕜] Λ^ι⟮𝕜; E; G⟯' :=
 linear_map.mk_continuous
   { to_fun := λ x, (f x).mk_continuous (C * ‖x‖) $ H x,
     map_add' := λ x y, by { ext1, simp only [_root_.map_add], refl },
@@ -593,7 +586,7 @@ This implementation fixes `f : ι → E →L[𝕜] E₁ i`.
 TODO: Actually, the map is multilinear in `f` but an attempt to formalize this failed because of
 issues with class instances. -/
 def comp_continuous_linear_mapL (f : ι → E →L[𝕜] E₁ i) :
-  continuous_alternating_map 𝕜 E₁ G →L[𝕜] continuous_alternating_map 𝕜 E G ι :=
+  continuous_alternating_map 𝕜 E₁ G →L[𝕜] Λ^ι⟮𝕜; E; G⟯ :=
 linear_map.mk_continuous
   { to_fun := λ g, g.comp_continuous_linear_map f,
     map_add' := λ g₁ g₂, rfl,
@@ -614,7 +607,7 @@ variable (G)
 /-- `continuous_alternating_map.comp_continuous_linear_map` as a bundled continuous linear equiv,
 given `f : ι → E ≃L[𝕜] E₁ i`. -/
 def comp_continuous_linear_map_equivL (f : ι → E ≃L[𝕜] E₁ i) :
-  continuous_alternating_map 𝕜 E₁ G ≃L[𝕜] continuous_alternating_map 𝕜 E G ι :=
+  continuous_alternating_map 𝕜 E₁ G ≃L[𝕜] Λ^ι⟮𝕜; E; G⟯ :=
 { inv_fun := comp_continuous_linear_mapL (λ i, ((f i).symm : E₁ i →L[𝕜] E i)),
   continuous_to_fun := (comp_continuous_linear_mapL (λ i, (f i : E i →L[𝕜] E₁ i))).continuous,
   continuous_inv_fun :=
@@ -655,7 +648,7 @@ section smul
 variables {R : Type*} [semiring R] [module R G] [smul_comm_class 𝕜 R G]
   [has_continuous_const_smul R G]
 
-instance : has_continuous_const_smul R (continuous_alternating_map 𝕜 E G ι) :=
+instance : has_continuous_const_smul R (Λ^ι⟮𝕜; E; G⟯) :=
 ⟨λ c, (continuous_linear_map.comp_continuous_alternating_mapL 𝕜 _ G G
   (c • continuous_linear_map.id 𝕜 G)).2⟩
 

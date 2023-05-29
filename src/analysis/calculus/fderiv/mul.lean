@@ -486,7 +486,7 @@ lemma differentiable_on.inverse (hf : differentiable_on 𝕜 h S) (hz : ∀ x �
   differentiable_on 𝕜 (λ x, ring.inverse (h x)) S :=
 λ x h, (hf x h).inverse (hz x h)
 
-@[simp] lemma differentiable.inverse (hf : differentiable 𝕜 h) (hz : ∀ x, h x ≠ 0) :
+@[simp] lemma differentiable.inverse (hf : differentiable 𝕜 h) (hz : ∀ x, is_unit (h x)) :
   differentiable 𝕜 (λ x, ring.inverse (h x)) :=
 λ x, (hf x).inverse (hz x)
 

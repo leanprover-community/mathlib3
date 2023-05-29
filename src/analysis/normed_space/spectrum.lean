@@ -311,7 +311,7 @@ begin
     simpa only [norm_to_nnreal, real.to_nnreal_coe]
       using real.to_nnreal_mono (mem_closed_ball_zero_iff.mp z_mem) },
   have H₁ : differentiable 𝕜 (λ w : 𝕜, 1 - w • a) := (differentiable_id.smul_const a).const_sub 1,
-  exact differentiable_at.comp z (differentiable_at_inverse hu.unit) (H₁.differentiable_at),
+  exact differentiable_at.comp z (differentiable_at_inverse hu) (H₁.differentiable_at),
 end
 
 end one_sub_smul

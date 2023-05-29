@@ -9,7 +9,12 @@ import probability.kernel.cond_distrib
 # Kernel associated with a conditional expectation
 
 We define `condexp_kernel μ m`, a kernel from `Ω` to `Ω` such that for all integrable, strongly
-measurable `f`, `μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)`.
+measurable `f`, `μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)`. This kernel is defined if
+`Ω` is a standard Borel space. In general, `μ⟦s | m⟧` maps a measurable set `s` to a function
+`Ω → ℝ≥0∞`, and for all `s` that map is unique up to a `μ`-null set. For all `a`, the map from sets
+to `ℝ≥0∞` that we obtain that way verifies some of the properties of a measure, but the fact that
+the `μ`-null set depends on `s` can prevent us from finding versions of the conditional expectation
+that combine into a true measure. The standard Borel space assumption on `Ω` allows us to do so.
 
 ## Main definitions
 

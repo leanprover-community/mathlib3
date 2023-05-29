@@ -3,9 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.deriv.add
-import analysis.calculus.deriv.mul
-import analysis.calculus.local_extr.basic
+import analysis.calculus.local_extr
 
 /-!
 # Darboux's theorem

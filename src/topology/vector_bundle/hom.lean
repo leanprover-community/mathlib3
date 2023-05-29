@@ -133,9 +133,8 @@ begin
   { mfld_set_tac },
   { intros b hb, ext L v,
     simp only [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
-      continuous_linear_equiv.arrow_congrₛₗ_apply, linear_equiv.to_fun_eq_coe, coe_comp',
-      continuous_linear_equiv.arrow_congrSL_apply, comp_apply, function.comp, compSL_apply,
-      flip_apply, continuous_linear_equiv.symm_symm] },
+      continuous_linear_equiv.arrow_congrSL_apply,
+      comp_apply, function.comp, compSL_apply, flip_apply, continuous_linear_equiv.symm_symm] },
 end
 
 omit iσ
@@ -229,8 +228,7 @@ lemma continuous_linear_map_coord_change_apply (b : B)
 begin
   ext v,
   simp_rw [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
-    continuous_linear_equiv.arrow_congrSL_apply, linear_equiv.to_fun_eq_coe,
-    continuous_linear_equiv.arrow_congrₛₗ_apply,
+    continuous_linear_equiv.arrow_congrSL_apply,
     continuous_linear_map_apply, continuous_linear_map_symm_apply' σ e₁ e₂ hb.1,
     comp_apply, continuous_linear_equiv.coe_coe, continuous_linear_equiv.symm_symm,
     trivialization.continuous_linear_map_at_apply, trivialization.symmL_apply],

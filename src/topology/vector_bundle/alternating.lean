@@ -24,8 +24,8 @@ model fiber `Λ^ι⟮𝕜; F₁; F₂⟯` using the `vector_prebundle` construct
 is a bit awkward because it introduces a spurious (?) dependence on the normed space structure of
 the model fiber.
 
-Similar constructions should be possible (but are yet to be formalized) for tensor products of
-topological vector bundles, exterior algebras, and so on, where again the topology can be defined
+Similar constructions should be possible (but are yet to be formalized) for bundles of continuous
+symmetric maps, multilinear maps in general, and so on, where again the topology can be defined
 using a norm on the fiber model if this helps.
 
 ## Main Definitions
@@ -41,10 +41,10 @@ cohomology, is not constructed.
 
 The wider development of linear-algebraic constructions on vector bundles (the hom-bundle, the
 alternating-maps bundle, the direct-sum bundle, possibly in the future the bundles of multilinear
-and symmetric maps) is also unsatisfactory, in proceeding construction by construction rather than
-according to some generalization which works for all of them. But it is not clear what a suitable
-generalization would be which also covers the semilinear case, as well as other important cases
-such as fractional powers of line bundles (needed for the density bundle).
+and symmetric maps) is also unsatisfactory, in that it proceeds construction by construction rather
+than according to some generalization which works for all of them. But it is not clear what a
+suitable generalization would be which also covers the semilinear case, as well as other important
+cases such as fractional powers of line bundles (needed for the density bundle).
 
 -/
 
@@ -73,8 +73,7 @@ and `E₂`. This is a type synonym for `λ x, Λ^ι⟮𝕜; E₁ x; E₂ x⟯`.
 We intentionally add `F₁` and `F₂` as arguments to this type, so that instances on this type
 (that depend on `F₁` and `F₂`) actually refer to `F₁` and `F₂`. -/
 @[derive inhabited, nolint unused_arguments]
-protected def bundle.continuous_alternating_map (x : B) : Type* :=
-Λ^ι⟮𝕜; E₁ x; E₂ x⟯
+protected def bundle.continuous_alternating_map (x : B) : Type* := Λ^ι⟮𝕜; E₁ x; E₂ x⟯
 
 notation `Λ^` ι `⟮` 𝕜 `; ` F₁ `, ` E₁ `; ` F₂ `, ` E₂ `⟯` :=
   bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂
@@ -156,7 +155,7 @@ variables (e₁ e₁' e₂ e₂') [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`,
 `pretrivialization.continuous_alternating_map σ e₁ e₂` is the induced pretrivialization for the
 continuous `ι`-slot alternating maps from `E₁` to `E₂`. That is, the map which will later become a
-trivialization, after the bundle of continuous semilinear maps is equipped with the right
+trivialization, after the bundle of continuous alternating maps is equipped with the right
 topological vector bundle structure. -/
 def continuous_alternating_map : pretrivialization Λ^ι⟮𝕜; F₁; F₂⟯ (π Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :=
 { to_fun := λ p, ⟨p.1, (e₂.continuous_linear_map_at 𝕜 p.1).comp_continuous_alternating_map $
@@ -292,22 +291,22 @@ def _root_.bundle.continuous_alternating_map.vector_prebundle :
 /-- Topology on the continuous `ι`-slot alternating_maps between the respective fibers at a point of
 two "normable" vector bundles over the same base. Here "normable" means that the bundles have fibers
 modelled on normed spaces `F₁`, `F₂` respectively.  The topology we put on the continuous `ι`-slot
-alternating_maps is the topology coming from the operator norm on maps from `F₁` to `F₂`. -/
+alternating_maps is the topology coming from the norm on maps from `F₁` to `F₂`. -/
 instance (x : B) : topological_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ x) :=
 (bundle.continuous_alternating_map.vector_prebundle 𝕜 ι F₁ E₁ F₂ E₂).fiber_topology x
 
-/-- Topology on the total space of the continuous `ι`-slot alternating_maps between two "normable"
+/-- Topology on the total space of the continuous `ι`-slot alternating maps between two "normable"
 vector bundles over the same base. -/
 instance bundle.continuous_alternating_map.topological_space_total_space :
   topological_space (total_space Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :=
 (bundle.continuous_alternating_map.vector_prebundle 𝕜 ι F₁ E₁ F₂ E₂).total_space_topology
 
-/-- The continuous `ι`-slot alternating_maps between two vector bundles form a fiber bundle. -/
+/-- The continuous `ι`-slot alternating maps between two vector bundles form a fiber bundle. -/
 instance _root_.bundle.continuous_alternating_map.fiber_bundle :
   fiber_bundle Λ^ι⟮𝕜; F₁; F₂⟯ Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ :=
 (bundle.continuous_alternating_map.vector_prebundle 𝕜 ι F₁ E₁ F₂ E₂).to_fiber_bundle
 
-/-- The continuous `ι`-slot alternating_maps between two vector bundles form a vector bundle. -/
+/-- The continuous `ι`-slot alternating maps between two vector bundles form a vector bundle. -/
 instance _root_.bundle.continuous_alternating_map.vector_bundle :
   vector_bundle 𝕜 Λ^ι⟮𝕜; F₁; F₂⟯ Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ :=
 (bundle.continuous_alternating_map.vector_prebundle 𝕜 ι F₁ E₁ F₂ E₂).to_vector_bundle

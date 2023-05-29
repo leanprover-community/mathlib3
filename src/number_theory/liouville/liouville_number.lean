@@ -70,7 +70,8 @@ We start with simple observations.
 protected lemma summable {m : ℝ} (hm : 1 < m) : summable (λ i : ℕ, 1 / m ^ i!) :=
 summable_one_div_pow_of_le hm nat.self_le_factorial
 
-lemma remainder_summable {m : ℝ} (hm : 1 < m) (k : ℕ) : summable (λ i : ℕ, 1 / m ^ (i + (k + 1))!) :=
+lemma remainder_summable {m : ℝ} (hm : 1 < m) (k : ℕ) :
+  summable (λ i : ℕ, 1 / m ^ (i + (k + 1))!) :=
 by convert (summable_nat_add_iff (k + 1)).2 (liouville_number.summable hm)
 
 lemma remainder_pos {m : ℝ} (hm : 1 < m) (k : ℕ) : 0 < remainder m k :=

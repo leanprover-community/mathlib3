@@ -25,8 +25,8 @@ We provide a group instance using path composition and show commutativity when `
 ## definitions
 
 * `gen_loop N x` is the type of continuous fuctions `I^N → X` that send the boundary to `x`,
-* `homotopy_group.pi n x` denoted `π_ n X x` is the quotient of `gen_loop (fin n) x` by homotopy
-  relative to the boundary,
+* `homotopy_group.pi n X x` denoted `π_ n X x` is the quotient of `gen_loop (fin n) x` by
+  homotopy relative to the boundary,
 * group instance `group (π_(n+1) X x)`,
 * commutative group instance `comm_group (π_(n+2) X x)`.
 

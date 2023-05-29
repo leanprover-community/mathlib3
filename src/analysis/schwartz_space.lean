@@ -575,6 +575,27 @@ def mk_clm [ring_hom_isometric σ] (A : (D → E) → (F → G))
 
 end clm
 
+section eval_clm
+
+variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+
+/-- The map applying a vector to Hom-valued Schwartz function as a continuous linear map. -/
+@[protected] def eval_clm (m : E) : 𝓢(E, E →L[ℝ] F) →L[𝕜] 𝓢(E, F) :=
+mk_clm (λ f x, f x m)
+  (λ _ _ _, rfl) (λ _ _ _, rfl) (λ f, cont_diff.clm_apply f.2 cont_diff_const)
+  (begin
+    rintro ⟨k, n⟩,
+    use [{(k, n)}, ‖m‖, norm_nonneg _],
+    intros f x,
+    refine le_trans (mul_le_mul_of_nonneg_left (norm_iterated_fderiv_clm_apply_const f.2 le_top)
+      (by positivity)) _,
+    rw [← mul_assoc, ← mul_comm (‖m‖), mul_assoc],
+    refine mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+    simp only [finset.sup_singleton, schwartz_seminorm_family_apply, le_seminorm],
+  end)
+
+end eval_clm
+
 section derivatives
 
 /-! ### Derivatives of Schwartz functions -/
@@ -607,6 +628,45 @@ mk_clm (λ f, deriv f)
     using f.le_seminorm' 𝕜 k (n + 1) x⟩)
 
 @[simp] lemma deriv_clm_apply (f : 𝓢(ℝ, F)) (x : ℝ) : deriv_clm 𝕜 f x = deriv f x := rfl
+
+/-- The partial derivative (or directional derivative) in the direction `m : E` as a
+continuous linear map on Schwartz space. -/
+def pderiv_clm (m : E) : 𝓢(E, F) →L[𝕜] 𝓢(E, F) := (eval_clm m).comp (fderiv_clm 𝕜)
+
+@[simp]
+lemma pderiv_clm_apply (m : E) (f : 𝓢(E, F)) (x : E) : pderiv_clm 𝕜 m f x = fderiv ℝ f x m := rfl
+
+/-- The iterated partial derivative (or directional derivative) as a continuous linear map on
+Schwartz space. -/
+def iterated_pderiv {n : ℕ} : (fin n → E) → 𝓢(E, F) →L[𝕜] 𝓢(E, F) :=
+nat.rec_on n
+  (λ x, continuous_linear_map.id 𝕜 _)
+  (λ n rec x, (pderiv_clm 𝕜 (x 0)).comp (rec (fin.tail x)))
+
+@[simp] lemma iterated_pderiv_zero (m : fin 0 → E) (f : 𝓢(E, F)):
+  iterated_pderiv 𝕜 m f = f := rfl
+
+@[simp] lemma iterated_pderiv_one (m : fin 1 → E) (f : 𝓢(E, F)) :
+  iterated_pderiv 𝕜 m f = pderiv_clm 𝕜 (m 0) f := rfl
+
+lemma iterated_pderiv_succ_left {n : ℕ} (m : fin (n + 1) → E) (f : 𝓢(E, F)) :
+  iterated_pderiv 𝕜 m f = pderiv_clm 𝕜 (m 0) (iterated_pderiv 𝕜 (fin.tail m) f) := rfl
+
+lemma iterated_pderiv_succ_right {n : ℕ} (m : fin (n + 1) → E) (f : 𝓢(E, F)) :
+  iterated_pderiv 𝕜 m f =
+    iterated_pderiv 𝕜 (fin.init m) (pderiv_clm 𝕜 (m (fin.last n)) f) :=
+begin
+  induction n with n IH,
+  { rw [iterated_pderiv_zero, iterated_pderiv_one],
+    refl },
+  -- The proof is `∂^{n + 2} = ∂ ∂^{n + 1} = ∂ ∂^n ∂ = ∂^{n+1} ∂`
+  have hmzero : fin.init m 0 = m 0 := by simp only [fin.init_def, fin.cast_succ_zero],
+  have hmtail : fin.tail m (fin.last n) = m (fin.last n.succ) :=
+  by simp only [fin.tail_def, fin.succ_last],
+  simp only [iterated_pderiv_succ_left, IH (fin.tail m), hmzero, hmtail, fin.tail_init_eq_init_tail]
+end
+
+-- Todo: `iterated_pderiv 𝕜 m f x = iterated_fderiv ℝ f x m`
 
 end derivatives
 

@@ -9,6 +9,9 @@ import analysis.normed.field.basic
 /-!
 # Lemmas for `has_bounded_smul` over normed additive groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lemmas which hold only in `normed_space α β` are provided in another file.
 
 Notably we prove that `non_unital_semi_normed_ring`s have bounded actions by left- and right-

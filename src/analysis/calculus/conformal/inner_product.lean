@@ -9,6 +9,9 @@ import analysis.inner_product_space.conformal_linear_map
 /-!
 # Conformal maps between inner product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function between inner product spaces is which has a derivative at `x`
 is conformal at `x` iff the derivative preserves inner products up to a scalar multiple.
 -/

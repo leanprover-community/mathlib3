@@ -13,6 +13,9 @@ import tactic.by_contra
 /-!
 # Exponent of a group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the exponent of a group, or more generally a monoid. For a group `G` it is defined
 to be the minimal `n≥1` such that `g ^ n = 1` for all `g ∈ G`. For a finite group `G`,
 it is equal to the lowest common multiple of the order of all elements of the group `G`.

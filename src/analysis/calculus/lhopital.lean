@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.calculus.mean_value
+import analysis.calculus.deriv.inv
 
 /-!
 # L'Hôpital's rule for 0/0 indeterminate forms

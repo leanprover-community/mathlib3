@@ -199,7 +199,8 @@ lemma condexp_ae_eq_integral_cond_distrib' {Ω} [normed_add_comm_group Ω] [norm
   μ[Y | mβ.comap X] =ᵐ[μ] λ a, ∫ y, y ∂(cond_distrib Y X μ (X a)) :=
 condexp_ae_eq_integral_cond_distrib hX hY_int.1.ae_measurable strongly_measurable_id hY_int
 
-lemma ae_strongly_measurable_comp_snd_map_prod_mk {X : Ω → β} {μ : measure Ω} [is_finite_measure μ]
+lemma ae_strongly_measurable_comp_snd_map_prod_mk {Ω F} {mΩ : measurable_space Ω}
+  [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
   (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   ae_strongly_measurable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) :=
 begin
@@ -217,7 +218,8 @@ begin
   { exact measurable_snd hs, },
 end
 
-lemma integrable_comp_snd_map_prod_mk {X : Ω → β} {μ : measure Ω} [is_finite_measure μ]
+lemma integrable_comp_snd_map_prod_mk {Ω F} {mΩ : measurable_space Ω}
+  [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
   (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   integrable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) :=
 begin

@@ -31,7 +31,6 @@ We provide a group instance using path composition and show commutativity when `
 * commutative group instance `comm_group (π_(n+2) X x)`.
 
 TODO:
-* Functoriality of `Ω`.
 * `Ω^M (Ω^N X) ≃ₜ Ω^(M⊕N) X`, and `Ω^M X ≃ₜ Ω^N X` when `M ≃ N`. Similarly for `π_`.
 * Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a group isomorphism.
 * Examples with `𝕊^n`: `π_n (𝕊^n) = ℤ`, `π_m (𝕊^n)` trivial for `m < n`.

@@ -52,7 +52,11 @@ variables {α β Ω F : Type*}
   {mα : measurable_space α} {μ : measure α} [is_finite_measure μ] {X : α → β} {Y : α → Ω}
 
 /-- **Regular conditional probability distribution**: kernel associated with the conditional
-expectation of `Y` given `X`. -/
+expectation of `Y` given `X`.
+For almost all `a`, `cond_distrib Y X μ` evaluated at `X a` and a measurable set `s` is equal to
+the conditional expectation `μ⟦Y ⁻¹' s | mβ.comap X⟧ a`. It also satisfies the equality
+`μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))` for
+all strongly measurable and integrable functions `f`. -/
 @[irreducible] noncomputable
 def cond_distrib {mα : measurable_space α} [measurable_space β]
   (Y : α → Ω) (X : α → β) (μ : measure α) [is_finite_measure μ] :

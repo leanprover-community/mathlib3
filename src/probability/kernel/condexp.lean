@@ -37,7 +37,10 @@ variables {Ω F : Type*} [topological_space Ω] {m : measurable_space Ω} [mΩ :
   {μ : measure Ω} [is_finite_measure μ]
   [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
 
-/-- Kernel associated with the conditional expectation with respect to a σ-algebra. -/
+/-- Kernel associated with the conditional expectation with respect to a σ-algebra. It satisfies
+`μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)`.
+It is defined as the conditional distribution of the identity given the identity, where the second
+identity is understood as a map from `Ω` with the σ-algebra `mΩ` to `Ω` with σ-algebra `m`. -/
 @[irreducible] noncomputable
 def condexp_kernel (μ : measure Ω) [is_finite_measure μ] (m : measurable_space Ω) :
   @kernel Ω Ω m mΩ :=

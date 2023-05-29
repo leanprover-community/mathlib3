@@ -122,6 +122,17 @@ variables {e₁ e₁' e₂ e₂'}
 variables [Π x, topological_space (E₁ x)] [fiber_bundle F₁ E₁]
 variables [Π x, topological_space (E₂ x)] [fiber_bundle F₂ E₂]
 
+section
+variables (F₁ F₂)
+
+lemma foo : continuous (λ p : F₁ →L[𝕜] F₁,
+  (continuous_alternating_map.comp_continuous_linear_mapL p : Λ^ι⟮𝕜; F₁; F₂⟯ →L[𝕜] Λ^ι⟮𝕜; F₁; F₂⟯)) :=
+begin
+  sorry
+end
+
+end
+
 lemma continuous_on_continuous_alternating_map_coord_change
   [vector_bundle 𝕜 F₁ E₁] [vector_bundle 𝕜 F₂ E₂]
   [mem_trivialization_atlas e₁] [mem_trivialization_atlas e₁']
@@ -129,18 +140,15 @@ lemma continuous_on_continuous_alternating_map_coord_change
   continuous_on (continuous_alternating_map_coord_change 𝕜 ι e₁ e₁' e₂ e₂')
     ((e₁.base_set ∩ e₂.base_set) ∩ (e₁'.base_set ∩ e₂'.base_set)) :=
 begin
-  sorry
-  -- have h₁ := (compSL F₁ F₂ F₂ σ (ring_hom.id 𝕜)).continuous,
-  -- have h₂ := (continuous_alternating_map.flip (compSL F₁ F₁ F₂ (ring_hom.id 𝕜) σ)).continuous,
-  -- have h₃ := (continuous_on_coord_change 𝕜 e₁' e₁),
-  -- have h₄ := (continuous_on_coord_change 𝕜 e₂ e₂'),
-  -- refine ((h₁.comp_continuous_on (h₄.mono _)).clm_comp (h₂.comp_continuous_on (h₃.mono _))).congr _,
-  -- { mfld_set_tac },
-  -- { mfld_set_tac },
-  -- { intros b hb, ext L v,
-  --   simp only [continuous_alternating_map_coord_change, continuous_alternating_equiv.coe_coe,
-  --     continuous_alternating_equiv.arrow_congrSL_apply, comp_apply, function.comp, compSL_apply,
-  --     flip_apply, continuous_alternating_equiv.symm_symm] },
+  have h₃ := (continuous_on_coord_change 𝕜 e₁' e₁),
+  have h₄ := (continuous_on_coord_change 𝕜 e₂ e₂'),
+  let s : ((F₁ →L[𝕜] F₁) × (F₂ →L[𝕜] F₂)) → (F₁ →L[𝕜] F₁) × (Λ^ι⟮𝕜; F₁; F₂⟯ →L[𝕜] Λ^ι⟮𝕜; F₁; F₂⟯) :=
+    λ q, (q.1, continuous_linear_map.comp_continuous_alternating_mapL 𝕜 F₁ F₂ F₂ q.2),
+  have hs : continuous s := continuous_id.prod_map (continuous_linear_map.continuous _),
+  refine ((continuous_snd.clm_comp ((foo 𝕜 ι F₁ F₂).comp
+    continuous_fst)).comp hs).comp_continuous_on ((h₃.mono _).prod (h₄.mono _)),
+  { mfld_set_tac },
+  { mfld_set_tac },
 end
 
 variables (e₁ e₁' e₂ e₂') [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [e₂.is_linear 𝕜] [e₂'.is_linear 𝕜]

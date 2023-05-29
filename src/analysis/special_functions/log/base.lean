@@ -54,13 +54,45 @@ by simp_rw [logb, log_div hx hy, sub_div]
 
 lemma inv_logb (a b : ℝ) : (logb a b)⁻¹ = logb b a := by simp_rw [logb, inv_div]
 
-theorem inv_logb_mul {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0) :
+theorem inv_logb_mul_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
   (logb (a * b) c)⁻¹ = (logb a c)⁻¹ + (logb b c)⁻¹ :=
-by simp_rw [inv_logb]; exact logb_mul h₁ h₂
+by simp_rw inv_logb; exact logb_mul h₁ h₂
+
+theorem inv_logb_div_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
+  (logb (a / b) c)⁻¹ = (logb a c)⁻¹ - (logb b c)⁻¹ :=
+by simp_rw inv_logb; exact logb_div h₁ h₂
 
 theorem logb_mul_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
   logb (a * b) c = ((logb a c)⁻¹ + (logb b c)⁻¹)⁻¹ :=
-by rw [←inv_logb_mul h₁ h₂, inv_inv]
+by rw [←inv_logb_mul_base h₁ h₂, inv_inv]
+
+theorem logb_div_base {a b c : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0):
+  logb (a / b) c = ((logb a c)⁻¹ - (logb b c)⁻¹)⁻¹ :=
+by rw [←inv_logb_div_base h₁ h₂, inv_inv]
+
+theorem mul_logb {a b c : ℝ} (h₁ : b ≠ 0) (h₂ : b ≠ 1) (h₃ : b ≠ -1) :
+  logb a b * logb b c = logb a c :=
+begin
+  unfold logb, have h₄ : log b / log b = 1,
+  { apply div_self, rw [ne.def, log_eq_zero], push_neg, exact ⟨h₁, h₂, h₃⟩, },
+
+  calc log b / log a * (log c / log b)
+      = log c * (log b / log b) / log a : by ring
+  ... = log c * 1 / log a : by rw h₄
+  ... = log c / log a : by rw mul_one,
+end
+
+theorem div_logb {a b c : ℝ} (h₁ : c ≠ 0) (h₂ : c ≠ 1) (h₃ : c ≠ -1) :
+  logb a c / logb b c = logb a b :=
+begin
+  unfold logb, have h₄ : log c / log c = 1,
+  { apply div_self, rw [ne.def, log_eq_zero], push_neg, exact ⟨h₁, h₂, h₃⟩, },
+
+  calc log c / log a / (log c / log b)
+      = (log c / log c) * log b / log a : by ring_nf; rw [mul_inv, inv_inv]
+  ... = 1 * log b / log a : by rw h₄
+  ... = log b / log a : by rw one_mul,
+end
 
 section b_pos_and_ne_one
 

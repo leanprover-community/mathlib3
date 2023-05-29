@@ -613,8 +613,7 @@ section multiplication
 variables [normed_add_comm_group D] [normed_space ℝ D]
 variables [normed_add_comm_group G] [normed_space ℝ G]
 
-/-- For a bilinear map `B` and a function of temperate growth `g` the map
-The map `f ↦ (x ↦ B (f x) (g x))` as a continuous `𝕜`-linear map on Schwartz space,
+/-- The map `f ↦ (x ↦ B (f x) (g x))` as a continuous `𝕜`-linear map on Schwartz space,
 where `B` is a continuous `𝕜`-linear map and `g` is a function of temperate growth. -/
 def bilin_left_clm (B : E →L[ℝ] F →L[ℝ] G) {g : D → F} (hg : g.has_temperate_growth) :
   𝓢(D, E) →L[ℝ] 𝓢(D, G) :=

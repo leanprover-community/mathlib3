@@ -73,20 +73,16 @@ by rw [←inv_logb_div_base h₁ h₂, inv_inv]
 theorem mul_logb {a b c : ℝ} (h₁ : b ≠ 0) (h₂ : b ≠ 1) (h₃ : b ≠ -1) :
   logb a b * logb b c = logb a c :=
 begin
-  rw mul_comm,
-  exact div_mul_div_cancel _ (log_ne_zero.mpr ⟨h₁, h₂, h₃⟩),
+  unfold logb,
+  rw [mul_comm, div_mul_div_cancel _ (log_ne_zero.mpr ⟨h₁, h₂, h₃⟩)],
 end
 
 theorem div_logb {a b c : ℝ} (h₁ : c ≠ 0) (h₂ : c ≠ 1) (h₃ : c ≠ -1) :
   logb a c / logb b c = logb a b :=
 begin
-  unfold logb, have h₄ : log c / log c = 1,
-  { apply div_self, rw [ne.def, log_eq_zero], push_neg, exact ⟨h₁, h₂, h₃⟩, },
-
-  calc log c / log a / (log c / log b)
-      = (log c / log c) * log b / log a : by ring_nf; rw [mul_inv, inv_inv]
-  ... = 1 * log b / log a : by rw h₄
-  ... = log b / log a : by rw one_mul,
+  unfold logb,
+  -- TODO: div_div_div_cancel_left is missing for `group_with_zero`,
+  rw [div_div_div_eq, mul_comm, mul_div_mul_right _ _ (log_ne_zero.mpr ⟨h₁, h₂, h₃⟩)],
 end
 
 section b_pos_and_ne_one

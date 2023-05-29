@@ -124,7 +124,7 @@ instance.-/
 make `topological_group.H_space` an instance."]
 definition to_H_space (M : Type u) [mul_one_class M] [topological_space M]
   [has_continuous_mul M] : H_space M :=
-  { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
+{ Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
   e := 1,
   Hmul_e_e := one_mul 1,
   e_Hmul := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply one_mul}),

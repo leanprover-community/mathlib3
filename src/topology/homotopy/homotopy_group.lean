@@ -52,7 +52,6 @@ namespace cube
 /-- The points in a cube with at least one projection equal to 0 or 1. -/
 def boundary (N : Type*) : set (I^N) := {y | ∃ i, y i = 0 ∨ y i = 1}
 
-section
 variables {N : Type*} [decidable_eq N]
 
 /-- The forward direction of the homeomorphism
@@ -69,8 +68,6 @@ begin
   obtain H | ⟨j, H⟩ := H,
   { use i, rwa [fun_split_at_symm_apply, dif_pos rfl] },
   { use j, rwa [fun_split_at_symm_apply, dif_neg j.prop, subtype.coe_eta] },
-end
-
 end
 
 end cube
@@ -262,6 +259,42 @@ begin
     exact (equiv.right_inv _ _).symm },
 end
 
+/-- Concatenation of two `gen_loop`s along the `i`th coordinate. -/
+def trans_at (i : N) (f g : Ω^N X x) : Ω^N X x :=
+copy (from_loop i $ (to_loop i f).trans $ to_loop i g)
+  (λ t, if (t i : ℝ) ≤ 1/2
+    then f (t.update i $ set.proj_Icc 0 1 zero_le_one (2 * t i))
+    else g (t.update i $ set.proj_Icc 0 1 zero_le_one (2 * t i - 1)))
+begin
+  ext1, symmetry,
+  dsimp only [path.trans, from_loop, path.coe_mk, function.comp_app,
+    mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
+    continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
+  split_ifs, change f _ = _, swap, change g _ = _,
+  all_goals { congr' 1 }
+end
+
+/-- Reversal of a `gen_loop` along the `i`th coordinate. -/
+def symm_at (i : N) (f : Ω^N X x) : Ω^N X x :=
+copy (from_loop i (to_loop i f).symm)
+  (λ t, f $ λ j, if j = i then σ (t i) else t j) $
+  by { ext1, change _ = f _, congr, ext1, simp }
+
+lemma trans_at_distrib {i j : N} (h : i ≠ j) (a b c d : Ω^N X x) :
+  trans_at i (trans_at j a b) (trans_at j c d) = trans_at j (trans_at i a c) (trans_at i b d) :=
+begin
+  ext, simp_rw [trans_at, coe_copy, function.update_apply, if_neg h, if_neg h.symm],
+  split_ifs; { congr' 1, ext1, simp only [function.update, eq_rec_constant, dite_eq_ite],
+    apply ite_ite_comm, rintro rfl, exact h.symm },
+end
+
+lemma from_loop_trans_to_loop {i : N} {p q : Ω^N X x} :
+  from_loop i ((to_loop i p).trans $ to_loop i q) = trans_at i p q :=
+(copy_eq _ _).symm
+
+lemma from_loop_symm_to_loop {i : N} {p : Ω^N X x} :
+  from_loop i (to_loop i p).symm = symm_at i p := (copy_eq _ _).symm
+
 end loop_homeo
 
 end gen_loop
@@ -284,13 +317,12 @@ begin
   exact λ p q, ⟨homotopic_to i, homotopic_from i⟩,
 end
 
-namespace homotopy_group
-
 /-- Homotopy group of finite index. -/
-@[reducible] def pi (n) (X : Type*) [topological_space X] (x : X) := homotopy_group (fin n) _ x
-localized "notation `π_` := pi" in topology
+@[reducible] def homotopy_group.pi (n) (X : Type*) [topological_space X] (x : X) :=
+homotopy_group (fin n) _ x
+localized "notation `π_` := homotopy_group.pi" in topology
 
-/-- The 0-dimensional generalized loops based at `x` are in 1-1 correspondence with `X`. -/
+/-- The 0-dimensional generalized loops based at `x` are in bijection with `X`. -/
 def gen_loop_homeo_of_is_empty (N x) [is_empty N] : Ω^N X x ≃ₜ X :=
 { to_fun := λ f, f 0,
   inv_fun := λ y, ⟨continuous_map.const _ y, λ _ ⟨i, _⟩, is_empty_elim i⟩,
@@ -319,10 +351,10 @@ begin
 end
 
 /-- The 0th homotopy "group" is in bijection with `zeroth_homotopy`. -/
-def pi_0_equiv_zeroth_homotopy : π_ 0 X x ≃ zeroth_homotopy X :=
+def homotopy_group.pi_0_equiv_zeroth_homotopy : π_ 0 X x ≃ zeroth_homotopy X :=
 homotopy_group_equiv_zeroth_homotopy_of_is_empty (fin 0) x
 
-/-- The 1-dimensional generalized loops based at `x` are in 1-1 correspondence with loops at `x`. -/
+/-- The 1-dimensional generalized loops based at `x` are in bijection with loops at `x`. -/
 @[simps] def gen_loop_equiv_of_unique (N) [unique N] : Ω^N X x ≃ Ω X x :=
 { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by continuity⟩
     (gen_loop.boundary _ (λ _, 0) ⟨default, or.inl rfl⟩)
@@ -363,10 +395,10 @@ begin
 end
 
 /-- The first homotopy group at `x` is in bijection with the fundamental group. -/
-def pi_1_equiv_fundamental_group : π_ 1 X x ≃ fundamental_group X x :=
+def homotopy_group.pi_1_equiv_fundamental_group : π_ 1 X x ≃ fundamental_group X x :=
 homotopy_group_equiv_fundamental_group_of_unique (fin 1)
 
-section
+namespace homotopy_group
 
 /-- Group structure on `homotopy_group N X x` for nonempty `N` (in particular `π_(n+1) X x`). -/
 instance group (N) [decidable_eq N] [nonempty N] : group (homotopy_group N X x) :=
@@ -381,42 +413,6 @@ instance group (N) [decidable_eq N] [nonempty N] : group (homotopy_group N X x) 
 lemma is_unital_aux_group (i : N) :
   eckmann_hilton.is_unital (aux_group i).mul (⟦const⟧ : homotopy_group N X x) :=
 ⟨⟨(aux_group i).one_mul⟩, ⟨(aux_group i).mul_one⟩⟩
-
-/-- Concatenation of two `gen_loop`s along the `i`th coordinate. -/
-def trans_at (i : N) (f g : Ω^N X x) : Ω^N X x :=
-copy (from_loop i $ (to_loop i f).trans $ to_loop i g)
-  (λ t, if (t i : ℝ) ≤ 1/2
-    then f (t.update i $ set.proj_Icc 0 1 zero_le_one (2 * t i))
-    else g (t.update i $ set.proj_Icc 0 1 zero_le_one (2 * t i - 1)))
-begin
-  ext1, symmetry,
-  dsimp only [path.trans, from_loop, path.coe_mk, function.comp_app,
-    mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
-    continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
-  split_ifs, change f _ = _, swap, change g _ = _,
-  all_goals { congr' 1 }
-end
-
-/-- Reversal of a `gen_loop` along the `i`th coordinate. -/
-def symm_at (i : N) (f : Ω^N X x) : Ω^N X x :=
-copy (from_loop i (to_loop i f).symm)
-  (λ t, f $ λ j, if j = i then σ (t i) else t j) $
-  by { ext1, change _ = f _, congr, ext1, simp }
-
-lemma trans_at_distrib {i j : N} (h : i ≠ j) (a b c d : Ω^N X x) :
-  trans_at i (trans_at j a b) (trans_at j c d) = trans_at j (trans_at i a c) (trans_at i b d) :=
-begin
-  ext, simp_rw [trans_at, coe_copy, function.update_apply, if_neg h, if_neg h.symm],
-  split_ifs; { congr' 1, ext1, simp only [function.update, eq_rec_constant, dite_eq_ite],
-    apply ite_ite_comm, rintro rfl, exact h.symm },
-end
-
-lemma from_loop_trans_to_loop {i : N} {p q : Ω^N X x} :
-  from_loop i ((to_loop i p).trans $ to_loop i q) = trans_at i p q :=
-(copy_eq _ _).symm
-
-lemma from_loop_symm_to_loop {i : N} {p : Ω^N X x} :
-  from_loop i (to_loop i p).symm = symm_at i p := (copy_eq _ _).symm
 
 lemma aux_group_indep (i j : N) : (aux_group i : group (homotopy_group N X x)) = aux_group j :=
 begin
@@ -465,8 +461,6 @@ begin
   apply congr_arg quotient.mk,
   simp only [from_loop_trans_to_loop, trans_at_distrib h.some_spec,
     coe_to_equiv, loop_homeo_apply, coe_symm_to_equiv, loop_homeo_symm_apply],
-end
-
 end
 
 end homotopy_group

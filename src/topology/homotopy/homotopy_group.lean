@@ -32,7 +32,8 @@ We provide a group instance using path composition and show commutativity when `
 
 TODO:
 * `Ω^M (Ω^N X) ≃ₜ Ω^(M⊕N) X`, and `Ω^M X ≃ₜ Ω^N X` when `M ≃ N`. Similarly for `π_`.
-* Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a group isomorphism.
+* Path-induced homomorphisms. Show that `homotopy_group.pi_1_equiv_fundamental_group`
+  is a group isomorphism.
 * Examples with `𝕊^n`: `π_n (𝕊^n) = ℤ`, `π_m (𝕊^n)` trivial for `m < n`.
 * Actions of π_1 on π_n.
 * Lie algebra: `⁅π_(n+1), π_(m+1)⁆` contained in `π_(n+m+1)`.

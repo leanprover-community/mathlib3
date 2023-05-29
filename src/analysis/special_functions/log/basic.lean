@@ -185,6 +185,9 @@ begin
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
 end
 
+lemma log_ne_zero {x : ℝ} : log x ≠ 0 ↔ x ≠ 0 ∧ x ≠ 1 ∧ x ≠ -1 :=
+by simpa only [not_or_distrib] using log_eq_zero.not
+
 @[simp] lemma log_pow (x : ℝ) (n : ℕ) : log (x ^ n) = n * log x :=
 begin
   induction n with n ih,

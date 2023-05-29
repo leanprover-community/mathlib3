@@ -73,13 +73,8 @@ by rw [←inv_logb_div_base h₁ h₂, inv_inv]
 theorem mul_logb {a b c : ℝ} (h₁ : b ≠ 0) (h₂ : b ≠ 1) (h₃ : b ≠ -1) :
   logb a b * logb b c = logb a c :=
 begin
-  unfold logb, have h₄ : log b / log b = 1,
-  { apply div_self, rw [ne.def, log_eq_zero], push_neg, exact ⟨h₁, h₂, h₃⟩, },
-
-  calc log b / log a * (log c / log b)
-      = log c * (log b / log b) / log a : by ring
-  ... = log c * 1 / log a : by rw h₄
-  ... = log c / log a : by rw mul_one,
+  rw mul_comm,
+  exact div_mul_div_cancel _ (log_ne_zero.mpr ⟨h₁, h₂, h₃⟩),
 end
 
 theorem div_logb {a b c : ℝ} (h₁ : c ≠ 0) (h₂ : c ≠ 1) (h₃ : c ≠ -1) :

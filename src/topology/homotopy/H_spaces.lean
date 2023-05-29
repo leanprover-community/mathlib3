@@ -116,12 +116,14 @@ instance H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topologic
 
 namespace topological_group
 
-/-- The definition `to_H_space` is not an instance to avoid that the structure `mul_one_class` of
-a topological field creates a diamond. In the case of group, we make `topological_group.H_space` an
-instance.-/
-@[to_additive "The definition `to_H_space` is not an instance to avoid that the structure
-`add_zero_class` of a topological field creates a diamond. In the case of an additive group, we
-make `topological_group.H_space` an instance."]
+/-- The definition `to_H_space` is not an instance because its `@additive` version would
+lead to a diamond since a topological field would inherit two `H_space` structures, one from the
+`mul_one_class` and one from the `add_zero_class`. In the case of a group, we make
+`topological_group.H_space` an instance."-/
+@[to_additive "The definition `to_H_space` is not an instance because it comes together with a
+multiplicative version which would lead to a diamond since a topological field would inherit two
+`H_space` structures, one from the `mul_one_class` and one from the `add_zero_class`. In the case
+of an additive group, we make `topological_group.H_space` an instance."]
 definition to_H_space (M : Type u) [mul_one_class M] [topological_space M]
   [has_continuous_mul M] : H_space M :=
 { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,

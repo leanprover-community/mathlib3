@@ -3,9 +3,7 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.deriv.polynomial
-import topology.algebra.order.extend_from
-import topology.algebra.polynomial
+import analysis.calculus.deriv.add
 
 /-!
 # Local extrema of smooth functions
@@ -35,10 +33,6 @@ and `(f)deriv` instead of `has_fderiv`.
   [Fermat's Theorem](https://en.wikipedia.org/wiki/Fermat's_theorem_(stationary_points)),
   the derivative of a differentiable function at a local extremum point equals zero.
 
-* `exists_has_deriv_at_eq_zero` :
-  [Rolle's Theorem](https://en.wikipedia.org/wiki/Rolle's_theorem): given a function `f` continuous
-  on `[a, b]` and differentiable on `(a, b)`, there exists `c ∈ (a, b)` such that `f' c = 0`.
-
 ## Implementation notes
 
 For each mathematical fact we prove several versions of its formalization:
@@ -52,18 +46,17 @@ due to the fact that `fderiv` and `deriv` are defined to be zero for non-differe
 ## References
 
 * [Fermat's Theorem](https://en.wikipedia.org/wiki/Fermat's_theorem_(stationary_points));
-* [Rolle's Theorem](https://en.wikipedia.org/wiki/Rolle's_theorem);
 * [Tangent cone](https://en.wikipedia.org/wiki/Tangent_cone);
 
 ## Tags
 
-local extremum, Fermat's Theorem, Rolle's Theorem
+local extremum, Fermat's Theorem
 -/
 
 universes u v
 
 open filter set
-open_locale topology classical polynomial
+open_locale topology classical
 
 section module
 
@@ -262,162 +255,3 @@ lemma is_local_extr.deriv_eq_zero (h : is_local_extr f a) : deriv f a = 0 :=
 h.elim is_local_min.deriv_eq_zero is_local_max.deriv_eq_zero
 
 end real
-
-section Rolle
-
-variables (f f' : ℝ → ℝ) {a b : ℝ}
-
-/-- A continuous function on a closed interval with `f a = f b` takes either its maximum
-or its minimum value at a point in the interior of the interval. -/
-lemma exists_Ioo_extr_on_Icc (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
-  ∃ c ∈ Ioo a b, is_extr_on f (Icc a b) c :=
-begin
-  have ne : (Icc a b).nonempty, from nonempty_Icc.2 (le_of_lt hab),
-  -- Consider absolute min and max points
-  obtain ⟨c, cmem, cle⟩ : ∃ c ∈ Icc a b, ∀ x ∈ Icc a b, f c ≤ f x,
-    from is_compact_Icc.exists_forall_le ne hfc,
-  obtain ⟨C, Cmem, Cge⟩ : ∃ C ∈ Icc a b, ∀ x ∈ Icc a b, f x ≤ f C,
-    from is_compact_Icc.exists_forall_ge ne hfc,
-  by_cases hc : f c = f a,
-  { by_cases hC : f C = f a,
-    { have : ∀ x ∈ Icc a b, f x = f a,
-        from λ x hx, le_antisymm (hC ▸ Cge x hx) (hc ▸ cle x hx),
-      -- `f` is a constant, so we can take any point in `Ioo a b`
-      rcases exists_between hab with ⟨c', hc'⟩,
-      refine ⟨c', hc', or.inl _⟩,
-      assume x hx,
-      rw [mem_set_of_eq, this x hx, ← hC],
-      exact Cge c' ⟨le_of_lt hc'.1, le_of_lt hc'.2⟩ },
-    { refine ⟨C, ⟨lt_of_le_of_ne Cmem.1 $ mt _ hC, lt_of_le_of_ne Cmem.2 $ mt _ hC⟩, or.inr Cge⟩,
-      exacts [λ h, by rw h, λ h, by rw [h, hfI]] } },
-  { refine ⟨c, ⟨lt_of_le_of_ne cmem.1 $ mt _ hc, lt_of_le_of_ne cmem.2 $ mt _ hc⟩, or.inl cle⟩,
-      exacts [λ h, by rw h, λ h, by rw [h, hfI]] }
-end
-
-/-- A continuous function on a closed interval with `f a = f b` has a local extremum at some
-point of the corresponding open interval. -/
-lemma exists_local_extr_Ioo (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
-  ∃ c ∈ Ioo a b, is_local_extr f c :=
-let ⟨c, cmem, hc⟩ := exists_Ioo_extr_on_Icc f hab hfc hfI
-in ⟨c, cmem, hc.is_local_extr $ Icc_mem_nhds cmem.1 cmem.2⟩
-
-/-- **Rolle's Theorem** `has_deriv_at` version -/
-lemma exists_has_deriv_at_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b)
-  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
-  ∃ c ∈ Ioo a b, f' c = 0 :=
-let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
-  ⟨c, cmem, hc.has_deriv_at_eq_zero $ hff' c cmem⟩
-
-/-- **Rolle's Theorem** `deriv` version -/
-lemma exists_deriv_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
-  ∃ c ∈ Ioo a b, deriv f c = 0 :=
-let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
-  ⟨c, cmem, hc.deriv_eq_zero⟩
-
-variables {f f'} {l : ℝ}
-
-/-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has derivative `f'`
-on `(a, b)` and has the same limit `l` at `𝓝[>] a` and `𝓝[<] b`, then `f' c = 0`
-for some `c ∈ (a, b)`.  -/
-lemma exists_has_deriv_at_eq_zero' (hab : a < b)
-  (hfa : tendsto f (𝓝[>] a) (𝓝 l)) (hfb : tendsto f (𝓝[<] b) (𝓝 l))
-  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
-  ∃ c ∈ Ioo a b, f' c = 0 :=
-begin
-  have : continuous_on f (Ioo a b) := λ x hx, (hff' x hx).continuous_at.continuous_within_at,
-  have hcont := continuous_on_Icc_extend_from_Ioo hab.ne this hfa hfb,
-  obtain ⟨c, hc, hcextr⟩ : ∃ c ∈ Ioo a b, is_local_extr (extend_from (Ioo a b) f) c,
-  { apply exists_local_extr_Ioo _ hab hcont,
-    rw eq_lim_at_right_extend_from_Ioo hab hfb,
-    exact eq_lim_at_left_extend_from_Ioo hab hfa },
-  use [c, hc],
-  apply (hcextr.congr _).has_deriv_at_eq_zero (hff' c hc),
-  rw eventually_eq_iff_exists_mem,
-  exact ⟨Ioo a b, Ioo_mem_nhds hc.1 hc.2, extend_from_extends this⟩
-end
-
-/-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has the same limit
-`l` at `𝓝[>] a` and `𝓝[<] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version
-does not require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
-differentiable at `c`. -/
-lemma exists_deriv_eq_zero' (hab : a < b)
-  (hfa : tendsto f (𝓝[>] a) (𝓝 l)) (hfb : tendsto f (𝓝[<] b) (𝓝 l)) :
-  ∃ c ∈ Ioo a b, deriv f c = 0 :=
-classical.by_cases
-  (assume h : ∀ x ∈ Ioo a b, differentiable_at ℝ f x,
-    show ∃ c ∈ Ioo a b, deriv f c = 0,
-      from exists_has_deriv_at_eq_zero' hab hfa hfb (λ x hx, (h x hx).has_deriv_at))
-  (assume h : ¬∀ x ∈ Ioo a b, differentiable_at ℝ f x,
-    have h : ∃ x, x ∈ Ioo a b ∧ ¬differentiable_at ℝ f x, by { push_neg at h, exact h },
-      let ⟨c, hc, hcdiff⟩ := h in ⟨c, hc, deriv_zero_of_not_differentiable_at hcdiff⟩)
-
-end Rolle
-
-namespace polynomial
-
-open_locale big_operators
-
-/-- The number of roots of a real polynomial `p` is at most the number of roots of its derivative
-that are not roots of `p` plus one. -/
-lemma card_roots_to_finset_le_card_roots_derivative_diff_roots_succ (p : ℝ[X]) :
-  p.roots.to_finset.card ≤ (p.derivative.roots.to_finset \ p.roots.to_finset).card + 1 :=
-begin
-  cases eq_or_ne p.derivative 0 with hp' hp',
-  { rw [eq_C_of_derivative_eq_zero hp', roots_C, multiset.to_finset_zero, finset.card_empty],
-    exact zero_le _ },
-  have hp : p ≠ 0, from ne_of_apply_ne derivative (by rwa [derivative_zero]),
-  refine finset.card_le_diff_of_interleaved (λ x hx y hy hxy hxy', _),
-  rw [multiset.mem_to_finset, mem_roots hp] at hx hy,
-  obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, eval x p) hxy
-    p.continuous_on (hx.trans hy.symm),
-  refine ⟨z, _, hz1⟩,
-  rwa [multiset.mem_to_finset, mem_roots hp', is_root, ← p.deriv]
-end
-
-/-- The number of roots of a real polynomial is at most the number of roots of its derivative plus
-one. -/
-lemma card_roots_to_finset_le_derivative (p : ℝ[X]) :
-  p.roots.to_finset.card ≤ p.derivative.roots.to_finset.card + 1 :=
-p.card_roots_to_finset_le_card_roots_derivative_diff_roots_succ.trans $
-  add_le_add_right (finset.card_mono $ finset.sdiff_subset _ _) _
-
-/-- The number of roots of a real polynomial (counted with multiplicities) is at most the number of
-roots of its derivative (counted with multiplicities) plus one. -/
-lemma card_roots_le_derivative (p : ℝ[X]) : p.roots.card ≤ p.derivative.roots.card + 1 :=
-calc p.roots.card = ∑ x in p.roots.to_finset, p.roots.count x :
-  (multiset.to_finset_sum_count_eq _).symm
-... = ∑ x in p.roots.to_finset, (p.roots.count x - 1 + 1) :
-  eq.symm $ finset.sum_congr rfl $ λ x hx, tsub_add_cancel_of_le $ nat.succ_le_iff.2 $
-    multiset.count_pos.2 $ multiset.mem_to_finset.1 hx
-... = ∑ x in p.roots.to_finset, (p.root_multiplicity x - 1) + p.roots.to_finset.card :
-  by simp only [finset.sum_add_distrib, finset.card_eq_sum_ones, count_roots]
-... ≤ ∑ x in p.roots.to_finset, p.derivative.root_multiplicity x +
-  ((p.derivative.roots.to_finset \ p.roots.to_finset).card + 1) :
-  add_le_add
-    (finset.sum_le_sum $ λ x hx, root_multiplicity_sub_one_le_derivative_root_multiplicity _ _)
-    p.card_roots_to_finset_le_card_roots_derivative_diff_roots_succ
-... ≤ ∑ x in p.roots.to_finset, p.derivative.roots.count x +
-  (∑ x in p.derivative.roots.to_finset \ p.roots.to_finset, p.derivative.roots.count x + 1) :
-  begin
-    simp only [← count_roots],
-    refine add_le_add_left (add_le_add_right ((finset.card_eq_sum_ones _).trans_le _) _) _,
-    refine finset.sum_le_sum (λ x hx, nat.succ_le_iff.2 $ _),
-    rw [multiset.count_pos, ← multiset.mem_to_finset],
-    exact (finset.mem_sdiff.1 hx).1
-  end
-... = p.derivative.roots.card + 1 :
-  begin
-    rw [← add_assoc, ← finset.sum_union finset.disjoint_sdiff, finset.union_sdiff_self_eq_union,
-      ← multiset.to_finset_sum_count_eq, ← finset.sum_subset (finset.subset_union_right _ _)],
-    intros x hx₁ hx₂,
-    simpa only [multiset.mem_to_finset, multiset.count_eq_zero] using hx₂
-  end
-
-/-- The number of real roots of a polynomial is at most the number of roots of its derivative plus
-one. -/
-lemma card_root_set_le_derivative {F : Type*} [comm_ring F] [algebra F ℝ] (p : F[X]) :
-  fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
-by simpa only [root_set_def, finset.coe_sort_coe, fintype.card_coe, derivative_map]
-  using card_roots_to_finset_le_derivative (p.map (algebra_map F ℝ))
-
-end polynomial

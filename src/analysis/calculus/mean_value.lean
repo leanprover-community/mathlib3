@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.deriv.slope
-import analysis.calculus.local_extr
+import analysis.calculus.deriv.mul
+import analysis.calculus.deriv.comp
+import analysis.calculus.local_extr.rolle
 import analysis.convex.slope
 import analysis.convex.normed
 import data.is_R_or_C.basic
@@ -760,7 +762,7 @@ begin
     from λ x hx, ((hff' x hx).const_mul (g b - g a)).sub ((hgg' x hx).const_mul (f b - f a)),
   have hhc : continuous_on h (Icc a b),
     from (continuous_on_const.mul hfc).sub (continuous_on_const.mul hgc),
-  rcases exists_has_deriv_at_eq_zero h h' hab hhc hI hhh' with ⟨c, cmem, hc⟩,
+  rcases exists_has_deriv_at_eq_zero hab hhc hI hhh' with ⟨c, cmem, hc⟩,
   exact ⟨c, cmem, sub_eq_zero.1 hc⟩
 end
 

@@ -3,7 +3,7 @@ Copyright (c) 2021 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
-import analysis.calculus.local_extr
+import analysis.calculus.local_extr.polynomial
 import data.nat.prime_norm_num
 import field_theory.abel_ruffini
 import ring_theory.eisenstein_criterion

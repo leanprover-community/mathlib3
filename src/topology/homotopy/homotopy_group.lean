@@ -163,7 +163,7 @@ begin
     fun_split_at_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
     function.uncurry_apply_pair],
   obtain rfl | Hne := eq_or_ne j i,
-  { cases Hj; rw Hj; simp only [p.source, p.target]; convert const_apply },
+  { cases Hj; { rw Hj, simp only [p.source, p.target], convert const_apply } },
   { exact gen_loop.boundary _ _ ⟨⟨j, Hne⟩, Hj⟩ },
 end⟩
 
@@ -216,7 +216,7 @@ lemma homotopic_to (i : N) {p q : Ω^N X x} :
 begin
   refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩, _⟩, _, _⟩, _⟩),
   { rintros y ⟨i, iH⟩,
-    rw homotopy_to_apply, rw H.eq_fst, rw p.2,
+    rw [homotopy_to_apply, H.eq_fst, p.2],
     all_goals { apply cube.insert_at_boundary, right, exact ⟨i, iH⟩} },
   { continuity },
   show ∀ _ _ _, _,
@@ -245,7 +245,8 @@ lemma homotopic_from (i : N) {p q : Ω^N X x} :
 begin
   refine nonempty.map (λ H, ⟨⟨homotopy_from i H, _, _⟩, _⟩),
   show ∀ _ _ _, _,
-  { rintros t y ⟨j, jH⟩, erw homotopy_from_apply,
+  { rintros t y ⟨j, jH⟩,
+    erw homotopy_from_apply,
     obtain rfl | h := eq_or_ne j i,
     { split,
       { rw H.eq_fst, exacts [congr_arg p (equiv.right_inv _ _), jH] },
@@ -326,8 +327,8 @@ homotopy_group_equiv_zeroth_homotopy_of_is_empty (fin 0)
     (gen_loop.boundary _ (λ _, 1) ⟨default, or.inr rfl⟩),
   inv_fun := λ p, ⟨⟨λ c, p (c default), by continuity⟩,
   begin
-    rintro y ⟨i, iH|iH⟩; cases unique.eq_default i;
-    apply (congr_arg p iH).trans, exacts [p.source, p.target],
+    rintro y ⟨i, iH|iH⟩; cases unique.eq_default i; apply (congr_arg p iH).trans,
+    exacts [p.source, p.target],
   end⟩,
   left_inv := λ p, by { ext, exact congr_arg p (eq_const_of_unique y).symm },
   right_inv := λ p, by { ext, refl } }
@@ -362,6 +363,9 @@ end
 /-- The first homotopy group at `x` is in bijection with the fundamental group. -/
 def pi_1_equiv_fundamental_group : π_ 1 X x ≃ fundamental_group X x :=
 homotopy_group_equiv_fundamental_group_of_unique (fin 1)
+
+-- mul_equiv
+-- homeomorph
 
 section
 

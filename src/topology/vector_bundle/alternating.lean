@@ -14,9 +14,9 @@ We define the (topological) vector bundle of continuous alternating maps between
 over the same base.
 
 Given bundles `E₁ E₂ : B → Type*`, and normed spaces `F₁` and `F₂`, we define
-`bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂ x` to be a type synonym for
-`λ x, continuous_alternating_map 𝕜 (E₁ x) (E₂ x) ι`. If the `E₁` and `E₂` are vector bundles with
-model fibers `F₁` and `F₂`, then this will be a vector bundle with fiber
+`Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯` (notation for `bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂ x`) to be a
+type synonym for `λ x, continuous_alternating_map 𝕜 (E₁ x) (E₂ x) ι`. If the `E₁` and `E₂` are
+vector bundles with model fibers `F₁` and `F₂`, then this will be a vector bundle with model fiber
 `continuous_alternating_map 𝕜 F₁ F₂ ι`.
 
 The topology is constructed from the trivializations for `E₁` and `E₂` and the norm-topology on the
@@ -54,8 +54,8 @@ include F₁ F₂
 -- something much weaker (maybe `comm_semiring`) would suffice mathematically -- this is because of
 -- a typeclass inference bug with pi-types:
 -- https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/vector.20bundles.20--.20typeclass.20inference.20issue
-/-- The bundle of continuous `ι`-slot alternating maps between the topological vector bundles `E₁` and
-`E₂`. This is a type synonym for `λ x, E₁ x →SL[σ] E₂ x`.
+/-- The bundle of continuous `ι`-slot alternating maps between the topological vector bundles `E₁`
+and `E₂`. This is a type synonym for `λ x, continuous_alternating_map 𝕜 (E₁ x) (E₂ x) ι`.
 
 We intentionally add `F₁` and `F₂` as arguments to this type, so that instances on this type
 (that depend on `F₁` and `F₂`) actually refer to `F₁` and `F₂`. -/
@@ -63,14 +63,17 @@ We intentionally add `F₁` and `F₂` as arguments to this type, so that instan
 protected def bundle.continuous_alternating_map (x : B) : Type* :=
 continuous_alternating_map 𝕜 (E₁ x) (E₂ x) ι
 
+notation `Λ^` ι `⟮` 𝕜 `; ` F₁ `, ` E₁ `; ` F₂ `, ` E₂ `⟯` :=
+  bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂
+
 variables [Π x, has_continuous_add (E₂ x)]
 
-instance (x : B) : add_comm_monoid (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂ x) :=
+instance (x : B) : add_comm_monoid (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ x) :=
 by delta_instance bundle.continuous_alternating_map
 
 variables [∀ x, has_continuous_smul 𝕜 (E₂ x)]
 
-instance (x : B) : module 𝕜 (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂ x) :=
+instance (x : B) : module 𝕜 (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ x) :=
 by delta_instance bundle.continuous_alternating_map
 
 end defs
@@ -87,6 +90,7 @@ variables (F₂ : Type*) [normed_add_comm_group F₂][normed_space 𝕜 F₂]
   [topological_space (total_space E₂)]
 
 variables {F₁ E₁ F₂ E₂} (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
+
 
 namespace pretrivialization
 
@@ -135,7 +139,7 @@ trivialization, after the bundle of continuous semilinear maps is equipped with 
 topological vector bundle structure. -/
 def continuous_alternating_map :
   pretrivialization (continuous_alternating_map 𝕜 F₁ F₂ ι)
-    (π (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂)) :=
+    (π (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :=
 { to_fun := λ p, ⟨p.1, (e₂.continuous_linear_map_at 𝕜 p.1).comp_continuous_alternating_map $
       p.2.comp_continuous_linear_map $ e₁.symmL 𝕜 p.1⟩,
   inv_fun := λ p, ⟨p.1, (e₂.symmL 𝕜 p.1).comp_continuous_alternating_map $
@@ -185,7 +189,7 @@ instance continuous_alternating_map.is_linear
     end, } }
 
 lemma continuous_alternating_map_apply
-  (p : total_space (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂)) :
+  (p : total_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :
   (continuous_alternating_map 𝕜 ι e₁ e₂) p =
   ⟨p.1, (e₂.continuous_linear_map_at 𝕜 p.1).comp_continuous_alternating_map $
       p.2.comp_continuous_linear_map $ e₁.symmL 𝕜 p.1⟩ :=
@@ -244,7 +248,7 @@ variables [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜 (E
 on the total space is yet provided). -/
 def _root_.bundle.continuous_alternating_map.vector_prebundle :
   vector_prebundle 𝕜 (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι)
-  (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂) :=
+  (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :=
 { pretrivialization_atlas :=
     {e |  ∃ (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
     [mem_trivialization_atlas e₁] [mem_trivialization_atlas e₂], by exactI
@@ -269,25 +273,25 @@ def _root_.bundle.continuous_alternating_map.vector_prebundle :
 "normable" vector bundles over the same base. Here "normable" means that the bundles have fibers
 modelled on normed spaces `F₁`, `F₂` respectively.  The topology we put on the continuous
 `ι`-slot alternating_maps is the topology coming from the operator norm on maps from `F₁` to `F₂`. -/
-instance (x : B) : topological_space (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂ x) :=
+instance (x : B) : topological_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ x) :=
 (bundle.continuous_alternating_map.vector_prebundle 𝕜 ι F₁ E₁ F₂ E₂).fiber_topology x
 
 /-- Topology on the total space of the continuous `ι`-slot alternating_maps between two "normable" vector
 bundles over the same base. -/
 instance bundle.continuous_alternating_map.topological_space_total_space :
-  topological_space (total_space (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂)) :=
+  topological_space (total_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :=
 (bundle.continuous_alternating_map.vector_prebundle
   𝕜 ι F₁ E₁ F₂ E₂).total_space_topology
 
 /-- The continuous `ι`-slot alternating_maps between two vector bundles form a fiber bundle. -/
 instance _root_.bundle.continuous_alternating_map.fiber_bundle :
-  fiber_bundle (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂) :=
+  fiber_bundle (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :=
 (bundle.continuous_alternating_map.vector_prebundle
   𝕜 ι F₁ E₁ F₂ E₂).to_fiber_bundle
 
 /-- The continuous `ι`-slot alternating_maps between two vector bundles form a vector bundle. -/
 instance _root_.bundle.continuous_alternating_map.vector_bundle :
-  vector_bundle 𝕜 (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂) :=
+  vector_bundle 𝕜 (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :=
 (bundle.continuous_alternating_map.vector_prebundle
   𝕜 ι F₁ E₁ F₂ E₂).to_vector_bundle
 
@@ -301,13 +305,13 @@ the induced trivialization for the continuous `ι`-slot alternating maps from `E
 whose base set is `e₁.base_set ∩ e₂.base_set`. -/
 def trivialization.continuous_alternating_map :
   trivialization (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι)
-  (π (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂)) :=
+  (π (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :=
 vector_prebundle.trivialization_of_mem_pretrivialization_atlas _ ⟨e₁, e₂, he₁, he₂, rfl⟩
 
 instance _root_.bundle.continuous_alternating_map.mem_trivialization_atlas :
   mem_trivialization_atlas (e₁.continuous_alternating_map 𝕜 ι e₂ :
     trivialization (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι)
-    (π (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂))) :=
+    (π (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯))) :=
 { out := ⟨_, ⟨e₁, e₂, by apply_instance, by apply_instance, rfl⟩, rfl⟩ }
 
 variables {e₁ e₂}
@@ -317,7 +321,7 @@ variables {e₁ e₂}
 rfl
 
 lemma trivialization.continuous_alternating_map_apply
-  (p : total_space (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂)) :
+  (p : total_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :
   e₁.continuous_alternating_map 𝕜 ι e₂ p =
   ⟨p.1, (e₂.continuous_linear_map_at 𝕜 p.1).comp_continuous_alternating_map $
       p.2.comp_continuous_linear_map $ e₁.symmL 𝕜 p.1⟩ :=
@@ -327,13 +331,13 @@ omit he₁ he₂
 
 @[simp, mfld_simps]
 lemma hom_trivialization_at_source (x₀ : B) :
-  (trivialization_at (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂) x₀).source =
-  π (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂) ⁻¹'
+  (trivialization_at (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) x₀).source =
+  π (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) ⁻¹'
     ((trivialization_at F₁ E₁ x₀).base_set ∩ (trivialization_at F₂ E₂ x₀).base_set) :=
 rfl
 
 @[simp, mfld_simps]
 lemma hom_trivialization_at_target (x₀ : B) :
-  (trivialization_at (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂) x₀).target =
+  (trivialization_at (_root_.continuous_alternating_map 𝕜 F₁ F₂ ι) (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) x₀).target =
   ((trivialization_at F₁ E₁ x₀).base_set ∩ (trivialization_at F₂ E₂ x₀).base_set) ×ˢ set.univ :=
 rfl

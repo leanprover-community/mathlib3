@@ -279,15 +279,15 @@ def _root_.bundle.continuous_alternating_map.vector_prebundle :
     continuous_on_continuous_alternating_map_coord_change 𝕜 ι,
     continuous_alternating_map_coord_change_apply 𝕜 ι e₁ e₁' e₂ e₂'⟩ } }
 
-/-- Topology on the continuous `ι`-slot alternating_maps between the respective fibers at a point of two
-"normable" vector bundles over the same base. Here "normable" means that the bundles have fibers
-modelled on normed spaces `F₁`, `F₂` respectively.  The topology we put on the continuous
-`ι`-slot alternating_maps is the topology coming from the operator norm on maps from `F₁` to `F₂`. -/
+/-- Topology on the continuous `ι`-slot alternating_maps between the respective fibers at a point of
+two "normable" vector bundles over the same base. Here "normable" means that the bundles have fibers
+modelled on normed spaces `F₁`, `F₂` respectively.  The topology we put on the continuous `ι`-slot
+alternating_maps is the topology coming from the operator norm on maps from `F₁` to `F₂`. -/
 instance (x : B) : topological_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ x) :=
 (bundle.continuous_alternating_map.vector_prebundle 𝕜 ι F₁ E₁ F₂ E₂).fiber_topology x
 
-/-- Topology on the total space of the continuous `ι`-slot alternating_maps between two "normable" vector
-bundles over the same base. -/
+/-- Topology on the total space of the continuous `ι`-slot alternating_maps between two "normable"
+vector bundles over the same base. -/
 instance bundle.continuous_alternating_map.topological_space_total_space :
   topological_space (total_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :=
 (bundle.continuous_alternating_map.vector_prebundle

@@ -297,7 +297,6 @@ begin
   any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [h]; dec_trivial }
 end
 
--- TODO: generalise to arbitrary `y ∈ R[X]`
 @[simp] lemma eval_polynomial (x y : R) :
   (W.polynomial.eval $ C y).eval x
     = y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) :=
@@ -488,16 +487,15 @@ instance : is_scalar_tower R R[X] W.coordinate_ring := quotient.is_scalar_tower 
 
 instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
 
--- TODO: generalise to arbitrary `y ∈ R[X]`
 /-- The $R$-algebra isomorphism from $R[W] / \langle X - x, Y - y(X) \rangle$ to $R$ obtained by
 evaluation at $y(X)$ and at $x$ provided that $W(x, y(x)) = 0$. -/
-noncomputable def quotient_XY_ideal_equiv {x y : R} (h : W.equation x y) :
-  (W.coordinate_ring ⧸ XY_ideal W x (C y)) ≃ₐ[R] R :=
+noncomputable def quotient_XY_ideal_equiv {x : R} {y : R[X]}
+  (h : (W.polynomial.eval y).eval x = 0) : (W.coordinate_ring ⧸ XY_ideal W x y) ≃ₐ[R] R :=
 (quotient_equiv_alg_of_eq R $
   by simpa only [XY_ideal, X_class, Y_class, ← set.image_pair, ← map_span]).trans $
   (double_quot.quot_quot_equiv_quot_of_leₐ R $ (span_singleton_le_iff_mem _).mpr $
     mem_span_C_X_sub_C_X_sub_C_iff_eval_eval_eq_zero.mpr h).trans $
-    ((quotient_span_C_X_sub_C_alg_equiv (X - C x) $ C y).restrict_scalars R).trans $
+    ((quotient_span_C_X_sub_C_alg_equiv (X - C x) y).restrict_scalars R).trans $
       quotient_span_X_sub_C_alg_equiv x
 
 /-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
@@ -580,7 +578,6 @@ begin
   ring1
 end
 
--- TODO: use `neg_polynomial`
 lemma coe_norm_smul_basis (p q : R[X]) :
   ↑(algebra.norm R[X] $ p • 1 + q • adjoin_root.mk W.polynomial Y)
     = adjoin_root.mk W.polynomial

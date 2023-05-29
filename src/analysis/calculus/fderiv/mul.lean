@@ -456,13 +456,99 @@ begin
     units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul, sub_neg_eq_add]
 end
 
-lemma differentiable_at_inverse (x : Rˣ) : differentiable_at 𝕜 (@ring.inverse R _) x :=
-(has_fderiv_at_ring_inverse x).differentiable_at
+lemma differentiable_at_inverse {x : R} (hx : is_unit x) :
+  differentiable_at 𝕜 (@ring.inverse R _) x :=
+let ⟨u, hu⟩ := hx in hu ▸ (has_fderiv_at_ring_inverse u).differentiable_at
+
+lemma differentiable_within_at_inverse {x : R} (hx : is_unit x) (s : set R):
+  differentiable_within_at 𝕜 (@ring.inverse R _) s x :=
+(differentiable_at_inverse hx).differentiable_within_at
+
+lemma differentiable_on_inverse : differentiable_on 𝕜 (@ring.inverse R _) {x | is_unit x} :=
+λ x hx, differentiable_within_at_inverse hx _
 
 lemma fderiv_inverse (x : Rˣ) :
   fderiv 𝕜 (@ring.inverse R _) x = - mul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹ :=
 (has_fderiv_at_ring_inverse x).fderiv
 
+variables {h : E → R} {z : E} {S : set E}
+
+lemma differentiable_within_at.inverse (hf : differentiable_within_at 𝕜 h S z)
+  (hz : is_unit (h z)) :
+  differentiable_within_at 𝕜 (λ x, ring.inverse (h x)) S z :=
+(differentiable_at_inverse hz).comp_differentiable_within_at z hf
+
+@[simp] lemma differentiable_at.inverse (hf : differentiable_at 𝕜 h z) (hz : is_unit (h z)) :
+  differentiable_at 𝕜 (λ x, ring.inverse (h x)) z :=
+(differentiable_at_inverse hz).comp z hf
+
+lemma differentiable_on.inverse (hf : differentiable_on 𝕜 h S) (hz : ∀ x ∈ S, is_unit (h x)) :
+  differentiable_on 𝕜 (λ x, ring.inverse (h x)) S :=
+λ x h, (hf x h).inverse (hz x h)
+
+@[simp] lemma differentiable.inverse (hf : differentiable 𝕜 h) (hz : ∀ x, h x ≠ 0) :
+  differentiable 𝕜 (λ x, ring.inverse (h x)) :=
+λ x, (hf x).inverse (hz x)
+
 end algebra_inverse
+
+/-! ### Derivative of the inverse in a division ring
+
+Note these lemmas are primed as they need `complete_space R`, whereas the other lemmas in
+`deriv/inv.lean` do not, but instead need `nontrivially_normed_field R`.
+-/
+
+section division_ring_inverse
+variables {R : Type*} [normed_division_ring R] [normed_algebra 𝕜 R] [complete_space R]
+open normed_ring continuous_linear_map ring
+
+/-- At an invertible element `x` of a normed division algebra `R`, the Fréchet derivative of the
+inversion operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
+lemma has_fderiv_at_inv' {x : R} (hx : x ≠ 0) :
+  has_fderiv_at has_inv.inv (-mul_left_right 𝕜 R x⁻¹ x⁻¹) x :=
+by simpa using has_fderiv_at_ring_inverse (units.mk0 _ hx)
+
+lemma differentiable_at_inv' {x : R} (hx : x ≠ 0) : differentiable_at 𝕜 has_inv.inv x :=
+(has_fderiv_at_inv' hx).differentiable_at
+
+lemma differentiable_within_at_inv' {x : R} (hx : x ≠ 0) (s : set R):
+  differentiable_within_at 𝕜 (λx, x⁻¹) s x :=
+(differentiable_at_inv' hx).differentiable_within_at
+
+lemma differentiable_on_inv' : differentiable_on 𝕜 (λ x : R, x⁻¹) {x | x ≠ 0} :=
+λ x hx, differentiable_within_at_inv' hx _
+
+/-- Non-commutative version of `fderiv_inv` -/
+lemma fderiv_inv' {x : R} (hx : x ≠ 0) :
+  fderiv 𝕜 has_inv.inv x = - mul_left_right 𝕜 R x⁻¹ x⁻¹ :=
+(has_fderiv_at_inv' hx).fderiv
+
+/-- Non-commutative version of `fderiv_within_inv` -/
+lemma fderiv_within_inv' {s : set R} {x : R} (hx : x ≠ 0) (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λ x, x⁻¹) s x = - mul_left_right 𝕜 R x⁻¹ x⁻¹ :=
+begin
+  rw differentiable_at.fderiv_within (differentiable_at_inv' hx) hxs,
+  exact fderiv_inv' hx
+end
+
+variables {h : E → R} {z : E} {S : set E}
+
+lemma differentiable_within_at.inv' (hf : differentiable_within_at 𝕜 h S z) (hz : h z ≠ 0) :
+  differentiable_within_at 𝕜 (λ x, (h x)⁻¹) S z :=
+(differentiable_at_inv' hz).comp_differentiable_within_at z hf
+
+@[simp] lemma differentiable_at.inv' (hf : differentiable_at 𝕜 h z) (hz : h z ≠ 0) :
+  differentiable_at 𝕜 (λ x, (h x)⁻¹) z :=
+(differentiable_at_inv' hz).comp z hf
+
+lemma differentiable_on.inv' (hf : differentiable_on 𝕜 h S) (hz : ∀ x ∈ S, h x ≠ 0) :
+  differentiable_on 𝕜 (λ x, (h x)⁻¹) S :=
+λ x h, (hf x h).inv' (hz x h)
+
+@[simp] lemma differentiable.inv' (hf : differentiable 𝕜 h) (hz : ∀ x, h x ≠ 0) :
+  differentiable 𝕜 (λ x, (h x)⁻¹) :=
+λ x, (hf x).inv' (hz x)
+
+end division_ring_inverse
 
 end

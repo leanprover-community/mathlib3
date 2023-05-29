@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.calculus.cont_diff
+import analysis.calculus.deriv.pow
 
 /-!
 # Smoothness of `real.sqrt`

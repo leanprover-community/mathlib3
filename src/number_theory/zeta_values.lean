@@ -6,6 +6,7 @@ Authors: David Loeffler
 
 import number_theory.bernoulli_polynomials
 import measure_theory.integral.interval_integral
+import analysis.calculus.deriv.polynomial
 import analysis.fourier.add_circle
 import analysis.p_series
 

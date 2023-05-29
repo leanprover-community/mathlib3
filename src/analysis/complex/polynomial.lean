@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Junyan Xu
 -/
 import analysis.complex.liouville
+import analysis.calculus.deriv.polynomial
 import field_theory.is_alg_closed.basic
+import topology.algebra.polynomial
 
 /-!
 # The fundamental theorem of algebra

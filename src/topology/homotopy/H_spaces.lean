@@ -131,7 +131,7 @@ definition to_H_space (M : Type u) [mul_one_class M] [topological_space M]
   Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply mul_one}) }
 
 @[priority 600, to_additive] instance H_space (G : Type u)
-[topological_space G] [group G] [topological_group G] : H_space G := to_H_space G
+  [topological_space G] [group G] [topological_group G] : H_space G := to_H_space G
 
 lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl

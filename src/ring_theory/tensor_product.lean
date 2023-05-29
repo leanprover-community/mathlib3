@@ -422,17 +422,19 @@ begin
   simp [H],
 end
 
--- TODO: with `smul_comm_class R S A` we can have this as an `S`-algebra morphism
-/-- The `R`-algebra morphism `A →ₐ[R] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
-def include_left : A →ₐ[R] A ⊗[R] B :=
+/-- The `R`-algebra morphism `A →ₐ[S] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
+def include_left [smul_comm_class R S A] : A →ₐ[S] A ⊗[R] B :=
 { commutes' := by simp,
   ..include_left_ring_hom }
 
 @[simp]
-lemma include_left_apply (a : A) : (include_left : A →ₐ[R] A ⊗[R] B) a = a ⊗ₜ 1 := rfl
+lemma include_left_apply [smul_comm_class R S A ] (a : A) : (include_left : A →ₐ[S] A ⊗[R] B) a = a ⊗ₜ 1 := rfl
+
+variables [algebra S B] [smul_comm_class R S A]
+[tensor_product.compatible_smul R S A B]
 
 /-- The algebra morphism `B →ₐ[R] A ⊗[R] B` sending `b` to `1 ⊗ₜ b`. -/
-def include_right : B →ₐ[R] A ⊗[R] B :=
+def include_right : B →ₐ[S] A ⊗[R] B :=
 { to_fun := λ b, 1 ⊗ₜ b,
   map_zero' := by simp,
   map_add' := by simp [tmul_add],
@@ -447,14 +449,18 @@ def include_right : B →ₐ[R] A ⊗[R] B :=
   end, }
 
 @[simp]
-lemma include_right_apply (b : B) : (include_right : B →ₐ[R] A ⊗[R] B) b = 1 ⊗ₜ b := rfl
+lemma include_right_apply (b : B) : (include_right : B →ₐ[S] A ⊗[R] B) b = 1 ⊗ₜ b := rfl
 
-lemma include_left_comp_algebra_map {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+lemma include_left_comp_algebra_map :
+    ((include_left : A →ₐ[S] A ⊗[R] B).to_ring_hom.comp (algebra_map R A)) =
+      (include_right : B →ₐ[S] A ⊗[R] B).to_ring_hom.comp (algebra_map R B) :=
+by { ext, simp [algebra.algebra_map_eq_smul_one, smul_tmul] }
+
+lemma include_left_comp_algebra_map' {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
   [algebra R S] [algebra R T] :
-    (include_left.to_ring_hom.comp (algebra_map R S) : R →+* S ⊗[R] T) =
-      include_right.to_ring_hom.comp (algebra_map R T) :=
+    ((include_left : S →ₐ[R] S ⊗[R] T).to_ring_hom.comp (algebra_map R S) : R →+* S ⊗[R] T) =
+      (include_right : T →ₐ[R] S ⊗[R] T).to_ring_hom.comp (algebra_map R T) :=
 by { ext, simp }
-
 end semiring
 
 section ring
@@ -494,10 +500,10 @@ instance : comm_ring (A ⊗[R] B) :=
 
 section right_algebra
 
-/-- `S ⊗[R] T` has a `T`-algebra structure. This is not a global instance or else the action of
-`S` on `S ⊗[R] S` would be ambiguous. -/
+/-- `A ⊗[R] B` has a `B`-algebra structure. This is not a global instance or else the action of
+`A` on `A ⊗[R] A` would be ambiguous. -/
 @[reducible] def right_algebra : algebra B (A ⊗[R] B) :=
-(algebra.tensor_product.include_right.to_ring_hom : B →+* A ⊗[R] B).to_algebra
+((algebra.tensor_product.include_right : B →ₐ[R] A ⊗[R]B).to_ring_hom : B →+* A ⊗[R] B).to_algebra
 
 local attribute [instance] tensor_product.right_algebra
 
@@ -528,22 +534,27 @@ We now build the structure maps for the symmetric monoidal category of `R`-algeb
 section monoidal
 
 section
+universe v
+
 variables {R : Type u} [comm_semiring R]
-variables {A : Type v₁} [semiring A] [algebra R A]
+variables {S : Type v} [comm_semiring S] [algebra R S]
+variables {A : Type v₁} [semiring A] [algebra R A] [algebra S A] [smul_comm_class R S A]
 variables {B : Type v₂} [semiring B] [algebra R B]
 variables {C : Type v₃} [semiring C] [algebra R C]
+  [algebra S C]
 variables {D : Type v₄} [semiring D] [algebra R D]
+
 
 /--
 Build an algebra morphism from a linear map out of a tensor product,
 and evidence of multiplicativity on pure tensors.
 -/
 def alg_hom_of_linear_map_tensor_product
-  (f : A ⊗[R] B →ₗ[R] C)
+  (f : A ⊗[R] B →ₗ[S] C)
   (w₁ : ∀ (a₁ a₂ : A) (b₁ b₂ : B), f ((a₁ * a₂) ⊗ₜ (b₁ * b₂)) = f (a₁ ⊗ₜ b₁) * f (a₂ ⊗ₜ b₂))
-  (w₂ : ∀ r, f ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R C) r):
-  A ⊗[R] B →ₐ[R] C :=
-{ map_one' := by rw [←(algebra_map R C).map_one, ←w₂, (algebra_map R A).map_one]; refl,
+  (w₂ : ∀ s, f ((algebra_map S A) s ⊗ₜ[R] 1) = (algebra_map S C) s):
+  A ⊗[R] B →ₐ[S] C :=
+{ map_one' :=  by rw [← (algebra_map S C).map_one, ← w₂, linear_map.to_fun_eq_coe, (algebra_map S A).map_one]; refl,
   map_zero' := by rw [linear_map.to_fun_eq_coe, map_zero],
   map_mul' := λ x y, by
   { rw linear_map.to_fun_eq_coe,
@@ -563,23 +574,27 @@ def alg_hom_of_linear_map_tensor_product
 
 @[simp]
 lemma alg_hom_of_linear_map_tensor_product_apply (f w₁ w₂ x) :
-  (alg_hom_of_linear_map_tensor_product f w₁ w₂ : A ⊗[R] B →ₐ[R] C) x = f x := rfl
+  (alg_hom_of_linear_map_tensor_product f w₁ w₂ : A ⊗[R] B →ₐ[S] C) x = f x := rfl
 
 /--
 Build an algebra equivalence from a linear equivalence out of a tensor product,
 and evidence of multiplicativity on pure tensors.
 -/
 def alg_equiv_of_linear_equiv_tensor_product
-  (f : A ⊗[R] B ≃ₗ[R] C)
+  (f : A ⊗[R] B ≃ₗ[S] C)
   (w₁ : ∀ (a₁ a₂ : A) (b₁ b₂ : B), f ((a₁ * a₂) ⊗ₜ (b₁ * b₂)) = f (a₁ ⊗ₜ b₁) * f (a₂ ⊗ₜ b₂))
-  (w₂ : ∀ r, f ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R C) r):
-  A ⊗[R] B ≃ₐ[R] C :=
-{ .. alg_hom_of_linear_map_tensor_product (f : A ⊗[R] B →ₗ[R] C) w₁ w₂,
+  (w₂ : ∀ s, f ((algebra_map S A) s ⊗ₜ[R] 1) = (algebra_map S C) s):
+  A ⊗[R] B ≃ₐ[S] C :=
+{ .. alg_hom_of_linear_map_tensor_product (f : A ⊗[R] B →ₗ[S] C) w₁ w₂,
   .. f }
 
 @[simp]
 lemma alg_equiv_of_linear_equiv_tensor_product_apply (f w₁ w₂ x) :
-  (alg_equiv_of_linear_equiv_tensor_product f w₁ w₂ : A ⊗[R] B ≃ₐ[R] C) x = f x := rfl
+  (alg_equiv_of_linear_equiv_tensor_product f w₁ w₂ : A ⊗[R] B ≃ₐ[S] C) x = f x := rfl
+
+-- TODO : S-linearize this
+-- The problem is that Lean doesn't view A⊗[R]B as an S-module automatically
+-- To me, this suggests that something has to be done on linear_map.tensor_product as well
 
 /--
 Build an algebra equivalence from a linear equivalence out of a triple tensor product,
@@ -659,6 +674,9 @@ by simp [tensor_product.rid]
 
 section
 variables (R A B)
+
+-- TODO : S-linearize (if possible)
+-- variables (S : Type*) [comm_semiring S] [algebra R S] [algebra S A] [algebra S B] [is_scalar_tower R S A] [is_scalar_tower R S B] [tensor_product.compatible_smul R S A B]
 
 /--
 The tensor product of R-algebras is commutative, up to algebra isomorphism.
@@ -786,13 +804,14 @@ lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = linear_map
 @[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := rfl
 
 @[simp]
-lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp include_left = alg_hom.id R S :=
+lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp (include_left : _ →ₐ[R] _) = alg_hom.id R S :=
 alg_hom.ext $ _root_.mul_one
 
 @[simp]
-lemma lmul'_comp_include_right : (lmul' R : _ →ₐ[R] S).comp include_right = alg_hom.id R S :=
+lemma lmul'_comp_include_right : (lmul' R : _ →ₐ[R] S).comp (include_right : _ →ₐ[R] _) = alg_hom.id R S :=
 alg_hom.ext $ _root_.one_mul
 
+-- TODO : the target should be C, and this be S-linearized
 /--
 If `S` is commutative, for a pair of morphisms `f : A →ₐ[R] S`, `g : B →ₐ[R] S`,
 We obtain a map `A ⊗[R] B →ₐ[R] S` that commutes with `f`, `g` via `a ⊗ b ↦ f(a) * g(b)`.
@@ -805,9 +824,9 @@ by { unfold product_map lmul', simp }
 lemma product_map_left_apply (a : A) :
   product_map f g ((include_left : A →ₐ[R] A ⊗ B) a) = f a := by simp
 
-@[simp] lemma product_map_left : (product_map f g).comp include_left = f := alg_hom.ext $ by simp
+@[simp] lemma product_map_left : (product_map f g).comp (include_left : A →ₐ[R] A ⊗ B) = f := alg_hom.ext $ by simp
 
-lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b := by simp
+lemma product_map_right_apply (b : B) : product_map f g ((include_right : B →ₐ[R] A ⊗ B) b) = g b := by simp
 
 @[simp] lemma product_map_right : (product_map f g).comp include_right = g := alg_hom.ext $ by simp
 

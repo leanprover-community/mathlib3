@@ -438,7 +438,7 @@ begin
 end
 
 /-- Characterization of multiplicative identity -/
-lemma const_spec [inhabited N] : (1 : homotopy_group N X x) = ⟦const⟧ := rfl
+lemma one_def [inhabited N] : (1 : homotopy_group N X x) = ⟦const⟧ := rfl
 
 /-- Characterization of multiplication -/
 lemma mul_spec [inhabited N] {i} {p q : Ω^N X x} :

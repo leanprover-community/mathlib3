@@ -137,7 +137,7 @@ General algebra:
     ring of Witt vectors: 'witt_vector'
     perfection of a ring: 'ring.perfection'
   Transcendental numbers:
-    Liouville's theorem on existence of transcendental numbers: liouville.is_transcendental
+    Liouville's theorem on existence of transcendental numbers: 'transcendental_liouville_number'
 
   Representation theory:
     representation : 'representation'

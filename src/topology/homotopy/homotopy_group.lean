@@ -32,7 +32,7 @@ We provide a group instance using path composition and show commutativity when `
 
 TODO:
 * Functoriality of `Ω`.
-* `Ω^M (Ω^N X) ≃ Ω^(M⊕N) X`, and `Ω^M X ≃ Ω^N X` when `M ≃ N`. Similarly for `π_`.
+* `Ω^M (Ω^N X) ≃ₜ Ω^(M⊕N) X`, and `Ω^M X ≃ₜ Ω^N X` when `M ≃ N`. Similarly for `π_`.
 * Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a group isomorphism.
 * Examples with `𝕊^n`: `π_n (𝕊^n) = ℤ`, `π_m (𝕊^n)` trivial for `m < n`.
 * Actions of π_1 on π_n.
@@ -125,7 +125,7 @@ instance inhabited : inhabited (Ω^N X x) := ⟨const⟩
 def homotopic (f g : Ω^N X x) : Prop := f.1.homotopic_rel g.1 (cube.boundary N)
 
 namespace homotopic
-section
+
 variables {f g h : Ω^N X x}
 
 @[refl] lemma refl (f : Ω^N X x) : homotopic f f := continuous_map.homotopic_rel.refl _
@@ -139,10 +139,9 @@ lemma equiv : equivalence (@homotopic N X _ x) :=
 
 instance setoid (N) (x : X) : setoid (Ω^N X x) := ⟨homotopic, equiv⟩
 
-end
 end homotopic
 
-section
+section loop_homeo
 
 variable [decidable_eq N]
 
@@ -153,19 +152,27 @@ variable [decidable_eq N]
   source' := by { ext t, refine p.property (cube.insert_at i (0, t)) ⟨i, or.inl _⟩, simp },
   target' := by { ext t, refine p.property (cube.insert_at i (1, t)) ⟨i, or.inr _⟩, simp } }
 
+lemma continuous_to_loop (i : N) : continuous (@to_loop N X _ x _ i) :=
+path.continuous_uncurry_iff.1 $ continuous.subtype_mk (continuous_map.continuous_eval'.comp $
+  continuous.prod_map (continuous_map.continuous_curry.comp $
+    (continuous_map.continuous_comp_left _).comp continuous_subtype_coe) continuous_id) _
+
 /-- Generalized loop from a loop by uncurrying $I → (I^{N\setminus\{j\}} → X)$ into $I^N → X$. -/
 @[simps] def from_loop (i : N) (p : Ω (Ω^{j // j ≠ i} X x) const) : Ω^N X x :=
-⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(_, X))).uncurry.comp
-  (cube.split_at i).to_continuous_map,
+⟨(continuous_map.comp ⟨coe⟩ p.to_continuous_map).uncurry.comp (cube.split_at i).to_continuous_map,
 begin
   rintros y ⟨j, Hj⟩,
   simp only [subtype.val_eq_coe, continuous_map.comp_apply, to_continuous_map_apply,
     fun_split_at_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
     function.uncurry_apply_pair],
   obtain rfl | Hne := eq_or_ne j i,
-  { cases Hj; { rw Hj, simp only [p.source, p.target], convert const_apply } },
+  { cases Hj; simpa only [Hj, p.coe_to_continuous_map, p.source, p.target] },
   { exact gen_loop.boundary _ _ ⟨⟨j, Hne⟩, Hj⟩ },
 end⟩
+
+lemma continuous_from_loop (i : N) : continuous (@from_loop N X _ x _ i) :=
+((continuous_map.continuous_comp_left _).comp $ continuous_map.continuous_uncurry.comp $
+  (continuous_map.continuous_comp _).comp continuous_induced_dom).subtype_mk _
 
 lemma to_from (i : N) (p : Ω (Ω^{j // j ≠ i} X x) const) : to_loop i (from_loop i p) = p :=
 begin
@@ -176,23 +183,20 @@ end
 /-- The `n+1`-dimensional loops are in bijection with the loops in the space of
   `n`-dimensional loops with base point `const`.
   We allow an arbitrary indexing type `N` in place of `fin n` here. -/
-@[simps] def loop_equiv (i : N) : Ω^N X x ≃ Ω (Ω^{j // j ≠ i} X x) const :=
-{ to_fun := to_loop i,
-  inv_fun := from_loop i,
-  left_inv := λ p, by { ext, exact congr_arg p (equiv.apply_symm_apply _ _) },
-  right_inv := to_from i }
+@[simps] def loop_homeo (i : N) : Ω^N X x ≃ₜ Ω (Ω^{j // j ≠ i} X x) const :=
+{ to_equiv :=
+  { to_fun := to_loop i,
+    inv_fun := from_loop i,
+    left_inv := λ p, by { ext, exact congr_arg p (equiv.apply_symm_apply _ _) },
+    right_inv := to_from i },
+  continuous_to_fun := continuous_to_loop i,
+  continuous_inv_fun := continuous_from_loop i }
 
 lemma to_loop_apply (i : N) {p : Ω^N X x} {t} {tn} :
   to_loop i p t tn = p (cube.insert_at i ⟨t, tn⟩) := rfl
 
 lemma from_loop_apply (i : N) {p : Ω (Ω^{j // j ≠ i} X x) const} {t : I^N} :
   from_loop i p t = p (t i) (cube.split_at i t).snd := rfl
-
-end
-
-section
-
-variable [decidable_eq N]
 
 /-- Composition with `cube.insert_at` as a continuous map. -/
 @[reducible] def c_comp_insert (i : N) : C(C(I^N, X), C(I × I^{j // j ≠ i}, X)) :=
@@ -259,7 +263,7 @@ begin
     exact (equiv.right_inv _ _).symm },
 end
 
-end
+end loop_homeo
 
 end gen_loop
 
@@ -277,7 +281,7 @@ def homotopy_group_equiv_fundamental_group (i : N) :
   homotopy_group N X x ≃ fundamental_group (Ω^{j // j ≠ i} X x) const :=
 begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
-  apply quotient.congr (loop_equiv i),
+  apply quotient.congr (loop_homeo i).to_equiv,
   exact λ p q, ⟨homotopic_to i, homotopic_from i⟩,
 end
 
@@ -386,13 +390,13 @@ lemma is_unital_aux_group (i : N) :
 
 /-- Concatenation of two `gen_loop`s along the `i`th coordinate. -/
 def trans_at (i : N) (f g : Ω^N X x) : Ω^N X x :=
-copy ((loop_equiv i).symm ((loop_equiv i f).trans $ loop_equiv i g))
+copy (from_loop i $ (to_loop i f).trans $ to_loop i g)
   (λ t, if (t i : ℝ) ≤ 1/2
     then f (t.update i $ set.proj_Icc 0 1 zero_le_one (2 * t i))
     else g (t.update i $ set.proj_Icc 0 1 zero_le_one (2 * t i - 1)))
 begin
   ext1, symmetry,
-  dsimp only [path.trans, from_loop, path.coe_mk, function.comp_app, loop_equiv_symm_apply,
+  dsimp only [path.trans, from_loop, path.coe_mk, function.comp_app,
     mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
     continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
   split_ifs, change f _ = _, swap, change g _ = _,
@@ -401,7 +405,7 @@ end
 
 /-- Reversal of a `gen_loop` along the `i`th coordinate. -/
 def symm_at (i : N) (f : Ω^N X x) : Ω^N X x :=
-copy ((loop_equiv i).symm (loop_equiv i f).symm)
+copy (from_loop i (to_loop i f).symm)
   (λ t, f $ λ j, if j = i then σ (t i) else t j) $
   by { ext1, change _ = f _, congr, ext1, simp }
 
@@ -414,19 +418,21 @@ begin
 end
 
 lemma from_loop_trans_to_loop {i : N} {p q : Ω^N X x} :
-  (loop_equiv i).symm ((loop_equiv i p).trans $ loop_equiv i q) = trans_at i p q :=
+  from_loop i ((to_loop i p).trans $ to_loop i q) = trans_at i p q :=
 (copy_eq _ _).symm
 
 lemma from_loop_symm_to_loop {i : N} {p : Ω^N X x} :
-  (loop_equiv i).symm (loop_equiv i p).symm = symm_at i p := (copy_eq _ _).symm
+  from_loop i (to_loop i p).symm = symm_at i p := (copy_eq _ _).symm
 
 lemma aux_group_indep (i j : N) : (aux_group i : group (homotopy_group N X x)) = aux_group j :=
 begin
   by_cases h : i = j, { rw h },
   refine group.ext (eckmann_hilton.mul (is_unital_aux_group i) (is_unital_aux_group j) _),
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩,
+  change quotient.mk _ = _,
   apply congr_arg quotient.mk,
-  simp_rw [from_loop_trans_to_loop, trans_at_distrib h],
+  simp only [from_loop_trans_to_loop, trans_at_distrib h,
+    coe_to_equiv, loop_homeo_apply, coe_symm_to_equiv, loop_homeo_symm_apply],
 end
 
 lemma trans_at_indep {i} (j) (f g : Ω^N X x) : ⟦trans_at i f g⟧ = ⟦trans_at j f g⟧ :=
@@ -463,7 +469,8 @@ let h := exists_ne (classical.arbitrary N) in
 begin
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩,
   apply congr_arg quotient.mk,
-  simp_rw [from_loop_trans_to_loop, trans_at_distrib h.some_spec],
+  simp only [from_loop_trans_to_loop, trans_at_distrib h.some_spec,
+    coe_to_equiv, loop_homeo_apply, coe_symm_to_equiv, loop_homeo_symm_apply],
 end
 
 end

@@ -386,26 +386,6 @@ begin
     simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
 end
 
--- lemma mk_metric_zero (m : ℝ≥0∞ → ℝ≥0∞):
---   (mk_metric (0 : ℝ≥0∞ → ℝ≥0∞) : outer_measure X) = 0 :=
--- begin
---   simp_rw [mk_metric, mk_metric', mk_metric'.pre, pi.zero_apply,
---     ← measure_theory.outer_measure.coe_bot, supr_eq_bot, eq_bot_iff],
---   intros i hi,
---   ext1 s,
---   apply bounded_by_le,
---   by_cases h : diam s ≤ i,
---   { simp_rw [extend_eq] },
---   sorry,
---   rw [outer_measure.coe_zero, pi.zero_apply, bounded_by_eq_of_function, of_function_apply,
---     ←ennreal.bot_eq_zero, infi_eq_bot],
---   intros b hb,
---   refine ⟨λ _, s, _⟩,
---   simp,
---   -- simp,
---   -- rw outer_measure.le,
--- end
-
 lemma mk_metric_smul (m : ℝ≥0∞ → ℝ≥0∞) {c : ℝ≥0∞} (hc : c ≠ ⊤) (hc' : c ≠ 0):
   (mk_metric (c • m) : outer_measure X) = c • mk_metric m :=
 begin
@@ -413,40 +393,6 @@ begin
     ennreal.smul_supr],
   simp_rw [smul_supr, smul_bounded_by hc, smul_extend _ hc', pi.smul_apply],
 end
-
--- #check isometry.eq_of_forall_ge_iff
-
--- lemma comap_mk_metric_eq_smul (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} {c : ℝ≥0∞} (hc : c ≠ ∞)
---   (hf : ∀ x₁ x₂, edist (f x₁) (f x₂) = c * edist x₁ x₂ )
---   (H : monotone m ∨ surjective f) :
---   comap f (mk_metric m) = mk_metric (c • m) :=
--- begin
---   have hc0 : c ≠ 0, sorry,
---   have hdiam : ∀ s, diam (f '' s) = c * diam s,
---   { intro s,
---     apply eq_of_forall_ge_iff,
---     simp [ennreal.mul_le_iff_le_inv hc0 hc, emetric.diam_le_iff, hf]},
---   -- sorry,
---   simp only [mk_metric, mk_metric', mk_metric'.pre, induced_outer_measure, comap_supr],
---   -- simp_rw [smul_supr, smul_bounded_by hc],
---   have hcs : function.surjective ((*) c⁻¹),
---   { intro x,
---     refine ⟨c * x, _⟩,
---     rw [←mul_assoc, ennreal.inv_mul_cancel hc0 hc, one_mul] },
---   refine hcs.supr_congr _ (λ ε,
---     supr_congr_Prop (ennreal.mul_pos_iff.trans $ and_iff_right $ ennreal.inv_pos.mpr hc) $
---       λ hε, _),
---   rw comap_bounded_by _ (H.imp (λ h_mono, _) _),
---   { congr' 1 with s : 1,
---     apply extend_congr,
---     { rw [hdiam, ennreal.mul_le_iff_le_inv hc0 hc], }, -- ←ennreal.mul_le_iff_le_inv,
---     { intros, simp [hdiam] } },
---   -- { assume s t hst,
---   --   simp only [extend, le_infi_iff],
---   --   assume ht,
---   --   apply le_trans _ (h_mono (diam_mono hst)),
---   --   simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
--- end
 
 lemma isometry_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : isometry f)
   (H : monotone m ∨ surjective f) :
@@ -842,17 +788,15 @@ lemma measure_theory.measure.hausdorff_measure_smul₀
   {d : ℝ} (hd : 0 ≤ d) {r : 𝕜} (hr : r ≠ 0) (s : set E) :
   μH[d] (r • s) = ‖r‖₊ ^ d • μH[d] s :=
 begin
-  simp_rw [←set.image_smul, ennreal.smul_def, smul_eq_mul, ← ennreal.coe_rpow_of_nonneg _ hd],
-  refine le_antisymm _ _,
-  { exact (@lipschitz_with_smul _ E _ _ _ r).hausdorff_measure_image_le hd s },
-  { have := ennreal.mul_le_iff_le_inv
-      (ennreal.rpow_pos
-        (pos_iff_ne_zero.2 $ ennreal.coe_ne_zero.2 $ nnnorm_ne_zero_iff.2 hr)
-        ennreal.coe_ne_top).ne'
-      (ennreal.rpow_ne_top_of_nonneg hd ennreal.coe_ne_top),
-    rw [this, ←ennreal.inv_rpow, ←ennreal.coe_inv (nnnorm_ne_zero_iff.2 hr), ←nnnorm_inv],
-    refine eq.trans_le _ ((@lipschitz_with_smul _ E _ _ _ r⁻¹).hausdorff_measure_image_le hd _),
-    simp_rw [set.image_image, inv_smul_smul₀ hr, image_id'] },
+  suffices : ∀ {r : 𝕜}, r ≠ 0 → ∀ s : set E, μH[d] (r • s) ≤ ‖r‖₊ ^ d • μH[d] s,
+  { refine le_antisymm (this hr s) _,
+    rw [←ennreal.le_inv_smul_iff, ←nnreal.inv_rpow, ←nnnorm_inv],
+    { refine eq.trans_le _ (this (inv_ne_zero hr) (r • s)),
+      rw inv_smul_smul₀ hr },
+    { simp [hr] } },
+  intros r hr s,
+  simpa only [ennreal.smul_def, smul_eq_mul, ← ennreal.coe_rpow_of_nonneg _ hd]
+    using (@lipschitz_with_smul _ E _ _ _ _ r).hausdorff_measure_image_le hd s,
 end
 
 /-!

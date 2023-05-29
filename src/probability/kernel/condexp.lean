@@ -55,7 +55,7 @@ lemma condexp_ae_eq_integral_condexp_kernel (hm : m ≤ mΩ) {f : Ω → F} (hf_
 begin
   have hX : @measurable Ω Ω mΩ m id := measurable_id.mono le_rfl hm,
   rw condexp_kernel,
-  refine eventually_eq.trans _ (condexp_ae_eq_integral_cond_distrib'' hX hf_int),
+  refine eventually_eq.trans _ (condexp_ae_eq_integral_cond_distrib_id hX hf_int),
   simp only [measurable_space.comap_id, id.def],
 end
 

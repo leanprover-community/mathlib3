@@ -229,7 +229,7 @@ begin
   exact hf_int.2,
 end
 
-lemma condexp_ae_eq_integral_cond_distrib'' {X : Ω → β} {μ : measure Ω} [is_finite_measure μ]
+lemma condexp_ae_eq_integral_cond_distrib_id {X : Ω → β} {μ : measure Ω} [is_finite_measure μ]
   (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   μ[f | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f y ∂(cond_distrib id X μ (X a)) :=
 condexp_prod_ae_eq_integral_cond_distrib' hX ae_measurable_id

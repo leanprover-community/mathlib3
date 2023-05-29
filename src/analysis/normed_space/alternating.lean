@@ -393,8 +393,7 @@ variables (𝕜 E G G')
 def comp_continuous_alternating_mapL :
   (G →L[𝕜] G') →L[𝕜] Λ^ι⟮𝕜; E; G⟯ →L[𝕜] Λ^ι⟮𝕜; E; G'⟯ :=
 linear_map.mk_continuous₂
-  (linear_map.mk₂ 𝕜 comp_continuous_alternating_map (λ f₁ f₂ g, rfl) (λ c f g, rfl)
-    (λ f g₁ g₂, by { ext1, apply f.map_add }) (λ c f g, by { ext1, simp }))
+  (comp_continuous_alternating_mapₗ 𝕜 E G G')
   1 $ λ f g, by { rw one_mul, exact f.norm_comp_continuous_alternating_map_le g }
 
 variables {𝕜 G G'}
@@ -450,9 +449,7 @@ lemma continuous_alternating_map.norm_comp_continuous_linear_map_le
 def continuous_alternating_map.comp_continuous_linear_mapL (f : E →L[𝕜] E') :
   Λ^ι⟮𝕜; E'; G⟯ →L[𝕜] Λ^ι⟮𝕜; E; G⟯ :=
 linear_map.mk_continuous
-  { to_fun := λ g, g.comp_continuous_linear_map f,
-    map_add' := λ g g', by { ext, simp },
-    map_smul' := λ c g, by { ext, simp } }
+  (continuous_alternating_map.comp_continuous_linear_mapₗ f)
   (‖f‖ ^ fintype.card ι) $ λ g, (g.norm_comp_continuous_linear_map_le f).trans_eq (mul_comm _ _)
 
 def continuous_alternating_map.comp_continuous_linear_equivL (f : E ≃L[𝕜] E') :

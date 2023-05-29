@@ -521,6 +521,33 @@ continuous multilinear map sending `m` to `f m • z`. -/
 
 end smul_right
 
+section semiring
+
+variables {R M M' N N' ι : Type*} [comm_semiring R]
+  [add_comm_monoid M] [module R M] [topological_space M]
+  [add_comm_monoid M'] [module R M'] [topological_space M']
+  [add_comm_monoid N] [module R N] [topological_space N]
+  [has_continuous_add N] [has_continuous_const_smul R N]
+  [add_comm_monoid N'] [module R N'] [topological_space N']
+  [has_continuous_add N'] [has_continuous_const_smul R N']
+
+@[simps] def comp_continuous_linear_mapₗ (f : M →L[R] M') :
+  Λ^ι⟮R; M'; N⟯ →ₗ[R] Λ^ι⟮R; M; N⟯ :=
+{ to_fun := λ g, g.comp_continuous_linear_map f,
+  map_add' := λ g g', by { ext, simp },
+  map_smul' := λ c g, by { ext, simp } }
+
+variables (R M N N')
+
+/-- `continuous_linear_map.comp_continuous_alternating_map` as a bundled bilinear map. -/
+def _root_.continuous_linear_map.comp_continuous_alternating_mapₗ :
+  (N →L[R] N') →ₗ[R] Λ^ι⟮R; M; N⟯ →ₗ[R] Λ^ι⟮R; M; N'⟯ :=
+linear_map.mk₂ R continuous_linear_map.comp_continuous_alternating_map
+  (λ f₁ f₂ g, rfl) (λ c f g, rfl)
+  (λ f g₁ g₂, by { ext1, apply f.map_add }) (λ c f g, by { ext1, simp })
+
+end semiring
+
 end continuous_alternating_map
 
 namespace continuous_multilinear_map

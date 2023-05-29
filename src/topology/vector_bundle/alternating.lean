@@ -14,10 +14,10 @@ We define the (topological) vector bundle of continuous alternating maps between
 over the same base.
 
 Given bundles `E₁ E₂ : B → Type*`, and normed spaces `F₁` and `F₂`, we define
-`Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯` (notation for `bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂ x`) to be a
-type synonym for `λ x, Λ^ι⟮𝕜; E₁ x; E₂ x⟯`, the sigma-type of continuous alternating maps fibrewise
-from `E₁ x` to `E₂ x`. If the `E₁` and `E₂` are vector bundles with model fibers `F₁` and `F₂`, then
-this will be a vector bundle with model fiber `Λ^ι⟮𝕜; F₁; F₂⟯`.
+`Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯` (notation for `bundle.continuous_alternating_map 𝕜 ι F₁ E₁ F₂ E₂ x`) to be
+a type synonym for `λ x, Λ^ι⟮𝕜; E₁ x; E₂ x⟯`, the sigma-type of continuous alternating maps
+fibrewise from `E₁ x` to `E₂ x`. If the `E₁` and `E₂` are vector bundles with model fibers `F₁` and
+`F₂`, then this will be a vector bundle with model fiber `Λ^ι⟮𝕜; F₁; F₂⟯`.
 
 The topology is constructed from the trivializations for `E₁` and `E₂` and the norm-topology on the
 model fiber `Λ^ι⟮𝕜; F₁; F₂⟯` using the `vector_prebundle` construction.  This
@@ -184,18 +184,20 @@ instance continuous_alternating_map.is_linear
   (pretrivialization.continuous_alternating_map 𝕜 ι e₁ e₂).is_linear 𝕜 :=
 { linear := λ x h,
   { map_add := λ L L',
-    -- show (e₂.continuous_alternating_map_at 𝕜 x).comp ((L + L').comp (e₁.symmL 𝕜 x)) = _,
+    show continuous_linear_map.comp_continuous_alternating_mapₗ 𝕜 _ _ _
+      (e₂.continuous_linear_map_at 𝕜 x)
+      (continuous_alternating_map.comp_continuous_linear_mapₗ (e₁.symmL 𝕜 x) (L + L')) = _,
     begin
-      sorry
-      -- simp_rw [add_comp, comp_add],
-      -- refl
+      simp_rw [_root_.map_add],
+      refl
     end,
     map_smul := λ c L,
-    -- show (e₂.continuous_alternating_map_at 𝕜 x).comp ((c • L).comp (e₁.symmL 𝕜 x)) = _,
+    show continuous_linear_map.comp_continuous_alternating_mapₗ 𝕜 _ _ _
+      (e₂.continuous_linear_map_at 𝕜 x)
+      (continuous_alternating_map.comp_continuous_linear_mapₗ (e₁.symmL 𝕜 x) (c • L)) = _,
     begin
-      sorry
-      -- simp_rw [smul_comp, comp_smulₛₗ, ring_hom.id_apply],
-      -- refl
+      simp_rw [smul_hom_class.map_smul],
+      refl
     end, } }
 
 lemma continuous_alternating_map_apply (p : total_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :

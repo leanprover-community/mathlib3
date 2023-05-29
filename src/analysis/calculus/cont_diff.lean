@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import analysis.calculus.cont_diff_def
+import analysis.calculus.deriv.inverse
 import analysis.calculus.mean_value
 import analysis.normed_space.finite_dimension
 import data.nat.choose.cast
@@ -327,7 +328,7 @@ begin
     have Z : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (g ∘ f) s) s x =
       fderiv_within 𝕜 (λ y, g.comp_continuous_multilinear_mapL (λ (j : fin i), E)
         (iterated_fderiv_within 𝕜 i f s y)) s x,
-      from fderiv_within_congr' (hs x hx) (λ y hy, IH hy) hx,
+      from fderiv_within_congr' @IH hx,
     simp_rw Z,
     rw (g.comp_continuous_multilinear_mapL (λ (j : fin i), E)).comp_fderiv_within (hs x hx),
     simp only [continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe, comp_app,
@@ -495,7 +496,7 @@ begin
     have : fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (f ∘ ⇑g) (⇑g ⁻¹' s)) (⇑g ⁻¹' s) x
       = fderiv_within 𝕜 (λ y, continuous_multilinear_map.comp_continuous_linear_map_equivL _
         (λ (_x : fin i), g) (iterated_fderiv_within 𝕜 i f s (g y))) (g ⁻¹' s) x,
-      from fderiv_within_congr' (g.unique_diff_on_preimage_iff.2 hs x hx) (λ y hy, IH hy) hx,
+      from fderiv_within_congr' @IH hx,
     rw [this],
     rw continuous_linear_equiv.comp_fderiv_within _ (g.unique_diff_on_preimage_iff.2 hs x hx),
     simp only [continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe, comp_app,
@@ -1332,14 +1333,10 @@ begin
         = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (f + g) s) s x (h 0) (fin.tail h) : rfl
     ... = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s + iterated_fderiv_within 𝕜 i g s) s x
               (h 0) (fin.tail h) :
-            begin
-              congr' 2,
-              exact fderiv_within_congr (hu x hx) (λ _, hi hcdf hcdg) (hi hcdf hcdg hx),
-            end
+          by { rw [fderiv_within_congr' (λ _, hi hcdf hcdg) hx], refl }
     ... = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s +
-            fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i g s) s)
-              x (h 0) (fin.tail h) :
-            by rw [pi.add_def, fderiv_within_add (hu x hx) (hdf x hx) (hdg x hx)]; refl
+            fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i g s) s) x (h 0) (fin.tail h) :
+          by { rw [pi.add_def, fderiv_within_add (hu x hx) (hdf x hx) (hdg x hx)], refl }
     ... = (iterated_fderiv_within 𝕜 (i+1) f s + iterated_fderiv_within 𝕜 (i+1) g s) x h : rfl }
 end
 
@@ -1409,14 +1406,10 @@ begin
       with_top.coe_lt_coe.mpr (nat.lt_succ_self _),
     calc iterated_fderiv_within 𝕜 (i+1) (-f) s x h
         = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (-f) s) s x (h 0) (fin.tail h) : rfl
-    ... = fderiv_within 𝕜 (-iterated_fderiv_within 𝕜 i f s) s x
-              (h 0) (fin.tail h) :
-            begin
-              congr' 2,
-              exact fderiv_within_congr (hu x hx) (λ _, hi) (hi hx),
-            end
+    ... = fderiv_within 𝕜 (-iterated_fderiv_within 𝕜 i f s) s x (h 0) (fin.tail h) :
+            by { rw [fderiv_within_congr' @hi hx], refl }
     ... = -(fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s) s) x (h 0) (fin.tail h) :
-            by rw [pi.neg_def, fderiv_within_neg (hu x hx)]; refl
+            by { rw [pi.neg_def, fderiv_within_neg (hu x hx)], refl }
     ... = - (iterated_fderiv_within 𝕜 (i+1) f s) x h : rfl }
 end
 
@@ -1675,12 +1668,9 @@ begin
     calc iterated_fderiv_within 𝕜 (i+1) (a • f) s x h
         = fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i (a • f) s) s x (h 0) (fin.tail h) : rfl
     ... = fderiv_within 𝕜 (a • iterated_fderiv_within 𝕜 i f s) s x (h 0) (fin.tail h) :
-            begin
-              congr' 2,
-              exact fderiv_within_congr (hu x hx) (λ _, hi hcdf) (hi hcdf hx),
-            end
+            by { rw [fderiv_within_congr' (λ _, hi hcdf) hx], refl }
     ... = (a • fderiv_within 𝕜 (iterated_fderiv_within 𝕜 i f s)) s x (h 0) (fin.tail h) :
-            by rw [pi.smul_def, fderiv_within_const_smul (hu x hx) (hdf x hx)]; refl
+            by { rw [pi.smul_def, fderiv_within_const_smul (hu x hx) (hdf x hx)], refl }
     ... = a • iterated_fderiv_within 𝕜 (i+1) f s x h : rfl }
 end
 
@@ -2432,7 +2422,7 @@ begin
       (λ (y : Du), fderiv_within 𝕜 (λ (y : Du), B (f y) (g y)) s y) s x
       = iterated_fderiv_within 𝕜 n (λ y, B.precompR Du (f y) (fderiv_within 𝕜 g s y)
         + B.precompL Du (fderiv_within 𝕜 f s y) (g y)) s x,
-    { apply iterated_fderiv_within_congr hs (λ y hy, _) hx,
+    { apply iterated_fderiv_within_congr (λ y hy, _) hx,
       have L : (1 : ℕ∞) ≤ n.succ,
         by simpa only [enat.coe_one, nat.one_le_cast] using nat.succ_pos n,
       exact B.fderiv_within_of_bilinear (hf.differentiable_on L y hy)
@@ -2707,7 +2697,7 @@ begin
   begin
     have L : (1 : ℕ∞) ≤ n.succ, by simpa only [enat.coe_one, nat.one_le_cast] using n.succ_pos,
     congr' 1,
-    apply iterated_fderiv_within_congr hs (λ y hy, _) hx,
+    refine iterated_fderiv_within_congr (λ y hy, _) hx _,
     apply fderiv_within.comp _ _ _ hst (hs y hy),
     { exact hg.differentiable_on L _ (hst hy) },
     { exact hf.differentiable_on L _ hy }

@@ -156,7 +156,7 @@ derivative, differentiability, higher derivative, `C^n`, multilinear, Taylor ser
 -/
 
 noncomputable theory
-open_locale classical big_operators nnreal topology
+open_locale classical big_operators nnreal topology filter
 
 local notation `∞` := (⊤ : ℕ∞)
 
@@ -645,18 +645,21 @@ lemma cont_diff_on.cont_diff_within_at (h : cont_diff_on 𝕜 n f s) (hx : x ∈
   cont_diff_within_at 𝕜 n f s x :=
 h x hx
 
+lemma cont_diff_within_at.cont_diff_on' {m : ℕ}
+  (hm : (m : ℕ∞) ≤ n) (h : cont_diff_within_at 𝕜 n f s x) :
+  ∃ u, is_open u ∧ x ∈ u ∧ cont_diff_on 𝕜 m f (insert x s ∩ u) :=
+begin
+  rcases h m hm with ⟨t, ht, p, hp⟩,
+  rcases mem_nhds_within.1 ht with ⟨u, huo, hxu, hut⟩,
+  rw [inter_comm] at hut,
+  exact ⟨u, huo, hxu, (hp.mono hut).cont_diff_on⟩
+end
+
 lemma cont_diff_within_at.cont_diff_on {m : ℕ}
   (hm : (m : ℕ∞) ≤ n) (h : cont_diff_within_at 𝕜 n f s x) :
   ∃ u ∈ 𝓝[insert x s] x, u ⊆ insert x s ∧ cont_diff_on 𝕜 m f u :=
-begin
-  rcases h m hm with ⟨u, u_nhd, p, hp⟩,
-  refine ⟨u ∩ insert x s, filter.inter_mem u_nhd self_mem_nhds_within,
-    inter_subset_right _ _, _⟩,
-  assume y hy m' hm',
-  refine ⟨u ∩ insert x s, _, p, (hp.mono (inter_subset_left _ _)).of_le hm'⟩,
-  convert self_mem_nhds_within,
-  exact insert_eq_of_mem hy
-end
+let ⟨u, uo, xu, h⟩ := h.cont_diff_on' hm
+in ⟨_, inter_mem_nhds_within _ (uo.mem_nhds xu), inter_subset_left _ _, h⟩
 
 protected lemma cont_diff_within_at.eventually {n : ℕ}
   (h : cont_diff_within_at 𝕜 n f s x) :
@@ -824,7 +827,7 @@ begin
               : E → (E [×(n + 1)]→L[𝕜] F)) (m 0) (tail m) : rfl
     ... = (fderiv_within 𝕜 (I ∘ (iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s)) s x
               : E → (E [×(n + 1)]→L[𝕜] F)) (m 0) (tail m) :
-      by rw fderiv_within_congr (hs x hx) A (A x hx)
+      by rw fderiv_within_congr A (A x hx)
     ... = (I ∘ fderiv_within 𝕜 ((iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s)) s x
               : E → (E [×(n + 1)]→L[𝕜] F)) (m 0) (tail m) :
       by { rw linear_isometry_equiv.comp_fderiv_within _ (hs x hx), refl }
@@ -849,72 +852,87 @@ lemma norm_iterated_fderiv_within_fderiv_within {n : ℕ} (hs : unique_diff_on �
 by rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_fderiv_within_one_apply
-  (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : (fin 1) → E) :
+  (h : unique_diff_within_at 𝕜 s x) (m : fin 1 → E) :
   (iterated_fderiv_within 𝕜 1 f s x : ((fin 1) → E) → F) m
   = (fderiv_within 𝕜 f s x : E → F) (m 0) :=
-by { rw [iterated_fderiv_within_succ_apply_right hs hx, iterated_fderiv_within_zero_apply], refl }
+begin
+  simp only [iterated_fderiv_within_succ_apply_left, iterated_fderiv_within_zero_eq_comp,
+    (continuous_multilinear_curry_fin0 𝕜 E F).symm.comp_fderiv_within h],
+  refl
+end
 
-/-- If two functions coincide on a set `s` of unique differentiability, then their iterated
-differentials within this set coincide. -/
-lemma iterated_fderiv_within_congr {n : ℕ}
-  (hs : unique_diff_on 𝕜 s) (hL : ∀y∈s, f₁ y = f y) (hx : x ∈ s) :
+lemma filter.eventually_eq.iterated_fderiv_within' (h : f₁ =ᶠ[𝓝[s] x] f) (ht : t ⊆ s) (n : ℕ) :
+  iterated_fderiv_within 𝕜 n f₁ t =ᶠ[𝓝[s] x] iterated_fderiv_within 𝕜 n f t :=
+begin
+  induction n with n ihn,
+  { exact h.mono (λ y hy, fun_like.ext _ _ $ λ _, hy) },
+  { have : fderiv_within 𝕜 _ t =ᶠ[𝓝[s] x] fderiv_within 𝕜 _ t := ihn.fderiv_within' ht,
+    apply this.mono,
+    intros y hy,
+    simp only [iterated_fderiv_within_succ_eq_comp_left, hy, (∘)] }
+end
+
+protected lemma filter.eventually_eq.iterated_fderiv_within (h : f₁ =ᶠ[𝓝[s] x] f) (n : ℕ) :
+  iterated_fderiv_within 𝕜 n f₁ s =ᶠ[𝓝[s] x] iterated_fderiv_within 𝕜 n f s :=
+h.iterated_fderiv_within' subset.rfl n
+
+/-- If two functions coincide in a neighborhood of `x` within a set `s` and at `x`, then their
+iterated differentials within this set at `x` coincide. -/
+lemma filter.eventually_eq.iterated_fderiv_within_eq (h : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x)
+  (n : ℕ) : iterated_fderiv_within 𝕜 n f₁ s x = iterated_fderiv_within 𝕜 n f s x :=
+have f₁ =ᶠ[𝓝[insert x s] x] f, by simpa [eventually_eq, hx],
+(this.iterated_fderiv_within' (subset_insert _ _) n).self_of_nhds_within (mem_insert _ _)
+
+/-- If two functions coincide on a set `s`, then their iterated differentials within this set
+coincide. See also `filter.eventually_eq.iterated_fderiv_within_eq` and
+`filter.eventually_eq.iterated_fderiv_within`. -/
+lemma iterated_fderiv_within_congr (hs : eq_on f₁ f s) (hx : x ∈ s) (n : ℕ) :
   iterated_fderiv_within 𝕜 n f₁ s x = iterated_fderiv_within 𝕜 n f s x :=
+(hs.eventually_eq.filter_mono inf_le_right).iterated_fderiv_within_eq (hs hx) _
+
+/-- If two functions coincide on a set `s`, then their iterated differentials within this set
+coincide. See also `filter.eventually_eq.iterated_fderiv_within_eq` and
+`filter.eventually_eq.iterated_fderiv_within`. -/
+protected lemma set.eq_on.iterated_fderiv_within (hs : eq_on f₁ f s) (n : ℕ) :
+  eq_on (iterated_fderiv_within 𝕜 n f₁ s) (iterated_fderiv_within 𝕜 n f s) s :=
+λ x hx, iterated_fderiv_within_congr hs hx n
+
+lemma iterated_fderiv_within_eventually_congr_set' (y : E) (h : s =ᶠ[𝓝[{y}ᶜ] x] t) (n : ℕ) :
+  iterated_fderiv_within 𝕜 n f s =ᶠ[𝓝 x] iterated_fderiv_within 𝕜 n f t :=
 begin
-  induction n with n IH generalizing x,
-  { ext m, simp [hL x hx] },
-  { have : fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f₁ s y) s x
-           = fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f s y) s x :=
-      fderiv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx),
-    ext m,
-    rw [iterated_fderiv_within_succ_apply_left, iterated_fderiv_within_succ_apply_left, this] }
+  induction n with n ihn generalizing x,
+  { refl },
+  { refine (eventually_nhds_nhds_within.2 h).mono (λ y hy, _),
+    simp only [iterated_fderiv_within_succ_eq_comp_left, (∘)],
+    rw [(ihn hy).fderiv_within_eq_nhds, fderiv_within_congr_set' _ hy] }
 end
 
-/-- The iterated differential within a set `s` at a point `x` is not modified if one intersects
-`s` with an open set containing `x`. -/
-lemma iterated_fderiv_within_inter_open {n : ℕ} (hu : is_open u)
-  (hs : unique_diff_on 𝕜 (s ∩ u)) (hx : x ∈ s ∩ u) :
-  iterated_fderiv_within 𝕜 n f (s ∩ u) x = iterated_fderiv_within 𝕜 n f s x :=
-begin
-  induction n with n IH generalizing x,
-  { ext m, simp },
-  { have A : fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f (s ∩ u) y) (s ∩ u) x
-           = fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f s y) (s ∩ u) x :=
-      fderiv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx),
-    have B : fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f s y) (s ∩ u) x
-           = fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f s y) s x :=
-      fderiv_within_inter (is_open.mem_nhds hu hx.2)
-        ((unique_diff_within_at_inter (is_open.mem_nhds hu hx.2)).1 (hs x hx)),
-    ext m,
-    rw [iterated_fderiv_within_succ_apply_left, iterated_fderiv_within_succ_apply_left, A, B] }
-end
+lemma iterated_fderiv_within_eventually_congr_set (h : s =ᶠ[𝓝 x] t) (n : ℕ) :
+  iterated_fderiv_within 𝕜 n f s =ᶠ[𝓝 x] iterated_fderiv_within 𝕜 n f t :=
+iterated_fderiv_within_eventually_congr_set' x (h.filter_mono inf_le_left) n
+
+lemma iterated_fderiv_within_congr_set (h : s =ᶠ[𝓝 x] t) (n : ℕ) :
+  iterated_fderiv_within 𝕜 n f s x = iterated_fderiv_within 𝕜 n f t x :=
+(iterated_fderiv_within_eventually_congr_set h n).self_of_nhds
 
 /-- The iterated differential within a set `s` at a point `x` is not modified if one intersects
 `s` with a neighborhood of `x` within `s`. -/
-lemma iterated_fderiv_within_inter' {n : ℕ}
-  (hu : u ∈ 𝓝[s] x) (hs : unique_diff_on 𝕜 s) (xs : x ∈ s) :
+lemma iterated_fderiv_within_inter' {n : ℕ} (hu : u ∈ 𝓝[s] x) :
   iterated_fderiv_within 𝕜 n f (s ∩ u) x = iterated_fderiv_within 𝕜 n f s x :=
-begin
-  obtain ⟨v, v_open, xv, vu⟩ : ∃ v, is_open v ∧ x ∈ v ∧ v ∩ s ⊆ u := mem_nhds_within.1 hu,
-  have A : (s ∩ u) ∩ v = s ∩ v,
-  { apply subset.antisymm (inter_subset_inter (inter_subset_left _ _) (subset.refl _)),
-    exact λ y ⟨ys, yv⟩, ⟨⟨ys, vu ⟨yv, ys⟩⟩, yv⟩ },
-  have : iterated_fderiv_within 𝕜 n f (s ∩ v) x = iterated_fderiv_within 𝕜 n f s x :=
-    iterated_fderiv_within_inter_open v_open (hs.inter v_open) ⟨xs, xv⟩,
-  rw ← this,
-  have : iterated_fderiv_within 𝕜 n f ((s ∩ u) ∩ v) x = iterated_fderiv_within 𝕜 n f (s ∩ u) x,
-  { refine iterated_fderiv_within_inter_open v_open _ ⟨⟨xs, vu ⟨xv, xs⟩⟩, xv⟩,
-    rw A,
-    exact hs.inter v_open },
-  rw A at this,
-  rw ← this
-end
+iterated_fderiv_within_congr_set (nhds_within_eq_iff_eventually_eq.1 $ nhds_within_inter_of_mem' hu)
+  _
 
 /-- The iterated differential within a set `s` at a point `x` is not modified if one intersects
 `s` with a neighborhood of `x`. -/
-lemma iterated_fderiv_within_inter {n : ℕ}
-  (hu : u ∈ 𝓝 x) (hs : unique_diff_on 𝕜 s) (xs : x ∈ s) :
+lemma iterated_fderiv_within_inter {n : ℕ} (hu : u ∈ 𝓝 x) :
   iterated_fderiv_within 𝕜 n f (s ∩ u) x = iterated_fderiv_within 𝕜 n f s x :=
-iterated_fderiv_within_inter' (mem_nhds_within_of_mem_nhds hu) hs xs
+iterated_fderiv_within_inter' (mem_nhds_within_of_mem_nhds hu)
+
+/-- The iterated differential within a set `s` at a point `x` is not modified if one intersects
+`s` with an open set containing `x`. -/
+lemma iterated_fderiv_within_inter_open {n : ℕ} (hu : is_open u) (hx : x ∈ u) :
+  iterated_fderiv_within 𝕜 n f (s ∩ u) x = iterated_fderiv_within 𝕜 n f s x :=
+iterated_fderiv_within_inter (hu.mem_nhds hx)
 
 @[simp] lemma cont_diff_on_zero :
   cont_diff_on 𝕜 0 f s ↔ continuous_on f s :=
@@ -979,14 +997,14 @@ begin
     rw inter_comm at ho,
     have : p x m.succ = ftaylor_series_within 𝕜 f s x m.succ,
     { change p x m.succ = iterated_fderiv_within 𝕜 m.succ f s x,
-      rw ← iterated_fderiv_within_inter (is_open.mem_nhds o_open xo) hs hx,
+      rw [← iterated_fderiv_within_inter_open o_open xo],
       exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on le_rfl
         (hs.inter o_open) ⟨hx, xo⟩ },
     rw [← this, ← has_fderiv_within_at_inter (is_open.mem_nhds o_open xo)],
     have A : ∀ y ∈ s ∩ o, p y m = ftaylor_series_within 𝕜 f s y m,
     { rintros y ⟨hy, yo⟩,
       change p y m = iterated_fderiv_within 𝕜 m f s y,
-      rw ← iterated_fderiv_within_inter (is_open.mem_nhds o_open yo) hs hy,
+      rw [← iterated_fderiv_within_inter_open o_open yo],
       exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on (with_top.coe_le_coe.2 (nat.le_succ m))
         (hs.inter o_open) ⟨hy, yo⟩ },
     exact ((Hp.mono ho).fderiv_within m (with_top.coe_lt_coe.2 (lt_add_one m)) x ⟨hx, xo⟩).congr
@@ -1002,7 +1020,7 @@ begin
     have A : ∀ y ∈ s ∩ o, p y m = ftaylor_series_within 𝕜 f s y m,
     { rintros y ⟨hy, yo⟩,
       change p y m = iterated_fderiv_within 𝕜 m f s y,
-      rw ← iterated_fderiv_within_inter (is_open.mem_nhds o_open yo) hs hy,
+      rw [← iterated_fderiv_within_inter_open o_open yo],
       exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on le_rfl
         (hs.inter o_open) ⟨hy, yo⟩ },
     exact ((Hp.mono ho).cont m le_rfl).congr (λ y hy, (A y hy).symm) }
@@ -1047,6 +1065,27 @@ lemma cont_diff_on.differentiable_on_iterated_fderiv_within {m : ℕ}
   differentiable_on 𝕜 (iterated_fderiv_within 𝕜 m f s) s :=
 λ x hx, ((h.ftaylor_series_within hs).fderiv_within m hmn x hx).differentiable_within_at
 
+lemma cont_diff_within_at.differentiable_within_at_iterated_fderiv_within {m : ℕ}
+  (h : cont_diff_within_at 𝕜 n f s x) (hmn : (m : ℕ∞) < n)
+  (hs : unique_diff_on 𝕜 (insert x s)) :
+  differentiable_within_at 𝕜 (iterated_fderiv_within 𝕜 m f s) s x :=
+begin
+  rcases h.cont_diff_on' (enat.add_one_le_of_lt hmn) with ⟨u, uo, xu, hu⟩,
+  set t := insert x s ∩ u,
+  have A : t =ᶠ[𝓝[≠] x] s,
+  { simp only [set_eventually_eq_iff_inf_principal, ← nhds_within_inter'],
+    rw [← inter_assoc, nhds_within_inter_of_mem', ← diff_eq_compl_inter, insert_diff_of_mem,
+      diff_eq_compl_inter],
+    exacts [rfl, mem_nhds_within_of_mem_nhds (uo.mem_nhds xu)] },
+  have B : iterated_fderiv_within 𝕜 m f s =ᶠ[𝓝 x] iterated_fderiv_within 𝕜 m f t,
+    from iterated_fderiv_within_eventually_congr_set' _ A.symm _,
+  have C : differentiable_within_at 𝕜 (iterated_fderiv_within 𝕜 m f t) t x,
+    from hu.differentiable_on_iterated_fderiv_within (nat.cast_lt.2 m.lt_succ_self) (hs.inter uo) x
+      ⟨mem_insert _ _, xu⟩,
+  rw [differentiable_within_at_congr_set' _ A] at C,
+  exact C.congr_of_eventually_eq (B.filter_mono inf_le_left) B.self_of_nhds
+end
+
 lemma cont_diff_on_iff_continuous_on_differentiable_on
   (hs : unique_diff_on 𝕜 s) :
   cont_diff_on 𝕜 n f s ↔
@@ -1054,15 +1093,9 @@ lemma cont_diff_on_iff_continuous_on_differentiable_on
     continuous_on (λ x, iterated_fderiv_within 𝕜 m f s x) s)
   ∧ (∀ (m : ℕ), (m : ℕ∞) < n →
     differentiable_on 𝕜 (λ x, iterated_fderiv_within 𝕜 m f s x) s) :=
-begin
-  split,
-  { assume h,
-    split,
-    { assume m hm, exact h.continuous_on_iterated_fderiv_within hm hs },
-    { assume m hm, exact h.differentiable_on_iterated_fderiv_within hm hs } },
-  { assume h,
-    exact cont_diff_on_of_continuous_on_differentiable_on h.1 h.2 }
-end
+⟨λ h, ⟨λ m hm, h.continuous_on_iterated_fderiv_within hm hs,
+  λ m hm, h.differentiable_on_iterated_fderiv_within hm hs⟩,
+  λ h, cont_diff_on_of_continuous_on_differentiable_on h.1 h.2⟩
 
 lemma cont_diff_on_succ_of_fderiv_within {n : ℕ} (hf : differentiable_on 𝕜 f s)
   (h : cont_diff_on 𝕜 n (λ y, fderiv_within 𝕜 f s y) s) :
@@ -1095,7 +1128,7 @@ begin
   apply filter.eventually_eq_of_mem this (λ y hy, _),
   have A : fderiv_within 𝕜 f (s ∩ o) y = f' y :=
     ((hff' y (ho hy)).mono ho).fderiv_within (hs.inter o_open y hy),
-  rwa fderiv_within_inter (is_open.mem_nhds o_open hy.2) (hs y hy.1) at A
+  rwa fderiv_within_inter (o_open.mem_nhds hy.2) at A
 end
 
 lemma cont_diff_on_succ_iff_has_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :

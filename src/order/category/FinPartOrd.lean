@@ -9,6 +9,9 @@ import order.category.PartOrd
 /-!
 # The category of finite partial orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `FinPartOrd`, the category of finite partial orders.
 
 Note: `FinPartOrd` is *not* a subcategory of `BddOrd` because finite orders are not necessarily

@@ -9,6 +9,9 @@ import data.set_like.fintype
 /-!
 # Artinian rings and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 A module satisfying these equivalent conditions is said to be an *Artinian* R-module
 if every decreasing chain of submodules is eventually constant, or equivalently,

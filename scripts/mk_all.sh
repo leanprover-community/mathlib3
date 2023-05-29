@@ -18,9 +18,9 @@ fi
 
 # remove an initial `./`
 # replace an initial `../test/` with just `.` (similarly for `roadmap`/`archive`/...)
-# replace all `/` with `.`
-# strip the `.lean` suffix
-# prepend `import `
+# replace all `/` with `».«`
+# replace the `.lean` suffix with `»`
+# prepend `import «`
 find "$dir" -name \*.lean -not -name all.lean \
-  | sed 's,^\./,,;s,^\.\./[^/]*,,;s,/,.,g;s,\.lean$,,;s,^,import ,' \
+  | sed 's,^\./,,;s,^\.\./[^/]*,,;s,/,».«,g;s,\.lean$,»,;s,^,import «,' \
   | sort >"$dir"/all.lean

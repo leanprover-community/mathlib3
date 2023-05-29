@@ -9,6 +9,9 @@ import topology.sheaves.sheaf_condition.pairwise_intersections
 /-!
 # functors between categories of sheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that the pushforward of a sheaf is a sheaf, and define
 the pushforward functor from the category of C-valued sheaves
 on X to that of sheaves on Y, given a continuous map between

@@ -3,6 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
+import analysis.calculus.deriv.inv
 import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
 import analysis.inner_product_space.calculus
@@ -236,6 +237,16 @@ zero_of_nonpos le_rfl
 @[simp] protected lemma one : smooth_transition 1 = 1 :=
 one_of_one_le le_rfl
 
+/-- Since `real.smooth_transition` is constant on $(-∞, 0]$ and $[1, ∞)$, applying it to the
+projection of `x : ℝ` to $[0, 1]$ gives the same result as applying it to `x`. -/
+@[simp] protected lemma proj_Icc :
+  smooth_transition (proj_Icc (0 : ℝ) 1 zero_le_one x) = smooth_transition x :=
+begin
+  refine congr_fun (Icc_extend_eq_self zero_le_one smooth_transition (λ x hx, _) (λ x hx, _)) x,
+  { rw [smooth_transition.zero, zero_of_nonpos hx.le] },
+  { rw [smooth_transition.one, one_of_one_le hx.le] }
+end
+
 lemma le_one (x : ℝ) : smooth_transition x ≤ 1 :=
 (div_le_one (pos_denom x)).2 $ le_add_of_nonneg_right (nonneg _)
 
@@ -259,6 +270,9 @@ smooth_transition.cont_diff.cont_diff_at
 
 protected lemma continuous : continuous smooth_transition :=
 (@smooth_transition.cont_diff 0).continuous
+
+protected lemma continuous_at : continuous_at smooth_transition x :=
+smooth_transition.continuous.continuous_at
 
 end smooth_transition
 

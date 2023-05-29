@@ -32,7 +32,7 @@ variables {𝕜 B F F₁ F₂ M M₁ M₂ : Type*}
   [∀ x, add_comm_group (E₂ x)] [∀ x, module 𝕜 (E₂ x)]
   [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
   [topological_space (total_space E₂)] [∀ x, topological_space (E₂ x)]
-  [∀ x, topological_add_group (E₂ x)]
+  [_i₁ : ∀ x, topological_add_group (E₂ x)] [_i₂ : ∀ x, has_continuous_smul 𝕜 (E₂ x)]
 
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
@@ -72,7 +72,7 @@ begin
       continuous_linear_equiv.arrow_congrₛₗ_apply, continuous_linear_map.coe_comp'] },
 end
 
-variables [∀ x, has_continuous_smul 𝕜 (E₂ x)]
+include _i₁ _i₂
 
 lemma hom_chart (y₀ y : LE₁E₂) :
   chart_at (model_prod HB (F₁ →L[𝕜] F₂)) y₀ y =

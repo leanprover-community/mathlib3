@@ -680,11 +680,11 @@ lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : i
 ⟨by rw [prod.topological_space, prod.topological_space, hf.induced, hg.induced,
          induced_compose, induced_compose, induced_inf, induced_compose, induced_compose]⟩
 
-lemma inducing_const_prod {a : α} {f : β → γ} : inducing (λ x, (a, f x)) ↔ inducing f :=
+@[simp] lemma inducing_const_prod {a : α} {f : β → γ} : inducing (λ x, (a, f x)) ↔ inducing f :=
 by simp_rw [inducing_iff, prod.topological_space, induced_inf, induced_compose, function.comp,
     induced_const, top_inf_eq]
 
-lemma inducing_prod_const {b : β} {f : α → γ} : inducing (λ x, (f x, b)) ↔ inducing f :=
+@[simp] lemma inducing_prod_const {b : β} {f : α → γ} : inducing (λ x, (f x, b)) ↔ inducing f :=
 by simp_rw [inducing_iff, prod.topological_space, induced_inf, induced_compose, function.comp,
     induced_const, inf_top_eq]
 
@@ -1313,6 +1313,10 @@ continuous_induced_rng.2 continuous_id
 lemma embedding_ulift_down [topological_space α] :
   embedding (ulift.down : ulift.{v u} α → α) :=
 ⟨⟨rfl⟩, ulift.down_injective⟩
+
+lemma ulift.closed_embedding_down [topological_space α] :
+  closed_embedding (ulift.down : ulift.{v u} α → α) :=
+⟨embedding_ulift_down, by simp only [ulift.down_surjective.range_eq, is_closed_univ]⟩
 
 instance [topological_space α] [discrete_topology α] : discrete_topology (ulift α) :=
 embedding_ulift_down.discrete_topology

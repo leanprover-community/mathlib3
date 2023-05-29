@@ -16,6 +16,9 @@ import ring_theory.quotient_noetherian
 /-!
 # Adjoining roots of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the commutative ring `adjoin_root f`, the ring R[X]/(f) obtained from a
 commutative ring `R` and a polynomial `f : R[X]`. If furthermore `R` is a field and `f` is
 irreducible, the field structure on `adjoin_root f` is constructed.
@@ -319,7 +322,7 @@ noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
   qsmul_eq_mul' := λ a x, adjoin_root.induction_on _ x (λ p,
     by { rw [smul_mk, of, ring_hom.comp_apply, ← (mk f).map_mul, polynomial.rat_smul_eq_C_mul] }),
   ..adjoin_root.comm_ring f,
-  ..ideal.quotient.field (span {f} : ideal K[X]) }
+  ..ideal.quotient.group_with_zero (span {f} : ideal K[X]) }
 
 lemma coe_injective (h : degree f ≠ 0) : function.injective (coe : K → adjoin_root f) :=
 have _ := adjoin_root.nontrivial f h, by exactI (of f).injective

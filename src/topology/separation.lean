@@ -1208,13 +1208,20 @@ begin
     by rw [← diff_inter, hO.inter_eq, diff_empty]⟩
 end
 
-lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β} (h : continuous f) :
-  is_closed_map f :=
+/-- A continuous map from a compact space to a Hausdorff space is a closed map. -/
+protected lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β}
+  (h : continuous f) : is_closed_map f :=
 λ s hs, (hs.is_compact.image h).is_closed
 
+/-- An injective continuous map from a compact space to a Hausdorff space is a closed embedding. -/
 lemma continuous.closed_embedding [compact_space α] [t2_space β] {f : α → β} (h : continuous f)
   (hf : function.injective f) : closed_embedding f :=
 closed_embedding_of_continuous_injective_closed h hf h.is_closed_map
+
+/-- A surjective continuous map from a compact space to a Hausdorff space is a quotient map. -/
+lemma quotient_map.of_surjective_continuous [compact_space α] [t2_space β] {f : α → β}
+  (hsurj : surjective f) (hcont : continuous f) : quotient_map f :=
+hcont.is_closed_map.to_quotient_map hcont hsurj
 
 section
 open finset function

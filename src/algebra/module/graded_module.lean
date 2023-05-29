@@ -12,6 +12,9 @@ import algebra.module.big_operators
 /-!
 # Graded Module
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `R`-algebra `A` graded by `𝓐`, a graded `A`-module `M` is expressed as
 `direct_sum.decomposition 𝓜` and `set_like.has_graded_smul 𝓐 𝓜`.
 Then `⨁ i, 𝓜 i` is an `A`-module and is isomorphic to `M`.

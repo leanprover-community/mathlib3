@@ -12,6 +12,9 @@ import category_theory.abelian.exact
 /-!
 # Right-derived functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the right-derived functors `F.right_derived n : C ⥤ D` for any additive functor `F`
 out of a category with injective resolutions.
 

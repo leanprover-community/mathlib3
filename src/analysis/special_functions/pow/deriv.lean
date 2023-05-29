@@ -7,6 +7,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébasti
 import analysis.special_functions.pow.continuity
 import analysis.special_functions.complex.log_deriv
 import analysis.calculus.extend_deriv
+import analysis.calculus.deriv.prod
 import analysis.special_functions.log.deriv
 import analysis.special_functions.trigonometric.deriv
 

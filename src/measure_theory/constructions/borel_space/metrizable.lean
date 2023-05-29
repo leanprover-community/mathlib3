@@ -8,6 +8,9 @@ import topology.metric_space.metrizable
 
 /-!
 # Measurable functions in (pseudo-)metrizable Borel spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter measure_theory topological_space

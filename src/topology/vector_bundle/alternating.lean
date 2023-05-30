@@ -198,7 +198,7 @@ variables (e₁ e₁' e₂ e₂') [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [
 continuous `ι`-slot alternating maps from `E₁` to `E₂`. That is, the map which will later become a
 trivialization, after the bundle of continuous alternating maps is equipped with the right
 topological vector bundle structure. -/
-def continuous_alternating_map : pretrivialization Λ^ι⟮𝕜; F₁; F₂⟯ (π Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :=
+def continuous_alternating_map : pretrivialization Λ^ι⟮𝕜; F₁; F₂⟯ (π (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :=
 { to_fun := λ p, ⟨p.1, (e₂.continuous_linear_map_at 𝕜 p.1).comp_continuous_alternating_map $
       p.2.comp_continuous_linear_map $ e₁.symmL 𝕜 p.1⟩,
   inv_fun := λ p, ⟨p.1, (e₂.symmL 𝕜 p.1).comp_continuous_alternating_map $
@@ -209,17 +209,31 @@ def continuous_alternating_map : pretrivialization Λ^ι⟮𝕜; F₁; F₂⟯ (
   map_target' := λ ⟨x, f⟩ h, h.1,
   left_inv' := λ ⟨x, L⟩ ⟨h₁, h₂⟩,
   begin
-    sorry,
-    -- simp_rw [sigma.mk.inj_iff, eq_self_iff_true, heq_iff_eq, true_and],
-    -- ext v,
-    -- simp only [comp_apply, trivialization.symmL_continuous_alternating_map_at, h₁, h₂]
+    simp_rw [sigma.mk.inj_iff, eq_self_iff_true, heq_iff_eq, true_and],
+    ext v,
+    simp_rw [continuous_linear_map.comp_continuous_alternating_map_coe,
+      function.comp_app, continuous_alternating_map.comp_continuous_linear_map_apply,
+      continuous_linear_map.comp_continuous_alternating_map_coe, function.comp_app,
+      trivialization.symmL_continuous_linear_map_at _ h₂,
+      continuous_alternating_map.comp_continuous_linear_map_apply],
+    congr' 1,
+    ext1 y,
+    exact e₁.symmL_continuous_linear_map_at h₁ (v y),
   end,
   right_inv' := λ ⟨x, f⟩ ⟨⟨h₁, h₂⟩, _⟩,
   begin
-    sorry
-    -- simp_rw [prod.mk.inj_iff, eq_self_iff_true, true_and],
-    -- ext v,
-    -- simp only [comp_apply, trivialization.continuous_alternating_map_at_symmL, h₁, h₂]
+    -- sorry
+    dsimp only,
+    simp_rw [prod.mk.inj_iff, eq_self_iff_true, true_and],
+    ext v,
+    simp_rw [continuous_linear_map.comp_continuous_alternating_map_coe,
+      function.comp_app, continuous_alternating_map.comp_continuous_linear_map_apply,
+      continuous_linear_map.comp_continuous_alternating_map_coe, function.comp_app,
+      trivialization.continuous_linear_map_at_symmL _ h₂,
+      continuous_alternating_map.comp_continuous_linear_map_apply],
+    congr' 1,
+    ext1 y,
+    exact trivialization.continuous_linear_map_at_symmL _ h₁ (v y),
   end,
   open_target := (e₁.open_base_set.inter e₂.open_base_set).prod is_open_univ,
   base_set := e₁.base_set ∩ e₂.base_set,

@@ -699,7 +699,7 @@ variables [normed_space 𝕜 G] [smul_comm_class ℝ 𝕜 G]
 /-- Composition with a function on the right is a continuous linear map on Schwartz space
 provided that the function is temperate and growths polynomially near infinity. -/
 def comp_clm {g : D → E} (hg : g.has_temperate_growth)
-  (hg_upper : ∃ (k : ℕ) (C : ℝ) (hC : 1 ≤ C), ∀ x, 1 + ‖x‖ ≤ C * (1 + ‖g x‖)^k ) :
+  (hg_upper : ∃ (k : ℕ) (C : ℝ) (hC : 1 ≤ C), ∀ x, ‖x‖ ≤ C * (1 + ‖g x‖)^k ) :
   𝓢(E, F) →L[𝕜] 𝓢(D, F) :=
 mk_clm (λ f x, (f (g x)))
   (λ _ _ _, by simp only [add_left_inj, pi.add_apply, eq_self_iff_true])
@@ -708,7 +708,9 @@ mk_clm (λ f x, (f (g x)))
   (begin
     rintros ⟨k, n⟩,
     rcases hg.norm_iterated_fderiv_le_uniform_aux n with ⟨l, C, hC, hgrowth⟩,
-    rcases hg_upper with ⟨kg, Cg, hCg, hg_upper'⟩,
+    rcases hg_upper with ⟨kg, Cg', hCg', hg_upper'⟩,
+    let Cg := 2 * Cg',
+    have hCg : 1 ≤ Cg := by { change 1 ≤ 2 * Cg', linarith },
     let k' := kg * (k + l * n),
     use [finset.Iic (k',n), Cg ^ (k + l * n) * ((C + 1) ^ n * n! * 2 ^ k'), by positivity],
     intros f x,
@@ -716,7 +718,13 @@ mk_clm (λ f x, (f (g x)))
     have hg_upper'' : (1 + ‖x‖)^(k + l * n) ≤ Cg^(k + l*n) * (1 + ‖g x‖)^k' :=
     begin
       rw [pow_mul, ← mul_pow],
-      exact pow_le_pow_of_le_left (by positivity) (hg_upper' x) _,
+      refine pow_le_pow_of_le_left (by positivity) _ _,
+      change _ ≤ (2 * Cg') * _,
+      rw [two_mul Cg', add_mul],
+      refine add_le_add _ (hg_upper' x),
+      nth_rewrite 0 ← one_mul (1 : ℝ),
+      refine mul_le_mul hCg' (one_le_pow_of_one_le _ _) zero_le_one (zero_le_one.trans hCg'),
+      simp only [le_add_iff_nonneg_right, norm_nonneg],
     end,
     have hbound : ∀ i, i ≤ n → ‖iterated_fderiv ℝ i f (g x)‖ ≤
       2 ^ k' * seminorm_f / ((1 + ‖g x‖) ^ k'):=

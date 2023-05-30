@@ -824,6 +824,55 @@ to an empty family. -/
 end module
 
 section
+variables {R ι M₁ M₂}
+variables {M₁' : ι → Type*} [Π i, add_comm_monoid (M₁' i)] [Π i, module R (M₁' i)] [module R M₂]
+
+/-- If `f` is a collection of linear maps, then the construction `multilinear_map.comp_linear_map`
+sending a multilinear map `g` to `g (f₁ ⬝ , ..., fₙ ⬝ )` is linear in `g`. -/
+@[simps] def comp_linear_mapₗ (f : Π (i : ι), M₁ i →ₗ[R] M₁' i) :
+  (multilinear_map R M₁' M₂) →ₗ[R] multilinear_map R M₁ M₂ :=
+{ to_fun := λ g, g.comp_linear_map f,
+  map_add' := λ g₁ g₂, rfl,
+  map_smul' := λ c g, rfl }
+
+/-- If `f` is a collection of linear maps, then the construction `multilinear_map.comp_linear_map`
+sending a multilinear map `g` to `g (f₁ ⬝ , ..., fₙ ⬝ )` is linear in `g` and multilinear in
+`f₁, ..., fₙ`. -/
+@[simps] def comp_linear_map_multilinear :
+  @multilinear_map R ι (λ i, M₁ i →ₗ[R] M₁' i)
+    ((multilinear_map R M₁' M₂) →ₗ[R] multilinear_map R M₁ M₂) _ _ _ (λ i, linear_map.module) _ :=
+{ to_fun := multilinear_map.comp_linear_mapₗ,
+  map_add' :=
+   begin
+    introI _i,
+    intros f i f₁ f₂,
+    ext g x,
+    dsimp,
+    let c : Π (i : ι), (M₁ i →ₗ[R] M₁' i) → M₁' i := λ i f, f (x i),
+    convert g.map_add (λ j, f j (x j)) i (f₁ (x i)) (f₂ (x i)),
+    { ext j,
+      exact function.apply_update c f i (f₁ + f₂) j },
+    { ext j,
+      exact function.apply_update c f i f₁ j },
+    { ext j,
+      exact function.apply_update c f i f₂ j },
+  end,
+  map_smul' := begin
+    introI _i,
+    intros f i a f₀,
+    ext g x,
+    dsimp,
+    let c : Π (i : ι), (M₁ i →ₗ[R] M₁' i) → M₁' i := λ i f, f (x i),
+    convert g.map_smul (λ j, f j (x j)) i a (f₀ (x i)),
+    { ext j,
+      exact function.apply_update c f i (a • f₀) j },
+    { ext j,
+      exact function.apply_update c f i f₀ j },
+  end }
+
+end
+
+section
 
 variables (R ι) (A : Type*) [comm_semiring A] [algebra R A] [fintype ι]
 

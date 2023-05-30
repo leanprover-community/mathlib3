@@ -1067,10 +1067,7 @@ begin
 end
 
 /-- `continuous_multilinear_map.comp_continuous_linear_map` as a bundled continuous linear map.
-This implementation fixes `f : Π i, E i →L[𝕜] E₁ i`.
-
-TODO: Actually, the map is multilinear in `f` but an attempt to formalize this failed because of
-issues with class instances. -/
+This implementation fixes `f : Π i, E i →L[𝕜] E₁ i`. -/
 def comp_continuous_linear_mapL (f : Π i, E i →L[𝕜] E₁ i) :
   continuous_multilinear_map 𝕜 E₁ G →L[𝕜] continuous_multilinear_map 𝕜 E G :=
 linear_map.mk_continuous
@@ -1084,11 +1081,71 @@ linear_map.mk_continuous
   comp_continuous_linear_mapL f g = g.comp_continuous_linear_map f :=
 rfl
 
+variables (𝕜 E E₁ G)
+/-- If `f` is a collection of continuous linear maps, then the construction
+`continuous_multilinear_map.comp_continuous_linear_map`
+sending a continuous multilinear map `g` to `g (f₁ ⬝ , ..., fₙ ⬝ )` is continuous-linear in `g` and
+multilinear in `f₁, ..., fₙ`. -/
+noncomputable def comp_continuous_linear_map_multilinear :
+  @multilinear_map 𝕜 ι (λ i, E i →L[𝕜] E₁ i)
+    ((continuous_multilinear_map 𝕜 E₁ G) →L[𝕜] continuous_multilinear_map 𝕜 E G)
+    _ _ _ (λ i, continuous_linear_map.module) _ :=
+{ to_fun := continuous_multilinear_map.comp_continuous_linear_mapL,
+  map_add' :=
+   begin
+    introI _i,
+    intros f i f₁ f₂,
+    ext g x,
+    dsimp,
+    let c : Π (i : ι), (E i →L[𝕜] E₁ i) → E₁ i := λ i f, f (x i),
+    convert g.map_add (λ j, f j (x j)) i (f₁ (x i)) (f₂ (x i)),
+    { ext j,
+      exact function.apply_update c f i (f₁ + f₂) j },
+    { ext j,
+      exact function.apply_update c f i f₁ j },
+    { ext j,
+      exact function.apply_update c f i f₂ j },
+  end,
+  map_smul' := begin
+    introI _i,
+    intros f i a f₀,
+    ext g x,
+    dsimp,
+    let c : Π (i : ι), (E i →L[𝕜] E₁ i) → E₁ i := λ i f, f (x i),
+    convert g.map_smul (λ j, f j (x j)) i a (f₀ (x i)),
+    { ext j,
+      exact function.apply_update c f i (a • f₀) j },
+    { ext j,
+      exact function.apply_update c f i f₀ j },
+  end }
+
+variables {𝕜 E E₁}
+
 lemma norm_comp_continuous_linear_mapL_le (f : Π i, E i →L[𝕜] E₁ i) :
   ‖@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ f‖ ≤ (∏ i, ‖f i‖) :=
 linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
 
-variable (G)
+variables (𝕜 E E₁)
+
+/-- If `f` is a collection of continuous linear maps, then the construction
+`continuous_multilinear_map.comp_continuous_linear_map`
+sending a continuous multilinear map `g` to `g (f₁ ⬝ , ..., fₙ ⬝ )` is continuous-linear in `g` and
+continuous-multilinear in `f₁, ..., fₙ`. -/
+noncomputable def comp_continuous_linear_map_continuous_multilinear :
+  @continuous_multilinear_map 𝕜 ι (λ i, E i →L[𝕜] E₁ i)
+    ((continuous_multilinear_map 𝕜 E₁ G) →L[𝕜] continuous_multilinear_map 𝕜 E G)
+    _ _ _ (λ i, continuous_linear_map.module) _ _ _ :=
+begin
+  refine @multilinear_map.mk_continuous 𝕜 ι (λ i, E i →L[𝕜] E₁ i)
+    ((continuous_multilinear_map 𝕜 E₁ G) →L[𝕜] continuous_multilinear_map 𝕜 E G) _ _
+    (λ i, continuous_linear_map.to_normed_add_comm_group)
+    (λ i, continuous_linear_map.to_normed_space) _ _
+    (comp_continuous_linear_map_multilinear 𝕜 E E₁ G) 1 _,
+  intro f,
+  simpa using norm_comp_continuous_linear_mapL_le G f,
+end
+
+variables {𝕜 E E₁}
 
 /-- `continuous_multilinear_map.comp_continuous_linear_map` as a bundled continuous linear equiv,
 given `f : Π i, E i ≃L[𝕜] E₁ i`. -/

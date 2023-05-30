@@ -288,6 +288,19 @@ begin
   exact hf_int.2,
 end
 
+lemma ae_strongly_measurable_comp_snd_map_prod_mk_iff {Ω F} {mΩ : measurable_space Ω}
+  [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
+  (hX : measurable X) {f : Ω → F} :
+  ae_strongly_measurable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω)))
+    ↔ ae_strongly_measurable f μ :=
+⟨λ h, h.comp_measurable (hX.prod_mk measurable_id), λ h, h.comp_snd_map_prod_mk hX⟩
+
+lemma integrable_comp_snd_map_prod_mk_iff {Ω F} {mΩ : measurable_space Ω}
+  [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
+  (hX : measurable X) {f : Ω → F} :
+  integrable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) ↔ integrable f μ :=
+⟨λ h, h.comp_measurable (hX.prod_mk measurable_id), λ h, h.comp_snd_map_prod_mk hX⟩
+
 lemma condexp_ae_eq_integral_cond_distrib_id {X : Ω → β} {μ : measure Ω} [is_finite_measure μ]
   (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   μ[f | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f y ∂(cond_distrib id X μ (X a)) :=

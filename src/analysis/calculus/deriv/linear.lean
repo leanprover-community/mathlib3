@@ -9,6 +9,9 @@ import analysis.calculus.fderiv.linear
 /-!
 # Derivatives of continuous linear maps from the base field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `f : 𝕜 →L[𝕜] E` (or `f : 𝕜 →ₗ[𝕜] E`) has derivative `f 1`.
 
 For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of

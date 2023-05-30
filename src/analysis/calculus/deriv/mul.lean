@@ -10,6 +10,9 @@ import analysis.calculus.fderiv.add
 /-!
 # Derivative of `f x * g x`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove formulas for `(f x * g x)'` and `(f x • g x)'`.
 
 For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of

@@ -337,6 +337,8 @@ def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R M M ι :=
   map_eq_zero_of_eq' := λ v i j hv hij, (hij $ subsingleton.elim _ _).elim,
   ..multilinear_map.of_subsingleton R M i }
 
+variable (ι)
+
 /-- The constant map is alternating when `ι` is empty. -/
 @[simps {fully_applied := ff}]
 def const_of_is_empty [is_empty ι] (m : N) : alternating_map R M N ι :=
@@ -1102,7 +1104,7 @@ end
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] :
   N'' ≃ₗ[R'] alternating_map R' M'' N'' ι :=
-{ to_fun    := alternating_map.const_of_is_empty R' M'',
+{ to_fun    := alternating_map.const_of_is_empty R' M'' ι,
   map_add'  := λ x y, rfl,
   map_smul' := λ t x, rfl,
   inv_fun   := λ f, f 0,

@@ -3,7 +3,7 @@ Copyright (c) 2023 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
-import analysis.mellin_transform
+import analysis.special_functions.gamma.beta
 import number_theory.modular_forms.jacobi_theta
 
 /-!
@@ -24,8 +24,11 @@ I haven't checked exactly what they are).
 ## Main results:
 
 * `differentiable_completed_zeta₀` : the function `Λ₀(s)` is entire.
-* `differentiable_at_completed_zeta`: the function `Λ(s)` is differentiable away from `s = 0` and
+* `differentiable_at_completed_zeta` : the function `Λ(s)` is differentiable away from `s = 0` and
   `s = 1`.
+* `differentiable_at_riemann_zeta` : the function `ζ(s)` is differentiable away from `s = 1`.
+* `zeta_eq_tsum_of_one_lt_re` : for `1 < re s`, we have
+  `ζ(s) = ∑' (n : ℕ), 1 / (n + 1) ^ s`.
 
 ## Outline of proofs:
 
@@ -67,9 +70,7 @@ details. -/
   (λ s : ℂ, ↑π ^ (s / 2) * riemann_completed_zeta s / Gamma (s / 2)) 0 (-1 / 2)
 
 /- Note the next lemma is true by definition; what's hard is to show that with this definition, `ζ`
-is continuous (and indeed analytic) at 0.
-
-TODO: Prove this -- this will be in a future PR. -/
+is continuous (and indeed analytic) at 0, see `differentiable_riemann_zeta` below. -/
 /-- We have `ζ(0) = -1 / 2`. -/
 lemma riemann_zeta_zero : riemann_zeta 0 = -1 / 2 :=
 begin
@@ -292,6 +293,104 @@ begin
     exact differentiable_at_id.sub (differentiable_at_const _) },
 end
 
+/-- The Riemann zeta function is differentiable away from `s = 1`. -/
+theorem differentiable_at_riemann_zeta {s : ℂ} (hs' : s ≠ 1) :
+  differentiable_at ℂ riemann_zeta s :=
+begin
+  /- First claim: the result holds at `t` for `t ≠ 0`. Note we will need to use this for the case
+  `s = 0` also, as a hypothesis for the removable-singularity criterion. -/
+  have c1 : ∀ (t : ℂ) (ht : t ≠ 0) (ht' : t ≠ 1), differentiable_at ℂ
+      (λ u : ℂ, ↑π ^ (u / 2) * riemann_completed_zeta u / Gamma (u / 2)) t,
+  { intros t ht ht',
+    apply differentiable_at.mul,
+    { refine (differentiable_at.const_cpow _ _).mul (differentiable_at_completed_zeta ht ht'),
+      { exact differentiable_at.div_const differentiable_at_id _ },
+      { exact or.inl (of_real_ne_zero.mpr pi_pos.ne') } },
+    { refine differentiable_one_div_Gamma.differentiable_at.comp t _,
+      exact differentiable_at.div_const differentiable_at_id _ } },
+  /- Second claim: the limit at `s = 0` exists and is equal to `-1 / 2`. -/
+  have c2 : tendsto (λ s : ℂ, ↑π ^ (s / 2) * riemann_completed_zeta s / Gamma (s / 2))
+    (𝓝[{(0 : ℂ)}ᶜ] 0) (𝓝 (-1 / 2 : ℂ)),
+  { have h1 : tendsto (λ z : ℂ, (π : ℂ) ^ (z / 2)) (𝓝 (0 : ℂ)) (𝓝 1),
+    { convert (continuous_at_const_cpow (of_real_ne_zero.mpr pi_pos.ne')).comp _,
+      { simp_rw [function.comp_app, zero_div, cpow_zero] },
+      { exact continuous_at_id.div continuous_at_const two_ne_zero } },
+    suffices h2 : tendsto (λ z, riemann_completed_zeta z / Gamma (z / 2)) (𝓝[{0}ᶜ] 0)
+      (𝓝 (-1 / 2 : ℂ)),
+    { convert (h1.mono_left nhds_within_le_nhds).mul h2,
+      { ext1 x, rw mul_div }, { simp only [one_mul] } },
+    suffices h3 : tendsto (λ z, (riemann_completed_zeta z * (z / 2)) / ((z / 2) * Gamma (z / 2)))
+      (𝓝[{0}ᶜ] 0) (𝓝 (-1 / 2 : ℂ)),
+    { refine tendsto.congr' (eventually_eq_of_mem self_mem_nhds_within (λ z hz, _)) h3,
+      rw [←div_div, mul_div_cancel _ (div_ne_zero hz two_ne_zero)] },
+    have h4 : tendsto (λ z : ℂ, z / 2 * Gamma (z / 2)) (𝓝[{0}ᶜ] 0) (𝓝 (1 : ℂ)),
+    { convert tendsto.congr' _
+        ((_ : continuous_at (λ z : ℂ, Gamma (z / 2 + 1)) 0).mono_left nhds_within_le_nhds),
+      { rw [zero_div, zero_add, complex.Gamma_one] },
+      { refine eventually_eq_of_mem self_mem_nhds_within (λ z hz, _),
+        exact complex.Gamma_add_one _ (div_ne_zero hz two_ne_zero) },
+      { apply continuous_at.comp,
+        { rw [zero_div, zero_add],
+          refine (complex.differentiable_at_Gamma _ (λ m, _)).continuous_at,
+          rw [←of_real_nat_cast, ←of_real_neg, ←of_real_one, ne.def, of_real_inj],
+          refine (lt_of_le_of_lt _ zero_lt_one).ne',
+          exact neg_nonpos.mpr (nat.cast_nonneg _), },
+        { apply continuous.continuous_at,
+          exact (continuous_id'.div_const 2).add continuous_const, } } },
+    suffices : tendsto (λ z, riemann_completed_zeta z * z / 2) (𝓝[{0}ᶜ] 0) (𝓝 (-1 / 2 : ℂ)),
+    { have := this.div h4 one_ne_zero,
+      simp_rw [div_one, mul_div_assoc] at this,
+      exact this },
+    refine tendsto.div _ tendsto_const_nhds two_ne_zero,
+    simp_rw [riemann_completed_zeta, add_mul, sub_mul],
+    rw show 𝓝 (-1 : ℂ) = 𝓝 (0 - 1 + 0), by rw [zero_sub, add_zero],
+    refine (tendsto.sub _ _).add _,
+    { refine tendsto.mono_left _ nhds_within_le_nhds,
+      have : continuous_at riemann_completed_zeta₀ 0,
+        from (differentiable_completed_zeta₀).continuous.continuous_at,
+      simpa only [id.def, mul_zero] using tendsto.mul this tendsto_id },
+    { refine tendsto_const_nhds.congr' (eventually_eq_of_mem self_mem_nhds_within (λ t ht, _)),
+      simp_rw one_div_mul_cancel ht },
+    { refine tendsto.mono_left _ nhds_within_le_nhds,
+      suffices : continuous_at (λ z : ℂ, 1 / (z - 1)) 0,
+        by simpa only [id.def, mul_zero] using tendsto.mul this tendsto_id,
+      refine continuous_at_const.div (continuous_at_id.sub continuous_at_const) _,
+      simpa only [zero_sub] using neg_ne_zero.mpr one_ne_zero } },
+  -- Now the main proof.
+  rcases ne_or_eq s 0 with hs | rfl,
+  { -- The easy case: `s ≠ 0`
+    refine (c1 s hs hs').congr_of_eventually_eq (eventually_eq_of_mem _ (λ x hx, _)),
+    show {(0 : ℂ)}ᶜ ∈ 𝓝 s, from is_open_compl_singleton.mem_nhds hs,
+    unfold riemann_zeta,
+    apply function.update_noteq hx },
+  { -- The hard case: `s = 0`.
+    rw [riemann_zeta, ←(lim_eq_iff ⟨(-1 / 2 : ℂ), c2⟩).mpr c2],
+    have S_nhds : {(1 : ℂ)}ᶜ ∈ 𝓝 (0 : ℂ), from is_open_compl_singleton.mem_nhds hs',
+    refine ((complex.differentiable_on_update_lim_of_is_o S_nhds
+      (λ t ht, (c1 t ht.2 ht.1).differentiable_within_at) _) 0 hs').differentiable_at S_nhds,
+    simp only [zero_div, div_zero, complex.Gamma_zero, mul_zero, cpow_zero, sub_zero],
+    -- Remains to show completed zeta is `o (s ^ (-1))` near 0.
+    refine (is_O_const_of_tendsto c2 $ one_ne_zero' ℂ).trans_is_o _,
+    rw is_o_iff_tendsto',
+    { exact tendsto.congr (λ x, by rw [←one_div, one_div_one_div]) nhds_within_le_nhds },
+    { exact eventually_of_mem self_mem_nhds_within (λ x hx hx', (hx $ inv_eq_zero.mp hx').elim) } }
+end
+
+/-- The trivial zeroes of the zeta function. -/
+lemma riemann_zeta_neg_two_mul_nat_add_one (n : ℕ) : riemann_zeta (-2 * (n + 1)) = 0 :=
+begin
+  have : (-2 : ℂ) * (n + 1) ≠ 0,
+    from mul_ne_zero (neg_ne_zero.mpr two_ne_zero) (nat.cast_add_one_ne_zero n),
+  rw [riemann_zeta, function.update_noteq this,
+    (show (-2) * ((n : ℂ) + 1) / 2 = -↑(n + 1), by { push_cast, ring }),
+    complex.Gamma_neg_nat_eq_zero, div_zero],
+end
+
+/-- A formal statement of the Riemann hypothesis – constructing a term of this type is worth a
+million dollars. -/
+def riemann_hypothesis : Prop :=
+  ∀ (s : ℂ) (hs : riemann_completed_zeta s = 0) (hs' : ¬∃ (n : ℕ), s = -2 * (n + 1)), s.re = 1 / 2
+
 /-!
 ## Relating the Mellin transforms of the two zeta kernels
 -/
@@ -348,4 +447,99 @@ begin
   congr' 1,
   rw mul_div_cancel' _ (two_ne_zero' ℂ),
   abel
+end
+
+/-!
+## Relating the first zeta kernel to the Dirichlet series
+-/
+
+/-- Auxiliary lemma for `mellin_zeta_kernel₁_eq_tsum`, computing the Mellin transform of an
+individual term in the series. -/
+lemma integral_cpow_mul_exp_neg_pi_mul_sq {s : ℂ} (hs : 0 < s.re) (n : ℕ) :
+  ∫ t : ℝ in Ioi 0, (t : ℂ) ^ (s - 1) * rexp (-π * t * (n + 1) ^ 2) =
+  ↑π ^ -s * complex.Gamma s * (1 / (n + 1) ^ (2 * s)) :=
+begin
+  rw [complex.Gamma_eq_integral hs, Gamma_integral_eq_mellin],
+  conv_rhs { congr, rw [←smul_eq_mul, ←mellin_comp_mul_left _ _ pi_pos] },
+  have : (1 / ((n : ℂ) + 1) ^ (2 * s)) = ↑(((n : ℝ) + 1) ^ (2 : ℝ)) ^ (-s),
+  { rw [(by push_cast: ((n : ℂ) + 1) = ↑( (n : ℝ) + 1)),
+      (by push_cast : (2 * s) = (↑(2 : ℝ) * s)),
+      cpow_mul_of_real_nonneg, one_div, cpow_neg],
+    rw [←nat.cast_succ],
+    exact nat.cast_nonneg _ },
+  conv_rhs { rw [this, mul_comm, ←smul_eq_mul] },
+  rw [←mellin_comp_mul_right],
+  { refine set_integral_congr measurable_set_Ioi (λ t ht, _),
+    simp_rw smul_eq_mul,
+    congr' 3,
+    conv_rhs { rw [←nat.cast_two, rpow_nat_cast] },
+    ring },
+  { rw [←nat.cast_succ, ←nat.cast_two, rpow_nat_cast],
+    exact sq_pos_of_ne_zero _ (nat.cast_ne_zero.mpr $ nat.succ_ne_zero _) },
+end
+
+lemma mellin_zeta_kernel₁_eq_tsum {s : ℂ} (hs : 1 / 2 < s.re):
+  mellin zeta_kernel₁ s = π ^ (-s) * Gamma s * ∑' (n : ℕ), 1 / (n + 1) ^ (2 * s) :=
+begin
+  let bd : ℕ → ℝ → ℝ := λ n t, t ^ (s.re - 1) * exp (-π * t * (n + 1) ^ 2),
+  let f : ℕ → ℝ → ℂ := λ n t, t ^ (s - 1) * exp (-π * t * (n + 1) ^ 2),
+  have hm : measurable_set (Ioi (0:ℝ)), from measurable_set_Ioi,
+  have h_norm : ∀ (n : ℕ) {t : ℝ} (ht : 0 < t), ‖f n t‖ = bd n t,
+  { intros n t ht,
+    rw [norm_mul, complex.norm_eq_abs, complex.norm_eq_abs, complex.abs_of_nonneg (exp_pos _).le,
+      abs_cpow_eq_rpow_re_of_pos ht, sub_re, one_re] },
+  have hf_meas : ∀ (n : ℕ), ae_strongly_measurable (f n) (volume.restrict $ Ioi 0),
+  { intro n,
+    refine (continuous_on.mul _ _).ae_strongly_measurable hm,
+    { exact (continuous_at.continuous_on
+      (λ x hx, continuous_at_of_real_cpow_const _ _ $ or.inr $ ne_of_gt hx)) },
+    { apply continuous.continuous_on,
+      exact continuous_of_real.comp (continuous_exp.comp
+        ((continuous_const.mul continuous_id').mul continuous_const)) } },
+  have h_le : ∀ (n : ℕ), ∀ᵐ (t : ℝ) ∂volume.restrict (Ioi 0), ‖f n t‖ ≤ bd n t,
+    from λ n, (ae_restrict_iff' hm).mpr (ae_of_all _ (λ t ht, le_of_eq (h_norm n ht))),
+  have h_sum0 : ∀ {t : ℝ} (ht : 0 < t), has_sum (λ n, f n t) (t ^ (s - 1) * zeta_kernel₁ t),
+  { intros t ht,
+    have := (has_sum_of_real.mpr (summable_exp_neg_pi_mul_nat_sq ht).has_sum).mul_left
+      ((t : ℂ) ^ (s - 1)),
+    simpa only [of_real_mul, ←mul_assoc, of_real_bit0, of_real_one, mul_comm _ (2 : ℂ),
+      of_real_sub, of_real_one, of_real_tsum] using this },
+  have h_sum' : ∀ᵐ (t : ℝ) ∂volume.restrict (Ioi 0), has_sum (λ (n : ℕ), f n t)
+    (t ^ (s - 1) * zeta_kernel₁ t),
+    from (ae_restrict_iff' hm).mpr (ae_of_all _ (λ t ht, h_sum0 ht)),
+  have h_sum : ∀ᵐ (t : ℝ) ∂volume.restrict (Ioi 0), summable (λ n : ℕ, bd n t),
+  { refine (ae_restrict_iff' hm).mpr (ae_of_all _ (λ t ht, _)),
+    simpa only [λ n, h_norm n ht] using summable_norm_iff.mpr (h_sum0 ht).summable },
+  have h_int : integrable (λ t : ℝ, ∑' (n : ℕ), bd n t) (volume.restrict (Ioi 0)),
+  { refine integrable_on.congr_fun (mellin_convergent_of_is_O_rpow_exp pi_pos
+      locally_integrable_zeta_kernel₁ is_O_at_top_zeta_kernel₁ is_O_zero_zeta_kernel₁ hs).norm
+      (λ t ht, _) hm,
+    simp_rw [tsum_mul_left, norm_smul, complex.norm_eq_abs ((t : ℂ) ^ _),
+      abs_cpow_eq_rpow_re_of_pos ht, sub_re, one_re],
+    rw [zeta_kernel₁, ←of_real_tsum, complex.norm_eq_abs, complex.abs_of_nonneg],
+    exact tsum_nonneg (λ n, (exp_pos _).le) },
+  simpa only [integral_cpow_mul_exp_neg_pi_mul_sq (one_half_pos.trans hs), tsum_mul_left] using
+    (has_sum_integral_of_dominated_convergence bd hf_meas h_le h_sum h_int h_sum').tsum_eq.symm,
+end
+
+lemma completed_zeta_eq_tsum_of_one_lt_re {s : ℂ} (hs : 1 < re s) :
+  riemann_completed_zeta s = π ^ (-s / 2) * Gamma (s / 2) * ∑' (n : ℕ), 1 / (n + 1) ^ s :=
+begin
+  rw [completed_zeta_eq_mellin_of_one_lt_re hs, mellin_zeta_kernel₁_eq_tsum, neg_div,
+    mul_div_cancel' _ (two_ne_zero' ℂ)],
+  rw (show s / 2 = ↑(2⁻¹ : ℝ) * s, by { push_cast, rw mul_comm, refl }),
+  rwa [of_real_mul_re, ←div_eq_inv_mul, div_lt_div_right (zero_lt_two' ℝ)]
+end
+
+theorem zeta_eq_tsum_of_one_lt_re {s : ℂ} (hs : 1 < re s) :
+  riemann_zeta s = ∑' (n : ℕ), 1 / (n + 1) ^ s :=
+begin
+  have : s ≠ 0, by { contrapose! hs, rw [hs, zero_re], exact zero_le_one },
+  rw [riemann_zeta, function.update_noteq this, completed_zeta_eq_tsum_of_one_lt_re hs,
+    ←mul_assoc, neg_div, cpow_neg, mul_inv_cancel_left₀, mul_div_cancel_left],
+  { apply Gamma_ne_zero_of_re_pos,
+    rw [←of_real_one, ←of_real_bit0, div_eq_mul_inv, ←of_real_inv, mul_comm, of_real_mul_re],
+    exact mul_pos (inv_pos_of_pos two_pos) (zero_lt_one.trans hs), },
+  { rw [ne.def, cpow_eq_zero_iff, not_and_distrib, ←ne.def, of_real_ne_zero],
+    exact or.inl (pi_pos.ne') }
 end

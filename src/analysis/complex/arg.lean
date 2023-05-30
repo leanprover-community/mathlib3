@@ -10,6 +10,9 @@ import analysis.special_functions.complex.arg
 /-!
 # Rays in the complex numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file links the definition `same_ray ℝ x y` with the equality of arguments of complex numbers,
 the usual way this is considered.
 

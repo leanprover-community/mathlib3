@@ -10,6 +10,9 @@ import algebra.homology.short_exact.abelian
 
 /-!
 # The category of `R`-modules has finite biproducts
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

@@ -58,7 +58,7 @@ begin
   filter_upwards [tendsto_uniformly_on_iff.1 (hlφ u u_open x₀u) 1 zero_lt_one, hiφ]
     with i hi h'i,
   have A : integrable_on (λ x, φ i x • g x) (s \ u) μ,
-  { apply integrable.smul_of_top_right (hmg.mono (diff_subset _ _) le_rfl),
+  { refine integrable.smul_of_top_right (hmg.mono (diff_subset _ _) le_rfl) _,
     apply mem_ℒp_top_of_bound
       ((integrable_of_integral_eq_one h'i).ae_strongly_measurable.mono_set ((diff_subset _ _))) 1,
     filter_upwards [self_mem_ae_restrict (hs.diff u_open.measurable_set)] with x hx,

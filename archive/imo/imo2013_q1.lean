@@ -27,6 +27,8 @@ We prove a slightly more general version where k does not need to be strictly po
 
 open_locale big_operators
 
+namespace imo
+
 lemma arith_lemma (k n : ℕ) : 0 < 2 * n + 2^k.succ :=
 calc 0 < 2                : zero_lt_two
    ... = 2^1              : (pow_one 2).symm
@@ -101,3 +103,5 @@ begin
           (1 + 1 / ↑(m pk))                           : by rw [prod_lemma, hpm, ←hmpk, mul_comm]
     ... = ∏ i in finset.range pk.succ, (1 + 1 / m i)  : by rw ← finset.prod_range_succ _ pk }
 end
+
+end imo

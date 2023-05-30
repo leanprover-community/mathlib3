@@ -43,14 +43,14 @@ to the n-ball.
 open set real measure_theory interval_integral
 open_locale real nnreal
 
+namespace theorems_100
+
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
   `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`.
   Note that this definition is not equivalent to `metric.ball (0 : ℝ × ℝ) r`. This was done
   intentionally because `dist` in `ℝ × ℝ` is defined as the uniform norm, making the `metric.ball`
   in `ℝ × ℝ` a square, not a disc.
   See the module docstring for an explanation of why we don't define the disc in Euclidean space. -/
-namespace theorems_100
-
 def disc (r : ℝ) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
 variable (r : ℝ≥0)

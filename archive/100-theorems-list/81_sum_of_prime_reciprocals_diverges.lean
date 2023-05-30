@@ -42,11 +42,11 @@ open_locale big_operators
 open_locale classical
 open filter finset
 
+namespace theorems_100
+
 /--
 The primes in `(k, x]`.
 -/
-namespace theorems_100
-
 noncomputable def P (x k : ℕ) := {p ∈ range (x + 1) | k < p ∧ nat.prime p}
 
 /--

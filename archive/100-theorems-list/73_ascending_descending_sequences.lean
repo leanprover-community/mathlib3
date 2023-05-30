@@ -26,6 +26,8 @@ variables {α : Type*} [linear_order α] {β : Type*}
 open function finset
 open_locale classical
 
+namespace theorems_100
+
 /--
 **Erdős–Szekeres Theorem**: Given a sequence of more than `r * s` distinct values, there is an
 increasing sequence of length longer than `r` or a decreasing sequence of length longer than `s`.
@@ -37,8 +39,6 @@ We then show the pair of labels must be unique. Now if there is no increasing se
 `r` and no decreasing sequence longer than `s`, then there are at most `r * s` possible labels,
 which is a contradiction if there are more than `r * s` elements.
 -/
-namespace theorems_100
-
 theorem erdos_szekeres {r s n : ℕ} {f : fin n → α} (hn : r * s < n) (hf : injective f) :
   (∃ (t : finset (fin n)), r < t.card ∧ strict_mono_on f ↑t) ∨
   (∃ (t : finset (fin n)), s < t.card ∧ strict_anti_on f ↑t) :=

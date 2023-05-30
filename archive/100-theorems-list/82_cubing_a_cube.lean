@@ -18,7 +18,7 @@ http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 
 open real set function fin
 
-namespace 100_theorems
+namespace theorems_100
 
 noncomputable theory
 
@@ -523,4 +523,4 @@ end
 
 end «82»
 
-end 100_theorems
+end theorems_100

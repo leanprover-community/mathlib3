@@ -21,7 +21,7 @@ lengths.
 open real euclidean_geometry
 open_locale real euclidean_geometry
 
-namespace 100_theorems
+namespace theorems_100
 
 local notation `√` := real.sqrt
 
@@ -64,4 +64,4 @@ begin
                                                       norm_num,
 end
 
-end 100_theorems
+end theorems_100

@@ -53,7 +53,7 @@ https://en.wikipedia.org/wiki/Partition_(number_theory)#Odd_parts_and_distinct_p
 -/
 
 open power_series
-namespace 100_theorems
+namespace theorems_100
 
 noncomputable theory
 
@@ -524,4 +524,4 @@ begin
   apply same_coeffs (n+1) n n.le_succ,
 end
 
-end 100_theorems
+end theorems_100

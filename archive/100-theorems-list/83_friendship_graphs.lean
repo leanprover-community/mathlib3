@@ -39,7 +39,7 @@ be phrased in terms of counting walks.
 -/
 
 open_locale classical big_operators
-namespace 100_theorems
+namespace theorems_100
 
 noncomputable theory
 
@@ -339,4 +339,4 @@ begin
   { exact hG.false_of_three_le_degree dreg dge3 },
 end
 
-end 100_theorems
+end theorems_100

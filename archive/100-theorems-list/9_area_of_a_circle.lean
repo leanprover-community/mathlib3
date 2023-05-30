@@ -49,7 +49,7 @@ open_locale real nnreal
   intentionally because `dist` in `ℝ × ℝ` is defined as the uniform norm, making the `metric.ball`
   in `ℝ × ℝ` a square, not a disc.
   See the module docstring for an explanation of why we don't define the disc in Euclidean space. -/
-namespace 100_theorems
+namespace theorems_100
 
 def disc (r : ℝ) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
@@ -118,4 +118,4 @@ begin
   ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end
 
-end 100_theorems
+end theorems_100

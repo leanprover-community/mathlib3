@@ -48,7 +48,7 @@ namespace probability_theory
 
 variables {α β Ω F : Type*}
   [topological_space Ω] [measurable_space Ω] [polish_space Ω] [borel_space Ω] [nonempty Ω]
-  [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
+  [normed_add_comm_group F]
   {mα : measurable_space α} {μ : measure α} [is_finite_measure μ] {X : α → β} {Y : α → Ω}
 
 /-- **Regular conditional probability distribution**: kernel associated with the conditional
@@ -83,6 +83,8 @@ lemma _root_.measure_theory.ae_strongly_measurable.ae_integrable_cond_distrib_ma
   ↔ integrable f (μ.map (λ a, (X a, Y a))) :=
 by rw [cond_distrib, ← hf.ae_integrable_cond_kernel_iff, measure.fst_map_prod_mk₀ hX hY]
 
+variables [normed_space ℝ F] [complete_space F]
+
 lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib_map
   (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
   (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a)))) :
@@ -104,6 +106,18 @@ lemma ae_strongly_measurable'_integral_cond_distrib
 end measurability
 
 section integrability
+
+lemma integrable_to_real_cond_distrib (hX : ae_measurable X μ) (hs : measurable_set s) :
+  integrable (λ a, (cond_distrib Y X μ (X a) s).to_real) μ :=
+begin
+  refine integrable_to_real_of_lintegral_ne_top _ _,
+  { exact measurable.comp_ae_measurable (kernel.measurable_coe _ hs) hX, },
+  { refine ne_of_lt _,
+    calc ∫⁻ a, cond_distrib Y X μ (X a) s ∂μ
+        ≤ ∫⁻ a, 1 ∂μ : lintegral_mono (λ a, prob_le_one)
+    ... = μ univ : lintegral_one
+    ... < ∞ : measure_lt_top _ _, },
+end
 
 lemma _root_.measure_theory.integrable.cond_distrib_ae_map
   (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
@@ -129,6 +143,8 @@ lemma _root_.measure_theory.integrable.integral_norm_cond_distrib
   integrable (λ a, ∫ y, ‖f (X a, y)‖ ∂(cond_distrib Y X μ (X a))) μ :=
 (hf_int.integral_norm_cond_distrib_map hX hY).comp_ae_measurable hX
 
+variables [normed_space ℝ F] [complete_space F]
+
 lemma _root_.measure_theory.integrable.norm_integral_cond_distrib_map
   (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
   (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
@@ -153,18 +169,6 @@ lemma _root_.measure_theory.integrable.integral_cond_distrib
   (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
   integrable (λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))) μ :=
 (hf_int.integral_cond_distrib_map hX hY).comp_ae_measurable hX
-
-lemma integrable_to_real_cond_distrib (hX : ae_measurable X μ) (hs : measurable_set s) :
-  integrable (λ a, (cond_distrib Y X μ (X a) s).to_real) μ :=
-begin
-  refine integrable_to_real_of_lintegral_ne_top _ _,
-  { exact measurable.comp_ae_measurable (kernel.measurable_coe _ hs) hX, },
-  { refine ne_of_lt _,
-    calc ∫⁻ a, cond_distrib Y X μ (X a) s ∂μ
-        ≤ ∫⁻ a, 1 ∂μ : lintegral_mono (λ a, prob_le_one)
-    ... = μ univ : lintegral_one
-    ... < ∞ : measure_lt_top _ _, },
-end
 
 end integrability
 
@@ -201,7 +205,8 @@ end
 
 /-- The conditional expectation of a function `f` of the product `(X, Y)` is almost everywhere equal
 to the integral of `y ↦ f(X, y)` against the `cond_distrib` kernel. -/
-lemma condexp_prod_ae_eq_integral_cond_distrib' (hX : measurable X) (hY : ae_measurable Y μ)
+lemma condexp_prod_ae_eq_integral_cond_distrib' [normed_space ℝ F] [complete_space F]
+  (hX : measurable X) (hY : ae_measurable Y μ)
   (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
   μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
 begin
@@ -225,7 +230,8 @@ end
 
 /-- The conditional expectation of a function `f` of the product `(X, Y)` is almost everywhere equal
 to the integral of `y ↦ f(X, y)` against the `cond_distrib` kernel. -/
-lemma condexp_prod_ae_eq_integral_cond_distrib₀ (hX : measurable X) (hY : ae_measurable Y μ)
+lemma condexp_prod_ae_eq_integral_cond_distrib₀ [normed_space ℝ F] [complete_space F]
+  (hX : measurable X) (hY : ae_measurable Y μ)
   (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a))))
   (hf_int : integrable (λ a, f (X a, Y a)) μ) :
   μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
@@ -237,7 +243,8 @@ end
 
 /-- The conditional expectation of a function `f` of the product `(X, Y)` is almost everywhere equal
 to the integral of `y ↦ f(X, y)` against the `cond_distrib` kernel. -/
-lemma condexp_prod_ae_eq_integral_cond_distrib (hX : measurable X) (hY : ae_measurable Y μ)
+lemma condexp_prod_ae_eq_integral_cond_distrib [normed_space ℝ F] [complete_space F]
+  (hX : measurable X) (hY : ae_measurable Y μ)
   (hf : strongly_measurable f) (hf_int : integrable (λ a, f (X a, Y a)) μ) :
   μ[(λ a, f (X a, Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a)) :=
 begin
@@ -246,7 +253,8 @@ begin
   exact condexp_prod_ae_eq_integral_cond_distrib' hX hY hf_int',
 end
 
-lemma condexp_ae_eq_integral_cond_distrib (hX : measurable X) (hY : ae_measurable Y μ)
+lemma condexp_ae_eq_integral_cond_distrib [normed_space ℝ F] [complete_space F]
+  (hX : measurable X) (hY : ae_measurable Y μ)
   {f : Ω → F} (hf : strongly_measurable f) (hf_int : integrable (λ a, f (Y a)) μ) :
   μ[(λ a, f (Y a)) | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f y ∂(cond_distrib Y X μ (X a)) :=
 condexp_prod_ae_eq_integral_cond_distrib hX hY (hf.comp_measurable measurable_snd) hf_int
@@ -260,8 +268,8 @@ lemma condexp_ae_eq_integral_cond_distrib' {Ω} [normed_add_comm_group Ω] [norm
 condexp_ae_eq_integral_cond_distrib hX hY_int.1.ae_measurable strongly_measurable_id hY_int
 
 lemma _root_.measure_theory.ae_strongly_measurable.comp_snd_map_prod_mk
-  {Ω F} {mΩ : measurable_space Ω} [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
-  (hX : measurable X) {f : Ω → F} (hf : ae_strongly_measurable f μ) :
+  {Ω F} {mΩ : measurable_space Ω} {X : Ω → β} {μ : measure Ω}
+  [topological_space F] (hX : measurable X) {f : Ω → F} (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) :=
 begin
   refine ⟨λ x, hf.mk f x.2, hf.strongly_measurable_mk.comp_measurable measurable_snd, _⟩,
@@ -277,9 +285,8 @@ begin
   { exact measurable_snd hs, },
 end
 
-lemma _root_.measure_theory.integrable.comp_snd_map_prod_mk {Ω F} {mΩ : measurable_space Ω}
-  [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
-  (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
+lemma _root_.measure_theory.integrable.comp_snd_map_prod_mk {Ω} {mΩ : measurable_space Ω}
+  {X : Ω → β} {μ : measure Ω} (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   integrable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) :=
 begin
   have hf := hf_int.1.comp_snd_map_prod_mk hX,
@@ -289,19 +296,18 @@ begin
 end
 
 lemma ae_strongly_measurable_comp_snd_map_prod_mk_iff {Ω F} {mΩ : measurable_space Ω}
-  [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
-  (hX : measurable X) {f : Ω → F} :
+  [topological_space F] {X : Ω → β} {μ : measure Ω} (hX : measurable X) {f : Ω → F} :
   ae_strongly_measurable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω)))
     ↔ ae_strongly_measurable f μ :=
 ⟨λ h, h.comp_measurable (hX.prod_mk measurable_id), λ h, h.comp_snd_map_prod_mk hX⟩
 
-lemma integrable_comp_snd_map_prod_mk_iff {Ω F} {mΩ : measurable_space Ω}
-  [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
+lemma integrable_comp_snd_map_prod_mk_iff {Ω} {mΩ : measurable_space Ω} {X : Ω → β} {μ : measure Ω}
   (hX : measurable X) {f : Ω → F} :
   integrable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) ↔ integrable f μ :=
 ⟨λ h, h.comp_measurable (hX.prod_mk measurable_id), λ h, h.comp_snd_map_prod_mk hX⟩
 
-lemma condexp_ae_eq_integral_cond_distrib_id {X : Ω → β} {μ : measure Ω} [is_finite_measure μ]
+lemma condexp_ae_eq_integral_cond_distrib_id [normed_space ℝ F] [complete_space F]
+  {X : Ω → β} {μ : measure Ω} [is_finite_measure μ]
   (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   μ[f | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f y ∂(cond_distrib id X μ (X a)) :=
 condexp_prod_ae_eq_integral_cond_distrib' hX ae_measurable_id (hf_int.comp_snd_map_prod_mk hX)

@@ -34,32 +34,19 @@ open_locale ennreal measure_theory probability_theory
 
 namespace probability_theory
 
-variables {Ω F : Type*} [topological_space Ω] {m : measurable_space Ω} [mΩ : measurable_space Ω]
-  [polish_space Ω] [borel_space Ω] [nonempty Ω]
-  {μ : measure Ω} [is_finite_measure μ]
-  [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
-  {f : Ω → F}
-
-/-- Kernel associated with the conditional expectation with respect to a σ-algebra. It satisfies
-`μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)`.
-It is defined as the conditional distribution of the identity given the identity, where the second
-identity is understood as a map from `Ω` with the σ-algebra `mΩ` to `Ω` with σ-algebra `m`. -/
-@[irreducible] noncomputable
-def condexp_kernel (μ : measure Ω) [is_finite_measure μ] (m : measurable_space Ω) :
-  @kernel Ω Ω m mΩ :=
-@cond_distrib Ω Ω Ω _ mΩ _ _ _ mΩ m id id μ _
-
 section aux_lemmas
 
-lemma measurable_id'' {Ω : Type*} {m mΩ : measurable_space Ω} (hm : m ≤ mΩ) :
+variables {Ω F : Type*} {m mΩ : measurable_space Ω} {μ : measure Ω} {f : Ω → F}
+
+lemma measurable_id'' (hm : m ≤ mΩ) :
   @measurable Ω Ω mΩ m id :=
 measurable_id.mono hm le_rfl
 
-lemma ae_measurable_id'' {Ω : Type*} {m mΩ : measurable_space Ω} (μ : measure Ω) (hm : m ≤ mΩ) :
+lemma ae_measurable_id'' (μ : measure Ω) (hm : m ≤ mΩ) :
   @ae_measurable Ω Ω m mΩ id μ :=
 @measurable.ae_measurable Ω Ω mΩ m id μ (measurable_id'' hm)
 
-lemma _root_.measure_theory.ae_strongly_measurable.comp_snd_map_prod_id
+lemma _root_.measure_theory.ae_strongly_measurable.comp_snd_map_prod_id [topological_space F]
   (hm : m ≤ mΩ) (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x : Ω × Ω, f x.2)
     (@measure.map Ω (Ω × Ω) (m.prod mΩ) mΩ (λ ω, (id ω, id ω)) μ) :=
@@ -69,7 +56,7 @@ begin
   exact hf,
 end
 
-lemma _root_.measure_theory.integrable.comp_snd_map_prod_id
+lemma _root_.measure_theory.integrable.comp_snd_map_prod_id [normed_add_comm_group F]
   (hm : m ≤ mΩ) (hf : integrable f μ) :
   integrable (λ x : Ω × Ω, f x.2)
     (@measure.map Ω (Ω × Ω) (m.prod mΩ) mΩ (λ ω, (id ω, id ω)) μ) :=
@@ -81,6 +68,20 @@ end
 
 end aux_lemmas
 
+variables {Ω F : Type*} [topological_space Ω] {m : measurable_space Ω} [mΩ : measurable_space Ω]
+  [polish_space Ω] [borel_space Ω] [nonempty Ω]
+  {μ : measure Ω} [is_finite_measure μ]
+  [normed_add_comm_group F] {f : Ω → F}
+
+/-- Kernel associated with the conditional expectation with respect to a σ-algebra. It satisfies
+`μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)`.
+It is defined as the conditional distribution of the identity given the identity, where the second
+identity is understood as a map from `Ω` with the σ-algebra `mΩ` to `Ω` with σ-algebra `m`. -/
+@[irreducible] noncomputable
+def condexp_kernel (μ : measure Ω) [is_finite_measure μ] (m : measurable_space Ω) :
+  @kernel Ω Ω m mΩ :=
+@cond_distrib Ω Ω Ω _ mΩ _ _ _ mΩ m id id μ _
+
 section measurability
 
 lemma measurable_condexp_kernel {s : set Ω} (hs : measurable_set s) :
@@ -88,6 +89,7 @@ lemma measurable_condexp_kernel {s : set Ω} (hs : measurable_set s) :
 by { rw condexp_kernel, convert measurable_cond_distrib hs, rw measurable_space.comap_id, }
 
 lemma _root_.measure_theory.ae_strongly_measurable.integral_condexp_kernel
+  [normed_space ℝ F] [complete_space F]
   (hm : m ≤ mΩ) (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)) μ :=
 begin
@@ -96,7 +98,7 @@ begin
     (ae_measurable_id'' μ hm) ae_measurable_id (hf.comp_snd_map_prod_id hm),
 end
 
-lemma ae_strongly_measurable'_integral_condexp_kernel
+lemma ae_strongly_measurable'_integral_condexp_kernel [normed_space ℝ F] [complete_space F]
   (hm : m ≤ mΩ) (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable' m (λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)) μ :=
 begin
@@ -129,6 +131,7 @@ begin
 end
 
 lemma _root_.measure_theory.integrable.norm_integral_condexp_kernel
+  [normed_space ℝ F] [complete_space F]
   (hm : m ≤ mΩ) (hf_int : integrable f μ) :
   integrable (λ ω, ‖∫ y, f y ∂(condexp_kernel μ m ω)‖) μ :=
 begin
@@ -137,7 +140,7 @@ begin
     ae_measurable_id (hf_int.comp_snd_map_prod_id hm),
 end
 
-lemma _root_.measure_theory.integrable.integral_condexp_kernel
+lemma _root_.measure_theory.integrable.integral_condexp_kernel [normed_space ℝ F] [complete_space F]
   (hm : m ≤ mΩ) (hf_int : integrable f μ) :
   integrable (λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)) μ :=
 begin
@@ -157,7 +160,8 @@ end integrability
 
 /-- The conditional expectation of `f` with respect to a σ-algebra `m` is almost everywhere equal to
 the integral `∫ y, f y ∂(condexp_kernel μ m ω)`. -/
-lemma condexp_ae_eq_integral_condexp_kernel (hm : m ≤ mΩ) (hf_int : integrable f μ) :
+lemma condexp_ae_eq_integral_condexp_kernel [normed_space ℝ F] [complete_space F]
+  (hm : m ≤ mΩ) (hf_int : integrable f μ) :
   μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω) :=
 begin
   have hX : @measurable Ω Ω mΩ m id := measurable_id.mono le_rfl hm,

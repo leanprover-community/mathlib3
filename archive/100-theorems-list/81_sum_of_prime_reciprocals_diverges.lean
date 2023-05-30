@@ -45,6 +45,8 @@ open filter finset
 /--
 The primes in `(k, x]`.
 -/
+namespace 100_theorems
+
 noncomputable def P (x k : ℕ) := {p ∈ range (x + 1) | k < p ∧ nat.prime p}
 
 /--
@@ -246,3 +248,5 @@ begin
   ...          < x / 2 + x / 2               : add_lt_add_of_lt_of_le h3 h4
   ...          = x                           : add_halves ↑x,
 end
+
+end 100_theorems

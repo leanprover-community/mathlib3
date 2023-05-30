@@ -39,6 +39,8 @@ be phrased in terms of counting walks.
 -/
 
 open_locale classical big_operators
+namespace 100_theorems
+
 noncomputable theory
 
 open finset simple_graph matrix
@@ -336,3 +338,5 @@ begin
   { exact npG (hG.exists_politician_of_degree_le_two dreg (nat.lt_succ_iff.mp dle2)) },
   { exact hG.false_of_three_le_degree dreg dge3 },
 end
+
+end 100_theorems

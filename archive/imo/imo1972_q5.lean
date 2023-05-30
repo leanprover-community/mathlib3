@@ -23,6 +23,8 @@ from `hneg` directly), finally raising a contradiction with `k' < k'`.
 
 (Authored by Stanislas Polu inspired by Ruben Van de Velde).
 -/
+namespace imo
+
 example (f g : ℝ → ℝ)
   (hf1 : ∀ x, ∀ y, (f(x+y) + f(x-y)) = 2 * f(x) * g(y))
   (hf2 : ∀ y, ‖f(y)‖ ≤ 1)
@@ -120,3 +122,5 @@ begin
     ... ≤ 2 * k                     : by linarith [h (x+y), h (x -y)] },
   linarith,
 end
+
+end imo

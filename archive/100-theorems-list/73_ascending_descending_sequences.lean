@@ -37,6 +37,8 @@ We then show the pair of labels must be unique. Now if there is no increasing se
 `r` and no decreasing sequence longer than `s`, then there are at most `r * s` possible labels,
 which is a contradiction if there are more than `r * s` elements.
 -/
+namespace 100_theorems
+
 theorem erdos_szekeres {r s n : ℕ} {f : fin n → α} (hn : r * s < n) (hf : injective f) :
   (∃ (t : finset (fin n)), r < t.card ∧ strict_mono_on f ↑t) ∨
   (∃ (t : finset (fin n)), s < t.card ∧ strict_anti_on f ↑t) :=
@@ -158,3 +160,5 @@ begin
   -- Which follows from considering the cardinalities of the subset above, since `ab` is injective.
   simpa [nat.succ_injective, card_image_of_injective, ‹injective ab›] using card_le_of_subset this,
 end
+
+end 100_theorems

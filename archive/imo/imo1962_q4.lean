@@ -17,6 +17,8 @@ in fact the simplest form of the set of solutions, and then prove it equals the 
 
 open real
 open_locale real
+namespace imo
+
 noncomputable theory
 
 def problem_equation (x : ℝ) : Prop := cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1
@@ -129,3 +131,5 @@ calc problem_equation x
     ↔ cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1 : by refl
 ... ↔ cos (2 * x) = 0 ∨ cos (3 * x) = 0 : by simp [cos_two_mul, cos_three_mul, formula]
 ... ↔ x ∈ solution_set : by { rw [solve_cos2x_0, solve_cos3x_0, ← exists_or_distrib], refl }
+
+end imo

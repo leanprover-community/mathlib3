@@ -35,6 +35,8 @@ Originally ported from Isabelle/HOL. The
 polynomial, cubic, root
 -/
 
+namespace 100_theorems
+
 section field
 
 open polynomial
@@ -184,3 +186,5 @@ begin
 end
 
 end field
+
+end 100_theorems

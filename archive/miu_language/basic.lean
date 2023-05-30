@@ -210,4 +210,4 @@ begin
   exact derivable.r3 h₃, -- We prove our main goal using rule 3
 end
 
-namespace archive.miu
+end archive.miu

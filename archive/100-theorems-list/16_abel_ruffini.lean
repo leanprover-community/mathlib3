@@ -178,4 +178,4 @@ begin
   exact ⟨x, ⟨Φ ℚ 4 2, (monic_Phi 4 2).ne_zero, hx⟩, not_solvable_by_rad' x hx⟩,
 end
 
-namespace archive.abel_ruffini
+end archive.abel_ruffini

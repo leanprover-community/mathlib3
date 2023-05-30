@@ -519,4 +519,4 @@ begin
     ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end
 
-namespace archive.cubing_a_cube
+end archive.cubing_a_cube

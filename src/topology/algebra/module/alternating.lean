@@ -97,7 +97,7 @@ f.map_eq_zero_of_eq' v i j h hij
 lemma map_eq_zero_of_not_injective (v : ι → M) (hv : ¬function.injective v) : f v = 0 :=
 f.to_alternating_map.map_eq_zero_of_not_injective v hv
 
-/-- Restrict the codomain of a continuous multilinear map to a submodule. -/
+/-- Restrict the codomain of a continuous alternating map to a submodule. -/
 @[simps]
 def cod_restrict (f : Λ^ι⟮R; M; N⟯) (p : submodule R N) (h : ∀ v, f v ∈ p) : Λ^ι⟮R; M; p⟯ :=
 { to_continuous_multilinear_map := f.1.cod_restrict p h,
@@ -176,7 +176,7 @@ rfl
 instance add_comm_monoid : add_comm_monoid (Λ^ι⟮R; M; N⟯) :=
 to_continuous_multilinear_map_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
-/-- Evaluation of a `continuous_multilinear_map` at a vector as an `add_monoid_hom`. -/
+/-- Evaluation of a `continuous_alternating_map` at a vector as an `add_monoid_hom`. -/
 def apply_add_hom (v : ι → M) : Λ^ι⟮R; M; N⟯ →+ N :=
 ⟨λ f, f v, rfl, λ _ _, rfl⟩
 
@@ -190,21 +190,21 @@ def to_multilinear_add_hom :
 
 end has_continuous_add
 
-/-- If `f` is a continuous multilinear map, then `f.to_continuous_linear_map m i` is the continuous
+/-- If `f` is a continuous alternating map, then `f.to_continuous_linear_map m i` is the continuous
 linear map obtained by fixing all coordinates but `i` equal to those of `m`, and varying the
 `i`-th coordinate. -/
 def to_continuous_linear_map [decidable_eq ι] (m : ι → M) (i : ι) : M →L[R] N :=
 f.1.to_continuous_linear_map m i
 
-/-- The cartesian product of two continuous multilinear maps, as a continuous multilinear map. -/
+/-- The cartesian product of two continuous alternating maps, as a continuous alternating map. -/
 def prod (f : Λ^ι⟮R; M; N⟯) (g : Λ^ι⟮R; M; N'⟯) : Λ^ι⟮R; M; N × N'⟯ :=
 ⟨f.1.prod g.1, (f.to_alternating_map.prod g.to_alternating_map).map_eq_zero_of_eq⟩
 
 @[simp] lemma prod_apply (f : Λ^ι⟮R; M; N⟯) (g : Λ^ι⟮R; M; N'⟯) (m : ι → M) :
   (f.prod g) m = (f m, g m) := rfl
 
-/-- Combine a family of continuous multilinear maps with the same domain and codomains `M' i` into a
-continuous multilinear map taking values in the space of functions `Π i, M' i`. -/
+/-- Combine a family of continuous alternating maps with the same domain and codomains `M' i` into a
+continuous alternating map taking values in the space of functions `Π i, M' i`. -/
 def pi {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)] [Π i, topological_space (M' i)]
   [Π i, module R (M' i)] (f : Π i, Λ^ι⟮R; M; M' i⟯) :
   Λ^ι⟮R; M; (Π i, M' i)⟯ :=
@@ -226,7 +226,7 @@ rfl
 section
 variables (R M)
 
-/-- The evaluation map from `ι → M₂` to `M₂` is multilinear at a given `i` when `ι` is subsingleton.
+/-- The evaluation map from `ι → M₂` to `M₂` is alternating at a given `i` when `ι` is subsingleton.
 -/
 @[simps to_continuous_multilinear_map apply]
 def of_subsingleton [subsingleton ι] (i' : ι) : Λ^ι⟮R; M; M⟯ :=
@@ -239,7 +239,7 @@ rfl
 
 variable (ι)
 
-/-- The constant map is multilinear when `ι` is empty. -/
+/-- The constant map is alternating when `ι` is empty. -/
 @[simps to_continuous_multilinear_map apply]
 def const_of_is_empty [is_empty ι] (m : N) : Λ^ι⟮R; M; N⟯ :=
 { to_continuous_multilinear_map := continuous_multilinear_map.const_of_is_empty R (λ _, M) m,
@@ -251,8 +251,8 @@ rfl
 
 end
 
-/-- If `g` is continuous multilinear and `f` is a collection of continuous linear maps,
-then `g (f₁ m₁, ..., fₙ mₙ)` is again a continuous multilinear map, that we call
+/-- If `g` is continuous alternating and `f` is a collection of continuous linear maps,
+then `g (f₁ m₁, ..., fₙ mₙ)` is again a continuous alternating map, that we call
 `g.comp_continuous_linear_map f`. -/
 def comp_continuous_linear_map (g : Λ^ι⟮R; M; N⟯) (f : M' →L[R] M) : Λ^ι⟮R; M'; N⟯ :=
 { to_continuous_multilinear_map := g.1.comp_continuous_linear_map (λ _, f),
@@ -262,8 +262,8 @@ def comp_continuous_linear_map (g : Λ^ι⟮R; M; N⟯) (f : M' →L[R] M) : Λ^
   g.comp_continuous_linear_map f m = g (f ∘ m) :=
 rfl
 
-/-- Composing a continuous multilinear map with a continuous linear map gives again a
-continuous multilinear map. -/
+/-- Composing a continuous alternating map with a continuous linear map gives again a
+continuous alternating map. -/
 def _root_.continuous_linear_map.comp_continuous_alternating_map
   (g : N →L[R] N') (f : Λ^ι⟮R; M; N⟯) :
   Λ^ι⟮R; M; N'⟯ :=
@@ -299,7 +299,7 @@ def _root_.continuous_linear_equiv.continuous_alternating_map_congr
   Λ^ι⟮R; M; N⟯ ≃ Λ^ι⟮R; M'; N'⟯ :=
 e.continuous_alternating_map_comp.trans e'.comp_continuous_alternating_map
 
-/-- `continuous_multilinear_map.pi` as an `equiv`. -/
+/-- `continuous_alternating_map.pi` as an `equiv`. -/
 @[simps]
 def pi_equiv {ι' : Type*} {N : ι' → Type*} [Π i, add_comm_monoid (N i)]
   [Π i, topological_space (N i)] [Π i, module R (N i)] :
@@ -310,33 +310,33 @@ def pi_equiv {ι' : Type*} {N : ι' → Type*} [Π i, add_comm_monoid (N i)]
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
 
-/-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
+/-- In the specific case of continuous alternating maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the
-additivity of a multilinear map along the first variable. -/
+additivity of a alternating map along the first variable. -/
 lemma cons_add (f : continuous_alternating_map R M N (fin (n + 1)))
   (m : fin n → M) (x y : M) :
   f (fin.cons (x+y) m) = f (fin.cons x m) + f (fin.cons y m) :=
 f.to_multilinear_map.cons_add m x y
 
-/-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
+/-- In the specific case of continuous alternating maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the
-additivity of a multilinear map along the first variable. -/
+additivity of a alternating map along the first variable. -/
 lemma vec_cons_add (f : continuous_alternating_map R M N (fin (n + 1)))
   (m : fin n → M) (x y : M) :
   f (vec_cons (x+y) m) = f (vec_cons x m) + f (vec_cons y m) :=
 f.to_multilinear_map.cons_add m x y
 
-/-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
+/-- In the specific case of continuous alternating maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the
-multiplicativity of a multilinear map along the first variable. -/
+multiplicativity of a alternating map along the first variable. -/
 lemma cons_smul
   (f : continuous_alternating_map R M N (fin (n + 1))) (m : fin n → M) (c : R) (x : M) :
   f (fin.cons (c • x) m) = c • f (fin.cons x m) :=
 f.to_multilinear_map.cons_smul m c x
 
-/-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
+/-- In the specific case of continuous alternating maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the
-multiplicativity of a multilinear map along the first variable. -/
+multiplicativity of a alternating map along the first variable. -/
 lemma vec_cons_smul
   (f : continuous_alternating_map R M N (fin (n + 1))) (m : fin n → M) (c : R) (x : M) :
   f (vec_cons (c • x) m) = c • f (vec_cons x m) :=
@@ -358,7 +358,7 @@ open fintype finset
 
 variables {α : ι → Type*} [fintype ι] [decidable_eq ι] (g' : Π i, α i → M) (A : Π i, finset (α i))
 
-/-- If `f` is continuous multilinear, then `f (Σ_{j₁ ∈ A₁} g₁ j₁, ..., Σ_{jₙ ∈ Aₙ} gₙ jₙ)` is the
+/-- If `f` is continuous alternating, then `f (Σ_{j₁ ∈ A₁} g₁ j₁, ..., Σ_{jₙ ∈ Aₙ} gₙ jₙ)` is the
 sum of `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions with `r 1 ∈ A₁`, ...,
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
 coordinate. -/
@@ -366,7 +366,7 @@ coordinate. -/
 lemma map_sum_finset : f (λ i, ∑ j in A i, g' i j) = ∑ r in pi_finset A, f (λ i, g' i (r i)) :=
 f.to_multilinear_map.map_sum_finset _ _
 
-/-- If `f` is continuous multilinear, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
+/-- If `f` is continuous alternating, then `f (Σ_{j₁} g₁ j₁, ..., Σ_{jₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions `r`. This follows from
 multilinearity by expanding successively with respect to each coordinate. -/
 lemma map_sum [∀ i, fintype (α i)] : f (λ i, ∑ j, g' i j) = ∑ r : Π i, α i, f (λ i, g' i (r i)) :=
@@ -379,7 +379,7 @@ section restrict_scalar
 variables (R) {A : Type*} [semiring A] [has_smul R A] [module A M]
   [module A N] [is_scalar_tower R A M] [is_scalar_tower R A N]
 
-/-- Reinterpret an `A`-multilinear map as an `R`-multilinear map, if `A` is an algebra over `R`
+/-- Reinterpret an `A`-alternating map as an `R`-alternating map, if `A` is an algebra over `R`
 and their actions on all involved modules agree with the action of `R` on `A`. -/
 def restrict_scalars (f : Λ^ι⟮A; M; N⟯) :
   Λ^ι⟮R; M; N⟯ :=
@@ -448,7 +448,7 @@ lemma map_piecewise_smul [decidable_eq ι] (c : ι → R) (m : ι → M) (s : fi
   f (s.piecewise (λ i, c i • m i) m) = (∏ i in s, c i) • f m :=
 f.to_multilinear_map.map_piecewise_smul _ _ _
 
-/-- Multiplicativity of a continuous multilinear map along all coordinates at the same time,
+/-- Multiplicativity of a continuous alternating map along all coordinates at the same time,
 writing `f (λ i, c i • m i)` as `(∏ i, c i) • f m`. -/
 lemma map_smul_univ [fintype ι] (c : ι → R) (m : ι → M) :
   f (λ i, c i • m i) = (∏ i, c i) • f m :=
@@ -479,13 +479,13 @@ variables {R A M N ι : Type*} [semiring R] [semiring A]
   [module A M] [module A N]
   [module R N] [has_continuous_const_smul R N] [smul_comm_class A R N]
 
-/-- The space of continuous multilinear maps over an algebra over `R` is a module over `R`, for the
+/-- The space of continuous alternating maps over an algebra over `R` is a module over `R`, for the
 pointwise addition and scalar multiplication. -/
 instance : module R (Λ^ι⟮A; M; N⟯) :=
 function.injective.module _ ⟨to_continuous_multilinear_map, rfl, λ _ _, rfl⟩
   to_continuous_multilinear_map_injective (λ _ _, rfl)
 
-/-- Linear map version of the map `to_multilinear_map` associating to a continuous multilinear map
+/-- Linear map version of the map `to_multilinear_map` associating to a continuous alternating map
 the corresponding multilinear map. -/
 @[simps] def to_continuous_multilinear_map_linear :
   Λ^ι⟮A; M; N⟯ →ₗ[R] continuous_multilinear_map A (λ i : ι, M) N :=
@@ -493,7 +493,7 @@ the corresponding multilinear map. -/
   map_add'  := λ _ _, rfl,
   map_smul' := λ _ _, rfl }
 
-/-- `continuous_multilinear_map.pi` as a `linear_equiv`. -/
+/-- `continuous_alternating_map.pi` as a `linear_equiv`. -/
 @[simps {simp_rhs := tt}]
 def pi_linear_equiv {ι' : Type*} {M' : ι' → Type*}
   [Π i, add_comm_monoid (M' i)] [Π i, topological_space (M' i)] [∀ i, has_continuous_add (M' i)]
@@ -513,8 +513,8 @@ variables {R A M N ι : Type*} [comm_semiring R] [add_comm_monoid M] [add_comm_m
   [module R M] [module R N] [topological_space R] [topological_space M]
   [topological_space N] [has_continuous_smul R N] (f : Λ^ι⟮R; M; R⟯) (z : N)
 
-/-- Given a continuous `R`-multilinear map `f` taking values in `R`, `f.smul_right z` is the
-continuous multilinear map sending `m` to `f m • z`. -/
+/-- Given a continuous `R`-alternating map `f` taking values in `R`, `f.smul_right z` is the
+continuous alternating map sending `m` to `f m • z`. -/
 @[simps to_continuous_multilinear_map apply] def smul_right : Λ^ι⟮R; M; N⟯ :=
 { to_continuous_multilinear_map := f.1.smul_right z,
   .. f.to_alternating_map.smul_right z }

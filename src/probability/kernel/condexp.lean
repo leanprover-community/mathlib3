@@ -38,10 +38,12 @@ section aux_lemmas
 
 variables {Ω F : Type*} {m mΩ : measurable_space Ω} {μ : measure Ω} {f : Ω → F}
 
+-- todo after the port: move to measure_theory/measurable_space, after measurable.mono
 lemma measurable_id'' (hm : m ≤ mΩ) :
   @measurable Ω Ω mΩ m id :=
-measurable_id.mono hm le_rfl
+measurable_id.mono le_rfl hm
 
+-- todo after the port: move to measure_theory/measurable_space, after measurable.mono
 lemma ae_measurable_id'' (μ : measure Ω) (hm : m ≤ mΩ) :
   @ae_measurable Ω Ω m mΩ id μ :=
 @measurable.ae_measurable Ω Ω mΩ m id μ (measurable_id'' hm)

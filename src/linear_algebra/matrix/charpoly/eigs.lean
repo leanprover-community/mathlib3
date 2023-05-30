@@ -34,6 +34,15 @@ Mathlib has already defined eigenvalues in `linear_algebra.eigenspace` as the ro
 polynomial of a linear endomorphism. These do not have correct multiplicity and cannot be used in
 the theorems above. Hence we express these theorems in terms of the roots of the characteristic
 polynomial directly.
+
+## TODO
+
+The proofs of `det_eq_prod_roots_charpoly_of_splits` and
+`trace_eq_sum_roots_charpoly_of_splits` closely resemble
+`norm_gen_eq_prod_roots` and `trace_gen_eq_sum_roots` respectively, but the
+dependencies are not general enough to unify them. We should refactor
+`polynomial.prod_roots_eq_coeff_zero_of_monic_of_split` and
+`polynomial.sum_roots_eq_next_coeff_of_monic_of_split` to assume splitting over an arbitrary map.
 -/
 variables {n : Type*} [fintype n] [decidable_eq n]
 variables {R : Type*} [field R]

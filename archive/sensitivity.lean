@@ -33,7 +33,8 @@ The project was developed at https://github.com/leanprover-community/lean-sensit
 archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
 -/
 
-namespace archive.sensitivity
+namespace archive
+namespace sensitivity
 
 /-! The next two lines assert we do not want to give a constructive proof,
 but rather use classical logic. -/
@@ -438,4 +439,5 @@ begin
       end
 end
 
-end archive.sensitivity
+end sensitivity
+end archive

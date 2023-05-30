@@ -44,7 +44,8 @@ introduce an additional `U` and ensure that the final number of `U`s will be eve
 miu, decision procedure, decidability, decidable_pred, decidable
 -/
 
-namespace archive.miu
+namespace archive
+namespace miu
 
 open miu_atom list nat
 
@@ -377,4 +378,5 @@ dec_trivial
 example : derivable "MUIUIUIIIIIUUUIUII" :=
 dec_trivial
 
-end archive.miu
+end miu
+end archive

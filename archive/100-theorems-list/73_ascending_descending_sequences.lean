@@ -21,7 +21,8 @@ https://en.wikipedia.org/wiki/Erdos-Szekeres_theorem#Pigeonhole_principle.
 sequences, increasing, decreasing, Ramsey, Erdos-Szekeres, Erdős–Szekeres, Erdős-Szekeres
 -/
 
-namespace archive.ascending_descending_sequences
+namespace archive
+namespace ascending_descending_sequences
 
 variables {α : Type*} [linear_order α] {β : Type*}
 
@@ -161,4 +162,5 @@ begin
   simpa [nat.succ_injective, card_image_of_injective, ‹injective ab›] using card_le_of_subset this,
 end
 
-end archive.ascending_descending_sequences
+end ascending_descending_sequences
+end archive

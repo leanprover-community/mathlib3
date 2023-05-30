@@ -13,7 +13,8 @@ We show that a graph that represents the islands and mainlands of Königsberg an
 between them has no Eulerian trail.
 -/
 
-namespace archive.konigsberg
+namespace archive
+namespace konigsberg
 
 /-- The vertices for the Königsberg graph; four vertices for the bodies of land and seven
 vertices for the bridges. -/
@@ -78,4 +79,5 @@ begin
   norm_num at h,
 end
 
-end archive.konigsberg
+end konigsberg
+end archive

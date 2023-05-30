@@ -405,4 +405,5 @@ end test
 
 end arithcc
 
-end archive.sensitivity
+end sensitivity
+end archive

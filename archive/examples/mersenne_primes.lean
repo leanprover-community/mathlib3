@@ -14,7 +14,8 @@ See the discussion at the end of [src/number_theory/lucas_lehmer.lean]
 for ideas about extending this to larger Mersenne primes.
 -/
 
-namespace archive.mersenne
+namespace archive
+namespace mersenne
 
 example : (mersenne 13).prime :=
 lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
@@ -55,4 +56,5 @@ but work fine on the command line.
 -- example : (mersenne 521).prime :=
 -- lucas_lehmer_sufficiency _ (by norm_num) (by lucas_lehmer.run_test).
 
-end archive.mersenne
+end mersenne
+end archive

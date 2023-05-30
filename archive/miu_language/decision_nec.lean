@@ -21,7 +21,8 @@ Using this, we give a negative answer to the question: is `"MU"` derivable?
 miu, decision procedure
 -/
 
-namespace archive.miu
+namespace archive
+namespace miu
 
 open miu_atom nat list
 
@@ -218,4 +219,5 @@ begin
   { exact count_equiv_one_or_two_mod3_of_derivable en h, },
 end
 
-end archive.miu
+end miu
+end archive

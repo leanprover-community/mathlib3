@@ -23,7 +23,8 @@ Then all that remains is the construction of a specific polynomial satisfying th
 
 -/
 
-namespace archive.abel_ruffini
+namespace archive
+namespace abel_ruffini
 
 open function polynomial polynomial.gal ideal
 open_locale polynomial
@@ -178,4 +179,5 @@ begin
   exact ⟨x, ⟨Φ ℚ 4 2, (monic_Phi 4 2).ne_zero, hx⟩, not_solvable_by_rad' x hx⟩,
 end
 
-end archive.abel_ruffini
+end abel_ruffini
+end archive

@@ -38,7 +38,8 @@ be phrased in terms of counting walks.
 
 -/
 
-namespace archive.friendship_graphs
+namespace archive
+namespace friendship_graphs
 
 open_locale classical big_operators
 noncomputable theory
@@ -339,4 +340,5 @@ begin
   { exact hG.false_of_three_le_degree dreg dge3 },
 end
 
-end archive.friendship_graphs
+end friendship_graphs
+end archive

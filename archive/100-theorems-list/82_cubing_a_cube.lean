@@ -16,7 +16,8 @@ We follow the proof described here:
 http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 -/
 
-namespace archive.cubing_a_cube
+namespace archive
+namespace cubing_a_cube
 
 open real set function fin
 
@@ -519,4 +520,5 @@ begin
     ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end
 
-end archive.cubing_a_cube
+end cubing_a_cube
+end archive

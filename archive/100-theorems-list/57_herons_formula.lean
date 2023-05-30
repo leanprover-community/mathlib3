@@ -18,7 +18,8 @@ lengths.
 
 -/
 
-namespace archive.herons_formula
+namespace archive
+namespace herons_formula
 
 open real euclidean_geometry
 open_locale real euclidean_geometry
@@ -64,4 +65,5 @@ begin
                                                       norm_num,
 end
 
-end archive.herons_formula
+end herons_formula
+end archive

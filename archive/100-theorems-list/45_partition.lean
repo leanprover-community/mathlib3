@@ -52,7 +52,8 @@ In particular, we
 https://en.wikipedia.org/wiki/Partition_(number_theory)#Odd_parts_and_distinct_parts
 -/
 
-namespace archive.partition
+namespace archive
+namespace partition
 
 open power_series
 noncomputable theory
@@ -524,4 +525,5 @@ begin
   apply same_coeffs (n+1) n n.le_succ,
 end
 
-end archive.partition
+end partition
+end archive

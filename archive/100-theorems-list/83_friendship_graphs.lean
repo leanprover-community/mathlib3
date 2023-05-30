@@ -146,7 +146,7 @@ begin
   use G.degree v,
   intro x,
   by_cases hvx : G.adj v x, swap, { exact (degree_eq_of_not_adj hG hvx).symm, },
-  dunfold exists_politician at hG',
+  dunfold theorems_100.exists_politician at hG',
   push_neg at hG',
   rcases hG' v with ⟨w, hvw', hvw⟩,
   rcases hG' x with ⟨y, hxy', hxy⟩,

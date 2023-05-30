@@ -125,6 +125,8 @@ section
 variables (F₁ F₂) [has_continuous_smul 𝕜 F₁] [has_continuous_add F₁]
 
 -- move this to `operator_norm`
+/-- A linear isometry from a normed space `F` to a normed space `G` induces (by left-composition) a
+linear isometry from operators into `F` to operators into `G`. -/
 def _root_.linear_isometry.comp_left {𝕜 : Type u_1} {𝕜₂ : Type u_2}
   {𝕜₃ : Type u_3} (E : Type u_4) {F : Type u_6} {G : Type*} [normed_add_comm_group E]
   [normed_add_comm_group F] [normed_add_comm_group G] [nontrivially_normed_field 𝕜]
@@ -198,7 +200,7 @@ variables (e₁ e₁' e₂ e₂') [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [
 continuous `ι`-slot alternating maps from `E₁` to `E₂`. That is, the map which will later become a
 trivialization, after the bundle of continuous alternating maps is equipped with the right
 topological vector bundle structure. -/
-def continuous_alternating_map : pretrivialization Λ^ι⟮𝕜; F₁; F₂⟯ (π (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯)) :=
+def continuous_alternating_map : pretrivialization Λ^ι⟮𝕜; F₁; F₂⟯ (π Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯) :=
 { to_fun := λ p, ⟨p.1, (e₂.continuous_linear_map_at 𝕜 p.1).comp_continuous_alternating_map $
       p.2.comp_continuous_linear_map $ e₁.symmL 𝕜 p.1⟩,
   inv_fun := λ p, ⟨p.1, (e₂.symmL 𝕜 p.1).comp_continuous_alternating_map $
@@ -222,7 +224,6 @@ def continuous_alternating_map : pretrivialization Λ^ι⟮𝕜; F₁; F₂⟯ (
   end,
   right_inv' := λ ⟨x, f⟩ ⟨⟨h₁, h₂⟩, _⟩,
   begin
-    -- sorry
     dsimp only,
     simp_rw [prod.mk.inj_iff, eq_self_iff_true, true_and],
     ext v,
@@ -315,6 +316,17 @@ open pretrivialization
 variables (F₁ E₁ F₂ E₂)
 variables [Π x : B, topological_space (E₁ x)] [fiber_bundle F₁ E₁] [vector_bundle 𝕜 F₁ E₁]
 variables [Π x : B, topological_space (E₂ x)] [fiber_bundle F₂ E₂] [vector_bundle 𝕜 F₂ E₂]
+
+/-- Topology on the continuous `ι`-slot alternating_maps between the respective fibers at a point of
+two "normable" vector bundles over the same base. Here "normable" means that the bundles have fibers
+modelled on normed spaces `F₁`, `F₂` respectively.  The topology we put on the continuous `ι`-slot
+alternating_maps is the topology coming from the norm on alternating maps from `F₁` to `F₂`. -/
+instance (x : B) : topological_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ x) :=
+topological_space.induced
+  ((pretrivialization.continuous_alternating_map 𝕜 ι
+    (trivialization_at F₁ E₁ x) (trivialization_at F₂ E₂ x)) ∘ (total_space_mk x))
+  infer_instance
+
 variables [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜 (E₂ x)]
 
 /-- The continuous `ι`-slot alternating maps between two topological vector bundles form a
@@ -341,14 +353,8 @@ def _root_.bundle.continuous_alternating_map.vector_prebundle :
     resetI,
     exact ⟨continuous_alternating_map_coord_change 𝕜 ι e₁ e₁' e₂ e₂',
     continuous_on_continuous_alternating_map_coord_change 𝕜 ι,
-    continuous_alternating_map_coord_change_apply 𝕜 ι e₁ e₁' e₂ e₂'⟩ } }
-
-/-- Topology on the continuous `ι`-slot alternating_maps between the respective fibers at a point of
-two "normable" vector bundles over the same base. Here "normable" means that the bundles have fibers
-modelled on normed spaces `F₁`, `F₂` respectively.  The topology we put on the continuous `ι`-slot
-alternating_maps is the topology coming from the norm on maps from `F₁` to `F₂`. -/
-instance (x : B) : topological_space (Λ^ι⟮𝕜; F₁, E₁; F₂, E₂⟯ x) :=
-(bundle.continuous_alternating_map.vector_prebundle 𝕜 ι F₁ E₁ F₂ E₂).fiber_topology x
+    continuous_alternating_map_coord_change_apply 𝕜 ι e₁ e₁' e₂ e₂'⟩ },
+  total_space_mk_inducing := λ x, ⟨rfl⟩ }
 
 /-- Topology on the total space of the continuous `ι`-slot alternating maps between two "normable"
 vector bundles over the same base. -/

@@ -15,13 +15,13 @@ This is quite an easy problem, in which the key point is a modular arithmetic ca
 the sequence `a n` relative to an arbitrary prime.
 -/
 
+namespace imo
+
 /-- The sequence considered in the problem, `2 ^ n + 3 ^ n + 6 ^ n - 1`. -/
 def a (n : ℕ) : ℤ := 2 ^ n + 3 ^ n + 6 ^ n - 1
 
 /-- Key lemma (a modular arithmetic calculation):  Given a prime `p` other than `2` or `3`, the
 `p - 2`th term of the sequence has `p` as a factor. -/
-namespace imo
-
 lemma find_specified_factor {p : ℕ} (hp : nat.prime p) (hp' : is_coprime (6:ℤ) p) :
   ↑p ∣ a (p - 2) :=
 begin

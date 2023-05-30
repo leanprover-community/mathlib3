@@ -222,7 +222,7 @@ lemma _root_.measure_theory.integrable.comp_snd_map_prod_mk {Ω F} {mΩ : measur
   (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   integrable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) :=
 begin
-  have hf := hf_int.1.comp_snd_map_prod_mk hX ,
+  have hf := hf_int.1.comp_snd_map_prod_mk hX,
   refine ⟨hf, _⟩,
   rw [has_finite_integral, lintegral_map' hf.ennnorm (hX.prod_mk measurable_id).ae_measurable],
   exact hf_int.2,

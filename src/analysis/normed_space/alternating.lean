@@ -124,6 +124,12 @@ normed_add_comm_group.induced _ _
 
 @[simp] lemma norm_to_continuous_multilinear_map : ‖f.1‖ = ‖f‖ := rfl
 
+@[simps] def to_continuous_multilinear_map_linear_isometry :
+  Λ^ι⟮𝕜; E; G⟯ →ₗᵢ[𝕜] continuous_multilinear_map 𝕜 (λ _ : ι, E) G :=
+{ norm_map' := λ x, rfl,
+  .. (to_continuous_multilinear_map_linear :
+    Λ^ι⟮𝕜; E; G⟯ →ₗ[𝕜] continuous_multilinear_map 𝕜 (λ _ : ι, E) G) }
+
 lemma embedding_to_continuous_multilinear_map :
   embedding (to_continuous_multilinear_map : Λ^ι⟮𝕜; E; G⟯ →
     continuous_multilinear_map 𝕜 (λ _ : ι, E) G) :=

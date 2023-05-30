@@ -122,12 +122,52 @@ variables [Π x, topological_space (E₁ x)] [fiber_bundle F₁ E₁]
 variables [Π x, topological_space (E₂ x)] [fiber_bundle F₂ E₂]
 
 section
-variables (F₁ F₂)
+variables (F₁ F₂) [has_continuous_smul 𝕜 F₁] [has_continuous_add F₁]
 
-lemma foo : continuous (λ p : F₁ →L[𝕜] F₁,
+-- move this to `operator_norm`
+def _root_.linear_isometry.comp_left {𝕜 : Type u_1} {𝕜₂ : Type u_2}
+  {𝕜₃ : Type u_3} (E : Type u_4) {F : Type u_6} {G : Type*} [normed_add_comm_group E]
+  [normed_add_comm_group F] [normed_add_comm_group G] [nontrivially_normed_field 𝕜]
+  [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃] [normed_space 𝕜 E]
+  [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] (σ₁₂ : 𝕜 →+* 𝕜₂) {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+  [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
+  [ring_hom_isometric σ₁₃] (f : F →ₛₗᵢ[σ₂₃] G) :
+  (E →SL[σ₁₂] F) →ₛₗᵢ[σ₂₃] (E →SL[σ₁₃] G) :=
+{ norm_map' := λ e, f.norm_to_continuous_linear_map_comp,
+  .. continuous_linear_map.compSL _ _ _ _ _ f.to_continuous_linear_map }
+
+-- move this to `continuous_multilinear_map`
+lemma _root_.continuous_multilinear_map.comp_continuous_linear_mapL_diag_continuous :
+  continuous (λ p : F₁ →L[𝕜] F₁,
+  (continuous_multilinear_map.comp_continuous_linear_mapL (λ i : ι, p) :
+    continuous_multilinear_map 𝕜 (λ _, F₁) F₂ →L[𝕜] continuous_multilinear_map 𝕜 (λ _, F₁) F₂)) :=
+begin
+  let φ : @continuous_multilinear_map 𝕜 _ (λ _ : ι, F₁ →L[𝕜] F₁) _ _ _ _
+    (λ i, continuous_linear_map.module) _ _ _ :=
+    continuous_multilinear_map.comp_continuous_linear_map_continuous_multilinear
+    𝕜 (λ _ : ι, F₁) (λ _ : ι, F₁) F₂,
+  show continuous (λ p : F₁ →L[𝕜] F₁, φ (λ i : ι, p)),
+  apply continuous.comp,
+  { apply continuous_multilinear_map.cont },
+  { apply continuous_pi,
+    intro i,
+    exact continuous_id },
+end
+
+-- move this to `continuous_alternating_map`
+lemma _root_.continuous_alternating_map.comp_continuous_linear_mapL_continuous :
+  continuous (λ p : F₁ →L[𝕜] F₁,
   (continuous_alternating_map.comp_continuous_linear_mapL p : Λ^ι⟮𝕜; F₁; F₂⟯ →L[𝕜] Λ^ι⟮𝕜; F₁; F₂⟯)) :=
 begin
-  sorry
+  let φ : Λ^ι⟮𝕜; F₁; F₂⟯ →ₗᵢ[𝕜] _ := to_continuous_multilinear_map_linear_isometry,
+  let Φ : (Λ^ι⟮𝕜; F₁; F₂⟯ →L[𝕜] Λ^ι⟮𝕜; F₁; F₂⟯) →ₗᵢ[𝕜] _ := φ.comp_left _ (ring_hom.id _),
+  rw ← Φ.comp_continuous_iff,
+  show continuous (λ p : F₁ →L[𝕜] F₁,
+  (continuous_multilinear_map.comp_continuous_linear_mapL (λ _, p) :
+  continuous_multilinear_map 𝕜 (λ _, F₁) F₂ →L[𝕜] continuous_multilinear_map 𝕜 (λ _, F₁) F₂).comp
+  (to_continuous_multilinear_mapL 𝕜)),
+  exact (continuous_multilinear_map.comp_continuous_linear_mapL_diag_continuous 𝕜 ι F₁ F₂).clm_comp
+    continuous_const,
 end
 
 end
@@ -144,7 +184,8 @@ begin
   let s : ((F₁ →L[𝕜] F₁) × (F₂ →L[𝕜] F₂)) → (F₁ →L[𝕜] F₁) × (Λ^ι⟮𝕜; F₁; F₂⟯ →L[𝕜] Λ^ι⟮𝕜; F₁; F₂⟯) :=
     λ q, (q.1, continuous_linear_map.comp_continuous_alternating_mapL 𝕜 F₁ F₂ F₂ q.2),
   have hs : continuous s := continuous_id.prod_map (continuous_linear_map.continuous _),
-  refine ((continuous_snd.clm_comp ((foo 𝕜 ι F₁ F₂).comp
+  refine ((continuous_snd.clm_comp
+    ((continuous_alternating_map.comp_continuous_linear_mapL_continuous 𝕜 ι F₁ F₂).comp
     continuous_fst)).comp hs).comp_continuous_on ((h₃.mono _).prod (h₄.mono _)),
   { mfld_set_tac },
   { mfld_set_tac },

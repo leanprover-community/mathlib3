@@ -69,9 +69,90 @@ by { rw cond_distrib, apply_instance, }
 variables {mβ : measurable_space β} {s : set Ω} {t : set β} {f : β × Ω → F}
 include mβ
 
+section measurability
+
 lemma measurable_cond_distrib (hs : measurable_set s) :
   measurable[mβ.comap X] (λ a, cond_distrib Y X μ (X a) s) :=
 (kernel.measurable_coe _ hs).comp (measurable.of_comap_le le_rfl)
+
+lemma _root_.measure_theory.ae_strongly_measurable.ae_integrable_cond_distrib_map_iff
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a)))) :
+  (∀ᵐ a ∂(μ.map X), integrable (λ ω, f (a, ω)) (cond_distrib Y X μ a))
+    ∧ integrable (λ a, ∫ ω, ‖f (a, ω)‖ ∂(cond_distrib Y X μ a)) (μ.map X)
+  ↔ integrable f (μ.map (λ a, (X a, Y a))) :=
+by rw [cond_distrib, ← hf.ae_integrable_cond_kernel_iff, measure.fst_map_prod_mk₀ hX hY]
+
+lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib_map
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a)))) :
+  ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) (μ.map X) :=
+by { rw [← measure.fst_map_prod_mk₀ hX hY, cond_distrib], exact hf.integral_cond_kernel, }
+
+lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a)))) :
+  ae_strongly_measurable (λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))) μ :=
+(hf.integral_cond_distrib_map hX hY).comp_ae_measurable hX
+
+lemma ae_strongly_measurable'_integral_cond_distrib
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a)))) :
+  ae_strongly_measurable' (mβ.comap X) (λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))) μ :=
+(hf.integral_cond_distrib_map hX hY).comp_ae_measurable' hX
+
+end measurability
+
+section integrability
+
+lemma _root_.measure_theory.integrable.cond_distrib_ae_map
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
+  ∀ᵐ b ∂(μ.map X), integrable (λ ω, f (b, ω)) (cond_distrib Y X μ b) :=
+by { rw [cond_distrib, ← measure.fst_map_prod_mk₀ hX hY], exact hf_int.cond_kernel_ae, }
+
+lemma _root_.measure_theory.integrable.cond_distrib_ae
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
+  ∀ᵐ a ∂μ, integrable (λ ω, f (X a, ω)) (cond_distrib Y X μ (X a)) :=
+ae_of_ae_map hX (hf_int.cond_distrib_ae_map hX hY)
+
+lemma _root_.measure_theory.integrable.integral_norm_cond_distrib_map
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
+  integrable (λ x, ∫ y, ‖f (x, y)‖ ∂(cond_distrib Y X μ x)) (μ.map X) :=
+by { rw [cond_distrib, ← measure.fst_map_prod_mk₀ hX hY], exact hf_int.integral_norm_cond_kernel, }
+
+lemma _root_.measure_theory.integrable.integral_norm_cond_distrib
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
+  integrable (λ a, ∫ y, ‖f (X a, y)‖ ∂(cond_distrib Y X μ (X a))) μ :=
+(hf_int.integral_norm_cond_distrib_map hX hY).comp_ae_measurable hX
+
+lemma _root_.measure_theory.integrable.norm_integral_cond_distrib_map
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
+  integrable (λ x, ‖∫ y, f (x, y) ∂(cond_distrib Y X μ x)‖) (μ.map X) :=
+by { rw [cond_distrib, ← measure.fst_map_prod_mk₀ hX hY], exact hf_int.norm_integral_cond_kernel, }
+
+lemma _root_.measure_theory.integrable.norm_integral_cond_distrib
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
+  integrable (λ a, ‖∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))‖) μ :=
+(hf_int.norm_integral_cond_distrib_map hX hY).comp_ae_measurable hX
+
+lemma _root_.measure_theory.integrable.integral_cond_distrib_map
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
+  integrable (λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) (μ.map X) :=
+(integrable_norm_iff (hf_int.1.integral_cond_distrib_map hX hY)).mp
+  (hf_int.norm_integral_cond_distrib_map hX hY)
+
+lemma _root_.measure_theory.integrable.integral_cond_distrib
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
+  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
+  integrable (λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))) μ :=
+(hf_int.integral_cond_distrib_map hX hY).comp_ae_measurable hX
 
 lemma integrable_to_real_cond_distrib (hX : ae_measurable X μ) (hs : measurable_set s) :
   integrable (λ a, (cond_distrib Y X μ (X a) s).to_real) μ :=
@@ -85,28 +166,7 @@ begin
     ... < ∞ : measure_lt_top _ _, },
 end
 
-lemma _root_.measure_theory.integrable.integral_cond_distrib
-  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
-  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
-  integrable (λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))) μ :=
-begin
-  change integrable ((λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) ∘ X) μ,
-  refine integrable.comp_ae_measurable _ hX,
-  rw [← measure.fst_map_prod_mk₀ hX hY, cond_distrib],
-  exact hf_int.integral_cond_kernel,
-end
-
-lemma _root_.measure_theory.ae_strongly_measurable.integral_cond_distrib
-  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
-  (hf : ae_strongly_measurable f (μ.map (λ a, (X a, Y a)))) :
-  ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂(cond_distrib Y X μ x)) (μ.map X) :=
-by { rw ← measure.fst_map_prod_mk₀ hX hY, rw cond_distrib, exact hf.integral_cond_kernel, }
-
-lemma ae_strongly_measurable'_integral_cond_distrib
-  (hX : ae_measurable X μ) (hY : ae_measurable Y μ)
-  (hf_int : integrable f (μ.map (λ a, (X a, Y a)))) :
-  ae_strongly_measurable' (mβ.comap X) (λ a, ∫ y, f (X a, y) ∂(cond_distrib Y X μ (X a))) μ :=
-(hf_int.1.integral_cond_distrib hX hY).comp_ae_measurable' hX
+end integrability
 
 lemma set_lintegral_preimage_cond_distrib (hX : measurable X) (hY : ae_measurable Y μ)
   (hs : measurable_set s) (ht : measurable_set t) :
@@ -155,12 +215,12 @@ begin
     rw ← integral_map hX.ae_measurable,
     swap,
     { rw ← measure.restrict_map hX ht,
-      exact (hf_int.1.integral_cond_distrib hX.ae_measurable hY).restrict, },
+      exact (hf_int.1.integral_cond_distrib_map hX.ae_measurable hY).restrict, },
     rw [← measure.restrict_map hX ht, ← measure.fst_map_prod_mk₀ hX.ae_measurable hY, cond_distrib,
       set_integral_cond_kernel_univ_right ht hf_int.integrable_on,
       set_integral_map (ht.prod measurable_set.univ) hf_int.1 (hX.ae_measurable.prod_mk hY),
       mk_preimage_prod, preimage_univ, inter_univ], },
-  { exact ae_strongly_measurable'_integral_cond_distrib hX.ae_measurable hY hf_int, },
+  { exact ae_strongly_measurable'_integral_cond_distrib hX.ae_measurable hY hf_int.1, },
 end
 
 /-- The conditional expectation of a function `f` of the product `(X, Y)` is almost everywhere equal

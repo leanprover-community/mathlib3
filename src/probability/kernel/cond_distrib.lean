@@ -199,15 +199,14 @@ lemma condexp_ae_eq_integral_cond_distrib' {Ω} [normed_add_comm_group Ω] [norm
   μ[Y | mβ.comap X] =ᵐ[μ] λ a, ∫ y, y ∂(cond_distrib Y X μ (X a)) :=
 condexp_ae_eq_integral_cond_distrib hX hY_int.1.ae_measurable strongly_measurable_id hY_int
 
-lemma ae_strongly_measurable_comp_snd_map_prod_mk {Ω F} {mΩ : measurable_space Ω}
-  [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
-  (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
+lemma _root_.measure_theory.ae_strongly_measurable.comp_snd_map_prod_mk
+  {Ω F} {mΩ : measurable_space Ω} [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
+  (hX : measurable X) {f : Ω → F} (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) :=
 begin
-  refine ⟨λ x, hf_int.1.mk f x.2,
-    hf_int.1.strongly_measurable_mk.comp_measurable measurable_snd, _⟩,
+  refine ⟨λ x, hf.mk f x.2, hf.strongly_measurable_mk.comp_measurable measurable_snd, _⟩,
   suffices h : measure.quasi_measure_preserving prod.snd (μ.map (λ ω, (X ω, ω))) μ,
-  { exact measure.quasi_measure_preserving.ae_eq h hf_int.1.ae_eq_mk, },
+  { exact measure.quasi_measure_preserving.ae_eq h hf.ae_eq_mk, },
   refine ⟨measurable_snd, measure.absolutely_continuous.mk (λ s hs hμs, _)⟩,
   rw measure.map_apply _ hs,
   swap, { exact measurable_snd, },
@@ -218,12 +217,12 @@ begin
   { exact measurable_snd hs, },
 end
 
-lemma integrable_comp_snd_map_prod_mk {Ω F} {mΩ : measurable_space Ω}
+lemma _root_.measure_theory.integrable.comp_snd_map_prod_mk {Ω F} {mΩ : measurable_space Ω}
   [normed_add_comm_group F] {X : Ω → β} {μ : measure Ω}
   (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   integrable (λ x : β × Ω, f x.2) (μ.map (λ ω, (X ω, ω))) :=
 begin
-  have hf := ae_strongly_measurable_comp_snd_map_prod_mk hX hf_int,
+  have hf := hf_int.1.comp_snd_map_prod_mk hX ,
   refine ⟨hf, _⟩,
   rw [has_finite_integral, lintegral_map' hf.ennnorm (hX.prod_mk measurable_id).ae_measurable],
   exact hf_int.2,
@@ -232,7 +231,6 @@ end
 lemma condexp_ae_eq_integral_cond_distrib_id {X : Ω → β} {μ : measure Ω} [is_finite_measure μ]
   (hX : measurable X) {f : Ω → F} (hf_int : integrable f μ) :
   μ[f | mβ.comap X] =ᵐ[μ] λ a, ∫ y, f y ∂(cond_distrib id X μ (X a)) :=
-condexp_prod_ae_eq_integral_cond_distrib' hX ae_measurable_id
-  (integrable_comp_snd_map_prod_mk hX hf_int)
+condexp_prod_ae_eq_integral_cond_distrib' hX ae_measurable_id (hf_int.comp_snd_map_prod_mk hX)
 
 end probability_theory

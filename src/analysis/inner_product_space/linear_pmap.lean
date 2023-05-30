@@ -110,31 +110,19 @@ continuous_linear_map.extend_eq _ _ _ _ _
 
 variables [complete_space E]
 
-lemma exists_unique_adjoint_elem (y : T.adjoint_domain) : ∃! (w : E),
-  ∀ (x : T.domain), ⟪w, x⟫ = ⟪(y : F), T x⟫ :=
-exists_unique_of_exists_of_unique
-  -- For the existence we use the Fréchet-Riesz representation theorem and extend
-  -- the map that is only defined on `T.domain` to `E`:
-  ⟨(inner_product_space.to_dual 𝕜 E).symm (adjoint_domain_mk_clm_extend hT y),
-    -- Implementation note: this is true `by simp`
-    by simp only [inner_product_space.to_dual_symm_apply, adjoint_domain_mk_clm_extend_apply hT,
-      eq_self_iff_true, forall_const]⟩
-  -- The uniqueness follows directly from the fact that `T.domain` is dense in `E`.
-  (λ _ _ hy₁ hy₂, hT.eq_of_inner_left (λ v, (hy₁ v).trans (hy₂ v).symm))
-
 /-- The image of the adjoint operator.
 
 This is an auxiliary definition needed to define the adjoint operator as a `linear_pmap`. -/
 def adjoint_elem (y : T.adjoint_domain) : E :=
-(exists_unique_adjoint_elem hT y).exists.some
+(inner_product_space.to_dual 𝕜 E).symm (adjoint_domain_mk_clm_extend hT y)
 
-lemma adjoint_elem_spec (y : T.adjoint_domain) (x : T.domain) :
+lemma adjoint_elem_inner (y : T.adjoint_domain) (x : T.domain) :
   ⟪adjoint_elem hT y, x⟫ = ⟪(y : F), T x⟫ :=
-(exists_unique_adjoint_elem hT y).exists.some_spec _
+by simp [adjoint_elem]
 
 lemma adjoint_elem_unique (y : T.adjoint_domain) {x₀ : E}
   (hx₀ : ∀ x : T.domain, ⟪x₀, x⟫ = ⟪(y : F), T x⟫) : adjoint_elem hT y = x₀ :=
-(exists_unique_adjoint_elem hT y).unique (λ _, adjoint_elem_spec hT _ _) hx₀
+hT.eq_of_inner_left (λ v, (adjoint_elem_inner hT _ _).trans (hx₀ v).symm)
 
 /-- The adjoint as a linear map from its domain to `E`.
 
@@ -143,9 +131,9 @@ the assumption that `T.domain` is dense. -/
 def adjoint_aux : T.adjoint_domain →ₗ[𝕜] E :=
 { to_fun := adjoint_elem hT,
   map_add' := λ x y, hT.eq_of_inner_left $ λ _,
-    by simp only [inner_add_left, adjoint_elem_spec, submodule.coe_add],
+    by simp only [inner_add_left, adjoint_elem_inner, submodule.coe_add],
   map_smul' := λ _ _, hT.eq_of_inner_left $ λ _,
-    by simp only [inner_smul_left, adjoint_elem_spec, submodule.coe_smul_of_tower,
+    by simp only [inner_smul_left, adjoint_elem_inner, submodule.coe_smul_of_tower,
       ring_hom.id_apply] }
 
 omit hT
@@ -194,7 +182,7 @@ lemma adjoint_apply_eq (y : T†.domain) {x₀ : E}
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_is_formal_adjoint : T†.is_formal_adjoint T :=
-λ x, (adjoint_apply_of_dense hT x).symm ▸ adjoint_elem_spec hT x
+λ x, (adjoint_apply_of_dense hT x).symm ▸ adjoint_elem_inner hT x
 
 /-- The adjoint is maximal in the sense that it contains every formal adjoint. -/
 lemma is_formal_adjoint.le_adjoint (h : T.is_formal_adjoint S) : S ≤ T† :=

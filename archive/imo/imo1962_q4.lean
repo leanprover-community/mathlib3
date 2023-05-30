@@ -15,7 +15,8 @@ Since Lean does not have a concept of "simplest form", we just express what is
 in fact the simplest form of the set of solutions, and then prove it equals the set of solutions.
 -/
 
-namespace archive.imo1962_q4
+namespace archive
+namespace imo1962_q4
 
 open real
 open_locale real
@@ -132,4 +133,5 @@ calc problem_equation x
 ... ↔ cos (2 * x) = 0 ∨ cos (3 * x) = 0 : by simp [cos_two_mul, cos_three_mul, formula]
 ... ↔ x ∈ solution_set : by { rw [solve_cos2x_0, solve_cos3x_0, ← exists_or_distrib], refl }
 
-end archive.imo1962_q4
+end imo1962_q4
+end archive

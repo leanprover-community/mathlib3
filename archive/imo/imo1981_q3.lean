@@ -23,7 +23,8 @@ First, define the problem in terms of finding the maximum of a set.
 We first generalize the problem to `{1, 2, ..., N}` and specialize to `N = 1981` at the very end.
 -/
 
-namespace archive.imo1981_q3
+namespace archive
+namespace imo1981_q3
 
 open int nat set
 variable (N : ℕ) -- N = 1981

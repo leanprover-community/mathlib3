@@ -33,7 +33,8 @@ angles used are modulo `2 * π`, so parts of the angle chase that are only valid
 as `(2 : ℤ) • ∡ _ _ _ = (2 : ℤ) • _ _ _`.
 -/
 
-namespace archive.imo2019_q2
+namespace archive
+namespace imo2019_q2
 
 /--
 We apply the following conventions for formalizing IMO geometry problems. A problem is assumed

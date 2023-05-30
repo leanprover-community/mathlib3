@@ -23,7 +23,8 @@ and apply this to prove Q6 of IMO1988.
 To illustrate the technique, we also prove a similar result.
 -/
 
-namespace archive.imo1988_q6
+namespace archive
+namespace imo1988_q6
 
 local attribute [instance] classical.prop_decidable
 local attribute [simp] sq
@@ -297,4 +298,5 @@ begin
       exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end
 
-end archive.imo1988_q6
+end imo1988_q6
+end archive

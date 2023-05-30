@@ -17,7 +17,8 @@ the number $z = n^4 + a$ is not prime for any natural number $n$.
 
 open int nat
 
-namespace archive.imo1969_q1
+namespace archive
+namespace imo1969_q1
 
 /-- `good_nats` is the set of natural numbers satisfying the condition in the problem
 statement, namely the `a : ℕ` such that `n^4 + a` is not prime for any `n : ℕ`. -/

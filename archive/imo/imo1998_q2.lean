@@ -37,7 +37,8 @@ the lower bound: `a(b-1)^2/2 ≤ |A|`.
 Rearranging gives the result.
 -/
 
-namespace archive.imo1998_q2
+namespace archive
+namespace imo1998_q2
 
 open_locale classical
 noncomputable theory

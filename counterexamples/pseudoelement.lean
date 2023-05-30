@@ -35,7 +35,7 @@ namespace counterexample
 
 noncomputable theory
 
-namespace category_theory.abelian.pseudoelement
+open category_theory.abelian.pseudoelement
 
 /-- `x` is given by `t ↦ (t, 2 * t)`. -/
 def x : over ((of ℤ ℚ) ⊞ (of ℤ ℚ)) :=
@@ -120,7 +120,5 @@ lemma exist_ne_and_fst_eq_fst_and_snd_eq_snd : ∃ x y : (of ℤ ℚ) ⊞ (of �
   (biprod.fst : (of ℤ ℚ) ⊞ (of ℤ ℚ) ⟶ _) x = (biprod.fst : (of ℤ ℚ) ⊞ (of ℤ ℚ) ⟶ _) y ∧
   (biprod.snd : (of ℤ ℚ) ⊞ (of ℤ ℚ) ⟶ _) x = (biprod.snd : (of ℤ ℚ) ⊞ (of ℤ ℚ) ⟶ _) y:=
 ⟨⟦x⟧, ⟦y⟧, mk_x_ne_mk_y, fst_mk_x_eq_fst_mk_y, snd_mk_x_eq_snd_mk_y⟩
-
-end category_theory.abelian.pseudoelement
 
 end counterexample

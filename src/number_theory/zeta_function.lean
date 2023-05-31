@@ -323,7 +323,7 @@ begin
     { refine tendsto.congr' (eventually_eq_of_mem self_mem_nhds_within (λ z hz, _)) h3,
       rw [←div_div, mul_div_cancel _ (div_ne_zero hz two_ne_zero)] },
     have h4 : tendsto (λ z : ℂ, z / 2 * Gamma (z / 2)) (𝓝[≠] 0) (𝓝 1),
-    { refine tendsto_self_mul_Gamma_nhds_0.comp _,
+    { refine tendsto_self_mul_Gamma_nhds_zero.comp _,
       rw [tendsto_nhds_within_iff, (by simp : 𝓝 (0 : ℂ) = 𝓝 (0 / 2))],
       exact ⟨(tendsto_id.div_const _).mono_left nhds_within_le_nhds,
         eventually_of_mem self_mem_nhds_within (λ x hx, div_ne_zero hx two_ne_zero)⟩ },

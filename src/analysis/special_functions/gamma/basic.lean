@@ -448,7 +448,7 @@ end
 end Gamma_has_deriv
 
 /-- At `s = 0`, the Gamma function has a simple pole with residue 1. -/
-lemma tendsto_self_mul_Gamma_nhds_0 : tendsto (λ z : ℂ, z * Gamma z) (𝓝[≠] 0) (𝓝 1) :=
+lemma tendsto_self_mul_Gamma_nhds_zero : tendsto (λ z : ℂ, z * Gamma z) (𝓝[≠] 0) (𝓝 1) :=
 begin
   rw (show 𝓝 (1 : ℂ) = 𝓝 (Gamma (0 + 1)), by simp only [zero_add, complex.Gamma_one]),
   convert (tendsto.mono_left _ nhds_within_le_nhds).congr'

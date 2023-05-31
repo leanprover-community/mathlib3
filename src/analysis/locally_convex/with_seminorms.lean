@@ -668,7 +668,7 @@ begin
   rcases normed_add_comm_group.nhds_zero_basis_norm_lt.mem_iff.mp (hq' $ Iio_mem_nhds one_pos)
     with ⟨ε, ε_pos, hε⟩,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  have : 0 < ‖c‖ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
+  have : 0 < ‖c‖ / ε := by positivity,
   refine ⟨‖c‖ / ε, this, λ x, _⟩,
   by_cases hx : ‖x‖ = 0,
   { rw [hx, mul_zero],

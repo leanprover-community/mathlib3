@@ -476,6 +476,14 @@ begin
   { rintro ⟨m, rfl⟩, exact Gamma_neg_nat_eq_zero m },
 end
 
+/-- A weaker, but easier-to-apply, version of `complex.Gamma_ne_zero`. -/
+lemma Gamma_ne_zero_of_re_pos {s : ℂ} (hs : 0 < re s) : Gamma s ≠ 0 :=
+begin
+  refine Gamma_ne_zero (λ m, _),
+  contrapose! hs,
+  simpa only [hs, neg_re, ←of_real_nat_cast, of_real_re, neg_nonpos] using nat.cast_nonneg _,
+end
+
 end complex
 
 namespace real

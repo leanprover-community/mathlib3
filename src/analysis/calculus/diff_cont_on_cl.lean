@@ -8,6 +8,9 @@ import analysis.calculus.deriv.inv
 /-!
 # Functions differentiable on a domain and continuous on its closure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many theorems in complex analysis assume that a function is complex differentiable on a domain and
 is continuous on its closure. In this file we define a predicate `diff_cont_on_cl` that expresses
 this property and prove basic facts about this predicate.

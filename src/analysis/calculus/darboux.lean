@@ -8,6 +8,9 @@ import analysis.calculus.local_extr
 /-!
 # Darboux's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the derivative of a differentiable function on an interval takes all
 intermediate values. The proof is based on the
 [Wikipedia](https://en.wikipedia.org/wiki/Darboux%27s_theorem_(analysis)) page about this theorem.

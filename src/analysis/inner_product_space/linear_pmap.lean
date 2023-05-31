@@ -17,7 +17,7 @@ We will develop the basics of the theory of unbounded operators on Hilbert space
 ## Main definitions
 
 * `linear_pmap.is_formal_adjoint`: An operator `T` is a formal adjoint of `S` if for all `x` in the
-domain of `T` and `y` in the domain of `S`, we have that `⟪T x, y⟫ = ⟪x, S y⟫`.
+  domain of `T` and `y` in the domain of `S`, we have that `⟪T x, y⟫ = ⟪x, S y⟫`.
 * `linear_pmap.adjoint`: The adjoint of a map `E →ₗ.[𝕜] F` as a map `F →ₗ.[𝕜] E`.
 
 ## Main statements
@@ -25,12 +25,12 @@ domain of `T` and `y` in the domain of `S`, we have that `⟪T x, y⟫ = ⟪x, S
 * `linear_pmap.adjoint_is_formal_adjoint`: The adjoint is a formal adjoint
 * `linear_pmap.is_formal_adjoint.le_adjoint`: Every formal adjoint is contained in the adjoint
 * `continuous_linear_map.to_pmap_adjoint_eq_adjoint_to_pmap_of_dense`: The adjoint on
-`continuous_linear_map` and `linear_pmap` coincide.
+  `continuous_linear_map` and `linear_pmap` coincide.
 
 ## Notation
 
 * For `T : E →ₗ.[𝕜] F` the adjoint can be written as `T†`.
-This notation is localized in `linear_pmap`.
+  This notation is localized in `linear_pmap`.
 
 ## Implementation notes
 
@@ -110,31 +110,27 @@ continuous_linear_map.extend_eq _ _ _ _ _
 
 variables [complete_space E]
 
-/-- The image of the adjoint operator.
-
-This is an auxiliary definition needed to define the adjoint operator as a `linear_pmap`. -/
-def adjoint_elem (y : T.adjoint_domain) : E :=
-(inner_product_space.to_dual 𝕜 E).symm (adjoint_domain_mk_clm_extend hT y)
-
-lemma adjoint_elem_inner (y : T.adjoint_domain) (x : T.domain) :
-  ⟪adjoint_elem hT y, x⟫ = ⟪(y : F), T x⟫ :=
-by simp [adjoint_elem]
-
-lemma adjoint_elem_unique (y : T.adjoint_domain) {x₀ : E}
-  (hx₀ : ∀ x : T.domain, ⟪x₀, x⟫ = ⟪(y : F), T x⟫) : adjoint_elem hT y = x₀ :=
-hT.eq_of_inner_left (λ v, (adjoint_elem_inner hT _ _).trans (hx₀ v).symm)
-
 /-- The adjoint as a linear map from its domain to `E`.
 
 This is an auxiliary definition needed to define the adjoint operator as a `linear_pmap` without
 the assumption that `T.domain` is dense. -/
 def adjoint_aux : T.adjoint_domain →ₗ[𝕜] E :=
-{ to_fun := adjoint_elem hT,
+{ to_fun := λ y, (inner_product_space.to_dual 𝕜 E).symm (adjoint_domain_mk_clm_extend hT y),
   map_add' := λ x y, hT.eq_of_inner_left $ λ _,
-    by simp only [inner_add_left, adjoint_elem_inner, submodule.coe_add],
+    by simp only [inner_add_left, submodule.coe_add, inner_product_space.to_dual_symm_apply,
+      adjoint_domain_mk_clm_extend_apply],
   map_smul' := λ _ _, hT.eq_of_inner_left $ λ _,
-    by simp only [inner_smul_left, adjoint_elem_inner, submodule.coe_smul_of_tower,
-      ring_hom.id_apply] }
+    by simp only [inner_smul_left, submodule.coe_smul_of_tower, ring_hom.id_apply,
+      inner_product_space.to_dual_symm_apply, adjoint_domain_mk_clm_extend_apply] }
+
+lemma adjoint_aux_inner (y : T.adjoint_domain) (x : T.domain) :
+  ⟪adjoint_aux hT y, x⟫ = ⟪(y : F), T x⟫ :=
+by simp only [adjoint_aux, linear_map.coe_mk, inner_product_space.to_dual_symm_apply,
+  adjoint_domain_mk_clm_extend_apply]
+
+lemma adjoint_aux_unique (y : T.adjoint_domain) {x₀ : E}
+  (hx₀ : ∀ x : T.domain, ⟪x₀, x⟫ = ⟪(y : F), T x⟫) : adjoint_aux hT y = x₀ :=
+hT.eq_of_inner_left (λ v, (adjoint_aux_inner hT _ _).trans (hx₀ v).symm)
 
 omit hT
 
@@ -170,19 +166,19 @@ end
 
 include hT
 
-lemma adjoint_apply_of_dense (y : T†.domain) : T† y = adjoint_elem hT y :=
+lemma adjoint_apply_of_dense (y : T†.domain) : T† y = adjoint_aux hT y :=
 begin
   change (if hT : dense (T.domain : set E) then adjoint_aux hT else 0) y = _,
-  simp only [hT, adjoint_aux, dif_pos, linear_map.coe_mk],
+  simp only [hT, dif_pos, linear_map.coe_mk],
 end
 
 lemma adjoint_apply_eq (y : T†.domain) {x₀ : E}
   (hx₀ : ∀ x : T.domain, ⟪x₀, x⟫ = ⟪(y : F), T x⟫) : T† y = x₀ :=
-(adjoint_apply_of_dense hT y).symm ▸ adjoint_elem_unique hT _ hx₀
+(adjoint_apply_of_dense hT y).symm ▸ adjoint_aux_unique hT _ hx₀
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_is_formal_adjoint : T†.is_formal_adjoint T :=
-λ x, (adjoint_apply_of_dense hT x).symm ▸ adjoint_elem_inner hT x
+λ x, (adjoint_apply_of_dense hT x).symm ▸ adjoint_aux_inner hT x
 
 /-- The adjoint is maximal in the sense that it contains every formal adjoint. -/
 lemma is_formal_adjoint.le_adjoint (h : T.is_formal_adjoint S) : S ≤ T† :=

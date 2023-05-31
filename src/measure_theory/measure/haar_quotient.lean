@@ -160,6 +160,22 @@ lemma measure_preserving_quotient_group.mk' [t2_space (G ⧸ Γ)] [second_counta
 { measurable := continuous_quotient_mk.measurable,
   map_eq := by rw [h𝓕.map_restrict_quotient K h𝓕_finite, h]; refl }
 
+/-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
+  right-invariant, and a finite volume fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is
+  measure-preserving between appropriate multiples of Haar measure on `G` and `G ⧸ Γ`. -/
+@[to_additive measure_preserving_quotient_add_group.mk' "Given a normal subgroup `Γ` of an additive
+  topological group `G` with Haar measure `μ`, which is also right-invariant, and a finite volume
+  fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is measure-preserving between appropriate
+  multiples of Haar measure on `G` and `G ⧸ Γ`."]
+lemma measure_preserving_quotient_group.mk'' [t2_space (G ⧸ Γ)] [second_countable_topology (G ⧸ Γ)]
+  [compact_space (G ⧸ Γ)] [subgroup.normal Γ] [measure_theory.measure.is_haar_measure μ]
+  [μ.is_mul_right_invariant] (h𝓕_finite : μ 𝓕 < ⊤) (c : ℝ≥0) (h : μ 𝓕 = c) :
+  measure_preserving
+    (quotient_group.mk' Γ)
+    (μ.restrict 𝓕)
+    (c • (measure_theory.measure.haar_measure ⊤)) :=
+sorry
+
 section
 
 local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)
@@ -214,6 +230,146 @@ begin
 end
 
 local attribute [-instance] quotient.measurable_space
+
+def _root_.measure_theory.is_fundamental_domain.inverse_quotient_map (x : G ⧸ Γ) : G :=
+begin
+  classical,
+  let s : setoid G := mul_action.orbit_rel Γ.opposite G,
+  let x₀ := @quotient.out _ s x,
+  exact if h : ∃ g : Γ.opposite, g • x₀ ∈ 𝓕 then h.some • x₀ else 1,
+end
+
+lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map.ae_right_inverse :
+  let s : setoid G := mul_action.orbit_rel Γ.opposite G in
+  ∀ᵐ x ∂μ, h𝓕.inverse_quotient_map (@quotient.mk _ s x) = x :=
+begin
+  intros s,
+  have := h𝓕.ae_covers, -- : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
+  have := h𝓕.ae_disjoint, -- : pairwise $ ae_disjoint μ on λ g : G, g • s)
+
+  sorry
+end
+
+lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map.quasi_measure_preserving :
+  quasi_measure_preserving h𝓕.inverse_quotient_map μ_𝓕 μ :=
+begin
+  sorry
+end
+
+
+-- lemma inverse_quotient_map_fact0 (x : G ⧸ Γ) (g : Γ.opposite) :
+--   let s : setoid G := mul_action.orbit_rel Γ.opposite G in
+--   let x₀ : G := @quotient.out _ s x in
+--   g • x₀ ∈ 𝓕 → h𝓕.inverse_quotient_map x = g • x₀ :=
+-- begin
+--   intros s x₀ hgx₀,
+--   rw [measure_theory.is_fundamental_domain.inverse_quotient_map],
+--   dsimp,
+--   have H : ∃ g : Γ.opposite, g • x₀ ∈ 𝓕 := ⟨g, hgx₀⟩,
+--   rw dif_pos H,
+--   refl,
+--   -- let x₁ := (@quotient.exists_rep _ s (@quotient.mk _ s x₀)).some,
+--   -- obtain ⟨g₁, hg₁⟩ : ∃ g₁ : Γ.opposite, g₁ • x₀ = x₁,
+--   -- { have := (@quotient.exists_rep _ s (@quotient.mk _ s x₀)).some_spec,
+--   --   rw quotient.eq at this,
+--   --   obtain ⟨g₁, hg₁⟩ := this,
+--   --   refine ⟨g₁, _⟩,
+--   --   dsimp at hg₁,
+--   --   exact hg₁ },
+--   -- have H₀ : (g * g₁⁻¹) • x₁ = g • x₀,
+--   -- { rw [← hg₁],
+--   --   simp [←mul_smul] },
+--   -- have H : ∃ g : Γ.opposite, g • x₁ ∈ 𝓕,
+--   -- { use g * g₁⁻¹,
+--   --   rw [H₀],
+--   --   exact h },
+--   -- rw dif_pos H,
+--   -- show H.some • x₁ = g • x₀,
+--   -- refine eq.trans _ H₀,
+--   -- exact H₀,
+-- end
+
+-- lemma inverse_quotient_map_fact1 (x₀ : G) (g : Γ.opposite) (h : g • x₀ ∈ 𝓕) :
+--   let s : setoid G := mul_action.orbit_rel Γ.opposite G in
+--   h𝓕.inverse_quotient_map (@quotient.mk _ s x₀) = g • x₀ :=
+-- begin
+--   intro s,
+--   rw [measure_theory.is_fundamental_domain.inverse_quotient_map],
+--   dsimp,
+--   let x₁ := (@quotient.exists_rep _ s (@quotient.mk _ s x₀)).some,
+--   obtain ⟨g₁, hg₁⟩ : ∃ g₁ : Γ.opposite, g₁ • x₀ = x₁,
+--   { have := (@quotient.exists_rep _ s (@quotient.mk _ s x₀)).some_spec,
+--     rw quotient.eq at this,
+--     obtain ⟨g₁, hg₁⟩ := this,
+--     refine ⟨g₁, _⟩,
+--     dsimp at hg₁,
+--     exact hg₁ },
+--   have H₀ : (g * g₁⁻¹) • x₁ = g • x₀,
+--   { rw [← hg₁],
+--     simp [←mul_smul] },
+--   have H : ∃ g : Γ.opposite, g • x₁ ∈ 𝓕,
+--   { use g * g₁⁻¹,
+--     rw [H₀],
+--     exact h },
+--   rw dif_pos H,
+--   show H.some • x₁ = g • x₀,
+--   refine eq.trans _ H₀,
+--   exact H₀,
+--   -- swap,
+--   -- { let x₁ := (@quotient.exists_rep _ s (@quotient.mk _ s x₀)).some,
+--   --   obtain ⟨g₁, hg₁⟩ : ∃ g₁ : Γ.opposite, g₁ • x₀ = x₁,
+--   --   { have := (@quotient.exists_rep _ s (@quotient.mk _ s x₀)).some_spec,
+--   --     rw quotient.eq at this,
+--   --     obtain ⟨g₁, hg₁⟩ := this,
+--   --     refine ⟨g₁, _⟩,
+--   --     dsimp at hg₁,
+--   --     exact hg₁ },
+--   --   show ∃ g : Γ.opposite, g • x₁ ∈ 𝓕,
+--   --   use g * g₁⁻¹,
+--   --   convert h using 1,
+--   --   rw [← hg₁],
+--   --   simp [←mul_smul] },
+--   -- -- exact h,
+--   -- -- { refl },
+--   -- -- classical,
+--   -- let s : setoid G := mul_action.orbit_rel Γ.opposite G,
+--   -- let x₀ := (@quotient.exists_rep _ s x).some,
+--   -- exact if h : ∃ g : Γ.opposite, g • x₀ ∈ 𝓕 then h.some • x₀ else 1,
+-- end
+
+lemma quotient_group.ae_strongly_measurable_automorphize
+  {E : Type*} [normed_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [μ.is_mul_right_invariant]
+  {f : G → E}
+  (hf₁ : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (automorphize f) μ_𝓕 :=
+begin
+  rw [automorphize, mul_action.automorphize],
+  let s : setoid G := mul_action.orbit_rel Γ.opposite G,
+  let φ : G ⧸ Γ → G := sorry,
+  -- have hφ₁ : ∀ᵐ x ∂μ, x ∈ 𝓕 → φ x
+  have hφ : quasi_measure_preserving φ μ_𝓕 μ := sorry,
+  have hφ₂ : ∀ᵐ x ∂μ, x ∈ 𝓕 → φ (@quotient.mk _ s x) = x := sorry,
+  have hF : ae_strongly_measurable (λ b : G, ∑' a : Γ.opposite , f (a • b)) μ,
+  { sorry },
+  refine (hF.comp_quasi_measure_preserving hφ).congr _,
+  change ∀ᵐ x ∂(map mk (μ.restrict 𝓕)), _,
+  rw measure_theory.ae_map_iff,
+  { change _ =ᵐ[μ.restrict 𝓕] _,
+    -- ext x,
+    dsimp,
+    show (λ (x : G), ∑' (a : Γ.opposite), f (a • φ (mk x))) =ᵐ[μ.restrict 𝓕]
+      (λ (b : G), ∑' (a : Γ.opposite), f (a • b)),
+    sorry },
+  { sorry },
+  { sorry },
+  -- convert H,
+  -- -- have : λ (x : G), @quotient.lift _ s (λ b : G, ∑' a : Γ.opposite, f (a • b)) _ (mk x)
+  -- sorry
+  -- -- induction x using quotient.induction_on,
+  -- simp,
+end
+
 
 /-- This is a simple version of the **Unfolding Trick**: Given a subgroup `Γ` of a group `G`, the
   integral of a function `f` on `G` with respect to a right-invariant measure `μ` is equal to the
@@ -288,7 +444,7 @@ local notation `μ_𝓕` := measure.map (@quotient_add_group.mk G' _ Γ') (μ'.r
   `G' ⧸ Γ'` with respect to a right-invariant measure `μ` on `G'`, is equal to the integral over
   the quotient of the automorphization of `f` times `g`. -/
 lemma quotient_add_group.integral_mul_eq_integral_automorphize_mul
-{K : Type*} [normed_field K]
+  {K : Type*} [normed_field K]
   [complete_space K] [normed_space ℝ K] [μ'.is_add_right_invariant] {f : G' → K}
   (f_ℒ_1 : integrable f μ') {g : G' ⧸ Γ' → K} (hg : ae_strongly_measurable g μ_𝓕)
   (g_ℒ_infinity : ess_sup (λ x, ↑‖g x‖₊) μ_𝓕 ≠ ∞)

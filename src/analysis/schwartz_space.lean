@@ -699,7 +699,7 @@ variables [normed_space 𝕜 G] [smul_comm_class ℝ 𝕜 G]
 /-- Composition with a function on the right is a continuous linear map on Schwartz space
 provided that the function is temperate and growths polynomially near infinity. -/
 def comp_clm {g : D → E} (hg : g.has_temperate_growth)
-  (hg_upper : ∃ (k : ℕ) (C : ℝ) (hC : 1 ≤ C), ∀ x, ‖x‖ ≤ C * (1 + ‖g x‖)^k ) :
+  (hg_upper : ∃ (k : ℕ) (C : ℝ), ∀ x, ‖x‖ ≤ C * (1 + ‖g x‖)^k ) :
   𝓢(E, F) →L[𝕜] 𝓢(D, F) :=
 mk_clm (λ f x, (f (g x)))
   (λ _ _ _, by simp only [add_left_inj, pi.add_apply, eq_self_iff_true])
@@ -708,22 +708,26 @@ mk_clm (λ f x, (f (g x)))
   (begin
     rintros ⟨k, n⟩,
     rcases hg.norm_iterated_fderiv_le_uniform_aux n with ⟨l, C, hC, hgrowth⟩,
-    rcases hg_upper with ⟨kg, Cg', hCg', hg_upper'⟩,
-    let Cg := 2 * Cg',
-    have hCg : 1 ≤ Cg := by { change 1 ≤ 2 * Cg', linarith },
+    rcases hg_upper with ⟨kg, Cg, hg_upper'⟩,
+    have hCg : 1 ≤ 1 + Cg :=
+    begin
+      refine le_add_of_nonneg_right _,
+      specialize hg_upper' 0,
+      rw [norm_zero] at hg_upper',
+      refine nonneg_of_mul_nonneg_left hg_upper' (by positivity),
+    end,
     let k' := kg * (k + l * n),
-    use [finset.Iic (k',n), Cg ^ (k + l * n) * ((C + 1) ^ n * n! * 2 ^ k'), by positivity],
+    use [finset.Iic (k',n), (1 + Cg) ^ (k + l * n) * ((C + 1) ^ n * n! * 2 ^ k'), by positivity],
     intros f x,
     let seminorm_f := ((finset.Iic (k',n)).sup (schwartz_seminorm_family 𝕜 _ _)) f,
-    have hg_upper'' : (1 + ‖x‖)^(k + l * n) ≤ Cg^(k + l*n) * (1 + ‖g x‖)^k' :=
+    have hg_upper'' : (1 + ‖x‖)^(k + l * n) ≤ (1 + Cg)^(k + l*n) * (1 + ‖g x‖)^k' :=
     begin
       rw [pow_mul, ← mul_pow],
       refine pow_le_pow_of_le_left (by positivity) _ _,
-      change _ ≤ (2 * Cg') * _,
-      rw [two_mul Cg', add_mul],
+      rw [add_mul],
       refine add_le_add _ (hg_upper' x),
       nth_rewrite 0 ← one_mul (1 : ℝ),
-      refine mul_le_mul hCg' (one_le_pow_of_one_le _ _) zero_le_one (zero_le_one.trans hCg'),
+      refine mul_le_mul (le_refl _) (one_le_pow_of_one_le _ _) zero_le_one zero_le_one,
       simp only [le_add_iff_nonneg_right, norm_nonneg],
     end,
     have hbound : ∀ i, i ≤ n → ‖iterated_fderiv ℝ i f (g x)‖ ≤

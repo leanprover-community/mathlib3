@@ -33,7 +33,7 @@ I haven't checked exactly what they are).
 ## Outline of proofs:
 
 We define two related functions on the reals, `zeta_kernel₁` and `zeta_kernel₂`. The first is
-`(Θ (t * I) - 1) / 2`, where `θ` is Jacobi's theta function; its Mellin transform is exactly the
+`(θ (t * I) - 1) / 2`, where `θ` is Jacobi's theta function; its Mellin transform is exactly the
 completed zeta function. The second is obtained by subtracting a linear combination of powers on
 the interval `Ioc 0 1` to give a function with exponential decay at both `0` and `∞`. We then define
 `riemann_completed_zeta₀` as the Mellin transform of the second zeta kernel, and define
@@ -310,20 +310,20 @@ begin
       exact differentiable_at.div_const differentiable_at_id _ } },
   /- Second claim: the limit at `s = 0` exists and is equal to `-1 / 2`. -/
   have c2 : tendsto (λ s : ℂ, ↑π ^ (s / 2) * riemann_completed_zeta s / Gamma (s / 2))
-    (𝓝[{(0 : ℂ)}ᶜ] 0) (𝓝 (-1 / 2 : ℂ)),
+    (𝓝[≠] 0) (𝓝 (-1 / 2 : ℂ)),
   { have h1 : tendsto (λ z : ℂ, (π : ℂ) ^ (z / 2)) (𝓝 (0 : ℂ)) (𝓝 1),
     { convert (continuous_at_const_cpow (of_real_ne_zero.mpr pi_pos.ne')).comp _,
       { simp_rw [function.comp_app, zero_div, cpow_zero] },
       { exact continuous_at_id.div continuous_at_const two_ne_zero } },
-    suffices h2 : tendsto (λ z, riemann_completed_zeta z / Gamma (z / 2)) (𝓝[{0}ᶜ] 0)
+    suffices h2 : tendsto (λ z, riemann_completed_zeta z / Gamma (z / 2)) (𝓝[≠] 0)
       (𝓝 (-1 / 2 : ℂ)),
     { convert (h1.mono_left nhds_within_le_nhds).mul h2,
       { ext1 x, rw mul_div }, { simp only [one_mul] } },
     suffices h3 : tendsto (λ z, (riemann_completed_zeta z * (z / 2)) / ((z / 2) * Gamma (z / 2)))
-      (𝓝[{0}ᶜ] 0) (𝓝 (-1 / 2 : ℂ)),
+      (𝓝[≠] 0) (𝓝 (-1 / 2 : ℂ)),
     { refine tendsto.congr' (eventually_eq_of_mem self_mem_nhds_within (λ z hz, _)) h3,
       rw [←div_div, mul_div_cancel _ (div_ne_zero hz two_ne_zero)] },
-    have h4 : tendsto (λ z : ℂ, z / 2 * Gamma (z / 2)) (𝓝[{0}ᶜ] 0) (𝓝 (1 : ℂ)),
+    have h4 : tendsto (λ z : ℂ, z / 2 * Gamma (z / 2)) (𝓝[≠] 0) (𝓝 (1 : ℂ)),
     { convert tendsto.congr' _
         ((_ : continuous_at (λ z : ℂ, Gamma (z / 2 + 1)) 0).mono_left nhds_within_le_nhds),
       { rw [zero_div, zero_add, complex.Gamma_one] },
@@ -337,7 +337,7 @@ begin
           exact neg_nonpos.mpr (nat.cast_nonneg _), },
         { apply continuous.continuous_at,
           exact (continuous_id'.div_const 2).add continuous_const, } } },
-    suffices : tendsto (λ z, riemann_completed_zeta z * z / 2) (𝓝[{0}ᶜ] 0) (𝓝 (-1 / 2 : ℂ)),
+    suffices : tendsto (λ z, riemann_completed_zeta z * z / 2) (𝓝[≠] 0) (𝓝 (-1 / 2 : ℂ)),
     { have := this.div h4 one_ne_zero,
       simp_rw [div_one, mul_div_assoc] at this,
       exact this },
@@ -359,8 +359,8 @@ begin
   -- Now the main proof.
   rcases ne_or_eq s 0 with hs | rfl,
   { -- The easy case: `s ≠ 0`
-    refine (c1 s hs hs').congr_of_eventually_eq (eventually_eq_of_mem _ (λ x hx, _)),
-    show {(0 : ℂ)}ᶜ ∈ 𝓝 s, from is_open_compl_singleton.mem_nhds hs,
+    have : {(0 : ℂ)}ᶜ ∈ 𝓝 s, from is_open_compl_singleton.mem_nhds hs,
+    refine (c1 s hs hs').congr_of_eventually_eq (eventually_eq_of_mem this (λ x hx, _)),
     unfold riemann_zeta,
     apply function.update_noteq hx },
   { -- The hard case: `s = 0`.
@@ -389,7 +389,7 @@ end
 /-- A formal statement of the Riemann hypothesis – constructing a term of this type is worth a
 million dollars. -/
 def riemann_hypothesis : Prop :=
-  ∀ (s : ℂ) (hs : riemann_completed_zeta s = 0) (hs' : ¬∃ (n : ℕ), s = -2 * (n + 1)), s.re = 1 / 2
+∀ (s : ℂ) (hs : riemann_completed_zeta s = 0) (hs' : ¬∃ (n : ℕ), s = -2 * (n + 1)), s.re = 1 / 2
 
 /-!
 ## Relating the Mellin transforms of the two zeta kernels
@@ -468,14 +468,12 @@ begin
     rw [←nat.cast_succ],
     exact nat.cast_nonneg _ },
   conv_rhs { rw [this, mul_comm, ←smul_eq_mul] },
-  rw [←mellin_comp_mul_right],
-  { refine set_integral_congr measurable_set_Ioi (λ t ht, _),
-    simp_rw smul_eq_mul,
-    congr' 3,
-    conv_rhs { rw [←nat.cast_two, rpow_nat_cast] },
-    ring },
-  { rw [←nat.cast_succ, ←nat.cast_two, rpow_nat_cast],
-    exact sq_pos_of_ne_zero _ (nat.cast_ne_zero.mpr $ nat.succ_ne_zero _) },
+  rw [← mellin_comp_mul_right _ _ (show 0 < ((n : ℝ) + 1) ^ (2 : ℝ), by positivity)],
+  refine set_integral_congr measurable_set_Ioi (λ t ht, _),
+  simp_rw smul_eq_mul,
+  congr' 3,
+  conv_rhs { rw [←nat.cast_two, rpow_nat_cast] },
+  ring
 end
 
 lemma mellin_zeta_kernel₁_eq_tsum {s : ℂ} (hs : 1 / 2 < s.re):
@@ -531,6 +529,9 @@ begin
   rwa [of_real_mul_re, ←div_eq_inv_mul, div_lt_div_right (zero_lt_two' ℝ)]
 end
 
+/-- The Riemann zeta function agrees with the naive Dirichlet-series definition when the latter
+converges. (Note that this is false without the assumption: when `re s ≤ 1` the sum is divergent,
+and we use a different definition to obtain the analytic continuation to all `s`.) -/
 theorem zeta_eq_tsum_of_one_lt_re {s : ℂ} (hs : 1 < re s) :
   riemann_zeta s = ∑' (n : ℕ), 1 / (n + 1) ^ s :=
 begin

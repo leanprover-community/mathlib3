@@ -429,7 +429,7 @@ This is an auxiliary definition; `simp`-normal form is `is_localization.alg_equi
 
 end field
 
-section tactic_interlude -- porting note: should comm_ring be disabled here?
+section tactic_interlude -- pre-porting note: should comm_ring be disabled here?
 /-- Solve equations for `ratfunc K` by working in `fraction_ring K[X]`. -/
 meta def frac_tac : tactic unit :=
 `[repeat { rintro (⟨⟩ : ratfunc _) },
@@ -486,7 +486,7 @@ variables {K}
 section lift_hom
 
 variables {G₀ L R S F : Type*} [comm_group_with_zero G₀] [field L] [comm_ring R] [comm_ring S]
---omit hring  -- porting note: a little scary, but maybe innocuous, since no `K` is present here.
+--omit hring  -- pre-porting note: a little scary, but maybe innocuous: no `K` is present here.
 
 /-- Lift a monoid homomorphism that maps polynomials `φ : R[X] →* S[X]`
 to a `ratfunc R →* ratfunc S`,
@@ -888,6 +888,8 @@ end is_fraction_ring
 
 end comm_ring
 
+variable {K}
+
 section num_denom
 
 /-! ### Numerator and denominator -/
@@ -927,7 +929,7 @@ x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
   end
 
 @[simp] lemma num_denom_div (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
-  num_denom (algebra_map K K[X] p / algebra_map _ _ q) =
+  num_denom (algebra_map _ _ p / algebra_map _ _ q) =
     (polynomial.C ((q / gcd p q).leading_coeff⁻¹) * (p / gcd p q),
      polynomial.C ((q / gcd p q).leading_coeff⁻¹) * (q / gcd p q)) :=
 begin
@@ -1169,7 +1171,8 @@ section eval
 
 /-! ### Polynomial structure: `C`, `X`, `eval` -/
 
-include hdomain
+section domain
+variables [comm_ring K] [is_domain K]
 
 /-- `ratfunc.C a` is the constant rational function `a`. -/
 def C : K →+* ratfunc K :=
@@ -1191,9 +1194,11 @@ def X : ratfunc K := algebra_map K[X] (ratfunc K) polynomial.X
 @[simp] lemma algebra_map_X :
   algebra_map K[X] (ratfunc K) polynomial.X = X := rfl
 
-omit hring hdomain
-variables [hfield : field K]
-include hfield
+end domain
+
+section field
+
+variables [field K]
 
 @[simp] lemma num_C (c : K) : num (C c) = polynomial.C c :=
 num_algebra_map _
@@ -1284,13 +1289,13 @@ begin
   apply num_denom_mul,
 end
 
+end field
+
 end eval
 
 section int_degree
 
 open polynomial
-
-omit hring
 
 variables [field K]
 
@@ -1375,7 +1380,6 @@ section laurent_series
 
 open power_series laurent_series hahn_series
 
-omit hring
 variables {F : Type u} [field F] (p q : F[X]) (f g : ratfunc F)
 
 /-- The coercion `ratfunc F → laurent_series F` as bundled alg hom. -/

@@ -310,33 +310,23 @@ begin
       exact differentiable_at.div_const differentiable_at_id _ } },
   /- Second claim: the limit at `s = 0` exists and is equal to `-1 / 2`. -/
   have c2 : tendsto (λ s : ℂ, ↑π ^ (s / 2) * riemann_completed_zeta s / Gamma (s / 2))
-    (𝓝[≠] 0) (𝓝 (-1 / 2 : ℂ)),
-  { have h1 : tendsto (λ z : ℂ, (π : ℂ) ^ (z / 2)) (𝓝 (0 : ℂ)) (𝓝 1),
+    (𝓝[≠] 0) (𝓝 $ -1 / 2),
+  { have h1 : tendsto (λ z : ℂ, (π : ℂ) ^ (z / 2)) (𝓝 0) (𝓝 1),
     { convert (continuous_at_const_cpow (of_real_ne_zero.mpr pi_pos.ne')).comp _,
       { simp_rw [function.comp_app, zero_div, cpow_zero] },
       { exact continuous_at_id.div continuous_at_const two_ne_zero } },
-    suffices h2 : tendsto (λ z, riemann_completed_zeta z / Gamma (z / 2)) (𝓝[≠] 0)
-      (𝓝 (-1 / 2 : ℂ)),
+    suffices h2 : tendsto (λ z, riemann_completed_zeta z / Gamma (z / 2)) (𝓝[≠] 0) (𝓝 $ -1 / 2),
     { convert (h1.mono_left nhds_within_le_nhds).mul h2,
       { ext1 x, rw mul_div }, { simp only [one_mul] } },
-    suffices h3 : tendsto (λ z, (riemann_completed_zeta z * (z / 2)) / ((z / 2) * Gamma (z / 2)))
-      (𝓝[≠] 0) (𝓝 (-1 / 2 : ℂ)),
+    suffices h3 : tendsto (λ z, (riemann_completed_zeta z * (z / 2)) / (z / 2 * Gamma (z / 2)))
+      (𝓝[≠] 0) (𝓝 $ -1 / 2),
     { refine tendsto.congr' (eventually_eq_of_mem self_mem_nhds_within (λ z hz, _)) h3,
       rw [←div_div, mul_div_cancel _ (div_ne_zero hz two_ne_zero)] },
-    have h4 : tendsto (λ z : ℂ, z / 2 * Gamma (z / 2)) (𝓝[≠] 0) (𝓝 (1 : ℂ)),
-    { convert tendsto.congr' _
-        ((_ : continuous_at (λ z : ℂ, Gamma (z / 2 + 1)) 0).mono_left nhds_within_le_nhds),
-      { rw [zero_div, zero_add, complex.Gamma_one] },
-      { refine eventually_eq_of_mem self_mem_nhds_within (λ z hz, _),
-        exact complex.Gamma_add_one _ (div_ne_zero hz two_ne_zero) },
-      { apply continuous_at.comp,
-        { rw [zero_div, zero_add],
-          refine (complex.differentiable_at_Gamma _ (λ m, _)).continuous_at,
-          rw [←of_real_nat_cast, ←of_real_neg, ←of_real_one, ne.def, of_real_inj],
-          refine (lt_of_le_of_lt _ zero_lt_one).ne',
-          exact neg_nonpos.mpr (nat.cast_nonneg _), },
-        { apply continuous.continuous_at,
-          exact (continuous_id'.div_const 2).add continuous_const, } } },
+    have h4 : tendsto (λ z : ℂ, z / 2 * Gamma (z / 2)) (𝓝[≠] 0) (𝓝 1),
+    { refine tendsto_self_mul_Gamma_nhds_0.comp _,
+      rw [tendsto_nhds_within_iff, (by simp : 𝓝 (0 : ℂ) = 𝓝 (0 / 2))],
+      exact ⟨(tendsto_id.div_const _).mono_left nhds_within_le_nhds,
+        eventually_of_mem self_mem_nhds_within (λ x hx, div_ne_zero hx two_ne_zero)⟩ },
     suffices : tendsto (λ z, riemann_completed_zeta z * z / 2) (𝓝[≠] 0) (𝓝 (-1 / 2 : ℂ)),
     { have := this.div h4 one_ne_zero,
       simp_rw [div_one, mul_div_assoc] at this,
@@ -364,7 +354,7 @@ begin
     unfold riemann_zeta,
     apply function.update_noteq hx },
   { -- The hard case: `s = 0`.
-    rw [riemann_zeta, ←(lim_eq_iff ⟨(-1 / 2 : ℂ), c2⟩).mpr c2],
+    rw [riemann_zeta, ←(lim_eq_iff ⟨-1 / 2, c2⟩).mpr c2],
     have S_nhds : {(1 : ℂ)}ᶜ ∈ 𝓝 (0 : ℂ), from is_open_compl_singleton.mem_nhds hs',
     refine ((complex.differentiable_on_update_lim_of_is_o S_nhds
       (λ t ht, (c1 t ht.2 ht.1).differentiable_within_at) _) 0 hs').differentiable_at S_nhds,
@@ -409,7 +399,7 @@ end
 
 /-- Evaluate the Mellin transform of the "fudge factor" in `zeta_kernel₂` -/
 lemma has_mellin_one_div_sqrt_sub_one_div_two_Ioc {s : ℂ} (hs : 1 / 2 < s.re) :
-  has_mellin ((Ioc 0 1).indicator (λ t, (1 - 1 / (↑(sqrt t) : ℂ)) / 2)) s
+  has_mellin ((Ioc 0 1).indicator (λ t, (1 - 1 / (sqrt t : ℂ)) / 2)) s
   (1 / (2 * s) - 1 / (2 * s - 1)) :=
 begin
   have step1 : has_mellin (indicator (Ioc 0 1) (λ t, 1 - 1 / ↑(sqrt t) : ℝ → ℂ)) s
@@ -418,8 +408,8 @@ begin
     have b := has_mellin_one_div_sqrt_Ioc hs,
     simpa only [a.2, b.2, ←indicator_sub] using has_mellin_sub a.1 b.1 },
   -- todo: implement something like "indicator.const_div" (blocked by the port for now)
-  rw (show (Ioc 0 1).indicator (λ t, (1 - 1 / (↑(sqrt t) : ℂ)) / 2) =
-    λ t, ((Ioc 0 1).indicator (λ t, (1 - 1 / (↑(sqrt t) : ℂ))) t) / 2,
+  rw (show (Ioc 0 1).indicator (λ t, (1 - 1 / (sqrt t : ℂ)) / 2) =
+    λ t, ((Ioc 0 1).indicator (λ t, (1 - 1 / (sqrt t : ℂ))) t) / 2,
     by { ext1 t, simp_rw [div_eq_inv_mul, indicator_mul_right] }),
   simp_rw [has_mellin, mellin_div_const, step1.2, sub_div, div_div],
   refine ⟨step1.1.div_const _, _⟩,

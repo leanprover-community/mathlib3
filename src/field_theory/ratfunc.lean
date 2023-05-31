@@ -100,9 +100,6 @@ universes u v
 
 variable (K : Type u)
 
---variables (K : Type u) [comm_ring K] --[hdomain : is_domain K]
---include hring
-
 /-- `ratfunc K` is `K(x)`, the field of rational functions over `K`.
 
 The inclusion of polynomials into `ratfunc` is `algebra_map K[X] (ratfunc K)`,
@@ -386,8 +383,7 @@ section is_domain
 
 variable [is_domain K]
 variables [monoid R] [distrib_mul_action R K[X]]
-variables [htower : is_scalar_tower R K[X] K[X]]
-include htower
+variables [is_scalar_tower R K[X] K[X]]
 
 lemma mk_smul (c : R) (p q : K[X]) :
   ratfunc.mk (c • p) q = c • ratfunc.mk p q :=

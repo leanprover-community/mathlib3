@@ -127,11 +127,10 @@ lemma zmod.is_square_neg_one_iff' {n : ℕ} (hn : squarefree n) :
 begin
   have help : ∀ a b : zmod 4, a ≠ 3 → b ≠ 3 → a * b ≠ 3 := by dec_trivial,
   rw zmod.is_square_neg_one_iff hn,
-  refine ⟨λ H q, induction_on_primes _ _ _ q, λ H q hq₁ hq₂, H hq₂⟩,
+  refine ⟨λ H, induction_on_primes _ _ (λ p q hp hq hpq, _), λ H q hq₁, H⟩,
   { exact λ _, by norm_num, },
   { exact λ _, by norm_num, },
-  { intros p q hp hq hpq,
-    replace hp := H hp (dvd_of_mul_right_dvd hpq),
+  { replace hp := H hp (dvd_of_mul_right_dvd hpq),
     replace hq := hq (dvd_of_mul_left_dvd hpq),
     rw [(show 3 = 3 % 4, from by norm_num), ne.def, ← zmod.nat_coe_eq_nat_coe_iff'] at hp hq ⊢,
     rw nat.cast_mul,

@@ -534,3 +534,73 @@ begin
   { rw [ne.def, cpow_eq_zero_iff, not_and_distrib, ←ne.def, of_real_ne_zero],
     exact or.inl (pi_pos.ne') }
 end
+
+/-!
+## Functional equation
+-/
+
+/-- Riemann zeta functional equation, formulated for `Λ₀(s)`. -/
+lemma riemann_completed_zeta₀_one_sub (s : ℂ) :
+  riemann_completed_zeta₀ (1 - s) = riemann_completed_zeta₀ s :=
+begin
+  have := mellin_comp_rpow (zeta_kernel₂) (s / 2 - 1 / 2) neg_one_lt_zero.ne,
+  simp_rw [rpow_neg_one, ←one_div, abs_neg, abs_one, div_one, one_smul, of_real_neg,
+    of_real_one, div_neg, div_one, neg_sub] at this,
+  conv_lhs { rw [riemann_completed_zeta₀, sub_div, ←this] },
+  refine set_integral_congr measurable_set_Ioi (λ t ht, _),
+  simp_rw [zeta_kernel₂_one_div ht, smul_eq_mul, ←mul_assoc, sqrt_eq_rpow,
+    of_real_cpow (le_of_lt ht), ←cpow_add _ _ (of_real_ne_zero.mpr $ ne_of_gt ht)],
+  congr' 2,
+  push_cast,
+  ring,
+end
+
+/-- Riemann zeta functional equation, formulated for `Λ(s)`. -/
+lemma riemann_completed_zeta_one_sub (s : ℂ) :
+  riemann_completed_zeta (1 - s) = riemann_completed_zeta s :=
+by simp_rw [riemann_completed_zeta, riemann_completed_zeta₀_one_sub, sub_add,
+    (by abel : 1 - s - 1 = -s), (by abel : 1 - s = -(s - 1)), div_neg, neg_sub_neg]
+
+-- /-- Riemann zeta functional equation, formulated for `ζ(s)`. -/
+-- lemma riemann_zeta_one_sub {s : ℂ} (hs : ¬∃ (n : ℕ), s = -n) (hs' : s ≠ 1) :
+--   riemann_zeta (1 - s) =
+--   2 ^ (1 - s) * π ^ (-s) * Gamma s * sin (π * (1 - s) / 2) * riemann_zeta s :=
+-- begin
+--   have h_Ga_ne : Gamma (s / 2) ≠ 0,
+--   { rw [ne.def, complex.Gamma_eq_zero_iff],
+--     contrapose! hs,
+--     obtain ⟨m, hm⟩ := hs,
+--     rw [div_eq_iff (two_ne_zero' ℂ),←nat.cast_two, neg_mul, ←nat.cast_mul] at hm,
+--     exact ⟨m * 2, by rw hm⟩ },
+--   have h_Ga_ne' : Gamma s ≠ 0,
+--   { apply complex.Gamma_ne_zero,
+--     push_neg at hs, exact hs },
+--   have hs_ne : s ≠ 0, by { contrapose! hs, rw hs, exact ⟨0, by simp⟩ },
+--   rw [riemann_zeta, function.update_noteq (by rwa [sub_ne_zero, ne_comm] : 1 - s ≠ 0),
+--     function.update_noteq hs_ne, riemann_completed_zeta_one_sub, mul_div, eq_div_iff h_Ga_ne,
+--     mul_comm, ←mul_div_assoc],
+--   -- now rule out case of s = positive odd integer
+--   by_cases hs_pos_odd : ∃ (n : ℕ), s = 1 + 2 * n,
+--   { obtain ⟨n, rfl⟩ := hs_pos_odd,
+--     have : (1 - (1 + 2 * (n : ℂ))) / 2 =  -↑n,
+--     { rw [←sub_sub, sub_self, zero_sub, neg_div, mul_div_cancel_left _ (two_ne_zero' ℂ)] },
+--     rw [this, complex.Gamma_neg_nat_eq_zero, div_zero],
+--     have : (π : ℂ) * (1 - (1 + 2 * ↑n)) / 2 = ↑(-n : ℤ) * π,
+--     { push_cast, field_simp, ring },
+--     rw [this, complex.sin_int_mul_pi, mul_zero, zero_mul] },
+--   have h_Ga_ne'' : Gamma ((1 - s) / 2) ≠ 0,
+--   { rw [ne.def, complex.Gamma_eq_zero_iff],
+--     contrapose! hs_pos_odd,
+--     obtain ⟨m, hm⟩ := hs_pos_odd,
+--     rw [div_eq_iff (two_ne_zero' ℂ), sub_eq_iff_eq_add, neg_mul, ←sub_eq_neg_add,
+--       eq_sub_iff_add_eq] at hm,
+--     exact ⟨m, by rw [←hm, mul_comm]⟩ },
+--   rw div_eq_iff h_Ga_ne'',
+--   simp_rw ←mul_assoc,
+--   conv_rhs { rw mul_comm },
+--   simp_rw ←mul_assoc,
+--   congr' 1,
+--   have := complex.Gamma_mul_Gamma_one_sub ((1 - s) / 2),
+--   rw (by { ring }: 1 - (1 - s) / 2 = (s + 1) / 2) at this,
+--   rw eq_div_iff at this,
+-- end

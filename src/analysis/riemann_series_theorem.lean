@@ -434,6 +434,29 @@ begin
   { refl }
 end
 
-theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (nhds C))
-  (h₂ : ¬∃ C : ℝ, tendsto (partial_sum (λ k, ‖a k‖)) at_top (nhds C)) (M : ℝ) : ∃ (p : equiv.perm ℕ),
-    filter.tendsto (partial_sum (λ n, a (p n))) filter.at_top (𝓝 M) := sorry
+lemma rearrangement_surjective {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ)
+  : function.surjective (rearrangement a M) :=
+begin
+  sorry
+end
+
+lemma rearrangement_bijective {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ)
+  : function.bijective (rearrangement a M) :=
+⟨rearrangement_injective h₁ h₂ M, rearrangement_surjective h₁ h₂ M⟩
+
+lemma rearrangement_tendsto_M {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ)
+  : tendsto (partial_sum (λ n, a (rearrangement a M n))) at_top (𝓝 M) :=
+begin
+  sorry
+end
+
+theorem riemann_series_theorem {a : ℕ → ℝ} (h₁ : ∃ C : ℝ, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C : ℝ, tendsto (partial_sum (λ k, ‖a k‖)) at_top (𝓝 C)) (M : ℝ) : ∃ (p : equiv.perm ℕ),
+    tendsto (partial_sum (λ n, a (p n))) filter.at_top (𝓝 M) :=
+⟨equiv.of_bijective _ (rearrangement_bijective h₁ h₂ M), rearrangement_tendsto_M h₁ h₂ M⟩

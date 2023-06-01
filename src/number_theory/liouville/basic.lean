@@ -29,7 +29,7 @@ def liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧
 
 namespace liouville
 
-@[protected] lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
+protected lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
 begin
   -- By contradiction, `x = a / b`, with `a ∈ ℤ`, `0 < b ∈ ℕ` is a Liouville number,
   rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
@@ -169,7 +169,7 @@ begin
 end
 
 /-- **Liouville's Theorem** -/
-theorem transcendental {x : ℝ} (lx : liouville x) :
+protected theorem transcendental {x : ℝ} (lx : liouville x) :
   transcendental ℤ x :=
 begin
   -- Proceed by contradiction: if `x` is algebraic, then `x` is the root (`ef0`) of a

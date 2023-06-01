@@ -561,46 +561,64 @@ lemma riemann_completed_zeta_one_sub (s : ℂ) :
 by simp_rw [riemann_completed_zeta, riemann_completed_zeta₀_one_sub, sub_add,
     (by abel : 1 - s - 1 = -s), (by abel : 1 - s = -(s - 1)), div_neg, neg_sub_neg]
 
--- /-- Riemann zeta functional equation, formulated for `ζ(s)`. -/
--- lemma riemann_zeta_one_sub {s : ℂ} (hs : ¬∃ (n : ℕ), s = -n) (hs' : s ≠ 1) :
---   riemann_zeta (1 - s) =
---   2 ^ (1 - s) * π ^ (-s) * Gamma s * sin (π * (1 - s) / 2) * riemann_zeta s :=
--- begin
---   have h_Ga_ne : Gamma (s / 2) ≠ 0,
---   { rw [ne.def, complex.Gamma_eq_zero_iff],
---     contrapose! hs,
---     obtain ⟨m, hm⟩ := hs,
---     rw [div_eq_iff (two_ne_zero' ℂ),←nat.cast_two, neg_mul, ←nat.cast_mul] at hm,
---     exact ⟨m * 2, by rw hm⟩ },
---   have h_Ga_ne' : Gamma s ≠ 0,
---   { apply complex.Gamma_ne_zero,
---     push_neg at hs, exact hs },
---   have hs_ne : s ≠ 0, by { contrapose! hs, rw hs, exact ⟨0, by simp⟩ },
---   rw [riemann_zeta, function.update_noteq (by rwa [sub_ne_zero, ne_comm] : 1 - s ≠ 0),
---     function.update_noteq hs_ne, riemann_completed_zeta_one_sub, mul_div, eq_div_iff h_Ga_ne,
---     mul_comm, ←mul_div_assoc],
---   -- now rule out case of s = positive odd integer
---   by_cases hs_pos_odd : ∃ (n : ℕ), s = 1 + 2 * n,
---   { obtain ⟨n, rfl⟩ := hs_pos_odd,
---     have : (1 - (1 + 2 * (n : ℂ))) / 2 =  -↑n,
---     { rw [←sub_sub, sub_self, zero_sub, neg_div, mul_div_cancel_left _ (two_ne_zero' ℂ)] },
---     rw [this, complex.Gamma_neg_nat_eq_zero, div_zero],
---     have : (π : ℂ) * (1 - (1 + 2 * ↑n)) / 2 = ↑(-n : ℤ) * π,
---     { push_cast, field_simp, ring },
---     rw [this, complex.sin_int_mul_pi, mul_zero, zero_mul] },
---   have h_Ga_ne'' : Gamma ((1 - s) / 2) ≠ 0,
---   { rw [ne.def, complex.Gamma_eq_zero_iff],
---     contrapose! hs_pos_odd,
---     obtain ⟨m, hm⟩ := hs_pos_odd,
---     rw [div_eq_iff (two_ne_zero' ℂ), sub_eq_iff_eq_add, neg_mul, ←sub_eq_neg_add,
---       eq_sub_iff_add_eq] at hm,
---     exact ⟨m, by rw [←hm, mul_comm]⟩ },
---   rw div_eq_iff h_Ga_ne'',
---   simp_rw ←mul_assoc,
---   conv_rhs { rw mul_comm },
---   simp_rw ←mul_assoc,
---   congr' 1,
---   have := complex.Gamma_mul_Gamma_one_sub ((1 - s) / 2),
---   rw (by { ring }: 1 - (1 - s) / 2 = (s + 1) / 2) at this,
---   rw eq_div_iff at this,
--- end
+/-- Riemann zeta functional equation, formulated for `ζ(s)`. -/
+lemma riemann_zeta_one_sub {s : ℂ} (hs : ∀ (n : ℕ), s ≠ -n) (hs' : s ≠ 1) :
+  riemann_zeta (1 - s) =
+  2 ^ (1 - s) * π ^ (-s) * Gamma s * sin (π * (1 - s) / 2) * riemann_zeta s :=
+begin
+  -- Deducing this from the previous formulations is quite involved. The proof uses two
+  -- nontrivial facts (the doubling formula and reflection formula for Gamma) and a lot of careful
+  -- rearrangement, requiring several non-vanishing statements as input to `field_simp`.
+  have hs_ne : s ≠ 0, by { contrapose! hs, rw hs, exact ⟨0, by rw [nat.cast_zero, neg_zero]⟩ },
+  have h_sqrt : (sqrt π : ℂ) ≠ 0, from of_real_ne_zero.mpr (sqrt_ne_zero'.mpr pi_pos),
+  have h_pow : (2 : ℂ) ^ (s - 1) ≠ 0,
+  { rw [ne.def, cpow_eq_zero_iff, not_and_distrib], exact or.inl two_ne_zero },
+  have h_Ga_ne1 : Gamma (s / 2) ≠ 0,
+  { rw [ne.def, complex.Gamma_eq_zero_iff],
+    contrapose! hs,
+    obtain ⟨m, hm⟩ := hs,
+    rw [div_eq_iff (two_ne_zero' ℂ), ←nat.cast_two, neg_mul, ←nat.cast_mul] at hm,
+    exact ⟨m * 2, by rw hm⟩ },
+  have h_Ga_eq : Gamma s = Gamma (s / 2) * Gamma ((s + 1) / 2) * 2 ^ (s - 1) / sqrt π,
+  { rw [add_div, complex.Gamma_mul_Gamma_add_half, mul_div_cancel' _ (two_ne_zero' ℂ),
+      (by ring : 1 - s = -(s - 1)), cpow_neg, ←div_eq_mul_inv, eq_div_iff h_sqrt,
+      div_mul_eq_mul_div₀, div_mul_cancel _ h_pow] },
+  have h_Ga_ne3 : Gamma ((s + 1) / 2) ≠ 0,
+  { have h_Ga_aux : Gamma s ≠ 0, from complex.Gamma_ne_zero hs,
+    contrapose! h_Ga_aux,
+    rw [h_Ga_eq, h_Ga_aux, mul_zero, zero_mul, zero_div] },
+  rw [riemann_zeta, function.update_noteq (by rwa [sub_ne_zero, ne_comm] : 1 - s ≠ 0),
+    function.update_noteq hs_ne, riemann_completed_zeta_one_sub, mul_div, eq_div_iff h_Ga_ne1,
+    mul_comm, ←mul_div_assoc],
+  -- Now rule out case of s = positive odd integer & deduce further non-vanishing statements
+  by_cases hs_pos_odd : ∃ (n : ℕ), s = 1 + 2 * n,
+  { -- Note the case n = 0 (i.e. s = 1) works OK here, but only because we have used
+    -- `function.update_noteq` to change the goal; the original goal is genuinely false for s = 1.
+    obtain ⟨n, rfl⟩ := hs_pos_odd,
+    have : (1 - (1 + 2 * (n : ℂ))) / 2 =  -↑n,
+    { rw [←sub_sub, sub_self, zero_sub, neg_div, mul_div_cancel_left _ (two_ne_zero' ℂ)] },
+    rw [this, complex.Gamma_neg_nat_eq_zero, div_zero],
+    have : (π : ℂ) * (1 - (1 + 2 * ↑n)) / 2 = ↑(-n : ℤ) * π,
+    { push_cast, field_simp, ring },
+    rw [this, complex.sin_int_mul_pi, mul_zero, zero_mul] },
+  have h_Ga_ne4 : Gamma ((1 - s) / 2) ≠ 0,
+  { rw [ne.def, complex.Gamma_eq_zero_iff],
+    contrapose! hs_pos_odd,
+    obtain ⟨m, hm⟩ := hs_pos_odd,
+    rw [div_eq_iff (two_ne_zero' ℂ), sub_eq_iff_eq_add, neg_mul, ←sub_eq_neg_add,
+      eq_sub_iff_add_eq] at hm,
+    exact ⟨m, by rw [←hm, mul_comm]⟩ },
+  -- At last the main proof
+  rw show sin (↑π * (1 - s) / 2) = π * (Gamma ((1 - s) / 2) * Gamma (s / 2 + 1 / 2))⁻¹, by
+  { have := congr_arg has_inv.inv (complex.Gamma_mul_Gamma_one_sub ((1 - s) / 2)).symm,
+    rwa [(by ring : 1 - (1 - s) / 2 = s / 2 + 1 / 2), inv_div,
+      div_eq_iff (of_real_ne_zero.mpr pi_pos.ne'), mul_comm _ ↑π, mul_div_assoc'] at this },
+  rw [(by rw ←neg_sub : (2 : ℂ) ^ (1 - s) = 2 ^ (-(s - 1))), cpow_neg, h_Ga_eq],
+  suffices : (π : ℂ)  ^ ( (1 - s) / 2)  = π ^ -s * sqrt π * π ^ (s / 2),
+  { rw this, field_simp, ring_nf, rw [←of_real_pow, sq_sqrt pi_pos.le], ring },
+  simp_rw [sqrt_eq_rpow, of_real_cpow pi_pos.le, ←cpow_add _ _ (of_real_ne_zero.mpr pi_pos.ne')],
+  congr' 1,
+  push_cast,
+  field_simp,
+  ring,
+end

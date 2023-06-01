@@ -1,3 +1,4 @@
+#exit
 import representation_theory.group_cohomology.low_degree
 
 universes v u
@@ -8,26 +9,18 @@ open category_theory
 variables {k G H : Type u} [comm_ring k] [group G] [group H]
   (A : Rep k G) (B : Rep k H) (f : G →* H) (φ : B.V →ₗ[k] A.V) (n : ℕ)
 
-lemma map_mul_nth (j : ℕ) (g : fin (n + 1) → G) :
-  f ∘ fin.mul_nth j g = fin.mul_nth j (f ∘ g) :=
+lemma fin.comp_contract_nth (j : fin (n + 1)) (g : fin (n + 1) → G) :
+  f ∘ fin.contract_nth j (*) g = fin.contract_nth j (*) (f ∘ g) :=
 begin
   ext,
   rw function.comp_app,
-  by_cases (x : ℕ) < j,
-  { simp only [fin.mul_nth_lt_apply _ h] },
-  { by_cases h1 : (x : ℕ) = j,
-    { simp only [fin.mul_nth_eq_apply _ h1, f.map_mul], },
-    { simp only [fin.mul_nth_neg_apply _ h h1] }}
+  rcases lt_trichotomy (x : ℕ) j with (h|h|h),
+  { simp only [fin.contract_nth_apply_of_lt, h] },
+  { simp only [fin.contract_nth_apply_of_eq, h, f.map_mul] },
+  { simp only [fin.contract_nth_apply_of_gt, h] }
 end
 
 def compatible : Prop := ∀ (g : G) (x : B.V), φ (B.ρ (f g) x) = A.ρ g (φ x)
-
-/-def compatible_chain_map_aux (n : ℕ) :
-  ((fin n → H) → B.V) →ₗ[k] ((fin n → G) → A.V) :=
-(φ.comp_left (fin n → G)).comp (linear_map.fun_left k B.V (λ x : fin n → G, f ∘ x))
-
-@[simp] lemma compatible_chain_map_aux_apply (n : ℕ) (x : (fin n → H) → B.V) (g : fin n → G) :
-  compatible_chain_map_aux A B f φ n x g = φ (x (f ∘ g)) := rfl-/
 
 open representation
 
@@ -39,7 +32,7 @@ variables (A) (S : subgroup G)
   begin
     dsimp,
     rw [←one_mul (h : G), ←mul_inv_self g, mul_assoc, A.ρ.map_mul,
-    ←linear_map.mul_apply, mul_assoc, ←A.ρ.map_mul],
+      ←linear_map.mul_apply, mul_assoc, ←A.ρ.map_mul],
     exact linear_map.congr_arg (x.2 (⟨g⁻¹ * h * g, by nth_rewrite 1 ←inv_inv g;
       exact subgroup.normal.conj_mem h1 (h : S) h.2 g⁻¹⟩))
   end),
@@ -95,7 +88,10 @@ sorry /-{ V := Module.of k (Rep.of_mul_action k H G ⟶ A),
       map_smul' := _ },
     map_one' := _,
     map_mul' := _ }}-/
-
+lemma inhomogeneous_cochains.d_def :
+  (inhomogeneous_cochains A).d n (n + 1) = inhomogeneous_cochains.d n A :=
+cochain_complex.of_d _ _ _ _
+#check distrib_mul_actionnnn
 @[simps] def pair_chain_map (hp : compatible A B f φ) :
   inhomogeneous_cochains B ⟶ inhomogeneous_cochains A :=
 { f := λ i, φ.comp_left (fin i → G) ∘ₗ linear_map.fun_left k B.V (λ x : fin i → G, f ∘ x),
@@ -105,15 +101,12 @@ sorry /-{ V := Module.of k (Rep.of_mul_action k H G ⟶ A),
     ext x g,
     simp only [Module.coe_comp, linear_map.coe_comp, function.comp_app, linear_map.comp_left_apply,
       linear_map.fun_left_apply, inhomogeneous_cochains.d_def, inhomogeneous_cochains.d_apply,
-      φ.map_add, φ.map_sum, φ.map_smul, hp (g 0), add_right_inj, map_mul_nth],
+      φ.map_add, φ.map_sum, φ.map_smul, hp (g 0), add_right_inj, fin.comp_contract_nth],
   end }
 
 lemma pair_chain_map_f_apply {hp : compatible A B f φ} (x : (fin n → H) → B) (g : fin n → G) :
   (pair_chain_map A B f φ hp).f n x g = φ (x (f ∘ g)) :=
 rfl
-#check subobject
-#check (inhomogeneous_cochains B).cycles n
-#check (inhomogeneous_cochains B).X n
 
 def pair_cocycles_map (hp : compatible A B f φ) (n : ℕ) :
   (inhomogeneous_cochains B).cycles n →ₗ[k] (inhomogeneous_cochains A).cycles n :=
@@ -236,6 +229,8 @@ def Inf (S : subgroup G) [h1 : S.normal] (n : ℕ) :
 pair_cohomology_map _ _ (quotient_group.mk' S) (invariants (A.ρ.comp S.subtype)).subtype
   (quotient_pair A S) n
 
+def Inf_functor (S : subgroup G) [h1 : S.normal] (n : ℕ) : Rep k G ⥤ Module k :=
+{! !}
 def Inf_one_cocycles (S : subgroup G) [h1 : S.normal] :
   one_cocycles (Inf_rep A S) →ₗ[k] one_cocycles A :=
 pair_one_cocycles_map A (Inf_rep A S) (quotient_group.mk' S)

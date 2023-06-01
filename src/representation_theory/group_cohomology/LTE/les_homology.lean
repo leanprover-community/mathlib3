@@ -1,3 +1,4 @@
+#exit
 import data.matrix.notation
 
 import .snake_lemma2

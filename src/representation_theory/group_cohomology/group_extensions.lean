@@ -1,11 +1,12 @@
+#exit
 import representation_theory.group_cohomology.low_degree algebra.category.Group.images algebra.homology.short_exact.preadditive
 import group_theory.semidirect_product
 
 universes v u
 open category_theory category_theory.limits
 
-@[to_additive] lemma monoid_hom.comp_eq_one_of_range_eq_ker 
-  {G H J : Type*} [group G] [group H] [group J] 
+@[to_additive] lemma monoid_hom.comp_eq_one_of_range_eq_ker
+  {G H J : Type*} [group G] [group H] [group J]
   (f : G →* H) (g : H →* J) (h : f.range = g.ker) :
   g.comp f = 1 :=
 monoid_hom.ext $ λ x, g.mem_ker.1 (by rw ←h; exact ⟨x, rfl⟩)
@@ -29,12 +30,12 @@ variables {H G : Type*} [group H] [group G]
 noncomputable def π_sec (E : extension H G) (g : G) : E.E :=
 classical.some (monoid_hom.range_top_iff_surjective.1 E.π_range g)
 
-lemma π_sec_spec (E : extension H G) (g : G) : 
+lemma π_sec_spec (E : extension H G) (g : G) :
   E.π (π_sec E g) = g :=
 classical.some_spec (monoid_hom.range_top_iff_surjective.1 E.π_range g)
 
 def as_subgroup (E : extension H G) : subgroup E.E :=
-E.i.range 
+E.i.range
 
 noncomputable def i_sec (E : extension H G) : E.i.range →* H :=
 (monoid_hom.of_injective (E.i.ker_eq_bot_iff.1 E.i_ker)).symm.to_monoid_hom
@@ -376,7 +377,7 @@ def equiv_of_eq (F1 F2 : two_cocycles A) (f : G → A) (hf : (F1 - F2 : G × G �
     ext,
     dsimp [extension],
     { have := function.funext_iff.1 hf (1, 1),
-      simp only [pi.sub_apply, d_one_apply, map_one, linear_map.one_apply, 
+      simp only [pi.sub_apply, d_one_apply, map_one, linear_map.one_apply,
         _root_.mul_one, sub_self, zero_add] at this,
       simp only [←this, sub_add_sub_cancel] },
     { refl }
@@ -387,21 +388,21 @@ variables {H : Type} [comm_group H]
 
 def Fucksake2 (f : G →* mul_aut H) : G →* (additive H →ₗ[ℤ] additive H) :=
 { to_fun := λ g, add_monoid_hom.to_int_linear_map (f g).to_monoid_hom.to_additive,
-  map_one' := 
+  map_one' :=
   begin
     ext,
-    simp only [map_one, add_monoid_hom.coe_to_int_linear_map, monoid_hom.to_additive_apply_apply, 
+    simp only [map_one, add_monoid_hom.coe_to_int_linear_map, monoid_hom.to_additive_apply_apply,
       mul_equiv.coe_to_monoid_hom, mul_aut.one_apply, of_mul_to_mul, linear_map.one_apply],
   end,
   map_mul' := λ x y,
   begin
     ext,
-    simp only [map_mul, add_monoid_hom.coe_to_int_linear_map, monoid_hom.to_additive_apply_apply, 
+    simp only [map_mul, add_monoid_hom.coe_to_int_linear_map, monoid_hom.to_additive_apply_apply,
       mul_equiv.coe_to_monoid_hom, mul_aut.mul_apply, to_mul_of_mul, linear_map.mul_apply],
-  end } 
+  end }
 
 noncomputable def to_mul_aut_aux (E : _root_.extension H G) (g : G) : H →* H :=
-{ to_fun := λ h, E.i_sec ⟨E.π_sec g * E.i h * E.π_sec g⁻¹, 
+{ to_fun := λ h, E.i_sec ⟨E.π_sec g * E.i h * E.π_sec g⁻¹,
   begin
     simp only [E.exact, monoid_hom.mem_ker, map_mul, E.π_sec_spec],
     have := monoid_hom.ext_iff.1 (monoid_hom.comp_eq_one_of_range_eq_ker _ _ E.exact) h,
@@ -409,22 +410,22 @@ noncomputable def to_mul_aut_aux (E : _root_.extension H G) (g : G) : H →* H :
     rw this,
     simp only [_root_.mul_one, mul_right_inv, eq_self_iff_true],
   end⟩,
-  map_one' := 
+  map_one' :=
   begin
     simp only [map_mul, mul_one, mul_right_inv, eq_self_iff_true, map_one],
-    
+
   end,
   map_mul' := _ }
 
 def to_mul_aut (E : _root_.extension H G) : G →* (H →* H)  :=
-{ to_fun := λ g, 
+{ to_fun := λ g,
   map_one' := _,
   map_mul' := _ }
 
 #check mul_aut.conj
 def hmmmm (E : _root_.extension G H) : Rep ℤ G :=
 { V := Module.of ℤ (additive H),
-  ρ := _ } 
+  ρ := _ }
 /-def equiv_of_eq (F1 F2 : two_cocycles A)
   (H : (two_coboundaries A).mkq F1 = (two_coboundaries A).mkq F2) :
   equiv (extension F1) (extension F2) :=

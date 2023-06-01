@@ -5,7 +5,6 @@ Authors: Nicolò Cavalleri, Andrew Yang
 -/
 
 import ring_theory.adjoin.basic
-import ring_theory.ideal.quotient_operations
 
 /-!
 # Derivations

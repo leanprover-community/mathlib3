@@ -3,7 +3,6 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import analysis.calculus.inverse
 import analysis.complex.real_deriv
 
 /-!
@@ -66,9 +65,6 @@ cont_diff_exp.cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
 lemma has_strict_fderiv_at_exp_real (x : ℂ) :
   has_strict_fderiv_at exp (exp x • (1 : ℂ →L[ℝ] ℂ)) x :=
 (has_strict_deriv_at_exp x).complex_to_real_fderiv
-
-lemma is_open_map_exp : is_open_map exp :=
-open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 
 end complex
 

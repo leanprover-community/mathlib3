@@ -232,66 +232,6 @@ begin
     finsupp.lift_apply, finsupp.sum_single_index, zero_smul, one_smul],
 end
 
-variables {k G}
-
-/-- Given an element `x : A`, there is a natural morphism of representations `k[G] ⟶ A` sending
-`g ↦ A.ρ(g)(x).` -/
-@[simps] noncomputable def left_regular_hom (A : Rep k G) (x : A) :
-  Rep.of_mul_action k G G ⟶ A :=
-{ hom := finsupp.lift _ _ _ (λ g, A.ρ g x),
-  comm' := λ g,
-  begin
-    refine finsupp.lhom_ext' (λ x, linear_map.ext_ring _),
-    simp only [linear_map.comp_apply, Module.comp_def, finsupp.lsingle_apply,
-      finsupp.lift_apply],
-    show finsupp.sum (finsupp.map_domain _ _) _ = _,
-    rw [finsupp.map_domain_single,  finsupp.sum_single_index, one_smul, finsupp.sum_single_index,
-      one_smul, smul_eq_mul, A.ρ.map_mul, linear_map.mul_apply],
-    { refl },
-    { rw zero_smul },
-    { rw zero_smul },
-  end }
-
-lemma left_regular_hom_apply {A : Rep k G} (x : A) :
-  (left_regular_hom A x).hom (finsupp.single 1 1) = x :=
-begin
-  dsimp only [left_regular_hom_hom, finsupp.lift_apply],
-  rw [finsupp.sum_single_index, one_smul, A.ρ.map_one],
-  { refl },
-  { rw zero_smul },
-end
-
-/-- Given a `k`-linear `G`-representation `A`, there is a `k`-linear isomorphism between
-representation morphisms `Hom(k[G], A)` and `A`. -/
-@[simps] noncomputable def left_regular_hom_equiv (A : Rep k G) :
-  (Rep.of_mul_action k G G ⟶ A) ≃ₗ[k] A :=
-{ to_fun := λ f, f.hom (finsupp.single 1 1),
-  map_add' := λ x y, rfl,
-  map_smul' := λ r x, rfl,
-  inv_fun := λ x, left_regular_hom A x,
-  left_inv := λ f,
-  begin
-    refine Action.hom.ext _ _ (finsupp.lhom_ext' (λ (x : G), linear_map.ext_ring _)),
-    simp only [linear_map.comp_apply, finsupp.lsingle_apply,
-      left_regular_hom_hom, finsupp.lift_apply],
-    rw [finsupp.sum_single_index, one_smul],
-    have := linear_map.ext_iff.1 (f.comm x) (finsupp.single 1 1),
-    simp only [Module.coe_comp, function.comp_apply, linear_map.to_fun_eq_coe,
-      linear_map.comp_apply, Rep.of_ρ] at this,
-    erw ←this,
-    show f.hom (finsupp.map_domain _ _) = _,
-    rw [finsupp.map_domain_single, smul_eq_mul, mul_one],
-    { rw zero_smul },
-  end,
-  right_inv := λ x, left_regular_hom_apply x }
-
-lemma left_regular_hom_equiv_symm_single {A : Rep k G} (x : A) (g : G) :
-  ((left_regular_hom_equiv A).symm x).hom (finsupp.single g 1) = A.ρ g x :=
-begin
-  simp only [left_regular_hom_equiv_symm_apply, left_regular_hom_hom,
-    finsupp.lift_apply, finsupp.sum_single_index, zero_smul, one_smul],
-end
-
 end linearization
 end
 section

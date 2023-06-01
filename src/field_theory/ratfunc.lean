@@ -482,7 +482,6 @@ variables {K}
 section lift_hom
 
 variables {G₀ L R S F : Type*} [comm_group_with_zero G₀] [field L] [comm_ring R] [comm_ring S]
---omit hring  -- pre-porting note: a little scary, but maybe innocuous: no `K` is present here.
 
 /-- Lift a monoid homomorphism that maps polynomials `φ : R[X] →* S[X]`
 to a `ratfunc R →* ratfunc S`,

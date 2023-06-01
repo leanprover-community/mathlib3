@@ -45,8 +45,7 @@ open polynomial
 open integral_closure
 open is_integrally_closed
 
-variables [is_domain R]
-variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
+variables (K : Type*) [field K] [algebra R K]
 
 theorem integral_closure.mem_lifts_of_monic_of_dvd_map
   {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
@@ -70,6 +69,8 @@ begin
   { exact map_dvd (algebra_map K g.splitting_field) hd },
   { apply splitting_field_aux.is_scalar_tower },
 end
+
+variables [is_domain R] [is_fraction_ring R K]
 
 /-- If `K = Frac(R)` and `g : K[X]` divides a monic polynomial with coefficients in `R`, then
     `g * (C g.leading_coeff⁻¹)` has coefficients in `R` -/

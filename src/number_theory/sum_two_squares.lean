@@ -105,7 +105,7 @@ end
 /-- If `n` is a squarefree natural number, then `-1` is a square modulo `n` if and only if
 `n` is not divisible by a prime `q` such that `q % 4 = 3`. -/
 lemma zmod.is_square_neg_one_iff {n : ℕ} (hn : squarefree n) :
-  is_square (-1 : zmod n) ↔ ∀ q : ℕ, q.prime → q ∣ n → q % 4 ≠ 3 :=
+  is_square (-1 : zmod n) ↔ ∀ {q : ℕ}, q.prime → q ∣ n → q % 4 ≠ 3 :=
 begin
   refine ⟨λ H q hqp hqd, hqp.mod_four_ne_three_of_dvd_is_square_neg_one hqd H, λ H, _⟩,
   induction n using induction_on_primes with p n hpp ih,
@@ -118,6 +118,24 @@ begin
     have hp₁ := zmod.exists_sq_eq_neg_one_iff.mpr (H p hpp (dvd_mul_right p n)),
     exact zmod.is_square_neg_one_mul hcp hp₁
       (ih hn.of_mul_right (λ q hqp hqd, H q hqp $ dvd_mul_of_dvd_right hqd _)), }
+end
+
+/-- If `n` is a squarefree natural number, then `-1` is a square modulo `n` if and only if
+`n` has no divisor `q` that is `≡ 3 mod 4`. -/
+lemma zmod.is_square_neg_one_iff' {n : ℕ} (hn : squarefree n) :
+  is_square (-1 : zmod n) ↔ ∀ {q : ℕ}, q ∣ n → q % 4 ≠ 3 :=
+begin
+  have help : ∀ a b : zmod 4, a ≠ 3 → b ≠ 3 → a * b ≠ 3 := by dec_trivial,
+  rw zmod.is_square_neg_one_iff hn,
+  refine ⟨λ H q, induction_on_primes _ _ _ q, λ H q hq₁ hq₂, H hq₂⟩,
+  { exact λ _, by norm_num, },
+  { exact λ _, by norm_num, },
+  { intros p q hp hq hpq,
+    replace hp := H hp (dvd_of_mul_right_dvd hpq),
+    replace hq := hq (dvd_of_mul_left_dvd hpq),
+    rw [(show 3 = 3 % 4, from by norm_num), ne.def, ← zmod.nat_coe_eq_nat_coe_iff'] at hp hq ⊢,
+    rw nat.cast_mul,
+    exact help p q hp hq, }
 end
 
 /-!

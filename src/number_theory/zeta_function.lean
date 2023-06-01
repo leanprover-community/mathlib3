@@ -5,6 +5,7 @@ Authors: David Loeffler
 -/
 import analysis.special_functions.gamma.beta
 import number_theory.modular_forms.jacobi_theta
+import number_theory.zeta_values
 
 /-!
 # Definition of the Riemann zeta function
@@ -29,6 +30,10 @@ I haven't checked exactly what they are).
 * `differentiable_at_riemann_zeta` : the function `ζ(s)` is differentiable away from `s = 1`.
 * `zeta_eq_tsum_of_one_lt_re` : for `1 < re s`, we have
   `ζ(s) = ∑' (n : ℕ), 1 / (n + 1) ^ s`.
+* `riemann_completed_zeta₀_one_sub`, `riemann_completed_zeta_one_sub`, and `riemann_zeta_one_sub`:
+  functional equation relating values at `s` and `1 - s`
+* `riemann_zeta_neg_nat_eq_bernoulli` : for `k : ℕ` we have the formula
+  `riemann_zeta (-k) = (-1) ^ k * bernoulli (k + 1) / (k + 1)`.
 
 ## Outline of proofs:
 
@@ -43,7 +48,7 @@ the interval `Ioc 0 1` to give a function with exponential decay at both `0` and
 open measure_theory set filter asymptotics topological_space real asymptotics
 open complex (hiding exp norm_eq_abs abs_of_nonneg abs_two continuous_exp)
 
-open_locale topology real
+open_locale topology real nat
 
 noncomputable theory
 
@@ -535,6 +540,17 @@ begin
     exact or.inl (pi_pos.ne') }
 end
 
+lemma zeta_nat_eq_tsum_of_gt_one {k : ℕ} (hk : 1 < k) :
+  riemann_zeta k = ∑' (n : ℕ), 1 / n ^ k :=
+begin
+  rw tsum_eq_zero_add,
+  swap, { convert summable_of_real.mpr (summable_one_div_nat_pow.mpr hk), ext1 n, push_cast },
+  rw [nat.cast_zero, zero_pow (zero_lt_one.trans hk), div_zero, zero_add],
+  simpa only [cpow_nat_cast, nat.cast_add, nat.cast_one]
+    using zeta_eq_tsum_of_one_lt_re (_ : 1 < re ↑k),
+  rwa [←of_real_nat_cast, of_real_re, ←nat.cast_one, nat.cast_lt],
+end
+
 /-!
 ## Functional equation
 -/
@@ -621,4 +637,74 @@ begin
   push_cast,
   field_simp,
   ring,
+end
+
+lemma riemann_zeta_neg_nat_eq_bernoulli (k : ℕ) :
+  riemann_zeta (-k) = (-1) ^ k * bernoulli (k + 1) / (k + 1) :=
+begin
+  rcases nat.even_or_odd' k with ⟨m, rfl | rfl⟩,
+  { cases m,
+    { -- s = 0 : evaluate explicitly
+      rw [mul_zero, nat.cast_zero, pow_zero, one_mul, zero_add, neg_zero, zero_add, div_one,
+        bernoulli_one, riemann_zeta_zero, rat.cast_div, rat.cast_neg, rat.cast_one,
+        rat.cast_bit0, rat.cast_one] },
+    { -- s = -2 * (m + 1) : both sides "trivially" zero
+      rw [nat.cast_mul, ←neg_mul, nat.cast_two, nat.cast_succ,
+        riemann_zeta_neg_two_mul_nat_add_one, bernoulli_eq_bernoulli'_of_ne_one],
+      swap, { apply ne_of_gt, norm_num },
+      rw [bernoulli'_odd_eq_zero ⟨m.succ, rfl⟩ (by norm_num), rat.cast_zero, mul_zero, zero_div] } },
+  { -- s = 2 * m + 1 : the interesting case
+    rw odd.neg_one_pow ⟨m, rfl⟩,
+    rw (show -(↑(2 * m + 1) : ℂ) = 1 - (2 * m + 2), by { push_cast, ring }),
+    rw riemann_zeta_one_sub,
+    rotate,
+    { intro n,
+      rw [(by norm_cast : (2 * (m : ℂ) + 2) = ↑(2 * m + 2)), ←int.cast_neg_nat_cast,
+        ←int.cast_coe_nat, ne.def, int.cast_inj],
+      apply ne_of_gt,
+      refine lt_of_le_of_lt (by norm_num : (-n : ℤ) ≤ 0) (by positivity) },
+    { rw [(by norm_cast : (2 * (m : ℂ) + 2) = ↑(2 * m + 2)), ne.def, nat.cast_eq_one], norm_num },
+    -- get rid of sine term
+    rw show complex.sin (↑π * (1 - (2 * ↑m + 2)) / 2) = -(-1) ^ m,
+    { rw (by { field_simp, ring } : (π : ℂ) * (1 - (2 * ↑m + 2)) / 2 = π / 2 - (π * m + π)),
+      rw [complex.sin_pi_div_two_sub, complex.cos_add_pi, neg_inj],
+      rcases nat.even_or_odd' m with ⟨t, rfl | rfl⟩,
+      { rw [pow_mul, neg_one_sq, one_pow],
+        convert complex.cos_nat_mul_two_pi t using 2, push_cast, ring },
+      { rw [pow_add, pow_one, pow_mul, neg_one_sq, one_pow, one_mul],
+        convert complex.cos_nat_mul_two_pi_add_pi t using 2, push_cast, ring } },
+    -- substitute in what we know about zeta values at positive integers
+    have step1 := congr_arg (coe : ℝ → ℂ) (has_sum_zeta_nat (by norm_num : m + 1 ≠ 0)).tsum_eq,
+    have step2 := zeta_nat_eq_tsum_of_gt_one (by { rw mul_add, norm_num } : 1 < 2 * (m + 1)),
+    simp_rw [of_real_tsum, of_real_div, of_real_one, of_real_pow, of_real_nat_cast] at step1,
+    rw [step1, (by norm_cast : (↑(2 * (m + 1)) : ℂ) = 2 * ↑m + 2)] at step2,
+    rw [step2, mul_div],
+    -- now the rest is just a lengthy but elementary rearrangement
+    rw show ((2 * (m + 1))! : ℂ) = Gamma (2 * m + 2) * (↑(2 * m + 1) + 1), by
+    { rw [(by { push_cast, ring } : (2 * m + 2 : ℂ) = ↑(2 * m + 1) + 1),
+        complex.Gamma_nat_eq_factorial,
+        (by ring : 2 * (m + 1) = (2 * m + 1) + 1), nat.factorial_succ, nat.cast_mul, mul_comm],
+      push_cast },
+    rw [←div_div, neg_one_mul],
+    congr' 1,
+    rw [div_eq_iff (Gamma_ne_zero_of_re_pos _)],
+    swap, { rw [(by push_cast : 2 * (m : ℂ) + 2 = ↑(2 * (m : ℝ) + 2)), of_real_re], positivity },
+    simp_rw [of_real_mul, ←mul_assoc, of_real_rat_cast, mul_add, nat.add_assoc, mul_one,
+      one_add_one_eq_two, mul_neg, neg_mul, neg_inj],
+    conv_rhs { rw mul_comm },
+    congr' 1,
+    rw [of_real_pow, of_real_neg, of_real_one, pow_add, neg_one_sq, mul_one],
+    conv_lhs { congr, congr,
+      rw [mul_assoc, ←pow_add, ←two_mul, pow_mul, neg_one_sq, one_pow, mul_one] },
+    rw show (2 : ℂ) ^ (1 - (2 * (m : ℂ) + 2)) = (↑((2 : ℝ) ^ ((2 * m + 2) - 1)))⁻¹,
+    { rw [of_real_pow, ←cpow_nat_cast, ←cpow_neg, of_real_bit0, of_real_one],
+      congr' 1,
+      rw [nat.add_sub_assoc one_le_two, nat.cast_add, nat.cast_mul, nat.cast_two,
+        (by norm_num : 2 - 1 = 1)],
+      push_cast, ring },
+    rw show (π : ℂ) ^ -(2 * (m : ℂ) + 2) = (↑(π ^ (2 * m + 2)))⁻¹,
+    { rw [of_real_pow, ←cpow_nat_cast, ←cpow_neg, nat.cast_add, nat.cast_mul, nat.cast_two] },
+    rw (by { intros, ring } : ∀ (a b c d e : ℂ), a * b * c * d * e = (a * d) * (b * e) * c),
+    rw [inv_mul_cancel (of_real_ne_zero.mpr $ pow_ne_zero _ pi_pos.ne'),
+      inv_mul_cancel (of_real_ne_zero.mpr $ pow_ne_zero _ two_ne_zero), one_mul, one_mul] }
 end

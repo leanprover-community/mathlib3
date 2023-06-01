@@ -209,7 +209,7 @@ end neg_one_square
 section main
 
 /-- A (positive) natural number `n` is a sum of two squares if and only if the exponent of
-every prime `q` such that `q%4 = 3` in the prime factorization of `n` is even.
+every prime `q` such that `q % 4 = 3` in the prime factorization of `n` is even.
 (The assumption `0 < n` is not present, since for `n = 0`, both sides are satisfied;
 the right hand side holds, since `padic_val_nat q 0 = 0` by definition.) -/
 lemma nat.eq_sq_add_sq_iff {n : ℕ} :

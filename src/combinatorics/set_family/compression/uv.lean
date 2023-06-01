@@ -200,7 +200,8 @@ end
 /-- Compressing a family doesn't change its size. -/
 @[simp] lemma card_compression (u v : α) (s : finset α) : (𝓒 u v s).card = s.card :=
 by rw [compression, card_disjoint_union compress_disjoint, image_filter,
-  card_image_of_inj_on compress_inj_on, ←card_disjoint_union (disjoint_filter_filter_neg s _ _), filter_union_filter_neg_eq]
+  card_image_of_inj_on compress_inj_on, ←card_disjoint_union (disjoint_filter_filter_neg s _ _),
+  filter_union_filter_neg_eq]
 
 lemma le_of_mem_compression_of_not_mem (h : a ∈ 𝓒 u v s) (ha : a ∉ s) : u ≤ a :=
 begin

@@ -389,6 +389,7 @@ As a fun application of the Bohr-Mollerup theorem, we prove the Gamma-function d
 log-convex and satisfies the Gamma functional equation, so it must actually be a constant
 multiple of `Gamma`, and we can compute the constant by specialising at `s = 1`. -/
 
+/-- Auxiliary definition for the doubling formula (we'll show this is equal to `Gamma s`) -/
 def doubling_Gamma (s : ℝ) : ℝ := Gamma (s / 2) * Gamma (s / 2 + 1 / 2) * 2 ^ (s - 1) / sqrt π
 
 lemma doubling_Gamma_add_one (s : ℝ) (hs : s ≠ 0) :

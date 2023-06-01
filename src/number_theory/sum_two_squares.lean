@@ -15,7 +15,7 @@ sum of two squares; see `nat.prime.sq_add_sq` (which has the weaker assumption `
 
 We also give the result that characterizes the (positive) natural numbers that are sums
 of two squares as those numbers `n` such that for every prime `q` congruent to 3 mod 4, the
-largest power of `q` dividing `n` is even; see `nat.eq_sq_add_sq_iff`.
+exponent of the largest power of `q` dividing `n` is even; see `nat.eq_sq_add_sq_iff`.
 
 There is an alternative characterization as the numbers of the form `a^2 * b`, where `b` is a
 natural number such that `-1` is a square modulo `b`; see `nat.eq_sq_add_sq_iff_eq_sq_mul`.

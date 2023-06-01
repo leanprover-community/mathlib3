@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
 import analysis.special_functions.gamma.basic
+import analysis.special_functions.gaussian
+
 
 /-! # Convexity properties of the Gamma function
 
@@ -29,7 +31,7 @@ general form of the Euler limit formula valid for any real or complex `x`; see
 
 noncomputable theory
 open filter set measure_theory
-open_locale nat ennreal topology big_operators
+open_locale nat ennreal topology big_operators real
 
 namespace real
 
@@ -376,5 +378,91 @@ begin
 end
 
 end strict_mono
+
+section doubling
+
+/-!
+## The Gamma doubling formula
+
+As a fun application of the Bohr-Mollerup theorem, we prove the Gamma-function doubling formula
+(for positive real `s`). The idea is that `2 ^ s * Gamma (s / 2) * Gamma (s / 2 + 1 / 2)` is
+log-convex and satisfies the Gamma functional equation, so it must actually be a constant
+multiple of `Gamma`, and we can compute the constant by specialising at `s = 1`. -/
+
+def doubling_Gamma (s : ℝ) : ℝ := Gamma (s / 2) * Gamma (s / 2 + 1 / 2) * 2 ^ (s - 1) / sqrt π
+
+lemma doubling_Gamma_add_one (s : ℝ) (hs : s ≠ 0) :
+  doubling_Gamma (s + 1) = s * doubling_Gamma s :=
+begin
+  dsimp only [doubling_Gamma],
+  rw [add_div, add_assoc, add_halves (1 : ℝ), (by abel : s + 1 - 1 = s - 1 + 1),
+    Gamma_add_one (div_ne_zero hs two_ne_zero), rpow_add two_pos, rpow_one],
+  ring,
+end
+
+lemma doubling_Gamma_one : doubling_Gamma 1 = 1 :=
+by simp_rw [doubling_Gamma, Gamma_one_half_eq, add_halves (1 : ℝ), sub_self, Gamma_one, mul_one,
+  rpow_zero, mul_one, div_self (sqrt_ne_zero'.mpr pi_pos)]
+
+lemma log_doubling_Gamma_eq {s : ℝ} (hs : 0 < s) :
+  (log ∘ doubling_Gamma) s =
+  log (Gamma (s / 2)) + log (Gamma (s / 2 + 1 / 2)) + s * log 2 - log (2 * sqrt π) :=
+begin
+  have h1 : sqrt π ≠ 0, from sqrt_ne_zero'.mpr pi_pos,
+  have h2 : Gamma (s / 2) ≠ 0, from (Gamma_pos_of_pos $ div_pos hs two_pos).ne',
+  have h3 : Gamma (s / 2 + 1 / 2) ≠ 0, from (Gamma_pos_of_pos $ by positivity).ne',
+  have h4 : (2 : ℝ) ^ (s - 1) ≠ 0, from (rpow_pos_of_pos two_pos _).ne',
+  rw [function.comp_app, doubling_Gamma, log_div (mul_ne_zero (mul_ne_zero h2 h3) h4) h1,
+    log_mul (mul_ne_zero h2 h3) h4, log_mul h2 h3, log_rpow two_pos, log_mul two_ne_zero h1],
+  ring,
+end
+
+lemma doubling_Gamma_log_convex_Ioi : convex_on ℝ (Ioi (0:ℝ)) (log ∘ doubling_Gamma) :=
+begin
+  rw convex_on_iff_forall_pos,
+  refine ⟨convex_Ioi 0, λ x hx y hy a b ha hb hab, _⟩,
+  rw mem_Ioi at hx hy,
+  have ht : 0 < a • x + b • y, from add_pos (mul_pos ha hx) (mul_pos hb hy),
+  rw [log_doubling_Gamma_eq hx, log_doubling_Gamma_eq hy, log_doubling_Gamma_eq ht],
+  simp_rw smul_eq_mul,
+  rw [mul_sub, mul_sub, sub_add_sub_comm, ←add_mul, hab, one_mul, sub_le_sub_iff_right,
+    mul_add, mul_add, mul_add, add_add_add_comm, ←mul_assoc, ←mul_assoc,  ←add_mul,
+    add_le_add_iff_right, mul_add, add_add_add_comm],
+  apply add_le_add,
+  { rw [add_div, mul_div_assoc, mul_div_assoc],
+    exact convex_on_log_Gamma.2 (div_pos hx two_pos) (div_pos hy two_pos) ha.le hb.le hab },
+  { convert convex_on_log_Gamma.2
+      (show 0 < (x + 1) / 2, { rw add_div, exact add_pos (div_pos hx two_pos) one_half_pos })
+      (show 0 < (y + 1) / 2, { rw add_div, exact add_pos (div_pos hy two_pos) one_half_pos })
+      ha.le hb.le hab using 3,
+    { rw ←eq_sub_iff_add_eq at hab,
+      rw [smul_eq_mul, smul_eq_mul, hab],
+      ring },
+    { rw add_div },
+    { rw add_div } }
+end
+
+lemma doubling_Gamma_eq_Gamma {s : ℝ} (hs : 0 < s) : doubling_Gamma s = Gamma s :=
+begin
+  refine eq_Gamma_of_log_convex doubling_Gamma_log_convex_Ioi
+    (λ y hy, doubling_Gamma_add_one y hy.ne') (λ y hy, _) doubling_Gamma_one hs,
+  apply_rules [mul_pos, Gamma_pos_of_pos, add_pos, inv_pos_of_pos,
+    rpow_pos_of_pos, two_pos, one_pos, sqrt_pos_of_pos pi_pos]
+end
+
+/-- Legendre's doubling formula for the Gamma function, for positive real arguments. Note that
+we shall later prove this for all `s` as `real.Gamma_mul_Gamma_add_half` (superseding this result)
+but this result is needed as an intermediate step. -/
+lemma Gamma_mul_Gamma_add_half_of_pos {s : ℝ} (hs : 0 < s) :
+  Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * sqrt π :=
+begin
+  rw [←(doubling_Gamma_eq_Gamma (mul_pos two_pos hs)),
+    doubling_Gamma, mul_div_cancel_left _ (two_ne_zero' ℝ),
+    (by abel : 1 - 2 * s = -(2 * s - 1)), rpow_neg zero_le_two],
+  field_simp [(sqrt_pos_of_pos pi_pos).ne', (rpow_pos_of_pos two_pos (2 * s - 1)).ne'],
+  ring,
+end
+
+end doubling
 
 end real

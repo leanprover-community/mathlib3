@@ -9,6 +9,9 @@ import analysis.calculus.fderiv.basic
 
 # One-dimensional derivatives
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the derivative of a function `f : 𝕜 → F` where `𝕜` is a
 normed field and `F` is a normed space over this field. The derivative of
 such a function `f` at a point `x` is given by an element `f' : F`.

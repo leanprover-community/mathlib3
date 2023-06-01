@@ -9,6 +9,9 @@ import linear_algebra.affine_space.slope
 /-!
 # Derivative as the limit of the slope
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we relate the derivative of a function with its definition from a standard
 undergraduate course as the limit of the slope `(f y - f x) / (y - x)` as `y` tends to `𝓝[≠] x`.
 Since we are talking about functions taking values in a normed space instead of the base field, we

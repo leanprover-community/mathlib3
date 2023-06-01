@@ -9,6 +9,9 @@ import analysis.calculus.deriv.comp
 /-!
 # Derivative of `(f x) ^ n`, `n : ℕ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `(x ^ n)' = n * x ^ (n - 1)`, where `n` is a natural number.
 
 For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of

@@ -41,8 +41,10 @@ $P(t)+t-a-b$, and we're again done.
 
 open function polynomial
 
+namespace imo
 /-- If every entry in a cyclic list of integers divides the next, then they all have the same
 absolute value. -/
+
 theorem int.nat_abs_eq_of_chain_dvd {l : cycle ℤ} {x y : ℤ} (hl : l.chain (∣))
   (hx : x ∈ l) (hy : y ∈ l) : x.nat_abs = y.nat_abs :=
 begin
@@ -208,3 +210,5 @@ begin
   simp only [sub_eq_zero, is_root.def, eval_sub, iterate_comp_eval, eval_X] at ht,
   simpa [mem_roots hP', sub_eq_zero] using polynomial.is_periodic_pt_eval_two ⟨k, hk, ht⟩
 end
+
+end imo

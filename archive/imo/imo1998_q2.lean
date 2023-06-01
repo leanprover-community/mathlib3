@@ -38,6 +38,8 @@ Rearranging gives the result.
 -/
 
 open_locale classical
+namespace imo
+
 noncomputable theory
 
 /-- An ordered pair of judges. -/
@@ -212,3 +214,5 @@ begin
   { simp, },
   { exact le_of_mul_le_mul_right h z.succ_pos, },
 end
+
+end imo

@@ -27,6 +27,8 @@ It involves making the substitution
 `x = a - b`, `y = b - c`, `z = c - a`, `s = a + b + c`.
 -/
 
+namespace imo
+
 open real
 
 /-- Replacing `x` and `y` with their average increases the left side. -/
@@ -139,3 +141,5 @@ theorem imo2006_q3 (M : ℝ) :
     M * (a^2 + b^2 + c^2)^2) ↔
   9 * sqrt 2 / 32 ≤ M :=
 ⟨proof₂ M, λ h _ _ _, le_trans proof₁ $ mul_le_mul_of_nonneg_right h $ sq_nonneg _⟩
+
+end imo

@@ -9,6 +9,9 @@ import analysis.calculus.deriv.inv
 /-!
 # Derivatives of `x ^ m`, `m : ℤ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove theorems about (iterated) derivatives of `x ^ m`, `m : ℤ`.
 
 For a more detailed overview of one-dimensional derivatives in mathlib, see the module docstring of

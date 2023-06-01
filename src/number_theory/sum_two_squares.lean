@@ -115,9 +115,9 @@ begin
     have hcp : p.coprime n,
     { by_contra hc,
       exact hpp.not_unit (hn p $ mul_dvd_mul_left p $ hpp.dvd_iff_not_coprime.mpr hc), },
-    have hp₁ := zmod.exists_sq_eq_neg_one_iff.mpr (H p hpp (dvd_mul_right p n)),
+    have hp₁ := zmod.exists_sq_eq_neg_one_iff.mpr (H hpp (dvd_mul_right p n)),
     exact zmod.is_square_neg_one_mul hcp hp₁
-      (ih hn.of_mul_right (λ q hqp hqd, H q hqp $ dvd_mul_of_dvd_right hqd _)), }
+      (ih hn.of_mul_right (λ q hqp hqd, H hqp $ dvd_mul_of_dvd_right hqd _)), }
 end
 
 /-- If `n` is a squarefree natural number, then `-1` is a square modulo `n` if and only if

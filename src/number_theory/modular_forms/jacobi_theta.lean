@@ -7,6 +7,7 @@ import analysis.special_functions.gaussian
 import analysis.complex.locally_uniform_limit
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
 import analysis.complex.upper_half_plane.topology
+import geometry.manifold.mfderiv
 
 /-! # Jacobi's theta function
 

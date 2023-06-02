@@ -21,13 +21,12 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E H')
-(M : Type u) [topological_space M] [charted_space HM M] [smooth_manifold_with_corners IM M]
+(M : Type u) [topological_space M] [charted_space HM M]
 (N G A A' R : Type u) [topological_space N] [charted_space H N]
 [topological_space G] [charted_space H G] [topological_space A] [charted_space H A]
 [topological_space A'] [charted_space H' A'] [topological_space R] [charted_space H R]
 
 section type
-variables [smooth_manifold_with_corners I N]
 
 /-- The sheaf of smooth functions from `M` to `N`, as a sheaf of types. -/
 def smooth_sheaf : Top.sheaf (Type u) (Top.of M) :=
@@ -53,9 +52,6 @@ lemma smooth_section {U : (opens (Top.of M))ᵒᵖ} (f : (smooth_sheaf IM I M N)
   smooth IM I f :=
 (cont_diff_within_at_local_invariant_prop IM I ⊤).section_spec _ _ _ _
 
-instance Top.of.smooth_manifold_with_corners : smooth_manifold_with_corners IM (Top.of M) :=
-(infer_instance : smooth_manifold_with_corners IM M)
-
 end type
 
 section lie_group
@@ -66,7 +62,8 @@ instance (U : (opens (Top.of M))ᵒᵖ) : group ((smooth_sheaf IM I M G).val.obj
 
 /-- The presheaf of smooth functions from `M` to `G`, for `G` a Lie group, as a presheaf
 of groups. -/
-@[to_additive smooth_presheaf_AddGroup]
+@[to_additive smooth_presheaf_AddGroup "The presheaf of smooth functions from `M` to `G`, for `G` an
+additive Lie group, as a presheaf of additive groups."]
 def smooth_presheaf_Group : Top.presheaf Group.{u} (Top.of M) :=
 { obj := λ U, Group.of ((smooth_sheaf IM I M G).val.obj U),
   map := λ U V h, Group.of_hom $
@@ -80,7 +77,8 @@ def smooth_presheaf_Group : Top.presheaf Group.{u} (Top.of M) :=
 
 /-- The sheaf of smooth functions from `M` to `G`, for `G` a Lie group, as a sheaf of
 groups. -/
-@[to_additive smooth_sheaf_AddGroup]
+@[to_additive smooth_sheaf_AddGroup "The sheaf of smooth functions from `M` to `G`, for `G` an
+additive Lie group, as a sheaf of additive groups."]
 def smooth_sheaf_Group : Top.sheaf Group.{u} (Top.of M) :=
 { val := smooth_presheaf_Group IM I M G,
   cond := begin
@@ -127,10 +125,16 @@ def smooth_sheaf_CommGroup : Top.sheaf CommGroup.{u} (Top.of M) :=
     { apply_instance },
   end }
 
-@[to_additive] def smooth_sheaf_CommGroup.comp_right (φ : A →* A') (hφ : smooth I I' φ) :
+/-- For a manifold `M` and a smooth homomorphism `φ` between abelian Lie groups `A`, `A'`, the
+'left-composition-by-`φ`' morphism of sheaves from `smooth_sheaf_CommGroup IM I M A` to
+`smooth_sheaf_CommGroup IM I' M A'`. -/
+@[to_additive "For a manifold `M` and a smooth homomorphism `φ` between abelian additive Lie groups
+`A`, `A'`, the 'left-composition-by-`φ`' morphism of sheaves from
+`smooth_sheaf_AddCommGroup IM I M A` to `smooth_sheaf_AddCommGroup IM I' M A'`."]
+def smooth_sheaf_CommGroup.comp_left (φ : A →* A') (hφ : smooth I I' φ) :
   smooth_sheaf_CommGroup IM I M A ⟶ smooth_sheaf_CommGroup IM I' M A' :=
 category_theory.Sheaf.hom.mk $
-{ app := λ U, CommGroup.of_hom $ smooth_map.comp_right_monoid_hom _ _ φ hφ,
+{ app := λ U, CommGroup.of_hom $ smooth_map.comp_left_monoid_hom _ _ φ hφ,
   naturality' := λ U V f, rfl }
 
 end comm_lie_group

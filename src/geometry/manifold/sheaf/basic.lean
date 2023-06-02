@@ -21,9 +21,6 @@ variables {H : Type*} [topological_space H] {H' : Type*} [topological_space H']
 
 instance Top.of.charted_space : charted_space H (Top.of M) := (infer_instance : charted_space H M)
 
-instance Top.of.has_groupoid [has_groupoid M G] : has_groupoid (Top.of M) G :=
-(infer_instance : has_groupoid M G)
-
 /-- Let `P` be a `local_invariant_prop` for functions between spaces with the groupoids `G`, `G'`
 and let `M`, `M'` be charted spaces modelled on the model spaces of those groupoids.  Then there is
 a presheaf of types on `M` which, to each open set `U` in `M`, associates the type of bundled

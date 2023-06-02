@@ -909,6 +909,16 @@ lemma hausdorff_measure_smul
   μH[d] (c • s) = μH[d] s :=
 (isometry_smul X c).hausdorff_measure_image h _
 
+@[to_additive]
+instance {d : ℝ} [group X] [has_isometric_smul X X] : is_mul_left_invariant (μH[d] : measure X) :=
+{ map_mul_left_eq_self := λ x, (isometry_equiv.const_smul x).map_hausdorff_measure _ }
+
+@[to_additive]
+instance {d : ℝ} [group X] [has_isometric_smul Xᵐᵒᵖ X] :
+  is_mul_right_invariant (μH[d] : measure X) :=
+{ map_mul_right_eq_self := λ x,
+    (isometry_equiv.const_smul (mul_opposite.op x)).map_hausdorff_measure _ }
+
 /-!
 ### Hausdorff measure and Lebesgue measure
 -/

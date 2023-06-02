@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import geometry.manifold.sheaf.basic
-import geometry.manifold.algebra.mdifferentiable
+import geometry.manifold.algebra.smooth_functions
 import category_theory.sites.whiskering
 
 /-! # The sheaf of differentiable functions on a manifold -/

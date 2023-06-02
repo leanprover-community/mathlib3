@@ -60,6 +60,10 @@ attribute [to_additive_ignore_args 21] cont_mdiff_map
   cont_mdiff_map.has_coe_to_fun cont_mdiff_map.continuous_map.has_coe
 variables {f g : C^n⟮I, M; I', M'⟯}
 
+@[simp] lemma coe_fn_mk (f : M → M') (hf : cont_mdiff I I' n f) :
+  ((by exact subtype.mk f hf : C^n⟮I, M; I', M'⟯) : M → M') = f :=
+rfl
+
 protected lemma mdifferentiable' (f : C^n⟮I, M; I', M'⟯) (hn : 1 ≤ n) :
   mdifferentiable I I' f :=
 f.cont_mdiff.mdifferentiable hn

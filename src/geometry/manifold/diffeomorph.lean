@@ -5,6 +5,7 @@ Authors: Nicolò Cavalleri, Yury Kudryashov
 -/
 
 import geometry.manifold.cont_mdiff_map
+import geometry.manifold.mfderiv
 
 /-!
 # Diffeomorphisms

@@ -1,5 +1,5 @@
 /-
-Copyright © 2022 Heather Macbeth. All rights reserved.
+Copyright © 2023 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
@@ -7,7 +7,7 @@ import geometry.manifold.sheaf.basic
 import geometry.manifold.algebra.smooth_functions
 import category_theory.sites.whiskering
 
-/-! # The sheaf of differentiable functions on a manifold -/
+/-! # The sheaf of smooth functions on a manifold -/
 
 noncomputable theory
 open_locale manifold
@@ -29,33 +29,29 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 section type
 variables [smooth_manifold_with_corners I N]
 
-/-- The sheaf of differentiable functions from `M` to `N`, as a sheaf of types. -/
-def mdifferentiable_sheaf : Top.sheaf (Type u) (Top.of M) :=
-(differentiable_within_at_local_invariant_prop IM I).sheaf M N
+/-- The sheaf of smooth functions from `M` to `N`, as a sheaf of types. -/
+def smooth_sheaf : Top.sheaf (Type u) (Top.of M) :=
+(cont_diff_within_at_local_invariant_prop IM I ⊤).sheaf M N
 
-instance mdifferentiable_sheaf.has_coe_to_fun (U : (opens (Top.of M))ᵒᵖ) :
-  has_coe_to_fun ((mdifferentiable_sheaf IM I M N).val.obj U) (λ _, unop U → N) :=
-obj.has_coe_to_fun M N _ U
+instance smooth_sheaf.has_coe_to_fun (U : (opens (Top.of M))ᵒᵖ) :
+  has_coe_to_fun ((smooth_sheaf IM I M N).val.obj U) (λ _, unop U → N) :=
+(cont_diff_within_at_local_invariant_prop IM I ⊤).sheaf_has_coe_to_fun _ _ _
 
-lemma mdifferentiable_sheaf.section_spec
-  (U : (opens (Top.of M))ᵒᵖ) (f : (mdifferentiable_sheaf IM I M N).val.obj U) :
-  mdifferentiable IM I f :=
-begin
-  intro x,
-  rw mdifferentiable_at_iff_lift_prop_at,
-  exact (differentiable_within_at_local_invariant_prop IM I).section_spec _ _ _ _ x
-end
+/-- The object of `smooth_sheaf IM I M N` for the open set `U` in `M` is
+`C^∞⟮IM, (unop U : opens M); I, N⟯`, the `(IM, I)`-smooth functions from `U` to `N`.  This is not
+just a "moral" equality but a literal and definitional equality! -/
+lemma smooth_sheaf.obj_eq (U : (opens (Top.of M))ᵒᵖ) :
+  (smooth_sheaf IM I M N).val.obj U = C^∞⟮IM, (unop U : opens M); I, N⟯ := rfl
+
+lemma smooth_sheaf.section_spec (U : (opens (Top.of M))ᵒᵖ) (f : (smooth_sheaf IM I M N).val.obj U) :
+  smooth IM I f :=
+(cont_diff_within_at_local_invariant_prop IM I ⊤).section_spec _ _ _ _
 
 variables {IM I M N}
 
-lemma mdifferentiable_section {U : (opens (Top.of M))ᵒᵖ}
-  (f : (mdifferentiable_sheaf IM I M N).val.obj U) :
-  mdifferentiable IM I f :=
-begin
-  intros x,
-  rw mdifferentiable_at_iff_lift_prop_at,
-  exact f.2 x,
-end
+lemma smooth_section {U : (opens (Top.of M))ᵒᵖ} (f : (smooth_sheaf IM I M N).val.obj U) :
+  smooth IM I f :=
+(cont_diff_within_at_local_invariant_prop IM I ⊤).section_spec _ _ _ _
 
 instance Top.of.smooth_manifold_with_corners : smooth_manifold_with_corners IM (Top.of M) :=
 (infer_instance : smooth_manifold_with_corners IM M)
@@ -66,38 +62,31 @@ section lie_group
 variables [group G] [lie_group I G]
 
 @[to_additive]
-instance (U : (opens (Top.of M))ᵒᵖ) : group ((mdifferentiable_sheaf IM I M G).val.obj U) :=
-subgroup.to_group $
-  differentiable_within_at_local_invariant_prop_subgroup IM ((unop U : opens (Top.of M))) I G
+instance (U : (opens (Top.of M))ᵒᵖ) : group ((smooth_sheaf IM I M G).val.obj U) := smooth_map.group
 
-/-- The presheaf of differentiable functions from `M` to `G`, for `G` a Lie group, as a presheaf
+/-- The presheaf of smooth functions from `M` to `G`, for `G` a Lie group, as a presheaf
 of groups. -/
-@[to_additive mdifferentiable_presheaf_AddGroup]
-def mdifferentiable_presheaf_Group : Top.presheaf Group.{u} (Top.of M) :=
-{ obj := λ U, Group.of ((mdifferentiable_sheaf IM I M G).val.obj U),
+@[to_additive smooth_presheaf_AddGroup]
+def smooth_presheaf_Group : Top.presheaf Group.{u} (Top.of M) :=
+{ obj := λ U, Group.of ((smooth_sheaf IM I M G).val.obj U),
   map := λ U V h, Group.of_hom $
-    differentiable_within_at_local_invariant_prop_subgroup_restrict IM I G $
-    category_theory.le_of_hom h.unop,
+    smooth_map.restrict_monoid_hom IM I G $ category_theory.le_of_hom h.unop,
   map_id' := begin
     intro U,
     ext ⟨_, _⟩ ⟨_, _⟩,
     refl,
   end,
-  map_comp' := begin
-    intros U V W f g,
-    ext1,
-    refl,
-  end }
+  map_comp' := λ U V W f g, rfl }
 
-/-- The sheaf of differentiable functions from `M` to `G`, for `G` a Lie group, as a sheaf of
+/-- The sheaf of smooth functions from `M` to `G`, for `G` a Lie group, as a sheaf of
 groups. -/
-@[to_additive mdifferentiable_sheaf_AddGroup]
-def mdifferentiable_sheaf_Group : Top.sheaf Group.{u} (Top.of M) :=
-{ val := mdifferentiable_presheaf_Group IM I M G,
+@[to_additive smooth_sheaf_AddGroup]
+def smooth_sheaf_Group : Top.sheaf Group.{u} (Top.of M) :=
+{ val := smooth_presheaf_Group IM I M G,
   cond := begin
     change category_theory.presheaf.is_sheaf _ _,
     rw category_theory.presheaf.is_sheaf_iff_is_sheaf_forget _ _ (category_theory.forget Group),
-    { exact category_theory.Sheaf.cond (mdifferentiable_sheaf IM I M G) },
+    { exact category_theory.Sheaf.cond (smooth_sheaf IM I M G) },
     { apply_instance },
   end }
 
@@ -107,94 +96,78 @@ section comm_lie_group
 variables [comm_group A] [comm_group A'] [lie_group I A] [lie_group I' A']
 
 @[to_additive]
-instance (U : (opens (Top.of M))ᵒᵖ) : comm_group ((mdifferentiable_sheaf IM I M A).val.obj U) :=
-subgroup.to_comm_group $
-  differentiable_within_at_local_invariant_prop_subgroup IM ((unop U : opens (Top.of M))) I A
+instance (U : (opens (Top.of M))ᵒᵖ) : comm_group ((smooth_sheaf IM I M A).val.obj U) :=
+smooth_map.comm_group
 
-/-- The presheaf of differentiable functions from `M` to `A`, for `A` an abelian Lie group, as a
+/-- The presheaf of smooth functions from `M` to `A`, for `A` an abelian Lie group, as a
 presheaf of abelian groups. -/
-@[to_additive mdifferentiable_presheaf_AddCommGroup "The presheaf of differentiable functions from
+@[to_additive smooth_presheaf_AddCommGroup "The presheaf of smooth functions from
 `M` to `A`, for `A` an abelian additive Lie group, as a presheaf of abelian additive groups."]
-def mdifferentiable_presheaf_CommGroup : Top.presheaf CommGroup.{u} (Top.of M) :=
-{ obj := λ U, CommGroup.of ((mdifferentiable_sheaf IM I M A).val.obj U),
+def smooth_presheaf_CommGroup : Top.presheaf CommGroup.{u} (Top.of M) :=
+{ obj := λ U, CommGroup.of ((smooth_sheaf IM I M A).val.obj U),
   map := λ U V h, CommGroup.of_hom $
-    differentiable_within_at_local_invariant_prop_subgroup_restrict IM I A $
-    category_theory.le_of_hom h.unop,
+    smooth_map.restrict_monoid_hom IM I A $ category_theory.le_of_hom h.unop,
   map_id' := begin
     intro U,
     ext ⟨_, _⟩ ⟨_, _⟩,
     refl,
   end,
-  map_comp' := begin
-    intros U V W f g,
-    ext1,
-    refl,
-  end }
+  map_comp' := λ U V W f g, rfl }
 
-/-- The sheaf of differentiable functions from `M` to `A`, for `A` an abelian Lie group, as a
+/-- The sheaf of smooth functions from `M` to `A`, for `A` an abelian Lie group, as a
 sheaf of abelian groups. -/
-@[to_additive mdifferentiable_sheaf_AddCommGroup "The sheaf of differentiable functions from `M` to
+@[to_additive smooth_sheaf_AddCommGroup "The sheaf of smooth functions from `M` to
 `A`, for `A` an abelian additive Lie group, as a sheaf of abelian additive groups."]
-def mdifferentiable_sheaf_CommGroup : Top.sheaf CommGroup.{u} (Top.of M) :=
-{ val := mdifferentiable_presheaf_CommGroup IM I M A,
+def smooth_sheaf_CommGroup : Top.sheaf CommGroup.{u} (Top.of M) :=
+{ val := smooth_presheaf_CommGroup IM I M A,
   cond := begin
     change category_theory.presheaf.is_sheaf _ _,
     rw category_theory.presheaf.is_sheaf_iff_is_sheaf_forget _ _ (category_theory.forget CommGroup),
-    { exact category_theory.Sheaf.cond (mdifferentiable_sheaf IM I M A) },
+    { exact category_theory.Sheaf.cond (smooth_sheaf IM I M A) },
     { apply_instance },
   end }
 
-@[to_additive] def mdifferentiable_sheaf_CommGroup.comp_right (φ : A →* A') (hφ : smooth I I' φ) :
-  mdifferentiable_sheaf_CommGroup IM I M A ⟶ mdifferentiable_sheaf_CommGroup IM I' M A' :=
+@[to_additive] def smooth_sheaf_CommGroup.comp_right (φ : A →* A') (hφ : smooth I I' φ) :
+  smooth_sheaf_CommGroup IM I M A ⟶ smooth_sheaf_CommGroup IM I' M A' :=
 category_theory.Sheaf.hom.mk $
-{ app := λ U, CommGroup.of_hom $ φ.comp_right_mdifferentiable IM _ _ hφ,
-  naturality' :=
-  begin
-    intros U V f,
-    ext x,
-    refl,
-  end }
+{ app := λ U, CommGroup.of_hom $ smooth_map.comp_right_monoid_hom _ _ φ hφ,
+  naturality' := λ U V f, rfl }
 
 end comm_lie_group
 
 section smooth_ring
 variables [ring R] [smooth_ring I R]
 
-instance (U : (opens (Top.of M))ᵒᵖ) : ring ((mdifferentiable_sheaf IM I M R).val.obj U) :=
-subring.to_ring $
-  differentiable_within_at_local_invariant_prop_subring IM ((unop U : opens (Top.of M))) I R
+instance (U : (opens (Top.of M))ᵒᵖ) : ring ((smooth_sheaf IM I M R).val.obj U) := smooth_map.ring
 
-/-- The presheaf of differentiable functions from `M` to `R`, for `R` a smooth ring, as a presheaf
+/-- The presheaf of smooth functions from `M` to `R`, for `R` a smooth ring, as a presheaf
 of rings. -/
-def mdifferentiable_presheaf_Ring : Top.presheaf Ring.{u} (Top.of M) :=
-{ obj := λ U, Ring.of ((mdifferentiable_sheaf IM I M R).val.obj U),
+def smooth_presheaf_Ring : Top.presheaf Ring.{u} (Top.of M) :=
+{ obj := λ U, Ring.of ((smooth_sheaf IM I M R).val.obj U),
   map := λ U V h, Ring.of_hom $
-    differentiable_within_at_local_invariant_prop_subring_restrict IM I R $
-    category_theory.le_of_hom h.unop,
+    smooth_map.restrict_ring_hom IM I R $ category_theory.le_of_hom h.unop,
   map_id' := begin
     intro U,
     ext ⟨_, _⟩ ⟨_, _⟩,
     refl,
   end,
-  map_comp' := begin
-    intros U V W f g,
-    ext1,
-    refl,
-  end }
+  map_comp' := λ U V W f g, rfl }
 
-/-- The sheaf of differentiable functions from `M` to `R`, for `R` a smooth ring, as a sheaf of
+/-- The sheaf of smooth functions from `M` to `R`, for `R` a smooth ring, as a sheaf of
 rings. -/
-def mdifferentiable_sheaf_Ring : Top.sheaf Ring.{u} (Top.of M) :=
-{ val := mdifferentiable_presheaf_Ring IM I M R,
+def smooth_sheaf_Ring : Top.sheaf Ring.{u} (Top.of M) :=
+{ val := smooth_presheaf_Ring IM I M R,
   cond := begin
     change category_theory.presheaf.is_sheaf _ _,
     rw category_theory.presheaf.is_sheaf_iff_is_sheaf_forget _ _ (category_theory.forget Ring),
-    { exact category_theory.Sheaf.cond (mdifferentiable_sheaf IM I M R) },
+    { exact category_theory.Sheaf.cond (smooth_sheaf IM I M R) },
     { apply_instance },
   end }
 
+-- sanity check: applying the `Ring`-to-`Type` forgetful functor to the sheaf-of-rings of smooth
+-- functions gives the sheaf-of-types of smooth functions.
 example : (category_theory.Sheaf_compose _ (category_theory.forget Ring)).obj
-  (mdifferentiable_sheaf_Ring.{u} IM I M R) =
-  (mdifferentiable_sheaf IM I M R) := rfl
+  (smooth_sheaf_Ring.{u} IM I M R) =
+  (smooth_sheaf IM I M R) := rfl
 
 end smooth_ring

@@ -15,6 +15,7 @@ In this file, we define instances of algebraic structures over smooth functions.
 noncomputable theory
 
 open_locale manifold
+open topological_space
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -25,6 +26,26 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {N' : Type*} [topological_space N'] [charted_space H'' N']
+
+section /-! # general facts for `cont_mdiff` file -/
+
+lemma cont_mdiff_inclusion {n : ℕ∞} {U V : opens N} (h : U ≤ V) :
+  cont_mdiff I I n (set.inclusion h : U → V) :=
+begin
+  rintros ⟨x, hx : x ∈ U⟩,
+  apply (cont_diff_within_at_local_invariant_prop I I n).lift_prop_inclusion,
+  intros y,
+  dsimp [cont_diff_within_at_prop],
+  rw [set.univ_inter],
+  refine cont_diff_within_at_id.congr _ _,
+  { exact I.right_inv_on },
+  { exact congr_arg I (I.left_inv y) },
+end
+
+lemma smooth_inclusion {U V : opens N} (h : U ≤ V) : smooth I I (set.inclusion h : U → V) :=
+cont_mdiff_inclusion h
+
+end
 
 namespace smooth_map
 
@@ -84,6 +105,31 @@ instance monoid {G : Type*} [monoid G] [topological_space G]
 def coe_fn_monoid_hom {G : Type*} [monoid G] [topological_space G]
   [charted_space H' G] [has_smooth_mul I' G] : C^∞⟮I, N; I', G⟯ →* (N → G) :=
 { to_fun := coe_fn, map_one' := coe_one, map_mul' := coe_mul }
+
+variables (I N)
+
+@[to_additive] def comp_right_monoid_hom
+  {G' : Type*} [monoid G'] [topological_space G'] [charted_space H' G'] [has_smooth_mul I' G']
+  {G'' : Type*} [monoid G''] [topological_space G''] [charted_space H'' G'']
+  [has_smooth_mul I'' G''] (φ : G' →* G'') (hφ : smooth I' I'' φ) :
+  C^∞⟮I, N; I', G'⟯ →* C^∞⟮I, N; I'', G''⟯ :=
+{ to_fun := λ f, ⟨φ ∘ f, λ x, (hφ.smooth _).comp x (f.cont_mdiff x)⟩,
+  map_one' := by ext x; show φ 1 = 1; simp,
+  map_mul' := λ f g, by ext x; show φ (f x * g x) = φ (f x) * φ (g x); simp }
+
+variables (I') {N}
+
+/-- For a Lie group `G` and open sets `U ⊆ V` in `N`, the "restriction" group homomorphism from
+`C^∞⟮I, V; I', G⟯` to `C^∞⟮I, U; I', G⟯`. -/
+@[to_additive] def restrict_monoid_hom
+  (G : Type*) [monoid G] [topological_space G] [charted_space H' G] [has_smooth_mul I' G]
+  {U V : opens N} (h : U ≤ V) :
+  C^∞⟮I, V; I', G⟯ →* C^∞⟮I, U; I', G⟯ :=
+{ to_fun := λ f, ⟨f ∘ set.inclusion h, f.smooth.comp (smooth_inclusion h)⟩,
+  map_one' := rfl,
+  map_mul' := λ f g, rfl }
+
+variables {I N I' N'}
 
 @[to_additive]
 instance comm_monoid {G : Type*} [comm_monoid G] [topological_space G]
@@ -154,6 +200,31 @@ instance comm_ring {R : Type*} [comm_ring R] [topological_space R]
 { ..smooth_map.semiring,
   ..smooth_map.add_comm_group,
   ..smooth_map.comm_monoid,}
+
+variables (I N)
+
+def comp_right_ring_hom
+  {R' : Type*} [ring R'] [topological_space R'] [charted_space H' R'] [smooth_ring I' R']
+  {R'' : Type*} [ring R''] [topological_space R''] [charted_space H'' R''] [smooth_ring I'' R'']
+  (φ : R' →+* R'') (hφ : smooth I' I'' φ) :
+  C^∞⟮I, N; I', R'⟯ →+* C^∞⟮I, N; I'', R''⟯ :=
+{ to_fun := λ f, ⟨φ ∘ f, λ x, (hφ.smooth _).comp x (f.cont_mdiff x)⟩,
+  .. smooth_map.comp_right_monoid_hom I N φ.to_monoid_hom hφ,
+  .. smooth_map.comp_right_add_monoid_hom I N φ.to_add_monoid_hom hφ }
+
+variables (I') {N}
+
+/-- For a "smooth ring" `R` and open sets `U ⊆ V` in `N`, the "restriction" ring homomorphism from
+`C^∞⟮I, V; I', R⟯` to `C^∞⟮I, U; I', R⟯`. -/
+def restrict_ring_hom
+  (R : Type*) [ring R] [topological_space R] [charted_space H' R] [smooth_ring I' R]
+  {U V : opens N} (h : U ≤ V) :
+  C^∞⟮I, V; I', R⟯ →+* C^∞⟮I, U; I', R⟯ :=
+{ to_fun := λ f, ⟨f ∘ set.inclusion h, f.smooth.comp (smooth_inclusion h)⟩,
+  .. smooth_map.restrict_monoid_hom I I' R h,
+  .. smooth_map.restrict_add_monoid_hom I I' R h }
+
+variables {I N I' N'}
 
 /-- Coercion to a function as a `ring_hom`. -/
 @[simps]

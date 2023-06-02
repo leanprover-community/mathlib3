@@ -743,13 +743,13 @@ end
 namespace structure_groupoid
 namespace local_invariant_prop
 
-universes u
+universes u v
 
 variables {H : Type*} [topological_space H] {H' : Type*} [topological_space H']
   {G : structure_groupoid H} {G' : structure_groupoid H'}
   {P : (H → H') → (set H) → H → Prop} (hG : local_invariant_prop G G' P)
   (M : Type u) [topological_space M] [charted_space H M]
-  (M' : Type u) [topological_space M'] [charted_space H' M']
+  (M' : Type v) [topological_space M'] [charted_space H' M']
 
 open charted_space
 
@@ -760,7 +760,7 @@ space modelled on `H'`) satisfying the lifted predicate associated to `P`, where
 predicate on functions `H → H'` which is a `local_invariant_prop` for some structure groupoids with
 model spaces `H`, `H'`. -/
 @[nolint has_nonempty_instance]
-structure bundled_functions : Type u :=
+structure bundled_functions : Type (max u v) :=
 (to_fun : M → M')
 (property' : lift_prop P to_fun)
 

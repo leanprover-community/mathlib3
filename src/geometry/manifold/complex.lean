@@ -6,7 +6,7 @@ Authors: Heather Macbeth
 import analysis.complex.abs_max
 import analysis.locally_convex.with_seminorms
 import geometry.manifold.mfderiv
-import geometry.manifold.sheaf.mdifferentiable
+import geometry.manifold.sheaf.smooth
 import topology.locally_constant.basic
 
 /-! # Holomorphic functions on complex manifolds
@@ -125,13 +125,13 @@ variables {M : Type} [topological_space M] [compact_space M] [charted_space E M]
 
 open opposite
 
-example (f : (mdifferentiable_sheaf_Ring 𝓘(ℂ, E) 𝓘(ℂ, ℂ) M ℂ).val.obj (op ⊤)) :
+example (f : (smooth_sheaf_Ring 𝓘(ℂ, E) 𝓘(ℂ, ℂ) M ℂ).val.obj (op ⊤)) :
   is_locally_constant (id f.1 : (⊤ : topological_space.opens M) → ℂ) :=
 begin
   haveI : compact_space (⊤ : topological_space.opens M),
   { erw ←is_compact_iff_compact_space,
     apply is_compact_univ, },
-  exact mdifferentiable.is_locally_constant (mdifferentiable_sheaf.section_spec _ _ M ℂ _ f),
+  exact mdifferentiable.is_locally_constant (smooth_sheaf.section_spec _ _ M ℂ _ f).mdifferentiable,
 end
 
 end sheaf

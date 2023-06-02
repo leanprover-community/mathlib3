@@ -13,7 +13,7 @@ open set topological_space structure_groupoid structure_groupoid.local_invariant
 
 universe u
 
-variables {H : Type} [topological_space H] {H' : Type} [topological_space H']
+variables {H : Type*} [topological_space H] {H' : Type*} [topological_space H']
   {G : structure_groupoid H} {G' : structure_groupoid H'}
   {P : (H → H') → (set H) → H → Prop}
   (M : Type u) [topological_space M] [charted_space H M]
@@ -100,7 +100,8 @@ noncomputable def structure_groupoid.local_invariant_prop.sheaf (hG : local_inva
 { val := hG.presheaf M M',
   cond := hG.is_sheaf M M' }
 
-noncomputable instance (hG : local_invariant_prop G G' P) (U : (opens (Top.of M))ᵒᵖ) :
+noncomputable instance structure_groupoid.local_invariant_prop.sheaf_has_coe_to_fun
+  (hG : local_invariant_prop G G' P) (U : (opens (Top.of M))ᵒᵖ) :
   has_coe_to_fun ((hG.sheaf M M').val.obj U) (λ _, (unop U : opens M) → M') :=
 structure_groupoid.local_invariant_prop.bundled_functions.has_coe_to_fun hG (unop U : opens M) M'
 

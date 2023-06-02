@@ -58,7 +58,8 @@ section lie_group
 variables [group G] [lie_group I G]
 
 @[to_additive]
-instance (U : (opens (Top.of M))ᵒᵖ) : group ((smooth_sheaf IM I M G).val.obj U) := smooth_map.group
+instance (U : (opens (Top.of M))ᵒᵖ) : group ((smooth_sheaf IM I M G).val.obj U) :=
+(smooth_map.group : group C^∞⟮IM, (unop U : opens M); I, G⟯)
 
 /-- The presheaf of smooth functions from `M` to `G`, for `G` a Lie group, as a presheaf
 of groups. -/
@@ -95,7 +96,7 @@ variables [comm_group A] [comm_group A'] [lie_group I A] [lie_group I' A']
 
 @[to_additive]
 instance (U : (opens (Top.of M))ᵒᵖ) : comm_group ((smooth_sheaf IM I M A).val.obj U) :=
-smooth_map.comm_group
+(smooth_map.comm_group : comm_group C^∞⟮IM, (unop U : opens M); I, A⟯)
 
 /-- The presheaf of smooth functions from `M` to `A`, for `A` an abelian Lie group, as a
 presheaf of abelian groups. -/
@@ -142,7 +143,8 @@ end comm_lie_group
 section smooth_ring
 variables [ring R] [smooth_ring I R]
 
-instance (U : (opens (Top.of M))ᵒᵖ) : ring ((smooth_sheaf IM I M R).val.obj U) := smooth_map.ring
+instance (U : (opens (Top.of M))ᵒᵖ) : ring ((smooth_sheaf IM I M R).val.obj U) :=
+(smooth_map.ring : ring C^∞⟮IM, (unop U : opens M); I, R⟯)
 
 /-- The presheaf of smooth functions from `M` to `R`, for `R` a smooth ring, as a presheaf
 of rings. -/

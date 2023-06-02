@@ -52,7 +52,7 @@ open set filter topological_space
 
 universes u v
 
-variables {H : Type*} {M : Type u} {H' : Type*} {M' : Type v} {X : Type*}
+variables {H M H' M' X : Type*}
 variables [topological_space H] [topological_space M] [charted_space H M]
 variables [topological_space H'] [topological_space M'] [charted_space H' M']
 variables [topological_space X]
@@ -592,41 +592,6 @@ begin
   rw ← hG.lift_prop_at_iff_comp_inclusion hUV,
   apply hG.lift_prop_id hQ,
 end
-
-include hG
-variables (M M')
-
-/-- The type of bundled functions from `M` (a charted space modelled on `H`) to `M'` (a charted
-space modelled on `H'`) satisfying the lifted predicate associated to `P`, where `P` is a
-predicate on functions `H → H'` which is a `local_invariant_prop` for some structure groupoids with
-model spaces `H`, `H'`. -/
-@[nolint has_nonempty_instance]
-structure bundled_functions : Type (max u v) :=
-(to_fun : M → M')
-(property' : lift_prop P to_fun)
-
-instance bundled_functions_has_coe_to_fun :
-  has_coe_to_fun (hG.bundled_functions M M') (λ _, M → M') :=
-⟨structure_groupoid.local_invariant_prop.bundled_functions.to_fun⟩
-
-namespace bundled_functions
-
-variables {M M'}
-
-@[simp] lemma coe_fn_mk (f : M → M') (hf : lift_prop P f) :
-  ((⟨f, hf⟩ : hG.bundled_functions M M') : M → M') = f :=
-rfl
-
-variables {hG}
-
-@[simp] lemma to_fun_eq_coe_fn (f : hG.bundled_functions M M') : f.to_fun = ⇑f := rfl
-
-@[simp] lemma property (f : hG.bundled_functions M M') : lift_prop P f := f.property'
-
-@[ext] theorem ext {f g : hG.bundled_functions M M'} (h : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr'; exact funext h
-
-end bundled_functions
 
 end local_invariant_prop
 

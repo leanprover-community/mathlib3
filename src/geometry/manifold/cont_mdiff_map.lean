@@ -29,8 +29,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 (n : ℕ∞)
 
 /-- Bundled `n` times continuously differentiable maps. -/
-def cont_mdiff_map :=
-(cont_diff_within_at_local_invariant_prop I I' n).bundled_functions M M'
+def cont_mdiff_map := {f : M → M' // cont_mdiff I I' n f }
 
 /-- Bundled smooth maps. -/
 @[reducible] def smooth_map := cont_mdiff_map I I' M M' ⊤
@@ -46,11 +45,10 @@ namespace cont_mdiff_map
 
 variables {I} {I'} {M} {M'} {n}
 
-instance : has_coe_to_fun C^n⟮I, M; I', M'⟯ (λ _, M → M') :=
-(cont_diff_within_at_local_invariant_prop I I' n).bundled_functions_has_coe_to_fun _ _
+instance : has_coe_to_fun C^n⟮I, M; I', M'⟯ (λ _, M → M') := ⟨λ f, f.val⟩
 
 protected lemma cont_mdiff (f : C^n⟮I, M; I', M'⟯) :
-  cont_mdiff I I' n f := f.property
+  cont_mdiff I I' n f := f.prop
 
 protected lemma smooth (f : C^∞⟮I, M; I', M'⟯) :
   smooth I I' f := f.property
@@ -90,8 +88,8 @@ def id : C^n⟮I, M; I, M⟯ := ⟨id, cont_mdiff_id⟩
 
 /-- The composition of smooth maps, as a smooth map. -/
 def comp (f : C^n⟮I', M'; I'', M''⟯) (g : C^n⟮I, M; I', M'⟯) : C^n⟮I, M; I'', M''⟯ :=
-{ to_fun := λ a, f (g a),
-  property' := f.cont_mdiff.comp g.cont_mdiff, }
+{ val := λ a, f (g a),
+  property := f.cont_mdiff.comp g.cont_mdiff, }
 
 @[simp] lemma comp_apply (f : C^n⟮I', M'; I'', M''⟯) (g : C^n⟮I, M; I', M'⟯) (x : M) :
   f.comp g x = f (g x) := rfl

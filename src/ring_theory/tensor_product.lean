@@ -383,24 +383,52 @@ def include_left_ring_hom : A →+* A ⊗[R] B :=
   map_one' := rfl,
   map_mul' := by simp }
 
-variables {S : Type*} [comm_semiring S] [algebra S A]
+variables {S : Type*}
+
+instance [monoid S] [distrib_mul_action S A] [is_scalar_tower S A A] [smul_comm_class R S A] :
+  is_scalar_tower S (A ⊗[R] B) (A ⊗[R] B) :=
+{ smul_assoc := λ r x y, begin
+    change (r • x) * y = r • (x * y),
+    apply tensor_product.induction_on y,
+    { simp [smul_zero], },
+    { apply tensor_product.induction_on x,
+      { simp [smul_zero] },
+      { intros a b a' b',
+        dsimp,
+        rw [tensor_product.smul_tmul', tensor_product.smul_tmul', tmul_mul_tmul, smul_mul_assoc], },
+      { intros, simp [smul_add, add_mul, *], } },
+    { intros, simp [smul_add, mul_add, *], },
+  end }
+
+instance [monoid S] [distrib_mul_action S A] [smul_comm_class S A A] [smul_comm_class R S A] :
+  smul_comm_class S (A ⊗[R] B) (A ⊗[R] B) :=
+{ smul_comm := λ r x y, begin
+    change r • (x * y) = x * r • y,
+    apply tensor_product.induction_on y,
+    { simp [smul_zero], },
+    { apply tensor_product.induction_on x,
+      { simp [smul_zero] },
+      { intros a b a' b',
+        dsimp,
+        rw [tensor_product.smul_tmul', tensor_product.smul_tmul', tmul_mul_tmul, mul_smul_comm], },
+      { intros, simp [smul_add, add_mul, *], } },
+    { intros, simp [smul_add, mul_add, *], },
+  end }
+
+variables [comm_semiring S] [algebra S A]
 
 instance left_algebra [smul_comm_class R S A] : algebra S (A ⊗[R] B) :=
 { commutes' := λ r x,
   begin
-    apply tensor_product.induction_on x,
-    { simp, },
-    { intros a b, dsimp, rw [algebra.commutes, _root_.mul_one, _root_.one_mul], },
-    { intros y y' h h', dsimp at h h' ⊢, simp only [mul_add, add_mul, h, h'], },
+    dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply, include_left_ring_hom_apply],
+    rw [algebra_map_eq_smul_one, ←smul_tmul', mul_smul_comm, ←one_def, mul_one, one_mul],
   end,
   smul_def' := λ r x,
   begin
-    apply tensor_product.induction_on x,
-    { simp [smul_zero], },
-    { intros a b, dsimp, rw [tensor_product.smul_tmul', algebra.smul_def r a, _root_.one_mul] },
-    { intros, dsimp, simp [smul_add, mul_add, *], },
+    dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply, include_left_ring_hom_apply],
+    rw [algebra_map_eq_smul_one, ←smul_tmul', smul_mul_assoc, ←one_def, one_mul],
   end,
-  .. tensor_product.include_left_ring_hom.comp (algebra_map S A),
+  to_ring_hom := tensor_product.include_left_ring_hom.comp (algebra_map S A),
   .. (by apply_instance : module S (A ⊗[R] B)) }.
 
 -- This is for the `undergrad.yaml` list.

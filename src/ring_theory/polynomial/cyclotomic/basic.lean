@@ -6,14 +6,14 @@ Authors: Riccardo Brasca
 
 import algebra.ne_zero
 import algebra.polynomial.big_operators
-import analysis.complex.roots_of_unity
+import ring_theory.roots_of_unity.complex
 import data.polynomial.lifts
 import data.polynomial.splits
 import data.zmod.algebra
 import field_theory.ratfunc
 import field_theory.separable
 import number_theory.arithmetic_function
-import ring_theory.roots_of_unity
+import ring_theory.roots_of_unity.basic
 
 /-!
 # Cyclotomic polynomials.

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import geometry.manifold.mfderiv
+import geometry.manifold.cont_mdiff_mdifferentiable
 
 /-!
 ### Interactions between differentiability, smoothness and manifold derivatives
@@ -19,7 +20,7 @@ and related notions.
   of a `Cⁿ` function is `Cᵐ` when `m + 1 ≤ n`.
 -/
 
-open set function filter charted_space smooth_manifold_with_corners bundle
+open set function filter charted_space smooth_manifold_with_corners
 open_locale topology manifold bundle
 
 /-! ### Definition of smooth functions between manifolds -/
@@ -46,53 +47,6 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {F₂ : Type*} [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
 -- declare functions, sets, points and smoothness indices
 {f f₁ : M → M'} {s s₁ t : set M} {x : M} {m n : ℕ∞}
-
-/-! ### Deducing differentiability from smoothness -/
-
-lemma cont_mdiff_within_at.mdifferentiable_within_at
-  (hf : cont_mdiff_within_at I I' n f s x) (hn : 1 ≤ n) :
-  mdifferentiable_within_at I I' f s x :=
-begin
-  suffices h : mdifferentiable_within_at I I' f (s ∩ (f ⁻¹' (ext_chart_at I' (f x)).source)) x,
-  { rwa mdifferentiable_within_at_inter' at h,
-    apply (hf.1).preimage_mem_nhds_within,
-    exact ext_chart_at_source_mem_nhds I' (f x) },
-  rw mdifferentiable_within_at_iff,
-  exact ⟨hf.1.mono (inter_subset_left _ _),
-    (hf.2.differentiable_within_at hn).mono (by mfld_set_tac)⟩,
-end
-
-lemma cont_mdiff_at.mdifferentiable_at (hf : cont_mdiff_at I I' n f x) (hn : 1 ≤ n) :
-  mdifferentiable_at I I' f x :=
-mdifferentiable_within_at_univ.1 $ cont_mdiff_within_at.mdifferentiable_within_at hf hn
-
-lemma cont_mdiff_on.mdifferentiable_on (hf : cont_mdiff_on I I' n f s) (hn : 1 ≤ n) :
-  mdifferentiable_on I I' f s :=
-λ x hx, (hf x hx).mdifferentiable_within_at hn
-
-lemma cont_mdiff.mdifferentiable (hf : cont_mdiff I I' n f) (hn : 1 ≤ n) :
-  mdifferentiable I I' f :=
-λ x, (hf x).mdifferentiable_at hn
-
-lemma smooth_within_at.mdifferentiable_within_at
-  (hf : smooth_within_at I I' f s x) : mdifferentiable_within_at I I' f s x :=
-hf.mdifferentiable_within_at le_top
-
-lemma smooth_at.mdifferentiable_at (hf : smooth_at I I' f x) : mdifferentiable_at I I' f x :=
-hf.mdifferentiable_at le_top
-
-lemma smooth_on.mdifferentiable_on (hf : smooth_on I I' f s) : mdifferentiable_on I I' f s :=
-hf.mdifferentiable_on le_top
-
-lemma smooth.mdifferentiable (hf : smooth I I' f) : mdifferentiable I I' f :=
-cont_mdiff.mdifferentiable hf le_top
-
-lemma smooth.mdifferentiable_at (hf : smooth I I' f) : mdifferentiable_at I I' f x :=
-hf.mdifferentiable x
-
-lemma smooth.mdifferentiable_within_at (hf : smooth I I' f) :
-  mdifferentiable_within_at I I' f s x :=
-hf.mdifferentiable_at.mdifferentiable_within_at
 
 /-! ### The derivative of a smooth function is smooth -/
 

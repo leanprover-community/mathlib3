@@ -15,7 +15,7 @@ universe u
 
 variables {H : Type} [topological_space H] {H' : Type} [topological_space H']
   {G : structure_groupoid H} {G' : structure_groupoid H'}
-  {P : (H → H') → (set H) → H → Prop} (hG : local_invariant_prop G G' P)
+  {P : (H → H') → (set H) → H → Prop}
   (M : Type u) [topological_space M] [charted_space H M]
   (M' : Type u) [topological_space M'] [charted_space H' M']
 
@@ -23,40 +23,6 @@ instance Top.of.charted_space : charted_space H (Top.of M) := (infer_instance : 
 
 instance Top.of.has_groupoid [has_groupoid M G] : has_groupoid (Top.of M) G :=
 (infer_instance : has_groupoid M G)
-
-include hG
-
-/-- The type of bundled functions from `M` (a charted space modelled on `H`) to `M'` (a charted
-space modelled on `H'`) satisfying the lifted predicate associated to `P`, where `P` is a
-predicate on functions `H → H'` which is a `local_invariant_prop` for some structure groupoids with
-model spaces `H`, `H'`. -/
-@[nolint has_nonempty_instance]
-structure structure_groupoid.local_invariant_prop.bundled_functions : Type u :=
-(to_fun : M → M')
-(property' : lift_prop P to_fun)
-
-namespace structure_groupoid.local_invariant_prop.bundled_functions
-variables {H'}
-
-instance : has_coe_to_fun (hG.bundled_functions M M') (λ _, M → M') :=
-⟨structure_groupoid.local_invariant_prop.bundled_functions.to_fun⟩
-
-variables {M M'}
-
-@[simp] lemma coe_fn_mk (f : M → M') (hf : lift_prop P f) :
-  ((⟨f, hf⟩ : hG.bundled_functions M M') : M → M') = f :=
-rfl
-
-variables {hG}
-
-@[simp] lemma to_fun_eq_coe_fn (f : hG.bundled_functions M M') : f.to_fun = ⇑f := rfl
-
-@[simp] lemma property (f : hG.bundled_functions M M') : lift_prop P f := f.property'
-
-@[ext] theorem ext {f g : hG.bundled_functions M M'} (h : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr'; exact funext h
-
-end structure_groupoid.local_invariant_prop.bundled_functions
 
 /-- Let `P` be a `local_invariant_prop` for functions between spaces with the groupoids `G`, `G'`
 and let `M`, `M'` be charted spaces modelled on the model spaces of those groupoids.  Then there is
@@ -66,7 +32,7 @@ noncomputable def structure_groupoid.local_invariant_prop.presheaf
   (hG : local_invariant_prop G G' P) : Top.presheaf (Type u) (Top.of M) :=
 { obj := λ U, hG.bundled_functions (unop U : opens M) M',
   map := λ V U i f,
-  { to_fun := f ∘ i.unop, --hG.restriction M' i.unop f.property⟩,
+  { to_fun := f ∘ i.unop,
     property' := begin
       intros x,
       have hUV : unop U ≤ unop V := category_theory.le_of_hom i.unop,
@@ -74,8 +40,6 @@ noncomputable def structure_groupoid.local_invariant_prop.presheaf
       rw ← hG.lift_prop_at_iff_comp_inclusion hUV,
       exact f.property _,
     end } }
-
-open Top Top.presheaf
 
 /-- Let `P` be a `local_invariant_prop` for functions between spaces with the groupoids `G`, `G'`
 and let `M`, `M'` be charted spaces modelled on the model spaces of those groupoids.  Then the

@@ -29,7 +29,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 (n : ℕ∞)
 
 /-- Bundled `n` times continuously differentiable maps. -/
-def cont_mdiff_map := {f : M → M' // cont_mdiff I I' n f }
+def cont_mdiff_map := {f : M → M' // cont_mdiff I I' n f}
 
 /-- Bundled smooth maps. -/
 @[reducible] def smooth_map := cont_mdiff_map I I' M M' ⊤

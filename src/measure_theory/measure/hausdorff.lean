@@ -386,13 +386,18 @@ begin
     simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
 end
 
-lemma mk_metric_smul (m : ℝ≥0∞ → ℝ≥0∞) {c : ℝ≥0∞} (hc : c ≠ ⊤) (hc' : c ≠ 0):
+lemma mk_metric_smul (m : ℝ≥0∞ → ℝ≥0∞) {c : ℝ≥0∞} (hc : c ≠ ∞) (hc' : c ≠ 0) :
   (mk_metric (c • m) : outer_measure X) = c • mk_metric m :=
 begin
   simp only [mk_metric, mk_metric', mk_metric'.pre, induced_outer_measure,
     ennreal.smul_supr],
   simp_rw [smul_supr, smul_bounded_by hc, smul_extend _ hc', pi.smul_apply],
 end
+
+lemma mk_metric_nnreal_smul (m : ℝ≥0∞ → ℝ≥0∞) {c : ℝ≥0} (hc : c ≠ 0) :
+  (mk_metric (c • m) : outer_measure X) = c • mk_metric m :=
+by rw [ennreal.smul_def, ennreal.smul_def,
+    mk_metric_smul m (ennreal.coe_ne_top) (ennreal.coe_ne_zero.mpr hc)]
 
 lemma isometry_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : isometry f)
   (H : monotone m ∨ surjective f) :
@@ -1051,7 +1056,6 @@ begin
   have iso_smul : isometry (linear_map.to_span_singleton ℝ E (‖v‖⁻¹ • v)),
   { refine add_monoid_hom_class.isometry_of_norm _ (λ x, (norm_smul _ _).trans _),
     rw [norm_smul, norm_inv, norm_norm, inv_mul_cancel hn, mul_one, linear_map.id_apply] },
-  borelize E,
   rw [set.image_smul,
     measure.hausdorff_measure_smul₀ zero_le_one hn, nnnorm_norm, nnreal.rpow_one,
     iso_smul.hausdorff_measure_image (or.inl $ zero_le_one' ℝ)],

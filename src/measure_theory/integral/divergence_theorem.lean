@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
-import analysis.calculus.deriv
+import analysis.calculus.deriv.basic
 import measure_theory.constructions.prod.integral
 import measure_theory.integral.interval_integral
 

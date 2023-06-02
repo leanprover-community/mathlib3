@@ -14,6 +14,9 @@ import topology.continuous_function.cocompact_map
 /-!
 # Measures on Groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We develop some properties of measures on (topological) groups
 
 * We define properties on measures: measures that are left or right invariant w.r.t. multiplication.

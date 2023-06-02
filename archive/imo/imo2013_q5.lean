@@ -29,6 +29,8 @@ https://www.imo-official.org/problems/IMO2013SL.pdf
 
 open_locale big_operators
 
+namespace imo
+
 lemma le_of_all_pow_lt_succ {x y : ℝ} (hx : 1 < x) (hy : 1 < y)
   (h : ∀ n : ℕ, 0 < n → x^n - 1 < y^n) :
   x ≤ y :=
@@ -301,3 +303,5 @@ begin
        ... = (((x2num : ℚ) / (x2denom : ℚ) : ℚ) : ℝ) : by norm_cast
        ... = x                                       : by rw ←hrat_expand2
 end
+
+end imo

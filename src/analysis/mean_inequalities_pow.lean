@@ -11,6 +11,9 @@ import tactic.positivity
 /-!
 # Mean value inequalities
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several mean inequalities for finite sums. Versions for integrals of some of
 these inequalities are available in `measure_theory.mean_inequalities`.
 

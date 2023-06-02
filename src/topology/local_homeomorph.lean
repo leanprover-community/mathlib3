@@ -1146,6 +1146,17 @@ lemma subtype_restr_def : e.subtype_restr s = s.local_homeomorph_subtype_coe.tra
 @[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr s).source = coe ⁻¹' e.source :=
 by simp only [subtype_restr_def] with mfld_simps
 
+variables {s}
+
+lemma map_subtype_source {x : s} (hxe : (x:α) ∈ e.source) : e x ∈ (e.subtype_restr s).target :=
+begin
+  refine ⟨e.map_source hxe, _⟩,
+  rw [s.local_homeomorph_subtype_coe_target, mem_preimage, e.left_inv_on hxe],
+  exact x.prop
+end
+
+variables (s)
+
 /- This lemma characterizes the transition functions of an open subset in terms of the transition
 functions of the original space. -/
 lemma subtype_restr_symm_trans_subtype_restr (f f' : local_homeomorph α β) :
@@ -1165,6 +1176,26 @@ begin
   -- f has been eliminated !!!
   refine setoid.trans (trans_symm_self s.local_homeomorph_subtype_coe) _,
   simp only with mfld_simps,
+end
+
+lemma subtype_restr_eq_on_of_le {U V : opens α} [nonempty U] [nonempty V] (hUV : U ≤ V) :
+  eq_on (e.subtype_restr V).symm (set.inclusion hUV ∘ (e.subtype_restr U).symm)
+    (e.subtype_restr U).target :=
+begin
+  set i := set.inclusion hUV,
+  intros y hy,
+  dsimp [local_homeomorph.subtype_restr_def] at ⊢ hy,
+  have hyV : e.symm y ∈ V.local_homeomorph_subtype_coe.target,
+  { rw opens.local_homeomorph_subtype_coe_target at ⊢ hy,
+    exact hUV hy.2 },
+  refine V.local_homeomorph_subtype_coe.inj_on _ trivial _,
+  { rw ←local_homeomorph.symm_target,
+    apply local_homeomorph.map_source,
+    rw local_homeomorph.symm_source,
+    exact hyV },
+  { rw V.local_homeomorph_subtype_coe.right_inv hyV,
+    show _ = U.local_homeomorph_subtype_coe _,
+    rw U.local_homeomorph_subtype_coe.right_inv hy.2 }
 end
 
 end local_homeomorph

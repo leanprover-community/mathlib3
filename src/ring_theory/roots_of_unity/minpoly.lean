@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca, Johan Commelin
 -/
 
-import ring_theory.root_of_unity.basic
+import ring_theory.roots_of_unity.basic
 import field_theory.minpoly.is_integrally_closed
 
 /-!

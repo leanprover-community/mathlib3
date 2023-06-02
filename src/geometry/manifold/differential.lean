@@ -20,7 +20,7 @@ and related notions.
   of a `Cⁿ` function is `Cᵐ` when `m + 1 ≤ n`.
 -/
 
-open set function filter charted_space smooth_manifold_with_corners
+open set function filter charted_space smooth_manifold_with_corners bundle
 open_locale topology manifold bundle
 
 /-! ### Definition of smooth functions between manifolds -/

@@ -605,10 +605,11 @@ structure bundled_functions : Type (max u v) :=
 (to_fun : M → M')
 (property' : lift_prop P to_fun)
 
-namespace bundled_functions
-
-instance : has_coe_to_fun (hG.bundled_functions M M') (λ _, M → M') :=
+instance bundled_functions_has_coe_to_fun :
+  has_coe_to_fun (hG.bundled_functions M M') (λ _, M → M') :=
 ⟨structure_groupoid.local_invariant_prop.bundled_functions.to_fun⟩
+
+namespace bundled_functions
 
 variables {M M'}
 

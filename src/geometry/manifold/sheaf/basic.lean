@@ -100,7 +100,7 @@ noncomputable def structure_groupoid.local_invariant_prop.sheaf (hG : local_inva
 noncomputable instance structure_groupoid.local_invariant_prop.sheaf_has_coe_to_fun
   (hG : local_invariant_prop G G' P) (U : (opens (Top.of M))ᵒᵖ) :
   has_coe_to_fun ((hG.sheaf M M').val.obj U) (λ _, (unop U : opens M) → M') :=
-structure_groupoid.local_invariant_prop.bundled_functions.has_coe_to_fun hG (unop U : opens M) M'
+hG.bundled_functions_has_coe_to_fun (unop U : opens M) M'
 
 lemma structure_groupoid.local_invariant_prop.section_spec (hG : local_invariant_prop G G' P)
   (U : (opens (Top.of M))ᵒᵖ) (f : (hG.sheaf M M').val.obj U) :

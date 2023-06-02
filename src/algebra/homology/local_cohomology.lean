@@ -101,7 +101,7 @@ variables {E : Type v} [small_category E]
 
 def diagram_comp (i : ℕ) : diagram (I' ⋙ I) i ≅ I'.op ⋙ (diagram I i) := iso.refl _
 
-/-- Local cohomology agrees along arbitrary cofinal diagrams. -/
+/-- Local cohomology agrees along cofinal diagrams. -/
 def iso_of_final (i : ℕ) :
   of_diagram (I' ⋙ I) i ≅ of_diagram I i :=
 (has_colimit.iso_of_nat_iso (diagram_comp _ _ _))
@@ -162,9 +162,9 @@ namespace local_cohomology
 /-!
 Showing equivalence of different definitions of local cohomology.
   * `local_cohomology.iso_self_le_radical` gives the isomorphism
-    `local_cohomology J i ≅ local_cohomology.of_self_le_radical J i`
+      `local_cohomology J i ≅ local_cohomology.of_self_le_radical J i`
   * `local_cohomology.iso_of_same_radical` gives the isomorphism
-    `local_cohomology J i ≅ local_cohomology K i` when `J.radical = K.radical`.
+      `local_cohomology J i ≅ local_cohomology K i` when `J.radical = K.radical`.
 -/
 section local_cohomology_equiv
 
@@ -234,12 +234,6 @@ end
 end local_cohomology_equiv
 
 section
-/-
-TODO: Show that local cohomology depends only on `J.radical`.
-This should essentially follow from `local_cohomology.iso_self_le_radical` above,
-since the full subcategories `self_le_radical J` and `self_le_radical K` are... the same.
-Below is an incomplete attempt.
--/
 
 variables {R : Type} [comm_ring R]
 
@@ -250,29 +244,20 @@ full_subcategory.map (λ L hL, begin
                         exact hJK.symm.trans_le hL,
                       end)
 
-instance self_le_radical.is_equivalence {J K : ideal R} (hJK : J.radical = K.radical) :
+instance self_le_radical.cast_is_equivalence {J K : ideal R} (hJK : J.radical = K.radical) :
 is_equivalence (self_le_radical.cast hJK) :=
 { inverse := self_le_radical.cast hJK.symm,
   unit_iso := by tidy,
   counit_iso := by tidy }
 
-def of_self_le_radical.iso_of_same_radical  {J K : ideal R} (hJK : J.radical = K.radical) (i : ℕ) :
-  (diagram (self_le_radical.cast hJK ⋙ self_le_radical_diagram K) i) ≅
-  (diagram (self_le_radical_diagram J) i) :=
-diagram_comp (self_le_radical.cast hJK) (self_le_radical_diagram K) i
+instance self_le_radical.cast_initial {J K : ideal R} (hJK : J.radical = K.radical) :
+  functor.initial (self_le_radical.cast hJK) :=
+functor.initial_of_adjunction (self_le_radical.cast hJK).adjunction
 
-theorem self_le_radical.iso_of_same_radical [is_noetherian R R] {J K : ideal R}
+def self_le_radical.iso_of_same_radical [is_noetherian R R] {J K : ideal R}
   (hJK : J.radical = K.radical)  (i : ℕ) :
 of_self_le_radical J i ≅ of_self_le_radical K i :=
-begin
-  unfold of_self_le_radical,
-  unfold of_diagram,
-  sorry,
-  -- have key :=
-  --   diagram_comp (self_le_radical.cast hJK) (self_le_radical_diagram K) i,
-  -- have key2 :=
-  --   has_colimit.iso_of_equivalence (self_le_radical.cast hJK.symm).as_equivalence,
-end
+(iso_of_final (self_le_radical.cast hJK.symm) _ _).symm
 
 /-- Local cohomology agrees on ideals with the same radical. -/
 def iso_of_same_radical [is_noetherian R R] {J K : ideal R} (i : ℕ)

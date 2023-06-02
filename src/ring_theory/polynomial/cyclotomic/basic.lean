@@ -6,7 +6,7 @@ Authors: Riccardo Brasca
 
 import algebra.ne_zero
 import algebra.polynomial.big_operators
-import analysis.complex.roots_of_unity
+import ring_theory.roots_of_unity.complex
 import data.polynomial.lifts
 import data.polynomial.splits
 import data.zmod.algebra

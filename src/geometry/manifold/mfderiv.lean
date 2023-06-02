@@ -3,9 +3,8 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
-import geometry.manifold.vector_bundle.hom
-import geometry.manifold.vector_bundle.pullback
 import geometry.manifold.vector_bundle.tangent
+import geometry.manifold.mdifferentiable
 
 /-!
 # The derivative of functions between smooth manifolds
@@ -18,12 +17,6 @@ for (Fréchet) derivatives. It is denoted by `mfderiv I I' f x`, where "m" stand
 
 ## Main definitions
 
-* `unique_mdiff_on I s` : predicate saying that, at each point of the set `s`, a function can have
-  at most one derivative. This technical condition is important when we define
-  `mfderiv_within` below, as otherwise there is an arbitrary choice in the derivative,
-  and many properties will fail (for instance the chain rule). This is analogous to
-  `unique_diff_on 𝕜 s` in a vector space.
-
 Let `f` be a map between smooth manifolds. The following definitions follow the `fderiv` API.
 
 * `mfderiv I I' f x` : the derivative of `f` at `x`, as a continuous linear map from the tangent
@@ -31,14 +24,9 @@ Let `f` be a map between smooth manifolds. The following definitions follow the 
 * `mfderiv_within I I' f s x` : the derivative of `f` at `x` within `s`, as a continuous linear map
   from the tangent space at `x` to the tangent space at `f x`. If the map is not differentiable
   within `s`, this is `0`.
-* `mdifferentiable_at I I' f x` : Prop expressing whether `f` is differentiable at `x`.
-* `mdifferentiable_within_at 𝕜 f s x` : Prop expressing whether `f` is differentiable within `s`
-  at `x`.
 * `has_mfderiv_at I I' f s x f'` : Prop expressing whether `f` has `f'` as a derivative at `x`.
 * `has_mfderiv_within_at I I' f s x f'` : Prop expressing whether `f` has `f'` as a derivative
   within `s` at `x`.
-* `mdifferentiable_on I I' f s` : Prop expressing that `f` is differentiable on the set `s`.
-* `mdifferentiable I I' f` : Prop expressing that `f` is differentiable everywhere.
 * `tangent_map I I' f` : the derivative of `f`, as a map from the tangent bundle of `M` to the
   tangent bundle of `M'`.
 
@@ -109,7 +97,7 @@ map from the tangent space to `M` at `x`, to the tangent space to `M'` at `f x`.
 the tangent space using one specific chart, the formula for the derivative is written in terms of
 this specific chart.
 
-We use the names `mdifferentiable` and `mfderiv`, where the prefix letter `m` means "manifold".
+We use the name `mfderiv`, where the prefix letter `m` means "manifold".
 -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]

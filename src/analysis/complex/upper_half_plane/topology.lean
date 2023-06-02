@@ -9,7 +9,7 @@ import analysis.convex.normed
 import analysis.convex.complex
 import analysis.complex.re_im_topology
 import topology.homotopy.contractible
-import geometry.manifold.cont_mdiff_mfderiv
+import geometry.manifold.cont_mdiff_mdifferentiable
 
 /-!
 # Topology on the upper half plane

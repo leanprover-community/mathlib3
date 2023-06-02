@@ -416,7 +416,8 @@ begin
   set g := f.to_smooth_partition_of_unity,
   refine ⟨⟨_, g.smooth_sum⟩, λ x hx, _, λ x, g.sum_eq_one, λ x, ⟨g.sum_nonneg x, g.sum_le_one x⟩⟩,
   suffices : ∀ i, g i x = 0,
-    by simp only [this, cont_mdiff_map.coe_fn_mk, finsum_zero, pi.zero_apply],
+  { simp only [this, finsum_zero, pi.zero_apply,
+      structure_groupoid.local_invariant_prop.bundled_functions.coe_fn_mk] },
   refine λ i, f.to_smooth_partition_of_unity_zero_of_zero _,
   exact nmem_support.1 (subset_compl_comm.1 (hf.support_subset i) hx)
 end

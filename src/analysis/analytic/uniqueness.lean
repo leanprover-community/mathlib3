@@ -93,7 +93,7 @@ end
 neighborhood of a point `z₀`, then they coincide globally along a connected set.
 For a one-dimensional version assuming only that the functions coincide at some points
 arbitrarily close to `z₀`, see `eq_on_of_preconnected_of_frequently_eq`. -/
-theorem eq_of_preconnected_of_eventually_eq
+theorem eq_on_of_preconnected_of_eventually_eq
   {f g : E → F} {U : set E} (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
   (hU : is_preconnected U) {z₀ : E} (h₀ : z₀ ∈ U) (hfg : f =ᶠ[𝓝 z₀] g) :
   eq_on f g U :=
@@ -107,7 +107,7 @@ end
 coincide in a neighborhood of a point `z₀`, then they coincide everywhere.
 For a one-dimensional version assuming only that the functions coincide at some points
 arbitrarily close to `z₀`, see `eq_on_of_frequently_eq`. -/
-theorem eq_on_of_eventually_eq {f g : E → F} [preconnected_space E]
+theorem eq_of_eventually_eq {f g : E → F} [preconnected_space E]
   (hf : analytic_on 𝕜 f univ) (hg : analytic_on 𝕜 g univ) {z₀ : E} (hfg : f =ᶠ[𝓝 z₀] g) :
   f = g :=
 funext (λ x, eq_on_of_preconnected_of_eventually_eq hf hg is_preconnected_univ

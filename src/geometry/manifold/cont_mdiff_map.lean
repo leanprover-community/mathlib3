@@ -47,8 +47,7 @@ namespace cont_mdiff_map
 variables {I} {I'} {M} {M'} {n}
 
 instance : has_coe_to_fun C^n⟮I, M; I', M'⟯ (λ _, M → M') :=
-structure_groupoid.local_invariant_prop.bundled_functions.has_coe_to_fun
-  (cont_diff_within_at_local_invariant_prop I I' n) _ _
+(cont_diff_within_at_local_invariant_prop I I' n).bundled_functions_has_coe_to_fun _ _
 
 protected lemma cont_mdiff (f : C^n⟮I, M; I', M'⟯) :
   cont_mdiff I I' n f := f.property

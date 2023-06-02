@@ -31,6 +31,10 @@ general form of the Euler limit formula valid for any real or complex `x`; see
 As an application of the Bohr-Mollerup theorem we prove the Legendre doubling formula for the
 Gamma function for real positive `s` (which will be upgraded to a proof for all complex `s` in a
 later file).
+
+TODO: This argument can be extended to prove the general `k`-multiplication formula (at least up
+to a constant, and it should be possible to deduce the value of this constant using Stirling's
+formula).
 -/
 
 noncomputable theory

@@ -45,13 +45,13 @@ namespace cont_mdiff_map
 
 variables {I} {I'} {M} {M'} {n}
 
-instance : has_coe_to_fun C^n⟮I, M; I', M'⟯ (λ _, M → M') := ⟨λ f, f.val⟩
+instance : has_coe_to_fun C^n⟮I, M; I', M'⟯ (λ _, M → M') := ⟨subtype.val⟩
 
 protected lemma cont_mdiff (f : C^n⟮I, M; I', M'⟯) :
   cont_mdiff I I' n f := f.prop
 
 protected lemma smooth (f : C^∞⟮I, M; I', M'⟯) :
-  smooth I I' f := f.property
+  smooth I I' f := f.prop
 
 instance : has_coe C^n⟮I, M; I', M'⟯ C(M, M') :=
 ⟨λ f, ⟨f, f.cont_mdiff.continuous⟩⟩

@@ -565,7 +565,7 @@ lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (
 
 /-- Version of `tsum_eq_add_tsum_ite` for `add_comm_monoid` rather than `add_comm_group`.
 Requires a different convergence assumption involving `function.update`. -/
-lemma tsum_eq_add_tsum_ite' {f : β → α} (b : β) (hf : summable (f.update b 0)) :
+lemma tsum_eq_add_tsum_ite' [decidable_eq β] {f : β → α} (b : β) (hf : summable (f.update b 0)) :
   ∑' x, f x = f b + ∑' x, ite (x = b) 0 (f x) :=
 calc ∑' x, f x = ∑' x, ((ite (x = b) (f x) 0) + (f.update b 0 x)) :
     tsum_congr (λ n, by split_ifs; simp [function.update_apply, h])
@@ -575,6 +575,18 @@ calc ∑' x, f x = ∑' x, ((ite (x = b) (f x) 0) + (f.update b 0 x)) :
     by { congr, exact (tsum_eq_single b (λ b' hb', if_neg hb')) }
   ... = f b + ∑' x, ite (x = b) 0 (f x) :
     by simp only [function.update, eq_self_iff_true, if_true, eq_rec_constant, dite_eq_ite]
+
+/-- Version of `tsum_option_eq_none_add_tsum` for `add_comm_monoid` rather than `add_comm_group`.
+Requires a different convergence assumption involving `function.update`. -/
+lemma tsum_option_eq_none_add_tsum' {f : option β → α} (hf : summable (f.update none 0)) :
+  ∑' x : option β, f x = f none + ∑' x : β, f (some x) :=
+begin
+  refine (tsum_eq_add_tsum_ite' none hf).trans (congr_arg ((+) (f none)) _),
+  calc ∑' x, ite (x = none) 0 (f x) = ∑' x, (set.range option.some).indicator f x :
+      tsum_congr (λ x, by cases x; simp)
+    ... = ∑' x : (set.range option.some), f ↑x : (tsum_subtype _ _).symm
+    ... = ∑' x, f (option.some x) : tsum_range f (option.some_injective β)
+end
 
 variables [add_comm_monoid δ] [topological_space δ] [t3_space δ] [has_continuous_add δ]
 
@@ -804,6 +816,17 @@ lemma tsum_eq_add_tsum_ite [decidable_eq β] (hf : summable f) (b : β) :
 begin
   rw (has_sum_ite_sub_has_sum hf.has_sum b).tsum_eq,
   exact (add_sub_cancel'_right _ _).symm,
+end
+
+/-- The sum of a function `f` on `option β` is `f none` plus the sum of `f ∘ some` on `β`. -/
+lemma tsum_option_eq_none_add_tsum {f : option β → α} (hf : summable f) :
+  ∑' x : option β, f x = f none + ∑' x : β, f (some x) :=
+begin
+  refine (tsum_eq_add_tsum_ite hf none).trans (congr_arg ((+) (f none)) _),
+  calc ∑' x, ite (x = none) 0 (f x) = ∑' x, (set.range option.some).indicator f x :
+      tsum_congr (λ x, by cases x; simp)
+    ... = ∑' x : (set.range option.some), f ↑x : (tsum_subtype _ _).symm
+    ... = ∑' x, f (option.some x) : tsum_range f (option.some_injective β)
 end
 
 end tsum

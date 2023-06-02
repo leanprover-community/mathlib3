@@ -32,7 +32,7 @@ refined properties of the Gamma function using these relations.
 * `complex.Gamma_mul_Gamma_add_half`: Legendre's duplication formula
   `Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * sqrt π`.
 * `real.Gamma_ne_zero`, `real.Gamma_seq_tendsto_Gamma`,
-  `real.Gamma_mul_Gamma_one_sub` ,`real.Gamma_mul_Gamma_add_half`: real versons of the above.
+  `real.Gamma_mul_Gamma_one_sub` ,`real.Gamma_mul_Gamma_add_half`: real versions of the above.
 -/
 
 noncomputable theory
@@ -578,31 +578,27 @@ namespace complex
 theorem Gamma_mul_Gamma_add_half (s : ℂ) :
   Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * ↑(real.sqrt π) :=
 begin
-  let S := (univ : set ℂ),
-  suffices : eq_on (λ z, (Gamma z)⁻¹ * (Gamma (z + 1 / 2))⁻¹)
-    (λ z, (Gamma (2 * z))⁻¹  * 2 ^ (2 * z - 1) / ↑(real.sqrt π)) S,
-  { convert congr_arg has_inv.inv (this $ mem_univ s) using 1,
+  suffices : (λ z, (Gamma z)⁻¹ * (Gamma (z + 1 / 2))⁻¹) =
+    (λ z, (Gamma (2 * z))⁻¹  * 2 ^ (2 * z - 1) / ↑(real.sqrt π)),
+  { convert congr_arg has_inv.inv (congr_fun this s) using 1,
     { rw [mul_inv, inv_inv, inv_inv] },
     { rw [div_eq_mul_inv, mul_inv, mul_inv, inv_inv, inv_inv, ←cpow_neg, neg_sub] } },
-  have h0 : is_open S, from is_open_univ,
-  have h1 : analytic_on ℂ (λ z : ℂ, (Gamma z)⁻¹ * (Gamma (z + 1 / 2))⁻¹) S,
-  { refine differentiable_on.analytic_on _ h0,
+  have h1 : analytic_on ℂ (λ z : ℂ, (Gamma z)⁻¹ * (Gamma (z + 1 / 2))⁻¹) univ,
+  { refine differentiable_on.analytic_on _ is_open_univ,
     refine (differentiable_one_div_Gamma.mul _).differentiable_on,
     exact differentiable_one_div_Gamma.comp (differentiable_id.add (differentiable_const _)) },
-  have h2 : analytic_on ℂ (λ z, (Gamma (2 * z))⁻¹  * 2 ^ (2 * z - 1) / ↑(real.sqrt π)) S,
-  { refine differentiable_on.analytic_on _ h0,
+  have h2 : analytic_on ℂ (λ z, (Gamma (2 * z))⁻¹  * 2 ^ (2 * z - 1) / ↑(real.sqrt π)) univ,
+  { refine differentiable_on.analytic_on _ is_open_univ,
     refine (differentiable.mul _ (differentiable_const _)).differentiable_on,
     apply differentiable.mul,
     { exact differentiable_one_div_Gamma.comp (differentiable_id'.const_mul _) },
     { refine λ t, differentiable_at.const_cpow _ (or.inl two_ne_zero),
       refine differentiable_at.sub_const (differentiable_at_id.const_mul _) _ } },
-  have h3 : is_preconnected S, from is_preconnected_univ,
-  have h4 : (1 : ℂ) ∈ S, from mem_univ _,
-  have h5 : tendsto (coe : ℝ → ℂ) (𝓝[≠] 1) (𝓝[≠] 1),
+  have h3 : tendsto (coe : ℝ → ℂ) (𝓝[≠] 1) (𝓝[≠] 1),
   { rw tendsto_nhds_within_iff, split,
     { exact tendsto_nhds_within_of_tendsto_nhds continuous_of_real.continuous_at },
     { exact eventually_nhds_within_iff.mpr (eventually_of_forall $ λ t ht, of_real_ne_one.mpr ht)}},
-  refine analytic_on.eq_on_of_preconnected_of_frequently_eq h1 h2 h3 h4 (h5.frequently _),
+  refine analytic_on.eq_of_frequently_eq h1 h2 (h3.frequently _),
   refine ((eventually.filter_mono nhds_within_le_nhds) _).frequently,
   refine (eventually_gt_nhds zero_lt_one).mp (eventually_of_forall $ λ t ht, _),
   rw [←mul_inv, Gamma_of_real, (by push_cast : (t : ℂ) + 1 / 2 = ↑(t + 1 / 2)), Gamma_of_real,

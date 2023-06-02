@@ -27,11 +27,62 @@ context of this proof, we place them in a separate namespace `real.bohr_mollerup
 general form of the Euler limit formula valid for any real or complex `x`; see
 `real.Gamma_seq_tendsto_Gamma` and `complex.Gamma_seq_tendsto_Gamma` in the file
 `analysis.special_functions.gamma.beta`.)
+
+As an application of the Bohr-Mollerup theorem we prove the Legendre doubling formula for the
+Gamma function for real positive `s` (which will be upgraded to a proof for all complex `s` in a
+later file).
 -/
 
 noncomputable theory
 open filter set measure_theory
 open_locale nat ennreal topology big_operators real
+
+section convexity
+
+-- Porting note: move the following lemmas to `Analysis.Convex.Function`
+variables {𝕜 E β : Type*} {s : set E} {f g : E → β}
+
+  [ordered_semiring 𝕜] [has_smul 𝕜 E] [add_comm_monoid E] [ordered_add_comm_monoid β]
+
+lemma convex_on.congr [has_smul 𝕜 β] (hf : convex_on 𝕜 s f) (hfg : eq_on f g s) :
+  convex_on 𝕜 s g :=
+⟨hf.1, λ x hx y hy a b ha hb hab,
+  by simpa only [←hfg hx, ←hfg hy, ←hfg (hf.1 hx hy ha hb hab)] using hf.2 hx hy ha hb hab⟩
+
+lemma concave_on.congr [has_smul 𝕜 β](hf : concave_on 𝕜 s f) (hfg : eq_on f g s) :
+  concave_on 𝕜 s g :=
+⟨hf.1, λ x hx y hy a b ha hb hab,
+  by simpa only [←hfg hx, ←hfg hy, ←hfg (hf.1 hx hy ha hb hab)] using hf.2 hx hy ha hb hab⟩
+
+lemma strict_convex_on.congr [has_smul 𝕜 β] (hf : strict_convex_on 𝕜 s f) (hfg : eq_on f g s) :
+  strict_convex_on 𝕜 s g :=
+⟨hf.1, λ x hx y hy hxy a b ha hb hab, by simpa only
+  [←hfg hx, ←hfg hy, ←hfg (hf.1 hx hy ha.le hb.le hab)] using hf.2 hx hy hxy ha hb hab⟩
+
+lemma strict_concave_on.congr [has_smul 𝕜 β] (hf : strict_concave_on 𝕜 s f) (hfg : eq_on f g s) :
+  strict_concave_on 𝕜 s g :=
+⟨hf.1, λ x hx y hy hxy a b ha hb hab, by simpa only
+  [←hfg hx, ←hfg hy, ←hfg (hf.1 hx hy ha.le hb.le hab)] using hf.2 hx hy hxy ha hb hab⟩
+
+lemma convex_on.add_const [module 𝕜 β] (hf : convex_on 𝕜 s f) (b : β) :
+  convex_on 𝕜 s (f + (λ _, b)) :=
+hf.add (convex_on_const _ hf.1)
+
+lemma concave_on.add_const [module 𝕜 β] (hf : concave_on 𝕜 s f) (b : β) :
+  concave_on 𝕜 s (f + (λ _, b)) :=
+hf.add (concave_on_const _ hf.1)
+
+lemma strict_convex_on.add_const {γ : Type*} {f : E → γ}
+  [ordered_cancel_add_comm_monoid γ] [module 𝕜 γ] (hf : strict_convex_on 𝕜 s f) (b : γ) :
+  strict_convex_on 𝕜 s (f + (λ _, b)) :=
+hf.add_convex_on (convex_on_const _ hf.1)
+
+lemma strict_concave_on.add_const {γ : Type*} {f : E → γ}
+  [ordered_cancel_add_comm_monoid γ] [module 𝕜 γ] (hf : strict_concave_on 𝕜 s f) (b : γ) :
+  strict_concave_on 𝕜 s (f + (λ _, b)) :=
+hf.add_concave_on (concave_on_const _ hf.1)
+
+end convexity
 
 namespace real
 
@@ -114,17 +165,12 @@ end
 
 lemma convex_on_Gamma : convex_on ℝ (Ioi 0) Gamma :=
 begin
-  refine ⟨convex_Ioi 0, λ x hx y hy a b ha hb hab, _⟩,
-  have := convex_on.comp (convex_on_exp.subset (subset_univ _) _) convex_on_log_Gamma
-    (λ u hu v hv huv, exp_le_exp.mpr huv),
-  convert this.2 hx hy ha hb hab,
-  { rw [function.comp_app, exp_log (Gamma_pos_of_pos $ this.1 hx hy ha hb hab)] },
-  { rw [function.comp_app, exp_log (Gamma_pos_of_pos hx)] },
-  { rw [function.comp_app, exp_log (Gamma_pos_of_pos hy)] },
-  { rw convex_iff_is_preconnected,
-    refine is_preconnected_Ioi.image _ (λ x hx, continuous_at.continuous_within_at _),
-    refine (differentiable_at_Gamma (λ m, _)).continuous_at.log (Gamma_pos_of_pos hx).ne',
-    exact (neg_lt_iff_pos_add.mpr (add_pos_of_pos_of_nonneg hx (nat.cast_nonneg m))).ne' }
+  refine ((convex_on_exp.subset (subset_univ _) _).comp convex_on_log_Gamma
+    (exp_monotone.monotone_on _)).congr (λ x hx, exp_log (Gamma_pos_of_pos hx)),
+  rw convex_iff_is_preconnected,
+  refine is_preconnected_Ioi.image _ (λ x hx, continuous_at.continuous_within_at _),
+  refine (differentiable_at_Gamma (λ m, _)).continuous_at.log (Gamma_pos_of_pos hx).ne',
+  exact (neg_lt_iff_pos_add.mpr (add_pos_of_pos_of_nonneg hx (nat.cast_nonneg m))).ne',
 end
 
 end convexity
@@ -395,9 +441,8 @@ def doubling_Gamma (s : ℝ) : ℝ := Gamma (s / 2) * Gamma (s / 2 + 1 / 2) * 2 
 lemma doubling_Gamma_add_one (s : ℝ) (hs : s ≠ 0) :
   doubling_Gamma (s + 1) = s * doubling_Gamma s :=
 begin
-  dsimp only [doubling_Gamma],
-  rw [add_div, add_assoc, add_halves (1 : ℝ), (by abel : s + 1 - 1 = s - 1 + 1),
-    Gamma_add_one (div_ne_zero hs two_ne_zero), rpow_add two_pos, rpow_one],
+  rw [doubling_Gamma, doubling_Gamma, (by abel : s + 1 - 1 = s - 1 + 1), add_div, add_assoc,
+    add_halves (1 : ℝ), Gamma_add_one (div_ne_zero hs two_ne_zero), rpow_add two_pos, rpow_one],
   ring,
 end
 
@@ -405,42 +450,41 @@ lemma doubling_Gamma_one : doubling_Gamma 1 = 1 :=
 by simp_rw [doubling_Gamma, Gamma_one_half_eq, add_halves (1 : ℝ), sub_self, Gamma_one, mul_one,
   rpow_zero, mul_one, div_self (sqrt_ne_zero'.mpr pi_pos)]
 
-lemma log_doubling_Gamma_eq {s : ℝ} (hs : 0 < s) :
-  (log ∘ doubling_Gamma) s =
-  log (Gamma (s / 2)) + log (Gamma (s / 2 + 1 / 2)) + s * log 2 - log (2 * sqrt π) :=
+lemma log_doubling_Gamma_eq :
+  eq_on (log ∘ doubling_Gamma) (λ s, log (Gamma (s / 2)) + log (Gamma (s / 2 + 1 / 2))
+    + s * log 2 - log (2 * sqrt π)) (Ioi 0) :=
 begin
+  intros s hs,
   have h1 : sqrt π ≠ 0, from sqrt_ne_zero'.mpr pi_pos,
   have h2 : Gamma (s / 2) ≠ 0, from (Gamma_pos_of_pos $ div_pos hs two_pos).ne',
-  have h3 : Gamma (s / 2 + 1 / 2) ≠ 0, from (Gamma_pos_of_pos $ by positivity).ne',
+  have h3 : Gamma (s / 2 + 1 / 2) ≠ 0,
+    from (Gamma_pos_of_pos $ add_pos (div_pos hs two_pos) one_half_pos).ne',
   have h4 : (2 : ℝ) ^ (s - 1) ≠ 0, from (rpow_pos_of_pos two_pos _).ne',
   rw [function.comp_app, doubling_Gamma, log_div (mul_ne_zero (mul_ne_zero h2 h3) h4) h1,
     log_mul (mul_ne_zero h2 h3) h4, log_mul h2 h3, log_rpow two_pos, log_mul two_ne_zero h1],
-  ring,
+  ring_nf,
 end
 
 lemma doubling_Gamma_log_convex_Ioi : convex_on ℝ (Ioi (0:ℝ)) (log ∘ doubling_Gamma) :=
 begin
-  rw convex_on_iff_forall_pos,
-  refine ⟨convex_Ioi 0, λ x hx y hy a b ha hb hab, _⟩,
-  rw mem_Ioi at hx hy,
-  have ht : 0 < a • x + b • y, from add_pos (mul_pos ha hx) (mul_pos hb hy),
-  rw [log_doubling_Gamma_eq hx, log_doubling_Gamma_eq hy, log_doubling_Gamma_eq ht],
-  simp_rw smul_eq_mul,
-  rw [mul_sub, mul_sub, sub_add_sub_comm, ←add_mul, hab, one_mul, sub_le_sub_iff_right,
-    mul_add, mul_add, mul_add, add_add_add_comm, ←mul_assoc, ←mul_assoc,  ←add_mul,
-    add_le_add_iff_right, mul_add, add_add_add_comm],
-  apply add_le_add,
-  { rw [add_div, mul_div_assoc, mul_div_assoc],
-    exact convex_on_log_Gamma.2 (div_pos hx two_pos) (div_pos hy two_pos) ha.le hb.le hab },
-  { convert convex_on_log_Gamma.2
-      (show 0 < (x + 1) / 2, { rw add_div, exact add_pos (div_pos hx two_pos) one_half_pos })
-      (show 0 < (y + 1) / 2, { rw add_div, exact add_pos (div_pos hy two_pos) one_half_pos })
-      ha.le hb.le hab using 3,
-    { rw ←eq_sub_iff_add_eq at hab,
-      rw [smul_eq_mul, smul_eq_mul, hab],
-      ring },
-    { rw add_div },
-    { rw add_div } }
+  refine (((convex_on.add _ _).add _).add_const _).congr log_doubling_Gamma_eq.symm,
+  { convert convex_on_log_Gamma.comp_affine_map
+      (distrib_mul_action.to_linear_map ℝ ℝ (1 / 2 : ℝ)).to_affine_map,
+    { simpa only [zero_div] using (preimage_const_mul_Ioi (0 : ℝ) one_half_pos).symm, },
+    { ext1 x,
+      change log (Gamma (x / 2)) = log (Gamma ((1 / 2 : ℝ) • x)),
+      rw [smul_eq_mul, mul_comm, mul_one_div] } },
+  { refine convex_on.subset _ (Ioi_subset_Ioi $ neg_one_lt_zero.le) (convex_Ioi _),
+    convert convex_on_log_Gamma.comp_affine_map ((distrib_mul_action.to_linear_map ℝ ℝ
+      (1 / 2 : ℝ)).to_affine_map + affine_map.const _ _ (1 / 2 : ℝ)),
+    { change Ioi (-1 : ℝ) = ((λ x : ℝ, x + 1 / 2) ∘ (λ x : ℝ, (1 / 2 : ℝ) * x)) ⁻¹' (Ioi 0),
+      rw [preimage_comp, preimage_add_const_Ioi, zero_sub, preimage_const_mul_Ioi (_ : ℝ)
+        one_half_pos, neg_div, div_self (@one_half_pos ℝ _).ne'] },
+    { ext1 x,
+      change log (Gamma (x / 2 + 1 / 2)) = log (Gamma ((1 / 2 : ℝ) • x + 1 / 2)),
+      rw [smul_eq_mul, mul_comm, mul_one_div] } },
+  { simpa only [mul_comm _ (log _)]
+      using (convex_on_id (convex_Ioi (0 : ℝ))).smul (log_pos one_lt_two).le }
 end
 
 lemma doubling_Gamma_eq_Gamma {s : ℝ} (hs : 0 < s) : doubling_Gamma s = Gamma s :=

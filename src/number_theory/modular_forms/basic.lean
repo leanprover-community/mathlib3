@@ -6,6 +6,7 @@ Authors: Chris Birkbeck
 
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
 import analysis.complex.upper_half_plane.topology
+import geometry.manifold.mfderiv
 import number_theory.modular_forms.slash_invariant_forms
 /-!
 # Modular forms

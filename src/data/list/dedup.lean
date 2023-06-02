@@ -58,14 +58,14 @@ theorem subset_dedup (l : list α) : l ⊆ dedup l :=
 theorem nodup_dedup : ∀ l : list α, nodup (dedup l) := pairwise_pw_filter
 
 theorem head_dedup [inhabited α] (l : list α) :
-  l.dedup.head = ite (l.head ∈ l.tail) l.tail.dedup.head l.head :=
+  l.dedup.head = if l.head ∈ l.tail then l.tail.dedup.head else l.head :=
 match l with
 | [] := rfl
 | (a :: l) := by { by_cases ha : a ∈ l; simp [ha, list.dedup_cons_of_mem] }
 end
 
 theorem tail_dedup [inhabited α] (l : list α) :
-  l.dedup.tail = ite (l.head ∈ l.tail) l.tail.dedup.tail l.tail.dedup :=
+  l.dedup.tail = if l.head ∈ l.tail then l.tail.dedup.tail else l.tail.dedup :=
 match l with
 | [] := rfl
 | (a :: l) := by { by_cases ha : a ∈ l; simp [ha, list.dedup_cons_of_mem] }

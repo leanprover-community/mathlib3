@@ -199,7 +199,7 @@ hf.eq_on_of_preconnected_of_frequently_eq hg hU h₀ (mem_closure_ne_iff_frequen
 field `𝕜` are analytic everywhere and coincide at points which accumulate to a point `z₀`, then
 they coincide globally.
 For higher-dimensional versions requiring that the functions coincide in a neighborhood of `z₀`,
-see `eq_on_of_eventually_eq`. -/
+see `eq_of_eventually_eq`. -/
 theorem eq_of_frequently_eq [connected_space 𝕜]
   (hf : analytic_on 𝕜 f univ) (hg : analytic_on 𝕜 g univ)
   (hfg : ∃ᶠ z in 𝓝[≠] z₀, f z = g z) : f = g :=

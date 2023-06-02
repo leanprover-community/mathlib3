@@ -106,7 +106,7 @@ end
 /-- The *identity principle* for analytic functions: If two analytic functions on a normed space
 coincide in a neighborhood of a point `z₀`, then they coincide everywhere.
 For a one-dimensional version assuming only that the functions coincide at some points
-arbitrarily close to `z₀`, see `eq_on_of_frequently_eq`. -/
+arbitrarily close to `z₀`, see `eq_of_frequently_eq`. -/
 theorem eq_of_eventually_eq {f g : E → F} [preconnected_space E]
   (hf : analytic_on 𝕜 f univ) (hg : analytic_on 𝕜 g univ) {z₀ : E} (hfg : f =ᶠ[𝓝 z₀] g) :
   f = g :=

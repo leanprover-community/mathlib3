@@ -5,6 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.roots_of_unity.minpoly
 
 /-!
 # Roots of cyclotomic polynomials.

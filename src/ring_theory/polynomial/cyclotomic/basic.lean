@@ -13,7 +13,7 @@ import data.zmod.algebra
 import field_theory.ratfunc
 import field_theory.separable
 import number_theory.arithmetic_function
-import ring_theory.roots_of_unity
+import ring_theory.roots_of_unity.basic
 
 /-!
 # Cyclotomic polynomials.

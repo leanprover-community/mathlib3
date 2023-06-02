@@ -9,6 +9,9 @@ import topology.discrete_quotient
 /-!
 # Profinite sets as limits of finite sets.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that any profinite set is isomorphic to the limit of its
 discrete (hence finite) quotients.
 

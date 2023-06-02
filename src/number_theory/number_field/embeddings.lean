@@ -172,7 +172,7 @@ lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ := is_se
 def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
 { to_fun := λ x, (φ x).re,
   map_one' := by simp only [map_one, one_re],
-  map_mul' := by simp only [complex.eq_conj_iff_im.mp (ring_hom.congr_fun hφ _), map_mul, mul_re,
+  map_mul' := by simp only [complex.conj_eq_iff_im.mp (ring_hom.congr_fun hφ _), map_mul, mul_re,
   mul_zero, tsub_zero, eq_self_iff_true, forall_const],
   map_zero' := by simp only [map_zero, zero_re],
   map_add' := by simp only [map_add, add_re, eq_self_iff_true, forall_const], }
@@ -182,7 +182,7 @@ lemma is_real.coe_embedding_apply {φ : K →+* ℂ} (hφ : is_real φ) (x : K) 
   (hφ.embedding x : ℂ) = φ x :=
 begin
   ext, { refl, },
-  { rw [of_real_im, eq_comm, ← complex.eq_conj_iff_im],
+  { rw [of_real_im, eq_comm, ← complex.conj_eq_iff_im],
     rw is_real at hφ,
     exact ring_hom.congr_fun hφ x, },
 end

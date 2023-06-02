@@ -10,6 +10,9 @@ import data.mv_polynomial.comm_ring
 /-!
 # Matrices of multivariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove results about matrices over an mv_polynomial ring.
 In particular, we provide `matrix.mv_polynomial_X` which associates every entry of a matrix with a
 unique variable.

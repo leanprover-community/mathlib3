@@ -393,6 +393,10 @@ end fintype_instances
 
 end set
 
+lemma equiv.set_finite_iff {s : set α} {t : set β} (hst : s ≃ t) :
+  s.finite ↔ t.finite :=
+by simp_rw [← set.finite_coe_iff, hst.finite_iff]
+
 /-! ### Finset -/
 
 namespace finset
@@ -593,6 +597,21 @@ by { casesI hs, rw [bUnion_eq_Union], apply finite_Union (λ (i : s), ht i.1 i.2
 theorem finite.sInter {α : Type*} {s : set (set α)} {t : set α} (ht : t ∈ s)
   (hf : t.finite) : (⋂₀ s).finite :=
 hf.subset (sInter_subset_of_mem ht)
+
+/-- If sets `s i` are finite for all `i` from a finite set `t` and are empty for `i ∉ t`, then the
+union `⋃ i, s i` is a finite set. -/
+lemma finite.Union {ι : Type*} {s : ι → set α} {t : set ι} (ht : t.finite)
+  (hs : ∀ i ∈ t, (s i).finite) (he : ∀ i ∉ t, s i = ∅) :
+  (⋃ i, s i).finite :=
+begin
+  suffices : (⋃ i, s i) ⊆ (⋃ i ∈ t, s i),
+  { exact (ht.bUnion hs).subset this, },
+  refine Union_subset (λ i x hx, _),
+  by_cases hi : i ∈ t,
+  { exact mem_bUnion hi hx },
+  { rw [he i hi, mem_empty_iff_false] at hx,
+    contradiction, },
+end
 
 theorem finite.bind {α β} {s : set α} {f : α → set β} (h : s.finite) (hf : ∀ a ∈ s, (f a).finite) :
   (s >>= f).finite :=
@@ -1054,9 +1073,6 @@ theorem infinite_of_injective_forall_mem [infinite α] {s : set β} {f : α → 
   (hi : injective f) (hf : ∀ x : α, f x ∈ s) : s.infinite :=
 by { rw ←range_subset_iff at hf, exact (infinite_range_of_injective hi).mono hf }
 
-lemma infinite.exists_nat_lt {s : set ℕ} (hs : s.infinite) (n : ℕ) : ∃ m ∈ s, n < m :=
-let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
-
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=
 let ⟨a, has, haf⟩ := (hs.diff (to_finite f)).nonempty
@@ -1075,6 +1091,23 @@ begin
 end
 
 /-! ### Order properties -/
+
+section preorder
+variables [preorder α] [nonempty α] {s : set α}
+
+lemma infinite_of_forall_exists_gt (h : ∀ a, ∃ b ∈ s, a < b) : s.infinite :=
+begin
+  inhabit α,
+  set f : ℕ → α := λ n, nat.rec_on n (h default).some (λ n a, (h a).some),
+  have hf : ∀ n, f n ∈ s := by rintro (_ | _); exact (h _).some_spec.some,
+  refine infinite_of_injective_forall_mem (strict_mono_nat_of_lt_succ $ λ n, _).injective hf,
+  exact (h _).some_spec.some_spec,
+end
+
+lemma infinite_of_forall_exists_lt (h : ∀ a, ∃ b ∈ s, b < a) : s.infinite :=
+@infinite_of_forall_exists_gt αᵒᵈ _ _ _ h
+
+end preorder
 
 lemma finite_is_top (α : Type*) [partial_order α] : {x : α | is_top x}.finite :=
 (subsingleton_is_top α).finite

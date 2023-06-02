@@ -8,6 +8,9 @@ import combinatorics.simple_graph.basic
 
 /-!
 # First-Ordered Structures in Graph Theory
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines first-order languages, structures, and theories in graph theory.
 
 ## Main Definitions

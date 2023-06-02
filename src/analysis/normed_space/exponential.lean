@@ -367,7 +367,7 @@ begin
   refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial r) _,
   filter_upwards [eventually_cofinite_ne 0] with n hn,
   rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_inv, norm_pow,
-      nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←div_eq_mul_inv],
+      nnreal.norm_eq, norm_nat_cast, mul_comm, ←mul_assoc, ←div_eq_mul_inv],
   have : ‖continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸‖ ≤ 1 :=
     norm_mk_pi_algebra_fin_le_of_pos (nat.pos_of_ne_zero hn),
   exact mul_le_of_le_one_right (div_nonneg (pow_nonneg r.coe_nonneg n) n!.cast_nonneg) this
@@ -412,7 +412,7 @@ lemma exp_has_fpower_series_at_zero :
   has_fpower_series_at (exp 𝕂) (exp_series 𝕂 𝔸) 0 :=
 exp_has_fpower_series_on_ball.has_fpower_series_at
 
-lemma exp_continuous : continuous (exp 𝕂 : 𝔸 → 𝔸) :=
+@[continuity] lemma exp_continuous : continuous (exp 𝕂 : 𝔸 → 𝔸) :=
 begin
   rw [continuous_iff_continuous_on_univ, ← metric.eball_top_eq_univ (0 : 𝔸),
       ← exp_series_radius_eq_top 𝕂 𝔸],

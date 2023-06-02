@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.mv_polynomial.supported
-import ring_theory.derivation
+import ring_theory.derivation.basic
 
 /-!
 # Derivations of multivariate polynomials

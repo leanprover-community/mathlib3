@@ -12,6 +12,9 @@ import algebra.group.ext
 /-!
 # `n`th homotopy group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the `n`th homotopy group at `x : X`, `π_n X x`, as the equivalence classes
 of functions from the `n`-dimensional cube to the topological space `X`
 that send the boundary to the base point `x`, up to homotopic equivalence.

@@ -8,6 +8,9 @@ import topology.metric_space.pi_nat
 /-!
 # (Topological) Schemes and their induced maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In topology, and especially descriptive set theory, one often constructs functions `(ℕ → β) → α`,
 where α is some topological space and β is a discrete space, as an appropriate limit of some map
 `list β → set α`. We call the latter type of map a "`β`-scheme on `α`".

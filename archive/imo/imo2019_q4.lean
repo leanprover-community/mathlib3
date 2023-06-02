@@ -26,6 +26,8 @@ individually.
 open_locale nat big_operators
 open finset multiplicity nat (hiding zero_le prime)
 
+namespace imo
+
 theorem imo2019_q4_upper_bound {k n : ℕ} (hk : k > 0)
   (h : (k! : ℤ) = ∏ i in range n, (2 ^ n - 2 ^ i)) : n < 6 :=
 begin
@@ -92,3 +94,5 @@ begin
   /- n = 5 -/
   { refine monotone_factorial.ne_of_lt_of_lt_nat 10 _ _ _ h; norm_num },
 end
+
+end imo

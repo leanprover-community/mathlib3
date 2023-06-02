@@ -8,6 +8,9 @@ import probability.conditional_probability
 /-!
 # Classical probability
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The classical formulation of probability states that the probability of an event occurring in a
 finite probability space is the ratio of that event to all possible events.
 This notion can be expressed with measure theory using

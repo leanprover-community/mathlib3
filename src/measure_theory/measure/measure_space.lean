@@ -10,6 +10,9 @@ import topology.algebra.order.liminf_limsup
 /-!
 # Measure spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The definition of a measure and a measure space are in `measure_theory.measure_space_def`, with
 only a few basic properties. This file provides many more properties of these objects.
 This separation allows the measurability tactic to import only the file `measure_space_def`, and to
@@ -934,6 +937,17 @@ instance [measurable_space α] : complete_lattice (measure α) :=
   .. complete_lattice_of_complete_semilattice_Inf (measure α) }
 
 end Inf
+
+@[simp] lemma _root_.measure_theory.outer_measure.to_measure_top [measurable_space α] :
+  (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top)
+    = (⊤ : measure α) :=
+top_unique $ λ s hs,
+    by cases s.eq_empty_or_nonempty with h h;
+      simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply]
+
+@[simp] lemma to_outer_measure_top [measurable_space α] :
+  (⊤ : measure α).to_outer_measure = (⊤ : outer_measure α) :=
+by rw [←outer_measure.to_measure_top, to_measure_to_outer_measure, outer_measure.trim_top]
 
 @[simp] lemma top_add : ⊤ + μ = ⊤ := top_unique $ measure.le_add_right le_rfl
 @[simp] lemma add_top : μ + ⊤ = ⊤ := top_unique $ measure.le_add_left le_rfl

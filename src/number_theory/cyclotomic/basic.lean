@@ -3,10 +3,8 @@ Copyright (c) 2021 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
-
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.roots
 import number_theory.number_field.basic
-import algebra.char_p.algebra
 import field_theory.galois
 
 /-!
@@ -339,9 +337,11 @@ end
 lemma number_field [h : number_field K] [_root_.finite S] [is_cyclotomic_extension S K L] :
   number_field L :=
 { to_char_zero := char_zero_of_injective_algebra_map (algebra_map K L).injective,
-  to_finite_dimensional := @module.finite.trans _ K L _ _ _ _
-    (@algebra_rat L _ (char_zero_of_injective_algebra_map (algebra_map K L).injective)) _ _
-    h.to_finite_dimensional (finite S K L) }
+  to_finite_dimensional := begin
+    haveI := char_zero_of_injective_algebra_map (algebra_map K L).injective,
+    haveI := finite S K L,
+    exact module.finite.trans K _
+  end }
 
 localized "attribute [instance] is_cyclotomic_extension.number_field" in cyclotomic
 
@@ -374,7 +374,8 @@ begin
                map_cyclotomic, mem_roots (cyclotomic_ne_zero n B)] at hx,
     simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq],
     rw is_root_of_unity_iff n.pos,
-    exact ⟨n, nat.mem_divisors_self n n.ne_zero, hx⟩ },
+    exact ⟨n, nat.mem_divisors_self n n.ne_zero, hx⟩,
+    all_goals { apply_instance } },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
     obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.pos,
     refine set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin _) _),
@@ -393,7 +394,8 @@ begin
     rw is_root_of_unity_iff n.pos,
     refine ⟨n, nat.mem_divisors_self n n.ne_zero, _⟩,
     rwa [finset.mem_coe, multiset.mem_to_finset,
-         map_cyclotomic, mem_roots $ cyclotomic_ne_zero n B] at hx },
+         map_cyclotomic, mem_roots $ cyclotomic_ne_zero n B] at hx,
+    all_goals { apply_instance } },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
     simpa only [hx, multiset.mem_to_finset, finset.mem_coe, map_cyclotomic,
                 mem_roots (cyclotomic_ne_zero n B)] using hζ.is_root_cyclotomic n.pos }
@@ -553,12 +555,13 @@ variables [is_domain A] [algebra A K] [is_fraction_ring A K]
 section cyclotomic_ring
 
 /-- If `K` is the fraction field of `A`, the `A`-algebra structure on `cyclotomic_field n K`.
-This is not an instance since it causes diamonds when `A = ℤ`. -/
+-/
 @[nolint unused_arguments]
-def cyclotomic_field.algebra_base : algebra A (cyclotomic_field n K) :=
-((algebra_map K (cyclotomic_field n K)).comp (algebra_map A K)).to_algebra
+instance cyclotomic_field.algebra_base : algebra A (cyclotomic_field n K) :=
+splitting_field.algebra' (cyclotomic n K)
 
-local attribute [instance] cyclotomic_field.algebra_base
+/-- Ensure there are no diamonds when `A = ℤ`. -/
+example : algebra_int (cyclotomic_field n ℚ) = cyclotomic_field.algebra_base _ _ _ := rfl
 
 instance cyclotomic_field.no_zero_smul_divisors : no_zero_smul_divisors A (cyclotomic_field n K) :=
 no_zero_smul_divisors.of_algebra_map_injective $ function.injective.comp
@@ -572,11 +575,11 @@ def cyclotomic_ring : Type w := adjoin A { b : (cyclotomic_field n K) | b ^ (n :
 
 namespace cyclotomic_ring
 
-/-- The `A`-algebra structure on `cyclotomic_ring n A K`.
-This is not an instance since it causes diamonds when `A = ℤ`. -/
-def algebra_base : algebra A (cyclotomic_ring n A K) := (adjoin A _).algebra
+/-- The `A`-algebra structure on `cyclotomic_ring n A K`. -/
+instance algebra_base : algebra A (cyclotomic_ring n A K) := (adjoin A _).algebra
 
-local attribute [instance] cyclotomic_ring.algebra_base
+-- Ensure that there is no diamonds with ℤ.
+example {n : ℕ+} : cyclotomic_ring.algebra_base n ℤ ℚ = algebra_int _ := rfl
 
 instance : no_zero_smul_divisors A (cyclotomic_ring n A K) := (adjoin A _).no_zero_smul_divisors_bot
 

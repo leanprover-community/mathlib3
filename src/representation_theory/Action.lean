@@ -14,7 +14,7 @@ import category_theory.monoidal.rigid.of_equivalence
 import category_theory.monoidal.rigid.functor_category
 import category_theory.monoidal.linear
 import category_theory.monoidal.braided
-import category_theory.monoidal.types
+import category_theory.monoidal.types.symmetric
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
 import category_theory.conj

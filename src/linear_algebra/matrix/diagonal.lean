@@ -9,6 +9,9 @@ import linear_algebra.free_module.rank
 /-!
 # Diagonal matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some results on the linear map corresponding to a
 diagonal matrix (`range`, `ker` and `rank`).
 

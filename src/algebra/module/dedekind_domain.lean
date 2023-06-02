@@ -26,17 +26,17 @@ namespace submodule
 variables [is_dedekind_domain R]
 open unique_factorization_monoid
 
+open_locale classical
+
 /--Over a Dedekind domain, a `I`-torsion module is the internal direct sum of its `p i ^ e i`-
 torsion submodules, where `I = ∏ i, p i ^ e i` is its unique decomposition in prime ideals.-/
 lemma is_internal_prime_power_torsion_of_is_torsion_by_ideal {I : ideal R} (hI : I ≠ ⊥)
   (hM : module.is_torsion_by_set R M I) :
-  ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
-  by exactI direct_sum.is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
+  direct_sum.is_internal (λ p : (factors I).to_finset,
+    torsion_by_set R M (p ^ (factors I).count p : ideal R)) :=
 begin
-  classical,
   let P := factors I,
   have prime_of_mem := λ p (hp : p ∈ P.to_finset), prime_of_factor p (multiset.mem_to_finset.mp hp),
-  refine ⟨P.to_finset, infer_instance, prime_of_mem, λ i, P.count i, _⟩,
   apply @torsion_by_set_is_internal _ _ _ _ _ _ _ _ (λ p, p ^ P.count p) _,
   { convert hM,
     rw [← finset.inf_eq_infi, is_dedekind_domain.inf_prime_pow_eq_prod,
@@ -55,15 +55,25 @@ begin
 end
 
 /--A finitely generated torsion module over a Dedekind domain is an internal direct sum of its
-`p i ^ e i`-torsion submodules for some prime ideals `p i` and numbers `e i`.-/
+`p i ^ e i`-torsion submodules where `p i` are factors of `(⊤ : submodule R M).annihilator` and
+`e i` are their multiplicities. -/
 theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
-  ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
-  by exactI direct_sum.is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
+  direct_sum.is_internal (λ p : (factors (⊤ : submodule R M).annihilator).to_finset,
+    torsion_by_set R M (p ^ (factors (⊤ : submodule R M).annihilator).count p : ideal R)) :=
 begin
-  obtain ⟨I, hI, hM'⟩ := is_torsion_by_ideal_of_finite_of_is_torsion hM,
+  have hM' := module.is_torsion_by_set_annihilator_top R M,
+  have hI := submodule.annihilator_top_inter_non_zero_divisors hM,
   refine is_internal_prime_power_torsion_of_is_torsion_by_ideal _ hM',
   rw ←set.nonempty_iff_ne_empty at hI, rw submodule.ne_bot_iff,
   obtain ⟨x, H, hx⟩ := hI, exact ⟨x, H, non_zero_divisors.ne_zero hx⟩
 end
+
+/--A finitely generated torsion module over a Dedekind domain is an internal direct sum of its
+`p i ^ e i`-torsion submodules for some prime ideals `p i` and numbers `e i`.-/
+theorem exists_is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
+  ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
+  by exactI direct_sum.is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
+⟨_, _, λ p hp, prime_of_factor p (multiset.mem_to_finset.mp hp), _,
+    is_internal_prime_power_torsion hM⟩
 
 end submodule

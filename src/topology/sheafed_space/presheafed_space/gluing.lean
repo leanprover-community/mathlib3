@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import topology.gluing
-import topology.sheafed_space.open_immersion
 import topology.sheafed_space.locally_ringed_space.has_colimits
+import topology.sheafed_space.open_immersion
 
 /-!
 # Gluing Structured spaces

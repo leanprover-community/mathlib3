@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebraic_geometry.projective_spectrum.topology
-import topology.sheaves.local_predicate
 import ring_theory.graded_algebra.homogeneous_localization
+import topology.sheaves.local_predicate
 import topology.sheafed_space.locally_ringed_space
 
 /-!

@@ -5,16 +5,16 @@ Authors: Andrew Yang
 -/
 import algebra.module.localized_module
 import algebra.category.Ring.instances
-import topology.sheafed_space.presheafed_space.has_colimits
-import topology.sheafed_space.locally_ringed_space
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.comm_sq
-import topology.sheaves.functors
 import topology.category.Top.limits.pullbacks
+import topology.sheaves.functors
 import topology.sheaves.sheaf_condition.sites
 import topology.sheaves.functors
+import topology.sheafed_space.presheafed_space.has_colimits
+import topology.sheafed_space.locally_ringed_space
 
 
 

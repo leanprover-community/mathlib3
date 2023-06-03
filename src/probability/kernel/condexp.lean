@@ -84,6 +84,9 @@ def condexp_kernel (μ : measure Ω) [is_finite_measure μ] (m : measurable_spac
   @kernel Ω Ω m mΩ :=
 @cond_distrib Ω Ω Ω _ mΩ _ _ _ mΩ m id id μ _
 
+instance is_markov_kernel_condexp_kernel : is_markov_kernel (condexp_kernel μ m) :=
+by { rw condexp_kernel, apply_instance, }
+
 section measurability
 
 lemma measurable_condexp_kernel {s : set Ω} (hs : measurable_set s) :

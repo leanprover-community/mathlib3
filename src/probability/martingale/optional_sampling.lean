@@ -59,7 +59,7 @@ begin
     rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff], },
   { suffices : {x : Ω | τ x = i} = ∅, by simp [this],
     ext1 x,
-    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    simp only [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
     rintro rfl,
     exact hin (hτ_le x), },
 end
@@ -228,7 +228,7 @@ begin
       rw [filter.eventually_eq, ae_restrict_iff'] at this,
       swap, { exact hτ.measurable_space_le _ (hτ.measurable_set_le_stopping_time hσ), },
       filter_upwards [this] with x hx hx_mem,
-      simp only [set.mem_compl_eq, set.mem_set_of_eq, not_le] at hx_mem,
+      simp only [set.mem_compl_iff, set.mem_set_of_eq, not_le] at hx_mem,
       exact hx hx_mem.le, },
     refine filter.eventually_eq.trans _
       ((condexp_min_stopping_time_ae_eq_restrict_le hτ hσ).trans _),
@@ -255,7 +255,7 @@ lemma stopped_value_min_ae_eq_condexp_nat {E}
   {n : ℕ} (hτ_le : ∀ x, τ x ≤ n)
   [h_sf_min : sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
   stopped_value f (λ x, min (σ x) (τ x)) =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
-h.stopped_value_min_ae_eq_condexp h.adapted.prog_measurable_of_nat hτ hσ hτ_le
+h.stopped_value_min_ae_eq_condexp h.adapted.prog_measurable_of_discrete hτ hσ hτ_le
 
 end martingale
 

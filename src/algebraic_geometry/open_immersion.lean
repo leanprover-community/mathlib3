@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebra.category.Ring.instances
-import topology.sheafed_space.open_immersion
 import algebraic_geometry.Scheme
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.comm_sq
-import topology.sheaves.functors
 import topology.category.Top.limits.pullbacks
+import topology.sheaves.functors
+import topology.sheafed_space.open_immersion
 
 /-!
 # Open immersions of structured spaces

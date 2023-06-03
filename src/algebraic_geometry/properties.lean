@@ -3,11 +3,11 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
+import algebra.category.Ring.constructions
 import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
-import topology.sheaves.sheaf_condition.sites
-import algebra.category.Ring.constructions
 import ring_theory.local_properties
+import topology.sheaves.sheaf_condition.sites
 
 /-!
 # Basic properties of schemes

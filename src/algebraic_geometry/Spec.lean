@@ -3,12 +3,12 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Justus Springer
 -/
-import topology.sheafed_space.locally_ringed_space
+import algebra.module.localized_module
 import algebraic_geometry.structure_sheaf
 import ring_theory.localization.localization_localization
-import topology.sheaves.sheaf_condition.sites
 import topology.sheaves.functors
-import algebra.module.localized_module
+import topology.sheaves.sheaf_condition.sites
+import topology.sheafed_space.locally_ringed_space
 
 /-!
 # $Spec$ as a functor to locally ringed spaces.

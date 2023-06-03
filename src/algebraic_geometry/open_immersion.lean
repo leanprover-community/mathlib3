@@ -769,8 +769,8 @@ lemma of_stalk_iso {X Y : SheafedSpace C} (f : X ⟶ Y)
     rintros ⟨_, y, hy, rfl⟩,
     specialize H y,
     delta PresheafedSpace.stalk_map at H,
-    haveI H' := Top.presheaf.stalk_pushforward.stalk_pushforward_iso_of_open_embedding
-      C hf X.presheaf y,
+    haveI H' := Top.presheaf.stalk_pushforward.stalk_pushforward_iso_of_inducing
+      C hf.to_inducing X.presheaf y,
     have := @@is_iso.comp_is_iso _ H (@@is_iso.inv_is_iso _ H'),
     rw [category.assoc, is_iso.hom_inv_id, category.comp_id] at this,
     exact this

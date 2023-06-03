@@ -150,3 +150,29 @@ adjunction.mk_of_unit_counit
   counit := { app := λ V, hom_of_le $ λ y ⟨x, hfxV, hxy⟩, hxy ▸ hfxV } }
 
 end is_open_map
+
+namespace inducing
+
+open topological_space
+
+variables {f}
+
+/--
+An open map `f : X ⟶ Y` induces a functor `open_nhds x ⥤ open_nhds (f x)`.
+-/
+@[simps]
+def functor_nhds (h : inducing f) (x : X) :
+  open_nhds x ⥤ open_nhds (f x) :=
+{ obj := λ U, ⟨h.functor.obj U.1, (h.mem_functor_obj_iff U.1).mpr U.2⟩,
+  map := λ U V i, h.functor.map i }
+
+/--
+An open map `f : X ⟶ Y` induces an adjunction between `open_nhds x` and `open_nhds (f x)`.
+-/
+def adjunction_nhds (h : inducing f) (x : X) :
+  open_nhds.map f x ⊣ h.functor_nhds x :=
+adjunction.mk_of_unit_counit
+{ unit := { app := λ U, hom_of_le (h.adjunction.unit.app U.1).le },
+  counit := { app := λ V, hom_of_le (h.adjunction.counit.app V.1).le } }
+
+end inducing

@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.category.preorder
+import category_theory.category.galois_connection
 import category_theory.eq_to_hom
 import topology.category.Top.epi_mono
 import topology.sets.opens
@@ -277,6 +277,62 @@ instance is_open_map.functor_full_of_mono {X Y : Top} {f : X ⟶ Y} (hf : is_ope
 
 instance is_open_map.functor_faithful {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
   faithful hf.functor := {}
+
+/-- Given an inducing map `X ⟶ Y` and some `U : opens X`, this is the union of all open sets
+whose preimage is `U`. This is right adjoint to `opens.map`. -/
+@[nolint unused_arguments]
+def inducing.functor_obj {X Y : Top} {f : X ⟶ Y} (hf : inducing f) (U : opens X) : opens Y :=
+Sup { s : opens Y | (topological_space.opens.map f).obj s = U }
+
+lemma inducing.obj_functor_obj {X Y : Top} {f : X ⟶ Y} (hf : inducing f) (U : opens X) :
+  (topological_space.opens.map f).obj (hf.functor_obj U) = U :=
+begin
+  apply le_antisymm,
+  { rintros x ⟨_, ⟨s, rfl⟩, _, ⟨rfl : _ = U, rfl⟩, hx : f x ∈ s⟩, exact hx },
+  { intros x hx, obtain ⟨U, hU⟩ := U, obtain ⟨t, ht, rfl⟩ := hf.is_open_iff.mp hU,
+    exact opens.mem_Sup.mpr ⟨⟨_, ht⟩, rfl, hx⟩ }
+end
+
+lemma inducing.mem_functor_obj_iff {X Y : Top} {f : X ⟶ Y} (hf : inducing f) (U : opens X)
+  {x : X} : f x ∈ hf.functor_obj U ↔ x ∈ U :=
+by { conv_rhs { rw ← hf.obj_functor_obj U }, refl }
+
+lemma inducing.le_functor_obj_iff {X Y : Top} {f : X ⟶ Y} (hf : inducing f) {U : opens X}
+  {V : opens Y} : V ≤ hf.functor_obj U ↔ (topological_space.opens.map f).obj V ≤ U :=
+begin
+  obtain ⟨U, hU⟩ := U,
+  obtain ⟨t, ht, rfl⟩ := hf.is_open_iff.mp hU,
+  split,
+  { exact λ i x hx,
+      (hf.mem_functor_obj_iff ((topological_space.opens.map f).obj ⟨t, ht⟩)).mp (i hx) },
+  { intros h x hx,
+    refine opens.mem_Sup.mpr ⟨⟨_, V.2.union ht⟩, opens.ext _, set.mem_union_left t hx⟩,
+    dsimp,
+    rwa [set.union_eq_right_iff_subset] },
+end
+
+/--
+An inducing map `f : X ⟶ Y` induces an galois insertion between `opens Y` and `opens X`.
+-/
+def inducing.opens_gi {X Y : Top} {f : X ⟶ Y} (hf : inducing f) :
+  galois_insertion (topological_space.opens.map f).obj hf.functor_obj  :=
+⟨_, λ _ _, hf.le_functor_obj_iff.symm, λ U, (hf.obj_functor_obj U).ge, λ _ _, rfl⟩
+
+/--
+An inducing map `f : X ⟶ Y` induces a functor `opens X ⥤ opens Y`.
+-/
+@[simps]
+def inducing.functor {X Y : Top} {f : X ⟶ Y} (hf : inducing f) :
+  opens X ⥤ opens Y :=
+{ obj := λ U, Sup { s : opens Y | (topological_space.opens.map f).obj s = U },
+  map := λ U V h, hom_of_le (hf.le_functor_obj_iff.mpr ((hf.obj_functor_obj U).trans_le h.le)) }
+
+/--
+An inducing map `f : X ⟶ Y` induces an adjunction between `opens Y` and `opens X`.
+-/
+def inducing.adjunction {X Y : Top} {f : X ⟶ Y} (hf : inducing f) :
+  adjunction (topological_space.opens.map f) hf.functor :=
+hf.opens_gi.gc.adjunction
 
 namespace topological_space.opens
 open topological_space

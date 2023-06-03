@@ -360,9 +360,7 @@ lemma smul_nonpos {f : ι → Ω → F}
   {c : ℝ} (hc : c ≤ 0) (hf : supermartingale f ℱ μ) :
   submartingale (c • f) ℱ μ :=
 begin
- have h : - -c • f = -(-c • f),
- { ext i x, simp only [pi.smul_apply, pi.neg_apply, neg_smul], },
-  rw [← neg_neg c, h],
+  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(-c • f))],
   exact (hf.smul_nonneg $ neg_nonneg.2 hc).neg,
 end
 
@@ -381,9 +379,7 @@ lemma smul_nonneg {f : ι → Ω → F}
   {c : ℝ} (hc : 0 ≤ c) (hf : submartingale f ℱ μ) :
   submartingale (c • f) ℱ μ :=
 begin
- have h : - -c • f = -(c • -f),
- { ext i x, simp only [neg_neg, smul_neg], },
-  rw [← neg_neg c, h],
+  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(c • -f))],
   exact supermartingale.neg (hf.neg.smul_nonneg hc),
 end
 
@@ -391,9 +387,7 @@ lemma smul_nonpos {f : ι → Ω → F}
   {c : ℝ} (hc : c ≤ 0) (hf : submartingale f ℱ μ) :
   supermartingale (c • f) ℱ μ :=
 begin
- have h : - -c • f = -(-c • f),
- { ext i x, simp only [pi.smul_apply, pi.neg_apply, neg_smul], },
-  rw [← neg_neg c, h],
+  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(-c • f))],
   exact (hf.smul_nonneg $ neg_nonneg.2 hc).neg,
 end
 

@@ -145,6 +145,7 @@ section definition_lemmas
 
 variables {hm₀ : m₀ ≤ mΩ} {μ : measure Ω} [is_finite_measure μ]
 
+/-
 lemma cond_Indep_sets_def (π : ι → set (set Ω)) :
   cond_Indep_sets π hm₀ μ ↔ ∀ (s : finset ι) {f : ι → set Ω} (H : ∀ i, i ∈ s → f i ∈ π i),
     μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i) :=
@@ -153,6 +154,7 @@ by simp only [cond_Indep_sets, Indep_setsₖ, ae_dirac_eq, filter.eventually_pur
 lemma cond_indep_sets_def (s1 s2 : set (set Ω)) :
   cond_indep_sets s1 s2 hm₀ μ ↔ ∀ t1 t2 : set Ω, t1 ∈ s1 → t2 ∈ s2 → (μ (t1 ∩ t2) = μ t1 * μ t2) :=
 by simp only [cond_indep_sets, indep_setsₖ, ae_dirac_eq, filter.eventually_pure, kernel.const_apply]
+-/
 
 lemma cond_Indep_iff_cond_Indep_sets (m : ι → measurable_space Ω) :
   cond_Indep m hm₀ μ ↔ cond_Indep_sets (λ x, {s | measurable_set[m x] s}) hm₀ μ :=
@@ -164,11 +166,13 @@ lemma cond_indep_iff_cond_indep_sets (m₁ m₂ : measurable_space Ω) [mΩ : me
     ↔ cond_indep_sets {s | measurable_set[m₁] s} {s | measurable_set[m₂] s} hm₀ μ :=
 by rw [cond_indep, cond_indep_sets, indepₖ]
 
+/-
 lemma cond_indep_iff (m₁ m₂ : measurable_space Ω) [mΩ : measurable_space Ω]
   [borel_space Ω] {hm₀ : m₀ ≤ mΩ} {μ : measure Ω} [is_finite_measure μ] :
   cond_indep m₁ m₂ hm₀ μ
     ↔ ∀ t1 t2, measurable_set[m₁] t1 → measurable_set[m₂] t2 → μ (t1 ∩ t2) = μ t1 * μ t2 :=
 by { rw [cond_indep_iff_cond_indep_sets, cond_indep_sets_def], refl, }
+-/
 
 lemma cond_Indep_set_iff_cond_Indep (s : ι → set Ω) :
   cond_Indep_set s hm₀ μ ↔ cond_Indep (λ i, generate_from {s i}) hm₀ μ :=
@@ -189,11 +193,13 @@ lemma cond_indep_fun_iff_cond_indep {β γ} [mβ : measurable_space β] [mγ : m
     ↔ cond_indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) hm₀ μ :=
 by rw [cond_indep_fun, cond_indep, indep_funₖ]
 
+/-
 lemma cond_indep_fun_iff {β γ} [mβ : measurable_space β] [mγ : measurable_space γ]
   (f : Ω → β) (g : Ω → γ) :
   cond_indep_fun f g hm₀ μ ↔ ∀ t1 t2, measurable_set[measurable_space.comap f mβ] t1
     → measurable_set[measurable_space.comap g mγ] t2 → μ (t1 ∩ t2) = μ t1 * μ t2 :=
 by rw [cond_indep_fun_iff_cond_indep, cond_indep_iff]
+-/
 
 end definition_lemmas
 
@@ -314,12 +320,14 @@ begin
   exact h t1 t2 (set.bInter_subset_of_mem hn ht1) ht2,
 end
 
+/-
 lemma cond_indep_sets_singleton_iff {s t : set Ω} :
   cond_indep_sets {s} {t} hm₀ μ ↔ μ (s ∩ t) = μ s * μ t :=
 begin
   rw [cond_indep_sets, indep_setsₖ_singleton_iff],
   simp only [ae_dirac_eq, filter.eventually_pure, kernel.const_apply],
 end
+-/
 
 end indep
 
@@ -479,11 +487,13 @@ lemma cond_indep_set_iff_cond_indep_sets_singleton
   cond_indep_set s t hm₀ μ ↔ cond_indep_sets {s} {t} hm₀ μ :=
 indep_setₖ_iff_indep_setsₖ_singleton hs_meas ht_meas
 
+/-
 lemma cond_indep_set_iff_measure_inter_eq_mul
   (hs_meas : measurable_set s) (ht_meas : measurable_set t)
   (μ : measure Ω . volume_tac) [is_probability_measure μ] :
   cond_indep_set s t hm₀ μ ↔ μ (s ∩ t) = μ s * μ t :=
 (cond_indep_set_iff_cond_indep_sets_singleton hs_meas ht_meas μ).trans cond_indep_sets_singleton_iff
+-/
 
 lemma cond_indep_sets.cond_indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T)
   (hs_meas : measurable_set s) (ht_meas : measurable_set t) (μ : measure Ω . volume_tac)
@@ -515,6 +525,7 @@ section indep_fun
 variables {β β' γ γ' : Type*} {f : Ω → β} {g : Ω → β'}
   {hm₀ : m₀ ≤ mΩ} {μ : measure Ω} [is_finite_measure μ]
 
+/-
 lemma cond_indep_fun_iff_measure_inter_preimage_eq_mul
   {mβ : measurable_space β} {mβ' : measurable_space β'} :
   cond_indep_fun f g hm₀ μ
@@ -545,19 +556,23 @@ begin
   { rwa cond_indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
   { rwa ← cond_indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
 end
+-/
 
 @[symm] lemma cond_indep_fun.symm {mβ : measurable_space β} {f g : Ω → β}
   (hfg : cond_indep_fun f g hm₀ μ) :
   cond_indep_fun g f hm₀ μ :=
 hfg.symm
 
+/-
 lemma cond_indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : Ω → β}
   (hfg : cond_indep_fun f g hm₀ μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
   cond_indep_fun f' g' hm₀ μ :=
 begin
-  refine indep_funₖ.ae_eq hfg _ _; simp only [ae_dirac_eq, filter.eventually_pure],
+  refine indep_funₖ.ae_eq hfg _ _,
+  simp only [ae_dirac_eq, filter.eventually_pure],
   exacts [hf, hg],
 end
+-/
 
 lemma cond_indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
   {mγ : measurable_space γ} {mγ' : measurable_space γ'} {φ : β → γ} {ψ : β' → γ'}

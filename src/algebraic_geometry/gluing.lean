@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebraic_geometry.presheafed_space.gluing
+import algebraic_geometry.open_immersion_Scheme
 
 /-!
 # Gluing Schemes

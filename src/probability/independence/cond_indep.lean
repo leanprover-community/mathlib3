@@ -143,57 +143,57 @@ end definitions
 
 section definition_lemmas
 
-lemma cond_Indep_sets_def (π : ι → set (set Ω)) (hm₀ : m₀ ≤ mΩ) (μ : measure Ω . volume_tac)
-  [is_finite_measure μ] :
+variables {hm₀ : m₀ ≤ mΩ} {μ : measure Ω} [is_finite_measure μ]
+
+lemma cond_Indep_sets_def (π : ι → set (set Ω)) :
   cond_Indep_sets π hm₀ μ ↔ ∀ (s : finset ι) {f : ι → set Ω} (H : ∀ i, i ∈ s → f i ∈ π i),
     μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i) :=
 by simp only [cond_Indep_sets, Indep_setsₖ, ae_dirac_eq, filter.eventually_pure, kernel.const_apply]
 
-lemma cond_indep_sets_def [measurable_space Ω] (s1 s2 : set (set Ω)) (μ : measure Ω . volume_tac) :
-  indep_sets s1 s2 μ ↔ ∀ t1 t2 : set Ω, t1 ∈ s1 → t2 ∈ s2 → (μ (t1 ∩ t2) = μ t1 * μ t2) :=
-by simp only [indep_sets, indep_setsₖ, ae_dirac_eq, filter.eventually_pure, kernel.const_apply]
+lemma cond_indep_sets_def (s1 s2 : set (set Ω)) :
+  cond_indep_sets s1 s2 hm₀ μ ↔ ∀ t1 t2 : set Ω, t1 ∈ s1 → t2 ∈ s2 → (μ (t1 ∩ t2) = μ t1 * μ t2) :=
+by simp only [cond_indep_sets, indep_setsₖ, ae_dirac_eq, filter.eventually_pure, kernel.const_apply]
 
-lemma cond_Indep_iff_cond_Indep_sets (m : ι → measurable_space Ω) [measurable_space Ω]
-  (μ : measure Ω . volume_tac) :
-  Indep m μ ↔ Indep_sets (λ x, {s | measurable_set[m x] s}) μ :=
-by rw [Indep, Indep_sets, Indepₖ]
+lemma cond_Indep_iff_cond_Indep_sets (m : ι → measurable_space Ω) :
+  cond_Indep m hm₀ μ ↔ cond_Indep_sets (λ x, {s | measurable_set[m x] s}) hm₀ μ :=
+by rw [cond_Indep, cond_Indep_sets, Indepₖ]
 
-lemma cond_indep_iff_cond_indep_sets (m₁ m₂ : measurable_space Ω) [measurable_space Ω]
-  (μ : measure Ω . volume_tac) :
-  indep m₁ m₂ μ ↔ indep_sets {s | measurable_set[m₁] s} {s | measurable_set[m₂] s} μ :=
-by rw [indep, indep_sets, indepₖ]
+lemma cond_indep_iff_cond_indep_sets (m₁ m₂ : measurable_space Ω) [mΩ : measurable_space Ω]
+  [borel_space Ω] {hm₀ : m₀ ≤ mΩ} {μ : measure Ω} [is_finite_measure μ] :
+  cond_indep m₁ m₂ hm₀ μ
+    ↔ cond_indep_sets {s | measurable_set[m₁] s} {s | measurable_set[m₂] s} hm₀ μ :=
+by rw [cond_indep, cond_indep_sets, indepₖ]
 
-lemma cond_indep_iff (m₁ m₂ : measurable_space Ω) [measurable_space Ω]
-  (μ : measure Ω . volume_tac) :
-  indep m₁ m₂ μ
+lemma cond_indep_iff (m₁ m₂ : measurable_space Ω) [mΩ : measurable_space Ω]
+  [borel_space Ω] {hm₀ : m₀ ≤ mΩ} {μ : measure Ω} [is_finite_measure μ] :
+  cond_indep m₁ m₂ hm₀ μ
     ↔ ∀ t1 t2, measurable_set[m₁] t1 → measurable_set[m₂] t2 → μ (t1 ∩ t2) = μ t1 * μ t2 :=
-by { rw [indep_iff_indep_sets, indep_sets_def], refl, }
+by { rw [cond_indep_iff_cond_indep_sets, cond_indep_sets_def], refl, }
 
-lemma cond_Indep_set_iff_cond_Indep [measurable_space Ω] (s : ι → set Ω)
-  (μ : measure Ω . volume_tac) :
-  Indep_set s μ ↔ Indep (λ i, generate_from {s i}) μ :=
-by rw [Indep_set, Indep, Indep_setₖ]
+lemma cond_Indep_set_iff_cond_Indep (s : ι → set Ω) :
+  cond_Indep_set s hm₀ μ ↔ cond_Indep (λ i, generate_from {s i}) hm₀ μ :=
+by rw [cond_Indep_set, cond_Indep, Indep_setₖ]
 
-lemma cond_indep_set_iff_cond_indep [measurable_space Ω] (s t : set Ω)
-  (μ : measure Ω . volume_tac) :
-  indep_set s t μ ↔ indep (generate_from {s}) (generate_from {t}) μ :=
-by rw [indep_set, indep, indep_setₖ]
+lemma cond_indep_set_iff_cond_indep (s t : set Ω) :
+  cond_indep_set s t hm₀ μ ↔ cond_indep (generate_from {s}) (generate_from {t}) hm₀ μ :=
+by rw [cond_indep_set, cond_indep, indep_setₖ]
 
-lemma cond_Indep_fun_iff_cond_Indep [measurable_space Ω] {β : ι → Type*}
-  (m : Π (x : ι), measurable_space (β x)) (f : Π (x : ι), Ω → β x) (μ : measure Ω . volume_tac) :
-  Indep_fun m f μ ↔ Indep (λ x, measurable_space.comap (f x) (m x)) μ :=
-by rw [Indep_fun, Indep, Indep_funₖ]
+lemma cond_Indep_fun_iff_cond_Indep {β : ι → Type*}
+  (m : Π (x : ι), measurable_space (β x)) (f : Π (x : ι), Ω → β x) :
+  cond_Indep_fun m f hm₀ μ ↔ cond_Indep (λ x, measurable_space.comap (f x) (m x)) hm₀ μ :=
+by rw [cond_Indep_fun, cond_Indep, Indep_funₖ]
 
-lemma cond_indep_fun_iff_cond_indep {β γ} [measurable_space Ω] [mβ : measurable_space β]
-  [mγ : measurable_space γ] (f : Ω → β) (g : Ω → γ) (μ : measure Ω . volume_tac) :
-  indep_fun f g μ ↔ indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ :=
-by rw [indep_fun, indep, indep_funₖ]
+lemma cond_indep_fun_iff_cond_indep {β γ} [mβ : measurable_space β] [mγ : measurable_space γ]
+  (f : Ω → β) (g : Ω → γ) :
+  cond_indep_fun f g hm₀ μ
+    ↔ cond_indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) hm₀ μ :=
+by rw [cond_indep_fun, cond_indep, indep_funₖ]
 
-lemma cond_indep_fun_iff {β γ} [measurable_space Ω] [mβ : measurable_space β] [mγ : measurable_space γ]
-  (f : Ω → β) (g : Ω → γ) (μ : measure Ω . volume_tac) :
-  indep_fun f g μ ↔ ∀ t1 t2, measurable_set[measurable_space.comap f mβ] t1
+lemma cond_indep_fun_iff {β γ} [mβ : measurable_space β] [mγ : measurable_space γ]
+  (f : Ω → β) (g : Ω → γ) :
+  cond_indep_fun f g hm₀ μ ↔ ∀ t1 t2, measurable_set[measurable_space.comap f mβ] t1
     → measurable_set[measurable_space.comap g mγ] t2 → μ (t1 ∩ t2) = μ t1 * μ t2 :=
-by rw [indep_fun_iff_indep, indep_iff]
+by rw [cond_indep_fun_iff_cond_indep, cond_indep_iff]
 
 end definition_lemmas
 
@@ -512,100 +512,103 @@ section indep_fun
 
 -/
 
-variables {β β' γ γ' : Type*} {mΩ : measurable_space Ω} {μ : measure Ω} {f : Ω → β} {g : Ω → β'}
+variables {β β' γ γ' : Type*} {f : Ω → β} {g : Ω → β'}
+  {hm₀ : m₀ ≤ mΩ} {μ : measure Ω} [is_finite_measure μ]
 
-lemma indep_fun_iff_measure_inter_preimage_eq_mul
+lemma cond_indep_fun_iff_measure_inter_preimage_eq_mul
   {mβ : measurable_space β} {mβ' : measurable_space β'} :
-  indep_fun f g μ
+  cond_indep_fun f g hm₀ μ
     ↔ ∀ s t, measurable_set s → measurable_set t
       → μ (f ⁻¹' s ∩ g ⁻¹' t) = μ (f ⁻¹' s) * μ (g ⁻¹' t) :=
 begin
-  rw [indep_fun, indep_funₖ_iff_measure_inter_preimage_eq_mul],
+  rw [cond_indep_fun, indep_funₖ_iff_measure_inter_preimage_eq_mul],
   simp only [ae_dirac_eq, filter.eventually_pure, kernel.const_apply],
 end
 
-lemma Indep_fun_iff_measure_inter_preimage_eq_mul {ι : Type*} {β : ι → Type*}
+lemma cond_Indep_fun_iff_measure_inter_preimage_eq_mul {ι : Type*} {β : ι → Type*}
   (m : Π x, measurable_space (β x)) (f : Π i, Ω → β i) :
-  Indep_fun m f μ
+  cond_Indep_fun m f hm₀ μ
     ↔ ∀ (S : finset ι) {sets : Π i : ι, set (β i)} (H : ∀ i, i ∈ S → measurable_set[m i] (sets i)),
       μ (⋂ i ∈ S, (f i) ⁻¹' (sets i)) = ∏ i in S, μ ((f i) ⁻¹' (sets i)) :=
 begin
-  rw [Indep_fun, Indep_funₖ_iff_measure_inter_preimage_eq_mul],
+  rw [cond_Indep_fun, Indep_funₖ_iff_measure_inter_preimage_eq_mul],
   simp only [ae_dirac_eq, filter.eventually_pure, kernel.const_apply],
 end
 
-lemma indep_fun_iff_indep_set_preimage {mβ : measurable_space β} {mβ' : measurable_space β'}
+lemma cond_indep_fun_iff_cond_indep_set_preimage {mβ : measurable_space β} {mβ' : measurable_space β'}
   [is_probability_measure μ] (hf : measurable f) (hg : measurable g) :
-  indep_fun f g μ ↔ ∀ s t, measurable_set s → measurable_set t → indep_set (f ⁻¹' s) (g ⁻¹' t) μ :=
+  cond_indep_fun f g hm₀ μ
+    ↔ ∀ s t, measurable_set s → measurable_set t → cond_indep_set (f ⁻¹' s) (g ⁻¹' t) hm₀ μ :=
 begin
-  refine indep_fun_iff_measure_inter_preimage_eq_mul.trans _,
+  refine cond_indep_fun_iff_measure_inter_preimage_eq_mul.trans _,
   split; intros h s t hs ht; specialize h s t hs ht,
-  { rwa indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
-  { rwa ← indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
+  { rwa cond_indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
+  { rwa ← cond_indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
 end
 
-@[symm] lemma indep_fun.symm {mβ : measurable_space β} {f g : Ω → β} (hfg : indep_fun f g μ) :
-  indep_fun g f μ :=
+@[symm] lemma cond_indep_fun.symm {mβ : measurable_space β} {f g : Ω → β}
+  (hfg : cond_indep_fun f g hm₀ μ) :
+  cond_indep_fun g f hm₀ μ :=
 hfg.symm
 
-lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : Ω → β}
-  (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
-  indep_fun f' g' μ :=
+lemma cond_indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : Ω → β}
+  (hfg : cond_indep_fun f g hm₀ μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
+  cond_indep_fun f' g' hm₀ μ :=
 begin
   refine indep_funₖ.ae_eq hfg _ _; simp only [ae_dirac_eq, filter.eventually_pure],
   exacts [hf, hg],
 end
 
-lemma indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
+lemma cond_indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
   {mγ : measurable_space γ} {mγ' : measurable_space γ'} {φ : β → γ} {ψ : β' → γ'}
-  (hfg : indep_fun f g μ) (hφ : measurable φ) (hψ : measurable ψ) :
-  indep_fun (φ ∘ f) (ψ ∘ g) μ :=
+  (hfg : cond_indep_fun f g hm₀ μ) (hφ : measurable φ) (hψ : measurable ψ) :
+  cond_indep_fun (φ ∘ f) (ψ ∘ g) hm₀ μ :=
 indep_funₖ.comp hfg hφ hψ
 
 /-- If `f` is a family of mutually independent random variables (`Indep_fun m f μ`) and `S, T` are
 two disjoint finite index sets, then the tuple formed by `f i` for `i ∈ S` is independent of the
 tuple `(f i)_i` for `i ∈ T`. -/
-lemma Indep_fun.indep_fun_finset [is_probability_measure μ]
+lemma cond_Indep_fun.cond_indep_fun_finset [is_probability_measure μ]
   {ι : Type*} {β : ι → Type*} {m : Π i, measurable_space (β i)}
-  {f : Π i, Ω → β i} (S T : finset ι) (hST : disjoint S T) (hf_Indep : Indep_fun m f μ)
+  {f : Π i, Ω → β i} (S T : finset ι) (hST : disjoint S T) (hf_Indep : cond_Indep_fun m f hm₀ μ)
   (hf_meas : ∀ i, measurable (f i)) :
-  indep_fun (λ a (i : S), f i a) (λ a (i : T), f i a) μ :=
+  cond_indep_fun (λ a (i : S), f i a) (λ a (i : T), f i a) hm₀ μ :=
 Indep_funₖ.indep_funₖ_finset S T hST hf_Indep hf_meas
 
-lemma Indep_fun.indep_fun_prod [is_probability_measure μ]
+lemma cond_Indep_fun.cond_indep_fun_prod [is_probability_measure μ]
   {ι : Type*} {β : ι → Type*} {m : Π i, measurable_space (β i)}
-  {f : Π i, Ω → β i} (hf_Indep : Indep_fun m f μ) (hf_meas : ∀ i, measurable (f i))
+  {f : Π i, Ω → β i} (hf_Indep : cond_Indep_fun m f hm₀ μ) (hf_meas : ∀ i, measurable (f i))
   (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
-  indep_fun (λ a, (f i a, f j a)) (f k) μ :=
+  cond_indep_fun (λ a, (f i a, f j a)) (f k) hm₀ μ :=
 Indep_funₖ.indep_funₖ_prod hf_Indep hf_meas i j k hik hjk
 
 @[to_additive]
-lemma Indep_fun.mul [is_probability_measure μ]
+lemma cond_Indep_fun.mul [is_probability_measure μ]
   {ι : Type*} {β : Type*} {m : measurable_space β} [has_mul β] [has_measurable_mul₂ β]
-  {f : ι → Ω → β} (hf_Indep : Indep_fun (λ _, m) f μ) (hf_meas : ∀ i, measurable (f i))
+  {f : ι → Ω → β} (hf_Indep : cond_Indep_fun (λ _, m) f hm₀ μ) (hf_meas : ∀ i, measurable (f i))
   (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
-  indep_fun (f i * f j) (f k) μ :=
+  cond_indep_fun (f i * f j) (f k) hm₀ μ :=
 Indep_funₖ.mul hf_Indep hf_meas i j k hik hjk
 
 @[to_additive]
-lemma Indep_fun.indep_fun_finset_prod_of_not_mem [is_probability_measure μ]
+lemma cond_Indep_fun.cond_indep_fun_finset_prod_of_not_mem [is_probability_measure μ]
   {ι : Type*} {β : Type*} {m : measurable_space β} [comm_monoid β] [has_measurable_mul₂ β]
-  {f : ι → Ω → β} (hf_Indep : Indep_fun (λ _, m) f μ) (hf_meas : ∀ i, measurable (f i))
+  {f : ι → Ω → β} (hf_Indep : cond_Indep_fun (λ _, m) f hm₀ μ) (hf_meas : ∀ i, measurable (f i))
   {s : finset ι} {i : ι} (hi : i ∉ s) :
-  indep_fun (∏ j in s, f j) (f i) μ :=
+  cond_indep_fun (∏ j in s, f j) (f i) hm₀ μ :=
 Indep_funₖ.indep_funₖ_finset_prod_of_not_mem hf_Indep hf_meas hi
 
 @[to_additive]
-lemma Indep_fun.indep_fun_prod_range_succ [is_probability_measure μ]
+lemma cond_Indep_fun.cond_indep_fun_prod_range_succ [is_probability_measure μ]
   {β : Type*} {m : measurable_space β} [comm_monoid β] [has_measurable_mul₂ β]
-  {f : ℕ → Ω → β} (hf_Indep : Indep_fun (λ _, m) f μ) (hf_meas : ∀ i, measurable (f i))
+  {f : ℕ → Ω → β} (hf_Indep : cond_Indep_fun (λ _, m) f hm₀ μ) (hf_meas : ∀ i, measurable (f i))
   (n : ℕ) :
-  indep_fun (∏ j in finset.range n, f j) (f n) μ :=
-hf_Indep.indep_fun_finset_prod_of_not_mem hf_meas finset.not_mem_range_self
+  cond_indep_fun (∏ j in finset.range n, f j) (f n) hm₀ μ :=
+hf_Indep.cond_indep_fun_finset_prod_of_not_mem hf_meas finset.not_mem_range_self
 
-lemma Indep_set.Indep_fun_indicator [has_zero β] [has_one β] {m : measurable_space β}
-  {s : ι → set Ω} (hs : Indep_set s μ) :
-  Indep_fun (λ n, m) (λ n, (s n).indicator (λ ω, 1)) μ :=
+lemma cond_Indep_set.cond_Indep_fun_indicator [has_zero β] [has_one β] {m : measurable_space β}
+  {s : ι → set Ω} (hs : cond_Indep_set s hm₀ μ) :
+  cond_Indep_fun (λ n, m) (λ n, (s n).indicator (λ ω, 1)) hm₀ μ :=
 Indep_setₖ.Indep_funₖ_indicator hs
 
 end indep_fun

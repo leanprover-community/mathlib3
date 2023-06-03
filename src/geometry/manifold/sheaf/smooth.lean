@@ -32,6 +32,8 @@ section type
 def smooth_sheaf : Top.sheaf (Type u) (Top.of M) :=
 (cont_diff_within_at_local_invariant_prop IM I ⊤).sheaf M N
 
+variables {M}
+
 instance smooth_sheaf.has_coe_to_fun (U : (opens (Top.of M))ᵒᵖ) :
   has_coe_to_fun ((smooth_sheaf IM I M N).val.obj U) (λ _, unop U → N) :=
 (cont_diff_within_at_local_invariant_prop IM I ⊤).sheaf_has_coe_to_fun _ _ _
@@ -42,13 +44,29 @@ just a "moral" equality but a literal and definitional equality! -/
 lemma smooth_sheaf.obj_eq (U : (opens (Top.of M))ᵒᵖ) :
   (smooth_sheaf IM I M N).val.obj U = C^∞⟮IM, (unop U : opens M); I, N⟯ := rfl
 
-lemma smooth_sheaf.section_spec (U : (opens (Top.of M))ᵒᵖ) (f : (smooth_sheaf IM I M N).val.obj U) :
-  smooth IM I f :=
-(cont_diff_within_at_local_invariant_prop IM I ⊤).section_spec _ _ _ _
+/-- Canonical map from the stalk of `smooth_sheaf IM I M N` at `x` to `N`, given by evaluating
+sections at `x`. -/
+def smooth_sheaf.eval (x : M) : (smooth_sheaf IM I M N).presheaf.stalk x → N :=
+Top.stalk_to_fiber _ x
 
-variables {IM I M N}
+/-- The `eval` map is surjective at `x`. -/
+lemma smooth_sheaf.eval_surjective (x : M) : function.surjective (smooth_sheaf.eval IM I N x) :=
+begin
+  apply Top.stalk_to_fiber_surjective,
+  intros n,
+  exact ⟨⊤, λ _, n, smooth_const, rfl⟩,
+end
 
-lemma smooth_section {U : (opens (Top.of M))ᵒᵖ} (f : (smooth_sheaf IM I M N).val.obj U) :
+variables {IM I N}
+
+@[simp] lemma smooth_sheaf.eval_germ (U : opens (Top.of M)) (x : U)
+  (f : (smooth_sheaf IM I M N).val.obj (op U)) :
+  smooth_sheaf.eval IM I N (x : Top.of M) ((smooth_sheaf IM I M N).presheaf.germ x f)
+  = f x :=
+Top.stalk_to_fiber_germ _ U x f
+
+lemma smooth_sheaf.smooth_section {U : (opens (Top.of M))ᵒᵖ}
+  (f : (smooth_sheaf IM I M N).val.obj U) :
   smooth IM I f :=
 (cont_diff_within_at_local_invariant_prop IM I ⊤).section_spec _ _ _ _
 

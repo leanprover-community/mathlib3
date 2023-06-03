@@ -131,7 +131,7 @@ begin
   haveI : compact_space (⊤ : topological_space.opens M),
   { erw ←is_compact_iff_compact_space,
     apply is_compact_univ, },
-  exact mdifferentiable.is_locally_constant (smooth_sheaf.section_spec _ _ M ℂ _ f).mdifferentiable,
+  exact mdifferentiable.is_locally_constant (smooth_sheaf.smooth_section f).mdifferentiable,
 end
 
 end sheaf

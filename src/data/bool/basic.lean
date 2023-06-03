@@ -7,6 +7,9 @@ Authors: Leonardo de Moura, Jeremy Avigad
 /-!
 # booleans
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves various trivial lemmas about booleans and their
 relation to decidable propositions.
 

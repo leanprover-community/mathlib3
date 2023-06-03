@@ -5,7 +5,7 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import algebra.group.ext
 import category_theory.simple
-import category_theory.linear
+import category_theory.linear.basic
 import category_theory.endomorphism
 import algebra.algebra.spectrum
 
@@ -123,8 +123,7 @@ lemma finrank_endomorphism_eq_one
   finrank 𝕜 (X ⟶ X) = 1 :=
 begin
   have id_nonzero := (is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance),
-  apply finrank_eq_one (𝟙 X),
-  { exact id_nonzero, },
+  refine finrank_eq_one (𝟙 X) id_nonzero _,
   { intro f,
     haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
     obtain ⟨c, nu⟩ := @spectrum.nonempty_of_is_alg_closed_of_finite_dimensional 𝕜 (End X) _ _ _ _ _
@@ -184,7 +183,7 @@ begin
     exact zero_le_one },
   { obtain ⟨f, nz⟩ := (nontrivial_iff_exists_ne 0).mp h,
     haveI fi := (is_iso_iff_nonzero f).mpr nz,
-    apply finrank_le_one f,
+    refine finrank_le_one f _,
     intro g,
     obtain ⟨c, w⟩ := endomorphism_simple_eq_smul_id 𝕜 (g ≫ inv f),
     exact ⟨c, by simpa using w =≫ f⟩, },

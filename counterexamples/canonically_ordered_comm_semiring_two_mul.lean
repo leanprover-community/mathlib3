@@ -23,6 +23,8 @@ Reference:
 https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
 -/
 
+namespace counterexample
+
 namespace from_Bhavik
 
 /--  Bhavik Mehta's example.  There are only the initial definitions, but no proofs.  The Type
@@ -140,7 +142,8 @@ instance socsN2 : strict_ordered_comm_semiring (ℕ × zmod 2) :=
   mul_lt_mul_of_pos_right := mul_lt_mul_of_pos_right,
   ..Nxzmod_2.csrN2_1,
   ..(infer_instance : partial_order (ℕ × zmod 2)),
-  ..(infer_instance : comm_semiring (ℕ × zmod 2)) }
+  ..(infer_instance : comm_semiring (ℕ × zmod 2)),
+  ..pullback_nonzero prod.fst prod.fst_zero prod.fst_one }
 
 end Nxzmod_2
 
@@ -264,3 +267,5 @@ begin
 end
 
 end ex_L
+
+end counterexample

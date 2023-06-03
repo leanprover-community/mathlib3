@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import algebra.big_operators.basic
 import algebra.big_operators.pi
 import category_theory.limits.shapes.biproducts
-import category_theory.preadditive
+import category_theory.preadditive.basic
 import category_theory.preadditive.additive_functor
 import data.matrix.dmatrix
 import data.matrix.basic
@@ -144,15 +144,15 @@ even though the construction we give uses a sigma type.
 See however `iso_biproduct_embedding`.
 -/
 instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
-{ has_biproducts_of_shape := λ J 𝒟, by exactI
+{ out := λ n,
   { has_biproduct := λ f,
     has_biproduct_of_total
-    { X := ⟨Σ j : J, (f j).ι, λ p, (f p.1).X p.2⟩,
+    { X := ⟨Σ j, (f j).ι, λ p, (f p.1).X p.2⟩,
       π := λ j x y,
       begin
         dsimp at x ⊢,
         refine if h : x.1 = j then _ else 0,
-        refine if h' : (@eq.rec J x.1 (λ j, (f j).ι) x.2 _ h) = y then _ else 0,
+        refine if h' : (@eq.rec (fin n) x.1 (λ j, (f j).ι) x.2 _ h) = y then _ else 0,
         apply eq_to_hom,
         substs h h', -- Notice we were careful not to use `subst` until we had a goal in `Prop`.
       end,
@@ -160,7 +160,7 @@ instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
       begin
         dsimp at y ⊢,
         refine if h : y.1 = j then _ else 0,
-        refine if h' : (@eq.rec J y.1 (λ j, (f j).ι) y.2 _ h) = x then _ else 0,
+        refine if h' : (@eq.rec _ y.1 (λ j, (f j).ι) y.2 _ h) = x then _ else 0,
         apply eq_to_hom,
         substs h h',
       end,

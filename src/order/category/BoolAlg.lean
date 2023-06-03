@@ -32,16 +32,16 @@ def of (α : Type*) [boolean_algebra α] : BoolAlg := bundled.of α
 
 instance : inhabited BoolAlg := ⟨of punit⟩
 
-/-- Turn a `BoolAlg` into a `BoundedDistribLattice` by forgetting its complement operation. -/
-def to_BoundedDistribLattice (X : BoolAlg) : BoundedDistribLattice := BoundedDistribLattice.of X
+/-- Turn a `BoolAlg` into a `BddDistLat` by forgetting its complement operation. -/
+def to_BddDistLat (X : BoolAlg) : BddDistLat := BddDistLat.of X
 
-@[simp] lemma coe_to_BoundedDistribLattice (X : BoolAlg) : ↥X.to_BoundedDistribLattice = ↥X := rfl
+@[simp] lemma coe_to_BddDistLat (X : BoolAlg) : ↥X.to_BddDistLat = ↥X := rfl
 
-instance : large_category.{u} BoolAlg := induced_category.category to_BoundedDistribLattice
-instance : concrete_category BoolAlg := induced_category.concrete_category to_BoundedDistribLattice
+instance : large_category.{u} BoolAlg := induced_category.category to_BddDistLat
+instance : concrete_category BoolAlg := induced_category.concrete_category to_BddDistLat
 
-instance has_forget_to_BoundedDistribLattice : has_forget₂ BoolAlg BoundedDistribLattice :=
-induced_category.has_forget₂ to_BoundedDistribLattice
+instance has_forget_to_BddDistLat : has_forget₂ BoolAlg BddDistLat :=
+induced_category.has_forget₂ to_BddDistLat
 
 section
 
@@ -71,6 +71,6 @@ equivalence.mk dual dual
 
 end BoolAlg
 
-lemma BoolAlg_dual_comp_forget_to_BoundedDistribLattice :
-  BoolAlg.dual ⋙ forget₂ BoolAlg BoundedDistribLattice =
-    forget₂ BoolAlg BoundedDistribLattice ⋙ BoundedDistribLattice.dual := rfl
+lemma BoolAlg_dual_comp_forget_to_BddDistLat :
+  BoolAlg.dual ⋙ forget₂ BoolAlg BddDistLat =
+    forget₂ BoolAlg BddDistLat ⋙ BddDistLat.dual := rfl

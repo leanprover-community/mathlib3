@@ -8,6 +8,9 @@ import category_theory.equivalence
 /-!
 # Opposite categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide a category instance on `Cᵒᵖ`.
 The morphisms `X ⟶ Y` are defined to be the morphisms `unop Y ⟶ unop X` in `C`.
 
@@ -221,6 +224,10 @@ nat_iso.of_components (λ X, iso.refl _) (by tidy)
 @[simps]
 def right_op_left_op_iso (F : Cᵒᵖ ⥤ D) : F.right_op.left_op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
+
+/-- Whenever possible, it is advisable to use the isomorphism `right_op_left_op_iso`
+instead of this equality of functors. -/
+lemma right_op_left_op_eq (F : Cᵒᵖ ⥤ D) : F.right_op.left_op = F := by { cases F, refl, }
 
 end
 

@@ -5,10 +5,12 @@ Authors: Yury Kudryashov
 -/
 import analysis.complex.circle
 import analysis.normed_space.ball_action
-import group_theory.subsemigroup.membership
 
 /-!
 # Poincaré disc
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `complex.unit_disc` to be the unit disc in the complex plane. We also
 introduce some basic operations on this disc.

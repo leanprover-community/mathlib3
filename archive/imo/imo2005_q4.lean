@@ -15,6 +15,8 @@ This is quite an easy problem, in which the key point is a modular arithmetic ca
 the sequence `a n` relative to an arbitrary prime.
 -/
 
+namespace imo
+
 /-- The sequence considered in the problem, `2 ^ n + 3 ^ n + 6 ^ n - 1`. -/
 def a (n : ℕ) : ℤ := 2 ^ n + 3 ^ n + 6 ^ n - 1
 
@@ -80,7 +82,7 @@ begin
   have hp : nat.prime p := nat.min_fac_prime hk',
   -- So `3 ≤ p`
   have hp₃ : 3 ≤ p,
-  { have : 2 ≠ p := by rwa nat.coprime_primes (by norm_num : nat.prime 2) hp at hp₂,
+  { have : 2 ≠ p := by rwa nat.coprime_primes nat.prime_two hp at hp₂,
     apply nat.lt_of_le_and_ne hp.two_le this, },
   -- Testing the special property of `k` for the `p - 2`th term of the sequence, we see that `p` is
   -- coprime to `a (p - 2)`.
@@ -93,3 +95,5 @@ begin
   -- Contradiction!
   contradiction,
 end
+
+end imo

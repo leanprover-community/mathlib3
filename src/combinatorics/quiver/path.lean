@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn, Scott Morrison
 -/
 import combinatorics.quiver.basic
-import algebra.group.defs
 import logic.lemmas
 
 /-!
 # Paths in quivers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a quiver `V`, we define the type of paths from `a : V` to `b : V` as an inductive
 family. We define composition of paths and the action of prefunctors on paths.
@@ -31,7 +33,20 @@ path.nil.cons e
 
 namespace path
 
-variables {V : Type u} [quiver V] {a b c : V}
+variables {V : Type u} [quiver V] {a b c d : V}
+
+lemma nil_ne_cons (p : path a b) (e : b ⟶ a) : path.nil ≠ p.cons e.
+
+lemma cons_ne_nil (p : path a b) (e : b ⟶ a) : p.cons e ≠ path.nil.
+
+lemma obj_eq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : b = c := by injection h
+
+lemma heq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : p == p' := by injection h
+
+lemma hom_heq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : e == e' := by injection h
 
 /-- The length of a path is the number of arrows it uses. -/
 def length {a : V} : Π {b : V}, path a b → ℕ
@@ -56,10 +71,13 @@ def comp {a b : V} : Π {c}, path a b → path b c → path a c
 
 @[simp] lemma comp_cons {a b c d : V} (p : path a b) (q : path b c) (e : c ⟶ d) :
   p.comp (q.cons e) = (p.comp q).cons e := rfl
+
 @[simp] lemma comp_nil {a b : V} (p : path a b) : p.comp path.nil = p := rfl
+
 @[simp] lemma nil_comp {a : V} : ∀ {b} (p : path a b), path.nil.comp p = p
 | a path.nil := rfl
 | b (path.cons p e) := by rw [comp_cons, nil_comp]
+
 @[simp] lemma comp_assoc {a b c : V} : ∀ {d}
   (p : path a b) (q : path b c) (r : path c d),
     (p.comp q).comp r = p.comp (q.comp r)
@@ -143,7 +161,7 @@ namespace prefunctor
 
 open quiver
 
-variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : prefunctor V W)
+variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : V ⥤q W)
 
 /-- The image of a path under a prefunctor. -/
 def map_path {a : V} :

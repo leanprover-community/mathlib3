@@ -42,7 +42,7 @@ theorems.
 -/
 
 open topological_space filter measure_theory.filtration
-open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
+open_locale nnreal ennreal measure_theory probability_theory big_operators topology
 
 namespace measure_theory
 
@@ -136,7 +136,7 @@ convergent.
 We use the spelling `< ∞` instead of the standard `≠ ∞` in the assumptions since it is not as easy
 to change `<` to `≠` under binders. -/
 lemma tendsto_of_uncrossing_lt_top
-  (hf₁ : liminf (λ n, (∥f n ω∥₊ : ℝ≥0∞)) at_top < ∞)
+  (hf₁ : liminf (λ n, (‖f n ω‖₊ : ℝ≥0∞)) at_top < ∞)
   (hf₂ : ∀ a b : ℚ, a < b → upcrossings a b f ω < ∞) :
   ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
 begin
@@ -160,16 +160,16 @@ begin
   have := hf.mul_lintegral_upcrossings_le_lintegral_pos_part a b,
   rw [mul_comm, ← ennreal.le_div_iff_mul_le] at this,
   { refine (lt_of_le_of_lt this (ennreal.div_lt_top _ _)).ne,
-    { have hR' : ∀ n, ∫⁻ ω, ∥f n ω - a∥₊ ∂μ ≤ R + ∥a∥₊ * μ set.univ,
+    { have hR' : ∀ n, ∫⁻ ω, ‖f n ω - a‖₊ ∂μ ≤ R + ‖a‖₊ * μ set.univ,
       { simp_rw snorm_one_eq_lintegral_nnnorm at hbdd,
         intro n,
-        refine (lintegral_mono _ : ∫⁻ ω, ∥f n ω - a∥₊ ∂μ ≤ ∫⁻ ω, ∥f n ω∥₊ + ∥a∥₊ ∂μ).trans _,
+        refine (lintegral_mono _ : ∫⁻ ω, ‖f n ω - a‖₊ ∂μ ≤ ∫⁻ ω, ‖f n ω‖₊ + ‖a‖₊ ∂μ).trans _,
         { intro ω,
           simp_rw [sub_eq_add_neg, ← nnnorm_neg a, ← ennreal.coe_add, ennreal.coe_le_coe],
           exact nnnorm_add_le _ _ },
         { simp_rw [ lintegral_add_right _ measurable_const, lintegral_const],
           exact add_le_add (hbdd _) le_rfl } },
-      refine ne_of_lt (supr_lt_iff.2 ⟨R + ∥a∥₊ * μ set.univ, ennreal.add_lt_top.2
+      refine ne_of_lt (supr_lt_iff.2 ⟨R + ‖a‖₊ * μ set.univ, ennreal.add_lt_top.2
           ⟨ennreal.coe_lt_top, ennreal.mul_lt_top ennreal.coe_lt_top.ne (measure_ne_top _ _)⟩,
           λ n, le_trans _ (hR' n)⟩),
       refine lintegral_mono (λ ω, _),

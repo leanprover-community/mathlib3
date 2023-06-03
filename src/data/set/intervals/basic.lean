@@ -3,11 +3,14 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
-import algebra.order.group.basic
-import order.rel_iso
+import order.min_max
+import data.set.prod
 
 /-!
 # Intervals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In any preorder `α`, we define intervals (which on each side can be either infinite, open, or
 closed) using the following naming conventions:
@@ -404,6 +407,19 @@ lemma _root_.is_min.Iio_eq (h : is_min a) : Iio a = ∅ := eq_empty_of_subset_em
 lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
 ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
 
+lemma not_mem_Icc_of_lt (ha : c < a) : c ∉ Icc a b := λ h, ha.not_le h.1
+lemma not_mem_Icc_of_gt (hb : b < c) : c ∉ Icc a b := λ h, hb.not_le h.2
+lemma not_mem_Ico_of_lt (ha : c < a) : c ∉ Ico a b := λ h, ha.not_le h.1
+lemma not_mem_Ioc_of_gt (hb : b < c) : c ∉ Ioc a b := λ h, hb.not_le h.2
+
+@[simp] lemma not_mem_Ioi_self : a ∉ Ioi a := lt_irrefl _
+@[simp] lemma not_mem_Iio_self : b ∉ Iio b := lt_irrefl _
+
+lemma not_mem_Ioc_of_le (ha : c ≤ a) : c ∉ Ioc a b := λ h, lt_irrefl _ $ h.1.trans_le ha
+lemma not_mem_Ico_of_ge (hb : b ≤ c) : c ∉ Ico a b := λ h, lt_irrefl _ $ h.2.trans_le hb
+lemma not_mem_Ioo_of_le (ha : c ≤ a) : c ∉ Ioo a b := λ h, lt_irrefl _ $ h.1.trans_le ha
+lemma not_mem_Ioo_of_ge (hb : b ≤ c) : c ∉ Ioo a b := λ h, lt_irrefl _ $ h.2.trans_le hb
+
 end preorder
 
 section partial_order
@@ -591,37 +607,9 @@ lemma not_mem_Ici : c ∉ Ici a ↔ c < a := not_le
 
 lemma not_mem_Iic : c ∉ Iic b ↔ b < c := not_le
 
-lemma not_mem_Icc_of_lt (ha : c < a) : c ∉ Icc a b :=
-not_mem_subset Icc_subset_Ici_self $ not_mem_Ici.mpr ha
-
-lemma not_mem_Icc_of_gt (hb : b < c) : c ∉ Icc a b :=
-not_mem_subset Icc_subset_Iic_self $ not_mem_Iic.mpr hb
-
-lemma not_mem_Ico_of_lt (ha : c < a) : c ∉ Ico a b :=
-not_mem_subset Ico_subset_Ici_self $ not_mem_Ici.mpr ha
-
-lemma not_mem_Ioc_of_gt (hb : b < c) : c ∉ Ioc a b :=
-not_mem_subset Ioc_subset_Iic_self $ not_mem_Iic.mpr hb
-
 lemma not_mem_Ioi : c ∉ Ioi a ↔ c ≤ a := not_lt
 
 lemma not_mem_Iio : c ∉ Iio b ↔ b ≤ c := not_lt
-
-@[simp] lemma not_mem_Ioi_self : a ∉ Ioi a := lt_irrefl _
-
-@[simp] lemma not_mem_Iio_self : b ∉ Iio b := lt_irrefl _
-
-lemma not_mem_Ioc_of_le (ha : c ≤ a) : c ∉ Ioc a b :=
-not_mem_subset Ioc_subset_Ioi_self $ not_mem_Ioi.mpr ha
-
-lemma not_mem_Ico_of_ge (hb : b ≤ c) : c ∉ Ico a b :=
-not_mem_subset Ico_subset_Iio_self $ not_mem_Iio.mpr hb
-
-lemma not_mem_Ioo_of_le (ha : c ≤ a) : c ∉ Ioo a b :=
-not_mem_subset Ioo_subset_Ioi_self $ not_mem_Ioi.mpr ha
-
-lemma not_mem_Ioo_of_ge (hb : b ≤ c) : c ∉ Ioo a b :=
-not_mem_subset Ioo_subset_Iio_self $ not_mem_Iio.mpr hb
 
 @[simp] lemma compl_Iic : (Iic a)ᶜ = Ioi a := ext $ λ _, not_le
 @[simp] lemma compl_Ici : (Ici a)ᶜ = Iio a := ext $ λ _, not_le
@@ -1219,7 +1207,7 @@ end both
 end lattice
 
 section linear_order
-variables [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+variables [linear_order α] [linear_order β] {f : α → β} {a a₁ a₂ b b₁ b₂ c d : α}
 
 @[simp] lemma Ioi_inter_Ioi : Ioi a ∩ Ioi b = Ioi (a ⊔ b) := ext $ λ _, sup_lt_iff.symm
 @[simp] lemma Iio_inter_Iio : Iio a ∩ Iio b = Iio (a ⊓ b) := ext $ λ _, lt_inf_iff.symm
@@ -1309,161 +1297,7 @@ by simp
 
 end prod
 
-/-! ### Lemmas about membership of arithmetic operations -/
-
-section ordered_comm_group
-
-variables [ordered_comm_group α] {a b c d : α}
-
-/-! `inv_mem_Ixx_iff`, `sub_mem_Ixx_iff` -/
-@[to_additive] lemma inv_mem_Icc_iff : a⁻¹ ∈ set.Icc c d ↔ a ∈ set.Icc (d⁻¹) (c⁻¹) :=
-(and_comm _ _).trans $ and_congr inv_le' le_inv'
-@[to_additive] lemma inv_mem_Ico_iff : a⁻¹ ∈ set.Ico c d ↔ a ∈ set.Ioc (d⁻¹) (c⁻¹) :=
-(and_comm _ _).trans $ and_congr inv_lt' le_inv'
-@[to_additive] lemma inv_mem_Ioc_iff : a⁻¹ ∈ set.Ioc c d ↔ a ∈ set.Ico (d⁻¹) (c⁻¹) :=
-(and_comm _ _).trans $ and_congr inv_le' lt_inv'
-@[to_additive] lemma inv_mem_Ioo_iff : a⁻¹ ∈ set.Ioo c d ↔ a ∈ set.Ioo (d⁻¹) (c⁻¹) :=
-(and_comm _ _).trans $ and_congr inv_lt' lt_inv'
-
-end ordered_comm_group
-
-section ordered_add_comm_group
-
-variables [ordered_add_comm_group α] {a b c d : α}
-
-/-! `add_mem_Ixx_iff_left` -/
-lemma add_mem_Icc_iff_left : a + b ∈ set.Icc c d ↔ a ∈ set.Icc (c - b) (d - b) :=
-(and_congr sub_le_iff_le_add le_sub_iff_add_le).symm
-lemma add_mem_Ico_iff_left : a + b ∈ set.Ico c d ↔ a ∈ set.Ico (c - b) (d - b) :=
-(and_congr sub_le_iff_le_add lt_sub_iff_add_lt).symm
-lemma add_mem_Ioc_iff_left : a + b ∈ set.Ioc c d ↔ a ∈ set.Ioc (c - b) (d - b) :=
-(and_congr sub_lt_iff_lt_add le_sub_iff_add_le).symm
-lemma add_mem_Ioo_iff_left : a + b ∈ set.Ioo c d ↔ a ∈ set.Ioo (c - b) (d - b) :=
-(and_congr sub_lt_iff_lt_add lt_sub_iff_add_lt).symm
-
-/-! `add_mem_Ixx_iff_right` -/
-lemma add_mem_Icc_iff_right : a + b ∈ set.Icc c d ↔ b ∈ set.Icc (c - a) (d - a) :=
-(and_congr sub_le_iff_le_add' le_sub_iff_add_le').symm
-lemma add_mem_Ico_iff_right : a + b ∈ set.Ico c d ↔ b ∈ set.Ico (c - a) (d - a) :=
-(and_congr sub_le_iff_le_add' lt_sub_iff_add_lt').symm
-lemma add_mem_Ioc_iff_right : a + b ∈ set.Ioc c d ↔ b ∈ set.Ioc (c - a) (d - a) :=
-(and_congr sub_lt_iff_lt_add' le_sub_iff_add_le').symm
-lemma add_mem_Ioo_iff_right : a + b ∈ set.Ioo c d ↔ b ∈ set.Ioo (c - a) (d - a) :=
-(and_congr sub_lt_iff_lt_add' lt_sub_iff_add_lt').symm
-
-/-! `sub_mem_Ixx_iff_left` -/
-lemma sub_mem_Icc_iff_left : a - b ∈ set.Icc c d ↔ a ∈ set.Icc (c + b) (d + b) :=
-and_congr le_sub_iff_add_le sub_le_iff_le_add
-lemma sub_mem_Ico_iff_left : a - b ∈ set.Ico c d ↔ a ∈ set.Ico (c + b) (d + b) :=
-and_congr le_sub_iff_add_le sub_lt_iff_lt_add
-lemma sub_mem_Ioc_iff_left : a - b ∈ set.Ioc c d ↔ a ∈ set.Ioc (c + b) (d + b) :=
-and_congr lt_sub_iff_add_lt sub_le_iff_le_add
-lemma sub_mem_Ioo_iff_left : a - b ∈ set.Ioo c d ↔ a ∈ set.Ioo (c + b) (d + b) :=
-and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add
-
-/-! `sub_mem_Ixx_iff_right` -/
-lemma sub_mem_Icc_iff_right : a - b ∈ set.Icc c d ↔ b ∈ set.Icc (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_le_comm le_sub_comm
-lemma sub_mem_Ico_iff_right : a - b ∈ set.Ico c d ↔ b ∈ set.Ioc (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_lt_comm le_sub_comm
-lemma sub_mem_Ioc_iff_right : a - b ∈ set.Ioc c d ↔ b ∈ set.Ico (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_le_comm lt_sub_comm
-lemma sub_mem_Ioo_iff_right : a - b ∈ set.Ioo c d ↔ b ∈ set.Ioo (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_lt_comm lt_sub_comm
-
--- I think that symmetric intervals deserve attention and API: they arise all the time,
--- for instance when considering metric balls in `ℝ`.
-lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
-  |x - y| ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
-abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le_comm neg_le_sub_iff_le_add
-
-end ordered_add_comm_group
-
-section linear_ordered_add_comm_group
-
-variables [linear_ordered_add_comm_group α]
-
-/-- If we remove a smaller interval from a larger, the result is nonempty -/
-lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
-  nonempty ↥(Ico x (x + dx) \ Ico y (y + dy)) :=
-begin
-  cases lt_or_le x y with h' h',
-  { use x, simp [*, not_le.2 h'] },
-  { use max x (x + dy), simp [*, le_refl] }
-end
-
-end linear_ordered_add_comm_group
-
 end set
-
-open set
-
-namespace order_iso
-
-section preorder
-variables [preorder α] [preorder β]
-
-@[simp] lemma preimage_Iic (e : α ≃o β) (b : β) : e ⁻¹' (Iic b) = Iic (e.symm b) :=
-by { ext x, simp [← e.le_iff_le] }
-
-@[simp] lemma preimage_Ici (e : α ≃o β) (b : β) : e ⁻¹' (Ici b) = Ici (e.symm b) :=
-by { ext x, simp [← e.le_iff_le] }
-
-@[simp] lemma preimage_Iio (e : α ≃o β) (b : β) : e ⁻¹' (Iio b) = Iio (e.symm b) :=
-by { ext x, simp [← e.lt_iff_lt] }
-
-@[simp] lemma preimage_Ioi (e : α ≃o β) (b : β) : e ⁻¹' (Ioi b) = Ioi (e.symm b) :=
-by { ext x, simp [← e.lt_iff_lt] }
-
-@[simp] lemma preimage_Icc (e : α ≃o β) (a b : β) : e ⁻¹' (Icc a b) = Icc (e.symm a) (e.symm b) :=
-by simp [← Ici_inter_Iic]
-
-@[simp] lemma preimage_Ico (e : α ≃o β) (a b : β) : e ⁻¹' (Ico a b) = Ico (e.symm a) (e.symm b) :=
-by simp [← Ici_inter_Iio]
-
-@[simp] lemma preimage_Ioc (e : α ≃o β) (a b : β) : e ⁻¹' (Ioc a b) = Ioc (e.symm a) (e.symm b) :=
-by simp [← Ioi_inter_Iic]
-
-@[simp] lemma preimage_Ioo (e : α ≃o β) (a b : β) : e ⁻¹' (Ioo a b) = Ioo (e.symm a) (e.symm b) :=
-by simp [← Ioi_inter_Iio]
-
-@[simp] lemma image_Iic (e : α ≃o β) (a : α) : e '' (Iic a) = Iic (e a) :=
-by rw [e.image_eq_preimage, e.symm.preimage_Iic, e.symm_symm]
-
-@[simp] lemma image_Ici (e : α ≃o β) (a : α) : e '' (Ici a) = Ici (e a) :=
-e.dual.image_Iic a
-
-@[simp] lemma image_Iio (e : α ≃o β) (a : α) : e '' (Iio a) = Iio (e a) :=
-by rw [e.image_eq_preimage, e.symm.preimage_Iio, e.symm_symm]
-
-@[simp] lemma image_Ioi (e : α ≃o β) (a : α) : e '' (Ioi a) = Ioi (e a) :=
-e.dual.image_Iio a
-
-@[simp] lemma image_Ioo (e : α ≃o β) (a b : α) : e '' (Ioo a b) = Ioo (e a) (e b) :=
-by rw [e.image_eq_preimage, e.symm.preimage_Ioo, e.symm_symm]
-
-@[simp] lemma image_Ioc (e : α ≃o β) (a b : α) : e '' (Ioc a b) = Ioc (e a) (e b) :=
-by rw [e.image_eq_preimage, e.symm.preimage_Ioc, e.symm_symm]
-
-@[simp] lemma image_Ico (e : α ≃o β) (a b : α) : e '' (Ico a b) = Ico (e a) (e b) :=
-by rw [e.image_eq_preimage, e.symm.preimage_Ico, e.symm_symm]
-
-@[simp] lemma image_Icc (e : α ≃o β) (a b : α) : e '' (Icc a b) = Icc (e a) (e b) :=
-by rw [e.image_eq_preimage, e.symm.preimage_Icc, e.symm_symm]
-
-end preorder
-
-/-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
-def Iic_top [preorder α] [order_top α] : set.Iic (⊤ : α) ≃o α :=
-{ map_rel_iff' := λ x y, by refl,
-  .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
-
-/-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
-def Ici_bot [preorder α] [order_bot α] : set.Ici (⊥ : α) ≃o α :=
-{ map_rel_iff' := λ x y, by refl,
-  .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
-
-end order_iso
 
 /-! ### Lemmas about intervals in dense orders -/
 

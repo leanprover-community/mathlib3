@@ -7,8 +7,6 @@ import analysis.analytic.basic
 import analysis.calculus.dslope
 import analysis.calculus.fderiv_analytic
 import analysis.calculus.formal_multilinear_series
-import analysis.complex.basic
-import topology.algebra.infinite_sum
 import analysis.analytic.uniqueness
 
 /-!
@@ -31,7 +29,7 @@ useful in this setup.
 open_locale classical
 
 open filter function nat formal_multilinear_series emetric set
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}
@@ -59,7 +57,7 @@ begin
       from finset.sum_eq_zero (λ k hk, by simp [ha k (finset.mem_range.mp hk)]),
     have h2 : has_sum (λ m, z ^ (m + n) • a (m + n)) s,
       by simpa [h1] using (has_sum_nat_add_iff' n).mpr hs,
-    convert @has_sum.const_smul E ℕ 𝕜 _ _ _ _ _ _ _ (z⁻¹ ^ n) h2,
+    convert h2.const_smul (z⁻¹ ^ n),
     { field_simp [pow_add, smul_smul] },
     { simp only [inv_pow] } }
 end
@@ -80,7 +78,7 @@ begin
   { have hxx : ∀ (n : ℕ), x⁻¹ * x ^ (n + 1) = x ^ n := λ n, by field_simp [h, pow_succ'],
     suffices : has_sum (λ n, x⁻¹ • x ^ (n + 1) • p.coeff (n + 1)) (x⁻¹ • (f (z₀ + x) - f z₀)),
     { simpa [dslope, slope, h, smul_smul, hxx] using this },
-    { simpa [hp0] using ((has_sum_nat_add_iff' 1).mpr hx).const_smul } }
+    { simpa [hp0] using ((has_sum_nat_add_iff' 1).mpr hx).const_smul x⁻¹ } }
 end
 
 lemma has_fpower_series_iterate_dslope_fslope (n : ℕ) (hp : has_fpower_series_at f p z₀) :

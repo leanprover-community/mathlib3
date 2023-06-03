@@ -9,6 +9,9 @@ import order.rel_classes
 /-!
 # Lexicographic order on a sigma type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines the lexicographical order of two arbitrary relations on a sigma type and proves some
 lemmas about `psigma.lex`, which is defined in core Lean.
 
@@ -73,6 +76,9 @@ h.mono hr $ λ _ _ _, id
 lemma lex.mono_right (hs : ∀ i a b, s₁ i a b → s₂ i a b) {a b : Σ i, α i} (h : lex r s₁ a b) :
   lex r s₂ a b :=
 h.mono (λ _ _, id) hs
+
+lemma lex_swap : lex r.swap s a b ↔ lex r (λ i, (s i).swap) b a :=
+by split; { rintro (⟨a, b, h⟩ | ⟨a, b, h⟩), exacts [lex.left _ _ h, lex.right _ _ h] }
 
 instance [Π i, is_refl (α i) (s i)] : is_refl _ (lex r s) := ⟨λ ⟨i, a⟩, lex.right _ _ $ refl _⟩
 

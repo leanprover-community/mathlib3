@@ -6,11 +6,15 @@ Authors: David Wärn, Joachim Breitner
 import algebra.free_monoid.basic
 import group_theory.congruence
 import group_theory.is_free_group
-import group_theory.subgroup.pointwise
 import data.list.chain
 import set_theory.cardinal.ordinal
+import data.set.pointwise.smul
+
 /-!
 # The free product of groups or monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given an `ι`-indexed family `M` of monoids, we define their free product (categorical coproduct)
 `free_product M`. When `ι` and all `M i` have decidable equality, the free product bijects with the
@@ -591,7 +595,7 @@ lemma lift_word_ping_pong {i j k} (w : neword H i j) (hk : j ≠ k) :
 begin
   rename [i → i', j → j', k → m, hk → hm],
   induction w with i x hne_one i j k l w₁ hne w₂  hIw₁ hIw₂ generalizing m; clear i' j',
-  { simpa using hpp _ _ hm _ hne_one, },
+  { simpa using hpp hm _ hne_one, },
   { calc lift f (neword.append w₁ hne w₂).prod • X m
         = lift f w₁.prod • lift f w₂.prod • X m : by simp [mul_action.mul_smul]
     ... ⊆ lift f w₁.prod • X k : set_smul_subset_set_smul_iff.mpr (hIw₂ hm)
@@ -607,7 +611,7 @@ begin
   have : X k ⊆ X i,
     by simpa [heq1] using lift_word_ping_pong f X hpp w hlast.symm,
   obtain ⟨x, hx⟩ := hXnonempty k,
-  exact hXdisj k i hhead ⟨hx, this hx⟩,
+  exact (hXdisj hhead).le_bot ⟨hx, this hx⟩,
 end
 
 include hnontriv
@@ -796,10 +800,10 @@ begin
   { intros i j hij,
     simp only [X'],
     apply disjoint.union_left; apply disjoint.union_right,
-    { exact hXdisj i j hij, },
+    { exact hXdisj hij, },
     { exact hXYdisj i j, },
     { exact (hXYdisj j i).symm, },
-    { exact hYdisj i j hij, }, },
+    { exact hYdisj hij, }, },
 
   show pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X' j ⊆ X' i),
   { rintros i j hij,
@@ -816,7 +820,7 @@ begin
     cases (lt_or_gt_of_ne hnne0).swap with hlt hgt,
     { have h1n : 1 ≤ n := hlt,
       calc a i ^ n • X' j ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono
-            ((hXYdisj j i).union_left $ hYdisj j i hij.symm).subset_compl_right
+            ((hXYdisj j i).union_left $ hYdisj hij.symm).subset_compl_right
       ... ⊆ X i :
       begin
         refine int.le_induction _ _ _ h1n,
@@ -832,7 +836,7 @@ begin
       ... ⊆ X' i : set.subset_union_left _ _, },
     { have h1n : n ≤ -1, { apply int.le_of_lt_add_one, simpa using hgt, },
       calc a i ^ n • X' j ⊆ a i ^ n • (X i)ᶜ : smul_set_mono
-            ((hXdisj j i hij.symm).union_left (hXYdisj i j).symm).subset_compl_right
+            ((hXdisj hij.symm).union_left (hXYdisj i j).symm).subset_compl_right
       ... ⊆ Y i :
       begin
         refine int.le_induction_down _ _ _ h1n,

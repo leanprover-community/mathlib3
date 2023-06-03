@@ -9,6 +9,9 @@ import analysis.normed_space.hahn_banach.separation
 /-!
 # The Krein-Milman theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Krein-Milman lemma and the Krein-Milman theorem.
 
 ## The lemma
@@ -65,7 +68,7 @@ begin
     rwa ←eq_singleton_iff_unique_mem.2 ⟨hxt, λ y hyB, _⟩,
     by_contra hyx,
     obtain ⟨l, hl⟩ := geometric_hahn_banach_point_point hyx,
-    obtain ⟨z, hzt, hz⟩ := (compact_of_is_closed_subset hscomp htclos hst.1).exists_forall_ge
+    obtain ⟨z, hzt, hz⟩ := (is_compact_of_is_closed_subset hscomp htclos hst.1).exists_forall_ge
       ⟨x, hxt⟩ l.continuous.continuous_on,
     have h : is_exposed ℝ t {z ∈ t | ∀ w ∈ t, l w ≤ l z} := λ h, ⟨l, rfl⟩,
     rw ←hBmin {z ∈ t | ∀ w ∈ t, l w ≤ l z} ⟨⟨z, hzt, hz⟩, h.is_closed htclos, hst.trans
@@ -79,7 +82,8 @@ begin
   haveI : nonempty ↥F := hFnemp.to_subtype,
   rw sInter_eq_Inter,
   refine is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ (λ t u, _)
-    (λ t, (hFS t.mem).1) (λ t, compact_of_is_closed_subset hscomp (hFS t.mem).2.1 (hFS t.mem).2.2.1)
+    (λ t, (hFS t.mem).1)
+    (λ t, is_compact_of_is_closed_subset hscomp (hFS t.mem).2.1 (hFS t.mem).2.2.1)
     (λ t, (hFS t.mem).2.1),
   obtain htu | hut := hF.total t.mem u.mem,
   exacts [⟨t, subset.rfl, htu⟩, ⟨u, hut, subset.rfl⟩],

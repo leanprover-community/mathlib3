@@ -6,9 +6,13 @@ Authors: Andrew Yang
 import category_theory.limits.shapes.diagonal
 import category_theory.arrow
 import category_theory.limits.shapes.comm_sq
+import category_theory.concrete_category.basic
 
 /-!
 # Properties of morphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide the basic framework for talking about properties of morphisms.
 The following meta-properties are defined
@@ -254,10 +258,30 @@ to isomorphisms in `D`. -/
 def is_inverted_by (P : morphism_property C) (F : C ⥤ D) : Prop :=
 ∀ ⦃X Y : C⦄ (f : X ⟶ Y) (hf : P f), is_iso (F.map f)
 
-lemma is_inverted_by.of_comp {C₁ C₂ C₃ : Type*} [category C₁] [category C₂] [category C₃]
+namespace is_inverted_by
+
+lemma of_comp {C₁ C₂ C₃ : Type*} [category C₁] [category C₂] [category C₃]
   (W : morphism_property C₁) (F : C₁ ⥤ C₂) (hF : W.is_inverted_by F) (G : C₂ ⥤ C₃) :
   W.is_inverted_by (F ⋙ G) :=
 λ X Y f hf, by { haveI := hF f hf, dsimp, apply_instance, }
+
+lemma op {W : morphism_property C} {L : C ⥤ D} (h : W.is_inverted_by L) :
+  W.op.is_inverted_by L.op :=
+λ X Y f hf, by { haveI := h f.unop hf, dsimp, apply_instance, }
+
+lemma right_op {W : morphism_property C} {L : Cᵒᵖ ⥤ D} (h : W.op.is_inverted_by L) :
+  W.is_inverted_by L.right_op :=
+λ X Y f hf, by { haveI := h f.op hf, dsimp, apply_instance, }
+
+lemma left_op {W : morphism_property C} {L : C ⥤ Dᵒᵖ} (h : W.is_inverted_by L) :
+  W.op.is_inverted_by L.left_op :=
+λ X Y f hf, by { haveI := h f.unop hf, dsimp, apply_instance, }
+
+lemma unop {W : morphism_property C} {L : Cᵒᵖ ⥤ Dᵒᵖ} (h : W.op.is_inverted_by L) :
+  W.is_inverted_by L.unop :=
+λ X Y f hf, by { haveI := h f.op hf, dsimp, apply_instance, }
+
+end is_inverted_by
 
 /-- Given `app : Π X, F₁.obj X ⟶ F₂.obj X` where `F₁` and `F₂` are two functors,
 this is the `morphism_property C` satisfied by the morphisms in `C` with respect
@@ -373,6 +397,18 @@ full_subcategory (λ (F : C ⥤ D), W.is_inverted_by F)
 def functors_inverting.mk {W : morphism_property C} {D : Type*} [category D]
 (F : C ⥤ D) (hF : W.is_inverted_by F) : W.functors_inverting D := ⟨F, hF⟩
 
+lemma is_inverted_by.iff_of_iso (W : morphism_property C) {F₁ F₂ : C ⥤ D} (e : F₁ ≅ F₂) :
+  W.is_inverted_by F₁ ↔ W.is_inverted_by F₂ :=
+begin
+  suffices : ∀ (X Y : C) (f : X ⟶ Y), is_iso (F₁.map f) ↔ is_iso (F₂.map f),
+  { split,
+    exact λ h X Y f hf, by { rw ← this, exact h f hf, },
+    exact λ h X Y f hf, by { rw this, exact h f hf, }, },
+  intros X Y f,
+  exact (respects_iso.isomorphisms D).arrow_mk_iso_iff
+    (arrow.iso_mk (e.app X) (e.app Y) (by simp)),
+end
+
 section diagonal
 
 variables [has_pullbacks C] {P : morphism_property C}
@@ -476,6 +512,58 @@ lemma universally_mono : monotone (universally : morphism_property C → morphis
 λ P₁ P₂ h X Y f h₁ X' Y' i₁ i₂ f' H, h _ _ _ (h₁ _ _ _ H)
 
 end universally
+
+section bijective
+
+variables [concrete_category C]
+
+open function
+
+local attribute [instance] concrete_category.has_coe_to_fun concrete_category.has_coe_to_sort
+
+variable (C)
+
+/-- Injectiveness (in a concrete category) as a `morphism_property` -/
+protected def injective : morphism_property C := λ X Y f, injective f
+
+/-- Surjectiveness (in a concrete category) as a `morphism_property` -/
+protected def surjective : morphism_property C := λ X Y f, surjective f
+
+/-- Bijectiveness (in a concrete category) as a `morphism_property` -/
+protected def bijective : morphism_property C := λ X Y f, bijective f
+
+lemma bijective_eq_sup : morphism_property.bijective C =
+  morphism_property.injective C ⊓ morphism_property.surjective C :=
+rfl
+
+lemma injective_stable_under_composition :
+  (morphism_property.injective C).stable_under_composition :=
+λ X Y Z f g hf hg, by { delta morphism_property.injective, rw coe_comp, exact hg.comp hf }
+
+lemma surjective_stable_under_composition :
+  (morphism_property.surjective C).stable_under_composition :=
+λ X Y Z f g hf hg, by { delta morphism_property.surjective, rw coe_comp, exact hg.comp hf }
+
+lemma bijective_stable_under_composition :
+  (morphism_property.bijective C).stable_under_composition :=
+λ X Y Z f g hf hg, by { delta morphism_property.bijective, rw coe_comp, exact hg.comp hf }
+
+lemma injective_respects_iso :
+  (morphism_property.injective C).respects_iso :=
+(injective_stable_under_composition C).respects_iso
+  (λ X Y e, ((forget C).map_iso e).to_equiv.injective)
+
+lemma surjective_respects_iso :
+  (morphism_property.surjective C).respects_iso :=
+(surjective_stable_under_composition C).respects_iso
+  (λ X Y e, ((forget C).map_iso e).to_equiv.surjective)
+
+lemma bijective_respects_iso :
+  (morphism_property.bijective C).respects_iso :=
+(bijective_stable_under_composition C).respects_iso
+  (λ X Y e, ((forget C).map_iso e).to_equiv.bijective)
+
+end bijective
 
 end morphism_property
 

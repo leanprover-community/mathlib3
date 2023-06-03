@@ -3,9 +3,8 @@ Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan, Anne Baanen
 -/
-
-import ring_theory.dedekind_domain.integral_closure
 import algebra.char_p.algebra
+import ring_theory.dedekind_domain.integral_closure
 
 /-!
 # Number fields
@@ -36,8 +35,8 @@ class number_field (K : Type*) [field K] : Prop :=
 [to_char_zero : char_zero K]
 [to_finite_dimensional : finite_dimensional ℚ K]
 
-open function
-open_locale classical big_operators
+open function module
+open_locale classical big_operators non_zero_divisors
 
 /-- `ℤ` with its usual ring structure is not a field. -/
 lemma int.not_is_field : ¬ is_field ℤ :=
@@ -111,14 +110,15 @@ protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
   [is_integral_closure R ℤ K] : 𝓞 K ≃+* R :=
 (is_integral_closure.equiv ℤ R K _).symm.to_ring_equiv
 
-variables (K)
+variable (K)
+include nf
 
-instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
+instance : char_zero (𝓞 K) := char_zero.of_module _ K
 
-instance [number_field K] : is_noetherian ℤ (𝓞 K) := is_integral_closure.is_noetherian _ ℚ K _
+instance : is_noetherian ℤ (𝓞 K) := is_integral_closure.is_noetherian _ ℚ K _
 
 /-- The ring of integers of a number field is not a field. -/
-lemma not_is_field [number_field K] : ¬ is_field (𝓞 K) :=
+lemma not_is_field : ¬ is_field (𝓞 K) :=
 begin
   have h_inj : function.injective ⇑(algebra_map ℤ (𝓞 K)),
   { exact ring_hom.injective_int (algebra_map ℤ (𝓞 K)) },
@@ -127,10 +127,34 @@ begin
     (((is_integral_closure.is_integral_algebra ℤ K).is_field_iff_is_field h_inj).mpr hf)
 end
 
-instance [number_field K] : is_dedekind_domain (𝓞 K) :=
+instance : is_dedekind_domain (𝓞 K) :=
 is_integral_closure.is_dedekind_domain ℤ ℚ K _
 
+instance : free ℤ (𝓞 K) := is_integral_closure.module_free ℤ ℚ K (𝓞 K)
+
+instance : is_localization (algebra.algebra_map_submonoid (𝓞 K) ℤ⁰) K :=
+is_integral_closure.is_localization ℤ ℚ K (𝓞 K)
+
+/-- A ℤ-basis of the ring of integers of `K`. -/
+noncomputable def basis : basis (free.choose_basis_index ℤ (𝓞 K)) ℤ (𝓞 K) :=
+free.choose_basis ℤ (𝓞 K)
+
 end ring_of_integers
+
+include nf
+
+/-- A basis of `K` over `ℚ` that is also a basis of `𝓞 K` over `ℤ`. -/
+noncomputable def integral_basis : basis (free.choose_basis_index ℤ (𝓞 K)) ℚ K :=
+basis.localization_localization ℚ (non_zero_divisors ℤ) K (ring_of_integers.basis K)
+
+@[simp]
+lemma integral_basis_apply (i : free.choose_basis_index ℤ (𝓞 K)) :
+  integral_basis K i = algebra_map (𝓞 K) K (ring_of_integers.basis K i) :=
+basis.localization_localization_apply ℚ (non_zero_divisors ℤ) K (ring_of_integers.basis K) i
+
+lemma ring_of_integers.rank  :
+  finite_dimensional.finrank ℤ (𝓞 K) = finite_dimensional.finrank ℚ K :=
+is_integral_closure.rank ℤ ℚ K (𝓞 K)
 
 end number_field
 

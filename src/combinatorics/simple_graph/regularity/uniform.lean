@@ -9,6 +9,9 @@ import set_theory.ordinal.basic
 /-!
 # Graph uniformity and uniform partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define uniformity of a pair of vertices in a graph and uniformity of a partition of
 vertices of a graph. Both are also known as ε-regularity.
 
@@ -30,6 +33,10 @@ is less than `ε`.
 * `finpartition.is_uniform`: Uniformity of a partition.
 * `finpartition.nonuniform_witnesses`: For each non-uniform pair of parts of a partition, pick
   witnesses of non-uniformity and dump them all together.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset
@@ -143,7 +150,7 @@ begin
   { exact G.right_nonuniform_witnesses_subset (λ i, h i.symm) }
 end
 
-lemma nonuniform_witness_card_le (h : ¬ G.is_uniform ε s t) :
+lemma le_card_nonuniform_witness (h : ¬ G.is_uniform ε s t) :
   (s.card : 𝕜) * ε ≤ (G.nonuniform_witness ε s t).card :=
 begin
   unfold nonuniform_witness,

@@ -3,6 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import analysis.calculus.cont_diff
 import measure_theory.measure.hausdorff
 
 /-!
@@ -79,7 +80,7 @@ We use the following notation localized in `measure_theory`. It is defined in
 
 Hausdorff measure, Hausdorff dimension, dimension
 -/
-open_locale measure_theory ennreal nnreal topological_space
+open_locale measure_theory ennreal nnreal topology
 open measure_theory measure_theory.measure set topological_space finite_dimensional filter
 
 variables {ι X Y : Type*} [emetric_space X] [emetric_space Y]
@@ -387,7 +388,7 @@ end antilipschitz_with
 lemma isometry.dimH_image (hf : isometry f) (s : set X) : dimH (f '' s) = dimH s :=
 le_antisymm (hf.lipschitz.dimH_image_le _) (hf.antilipschitz.le_dimH_image _)
 
-namespace isometric
+namespace isometry_equiv
 
 @[simp] lemma dimH_image (e : X ≃ᵢ Y) (s : set X) : dimH (e '' s) = dimH s :=
 e.isometry.dimH_image s
@@ -398,7 +399,7 @@ by rw [← e.image_symm, e.symm.dimH_image]
 lemma dimH_univ (e : X ≃ᵢ Y) : dimH (univ : set X) = dimH (univ : set Y) :=
 by rw [← e.dimH_preimage univ, preimage_univ]
 
-end isometric
+end isometry_equiv
 
 namespace continuous_linear_equiv
 
@@ -484,7 +485,7 @@ variables {E F : Type*}
 
 theorem dense_compl_of_dimH_lt_finrank {s : set E} (hs : dimH s < finrank ℝ E) : dense sᶜ :=
 begin
-  refine λ x, mem_closure_iff_nhds.2 (λ t ht, ne_empty_iff_nonempty.1 $ λ he, hs.not_le _),
+  refine λ x, mem_closure_iff_nhds.2 (λ t ht, nonempty_iff_ne_empty.2 $ λ he, hs.not_le _),
   rw [← diff_eq, diff_eq_empty] at he,
   rw [← real.dimH_of_mem_nhds ht],
   exact dimH_mono he
@@ -532,4 +533,4 @@ in `F`. -/
 lemma cont_diff.dense_compl_range_of_finrank_lt_finrank [finite_dimensional ℝ F] {f : E → F}
   (h : cont_diff ℝ 1 f) (hEF : finrank ℝ E < finrank ℝ F) :
   dense (range f)ᶜ :=
-dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ ennreal.coe_nat_lt_coe_nat.2 hEF
+dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ nat.cast_lt.2 hEF

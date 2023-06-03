@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
 
-import data.nat.prime
+import data.nat.prime_fin
 import data.nat.totient
-import algebra.periodic
 import data.finset.locally_finite
 import data.nat.count
 import data.nat.nth
@@ -54,7 +53,7 @@ localized "notation (name := prime_counting') `π'` := nat.prime_counting'" in n
 lemma monotone_prime_counting' : monotone prime_counting' := count_monotone prime
 
 lemma monotone_prime_counting : monotone prime_counting :=
-λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
+monotone_prime_counting'.comp (monotone_id.add_const _)
 
 @[simp] lemma prime_counting'_nth_eq (n : ℕ) : π' (nth prime n) = n :=
 count_nth_of_infinite _ infinite_set_of_prime _

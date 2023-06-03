@@ -32,7 +32,7 @@ stopping time, stochastic process
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 
@@ -961,8 +961,7 @@ stopped_value_eq_of_mem_finset (λ ω, finset.mem_Iic.mpr (hbdd ω))
 lemma stopped_process_eq_of_mem_finset [linear_order ι] [add_comm_monoid E]
   {s : finset ι} (n : ι) (hbdd : ∀ ω, τ ω < n → τ ω ∈ s) :
   stopped_process u τ n =
-  set.indicator {a | n ≤ τ a} (u n) +
-    ∑ i in set.to_finset (↑s ∩ set.Iio n), set.indicator {ω | τ ω = i} (u i) :=
+  set.indicator {a | n ≤ τ a} (u n) + ∑ i in s.filter (< n), set.indicator {ω | τ ω = i} (u i) :=
 begin
   ext ω,
   rw [pi.add_apply, finset.sum_apply],
@@ -970,14 +969,14 @@ begin
   { rw [stopped_process_eq_of_le h, set.indicator_of_mem, finset.sum_eq_zero, add_zero],
     { intros m hm,
       refine set.indicator_of_not_mem _ _,
-      rw [set.mem_to_finset, set.mem_inter_iff, set.mem_Iio] at hm,
+      rw [finset.mem_filter] at hm,
       exact (hm.2.trans_le h).ne', },
     { exact h, } },
   { rw [stopped_process_eq_of_ge (le_of_lt h), finset.sum_eq_single_of_mem (τ ω)],
     { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
       { exact rfl }, -- refl does not work
       { exact not_le.2 h } },
-    { rw [set.mem_to_finset, set.mem_inter_iff, set.mem_Iio],
+    { rw [finset.mem_filter],
       exact ⟨hbdd ω h, h⟩, },
     { intros b hb hneq,
       rw set.indicator_of_not_mem,
@@ -993,8 +992,7 @@ begin
   rw stopped_process_eq_of_mem_finset n h_mem,
   swap, { apply_instance, },
   congr' with i,
-  simp only [finset.coe_Iio, set.Iio_inter_Iio, inf_idem, set.mem_to_finset, set.mem_Iio,
-    finset.mem_Iio],
+  simp only [finset.Iio_filter_lt, min_eq_right],
 end
 
 section stopped_value
@@ -1047,8 +1045,7 @@ begin
   swap, { apply_instance, },
   refine mem_ℒp.add _ _,
   { exact mem_ℒp.indicator (ℱ.le n {a : Ω | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n) },
-  { suffices : mem_ℒp (λ ω, ∑ i in (↑s ∩ set.Iio n).to_finset,
-      {a : Ω | τ a = i}.indicator (u i) ω) p μ,
+  { suffices : mem_ℒp (λ ω, ∑ i in s.filter (< n), {a : Ω | τ a = i}.indicator (u i) ω) p μ,
     { convert this, ext1 ω, simp only [finset.sum_apply] },
     refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
     exact ℱ.le i {a : Ω | τ a = i} (hτ.measurable_set_eq i) },

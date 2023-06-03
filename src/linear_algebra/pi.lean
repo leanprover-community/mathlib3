@@ -9,6 +9,9 @@ import logic.equiv.fin
 /-!
 # Pi types of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines constructors for linear maps whose domains or codomains are pi types.
 
 It contains theorems relating these to each other, as well as to `linear_map.ker`.
@@ -39,10 +42,10 @@ variables [semiring R] [add_comm_monoid M₂] [module R M₂] [add_comm_monoid M
 
 /-- `pi` construction for linear functions. From a family of linear functions it produces a linear
 function into a family of modules. -/
-def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
+def pi (f : Π i, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Π i, φ i) :=
 { to_fun := λ c i, f i c,
-  map_add' := λ c d, funext $ λ i, (f i).map_add _ _,
-  map_smul' := λ c d, funext $ λ i, (f i).map_smul _ _ }
+  map_smul' := λ c d, funext $ λ i, (f i).map_smul _ _,
+  .. pi.add_hom (λ i, (f i).to_add_hom) }
 
 @[simp] lemma pi_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i : ι) :
   pi f c i = f i c := rfl
@@ -120,6 +123,11 @@ families of functions on these modules. See note [bundled maps over different ri
       rw finset.univ_sum_single
     end }
 
+@[simp] lemma lsum_single {ι R : Type*} [fintype ι] [decidable_eq ι] [comm_ring R]
+  {M : ι → Type*} [∀ i, add_comm_group (M i)] [∀ i, module R (M i)] :
+  linear_map.lsum R M R linear_map.single = linear_map.id :=
+linear_map.ext (λ x, by simp [finset.univ_sum_single])
+
 variables {R φ}
 
 section ext
@@ -162,7 +170,7 @@ begin
   { assume b,
     simp only [mem_infi, mem_ker, funext_iff, proj_apply, pi_apply],
     assume j hjJ,
-    have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
+    have : j ∉ I := assume hjI, hd.le_bot ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
   { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
     ext b ⟨j, hj⟩,
@@ -246,6 +254,17 @@ begin
   { intros x hx,
     rw [← finset.univ_sum_single x],
     exact sum_mem_supr (λ i, mem_map_of_mem (hx i trivial)) }
+end
+
+lemma le_comap_single_pi [decidable_eq ι] (p : Π i, submodule R (φ i)) {i} :
+  p i ≤ submodule.comap (linear_map.single i : φ i →ₗ[R] _) (submodule.pi set.univ p) :=
+begin
+  intros x hx,
+  rw [submodule.mem_comap, submodule.mem_pi],
+  rintros j -,
+  by_cases h : j = i,
+  { rwa [h, linear_map.coe_single, pi.single_eq_same] },
+  { rw [linear_map.coe_single, pi.single_eq_of_ne h], exact (p j).zero_mem }
 end
 
 end submodule

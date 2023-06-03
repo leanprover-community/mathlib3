@@ -10,6 +10,9 @@ import data.option.basic
 /-!
 # Paracompact topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological space `X` is said to be paracompact if every open covering of `X` admits a locally
 finite refinement.
 
@@ -46,7 +49,7 @@ compact space, paracompact space, locally finite covering
 -/
 
 open set filter function
-open_locale filter topological_space
+open_locale filter topology
 
 universes u v
 
@@ -109,7 +112,7 @@ instance paracompact_of_compact [compact_space X] : paracompact_space X :=
 begin
   -- the proof is trivial: we choose a finite subcover using compactness, and use it
   refine ⟨λ ι s ho hu, _⟩,
-  rcases compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
+  rcases is_compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
   have := hT, simp only [subset_def, mem_Union] at this,
   choose i hiT hi using λ x, this x (mem_univ x),
   refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_finite _, λ t, ⟨t, subset.rfl⟩⟩,
@@ -248,7 +251,7 @@ begin
       hcov', _, disjoint_compl_right.mono le_rfl (compl_le_compl subset_closure)⟩,
     rw [hu'fin.closure_Union, compl_Union, subset_Inter_iff],
     refine λ i x hxt hxu, absurd (htv i hxt) (closure_minimal _ (is_closed_compl_iff.2 $ hv _) hxu),
-    exact λ y hyu hyv, huv i ⟨hsub _ hyu, hyv⟩ },
+    exact λ y hyu hyv, (huv i).le_bot ⟨hsub _ hyu, hyv⟩ },
   /- Now we apply the lemma twice: first to `s` and `t`, then to `t` and each point of `s`. -/
   refine ⟨λ s t hs ht hst, this s t hs ht (λ x hx, _)⟩,
   rcases this t {x} ht is_closed_singleton (λ y hy, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,

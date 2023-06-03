@@ -7,9 +7,14 @@ Authors: Rémy Degenne
 import order.locally_finite
 import order.succ_pred.basic
 import order.hom.basic
+import data.countable.basic
+import logic.encodable.basic
 
 /-!
 # Linear locally finite orders
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove that a `linear_order` which is a `locally_finite_order` also verifies
 * `succ_order`
@@ -46,7 +51,7 @@ About `to_Z`:
 * `order_iso_int_of_linear_succ_pred_arch`: if the order has neither bot nor top, `to_Z` defines an
   `order_iso` between `ι` and `ℤ`.
 * `order_iso_range_of_linear_succ_pred_arch`: if the order has both a bot and a top, `to_Z` gives an
-  `order_iso` between `ι` and `finset.range (to_Z ⊥ ⊤).to_nat`.
+  `order_iso` between `ι` and `finset.range ((to_Z ⊥ ⊤).to_nat + 1)`.
 
 -/
 
@@ -87,7 +92,7 @@ begin
     exact is_glb_Ioc_of_is_glb_Ioi hij_lt h, },
   have hi_mem : i ∈ finset.Ioc i j,
   { refine finset.is_glb_mem _ h_glb _,
-    exact finset.nonempty_of_mem (finset.mem_Ioc.mpr ⟨hij_lt, le_rfl⟩), },
+    exact ⟨_, finset.mem_Ioc.mpr ⟨hij_lt, le_rfl⟩⟩, },
   rw finset.mem_Ioc at hi_mem,
   exact lt_irrefl i hi_mem.1,
 end
@@ -216,7 +221,7 @@ begin
   { by_contra,
     have h_eq := iterate_pred_to_Z i hi,
     rw [← h_eq, h] at hi,
-    simpa only [neg_zero', int.to_nat_zero, function.iterate_zero, id.def, lt_self_iff_false]
+    simpa only [neg_zero, int.to_nat_zero, function.iterate_zero, id.def, lt_self_iff_false]
       using hi, },
 end
 
@@ -256,7 +261,7 @@ lemma to_Z_iterate_pred_of_not_is_min (n : ℕ) (hn : ¬ is_min (pred^[n] i0)) :
   to_Z i0 (pred^[n] i0) = -n :=
 begin
   cases n,
-  { simp only [function.iterate_zero, id.def, to_Z_of_eq, nat.cast_zero, neg_zero'], },
+  { simp only [function.iterate_zero, id.def, to_Z_of_eq, nat.cast_zero, neg_zero], },
   have : (pred^[n.succ] i0) < i0,
   { refine lt_of_le_of_ne (pred_iterate_le _ _) (λ h_pred_iterate_eq, hn _),
     have h_pred_eq_pred : (pred^[n.succ] i0) = (pred^[0] i0),

@@ -26,6 +26,8 @@ using `c`, `m` and `n`. We factor `LHS - 1` as a square, which finishes the proo
 set of rational solutions to the equation, and that `W` is infinite.
 -/
 
+namespace imo
+
 lemma subst_abc {x y z : ℝ} (h : x*y*z = 1) :
   ∃ a b c : ℝ, a ≠ 0 ∧ b ≠ 0 ∧ c ≠ 0 ∧ x = a/b ∧ y = b/c ∧ z = c /a :=
 begin
@@ -128,7 +130,9 @@ begin
     have hK_inf : set.infinite K,
     { intro h, apply hK_not_bdd, exact set.finite.bdd_above h },
 
-    exact set.infinite_of_infinite_image g hK_inf },
+    exact hK_inf.of_image g },
 
   exact hW_inf.mono hW_sub_S,
 end
+
+end imo

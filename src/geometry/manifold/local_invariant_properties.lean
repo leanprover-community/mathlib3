@@ -8,6 +8,9 @@ import geometry.manifold.charted_space
 /-!
 # Local properties invariant under a groupoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We study properties of a triple `(g, s, x)` where `g` is a function between two spaces `H` and `H'`,
 `s` is a subset of `H` and `x` is a point of `H`. Our goal is to register how such a property
 should behave to make sense in charted spaces modelled on `H` and `H'`.
@@ -43,7 +46,7 @@ in the one for `lift_prop_within_at`.
 -/
 
 noncomputable theory
-open_locale classical manifold topological_space
+open_locale classical manifold topology
 
 open set filter
 
@@ -223,13 +226,13 @@ include hG
 
 /-- `lift_prop_within_at P f s x` is equivalent to a definition where we restrict the set we are
   considering to the domain of the charts at `x` and `f x`. -/
-lemma lift_prop_within_at_iff {f : M → M'} (hf : continuous_within_at f s x) :
+lemma lift_prop_within_at_iff {f : M → M'} :
   lift_prop_within_at P f s x ↔
-  P ((chart_at H' (f x)) ∘ f ∘ (chart_at H x).symm)
+  continuous_within_at f s x ∧ P ((chart_at H' (f x)) ∘ f ∘ (chart_at H x).symm)
   ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' (s ∩ f ⁻¹' (chart_at H' (f x)).source))
   (chart_at H x x) :=
 begin
-  rw [lift_prop_within_at, iff_true_intro hf, true_and, hG.congr_set],
+  refine and_congr_right (λ hf, hG.congr_set _),
   exact local_homeomorph.preimage_eventually_eq_target_inter_preimage_inter hf
     (mem_chart_source H x) (chart_source_mem_nhds H' (f x))
 end
@@ -443,15 +446,25 @@ lemma lift_prop_on_congr_iff (h₁ : ∀ y ∈ s, g' y = g y) :
 
 omit hG
 
+lemma lift_prop_within_at_mono_of_mem
+  (mono_of_mem : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, s ∈ 𝓝[t] x → P f s x → P f t x)
+  (h : lift_prop_within_at P g s x) (hst : s ∈ 𝓝[t] x) :
+  lift_prop_within_at P g t x :=
+begin
+  refine ⟨h.1.mono_of_mem hst, mono_of_mem _ h.2⟩,
+  simp_rw [← mem_map, (chart_at H x).symm.map_nhds_within_preimage_eq (mem_chart_target H x),
+    (chart_at H x).left_inv (mem_chart_source H x), hst]
+end
+
 lemma lift_prop_within_at_mono
   (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x)
-  (h : lift_prop_within_at P g t x) (hst : s ⊆ t) :
-  lift_prop_within_at P g s x :=
+  (h : lift_prop_within_at P g s x) (hts : t ⊆ s) :
+  lift_prop_within_at P g t x :=
 begin
-  refine ⟨h.1.mono hst, _⟩,
+  refine ⟨h.1.mono hts, _⟩,
   apply mono (λ y hy, _) h.2,
   simp only with mfld_simps at hy,
-  simp only [hy, hst _] with mfld_simps,
+  simp only [hy, hts _] with mfld_simps,
 end
 
 lemma lift_prop_within_at_of_lift_prop_at
@@ -539,6 +552,16 @@ lemma lift_prop_on_chart_symm [has_groupoid M G]
   lift_prop_on Q (chart_at H x).symm (chart_at H x).target :=
 hG.lift_prop_on_symm_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x)
 
+lemma lift_prop_at_of_mem_groupoid (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y)
+  {f : local_homeomorph H H} (hf : f ∈ G) {x : H} (hx : x ∈ f.source) :
+  lift_prop_at Q f x :=
+lift_prop_at_of_mem_maximal_atlas hG hQ (G.mem_maximal_atlas_of_mem_groupoid hf) hx
+
+lemma lift_prop_on_of_mem_groupoid (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y)
+  {f : local_homeomorph H H} (hf : f ∈ G) :
+  lift_prop_on Q f f.source :=
+lift_prop_on_of_mem_maximal_atlas hG hQ (G.mem_maximal_atlas_of_mem_groupoid hf)
+
 lemma lift_prop_id (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
   lift_prop Q (id : M → M) :=
 begin
@@ -605,11 +628,60 @@ lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restric
     { simpa only [hex, hef ⟨hx, hex⟩] with mfld_simps using hfx }
   end }
 
+/-- A slight reformulation of `is_local_structomorph_within_at` when `f` is a local homeomorph.
+  This gives us an `e` that is defined on a subset of `f.source`. -/
+lemma _root_.local_homeomorph.is_local_structomorph_within_at_iff {G : structure_groupoid H}
+  [closed_under_restriction G]
+  (f : local_homeomorph H H) {s : set H} {x : H} (hx : x ∈ f.source ∪ sᶜ) :
+  G.is_local_structomorph_within_at ⇑f s x ↔
+  x ∈ s → ∃ (e : local_homeomorph H H), e ∈ G ∧ e.source ⊆ f.source ∧
+  eq_on f ⇑e (s ∩ e.source) ∧ x ∈ e.source :=
+begin
+  split,
+  { intros hf h2x,
+    obtain ⟨e, he, hfe, hxe⟩ := hf h2x,
+    refine ⟨e.restr f.source, closed_under_restriction' he f.open_source, _, _, hxe, _⟩,
+    { simp_rw [local_homeomorph.restr_source],
+      refine (inter_subset_right _ _).trans interior_subset },
+    { intros x' hx', exact hfe ⟨hx'.1, hx'.2.1⟩ },
+    { rw [f.open_source.interior_eq], exact or.resolve_right hx (not_not.mpr h2x) } },
+  { intros hf hx, obtain ⟨e, he, h2e, hfe, hxe⟩ := hf hx, exact ⟨e, he, hfe, hxe⟩ }
+end
+
+/-- A slight reformulation of `is_local_structomorph_within_at` when `f` is a local homeomorph and
+  the set we're considering is a superset of `f.source`. -/
+lemma _root_.local_homeomorph.is_local_structomorph_within_at_iff' {G : structure_groupoid H}
+  [closed_under_restriction G]
+  (f : local_homeomorph H H) {s : set H} {x : H} (hs : f.source ⊆ s) (hx : x ∈ f.source ∪ sᶜ) :
+  G.is_local_structomorph_within_at ⇑f s x ↔
+  x ∈ s → ∃ (e : local_homeomorph H H), e ∈ G ∧ e.source ⊆ f.source ∧
+  eq_on f ⇑e e.source ∧ x ∈ e.source :=
+begin
+  simp_rw [f.is_local_structomorph_within_at_iff hx],
+  refine imp_congr_right (λ hx, exists_congr $ λ e, and_congr_right $ λ he, _),
+  refine and_congr_right (λ h2e, _),
+  rw [inter_eq_right_iff_subset.mpr (h2e.trans hs)],
+end
+
+/-- A slight reformulation of `is_local_structomorph_within_at` when `f` is a local homeomorph and
+  the set we're considering is `f.source`. -/
+lemma _root_.local_homeomorph.is_local_structomorph_within_at_source_iff {G : structure_groupoid H}
+  [closed_under_restriction G]
+  (f : local_homeomorph H H) {x : H} :
+  G.is_local_structomorph_within_at ⇑f f.source x ↔
+  x ∈ f.source → ∃ (e : local_homeomorph H H), e ∈ G ∧ e.source ⊆ f.source ∧
+  eq_on f ⇑e e.source ∧ x ∈ e.source :=
+begin
+  have : x ∈ f.source ∪ f.sourceᶜ, { simp_rw [union_compl_self] },
+  exact f.is_local_structomorph_within_at_iff' subset.rfl this,
+end
+
 variables {H₁ : Type*} [topological_space H₁] {H₂ : Type*} [topological_space H₂]
    {H₃ : Type*} [topological_space H₃] [charted_space H₁ H₂] [charted_space H₂ H₃]
    {G₁ : structure_groupoid H₁} [has_groupoid H₂ G₁] [closed_under_restriction G₁]
    (G₂ : structure_groupoid H₂) [has_groupoid H₃ G₂]
 
+variables (G₂)
 lemma has_groupoid.comp
   (H : ∀ e ∈ G₂, lift_prop_on (is_local_structomorph_within_at G₁) (e : H₂ → H₂) e.source) :
   @has_groupoid H₁ _ H₃ _ (charted_space.comp H₁ H₂ H₃) G₁ :=

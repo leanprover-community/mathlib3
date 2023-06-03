@@ -8,6 +8,9 @@ import data.finset.lattice
 /-!
 # Relations holding pairwise on finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few results about the interaction of `set.pairwise_disjoint` and `finset`,
 as well as the interaction of `list.pairwise disjoint` and the condition of
 `disjoint` on `list.to_finset`, in `set` form.
@@ -21,7 +24,7 @@ instance [decidable_eq α] {r : α → α → Prop} [decidable_rel r] {s : finse
   decidable ((s : set α).pairwise r) :=
 decidable_of_iff' (∀ a ∈ s, ∀ b ∈ s, a ≠ b → r a b) iff.rfl
 
-lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
+lemma finset.pairwise_disjoint_range_singleton :
   (set.range (singleton : α → finset α)).pairwise_disjoint id :=
 begin
   rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
@@ -30,7 +33,7 @@ end
 
 namespace set
 
-lemma pairwise_disjoint.elim_finset [decidable_eq α] {s : set ι} {f : ι → finset α}
+lemma pairwise_disjoint.elim_finset {s : set ι} {f : ι → finset α}
   (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s) (a : α) (hai : a ∈ f i)
   (haj : a ∈ f j) :
   i = j :=

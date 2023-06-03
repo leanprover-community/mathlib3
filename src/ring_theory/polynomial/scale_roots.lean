@@ -10,6 +10,9 @@ import data.polynomial.algebra_map
 /-!
 # Scaling the roots of a polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `scale_roots p s` for a polynomial `p` in one variable and a ring element `s` to
 be the polynomial with root `r * s` for each root `r` of `p` and proves some basic results about it.
 -/

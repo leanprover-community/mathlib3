@@ -3,7 +3,6 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import linear_algebra.finite_dimensional
 import geometry.manifold.smooth_manifold_with_corners
 import analysis.inner_product_space.pi_L2
 
@@ -304,9 +303,7 @@ end
 /-! Register the manifold structure on `Icc 0 1`, and also its zero and one. -/
 section
 
-lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩
-
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
 instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_instance
 instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance

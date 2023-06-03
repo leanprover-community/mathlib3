@@ -3,12 +3,14 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.finset.basic
-import data.set.pairwise
 import logic.encodable.basic
+import logic.pairwise
 
 /-!
 # Lattice operations on encodable types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Lemmas about lattice and set operations on encodable types
 
@@ -44,10 +46,11 @@ end
 theorem Union_decode₂_disjoint_on {f : β → set α} (hd : pairwise (disjoint on f)) :
   pairwise (disjoint on λ i, ⋃ b ∈ decode₂ β i, f b) :=
 begin
-  rintro i j ij x,
+  rintro i j ij,
+  refine disjoint_left.mpr (λ x, _),
   suffices : ∀ a, encode a = i → x ∈ f a → ∀ b, encode b = j → x ∉ f b, by simpa [decode₂_eq_some],
   rintro a rfl ha b rfl hb,
-  exact hd a b (mt (congr_arg encode) ij) ⟨ha, hb⟩
+  exact (hd (mt (congr_arg encode) ij)).le_bot ⟨ha, hb⟩
 end
 
 end encodable

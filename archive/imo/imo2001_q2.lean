@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tian Chen
 -/
 
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 
 /-!
 # IMO 2001 Q2
@@ -29,6 +29,8 @@ $$
 open real
 
 variables {a b c : ℝ}
+
+namespace imo
 
 lemma denom_pos (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   0 < a ^ 4 + b ^ 4 + c ^ 4 :=
@@ -72,3 +74,5 @@ have h3 : ∀ {x : ℝ}, 0 < x → (x ^ (3 : ℝ)⁻¹) ^ 3 = x :=
   λ x hx, show ↑3 = (3 : ℝ), by norm_num ▸ rpow_nat_inv_pow_nat hx.le three_ne_zero,
 calc 1 ≤ _ : imo2001_q2' (rpow_pos_of_pos ha _) (rpow_pos_of_pos hb _) (rpow_pos_of_pos hc _)
    ... = _ : by rw [h3 ha, h3 hb, h3 hc]
+
+end imo

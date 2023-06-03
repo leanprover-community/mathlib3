@@ -8,6 +8,9 @@ import order.synonym
 /-!
 # Minimal/maximal and bottom/top elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines predicates for elements to be minimal/maximal or bottom/top and typeclasses
 saying that there are no such elements.
 
@@ -30,7 +33,7 @@ See also `is_bot_iff_is_min` and `is_top_iff_is_max` for the equivalences in a (
 
 open order_dual
 
-variables {α β : Type*}
+variables {ι α β : Type*} {π : ι → Type*}
 
 /-- Order without bottom elements. -/
 class no_bot_order (α : Type*) [has_le α] : Prop :=
@@ -70,6 +73,32 @@ instance order_dual.no_min_order (α : Type*) [has_lt α] [no_max_order α] : no
 
 instance order_dual.no_max_order (α : Type*) [has_lt α] [no_min_order α] : no_max_order αᵒᵈ :=
 ⟨λ a, @exists_lt α _ _ a⟩
+
+instance no_max_order_of_left [preorder α] [preorder β] [no_max_order α] : no_max_order (α × β) :=
+⟨λ ⟨a, b⟩, by { obtain ⟨c, h⟩ := exists_gt a, exact ⟨(c, b), prod.mk_lt_mk_iff_left.2 h⟩ }⟩
+
+instance no_max_order_of_right [preorder α] [preorder β] [no_max_order β] : no_max_order (α × β) :=
+⟨λ ⟨a, b⟩, by { obtain ⟨c, h⟩ := exists_gt b, exact ⟨(a, c), prod.mk_lt_mk_iff_right.2 h⟩ }⟩
+
+instance no_min_order_of_left [preorder α] [preorder β] [no_min_order α] : no_min_order (α × β) :=
+⟨λ ⟨a, b⟩, by { obtain ⟨c, h⟩ := exists_lt a, exact ⟨(c, b), prod.mk_lt_mk_iff_left.2 h⟩ }⟩
+
+instance no_min_order_of_right [preorder α] [preorder β] [no_min_order β] : no_min_order (α × β) :=
+⟨λ ⟨a, b⟩, by { obtain ⟨c, h⟩ := exists_lt b, exact ⟨(a, c), prod.mk_lt_mk_iff_right.2 h⟩ }⟩
+
+instance [nonempty ι] [Π i, preorder (π i)] [Π i, no_max_order (π i)] : no_max_order (Π i, π i) :=
+⟨λ a, begin
+  classical,
+  obtain ⟨b, hb⟩ := exists_gt (a $ classical.arbitrary _),
+  exact ⟨_, lt_update_self_iff.2 hb⟩,
+end⟩
+
+instance [nonempty ι] [Π i, preorder (π i)] [Π i, no_min_order (π i)] : no_min_order (Π i, π i) :=
+⟨λ a, begin
+  classical,
+  obtain ⟨b, hb⟩ := exists_lt (a $ classical.arbitrary _),
+  exact ⟨_, update_lt_self_iff.2 hb⟩,
+end⟩
 
 @[priority 100] -- See note [lower instance priority]
 instance no_min_order.to_no_bot_order (α : Type*) [preorder α] [no_min_order α] : no_bot_order α :=

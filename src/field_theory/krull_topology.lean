@@ -88,7 +88,7 @@ intermediate_field.fixing_subgroup '' (finite_exts K L)
 /-- For an field extension `L/K`, the intermediate field `K` is finite-dimensional over `K` -/
 lemma intermediate_field.finite_dimensional_bot (K L : Type*) [field K]
   [field L] [algebra K L] : finite_dimensional K (⊥ : intermediate_field K L) :=
-finite_dimensional_of_dim_eq_one intermediate_field.dim_bot
+finite_dimensional_of_rank_eq_one intermediate_field.rank_bot
 
 /-- This lemma says that `Gal(L/K) = L ≃ₐ[K] L` -/
 lemma intermediate_field.fixing_subgroup.bot {K L : Type*} [field K]
@@ -199,7 +199,7 @@ group_filter_basis.is_topological_group (gal_group_basis K L)
 
 section krull_t2
 
-open_locale topological_space filter
+open_locale topology filter
 
 /-- Let `L/E/K` be a tower of fields with `E/K` finite. Then `Gal(L/E)` is an open subgroup of
   `L ≃ₐ[K] L`. -/
@@ -210,9 +210,7 @@ begin
   have h_basis : E.fixing_subgroup.carrier ∈ (gal_group_basis K L) :=
    ⟨E.fixing_subgroup, ⟨E, ‹_›, rfl⟩, rfl⟩,
   have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
-  rw mem_nhds_iff at h_nhd,
-  rcases h_nhd with ⟨U, hU_le, hU_open, h1U⟩,
-  exact subgroup.is_open_of_one_mem_interior ⟨U, ⟨hU_open, hU_le⟩, h1U⟩,
+  exact subgroup.is_open_of_mem_nhds _ h_nhd
 end
 
 /-- Given a tower of fields `L/E/K`, with `E/K` finite, the subgroup `Gal(L/E) ≤ L ≃ₐ[K] L` is
@@ -244,8 +242,8 @@ lemma krull_topology_t2 {K L : Type*} [field K] [field L] [algebra K L]
     rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
     refine ⟨left_coset f W, left_coset g W,
       ⟨hW_open.left_coset f, hW_open.left_coset g, ⟨1, hW_1, mul_one _⟩, ⟨1, hW_1, mul_one _⟩, _⟩⟩,
-    rintro σ ⟨⟨w1, hw1, h⟩, w2, hw2, hgw2⟩,
-    rw ← hgw2 at h,
+    rw set.disjoint_left,
+    rintro σ ⟨w1, hw1, h⟩ ⟨w2, hw2, rfl⟩,
     rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
     have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem (hWH hw1) (H.inv_mem (hWH hw2)),
     rw h at h_in_H,

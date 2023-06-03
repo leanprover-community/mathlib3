@@ -11,6 +11,9 @@ import ring_theory.adjoin.basic
 /-!
 # Pointwise actions on subalgebras.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `R'` acts on an `R`-algebra `A` (so that `R'` and `R` actions commute)
 then we get an `R'` action on the collection of `R`-subalgebras.
 -/

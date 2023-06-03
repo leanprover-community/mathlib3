@@ -3,10 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.card
 import data.multiset.sum
+import data.finset.card
+
 /-!
 # Disjoint sum of finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the disjoint sum of two finsets as `finset (α ⊕ β)`. Beware not to confuse with
 the `finset.sum` operation which computes the additive sum.
@@ -34,10 +38,8 @@ val_inj.1 $ multiset.disj_sum_zero _
 
 @[simp] lemma card_disj_sum : (s.disj_sum t).card = s.card + t.card := multiset.card_disj_sum _ _
 
-/-- Note that this is not stated with `disjoint` so that it can be used with `finset.disj_union`. -/
-lemma disjoint_map_inl_map_inr {α β : Type*} (s : finset α) (t : finset β) (a : α ⊕ β) :
-  a ∈ (s.map embedding.inl : finset (α ⊕ β)) → a ∉ (t.map embedding.inr : finset (α ⊕ β)) :=
-by { simp_rw mem_map, rintro ⟨a, _, rfl⟩ ⟨b, _, ⟨⟩⟩ }
+lemma disjoint_map_inl_map_inr : disjoint (s.map embedding.inl) (t.map embedding.inr) :=
+by { simp_rw [disjoint_left, mem_map], rintro x ⟨a, _, rfl⟩ ⟨b, _, ⟨⟩⟩ }
 
 @[simp]
 lemma map_inl_disj_union_map_inr :

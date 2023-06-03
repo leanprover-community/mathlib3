@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
 import algebra.gcd_monoid.basic
-import ring_theory.coprime.basic
+import algebra.euclidean_domain.basic
 import ring_theory.ideal.basic
 import ring_theory.principal_ideal_domain
 
 /-!
 # Lemmas about Euclidean domains
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Various about Euclidean domains are proved; all of them seem to be true
 more generally for principal ideal domains, so these lemmas should

@@ -3,10 +3,13 @@ Copyright (c) 2022 Rishikesh Vaishnav. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rishikesh Vaishnav
 -/
-import probability.independence
+import measure_theory.measure.measure_space
 
 /-!
 # Conditional Probability
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines conditional probability and includes basic results relating to it.
 

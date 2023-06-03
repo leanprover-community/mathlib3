@@ -8,6 +8,9 @@ import logic.equiv.basic
 /-!
 # Definition of the `finite` typeclass
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a typeclass `finite` saying that `α : Sort*` is finite. A type is `finite` if it
 is equivalent to `fin n` for some `n`. We also define `infinite α` as a typeclass equivalent to
 `¬finite α`.
@@ -82,6 +85,12 @@ class infinite (α : Sort*) : Prop :=
 
 @[simp] lemma not_infinite_iff_finite : ¬infinite α ↔ finite α :=
 not_finite_iff_infinite.not_right.symm
+
+lemma equiv.infinite_iff (e : α ≃ β) : infinite α ↔ infinite β :=
+not_finite_iff_infinite.symm.trans $ e.finite_iff.not.trans not_finite_iff_infinite
+
+instance [infinite α] : infinite (plift α) := equiv.plift.infinite_iff.2 ‹_›
+instance {α : Type v} [infinite α] : infinite (ulift.{u} α) := equiv.ulift.infinite_iff.2 ‹_›
 
 lemma finite_or_infinite (α : Sort*) : finite α ∨ infinite α :=
 or_iff_not_imp_left.2 $ not_finite_iff_infinite.1

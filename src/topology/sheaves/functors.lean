@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
 
-import topology.sheaves.sheaf_condition.opens_le_cover
+import topology.sheaves.sheaf_condition.pairwise_intersections
 
 /-!
 # functors between categories of sheaves
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Show that the pushforward of a sheaf is a sheaf, and define
 the pushforward functor from the category of C-valued sheaves

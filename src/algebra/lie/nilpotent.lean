@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.solvable
 import algebra.lie.quotient
-import algebra.lie.centralizer
+import algebra.lie.normalizer
 import linear_algebra.eigenspace
 import ring_theory.nilpotent
 
@@ -350,17 +350,17 @@ variables {N₁ N₂ : lie_submodule R L M}
 
 See also `lie_submodule.lcs`. -/
 def ucs (k : ℕ) : lie_submodule R L M → lie_submodule R L M :=
-centralizer^[k]
+normalizer^[k]
 
 @[simp] lemma ucs_zero : N.ucs 0 = N := rfl
 
 @[simp] lemma ucs_succ (k : ℕ) :
-  N.ucs (k + 1) = (N.ucs k).centralizer :=
-function.iterate_succ_apply' centralizer k N
+  N.ucs (k + 1) = (N.ucs k).normalizer :=
+function.iterate_succ_apply' normalizer k N
 
 lemma ucs_add (k l : ℕ) :
   N.ucs (k + l) = (N.ucs l).ucs k :=
-function.iterate_add_apply centralizer k l N
+function.iterate_add_apply normalizer k l N
 
 @[mono] lemma ucs_mono (k : ℕ) (h : N₁ ≤ N₂) :
   N₁.ucs k ≤ N₂.ucs k :=
@@ -370,18 +370,18 @@ begin
   mono,
 end
 
-lemma ucs_eq_self_of_centralizer_eq_self (h : N₁.centralizer = N₁) (k : ℕ) :
+lemma ucs_eq_self_of_normalizer_eq_self (h : N₁.normalizer = N₁) (k : ℕ) :
   N₁.ucs k = N₁ :=
 by { induction k with k ih, { simp, }, { rwa [ucs_succ, ih], }, }
 
-/-- If a Lie module `M` contains a self-centralizing Lie submodule `N`, then all terms of the upper
+/-- If a Lie module `M` contains a self-normalizing Lie submodule `N`, then all terms of the upper
 central series of `M` are contained in `N`.
 
 An important instance of this situation arises from a Cartan subalgebra `H ⊆ L` with the roles of
 `L`, `M`, `N` played by `H`, `L`, `H`, respectively. -/
-lemma ucs_le_of_centralizer_eq_self (h : N₁.centralizer = N₁) (k : ℕ) :
+lemma ucs_le_of_normalizer_eq_self (h : N₁.normalizer = N₁) (k : ℕ) :
   (⊥ : lie_submodule R L M).ucs k ≤ N₁ :=
-by { rw ← ucs_eq_self_of_centralizer_eq_self h k, mono, simp, }
+by { rw ← ucs_eq_self_of_normalizer_eq_self h k, mono, simp, }
 
 lemma lcs_add_le_iff (l k : ℕ) :
   N₁.lcs (l + k) ≤ N₂ ↔ N₁.lcs l ≤ N₂.ucs k :=
@@ -389,7 +389,7 @@ begin
   revert l,
   induction k with k ih, { simp, },
   intros l,
-  rw [(by abel : l + (k + 1) = l + 1 + k), ih, ucs_succ, lcs_succ, top_lie_le_iff_le_centralizer],
+  rw [(by abel : l + (k + 1) = l + 1 + k), ih, ucs_succ, lcs_succ, top_lie_le_iff_le_normalizer],
 end
 
 lemma lcs_le_iff (k : ℕ) :

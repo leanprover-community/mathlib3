@@ -3,12 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import tactic.apply_fun
-import algebra.ring.equiv
-import data.zmod.algebra
-import linear_algebra.finite_dimensional
-import ring_theory.integral_domain
 import field_theory.separable
+import ring_theory.integral_domain
+import tactic.apply_fun
 
 /-!
 # Finite fields
@@ -103,7 +100,7 @@ begin
   have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm])
+    (λ a, by simp [@inv_eq_iff_eq_inv _ _ a])
     (by simp),
   rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
@@ -221,7 +218,6 @@ begin
     ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }
 end
 
-section is_splitting_field
 open polynomial
 
 section
@@ -266,27 +262,9 @@ begin
   apply nodup_roots,
   rw separable_def,
   convert is_coprime_one_right.neg_right using 1,
-  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  { rw [derivative_sub, derivative_X, derivative_X_pow, char_p.cast_card_eq_zero K, C_0, zero_mul,
+      zero_sub] },
   end
-
-instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=
-{ splits :=
-  begin
-    have h : (X^q - X : K[X]).nat_degree = q :=
-      X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
-    rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,
-      map_X, h, roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
-  end,
-  adjoin_roots :=
-  begin
-    classical,
-    transitivity algebra.adjoin F ((roots (X^q - X : K[X])).to_finset : set K),
-    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
-    { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
-  end }
-
-end is_splitting_field
 
 variables {K}
 
@@ -418,6 +396,14 @@ by rw [← card_units p, pow_card_eq_one]
 theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }
+
+theorem order_of_units_dvd_card_sub_one {p : ℕ} [fact p.prime] (u : (zmod p)ˣ) :
+  order_of u ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ units_pow_card_sub_one_eq_one _ _
+
+theorem order_of_dvd_card_sub_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
+  order_of a ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ pow_card_sub_one_eq_one ha
 
 open polynomial
 

@@ -3,7 +3,9 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import algebra.order.ring
+import algebra.order.group.abs
+import algebra.order.ring.defs
+import algebra.order.sub.canonical
 import data.set.lattice
 import tactic.monotonicity.basic
 

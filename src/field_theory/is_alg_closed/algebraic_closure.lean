@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.direct_limit
+import algebra.char_p.algebra
 import field_theory.is_alg_closed.basic
+
 /-!
 # Algebraic Closure
 

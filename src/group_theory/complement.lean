@@ -9,6 +9,9 @@ import data.zmod.quotient
 /-!
 # Complements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the complement of a subgroup.
 
 ## Main definitions
@@ -357,8 +360,10 @@ end action
 
 lemma is_complement'.is_compl (h : is_complement' H K) : is_compl H K :=
 begin
-  refine ⟨λ g ⟨p, q⟩, let x : H × K := ⟨⟨g, p⟩, 1⟩, y : H × K := ⟨1, g, q⟩ in subtype.ext_iff.mp
-    (prod.ext_iff.mp (show x = y, from h.1 ((mul_one g).trans (one_mul g).symm))).1, λ g _, _⟩,
+  refine ⟨disjoint_iff_inf_le.mpr $
+    λ g ⟨p, q⟩, let x : H × K := ⟨⟨g, p⟩, 1⟩, y : H × K := ⟨1, g, q⟩ in subtype.ext_iff.mp
+    (prod.ext_iff.mp (show x = y, from h.1 ((mul_one g).trans (one_mul g).symm))).1,
+    codisjoint_iff_le_sup.mpr $ λ g _, _⟩,
   obtain ⟨⟨h, k⟩, rfl⟩ := h.2 g,
   exact subgroup.mul_mem_sup h.2 k.2,
 end

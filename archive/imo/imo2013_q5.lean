@@ -29,6 +29,8 @@ https://www.imo-official.org/problems/IMO2013SL.pdf
 
 open_locale big_operators
 
+namespace imo
+
 lemma le_of_all_pow_lt_succ {x y : ℝ} (hx : 1 < x) (hy : 1 < y)
   (h : ∀ n : ℕ, 0 < n → x^n - 1 < y^n) :
   x ≤ y :=
@@ -103,7 +105,7 @@ begin
       ... = ((q.num.nat_abs : ℤ) : ℝ) : congr_arg coe (int.nat_abs_of_nonneg num_pos.le).symm
       ... ≤ f q.num.nat_abs           : H4 q.num.nat_abs
                                           (int.nat_abs_pos_of_ne_zero num_pos.ne')
-      ... = f q.num : by { rw ←int.nat_abs_of_nonneg num_pos.le, norm_cast }
+      ... = f q.num : by rw [nat.cast_nat_abs, abs_of_nonneg num_pos.le]
       ... = f (q * q.denom) : by rw ←rat.mul_denom_eq_num
       ... ≤ f q * f q.denom : H1 q q.denom hq (nat.cast_pos.mpr q.pos),
   have h_f_denom_pos :=
@@ -301,3 +303,5 @@ begin
        ... = (((x2num : ℚ) / (x2denom : ℚ) : ℚ) : ℝ) : by norm_cast
        ... = x                                       : by rw ←hrat_expand2
 end
+
+end imo

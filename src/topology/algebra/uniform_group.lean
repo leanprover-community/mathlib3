@@ -7,11 +7,14 @@ import topology.uniform_space.uniform_convergence
 import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
 import topology.uniform_space.compact
-import topology.algebra.group
+import topology.algebra.group.basic
 import tactic.abel
 
 /-!
 # Uniform structure on topological groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines uniform groups and its additive counterpart. These typeclasses should be
 preferred over using `[topological_space α] [topological_group α]` since every topological
@@ -34,7 +37,7 @@ group naturally induces a uniform structure.
 -/
 
 noncomputable theory
-open_locale classical uniformity topological_space filter pointwise
+open_locale classical uniformity topology filter pointwise
 
 section uniform_group
 open filter set
@@ -213,11 +216,8 @@ by { rw [← comap_swap_uniformity, uniformity_eq_comap_nhds_one, comap_comap, (
   (hu : @uniform_group G u _) (hv : @uniform_group G v _)
   (h : @nhds _ u.to_topological_space 1 = @nhds _ v.to_topological_space 1) :
   u = v :=
-begin
-  refine uniform_space_eq _,
-  change @uniformity _ u = @uniformity _ v,
-  rw [@uniformity_eq_comap_nhds_one _ u _ hu, @uniformity_eq_comap_nhds_one _ v _ hv, h]
-end
+uniform_space_eq $
+  by rw [@uniformity_eq_comap_nhds_one _ u _ hu, @uniformity_eq_comap_nhds_one _ v _ hv, h]
 
 @[to_additive] lemma uniform_group.ext_iff {G : Type*} [group G] {u v : uniform_space G}
   (hu : @uniform_group G u _) (hv : @uniform_group G v _) :
@@ -436,7 +436,7 @@ def topological_group.to_uniform_space : uniform_space G :=
         simpa using V_sum _ Hz2 _ Hz1,
       end,
       exact set.subset.trans comp_rel_sub U_sub },
-    { exact monotone_comp_rel monotone_id monotone_id }
+    { exact monotone_id.comp_rel monotone_id }
   end,
   is_open_uniformity  :=
   begin
@@ -579,7 +579,6 @@ end
   [group G] [uniform_group G] : topological_group.to_uniform_space G = u :=
 begin
   ext : 1,
-  show @uniformity G (topological_group.to_uniform_space G) = 𝓤 G,
   rw [uniformity_eq_comap_nhds_one' G, uniformity_eq_comap_nhds_one G]
 end
 

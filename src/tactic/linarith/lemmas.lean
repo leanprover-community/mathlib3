@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
-import algebra.order.ring
+import algebra.order.ring.defs
 
 /-!
 # Lemmas for `linarith`
@@ -14,6 +14,8 @@ If you find yourself looking for a theorem here, you might be in the wrong place
 -/
 
 namespace linarith
+
+lemma zero_lt_one {α} [ordered_semiring α] [nontrivial α] : (0 : α) < 1 := zero_lt_one
 
 lemma eq_of_eq_of_eq {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b = 0) : a + b = 0 :=
 by simp *

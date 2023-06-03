@@ -5,17 +5,21 @@ Authors: Eric Wieser
 -/
 import algebra.star.pi
 import algebra.star.prod
-import topology.algebra.group
+import topology.algebra.constructions
+import topology.continuous_function.basic
 
 /-!
 # Continuity of `star`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the `has_continuous_star` typeclass, along with instances on `pi`, `prod`,
 `mul_opposite`, and `units`.
 -/
 
 
-open_locale filter topological_space
+open_locale filter topology
 open filter
 
 universes u

@@ -9,6 +9,9 @@ import category_theory.discrete_category
 /-!
 # The category `discrete punit`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `star : C ⥤ discrete punit` sending everything to `punit.star`,
 show that any two functors to `discrete punit` are naturally isomorphic,
 and construct the equivalence `(discrete punit ⥤ C) ≌ C`.

@@ -5,10 +5,14 @@ Authors: Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.cone.basic
 import analysis.convex.gauge
-import analysis.locally_convex.with_seminorms
+import topology.algebra.module.finite_dimension
+import topology.algebra.module.locally_convex
 
 /-!
 # Separation Hahn-Banach theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the geometric Hahn-Banach theorem. For any two disjoint convex sets, there
 exists a continuous linear functional separating them, geometrically meaning that we can intercalate

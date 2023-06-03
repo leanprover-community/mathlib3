@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import algebra.lie.of_associative
-import algebra.ring.basic
 
 /-!
 # Jordan rings

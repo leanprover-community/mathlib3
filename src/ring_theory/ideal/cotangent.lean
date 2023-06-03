@@ -8,10 +8,12 @@ import algebra.module.torsion
 import algebra.ring.idempotents
 import linear_algebra.finite_dimensional
 import ring_theory.ideal.local_ring
-import ring_theory.nakayama
 
 /-!
 # The module `I ⧸ I ^ 2`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we provide special API support for the module `I ⧸ I ^ 2`. The official
 definition is a quotient module of `I`, but the alternative definition as an ideal of `R ⧸ I ^ 2` is

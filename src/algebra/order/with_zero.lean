@@ -3,11 +3,19 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
-import algebra.order.group.type_tags
-import algebra.order.monoid.with_zero
+import algebra.hom.equiv.units.group_with_zero
+import algebra.group_with_zero.inj_surj
+import algebra.order.group.units
+import algebra.order.monoid.basic
+import algebra.order.monoid.with_zero.defs
+import algebra.order.group.instances
+import algebra.order.monoid.type_tags
 
 /-!
 # Linearly ordered commutative groups and monoids with a zero element adjoined
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file sets up a special class of linearly ordered commutative monoids
 that show up as the target of so-called “valuations” in algebraic number theory.
@@ -26,7 +34,7 @@ in another file. However, the lemmas about it are stated here.
 set_option old_structure_cmd true
 
 /-- A linearly ordered commutative group with a zero element. -/
-@[protect_proj]
+@[protect_proj, ancestor linear_ordered_comm_monoid_with_zero comm_group_with_zero]
 class linear_ordered_comm_group_with_zero (α : Type*)
   extends linear_ordered_comm_monoid_with_zero α, comm_group_with_zero α
 
@@ -109,9 +117,6 @@ instance : linear_ordered_add_comm_monoid_with_top (additive αᵒᵈ) :=
 end linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_group_with_zero α]
-
-lemma zero_lt_one₀ : (0 : α) < 1 :=
-lt_of_le_of_ne zero_le_one zero_ne_one
 
 -- TODO: Do we really need the following two?
 

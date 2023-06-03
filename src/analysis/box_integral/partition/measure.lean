@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.additive
-import measure_theory.measure.lebesgue
+import measure_theory.measure.lebesgue.basic
 
 /-!
 # Box-additive functions defined by measures

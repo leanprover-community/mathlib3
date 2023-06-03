@@ -9,6 +9,9 @@ import group_theory.group_action.opposite
 /-!
 # Module operations on `Mᵐᵒᵖ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains definitions that build on top of the group action definitions in
 `group_theory.group_action.opposite`.
 -/

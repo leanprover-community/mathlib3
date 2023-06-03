@@ -30,8 +30,7 @@ decomposed as `S = LDLᴴ` where `L` is a lower-triangular matrix and `D` is a d
 variables {𝕜 : Type*} [is_R_or_C 𝕜]
 variables {n : Type*} [linear_order n] [is_well_order n (<)] [locally_finite_order_bot n]
 
-local notation `⟪`x`, `y`⟫` :=
-@inner 𝕜 (n → 𝕜) (pi_Lp.inner_product_space (λ _, 𝕜)).to_has_inner x y
+local notation `⟪`x`, `y`⟫ₑ` := @inner 𝕜 _ _ ((pi_Lp.equiv 2 _).symm x) ((pi_Lp.equiv _ _).symm y)
 
 open matrix
 open_locale matrix
@@ -42,11 +41,13 @@ applying Gram-Schmidt-Orthogonalization w.r.t. the inner product induced by `S�
 basis vectors `pi.basis_fun`. -/
 noncomputable def LDL.lower_inv : matrix n n 𝕜 :=
 @gram_schmidt
-  𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _ (λ k, pi.basis_fun 𝕜 n k)
+  𝕜 (n → 𝕜) _
+  (_ : _)
+  (inner_product_space.of_matrix hS.transpose) n _ _ _ (pi.basis_fun 𝕜 n)
 
 lemma LDL.lower_inv_eq_gram_schmidt_basis :
   LDL.lower_inv hS = ((pi.basis_fun 𝕜 n).to_matrix
-    (@gram_schmidt_basis 𝕜 (n → 𝕜) _
+    (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (_ : _)
     (inner_product_space.of_matrix hS.transpose) n _ _ _ (pi.basis_fun 𝕜 n)))ᵀ :=
 begin
   ext i j,
@@ -58,28 +59,26 @@ noncomputable instance LDL.invertible_lower_inv : invertible (LDL.lower_inv hS) 
 begin
   rw [LDL.lower_inv_eq_gram_schmidt_basis],
   haveI := basis.invertible_to_matrix (pi.basis_fun 𝕜 n)
-    (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose)
+    (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (_ : _) (inner_product_space.of_matrix hS.transpose)
       n _ _ _ (pi.basis_fun 𝕜 n)),
   apply_instance
 end
 
 lemma LDL.lower_inv_orthogonal {i j : n} (h₀ : i ≠ j) :
-  ⟪(LDL.lower_inv hS i), Sᵀ.mul_vec (LDL.lower_inv hS j)⟫ = 0 :=
-show @inner 𝕜 (n → 𝕜) (inner_product_space.of_matrix hS.transpose).to_has_inner
-    (LDL.lower_inv hS i)
-    (LDL.lower_inv hS j) = 0,
-by apply gram_schmidt_orthogonal _ _ h₀
+  ⟪(LDL.lower_inv hS i), Sᵀ.mul_vec (LDL.lower_inv hS j)⟫ₑ = 0 :=
+@gram_schmidt_orthogonal 𝕜 _ _ (_ : _) (inner_product_space.of_matrix hS.transpose) _ _ _ _ _ _ _ h₀
 
 /-- The entries of the diagonal matrix `D` of the LDL decomposition. -/
 noncomputable def LDL.diag_entries : n → 𝕜 :=
-  λ i, ⟪star (LDL.lower_inv hS i), S.mul_vec (star (LDL.lower_inv hS i))⟫
+λ i, ⟪star (LDL.lower_inv hS i), S.mul_vec (star (LDL.lower_inv hS i))⟫ₑ
 
 /-- The diagonal matrix `D` of the LDL decomposition. -/
 noncomputable def LDL.diag : matrix n n 𝕜 := matrix.diagonal (LDL.diag_entries hS)
 
 lemma LDL.lower_inv_triangular {i j : n} (hij : i < j) :
   LDL.lower_inv hS i j = 0 :=
-by rw [← @gram_schmidt_triangular 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _
+by rw [← @gram_schmidt_triangular
+    𝕜 (n → 𝕜) _ (_ : _) (inner_product_space.of_matrix hS.transpose) n _ _ _
     i j hij (pi.basis_fun 𝕜 n), pi.basis_fun_repr, LDL.lower_inv]
 
 /-- Inverse statement of **LDL decomposition**: we can conjugate a positive definite matrix
@@ -88,12 +87,12 @@ lemma LDL.diag_eq_lower_inv_conj : LDL.diag hS = LDL.lower_inv hS ⬝ S ⬝ (LDL
 begin
   ext i j,
   by_cases hij : i = j,
-  { simpa only [hij, LDL.diag, diagonal_apply_eq, LDL.diag_entries, matrix.mul_assoc, inner,
-      pi.star_apply, is_R_or_C.star_def, star_ring_end_self_apply] },
+  { simpa only [hij, LDL.diag, diagonal_apply_eq, LDL.diag_entries, matrix.mul_assoc,
+      euclidean_space.inner_pi_Lp_equiv_symm, star_star] },
   { simp only [LDL.diag, hij, diagonal_apply_ne, ne.def, not_false_iff, mul_mul_apply],
     rw [conj_transpose, transpose_map, transpose_transpose, dot_product_mul_vec,
       (LDL.lower_inv_orthogonal hS (λ h : j = i, hij h.symm)).symm,
-      ← inner_conj_sym, mul_vec_transpose, euclidean_space.inner_eq_star_dot_product,
+      ← inner_conj_symm, mul_vec_transpose, euclidean_space.inner_pi_Lp_equiv_symm,
       ← is_R_or_C.star_def, ← star_dot_product_star, dot_product_comm, star_star],
     refl }
 end

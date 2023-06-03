@@ -8,6 +8,9 @@ import data.finset.preimage
 /-!
 #  Unique products and related notions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A group `G` has *unique products* if for any two non-empty finite subsets `A, B ⊂ G`, there is an
 element `g ∈ A * B` that can be written uniquely as a product of an element of `A` and an element
 of `B`.  We call the formalization this property `unique_prods`.  Since the condition requires no
@@ -33,7 +36,7 @@ example : unique_prods ℕ+ := by apply_instance
 let `a0 b0 : G` be two elements.  `unique_mul A B a0 b0` asserts `a0 * b0` can be written in at
 most one way as a product of an element of `A` and an element of `B`. -/
 @[to_additive "Let `G` be a Type with addition, let `A B : finset G` be finite subsets and
-let `a0 b0 : G` be two elements.  `unique_add A B a0 b0` asserts `a0 * b0` can be written in at
+let `a0 b0 : G` be two elements.  `unique_add A B a0 b0` asserts `a0 + b0` can be written in at
 most one way as a sum of an element from `A` and an element from `B`."]
 def unique_mul {G} [has_mul G] (A B : finset G) (a0 b0 : G) : Prop :=
 ∀ ⦃a b⦄, a ∈ A → b ∈ B → a * b = a0 * b0 → a = a0 ∧ b = b0

@@ -8,6 +8,9 @@ import group_theory.perm.basic
 /-!
 # Multiplicative and additive group automorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the automorphism group structure on `add_aut R := add_equiv R R` and
 `mul_aut R := mul_equiv R R`.
 

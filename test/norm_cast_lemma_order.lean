@@ -1,4 +1,4 @@
-import data.nat.cast
+import data.nat.cast.defs
 import tactic.norm_cast
 
 constant ℝ : Type

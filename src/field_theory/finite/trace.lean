@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
 import ring_theory.trace
-import field_theory.finite.basic
 import field_theory.finite.galois_field
 
 /-!

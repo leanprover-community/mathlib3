@@ -3,10 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.concrete_category
-import group_theory.quotient_group
-import category_theory.limits.shapes.kernels
 import algebra.category.Module.basic
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of R-modules has all colimits.
@@ -370,6 +368,12 @@ instance has_colimits_Module : has_colimits (Module.{max v u} R) :=
   { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
       is_colimit := colimit_cocone_is_colimit F } } }
+
+instance has_colimits_of_size_Module : has_colimits_of_size.{v} (Module.{max v u} R) :=
+has_colimits_of_size_shrink _
+
+instance has_colimits_of_size_zero_Module : has_colimits_of_size.{0} (Module.{max v u} R) :=
+@has_colimits_of_size_shrink.{0} (Module.{max v u} R) _ Module.colimits.has_colimits_Module
 
 -- We manually add a `has_colimits` instance with universe parameters swapped, for otherwise
 -- the instance is not found by typeclass search.

@@ -3,8 +3,8 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Ashvni Narayanan
 -/
+import algebra.order.group.type_tags
 import field_theory.ratfunc
-import ring_theory.algebraic
 import ring_theory.dedekind_domain.integral_closure
 import ring_theory.integrally_closed
 import topology.algebra.valued_field

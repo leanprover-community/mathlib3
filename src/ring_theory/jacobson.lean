@@ -3,7 +3,7 @@ Copyright (c) 2020 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
 import ring_theory.ideal.over
 import ring_theory.jacobson_ideal
 
@@ -245,7 +245,7 @@ begin
     rw hP at hxy,
     cases hP'.mem_or_mem hxy with hxy hxy,
     { exact hxy },
-    { exact (hPM ⟨submonoid.mem_powers _, hxy⟩).elim } },
+    { exact (hPM.le_bot ⟨submonoid.mem_powers _, hxy⟩).elim } },
   refine le_trans _ this,
   rw [ideal.jacobson, comap_Inf', Inf_eq_infi],
   refine infi_le_infi_of_subset (λ I hI, ⟨map (algebra_map R S) I, ⟨_, _⟩⟩),
@@ -460,7 +460,7 @@ begin
   have hM : (0 : R ⧸ P.comap C) ∉ M := λ ⟨n, hn⟩, hp0 (pow_eq_zero hn),
   suffices : (⊥ : ideal (localization M)).is_maximal,
   { rw ← is_localization.comap_map_of_is_prime_disjoint M (localization M) ⊥ bot_prime
-        (λ x hx, hM (hx.2 ▸ hx.1)),
+        (disjoint_iff_inf_le.mpr $ λ x hx, hM (hx.2 ▸ hx.1)),
     refine ((is_maximal_iff_is_maximal_disjoint (localization M) _ _).mp (by rwa map_bot)).1,
     swap, exact localization.is_localization },
   let M' : submonoid (R[X] ⧸ P) := M.map φ,

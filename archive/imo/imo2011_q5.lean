@@ -3,7 +3,7 @@ Copyright (c) 2021 Alain Verberkmoes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alain Verberkmoes
 -/
-import data.int.dvd
+import data.int.dvd.basic
 
 /-!
 # IMO 2011 Q5
@@ -16,6 +16,8 @@ of positive integers.  Suppose that, for any two integers
 -/
 
 open int
+
+namespace imo
 
 theorem imo2011_q5 (f : ℤ → ℤ) (hpos : ∀ n : ℤ, 0 < f n)
   (hdvd : ∀ m n : ℤ, f (m - n) ∣ f m - f n) :
@@ -47,7 +49,7 @@ begin
       { -- d = 0
         exact hd },
       { -- d < 0
-        have h₁ : f n ≤ -d, from le_of_dvd (neg_pos.mpr hd) ((dvd_neg _ _).mpr h_fn_dvd_d),
+        have h₁ : f n ≤ -d, from le_of_dvd (neg_pos.mpr hd) h_fn_dvd_d.neg_right,
         have h₂ : ¬ f n ≤ -d, from not_le.mpr h_neg_d_lt_fn,
         contradiction } },
     have h₁ : f m = f (m - n), from sub_eq_zero.mp h_d_eq_zero,
@@ -57,3 +59,5 @@ begin
   { -- m = n
     rw h_fm_eq_fn }
 end
+
+end imo

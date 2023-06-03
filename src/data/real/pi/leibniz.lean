@@ -10,7 +10,7 @@ import analysis.special_functions.trigonometric.arctan_deriv
 namespace real
 
 open filter set
-open_locale classical big_operators topological_space real
+open_locale classical big_operators topology real
 local notation (name := abs) `|`x`|` := abs x
 
 /-- This theorem establishes **Leibniz's series for `π`**: The alternating sum of the reciprocals

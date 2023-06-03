@@ -3,8 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import tactic.basic
-import data.fintype.basic
+import data.fintype.powerset
 
 /-!
 # Erdős–Szekeres theorem
@@ -26,6 +25,8 @@ variables {α : Type*} [linear_order α] {β : Type*}
 
 open function finset
 open_locale classical
+
+namespace theorems_100
 
 /--
 **Erdős–Szekeres Theorem**: Given a sequence of more than `r * s` distinct values, there is an
@@ -159,3 +160,5 @@ begin
   -- Which follows from considering the cardinalities of the subset above, since `ab` is injective.
   simpa [nat.succ_injective, card_image_of_injective, ‹injective ab›] using card_le_of_subset this,
 end
+
+end theorems_100

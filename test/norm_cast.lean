@@ -119,7 +119,7 @@ lemma half_lt_self_bis {a : ℝ≥0∞} (hz : a ≠ 0) (ht : a ≠ ⊤) : a / 2 
 begin
   lift a to nnreal using ht,
   have h : (2 : ℝ≥0∞) = ((2 : nnreal) : ℝ≥0∞), from rfl,
-  have h' : (2 : nnreal) ≠ 0, from _root_.two_ne_zero',
+  have h' : (2 : nnreal) ≠ 0, from two_ne_zero' _,
   rw [h, ← coe_div h', coe_lt_coe], -- `norm_cast` fails to apply `coe_div`
   norm_cast at hz,
   exact nnreal.half_lt_self hz

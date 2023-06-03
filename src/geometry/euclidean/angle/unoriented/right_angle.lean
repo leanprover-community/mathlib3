@@ -32,11 +32,11 @@ open_locale real_inner_product_space
 
 namespace inner_product_geometry
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/
 lemma norm_add_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two (x y : V) :
-  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
+  ‖x + y‖ * ‖x + y‖ = ‖x‖ * ‖x‖ + ‖y‖ * ‖y‖ ↔ angle x y = π / 2 :=
 begin
   rw norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero,
   exact inner_eq_zero_iff_angle_eq_pi_div_two x y
@@ -44,12 +44,12 @@ end
 
 /-- Pythagorean theorem, vector angle form. -/
 lemma norm_add_sq_eq_norm_sq_add_norm_sq' (x y : V) (h : angle x y = π / 2) :
-  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+  ‖x + y‖ * ‖x + y‖ = ‖x‖ * ‖x‖ + ‖y‖ * ‖y‖ :=
 (norm_add_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two x y).2 h
 
 /-- Pythagorean theorem, subtracting vectors, if-and-only-if vector angle form. -/
 lemma norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two (x y : V) :
-  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
+  ‖x - y‖ * ‖x - y‖ = ‖x‖ * ‖x‖ + ‖y‖ * ‖y‖ ↔ angle x y = π / 2 :=
 begin
   rw norm_sub_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero,
   exact inner_eq_zero_iff_angle_eq_pi_div_two x y
@@ -57,23 +57,23 @@ end
 
 /-- Pythagorean theorem, subtracting vectors, vector angle form. -/
 lemma norm_sub_sq_eq_norm_sq_add_norm_sq' (x y : V) (h : angle x y = π / 2) :
-  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+  ‖x - y‖ * ‖x - y‖ = ‖x‖ * ‖x‖ + ‖y‖ * ‖y‖ :=
 (norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two x y).2 h
 
 /-- An angle in a right-angled triangle expressed using `arccos`. -/
 lemma angle_add_eq_arccos_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  angle x (x + y) = real.arccos (∥x∥ / ∥x + y∥) :=
+  angle x (x + y) = real.arccos (‖x‖ / ‖x + y‖) :=
 begin
   rw [angle, inner_add_right, h, add_zero, real_inner_self_eq_norm_mul_norm],
-  by_cases hx : ∥x∥ = 0, { simp [hx] },
+  by_cases hx : ‖x‖ = 0, { simp [hx] },
   rw [div_mul_eq_div_div, mul_self_div_self]
 end
 
 /-- An angle in a right-angled triangle expressed using `arcsin`. -/
 lemma angle_add_eq_arcsin_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0 ∨ y ≠ 0) :
-  angle x (x + y) = real.arcsin (∥y∥ / ∥x + y∥) :=
+  angle x (x + y) = real.arcsin (‖y‖ / ‖x + y‖) :=
 begin
-  have hxy : ∥x + y∥ ^ 2 ≠ 0,
+  have hxy : ‖x + y‖ ^ 2 ≠ 0,
   { rw [pow_two, norm_add_sq_eq_norm_sq_add_norm_sq_real h, ne_comm],
     refine ne_of_lt _,
     rcases h0 with h0 | h0,
@@ -91,13 +91,13 @@ end
 
 /-- An angle in a right-angled triangle expressed using `arctan`. -/
 lemma angle_add_eq_arctan_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0) :
-  angle x (x + y) = real.arctan (∥y∥ / ∥x∥) :=
+  angle x (x + y) = real.arctan (‖y‖ / ‖x‖) :=
 begin
   rw [angle_add_eq_arcsin_of_inner_eq_zero h (or.inl h0), real.arctan_eq_arcsin,
       ←div_mul_eq_div_div, norm_add_eq_sqrt_iff_real_inner_eq_zero.2 h],
   nth_rewrite 2 [←real.sqrt_sq (norm_nonneg x)],
   rw [←real.sqrt_mul (sq_nonneg _), div_pow, pow_two, pow_two, mul_add, mul_one, mul_div,
-      mul_comm (∥x∥ * ∥x∥), ←mul_div, div_self (mul_self_pos.2 (norm_ne_zero_iff.2 h0)).ne',
+      mul_comm (‖x‖ * ‖x‖), ←mul_div, div_self (mul_self_pos.2 (norm_ne_zero_iff.2 h0)).ne',
       mul_one]
 end
 
@@ -136,7 +136,7 @@ end
 
 /-- The cosine of an angle in a right-angled triangle as a ratio of sides. -/
 lemma cos_angle_add_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  real.cos (angle x (x + y)) = ∥x∥ / ∥x + y∥ :=
+  real.cos (angle x (x + y)) = ‖x‖ / ‖x + y‖ :=
 begin
   rw [angle_add_eq_arccos_of_inner_eq_zero h,
       real.cos_arccos (le_trans (by norm_num) (div_nonneg (norm_nonneg _) (norm_nonneg _)))
@@ -148,7 +148,7 @@ end
 
 /-- The sine of an angle in a right-angled triangle as a ratio of sides. -/
 lemma sin_angle_add_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0 ∨ y ≠ 0) :
-  real.sin (angle x (x + y)) = ∥y∥ / ∥x + y∥ :=
+  real.sin (angle x (x + y)) = ‖y‖ / ‖x + y‖ :=
 begin
   rw [angle_add_eq_arcsin_of_inner_eq_zero h h0,
       real.sin_arcsin (le_trans (by norm_num) (div_nonneg (norm_nonneg _) (norm_nonneg _)))
@@ -160,7 +160,7 @@ end
 
 /-- The tangent of an angle in a right-angled triangle as a ratio of sides. -/
 lemma tan_angle_add_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  real.tan (angle x (x + y)) = ∥y∥ / ∥x∥ :=
+  real.tan (angle x (x + y)) = ‖y‖ / ‖x‖ :=
 begin
   by_cases h0 : x = 0, { simp [h0] },
   rw [angle_add_eq_arctan_of_inner_eq_zero h h0, real.tan_arctan]
@@ -169,12 +169,12 @@ end
 /-- The cosine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 adjacent side. -/
 lemma cos_angle_add_mul_norm_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  real.cos (angle x (x + y)) * ∥x + y∥ = ∥x∥ :=
+  real.cos (angle x (x + y)) * ‖x + y‖ = ‖x‖ :=
 begin
   rw cos_angle_add_of_inner_eq_zero h,
-  by_cases hxy : ∥x + y∥ = 0,
+  by_cases hxy : ‖x + y‖ = 0,
   { have h' := norm_add_sq_eq_norm_sq_add_norm_sq_real h,
-    rw [hxy, zero_mul, eq_comm, add_eq_zero_iff' (mul_self_nonneg ∥x∥) (mul_self_nonneg ∥y∥),
+    rw [hxy, zero_mul, eq_comm, add_eq_zero_iff' (mul_self_nonneg ‖x‖) (mul_self_nonneg ‖y‖),
         mul_self_eq_zero] at h',
     simp [h'.1] },
   { exact div_mul_cancel _ hxy }
@@ -183,7 +183,7 @@ end
 /-- The sine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 opposite side. -/
 lemma sin_angle_add_mul_norm_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  real.sin (angle x (x + y)) * ∥x + y∥ = ∥y∥ :=
+  real.sin (angle x (x + y)) * ‖x + y‖ = ‖y‖ :=
 begin
   by_cases h0 : x = 0 ∧ y = 0, { simp [h0] },
   rw not_and_distrib at h0,
@@ -200,7 +200,7 @@ end
 /-- The tangent of an angle in a right-angled triangle multiplied by the adjacent side equals
 the opposite side. -/
 lemma tan_angle_add_mul_norm_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0 ∨ y = 0) :
-  real.tan (angle x (x + y)) * ∥x∥ = ∥y∥ :=
+  real.tan (angle x (x + y)) * ‖x‖ = ‖y‖ :=
 begin
   rw [tan_angle_add_of_inner_eq_zero h],
   rcases h0 with h0 | h0; simp [h0]
@@ -209,7 +209,7 @@ end
 /-- A side of a right-angled triangle divided by the cosine of the adjacent angle equals the
 hypotenuse. -/
 lemma norm_div_cos_angle_add_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0 ∨ y = 0) :
-  ∥x∥ / real.cos (angle x (x + y)) = ∥x + y∥ :=
+  ‖x‖ / real.cos (angle x (x + y)) = ‖x + y‖ :=
 begin
   rw cos_angle_add_of_inner_eq_zero h,
   rcases h0 with h0 | h0,
@@ -221,7 +221,7 @@ end
 /-- A side of a right-angled triangle divided by the sine of the opposite angle equals the
 hypotenuse. -/
 lemma norm_div_sin_angle_add_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x = 0 ∨ y ≠ 0) :
-  ∥y∥ / real.sin (angle x (x + y)) = ∥x + y∥ :=
+  ‖y‖ / real.sin (angle x (x + y)) = ‖x + y‖ :=
 begin
   rcases h0 with h0 | h0, { simp [h0] },
   rw [sin_angle_add_of_inner_eq_zero h (or.inr h0), div_div_eq_mul_div, mul_comm, div_eq_mul_inv,
@@ -231,7 +231,7 @@ end
 /-- A side of a right-angled triangle divided by the tangent of the opposite angle equals the
 adjacent side. -/
 lemma norm_div_tan_angle_add_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x = 0 ∨ y ≠ 0) :
-  ∥y∥ / real.tan (angle x (x + y)) = ∥x∥ :=
+  ‖y‖ / real.tan (angle x (x + y)) = ‖x‖ :=
 begin
   rw tan_angle_add_of_inner_eq_zero h,
   rcases h0 with h0 | h0,
@@ -242,7 +242,7 @@ end
 
 /-- An angle in a right-angled triangle expressed using `arccos`, version subtracting vectors. -/
 lemma angle_sub_eq_arccos_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  angle x (x - y) = real.arccos (∥x∥ / ∥x - y∥) :=
+  angle x (x - y) = real.arccos (‖x‖ / ‖x - y‖) :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw [sub_eq_add_neg, angle_add_eq_arccos_of_inner_eq_zero h]
@@ -250,7 +250,7 @@ end
 
 /-- An angle in a right-angled triangle expressed using `arcsin`, version subtracting vectors. -/
 lemma angle_sub_eq_arcsin_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0 ∨ y ≠ 0) :
-  angle x (x - y) = real.arcsin (∥y∥ / ∥x - y∥) :=
+  angle x (x - y) = real.arcsin (‖y‖ / ‖x - y‖) :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   nth_rewrite 1 ←neg_ne_zero at h0,
@@ -259,7 +259,7 @@ end
 
 /-- An angle in a right-angled triangle expressed using `arctan`, version subtracting vectors. -/
 lemma angle_sub_eq_arctan_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0) :
-  angle x (x - y) = real.arctan (∥y∥ / ∥x∥) :=
+  angle x (x - y) = real.arctan (‖y‖ / ‖x‖) :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw [sub_eq_add_neg, angle_add_eq_arctan_of_inner_eq_zero h h0, norm_neg]
@@ -298,7 +298,7 @@ end
 /-- The cosine of an angle in a right-angled triangle as a ratio of sides, version subtracting
 vectors. -/
 lemma cos_angle_sub_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  real.cos (angle x (x - y)) = ∥x∥ / ∥x - y∥ :=
+  real.cos (angle x (x - y)) = ‖x‖ / ‖x - y‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw [sub_eq_add_neg, cos_angle_add_of_inner_eq_zero h]
@@ -307,7 +307,7 @@ end
 /-- The sine of an angle in a right-angled triangle as a ratio of sides, version subtracting
 vectors. -/
 lemma sin_angle_sub_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0 ∨ y ≠ 0) :
-  real.sin (angle x (x - y)) = ∥y∥ / ∥x - y∥ :=
+  real.sin (angle x (x - y)) = ‖y‖ / ‖x - y‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   nth_rewrite 1 ←neg_ne_zero at h0,
@@ -317,7 +317,7 @@ end
 /-- The tangent of an angle in a right-angled triangle as a ratio of sides, version subtracting
 vectors. -/
 lemma tan_angle_sub_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  real.tan (angle x (x - y)) = ∥y∥ / ∥x∥ :=
+  real.tan (angle x (x - y)) = ‖y‖ / ‖x‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw [sub_eq_add_neg, tan_angle_add_of_inner_eq_zero h, norm_neg]
@@ -326,7 +326,7 @@ end
 /-- The cosine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 adjacent side, version subtracting vectors. -/
 lemma cos_angle_sub_mul_norm_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  real.cos (angle x (x - y)) * ∥x - y∥ = ∥x∥ :=
+  real.cos (angle x (x - y)) * ‖x - y‖ = ‖x‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw [sub_eq_add_neg, cos_angle_add_mul_norm_of_inner_eq_zero h]
@@ -335,7 +335,7 @@ end
 /-- The sine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 opposite side, version subtracting vectors. -/
 lemma sin_angle_sub_mul_norm_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) :
-  real.sin (angle x (x - y)) * ∥x - y∥ = ∥y∥ :=
+  real.sin (angle x (x - y)) * ‖x - y‖ = ‖y‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw [sub_eq_add_neg, sin_angle_add_mul_norm_of_inner_eq_zero h, norm_neg]
@@ -344,7 +344,7 @@ end
 /-- The tangent of an angle in a right-angled triangle multiplied by the adjacent side equals
 the opposite side, version subtracting vectors. -/
 lemma tan_angle_sub_mul_norm_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0 ∨ y = 0) :
-  real.tan (angle x (x - y)) * ∥x∥ = ∥y∥ :=
+  real.tan (angle x (x - y)) * ‖x‖ = ‖y‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw ←neg_eq_zero at h0,
@@ -354,7 +354,7 @@ end
 /-- A side of a right-angled triangle divided by the cosine of the adjacent angle equals the
 hypotenuse, version subtracting vectors. -/
 lemma norm_div_cos_angle_sub_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x ≠ 0 ∨ y = 0) :
-  ∥x∥ / real.cos (angle x (x - y)) = ∥x - y∥ :=
+  ‖x‖ / real.cos (angle x (x - y)) = ‖x - y‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw ←neg_eq_zero at h0,
@@ -364,7 +364,7 @@ end
 /-- A side of a right-angled triangle divided by the sine of the opposite angle equals the
 hypotenuse, version subtracting vectors. -/
 lemma norm_div_sin_angle_sub_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x = 0 ∨ y ≠ 0) :
-  ∥y∥ / real.sin (angle x (x - y)) = ∥x - y∥ :=
+  ‖y‖ / real.sin (angle x (x - y)) = ‖x - y‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw ←neg_ne_zero at h0,
@@ -374,7 +374,7 @@ end
 /-- A side of a right-angled triangle divided by the tangent of the opposite angle equals the
 adjacent side, version subtracting vectors. -/
 lemma norm_div_tan_angle_sub_of_inner_eq_zero {x y : V} (h : ⟪x, y⟫ = 0) (h0 : x = 0 ∨ y ≠ 0) :
-  ∥y∥ / real.tan (angle x (x - y)) = ∥x∥ :=
+  ‖y‖ / real.tan (angle x (x - y)) = ‖x‖ :=
 begin
   rw [←neg_eq_zero, ←inner_neg_right] at h,
   rw ←neg_ne_zero at h0,
@@ -387,8 +387,8 @@ namespace euclidean_geometry
 
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- **Pythagorean theorem**, if-and-only-if angle-at-point form. -/
@@ -497,7 +497,7 @@ end
 
 /-- The cosine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 adjacent side. -/
-lemma cos_angle_mul_norm_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
+lemma cos_angle_mul_dist_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
   real.cos (∠ p₂ p₃ p₁) * dist p₁ p₃ = dist p₃ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -508,7 +508,7 @@ end
 
 /-- The sine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 opposite side. -/
-lemma sin_angle_mul_norm_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
+lemma sin_angle_mul_dist_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
   real.sin (∠ p₂ p₃ p₁) * dist p₁ p₃ = dist p₁ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -519,7 +519,7 @@ end
 
 /-- The tangent of an angle in a right-angled triangle multiplied by the adjacent side equals
 the opposite side. -/
-lemma tan_angle_mul_norm_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
+lemma tan_angle_mul_dist_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
   (h0 : p₁ = p₂ ∨ p₃ ≠ p₂) : real.tan (∠ p₂ p₃ p₁) * dist p₃ p₂ = dist p₁ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -531,7 +531,7 @@ end
 
 /-- A side of a right-angled triangle divided by the cosine of the adjacent angle equals the
 hypotenuse. -/
-lemma norm_div_cos_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
+lemma dist_div_cos_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
   (h0 : p₁ = p₂ ∨ p₃ ≠ p₂) : dist p₃ p₂ / real.cos (∠ p₂ p₃ p₁) = dist p₁ p₃ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -543,7 +543,7 @@ end
 
 /-- A side of a right-angled triangle divided by the sine of the opposite angle equals the
 hypotenuse. -/
-lemma norm_div_sin_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
+lemma dist_div_sin_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
   (h0 : p₁ ≠ p₂ ∨ p₃ = p₂) : dist p₁ p₂ / real.sin (∠ p₂ p₃ p₁) = dist p₁ p₃ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,
@@ -555,7 +555,7 @@ end
 
 /-- A side of a right-angled triangle divided by the tangent of the opposite angle equals the
 adjacent side. -/
-lemma norm_div_tan_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
+lemma dist_div_tan_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2)
   (h0 : p₁ ≠ p₂ ∨ p₃ = p₂) : dist p₁ p₂ / real.tan (∠ p₂ p₃ p₁) = dist p₃ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,

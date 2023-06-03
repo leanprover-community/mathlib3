@@ -5,7 +5,7 @@ Authors: Antoine Labelle
 -/
 import algebra.big_operators.basic
 import algebra.big_operators.order
-import data.fintype.card
+import data.fintype.big_operators
 import data.finset.sort
 import data.fin.interval
 import tactic.linarith
@@ -31,6 +31,8 @@ would be `m` elements of the set of `aᵢ`'s all larger than `aₘ₊₁₋ᵢ`,
 open_locale big_operators
 
 open finset
+
+namespace imo
 
 lemma tedious (m : ℕ) (k : fin (m+1)) : m - (m + (m + 1 - ↑k)) % (m + 1) = ↑k  :=
 begin
@@ -97,3 +99,5 @@ begin
   -- A set of size `k+1` embed in one of size `k`, which yields a contradiction
   simpa [fin.coe_sub, tedious] using card_le_of_subset hf,
 end
+
+end imo

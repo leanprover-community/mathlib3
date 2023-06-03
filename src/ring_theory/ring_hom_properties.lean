@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebra.category.Ring.constructions
+import algebra.category.Ring.colimits
 import category_theory.isomorphism
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
+import ring_theory.is_tensor_product
 
 /-!
 # Properties of ring homomorphisms
@@ -105,9 +107,45 @@ section stable_under_base_change
 /-- A morphism property `P` is `stable_under_base_change` if `P(S →+* A)` implies
 `P(B →+* A ⊗[S] B)`. -/
 def stable_under_base_change : Prop :=
-  ∀ ⦃R S T⦄ [comm_ring R] [comm_ring S] [comm_ring T], by exactI ∀ [algebra R S] [algebra R T],
-    by exactI (P (algebra_map R T) →
-      P (algebra.tensor_product.include_left.to_ring_hom : S →+* tensor_product R S T))
+  ∀ (R S R' S') [comm_ring R] [comm_ring S] [comm_ring R'] [comm_ring S'],
+    by exactI ∀ [algebra R S] [algebra R R'] [algebra R S'] [algebra S S'] [algebra R' S'],
+    by exactI ∀ [is_scalar_tower R S S'] [is_scalar_tower R R' S'],
+    by exactI ∀ [algebra.is_pushout R S R' S'], P (algebra_map R S) → P (algebra_map R' S')
+
+lemma stable_under_base_change.mk
+  (h₁ : respects_iso @P)
+  (h₂ : ∀ ⦃R S T⦄ [comm_ring R] [comm_ring S] [comm_ring T],
+    by exactI ∀ [algebra R S] [algebra R T], by exactI (P (algebra_map R T) →
+      P (algebra.tensor_product.include_left.to_ring_hom : S →+* tensor_product R S T))) :
+  stable_under_base_change @P :=
+begin
+  introv R h H,
+  resetI,
+  let e := h.symm.1.equiv,
+  let f' := algebra.tensor_product.product_map (is_scalar_tower.to_alg_hom R R' S')
+    (is_scalar_tower.to_alg_hom R S S'),
+  have : ∀ x, e x = f' x,
+  { intro x,
+    change e.to_linear_map.restrict_scalars R x = f'.to_linear_map x,
+    congr' 1,
+    apply tensor_product.ext',
+    intros x y,
+    simp [is_base_change.equiv_tmul, algebra.smul_def] },
+  convert h₁.1 _ _ (h₂ H : P (_ : R' →+* _)),
+  swap,
+  { refine { map_mul' := λ x y, _, ..e },
+    change e (x * y) = e x * e y,
+    simp_rw this,
+    exact map_mul f' _ _ },
+  { ext,
+    change _ = e (x ⊗ₜ[R] 1),
+    dsimp only [e],
+    rw [h.symm.1.equiv_tmul, algebra.smul_def, alg_hom.to_linear_map_apply, map_one, mul_one] }
+end
+
+omit P
+
+local attribute [instance] algebra.tensor_product.right_algebra
 
 lemma stable_under_base_change.pushout_inl
   (hP : ring_hom.stable_under_base_change @P) (hP' : ring_hom.respects_iso @P) {R S T : CommRing}
@@ -115,7 +153,10 @@ lemma stable_under_base_change.pushout_inl
 begin
   rw [← (show _ = pushout.inl, from colimit.iso_colimit_cocone_ι_inv
     ⟨_, CommRing.pushout_cocone_is_colimit f g⟩ walking_span.left), hP'.cancel_right_is_iso],
-  apply hP,
+  letI := f.to_algebra,
+  letI := g.to_algebra,
+  dsimp only [CommRing.pushout_cocone_inl, pushout_cocone.ι_app_left],
+  apply hP R T S (tensor_product R S T),
   exact H,
 end
 

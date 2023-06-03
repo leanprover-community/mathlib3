@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Martin Zinkevich, Vincent Beffara
 -/
 import measure_theory.integral.set_integral
-import probability.independence
+import probability.independence.basic
 
 /-!
 # Integration in Probability Theory
@@ -67,7 +67,7 @@ begin
     rw [lintegral_supr h_measM_f h_mono_f, lintegral_supr, ennreal.supr_mul],
     { simp_rw [← h_ind_f] },
     { exact λ n, h_mul_indicator _ (h_measM_f n) },
-    { exact λ m n h_le a, ennreal.mul_le_mul (h_mono_f h_le a) le_rfl, }, },
+    { exact λ m n h_le a, mul_le_mul_right' (h_mono_f h_le a) _, }, },
 end
 
 /-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
@@ -101,7 +101,7 @@ begin
     rw [lintegral_supr, lintegral_supr h_measM_f' h_mono_f', ennreal.mul_supr],
     { simp_rw [← h_ind_f'], },
     { exact λ n, h_measM_f.mul (h_measM_f' n), },
-    { exact λ n m (h_le : n ≤ m) a, ennreal.mul_le_mul le_rfl (h_mono_f' h_le a), }, }
+    { exact λ n m (h_le : n ≤ m) a, mul_le_mul_left' (h_mono_f' h_le a) _, }, }
 end
 
 /-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
@@ -140,10 +140,10 @@ lemma indep_fun.integrable_mul {β : Type*} [measurable_space β] {X Y : Ω → 
   (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integrable (X * Y) μ :=
 begin
-  let nX : Ω → ennreal := λ a, ∥X a∥₊,
-  let nY : Ω → ennreal := λ a, ∥Y a∥₊,
+  let nX : Ω → ennreal := λ a, ‖X a‖₊,
+  let nY : Ω → ennreal := λ a, ‖Y a‖₊,
 
-  have hXY' : indep_fun (λ a, ∥X a∥₊) (λ a, ∥Y a∥₊) μ :=
+  have hXY' : indep_fun (λ a, ‖X a‖₊) (λ a, ‖Y a‖₊) μ :=
     hXY.comp measurable_nnnorm measurable_nnnorm,
   have hXY'' : indep_fun nX nY μ :=
     hXY'.comp measurable_coe_nnreal_ennreal measurable_coe_nnreal_ennreal,
@@ -168,17 +168,17 @@ lemma indep_fun.integrable_left_of_integrable_mul {β : Type*} [measurable_space
   integrable X μ :=
 begin
   refine ⟨hX, _⟩,
-  have I : ∫⁻ ω, ∥Y ω∥₊ ∂μ ≠ 0,
+  have I : ∫⁻ ω, ‖Y ω‖₊ ∂μ ≠ 0,
   { assume H,
-    have I : (λ ω, ↑∥Y ω∥₊) =ᵐ[μ] 0 := (lintegral_eq_zero_iff' hY.ennnorm).1 H,
+    have I : (λ ω, ↑‖Y ω‖₊) =ᵐ[μ] 0 := (lintegral_eq_zero_iff' hY.ennnorm).1 H,
     apply h'Y,
     filter_upwards [I] with ω hω,
     simpa using hω },
   apply lt_top_iff_ne_top.2 (λ H, _),
-  have J : indep_fun (λ ω, ↑∥X ω∥₊) (λ ω, ↑∥Y ω∥₊) μ,
-  { have M : measurable (λ (x : β), (∥x∥₊ : ℝ≥0∞)) := measurable_nnnorm.coe_nnreal_ennreal,
+  have J : indep_fun (λ ω, ↑‖X ω‖₊) (λ ω, ↑‖Y ω‖₊) μ,
+  { have M : measurable (λ (x : β), (‖x‖₊ : ℝ≥0∞)) := measurable_nnnorm.coe_nnreal_ennreal,
     apply indep_fun.comp hXY M M },
-  have A : ∫⁻ ω, ∥X ω * Y ω∥₊ ∂μ < ∞ := h'XY.2,
+  have A : ∫⁻ ω, ‖X ω * Y ω‖₊ ∂μ < ∞ := h'XY.2,
   simp only [nnnorm_mul, ennreal.coe_mul] at A,
   rw [lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun'' hX.ennnorm hY.ennnorm J, H] at A,
   simpa [ennreal.top_mul, I] using A,
@@ -193,17 +193,17 @@ lemma indep_fun.integrable_right_of_integrable_mul {β : Type*} [measurable_spac
   integrable Y μ :=
 begin
   refine ⟨hY, _⟩,
-  have I : ∫⁻ ω, ∥X ω∥₊ ∂μ ≠ 0,
+  have I : ∫⁻ ω, ‖X ω‖₊ ∂μ ≠ 0,
   { assume H,
-    have I : (λ ω, ↑∥X ω∥₊) =ᵐ[μ] 0 := (lintegral_eq_zero_iff' hX.ennnorm).1 H,
+    have I : (λ ω, ↑‖X ω‖₊) =ᵐ[μ] 0 := (lintegral_eq_zero_iff' hX.ennnorm).1 H,
     apply h'X,
     filter_upwards [I] with ω hω,
     simpa using hω },
   apply lt_top_iff_ne_top.2 (λ H, _),
-  have J : indep_fun (λ ω, ↑∥X ω∥₊) (λ ω, ↑∥Y ω∥₊) μ,
-  { have M : measurable (λ (x : β), (∥x∥₊ : ℝ≥0∞)) := measurable_nnnorm.coe_nnreal_ennreal,
+  have J : indep_fun (λ ω, ↑‖X ω‖₊) (λ ω, ↑‖Y ω‖₊) μ,
+  { have M : measurable (λ (x : β), (‖x‖₊ : ℝ≥0∞)) := measurable_nnnorm.coe_nnreal_ennreal,
     apply indep_fun.comp hXY M M },
-  have A : ∫⁻ ω, ∥X ω * Y ω∥₊ ∂μ < ∞ := h'XY.2,
+  have A : ∫⁻ ω, ‖X ω * Y ω‖₊ ∂μ < ∞ := h'XY.2,
   simp only [nnnorm_mul, ennreal.coe_mul] at A,
   rw [lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun'' hX.ennnorm hY.ennnorm J, H] at A,
   simpa [ennreal.top_mul, I] using A,

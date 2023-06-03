@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Functor and bifunctors can be applied to `equiv`s.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define
 ```lean
 def functor.map_equiv (f : Type u → Type v) [functor f] [is_lawful_functor f] :

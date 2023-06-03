@@ -10,6 +10,9 @@ import category_theory.localization.construction
 
 # Predicate for localized categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, a predicate `L.is_localization W` is introduced for a functor `L : C ⥤ D`
 and `W : morphism_property C`: it expresses that `L` identifies `D` with the localized
 category of `C` with respect to `W` (up to equivalence).
@@ -324,5 +327,43 @@ def of_isos {F₁ F₂ : C ⥤ E} {F₁' F₂' : D ⥤ E} (e : F₁ ≅ F₂) (e
 end lifting
 
 end localization
+
+namespace functor
+
+namespace is_localization
+
+open localization
+
+lemma of_iso {L₁ L₂ : C ⥤ D} (e : L₁ ≅ L₂) [L₁.is_localization W] : L₂.is_localization W :=
+begin
+  have h := localization.inverts L₁ W,
+  rw morphism_property.is_inverted_by.iff_of_iso W e at h,
+  let F₁ := localization.construction.lift L₁ (localization.inverts L₁ W),
+  let F₂ := localization.construction.lift L₂ h,
+  exact
+  { inverts := h,
+    nonempty_is_equivalence := nonempty.intro
+      (is_equivalence.of_iso (lift_nat_iso W.Q W L₁ L₂ F₁ F₂ e) infer_instance), },
+end
+
+/-- If `L : C ⥤ D` is a localization for `W : morphism_property C`, then it is also
+the case of a functor obtained by post-composing `L` with an equivalence of categories. -/
+lemma of_equivalence_target {E : Type*} [category E] (L' : C ⥤ E) (eq : D ≌ E)
+  [L.is_localization W] (e : L ⋙ eq.functor ≅ L') : L'.is_localization W :=
+begin
+  have h : W.is_inverted_by L',
+  { rw ← morphism_property.is_inverted_by.iff_of_iso W e,
+    exact morphism_property.is_inverted_by.of_comp W L (localization.inverts L W) eq.functor, },
+  let F₁ := localization.construction.lift L (localization.inverts L W),
+  let F₂ := localization.construction.lift L' h,
+  let e' : F₁ ⋙ eq.functor ≅ F₂ := lift_nat_iso W.Q W (L ⋙ eq.functor) L' _ _ e,
+  exact
+  { inverts := h,
+    nonempty_is_equivalence := nonempty.intro (is_equivalence.of_iso e' infer_instance) },
+end
+
+end is_localization
+
+end functor
 
 end category_theory

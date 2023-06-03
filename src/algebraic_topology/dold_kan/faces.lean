@@ -5,12 +5,14 @@ Authors: Joël Riou
 -/
 
 import algebraic_topology.dold_kan.homotopies
-import data.nat.parity
 import tactic.ring_exp
 
 /-!
 
 # Study of face maps for the Dold-Kan correspondence
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 TODO (@joelriou) continue adding the various files referenced below
 

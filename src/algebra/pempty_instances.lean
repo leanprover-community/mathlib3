@@ -10,6 +10,9 @@ import tactic.to_additive
 /-!
 # Instances on pempty
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file collects facts about algebraic structures on the (universe-polymorphic) empty type, e.g.
 that it is a semigroup.
 -/

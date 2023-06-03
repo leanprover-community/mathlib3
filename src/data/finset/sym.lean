@@ -3,11 +3,16 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.prod
+import data.finset.lattice
+import data.fintype.prod
+import data.fintype.vector
 import data.sym.sym2
 
 /-!
 # Symmetric powers of a finset
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the symmetric powers of a finset as `finset (sym α n)` and `finset (sym2 α)`.
 
@@ -28,10 +33,10 @@ namespace finset
 variables {α : Type*} [decidable_eq α] {s t : finset α} {a b : α}
 
 lemma is_diag_mk_of_mem_diag {a : α × α} (h : a ∈ s.diag) : sym2.is_diag ⟦a⟧ :=
-(sym2.is_diag_iff_proj_eq _).2 ((mem_diag _ _).1 h).2
+(sym2.is_diag_iff_proj_eq _).2 (mem_diag.1 h).2
 
 lemma not_is_diag_mk_of_mem_off_diag {a : α × α} (h : a ∈ s.off_diag) : ¬ sym2.is_diag ⟦a⟧ :=
-by { rw sym2.is_diag_iff_proj_eq, exact ((mem_off_diag _ _).1 h).2.2 }
+by { rw sym2.is_diag_iff_proj_eq, exact (mem_off_diag.1 h).2.2 }
 
 section sym2
 variables {m : sym2 α}
@@ -111,15 +116,15 @@ end
 
 @[simp] lemma sym_empty (n : ℕ) : (∅ : finset α).sym (n + 1) = ∅ := rfl
 
-lemma repeat_mem_sym (ha : a ∈ s) (n : ℕ) : sym.repeat a n ∈ s.sym n :=
-mem_sym_iff.2 $ λ b hb, by rwa (sym.mem_repeat.1 hb).2
+lemma replicate_mem_sym (ha : a ∈ s) (n : ℕ) : sym.replicate n a ∈ s.sym n :=
+mem_sym_iff.2 $ λ b hb, by rwa (sym.mem_replicate.1 hb).2
 
 protected lemma nonempty.sym (h : s.nonempty) (n : ℕ) : (s.sym n).nonempty :=
-let ⟨a, ha⟩ := h in ⟨_, repeat_mem_sym ha n⟩
+let ⟨a, ha⟩ := h in ⟨_, replicate_mem_sym ha n⟩
 
-@[simp] lemma sym_singleton (a : α) (n : ℕ) : ({a} : finset α).sym n = {sym.repeat a n} :=
-eq_singleton_iff_nonempty_unique_mem.2 ⟨(singleton_nonempty _).sym n,
-  λ s hs, sym.eq_repeat_iff.2 $ λ b hb, eq_of_mem_singleton $ mem_sym_iff.1 hs _ hb⟩
+@[simp] lemma sym_singleton (a : α) (n : ℕ) : ({a} : finset α).sym n = {sym.replicate n a} :=
+eq_singleton_iff_unique_mem.2 ⟨replicate_mem_sym (mem_singleton.2 rfl) _,
+  λ s hs, sym.eq_replicate_iff.2 $ λ b hb, eq_of_mem_singleton $ mem_sym_iff.1 hs _ hb⟩
 
 lemma eq_empty_of_sym_eq_empty (h : s.sym n = ∅) : s = ∅ :=
 begin
@@ -138,10 +143,6 @@ end
 
 @[simp] lemma sym_nonempty : (s.sym n).nonempty ↔ n = 0 ∨ s.nonempty :=
 by simp_rw [nonempty_iff_ne_empty, ne.def, sym_eq_empty, not_and_distrib, not_ne_iff]
-
-alias sym2_nonempty ↔ _ nonempty.sym2
-
-attribute [protected] nonempty.sym2
 
 @[simp] lemma sym_univ [fintype α] (n : ℕ) : (univ : finset α).sym n = univ :=
 eq_univ_iff_forall.2 $ λ s, mem_sym_iff.2 $ λ a _, mem_univ _

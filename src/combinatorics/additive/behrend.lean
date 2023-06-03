@@ -42,7 +42,7 @@ integer points on that sphere and map them onto `ℕ` in a way that preserves ar
 Salem-Spencer, Behrend construction, arithmetic progression, sphere, strictly convex
 -/
 
-open finset nat real
+open finset nat (hiding log) real
 open_locale big_operators pointwise
 
 namespace behrend
@@ -78,7 +78,7 @@ lemma sphere_zero_subset : sphere n d 0 ⊆ 0 :=
 lemma sphere_subset_box : sphere n d k ⊆ box n d := filter_subset _ _
 
 lemma norm_of_mem_sphere {x : fin n → ℕ} (hx : x ∈ sphere n d k) :
-  ∥(pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)∥ = sqrt k :=
+  ‖(pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)‖ = sqrt k :=
 begin
   rw euclidean_space.norm_eq,
   dsimp,
@@ -251,7 +251,7 @@ begin
   rwa cast_ne_zero,
 end
 
-open_locale filter topological_space
+open_locale filter topology
 open real
 
 section numerical_bounds
@@ -432,7 +432,7 @@ begin
       rw one_le_cast,
       exact hN.trans' (by norm_num1) },
     { rw [cast_pos, lt_ceil, cast_zero, real.sqrt_pos],
-      apply log_pos,
+      refine log_pos _,
       rw one_lt_cast,
       exact hN.trans_lt' (by norm_num1) },
     apply le_sqrt_of_sq_le,

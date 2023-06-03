@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.finiteness
-import ring_theory.ideal.local_ring
-import ring_theory.nakayama
+import ring_theory.finite_type
 
 /-!
 
 # Rees algebra
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The Rees algebra of an ideal `I` is the subalgebra `R[It]` of `R[t]` defined as `R[It] = ⨁ₙ Iⁿ tⁿ`.
 This is used to prove the Artin-Rees lemma, and will potentially enable us to calculate some

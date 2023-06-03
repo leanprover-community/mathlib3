@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.calculus.mean_value
+import analysis.calculus.deriv.inv
 
 /-!
 # L'Hôpital's rule for 0/0 indeterminate forms
@@ -29,7 +30,7 @@ L'Hôpital's rule, L'Hopital's rule
 -/
 
 open filter set
-open_locale filter topological_space pointwise
+open_locale filter topology pointwise
 
 variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 

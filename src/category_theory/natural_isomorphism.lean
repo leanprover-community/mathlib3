@@ -9,6 +9,9 @@ import category_theory.isomorphism
 /-!
 # Natural isomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For the most part, natural isomorphisms are just another sort of isomorphism.
 
 We provide some special support for extracting components:
@@ -194,6 +197,18 @@ begin
   refine ⟨α.hom ◫ β.hom, α.inv ◫ β.inv, _, _⟩,
   { ext, rw [←nat_trans.exchange], simp, refl },
   ext, rw [←nat_trans.exchange], simp, refl
+end
+
+lemma is_iso_map_iff {F₁ F₂ : C ⥤ D} (e : F₁ ≅ F₂) {X Y : C} (f : X ⟶ Y) :
+  is_iso (F₁.map f) ↔ is_iso (F₂.map f) :=
+begin
+  revert F₁ F₂,
+  suffices : ∀ {F₁ F₂ : C ⥤ D} (e : F₁ ≅ F₂) (hf : is_iso (F₁.map f)), is_iso (F₂.map f),
+  { exact λ F₁ F₂ e, ⟨this e, this e.symm⟩, },
+  introsI F₁ F₂ e hf,
+  refine is_iso.mk ⟨e.inv.app Y ≫ inv (F₁.map f) ≫ e.hom.app X, _, _⟩,
+  { simp only [nat_trans.naturality_assoc, is_iso.hom_inv_id_assoc, iso.inv_hom_id_app], },
+  { simp only [assoc, ← e.hom.naturality, is_iso.inv_hom_id_assoc, iso.inv_hom_id_app], },
 end
 
 end nat_iso

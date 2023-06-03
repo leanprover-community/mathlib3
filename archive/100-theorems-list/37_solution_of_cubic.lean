@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeoff Lee
 -/
 import tactic.linear_combination
-import ring_theory.roots_of_unity
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.roots
 
 /-!
 # The Solution of a Cubic
@@ -35,6 +34,8 @@ Originally ported from Isabelle/HOL. The
 polynomial, cubic, root
 -/
 
+namespace theorems_100
+
 section field
 
 open polynomial
@@ -47,9 +48,8 @@ variables {ω p q r s t : K}
 lemma cube_root_of_unity_sum (hω : is_primitive_root ω 3) : 1 + ω + ω^2 = 0 :=
 begin
   convert hω.is_root_cyclotomic (nat.succ_pos _),
-  rw [cyclotomic_eq_geom_sum nat.prime_three, eval_geom_sum],
-  simp only [geom_sum_succ, geom_sum_zero],
-  ring,
+  simp only [cyclotomic_prime, eval_geom_sum],
+  simp [finset.sum_range_succ]
 end
 
 /-- The roots of a monic cubic whose quadratic term is zero and whose discriminant is nonzero. -/
@@ -185,3 +185,5 @@ begin
 end
 
 end field
+
+end theorems_100

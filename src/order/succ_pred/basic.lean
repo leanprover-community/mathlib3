@@ -6,10 +6,12 @@ Authors: Yaël Dillies
 import order.complete_lattice
 import order.cover
 import order.iterate
-import tactic.monotonicity
 
 /-!
 # Successor and predecessor
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines successor and predecessor orders. `succ a`, the successor of an element `a : α` is
 the least element greater than `a`. `pred a` is the greatest element less than `a`. Typical examples
@@ -220,8 +222,7 @@ lemma is_max_iterate_succ_of_eq_of_lt {n m : ℕ}
   (h_eq : (succ^[n] a) = (succ^[m] a)) (h_lt : n < m) :
   is_max (succ^[n] a) :=
 begin
-  refine max_of_succ_le _,
-  nth_rewrite 1 h_eq,
+  refine max_of_succ_le (le_trans _ h_eq.symm.le),
   have : succ (succ^[n] a) = (succ^[n + 1] a), by rw function.iterate_succ',
   rw this,
   have h_le : n + 1 ≤ m := nat.succ_le_of_lt h_lt,
@@ -315,6 +316,13 @@ end
 
 lemma _root_.covby.succ_eq (h : a ⋖ b) : succ a = b :=
 (succ_le_of_lt h.lt).eq_of_not_lt $ λ h', h.2 (lt_succ_of_not_is_max h.lt.not_is_max) h'
+
+lemma _root_.wcovby.le_succ (h : a ⩿ b) : b ≤ succ a :=
+begin
+  obtain h | rfl := h.covby_or_eq,
+  { exact h.succ_eq.ge },
+  { exact le_succ _ }
+end
 
 lemma le_succ_iff_eq_or_le : a ≤ succ b ↔ a = succ b ∨ a ≤ b :=
 begin
@@ -552,6 +560,13 @@ end
 lemma _root_.covby.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
 (le_pred_of_lt h.lt).eq_of_not_gt $ λ h', h.2 h' $ pred_lt_of_not_is_min h.lt.not_is_min
 
+lemma _root_.wcovby.pred_le (h : a ⩿ b) : pred b ≤ a :=
+begin
+  obtain h | rfl := h.covby_or_eq,
+  { exact h.pred_eq.le },
+  { exact pred_le _ }
+end
+
 lemma pred_le_iff_eq_or_le : pred a ≤ b ↔ b = pred a ∨ a ≤ b :=
 begin
   by_cases ha : is_min a,
@@ -675,11 +690,11 @@ lemma pred_succ_iterate_of_not_is_max (i : α) (n : ℕ) (hin : ¬ is_max (succ^
 begin
   induction n with n hn,
   { simp only [function.iterate_zero, id.def], },
-  rw [nat.succ_sub_succ_eq_sub, tsub_zero] at hin,
+  rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at hin,
   have h_not_max : ¬ is_max (succ^[n - 1] i),
   { cases n,
     { simpa using hin, },
-    rw [nat.succ_sub_succ_eq_sub, tsub_zero] at hn ⊢,
+    rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at hn ⊢,
     have h_sub_le : (succ^[n] i) ≤ (succ^[n.succ] i),
     { rw function.iterate_succ',
       exact le_succ _, },
@@ -810,6 +825,11 @@ instance : pred_order (with_top α) :=
 @[simp] lemma pred_top : pred (⊤ : with_top α) = ↑(⊤ : α) := rfl
 @[simp] lemma pred_coe (a : α) : pred (↑a : with_top α) = ↑(pred a) := rfl
 
+@[simp] lemma pred_untop : ∀ (a : with_top α) (ha : a ≠ ⊤),
+  pred (a.untop ha) = (pred a).untop (by induction a using with_top.rec_top_coe; simp)
+| ⊤ ha := (ha rfl).elim
+| (a : α) ha := rfl
+
 end pred
 
 /-! #### Adding a `⊤` to a `no_max_order` -/
@@ -906,6 +926,11 @@ instance : succ_order (with_bot α) :=
 
 @[simp] lemma succ_bot : succ (⊥ : with_bot α) = ↑(⊥ : α) := rfl
 @[simp] lemma succ_coe (a : α) : succ (↑a : with_bot α) = ↑(succ a) := rfl
+
+@[simp] lemma succ_unbot : ∀ (a : with_bot α) (ha : a ≠ ⊥),
+  succ (a.unbot ha) = (succ a).unbot (by induction a using with_bot.rec_bot_coe; simp)
+| ⊥ ha := (ha rfl).elim
+| (a : α) ha := rfl
 
 end succ
 

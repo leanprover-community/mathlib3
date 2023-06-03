@@ -3,12 +3,17 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
+import algebra.algebra.equiv
 import algebra.big_operators.finsupp
 import algebra.hom.non_unital_alg
+import algebra.module.big_operators
 import linear_algebra.finsupp
 
 /-!
 # Monoid algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 When the domain of a `finsupp` has a multiplicative or additive structure, we can define
 a convolution product. To mathematicians this structure is known as the "monoid algebra",
@@ -107,11 +112,13 @@ instance : non_unital_non_assoc_semiring (monoid_algebra k G) :=
 { zero          := 0,
   mul           := (*),
   add           := (+),
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
+  left_distrib  := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, mul_add, mul_zero,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, add_mul, zero_mul,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+      sum_add],
   zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
   mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   .. finsupp.add_comm_monoid }
@@ -288,9 +295,8 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k
   has_faithful_smul R (monoid_algebra k G) :=
 finsupp.has_faithful_smul
 
-instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_smul R S] [is_scalar_tower R S k] :
-  is_scalar_tower R S (monoid_algebra k G) :=
+instance [semiring k] [smul_zero_class R k] [smul_zero_class S k] [has_smul R S]
+  [is_scalar_tower R S k] : is_scalar_tower R S (monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
@@ -326,7 +332,8 @@ end
 lemma mul_apply_antidiagonal [has_mul G] (f g : monoid_algebra k G) (x : G) (s : finset (G × G))
   (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 * p.2 = x) :
   (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
-let F : G × G → k := λ p, by classical; exact if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
+by classical; exact
+let F : G × G → k := λ p, if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
 calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
   mul_apply f g x
 ... = ∑ p in f.support ×ˢ g.support, F p : finset.sum_product.symm
@@ -425,6 +432,21 @@ lemma mul_single_one_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x
   (f * single 1 r) x = f x * r :=
 f.mul_single_apply_aux $ λ a, by rw [mul_one]
 
+lemma mul_single_apply_of_not_exists_mul [has_mul G] (r : k) {g g' : G} (x : monoid_algebra k G)
+  (h : ¬∃ d, g' = d * g):
+  (x * finsupp.single g r : monoid_algebra k G) g' = 0 :=
+begin
+  classical,
+  rw [mul_apply, finsupp.sum_comm, finsupp.sum_single_index],
+  swap,
+  { simp_rw [finsupp.sum, mul_zero, if_t_t, finset.sum_const_zero] },
+  { apply finset.sum_eq_zero,
+    simp_rw ite_eq_right_iff,
+    rintros g'' hg'' rfl,
+    exfalso,
+    exact h ⟨_, rfl⟩ }
+end
+
 lemma single_mul_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k} {x y z : G}
   (H : ∀ a, x * a = y ↔ a = z) :
   (single x r * f) y = r * f z :=
@@ -439,6 +461,21 @@ calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
 lemma single_one_mul_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x : G) :
   (single 1 r * f) x = r * f x :=
 f.single_mul_apply_aux $ λ a, by rw [one_mul]
+
+lemma single_mul_apply_of_not_exists_mul [has_mul G] (r : k) {g g' : G} (x : monoid_algebra k G)
+  (h : ¬∃ d, g' = g * d):
+  (finsupp.single g r * x : monoid_algebra k G) g' = 0 :=
+begin
+  classical,
+  rw [mul_apply, finsupp.sum_single_index],
+  swap,
+  { simp_rw [finsupp.sum, zero_mul, if_t_t, finset.sum_const_zero] },
+  { apply finset.sum_eq_zero,
+    simp_rw ite_eq_right_iff,
+    rintros g'' hg'' rfl,
+    exfalso,
+    exact h ⟨_, rfl⟩ },
+end
 
 lemma lift_nc_smul [mul_one_class G] {R : Type*} [semiring R] (f : k →+* R) (g : G →* R) (c : k)
   (φ : monoid_algebra k G) :
@@ -473,8 +510,8 @@ end⟩
 also commute with the algebra multiplication. -/
 instance smul_comm_class_self [smul_comm_class R k k] :
   smul_comm_class R (monoid_algebra k G) (monoid_algebra k G) :=
-⟨λ t a b,
-begin
+⟨λ t a b, begin
+  classical,
   ext m,
   simp only [mul_apply, finsupp.sum, finset.smul_sum, smul_ite, mul_smul_comm, sum_smul_index',
     implies_true_iff, eq_self_iff_true, coe_smul, ite_eq_right_iff, smul_eq_mul, pi.smul_apply,
@@ -922,11 +959,13 @@ instance : non_unital_non_assoc_semiring (add_monoid_algebra k G) :=
 { zero          := 0,
   mul           := (*),
   add           := (+),
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
+  left_distrib  := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, mul_add, mul_zero,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+      sum_add],
   zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
   mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   nsmul     := λ n f, n • f,
@@ -1083,28 +1122,31 @@ instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) 
 
 variables {S : Type*}
 
+instance [semiring k] [distrib_smul R k] : distrib_smul R (add_monoid_algebra k G) :=
+finsupp.distrib_smul G k
+
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (add_monoid_algebra k G) :=
 finsupp.distrib_mul_action G k
 
-instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k] [nonempty G] :
+instance [semiring k] [smul_zero_class R k] [has_faithful_smul R k] [nonempty G] :
   has_faithful_smul R (add_monoid_algebra k G) :=
 finsupp.has_faithful_smul
 
 instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k G) :=
 finsupp.module G k
 
-instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
+instance [semiring k] [smul_zero_class R k] [smul_zero_class S k]
   [has_smul R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (add_monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 
-instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
+instance [semiring k] [smul_zero_class R k] [smul_zero_class S k]
   [smul_comm_class R S k] :
   smul_comm_class R S (add_monoid_algebra k G) :=
 finsupp.smul_comm_class G k
 
-instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action Rᵐᵒᵖ k]
+instance [semiring k] [smul_zero_class R k] [smul_zero_class Rᵐᵒᵖ k]
   [is_central_scalar R k] :
   is_central_scalar R (add_monoid_algebra k G) :=
 finsupp.is_central_scalar G k
@@ -1214,6 +1256,11 @@ lemma mul_single_zero_apply [add_zero_class G] (f : add_monoid_algebra k G) (r :
   (f * single 0 r) x = f x * r :=
 f.mul_single_apply_aux r _ _ _ $ λ a, by rw [add_zero]
 
+lemma mul_single_apply_of_not_exists_add [has_add G] (r : k) {g g' : G} (x : add_monoid_algebra k G)
+  (h : ¬∃ d, g' = d + g):
+  (x * finsupp.single g r : add_monoid_algebra k G) g' = 0 :=
+@monoid_algebra.mul_single_apply_of_not_exists_mul k (multiplicative G) _ _ _ _ _ _ h
+
 lemma single_mul_apply_aux [has_add G] (f : add_monoid_algebra k G) (r : k) (x y z : G)
   (H : ∀ a, x + a = y ↔ a = z) :
   (single x r * f : add_monoid_algebra k G) y = r * f z :=
@@ -1222,6 +1269,11 @@ lemma single_mul_apply_aux [has_add G] (f : add_monoid_algebra k G) (r : k) (x y
 lemma single_zero_mul_apply [add_zero_class G] (f : add_monoid_algebra k G) (r : k) (x : G) :
   (single 0 r * f : add_monoid_algebra k G) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
+
+lemma single_mul_apply_of_not_exists_add [has_add G] (r : k) {g g' : G} (x : add_monoid_algebra k G)
+  (h : ¬∃ d, g' = g + d):
+  (finsupp.single g r * x : add_monoid_algebra k G) g' = 0 :=
+@monoid_algebra.single_mul_apply_of_not_exists_mul k (multiplicative G) _ _ _ _ _ _ h
 
 lemma mul_single_apply [add_group G] (f : add_monoid_algebra k G) (r : k) (x y : G) :
   (f * single x r) y = f (y - x) * r :=

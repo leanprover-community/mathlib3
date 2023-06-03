@@ -8,6 +8,9 @@ import order.filter.basic
 /-!
 # Minimum and maximum w.r.t. a filter and on a aet
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 
 This file defines six predicates of the form `is_A_B`, where `A` is `min`, `max`, or `extr`,

@@ -11,6 +11,9 @@ import category_theory.category.preorder
 /-!
 # Initial and terminal objects in a category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## References
 * [Stacks: Initial and final objects](https://stacks.math.columbia.edu/tag/002B)
 -/

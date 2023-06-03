@@ -17,7 +17,7 @@ sqrt, differentiable
 -/
 
 open set
-open_locale topological_space
+open_locale topology
 
 namespace real
 

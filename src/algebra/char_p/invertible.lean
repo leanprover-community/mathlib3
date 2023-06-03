@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import algebra.invertible
-import algebra.field.basic
 import algebra.char_p.basic
 
 /-!
 # Invertibility of elements given a characteristic
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file includes some instances of `invertible` for specific numbers in
 characteristic zero. Some more cases are given as a `def`, to be included only

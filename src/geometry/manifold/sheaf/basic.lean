@@ -27,7 +27,7 @@ instance Top.of.has_groupoid [has_groupoid M G] : has_groupoid (Top.of M) G :=
 /-- Let `P` be a `local_invariant_prop` for functions between spaces with the groupoids `G`, `G'`
 and let `M`, `M'` be charted spaces modelled on the model spaces of those groupoids.  Then there is
 an induced `local_predicate` on the functions from `M` to `M'`, given by `lift_prop P`. -/
-def local_predicate_of_local_invariant_prop (hG : local_invariant_prop G G' P) :
+def structure_groupoid.local_invariant_prop.local_predicate (hG : local_invariant_prop G G' P) :
   Top.local_predicate (λ (x : Top.of M), M') :=
 { pred := λ {U : opens (Top.of M)}, λ (f : U → M'), lift_prop P f,
   res := begin
@@ -56,7 +56,7 @@ a presheaf of types on `M` which, to each open set `U` in `M`, associates the ty
 functions from `U` to `M'` satisfying the lift of `P`. -/
 def structure_groupoid.local_invariant_prop.sheaf (hG : local_invariant_prop G G' P) :
   Top.sheaf (Type u) (Top.of M) :=
-Top.subsheaf_to_Types (local_predicate_of_local_invariant_prop M M' hG)
+Top.subsheaf_to_Types (hG.local_predicate M M')
 
 instance structure_groupoid.local_invariant_prop.sheaf_has_coe_to_fun
   (hG : local_invariant_prop G G' P) (U : (opens (Top.of M))ᵒᵖ) :

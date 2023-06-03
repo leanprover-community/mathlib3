@@ -15,7 +15,7 @@ equal to `μ[stopped_value f τ | hσ.measurable_space]`.
 
 ## Main results
 
-* `stopped_value_min_ae_eq_condexp` : the optional sampling theorem.
+* `stopped_value_min_ae_eq_condexp` : the optional sampling theorem. TODO
 
 -/
 

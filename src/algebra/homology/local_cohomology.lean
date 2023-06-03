@@ -50,7 +50,7 @@ open category_theory.limits
 
 noncomputable theory
 
-universes u v
+universes u v v'
 
 namespace local_cohomology
 
@@ -95,15 +95,19 @@ def of_diagram (I : D ⥤ ideal R) (i : ℕ) :
   Module.{max u v} R ⥤ Module.{max u v} R :=
 colimit (diagram.{(max u v) v} I i)
 
-variables {E : Type v} [small_category E]
+end
+
+section
+variables {R : Type max u v v'} [comm_ring R] {D : Type v} [small_category D]
+
+variables {E : Type v'} [small_category E]
   (I' : E ⥤ D) [functor.initial I']
   (I : D ⥤ ideal R)
 
 def diagram_comp (i : ℕ) : diagram (I' ⋙ I) i ≅ I'.op ⋙ (diagram I i) := iso.refl _
-
-/-- Local cohomology agrees along cofinal diagrams. -/
+/-- Local cohomology agrees along arbitrary cofinal diagrams. -/
 def iso_of_final (i : ℕ) :
-  of_diagram (I' ⋙ I) i ≅ of_diagram I i :=
+  of_diagram.{(max u v) v'} (I' ⋙ I) i ≅ of_diagram.{(max u v') v} I i :=
 (has_colimit.iso_of_nat_iso (diagram_comp _ _ _))
 ≪≫ (functor.final.colimit_iso _ _)
 
@@ -224,9 +228,9 @@ using {R : Type u} as above causes an error.
 /-- Local cohomology (defined in terms of powers of `J`) agrees with local
 cohomology computed over all ideals with radical containing `J`. -/
 def iso_self_le_radical
-  {R : Type} [comm_ring R] (J : ideal R) [is_noetherian R R] (i : ℕ) :
+  {R : Type u} [comm_ring R] (J : ideal R) [is_noetherian R R] (i : ℕ) :
   local_cohomology.of_self_le_radical J i ≅ local_cohomology J i :=
-(local_cohomology.iso_of_final
+(local_cohomology.iso_of_final.{u u 0}
   (ideal_powers_to_self_le_radical J) (self_le_radical_diagram J) i).symm
 ≪≫ has_colimit.iso_of_nat_iso (iso.refl _)
 
@@ -235,7 +239,7 @@ end local_cohomology_equiv
 
 section
 
-variables {R : Type} [comm_ring R]
+variables {R : Type u} [comm_ring R]
 
 def self_le_radical.cast {J K : ideal R} (hJK : J.radical = K.radical) :
 self_le_radical J ⥤ self_le_radical K :=

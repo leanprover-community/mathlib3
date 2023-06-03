@@ -3,15 +3,15 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebraic_geometry.presheafed_space.has_colimits
+import algebra.category.Ring.instances
+import topology.sheafed_space.open_immersion
+import algebraic_geometry.Scheme
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.preserves.shapes.pullbacks
-import topology.sheaves.functors
-import topology.category.Top.limits.pullbacks
-import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.comm_sq
-import algebra.category.Ring.instances
+import topology.sheaves.functors
+import topology.category.Top.limits.pullbacks
 
 /-!
 # Open immersions of structured spaces
@@ -66,34 +66,6 @@ universes v v₁ v₂ u
 
 variables {C : Type u} [category.{v} C]
 
-/--
-An open immersion of PresheafedSpaces is an open embedding `f : X ⟶ U ⊆ Y` of the underlying
-spaces, such that the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
--/
-class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) : Prop :=
-(base_open : open_embedding f.base)
-(c_iso : ∀ U : opens X, is_iso (f.c.app (op (base_open.is_open_map.functor.obj U))))
-
-/--
-A morphism of SheafedSpaces is an open immersion if it is an open immersion as a morphism
-of PresheafedSpaces
--/
-abbreviation SheafedSpace.is_open_immersion {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) : Prop :=
-PresheafedSpace.is_open_immersion f
-
-/--
-A morphism of LocallyRingedSpaces is an open immersion if it is an open immersion as a morphism
-of SheafedSpaces
--/
-abbreviation LocallyRingedSpace.is_open_immersion {X Y : LocallyRingedSpace} (f : X ⟶ Y) : Prop :=
-SheafedSpace.is_open_immersion f.1
-
-/--
-A morphism of Schemes is an open immersion if it is an open immersion as a morphism
-of LocallyRingedSpaces
--/
-abbreviation is_open_immersion {X Y : Scheme} (f : X ⟶ Y) : Prop :=
-LocallyRingedSpace.is_open_immersion f
 
 namespace PresheafedSpace.is_open_immersion
 
@@ -106,104 +78,6 @@ attribute [instance] is_open_immersion.c_iso
 section
 
 variables {X Y : PresheafedSpace.{v} C} {f : X ⟶ Y} (H : is_open_immersion f)
-
-/-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
-abbreviation open_functor := H.base_open.is_open_map.functor
-
-/-- An open immersion `f : X ⟶ Y` induces an isomorphism `X ≅ Y|_{f(X)}`. -/
-@[simps hom_c_app] noncomputable
-def iso_restrict : X ≅ Y.restrict H.base_open :=
-PresheafedSpace.iso_of_components (iso.refl _)
-begin
-  symmetry,
-  fapply nat_iso.of_components,
-  intro U,
-  refine as_iso (f.c.app (op (H.open_functor.obj (unop U)))) ≪≫ X.presheaf.map_iso (eq_to_iso _),
-  { induction U using opposite.rec,
-    cases U,
-    dsimp only [is_open_map.functor, functor.op, opens.map],
-    congr' 2,
-    erw set.preimage_image_eq _ H.base_open.inj,
-    refl },
-  { intros U V i,
-    simp only [category_theory.eq_to_iso.hom, Top.presheaf.pushforward_obj_map, category.assoc,
-      functor.op_map, iso.trans_hom, as_iso_hom, functor.map_iso_hom, ←X.presheaf.map_comp],
-    erw [f.c.naturality_assoc, ←X.presheaf.map_comp],
-    congr }
-end
-
-@[simp] lemma iso_restrict_hom_of_restrict : H.iso_restrict.hom ≫ Y.of_restrict _ = f :=
-begin
-  ext,
-  { simp only [comp_c_app, iso_restrict_hom_c_app, nat_trans.comp_app,
-      eq_to_hom_refl, of_restrict_c_app, category.assoc, whisker_right_id'],
-    erw [category.comp_id, f.c.naturality_assoc, ←X.presheaf.map_comp],
-    transitivity f.c.app x ≫ X.presheaf.map (𝟙 _),
-    { congr },
-    { erw [X.presheaf.map_id, category.comp_id] } },
-  { refl, }
-end
-
-@[simp] lemma iso_restrict_inv_of_restrict : H.iso_restrict.inv ≫ f = Y.of_restrict _ :=
-by { rw [iso.inv_comp_eq, iso_restrict_hom_of_restrict] }
-
-instance mono [H : is_open_immersion f] : mono f :=
-by { rw ← H.iso_restrict_hom_of_restrict, apply mono_comp }
-
-/-- The composition of two open immersions is an open immersion. -/
-instance comp {Z : PresheafedSpace C} (f : X ⟶ Y) [hf : is_open_immersion f] (g : Y ⟶ Z)
-  [hg : is_open_immersion g] :
-  is_open_immersion (f ≫ g) :=
-{ base_open := hg.base_open.comp hf.base_open,
-  c_iso := λ U,
-  begin
-    generalize_proofs h,
-    dsimp only [algebraic_geometry.PresheafedSpace.comp_c_app, unop_op, functor.op, comp_base,
-      Top.presheaf.pushforward_obj_obj, opens.map_comp_obj],
-    apply_with is_iso.comp_is_iso { instances := ff },
-    swap,
-    { have : (opens.map g.base).obj (h.functor.obj U) = hf.open_functor.obj U,
-      { ext1,
-        dsimp only [opens.map_coe, is_open_map.functor_obj_coe, comp_base],
-        rw [coe_comp, ← set.image_image, set.preimage_image_eq _ hg.base_open.inj] },
-      rw this,
-      apply_instance },
-    { have : h.functor.obj U = hg.open_functor.obj (hf.open_functor.obj U),
-      { ext1,
-        dsimp only [is_open_map.functor_obj_coe],
-        rw [comp_base, coe_comp, ←set.image_image] },
-      rw this,
-      apply_instance }
-  end }
-
-/-- For an open immersion `f : X ⟶ Y` and an open set `U ⊆ X`, we have the map `X(U) ⟶ Y(U)`. -/
-noncomputable
-def inv_app (U : opens X) : X.presheaf.obj (op U) ⟶ Y.presheaf.obj (op (H.open_functor.obj U)) :=
-X.presheaf.map (eq_to_hom (by simp [opens.map, set.preimage_image_eq _ H.base_open.inj])) ≫
-  inv (f.c.app (op (H.open_functor.obj U)))
-
-@[simp, reassoc] lemma inv_naturality {U V : (opens X)ᵒᵖ} (i : U ⟶ V) :
-  X.presheaf.map i ≫ H.inv_app (unop V) = H.inv_app (unop U) ≫
-    Y.presheaf.map (H.open_functor.op.map i) :=
-begin
-  simp only [inv_app, ←category.assoc],
-  rw [is_iso.comp_inv_eq],
-  simp only [category.assoc, f.c.naturality, is_iso.inv_hom_id_assoc, ← X.presheaf.map_comp],
-  erw ← X.presheaf.map_comp,
-  congr
-end
-
-instance (U : opens X) : is_iso (H.inv_app U) := by { delta inv_app, apply_instance }
-
-lemma inv_inv_app (U : opens X) :
-  inv (H.inv_app U) = f.c.app (op (H.open_functor.obj U)) ≫
-    X.presheaf.map (eq_to_hom (by simp [opens.map, set.preimage_image_eq _ H.base_open.inj])) :=
-begin
-  rw ← cancel_epi (H.inv_app U),
-  rw is_iso.hom_inv_id,
-  delta inv_app,
-  simp [← functor.map_comp]
-end
 
 @[simp, reassoc, elementwise] lemma inv_app_app (U : opens X) :
   H.inv_app U ≫ f.c.app (op (H.open_functor.obj U)) =

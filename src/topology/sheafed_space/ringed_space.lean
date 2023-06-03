@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer, Andrew Yang
 -/
 import algebra.category.Ring.filtered_colimits
-import algebraic_geometry.sheafed_space
+import topology.sheafed_space.sheafed_space
 import topology.sheaves.stalks
 import algebra.category.Ring.colimits
 import algebra.category.Ring.limits

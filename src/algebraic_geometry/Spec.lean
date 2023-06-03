@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Justus Springer
 -/
-import algebraic_geometry.locally_ringed_space
+import topology.sheafed_space.locally_ringed_space
 import algebraic_geometry.structure_sheaf
 import ring_theory.localization.localization_localization
 import topology.sheaves.sheaf_condition.sites

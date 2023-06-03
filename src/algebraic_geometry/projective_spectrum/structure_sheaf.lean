@@ -6,7 +6,7 @@ Authors: Jujian Zhang
 import algebraic_geometry.projective_spectrum.topology
 import topology.sheaves.local_predicate
 import ring_theory.graded_algebra.homogeneous_localization
-import algebraic_geometry.locally_ringed_space
+import topology.sheafed_space.locally_ringed_space
 
 /-!
 # The structure sheaf on `projective_spectrum 𝒜`.

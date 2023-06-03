@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import algebraic_geometry.ringed_space
-import algebraic_geometry.stalks
+import topology.sheafed_space.ringed_space
+import topology.sheafed_space.stalks
 
 /-!
 # The category of locally ringed spaces

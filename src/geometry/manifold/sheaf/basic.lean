@@ -6,7 +6,27 @@ Authors: Heather Macbeth
 import geometry.manifold.local_invariant_properties
 import topology.sheaves.local_predicate
 
-/-! # Generic construction of a sheaf from a `local_invariant_prop` on a manifold -/
+/-! # Generic construction of a sheaf from a `local_invariant_prop` on a manifold
+
+This file constructs the sheaf-of-types of functions `f : M → M'` (for charted spaces `M`, `M'`)
+which satisfy the lifted property `lift_prop P` associated to some locally invariant (in the sense
+of `structure_groupoid.local_invariant_prop`) property `P` on the model spaces of `M` and `M'`. For
+example, differentiability and smoothness are locally invariant properties in this sense, so this
+construction can be used to construct the sheaf of differentiable functions on a manifold and the
+sheaf of smooth functions on a manifold.
+
+The mathematical work is in associating a `Top.local_predicate` to a
+`structure_groupoid.local_invariant_prop`: that is, showing that a differential-geometric "locally
+invariant" property is preserved under restriction and gluing.
+
+## Main definitions
+
+* `structure_groupoid.local_invariant_prop.local_predicate`: the `Top.local_predicate` (in the
+  sheaf-theoretic sense) on functions from open subsets of `M` into `M'`, which states whether
+  such functions satisfy `lift_prop P`.
+* `structure_groupoid.local_invariant_prop.sheaf`: the sheaf-of-types of functions `f : M → M'`
+  which satisfy the lifted property `lift_prop P`.
+-/
 
 open_locale manifold topology
 open set topological_space structure_groupoid structure_groupoid.local_invariant_prop opposite

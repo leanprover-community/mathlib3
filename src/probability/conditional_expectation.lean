@@ -48,6 +48,7 @@ begin
   rw ← mem_ℒp_one_iff_integrable at hfint,
   refine hfint.induction_strongly_measurable hle₁ ennreal.one_ne_top _ _ _ _ _ _,
   { intros c t hmt ht,
+    rw [indep_iff] at hindp,
     rw [integral_indicator (hle₁ _ hmt), set_integral_const, smul_smul,
       ← ennreal.to_real_mul, mul_comm, ← hindp _ _ hmt hms, set_integral_indicator (hle₁ _ hmt),
       set_integral_const, set.inter_comm] },

@@ -415,9 +415,6 @@ nonempty_iff_ne_empty.not.trans not_not
 theorem eq_empty_or_nonempty (s : finset α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
-lemma nonempty_of_mem {a : α} {s : finset α} (h : a ∈ s) : s.nonempty :=
-nonempty_of_ne_empty (ne_empty_of_mem h)
-
 @[simp, norm_cast] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
 
 @[simp, norm_cast] lemma coe_eq_empty {s : finset α} : (s : set α) = ∅ ↔ s = ∅ :=

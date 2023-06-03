@@ -9,6 +9,9 @@ import ring_theory.localization.integral
 /-!
 # Integrally closed rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An integrally closed domain `R` contains all the elements of `Frac(R)` that are
 integral over `R`. A special case of integrally closed domains are the Dedekind domains.
 

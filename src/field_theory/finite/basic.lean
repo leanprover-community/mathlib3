@@ -10,6 +10,9 @@ import tactic.apply_fun
 /-!
 # Finite fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains basic results about finite fields.
 Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.

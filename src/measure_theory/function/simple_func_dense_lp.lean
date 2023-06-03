@@ -9,6 +9,9 @@ import measure_theory.function.simple_func_dense
 /-!
 # Density of simple functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that each `Lᵖ` Borel measurable function can be approximated in `Lᵖ` norm
 by a sequence of simple functions.
 

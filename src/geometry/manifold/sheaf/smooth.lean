@@ -170,10 +170,42 @@ def smooth_sheaf_Ring : Top.sheaf Ring.{u} (Top.of M) :=
     { apply_instance },
   end }
 
--- sanity check: applying the `Ring`-to-`Type` forgetful functor to the sheaf-of-rings of smooth
+end smooth_ring
+
+section smooth_comm_ring
+variables [comm_ring R] [smooth_ring I R]
+
+instance (U : (opens (Top.of M))ᵒᵖ) : comm_ring ((smooth_sheaf IM I M R).val.obj U) :=
+(smooth_map.comm_ring : comm_ring C^∞⟮IM, (unop U : opens M); I, R⟯)
+
+/-- The presheaf of smooth functions from `M` to `R`, for `R` a smooth commutative ring, as a
+presheaf of commutative rings. -/
+def smooth_presheaf_CommRing : Top.presheaf CommRing.{u} (Top.of M) :=
+{ obj := λ U, CommRing.of ((smooth_sheaf IM I M R).val.obj U),
+  map := λ U V h, CommRing.of_hom $
+    smooth_map.restrict_ring_hom IM I R $ category_theory.le_of_hom h.unop,
+  map_id' := begin
+    intro U,
+    ext ⟨_, _⟩ ⟨_, _⟩,
+    refl,
+  end,
+  map_comp' := λ U V W f g, rfl }
+
+/-- The sheaf of smooth functions from `M` to `R`, for `R` a smooth commutative ring, as a sheaf of
+commutative rings. -/
+def smooth_sheaf_CommRing : Top.sheaf CommRing.{u} (Top.of M) :=
+{ val := smooth_presheaf_CommRing IM I M R,
+  cond := begin
+    change category_theory.presheaf.is_sheaf _ _,
+    rw category_theory.presheaf.is_sheaf_iff_is_sheaf_forget _ _ (category_theory.forget CommRing),
+    { exact category_theory.Sheaf.cond (smooth_sheaf IM I M R) },
+    { apply_instance },
+  end }
+
+-- sanity check: applying the `CommRing`-to-`Type` forgetful functor to the sheaf-of-rings of smooth
 -- functions gives the sheaf-of-types of smooth functions.
-example : (category_theory.Sheaf_compose _ (category_theory.forget Ring)).obj
-  (smooth_sheaf_Ring.{u} IM I M R) =
+example : (category_theory.Sheaf_compose _ (category_theory.forget CommRing)).obj
+  (smooth_sheaf_CommRing.{u} IM I M R) =
   (smooth_sheaf IM I M R) := rfl
 
-end smooth_ring
+end smooth_comm_ring

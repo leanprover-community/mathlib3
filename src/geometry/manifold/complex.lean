@@ -125,7 +125,7 @@ variables {M : Type} [topological_space M] [compact_space M] [charted_space E M]
 
 open opposite
 
-example (f : (smooth_sheaf_Ring 𝓘(ℂ, E) 𝓘(ℂ, ℂ) M ℂ).val.obj (op ⊤)) :
+example (f : (smooth_sheaf_CommRing 𝓘(ℂ, E) 𝓘(ℂ, ℂ) M ℂ).val.obj (op ⊤)) :
   is_locally_constant (id f.1 : (⊤ : topological_space.opens M) → ℂ) :=
 begin
   haveI : compact_space (⊤ : topological_space.opens M),

@@ -28,6 +28,8 @@ Then `p = 2n + k ≥ 2n + √(p - 4) = 2n + √(2n + k - 4) > √(2n)` and we ar
 
 open real
 
+namespace imo
+
 lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (hp_gt_20 : p > 20) :
   ∃ n : ℕ, p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
@@ -90,3 +92,5 @@ begin
 
   exact ⟨n, hn_ge_N, p, hpp, hnat, hreal⟩,
 end
+
+end imo

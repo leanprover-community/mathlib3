@@ -18,6 +18,8 @@ as saying the numerator and denominator are relatively prime.
 
 open nat
 
+namespace imo
+
 lemma calculation (n k : ℕ) (h1 : k ∣ 21 * n + 4) (h2 : k ∣ 14 * n + 3) : k ∣ 1 :=
 have h3 : k ∣ 2 * (21 * n + 4), from h1.mul_left 2,
 have h4 : k ∣ 3 * (14 * n + 3), from h2.mul_left 3,
@@ -26,3 +28,5 @@ have h5 : 3 * (14 * n + 3) = 2 * (21 * n + 4) + 1, by ring,
 
 theorem imo1959_q1 : ∀ n : ℕ, coprime (21 * n + 4) (14 * n + 3) :=
 assume n, coprime_of_dvd' $ λ k hp h1 h2, calculation n k h1 h2
+
+end imo

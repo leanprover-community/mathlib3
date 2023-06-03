@@ -10,6 +10,9 @@ import linear_algebra.matrix.block
 /-!
 # Gram-Schmidt Orthogonalization and Orthonormalization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we introduce Gram-Schmidt Orthogonalization and Orthonormalization.
 
 The Gram-Schmidt process takes a set of vectors as input

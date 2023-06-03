@@ -17,6 +17,9 @@ import category_theory.sites.pushforward
 /-!
 # Stalks
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a presheaf `F` on a topological space `X`, valued in some category `C`, the *stalk* of `F`
 at the point `x : X` is defined as the colimit of the composition of the inclusion of categories
 `(nhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ` and the functor `F : (opens X)ᵒᵖ ⥤ C`.

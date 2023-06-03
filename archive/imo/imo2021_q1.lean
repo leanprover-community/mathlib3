@@ -43,6 +43,8 @@ which finishes the proof.
 
 open real
 
+namespace imo
+
 lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * l) :
   n + 4 * l ≤ 2 * l * l :=
 begin
@@ -178,3 +180,5 @@ begin
   cases hCA; [right, left];
   exact ⟨a, (hCA ha).2, b, (hCA hb).2, hab, h₁ a (hCA ha).1 b (hCA hb).1 hab⟩,
 end
+
+end imo

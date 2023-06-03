@@ -9,6 +9,9 @@ import algebraic_topology.fundamental_groupoid.fundamental_group
 /-!
 # `n`th homotopy group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the `n`th homotopy group at `x`, `π n x`, as the equivalence classes
 of functions from the nth dimensional cube to the topological space `X`
 that send the boundary to the base point `x`, up to homotopic equivalence.

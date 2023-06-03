@@ -9,6 +9,9 @@ import analysis.calculus.fderiv.add
 /-!
 # One-dimensional derivatives of sums etc
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove formulas about derivatives of `f + g`, `-f`, `f - g`, and `∑ i, f i x` for
 functions from the base field to a normed space over this field.
 

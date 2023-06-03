@@ -11,6 +11,9 @@ import topology.category.Top.basic
 /-!
 # The category of measurable spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Measurable spaces and measurable functions form a (concrete) category `Meas`.
 
 ## Main definitions

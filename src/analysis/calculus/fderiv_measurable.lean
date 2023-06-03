@@ -10,6 +10,9 @@ import measure_theory.function.strongly_measurable.basic
 /-!
 # Derivative is measurable
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the derivative of any function with complete codomain is a measurable
 function. Namely, we prove:
 

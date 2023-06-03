@@ -9,6 +9,9 @@ import analysis.calculus.deriv.comp
 /-!
 # Derivatives of `x ↦ x⁻¹` and `f x / g x`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove `(x⁻¹)' = -1 / x ^ 2`, `((f x)⁻¹)' = -f' x / (f x) ^ 2`, and
 `(f x / g x)' = (f' x * g x - f x * g' x) / (g x) ^ 2` for different notions of derivative.
 

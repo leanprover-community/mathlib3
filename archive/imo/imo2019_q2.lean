@@ -56,6 +56,8 @@ rather than more literally with `affine_segment`.
 -/
 library_note "IMO geometry formalization conventions"
 
+namespace imo
+
 noncomputable theory
 
 open affine affine.simplex euclidean_geometry finite_dimensional
@@ -591,3 +593,5 @@ theorem imo2019_q2 (A B C A₁ B₁ P Q P₁ Q₁ : Pt)
 (⟨A, B, C, A₁, B₁, P, Q, P₁, Q₁, affine_independent_ABC, wbtw_B_A₁_C, wbtw_A_B₁_C, wbtw_A_P_A₁,
   wbtw_B_Q_B₁, PQ_parallel_AB, P_ne_Q, sbtw_P_B₁_P₁, angle_PP₁C_eq_angle_BAC, C_ne_P₁,
   sbtw_Q_A₁_Q₁, angle_CQ₁Q_eq_angle_CBA, C_ne_Q₁⟩ : imo2019q2_cfg V Pt).result
+
+end imo

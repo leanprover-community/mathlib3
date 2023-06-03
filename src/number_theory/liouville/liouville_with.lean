@@ -10,6 +10,9 @@ import topology.instances.irrational
 /-!
 # Liouville numbers with a given exponent
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a real number `x` is a Liouville number with exponent `p : ℝ` if there exists a real
 number `C` such that for infinitely many denominators `n` there exists a numerator `m` such that
 `x ≠ m / n` and `|x - m / n| < C / n ^ p`. A number is a Liouville number in the sense of

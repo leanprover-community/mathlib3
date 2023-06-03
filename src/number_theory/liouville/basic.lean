@@ -10,6 +10,9 @@ import data.real.irrational
 
 # Liouville's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 

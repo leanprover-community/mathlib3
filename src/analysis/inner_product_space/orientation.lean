@@ -9,6 +9,9 @@ import linear_algebra.orientation
 /-!
 # Orientations of real inner product spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides definitions and proves lemmas about orientations of real inner product spaces.
 
 ## Main definitions

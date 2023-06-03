@@ -261,7 +261,7 @@ functor.initial_of_adjunction (self_le_radical.cast hJK).adjunction
 def self_le_radical.iso_of_same_radical [is_noetherian R R] {J K : ideal R}
   (hJK : J.radical = K.radical)  (i : ℕ) :
 of_self_le_radical J i ≅ of_self_le_radical K i :=
-(iso_of_final (self_le_radical.cast hJK.symm) _ _).symm
+(iso_of_final.{u u u} (self_le_radical.cast hJK.symm) _ _).symm
 
 /-- Local cohomology agrees on ideals with the same radical. -/
 def iso_of_same_radical [is_noetherian R R] {J K : ideal R} (i : ℕ)

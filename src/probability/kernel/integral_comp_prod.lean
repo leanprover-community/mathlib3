@@ -33,14 +33,16 @@ noncomputable theory
 open_locale topology ennreal measure_theory probability_theory
 open set function real ennreal measure_theory filter probability_theory probability_theory.kernel
 
+namespace probability_theory
+
+section comp_prod
+
 variables {α β γ E : Type*}
   {mα : measurable_space α} {mβ : measurable_space β} {mγ : measurable_space γ}
   [normed_add_comm_group E]
   {κ : kernel α β} [is_s_finite_kernel κ]
   {η : kernel (α × β) γ} [is_s_finite_kernel η]
   {a : α}
-
-namespace probability_theory
 
 lemma has_finite_integral_prod_mk_left (a : α) {s : set (β × γ)} (h2s : (κ ⊗ₖ η) a s ≠ ∞) :
   has_finite_integral (λ b, (η (a, b) (prod.mk b ⁻¹' s)).to_real) (κ a) :=
@@ -276,5 +278,135 @@ lemma set_integral_comp_prod_univ_left (f : β × γ → E) {t : set γ}
   (ht : measurable_set t) (hf : integrable_on f (univ ×ˢ t) ((κ ⊗ₖ η) a)) :
   ∫ z in univ ×ˢ t, f z ∂((κ ⊗ₖ η) a) = ∫ x, ∫ y in t, f (x, y) ∂(η (a, x)) ∂(κ a) :=
 by simp_rw [set_integral_comp_prod measurable_set.univ ht hf, measure.restrict_univ]
+
+end comp_prod
+
+section map_comap
+
+variables {α β γ E : Type*}
+  {mα : measurable_space α} {mβ : measurable_space β} {mγ : measurable_space γ}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {κ : kernel α β} [is_s_finite_kernel κ]
+  {a : α}
+  {u : β → γ} {hu : measurable u} {v : γ → α} {hv : measurable v}
+  {f : γ → E} {g : β → E}
+
+lemma Lp.continuous_comp {mβ : measurable_space β} {mγ : measurable_space γ}
+  {μ : measure β} (hu : measurable u) :
+  continuous (λ f : Lp E 1 (μ.map u),
+    integrable.to_L1 (f ∘ u) (integrable.comp_measurable (L1.integrable_coe_fn f) hu)) :=
+begin
+  refine metric.continuous_iff.mpr (λ f ε hε, ⟨ε, hε, λ g hfg, _⟩),
+  rw dist_eq_norm at hfg ⊢,
+  rw [← integrable.to_L1_sub, integrable.norm_to_L1_eq_lintegral_norm],
+  have : ∫⁻ x, ‖(g - f) x‖₊ ∂(μ.map u) = ∫⁻ x, ‖((g : γ → E)  - f) x‖₊ ∂(μ.map u),
+  { refine lintegral_congr_ae _,
+    filter_upwards [Lp.coe_fn_sub g f] with x hx,
+    rw hx, },
+  rw [Lp.norm_def, snorm_one_eq_lintegral_nnnorm, this, lintegral_map' _ hu.ae_measurable] at hfg,
+  { simp_rw of_real_norm_eq_coe_nnnorm,
+    exact hfg, },
+  { exact ((Lp.ae_strongly_measurable g).sub (Lp.ae_strongly_measurable f)).ennnorm, },
+end
+
+lemma integrable_of_integrable_map_kernel (hf : integrable f (map κ u hu a)) :
+  integrable (f ∘ u) (κ a) :=
+hf.comp_measurable hu
+
+lemma kernel.integral_map (hf : integrable f (map κ u hu a)) :
+  ∫ b, f b ∂(map κ u hu a) = ∫ a, f (u a) ∂(κ a) :=
+begin
+  refine integrable.induction _ _ _ _ _ hf,
+  { intros c s hs hs_top,
+    simp_rw [integral_indicator_const c hs, ← indicator_comp_right,
+      function.comp, integral_indicator_const c (hu hs), kernel.map_apply' _ _ _ hs], },
+  { intros f' g' h_disj hf' hg' hf'_eq hg'_eq,
+    rw [integral_add' hf' hg', hf'_eq, hg'_eq, ← integral_add],
+    { simp_rw pi.add_apply, },
+    { exact hf'.comp_measurable hu, },
+    { exact hg'.comp_measurable hu, }, },
+  { refine is_closed_eq continuous_integral _,
+    let F : Lp E 1 (map κ u hu a) → Lp E 1 (κ a) := λ f,
+      integrable.to_L1 (f ∘ u) (integrable.comp_measurable (L1.integrable_coe_fn f) hu),
+    suffices hF : continuous F,
+    { convert continuous_integral.comp hF,
+      ext1 g,
+      simp only [comp_app, L1.integral_of_fun_eq_integral], },
+    exact Lp.continuous_comp hu, },
+  { intros f' g' hfg' hf' hf'_eq,
+    rw [← integral_congr_ae hfg', hf'_eq],
+    rw kernel.map_apply at hfg',
+    exact integral_congr_ae (ae_of_ae_map hu.ae_measurable hfg'), },
+end
+
+lemma kernel.integral_fst {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {κ : kernel α (γ × β)} [is_s_finite_kernel κ]
+  (hf : integrable f (fst κ a)) :
+  ∫ b, f b ∂(fst κ a) = ∫ a, f a.1 ∂(κ a) :=
+kernel.integral_map hf
+
+lemma integrable_of_integrable_fst_kernel {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {κ : kernel α (γ × β)} [is_s_finite_kernel κ]
+  (hf : integrable f (fst κ a)) :
+  integrable (λ x : γ × β, f x.1) (κ a) :=
+integrable_of_integrable_map_kernel hf
+
+lemma kernel.integral_snd {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {κ : kernel α (β × γ)} [is_s_finite_kernel κ]
+  (hf : integrable f (snd κ a)) :
+  ∫ b, f b ∂(snd κ a) = ∫ a, f a.2 ∂(κ a) :=
+kernel.integral_map hf
+
+lemma integrable_of_integrable_snd_kernel {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {κ : kernel α (β × γ)} [is_s_finite_kernel κ]
+  (hf : integrable f (snd κ a)) :
+  integrable (λ x : β × γ, f x.2) (κ a) :=
+integrable_of_integrable_map_kernel hf
+
+end map_comap
+
+section comp
+/-! ## Composition -/
+
+variables {α β γ E : Type*}
+  {mα : measurable_space α} {mβ : measurable_space β} {mγ : measurable_space γ}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {κ : kernel α β} [is_s_finite_kernel κ]
+  {η : kernel β γ} [is_s_finite_kernel η]
+  {a : α} {f : γ → E}
+
+lemma kernel.integral_comp (hf : integrable f ((η ∘ₖ κ) a)) :
+  ∫ x, f x ∂((η ∘ₖ κ) a) = ∫ b, ∫ x, f x ∂(η b) ∂(κ a) :=
+begin
+  rw [kernel.comp, kernel.integral_snd hf, integral_comp_prod],
+  { simp_rw prod_mk_left_apply, },
+  { exact integrable_of_integrable_snd_kernel hf, },
+end
+
+lemma integrable_of_integrable_comp_kernel (hf : integrable f ((η ∘ₖ κ) a)) :
+  ∀ᵐ b ∂(κ a), integrable f (η b) :=
+begin
+  have hf' := (integrable_of_integrable_snd_kernel hf).comp_prod_mk_left_ae,
+  simp_rw prod_mk_left_apply at hf',
+  exact hf',
+end
+
+lemma _root_.measure_theory.integral_norm_comp (hf : integrable f ((η ∘ₖ κ) a)) :
+  integrable (λ b, ∫ x, ‖f x‖ ∂(η b)) (κ a) :=
+begin
+  have hf' := (integrable_of_integrable_snd_kernel hf).integral_norm_comp_prod,
+  simp_rw prod_mk_left_apply at hf',
+  exact hf',
+end
+
+lemma _root_.measure_theory.integral_comp (hf : integrable f ((η ∘ₖ κ) a)) :
+  integrable (λ b, ∫ x, f x ∂(η b)) (κ a) :=
+begin
+  have hf' := (integrable_of_integrable_snd_kernel hf).integral_comp_prod,
+  simp_rw prod_mk_left_apply at hf',
+  exact hf',
+end
+
+end comp
 
 end probability_theory

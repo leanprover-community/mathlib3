@@ -27,12 +27,58 @@ example [M1 : measurable_space Ω] {M2 : measurable_space Ω} {μ : measure Ω} 
 -/
 
 noncomputable theory
-open set measure_theory
+open set measure_theory probability_theory
 open_locale ennreal measure_theory
 
-variables {Ω : Type*} {mΩ : measurable_space Ω} {μ : measure Ω} {f g : Ω → ℝ≥0∞} {X Y : Ω → ℝ}
+variables {α Ω : Type*} {mα : measurable_space α} {mΩ : measurable_space Ω} {μ : measure Ω}
+  {μα : measure α} {κ : kernel α Ω}
+  {f g : Ω → ℝ≥0∞} {X Y : Ω → ℝ}
 
 namespace probability_theory
+
+/-- If a random variable `f` in `ℝ≥0∞` is independent of an event `T`, then if you restrict the
+  random variable to `T`, then `E[f * indicator T c 0]=E[f] * E[indicator T c 0]`. It is useful for
+  `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/
+lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicatorₖ
+  {mα : measurable_space α} {Mf mΩ : measurable_space Ω}
+  {μ : measure α} {κ : kernel α Ω} (hMf : Mf ≤ mΩ) (c : ℝ≥0∞) {T : set Ω}
+  (h_meas_T : measurable_set T)
+  (h_ind : indep_setsₖ {s | measurable_set[Mf] s} {T} κ μ) (h_meas_f : measurable[Mf] f) :
+  ∀ᵐ a ∂μ, ∫⁻ ω, f ω * T.indicator (λ _, c) ω ∂(κ a)
+    = ∫⁻ ω, f ω ∂(κ a) * ∫⁻ ω, T.indicator (λ _, c) ω ∂(κ a) :=
+begin
+  revert f,
+  have h_mul_indicator : ∀ g, measurable g → measurable (λ a, g a * T.indicator (λ x, c) a),
+    from λ g h_mg, h_mg.mul (measurable_const.indicator h_meas_T),
+  apply measurable.ennreal_induction,
+  { intros c' s' h_meas_s',
+    simp_rw [← inter_indicator_mul],
+    specialize h_ind s' T h_meas_s' (set.mem_singleton _),
+    filter_upwards [h_ind] with a ha,
+    rw [lintegral_indicator _ (measurable_set.inter (hMf _ h_meas_s') (h_meas_T)),
+      lintegral_indicator _ (hMf _ h_meas_s'), lintegral_indicator _ h_meas_T],
+    simp only [measurable_const, lintegral_const, univ_inter, lintegral_const_mul,
+      measurable_set.univ, measure.restrict_apply],
+    ring_nf,
+    congr,
+    rw [mul_comm, ha], },
+  { intros f' g h_univ h_meas_f' h_meas_g h_ind_f' h_ind_g,
+    have h_measM_f' : measurable f', from h_meas_f'.mono hMf le_rfl,
+    have h_measM_g : measurable g, from h_meas_g.mono hMf le_rfl,
+    simp_rw [pi.add_apply, right_distrib],
+    filter_upwards [h_ind_f', h_ind_g] with a haf hag,
+    rw [lintegral_add_left (h_mul_indicator _ h_measM_f'),
+      lintegral_add_left h_measM_f', right_distrib, haf, hag], },
+  { intros f h_meas_f h_mono_f h_ind_f,
+    have h_measM_f : ∀ n, measurable (f n), from λ n, (h_meas_f n).mono hMf le_rfl,
+    simp_rw [ennreal.supr_mul],
+    rw ← ae_all_iff at h_ind_f,
+    filter_upwards [h_ind_f] with a ha,
+    rw [lintegral_supr h_measM_f h_mono_f, lintegral_supr, ennreal.supr_mul],
+    { simp_rw [← ha] },
+    { exact λ n, h_mul_indicator _ (h_measM_f n) },
+    { exact λ m n h_le a, mul_le_mul_right' (h_mono_f h_le a) _, }, },
+end
 
 /-- If a random variable `f` in `ℝ≥0∞` is independent of an event `T`, then if you restrict the
   random variable to `T`, then `E[f * indicator T c 0]=E[f] * E[indicator T c 0]`. It is useful for
@@ -42,33 +88,47 @@ lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator {Mf mΩ : mea
   (h_ind : indep_sets {s | measurable_set[Mf] s} {T} μ) (h_meas_f : measurable[Mf] f) :
   ∫⁻ ω, f ω * T.indicator (λ _, c) ω ∂μ = ∫⁻ ω, f ω ∂μ * ∫⁻ ω, T.indicator (λ _, c) ω ∂μ :=
 begin
-  revert f,
-  have h_mul_indicator : ∀ g, measurable g → measurable (λ a, g a * T.indicator (λ x, c) a),
-    from λ g h_mg, h_mg.mul (measurable_const.indicator h_meas_T),
+  have h := lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicatorₖ hMf c h_meas_T h_ind
+    h_meas_f,
+  simp_rw [ae_dirac_eq, filter.eventually_pure, kernel.const_apply] at h,
+  exact h,
+end
+
+/-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
+   then `E[f * g] = E[f] * E[g]`. However, instead of directly using the independence
+   of the random variables, it uses the independence of measurable spaces for the
+   domains of `f` and `g`. This is similar to the sigma-algebra approach to
+   independence. See `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_fn` for
+   a more common variant of the product of independent variables. -/
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indepₖ {mα : measurable_space α}
+  {Mf Mg mΩ : measurable_space Ω} {μ : measure α} {κ : kernel α Ω}
+  (hMf : Mf ≤ mΩ) (hMg : Mg ≤ mΩ) (h_ind : indepₖ Mf Mg κ μ)
+  (h_meas_f : measurable[Mf] f) (h_meas_g : measurable[Mg] g) :
+  ∀ᵐ a ∂μ, ∫⁻ ω, f ω * g ω ∂(κ a) = ∫⁻ ω, f ω ∂(κ a) * ∫⁻ ω, g ω ∂(κ a) :=
+begin
+  revert g,
+  have h_measM_f : measurable f, from h_meas_f.mono hMf le_rfl,
   apply measurable.ennreal_induction,
-  { intros c' s' h_meas_s',
-    simp_rw [← inter_indicator_mul],
-    rw [lintegral_indicator _ (measurable_set.inter (hMf _ h_meas_s') (h_meas_T)),
-      lintegral_indicator _ (hMf _ h_meas_s'), lintegral_indicator _ h_meas_T],
-    simp only [measurable_const, lintegral_const, univ_inter, lintegral_const_mul,
-      measurable_set.univ, measure.restrict_apply],
-    ring_nf,
-    congr,
-    rw indep_sets_def at h_ind,
-    rw [mul_comm, h_ind s' T h_meas_s' (set.mem_singleton _)], },
-  { intros f' g h_univ h_meas_f' h_meas_g h_ind_f' h_ind_g,
-    have h_measM_f' : measurable f', from h_meas_f'.mono hMf le_rfl,
-    have h_measM_g : measurable g, from h_meas_g.mono hMf le_rfl,
-    simp_rw [pi.add_apply, right_distrib],
-    rw [lintegral_add_left (h_mul_indicator _ h_measM_f'),
-      lintegral_add_left h_measM_f', right_distrib, h_ind_f', h_ind_g] },
-  { intros f h_meas_f h_mono_f h_ind_f,
-    have h_measM_f : ∀ n, measurable (f n), from λ n, (h_meas_f n).mono hMf le_rfl,
-    simp_rw [ennreal.supr_mul],
-    rw [lintegral_supr h_measM_f h_mono_f, lintegral_supr, ennreal.supr_mul],
-    { simp_rw [← h_ind_f] },
-    { exact λ n, h_mul_indicator _ (h_measM_f n) },
-    { exact λ m n h_le a, mul_le_mul_right' (h_mono_f h_le a) _, }, },
+  { intros c s h_s,
+    apply lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicatorₖ hMf _ (hMg _ h_s) _ h_meas_f,
+    apply indep_setsₖ_of_indep_setsₖ_of_le_right h_ind,
+    rwa singleton_subset_iff, },
+  { intros f' g h_univ h_measMg_f' h_measMg_g h_ind_f' h_ind_g',
+    have h_measM_f' : measurable f', from h_measMg_f'.mono hMg le_rfl,
+    have h_measM_g : measurable g, from h_measMg_g.mono hMg le_rfl,
+    simp_rw [pi.add_apply, left_distrib],
+    filter_upwards [h_ind_f', h_ind_g'] with a haf hag,
+    rw [lintegral_add_left h_measM_f', lintegral_add_left (h_measM_f.mul h_measM_f'),
+      left_distrib, haf, hag] },
+  { intros f' h_meas_f' h_mono_f' h_ind_f',
+    have h_measM_f' : ∀ n, measurable (f' n), from λ n, (h_meas_f' n).mono hMg le_rfl,
+    simp_rw [ennreal.mul_supr],
+    rw ← ae_all_iff at h_ind_f',
+    filter_upwards [h_ind_f'] with a ha,
+    rw [lintegral_supr, lintegral_supr h_measM_f' h_mono_f', ennreal.mul_supr],
+    { simp_rw [← ha], },
+    { exact λ n, h_measM_f.mul (h_measM_f' n), },
+    { exact λ n m (h_le : n ≤ m) a, mul_le_mul_left' (h_mono_f' h_le a) _, }, }
 end
 
 /-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
@@ -83,27 +143,19 @@ lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
   (h_meas_f : measurable[Mf] f) (h_meas_g : measurable[Mg] g) :
   ∫⁻ ω, f ω * g ω ∂μ = ∫⁻ ω, f ω ∂μ * ∫⁻ ω, g ω ∂μ :=
 begin
-  revert g,
-  have h_measM_f : measurable f, from h_meas_f.mono hMf le_rfl,
-  apply measurable.ennreal_induction,
-  { intros c s h_s,
-    apply lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator hMf _ (hMg _ h_s) _ h_meas_f,
-    apply indep_sets_of_indep_sets_of_le_right h_ind,
-    rwa singleton_subset_iff, },
-  { intros f' g h_univ h_measMg_f' h_measMg_g h_ind_f' h_ind_g',
-    have h_measM_f' : measurable f', from h_measMg_f'.mono hMg le_rfl,
-    have h_measM_g : measurable g, from h_measMg_g.mono hMg le_rfl,
-    simp_rw [pi.add_apply, left_distrib],
-    rw [lintegral_add_left h_measM_f', lintegral_add_left (h_measM_f.mul h_measM_f'),
-      left_distrib, h_ind_f', h_ind_g'] },
-  { intros f' h_meas_f' h_mono_f' h_ind_f',
-    have h_measM_f' : ∀ n, measurable (f' n), from λ n, (h_meas_f' n).mono hMg le_rfl,
-    simp_rw [ennreal.mul_supr],
-    rw [lintegral_supr, lintegral_supr h_measM_f' h_mono_f', ennreal.mul_supr],
-    { simp_rw [← h_ind_f'], },
-    { exact λ n, h_measM_f.mul (h_measM_f' n), },
-    { exact λ n m (h_le : n ≤ m) a, mul_le_mul_left' (h_mono_f' h_le a) _, }, }
+  have h := lintegral_mul_eq_lintegral_mul_lintegral_of_indepₖ hMf hMg h_ind h_meas_f h_meas_g,
+  simp_rw [ae_dirac_eq, filter.eventually_pure, kernel.const_apply] at h,
+  exact h,
 end
+
+/-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
+   then `E[f * g] = E[f] * E[g]`. -/
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_funₖ
+  (h_meas_f : measurable f) (h_meas_g : measurable g) (h_indep_fun : indep_funₖ f g κ μα) :
+  ∀ᵐ a ∂μα, ∫⁻ ω, (f * g) ω ∂(κ a) = ∫⁻ ω, f ω ∂(κ a) * ∫⁻ ω, g ω ∂(κ a) :=
+lintegral_mul_eq_lintegral_mul_lintegral_of_indepₖ
+  (measurable_iff_comap_le.1 h_meas_f) (measurable_iff_comap_le.1 h_meas_g) h_indep_fun
+  (measurable.of_comap_le le_rfl) (measurable.of_comap_le le_rfl)
 
 /-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
    then `E[f * g] = E[f] * E[g]`. -/
@@ -117,18 +169,49 @@ lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
 /-- If `f` and `g` with values in `ℝ≥0∞` are independent and almost everywhere measurable,
    then `E[f * g] = E[f] * E[g]` (slightly generalizing
    `lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun`). -/
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_funₖ'
+  (h_meas_f : ∃ f', measurable f' ∧ ∀ᵐ a ∂μα, f =ᵐ[κ a] f')
+  (h_meas_g : ∃ g', measurable g' ∧ ∀ᵐ a ∂μα, g =ᵐ[κ a] g')
+  (h_indep_fun : indep_funₖ f g κ μα) :
+  ∀ᵐ a ∂μα, ∫⁻ ω, (f * g) ω ∂(κ a) = ∫⁻ ω, f ω ∂(κ a) * ∫⁻ ω, g ω ∂(κ a) :=
+begin
+  let f' := h_meas_f.some,
+  have hf' : measurable f' := h_meas_f.some_spec.1,
+  let g' := h_meas_g.some,
+  have hg' : measurable g' := h_meas_g.some_spec.1,
+  have fg_ae : ∀ᵐ a ∂μα, f * g =ᵐ[κ a] f' * g',
+  { filter_upwards [h_meas_f.some_spec.2, h_meas_g.some_spec.2] with a haf hag,
+    exact haf.mul hag, },
+  have h_indep := h_indep_fun.ae_eq h_meas_f.some_spec.2 h_meas_g.some_spec.2,
+  have h_eq := lintegral_mul_eq_lintegral_mul_lintegral_of_indep_funₖ hf' hg' h_indep,
+  filter_upwards [h_meas_f.some_spec.2, h_meas_g.some_spec.2, fg_ae, h_eq]
+    with a haf hag hafg ha_eq,
+  rw [lintegral_congr_ae haf, lintegral_congr_ae hag, lintegral_congr_ae hafg],
+  exact ha_eq,
+end
+
+/-- If `f` and `g` with values in `ℝ≥0∞` are independent and almost everywhere measurable,
+   then `E[f * g] = E[f] * E[g]` (slightly generalizing
+   `lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun`). -/
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun'
   (h_meas_f : ae_measurable f μ) (h_meas_g : ae_measurable g μ) (h_indep_fun : indep_fun f g μ) :
   ∫⁻ ω, (f * g) ω ∂μ = ∫⁻ ω, f ω ∂μ * ∫⁻ ω, g ω ∂μ :=
 begin
-  have fg_ae : f * g =ᵐ[μ] (h_meas_f.mk _) * (h_meas_g.mk _),
-    from h_meas_f.ae_eq_mk.mul h_meas_g.ae_eq_mk,
-  rw [lintegral_congr_ae h_meas_f.ae_eq_mk, lintegral_congr_ae h_meas_g.ae_eq_mk,
-    lintegral_congr_ae fg_ae],
-  apply lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun
-    h_meas_f.measurable_mk h_meas_g.measurable_mk,
-  exact h_indep_fun.ae_eq h_meas_f.ae_eq_mk h_meas_g.ae_eq_mk
+  have h := lintegral_mul_eq_lintegral_mul_lintegral_of_indep_funₖ' _ _ h_indep_fun,
+  { simp_rw [ae_dirac_eq, filter.eventually_pure, kernel.const_apply] at h,
+    exact h, },
+  { simp_rw [ae_dirac_eq, filter.eventually_pure, kernel.const_apply],
+    exact h_meas_f, },
+  { simp_rw [ae_dirac_eq, filter.eventually_pure, kernel.const_apply],
+    exact h_meas_g, },
 end
+
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_funₖ''
+  (h_meas_f : ∃ f', measurable f' ∧ ∀ᵐ a ∂μα, f =ᵐ[κ a] f')
+  (h_meas_g : ∃ g', measurable g' ∧ ∀ᵐ a ∂μα, g =ᵐ[κ a] g')
+  (h_indep_fun : indep_funₖ f g κ μα) :
+  ∀ᵐ a ∂μα, ∫⁻ ω, f ω * g ω ∂(κ a) = ∫⁻ ω, f ω ∂(κ a) * ∫⁻ ω, g ω ∂(κ a) :=
+lintegral_mul_eq_lintegral_mul_lintegral_of_indep_funₖ' h_meas_f h_meas_g h_indep_fun
 
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun''
   (h_meas_f : ae_measurable f μ) (h_meas_g : ae_measurable g μ) (h_indep_fun : indep_fun f g μ) :

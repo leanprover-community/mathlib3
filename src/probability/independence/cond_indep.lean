@@ -265,7 +265,7 @@ lemma cond_indep_of_cond_indep_of_le_right {m₁ m₂ m₃ : measurable_space Ω
   cond_indep m₁ m₃ hm₀ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 ht1 (h32 _ ht2)
 
-lemma indep_sets.union {s₁ s₂ s' : set (set Ω)}
+lemma cond_indep_sets.union {s₁ s₂ s' : set (set Ω)}
   (h₁ : cond_indep_sets s₁ s' hm₀ μ) (h₂ : cond_indep_sets s₂ s' hm₀ μ) :
   cond_indep_sets (s₁ ∪ s₂) s' hm₀ μ :=
 begin
@@ -279,7 +279,7 @@ end
   cond_indep_sets (s₁ ∪ s₂) s' hm₀ μ ↔ cond_indep_sets s₁ s' hm₀ μ ∧ cond_indep_sets s₂ s' hm₀ μ :=
 ⟨λ h, ⟨cond_indep_sets_of_cond_indep_sets_of_le_left h (set.subset_union_left s₁ s₂),
     cond_indep_sets_of_cond_indep_sets_of_le_left h (set.subset_union_right s₁ s₂)⟩,
-  λ h, indep_sets.union h.left h.right⟩
+  λ h, cond_indep_sets.union h.left h.right⟩
 
 lemma cond_indep_sets.Union {s : ι → set (set Ω)} {s' : set (set Ω)}
   (hyp : ∀ n, cond_indep_sets (s n) s' hm₀ μ) :

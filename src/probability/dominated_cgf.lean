@@ -5,6 +5,8 @@ Authors: Rémy Degenne
 -/
 import probability.moments
 import probability.kernel.condexp
+import probability.independence.basic
+import probability.independence.cond_indep
 
 /-!
 # Dominated Cgf
@@ -61,6 +63,69 @@ lemma dominated_cgfₖ.ae_mgf_le (h : dominated_cgfₖ X f κ μ) :
 begin
   filter_upwards [h.ae_cgf_le] with a ha,
   exact λ t, (le_exp_log _).trans (exp_monotone (ha t)),
+end
+
+/-- This is a trivial application of `indep_funₖ.comp` but it will come up frequently. -/
+lemma indep_funₖ.exp_mul {X Y : β → ℝ} (h_indep : indep_funₖ X Y κ μ) (s t : ℝ) :
+  indep_funₖ (λ ω, exp (s * X ω)) (λ ω, exp (t * Y ω)) κ μ :=
+begin
+  have h_meas : ∀ t, measurable (λ x, exp (t * x)) := λ t, (measurable_id'.const_mul t).exp,
+  change indep_funₖ ((λ x, exp (s * x)) ∘ X) ((λ x, exp (t * x)) ∘ Y) κ μ,
+  exact indep_funₖ.comp h_indep (h_meas s) (h_meas t),
+end
+
+lemma indep_funₖ.mgf_add {X Y : β → ℝ} (h_indep : indep_funₖ X Y κ μ)
+  --(hX : ae_strongly_measurable (λ ω, exp (t * X ω)) μ)
+  --(hY : ae_strongly_measurable (λ ω, exp (t * Y ω)) μ)
+  :
+  ∀ᵐ a ∂μ, ∀ t, mgf (X + Y) (κ a) t = mgf X (κ a) t * mgf Y (κ a) t :=
+begin
+  simp_rw [mgf, pi.add_apply, mul_add, exp_add],
+  rw indep_fun.integral_mul,
+  exact (h_indep.exp_mul t t).integral_mul hX hY,
+end
+
+lemma indep_fun.mgf_add' {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
+  (hX : ae_strongly_measurable X μ) (hY : ae_strongly_measurable Y μ) :
+  mgf (X + Y) μ t = mgf X μ t * mgf Y μ t :=
+begin
+  have A : continuous (λ (x : ℝ), exp (t * x)), by continuity,
+  have h'X : ae_strongly_measurable (λ ω, exp (t * X ω)) μ :=
+    A.ae_strongly_measurable.comp_ae_measurable hX.ae_measurable,
+  have h'Y : ae_strongly_measurable (λ ω, exp (t * Y ω)) μ :=
+    A.ae_strongly_measurable.comp_ae_measurable hY.ae_measurable,
+  exact h_indep.mgf_add h'X h'Y
+end
+
+lemma indep_fun.cgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
+  (h_int_X : integrable (λ ω, exp (t * X ω)) μ)
+  (h_int_Y : integrable (λ ω, exp (t * Y ω)) μ) :
+  cgf (X + Y) μ t = cgf X μ t + cgf Y μ t :=
+begin
+  by_cases hμ : μ = 0,
+  { simp [hμ], },
+  simp only [cgf, h_indep.mgf_add h_int_X.ae_strongly_measurable h_int_Y.ae_strongly_measurable],
+  exact log_mul (mgf_pos' hμ h_int_X).ne' (mgf_pos' hμ h_int_Y).ne',
+end
+
+lemma indep_funₖ.ae_integrable_exp_mul_add {X Y : β → ℝ} (h_indep : indep_funₖ X Y κ μ)
+  (h_int_X : ∀ᵐ a ∂μ, ∀ t, integrable (λ ω, exp (t * X ω)) (κ a))
+  (h_int_Y : ∀ᵐ a ∂μ, ∀ t, integrable (λ ω, exp (t * Y ω)) (κ a)) :
+  ∀ᵐ a ∂μ, ∀ t, integrable (λ ω, exp (t * (X + Y) ω)) (κ a) :=
+
+lemma dominated_cgfₖ.add_indep_funₖ {Y : β → ℝ} {fX fY : ℝ → ℝ} (hX : dominated_cgfₖ X fX κ μ)
+  (hY : dominated_cgfₖ Y fY κ μ) (hindep : indep_funₖ X Y κ μ) :
+  dominated_cgfₖ (X + Y) (fX + fY) κ μ :=
+begin
+  rw dominated_cgfₖ,
+  filter_upwards
+    [hindep.ae_integrable_exp_mul_add hX.ae_integrable_exp_mul hY.ae_integrable_exp_mul]
+    with a ha,
+  refine ⟨λ t, , _⟩,
+  rw hindep.cgf_add (hX.integrable_exp_mul t) (hY.integrable_exp_mul t),
+  calc cgf X μ t + cgf Y μ t
+      ≤ cX * t ^ 2 / 2 + cY * t ^ 2 / 2 : add_le_add (hX.cgf_le t) (hY.cgf_le t)
+  ... = (cX + cY) * t ^ 2 / 2 : by ring,
 end
 
 end dominated_cgfₖ

@@ -9,6 +9,9 @@ import ring_theory.derivation.basic
 /-!
 # Results
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 - `derivation.lie_algebra`: The `R`-derivations from `A` to `A` form an lie algebra over `R`.
 
 -/

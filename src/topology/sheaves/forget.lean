@@ -42,13 +42,13 @@ namespace sheaf_condition
 
 open sheaf_condition_equalizer_products
 
-universes v u₁ u₂
+universes v u₁ u₂ w
 
-variables {C : Type u₁} [category.{v} C] [has_limits C]
-variables {D : Type u₂} [category.{v} D] [has_limits D]
-variables (G : C ⥤ D) [preserves_limits G]
-variables {X : Top.{v}} (F : presheaf C X)
-variables {ι : Type v} (U : ι → opens X)
+variables {C : Type u₁} [category.{v} C] [has_limits_of_size.{w w} C]
+variables {D : Type u₂} [category.{v} D] [has_limits_of_size.{w w} D]
+variables (G : C ⥤ D) [preserves_limits_of_size.{w w} G]
+variables {X : Top.{w}} (F : presheaf C X)
+variables {ι : Type w} (U : ι → opens X)
 
 local attribute [reducible] diagram left_res right_res
 
@@ -57,7 +57,7 @@ When `G` preserves limits, the sheaf condition diagram for `F` composed with `G`
 naturally isomorphic to the sheaf condition diagram for `F ⋙ G`.
 -/
 def diagram_comp_preserves_limits :
-  diagram F U ⋙ G ≅ diagram.{v} (F ⋙ G) U :=
+  diagram F U ⋙ G ≅ diagram.{w} (F ⋙ G) U :=
 begin
   fapply nat_iso.of_components,
   rintro ⟨j⟩,
@@ -85,7 +85,7 @@ When `G` preserves limits, the image under `G` of the sheaf condition fork for `
 is the sheaf condition fork for `F ⋙ G`,
 postcomposed with the inverse of the natural isomorphism `diagram_comp_preserves_limits`.
 -/
-def map_cone_fork : G.map_cone (fork.{v} F U) ≅
+def map_cone_fork : G.map_cone (fork.{w} F U) ≅
   (cones.postcompose (diagram_comp_preserves_limits G F U).inv).obj (fork (F ⋙ G) U) :=
 cones.ext (iso.refl _) (λ j,
 begin
@@ -102,16 +102,17 @@ end)
 
 end sheaf_condition
 
-universes v u₁ u₂
+universes v u₁ u₂ w
 
 open sheaf_condition sheaf_condition_equalizer_products
 
 variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 variables [reflects_isomorphisms G]
-variables [has_limits C] [has_limits D] [preserves_limits G]
+variables [has_limits_of_size.{w w} C] [has_limits_of_size.{w w} D]
+  [preserves_limits_of_size.{w w} G]
 
-variables {X : Top.{v}} (F : presheaf C X)
+variables {X : Top.{w}} (F : presheaf C X)
 
 /--
 If `G : C ⥤ D` is a functor which reflects isomorphisms and preserves limits
@@ -171,7 +172,7 @@ begin
       -- image under `G` of the equalizer cone for the sheaf condition diagram.
       let c := fork (F ⋙ G) U,
       obtain ⟨hc⟩ := S U,
-      let d := G.map_cone (equalizer.fork (left_res.{v} F U) (right_res F U)),
+      let d := G.map_cone (equalizer.fork (left_res.{w} F U) (right_res F U)),
       letI := preserves_smallest_limits_of_preserves_limits G,
       have hd : is_limit d := preserves_limit.preserves (limit.is_limit _),
       -- Since both of these are limit cones
@@ -182,7 +183,8 @@ begin
       -- introduced above.
       let d' := (cones.postcompose (diagram_comp_preserves_limits G F U).hom).obj d,
       have hd' : is_limit d' :=
-        (is_limit.postcompose_hom_equiv (diagram_comp_preserves_limits G F U : _) d).symm hd,
+        (is_limit.postcompose_hom_equiv
+          (diagram_comp_preserves_limits.{v u₁ u₂ w} G F U : _) d).symm hd,
       -- Now everything works: we verify that `f` really is a morphism between these cones:
       let f' : c ⟶ d' :=
       fork.mk_hom (G.map f)

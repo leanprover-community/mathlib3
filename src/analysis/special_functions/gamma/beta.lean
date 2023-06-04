@@ -32,7 +32,7 @@ refined properties of the Gamma function using these relations.
 * `complex.Gamma_mul_Gamma_add_half`: Legendre's duplication formula
   `Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * sqrt π`.
 * `real.Gamma_ne_zero`, `real.Gamma_seq_tendsto_Gamma`,
-  `real.Gamma_mul_Gamma_one_sub` ,`real.Gamma_mul_Gamma_add_half`: real versions of the above.
+  `real.Gamma_mul_Gamma_one_sub`, `real.Gamma_mul_Gamma_add_half`: real versions of the above.
 -/
 
 noncomputable theory

@@ -6,7 +6,6 @@ Authors: David Loeffler
 import analysis.special_functions.gamma.basic
 import analysis.special_functions.gaussian
 
-
 /-! # Convexity properties of the Gamma function
 
 In this file, we prove that `Gamma` and `log ∘ Gamma` are convex functions on the positive real
@@ -45,7 +44,6 @@ section convexity
 
 -- Porting note: move the following lemmas to `Analysis.Convex.Function`
 variables {𝕜 E β : Type*} {s : set E} {f g : E → β}
-
   [ordered_semiring 𝕜] [has_smul 𝕜 E] [add_comm_monoid E] [ordered_add_comm_monoid β]
 
 lemma convex_on.congr [has_smul 𝕜 β] (hf : convex_on 𝕜 s f) (hfg : eq_on f g s) :

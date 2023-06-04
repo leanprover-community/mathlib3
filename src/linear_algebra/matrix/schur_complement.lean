@@ -57,7 +57,6 @@ lemma from_blocks_eq_of_invertible₂₂
 /-! ### Invertibility of block matrices -/
 
 section invertible
-variables [fintype m] [decidable_eq m]
 
 /-- A block matrix is invertible if the bottom right corner and the corresponding schur complement
 is. -/

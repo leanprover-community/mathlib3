@@ -213,7 +213,6 @@ variables [has_limits_of_size.{w w} C] [reflects_isomorphisms (forget C)]
   [preserves_limits_of_size.{w w} (forget C)]
 variables {X : Top.{w}} (F : presheaf C X) {ι : Type w} (U : ι → opens X)
 
-set_option pp.universes true
 /--
 For presheaves valued in a concrete category, whose forgetful functor reflects isomorphisms and
 preserves limits, the sheaf condition in terms of unique gluings is equivalent to the usual one

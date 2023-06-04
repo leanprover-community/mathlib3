@@ -1,4 +1,3 @@
-#exit
 import algebra.homology.exact
 import category_theory.abelian.opposite
 import category_theory.abelian.exact

@@ -1,6 +1,5 @@
-#exit
 import representation_theory.group_cohomology.low_degree
-
+#exit
 universes v u
 noncomputable theory
 namespace group_cohomology
@@ -17,12 +16,18 @@ begin
   rcases lt_trichotomy (x : ℕ) j with (h|h|h),
   { simp only [fin.contract_nth_apply_of_lt, h] },
   { simp only [fin.contract_nth_apply_of_eq, h, f.map_mul] },
-  { simp only [fin.contract_nth_apply_of_gt, h] }
+  { simp only [fin.contract_nth_apply_of_gt, h] },
 end
 
 def compatible : Prop := ∀ (g : G) (x : B.V), φ (B.ρ (f g) x) = A.ρ g (φ x)
 
 open representation
+
+@[simps] def invariants_functor : Rep k G ⥤ Module k :=
+{ obj := λ A, Module.of k A.ρ.invariants,
+  map := λ A B f, Module.of_hom (linear_map.cod_restrict _ (f.hom.comp A.ρ.invariants.subtype)
+    (λ ⟨c, hc⟩ g, by simp only [linear_map.coe_comp, submodule.coe_subtype, function.comp_app,
+      ←Rep.hom_comm_apply, subtype.coe_mk, hc g])) }
 
 variables (A) (S : subgroup G)
 
@@ -55,14 +60,41 @@ end))
 instance [S.normal] : has_coe (Inf_rep A S) A :=
 ⟨λ x, x.1⟩
 
+def Res_rep : Rep k S := Rep.of (A.ρ.comp S.subtype)
+
+@[simps] def Res_rep_map {A B : Rep k G} (f : A ⟶ B) :
+  Res_rep A S ⟶ Res_rep B S :=
+{ hom := f.hom,
+  comm' := λ g, by ext x; exact Rep.hom_comm_apply f ↑g _  }
+
+def Res_functor' : Rep k G ⥤ Rep k S :=
+{ obj := λ A, Res_rep A S,
+  map := λ A B f, Res_rep_map f }
+
+lemma Res_rep_apply (g : S) (x : A) : (Res_rep A S).ρ g x = A.ρ g x :=
+rfl
+
+-- hard to rewrite because of the type of x I guess.
 lemma Inf_rep_apply [S.normal] (g : G) (x : invariants (A.ρ.comp S.subtype)) :
   (((Inf_rep A S).ρ (g : G ⧸ S) x : invariants (A.ρ.comp S.subtype)) : A) = A.ρ g x :=
 rfl
 
-def Res_rep : Rep k S := Rep.of (A.ρ.comp S.subtype)
+lemma Inf_rep_map [S.normal] {A B : Rep k G} (f : A ⟶ B) :
+  Inf_rep A S ⟶ Inf_rep B S :=
+{ hom := invariants_functor.map (Res_rep_map S f),
+  comm' := λ g,
+  begin
+    refine quotient_group.induction_on' g (λ g, _),
+    ext,
+    show _ = B.ρ _ _,
+    simpa only [invariants_functor_map, Module.of_hom,
+      linear_map.cod_restrict_apply, Module.comp_def, linear_map.comp_apply,
+      Res_rep_map_hom, ←Rep.hom_comm_apply, submodule.subtype_apply],
+  end }
 
-lemma Res_rep_apply (g : S) (x : A) : (Res_rep A S).ρ g x = A.ρ g x :=
-rfl
+def Inf_functor' [S.normal] : Rep k G ⥤ Rep k (G ⧸ S) :=
+{ obj := λ A, Inf_rep A S,
+  map := λ A B f, Inf_rep_map S f }
 
 lemma quotient_pair (S : subgroup G) [S.normal] :
   compatible A (Inf_rep A S) (quotient_group.mk' S) (invariants (A.ρ.comp S.subtype)).subtype :=
@@ -88,21 +120,19 @@ sorry /-{ V := Module.of k (Rep.of_mul_action k H G ⟶ A),
       map_smul' := _ },
     map_one' := _,
     map_mul' := _ }}-/
-lemma inhomogeneous_cochains.d_def :
-  (inhomogeneous_cochains A).d n (n + 1) = inhomogeneous_cochains.d n A :=
-cochain_complex.of_d _ _ _ _
-#check distrib_mul_actionnnn
-@[simps] def pair_chain_map (hp : compatible A B f φ) :
+
+-- since I updated mathlib this needs noncomputable!. weird
+noncomputable! def pair_chain_map (hp : compatible A B f φ) :
   inhomogeneous_cochains B ⟶ inhomogeneous_cochains A :=
-{ f := λ i, φ.comp_left (fin i → G) ∘ₗ linear_map.fun_left k B.V (λ x : fin i → G, f ∘ x),
+{ f :=  λ i, φ.comp_left (fin i → G) ∘ₗ linear_map.fun_left k B.V (λ x : fin i → G, f ∘ x),
   comm' := λ i j (hij : _ = _),
   begin
-    subst hij,
-    ext x g,
-    simp only [Module.coe_comp, linear_map.coe_comp, function.comp_app, linear_map.comp_left_apply,
-      linear_map.fun_left_apply, inhomogeneous_cochains.d_def, inhomogeneous_cochains.d_apply,
-      φ.map_add, φ.map_sum, φ.map_smul, hp (g 0), add_right_inj, fin.comp_contract_nth],
-  end }
+  subst hij,
+  ext x g,
+  simp only [Module.coe_comp, linear_map.coe_comp, function.comp_app, linear_map.comp_left_apply,
+    linear_map.fun_left_apply, inhomogeneous_cochains.d_def, inhomogeneous_cochains.d_apply,
+    φ.map_add, φ.map_sum, φ.map_smul, hp (g 0), add_right_inj, fin.comp_contract_nth],
+end }
 
 lemma pair_chain_map_f_apply {hp : compatible A B f φ} (x : (fin n → H) → B) (g : fin n → G) :
   (pair_chain_map A B f φ hp).f n x g = φ (x (f ∘ g)) :=
@@ -230,7 +260,9 @@ pair_cohomology_map _ _ (quotient_group.mk' S) (invariants (A.ρ.comp S.subtype)
   (quotient_pair A S) n
 
 def Inf_functor (S : subgroup G) [h1 : S.normal] (n : ℕ) : Rep k G ⥤ Module k :=
-{! !}
+{ obj := λ A, group_cohomology (Inf_rep A S) n,
+  map := λ A B f, group_cohomology_map (Inf_rep_map S A B f) n }
+
 def Inf_one_cocycles (S : subgroup G) [h1 : S.normal] :
   one_cocycles (Inf_rep A S) →ₗ[k] one_cocycles A :=
 pair_one_cocycles_map A (Inf_rep A S) (quotient_group.mk' S)

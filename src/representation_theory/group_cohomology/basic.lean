@@ -3,7 +3,7 @@ Copyright (c) 2023 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-#exit
+
 import algebra.homology.opposite
 import representation_theory.group_cohomology.resolution
 
@@ -153,6 +153,10 @@ begin
     linear_equiv.to_Module_iso_inv, linear_equiv.coe_coe, linear_equiv.symm_apply_apply,
     this, linear_map.zero_apply, map_zero, pi.zero_apply],
 end)
+
+@[simp] lemma inhomogeneous_cochains.d_def :
+  (inhomogeneous_cochains A).d n (n + 1) = inhomogeneous_cochains.d n A :=
+cochain_complex.of_d _ _ _ _
 
 /-- Given a `k`-linear `G`-representation `A`, the complex of inhomogeneous cochains is isomorphic
 to `Hom(P, A)`, where `P` is the standard resolution of `k` as a trivial `G`-representation. -/

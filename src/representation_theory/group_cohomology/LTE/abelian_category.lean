@@ -1,4 +1,3 @@
-#exit
 import category_theory.preadditive.basic
 import category_theory.abelian.exact
 import algebra.homology.exact

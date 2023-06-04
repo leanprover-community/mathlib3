@@ -1,4 +1,3 @@
-#exit
 import category_theory.abelian.injective
 import category_theory.abelian.ext
 import category_theory.limits.preserves.opposites

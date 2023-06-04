@@ -76,6 +76,10 @@ lemma of_ρ_apply {V : Type u} [add_comm_group V] [module k V]
   (ρ : representation k G V) (g : Mon.of G) :
   (Rep.of ρ).ρ g = ρ (g : G) := rfl
 
+lemma hom_comm_apply {A B : Rep k G} (f : A ⟶ B) (g : G) (x : A) :
+  f.hom (A.ρ g x) = B.ρ g (f.hom x) :=
+linear_map.ext_iff.1 (f.comm g) x
+
 variables (k G)
 
 /-- The trivial `k`-linear `G`-representation on a `k`-module `V.` -/

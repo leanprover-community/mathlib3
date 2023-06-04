@@ -1,4 +1,3 @@
-#exit
 import .snake_lemma
 import .exact_seq2
 

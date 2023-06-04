@@ -14,7 +14,7 @@ We define when a short exact sequence is left-split, right-split, and split.
 
 In an abelian category, a left-split short exact sequence admits a splitting.
 -/
-#exit
+
 noncomputable theory
 
 open category_theory category_theory.limits category_theory.preadditive

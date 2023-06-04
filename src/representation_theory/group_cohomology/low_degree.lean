@@ -1,4 +1,3 @@
-#exit
 import algebra.category.Module.images
 import algebra.category.Module.subobject
 import representation_theory.group_cohomology.basic
@@ -126,14 +125,10 @@ end
 
 variables {k G : Type u} [comm_ring k] [group G] (A : Rep k G)
 
-@[simp] lemma fin.mul_nth_zero_one {α : Type*} [has_mul α] (f : fin 1 → α) :
-  fin.mul_nth 0 f = default :=
-by ext x; exact fin.elim0 x
-
-@[simp] lemma fin.mul_nth_zero_two {α : Type*} [has_mul α] (f : fin 2 → α) :
+/-@[simp] lemma fin.contract_nth_zero_two {α : Type*} [has_mul α] (f : fin 2 → α) :
   fin.mul_nth 0 f = λ i, f 0 * f 1 :=
 by ext x; simpa only [subsingleton.elim x 0, fin.mul_nth_eq_apply f (fin.coe_zero _),
-    fin.add_nat_one, fin.succ_zero_eq_one']
+    fin.add_nat_one, fin.succ_zero_eq_one']-/
 
 namespace group_cohomology
 open category_theory category_theory.limits
@@ -155,11 +150,11 @@ def one_cochains_iso : (inhomogeneous_cochains A).X 1 ≅ Module.of k (G → A) 
 begin
   ext x y,
   simp only [Module.coe_comp, function.comp_app, inhomogeneous_cochains.d_def,
-    inhomogeneous_cochains.d_apply, finset.range_one, finset.sum_singleton, pow_one, neg_smul,
-    one_smul, zero_cochains_iso, one_cochains_iso, linear_equiv.to_Module_iso_hom,
-    linear_equiv.coe_coe, linear_equiv.fun_unique_apply, function.eval_apply,
-    linear_equiv.fun_congr_left_apply, linear_map.fun_left_apply, fin.default_eq_zero,
-    Module.of_hom, id.def, d_zero_apply, sub_eq_add_neg],
+    inhomogeneous_cochains.d_apply, zero_cochains_iso, one_cochains_iso,
+    linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, linear_equiv.fun_unique_apply,
+    function.eval_apply, linear_equiv.fun_congr_left_apply, linear_map.fun_left_apply,
+    Module.of_hom, d_zero_apply, fintype.univ_of_subsingleton, fin.coe_fin_one, pow_one, neg_smul,
+    one_smul, finset.sum_singleton, sub_eq_add_neg],
   congr,
 end
 
@@ -215,19 +210,11 @@ begin
   simp only [Module.coe_comp, function.comp_app, inhomogeneous_cochains.d_def,
     inhomogeneous_cochains.d_apply, two_cochains_iso, one_cochains_iso,
     linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, linear_equiv.fun_congr_left_apply,
-    linear_map.fun_left_apply, fin.default_eq_zero, Module.of_hom, d_one_apply, sub_eq_add_neg,
-    pi_fin_two_equiv_symm_apply, equiv.fun_unique_symm_apply, add_assoc, finset.range_add_one],
-  rw [finset.sum_insert, finset.sum_insert finset.not_mem_range_self, add_comm (-x _)],
-  simp only [finset.range_zero, finset.sum_empty, neg_one_sq, one_smul, pow_one,
-    fin.mul_nth_zero_two, neg_smul, add_zero],
+    linear_map.fun_left_apply, Module.of_hom, d_one_apply, sub_eq_add_neg,
+    add_assoc, fin.sum_univ_two, fin.coe_zero, pow_one, neg_smul, one_smul,
+    fin.coe_one, neg_one_sq],
   congr,
-  { ext i,
-    rw [subsingleton.elim i 0, fin.add_nat_one, fin.cons_succ, fin.cons_zero], },
-  { ext i,
-    simpa only [subsingleton.elim i 0, fin.mul_nth_lt_apply _
-      (show ((0 : fin 1) : ℕ) < 1, from zero_lt_one)] },
-  { simp only [finset.range_zero, insert_emptyc_eq, finset.mem_singleton,
-      nat.one_ne_zero, not_false_iff]},
+  all_goals { ext i, rw subsingleton.elim i 0, refl },
 end
 
 lemma d_one_comp_d_zero : d_one A ∘ₗ d_zero A = 0 :=
@@ -477,6 +464,7 @@ def three_cochains_iso : (inhomogeneous_cochains A).X 3 ≅ Module.of k (G × G 
     add_sub_assoc, add_sub_add_comm, add_add_add_comm, add_sub_assoc, add_sub_assoc],
   map_smul' := λ r x, funext $ λ g, by dsimp; simp only [map_smul, smul_add, smul_sub] }
 
+-- think i've learnt something here about definitional properties of ite defs
 @[reassoc] lemma comp_d_two_eq : (two_cochains_iso A).hom ≫ Module.of_hom (d_two A)
   = (inhomogeneous_cochains A).d 2 3 ≫ (three_cochains_iso A).hom :=
 begin
@@ -485,25 +473,10 @@ begin
     inhomogeneous_cochains.d_apply, two_cochains_iso, three_cochains_iso,
     linear_equiv.to_Module_iso_inv, linear_equiv.fun_congr_left_symm,
     linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, linear_equiv.fun_congr_left_apply,
-    linear_map.fun_left_apply, Module.of_hom, d_two_apply, sub_eq_add_neg, add_assoc,
-    fin.succ_zero_eq_one', pi_fin_two_equiv_symm_apply],
-  rw [finset.range_succ, finset.range_succ, finset.sum_insert, finset.sum_insert
-    finset.not_mem_range_self],
-  { simp only [finset.range_one, finset.sum_singleton, neg_one_sq, pow_one, pow_succ _ 2,
-      one_smul, mul_one, fin.mul_nth_zero_two, neg_smul],
-    rw [add_comm (-x _), add_comm (x _), add_assoc (-x _)],
-    congr,
-    all_goals {ext x y, fin_cases x },
-    { simpa only [fin.cons_zero] },
-    all_goals { simpa only [fin.cons_zero, ←fin.succ_zero_eq_one, @fin.cons_succ 2 (λ i, G),
-      @fin.cons_succ 1 (λ i, G), fin.mul_nth_lt_apply _ (show ((0 : fin 2) : ℕ) < 2,
-      from nat.zero_lt_succ _), fin.mul_nth_lt_apply _ (show ((0 : fin 2) : ℕ) < 1,
-      from nat.zero_lt_succ _), fin.mul_nth_eq_apply _ (show ((fin.succ 0 : fin 2) : ℕ) = 1,
-      from rfl), fin.mul_nth_eq_apply _ (show ((0 : fin 2) : ℕ) = 0, from rfl),
-      fin.mul_nth_neg_apply _ (show ¬((fin.succ 0 : fin 2) : ℕ) < 0, from nat.not_lt_zero _)
-      (ne.symm zero_ne_one)] }},
-  { simp only [finset.range_one, finset.mem_insert, nat.succ_succ_ne_one,
-    finset.mem_singleton, bit0_eq_zero, nat.one_ne_zero, or_self, not_false_iff] },
+    linear_map.fun_left_apply, Module.of_hom, d_two_apply, sub_eq_add_neg,
+    pi_fin_two_equiv_symm_apply, fin.sum_univ_three, fin.coe_zero, pow_one, neg_smul, one_smul,
+    fin.coe_one, neg_one_sq, fin.coe_two, pow_succ (-1 : k) 2, mul_one, add_assoc],
+  congr; ext i; fin_cases i; refl,
 end
 
 lemma d_two_comp_d_one : d_two A ∘ₗ d_one A = 0 :=

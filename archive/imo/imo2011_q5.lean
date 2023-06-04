@@ -17,8 +17,6 @@ of positive integers.  Suppose that, for any two integers
 
 open int
 
-namespace imo
-
 theorem imo2011_q5 (f : ℤ → ℤ) (hpos : ∀ n : ℤ, 0 < f n)
   (hdvd : ∀ m n : ℤ, f (m - n) ∣ f m - f n) :
 ∀ m n : ℤ, f m ≤ f n → f m ∣ f n :=
@@ -59,5 +57,3 @@ begin
   { -- m = n
     rw h_fm_eq_fn }
 end
-
-end imo

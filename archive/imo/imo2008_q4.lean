@@ -23,11 +23,14 @@ The desired theorem is that either `f = λ x, x` or `f = λ x, 1/x`
 
 open real
 
-namespace imo
+namespace imo2008_q4
 
 lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : |x| = 1 :=
 by rw [← pow_left_inj (abs_nonneg x) zero_le_one (pos_iff_ne_zero.2 hn), one_pow, pow_abs, h,
   abs_one]
+
+end imo2008_q4
+open imo2008_q4
 
 theorem imo2008_q4
   (f : ℝ → ℝ)
@@ -105,5 +108,3 @@ begin
     obtain ha₂ := abs_eq_one_of_pow_eq_one a 4 (show 4 ≠ 0, by norm_num) ha₁,
     rw abs_of_pos ha at ha₂, rw ha₂ at hfa₁, norm_num at hfa₁ },
 end
-
-end imo

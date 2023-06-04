@@ -41,7 +41,7 @@ $P(t)+t-a-b$, and we're again done.
 
 open function polynomial
 
-namespace imo
+namespace imo2006_q5
 /-- If every entry in a cyclic list of integers divides the next, then they all have the same
 absolute value. -/
 
@@ -200,6 +200,9 @@ begin
       { rw ←ha, apply sub_dvd_eval_sub } } }
 end
 
+end imo2006_q5
+open imo2006_q5
+
 /-- The general problem follows easily from the k = 2 case. -/
 theorem imo2006_q5 {P : polynomial ℤ} (hP : 1 < P.nat_degree) {k : ℕ} (hk : 0 < k) :
   (P.comp^[k] X - X).roots.to_finset.card ≤ P.nat_degree :=
@@ -210,5 +213,3 @@ begin
   simp only [sub_eq_zero, is_root.def, eval_sub, iterate_comp_eval, eval_X] at ht,
   simpa [mem_roots hP', sub_eq_zero] using polynomial.is_periodic_pt_eval_two ⟨k, hk, ht⟩
 end
-
-end imo

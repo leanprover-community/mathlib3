@@ -25,10 +25,10 @@ To illustrate the technique, we also prove a similar result.
 
 -- open_locale classical
 
-namespace imo
-
 local attribute [instance] classical.prop_decidable
 local attribute [simp] sq
+
+namespace imo1988_q6
 
 /-- Constant descent Vieta jumping.
 
@@ -185,6 +185,9 @@ begin
     -- Hence p' = (c, m_x) lies on the upper branch, and we are done.
 end
 
+end imo1988_q6
+open imo1988_q6
+
 /--Question 6 of IMO1988. If a and b are two natural numbers
 such that a*b+1 divides a^2 + b^2, show that their quotient is a perfect square.-/
 lemma imo1988_q6 {a b : ℕ} (h : (a*b+1) ∣ a^2 + b^2) :
@@ -298,5 +301,3 @@ begin
       obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply mul_left_cancel₀,
       exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end
-
-end imo

@@ -27,9 +27,9 @@ It involves making the substitution
 `x = a - b`, `y = b - c`, `z = c - a`, `s = a + b + c`.
 -/
 
-namespace imo2006_q3
-
 open real
+
+namespace imo2006_q3
 
 /-- Replacing `x` and `y` with their average increases the left side. -/
 lemma lhs_ineq {x y : ℝ} (hxy : 0 ≤ x * y) :

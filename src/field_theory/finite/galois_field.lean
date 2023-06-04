@@ -8,7 +8,7 @@ import algebra.char_p.algebra
 import data.zmod.algebra
 import field_theory.finite.basic
 import field_theory.galois
-import field_theory.splitting_field
+import field_theory.splitting_field.is_splitting_field
 
 /-!
 # Galois fields

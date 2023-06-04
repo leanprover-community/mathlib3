@@ -26,8 +26,7 @@ have h4 : k ∣ 3 * (14 * n + 3), from h2.mul_left 3,
 have h5 : 3 * (14 * n + 3) = 2 * (21 * n + 4) + 1, by ring,
 (nat.dvd_add_right h3).mp (h5 ▸ h4)
 
-@[nolint dup_namespace]
+end imo1959_q1
+
 theorem imo1959_q1 : ∀ n : ℕ, coprime (21 * n + 4) (14 * n + 3) :=
 assume n, coprime_of_dvd' $ λ k hp h1 h2, calculation n k h1 h2
-
-end imo1959_q1

@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import field_theory.is_splitting_field
+import field_theory.splitting_field.is_splitting_field
 
 /-!
 # Splitting fields

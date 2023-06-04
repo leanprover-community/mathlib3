@@ -6,7 +6,7 @@ Authors: Thomas Browning, Patrick Lutz
 
 import field_theory.intermediate_field
 import field_theory.separable
-import field_theory.splitting_field
+import field_theory.is_splitting_field
 import ring_theory.tensor_product
 
 /-!

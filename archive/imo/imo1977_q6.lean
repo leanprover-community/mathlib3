@@ -17,7 +17,6 @@ then we use it to prove the statement for positive naturals.
 
 namespace imo1977_q6
 
-@[nolint dup_namespace]
 theorem imo1977_q6_nat (f : ℕ → ℕ) (h : ∀ n, f (f n) < f (n + 1)) :
   ∀ n, f n = n :=
 begin

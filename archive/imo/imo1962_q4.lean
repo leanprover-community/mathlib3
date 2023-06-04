@@ -127,7 +127,6 @@ end
 Again, the final theorem is now just gluing together our lemmas.
 -/
 
-@[nolint dup_namespace]
 theorem imo1962_q4' {x : ℝ} : problem_equation x ↔ x ∈ solution_set :=
 calc problem_equation x
     ↔ cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1 : by refl

@@ -133,7 +133,6 @@ theorem polynomial.iterate_comp_sub_X_ne {P : polynomial ℤ} (hP : 1 < P.nat_de
 by { rw sub_ne_zero, apply_fun nat_degree, simpa using (one_lt_pow hP hk.ne').ne' }
 
 /-- We solve the problem for the specific case k = 2 first. -/
-@[nolint dup_namespace]
 theorem imo2006_q5' {P : polynomial ℤ} (hP : 1 < P.nat_degree) :
   (P.comp P - X).roots.to_finset.card ≤ P.nat_degree :=
 begin

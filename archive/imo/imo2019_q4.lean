@@ -28,7 +28,6 @@ open finset multiplicity nat (hiding zero_le prime)
 
 namespace imo2019_q4
 
-@[nolint dup_namespace]
 theorem imo2019_q4_upper_bound {k n : ℕ} (hk : k > 0)
   (h : (k! : ℤ) = ∏ i in range n, (2 ^ n - 2 ^ i)) : n < 6 :=
 begin

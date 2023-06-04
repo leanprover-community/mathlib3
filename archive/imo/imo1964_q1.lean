@@ -59,7 +59,6 @@ begin
   apply nat.one_le_pow'
 end
 
-@[nolint dup_namespace]
 theorem imo1964_q1a (n : ℕ) (hn : 0 < n) : problem_predicate n ↔ 3 ∣ n :=
 begin
   rw aux,
@@ -86,7 +85,6 @@ end imo1964_q1
 
 open imo1964_q1
 
-@[nolint dup_namespace]
 theorem imo1964_q1b (n : ℕ) : ¬ (7 ∣ 2 ^ n + 1) :=
 begin
   let t := n % 3,

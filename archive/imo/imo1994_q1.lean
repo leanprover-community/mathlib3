@@ -32,7 +32,7 @@ open_locale big_operators
 
 open finset
 
-namespace imo
+namespace imo1994_q1
 
 lemma tedious (m : ℕ) (k : fin (m+1)) : m - (m + (m + 1 - ↑k)) % (m + 1) = ↑k  :=
 begin
@@ -45,6 +45,7 @@ begin
   linarith
 end
 
+@[nolint dup_namespace]
 theorem imo1994_q1 (n : ℕ) (m : ℕ) (A : finset ℕ) (hm : A.card = m + 1)
   (hrange : ∀ a ∈ A, 0 < a ∧ a ≤ n) (hadd : ∀ (a b ∈ A), a + b ≤ n → a + b ∈ A) :
   (m + 1) * (n + 1) ≤ 2 * ∑ x in A, x :=
@@ -100,4 +101,4 @@ begin
   simpa [fin.coe_sub, tedious] using card_le_of_subset hf,
 end
 
-end imo
+end imo1994_q1

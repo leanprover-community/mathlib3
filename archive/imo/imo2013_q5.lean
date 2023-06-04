@@ -29,7 +29,7 @@ https://www.imo-official.org/problems/IMO2013SL.pdf
 
 open_locale big_operators
 
-namespace imo
+namespace imo2013_q5
 
 lemma le_of_all_pow_lt_succ {x y : ℝ} (hx : 1 < x) (hy : 1 < y)
   (h : ∀ n : ℕ, 0 < n → x^n - 1 < y^n) :
@@ -198,6 +198,7 @@ begin
   linarith [H5 x hx, H5 _ h_big_enough]
 end
 
+@[nolint dup_namespace]
 theorem imo2013_q5
   (f : ℚ → ℝ)
   (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
@@ -304,4 +305,4 @@ begin
        ... = x                                       : by rw ←hrat_expand2
 end
 
-end imo
+end imo2013_q5

@@ -30,7 +30,7 @@ open real
 
 variables {a b c : ℝ}
 
-namespace imo
+namespace imo2001_q2
 
 lemma denom_pos (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   0 < a ^ 4 + b ^ 4 + c ^ 4 :=
@@ -55,6 +55,7 @@ begin
               (sq_nonneg _)) (sq_nonneg _)
 end
 
+@[nolint dup_namespace]
 theorem imo2001_q2' (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   1 ≤ a ^ 3 / sqrt ((a ^ 3) ^ 2 + 8 * b ^ 3 * c ^ 3) +
       b ^ 3 / sqrt ((b ^ 3) ^ 2 + 8 * c ^ 3 * a ^ 3) +
@@ -66,6 +67,7 @@ have h₂ : c ^ 4 + a ^ 4 + b ^ 4 = a ^ 4 + b ^ 4 + c ^ 4,
 calc _ ≥ _ : add_le_add (add_le_add (bound ha hb hc) (bound hb hc ha)) (bound hc ha hb)
    ... = 1 : by rw [h₁, h₂, ← add_div, ← add_div, div_self $ ne_of_gt $ denom_pos ha hb hc]
 
+@[nolint dup_namespace]
 theorem imo2001_q2 (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   1 ≤ a / sqrt (a ^ 2 + 8 * b * c) +
       b / sqrt (b ^ 2 + 8 * c * a) +
@@ -75,4 +77,4 @@ have h3 : ∀ {x : ℝ}, 0 < x → (x ^ (3 : ℝ)⁻¹) ^ 3 = x :=
 calc 1 ≤ _ : imo2001_q2' (rpow_pos_of_pos ha _) (rpow_pos_of_pos hb _) (rpow_pos_of_pos hc _)
    ... = _ : by rw [h3 ha, h3 hb, h3 hc]
 
-end imo
+end imo2001_q2

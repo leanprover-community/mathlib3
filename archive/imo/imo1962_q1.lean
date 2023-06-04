@@ -160,5 +160,6 @@ end imo1962_q1
 
 open imo1962_q1
 
+@[nolint dup_namespace]
 theorem imo1962_q1 : is_least {n | problem_predicate n} 153846 :=
 ⟨satisfied_by_153846, no_smaller_solutions⟩

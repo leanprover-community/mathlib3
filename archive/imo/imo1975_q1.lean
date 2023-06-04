@@ -31,7 +31,7 @@ variables (hx : antitone_on x (finset.Icc 1 n))
 variables (hy : antitone_on y (finset.Icc 1 n))
 include hx hy hσ
 
-namespace imo
+namespace imo1975_q1
 
 theorem IMO_1975_Q1 :
   ∑ i in finset.Icc 1 n, (x i - y i) ^ 2 ≤ ∑ i in finset.Icc 1 n, (x i - y (σ i)) ^ 2 :=
@@ -49,4 +49,4 @@ begin
   exact antitone_on.monovary_on hx hy
 end
 
-end imo
+end imo1975_q1

@@ -25,7 +25,7 @@ To illustrate the technique, we also prove a similar result.
 
 -- open_locale classical
 
-namespace imo
+namespace imo1988_q6
 
 local attribute [instance] classical.prop_decidable
 local attribute [simp] sq
@@ -187,6 +187,7 @@ end
 
 /--Question 6 of IMO1988. If a and b are two natural numbers
 such that a*b+1 divides a^2 + b^2, show that their quotient is a perfect square.-/
+@[nolint dup_namespace]
 lemma imo1988_q6 {a b : ℕ} (h : (a*b+1) ∣ a^2 + b^2) :
   ∃ d, d^2 = (a^2 + b^2)/(a*b + 1) :=
 begin
@@ -299,4 +300,4 @@ begin
       exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end
 
-end imo
+end imo1988_q6

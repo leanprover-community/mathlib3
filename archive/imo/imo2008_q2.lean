@@ -26,7 +26,7 @@ using `c`, `m` and `n`. We factor `LHS - 1` as a square, which finishes the proo
 set of rational solutions to the equation, and that `W` is infinite.
 -/
 
-namespace imo
+namespace imo2008_q2
 
 lemma subst_abc {x y z : ℝ} (h : x*y*z = 1) :
   ∃ a b c : ℝ, a ≠ 0 ∧ b ≠ 0 ∧ c ≠ 0 ∧ x = a/b ∧ y = b/c ∧ z = c /a :=
@@ -38,6 +38,7 @@ begin
   field_simp *
 end
 
+@[nolint dup_namespace]
 theorem imo2008_q2a (x y z : ℝ) (h : x*y*z = 1) (hx : x ≠ 1) (hy : y ≠ 1) (hz : z ≠ 1) :
   x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 ≥ 1 :=
 begin
@@ -59,6 +60,7 @@ end
 def rational_solutions := { s : ℚ×ℚ×ℚ | ∃ (x y z : ℚ), s = (x, y, z) ∧
   x ≠ 1 ∧ y ≠ 1 ∧ z ≠ 1 ∧ x*y*z = 1 ∧ x^2/(x-1)^2 + y^2/(y-1)^2 + z^2/(z-1)^2 = 1 }
 
+@[nolint dup_namespace]
 theorem imo2008_q2b : set.infinite rational_solutions :=
 begin
   let W := { s : ℚ×ℚ×ℚ | ∃ (x y z : ℚ), s = (x, y, z) ∧
@@ -135,4 +137,4 @@ begin
   exact hW_inf.mono hW_sub_S,
 end
 
-end imo
+end imo2008_q2

@@ -75,5 +75,6 @@ open imo1969_q1
 
 /-- We conclude by using the fact that `a_choice` is an injective function from the natural numbers
 to the set `good_nats`. -/
+@[nolint dup_namespace]
 theorem imo1969_q1 : set.infinite {a : ℕ | ∀ n : ℕ, ¬ nat.prime (n^4 + a)} :=
 set.infinite_of_injective_forall_mem a_choice_strict_mono.injective a_choice_good

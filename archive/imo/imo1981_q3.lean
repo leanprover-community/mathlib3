@@ -198,6 +198,7 @@ Now we just have to demonstrate that 987 and 1597 are in fact the largest Fibona
 numbers in this range, and thus provide the maximum of `specified_set`.
 -/
 
+@[nolint dup_namespace]
 theorem imo1981_q3 : is_greatest (specified_set 1981) 3524578 :=
 begin
   have := λ h, @solution_greatest 1981 16 h 3524578,

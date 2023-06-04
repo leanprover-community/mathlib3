@@ -104,5 +104,6 @@ end imo1960_q1
 
 open imo1960_q1
 
+@[nolint dup_namespace]
 theorem imo1960_q1 (n : ℕ) : problem_predicate n ↔ solution_predicate n :=
 ⟨right_direction, left_direction n⟩

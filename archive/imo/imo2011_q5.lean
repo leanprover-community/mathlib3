@@ -17,8 +17,9 @@ of positive integers.  Suppose that, for any two integers
 
 open int
 
-namespace imo
+namespace imo2011_q5
 
+@[nolint dup_namespace]
 theorem imo2011_q5 (f : ℤ → ℤ) (hpos : ∀ n : ℤ, 0 < f n)
   (hdvd : ∀ m n : ℤ, f (m - n) ∣ f m - f n) :
 ∀ m n : ℤ, f m ≤ f n → f m ∣ f n :=
@@ -60,4 +61,4 @@ begin
     rw h_fm_eq_fn }
 end
 
-end imo
+end imo2011_q5

@@ -79,7 +79,9 @@ begin
   exact ⟨n, hnat₁, by linarith only [hreal₆, hreal₁]⟩,
 end
 
-@[nolint dup_namespace]
+end imo2008_q3
+open imo2008_q3
+
 theorem imo2008_q3 : ∀ N : ℕ, ∃ n : ℕ, n ≥ N ∧
   ∃ p : ℕ, nat.prime p ∧ p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
@@ -93,5 +95,3 @@ begin
 
   exact ⟨n, hn_ge_N, p, hpp, hnat, hreal⟩,
 end
-
-end imo2008_q3

@@ -19,9 +19,6 @@ Prove that $a*b + c*d$ is not prime.
 
 variables {a b c d : ℤ}
 
-namespace imo2001_q6
-
-@[nolint dup_namespace]
 theorem imo2001_q6 (hd : 0 < d) (hdc : d < c) (hcb : c < b) (hba : b < a)
   (h : a*c + b*d = (a + b - c + d) * (-a + b + c + d)) :
   ¬ prime (a*b + c*d) :=
@@ -45,5 +42,3 @@ begin
     have : a*c + b*d ≤ a*d + b*c,     { from int.le_of_dvd aux h2 },
     nlinarith only [hba, hdc, h, this] },
 end
-
-end imo2001_q6

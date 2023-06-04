@@ -82,17 +82,21 @@ begin
   split; intro; linarith
 end
 
+end imo1962_q4
+
+open imo1962_q4
+
 /-
 The final theorem is now just gluing together our lemmas.
 -/
 
-@[nolint dup_namespace]
 theorem imo1962_q4 {x : ℝ} : problem_equation x ↔ x ∈ solution_set :=
 begin
   rw [alt_equiv, finding_zeros, solve_cos3x_0, solve_cos2_half],
   exact exists_or_distrib.symm
 end
 
+namespace imo1962_q4
 
 /-
 We now present a second solution.  The key to this solution is that, when the identity is
@@ -123,6 +127,10 @@ begin
   split; intro; linarith
 end
 
+end imo1962_q4
+
+open imo1962_q4
+
 /-
 Again, the final theorem is now just gluing together our lemmas.
 -/
@@ -132,5 +140,3 @@ calc problem_equation x
     ↔ cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1 : by refl
 ... ↔ cos (2 * x) = 0 ∨ cos (3 * x) = 0 : by simp [cos_two_mul, cos_three_mul, formula]
 ... ↔ x ∈ solution_set : by { rw [solve_cos2x_0, solve_cos3x_0, ← exists_or_distrib], refl }
-
-end imo1962_q4

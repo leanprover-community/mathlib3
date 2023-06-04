@@ -66,7 +66,9 @@ have h₂ : c ^ 4 + a ^ 4 + b ^ 4 = a ^ 4 + b ^ 4 + c ^ 4,
 calc _ ≥ _ : add_le_add (add_le_add (bound ha hb hc) (bound hb hc ha)) (bound hc ha hb)
    ... = 1 : by rw [h₁, h₂, ← add_div, ← add_div, div_self $ ne_of_gt $ denom_pos ha hb hc]
 
-@[nolint dup_namespace]
+end imo2001_q2
+open imo2001_q2
+
 theorem imo2001_q2 (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   1 ≤ a / sqrt (a ^ 2 + 8 * b * c) +
       b / sqrt (b ^ 2 + 8 * c * a) +
@@ -75,5 +77,3 @@ have h3 : ∀ {x : ℝ}, 0 < x → (x ^ (3 : ℝ)⁻¹) ^ 3 = x :=
   λ x hx, show ↑3 = (3 : ℝ), by norm_num ▸ rpow_nat_inv_pow_nat hx.le three_ne_zero,
 calc 1 ≤ _ : imo2001_q2' (rpow_pos_of_pos ha _) (rpow_pos_of_pos hb _) (rpow_pos_of_pos hc _)
    ... = _ : by rw [h3 ha, h3 hb, h3 hc]
-
-end imo2001_q2

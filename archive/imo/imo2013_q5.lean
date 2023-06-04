@@ -198,7 +198,9 @@ begin
   linarith [H5 x hx, H5 _ h_big_enough]
 end
 
-@[nolint dup_namespace]
+end imo2013_q5
+open imo2013_q5
+
 theorem imo2013_q5
   (f : ℚ → ℝ)
   (H1 : ∀ x y, 0 < x → 0 < y → f (x * y) ≤ f x * f y)
@@ -304,5 +306,3 @@ begin
        ... = (((x2num : ℚ) / (x2denom : ℚ) : ℚ) : ℝ) : by norm_cast
        ... = x                                       : by rw ←hrat_expand2
 end
-
-end imo2013_q5

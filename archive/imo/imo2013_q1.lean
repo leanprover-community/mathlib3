@@ -45,7 +45,9 @@ begin
   simp [finset.mem_range.mp hi]
 end
 
-@[nolint dup_namespace]
+end imo2013_q1
+open imo2013_q1
+
 theorem imo2013_q1 (n : ℕ+) (k : ℕ) :
     (∃ m : ℕ → ℕ+, (1 : ℚ) + (2^k - 1) / n = (∏ i in finset.range k, (1 + 1 / m i))) :=
 begin
@@ -104,5 +106,3 @@ begin
           (1 + 1 / ↑(m pk))                           : by rw [prod_lemma, hpm, ←hmpk, mul_comm]
     ... = ∏ i in finset.range pk.succ, (1 + 1 / m i)  : by rw ← finset.prod_range_succ _ pk }
 end
-
-end imo2013_q1

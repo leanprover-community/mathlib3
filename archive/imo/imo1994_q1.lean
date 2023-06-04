@@ -45,7 +45,9 @@ begin
   linarith
 end
 
-@[nolint dup_namespace]
+end imo1994_q1
+open imo1994_q1
+
 theorem imo1994_q1 (n : ℕ) (m : ℕ) (A : finset ℕ) (hm : A.card = m + 1)
   (hrange : ∀ a ∈ A, 0 < a ∧ a ≤ n) (hadd : ∀ (a b ∈ A), a + b ≤ n → a + b ∈ A) :
   (m + 1) * (n + 1) ≤ 2 * ∑ x in A, x :=
@@ -100,5 +102,3 @@ begin
   -- A set of size `k+1` embed in one of size `k`, which yields a contradiction
   simpa [fin.coe_sub, tedious] using card_le_of_subset hf,
 end
-
-end imo1994_q1

@@ -185,9 +185,11 @@ begin
     -- Hence p' = (c, m_x) lies on the upper branch, and we are done.
 end
 
+end imo1988_q6
+open imo1988_q6
+
 /--Question 6 of IMO1988. If a and b are two natural numbers
 such that a*b+1 divides a^2 + b^2, show that their quotient is a perfect square.-/
-@[nolint dup_namespace]
 lemma imo1988_q6 {a b : ℕ} (h : (a*b+1) ∣ a^2 + b^2) :
   ∃ d, d^2 = (a^2 + b^2)/(a*b + 1) :=
 begin
@@ -299,5 +301,3 @@ begin
       obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply mul_left_cancel₀,
       exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end
-
-end imo1988_q6

@@ -135,12 +135,12 @@ begin
   { exact mul_nonneg (mul_nonneg (sq_nonneg _) zero_le_two) (sqrt_nonneg _) }
 end
 
-@[nolint dup_namespace]
+end imo2006_q3
+open imo2006_q3
+
 theorem imo2006_q3 (M : ℝ) :
   (∀ a b c : ℝ,
     |a * b * (a^2 - b^2) + b * c * (b^2 - c^2) + c * a * (c^2 - a^2)| ≤
     M * (a^2 + b^2 + c^2)^2) ↔
   9 * sqrt 2 / 32 ≤ M :=
 ⟨proof₂ M, λ h _ _ _, le_trans proof₁ $ mul_le_mul_of_nonneg_right h $ sq_nonneg _⟩
-
-end imo2006_q3

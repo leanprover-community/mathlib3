@@ -25,10 +25,10 @@ To illustrate the technique, we also prove a similar result.
 
 -- open_locale classical
 
-namespace imo1988_q6
-
 local attribute [instance] classical.prop_decidable
 local attribute [simp] sq
+
+namespace imo1988_q6
 
 /-- Constant descent Vieta jumping.
 

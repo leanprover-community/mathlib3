@@ -1,6 +1,32 @@
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
 import algebra.char_p.algebra
 import field_theory.intermediate_field
 import ring_theory.adjoin.field
+
+/-!
+# Splitting fields
+
+This file introduces the notion of a splitting field of a polynomial and provides an embedding from
+a splitting field to any field that splits the polynomial. A polynomial `f : K[X]` splits
+over a field extension `L` of `K` if it is zero or all of its irreducible factors over `L` have
+degree `1`. A field extension of `K` of a polynomial `f : K[X]` is called a splitting field
+if it is the smallest field extension of `K` such that `f` splits.
+
+## Main definitions
+
+* `polynomial.is_splitting_field`: A predicate on a field to be a splitting field of a polynomial
+  `f`.
+
+## Main statements
+
+* `polynomial.is_splitting_field.lift`: An embedding of a splitting field of the polynomial `f` into
+  another field such that `f` splits.
+
+-/
 
 noncomputable theory
 open_locale classical big_operators polynomial

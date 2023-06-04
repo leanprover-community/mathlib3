@@ -8,22 +8,14 @@ import field_theory.is_splitting_field
 /-!
 # Splitting fields
 
-This file introduces the notion of a splitting field of a polynomial and provides an embedding from
-a splitting field to any field that splits the polynomial. A polynomial `f : K[X]` splits
-over a field extension `L` of `K` if it is zero or all of its irreducible factors over `L` have
-degree `1`. A field extension of `K` of a polynomial `f : K[X]` is called a splitting field
-if it is the smallest field extension of `K` such that `f` splits.
+In this file we prove the existence and uniqueness of splitting fields.
 
 ## Main definitions
 
 * `polynomial.splitting_field f`: A fixed splitting field of the polynomial `f`.
-* `polynomial.is_splitting_field`: A predicate on a field to be a splitting field of a polynomial
-  `f`.
 
 ## Main statements
 
-* `polynomial.is_splitting_field.lift`: An embedding of a splitting field of the polynomial `f` into
-  another field such that `f` splits.
 * `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorphic
   to `splitting_field f` and thus, being a splitting field is unique up to isomorphism.
 

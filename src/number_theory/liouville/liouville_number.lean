@@ -8,6 +8,9 @@ import number_theory.liouville.basic
 
 # Liouville constants
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a construction of a family of Liouville numbers, indexed by a natural number $m$.
 The most important property is that they are examples of transcendental real numbers.
 This fact is recorded in `transcendental_liouville_number`.

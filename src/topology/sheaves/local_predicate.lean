@@ -172,7 +172,7 @@ The functions satisfying a local predicate satisfy the sheaf condition.
 -/
 lemma is_sheaf (P : local_predicate T) :
   (subpresheaf_to_Types P.to_prelocal_predicate).is_sheaf :=
-presheaf.is_sheaf_of_is_sheaf_unique_gluing_types (subpresheaf_to_Types P.to_prelocal_predicate) $ λ ι U sf sf_comp, begin
+presheaf.is_sheaf_of_is_sheaf_unique_gluing_types _ $ λ ι U sf sf_comp, begin
   -- We show the sheaf condition in terms of unique gluing.
   -- First we obtain a family of sections for the underlying sheaf of functions,
   -- by forgetting that the prediacte holds

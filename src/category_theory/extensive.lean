@@ -6,7 +6,7 @@ Authors: Andrew Yang
 import category_theory.limits.shapes.comm_sq
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.types
-import topology.category.Top.limits
+import topology.category.Top.limits.pullbacks
 import category_theory.limits.functor_category
 
 /-!

@@ -60,6 +60,15 @@ def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
     univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
+/-- The parallelepiped formed from the standard basis for `ι → ℝ` is `[0,1]^ι` -/
+lemma basis.parallelepiped_basis_fun (ι : Type*) [fintype ι] :
+  (pi.basis_fun ℝ ι).parallelepiped = topological_space.positive_compacts.pi_Icc01 ι :=
+set_like.coe_injective $ begin
+  refine eq.trans _ ((uIcc_of_le _).trans (set.pi_univ_Icc _ _).symm),
+  { convert (parallelepiped_single 1) },
+  { exact zero_le_one },
+end
+
 namespace measure_theory
 
 open measure topological_space.positive_compacts finite_dimensional

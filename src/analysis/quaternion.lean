@@ -35,11 +35,11 @@ open_locale real_inner_product_space
 
 namespace quaternion
 
-instance : has_inner ℝ ℍ := ⟨λ a b, (a * b.conj).re⟩
+instance : has_inner ℝ ℍ := ⟨λ a b, (a * star b).re⟩
 
 lemma inner_self (a : ℍ) : ⟪a, a⟫ = norm_sq a := rfl
 
-lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * b.conj).re := rfl
+lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * star b).re := rfl
 
 noncomputable instance : normed_add_comm_group ℍ :=
 @inner_product_space.of_core.to_normed_add_comm_group ℝ ℍ _ _ _
@@ -65,11 +65,11 @@ by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, re
 @[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ‖(a : ℍ)‖₊ = ‖a‖₊ :=
 subtype.ext $ norm_coe a
 
-@[simp] lemma norm_conj (a : ℍ) : ‖conj a‖ = ‖a‖ :=
-by simp_rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_conj]
+@[simp] lemma norm_star (a : ℍ) : ‖star a‖ = ‖a‖ :=
+by simp_rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_star]
 
-@[simp] lemma nnnorm_conj (a : ℍ) : ‖conj a‖₊ = ‖a‖₊ :=
-subtype.ext $ norm_conj a
+@[simp] lemma nnnorm_star (a : ℍ) : ‖star a‖₊ = ‖a‖₊ :=
+subtype.ext $ norm_star a
 
 noncomputable instance : normed_division_ring ℍ :=
 { dist_eq := λ _ _, rfl,
@@ -81,7 +81,7 @@ instance : normed_algebra ℝ ℍ :=
   to_algebra := (quaternion.algebra : algebra ℝ ℍ) }
 
 instance : cstar_ring ℍ :=
-{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ‖x‖) (norm_conj x) }
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ‖x‖) (norm_star x) }
 
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩
 
@@ -127,9 +127,6 @@ noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_spa
   norm_map' := norm_pi_Lp_equiv_symm_equiv_tuple,
   ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
       (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
-
-@[continuity] lemma continuous_conj : continuous (conj : ℍ → ℍ) :=
-continuous_star
 
 @[continuity] lemma continuous_coe : continuous (coe : ℝ → ℍ) :=
 continuous_algebra_map ℝ ℍ

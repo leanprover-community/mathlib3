@@ -158,25 +158,20 @@ lemma integral_mul_cexp_neg_mul_sq {b : ℂ} (hb : 0 < b.re) :
   ∫ r:ℝ in Ioi 0, (r : ℂ) * cexp (-b * r ^ 2) = (2 * b)⁻¹ :=
 begin
   have hb' : b ≠ 0 := by { contrapose! hb, rw [hb, zero_re], },
-  refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi _
-    (integrable_mul_cexp_neg_mul_sq hb).integrable_on filter.tendsto_id) _,
   have A : ∀ x:ℂ, has_deriv_at (λ x, - (2 * b)⁻¹ * cexp (-b * x^2)) (x * cexp (- b * x^2)) x,
   { intro x,
     convert (((has_deriv_at_pow 2 x)).const_mul (-b)).cexp.const_mul (- (2 * b)⁻¹) using 1,
     field_simp [hb'],
     ring },
-  have : ∀ (y : ℝ), ∫ x in 0..(id y), ↑x * cexp (-b * x^2)
-      = (- (2 * b)⁻¹ * cexp (-b * y^2)) - (- (2 * b)⁻¹ * cexp (-b * 0^2)) :=
-    λ y, interval_integral.integral_eq_sub_of_has_deriv_at
-      (λ x hx, (A x).comp_of_real) (integrable_mul_cexp_neg_mul_sq hb).interval_integrable,
-  simp_rw this,
-  have L : tendsto (λ (x : ℝ), (2 * b)⁻¹ - (2 * b)⁻¹ * cexp (-b * x ^ 2)) at_top
-    (𝓝 ((2 * b)⁻¹ - (2 * b)⁻¹ * 0)),
-  { refine tendsto_const_nhds.sub (tendsto.const_mul _ $ tendsto_zero_iff_norm_tendsto_zero.mpr _),
+  have B : tendsto (λ (y : ℝ), -(2 * b)⁻¹ * cexp (-b * ↑y ^ 2)) at_top (𝓝 (-(2 * b)⁻¹ * 0)),
+  { refine (tendsto.const_mul _ (tendsto_zero_iff_norm_tendsto_zero.mpr _)),
     simp_rw norm_cexp_neg_mul_sq b,
     exact tendsto_exp_at_bot.comp
       (tendsto.neg_const_mul_at_top (neg_lt_zero.2 hb) (tendsto_pow_at_top two_ne_zero)) },
-  simpa using L,
+  convert integral_Ioi_of_has_deriv_at_of_tendsto' (λ x hx, (A ↑x).comp_of_real)
+    (integrable_mul_cexp_neg_mul_sq hb).integrable_on B,
+  simp only [mul_zero, of_real_zero, zero_pow', ne.def, bit0_eq_zero, nat.one_ne_zero,
+    not_false_iff, complex.exp_zero, mul_one, sub_neg_eq_add, zero_add],
 end
 
 /-- The *square* of the Gaussian integral `∫ x:ℝ, exp (-b * x^2)` is equal to `π / b`. -/

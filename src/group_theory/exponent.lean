@@ -196,7 +196,7 @@ variable {G}
 begin
   refine ⟨λ he, _, λ he, _⟩,
   { by_contra h,
-    obtain ⟨m, ⟨t, rfl⟩, het⟩ := set.infinite.exists_nat_lt h (exponent G),
+    obtain ⟨m, ⟨t, rfl⟩, het⟩ := set.infinite.exists_gt h (exponent G),
     exact pow_ne_one_of_lt_order_of' he het (pow_exponent_eq_one t) },
   { lift (set.range order_of) to finset ℕ using he with t ht,
     have htpos : 0 < t.prod id,

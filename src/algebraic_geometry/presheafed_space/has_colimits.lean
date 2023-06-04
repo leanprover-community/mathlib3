@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 import topology.sheaves.limits
 
 /-!

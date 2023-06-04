@@ -11,6 +11,9 @@ import category_theory.idempotents.basic
 
 # Construction of projections for the Dold-Kan correspondence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we construct endomorphisms `P q : K[X] ⟶ K[X]` for all

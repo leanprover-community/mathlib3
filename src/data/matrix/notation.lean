@@ -11,6 +11,9 @@ import algebra.big_operators.fin
 /-!
 # Matrix and vector notation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file includes `simp` lemmas for applying operations in `data.matrix.basic` to values built out
 of the matrix notation `![a, b] = vec_cons a (vec_cons b vec_empty)` defined in
 `data.fin.vec_notation`.

@@ -198,7 +198,7 @@ finite_dimensional.trans ℝ ℂ E
 lemma rank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   module.rank ℝ E = 2 * module.rank ℂ E :=
 cardinal.lift_inj.1 $
-  by { rw [← rank_mul_rank' ℝ ℂ E, complex.rank_real_complex], simp [bit0] }
+  by { rw [← lift_rank_mul_lift_rank ℝ ℂ E, complex.rank_real_complex], simp [bit0] }
 
 lemma finrank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   finite_dimensional.finrank ℝ E = 2 * finite_dimensional.finrank ℂ E :=

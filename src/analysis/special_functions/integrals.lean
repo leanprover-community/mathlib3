@@ -67,7 +67,7 @@ begin
     have hderiv : ∀ x ∈ Ioo 0 c, has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
     { intros x hx, convert (real.has_deriv_at_rpow_const (or.inl hx.1.ne')).div_const (r + 1),
       field_simp [(by linarith : r + 1 ≠ 0)], ring, },
-    apply integrable_on_deriv_of_nonneg hc _ hderiv,
+    apply integrable_on_deriv_of_nonneg _ hderiv,
     { intros x hx, apply rpow_nonneg_of_nonneg hx.1.le, },
     { refine (continuous_on_id.rpow_const _).div_const _, intros x hx, right, linarith } },
   intro c, rcases le_total 0 c with hc|hc,

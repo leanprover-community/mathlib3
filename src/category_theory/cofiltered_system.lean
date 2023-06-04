@@ -5,7 +5,7 @@ Authors: Kyle Miller, Adam Topaz, Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.filtered
 import data.set.finite
-import topology.category.Top.limits
+import topology.category.Top.limits.konig
 
 /-!
 # Cofiltered systems

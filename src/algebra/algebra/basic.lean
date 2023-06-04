@@ -606,12 +606,6 @@ by rw [←algebra.commutes, ←algebra.commutes, map_algebra_map_mul]
 
 end linear_map
 
-
-@[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
-  @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
-by rw [algebra.smul_def, mul_one, eq_rat_cast]
-
-
 section nat
 
 variables {R : Type*} [semiring R]

@@ -80,6 +80,7 @@ begin
 end
 
 end imo2008_q3
+
 open imo2008_q3
 
 theorem imo2008_q3 : ∀ N : ℕ, ∃ n : ℕ, n ≥ N ∧

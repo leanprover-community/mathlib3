@@ -46,6 +46,7 @@ begin
 end
 
 end imo2013_q1
+
 open imo2013_q1
 
 theorem imo2013_q1 (n : ℕ+) (k : ℕ) :

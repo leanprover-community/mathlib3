@@ -28,7 +28,7 @@ open finset multiplicity nat (hiding zero_le prime)
 
 namespace imo2019_q4
 
-theorem imo2019_q4_upper_bound {k n : ℕ} (hk : k > 0)
+theorem upper_bound {k n : ℕ} (hk : k > 0)
   (h : (k! : ℤ) = ∏ i in range n, (2 ^ n - 2 ^ i)) : n < 6 :=
 begin
   have prime_2 : prime (2 : ℤ),
@@ -70,7 +70,6 @@ begin
 end
 
 end imo2019_q4
-open imo2019_q4
 
 theorem imo2019_q4 {k n : ℕ} (hk : k > 0) (hn : n > 0) :
   (k! : ℤ) = (∏ i in range n, (2 ^ n - 2 ^ i)) ↔ (k, n) = (1, 1) ∨ (k, n) = (3, 2) :=
@@ -81,7 +80,7 @@ begin
     norm_num [prod_range_succ, succ_mul] },
   intro h,
   /- We know that n < 6. -/
-  have := imo2019_q4_upper_bound hk h,
+  have := imo2019_q4.upper_bound hk h,
   interval_cases n,
   /- n = 1 -/
   { left, congr, norm_num at h, rw [factorial_eq_one] at h, apply antisymm h,

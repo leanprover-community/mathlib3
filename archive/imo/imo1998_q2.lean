@@ -198,6 +198,7 @@ lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
 by rw div_le_div_iff; norm_cast; simp [ha, hb]
 
 end imo1998_q2
+
 open imo1998_q2
 
 theorem imo1998_q2 [fintype J] [fintype C]

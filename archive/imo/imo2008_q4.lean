@@ -30,6 +30,7 @@ by rw [← pow_left_inj (abs_nonneg x) zero_le_one (pos_iff_ne_zero.2 hn), one_p
   abs_one]
 
 end imo2008_q4
+
 open imo2008_q4
 
 theorem imo2008_q4

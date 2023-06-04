@@ -201,6 +201,7 @@ begin
 end
 
 end imo2006_q5
+
 open imo2006_q5
 
 /-- The general problem follows easily from the k = 2 case. -/

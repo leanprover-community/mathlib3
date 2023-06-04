@@ -199,6 +199,8 @@ by rw div_le_div_iff; norm_cast; simp [ha, hb]
 end imo1998_q2
 open imo1998_q2
 
+variables {J C : Type*} (r : C → J → Prop)
+
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
   (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :

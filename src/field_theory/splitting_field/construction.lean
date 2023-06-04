@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import field_theory.splitting_field.is_splitting_field
+import field_theory.normal
 
 /-!
 # Splitting fields
@@ -510,3 +510,9 @@ end
 end is_splitting_field
 
 end polynomial
+
+section normal
+
+instance [field F] (p : F[X]) : normal F p.splitting_field := normal.of_is_splitting_field p
+
+end normal

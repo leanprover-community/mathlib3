@@ -48,9 +48,9 @@ open topological_space
 open topological_space.opens
 open opposite
 
-universes u v
+universes u v w
 
-variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
+variables {C : Type u} [category.{max w v} C] [concrete_category.{max w v} C]
 
 namespace Top
 
@@ -60,7 +60,7 @@ section
 
 local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
 
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {X : Top.{w}} (F : presheaf C X) {ι : Type w} (U : ι → opens X)
 
 /--
 A family of sections `sf` is compatible, if the restrictions of `sf i` and `sf j` to `U i ⊓ U j`
@@ -85,14 +85,14 @@ We prove this to be equivalent to the usual one below in
 `is_sheaf_iff_is_sheaf_unique_gluing`
 -/
 def is_sheaf_unique_gluing : Prop :=
-∀ ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
+∀ ⦃ι : Type w⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
   is_compatible F U sf → ∃! s : F.obj (op (supr U)), is_gluing F U sf s
 
 end
 
 section type_valued
 
-variables {X : Top.{v}} (F : presheaf (Type v) X) {ι : Type v} (U : ι → opens X)
+variables {X : Top.{w}} (F : presheaf (Type max w v) X) {ι : Type w} (U : ι → opens X)
 
 /--
 For presheaves of types, terms of `pi_opens F U` are just families of sections.
@@ -100,7 +100,7 @@ For presheaves of types, terms of `pi_opens F U` are just families of sections.
 def pi_opens_iso_sections_family : pi_opens F U ≅ Π i : ι, F.obj (op (U i)) :=
 limits.is_limit.cone_point_unique_up_to_iso
   (limit.is_limit (discrete.functor (λ i : ι, F.obj (op (U i)))))
-  ((types.product_limit_cone.{v v} (λ i : ι, F.obj (op (U i)))).is_limit)
+  ((types.product_limit_cone.{w (max w v)} (λ i : ι, F.obj (op (U i)))).is_limit)
 
 /--
 Under the isomorphism `pi_opens_iso_sections_family`, compatibility of sections is the same
@@ -112,8 +112,8 @@ lemma compatible_iff_left_res_eq_right_res (sf : pi_opens F U) :
 begin
   split ; intros h,
   { ext ⟨i, j⟩,
-    rw [left_res, types.limit.lift_π_apply', fan.mk_π_app,
-        right_res, types.limit.lift_π_apply', fan.mk_π_app],
+    rw [left_res, types.limit.lift_π_apply, fan.mk_π_app,
+        right_res, types.limit.lift_π_apply, fan.mk_π_app],
     exact h i j, },
   { intros i j,
     convert congr_arg (limits.pi.π (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2))) (i,j)) h,
@@ -132,7 +132,7 @@ lemma is_gluing_iff_eq_res (sf : pi_opens F U) (s : F.obj (op (supr U))):
 begin
   split ; intros h,
   { ext ⟨i⟩,
-    rw [res, types.limit.lift_π_apply', fan.mk_π_app],
+    rw [res, types.limit.lift_π_apply, fan.mk_π_app],
     exact h i, },
   { intro i,
     convert congr_arg (limits.pi.π (λ i : ι, F.obj (op (U i))) i) h,
@@ -209,9 +209,11 @@ section
 
 local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
 
-variables [has_limits C] [reflects_isomorphisms (forget C)] [preserves_limits (forget C)]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables [has_limits_of_size.{w w} C] [reflects_isomorphisms (forget C)]
+  [preserves_limits_of_size.{w w} (forget C)]
+variables {X : Top.{w}} (F : presheaf C X) {ι : Type w} (U : ι → opens X)
 
+set_option pp.universes true
 /--
 For presheaves valued in a concrete category, whose forgetful functor reflects isomorphisms and
 preserves limits, the sheaf condition in terms of unique gluings is equivalent to the usual one
@@ -235,10 +237,10 @@ section
 
 local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
 
-variables [has_limits C] [reflects_isomorphisms (concrete_category.forget C)]
-variables [preserves_limits (concrete_category.forget C)]
+variables [has_limits_of_size.{w w} C] [reflects_isomorphisms (concrete_category.forget C)]
+variables [preserves_limits_of_size.{w w} (concrete_category.forget C)]
 
-variables {X : Top.{v}} (F : sheaf C X) {ι : Type v} (U : ι → opens X)
+variables {X : Top.{w}} (F : sheaf C X) {ι : Type w} (U : ι → opens X)
 
 /--
 A more convenient way of obtaining a unique gluing of sections for a sheaf.

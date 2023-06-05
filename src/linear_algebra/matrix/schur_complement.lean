@@ -214,14 +214,6 @@ section block
 
 /-! #### General 2×2 block matrices-/
 
-/-- If `r` is invertible and `s = r` and `si = ⅟r`, then `s` is invertible with `⅟s = si`. -/
-def _root_.invertible.copy' {α} [mul_one_class α] {r : α} (hr : invertible r) (s : α) (si : α)
-  (hs : s = r) (hsi : si = ⅟r):
-  invertible s :=
-{ inv_of := si,
-  inv_of_mul_self := by rw [hs, hsi, inv_of_mul_self],
-  mul_inv_of_self := by rw [hs, hsi, mul_inv_of_self] }
-
 /-- A block matrix is invertible if the bottom right corner and the corresponding schur complement
 is. -/
 def from_blocks₂₂_invertible
@@ -238,8 +230,9 @@ begin
   { -- the product is invertible because all the factors are
     letI : invertible (1 : matrix n n α) := invertible_one,
     letI : invertible (1 : matrix m m α) := invertible_one,
-    refine ((from_blocks_zero₂₁_invertible _ _ _).matrix_mul $
-      from_blocks_zero₂₁_invertible _ _ _).matrix_mul (from_blocks_zero₁₂_invertible _ _ _) },
+    refine invertible.matrix_mul _ (from_blocks_zero₁₂_invertible _ _ _),
+    exact invertible.matrix_mul (from_blocks_zero₂₁_invertible _ _ _)
+      (from_blocks_zero₂₁_invertible _ _ _) },
   { -- unfold the `invertible` instances to get the raw factors
     show _ = from_blocks 1 0 (-(1 ⬝ (⅟ D ⬝ C) ⬝ 1)) 1
            ⬝ (from_blocks (⅟ (A - B ⬝ ⅟ D ⬝ C)) (-(⅟ (A - B ⬝ ⅟ D ⬝ C) ⬝ 0 ⬝ ⅟ D)) 0 (⅟ D)
@@ -260,6 +253,41 @@ begin
   letI := from_blocks₂₂_invertible A B C D,
   convert (rfl : ⅟(from_blocks A B C D) = _),
 end
+
+/-- If a block matrix is invertible and so is its bottom left element, then so is the corresponding
+Schur complement. -/
+def invertible_of_from_blocks₂₂_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] [invertible (from_blocks A B C D)] : invertible (A - B⬝⅟D⬝C) :=
+begin
+  suffices : invertible (from_blocks (A - B ⬝ ⅟ D ⬝ C) 0 0 D),
+  { exactI (invertible_of_from_blocks_zero₁₂_invertible (A - B ⬝ ⅟ D ⬝ C) 0 D).1 },
+  letI : invertible (1 : matrix n n α) := invertible_one,
+  letI : invertible (1 : matrix m m α) := invertible_one,
+  letI iDC : invertible (from_blocks 1 0 (⅟ D ⬝ C) 1 : matrix (m ⊕ n) (m ⊕ n) α) :=
+    from_blocks_zero₁₂_invertible _ _ _,
+  letI iBD : invertible (from_blocks 1 (B ⬝ ⅟ D) 0 1 : matrix(m ⊕ n) (m ⊕ n) α) :=
+    from_blocks_zero₂₁_invertible _ _ _,
+  letI iBDC := invertible.copy ‹_› _ (from_blocks_eq_of_invertible₂₂ A B C D).symm,
+  refine (iBD.matrix_mul_left _).symm _,
+  refine (iDC.matrix_mul_right _).symm iBDC,
+end
+
+def invertible_equiv_from_blocks₂₂_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] : invertible (from_blocks A B C D) ≃ invertible (A - B⬝⅟D⬝C) :=
+{ to_fun := λ iABCD, by exactI invertible_of_from_blocks₂₂_invertible _ _ _ _,
+  inv_fun := λ i_schur,by exactI from_blocks₂₂_invertible _ _ _ _,
+  left_inv := λ iABCD, subsingleton.elim _ _,
+  right_inv := λ i_schur, subsingleton.elim _ _ }
+
+/-- If the bottom-left element of a block matrix is invertible, then the whole matrix is invertible
+iff the corresponding schur complement is. -/
+lemma is_unit_from_blocks_iff_of_invertible₂₂
+  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} [invertible D] :
+  is_unit (from_blocks A B C D) ↔ is_unit (A - B⬝⅟D⬝C) :=
+by simp only [← nonempty_invertible_iff_is_unit,
+  (invertible_equiv_from_blocks₂₂_invertible A B C D).nonempty_congr]
 
 -- /-- A block matrix is invertible if the top left corner and the corresponding schur complement
 -- is. -/
@@ -285,84 +313,6 @@ end
 --   haveI := invertible.subsingleton (from_blocks A B C D),
 --   convert (rfl : ⅟(from_blocks A B C D) = _),
 -- end
-.
-section to_move
-variables {M : Type*} [monoid M]
-
-/-- This is the `invertible` version of `units.is_unit_units_mul` -/
-@[reducible] def invertible_of_invertible_mul (a b : M) [invertible a] [invertible (a * b)] :
-  invertible b :=
-{ inv_of := ⅟(a * b) * a,
-  inv_of_mul_self := by rw [mul_assoc, inv_of_mul_self],
-  mul_inv_of_self := by rw [←(is_unit_of_invertible a).mul_right_inj, ←mul_assoc, ←mul_assoc,
-    mul_inv_of_self, mul_one, one_mul] }
-
-/-- This is the `invertible` version of `units.is_unit_mul_units` -/
-@[reducible] def invertible_of_mul_invertible (a b : M) [invertible (a * b)] [invertible b] :
-  invertible a :=
-{ inv_of := b * ⅟(a * b),
-  inv_of_mul_self := by rw [←(is_unit_of_invertible b).mul_left_inj, mul_assoc, mul_assoc,
-    inv_of_mul_self, mul_one, one_mul],
-  mul_inv_of_self := by rw [←mul_assoc, mul_inv_of_self] }
-
-/-- `invertible_of_invertible_mul` and `invertible_mul` as an equivalence. -/
-@[simps] def invertible.mul_left {a : M} (ha : invertible a) (b : M) :
-  invertible b ≃ invertible (a * b) :=
-{ to_fun := λ hb, by exactI invertible_mul a b,
-  inv_fun := λ hab, by exactI invertible_of_invertible_mul a _,
-  left_inv := λ hb, subsingleton.elim _ _,
-  right_inv := λ hab, subsingleton.elim _ _, }
-
-/-- `invertible_of_mul_invertible` and `invertible_mul` as an equivalence. -/
-@[simps] def invertible.mul_right (a : M) {b : M} (ha : invertible b) :
-  invertible a ≃ invertible (a * b) :=
-{ to_fun := λ hb, by exactI invertible_mul a b,
-  inv_fun := λ hab, by exactI invertible_of_mul_invertible _ b,
-  left_inv := λ hb, subsingleton.elim _ _,
-  right_inv := λ hab, subsingleton.elim _ _, }
-
-end to_move
-
-@[reducible] def invertible_of_invertible_mul (a b : matrix m m α)
-  [invertible a] [invertible (a ⬝ b)] : invertible b :=
-{ inv_of := ⅟(a ⬝ b) ⬝ a,
-  ..invertible_of_invertible_mul a b }
-
-@[reducible] def invertible_of_mul_invertible (a b : matrix m m α)
-  [invertible (a ⬝ b)] [invertible b] : invertible a :=
-{ inv_of := b ⬝ ⅟(a ⬝ b),
-  ..invertible_of_mul_invertible a b }
-
-@[reducible] def _root_.invertible.matrix_mul_left
-  {a : matrix m m α} (ha : invertible a) (b : matrix m m α) : invertible b ≃ invertible (a ⬝ b) :=
-{ to_fun := λ hb, by exactI invertible_mul a b,
-  inv_fun := λ hab, by exactI invertible_of_invertible_mul a _,
-  left_inv := λ hb, subsingleton.elim _ _,
-  right_inv := λ hab, subsingleton.elim _ _, }
-
-@[reducible] def _root_.invertible.matrix_mul_right
-  (a : matrix m m α) {b : matrix m m α} (ha : invertible b) : invertible a ≃ invertible (a ⬝ b) :=
-{ to_fun := λ hb, by exactI invertible_mul a b,
-  inv_fun := λ hab, by exactI invertible_of_mul_invertible _ b,
-  left_inv := λ hb, subsingleton.elim _ _,
-  right_inv := λ hab, subsingleton.elim _ _, }
-
-def invertible_of_from_blocks₂₂_invertible
-  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
-  [invertible D] [invertible (from_blocks A B C D)] : invertible (A - B⬝⅟D⬝C) :=
-begin
-  suffices : invertible (from_blocks (A - B ⬝ ⅟ D ⬝ C) 0 0 D),
-  { exactI (invertible_of_from_blocks_zero₁₂_invertible (A - B ⬝ ⅟ D ⬝ C) 0 D).1 },
-  letI : invertible (1 : matrix n n α) := invertible_one,
-  letI : invertible (1 : matrix m m α) := invertible_one,
-  letI iDC : invertible (from_blocks 1 0 (⅟ D ⬝ C) 1 : matrix (m ⊕ n) (m ⊕ n) α) :=
-    from_blocks_zero₁₂_invertible _ _ _,
-  letI iBD : invertible (from_blocks 1 (B ⬝ ⅟ D) 0 1 : matrix(m ⊕ n) (m ⊕ n) α) :=
-    from_blocks_zero₂₁_invertible _ _ _,
-  letI iBDC := invertible.copy ‹_› _ (from_blocks_eq_of_invertible₂₂ A B C D).symm,
-  refine (iBD.matrix_mul_left _).symm _,
-  refine (iDC.matrix_mul_right _).symm iBDC,
-end
 
 
 end block

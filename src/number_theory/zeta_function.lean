@@ -652,7 +652,7 @@ begin
       rw [nat.cast_mul, ←neg_mul, nat.cast_two, nat.cast_succ,
         riemann_zeta_neg_two_mul_nat_add_one, bernoulli_eq_bernoulli'_of_ne_one],
       swap, { apply ne_of_gt, norm_num },
-      rw [bernoulli'_odd_eq_zero ⟨m.succ, rfl⟩ (by norm_num), rat.cast_zero, mul_zero, zero_div] } },
+      rw [bernoulli'_odd_eq_zero ⟨m + 1, rfl⟩ (by norm_num), rat.cast_zero, mul_zero, zero_div] } },
   { -- s = 2 * m + 1 : the interesting case
     rw odd.neg_one_pow ⟨m, rfl⟩,
     rw (show -(↑(2 * m + 1) : ℂ) = 1 - (2 * m + 2), by { push_cast, ring }),

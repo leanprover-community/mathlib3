@@ -45,6 +45,7 @@ begin
 end
 
 end imo2005_q3
+
 open imo2005_q3
 
 theorem imo2005_q3 (x y z : ℝ) (hx : x > 0) (hy : y > 0) (hz : z > 0) (h : x*y*z ≥ 1) :

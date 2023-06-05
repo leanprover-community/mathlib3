@@ -36,6 +36,7 @@ begin
 end
 
 end imo1977_q6
+
 open imo1977_q6
 
 theorem imo1977_q6 (f : ℕ+ → ℕ+) (h : ∀ n, f (f n) < f (n + 1)) :

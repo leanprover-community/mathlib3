@@ -46,6 +46,7 @@ begin
 end
 
 end imo1994_q1
+
 open imo1994_q1
 
 theorem imo1994_q1 (n : ℕ) (m : ℕ) (A : finset ℕ) (hm : A.card = m + 1)

@@ -136,6 +136,7 @@ begin
 end
 
 end imo2006_q3
+
 open imo2006_q3
 
 theorem imo2006_q3 (M : ℝ) :

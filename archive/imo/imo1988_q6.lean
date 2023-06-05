@@ -186,6 +186,7 @@ begin
 end
 
 end imo1988_q6
+
 open imo1988_q6
 
 /--Question 6 of IMO1988. If a and b are two natural numbers

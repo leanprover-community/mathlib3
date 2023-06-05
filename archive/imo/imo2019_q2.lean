@@ -583,6 +583,7 @@ end
 end imo2019q2_cfg
 
 end imo2019_q2
+
 open imo2019_q2
 
 theorem imo2019_q2 (A B C A₁ B₁ P Q P₁ Q₁ : Pt)

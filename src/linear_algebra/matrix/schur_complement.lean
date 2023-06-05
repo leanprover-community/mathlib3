@@ -83,7 +83,6 @@ lemma inv_of_from_blocks_zero₂₁_eq
   ⅟(from_blocks A B 0 D) = from_blocks (⅟A) (-(⅟A⬝B⬝⅟D)) 0 (⅟D) :=
 begin
   letI := from_blocks_zero₂₁_invertible A B D,
-  haveI := invertible.subsingleton (from_blocks A B 0 D),
   convert (rfl : ⅟(from_blocks A B 0 D) = _),
 end
 
@@ -93,7 +92,6 @@ lemma inv_of_from_blocks_zero₁₂_eq
   ⅟(from_blocks A 0 C D) = from_blocks (⅟A) 0 (-(⅟D⬝C⬝⅟A)) (⅟D) :=
 begin
   letI := from_blocks_zero₁₂_invertible A C D,
-  haveI := invertible.subsingleton (from_blocks A 0 C D),
   convert (rfl : ⅟(from_blocks A 0 C D) = _),
 end
 

@@ -3,6 +3,7 @@ Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
+import data.matrix.invertible
 import linear_algebra.matrix.adjugate
 
 /-!
@@ -60,37 +61,6 @@ open equiv equiv.perm finset
 section invertible
 variables [fintype n] [decidable_eq n] [comm_ring α]
 
-/-- A copy of `inv_of_mul_self` using `⬝` not `*`. -/
-protected lemma inv_of_mul_self (A : matrix n n α) [invertible A] : ⅟A ⬝ A = 1 := inv_of_mul_self A
-
-/-- A copy of `mul_inv_of_self` using `⬝` not `*`. -/
-protected lemma mul_inv_of_self (A : matrix n n α) [invertible A] : A ⬝ ⅟A = 1 := mul_inv_of_self A
-
-/-- A copy of `inv_of_mul_self_assoc` using `⬝` not `*`. -/
-protected lemma inv_of_mul_self_assoc (A : matrix n n α) (B : matrix n m α) [invertible A] :
-  ⅟A ⬝ (A ⬝ B) = B :=
-by rw [←matrix.mul_assoc, matrix.inv_of_mul_self, matrix.one_mul]
-
-/-- A copy of `mul_inv_of_self_assoc` using `⬝` not `*`. -/
-protected lemma mul_inv_of_self_assoc (A : matrix n n α) (B : matrix n m α) [invertible A] :
-  A ⬝ (⅟A ⬝ B) = B :=
-by rw [←matrix.mul_assoc, matrix.mul_inv_of_self, matrix.one_mul]
-
-/-- A copy of `mul_inv_of_mul_self_cancel` using `⬝` not `*`. -/
-protected lemma mul_inv_of_mul_self_cancel (A : matrix m n α) (B : matrix n n α)
-  [invertible B] : A ⬝ ⅟B ⬝ B = A :=
-by rw [matrix.mul_assoc, matrix.inv_of_mul_self, matrix.mul_one]
-
-/-- A copy of `mul_mul_inv_of_self_cancel` using `⬝` not `*`. -/
-protected lemma mul_mul_inv_of_self_cancel (A : matrix m n α) (B : matrix n n α)
-  [invertible B] : A ⬝ B ⬝ ⅟B = A :=
-by rw [matrix.mul_assoc, matrix.mul_inv_of_self, matrix.mul_one]
-
-def _root_.invertible.matrix_mul {A B : matrix n n α} (hA : invertible A) (hB : invertible B) :
-  invertible (A ⬝ B) := invertible_mul _ _
-
-protected lemma inv_of_mul {A B : matrix n n α} [invertible A] [invertible B] [invertible (A ⬝ B)] :
-  ⅟(A ⬝ B) = ⅟B ⬝ ⅟A := inv_of_mul _ _
 
 variables (A : matrix n n α) (B : matrix n n α)
 

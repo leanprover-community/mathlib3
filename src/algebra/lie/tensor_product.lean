@@ -8,6 +8,9 @@ import algebra.lie.abelian
 /-!
 # Tensor products of Lie modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Tensor products of Lie modules carry natural Lie module structures.
 
 ## Tags

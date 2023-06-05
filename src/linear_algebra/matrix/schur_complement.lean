@@ -16,7 +16,9 @@ This file proves properties of 2×2 block matrices `[A B; C D]` that relate to t
  * `matrix.det_from_blocks₁₁`, `matrix.det_from_blocks₂₂`: determinant of a block matrix in terms of
    the Schur complement.
  * `matrix.inv_of_from_blocks_zero₂₁_eq`, `matrix.inv_of_from_blocks_zero₁₂_eq`: the inverse of a
-   block triangular matrix
+   block triangular matrix.
+ * `matrix.is_unit_from_blocks_zero₂₁`, `matrix.is_unit_from_blocks_zero₁₂`: invertibility of a
+   block triangular matrix.
  * `matrix.det_one_add_mul_comm`: the **Weinstein–Aronszajn identity**.
  * `matrix.schur_complement_pos_semidef_iff` : If a matrix `A` is positive definite, then
   `[A B; Bᴴ D]` is postive semidefinite if and only if `D - Bᴴ A⁻¹ B` is postive semidefinite.

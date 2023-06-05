@@ -243,6 +243,26 @@ begin
       ←matrix.mul_assoc, add_comm], },
 end
 
+/-- A block matrix is invertible if the top left corner and the corresponding schur complement
+is. -/
+def from_blocks₁₁_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] [invertible (D - C⬝⅟A⬝B)] :
+  invertible (from_blocks A B C D) :=
+begin
+  -- we argue by symmetry
+  letI := from_blocks₂₂_invertible D C B A,
+  letI iDCBA
+   :=
+    submatrix_equiv_invertible (from_blocks D C B A) (equiv.sum_comm _ _) (equiv.sum_comm _ _),
+  exact iDCBA.copy' _
+    (from_blocks
+      (⅟A + ⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A) (-(⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)))
+      (-(⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A))        (⅟(D - C⬝⅟A⬝B)))
+    (from_blocks_submatrix_sum_swap_sum_swap _ _ _ _).symm
+    (from_blocks_submatrix_sum_swap_sum_swap _ _ _ _).symm,
+end
+
 lemma inv_of_from_blocks₂₂_eq
   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] [invertible (A - B⬝⅟D⬝C)] [invertible (from_blocks A B C D)] :
@@ -251,6 +271,17 @@ lemma inv_of_from_blocks₂₂_eq
       (-(⅟D⬝C⬝⅟(A - B⬝⅟D⬝C))) (⅟D + ⅟D⬝C⬝⅟(A - B⬝⅟D⬝C)⬝B⬝⅟D):=
 begin
   letI := from_blocks₂₂_invertible A B C D,
+  convert (rfl : ⅟(from_blocks A B C D) = _),
+end
+
+lemma inv_of_from_blocks₁₁_eq
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] [invertible (D - C⬝⅟A⬝B)] [invertible (from_blocks A B C D)] :
+  ⅟(from_blocks A B C D) = from_blocks
+      (⅟A + ⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A) (-(⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)))
+      (-(⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A))        (⅟(D - C⬝⅟A⬝B)) :=
+begin
+  letI := from_blocks₁₁_invertible A B C D,
   convert (rfl : ⅟(from_blocks A B C D) = _),
 end
 
@@ -273,11 +304,36 @@ begin
   refine (iDC.matrix_mul_right _).symm iBDC,
 end
 
+/-- If a block matrix is invertible and so is its bottom left element, then so is the corresponding
+Schur complement. -/
+def invertible_of_from_blocks₁₁_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] [invertible (from_blocks A B C D)] : invertible (D - C⬝⅟A⬝B) :=
+begin
+  -- another symmetry argument
+  letI iABCD' :=
+    submatrix_equiv_invertible (from_blocks A B C D) (equiv.sum_comm _ _) (equiv.sum_comm _ _),
+  letI iDCBA := iABCD'.copy _ (from_blocks_submatrix_sum_swap_sum_swap _ _ _ _).symm,
+  refine invertible_of_from_blocks₂₂_invertible D C B A,
+end
+
+/-- `matrix.invertible_of_from_blocks₂₂_invertible` and `matrix.from_blocks₂₂_invertible` as an
+equivalence. -/
 def invertible_equiv_from_blocks₂₂_invertible
   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] : invertible (from_blocks A B C D) ≃ invertible (A - B⬝⅟D⬝C) :=
 { to_fun := λ iABCD, by exactI invertible_of_from_blocks₂₂_invertible _ _ _ _,
   inv_fun := λ i_schur,by exactI from_blocks₂₂_invertible _ _ _ _,
+  left_inv := λ iABCD, subsingleton.elim _ _,
+  right_inv := λ i_schur, subsingleton.elim _ _ }
+
+/-- `matrix.invertible_of_from_blocks₁₁_invertible` and `matrix.from_blocks₁₁_invertible` as an
+equivalence. -/
+def invertible_equiv_from_blocks₁₁_invertible
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] : invertible (from_blocks A B C D) ≃ invertible (D - C⬝⅟A⬝B) :=
+{ to_fun := λ iABCD, by exactI invertible_of_from_blocks₁₁_invertible _ _ _ _,
+  inv_fun := λ i_schur,by exactI from_blocks₁₁_invertible _ _ _ _,
   left_inv := λ iABCD, subsingleton.elim _ _,
   right_inv := λ i_schur, subsingleton.elim _ _ }
 
@@ -289,31 +345,13 @@ lemma is_unit_from_blocks_iff_of_invertible₂₂
 by simp only [← nonempty_invertible_iff_is_unit,
   (invertible_equiv_from_blocks₂₂_invertible A B C D).nonempty_congr]
 
--- /-- A block matrix is invertible if the top left corner and the corresponding schur complement
--- is. -/
--- def from_blocks₁₁_invertible
---   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
---   [invertible A] [invertible (D - C⬝⅟A⬝B)] :
---   invertible (from_blocks A B C D) :=
--- by let D' := D - C⬝⅟A⬝B; have i1 : invertible D' := ‹_›; exactI
--- invertible_of_left_inverse _
---   (from_blocks
---       (⅟A + ⅟A⬝B⬝⅟D'⬝C⬝⅟A) (-(⅟A⬝B⬝⅟D'))
---       (-(⅟D'⬝C⬝⅟A))        (⅟D'))
---   (by rw [from_blocks₁₁_invertible_aux, matrix.inv_of_mul_self])
-
--- lemma inv_of_from_blocks₁₁_eq
---   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
---   [invertible A] [invertible (D - C⬝⅟A⬝B)] [invertible (from_blocks A B C D)] :
---   ⅟(from_blocks A B C D) = from_blocks
---       (⅟A + ⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A) (-(⅟A⬝B⬝⅟(D - C⬝⅟A⬝B)))
---       (-(⅟(D - C⬝⅟A⬝B)⬝C⬝⅟A)) (⅟(D - C⬝⅟A⬝B)) :=
--- begin
---   letI := from_blocks₁₁_invertible A B C D,
---   haveI := invertible.subsingleton (from_blocks A B C D),
---   convert (rfl : ⅟(from_blocks A B C D) = _),
--- end
-
+/-- If the top-right element of a block matrix is invertible, then the whole matrix is invertible
+iff the corresponding schur complement is. -/
+lemma is_unit_from_blocks_iff_of_invertible₁₁
+  {A : matrix m m α} {B : matrix m n α} {C : matrix n m α} {D : matrix n n α} [invertible A] :
+  is_unit (from_blocks A B C D) ↔ is_unit (D - C⬝⅟A⬝B) :=
+by simp only [← nonempty_invertible_iff_is_unit,
+  (invertible_equiv_from_blocks₁₁_invertible A B C D).nonempty_congr]
 
 end block
 

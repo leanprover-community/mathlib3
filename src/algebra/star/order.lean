@@ -37,7 +37,7 @@ class star_ordered_ring (R : Type u) [non_unital_semiring R] [partial_order R]
   extends star_ring R :=
 (add_le_add_left : ∀ a b : R, a ≤ b → ∀ c : R, c + a ≤ c + b)
 (le_iff          : ∀ x y : R,
-  x ≤ y ↔ ∃ p, p ∈ add_submonoid.closure (set.range $ λ s, star s * s) ∧ x + p = y)
+  x ≤ y ↔ ∃ p, p ∈ add_submonoid.closure (set.range $ λ s, star s * s) ∧ y = x + p)
 
 namespace star_ordered_ring
 
@@ -51,7 +51,7 @@ instance to_ordered_add_comm_monoid [non_unital_semiring R] [partial_order R]
 @[priority 100] -- see note [lower instance priority]
 instance to_has_exists_add_of_le {R : Type u} [non_unital_semiring R] [partial_order R]
   [star_ordered_ring R] : has_exists_add_of_le R :=
-{ exists_add_of_le := λ a b h, match (le_iff _ _).mp h with ⟨p, _, hp⟩ := ⟨p, hp.symm⟩ end }
+{ exists_add_of_le := λ a b h, match (le_iff _ _).mp h with ⟨p, _, hp⟩ := ⟨p, hp⟩ end }
 
 @[priority 100] -- see note [lower instance priority]
 instance to_ordered_add_comm_group [non_unital_ring R] [partial_order R] [star_ordered_ring R] :
@@ -61,9 +61,9 @@ instance to_ordered_add_comm_group [non_unital_ring R] [partial_order R] [star_o
   ..show star_ordered_ring R, by apply_instance }
 
 @[reducible] -- set note [reducible non-instances]
-def of_le_iff (R : Type u) [non_unital_semiring R] [partial_order R] [star_ring R]
+def of_le_iff {R : Type u} [non_unital_semiring R] [partial_order R] [star_ring R]
   (h_add : ∀ {x y : R}, x ≤ y → ∀ z, z + x ≤ z + y)
-  (h_le_iff : ∀ x y : R, x ≤ y ↔ ∃ s, x + star s * s = y) :
+  (h_le_iff : ∀ x y : R, x ≤ y ↔ ∃ s, y = x + star s * s) :
   star_ordered_ring R :=
 { add_le_add_left := @h_add,
   le_iff := λ x y,
@@ -73,19 +73,19 @@ def of_le_iff (R : Type u) [non_unital_semiring R] [partial_order R] [star_ring 
       exact ⟨star p * p, add_submonoid.subset_closure ⟨p, rfl⟩, hp⟩ },
     { rintro ⟨p, hp, hpxy⟩,
       revert x y hpxy,
-      refine add_submonoid.closure_induction hp _ (λ x y h, add_zero x ▸ h.le) _,
+      refine add_submonoid.closure_induction hp _ (λ x y h, add_zero x ▸ h.ge) _,
       { rintro _ ⟨s, rfl⟩ x y rfl,
         nth_rewrite 0 [←add_zero x],
         refine h_add _ x,
         exact (h_le_iff _ _).mpr ⟨s, by rw [zero_add]⟩ },
       { rintro a b ha hb x y rfl,
         nth_rewrite 0 [←add_zero x],
-        exact h_add ((ha 0 _ (zero_add a)).trans (hb a _ rfl)) x } }
+        refine h_add ((ha 0 _ (zero_add a).symm).trans (hb a _ rfl)) x } }
   end,
   .. ‹star_ring R› }
 
 @[reducible] -- set note [reducible non-instances]
-def of_nonneg_iff (R : Type u) [non_unital_ring R] [partial_order R] [star_ring R]
+def of_nonneg_iff {R : Type u} [non_unital_ring R] [partial_order R] [star_ring R]
   (h_add : ∀ {x y : R}, x ≤ y → ∀ z, z + x ≤ z + y)
   (h_nonneg_iff : ∀ x : R, 0 ≤ x ↔ x ∈ add_submonoid.closure (set.range $ λ s : R, star s * s)) :
   star_ordered_ring R :=
@@ -93,24 +93,24 @@ def of_nonneg_iff (R : Type u) [non_unital_ring R] [partial_order R] [star_ring 
   le_iff := λ x y,
     begin
       haveI : covariant_class R R (+) (≤) := ⟨λ _ _ _ h, h_add h _⟩,
-      simpa only [←eq_sub_iff_add_eq', sub_nonneg, exists_eq_right] using h_nonneg_iff (y - x),
+      simpa only [←sub_eq_iff_eq_add', sub_nonneg, exists_eq_right'] using h_nonneg_iff (y - x),
     end,
   .. ‹star_ring R› }
 
 @[reducible] -- set note [reducible non-instances]
-def of_nonneg_iff' (R : Type u) [non_unital_ring R] [partial_order R] [star_ring R]
+def of_nonneg_iff' {R : Type u} [non_unital_ring R] [partial_order R] [star_ring R]
   (h_add : ∀ {x y : R}, x ≤ y → ∀ z, z + x ≤ z + y)
-  (h_nonneg_iff : ∀ x : R, 0 ≤ x ↔ ∃ s, star s * s = x) :
+  (h_nonneg_iff : ∀ x : R, 0 ≤ x ↔ ∃ s, x = star s * s) :
   star_ordered_ring R :=
-of_le_iff R @h_add
+of_le_iff @h_add
 begin
   haveI : covariant_class R R (+) (≤) := ⟨λ _ _ _ h, h_add h _⟩,
-  simpa [eq_sub_iff_add_eq', sub_nonneg] using λ x y, h_nonneg_iff (y - x),
+  simpa [sub_eq_iff_eq_add', sub_nonneg] using λ x y, h_nonneg_iff (y - x),
 end
 
-lemma nonneg_iff (R : Type u) [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
+lemma nonneg_iff {R : Type u} [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
   {x : R} : 0 ≤ x ↔ x ∈ add_submonoid.closure (set.range $ λ s : R, star s * s) :=
-by simp only [le_iff, zero_add, exists_eq_right]
+by simp only [le_iff, zero_add, exists_eq_right']
 
 end star_ordered_ring
 
@@ -119,7 +119,7 @@ section non_unital_semiring
 variables [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
 
 lemma star_mul_self_nonneg (r : R) : 0 ≤ star r * r :=
-(star_ordered_ring.nonneg_iff _).mpr $ add_submonoid.subset_closure ⟨r, rfl⟩
+star_ordered_ring.nonneg_iff.mpr $ add_submonoid.subset_closure ⟨r, rfl⟩
 
 lemma star_mul_self_nonneg' (r : R) : 0 ≤ r * star r :=
 by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg (star r) }

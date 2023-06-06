@@ -65,6 +65,11 @@ instance to_ordered_add_comm_group [non_unital_ring R] [partial_order R] [star_o
   ..show partial_order R, by apply_instance,
   ..show star_ordered_ring R, by apply_instance }
 
+/-- To construct a `star_ordered_ring` instance it suffices to show that `x ≤ y` if and only if
+`y = x + star s * s` for some `s : R`.
+
+This is provided for convenience because it holds in some common scenarios (e.g.,`ℝ≥0`, `C(X, ℝ≥0)`)
+and obviates the hassle of `add_submonoid.closure_induction` when creating those instances. -/
 @[reducible] -- set note [reducible non-instances]
 def of_le_iff {R : Type u} [non_unital_semiring R] [partial_order R] [star_ring R]
   (h_add : ∀ {x y : R}, x ≤ y → ∀ z, z + x ≤ z + y)
@@ -89,6 +94,9 @@ def of_le_iff {R : Type u} [non_unital_semiring R] [partial_order R] [star_ring 
   end,
   .. ‹star_ring R› }
 
+/-- When `R` is a non-unital ring, to construct a `star_ordered_ring` instance it suffices to
+show that the nonnegative elements are precisely those elements in the `add_submonoid` generated
+by `star s * s` for `s : R`. -/
 @[reducible] -- set note [reducible non-instances]
 def of_nonneg_iff {R : Type u} [non_unital_ring R] [partial_order R] [star_ring R]
   (h_add : ∀ {x y : R}, x ≤ y → ∀ z, z + x ≤ z + y)
@@ -102,6 +110,13 @@ def of_nonneg_iff {R : Type u} [non_unital_ring R] [partial_order R] [star_ring 
     end,
   .. ‹star_ring R› }
 
+/-- When `R` is a non-unital ring, to construct a `star_ordered_ring` instance it suffices to
+show that the nonnegative elements are precisely those elements of the form `star s * s`
+for `s : R`.
+
+This is provided for convenience because it holds in many common scenarios (e.g.,`ℝ`, `ℂ`, or
+any C⋆-algebra), and obviates the hassle of `add_submonoid.closure_induction` when creating those
+instances. -/
 @[reducible] -- set note [reducible non-instances]
 def of_nonneg_iff' {R : Type u} [non_unital_ring R] [partial_order R] [star_ring R]
   (h_add : ∀ {x y : R}, x ≤ y → ∀ z, z + x ≤ z + y)

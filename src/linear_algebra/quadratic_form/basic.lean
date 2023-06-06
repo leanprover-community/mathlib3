@@ -12,6 +12,9 @@ import linear_algebra.matrix.symmetric
 /-!
 # Quadratic forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines quadratic forms over a `R`-module `M`.
 A quadratic form on a ring `R` is a map `Q : M → R` such that:
 * `quadratic_form.map_smul`: `Q (a • x) = a * a * Q x`

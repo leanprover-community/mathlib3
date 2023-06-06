@@ -13,6 +13,9 @@ import measure_theory.measure.doubling
 /-!
 # Relationship between the Haar and Lebesgue measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove that the Haar measure and Lebesgue measure are equal on `ℝ` and on `ℝ^ι`, in
 `measure_theory.add_haar_measure_eq_volume` and `measure_theory.add_haar_measure_eq_volume_pi`.
 

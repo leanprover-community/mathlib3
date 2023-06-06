@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import algebra.algebra.spectrum
+import field_theory.is_alg_closed.spectrum
 import order.hom.basic
 import linear_algebra.general_linear_group
 

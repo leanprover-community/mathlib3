@@ -7,7 +7,7 @@ import algebra.group.ext
 import category_theory.simple
 import category_theory.linear.basic
 import category_theory.endomorphism
-import algebra.algebra.spectrum
+import field_theory.is_alg_closed.spectrum
 
 /-!
 # Schur's lemma

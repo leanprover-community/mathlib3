@@ -527,7 +527,7 @@ end
 /-- The Riemann zeta function agrees with the naive Dirichlet-series definition when the latter
 converges. (Note that this is false without the assumption: when `re s ≤ 1` the sum is divergent,
 and we use a different definition to obtain the analytic continuation to all `s`.) -/
-theorem zeta_eq_tsum_of_one_lt_re {s : ℂ} (hs : 1 < re s) :
+theorem zeta_eq_tsum_one_div_nat_add_one_cpow {s : ℂ} (hs : 1 < re s) :
   riemann_zeta s = ∑' (n : ℕ), 1 / (n + 1) ^ s :=
 begin
   have : s ≠ 0, by { contrapose! hs, rw [hs, zero_re], exact zero_le_one },
@@ -540,22 +540,69 @@ begin
     exact or.inl (pi_pos.ne') }
 end
 
-lemma zeta_nat_eq_tsum_of_gt_one {k : ℕ} (hk : 1 < k) :
-  riemann_zeta k = ∑' (n : ℕ), 1 / n ^ k :=
+/-- Alternate formulation of `zeta_eq_tsum_one_div_nat_add_one_cpow` without the `+ 1`, using the
+fact that for `s ≠ 0` we define `0 ^ s = 0`.  -/
+lemma zeta_eq_tsum_one_div_nat_cpow {s : ℂ} (hs : 1 < re s) :
+  riemann_zeta s = ∑' (n : ℕ), 1 / n ^ s :=
 begin
-  rw tsum_eq_zero_add,
-  swap, { convert summable_of_real.mpr (summable_one_div_nat_pow.mpr hk), ext1 n, push_cast },
-  rw [nat.cast_zero, zero_pow (zero_lt_one.trans hk), div_zero, zero_add],
-  simpa only [cpow_nat_cast, nat.cast_add, nat.cast_one]
-    using zeta_eq_tsum_of_one_lt_re (_ : 1 < re ↑k),
-  rwa [←of_real_nat_cast, of_real_re, ←nat.cast_one, nat.cast_lt],
+  have hs' : s ≠ 0, by { contrapose! hs, rw [hs, zero_re], exact zero_le_one },
+  rw [tsum_eq_zero_add],
+  { simp_rw [nat.cast_zero, zero_cpow hs', div_zero, zero_add,
+    zeta_eq_tsum_one_div_nat_add_one_cpow hs, nat.cast_add, nat.cast_one] },
+  { rw ←summable_norm_iff,
+    simp_rw [norm_div, norm_one, complex.norm_eq_abs, ←of_real_nat_cast,
+      abs_cpow_eq_rpow_re_of_nonneg (nat.cast_nonneg _) (zero_lt_one.trans hs).ne',
+      summable_one_div_nat_rpow],
+    assumption }
+end
+
+/-- Special case of `zeta_eq_tsum_one_div_nat_cpow` when the argument is in `ℕ`, so the power
+function can be expressed using naïve `pow` rather than `cpow`. -/
+lemma zeta_nat_eq_tsum_of_gt_one {k : ℕ} (hk : 1 < k) : riemann_zeta k = ∑' (n : ℕ), 1 / n ^ k :=
+by simp only [zeta_eq_tsum_one_div_nat_cpow (by rwa [←of_real_nat_cast, of_real_re, ←nat.cast_one,
+    nat.cast_lt] : 1 < re k), cpow_nat_cast]
+
+/-- Explicit formula for `ζ (2 * k)`, for `k ∈ ℕ` with `k ≠ 0`: we have
+`ζ (2 * k) = (-1) ^ (k + 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / (2 * k)!`.
+Compare `has_sum_zeta_nat` for a version formulated explicitly as a sum, and
+`riemann_zeta_neg_nat_eq_bernoulli` for values at negative integers (equivalent to the above via
+the functional equation). -/
+lemma riemann_zeta_two_mul_nat {k : ℕ} (hk : k ≠ 0) :
+  riemann_zeta (2 * k) =
+  (-1) ^ (k + 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / (2 * k)! :=
+begin
+  convert congr_arg (coe : ℝ → ℂ) (has_sum_zeta_nat hk).tsum_eq,
+  { rw [←nat.cast_two, ←nat.cast_mul, zeta_nat_eq_tsum_of_gt_one],
+    { push_cast },
+    { refine (one_lt_two).trans_le _,
+      conv_lhs { rw ←mul_one 2 },
+      rwa [mul_le_mul_left (zero_lt_two' ℕ), nat.one_le_iff_ne_zero] } },
+  { push_cast }
+end
+
+lemma riemann_zeta_two : riemann_zeta 2 = π ^ 2 / 6 :=
+begin
+  convert congr_arg coe has_sum_zeta_two.tsum_eq,
+  { rw [←nat.cast_two, zeta_nat_eq_tsum_of_gt_one one_lt_two, of_real_tsum],
+    push_cast },
+  { push_cast }
+end
+
+lemma riemann_zeta_four : riemann_zeta 4 = π ^ 4 / 90 :=
+begin
+  convert congr_arg coe has_sum_zeta_four.tsum_eq,
+  { rw [←nat.cast_one, ←nat.cast_bit0, ←nat.cast_bit0, zeta_nat_eq_tsum_of_gt_one
+      (by norm_num : 1 < 4), of_real_tsum],
+    push_cast },
+  { push_cast }
 end
 
 /-!
 ## Functional equation
 -/
 
-/-- Riemann zeta functional equation, formulated for `Λ₀(s)`. -/
+/-- Riemann zeta functional equation, formulated for `Λ₀`: for any complex `s` we have
+`Λ₀(1 - s) = Λ₀ s`. -/
 lemma riemann_completed_zeta₀_one_sub (s : ℂ) :
   riemann_completed_zeta₀ (1 - s) = riemann_completed_zeta₀ s :=
 begin
@@ -571,13 +618,15 @@ begin
   ring,
 end
 
-/-- Riemann zeta functional equation, formulated for `Λ(s)`. -/
+/-- Riemann zeta functional equation, formulated for `Λ`: for any complex `s` we have
+`Λ (1 - s) = Λ s`. -/
 lemma riemann_completed_zeta_one_sub (s : ℂ) :
   riemann_completed_zeta (1 - s) = riemann_completed_zeta s :=
 by simp_rw [riemann_completed_zeta, riemann_completed_zeta₀_one_sub, sub_add,
     (by abel : 1 - s - 1 = -s), (by abel : 1 - s = -(s - 1)), div_neg, neg_sub_neg]
 
-/-- Riemann zeta functional equation, formulated for `ζ(s)`. -/
+/-- Riemann zeta functional equation, formulated for `ζ`: if `1 - s ∉ ℕ`, then we have
+`ζ (1 - s) = 2 ^ (1 - s) * π ^ (-s) * Γ s * sin (π * (1 - s) / 2) * ζ s`. -/
 lemma riemann_zeta_one_sub {s : ℂ} (hs : ∀ (n : ℕ), s ≠ -n) (hs' : s ≠ 1) :
   riemann_zeta (1 - s) =
   2 ^ (1 - s) * π ^ (-s) * Gamma s * sin (π * (1 - s) / 2) * riemann_zeta s :=
@@ -611,7 +660,7 @@ begin
   { -- Note the case n = 0 (i.e. s = 1) works OK here, but only because we have used
     -- `function.update_noteq` to change the goal; the original goal is genuinely false for s = 1.
     obtain ⟨n, rfl⟩ := hs_pos_odd,
-    have : (1 - (1 + 2 * (n : ℂ))) / 2 =  -↑n,
+    have : (1 - (1 + 2 * (n : ℂ))) / 2 = -↑n,
     { rw [←sub_sub, sub_self, zero_sub, neg_div, mul_div_cancel_left _ (two_ne_zero' ℂ)] },
     rw [this, complex.Gamma_neg_nat_eq_zero, div_zero],
     have : (π : ℂ) * (1 - (1 + 2 * ↑n)) / 2 = ↑(-n : ℤ) * π,

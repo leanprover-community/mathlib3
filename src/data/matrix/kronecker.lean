@@ -14,6 +14,9 @@ import ring_theory.tensor_product
 /-!
 # Kronecker product of matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines the [Kronecker product](https://en.wikipedia.org/wiki/Kronecker_product).
 
 ## Main definitions

@@ -169,6 +169,14 @@ end
 lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
 strict_mono_on_log.inj_on
 
+lemma log_lt_sub_one_of_pos (hx1 : 0 < x) (hx2 : x ≠ 1) : log x < x - 1 :=
+begin
+  have h : log x ≠ 0,
+  { rw [← log_one, log_inj_on_pos.ne_iff hx1 zero_lt_one],
+    exact hx2 },
+  linarith [add_one_lt_exp_of_nonzero h, exp_log hx1],
+end
+
 lemma eq_one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
 log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)
 

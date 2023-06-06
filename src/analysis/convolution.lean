@@ -3,12 +3,13 @@ Copyright (c) 2022 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import analysis.calculus.bump_function_inner
+import analysis.calculus.parametric_integral
+import measure_theory.constructions.prod.integral
+import measure_theory.function.locally_integrable
 import measure_theory.group.integration
 import measure_theory.group.prod
-import measure_theory.function.locally_integrable
-import analysis.calculus.bump_function_inner
 import measure_theory.integral.interval_integral
-import analysis.calculus.parametric_integral
 
 /-!
 # Convolution of functions
@@ -1496,7 +1497,9 @@ begin
     simp only [ef, eg, comp_app, continuous_linear_equiv.apply_symm_apply, coe_comp',
       continuous_linear_equiv.prod_apply, continuous_linear_equiv.map_sub,
       continuous_linear_equiv.arrow_congr, continuous_linear_equiv.arrow_congrSL_symm_apply,
-      continuous_linear_equiv.coe_coe, comp_app, continuous_linear_equiv.apply_symm_apply] },
+      continuous_linear_equiv.coe_coe, comp_app, continuous_linear_equiv.apply_symm_apply,
+      linear_equiv.inv_fun_eq_symm, continuous_linear_equiv.arrow_congrₛₗ_symm_apply,
+      eq_self_iff_true] },
   simp_rw [this] at A,
   exact A,
 end

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.radon_nikodym
-import measure_theory.measure.haar_of_basis
+import measure_theory.measure.haar.of_basis
 
 /-!
 # Probability density function

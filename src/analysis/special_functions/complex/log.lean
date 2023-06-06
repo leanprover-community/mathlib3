@@ -9,6 +9,9 @@ import analysis.special_functions.log.basic
 /-!
 # The complex `log` function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Basic properties, relationship with `exp`.
 -/
 

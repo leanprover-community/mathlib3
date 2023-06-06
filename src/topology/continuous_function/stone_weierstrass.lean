@@ -9,6 +9,9 @@ import data.is_R_or_C.basic
 /-!
 # The Stone-Weierstrass theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact topological space,
 separates points, then it is dense.
 

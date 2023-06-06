@@ -10,6 +10,9 @@ import ring_theory.algebraic
 /-!
 ### Cardinality of algebraic numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove variants of the following result: the cardinality of algebraic numbers under
 an R-algebra is at most `# R[X] * ℵ₀`.
 

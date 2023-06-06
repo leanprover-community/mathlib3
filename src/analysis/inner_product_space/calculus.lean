@@ -9,6 +9,9 @@ import analysis.special_functions.sqrt
 /-!
 # Calculus in inner product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the inner product and square of the norm in an inner space are
 infinitely `ℝ`-smooth. In order to state these results, we need a `normed_space ℝ E`
 instance. Though we can deduce this structure from `inner_product_space 𝕜 E`, this instance may be

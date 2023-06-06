@@ -9,6 +9,9 @@ import category_theory.abelian.homology
 /-!
 # Quasi-isomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A chain map is a quasi-isomorphism if it induces isomorphisms on homology.
 
 ## Future work

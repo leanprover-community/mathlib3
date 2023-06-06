@@ -158,7 +158,7 @@ begin
     { rintro x ⟨hx, h2x⟩,
       simp_rw [written_in_ext_chart_at, function.comp_apply],
       rw [(ext_chart_at I (g x₂)).left_inv hx, (ext_chart_at I' (f x₂ (g x₂))).left_inv h2x] },
-    refine filter.eventually_eq.fderiv_within_eq_nhds (I.unique_diff _ $ mem_range_self _) _,
+    refine filter.eventually_eq.fderiv_within_eq_nhds _,
     refine eventually_of_mem (inter_mem _ _) this,
     { exact ext_chart_at_preimage_mem_nhds' _ _ hx₂ (ext_chart_at_source_mem_nhds I (g x₂)) },
     refine ext_chart_at_preimage_mem_nhds' _ _ hx₂ _,
@@ -599,15 +599,13 @@ begin
   simp only [bundle.zero_section, tangent_map, mfderiv, total_space.proj_mk, A,
     if_pos, chart_at, fiber_bundle.charted_space_chart_at, tangent_bundle.trivialization_at_apply,
     tangent_bundle_core, function.comp, continuous_linear_map.map_zero] with mfld_simps,
-  rw ← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)) at B,
-  rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],
+  rw [← fderiv_within_inter N] at B,
+  rw [← fderiv_within_inter N, ← B],
   congr' 2,
-  apply fderiv_within_congr _ (λ y hy, _),
-  { simp only [prod.mk.inj_iff] with mfld_simps },
-  { apply unique_diff_within_at.inter (I.unique_diff _ _) N,
-    simp only with mfld_simps },
+  refine fderiv_within_congr (λ y hy, _) _,
   { simp only with mfld_simps at hy,
     simp only [hy, prod.mk.inj_iff] with mfld_simps },
+  { simp only [prod.mk.inj_iff] with mfld_simps },
 end
 
 end tangent_bundle

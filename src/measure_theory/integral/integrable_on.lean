@@ -9,6 +9,9 @@ import analysis.normed_space.indicator_function
 
 /-! # Functions integrable on a set and at a filter
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `integrable_on f s μ := integrable f (μ.restrict s)` and prove theorems like
 `integrable_on_union : integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ`.
 

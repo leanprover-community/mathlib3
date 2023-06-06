@@ -10,6 +10,9 @@ import order.filter.curry
 /-!
 # Swapping limits and derivatives via uniform convergence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The purpose of this file is to prove that the derivative of the pointwise limit of a sequence of
 functions is the pointwise limit of the functions' derivatives when the derivatives converge
 _uniformly_. The formal statement appears as `has_fderiv_at_of_tendsto_locally_uniformly_at`.

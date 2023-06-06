@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.analytic.basic
-import analysis.calculus.deriv
+import analysis.calculus.deriv.basic
 import analysis.calculus.cont_diff_def
 
 /-!
 # Frechet derivatives of analytic functions.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A function expressible as a power series at a point has a Frechet derivative there.
 Also the special case in terms of `deriv` when the domain is 1-dimensional.

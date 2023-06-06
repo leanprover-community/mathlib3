@@ -179,10 +179,6 @@ apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.traverse doc_blame
 
--- data/matrix/basic.lean
-apply_nolint matrix.mul_submatrix_one fintype_finite
-apply_nolint matrix.one_submatrix_mul fintype_finite
-
 -- data/matrix/basis.lean
 apply_nolint matrix.induction_on fintype_finite
 apply_nolint matrix.induction_on' fintype_finite
@@ -313,22 +309,6 @@ apply_nolint computation.terminates_rec_on doc_blame
 apply_nolint computation.parallel.aux1 doc_blame
 apply_nolint computation.parallel.aux2 doc_blame
 apply_nolint computation.parallel_rec doc_blame
-
--- data/seq/seq.lean
-apply_nolint seq.bisim_o doc_blame
-apply_nolint seq.corec.F doc_blame
-apply_nolint seq.is_bisimulation doc_blame
-apply_nolint seq.mem doc_blame
-
--- data/seq/wseq.lean
-apply_nolint wseq.bisim_o doc_blame
-apply_nolint wseq.destruct_append.aux doc_blame
-apply_nolint wseq.destruct_join.aux doc_blame
-apply_nolint wseq.drop.aux doc_blame
-apply_nolint wseq.lift_rel_o doc_blame
-apply_nolint wseq.mem doc_blame
-apply_nolint wseq.tail.aux doc_blame
-apply_nolint wseq.think_congr unused_arguments
 
 -- data/stream/defs.lean
 apply_nolint stream.corec doc_blame

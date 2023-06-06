@@ -16,6 +16,11 @@ elements of the form `star s * s`. In many cases, including all C⋆-algebras, t
 allows us to register a `star_ordered_ring` instance for `ℚ`), and more closely resembles the
 literature (see the seminal paper [*The positive cone in Banach algebras*][kelleyVaught1953])
 
+In order to accodomate `non_unital_semiring R`, we actually don't characterize nonnegativity, but
+rather the entire `≤` relation with `star_ordered_ring.le_iff`. However, notice that when `R` is a
+`non_unital_ring`, these are equivalent (see `star_ordered_ring.nonneg_iff` and
+`star_ordered_ring.of_nonneg_iff`).
+
 ## TODO
 
 * In a Banach star algebra without a well-defined square root, the natural ordering is given by the

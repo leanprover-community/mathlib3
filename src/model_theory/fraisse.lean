@@ -167,7 +167,7 @@ end
 @[simp] theorem age_direct_limit {ι : Type w} [preorder ι] [is_directed ι (≤)] [nonempty ι]
   (G : ι → Type (max w w')) [Π i, L.Structure (G i)]
   (f : Π i j, i ≤ j → G i ↪[L] G j) [directed_system G (λ i j h, f i j h)] :
-  L.age (direct_limit G f) = ⋃ (i : ι), L.age (G i) :=
+  L.age (directed_system.limit G (λ i j h, f i j h)) = ⋃ (i : ι), L.age (G i) :=
 begin
   classical,
   ext M,
@@ -175,7 +175,7 @@ begin
   split,
   { rintro ⟨Mfg, ⟨e⟩⟩,
     obtain ⟨s, hs⟩ := Mfg.range e.to_hom,
-    let out := @quotient.out _ (direct_limit.setoid G f),
+    let out := @quotient.out _ (directed_system.limit_setoid G (λ i j h, f i j h)),
     obtain ⟨i, hi⟩ := finset.exists_le (s.image (sigma.fst ∘ out)),
     have e' := ((direct_limit.of L ι G f i).equiv_range.symm.to_embedding),
     refine ⟨i, Mfg, ⟨e'.comp ((substructure.inclusion _).comp e.equiv_range.to_embedding)⟩⟩,
@@ -210,7 +210,8 @@ begin
   let G : ℕ → K := @nat.rec (λ _, K) (⟨(F 0).out, hF' 0⟩) (λ n N, ⟨P N n, hPK N n⟩),
   let f : Π (i j), i ≤ j → G i ↪[L] G j :=
     directed_system.nat_le_rec (λ n, (hP _ n).some),
-  refine ⟨bundled.of (direct_limit (λ n, G n) f), direct_limit.cg _ (λ n, (fg _ (G n).2).cg),
+  refine ⟨bundled.of (directed_system.limit (λ n, G n) (λ i j h, f i j h)),
+    direct_limit.cg _ (λ n, (fg _ (G n).2).cg),
     (age_direct_limit _ _).trans (subset_antisymm
       (Union_subset (λ n N hN, hp (G n) (G n).2 hN)) (λ N KN, _))⟩,
   obtain ⟨n, ⟨e⟩⟩ := (hF N).1 ⟨N, KN, setoid.refl _⟩,

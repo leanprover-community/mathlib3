@@ -19,6 +19,33 @@ This file constructs the direct limit of a directed system of first-order embedd
 
 universes v w u₁ u₂
 
+namespace directed_system
+
+variables {ι : Type v} [preorder ι]
+variables (G : ι → Type w)
+variables (f : Π i j, i ≤ j → G i → G j) [directed_system G f] [is_directed ι (≤)]
+
+/-- The directed limit glues together the structures along the embeddings. -/
+def limit_setoid :
+  setoid (Σ i, G i) :=
+{ r := λ ⟨i, x⟩ ⟨j, y⟩, ∃ (k : ι) (ik : i ≤ k) (jk : j ≤ k), f i k ik x = f j k jk y,
+  iseqv := ⟨λ ⟨i, x⟩, ⟨i, refl i, refl i, rfl⟩,
+    λ ⟨i, x⟩ ⟨j, y⟩ ⟨k, ik, jk, h⟩, ⟨k, jk, ik, h.symm⟩,
+    λ ⟨i, x⟩ ⟨j, y⟩ ⟨k, z⟩ ⟨ij, hiij, hjij, hij⟩ ⟨jk, hjjk, hkjk, hjk⟩,
+      begin
+        obtain ⟨ijk, hijijk, hjkijk⟩ := (directed_of (≤) ij jk),
+        refine ⟨ijk, le_trans hiij hijijk, le_trans hkjk hjkijk, _⟩,
+        --have h := directed_system.map_map f (le_trans hiij hijijk),
+        rw [← directed_system.map_map f hiij hijijk, hij, directed_system.map_map f],
+        symmetry,
+        rw [← directed_system.map_map f hkjk hjkijk, ← hjk, directed_system.map_map f],
+      end ⟩ }
+
+/-- The direct limit of a directed system is the structures glued together along the embeddings. -/
+def limit := quotient (limit_setoid G f)
+
+end directed_system
+
 open_locale first_order
 namespace first_order
 namespace language
@@ -96,7 +123,7 @@ end direct_limit
 variables (G)
 
 namespace direct_limit
-
+/-
 /-- The directed limit glues together the structures along the embeddings. -/
 def setoid [directed_system G (λ i j h, f i j h)] [is_directed ι (≤)] :
   setoid (Σ i, G i) :=
@@ -107,10 +134,12 @@ def setoid [directed_system G (λ i j h, f i j h)] [is_directed ι (≤)] :
       begin
         obtain ⟨ijk, hijijk, hjkijk⟩ := (directed_of (≤) ij jk),
         refine ⟨ijk, le_trans hiij hijijk, le_trans hkjk hjkijk, _⟩,
-        rw [← directed_system.map_map, hij, directed_system.map_map],
+        rw [← directed_system.map_map f hiij hijijk, hij],
+        --rw ← directed_system.map_map,
+        rw [directed_system.map_map],
         symmetry,
         rw [← directed_system.map_map, ← hjk, directed_system.map_map],
-      end ⟩ }
+      end ⟩ } -/
 
 /-- The structure on the `Σ`-type which becomes the structure on the direct limit after quotienting.
  -/
@@ -124,14 +153,15 @@ noncomputable def sigma_structure [is_directed ι (≤)] [nonempty ι] : L.Struc
 
 end direct_limit
 
+/-
 /-- The direct limit of a directed system is the structures glued together along the embeddings. -/
 def direct_limit [directed_system G (λ i j h, f i j h)] [is_directed ι (≤)] :=
-quotient (direct_limit.setoid G f)
+quotient (direct_limit.setoid G f) -/
 
-local attribute [instance] direct_limit.setoid
+local attribute [instance] directed_system.limit_setoid
 
 instance [directed_system G (λ i j h, f i j h)] [is_directed ι (≤)] [inhabited ι]
-  [inhabited (G default)] : inhabited (direct_limit G f) :=
+  [inhabited (G default)] : inhabited (directed_system.limit G (λ i j h, f i j h)) :=
 ⟨⟦⟨default, default⟩⟧⟩
 
 namespace direct_limit
@@ -158,6 +188,7 @@ lemma fun_map_unify_equiv {n : ℕ} (F : L.functions n) (x : (fin n) → (Σ i, 
 begin
   obtain ⟨k, ik, jk⟩ := directed_of (≤) i j,
   refine ⟨k, ik, jk, _⟩,
+  dsimp only,
   rw [(f i k ik).map_fun, (f j k jk).map_fun, comp_unify, comp_unify],
 end
 
@@ -194,7 +225,8 @@ rel_map_unify_equiv G f R x (classical.some (fintype.bdd_above_range (λ a, (x a
 
 /-- The direct limit `setoid` respects the structure `sigma_structure`, so quotienting by it
   gives rise to a valid structure. -/
-noncomputable instance prestructure : L.prestructure (direct_limit.setoid G f) :=
+noncomputable instance prestructure :
+  L.prestructure (directed_system.limit_setoid G (λ i j h, f i j h)) :=
 { to_structure := sigma_structure G f,
   fun_equiv := λ n F x y xy, begin
     obtain ⟨i, hx, hy, h⟩ := exists_unify_eq G f xy,
@@ -210,10 +242,11 @@ noncomputable instance prestructure : L.prestructure (direct_limit.setoid G f) :
   end }
 
 /-- The `L.Structure` on a direct limit of `L.Structure`s. -/
-noncomputable instance Structure : L.Structure (direct_limit G f) := language.quotient_structure
+noncomputable instance Structure :
+  L.Structure (directed_system.limit G (λ i j h, f i j h)) := language.quotient_structure
 
 @[simp] lemma fun_map_quotient_mk_sigma_mk {n : ℕ} {F : L.functions n} {i : ι} {x : fin n → G i} :
-  fun_map F (λ a, (⟦⟨i, x a⟩⟧ : direct_limit G f)) = ⟦⟨i, fun_map F x⟩⟧ :=
+  fun_map F (λ a, (⟦⟨i, x a⟩⟧ : directed_system.limit G (λ i j h, f i j h))) = ⟦⟨i, fun_map F x⟩⟧ :=
 begin
   simp only [function.comp_app, fun_map_quotient_mk, quotient.eq],
   obtain ⟨k, ik, jk⟩ := directed_of (≤) i (classical.some (fintype.bdd_above_range
@@ -224,7 +257,7 @@ begin
 end
 
 @[simp] lemma rel_map_quotient_mk_sigma_mk {n : ℕ} {R : L.relations n} {i : ι} {x : fin n → G i} :
-  rel_map R (λ a, (⟦⟨i, x a⟩⟧ : direct_limit G f)) = rel_map R x :=
+  rel_map R (λ a, (⟦⟨i, x a⟩⟧ : directed_system.limit G (λ i j h, f i j h))) = rel_map R x :=
 begin
   rw [rel_map_quotient_mk],
   obtain ⟨k, ik, jk⟩ := directed_of (≤) i (classical.some (fintype.bdd_above_range
@@ -232,7 +265,8 @@ begin
   rw [rel_map_equiv_unify G f R (λ a, ⟨i, x a⟩) i, unify_sigma_mk_self],
 end
 
-lemma exists_quotient_mk_sigma_mk_eq {α : Type*} [fintype α] (x : α → direct_limit G f) :
+lemma exists_quotient_mk_sigma_mk_eq {α : Type*} [fintype α]
+  (x : α → directed_system.limit G (λ i j h, f i j h)) :
   ∃ (i : ι) (y : α → G i), x = quotient.mk ∘ (sigma.mk i) ∘ y :=
 begin
   obtain ⟨i, hi⟩ := fintype.bdd_above_range (λ a, (x a).out.1),
@@ -246,7 +280,7 @@ end
 variables (L ι)
 
 /-- The canonical map from a component to the direct limit. -/
-def of (i : ι) : G i ↪[L] direct_limit G f :=
+def of (i : ι) : G i ↪[L] directed_system.limit G (λ i j h, f i j h) :=
 { to_fun := quotient.mk ∘ sigma.mk i,
   inj' := λ x y h, begin
     simp only [quotient.eq] at h,
@@ -268,13 +302,13 @@ end
 
 /-- Every element of the direct limit corresponds to some element in
 some component of the directed system. -/
-theorem exists_of (z : direct_limit G f) :
+theorem exists_of (z : directed_system.limit G (λ i j h, f i j h)) :
   ∃ i x, of L ι G f i x = z :=
 ⟨z.out.1, z.out.2, by simp⟩
 
 @[elab_as_eliminator]
-protected theorem induction_on {C : direct_limit G f → Prop}
-  (z : direct_limit G f)
+protected theorem induction_on {C : directed_system.limit G (λ i j h, f i j h) → Prop}
+  (z : directed_system.limit G (λ i j h, f i j h))
   (ih : ∀ i x, C (of L ι G f i x)) : C z :=
 let ⟨i, x, h⟩ := exists_of z in h ▸ ih i x
 
@@ -286,7 +320,7 @@ variables (L ι G f)
 /-- The universal property of the direct limit: maps from the components to another module
 that respect the directed system structure (i.e. make some diagram commute) give rise
 to a unique map out of the direct limit. -/
-def lift : direct_limit G f ↪[L] P :=
+def lift : directed_system.limit G (λ i j h, f i j h) ↪[L] P :=
 { to_fun := quotient.lift (λ (x : Σ i, G i), (g x.1) x.2) (λ x y xy, begin
     simp only,
     obtain ⟨i, hx, hy⟩ := directed_of (≤) x.1 y.1,
@@ -325,7 +359,7 @@ end
 lemma lift_of {i} (x : G i) : lift L ι G f g Hg (of L ι G f i x) = g i x :=
 by simp
 
-theorem lift_unique (F : direct_limit G f ↪[L] P) (x) :
+theorem lift_unique (F : directed_system.limit G (λ i j h, f i j h) ↪[L] P) (x) :
   F x = lift L ι G f (λ i, F.comp $ of L ι G f i)
     (λ i j hij x, by rw [F.comp_apply, F.comp_apply, of_f]) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of; refl
@@ -335,7 +369,7 @@ theorem cg {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [non
   {G : ι → Type w} [Π i, L.Structure (G i)]
   (f : Π i j, i ≤ j → G i ↪[L] G j) (h : ∀ i, Structure.cg L (G i))
   [directed_system G (λ i j h, f i j h)] :
-  Structure.cg L (direct_limit G f) :=
+  Structure.cg L (directed_system.limit G (λ i j h, f i j h)) :=
 begin
   refine ⟨⟨⋃ i, direct_limit.of L ι G f i '' (classical.some (h i).out), _, _⟩⟩,
   { exact set.countable_Union (λ i, set.countable.image (classical.some_spec (h i).out).1 _) },
@@ -343,7 +377,7 @@ begin
     simp_rw [← embedding.coe_to_hom, substructure.closure_image],
     rw le_supr_iff,
     intros S hS x hx,
-    let out := @quotient.out _ (direct_limit.setoid G f),
+    let out := @quotient.out _ (directed_system.limit_setoid G (λ i j h, f i j h)),
     refine hS (out x).1 ⟨(out x).2, _, _⟩,
     { rw [(classical.some_spec (h (out x).1).out).2],
       simp only [substructure.coe_top] },
@@ -354,7 +388,7 @@ instance cg' {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [n
   {G : ι → Type w} [Π i, L.Structure (G i)]
   (f : Π i j, i ≤ j → G i ↪[L] G j) [h : ∀ i, Structure.cg L (G i)]
   [directed_system G (λ i j h, f i j h)] :
-  Structure.cg L (direct_limit G f) :=
+  Structure.cg L (directed_system.limit G (λ i j h, f i j h)) :=
 cg f h
 
 end direct_limit

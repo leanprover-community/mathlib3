@@ -1555,7 +1555,6 @@ lemma smooth_prod_iff (f : M → M' × N') :
   smooth I (I'.prod J') f ↔ smooth I I' (prod.fst ∘ f) ∧ smooth I J' (prod.snd ∘ f) :=
 cont_mdiff_prod_iff f
 
-
 lemma smooth_prod_assoc :
   smooth ((I.prod I').prod J) (I.prod (I'.prod J)) (λ x : (M × M') × N, (x.1.1, x.1.2, x.2)) :=
 smooth_fst.fst.prod_mk $ smooth_fst.snd.prod_mk smooth_snd

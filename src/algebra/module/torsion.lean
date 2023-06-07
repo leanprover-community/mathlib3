@@ -13,6 +13,9 @@ import ring_theory.finiteness
 /-!
 # Torsion submodules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `torsion_of R M x` : the torsion ideal of `x`, containing all `a` such that `a • x = 0`.

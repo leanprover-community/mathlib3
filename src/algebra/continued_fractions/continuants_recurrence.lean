@@ -7,6 +7,9 @@ import algebra.continued_fractions.translations
 /-!
 # Recurrence Lemmas for the `continuants` Function of Continued Fractions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 Given a generalized continued fraction `g`, for all `n ≥ 1`, we prove that the `continuants`

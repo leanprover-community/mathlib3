@@ -29,16 +29,20 @@ This defines a smooth vector bundle `tangent_bundle` with fibers `tangent_space`
   bundle.
 -/
 
-open bundle set smooth_manifold_with_corners local_homeomorph
+open bundle set smooth_manifold_with_corners local_homeomorph continuous_linear_map
 open_locale manifold topology bundle
 
 noncomputable theory
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
+{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+{M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+
 variables (I)
 
 /-- Auxiliary lemma for tangent spaces: the derivative of a coordinate change between two charts is
@@ -79,7 +83,6 @@ within the set `range I ⊆ E` at `I (i x) : E`. -/
   coord_change_self := λ i x hx v, begin
     rw [filter.eventually_eq.fderiv_within_eq, fderiv_within_id', continuous_linear_map.id_apply],
     { exact I.unique_diff_at_image },
-    { exact I.unique_diff_at_image },
     { filter_upwards [i.1.extend_target_mem_nhds_within I hx] with y hy,
       exact (i.1.extend I).right_inv hy },
     { simp_rw [function.comp_apply, i.1.extend_left_inv I hx] }
@@ -93,7 +96,6 @@ within the set `range I ⊆ E` at `I (i x) : E`. -/
   coord_change_comp := begin
     rintro i j k x ⟨⟨hxi, hxj⟩, hxk⟩ v,
     rw [fderiv_within_fderiv_within, filter.eventually_eq.fderiv_within_eq],
-    { exact I.unique_diff_at_image },
     { have := i.1.extend_preimage_mem_nhds I hxi (j.1.extend_source_mem_nhds I hxj),
       filter_upwards [nhds_within_le_nhds this] with y hy,
       simp_rw [function.comp_apply, (j.1.extend I).left_inv hy] },
@@ -342,3 +344,46 @@ rfl
   ((tangent_bundle_model_space_homeomorph H I).symm : model_prod H E → tangent_bundle I H)
   = (equiv.sigma_equiv_prod H E).symm :=
 rfl
+
+section in_tangent_coordinates
+
+variables (I I') {M M' H H'} {N : Type*}
+
+/-- The map `in_coordinates` for the tangent bundle is trivial on the model spaces -/
+lemma in_coordinates_tangent_bundle_core_model_space
+  (x₀ x : H) (y₀ y : H') (ϕ : E →L[𝕜] E') :
+    in_coordinates E (tangent_space I) E' (tangent_space I') x₀ x y₀ y ϕ = ϕ :=
+begin
+  refine (vector_bundle_core.in_coordinates_eq _ _ _ _ _).trans _,
+  { exact mem_univ x },
+  { exact mem_univ y },
+  simp_rw [tangent_bundle_core_index_at, tangent_bundle_core_coord_change_model_space,
+    continuous_linear_map.id_comp, continuous_linear_map.comp_id]
+end
+
+/-- When `ϕ x` is a continuous linear map that changes vectors in charts around `f x` to vectors
+in charts around `g x`, `in_tangent_coordinates I I' f g ϕ x₀ x` is a coordinate change of
+this continuous linear map that makes sense from charts around `f x₀` to charts around `g x₀`
+by composing it with appropriate coordinate changes.
+Note that the type of `ϕ` is more accurately
+`Π x : N, tangent_space I (f x) →L[𝕜] tangent_space I' (g x)`.
+We are unfolding `tangent_space` in this type so that Lean recognizes that the type of `ϕ` doesn't
+actually depend on `f` or `g`.
+
+This is the underlying function of the trivializations of the hom of (pullbacks of) tangent spaces.
+-/
+def in_tangent_coordinates (f : N → M) (g : N → M') (ϕ : N → E →L[𝕜] E') : N → N → E →L[𝕜] E' :=
+λ x₀ x, in_coordinates E (tangent_space I) E' (tangent_space I') (f x₀) (f x) (g x₀) (g x) (ϕ x)
+
+lemma in_tangent_coordinates_model_space (f : N → H) (g : N → H') (ϕ : N → E →L[𝕜] E') (x₀ : N) :
+    in_tangent_coordinates I I' f g ϕ x₀ = ϕ :=
+by simp_rw [in_tangent_coordinates, in_coordinates_tangent_bundle_core_model_space]
+
+lemma in_tangent_coordinates_eq (f : N → M) (g : N → M') (ϕ : N → E →L[𝕜] E') {x₀ x : N}
+  (hx : f x ∈ (chart_at H (f x₀)).source) (hy : g x ∈ (chart_at H' (g x₀)).source) :
+  in_tangent_coordinates I I' f g ϕ x₀ x =
+  (tangent_bundle_core I' M').coord_change (achart H' (g x)) (achart H' (g x₀)) (g x) ∘L ϕ x ∘L
+  (tangent_bundle_core I M).coord_change (achart H (f x₀)) (achart H (f x)) (f x) :=
+(tangent_bundle_core I M).in_coordinates_eq (tangent_bundle_core I' M') (ϕ x) hx hy
+
+end in_tangent_coordinates

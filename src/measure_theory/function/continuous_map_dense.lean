@@ -109,7 +109,7 @@ begin
   { refine function.support_subset_iff'.2 (λ x hx, _),
     simp only [hgv hx, pi.zero_apply, zero_smul] },
   have gc_mem : mem_ℒp (λ x, g x • c) p μ,
-  { apply mem_ℒp.smul_of_top_left (mem_ℒp_top_const _),
+  { refine mem_ℒp.smul_of_top_left (mem_ℒp_top_const _) _,
     refine ⟨g.continuous.ae_strongly_measurable, _⟩,
     have : snorm (v.indicator (λ x, (1 : ℝ))) p μ < ⊤,
     { refine (snorm_indicator_const_le _ _).trans_lt _,

@@ -11,6 +11,9 @@ import linear_algebra.matrix.to_lin
 /-!
 # The finite-dimensional space of matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that `m` by `n` matrices form a finite-dimensional space.
 Note that this is proven more generally elsewhere over modules as `module.finite.matrix`; this file
 exists only to provide an entry in the instance list for `finite_dimensional`.

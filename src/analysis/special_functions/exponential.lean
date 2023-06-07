@@ -10,6 +10,9 @@ import topology.metric_space.cau_seq_filter
 /-!
 # Calculus results on exponential in a Banach algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove basic properties about the derivative of the exponential map `exp 𝕂`
 in a Banach algebra `𝔸` over a field `𝕂`. We keep them separate from the main file
 `analysis/normed_space/exponential` in order to minimize dependencies.

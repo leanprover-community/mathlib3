@@ -202,11 +202,12 @@ end
 
 variable [nonempty ι]
 
-lemma exists_unify_eq {α : Type*} [fintype α] {x y : α → (Σ i, G i)} (xy : x ≈ y) :
+lemma exists_unify_eq {α : Type*} [finite α] {x y : α → (Σ i, G i)} (xy : x ≈ y) :
   ∃ (i : ι) (hx : i ∈ upper_bounds (range (sigma.fst ∘ x)))
     (hy : i ∈ upper_bounds (range (sigma.fst ∘ y))),
   unify f x i hx = unify f y i hy :=
 begin
+  casesI nonempty_fintype α,
   obtain ⟨i, hi⟩ := fintype.bdd_above_range (sum.elim (λ a, (x a).1) (λ a, (y a).1)),
   rw [sum.elim_range, upper_bounds_union] at hi,
   simp_rw [← function.comp_apply sigma.fst _] at hi,
@@ -265,10 +266,11 @@ begin
   rw [rel_map_equiv_unify G f R (λ a, ⟨i, x a⟩) i, unify_sigma_mk_self],
 end
 
-lemma exists_quotient_mk_sigma_mk_eq {α : Type*} [fintype α]
+lemma exists_quotient_mk_sigma_mk_eq {α : Type*} [finite α]
   (x : α → directed_system.limit G (λ i j h, f i j h)) :
   ∃ (i : ι) (y : α → G i), x = quotient.mk ∘ (sigma.mk i) ∘ y :=
 begin
+  casesI nonempty_fintype α,
   obtain ⟨i, hi⟩ := fintype.bdd_above_range (λ a, (x a).out.1),
   refine ⟨i, unify f (quotient.out ∘ x) i hi, _⟩,
   ext a,

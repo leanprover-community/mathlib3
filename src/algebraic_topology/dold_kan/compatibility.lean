@@ -189,7 +189,7 @@ calc eB.functor ⋙ e'.inverse ⋙ e'.functor
 include hF hG
 
 /-- The isomorphism `eB.functor ⋙ e'.inverse ⋙ e'.functor ≅ eB.functor` deduced
-the isomorphisms `hF : eA.functor ⋙ e'.functor ≅ F`,
+from the isomorphisms `hF : eA.functor ⋙ e'.functor ≅ F`,
 `hG : eB.functor ⋙ e'.inverse ≅ G ⋙ eA.functor` and the datum of
 an isomorphism `η : G ⋙ F ≅ eB.functor`. -/
 @[simps hom_app]

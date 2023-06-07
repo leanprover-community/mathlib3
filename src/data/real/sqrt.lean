@@ -3,10 +3,10 @@ Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
+import algebra.star.order
 import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
 import tactic.positivity
-import algebra.star.order
 
 /-!
 # Square root of a real number

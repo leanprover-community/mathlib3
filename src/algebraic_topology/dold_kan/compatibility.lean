@@ -183,8 +183,8 @@ from the counit isomorphism of `e'`. -/
 @[simps hom_app]
 def τ₀ : eB.functor ⋙ e'.inverse ⋙ e'.functor ≅ eB.functor :=
 calc eB.functor ⋙ e'.inverse ⋙ e'.functor
-  ≅ eB.functor ⋙ 𝟭 _ : iso_whisker_left _ e'.counit_iso
-... ≅ eB.functor : functor.right_unitor _
+        ≅ eB.functor ⋙ 𝟭 _ : iso_whisker_left _ e'.counit_iso
+...     ≅ eB.functor : functor.right_unitor _
 
 include hF hG
 

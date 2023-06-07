@@ -6,7 +6,7 @@ Authors: Riccardo Brasca
 import data.nat.choose.dvd
 import ring_theory.integrally_closed
 import ring_theory.norm
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.expand
 
 /-!
 # Eisenstein polynomials

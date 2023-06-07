@@ -3,8 +3,10 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import analysis.convex.between
 import measure_theory.constructions.borel_space.basic
-import measure_theory.measure.lebesgue
+import measure_theory.measure.haar.inner_product_space
+import measure_theory.measure.lebesgue.basic
 import topology.metric_space.holder
 import topology.metric_space.metric_separated
 
@@ -383,6 +385,19 @@ begin
     apply le_trans _ (h_mono (diam_mono hst)),
     simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
 end
+
+lemma mk_metric_smul (m : ℝ≥0∞ → ℝ≥0∞) {c : ℝ≥0∞} (hc : c ≠ ∞) (hc' : c ≠ 0) :
+  (mk_metric (c • m) : outer_measure X) = c • mk_metric m :=
+begin
+  simp only [mk_metric, mk_metric', mk_metric'.pre, induced_outer_measure,
+    ennreal.smul_supr],
+  simp_rw [smul_supr, smul_bounded_by hc, smul_extend _ hc', pi.smul_apply],
+end
+
+lemma mk_metric_nnreal_smul (m : ℝ≥0∞ → ℝ≥0∞) {c : ℝ≥0} (hc : c ≠ 0) :
+  (mk_metric (c • m) : outer_measure X) = c • mk_metric m :=
+by rw [ennreal.smul_def, ennreal.smul_def,
+    mk_metric_smul m (ennreal.coe_ne_top) (ennreal.coe_ne_zero.mpr hc)]
 
 lemma isometry_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : isometry f)
   (H : monotone m ∨ surjective f) :
@@ -770,6 +785,25 @@ lemma hausdorff_measure_image_le (h : lipschitz_with K f) {d : ℝ} (hd : 0 ≤ 
 
 end lipschitz_with
 
+open_locale pointwise
+
+lemma measure_theory.measure.hausdorff_measure_smul₀
+  {𝕜 E : Type*} [normed_add_comm_group E] [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space E]
+  [borel_space E]
+  {d : ℝ} (hd : 0 ≤ d) {r : 𝕜} (hr : r ≠ 0) (s : set E) :
+  μH[d] (r • s) = ‖r‖₊ ^ d • μH[d] s :=
+begin
+  suffices : ∀ {r : 𝕜}, r ≠ 0 → ∀ s : set E, μH[d] (r • s) ≤ ‖r‖₊ ^ d • μH[d] s,
+  { refine le_antisymm (this hr s) _,
+    rw [←ennreal.le_inv_smul_iff, ←nnreal.inv_rpow, ←nnnorm_inv],
+    { refine eq.trans_le _ (this (inv_ne_zero hr) (r • s)),
+      rw inv_smul_smul₀ hr },
+    { simp [hr] } },
+  intros r hr s,
+  simpa only [ennreal.smul_def, smul_eq_mul, ← ennreal.coe_rpow_of_nonneg _ hd]
+    using (@lipschitz_with_smul _ E _ _ _ _ r).hausdorff_measure_image_le hd s,
+end
+
 /-!
 ### Antilipschitz maps do not decrease Hausdorff measures and dimension
 -/
@@ -867,6 +901,23 @@ lemma measure_preserving_hausdorff_measure (e : X ≃ᵢ Y) (d : ℝ) :
 end isometry_equiv
 
 namespace measure_theory
+
+@[to_additive]
+lemma hausdorff_measure_smul
+  {α : Type*} [has_smul α X] [has_isometric_smul α X]
+  {d : ℝ} (c : α) (h : 0 ≤ d ∨ surjective ((•) c : X → X)) (s : set X) :
+  μH[d] (c • s) = μH[d] s :=
+(isometry_smul X c).hausdorff_measure_image h _
+
+@[to_additive]
+instance {d : ℝ} [group X] [has_isometric_smul X X] : is_mul_left_invariant (μH[d] : measure X) :=
+{ map_mul_left_eq_self := λ x, (isometry_equiv.const_smul x).map_hausdorff_measure _ }
+
+@[to_additive]
+instance {d : ℝ} [group X] [has_isometric_smul Xᵐᵒᵖ X] :
+  is_mul_right_invariant (μH[d] : measure X) :=
+{ map_mul_right_eq_self := λ x,
+    (isometry_equiv.const_smul (mul_opposite.op x)).map_hausdorff_measure _ }
 
 /-!
 ### Hausdorff measure and Lebesgue measure
@@ -991,5 +1042,104 @@ by rw [←(volume_preserving_fun_unique unit ℝ).map_eq,
 by rw [←(volume_preserving_pi_fin_two (λ i, ℝ)).map_eq,
     ←(hausdorff_measure_measure_preserving_pi_fin_two (λ i, ℝ) _).map_eq,
     ←hausdorff_measure_pi_real, fintype.card_fin, nat.cast_two]
+
+/-! ### Geometric results in affine spaces -/
+
+section geometric
+variables {𝕜 E P : Type*}
+
+lemma hausdorff_measure_smul_right_image [normed_add_comm_group E] [normed_space ℝ E]
+  [measurable_space E] [borel_space E] (v : E) (s : set ℝ) :
+  μH[1] ((λ r, r • v) '' s) = ‖v‖₊ • μH[1] s :=
+begin
+  obtain rfl | hv := eq_or_ne v 0,
+  { haveI := no_atoms_hausdorff E one_pos,
+    obtain rfl | hs := s.eq_empty_or_nonempty,
+    { simp },
+    simp [hs] },
+  have hn : ‖v‖ ≠ 0 := norm_ne_zero_iff.mpr hv,
+  -- break line_map into pieces
+  suffices : μH[1] (
+      ((•) ‖v‖) '' (linear_map.to_span_singleton ℝ E (‖v‖⁻¹ • v) '' s)) = ‖v‖₊ • μH[1] s,
+  { simpa only [set.image_image, smul_comm (norm _), inv_smul_smul₀ hn,
+      linear_map.to_span_singleton_apply] using this },
+  have iso_smul : isometry (linear_map.to_span_singleton ℝ E (‖v‖⁻¹ • v)),
+  { refine add_monoid_hom_class.isometry_of_norm _ (λ x, (norm_smul _ _).trans _),
+    rw [norm_smul, norm_inv, norm_norm, inv_mul_cancel hn, mul_one, linear_map.id_apply] },
+  rw [set.image_smul,
+    measure.hausdorff_measure_smul₀ zero_le_one hn, nnnorm_norm, nnreal.rpow_one,
+    iso_smul.hausdorff_measure_image (or.inl $ zero_le_one' ℝ)],
+end
+
+section normed_field_affine
+variables [normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E] [measurable_space P]
+variables [metric_space P] [normed_add_torsor E P] [borel_space P]
+include E
+
+/-- Scaling by `c` around `x` scales the measure by `‖c‖₊ ^ d`. -/
+lemma hausdorff_measure_homothety_image
+  {d : ℝ} (hd : 0 ≤ d) (x : P) {c : 𝕜} (hc : c ≠ 0) (s : set P) :
+  μH[d] (affine_map.homothety x c '' s) = ‖c‖₊ ^ d • μH[d] s :=
+begin
+  suffices :
+    μH[d] (isometry_equiv.vadd_const x '' (((•) c) '' ((isometry_equiv.vadd_const x).symm '' s)))
+      = ‖c‖₊ ^ d • μH[d] s,
+  { simpa only [set.image_image] },
+  borelize E,
+  rw [isometry_equiv.hausdorff_measure_image, set.image_smul, measure.hausdorff_measure_smul₀ hd hc,
+    isometry_equiv.hausdorff_measure_image],
+end
+
+lemma hausdorff_measure_homothety_preimage
+  {d : ℝ} (hd : 0 ≤ d) (x : P) {c : 𝕜} (hc : c ≠ 0) (s : set P) :
+  μH[d] (affine_map.homothety x c ⁻¹' s) = ‖c‖₊⁻¹ ^ d • μH[d] s :=
+begin
+  change μH[d] (affine_equiv.homothety_units_mul_hom x (units.mk0 c hc) ⁻¹' s) = _,
+  rw [←affine_equiv.image_symm, affine_equiv.coe_homothety_units_mul_hom_apply_symm,
+    hausdorff_measure_homothety_image hd x (_ : 𝕜ˣ).is_unit.ne_zero, units.coe_inv, units.coe_mk0,
+    nnnorm_inv],
+end
+
+/-! TODO: prove `measure.map (affine_map.homothety x c) μH[d] = ‖c‖₊⁻¹ ^ d • μH[d]`, which needs a
+more general version of `affine_map.homothety_continuous` -/
+
+end normed_field_affine
+
+section real_affine
+variables [normed_add_comm_group E] [normed_space ℝ E] [measurable_space P]
+variables [metric_space P] [normed_add_torsor E P] [borel_space P]
+include E
+
+/-- Mapping a set of reals along a line segment scales the measure by the length of a segment.
+
+This is an auxiliary result used to prove `hausdorff_measure_affine_segment`. -/
+lemma hausdorff_measure_line_map_image (x y : P) (s : set ℝ) :
+  μH[1] (affine_map.line_map x y '' s) = nndist x y • μH[1] s :=
+begin
+  suffices : μH[1] (isometry_equiv.vadd_const x '' ((• y -ᵥ x) '' s)) = nndist x y • μH[1] s,
+  { simpa only [set.image_image] },
+  borelize E,
+  rw [isometry_equiv.hausdorff_measure_image, hausdorff_measure_smul_right_image,
+    nndist_eq_nnnorm_vsub' E],
+end
+
+/-- The measure of a segment is the distance between its endpoints. -/
+@[simp] lemma hausdorff_measure_affine_segment (x y : P) :
+  μH[1] (affine_segment ℝ x y) = edist x y :=
+begin
+  rw [affine_segment, hausdorff_measure_line_map_image, hausdorff_measure_real, real.volume_Icc,
+    sub_zero, ennreal.of_real_one, ← algebra.algebra_map_eq_smul_one],
+  exact (edist_nndist _ _).symm,
+end
+
+end real_affine
+
+/-- The measure of a segment is the distance between its endpoints. -/
+@[simp] lemma hausdorff_measure_segment {E : Type*} [normed_add_comm_group E]
+  [normed_space ℝ E] [measurable_space E] [borel_space E] (x y : E) :
+  μH[1] (segment ℝ x y) = edist x y :=
+by rw [←affine_segment_eq_segment, hausdorff_measure_affine_segment]
+
+end geometric
 
 end measure_theory

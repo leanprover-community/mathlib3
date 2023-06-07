@@ -10,6 +10,9 @@ import order.filter.cofinite
 /-!
 # Fermat Pseudoprimes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define Fermat pseudoprimes: composite numbers that pass the Fermat primality test.
 A natural number `n` passes the Fermat primality test to base `b` (and is therefore deemed a
 "probable prime") if `n` divides `b ^ (n - 1) - 1`. `n` is a Fermat pseudoprime to base `b` if `n`

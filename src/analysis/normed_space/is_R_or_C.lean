@@ -10,6 +10,9 @@ import analysis.normed_space.pointwise
 /-!
 # Normed spaces over R or C
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is about results on normed spaces over the fields `ℝ` and `ℂ`.
 
 ## Main definitions

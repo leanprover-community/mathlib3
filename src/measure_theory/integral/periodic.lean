@@ -3,8 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Alex Kontorovich, Heather Macbeth
 -/
-import measure_theory.measure.haar_lebesgue
-import measure_theory.measure.haar_quotient
+import measure_theory.measure.lebesgue.eq_haar
+import measure_theory.measure.haar.quotient
 import measure_theory.integral.interval_integral
 import topology.algebra.order.floor
 

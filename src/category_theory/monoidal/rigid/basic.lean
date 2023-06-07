@@ -10,6 +10,9 @@ import tactic.apply_fun
 /-!
 # Rigid (autonomous) monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines rigid (autonomous) monoidal categories and the necessary theory about
 exact pairings and duals.
 

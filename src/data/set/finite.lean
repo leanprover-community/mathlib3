@@ -393,6 +393,10 @@ end fintype_instances
 
 end set
 
+lemma equiv.set_finite_iff {s : set α} {t : set β} (hst : s ≃ t) :
+  s.finite ↔ t.finite :=
+by simp_rw [← set.finite_coe_iff, hst.finite_iff]
+
 /-! ### Finset -/
 
 namespace finset
@@ -593,6 +597,21 @@ by { casesI hs, rw [bUnion_eq_Union], apply finite_Union (λ (i : s), ht i.1 i.2
 theorem finite.sInter {α : Type*} {s : set (set α)} {t : set α} (ht : t ∈ s)
   (hf : t.finite) : (⋂₀ s).finite :=
 hf.subset (sInter_subset_of_mem ht)
+
+/-- If sets `s i` are finite for all `i` from a finite set `t` and are empty for `i ∉ t`, then the
+union `⋃ i, s i` is a finite set. -/
+lemma finite.Union {ι : Type*} {s : ι → set α} {t : set ι} (ht : t.finite)
+  (hs : ∀ i ∈ t, (s i).finite) (he : ∀ i ∉ t, s i = ∅) :
+  (⋃ i, s i).finite :=
+begin
+  suffices : (⋃ i, s i) ⊆ (⋃ i ∈ t, s i),
+  { exact (ht.bUnion hs).subset this, },
+  refine Union_subset (λ i x hx, _),
+  by_cases hi : i ∈ t,
+  { exact mem_bUnion hi hx },
+  { rw [he i hi, mem_empty_iff_false] at hx,
+    contradiction, },
+end
 
 theorem finite.bind {α β} {s : set α} {f : α → set β} (h : s.finite) (hf : ∀ a ∈ s, (f a).finite) :
   (s >>= f).finite :=

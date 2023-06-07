@@ -10,6 +10,9 @@ import linear_algebra.matrix.special_linear_group
 /-!
 # Congruence subgroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines congruence subgroups of `SL(2, ℤ)` such as `Γ(N)`, `Γ₀(N)` and `Γ₁(N)` for `N` a
 natural number.
 

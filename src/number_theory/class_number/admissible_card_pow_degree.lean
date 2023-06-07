@@ -11,6 +11,9 @@ import data.polynomial.degree.card_pow_degree
 /-!
 # Admissible absolute values on polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines an admissible absolute value `polynomial.card_pow_degree_is_admissible` which we
 use to show the class number of the ring of integers of a function field is finite.
 

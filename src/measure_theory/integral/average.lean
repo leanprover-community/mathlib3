@@ -8,6 +8,9 @@ import measure_theory.integral.set_integral
 /-!
 # Integral average of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `measure_theory.average μ f` (notation: `⨍ x, f x ∂μ`) to be the average
 value of `f` with respect to measure `μ`. It is defined as `∫ x, f x ∂((μ univ)⁻¹ • μ)`, so it
 is equal to zero if `f` is not integrable or if `μ` is an infinite measure. If `μ` is a probability

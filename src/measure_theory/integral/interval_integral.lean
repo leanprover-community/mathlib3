@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
 import data.set.intervals.disjoint
 import measure_theory.integral.set_integral
-import measure_theory.measure.lebesgue
+import measure_theory.measure.lebesgue.basic
 
 /-!
 # Integral over an interval

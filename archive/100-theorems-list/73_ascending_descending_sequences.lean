@@ -26,6 +26,8 @@ variables {α : Type*} [linear_order α] {β : Type*}
 open function finset
 open_locale classical
 
+namespace theorems_100
+
 /--
 **Erdős–Szekeres Theorem**: Given a sequence of more than `r * s` distinct values, there is an
 increasing sequence of length longer than `r` or a decreasing sequence of length longer than `s`.
@@ -158,3 +160,5 @@ begin
   -- Which follows from considering the cardinalities of the subset above, since `ab` is injective.
   simpa [nat.succ_injective, card_image_of_injective, ‹injective ab›] using card_le_of_subset this,
 end
+
+end theorems_100

@@ -9,6 +9,9 @@ import analysis.special_functions.pow.continuity
 /-!
 # Hölder continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define Hölder continuity on a set and on the whole space. We also prove some basic
 properties of Hölder continuous functions.
 

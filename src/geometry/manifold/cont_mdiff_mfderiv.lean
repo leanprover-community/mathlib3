@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import geometry.manifold.mfderiv
+import geometry.manifold.cont_mdiff_map
 
 /-!
 ### Interactions between differentiability, smoothness and manifold derivatives
@@ -609,3 +610,26 @@ begin
 end
 
 end tangent_bundle
+
+namespace cont_mdiff_map
+
+-- These helpers for dot notation have been moved here from `geometry.manifold.cont_mdiff_map`
+-- to avoid needing to import `geometry.manifold.cont_mdiff_mfderiv` there.
+-- (However as a consequence we import `geometry.manifold.cont_mdiff_map` here now.)
+-- They could be moved to another file (perhaps a new file) if desired.
+
+open_locale manifold
+
+protected lemma mdifferentiable' (f : C^n⟮I, M; I', M'⟯) (hn : 1 ≤ n) :
+  mdifferentiable I I' f :=
+f.cont_mdiff.mdifferentiable hn
+
+protected lemma mdifferentiable (f : C^∞⟮I, M; I', M'⟯) :
+  mdifferentiable I I' f :=
+f.cont_mdiff.mdifferentiable le_top
+
+protected lemma mdifferentiable_at (f : C^∞⟮I, M; I', M'⟯) {x} :
+  mdifferentiable_at I I' f x :=
+f.mdifferentiable x
+
+end cont_mdiff_map

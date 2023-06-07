@@ -6,7 +6,7 @@ Authors: Oliver Nash
 import algebra.lie.solvable
 import algebra.lie.quotient
 import algebra.lie.normalizer
-import linear_algebra.eigenspace
+import linear_algebra.eigenspace.basic
 import ring_theory.nilpotent
 
 /-!

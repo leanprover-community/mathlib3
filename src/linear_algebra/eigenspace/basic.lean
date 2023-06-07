@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import field_theory.is_alg_closed.spectrum
-import order.hom.basic
+import algebra.algebra.spectrum
 import linear_algebra.general_linear_group
+import linear_algebra.finite_dimensional
+
 
 /-!
 # Eigenvectors and eigenvalues
@@ -28,6 +29,13 @@ of the map `(f - μ • id) ^ k`. The nonzero elements of a generalized eigenspa
 eigenvectors `x`. If there are generalized eigenvectors for a natural number `k` and a scalar `μ`,
 the scalar `μ` is called a generalized eigenvalue.
 
+The fact that the eigenvalues are the roots of the minimal polynomial is proved in
+`linear_algebra.eigenspace.minpoly`.
+
+The existence of eigenvalues over an algebraically closed field
+(and the fact that the generalized eigenspaces then span) is deferred to
+`linear_algebra.eigenspace.is_alg_closed`.
+
 ## References
 
 * [Sheldon Axler, *Linear Algebra Done Right*][axler2015]
@@ -43,8 +51,7 @@ universes u v w
 namespace module
 namespace End
 
-open module principal_ideal_ring polynomial finite_dimensional
-open_locale polynomial
+open finite_dimensional
 
 variables {K R : Type v} {V M : Type w}
   [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [module K V]
@@ -114,106 +121,6 @@ calc
   ... = (f - b⁻¹ • algebra_map K (End K V) a).ker : rfl
   ... = (b • (f - b⁻¹ • algebra_map K (End K V) a)).ker : by rw linear_map.ker_smul _ b hb
   ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul₀ hb]
-
-lemma eigenspace_aeval_polynomial_degree_1
-  (f : End K V) (q : K[X]) (hq : degree q = 1) :
-  eigenspace f (- q.coeff 0 / q.leading_coeff) = (aeval f q).ker :=
-calc
-  eigenspace f (- q.coeff 0 / q.leading_coeff)
-      = (q.leading_coeff • f - algebra_map K (End K V) (- q.coeff 0)).ker
-    : by { rw eigenspace_div, intro h, rw leading_coeff_eq_zero_iff_deg_eq_bot.1 h at hq, cases hq }
-  ... = (aeval f (C q.leading_coeff * X + C (q.coeff 0))).ker
-    : by { rw [C_mul', aeval_def], simp [algebra_map, algebra.to_ring_hom], }
-  ... = (aeval f q).ker
-    : by rwa ← eq_X_add_C_of_degree_eq_one
-
-lemma ker_aeval_ring_hom'_unit_polynomial
-  (f : End K V) (c : (K[X])ˣ) :
-  (aeval f (c : K[X])).ker = ⊥ :=
-begin
-  rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
-  simp only [aeval_def, eval₂_C],
-  apply ker_algebra_map_End,
-  apply coeff_coe_units_zero_ne_zero c
-end
-
-theorem aeval_apply_of_has_eigenvector {f : End K V}
-  {p : K[X]} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
-  aeval f p x = (p.eval μ) • x :=
-begin
-  apply p.induction_on,
-  { intro a, simp [module.algebra_map_End_apply] },
-  { intros p q hp hq, simp [hp, hq, add_smul] },
-  { intros n a hna,
-    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
-    simp only [mem_eigenspace_iff.1 h.1, smul_smul, aeval_X, eval_mul, eval_C, eval_pow, eval_X,
-      linear_map.map_smulₛₗ, ring_hom.id_apply, mul_comm] }
-end
-
-section minpoly
-
-theorem is_root_of_has_eigenvalue {f : End K V} {μ : K} (h : f.has_eigenvalue μ) :
-  (minpoly K f).is_root μ :=
-begin
-  rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
-  refine or.resolve_right (smul_eq_zero.1 _) ne0,
-  simp [← aeval_apply_of_has_eigenvector ⟨H, ne0⟩, minpoly.aeval K f],
-end
-
-variables [finite_dimensional K V] (f : End K V)
-
-variables {f} {μ : K}
-
-theorem has_eigenvalue_of_is_root (h : (minpoly K f).is_root μ) :
-  f.has_eigenvalue μ :=
-begin
-  cases dvd_iff_is_root.2 h with p hp,
-  rw [has_eigenvalue, eigenspace],
-  intro con,
-  cases (linear_map.is_unit_iff_ker_eq_bot _).2 con with u hu,
-  have p_ne_0 : p ≠ 0,
-  { intro con,
-    apply minpoly.ne_zero f.is_integral,
-    rw [hp, con, mul_zero] },
-  have h_deg := minpoly.degree_le_of_ne_zero K f p_ne_0 _,
-  { rw [hp, degree_mul, degree_X_sub_C, polynomial.degree_eq_nat_degree p_ne_0] at h_deg,
-    norm_cast at h_deg,
-    linarith, },
-  { have h_aeval := minpoly.aeval K f,
-    revert h_aeval,
-    simp [hp, ← hu] },
-end
-
-theorem has_eigenvalue_iff_is_root :
-  f.has_eigenvalue μ ↔ (minpoly K f).is_root μ :=
-⟨is_root_of_has_eigenvalue, has_eigenvalue_of_is_root⟩
-
-/-- An endomorphism of a finite-dimensional vector space has finitely many eigenvalues. -/
-noncomputable instance (f : End K V) : fintype f.eigenvalues :=
-set.finite.fintype
-begin
-  have h : minpoly K f ≠ 0 := minpoly.ne_zero f.is_integral,
-  convert (minpoly K f).root_set_finite K,
-  ext μ,
-  have : (μ ∈ {μ : K | f.eigenspace μ = ⊥ → false}) ↔ ¬f.eigenspace μ = ⊥ := by tauto,
-  convert rfl.mpr this,
-  simp [polynomial.root_set_def, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root,
-    has_eigenvalue]
-end
-
-end minpoly
-
-/-- Every linear operator on a vector space over an algebraically closed field has
-    an eigenvalue. -/
--- This is Lemma 5.21 of [axler2015], although we are no longer following that proof.
-lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
-  ∃ (c : K), f.has_eigenvalue c :=
-by { simp_rw has_eigenvalue_iff_mem_spectrum,
-     exact spectrum.nonempty_of_is_alg_closed_of_finite_dimensional K f }
-
-noncomputable instance [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
-  inhabited f.eigenvalues :=
-⟨⟨f.exists_eigenvalue.some, f.exists_eigenvalue.some_spec⟩⟩
 
 /-- The eigenspaces of a linear operator form an independent family of subspaces of `V`.  That is,
 any eigenspace has trivial intersection with the span of all the other eigenspaces. -/
@@ -529,73 +436,6 @@ calc submodule.map f (f.generalized_eigenrange μ n)
    ... = (((f - algebra_map _ _ μ) ^ n) * f).range : by rw algebra.mul_sub_algebra_map_pow_commutes
    ... = submodule.map ((f - algebra_map _ _ μ) ^ n) f.range : linear_map.range_comp _ _
    ... ≤ f.generalized_eigenrange μ n : linear_map.map_le_range
-
-/-- The generalized eigenvectors span the entire vector space (Lemma 8.21 of [axler2015]). -/
-lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K V] (f : End K V) :
-  (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
-begin
-  -- We prove the claim by strong induction on the dimension of the vector space.
-  unfreezingI { induction h_dim : finrank K V using nat.strong_induction_on
-  with n ih generalizing V },
-  cases n,
-  -- If the vector space is 0-dimensional, the result is trivial.
-  { rw ←top_le_iff,
-    simp only [finrank_eq_zero.1 (eq.trans (finrank_top _ _) h_dim), bot_le] },
-  -- Otherwise the vector space is nontrivial.
-  { haveI : nontrivial V := finrank_pos_iff.1 (by { rw h_dim, apply nat.zero_lt_succ }),
-    -- Hence, `f` has an eigenvalue `μ₀`.
-    obtain ⟨μ₀, hμ₀⟩ : ∃ μ₀, f.has_eigenvalue μ₀ := exists_eigenvalue f,
-    -- We define `ES` to be the generalized eigenspace
-    let ES := f.generalized_eigenspace μ₀ (finrank K V),
-    -- and `ER` to be the generalized eigenrange.
-    let ER := f.generalized_eigenrange μ₀ (finrank K V),
-    -- `f` maps `ER` into itself.
-    have h_f_ER : ∀ (x : V), x ∈ ER → f x ∈ ER,
-      from λ x hx, map_generalized_eigenrange_le (submodule.mem_map_of_mem hx),
-    -- Therefore, we can define the restriction `f'` of `f` to `ER`.
-    let f' : End K ER := f.restrict h_f_ER,
-    -- The dimension of `ES` is positive
-    have h_dim_ES_pos : 0 < finrank K ES,
-    { dsimp only [ES],
-      rw h_dim,
-      apply pos_finrank_generalized_eigenspace_of_has_eigenvalue hμ₀ (nat.zero_lt_succ n) },
-    -- and the dimensions of `ES` and `ER` add up to `finrank K V`.
-    have h_dim_add : finrank K ER + finrank K ES = finrank K V,
-    { apply linear_map.finrank_range_add_finrank_ker },
-    -- Therefore the dimension `ER` mus be smaller than `finrank K V`.
-    have h_dim_ER : finrank K ER < n.succ, by linarith,
-    -- This allows us to apply the induction hypothesis on `ER`:
-    have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
-      from ih (finrank K ER) h_dim_ER f' rfl,
-    -- The induction hypothesis gives us a statement about subspaces of `ER`. We can transfer this
-    -- to a statement about subspaces of `V` via `submodule.subtype`:
-    have ih_ER' : (⨆ (μ : K) (k : ℕ), (f'.generalized_eigenspace μ k).map ER.subtype) = ER,
-      by simp only [(submodule.map_supr _ _).symm, ih_ER, submodule.map_subtype_top ER],
-    -- Moreover, every generalized eigenspace of `f'` is contained in the corresponding generalized
-    -- eigenspace of `f`.
-    have hff' : ∀ μ k,
-        (f'.generalized_eigenspace μ k).map ER.subtype ≤ f.generalized_eigenspace μ k,
-    { intros,
-      rw generalized_eigenspace_restrict,
-      apply submodule.map_comap_le },
-    -- It follows that `ER` is contained in the span of all generalized eigenvectors.
-    have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
-    { rw ← ih_ER',
-      exact supr₂_mono hff' },
-    -- `ES` is contained in this span by definition.
-    have hES : ES ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
-      from le_trans
-        (le_supr (λ k, f.generalized_eigenspace μ₀ k) (finrank K V))
-        (le_supr (λ (μ : K), ⨆ (k : ℕ), f.generalized_eigenspace μ k) μ₀),
-    -- Moreover, we know that `ER` and `ES` are disjoint.
-    have h_disjoint : disjoint ER ES,
-      from generalized_eigenvec_disjoint_range_ker f μ₀,
-    -- Since the dimensions of `ER` and `ES` add up to the dimension of `V`, it follows that the
-    -- span of all generalized eigenvectors is all of `V`.
-    show (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤,
-    { rw [←top_le_iff, ←submodule.eq_top_of_disjoint ER ES h_dim_add h_disjoint],
-      apply sup_le hER hES } }
-end
 
 end End
 end module

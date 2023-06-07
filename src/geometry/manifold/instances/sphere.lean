@@ -10,6 +10,7 @@ import analysis.inner_product_space.calculus
 import analysis.inner_product_space.pi_L2
 import geometry.manifold.algebra.lie_group
 import geometry.manifold.instances.real
+import geometry.manifold.vector_bundle.tangent
 
 /-!
 # Manifold structure on the sphere

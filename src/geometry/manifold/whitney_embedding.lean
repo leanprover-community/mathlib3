@@ -25,6 +25,39 @@ for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 partition of unity, smooth bump function, whitney theorem
 -/
 
+
+namespace cont_mdiff_map
+
+-- These helpers for dot notation have been moved here from `geometry.manifold.cont_mdiff_map`
+-- to avoid needing to import `geometry.manifold.cont_mdiff_mfderiv` there.
+-- They could be moved to another file (perhaps a new file) is desired.
+
+open_locale manifold
+
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{H : Type*} [topological_space H]
+{H' : Type*} [topological_space H']
+{I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
+{M : Type*} [topological_space M] [charted_space H M]
+{M' : Type*} [topological_space M'] [charted_space H' M']
+{n : ℕ∞}
+
+protected lemma mdifferentiable' (f : C^n⟮I, M; I', M'⟯) (hn : 1 ≤ n) :
+  mdifferentiable I I' f :=
+f.cont_mdiff.mdifferentiable hn
+
+protected lemma mdifferentiable (f : C^∞⟮I, M; I', M'⟯) :
+  mdifferentiable I I' f :=
+f.cont_mdiff.mdifferentiable le_top
+
+protected lemma mdifferentiable_at (f : C^∞⟮I, M; I', M'⟯) {x} :
+  mdifferentiable_at I I' f x :=
+f.mdifferentiable x
+
+end cont_mdiff_map
+
 universes uι uE uH uM
 variables {ι : Type uι}
 {E : Type uE} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]

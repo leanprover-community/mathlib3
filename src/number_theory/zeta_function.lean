@@ -32,8 +32,10 @@ I haven't checked exactly what they are).
   `ζ(s) = ∑' (n : ℕ), 1 / (n + 1) ^ s`.
 * `riemann_completed_zeta₀_one_sub`, `riemann_completed_zeta_one_sub`, and `riemann_zeta_one_sub` :
   functional equation relating values at `s` and `1 - s`
-* `riemann_zeta_neg_nat_eq_bernoulli` : for `k : ℕ` we have the formula
-  `riemann_zeta (-k) = (-1) ^ k * bernoulli (k + 1) / (k + 1)`.
+* `riemann_zeta_neg_nat_eq_bernoulli` : for any `k ∈ ℕ` we have the formula
+  `riemann_zeta (-k) = (-1) ^ k * bernoulli (k + 1) / (k + 1)`
+* `riemann_zeta_two_mul_nat`: formula for `ζ(2 * k)` for `k ∈ ℕ, k ≠ 0` in terms of Bernoulli
+  numbers
 
 ## Outline of proofs:
 
@@ -43,6 +45,12 @@ completed zeta function. The second is obtained by subtracting a linear combinat
 the interval `Ioc 0 1` to give a function with exponential decay at both `0` and `∞`. We then define
 `riemann_completed_zeta₀` as the Mellin transform of the second zeta kernel, and define
 `riemann_completed_zeta` and `riemann_zeta` from this.
+
+Since `zeta_kernel₂` has rapid decay and satisfies a functional equation relating its values at `t`
+and `1 / t`, we deduce the analyticity of `riemann_completed_zeta₀` and the functional equation
+relating its values at `s` and `1 - s`. On the other hand, since `zeta_kernel₁` can be expanded in
+powers of `exp (-π * t)` and the Mellin transform integrated term-by-term, we obtain the relation
+to the naive Dirichlet series `∑' (n : ℕ), 1 / (n + 1) ^ s`.
 -/
 
 open measure_theory set filter asymptotics topological_space real asymptotics
@@ -693,16 +701,16 @@ lemma riemann_zeta_neg_nat_eq_bernoulli (k : ℕ) :
 begin
   rcases nat.even_or_odd' k with ⟨m, rfl | rfl⟩,
   { cases m,
-    { -- s = 0 : evaluate explicitly
+    { -- k = 0 : evaluate explicitly
       rw [mul_zero, nat.cast_zero, pow_zero, one_mul, zero_add, neg_zero, zero_add, div_one,
         bernoulli_one, riemann_zeta_zero, rat.cast_div, rat.cast_neg, rat.cast_one,
         rat.cast_bit0, rat.cast_one] },
-    { -- s = -2 * (m + 1) : both sides "trivially" zero
+    { -- k = 2 * (m + 1) : both sides "trivially" zero
       rw [nat.cast_mul, ←neg_mul, nat.cast_two, nat.cast_succ,
         riemann_zeta_neg_two_mul_nat_add_one, bernoulli_eq_bernoulli'_of_ne_one],
       swap, { apply ne_of_gt, norm_num },
       rw [bernoulli'_odd_eq_zero ⟨m + 1, rfl⟩ (by norm_num), rat.cast_zero, mul_zero, zero_div] } },
-  { -- s = 2 * m + 1 : the interesting case
+  { -- k = 2 * m + 1 : the interesting case
     rw odd.neg_one_pow ⟨m, rfl⟩,
     rw (show -(↑(2 * m + 1) : ℂ) = 1 - (2 * m + 2), by { push_cast, ring }),
     rw riemann_zeta_one_sub,

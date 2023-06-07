@@ -173,7 +173,7 @@ end
 @[simp]
 lemma coe_neg (s : Cₛ^n⟮I; F, V⟯) : ⇑(- s : Cₛ^n⟮I; F, V⟯) = - s := rfl
 
-instance has_nsmul : has_smul ℕ  Cₛ^n⟮I; F, V⟯ :=
+instance has_nsmul : has_smul ℕ Cₛ^n⟮I; F, V⟯ :=
 ⟨nsmul_rec⟩
 
 @[simp]

@@ -10,6 +10,9 @@ import ring_theory.adjoin.field
 /-!
 # Splitting fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the notion of a splitting field of a polynomial and provides an embedding from
 a splitting field to any field that splits the polynomial. A polynomial `f : K[X]` splits
 over a field extension `L` of `K` if it is zero or all of its irreducible factors over `L` have

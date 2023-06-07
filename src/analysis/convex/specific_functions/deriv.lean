@@ -10,6 +10,9 @@ import analysis.special_functions.sqrt
 /-!
 # Collection of convex functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that certain specific functions are strictly convex, including the following:
 
 * `even.strict_convex_on_pow` : For an even `n : ℕ` with `2 ≤ n`, `λ x, x ^ n` is strictly convex.

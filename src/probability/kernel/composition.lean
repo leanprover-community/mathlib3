@@ -13,8 +13,8 @@ We define
 * the composition-product `κ ⊗ₖ η` of two s-finite kernels `κ : kernel α β` and
   `η : kernel (α × β) γ`, a kernel from `α` to `β × γ`.
 * the map and comap of a kernel along a measurable function.
-* the composition `η ∘ₖ κ` of s-finite kernels `κ : kernel α β` and `η : kernel β γ`,
-  a kernel from `α` to `γ`.
+* the composition `η ∘ₖ κ` of kernels `κ : kernel α β` and `η : kernel β γ`,  kernel from `α` to
+  `γ`.
 * the product `κ ×ₖ η` of s-finite kernels `κ : kernel α β` and `η : kernel α γ`,
   a kernel from `α` to `β × γ`.
 
@@ -34,7 +34,7 @@ Kernels built from other kernels:
   `∫⁻ c, g c ∂(map κ f hf a) = ∫⁻ b, g (f b) ∂(κ a)`
 * `comap (κ : kernel α β) (f : γ → α) (hf : measurable f) : kernel γ β`
   `∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c))`
-* `comp (η : kernel β γ) (κ : kernel α β) : kernel α γ`: composition of 2 s-finite kernels.
+* `comp (η : kernel β γ) (κ : kernel α β) : kernel α γ`: composition of 2 kernels.
   We define a notation `η ∘ₖ κ = comp η κ`.
   `∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
 * `prod (κ : kernel α β) (η : kernel α γ) : kernel α (β × γ)`: product of 2 s-finite kernels.

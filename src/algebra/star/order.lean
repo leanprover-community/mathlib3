@@ -31,7 +31,7 @@ the advantage of not requiring a topology.
 -/
 
 universe u
-variable {R : Type*}
+variable {R : Type u}
 
 /--
 An ordered `*`-ring is a ring which is both an `ordered_add_comm_group` and a `*`-ring,
@@ -54,7 +54,7 @@ instance to_ordered_add_comm_monoid [non_unital_semiring R] [partial_order R]
   ..show star_ordered_ring R, by apply_instance }
 
 @[priority 100] -- see note [lower instance priority]
-instance to_has_exists_add_of_le {R : Type u} [non_unital_semiring R] [partial_order R]
+instance to_has_exists_add_of_le [non_unital_semiring R] [partial_order R]
   [star_ordered_ring R] : has_exists_add_of_le R :=
 { exists_add_of_le := λ a b h, match (le_iff _ _).mp h with ⟨p, _, hp⟩ := ⟨p, hp⟩ end }
 
@@ -69,9 +69,11 @@ instance to_ordered_add_comm_group [non_unital_ring R] [partial_order R] [star_o
 `y = x + star s * s` for some `s : R`.
 
 This is provided for convenience because it holds in some common scenarios (e.g.,`ℝ≥0`, `C(X, ℝ≥0)`)
-and obviates the hassle of `add_submonoid.closure_induction` when creating those instances. -/
+and obviates the hassle of `add_submonoid.closure_induction` when creating those instances.
+
+If you are working with a `ring` and not a `semiring`, see `star_ordered_ring.of_nonneg_iff` for a more convenient version. -/
 @[reducible] -- set note [reducible non-instances]
-def of_le_iff {R : Type u} [non_unital_semiring R] [partial_order R] [star_ring R]
+def of_le_iff [non_unital_semiring R] [partial_order R] [star_ring R]
   (h_add : ∀ {x y : R}, x ≤ y → ∀ z, z + x ≤ z + y)
   (h_le_iff : ∀ x y : R, x ≤ y ↔ ∃ s, y = x + star s * s) :
   star_ordered_ring R :=
@@ -98,7 +100,7 @@ def of_le_iff {R : Type u} [non_unital_semiring R] [partial_order R] [star_ring 
 show that the nonnegative elements are precisely those elements in the `add_submonoid` generated
 by `star s * s` for `s : R`. -/
 @[reducible] -- set note [reducible non-instances]
-def of_nonneg_iff {R : Type u} [non_unital_ring R] [partial_order R] [star_ring R]
+def of_nonneg_iff [non_unital_ring R] [partial_order R] [star_ring R]
   (h_add : ∀ {x y : R}, x ≤ y → ∀ z, z + x ≤ z + y)
   (h_nonneg_iff : ∀ x : R, 0 ≤ x ↔ x ∈ add_submonoid.closure (set.range $ λ s : R, star s * s)) :
   star_ordered_ring R :=

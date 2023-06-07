@@ -129,32 +129,20 @@ begin
   exactI is_integral_closure_adjoin_singleton_of_prime_pow hζ,
 end
 
-local attribute [-instance] cyclotomic_field.algebra
-
 /-- The integral closure of `ℤ` inside `cyclotomic_field (p ^ k) ℚ` is
 `cyclotomic_ring (p ^ k) ℤ ℚ`. -/
 lemma cyclotomic_ring_is_integral_closure_of_prime_pow :
   is_integral_closure (cyclotomic_ring (p ^ k) ℤ ℚ) ℤ (cyclotomic_field (p ^ k) ℚ) :=
 begin
   haveI : char_zero ℚ := strict_ordered_semiring.to_char_zero,
-  haveI : is_cyclotomic_extension {p ^ k} ℚ (cyclotomic_field (p ^ k) ℚ),
-  { convert cyclotomic_field.is_cyclotomic_extension (p ^ k) _,
-    { exact subsingleton.elim _ _ },
-    { exact ne_zero.char_zero } },
   have hζ := zeta_spec (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
   refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
   { have := (is_integral_closure_adjoin_singleton_of_prime_pow hζ).is_integral_iff,
     obtain ⟨y, rfl⟩ := this.1 h,
-    convert adjoin_mono _ y.2,
-    { simp only [eq_iff_true_of_subsingleton] },
-    { simp only [eq_iff_true_of_subsingleton] },
-    { simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
-      exact hζ.pow_eq_one } },
-  { haveI : is_cyclotomic_extension {p ^ k} ℤ (cyclotomic_ring (p ^ k) ℤ ℚ),
-    { convert cyclotomic_ring.is_cyclotomic_extension _ ℤ ℚ,
-      { exact subsingleton.elim _ _ },
-      { exact ne_zero.char_zero } },
-    rintro ⟨y, rfl⟩,
+    refine adjoin_mono _ y.2,
+    simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
+    exact hζ.pow_eq_one },
+  { rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map ((is_cyclotomic_extension.integral {p ^ k} ℤ _) _) }
 end
 

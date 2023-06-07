@@ -10,6 +10,9 @@ import tactic.norm_num
 /-!
 # Primality prover
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides a `norm_num` extention to prove that natural numbers are prime.
 
 -/

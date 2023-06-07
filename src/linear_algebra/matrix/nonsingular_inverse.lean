@@ -8,6 +8,9 @@ import linear_algebra.matrix.adjugate
 /-!
 # Nonsingular inverses
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define an inverse for square matrices of invertible determinant.
 
 For matrices that are not square or not of full rank, there is a more general notion of

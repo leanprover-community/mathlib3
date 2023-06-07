@@ -21,6 +21,8 @@ lengths.
 open real euclidean_geometry
 open_locale real euclidean_geometry
 
+namespace theorems_100
+
 local notation `√` := real.sqrt
 
 variables {V : Type*} {P : Type*}
@@ -61,3 +63,5 @@ begin
                                                           one_mul, mul_div_cancel];
                                                       norm_num,
 end
+
+end theorems_100

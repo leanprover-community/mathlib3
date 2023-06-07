@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Xavier Roblot
 -/
 
-import topology.algebra.uniform_field
 import analysis.complex.basic
-import field_theory.adjoin
+import field_theory.intermediate_field
+import topology.algebra.uniform_ring
 
 /-!
 # Some results about the topology of ℂ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 section complex_subfield

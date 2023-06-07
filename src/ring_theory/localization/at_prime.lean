@@ -9,6 +9,9 @@ import ring_theory.localization.ideal
 /-!
 # Localizations of commutative rings at the complement of a prime ideal
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
  * `is_localization.at_prime (I : ideal R) [is_prime I] (S : Type*)` expresses that `S` is a

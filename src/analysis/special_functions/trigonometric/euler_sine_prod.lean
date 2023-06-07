@@ -3,8 +3,7 @@ Copyright (c) 2023 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
-
-import data.real.pi.wallis
+import analysis.special_functions.integrals
 import measure_theory.integral.peak_function
 
 /-! # Euler's infinite product for the sine function

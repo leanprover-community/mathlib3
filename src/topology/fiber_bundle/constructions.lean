@@ -8,6 +8,9 @@ import topology.fiber_bundle.basic
 /-!
 # Standard constructions on fiber bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains several standard constructions on fiber bundles:
 
 * `bundle.trivial.fiber_bundle 𝕜 B F`: the trivial fiber bundle with model fiber `F` over the base

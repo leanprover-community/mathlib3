@@ -9,6 +9,9 @@ import algebra.module.basic
 /-!
 # Symmetrized algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A commutative multiplication on a real or complex space can be constructed from any multiplication
 by "symmetrization" i.e
 $$

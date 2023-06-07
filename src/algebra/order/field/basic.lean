@@ -407,18 +407,15 @@ lemma half_pos (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
 
-lemma div_two_lt_of_pos (h : 0 < a) : a / 2 < a :=
-by { rw [div_lt_iff (zero_lt_two' α)], exact lt_mul_of_one_lt_right h one_lt_two }
+@[simp] lemma half_le_self_iff : a / 2 ≤ a ↔ 0 ≤ a :=
+by rw [div_le_iff (zero_lt_two' α), mul_two, le_add_iff_nonneg_left]
 
-lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
+@[simp] lemma half_lt_self_iff : a / 2 < a ↔ 0 < a :=
+by rw [div_lt_iff (zero_lt_two' α), mul_two, lt_add_iff_pos_left]
 
-lemma half_le_self (ha_nonneg : 0 ≤ a) : a / 2 ≤ a :=
-begin
-  by_cases h0 : a = 0,
-  { simp [h0], },
-  { rw ← ne.def at h0,
-    exact (half_lt_self (lt_of_le_of_ne ha_nonneg h0.symm)).le, },
-end
+alias half_le_self_iff ↔ _ half_le_self
+alias half_lt_self_iff ↔ _ half_lt_self
+alias half_lt_self ← div_two_lt_of_pos
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 

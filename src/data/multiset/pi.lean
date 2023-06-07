@@ -50,6 +50,25 @@ begin
   all_goals { simp [*, pi.cons_same, pi.cons_ne] },
 end
 
+@[simp]
+lemma pi.cons_eta {m : multiset α} {a : α} (f : Π a' ∈ a ::ₘ m, δ a') :
+  pi.cons m a (f _ (mem_cons_self _ _)) (λ a' ha', f a' (mem_cons_of_mem ha')) = f :=
+begin
+  ext a' h',
+  by_cases a' = a,
+  { subst h, rw [pi.cons_same] },
+  { rw [pi.cons_ne _ h] }
+end
+
+lemma pi.cons_injective {a : α} {b : δ a} {s : multiset α} (hs : a ∉ s) :
+  function.injective (pi.cons s a b) :=
+assume f₁ f₂ eq, funext $ assume a', funext $ assume h',
+have ne : a ≠ a', from assume h, hs $ h.symm ▸ h',
+have a' ∈ a ::ₘ s, from mem_cons_of_mem h',
+calc f₁ a' h' = pi.cons s a b f₁ a' this : by rw [pi.cons_ne this ne.symm]
+  ... = pi.cons s a b f₂ a' this : by rw [eq]
+  ... = f₂ a' h' : by rw [pi.cons_ne this ne.symm]
+
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
 def pi (m : multiset α) (t : Πa, multiset (β a)) : multiset (Πa∈m, β a) :=
 m.rec_on {pi.empty β} (λa m (p : multiset (Πa∈m, β a)), (t a).bind $ λb, p.map $ pi.cons m a b)
@@ -73,15 +92,6 @@ end
   pi (a ::ₘ m) t = ((t a).bind $ λb, (pi m t).map $ pi.cons m a b) :=
 rec_on_cons a m
 
-lemma pi_cons_injective {a : α} {b : δ a} {s : multiset α} (hs : a ∉ s) :
-  function.injective (pi.cons s a b) :=
-assume f₁ f₂ eq, funext $ assume a', funext $ assume h',
-have ne : a ≠ a', from assume h, hs $ h.symm ▸ h',
-have a' ∈ a ::ₘ s, from mem_cons_of_mem h',
-calc f₁ a' h' = pi.cons s a b f₁ a' this : by rw [pi.cons_ne this ne.symm]
-  ... = pi.cons s a b f₂ a' this : by rw [eq]
-  ... = f₂ a' h' : by rw [pi.cons_ne this ne.symm]
-
 lemma card_pi (m : multiset α) (t : Πa, multiset (β a)) :
   card (pi m t) = prod (m.map $ λa, card (t a)) :=
 multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
@@ -94,22 +104,12 @@ begin
   have has : a ∉ s, by simp at hs; exact hs.1,
   have hs : nodup s, by simp at hs; exact hs.2,
   simp,
-  refine ⟨λ b hb, (ih hs $ λ a' h', ht a' $ mem_cons_of_mem h').map (pi_cons_injective has), _⟩,
+  refine ⟨λ b hb, (ih hs $ λ a' h', ht a' $ mem_cons_of_mem h').map (pi.cons_injective has), _⟩,
   refine (ht a $ mem_cons_self _ _).pairwise _,
   from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,
     have pi.cons s a b₁ f a (mem_cons_self _ _) = pi.cons s a b₂ g a (mem_cons_self _ _),
       by rw [eq],
     neb $ show b₁ = b₂, by rwa [pi.cons_same, pi.cons_same] at this)
-end
-
-@[simp]
-lemma pi.cons_ext {m : multiset α} {a : α} (f : Π a' ∈ a ::ₘ m, δ a') :
-  pi.cons m a (f _ (mem_cons_self _ _)) (λ a' ha', f a' (mem_cons_of_mem ha')) = f :=
-begin
-  ext a' h',
-  by_cases a' = a,
-  { subst h, rw [pi.cons_same] },
-  { rw [pi.cons_ne _ h] }
 end
 
 lemma mem_pi (m : multiset α) (t : Πa, multiset (β a)) :
@@ -126,7 +126,7 @@ begin
     { rw [pi.cons_ne _ h], apply hf' } },
   { intro hf,
     refine ⟨_, hf a (mem_cons_self _ _), _, λ a ha, hf a (mem_cons_of_mem ha), _⟩,
-    rw pi.cons_ext }
+    rw pi.cons_eta }
 end
 
 end pi

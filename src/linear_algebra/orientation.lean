@@ -9,6 +9,9 @@ import linear_algebra.determinant
 /-!
 # Orientations of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines orientations of modules.
 
 ## Main definitions

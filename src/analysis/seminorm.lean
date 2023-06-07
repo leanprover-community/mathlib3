@@ -11,6 +11,9 @@ import analysis.normed.group.add_torsor
 /-!
 # Seminorms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines seminorms.
 
 A seminorm is a function to the reals which is positive-semidefinite, absolutely homogeneous, and

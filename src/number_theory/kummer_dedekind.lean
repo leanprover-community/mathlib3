@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Paul Lezeau
 -/
 
-import ring_theory.algebra_tower
 import ring_theory.dedekind_domain.ideal
 import ring_theory.is_adjoin_root
 

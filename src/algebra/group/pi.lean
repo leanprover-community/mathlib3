@@ -315,6 +315,16 @@ This is the `mul_hom` version of `pi.single`. -/
 variables {f}
 
 @[to_additive]
+lemma pi.mul_single_sup [Π i, semilattice_sup (f i)] [Π i, has_one (f i)] (i : I) (x y : f i) :
+  pi.mul_single i (x ⊔ y) = pi.mul_single i x ⊔ pi.mul_single i y :=
+function.update_sup _ _ _ _
+
+@[to_additive]
+lemma pi.mul_single_inf [Π i, semilattice_inf (f i)] [Π i, has_one (f i)] (i : I) (x y : f i) :
+  pi.mul_single i (x ⊓ y) = pi.mul_single i x ⊓ pi.mul_single i y :=
+function.update_inf _ _ _ _
+
+@[to_additive]
 lemma pi.mul_single_mul [Π i, mul_one_class $ f i] (i : I) (x y : f i) :
   mul_single i (x * y) = mul_single i x * mul_single i y :=
 (monoid_hom.single f i).map_mul x y

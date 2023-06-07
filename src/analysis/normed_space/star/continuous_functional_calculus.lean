@@ -100,7 +100,7 @@ begin
     rw [←spectrum.gelfand_transform_eq (star a' * a'), continuous_map.spectrum_eq_range],
     rintro - ⟨φ, rfl⟩,
     rw [gelfand_transform_apply_apply ℂ _ (star a' * a') φ, map_mul φ, map_star φ],
-    rw [complex.eq_coe_norm_of_nonneg star_mul_self_nonneg, ←map_star, ←map_mul],
+    rw [complex.eq_coe_norm_of_nonneg (star_mul_self_nonneg _), ←map_star, ←map_mul],
     exact ⟨complex.zero_le_real.2 (norm_nonneg _),
       complex.real_le_real.2 (alg_hom.norm_apply_le_self φ (star a' * a'))⟩, }
 end

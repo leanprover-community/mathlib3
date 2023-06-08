@@ -6,7 +6,7 @@ Authors: Thomas Browning, Patrick Lutz
 
 import field_theory.intermediate_field
 import field_theory.separable
-import field_theory.splitting_field
+import field_theory.splitting_field.is_splitting_field
 import ring_theory.tensor_product
 
 /-!
@@ -197,6 +197,14 @@ set_like.ext' set.image_univ.symm
 lemma _root_.alg_hom.map_field_range {K L : Type*} [field K] [field L] [algebra F K] [algebra F L]
   (f : E →ₐ[F] K) (g : K →ₐ[F] L) : f.field_range.map g = (g.comp f).field_range :=
 set_like.ext' (set.range_comp g f).symm
+
+lemma _root_.alg_hom.field_range_eq_top {K : Type*} [field K] [algebra F K] {f : E →ₐ[F] K} :
+  f.field_range = ⊤ ↔ function.surjective f :=
+set_like.ext'_iff.trans set.range_iff_surjective
+
+@[simp] lemma _root_.alg_equiv.field_range_eq_top {K : Type*} [field K] [algebra F K]
+  (f : E ≃ₐ[F] K) : (f : E →ₐ[F] K).field_range = ⊤ :=
+alg_hom.field_range_eq_top.mpr f.surjective
 
 end lattice
 

@@ -11,6 +11,9 @@ import topology.urysohns_bounded
 /-!
 # Tietze extension theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few version of the Tietze extension theorem. The theorem says that a
 continuous function `s → ℝ` defined on a closed set in a normal topological space `Y` can be
 extended to a continuous function on the whole space. Moreover, if all values of the original

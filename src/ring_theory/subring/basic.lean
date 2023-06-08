@@ -653,7 +653,7 @@ end division_ring
 
 section centralizer
 
-/-- The centralizer of a ring as a `subring`. -/
+/-- The centralizer of a set inside a ring as a `subring`. -/
 def centralizer (s : set R) : subring R :=
 { neg_mem' := λ x, set.neg_mem_centralizer,
   ..subsemiring.centralizer s }
@@ -676,12 +676,11 @@ lemma center_le_centralizer (s) : center R ≤ centralizer s := s.center_subset_
 lemma centralizer_le (s t : set R) (h : s ⊆ t) : centralizer t ≤ centralizer s :=
 set.centralizer_subset h
 
+@[simp] lemma centralizer_eq_top_iff_subset {s : set R} : centralizer s = ⊤ ↔ s ⊆ center R :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
+
 @[simp] lemma centralizer_univ : centralizer set.univ = center R :=
 set_like.ext' (set.centralizer_univ R)
-
-lemma mem_center_of_centralizer_eq_top {r : R} (h : centralizer ({r} : set R) = ⊤) :
-  r ∈ center R :=
-λ x, eq.symm $ by simpa [mem_centralizer_iff] using eq_top_iff.mp h (mem_top x)
 
 end centralizer
 

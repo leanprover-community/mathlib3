@@ -13,6 +13,9 @@ import data.complex.module
 /-!
 # Rank of matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The rank of a matrix `A` is defined to be the rank of range of the linear map corresponding to `A`.
 This definition does not depend on the choice of basis, see `matrix.rank_eq_finrank_range_to_lin`.
 

@@ -10,6 +10,9 @@ import topology.unit_interval
 /-!
 # Constructions relating polynomial functions and continuous functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `polynomial.to_continuous_map_on p X`: for `X : set R`, interprets a polynomial `p`

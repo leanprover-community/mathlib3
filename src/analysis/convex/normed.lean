@@ -11,6 +11,9 @@ import analysis.normed_space.ray
 /-!
 # Topological and metric properties of convex sets in normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove the following facts:
 
 * `convex_on_norm`, `convex_on_dist` : norm and distance to a fixed point is convex on any convex

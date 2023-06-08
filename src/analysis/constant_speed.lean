@@ -3,8 +3,6 @@ Copyright (c) 2023 Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli
 -/
-import measure_theory.measure.lebesgue
-import analysis.calculus.monotone
 import data.set.function
 import analysis.bounded_variation
 import tactic.swap_var

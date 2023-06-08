@@ -9,6 +9,9 @@ import analysis.convex.function
 /-!
 # Jensen's inequality and maximum principle for convex functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove the finite Jensen inequality and the finite maximum principle for convex
 functions. The integral versions are to be found in `analysis.convex.integral`.
 

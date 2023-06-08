@@ -195,4 +195,15 @@ theorem eq_on_of_preconnected_of_mem_closure (hf : analytic_on 𝕜 f U) (hg : a
   eq_on f g U :=
 hf.eq_on_of_preconnected_of_frequently_eq hg hU h₀ (mem_closure_ne_iff_frequently_within.mp hfg)
 
+/-- The *identity principle* for analytic functions, global version: if two functions on a normed
+field `𝕜` are analytic everywhere and coincide at points which accumulate to a point `z₀`, then
+they coincide globally.
+For higher-dimensional versions requiring that the functions coincide in a neighborhood of `z₀`,
+see `eq_of_eventually_eq`. -/
+theorem eq_of_frequently_eq [connected_space 𝕜]
+  (hf : analytic_on 𝕜 f univ) (hg : analytic_on 𝕜 g univ)
+  (hfg : ∃ᶠ z in 𝓝[≠] z₀, f z = g z) : f = g :=
+funext (λ x, eq_on_of_preconnected_of_frequently_eq hf hg is_preconnected_univ
+    (mem_univ z₀) hfg (mem_univ x))
+
 end analytic_on

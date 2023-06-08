@@ -423,6 +423,11 @@ by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
 lemma mul_bit1 [non_assoc_ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
+/-- Note this holds in marginally more generality than `int.cast_mul` -/
+lemma int.cast_mul_eq_zsmul_cast [add_comm_group_with_one α] : ∀ m n, ((m * n : ℤ) : α) = m • n :=
+λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, add_zsmul, ih])
+  (λ k _ ih n, by simp [sub_mul, sub_zsmul, ih, ←sub_eq_add_neg])
+
 @[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
 | (n : ℕ) := by rw [coe_nat_zsmul, nsmul_eq_mul, int.cast_coe_nat]
 | -[1+ n] := by simp [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]

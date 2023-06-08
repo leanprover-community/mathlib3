@@ -58,6 +58,11 @@ The proofs of `det_eq_prod_roots_charpoly_of_splits` and
 dependencies are not general enough to unify them. We should refactor
 `polynomial.prod_roots_eq_coeff_zero_of_monic_of_split` and
 `polynomial.sum_roots_eq_next_coeff_of_monic_of_split` to assume splitting over an arbitrary map.
+
+In mathlib hermitian matrices have special eigenvalue definitionsin `linear_algebra.matrix.spectrum`
+Further linkage is needed to make (`has_eigenvalue`, `root_charpoly`) work transparently with
+`matrix.is_hermitian.eigenvalues`. The definitions in `linear_map.is_symmetric` are in terms of
+`module.End.has_eigenvalue` (and hence should be usable without considerable issues).
 -/
 variables {n : Type*} [fintype n] [decidable_eq n]
 variables {R : Type*} [field R]

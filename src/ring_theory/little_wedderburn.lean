@@ -154,7 +154,7 @@ begin
   { rw lt_top_iff_ne_top,
     intro hZx,
     have Hx := mem_center_units_of_coe_mem_center _
-      (subring.mem_center_of_centralizer_eq_top hZx),
+      ((subring.centralizer_eq_top_iff_subset.mp hZx) $ set.mem_singleton _),
     simp only [set.mem_to_finset, conj_classes.quot_mk_eq_mk] at hx,
     exact (conj_classes.mk_bij_on (units D)).1 Hx hx },
   letI : field Zx := hD.field _ hZx,

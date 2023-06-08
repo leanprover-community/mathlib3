@@ -9,6 +9,9 @@ import ring_theory.roots_of_unity.basic
 /-!
 # Complex roots of unity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we show that the `n`-th complex roots of unity
 are exactly the complex numbers `e ^ (2 * real.pi * complex.I * (i / n))` for `i ∈ finset.range n`.
 

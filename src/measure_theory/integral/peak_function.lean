@@ -9,6 +9,9 @@ import measure_theory.function.locally_integrable
 /-!
 # Integrals against peak functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A sequence of peak functions is a sequence of functions with average one concentrating around
 a point `x₀`. Given such a sequence `φₙ`, then `∫ φₙ g` tends to `g x₀` in many situations, with
 a whole zoo of possible assumptions on `φₙ` and `g`. This file is devoted to such results.

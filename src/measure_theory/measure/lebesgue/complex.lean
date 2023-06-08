@@ -10,6 +10,9 @@ import measure_theory.measure.haar.of_basis
 /-!
 # Lebesgue measure on `ℂ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define Lebesgue measure on `ℂ`. Since `ℂ` is defined as a `structure` as the
 push-forward of the volume on `ℝ²` under the natural isomorphism. There are (at least) two
 frequently used ways to represent `ℝ²` in `mathlib`: `ℝ × ℝ` and `fin 2 → ℝ`. We define measurable

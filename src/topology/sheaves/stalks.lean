@@ -419,7 +419,7 @@ begin
   choose V m i₁ i₂ heq using λ x : U, F.presheaf.germ_eq x.1 x.2 x.2 s t (h x),
   -- Since `F` is a sheaf, we can prove the equality locally, if we can show that these
   -- neighborhoods form a cover of `U`.
-  apply F.eq_of_locally_eq' V U i₁,
+  apply Top.sheaf.eq_of_locally_eq'.{u v v} F V U i₁,
   { intros x hxU,
     rw [opens.mem_supr],
     exact ⟨⟨x, hxU⟩, m ⟨x, hxU⟩⟩ },
@@ -488,9 +488,9 @@ begin
     rw [opens.mem_supr],
     exact ⟨⟨x, hxU⟩, mV ⟨x, hxU⟩⟩ },
   -- Since `F` is a sheaf, we can glue all the local preimages together to get a global preimage.
-  obtain ⟨s, s_spec, -⟩ := F.exists_unique_gluing' V U iVU V_cover sf _,
+  obtain ⟨s, s_spec, -⟩ := Top.sheaf.exists_unique_gluing'.{u v v} F V U iVU V_cover sf _,
   { use s,
-    apply G.eq_of_locally_eq' V U iVU V_cover,
+    apply Top.sheaf.eq_of_locally_eq'.{u v v} G V U iVU V_cover,
     intro x,
     rw [← comp_apply, ← f.1.naturality, comp_apply, s_spec, heq] },
   { intros x y,

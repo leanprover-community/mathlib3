@@ -8,6 +8,9 @@ import analysis.complex.real_deriv
 /-!
 # Complex and real exponential
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `complex.exp` and `real.exp` are infinitely smooth functions.
 
 ## Tags

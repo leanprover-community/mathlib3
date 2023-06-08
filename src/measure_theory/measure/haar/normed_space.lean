@@ -9,6 +9,9 @@ import measure_theory.integral.bochner
 /-!
 # Basic properties of Haar measures on real vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 noncomputable theory

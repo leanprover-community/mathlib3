@@ -13,6 +13,9 @@ import topology.algebra.algebra
 /-!
 # Exponential in a Banach algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define `exp 𝕂 : 𝔸 → 𝔸`, the exponential map in a topological algebra `𝔸` over a
 field `𝕂`.
 

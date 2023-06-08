@@ -9,6 +9,9 @@ import category_theory.concrete_category.elementwise
 /-!
 # The category of R-modules has all colimits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
 
 Note that finite colimits can already be obtained from the instance `abelian (Module R)`.

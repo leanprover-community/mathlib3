@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import geometry.manifold.mfderiv
+import geometry.manifold.cont_mdiff_map
 
 /-!
 ### Interactions between differentiability, smoothness and manifold derivatives
@@ -212,6 +213,27 @@ begin
     cont_mdiff_at.comp (x₀, x₀) hf cont_mdiff_at_snd,
   exact this.mfderiv (λ x, f) id cont_mdiff_at_id hmn,
 end
+
+include Js
+/-- The function that sends `x` to the `y`-derivative of `f(x,y)` at `g(x)` applied to `g₂(x)` is
+`C^n` at `x₀`, where the derivative is taken as a continuous linear map.
+We have to assume that `f` is `C^(n+1)` at `(x₀, g(x₀))` and `g` is `C^n` at `x₀`.
+We have to insert a coordinate change from `x₀` to `g₁(x)` to make the derivative sensible.
+
+This is  similar to `cont_mdiff_at.mfderiv`, but where the continuous linear map is applied to a
+(variable) vector.
+-/
+lemma cont_mdiff_at.mfderiv_apply {x₀ : N'} (f : N → M → M') (g : N → M) (g₁ : N' → N)
+  (g₂ : N' → E)
+  (hf : cont_mdiff_at (J.prod I) I' n (function.uncurry f) (g₁ x₀, g (g₁ x₀)))
+  (hg : cont_mdiff_at J I m g (g₁ x₀))
+  (hg₁ : cont_mdiff_at J' J m g₁ x₀)
+  (hg₂ : cont_mdiff_at J' 𝓘(𝕜, E) m g₂ x₀) (hmn : m + 1 ≤ n) :
+  cont_mdiff_at J' 𝓘(𝕜, E') m
+    (λ x, in_tangent_coordinates I I' g (λ x, f x (g x)) (λ x, mfderiv I I' (f x) (g x))
+      (g₁ x₀) (g₁ x) (g₂ x))
+    x₀ :=
+((hf.mfderiv f g hg hmn).comp_of_eq hg₁ rfl).clm_apply hg₂
 
 end mfderiv
 
@@ -609,3 +631,26 @@ begin
 end
 
 end tangent_bundle
+
+namespace cont_mdiff_map
+
+-- These helpers for dot notation have been moved here from `geometry.manifold.cont_mdiff_map`
+-- to avoid needing to import `geometry.manifold.cont_mdiff_mfderiv` there.
+-- (However as a consequence we import `geometry.manifold.cont_mdiff_map` here now.)
+-- They could be moved to another file (perhaps a new file) if desired.
+
+open_locale manifold
+
+protected lemma mdifferentiable' (f : C^n⟮I, M; I', M'⟯) (hn : 1 ≤ n) :
+  mdifferentiable I I' f :=
+f.cont_mdiff.mdifferentiable hn
+
+protected lemma mdifferentiable (f : C^∞⟮I, M; I', M'⟯) :
+  mdifferentiable I I' f :=
+f.cont_mdiff.mdifferentiable le_top
+
+protected lemma mdifferentiable_at (f : C^∞⟮I, M; I', M'⟯) {x} :
+  mdifferentiable_at I I' f x :=
+f.mdifferentiable x
+
+end cont_mdiff_map

@@ -10,6 +10,9 @@ import analysis.calculus.cont_diff_def
 /-!
 # Frechet derivatives of analytic functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function expressible as a power series at a point has a Frechet derivative there.
 Also the special case in terms of `deriv` when the domain is 1-dimensional.
 -/

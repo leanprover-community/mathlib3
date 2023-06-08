@@ -9,6 +9,9 @@ import algebra.big_operators.finprod
 /-!
 # Noncomputable Set Cardinality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the cardinality `set.ncard s` of a set `s` as a natural number. This function is
 noncomputable (being defined in terms of `nat.card`) and takes the value `0` if `s` is infinite.
 

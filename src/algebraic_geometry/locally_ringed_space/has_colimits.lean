@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.locally_ringed_space
 import algebra.category.Ring.constructions
-import algebraic_geometry.open_immersion
+import algebraic_geometry.open_immersion.basic
 import category_theory.limits.constructions.limits_of_products_and_equalizers
 
 /-!

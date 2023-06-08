@@ -13,8 +13,8 @@ We define
 * the composition-product `κ ⊗ₖ η` of two s-finite kernels `κ : kernel α β` and
   `η : kernel (α × β) γ`, a kernel from `α` to `β × γ`.
 * the map and comap of a kernel along a measurable function.
-* the composition `η ∘ₖ κ` of s-finite kernels `κ : kernel α β` and `η : kernel β γ`,
-  a kernel from `α` to `γ`.
+* the composition `η ∘ₖ κ` of kernels `κ : kernel α β` and `η : kernel β γ`,  kernel from `α` to
+  `γ`.
 * the product `κ ×ₖ η` of s-finite kernels `κ : kernel α β` and `η : kernel α γ`,
   a kernel from `α` to `β × γ`.
 
@@ -34,7 +34,7 @@ Kernels built from other kernels:
   `∫⁻ c, g c ∂(map κ f hf a) = ∫⁻ b, g (f b) ∂(κ a)`
 * `comap (κ : kernel α β) (f : γ → α) (hf : measurable f) : kernel γ β`
   `∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c))`
-* `comp (η : kernel β γ) (κ : kernel α β) : kernel α γ`: composition of 2 s-finite kernels.
+* `comp (η : kernel β γ) (κ : kernel α β) : kernel α γ`: composition of 2 kernels.
   We define a notation `η ∘ₖ κ = comp η κ`.
   `∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
 * `prod (κ : kernel α β) (η : kernel α γ) : kernel α (β × γ)`: product of 2 s-finite kernels.
@@ -741,69 +741,72 @@ include mγ
 
 /-- Composition of two s-finite kernels. -/
 noncomputable
-def comp (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ] :
-  kernel α γ :=
-snd (κ ⊗ₖ prod_mk_left α η)
+def comp (η : kernel β γ) (κ : kernel α β) : kernel α γ :=
+{ val := λ a, (κ a).bind η,
+  property := (measure.measurable_bind' (kernel.measurable _)).comp (kernel.measurable _) }
 
 localized "infix (name := kernel.comp) ` ∘ₖ `:100 := probability_theory.kernel.comp" in
   probability_theory
 
-lemma comp_apply (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ]
-  (a : α) {s : set γ} (hs : measurable_set s) :
+lemma comp_apply (η : kernel β γ) (κ : kernel α β) (a : α) :
+  (η ∘ₖ κ) a = (κ a).bind η := rfl
+
+lemma comp_apply' (η : kernel β γ) (κ : kernel α β) (a : α) {s : set γ} (hs : measurable_set s) :
   (η ∘ₖ κ) a s = ∫⁻ b, η b s ∂(κ a) :=
+by rw [comp_apply, measure.bind_apply hs (kernel.measurable _)]
+
+lemma comp_eq_snd_comp_prod (η : kernel β γ) [is_s_finite_kernel η]
+  (κ : kernel α β) [is_s_finite_kernel κ] :
+  η ∘ₖ κ = snd (κ ⊗ₖ prod_mk_left α η) :=
 begin
-  rw [comp, snd_apply' _ _ hs, comp_prod_apply],
+  ext a s hs : 2,
+  rw [comp_apply' _ _ _ hs, snd_apply' _ _ hs, comp_prod_apply],
   swap, { exact measurable_snd hs, },
   simp only [set.mem_set_of_eq, set.set_of_mem_eq, prod_mk_left_apply' _ _ s],
 end
 
-lemma lintegral_comp (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ]
+lemma lintegral_comp (η : kernel β γ) (κ : kernel α β)
   (a : α) {g : γ → ℝ≥0∞} (hg : measurable g) :
   ∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a) :=
-begin
-  rw [comp, lintegral_snd _ _ hg],
-  change ∫⁻ bc, (λ a b, g b) bc.fst bc.snd ∂((κ ⊗ₖ prod_mk_left α η) a)
-    = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a),
-  exact lintegral_comp_prod _ _ _ (hg.comp measurable_snd),
-end
+by rw [comp_apply, measure.lintegral_bind (kernel.measurable _) hg]
 
 instance is_markov_kernel.comp (η : kernel β γ) [is_markov_kernel η]
   (κ : kernel α β) [is_markov_kernel κ] :
   is_markov_kernel (η ∘ₖ κ) :=
-by { rw comp, apply_instance, }
+by { rw comp_eq_snd_comp_prod, apply_instance, }
 
 instance is_finite_kernel.comp (η : kernel β γ) [is_finite_kernel η]
   (κ : kernel α β) [is_finite_kernel κ] :
   is_finite_kernel (η ∘ₖ κ) :=
-by { rw comp, apply_instance, }
+by { rw comp_eq_snd_comp_prod, apply_instance, }
 
 instance is_s_finite_kernel.comp (η : kernel β γ) [is_s_finite_kernel η]
   (κ : kernel α β) [is_s_finite_kernel κ] :
   is_s_finite_kernel (η ∘ₖ κ) :=
-by { rw comp, apply_instance, }
+by { rw comp_eq_snd_comp_prod, apply_instance, }
 
 /-- Composition of kernels is associative. -/
 lemma comp_assoc {δ : Type*} {mδ : measurable_space δ} (ξ : kernel γ δ) [is_s_finite_kernel ξ]
-  (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ] :
+  (η : kernel β γ) (κ : kernel α β) :
   (ξ ∘ₖ η ∘ₖ κ) = ξ ∘ₖ (η ∘ₖ κ) :=
 begin
   refine ext_fun (λ a f hf, _),
   simp_rw [lintegral_comp _ _ _ hf, lintegral_comp _ _ _ hf.lintegral_kernel],
 end
 
-lemma deterministic_comp_eq_map (hf : measurable f) (κ : kernel α β) [is_s_finite_kernel κ] :
+lemma deterministic_comp_eq_map (hf : measurable f) (κ : kernel α β) :
   (deterministic f hf ∘ₖ κ) = map κ f hf :=
 begin
   ext a s hs : 2,
-  simp_rw [map_apply' _ _ _ hs, comp_apply _ _ _ hs, deterministic_apply' hf _ hs,
+  simp_rw [map_apply' _ _ _ hs, comp_apply' _ _ _ hs, deterministic_apply' hf _ hs,
     lintegral_indicator_const_comp hf hs, one_mul],
 end
 
-lemma comp_deterministic_eq_comap (κ : kernel α β) [is_s_finite_kernel κ] (hg : measurable g) :
+lemma comp_deterministic_eq_comap (κ : kernel α β) (hg : measurable g) :
   (κ ∘ₖ deterministic g hg) = comap κ g hg :=
 begin
   ext a s hs : 2,
-  simp_rw [comap_apply' _ _ _ s, comp_apply _ _ _ hs, deterministic_apply hg a,
+  simp_rw [comap_apply' _ _ _ s, comp_apply' _ _ _ hs, deterministic_apply hg a,
     lintegral_dirac' _ (kernel.measurable_coe κ hs)],
 end
 

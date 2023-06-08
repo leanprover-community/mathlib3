@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeoff Lee
 -/
 import tactic.linear_combination
-import ring_theory.roots_of_unity
 import ring_theory.polynomial.cyclotomic.roots
 
 /-!

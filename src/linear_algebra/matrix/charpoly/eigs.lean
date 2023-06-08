@@ -6,6 +6,12 @@ Authors: Mohanad Ahmed
 
 import data.polynomial.basic
 import field_theory.is_alg_closed.basic
+import data.matrix.basic
+import linear_algebra.matrix.spectrum
+import linear_algebra.eigenspace.basic
+import linear_algebra.charpoly.to_matrix
+import linear_algebra.matrix.charpoly.minpoly
+import linear_algebra.matrix.to_linear_equiv
 
 /-!
 # Eigenvalues are characteristic polynomial roots.
@@ -35,6 +41,15 @@ polynomial of a linear endomorphism. These do not have correct multiplicity and 
 the theorems above. Hence we express these theorems in terms of the roots of the characteristic
 polynomial directly.
 
+To provide the linkage between the eigenvalues as defined by mathlib in `linear_algebra.eigenspace`
+and the roots of the characteristic polynomial we also provide the following lemmas:
+
+* `matrix.root_charpoly_iff_has_eigenvalue`: a root of the characterisitc polynomial is an eigenvalue
+  and vice versa.
+* `matrix.root_charpoly_iff_root_minpoly`: a root of the characteristic polynomial is a root of the
+  minimal polynomial and vice versa. Note that the minimaly polynomial is that of the endomorphism.
+  To get the linear map of the matrix use `minpoly.minpoly_alg_equiv`.
+
 ## TODO
 
 The proofs of `det_eq_prod_roots_charpoly_of_splits` and
@@ -49,6 +64,7 @@ variables {R : Type*} [field R]
 variables {A : matrix n n R}
 
 open matrix polynomial
+open linear_map module.End
 open_locale matrix big_operators
 
 namespace matrix
@@ -80,5 +96,42 @@ det_eq_prod_roots_charpoly_of_splits (is_alg_closed.splits A.charpoly)
 
 lemma trace_eq_sum_roots_charpoly [is_alg_closed R] : A.trace = (matrix.charpoly A).roots.sum :=
 trace_eq_sum_roots_charpoly_of_splits (is_alg_closed.splits A.charpoly)
+
+
+lemma root_charpoly_of_has_eigenvalue (A : matrix n n R) (μ : R)
+  (heig : has_eigenvalue (matrix.to_lin' A) μ) :
+  A.charpoly.is_root μ:=
+begin
+  have va := has_eigenvalue.exists_has_eigenvector heig,
+  have xa : (∃ (v : n → R) (H : v ≠ 0), (μ • 1 - A).mul_vec v = 0),
+  { cases va with v hv,
+    use v,
+    rw [has_eigenvector, mem_eigenspace_iff,to_lin'_apply, and_comm, eq_comm] at hv,
+    rwa [sub_mul_vec, smul_mul_vec_assoc, one_mul_vec, sub_eq_zero], },
+  rw [matrix.charpoly, is_root, eval_det, mat_poly_equiv_charmatrix,
+    eval_sub, eval_C, eval_X, coe_scalar,← (matrix.exists_mul_vec_eq_zero_iff.1 xa)],
+end
+
+lemma has_eigenvalue_of_root_charpoly (A : matrix n n R) (μ : R) (h : A.charpoly.is_root μ) :
+  has_eigenvalue (matrix.to_lin' A) μ :=
+begin
+  rw [matrix.charpoly, is_root, eval_det, mat_poly_equiv_charmatrix, eval_sub, eval_C, eval_X,
+    coe_scalar] at h,
+  dsimp only at h,
+  obtain ⟨v, hv_nz, hv⟩ := matrix.exists_mul_vec_eq_zero_iff.2 h,
+  rw [sub_mul_vec, smul_mul_vec_assoc, one_mul_vec, sub_eq_zero, eq_comm] at hv,
+  rw [has_eigenvalue, submodule.ne_bot_iff],
+  use v,
+  rw [mem_eigenspace_iff, to_lin'_apply],
+  exact ⟨hv, hv_nz⟩,
+end
+
+lemma root_charpoly_iff_has_eigenvalue (A : matrix n n R) (μ : R) :
+  A.charpoly.is_root μ ↔ has_eigenvalue (matrix.to_lin' A) μ :=
+⟨has_eigenvalue_of_root_charpoly _ _, root_charpoly_of_has_eigenvalue _ _⟩
+
+lemma root_charpoly_iff_root_minpoly (A : matrix n n R) (μ : R) :
+  (minpoly R (matrix.to_lin' A)).is_root μ ↔ A.charpoly.is_root μ :=
+by rw [root_charpoly_iff_has_eigenvalue, has_eigenvalue_iff_is_root]
 
 end matrix

@@ -155,11 +155,72 @@ end
 
 .
 
+-- Possibly an unnecessary proof? But couldn't find anything of this particular form in the library.
+example (f g : R[X]) (hfg : f.degree < g.degree) (hgf : g ∣ f) (hg : g.monic) : f = 0 :=
+begin
+  cases (exists_eq_mul_left_of_dvd hgf) with q hq,
+  -- rw ← degree_eq_bot,
+  -- have hgd : g.degree ≥ 0 := zero_le_degree_iff.mpr hg.ne_zero,
+
+  by_contra hf0,
+  have hgqn0 : g ≠ 0 ∧ q ≠ 0,
+  { by_contra H,
+    push_neg at H,
+    cases em (g = 0) with hA hB,
+    { rw hA at hq,
+      rw mul_zero at hq,
+      contradiction, },
+    { rw H hB at hq,
+      rw zero_mul at hq,
+      contradiction, } },
+  have hdeg : f.degree = q.degree + g.degree,
+  { rw hq,
+    exact degree_mul},
+  have hgf : f.degree ≥ g.degree,
+  { --have hA := zero_le_degree_iff.mpr (hgqn0.left),
+    have hB := zero_le_degree_iff.mpr (hgqn0.right),
+
+    sorry },
+  have : ¬(f.degree < g.degree ∧ f.degree ≥ g.degree),
+  { simp only [not_and, not_le, imp_self] },
+
+  -- cases g.degree with n hn,
+  -- { exfalso,
+  --   simp [with_bot.not_lt_none] at hfg,
+  --   exact hfg },
+  -- { have : f.degree ≥ some n,
+  --   {
+  --     sorry },
+  --   sorry }
+  sorry
+end
+
+example (a b : with_bot ℕ) (ha : a ≥ 0) (hb : b ≥ 0) : ¬(a < b ∧ a ≥ b) :=
+begin
+  simp only [not_and, not_le, imp_self],
+end
+
+example (f : R[X]) : f = 0 ↔ f.degree = ⊥ := degree_eq_bot.symm
+
+example (a b : ℕ) (hab : a + b < b) : a < 0 :=
+begin
+  linarith,
+end
+
+example (a b c : with_bot ℕ) (hc : c ≠ ⊥) (h : a = b + c) : a ≥ b :=
+begin
+  norm_num,
+  sorry
+end
+
+.
+
 lemma zero_eq_quo_add_sum_rem_div_zero {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
   (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
   (hsum : (0 : K) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) : q = 0 ∧ ∀ i ∈ s, r i = 0 :=
 begin
+  have hsum' := hsum,  -- creating a copy for use towards the end
   have hzero : (0 : K) = (0 : K) / (∏ i in s, ↑(g i)) := by rw [zero_div],
   rw [hzero, div_eq_iff _] at hsum,
   { simp only [add_mul, finset.sum_mul] at hsum,
@@ -174,16 +235,70 @@ begin
       specialize hgdvd j hjs,
       have hgdvdprod : (g j) ∣ q * (∏ i in s, ↑(g i)) :=
         dvd_mul_of_dvd_right (finset.dvd_prod_of_mem g hjs) q,
-      have hgdsum : (g j) ∣ ∑ (i : ι) in s, r i * ∏ (i : ι) in s.erase i, g i :=
+      have hgdsum : (g j) ∣ ∑ (i : ι) in s, r i * ∏ (k : ι) in s.erase i, g k :=
         (dvd_add_right (hgdvdprod)).mp hgdvd,
+      have hsplitsum := (finset.sum_erase_add s (λ i, r i * ∏ (k : ι) in s.erase i, g k) hjs).symm,
+      simp_rw hsplitsum at hgdsum,
+      have hdsplit := (dvd_add_right _).mp hgdsum,
+      { refine is_coprime.dvd_of_dvd_mul_right _ hdsplit,
+        apply is_coprime.prod_right,
+        intros i hi,
+        exact hcop hjs (finset.mem_of_mem_erase hi) (finset.ne_of_mem_erase hi).symm, },
+      { apply finset.dvd_sum,
+        intros x hx,
+        exact dvd_mul_of_dvd_right (
+          finset.dvd_prod_of_mem g (
+            finset.mem_erase_of_ne_of_mem (ne.symm (finset.ne_of_mem_erase hx)) hjs
+          )
+        ) (r x), } },
+    have hrzero : ∀ (i : ι), i ∈ s → r i = 0,  -- so it can be used to show that q = 0
+    { intros i his,
+      specialize hgr i his,
+      specialize hdeg i,
       sorry },
-    sorry,
-     },
+    split,
+    { have hsumfracszero : ∑ i in s, ↑(r i ) / ↑(g i) = (0 : K),
+      { refine finset.sum_eq_zero (λi hi, _),
+        rw [(hrzero i hi), algebra_map.coe_zero, zero_div] },
+      rw [hsumfracszero, add_zero] at hsum',
+      norm_cast at hsum',
+      exact hsum'.symm, },
+    { exact hrzero }, },
   { norm_cast,
-    exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero },
+    exact (monic_prod_of_monic s g (λ i hi, hg i hi)).ne_zero, },
 end
 
 example (a b c : ℤ) : a ∣ b → a ∣ (b + c) → a ∣ c := λ h1 h2, (dvd_add_right h1).mp h2
+
+example {ι : Type*} {s : finset ι} (f : ι → K) (hf : ∀ (i : ι), i ∈ s → f i = 0) :
+  ∑ i in s, f i = 0 :=
+begin
+  refine finset.sum_eq_zero hf,
+end
+
+example (s : finset ℤ) (a : ℤ → ℤ) (b : ℤ) (hb : ∀ i : ℤ, i ∈ s → b ∣ (a i)) : b ∣ ∑ i in s, a i :=
+begin
+  exact finset.dvd_sum hb,
+end
+
+example (a b c : ℤ) (habc : a ∣ b * c) (hac : is_coprime a c) : a ∣ b :=
+begin
+  exact is_coprime.dvd_of_dvd_mul_right hac habc,
+end
+
+example (p q : R[X]) (hdiv : p ∣ q) (hdeg : q.degree < p.degree) : q = 0 :=
+begin
+  cases (exists_eq_mul_right_of_dvd hdiv) with d hd,
+  have hdd : q.degree = p.degree + d.degree,
+  { rw [← degree_mul ,hd],},
+  rw ← degree_eq_bot,
+  rw hdd at hdeg ⊢,
+  by_contra hC,
+  have hgz : p.degree + d.degree ≥ 0,
+  {
+    sorry },
+  sorry
+end
 
 .
 
@@ -202,7 +317,7 @@ begin
   { rw [← hf, ← hf', sub_self] },
   have hsub' : (0 : K) = ↑(q - q') + ∑ (i : ι) in s, ↑((r i) - (r' i)) / ↑(g i),
   { 
-    sorry },
+    sorry, },
   have hzerocase := zero_eq_quo_add_sum_rem_div_zero R K s hg hcop (q - q') (λ i, r i - r' i)
     (λ i, (lt_of_le_of_lt (degree_sub_le (r i) (r' i)) (max_lt (hdeg i) (hdeg' i)))) hsub',
   { split,
@@ -211,57 +326,4 @@ begin
     { intros i hi,
       rw ← sub_eq_zero,
       exact hzerocase.2 i hi } },
-end
-
--- To be removed (does this even make sense?!!?!?!)
-lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
-  (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
-  (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
-  (hf : (↑f : K) / ∏ i in s, ↑(g i) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) :
-    q = (div_eq_quo_add_sum_rem_div R K f hg hcop).some ∧
-    ∀ i ∈ s, r i = (div_eq_quo_add_sum_rem_div R K f hg hcop).some_spec.some i :=
-begin
-  let q₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop).some,
-  let r₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop).some_spec.some,
-  obtain ⟨hdeg₀, hf₀⟩ : (∀ i ∈ s, (r₀ i).degree < ((λ (i : ι), g i) i).degree) ∧
-    ↑f / ∏ i in s, ↑((λ (i : ι), g i) i) = ↑q₀ + ∑ i in s, ↑(r₀ i) / ↑((λ (i : ι), g i) i) :=
-    (div_eq_quo_add_sum_rem_div R K f hg hcop).some_spec.some_spec,
-  change q = q₀ ∧ ∀ i ∈ s, r i = r₀ i,
-
-  induction s using finset.induction_on with a b hab Hind f generalizing f,
-  { split,
-    { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero,
-                is_fraction_ring.coe_inj] at hf₀,
-      rw hf₀ at hf,
-      simp only [finset.prod_empty, div_one, finset.sum_empty,
-                add_zero, is_fraction_ring.coe_inj] at hf,
-      exact hf.symm, },
-    { simp only [finset.not_mem_empty, is_empty.forall_iff, implies_true_iff], }, },
-  { obtain ⟨q', r₁, r₂, hdeg₁, hdeg₂, (hf' : (↑f : K) / _ = _)⟩ :=
-    div_eq_quo_add_rem_div_add_rem_div R K f
-    (_ : monic (g a))
-    (_ : monic ∏ (i : ι) in b, (g i))
-    _,
-    { specialize Hind (λ i hi, hg i (finset.mem_insert_of_mem hi)),
-      have myhcop : (b : set ι).pairwise (λ (i j : ι), is_coprime (g i) (g j)) :=
-      λ x hx y hy hxy, hcop (finset.mem_insert_of_mem hx) (finset.mem_insert_of_mem hy) hxy,
-
-      --field_simp at hf' hf₀ hf,
-
-      --specialize Hind (λ i hi, hg i (finset.mem_insert_of_mem hi)),
-      sorry },
-    { exact hg a (b.mem_insert_self a), },
-    { exact monic_prod_of_monic _ _ (λ i hi, hg i (finset.mem_insert_of_mem hi)), },
-    { refine is_coprime.prod_right (λ i hi, hcop (finset.mem_coe.2 (b.mem_insert_self a))
-      (finset.mem_coe.2 (finset.mem_insert_of_mem hi)) _),
-      rintro rfl,
-      exact hab hi, }, }
-  -- split,
-  -- { --rw hf at hf₀,
-  --   have htriv : g = λ (i : ι), g i := rfl,
-  --   rw ← htriv at hf₀,
-
-  --   sorry },
-  -- {
-  --   sorry },
 end

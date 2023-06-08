@@ -29,6 +29,8 @@ It involves making the substitution
 
 open real
 
+namespace imo2006_q3
+
 /-- Replacing `x` and `y` with their average increases the left side. -/
 lemma lhs_ineq {x y : ℝ} (hxy : 0 ≤ x * y) :
   16 * x ^ 2 * y ^ 2 * (x + y) ^ 2 ≤ ((x + y) ^ 2) ^ 3 :=
@@ -132,6 +134,10 @@ begin
   { apply pow_pos, norm_num },
   { exact mul_nonneg (mul_nonneg (sq_nonneg _) zero_le_two) (sqrt_nonneg _) }
 end
+
+end imo2006_q3
+
+open imo2006_q3
 
 theorem imo2006_q3 (M : ℝ) :
   (∀ a b c : ℝ,

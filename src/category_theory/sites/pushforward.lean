@@ -9,6 +9,9 @@ import category_theory.sites.left_exact
 /-!
 # Pushforward of sheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `category_theory.sites.pushforward`: the induced functor `Sheaf J A ⥤ Sheaf K A` for a

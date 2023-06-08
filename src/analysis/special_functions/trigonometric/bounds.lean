@@ -8,6 +8,9 @@ import analysis.special_functions.trigonometric.arctan_deriv
 /-!
 # Polynomial bounds for trigonometric functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main statements
 
 This file contains upper and lower bounds for real trigonometric functions in terms

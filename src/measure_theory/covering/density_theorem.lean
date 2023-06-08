@@ -10,6 +10,9 @@ import measure_theory.covering.differentiation
 /-!
 # Uniformly locally doubling measures and Lebesgue's density theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lebesgue's density theorem states that given a set `S` in a sigma compact metric space with
 locally-finite uniformly locally doubling measure `μ` then for almost all points `x` in `S`, for any
 sequence of closed balls `B₀, B₁, B₂, ...` containing `x`, the limit `μ (S ∩ Bⱼ) / μ (Bⱼ) → 1` as

@@ -10,6 +10,9 @@ import analysis.normed_space.affine_isometry
 /-!
 # Banach open mapping theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the Banach open mapping theorem, i.e., the fact that a bijective
 bounded linear map between Banach spaces has a bounded inverse.
 -/

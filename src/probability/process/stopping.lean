@@ -1248,7 +1248,7 @@ lemma condexp_min_stopping_time_ae_eq_restrict_le_const (hτ : is_stopping_time 
 begin
   haveI : sigma_finite (μ.trim hτ.measurable_space_le),
   { have h_le : (hτ.min_const i).measurable_space ≤ hτ.measurable_space,
-    { rw is_stopping_time.measurable_space_min,
+    { rw is_stopping_time.measurable_space_min_const,
       exact inf_le_left, },
     exact sigma_finite_trim_mono _ h_le, },
   refine (condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le

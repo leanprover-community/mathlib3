@@ -966,4 +966,49 @@ lemma integral_cond_cdf (ρ : measure (α × ℝ)) [is_finite_measure ρ] (x : �
   ∫ a, cond_cdf ρ a x ∂ρ.fst = (ρ (univ ×ˢ Iic x)).to_real :=
 by rw [← set_integral_cond_cdf ρ _ measurable_set.univ, measure.restrict_univ]
 
+section measure
+
+lemma measure_cond_cdf_Iic (ρ : measure (α × ℝ)) (a : α) (x : ℝ) :
+  (cond_cdf ρ a).measure (Iic x) = ennreal.of_real (cond_cdf ρ a x) :=
+begin
+  rw [← sub_zero (cond_cdf ρ a x)],
+  exact (cond_cdf ρ a).measure_Iic (tendsto_cond_cdf_at_bot ρ a) _,
+end
+
+lemma measure_cond_cdf_univ (ρ : measure (α × ℝ)) (a : α) :
+  (cond_cdf ρ a).measure univ = 1 :=
+begin
+  rw [← ennreal.of_real_one, ← sub_zero (1 : ℝ)],
+  exact stieltjes_function.measure_univ _ (tendsto_cond_cdf_at_bot ρ a)
+    (tendsto_cond_cdf_at_top ρ a),
+end
+
+instance (ρ : measure (α × ℝ)) (a : α) : is_probability_measure ((cond_cdf ρ a).measure) :=
+⟨measure_cond_cdf_univ ρ a⟩
+
+/-- The function `a ↦ (cond_cdf ρ a).measure` is measurable. -/
+lemma measurable_measure_cond_cdf (ρ : measure (α × ℝ)) :
+  measurable (λ a, (cond_cdf ρ a).measure) :=
+begin
+  rw measure.measurable_measure,
+  refine λ s hs, measurable_space.induction_on_inter
+    (borel_eq_generate_from_Iic ℝ) is_pi_system_Iic _ _ _ _ hs,
+  { simp only [measure_empty, measurable_const], },
+  { rintros S ⟨u, rfl⟩,
+    simp_rw measure_cond_cdf_Iic ρ _ u,
+    exact (measurable_cond_cdf ρ u).ennreal_of_real, },
+  { intros t ht ht_cd_meas,
+    have : (λ a, (cond_cdf ρ a).measure tᶜ)
+      = (λ a, (cond_cdf ρ a).measure univ) - (λ a, (cond_cdf ρ a).measure t),
+    { ext1 a,
+      rw [measure_compl ht (measure_ne_top (cond_cdf ρ a).measure _), pi.sub_apply], },
+    simp_rw [this, measure_cond_cdf_univ ρ],
+    exact measurable.sub measurable_const ht_cd_meas, },
+  { intros f hf_disj hf_meas hf_cd_meas,
+    simp_rw measure_Union hf_disj hf_meas,
+    exact measurable.ennreal_tsum hf_cd_meas, },
+end
+
+end measure
+
 end probability_theory

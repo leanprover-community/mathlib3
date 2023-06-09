@@ -9,6 +9,9 @@ import analysis.inner_product_space.pi_L2
 /-!
 # Euclidean distance on a finite dimensional space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When we define a smooth bump function on a normed space, it is useful to have a smooth distance on
 the space. Since the default distance is not guaranteed to be smooth, we define `to_euclidean` to be
 an equivalence between a finite dimensional topological vector space and the standard Euclidean

@@ -12,6 +12,9 @@ import field_theory.finite.basic
 
 /-!
 ## Polynomials over finite fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace mv_polynomial

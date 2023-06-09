@@ -11,6 +11,9 @@ import measure_theory.measure.open_pos
 /-!
 # The product measure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define and prove properties about the binary product measure. If `α` and `β` have
 σ-finite measures `μ` resp. `ν` then `α × β` can be equipped with a σ-finite measure `μ.prod ν` that
 satisfies `(μ.prod ν) s = ∫⁻ x, ν {y | (x, y) ∈ s} ∂μ`.
@@ -187,6 +190,35 @@ begin
   apply measurable_of_measurable_coe, intros s hs,
   simp_rw [map_apply measurable_prod_mk_right hs],
   exact measurable_measure_prod_mk_right hs
+end
+
+lemma measurable_embedding.prod_mk {α β γ δ : Type*} {mα : measurable_space α}
+  {mβ : measurable_space β} {mγ : measurable_space γ} {mδ : measurable_space δ}
+  {f : α → β} {g : γ → δ} (hg : measurable_embedding g) (hf : measurable_embedding f) :
+  measurable_embedding (λ x : γ × α, (g x.1, f x.2)) :=
+begin
+  have h_inj : function.injective (λ x : γ × α, (g x.fst, f x.snd)),
+  { intros x y hxy,
+    rw [← @prod.mk.eta _ _ x, ← @prod.mk.eta _ _ y],
+    simp only [prod.mk.inj_iff] at hxy ⊢,
+    exact ⟨hg.injective hxy.1, hf.injective hxy.2⟩, },
+  refine ⟨h_inj, _, _⟩,
+  { exact (hg.measurable.comp measurable_fst).prod_mk (hf.measurable.comp measurable_snd), },
+  { -- Induction using the π-system of rectangles
+    refine λ s hs, @measurable_space.induction_on_inter _
+      (λ s, measurable_set ((λ (x : γ × α), (g x.fst, f x.snd)) '' s)) _ _ generate_from_prod.symm
+      is_pi_system_prod _ _ _ _ _ hs,
+    { simp only [set.image_empty, measurable_set.empty], },
+    { rintros t ⟨t₁, t₂, ht₁, ht₂, rfl⟩,
+      rw ← set.prod_image_image_eq,
+      exact (hg.measurable_set_image.mpr ht₁).prod (hf.measurable_set_image.mpr ht₂), },
+    { intros t ht ht_m,
+      rw [← set.range_diff_image h_inj, ← set.prod_range_range_eq],
+      exact measurable_set.diff
+        (measurable_set.prod hg.measurable_set_range hf.measurable_set_range) ht_m, },
+    { intros g hg_disj hg_meas hg,
+      simp_rw set.image_Union,
+      exact measurable_set.Union hg, }, },
 end
 
 /-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
@@ -717,6 +749,21 @@ instance [is_finite_measure ρ] : is_finite_measure ρ.fst := by { rw fst, apply
 instance [is_probability_measure ρ] : is_probability_measure ρ.fst :=
 { measure_univ := by { rw fst_univ, exact measure_univ, } }
 
+lemma fst_map_prod_mk₀ {X : α → β} {Y : α → γ} {μ : measure α}
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ) :
+  (μ.map (λ a, (X a, Y a))).fst = μ.map X :=
+begin
+  ext1 s hs,
+  rw [measure.fst_apply hs, measure.map_apply_of_ae_measurable (hX.prod_mk hY) (measurable_fst hs),
+    measure.map_apply_of_ae_measurable hX hs, ← prod_univ, mk_preimage_prod, preimage_univ,
+    inter_univ],
+end
+
+lemma fst_map_prod_mk {X : α → β} {Y : α → γ} {μ : measure α}
+  (hX : measurable X) (hY : measurable Y) :
+  (μ.map (λ a, (X a, Y a))).fst = μ.map X :=
+fst_map_prod_mk₀ hX.ae_measurable hY.ae_measurable
+
 /-- Marginal measure on `β` obtained from a measure on `ρ` `α × β`, defined by `ρ.map prod.snd`. -/
 noncomputable
 def snd (ρ : measure (α × β)) : measure β := ρ.map prod.snd
@@ -731,6 +778,21 @@ instance [is_finite_measure ρ] : is_finite_measure ρ.snd := by { rw snd, apply
 
 instance [is_probability_measure ρ] : is_probability_measure ρ.snd :=
 { measure_univ := by { rw snd_univ, exact measure_univ, } }
+
+lemma snd_map_prod_mk₀ {X : α → β} {Y : α → γ} {μ : measure α}
+  (hX : ae_measurable X μ) (hY : ae_measurable Y μ) :
+  (μ.map (λ a, (X a, Y a))).snd = μ.map Y :=
+begin
+  ext1 s hs,
+  rw [measure.snd_apply hs, measure.map_apply_of_ae_measurable (hX.prod_mk hY) (measurable_snd hs),
+    measure.map_apply_of_ae_measurable hY hs, ← univ_prod, mk_preimage_prod, preimage_univ,
+    univ_inter],
+end
+
+lemma snd_map_prod_mk {X : α → β} {Y : α → γ} {μ : measure α}
+  (hX : measurable X) (hY : measurable Y) :
+  (μ.map (λ a, (X a, Y a))).snd = μ.map Y :=
+snd_map_prod_mk₀ hX.ae_measurable hY.ae_measurable
 
 end measure
 

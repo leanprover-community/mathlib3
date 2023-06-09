@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import probability.kernel.measurable_integral
+import measure_theory.integral.set_integral
 
 /-!
 # With Density
@@ -77,6 +78,16 @@ begin
   rw [kernel.with_density_apply _ hf,
     lintegral_with_density_eq_lintegral_mul _ (measurable.of_uncurry_left hf) hg],
   simp_rw pi.mul_apply,
+end
+
+lemma integral_with_density {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  [complete_space E] {f : β → E} [is_s_finite_kernel κ] {a : α}
+  {g : α → β → ℝ≥0} (hg : measurable (function.uncurry g)) :
+  ∫ b, f b ∂(with_density κ (λ a b, g a b) a) = ∫ b, (g a b) • f b ∂(κ a) :=
+begin
+  rw [kernel.with_density_apply, integral_with_density_eq_integral_smul],
+  { exact measurable.of_uncurry_left hg, },
+  { exact measurable_coe_nnreal_ennreal.comp hg, },
 end
 
 lemma with_density_add_left (κ η : kernel α β) [is_s_finite_kernel κ] [is_s_finite_kernel η]

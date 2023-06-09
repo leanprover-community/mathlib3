@@ -46,9 +46,17 @@ include V
   dist p₁ (homothety p₁ c p₂) = ‖c‖ * dist p₁ p₂ :=
 by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]
 
+@[simp] lemma nndist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
+  nndist p₁ (homothety p₁ c p₂) = ‖c‖₊ * nndist p₁ p₂ :=
+nnreal.eq $ dist_center_homothety _ _ _
+
 @[simp] lemma dist_homothety_center (p₁ p₂ : P) (c : 𝕜) :
   dist (homothety p₁ c p₂) p₁ = ‖c‖ * dist p₁ p₂ :=
 by rw [dist_comm, dist_center_homothety]
+
+@[simp] lemma nndist_homothety_center (p₁ p₂ : P) (c : 𝕜) :
+  nndist (homothety p₁ c p₂) p₁ = ‖c‖₊ * nndist p₁ p₂ :=
+nnreal.eq $ dist_homothety_center _ _ _
 
 @[simp] lemma dist_line_map_line_map (p₁ p₂ : P) (c₁ c₂ : 𝕜) :
   dist (line_map p₁ p₂ c₁) (line_map p₁ p₂ c₂) = dist c₁ c₂ * dist p₁ p₂ :=
@@ -57,6 +65,10 @@ begin
   simp only [line_map_apply, dist_eq_norm_vsub, vadd_vsub_vadd_cancel_right, ← sub_smul, norm_smul,
     vsub_eq_sub],
 end
+
+@[simp] lemma nndist_line_map_line_map (p₁ p₂ : P) (c₁ c₂ : 𝕜) :
+  nndist (line_map p₁ p₂ c₁) (line_map p₁ p₂ c₂) = nndist c₁ c₂ * nndist p₁ p₂ :=
+nnreal.eq $ dist_line_map_line_map _ _ _ _
 
 lemma lipschitz_with_line_map (p₁ p₂ : P) :
   lipschitz_with (nndist p₁ p₂) (line_map p₁ p₂ : 𝕜 → P) :=
@@ -67,25 +79,49 @@ lipschitz_with.of_dist_le_mul $ λ c₁ c₂,
   dist (line_map p₁ p₂ c) p₁ = ‖c‖ * dist p₁ p₂ :=
 by simpa only [line_map_apply_zero, dist_zero_right] using dist_line_map_line_map p₁ p₂ c 0
 
+@[simp] lemma nndist_line_map_left (p₁ p₂ : P) (c : 𝕜) :
+  nndist (line_map p₁ p₂ c) p₁ = ‖c‖₊ * nndist p₁ p₂ :=
+nnreal.eq $ dist_line_map_left _ _ _
+
 @[simp] lemma dist_left_line_map (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (line_map p₁ p₂ c) = ‖c‖ * dist p₁ p₂ :=
 (dist_comm _ _).trans (dist_line_map_left _ _ _)
+
+@[simp] lemma nndist_left_line_map (p₁ p₂ : P) (c : 𝕜) :
+  nndist p₁ (line_map p₁ p₂ c) = ‖c‖₊ * nndist p₁ p₂ :=
+nnreal.eq $ dist_left_line_map _ _ _
 
 @[simp] lemma dist_line_map_right (p₁ p₂ : P) (c : 𝕜) :
   dist (line_map p₁ p₂ c) p₂ = ‖1 - c‖ * dist p₁ p₂ :=
 by simpa only [line_map_apply_one, dist_eq_norm'] using dist_line_map_line_map p₁ p₂ c 1
 
+@[simp] lemma nndist_line_map_right (p₁ p₂ : P) (c : 𝕜) :
+  nndist (line_map p₁ p₂ c) p₂ = ‖1 - c‖₊ * nndist p₁ p₂ :=
+nnreal.eq $ dist_line_map_right _ _ _
+
 @[simp] lemma dist_right_line_map (p₁ p₂ : P) (c : 𝕜) :
   dist p₂ (line_map p₁ p₂ c) = ‖1 - c‖ * dist p₁ p₂ :=
 (dist_comm _ _).trans (dist_line_map_right _ _ _)
+
+@[simp] lemma nndist_right_line_map (p₁ p₂ : P) (c : 𝕜) :
+  nndist p₂ (line_map p₁ p₂ c) = ‖1 - c‖₊ * nndist p₁ p₂ :=
+nnreal.eq $ dist_right_line_map _ _ _
 
 @[simp] lemma dist_homothety_self (p₁ p₂ : P) (c : 𝕜) :
   dist (homothety p₁ c p₂) p₂ = ‖1 - c‖ * dist p₁ p₂ :=
 by rw [homothety_eq_line_map, dist_line_map_right]
 
+@[simp] lemma nndist_homothety_self (p₁ p₂ : P) (c : 𝕜) :
+  nndist (homothety p₁ c p₂) p₂ = ‖1 - c‖₊ * nndist p₁ p₂ :=
+nnreal.eq $ dist_homothety_self _ _ _
+
 @[simp] lemma dist_self_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₂ (homothety p₁ c p₂) = ‖1 - c‖ * dist p₁ p₂ :=
 by rw [dist_comm, dist_homothety_self]
+
+@[simp] lemma nndist_self_homothety (p₁ p₂ : P) (c : 𝕜) :
+  nndist p₂ (homothety p₁ c p₂) = ‖1 - c‖₊ * nndist p₁ p₂ :=
+nnreal.eq $ dist_self_homothety _ _ _
 
 section invertible_two
 
@@ -95,17 +131,33 @@ variables [invertible (2:𝕜)]
   dist p₁ (midpoint 𝕜 p₁ p₂) = ‖(2:𝕜)‖⁻¹ * dist p₁ p₂ :=
 by rw [midpoint, dist_comm, dist_line_map_left, inv_of_eq_inv, ← norm_inv]
 
+@[simp] lemma nndist_left_midpoint (p₁ p₂ : P) :
+  nndist p₁ (midpoint 𝕜 p₁ p₂) = ‖(2:𝕜)‖₊⁻¹ * nndist p₁ p₂ :=
+nnreal.eq $ dist_left_midpoint _ _
+
 @[simp] lemma dist_midpoint_left (p₁ p₂ : P) :
   dist (midpoint 𝕜 p₁ p₂) p₁ = ‖(2:𝕜)‖⁻¹ * dist p₁ p₂ :=
 by rw [dist_comm, dist_left_midpoint]
+
+@[simp] lemma nndist_midpoint_left (p₁ p₂ : P) :
+  nndist (midpoint 𝕜 p₁ p₂) p₁ = ‖(2:𝕜)‖₊⁻¹ * nndist p₁ p₂ :=
+nnreal.eq $ dist_midpoint_left _ _
 
 @[simp] lemma dist_midpoint_right (p₁ p₂ : P) :
   dist (midpoint 𝕜 p₁ p₂) p₂ = ‖(2:𝕜)‖⁻¹ * dist p₁ p₂ :=
 by rw [midpoint_comm, dist_midpoint_left, dist_comm]
 
+@[simp] lemma nndist_midpoint_right (p₁ p₂ : P) :
+  nndist (midpoint 𝕜 p₁ p₂) p₂ = ‖(2:𝕜)‖₊⁻¹ * nndist p₁ p₂ :=
+nnreal.eq $ dist_midpoint_right _ _
+
 @[simp] lemma dist_right_midpoint (p₁ p₂ : P) :
   dist p₂ (midpoint 𝕜 p₁ p₂) = ‖(2:𝕜)‖⁻¹ * dist p₁ p₂ :=
 by rw [dist_comm, dist_midpoint_right]
+
+@[simp] lemma nndist_right_midpoint (p₁ p₂ : P) :
+  nndist p₂ (midpoint 𝕜 p₁ p₂) = ‖(2:𝕜)‖₊⁻¹ * nndist p₁ p₂ :=
+nnreal.eq $ dist_right_midpoint _ _
 
 lemma dist_midpoint_midpoint_le' (p₁ p₂ p₃ p₄ : P) :
   dist (midpoint 𝕜 p₁ p₂) (midpoint 𝕜 p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / ‖(2 : 𝕜)‖ :=
@@ -115,6 +167,10 @@ begin
   rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, norm_inv, ← div_eq_inv_mul],
   exact div_le_div_of_le_of_nonneg (norm_add_le _ _) (norm_nonneg _),
 end
+
+lemma nndist_midpoint_midpoint_le' (p₁ p₂ p₃ p₄ : P) :
+  nndist (midpoint 𝕜 p₁ p₂) (midpoint 𝕜 p₃ p₄) ≤ (nndist p₁ p₃ + nndist p₂ p₄) / ‖(2 : 𝕜)‖₊ :=
+dist_midpoint_midpoint_le' _ _ _ _
 
 end invertible_two
 
@@ -159,6 +215,10 @@ variables [normed_space ℝ V] [normed_space ℝ W]
 lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
   dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=
 by simpa using dist_midpoint_midpoint_le' p₁ p₂ p₃ p₄
+
+lemma nndist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
+  nndist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (nndist p₁ p₃ + nndist p₂ p₄) / 2 :=
+dist_midpoint_midpoint_le _ _ _ _
 
 include V W
 

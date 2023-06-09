@@ -34,6 +34,8 @@ open_locale manifold topology bundle
 
 noncomputable theory
 
+section general
+
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
@@ -83,7 +85,6 @@ within the set `range I ⊆ E` at `I (i x) : E`. -/
   coord_change_self := λ i x hx v, begin
     rw [filter.eventually_eq.fderiv_within_eq, fderiv_within_id', continuous_linear_map.id_apply],
     { exact I.unique_diff_at_image },
-    { exact I.unique_diff_at_image },
     { filter_upwards [i.1.extend_target_mem_nhds_within I hx] with y hy,
       exact (i.1.extend I).right_inv hy },
     { simp_rw [function.comp_apply, i.1.extend_left_inv I hx] }
@@ -97,7 +98,6 @@ within the set `range I ⊆ E` at `I (i x) : E`. -/
   coord_change_comp := begin
     rintro i j k x ⟨⟨hxi, hxj⟩, hxk⟩ v,
     rw [fderiv_within_fderiv_within, filter.eventually_eq.fderiv_within_eq],
-    { exact I.unique_diff_at_image },
     { have := i.1.extend_preimage_mem_nhds I hxi (j.1.extend_source_mem_nhds I hxj),
       filter_upwards [nhds_within_le_nhds this] with y hy,
       simp_rw [function.comp_apply, (j.1.extend I).left_inv hy] },
@@ -150,6 +150,7 @@ variables {M} (x : M)
 
 instance : module 𝕜 (tangent_space I x) := by delta_instance tangent_space
 instance : inhabited (tangent_space I x) := ⟨0⟩
+instance {x : M} : has_continuous_add (tangent_space I x) := by delta_instance tangent_space
 
 end
 
@@ -389,3 +390,15 @@ lemma in_tangent_coordinates_eq (f : N → M) (g : N → M') (ϕ : N → E →L[
 (tangent_bundle_core I M).in_coordinates_eq (tangent_bundle_core I' M') (ϕ x) hx hy
 
 end in_tangent_coordinates
+
+end general
+
+section real
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+{H : Type*} [topological_space H] {I : model_with_corners ℝ E H}
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+
+instance {x : M} : path_connected_space (tangent_space I x) := by delta_instance tangent_space
+
+end real

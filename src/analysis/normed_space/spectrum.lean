@@ -3,7 +3,7 @@ Copyright (c) 2021 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import algebra.algebra.spectrum
+import field_theory.is_alg_closed.spectrum
 import analysis.complex.liouville
 import analysis.complex.polynomial
 import analysis.analytic.radius_liminf

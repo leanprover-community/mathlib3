@@ -705,6 +705,7 @@ end fiber_bundle_core
 /-! ### Prebundle construction for constructing fiber bundles -/
 
 variables (F) (E : B → Type*) [topological_space B] [topological_space F]
+  [Π x, topological_space (E x)]
 
 /-- This structure permits to define a fiber bundle when trivializations are given as local
 equivalences but there is not yet a topology on the total space. The total space is hence given a
@@ -718,6 +719,7 @@ structure fiber_prebundle :=
 (pretrivialization_mem_atlas : ∀ x : B, pretrivialization_at x ∈ pretrivialization_atlas)
 (continuous_triv_change : ∀ e e' ∈ pretrivialization_atlas,
   continuous_on (e ∘ e'.to_local_equiv.symm) (e'.target ∩ (e'.to_local_equiv.symm ⁻¹' e.source)))
+(total_space_mk_inducing : ∀ (b : B), inducing ((pretrivialization_at b) ∘ (total_space_mk b)))
 
 namespace fiber_prebundle
 
@@ -799,19 +801,27 @@ begin
   exact a.mem_base_pretrivialization_at b,
 end
 
-/-- Topology on the fibers `E b` induced by the map `E b → E.total_space`. -/
-def fiber_topology (b : B) : topological_space (E b) :=
-topological_space.induced (total_space_mk b) a.total_space_topology
-
-@[continuity] lemma inducing_total_space_mk (b : B) :
-  @inducing _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=
-by { letI := a.total_space_topology, letI := a.fiber_topology b, exact ⟨rfl⟩ }
-
 @[continuity] lemma continuous_total_space_mk (b : B) :
-  @continuous _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=
+  @continuous _ _ _ a.total_space_topology (total_space_mk b) :=
 begin
-  letI := a.total_space_topology, letI := a.fiber_topology b,
-  exact (a.inducing_total_space_mk b).continuous
+  letI := a.total_space_topology,
+  let e := a.trivialization_of_mem_pretrivialization_atlas (a.pretrivialization_mem_atlas b),
+  rw e.to_local_homeomorph.continuous_iff_continuous_comp_left
+    (a.total_space_mk_preimage_source b),
+  exact continuous_iff_le_induced.mpr (le_antisymm_iff.mp (a.total_space_mk_inducing b).induced).1,
+end
+
+lemma inducing_total_space_mk_of_inducing_comp (b : B)
+  (h : inducing ((a.pretrivialization_at b) ∘ (total_space_mk b))) :
+  @inducing _ _ _ a.total_space_topology (total_space_mk b) :=
+begin
+  letI := a.total_space_topology,
+  rw ←restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
+  apply inducing.of_cod_restrict (a.mem_trivialization_at_source b),
+  refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
+    (a.trivialization_of_mem_pretrivialization_atlas
+    (a.pretrivialization_mem_atlas b)).continuous_to_fun) h,
+  exact (a.continuous_total_space_mk b).cod_restrict (a.mem_trivialization_at_source b),
 end
 
 /-- Make a `fiber_bundle` from a `fiber_prebundle`.  Concretely this means
@@ -821,8 +831,9 @@ establishes that for the topology constructed on the sigma-type using
 `fiber_prebundle.total_space_topology`, these "pretrivializations" are actually
 "trivializations" (i.e., homeomorphisms with respect to the constructed topology). -/
 def to_fiber_bundle :
-  @fiber_bundle B F _ _ E a.total_space_topology a.fiber_topology :=
-{ total_space_mk_inducing := a.inducing_total_space_mk,
+  @fiber_bundle B F _ _ E a.total_space_topology _ :=
+{ total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
+    (a.total_space_mk_inducing b),
   trivialization_atlas := {e | ∃ e₀ (he₀ : e₀ ∈ a.pretrivialization_atlas),
     e = a.trivialization_of_mem_pretrivialization_atlas he₀},
   trivialization_at := λ x, a.trivialization_of_mem_pretrivialization_atlas
@@ -833,7 +844,6 @@ def to_fiber_bundle :
 lemma continuous_proj : @continuous _ _ a.total_space_topology _ (π E) :=
 begin
   letI := a.total_space_topology,
-  letI := a.fiber_topology,
   letI := a.to_fiber_bundle,
   exact continuous_proj F E,
 end

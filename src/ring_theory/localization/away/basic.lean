@@ -9,6 +9,9 @@ import ring_theory.localization.basic
 /-!
 # Localizations away from an element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
  * `is_localization.away (x : R) S` expresses that `S` is a localization away from `x`, as an

@@ -11,6 +11,9 @@ import ring_theory.power_basis
 /-!
 # The minimal polynomial divides the characteristic polynomial of a matrix.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This also includes some miscellaneous results about `minpoly` on matrices.
 -/
 

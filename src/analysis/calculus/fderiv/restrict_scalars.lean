@@ -8,6 +8,9 @@ import analysis.calculus.fderiv.basic
 /-!
 # The derivative of the scalar restriction of a linear map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For detailed documentation of the Fréchet derivative,
 see the module docstring of `analysis/calculus/fderiv/basic.lean`.
 

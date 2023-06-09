@@ -10,6 +10,9 @@ import measure_theory.measure.mutually_singular
 /-!
 # Lower Lebesgue integral for `ℝ≥0∞`-valued functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the lower Lebesgue integral of an `ℝ≥0∞`-valued function.
 
 ## Notation

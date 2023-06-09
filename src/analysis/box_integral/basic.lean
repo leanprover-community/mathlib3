@@ -10,6 +10,9 @@ import topology.uniform_space.compact
 /-!
 # Integrals of Riemann, Henstock-Kurzweil, and McShane
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the integral of a function over a box in `ℝⁿ. The same definition works for
 Riemann, Henstock-Kurzweil, and McShane integrals.
 

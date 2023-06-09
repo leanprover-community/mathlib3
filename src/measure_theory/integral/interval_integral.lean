@@ -10,6 +10,9 @@ import measure_theory.measure.lebesgue.basic
 /-!
 # Integral over an interval
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `∫ x in a..b, f x ∂μ` to be `∫ x in Ioc a b, f x ∂μ` if `a ≤ b` and
 `-∫ x in Ioc b a, f x ∂μ` if `b ≤ a`.
 

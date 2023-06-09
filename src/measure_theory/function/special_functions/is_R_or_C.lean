@@ -10,6 +10,9 @@ import data.is_R_or_C.lemmas
 /-!
 # Measurability of the basic `is_R_or_C` functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 noncomputable theory

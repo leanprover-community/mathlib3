@@ -8,6 +8,9 @@ import order.filter.ennreal
 
 /-!
 # Essential supremum and infimum
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 We define the essential supremum and infimum of a function `f : α → β` with respect to a measure
 `μ` on `α`. The essential supremum is the infimum of the constants `c : β` such that `f x ≤ c`
 almost everywhere.

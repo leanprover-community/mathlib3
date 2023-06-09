@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Apurva Nakade
 -/
 import analysis.convex.cone.dual
-import analysis.inner_product_space.adjoint
 
 /-!
 # Proper cones

@@ -8,6 +8,9 @@ import analysis.special_functions.trigonometric.complex
 /-!
 # The `arctan` function.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Inequalities, derivatives,
 and `real.tan` as a `local_homeomorph` between `(-(π / 2), π / 2)` and the whole line.
 -/

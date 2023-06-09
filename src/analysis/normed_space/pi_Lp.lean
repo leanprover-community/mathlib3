@@ -9,6 +9,10 @@ import linear_algebra.matrix.basis
 
 /-!
 # `L^p` distance on finite products of metric spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given finitely many metric spaces, one can put the max distance on their product, but there is also
 a whole family of natural distances, indexed by a parameter `p : ℝ≥0∞`, that also induce
 the product topology. We define them in this file. For `0 < p < ∞`, the distance on `Π i, α i`
@@ -792,6 +796,10 @@ by simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi
 @[simp] lemma basis_fun_repr (x : pi_Lp p (λ i : ι, 𝕜)) (i : ι) :
   (basis_fun p 𝕜 ι).repr x i = x i :=
 rfl
+
+@[simp] lemma basis_fun_equiv_fun :
+  (basis_fun p 𝕜 ι).equiv_fun = pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜) :=
+basis.equiv_fun_of_equiv_fun _
 
 lemma basis_fun_eq_pi_basis_fun :
   basis_fun p 𝕜 ι = (pi.basis_fun 𝕜 ι).map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜)).symm :=

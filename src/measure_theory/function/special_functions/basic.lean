@@ -10,6 +10,9 @@ import measure_theory.constructions.borel_space.complex
 /-!
 # Measurability of real and complex functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that most standard real and complex functions are measurable, notably `exp`, `cos`, `sin`,
 `cosh`, `sinh`, `log`, `pow`, `arcsin`, `arccos`.
 

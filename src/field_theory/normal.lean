@@ -135,9 +135,11 @@ local attribute [-instance] adjoin_root.has_smul
 lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] : normal F E :=
 begin
   unfreezingI { rcases eq_or_ne p 0 with rfl | hp },
-  { haveI : is_splitting_field F F 0 := ⟨splits_zero _, subsingleton.elim _ _⟩,
-    exact (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F 0).trans
-      (is_splitting_field.alg_equiv E 0).symm)).mp (normal_self F) },
+  { have := hFEp.adjoin_roots,
+    simp only [polynomial.map_zero, roots_zero, multiset.to_finset_zero, finset.coe_empty,
+      algebra.adjoin_empty] at this,
+    exact normal.of_alg_equiv (alg_equiv.of_bijective (algebra.of_id F E)
+      (algebra.bijective_algebra_map_iff.2 this.symm)) },
   refine normal_iff.2 (λ x, _),
   have hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
   have Hx : is_integral F x := is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x,
@@ -195,8 +197,6 @@ begin
     hFEp.adjoin_roots adjoin_root.adjoin_root_eq_top),
   rw [set.image_singleton, ring_hom.algebra_map_to_algebra, adjoin_root.lift_root]
 end
-
-instance (p : F[X]) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal_tower
 

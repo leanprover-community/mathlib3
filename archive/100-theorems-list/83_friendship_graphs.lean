@@ -39,6 +39,8 @@ be phrased in terms of counting walks.
 -/
 
 open_locale classical big_operators
+namespace theorems_100
+
 noncomputable theory
 
 open finset simple_graph matrix
@@ -144,7 +146,7 @@ begin
   use G.degree v,
   intro x,
   by_cases hvx : G.adj v x, swap, { exact (degree_eq_of_not_adj hG hvx).symm, },
-  dunfold exists_politician at hG',
+  dunfold theorems_100.exists_politician at hG',
   push_neg at hG',
   rcases hG' v with ⟨w, hvw', hvw⟩,
   rcases hG' x with ⟨y, hxy', hxy⟩,
@@ -336,3 +338,5 @@ begin
   { exact npG (hG.exists_politician_of_degree_le_two dreg (nat.lt_succ_iff.mp dle2)) },
   { exact hG.false_of_three_le_degree dreg dge3 },
 end
+
+end theorems_100

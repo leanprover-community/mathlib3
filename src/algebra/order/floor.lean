@@ -539,7 +539,7 @@ by rw [le_antisymm_iff, le_floor, ←int.lt_add_one_iff, floor_lt, int.cast_add,
   and.comm]
 
 @[simp]
-lemma int.floor_eq_self (h : ∃ z : ℤ, (z : α) = a) : (⌊a⌋ : α) = a :=
+lemma floor_eq_self (h : ∃ z : ℤ, (z : α) = a) : (⌊a⌋ : α) = a :=
 by { obtain ⟨z, rfl⟩ := h; exact galois_connection.l_u_l_eq_l int.gc_coe_floor z, }
 
 @[simp] lemma floor_eq_zero_iff : ⌊a⌋ = 0 ↔ a ∈ Ico (0 : α) 1 := by simp [floor_eq_iff]
@@ -844,7 +844,7 @@ by rw [←ceil_le, ←int.cast_one, ←int.cast_sub, ←lt_ceil, int.sub_one_lt_
   and.comm]
 
 @[simp]
-lemma int.ceil_eq_self (h : ∃ z : ℤ, (z : α) = a) : (⌈a⌉ : α) = a :=
+lemma ceil_eq_self (h : ∃ z : ℤ, (z : α) = a) : (⌈a⌉ : α) = a :=
 by { obtain ⟨z, rfl⟩ := h; exact galois_connection.u_l_u_eq_u int.gc_ceil_coe z, }
 
 @[simp] lemma ceil_eq_zero_iff : ⌈a⌉ = 0 ↔ a ∈ Ioc (-1 : α) 0 := by simp [ceil_eq_iff]

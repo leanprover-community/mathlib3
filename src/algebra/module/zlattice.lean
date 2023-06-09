@@ -81,7 +81,10 @@ lemma floor_eq_self_of_mem (m : E) (h : m ∈ span ℤ (set.range b)) : (floor b
 begin
   apply b.ext_elem,
   simp_rw [repr_floor_apply b],
-  exact λ i, int.floor_eq_self ((b.mem_span_iff_repr_mem ℤ _).mp h i),
+  intro i,
+  obtain ⟨z, hz⟩ := (b.mem_span_iff_repr_mem ℤ _).mp h i,
+  rw [← hz],
+  exact congr_arg (coe : ℤ → K) (int.floor_int_cast z),
 end
 
 @[simp]
@@ -89,7 +92,10 @@ lemma ceil_eq_self_of_mem (m : E) (h : m ∈ span ℤ (set.range b)) : (ceil b m
 begin
   apply b.ext_elem,
   simp_rw [repr_ceil_apply b],
-  exact λ i, int.ceil_eq_self ((b.mem_span_iff_repr_mem ℤ _).mp h i),
+  intro i,
+  obtain ⟨z, hz⟩ := (b.mem_span_iff_repr_mem ℤ _).mp h i,
+  rw [← hz],
+  exact congr_arg (coe : ℤ → K) (int.ceil_int_cast z),
 end
 
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,

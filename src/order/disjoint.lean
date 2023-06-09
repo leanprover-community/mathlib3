@@ -412,6 +412,87 @@ lemma eq_bot_of_top_is_compl (h : is_compl ⊤ x) : x = ⊥ := eq_top_of_bot_is_
 
 end
 
+section is_complemented
+section lattice
+variables [lattice α] [bounded_order α]
+
+/-- An element is *complemented* if it has a complement. -/
+def is_complemented (a : α) : Prop := ∃ b, is_compl a b
+
+lemma is_complemented_bot : is_complemented (⊥ : α) := ⟨⊤, is_compl_bot_top⟩
+lemma is_complemented_top : is_complemented (⊤ : α) := ⟨⊥, is_compl_top_bot⟩
+
+end lattice
+
+variables [distrib_lattice α] [bounded_order α] {a b : α}
+
+lemma is_complemented.sup : is_complemented a → is_complemented b → is_complemented (a ⊔ b) :=
+λ ⟨a', ha⟩ ⟨b', hb⟩, ⟨a' ⊓ b', ha.sup_inf hb⟩
+
+lemma is_complemented.inf : is_complemented a → is_complemented b → is_complemented (a ⊓ b) :=
+λ ⟨a', ha⟩ ⟨b', hb⟩, ⟨a' ⊔ b', ha.inf_sup hb⟩
+
+end is_complemented
+
+
+-- TODO: Define as a sublattice?
+/-- The sublattice of complemented elements. -/
+@[reducible, derive partial_order]
+def complementeds (α : Type*) [lattice α] [bounded_order α] : Type* := {a : α // is_complemented a}
+
+namespace complementeds
+section lattice
+variables [lattice α] [bounded_order α] {a b : complementeds α}
+
+instance has_coe_t : has_coe_t (complementeds α) α := ⟨subtype.val⟩
+
+lemma coe_injective : injective (coe : complementeds α → α) := subtype.coe_injective
+
+@[simp, norm_cast] lemma coe_inj : (a : α) = b ↔ a = b := subtype.coe_inj
+@[simp, norm_cast] lemma coe_le_coe : (a : α) ≤ b ↔ a ≤ b := by simp
+@[simp, norm_cast] lemma coe_lt_coe : (a : α) < b ↔ a < b := iff.rfl
+
+instance : bounded_order (complementeds α) :=
+subtype.bounded_order is_complemented_bot is_complemented_top
+
+@[simp, norm_cast] lemma coe_bot : ((⊥ : complementeds α) : α) = ⊥ := rfl
+@[simp, norm_cast] lemma coe_top : ((⊤ : complementeds α) : α) = ⊤ := rfl
+@[simp] lemma mk_bot : (⟨⊥, is_complemented_bot⟩ : complementeds α) = ⊥ := rfl
+@[simp] lemma mk_top : (⟨⊤, is_complemented_top⟩ : complementeds α) = ⊤ := rfl
+
+instance : inhabited (complementeds α) := ⟨⊥⟩
+
+end lattice
+
+variables [distrib_lattice α] [bounded_order α] {a b : complementeds α}
+
+instance : has_sup (complementeds α) := ⟨λ a b, ⟨a ⊔ b, a.2.sup b.2⟩⟩
+instance : has_inf (complementeds α) := ⟨λ a b, ⟨a ⊓ b, a.2.inf b.2⟩⟩
+
+@[simp, norm_cast] lemma coe_sup (a b : complementeds α) : (↑(a ⊔ b) : α) = a ⊔ b := rfl
+@[simp, norm_cast] lemma coe_inf (a b : complementeds α) : (↑(a ⊓ b) : α) = a ⊓ b := rfl
+@[simp] lemma mk_sup_mk {a b : α} (ha : is_complemented a) (hb : is_complemented b) :
+  (⟨a, ha⟩ ⊔ ⟨b, hb⟩ : complementeds α) = ⟨a ⊔ b, ha.sup hb⟩ := rfl
+@[simp] lemma mk_inf_mk {a b : α} (ha : is_complemented a) (hb : is_complemented b) :
+  (⟨a, ha⟩ ⊓ ⟨b, hb⟩ : complementeds α) = ⟨a ⊓ b, ha.inf hb⟩ := rfl
+
+instance : distrib_lattice (complementeds α) :=
+complementeds.coe_injective.distrib_lattice _ coe_sup coe_inf
+
+@[simp, norm_cast] lemma disjoint_coe : disjoint (a : α) b ↔ disjoint a b :=
+by rw [disjoint, disjoint, ←coe_inf, ←coe_bot, coe_le_coe]
+
+@[simp, norm_cast] lemma codisjoint_coe : codisjoint (a : α) b ↔ codisjoint a b :=
+by rw [codisjoint, codisjoint, ←coe_sup, ←coe_top, coe_le_coe]
+
+@[simp, norm_cast] lemma is_compl_coe : is_compl (a : α) b ↔ is_compl a b :=
+by simp_rw [is_compl_iff, disjoint_coe, codisjoint_coe]
+
+instance : complemented_lattice (complementeds α) :=
+⟨λ ⟨a, b, h⟩, ⟨⟨b, a, h.symm⟩, is_compl_coe.1 h⟩⟩
+
+end complementeds
+
 /-- A complemented bounded lattice is one where every element has a (not necessarily unique)
 complement. -/
 class complemented_lattice (α) [lattice α] [bounded_order α] : Prop :=

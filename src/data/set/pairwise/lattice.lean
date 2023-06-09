@@ -78,7 +78,9 @@ begin
   { exact (hs hc hd $ ne_of_apply_ne _ hcd).mono (le_supr₂ a ha) (le_supr₂ b hb) }
 end
 
-lemma pairwise_disjoint.prod' {f : ι × ι' → α}
+/-- If the suprema of columns are pairwise disjoint and suprema of rows as well, then everything is
+pairwise disjoint. Not to be confused with `set.pairwise_disjoint.prod`. -/
+lemma pairwise_disjoint.prod_left {f : ι × ι' → α}
   (hs : s.pairwise_disjoint $ λ i, ⨆ i' ∈ t, f (i, i'))
   (ht : t.pairwise_disjoint $ λ i', ⨆ i ∈ s, f (i, i')) :
   (s ×ˢ t : set (ι × ι')).pairwise_disjoint f :=
@@ -99,12 +101,11 @@ end complete_lattice
 section frame
 variables [frame α]
 
-lemma pairwise_disjoint_prod_iff {s : set ι} {t : set ι'}
-  {f : ι × ι' → α} :
+lemma pairwise_disjoint_prod_left {s : set ι} {t : set ι'} {f : ι × ι' → α} :
   (s ×ˢ t : set (ι × ι')).pairwise_disjoint f ↔ s.pairwise_disjoint (λ i, ⨆ i' ∈ t, f (i, i')) ∧
     t.pairwise_disjoint (λ i', ⨆ i ∈ s, f (i, i')) :=
 begin
-  refine (⟨λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩, λ h, h.1.prod' h.2⟩);
+  refine (⟨λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩, λ h, h.1.prod_left h.2⟩);
     simp_rw [function.on_fun, supr_disjoint_iff, disjoint_supr_iff]; intros i' hi' j' hj',
   { exact h (mk_mem_prod hi hi') (mk_mem_prod hj hj') (ne_of_apply_ne prod.fst hij) },
   { exact h (mk_mem_prod hi' hi) (mk_mem_prod hj' hj) (ne_of_apply_ne prod.snd hij) }

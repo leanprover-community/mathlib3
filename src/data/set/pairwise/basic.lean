@@ -277,7 +277,6 @@ lemma pairwise_disjoint.elim (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈
   i = j :=
 hs.eq hi hj h
 
-
 end partial_order_bot
 
 section semilattice_inf_bot

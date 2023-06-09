@@ -1,5 +1,5 @@
 import representation_theory.group_cohomology.low_degree
-#exit
+
 universes v u
 noncomputable theory
 namespace group_cohomology
@@ -67,9 +67,9 @@ def Res_rep : Rep k S := Rep.of (A.ρ.comp S.subtype)
 { hom := f.hom,
   comm' := λ g, by ext x; exact Rep.hom_comm_apply f ↑g _  }
 
-def Res_functor' : Rep k G ⥤ Rep k S :=
+def Res_functor : Rep k G ⥤ Rep k S :=
 { obj := λ A, Res_rep A S,
-  map := λ A B f, Res_rep_map f }
+  map := λ A B f, Res_rep_map S f }
 
 lemma Res_rep_apply (g : S) (x : A) : (Res_rep A S).ρ g x = A.ρ g x :=
 rfl
@@ -79,7 +79,7 @@ lemma Inf_rep_apply [S.normal] (g : G) (x : invariants (A.ρ.comp S.subtype)) :
   (((Inf_rep A S).ρ (g : G ⧸ S) x : invariants (A.ρ.comp S.subtype)) : A) = A.ρ g x :=
 rfl
 
-lemma Inf_rep_map [S.normal] {A B : Rep k G} (f : A ⟶ B) :
+def Inf_rep_map [S.normal] {A B : Rep k G} (f : A ⟶ B) :
   Inf_rep A S ⟶ Inf_rep B S :=
 { hom := invariants_functor.map (Res_rep_map S f),
   comm' := λ g,
@@ -92,7 +92,7 @@ lemma Inf_rep_map [S.normal] {A B : Rep k G} (f : A ⟶ B) :
       Res_rep_map_hom, ←Rep.hom_comm_apply, submodule.subtype_apply],
   end }
 
-def Inf_functor' [S.normal] : Rep k G ⥤ Rep k (G ⧸ S) :=
+def Inf_functor [S.normal] : Rep k G ⥤ Rep k (G ⧸ S) :=
 { obj := λ A, Inf_rep A S,
   map := λ A B f, Inf_rep_map S f }
 
@@ -258,10 +258,6 @@ def Inf (S : subgroup G) [h1 : S.normal] (n : ℕ) :
   group_cohomology (Inf_rep A S) n ⟶ group_cohomology A n :=
 pair_cohomology_map _ _ (quotient_group.mk' S) (invariants (A.ρ.comp S.subtype)).subtype
   (quotient_pair A S) n
-
-def Inf_functor (S : subgroup G) [h1 : S.normal] (n : ℕ) : Rep k G ⥤ Module k :=
-{ obj := λ A, group_cohomology (Inf_rep A S) n,
-  map := λ A B f, group_cohomology_map (Inf_rep_map S A B f) n }
 
 def Inf_one_cocycles (S : subgroup G) [h1 : S.normal] :
   one_cocycles (Inf_rep A S) →ₗ[k] one_cocycles A :=

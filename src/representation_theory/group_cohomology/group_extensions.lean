@@ -1,4 +1,3 @@
-#exit
 import representation_theory.group_cohomology.low_degree algebra.category.Group.images algebra.homology.short_exact.preadditive
 import group_theory.semidirect_product
 
@@ -26,7 +25,6 @@ namespace extension
 section
 variables {H G : Type*} [group H] [group G]
 
-#check monoid_hom.range
 noncomputable def π_sec (E : extension H G) (g : G) : E.E :=
 classical.some (monoid_hom.range_top_iff_surjective.1 E.π_range g)
 
@@ -48,6 +46,12 @@ lemma i_sec_spec (E : extension H G) (g : H) :
 (f : E1.E →* E2.E)
 (left : f.comp E1.i = E2.i)
 (right : E2.π.comp f = E1.π)
+
+@[simp] lemma hom.left_apply {E1 E2 : extension H G} (f : hom E1 E2) (x : H) :
+  f.f (E1.i x) = E2.i x := monoid_hom.ext_iff.1 f.left x
+
+@[simp] lemma hom.right_apply {E1 E2 : extension H G} (f : hom E1 E2) (x : E1.E) :
+  E2.π (f.f x) = E1.π x := monoid_hom.ext_iff.1 f.right x
 
 def comp {E1 E2 E3 : extension H G} (f : hom E1 E2) (g : hom E2 E3) : hom E1 E3 :=
 { f := g.f.comp f.f,
@@ -103,10 +107,11 @@ def trans {E1 E2 E3 : extension H G} (f : equiv E1 E2) (g : equiv E2 E3) : equiv
 { f := f.f.trans g.f,
   left :=
   begin
-    have hf := monoid_hom.ext_iff.1 f.left,
-    have hg := monoid_hom.ext_iff.1 g.left,
     ext,
-    dsimp at *,
+    simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, mul_equiv.coe_trans, function.comp_app,
+      f.left_apply, g.left_apply],
+    simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, mul_equiv.coe_trans,
+      function.comp_app] at hf hg ⊢,
     rw [hf, hg]
   end,
   right :=
@@ -114,9 +119,12 @@ def trans {E1 E2 E3 : extension H G} (f : equiv E1 E2) (g : equiv E2 E3) : equiv
     have hf := monoid_hom.ext_iff.1 f.right,
     have hg := monoid_hom.ext_iff.1 g.right,
     ext,
-    dsimp at *,
+    simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, mul_equiv.coe_trans,
+      function.comp_app] at hf hg ⊢,
     rw [hg, hf]
   end, }
+
+#exit
 /-def mk_iso {E1 E2 : extension H G} (f : E1.E ≅ E2.E) (left : E1.i ≫ f.hom = E2.i)
   (right : f.hom ≫ E2.π = E1.π) :
   E1 ≅ E2 :=

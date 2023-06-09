@@ -1242,7 +1242,7 @@ condexp_stopping_time_ae_eq_restrict_eq_of_countable_range hτ (set.to_countable
 variables [(filter.at_top : filter ι).is_countably_generated]
 
 lemma condexp_min_stopping_time_ae_eq_restrict_le_const (hτ : is_stopping_time ℱ τ)
-  [∀ i, sigma_finite (μ.trim (hτ.min_const i).measurable_space_le)] (i : ι) :
+  (i : ι) [sigma_finite (μ.trim (hτ.min_const i).measurable_space_le)] :
   μ[f | (hτ.min_const i).measurable_space]
     =ᵐ[μ.restrict {x | τ x ≤ i}] μ[f | hτ.measurable_space] :=
 begin

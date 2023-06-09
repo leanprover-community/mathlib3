@@ -205,11 +205,11 @@ end
 time, then the stopped value of a martingale `f` with respect to `min τ σ` is almost everywhere
 equal to `μ[stopped_value f τ | hσ.measurable_space]`. -/
 lemma stopped_value_min_ae_eq_condexp [sigma_finite_filtration μ ℱ]
-  (h : martingale f ℱ μ) (h_prog : prog_measurable ℱ f)
-  (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
-  [h_sf_min : sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) {n : ι}
+  (hτ_le : ∀ x, τ x ≤ n) [h_sf_min : sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
   stopped_value f (λ x, min (σ x) (τ x)) =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
 begin
+  have h_prog : prog_measurable ℱ f := h.adapted.prog_measurable_of_discrete,
   have h_min_comm : (hτ.min hσ).measurable_space = (hσ.min hτ).measurable_space,
     by rw [is_stopping_time.measurable_space_min, is_stopping_time.measurable_space_min, inf_comm],
   haveI : sigma_finite (μ.trim (hσ.min hτ).measurable_space_le),
@@ -247,17 +247,6 @@ begin
       rw h1,
       exact (condexp_stopped_value_stopping_time_ae_eq_restrict_le h h_prog hτ hσ hτ_le).symm, }, },
 end
-
-/-- **Optional Sampling theorem** for martingales indexed by `ℕ`. If `τ` is a bounded stopping time
-and `σ` is another stopping time, then the stopped value of a martingale `f` with respect to
-`min τ σ` is almost everywhere equal to `μ[stopped_value f τ | hσ.measurable_space]`. -/
-lemma stopped_value_min_ae_eq_condexp_nat {𝒢 : filtration ℕ m} [sigma_finite_filtration μ 𝒢]
-  {τ σ : Ω → ℕ} {f : ℕ → Ω → E}
-  (h : martingale f 𝒢 μ) (hτ : is_stopping_time 𝒢 τ) (hσ : is_stopping_time 𝒢 σ)
-  {n : ℕ} (hτ_le : ∀ x, τ x ≤ n)
-  [h_sf_min : sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
-  stopped_value f (λ x, min (σ x) (τ x)) =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
-h.stopped_value_min_ae_eq_condexp h.adapted.prog_measurable_of_discrete hτ hσ hτ_le
 
 end subset_of_nat
 

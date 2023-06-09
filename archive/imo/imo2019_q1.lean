@@ -3,9 +3,6 @@ Copyright (c) 2020 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
-import algebra.group.pi
-import algebra.group.commute
-import data.int.basic
 import tactic.linarith
 
 /-!
@@ -22,7 +19,7 @@ Note that there is a much more compact proof of this fact in Isabelle/HOL
   - http://downthetypehole.de/paste/4YbGgqb4
 -/
 
-theorem imo2019Q1 (f : ℤ → ℤ) :
+theorem imo2019_q1 (f : ℤ → ℤ) :
   (∀ a b : ℤ, f (2 * a) + 2 * (f b) = f (f (a + b))) ↔
     (f = 0) ∨ ∃ c, f = λ x, 2 * x + c :=
 begin

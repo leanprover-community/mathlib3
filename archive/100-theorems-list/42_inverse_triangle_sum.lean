@@ -3,6 +3,7 @@ Copyright (c) 2020. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jalex Stark, Yury Kudryashov
 -/
+import algebra.big_operators.basic
 import data.real.basic
 
 /-!
@@ -22,7 +23,7 @@ open_locale big_operators
 open finset
 
 /-- **Sum of the Reciprocals of the Triangular Numbers** -/
-lemma inverse_triangle_sum :
+lemma theorem_100.inverse_triangle_sum :
   ∀ n, ∑ k in range n, (2 : ℚ) / (k * (k + 1)) = if n = 0 then 0 else 2 - (2 : ℚ) / n :=
 begin
   refine sum_range_induction _ _ (if_pos rfl) _,

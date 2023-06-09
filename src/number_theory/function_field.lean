@@ -3,8 +3,8 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Ashvni Narayanan
 -/
+import algebra.order.group.type_tags
 import field_theory.ratfunc
-import ring_theory.algebraic
 import ring_theory.dedekind_domain.integral_closure
 import ring_theory.integrally_closed
 import topology.algebra.valued_field
@@ -18,7 +18,7 @@ This file defines a function field and the ring of integers corresponding to it.
  - `function_field Fq F` states that `F` is a function field over the (finite) field `Fq`,
    i.e. it is a finite extension of the field of rational functions in one variable over `Fq`.
  - `function_field.ring_of_integers` defines the ring of integers corresponding to a function field
-    as the integral closure of `polynomial Fq` in the function field.
+    as the integral closure of `Fq[X]` in the function field.
  - `function_field.infty_valuation` : The place at infinity on `Fq(t)` is the nonarchimedean
     valuation on `Fq(t)` with uniformizer `1/t`.
  -  `function_field.Fqt_infty` : The completion `Fq((t⁻¹))`  of `Fq(t)` with respect to the
@@ -221,11 +221,11 @@ end
   infty_valuation_def Fq (ratfunc.X) = (multiplicative.of_add (1 : ℤ)) :=
 by rw [infty_valuation_def, if_neg ratfunc.X_ne_zero, ratfunc.int_degree_X]
 
-@[simp] lemma infty_valuation.polynomial {p : polynomial Fq} (hp : p ≠ 0) :
-  infty_valuation_def Fq (algebra_map (polynomial Fq) (ratfunc Fq) p) =
+@[simp] lemma infty_valuation.polynomial {p : Fq[X]} (hp : p ≠ 0) :
+  infty_valuation_def Fq (algebra_map Fq[X] (ratfunc Fq) p) =
     (multiplicative.of_add (p.nat_degree : ℤ)) :=
 begin
-  have hp' : algebra_map (polynomial Fq) (ratfunc Fq) p ≠ 0,
+  have hp' : algebra_map Fq[X] (ratfunc Fq) p ≠ 0,
   { rw [ne.def, ratfunc.algebra_map_eq_zero_iff], exact hp },
   rw [infty_valuation_def, if_neg hp', ratfunc.int_degree_polynomial]
 end

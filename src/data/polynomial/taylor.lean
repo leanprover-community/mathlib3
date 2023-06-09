@@ -6,9 +6,13 @@ Authors: Johan Commelin
 
 import data.polynomial.algebra_map
 import data.polynomial.hasse_deriv
+import data.polynomial.degree.lemmas
 
 /-!
 # Taylor expansions of polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main declarations
 

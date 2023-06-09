@@ -3,13 +3,16 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-
+import data.stream.init
 import tactic.apply
 import control.fix
 import order.omega_complete_partial_order
 
 /-!
 # Lawful fixed point operators
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module defines the laws required of a `has_fix` instance, using the theory of
 omega complete partial orders (ωCPO). Proofs of the lawfulness of all `has_fix` instances in
@@ -74,7 +77,8 @@ begin
     suffices : y = b, subst this, exact h₁,
     cases hh with i hh,
     revert h₁, generalize : (succ (nat.find h₀)) = j, intro,
-    wlog : i ≤ j := le_total i j using [i j b y,j i y b],
+    wlog case : i ≤ j,
+    { cases le_total i j with H H; [skip, symmetry]; apply_assumption; assumption },
     replace hh := approx_mono f case _ _ hh,
     apply part.mem_unique h₁ hh },
   { simp only [fix_def' ⇑f h₀, not_exists, false_iff, not_mem_none],

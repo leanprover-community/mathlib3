@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Kevin Buzzard, Yaël Dillies, Eric Wieser
 -/
 import data.finset.pairwise
-import data.set.finite
+import data.finset.powerset
+import data.fintype.basic
 
 /-!
 # Supremum independence
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define supremum independence of indexed sets. An indexed family `f : ι → α` is
 sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint.
@@ -131,7 +135,7 @@ variables [distrib_lattice α] [order_bot α] {s : finset ι} {f : ι → α}
 
 lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
 ⟨sup_indep.pairwise_disjoint, λ hs t ht i hi hit,
-  disjoint_sup_right.2 $ λ j hj, hs hi (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
+  finset.disjoint_sup_right.2 $ λ j hj, hs hi (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
 
 alias sup_indep_iff_pairwise_disjoint ↔ sup_indep.pairwise_disjoint
   _root_.set.pairwise_disjoint.sup_indep
@@ -302,8 +306,7 @@ lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = 
   independent t ↔ disjoint (t i) (t j) :=
 begin
   split,
-  { intro h,
-    exact h.pairwise_disjoint _ _ hij, },
+  { exact λ h, h.pairwise_disjoint hij },
   { rintros h k,
     obtain rfl | rfl := huniv k,
     { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),
@@ -376,7 +379,7 @@ alias set_independent_iff_pairwise_disjoint ↔ _ _root_.set.pairwise_disjoint.s
 
 lemma independent_iff_pairwise_disjoint {f : ι → α} : independent f ↔ pairwise (disjoint on f) :=
 ⟨independent.pairwise_disjoint, λ hs i, disjoint_supr_iff.2 $ λ j, disjoint_supr_iff.2 $ λ hij,
-  hs _ _ hij.symm⟩
+  hs hij.symm⟩
 
 end complete_lattice
 

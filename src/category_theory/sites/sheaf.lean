@@ -7,10 +7,14 @@ Authors: Kevin Buzzard, Bhavik Mehta
 import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.yoneda
+import category_theory.preadditive.functor_category
 import category_theory.sites.sheaf_of_types
 
 /-!
 # Sheaves taking values in a category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 If C is a category with a Grothendieck topology, we define the notion of a sheaf taking values in
 an arbitrary category `A`. We follow the definition in https://stacks.math.columbia.edu/tag/00VR,
@@ -323,6 +327,60 @@ begin
   choose t h using F.2 Y _ H (by tidy) (by tidy),
   exact ⟨⟨t⟩, λ a, h.2 a (by tidy)⟩
 end
+
+section preadditive
+
+open preadditive
+
+variables [preadditive A] {P Q : Sheaf J A}
+
+instance Sheaf_hom_has_zsmul  : has_smul ℤ (P ⟶ Q) :=
+{ smul := λ n f, Sheaf.hom.mk
+  { app := λ U, n • f.1.app U,
+    naturality' := λ U V i, begin
+      induction n using int.induction_on with n ih n ih,
+      { simp only [zero_smul, comp_zero, zero_comp], },
+      { simpa only [add_zsmul, one_zsmul, comp_add, nat_trans.naturality, add_comp, add_left_inj] },
+      { simpa only [sub_smul, one_zsmul, comp_sub, nat_trans.naturality, sub_comp, sub_left_inj]
+          using ih, }
+    end } }
+
+instance : has_sub (P ⟶ Q) :=
+{ sub := λ f g, Sheaf.hom.mk $ f.1 - g.1 }
+
+instance : has_neg (P ⟶ Q) :=
+{ neg := λ f, Sheaf.hom.mk $ -f.1 }
+
+instance Sheaf_hom_has_nsmul : has_smul ℕ (P ⟶ Q) :=
+{ smul := λ n f, Sheaf.hom.mk
+  { app := λ U, n • f.1.app U,
+    naturality' := λ U V i, begin
+      induction n with n ih,
+      { simp only [zero_smul, comp_zero, zero_comp], },
+      { simp only [nat.succ_eq_add_one, add_smul, ih, one_nsmul, comp_add, nat_trans.naturality,
+          add_comp], },
+    end } }
+
+instance : has_zero (P ⟶ Q) :=
+{ zero := Sheaf.hom.mk 0 }
+
+instance : has_add (P ⟶ Q) :=
+{ add := λ f g, Sheaf.hom.mk $ f.1 + g.1 }
+
+@[simp] lemma Sheaf.hom.add_app (f g : P ⟶ Q) (U) :
+  (f + g).1.app U = f.1.app U + g.1.app U := rfl
+
+instance : add_comm_group (P ⟶ Q) :=
+function.injective.add_comm_group (λ (f : Sheaf.hom P Q), f.1)
+  (λ _ _ h, Sheaf.hom.ext _ _ h) rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, by { ext, simpa [*] }) (λ _ _, by { ext, simpa [*] })
+
+instance : preadditive (Sheaf J A) :=
+{ hom_group := λ P Q, infer_instance,
+  add_comp' := λ P Q R f f' g, by { ext, simp, },
+  comp_add' := λ P Q R f g g', by { ext, simp, } }
+
+end preadditive
 
 end category_theory
 

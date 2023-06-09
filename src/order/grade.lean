@@ -3,12 +3,14 @@ Copyright (c) 2022 Yaël Dillies, Violeta Hernández Palacios. All rights reserv
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Vladimir Ivanov
 -/
-import data.nat.interval
+import data.finset.basic
 import data.int.succ_pred
-import order.atoms
 
 /-!
 # Graded orders
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines graded orders, also known as ranked orders.
 

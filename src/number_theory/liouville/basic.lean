@@ -10,6 +10,9 @@ import data.real.irrational
 
 # Liouville's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 
@@ -29,7 +32,7 @@ def liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧
 
 namespace liouville
 
-@[protected] lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
+protected lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
 begin
   -- By contradiction, `x = a / b`, with `a ∈ ℤ`, `0 < b ∈ ℕ` is a Liouville number,
   rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
@@ -69,6 +72,7 @@ begin
 end
 
 open polynomial metric set real ring_hom
+open_locale polynomial
 
 /-- Let `Z, N` be types, let `R` be a metric space, let `α : R` be a point and let
 `j : Z → N → R` be a function.  We aim to estimate how close we can get to `α`, while staying
@@ -117,12 +121,12 @@ begin
 end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
-  {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
+  {f : ℤ[X]} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
   ∃ A : ℝ, 0 < A ∧
     ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (|α - (a / (b + 1))| * A) :=
 begin
   -- `fR` is `f` viewed as a polynomial with `ℝ` coefficients.
-  set fR : polynomial ℝ := map (algebra_map ℤ ℝ) f,
+  set fR : ℝ[X] := map (algebra_map ℤ ℝ) f,
   -- `fR` is non-zero, since `f` is non-zero.
   obtain fR0 : fR ≠ 0 := λ fR0, (map_injective (algebra_map ℤ ℝ) (λ _ _ A, int.cast_inj.mp A)).ne
     f0 (fR0.trans (polynomial.map_zero _).symm),
@@ -168,12 +172,12 @@ begin
 end
 
 /-- **Liouville's Theorem** -/
-theorem transcendental {x : ℝ} (lx : liouville x) :
+protected theorem transcendental {x : ℝ} (lx : liouville x) :
   transcendental ℤ x :=
 begin
   -- Proceed by contradiction: if `x` is algebraic, then `x` is the root (`ef0`) of a
   -- non-zero (`f0`) polynomial `f`
-  rintros ⟨f : polynomial ℤ, f0, ef0⟩,
+  rintros ⟨f : ℤ[X], f0, ef0⟩,
   -- Change `aeval x f = 0` to `eval (map _ f) = 0`, who knew.
   replace ef0 : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rwa [aeval_def, ← eval_map] at ef0 },
   -- There is a "large" real number `A` such that `(b + 1) ^ (deg f) * |f (x - a / (b + 1))| * A`

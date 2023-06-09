@@ -13,6 +13,9 @@ import category_theory.concrete_category.basic
 /-!
 # Filtered colimits commute with finite limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that for a functor `F : J × K ⥤ Type v`, when `J` is finite and `K` is filtered,
 the universal morphism `colimit_limit_to_limit_colimit F` comparing the
 colimit (over `K`) of the limits (over `J`) with the limit of the colimits is an isomorphism.
@@ -45,7 +48,7 @@ section
 Injectivity doesn't need that we have finitely many morphisms in `J`,
 only that there are finitely many objects.
 -/
-variables [fintype J]
+variables [finite J]
 
 /--
 This follows this proof from
@@ -55,7 +58,7 @@ lemma colimit_limit_to_limit_colimit_injective :
   function.injective (colimit_limit_to_limit_colimit F) :=
 begin
   classical,
-
+  casesI nonempty_fintype J,
   -- Suppose we have two terms `x y` in the colimit (over `K`) of the limits (over `J`),
   -- and that these have the same image under `colimit_limit_to_limit_colimit F`.
   intros x y h,
@@ -81,7 +84,7 @@ begin
 
   -- We now use that `K` is filtered, picking some point to the right of all these
   -- morphisms `f j` and `g j`.
-  let O : finset K := (finset.univ).image k ∪ {kx, ky},
+  let O : finset K := finset.univ.image k ∪ {kx, ky},
   have kxO : kx ∈ O := finset.mem_union.mpr (or.inr (by simp)),
   have kyO : ky ∈ O := finset.mem_union.mpr (or.inr (by simp)),
   have kjO : ∀ j, k j ∈ O := λ j, finset.mem_union.mpr (or.inl (by simp)),

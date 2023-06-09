@@ -13,6 +13,9 @@ import data.set.lattice
 /-!
 # Theory of sieves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 - For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X`
   which is closed under left-composition.
 - The complete lattice structure on sieves is given, as well as the Galois insertion

@@ -9,6 +9,9 @@ import category_theory.limits.cones
 /-!
 # Limits and colimits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We set up the general theory of limits and colimits in a category.
 In this introduction we only describe the setup for limits;
 it is repeated, with slightly different names, for colimits.

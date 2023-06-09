@@ -6,9 +6,13 @@ Authors: Yury Kudryashov
 import category_theory.endomorphism
 import category_theory.category.Cat
 import algebra.category.Mon.basic
+import combinatorics.quiver.single_obj
 
 /-!
 # Single-object category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Single object category with a given monoid of endomorphisms.
 It is defined to facilitate transfering some definitions and lemmas (e.g., conjugacy etc.)
@@ -37,9 +41,11 @@ An element `x : α` can be reinterpreted as an element of `End (single_obj.star 
 universes u v w
 
 namespace category_theory
-/-- Type tag on `unit` used to define single-object categories and groupoids. -/
-@[nolint unused_arguments has_nonempty_instance]
-def single_obj (α : Type u) : Type := unit
+
+/--
+Abbreviation that allows writing `category_theory.single_obj` rather than `quiver.single_obj`.
+-/
+abbreviation single_obj := quiver.single_obj
 
 namespace single_obj
 
@@ -75,8 +81,11 @@ instance groupoid [group α] : groupoid (single_obj α) :=
 lemma inv_as_inv [group α] {x y : single_obj α} (f : x ⟶ y) : inv f = f⁻¹ :=
 by { ext, rw [comp_as_mul, inv_mul_self, id_as_one] }
 
-/-- The single object in `single_obj α`. -/
-protected def star : single_obj α := unit.star
+/--
+Abbreviation that allows writing `category_theory.single_obj.star` rather than
+`quiver.single_obj.star`.
+-/
+abbreviation star : single_obj α := quiver.single_obj.star α
 
 /-- The endomorphisms monoid of the only object in `single_obj α` is equivalent to the original
      monoid α. -/

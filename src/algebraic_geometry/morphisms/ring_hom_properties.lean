@@ -86,11 +86,10 @@ begin
   { apply ring_hom.to_algebra,
     refine X.presheaf.map
       (@hom_of_le _ _ ((is_open_map.functor _).obj _) ((is_open_map.functor _).obj _) _).op,
-    rw [opens.le_def],
+    rw [← set_like.coe_subset_coe],
     dsimp,
-    change coe '' (coe '' set.univ) ⊆ coe '' set.univ,
-    rw [subtype.coe_image_univ, subtype.coe_image_univ],
-    exact set.image_preimage_subset _ _ },
+    simp only [set.image_univ, subtype.range_coe, set.image_subset_iff],
+    refl },
   { exact algebraic_geometry.Γ_restrict_is_localization Y r },
   { rw ← U.open_embedding_obj_top at hU,
     dsimp [Scheme.Γ_obj_op, Scheme.Γ_map_op, Scheme.restrict],
@@ -98,8 +97,7 @@ begin
     rw [opens.open_embedding_obj_top, opens.functor_obj_map_obj],
     convert (X.basic_open_res (Scheme.Γ.map f.op r) (hom_of_le le_top).op).symm using 1,
     rw [opens.open_embedding_obj_top, opens.open_embedding_obj_top, inf_comm,
-      Scheme.Γ_map_op, ← Scheme.preimage_basic_open],
-    refl },
+      Scheme.Γ_map_op, ← Scheme.preimage_basic_open] },
   { apply is_localization.ring_hom_ext (submonoid.powers r) _,
     swap, { exact algebraic_geometry.Γ_restrict_is_localization Y r },
     rw [is_localization.away.map, is_localization.map_comp, ring_hom.algebra_map_to_algebra,
@@ -175,7 +173,7 @@ lemma affine_locally_iff_affine_opens_le
   (hP : ring_hom.respects_iso @P) {X Y : Scheme} (f : X ⟶ Y) :
   affine_locally @P f ↔
   (∀ (U : Y.affine_opens) (V : X.affine_opens) (e : V.1 ≤ (opens.map f.1.base).obj U.1),
-    P (f.1.c.app (op U) ≫ X.presheaf.map (hom_of_le e).op)) :=
+    P (f.app_le e)) :=
 begin
   apply forall_congr,
   intro U,
@@ -332,7 +330,7 @@ begin
     { refine X.presheaf.map
         (@hom_of_le _ _ ((is_open_map.functor _).obj _) ((is_open_map.functor _).obj _) _).op,
       rw [unop_op, unop_op, opens.open_embedding_obj_top, opens.open_embedding_obj_top],
-      exact X.basic_open_subset _ },
+      exact X.basic_open_le _ },
     { rw [op_comp, op_comp, functor.map_comp, functor.map_comp],
       refine (eq.trans _ (category.assoc _ _ _).symm : _),
       congr' 1,
@@ -489,6 +487,36 @@ begin
     { apply_instance },
     { refine is_localization.away_of_is_unit_of_bijective _ is_unit_one function.bijective_id } },
   { intro i, exact H }
+end
+
+lemma affine_locally_of_comp
+  (H : ∀ {R S T : Type.{u}} [comm_ring R] [comm_ring S] [comm_ring T], by exactI
+    ∀ (f : R →+* S) (g : S →+* T), P (g.comp f) → P g)
+  {X Y Z : Scheme} {f : X ⟶ Y} {g : Y ⟶ Z} (h : affine_locally @P (f ≫ g)) :
+  affine_locally @P f :=
+begin
+  let 𝒰 : ∀ i, ((Z.affine_cover.pullback_cover (f ≫ g)).obj i).open_cover,
+  { intro i,
+    refine Scheme.open_cover.bind _ (λ i, Scheme.affine_cover _),
+    apply Scheme.open_cover.pushforward_iso _
+    (pullback_right_pullback_fst_iso g (Z.affine_cover.map i) f).hom,
+    apply Scheme.pullback.open_cover_of_right,
+    exact (pullback g (Z.affine_cover.map i)).affine_cover },
+  haveI h𝒰 : ∀ i j, is_affine ((𝒰 i).obj j), by { dsimp, apply_instance },
+  let 𝒰' := (Z.affine_cover.pullback_cover g).bind (λ i, Scheme.affine_cover _),
+  haveI h𝒰' : ∀ i, is_affine (𝒰'.obj i), by { dsimp, apply_instance },
+  rw hP.affine_open_cover_iff f 𝒰' (λ i, Scheme.affine_cover _),
+  rw hP.affine_open_cover_iff (f ≫ g) Z.affine_cover 𝒰 at h,
+  rintros ⟨i, j⟩ k,
+  dsimp at i j k,
+  specialize h i ⟨j, k⟩,
+  dsimp only [Scheme.open_cover.bind_map, Scheme.open_cover.pushforward_iso_obj,
+    Scheme.pullback.open_cover_of_right_obj, Scheme.open_cover.pushforward_iso_map,
+    Scheme.pullback.open_cover_of_right_map, Scheme.open_cover.bind_obj,
+    Scheme.open_cover.pullback_cover_obj, Scheme.open_cover.pullback_cover_map] at h ⊢,
+  rw [category.assoc, category.assoc, pullback_right_pullback_fst_iso_hom_snd,
+    pullback.lift_snd_assoc, category.assoc, ← category.assoc, op_comp, functor.map_comp] at h,
+  exact H _ _ h,
 end
 
 lemma affine_locally_stable_under_composition :

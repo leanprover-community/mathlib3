@@ -10,6 +10,9 @@ import topology.metric_space.basic
 /-!
 # Rectangular boxes in `ℝⁿ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define rectangular boxes in `ℝⁿ`. As usual, we represent `ℝⁿ` as the type of
 functions `ι → ℝ` (usually `ι = fin n` for some `n`). When we need to interpret a box `[l, u]` as a
 set, we use the product `{x | ∀ i, l i < x i ∧ x i ≤ u i}` of half-open intervals `(l i, u i]`. We
@@ -52,7 +55,7 @@ rectangular box
 open set function metric filter
 
 noncomputable theory
-open_locale nnreal classical topological_space
+open_locale nnreal classical topology
 
 namespace box_integral
 
@@ -276,7 +279,7 @@ instance : lattice (with_bot (box ι)) :=
 
 @[simp, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
   disjoint (I : set (ι → ℝ)) J ↔ disjoint I J :=
-by { simp only [disjoint, ← with_bot_coe_subset_iff, coe_inf], refl }
+by { simp only [disjoint_iff_inf_le, ← with_bot_coe_subset_iff, coe_inf], refl }
 
 lemma disjoint_coe : disjoint (I : with_bot (box ι)) J ↔ disjoint (I : set (ι → ℝ)) J :=
 disjoint_with_bot_coe.symm
@@ -335,7 +338,7 @@ lemma Ioo_subset_coe (I : box ι) : I.Ioo ⊆ I := λ x hx i, Ioo_subset_Ioc_sel
 
 protected lemma Ioo_subset_Icc (I : box ι) : I.Ioo ⊆ I.Icc := I.Ioo_subset_coe.trans coe_subset_Icc
 
-lemma Union_Ioo_of_tendsto [fintype ι] {I : box ι} {J : ℕ → box ι} (hJ : monotone J)
+lemma Union_Ioo_of_tendsto [finite ι] {I : box ι} {J : ℕ → box ι} (hJ : monotone J)
   (hl : tendsto (lower ∘ J) at_top (𝓝 I.lower)) (hu : tendsto (upper ∘ J) at_top (𝓝 I.upper)) :
   (⋃ n, (J n).Ioo) = I.Ioo :=
 have hl' : ∀ i, antitone (λ n, (J n).lower i),

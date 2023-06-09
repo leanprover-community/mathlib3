@@ -6,10 +6,12 @@ Authors: Bhavik Mehta
 
 import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
-import category_theory.epi_mono
 
 /-!
 # Strict initial objects
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file sets up the basic theory of strict initial objects: initial objects where every morphism
 to it is an isomorphism. This generalises a property of the empty set in the category of sets:

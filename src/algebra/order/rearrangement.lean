@@ -3,14 +3,18 @@ Copyright (c) 2022 Mantas Bakšys. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
+import algebra.big_operators.basic
 import algebra.order.module
 import data.prod.lex
 import group_theory.perm.support
-import order.monovary
+import order.monotone.monovary
 import tactic.abel
 
 /-!
 # Rearrangement inequality
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves the rearrangement inequality and deduces the conditions for equality and strict
 inequality.

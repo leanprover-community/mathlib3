@@ -9,6 +9,9 @@ import topology.bases
 /-!
 # Dense embeddings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines three properties of functions:
 
 * `dense_range f`      means `f` has dense image;
@@ -25,7 +28,7 @@ has to be `dense_inducing` (not necessarily injective).
 noncomputable theory
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -282,6 +285,10 @@ de.to_dense_inducing.dense_image
 
 end dense_embedding
 
+lemma dense_embedding_id {α : Type*} [topological_space α] : dense_embedding (id : α → α) :=
+{ dense := dense_range_id,
+  .. embedding_id }
+
 lemma dense.dense_embedding_coe [topological_space α] {s : set α} (hs : dense s) :
   dense_embedding (coe : s → α) :=
 { dense := hs.dense_range_coe,
@@ -348,13 +355,13 @@ begin
   rw filter.has_basis_iff at h ⊢,
   intros T,
   refine ⟨λ hT, _, λ hT, _⟩,
-  { obtain ⟨T', hT₁, hT₂, hT₃⟩ := nhds_is_closed hT,
+  { obtain ⟨T', hT₁, hT₂, hT₃⟩ := exists_mem_nhds_is_closed_subset hT,
     have hT₄ : f⁻¹' T' ∈ 𝓝 x,
     { rw hf.to_inducing.nhds_eq_comap x,
       exact ⟨T', hT₁, subset.rfl⟩, },
     obtain ⟨i, hi, hi'⟩ := (h _).mp hT₄,
     exact ⟨i, hi, (closure_mono (image_subset f hi')).trans (subset.trans (closure_minimal
-      (image_subset_iff.mpr subset.rfl) hT₃) hT₂)⟩, },
+      (image_subset_iff.mpr subset.rfl) hT₂) hT₃)⟩, },
   { obtain ⟨i, hi, hi'⟩ := hT,
     suffices : closure (f '' s i) ∈ 𝓝 (f x), { filter_upwards [this] using hi', },
     replace h := (h (s i)).mpr ⟨i, hi, subset.rfl⟩,

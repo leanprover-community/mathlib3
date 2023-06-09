@@ -50,6 +50,13 @@ lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
 
+instance : subring_class (valuation_subring K) K :=
+{ zero_mem := zero_mem,
+  add_mem := add_mem,
+  one_mem := one_mem,
+  mul_mem := mul_mem,
+  neg_mem := neg_mem }
+
 lemma to_subring_injective : function.injective (to_subring : valuation_subring K → subring K) :=
 λ x y h, by { cases x, cases y, congr' }
 
@@ -98,7 +105,7 @@ instance : is_fraction_ring A K :=
       exact mem_non_zero_divisors_iff_ne_zero.2 (λ c, h (inv_eq_zero.mp (congr_arg coe c))) },
   end,
   eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c, h⟩,
-    congr_arg coe ((mul_eq_mul_right_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
+    congr_arg coe ((mul_eq_mul_left_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
 
 /-- The value group of the valuation associated to `A`. Note: it is actually a group with zero. -/
 @[derive linear_ordered_comm_group_with_zero]
@@ -211,8 +218,7 @@ instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
 /-- The coarsening of a valuation ring associated to a prime ideal. -/
 def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
-of_le A (localization.subalgebra.of_field K P.prime_compl $
-  le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
+of_le A (localization.subalgebra.of_field K _ P.prime_compl_le_non_zero_divisors).to_subring $
   λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
@@ -223,7 +229,8 @@ instance of_prime_scalar_tower (A : valuation_subring K) (P : ideal A) [P.is_pri
 
 instance of_prime_localization (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   is_localization.at_prime (A.of_prime P) P :=
-by apply localization.subalgebra.is_localization_of_field K
+by apply localization.subalgebra.is_localization_of_field K P.prime_compl
+  P.prime_compl_le_non_zero_divisors
 
 lemma le_of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   A ≤ of_prime A P :=
@@ -283,7 +290,7 @@ def prime_spectrum_equiv :
   prime_spectrum A ≃ { S | A ≤ S } :=
 { to_fun := λ P, ⟨of_prime A P.as_ideal, le_of_prime _ _⟩,
   inv_fun := λ S, ⟨ideal_of_le _ S S.2, infer_instance⟩,
-  left_inv := λ P, by { ext1, simpa },
+  left_inv := λ P, by { ext1, simp },
   right_inv := λ S, by { ext1, simp } }
 
 /-- An ordered variant of `prime_spectrum_equiv`. -/
@@ -299,7 +306,8 @@ def prime_spectrum_order_equiv : (prime_spectrum A)ᵒᵈ ≃o {S | A ≤ S} :=
   ..(prime_spectrum_equiv A) }
 
 instance linear_order_overring : linear_order { S | A ≤ S } :=
-{ le_total := let i : is_total (prime_spectrum A) (≤) := (subtype.rel_embedding _ _).is_total in
+{ le_total :=
+  let i : is_total (prime_spectrum A) (≤) := ⟨λ ⟨x, _⟩ ⟨y, _⟩, has_le.le.is_total.total x y⟩ in
     by exactI (prime_spectrum_order_equiv A).symm.to_rel_embedding.is_total.total,
   decidable_le := infer_instance,
   ..(infer_instance : partial_order _) }
@@ -371,7 +379,7 @@ section unit_group
 def unit_group : subgroup Kˣ :=
 (A.valuation.to_monoid_with_zero_hom.to_monoid_hom.comp (units.coe_hom K)).ker
 
-lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.rfl
+@[simp] lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.rfl
 
 /-- For a valuation subring `A`, `A.unit_group` agrees with the units of `A`. -/
 def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
@@ -392,7 +400,6 @@ lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
 @[simp]
 lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
   (A.unit_group_mul_equiv.symm a : K) = a := rfl
-
 
 lemma unit_group_le_unit_group {A B : valuation_subring K} :
   A.unit_group ≤ B.unit_group ↔ A ≤ B :=
@@ -516,7 +523,7 @@ def principal_unit_group : subgroup Kˣ :=
       ← valuation.map_mul, mul_sub_one, ← sub_add_sub_cancel],
     exact A.valuation.map_add _ _,
   end,
-  one_mem' := by simpa using zero_lt_one₀,
+  one_mem' := by simp,
   inv_mem' := begin
     dsimp,
     intros a ha,
@@ -538,7 +545,7 @@ begin
   { intros h x hx,
     by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
     by_cases h_2 : x⁻¹ + 1 = 0,
-    { rw [add_eq_zero_iff_eq_neg, inv_eq_iff_inv_eq, inv_neg, inv_one] at h_2,
+    { rw [add_eq_zero_iff_eq_neg, inv_eq_iff_eq_inv, inv_neg, inv_one] at h_2,
       simpa only [h_2] using B.neg_mem _ B.one_mem },
     { rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1, ← add_sub_cancel x⁻¹,
         ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at hx ⊢,
@@ -567,8 +574,7 @@ lemma coe_mem_principal_unit_group_iff {x : A.unit_group} :
   A.unit_group_mul_equiv x ∈ (units.map (local_ring.residue A).to_monoid_hom).ker :=
 begin
   rw [monoid_hom.mem_ker, units.ext_iff],
-  dsimp,
-  let π := ideal.quotient.mk (local_ring.maximal_ideal A), change _ ↔ π _ = _,
+  let π := ideal.quotient.mk (local_ring.maximal_ideal A), convert_to _ ↔ π _ = 1,
   rw [← π.map_one, ← sub_eq_zero, ← π.map_sub, ideal.quotient.eq_zero_iff_mem,
     valuation_lt_one_iff],
   simpa,
@@ -620,7 +626,7 @@ the units of the residue field of `A`. -/
 def units_mod_principal_units_equiv_residue_field_units :
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
   (local_ring.residue_field A)ˣ :=
-mul_equiv.trans (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units.symm)
+(quotient_group.quotient_mul_equiv_of_eq A.ker_unit_group_to_residue_field_units.symm).trans
   (quotient_group.quotient_ker_equiv_of_surjective _ A.surjective_unit_group_to_residue_field_units)
 
 @[simp]
@@ -717,4 +723,35 @@ set.subset_set_smul_iff
 
 end pointwise_actions
 
+section
+
+variables {L J: Type*} [field L] [field J]
+
+/-- The pullback of a valuation subring `A` along a ring homomorphism `K →+* L`. -/
+def comap (A : valuation_subring L) (f : K →+* L) :
+  valuation_subring K :=
+{ mem_or_inv_mem' := λ k, by simp [valuation_subring.mem_or_inv_mem],
+  ..(A.to_subring.comap f) }
+
+@[simp]
+lemma coe_comap (A : valuation_subring L) (f : K →+* L) : (A.comap f : set K) = f ⁻¹' A := rfl
+
+@[simp]
+lemma mem_comap {A : valuation_subring L} {f : K →+* L} {x : K} : x ∈ A.comap f ↔ f x ∈ A := iff.rfl
+
+lemma comap_comap (A : valuation_subring J) (g : L →+* J) (f : K →+* L) :
+  (A.comap g).comap f = A.comap (g.comp f) :=
+rfl
+
+end
+
 end valuation_subring
+
+namespace valuation
+
+variables {Γ : Type*} [linear_ordered_comm_group_with_zero Γ] (v : valuation K Γ) (x : Kˣ)
+
+@[simp] lemma mem_unit_group_iff : x ∈ v.valuation_subring.unit_group ↔ v x = 1 :=
+(valuation.is_equiv_iff_val_eq_one _ _).mp (valuation.is_equiv_valuation_valuation_subring _).symm
+
+end valuation

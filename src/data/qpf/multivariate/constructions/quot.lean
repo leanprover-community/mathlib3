@@ -9,6 +9,9 @@ import data.qpf.multivariate.basic
 /-!
 # The quotient of QPF is itself a QPF
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The quotients are here defined using a surjective function and
 its right inverse. They are very similar to the `abs` and `repr`
 functions found in the definition of `mvqpf`

@@ -3,8 +3,6 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import tactic.basic
-import field_theory.finite.galois_field
 import number_theory.cyclotomic.primitive_roots
 import field_theory.finite.trace
 
@@ -241,10 +239,6 @@ structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v
 
 variables {C : Type v} [comm_ring C]
 
--- For `n : ℕ+`, automatically generate instance `fact (0 < (n : ℕ))`.
--- This is needed for the API for `zmod n` (until that gets refactored to use `ne_zero`).
-local attribute [instance] pnat.fact_pos
-
 section zmod_char_def
 
 open multiplicative -- so we can write simply `to_add`, which we need here again
@@ -317,7 +311,6 @@ def primitive_zmod_char (n : ℕ+) (F' : Type v) [field F'] (h : (n : F') ≠ 0)
   primitive_add_char (zmod n) F' :=
 begin
   haveI : ne_zero ((n : ℕ) : F') := ⟨h⟩,
-  haveI : ne_zero ((n : ℕ) : cyclotomic_field n F') := ne_zero.of_no_zero_smul_divisors F' _ n,
   exact
 { n := n,
   char := zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),

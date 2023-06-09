@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.finset.lattice
+import data.multiset.powerset
 
 /-!
 # The powerset of a finset
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace finset
@@ -195,15 +199,17 @@ begin
   simp [card_insert_of_not_mem this, nat.succ_inj']
 end
 
-lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n < s.card) :
+lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n ≤ s.card) :
   (powerset_len n s).nonempty :=
 begin
   classical,
   induction s using finset.induction_on with x s hx IH generalizing n,
-  { simpa using h },
+  { rw [card_empty, le_zero_iff] at h,
+    rw [h, powerset_len_zero],
+    exact finset.singleton_nonempty _,  },
   { cases n,
     { simp },
-    { rw [card_insert_of_not_mem hx, nat.succ_lt_succ_iff] at h,
+    { rw [card_insert_of_not_mem hx, nat.succ_le_succ_iff] at h,
       rw powerset_len_succ_insert hx,
       refine nonempty.mono _ ((IH h).image (insert x)),
       convert (subset_union_right _ _) } }
@@ -220,16 +226,27 @@ begin
     simp }
 end
 
-lemma powerset_card_bUnion [decidable_eq (finset α)] (s : finset α) :
-  finset.powerset s = (range (s.card + 1)).bUnion (λ i, powerset_len i s) :=
+lemma pairwise_disjoint_powerset_len (s : finset α) :
+  _root_.pairwise (λ i j, disjoint (s.powerset_len i) (s.powerset_len j)) :=
+λ i j hij, finset.disjoint_left.mpr $ λ x hi hj, hij $
+  (mem_powerset_len.mp hi).2.symm.trans (mem_powerset_len.mp hj).2
+
+lemma powerset_card_disj_Union (s : finset α) :
+  finset.powerset s =
+    (range (s.card + 1)).disj_Union (λ i, powerset_len i s)
+      (s.pairwise_disjoint_powerset_len.set_pairwise _) :=
 begin
   refine ext (λ a, ⟨λ ha, _, λ ha, _ ⟩),
-  { rw mem_bUnion,
+  { rw mem_disj_Union,
     exact ⟨a.card, mem_range.mpr (nat.lt_succ_of_le (card_le_of_subset (mem_powerset.mp ha))),
       mem_powerset_len.mpr ⟨mem_powerset.mp ha, rfl⟩⟩ },
-  { rcases mem_bUnion.mp ha with ⟨i, hi, ha⟩,
+  { rcases mem_disj_Union.mp ha with ⟨i, hi, ha⟩,
     exact mem_powerset.mpr (mem_powerset_len.mp ha).1, }
 end
+
+lemma powerset_card_bUnion [decidable_eq (finset α)] (s : finset α) :
+  finset.powerset s = (range (s.card + 1)).bUnion (λ i, powerset_len i s) :=
+by simpa only [disj_Union_eq_bUnion] using powerset_card_disj_Union s
 
 lemma powerset_len_sup [decidable_eq α] (u : finset α) (n : ℕ) (hn : n < u.card) :
   (powerset_len n.succ u).sup id = u :=
@@ -247,7 +264,8 @@ begin
       { refine ⟨insert x t, _, mem_insert_self _ _⟩,
         rw [←insert_erase hx, powerset_len_succ_insert (not_mem_erase _ _)],
         exact mem_union_right _ (mem_image_of_mem _ ht) },
-      { rwa [card_erase_of_mem hx, lt_tsub_iff_right] } } }
+      { rw [card_erase_of_mem hx],
+        exact nat.le_pred_of_lt hn, } } }
 end
 
 @[simp]

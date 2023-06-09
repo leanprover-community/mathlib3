@@ -9,6 +9,9 @@ import topology.metric_space.basic
 /-!
 # Sequences in topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define sequences in topological spaces and show how they are related to
 filters and the topology.
 
@@ -58,7 +61,7 @@ sequentially closed, sequentially compact, sequential space
 -/
 
 open set function filter topological_space
-open_locale topological_space
+open_locale topology filter
 
 variables {X Y : Type*}
 
@@ -149,7 +152,7 @@ begin
   refine ⟨λ s x hcx, _⟩,
   specialize h (∉ s) x,
   by_cases hx : x ∈ s, { exact subset_seq_closure hx },
-  simp_rw [(∘), continuous_at, hx, not_false_iff, nhds_true, tendsto_pure, eq_true,
+  simp_rw [(∘), continuous_at, hx, not_false_iff, nhds_true, tendsto_pure, eq_true_iff,
     ← mem_compl_iff, eventually_mem_set, ← mem_interior_iff_mem_nhds, interior_compl] at h,
   rw [mem_compl_iff, imp_not_comm] at h,
   simp only [not_forall, not_eventually, mem_compl_iff, not_not] at h,
@@ -234,8 +237,10 @@ def is_seq_compact (s : set X) :=
 
 /-- A space `X` is sequentially compact if every sequence in `X` has a
 converging subsequence. -/
-class seq_compact_space (X : Type*) [topological_space X] : Prop :=
+@[mk_iff] class seq_compact_space (X : Type*) [topological_space X] : Prop :=
 (seq_compact_univ : is_seq_compact (univ : set X))
+
+export seq_compact_space (seq_compact_univ)
 
 lemma is_seq_compact.subseq_of_frequently_in {s : set X} (hs : is_seq_compact s) {x : ℕ → X}
   (hx : ∃ᶠ n in at_top, x n ∈ s) :
@@ -245,17 +250,15 @@ let ⟨ψ, hψ, huψ⟩ := extraction_of_frequently_at_top hx, ⟨a, a_in, φ, h
 
 lemma seq_compact_space.tendsto_subseq [seq_compact_space X] (x : ℕ → X) :
   ∃ a (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 a) :=
-let ⟨a, _, φ, mono, h⟩ := seq_compact_space.seq_compact_univ (λ n, mem_univ (x n)) in
-⟨a, φ, mono, h⟩
+let ⟨a, _, φ, mono, h⟩ := seq_compact_univ (λ n, mem_univ (x n)) in ⟨a, φ, mono, h⟩
 
 section first_countable_topology
 variables [first_countable_topology X]
 open topological_space.first_countable_topology
 
-lemma is_compact.is_seq_compact {s : set X} (hs : is_compact s) : is_seq_compact s :=
-λ x x_in,
-let ⟨a, a_in, ha⟩ := @hs (map x at_top) _
-  (le_principal_iff.mpr (univ_mem' x_in : _)) in ⟨a, a_in, tendsto_subseq ha⟩
+protected lemma is_compact.is_seq_compact {s : set X} (hs : is_compact s) : is_seq_compact s :=
+λ x x_in, let ⟨a, a_in, ha⟩ := hs (tendsto_principal.mpr (eventually_of_forall x_in))
+in ⟨a, a_in, tendsto_subseq ha⟩
 
 lemma is_compact.tendsto_subseq' {s : set X} {x : ℕ → X} (hs : is_compact s)
   (hx : ∃ᶠ n in at_top, x n ∈ s) :
@@ -268,7 +271,7 @@ hs.is_seq_compact hx
 
 @[priority 100] -- see Note [lower instance priority]
 instance first_countable_topology.seq_compact_of_compact [compact_space X] : seq_compact_space X :=
-⟨compact_univ.is_seq_compact⟩
+⟨is_compact_univ.is_seq_compact⟩
 
 lemma compact_space.tendsto_subseq [compact_space X] (x : ℕ → X) :
   ∃ a (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 a) :=
@@ -284,115 +287,77 @@ open uniform_space prod
 
 variables [uniform_space X] {s : set X}
 
-lemma lebesgue_number_lemma_seq {ι : Type*} [is_countably_generated (𝓤 X)] {c : ι → set X}
-  (hs : is_seq_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
-  ∃ V ∈ 𝓤 X, symmetric_rel V ∧ ∀ x ∈ s, ∃ i, ball x V ⊆ c i :=
-begin
-  classical,
-  obtain ⟨V, hV, Vsymm⟩ :
-    ∃ V : ℕ → set (X × X), (𝓤 X).has_antitone_basis V ∧ ∀ n, swap ⁻¹' V n = V n,
-      from uniform_space.has_seq_basis X,
-  rsuffices ⟨n, hn⟩ : ∃ n, ∀ x ∈ s, ∃ i, ball x (V n) ⊆ c i,
-  { exact ⟨V n, hV.to_has_basis.mem_of_mem trivial, Vsymm n, hn⟩ },
-  by_contradiction H,
-  obtain ⟨x, x_in, hx⟩ : ∃ x : ℕ → X, (∀ n, x n ∈ s) ∧ ∀ n i, ¬ ball (x n) (V n) ⊆ c i,
-  { push_neg at H,
-    choose x hx using H,
-    exact ⟨x, forall_and_distrib.mp hx⟩ }, clear H,
-  obtain ⟨x₀, x₀_in, φ, φ_mono, hlim⟩ :
-    ∃ (x₀ ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 x₀),
-    from hs x_in, clear hs,
-  obtain ⟨i₀, x₀_in⟩ : ∃ i₀, x₀ ∈ c i₀,
-  { rcases hc₂ x₀_in with ⟨_, ⟨i₀, rfl⟩, x₀_in_c⟩,
-    exact ⟨i₀, x₀_in_c⟩ }, clear hc₂,
-  obtain ⟨n₀, hn₀⟩ : ∃ n₀, ball x₀ (V n₀) ⊆ c i₀,
-  { rcases (nhds_basis_uniformity hV.to_has_basis).mem_iff.mp
-      (is_open_iff_mem_nhds.mp (hc₁ i₀) _ x₀_in) with ⟨n₀, _, h⟩,
-    use n₀,
-    rwa ← ball_eq_of_symmetry (Vsymm n₀) at h }, clear hc₁,
-  obtain ⟨W, W_in, hWW⟩ : ∃ W ∈ 𝓤 X, W ○ W ⊆ V n₀,
-    from comp_mem_uniformity_sets (hV.to_has_basis.mem_of_mem trivial),
-  obtain ⟨N, x_φ_N_in, hVNW⟩ : ∃ N, x (φ N) ∈ ball x₀ W ∧ V (φ N) ⊆ W,
-  { obtain ⟨N₁, h₁⟩ : ∃ N₁, ∀ n ≥ N₁, x (φ n) ∈ ball x₀ W,
-      from tendsto_at_top'.mp hlim _ (mem_nhds_left x₀ W_in),
-    obtain ⟨N₂, h₂⟩ : ∃ N₂, V (φ N₂) ⊆ W,
-    { rcases hV.to_has_basis.mem_iff.mp W_in with ⟨N, _, hN⟩,
-      use N,
-      exact subset.trans (hV.antitone $ φ_mono.id_le _) hN },
-    have : φ N₂ ≤ φ (max N₁ N₂),
-      from φ_mono.le_iff_le.mpr (le_max_right _ _),
-    exact ⟨max N₁ N₂, h₁ _ (le_max_left _ _), trans (hV.antitone this) h₂⟩ },
-  suffices : ball (x (φ N)) (V (φ N)) ⊆ c i₀,
-    from hx (φ N) i₀ this,
-  calc
-    ball (x $ φ N) (V $ φ N) ⊆ ball (x $ φ N) W : preimage_mono hVNW
-                         ... ⊆ ball x₀ (V n₀)   : ball_subset_of_comp_subset x_φ_N_in hWW
-                         ... ⊆ c i₀             : hn₀,
-end
+lemma is_seq_compact.exists_tendsto_of_frequently_mem (hs : is_seq_compact s) {u : ℕ → X}
+  (hu : ∃ᶠ n in at_top, u n ∈ s) (huc : cauchy_seq u) :
+  ∃ x ∈ s, tendsto u at_top (𝓝 x) :=
+let ⟨x, hxs, φ, φ_mono, hx⟩ := hs.subseq_of_frequently_in hu
+in ⟨x, hxs, tendsto_nhds_of_cauchy_seq_of_subseq huc φ_mono.tendsto_at_top hx⟩
 
-lemma is_seq_compact.totally_bounded (h : is_seq_compact s) : totally_bounded s :=
+lemma is_seq_compact.exists_tendsto (hs : is_seq_compact s) {u : ℕ → X} (hu : ∀ n, u n ∈ s)
+  (huc : cauchy_seq u) : ∃ x ∈ s, tendsto u at_top (𝓝 x) :=
+hs.exists_tendsto_of_frequently_mem (frequently_of_forall hu) huc
+
+/-- A sequentially compact set in a uniform space is totally bounded. -/
+protected lemma is_seq_compact.totally_bounded (h : is_seq_compact s) : totally_bounded s :=
 begin
-  classical,
-  apply totally_bounded_of_forall_symm,
+  intros V V_in,
   unfold is_seq_compact at h,
   contrapose! h,
-  rcases h with ⟨V, V_in, V_symm, h⟩,
-  simp_rw [not_subset] at h,
-  have : ∀ (t : set X), t.finite → ∃ a, a ∈ s ∧ a ∉ ⋃ y ∈ t, ball y V,
-  { intros t ht,
-    obtain ⟨a, a_in, H⟩ : ∃ a ∈ s, ∀ x ∈ t, (x, a) ∉ V,
-      by simpa [ht] using h t,
-    use [a, a_in],
-    intro H',
-    obtain ⟨x, x_in, hx⟩ := mem_Union₂.mp H',
-    exact H x x_in hx },
-  cases seq_of_forall_finite_exists this with u hu, clear h this,
-  simp [forall_and_distrib] at hu,
-  cases hu with u_in hu,
-  use [u, u_in], clear u_in,
-  intros x x_in φ,
-  intros hφ huφ,
+  obtain ⟨u, u_in, hu⟩ : ∃ u : ℕ → X, (∀ n, u n ∈ s) ∧ ∀ n m, m < n → u m ∉ ball (u n) V,
+  { simp only [not_subset, mem_Union₂, not_exists, exists_prop] at h,
+    simpa only [forall_and_distrib, ball_image_iff, not_and] using seq_of_forall_finite_exists h },
+  refine ⟨u, u_in, λ x x_in φ hφ huφ, _⟩,
   obtain ⟨N, hN⟩ : ∃ N, ∀ p q, p ≥ N → q ≥ N → (u (φ p), u (φ q)) ∈ V,
     from huφ.cauchy_seq.mem_entourage V_in,
-  specialize hN N (N+1) (le_refl N) (nat.le_succ N),
-  specialize hu (φ $ N+1) (φ N) (hφ $ lt_add_one N),
-  exact hu hN,
+  exact hu (φ $ N + 1) (φ N) (hφ $ lt_add_one N) (hN (N + 1) N N.le_succ le_rfl)
 end
 
-protected lemma is_seq_compact.is_compact [is_countably_generated $ 𝓤 X] (hs : is_seq_compact s) :
-  is_compact s :=
+variables [is_countably_generated (𝓤 X)]
+
+/-- A sequentially compact set in a uniform set with countably generated uniformity filter
+is complete. -/
+protected lemma is_seq_compact.is_complete (hs : is_seq_compact s) : is_complete s :=
 begin
-  classical,
-  rw is_compact_iff_finite_subcover,
-  intros ι U Uop s_sub,
-  rcases lebesgue_number_lemma_seq hs Uop s_sub with ⟨V, V_in, Vsymm, H⟩,
-  rcases totally_bounded_iff_subset.mp hs.totally_bounded V V_in with ⟨t,t_sub, tfin,  ht⟩,
-  have : ∀ x : t, ∃ (i : ι), ball x.val V ⊆ U i,
-  { rintros ⟨x, x_in⟩,
-    exact H x (t_sub x_in) },
-  choose i hi using this,
-  haveI : fintype t := tfin.fintype,
-  use finset.image i finset.univ,
-  transitivity ⋃ y ∈ t, ball y V,
-  { intros x x_in,
-    specialize ht x_in,
-    rw mem_Union₂ at *,
-    simp_rw ball_eq_of_symmetry Vsymm,
-    exact ht },
-  { refine Union₂_mono' (λ x x_in, _),
-    exact ⟨i ⟨x, x_in⟩, finset.mem_image_of_mem _ (finset.mem_univ _), hi ⟨x, x_in⟩⟩ },
+  intros l hl hls,
+  haveI := hl.1,
+  rcases exists_antitone_basis (𝓤 X) with ⟨V, hV⟩,
+  choose W hW hWV using λ n, comp_mem_uniformity_sets (hV.mem n),
+  have hWV' : ∀ n, W n ⊆ V n, from λ n ⟨x, y⟩ hx, @hWV n (x, y) ⟨x, refl_mem_uniformity $ hW _, hx⟩,
+  obtain ⟨t, ht_anti, htl, htW, hts⟩ : ∃ t : ℕ → set X, antitone t ∧ (∀ n, t n ∈ l) ∧
+    (∀ n, t n ×ˢ t n ⊆ W n) ∧ (∀ n, t n ⊆ s),
+  { have : ∀ n, ∃ t ∈ l, t ×ˢ t ⊆ W n ∧ t ⊆ s,
+    { rw [le_principal_iff] at hls,
+      have : ∀ n, W n ∩ s ×ˢ s ∈ l ×ᶠ l := λ n, inter_mem (hl.2 (hW n)) (prod_mem_prod hls hls),
+      simpa only [l.basis_sets.prod_self.mem_iff, true_implies_iff, subset_inter_iff,
+        prod_self_subset_prod_self, and.assoc] using this },
+    choose t htl htW hts,
+    have : ∀ n, (⋂ k ≤ n, t k) ⊆ t n, from λ n, Inter₂_subset _ le_rfl,
+    exact ⟨λ n, ⋂ k ≤ n, t k, λ m n h, bInter_subset_bInter_left (λ k (hk : k ≤ m), hk.trans h),
+      λ n, (bInter_mem (finite_le_nat n)).2 (λ k hk, htl k),
+      λ n, (prod_mono (this n) (this n)).trans (htW n), λ n, (this n).trans (hts n)⟩ },
+  choose u hu using λ n, filter.nonempty_of_mem (htl n),
+  have huc : cauchy_seq u := hV.to_has_basis.cauchy_seq_iff.2
+    (λ N hN, ⟨N, λ m hm n hn, hWV' _ $ @htW N (_, _) ⟨ht_anti hm (hu _), (ht_anti hn (hu _))⟩⟩),
+  rcases hs.exists_tendsto (λ n, hts n (hu n)) huc with ⟨x, hxs, hx⟩,
+  refine ⟨x, hxs, (nhds_basis_uniformity' hV.to_has_basis).ge_iff.2 $ λ N hN, _⟩,
+  obtain ⟨n, hNn, hn⟩ : ∃ n, N ≤ n ∧ u n ∈ ball x (W N),
+    from ((eventually_ge_at_top N).and (hx $ ball_mem_nhds x (hW N))).exists,
+  refine mem_of_superset (htl n) (λ y hy, hWV N ⟨u n, _, htW N ⟨_, _⟩⟩),
+  exacts [hn, ht_anti hNn (hu n), ht_anti hNn hy]
 end
+
+/-- If `𝓤 β` is countably generated, then any sequentially compact set is compact. -/
+protected lemma is_seq_compact.is_compact (hs : is_seq_compact s) : is_compact s :=
+is_compact_iff_totally_bounded_is_complete.2 ⟨hs.totally_bounded, hs.is_complete⟩
 
 /-- A version of Bolzano-Weistrass: in a uniform space with countably generated uniformity filter
 (e.g., in a metric space), a set is compact if and only if it is sequentially compact. -/
-protected lemma uniform_space.compact_iff_seq_compact [is_countably_generated $ 𝓤 X] :
- is_compact s ↔ is_seq_compact s :=
+protected lemma uniform_space.is_compact_iff_is_seq_compact : is_compact s ↔ is_seq_compact s :=
 ⟨λ H, H.is_seq_compact, λ H, H.is_compact⟩
 
-lemma uniform_space.compact_space_iff_seq_compact_space [is_countably_generated $ 𝓤 X] :
-  compact_space X ↔ seq_compact_space X :=
-have key : is_compact (univ : set X) ↔ is_seq_compact univ := uniform_space.compact_iff_seq_compact,
-⟨λ ⟨h⟩, ⟨key.mp h⟩, λ ⟨h⟩, ⟨key.mpr h⟩⟩
+lemma uniform_space.compact_space_iff_seq_compact_space : compact_space X ↔ seq_compact_space X :=
+by simp only [← is_compact_univ_iff, seq_compact_space_iff,
+  uniform_space.is_compact_iff_is_seq_compact]
 
 end uniform_space_seq_compact
 

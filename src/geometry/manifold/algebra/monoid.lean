@@ -156,10 +156,10 @@ names. -/
 def smooth_right_mul : C^∞⟮I, G; I, G⟯ := ⟨(right_mul g), smooth_mul_right⟩
 
 /- Left multiplication. The abbreviation is `MIL`. -/
-localized "notation `𝑳` := smooth_left_mul" in lie_group
+localized "notation (name := smooth_left_mul) `𝑳` := smooth_left_mul" in lie_group
 
 /- Right multiplication. The abbreviation is `MIR`. -/
-localized "notation `𝑹` := smooth_right_mul" in lie_group
+localized "notation (name := smooth_right_mul) `𝑹` := smooth_right_mul" in lie_group
 
 open_locale lie_group
 
@@ -370,3 +370,14 @@ lemma smooth_finprod_cond (hc : ∀ i, p i → smooth I' I (f i))
 cont_mdiff_finprod_cond hc hf
 
 end comm_monoid
+
+section
+
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+
+instance has_smooth_add_self : has_smooth_add 𝓘(𝕜, E) E :=
+⟨by { convert cont_diff_add.cont_mdiff, exact model_with_corners_self_prod.symm,
+  exact charted_space_self_prod }⟩
+
+end

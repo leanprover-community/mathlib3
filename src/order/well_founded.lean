@@ -4,17 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
 import tactic.by_contra
-import data.set.basic
+import data.set.image
 
 /-!
 # Well-founded relations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A relation is well-founded if it can be used for induction: for each `x`, `(∀ y, r y x → P y) → P x`
 implies `P x`. Well-founded relations can be used for induction and recursion, including
 construction of fixed points in the space of dependent functions `Π x : α , β x`.
 
 The predicate `well_founded` is defined in the core library. In this file we prove some extra lemmas
-and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `well_founded.succ`.
+and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `well_founded.succ`,
+and an induction principle `well_founded.induction_bot`.
 -/
 
 variables {α : Type*}
@@ -67,26 +71,6 @@ begin
   by_contra hy',
   exact hm' y hy' hy
 end
-
-lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
-begin
-  split,
-  { intros xle nge,
-    cases le_not_le_of_lt nge,
-    rw xle left at nge,
-    exact lt_irrefl x nge },
-  { intros ngt xle,
-    contrapose! ngt,
-    exact lt_of_le_of_ne xle (ne.symm ngt) }
-end
-
-theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
-by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
-
-theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
-@well_founded_iff_has_max' αᵒᵈ _
 
 open set
 /-- The supremum of a bounded, well-founded order -/
@@ -211,3 +195,48 @@ not_lt.mp $ not_lt_argmin_on f h s ha hs
 end linear_order
 
 end function
+
+section induction
+
+/-- Let `r` be a relation on `α`, let `f : α → β` be a function, let `C : β → Prop`, and
+let `bot : α`. This induction principle shows that `C (f bot)` holds, given that
+* some `a` that is accessible by `r` satisfies `C (f a)`, and
+* for each `b` such that `f b ≠ f bot` and `C (f b)` holds, there is `c`
+  satisfying `r c b` and `C (f c)`. -/
+lemma acc.induction_bot' {α β} {r : α → α → Prop} {a bot : α} (ha : acc r a) {C : β → Prop}
+  {f : α → β} (ih : ∀ b, f b ≠ f bot → C (f b) → ∃ c, r c b ∧ C (f c)) : C (f a) → C (f bot) :=
+@acc.rec_on _ _ (λ x, C (f x) → C (f bot)) _ ha $ λ x ac ih' hC,
+  (eq_or_ne (f x) (f bot)).elim (λ h, h ▸ hC)
+    (λ h, let ⟨y, hy₁, hy₂⟩ := ih x h hC in ih' y hy₁ hy₂)
+
+/-- Let `r` be a relation on `α`, let `C : α → Prop` and let `bot : α`.
+This induction principle shows that `C bot` holds, given that
+* some `a` that is accessible by `r` satisfies `C a`, and
+* for each `b ≠ bot` such that `C b` holds, there is `c` satisfying `r c b` and `C c`. -/
+lemma acc.induction_bot {α} {r : α → α → Prop} {a bot : α} (ha : acc r a)
+  {C : α → Prop} (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C a → C bot :=
+ha.induction_bot' ih
+
+/-- Let `r` be a well-founded relation on `α`, let `f : α → β` be a function,
+let `C : β → Prop`, and  let `bot : α`.
+This induction principle shows that `C (f bot)` holds, given that
+* some `a` satisfies `C (f a)`, and
+* for each `b` such that `f b ≠ f bot` and `C (f b)` holds, there is `c`
+  satisfying `r c b` and `C (f c)`. -/
+lemma well_founded.induction_bot' {α β} {r : α → α → Prop} (hwf : well_founded r) {a bot : α}
+  {C : β → Prop} {f : α → β} (ih : ∀ b, f b ≠ f bot → C (f b) → ∃ c, r c b ∧ C (f c)) :
+  C (f a) → C (f bot) :=
+(hwf.apply a).induction_bot' ih
+
+/-- Let `r` be a well-founded relation on `α`, let `C : α → Prop`, and let `bot : α`.
+This induction principle shows that `C bot` holds, given that
+* some `a` satisfies `C a`, and
+* for each `b` that satisfies `C b`, there is `c` satisfying `r c b` and `C c`.
+
+The naming is inspired by the fact that when `r` is transitive, it follows that `bot` is
+the smallest element w.r.t. `r` that satisfies `C`. -/
+lemma well_founded.induction_bot {α} {r : α → α → Prop} (hwf : well_founded r) {a bot : α}
+  {C : α → Prop} (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C a → C bot :=
+hwf.induction_bot' ih
+
+end induction

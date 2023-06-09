@@ -14,6 +14,9 @@ import data.set.opposite
 /-!
 # Separating and detecting sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 There are several non-equivalent notions of a generator of a category. Here, we consider two of
 them:
 
@@ -146,7 +149,6 @@ lemma is_detecting.is_separating [has_equalizers C] {𝒢 : set C} (h𝒢 : is_d
   by exactI eq_of_epi_equalizer
 
 section
-local attribute [instance] has_equalizers_opposite
 
 lemma is_codetecting.is_coseparating [has_coequalizers C] {𝒢 : set C} :
   is_codetecting 𝒢 → is_coseparating 𝒢 :=
@@ -205,18 +207,16 @@ end mono
 
 section empty
 
-lemma thin_of_is_separating_empty (h : is_separating (∅ : set C)) (X Y : C) :
-  subsingleton (X ⟶ Y) :=
-⟨λ f g, h _ _ $ λ G, false.elim⟩
+lemma thin_of_is_separating_empty (h : is_separating (∅ : set C)) : quiver.is_thin C :=
+λ _ _, ⟨λ f g, h _ _ $ λ G, false.elim⟩
 
-lemma is_separating_empty_of_thin [∀ X Y : C, subsingleton (X ⟶ Y)] : is_separating (∅ : set C) :=
+lemma is_separating_empty_of_thin [quiver.is_thin C] : is_separating (∅ : set C) :=
 λ X Y f g hfg, subsingleton.elim _ _
 
-lemma thin_of_is_coseparating_empty (h : is_coseparating (∅ : set C)) (X Y : C) :
-  subsingleton (X ⟶ Y) :=
-⟨λ f g, h _ _ $ λ G, false.elim⟩
+lemma thin_of_is_coseparating_empty (h : is_coseparating (∅ : set C)) : quiver.is_thin C :=
+λ _ _, ⟨λ f g, h _ _ $ λ G, false.elim⟩
 
-lemma is_coseparating_empty_of_thin [∀ X Y : C, subsingleton (X ⟶ Y)] :
+lemma is_coseparating_empty_of_thin [quiver.is_thin C] :
   is_coseparating (∅ : set C) :=
 λ X Y f g hfg, subsingleton.elim _ _
 
@@ -263,7 +263,8 @@ end
 /-- An ingredient of the proof of the Special Adjoint Functor Theorem: a complete well-powered
     category with a small coseparating set has an initial object.
 
-    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete. -/
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete,
+    see `has_colimits_of_has_limits_of_is_coseparating`. -/
 lemma has_initial_of_is_coseparating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_coseparating 𝒢) : has_initial C :=
 begin
@@ -287,11 +288,11 @@ end
 /-- An ingredient of the proof of the Special Adjoint Functor Theorem: a cocomplete well-copowered
     category with a small separating set has a terminal object.
 
-    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already complete. -/
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already complete, see
+    `has_limits_of_has_colimits_of_is_separating`. -/
 lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_separating 𝒢) : has_terminal C :=
 begin
-  haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
   haveI : small.{v₁} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
   haveI : has_initial Cᵒᵖ := has_initial_of_is_coseparating ((is_coseparating_op_iff _).2 h𝒢),
   exact has_terminal_of_has_initial_op

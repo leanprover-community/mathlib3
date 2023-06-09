@@ -29,6 +29,8 @@ It involves making the substitution
 
 open real
 
+namespace imo2006_q3
+
 /-- Replacing `x` and `y` with their average increases the left side. -/
 lemma lhs_ineq {x y : ℝ} (hxy : 0 ≤ x * y) :
   16 * x ^ 2 * y ^ 2 * (x + y) ^ 2 ≤ ((x + y) ^ 2) ^ 3 :=
@@ -89,17 +91,16 @@ le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
 theorem subst_proof₁ (x y z s : ℝ) (hxyz : x + y + z = 0) :
   |x * y * z * s| ≤ sqrt 2 / 32 * (x^2 + y^2 + z^2 + s^2)^2 :=
 begin
-  wlog h' := mul_nonneg_of_three x y z using [x y z, y z x, z x y] tactic.skip,
+  wlog h' : 0 ≤ x * y generalizing x y z, swap,
   { rw [div_mul_eq_mul_div, le_div_iff' zero_lt_32],
     exact subst_wlog h' hxyz },
-  { intro h,
-    rw [add_assoc, add_comm] at h,
-    rw [mul_assoc x, mul_comm x, add_assoc (x^2), add_comm (x^2)],
-    exact this h },
-  { intro h,
-    rw [add_comm, ← add_assoc] at h,
-    rw [mul_comm _ z, ← mul_assoc, add_comm _ (z^2), ← add_assoc],
-    exact this h }
+  cases (mul_nonneg_of_three x y z).resolve_left h' with h h,
+  { specialize this y z x _ h,
+    { rw ← hxyz, ring, },
+    { convert this using 2; ring } },
+  { specialize this z x y _ h,
+    { rw ← hxyz, ring, },
+    { convert this using 2; ring } },
 end
 
 lemma lhs_identity (a b c : ℝ) :
@@ -133,6 +134,10 @@ begin
   { apply pow_pos, norm_num },
   { exact mul_nonneg (mul_nonneg (sq_nonneg _) zero_le_two) (sqrt_nonneg _) }
 end
+
+end imo2006_q3
+
+open imo2006_q3
 
 theorem imo2006_q3 (M : ℝ) :
   (∀ a b c : ℝ,

@@ -202,6 +202,25 @@ begin
   exact t
 end
 
+structure baz {α : Type*} (f : α → α) : Prop := [inst : nonempty α] (h : f ∘ f = id)
+example {α} (f : α → α) (h : baz f) : true := by { rcases h with ⟨_⟩; trivial }
+example {α} (f : α → α) (h : baz f) : true := by { rcases h with @⟨_, _⟩; trivial }
+
+inductive test : nat → Prop
+| a (n) : test (2 + n)
+| b {n} : n > 5 → test (n * n)
+
+example {n} (h : test n) : n = n :=
+begin
+  have : true,
+  { rcases h with a | b,
+    { guard_hyp a : nat, trivial },
+    { guard_hyp b : ‹nat› > 5, trivial } },
+  { rcases h with a | @⟨n, b⟩,
+    { guard_hyp a : nat, trivial },
+    { guard_hyp b : n > 5, trivial } },
+end
+
 open tactic
 meta def test_rcases_hint (s : string) (num_goals : ℕ) (depth := 5) : tactic unit :=
 do change `(true),
@@ -236,7 +255,7 @@ inductive foo (α : Type) : ℕ → Type
 
 example {α} (h : foo α 0) : true := by test_rcases_hint "_ | ⟨_, h_ᾰ⟩" 2
 example {α} (h : foo α 1) : true := by test_rcases_hint "_ | ⟨_, h_ᾰ⟩" 1
-example {α n} (h : foo α n) : true := by test_rcases_hint "_ | ⟨n, h_ᾰ⟩" 2 1
+example {α n} (h : foo α n) : true := by test_rcases_hint "_ | h_ᾰ" 2 1
 
 example {α} (V : set α) (h : ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) :=
 by test_rcases_hint "⟨⟨h_w_fst, h_w_snd⟩, ⟨⟩⟩" 0

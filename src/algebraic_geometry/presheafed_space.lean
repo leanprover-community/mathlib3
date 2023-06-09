@@ -9,6 +9,9 @@ import category_theory.adjunction.fully_faithful
 /-!
 # Presheafed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Introduces the category of topological spaces equipped with a presheaf (taking values in an
 arbitrary target category `C`.)
 
@@ -26,7 +29,7 @@ open category_theory.category category_theory.functor
 
 variables (C : Type u) [category.{v} C]
 
-local attribute [tidy] tactic.op_induction'
+local attribute [tidy] tactic.op_induction' tactic.auto_cases_opens
 
 namespace algebraic_geometry
 
@@ -288,7 +291,7 @@ instance of_restrict_mono {U : Top} (X : PresheafedSpace C) (f : U ⟶ X.1)
    ext V,
    { induction V using opposite.rec,
      have hV : (opens.map (X.of_restrict hf).base).obj (hf.is_open_map.functor.obj V) = V,
-     { cases V, simp[opens.map, set.preimage_image_eq _ hf.inj] },
+     { ext1, exact set.preimage_image_eq _ hf.inj },
      haveI : is_iso (hf.is_open_map.adjunction.counit.app
                (unop (op (hf.is_open_map.functor.obj V)))) :=
        (nat_iso.is_iso_app_of_is_iso (whisker_left

@@ -76,6 +76,22 @@ by { classical ; simp only [ceil, zsmul_eq_smul_cast K, b.repr.map_smul, finsupp
   finset.sum_apply', basis.repr_self, finsupp.smul_single', mul_one, finset.sum_ite_eq', coe_sum,
   finset.mem_univ, if_true, coe_smul_of_tower, basis.restrict_scalars_apply, linear_equiv.map_sum] }
 
+@[simp]
+lemma floor_eq_self_of_mem (m : E) (h : m ∈ span ℤ (set.range b)) : (floor b m : E) = m :=
+begin
+  apply b.ext_elem,
+  simp_rw [repr_floor_apply b],
+  exact λ i, int.floor_eq_self ((b.mem_span_iff_repr_mem ℤ _).mp h i),
+end
+
+@[simp]
+lemma ceil_eq_self_of_mem (m : E) (h : m ∈ span ℤ (set.range b)) : (ceil b m : E) = m :=
+begin
+  apply b.ext_elem,
+  simp_rw [repr_ceil_apply b],
+  exact λ i, int.ceil_eq_self ((b.mem_span_iff_repr_mem ℤ _).mp h i),
+end
+
 /-- The map that sends a vector `E` to the fundamental domain of the lattice,
 see `zspan.fract_mem_fundamental_domain`. -/
 def fract (m : E) : E := m - floor b m

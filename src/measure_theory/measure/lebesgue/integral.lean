@@ -6,7 +6,10 @@ Authors: Johannes Hölzl, Sébastien Gouëzel, Yury Kudryashov
 import measure_theory.integral.set_integral
 import measure_theory.measure.lebesgue.basic
 
-/-! # Properties of integration with respect to the Lebesgue measure -/
+/-! # Properties of integration with respect to the Lebesgue measure 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 open set filter measure_theory measure_theory.measure topological_space
 

@@ -15,6 +15,9 @@ import measure_theory.integral.vitali_caratheodory
 /-!
 # Fundamental Theorem of Calculus
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove various versions of the
 [fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus)
 for interval integrals in `ℝ`.

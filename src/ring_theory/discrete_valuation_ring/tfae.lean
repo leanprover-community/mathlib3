@@ -12,6 +12,9 @@ import ring_theory.nakayama
 
 # Equivalent conditions for DVR
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In `discrete_valuation_ring.tfae`, we show that the following are equivalent for a
 noetherian local domain `(R, m, k)`:
 - `R` is a discrete valuation ring

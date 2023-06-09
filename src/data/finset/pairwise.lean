@@ -42,9 +42,8 @@ hs.elim hi hj (finset.not_disjoint_iff.2 ⟨a, hai, haj⟩)
 section semilattice_inf
 variables [semilattice_inf α] [order_bot α] {s : finset ι} {f : ι → α}
 
-lemma pairwise_disjoint.image_finset_of_le [decidable_eq ι] (hs : (s : set ι).pairwise_disjoint f)
-  {g : ι → ι}
-  (hf : ∀ a, f (g a) ≤ f a) :
+lemma pairwise_disjoint.image_finset_of_le [decidable_eq ι] {s : finset ι} {f : ι → α}
+  (hs : (s : set ι).pairwise_disjoint f) {g : ι → ι} (hf : ∀ a, f (g a) ≤ f a) :
   (s.image g : set ι).pairwise_disjoint f :=
 begin
   rw coe_image,

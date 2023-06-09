@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Kevin Buzzard, Yaël Dillies, Eric Wieser
 -/
+import data.finset.sigma
 import data.finset.pairwise
 import data.finset.powerset
 import data.fintype.basic
@@ -114,6 +115,7 @@ begin
   { classical,
     rw map_eq_image,
     exact hs.image }
+end
 
 @[simp] lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   ({i, j} : finset ι).sup_indep f ↔ disjoint (f i) (f j) :=
@@ -195,7 +197,7 @@ lemma sup_indep.sigma {β : ι → Type*} {s : finset ι} {g : Π i, finset (β 
   (s.sigma g).sup_indep f :=
 begin
   rintro t ht ⟨i, b⟩ hi hit,
-  rw disjoint_sup_right,
+  rw finset.disjoint_sup_right,
   rintro ⟨j, c⟩ hj,
   have hbc := (ne_of_mem_of_not_mem hj hit).symm,
   replace hj := ht hj,
@@ -213,7 +215,7 @@ lemma sup_indep.product {s : finset ι} {t : finset ι'} {f : ι × ι' → α}
   (s.product t).sup_indep f :=
 begin
   rintro u hu ⟨i, i'⟩ hi hiu,
-  rw disjoint_sup_right,
+  rw finset.disjoint_sup_right,
   rintro ⟨j, j'⟩ hj,
   have hij := (ne_of_mem_of_not_mem hj hiu).symm,
   replace hj := hu hj,
@@ -234,7 +236,8 @@ begin
   refine ⟨_, λ h, h.1.product h.2⟩,
   simp_rw sup_indep_iff_pairwise_disjoint,
   refine (λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩);
-    simp_rw [function.on_fun, disjoint_sup_left, disjoint_sup_right]; intros i' hi' j' hj',
+    simp_rw [function.on_fun, finset.disjoint_sup_left, finset.disjoint_sup_right];
+      intros i' hi' j' hj',
   { exact h (mk_mem_product hi hi') (mk_mem_product hj hj') (ne_of_apply_ne prod.fst hij) },
   { exact h (mk_mem_product hi' hi) (mk_mem_product hj' hj) (ne_of_apply_ne prod.snd hij) }
 end

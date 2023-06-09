@@ -149,12 +149,8 @@ lemma stopped_value_ae_eq_condexp_of_le [countable ι]
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n) [sigma_finite (μ.trim hσ.measurable_space_le)] :
   stopped_value f σ =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
-begin
-  haveI : sigma_finite (μ.trim hτ.measurable_space_le),
-  { exact sigma_finite_trim_mono _ (is_stopping_time.measurable_space_mono hσ hτ hσ_le_τ), },
-  exact h.stopped_value_ae_eq_condexp_of_le_of_countable_range hτ hσ hσ_le_τ hτ_le
-    (set.to_countable _) (set.to_countable _),
-end
+h.stopped_value_ae_eq_condexp_of_le_of_countable_range hτ hσ hσ_le_τ hτ_le
+  (set.to_countable _) (set.to_countable _)
 
 end first_countable_topology
 
@@ -209,20 +205,6 @@ lemma stopped_value_min_ae_eq_condexp [sigma_finite_filtration μ ℱ]
   (hτ_le : ∀ x, τ x ≤ n) [h_sf_min : sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
   stopped_value f (λ x, min (σ x) (τ x)) =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
 begin
-  have h_min_comm : (hτ.min hσ).measurable_space = (hσ.min hτ).measurable_space,
-    by rw [is_stopping_time.measurable_space_min, is_stopping_time.measurable_space_min, inf_comm],
-  haveI : sigma_finite (μ.trim (hσ.min hτ).measurable_space_le),
-  { convert h_sf_min; { ext1 x, rw min_comm, }, },
-  haveI : sigma_finite (μ.trim hτ.measurable_space_le),
-  { have h_le : (hτ.min hσ).measurable_space ≤ hτ.measurable_space,
-    { rw is_stopping_time.measurable_space_min,
-      exact inf_le_left, },
-    exact sigma_finite_trim_mono _ h_le, },
-  haveI : sigma_finite (μ.trim hσ.measurable_space_le),
-  { have h_le : (hτ.min hσ).measurable_space ≤ hσ.measurable_space,
-    { rw is_stopping_time.measurable_space_min,
-      exact inf_le_right, },
-    exact sigma_finite_trim_mono _ h_le, },
   refine (h.stopped_value_ae_eq_condexp_of_le hτ (hσ.min hτ) (λ x, min_le_right _ _) hτ_le).trans _,
   refine ae_of_ae_restrict_of_ae_restrict_compl {x | σ x ≤ τ x} _ _,
   { exact condexp_min_stopping_time_ae_eq_restrict_le hσ hτ, },
@@ -237,7 +219,7 @@ begin
     refine filter.eventually_eq.trans _
       ((condexp_min_stopping_time_ae_eq_restrict_le hτ hσ).trans _),
     { exact stopped_value f τ, },
-    { rw h_min_comm, },
+    { rw [is_stopping_time.measurable_space_min, is_stopping_time.measurable_space_min, inf_comm] },
     { have h1 : μ[stopped_value f τ|hτ.measurable_space] = stopped_value f τ,
       { refine condexp_of_strongly_measurable hτ.measurable_space_le _ _,
         { refine measurable.strongly_measurable _,

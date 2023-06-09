@@ -125,7 +125,7 @@ begin
       simp only [term.val, mul_add, add_mul, m, a_n],
       ring },
     cases h4 with c h4,
-    rw [dvd_add_iff_right (dvd_mul_right m c), h4, ← h1],
+    rw [←dvd_add_right (dvd_mul_right m c), h4, ← h1],
     apply dvd_zero },
   apply calc v n
       = -(m * sgm v b as n) + (symmod b m) +
@@ -197,7 +197,7 @@ begin
             apply fun_mono_2,
             { rw coeffs.val_except_eq_val_except
               update_eq_of_ne (get_set_eq_of_ne _) },
-            simp only [m], ring,
+            ring,
           end
   ... = -(m * a_n * sgm v b as n) + (b + a_n * (symmod b m))
         + coeffs.val_except n v (as.map (λ a_i, a_i + a_n * (symmod a_i m))) :
@@ -375,7 +375,7 @@ lemma sat_eq_elim :
       have h3 : 0 = b + coeffs.val v as := h1.left _ (or.inl rfl),
       have h4 : i ∣ coeffs.val v as     := coeffs.dvd_val h2.right,
       have h5 : i ∣ b + coeffs.val v as := by { rw ← h3, apply dvd_zero },
-      rw ← dvd_add_iff_left h4 at h5, apply h2.left h5 },
+      rw dvd_add_left h4 at h5, apply h2.left h5 },
     rw if_neg h2, apply sat_empty
   end
 | (ee.factor i::es) ((b,as)::eqs, les) h1 :=

@@ -3,12 +3,15 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 import dynamics.ergodic.measure_preserving
 import combinatorics.pigeonhole
 
 /-!
 # Conservative systems
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `f : α → α` to be a *conservative* system w.r.t a measure `μ` if `f` is
 non-singular (`measure_theory.quasi_measure_preserving`) and for every measurable set `s` of
@@ -38,7 +41,7 @@ conservative dynamical system, Poincare recurrence theorem
 noncomputable theory
 
 open classical set filter measure_theory finset function topological_space
-open_locale classical topological_space
+open_locale classical topology
 
 variables {ι : Type*} {α : Type*} [measurable_space α] {f : α → α} {s : set α} {μ : measure α}
 
@@ -82,10 +85,10 @@ begin
   rcases ihN with ⟨n, hn, hμn⟩,
   set T := s ∩ ⋃ n ≥ N + 1, (f^[n]) ⁻¹' s,
   have hT : measurable_set T,
-    from hs.inter (measurable_set.bUnion (countable_encodable _)
+    from hs.inter (measurable_set.bUnion (to_countable _)
       (λ _ _, hf.measurable.iterate _ hs)),
   have hμT : μ T = 0,
-  { convert (measure_bUnion_null_iff $ countable_encodable _).2 hN,
+  { convert (measure_bUnion_null_iff $ to_countable _).2 hN,
     rw ←inter_Union₂, refl },
   have : μ ((s ∩ (f^[n]) ⁻¹' s) \ T) ≠ 0, by rwa [measure_diff_null hμT],
   rcases hf.exists_mem_image_mem ((hs.inter (hf.measurable.iterate n hs)).diff hT) this
@@ -114,7 +117,7 @@ begin
   by_contradiction H,
   have : measurable_set (s ∩ {x | ∀ m ≥ n, f^[m] x ∉ s}),
   { simp only [set_of_forall, ← compl_set_of],
-    exact hs.inter (measurable_set.bInter (countable_encodable _)
+    exact hs.inter (measurable_set.bInter (to_countable _)
       (λ m _, hf.measurable.iterate m hs.compl)) },
   rcases (hf.exists_gt_measure_inter_ne_zero this H) n with ⟨m, hmn, hm⟩,
   rcases nonempty_of_measure_ne_zero hm with ⟨x, ⟨hxs, hxn⟩, hxm, -⟩,

@@ -3,14 +3,16 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-
-import topology.opens
 import category_theory.sites.grothendieck
 import category_theory.sites.pretopology
 import category_theory.limits.lattice
+import topology.sets.opens
 
 /-!
 # Grothendieck topology on a topological space
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Define the Grothendieck topology and the pretopology associated to a topological space, and show
 that the pretopology induces the topology.

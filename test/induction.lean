@@ -1,3 +1,5 @@
+import data.list.basic
+import topology.basic
 import tactic.induction
 import tactic.linarith
 
@@ -787,7 +789,7 @@ inductive lte : nat → nat → Type
 | zero (n : nat) : lte 0 n
 | succ {n m : nat} : lte n m → lte (1 + n) (1 + m)
 
-lemma lt_lte {n m} : lt n m → lte n m :=
+def lt_lte {n m} : lt n m → lte n m :=
 begin
   intro lt_n_m,
   induction' lt_n_m,
@@ -1080,8 +1082,8 @@ begin
     exact small_step.while, }
 end
 
-infixr ` ⇒ ` := small_step
-infixr ` ⇒* ` : 100 := star small_step
+infixr (name := small_step) ` ⇒ ` := small_step
+infixr (name := small_step.star) ` ⇒* ` : 100 := star small_step
 
 
 /- More lemmas about big-step and small-step semantics. These are taken from the

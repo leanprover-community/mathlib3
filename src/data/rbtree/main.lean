@@ -6,6 +6,7 @@ Authors: Leonardo de Moura
 import data.rbtree.find
 import data.rbtree.insert
 import data.rbtree.min_max
+import order.rel_classes
 
 universes u
 
@@ -65,8 +66,8 @@ variables [decidable_rel lt]
 
 lemma insert_ne_mk_rbtree (t : rbtree α lt) (a : α) : t.insert a ≠ mk_rbtree α lt :=
 begin
-  cases t with n p, simp [insert, mk_rbtree], intro h, injection h with h',
-  apply rbnode.insert_ne_leaf lt n a h'
+  cases t with n p,
+  simpa [insert, mk_rbtree] using rbnode.insert_ne_leaf lt n a
 end
 
 lemma find_correct [is_strict_weak_order α lt] (a : α) (t : rbtree α lt) :
@@ -177,11 +178,11 @@ lemma mem_insert_of_mem [is_strict_weak_order α lt] {a : α} {t : rbtree α lt}
   a ∈ t → a ∈ t.insert b :=
 begin cases t, apply rbnode.mem_insert_of_mem end
 
-lemma equiv_or_mem_of_mem_insert [is_strict_weak_order α lt] {a b : α} {t : rbtree α lt} :
+lemma equiv_or_mem_of_mem_insert {a b : α} {t : rbtree α lt} :
   a ∈ t.insert b → a ≈[lt] b ∨ a ∈ t :=
 begin cases t, apply rbnode.equiv_or_mem_of_mem_insert end
 
-lemma incomp_or_mem_of_mem_ins [is_strict_weak_order α lt] {a b : α} {t : rbtree α lt} :
+lemma incomp_or_mem_of_mem_ins {a b : α} {t : rbtree α lt} :
   a ∈ t.insert b → (¬ lt a b ∧ ¬ lt b a) ∨ a ∈ t :=
 equiv_or_mem_of_mem_insert
 

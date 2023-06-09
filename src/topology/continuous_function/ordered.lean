@@ -5,10 +5,14 @@ Authors: Scott Morrison, Shing Tak Lam
 -/
 
 import topology.algebra.order.proj_Icc
+import topology.algebra.order.group
 import topology.continuous_function.basic
 
 /-!
 # Bundled continuous maps into orders, with order-compatible topology
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 -/
 
@@ -110,12 +114,12 @@ variables [linear_order γ] [order_closed_topology γ]
 
 lemma inf'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
   s.inf' H f b = s.inf' H (λ a, f a b) :=
-@sup'_apply _ (order_dual γ) _ _ _ _ _ _ H f b
+@sup'_apply _ γᵒᵈ _ _ _ _ _ _ H f b
 
 @[simp, norm_cast]
 lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
   ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
-@sup'_coe _ (order_dual γ) _ _ _ _ _ _ H f
+@sup'_coe _ γᵒᵈ _ _ _ _ _ _ H f
 
 end inf'
 

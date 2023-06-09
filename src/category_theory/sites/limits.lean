@@ -10,6 +10,9 @@ import category_theory.sites.sheafification
 
 # Limits and colimits of sheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Limits
 
 We prove that the forgetful functor from `Sheaf J D` to presheaves creates limits.
@@ -33,10 +36,10 @@ open opposite
 
 section limits
 
-universes w v u
-variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
+universes w v u z
+variables {C : Type u} [category.{v} C] {J : grothendieck_topology C}
 variables {D : Type w} [category.{max v u} D]
-variables {K : Type (max v u)} [small_category K]
+variables {K : Type z} [small_category K]
 
 noncomputable theory
 
@@ -75,8 +78,8 @@ def multifork_evaluation_cone (F : K ⥤ Sheaf J D)
       rw [presheaf.is_sheaf.amalgamate_map, category.assoc, ← (F.map f).val.naturality,
         ← category.assoc, presheaf.is_sheaf.amalgamate_map],
       dsimp [multifork.of_ι],
-      rw [category.assoc, ← E.w f],
-      simp,
+      erw [category.assoc, ← E.w f],
+      tidy,
     end } }
 
 
@@ -166,7 +169,7 @@ end limits
 section colimits
 
 universes w v u
-variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
+variables {C : Type u} [category.{v} C] {J : grothendieck_topology C}
 variables {D : Type w} [category.{max v u} D]
 variables {K : Type (max v u)} [small_category K]
 -- Now we need a handful of instances to obtain sheafification...

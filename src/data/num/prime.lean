@@ -10,6 +10,9 @@ import tactic.ring
 /-!
 # Primality for binary natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines versions of `nat.min_fac` and `nat.prime` for `num` and `pos_num`. As with other
 `num` definitions, they are not intended for general use (`nat` should be used instead of `num` in
 most cases) but they can be used in contexts where kernel computation is required, such as proofs

@@ -8,6 +8,9 @@ import data.fintype.basic
 import data.list.prod_sigma
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Type class for finitely enumerable types. The property is stronger
 than `fintype` in that it assigns each element a rank in a finite
 enumeration.
@@ -59,7 +62,7 @@ open function
 by simp [to_list]; existsi equiv α x; simp
 
 @[simp] lemma nodup_to_list [fin_enum α] : list.nodup (to_list α) :=
-by simp [to_list]; apply list.nodup_map; [apply equiv.injective, apply list.nodup_fin_range]
+by simp [to_list]; apply list.nodup.map; [apply equiv.injective, apply list.nodup_fin_range]
 
 /-- create a `fin_enum` instance using a surjection -/
 def of_surjective {β} (f : β → α) [decidable_eq α] [fin_enum β] (h : surjective f) : fin_enum α :=
@@ -86,7 +89,7 @@ instance punit : fin_enum punit :=
 of_list [punit.star] (λ x, by cases x; simp)
 
 instance prod {β} [fin_enum α] [fin_enum β] : fin_enum (α × β) :=
-of_list ( (to_list α).product (to_list β) ) (λ x, by cases x; simp)
+of_list (to_list α ×ˢ to_list β) (λ x, by cases x; simp)
 
 instance sum {β} [fin_enum α] [fin_enum β] : fin_enum (α ⊕ β) :=
 of_list ( (to_list α).map sum.inl ++ (to_list β).map sum.inr ) (λ x, by cases x; simp)
@@ -117,7 +120,7 @@ begin
       { exact or.inl hx },
       { exact or.inr (h _ hx) } },
     intro h, existsi s \ ({xs_hd} : finset α),
-    simp only [and_imp, union_comm, mem_sdiff, mem_singleton],
+    simp only [and_imp, mem_sdiff, mem_singleton],
     simp only [or_iff_not_imp_left] at h,
     existsi h,
     by_cases xs_hd ∈ s,
@@ -125,8 +128,8 @@ begin
       simp only [union_sdiff_of_subset this, or_true, finset.union_sdiff_of_subset,
         eq_self_iff_true], },
     { left, symmetry, simp only [sdiff_eq_self],
-      intro a, simp only [and_imp, mem_inter, mem_singleton, not_mem_empty],
-      intros h₀ h₁, subst a, apply h h₀, } }
+      intro a, simp only [and_imp, mem_inter, mem_singleton],
+      rintro h₀ rfl, apply h h₀, } }
 end
 
 instance finset.fin_enum [fin_enum α] : fin_enum (finset α) :=

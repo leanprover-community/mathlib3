@@ -8,11 +8,14 @@ import topology.uniform_space.separation
 
 /-!
 # Indexed product of uniform spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory
 
-open_locale uniformity topological_space
+open_locale uniformity topology
 
 section
 open filter uniform_space

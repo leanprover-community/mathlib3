@@ -12,6 +12,9 @@ import tactic.slice
 /-!
 # Equivalence of categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An equivalence of categories `C` and `D` is a pair of functors `F : C ⥤ D` and `G : D ⥤ C` such
 that `η : 𝟭 C ≅ F ⋙ G` and `ε : G ⋙ F ≅ 𝟭 D`. In many situations, equivalences are a better
 notion of "sameness" of categories than the stricter isomorphims of categories.
@@ -71,7 +74,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃
   complicated if we write it as an equality of natural transformations, because then we would have
   to insert natural transformations like `F ⟶ F1`.
 
-See https://stacks.math.columbia.edu/tag/001J
+See <https://stacks.math.columbia.edu/tag/001J>
 -/
 structure equivalence (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :=
 mk' ::
@@ -135,8 +138,9 @@ by { erw [←iso.hom_comp_eq_id (e.functor.map_iso (e.unit_iso.app X)), functor_
 @[simp] lemma unit_inverse_comp (e : C ≌ D) (Y : D) :
   e.unit.app (e.inverse.obj Y) ≫ e.inverse.map (e.counit.app Y) = 𝟙 (e.inverse.obj Y) :=
 begin
-  rw [←id_comp (e.inverse.map _), ←map_id e.inverse, ←counit_inv_functor_comp, map_comp,
-      ←iso.hom_inv_id_assoc (e.unit_iso.app _) (e.inverse.map (e.functor.map _)),
+  rw [←id_comp (e.inverse.map _), ←map_id e.inverse, ←counit_inv_functor_comp, map_comp],
+  dsimp,
+  rw [←iso.hom_inv_id_assoc (e.unit_iso.app _) (e.inverse.map (e.functor.map _)),
       app_hom, app_inv],
   slice_lhs 2 3 { erw [e.unit.naturality] },
   slice_lhs 1 2 { erw [e.unit.naturality] },
@@ -557,7 +561,7 @@ namespace equivalence
 /--
 An equivalence is essentially surjective.
 
-See https://stacks.math.columbia.edu/tag/02C3.
+See <https://stacks.math.columbia.edu/tag/02C3>.
 -/
 lemma ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨λ Y, ⟨F.inv.obj Y, ⟨F.as_equivalence.counit_iso.app Y⟩⟩⟩
@@ -565,7 +569,7 @@ lemma ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 /--
 An equivalence is faithful.
 
-See https://stacks.math.columbia.edu/tag/02C3.
+See <https://stacks.math.columbia.edu/tag/02C3>.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
@@ -578,7 +582,7 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
 /--
 An equivalence is full.
 
-See https://stacks.math.columbia.edu/tag/02C3.
+See <https://stacks.math.columbia.edu/tag/02C3>.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
@@ -597,13 +601,13 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 /--
 A functor which is full, faithful, and essentially surjective is an equivalence.
 
-See https://stacks.math.columbia.edu/tag/02C3.
+See <https://stacks.math.columbia.edu/tag/02C3>.
 -/
 noncomputable def of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
-    (λ X, (preimage_iso $ F.obj_obj_preimage_iso $ F.obj X).symm)
+    (λ X, (F.preimage_iso $ F.obj_obj_preimage_iso $ F.obj X).symm)
     (λ X Y f, by { apply F.map_injective, obviously }))
   (nat_iso.of_components F.obj_obj_preimage_iso (by tidy))
 

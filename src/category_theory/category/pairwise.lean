@@ -3,12 +3,15 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-
+import order.complete_lattice
 import category_theory.category.preorder
 import category_theory.limits.is_limit
 
 /-!
 # The category of "pairwise intersections".
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given `ι : Type v`, we build the diagram category `pairwise ι`
 with objects `single i` and `pair i j`, for `i j : ι`,

@@ -27,6 +27,8 @@ We prove a slightly more general version where k does not need to be strictly po
 
 open_locale big_operators
 
+namespace imo2013_q1
+
 lemma arith_lemma (k n : ℕ) : 0 < 2 * n + 2^k.succ :=
 calc 0 < 2                : zero_lt_two
    ... = 2^1              : (pow_one 2).symm
@@ -43,6 +45,10 @@ begin
   simp [finset.mem_range.mp hi]
 end
 
+end imo2013_q1
+
+open imo2013_q1
+
 theorem imo2013_q1 (n : ℕ+) (k : ℕ) :
     (∃ m : ℕ → ℕ+, (1 : ℚ) + (2^k - 1) / n = (∏ i in finset.range k, (1 + 1 / m i))) :=
 begin
@@ -51,8 +57,9 @@ begin
   { intro n, use (λ_, 1), simp }, -- For the base case, any m works.
 
   intro n,
-  obtain ⟨t, ht : ↑n = 2 * t⟩ | ⟨t, ht : ↑n = 2 * t + 1⟩ := (n : ℕ).even_or_odd,
+  obtain ⟨t, ht : ↑n = t + t⟩ | ⟨t, ht : ↑n = 2 * t + 1⟩ := (n : ℕ).even_or_odd,
   { -- even case
+    rw ← two_mul at ht,
     cases t, -- Eliminate the zero case to simplify later calculations.
     { exfalso, rw mul_zero at ht, exact pnat.ne_zero n ht },
 

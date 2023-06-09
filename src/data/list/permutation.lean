@@ -8,6 +8,9 @@ import data.list.join
 /-!
 # Permutations of a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove properties about `list.permutations`, a list of all permutations of a list. It
 is defined in `data.list.defs`.
 
@@ -141,9 +144,9 @@ begin
   { simp {contextual := tt} },
   rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
       by funext; simp, mem_cons_iff, ih], split,
-  { rintro (e | ⟨l₁, l₂, l0, ye, _⟩),
-    { subst l', exact ⟨[], y::ys, by simp⟩ },
-    { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
+  { rintro (rfl | ⟨l₁, l₂, l0, rfl, rfl⟩),
+    { exact ⟨[], y::ys, by simp⟩ },
+    { exact ⟨y::l₁, l₂, l0, by simp⟩ } },
   { rintro ⟨_ | ⟨y', l₁⟩, l₂, l0, ye, rfl⟩,
     { simp [ye] },
     { simp only [cons_append] at ye, rcases ye with ⟨rfl, rfl⟩,

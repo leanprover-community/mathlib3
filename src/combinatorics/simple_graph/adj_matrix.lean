@@ -1,15 +1,18 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Jalex Stark, Lu-Ming Zhang
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Lu-Ming Zhang
 -/
 import combinatorics.simple_graph.basic
-import data.rel
+import combinatorics.simple_graph.connectivity
 import linear_algebra.matrix.trace
 import linear_algebra.matrix.symmetric
 
 /-!
 # Adjacency Matrices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module defines the adjacency matrix of a graph, and provides theorems connecting graph
 properties to computational properties of the matrix.
@@ -28,6 +31,10 @@ properties to computational properties of the matrix.
   the adjacency matrix of the complement graph of the graph induced by `A`.
 
 * `simple_graph.adj_matrix`: the adjacency matrix of a `simple_graph`.
+
+* `simple_graph.adj_matrix_pow_apply_eq_card_walk`: each entry of the `n`th power of
+  a graph's adjacency matrix counts the number of length-`n` walks between the corresponding
+  pair of vertices.
 
 -/
 
@@ -144,11 +151,12 @@ variables (α)
 
 /-- `adj_matrix G α` is the matrix `A` such that `A i j = (1 : α)` if `i` and `j` are
   adjacent in the simple graph `G`, and otherwise `A i j = 0`. -/
-def adj_matrix [has_zero α] [has_one α] : matrix V V α
-| i j := if (G.adj i j) then 1 else 0
+def adj_matrix [has_zero α] [has_one α] : matrix V V α :=
+of $ λ i j, if (G.adj i j) then (1 : α) else 0
 
 variable {α}
 
+-- TODO: set as an equation lemma for `adj_matrix`, see mathlib4#3024
 @[simp]
 lemma adj_matrix_apply (v w : V) [has_zero α] [has_one α] :
   G.adj_matrix α v w = if (G.adj v w) then 1 else 0 := rfl
@@ -218,9 +226,9 @@ by simp [mul_apply, neighbor_finset_eq_filter, sum_filter, adj_comm]
 
 variable (α)
 
-theorem trace_adj_matrix [non_assoc_semiring α] [semiring β] [module β α]:
-  matrix.trace _ β _ (G.adj_matrix α) = 0 :=
-by simp
+@[simp] theorem trace_adj_matrix [add_comm_monoid α] [has_one α] :
+  matrix.trace (G.adj_matrix α) = 0 :=
+by simp [matrix.trace]
 
 variable {α}
 
@@ -239,6 +247,28 @@ lemma adj_matrix_mul_vec_const_apply_of_regular [semiring α] {d : ℕ} {a : α}
   (hd : G.is_regular_of_degree d) {v : V} :
   (G.adj_matrix α).mul_vec (function.const _ a) v = (d * a) :=
 by simp [hd v]
+
+theorem adj_matrix_pow_apply_eq_card_walk [decidable_eq V] [semiring α] (n : ℕ) (u v : V) :
+  (G.adj_matrix α ^ n) u v = fintype.card {p : G.walk u v | p.length = n} :=
+begin
+  rw card_set_walk_length_eq,
+  induction n with n ih generalizing u v,
+  { obtain rfl | h := eq_or_ne u v; simp [finset_walk_length, *] },
+  { nth_rewrite 0 [nat.succ_eq_one_add],
+    simp only [pow_add, pow_one, finset_walk_length, ih, mul_eq_mul, adj_matrix_mul_apply],
+    rw finset.card_bUnion,
+    { norm_cast,
+      simp only [nat.cast_sum, card_map, neighbor_finset_def],
+      apply finset.sum_to_finset_eq_subtype, },
+    /- Disjointness for card_bUnion -/
+    { rintros ⟨x, hx⟩ - ⟨y, hy⟩ - hxy,
+      rw disjoint_iff_inf_le,
+      intros p hp,
+      simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.coe_fn_mk, exists_prop] at hp;
+      obtain ⟨⟨px, hpx, rfl⟩, ⟨py, hpy, hp⟩⟩ := hp,
+      cases hp,
+      simpa using hxy, } },
+end
 
 end simple_graph
 

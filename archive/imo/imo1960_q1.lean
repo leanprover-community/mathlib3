@@ -22,6 +22,8 @@ The strategy here is roughly brute force, checking the possible multiples of 11.
 
 open nat
 
+namespace imo1960_q1
+
 def sum_of_squares (L : list ℕ) : ℕ := (L.map (λ x, x * x)).sum
 
 def problem_predicate (n : ℕ) : Prop :=
@@ -73,7 +75,7 @@ begin
   refine ⟨by ring, λ m l p, _⟩,
   obtain ⟨h₁, ⟨m, rfl⟩, h₂⟩ := id p,
   by_cases h : 11 * m < c * 11, { exact H _ h p },
-  have : m = c, {linarith}, subst m,
+  obtain rfl : m = c := by linarith,
   rw [nat.mul_div_cancel_left _ (by norm_num : 11 > 0), mul_comm] at h₂,
   refine (H' h₂).imp _ _; {rintro rfl, norm_num}
 end
@@ -97,6 +99,10 @@ Now we just need to prove the equivalence, for the precise problem statement.
 
 lemma left_direction (n : ℕ) (spn : solution_predicate n) : problem_predicate n :=
 by rcases spn with (rfl | rfl); norm_num [problem_predicate, sum_of_squares]
+
+end imo1960_q1
+
+open imo1960_q1
 
 theorem imo1960_q1 (n : ℕ) : problem_predicate n ↔ solution_predicate n :=
 ⟨right_direction, left_direction n⟩

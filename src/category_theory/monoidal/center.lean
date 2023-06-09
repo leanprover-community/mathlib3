@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
 import category_theory.functor.reflects_isomorphisms
+import category_theory.monoidal.coherence
 
 /-!
 # Half braidings and the Drinfeld center of a monoidal category
@@ -46,7 +47,7 @@ Thinking of `C` as a 2-category with a single `0`-morphism, these are the same a
 transformations (in the pseudo- sense) of the identity 2-functor on `C`, which send the unique
 `0`-morphism to `X`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure half_braiding (X : C) :=
 (β : Π U, X ⊗ U ≅ U ⊗ X)
 (monoidal' : ∀ U U', (β (U ⊗ U')).hom =
@@ -64,7 +65,7 @@ variables (C)
 The Drinfeld center of a monoidal category `C` has as objects pairs `⟨X, b⟩`, where `X : C`
 and `b` is a half-braiding on `X`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def center := Σ X : C, half_braiding X
 
 namespace center
@@ -72,7 +73,7 @@ namespace center
 variables {C}
 
 /-- A morphism in the Drinfeld center of `C`. -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure hom (X Y : center C) :=
 (f : X.1 ⟶ Y.1)
 (comm' : ∀ U, (f ⊗ 𝟙 U) ≫ (Y.2.β U).hom = (X.2.β U).hom ≫ (𝟙 U ⊗ f) . obviously)
@@ -117,19 +118,21 @@ def tensor_obj (X Y : center C) : center C :=
     begin
       dsimp,
       simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
-      rw [pentagon_assoc, pentagon_inv_assoc, iso.eq_inv_comp, ←pentagon_assoc,
-        ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id, category.id_comp,
-        ←associator_naturality_assoc, cancel_epi, cancel_epi,
-        ←associator_inv_naturality_assoc (X.2.β U).hom,
-        associator_inv_naturality_assoc _ _ (Y.2.β U').hom, tensor_id, tensor_id,
-        id_tensor_comp_tensor_id_assoc, associator_naturality_assoc (X.2.β U).hom,
-        ←associator_naturality_assoc _ _ (Y.2.β U').hom, tensor_id, tensor_id,
-        tensor_id_comp_id_tensor_assoc, ←id_tensor_comp_tensor_id, tensor_id, category.comp_id,
-        ←is_iso.inv_comp_eq, inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc,
-        iso.hom_inv_id_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq, is_iso.iso.inv_hom,
-        ←pentagon_inv_assoc, ←comp_tensor_id_assoc, iso.inv_hom_id, tensor_id, category.id_comp,
-        ←associator_inv_naturality_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq, inv_tensor,
-        is_iso.iso.inv_hom, is_iso.inv_id, pentagon_inv_assoc, iso.inv_hom_id, category.comp_id],
+      -- On the RHS, we'd like to commute `((X.snd.β U).hom ⊗ 𝟙 Y.fst) ⊗ 𝟙 U'`
+      -- and `𝟙 U ⊗ 𝟙 X.fst ⊗ (Y.snd.β U').hom` past each other,
+      -- but there are some associators we need to get out of the way first.
+      slice_rhs 6 8 { rw pentagon, },
+      slice_rhs 5 6 { rw associator_naturality, },
+      slice_rhs 7 8 { rw ←associator_naturality, },
+      slice_rhs 6 7 { rw [tensor_id, tensor_id, tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id,
+        ←tensor_id, ←tensor_id], },
+      -- Now insert associators as needed to make the four half-braidings look identical
+      slice_rhs 10 10 { rw associator_inv_conjugation, },
+      slice_rhs 7 7 { rw associator_inv_conjugation, },
+      slice_rhs 6 6 { rw associator_conjugation, },
+      slice_rhs 3 3 { rw associator_conjugation, },
+      -- Finish with an application of the coherence theorem.
+      coherence,
     end,
     naturality' := λ U U' f,
     begin
@@ -172,12 +175,8 @@ def tensor_unit : center C :=
 def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
 iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
   dsimp,
-  simp only [category.assoc, comp_tensor_id, id_tensor_comp],
-  rw [pentagon, pentagon_assoc, ←associator_naturality_assoc (𝟙 X.1) (𝟙 Y.1), tensor_id, cancel_epi,
-    cancel_epi, iso.eq_inv_comp, ←pentagon_assoc, ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id,
-    category.id_comp, ←associator_naturality_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq,
-    inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc, iso.hom_inv_id_assoc, ←tensor_id,
-    ←associator_naturality_assoc],
+  simp only [comp_tensor_id, id_tensor_comp, ←tensor_id, associator_conjugation],
+  coherence,
 end⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/

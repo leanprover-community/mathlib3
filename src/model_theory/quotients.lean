@@ -3,11 +3,14 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.fintype.basic
-import model_theory.terms_and_formulas
+import data.fintype.quotient
+import model_theory.semantics
 
 /-!
 # Quotients of First-Order Structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines prestructures and quotients of first-order structures.
 
 ## Main Definitions
@@ -55,10 +58,10 @@ begin
 end
 
 lemma rel_map_quotient_mk {n : ℕ} (r : L.relations n) (x : fin n → M) :
-  rel_map r (λ i, ⟦x i⟧) = @rel_map _ _ ps.to_structure _ r x :=
+  rel_map r (λ i, ⟦x i⟧) ↔ @rel_map _ _ ps.to_structure _ r x :=
 begin
   change quotient.lift (@rel_map L M ps.to_structure n r) prestructure.rel_equiv
-    (quotient.fin_choice _) = _,
+    (quotient.fin_choice _) ↔ _,
   rw [quotient.fin_choice_eq, quotient.lift_mk],
 end
 

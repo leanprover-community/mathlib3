@@ -90,6 +90,7 @@ def my_definition' : dummy :=
      exact 1
    end, ⟩
 
+noncomputable
 lemma my_lemma' : dummy :=
  ⟨ begin
      my_tactic,
@@ -308,6 +309,7 @@ def my_definition' : dummy :=
      exact 1
    end, ⟩
 
+noncomputable
 lemma my_lemma' : dummy :=
  ⟨ begin
      my_tactic,

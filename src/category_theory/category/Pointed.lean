@@ -8,6 +8,9 @@ import category_theory.concrete_category.basic
 /-!
 # The category of pointed types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `Pointed`, the category of pointed types.
 
 ## TODO
@@ -35,7 +38,9 @@ attribute [protected] Pointed.X
 /-- Turns a point into a pointed type. -/
 def of {X : Type*} (point : X) : Pointed := ⟨X, point⟩
 
-alias of ← prod.Pointed
+@[simp] lemma coe_of {X : Type*} (point : X) : ↥(of point) = X := rfl
+
+alias of ← _root_.prod.Pointed
 
 instance : inhabited Pointed := ⟨of ((), ())⟩
 

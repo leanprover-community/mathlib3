@@ -3,12 +3,17 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
+import category_theory.adjunction.fully_faithful
 import category_theory.sites.plus
 import category_theory.limits.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 
 # Sheafification
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the sheafification of a presheaf over a site `C` with values in `D` whenever
 `D` is a concrete category for which the forgetful functor preserves the appropriate (co)limits
@@ -34,7 +39,7 @@ local attribute [instance]
   concrete_category.has_coe_to_fun
 
 /-- A concrete version of the multiequalizer, to be used below. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def meq {X : C} (P : Cᵒᵖ ⥤ D) (S : J.cover X) :=
 { x : Π (I : S.arrow), P.obj (op I.Y) //
   ∀ (I : S.relation), P.map I.g₁.op (x I.fst) = P.map I.g₂.op (x I.snd) }
@@ -606,6 +611,11 @@ def presheaf_to_Sheaf : (Cᵒᵖ ⥤ D) ⥤ Sheaf J D :=
   map_id' := λ P, Sheaf.hom.ext _ _ $ J.sheafify_map_id _,
   map_comp' := λ P Q R f g, Sheaf.hom.ext _ _ $ J.sheafify_map_comp _ _ }
 
+instance presheaf_to_Sheaf_preserves_zero_morphisms [preadditive D] :
+  (presheaf_to_Sheaf J D).preserves_zero_morphisms  :=
+{ map_zero' := λ F G, by { ext, erw [colimit.ι_map, comp_zero, J.plus_map_zero,
+    J.diagram_nat_trans_zero, zero_comp] } }
+
 /-- The sheafification functor is left adjoint to the forgetful functor. -/
 @[simps unit_app counit_app_val]
 def sheafification_adjunction : presheaf_to_Sheaf J D ⊣ Sheaf_to_presheaf J D :=
@@ -620,6 +630,16 @@ adjunction.mk_of_hom_equiv
     apply J.sheafify_map_sheafify_lift,
   end,
   hom_equiv_naturality_right' := λ P Q R η γ, by { dsimp, rw category.assoc } }
+
+instance Sheaf_to_presheaf_is_right_adjoint : is_right_adjoint (Sheaf_to_presheaf J D) :=
+⟨_, sheafification_adjunction J D⟩
+
+instance presheaf_mono_of_mono {F G : Sheaf J D} (f : F ⟶ G) [mono f] : mono f.1 :=
+(Sheaf_to_presheaf J D).map_mono _
+
+lemma Sheaf.hom.mono_iff_presheaf_mono {F G : Sheaf J D} (f : F ⟶ G) : mono f ↔ mono f.1 :=
+⟨λ m, by { resetI, apply_instance },
+ λ m, by { resetI, exact Sheaf.hom.mono_of_presheaf_mono J D f }⟩
 
 variables {J D}
 /-- A sheaf `P` is isomorphic to its own sheafification. -/

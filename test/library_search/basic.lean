@@ -157,4 +157,11 @@ axiom ne_axiom : w ≠ z
 example : x ≠ y := by library_search
 example : ¬ w = z := by library_search
 
+structure foo := (a : nat) (b : nat)
+constants (k l : foo)
+axiom ne_axiom' (h : k.a ≠ 0) : k.b ≠ 0
+axiom not_axiom' (h : l.a ≠ 0) : ¬ l.b = 0
+example (hq : k.a ≠ 0) : k.b ≠ 0 := by library_search
+example (hq : l.a ≠ 0) : ¬ l.b = 0 := by library_search
+
 end test.library_search

@@ -10,6 +10,9 @@ import category_theory.sites.cover_preserving
 /-!
 # Cover-lifting functors between sites.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define cover-lifting functors between sites as functors that pull covering sieves back to
 covering sieves. This concept is also known as *cocontinuous functors* or
 *cover-reflecting functors*, but we have chosen this name following [MM92] in order to avoid
@@ -60,7 +63,7 @@ variables {L : grothendieck_topology E}
 A functor `G : (C, J) ⥤ (D, K)` between sites is called to have the cover-lifting property
 if for all covering sieves `R` in `D`, `R.pullback G` is a covering sieve in `C`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure cover_lifting (G : C ⥤ D) : Prop :=
 (cover_lift : ∀ {U : C} {S : sieve (G.obj U)} (hS : S ∈ K (G.obj U)), S.functor_pullback G ∈ J U)
 
@@ -78,7 +81,7 @@ end cover_lifting
 
 /-!
 We will now prove that `Ran G.op` (`ₚu`) maps sheaves to sheaves if `G` is cover-lifting. This can
-be found in https://stacks.math.columbia.edu/tag/00XK. However, the proof given here uses the
+be found in <https://stacks.math.columbia.edu/tag/00XK>. However, the proof given here uses the
 amalgamation definition of sheaves, and thus does not require that `C` or `D` has categorical
 pullbacks.
 

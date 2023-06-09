@@ -8,6 +8,9 @@ import category_theory.equivalence
 /-!
 # Opposite categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide a category instance on `Cᵒᵖ`.
 The morphisms `X ⟶ Y` are defined to be the morphisms `unop Y ⟶ unop X` in `C`.
 
@@ -51,7 +54,7 @@ variables [category.{v₁} C]
 /--
 The opposite category.
 
-See https://stacks.math.columbia.edu/tag/001M.
+See <https://stacks.math.columbia.edu/tag/001M>.
 -/
 instance category.opposite : category.{v₁} Cᵒᵖ :=
 { comp := λ _ _ _ f g, (g.unop ≫ f.unop).op,
@@ -221,6 +224,10 @@ nat_iso.of_components (λ X, iso.refl _) (by tidy)
 @[simps]
 def right_op_left_op_iso (F : Cᵒᵖ ⥤ D) : F.right_op.left_op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
+
+/-- Whenever possible, it is advisable to use the isomorphism `right_op_left_op_iso`
+instead of this equality of functors. -/
+lemma right_op_left_op_eq (F : Cᵒᵖ ⥤ D) : F.right_op.left_op = F := by { cases F, refl, }
 
 end
 
@@ -441,6 +448,20 @@ instance subsingleton_of_unop (A B : Cᵒᵖ) [subsingleton (unop B ⟶ unop A)]
 
 instance decidable_eq_of_unop (A B : Cᵒᵖ) [decidable_eq (unop B ⟶ unop A)] : decidable_eq (A ⟶ B) :=
 (op_equiv A B).decidable_eq
+
+/--
+The equivalence between isomorphisms of the form `A ≅ B` and `B.unop ≅ A.unop`.
+
+Note this is definitionally the same as the other three variants:
+* `(opposite.op A ≅ B) ≃ (B.unop ≅ A)`
+* `(A ≅ opposite.op B) ≃ (B ≅ A.unop)`
+* `(opposite.op A ≅ opposite.op B) ≃ (B ≅ A)`
+-/
+@[simps] def iso_op_equiv (A B : Cᵒᵖ) : (A ≅ B) ≃ (B.unop ≅ A.unop) :=
+{ to_fun := λ f, f.unop,
+  inv_fun := λ g, g.op,
+  left_inv := λ _, by { ext, refl, },
+  right_inv := λ _, by { ext, refl, } }
 
 namespace functor
 

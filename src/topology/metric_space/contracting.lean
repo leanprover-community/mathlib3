@@ -3,12 +3,15 @@ Copyright (c) 2019 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.setoid.basic
 import dynamics.fixed_points.topology
 
 /-!
 # Contracting maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A Lipschitz continuous self-map with Lipschitz constant `K < 1` is called a *contracting map*.
 In this file we prove the Banach fixed point theorem, some explicit estimates on the rate
@@ -27,7 +30,7 @@ of convergence, and some properties of the map sending a contracting map to its 
 contracting map, fixed point, Banach fixed point theorem
 -/
 
-open_locale nnreal topological_space classical ennreal
+open_locale nnreal topology classical ennreal
 open filter function
 
 variables {α : Type*}

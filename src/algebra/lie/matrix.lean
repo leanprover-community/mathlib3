@@ -10,6 +10,9 @@ import linear_algebra.matrix.to_linear_equiv
 /-!
 # Lie algebras of matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An important class of Lie algebras are those arising from the associative algebra structure on
 square matrices over a commutative ring. This file provides some very basic definitions whose
 primary value stems from their utility when constructing the classical Lie algebras using matrices.
@@ -73,7 +76,7 @@ types, `matrix.reindex`, is an equivalence of Lie algebras. -/
 def matrix.reindex_lie_equiv : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
 { to_fun := matrix.reindex e e,
   map_lie' := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_apply,
-    matrix.minor_mul_equiv, matrix.mul_eq_mul, matrix.minor_sub, pi.sub_apply],
+    matrix.submatrix_mul_equiv, matrix.mul_eq_mul, matrix.submatrix_sub, pi.sub_apply],
   ..(matrix.reindex_linear_equiv R R e e) }
 
 @[simp] lemma matrix.reindex_lie_equiv_apply (M : matrix n n R) :

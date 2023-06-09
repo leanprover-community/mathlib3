@@ -3,12 +3,14 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-import category_theory.limits.shapes.types
 import topology.sheaves.presheaf_of_functions
 import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!
 # Sheaf conditions for presheaves of (continuous) functions.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We show that
 * `Top.presheaf.to_Type_is_sheaf`: not-necessarily-continuous functions into a type form a sheaf
@@ -31,11 +33,11 @@ open category_theory.limits
 open topological_space
 open topological_space.opens
 
-universe u
+universes v u
 
 noncomputable theory
 
-variables (X : Top.{u})
+variables (X : Top.{v})
 
 open Top
 
@@ -99,13 +101,13 @@ namespace Top
 The sheaf of not-necessarily-continuous functions on `X` with values in type family
 `T : X → Type u`.
 -/
-def sheaf_to_Types (T : X → Type u) : sheaf (Type u) X :=
+def sheaf_to_Types (T : X → Type u) : sheaf (Type max v u) X :=
 ⟨presheaf_to_Types X T, presheaf.to_Types_is_sheaf _ _⟩
 
 /--
 The sheaf of not-necessarily-continuous functions on `X` with values in a type `T`.
 -/
-def sheaf_to_Type (T : Type u) : sheaf (Type u) X :=
+def sheaf_to_Type (T : Type u) : sheaf (Type max v u) X :=
 ⟨presheaf_to_Type X T, presheaf.to_Type_is_sheaf _ _⟩
 
 end Top

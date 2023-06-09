@@ -3,11 +3,14 @@ Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.constructions
 
 /-!
 # Topological lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define mixin classes `has_continuous_inf` and `has_continuous_sup`. We define the
 class `topological_lattice` as a topological space and lattice `L` extending `has_continuous_inf`
@@ -23,7 +26,7 @@ topological, lattice
 -/
 
 open filter
-open_locale topological_space
+open_locale topology
 
 /--
 Let `L` be a topological space and let `L×L` be equipped with the product topology and let
@@ -43,14 +46,12 @@ class has_continuous_sup (L : Type*) [topological_space L] [has_sup L] : Prop :=
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.has_continuous_sup
-  (L : Type*) [topological_space L] [has_inf L] [has_continuous_inf L] :
-  has_continuous_sup (order_dual L) :=
+  (L : Type*) [topological_space L] [has_inf L] [has_continuous_inf L] : has_continuous_sup Lᵒᵈ :=
 { continuous_sup := @has_continuous_inf.continuous_inf L _ _ _ }
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.has_continuous_inf
-  (L : Type*) [topological_space L] [has_sup L] [has_continuous_sup L] :
-  has_continuous_inf (order_dual L) :=
+  (L : Type*) [topological_space L] [has_sup L] [has_continuous_sup L] : has_continuous_inf Lᵒᵈ :=
 { continuous_inf := @has_continuous_sup.continuous_sup L _ _ _ }
 
 /--
@@ -63,7 +64,12 @@ class topological_lattice (L : Type*) [topological_space L] [lattice L]
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.topological_lattice
   (L : Type*) [topological_space L] [lattice L] [topological_lattice L] :
-  topological_lattice (order_dual L) := {}
+  topological_lattice Lᵒᵈ := {}
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_order.topological_lattice {L : Type*} [topological_space L] [linear_order L]
+  [order_closed_topology L] : topological_lattice L :=
+{ continuous_inf := continuous_min, continuous_sup := continuous_max }
 
 variables {L : Type*} [topological_space L]
 variables {X : Type*} [topological_space X]

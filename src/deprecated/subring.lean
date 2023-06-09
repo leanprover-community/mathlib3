@@ -7,6 +7,27 @@ import deprecated.subgroup
 import deprecated.group
 import ring_theory.subring.basic
 
+/-!
+# Unbundled subrings (deprecated)
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines predicates for unbundled subrings. Instead of using this file, please use
+`subring`, defined in `ring_theory.subring.basic`, for subrings of rings.
+
+## Main definitions
+
+`is_subring (S : set R) : Prop` : the predicate that `S` is the underlying set of a subring
+of the ring `R`. The bundled variant `subring R` should be used in preference to this.
+
+## Tags
+
+is_subring
+-/
 universes u v
 
 open group
@@ -21,10 +42,10 @@ structure is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Pro
 def is_subring.subring {S : set R} (hs : is_subring S) : subring R :=
 { carrier := S,
   one_mem' := hs.one_mem,
-  mul_mem' := hs.mul_mem,
+  mul_mem' := λ _ _, hs.mul_mem,
   zero_mem' := hs.zero_mem,
-  add_mem' := hs.add_mem,
-  neg_mem' := hs.neg_mem }
+  add_mem' := λ _ _, hs.add_mem,
+  neg_mem' := λ _, hs.neg_mem }
 
 namespace ring_hom
 
@@ -67,6 +88,8 @@ lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
 
 namespace ring
 
+/-- The smallest subring containing a given subset of a ring, considered as a set. This function
+is deprecated; use `subring.closure`. -/
 def closure (s : set R) := add_group.closure (monoid.closure s)
 
 variable {s : set R}
@@ -107,14 +130,13 @@ begin
   { rw [list.map_cons, list.sum_cons],
     exact ha this (ih HL.2) },
   replace HL := HL.1, clear ih tl,
-  suffices : ∃ L : list R,
+  rsuffices ⟨L, HL', HP | HP⟩ : ∃ L : list R,
     (∀ x ∈ L, x ∈ s) ∧ (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
-  { rcases this with ⟨L, HL', HP | HP⟩,
-    { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
-      rw list.forall_mem_cons at HL',
-      rw list.prod_cons,
-      exact hs _ HL'.1 _ (ih HL'.2) },
-    rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
+  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
+    rw list.forall_mem_cons at HL',
+    rw list.prod_cons,
+    exact hs _ HL'.1 _ (ih HL'.2) },
+  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
     rw [list.prod_cons, neg_mul_eq_mul_neg],
     rw list.forall_mem_cons at HL',
     exact hs _ HL'.1 _ (ih HL'.2) },

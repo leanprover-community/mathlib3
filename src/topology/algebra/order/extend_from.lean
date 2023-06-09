@@ -3,15 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.extend_from
 
 /-!
 # Lemmas about `extend_from` in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter set topological_space
-open_locale topological_space classical
+open_locale topology classical
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -25,7 +28,7 @@ begin
   apply continuous_on_extend_from,
   { rw closure_Ioo hab },
   { intros x x_in,
-    rcases mem_Ioo_or_eq_endpoints_of_mem_Icc x_in with rfl | rfl | h,
+    rcases eq_endpoints_or_mem_Ioo_of_mem_Icc x_in with rfl | rfl | h,
     { exact ⟨la, ha.mono_left $ nhds_within_mono _ Ioo_subset_Ioi_self⟩ },
     { exact ⟨lb, hb.mono_left $ nhds_within_mono _ Ioo_subset_Iio_self⟩ },
     { use [f x, hf x h] } }
@@ -62,7 +65,7 @@ begin
   apply continuous_on_extend_from,
   { rw [closure_Ioo hab.ne], exact Ico_subset_Icc_self, },
   { intros x x_in,
-    rcases mem_Ioo_or_eq_left_of_mem_Ico x_in with rfl | h,
+    rcases eq_left_or_mem_Ioo_of_mem_Ico x_in with rfl | h,
     { use la,
       simpa [hab] },
     { use [f x, hf x h] } }
@@ -74,7 +77,7 @@ lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
   (hb : tendsto f (𝓝[<] b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Ioc a b) :=
 begin
-  have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ f _ _ _ hab,
+  have := @continuous_on_Ico_extend_from_Ioo αᵒᵈ _ _ _ _ _ _ _ f _ _ _ hab,
   erw [dual_Ico, dual_Ioi, dual_Ioo] at this,
   exact this hf hb
 end

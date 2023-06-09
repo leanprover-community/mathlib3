@@ -9,8 +9,11 @@ import data.polynomial.monic
 /-!
 # Polynomials that lift
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given semirings `R` and `S` with a morphism `f : R →+* S`, we define a subsemiring `lifts` of
-`polynomial S` by the image of `ring_hom.of (map f)`.
+`S[X]` by the image of `ring_hom.of (map f)`.
 Then, we prove that a polynomial that lifts can always be lifted to a polynomial of the same degree
 and that a monic polynomial that lifts can be lifted to a monic polynomial (of the same degree).
 
@@ -125,7 +128,8 @@ lemma monomial_mem_lifts_and_degree_eq {s : S} {n : ℕ} (hl : monomial n s ∈ 
 begin
   by_cases hzero : s = 0,
   { use 0,
-    simp only [hzero, degree_zero, eq_self_iff_true, and_self, monomial_zero_right, map_zero] },
+    simp only [hzero, degree_zero, eq_self_iff_true, and_self, monomial_zero_right,
+               polynomial.map_zero] },
   rw lifts_iff_set_range at hl,
   obtain ⟨q, hq⟩ := hl,
   replace hq := (ext_iff.1 hq) n,
@@ -139,7 +143,7 @@ begin
   { intro habs,
     simp only [habs, ring_hom.map_zero] at hcoeff,
     exact hzero hcoeff.symm },
-  repeat {rw monomial_eq_C_mul_X},
+  repeat {rw ← C_mul_X_pow_eq_monomial},
   simp only [hzero, hqzero, ne.def, not_false_iff, degree_C_mul_X_pow],
 end
 
@@ -166,13 +170,13 @@ begin
   obtain ⟨lead, hlead⟩ := monomial_mem_lifts_and_degree_eq (monomial_mem_lifts p.nat_degree
     ((lifts_iff_coeff_lifts p).1 hlifts p.nat_degree)),
   have deg_lead : lead.degree = p.nat_degree,
-  { rw [hlead.2, monomial_eq_C_mul_X, degree_C_mul_X_pow p.nat_degree lead_zero] },
+  { rw [hlead.2, ← C_mul_X_pow_eq_monomial, degree_C_mul_X_pow p.nat_degree lead_zero] },
   rw hdeg at deg_erase,
   obtain ⟨erase, herase⟩ := hn p.erase_lead.nat_degree deg_erase
     (erase_mem_lifts p.nat_degree hlifts) (refl p.erase_lead.nat_degree),
   use erase + lead,
   split,
-  { simp only [hlead, herase, map_add],
+  { simp only [hlead, herase, polynomial.map_add],
     nth_rewrite 0 erase_lead_add_monomial_nat_degree_leading_coeff p },
   rw [←hdeg, erase_lead] at deg_erase,
   replace deg_erase := lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 deg_erase),
@@ -204,8 +208,18 @@ begin
   { rw [@degree_X_pow R, hq.2, degree_eq_nat_degree h0, with_bot.coe_lt_coe],
     exact or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) h0, },
   refine ⟨q + X ^ p.nat_degree, _, _, (monic_X_pow _).add_of_right hdeg⟩,
-  { rw [map_add, hq.1, polynomial.map_pow, map_X, H], },
+  { rw [polynomial.map_add, hq.1, polynomial.map_pow, map_X, H], },
   { rw [degree_add_eq_right_of_degree_lt hdeg, degree_X_pow, degree_eq_nat_degree hp.ne_zero] }
+end
+
+lemma lifts_and_nat_degree_eq_and_monic {p : S[X]} (hlifts : p ∈ lifts f)
+  (hp : p.monic) : ∃ (q : R[X]), map f q = p ∧ q.nat_degree = p.nat_degree ∧ q.monic :=
+begin
+  casesI subsingleton_or_nontrivial S with hR hR,
+  { obtain (rfl : p = 1) := subsingleton.elim _ _,
+    refine ⟨1, subsingleton.elim _ _, by simp, by simp⟩ },
+  obtain ⟨p', h₁, h₂, h₃⟩ := lifts_and_degree_eq_and_monic hlifts hp,
+  exact ⟨p', h₁, nat_degree_eq_of_degree_eq h₂, h₃⟩
 end
 
 end monic
@@ -230,7 +244,7 @@ section algebra
 
 variables {R : Type u} [comm_semiring R] {S : Type v} [semiring S] [algebra R S]
 
-/-- The map `polynomial R → S[X]` as an algebra homomorphism. -/
+/-- The map `R[X] → S[X]` as an algebra homomorphism. -/
 def map_alg (R : Type u) [comm_semiring R] (S : Type v) [semiring S] [algebra R S] :
   R[X] →ₐ[R] S[X] := @aeval _ S[X] _ _ _ (X : S[X])
 

@@ -8,6 +8,9 @@ import computability.partrec
 /-!
 # Gödel Numbering for Partial Recursive Functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `nat.partrec.code`, an inductive datatype describing code for partial
 recursive functions on ℕ. It defines an encoding for these codes, and proves that the constructors
 are primitive recursive with respect to the encoding.
@@ -555,6 +558,19 @@ def eval : code → ℕ →. ℕ
     (nat.rfind (λ n, (λ m, m = 0) <$>
       eval cf (mkpair a (n + m)))).map (+ m))
 
+/-- Helper lemma for the evaluation of `prec` in the base case. -/
+@[simp] lemma eval_prec_zero (cf cg : code) (a : ℕ) : eval (prec cf cg) (mkpair a 0) = eval cf a :=
+by rw [eval, nat.unpaired, nat.unpair_mkpair, nat.elim_zero]
+
+/-- Helper lemma for the evaluation of `prec` in the recursive case. -/
+lemma eval_prec_succ (cf cg : code) (a k : ℕ) :
+  eval (prec cf cg) (mkpair a (nat.succ k)) =
+    do ih <- eval (prec cf cg) (mkpair a k), eval cg (mkpair a (mkpair k ih)) :=
+begin
+  rw [eval, nat.unpaired, part.bind_eq_bind, nat.unpair_mkpair, nat.elim_succ],
+  simp,
+end
+
 instance : has_mem (ℕ →. ℕ) code := ⟨λ f c, eval c = f⟩
 
 @[simp] theorem eval_const : ∀ n m, eval (code.const n) m = part.some n
@@ -725,8 +741,8 @@ end
 
 theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
 ⟨λ h, begin
-  suffices : ∃ k, x ∈ evaln (k+1) c n,
-  { exact let ⟨k, h⟩ := this in ⟨k+1, h⟩ },
+  rsuffices ⟨k, h⟩ : ∃ k, x ∈ evaln (k+1) c n,
+  { exact ⟨k + 1, h⟩ },
   induction c generalizing n x;
     simp [eval, evaln, pure, pfun.pure, (<*>), (>>)] at h ⊢,
   iterate 4 { exact ⟨⟨_, le_rfl⟩, h.symm⟩ },

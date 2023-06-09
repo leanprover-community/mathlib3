@@ -7,13 +7,16 @@ Authors: Adam Topaz
 import category_theory.monad.types
 import category_theory.monad.limits
 import category_theory.equivalence
-import topology.category.CompHaus
-import topology.category.Profinite
+import topology.category.CompHaus.basic
+import topology.category.Profinite.basic
 import data.set.constructions
 
 /-!
 
 # Compacta and Compact Hausdorff Spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Recall that, given a monad `M` on `Type*`, an *algebra* for `M` consists of the following data:
 - A type `X : Type*`
@@ -72,7 +75,7 @@ We also add wrappers around structures which already exist. Here are the main on
 
 universe u
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
-open_locale classical topological_space
+open_locale classical topology
 
 local notation `β` := of_type_monad ultrafilter
 
@@ -424,7 +427,7 @@ def full : full Compactum_to_CompHaus.{u} :=
 lemma faithful : faithful Compactum_to_CompHaus := {}
 
 /-- This definition is used to prove essential surjectivity of Compactum_to_CompHaus. -/
-noncomputable def iso_of_topological_space {D : CompHaus} :
+def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,

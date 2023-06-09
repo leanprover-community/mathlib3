@@ -48,13 +48,12 @@ rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
 
 include hp
 
-lemma witt_poly_prod_vars (n : ℕ) :
-  (witt_poly_prod p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_poly_prod_vars (n : ℕ) : (witt_poly_prod p n).vars ⊆ univ ×ˢ range (n + 1) :=
 begin
   rw [witt_poly_prod],
   apply subset.trans (vars_mul _ _),
-  apply union_subset;
-  { apply subset.trans (vars_rename _ _),
+  refine union_subset _ _;
+  { refine subset.trans (vars_rename _ _) _,
     simp [witt_polynomial_vars,image_subset_iff] }
 end
 
@@ -63,17 +62,17 @@ def witt_poly_prod_remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 ∑ i in range n, p^i * (witt_mul p i)^(p^(n-i))
 
 lemma witt_poly_prod_remainder_vars (n : ℕ) :
-  (witt_poly_prod_remainder p n).vars ⊆ finset.univ.product (finset.range n) :=
+  (witt_poly_prod_remainder p n).vars ⊆ univ ×ˢ range n :=
 begin
   rw [witt_poly_prod_remainder],
-  apply subset.trans (vars_sum_subset _ _),
+  refine subset.trans (vars_sum_subset _ _) _,
   rw bUnion_subset,
   intros x hx,
   apply subset.trans (vars_mul _ _),
-  apply union_subset,
+  refine union_subset _ _,
   { apply subset.trans (vars_pow _ _),
     have : (p : mv_polynomial (fin 2 × ℕ) ℤ) = (C (p : ℤ)),
-    { simp only [int.cast_coe_nat, ring_hom.eq_int_cast] },
+    { simp only [int.cast_coe_nat, eq_int_cast] },
     rw [this, vars_C],
     apply empty_subset },
   { apply subset.trans (vars_pow _ _),
@@ -100,12 +99,12 @@ def remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 
 include hp
 
-lemma remainder_vars (n : ℕ) : (remainder p n).vars ⊆ univ.product (range (n+1)) :=
+lemma remainder_vars (n : ℕ) : (remainder p n).vars ⊆ univ ×ˢ range (n + 1) :=
 begin
   rw [remainder],
   apply subset.trans (vars_mul _ _),
-  apply union_subset;
-  { apply subset.trans (vars_sum_subset _ _),
+  refine union_subset _ _;
+  { refine subset.trans (vars_sum_subset _ _) _,
     rw bUnion_subset,
     intros x hx,
     rw [rename_monomial, vars_monomial, finsupp.map_domain_single],
@@ -127,7 +126,7 @@ lemma mul_poly_of_interest_aux1 (n : ℕ) :
 begin
   simp only [witt_poly_prod],
   convert witt_structure_int_prop p (X (0 : fin 2) * X 1) n using 1,
-  { simp only [witt_polynomial, witt_mul, int.nat_cast_eq_coe_nat],
+  { simp only [witt_polynomial, witt_mul],
     rw alg_hom.map_sum,
     congr' 1 with i,
     congr' 1,
@@ -135,7 +134,7 @@ begin
     { rw finsupp.support_eq_singleton,
       simp only [and_true, finsupp.single_eq_same, eq_self_iff_true, ne.def],
       exact pow_ne_zero _ hp.out.ne_zero, },
-    simp only [bind₁_monomial, hsupp, int.cast_coe_nat, prod_singleton, ring_hom.eq_int_cast,
+    simp only [bind₁_monomial, hsupp, int.cast_coe_nat, prod_singleton, eq_int_cast,
       finsupp.single_eq_same, C_pow, mul_eq_mul_left_iff, true_or, eq_self_iff_true], },
   { simp only [map_mul, bind₁_X_right] }
 end
@@ -159,14 +158,14 @@ lemma mul_poly_of_interest_aux3 (n : ℕ) :
 begin
   -- a useful auxiliary fact
   have mvpz : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C (↑p ^ (n + 1)),
-  { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
+  { simp only [int.cast_coe_nat, eq_int_cast, C_pow, eq_self_iff_true] },
 
   -- unfold definitions and peel off the last entries of the sums.
   rw [witt_poly_prod, witt_polynomial, alg_hom.map_sum, alg_hom.map_sum,
       sum_range_succ],
   -- these are sums up to `n+2`, so be careful to only unfold to `n+1`.
   conv_lhs {congr, skip, rw [sum_range_succ] },
-  simp only [add_mul, mul_add, tsub_self, int.nat_cast_eq_coe_nat, pow_zero, alg_hom.map_sum],
+  simp only [add_mul, mul_add, tsub_self, pow_zero, alg_hom.map_sum],
 
   -- rearrange so that the first summand on rhs and lhs is `remainder`, and peel off
   conv_rhs { rw add_comm },
@@ -175,10 +174,9 @@ begin
   conv_rhs { rw sum_range_succ },
 
   -- the rest is equal with proper unfolding and `ring`
-  simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, pow_one, rename_X, mvpz],
-  simp only [int.cast_coe_nat, map_pow, ring_hom.eq_int_cast, rename_X, pow_one, tsub_self,
-    pow_zero],
-  ring,
+  simp only [rename_monomial, ← C_mul_X_pow_eq_monomial, map_mul, rename_C, pow_one, rename_X],
+  simp only [mvpz, int.cast_coe_nat, map_pow, eq_int_cast, rename_X, pow_one, tsub_self, pow_zero],
+  ring1
 end
 include hp
 
@@ -205,11 +203,11 @@ end
 
 lemma mul_poly_of_interest_vars (n : ℕ) :
   ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * poly_of_interest p n).vars ⊆
-  univ.product (range (n+1)) :=
+  univ ×ˢ range (n + 1) :=
 begin
   rw mul_poly_of_interest_aux5,
   apply subset.trans (vars_sub_subset _ _),
-  apply union_subset,
+  refine union_subset _ _,
   { apply remainder_vars },
   { apply witt_poly_prod_remainder_vars }
 end
@@ -222,13 +220,13 @@ lemma poly_of_interest_vars_eq (n : ℕ) :
     (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)))).vars :=
 begin
   have : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = C (p ^ (n + 1) : ℤ),
-  { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
+  { simp only [int.cast_coe_nat, eq_int_cast, C_pow, eq_self_iff_true] },
   rw [poly_of_interest, this, vars_C_mul],
   apply pow_ne_zero,
   exact_mod_cast hp.out.ne_zero
 end
 
-lemma poly_of_interest_vars (n : ℕ) : (poly_of_interest p n).vars ⊆ univ.product (range (n+1)) :=
+lemma poly_of_interest_vars (n : ℕ) : (poly_of_interest p n).vars ⊆ univ ×ˢ (range (n+1)) :=
 by rw poly_of_interest_vars_eq; apply mul_poly_of_interest_vars
 
 lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :
@@ -242,18 +240,11 @@ begin
   matrix.cons_val_one, map_mul, matrix.cons_val_zero, map_sub],
   rw [sub_sub, add_comm (_ * _), ← sub_sub],
   have mvpz : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p,
-  { rw [ring_hom.eq_int_cast, int.cast_coe_nat] },
-  congr' 3,
-  { simp only [mul_coeff, peval, map_nat_cast, map_add, matrix.head_cons, map_pow,
-      function.uncurry_apply_pair, aeval_X, matrix.cons_val_one, map_mul, matrix.cons_val_zero], },
-  all_goals
-  { simp only [witt_polynomial_eq_sum_C_mul_X_pow, aeval, eval₂_rename, int.cast_coe_nat,
-      ring_hom.eq_int_cast, eval₂_mul, function.uncurry_apply_pair, function.comp_app, eval₂_sum,
-      eval₂_X, matrix.cons_val_zero, eval₂_pow, int.cast_pow, ring_hom.to_fun_eq_coe, coe_eval₂_hom,
-      int.nat_cast_eq_coe_nat, alg_hom.coe_mk],
-  congr' 1 with z,
-  rw [mvpz, mv_polynomial.eval₂_C],
-  refl }
+  { rw [eq_int_cast, int.cast_coe_nat] },
+  have : ∀ (f : ℤ →+* k) (g : ℕ → k), eval₂ f g p = f p,
+  { intros, rw [mvpz, mv_polynomial.eval₂_C] },
+  simp [witt_polynomial_eq_sum_C_mul_X_pow, aeval, eval₂_rename, this, mul_coeff, peval,
+    map_nat_cast, map_add, map_pow, map_mul]
 end
 
 variable [char_p k p]
@@ -292,7 +283,7 @@ begin
     apply f₀,
     rintros ⟨a, ha⟩,
     apply function.uncurry (![x, y]),
-    simp only [true_and, multiset.mem_cons, range_coe, product_val, multiset.mem_range,
+    simp only [true_and, multiset.mem_cons, range_val, product_val, multiset.mem_range,
        multiset.mem_product, multiset.range_succ, mem_univ_val] at ha,
     refine ⟨a.fst, ⟨a.snd, _⟩⟩,
     cases ha with ha ha; linarith only [ha] },
@@ -305,7 +296,7 @@ begin
   ext a,
   cases a with a ha,
   cases a with i m,
-  simp only [true_and, multiset.mem_cons, range_coe, product_val, multiset.mem_range,
+  simp only [true_and, multiset.mem_cons, range_val, product_val, multiset.mem_range,
     multiset.mem_product, multiset.range_succ, mem_univ_val] at ha,
   have ha' : m < n + 1 := by cases ha with ha ha; linarith only [ha],
   fin_cases i;  -- surely this case split is not necessary

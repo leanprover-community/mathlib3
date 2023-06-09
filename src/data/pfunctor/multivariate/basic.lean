@@ -9,6 +9,9 @@ import data.pfunctor.univariate.basic
 /-!
 # Multivariate polynomial functors.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Multivariate polynomial functors are used for defining M-types and W-types.
 They map a type vector `α` to the type `Σ a : A, B a ⟹ α`, with `A : Type` and
 `B : A → typevec n`. They interact well with Lean's inductive definitions because
@@ -37,7 +40,7 @@ def map {α β : typevec n} (f : α ⟹ β) : P.obj α → P.obj β :=
 λ ⟨a, g⟩, ⟨a, typevec.comp f g⟩
 
 instance : inhabited (mvpfunctor n) :=
-⟨ ⟨default, λ _, default⟩ ⟩
+⟨⟨default, default⟩⟩
 
 instance obj.inhabited {α : typevec n} [inhabited P.A] [Π i, inhabited (α i)] :
   inhabited (P.obj α) :=

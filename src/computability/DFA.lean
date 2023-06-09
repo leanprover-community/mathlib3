@@ -4,18 +4,24 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
 
-import data.fintype.basic
+import data.fintype.card
 import computability.language
 import tactic.norm_num
 
 /-!
 # Deterministic Finite Automata
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of a Deterministic Finite Automaton (DFA), a state machine which
 determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular set
 in linear time.
 Note that this definition allows for Automaton with infinite states, a `fintype` instance must be
 supplied for true DFA's.
 -/
+
+open_locale computability
 
 universes u v
 
@@ -37,18 +43,30 @@ instance [inhabited σ] : inhabited (DFA α σ) :=
 def eval_from (start : σ) : list α → σ :=
 list.foldl M.step start
 
+@[simp] lemma eval_from_nil (s : σ) : M.eval_from s [] = s := rfl
+@[simp] lemma eval_from_singleton (s : σ) (a : α) : M.eval_from s [a] = M.step s a := rfl
+@[simp] lemma eval_from_append_singleton (s : σ) (x : list α) (a : α) :
+  M.eval_from s (x ++ [a]) = M.step (M.eval_from s x) a :=
+by simp only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
+
 /-- `M.eval x` evaluates `M` with input `x` starting from the state `M.start`. -/
-def eval := M.eval_from M.start
+def eval : list α → σ := M.eval_from M.start
+
+@[simp] lemma eval_nil : M.eval [] = M.start := rfl
+@[simp] lemma eval_singleton (a : α) : M.eval [a] = M.step M.start a := rfl
+@[simp] lemma eval_append_singleton (x : list α) (a : α) :
+  M.eval (x ++ [a]) = M.step (M.eval x) a :=
+eval_from_append_singleton _ _ _ _
+
+lemma eval_from_of_append (start : σ) (x y : list α) :
+  M.eval_from start (x ++ y) = M.eval_from (M.eval_from start x) y :=
+x.foldl_append _ _ y
 
 /-- `M.accepts` is the language of `x` such that `M.eval x` is an accept state. -/
 def accepts : language α :=
 λ x, M.eval x ∈ M.accept
 
 lemma mem_accepts (x : list α) : x ∈ M.accepts ↔ M.eval_from M.start x ∈ M.accept := by refl
-
-lemma eval_from_of_append (start : σ) (x y : list α) :
-  M.eval_from start (x ++ y) = M.eval_from (M.eval_from start x) y :=
-x.foldl_append _ _ y
 
 lemma eval_from_split [fintype σ] {x : list α} {s t : σ} (hlen : fintype.card σ ≤ x.length)
   (hx : M.eval_from s x = t) :
@@ -62,8 +80,7 @@ lemma eval_from_split [fintype σ] {x : list α} {s t : σ} (hlen : fintype.card
 begin
   obtain ⟨n, m, hneq, heq⟩ := fintype.exists_ne_map_eq_of_card_lt
     (λ n : fin (fintype.card σ + 1), M.eval_from s (x.take n)) (by norm_num),
-  wlog hle : (n : ℕ) ≤ m using n m,
-  have hlt : (n : ℕ) < m := (ne.le_iff_lt hneq).mp hle,
+  wlog hle : (n : ℕ) ≤ m, { exact this hlen hx _ _ hneq.symm heq.symm (le_of_not_le hle), },
   have hm : (m : ℕ) ≤ fintype.card σ := fin.is_le m,
   dsimp at heq,
 
@@ -97,9 +114,9 @@ begin
 end
 
 lemma eval_from_of_pow {x y : list α} {s : σ} (hx : M.eval_from s x = s)
-  (hy : y ∈ @language.star α {x}) : M.eval_from s y = s :=
+  (hy : y ∈ ({x} : language α)∗) : M.eval_from s y = s :=
 begin
-  rw language.mem_star at hy,
+  rw language.mem_kstar at hy,
   rcases hy with ⟨ S, rfl, hS ⟩,
   induction S with a S ih,
   { refl },
@@ -114,7 +131,7 @@ end
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
   (hlen : fintype.card σ ≤ list.length x) :
   ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card σ ∧ b ≠ [] ∧
-  {a} * language.star {b} * {c} ≤ M.accepts :=
+    {a} * {b}∗ * {c} ≤ M.accepts :=
 begin
   obtain ⟨_, a, b, c, hx, hlen, hnil, rfl, hb, hc⟩ := M.eval_from_split hlen rfl,
   use [a, b, c, hx, hlen, hnil],

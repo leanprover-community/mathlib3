@@ -10,6 +10,9 @@ import category_theory.sites.sheaf_of_types
 /-!
 # The canonical topology on a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the finest (largest) Grothendieck topology for which a given presheaf `P` is a sheaf.
 This is well defined since if `P` is a sheaf for a topology `J`, then it is a sheaf for any
 coarser (smaller) topology. Nonetheless we define the topology explicitly by specifying its sieves:
@@ -180,7 +183,7 @@ def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
 /--
 Construct the finest (largest) Grothendieck topology for which all the given presheaves are sheaves.
 
-This is equal to the construction of https://stacks.math.columbia.edu/tag/00Z9.
+This is equal to the construction of <https://stacks.math.columbia.edu/tag/00Z9>.
 -/
 def finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) : grothendieck_topology C :=
 Inf (finest_topology_single '' Ps)
@@ -205,7 +208,7 @@ end
 The `canonical_topology` on a category is the finest (largest) topology for which every
 representable presheaf is a sheaf.
 
-See https://stacks.math.columbia.edu/tag/00ZA
+See <https://stacks.math.columbia.edu/tag/00ZA>
 -/
 def canonical_topology (C : Type u) [category.{v} C] : grothendieck_topology C :=
 finest_topology (set.range yoneda.obj)

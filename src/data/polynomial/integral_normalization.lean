@@ -10,6 +10,9 @@ import data.polynomial.monic
 /-!
 # Theory of monic polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `integral_normalization`, which relate arbitrary polynomials to monic ones.
 -/
 
@@ -90,7 +93,7 @@ end is_domain
 
 section is_domain
 variables [comm_ring R] [is_domain R]
-variables [comm_ring S]
+variables [comm_semiring S]
 
 lemma integral_normalization_eval₂_eq_zero {p : R[X]} (f : R →+* S)
   {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :

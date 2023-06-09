@@ -13,14 +13,14 @@ norm and that is also a `floor_ring`, e.g. `ℚ` or `ℝ`. A (full) ℤ-lattice 
 subgroup of `E` such that `L` spans `E` over `K`.
 
 The ℤ-lattice `L` can be defined in two ways:
-* For `b` a basis of `E`, then `L : submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
-* As `L : add_subgroup E` with the additional properties:
+* For `b` a basis of `E`, then `submodule.span ℤ (set.range b)` is a ℤ-lattice of `E`.
+* As an `add_subgroup E` with the additional properties:
   `∀ r : ℝ, (L ∩ metric.closed_ball 0 r).finite`, that is `L` is discrete
   `submodule.span ℝ (L : set E) = ⊤`, that is `L` spans `E` over `K`.
 
 ## Main result
-* `zspan.is_add_fundamental_domain`: for `L : submodule.span ℤ (set.range b)` a ℤ-lattice, proves
- that the set defined by `zspan.fundamental_domain` is indeed a fundamental domain.
+* `zspan.is_add_fundamental_domain`: for a ℤ-lattice `submodule.span ℤ (set.range b)`, proves that
+the set defined by `zspan.fundamental_domain` is a fundamental domain.
 
 -/
 
@@ -213,6 +213,8 @@ begin
       finsupp.linear_equiv_fun_on_finite_apply], },
 end
 
+/-- For a ℤ-lattice `submodule.span ℤ (set.range b)`, proves that the set defined
+by `zspan.fundamental_domain` is a fundamental domain. -/
 protected lemma is_add_fundamental_domain [finite ι] [measurable_space E]
   [opens_measurable_space E] (μ : measure E) :
   is_add_fundamental_domain (span ℤ (set.range b)).to_add_subgroup (fundamental_domain b) μ :=

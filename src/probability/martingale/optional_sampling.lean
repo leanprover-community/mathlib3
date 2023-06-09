@@ -122,21 +122,20 @@ h.stopped_value_ae_eq_condexp_of_le_const_of_countable_range hτ hτ_le (set.to_
 martingale `f` at `σ` is the conditional expectation of its value at `τ` with respect to the
 σ-algebra genrated by `σ`. -/
 lemma stopped_value_ae_eq_condexp_of_le_of_countable_range
-  [(filter.at_top : filter ι).is_countably_generated]
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n)
   (hτ_countable_range : (set.range τ).countable) (hσ_countable_range : (set.range σ).countable)
-  [sigma_finite (μ.trim hσ.measurable_space_le)] :
+  [sigma_finite (μ.trim (hσ.measurable_space_le_of_le (λ x, (hσ_le_τ x).trans (hτ_le x))))] :
   stopped_value f σ =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
 begin
-  haveI : sigma_finite (μ.trim hτ.measurable_space_le),
+  haveI : sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le)),
   { exact sigma_finite_trim_mono _ (is_stopping_time.measurable_space_mono hσ hτ hσ_le_τ), },
   have : μ[stopped_value f τ|hσ.measurable_space]
       =ᵐ[μ] μ[μ[f n|hτ.measurable_space] | hσ.measurable_space],
     from condexp_congr_ae (h.stopped_value_ae_eq_condexp_of_le_const_of_countable_range hτ hτ_le
       hτ_countable_range),
-  refine (filter.eventually_eq.trans _ (condexp_condexp_of_le _ hτ.measurable_space_le).symm).trans
-    this.symm,
+  refine (filter.eventually_eq.trans _
+    (condexp_condexp_of_le _ (hτ.measurable_space_le_of_le hτ_le)).symm).trans this.symm,
   { exact h.stopped_value_ae_eq_condexp_of_le_const_of_countable_range hσ
       (λ x, (hσ_le_τ x).trans (hτ_le x)) hσ_countable_range, },
   { exact hσ.measurable_space_mono hτ hσ_le_τ, },
@@ -171,8 +170,7 @@ variables {ι : Type*} [linear_order ι] [locally_finite_order ι] [order_bot ι
   {ℱ : filtration ι m} {τ σ : Ω → ι} {f : ι → Ω → E} {i n : ι}
 
 lemma condexp_stopped_value_stopping_time_ae_eq_restrict_le
-  (h : martingale f ℱ μ) (hf_prog : prog_measurable ℱ f)
-  (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   [sigma_finite (μ.trim hσ.measurable_space_le)] (hτ_le : ∀ x, τ x ≤ n) :
   μ[stopped_value f τ | hσ.measurable_space] =ᵐ[μ.restrict {x : Ω | τ x ≤ σ x}] stopped_value f τ :=
 begin
@@ -195,7 +193,7 @@ begin
       exact ht.2, },
     { refine strongly_measurable.indicator _ (hτ.measurable_set_le_stopping_time hσ),
       refine measurable.strongly_measurable _,
-      exact measurable_stopped_value hf_prog hτ, },
+      exact measurable_stopped_value h.adapted.prog_measurable_of_discrete hτ, },
     { intros x hx,
       simp only [hx, set.indicator_of_not_mem, not_false_iff], }, },
   exact condexp_of_ae_strongly_measurable' hσ.measurable_space_le h_meas h_int,
@@ -209,7 +207,6 @@ lemma stopped_value_min_ae_eq_condexp [sigma_finite_filtration μ ℱ]
   (hτ_le : ∀ x, τ x ≤ n) [h_sf_min : sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
   stopped_value f (λ x, min (σ x) (τ x)) =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
 begin
-  have h_prog : prog_measurable ℱ f := h.adapted.prog_measurable_of_discrete,
   have h_min_comm : (hτ.min hσ).measurable_space = (hσ.min hτ).measurable_space,
     by rw [is_stopping_time.measurable_space_min, is_stopping_time.measurable_space_min, inf_comm],
   haveI : sigma_finite (μ.trim (hσ.min hτ).measurable_space_le),
@@ -242,10 +239,10 @@ begin
     { have h1 : μ[stopped_value f τ|hτ.measurable_space] = stopped_value f τ,
       { refine condexp_of_strongly_measurable hτ.measurable_space_le _ _,
         { refine measurable.strongly_measurable _,
-          exact measurable_stopped_value h_prog hτ, },
+          exact measurable_stopped_value h.adapted.prog_measurable_of_discrete hτ, },
         { exact integrable_stopped_value ι hτ h.integrable hτ_le, }, },
       rw h1,
-      exact (condexp_stopped_value_stopping_time_ae_eq_restrict_le h h_prog hτ hσ hτ_le).symm, }, },
+      exact (condexp_stopped_value_stopping_time_ae_eq_restrict_le h hτ hσ hτ_le).symm, }, },
 end
 
 end subset_of_nat

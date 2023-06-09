@@ -13,6 +13,9 @@ import algebra.polynomial.big_operators
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file starts looking like the ring theory of $ R[X] $
 
 ## Main definitions
@@ -673,9 +676,9 @@ by simp only [empty_eq_zero, pow_zero, nth_roots, ← C_1, ← C_sub, roots_C]
 
 lemma card_nth_roots (n : ℕ) (a : R) :
   (nth_roots n a).card ≤ n :=
-if hn : n = 0
-then if h : (X : R[X]) ^ n - C a = 0
-  then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, card_zero]
+if hn : n = 0 then
+  if h : (X : R[X]) ^ n - C a = 0 then
+    by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, multiset.card_zero]
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
    (by { rw [hn, pow_zero, ← C_1, ← ring_hom.map_sub ],
          exact degree_C_le }))

@@ -8,6 +8,9 @@ import analysis.calculus.cont_diff
 /-!
 # Smoothness of `real.sqrt`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `real.sqrt` is infinitely smooth at all points `x ≠ 0` and provide some
 dot-notation lemmas.
 

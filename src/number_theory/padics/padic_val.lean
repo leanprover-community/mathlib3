@@ -10,6 +10,9 @@ import tactic.ring_exp
 /-!
 # p-adic Valuation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `p`-adic valuation on `ℕ`, `ℤ`, and `ℚ`.
 
 The `p`-adic valuation on `ℚ` is the difference of the multiplicities of `p` in the numerator and

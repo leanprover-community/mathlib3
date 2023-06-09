@@ -7,7 +7,10 @@ Authors: Joël Riou
 import algebraic_topology.dold_kan.functor_gamma
 import category_theory.idempotents.homological_complex
 
-/-! The counit isomorphism of the Dold-Kan equivalence
+/-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+ The counit isomorphism of the Dold-Kan equivalence
 
 The purpose of this file is to construct natural isomorphisms
 `N₁Γ₀ : Γ₀ ⋙ N₁ ≅ to_karoubi (chain_complex C ℕ)`

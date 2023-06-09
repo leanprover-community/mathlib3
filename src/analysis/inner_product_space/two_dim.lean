@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.orientation
+import data.complex.orientation
 import tactic.linear_combination
 
 /-!
@@ -71,7 +72,7 @@ open finite_dimensional
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
-variables {E : Type*} [inner_product_space ℝ E] [fact (finrank ℝ E = 2)]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E] [fact (finrank ℝ E = 2)]
   (o : orientation ℝ E (fin 2))
 
 namespace orientation
@@ -147,7 +148,8 @@ begin
   { simpa }
 end
 
-lemma area_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma area_form_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).area_form x y = o.area_form (φ.symm x) (φ.symm y) :=
 begin
@@ -308,7 +310,8 @@ end
   (-o).right_angle_rotation = o.right_angle_rotation.trans (linear_isometry_equiv.neg ℝ) :=
 linear_isometry_equiv.ext $ o.right_angle_rotation_neg_orientation
 
-lemma right_angle_rotation_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma right_angle_rotation_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation x
   = φ (o.right_angle_rotation (φ.symm x)) :=
@@ -335,7 +338,8 @@ begin
     rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
 end
 
-lemma right_angle_rotation_map' {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma right_angle_rotation_map' {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation
   = (φ.symm.trans o.right_angle_rotation).trans φ :=
@@ -369,7 +373,7 @@ coe_basis_of_linear_independent_of_card_eq_finrank _ _
 /-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ‖a‖ ^ 2 * ⟪x, y⟫`. (See
 `orientation.inner_mul_inner_add_area_form_mul_area_form` for the "applied" form.)-/
 lemma inner_mul_inner_add_area_form_mul_area_form' (a x : E) :
-  ⟪a, x⟫ • @innerₛₗ ℝ _ _ _ a + ω a x • ω a = ‖a‖ ^ 2 • @innerₛₗ ℝ _ _ _ x :=
+  ⟪a, x⟫ • innerₛₗ ℝ a + ω a x • ω a = ‖a‖ ^ 2 • innerₛₗ ℝ x :=
 begin
   by_cases ha : a = 0,
   { simp [ha] },
@@ -399,7 +403,7 @@ by simpa [sq, real_inner_self_eq_norm_sq] using o.inner_mul_inner_add_area_form_
 /-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ‖a‖ ^ 2 * ω x y`. (See
 `orientation.inner_mul_area_form_sub` for the "applied" form.) -/
 lemma inner_mul_area_form_sub' (a x : E) :
-  ⟪a, x⟫ • ω a - ω a x • @innerₛₗ ℝ _ _ _ a = ‖a‖ ^ 2 • ω x :=
+  ⟪a, x⟫ • ω a - ω a x • innerₛₗ ℝ a = ‖a‖ ^ 2 • ω x :=
 begin
   by_cases ha : a = 0,
   { simp [ha] },
@@ -456,7 +460,7 @@ real part is the inner product and its imaginary part is `orientation.area_form`
 
 On `ℂ` with the standard orientation, `kahler w z = conj w * z`; see `complex.kahler`. -/
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=
-(linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ (@innerₛₗ ℝ E _ _)
+(linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ innerₛₗ ℝ
 + (linear_map.llcomp ℝ E ℝ ℂ ((linear_map.lsmul ℝ ℂ).flip complex.I)) ∘ₗ ω
 
 lemma kahler_apply_apply (x y : E) : o.kahler x y = ⟪x, y⟫ + ω x y • complex.I := rfl
@@ -556,7 +560,8 @@ begin
   simp,
 end
 
-lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+lemma kahler_map {F : Type*}
+  [normed_add_comm_group F] [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
 by simp [kahler_apply_apply, area_form_map]

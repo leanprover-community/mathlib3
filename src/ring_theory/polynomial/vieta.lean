@@ -9,6 +9,9 @@ import ring_theory.mv_polynomial.symmetric
 /-!
 # Vieta's Formula
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main result is `multiset.prod_X_add_C_eq_sum_esymm`, which shows that the product of
 linear terms `X + λ` with `λ` in a `multiset s` is equal to a linear combination of the
 symmetric functions `esymm s`.

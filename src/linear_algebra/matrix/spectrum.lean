@@ -90,21 +90,17 @@ theorem spectral_theorem :
 begin
   rw [eigenvector_matrix_inv, pi_Lp.basis_to_matrix_basis_fun_mul],
   ext i j,
-  have : linear_map.is_symmetric _ := is_hermitian_iff_is_symmetric.1 hA,
+  have := is_hermitian_iff_is_symmetric.1 hA,
   convert this.diagonalization_basis_apply_self_apply finrank_euclidean_space
     (euclidean_space.single j 1)
-    ((fintype.equiv_of_card_eq (fintype.card_fin _)).symm i),
-  { dsimp only [linear_equiv.conj_apply_apply, pi_Lp.linear_equiv_apply,
-      pi_Lp.linear_equiv_symm_apply, pi_Lp.equiv_single, linear_map.std_basis,
-      linear_map.coe_single, pi_Lp.equiv_symm_single, linear_equiv.symm_symm,
-      eigenvector_basis, to_lin'_apply],
-    simp only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
-    simp_rw [orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.repr_reindex,
-      linear_equiv.symm_symm, pi_Lp.linear_equiv_apply, pi_Lp.equiv_single, mul_vec_single,
-      mul_one],
+    ((fintype.equiv_of_card_eq (fintype.card_fin _)).symm i) using 1,
+  { dsimp only [euclidean_space.single, to_euclidean_lin_pi_Lp_equiv_symm, to_lin'_apply,
+      matrix.of_apply, is_hermitian.eigenvector_basis],
+    simp_rw [mul_vec_single, mul_one, orthonormal_basis.coe_to_basis_repr_apply,
+      orthonormal_basis.repr_reindex],
     refl },
-  { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
-    rw [basis.to_matrix_apply,
+  { simp only [diagonal_mul, (∘), eigenvalues],
+    rw [eigenvector_basis, basis.to_matrix_apply,
       orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.repr_reindex,
       eigenvalues₀, pi_Lp.basis_fun_apply, pi_Lp.equiv_symm_single] }
 end

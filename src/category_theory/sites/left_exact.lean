@@ -10,6 +10,9 @@ import category_theory.limits.filtered_colimit_commutes_finite_limit
 
 /-!
 # Left exactness of sheafification
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file we show that sheafification commutes with finite limits.
 -/
 

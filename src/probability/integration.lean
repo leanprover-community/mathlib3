@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Martin Zinkevich, Vincent Beffara
 -/
 import measure_theory.integral.set_integral
-import probability.independence
+import probability.independence.basic
 
 /-!
 # Integration in Probability Theory
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Integration results for independent random variables. Specifically, for two
 independent random variables X and Y over the extended non-negative

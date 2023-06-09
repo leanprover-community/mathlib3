@@ -6,7 +6,10 @@ Authors: Heather Macbeth, Yury Kudryashov, Frédéric Dupuis
 import topology.algebra.infinite_sum.basic
 import topology.algebra.module.basic
 
-/-! # Infinite sums in topological vector spaces -/
+/-! # Infinite sums in topological vector spaces 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 variables {ι R R₂ M M₂ : Type*}
 

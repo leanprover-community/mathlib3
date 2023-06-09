@@ -12,6 +12,9 @@ import algebra.punit_instances
 /-!
 # The category of monoids in a monoidal category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define monoids in a monoidal category `C` and show that the category of monoids is equivalent to
 the category of lax monoidal functors from the unit monoidal category to `C`.  We also show that if
 `C` is braided, then the category of monoids is naturally monoidal.

@@ -839,6 +839,25 @@ begin
   exact (upper_set.upper _).ord_connected.inter (lower_set.lower _).ord_connected,
 end
 
+@[simp] lemma upper_bounds_lower_closure :
+  upper_bounds (lower_closure s : set α) = upper_bounds s :=
+(upper_bounds_mono_set subset_lower_closure).antisymm $ λ a ha b ⟨c, hc, hcb⟩, hcb.trans $ ha hc
+
+@[simp] lemma lower_bounds_upper_closure :
+  lower_bounds (upper_closure s : set α) = lower_bounds s :=
+(lower_bounds_mono_set subset_upper_closure).antisymm $ λ a ha b ⟨c, hc, hcb⟩, (ha hc).trans hcb
+
+@[simp] lemma bdd_above_lower_closure : bdd_above (lower_closure s : set α) ↔ bdd_above s :=
+by simp_rw [bdd_above, upper_bounds_lower_closure]
+
+@[simp] lemma bdd_below_upper_closure : bdd_below (upper_closure s : set α) ↔ bdd_below s :=
+by simp_rw [bdd_below, lower_bounds_upper_closure]
+
+alias bdd_above_lower_closure ↔ bdd_above.of_lower_closure bdd_above.lower_closure
+alias bdd_below_upper_closure ↔ bdd_below.of_upper_closure bdd_below.upper_closure
+
+attribute [protected] bdd_above.lower_closure bdd_below.upper_closure
+
 end closure
 
 /-! ### Product -/

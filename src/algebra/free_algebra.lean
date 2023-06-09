@@ -9,6 +9,9 @@ import algebra.monoid_algebra.basic
 /-!
 # Free Algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative semiring `R`, and a type `X`, we construct the free unital, associative
 `R`-algebra on `X`.
 

@@ -13,6 +13,9 @@ import category_theory.limits.shapes.finite_limits
 /-!
 # Representably flat functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define representably flat functors as functors such that the category of structured arrows
 over `X` is cofiltered for each `X`. This concept is also known as flat functors as in [Elephant]
 Remark C2.3.7, and this name is suggested by Mike Shulman in
@@ -355,7 +358,7 @@ begin
   haveI : preserves_finite_limits F :=
     begin
       apply preserves_finite_limits_of_preserves_finite_limits_of_size.{u₁},
-      intros, resetI, apply preserves_limit_of_Lan_presesrves_limit
+      intros, resetI, apply preserves_limit_of_Lan_preserves_limit
     end,
   apply flat_of_preserves_finite_limits
 end⟩
@@ -371,7 +374,7 @@ def preserves_finite_limits_iff_Lan_preserves_finite_limits (F : C ⥤ D) :
   inv_fun := λ _,
   begin
     apply preserves_finite_limits_of_preserves_finite_limits_of_size.{u₁},
-    intros, resetI, apply preserves_limit_of_Lan_presesrves_limit
+    intros, resetI, apply preserves_limit_of_Lan_preserves_limit
   end,
   left_inv := λ x,
   begin

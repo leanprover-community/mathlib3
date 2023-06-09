@@ -287,7 +287,7 @@ section special_values
 
 open zmod mul_char
 
-variables {F : Type} [field F] [fintype F]
+variables {F : Type*} [field F] [fintype F]
 
 /-- The value of the quadratic character at `-1` -/
 lemma quadratic_char_neg_one [decidable_eq F] (hF : ring_char F ≠ 2) :
@@ -382,7 +382,7 @@ end
 /-- The relation between the values of the quadratic character of one field `F` at the
 cardinality of another field `F'` and of the quadratic character of `F'` at the cardinality
 of `F`. -/
-lemma quadratic_char_card_card [decidable_eq F] (hF : ring_char F ≠ 2) {F' : Type} [field F']
+lemma quadratic_char_card_card [decidable_eq F] (hF : ring_char F ≠ 2) {F' : Type*} [field F']
   [fintype F'] [decidable_eq F'] (hF' : ring_char F' ≠ 2) (h : ring_char F' ≠ ring_char F) :
   quadratic_char F (fintype.card F') = quadratic_char F' (quadratic_char F (-1) * fintype.card F) :=
 begin

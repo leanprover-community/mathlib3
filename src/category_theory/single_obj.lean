@@ -11,6 +11,9 @@ import combinatorics.quiver.single_obj
 /-!
 # Single-object category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Single object category with a given monoid of endomorphisms.
 It is defined to facilitate transfering some definitions and lemmas (e.g., conjugacy etc.)
 from category theory to monoids and groups.

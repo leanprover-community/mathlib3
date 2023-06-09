@@ -6,8 +6,12 @@ Authors: Mario Carneiro
 import algebra.associated
 import ring_theory.int.basic
 import tactic.ring
+import algebra.star.unitary
 
 /-! # ℤ[√d]
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The ring of integers adjoined with a square root of `d : ℤ`.
 
@@ -384,7 +388,7 @@ lemma norm_eq_one_iff {x : ℤ√d} : x.norm.nat_abs = 1 ↔ is_unit x :=
 λ h, let ⟨y, hy⟩ := is_unit_iff_dvd_one.1 h in begin
   have := congr_arg (int.nat_abs ∘ norm) hy,
   rw [function.comp_app, function.comp_app, norm_mul, int.nat_abs_mul,
-    norm_one, int.nat_abs_one, eq_comm, nat.mul_eq_one_iff] at this,
+    norm_one, int.nat_abs_one, eq_comm, mul_eq_one] at this,
   exact this.1
 end⟩
 
@@ -758,5 +762,17 @@ begin
     rwa [← int.cast_zero, h_inj.eq_iff, norm_eq_zero hd] at this },
   rw [norm_eq_mul_conj, ring_hom.map_mul, ha, zero_mul]
 end
+
+/-- An element of `ℤ√d` has norm equal to `1` if and only if it is contained in the submonoid
+of unitary elements. -/
+lemma norm_eq_one_iff_mem_unitary {d : ℤ} {a : ℤ√d} : a.norm = 1 ↔ a ∈ unitary ℤ√d :=
+begin
+  rw [unitary.mem_iff_self_mul_star, ← norm_eq_mul_conj],
+  norm_cast,
+end
+
+/-- The kernel of the norm map on `ℤ√d` equals the submonoid of unitary elements. -/
+lemma mker_norm_eq_unitary {d : ℤ} : (@norm_monoid_hom d).mker = unitary ℤ√d :=
+submonoid.ext (λ x, norm_eq_one_iff_mem_unitary)
 
 end zsqrtd

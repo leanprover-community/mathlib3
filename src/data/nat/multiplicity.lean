@@ -14,6 +14,9 @@ import ring_theory.multiplicity
 /-!
 # Natural number multiplicity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about the multiplicity function (the maximum prime power dividing a
 number) when applied to naturals, in particular calculating it for factorials and binomial
 coefficients.

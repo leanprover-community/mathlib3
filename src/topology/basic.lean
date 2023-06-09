@@ -143,13 +143,8 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bInter_insert; exact
     is_open.inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_open_Inter [finite β] {s : β → set α} (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
-suffices is_open (⋂ (i : β) (hi : i ∈ @univ β), s i), by simpa,
-is_open_bInter finite_univ (λ i _, h i)
-
-lemma is_open_Inter_prop {p : Prop} {s : p → set α}
-  (h : ∀ h : p, is_open (s h)) : is_open (Inter s) :=
-by by_cases p; simp *
+lemma is_open_Inter [finite ι] {s : ι → set α} (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
+is_open_sInter (finite_range _) (forall_range_iff.2 h)
 
 lemma is_open_bInter_finset {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_open (f i)) :
   is_open (⋂ i ∈ s, f i) :=
@@ -213,15 +208,9 @@ finite.induction_on hs
   (λ a s has hs ih h, by rw bUnion_insert; exact
     is_closed.union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
-lemma is_closed_Union [finite β] {s : β → set α} (h : ∀ i, is_closed (s i)) :
+lemma is_closed_Union [finite ι] {s : ι → set α} (h : ∀ i, is_closed (s i)) :
   is_closed (⋃ i, s i) :=
-suffices is_closed (⋃ (i : β) (hi : i ∈ @univ β), s i),
-  by convert this; simp [set.ext_iff],
-is_closed_bUnion finite_univ (λ i _, h i)
-
-lemma is_closed_Union_prop {p : Prop} {s : p → set α}
-  (h : ∀ h : p, is_closed (s h)) : is_closed (Union s) :=
-by by_cases p; simp *
+by { simp only [← is_open_compl_iff, compl_Union] at *, exact is_open_Inter h }
 
 lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
   (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
@@ -1331,6 +1320,12 @@ lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
   continuous_at (g ∘ f) x :=
 hg.comp hf
 
+/-- See note [comp_of_eq lemmas] -/
+lemma continuous_at.comp_of_eq {g : β → γ} {f : α → β} {x : α} {y : β}
+  (hg : continuous_at g y) (hf : continuous_at f x) (hy : f x = y) :
+  continuous_at (g ∘ f) x :=
+by { subst hy, exact hg.comp hf }
+
 lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 ((nhds_basis_opens x).tendsto_iff $ nhds_basis_opens $ f x).2 $
@@ -1618,3 +1613,31 @@ With `continuous_at` you can be even more precise about what to prove in case of
 see e.g. `continuous_at.comp_div_cases`.
 -/
 library_note "continuity lemma statement"
+
+/--
+Lean's elaborator has trouble elaborating applications of lemmas that state that the composition of
+two functions satisfy some property at a point, like `continuous_at.comp` / `cont_diff_at.comp` and
+`cont_mdiff_within_at.comp`. The reason is that a lemma like this looks like
+`continuous_at g (f x) → continuous_at f x → continuous_at (g ∘ f) x`.
+Since Lean's elaborator elaborates the arguments from left-to-right, when you write `hg.comp hf`,
+the elaborator will try to figure out *both* `f` and `g` from the type of `hg`. It tries to figure
+out `f` just from the point where `g` is continuous. For example, if `hg : continuous_at g (a, x)`
+then the elaborator will assign `f` to the function `prod.mk a`, since in that case `f x = (a, x)`.
+This is undesirable in most cases where `f` is not a variable. There are some ways to work around
+this, for example by giving `f` explicitly, or to force Lean to elaborate `hf` before elaborating
+`hg`, but this is annoying.
+Another better solution is to reformulate composition lemmas to have the following shape
+`continuous_at g y → continuous_at f x → f x = y → continuous_at (g ∘ f) x`.
+This is even useful if the proof of `f x = y` is `rfl`.
+The reason that this works better is because the type of `hg` doesn't mention `f`.
+Only after elaborating the two `continuous_at` arguments, Lean will try to unify `f x` with `y`,
+which is often easy after having chosen the correct functions for `f` and `g`.
+Here is an example that shows the difference:
+```
+example {x₀ : α} (f : α → α → β) (hf : continuous_at (function.uncurry f) (x₀, x₀)) :
+  continuous_at (λ x => f x x) x₀ :=
+-- hf.comp x (continuous_at_id.prod continuous_at_id) -- type mismatch
+-- hf.comp_of_eq (continuous_at_id.prod continuous_at_id) rfl -- works
+```
+-/
+library_note "comp_of_eq lemmas"

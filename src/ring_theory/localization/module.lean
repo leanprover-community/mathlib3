@@ -10,6 +10,9 @@ import ring_theory.localization.integer
 /-!
 # Modules / vector spaces over localizations / fraction fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some results about vector spaces over the field of fractions of a ring.
 
 ## Main results

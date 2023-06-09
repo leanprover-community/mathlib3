@@ -1003,7 +1003,8 @@ meta def pow_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq' ← mk_pow [p_p, q_p],
   (pq_p, pq_pf) ← lift $ norm_num.eval_pow pq',
-  pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
+  if q.value.denom ≠ 1 then lift $ fail!"Only integer powers are supported, not {q.value}."
+  else pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 ^ q.value.num⟩
 
 /--
 Exponentiate two expressions.

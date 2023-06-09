@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison, Jakob von Raumer
 -/
 import algebra.homology.quasi_iso
-import category_theory.abelian.homology
 import category_theory.preadditive.projective_resolution
 import category_theory.preadditive.yoneda.limits
+import category_theory.preadditive.yoneda.projective
 
 /-!
 # Abelian categories with enough projectives have projective resolutions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 When `C` is abelian `projective.d f` and `f` are exact.
 Hence, starting from an epimorphism `P ⟶ X`, where `P` is projective,

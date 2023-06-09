@@ -9,6 +9,7 @@ import data.finset.order
 import data.set.accumulate
 import data.set.bool_indicator
 import topology.bornology.basic
+import topology.locally_finite
 import order.minimal
 
 /-!
@@ -1049,6 +1050,8 @@ by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact is_compact_univ_pi (λ i, is_compact_univ) }⟩
 
+instance function.compact_space [compact_space β] : compact_space (ι → β) := pi.compact_space
+
 /-- **Tychonoff's theorem** formulated in terms of filters: `filter.cocompact` on an indexed product
 type `Π d, κ d` the `filter.Coprod` of filters `filter.cocompact` on `κ d`. -/
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
@@ -1092,7 +1095,7 @@ lemma locally_compact_space_of_has_basis {ι : α → Type*} {p : Π x, ι x →
   locally_compact_space α :=
 ⟨λ x t ht, let ⟨i, hp, ht⟩ := (h x).mem_iff.1 ht in ⟨s x i, (h x).mem_of_mem hp, ht, hc x i hp⟩⟩
 
-instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space α]
+instance prod.locally_compact_space (α : Type*) (β : Type*) [topological_space α]
   [topological_space β] [locally_compact_space α] [locally_compact_space β] :
   locally_compact_space (α × β) :=
 have _ := λ x : α × β, (compact_basis_nhds x.1).prod_nhds' (compact_basis_nhds x.2),
@@ -1104,7 +1107,7 @@ variables [Π i, topological_space (π i)] [∀ i, locally_compact_space (π i)]
 
 /--In general it suffices that all but finitely many of the spaces are compact,
   but that's not straightforward to state and use. -/
-instance locally_compact_space.pi_finite [finite ι] : locally_compact_space (Π i, π i) :=
+instance pi.locally_compact_space_of_finite [finite ι] : locally_compact_space (Π i, π i) :=
 ⟨λ t n hn, begin
   rw [nhds_pi, filter.mem_pi] at hn,
   obtain ⟨s, hs, n', hn', hsub⟩ := hn,
@@ -1115,7 +1118,7 @@ instance locally_compact_space.pi_finite [finite ι] : locally_compact_space (Π
 end⟩
 
 /-- For spaces that are not Hausdorff. -/
-instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compact_space (Π i, π i) :=
+instance pi.locally_compact_space [∀ i, compact_space (π i)] : locally_compact_space (Π i, π i) :=
 ⟨λ t n hn, begin
   rw [nhds_pi, filter.mem_pi] at hn,
   obtain ⟨s, hs, n', hn', hsub⟩ := hn,
@@ -1129,6 +1132,12 @@ instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compac
     { rw if_pos h, exact hc i, },
     { rw if_neg h, exact compact_space.is_compact_univ, } },
 end⟩
+
+instance function.locally_compact_space_of_finite [finite ι] [locally_compact_space β] :
+  locally_compact_space (ι → β) := pi.locally_compact_space_of_finite
+
+instance function.locally_compact_space [locally_compact_space β] [compact_space β] :
+  locally_compact_space (ι → β) := pi.locally_compact_space
 
 end pi
 
@@ -1293,6 +1302,53 @@ variable {α}
 
 lemma exists_mem_compact_covering (x : α) : ∃ n, x ∈ compact_covering α n :=
 Union_eq_univ_iff.mp (Union_compact_covering α) x
+
+instance [sigma_compact_space β] : sigma_compact_space (α × β) :=
+⟨⟨λ n, compact_covering α n ×ˢ compact_covering β n,
+  λ _, (is_compact_compact_covering _ _).prod (is_compact_compact_covering _ _),
+  by simp only [Union_prod_of_monotone (compact_covering_subset α) (compact_covering_subset β),
+    Union_compact_covering, univ_prod_univ]⟩⟩
+
+instance [finite ι] [Π i, topological_space (π i)] [Π i, sigma_compact_space (π i)] :
+  sigma_compact_space (Π i, π i) :=
+begin
+  refine ⟨⟨λ n, set.pi univ (λ i, compact_covering (π i) n),
+    λ n, is_compact_univ_pi $ λ i, is_compact_compact_covering _ _, _⟩⟩,
+  rw [Union_univ_pi_of_monotone],
+  { simp only [Union_compact_covering, pi_univ] },
+  { exact λ i, compact_covering_subset (π i) }
+end
+
+instance [sigma_compact_space β] : sigma_compact_space (α ⊕ β) :=
+⟨⟨λ n, sum.inl '' compact_covering α n ∪ sum.inr '' compact_covering β n,
+  λ n, ((is_compact_compact_covering α n).image continuous_inl).union
+    ((is_compact_compact_covering β n).image continuous_inr),
+  by simp only [Union_union_distrib, ← image_Union, Union_compact_covering, image_univ,
+    range_inl_union_range_inr]⟩⟩
+
+instance [countable ι] [Π i, topological_space (π i)] [Π i, sigma_compact_space (π i)] :
+  sigma_compact_space (Σ i, π i) :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { apply_instance },
+  { rcases exists_surjective_nat ι with ⟨f, hf⟩,
+    refine ⟨⟨λ n, ⋃ k ≤ n, sigma.mk (f k) '' compact_covering (π (f k)) n, λ n, _, _⟩⟩,
+    { refine (finite_le_nat _).is_compact_bUnion (λ k _, _),
+      exact (is_compact_compact_covering _ _).image continuous_sigma_mk },
+    { simp only [Union_eq_univ_iff, sigma.forall, mem_Union, hf.forall],
+      intros k y,
+      rcases exists_mem_compact_covering y with ⟨n, hn⟩,
+      refine ⟨max k n, k, le_max_left _ _, mem_image_of_mem _ _⟩,
+      exact compact_covering_subset _ (le_max_right _ _) hn } }
+end
+
+protected theorem closed_embedding.sigma_compact_space {e : β → α} (he : closed_embedding e) :
+  sigma_compact_space β :=
+⟨⟨λ n, e ⁻¹' compact_covering α n, λ n, he.is_compact_preimage (is_compact_compact_covering _ _),
+  by rw [← preimage_Union, Union_compact_covering, preimage_univ]⟩⟩
+
+instance [sigma_compact_space β] : sigma_compact_space (ulift.{u} β) :=
+  ulift.closed_embedding_down.sigma_compact_space
 
 /-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have
 only countably many elements, `set.countable` version. -/

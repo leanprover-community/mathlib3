@@ -10,6 +10,9 @@ import category_theory.punit
 /-!
 # The category of elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the category of elements, also known as (a special case of) the Grothendieck
 construction.
 

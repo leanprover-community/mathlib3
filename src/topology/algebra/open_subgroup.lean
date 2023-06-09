@@ -9,6 +9,9 @@ import topology.sets.opens
 /-!
 # Open subgroups of a topological groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files builds the lattice `open_subgroup G` of open subgroups in a topological group `G`,
 and its additive version `open_add_subgroup`.  This lattice has a top element, the subgroup of all
 elements, but no bottom element in general. The trivial subgroup which is the natural candidate

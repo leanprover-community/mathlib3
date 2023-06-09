@@ -28,7 +28,7 @@ variables [comm_ring R] [add_comm_group M] [add_comm_group N] [add_comm_group N'
 variables [module R M] [module R N] [module R N']
 
 -- This instance can't be found where it's needed if we don't remind lean that it exists.
-instance alternating_map.module_add_comm_group {ι : Type*} [decidable_eq ι] :
+instance alternating_map.module_add_comm_group {ι : Type*} :
   module R (alternating_map R M N ι) :=
 by apply_instance
 

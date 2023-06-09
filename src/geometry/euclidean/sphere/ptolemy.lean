@@ -42,7 +42,7 @@ open_locale euclidean_geometry real_inner_product_space real
 
 namespace euclidean_geometry
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 variables {P : Type*} [metric_space P] [normed_add_torsor V P]
 include V
 

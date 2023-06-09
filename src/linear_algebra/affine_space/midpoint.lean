@@ -9,6 +9,9 @@ import linear_algebra.affine_space.affine_equiv
 /-!
 # Midpoint of a segment
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `midpoint R x y`: midpoint of the segment `[x, y]`. We define it for `x` and `y`

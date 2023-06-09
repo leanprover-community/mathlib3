@@ -3,7 +3,8 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.types
+import category_theory.monoidal.types.symmetric
+import category_theory.monoidal.types.coyoneda
 import category_theory.monoidal.center
 import tactic.apply_fun
 

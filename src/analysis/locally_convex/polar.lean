@@ -11,6 +11,9 @@ import topology.algebra.module.weak_dual
 /-!
 # Polar set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the polar set. There are different notions of the polar, we will define the
 *absolute polar*. The advantage over the real polar is that we can define the absolute polar for
 any bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`, where `𝕜` is a normed commutative ring and

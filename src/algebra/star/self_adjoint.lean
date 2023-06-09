@@ -111,6 +111,17 @@ by simp only [is_self_adjoint_iff, star_sub, hx.star_eq, hy.star_eq]
 
 end add_group
 
+section add_comm_monoid
+variables [add_comm_monoid R] [star_add_monoid R]
+
+lemma _root_.is_self_adjoint_add_star_self (x : R) : is_self_adjoint (x + star x) :=
+by simp only [is_self_adjoint_iff, add_comm, star_add, star_star]
+
+lemma _root_.is_self_adjoint_star_add_self (x : R) : is_self_adjoint (star x + x) :=
+by simp only [is_self_adjoint_iff, add_comm, star_add, star_star]
+
+end add_comm_monoid
+
 section semigroup
 variables [semigroup R] [star_semigroup R]
 
@@ -166,8 +177,8 @@ star_int_cast _
 
 end ring
 
-section division_ring
-variables [division_ring R] [star_ring R]
+section division_semiring
+variables [division_semiring R] [star_ring R]
 
 lemma inv {x : R} (hx : is_self_adjoint x) : is_self_adjoint x⁻¹ :=
 by simp only [is_self_adjoint_iff, star_inv', hx.star_eq]
@@ -175,18 +186,23 @@ by simp only [is_self_adjoint_iff, star_inv', hx.star_eq]
 lemma zpow {x : R} (hx : is_self_adjoint x) (n : ℤ) : is_self_adjoint (x ^ n):=
 by simp only [is_self_adjoint_iff, star_zpow₀, hx.star_eq]
 
+end division_semiring
+
+section division_ring
+variables [division_ring R] [star_ring R]
+
 lemma _root_.is_self_adjoint_rat_cast (x : ℚ) : is_self_adjoint (x : R) :=
 star_rat_cast _
 
 end division_ring
 
-section field
-variables [field R] [star_ring R]
+section semifield
+variables [semifield R] [star_ring R]
 
 lemma div {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x / y) :=
 by simp only [is_self_adjoint_iff, star_div', hx.star_eq, hy.star_eq]
 
-end field
+end semifield
 
 section has_smul
 variables [has_star R] [add_monoid A] [star_add_monoid A] [has_smul R A] [star_module R A]

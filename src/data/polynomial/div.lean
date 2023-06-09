@@ -11,6 +11,9 @@ import ring_theory.multiplicity
 /-!
 # Division of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main defs are `div_by_monic` and `mod_by_monic`.
 The compatibility between these is given by `mod_by_monic_add_div`.
 We also define `root_multiplicity`.

@@ -8,6 +8,9 @@ import computability.halting
 /-!
 # Strong reducibility and degrees.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the notions of computable many-one reduction and one-one
 reduction between sets, and shows that the corresponding degrees form a
 semilattice.

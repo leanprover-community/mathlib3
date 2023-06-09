@@ -11,6 +11,9 @@ import ring_theory.ideal.operations
 
 # The basics of valuation theory.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The basic theory of valuations (non-archimedean norms) on a commutative ring,
 following T. Wedhorn's unpublished notes “Adic Spaces” ([wedhorn_adic]).
 

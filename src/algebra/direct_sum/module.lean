@@ -9,6 +9,9 @@ import linear_algebra.dfinsupp
 /-!
 # Direct sum of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The first part of the file provides constructors for direct sums of modules. It provides a
 construction of the direct sum using the universal property and proves its uniqueness
 (`direct_sum.to_module.unique`).

@@ -9,6 +9,9 @@ import analysis.inner_product_space.projection
 /-!
 # Convex cones in inner product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `set.inner_dual_cone` to be the cone consisting of all points `y` such that for
 all points `x` in a given set `0 ≤ ⟪ x, y ⟫`.
 

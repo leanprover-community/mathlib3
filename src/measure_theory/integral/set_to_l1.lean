@@ -8,6 +8,9 @@ import measure_theory.function.simple_func_dense_lp
 /-!
 # Extension of a linear function from indicators to L1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `T : set α → E →L[ℝ] F` be additive for measurable sets with finite measure, in the sense that
 for `s, t` two such sets, `s ∩ t = ∅ → T (s ∪ t) = T s + T t`. `T` is akin to a bilinear map on
 `set α × E`, or a linear map on indicator functions.

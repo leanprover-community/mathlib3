@@ -6,6 +6,7 @@ Authors: Heather Macbeth
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
 import algebra.direct_sum.decomposition
+import linear_algebra.eigenspace.minpoly
 
 /-! # Spectral theory of self-adjoint operators
 

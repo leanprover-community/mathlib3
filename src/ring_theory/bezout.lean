@@ -11,6 +11,9 @@ import algebra.gcd_monoid.integrally_closed
 
 # Bézout rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Bézout ring (Bezout ring) is a ring whose finitely generated ideals are principal.
 Notible examples include principal ideal rings, valuation rings, and the ring of algebraic integers.
 

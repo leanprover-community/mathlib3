@@ -5,7 +5,7 @@ Authors: David Kurniadi Angdinata
 -/
 
 import algebraic_geometry.elliptic_curve.weierstrass
-import linear_algebra.free_module.ideal_quotient
+import linear_algebra.free_module.norm
 import ring_theory.class_group
 
 /-!

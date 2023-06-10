@@ -7,7 +7,7 @@ import analysis.inner_product_space.calculus
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.adjoint
 import analysis.calculus.lagrange_multipliers
-import linear_algebra.eigenspace
+import linear_algebra.eigenspace.basic
 
 /-!
 # The Rayleigh quotient

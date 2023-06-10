@@ -9,6 +9,9 @@ import measure_theory.function.lp_order
 /-!
 # Integrable functions and `L¹` space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In the first part of this file, the predicate `integrable` is defined and basic properties of
 integrable functions are proved.
 

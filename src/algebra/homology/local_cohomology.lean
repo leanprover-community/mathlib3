@@ -12,6 +12,9 @@ import ring_theory.finiteness
 /-!
 # Local cohomology.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `i`-th local cohomology module of an `R`-module `M` with support in an
 ideal `I` of `R`, where `R` is a commutative ring, as the direct limit of Ext modules:
 

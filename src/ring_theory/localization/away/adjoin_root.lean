@@ -7,6 +7,9 @@ import ring_theory.adjoin_root
 import ring_theory.localization.away.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The `R`-`alg_equiv` between the localization of `R` away from `r` and
 `R` with an inverse of `r` adjoined.
 -/

@@ -9,6 +9,9 @@ import probability.independence.basic
 /-!
 # Integration in Probability Theory
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Integration results for independent random variables. Specifically, for two
 independent random variables X and Y over the extended non-negative
 reals, `E[X * Y] = E[X] * E[Y]`, and similar results.

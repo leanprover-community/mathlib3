@@ -10,6 +10,9 @@ import data.real.sign
 /-!
 # Real quadratic forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Sylvester's law of inertia `equivalent_one_neg_one_weighted_sum_squared`:
 A real quadratic form is equivalent to a weighted
 sum of squares with the weights being ±1 or 0.

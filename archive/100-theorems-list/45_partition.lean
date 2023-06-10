@@ -53,6 +53,8 @@ https://en.wikipedia.org/wiki/Partition_(number_theory)#Odd_parts_and_distinct_p
 -/
 
 open power_series
+namespace theorems_100
+
 noncomputable theory
 
 variables {α : Type*}
@@ -521,3 +523,5 @@ begin
   rw odd_gf_prop n (n+1) (by linarith),
   apply same_coeffs (n+1) n n.le_succ,
 end
+
+end theorems_100

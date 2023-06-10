@@ -487,6 +487,10 @@ univ_pi_eq_empty_iff.2 $ h.elim $ λ x, ⟨x, rfl⟩
 @[simp] lemma disjoint_univ_pi : disjoint (pi univ t₁) (pi univ t₂) ↔ ∃ i, disjoint (t₁ i) (t₂ i) :=
 by simp only [disjoint_iff_inter_eq_empty, ← pi_inter_distrib, univ_pi_eq_empty_iff]
 
+lemma _root_.disjoint.set_pi (hi : i ∈ s) (ht : disjoint (t₁ i) (t₂ i)) :
+  disjoint (s.pi t₁) (s.pi t₂) :=
+disjoint_left.2 $ λ h h₁ h₂, disjoint_left.1 ht (h₁ _ hi) (h₂ _ hi)
+
 section nonempty
 variables [Π i, nonempty (α i)]
 
@@ -494,10 +498,6 @@ lemma pi_eq_empty_iff' : s.pi t = ∅ ↔ ∃ i ∈ s, t i = ∅ := by simp [pi_
 
 @[simp] lemma disjoint_pi : disjoint (s.pi t₁) (s.pi t₂) ↔ ∃ i ∈ s, disjoint (t₁ i) (t₂ i) :=
 by simp only [disjoint_iff_inter_eq_empty, ← pi_inter_distrib, pi_eq_empty_iff']
-
-lemma _root_.disjoint.set_pi (hi : i ∈ s) (ht : disjoint (t₁ i) (t₂ i)) :
-  disjoint (s.pi t₁) (s.pi t₂) :=
-disjoint_left.2 $ λ h h₁ h₂, disjoint_left.1 ht (h₁ _ hi) (h₂ _ hi)
 
 end nonempty
 

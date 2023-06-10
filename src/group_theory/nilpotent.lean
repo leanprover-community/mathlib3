@@ -15,6 +15,9 @@ import tactic.tfae
 
 # Nilpotent groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An API for nilpotent groups, that is, groups for which the upper central series
 reaches `⊤`.
 

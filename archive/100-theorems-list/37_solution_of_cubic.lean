@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeoff Lee
 -/
 import tactic.linear_combination
-import ring_theory.roots_of_unity
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.roots
 
 /-!
 # The Solution of a Cubic
@@ -34,6 +33,8 @@ Originally ported from Isabelle/HOL. The
 
 polynomial, cubic, root
 -/
+
+namespace theorems_100
 
 section field
 
@@ -184,3 +185,5 @@ begin
 end
 
 end field
+
+end theorems_100

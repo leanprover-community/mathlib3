@@ -10,6 +10,9 @@ import ring_theory.discrete_valuation_ring.tfae
 /-!
 # Dedekind domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines an equivalent notion of a Dedekind domain (or Dedekind ring),
 namely a Noetherian integral domain where the localization at all nonzero prime ideals is a DVR
 (TODO: and shows that implies the main definition).

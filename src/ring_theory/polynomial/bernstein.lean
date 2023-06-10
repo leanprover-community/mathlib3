@@ -13,6 +13,9 @@ import data.mv_polynomial.pderiv
 /-!
 # Bernstein polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The definition of the Bernstein polynomials
 ```
 bernstein_polynomial (R : Type*) [comm_ring R] (n ν : ℕ) : R[X] :=

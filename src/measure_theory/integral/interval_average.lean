@@ -9,6 +9,9 @@ import measure_theory.integral.average
 /-!
 # Integral average over an interval
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we introduce notation `⨍ x in a..b, f x` for the average `⨍ x in Ι a b, f x` of `f`
 over the interval `Ι a b = set.Ioc (min a b) (max a b)` w.r.t. the Lebesgue measure, then prove
 formulas for this average:

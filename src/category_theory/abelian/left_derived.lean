@@ -12,6 +12,9 @@ import category_theory.limits.constructions.epi_mono
 /-!
 # Zeroth left derived functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `F : C ⥤ D` is an additive right exact functor between abelian categories, where `C` has enough
 projectives, we provide the natural isomorphism `F.left_derived 0 ≅ F`.
 

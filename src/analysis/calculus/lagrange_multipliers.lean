@@ -9,6 +9,9 @@ import linear_algebra.dual
 /-!
 # Lagrange multipliers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we formalize the
 [Lagrange multipliers](https://en.wikipedia.org/wiki/Lagrange_multiplier) method of solving
 conditional extremum problems: if a function `φ` has a local extremum at `x₀` on the set

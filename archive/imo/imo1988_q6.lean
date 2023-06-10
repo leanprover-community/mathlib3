@@ -28,6 +28,8 @@ To illustrate the technique, we also prove a similar result.
 local attribute [instance] classical.prop_decidable
 local attribute [simp] sq
 
+namespace imo1988_q6
+
 /-- Constant descent Vieta jumping.
 
 This proof technique allows one to prove an arbitrary proposition `claim`,
@@ -182,6 +184,10 @@ begin
     simp [hV₁], }
     -- Hence p' = (c, m_x) lies on the upper branch, and we are done.
 end
+
+end imo1988_q6
+
+open imo1988_q6
 
 /--Question 6 of IMO1988. If a and b are two natural numbers
 such that a*b+1 divides a^2 + b^2, show that their quotient is a perfect square.-/

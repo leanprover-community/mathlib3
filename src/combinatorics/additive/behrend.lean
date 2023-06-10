@@ -11,6 +11,9 @@ import data.complex.exponential_bounds
 /-!
 # Behrend's bound on Roth numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Behrend's lower bound on Roth numbers. This says that we can find a subset of
 `{1, ..., n}` of size `n / exp (O (sqrt (log n)))` which does not contain arithmetic progressions of
 length `3`.

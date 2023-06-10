@@ -14,6 +14,9 @@ import data.nat.factorization.basic
 /-!
 # Arithmetic Functions and Dirichlet Convolution
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines arithmetic functions, which are functions from `ℕ` to a specified type that map 0
 to 0. In the literature, they are often instead defined as functions from `ℕ+`. These arithmetic
 functions are endowed with a multiplication, given by Dirichlet convolution, and pointwise addition,

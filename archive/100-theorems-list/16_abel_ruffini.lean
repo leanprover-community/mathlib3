@@ -6,6 +6,7 @@ Authors: Thomas Browning
 import analysis.calculus.local_extr
 import data.nat.prime_norm_num
 import field_theory.abel_ruffini
+import ring_theory.roots_of_unity.minpoly
 import ring_theory.eisenstein_criterion
 
 /-!

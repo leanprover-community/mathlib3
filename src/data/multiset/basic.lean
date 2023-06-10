@@ -252,6 +252,7 @@ theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 
 /-! ### `multiset.subset` -/
 
 section subset
+variables {s : multiset α} {a : α}
 
 /-- `s ⊆ t` is the lift of the list subset relation. It means that any
   element with nonzero multiplicity in `s` has nonzero multiplicity in `t`,
@@ -261,8 +262,9 @@ protected def subset (s t : multiset α) : Prop := ∀ ⦃a : α⦄, a ∈ s →
 
 instance : has_subset (multiset α) := ⟨multiset.subset⟩
 instance : has_ssubset (multiset α) := ⟨λ s t, s ⊆ t ∧ ¬ t ⊆ s⟩
+instance : is_nonstrict_strict_order (multiset α) (⊆) (⊂) := ⟨λ _ _, iff.rfl⟩
 
-@[simp] theorem coe_subset {l₁ l₂ : list α} : (l₁ : multiset α) ⊆ l₂ ↔ l₁ ⊆ l₂ := iff.rfl
+@[simp, norm_cast] theorem coe_subset {l₁ l₂ : list α} : (l₁ : multiset α) ⊆ l₂ ↔ l₁ ⊆ l₂ := iff.rfl
 
 @[simp] theorem subset.refl (s : multiset α) : s ⊆ s := λ a h, h
 
@@ -290,8 +292,12 @@ quotient.induction_on₂ s t $ λ _ _, cons_subset_cons _
 theorem eq_zero_of_subset_zero {s : multiset α} (h : s ⊆ 0) : s = 0 :=
 eq_zero_of_forall_not_mem h
 
-theorem subset_zero {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
+@[simp] theorem subset_zero : s ⊆ 0 ↔ s = 0 :=
 ⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
+
+@[simp] lemma zero_ssubset : 0 ⊂ s ↔ s ≠ 0 := by simp [ssubset_iff_subset_not_subset]
+
+@[simp] lemma singleton_subset : {a} ⊆ s ↔ a ∈ s := by simp [subset_iff]
 
 lemma induction_on' {p : multiset α → Prop} (S : multiset α)
   (h₁ : p 0) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
@@ -390,6 +396,11 @@ quotient.induction_on₂ s t $ λ l₁ l₂, subperm_cons a
 
 lemma cons_le_cons (a : α) : s ≤ t → a ::ₘ s ≤ a ::ₘ t := (cons_le_cons_iff a).2
 
+@[simp] lemma cons_lt_cons_iff : a ::ₘ s < a ::ₘ t ↔ s < t :=
+lt_iff_lt_of_le_iff_le' (cons_le_cons_iff _) (cons_le_cons_iff _)
+
+lemma cons_lt_cons (a : α) (h : s < t) : a ::ₘ s < a ::ₘ t := cons_lt_cons_iff.2 h
+
 lemma le_cons_of_not_mem (m : a ∉ s) : s ≤ a ::ₘ t ↔ s ≤ t :=
 begin
   refine ⟨_, λ h, le_trans h $ le_cons_self _ _⟩,
@@ -408,6 +419,27 @@ ne_of_gt (lt_cons_self _ _)
 @[simp] theorem singleton_le {a : α} {s : multiset α} : {a} ≤ s ↔ a ∈ s :=
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
+
+@[simp] lemma le_singleton : s ≤ {a} ↔ s = 0 ∨ s = {a} :=
+quot.induction_on s $ λ l, by simp only [cons_zero, ←coe_singleton, quot_mk_to_coe'', coe_le,
+  coe_eq_zero, coe_eq_coe, list.perm_singleton, list.subperm_singleton_iff]
+
+@[simp] lemma lt_singleton : s < {a} ↔ s = 0 :=
+begin
+  simp only [lt_iff_le_and_ne, le_singleton, or_and_distrib_right, ne.def, and_not_self, or_false,
+    and_iff_left_iff_imp],
+  rintro rfl,
+  exact (singleton_ne_zero _).symm,
+end
+
+@[simp] lemma ssubset_singleton_iff : s ⊂ {a} ↔ s = 0 :=
+begin
+  refine ⟨λ hs, eq_zero_of_subset_zero $ λ b hb, hs.2 _, _⟩,
+  { obtain rfl := mem_singleton.1 (hs.1 hb),
+    rwa singleton_subset },
+  { rintro rfl,
+    simp }
+end
 
 end
 
@@ -541,6 +573,8 @@ le_induction_on h $ λ l₁ l₂ s h₂, congr_arg coe $ s.eq_of_length_le h₂
 
 theorem card_lt_of_lt {s t : multiset α} (h : s < t) : card s < card t :=
 lt_of_not_ge $ λ h₂, ne_of_lt h $ eq_of_le_of_card_le (le_of_lt h) h₂
+
+lemma card_strict_mono : strict_mono (card : multiset α → ℕ) := λ _ _, card_lt_of_lt
 
 theorem lt_iff_cons_le {s t : multiset α} : s < t ↔ ∃ a, a ::ₘ s ≤ t :=
 ⟨quotient.induction_on₂ s t $ λ l₁ l₂ h,

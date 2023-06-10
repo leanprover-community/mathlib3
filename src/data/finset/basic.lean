@@ -298,6 +298,8 @@ show (s₁ : set α) ⊂ s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
 and_congr val_le_iff $ not_congr val_le_iff
 
+lemma val_strict_mono : strict_mono (val : finset α → multiset α) := λ _ _, val_lt_iff.2
+
 lemma ssubset_iff_subset_ne {s t : finset α} : s ⊂ t ↔ s ⊆ t ∧ s ≠ t :=
 @lt_iff_le_and_ne _ _ s t
 
@@ -543,6 +545,10 @@ lemma nonempty.exists_eq_singleton_or_nontrivial :
   s.nonempty → (∃ a, s = {a}) ∨ (s : set α).nontrivial :=
 λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
 
+lemma exists_eq_singleton_iff_nonempty_subsingleton :
+  (∃ a : α, s = {a}) ↔ s.nonempty ∧ (s : set α).subsingleton :=
+by simp_rw [←coe_eq_singleton, set.exists_eq_singleton_iff_nonempty_subsingleton]; refl
+
 instance [nonempty α] : nontrivial (finset α) :=
 ‹nonempty α›.elim $ λ a, ⟨⟨{a}, ∅, singleton_ne_empty _⟩⟩
 
@@ -572,6 +578,8 @@ by simp only [mem_cons, or_imp_distrib, forall_and_distrib, forall_eq]
 
 @[simp] lemma mk_cons {s : multiset α} (h : (a ::ₘ s).nodup) :
   (⟨a ::ₘ s, h⟩ : finset α) = cons a ⟨s, (nodup_cons.1 h).2⟩ (nodup_cons.1 h).1 := rfl
+
+@[simp] lemma cons_empty : cons a ∅ (not_mem_empty _) = {a} := rfl
 
 @[simp] lemma nonempty_cons (h : a ∉ s) : (cons a s h).nonempty := ⟨a, mem_cons.2 $ or.inl rfl⟩
 
@@ -704,6 +712,8 @@ lemma mem_insert_of_mem (h : a ∈ s) : a ∈ insert b s := mem_ndinsert_of_mem 
 lemma mem_of_mem_insert_of_ne (h : b ∈ insert a s) : b ≠ a → b ∈ s := (mem_insert.1 h).resolve_left
 lemma eq_of_not_mem_of_mem_insert (ha : b ∈ insert a s) (hb : b ∉ s) : b = a :=
 (mem_insert.1 ha).resolve_right hb
+
+@[simp] lemma insert_empty : insert a (∅ : finset α) = {a} := rfl
 
 @[simp] theorem cons_eq_insert (a s h) : @cons α a s h = insert a s := ext $ λ a, by simp
 

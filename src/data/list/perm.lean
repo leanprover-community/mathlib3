@@ -27,7 +27,7 @@ open_locale nat
 universes uu vv
 
 namespace list
-variables {α : Type uu} {β : Type vv} {l₁ l₂ : list α}
+variables {α : Type uu} {β : Type vv} {l l₁ l₂ : list α} {a : α}
 
 /-- `perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
   of each other. This is defined by induction using pairwise swaps. -/
@@ -385,6 +385,28 @@ theorem sublist.exists_perm_append : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ →
 | ._ ._ (sublist.cons2 l₁ l₂ a s) :=
   let ⟨l, p⟩ := sublist.exists_perm_append s in
   ⟨l, p.cons a⟩
+
+lemma subperm_iff : l₁ <+~ l₂ ↔ ∃ l ~ l₂, l₁ <+ l :=
+begin
+  refine ⟨_, λ ⟨l, h₁, h₂⟩, h₂.subperm.trans h₁.subperm⟩,
+  rintro ⟨l, h₁, h₂⟩,
+  obtain ⟨l', h₂⟩ := h₂.exists_perm_append,
+  exact ⟨l₁ ++ l', (h₂.trans (h₁.append_right _)).symm, (prefix_append _ _).sublist⟩,
+end
+
+@[simp] lemma singleton_subperm_iff : [a] <+~ l ↔ a ∈ l :=
+⟨λ ⟨s, hla, h⟩, by rwa [perm_singleton.1 hla, singleton_sublist] at h,
+ λ h, ⟨[a], perm.refl _, singleton_sublist.2 h⟩⟩
+
+@[simp] lemma subperm_singleton_iff : l <+~ [a] ↔ l = [] ∨ l = [a] :=
+begin
+  split,
+  { rw subperm_iff,
+    rintro ⟨s, hla, h⟩,
+    rwa [perm_singleton.mp hla, sublist_singleton] at h },
+  { rintro (rfl | rfl),
+    exacts [nil_subperm, subperm.refl _] }
+end
 
 theorem perm.countp_eq (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} (s : l₁ ~ l₂) : countp p l₁ = countp p l₂ :=
@@ -784,10 +806,6 @@ end
 
 instance decidable_subperm : decidable_rel ((<+~) : list α → list α → Prop) :=
 λ l₁ l₂, decidable_of_iff _ list.subperm_ext_iff.symm
-
-@[simp] lemma subperm_singleton_iff {α} {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
-⟨λ ⟨s, hla, h⟩, by rwa [perm_singleton.mp hla, singleton_sublist] at h,
- λ h, ⟨[a], perm.refl _, singleton_sublist.mpr h⟩⟩
 
 lemma subperm.cons_left {l₁ l₂ : list α} (h : l₁ <+~ l₂)
   (x : α) (hx : count x l₁ < count x l₂) :

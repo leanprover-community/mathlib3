@@ -1066,6 +1066,9 @@ eq_nil_of_subset_nil $ s.subset
 @[simp] theorem sublist_nil_iff_eq_nil {l : list α} : l <+ [] ↔ l = [] :=
 ⟨eq_nil_of_sublist_nil, λ H, H ▸ sublist.refl _⟩
 
+@[simp] lemma sublist_singleton {l : list α} {a : α} : l <+ [a] ↔ l = [] ∨ l = [a] :=
+by split; rintro (_ | _); simp [*] at *
+
 @[simp] theorem replicate_sublist_replicate (a : α) {m n} :
   replicate m a <+ replicate n a ↔ m ≤ n :=
 ⟨λ h, by simpa only [length_replicate] using h.length_le,

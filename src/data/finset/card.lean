@@ -205,6 +205,7 @@ begin
 end
 
 lemma card_lt_card (h : s ⊂ t) : s.card < t.card := card_lt_of_lt $ val_lt_iff.2 h
+lemma card_strict_mono : strict_mono (card : finset α → ℕ) := λ _ _, card_lt_card
 
 lemma card_eq_of_bijective (f : ∀ i, i < n → α) (hf : ∀ a ∈ s, ∃ i, ∃ h : i < n, f i h = a)
   (hf' : ∀ i (h : i < n), f i h ∈ s) (f_inj : ∀ i j (hi : i < n)

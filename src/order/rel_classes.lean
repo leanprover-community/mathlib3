@@ -551,12 +551,20 @@ lemma eq_or_ssubset_of_subset [is_antisymm α (⊆)] (h : a ⊆ b) : a = b ∨ a
 lemma ssubset_or_eq_of_subset [is_antisymm α (⊆)] (h : a ⊆ b) : a ⊂ b ∨ a = b :=
 (eq_or_ssubset_of_subset h).swap
 
+lemma eq_of_subset_of_not_ssubset [is_antisymm α (⊆)] (hab : a ⊆ b) (hba : ¬ a ⊂ b) : a = b :=
+(eq_or_ssubset_of_subset hab).resolve_right hba
+
+lemma eq_of_superset_of_not_ssuperset [is_antisymm α (⊆)] (hab : a ⊆ b) (hba : ¬ a ⊂ b) : b = a :=
+((eq_or_ssubset_of_subset hab).resolve_right hba).symm
+
 alias ssubset_of_subset_of_ssubset ← has_subset.subset.trans_ssubset
 alias ssubset_of_ssubset_of_subset ← has_ssubset.ssubset.trans_subset
 alias ssubset_of_subset_of_ne      ← has_subset.subset.ssubset_of_ne
 alias ssubset_of_ne_of_subset      ← ne.ssubset_of_subset
 alias eq_or_ssubset_of_subset      ← has_subset.subset.eq_or_ssubset
 alias ssubset_or_eq_of_subset      ← has_subset.subset.ssubset_or_eq
+alias eq_of_subset_of_not_ssubset     ← has_subset.subset.eq_of_not_ssubset
+alias eq_of_superset_of_not_ssuperset ← has_subset.subset.eq_of_not_ssuperset
 
 lemma ssubset_iff_subset_ne [is_antisymm α (⊆)] : a ⊂ b ↔ a ⊆ b ∧ a ≠ b :=
 ⟨λ h, ⟨h.subset, h.ne⟩, λ h, h.1.ssubset_of_ne h.2⟩

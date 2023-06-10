@@ -24,13 +24,10 @@ This could be generalized to similar results about finite abelian groups.
 * Give `wilsons_lemma` a descriptive name.
 -/
 
+open finset nat finite_field zmod
 open_locale big_operators nat
 
 namespace zmod
-
-open finset nat finite_field
-
-section wilson
 
 variables (p : ℕ) [fact p.prime]
 
@@ -69,8 +66,6 @@ begin
   rw [← prod_nat_cast, finset.prod_Ico_id_eq_factorial, wilsons_lemma]
 end
 
-end wilson
-
 end zmod
 
 namespace nat
@@ -100,3 +95,5 @@ begin
 end
 
 end nat
+
+assert_not_exists legendre_sym.quadratic_reciprocity

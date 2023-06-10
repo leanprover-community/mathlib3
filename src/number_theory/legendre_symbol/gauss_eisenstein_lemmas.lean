@@ -8,12 +8,11 @@ import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Lemmas of Gauss and Eisenstein
 
-This file contains code for the proof of the Lemmas of Gauss and Eisenstein
-on the Legendre symbol. The main results are `zmod.gauss_lemma_aux` and
-`zmod.eisenstein_lemma_aux`.
+This file contains the Lemmas of Gauss and Eisenstein on the Legendre symbol.
+The main results are `zmod.gauss_lemma` and `zmod.eisenstein_lemma`.
 -/
 
-open function finset nat finite_field zmod
+open finset nat
 open_locale big_operators nat
 
 section gauss_eisenstein

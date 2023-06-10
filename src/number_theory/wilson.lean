@@ -92,3 +92,5 @@ begin
 end
 
 end nat
+
+assert_not_exists legendre_sym.quadratic_reciprocity

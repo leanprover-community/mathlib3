@@ -17,7 +17,9 @@ This file proves properties of 2×2 block matrices `[A B; C D]` that relate to t
  * `matrix.det_from_blocks₁₁`, `matrix.det_from_blocks₂₂`: determinant of a block matrix in terms of
    the Schur complement.
  * `matrix.inv_of_from_blocks_zero₂₁_eq`, `matrix.inv_of_from_blocks_zero₁₂_eq`: the inverse of a
-   block triangular matrix
+   block triangular matrix.
+ * `matrix.is_unit_from_blocks_zero₂₁`, `matrix.is_unit_from_blocks_zero₁₂`: invertibility of a
+   block triangular matrix.
  * `matrix.det_one_add_mul_comm`: the **Weinstein–Aronszajn identity**.
  * `matrix.schur_complement_pos_semidef_iff` : If a matrix `A` is positive definite, then
   `[A B; Bᴴ D]` is postive semidefinite if and only if `D - Bᴴ A⁻¹ B` is postive semidefinite.
@@ -84,7 +86,6 @@ lemma inv_of_from_blocks_zero₂₁_eq
   ⅟(from_blocks A B 0 D) = from_blocks (⅟A) (-(⅟A⬝B⬝⅟D)) 0 (⅟D) :=
 begin
   letI := from_blocks_zero₂₁_invertible A B D,
-  haveI := invertible.subsingleton (from_blocks A B 0 D),
   convert (rfl : ⅟(from_blocks A B 0 D) = _),
 end
 
@@ -94,7 +95,6 @@ lemma inv_of_from_blocks_zero₁₂_eq
   ⅟(from_blocks A 0 C D) = from_blocks (⅟A) 0 (-(⅟D⬝C⬝⅟A)) (⅟D) :=
 begin
   letI := from_blocks_zero₁₂_invertible A C D,
-  haveI := invertible.subsingleton (from_blocks A 0 C D),
   convert (rfl : ⅟(from_blocks A 0 C D) = _),
 end
 
@@ -124,14 +124,14 @@ def invertible_of_from_blocks_zero₁₂_invertible
   (A : matrix m m α) (C : matrix n m α) (D : matrix n n α)
   [invertible (from_blocks A 0 C D)] : invertible A × invertible D :=
 { fst := invertible_of_right_inverse _ (⅟(from_blocks A 0 C D)).to_blocks₁₁ $ begin
-    have := matrix.mul_inv_of_self (from_blocks A 0 C  D),
-    rw [←from_blocks_to_blocks (⅟(from_blocks A 0 C  D)), from_blocks_multiply] at this,
+    have := matrix.mul_inv_of_self (from_blocks A 0 C D),
+    rw [←from_blocks_to_blocks (⅟(from_blocks A 0 C D)), from_blocks_multiply] at this,
     replace := congr_arg matrix.to_blocks₁₁ this,
     simpa only [matrix.to_blocks_from_blocks₁₁, matrix.zero_mul, add_zero, ←from_blocks_one]
       using this,
   end,
   snd := invertible_of_left_inverse _ (⅟(from_blocks A 0 C D)).to_blocks₂₂ $ begin
-    have := matrix.inv_of_mul_self (from_blocks A 0 C  D),
+    have := matrix.inv_of_mul_self (from_blocks A 0 C D),
     rw [←from_blocks_to_blocks (⅟(from_blocks A 0 C D)), from_blocks_multiply] at this,
     replace := congr_arg matrix.to_blocks₂₂ this,
     simpa only [matrix.to_blocks_from_blocks₂₂, matrix.mul_zero, zero_add, ←from_blocks_one]
@@ -156,18 +156,24 @@ def from_blocks_zero₁₂_invertible_equiv (A : matrix m m α) (C : matrix n m 
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 
-/-- When lowered to a prop, `matrix.from_blocks_zero₂₁_invertible_equiv` forms an `iff`. -/
+/-- An upper block-triangular matrix is invertible iff both elements of its diagonal are.
+
+This is a propositional form of `matrix.from_blocks_zero₂₁_invertible_equiv`. -/
 @[simp] lemma is_unit_from_blocks_zero₂₁ {A : matrix m m α} {B : matrix m n α} {D : matrix n n α} :
   is_unit (from_blocks A B 0 D) ↔ is_unit A ∧ is_unit D :=
 by simp only [← nonempty_invertible_iff_is_unit, ←nonempty_prod,
   (from_blocks_zero₂₁_invertible_equiv _ _ _).nonempty_congr]
 
-/-- When lowered to a prop, `matrix.from_blocks_zero₁₂_invertible_equiv` forms an `iff`. -/
+/-- A lower block-triangular matrix is invertible iff both elements of its diagonal are.
+
+This is a propositional form of  `matrix.from_blocks_zero₁₂_invertible_equiv` forms an `iff`. -/
 @[simp] lemma is_unit_from_blocks_zero₁₂ {A : matrix m m α} {C : matrix n m α} {D : matrix n n α} :
   is_unit (from_blocks A 0 C D) ↔ is_unit A ∧ is_unit D :=
 by simp only [← nonempty_invertible_iff_is_unit, ←nonempty_prod,
   (from_blocks_zero₁₂_invertible_equiv _ _ _).nonempty_congr]
 
+/-- An expression for the inverse of an upper block-triangular matrix, when either both elements of
+diagonal are invertible, or both are not. -/
 lemma inv_from_blocks_zero₂₁_of_is_unit_iff
   (A : matrix m m α) (B : matrix m n α) (D : matrix n n α)
   (hAD : is_unit A ↔ is_unit D) :
@@ -187,6 +193,8 @@ begin
       matrix.zero_mul, neg_zero, from_blocks_zero] }
 end
 
+/-- An expression for the inverse of a lower block-triangular matrix, when either both elements of
+diagonal are invertible, or both are not. -/
 lemma inv_from_blocks_zero₁₂_of_is_unit_iff
   (A : matrix m m α) (C : matrix n m α) (D : matrix n n α)
   (hAD : is_unit A ↔ is_unit D) :

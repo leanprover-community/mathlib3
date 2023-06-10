@@ -9,7 +9,6 @@ import linear_algebra.free_module.finite.rank
 import linear_algebra.free_module.pid
 import linear_algebra.free_module.strong_rank_condition
 import linear_algebra.quotient_pi
-import ring_theory.norm
 
 /-! # Ideals in free modules over PIDs
 
@@ -106,8 +105,6 @@ let b := module.free.choose_basis ℤ S,
 in by haveI : ∀ i, ne_zero (a i).nat_abs :=
     (λ i, ⟨int.nat_abs_ne_zero_of_ne_zero (smith_coeffs_ne_zero b I hI i)⟩); classical;
   exact fintype.of_equiv (Π i, zmod (a i).nat_abs) e.symm
-
-section comm_ring
 
 variables (F : Type*) [comm_ring F] [algebra F R] [algebra F S] [is_scalar_tower F R S]
   (b : basis ι R S) {I : ideal S} (hI : I ≠ ⊥)

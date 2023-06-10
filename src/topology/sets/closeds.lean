@@ -158,7 +158,7 @@ lemma closeds.is_atom_iff [t1_space α] {s : closeds α} : is_atom s ↔ ∃ x, 
 begin
   have : is_atom (s : set α) ↔ is_atom s,
   { refine closeds.gi.is_atom_iff' rfl (λ t ht, _) s,
-    obtain ⟨x, rfl⟩ := t.is_atom_iff.mp ht,
+    obtain ⟨x, rfl⟩ := is_atom_iff.1 ht,
     exact closure_singleton },
   simpa only [← this, (s : set α).is_atom_iff, set_like.ext_iff, set.ext_iff]
 end

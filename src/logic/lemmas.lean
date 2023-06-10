@@ -31,6 +31,9 @@ attribute [protected] heq.eq eq.heq
 alias ne_of_eq_of_ne ← eq.trans_ne
 alias ne_of_ne_of_eq ← ne.trans_eq
 
+alias Exists₂.imp ← Exists.imp₂
+alias Exists₃.imp ← Exists.imp₃
+
 variables {α : Sort*} {p q r : Prop} [decidable p] [decidable q] {a b c : α}
 
 lemma dite_dite_distrib_left {a : p → α} {b : ¬ p → q → α} {c : ¬ p → ¬ q → α} :

@@ -743,30 +743,19 @@ attribute [protected] is_atom.compl is_coatom.compl
 end boolean_algebra
 
 namespace set
-variables {s : set α}
+variables {s t : set α} {a : α}
 
-lemma is_atom_singleton (a : α) : is_atom ({a} : set α) :=
+@[simp] lemma is_atom_singleton (a : α) : is_atom ({a} : set α) :=
 ⟨singleton_ne_empty _, λ s, eq_empty_of_ssubset_singleton⟩
 
-lemma is_coatom_singleton_compl (a : α) : is_coatom ({a}ᶜ : set α) := (is_atom_singleton a).compl
+@[simp] lemma is_coatom_compl_singleton (a : α) : is_coatom ({a}ᶜ : set α) :=
+(is_atom_singleton a).compl
 
-lemma is_atom_iff : is_atom s ↔ ∃ a, s = {a} :=
-begin
-  refine ⟨λ hs, exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨nonempty_iff_ne_empty.2 hs.1,
-    λ a ha b hb, _⟩, _⟩,
-  { rw [←singleton_subset_iff] at ha hb,
-    rw [←singleton_eq_singleton_iff, (hs.le_iff_eq $ singleton_ne_empty _).1 ha,
-      (hs.le_iff_eq $ singleton_ne_empty _).1 hb] },
-  { rintro ⟨a, rfl⟩,
-    exact is_atom_singleton _ }
-end
+protected lemma is_atom_iff : is_atom s ↔ ∃ a, s = {a} :=
+bot_covby_iff.symm.trans $ covby_iff_insert.trans $ by simp
 
-lemma is_coatom_iff : is_coatom s ↔ ∃ a, s = {a}ᶜ :=
-begin
-  convert is_atom_compl.symm.trans is_atom_iff,
-  ext a,
-  rw [compl_eq_iff_is_compl, eq_compl_iff_is_compl],
-end
+protected lemma is_coatom_iff : is_coatom s ↔ ∃ a, s = {a}ᶜ :=
+covby_top_iff.symm.trans $ covby_iff_sdiff_singleton.trans $ by simp [compl_eq_univ_diff]
 
 instance : is_atomistic (set α) :=
 { eq_Sup_atoms := λ s, ⟨(λ x, {x}) '' s,
@@ -776,6 +765,6 @@ instance : is_atomistic (set α) :=
 instance : is_coatomistic (set α) :=
 { eq_Inf_coatoms := λ s, ⟨(λ x, {x}ᶜ) '' sᶜ,
     by rw [Inf_eq_sInter, sInter_image, ←compl_Union₂, bUnion_of_singleton, compl_compl],
-    by { rintro - ⟨x, hx, rfl⟩, exact is_coatom_singleton_compl x }⟩ }
+    by { rintro - ⟨x, hx, rfl⟩, exact is_coatom_compl_singleton x }⟩ }
 
 end set

@@ -42,7 +42,7 @@ infix ` ⩿ `:50 := wcovby
 lemma wcovby.le (h : a ⩿ b) : a ≤ b := h.1
 
 lemma wcovby.refl (a : α) : a ⩿ a := ⟨le_rfl, λ c hc, hc.not_lt⟩
-lemma wcovby.rfl : a ⩿ a := wcovby.refl a
+@[simp] lemma wcovby.rfl : a ⩿ a := wcovby.refl a
 
 protected lemma eq.wcovby (h : a = b) : a ⩿ b := h ▸ wcovby.rfl
 
@@ -326,8 +326,9 @@ le_antisymm (le_of_not_lt $ λ h, hbc.2 h hxc) (le_of_not_lt $ hab.2 hax)
 end linear_order
 
 namespace set
+variables {s t : set α} {a : α}
 
-lemma wcovby_insert (x : α) (s : set α) : s ⩿ insert x s :=
+@[simp] lemma wcovby_insert (x : α) (s : set α) : s ⩿ insert x s :=
 begin
   refine wcovby_of_eq_or_eq (subset_insert x s) (λ t hst h2t, _),
   by_cases h : x ∈ t,
@@ -336,8 +337,33 @@ begin
     rwa [← diff_singleton_eq_self h, diff_singleton_subset_iff] }
 end
 
-lemma covby_insert {x : α} {s : set α} (hx : x ∉ s) : s ⋖ insert x s :=
-(wcovby_insert x s).covby_of_lt $ ssubset_insert hx
+@[simp] lemma sdiff_singleton_wcovby (s : set α) (a : α) : s \ {a} ⩿ s :=
+begin
+  by_cases ha : a ∈ s,
+  { convert wcovby_insert a _,
+    ext,
+    simp [ha] },
+  { simp [ha] }
+end
+
+@[simp] lemma covby_insert (ha : a ∉ s) : s ⋖ insert a s :=
+(wcovby_insert _ _).covby_of_lt $ ssubset_insert ha
+
+@[simp] lemma sdiff_singleton_covby (ha : a ∈ s) : s \ {a} ⋖ s :=
+⟨sdiff_lt (singleton_subset_iff.2 ha) $ singleton_ne_empty _, (sdiff_singleton_wcovby _ _).2⟩
+
+lemma _root_.covby.exists_set_insert (h : s ⋖ t) : ∃ a ∉ s, t = insert a s :=
+(ssubset_iff_insert.1 h.lt).imp₂ $ λ a ha hst, hst.eq_of_not_ssuperset $ h.2 $ ssubset_insert ha
+
+lemma _root_.covby.exists_set_sdiff_singleton (h : s ⋖ t) : ∃ a ∈ t, s = t \ {a} :=
+(ssubset_iff_sdiff_singleton.1 h.lt).imp₂ $ λ a ha hst, hst.eq_of_not_ssubset $ λ h', h.2 h' $
+  sdiff_lt (singleton_subset_iff.2 ha) $ singleton_ne_empty _
+
+lemma covby_iff_insert : s ⋖ t ↔ ∃ a ∉ s, t = insert a s :=
+⟨covby.exists_set_insert, by { rintro ⟨a, ha, rfl⟩, exact covby_insert ha }⟩
+
+lemma covby_iff_sdiff_singleton : s ⋖ t ↔ ∃ a ∈ t, s = t \ {a} :=
+⟨covby.exists_set_sdiff_singleton, by { rintro ⟨a, ha, rfl⟩, exact sdiff_singleton_covby ha }⟩
 
 end set
 

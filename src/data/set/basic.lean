@@ -976,6 +976,9 @@ by rw [disjoint_singleton_left, mem_singleton_iff]
 
 lemma subset_diff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := le_iff_subset.symm.trans le_sdiff
 
+lemma ssubset_iff_sdiff_singleton : s ⊂ t ↔ ∃ a ∈ t, s ⊆ t \ {a} :=
+by simp [ssubset_iff_insert, subset_diff, insert_subset, and_comm, and.left_comm]
+
 lemma inter_diff_distrib_left (s t u : set α) : s ∩ (t \ u) = (s ∩ t) \ (s ∩ u) :=
 inf_sdiff_distrib_left _ _ _
 

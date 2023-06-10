@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Floris van 
 -/
 import data.set.intervals.ord_connected
 import order.antisymmetrization
+import logic.lemmas
 
 /-!
 # The covering relation

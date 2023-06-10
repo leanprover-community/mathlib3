@@ -160,7 +160,7 @@ closeds.gi.is_atom_iff' rfl
 
 /-- in a `t1_space`, atoms of `closeds α` are precisely the `closeds.singleton`s. -/
 lemma closeds.is_atom_iff [t1_space α] {s : closeds α} : is_atom s ↔ ∃ x, s = closeds.singleton x :=
-by simpa only [←closeds.is_atom_coe, (s : set α).is_atom_iff, set_like.ext_iff, set.ext_iff]
+by simpa only [←closeds.is_atom_coe, set.is_atom_iff, set_like.ext_iff, set.ext_iff]
 
 /-- in a `t1_space`, coatoms of `opens α` are precisely complements of singletons:
 `(closeds.singleton x).compl`. -/

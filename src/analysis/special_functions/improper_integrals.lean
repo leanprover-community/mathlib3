@@ -12,6 +12,9 @@ import measure_theory.measure.lebesgue.integral
 /-!
 # Evaluation of specific improper integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some integrability results, and evaluations of integrals, over `ℝ` or over
 half-infinite intervals in `ℝ`.
 

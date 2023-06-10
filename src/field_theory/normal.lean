@@ -12,6 +12,9 @@ import ring_theory.power_basis
 /-!
 # Normal field extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define normal field extensions and prove that for a finite extension, being normal
 is the same as being a splitting field (`normal.of_is_splitting_field` and
 `normal.exists_is_splitting_field`).

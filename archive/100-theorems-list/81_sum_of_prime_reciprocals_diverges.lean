@@ -42,6 +42,8 @@ open_locale big_operators
 open_locale classical
 open filter finset
 
+namespace theorems_100
+
 /--
 The primes in `(k, x]`.
 -/
@@ -246,3 +248,5 @@ begin
   ...          < x / 2 + x / 2               : add_lt_add_of_lt_of_le h3 h4
   ...          = x                           : add_halves ↑x,
 end
+
+end theorems_100

@@ -100,7 +100,7 @@ begin
     rw [←spectrum.gelfand_transform_eq (star a' * a'), continuous_map.spectrum_eq_range],
     rintro - ⟨φ, rfl⟩,
     rw [gelfand_transform_apply_apply ℂ _ (star a' * a') φ, map_mul φ, map_star φ],
-    rw [complex.eq_coe_norm_of_nonneg star_mul_self_nonneg, ←map_star, ←map_mul],
+    rw [complex.eq_coe_norm_of_nonneg (star_mul_self_nonneg _), ←map_star, ←map_mul],
     exact ⟨complex.zero_le_real.2 (norm_nonneg _),
       complex.real_le_real.2 (alg_hom.norm_apply_le_self φ (star a' * a'))⟩, }
 end
@@ -146,7 +146,7 @@ begin
   refine ⟨u.unit_of_nearby _ _, rfl⟩,
   simp only [complex.abs_of_real, map_inv₀, units.coe_map, units.coe_inv, ring_hom.coe_monoid_hom,
     ring_hom.to_monoid_hom_eq_coe, units.coe_mk0, units.coe_map_inv, norm_algebra_map',
-    inv_inv, complex.norm_eq_abs, abs_norm_eq_norm, subtype.val_eq_coe, coe_coe],
+    inv_inv, complex.norm_eq_abs, abs_norm, subtype.val_eq_coe, coe_coe],
   /- Since `a` is invertible, by `spectrum_star_mul_self_of_is_star_normal`, the spectrum (in `A`)
   of `star a * a` is contained in the half-open interval `(0, ‖star a * a‖]`. Therefore, by basic
   spectral mapping properties, the spectrum of `‖star a * a‖ • 1 - star a * a` is contained in

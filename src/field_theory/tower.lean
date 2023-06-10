@@ -12,6 +12,9 @@ import linear_algebra.free_module.finite.matrix
 /-!
 # Tower of field extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the tower law for arbitrary extensions and finite extensions.
 Suppose `L` is a field extension of `K` and `K` is a field extension of `F`.
 Then `[L:F] = [L:K] [K:F]` where `[E₁:E₂]` means the `E₂`-dimension of `E₁`.

@@ -22,23 +22,12 @@ These are implemented as "mixin" typeclasses, so to summon a star ring (for exam
 one needs to write `(R : Type) [ring R] [star_ring R]`.
 This avoids difficulties with diamond inheritance.
 
-We also define the class `star_ordered_ring R`, which says that the order on `R` respects the
-star operation, i.e. an element `r` is nonnegative iff there exists an `s` such that
-`r = star s * s`.
-
 For now we simply do not introduce notations,
 as different users are expected to feel strongly about the relative merits of
 `r^*`, `r†`, `rᘁ`, and so on.
 
 Our star rings are actually star semirings, but of course we can prove
 `star_neg : star (-r) = - star r` when the underlying semiring is a ring.
-
-## TODO
-
-* In a Banach star algebra without a well-defined square root, the natural ordering is given by the
-positive cone which is the closure of the sums of elements `star r * r`. A weaker version of
-`star_ordered_ring` could be defined for this case. Note that the current definition has the
-advantage of not requiring a topology.
 -/
 
 assert_not_exists finset
@@ -364,62 +353,6 @@ def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
 { star := id,
   star_add := λ x y, rfl,
   ..star_semigroup_of_comm }
-
-/--
-An ordered `*`-ring is a ring which is both an `ordered_add_comm_group` and a `*`-ring,
-and `0 ≤ r ↔ ∃ s, r = star s * s`.
--/
-class star_ordered_ring (R : Type u) [non_unital_semiring R] [partial_order R]
-  extends star_ring R :=
-(add_le_add_left       : ∀ a b : R, a ≤ b → ∀ c : R, c + a ≤ c + b)
-(nonneg_iff            : ∀ r : R, 0 ≤ r ↔ ∃ s, r = star s * s)
-
-namespace star_ordered_ring
-
-@[priority 100] -- see note [lower instance priority]
-instance [non_unital_ring R] [partial_order R] [star_ordered_ring R] : ordered_add_comm_group R :=
-{ ..show non_unital_ring R, by apply_instance,
-  ..show partial_order R, by apply_instance,
-  ..show star_ordered_ring R, by apply_instance }
-
-end star_ordered_ring
-
-section non_unital_semiring
-
-variables [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
-
-lemma star_mul_self_nonneg {r : R} : 0 ≤ star r * r :=
-(star_ordered_ring.nonneg_iff _).mpr ⟨r, rfl⟩
-
-lemma star_mul_self_nonneg' {r : R} : 0 ≤ r * star r :=
-by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
-
-lemma conjugate_nonneg {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
-begin
-  obtain ⟨x, rfl⟩ := (star_ordered_ring.nonneg_iff _).1 ha,
-  exact (star_ordered_ring.nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
-end
-
-lemma conjugate_nonneg' {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=
-by simpa only [star_star] using conjugate_nonneg ha (star c)
-
-end non_unital_semiring
-
-section non_unital_ring
-
-variables [non_unital_ring R] [partial_order R] [star_ordered_ring R]
-
-lemma conjugate_le_conjugate {a b : R} (hab : a ≤ b) (c : R) : star c * a * c ≤ star c * b * c :=
-begin
-  rw ←sub_nonneg at hab ⊢,
-  convert conjugate_nonneg hab c,
-  simp only [mul_sub, sub_mul],
-end
-
-lemma conjugate_le_conjugate' {a b : R} (hab : a ≤ b) (c : R) : c * a * star c ≤ c * b * star c :=
-by simpa only [star_star] using conjugate_le_conjugate hab (star c)
-
-end non_unital_ring
 
 /--
 A star module `A` over a star ring `R` is a module which is a star add monoid,

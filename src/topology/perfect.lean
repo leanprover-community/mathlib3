@@ -19,8 +19,6 @@ including a version of the Cantor-Bendixson Theorem.
 
 * `perfect C`: A set `C` is perfect, meaning it is closed and every point of it
   is an accumulation point of itself.
-* `set.scheme β α`: A `β`-scheme on `α`, a collection of subsets of `α` indexed by `list β`.
-  Used to construct maps `(β → ℕ) → α` as limiting objects.
 
 ## Main Statements
 
@@ -30,7 +28,7 @@ including a version of the Cantor-Bendixson Theorem.
 * `exists_countable_union_perfect_of_is_closed`: One version of the **Cantor-Bendixson Theorem**:
   A closed set in a second countable space can be written as the union of a countable set and a
   perfect set.
-* `exists_nat_bool_injection_of_perfect_nonempty`: A perfect nonempty set in a complete metric space
+* `perfect.exists_nat_bool_injection`: A perfect nonempty set in a complete metric space
   admits an embedding from the Cantor space.
 
 ## Implementation Notes

@@ -5,11 +5,13 @@ Authors: Eric Wieser
 -/
 import analysis.quaternion
 import analysis.normed_space.exponential
-import analysis.inner_product_space.pi_L2
 import analysis.special_functions.trigonometric.series
 
 /-!
 # Lemmas about `exp` on `quaternion`s
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains results about `exp` on `quaternion ℝ`.
 

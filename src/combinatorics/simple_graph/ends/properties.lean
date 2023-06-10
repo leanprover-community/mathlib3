@@ -7,6 +7,9 @@ import combinatorics.simple_graph.ends.defs
 /-!
 # Properties of the ends of graphs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is meant to contain results about the ends of (locally finite connected) graphs.
 
 -/

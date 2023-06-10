@@ -9,6 +9,9 @@ import algebra.continued_fractions.basic
 /-!
 # Computable Continued Fractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We formalise the standard computation of (regular) continued fractions for linear ordered floor

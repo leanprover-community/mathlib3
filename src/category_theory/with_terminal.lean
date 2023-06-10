@@ -9,6 +9,9 @@ import category_theory.limits.shapes.terminal
 
 # `with_initial` and `with_terminal`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a category `C`, this file constructs two objects:
 1. `with_terminal C`, the category built from `C` by formally adjoining a terminal object.
 2. `with_initial C`, the category built from `C` by formally adjoining an initial object.

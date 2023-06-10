@@ -11,6 +11,9 @@ import topology.algebra.algebra
 /-!
 # Quaternions as a normed algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the following structures on the space `ℍ := ℍ[ℝ]` of quaternions:
 
 * inner product space;
@@ -42,8 +45,8 @@ lemma inner_self (a : ℍ) : ⟪a, a⟫ = norm_sq a := rfl
 lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * star b).re := rfl
 
 noncomputable instance : normed_add_comm_group ℍ :=
-@inner_product_space.of_core.to_normed_add_comm_group ℝ ℍ _ _ _
-{ inner := has_inner.inner,
+@inner_product_space.core.to_normed_add_comm_group ℝ ℍ _ _ _
+{ to_has_inner := infer_instance,
   conj_symm := λ x y, by simp [inner_def, mul_comm],
   nonneg_re := λ x, norm_sq_nonneg,
   definite := λ x, norm_sq_eq_zero.1,

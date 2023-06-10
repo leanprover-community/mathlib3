@@ -10,6 +10,9 @@ import linear_algebra.isomorphisms
 /-!
 # Quotients of Lie algebras and Lie modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a Lie submodule of a Lie module, the quotient carries a natural Lie module structure. In the
 special case that the Lie module is the Lie algebra itself via the adjoint action, the submodule
 is a Lie ideal and the quotient carries a natural Lie algebra structure.

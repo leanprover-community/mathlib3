@@ -6,8 +6,8 @@ Authors: María Inés de Frutos-Fernández
 import ring_theory.dedekind_domain.ideal
 import ring_theory.valuation.extend_to_localization
 import ring_theory.valuation.valuation_subring
-import ring_theory.polynomial.cyclotomic.basic
 import topology.algebra.valued_field
+import algebra.order.group.type_tags
 
 /-!
 # Adic valuations on Dedekind domains

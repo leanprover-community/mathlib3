@@ -10,6 +10,9 @@ import number_theory.legendre_symbol.mul_character
 /-!
 # Quadratic characters on ℤ/nℤ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines some quadratic characters on the rings ℤ/4ℤ and ℤ/8ℤ.
 
 We set them up to be of type `mul_char (zmod n) ℤ`, where `n` is `4` or `8`.

@@ -10,6 +10,9 @@ import analysis.normed.group.add_torsor
 /-!
 # Sides of affine subspaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines notions of two points being on the same or opposite sides of an affine subspace.
 
 ## Main definitions

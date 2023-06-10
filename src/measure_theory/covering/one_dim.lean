@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import measure_theory.covering.density_theorem
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.lebesgue.eq_haar
 
 /-!
 # Covering theorems for Lebesgue measure in one dimension
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We have a general theory of covering theorems for doubling measures, developed notably
 in `density_theorems.lean`. In this file, we expand the API for this theory in one dimension,

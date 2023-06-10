@@ -9,6 +9,9 @@ import analysis.normed_space.triv_sq_zero_ext
 /-!
 # Results on `dual_number R` related to the norm
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These are just restatements of similar statements about `triv_sq_zero_ext R M`.
 
 ## Main results

@@ -6,7 +6,7 @@ Authors: Thomas Browning, Patrick Lutz
 
 import group_theory.solvable
 import field_theory.polynomial_galois_group
-import ring_theory.roots_of_unity
+import ring_theory.roots_of_unity.basic
 
 /-!
 # The Abel-Ruffini Theorem

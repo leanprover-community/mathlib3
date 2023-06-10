@@ -9,6 +9,9 @@ import measure_theory.measure.mutually_singular
 /-!
 # Jordan decomposition
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the existence and uniqueness of the Jordan decomposition for signed measures.
 The Jordan decomposition theorem states that, given a signed measure `s`, there exists a
 unique pair of mutually singular measures `μ` and `ν`, such that `s = μ - ν`.

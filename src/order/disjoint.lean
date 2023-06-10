@@ -23,6 +23,8 @@ This file defines `disjoint`, `codisjoint`, and the `is_compl` predicate.
 
 -/
 
+open function
+
 variable {α : Type*}
 
 section disjoint
@@ -434,6 +436,20 @@ lemma is_complemented.inf : is_complemented a → is_complemented b → is_compl
 
 end is_complemented
 
+/-- A complemented bounded lattice is one where every element has a (not necessarily unique)
+complement. -/
+class complemented_lattice (α) [lattice α] [bounded_order α] : Prop :=
+(exists_is_compl : ∀ a : α, is_complemented a)
+
+export complemented_lattice (exists_is_compl)
+
+namespace complemented_lattice
+variables [lattice α] [bounded_order α] [complemented_lattice α]
+
+instance : complemented_lattice αᵒᵈ :=
+⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.dual⟩⟩
+
+end complemented_lattice
 
 -- TODO: Define as a sublattice?
 /-- The sublattice of complemented elements. -/
@@ -480,10 +496,10 @@ instance : distrib_lattice (complementeds α) :=
 complementeds.coe_injective.distrib_lattice _ coe_sup coe_inf
 
 @[simp, norm_cast] lemma disjoint_coe : disjoint (a : α) b ↔ disjoint a b :=
-by rw [disjoint, disjoint, ←coe_inf, ←coe_bot, coe_le_coe]
+by rw [disjoint_iff, disjoint_iff, ←coe_inf, ←coe_bot, coe_inj]
 
 @[simp, norm_cast] lemma codisjoint_coe : codisjoint (a : α) b ↔ codisjoint a b :=
-by rw [codisjoint, codisjoint, ←coe_sup, ←coe_top, coe_le_coe]
+by rw [codisjoint_iff, codisjoint_iff, ←coe_sup, ←coe_top, coe_inj]
 
 @[simp, norm_cast] lemma is_compl_coe : is_compl (a : α) b ↔ is_compl a b :=
 by simp_rw [is_compl_iff, disjoint_coe, codisjoint_coe]
@@ -492,20 +508,4 @@ instance : complemented_lattice (complementeds α) :=
 ⟨λ ⟨a, b, h⟩, ⟨⟨b, a, h.symm⟩, is_compl_coe.1 h⟩⟩
 
 end complementeds
-
-/-- A complemented bounded lattice is one where every element has a (not necessarily unique)
-complement. -/
-class complemented_lattice (α) [lattice α] [bounded_order α] : Prop :=
-(exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)
-
-export complemented_lattice (exists_is_compl)
-
-namespace complemented_lattice
-variables [lattice α] [bounded_order α] [complemented_lattice α]
-
-instance : complemented_lattice αᵒᵈ :=
-⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.dual⟩⟩
-
-end complemented_lattice
-
 end is_compl

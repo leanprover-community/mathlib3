@@ -193,10 +193,10 @@ by rintro (h | h); simp [h]⟩
 lemma to_real_eq_zero_iff (x : ℝ≥0∞) : x.to_real = 0 ↔ x = 0 ∨ x = ∞ :=
 by simp [ennreal.to_real, to_nnreal_eq_zero_iff]
 
-lemma to_nnreal_ne_zero : a.to_nnreal ≠ 0 ↔ a ≠ 0 ∧ a ≠ ⊤ :=
+lemma to_nnreal_ne_zero : a.to_nnreal ≠ 0 ↔ a ≠ 0 ∧ a ≠ ∞ :=
 a.to_nnreal_eq_zero_iff.not.trans not_or_distrib
 
-lemma to_real_ne_zero : a.to_real ≠ 0 ↔ a ≠ 0 ∧ a ≠ ⊤ :=
+lemma to_real_ne_zero : a.to_real ≠ 0 ↔ a ≠ 0 ∧ a ≠ ∞ :=
 a.to_real_eq_zero_iff.not.trans not_or_distrib
 
 lemma to_nnreal_eq_one_iff (x : ℝ≥0∞) : x.to_nnreal = 1 ↔ x = 1 :=

@@ -16,6 +16,9 @@ measure, then the average of any function is equal to its integral.
 For the average on a set, we use `⨍ x in s, f x ∂μ` (notation for `⨍ x, f x ∂(μ.restrict s)`). For
 average w.r.t. the volume, one can omit `∂volume`.
 
+We prove several version of the first moment method: An integrable function is below/above its
+average on a set of positive measure.
+
 ## Implementation notes
 
 The average is defined as an integral over `(μ univ)⁻¹ • μ` so that all theorems about Bochner
@@ -210,7 +213,7 @@ begin
   exact (sub_add_cancel _ _).symm,
 end
 
-lemma set_integral_sub_set_average (hs : μ s ≠ ⊤) (f : α → E) :
+lemma set_integral_sub_set_average (hs : μ s ≠ ∞) (f : α → E) :
   ∫ x in s, f x - ⨍ a in s, f a ∂μ ∂μ = 0 :=
 by haveI haveI : fact (μ s < ∞) := ⟨lt_top_iff_ne_top.2 hs⟩; exact integral_sub_average _ _
 
@@ -218,7 +221,7 @@ lemma integral_average_sub [is_finite_measure μ] (hf : integrable f μ) :
   ∫ x, ⨍ a, f a ∂μ - f x ∂μ = 0 :=
 by rw [integral_sub (integrable_const _) hf, integral_average, sub_self]
 
-lemma set_integral_set_average_sub (hs : μ s ≠ ⊤) (hf : integrable_on f s μ) :
+lemma set_integral_set_average_sub (hs : μ s ≠ ∞) (hf : integrable_on f s μ) :
   ∫ x in s, ⨍ a in s, f a ∂μ - f x ∂μ = 0 :=
 by haveI haveI : fact (μ s < ∞) := ⟨lt_top_iff_ne_top.2 hs⟩; exact integral_average_sub hf
 
@@ -239,7 +242,7 @@ lemma of_real_set_average {f : α → ℝ} (hf : integrable_on f s μ)
   ennreal.of_real (⨍ x in s, f x ∂μ) = (∫⁻ x in s, ennreal.of_real (f x) ∂μ) / μ s :=
 by simpa using of_real_average hf hf₀
 
-lemma average_to_real {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (hf' : ∀ᵐ x ∂μ, f x ≠ ⊤) :
+lemma average_to_real {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (hf' : ∀ᵐ x ∂μ, f x ≠ ∞) :
   ⨍ x, (f x).to_real ∂μ = (∫⁻ x, f x ∂μ / μ univ).to_real :=
 begin
   obtain rfl | hμ := eq_or_ne μ 0,
@@ -249,7 +252,7 @@ begin
 end
 
 lemma set_average_to_real {f : α → ℝ≥0∞} (hf : ae_measurable f (μ.restrict s))
-  (hf' : ∀ᵐ x ∂(μ.restrict s), f x ≠ ⊤) :
+  (hf' : ∀ᵐ x ∂(μ.restrict s), f x ≠ ∞) :
   ⨍ x in s, (f x).to_real ∂μ = (∫⁻ x in s, f x ∂μ / μ s).to_real :=
 by simpa using average_to_real hf hf'
 

@@ -4,11 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import algebra.group_power.order
+import algebra.order.monoid.with_top
 import algebra.smul_with_zero
+import algebra.order.monoid.min_max
 
 /-!
 
 # Tropical algebraic structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines algebraic structures of the (min-)tropical numbers, up to the tropical semiring.
 Some basic lemmas about conversion from the base type `R` to `tropical R` are provided, as

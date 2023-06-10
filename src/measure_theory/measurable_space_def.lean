@@ -5,12 +5,13 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.set.countable
 import logic.encodable.lattice
-import order.conditionally_complete_lattice
 import order.disjointed
-import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines measurable spaces and measurable functions.
 
@@ -181,6 +182,11 @@ h₁.inter h₂.compl
   (h₂ : measurable_set s₂) :
   measurable_set (t.ite s₁ s₂) :=
 (h₁.inter ht).union (h₂.diff ht)
+
+lemma measurable_set.ite' {s t : set α} {p : Prop}
+  (hs : p → measurable_set s) (ht : ¬ p → measurable_set t) :
+  measurable_set (ite p s t) :=
+by { split_ifs, exacts [hs h, ht h], }
 
 @[simp] lemma measurable_set.cond {s₁ s₂ : set α} (h₁ : measurable_set s₁) (h₂ : measurable_set s₂)
   {i : bool} : measurable_set (cond i s₁ s₂) :=
@@ -371,6 +377,12 @@ begin
   { exact measurable_set_generate_from ht, },
 end
 
+@[simp] lemma generate_from_singleton_empty : generate_from {∅} = (⊥ : measurable_space α) :=
+by { rw [eq_bot_iff, generate_from_le_iff], simp, }
+
+@[simp] lemma generate_from_singleton_univ : generate_from {set.univ} = (⊥ : measurable_space α) :=
+by { rw [eq_bot_iff, generate_from_le_iff], simp, }
+
 lemma measurable_set_bot_iff {s : set α} : @measurable_set α ⊥ s ↔ (s = ∅ ∨ s = univ) :=
 let b : measurable_space α :=
 { measurable_set'      := λ s, s = ∅ ∨ s = univ,
@@ -419,12 +431,12 @@ theorem measurable_set_supr {ι} {m : ι → measurable_space α} {s : set α} :
 by simp only [supr, measurable_set_Sup, exists_range_iff]
 
 lemma measurable_space_supr_eq (m : ι → measurable_space α) :
-  (⨆ n, m n) = measurable_space.generate_from {s | ∃ n, measurable_set[m n] s} :=
-begin
-  ext s,
-  rw measurable_space.measurable_set_supr,
-  refl,
-end
+  (⨆ n, m n) = generate_from {s | ∃ n, measurable_set[m n] s} :=
+by { ext s, rw measurable_set_supr, refl, }
+
+lemma generate_from_Union_measurable_set (m : ι → measurable_space α) :
+  generate_from (⋃ n, {t | measurable_set[m n] t}) = ⨆ n, m n :=
+(@gi_generate_from α).l_supr_u m
 
 end complete_lattice
 
@@ -458,5 +470,9 @@ lemma measurable.le {α} {m m0 : measurable_space α} {mb : measurable_space β}
   {f : α → β}
   (hf : measurable[m] f) : measurable[m0] f :=
 λ s hs, hm _ (hf hs)
+
+lemma measurable_space.top.measurable {α β : Type*} [measurable_space β] (f : α → β) :
+  @measurable α β ⊤ _ f :=
+λ s hs, measurable_space.measurable_set_top
 
 end measurable_functions

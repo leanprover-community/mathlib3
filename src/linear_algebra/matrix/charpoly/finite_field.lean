@@ -10,6 +10,9 @@ import data.matrix.char_p
 
 /-!
 # Results on characteristic polynomials and traces over finite fields.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory

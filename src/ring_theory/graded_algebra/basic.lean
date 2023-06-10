@@ -7,10 +7,12 @@ import algebra.direct_sum.algebra
 import algebra.direct_sum.decomposition
 import algebra.direct_sum.internal
 import algebra.direct_sum.ring
-import group_theory.subgroup.basic
 
 /-!
 # Internally-graded rings and algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the typeclass `graded_algebra 𝒜`, for working with an algebra `A` that is
 internally graded by a collection of submodules `𝒜 : ι → submodule R A`.

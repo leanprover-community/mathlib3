@@ -11,6 +11,9 @@ import tactic.basic
 
 # Tuples of types, and their categorical structure.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Features
 
 * `typevec n` - n-tuples of types
@@ -137,7 +140,7 @@ def nil_fun {α : typevec 0} {β : typevec 0} : α ⟹ β :=
 theorem eq_of_drop_last_eq {α β : typevec (n+1)} {f g : α ⟹ β}
   (h₀ : drop_fun f = drop_fun g) (h₁ : last_fun f = last_fun g) : f = g :=
 by replace h₀ := congr_fun h₀;
-   ext1 (ieq | ⟨j, ieq⟩); apply_assumption
+   ext1 ⟨⟩; apply_assumption
 
 @[simp] theorem drop_fun_split_fun {α α' : typevec (n+1)}
   (f : drop α ⟹ drop α') (g : last α → last α') :
@@ -532,7 +535,7 @@ end liftp'
 @[simp]
 lemma drop_fun_diag {α} :
   drop_fun (@prod.diag (n+1) α) = prod.diag :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma drop_fun_subtype_val {α} (p : α ⟹ repeat (n+1) Prop) :
@@ -545,22 +548,22 @@ lemma last_fun_subtype_val {α} (p : α ⟹ repeat (n+1) Prop) :
 @[simp]
 lemma drop_fun_to_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   drop_fun (to_subtype p) = to_subtype _ :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma last_fun_to_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   last_fun (to_subtype p) = _root_.id :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma drop_fun_of_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   drop_fun (of_subtype p) = of_subtype _ :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma last_fun_of_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   last_fun (of_subtype p) = _root_.id :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma drop_fun_rel_last {α : typevec n} {β}
@@ -573,12 +576,12 @@ open_locale mvfunctor
 @[simp]
 lemma drop_fun_prod {α α' β β' : typevec (n+1)} (f : α ⟹ β) (f' : α' ⟹ β') :
   drop_fun (f ⊗' f') = (drop_fun f ⊗' drop_fun f') :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma last_fun_prod {α α' β β' : typevec (n+1)} (f : α ⟹ β) (f' : α' ⟹ β') :
   last_fun (f ⊗' f') = _root_.prod.map (last_fun f) (last_fun f') :=
-by { ext i : 1, induction i; simp [last_fun,*]; refl }
+by { ext i : 1, induction i; simp [last_fun, *]; refl }
 
 @[simp]
 lemma drop_fun_from_append1_drop_last {α : typevec (n+1)} :
@@ -595,7 +598,7 @@ lemma drop_fun_id {α : typevec (n+1)} :
 @[simp]
 lemma prod_map_id {α β : typevec n} :
   (@typevec.id _ α ⊗' @typevec.id _ β) = id :=
-by { ext i : 2, induction i; simp only [typevec.prod.map,*,drop_fun_id],
+by { ext i : 2, induction i; simp only [typevec.prod.map, *, drop_fun_id],
      cases x, refl, refl }
 
 @[simp]

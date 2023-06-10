@@ -8,6 +8,9 @@ import algebra.lie.solvable
 /-!
 # Semisimple Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The famous Cartan-Dynkin-Killing classification of semisimple Lie algebras renders them one of the
 most important classes of Lie algebras. In this file we define simple and semisimple Lie algebras
 and prove some basic related results.
@@ -77,7 +80,7 @@ instance is_semisimple_of_is_simple [h : is_simple R L] : is_semisimple R L :=
 begin
   rw is_semisimple_iff_no_abelian_ideals,
   intros I hI,
-  obtain ⟨⟨h₁⟩, h₂⟩ := id h,
+  obtain @⟨⟨h₁⟩, h₂⟩ := id h,
   by_contradiction contra,
   rw [h₁ I contra, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv] at hI,
   exact h₂ hI,

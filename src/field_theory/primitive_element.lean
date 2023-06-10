@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
-import field_theory.adjoin
-import field_theory.fixed
+import field_theory.splitting_field.construction
 import field_theory.is_alg_closed.basic
 import field_theory.separable
 import ring_theory.integral_domain

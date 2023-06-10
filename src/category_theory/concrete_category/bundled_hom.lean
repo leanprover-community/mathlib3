@@ -9,6 +9,9 @@ import category_theory.concrete_category.bundled
 /-!
 # Category instances for algebraic structures that use bundled homs.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many algebraic structures in Lean initially used unbundled homs (e.g. a bare function between types,
 along with an `is_monoid_hom` typeclass), but the general trend is towards using bundled homs.
 

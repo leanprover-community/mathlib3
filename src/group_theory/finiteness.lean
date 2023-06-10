@@ -4,14 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import data.set.finite
-import data.finset
+import data.set.pointwise.finite
 import group_theory.quotient_group
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
+import set_theory.cardinal.finite
+import data.finset.preimage
 
 /-!
 # Finitely generated monoids and groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define finitely generated monoids and groups. See also `submodule.fg` and `module.finite` for
 finitely-generated modules.
@@ -161,6 +165,20 @@ lemma submonoid.powers_fg (r : M) : (submonoid.powers r).fg :=
 instance monoid.powers_fg (r : M) : monoid.fg (submonoid.powers r) :=
 (monoid.fg_iff_submonoid_fg _).mpr (submonoid.powers_fg r)
 
+@[to_additive] instance monoid.closure_finset_fg (s : finset M) :
+  monoid.fg (submonoid.closure (s : set M)) :=
+begin
+  refine ⟨⟨s.preimage coe (subtype.coe_injective.inj_on _), _⟩⟩,
+  rw [finset.coe_preimage, submonoid.closure_closure_coe_preimage],
+end
+
+@[to_additive] instance monoid.closure_finite_fg (s : set M) [finite s] :
+  monoid.fg (submonoid.closure s) :=
+begin
+  haveI := fintype.of_finite s,
+  exact s.coe_to_finset ▸ monoid.closure_finset_fg s.to_finset,
+end
+
 /-! ### Groups and subgroups -/
 
 variables {G H : Type*} [group G] [add_group H]
@@ -278,6 +296,20 @@ group.fg_iff_monoid.fg.mpr $ @monoid.fg_of_surjective G _ G' _ (group.fg_iff_mon
 instance group.fg_range {G' : Type*} [group G'] [group.fg G] (f : G →* G') : group.fg f.range :=
 group.fg_of_surjective f.range_restrict_surjective
 
+@[to_additive] instance group.closure_finset_fg (s : finset G) :
+  group.fg (subgroup.closure (s : set G)) :=
+begin
+  refine ⟨⟨s.preimage coe (subtype.coe_injective.inj_on _), _⟩⟩,
+  rw [finset.coe_preimage, ←subgroup.coe_subtype, subgroup.closure_preimage_eq_top],
+end
+
+@[to_additive] instance group.closure_finite_fg (s : set G) [finite s] :
+  group.fg (subgroup.closure s) :=
+begin
+  haveI := fintype.of_finite s,
+  exact s.coe_to_finset ▸ group.closure_finset_fg s.to_finset,
+end
+
 variables (G)
 
 /-- The minimum number of generators of a group. -/
@@ -316,6 +348,36 @@ le_antisymm (group.rank_le_of_surjective f.symm f.symm.surjective)
   (group.rank_le_of_surjective f f.surjective)
 
 end group
+
+namespace subgroup
+
+@[to_additive] lemma rank_congr {H K : subgroup G} [group.fg H] [group.fg K] (h : H = K) :
+  group.rank H = group.rank K :=
+by unfreezingI { subst h }
+
+@[to_additive] lemma rank_closure_finset_le_card (s : finset G) :
+  group.rank (closure (s : set G)) ≤ s.card :=
+begin
+  classical,
+  let t : finset (closure (s : set G)) := s.preimage coe (subtype.coe_injective.inj_on _),
+  have ht : closure (t : set (closure (s : set G))) = ⊤,
+  { rw finset.coe_preimage,
+    exact closure_preimage_eq_top s },
+  apply (group.rank_le (closure (s : set G)) ht).trans,
+  rw [←finset.card_image_of_inj_on, finset.image_preimage],
+  { apply finset.card_filter_le },
+  { apply subtype.coe_injective.inj_on },
+end
+
+@[to_additive] lemma rank_closure_finite_le_nat_card (s : set G) [finite s] :
+  group.rank (closure s) ≤ nat.card s :=
+begin
+  haveI := fintype.of_finite s,
+  rw [nat.card_eq_fintype_card, ←s.to_finset_card, ←rank_congr (congr_arg _ s.coe_to_finset)],
+  exact rank_closure_finset_le_card s.to_finset,
+end
+
+end subgroup
 
 section quotient_group
 

@@ -9,6 +9,9 @@ import topology.nhds_set
 /-!
 # Specific classes of maps between topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the following properties of a map `f : X → Y` between topological spaces:
 
 * `is_open_map f` means the image of an open set under `f` is open.
@@ -43,7 +46,7 @@ open map, closed map, embedding, quotient map, identification map
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -210,6 +213,13 @@ lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embeddin
   closure s = e ⁻¹' closure (e '' s) :=
 he.1.closure_eq_preimage_closure_image s
 
+/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
+is the discrete topology on `X`. -/
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+discrete_topology_iff_nhds.2 $ λ x, by rw [hf.nhds_eq_comap, nhds_discrete, comap_pure,
+  ← image_singleton, hf.inj.preimage_image, principal_singleton]
+
 end embedding
 
 /-- A function between topological spaces is a quotient map if it is surjective,
@@ -218,9 +228,14 @@ def quotient_map {α : Type*} {β : Type*} [tα : topological_space α] [tβ : t
   (f : α → β) : Prop :=
 surjective f ∧ tβ = tα.coinduced f
 
-lemma quotient_map_iff {α β : Type*} [topological_space α] [topological_space β] {f : α → β} :
+lemma quotient_map_iff [topological_space α] [topological_space β] {f : α → β} :
   quotient_map f ↔ surjective f ∧ ∀ s : set β, is_open s ↔ is_open (f ⁻¹' s) :=
 and_congr iff.rfl topological_space_eq_iff
+
+lemma quotient_map_iff_closed [topological_space α] [topological_space β] {f : α → β} :
+  quotient_map f ↔ surjective f ∧ ∀ s : set β, is_closed s ↔ is_closed (f ⁻¹' s) :=
+quotient_map_iff.trans $ iff.rfl.and $ compl_surjective.forall.trans $
+  by simp only [is_open_compl_iff, preimage_compl]
 
 namespace quotient_map
 
@@ -260,7 +275,7 @@ protected lemma is_open_preimage (hf : quotient_map f) {s : set β} :
 
 protected lemma is_closed_preimage (hf : quotient_map f) {s : set β} :
   is_closed (f ⁻¹' s) ↔ is_closed s :=
-by simp only [← is_open_compl_iff, ← preimage_compl, hf.is_open_preimage]
+((quotient_map_iff_closed.1 hf).2 s).symm
 
 end quotient_map
 
@@ -416,6 +431,11 @@ end
 
 lemma closed_range {f : α → β} (hf : is_closed_map f) : is_closed (range f) :=
 @image_univ _ _ f ▸ hf _ is_closed_univ
+
+lemma to_quotient_map {f : α → β} (hcl : is_closed_map f) (hcont : continuous f)
+  (hsurj : surjective f) : quotient_map f :=
+quotient_map_iff_closed.2
+  ⟨hsurj, λ s, ⟨λ hs, hs.preimage hcont, λ hs, hsurj.image_preimage s ▸ hcl _ hs⟩⟩
 
 end is_closed_map
 
@@ -580,7 +600,7 @@ lemma closed_embedding.comp {g : β → γ} {f : α → β}
 
 lemma closed_embedding.closure_image_eq {f : α → β} (hf : closed_embedding f) (s : set α) :
   closure (f '' s) = f '' closure s :=
-le_antisymm (is_closed_map_iff_closure_image.mp hf.is_closed_map _)
+(hf.is_closed_map.closure_image_subset _).antisymm
   (image_closure_subset_closure_image hf.continuous)
 
 end closed_embedding

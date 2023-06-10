@@ -3,10 +3,13 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.integral.set_integral
+import measure_theory.function.strongly_measurable.basic
 
 /-!
 # Egorov theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains the Egorov theorem which states that an almost everywhere convergent
 sequence on a finite measure space converges uniformly except on an arbitrarily small set.
@@ -21,7 +24,7 @@ convergence in measure.
 -/
 
 noncomputable theory
-open_locale classical measure_theory nnreal ennreal topological_space
+open_locale classical measure_theory nnreal ennreal topology
 
 namespace measure_theory
 

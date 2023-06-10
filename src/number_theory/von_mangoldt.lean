@@ -11,6 +11,9 @@ import analysis.special_functions.log.basic
 /-!
 # The von Mangoldt Function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the von Mangoldt function: the function on natural numbers that returns
 `log p` if the input can be expressed as `p^k` for a prime `p`.
 
@@ -77,7 +80,7 @@ lemma von_mangoldt_apply_pow {n k : ℕ} (hk : k ≠ 0) : Λ (n ^ k) = Λ n :=
 by simp only [von_mangoldt_apply, is_prime_pow_pow_iff hk, pow_min_fac hk]
 
 lemma von_mangoldt_apply_prime {p : ℕ} (hp : p.prime) : Λ p = real.log p :=
-by rw [von_mangoldt_apply, prime.min_fac_eq hp, if_pos (nat.prime_iff.1 hp).is_prime_pow]
+by rw [von_mangoldt_apply, prime.min_fac_eq hp, if_pos hp.prime.is_prime_pow]
 
 lemma von_mangoldt_ne_zero_iff {n : ℕ} : Λ n ≠ 0 ↔ is_prime_pow n :=
 begin

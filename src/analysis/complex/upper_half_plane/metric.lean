@@ -24,7 +24,7 @@ ball/sphere with another center and radius.
 
 noncomputable theory
 
-open_locale upper_half_plane complex_conjugate nnreal topological_space
+open_locale upper_half_plane complex_conjugate nnreal topology matrix_groups
 open set metric filter real
 
 variables {z w : ℍ} {r R : ℝ}
@@ -59,7 +59,7 @@ lemma tanh_half_dist (z w : ℍ) :
   tanh (dist z w / 2) = dist (z : ℂ) w / dist (z : ℂ) (conj ↑w) :=
 begin
   rw [tanh_eq_sinh_div_cosh, sinh_half_dist, cosh_half_dist, div_div_div_comm, div_self, div_one],
-  exact (mul_pos two_pos (sqrt_pos.2 $ mul_pos z.im_pos w.im_pos)).ne'
+  exact (mul_pos (zero_lt_two' ℝ) (sqrt_pos.2 $ mul_pos z.im_pos w.im_pos)).ne'
 end
 
 lemma exp_half_dist (z w : ℍ) :
@@ -69,7 +69,7 @@ by rw [← sinh_add_cosh, sinh_half_dist, cosh_half_dist, add_div]
 lemma cosh_dist (z w : ℍ) : cosh (dist z w) = 1 + dist (z : ℂ) w ^ 2 / (2 * z.im * w.im) :=
 by rw [dist_eq, cosh_two_mul, cosh_sq', add_assoc, ← two_mul, sinh_arsinh, div_pow, mul_pow,
   sq_sqrt (mul_pos z.im_pos w.im_pos).le, sq (2 : ℝ), mul_assoc, ← mul_div_assoc,
-  mul_assoc, mul_div_mul_left _ _ (@two_ne_zero ℝ _ _)]
+  mul_assoc, mul_div_mul_left _ _ (two_ne_zero' ℝ)]
 
 lemma sinh_half_dist_add_dist (a b c : ℍ) :
   sinh ((dist a b + dist b c) / 2) =
@@ -89,11 +89,11 @@ by simp only [dist_eq, dist_comm (z : ℂ), mul_comm]
 
 lemma dist_le_iff_le_sinh :
   dist z w ≤ r ↔ dist (z : ℂ) w / (2 * sqrt (z.im * w.im)) ≤ sinh (r / 2) :=
-by rw [← div_le_div_right (@two_pos ℝ _ _), ← sinh_le_sinh, sinh_half_dist]
+by rw [← div_le_div_right (zero_lt_two' ℝ), ← sinh_le_sinh, sinh_half_dist]
 
 lemma dist_eq_iff_eq_sinh :
   dist z w = r ↔ dist (z : ℂ) w / (2 * sqrt (z.im * w.im)) = sinh (r / 2) :=
-by rw [← div_left_inj' (@two_ne_zero ℝ _ _), ← sinh_inj, sinh_half_dist]
+by rw [← div_left_inj' (two_ne_zero' ℝ), ← sinh_inj, sinh_half_dist]
 
 lemma dist_eq_iff_eq_sq_sinh (hr : 0 ≤ r) :
   dist z w = r ↔ dist (z : ℂ) w ^ 2 / (4 * z.im * w.im) = sinh (r / 2) ^ 2 :=
@@ -111,7 +111,7 @@ begin
     div_mul_eq_div_div _ _ (dist _ _), le_div_iff, div_mul_eq_mul_div],
   { exact div_le_div_of_le (mul_nonneg zero_le_two (sqrt_nonneg _))
       (euclidean_geometry.mul_dist_le_mul_dist_add_mul_dist (a : ℂ) b c (conj ↑b)) },
-  { rw [dist_comm, dist_pos, ne.def, complex.eq_conj_iff_im],
+  { rw [dist_comm, dist_pos, ne.def, complex.conj_eq_iff_im],
     exact b.im_ne_zero }
 end
 
@@ -288,7 +288,7 @@ lemma im_pos_of_dist_center_le {z : ℍ} {r : ℝ} {w : ℂ} (h : dist w (center
 calc 0 < z.im * (cosh r - sinh r) : mul_pos z.im_pos (sub_pos.2 $ sinh_lt_cosh _)
 ... = (z.center r).im - z.im * sinh r : mul_sub _ _ _
 ... ≤ (z.center r).im - dist (z.center r : ℂ) w : sub_le_sub_left (by rwa [dist_comm]) _
-... ≤ w.im : sub_le.1 $ (le_abs_self _).trans (abs_im_le_abs $ z.center r - w)
+... ≤ w.im : sub_le_comm.1 $ (le_abs_self _).trans (abs_im_le_abs $ z.center r - w)
 
 lemma image_coe_closed_ball (z : ℍ) (r : ℝ) :
   (coe : ℍ → ℂ) '' closed_ball z r = closed_ball (z.center r) (z.im * sinh r) :=
@@ -344,9 +344,31 @@ lemma isometry_pos_mul (a : {x : ℝ // 0 < x}) : isometry ((•) a : ℍ → �
 begin
   refine isometry.of_dist_eq (λ y₁ y₂, _),
   simp only [dist_eq, coe_pos_real_smul, pos_real_im], congr' 2,
-  rw [dist_smul, mul_mul_mul_comm, real.sqrt_mul (mul_self_nonneg _), real.sqrt_mul_self_eq_abs,
+  rw [dist_smul₀, mul_mul_mul_comm, real.sqrt_mul (mul_self_nonneg _), real.sqrt_mul_self_eq_abs,
     real.norm_eq_abs, mul_left_comm],
   exact mul_div_mul_left _ _ (mt _root_.abs_eq_zero.1 a.2.ne')
 end
+
+/-- `SL(2, ℝ)` acts on the upper half plane as an isometry.-/
+instance : has_isometric_smul SL(2, ℝ) ℍ :=
+⟨λ g,
+begin
+  have h₀ : isometry (λ z, modular_group.S • z : ℍ → ℍ) := isometry.of_dist_eq (λ y₁ y₂, by
+  { have h₁ : 0 ≤ im y₁ * im y₂ := mul_nonneg y₁.property.le y₂.property.le,
+    have h₂ : complex.abs (y₁ * y₂) ≠ 0, { simp [y₁.ne_zero, y₂.ne_zero], },
+    simp only [dist_eq, modular_S_smul, inv_neg, neg_div, div_mul_div_comm, coe_mk, mk_im, div_one,
+      complex.inv_im, complex.neg_im, coe_im, neg_neg, complex.norm_sq_neg, mul_eq_mul_left_iff,
+      real.arsinh_inj, bit0_eq_zero, one_ne_zero, or_false, dist_neg_neg, mul_neg, neg_mul,
+      dist_inv_inv₀ y₁.ne_zero y₂.ne_zero, ← absolute_value.map_mul,
+      ← complex.norm_sq_mul, real.sqrt_div h₁, ← complex.abs_apply, mul_div (2 : ℝ),
+      div_div_div_comm, div_self h₂, complex.norm_eq_abs], }),
+  by_cases hc : g 1 0 = 0,
+  { obtain ⟨u, v, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_eq_zero g hc,
+    rw h,
+    exact (isometry_real_vadd v).comp (isometry_pos_mul u), },
+  { obtain ⟨u, v, w, h⟩ := exists_SL2_smul_eq_of_apply_zero_one_ne_zero g hc,
+    rw h,
+    exact (isometry_real_vadd w).comp (h₀.comp $ (isometry_real_vadd v).comp $ isometry_pos_mul u) }
+end⟩
 
 end upper_half_plane

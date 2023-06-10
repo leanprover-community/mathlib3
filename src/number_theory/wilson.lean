@@ -3,7 +3,7 @@ Copyright (c) 2022 John Nicol. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Nicol
 -/
-import number_theory.legendre_symbol.gauss_eisenstein_lemmas
+import field_theory.finite.basic
 
 /-!
 # Wilson's theorem.
@@ -21,15 +21,57 @@ This could be generalized to similar results about finite abelian groups.
 
 ## TODO
 
-* Move `wilsons_lemma` into this file, and give it a descriptive name.
+* Give `wilsons_lemma` a descriptive name.
 -/
 
-open_locale nat
+open finset nat finite_field zmod
+open_locale big_operators nat
+
+namespace zmod
+
+variables (p : ℕ) [fact p.prime]
+
+/-- **Wilson's Lemma**: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
+@[simp] lemma wilsons_lemma : ((p - 1)! : zmod p) = -1 :=
+begin
+  refine
+  calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
+    by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
+                               ... = (∏ x : (zmod p)ˣ, x) : _
+                               ... = -1 : by simp_rw [← units.coe_hom_apply,
+    ← (units.coe_hom (zmod p)).map_prod, prod_univ_units_id_eq_neg_one, units.coe_hom_apply,
+    units.coe_neg, units.coe_one],
+  have hp : 0 < p := (fact.out p.prime).pos,
+  symmetry,
+  refine prod_bij (λ a _, (a : zmod p).val) _ _ _ _,
+  { intros a ha,
+    rw [mem_Ico, ← nat.succ_sub hp, nat.succ_sub_one],
+    split,
+    { apply nat.pos_of_ne_zero, rw ← @val_zero p,
+      assume h, apply units.ne_zero a (val_injective p h) },
+    { exact val_lt _ } },
+  { intros a ha, simp only [cast_id, nat_cast_val], },
+  { intros _ _ _ _ h, rw units.ext_iff, exact val_injective p h },
+  { intros b hb,
+    rw [mem_Ico, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, pos_iff_ne_zero] at hb,
+    refine ⟨units.mk0 b _, finset.mem_univ _, _⟩,
+    { assume h, apply hb.1, apply_fun val at h,
+      simpa only [val_cast_of_lt hb.right, val_zero] using h },
+    { simp only [val_cast_of_lt hb.right, units.coe_mk0], } }
+end
+
+@[simp] lemma prod_Ico_one_prime : (∏ x in Ico 1 p, (x : zmod p)) = -1 :=
+begin
+  conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub (fact.out p.prime).pos] },
+  rw [← prod_nat_cast, finset.prod_Ico_id_eq_factorial, wilsons_lemma]
+end
+
+end zmod
 
 namespace nat
 variable {n : ℕ}
 
-/-- For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. --/
+/-- For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. -/
 lemma prime_of_fac_equiv_neg_one
   (h : ((n - 1)! : zmod n) = -1) (h1 : n ≠ 1) : prime n :=
 begin
@@ -43,7 +85,7 @@ begin
   rw [←zmod.nat_coe_zmod_eq_zero_iff_dvd, cast_add, cast_one, h, add_left_neg],
 end
 
-/-- **Wilson's Theorem**: For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. --/
+/-- **Wilson's Theorem**: For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. -/
 theorem prime_iff_fac_equiv_neg_one (h : n ≠ 1) :
   prime n ↔ ((n - 1)! : zmod n) = -1 :=
 begin
@@ -53,3 +95,5 @@ begin
 end
 
 end nat
+
+assert_not_exists legendre_sym.quadratic_reciprocity

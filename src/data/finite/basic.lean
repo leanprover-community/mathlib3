@@ -3,10 +3,17 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.fintype.basic
+import data.fintype.powerset
+import data.fintype.prod
+import data.fintype.sigma
+import data.fintype.sum
+import data.fintype.vector
 
 /-!
 # Finite types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove some theorems about `finite` and provide some instances. This typeclass is a
 `Prop`-valued counterpart of the typeclass `fintype`. See more details in the file where `finite` is

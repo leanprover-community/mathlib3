@@ -9,6 +9,9 @@ import analysis.convex.partition_of_unity
 /-!
 # Lemmas about (e)metric spaces that need partition of unity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main lemma in this file (see `metric.exists_continuous_real_forall_closed_ball_subset`) says the
 following. Let `X` be a metric space. Let `K : ι → set X` be a locally finite family of closed sets,
 let `U : ι → set X` be a family of open sets such that `K i ⊆ U i` for all `i`. Then there exists a
@@ -24,7 +27,7 @@ lemma.
 metric space, partition of unity, locally finite
 -/
 
-open_locale topological_space ennreal big_operators nnreal filter
+open_locale topology ennreal big_operators nnreal filter
 open set function filter topological_space
 
 variables {ι X : Type*}

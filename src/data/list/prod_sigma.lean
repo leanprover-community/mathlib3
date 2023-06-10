@@ -3,10 +3,13 @@ Copyright (c) 2015 Leonardo de Moura. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.list.big_operators
+import data.list.big_operators.basic
 
 /-!
 # Lists in product and sigma types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic properties of `list.product` and `list.sigma`, which are list constructions
 living in `prod` and `sigma` types respectively. Their definitions can be found in

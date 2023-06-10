@@ -3,10 +3,14 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Gabriel Ebner, Yury Kudryashov
 -/
-import order.conditionally_complete_lattice
+import data.nat.interval
+import order.conditionally_complete_lattice.finset
 
 /-!
 # Conditionally complete linear order structure on `ℕ`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we
 
@@ -34,15 +38,14 @@ lemma Sup_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
 dif_pos _
 
 lemma _root_.set.infinite.nat.Sup_eq_zero {s : set ℕ} (h : s.infinite) : Sup s = 0 :=
-dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_nat_lt n in (hn k hks).not_lt hk
+dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_gt n in (hn k hks).not_lt hk
 
 @[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
 begin
   cases eq_empty_or_nonempty s,
   { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
       mem_empty_iff_false, exists_false, dif_neg, not_false_iff] },
-  { have := ne_empty_iff_nonempty.mpr h,
-    simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
+  { simp only [h.ne_empty, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
 
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=

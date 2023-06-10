@@ -3,12 +3,17 @@ Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller, Yury Kudryashov
 -/
-import data.set.finite
 import data.nat.modeq
+import data.set.finite
 import algebra.big_operators.order
+import algebra.module.basic
+import algebra.module.big_operators
 
 /-!
 # Pigeonhole principles
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given pigeons (possibly infinitely many) in pigeonholes, the
 pigeonhole principle states that, if there are more pigeons than

@@ -16,7 +16,7 @@ This file defines filtrations of a measurable space and σ-finite filtrations.
   sub-σ-algebras.
 * `measure_theory.sigma_finite_filtration`: a filtration `f` is σ-finite with respect to a measure
   `μ` if for all `i`, `μ.trim (f.le i)` is σ-finite.
-* `measure_theory.filtration.natular`: the smallest filtration that makes a process adapted. That
+* `measure_theory.filtration.natural`: the smallest filtration that makes a process adapted. That
   notion `adapted` is not defined yet in this file. See `measure_theory.adapted`.
 
 ## Main results
@@ -30,7 +30,7 @@ filtration, stochastic process
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 
@@ -211,6 +211,29 @@ lemma integrable.uniform_integrable_condexp_filtration
   uniform_integrable (λ i, μ[g | f i]) 1 μ :=
 hg.uniform_integrable_condexp f.le
 
+section of_set
+
+variables [preorder ι]
+
+/-- Given a sequence of measurable sets `(sₙ)`, `filtration_of_set` is the smallest filtration
+such that `sₙ` is measurable with respect to the `n`-the sub-σ-algebra in `filtration_of_set`. -/
+def filtration_of_set {s : ι → set Ω} (hsm : ∀ i, measurable_set (s i)) : filtration ι m :=
+{ seq := λ i, measurable_space.generate_from {t | ∃ j ≤ i, s j = t},
+  mono' := λ n m hnm, measurable_space.generate_from_mono
+    (λ t ⟨k, hk₁, hk₂⟩, ⟨k, hk₁.trans hnm, hk₂⟩),
+  le' := λ n, measurable_space.generate_from_le (λ t ⟨k, hk₁, hk₂⟩, hk₂ ▸ hsm k) }
+
+lemma measurable_set_filtration_of_set {s : ι → set Ω}
+  (hsm : ∀ i, measurable_set[m] (s i)) (i : ι) {j : ι} (hj : j ≤ i) :
+  measurable_set[filtration_of_set hsm i] (s j) :=
+measurable_space.measurable_set_generate_from ⟨j, hj, rfl⟩
+
+lemma measurable_set_filtration_of_set' {s : ι → set Ω}
+  (hsm : ∀ n, measurable_set[m] (s n)) (i : ι) :
+  measurable_set[filtration_of_set hsm i] (s i) :=
+measurable_set_filtration_of_set hsm i le_rfl
+
+end of_set
 
 namespace filtration
 variables [topological_space β] [metrizable_space β] [mβ : measurable_space β] [borel_space β]
@@ -230,6 +253,41 @@ def natural (u : ι → Ω → β) (hum : ∀ i, strongly_measurable (u i)) : fi
     rintros j hj s ⟨t, ht, rfl⟩,
     exact (hum j).measurable ht,
   end }
+
+section
+
+open measurable_space
+
+lemma filtration_of_set_eq_natural [mul_zero_one_class β] [nontrivial β]
+  {s : ι → set Ω} (hsm : ∀ i, measurable_set[m] (s i)) :
+  filtration_of_set hsm = natural (λ i, (s i).indicator (λ ω, 1 : Ω → β))
+    (λ i, strongly_measurable_one.indicator (hsm i)) :=
+begin
+  simp only [natural, filtration_of_set, measurable_space_supr_eq],
+  ext1 i,
+  refine le_antisymm (generate_from_le _) (generate_from_le _),
+  { rintro _ ⟨j, hij, rfl⟩,
+    refine measurable_set_generate_from ⟨j, measurable_set_generate_from ⟨hij, _⟩⟩,
+    rw comap_eq_generate_from,
+    refine measurable_set_generate_from ⟨{1}, measurable_set_singleton 1, _⟩,
+    ext x,
+    simp [set.indicator_const_preimage_eq_union] },
+  { rintro t ⟨n, ht⟩,
+    suffices : measurable_space.generate_from
+      {t | ∃ (H : n ≤ i), measurable_set[(measurable_space.comap
+        ((s n).indicator (λ ω, 1 : Ω → β)) mβ)] t}
+      ≤ generate_from {t | ∃ (j : ι) (H : j ≤ i), s j = t},
+    { exact this _ ht },
+    refine generate_from_le _,
+    rintro t ⟨hn, u, hu, hu'⟩,
+    obtain heq | heq | heq | heq := set.indicator_const_preimage (s n) u (1 : β),
+    swap 4, rw set.mem_singleton_iff at heq,
+    all_goals { rw heq at hu', rw ← hu' },
+    exacts [measurable_set_empty _, measurable_set.univ, measurable_set_generate_from ⟨n, hn, rfl⟩,
+      measurable_set.compl (measurable_set_generate_from ⟨n, hn, rfl⟩)] }
+end
+
+end
 
 section limit
 

@@ -3,10 +3,14 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.special_functions.trigonometric.deriv
 import measure_theory.function.jacobian
 
 /-!
 # Polar coordinates
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define polar coordinates, as a local homeomorphism in `ℝ^2` between `ℝ^2 - (-∞, 0]` and
 `(0, +∞) × (-π, π)`. Its inverse is given by `(r, θ) ↦ (r cos θ, r sin θ)`.
@@ -19,7 +23,7 @@ It satisfies the following change of variables formula (see `integral_comp_polar
 noncomputable theory
 
 open real set measure_theory
-open_locale real topological_space
+open_locale real topology
 
 /-- The polar coordinates local homeomorphism in `ℝ^2`, mapping `(r cos θ, r sin θ)` to `(r, θ)`.
 It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. -/
@@ -69,7 +73,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
   begin
     rintros ⟨x, y⟩ hxy,
     have A : sqrt (x ^ 2 + y ^ 2) = complex.abs (x + y * complex.I),
-      by simp only [complex.abs, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
+      by simp only [complex.abs_def, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
         complex.add_re, complex.of_real_re, complex.mul_re, complex.I_re, mul_zero,
         complex.of_real_im, complex.I_im, sub_self, add_zero, complex.add_im,
         complex.mul_im, mul_one, zero_add],
@@ -91,7 +95,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
     { rintros ⟨x, y⟩ hxy, simpa only using hxy },
     apply continuous_on.comp (λ z hz, _) _ A,
     { exact (complex.continuous_at_arg hz).continuous_within_at },
-    { exact complex.equiv_real_prodₗ.symm.continuous.continuous_on }
+    { exact complex.equiv_real_prod_clm.symm.continuous.continuous_on }
   end }
 
 lemma has_fderiv_at_polar_coord_symm (p : ℝ × ℝ) :

@@ -9,6 +9,9 @@ import measure_theory.measurable_space
 /-!
 # Sequence of measurable functions associated to a sequence of a.e.-measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define here tools to prove statements about limits (infi, supr...) of sequences of
 `ae_measurable` functions.
 Given a sequence of a.e.-measurable functions `f : ι → α → β` with hypothesis

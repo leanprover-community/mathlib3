@@ -9,6 +9,9 @@ import algebra.algebra.basic
 
 /-!
 # The `zmod n`-algebra structure on rings whose characteristic divides `n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace zmod

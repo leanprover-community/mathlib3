@@ -5,12 +5,16 @@ Authors: Anatole Dedecker, Alexey Soloyev, Junyan Xu
 -/
 import data.real.irrational
 import data.nat.fib
+import data.nat.prime_norm_num
 import data.fin.vec_notation
 import tactic.ring_exp
 import algebra.linear_recurrence
 
 /-!
 # The golden ratio and its conjugate
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the golden ratio `φ := (1 + √5)/2` and its conjugate
 `ψ := (1 - √5)/2`, which are the two real roots of `X² - X - 1`.
@@ -21,6 +25,7 @@ Binet's formula.
 -/
 
 noncomputable theory
+open_locale polynomial
 
 /-- The golden ratio `φ := (1 + √5)/2`. -/
 @[reducible] def golden_ratio := (1 + real.sqrt 5)/2
@@ -43,7 +48,7 @@ end
 /-- The opposite of the golden ratio is the inverse of its conjugate. -/
 lemma inv_gold_conj : ψ⁻¹ = -φ :=
 begin
-  rw [inv_eq_iff_inv_eq, ← neg_inv, neg_eq_iff_neg_eq],
+  rw [inv_eq_iff_eq_inv, ← neg_inv, ← neg_eq_iff_eq_neg],
   exact inv_gold.symm,
 end
 
@@ -139,10 +144,10 @@ open polynomial
 
 /-- The characteristic polynomial of `fib_rec` is `X² - (X + 1)`. -/
 lemma fib_rec_char_poly_eq {β : Type*} [comm_ring β] :
-  fib_rec.char_poly = X^2 - (X + (1 : polynomial β)) :=
+  fib_rec.char_poly = X^2 - (X + (1 : β[X])) :=
 begin
   rw [fib_rec, linear_recurrence.char_poly],
-  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', monomial_eq_smul_X]
+  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', ← smul_X_eq_monomial]
 end
 
 end poly

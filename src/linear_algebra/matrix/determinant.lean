@@ -6,7 +6,7 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 import data.matrix.pequiv
 import data.matrix.block
 import data.matrix.notation
-import data.fintype.card
+import data.fintype.big_operators
 import group_theory.perm.fin
 import group_theory.perm.sign
 import algebra.algebra.basic
@@ -16,6 +16,9 @@ import linear_algebra.pi
 
 /-!
 # Determinant of a matrix
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the determinant of a matrix, `matrix.det`, and its essential properties.
 

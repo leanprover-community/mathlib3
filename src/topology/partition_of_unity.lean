@@ -13,6 +13,9 @@ import topology.urysohns_lemma
 /-!
 # Continuous partition of unity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `partition_of_unity (ι X : Type*) [topological_space X] (s : set X := univ)`
 to be a continuous partition of unity on `s` indexed by `ι`. More precisely, `f : partition_of_unity
 ι X s` is a collection of continuous functions `f i : C(X, ℝ)`, `i : ι`, such that
@@ -75,7 +78,7 @@ partition of unity, bump function, Urysohn's lemma, normal space, paracompact sp
 universes u v
 
 open function set filter
-open_locale big_operators topological_space classical
+open_locale big_operators topology classical
 
 noncomputable theory
 

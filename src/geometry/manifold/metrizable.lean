@@ -10,6 +10,9 @@ import topology.metric_space.metrizable
 /-!
 # Metrizability of a σ-compact manifold
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we show that a σ-compact Hausdorff topological manifold over a finite dimensional real
 vector space is metrizable.
 -/

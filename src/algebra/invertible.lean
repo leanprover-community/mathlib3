@@ -5,11 +5,14 @@ Authors: Anne Baanen
 -/
 
 import algebra.group.units
-import algebra.ne_zero
-import algebra.ring.basic
+import algebra.group_with_zero.units.lemmas
+import algebra.ring.defs
 
 /-!
 # Invertible elements
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a typeclass `invertible a` for elements `a` with a two-sided
 multiplicative inverse.
@@ -281,13 +284,14 @@ lemma map_inv_of {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [monoid S
   f (⅟r) = ⅟(f r) :=
 by { letI := invertible.map f r, convert rfl }
 
-/-- A monoid hom with a left-inverse that is also a monoid hom is invertible.
+/-- If a function `f : R → S` has a left-inverse that is a monoid hom,
+  then `r : R` is invertible if `f r` is.
 
 The inverse is computed as `g (⅟(f r))` -/
 @[simps {attrs := []}]
-def invertible.of_left_inverse {R : Type*} {S : Type*} {F G : Type*}
-  [mul_one_class R] [mul_one_class S] [monoid_hom_class F R S] [monoid_hom_class G S R]
-  (f : F) (g : G) (r : R) (h : function.left_inverse g f) [invertible (f r)] :
+def invertible.of_left_inverse {R : Type*} {S : Type*} {G : Type*}
+  [mul_one_class R] [mul_one_class S] [monoid_hom_class G S R]
+  (f : R → S) (g : G) (r : R) (h : function.left_inverse g f) [invertible (f r)] :
   invertible r :=
 (invertible.map g (f r)).copy _ (h r).symm
 

@@ -7,6 +7,7 @@ import tactic.fin_cases
 import data.fin.interval -- These imports aren't required to compile this file,
 import data.int.interval -- but they are needed at the use site for the tactic to work
 import data.pnat.interval -- (on values of type fin/int/pnat)
+import data.pnat.basic
 
 /-!
 # Case bash on variables in finite intervals

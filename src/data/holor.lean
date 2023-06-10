@@ -9,6 +9,9 @@ import algebra.big_operators.basic
 /-!
 # Basic properties of holors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Holors are indexed collections of tensor coefficients. Confusingly,
 they are often called tensors in physics and in the neural network
 community.
@@ -308,7 +311,7 @@ exact finset.induction_on s
   (by simp [cprank_max.zero])
   (begin
     assume x s (h_x_notin_s : x ∉ s) ih h_cprank,
-    simp only [finset.sum_insert h_x_notin_s,finset.card_insert_of_not_mem h_x_notin_s],
+    simp only [finset.sum_insert h_x_notin_s, finset.card_insert_of_not_mem h_x_notin_s],
     rw nat.right_distrib,
     simp only [nat.one_mul, nat.add_comm],
     have ih' : cprank_max (finset.card s * n) (∑ x in s, f x),

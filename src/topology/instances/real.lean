@@ -6,21 +6,25 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.uniform_mul_action
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.star
+import topology.algebra.order.field
 import ring_theory.subring.basic
 import group_theory.archimedean
+import algebra.order.group.bounds
 import algebra.periodic
-import order.filter.archimedean
 import topology.instances.int
 
 /-!
 # Topological properties of ℝ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory
 open classical filter int metric set topological_space
-open_locale classical topological_space filter uniformity interval
+open_locale classical topology filter uniformity interval
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -215,6 +219,52 @@ end function
 end periodic
 
 section subgroups
+
+namespace int
+open metric
+
+/-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
+lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
+begin
+  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
+  simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
+  change ∀ r : ℝ, (coe ⁻¹' (ball (0 : ℝ) r)).finite,
+  simp [real.ball_eq_Ioo, set.finite_Ioo],
+end
+
+/-- For nonzero `a`, the "multiples of `a`" map `zmultiples_hom` from `ℤ` to `ℝ` is discrete, i.e.
+inverse images of compact sets are finite. -/
+lemma tendsto_zmultiples_hom_cofinite {a : ℝ} (ha : a ≠ 0) :
+  tendsto (zmultiples_hom ℝ a) cofinite (cocompact ℝ) :=
+begin
+  convert (tendsto_cocompact_mul_right₀ ha).comp int.tendsto_coe_cofinite,
+  ext n,
+  simp,
+end
+
+end int
+
+namespace add_subgroup
+
+/-- The subgroup "multiples of `a`" (`zmultiples a`) is a discrete subgroup of `ℝ`, i.e. its
+intersection with compact sets is finite. -/
+lemma tendsto_zmultiples_subtype_cofinite (a : ℝ) :
+  tendsto (zmultiples a).subtype cofinite (cocompact ℝ) :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { rw add_subgroup.zmultiples_zero_eq_bot,
+    intros K hK,
+    rw [filter.mem_map, mem_cofinite],
+    apply set.to_finite },
+  intros K hK,
+  have H := int.tendsto_zmultiples_hom_cofinite ha hK,
+  simp only [filter.mem_map, mem_cofinite, ← preimage_compl] at ⊢ H,
+  rw [← (zmultiples_hom ℝ a).range_restrict_surjective.image_preimage
+    ((zmultiples a).subtype ⁻¹' Kᶜ), ← preimage_comp, ← add_monoid_hom.coe_comp_range_restrict],
+  exact finite.image _ H,
+end
+
+end add_subgroup
 
 /-- Given a nontrivial subgroup `G ⊆ ℝ`, if `G ∩ ℝ_{>0}` has no minimum then `G` is dense. -/
 lemma real.subgroup_dense_of_no_min {G : add_subgroup ℝ} {g₀ : ℝ} (g₀_in : g₀ ∈ G) (g₀_ne : g₀ ≠ 0)

@@ -9,6 +9,9 @@ import model_theory.substructures
 /-!
 # Elementary Maps Between First-Order Structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * A `first_order.language.elementary_embedding` is an embedding that commutes with the
   realizations of formulas.
@@ -59,7 +62,7 @@ instance fun_like : fun_like (M ↪ₑ[L] N) M (λ _, N) :=
 
 instance : has_coe_to_fun (M ↪ₑ[L] N) (λ _, M → N) := fun_like.has_coe_to_fun
 
-@[simp] lemma map_bounded_formula (f : M ↪ₑ[L] N) {α : Type} {n : ℕ}
+@[simp] lemma map_bounded_formula (f : M ↪ₑ[L] N) {α : Type*} {n : ℕ}
   (φ : L.bounded_formula α n) (v : α → M) (xs : fin n → M) :
   φ.realize (f ∘ v) (f ∘ xs) ↔ φ.realize v xs :=
 begin
@@ -80,7 +83,7 @@ begin
     bounded_formula.realize_restrict_free_var set.subset.rfl],
 end
 
-@[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type} (φ : L.formula α) (x : α → M) :
+@[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type*} (φ : L.formula α) (x : α → M) :
   φ.realize (f ∘ x) ↔ φ.realize x :=
 by rw [formula.realize, formula.realize, ← f.map_bounded_formula, unique.eq_default (f ∘ default)]
 
@@ -107,7 +110,8 @@ begin
 end
 
 instance embedding_like : embedding_like (M ↪ₑ[L] N) M N :=
-{ injective' := injective }
+{ injective' := injective,
+  .. show fun_like (M ↪ₑ[L] N) M (λ _, N), from infer_instance }
 
 @[simp] lemma map_fun (φ : M ↪ₑ[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) :=

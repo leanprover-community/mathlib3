@@ -7,6 +7,9 @@ Authors: Patrick Lutz, Oliver Nash
 /-!
 # Bracket Notation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides notation which can be used for the Lie bracket, for the commutator of two
 subgroups, and for other similar operations.
 

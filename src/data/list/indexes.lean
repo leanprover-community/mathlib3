@@ -3,10 +3,14 @@ Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
+import data.list.of_fn
 import data.list.range
 
 /-!
 # Lemmas about list.*_with_index functions.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Some specification lemmas for `list.map_with_index`, `list.mmap_with_index`, `list.foldl_with_index`
 and `list.foldr_with_index`.
@@ -48,6 +52,14 @@ end
   map_with_index f (a :: l) = f 0 a :: map_with_index (λ i, f (i + 1)) l :=
 by simp [map_with_index_eq_enum_map, enum_eq_zip_range, map_uncurry_zip_eq_zip_with,
          range_succ_eq_map, zip_with_map_left]
+
+lemma map_with_index_append {α} (K L : list α) (f : ℕ → α → β) :
+  (K ++ L).map_with_index f = K.map_with_index f ++ L.map_with_index (λ i a, f (i + K.length) a) :=
+begin
+  induction K with a J IH generalizing f,
+  { simp },
+  { simp [IH (λ i, f (i+1)), add_assoc], }
+end
 
 @[simp] lemma length_map_with_index {α β} (l : list α) (f : ℕ → α → β) :
   (l.map_with_index f).length = l.length :=

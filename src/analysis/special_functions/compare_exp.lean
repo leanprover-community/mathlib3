@@ -3,11 +3,15 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.pow.asymptotics
+import analysis.asymptotics.asymptotic_equivalent
 import analysis.asymptotics.specific_asymptotics
 
 /-!
 # Growth estimates on `x ^ y` for complex `x`, `y`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Let `l` be a filter on `ℂ` such that `complex.re` tends to infinity along `l` and `complex.im z`
 grows at a subexponential rate compared to `complex.re z`. Then
@@ -26,7 +30,7 @@ stronger assumptions (e.g., `im z` is bounded from below and from above) are not
 -/
 
 open asymptotics filter function
-open_locale topological_space
+open_locale topology
 
 namespace complex
 
@@ -139,7 +143,7 @@ lemma is_o_cpow_exp (hl : is_exp_cmp_filter l) (a : ℂ) {b : ℝ} (hb : 0 < b) 
   (λ z, z ^ a) =o[l] (λ z, exp (b * z)) :=
 calc (λ z, z ^ a) =Θ[l] λ z, abs z ^ re a : is_Theta_cpow_const_rpow $ λ _ _, hl.eventually_ne
 ... =ᶠ[l] λ z, real.exp (re a * real.log (abs z)) : hl.eventually_ne.mono $
-  λ z hz, by simp only [real.rpow_def_of_pos (abs_pos.2 hz), mul_comm]
+  λ z hz, by simp only [real.rpow_def_of_pos, abs.pos hz, mul_comm]
 ... =o[l] λ z, exp (b * z) : is_o.of_norm_right $
   begin
     simp only [norm_eq_abs, abs_exp, of_real_mul_re, real.is_o_exp_comp_exp_comp],

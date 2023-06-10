@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.finiteness
+import ring_theory.finite_type
 
 /-!
 # Polynomial module
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define the polynomial module for an `R`-module `M`, i.e. the `R[X]`-module `M[X]`.
 
@@ -27,7 +30,7 @@ include R
 
 /--
 The `R[X]`-module `M[X]` for an `R`-module `M`.
-This is isomorphic (as an `R`-module) to `polynomial M` when `M` is a ring.
+This is isomorphic (as an `R`-module) to `M[X]` when `M` is a ring.
 
 We require all the module instances `module S (polynomial_module R M)` to factor through `R` except
 `module R[X] (polynomial_module R M)`.
@@ -169,7 +172,7 @@ begin
     simp [nat.lt_succ_iff] }
 end
 
-/-- `polynomial R R` is isomorphic to `R[X]` as an `R[X]` module. -/
+/-- `polynomial_module R R` is isomorphic to `R[X]` as an `R[X]` module. -/
 noncomputable
 def equiv_polynomial_self : polynomial_module R R ≃ₗ[R[X]] R[X] :=
 { map_smul' := λ r x, begin
@@ -177,13 +180,13 @@ def equiv_polynomial_self : polynomial_module R R ≃ₗ[R[X]] R[X] :=
     { simp only [add_smul, map_add, ring_equiv.to_fun_eq_coe, *] at * },
     { ext i,
       dsimp,
-      rw [monomial_smul_apply, polynomial.monomial_eq_C_mul_X, mul_assoc,
+      rw [monomial_smul_apply, ← polynomial.C_mul_X_pow_eq_monomial, mul_assoc,
         polynomial.coeff_C_mul, polynomial.coeff_X_pow_mul', mul_ite, mul_zero],
       simp }
   end,
   ..(polynomial.to_finsupp_iso R).symm  }
 
-/-- `polynomial R S` is isomorphic to `S[X]` as an `R` module. -/
+/-- `polynomial_module R S` is isomorphic to `S[X]` as an `R` module. -/
 noncomputable
 def equiv_polynomial {S : Type*} [comm_ring S] [algebra R S] :
   polynomial_module R S ≃ₗ[R] S[X] :=

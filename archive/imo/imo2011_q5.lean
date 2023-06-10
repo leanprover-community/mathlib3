@@ -3,8 +3,7 @@ Copyright (c) 2021 Alain Verberkmoes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alain Verberkmoes
 -/
-
-import data.int.basic
+import data.int.dvd.basic
 
 /-!
 # IMO 2011 Q5
@@ -48,7 +47,7 @@ begin
       { -- d = 0
         exact hd },
       { -- d < 0
-        have h₁ : f n ≤ -d, from le_of_dvd (neg_pos.mpr hd) ((dvd_neg _ _).mpr h_fn_dvd_d),
+        have h₁ : f n ≤ -d, from le_of_dvd (neg_pos.mpr hd) h_fn_dvd_d.neg_right,
         have h₂ : ¬ f n ≤ -d, from not_le.mpr h_neg_d_lt_fn,
         contradiction } },
     have h₁ : f m = f (m - n), from sub_eq_zero.mp h_d_eq_zero,

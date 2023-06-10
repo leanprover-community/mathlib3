@@ -5,12 +5,14 @@ Authors: Johannes Hölzl, Patrick Massot
 -/
 
 import tactic.apply_fun
-import data.set.pairwise
 import topology.uniform_space.basic
 import topology.separation
 
 /-!
 # Hausdorff properties of uniform spaces. Separation quotient.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file studies uniform spaces whose underlying topological spaces are separated
 (also known as Hausdorff or T₂).
@@ -67,7 +69,7 @@ uniformly continuous).
 -/
 
 open filter topological_space set classical function uniform_space
-open_locale classical topological_space uniformity filter
+open_locale classical topology uniformity filter
 noncomputable theory
 set_option eqn_compiler.zeta true
 
@@ -110,6 +112,13 @@ lemma filter.has_basis.mem_separation_rel {ι : Sort*} {p : ι → Prop} {s : ι
   (h : (𝓤 α).has_basis p s) {a : α × α} :
   a ∈ 𝓢 α ↔ ∀ i, p i → a ∈ s i :=
 h.forall_mem_mem
+
+theorem separation_rel_iff_specializes {a b : α} : (a, b) ∈ 𝓢 α ↔ a ⤳ b :=
+by simp only [(𝓤 α).basis_sets.mem_separation_rel, id, mem_set_of_eq,
+  (nhds_basis_uniformity (𝓤 α).basis_sets).specializes_iff]
+
+theorem separation_rel_iff_inseparable {a b : α} : (a, b) ∈ 𝓢 α ↔ inseparable a b :=
+  separation_rel_iff_specializes.trans specializes_iff_inseparable
 
 /-- A uniform space is separated if its separation relation is trivial (each point
 is related only to itself). -/
@@ -159,8 +168,9 @@ lemma separation_rel_comap  {f : α → β}
   (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
   𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
 begin
+  unfreezingI { subst h },
   dsimp [separation_rel],
-  simp_rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
+  simp_rw [uniformity_comap, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
       ← preimage_Inter, sInter_eq_bInter],
   refl,
 end
@@ -191,12 +201,15 @@ begin
     intros x y hxy,
     rcases t2_separation hxy with ⟨u, v, uo, vo, hx, hy, h⟩,
     rcases is_open_iff_ball_subset.1 uo x hx with ⟨r, hrU, hr⟩,
-    exact ⟨r, hrU, λ H, h ⟨hr H, hy⟩⟩ }
+    exact ⟨r, hrU, λ H, h.le_bot ⟨hr H, hy⟩⟩ }
 end
 
 @[priority 100] -- see Note [lower instance priority]
 instance separated_t3 [separated_space α] : t3_space α :=
 by { haveI := separated_iff_t2.mp ‹_›, exact ⟨⟩ }
+
+instance subtype.separated_space [separated_space α] (s : set α) : separated_space s :=
+separated_iff_t2.mpr subtype.t2_space
 
 lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {s : set α} (hs : s.pairwise (λ x y, (x, y) ∉ V₀)) : is_closed s :=
@@ -219,7 +232,7 @@ end
 lemma is_closed_range_of_spaced_out {ι} [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {f : ι → α} (hf : pairwise (λ x y, (f x, f y) ∉ V₀)) : is_closed (range f) :=
 is_closed_of_spaced_out V₀_in $
-  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (ne_of_apply_ne f h) }
+  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf (ne_of_apply_ne f h) }
 
 
 /-!
@@ -242,7 +255,7 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
     by simp [prod.swap, (∘)]; exact tendsto_map.comp tendsto_swap_uniformity,
   comp := calc (map (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) u.uniformity).lift' (λs, comp_rel s s) =
           u.uniformity.lift' ((λs, comp_rel s s) ∘ image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧))) :
-      map_lift'_eq2 $ monotone_comp_rel monotone_id monotone_id
+      map_lift'_eq2 $ monotone_id.comp_rel monotone_id
     ... ≤ u.uniformity.lift' (image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) ∘
             (λs:set (α×α), comp_rel s (comp_rel s s))) :
       lift'_mono' $ assume s hs ⟨a, b⟩ ⟨c, ⟨⟨a₁, a₂⟩, ha, a_eq⟩, ⟨⟨b₁, b₂⟩, hb, b_eq⟩⟩,
@@ -257,7 +270,7 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
     ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧))
             (u.uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
       by rw [map_lift'_eq];
-        exact monotone_comp_rel monotone_id (monotone_comp_rel monotone_id monotone_id)
+        exact monotone_id.comp_rel (monotone_id.comp_rel monotone_id)
     ... ≤ map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity :
       map_mono comp_le_uniformity3,
   is_open_uniformity := assume s,
@@ -274,7 +287,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
         u.uniformity.sets_of_superset ht $ assume ⟨a₁, a₂⟩ h₁ h₂, hts (ht' $ setoid.symm h₂) h₁,
         assume h, u.uniformity.sets_of_superset h $ by simp {contextual := tt}⟩,
     begin
-      simp [topological_space.coinduced, u.is_open_uniformity, uniformity, forall_quotient_iff],
+      simp only [is_open_coinduced, is_open_uniformity, uniformity, forall_quotient_iff,
+        mem_preimage, mem_map, preimage_set_of_eq, quotient.eq],
       exact ⟨λh a ha, (this a ha).mp $ h a ha, λh a ha, (this a ha).mpr $ h a ha⟩
     end }
 
@@ -354,6 +368,9 @@ instance : uniform_space (separation_quotient α) := separation_setoid.uniform_s
 instance : separated_space (separation_quotient α) := uniform_space.separated_separation
 instance [inhabited α] : inhabited (separation_quotient α) :=
 quotient.inhabited (separation_setoid α)
+
+lemma mk_eq_mk {x y : α} : (⟦x⟧ : separation_quotient α) = ⟦y⟧ ↔ inseparable x y :=
+quotient.eq'.trans separation_rel_iff_inseparable
 
 /-- Factoring functions to a separated space through the separation quotient. -/
 def lift [separated_space β] (f : α → β) : (separation_quotient α → β) :=

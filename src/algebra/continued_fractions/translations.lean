@@ -7,6 +7,9 @@ import algebra.continued_fractions.basic
 /-!
 # Basic Translation Lemmas Between Functions Defined for Continued Fractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 Some simple translation lemmas between the different definitions of functions defined in
@@ -14,6 +17,7 @@ Some simple translation lemmas between the different definitions of functions de
 -/
 
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 section general
 /-!
@@ -118,6 +122,14 @@ by simp[denom_eq_conts_b, (first_continuant_eq zeroth_s_eq)]
 lemma zeroth_convergent'_aux_eq_zero {s : seq $ pair K} : convergents'_aux s 0 = 0 := rfl
 @[simp]
 lemma zeroth_convergent'_eq_h : g.convergents' 0 = g.h := by simp [convergents']
+
+lemma convergents'_aux_succ_none {s : seq (pair K)} (h : s.head = none) (n : ℕ) :
+  convergents'_aux s (n + 1) = 0 :=
+by rw [convergents'_aux, h, convergents'_aux._match_1]
+
+lemma convergents'_aux_succ_some {s : seq (pair K)} {p : pair K} (h : s.head = some p) (n : ℕ) :
+  convergents'_aux s (n + 1) = p.a / (p.b + convergents'_aux s.tail n) :=
+by rw [convergents'_aux, h, convergents'_aux._match_1]
 
 end with_division_ring
 end generalized_continued_fraction

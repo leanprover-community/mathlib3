@@ -10,6 +10,9 @@ import group_theory.perm.basic
 /-!
 # Support of a permutation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 In the following, `f g : equiv.perm α`.
@@ -40,6 +43,8 @@ by simp only [disjoint, or.comm, imp_self]
 
 lemma disjoint.symmetric : symmetric (@disjoint α) :=
 λ _ _, disjoint.symm
+
+instance : is_symm (perm α) disjoint := ⟨disjoint.symmetric⟩
 
 lemma disjoint_comm : disjoint f g ↔ disjoint g f :=
 ⟨disjoint.symm, disjoint.symm⟩
@@ -456,7 +461,7 @@ end
 
 lemma disjoint.mem_imp (h : disjoint f g) {x : α} (hx : x ∈ f.support) :
   x ∉ g.support :=
-λ H, h.disjoint_support (mem_inter_of_mem hx H)
+disjoint_left.mp h.disjoint_support hx
 
 lemma eq_on_support_mem_disjoint {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
   ∀ (x ∈ f.support), f x = l.prod x :=
@@ -479,8 +484,7 @@ lemma disjoint.mono {x y : perm α} (h : disjoint f g)
   disjoint x y :=
 begin
   rw disjoint_iff_disjoint_support at h ⊢,
-  intros a ha,
-  exact h (mem_inter_of_mem (hf (mem_of_mem_inter_left ha)) (hg (mem_of_mem_inter_right ha)))
+  exact h.mono hf hg,
 end
 
 lemma support_le_prod_of_mem {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
@@ -613,5 +617,9 @@ end
 end card
 
 end support
+
+@[simp] lemma support_subtype_perm [decidable_eq α] {s : finset α} (f : perm α) (h) :
+  (f.subtype_perm h : perm {x // x ∈ s}).support = s.attach.filter (λ x, f x ≠ x) :=
+by { ext, simp [subtype.ext_iff] }
 
 end equiv.perm

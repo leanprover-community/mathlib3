@@ -12,6 +12,9 @@ import topology.uniform_space.uniform_embedding
 /-!
 # Extended metric spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is devoted to the definition and study of `emetric_spaces`, i.e., metric
 spaces in which the distance is allowed to take the value ∞. This extended distance is
 called `edist`, and takes values in `ℝ≥0∞`.
@@ -28,9 +31,8 @@ to `emetric_space` at the end.
 -/
 
 open set filter classical
-noncomputable theory
 
-open_locale uniformity topological_space big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X : Type*}
@@ -39,41 +41,20 @@ variables {α : Type u} {β : Type v} {X : Type*}
 in terms of the elements of the uniformity. -/
 theorem uniformity_dist_of_mem_uniformity [linear_order β] {U : filter (α × α)} (z : β)
   (D : α → α → β) (H : ∀ s, s ∈ U ↔ ∃ε>z, ∀{a b:α}, D a b < ε → (a, b) ∈ s) :
-  U = ⨅ ε>z, 𝓟 {p:α×α | D p.1 p.2 < ε} :=
-le_antisymm
-  (le_infi $ λ ε, le_infi $ λ ε0, le_principal_iff.2 $ (H _).2 ⟨ε, ε0, λ a b, id⟩)
-  (λ r ur, let ⟨ε, ε0, h⟩ := (H _).1 ur in
-    mem_infi_of_mem ε $ mem_infi_of_mem ε0 $ mem_principal.2 $ λ ⟨a, b⟩, h)
+  U = ⨅ ε > z, 𝓟 {p:α×α | D p.1 p.2 < ε} :=
+has_basis.eq_binfi ⟨λ s, by simp only [H, subset_def, prod.forall, mem_set_of]⟩
 
 /-- `has_edist α` means that `α` is equipped with an extended distance. -/
 class has_edist (α : Type*) := (edist : α → α → ℝ≥0∞)
 export has_edist (edist)
 
 /-- Creating a uniform space from an extended distance. -/
-def uniform_space_of_edist
-  (edist : α → α → ℝ≥0∞)
-  (edist_self : ∀ x : α, edist x x = 0)
-  (edist_comm : ∀ x y : α, edist x y = edist y x)
+noncomputable def uniform_space_of_edist (edist : α → α → ℝ≥0∞)
+  (edist_self : ∀ x : α, edist x x = 0) (edist_comm : ∀ x y : α, edist x y = edist y x)
   (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z) : uniform_space α :=
-uniform_space.of_core
-{ uniformity := (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}),
-  refl       := le_infi $ assume ε, le_infi $
-    by simp [set.subset_def, id_rel, edist_self, (>)] {contextual := tt},
-  comp       :=
-    le_infi $ assume ε, le_infi $ assume h,
-    have (2 : ℝ≥0∞) = (2 : ℕ) := by simp,
-    have A : 0 < ε / 2 := ennreal.div_pos_iff.2
-      ⟨ne_of_gt h, by { convert ennreal.nat_ne_top 2 }⟩,
-    lift'_le
-    (mem_infi_of_mem (ε / 2) $ mem_infi_of_mem A (subset.refl _)) $
-    have ∀ (a b c : α), edist a c < ε / 2 → edist c b < ε / 2 → edist a b < ε,
-      from assume a b c hac hcb,
-      calc edist a b ≤ edist a c + edist c b : edist_triangle _ _ _
-        ... < ε / 2 + ε / 2 : ennreal.add_lt_add hac hcb
-        ... = ε : by rw [ennreal.add_halves],
-    by simpa [comp_rel],
-  symm       := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
-    tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simp [edist_comm] }
+uniform_space.of_fun edist edist_self edist_comm edist_triangle $
+  λ ε ε0, ⟨ε / 2, ennreal.half_pos ε0.lt.ne', λ _ h₁ _ h₂,
+      (ennreal.add_lt_add h₁ h₂).trans_eq (ennreal.add_halves _)⟩
 
 -- the uniform structure is embedded in the emetric space structure
 -- to avoid instance diamond issues. See Note [forgetful inheritance].
@@ -115,6 +96,19 @@ by rw edist_comm z; apply edist_triangle
 
 theorem edist_triangle_right (x y z : α) : edist x y ≤ edist x z + edist y z :=
 by rw edist_comm y; apply edist_triangle
+
+lemma edist_congr_right {x y z : α} (h : edist x y = 0) : edist x z = edist y z :=
+begin
+  apply le_antisymm,
+  { rw [←zero_add (edist y z), ←h],
+    apply edist_triangle, },
+  { rw edist_comm at h,
+    rw [←zero_add (edist x z), ←h],
+    apply edist_triangle, },
+end
+
+lemma edist_congr_left {x y z : α} (h : edist x y = 0) : edist z x = edist z y :=
+by { rw [edist_comm z x, edist_comm z y], apply edist_congr_right h,  }
 
 lemma edist_triangle4 (x y z t : α) :
   edist x t ≤ edist x y + edist y z + edist z t :=
@@ -163,13 +157,13 @@ theorem uniformity_pseudoedist :
   𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} :=
 pseudo_emetric_space.uniformity_edist
 
+theorem uniform_space_edist : ‹pseudo_emetric_space α›.to_uniform_space =
+  uniform_space_of_edist edist edist_self edist_comm edist_triangle :=
+uniform_space_eq uniformity_pseudoedist
+
 theorem uniformity_basis_edist :
   (𝓤 α).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
-(@uniformity_pseudoedist α _).symm ▸ has_basis_binfi_principal
-  (λ r hr p hp, ⟨min r p, lt_min hr hp,
-    λ x hx, lt_of_lt_of_le hx (min_le_left _ _),
-    λ x hx, lt_of_lt_of_le hx (min_le_right _ _)⟩)
-  ⟨1, ennreal.zero_lt_one⟩
+(@uniform_space_edist α _).symm ▸ uniform_space.has_basis_of_fun ⟨1, one_pos⟩ _ _ _ _ _
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
@@ -277,12 +271,10 @@ uniformity_basis_edist.uniform_continuous_iff uniformity_basis_edist
 theorem uniform_embedding_iff [pseudo_emetric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, edist (f a) (f b) < ε → edist a b < δ :=
-uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
-⟨λ H δ δ0, let ⟨t, tu, ht⟩ := H _ (edist_mem_uniformity δ0),
-               ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 tu in
-  ⟨ε, ε0, λ a b h, ht _ _ (hε h)⟩,
- λ H s su, let ⟨δ, δ0, hδ⟩ := mem_uniformity_edist.1 su, ⟨ε, ε0, hε⟩ := H _ δ0 in
-  ⟨_, edist_mem_uniformity ε0, λ a b h, hδ (hε h)⟩⟩
+begin
+  simp only [uniformity_basis_edist.uniform_embedding_iff uniformity_basis_edist, exists_prop],
+  refl
+end
 
 /-- If a map between pseudoemetric spaces is a uniform embedding then the edistance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y`. -/
@@ -290,11 +282,7 @@ theorem controlled_of_uniform_embedding [pseudo_emetric_space β] {f : α → β
   uniform_embedding f →
   (∀ ε > 0, ∃ δ > 0, ∀ {a b : α}, edist a b < δ → edist (f a) (f b) < ε) ∧
   (∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, edist (f a) (f b) < ε → edist a b < δ) :=
-begin
-  assume h,
-    exact ⟨uniform_continuous_iff.1 (uniform_embedding_iff.1 h).2.1,
-          (uniform_embedding_iff.1 h).2.2⟩,
-end
+λ h, ⟨uniform_continuous_iff.1 (uniform_embedding_iff.1 h).2.1, (uniform_embedding_iff.1 h).2.2⟩
 
 /-- ε-δ characterization of Cauchy sequences on pseudoemetric spaces -/
 protected lemma cauchy_iff {f : filter α} :
@@ -365,7 +353,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def pseudo_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   pseudo_emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -382,16 +370,7 @@ def pseudo_emetric_space.induced {α β} (f : α → β)
   edist_comm          := λ x y, edist_comm _ _,
   edist_triangle      := λ x y z, edist_triangle _ _ _,
   to_uniform_space    := uniform_space.comap f m.to_uniform_space,
-  uniformity_edist    := begin
-    apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, edist (f x) (f y)),
-    refine λ s, mem_comap.trans _,
-    split; intro H,
-    { rcases H with ⟨r, ru, rs⟩,
-      rcases mem_uniformity_edist.1 ru with ⟨ε, ε0, hε⟩,
-      refine ⟨ε, ε0, λ a b h, rs (hε _)⟩, exact h },
-    { rcases H with ⟨ε, ε0, hε⟩,
-      exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
-  end }
+  uniformity_edist    := (uniformity_basis_edist.comap _).eq_binfi }
 
 /-- Pseudoemetric space instance on subsets of pseudoemetric spaces -/
 instance {α : Type*} {p : α → Prop} [pseudo_emetric_space α] : pseudo_emetric_space (subtype p) :=
@@ -427,7 +406,7 @@ end ulift
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
 instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
-{ edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
+{ edist := λ x y, edist x.1 y.1 ⊔ edist x.2 y.2,
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
   edist_triangle := λ x y z, max_le
@@ -479,10 +458,6 @@ instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
 lemma edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
-@[simp]
-lemma edist_pi_const [nonempty β] (a b : α) :
-  edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
-
 lemma edist_le_pi_edist [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) (b : β) :
   edist (f b) (g b) ≤ edist f g :=
 finset.le_sup (finset.mem_univ b)
@@ -491,10 +466,16 @@ lemma edist_pi_le_iff [Π b, pseudo_emetric_space (π b)] {f g : Π b, π b} {d 
   edist f g ≤ d ↔ ∀ b, edist (f b) (g b) ≤ d :=
 finset.sup_le_iff.trans $ by simp only [finset.mem_univ, forall_const]
 
+lemma edist_pi_const_le (a b : α) : edist (λ _ : β, a) (λ _, b) ≤ edist a b :=
+edist_pi_le_iff.2 $ λ _, le_rfl
+
+@[simp] lemma edist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
+finset.sup_const univ_nonempty (edist a b)
+
 end pi
 
 namespace emetric
-variables {x y z : α} {ε ε₁ ε₂ : ℝ≥0∞} {s : set α}
+variables {x y z : α} {ε ε₁ ε₂ : ℝ≥0∞} {s t : set α}
 
 /-- `emetric.ball x ε` is the set of all points `y` with `edist y x < ε` -/
 def ball (x : α) (ε : ℝ≥0∞) : set α := {y | edist y x < ε}
@@ -541,7 +522,8 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
 theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : disjoint (ball x ε₁) (ball y ε₂) :=
-λ z ⟨h₁, h₂⟩, (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
+set.disjoint_left.mpr $ λ z h₁ h₂,
+  (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
 
 theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
@@ -583,13 +565,44 @@ by rw [emetric.ball_eq_empty_iff]
 theorem nhds_basis_eball : (𝓝 x).has_basis (λ ε:ℝ≥0∞, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_edist
 
+lemma nhds_within_basis_eball : (𝓝[s] x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, ball x ε ∩ s) :=
+nhds_within_has_basis nhds_basis_eball s
+
 theorem nhds_basis_closed_eball : (𝓝 x).has_basis (λ ε:ℝ≥0∞, 0 < ε) (closed_ball x) :=
 nhds_basis_uniformity uniformity_basis_edist_le
+
+lemma nhds_within_basis_closed_eball :
+  (𝓝[s] x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, closed_ball x ε ∩ s) :=
+nhds_within_has_basis nhds_basis_closed_eball s
 
 theorem nhds_eq : 𝓝 x = (⨅ε>0, 𝓟 (ball x ε)) :=
 nhds_basis_eball.eq_binfi
 
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball.mem_iff
+
+lemma mem_nhds_within_iff : s ∈ 𝓝[t] x ↔ ∃ ε > 0, ball x ε ∩ t ⊆ s :=
+nhds_within_basis_eball.mem_iff
+
+section
+variables [pseudo_emetric_space β] {f : α → β}
+
+lemma tendsto_nhds_within_nhds_within {t : set β} {a b} :
+  tendsto f (𝓝[s] a) (𝓝[t] b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, x ∈ s → edist x a < δ → f x ∈ t ∧ edist (f x) b < ε :=
+(nhds_within_basis_eball.tendsto_iff nhds_within_basis_eball).trans $
+  forall₂_congr $ λ ε hε, exists₂_congr $ λ δ hδ,
+  forall_congr $ λ x, by simp; itauto
+
+lemma tendsto_nhds_within_nhds {a b} :
+  tendsto f (𝓝[s] a) (𝓝 b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → edist x a < δ → edist (f x) b < ε :=
+by { rw [← nhds_within_univ b, tendsto_nhds_within_nhds_within], simp only [mem_univ, true_and] }
+
+lemma tendsto_nhds_nhds {a b} :
+  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, edist x a < δ → edist (f x) b < ε :=
+nhds_basis_eball.tendsto_iff nhds_basis_eball
+
+end
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp [is_open_iff_nhds, mem_nhds_iff]
@@ -599,7 +612,7 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem is_closed_ball_top : is_closed (ball x ⊤) :=
 is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top,
-  (ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }).subset_compl_right⟩
+  (ball_disjoint $ by { rw top_add, exact le_of_not_lt hy }).subset_compl_right⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 is_open_ball.mem_nhds (mem_ball_self ε0)
@@ -746,7 +759,7 @@ end second_countable
 section diam
 
 /-- The diameter of a set in a pseudoemetric space, named `emetric.diam` -/
-def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
+noncomputable def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
 
 lemma diam_le_iff {d : ℝ≥0∞} :
   diam s ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist x y ≤ d :=
@@ -872,38 +885,28 @@ nonpos_iff_eq_zero.trans edist_eq_zero
 theorem eq_of_forall_edist_le {x y : γ} (h : ∀ε > 0, edist x y ≤ ε) : x = y :=
 eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 
-/-- A map between emetric spaces is a uniform embedding if and only if the edistance between `f x`
-and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
-theorem uniform_embedding_iff' [emetric_space β] {f : γ → β} :
-  uniform_embedding f ↔
-  (∀ ε > 0, ∃ δ > 0, ∀ {a b : γ}, edist a b < δ → edist (f a) (f b) < ε) ∧
-  (∀ δ > 0, ∃ ε > 0, ∀ {a b : γ}, edist (f a) (f b) < ε → edist a b < δ) :=
-begin
-  split,
-  { assume h,
-    exact ⟨emetric.uniform_continuous_iff.1 (uniform_embedding_iff.1 h).2.1,
-          (uniform_embedding_iff.1 h).2.2⟩ },
-  { rintros ⟨h₁, h₂⟩,
-    refine uniform_embedding_iff.2 ⟨_, emetric.uniform_continuous_iff.2 h₁, h₂⟩,
-    assume x y hxy,
-    have : edist x y ≤ 0,
-    { refine le_of_forall_lt' (λδ δpos, _),
-      rcases h₂ δ δpos with ⟨ε, εpos, hε⟩,
-      have : edist (f x) (f y) < ε, by simpa [hxy],
-      exact hε this },
-    simpa using this }
-end
-
 /-- An emetric space is separated -/
 @[priority 100] -- see Note [lower instance priority]
 instance to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
+/-- A map between emetric spaces is a uniform embedding if and only if the edistance between `f x`
+and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
+theorem emetric.uniform_embedding_iff' [emetric_space β] {f : γ → β} :
+  uniform_embedding f ↔
+    (∀ ε > 0, ∃ δ > 0, ∀ {a b : γ}, edist a b < δ → edist (f a) (f b) < ε) ∧
+    (∀ δ > 0, ∃ ε > 0, ∀ {a b : γ}, edist (f a) (f b) < ε → edist a b < δ) :=
+begin
+  simp only [uniform_embedding_iff_uniform_inducing,
+    uniformity_basis_edist.uniform_inducing_iff uniformity_basis_edist, exists_prop],
+  refl
+end
+
 /-- If a `pseudo_emetric_space` is a T₀ space, then it is an `emetric_space`. -/
-def emetric.of_t0_pseudo_emetric_space (α : Type*) [pseudo_emetric_space α] [t0_space α] :
+def emetric_space.of_t0_pseudo_emetric_space (α : Type*) [pseudo_emetric_space α] [t0_space α] :
   emetric_space α :=
-{ eq_of_edist_eq_zero := λ x y hdist, inseparable.eq $ emetric.inseparable_iff.2 hdist,
+{ eq_of_edist_eq_zero := λ x y hdist, (emetric.inseparable_iff.2 hdist).eq,
   ..‹pseudo_emetric_space α› }
 
 /-- Auxiliary function to replace the uniformity on an emetric space with
@@ -913,7 +916,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def emetric_space.replace_uniformity {γ} [U : uniform_space γ] (m : emetric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   emetric_space γ :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -932,16 +935,7 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
   edist_comm          := λ x y, edist_comm _ _,
   edist_triangle      := λ x y z, edist_triangle _ _ _,
   to_uniform_space    := uniform_space.comap f m.to_uniform_space,
-  uniformity_edist    := begin
-    apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, edist (f x) (f y)),
-    refine λ s, mem_comap.trans _,
-    split; intro H,
-    { rcases H with ⟨r, ru, rs⟩,
-      rcases mem_uniformity_edist.1 ru with ⟨ε, ε0, hε⟩,
-      refine ⟨ε, ε0, λ a b h, rs (hε _)⟩, exact h },
-    { rcases H with ⟨ε, ε0, hε⟩,
-      exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
-  end }
+  uniformity_edist    := (uniformity_basis_edist.comap _).eq_binfi }
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [emetric_space α] : emetric_space (subtype p) :=
@@ -1015,6 +1009,37 @@ by simp only [pos_iff_ne_zero, ne.def, diam_eq_zero_iff, set.subsingleton, not_f
 end diam
 
 end emetric
+
+/-!
+### Separation quotient
+-/
+
+instance [pseudo_emetric_space X] : has_edist (uniform_space.separation_quotient X) :=
+⟨λ x y, quotient.lift_on₂' x y edist $ λ x y x' y' hx hy,
+  calc edist x y = edist x' y : edist_congr_right $
+    emetric.inseparable_iff.1 $ separation_rel_iff_inseparable.1 hx
+  ... = edist x' y' : edist_congr_left $
+    emetric.inseparable_iff.1 $ separation_rel_iff_inseparable.1 hy⟩
+
+@[simp] theorem uniform_space.separation_quotient.edist_mk [pseudo_emetric_space X] (x y : X) :
+  @edist (uniform_space.separation_quotient X) _ (quot.mk _ x) (quot.mk _ y) = edist x y :=
+rfl
+
+instance [pseudo_emetric_space X] : emetric_space (uniform_space.separation_quotient X) :=
+@emetric_space.of_t0_pseudo_emetric_space (uniform_space.separation_quotient X)
+  { edist_self := λ x, quotient.induction_on' x edist_self,
+    edist_comm := λ x y, quotient.induction_on₂' x y edist_comm,
+    edist_triangle := λ x y z, quotient.induction_on₃' x y z edist_triangle,
+    to_uniform_space := infer_instance,
+    uniformity_edist := (uniformity_basis_edist.map _).eq_binfi.trans $ infi_congr $ λ ε,
+      infi_congr $ λ hε, congr_arg 𝓟
+      begin
+        ext ⟨⟨x⟩, ⟨y⟩⟩,
+        refine ⟨_, λ h, ⟨(x, y), h, rfl⟩⟩,
+        rintro ⟨⟨x', y'⟩, h', h⟩,
+        simp only [prod.ext_iff] at h,
+        rwa [← h.1, ← h.2]
+      end } _
 
 /-!
 ### `additive`, `multiplicative`

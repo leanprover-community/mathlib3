@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Apurva Nakade
 -/
 import algebra.algebra.basic
-import ring_theory.localization.away
 import set_theory.game.birthday
 import set_theory.surreal.basic
+import ring_theory.localization.basic
 
 /-!
 # Dyadic numbers
@@ -169,6 +169,7 @@ lemma dyadic_aux {m₁ m₂ : ℤ} {y₁ y₂ : ℕ} (h₂ : m₁ * (2 ^ y₁) =
 begin
   revert m₁ m₂,
   wlog h : y₁ ≤ y₂,
+  { intros m₁ m₂ aux, exact (this (le_of_not_le h) aux.symm).symm },
   intros m₁ m₂ h₂,
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp h,
   rw [add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
@@ -185,7 +186,7 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
   begin
     intros m₁ m₂ n₁ n₂ h₁,
     obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
-    simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
+    simp only [subtype.coe_mk, mul_eq_mul_left_iff] at h₂,
     cases h₂,
     { simp only,
       obtain ⟨a₁, ha₁⟩ := n₁.prop,
@@ -195,7 +196,7 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
       have h₂ : 1 < (2 : ℤ).nat_abs, from one_lt_two,
       rw [hn₁, hn₂, submonoid.log_pow_int_eq_self h₂, submonoid.log_pow_int_eq_self h₂],
       apply dyadic_aux,
-      rwa [ha₁, ha₂] },
+      rwa [ha₁, ha₂, mul_comm, mul_comm m₂] },
     { have : (1 : ℤ) ≤ 2 ^ y₃ := by exact_mod_cast nat.one_le_pow y₃ 2 nat.succ_pos',
       linarith }
     end,

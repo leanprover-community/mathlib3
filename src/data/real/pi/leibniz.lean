@@ -5,12 +5,15 @@ Authors: Benjamin Davidson
 -/
 import analysis.special_functions.trigonometric.arctan_deriv
 
-/-! ### Leibniz's Series for Pi -/
+/-! ### Leibniz's Series for Pi 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 namespace real
 
 open filter set
-open_locale classical big_operators topological_space real
+open_locale classical big_operators topology real
 local notation (name := abs) `|`x`|` := abs x
 
 /-- This theorem establishes **Leibniz's series for `π`**: The alternating sum of the reciprocals

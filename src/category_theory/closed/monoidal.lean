@@ -11,6 +11,9 @@ import category_theory.functor.inv_isos
 /-!
 # Closed monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define (right) closed objects and (right) closed monoidal categories.
 
 ## TODO
@@ -206,15 +209,18 @@ variables {A B} [closed B]
 def pre (f : B ⟶ A) : ihom A ⟶ ihom B :=
 transfer_nat_trans_self (ihom.adjunction _) (ihom.adjunction _) ((tensoring_left C).map f)
 
+@[simp, reassoc]
 lemma id_tensor_pre_app_comp_ev (f : B ⟶ A) (X : C) :
   (𝟙 B ⊗ ((pre f).app X)) ≫ (ihom.ev B).app X =
     (f ⊗ (𝟙 (A ⟶[C] X))) ≫ (ihom.ev A).app X :=
 transfer_nat_trans_self_counit _ _ ((tensoring_left C).map f) X
 
+@[simp]
 lemma uncurry_pre (f : B ⟶ A) (X : C) :
   monoidal_closed.uncurry ((pre f).app X) = (f ⊗ 𝟙 _) ≫ (ihom.ev A).app X :=
 by rw [uncurry_eq, id_tensor_pre_app_comp_ev]
 
+@[simp, reassoc]
 lemma coev_app_comp_pre_app (f : B ⟶ A) :
   (ihom.coev A).app X ≫ (pre f).app (A ⊗ X) =
     (ihom.coev B).app X ≫ (ihom B).map (f ⊗ (𝟙 _)) :=
@@ -230,9 +236,14 @@ lemma pre_map {A₁ A₂ A₃ : C} [closed A₁] [closed A₂] [closed A₃]
   pre (f ≫ g) = pre g ≫ pre f :=
 by rw [pre, pre, pre, transfer_nat_trans_self_comp, (tensoring_left C).map_comp]
 
+lemma pre_comm_ihom_map {W X Y Z : C} [closed W] [closed X]
+  (f : W ⟶ X) (g : Y ⟶ Z) :
+  (pre f).app Y ≫ (ihom W).map g = (ihom X).map g ≫ (pre f).app Z := by simp
+
 end pre
 
 /-- The internal hom functor given by the monoidal closed structure. -/
+@[simps]
 def internal_hom [monoidal_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
 { obj := λ X, ihom X.unop,
   map := λ X Y f, pre f.unop }
@@ -252,6 +263,32 @@ def of_equiv (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoi
       have i := comp_inv_iso (monoidal_functor.comm_tensor_left F X),
       exact adjunction.left_adjoint_of_nat_iso i,
     end } }
+
+/-- Suppose we have a monoidal equivalence `F : C ≌ D`, with `D` monoidal closed. We can pull the
+monoidal closed instance back along the equivalence. For `X, Y, Z : C`, this lemma describes the
+resulting currying map `Hom(X ⊗ Y, Z) → Hom(Y, (X ⟶[C] Z))`. (`X ⟶[C] Z` is defined to be
+`F⁻¹(F(X) ⟶[D] F(Z))`, so currying in `C` is given by essentially conjugating currying in
+`D` by `F.`) -/
+lemma of_equiv_curry_def (F : monoidal_functor C D) [is_equivalence F.to_functor]
+  [h : monoidal_closed D] {X Y Z : C} (f : X ⊗ Y ⟶ Z) :
+  @monoidal_closed.curry _ _ _ _ _ _ ((monoidal_closed.of_equiv F).1 _) f =
+  (F.1.1.adjunction.hom_equiv Y ((ihom _).obj _)) (monoidal_closed.curry
+  (F.1.1.inv.adjunction.hom_equiv (F.1.1.obj X ⊗ F.1.1.obj Y) Z
+  ((comp_inv_iso (F.comm_tensor_left X)).hom.app Y ≫ f))) := rfl
+
+/-- Suppose we have a monoidal equivalence `F : C ≌ D`, with `D` monoidal closed. We can pull the
+monoidal closed instance back along the equivalence. For `X, Y, Z : C`, this lemma describes the
+resulting uncurrying map `Hom(Y, (X ⟶[C] Z)) → Hom(X ⊗ Y ⟶ Z)`. (`X ⟶[C] Z` is
+defined to be `F⁻¹(F(X) ⟶[D] F(Z))`, so uncurrying in `C` is given by essentially conjugating
+uncurrying in `D` by `F.`) -/
+lemma of_equiv_uncurry_def
+  (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoidal_closed D] {X Y Z : C}
+  (f : Y ⟶ (@ihom _ _ _ X $ (monoidal_closed.of_equiv F).1 X).obj Z) :
+  @monoidal_closed.uncurry _ _ _ _ _ _ ((monoidal_closed.of_equiv F).1 _) f =
+  (comp_inv_iso (F.comm_tensor_left X)).inv.app Y ≫ (F.1.1.inv.adjunction.hom_equiv
+  (F.1.1.obj X ⊗ F.1.1.obj Y) Z).symm (monoidal_closed.uncurry
+  ((F.1.1.adjunction.hom_equiv Y ((ihom (F.1.1.obj X)).obj (F.1.1.obj Z))).symm f)) :=
+rfl
 
 end of_equiv
 

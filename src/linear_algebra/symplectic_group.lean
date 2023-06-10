@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Matej Penciak, Moritz Doll, Fabien Clery
 -/
 
-import data.real.basic
 import linear_algebra.matrix.nonsingular_inverse
 
 /-!
 # The Symplectic Group
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the symplectic group and proves elementary properties.
 
@@ -47,7 +49,7 @@ variables [fintype l]
 lemma J_squared : (J l R) ⬝ (J l R) = -1 :=
 begin
   rw [J, from_blocks_multiply],
-  simp only [matrix.zero_mul, matrix.neg_mul, zero_add, neg_zero', matrix.one_mul, add_zero],
+  simp only [matrix.zero_mul, matrix.neg_mul, zero_add, neg_zero, matrix.one_mul, add_zero],
   rw [← neg_zero, ← matrix.from_blocks_neg, ← from_blocks_one],
 end
 

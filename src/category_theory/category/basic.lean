@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 import combinatorics.quiver.basic
-import tactic.basic
 
 /-!
 # Categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Defines a category, as a type class parametrised by the type of objects.
 
@@ -83,6 +85,8 @@ extends quiver.{v+1} obj : Type (max u (v+1)) :=
 notation `𝟙` := category_struct.id -- type as \b1
 infixr ` ≫ `:80 := category_struct.comp -- type as \gg
 
+initialize_simps_projections category_struct (-to_quiver_hom)
+
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
@@ -120,8 +124,8 @@ abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 section
 variables {C : Type u} [category.{v} C] {X Y Z : C}
 
-initialize_simps_projections category (to_category_struct_to_quiver_hom → hom,
-  to_category_struct_comp → comp, to_category_struct_id → id, -to_category_struct)
+initialize_simps_projections category
+  (to_category_struct_comp → comp, to_category_struct_id → id, -to_category_struct)
 
 /-- postcompose an equation between morphisms by another morphism -/
 lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=

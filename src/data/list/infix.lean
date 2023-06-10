@@ -8,6 +8,9 @@ import data.list.basic
 /-!
 # Prefixes, subfixes, infixes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves properties about
 * `list.prefix`: `l₁` is a prefix of `l₂` if `l₂` starts with `l₁`.
 * `list.subfix`: `l₁` is a subfix of `l₂` if `l₂` ends with `l₁`.
@@ -113,9 +116,9 @@ alias reverse_prefix ↔ _ is_suffix.reverse
 alias reverse_suffix ↔ _ is_prefix.reverse
 alias reverse_infix ↔ _ is_infix.reverse
 
-lemma is_infix.length_le (h : l₁ <:+: l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
-lemma is_prefix.length_le (h : l₁ <+: l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
-lemma is_suffix.length_le (h : l₁ <:+ l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
+lemma is_infix.length_le (h : l₁ <:+: l₂) : l₁.length ≤ l₂.length := h.sublist.length_le
+lemma is_prefix.length_le (h : l₁ <+: l₂) : l₁.length ≤ l₂.length := h.sublist.length_le
+lemma is_suffix.length_le (h : l₁ <:+ l₂) : l₁.length ≤ l₂.length := h.sublist.length_le
 
 lemma eq_nil_of_infix_nil (h : l <:+: []) : l = [] := eq_nil_of_sublist_nil h.sublist
 
@@ -138,13 +141,13 @@ lemma infix_iff_prefix_suffix (l₁ l₂ : list α) : l₁ <:+: l₂ ↔ ∃ t, 
   λ ⟨._, ⟨t, rfl⟩, s, e⟩, ⟨s, t, by rw append_assoc; exact e⟩⟩
 
 lemma eq_of_infix_of_length_eq (h : l₁ <:+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma eq_of_prefix_of_length_eq (h : l₁ <+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma eq_of_suffix_of_length_eq (h : l₁ <:+ l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma prefix_of_prefix_length_le : ∀ {l₁ l₂ l₃ : list α},
   l₁ <+: l₃ → l₂ <+: l₃ → length l₁ ≤ length l₂ → l₁ <+: l₂
@@ -212,6 +215,17 @@ lemma drop_subset (n) (l : list α) : drop n l ⊆ l := (drop_sublist n l).subse
 lemma mem_of_mem_take (h : a ∈ l.take n) : a ∈ l := take_subset n l h
 lemma mem_of_mem_drop (h : a ∈ l.drop n) : a ∈ l := drop_subset n l h
 
+lemma slice_sublist (n m : ℕ) (l : list α) : l.slice n m <+ l :=
+begin
+  rw list.slice_eq,
+  conv_rhs {rw ←list.take_append_drop n l},
+  rw [list.append_sublist_append_left, add_comm, list.drop_add],
+  exact list.drop_sublist _ _,
+end
+lemma slice_subset (n m : ℕ) (l : list α) : l.slice n m ⊆ l := (slice_sublist n m l).subset
+lemma mem_of_mem_slice {n m : ℕ} {l : list α} {a : α} (h : a ∈ l.slice n m) : a ∈ l :=
+slice_subset n m l h
+
 lemma take_while_prefix (p : α → Prop) [decidable_pred p] : l.take_while p <+: l :=
 ⟨l.drop_while p, take_while_append_drop p l⟩
 
@@ -259,7 +273,7 @@ instance decidable_prefix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
 -- Alternatively, use mem_tails
 instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+ l₂)
 | []        l₂        := is_true ⟨l₂, append_nil _⟩
-| (a :: l₁) []        := is_false $ mt (length_le_of_sublist ∘ is_suffix.sublist) dec_trivial
+| (a :: l₁) []        := is_false $ mt (sublist.length_le ∘ is_suffix.sublist) dec_trivial
 | l₁        (b :: l₂) := decidable_of_decidable_of_iff (@or.decidable _ _
     _ (l₁.decidable_suffix l₂)) suffix_cons_iff.symm
 

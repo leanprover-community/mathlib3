@@ -84,9 +84,12 @@ begin
     { rw ht, trivial } }
 end
 
-lemma finite_is_local :
+lemma finite_type_is_local :
   property_is_local @finite_type :=
 ⟨localization_finite_type, finite_type_of_localization_span_target,
   finite_type_stable_under_composition, finite_type_holds_for_localization_away⟩
+
+lemma finite_type_respects_iso : ring_hom.respects_iso @ring_hom.finite_type :=
+ring_hom.finite_type_is_local.respects_iso
 
 end ring_hom

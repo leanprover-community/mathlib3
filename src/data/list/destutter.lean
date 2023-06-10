@@ -8,6 +8,9 @@ import data.list.chain
 /-!
 # Destuttering of Lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves theorems about `list.destutter` (in `data.list.defs`), which greedily removes all
 non-related items that are adjacent in a list, e.g. `[2, 2, 3, 3, 2].destutter (≠) = [2, 3, 2]`.
 Note that we make no guarantees of being the longest sublist with this property; e.g.,

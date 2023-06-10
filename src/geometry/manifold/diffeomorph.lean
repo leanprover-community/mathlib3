@@ -5,6 +5,7 @@ Authors: Nicolò Cavalleri, Yury Kudryashov
 -/
 
 import geometry.manifold.cont_mdiff_map
+import geometry.manifold.cont_mdiff_mfderiv
 
 /-!
 # Diffeomorphisms
@@ -43,7 +44,7 @@ practice.
 diffeomorphism, manifold
 -/
 
-open_locale manifold topological_space
+open_locale manifold topology
 open function set
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
@@ -124,6 +125,11 @@ equiv.coe_fn_injective.comp to_equiv_injective
 
 @[ext] lemma ext {h h' : M ≃ₘ^n⟮I, I'⟯ M'} (Heq : ∀ x, h x = h' x) : h = h' :=
 coe_fn_injective $ funext Heq
+
+instance : continuous_map_class (M ≃ₘ⟮I, J⟯ N) M N :=
+{ coe := coe_fn,
+  coe_injective' := coe_fn_injective,
+  map_continuous := λ f, f.continuous }
 
 section
 

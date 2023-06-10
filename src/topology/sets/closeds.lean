@@ -153,15 +153,14 @@ variables (α)
 
 variables {α}
 
+@[simp, norm_cast] lemma closeds.is_atom_coe [t1_space α] {s : closeds α} :
+  is_atom (s : set α) ↔ is_atom s :=
+closeds.gi.is_atom_iff' rfl
+  (λ t ht, by { obtain ⟨x, rfl⟩ := is_atom_iff.1 ht, exact closure_singleton }) s
+
 /-- in a `t1_space`, atoms of `closeds α` are precisely the `closeds.singleton`s. -/
 lemma closeds.is_atom_iff [t1_space α] {s : closeds α} : is_atom s ↔ ∃ x, s = closeds.singleton x :=
-begin
-  have : is_atom (s : set α) ↔ is_atom s,
-  { refine closeds.gi.is_atom_iff' rfl (λ t ht, _) s,
-    obtain ⟨x, rfl⟩ := is_atom_iff.1 ht,
-    exact closure_singleton },
-  simpa only [← this, (s : set α).is_atom_iff, set_like.ext_iff, set.ext_iff]
-end
+by simpa only [←closeds.is_atom_coe, (s : set α).is_atom_iff, set_like.ext_iff, set.ext_iff]
 
 /-- in a `t1_space`, coatoms of `opens α` are precisely complements of singletons:
 `(closeds.singleton x).compl`. -/

@@ -29,7 +29,7 @@ begin
   do { gs ← tactic.get_goals, guard (gs.length = 3) },
   change () ≤ u,
   all_goals { cases u, refl', } ,
-  -- refine le_refl _, refine le_refl _,
+  -- refine le_rfl, refine le_rfl,
 end
 
 example {α β : Type*} [partial_order β] (x y z : α → β) (h₀ : x ≤ y) (h₁ : y ≤ z) : x ≤ z :=

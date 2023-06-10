@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebraic_geometry.presheafed_space.gluing
+import algebraic_geometry.open_immersion.Scheme
 
 /-!
 # Gluing Schemes
@@ -76,7 +77,7 @@ such that
 We can then glue the schemes `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subschemes of the glued space.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data extends category_theory.glue_data Scheme :=
 (f_open : ∀ i j, is_open_immersion (f i j))
 
@@ -106,7 +107,7 @@ begin
   refine ⟨_, _ ≫ D.to_LocallyRingedSpace_glue_data.to_glue_data.ι i, _⟩,
   swap, exact (D.U i).affine_cover.map y,
   split,
-  { dsimp,
+  { dsimp [-set.mem_range],
     rw [coe_comp, set.range_comp],
     refine set.mem_image_of_mem _ _,
     exact (D.U i).affine_cover.covers y },
@@ -351,7 +352,8 @@ instance from_glued_stalk_iso (x : 𝒰.glued_cover.glued.carrier) :
   is_iso (PresheafedSpace.stalk_map 𝒰.from_glued.val x) :=
 begin
   obtain ⟨i, x, rfl⟩ := 𝒰.glued_cover.ι_jointly_surjective x,
-  have := PresheafedSpace.stalk_map.congr_hom _ _ (congr_arg subtype.val $ 𝒰.ι_from_glued i) x,
+  have := PresheafedSpace.stalk_map.congr_hom _ _
+    (congr_arg LocallyRingedSpace.hom.val $ 𝒰.ι_from_glued i) x,
   erw PresheafedSpace.stalk_map.comp at this,
   rw ← is_iso.eq_comp_inv at this,
   rw this,
@@ -429,6 +431,16 @@ lemma ι_glue_morphisms {Y : Scheme} (f : ∀ x, 𝒰.obj x ⟶ Y)
 begin
   rw [← ι_from_glued, category.assoc],
   erw [is_iso.hom_inv_id_assoc, multicoequalizer.π_desc],
+end
+
+lemma hom_ext {Y : Scheme} (f₁ f₂ : X ⟶ Y) (h : ∀ x, 𝒰.map x ≫ f₁ = 𝒰.map x ≫ f₂) : f₁ = f₂ :=
+begin
+  rw ← cancel_epi 𝒰.from_glued,
+  apply multicoequalizer.hom_ext,
+  intro x,
+  erw multicoequalizer.π_desc_assoc,
+  erw multicoequalizer.π_desc_assoc,
+  exact h x,
 end
 
 end open_cover

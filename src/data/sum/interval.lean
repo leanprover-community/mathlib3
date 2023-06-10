@@ -10,6 +10,9 @@ import order.locally_finite
 /-!
 # Finite intervals in a disjoint union
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the `locally_finite_order` instance for the disjoint sum and linear sum of two
 orders and calculates the cardinality of their finite intervals.
 -/

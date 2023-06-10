@@ -3,14 +3,17 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import algebra.iterate_hom
-import analysis.specific_limits
-import topology.algebra.ordered.monotone_continuity
+import algebra.hom.iterate
+import analysis.specific_limits.basic
 import order.iterate
 import order.semiconj_Sup
+import topology.algebra.order.monotone_continuity
 
 /-!
 # Translation number of a monotone real map that commutes with `x ↦ x + 1`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Let `f : ℝ → ℝ` be a monotone map such that `f (x + 1) = f x + 1` for all `x`. Then the limit
 $$
@@ -116,7 +119,7 @@ circle homeomorphism, rotation number
 -/
 
 open filter set function (hiding commute) int
-open_locale topological_space classical
+open_locale topology classical
 
 /-!
 ### Definition and monoid structure
@@ -280,7 +283,7 @@ by simpa only [sub_eq_add_neg] using
 
 lemma commute_add_int : ∀ n : ℤ, function.commute f (λ x, x + n)
 | (n:ℕ) := f.commute_add_nat n
-| -[1+n] := by simpa only [sub_eq_add_neg] using f.commute_sub_nat (n + 1)
+| -[1+n] := by simpa [sub_eq_add_neg] using f.commute_sub_nat (n + 1)
 
 lemma commute_int_add (n : ℤ) : function.commute f ((+) n) :=
 by simpa only [add_comm _ (n:ℝ)] using f.commute_add_int n
@@ -413,7 +416,7 @@ lemma dist_map_zero_lt_of_semiconj {f g₁ g₂ : circle_deg1_lift} (h : functio
   dist (g₁ 0) (g₂ 0) < 2 :=
 calc dist (g₁ 0) (g₂ 0) ≤ dist (g₁ 0) (f (g₁ 0) - f 0) + dist _ (g₂ 0) : dist_triangle _ _ _
 ... = dist (f 0 + g₁ 0) (f (g₁ 0)) + dist (g₂ 0 + f 0) (g₂ (f 0)) :
-  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_assoc_swap, abs_sub_comm
+  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_eq_add_sub, abs_sub_comm
     (g₂ (f 0))]
 ... < 2 : add_lt_add (f.dist_map_map_zero_lt g₁) (g₂.dist_map_map_zero_lt f)
 
@@ -527,7 +530,7 @@ using h.comp (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two)
 lemma translation_number_eq_of_tendsto₀' {τ' : ℝ}
   (h : tendsto (λ n:ℕ, f^[n + 1] 0 / (n + 1)) at_top (𝓝 τ')) :
   τ f = τ' :=
-f.translation_number_eq_of_tendsto₀ $ (tendsto_add_at_top_iff_nat 1).1 h
+f.translation_number_eq_of_tendsto₀ $ (tendsto_add_at_top_iff_nat 1).1 (by exact_mod_cast h)
 
 lemma transnum_aux_seq_zero : f.transnum_aux_seq 0 = f 0 := by simp [transnum_aux_seq]
 
@@ -535,12 +538,12 @@ lemma transnum_aux_seq_dist_lt (n : ℕ) :
   dist (f.transnum_aux_seq n) (f.transnum_aux_seq (n+1)) < (1 / 2) / (2^n) :=
 begin
   have : 0 < (2^(n+1):ℝ) := pow_pos zero_lt_two _,
-  rw [div_div_eq_div_mul, ← pow_succ, ← abs_of_pos this],
+  rw [div_div, ← pow_succ, ← abs_of_pos this],
   replace := abs_pos.2 (ne_of_gt this),
   convert (div_lt_div_right this).2 ((f^(2^n)).dist_map_map_zero_lt (f^(2^n))),
   simp_rw [transnum_aux_seq, real.dist_eq],
   rw [← abs_div, sub_div, pow_succ', pow_succ, ← two_mul,
-    mul_div_mul_left _ _ (@two_ne_zero ℝ _ _),
+    mul_div_mul_left _ _ (two_ne_zero' ℝ),
     pow_mul, sq, mul_apply]
 end
 
@@ -633,13 +636,13 @@ begin
   dsimp,
   have : (0:ℝ) < n + 1 := n.cast_add_one_pos,
   rw [real.dist_eq, div_sub' _ _ _ (ne_of_gt this), abs_div, ← real.dist_eq, abs_of_pos this,
-    div_le_div_right this, ← nat.cast_add_one],
+    nat.cast_add_one, div_le_div_right this, ← nat.cast_add_one],
   apply dist_pow_map_zero_mul_translation_number_le
 end
 
 lemma tendsto_translation_number₀ :
   tendsto (λ n:ℕ, ((f^n) 0) / n) at_top (𝓝 $ τ f) :=
-(tendsto_add_at_top_iff_nat 1).1 f.tendsto_translation_number₀'
+(tendsto_add_at_top_iff_nat 1).1 (by exact_mod_cast f.tendsto_translation_number₀')
 
 /-- For any `x : ℝ` the sequence $\frac{f^n(x)-x}{n}$ tends to the translation number of `f`.
 In particular, this limit does not depend on `x`. -/
@@ -654,7 +657,7 @@ end
 
 lemma tendsto_translation_number' (x : ℝ) :
   tendsto (λ n:ℕ, ((f^(n+1)) x - x) / (n+1)) at_top (𝓝 $ τ f) :=
-(tendsto_add_at_top_iff_nat 1).2 (f.tendsto_translation_number x)
+by exact_mod_cast (tendsto_add_at_top_iff_nat 1).2 (f.tendsto_translation_number x)
 
 lemma translation_number_mono : monotone τ :=
 λ f g h, le_of_tendsto_of_tendsto' f.tendsto_translation_number₀
@@ -676,7 +679,7 @@ translation_number_translate z ▸ translation_number_mono
 lemma translation_number_le_of_le_add_int {x : ℝ} {m : ℤ} (h : f x ≤ x + m) : τ f ≤ m :=
 le_of_tendsto' (f.tendsto_translation_number' x) $ λ n,
 (div_le_iff' (n.cast_add_one_pos : (0 : ℝ) < _)).mpr $ sub_le_iff_le_add'.2 $
-(coe_pow f (n + 1)).symm ▸ f.iterate_le_of_map_le_add_int h (n + 1)
+(coe_pow f (n + 1)).symm ▸ @nat.cast_add_one ℝ _ n ▸ f.iterate_le_of_map_le_add_int h (n + 1)
 
 lemma translation_number_le_of_le_add_nat {x : ℝ} {m : ℕ} (h : f x ≤ x + m) : τ f ≤ m :=
 @translation_number_le_of_le_add_int f x m h
@@ -774,12 +777,10 @@ lemma exists_eq_add_translation_number (hf : continuous f) :
   ∃ x, f x = x + τ f :=
 begin
   obtain ⟨a, ha⟩ : ∃ x, f x ≤ x + f.translation_number,
-  { by_contradiction H,
-    push_neg at H,
+  { by_contra' H,
     exact lt_irrefl _ (f.lt_translation_number_of_forall_add_lt hf H) },
   obtain ⟨b, hb⟩ : ∃ x, x + τ f ≤ f x,
-  { by_contradiction H,
-    push_neg at H,
+  { by_contra' H,
     exact lt_irrefl _ (f.translation_number_lt_of_forall_lt_add hf H) },
   exact intermediate_value_univ₂ hf (continuous_id.add continuous_const) ha hb
 end
@@ -841,10 +842,10 @@ begin
   -- Now we apply `cSup_div_semiconj` and go back to `f₁` and `f₂`.
   refine ⟨⟨_, λ x y hxy, _, λ x, _⟩, cSup_div_semiconj F₂ F₁ (λ x, _)⟩;
     simp only [hF₁, hF₂, ← monoid_hom.map_inv, coe_mk],
-  { refine csupr_le_csupr (this y) (λ g, _),
+  { refine csupr_mono (this y) (λ g, _),
     exact mono _ (mono _ hxy) },
   { simp only [map_add_one],
-    exact (map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const)
+    exact (monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const)
       (monotone_id.add_const (1 : ℝ)) (this x)).symm },
   { exact this x }
 end

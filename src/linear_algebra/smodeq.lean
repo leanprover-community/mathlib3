@@ -9,9 +9,13 @@ import ring_theory.ideal.quotient
 
 /-!
 # modular equivalence for submodule
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open submodule
+open_locale polynomial
 
 variables {R : Type*} [ring R]
 variables {M : Type*} [add_comm_group M] [module R M] (U U₁ U₂ : submodule R M)
@@ -43,7 +47,11 @@ by rw [smodeq.def, submodule.quotient.eq, mem_bot, sub_eq_zero]
 @[mono] theorem mono (HU : U₁ ≤ U₂) (hxy : x ≡ y [SMOD U₁]) : x ≡ y [SMOD U₂] :=
 (submodule.quotient.eq U₂).2 $ HU $ (submodule.quotient.eq U₁).1 hxy
 
-@[refl] theorem refl : x ≡ x [SMOD U] := eq.refl _
+@[refl] protected theorem refl (x : M) : x ≡ x [SMOD U] := @rfl _ _
+
+protected theorem rfl : x ≡ x [SMOD U] := smodeq.refl _
+
+instance : is_refl _ (smodeq U) := ⟨smodeq.refl⟩
 
 @[symm] theorem symm (hxy : x ≡ y [SMOD U]) : y ≡ x [SMOD U] := hxy.symm
 
@@ -67,7 +75,7 @@ theorem comap {f : M →ₗ[R] N} (hxy : f x ≡ f y [SMOD V]) : x ≡ y [SMOD V
 from (f.map_sub x y).symm ▸ (submodule.quotient.eq _).1 hxy
 
 lemma eval {R : Type*} [comm_ring R] {I : ideal R} {x y : R} (h : x ≡ y [SMOD I])
-  (f : polynomial R) : f.eval x ≡ f.eval y [SMOD I] :=
+  (f : R[X]) : f.eval x ≡ f.eval y [SMOD I] :=
 begin
   rw [smodeq.def] at h ⊢,
   show ideal.quotient.mk I (f.eval x) = ideal.quotient.mk I (f.eval y),

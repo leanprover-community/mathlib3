@@ -9,6 +9,9 @@ import data.mv_polynomial.basic
 /-!
 # Renaming variables of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file establishes the `rename` operation on multivariate polynomials,
 which modifies the set of variables.
 
@@ -38,7 +41,7 @@ This will give rise to a monomial in `mv_polynomial σ R` which mathematicians m
 
 noncomputable theory
 
-open_locale classical big_operators
+open_locale big_operators
 
 open set function finsupp add_monoid_algebra
 open_locale big_operators
@@ -106,6 +109,24 @@ begin
 end
 
 section
+variables {f : σ → τ} (hf : function.injective f)
+open_locale classical
+
+/-- Given a function between sets of variables `f : σ → τ` that is injective with proof `hf`,
+  `kill_compl hf` is the `alg_hom` from `R[τ]` to `R[σ]` that is left inverse to
+  `rename f : R[σ] → R[τ]` and sends the variables in the complement of the range of `f` to `0`. -/
+def kill_compl : mv_polynomial τ R →ₐ[R] mv_polynomial σ R :=
+aeval (λ i, if h : i ∈ set.range f then X $ (equiv.of_injective f hf).symm ⟨i,h⟩ else 0)
+
+lemma kill_compl_comp_rename : (kill_compl hf).comp (rename f) = alg_hom.id R _ := alg_hom_ext $
+λ i, by { dsimp, rw [rename, kill_compl, aeval_X, aeval_X, dif_pos, equiv.of_injective_symm_apply] }
+
+@[simp] lemma kill_compl_rename_app (p : mv_polynomial σ R) : kill_compl hf (rename f p) = p :=
+alg_hom.congr_fun (kill_compl_comp_rename hf) p
+
+end
+
+section
 variables (R)
 
 /-- `mv_polynomial.rename e` is an equivalence when `e` is. -/
@@ -164,6 +185,7 @@ end
 theorem exists_finset_rename (p : mv_polynomial σ R) :
   ∃ (s : finset σ) (q : mv_polynomial {x // x ∈ s} R), p = rename coe q :=
 begin
+  classical,
   apply induction_on p,
   { intro r, exact ⟨∅, C r, by rw rename_C⟩ },
   { rintro p q ⟨s, p, rfl⟩ ⟨t, q, rfl⟩,
@@ -176,6 +198,21 @@ begin
     { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
       simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
     { simp only [rename_rename, rename_X, subtype.coe_mk, alg_hom.map_mul], refl, }, },
+end
+
+/-- `exists_finset_rename` for two polyonomials at once: for any two polynomials `p₁`, `p₂` in a
+  polynomial semiring `R[σ]` of possibly infinitely many variables, `exists_finset_rename₂` yields
+  a finite subset `s` of `σ` such that both `p₁` and `p₂` are contained in the polynomial semiring
+  `R[s]` of finitely many variables. -/
+lemma exists_finset_rename₂ (p₁ p₂ : mv_polynomial σ R) :
+  ∃ (s : finset σ) (q₁ q₂ : mv_polynomial s R), p₁ = rename coe q₁ ∧ p₂ = rename coe q₂ :=
+begin
+  obtain ⟨s₁,q₁,rfl⟩ := exists_finset_rename p₁,
+  obtain ⟨s₂,q₂,rfl⟩ := exists_finset_rename p₂,
+  classical, use s₁ ∪ s₂,
+  use rename (set.inclusion $ s₁.subset_union_left s₂) q₁,
+  use rename (set.inclusion $ s₁.subset_union_right s₂) q₂,
+  split; simpa,
 end
 
 /-- Every polynomial is a polynomial in finitely many variables. -/
@@ -205,6 +242,7 @@ section coeff
 lemma coeff_rename_map_domain (f : σ → τ) (hf : injective f) (φ : mv_polynomial σ R) (d : σ →₀ ℕ) :
   (rename f φ).coeff (d.map_domain f) = φ.coeff d :=
 begin
+  classical,
   apply induction_on' φ,
   { intros u r,
     rw [rename_monomial, coeff_monomial, coeff_monomial],
@@ -216,6 +254,7 @@ lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →
   (h : ∀ u : σ →₀ ℕ, u.map_domain f = d → φ.coeff u = 0) :
   (rename f φ).coeff d = 0 :=
 begin
+  classical,
   rw [rename_eq, ← not_mem_support_iff],
   intro H,
   replace H := map_domain_support H,
@@ -244,7 +283,8 @@ end coeff
 
 section support
 
-lemma support_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
+lemma support_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} [decidable_eq τ]
+  (h : function.injective f) :
   (rename f p).support = finset.image (map_domain f) p.support :=
 begin
   rw rename_eq,

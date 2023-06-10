@@ -9,11 +9,17 @@ import algebra.algebra.basic
 
 /-!
 # The `zmod n`-algebra structure on rings whose characteristic divides `n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace zmod
 
 variables (R : Type*) [ring R]
+
+instance (p : ℕ) : subsingleton (algebra (zmod p) R) :=
+⟨λ x y, algebra.algebra_ext _ _ $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
 
 section
 variables {n : ℕ} (m : ℕ) [char_p R m]
@@ -25,7 +31,7 @@ def algebra' (h : m ∣ n) : algebra (zmod n) R :=
   begin
     rcases zmod.int_cast_surjective a with ⟨k, rfl⟩,
     show zmod.cast_hom h R k * r = r * zmod.cast_hom h R k,
-    rw ring_hom.map_int_cast,
+    rw map_int_cast,
     exact commute.cast_int_left r k,
   end,
   smul_def' := λ a r, rfl,
@@ -33,11 +39,6 @@ def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 
 end
 
-section
-variables (n : ℕ) [char_p R n]
-
-instance : algebra (zmod n) R := algebra' R n (dvd_refl n)
-
-end
+instance (p : ℕ) [char_p R p] : algebra (zmod p) R := algebra' R p dvd_rfl
 
 end zmod

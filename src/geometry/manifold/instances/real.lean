@@ -3,12 +3,14 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import linear_algebra.finite_dimensional
 import geometry.manifold.smooth_manifold_with_corners
 import analysis.inner_product_space.pi_L2
 
 /-!
 # Constructing examples of manifolds over ℝ
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the necessary bits to be able to define manifolds modelled over `ℝ^n`, boundaryless
 or with boundary or with corners. As a concrete example, we construct explicitly the manifold with
@@ -40,7 +42,6 @@ typeclass. We provide it as `[fact (x < y)]`.
 noncomputable theory
 open set function
 open_locale manifold
-local attribute [instance] fact_one_le_two_real
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
@@ -63,8 +64,8 @@ variable {n : ℕ}
 
 instance [has_zero (fin n)] : topological_space (euclidean_half_space n) := by apply_instance
 instance : topological_space (euclidean_quadrant n) := by apply_instance
-instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, le_refl _⟩⟩
-instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, le_refl _⟩⟩
+instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, le_rfl⟩⟩
+instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, le_rfl⟩⟩
 
 lemma range_half_space (n : ℕ) [has_zero (fin n)] :
   range (λx : euclidean_half_space n, x.val) = {y | 0 ≤ y 0} :=
@@ -99,8 +100,8 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
       unique_diff_on.pi (fin n) (λ _, ℝ) _ _ (λ i ∈ ({0} : set (fin n)), unique_diff_on_Ici 0),
     by simpa only [singleton_pi] using this,
   continuous_to_fun  := continuous_subtype_val,
-  continuous_inv_fun := continuous_subtype_mk _ $ continuous_id.update 0 $
-    (continuous_apply 0).max continuous_const }
+  continuous_inv_fun := (continuous_id.update 0 $
+    (continuous_apply 0).max continuous_const).subtype_mk _ }
 
 /--
 Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_quadrant n)`, used as a
@@ -121,13 +122,13 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
       unique_diff_on.univ_pi (fin n) (λ _, ℝ) _ (λ i, unique_diff_on_Ici 0),
     by simpa only [pi_univ_Ici] using this,
   continuous_to_fun  := continuous_subtype_val,
-  continuous_inv_fun := continuous_subtype_mk _ $ continuous_pi $ λ i,
-    (continuous_id.max continuous_const).comp (continuous_apply i) }
+  continuous_inv_fun := continuous.subtype_mk (continuous_pi $ λ i,
+    (continuous_id.max continuous_const).comp (continuous_apply i)) _ }
 
-localized "notation `𝓡 `n :=
+localized "notation (name := model_with_corners_self.euclidean) `𝓡 `n :=
   (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :
     model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_space ℝ (fin n)))" in manifold
-localized "notation `𝓡∂ `n :=
+localized "notation (name := model_with_corners_euclidean_half_space.euclidean) `𝓡∂ `n :=
   (model_with_corners_euclidean_half_space n :
     model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n))" in manifold
 
@@ -171,14 +172,14 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
   end,
   continuous_to_fun := begin
     apply continuous.continuous_on,
-    apply continuous_subtype_mk,
+    apply continuous.subtype_mk,
     have : continuous (λ (z : ℝ) (i : fin 1), z - x) :=
       continuous.sub (continuous_pi $ λi, continuous_id) continuous_const,
     exact this.comp continuous_subtype_val,
   end,
   continuous_inv_fun := begin
     apply continuous.continuous_on,
-    apply continuous_subtype_mk,
+    apply continuous.subtype_mk,
     have A : continuous (λ z : ℝ, min (z + x) y) :=
       (continuous_id.add continuous_const).min continuous_const,
     have B : continuous (λz : euclidean_space ℝ (fin 1), z 0) := continuous_apply 0,
@@ -226,14 +227,14 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   end,
   continuous_to_fun := begin
     apply continuous.continuous_on,
-    apply continuous_subtype_mk,
+    apply continuous.subtype_mk,
     have : continuous (λ (z : ℝ) (i : fin 1), y - z) :=
       continuous_const.sub (continuous_pi (λi, continuous_id)),
     exact this.comp continuous_subtype_val,
   end,
   continuous_inv_fun := begin
     apply continuous.continuous_on,
-    apply continuous_subtype_mk,
+    apply continuous.subtype_mk,
     have A : continuous (λ z : ℝ, max (y - z) x) :=
       (continuous_const.sub continuous_id).max continuous_const,
     have B : continuous (λz : euclidean_space ℝ (fin 1), z 0) := continuous_apply 0,
@@ -263,10 +264,10 @@ The manifold structure on `[x, y]` is smooth.
 instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
   smooth_manifold_with_corners (𝓡∂ 1) (Icc x y) :=
 begin
-  have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
-  { rw times_cont_diff_on_univ,
-    exact times_cont_diff_id.neg.add times_cont_diff_const },
-  apply smooth_manifold_with_corners_of_times_cont_diff_on,
+  have M : cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
+  { rw cont_diff_on_univ,
+    exact cont_diff_id.neg.add cont_diff_const },
+  apply smooth_manifold_with_corners_of_cont_diff_on,
   assume e e' he he',
   simp only [atlas, mem_singleton_iff, mem_insert_iff] at he he',
   /- We need to check that any composition of two charts gives a `C^∞` function. Each chart can be
@@ -274,7 +275,7 @@ begin
   -/
   rcases he with rfl | rfl; rcases he' with rfl | rfl,
   { -- `e = left chart`, `e' = left chart`
-    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 },
+    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_cont_diff_groupoid _ _ _)).1 },
   { -- `e = left chart`, `e' = right chart`
     apply M.congr_mono _ (subset_univ _),
     rintro _ ⟨⟨hz₁, hz₂⟩, ⟨⟨z, hz₀⟩, rfl⟩⟩,
@@ -292,22 +293,20 @@ begin
     rintro _ ⟨⟨hz₁, hz₂⟩, ⟨z, hz₀⟩, rfl⟩,
     simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, max_lt_iff,
       update_same, max_eq_left hz₀] with mfld_simps at hz₁ hz₂,
-    rw lt_sub at hz₁,
+    rw lt_sub_comm at hz₁,
     ext i,
     rw subsingleton.elim i 0,
     simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart,
       pi_Lp.add_apply, pi_Lp.neg_apply, update_same, max_eq_left, hz₀, hz₁.le] with mfld_simps,
     abel },
   { -- `e = right chart`, `e' = right chart`
-    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 }
+    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_cont_diff_groupoid _ _ _)).1 }
 end
 
 /-! Register the manifold structure on `Icc 0 1`, and also its zero and one. -/
 section
 
-lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩
-
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
 instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_instance
 instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance

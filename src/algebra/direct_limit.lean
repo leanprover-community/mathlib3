@@ -6,9 +6,12 @@ Authors: Kenny Lau, Chris Hughes
 import data.finset.order
 import algebra.direct_sum.module
 import ring_theory.free_comm_ring
-import ring_theory.ideal.operations
+import ring_theory.ideal.quotient
 /-!
 # Direct limit of modules, abelian groups, rings, and fields.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 See Atiyah-Macdonald PP.32-33, Matsumura PP.269-270
 
@@ -198,7 +201,7 @@ theorem of.zero_exact [is_directed ι (≤)] {i x} (H : of R ι G f i x = 0) :
   ∃ j hij, f i j hij x = (0 : G j) :=
 by haveI : nonempty ι := ⟨i⟩; exact
 let ⟨j, hj, hxj⟩ := of.zero_exact_aux H in
-if hx0 : x = 0 then ⟨i, le_refl _, by simp [hx0]⟩
+if hx0 : x = 0 then ⟨i, le_rfl, by simp [hx0]⟩
 else
   have hij : i ≤ j, from hj _ $
     by simp [direct_sum.apply_eq_component, hx0],

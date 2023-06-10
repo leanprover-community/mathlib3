@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     # timeout-minutes: 3
     steps:
-      - uses: styfle/cancel-workflow-action@0.9.0
+      - uses: styfle/cancel-workflow-action@0.11.0
         with:
           all_but_latest: true
           access_token: ${{ github.token }}
@@ -38,17 +38,27 @@ jobs:
     name: Lint style (fork)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Install bibtool
+        if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bibtool
 
       - name: install Python
         if: ${{ 'ubuntu-latest' == 'ubuntu-latest' }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
-      - name: lint
+      - name: lint style
         run: |
           ./scripts/lint-style.sh
+
+      - name: lint references.bib
+        run: |
+          ./scripts/lint-bib.sh
 
   build:
     if: github.repository != 'leanprover-community/mathlib'
@@ -60,7 +70,7 @@ jobs:
     outputs:
       artifact_name: ${{ steps.setup_precompiled.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: ${{ env.GIT_HISTORY_DEPTH }}
 
@@ -74,7 +84,7 @@ jobs:
 
       - name: install Python
         if: ${{ ! 0 }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -84,10 +94,11 @@ jobs:
       - name: leanpkg build
         id: build
         run: |
+          set -o pipefail
           leanpkg configure
-          echo "::set-output name=started::true"
+          echo "started=true" >> $GITHUB_OUTPUT
           lean --json -T100000 --make src | python3 scripts/detect_errors.py
-          lean --json -T100000 --make src | python3 scripts/detect_errors.py
+          lean --json -T400000 --make src | python3 scripts/detect_errors.py
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'
@@ -106,7 +117,7 @@ jobs:
           touch workspace.tar
           tar -cf workspace.tar --exclude=*.tar* .
           git_hash="$(git log -1 --pretty=format:%h)"
-          echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+          echo "artifact_name=precompiled-mathlib-$short_lean_version-$git_hash" >> $GITHUB_OUTPUT
 
       - name: upload precompiled mathlib zip file
         if: always() && steps.build.outputs.started == 'true'
@@ -119,6 +130,10 @@ jobs:
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always() && steps.build.outputs.started == 'true' && ${{ 0 }}
         run: rm /tmp/tmp-* || true
+
+      - name: clean up working directory and elan
+        if: always() && ${{ 0 }}
+        run: rm -rf * $HOME/.elan
 
   lint:
     name: Lint mathlib (fork)
@@ -134,7 +149,7 @@ jobs:
         run: rm -rf ./* ./.??*
 
       - name: retrieve build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
@@ -144,14 +159,18 @@ jobs:
       - name: install elan
         run: |
           set -o pipefail
-          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: lint
         run: |
           ./scripts/mk_all.sh
-          lean --run scripts/lint_mathlib.lean
+          lean --run scripts/lint_mathlib.lean --github
+
+      - name: clean up working directory and elan
+        if: always() && ${{ 0 }}
+        run: rm -rf * $HOME/.elan
 
   tests:
     name: Run tests (fork)
@@ -167,7 +186,7 @@ jobs:
         run: rm -rf ./* ./.??*
 
       - name: retrieve build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
@@ -177,24 +196,37 @@ jobs:
       - name: install elan
         run: |
           set -o pipefail
-          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: install Python
         if: ${{ ! 0 }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
       - name: install Python dependencies
         if: ${{ ! 0 }}
-        run: python3 -m pip install --upgrade pip pyyaml
+        run: python3 -m pip install --upgrade pip pyyaml requests mathlibtools
 
       - name: tests
         run: |
           set -o pipefail
           lean --json -T100000 --make docs archive roadmap test counterexamples | python3 scripts/detect_errors.py
+
+      - name: check archive and counterexample directories have unique identifiers
+        run: |
+          pip install mathlibtools
+          (cd archive && python -m mathlibtools.leanproject mk-all && mv all.lean archive_all.lean)
+          (cd counterexamples && python -m mathlibtools.leanproject mk-all && mv all.lean counterexamples_all.lean)
+          python -m mathlibtools.leanproject mk-all
+          echo "import all" >> all_all.lean
+          echo "import counterexamples_all" >> all_all.lean
+          echo "import archive_all" >> all_all.lean
+          echo "path ./archive" >> leanpkg.path
+          echo "path ./counterexamples" >> leanpkg.path
+          lean --json -T100000 --make all_all.lean | python3 scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
         if: ${{ ! 0 }}
@@ -204,7 +236,7 @@ jobs:
 
       - name: install trepplein
         run: |
-          trepplein_version=1.0
+          trepplein_version=1.1
           wget https://github.com/gebner/trepplein/releases/download/v$trepplein_version/trepplein-$trepplein_version.zip
           unzip trepplein-$trepplein_version.zip
           echo $PWD/trepplein-$trepplein_version/bin >>$GITHUB_PATH
@@ -221,16 +253,20 @@ jobs:
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
 
+      - name: clean up working directory and elan
+        if: always() && ${{ 0 }}
+        run: rm -rf * $HOME/.elan
+
   final:
     name: Post-CI job (fork)
     if: github.repository != 'leanprover-community/mathlib'
     needs: [style_lint, build, lint, tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - id: PR
-        uses: 8BitJonny/gh-get-current-pr@1.2.0
+        uses: 8BitJonny/gh-get-current-pr@2.2.0
         # TODO: this may not work properly if the same commit is pushed to multiple branches:
         # https://github.com/8BitJonny/gh-get-current-pr/issues/8
         with:

@@ -9,6 +9,9 @@ import logic.relator
 /-!
 # Relation closures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the reflexive, transitive, and reflexive transitive closures of relations.
 It also proves some basic results on definitions in core, such as `eqv_gen`.
 
@@ -36,6 +39,8 @@ the bundled version, see `rel`.
 * `relation.join`: Join of a relation. For `r : α → α → Prop`, `join r a b ↔ ∃ c, r a c ∧ r b c`. In
   terms of rewriting systems, this means that `a` and `b` can be rewritten to the same term.
 -/
+
+open function
 
 variables {α β γ δ : Type*}
 
@@ -68,6 +73,12 @@ lemma reflexive_ne_imp_iff [is_refl α r] {x y : α} :
 is_refl.reflexive.ne_imp_iff
 
 protected lemma symmetric.iff (H : symmetric r) (x y : α) : r x y ↔ r y x := ⟨λ h, H h, λ h, H h⟩
+
+lemma symmetric.flip_eq (h : symmetric r) : flip r = r := funext₂ $ λ _ _, propext $ h.iff _ _
+lemma symmetric.swap_eq : symmetric r → swap r = r := symmetric.flip_eq
+
+lemma flip_eq_iff : flip r = r ↔ symmetric r := ⟨λ h x y, (congr_fun₂ h _ _).mp, symmetric.flip_eq⟩
+lemma swap_eq_iff : swap r = r ↔ symmetric r := flip_eq_iff
 
 end ne_imp
 
@@ -139,6 +150,33 @@ end
 
 end comp
 
+section fibration
+
+variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
+
+/-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
+  `a : α` and `b : β`, whenever `b : β` and `f a` are related by `rβ`, `b` is the image
+  of some `a' : α` under `f`, and `a'` and `a` are related by `rα`. -/
+def fibration := ∀ ⦃a b⦄, rβ b (f a) → ∃ a', rα a' a ∧ f a' = b
+
+variables {rα rβ}
+
+/-- If `f : α → β` is a fibration between relations `rα` and `rβ`, and `a : α` is
+  accessible under `rα`, then `f a` is accessible under `rβ`. -/
+lemma _root_.acc.of_fibration (fib : fibration rα rβ f) {a} (ha : acc rα a) : acc rβ (f a) :=
+begin
+  induction ha with a ha ih,
+  refine acc.intro (f a) (λ b hr, _),
+  obtain ⟨a', hr', rfl⟩ := fib hr,
+  exact ih a' hr',
+end
+
+lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → ∃ c, f c = b)
+  (a : α) (ha : acc (inv_image rβ f) a) : acc rβ (f a) :=
+ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
+
+end fibration
+
 /--
 The map of a relation `r` through a pair of functions pushes the
 relation to the codomains of the functions.  The resulting relation is
@@ -170,9 +208,20 @@ attribute [refl] refl_trans_gen.refl
 
 attribute [refl] refl_gen.refl
 
-lemma refl_gen.to_refl_trans_gen : ∀ {a b}, refl_gen r a b → refl_trans_gen r a b
+namespace refl_gen
+
+lemma to_refl_trans_gen : ∀ {a b}, refl_gen r a b → refl_trans_gen r a b
+| a _ refl := by refl
+| a b (single h) := refl_trans_gen.tail refl_trans_gen.refl h
+
+lemma mono {p : α → α → Prop} (hp : ∀ a b, r a b → p a b) : ∀ {a b}, refl_gen r a b → refl_gen p a b
 | a _ refl_gen.refl := by refl
-| a b (refl_gen.single h) := refl_trans_gen.tail refl_trans_gen.refl h
+| a b (single h) := single (hp a b h)
+
+instance : is_refl α (refl_gen r) :=
+⟨@refl α r⟩
+
+end refl_gen
 
 namespace refl_trans_gen
 
@@ -354,6 +403,20 @@ end
 
 end trans_gen
 
+lemma _root_.acc.trans_gen (h : acc r a) : acc (trans_gen r) a :=
+begin
+  induction h with x _ H,
+  refine acc.intro x (λ y hy, _),
+  cases hy with _ hyx z _ hyz hzx,
+  exacts [H y hyx, (H z hzx).inv hyz],
+end
+
+lemma _root_.acc_trans_gen_iff : acc (trans_gen r) a ↔ acc r a :=
+⟨subrelation.accessible (λ _ _, trans_gen.single), acc.trans_gen⟩
+
+lemma _root_.well_founded.trans_gen (h : well_founded r) : well_founded (trans_gen r) :=
+⟨λ a, (h.apply a).trans_gen⟩
+
 section trans_gen
 
 lemma trans_gen_eq_self (trans : transitive r) :
@@ -368,6 +431,9 @@ trans_gen.single⟩
 
 lemma transitive_trans_gen : transitive (trans_gen r) :=
 λ a b c, trans_gen.trans
+
+instance : is_trans α (trans_gen r) :=
+⟨@trans_gen.trans α r⟩
 
 lemma trans_gen_idem :
   trans_gen (trans_gen r) = trans_gen r :=
@@ -389,6 +455,16 @@ by simpa [trans_gen_idem] using hab.lift f h
 lemma trans_gen.closed {p : α → α → Prop} :
   (∀ a b, r a b → trans_gen p a b) → trans_gen r a b → trans_gen p a b :=
 trans_gen.lift' id
+
+lemma trans_gen.mono {p : α → α → Prop} :
+  (∀ a b, r a b → p a b) → trans_gen r a b → trans_gen p a b :=
+trans_gen.lift id
+
+lemma trans_gen.swap (h : trans_gen r b a) : trans_gen (swap r) a b :=
+by { induction h with b h b c hab hbc ih, { exact trans_gen.single h }, exact ih.head hbc }
+
+lemma trans_gen_swap : trans_gen (swap r) a b ↔ trans_gen r b a :=
+⟨trans_gen.swap, trans_gen.swap⟩
 
 end trans_gen
 
@@ -431,6 +507,12 @@ lemma reflexive_refl_trans_gen : reflexive (refl_trans_gen r) :=
 lemma transitive_refl_trans_gen : transitive (refl_trans_gen r) :=
 λ a b c, trans
 
+instance : is_refl α (refl_trans_gen r) :=
+⟨@refl_trans_gen.refl α r⟩
+
+instance : is_trans α (refl_trans_gen r) :=
+⟨@refl_trans_gen.trans α r⟩
+
 lemma refl_trans_gen_idem :
   refl_trans_gen (refl_trans_gen r) = refl_trans_gen r :=
 refl_trans_gen_eq_self reflexive_refl_trans_gen transitive_refl_trans_gen
@@ -443,6 +525,12 @@ by simpa [refl_trans_gen_idem] using hab.lift f h
 lemma refl_trans_gen_closed {p : α → α → Prop} :
   (∀ a b, r a b → refl_trans_gen p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
 refl_trans_gen.lift' id
+
+lemma refl_trans_gen.swap (h : refl_trans_gen r b a) : refl_trans_gen (swap r) a b :=
+by { induction h with b c hab hbc ih, { refl }, exact ih.head hbc }
+
+lemma refl_trans_gen_swap : refl_trans_gen (swap r) a b ↔ refl_trans_gen r b a :=
+⟨refl_trans_gen.swap, refl_trans_gen.swap⟩
 
 end refl_trans_gen
 

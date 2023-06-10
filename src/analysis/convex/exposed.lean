@@ -5,16 +5,20 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.extreme
 import analysis.convex.function
-import analysis.normed_space.ordered
+import topology.algebra.module.basic
+import topology.order.basic
 
 /-!
 # Exposed sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines exposed sets and exposed points for sets in a real vector space.
 
 An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional
 (a continuous linear map `E → 𝕜`) over `A`. By convention, `∅` is an exposed subset of all sets.
-This allows for better functioriality of the definition (the intersection of two exposed subsets is
+This allows for better functoriality of the definition (the intersection of two exposed subsets is
 exposed, faces of a polytope form a bounded lattice).
 This is an analytic notion of "being on the side of". It is stronger than being extreme (see
 `is_exposed.is_extreme`), but weaker (for exposed points) than being a vertex.
@@ -45,15 +49,23 @@ More not-yet-PRed stuff is available on the branch `sperner_again`.
 open_locale classical affine big_operators
 open set
 
-variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [normed_group E]
-  [normed_space 𝕜 E] {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
+section preorder_semiring
+
+variables (𝕜 : Type*) {E : Type*} [topological_space 𝕜] [semiring 𝕜] [preorder 𝕜]
+  [add_comm_monoid E] [topological_space E] [module 𝕜 E] {A B : set E}
 
 /-- A set `B` is exposed with respect to `A` iff it maximizes some functional over `A` (and contains
 all points maximizing it). Written `is_exposed 𝕜 A B`. -/
 def is_exposed (A B : set E) : Prop :=
 B.nonempty → ∃ l : E →L[𝕜] 𝕜, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
-variables {𝕜}
+end preorder_semiring
+
+section ordered_ring
+
+variables {𝕜 : Type*} {E : Type*} [topological_space 𝕜] [ordered_ring 𝕜]
+  [add_comm_monoid E] [topological_space E] [module 𝕜 E]
+  {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
 
 /-- A useful way to build exposed sets from intersecting `A` with halfspaces (modelled by an
 inequality with a functional). -/
@@ -95,25 +107,36 @@ begin
     (λ x hx, ⟨hBA hx.1, λ y hy, (hw.2 y hy).trans (hx.2 w (hCB hw))⟩)⟩,
 end
 
-/-- If `B` is an exposed subset of `A`, then `B` is the intersection of `A` with some closed
+/-- If `B` is a nonempty exposed subset of `A`, then `B` is the intersection of `A` with some closed
 halfspace. The converse is *not* true. It would require that the corresponding open halfspace
 doesn't intersect `A`. -/
-lemma eq_inter_halfspace (hAB : is_exposed 𝕜 A B) :
+lemma eq_inter_halfspace' {A B : set E} (hAB : is_exposed 𝕜 A B) (hB : B.nonempty) :
   ∃ l : E →L[𝕜] 𝕜, ∃ a, B = {x ∈ A | a ≤ l x} :=
 begin
-  obtain hB | hB := B.eq_empty_or_nonempty,
-  { refine ⟨0, 1, _⟩,
-    rw [hB, eq_comm, eq_empty_iff_forall_not_mem],
-    rintro x ⟨-, h⟩,
-    rw continuous_linear_map.zero_apply at h,
-    linarith },
   obtain ⟨l, rfl⟩ := hAB hB,
   obtain ⟨w, hw⟩ := hB,
   exact ⟨l, l w, subset.antisymm (λ x hx, ⟨hx.1, hx.2 w hw.1⟩)
     (λ x hx, ⟨hx.1, λ y hy, (hw.2 y hy).trans hx.2⟩)⟩,
 end
 
-protected lemma inter (hB : is_exposed 𝕜 A B) (hC : is_exposed 𝕜 A C) :
+/-- For nontrivial `𝕜`, if `B` is an exposed subset of `A`, then `B` is the intersection of `A` with
+some closed halfspace. The converse is *not* true. It would require that the corresponding open
+halfspace doesn't intersect `A`. -/
+lemma eq_inter_halfspace [nontrivial 𝕜] {A B : set E} (hAB : is_exposed 𝕜 A B) :
+  ∃ l : E →L[𝕜] 𝕜, ∃ a, B = {x ∈ A | a ≤ l x} :=
+begin
+  obtain rfl | hB := B.eq_empty_or_nonempty,
+  { refine ⟨0, 1, _⟩,
+    rw [eq_comm, eq_empty_iff_forall_not_mem],
+    rintro x ⟨-, h⟩,
+    rw continuous_linear_map.zero_apply at h,
+    have : ¬ ((1:𝕜) ≤ 0) := not_le_of_lt zero_lt_one,
+    contradiction },
+  exact hAB.eq_inter_halfspace' hB,
+end
+
+protected lemma inter [has_continuous_add 𝕜] {A B C : set E} (hB : is_exposed 𝕜 A B)
+  (hC : is_exposed 𝕜 A C) :
   is_exposed 𝕜 A (B ∩ C) :=
 begin
   rintro ⟨w, hwB, hwC⟩,
@@ -130,7 +153,7 @@ begin
     (hx w hwB.1)) }
 end
 
-lemma sInter {F : finset (set E)} (hF : F.nonempty)
+lemma sInter [has_continuous_add 𝕜] {F : finset (set E)} (hF : F.nonempty)
   (hAF : ∀ B ∈ F, is_exposed 𝕜 A B) :
   is_exposed 𝕜 A (⋂₀ F) :=
 begin
@@ -138,7 +161,7 @@ begin
   refine finset.induction _ _,
   { rintro h,
     exfalso,
-    exact empty_not_nonempty h },
+    exact not_nonempty_empty h },
   rintro C F _ hF _ hCF,
   rw [finset.coe_insert, sInter_insert],
   obtain rfl | hFnemp := F.eq_empty_or_nonempty,
@@ -164,42 +187,18 @@ begin
   exact hC.inter_left hCA,
 end
 
-protected lemma is_extreme (hAB : is_exposed 𝕜 A B) :
-  is_extreme 𝕜 A B :=
-begin
-  refine ⟨hAB.subset, λ x₁ hx₁A x₂ hx₂A x hxB hx, _⟩,
-  obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
-  have hl : convex_on 𝕜 univ l := l.to_linear_map.convex_on convex_univ,
-  have hlx₁ := hxB.2 x₁ hx₁A,
-  have hlx₂ := hxB.2 x₂ hx₂A,
-  refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
-  { rw hlx₁.antisymm (hl.le_left_of_right_le (mem_univ _) (mem_univ _) hx hlx₂),
-    exact hxB.2 y hy },
-  { rw hlx₂.antisymm (hl.le_right_of_left_le (mem_univ _) (mem_univ _) hx hlx₁),
-    exact hxB.2 y hy }
-end
-
-protected lemma convex (hAB : is_exposed 𝕜 A B) (hA : convex 𝕜 A) :
-  convex 𝕜 B :=
+protected lemma is_closed [order_closed_topology 𝕜] {A B : set E}
+  (hAB : is_exposed 𝕜 A B) (hA : is_closed A) : is_closed B :=
 begin
   obtain rfl | hB := B.eq_empty_or_nonempty,
-  { exact convex_empty },
-  obtain ⟨l, rfl⟩ := hAB hB,
-  exact λ x₁ x₂ hx₁ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
-    ((l.to_linear_map.concave_on convex_univ).convex_ge _
-    ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
-end
-
-protected lemma is_closed [order_closed_topology 𝕜] (hAB : is_exposed 𝕜 A B) (hA : is_closed A) :
-  is_closed B :=
-begin
-  obtain ⟨l, a, rfl⟩ := hAB.eq_inter_halfspace,
+  { simp },
+  obtain ⟨l, a, rfl⟩ := hAB.eq_inter_halfspace' hB,
   exact hA.is_closed_le continuous_on_const l.continuous.continuous_on,
 end
 
-protected lemma is_compact [order_closed_topology 𝕜] (hAB : is_exposed 𝕜 A B) (hA : is_compact A) :
-  is_compact B :=
-compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
+protected lemma is_compact [order_closed_topology 𝕜] [t2_space E] {A B : set E}
+  (hAB : is_exposed 𝕜 A B) (hA : is_compact A) : is_compact B :=
+is_compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
 end is_exposed
 
@@ -237,7 +236,48 @@ begin
   exact ⟨hl.1.1, l, λ y hy, ⟨hl.1.2 y hy, λ hxy, hl.2 y ⟨hy, λ z hz, (hl.1.2 z hz).trans hxy⟩⟩⟩,
 end
 
+end ordered_ring
+
+section linear_ordered_ring
+
+variables {𝕜 : Type*} {E : Type*} [topological_space 𝕜] [linear_ordered_ring 𝕜]
+  [add_comm_monoid E] [topological_space E] [module 𝕜 E]
+  {A B C : set E}
+
+namespace is_exposed
+
+protected lemma convex (hAB : is_exposed 𝕜 A B) (hA : convex 𝕜 A) :
+  convex 𝕜 B :=
+begin
+  obtain rfl | hB := B.eq_empty_or_nonempty,
+  { exact convex_empty },
+  obtain ⟨l, rfl⟩ := hAB hB,
+  exact λ x₁ hx₁ x₂ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
+    ((l.to_linear_map.concave_on convex_univ).convex_ge _
+    ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
+end
+
+protected lemma is_extreme (hAB : is_exposed 𝕜 A B) :
+  is_extreme 𝕜 A B :=
+begin
+  refine ⟨hAB.subset, λ x₁ hx₁A x₂ hx₂A x hxB hx, _⟩,
+  obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
+  have hl : convex_on 𝕜 univ l := l.to_linear_map.convex_on convex_univ,
+  have hlx₁ := hxB.2 x₁ hx₁A,
+  have hlx₂ := hxB.2 x₂ hx₂A,
+  refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
+  { have := @convex_on.le_left_of_right_le 𝕜 E 𝕜 _ _ _,
+    rw hlx₁.antisymm (hl.le_left_of_right_le (mem_univ _) (mem_univ _) hx hlx₂),
+    exact hxB.2 y hy },
+  { rw hlx₂.antisymm (hl.le_right_of_left_le (mem_univ _) (mem_univ _) hx hlx₁),
+    exact hxB.2 y hy }
+end
+
+end is_exposed
+
 lemma exposed_points_subset_extreme_points :
   A.exposed_points 𝕜 ⊆ A.extreme_points 𝕜 :=
 λ x hx, mem_extreme_points_iff_extreme_singleton.2
   (mem_exposed_points_iff_exposed_singleton.1 hx).is_extreme
+
+end linear_ordered_ring

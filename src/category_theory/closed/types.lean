@@ -11,6 +11,9 @@ import category_theory.closed.cartesian
 /-!
 # Cartesian closure of Type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that `Type u₁` is cartesian closed, and `C ⥤ Type u₁` is cartesian closed for `C` a small
 category in `Type u₁`.
 Note this implies that the category of presheaves on a small category `C` is cartesian closed.
@@ -35,17 +38,17 @@ instance (X : Type v₁) : is_left_adjoint (types.binary_product_functor.obj X) 
   { unit := { app := λ Z (z : Z) x, ⟨x, z⟩ },
     counit := { app := λ Z xf, xf.2 xf.1 } } }
 
-instance : has_finite_products (Type v₁) := has_finite_products_of_has_products _
+instance : has_finite_products (Type v₁) := has_finite_products_of_has_products.{v₁} _
 
 instance : cartesian_closed (Type v₁) :=
-{ closed := λ X,
+{ closed' := λ X,
   { is_adj := adjunction.left_adjoint_of_nat_iso (types.binary_product_iso_prod.app X) } }
 
 instance {C : Type u₁} [category.{v₁} C] : has_finite_products (C ⥤ Type u₁) :=
-has_finite_products_of_has_products _
+has_finite_products_of_has_products.{u₁} _
 
 instance {C : Type v₁} [small_category C] : cartesian_closed (C ⥤ Type v₁) :=
-{ closed := λ F,
+{ closed' := λ F,
   { is_adj :=
     begin
       letI := functor_category.prod_preserves_colimits F,

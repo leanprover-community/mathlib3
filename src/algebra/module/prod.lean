@@ -9,6 +9,9 @@ import group_theory.group_action.prod
 /-!
 # Prod instances for module and multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for binary product of modules
 -/
 
@@ -18,13 +21,13 @@ namespace prod
 
 instance smul_with_zero [has_zero R] [has_zero M] [has_zero N]
   [smul_with_zero R M] [smul_with_zero R N] : smul_with_zero R (M × N) :=
-{ smul_zero := λ r, prod.ext (smul_zero' _ _) (smul_zero' _ _),
+{ smul_zero := λ r, prod.ext (smul_zero _) (smul_zero _),
   zero_smul := λ ⟨m, n⟩, prod.ext (zero_smul _ _) (zero_smul _ _),
-  ..prod.has_scalar }
+  ..prod.has_smul }
 
 instance mul_action_with_zero [monoid_with_zero R] [has_zero M] [has_zero N]
   [mul_action_with_zero R M] [mul_action_with_zero R N] : mul_action_with_zero R (M × N) :=
-{ smul_zero := λ r, prod.ext (smul_zero' _ _) (smul_zero' _ _),
+{ smul_zero := λ r, prod.ext (smul_zero _) (smul_zero _),
   zero_smul := λ ⟨m, n⟩, prod.ext (zero_smul _ _) (zero_smul _ _),
   ..prod.mul_action }
 

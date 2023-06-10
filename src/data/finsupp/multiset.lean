@@ -3,10 +3,14 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import data.finsupp.basic
 import data.finsupp.order
 
 /-!
 # Equivalence between `multiset` and `ℕ`-valued finitely supported functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This defines `finsupp.to_multiset` the equivalence between `α →₀ ℕ` and `multiset α`, along
 with `multiset.to_finsupp` the reverse equivalence and `finsupp.order_iso_multiset` the equivalence
@@ -31,7 +35,7 @@ def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
         mem_support_iff, multiset.count_nsmul, finset.sum_ite_eq, ite_not, ite_eq_right_iff],
       exact eq.symm },
   right_inv := λ s, by simp only [sum, coe_mk, multiset.to_finset_sum_count_nsmul_eq],
-  map_add' := λ f g, sum_add_index (λ a, zero_nsmul _) (λ a, add_nsmul _) }
+  map_add' := λ f g, sum_add_index' (λ a, zero_nsmul _) (λ a, add_nsmul _) }
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 := rfl
 
@@ -77,11 +81,9 @@ begin
   refine f.induction _ _,
   { rw [to_multiset_zero, multiset.prod_zero, finsupp.prod_zero_index] },
   { assume a n f _ _ ih,
-    rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, finsupp.prod_add_index,
-      finsupp.prod_single_index, multiset.prod_nsmul, multiset.prod_singleton],
-    { exact pow_zero a },
-    { exact pow_zero },
-    { exact pow_add } }
+    rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, multiset.prod_nsmul,
+      finsupp.prod_add_index' pow_zero pow_add, finsupp.prod_single_index, multiset.prod_singleton],
+    { exact pow_zero a } }
 end
 
 @[simp] lemma to_finset_to_multiset [decidable_eq α] (f : α →₀ ℕ) :
@@ -91,7 +93,7 @@ begin
   { rw [to_multiset_zero, multiset.to_finset_zero, support_zero] },
   { assume a n f ha hn ih,
     rw [to_multiset_add, multiset.to_finset_add, ih, to_multiset_single, support_add_eq,
-      support_single_ne_zero hn, multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton],
+      support_single_ne_zero _ hn, multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton],
     refine disjoint.mono_left support_single_subset _,
     rwa [finset.disjoint_singleton_left] }
 end

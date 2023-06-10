@@ -3,12 +3,15 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
-import linear_algebra.quadratic_form.basic
-import analysis.special_functions.pow
+import linear_algebra.quadratic_form.isometry
+import analysis.special_functions.pow.real
 import data.real.sign
 
 /-!
 # Real quadratic forms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Sylvester's law of inertia `equivalent_one_neg_one_weighted_sum_squared`:
 A real quadratic form is equivalent to a weighted
@@ -55,7 +58,7 @@ begin
   erw [hsum],
   simp only [u, function.comp, smul_eq_mul],
   split_ifs,
-  { simp only [h, zero_smul, zero_mul, sign_zero] },
+  { simp only [h, zero_smul, zero_mul, real.sign_zero] },
   have hwu : w j = u j,
   { simp only [u, dif_neg h, units.coe_mk0] },
   simp only [hwu, units.coe_mk0],
@@ -63,7 +66,7 @@ begin
     (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
   { erw [← mul_assoc, this], ring },
   rw [← real.rpow_add (sign_mul_pos_of_ne_zero _ $ units.ne_zero _),
-      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv₀,
+      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv,
       inv_sign, mul_assoc (sign (u j)) (u j)⁻¹,
       inv_mul_cancel (units.ne_zero _), mul_one],
   apply_instance

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Yury Kudryashov
 -/
 import dynamics.fixed_points.basic
-import order.hom.lattice
+import order.hom.order
 
 /-!
 # Fixed point construction on complete lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file sets up the basic theory of fixed points of a monotone function in a complete lattice.
 
@@ -137,10 +140,8 @@ begin
          ... = a               : ha
 end
 
-lemma gfp_gfp (h : α →o α →o α) :
-  gfp (gfp.comp h) = gfp h.on_diag :=
-@lfp_lfp (order_dual α) _ $ (order_hom.dual_iso (order_dual α)
-  (order_dual α)).symm.to_order_embedding.to_order_hom.comp h.dual
+lemma gfp_gfp (h : α →o α →o α) : gfp (gfp.comp h) = gfp h.on_diag :=
+@lfp_lfp αᵒᵈ _ $ (order_hom.dual_iso αᵒᵈ αᵒᵈ).symm.to_order_embedding.to_order_hom.comp h.dual
 
 end eqn
 

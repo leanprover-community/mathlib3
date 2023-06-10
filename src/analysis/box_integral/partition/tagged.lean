@@ -8,6 +8,9 @@ import analysis.box_integral.partition.basic
 /-!
 # Tagged partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A tagged (pre)partition is a (pre)partition `π` enriched with a tagged point for each box of
 ‵π`. For simplicity we require that the function `box_integral.tagged_prepartition.tag` is defined
 on all boxes `J : box ι` but use its values only on boxes of the partition. Given `π :
@@ -62,7 +65,7 @@ lemma Union_def : π.Union = ⋃ J ∈ π, ↑J := rfl
 
 lemma subset_Union (h : J ∈ π) : ↑J ⊆ π.Union := subset_bUnion_of_mem h
 
-lemma Union_subset : π.Union ⊆ I := bUnion_subset π.le_of_mem'
+lemma Union_subset : π.Union ⊆ I := Union₂_subset π.le_of_mem'
 
 /-- A tagged prepartition is a partition if it covers the whole box. -/
 def is_partition := π.to_prepartition.is_partition
@@ -295,7 +298,7 @@ dif_pos hJ
 
 lemma disj_union_tag_of_mem_right (h : disjoint π₁.Union π₂.Union) (hJ : J ∈ π₂) :
   (π₁.disj_union π₂ h).tag J = π₂.tag J :=
-dif_neg $ λ h₁, h ⟨π₁.subset_Union h₁ J.upper_mem, π₂.subset_Union hJ J.upper_mem⟩
+dif_neg $ λ h₁, h.le_bot ⟨π₁.subset_Union h₁ J.upper_mem, π₂.subset_Union hJ J.upper_mem⟩
 
 lemma is_subordinate.disj_union [fintype ι] (h₁ : is_subordinate π₁ r)
   (h₂ : is_subordinate π₂ r) (h : disjoint π₁.Union π₂.Union) :
@@ -336,7 +339,7 @@ lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=
 le_sup h
 
 lemma distortion_le_iff {c : ℝ≥0} : π.distortion ≤ c ↔ ∀ J ∈ π, box.distortion J ≤ c :=
-sup_le_iff
+finset.sup_le_iff
 
 @[simp] lemma _root_.box_integral.prepartition.distortion_bUnion_tagged (π : prepartition I)
   (πi : Π J, tagged_prepartition J) :

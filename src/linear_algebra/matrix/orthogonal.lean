@@ -8,6 +8,9 @@ import data.matrix.basic
 /-!
 # Orthogonal
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains definitions and properties concerning orthogonality of rows and columns.
 
 ## Main results

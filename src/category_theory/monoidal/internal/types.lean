@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Mon.basic
 import category_theory.monoidal.CommMon_
-import category_theory.monoidal.types
+import category_theory.monoidal.types.symmetric
 
 /-!
 # `Mon_ (Type u) ≌ Mon.{u}`
@@ -47,6 +47,8 @@ def inverse : Mon.{u} ⥤ Mon_ (Type u) :=
   { X := A,
     one := λ _, 1,
     mul := λ p, p.1 * p.2,
+    one_mul'   := by { ext ⟨_, _⟩, dsimp, simp, },
+    mul_one'   := by { ext ⟨_, _⟩, dsimp, simp, },
     mul_assoc' := by { ext ⟨⟨x, y⟩, z⟩, simp [mul_assoc], }, },
   map := λ A B f,
   { hom := f, }, }

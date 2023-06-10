@@ -9,6 +9,9 @@ import measure_theory.measure.vector_measure
 /-!
 # Complex measure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some elementary results about complex measures. In particular, we prove that
 a complex measure is always in the form `s + it` where `s` and `t` are signed measures.
 
@@ -91,7 +94,7 @@ def equiv_signed_measure : complex_measure α ≃ signed_measure α × signed_me
 section
 
 variables {R : Type*} [semiring R] [module R ℝ]
-variables [topological_space R] [has_continuous_smul R ℝ] [has_continuous_smul R ℂ]
+variables [has_continuous_const_smul R ℝ] [has_continuous_const_smul R ℂ]
 
 /-- The complex measures form an linear isomorphism to the type of pairs of signed measures. -/
 @[simps]

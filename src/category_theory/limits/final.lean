@@ -12,6 +12,9 @@ import category_theory.limits.types
 /-!
 # Final and initial functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A functor `F : C ⥤ D` is final if for every `d : D`,
 the comma category of morphisms `d ⟶ F.obj c` is connected.
 
@@ -57,7 +60,7 @@ Dualise condition 3 above and the implications 2 ⇒ 3 and 3 ⇒ 1 to initial fu
 
 noncomputable theory
 
-universes v u
+universes v v₁ v₂ v₃ u₁ u₂ u₃
 
 namespace category_theory
 
@@ -66,14 +69,16 @@ namespace functor
 open opposite
 open category_theory.limits
 
-variables {C : Type v} [small_category C]
-variables {D : Type v} [small_category D]
+section arbitrary_universe
+
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 
 /--
 A functor `F : C ⥤ D` is final if for every `d : D`, the comma category of morphisms `d ⟶ F.obj c`
 is connected.
 
-See https://stacks.math.columbia.edu/tag/04E6
+See <https://stacks.math.columbia.edu/tag/04E6>
 -/
 class final (F : C ⥤ D) : Prop :=
 (out (d : D) : is_connected (structured_arrow d F))
@@ -137,7 +142,7 @@ variables (F : C ⥤ D) [final F]
 
 instance (d : D) : nonempty (structured_arrow d F) := is_connected.is_nonempty
 
-variables {E : Type u} [category.{v} E] (G : D ⥤ E)
+variables {E : Type u₃} [category.{v₃} E] (G : D ⥤ E)
 
 /--
 When `F : C ⥤ D` is cofinal, we denote by `lift F d` an arbitrary choice of object in `C` such that
@@ -171,7 +176,7 @@ def induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Sort*)
 begin
   apply nonempty.some,
   apply @is_preconnected_induction _ _ _
-    (λ (Y : structured_arrow d F), Z Y.right Y.hom) _ _ { right := X₀, hom := k₀, } z,
+    (λ (Y : structured_arrow d F), Z Y.right Y.hom) _ _ (structured_arrow.mk k₀) z,
   { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
   { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
 end
@@ -266,7 +271,7 @@ begin
   dsimp [is_colimit_whisker_equiv],
   apply P.hom_ext,
   intro j,
-  dsimp, simp, dsimp, simp, -- See library note [dsimp, simp].
+  dsimp, simp,
 end
 
 instance colimit_pre_is_iso [has_colimit G] :
@@ -320,8 +325,14 @@ https://stacks.math.columbia.edu/tag/04E7
 -/
 def colimit_iso' [has_colimit (F ⋙ G)] : colimit (F ⋙ G) ≅ colimit G := as_iso (colimit.pre G F)
 
-
 end
+
+end final
+end arbitrary_universe
+
+namespace final
+
+variables {C : Type v} [category.{v} C] {D : Type v} [category.{v} D] (F : C ⥤ D) [final F]
 
 /--
 If the universal morphism `colimit (F ⋙ coyoneda.obj (op d)) ⟶ colimit (coyoneda.obj (op d))`
@@ -334,7 +345,7 @@ def colimit_comp_coyoneda_iso (d : D) [is_iso (colimit.pre (coyoneda.obj (op d))
 as_iso (colimit.pre (coyoneda.obj (op d)) F) ≪≫ coyoneda.colimit_coyoneda_iso (op d)
 
 lemma zigzag_of_eqv_gen_quot_rel {F : C ⥤ D} {d : D} {f₁ f₂ : Σ X, d ⟶ F.obj X}
-  (t : eqv_gen (types.quot.rel (F ⋙ coyoneda.obj (op d))) f₁ f₂) :
+  (t : eqv_gen (types.quot.rel.{v v} (F ⋙ coyoneda.obj (op d))) f₁ f₂) :
   zigzag (structured_arrow.mk f₁.2) (structured_arrow.mk f₂.2) :=
 begin
   induction t,
@@ -343,7 +354,7 @@ begin
     fconstructor,
     swap 2, fconstructor,
     left, fsplit,
-    exact { right := f, } },
+    exact structured_arrow.hom_mk f (by tidy), },
   case eqv_gen.refl
   { fconstructor, },
   case eqv_gen.symm : x y h ih
@@ -362,16 +373,16 @@ lemma cofinal_of_colimit_comp_coyoneda_iso_punit
 ⟨λ d, begin
   haveI : nonempty (structured_arrow d F),
   { have := (I d).inv punit.star,
-    obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective' this,
+    obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective'.{v v} this,
     exact ⟨structured_arrow.mk y⟩, },
   apply zigzag_is_connected,
-  rintros ⟨⟨⟩,X₁,f₁⟩ ⟨⟨⟩,X₂,f₂⟩,
+  rintros ⟨⟨⟨⟩⟩,X₁,f₁⟩ ⟨⟨⟨⟩⟩,X₂,f₂⟩,
   dsimp at *,
   let y₁ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₁ f₁,
   let y₂ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₂ f₂,
   have e : y₁ = y₂,
   { apply (I d).to_equiv.injective, ext, },
-  have t := types.colimit_eq e,
+  have t := types.colimit_eq.{v v} e,
   clear e y₁ y₂,
   exact zigzag_of_eqv_gen_quot_rel t,
 end⟩
@@ -381,11 +392,11 @@ end final
 
 namespace initial
 
-variables (F : C ⥤ D) [initial F]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (F : C ⥤ D) [initial F]
 
 instance (d : D) : nonempty (costructured_arrow F d) := is_connected.is_nonempty
 
-variables {E : Type u} [category.{v} E] (G : D ⥤ E)
+variables {E : Type u₃} [category.{v₃} E] (G : D ⥤ E)
 
 /--
 When `F : C ⥤ D` is initial, we denote by `lift F d` an arbitrary choice of object in `C` such that
@@ -418,7 +429,7 @@ def induction {d : D} (Z : Π (X : C) (k : F.obj X ⟶ d), Sort*)
 begin
   apply nonempty.some,
   apply @is_preconnected_induction _ _ _
-    (λ Y : costructured_arrow F d, Z Y.left Y.hom) _ _ { left := X₀, hom := k₀ } z,
+    (λ Y : costructured_arrow F d, Z Y.left Y.hom) _ _ (costructured_arrow.mk k₀) z,
   { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
   { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
 end

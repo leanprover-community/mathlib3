@@ -227,6 +227,6 @@ set_option trace.class_instances true
     trace!"\n[testable instance]{format.indent inst 2}" },
   code ← eval_expr (io punit) e,
   unsafe_run_io code,
-  admit }
+  tactic.admit }
 
 end tactic.interactive

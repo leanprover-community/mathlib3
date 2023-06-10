@@ -3,11 +3,15 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import order.compare
 import data.list.defs
 import data.nat.psub
 
 /-!
 # Ordered sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a data structure for ordered sets, supporting a
 variety of useful operations including insertion and deletion,
@@ -702,7 +706,7 @@ in the kernel, meaning that you probably can't prove things like
 `of_asc_list [1, 2, 3] = {1, 2, 3}` by `rfl`.
 This implementation is optimized for VM evaluation. -/
 def of_asc_list_aux₁ : ∀ l : list α, ℕ → ordnode α × {l' : list α // l'.length ≤ l.length}
-| [] := λ s, (nil, ⟨[], le_refl _⟩)
+| [] := λ s, (nil, ⟨[], le_rfl⟩)
 | (x :: xs) := λ s,
   if s = 1 then (ι x, ⟨xs, nat.le_succ _⟩) else
   have _, from nat.lt_succ_self xs.length,

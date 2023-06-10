@@ -6,9 +6,14 @@ Authors: Patrick Massot
 
 import ring_theory.ideal.operations
 import topology.algebra.nonarchimedean.bases
+import topology.uniform_space.completion
 import topology.algebra.uniform_ring
+
 /-!
 # Adic topology
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a commutative ring `R` and an ideal `I` in `R`, this file constructs the unique
 topology on `R` which is compatible with the ring structure and such that a set is a neighborhood
@@ -43,7 +48,7 @@ to make sure it is definitionally equal to the `I`-topology on `R` seen as a `R`
 variables {R : Type*} [comm_ring R]
 
 open set topological_add_group submodule filter
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 namespace ideal
 
@@ -219,7 +224,7 @@ variables (R) [with_ideal R]
 topological_add_group.to_uniform_space R
 
 @[priority 100] instance : uniform_add_group R :=
-topological_add_group_is_uniform
+topological_add_comm_group_is_uniform
 
 /-- The adic topology on a `R` module coming from the ideal `with_ideal.I`.
 This cannot be an instance because `R` cannot be inferred from `M`. -/

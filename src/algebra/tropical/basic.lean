@@ -4,11 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import algebra.group_power.order
+import algebra.order.monoid.with_top
 import algebra.smul_with_zero
+import algebra.order.monoid.min_max
 
 /-!
 
 # Tropical algebraic structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines algebraic structures of the (min-)tropical numbers, up to the tropical semiring.
 Some basic lemmas about conversion from the base type `R` to `tropical R` are provided, as
@@ -133,7 +138,7 @@ instance decidable_lt [has_lt R] [decidable_rel ((<) : R → R → Prop)] :
 λ x y, ‹decidable_rel (<)› (untrop x) (untrop y)
 
 instance [preorder R] : preorder (tropical R) :=
-{ le_refl := λ _, le_refl _,
+{ le_refl := λ _, le_rfl,
   le_trans := λ _ _ _ h h', le_trans h h',
   lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
   ..tropical.has_le,
@@ -275,6 +280,12 @@ instance [has_zero R] : has_one (tropical R) := ⟨trop 0⟩
 @[simp] lemma trop_zero [has_zero R] : trop (0 : R) = 1 := rfl
 @[simp] lemma untrop_one [has_zero R] : untrop (1 : tropical R) = 0 := rfl
 
+instance [linear_order R] [order_top R] [has_zero R] : add_monoid_with_one (tropical R) :=
+{ nat_cast := λ n, if n = 0 then 0 else 1,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, (untrop_inj_iff _ _).1 (by cases n; simp [nat.cast]),
+  .. tropical.has_one, .. tropical.add_comm_monoid }
+
 instance [has_zero R] : nontrivial (tropical (with_top R)) :=
 ⟨⟨0, 1, trop_injective.ne with_top.top_ne_coe⟩⟩
 
@@ -295,13 +306,13 @@ instance [add_comm_semigroup R] : comm_semigroup (tropical R) :=
 { mul_comm := λ _ _, untrop_injective (add_comm _ _),
   ..tropical.semigroup }
 
-instance {α : Type*} [has_scalar α R] : has_pow (tropical R) α :=
+instance {α : Type*} [has_smul α R] : has_pow (tropical R) α :=
 { pow := λ x n, trop $ n • untrop x }
 
-@[simp] lemma untrop_pow {α : Type*} [has_scalar α R] (x : tropical R) (n : α) :
+@[simp] lemma untrop_pow {α : Type*} [has_smul α R] (x : tropical R) (n : α) :
   untrop (x ^ n) = n • untrop x := rfl
 
-@[simp] lemma trop_smul {α : Type*} [has_scalar α R] (x : R) (n : α) :
+@[simp] lemma trop_smul {α : Type*} [has_smul α R] (x : R) (n : α) :
   trop (n • x) = trop x ^ n := rfl
 
 instance [add_zero_class R] : mul_one_class (tropical R) :=
@@ -364,10 +375,6 @@ instance covariant_add [linear_order R] : covariant_class (tropical R) (tropical
     { rwa [add_eq_right hx] } }
 end⟩
 
-instance covariant_swap_add [linear_order R] :
-  covariant_class (tropical R) (tropical R) (function.swap (+)) (≤) :=
-⟨λ x y z h, by { convert add_le_add_left h x using 1; rw [add_comm] }⟩
-
 instance covariant_mul_lt [has_lt R] [has_add R] [covariant_class R R (+) (<)] :
   covariant_class (tropical R) (tropical R) (*) (<) :=
 ⟨λ x y z h, add_lt_add_left h _⟩
@@ -376,20 +383,6 @@ instance covariant_swap_mul_lt [preorder R] [has_add R]
   [covariant_class R R (function.swap (+)) (<)] :
   covariant_class (tropical R) (tropical R) (function.swap (*)) (<) :=
 ⟨λ x y z h, add_lt_add_right h _⟩
-
-instance covariant_add_lt [linear_order R] : covariant_class (tropical R) (tropical R) (+) (≤) :=
-⟨λ x y z h, begin
-  cases le_total x y with hx hy,
-  { rw [add_eq_left hx, add_eq_left (hx.trans h)] },
-  { rw [add_eq_right hy],
-    cases le_total x z with hx hx,
-    { rwa [add_eq_left hx] },
-    { rwa [add_eq_right hx] } }
-end⟩
-
-instance covariant_swap_add_lt [linear_order R] :
-  covariant_class (tropical R) (tropical R) (function.swap (+)) (≤) :=
-⟨λ x y z h, by { convert add_le_add_left h x using 1; rw [add_comm] }⟩
 
 instance [linear_order R] [has_add R]
   [covariant_class R R (+) (≤)] [covariant_class R R (function.swap (+)) (≤)] :
@@ -418,7 +411,7 @@ variable [linear_ordered_add_comm_monoid_with_top R]
 instance : comm_semiring (tropical R) :=
 { zero_mul := λ _, untrop_injective (top_add _),
   mul_zero := λ _, untrop_injective (add_top _),
-  ..tropical.has_zero,
+  ..tropical.add_monoid_with_one,
   ..tropical.distrib,
   ..tropical.add_comm_monoid,
   ..tropical.comm_monoid  }

@@ -8,6 +8,9 @@ import topology.dense_embedding
 
 /-! # Stone-Čech compactification
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Construction of the Stone-Čech compactification using ultrafilters.
 
 Parts of the formalization are based on "Ultrafilters and Topology"
@@ -17,7 +20,7 @@ by Marius Stekelenburg, particularly section 5.
 noncomputable theory
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 universes u v
 
@@ -176,7 +179,7 @@ variables  [compact_space γ]
 lemma continuous_ultrafilter_extend (f : α → γ) : continuous (ultrafilter.extend f) :=
 have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap pure (𝓝 b)) (𝓝 c) := assume b,
   -- b.map f is an ultrafilter on γ, which is compact, so it converges to some c in γ.
-  let ⟨c, _, h⟩ := compact_univ.ultrafilter_le_nhds (b.map f)
+  let ⟨c, _, h⟩ := is_compact_univ.ultrafilter_le_nhds (b.map f)
     (by rw [le_principal_iff]; exact univ_mem) in
   ⟨c, le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h⟩,
 begin
@@ -200,7 +203,7 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    refine le_trans _ (le_trans (map_mono t) this),
    change _ ≤ map (ultrafilter.extend f ∘ pure) ↑b,
    rw ultrafilter_extend_extends,
-   exact le_refl _
+   exact le_rfl
  end,
  assume h, by letI : topological_space α := ⊥; exact
    dense_inducing_pure.extend_eq_of_tendsto (le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h)⟩
@@ -247,6 +250,7 @@ dense_range_pure.quotient
 section extension
 
 variables {γ : Type u} [topological_space γ] [t2_space γ] [compact_space γ]
+variables {γ' : Type u} [topological_space γ'] [t2_space γ']
 variables {f : α → γ} (hf : continuous f)
 
 local attribute [elab_with_expected_type] quotient.lift
@@ -261,6 +265,15 @@ ultrafilter_extend_extends f
 
 lemma continuous_stone_cech_extend : continuous (stone_cech_extend hf) :=
 continuous_quot_lift _ (continuous_ultrafilter_extend f)
+
+lemma stone_cech_hom_ext {g₁ g₂ : stone_cech α → γ'}
+  (h₁ : continuous g₁) (h₂ : continuous g₂)
+  (h : g₁ ∘ stone_cech_unit = g₂ ∘ stone_cech_unit) : g₁ = g₂ :=
+begin
+  apply continuous.ext_on dense_range_stone_cech_unit h₁ h₂,
+  rintros x ⟨x, rfl⟩,
+  apply (congr_fun h x)
+end
 
 end extension
 

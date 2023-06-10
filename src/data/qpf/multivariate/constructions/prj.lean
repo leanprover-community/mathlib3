@@ -8,6 +8,9 @@ import control.functor.multivariate
 import data.qpf.multivariate.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Projection functors are QPFs. The `n`-ary projection functors on `i` is an `n`-ary
 functor `F` such that `F (α₀..αᵢ₋₁, αᵢ, αᵢ₊₁..αₙ₋₁) = αᵢ`
 -/

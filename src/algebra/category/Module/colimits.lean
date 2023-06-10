@@ -3,13 +3,14 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.concrete_category
-import group_theory.quotient_group
-import category_theory.limits.shapes.kernels
 import algebra.category.Module.basic
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of R-modules has all colimits.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
 
@@ -20,12 +21,12 @@ In fact, in `Module R` there is a much nicer model of colimits as quotients
 of finitely supported functions, and we really should implement this as well (or instead).
 -/
 
-universes u v
+universes u v w
 
 open category_theory
 open category_theory.limits
 
-variables {R : Type v} [ring R]
+variables {R : Type u} [ring R]
 
 -- [ROBOT VOICE]:
 -- You should pretend for now that this file was automatically generated.
@@ -39,7 +40,7 @@ then taking the quotient by the abelian group laws within each abelian group,
 and the identifications given by the morphisms in the diagram.
 -/
 
-variables {J : Type v} [small_category J] (F : J ⥤ Module.{v} R)
+variables {J : Type w} [category.{v} J] (F : J ⥤ Module.{max u v w} R)
 
 /--
 An inductive type representing all module expressions (without relations)
@@ -104,7 +105,7 @@ attribute [instance] colimit_setoid
 The underlying type of the colimit of a diagram in `Module R`.
 -/
 @[derive inhabited]
-def colimit_type : Type v := quotient (colimit_setoid F)
+def colimit_type : Type (max u v w) := quotient (colimit_setoid F)
 
 instance : add_comm_group (colimit_type F) :=
 { zero :=
@@ -268,7 +269,7 @@ begin
   apply relation.map,
 end
 
-@[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j):
+@[simp] lemma cocone_naturality_components (j j' : J) (f : j ⟶ j') (x : F.obj j) :
   (cocone_morphism F j') (F.map f x) = (cocone_morphism F j) x :=
 by { rw ←cocone_naturality F f, refl }
 
@@ -365,10 +366,33 @@ def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
     refl
   end }.
 
-instance has_colimits_Module : has_colimits (Module R) :=
+instance has_colimits_Module : has_colimits (Module.{max v u} R) :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
       is_colimit := colimit_cocone_is_colimit F } } }
+
+instance has_colimits_of_size_Module : has_colimits_of_size.{v} (Module.{max v u} R) :=
+has_colimits_of_size_shrink _
+
+instance has_colimits_of_size_zero_Module : has_colimits_of_size.{0} (Module.{max v u} R) :=
+@has_colimits_of_size_shrink.{0} (Module.{max v u} R) _ Module.colimits.has_colimits_Module
+
+-- We manually add a `has_colimits` instance with universe parameters swapped, for otherwise
+-- the instance is not found by typeclass search.
+instance has_colimits_Module' (R : Type u) [ring R] :
+  has_colimits (Module.{max u v} R) :=
+Module.colimits.has_colimits_Module.{u v}
+
+-- We manually add a `has_colimits` instance with equal universe parameters, for otherwise
+-- the instance is not found by typeclass search.
+instance has_colimits_Module'' (R : Type u) [ring R] :
+  has_colimits (Module.{u} R) :=
+Module.colimits.has_colimits_Module.{u u}
+
+-- Sanity checks, just to make sure typeclass search can find the instances we want.
+example (R : Type u) [ring R] : has_colimits (Module.{max v u} R) := infer_instance
+example (R : Type u) [ring R] : has_colimits (Module.{max u v} R) := infer_instance
+example (R : Type u) [ring R] : has_colimits (Module.{u} R) := infer_instance
 
 end Module.colimits

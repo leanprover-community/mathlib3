@@ -9,6 +9,9 @@ import ring_theory.witt_vector.basic
 /-!
 # Teichmüller lifts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `witt_vector.teichmuller`, a monoid hom `R →* 𝕎 R`, which embeds `r : R` as the
 `0`-th component of a Witt vector whose other coefficients are `0`.
 
@@ -92,7 +95,7 @@ end
 /-- The Teichmüller lift of an element of `R` to `𝕎 R`.
 The `0`-th coefficient of `teichmuller p r` is `r`, and all others are `0`.
 This is a monoid homomorphism. -/
-noncomputable def teichmuller : R →* 𝕎 R :=
+def teichmuller : R →* 𝕎 R :=
 { to_fun := teichmuller_fun p,
   map_one' :=
   begin

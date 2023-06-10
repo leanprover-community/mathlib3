@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import number_theory.zsqrtd.basic
 import data.complex.basic
 import ring_theory.principal_ideal_domain
-import number_theory.quadratic_reciprocity
+import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Gaussian integers
 
@@ -36,7 +36,9 @@ and definitions about `zsqrtd` can easily be used.
 -/
 
 open zsqrtd complex
+open_locale complex_conjugate
 
+/-- The Gaussian integers, defined as `ℤ√(-1)`. -/
 @[reducible] def gaussian_int : Type := zsqrtd (-1)
 
 local notation `ℤ[i]` := gaussian_int
@@ -74,6 +76,11 @@ by apply complex.ext; simp [to_complex_def]
 @[simp] lemma to_complex_zero : ((0 : ℤ[i]) : ℂ) = 0 := to_complex.map_zero
 @[simp] lemma to_complex_neg (x : ℤ[i]) : ((-x : ℤ[i]) : ℂ) = -x := to_complex.map_neg _
 @[simp] lemma to_complex_sub (x y : ℤ[i]) : ((x - y : ℤ[i]) : ℂ) = x - y := to_complex.map_sub _ _
+@[simp] lemma to_complex_star (x : ℤ[i]) : ((star x : ℤ[i]) : ℂ) = conj (x : ℂ) :=
+begin
+  rw [to_complex_def₂, to_complex_def₂],
+  exact congr_arg2 _ rfl (int.cast_neg _),
+end
 
 @[simp] lemma to_complex_inj {x y : ℤ[i]} : (x : ℂ) = y ↔ x = y :=
 by cases x; cases y; simp [to_complex_def₂]
@@ -82,10 +89,10 @@ by cases x; cases y; simp [to_complex_def₂]
 by rw [← to_complex_zero, to_complex_inj]
 
 @[simp] lemma nat_cast_real_norm (x : ℤ[i]) : (x.norm : ℝ) = (x : ℂ).norm_sq :=
-by rw [norm, norm_sq]; simp
+by rw [zsqrtd.norm, norm_sq]; simp
 
 @[simp] lemma nat_cast_complex_norm (x : ℤ[i]) : (x.norm : ℂ) = (x : ℂ).norm_sq :=
-by cases x; rw [norm, norm_sq]; simp
+by cases x; rw [zsqrtd.norm, norm_sq]; simp
 
 lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg (by norm_num) _
 
@@ -95,27 +102,24 @@ by rw [← @int.cast_inj ℝ _ _ _]; simp
 lemma norm_pos {x : ℤ[i]} : 0 < norm x ↔ x ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne.def, eq_comm, norm_eq_zero]; simp [norm_nonneg]
 
-@[simp] lemma coe_nat_abs_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
+lemma abs_coe_nat_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
 int.nat_abs_of_nonneg (norm_nonneg _)
 
 @[simp] lemma nat_cast_nat_abs_norm {α : Type*} [ring α]
   (x : ℤ[i]) : (x.norm.nat_abs : α) = x.norm :=
-by rw [← int.cast_coe_nat, coe_nat_abs_norm]
+by rw [← int.cast_coe_nat, abs_coe_nat_norm]
 
 lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
   x.re.nat_abs * x.re.nat_abs + x.im.nat_abs * x.im.nat_abs :=
-int.coe_nat_inj $ begin simp, simp [norm] end
+int.coe_nat_inj $ begin simp, simp [zsqrtd.norm] end
 
-protected def div (x y : ℤ[i]) : ℤ[i] :=
-let n := (rat.of_int (norm y))⁻¹ in let c := y.conj in
-⟨round (rat.of_int (x * c).re * n : ℚ),
- round (rat.of_int (x * c).im * n : ℚ)⟩
+instance : has_div ℤ[i] :=
+⟨λ x y, let n := (norm y : ℚ)⁻¹, c := star y in
+  ⟨round ((x * c).re * n : ℚ), round ((x * c).im * n : ℚ)⟩⟩
 
-instance : has_div ℤ[i] := ⟨gaussian_int.div⟩
-
-lemma div_def (x y : ℤ[i]) : x / y = ⟨round ((x * conj y).re / norm y : ℚ),
-  round ((x * conj y).im / norm y : ℚ)⟩ :=
-show zsqrtd.mk _ _ = _, by simp [rat.of_int_eq_mk, rat.mk_eq_div, div_eq_mul_inv]
+lemma div_def (x y : ℤ[i]) : x / y = ⟨round ((x * star y).re / norm y : ℚ),
+  round ((x * star y).im / norm y : ℚ)⟩ :=
+show zsqrtd.mk _ _ = _, by simp [div_eq_mul_inv]
 
 lemma to_complex_div_re (x y : ℤ[i]) : ((x / y : ℤ[i]) : ℂ).re = round ((x / y : ℂ).re) :=
 by rw [div_def, ← @rat.round_cast ℝ _ _];
@@ -149,21 +153,19 @@ calc ((x / y : ℂ) - ((x / y : ℤ[i]) : ℂ)).norm_sq =
       simpa using abs_sub_round (x / y : ℂ).im)
   ... < 1 : by simp [norm_sq]; norm_num
 
-protected def mod (x y : ℤ[i]) : ℤ[i] := x - y * (x / y)
-
-instance : has_mod ℤ[i] := ⟨gaussian_int.mod⟩
+instance : has_mod ℤ[i] := ⟨λ x y, x - y * (x / y)⟩
 
 lemma mod_def (x y : ℤ[i]) : x % y = x - y * (x / y) := rfl
 
 lemma norm_mod_lt (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) : (x % y).norm < y.norm :=
 have (y : ℂ) ≠ 0, by rwa [ne.def, ← to_complex_zero, to_complex_inj],
 (@int.cast_lt ℝ _ _ _ _).1 $
-  calc ↑(norm (x % y)) = (x - y * (x / y : ℤ[i]) : ℂ).norm_sq : by simp [mod_def]
+  calc ↑(zsqrtd.norm (x % y)) = (x - y * (x / y : ℤ[i]) : ℂ).norm_sq : by simp [mod_def]
   ... = (y : ℂ).norm_sq * (((x / y) - (x / y : ℤ[i])) : ℂ).norm_sq :
     by rw [← norm_sq_mul, mul_sub, mul_div_cancel' _ this]
   ... < (y : ℂ).norm_sq * 1 : mul_lt_mul_of_pos_left (norm_sq_div_sub_div_lt_one _ _)
     (norm_sq_pos.2 this)
-  ... = norm y : by simp
+  ... = zsqrtd.norm y : by simp
 
 lemma nat_abs_norm_mod_lt (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (x % y).norm.nat_abs < y.norm.nat_abs :=
@@ -171,9 +173,9 @@ int.coe_nat_lt.1 (by simp [-int.coe_nat_lt, norm_mod_lt x hy])
 
 lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
-by rw [norm_mul, int.nat_abs_mul];
+by rw [zsqrtd.norm_mul, int.nat_abs_mul];
   exact le_mul_of_one_le_right (nat.zero_le _)
-    (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
+    (int.coe_nat_le.1 (by rw [abs_coe_nat_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
 
 instance : nontrivial ℤ[i] :=
 ⟨⟨0, 1, dec_trivial⟩⟩
@@ -209,13 +211,14 @@ hp.1.eq_two_or_odd.elim
         revert this hp3 hp1,
         generalize : p % 4 = m, dec_trivial!,
       end,
-    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).2 $
+    let ⟨k, hk⟩ := zmod.exists_sq_eq_neg_one_iff.2 $
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
       { refine ⟨k.val, k.val_lt, zmod.nat_cast_zmod_val k⟩ },
       have hpk : p ∣ k ^ 2 + 1,
-        by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
+        by { rw [pow_two, ← char_p.cast_eq_zero_iff (zmod p) p, nat.cast_add, nat.cast_mul,
+                 nat.cast_one, ← hk, add_left_neg], },
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
         by simp [sq, zsqrtd.ext],
       have hpne1 : p ≠ 1 := ne_of_gt hp.1.one_lt,
@@ -227,20 +230,20 @@ hp.1.eq_two_or_odd.elim
         ... < p * p : mul_lt_mul k_lt_p k_lt_p (nat.succ_pos _) (nat.zero_le _),
       have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k, -1⟩ :=
         λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
-          calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k, -1⟩).nat_abs : by rw hx
-          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
+          calc (norm (p * x : ℤ[i])).nat_abs = (zsqrtd.norm ⟨k, -1⟩).nat_abs : by rw hx
+          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, zsqrtd.norm] using hkltp
           ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
             (λ hx0, (show (-1 : ℤ) ≠ 0, from dec_trivial) $
               by simpa [hx0] using congr_arg zsqrtd.im hx),
       have hpk₂ : ¬ (p : ℤ[i]) ∣ ⟨k, 1⟩ :=
         λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
-          calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k, 1⟩).nat_abs : by rw hx
-          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
+          calc (norm (p * x : ℤ[i])).nat_abs = (zsqrtd.norm ⟨k, 1⟩).nat_abs : by rw hx
+          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, zsqrtd.norm] using hkltp
           ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
             (λ hx0, (show (1 : ℤ) ≠ 0, from dec_trivial) $
                 by simpa [hx0] using congr_arg zsqrtd.im hx),
       have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2
-        (by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
+        (by rw [norm_nat_cast, int.nat_abs_mul, mul_eq_one];
         exact λ h, (ne_of_lt hp.1.one_lt).symm h.1),
       obtain ⟨y, hy⟩ := hpk,
       have := hpi.2.2 ⟨k, 1⟩ ⟨k, -1⟩ ⟨y, by rw [← hkmul, ← nat.cast_mul p, ← hy]; simp⟩,
@@ -250,7 +253,7 @@ hp.1.eq_two_or_odd.elim
 lemma sq_add_sq_of_nat_prime_of_not_irreducible (p : ℕ) [hp : fact p.prime]
   (hpi : ¬irreducible (p : ℤ[i])) : ∃ a b, a^2 + b^2 = p :=
 have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
-  by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
+  by rw [norm_nat_cast, int.nat_abs_mul, mul_eq_one];
     exact λ h, (ne_of_lt hp.1.one_lt).symm h.1,
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
   by simpa [irreducible_iff, hpu, not_forall, not_or_distrib] using hpi,
@@ -266,7 +269,7 @@ lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3
   prime (p : ℤ[i]) :=
 irreducible_iff_prime.1 $ classical.by_contradiction $ λ hpi,
   let ⟨a, b, hab⟩ := sq_add_sq_of_nat_prime_of_not_irreducible p hpi in
-have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod 4 p, hp3]; exact dec_trivial,
+have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod p 4, hp3]; exact dec_trivial,
 this a b (hab ▸ by simp)
 
 /-- A prime natural number is prime in `ℤ[i]` if and only if it is `3` mod `4` -/

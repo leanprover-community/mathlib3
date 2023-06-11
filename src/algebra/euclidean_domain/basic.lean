@@ -54,7 +54,7 @@ by { rw mul_comm, exact mul_div_cancel_left a b0 }
 mod_eq_zero.2 dvd_rfl
 
 lemma dvd_mod_iff {a b c : R} (h : c ∣ b) : c ∣ a % b ↔ c ∣ a :=
-by rw [dvd_add_iff_right (h.mul_right _), div_add_mod]
+by rw [←dvd_add_right (h.mul_right _), div_add_mod]
 
 @[simp] lemma mod_one (a : R) : a % 1 = 0 :=
 mod_eq_zero.2 (one_dvd _)

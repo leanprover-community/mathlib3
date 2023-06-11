@@ -10,6 +10,9 @@ import data.polynomial.ring_division
 /-!
 # "Mirror" of a univariate polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference
 between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is
 divisible by `X`.

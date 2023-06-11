@@ -12,6 +12,9 @@ import order.atoms
 /-!
 # Simple objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define simple objects in any category with zero morphisms.
 A simple object is an object `Y` such that any monomorphism `f : X ⟶ Y`
 is either an isomorphism or zero (but not both).

@@ -13,6 +13,9 @@ import field_theory.tower
 /-!
 # Fixed field under a group action.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This is the basis of the Fundamental Theorem of Galois Theory.
 Given a (finite) group `G` that acts on a field `F`, we define `fixed_points G F`,
 the subfield consisting of elements of `F` fixed_points by every element of `G`.
@@ -232,10 +235,10 @@ theorem minpoly_eq_minpoly :
 minpoly.eq_of_irreducible_of_monic (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
-lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
-dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_coe_finset, finset.coe_sort_coe,
+lemma rank_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
+rank_le $ λ s hs, by simpa only [rank_fun', cardinal.mk_coe_finset, finset.coe_sort_coe,
   cardinal.lift_nat_cast, cardinal.nat_cast_le]
-  using cardinal_lift_le_dim_of_linear_independent'
+  using cardinal_lift_le_rank_of_linear_independent'
     (linear_independent_smul_of_linear_independent G F hs)
 
 end fintype
@@ -262,15 +265,15 @@ instance separable : is_separable (fixed_points.subfield G F) F :=
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
 instance : finite_dimensional (subfield G F) F :=
-by { casesI nonempty_fintype G, exact is_noetherian.iff_fg.1 (is_noetherian.iff_dim_lt_aleph_0.2 $
-  (dim_le_card G F).trans_lt $ cardinal.nat_lt_aleph_0 _) }
+by { casesI nonempty_fintype G, exact is_noetherian.iff_fg.1 (is_noetherian.iff_rank_lt_aleph_0.2 $
+  (rank_le_card G F).trans_lt $ cardinal.nat_lt_aleph_0 _) }
 
 end finite
 
 lemma finrank_le_card [fintype G] : finrank (subfield G F) F ≤ fintype.card G :=
 begin
-  rw [← cardinal.nat_cast_le, finrank_eq_dim],
-  apply dim_le_card,
+  rw [← cardinal.nat_cast_le, finrank_eq_rank],
+  apply rank_le_card,
 end
 
 end fixed_points

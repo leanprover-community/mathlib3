@@ -39,6 +39,18 @@ by rw [←two_power_aleph_0, lift_two_power, lift_aleph_0, two_power_aleph_0]
 ### Inequalities
 -/
 
+@[simp] lemma continuum_le_lift {c : cardinal.{u}} : 𝔠 ≤ lift.{v} c ↔ 𝔠 ≤ c :=
+by rw [←lift_continuum, lift_le]
+
+@[simp] lemma lift_le_continuum {c : cardinal.{u}} : lift.{v} c ≤ 𝔠 ↔ c ≤ 𝔠 :=
+by rw [←lift_continuum, lift_le]
+
+@[simp] lemma continuum_lt_lift {c : cardinal.{u}} : 𝔠 < lift.{v} c ↔ 𝔠 < c :=
+by rw [←lift_continuum, lift_lt]
+
+@[simp] lemma lift_lt_continuum {c : cardinal.{u}} : lift.{v} c < 𝔠 ↔ c < 𝔠 :=
+by rw [←lift_continuum, lift_lt]
+
 lemma aleph_0_lt_continuum : ℵ₀ < 𝔠 := cantor ℵ₀
 
 lemma aleph_0_le_continuum : ℵ₀ ≤ 𝔠 := aleph_0_lt_continuum.le

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.additive
-import measure_theory.measure.lebesgue
+import measure_theory.measure.lebesgue.basic
 
 /-!
 # Box-additive functions defined by measures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove a few simple facts about rectangular boxes, partitions, and measures:
 

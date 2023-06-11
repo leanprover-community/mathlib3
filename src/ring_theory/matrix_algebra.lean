@@ -7,6 +7,9 @@ import data.matrix.basis
 import ring_theory.tensor_product
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
 -/
 

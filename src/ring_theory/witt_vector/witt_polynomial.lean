@@ -14,6 +14,9 @@ import data.zmod.basic
 /-!
 # Witt polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 To endow `witt_vector p R` with a ring structure,
 we need to study the so-called Witt polynomials.
 

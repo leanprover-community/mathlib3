@@ -10,6 +10,9 @@ import data.fin.basic
 /-!
 # Lemmas about `list`s and `set.range`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove lemmas about range of some operations on lists.
 -/
 

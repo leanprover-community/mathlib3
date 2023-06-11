@@ -10,6 +10,9 @@ import algebraic_topology.dold_kan.p_infty
 
 # Construction of functors N for the Dold-Kan correspondence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we construct functors `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)`

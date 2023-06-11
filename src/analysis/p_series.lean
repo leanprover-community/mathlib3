@@ -3,10 +3,13 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.pow.nnreal
 
 /-!
 # Convergence of `p`-series
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that the series `∑' k in ℕ, 1 / k ^ p` converges if and only if `p > 1`.
 The proof is based on the

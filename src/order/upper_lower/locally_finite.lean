@@ -9,6 +9,9 @@ import order.upper_lower.basic
 /-!
 # Upper and lower sets in a locally finite order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we characterise the interaction of `upper_set`/`lower_set` and `locally_finite_order`.
 -/
 

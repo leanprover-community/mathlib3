@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 import ring_theory.finite_type
 import ring_theory.localization.at_prime
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
 import ring_theory.localization.integer
 import ring_theory.localization.submodule
 import ring_theory.nilpotent

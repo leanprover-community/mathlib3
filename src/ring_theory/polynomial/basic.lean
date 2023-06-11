@@ -14,6 +14,9 @@ import ring_theory.unique_factorization_domain
 /-!
 # Ring-theoretic supplement of data.polynomial.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main results
 * `mv_polynomial.is_domain`:
   If a ring is an integral domain, then so is its polynomial ring over finitely many variables.

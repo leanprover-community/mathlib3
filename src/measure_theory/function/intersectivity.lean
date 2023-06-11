@@ -14,7 +14,8 @@ This file proves the Bergelson intersectivity lemma.
 
 ## References
 
-[Bergelson, *Sets of recurrence of `ℤᵐ`-actions and properties of sets of differences in `ℤᵐ`][bergelson1985]
+[Bergelson, *Sets of recurrence of `ℤᵐ`-actions and properties of sets of differences in
+`ℤᵐ`][bergelson1985]
 
 ## TODO
 
@@ -341,7 +342,8 @@ begin
       _ _ $
         λ n, _).limsup_eq,
     exact λ n, (↑(n + 1)) ⁻¹ * hxs.to_finset.card,
-    simpa using ennreal.tendsto.mul_const (ennreal.tendsto_inv_nat_nhds_zero.comp $ tendsto_add_at_top_nat 1) (or.inr $ ennreal.nat_ne_top _),
+    simpa using ennreal.tendsto.mul_const (ennreal.tendsto_inv_nat_nhds_zero.comp $
+      tendsto_add_at_top_nat 1) (or.inr $ ennreal.nat_ne_top _),
     exact (λ n, hf₀ n x),
     refine mul_le_mul_left' _ _,
     classical,

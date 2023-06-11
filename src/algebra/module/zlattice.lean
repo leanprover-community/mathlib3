@@ -8,6 +8,9 @@ import measure_theory.group.fundamental_domain
 /-!
 # ℤ-lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `E` be a finite dimensional vector space over a `normed_linear_ordered_field` `K` with a solid
 norm and that is also a `floor_ring`, e.g. `ℚ` or `ℝ`. A (full) ℤ-lattice `L` of `E` is a discrete
 subgroup of `E` such that `L` spans `E` over `K`.

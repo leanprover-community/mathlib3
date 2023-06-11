@@ -24,6 +24,7 @@ sequences, increasing, decreasing, Ramsey, Erdos-Szekeres, Erdős–Szekeres, Er
 variables {α : Type*} [linear_order α] {β : Type*}
 
 open function finset
+-- todo after oleans: check if this is still actually needed
 open_locale classical
 
 namespace theorems_100

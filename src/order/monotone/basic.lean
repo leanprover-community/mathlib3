@@ -106,14 +106,14 @@ section decidable
 
 variables [preorder α] [preorder β] {f : α → β} {s : set α}
 
-instance [i : decidable _] : decidable (monotone f) := i
-instance [i : decidable _] : decidable (antitone f) := i
-instance [i : decidable _] : decidable (monotone_on f s) := i
-instance [i : decidable _] : decidable (antitone_on f s) := i
-instance [i : decidable _] : decidable (strict_mono f) := i
-instance [i : decidable _] : decidable (strict_anti f) := i
-instance [i : decidable _] : decidable (strict_mono_on f s) := i
-instance [i : decidable _] : decidable (strict_anti_on f s) := i
+instance [i : decidable (∀ a b, a ≤ b → f a ≤ f b)] : decidable (monotone f) := i
+instance [i : decidable (∀ a b, a ≤ b → f b ≤ f a)] : decidable (antitone f) := i
+instance [i : decidable (∀ a b ∈ s, a ≤ b → f a ≤ f b)] : decidable (monotone_on f s) := i
+instance [i : decidable (∀ a b ∈ s, a ≤ b → f b ≤ f a)] : decidable (antitone_on f s) := i
+instance [i : decidable (∀ a b, a < b → f a < f b)] : decidable (strict_mono f) := i
+instance [i : decidable (∀ a b, a < b → f b < f a)] : decidable (strict_anti f) := i
+instance [i : decidable (∀ a b ∈ s, a < b → f a < f b)] : decidable (strict_mono_on f s) := i
+instance [i : decidable (∀ a b ∈ s, a < b → f b < f a)] : decidable (strict_anti_on f s) := i
 
 end decidable
 

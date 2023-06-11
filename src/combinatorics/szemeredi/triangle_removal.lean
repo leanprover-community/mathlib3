@@ -81,7 +81,8 @@ begin
   have i := triangle_counting2 G (by rwa this) uXY dXY (by rwa this) uXZ dXZ (by rwa this) uYZ dYZ,
   refine le_trans _ i,
   rw [this, triangle_removal_bound],
-  refine (mul_le_mul_of_nonneg_right (min_le_right (_:ℝ) _) $ by positivity).trans _,
+  refine (mul_le_mul_of_nonneg_right (min_le_right (_:ℝ) _) $ _).trans _,
+  { exact pow_nonneg (cast_nonneg _) _ }, -- TODO: Why does `positivity` time out?
   rw [mul_assoc, ←mul_pow, div_mul_eq_mul_div, (show (16:ℝ) = 8 * 2, by norm_num), mul_assoc (8:ℝ),
     ←div_mul_div_comm, mul_pow, ←mul_assoc],
   suffices : ((card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊)) ^ 3 ≤ X.card * Y.card * Z.card,
@@ -89,8 +90,11 @@ begin
     have : ε / 4 ≤ 1 := ‹ε / 4 ≤ _›.trans (by exact_mod_cast G.edge_density_le_one _ _),
     positivity },
   rw [pow_succ, sq, mul_assoc],
-  refine mul_le_mul (card_bound hP₁ hP₃ hX) _ (by positivity) (by positivity),
-  exact mul_le_mul (card_bound hP₁ hP₃ hY) (card_bound hP₁ hP₃ hZ) (by positivity) (by positivity),
+  -- TODO: Why does `positivity` time out?
+  have : 0 ≤ (card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊) :=
+    div_nonneg (cast_nonneg _) (by positivity),
+  exact mul_le_mul (card_bound hP₁ hP₃ hX) (mul_le_mul (card_bound hP₁ hP₃ hY)
+    (card_bound hP₁ hP₃ hZ) this $ cast_nonneg _) (mul_nonneg this this) (cast_nonneg _),
 end
 
 lemma reduced_edges_card_aux [nonempty α] (hε : 0 < ε) (hP : P.is_equipartition)

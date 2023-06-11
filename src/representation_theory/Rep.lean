@@ -289,9 +289,9 @@ instance : monoidal_closed (Rep k G) :=
   { is_adj :=
     { right := Rep.ihom A,
       adj := adjunction.mk_of_hom_equiv
-{ hom_equiv := Rep.hom_equiv A,
-  hom_equiv_naturality_left_symm' := λ X Y Z f g, by ext; refl,
-  hom_equiv_naturality_right' := λ X Y Z f g, by ext; refl } } } }
+      { hom_equiv := Rep.hom_equiv A,
+        hom_equiv_naturality_left_symm' := λ X Y Z f g, by ext; refl,
+        hom_equiv_naturality_right' := λ X Y Z f g, by ext; refl } } } }
 
 @[simp] lemma ihom_obj_ρ_def (A B : Rep k G) : ((ihom A).obj B).ρ = ((Rep.ihom A).obj B).ρ := rfl
 

@@ -11,6 +11,9 @@ import data.zmod.algebra
 /-!
 # Classification of Algebraically closed fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results related to classifying algebraically closed fields.
 
 ## Main statements

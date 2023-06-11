@@ -10,6 +10,9 @@ import field_theory.is_alg_closed.basic
 /-!
 # Eigenvalues are characteristic polynomial roots.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In fields we show that:
 
 * `matrix.det_eq_prod_roots_charpoly_of_splits`: the determinant (in the field of the matrix)

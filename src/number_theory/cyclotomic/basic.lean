@@ -474,10 +474,9 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
     refine set.ext (λ x, _),
     simp only [polynomial.map_pow, mem_singleton_iff, multiset.mem_to_finset, exists_eq_left,
       mem_set_of_eq, polynomial.map_X, polynomial.map_one, finset.mem_coe, polynomial.map_sub],
-    -- todo: maybe make `X_pow_sub_C_ne_zero` take an explicit `R`
-    rwa [← ring_hom.map_one C, mem_root_set_of_ne (X_pow_sub_C_ne_zero n.pos (1 : K)),
-         map_sub, map_pow, aeval_C, aeval_X, sub_eq_zero, map_one],
-    apply_instance
+    simp only [mem_root_set', map_sub, map_pow, aeval_one, aeval_X, sub_eq_zero, map_X,
+               and_iff_right_iff_imp, polynomial.map_sub, polynomial.map_pow, polynomial.map_one],
+    exact λ _, X_pow_sub_C_ne_zero n.pos (1 : L)
   end }
 
 /-- Any two `n`-th cyclotomic extensions are isomorphic. -/

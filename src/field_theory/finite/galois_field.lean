@@ -43,11 +43,11 @@ instance finite_field.has_sub.sub.polynomial.is_splitting_field (K F : Type*) [f
     rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,
       map_X, h, finite_field.roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
   end,
-  adjoin_roots :=
+  adjoin_root_set :=
   begin
     classical,
     transitivity algebra.adjoin F ((roots (X ^ (fintype.card K) - X : K[X])).to_finset : set K),
-    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
+    { simp only [root_set, polynomial.map_pow, map_X, polynomial.map_sub], },
     { rw [finite_field.roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 

@@ -391,26 +391,28 @@ by { rw ← X_sub_C_mul_remove_factor _ hndf at hmf0, refine (splits_of_splits_m
 let ⟨k, hk⟩ := ih f.remove_factor (nat_degree_remove_factor' hf) (adjoin_root.lift j r hr) hsf in
 ⟨k, by rw [algebra_map_succ, ← ring_hom.comp_assoc, hk, adjoin_root.lift_comp_of]⟩
 
-theorem adjoin_roots (n : ℕ) : ∀ {K : Type u} [field K], by exactI
+theorem adjoin_root_set (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n),
-    algebra.adjoin K (↑(f.map $ algebra_map K $ splitting_field_aux n f).roots.to_finset :
-      set (splitting_field_aux n f)) = ⊤ :=
+    algebra.adjoin K (f.root_set (splitting_field_aux n f)) = ⊤ :=
 nat.rec_on n (λ K _ f hf, by exactI algebra.eq_top_iff.2 (λ x, subalgebra.range_le _ ⟨x, rfl⟩)) $
 λ n ih K _ f hfn, by exactI
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hfn, cases hfn },
 have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
 have hmf0 : map (algebra_map K (splitting_field_aux n.succ f)) f ≠ 0 := map_ne_zero hfn0,
-by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf,
+begin
+  simp_rw root_set at ⊢ ih,
+  rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf,
          polynomial.map_mul] at hmf0 ⊢,
-rw [roots_mul hmf0, polynomial.map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add,
-    finset.coe_union, multiset.to_finset_singleton, finset.coe_singleton,
-    algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
-    algebra.adjoin_algebra_map K (adjoin_root f.factor)
-      (splitting_field_aux n f.remove_factor),
-    adjoin_root.adjoin_root_eq_top, algebra.map_top,
-    is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
-      (splitting_field_aux n f.remove_factor),
-    ih _ (nat_degree_remove_factor' hfn), subalgebra.restrict_scalars_top] }
+  rw [roots_mul hmf0, polynomial.map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add,
+      finset.coe_union, multiset.to_finset_singleton, finset.coe_singleton,
+      algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
+      algebra.adjoin_algebra_map K (adjoin_root f.factor)
+        (splitting_field_aux n f.remove_factor),
+      adjoin_root.adjoin_root_eq_top, algebra.map_top,
+      is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
+        (splitting_field_aux n f.remove_factor),
+      ih _ (nat_degree_remove_factor' hfn), subalgebra.restrict_scalars_top]
+end
 
 end splitting_field_aux
 
@@ -465,12 +467,8 @@ def lift : splitting_field f →ₐ[K] L :=
     exact ring_hom.ext_iff.1 this r },
   .. classical.some (splitting_field_aux.exists_lift _ _ _ _ hb) }
 
-theorem adjoin_roots : algebra.adjoin K
-    (↑(f.map (algebra_map K $ splitting_field f)).roots.to_finset : set (splitting_field f)) = ⊤ :=
-splitting_field_aux.adjoin_roots _ _ rfl
-
-theorem adjoin_root_set : algebra.adjoin K (f.root_set f.splitting_field) = ⊤ :=
-adjoin_roots f
+theorem adjoin_root_set : algebra.adjoin K (f.root_set (splitting_field f)) = ⊤ :=
+splitting_field_aux.adjoin_root_set _ _ rfl
 
 end splitting_field
 
@@ -482,7 +480,7 @@ variables (K L) [algebra K L]
 
 variables {K}
 instance splitting_field (f : K[X]) : is_splitting_field K (splitting_field f) f :=
-⟨splitting_field.splits f, splitting_field.adjoin_roots f⟩
+⟨splitting_field.splits f, splitting_field.adjoin_root_set f⟩
 
 instance (f : K[X]) : _root_.finite_dimensional K f.splitting_field :=
 finite_dimensional f.splitting_field f

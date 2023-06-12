@@ -482,7 +482,7 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
 local attribute [-instance] splitting_field.algebra'
 
 /-- Any two `n`-th cyclotomic extensions are isomorphic. -/
-noncomputable! def alg_equiv (L' : Type*) [field L'] [algebra K L'] [is_cyclotomic_extension {n} K L'] :
+def alg_equiv (L' : Type*) [field L'] [algebra K L'] [is_cyclotomic_extension {n} K L'] :
   L ≃ₐ[K] L' :=
 let h₁ := splitting_field_X_pow_sub_one n K L in
 let h₂ := splitting_field_X_pow_sub_one n K L' in

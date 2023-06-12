@@ -45,7 +45,7 @@ variables [field K] [field L] [field F] [algebra K L]
 /-- Typeclass characterising splitting fields. -/
 class is_splitting_field (f : K[X]) : Prop :=
 (splits [] : splits (algebra_map K L) f)
-(adjoin_root_set [] : algebra.adjoin K (f.root_set L : set L) = ⊤)
+(adjoin_root_set [] : algebra.adjoin K (f.root_set L) = ⊤)
 
 variables {K L F}
 

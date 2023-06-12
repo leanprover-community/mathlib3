@@ -152,13 +152,18 @@ begin
   rw [splits_iff_card_roots, h1, ←finset.card_def, finset.card_univ, h2, zmod.card],
 end
 
+local attribute [-instance] splitting_field.algebra'
+
 /-- A Galois field with exponent 1 is equivalent to `zmod` -/
-def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
-have h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)),
-  by rw [pow_one, zmod.card p],
-have inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
-  by { rw h, apply_instance },
-by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : (zmod p)[X])).symm
+noncomputable! def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
+begin
+  have h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)),
+    by rw [pow_one, zmod.card p],
+  haveI inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
+    by { rw h, apply_instance },
+  let φ := is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : (zmod p)[X]),
+  exact φ.symm,
+end
 
 variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 

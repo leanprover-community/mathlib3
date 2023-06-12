@@ -91,9 +91,25 @@ including `splitting_field_aux` (such as instances) should be defined using
 this recursion in each field, rather than defining the whole tuple through
 recursion.
 -/
-def splitting_field_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]), Type u :=
-nat.rec_on n (λ K _ _, K) $ λ n ih K _ f, by exactI
-ih f.remove_factor
+def splitting_field_aux_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]),
+  Σ (L : Type u) (inst : field L), by exactI algebra K L :=
+nat.rec_on n (λ K inst f, ⟨K, inst, infer_instance⟩) (λ m ih K inst f,
+begin
+  rcases ih (@remove_factor K inst f) with ⟨L, fL, alg⟩,
+  letI : field K := inst,
+  exact ⟨L, fL, (ring_hom.comp (algebra_map _ _) (adjoin_root.of f.factor)).to_algebra⟩,
+end)
+
+def splitting_field_aux (n : ℕ) {K : Type u} [field K] (f : K[X]) : Type u :=
+  (splitting_field_aux_aux n f).1
+
+instance splitting_field_aux.field (n : ℕ) {K : Type u} [field K] (f : K[X]) :
+    field (splitting_field_aux n f) :=
+  (splitting_field_aux_aux n f).2.1
+
+instance splitting_field_aux.algebra (n : ℕ) {K : Type u} [field K] (f : K[X]) :
+    algebra K (splitting_field_aux n f) :=
+  (splitting_field_aux_aux n f).2.2
 
 namespace splitting_field_aux
 

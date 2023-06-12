@@ -128,6 +128,7 @@ instance [comm_semiring S₁] [smul_zero_class R S₁] [smul_zero_class Rᵐᵒ�
 add_monoid_algebra.is_central_scalar
 
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
+
 add_monoid_algebra.algebra
 
 -- Register with high priority to avoid timeout in `data.mv_polynomial.pderiv`
@@ -135,11 +136,20 @@ instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁
   is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
 is_scalar_tower.right
 
+instance is_scalar_tower_right [comm_semiring R] [comm_semiring S₁] [distrib_smul R S₁]
+    [is_scalar_tower R S₁ S₁] : is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
+begin
+  refine ⟨λ x p q, _⟩,
+  dsimp [mv_polynomial] at p q ⊢,
+  rw [smul_mul_assoc]
+end
+
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
 instance unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
 add_monoid_algebra.unique
 
 end instances
+
 
 variables [comm_semiring R] [comm_semiring S₁] {p q : mv_polynomial σ R}
 

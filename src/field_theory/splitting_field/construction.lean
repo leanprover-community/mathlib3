@@ -460,6 +460,9 @@ instance {S : Type*} [comm_semiring S] [distrib_smul S K] [is_scalar_tower S K K
   has_smul S (splitting_field f) :=
   submodule.quotient.has_smul' _
 
+instance algebra : algebra K (splitting_field f) :=
+by { delta splitting_field; apply_instance }
+
 instance algebra' {R : Type*} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
 by { delta splitting_field; apply_instance }
 

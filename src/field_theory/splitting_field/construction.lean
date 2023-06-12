@@ -393,24 +393,26 @@ let ⟨k, hk⟩ := ih f.remove_factor (nat_degree_remove_factor' hf) (adjoin_roo
 
 theorem adjoin_roots (n : ℕ) : ∀ {K : Type u} [field K], by exactI
   ∀ (f : K[X]) (hfn : f.nat_degree = n),
-    algebra.adjoin K (↑(f.map $ algebra_map K $ splitting_field_aux n f).roots.to_finset :
-      set (splitting_field_aux n f)) = ⊤ :=
+    algebra.adjoin K (f.root_set (splitting_field_aux n f)) = ⊤ :=
 nat.rec_on n (λ K _ f hf, by exactI algebra.eq_top_iff.2 (λ x, subalgebra.range_le _ ⟨x, rfl⟩)) $
 λ n ih K _ f hfn, by exactI
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hfn, cases hfn },
 have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
 have hmf0 : map (algebra_map K (splitting_field_aux n.succ f)) f ≠ 0 := map_ne_zero hfn0,
-by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf,
+begin
+  simp_rw root_set at ⊢ ih,
+  rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf,
          polynomial.map_mul] at hmf0 ⊢,
-rw [roots_mul hmf0, polynomial.map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add,
-    finset.coe_union, multiset.to_finset_singleton, finset.coe_singleton,
-    algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
-    algebra.adjoin_algebra_map K (adjoin_root f.factor)
-      (splitting_field_aux n f.remove_factor),
-    adjoin_root.adjoin_root_eq_top, algebra.map_top,
-    is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
-      (splitting_field_aux n f.remove_factor),
-    ih _ (nat_degree_remove_factor' hfn), subalgebra.restrict_scalars_top] }
+  rw [roots_mul hmf0, polynomial.map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add,
+      finset.coe_union, multiset.to_finset_singleton, finset.coe_singleton,
+      algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
+      algebra.adjoin_algebra_map K (adjoin_root f.factor)
+        (splitting_field_aux n f.remove_factor),
+      adjoin_root.adjoin_root_eq_top, algebra.map_top,
+      is_scalar_tower.adjoin_range_to_alg_hom K (adjoin_root f.factor)
+        (splitting_field_aux n f.remove_factor),
+      ih _ (nat_degree_remove_factor' hfn), subalgebra.restrict_scalars_top]
+end
 
 end splitting_field_aux
 

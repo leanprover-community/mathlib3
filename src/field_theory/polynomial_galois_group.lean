@@ -139,7 +139,7 @@ begin
     have hy := subtype.mem y,
     simp only [root_set, finset.mem_coe, multiset.mem_to_finset, key, multiset.mem_map] at hy,
     rcases hy with ⟨x, hx1, hx2⟩,
-    exact ⟨⟨x, multiset.mem_to_finset.mpr hx1⟩, subtype.ext hx2⟩ }
+    exact ⟨⟨x, (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr hx1⟩, subtype.ext hx2⟩ }
 end
 
 /-- The bijection between `root_set p p.splitting_field` and `root_set p E`. -/
@@ -225,18 +225,20 @@ begin
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
   rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
-  cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
+  cases multiset.mem_add.mp ((@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mp hx) with h h,
   { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,
     have key : x = algebra_map (p.splitting_field) (p * q).splitting_field
-      ((roots_equiv_roots p _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
+      ((roots_equiv_roots p _).inv_fun ⟨x,
+        (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr h⟩) :=
       subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots p _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.1 _) },
   { haveI : fact (q.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_left q p)⟩,
     have key : x = algebra_map (q.splitting_field) (p * q).splitting_field
-      ((roots_equiv_roots q _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
+      ((roots_equiv_roots q _).inv_fun ⟨x,
+        (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr h⟩) :=
       subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots q _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.2 _) },

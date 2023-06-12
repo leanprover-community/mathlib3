@@ -45,7 +45,7 @@ variables [field K] [field L] [field F] [algebra K L]
 /-- Typeclass characterising splitting fields. -/
 class is_splitting_field (f : K[X]) : Prop :=
 (splits [] : splits (algebra_map K L) f)
-(adjoin_roots [] : algebra.adjoin K (↑(f.map (algebra_map K L)).roots.to_finset : set L) = ⊤)
+(adjoin_root_set [] : algebra.adjoin K (f.root_set L : set L) = ⊤)
 
 variables {K L F}
 
@@ -59,16 +59,17 @@ instance map (f : F[X]) [is_splitting_field F L f] :
   is_splitting_field K L (f.map $ algebra_map F K) :=
 ⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits L f },
  subalgebra.restrict_scalars_injective F $
-  by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.restrict_scalars_top,
-    eq_top_iff, ← adjoin_roots L f, algebra.adjoin_le_iff],
+  by { rw [root_set, map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.restrict_scalars_top,
+    eq_top_iff, ← adjoin_root_set L f, algebra.adjoin_le_iff],
   exact λ x hx, @algebra.subset_adjoin K _ _ _ _ _ _ hx }⟩
 
 variables (L)
 theorem splits_iff (f : K[X]) [is_splitting_field K L f] :
   polynomial.splits (ring_hom.id K) f ↔ (⊤ : subalgebra K L) = ⊥ :=
-⟨λ h, eq_bot_iff.2 $ adjoin_roots L f ▸ (roots_map (algebra_map K L) h).symm ▸
+⟨λ h, eq_bot_iff.2 $ adjoin_root_set L f ▸
   algebra.adjoin_le_iff.2 (λ y hy,
-    let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
+    let ⟨x, hxs, hxy⟩ := finset.mem_image.1
+      (by rwa [root_set, roots_map _ h, multiset.to_finset_map] at hy) in
     hxy ▸ set_like.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl K _ ▸
   ring_equiv.self_trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
@@ -80,14 +81,15 @@ theorem mul (f g : F[X]) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f
 ⟨(is_scalar_tower.algebra_map_eq F K L).symm ▸ splits_mul _
   (splits_comp_of_splits _ _ (splits K f))
   ((splits_map_iff _ _).1 (splits L $ g.map $ algebra_map F K)),
- by rw [polynomial.map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
+ by rw [root_set, polynomial.map_mul,
+      roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
         (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union,
       algebra.adjoin_union_eq_adjoin_adjoin,
       is_scalar_tower.algebra_map_eq F K L, ← map_map,
       roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
-      multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
-      algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ← map_map, adjoin_roots,
-      subalgebra.restrict_scalars_top]⟩
+      multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, ←root_set,
+      adjoin_root_set, algebra.map_top, is_scalar_tower.adjoin_range_to_alg_hom, ← map_map,
+      ←root_set, adjoin_root_set, subalgebra.restrict_scalars_top]⟩
 
 end scalar_tower
 
@@ -100,7 +102,7 @@ if hf0 : f = 0 then (algebra.of_id K F).comp $
   (algebra.bot_equiv K L : (⊥ : subalgebra K L) →ₐ[K] K).comp $
   by { rw ← (splits_iff L f).1 (show f.splits (ring_hom.id K), from hf0.symm ▸ splits_zero _),
   exact algebra.to_top } else
-alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_splits _ $ λ y hy,
+alg_hom.comp (by { rw ← adjoin_root_set L f, exact classical.choice (lift_of_splits _ $ λ y hy,
     have aeval y f = 0, from (eval₂_eq_eval_map _).trans $
       (mem_roots $ by exact map_ne_zero hf0).1 (multiset.mem_to_finset.mp hy),
     ⟨is_algebraic_iff_is_integral.1 ⟨f, hf0, this⟩,
@@ -108,10 +110,10 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
   algebra.to_top
 
 theorem finite_dimensional (f : K[X]) [is_splitting_field K L f] : finite_dimensional K L :=
-⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
+⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_root_set L f ▸
   fg_adjoin_of_finite (finset.finite_to_set _) (λ y hy,
   if hf : f = 0
-  then by { rw [hf, polynomial.map_zero, roots_zero] at hy, cases hy }
+  then by { rw [hf, root_set_zero] at hy, cases hy }
   else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
     (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
 
@@ -122,7 +124,7 @@ begin
   { rw ← f.to_alg_hom.comp_algebra_map,
     exact splits_comp_of_splits _ _ (splits F p) },
   { rw [←(algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
-        ←root_set, adjoin_root_set_eq_range (splits F p), root_set, adjoin_roots F p] },
+        adjoin_root_set_eq_range (splits F p), adjoin_root_set F p] },
 end
 
 end is_splitting_field

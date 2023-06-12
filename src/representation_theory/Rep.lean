@@ -76,6 +76,14 @@ lemma of_ρ_apply {V : Type u} [add_comm_group V] [module k V]
   (ρ : representation k G V) (g : Mon.of G) :
   (Rep.of ρ).ρ g = ρ (g : G) := rfl
 
+@[simp] lemma ρ_inv_self_apply {G : Type u} [group G] (A : Rep k G) (g : G) (x : A) :
+  A.ρ g⁻¹ (A.ρ g x) = x :=
+show (A.ρ g⁻¹ * A.ρ g) x = x, by rw [←map_mul, inv_mul_self, map_one, linear_map.one_apply]
+
+@[simp] lemma ρ_self_inv_apply {G : Type u} [group G] {A : Rep k G} (g : G) (x : A) :
+  A.ρ g (A.ρ g⁻¹ x) = x :=
+show (A.ρ g * A.ρ g⁻¹) x = x, by rw [←map_mul, mul_inv_self, map_one, linear_map.one_apply]
+
 lemma hom_comm_apply {A B : Rep k G} (f : A ⟶ B) (g : G) (x : A) :
   f.hom (A.ρ g x) = B.ρ g (f.hom x) :=
 linear_map.ext_iff.1 (f.comm g) x
@@ -277,9 +285,9 @@ variables [group G] (A B C : Rep k G)
       begin
         dsimp only [monoidal_category.tensor_left_obj, Module.comp_def, linear_map.comp_apply,
           tensor_rho, Module.monoidal_category.hom_apply, tensor_product.map_tmul],
-        simpa only [tensor_product.uncurry_apply f.hom.flip, linear_map.flip_apply,
+        simp only [tensor_product.uncurry_apply f.hom.flip, linear_map.flip_apply,
           Action_ρ_eq_ρ, hom_comm_apply f g y, Rep.ihom_obj_ρ_apply, linear_map.comp_apply,
-          inv_mul_self, ←linear_map.mul_apply, ←A.ρ.map_mul, A.ρ.map_one],
+          ρ_inv_self_apply],
       end) },
   left_inv := λ f, Action.hom.ext _ _ (tensor_product.ext' (λ x y, rfl)),
   right_inv := λ f, by ext; refl }

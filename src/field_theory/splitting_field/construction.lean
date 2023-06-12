@@ -94,11 +94,9 @@ recursion.
 def splitting_field_aux_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]),
   Σ (L : Type u) (inst : field L), by exactI algebra K L :=
 nat.rec_on n (λ K inst f, ⟨K, inst, infer_instance⟩) (λ m ih K inst f,
-begin
-  rcases ih (@remove_factor K inst f) with ⟨L, fL, alg⟩,
-  letI : field K := inst,
-  exact ⟨L, fL, (ring_hom.comp (algebra_map _ _) (adjoin_root.of f.factor)).to_algebra⟩,
-end)
+  let L := ih (@remove_factor K inst f) in let h₁ := L.2.1 in let h₂ := L.2.2 in
+  ⟨L.1, L.2.1, by
+    { exactI (ring_hom.comp (algebra_map _ _) (adjoin_root.of f.factor)).to_algebra }⟩)
 
 def splitting_field_aux (n : ℕ) {K : Type u} [field K] (f : K[X]) : Type u :=
   (splitting_field_aux_aux n f).1

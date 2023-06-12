@@ -251,12 +251,12 @@ lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : F[X]}
   (p₁ * p₂).splits (algebra_map F (q₁ * q₂).splitting_field) :=
 begin
   apply splits_mul,
-  { rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd _
-      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
-    exact splits_comp_of_splits _ _ h₁, },
-  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd _
-      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
-    exact splits_comp_of_splits _ _ h₂, },
+  { rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd (algebra_map F (q₁ * q₂).splitting_field)
+     (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₁ },
+  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd (algebra_map F (q₁ * q₂).splitting_field)
+     (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₂ },
 end
 
 /-- `p` splits in the splitting field of `p ∘ q`, for `q` non-constant. -/
@@ -298,7 +298,9 @@ end
 
 /-- `polynomial.gal.restrict` for the composition of polynomials. -/
 def restrict_comp (hq : q.nat_degree ≠ 0) : (p.comp q).gal →* p.gal :=
-@restrict F _ p _ _ _ ⟨splits_in_splitting_field_of_comp p q hq⟩
+let h : fact (splits (algebra_map F (p.comp q).splitting_field) p) :=
+    ⟨splits_in_splitting_field_of_comp p q hq⟩ in
+@restrict F _ p _ _ _ h
 
 lemma restrict_comp_surjective (hq : q.nat_degree ≠ 0) :
   function.surjective (restrict_comp p q hq) :=

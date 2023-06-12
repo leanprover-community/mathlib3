@@ -155,7 +155,7 @@ end
 local attribute [-instance] splitting_field.algebra'
 
 /-- A Galois field with exponent 1 is equivalent to `zmod` -/
-noncomputable! def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
+def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
 begin
   have h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)),
     by rw [pow_one, zmod.card p],

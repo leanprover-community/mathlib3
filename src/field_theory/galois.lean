@@ -297,11 +297,8 @@ begin
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
   rw intermediate_field.adjoin_simple_to_subalgebra_of_integral (integral F α),
   apply algebra.adjoin_mono,
-  rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
-  { dsimp only [polynomial.is_root],
-    rw [polynomial.eval_map, ←polynomial.aeval_def],
-    exact minpoly.aeval _ _ },
-  { exact polynomial.map_ne_zero (minpoly.ne_zero (integral F α)) }
+  rw [set.singleton_subset_iff, polynomial.mem_root_set],
+  exact ⟨minpoly.ne_zero (integral F α), minpoly.aeval _ _⟩
 end
 
 lemma of_fixed_field_eq_bot [finite_dimensional F E]

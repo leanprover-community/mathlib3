@@ -9,6 +9,9 @@ import algebra.category.Module.basic
 /-!
 # The forgetful functor from `R`-modules preserves filtered colimits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Forgetful functors from algebraic categories usually don't preserve colimits. However, they tend
 to preserve _filtered_ colimits.
 

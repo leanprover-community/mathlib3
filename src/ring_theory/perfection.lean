@@ -17,6 +17,9 @@ import ring_theory.valuation.integers
 /-!
 # Ring Perfection and Tilt
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the perfection of a ring of characteristic p, and the tilt of a field
 given a valuation to `ℝ≥0`.
 

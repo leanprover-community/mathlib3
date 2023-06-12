@@ -43,11 +43,77 @@ by ext x; induction x using sym2.ind; simp
 end simple_graph
 
 open finset fintype nat
-open_locale classical
 
 namespace simple_graph
-variables {α 𝕜 : Type*} [fintype α] [linear_ordered_field 𝕜] {G H : simple_graph α} {ε δ : 𝕜}
-  {n : ℕ} {s : finset α}
+variables {α β 𝕜 : Type*} [linear_ordered_field 𝕜] {G H : simple_graph α} {ε δ : 𝕜} {n : ℕ}
+  {s : finset α}
+
+section locally_linear
+variables [decidable_eq α] [decidable_eq β]
+
+/-- A graph has edge-disjoint triangles if each edge belongs to at most one triangle. -/
+def edge_disjoint_triangles (G : simple_graph α) : Prop :=
+(G.clique_set 3).pairwise $ λ x y, (x ∩ y).card ≤ 1
+
+/-- A graph is locally linear if each edge belongs to exactly one triangle. -/
+def locally_linear (G : simple_graph α) : Prop :=
+G.edge_disjoint_triangles ∧ ∀ ⦃x y⦄, G.adj x y → ∃ s, G.is_n_clique 3 s ∧ x ∈ s ∧ y ∈ s
+
+protected lemma locally_linear.edge_disjoint_triangles :
+  G.locally_linear → G.edge_disjoint_triangles :=
+and.left
+
+lemma edge_disjoint_triangles.mono (h : G ≤ H) (hH : H.edge_disjoint_triangles) :
+  G.edge_disjoint_triangles :=
+hH.mono $ clique_set_mono h
+
+@[simp] lemma edge_disjoint_triangles_bot : (⊥ : simple_graph α).edge_disjoint_triangles :=
+by simp [edge_disjoint_triangles]
+
+@[simp] lemma locally_linear_bot : (⊥ : simple_graph α).locally_linear := by simp [locally_linear]
+
+lemma edge_disjoint_triangles.map (f : α ↪ β) (hG : G.edge_disjoint_triangles) :
+  (G.map f).edge_disjoint_triangles :=
+begin
+  rw [edge_disjoint_triangles, clique_set_map (bit1_lt_bit1.2 zero_lt_one),
+    ((finset.map_injective f).inj_on _).pairwise_image],
+  rintro s hs t ht,
+  dsimp [function.on_fun],
+  rw [←map_inter, card_map],
+  exact hG hs ht,
+end
+
+lemma locally_linear.map (f : α ↪ β) (hG : G.locally_linear) : (G.map f).locally_linear :=
+begin
+  refine ⟨hG.1.map _, _⟩,
+  rintro _ _ ⟨a, b, h, rfl, rfl⟩,
+  obtain ⟨s, hs, ha, hb⟩ := hG.2 h,
+  exact ⟨s.map f, hs.map, mem_map_of_mem _ ha, mem_map_of_mem _ hb⟩,
+end
+
+@[simp] lemma locally_linear_comap {G : simple_graph β} {e : α ≃ β} :
+  (G.comap e.to_embedding).locally_linear ↔ G.locally_linear :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rw [←comap_map_eq e.symm.to_embedding G, comap_symm, map_symm],
+    exact h.map _ },
+  { rw ←map_symm,
+    exact locally_linear.map _ }
+end
+
+instance [fintype α] (G : simple_graph α) [decidable_rel G.adj] :
+  decidable G.edge_disjoint_triangles :=
+decidable_of_iff ((G.clique_finset 3 : set (finset α)).pairwise $ λ x y, (x ∩ y).card ≤ 1) $
+  by { rw coe_clique_finset, refl }
+
+instance [fintype α] (G : simple_graph α) [decidable_rel G.adj] : decidable G.locally_linear :=
+and.decidable
+
+end locally_linear
+
+open_locale classical
+
+variables [fintype α]
 
 /-- A simple graph is *`ε`-triangle-free far* if one must remove at least `ε * (card α)^2` edges to
 make it triangle-free. -/

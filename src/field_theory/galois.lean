@@ -371,7 +371,7 @@ begin
   let s := (p.map (algebra_map F E)).roots.to_finset,
   have adjoin_root : intermediate_field.adjoin F ↑s = ⊤,
   { apply intermediate_field.to_subalgebra_injective,
-    rw [intermediate_field.top_to_subalgebra, ←top_le_iff, ←sp.adjoin_roots],
+    rw [intermediate_field.top_to_subalgebra, ←top_le_iff, ←sp.adjoin_root_set],
     apply intermediate_field.algebra_adjoin_le_adjoin, },
   let P : intermediate_field F E → Prop := λ K, fintype.card (K →ₐ[F] E) = finrank F K,
   suffices : P (intermediate_field.adjoin F ↑s),

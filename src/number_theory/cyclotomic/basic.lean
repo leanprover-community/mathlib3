@@ -363,23 +363,11 @@ section
 
 variables {A B}
 
-lemma _root_.monoid_with_zero_hom_class.map_subsingleton
-  {R S F} [monoid_with_zero R] [monoid_with_zero S] [monoid_with_zero_hom_class F R S]
-  (f : F) [subsingleton R] : subsingleton S :=
-subsingleton_iff_zero_eq_one.mp $
-  (map_zero f).symm.trans $ (congr_arg _ $ subsingleton.elim _ _).trans $ (map_one f)
-
-lemma _root_.algebra.map_subsingleton (R S) [comm_semiring R] [semiring S] [algebra R S]
-  [subsingleton R] : subsingleton S := monoid_with_zero_hom_class.map_subsingleton (algebra_map R S)
-
 lemma adjoin_roots_cyclotomic_eq_adjoin_nth_roots [decidable_eq B] [is_domain B] {ζ : B}
   {n : ℕ+} (hζ : is_primitive_root ζ n) :
   adjoin A ((cyclotomic n A).root_set B) =
   adjoin A {b : B | ∃ (a : ℕ+), a ∈ ({n} : set ℕ+) ∧ b ^ (a : ℕ) = 1} :=
 begin
-  casesI subsingleton_or_nontrivial A,
-  { haveI := algebra.map_subsingleton A B,
-    simp },
   simp only [mem_singleton_iff, exists_eq_left, map_cyclotomic],
   refine le_antisymm (adjoin_mono (λ x hx, _)) (adjoin_le (λ x hx, _)),
   { rw [mem_root_set'] at hx,

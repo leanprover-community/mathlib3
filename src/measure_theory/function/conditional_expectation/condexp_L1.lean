@@ -7,9 +7,9 @@ import measure_theory.function.conditional_expectation.condexp_L2
 
 /-! # Conditional expectation in L1
 
-This file contains one step of the construction of the conditional expectation, which is completed
-in `measure_theory.function.conditional_expectation.basic`. See that file for a description of the
-full process.
+This file contains two more steps of the construction of the conditional expectation, which is
+completed in `measure_theory.function.conditional_expectation.basic`. See that file for a
+description of the full process.
 
 The contitional expectation of an `L²` function is defined in
 `measure_theory.function.conditional_expectation.condexp_L2`. In this file, we perform two steps.

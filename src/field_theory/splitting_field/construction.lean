@@ -423,7 +423,7 @@ begin
 end
 
 instance (f : K[X]) : is_splitting_field K (splitting_field_aux f.nat_degree f) f :=
-  ⟨splitting_field_aux.splits _ _ rfl, splitting_field_aux.adjoin_roots _ _ rfl⟩
+  ⟨splitting_field_aux.splits _ _ rfl, splitting_field_aux.adjoin_root_set _ _ rfl⟩
 
 def of_mv_polynomial (f : K[X]) :
     mv_polynomial (f.root_set (splitting_field_aux f.nat_degree f)) K →ₐ[K]
@@ -543,8 +543,12 @@ variables [algebra K L] (hb : splits (algebra_map K L) f)
 def lift : splitting_field f →ₐ[K] L :=
 is_splitting_field.lift f.splitting_field f hb
 
+theorem adjoin_roots : algebra.adjoin K
+    (↑(f.map (algebra_map K $ splitting_field f)).roots.to_finset : set (splitting_field f)) = ⊤ :=
+  is_splitting_field.adjoin_root_set f.splitting_field f
+
 theorem adjoin_root_set : algebra.adjoin K (f.root_set (splitting_field f)) = ⊤ :=
-splitting_field_aux.adjoin_root_set _ _ rfl
+adjoin_roots f
 
 end splitting_field
 
@@ -555,8 +559,6 @@ namespace is_splitting_field
 variables (K L) [algebra K L]
 
 variables {K}
-instance splitting_field (f : K[X]) : is_splitting_field K (splitting_field f) f :=
-⟨splitting_field.splits f, splitting_field.adjoin_root_set f⟩
 
 instance (f : K[X]) : _root_.finite_dimensional K f.splitting_field :=
 finite_dimensional f.splitting_field f

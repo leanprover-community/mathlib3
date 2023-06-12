@@ -466,6 +466,10 @@ by { delta splitting_field; apply_instance }
 instance algebra' {R : Type*} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
 by { delta splitting_field; apply_instance }
 
+instance is_scalar_tower {R : Type*} [comm_semiring R] [algebra R K] :
+  is_scalar_tower R K (splitting_field f) :=
+by { delta splitting_field; apply_instance }
+
 /-- The algebra equivalence with `splitting_field_aux`,
 which we will use to construct the field structure. -/
 def alg_equiv_splitting_field_aux (f : K[X]) :

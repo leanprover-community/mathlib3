@@ -363,7 +363,7 @@ section
 
 variables {A B}
 
-lemma adjoin_roots_cyclotomic_eq_adjoin_nth_roots [decidable_eq B] [is_domain B] {ζ : B}
+lemma adjoin_roots_cyclotomic_eq_adjoin_nth_roots [is_domain B] {ζ : B}
   {n : ℕ+} (hζ : is_primitive_root ζ n) :
   adjoin A ((cyclotomic n A).root_set B) =
   adjoin A {b : B | ∃ (a : ℕ+), a ∈ ({n} : set ℕ+) ∧ b ^ (a : ℕ) = 1} :=
@@ -383,7 +383,7 @@ begin
     refine ⟨cyclotomic_ne_zero n B, hζ.is_root_cyclotomic n.pos⟩ }
 end
 
-lemma adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic {n : ℕ+} [decidable_eq B] [is_domain B]
+lemma adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic {n : ℕ+} [is_domain B]
   {ζ : B} (hζ : is_primitive_root ζ n) :
   adjoin A ((cyclotomic n A).root_set B) = adjoin A ({ζ}) :=
 begin
@@ -670,7 +670,6 @@ instance [ne_zero ((n : ℕ) : A)] :
 lemma eq_adjoin_primitive_root {μ : (cyclotomic_field n K)} (h : is_primitive_root μ n) :
   cyclotomic_ring n A K = adjoin A ({μ} : set ((cyclotomic_field n K))) :=
 begin
-  letI := classical.prop_decidable,
   rw [←is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic h,
       is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots h],
   simp [cyclotomic_ring]

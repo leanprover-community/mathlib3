@@ -543,12 +543,8 @@ variables [algebra K L] (hb : splits (algebra_map K L) f)
 def lift : splitting_field f →ₐ[K] L :=
 is_splitting_field.lift f.splitting_field f hb
 
-theorem adjoin_roots : algebra.adjoin K
-    (↑(f.map (algebra_map K $ splitting_field f)).roots.to_finset : set (splitting_field f)) = ⊤ :=
-  is_splitting_field.adjoin_root_set f.splitting_field f
-
 theorem adjoin_root_set : algebra.adjoin K (f.root_set (splitting_field f)) = ⊤ :=
-adjoin_roots f
+polynomial.is_splitting_field.adjoin_root_set _ f
 
 end splitting_field
 

@@ -394,8 +394,8 @@ exact splits_mul _ (splits_X_sub_C _) (ih _ (nat_degree_remove_factor' hf)) }
 -- have hmf0 : map (adjoin_root.of f.factor) f ≠ 0, from map_ne_zero hfn0,
 -- have hsf : splits (adjoin_root.lift j r hr) f.remove_factor,
 -- by { rw ← X_sub_C_mul_remove_factor _ hndf at hmf0, refine (splits_of_splits_mul _ hmf0 _).2,
---   rwa [X_sub_C_mul_remove_factor _ hndf, ← splits_id_iff_splits, map_map, adjoin_root.lift_comp_of,
---       splits_id_iff_splits] },
+--   rwa [X_sub_C_mul_remove_factor _ hndf, ← splits_id_iff_splits, map_map,
+--     adjoin_root.lift_comp_of, splits_id_iff_splits] },
 -- let ⟨k, hk⟩ := ih f.remove_factor (nat_degree_remove_factor' hf) (adjoin_root.lift j r hr) hsf in
 -- ⟨k, by rw [algebra_map_succ, ← ring_hom.comp_assoc, hk, adjoin_root.lift_comp_of]⟩
 

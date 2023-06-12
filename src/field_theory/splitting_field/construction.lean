@@ -451,7 +451,7 @@ namespace splitting_field
 variables (f : K[X])
 
 instance comm_ring : comm_ring (splitting_field f) :=
-by { delta splitting_field; apply_instance }
+ideal.quotient.comm_ring _
 
 instance inhabited : inhabited (splitting_field f) :=
   ⟨37⟩
@@ -461,14 +461,14 @@ instance {S : Type*} [comm_semiring S] [distrib_smul S K] [is_scalar_tower S K K
   submodule.quotient.has_smul' _
 
 instance algebra : algebra K (splitting_field f) :=
-by { delta splitting_field; apply_instance }
+ideal.quotient.algebra _
 
 instance algebra' {R : Type*} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
-by { delta splitting_field; apply_instance }
+ideal.quotient.algebra _
 
 instance is_scalar_tower {R : Type*} [comm_semiring R] [algebra R K] :
   is_scalar_tower R K (splitting_field f) :=
-by { delta splitting_field; apply_instance }
+ideal.quotient.is_scalar_tower _ _ _
 
 /-- The algebra equivalence with `splitting_field_aux`,
 which we will use to construct the field structure. -/

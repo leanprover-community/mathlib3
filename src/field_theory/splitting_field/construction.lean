@@ -566,6 +566,11 @@ variables {K}
 instance (f : K[X]) : _root_.finite_dimensional K f.splitting_field :=
 finite_dimensional f.splitting_field f
 
+instance [fintype K] (f : K[X]) : fintype f.splitting_field :=
+finite_dimensional.fintype_of_fintype K _
+
+instance (f : K[X]) : no_zero_smul_divisors K f.splitting_field := infer_instance
+
 /-- Any splitting field is isomorphic to `splitting_field f`. -/
 def alg_equiv (f : K[X]) [is_splitting_field K L f] : L ≃ₐ[K] splitting_field f :=
 begin

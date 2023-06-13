@@ -223,8 +223,8 @@ begin
   haveI := fact.mk hp',
   haveI := fact.mk (hchar.subst hp'),
   rw [ne, ← nat.prime_dvd_prime_iff_eq hp' hp, ← is_unit_iff_not_dvd_char, hchar] at hch₁,
-  exact char.card_pow_char_pow (hχ₂.comp _) ψ.stupid.char (ring_char FF') n' hch₁ (hchar ▸ hch₂)
-    (gauss_sum_sq (hχ₁.comp $ ring_hom.injective _) (hχ₂.comp _) ψ.stupid.prim),
+  exact char.card_pow_char_pow (hχ₂.comp _) ψ.char (ring_char FF') n' hch₁ (hchar ▸ hch₂)
+    (gauss_sum_sq (hχ₁.comp $ ring_hom.injective _) (hχ₂.comp _) ψ.prim),
 end
 
 end gauss_sum_values
@@ -271,11 +271,11 @@ begin
   -- there is a primitive additive character `ℤ/8ℤ → FF`, sending `a + 8ℤ ↦ τ^a`
   -- with a primitive eighth root of unity `τ`
   let ψ₈ := primitive_zmod_char 8 F (by convert hp2 3; norm_num),
-  let τ : FF := ψ₈.stupid.char 1,
+  let τ : FF := ψ₈.char 1,
   have τ_spec : τ ^ 4 = -1,
   { refine (sq_eq_one_iff.1 _).resolve_left _;
     { simp only [τ, ← map_nsmul_pow],
-      erw add_char.is_primitive.zmod_char_eq_one_iff 8 ψ₈.stupid.prim,
+      erw add_char.is_primitive.zmod_char_eq_one_iff 8 ψ₈.prim,
       dec_trivial } },
 
   -- we consider `χ₈` as a multiplicative character `ℤ/8ℤ → FF`
@@ -284,7 +284,7 @@ begin
   have hq : is_quadratic χ := is_quadratic_χ₈.comp _,
 
   -- we now show that the Gauss sum of `χ` and `ψ₈` has the relevant property
-  have hg : gauss_sum χ ψ₈.stupid.char ^ 2 = χ (-1) * fintype.card (zmod 8),
+  have hg : gauss_sum χ ψ₈.char ^ 2 = χ (-1) * fintype.card (zmod 8),
   { rw [hχ, one_mul, card, gauss_sum],
     convert ← congr_arg (^ 2) (fin.sum_univ_eight $ λ x, (χ₈ x : FF) * τ ^ x.val),
     { ext, congr, apply pow_one },

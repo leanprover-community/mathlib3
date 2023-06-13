@@ -108,6 +108,7 @@ begin
   ext μ,
   have : (μ ∈ {μ : K | f.eigenspace μ = ⊥ → false}) ↔ ¬f.eigenspace μ = ⊥ := by tauto,
   convert rfl.mpr this,
+  classical,
   simp [polynomial.root_set_def, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root,
     has_eigenvalue]
 end

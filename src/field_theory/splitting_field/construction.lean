@@ -431,7 +431,13 @@ def of_mv_polynomial (f : K[X]) :
   mv_polynomial.aeval (λ i, i.1)
 
 theorem of_mv_polynomial_surjective (f : K[X]) : function.surjective (of_mv_polynomial f) :=
-  sorry
+begin
+  suffices : alg_hom.range (of_mv_polynomial f) = ⊤,
+  { rw [← set.range_iff_surjective]; rwa [set_like.ext'_iff] at this },
+  rw [of_mv_polynomial, ← algebra.adjoin_range_eq_range_aeval K, eq_top_iff,
+    ← adjoin_root_set _ _ rfl],
+  exact algebra.adjoin_le (λ α hα, algebra.subset_adjoin ⟨⟨α, hα⟩, rfl⟩)
+end
 
 def alg_equiv_quotient_mv_polynomial (f : K[X]) :
     (mv_polynomial (f.root_set (splitting_field_aux f.nat_degree f)) K ⧸

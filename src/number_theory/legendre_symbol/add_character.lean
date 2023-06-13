@@ -228,10 +228,19 @@ end
 of a field `R'`. It records which cyclotomic extension it is, the character, and the
 fact that the character is primitive. -/
 @[nolint has_nonempty_instance] -- can't prove that they always exist
-structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R'] :=
-(n : ℕ+)
-(char : add_char R (cyclotomic_field n R'))
-(prim : is_primitive char)
+def primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R'] :=
+Σ (n : ℕ+), (Σ' (char : add_char R (cyclotomic_field n R')), is_primitive char)
+
+noncomputable! def primitive_add_char.n {R : Type u} [comm_ring R] [fintype R] {R' : Type v}
+  [field R'] : primitive_add_char R R' → ℕ+ := λ χ, χ.1
+
+noncomputable! def primitive_add_char.char {R : Type u} [comm_ring R] [fintype R] {R' : Type v}
+  [field R'] : Π (χ : primitive_add_char R R'), add_char R (cyclotomic_field χ.n R') :=
+  λ χ, χ.2.1
+
+noncomputable! def primitive_add_char.prim {R : Type u} [comm_ring R] [fintype R] {R' : Type v}
+  [field R'] : Π (χ : primitive_add_char R R'), is_primitive χ.char :=
+  λ χ, χ.2.2
 
 /-!
 ### Additive characters on `zmod n`
@@ -311,10 +320,8 @@ def primitive_zmod_char (n : ℕ+) (F' : Type v) [field F'] (h : (n : F') ≠ 0)
   primitive_add_char (zmod n) F' :=
 begin
   haveI : ne_zero ((n : ℕ) : F') := ⟨h⟩,
-  exact
-{ n := n,
-  char := zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
-  prim := zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec n F' _) }
+  exact ⟨n, zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
+    zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec n F' _)⟩
 end
 
 /-!
@@ -348,10 +355,7 @@ begin
     rw one_mul at ha,
     exact ⟨a, λ hf, ha $ (ψ.prim.zmod_char_eq_one_iff pp $ algebra.trace (zmod p) F a).mp hf⟩,
   end,
-  exact
-{ n := ψ.n,
-  char := ψ',
-  prim := hψ'.is_primitive },
+  exact ⟨ψ.n, ψ', hψ'.is_primitive⟩
 end
 
 /-!

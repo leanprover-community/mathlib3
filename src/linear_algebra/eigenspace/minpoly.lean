@@ -10,6 +10,9 @@ import field_theory.minpoly.field
 /-!
 # Eigenvalues are the roots of the minimal polynomial.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Tags
 
 eigenvalue, minimal polynomial

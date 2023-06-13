@@ -193,9 +193,9 @@ variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F] [com
   (K : convex_cone ℝ E).inner_dual_cone_of_inner_dual_cone_eq_self K.nonempty K.is_closed
 
 /-- This is a relative version of
-`convex_cone.hyperplane_separation_of_nonempty_of_is_closed_of_nmem`. This reduces to the previous
-theorem when `f` is the identity map. This is a geometric interpretation of the Farkas' lemma
-(2.3.4 in the reference) stated using proper cones. -/
+`convex_cone.hyperplane_separation_of_nonempty_of_is_closed_of_nmem`, which we recover by setting
+`f` to be the identity map. This is a geometric interpretation of the Farkas' lemma
+stated using proper cones. -/
 theorem hyperplane_separation (K : proper_cone ℝ E) {f : E →L[ℝ] F} {b : F} :
   b ∈ K.map f ↔ ∀ y : F, (adjoint f y) ∈ K.dual → 0 ≤ ⟪y, b⟫_ℝ := iff.intro
 begin

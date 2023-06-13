@@ -106,6 +106,7 @@ begin
   have h : minpoly K f ≠ 0 := minpoly.ne_zero f.is_integral,
   convert (minpoly K f).root_set_finite K using 1,
   ext μ,
+  classical,
   simp [polynomial.root_set_def, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root,
     has_eigenvalue],
 end

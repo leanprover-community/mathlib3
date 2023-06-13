@@ -1,5 +1,6 @@
-import field_theory.splitting_field.construction
+import data.mv_polynomial.basic
+import data.polynomial.ring_division
 
 structure test (K : Type) [inst : field K] :=
 (n : ℕ)
-(x : @polynomial.splitting_field K inst (n : polynomial K))
+(x : mv_polynomial ((n : polynomial K).root_set K) K)

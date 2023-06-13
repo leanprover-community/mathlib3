@@ -448,11 +448,46 @@ lemma rearrangement_bijective {a : ℕ → ℝ}
   : function.bijective (rearrangement a M) :=
 ⟨rearrangement_injective h₁ h₂ M, rearrangement_surjective h₁ h₂ M⟩
 
+@[reducible]
+noncomputable def sumto (a : ℕ → ℝ) (M : ℝ) : ℕ → ℝ :=
+partial_sum (λ i, a (rearrangement a M i))
+
+/--
+  An index is a "switchpoint" when the previous parital sum in the series is on the "opposite side"
+  of M. (This is not standard terminology.)
+-/
+inductive rearrangement_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : Prop
+| start : n = 0 → rearrangement_switchpoint
+| under_to_over : sumto a M (n - 1) < M ∧ M ≤ sumto a M n → rearrangement_switchpoint
+| over_to_under : M ≤ sumto a M (n - 1) ∧ sumto a M n < M → rearrangement_switchpoint
+
+/--
+  Helper instance to make it easier to use rearrangement_switchpoint in nat.find_greatest
+-/
+noncomputable instance decidable_rearrangement_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
+  : decidable (rearrangement_switchpoint a M n) :=
+begin
+  classical,
+  apply_instance
+end
+
+lemma switchpoints_tendto_zero (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
+  : tendsto (nat.find_greatest (rearrangement_switchpoint a M)) at_top (𝓝 0) :=
+begin
+  sorry
+end
+
 lemma rearrangement_tendsto_M {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ)
   : tendsto (partial_sum (λ n, a (rearrangement a M n))) at_top (𝓝 M) :=
 begin
+  rw tendsto_def,
+  intros s hs,
+  rw filter.mem_at_top_sets,
+  use 0, -- TODO: Change to a value that works
+  intros b hb,
+  rw set.mem_preimage,
   sorry
 end
 

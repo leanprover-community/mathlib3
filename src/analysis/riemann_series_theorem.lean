@@ -363,6 +363,18 @@ begin
   exact this
 end
 
+lemma rearrangement_nonneg_spec' {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : partial_sum (λ k, a (rearrangement a M k)) n ≤ M) (hn : n ≠ 0)
+  : rearrangement a M n ∉ set.range (λ x : fin n, rearrangement a M ↑x) ∧
+    0 ≤ a (rearrangement a M n) :=
+begin
+  cases n,
+  { contradiction },
+  { exact rearrangement_nonneg_spec h₁ h₂ h }
+end
+
 lemma rearrangement_neg_spec {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
@@ -373,6 +385,18 @@ begin
   have := nat.find_spec (exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
   rw rearrangement_neg h₁ h₂ h,
   exact this
+end
+
+lemma rearrangement_neg_spec' {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : M < partial_sum (λ k, a (rearrangement a M k)) n) (hn : n ≠ 0)
+  : rearrangement a M n ∉ set.range (λ x : fin n, rearrangement a M ↑x) ∧
+    a (rearrangement a M n) < 0 :=
+begin
+  cases n,
+  { contradiction },
+  { exact rearrangement_neg_spec h₁ h₂ h }
 end
 
 lemma rearrangement_not_mem {a : ℕ → ℝ}
@@ -471,11 +495,41 @@ begin
   apply_instance
 end
 
-lemma switchpoints_tendto_zero (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
-  : tendsto (nat.find_greatest (rearrangement_switchpoint a M)) at_top (𝓝 0) :=
+lemma diff_M_le_switchpoint (a : ℕ → ℝ) (M : ℝ) {d : ℕ} (hd : rearrangement_switchpoint a M d)
+  (hd₁ : d ≠ 0)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : ‖sumto a M d - M‖ ≤ ‖a (rearrangement a M (d - 1))‖ :=
+begin
+  have h : sumto a M d - sumto a M (d - 1) = a (rearrangement a M (d - 1)),
+  { unfold sumto,
+    rw ←(nat.sub_add_cancel (nat.one_le_iff_ne_zero.mpr hd₁)),
+    simp [partial_sum_next] },
+  cases hd,
+  { contradiction },
+  { have : sumto a M d - M < sumto a M d - sumto a M (d - 1) := by simp [hd.left],
+    rw h at this,
+    rw real.norm_of_nonneg (show 0 ≤ sumto a M d - M, by simp [hd.right]),
+    have q : 0 ≤ a (rearrangement a M (d - 1)) := begin
+      have := @rearrangement_nonneg_spec' _ h₁ h₂ M (d - 1) hd.left.le,
+      sorry
+    end,
+    rw real.norm_of_nonneg (show 0 ≤ a (rearrangement a M (d - 1)), from sorry),
+    exact this.le },
+  {
+    have : -(sumto a M d - M) ≤ -(sumto a M d - sumto a M (d - 1)) := by simp [hd.left],
+    rw h at this,
+    rw real.norm_of_nonpos (show sumto a M d - M ≤ 0, by simp [hd.right.le]),
+    sorry
+  }
+end
+
+-- TODO: Check the statement of this lemma very carefully
+ /-lemma switchpoints_tendto_M (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
+  : tendsto (λ i, ‖sumto A M i - a (nat.find_greatest (rearrangement_switchpoint a M) i)‖) at_top (𝓝 0) :=
 begin
   sorry
-end
+end-/
 
 lemma rearrangement_tendsto_M {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))

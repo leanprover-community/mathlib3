@@ -224,8 +224,6 @@ begin
   rwa [mul_shift_apply, mul_inv_cancel_left₀ ha],
 end
 
-#exit
-
 /-- Structure for a primitive additive character on a finite ring `R` into a cyclotomic extension
 of a field `R'`. It records which cyclotomic extension it is, the character, and the
 fact that the character is primitive. -/

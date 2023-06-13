@@ -228,10 +228,14 @@ end
 of a field `R'`. It records which cyclotomic extension it is, the character, and the
 fact that the character is primitive. -/
 @[nolint has_nonempty_instance] -- can't prove that they always exist
-structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R'] :=
-(n : ℕ+)
+structure primitive_add_char' (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R']
+  (n : ℕ+) :=
 (char : add_char R (cyclotomic_field n R'))
 (prim : is_primitive char)
+
+structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R'] :=
+(n : ℕ+)
+(stupid : primitive_add_char' R R' n)
 
 /-!
 ### Additive characters on `zmod n`
@@ -311,10 +315,11 @@ def primitive_zmod_char (n : ℕ+) (F' : Type v) [field F'] (h : (n : F') ≠ 0)
   primitive_add_char (zmod n) F' :=
 begin
   haveI : ne_zero ((n : ℕ) : F') := ⟨h⟩,
-  exact
-{ n := n,
-  char := zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
-  prim := zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec n F' _) }
+  refine ⟨n, zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
+    zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec n F' _)⟩,
+-- { n := n,
+--   char := zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
+--   prim := zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec n F' _) }
 end
 
 /-!
@@ -341,17 +346,14 @@ begin
       exact λ hf, nat.prime.ne_zero hp.1 (zero_dvd_iff.mp hf), },
   end,
   let ψ := primitive_zmod_char pp F' (ne_zero_iff.mp (ne_zero.of_not_dvd F' hp₂)),
-  let ψ' := ψ.char.comp (algebra.trace (zmod p) F).to_add_monoid_hom.to_multiplicative,
+  let ψ' := ψ.stupid.char.comp (algebra.trace (zmod p) F).to_add_monoid_hom.to_multiplicative,
   have hψ' : is_nontrivial ψ' :=
   begin
     obtain ⟨a, ha⟩ := finite_field.trace_to_zmod_nondegenerate F one_ne_zero,
     rw one_mul at ha,
-    exact ⟨a, λ hf, ha $ (ψ.prim.zmod_char_eq_one_iff pp $ algebra.trace (zmod p) F a).mp hf⟩,
+    exact ⟨a, λ hf, ha $ (ψ.stupid.prim.zmod_char_eq_one_iff pp $ algebra.trace (zmod p) F a).mp hf⟩,
   end,
-  exact
-{ n := ψ.n,
-  char := ψ',
-  prim := hψ'.is_primitive },
+  exact ⟨ψ.n, ψ', hψ'.is_primitive⟩
 end
 
 /-!

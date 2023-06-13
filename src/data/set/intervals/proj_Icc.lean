@@ -114,6 +114,20 @@ congr_arg f $ proj_Icc_of_mem h hx
   Icc_extend h f x = f x :=
 congr_arg f $ proj_Icc_coe h x
 
+/-- If `f : α → β` is a constant both on $(-∞, a]$ and on $[b, +∞)$, then the extension of this
+function from $[a, b]$ to the whole line is equal to the original function. -/
+lemma Icc_extend_eq_self (f : α → β) (ha : ∀ x < a, f x = f a) (hb : ∀ x, b < x → f x = f b) :
+  Icc_extend h (f ∘ coe) = f :=
+begin
+  ext x,
+  cases lt_or_le x a with hxa hax,
+  { simp [Icc_extend_of_le_left _ _ hxa.le, ha x hxa] },
+  { cases le_or_lt x b with hxb hbx,
+    { lift x to Icc a b using ⟨hax, hxb⟩,
+      rw [Icc_extend_coe] },
+    { simp [Icc_extend_of_right_le _ _ hbx.le, hb x hbx] } }
+end
+
 end set
 
 open set

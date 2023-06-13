@@ -12,6 +12,9 @@ import category_theory.limits.shapes.zero_objects
 /-!
 # A cartesian closed category with zero object is trivial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A cartesian closed category with zero object is trivial: it is equivalent to the category with one
 object and one morphism.
 

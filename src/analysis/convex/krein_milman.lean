@@ -9,6 +9,9 @@ import analysis.normed_space.hahn_banach.separation
 /-!
 # The Krein-Milman theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Krein-Milman lemma and the Krein-Milman theorem.
 
 ## The lemma

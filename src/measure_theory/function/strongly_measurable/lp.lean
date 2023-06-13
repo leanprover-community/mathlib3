@@ -10,6 +10,9 @@ import measure_theory.function.strongly_measurable.basic
 /-!
 # Finitely strongly measurable functions in `Lp`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Functions in `Lp` for `0 < p < ∞` are finitely strongly measurable.
 
 ## Main statements

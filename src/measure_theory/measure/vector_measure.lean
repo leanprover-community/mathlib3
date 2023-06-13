@@ -10,6 +10,9 @@ import analysis.complex.basic
 
 # Vector valued measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines vector valued measures, which are σ-additive functions from a set to a add monoid
 `M` such that it maps the empty set and non-measurable sets to zero. In the case
 that `M = ℝ`, we called the vector measure a signed measure and write `signed_measure α`.

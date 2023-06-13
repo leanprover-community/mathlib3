@@ -6,7 +6,10 @@ Authors: Sébastien Gouëzel
 import measure_theory.integral.lebesgue
 import analysis.normed_space.basic
 
-/-! # A lemma about measurability with density under scalar multiplication in normed spaces -/
+/-! # A lemma about measurability with density under scalar multiplication in normed spaces 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 open measure_theory filter ennreal set
 open_locale nnreal ennreal

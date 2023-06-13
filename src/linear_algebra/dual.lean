@@ -12,6 +12,9 @@ import linear_algebra.free_module.finite.basic
 /-!
 # Dual vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The dual space of an $R$-module $M$ is the $R$-module of $R$-linear maps $M \to R$.
 
 ## Main definitions

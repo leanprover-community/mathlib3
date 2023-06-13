@@ -8,6 +8,9 @@ import probability.independence.basic
 /-!
 # Kolmogorov's 0-1 law
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `s : ι → measurable_space Ω` be an independent sequence of sub-σ-algebras. Then any set which
 is measurable with respect to the tail σ-algebra `limsup s at_top` has probability 0 or 1.
 

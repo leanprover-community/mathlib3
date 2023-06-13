@@ -10,6 +10,9 @@ import measure_theory.function.lp_space
 /-!
 # Convergence in measure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define convergence in measure which is one of the many notions of convergence in probability.
 A sequence of functions `f` is said to converge in measure to some function `g`
 if for all `ε > 0`, the measure of the set `{x | ε ≤ dist (f i x) (g x)}` tends to 0 as `i`

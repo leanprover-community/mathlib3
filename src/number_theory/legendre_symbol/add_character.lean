@@ -224,21 +224,27 @@ begin
   rwa [mul_shift_apply, mul_inv_cancel_left₀ ha],
 end
 
-/-- Structure for a primitive additive character on a finite ring `R` into a cyclotomic extension
+/-- Definition for a primitive additive character on a finite ring `R` into a cyclotomic extension
 of a field `R'`. It records which cyclotomic extension it is, the character, and the
 fact that the character is primitive. -/
+-- Using `structure` gives a timeout, see
+--https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/mysterious.20finsupp.20related.20timeout/near/365719262 and
+--https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/mysterious.20finsupp.20related.20timeout
 @[nolint has_nonempty_instance] -- can't prove that they always exist
-def primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R'] :=
+def primitive_add_char (R : Type u) [comm_ring R] (R' : Type v) [field R'] :=
 Σ (n : ℕ+), (Σ' (char : add_char R (cyclotomic_field n R')), is_primitive char)
 
-noncomputable! def primitive_add_char.n {R : Type u} [comm_ring R] [fintype R] {R' : Type v}
+/-- The first projection from `primitive_add_char`, giving the cyclotomic field. -/
+noncomputable! def primitive_add_char.n {R : Type u} [comm_ring R] {R' : Type v}
   [field R'] : primitive_add_char R R' → ℕ+ := λ χ, χ.1
 
-noncomputable! def primitive_add_char.char {R : Type u} [comm_ring R] [fintype R] {R' : Type v}
+/-- The second projection from `primitive_add_char`, giving the character. -/
+noncomputable! def primitive_add_char.char {R : Type u} [comm_ring R] {R' : Type v}
   [field R'] : Π (χ : primitive_add_char R R'), add_char R (cyclotomic_field χ.n R') :=
   λ χ, χ.2.1
 
-lemma primitive_add_char.prim {R : Type u} [comm_ring R] [fintype R] {R' : Type v}
+/-- The third projection from `primitive_add_char`, showing that `χ.2` is primitive. -/
+lemma primitive_add_char.prim {R : Type u} [comm_ring R] {R' : Type v}
   [field R'] : Π (χ : primitive_add_char R R'), is_primitive χ.char :=
   λ χ, χ.2.2
 

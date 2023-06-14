@@ -144,7 +144,6 @@ add_monoid_algebra.unique
 
 end instances
 
-
 variables [comm_semiring R] [comm_semiring S₁] {p q : mv_polynomial σ R}
 
 /-- `monomial s a` is the monomial with coefficient `a` and exponents given by `s`  -/

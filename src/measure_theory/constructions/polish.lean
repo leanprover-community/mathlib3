@@ -569,10 +569,9 @@ instance quotient.borel_space {X : Type*} [topological_space X] [polish_space X]
 
 @[to_additive]
 instance quotient_group.borel_space {G : Type*} [topological_space G] [polish_space G]
-  [second_countable_topology G] [group G] [topological_group G] [measurable_space G]
-  [borel_space G] {N : subgroup G} [N.normal] [is_closed (N : set G)] : borel_space (G ⧸ N) :=
-quotient.borel_space
-
+  [group G] [topological_group G] [measurable_space G] [borel_space G]
+  {N : subgroup G} [N.normal] [is_closed (N : set G)] : borel_space (G ⧸ N) :=
+by haveI := polish_space.second_countable G; exact quotient.borel_space
 
 namespace measure_theory
 

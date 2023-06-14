@@ -20,8 +20,10 @@ In this file we prove the existence and uniqueness of splitting fields.
   to `splitting_field f` and thus, being a splitting field is unique up to isomorphism.
 
 ## Implementation details
-We construct a `splitting_field_aux` without worrying about whether the instances satisfy nice definitional equalities. Then the actual `splitting_field` is defined to be a quotient of an
-`mv_polynomial` ring by the kernel of the obvious map into `splitting_field_aux`. Because the actual `splitting_field` will be a quotient of a `mv_polynomial` it should have nice instances on it.
+We construct a `splitting_field_aux` without worrying about whether the instances satisfy nice
+definitional equalities. Then the actual `splitting_field` is defined to be a quotient of an
+`mv_polynomial` ring by the kernel of the obvious map into `splitting_field_aux`. Because the
+actual `splitting_field` will be a quotient of a `mv_polynomial` it has nice instances on it.
 
 -/
 

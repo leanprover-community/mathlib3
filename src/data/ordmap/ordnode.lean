@@ -10,6 +10,9 @@ import data.nat.psub
 /-!
 # Ordered sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a data structure for ordered sets, supporting a
 variety of useful operations including insertion and deletion,
 logarithmic time lookup, set operations, folds,

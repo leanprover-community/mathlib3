@@ -13,6 +13,9 @@ import linear_algebra.matrix.basis
 /-!
 # Determinant of families of vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the determinant of an endomorphism, and of a family of vectors
 with respect to some basis. For the determinant of a matrix, see the file
 `linear_algebra.matrix.determinant`.
@@ -477,7 +480,7 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
-@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M 1 :=
+@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M ι 1 :=
 begin
   ext v,
   exact matrix.det_is_empty,

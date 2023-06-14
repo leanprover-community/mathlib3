@@ -8,6 +8,9 @@ import measure_theory.integral.integrable_on
 /-!
 # Locally integrable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function is called *locally integrable* (`measure_theory.locally_integrable`) if it is integrable
 on a neighborhood of every point. More generally, it is *locally integrable on `s`* if it is
 locally integrable on a neighbourhood within `s` of any point of `s`.

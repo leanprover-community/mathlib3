@@ -5,11 +5,9 @@ Authors: David Loeffler
 -/
 
 import number_theory.bernoulli_polynomials
-import analysis.special_functions.integrals
 import measure_theory.integral.interval_integral
 import analysis.fourier.add_circle
 import analysis.p_series
-
 
 /-!
 # Critical values of the Riemann zeta function

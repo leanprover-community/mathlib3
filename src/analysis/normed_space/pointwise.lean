@@ -21,7 +21,59 @@ multiplication of bounded sets remain bounded.
 open metric set
 open_locale pointwise topology
 
-variables {𝕜 E : Type*} [normed_field 𝕜]
+variables {𝕜 E : Type*}
+
+section smul_zero_class
+variables [seminormed_add_comm_group 𝕜] [seminormed_add_comm_group E]
+variables [smul_zero_class 𝕜 E] [has_bounded_smul 𝕜 E]
+
+lemma ediam_smul_le (c : 𝕜) (s : set E) :
+  emetric.diam (c • s) ≤ ‖c‖₊ • emetric.diam s :=
+(lipschitz_with_smul c).ediam_image_le s
+
+end smul_zero_class
+
+section division_ring
+variables [normed_division_ring 𝕜] [seminormed_add_comm_group E]
+variables [module 𝕜 E] [has_bounded_smul 𝕜 E]
+
+lemma ediam_smul₀ (c : 𝕜) (s : set E) :
+  emetric.diam (c • s) = ‖c‖₊ • emetric.diam s :=
+begin
+  refine le_antisymm (ediam_smul_le c s) _,
+  obtain rfl | hc := eq_or_ne c 0,
+  { obtain rfl | hs := s.eq_empty_or_nonempty,
+    { simp },
+    simp [zero_smul_set hs, ←set.singleton_zero], },
+  { have := (lipschitz_with_smul c⁻¹).ediam_image_le (c • s),
+    rwa [← smul_eq_mul, ←ennreal.smul_def, set.image_smul, inv_smul_smul₀ hc s, nnnorm_inv,
+      ennreal.le_inv_smul_iff (nnnorm_ne_zero_iff.mpr hc)] at this }
+end
+
+lemma diam_smul₀ (c : 𝕜) (x : set E) : diam (c • x) = ‖c‖ * diam x :=
+by simp_rw [diam, ediam_smul₀, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm, smul_eq_mul]
+
+lemma inf_edist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
+  emetric.inf_edist (c • x) (c • s) = ‖c‖₊ • emetric.inf_edist x s :=
+begin
+  simp_rw [emetric.inf_edist],
+  have : function.surjective ((•) c : E → E) :=
+    function.right_inverse.surjective (smul_inv_smul₀ hc),
+  transitivity ⨅ y (H : y ∈ s), ‖c‖₊ • edist x y,
+  { refine (this.infi_congr _ $ λ y, _).symm,
+    simp_rw [smul_mem_smul_set_iff₀ hc, edist_smul₀] },
+  { have : (‖c‖₊ : ennreal) ≠ 0 := by simp [hc],
+    simp_rw [ennreal.smul_def, smul_eq_mul, ennreal.mul_infi_of_ne this ennreal.coe_ne_top] },
+end
+
+lemma inf_dist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
+  metric.inf_dist (c • x) (c • s) = ‖c‖ * metric.inf_dist x s :=
+by simp_rw [metric.inf_dist, inf_edist_smul₀ hc, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm,
+  smul_eq_mul]
+
+end division_ring
+
+variables [normed_field 𝕜]
 
 section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [normed_space 𝕜 E]

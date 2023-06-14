@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 import category_theory.glue_data
 import category_theory.concrete_category.elementwise
-import topology.category.Top.limits
+import topology.category.Top.limits.pullbacks
 import topology.category.Top.opens
 
 /-!

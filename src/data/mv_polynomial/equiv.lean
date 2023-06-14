@@ -46,7 +46,7 @@ equivalence, isomorphism, morphism, ring hom, hom
 
 noncomputable theory
 
-open_locale classical big_operators polynomial
+open_locale big_operators polynomial
 
 open set function finsupp add_monoid_algebra
 

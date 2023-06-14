@@ -111,7 +111,7 @@ begin
     div_mul_eq_div_div _ _ (dist _ _), le_div_iff, div_mul_eq_mul_div],
   { exact div_le_div_of_le (mul_nonneg zero_le_two (sqrt_nonneg _))
       (euclidean_geometry.mul_dist_le_mul_dist_add_mul_dist (a : ℂ) b c (conj ↑b)) },
-  { rw [dist_comm, dist_pos, ne.def, complex.eq_conj_iff_im],
+  { rw [dist_comm, dist_pos, ne.def, complex.conj_eq_iff_im],
     exact b.im_ne_zero }
 end
 

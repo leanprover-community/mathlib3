@@ -3,12 +3,15 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import measure_theory.constructions.prod
+import measure_theory.constructions.prod.basic
 import measure_theory.group.measure
 import topology.constructions
 
 /-!
 # Product measures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define and prove properties about finite products of measures
 (and at some point, countable products of measures).

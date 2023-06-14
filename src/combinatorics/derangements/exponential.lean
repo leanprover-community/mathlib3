@@ -10,6 +10,9 @@ import order.filter.basic
 /-!
 # Derangement exponential series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that the probability of a permutation on n elements being a derangement is 1/e.
 The specific lemma is `num_derangements_tendsto_inv_e`.
 -/

@@ -39,7 +39,7 @@ equals the number of real roots plus the number of roots not fixed by complex co
 -/
 
 noncomputable theory
-open_locale classical polynomial
+open_locale polynomial
 
 open finite_dimensional
 
@@ -63,7 +63,7 @@ alg_equiv.apply_mul_semiring_action
 begin
   refine alg_equiv.ext (λ x, (alg_hom.mem_equalizer σ.to_alg_hom τ.to_alg_hom x).mp
       ((set_like.ext_iff.mp _ x).mpr algebra.mem_top)),
-  rwa [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
+  rwa [eq_top_iff, ←splitting_field.adjoin_root_set, algebra.adjoin_le_iff],
 end
 
 /-- If `p` splits in `F` then the `p.gal` is trivial. -/
@@ -139,6 +139,7 @@ begin
     have hy := subtype.mem y,
     simp only [root_set, finset.mem_coe, multiset.mem_to_finset, key, multiset.mem_map] at hy,
     rcases hy with ⟨x, hx1, hx2⟩,
+    classical,
     exact ⟨⟨x, multiset.mem_to_finset.mpr hx1⟩, subtype.ext hx2⟩ }
 end
 
@@ -201,12 +202,18 @@ variables {p q}
 
 /-- `polynomial.gal.restrict`, when both fields are splitting fields of polynomials. -/
 def restrict_dvd (hpq : p ∣ q) : q.gal →* p.gal :=
+by haveI := classical.dec (q = 0); exact
 if hq : q = 0 then 1 else @restrict F _ p _ _ _
   ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩
 
+lemma restrict_dvd_def [decidable (q = 0)] (hpq : p ∣ q) :
+  restrict_dvd hpq = if hq : q = 0 then 1 else @restrict F _ p _ _ _
+  ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩ :=
+by convert rfl
+
 lemma restrict_dvd_surjective (hpq : p ∣ q) (hq : q ≠ 0) :
   function.surjective (restrict_dvd hpq) :=
-by simp only [restrict_dvd, dif_neg hq, restrict_surjective]
+by classical; simp only [restrict_dvd_def, dif_neg hq, restrict_surjective]
 
 variables (p q)
 
@@ -221,10 +228,11 @@ begin
   { haveI : unique (p * q).gal, { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
-  dsimp only [restrict_prod, restrict_dvd] at hfg,
+  classical,
+  simp only [restrict_prod, restrict_dvd_def] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
-  rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
+  rw [root_set_def, polynomial.map_mul, polynomial.roots_mul] at hx,
   cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
   { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,
@@ -374,7 +382,7 @@ begin
     (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
-    exact complex.eq_conj_iff_im },
+    exact complex.conj_eq_iff_im },
   have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
   { intro z,
     simp_rw [finset.mem_image, exists_prop],
@@ -401,6 +409,7 @@ lemma gal_action_hom_bijective_of_prime_degree
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
   function.bijective (gal_action_hom p ℂ) :=
 begin
+  classical,
   have h1 : fintype.card (p.root_set ℂ) = p.nat_degree,
   { simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
     rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots],

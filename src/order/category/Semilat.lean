@@ -9,6 +9,9 @@ import order.hom.lattice
 /-!
 # The categories of semilattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `SemilatSup` and `SemilatInf`, the categories of sup-semilattices with a bottom
 element and inf-semilattices with a top element.
 

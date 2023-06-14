@@ -6,7 +6,7 @@ Authors: Thomas Browning, Patrick Lutz
 
 import group_theory.solvable
 import field_theory.polynomial_galois_group
-import ring_theory.roots_of_unity
+import ring_theory.roots_of_unity.basic
 
 /-!
 # The Abel-Ruffini Theorem
@@ -209,8 +209,8 @@ variables (F)
 
 /-- Inductive definition of solvable by radicals -/
 inductive is_solvable_by_rad : E → Prop
-| base (a : F) : is_solvable_by_rad (algebra_map F E a)
-| add (a b : E) : is_solvable_by_rad a → is_solvable_by_rad b → is_solvable_by_rad (a + b)
+| base (α : F) : is_solvable_by_rad (algebra_map F E α)
+| add (α β : E) : is_solvable_by_rad α → is_solvable_by_rad β → is_solvable_by_rad (α + β)
 | neg (α : E) : is_solvable_by_rad α → is_solvable_by_rad (-α)
 | mul (α β : E) : is_solvable_by_rad α → is_solvable_by_rad β → is_solvable_by_rad (α * β)
 | inv (α : E) : is_solvable_by_rad α → is_solvable_by_rad α⁻¹

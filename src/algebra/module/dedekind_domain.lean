@@ -9,6 +9,9 @@ import ring_theory.dedekind_domain.ideal
 /-!
 # Modules over a Dedekind domain
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Over a Dedekind domain, a `I`-torsion module is the internal direct sum of its `p i ^ e i`-torsion
 submodules, where `I = ∏ i, p i ^ e i` is its unique decomposition in prime ideals.
 Therefore, as any finitely generated torsion module is `I`-torsion for some `I`, it is an internal

@@ -10,6 +10,9 @@ import topology.sheaves.stalks
 /-!
 # Stalks for presheaved spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file lifts constructions of stalks and pushforwards of stalks to work with
 the category of presheafed spaces. Additionally, we prove that restriction of
 presheafed spaces does not change the stalks.

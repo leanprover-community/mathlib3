@@ -9,6 +9,9 @@ import ring_theory.ideal.quotient
 /-!
 # Quotients of non-commutative rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Unfortunately, ideals have only been developed in the commutative case as `ideal`,
 and it's not immediately clear how one should formalise ideals in the non-commutative case.
 

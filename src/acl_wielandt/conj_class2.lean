@@ -18,9 +18,8 @@ end
 lemma subgroup.nat.card_eq_mul' (H K : subgroup G) (hK : 0 < K.index):
 nat.card K = (H.relindex K) * nat.card (K.subgroup_of H)  :=
 begin
---  haveI hnH : subgroup.normal H := subgroup.normal_of_index_eq_two hH,
   rw mul_comm,
-  apply nat.eq_of_mul_eq_mul_right hK,
+  rw ← mul_left_inj' (ne_of_gt hK),
   rw subgroup.card_mul_index K,
   rw mul_assoc,
   rw ← subgroup.card_mul_index H,
@@ -85,8 +84,10 @@ lemma mul_action.card_orbit_eq_stabilizer_index {G : Type*} [group G] [fintype G
 begin
   classical,
   simp only [nat.card_eq_fintype_card],
-  apply nat.eq_of_mul_eq_mul_right  (_ : 0 < fintype.card (mul_action.stabilizer G x)),
+  apply nat.eq_of_mul_eq_mul_left  (_ : 0 < fintype.card (mul_action.stabilizer G x)),
+  rw mul_comm,
   rw mul_action.card_orbit_mul_card_stabilizer_eq_card_group,
+  rw mul_comm,
   rw subgroup.index_mul_card,
   refine fintype.card_pos,
 end
@@ -242,7 +243,7 @@ begin
     = (ite ((mul_action.stabilizer (conj_act G) (g : G)) ≤ H) 1 2)
     * (fintype.card (mul_action.stabilizer (conj_act H) g)),
 
-  apply nat.eq_of_mul_eq_mul_right  _,
+  rw ← mul_left_inj' _ , -- nat.eq_of_mul_eq_mul_left  _,
   rw mul_assoc,
   rw mul_action.card_orbit_mul_card_stabilizer_eq_card_group _ (g : G),
   rw this,
@@ -253,15 +254,17 @@ begin
   simp only [← mul_assoc], rw mul_comm,
   nth_rewrite 2 [mul_comm],
   simp only [mul_assoc],
-      rw mul_action.card_orbit_mul_card_stabilizer_eq_card_group,
+  -- rw mul_comm (fintype.card ↥(mul_action.stabilizer (conj_act ↥H) g)),
+  rw mul_action.card_orbit_mul_card_stabilizer_eq_card_group,
+  -- rw mul_comm,
   simp only [← mul_assoc],
-  rw conj_act.card,
   apply congr_arg2 _ _ rfl,
+
   by_cases hg : mul_action.stabilizer (conj_act G) (g : G) ≤ H,
   { simp only [if_pos hg, mul_one], },
   { simp only [if_neg hg, one_mul], },
 
-  exact fintype.card_pos,
+  exact fintype.card_ne_zero,
 
   simp_rw conj_act.stabilizer_eq_centralizer,
   rw ← nat.card_eq_fintype_card,
@@ -335,9 +338,9 @@ begin
       { /- prouver que k est le produit des transpositions à support disjoint
           [(g ^ n) (a c), (g ^ n) (a d)], pour 0 ≤ n < c.support.card
           mais il va suffire de remarquer que k ^ 2 = 1, et de contrôler son support -/
-        suffices : k.cycle_type = multiset.repeat 2 (c.support.card),
+        suffices : k.cycle_type = multiset.replicate (c.support.card) 2,
         { rw equiv.perm.sign_of_cycle_type, rw this,
-          simp only [multiset.sum_repeat, algebra.id.smul_eq_mul, multiset.card_repeat],
+          simp only [multiset.sum_replicate, algebra.id.smul_eq_mul, multiset.card_replicate],
           rw odd.neg_one_pow,
           rw nat.odd_add',
           simp only [h_odd c.support.card (begin rw [← hg, equiv.perm.cycle_type_def, multiset.mem_map], exact ⟨c, hc, rfl⟩, end), true_iff],
@@ -365,12 +368,12 @@ begin
           exact kk.prop, },
 
         suffices : ∀ i ∈ k.cycle_type, i = 2,
-        { rw ← multiset.eq_repeat' at this,
+        { rw ← multiset.eq_replicate_card at this,
           rw this,
-          apply congr_arg2 _ rfl,
+          apply congr_arg2 _ _ rfl,
           have this' := equiv.perm.sum_cycle_type k,
           rw this at this',
-          simp only [multiset.sum_repeat, algebra.id.smul_eq_mul] at this',
+          simp only [multiset.sum_replicate, algebra.id.smul_eq_mul] at this',
           rw ← mul_left_inj' , rw this',
           suffices this2 : k.support = c.support ∪ d.support,
           rw this2, rw finset.card_union_eq _,
@@ -397,7 +400,8 @@ begin
               cases this with hccx hdcx,
               { apply or.intro_left, rw hccx, exact hxcx, },
               { apply or.intro_right, rw hdcx, exact hxcx, },
-              { obtain ⟨n, hn, hnx⟩ := hcx.nat',
+              {
+                obtain ⟨n, hn, hnx⟩ := hcx.exists_pow_eq',
                 rw [equiv.perm.mem_support, ← hnx] at hx,
                 specialize hk_apply cx 1,
                 simp only [pow_one] at hk_apply,
@@ -416,10 +420,10 @@ begin
               -- obtain ⟨cx, hcx, hcx'⟩ := hsame_cycle x _,
               obtain ⟨cx, hcx⟩ := on_cycle_factors.same_cycle_of_mem_support ha x _,
               have hcx' := on_cycle_factors.same_cycle.is_cycle_of ha cx hcx,
-              obtain ⟨n, hn, hnx⟩ := hcx.nat',
-              rw equiv.perm.mem_support,
-              specialize hk_apply cx 1, simp only [pow_one] at hk_apply,
-              rw [← hnx, hk_apply],
+              obtain ⟨n, hn, hnx⟩ := equiv.perm.same_cycle.exists_pow_eq' hcx,
+              specialize hk_apply cx 1,
+              simp only [pow_one] at hk_apply,
+              rw [← hnx, equiv.perm.mem_support, hk_apply],
               rw function.injective.ne_iff (equiv.injective _),
               intro haτcx_eq_acx, dsimp at haτcx_eq_acx,
               have : ¬ equiv.perm.disjoint (cx : equiv.perm α) (τ cx : equiv.perm α),
@@ -454,7 +458,7 @@ begin
         { have hk2' : nat.prime (order_of k), rw hk2, exact nat.prime_two,
           obtain ⟨n, hn⟩ := equiv.perm.cycle_type_prime_order hk2',
           intros i hi,
-          rw [hn, hk2, multiset.mem_repeat] at hi,
+          rw [hn, hk2, multiset.mem_replicate] at hi,
           exact hi.right, },
           apply order_of_eq_prime,
           { -- k ^ 2 = 1,
@@ -464,7 +468,7 @@ begin
             { -- obtain ⟨cx, hcx, hcx'⟩ := hsame_cycle x hx,
               obtain ⟨cx, hcx⟩ := on_cycle_factors.same_cycle_of_mem_support ha x hx,
               -- have hcx' := on_cycle_factors.same_cycle.is_cycle_of ha cx hcx,
-              obtain ⟨n, hn, rfl⟩ := hcx.nat',
+              obtain ⟨n, hn, rfl⟩ := hcx.exists_pow_eq',
               rw hk_apply cx 2 n,
               apply congr_arg,
               apply congr_arg,

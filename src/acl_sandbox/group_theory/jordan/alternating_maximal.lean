@@ -199,7 +199,8 @@ begin
         { rw [hxa, equiv.swap_apply_left], exact hb, },
         cases em (x = b) with hxb hxb',
         { rw [hxb, equiv.swap_apply_right], exact ha, },
-        rw equiv.swap_apply_of_ne_of_ne hxa' hxb', exact hx, },
+        rw equiv.swap_apply_of_ne_of_ne hxa' hxb', exact hx,
+        exact t.to_finite, },
       { simp only [equiv.perm.mem_alternating_group, equiv.perm.sign_mul],
         rw equiv.perm.sign_swap hab, rw equiv.perm.sign_swap hcd,
         simp only [int.units_mul_self], }, },
@@ -232,7 +233,8 @@ begin
         { rw [hxc, equiv.swap_apply_right], exact ha, },
         rw ← ne.def at hxc',
         rw equiv.swap_apply_of_ne_of_ne hxa' hxc',
-        exact hx, },
+        exact hx,
+        exact t.to_finite },
       { simp only [equiv.perm.mem_alternating_group, equiv.perm.sign_mul],
         rw equiv.perm.sign_swap hab, rw equiv.perm.sign_swap (ne.symm hca),
         simp only [int.units_mul_self], }, },
@@ -286,6 +288,7 @@ begin
     rw equiv.swap_apply_of_ne_of_ne (h a ha) (h b hb),
     exact hx, },
   { intros u hu h, apply hx, rw h, exact hu, },
+  exact sᶜ.to_finite,
 end
 
 lemma has_three_cycle_of_stabilizer [decidable_eq α] (s : set α) (hα : 4 < fintype.card α) :

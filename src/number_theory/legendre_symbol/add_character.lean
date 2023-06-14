@@ -228,8 +228,9 @@ end
 of a field `R'`. It records which cyclotomic extension it is, the character, and the
 fact that the character is primitive. -/
 -- Using `structure` gives a timeout, see
---https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/mysterious.20finsupp.20related.20timeout/near/365719262 and
---https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/mysterious.20finsupp.20related.20timeout
+-- https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/mysterious.20finsupp.20related.20timeout/near/365719262 and
+-- https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/mysterious.20finsupp.20related.20timeout
+-- In Lean4, `set_option genInjectivity false in` may solve this issue.
 @[nolint has_nonempty_instance] -- can't prove that they always exist
 def primitive_add_char (R : Type u) [comm_ring R] (R' : Type v) [field R'] :=
 Σ (n : ℕ+), (Σ' (char : add_char R (cyclotomic_field n R')), is_primitive char)

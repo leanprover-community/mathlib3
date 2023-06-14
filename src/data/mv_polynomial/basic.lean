@@ -128,7 +128,6 @@ instance [comm_semiring S₁] [smul_zero_class R S₁] [smul_zero_class Rᵐᵒ�
 add_monoid_algebra.is_central_scalar
 
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
-
 add_monoid_algebra.algebra
 
 instance is_scalar_tower_right [comm_semiring S₁] [distrib_smul R S₁] [is_scalar_tower R S₁ S₁] :

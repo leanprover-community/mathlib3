@@ -8,6 +8,9 @@ import measure_theory.function.strongly_measurable.lp
 
 /-! # Functions a.e. measurable with respect to a sub-σ-algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function `f` verifies `ae_strongly_measurable' m f μ` if it is `μ`-a.e. equal to
 an `m`-strongly measurable function. This is similar to `ae_strongly_measurable`, but the
 `measurable_space` structures used for the measurability statement and for the measure are

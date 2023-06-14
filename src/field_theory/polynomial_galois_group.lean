@@ -39,7 +39,7 @@ equals the number of real roots plus the number of roots not fixed by complex co
 -/
 
 noncomputable theory
-open_locale classical polynomial
+open_locale polynomial
 
 open finite_dimensional
 
@@ -201,12 +201,18 @@ variables {p q}
 
 /-- `polynomial.gal.restrict`, when both fields are splitting fields of polynomials. -/
 def restrict_dvd (hpq : p ∣ q) : q.gal →* p.gal :=
+by haveI := classical.dec (q = 0); exact
 if hq : q = 0 then 1 else @restrict F _ p _ _ _
   ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩
 
+lemma restrict_dvd_def [decidable (q = 0)] (hpq : p ∣ q) :
+  restrict_dvd hpq = if hq : q = 0 then 1 else @restrict F _ p _ _ _
+  ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩ :=
+by convert rfl
+
 lemma restrict_dvd_surjective (hpq : p ∣ q) (hq : q ≠ 0) :
   function.surjective (restrict_dvd hpq) :=
-by simp only [restrict_dvd, dif_neg hq, restrict_surjective]
+by classical; simp only [restrict_dvd_def, dif_neg hq, restrict_surjective]
 
 variables (p q)
 
@@ -221,7 +227,8 @@ begin
   { haveI : unique (p * q).gal, { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
-  dsimp only [restrict_prod, restrict_dvd] at hfg,
+  classical,
+  simp only [restrict_prod, restrict_dvd_def] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
   rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
@@ -405,6 +412,7 @@ lemma gal_action_hom_bijective_of_prime_degree
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
   function.bijective (gal_action_hom p ℂ) :=
 begin
+  classical,
   have h1 : fintype.card (p.root_set ℂ) = p.nat_degree,
   { simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
     rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots],

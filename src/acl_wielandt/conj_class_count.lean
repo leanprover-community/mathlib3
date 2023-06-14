@@ -507,7 +507,7 @@ begin
     simp only [equiv.perm.mem_cycle_factors_finset_iff],
     rintro ⟨hc, hc'⟩,
     split,
-    exact equiv.perm.is_cycle.is_cycle_conj hc,
+    exact equiv.perm.is_cycle.conj hc,
     intros a ha,
     simp only [equiv.perm.coe_mul, embedding_like.apply_eq_iff_eq],
     apply hc',
@@ -547,7 +547,7 @@ begin
     simp only [equiv.perm.mem_cycle_factors_finset_iff],
     rintro ⟨hc, hc'⟩,
     split,
-    { exact equiv.perm.is_cycle.is_cycle_conj hc, },
+    { exact hc.conj, },
     { intro a,
       rw equiv.perm.conj_support_eq,
       intro ha,
@@ -1144,9 +1144,7 @@ lemma equiv.perm.zpow_mod_card_support_cycle_of_self_apply [fintype α] (f : equ
 begin
   by_cases hx : f x = x,
   { rw [equiv.perm.zpow_apply_eq_self_of_apply_eq_self hx, equiv.perm.zpow_apply_eq_self_of_apply_eq_self hx] },
-  { rw [←equiv.perm.cycle_of_zpow_apply_self, ←equiv.perm.cycle_of_zpow_apply_self f,
-        ←equiv.perm.order_of_is_cycle (equiv.perm.is_cycle_cycle_of f hx)],
-    rw [←zpow_eq_mod_order_of] },
+  { rw [← f.cycle_of_zpow_apply_self, ←f.cycle_of_zpow_apply_self, ←(f.is_cycle_cycle_of hx).order_of, ←zpow_eq_mod_order_of] },
 end
 
 example (n : ℤ) (hn : 0 ≤ n) : ∃ (nn : ℕ), n = nn :=
@@ -1165,7 +1163,7 @@ begin
     split, refl, refl,
     simp only [int.coe_nat_pos],
     apply lt_of_lt_of_le _ (equiv.perm.is_cycle.two_le_card_support hg), norm_num, },
-  simp only [← equiv.perm.order_of_is_cycle hg] at div_euc,
+  simp only [← hg.order_of] at div_euc,
 
   obtain ⟨m, hm⟩ := int.eq_coe_of_zero_le div_euc.2.1,
   simp only [hm, nat.cast_nonneg, nat.cast_lt, true_and] at div_euc,

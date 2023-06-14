@@ -5,11 +5,11 @@ Authors: Antoine Chambert-Loir
 -/
 
 import set_theory.cardinal.finite
+import data.finite.card
 
 open_locale cardinal
 
 open part_enat cardinal
-
 
 set_option pp.universes true
 
@@ -176,6 +176,13 @@ begin
   simp only [nat.cast_one]
 end
 
+lemma of_finite (α : Type*) [finite α] : card α = nat.card α :=
+begin
+  unfold part_enat.card,
+  apply symm,
+  rw coe_nat_eq_iff_eq,
+  exact finite.cast_card_eq_mk ,
+end
 
 lemma of_fintype (α : Type*) [fintype α] : card α = fintype.card α :=
 begin
@@ -183,15 +190,25 @@ begin
   rw cardinal.mk_fintype,
   simp only [cardinal.to_part_enat_cast]
 end
-/-
-lemma is_finite_of_card (α : Type) {n : ℕ} (hα : part_enat.card α = n) :
+
+def is_finite_of_card (α : Type*) {n : ℕ} (hα : part_enat.card α = n) :
+  finite α :=
+begin
+  apply or.resolve_right (finite_or_infinite α),
+  intro h, resetI,
+  apply part_enat.coe_ne_top n,
+  rw ← hα,
+  exact part_enat.card_eq_top_of_infinite,
+end
+
+noncomputable def is_fintype_of_card (α : Type) {n : ℕ} (hα : part_enat.card α = n) :
   fintype α :=
 begin
   cases (fintype_or_infinite α) with h h; resetI,
   exact h,
   rw part_enat.card_eq_top_of_infinite at hα,
   exfalso, apply part_enat.coe_ne_top n, rw hα,
-end -/
+end
 
 end part_enat
 

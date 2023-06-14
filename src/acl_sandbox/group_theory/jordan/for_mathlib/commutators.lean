@@ -9,7 +9,6 @@ import group_theory.abelianization
 
 variables {G : Type*} [group G]
 
-
 open subgroup
 
 lemma mem_commutator_set_of_is_conj_sq {G : Type*} [group G] {g : G} (hg : is_conj g (g ^ 2)) : g ∈ commutator_set G :=

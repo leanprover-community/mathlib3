@@ -164,14 +164,6 @@ begin
   exact or_iff_not_imp_right,
 end
 
-example(s : set X) : s ≠ ∅ ↔   s.nonempty := begin
-exact set.nonempty_iff_ne_empty.symm,
-end
-
-example (p q r : Prop) : p → q → r ↔ q → p → r :=
-imp.swap
-
-
 lemma is_block.mk_mem {B : set X} :
   is_block G B ↔ ∀ (g : G) (a : X) (ha : a ∈ B) (hga : g • a ∈ B), g • B = B :=
 begin
@@ -659,6 +651,7 @@ end stabilizer
 
 section fintype
 
+
 lemma setoid.nat_sum {α : Type*} [finite α] {c : set (set α)}
   (hc : setoid.is_partition c) :
   finsum (λ (x : c), nat.card x) = nat.card α :=
@@ -668,6 +661,10 @@ begin
   simp only [finsum_eq_sum_of_fintype, nat.card_eq_fintype_card],
   rw ← fintype.card_sigma,
   refine fintype.card_congr (equiv.of_bijective (λ x, x.snd : (Σ (a : ↥c), ↥a) → α) _),
+  /-
+  rw function.bijective_iff_exists_unique,
+  have := hc.2,
+  intro b, specialize this b, -/
   split,
   -- injectivity
   rintros ⟨⟨x, hx⟩,⟨a, ha : a ∈ x⟩⟩ ⟨⟨y, hy⟩, ⟨b, hb : b ∈ y⟩⟩ hab,

@@ -275,12 +275,13 @@ begin
     hb.continuous _ (λ s hs, t'T ⟨s, hs⟩ _ (Topen ⟨s, hs⟩)),
   exact continuous_subtype_coe.comp this
 end
-/-- Image of a measurable set in a Polish space under a measurable map is an analytic set. -/
+
+/-- The image of a measurable set in a Polish space under a measurable map is an analytic set. -/
 theorem _root_.measurable_set.analytic_set_image {X Y : Type*}
-    [topological_space X] [polish_space X] [measurable_space X] [borel_space X]
-    [topological_space Y] [measurable_space Y] [opens_measurable_space Y]
-    {f : X → Y} [second_countable_topology (range f)] {s : set X} (hs : measurable_set s)
-    (hf : measurable f) : analytic_set (f '' s) :=
+  [topological_space X] [polish_space X] [measurable_space X] [borel_space X]
+  [topological_space Y] [measurable_space Y] [opens_measurable_space Y]
+  {f : X → Y} [second_countable_topology (range f)] {s : set X} (hs : measurable_set s)
+  (hf : measurable f) : analytic_set (f '' s) :=
 begin
   borelize X,
   rcases hf.exists_continuous with ⟨τ', hle, hfc, hτ'⟩,
@@ -450,8 +451,8 @@ end
 /-- **Suslin's Theorem**: in a Hausdorff topological space, an analytic set with an analytic
 complement is measurable. -/
 theorem analytic_set.measurable_set_of_compl [t2_space α] [measurable_space α]
-    [opens_measurable_space α] {s : set α} (hs : analytic_set s) (hsc : analytic_set (sᶜ)) :
-    measurable_set s :=
+  [opens_measurable_space α] {s : set α} (hs : analytic_set s) (hsc : analytic_set (sᶜ)) :
+  measurable_set s :=
 begin
   rcases hs.measurably_separable hsc disjoint_compl_right with ⟨u, hsu, hdu, hmu⟩,
   obtain rfl : s = u := hsu.antisymm (disjoint_compl_left_iff_subset.1 hdu),
@@ -489,11 +490,11 @@ begin
 end
 
 theorem map_measurable_space_eq [second_countable_topology Y] {f : X → Y} (hf : measurable f)
-  (hsurj : surjective f) : measurable_space.map f ‹_› = ‹_› :=
+  (hsurj : surjective f) : measurable_space.map f ‹measurable_space X› = ‹measurable_space Y› :=
 measurable_space.ext $ λ _, hf.measurable_set_preimage_iff_of_surjective hsurj
 
 theorem map_measurable_space_eq_borel [second_countable_topology Y] {f : X → Y} (hf : measurable f)
-  (hsurj : surjective f) : measurable_space.map f ‹_› = borel Y :=
+  (hsurj : surjective f) : measurable_space.map f ‹measurable_space X› = borel Y :=
 begin
   have := hf.mono le_rfl opens_measurable_space.borel_le, 
   letI := borel Y, haveI : borel_space Y := ⟨rfl⟩,

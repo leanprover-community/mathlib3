@@ -136,7 +136,7 @@ instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁
   is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
 is_scalar_tower.right
 
-instance is_scalar_tower_right [comm_semiring R] [comm_semiring S₁] [distrib_smul R S₁]
+instance is_scalar_tower_right [comm_semiring S₁] [distrib_smul R S₁]
     [is_scalar_tower R S₁ S₁] : is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
 add_monoid_algebra.is_scalar_tower_self _
 

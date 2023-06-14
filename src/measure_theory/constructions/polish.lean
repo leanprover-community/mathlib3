@@ -466,9 +466,10 @@ end measure_theory
 
 namespace measurable
 
-variables {X Y : Type*}
+variables {X Y β : Type*}
   [topological_space X] [polish_space X] [measurable_space X] [borel_space X]
   [topological_space Y] [t2_space Y] [measurable_space Y] [opens_measurable_space Y]
+  [measurable_space β]
 
 /-- If `f : X → Y` is a surjective Borel measurable map from a Polish space to a topological space
 with second countable topology, then the preimage of a set `s` is measurable if and only if the set
@@ -524,10 +525,10 @@ begin
 end
 
 /-- If `f : X → Y` is a Borel measurable map from a Polish space to a topological space with second
-countable topology, then for any measurable space `α` and `g : Y → α`, the composition `g ∘ f` is
+countable topology, then for any measurable space `β` and `g : Y → β`, the composition `g ∘ f` is
 measurable if and only if the restriction of `g` to the range of `f` is measurable. -/
-theorem measurable_comp_iff_restrict [measurable_space α] {f : X → Y}
-  [second_countable_topology (range f)] (hf : measurable f) {g : Y → α} :
+theorem measurable_comp_iff_restrict {f : X → Y} [second_countable_topology (range f)]
+  (hf : measurable f) {g : Y → β} :
   measurable (g ∘ f) ↔ measurable (restrict (range f) g) :=
 forall₂_congr $ λ s _,
   @measurable.measurable_set_preimage_iff_preimage_coe _ _ _ _ _ _ _ _ _ _ _ _ hf (g ⁻¹' s)
@@ -535,8 +536,8 @@ forall₂_congr $ λ s _,
 /-- If `f : X → Y` is a surjective Borel measurable map from a Polish space to a topological space
 with second countable topology, then for any measurable space `α` and `g : Y → α`, the composition
 `g ∘ f` is measurable if and only if `g` is measurable. -/
-theorem measurable_comp_iff_of_surjective [second_countable_topology Y] [measurable_space α]
-  {f : X → Y} (hf : measurable f) (hsurj : surjective f) {g : Y → α} :
+theorem measurable_comp_iff_of_surjective [second_countable_topology Y] {f : X → Y}
+  (hf : measurable f) (hsurj : surjective f) {g : Y → β} :
   measurable (g ∘ f) ↔ measurable g :=
 forall₂_congr $ λ s _,
   @measurable.measurable_set_preimage_iff_of_surjective _ _ _ _ _ _ _ _ _ _ _ _ hf hsurj (g ⁻¹' s)

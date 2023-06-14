@@ -19,6 +19,10 @@ In this file we prove the existence and uniqueness of splitting fields.
 * `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorphic
   to `splitting_field f` and thus, being a splitting field is unique up to isomorphism.
 
+## Implementation details
+We construct a `splitting_field_aux` without worrying about whether the instances satisfy nice definitional equalities. Then the actual `splitting_field` is defined to be a quotient of an
+`mv_polynomial` ring by the kernel of the obvious map into `splitting_field_aux`. Because the actual `splitting_field` will be a quotient of a `mv_polynomial` it should have nice instances on it.
+
 -/
 
 noncomputable theory
@@ -86,10 +90,9 @@ by rw [nat_degree_remove_factor, hfn, n.add_sub_cancel]
 /-- Auxiliary construction to a splitting field of a polynomial, which removes
 `n` (arbitrarily-chosen) factors.
 
-Uses recursion on the degree. For better definitional behaviour, structures
-including `splitting_field_aux` (such as instances) should be defined using
-this recursion in each field, rather than defining the whole tuple through
-recursion.
+It constructs the type, proves that is a field and algebra over the base field.
+
+Uses recursion on the degree.
 -/
 def splitting_field_aux_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]),
   Σ (L : Type u) (inst : field L), by exactI algebra K L :=
@@ -98,12 +101,18 @@ nat.rec_on n (λ K inst f, ⟨K, inst, infer_instance⟩) (λ m ih K inst f,
   ⟨L.1, L.2.1, by
     { exactI (ring_hom.comp (algebra_map _ _) (adjoin_root.of f.factor)).to_algebra }⟩)
 
+/-- Auxiliary construction to a splitting field of a polynomial, which removes
+`n` (arbitrarily-chosen) factors. It is the type constructed in `splitting_field_aux_aux`.
+-/
 def splitting_field_aux (n : ℕ) {K : Type u} [field K] (f : K[X]) : Type u :=
   (splitting_field_aux_aux n f).1
 
 instance splitting_field_aux.field (n : ℕ) {K : Type u} [field K] (f : K[X]) :
     field (splitting_field_aux n f) :=
   (splitting_field_aux_aux n f).2.1
+
+instance  (n : ℕ) {K : Type u} [field K] (f : K[X]) : inhabited (splitting_field_aux n f) :=
+⟨0⟩
 
 instance splitting_field_aux.algebra (n : ℕ) {K : Type u} [field K] (f : K[X]) :
     algebra K (splitting_field_aux n f) :=
@@ -174,6 +183,8 @@ end
 instance (f : K[X]) : is_splitting_field K (splitting_field_aux f.nat_degree f) f :=
   ⟨splitting_field_aux.splits _ _ rfl, splitting_field_aux.adjoin_root_set _ _ rfl⟩
 
+/-- The natural map from `mv_polynomial (f.root_set (splitting_field_aux f.nat_degree f))`
+to `splitting_field_aux f.nat_degree f` sendind a variable to the corresponding root. -/
 def of_mv_polynomial (f : K[X]) :
     mv_polynomial (f.root_set (splitting_field_aux f.nat_degree f)) K →ₐ[K]
     splitting_field_aux f.nat_degree f :=
@@ -188,6 +199,10 @@ begin
   exact algebra.adjoin_le (λ α hα, algebra.subset_adjoin ⟨⟨α, hα⟩, rfl⟩)
 end
 
+/-- The algebra isomorphism between the quotient of
+`mv_polynomial (f.root_set (splitting_field_aux f.nat_degree f)) K` by the kernel of
+`of_mv_polynomial f` and `splitting_field_aux f.nat_degree f`. It is used to transport all the
+algebraic structures from the latter to `f.splitting_field`, that is defined as the former. -/
 def alg_equiv_quotient_mv_polynomial (f : K[X]) :
     (mv_polynomial (f.root_set (splitting_field_aux f.nat_degree f)) K ⧸
       ring_hom.ker (of_mv_polynomial f).to_ring_hom) ≃ₐ[K]
@@ -349,3 +364,5 @@ section normal
 instance [field F] (p : F[X]) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal
+
+#lint

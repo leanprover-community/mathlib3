@@ -20,6 +20,7 @@ import data.setoid.partition
 import group_theory.group_action.basic
 import group_theory.group_action.sub_mul_action
 import group_theory.subgroup.pointwise
+import group_theory.subgroup.simple
 
 import group_theory.abelianization
 import group_theory.commutator
@@ -608,15 +609,19 @@ begin
   cases subsingleton_or_nontrivial B with hB' hB',
   { apply or.intro_left, rw ← set.subsingleton_coe, exact hB' },
   apply or.intro_right,
-  have : B.nonempty, rw ← set.nonempty_coe_sort, exact @nontrivial.to_nonempty _ hB',
-  cases (nat.dvd_prime hp).mp (card_of_block_divides hB this),
+  suffices : fintype.card ↥B = 1 ∨ fintype.card B = fintype.card α,
+  cases this with h h,
   { exfalso,
     rw ← fintype.one_lt_card_iff_nontrivial at hB',
     exact ne_of_lt hB' h.symm },
-  rw [set.top_eq_univ, ← set.coe_to_finset B, ← set.coe_to_finset set.univ, finset.coe_inj],
-  rw [set.to_finset_univ, ← finset.card_eq_iff_eq_univ, ← h],
-  simp only [set.to_finset_card],
-  exact set_fintype set.univ,
+  { rw [set.top_eq_univ, ← set.coe_to_finset B, ← set.coe_to_finset set.univ, finset.coe_inj],
+    rw [set.to_finset_univ, ← finset.card_eq_iff_eq_univ, ← h],
+    simp only [set.to_finset_card],
+    exact set_fintype set.univ, },
+  { rw ← nat.dvd_prime hp,
+    simp only [← nat.card_eq_fintype_card],
+    apply nat_card_of_block_divides hB,
+    rw ← set.nonempty_coe_sort, exact @nontrivial.to_nonempty _ hB', },
 end
 
 /-- The target of an equivariant map of large image is preprimitive if the source is -/
@@ -647,11 +652,12 @@ begin
 
   apply lt_of_mul_lt_mul_right,
   apply lt_of_le_of_lt _ hf',
-  rw ← card_of_block_mul_card_of_orbit_of hB hB_ne,
+  simp only [← nat.card_eq_fintype_card, ← nat_card_block_mul_card_orbit_eq hB hB_ne],
   apply nat.mul_le_mul_left _,
 
   -- We reduce to proving that
   -- fintype.card (set.range f ∩ g • B)) ≤ 1 for every g
+  simp only [nat.card_eq_fintype_card],
   simp only [← set.to_finset_card],
   rw setoid.is_partition.card_set_eq_sum_parts (set.range f)
       (is_block_system.of_block hB hB_ne).left,
@@ -680,6 +686,7 @@ begin
   apply is_top_of_large_block hB,
 
   -- It remains to show that fintype.card β < 2 * fintype.card B
+  simp only [nat.card_eq_fintype_card],
   apply lt_of_lt_of_le hf',
   simp only [mul_le_mul_left, nat.succ_pos'],
   rw ← smul_set_card_eq g B,

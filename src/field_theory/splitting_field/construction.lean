@@ -228,7 +228,7 @@ ideal.quotient.comm_ring _
 instance inhabited : inhabited (splitting_field f) :=
   ⟨37⟩
 
-instance {S : Type*} [comm_semiring S] [distrib_smul S K] [is_scalar_tower S K K] :
+instance {S : Type*} [distrib_smul S K] [is_scalar_tower S K K] :
   has_smul S (splitting_field f) :=
   submodule.quotient.has_smul' _
 

@@ -8,6 +8,9 @@ import analysis.normed_space.add_torsor_bases
 /-!
 # Intrinsic frontier and interior
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the intrinsic frontier, interior and closure of a set in a normed additive torsor.
 These are also known as relative frontier, interior, closure.
 

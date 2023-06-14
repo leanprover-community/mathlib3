@@ -155,8 +155,9 @@ begin
         have ha' : y ⟨0, (by norm_num)⟩ = a, rw ← ha, rw ← hy, refl,
 
         use y ⟨1, (by norm_num)⟩,
-        { intro h, simp at h, rw ← ha' at h,
-        simpa only [fin.mk_zero, embedding_like.apply_eq_iff_eq, fin.one_eq_zero_iff] using h},
+        { intro h,
+          simpa only [fin.mk_one, set.mem_singleton_iff, ← ha', fin.mk_zero,
+            embedding_like.apply_eq_iff_eq, fin.one_eq_zero_iff, nat.succ_succ_ne_one] using h, },
         use y ⟨2, (by norm_num)⟩,
         { intro h, simp at h, rw ← ha' at h,
           simp only [fin.mk_zero, embedding_like.apply_eq_iff_eq, fin.eq_iff_veq] at h,
@@ -1021,18 +1022,13 @@ begin
     simp only [sub_mul_action.coe_smul_of_tower, sub_mul_action.coe_mk],
     rw [hk, hk', smul_smul, inv_mul_cancel_right] },
   intros x hx,
-  obtain ⟨i, hi⟩ := hgc x _,
   have hg' : (⟨g, hg⟩ : ↥G) ∈ fixing_subgroup G (↑g.support : set α)ᶜ,
   { simp_rw mem_fixing_subgroup_iff G,
     intros y hy,
     simpa only [set.mem_compl_iff, finset.mem_coe, equiv.perm.not_mem_support] using hy },
-
   let g' : fixing_subgroup ↥G (↑g.support : set α)ᶜ := ⟨(⟨g, hg⟩ : ↥G), hg'⟩,
-  use g' ^ i,
-  rw ← hi,
-  refl,
-
-  exact (hs x).mpr hx,
+  obtain ⟨i, hi⟩ := hgc ((hs x).mpr hx),
+  use g' ^ i, exact hi.symm,
 end
 
 lemma equiv.perm.is_swap.cycle_type [decidable_eq α]

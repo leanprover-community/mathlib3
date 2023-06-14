@@ -549,7 +549,7 @@ theorem continuous.map_eq_borel {X Y : Type*}
   [topological_space X] [polish_space X] [measurable_space X] [borel_space X]
   [topological_space Y] [t2_space Y] [second_countable_topology Y]
   {f : X → Y} (hf : continuous f) (hsurj : surjective f) :
-  measurable_space.map f ‹_› = borel Y :=
+  measurable_space.map f ‹measurable_space X› = borel Y :=
 begin
   borelize Y,
   exact hf.measurable.map_measurable_space_eq hsurj

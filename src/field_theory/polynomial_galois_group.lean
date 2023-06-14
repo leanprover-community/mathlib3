@@ -231,8 +231,8 @@ begin
   simp only [restrict_prod, restrict_dvd_def] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
-  rw [root_set_def, polynomial.map_mul, polynomial.roots_mul] at hx,
-  cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
+  rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
+  cases multiset.mem_add.mp ((@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mp hx) with h h,
   { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,
     have key : x = algebra_map (p.splitting_field) (p * q).splitting_field
@@ -258,12 +258,12 @@ lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : F[X]}
   (p₁ * p₂).splits (algebra_map F (q₁ * q₂).splitting_field) :=
 begin
   apply splits_mul,
-{ rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd _
-      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
-    exact splits_comp_of_splits _ _ h₁, },
-  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd _
-      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
-    exact splits_comp_of_splits _ _ h₂, },
+  { rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd (algebra_map F (q₁ * q₂).splitting_field)
+     (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₁ },
+  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd (algebra_map F (q₁ * q₂).splitting_field)
+     (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₂ },
 end
 
 /-- `p` splits in the splitting field of `p ∘ q`, for `q` non-constant. -/

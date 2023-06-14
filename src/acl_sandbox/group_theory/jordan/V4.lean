@@ -53,18 +53,19 @@ begin
     apply not_le.mpr (equiv.perm.one_lt_of_mem_cycle_type (multiset.mem_of_mem_erase hx)),
     rw hg4 x hx, norm_num, },
   { -- we know 4 ∉ g.cycle_type,
-    suffices : g.cycle_type = multiset.repeat 2 (g.cycle_type.card),
+    suffices : g.cycle_type = multiset.replicate (g.cycle_type.card) 2,
     { rw this at hg0,
-      simp only [pow_add, pow_mul, multiset.sum_repeat, algebra.id.smul_eq_mul, multiset.card_repeat, int.units_sq, one_mul] at hg0,
+      simp only [pow_add, pow_mul, multiset.sum_replicate, algebra.id.smul_eq_mul, multiset.card_replicate, int.units_sq, one_mul] at hg0,
       -- prove : g.cycle_type.card ≤ 2
       have hk2 : g.cycle_type.card ≤ 2,
-      { rw this at hg4, rw multiset.sum_repeat at hg4,
-        apply nat.le_of_mul_le_mul_left, rw mul_comm 2 _, exact hg4,
+      { rw this at hg4, rw multiset.sum_replicate at hg4,
+        apply nat.le_of_mul_le_mul_left, rw nat.mul_comm 2,
+        exact hg4,
         norm_num, },
       cases nat.eq_or_lt_of_le hk2 with hk2 hk1,
       -- g.cycle_type.card = 2
       rw hk2 at this, simp only [this],
-      simp only [finset.mem_univ, multiset.repeat_succ, multiset.repeat_one, multiset.empty_eq_zero, multiset.cons_ne_zero, multiset.insert_eq_cons, eq_self_iff_true, false_or, and_self],
+      simp only [finset.mem_univ, multiset.replicate_succ, multiset.replicate_one, multiset.empty_eq_zero, multiset.cons_ne_zero, multiset.insert_eq_cons, eq_self_iff_true, false_or, and_self],
       -- we know : g.cycle_type.card ≤ 1
       rw nat.lt_succ_iff at hk1,
       cases nat.eq_or_lt_of_le hk1 with hk1 hk0,
@@ -75,7 +76,7 @@ begin
       rw hk0 at this, simp only [this],
       simp, },
 
-    rw multiset.eq_repeat',
+    rw multiset.eq_replicate_card,
     intros i hi,
     have := dvd_trans (multiset.dvd_lcm hi) hg,
     rw [nat.dvd_prime_pow] at this,
@@ -105,7 +106,9 @@ begin
   haveI : nontrivial α, rw [← fintype.one_lt_card_iff_nontrivial, hα4], norm_num,
   apply mul_right_injective₀ _,
   rw [two_mul_card_alternating_group, fintype.card_perm, hα4],
-  norm_num, norm_num,
+  norm_num,
+  apply_instance, apply_instance,
+  norm_num,
 end
 
 lemma A4_sylow_card (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) : fintype.card S = 4 :=
@@ -339,6 +342,7 @@ begin
     dsimp,
     rw [← subgroup.card_eq_card_quotient_mul_card_subgroup,
     V4_card α hα4, A4_card α hα4], norm_num,
+    apply_instance, apply_instance,
     rw V4_card α hα4, norm_num, },
 
   have comm_ne_bot : commutator (alternating_group α) ≠ ⊥,

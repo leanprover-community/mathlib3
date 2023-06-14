@@ -314,7 +314,7 @@ begin
   assumption
 end
 
-instance {R : CommRing} [H : is_domain R] : is_integral (Scheme.Spec.obj $ op R) :=
+instance {R : CommRing} [is_domain R] : is_integral (Scheme.Spec.obj $ op R) :=
 is_integral_of_is_irreducible_is_reduced _
 
 lemma affine_is_integral_iff (R : CommRing) :

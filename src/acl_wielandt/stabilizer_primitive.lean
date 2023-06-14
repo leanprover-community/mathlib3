@@ -37,6 +37,7 @@ begin
   simp only [equiv.perm.smul_def],
   rw equiv.perm.of_subtype_apply_of_mem g hy,
   refine subtype.mem _,
+  exact s.to_finite,
 end
 
 lemma of_subtype_mem_stabilizer' (s : set α) (g : equiv.perm (sᶜ : set α)) :
@@ -56,6 +57,7 @@ begin
     simp only [equiv.perm.smul_def],
     rw equiv.perm.of_subtype_apply_of_not_mem g (set.not_mem_compl_iff.mpr hy),
     exact hy, },
+  exact s.to_finite,
 end
 
 lemma stabilizer_is_preprimitive (s : set α) : is_preprimitive (stabilizer (equiv.perm α) s) s :=

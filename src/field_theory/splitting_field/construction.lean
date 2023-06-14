@@ -366,5 +366,3 @@ section normal
 instance [field F] (p : F[X]) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal
-
-#lint

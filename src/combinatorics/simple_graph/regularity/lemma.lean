@@ -62,9 +62,9 @@ We currently only prove the equipartition version of SRL.
 -/
 
 open finpartition finset fintype function szemeredi_regularity
-open_locale classical
 
-variables {α : Type*} [fintype α] (G : simple_graph α) {ε : ℝ} {l : ℕ}
+variables {α : Type*} [fintype α] [decidable_eq α] (G : simple_graph α) [decidable_rel G.adj]
+  {ε : ℝ} {l : ℕ}
 
 /-- Effective **Szemerédi Regularity Lemma**: For any sufficiently large graph, there is an
 `ε`-uniform equipartition of bounded size (where the bound does not depend on the graph). -/
@@ -140,9 +140,8 @@ begin
   have hPα : P.parts.card * 16 ^ P.parts.card ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   -- We return the increment equipartition of `P`, which has energy `≥ ε ^ 5 / 4 * (i + 1)`.
-  refine ⟨increment hP₁ G ε, increment_is_equipartition hP₁ G ε, _, _,
-    or.inr $ le_trans _ $ energy_increment hP₁ ((seven_le_initial_bound ε l).trans hP₂)
-      hεl' hPα huniform hε₁⟩,
+  refine ⟨increment hP₁ G ε, increment_is_equipartition, _, _, or.inr $ le_trans _ $
+      energy_increment hP₁ ((seven_le_initial_bound ε l).trans hP₂) hεl' hPα huniform hε₁⟩,
   { rw card_increment hPα huniform,
     exact hP₂.trans (le_step_bound _) },
   { rw [card_increment hPα huniform, iterate_succ_apply'],

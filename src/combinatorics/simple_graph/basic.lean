@@ -895,18 +895,17 @@ get a graph with the property `p`. -/
 def delete_far (p : simple_graph V → Prop) (r : 𝕜) : Prop :=
 ∀ ⦃s⦄, s ⊆ G.edge_finset → p (G.delete_edges s) → r ≤ s.card
 
-open_locale classical
-
 variables {G}
 
 lemma delete_far_iff :
-  G.delete_far p r ↔ ∀ ⦃H⦄, H ≤ G → p H → r ≤ G.edge_finset.card - H.edge_finset.card :=
+  G.delete_far p r ↔ ∀ ⦃H : simple_graph _⦄ [decidable_rel H.adj],
+    by exactI H ≤ G → p H → r ≤ G.edge_finset.card - H.edge_finset.card :=
 begin
-  refine ⟨λ h H hHG hH, _, λ h s hs hG, _⟩,
+  refine ⟨λ h H _ hHG hH, _, λ h s hs hG, _⟩,
   { have := h (sdiff_subset G.edge_finset H.edge_finset),
     simp only [delete_edges_sdiff_eq_of_le _ hHG, edge_finset_mono hHG, card_sdiff,
       card_le_of_subset, coe_sdiff, coe_edge_finset, nat.cast_sub] at this,
-    exact this hH },
+    convert this hH },
   { simpa [card_sdiff hs, edge_finset_delete_edges, -set.to_finset_card, nat.cast_sub,
       card_le_of_subset hs] using h (G.delete_edges_le s) hG }
 end

@@ -18,10 +18,9 @@ In this file, we prove the triangle removal lemma.
 -/
 
 open finset fintype nat szemeredi_regularity
-open_locale classical
 
-variables {α : Type*} [fintype α] {G : simple_graph α} {X t : finset α}
-  {P : finpartition (univ : finset α)} {ε : ℝ}
+variables {α : Type*} [decidable_eq α] [fintype α] {G : simple_graph α} [decidable_rel G.adj]
+  {X t : finset α} {P : finpartition (univ : finset α)} {ε : ℝ}
 
 namespace simple_graph
 
@@ -138,13 +137,13 @@ begin
       (triangle_removal_bound_pos hε hG.lt_one.le).le).trans _,
     apply (triangle_removal_bound_mul_cube_lt hε).le.trans,
     simp only [one_le_cast],
-    exact (hG.clique_finset_nonempty hε).card_pos },
+    convert (hG.clique_finset_nonempty hε).card_pos },
   obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := szemeredi_regularity G (by positivity : 0 < ε / 8) hl',
   have : 4/ε ≤ P.parts.card := hl.trans (cast_le.2 hP₂),
   have k := reduced_edges_card_aux hε hP₁ hP₄ this,
   rw mul_assoc at k,
   replace k := lt_of_mul_lt_mul_left k zero_le_two,
-  obtain ⟨t, ht⟩ := hG.clique_finset_nonempty' reduced_le k,
+  obtain ⟨t, ht⟩ := hG.clique_finset_nonempty' (@reduced_le _ _ _ _ _ P _ _ (ε / 8) (ε / 4) _) k,
   exact triangle_removal_aux hε hP₁ hP₃ ht,
 end
 
@@ -152,7 +151,7 @@ end
 then they can all be removed by removing a few edges (on the order of `(card α)^2`). -/
 lemma triangle_removal
   (hG : ((G.clique_finset 3).card : ℝ) < triangle_removal_bound ε * (card α)^3) :
-  ∃ G' ≤ G,
+  ∃ G' ≤ G, by haveI := classical.dec_rel G'.adj; exact
     (G.edge_finset.card - G'.edge_finset.card : ℝ) < ε * (card α^2 : ℕ) ∧ G'.clique_free 3 :=
 begin
   by_contra,

@@ -24,14 +24,15 @@ local attribute [-instance] decidable_eq_of_subsingleton
 open finset fintype
 open_locale big_operators
 
-variables {α : Type*} (G G' : simple_graph α) {ε : ℝ} {s t u : finset α}
+variables {α : Type*} (G G' : simple_graph α) [decidable_rel G.adj] {ε : ℝ} {s t u : finset α}
 
 namespace simple_graph
 
 /-- The pairs of vertices whose density is big. -/
-private noncomputable def bad_vertices (G : simple_graph α) (ε : ℝ) (s t : finset α) :=
-by classical;
-  exact s.filter (λ x, ((t.filter (G.adj x)).card : ℝ) < (G.edge_density s t - ε) * t.card)
+private noncomputable def bad_vertices (ε : ℝ) (s t : finset α) :=
+s.filter (λ x, ((t.filter (G.adj x)).card : ℝ) < (G.edge_density s t - ε) * t.card)
+
+variables [decidable_eq α]
 
 lemma interedges_bad_vertices :
   rel.interedges G.adj (bad_vertices G ε s t) t =

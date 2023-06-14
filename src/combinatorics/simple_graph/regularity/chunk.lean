@@ -35,13 +35,14 @@ Once ported to mathlib4, this file will be a great golfing ground for Heather's 
 -/
 
 open finpartition finset fintype rel nat
-open_locale big_operators classical
+open_locale big_operators
 
 local attribute [positivity] tactic.positivity_szemeredi_regularity
 
 namespace szemeredi_regularity
-variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
-  (G : simple_graph α) (ε : ℝ) {U : finset α} (hU : U ∈ P.parts) (V : finset α)
+variables {α : Type*} [fintype α] [decidable_eq α] {P : finpartition (univ : finset α)}
+  (hP : P.is_equipartition) (G : simple_graph α) [decidable_rel G.adj] (ε : ℝ) {U : finset α}
+  (hU : U ∈ P.parts) (V : finset α)
 
 local notation `m` := (card α/step_bound P.parts.card : ℕ)
 

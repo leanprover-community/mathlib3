@@ -34,12 +34,12 @@ Once ported to mathlib4, this file will be a great golfing ground for Heather's 
 -/
 
 open finset fintype simple_graph szemeredi_regularity
-open_locale big_operators classical
+open_locale big_operators
 
 local attribute [positivity] tactic.positivity_szemeredi_regularity
 
-variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
-  (G : simple_graph α) (ε : ℝ)
+variables {α : Type*} [fintype α] [decidable_eq α] {P : finpartition (univ : finset α)}
+  (hP : P.is_equipartition) (G : simple_graph α) [decidable_rel G.adj] (ε : ℝ)
 
 local notation `m` := (card α/step_bound P.parts.card : ℕ)
 
@@ -58,8 +58,8 @@ open finpartition finpartition.is_equipartition
 variables {hP G ε}
 
 /-- The increment partition has a prescribed (very big) size in terms of the original partition. -/
-lemma card_increment (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPG : ¬P.is_uniform G ε) :
-  (increment hP G ε).parts.card = step_bound P.parts.card :=
+lemma card_increment (hPα : P.parts.card * 16^P.parts.card ≤ card α)
+  (hPG : ¬P.is_uniform G ε) : (increment hP G ε).parts.card = step_bound P.parts.card :=
 begin
   have hPα' : step_bound P.parts.card ≤ card α :=
     (mul_le_mul_left' (pow_le_pow_of_le_left' (by norm_num) _) _).trans hPα,
@@ -74,8 +74,7 @@ begin
   rw [filter_card_add_filter_neg_card_eq_card, card_attach],
 end
 
-lemma increment_is_equipartition (hP : P.is_equipartition) (G : simple_graph α) (ε : ℝ) :
-  (increment hP G ε).is_equipartition :=
+lemma increment_is_equipartition : (increment hP G ε).is_equipartition :=
 begin
   simp_rw [is_equipartition, set.equitable_on_iff_exists_eq_eq_add_one],
   refine ⟨m, λ A hA, _⟩,
@@ -101,14 +100,17 @@ begin
     finpartition.le _ hVj hi),
 end
 
+variables (hP G ε)
+
 /-- The contribution to `finpartition.energy` of a pair of distinct parts of a finpartition. -/
-private noncomputable def pair_contrib (G : simple_graph α) (ε : ℝ) (hP : P.is_equipartition)
-  (x : {x // x ∈ P.parts.off_diag}) : ℚ :=
+private noncomputable def pair_contrib (x : {x // x ∈ P.parts.off_diag}) : ℚ :=
 ∑ i in (chunk hP G ε (mem_off_diag.1 x.2).1).parts ×ˢ (chunk hP G ε (mem_off_diag.1 x.2).2.1).parts,
   G.edge_density i.fst i.snd ^ 2
 
+variables {hP G ε}
+
 lemma off_diag_pairs_le_increment_energy :
-  ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (increment hP G ε).parts.card ^ 2 ≤
+  ∑ x in P.parts.off_diag.attach, pair_contrib hP G ε x / (increment hP G ε).parts.card ^ 2 ≤
     (increment hP G ε).energy G :=
 begin
   simp_rw [pair_contrib, ←sum_div],
@@ -131,7 +133,7 @@ end
 lemma pair_contrib_lower_bound [nonempty α] (x : {i // i ∈ P.parts.off_diag}) (hε₁ : ε ≤ 1)
   (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPε : 100 ≤ 4^P.parts.card * ε^5) :
   ↑(G.edge_density x.1.1 x.1.2)^2 - ε^5/25 + (if G.is_uniform ε x.1.1 x.1.2 then 0 else ε^4/3) ≤
-    pair_contrib G ε hP x / (16^P.parts.card) :=
+    pair_contrib hP G ε x / (16^P.parts.card) :=
 begin
   rw pair_contrib,
   push_cast,
@@ -146,7 +148,7 @@ lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1)
   (hPG : ¬P.is_uniform G ε) :
   (∑ x in P.parts.off_diag, G.edge_density x.1 x.2 ^ 2 + P.parts.card^2 * (ε ^ 5 / 4) : ℝ)
     / P.parts.card ^ 2
-      ≤ ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (increment hP G ε).parts.card ^ 2 :=
+      ≤ ∑ x in P.parts.off_diag.attach, pair_contrib hP G ε x / (increment hP G ε).parts.card ^ 2 :=
 begin
   conv_rhs
   { rw [←sum_div, card_increment hPα hPG, step_bound, ←nat.cast_pow, mul_pow, pow_right_comm,
@@ -188,7 +190,7 @@ begin
   rw coe_energy,
   have h := uniform_add_nonuniform_eq_off_diag_pairs hε₁ hP₇ hPα hε.le hPG,
   rw [add_div, mul_div_cancel_left] at h,
-  exact h.trans (by exact_mod_cast off_diag_pairs_le_increment_energy),
+  exact h.trans (by exact_mod_cast off_diag_pairs_le_increment_energy; apply_instance),
   positivity,
 end
 

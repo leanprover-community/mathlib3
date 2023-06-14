@@ -55,6 +55,15 @@ def is_uniform (s t : finset α) : Prop :=
 ∀ ⦃s'⦄, s' ⊆ s → ∀ ⦃t'⦄, t' ⊆ t → (s.card : 𝕜) * ε ≤ s'.card → (t.card : 𝕜) * ε ≤ t'.card →
   |(G.edge_density s' t' : 𝕜) - (G.edge_density s t : 𝕜)| < ε
 
+instance : decidable_rel (G.is_uniform ε) :=
+begin
+  refine λ s t, @finset.decidable_forall_of_decidable_subsets _ s (λ s' _, ∀ ⦃t'⦄, t' ⊆ t →
+    (s.card : 𝕜) * ε ≤ s'.card → (t.card : 𝕜) * ε ≤ t'.card →
+    |(G.edge_density s' t' : 𝕜) - (G.edge_density s t : 𝕜)| < ε) (λ s' hs',
+    @finset.decidable_forall_of_decidable_subsets _ t _ $ λ t' ht', _),
+  apply_instance,
+end
+
 variables {G ε}
 
 lemma is_uniform.mono {ε' : 𝕜} (h : ε ≤ ε') (hε : is_uniform G ε s t) : is_uniform G ε' s t :=
@@ -182,11 +191,10 @@ variables [decidable_eq α] {A : finset α} (P : finpartition A) (G : simple_gra
   [decidable_rel G.adj] {ε δ : 𝕜}
 
 namespace finpartition
-open_locale classical
 
 /-- The pairs of parts of a partition `P` which are not `ε`-uniform in a graph `G`. Note that we
 dismiss the diagonal. We do not care whether `s` is `ε`-uniform with itself. -/
-noncomputable def non_uniforms (ε : 𝕜) : finset (finset α × finset α) :=
+def non_uniforms (ε : 𝕜) : finset (finset α × finset α) :=
 P.parts.off_diag.filter $ λ uv, ¬G.is_uniform ε uv.1 uv.2
 
 lemma mk_mem_non_uniforms_iff (u v : finset α) (ε : 𝕜) :
@@ -269,6 +277,11 @@ that have edge density at least `δ`. -/
     rwa simple_graph.edge_density_comm,
   end,
   loopless := λ a ⟨h, _⟩, G.loopless a h }
+
+instance [decidable_rel G.adj] : decidable_rel (G.reduced P ε δ).adj :=
+λ a b, @and.decidable _ _ _ $ @finset.decidable_dexists_finset _ _ _ $ λ U hU,
+  @finset.decidable_dexists_finset _ _ (λ V _,
+  a ∈ U ∧ b ∈ V ∧ U ≠ V ∧ G.is_uniform ε U V ∧ δ ≤ G.edge_density U V) $ λ V hV, and.decidable
 
 variables {G P}
 

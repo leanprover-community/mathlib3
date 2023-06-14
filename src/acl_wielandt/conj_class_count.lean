@@ -2983,7 +2983,7 @@ begin
       by_cases ha : a ∈ g.cycle_factors_finset,
       { simp only [dif_pos ha],
       rw ← order_eq_card_zpowers ,
-      rw equiv.perm.order_of_is_cycle ,
+      rw equiv.perm.is_cycle.order_of,
       rw equiv.perm.mem_cycle_factors_finset_iff at ha, exact ha.1, },
       { simp only [ha, false_and], }, },
     { -- on g.cycle_factors_finsetᶜ

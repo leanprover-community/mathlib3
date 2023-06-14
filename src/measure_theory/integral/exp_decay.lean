@@ -9,6 +9,9 @@ import measure_theory.integral.integral_eq_improper
 /-!
 # Integrals with exponential decay at ∞
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 As easy special cases of general theorems in the library, we prove the following test
 for integrability:
 

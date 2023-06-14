@@ -10,6 +10,9 @@ import algebra.category.Module.basic
 /-!
 # Additional typeclass for modules over an algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For an object in `M : Module A`, where `A` is a `k`-algebra,
 we provide additional typeclasses on the underlying type `M`,
 namely `module k M` and `is_scalar_tower k A M`.

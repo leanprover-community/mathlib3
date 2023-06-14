@@ -352,7 +352,7 @@ begin
   refine ⟨hf.1.smul c, λ i j hij, _, λ i, (hf.2.2 i).smul c⟩,
   refine (condexp_smul c (f j)).le.trans _,
   filter_upwards [hf.2.1 i j hij] with _ hle,
-  simp,
+  simp_rw [pi.smul_apply],
   exact smul_le_smul_of_nonneg hle hc,
 end
 

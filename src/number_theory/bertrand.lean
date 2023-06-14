@@ -6,7 +6,8 @@ Authors: Patrick Stevens, Bolton Bailey
 import data.nat.choose.factorization
 import data.nat.prime_norm_num
 import number_theory.primorial
-import analysis.convex.specific_functions
+import analysis.convex.specific_functions.basic
+import analysis.convex.specific_functions.deriv
 
 /-!
 # Bertrand's Postulate

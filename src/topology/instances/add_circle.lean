@@ -7,13 +7,15 @@ import data.nat.totient
 import algebra.ring.add_aut
 import group_theory.divisible
 import group_theory.order_of_element
-import ring_theory.int.basic
 import algebra.order.floor
 import algebra.order.to_interval_mod
 import topology.instances.real
 
 /-!
 # The additive circle
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the additive circle `add_circle p` as the quotient `𝕜 ⧸ (ℤ ∙ p)` for some period `p : 𝕜`.
 
@@ -49,7 +51,7 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 
 noncomputable theory
 
-open set function add_subgroup topological_space
+open add_comm_group set function add_subgroup topological_space
 open_locale topology
 
 variables {𝕜 B : Type*}
@@ -89,7 +91,7 @@ variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
 
 lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod hp a =ᶠ[𝓝 x] to_Ioc_mod hp a :=
 is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
-  (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 ((mem_Ioo_mod_iff_ne_mod_zmultiples hp).2 hx)
+  (not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 $ not_modeq_iff_ne_mod_zmultiples.2 hx
 
 lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod hp a) x :=
 let h := to_Ico_mod_eventually_eq_to_Ioc_mod hp a hx in continuous_at_iff_continuous_left_right.2 $
@@ -154,6 +156,9 @@ variables [hp : fact (0 < p)]
 include hp
 
 variables (a : 𝕜) [archimedean 𝕜]
+
+instance : circular_order (add_circle p) :=
+quotient_add_group.circular_order
 
 /-- The equivalence between `add_circle p` and the half-open interval `[a, a + p)`, whose inverse
 is the natural quotient map. -/
@@ -498,11 +503,10 @@ lemma equiv_Icc_quot_comp_mk_eq_to_Ioc_mod : equiv_Icc_quot p a ∘ quotient.mk'
   λ x, quot.mk _ ⟨to_Ioc_mod hp.out a x, Ioc_subset_Icc_self $ to_Ioc_mod_mem_Ioc _ _ x⟩ :=
 begin
   rw equiv_Icc_quot_comp_mk_eq_to_Ico_mod, funext,
-  by_cases mem_Ioo_mod p a x,
-  { simp_rw (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp.out).1 h },
-  { simp_rw [not_imp_comm.1 (mem_Ioo_mod_iff_to_Ico_mod_ne_left hp.out).2 h,
-             not_imp_comm.1 (mem_Ioo_mod_iff_to_Ioc_mod_ne_right hp.out).2 h],
+  by_cases a ≡ x [PMOD p],
+  { simp_rw [(modeq_iff_to_Ico_mod_eq_left hp.out).1 h, (modeq_iff_to_Ioc_mod_eq_right hp.out).1 h],
     exact quot.sound endpoint_ident.mk },
+  { simp_rw (not_modeq_iff_to_Ico_mod_eq_to_Ioc_mod hp.out).1 h }
 end
 
 /-- The natural map from `[a, a + p] ⊂ 𝕜` with endpoints identified to `𝕜 / ℤ • p`, as a

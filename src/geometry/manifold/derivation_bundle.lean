@@ -5,7 +5,7 @@ Authors: Nicolò Cavalleri
 -/
 
 import geometry.manifold.algebra.smooth_functions
-import ring_theory.derivation
+import ring_theory.derivation.basic
 
 /-!
 

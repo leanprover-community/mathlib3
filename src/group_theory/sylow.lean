@@ -14,6 +14,9 @@ import order.atoms.finite
 /-!
 # Sylow theorems
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Sylow theorems are the following results for every finite group `G` and every prime number `p`.
 
 * There exists a Sylow `p`-subgroup of `G`.

@@ -9,6 +9,9 @@ import category_theory.bicategory.coherence_tactic
 /-!
 # A `coherence` tactic for monoidal categories, and `⊗≫` (composition up to associators)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide a `coherence` tactic,
 which proves equations where the two sides differ by replacing
 strings of monoidal structural morphisms with other such strings.

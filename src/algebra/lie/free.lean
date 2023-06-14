@@ -11,6 +11,9 @@ import algebra.free_non_unital_non_assoc_algebra
 /-!
 # Free Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative ring `R` and a type `X` we construct the free Lie algebra on `X` with
 coefficients in `R` together with its universal property.
 

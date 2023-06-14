@@ -10,6 +10,9 @@ import category_theory.monoidal.coherence
 /-!
 # Half braidings and the Drinfeld center of a monoidal category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `center C` to be pairs `⟨X, b⟩`, where `X : C` and `b` is a half-braiding on `X`.
 
 We show that `center C` is braided monoidal,

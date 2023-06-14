@@ -39,9 +39,9 @@ class slash_action (β G α γ : Type*) [group G] [add_monoid α] [has_smul γ �
 (map : β → G → α → α)
 (zero_slash : ∀ (k : β) (g : G), map k g 0 = 0)
 (slash_one : ∀ (k : β) (a : α) , map k 1 a = a)
-(right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
-(smul_action : ∀ (k : β) (g : G) (a : α) (z : γ), map k g (z • a) = z • (map k g a))
-(add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
+(slash_mul : ∀ (k : β) (g h : G) (a : α), map k (g * h) a =map k h (map k g a))
+(smul_slash : ∀ (k : β) (g : G) (a : α) (z : γ), map k g (z • a) = z • (map k g a))
+(add_slash : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
 
 localized "notation (name := modular_form.slash) f ` ∣[`:100 k `;` γ `] `:0 a :100 :=
   slash_action.map γ k a f" in modular_form
@@ -52,18 +52,18 @@ localized "notation (name := modular_form.slash_complex) f ` ∣[`:100 k `] `:0 
 @[simp] lemma slash_action.neg_slash {β G α γ : Type*} [group G] [add_group α] [has_smul γ α]
   [slash_action β G α γ] (k : β) (g : G) (a : α) :
   (-a) ∣[k;γ] g = - (a ∣[k;γ] g) :=
-eq_neg_of_add_eq_zero_left $ by rw [←slash_action.add_action, add_left_neg, slash_action.zero_slash]
+eq_neg_of_add_eq_zero_left $ by rw [←slash_action.add_slash, add_left_neg, slash_action.zero_slash]
 
 @[simp] lemma slash_action.smul_slash_of_tower {R β G α : Type*} (γ : Type*) [group G] [add_group α]
   [monoid γ] [mul_action γ α]
   [has_smul R γ] [has_smul R α] [is_scalar_tower R γ α]
   [slash_action β G α γ] (k : β) (g : G) (a : α) (r : R) :
   (r • a) ∣[k;γ] g = r • (a ∣[k;γ] g) :=
-by rw [←smul_one_smul γ r a, slash_action.smul_action, smul_one_smul]
+by rw [←smul_one_smul γ r a, slash_action.smul_slash, smul_one_smul]
 
 attribute [simp]
   slash_action.zero_slash slash_action.slash_one
-  slash_action.smul_action slash_action.add_action
+  slash_action.smul_slash slash_action.add_slash
 
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action {β G H α γ : Type*} [group G] [add_monoid α] [has_smul γ α]
@@ -71,9 +71,9 @@ def monoid_hom_slash_action {β G H α γ : Type*} [group G] [add_monoid α] [ha
 { map := λ k g, slash_action.map γ k (h g),
   zero_slash := λ k g, slash_action.zero_slash k (h g),
   slash_one := λ k a, by simp only [map_one, slash_action.slash_one],
-  right_action := λ k g gg a, by simp only [map_mul, slash_action.right_action],
-  smul_action := λ _ _, slash_action.smul_action _ _,
-  add_action := λ _ g _ _, slash_action.add_action _ (h g) _ _,}
+  slash_mul := λ k g gg a, by simp only [map_mul, slash_action.slash_mul],
+  smul_slash := λ _ _, slash_action.smul_slash _ _,
+  add_slash := λ _ g _ _, slash_action.add_slash _ (h g) _ _,}
 
 namespace modular_form
 
@@ -90,8 +90,8 @@ section
 -- temporary notation until the instance is built
 local notation f ` ∣[`:100 k `]`:0 γ :100 := modular_form.slash k γ f
 
-private lemma slash_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ) :
-  (f ∣[k] A) ∣[k] B = f ∣[k] (A * B) :=
+private lemma slash_mul (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ) :
+  f ∣[k] (A * B) = (f ∣[k] A) ∣[k] B :=
 begin
   ext1,
   simp_rw [slash,(upper_half_plane.denom_cocycle A B x)],
@@ -109,7 +109,7 @@ begin
   simp_rw [this, ← mul_assoc, ←mul_zpow],
 end
 
-private lemma slash_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
+private lemma add_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin
   ext1,
@@ -140,9 +140,9 @@ instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
 { map := slash,
   zero_slash := zero_slash,
   slash_one := slash_one,
-  right_action := slash_right_action,
-  smul_action := smul_slash,
-  add_action := slash_add }
+  slash_mul := slash_mul,
+  smul_slash := smul_slash,
+  add_slash := add_slash }
 
 end
 

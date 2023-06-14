@@ -63,7 +63,7 @@ alg_equiv.apply_mul_semiring_action
 begin
   refine alg_equiv.ext (λ x, (alg_hom.mem_equalizer σ.to_alg_hom τ.to_alg_hom x).mp
       ((set_like.ext_iff.mp _ x).mpr algebra.mem_top)),
-  rwa [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
+  rwa [eq_top_iff, ←splitting_field.adjoin_root_set, algebra.adjoin_le_iff],
 end
 
 /-- If `p` splits in `F` then the `p.gal` is trivial. -/
@@ -374,7 +374,7 @@ begin
     (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
-    exact complex.eq_conj_iff_im },
+    exact complex.conj_eq_iff_im },
   have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
   { intro z,
     simp_rw [finset.mem_image, exists_prop],

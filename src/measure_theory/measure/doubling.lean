@@ -9,6 +9,9 @@ import measure_theory.measure.measure_space_def
 /-!
 # Uniformly locally doubling measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A uniformly locally doubling measure `μ` on a metric space is a measure for which there exists a
 constant `C` such that for all sufficiently small radii `ε`, and for any centre, the measure of a
 ball of radius `2 * ε` is bounded by `C` times the measure of the concentric ball of radius `ε`.

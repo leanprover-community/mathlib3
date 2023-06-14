@@ -9,6 +9,9 @@ import analysis.calculus.series
 /-!
 # Locally uniform limits of holomorphic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gathers some results about locally uniform limits of holomorphic functions on an open
 subset of the complex plane.
 

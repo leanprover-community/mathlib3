@@ -11,6 +11,9 @@ import tactic.linarith
 /-!
 # Verification of the `ordnode α` datatype
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the correctness of the operations in `data.ordmap.ordnode`.
 The public facing version is the type `ordset α`, which is a wrapper around
 `ordnode α` which includes the correctness invariant of the type, and it exposes

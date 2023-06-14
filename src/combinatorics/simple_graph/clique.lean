@@ -317,7 +317,7 @@ variables (G) [fintype α] [decidable_eq α] [decidable_rel G.adj] {n : ℕ} {a 
 /-- The `n`-cliques in a graph as a finset. -/
 def clique_finset (n : ℕ) : finset (finset α) := univ.filter $ G.is_n_clique n
 
-lemma mem_clique_finset_iff : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
+@[simp] lemma mem_clique_finset_iff : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
 mem_filter.trans $ and_iff_right $ mem_univ _
 
 @[simp, norm_cast] lemma coe_clique_finset (n : ℕ) :
@@ -331,7 +331,16 @@ alias clique_finset_eq_empty_iff ↔ _ _root_.simple_graph.clique_free.clique_fi
 
 attribute [protected] clique_free.clique_finset
 
-variables {G} [decidable_rel H.adj]
+variables {G}
+
+lemma card_clique_finset_le : (G.clique_finset n).card ≤ (card α).choose n :=
+begin
+  rw [←card_univ, ←card_powerset_len],
+  refine card_mono (λ s, _),
+  simpa [mem_powerset_len_univ_iff] using is_n_clique.card_eq,
+end
+
+variables [decidable_rel H.adj]
 
 @[mono] lemma clique_finset_mono (h : G ≤ H) : G.clique_finset n ⊆ H.clique_finset n :=
 monotone_filter_right _ $ λ _, is_n_clique.mono h

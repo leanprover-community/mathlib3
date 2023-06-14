@@ -101,16 +101,14 @@ theorem has_eigenvalue_iff_is_root :
 
 /-- An endomorphism of a finite-dimensional vector space has finitely many eigenvalues. -/
 noncomputable instance (f : End K V) : fintype f.eigenvalues :=
-set.finite.fintype
+set.finite.fintype $ show {μ | eigenspace f μ ≠ ⊥}.finite,
 begin
   have h : minpoly K f ≠ 0 := minpoly.ne_zero f.is_integral,
-  convert (minpoly K f).root_set_finite K,
+  convert (minpoly K f).root_set_finite K using 1,
   ext μ,
-  have : (μ ∈ {μ : K | f.eigenspace μ = ⊥ → false}) ↔ ¬f.eigenspace μ = ⊥ := by tauto,
-  convert rfl.mpr this,
   classical,
   simp [polynomial.root_set_def, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root,
-    has_eigenvalue]
+    has_eigenvalue],
 end
 
 end End

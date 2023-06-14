@@ -257,7 +257,7 @@ end
 
 lemma Scheme.Spec_map_presheaf_map_eq_to_hom {X : Scheme} {U V : opens X.carrier} (h : U = V) (W) :
   (Scheme.Spec.map (X.presheaf.map (eq_to_hom h).op).op).val.c.app W =
-    eq_to_hom (by { cases h, induction W using opposite.rec, dsimp, simp, refl }) :=
+    eq_to_hom (by { cases h, induction W using opposite.rec, dsimp, simp, }) :=
 begin
   have : Scheme.Spec.map (X.presheaf.map (𝟙 (op U))).op = 𝟙 _,
   { rw [X.presheaf.map_id, op_id, Scheme.Spec.map_id]  },

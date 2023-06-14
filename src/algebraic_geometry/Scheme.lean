@@ -155,7 +155,7 @@ Spec.LocallyRingedSpace_map_comp f g
 /--
 The spectrum, as a contravariant functor from commutative rings to schemes.
 -/
-@[simps] def Spec : CommRingᵒᵖ ⥤ Scheme :=
+def Spec : CommRingᵒᵖ ⥤ Scheme :=
 { obj := λ R, Spec_obj (unop R),
   map := λ R S f, Spec_map f.unop,
   map_id' := λ R, by rw [unop_id, Spec_map_id],

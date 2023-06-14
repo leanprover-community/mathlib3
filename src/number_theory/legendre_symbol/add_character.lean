@@ -238,7 +238,7 @@ noncomputable! def primitive_add_char.char {R : Type u} [comm_ring R] [fintype R
   [field R'] : Π (χ : primitive_add_char R R'), add_char R (cyclotomic_field χ.n R') :=
   λ χ, χ.2.1
 
-noncomputable! def primitive_add_char.prim {R : Type u} [comm_ring R] [fintype R] {R' : Type v}
+lemma primitive_add_char.prim {R : Type u} [comm_ring R] [fintype R] {R' : Type v}
   [field R'] : Π (χ : primitive_add_char R R'), is_primitive χ.char :=
   λ χ, χ.2.2
 

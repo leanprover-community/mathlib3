@@ -493,14 +493,11 @@ begin
   exact div_le_one_of_le (abs_im_le_norm _) (norm_nonneg _)
 end
 
-lemma abs_I_of_nonzero (h : (I : K) ≠ 0) : abs (I : K) = 1 :=
-begin
-  rw [←mul_self_inj_of_nonneg (abs_nonneg I) zero_le_one, one_mul, ←abs_mul, I_mul_I_of_nonzero h,
-    abs_neg, abs_one],
-end
-
 lemma norm_I_of_nonzero (hI : (I : K) ≠ 0) : ‖(I : K)‖ = 1 :=
-by simpa only [norm_eq_abs] using abs_I_of_nonzero hI
+begin
+  rw [← mul_self_inj_of_nonneg (norm_nonneg I) zero_le_one, one_mul, ← norm_mul,
+    I_mul_I_of_nonzero hI, norm_neg, norm_one],
+end
 
 lemma re_eq_norm_of_mul_conj (x : K) : re (x * conj x) = ‖x * conj x‖ :=
 by rw [mul_conj, of_real_re, norm_of_real, abs_of_nonneg (norm_sq_nonneg _)]

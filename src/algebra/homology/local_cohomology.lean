@@ -105,7 +105,7 @@ variables {E : Type v'} [small_category E]
 /-- Local cohomology along a composition of diagrams. -/
 def diagram_comp (i : ℕ) : diagram (I' ⋙ I) i ≅ I'.op ⋙ (diagram I i) := iso.refl _
 
-/-- Local cohomology agrees along arbitrary cofinal diagrams. -/
+/-- Local cohomology agrees along precomposition with a cofinal diagram. -/
 def iso_of_final [functor.initial I'] (i : ℕ) :
   of_diagram.{(max u v) v'} (I' ⋙ I) i ≅ of_diagram.{(max u v') v} I i :=
 (has_colimit.iso_of_nat_iso (diagram_comp _ _ _))
@@ -201,7 +201,6 @@ end
 
 /-- The diagram of powers of `J` is initial in the diagram of all ideals with
 radical containing `J`. This uses noetherianness. -/
-/- Can this proof be golfed? -/
 instance ideal_powers_initial [hR : is_noetherian R R] :
   functor.initial (ideal_powers_to_self_le_radical J) :=
 { out := λ J', begin
@@ -215,9 +214,7 @@ instance ideal_powers_initial [hR : is_noetherian R R] :
       left, exact ⟨costructured_arrow.hom_mk (hom_of_le h).op (of_as_true trivial)⟩ },
   { obtain ⟨k, hk⟩ := ideal.exists_pow_le_of_le_radical_of_fg J'.2
       (is_noetherian_def.mp hR _),
-    refine ⟨costructured_arrow.mk _⟩,
-    exact (op k),
-    exact ⟨⟨hk⟩⟩ },
+    exact ⟨costructured_arrow.mk (⟨⟨hk⟩⟩ : (ideal_powers_to_self_le_radical J).obj (op k) ⟶ J')⟩},
   end }
 
 /-- Local cohomology (defined in terms of powers of `J`) agrees with local
@@ -242,10 +239,6 @@ instance self_le_radical.cast_is_equivalence (hJK : J.radical = K.radical) :
 { inverse := self_le_radical.cast hJK.symm,
   unit_iso := by tidy,
   counit_iso := by tidy }
-
-instance self_le_radical.cast_initial (hJK : J.radical = K.radical) :
-  functor.initial (self_le_radical.cast hJK) :=
-functor.initial_of_adjunction (self_le_radical.cast hJK).adjunction
 
 /-- The natural isomorphism between local cohomology defined using the `of_self_le_radical`
 diagram, assuming `J.radical = K.radical`. -/

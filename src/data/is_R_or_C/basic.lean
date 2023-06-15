@@ -493,7 +493,7 @@ begin
   exact div_le_one_of_le (abs_im_le_norm _) (norm_nonneg _)
 end
 
-lemma norm_I_of_nonzero (hI : (I : K) ≠ 0) : ‖(I : K)‖ = 1 :=
+lemma norm_I_of_ne_zero (hI : (I : K) ≠ 0) : ‖(I : K)‖ = 1 :=
 begin
   rw [← mul_self_inj_of_nonneg (norm_nonneg I) zero_le_one, one_mul, ← norm_mul,
     I_mul_I_of_nonzero hI, norm_neg, norm_one],

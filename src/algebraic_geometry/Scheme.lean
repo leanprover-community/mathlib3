@@ -155,6 +155,10 @@ Spec.LocallyRingedSpace_map_comp f g
 /--
 The spectrum, as a contravariant functor from commutative rings to schemes.
 -/
+-- TODO: make either `Spec_obj` or `Spec.obj` the simp-normal form. `LocallyRingedSpace_obj` is
+-- the simp-normal form of `toLocallyRingedSpace.obj`, but adding `simps` here without `attrs := []`
+-- for the same effect caused problems in mathlib4.
+@[simps {attrs := []}]
 def Spec : CommRingᵒᵖ ⥤ Scheme :=
 { obj := λ R, Spec_obj (unop R),
   map := λ R S f, Spec_map f.unop,

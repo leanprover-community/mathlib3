@@ -73,7 +73,7 @@ variables [Π x, topological_add_group (E₂ x)]
 instance (x : B) : topological_space (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) :=
 by delta_instance bundle.continuous_linear_map
 
-instance (x : B) : add_comm_monoid (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) :=
+instance (x : B) : add_comm_group (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x) :=
 by delta_instance bundle.continuous_linear_map
 
 variables [∀ x, has_continuous_smul 𝕜₂ (E₂ x)]

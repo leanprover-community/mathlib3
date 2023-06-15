@@ -168,6 +168,8 @@ variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*) {B' : Type*
 
 instance [∀ (x : B), add_comm_monoid (E x)] : ∀ (x : B'), add_comm_monoid ((f *ᵖ E) x) :=
 by delta_instance bundle.pullback
+instance [∀ (x : B), add_comm_group (E x)] : ∀ (x : B'), add_comm_group ((f *ᵖ E) x) :=
+by delta_instance bundle.pullback
 instance [semiring R] [∀ (x : B), add_comm_monoid (E x)] [∀ x, module R (E x)] :
   ∀ (x : B'), module R ((f *ᵖ E) x) :=
 by delta_instance bundle.pullback

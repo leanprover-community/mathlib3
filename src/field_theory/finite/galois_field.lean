@@ -152,7 +152,7 @@ begin
   rw [splits_iff_card_roots, h1, ←finset.card_def, finset.card_univ, h2, zmod.card],
 end
 
-local attribute [-instance] splitting_field.algebra'
+local attribute [-instance] zmod.algebra
 
 /-- A Galois field with exponent 1 is equivalent to `zmod` -/
 def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=

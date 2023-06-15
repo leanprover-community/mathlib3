@@ -11,6 +11,9 @@ import topology.category.Top.opens
 /-!
 # Gluing Topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a family of gluing data (see `category_theory/glue_data`), we can then glue them together.
 
 The construction should be "sealed" and considered as a black box, while only using the API

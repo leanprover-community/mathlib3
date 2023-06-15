@@ -9,6 +9,9 @@ import measure_theory.integral.set_integral
 /-!
 # With Density
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For an s-finite kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` which is finite
 everywhere, we define `with_density κ f` as the kernel `a ↦ (κ a).with_density (f a)`. This is
 an s-finite kernel.

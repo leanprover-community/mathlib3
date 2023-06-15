@@ -9,6 +9,9 @@ import algebra.category.Ring.constructions
 /-!
 # The category of schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A scheme is a locally ringed space such that every point is contained in some open set
 where there is an isomorphism of presheaves between the restriction to that open set,
 and the structure sheaf of `Spec R`, for some commutative ring `R`.

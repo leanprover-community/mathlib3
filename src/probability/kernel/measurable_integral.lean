@@ -8,6 +8,9 @@ import probability.kernel.basic
 /-!
 # Measurability of the integral against a kernel
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Lebesgue integral of a measurable function against a kernel is measurable. The Bochner integral
 is strongly measurable.
 

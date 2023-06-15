@@ -51,7 +51,6 @@ theorem integral_closure.mem_lifts_of_monic_of_dvd_map
   {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
   g ∈ lifts (algebra_map (integral_closure R K) K) :=
 begin
-  haveI : is_scalar_tower R K g.splitting_field := splitting_field_aux.is_scalar_tower _ _ _,
   have := mem_lift_of_splits_of_roots_mem_range (integral_closure R g.splitting_field)
     ((splits_id_iff_splits _).2 $ splitting_field.splits g) (hg.map _)
     (λ a ha, (set_like.ext_iff.mp (integral_closure R g.splitting_field).range_algebra_map _).mpr $
@@ -67,7 +66,7 @@ begin
   refine multiset.mem_of_le (roots.le_of_dvd ((hf.map _).map _).ne_zero _) ha,
   { apply_instance },
   { exact map_dvd (algebra_map K g.splitting_field) hd },
-  { apply splitting_field_aux.is_scalar_tower },
+  { apply_instance }
 end
 
 variables [is_domain R] [is_fraction_ring R K]

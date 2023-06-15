@@ -161,6 +161,9 @@ def Spec : CommRingᵒᵖ ⥤ Scheme :=
   map_id' := λ R, by rw [unop_id, Spec_map_id],
   map_comp' := λ R S T f g, by rw [unop_comp, Spec_map_comp] }
 
+@[simp] lemma Spec_obj_eq : Spec_obj X = Spec.obj (op X) := rfl
+@[simp] lemma Spec_map_eq : Spec_map f = Spec.map (op f) := rfl
+
 /--
 The empty scheme.
 -/

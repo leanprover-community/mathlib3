@@ -151,13 +151,13 @@ end
 then they can all be removed by removing a few edges (on the order of `(card α)^2`). -/
 lemma triangle_removal
   (hG : ((G.clique_finset 3).card : ℝ) < triangle_removal_bound ε * (card α)^3) :
-  ∃ G' ≤ G, by haveI := classical.dec_rel G'.adj; exact
+  ∃ (G' ≤ G) [decidable_rel G'.adj], by exactI
     (G.edge_finset.card - G'.edge_finset.card : ℝ) < ε * (card α^2 : ℕ) ∧ G'.clique_free 3 :=
 begin
-  by_contra,
-  push_neg at h,
-  exact hG.not_le ((far_from_triangle_free_iff.2 $
-    λ G' hG hG', le_of_not_lt $ λ i, h G' hG i hG').le_card_clique_finset),
+  by_contra' h,
+  refine hG.not_le (far_from_triangle_free_iff.2 _).le_card_clique_finset,
+  introsI G' _ hG hG',
+  exact le_of_not_lt (λ i, h G' hG i hG'),
 end
 
 end simple_graph

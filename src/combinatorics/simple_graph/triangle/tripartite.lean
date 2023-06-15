@@ -36,7 +36,8 @@ This construction shows up unrelatingly twice in the theory of Roth numbers:
 
 open finset function sum3
 
-variables {α β γ : Type*} {t : finset (α × β × γ)} {a a' : α} {b b' : β} {c c' : γ} {x : α × β × γ}
+variables {α β γ 𝕜 : Type*} [linear_ordered_field 𝕜] {t : finset (α × β × γ)} {a a' : α} {b b' : β}
+  {c c' : γ} {x : α × β × γ} {ε : 𝕜}
 
 namespace simple_graph
 namespace tripartite_from_triangles
@@ -147,26 +148,22 @@ by rintro (_ | _ | _) (_ | _ | _) (_ | _ | _); refine ⟨_, _, _, by ext; simp o
   [finset.mem_insert, finset.mem_singleton]; try { tauto }, _, _, _⟩; constructor; assumption
 
 /-- The map that turns a triangle index into an explicit triangle. -/
-def to_triangle (x : α × β × γ) : finset (α ⊕ β ⊕ γ) := {in₀ x.1, in₁ x.2.1, in₂ x.2.2}
-
-lemma to_triangle_injective : injective (to_triangle : α × β × γ → finset (α ⊕ β ⊕ γ)) :=
-begin
-  rintro ⟨a, b, c⟩ ⟨a', b', c'⟩,
-  simpa only [to_triangle, finset.subset.antisymm_iff, finset.subset_iff, mem_insert, mem_singleton,
-    forall_eq_or_imp, forall_eq, prod.mk.inj_iff, or_false, false_or, in₀, in₁, in₂, sum.inl.inj_eq,
-    sum.inr.inj_eq] using and.left,
-end
+@[simps] def to_triangle : α × β × γ ↪ finset (α ⊕ β ⊕ γ) :=
+{ to_fun := λ x, {in₀ x.1, in₁ x.2.1, in₂ x.2.2},
+  inj' := λ ⟨a, b, c⟩ ⟨a', b', c'⟩, by simpa only [finset.subset.antisymm_iff, finset.subset_iff,
+    mem_insert, mem_singleton, forall_eq_or_imp, forall_eq, prod.mk.inj_iff, or_false, false_or,
+    in₀, in₁, in₂, sum.inl.inj_eq, sum.inr.inj_eq] using and.left }
 
 lemma to_triangle_is_3_clique (hx : x ∈ t) : (graph t).is_n_clique 3 (to_triangle x) :=
 begin
   rcases x with ⟨a, b, c⟩,
-  simp only [to_triangle, is_3_clique_triple_iff, in₀₁_iff, in₀₂_iff, in₁₂_iff],
+  simp only [to_triangle_apply, is_3_clique_triple_iff, in₀₁_iff, in₀₂_iff, in₁₂_iff],
   exact ⟨⟨_, hx⟩, ⟨_, hx⟩, _, hx⟩,
 end
 
 lemma exists_mem_to_triangle {x y : α ⊕ β ⊕ γ} (hxy : (graph t).adj x y) :
   ∃ z ∈ t, x ∈ to_triangle z ∧ y ∈ to_triangle z :=
-by cases hxy; exact ⟨_, ‹_›, by simp [to_triangle]⟩
+by cases hxy; exact ⟨_, ‹_›, by simp⟩
 
 lemma is_3_clique_iff [no_accidental t] {s : finset (α ⊕ β ⊕ γ)} :
   (graph t).is_n_clique 3 s ↔ ∃ x, x ∈ t ∧ to_triangle x = s :=
@@ -190,18 +187,18 @@ lemma to_triangle_surj_on [no_accidental t] :
 
 variables (t)
 
-lemma image_to_triangle_disjoint [explicit_disjoint t] :
-  (t.image to_triangle : set (finset (α ⊕ β ⊕ γ))).pairwise $
+lemma map_to_triangle_disjoint [explicit_disjoint t] :
+  (t.map to_triangle : set (finset (α ⊕ β ⊕ γ))).pairwise $
     λ x y, (x ∩ y : set (α ⊕ β ⊕ γ)).subsingleton :=
 begin
   intro,
-  simp only [finset.coe_image, set.mem_image, finset.mem_coe, prod.exists, ne.def,
+  simp only [finset.coe_map, set.mem_image, finset.mem_coe, prod.exists, ne.def,
     forall_exists_index, and_imp],
   rintro a b c habc rfl e x y z hxyz rfl h',
   have := ne_of_apply_ne _ h',
   simp only [ne.def, prod.mk.inj_iff, not_and] at this,
-  simp only [to_triangle, in₀, in₁, in₂, set.mem_inter_iff, mem_insert, mem_singleton, mem_coe,
-    and_imp, sum.forall, or_false, forall_eq, false_or, eq_self_iff_true, implies_true_iff,
+  simp only [to_triangle_apply, in₀, in₁, in₂, set.mem_inter_iff, mem_insert, mem_singleton,
+    mem_coe, and_imp, sum.forall, or_false, forall_eq, false_or, eq_self_iff_true, implies_true_iff,
     true_and, and_true, set.subsingleton],
   suffices : ¬ (a = x ∧ b = y) ∧ ¬ (a = x ∧ c = z) ∧ ¬ (b = y ∧ c = z),
   { tauto },
@@ -223,12 +220,18 @@ variables [fintype α] [fintype β] [fintype γ]
 lemma clique_finset_eq_image [no_accidental t] : (graph t).clique_finset 3 = t.image to_triangle :=
 coe_injective $ by { push_cast, exact clique_set_eq_image _ }
 
-lemma clique_finset_eq_map [no_accidental t] :
-  (graph t).clique_finset 3 = t.map ⟨_, to_triangle_injective⟩ :=
+lemma clique_finset_eq_map [no_accidental t] : (graph t).clique_finset 3 = t.map to_triangle :=
 by simp [clique_finset_eq_image, map_eq_image]
 
 @[simp] lemma card_triangles [no_accidental t] : ((graph t).clique_finset 3).card = t.card :=
 by rw [clique_finset_eq_map, card_map]
+
+lemma far_from_triangle_free [explicit_disjoint t] {ε : 𝕜}
+  (ht : ε * ((fintype.card α + fintype.card β + fintype.card γ) ^ 2 : ℕ) ≤ t.card) :
+  (graph t).far_from_triangle_free ε :=
+far_from_triangle_free_of_disjoint_triangles (t.map to_triangle)
+  (map_subset_iff_subset_preimage.2 $ λ x hx, by simpa using to_triangle_is_3_clique hx)
+  (map_to_triangle_disjoint t) $  by simpa [add_assoc] using ht
 
 end fintype
 end decidable_eq
@@ -240,8 +243,8 @@ begin
   classical,
   refine ⟨_, λ x y hxy, _⟩,
   { unfold edge_disjoint_triangles,
-    convert image_to_triangle_disjoint t,
-    rw [clique_set_eq_image, coe_image] },
+    convert map_to_triangle_disjoint t,
+    rw [clique_set_eq_image, coe_map] },
   { obtain ⟨z, hz, hxy⟩ := exists_mem_to_triangle hxy,
     exact ⟨_, to_triangle_is_3_clique hz, hxy⟩ }
 end

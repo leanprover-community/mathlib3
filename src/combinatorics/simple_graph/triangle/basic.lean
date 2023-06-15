@@ -218,11 +218,61 @@ lemma far_from_triangle_free.mono (hε : G.far_from_triangle_free ε) (h : δ �
   G.far_from_triangle_free δ :=
 hε.mono $ mul_le_mul_of_nonneg_right h $ cast_nonneg _
 
+@[simp] lemma far_from_triangle_free_of_nonpos (hε : ε ≤ 0) : G.far_from_triangle_free ε :=
+λ H _ _, (mul_nonpos_of_nonpos_of_nonneg hε $ nat.cast_nonneg _).trans $ nat.cast_nonneg _
+
 lemma far_from_triangle_free.clique_finset_nonempty' (hH : H ≤ G) (hG : G.far_from_triangle_free ε)
   (hcard : (G.edge_finset.card - H.edge_finset.card : 𝕜) < ε * (card α ^ 2 : ℕ)) :
   (H.clique_finset 3).nonempty :=
 nonempty_of_ne_empty $ H.clique_finset_eq_empty_iff.not.2 $ λ hH',
   (hG.le_card_sub_card hH hH').not_lt hcard
+
+private lemma far_from_triangle_free_of_disjoint_triangles_aux {tris : finset (finset α)}
+  (htris : tris ⊆ G.clique_finset 3)
+  (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y : set α).subsingleton)) (hHG : H ≤ G)
+  (hH : H.clique_free 3) : tris.card ≤ G.edge_finset.card - H.edge_finset.card :=
+begin
+  rw [←card_sdiff (edge_finset_mono hHG), ←card_attach],
+  by_contra' hG,
+  have : ∀ ⦃t⦄, t ∈ tris → ∃ x y, x ∈ t ∧ y ∈ t ∧ x ≠ y ∧ ⟦(x, y)⟧ ∈ G.edge_finset \ H.edge_finset,
+  { intros t ht,
+    by_contra' h,
+    refine hH t _,
+    simp only [not_and, mem_sdiff, not_not, mem_edge_finset, mem_edge_set] at h,
+    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := is_3_clique_iff.1 (G.mem_clique_finset_iff.1 $ htris ht),
+    rw is_3_clique_triple_iff,
+    refine ⟨h _ _ _ _ xy.ne xy, h _ _ _ _ xz.ne xz, h _ _ _ _ yz.ne yz⟩; simp },
+  choose fx fy hfx hfy hfne fmem using this,
+  let f : {x // x ∈ tris} → sym2 α := λ t, ⟦(fx t.2, fy t.2)⟧,
+  have hf : ∀ x, x ∈ tris.attach → f x ∈ G.edge_finset \ H.edge_finset := λ x hx, fmem _,
+  obtain ⟨⟨t₁, ht₁⟩, -, ⟨t₂, ht₂⟩, -, tne, t : ⟦_⟧ = ⟦_⟧⟩ :=
+    exists_ne_map_eq_of_card_lt_of_maps_to hG hf,
+  dsimp at t,
+  have i := pd ht₁ ht₂ (subtype.val_injective.ne tne),
+  rw sym2.eq_iff at t,
+  cases t,
+  { exact hfne _ (i ⟨hfx ht₁, t.1.symm ▸ hfx ht₂⟩ ⟨hfy ht₁, t.2.symm ▸ hfy ht₂⟩) },
+  { exact hfne _ (i ⟨hfx ht₁, t.1.symm ▸ hfy ht₂⟩ ⟨hfy ht₁, t.2.symm ▸ hfx ht₂⟩) }
+end
+
+/-- If there are `ε * (card α)^2` disjoint triangles, then the graph is `ε`-far from being
+triangle-free. -/
+lemma far_from_triangle_free_of_disjoint_triangles (tris : finset (finset α))
+  (htris : tris ⊆ G.clique_finset 3)
+  (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y : set α).subsingleton))
+  (tris_big : ε * (card α ^ 2 : ℕ) ≤ tris.card) :
+  G.far_from_triangle_free ε :=
+begin
+  rw far_from_triangle_free_iff,
+  introsI H _ hG hH,
+  rw ←nat.cast_sub (card_le_of_subset $ edge_finset_mono hG),
+  exact tris_big.trans
+    (nat.cast_le.2 $ far_from_triangle_free_of_disjoint_triangles_aux htris pd hG hH),
+end
+
+protected lemma edge_disjoint_triangles.far_from_triangle_free (hG : G.edge_disjoint_triangles)
+  (tris_big : ε * (card α ^ 2 : ℕ) ≤ (G.clique_finset 3).card) : G.far_from_triangle_free ε :=
+far_from_triangle_free_of_disjoint_triangles _ subset.rfl (by simpa using hG) tris_big
 
 variables [nonempty α]
 
@@ -268,50 +318,5 @@ lemma far_from_triangle_free.not_clique_free (hG : G.far_from_triangle_free ε) 
 lemma far_from_triangle_free.clique_finset_nonempty (hG : G.far_from_triangle_free ε) (hε : 0 < ε) :
   (G.clique_finset 3).nonempty :=
 nonempty_of_ne_empty $ G.clique_finset_eq_empty_iff.not.2 $ hG.not_clique_free hε
-
-variables {G H} {tris : finset (finset α)}
-
-private lemma far_from_triangle_free_of_disjoint_triangles_aux (htris : tris ⊆ G.clique_finset 3)
-  (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1)) (hHG : H ≤ G)
-  (hH : H.clique_free 3) : tris.card ≤ G.edge_finset.card - H.edge_finset.card :=
-begin
-  rw [←card_sdiff (edge_finset_mono hHG), ←card_attach],
-  by_contra' hG,
-  have : ∀ t, t ∈ tris → ∃ x y, x ∈ t ∧ y ∈ t ∧ x ≠ y ∧ ⟦(x, y)⟧ ∈ G.edge_finset \ H.edge_finset,
-  { intros t ht,
-    by_contra' h,
-    refine hH t _,
-    simp only [not_and, mem_sdiff, not_not, mem_edge_finset, mem_edge_set] at h,
-    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := is_3_clique_iff.1 (G.mem_clique_finset_iff.1 $ htris ht),
-    rw is_3_clique_triple_iff,
-    refine ⟨h _ _ _ _ xy.ne xy, h _ _ _ _ xz.ne xz, h _ _ _ _ yz.ne yz⟩; simp },
-  choose fx fy hfx hfy hfne fmem using this,
-  let f : {x // x ∈ tris} → sym2 α := λ t, ⟦(fx _ t.2, fy _ t.2)⟧,
-  have hf : ∀ x, x ∈ tris.attach → f x ∈ G.edge_finset \ H.edge_finset := λ x hx, fmem _ _,
-  obtain ⟨⟨t₁, ht₁⟩, -, ⟨t₂, ht₂⟩, -, tne, t : ⟦_⟧ = ⟦_⟧⟩ :=
-    exists_ne_map_eq_of_card_lt_of_maps_to hG hf,
-  dsimp at t,
-  have i := pd ht₁ ht₂ (subtype.val_injective.ne tne),
-  simp only [finset.card_le_one_iff, mem_inter, and_imp] at i,
-  rw sym2.eq_iff at t,
-  cases t,
-  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfx t₂ ht₂) (hfy t₁ ht₁) $ t.2.symm ▸ hfy t₂ ht₂) },
-  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfy t₂ ht₂) (hfy t₁ ht₁) $ t.2.symm ▸ hfx t₂ ht₂) }
-end
-
-/-- If there are `ε * (card α)^2` disjoint triangles, then the graph is `ε`-far from being
-triangle-free. -/
-lemma far_from_triangle_free_of_disjoint_triangles (tris : finset (finset α))
-  (htris : tris ⊆ G.clique_finset 3)
-  (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1))
-  (tris_big : ε * (card α ^ 2 : ℕ) ≤ tris.card) :
-  G.far_from_triangle_free ε :=
-begin
-  rw far_from_triangle_free_iff,
-  introsI H _ hG hH,
-  rw ←nat.cast_sub (card_le_of_subset $ edge_finset_mono hG),
-  exact tris_big.trans
-    (nat.cast_le.2 $ far_from_triangle_free_of_disjoint_triangles_aux htris pd hG hH),
-end
 
 end simple_graph

@@ -5,10 +5,12 @@ Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.W
 import data.qpf.multivariate.basic
-universes u v
 
 /-!
 # The initial algebra of a multivariate qpf is again a qpf.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For a `(n+1)`-ary QPF `F (α₀,..,αₙ)`, we take the least fixed point of `F` with
 regards to its last argument `αₙ`. The result is a `n`-ary functor: `fix F (α₀,..,αₙ₋₁)`.
@@ -45,8 +47,11 @@ See [avigad-carneiro-hudon2019] for more details.
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+   [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
+
+universes u v
 
 namespace mvqpf
 open typevec
@@ -182,7 +187,7 @@ fix F a b = F a b (fix F a b)
 def fix {n : ℕ} (F : typevec (n+1) → Type*) [mvfunctor F] [q : mvqpf F] (α : typevec n) :=
 quotient (W_setoid α : setoid (q.P.W α))
 
-attribute [nolint has_inhabited_instance] fix
+attribute [nolint has_nonempty_instance] fix
 
 /-- `fix F` is a functor -/
 def fix.map {α β : typevec n} (g : α ⟹ β) : fix F α → fix F β :=
@@ -298,7 +303,7 @@ begin
   intros i j,
   cases i,
   { apply ih },
-  { triv },
+  { trivial },
 end
 
 instance mvqpf_fix : mvqpf (fix F) :=

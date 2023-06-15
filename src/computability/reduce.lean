@@ -8,6 +8,9 @@ import computability.halting
 /-!
 # Strong reducibility and degrees.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the notions of computable many-one reduction and one-one
 reduction between sets, and shows that the corresponding degrees form a
 semilattice.
@@ -272,11 +275,11 @@ variables {γ : Type w} [primcodable γ] [inhabited γ]
 Computable and injective mapping of predicates to sets of natural numbers.
 -/
 def to_nat (p : set α) : set ℕ :=
-{ n | p ((encodable.decode α n).get_or_else (default α)) }
+{ n | p ((encodable.decode α n).get_or_else default) }
 
 @[simp]
 lemma to_nat_many_one_reducible {p : set α} : to_nat p ≤₀ p :=
-⟨λ n, (encodable.decode α n).get_or_else (default α),
+⟨λ n, (encodable.decode α n).get_or_else default,
  computable.option_get_or_else computable.decode (computable.const _),
  λ _, iff.rfl⟩
 

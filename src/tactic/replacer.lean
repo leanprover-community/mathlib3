@@ -14,8 +14,8 @@ meaning is defined incrementally through attributes.
 
 namespace tactic
 
-meta def replacer_core {α : Type} [reflected α]
-  (ntac : name) (eval : ∀ β [reflected β], expr → tactic β) :
+meta def replacer_core {α : Type} [reflected _ α]
+  (ntac : name) (eval : ∀ β [reflected _ β], expr → tactic β) :
   list name → tactic α
 | [] := fail ("no implementation defined for " ++ to_string ntac)
 | (n::ns) := do d ← get_decl n, let t := d.type,
@@ -26,8 +26,8 @@ meta def replacer_core {α : Type} [reflected α]
             return (tac (guard (ns ≠ []) >> some (replacer_core ns))) },
   tac
 
-meta def replacer (ntac : name) {α : Type} [reflected α]
-  (F : Type → Type) (eF : ∀ β, reflected β → reflected (F β))
+meta def replacer (ntac : name) {α : Type} [reflected _ α]
+  (F : Type → Type) (eF : ∀ β, reflected _ β → reflected _ (F β))
   (R : ∀ β, F β → β) : tactic α :=
 attribute.get_instances ntac >>= replacer_core ntac
   (λ β eβ e, R β <$> @eval_expr' (F β) (eF β eβ) e)
@@ -47,7 +47,7 @@ meta def mk_replacer₂ (ntac : name) (v : expr × expr) : expr → nat → opti
     reflect ntac, β, reflect β,
     expr.lam `γ binder_info.default `(Type) v.1,
     expr.lam `γ binder_info.default `(Type) $
-    expr.lam `eγ binder_info.inst_implicit ((`(@reflected Type) : expr) β) v.2,
+    expr.lam `eγ binder_info.inst_implicit ((`(reflected Type) : expr) β) v.2,
     expr.lam `γ binder_info.default `(Type) $
     expr.lam `f binder_info.default v.1 $
     (list.range i).foldr (λ i e', e' (expr.var (i+2))) (expr.var 0)
@@ -92,7 +92,8 @@ let nattr := ntac <.> "attr" in do
     "are defined later with the `@[" ++ to_string ntac ++ "]` attribute. " ++
     "It is intended for use with `auto_param`s for structure fields."
 
-open interactive lean.parser
+setup_tactic_parser
+
 /--
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
 effectively be defined and re-defined later, by tagging definitions with `@[foo]`.

@@ -11,7 +11,7 @@ FROM debian as leanproject-builder
 
 USER root
 # install prerequisites
-RUN apt-get update && apt-get install curl git python3 python3-pip python3-venv -y && apt-get clean
+RUN apt-get update && apt-get install curl git python3 python3-pip python3-venv zlib1g-dev -y && apt-get clean
 # create a non-root user
 RUN useradd -m lean
 
@@ -26,7 +26,10 @@ RUN python3 -m pip install --user mathlibtools
 # now install `pyinstaller`, and run it on the installed copy of `leanproject`
 RUN python3 -m pip install --user pyinstaller
 WORKDIR /home/lean/.local/bin
-RUN pyinstaller --onefile --noconfirm leanproject
+# We need the `--hidden-import` flag here due to PyInstaller not knowing the dependencies
+# of PyNaCl (https://github.com/pyinstaller/pyinstaller/issues/3525), which is itself a transitive
+# dependency of mathlibtools via PyGithub.
+RUN pyinstaller --onefile --noconfirm --hidden-import _cffi_backend leanproject
 # this has created `/home/lean/.local/bin/dist/leanproject`,
 # which we'll now copy to a fresh container
 
@@ -49,9 +52,8 @@ ENTRYPOINT ["/bin/bash", "-l"]
 ENV PATH="/home/lean/.elan/bin:/home/lean/.local/bin:$PATH"
 
 # install elan
-RUN curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- -y && \
+RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none && \
     . ~/.profile && \
-    elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/leanpkg.toml | grep lean_version | awk -F'"' '{print $2}') && \
-    elan toolchain uninstall stable
+    elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/leanpkg.toml | grep lean_version | awk -F'"' '{print $2}')
 # install leanproject
 COPY --from=leanproject-builder /home/lean/.local/bin/dist/leanproject /home/lean/.local/bin/

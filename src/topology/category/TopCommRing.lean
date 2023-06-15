@@ -3,12 +3,15 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import topology.category.Top.basic
-import topology.algebra.ring
+import topology.algebra.ring.basic
 
 /-!
 # Category of topological commutative rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the category `TopCommRing` of topological commutative rings together with the relevant
 forgetful functors to topological spaces and commutative rings.
@@ -27,8 +30,9 @@ structure TopCommRing :=
 
 namespace TopCommRing
 
-instance : has_coe_to_sort TopCommRing :=
-{ S := Type u, coe := TopCommRing.α }
+instance : inhabited TopCommRing := ⟨⟨punit⟩⟩
+
+instance : has_coe_to_sort TopCommRing (Type u) := ⟨TopCommRing.α⟩
 
 attribute [instance] is_comm_ring is_topological_space is_topological_ring
 
@@ -92,7 +96,7 @@ R.is_topological_ring
 The forgetful functors to `Type` do not reflect isomorphisms,
 but the forgetful functor from `TopCommRing` to `Top` does.
 -/
-instance : reflects_isomorphisms (forget₂ TopCommRing Top) :=
+instance : reflects_isomorphisms (forget₂ TopCommRing.{u} Top.{u}) :=
 { reflects := λ X Y f _,
   begin
     resetI,

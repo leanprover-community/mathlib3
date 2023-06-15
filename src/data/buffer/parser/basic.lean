@@ -5,6 +5,8 @@ Authors: Yakov Pechersky
 -/
 import data.string.basic
 import data.buffer.basic
+import data.nat.digits
+import data.buffer.parser
 
 /-!
 # Parsers
@@ -493,7 +495,7 @@ instance str {s : string} : (str s).mono :=
 mono.decorate_error
 
 instance remaining : remaining.mono :=
-⟨λ _ _, le_refl _⟩
+⟨λ _ _, le_rfl⟩
 
 instance eof : eof.mono :=
 mono.decorate_error
@@ -682,7 +684,7 @@ lemma remaining_ne_fail : remaining cb n ≠ fail n' err :=
 by simp [remaining]
 
 lemma eof_eq_done {u : unit} : eof cb n = done n' u ↔ n = n' ∧ cb.size ≤ n :=
-by simp [eof, guard_eq_done, remaining_eq_done, nat.sub_eq_zero_iff_le, and_comm, and_assoc]
+by simp [eof, guard_eq_done, remaining_eq_done, tsub_eq_zero_iff_le, and_comm, and_assoc]
 
 @[simp] lemma foldr_core_zero_eq_done {f : α → β → β} {p : parser α} {b' : β} :
   foldr_core f p b 0 cb n ≠ done n' b' :=
@@ -718,7 +720,7 @@ lemma foldr_eq_fail_iff_mono_at_end {f : α → β → β} {p : parser α} {err 
   [p.mono] (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
-  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  have : cb.size - n = 0 := tsub_eq_zero_iff_le.mpr hc,
   simp only [foldr, foldr_core_succ_eq_fail, this, and.left_comm, foldr_core_zero_eq_fail,
              ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
              exists_and_distrib_left],
@@ -751,7 +753,7 @@ lemma foldl_core_succ_eq_fail {f : β → α → β} {p : parser α} {reps : ℕ
   foldl_core f b p (reps + 1) cb n = fail n' err ↔ n ≠ n' ∧
   (p cb n = fail n' err ∨
     ∃ (np : ℕ) (a : α), p cb n = done np a ∧ foldl_core f (f b a) p reps cb np = fail n' err) :=
-by  simp [foldl_core, and_comm]
+by simp [foldl_core, and_comm]
 
 lemma foldl_eq_done {f : β → α → β} {p : parser α} {b' : β} :
   foldl f b p cb n = done n' b' ↔
@@ -772,7 +774,7 @@ lemma foldl_eq_fail_iff_mono_at_end {f : β → α → β} {p : parser α} {err 
   [p.mono] (hc : cb.size ≤ n) : foldl f b p cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
-  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  have : cb.size - n = 0 := tsub_eq_zero_iff_le.mpr hc,
   simp only [foldl, foldl_core_succ_eq_fail, this, and.left_comm, ne_iff_lt_iff_le, exists_eq_left,
              exists_and_distrib_right, and.congr_left_iff, exists_and_distrib_left,
              foldl_core_zero_eq_fail],
@@ -881,7 +883,7 @@ begin
   { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9],
     rintro ⟨np, c, ⟨hn, ⟨ge0, le9⟩, rfl, rfl⟩, rfl, rfl⟩,
     simpa [hn, ge0, le9, true_and, and_true, eq_self_iff_true, exists_prop_of_true,
-            nat.sub_le_sub_right_iff, l09] using (le_iff_le.mp le9) },
+            tsub_le_tsub_iff_right, l09] using (le_iff_le.mp le9) },
   { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9,
                le_iff_le],
     rintro ⟨hn, rfl, -, rfl, ge0, le9⟩,
@@ -958,8 +960,8 @@ static.decorate_errors
 lemma any_char : ¬ static any_char :=
 begin
   have : any_char "s".to_char_buffer 0 = done 1 's',
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [any_char_eq_done, this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [any_char_eq_done, this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -985,8 +987,8 @@ instance eps : static eps := static.pure
 lemma ch (c : char) : ¬ static (ch c) :=
 begin
   have : ch c [c].to_buffer 0 = done 1 (),
-    { have : 0 < [c].to_buffer.size := dec_trivial,
-      simp [ch_eq_done, this] },
+  { have : 0 < [c].to_buffer.size := dec_trivial,
+    simp [ch_eq_done, this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -1006,7 +1008,7 @@ begin
   cases cs with hd tl,
   { simp [one_of, static.decorate_errors] },
   { have : one_of (hd :: tl) (hd :: tl).to_buffer 0 = done 1 hd,
-      { simp [one_of_eq_done] },
+    { simp [one_of_eq_done] },
     simpa using not_of_ne this zero_ne_one }
 end
 
@@ -1018,7 +1020,7 @@ begin
   cases cs with hd tl,
   { simp [one_of', static.bind], },
   { have : one_of' (hd :: tl) (hd :: tl).to_buffer 0 = done 1 (),
-      { simp [one_of'_eq_done] },
+    { simp [one_of'_eq_done] },
     simpa using not_of_ne this zero_ne_one }
 end
 
@@ -1095,16 +1097,16 @@ lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.static
 lemma digit : ¬ digit.static :=
 begin
   have : digit "1".to_char_buffer 0 = done 1 1,
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [this] },
   exact not_of_ne this zero_ne_one
 end
 
 lemma nat : ¬ nat.static :=
 begin
   have : nat "1".to_char_buffer 0 = done 1 1,
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [this] },
+  { have : 0 < "s".to_char_buffer.size := dec_trivial,
+    simpa [this] },
   exact not_of_ne this zero_ne_one
 end
 
@@ -1244,10 +1246,10 @@ begin
   rw [str, decorate_error_iff],
   cases hs : s.to_list,
   { have : s = "",
-      { cases s, rw [string.to_list] at hs, simpa [hs] },
+    { cases s, rw [string.to_list] at hs, simpa [hs] },
     simp [pure, this] },
   { have : s ≠ "",
-      { intro H, simpa [H] using hs },
+    { intro H, simpa [H] using hs },
     simp only [this, iff_true, ne.def, not_false_iff],
     apply_instance }
 end
@@ -1464,11 +1466,9 @@ begin
     haveI := hr,
     intros cb n,
     obtain ⟨np, a, h⟩ := p.exists_done cb n,
-    have : n = np := static.of_done h,
-    subst this,
+    obtain rfl : n = np := static.of_done h,
     obtain ⟨np, b', hf⟩ := exists_done (foldr_core f p b (reps + 1)) cb n,
-    have : n = np := static.of_done hf,
-    subst this,
+    obtain rfl : n = np := static.of_done hf,
     refine ⟨n, f a b', _⟩,
     rw foldr_core_eq_done,
     simp [h, hf, and.comm, and.left_comm, and.assoc] }
@@ -1850,7 +1850,7 @@ begin
     have hn : n < cb.size := bounded.of_done hp,
     subst this,
     obtain ⟨k, hk⟩ : ∃ k, cb.size - n = k + 1 :=
-      nat.exists_eq_succ_of_ne_zero (ne_of_gt (nat.sub_pos_of_lt hn)),
+      nat.exists_eq_succ_of_ne_zero (ne_of_gt (tsub_pos_of_lt hn)),
     cases k,
     { cases tl;
       simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
@@ -1859,8 +1859,7 @@ begin
     { rw ←@IH hd' tl' at hm, swap, refl,
       simp only [many1_eq_done, many, foldr] at hm,
       obtain ⟨np, hp', hf⟩ := hm,
-      have : np = n + 1 + 1 := step.of_done hp',
-      subst this,
+      obtain rfl : np = n + 1 + 1 := step.of_done hp',
       simpa [nat.sub_succ, many_eq_done, hp, hk, foldr_core_eq_done, hp'] using hf } },
   { simp only [many_eq_done, many1_eq_done, and_imp, exists_imp_distrib],
     intros np hp hm,
@@ -1868,7 +1867,7 @@ begin
     have hn : n < cb.size := bounded.of_done hp,
     subst this,
     obtain ⟨k, hk⟩ : ∃ k, cb.size - n = k + 1 :=
-      nat.exists_eq_succ_of_ne_zero (ne_of_gt (nat.sub_pos_of_lt hn)),
+      nat.exists_eq_succ_of_ne_zero (ne_of_gt (tsub_pos_of_lt hn)),
     cases k,
     { cases tl;
       simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
@@ -1881,8 +1880,7 @@ begin
       { simpa using hm },
       simp only at hm,
       obtain ⟨rfl, rfl⟩ := hm,
-      have : np = n + 1 + 1 := step.of_done hp',
-      subst this,
+      obtain rfl : np = n + 1 + 1 := step.of_done hp',
       simp [nat.sub_succ, many, many1_eq_done, hp, hk, foldr_core_eq_done, hp', ←hf, foldr] } }
 end
 
@@ -2109,8 +2107,7 @@ begin
     subst hk,
     simp only [many1_eq_done] at h,
     obtain ⟨_, hp, h⟩ := h,
-    have := step.of_done hp,
-    subst this,
+    obtain rfl := step.of_done hp,
     cases tl,
     { simp only [many_eq_done_nil, add_left_inj, exists_and_distrib_right, self_eq_add_right] at h,
       rcases h with ⟨rfl, -⟩,
@@ -2128,8 +2125,7 @@ begin
   { simpa using h },
   { simp only [many1_eq_done] at h,
     obtain ⟨np, hp, h⟩ := h,
-    have := step.of_done hp,
-    subst this,
+    obtain rfl := step.of_done hp,
     cases tl,
     { simp only [many_eq_done_nil, exists_and_distrib_right] at h,
       simpa [←h.left] using bounded.of_done hp },
@@ -2138,5 +2134,543 @@ begin
 end
 
 end many
+
+section nat
+/--
+The `val : ℕ` produced by a successful parse of a `cb : char_buffer` is the numerical value
+represented by the string of decimal digits (possibly padded with 0s on the left)
+starting from the parsing position `n` and ending at position `n'`. The number
+of characters parsed in is necessarily `n' - n`.
+
+This is one of the directions of `nat_eq_done`.
+-/
+lemma nat_of_done {val : ℕ} (h : nat cb n = done n' val) :
+  val = (nat.of_digits 10 ((((cb.to_list.drop n).take (n' - n)).reverse.map
+          (λ c, c.to_nat - '0'.to_nat)))) :=
+begin
+  /- The parser `parser.nat` that generates a decimal number from a string of digit characters does
+  several things. First it ingests in as many digits as it can with `many1 digit`. Then, it folds
+  over the resulting `list ℕ` using a helper function that keeps track of both the running sum an
+  and the magnitude so far, using a `(sum, magnitude) : (ℕ × ℕ)` pair. The final sum is extracted
+  using a `prod.fst`.
+
+  To prove that the value that `parser.nat` produces, after moving precisely `n' - n` steps, is
+  precisely what `nat.of_digits` would give, if supplied the string that is in the ingested
+  `char_buffer` (modulo conversion from `char` to `ℕ ), we need to induct over the length `n' - n`
+  of `cb : char_buffer` ingested, and prove that the parser must have terminated due to hitting
+  either the end of the `char_buffer` or a non-digit character.
+
+  The statement of the lemma is phrased using a combination of `list.drop` and `list.map` because
+  there is no currently better way to extract an "interval" from a `char_buffer`. Additionally, the
+  statement uses a `list.reverse` because `nat.of_digits` is little-endian.
+
+  We try to stop referring to the `cb : char_buffer` as soon as possible, so that we can instead
+  regard a `list char` instead, which lends itself better to proofs via induction.
+  -/
+  /- We first prove some helper lemmas about the definition of `parser.nat`. Since it is defined
+  in core, we have to work with how it is defined instead of changing its definition.
+  In its definition, the function that folds over the parsed in digits is defined internally,
+  as a lambda with anonymous destructor syntax, which leads to an unpleasant `nat._match_1` term
+  when rewriting the definition of `parser.nat` away. Since we know exactly what the function is,
+  we have a `rfl`-like lemma here to rewrite it back into a readable form.
+  -/
+  have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
+  { ext1, ext1 ⟨⟩, refl },
+  -- We also have to prove what is the `prod.snd` of the result of the fold of a `list (ℕ × ℕ)` with
+  -- the function above. We use this lemma later when we finish our inductive case.
+  have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (x : ℕ × ℕ), (x.fst + digit * x.snd, x.snd * 10))
+    (0, 1) l).snd = 10 ^ l.length,
+  { intro l,
+    induction l with hd tl hl,
+    { simp },
+    { simp [hl, pow_succ, mul_comm] } },
+  -- We convert the hypothesis that `parser.nat` has succeeded into an existential that there is
+  -- some list of digits that it has parsed in, and that those digits, when folded over by the
+  -- function above, give the value at hand.
+  simp only [nat, pure_eq_done, natm, decorate_error_eq_done, bind_eq_done] at h,
+  obtain ⟨n', l, hp, rfl, rfl⟩ := h,
+  -- We now want to stop working with the `cb : char_buffer` and parse positions `n` and `n'`,
+  -- and just deal with the parsed digit list `l : list ℕ`. To do so, we have to show that
+  -- this is precisely the list that could have been parsed in, no smaller and no greater.
+  induction l with lhd ltl IH generalizing n n' cb,
+  { -- Base case: we parsed in no digits whatsoever. But this is impossible because `parser.many1`
+    -- must produce a list that is not `list.nil`, by `many1_ne_done_nil`.
+    simpa using hp },
+  -- Inductive case:
+  -- We must prove that the first digit parsed in `lhd : ℕ` is precisely the digit that is
+  -- represented by the character at position `n` in `cb : char_buffer`.
+  -- We will also prove the correspondence between the subsequent digits `ltl : list ℕ` and the
+  -- remaining characters past position `n` up to position `n'`.
+  cases hx : (list.drop n (buffer.to_list cb)) with chd ctl,
+  { -- Are there even characters left to parse, at position `n` in the `cb : char_buffer`? In other
+    -- words, are we already out of bounds, and thus could not have parsed in any value
+    -- successfully. But this must be a contradiction because `parser.digit` is a `bounded` parser,
+    -- (due to its being defined via `parser.decorate_error`), which means it only succeeds
+    -- in-bounds, and the `many1` parser combinator retains that property.
+    have : cb.size ≤ n := by simpa using list.drop_eq_nil_iff_le.mp hx,
+    exact absurd (bounded.of_done hp) this.not_lt },
+  -- We prove that the first digit parsed in is precisely the digit that is represented by the
+  -- character at position `n`, which we now call `chd : char`.
+  have chdh : chd.to_nat - '0'.to_nat = lhd,
+    { simp only [many1_eq_done] at hp,
+      -- We know that `parser.digit` succeeded, so it has moved to a possibly different position.
+      -- In fact, we know that this new position is `n + 1`, by the `step` property of
+      -- `parser.digit`.
+      obtain ⟨_, hp, -⟩ := hp,
+      obtain rfl := step.of_done hp,
+      -- We now unfold what it means for `parser.digit` to succeed, which means that the character
+      -- parsed in was "numeric" (for some definition of that property), and, more importantly,
+      -- that the `n`th character of `cb`, let's say `c`, when converted to a `ℕ` via
+      -- `char.to_nat c - '0'.to_nat`, must be equal to the resulting value, `lhd` in our case.
+      simp only [digit_eq_done, buffer.read_eq_nth_le_to_list, hx, buffer.length_to_list, true_and,
+                 add_left_inj, list.length, list.nth_le, eq_self_iff_true, exists_and_distrib_left,
+                 fin.coe_mk] at hp,
+      rcases hp with ⟨_, hn, rfl, _, _⟩,
+      -- But we already know the list corresponding to `cb : char_buffer` from position `n` and on
+      -- is equal to `(chd :: ctl) : list char`, so our `c` above must satisfy `c = chd`.
+      have hn' : n < cb.to_list.length := by simpa using hn,
+      rw ←list.cons_nth_le_drop_succ hn' at hx,
+      -- We can ignore proving any correspondence of `ctl : list char` to the other portions of the
+      -- `cb : char_buffer`.
+      simp only at hx,
+      simp [hx] },
+  -- We know that we parsed in more than one character because of the `prog` property of
+  -- `parser.digit`, which the `many1` parser combinator retains. In other words, we know that
+  -- `n < n'`, and so, the list of digits `ltl` must correspond to the list of digits that
+  -- `digit.many1 cb (n + 1)` would produce. We know that the shift of `1` in `n ↦ n + 1` holds
+  -- due to the `step` property of `parser.digit`.
+  -- We also get here `k : ℕ` which will indicate how many characters we parsed in past position
+  -- `n`. We will prove later that this must be the number of digits we produced as well in `ltl`.
+  obtain ⟨k, hk⟩ : ∃ k, n' = n + k + 1 := nat.exists_eq_add_of_lt (prog.of_done hp),
+  have hdm : ltl = [] ∨ digit.many1 cb (n + 1) = done n' ltl,
+  { cases ltl,
+    { simp },
+    { rw many1_eq_done at hp,
+      obtain ⟨_, hp, hp'⟩ := hp,
+      simpa [step.of_done hp, many1_eq_done_iff_many_eq_done] using hp' } },
+  -- Now we case on the two possibilities, that there was only a single digit parsed in, and
+  -- `ltl = []`, or, had we started parsing at `n + 1` instead, we'd parse in the value associated
+  -- with `ltl`.
+  -- We prove that the LHS, which is a fold over a `list ℕ` is equal to the RHS, which is that
+  -- the `val : ℕ` that `nat.of_digits` produces when supplied a `list ℕ that has been produced
+  -- via mapping a `list char` using `char.to_nat`. Specifically, that `list char` are the
+  -- characters in the `cb : char_buffer`, from position `n` to position `n'` (excluding `n'`),
+  -- in reverse.
+  rcases hdm with rfl|hdm,
+  { -- Case that `ltl = []`.
+    simp only [many1_eq_done, many_eq_done_nil, exists_and_distrib_right] at hp,
+    -- This means we must have failed parsing with `parser.digit` at some other position,
+    -- which we prove must be `n + 1` via the `step` property.
+    obtain ⟨_, hp, rfl, hp'⟩ := hp,
+    obtain rfl := step.of_done hp,
+    -- Now we rely on the simplifier, which simplfies the LHS, which is a fold over a singleton
+    -- list. On the RHS, `list.take (n + 1 - n)` also produces a singleton list, which, when
+    -- reversed, is the same list. `nat.of_digits` of a singleton list is precisely the value in
+    -- the list. And we already have that `chd.to_nat - '0'.to_nat = lhd`.
+    simp [chdh] },
+  -- We now have to deal with the case where we parsed in more than one digit, and thus
+  -- `n + 1 < n'`, which means `ctl` has one or more elements. Similarly, `ltl` has one or more
+  -- elements.
+  -- We finish ridding ourselves of references to `cb : char_buffer`, by relying on the fact that
+  -- our `ctl : list char` must be the appropriate portion of `cb` once enough elements have been
+  -- dropped and taken.
+  have rearr :
+    list.take (n + (k + 1) - (n + 1)) (list.drop (n + 1) (buffer.to_list cb)) = ctl.take k,
+  { simp [←list.tail_drop, hx, nat.sub_succ, hk] },
+  -- We have to prove that the number of digits produced (given by `ltl`) is equal to the number
+  -- of characters parsed in, as given by `ctl.take k`, and that this is precisely `k`. We phrase it
+  -- in the statement using `min`, because lemmas about `list.length (list.take ...)` simplify to
+  -- a statement that uses `min`. The `list.length` term appears from the reduction of the folding
+  -- function, as proven above.
+  have ltll : min k ctl.length = ltl.length,
+  { -- Here is an example of how statements about the `list.length` of `list.take` simplify.
+    have : (ctl.take k).length = min k ctl.length := by simp,
+    -- We bring back the underlying definition of `ctl` as the result of a sequence of `list.take`
+    -- and `list.drop`, so that lemmas about `list.length` of those can fire.
+    rw [←this, ←rearr, many1_length_of_done hdm],
+    -- Likewise, we rid ourselves of the `k` we generated earlier.
+    have : k = n' - n - 1,
+      { simp [hk, add_assoc] },
+    subst this,
+    simp only [nat.sub_succ, add_comm, ←nat.pred_sub, buffer.length_to_list, nat.pred_one_add,
+                min_eq_left_iff, list.length_drop, add_tsub_cancel_left, list.length_take,
+                tsub_zero],
+    -- We now have a goal of proving an inequality dealing with `nat` subtraction and `nat.pred`,
+    -- both of which require special care to provide positivity hypotheses.
+    rw [tsub_le_tsub_iff_right, nat.pred_le_iff],
+    { -- We know that `n' ≤ cb.size` because of the `bounded` property, that a parser will not
+      -- produce a `done` result at a position farther than the size of the underlying
+      -- `char_buffer`.
+      convert many1_bounded_of_done hp,
+      -- What is now left to prove is that `0 < cb.size`, which can be rephrased
+      -- as proving that it is nonempty.
+      cases hc : cb.size,
+      { -- Proof by contradiction. Let's say that `cb.size = 0`. But we know that we succeeded
+        -- parsing in at position `n` using a `bounded` parser, so we must have that
+        -- `n < cb.size`.
+        have := bounded.of_done hp,
+        rw hc at this,
+        -- But then `n < 0`, a contradiction.
+        exact absurd n.zero_le this.not_le },
+      { simp } },
+    { -- Here, we use the same result as above, that `n < cb.size`, and relate it to
+      -- `n ≤ cb.size.pred`.
+      exact nat.le_pred_of_lt (bounded.of_done hp) } },
+  -- Finally, we simplify. On the LHS, we have a fold over `lhd :: ltl`, which simplifies to
+  -- the operation of the summing folding function on `lhd` and the fold over `ltl`. To that we can
+  -- apply the induction hypothesis, because we know that our parser would have succeeded had we
+  -- started at position `n + 1`. We replace mentions of `cb : char_buffer` with the appropriate
+  -- `chd :: ctl`, replace `lhd` with the appropriate statement of how it is calculated from `chd`,
+  -- and use the lemmas describing the length of `ltl` and how it is associated with `k`. We also
+  -- remove mentions of `n'` and replace with an expression using solely `n + k + 1`.
+  -- We use the lemma we proved above about how the folding function produces the
+  -- `prod.snd` value, which is `10` to the power of the length of the list provided to the fold.
+  -- Finally, we rely on `nat.of_digits_append` for the related statement of how digits given
+  -- are used in the `nat.of_digits` calculation, which also involves `10 ^ list.length ...`.
+  -- The `list.append` operation appears due to the `list.reverse (chd :: ctl)`.
+  -- We include some addition and multiplication lemmas to help the simplifier rearrange terms.
+  simp [IH _ hdm, hx, hk, rearr, ←chdh, ←ltll, hpow, add_assoc, nat.of_digits_append, mul_comm]
+end
+
+/--
+If we know that `parser.nat` was successful, starting at position `n` and ending at position `n'`,
+then it must be the case that for all `k : ℕ`, `n ≤ k`, `k < n'`, the character at the `k`th
+position in `cb : char_buffer` is "numeric", that is, is between `'0'` and `'9'` inclusive.
+
+This is a necessary part of proving one of the directions of `nat_eq_done`.
+-/
+lemma nat_of_done_as_digit {val : ℕ} (h : nat cb n = done n' val) :
+  ∀ (hn : n' ≤ cb.size) k (hk : k < n'), n ≤ k →
+    '0' ≤ cb.read ⟨k, hk.trans_le hn⟩ ∧ cb.read ⟨k, hk.trans_le hn⟩ ≤ '9' :=
+begin
+  -- The properties to be shown for the characters involved rely solely on the success of
+  -- `parser.digit` at the relevant positions, and not on the actual value `parser.nat` produced.
+  -- We break done the success of `parser.nat` into the `parser.digit` success and throw away
+  -- the resulting value given by `parser.nat`, and focus solely on the `list ℕ` generated by
+  -- `parser.digit.many1`.
+  simp only [nat, pure_eq_done, and.left_comm, decorate_error_eq_done, bind_eq_done,
+             exists_eq_left, exists_and_distrib_left] at h,
+  obtain ⟨xs, h, -⟩ := h,
+  -- We want to avoid having to make statements about the `cb : char_buffer` itself. Instead, we
+  -- induct on the `xs : list ℕ` that `parser.digit.many1` produced.
+  induction xs with hd tl hl generalizing n n',
+  { -- Base case: `xs` is empty. But this is a contradiction because `many1` always produces a
+    -- nonempty list, as proven by `many1_ne_done_nil`.
+    simpa using h },
+  -- Inductive case: we prove that the `parser.digit.many1` produced a valid `(hd :: tl) : list ℕ`,
+  -- by showing that is the case for the character at position `n`, which gave `hd`, and use the
+  -- induction hypothesis on the remaining `tl`.
+  -- We break apart a `many1` success into a success of the underlying `parser.digit` to give `hd`
+  -- and a `parser.digit.many` which gives `tl`. We first deal with the `hd`.
+  rw many1_eq_done at h,
+  -- Right away, we can throw away the information about the "new" position that `parser.digit`
+  -- ended on because we will soon prove that it must have been `n + 1`.
+  obtain ⟨_, hp, h⟩ := h,
+  -- The main lemma here is `digit_eq_done`, which already proves the necessary conditions about
+  -- the character at hand. What is left to do is properly unpack the information.
+  simp only [digit_eq_done, and.comm, and.left_comm, digit_eq_fail, true_and, exists_eq_left,
+             eq_self_iff_true, exists_and_distrib_left, exists_and_distrib_left] at hp,
+  obtain ⟨rfl, -, hn, ge0, le9, rfl⟩ := hp,
+  -- Let's now consider a position `k` between `n` and `n'`, excluding `n'`.
+  intros hn k hk hk',
+  -- What if we are at `n`? What if we are past `n`? We case on the `n ≤ k`.
+  rcases hk'.eq_or_lt with rfl|hk',
+  { -- The `n = k` case. But this is exactly what we know already, so we provide the
+    -- relevant hypotheses.
+    exact ⟨ge0, le9⟩ },
+  -- The `n < k` case. First, we check if there would have even been digits parsed in. So, we
+  -- case on `tl : list ℕ`
+  cases tl,
+  { -- Case where `tl = []`. But that means `many` gave us a `[]` so either the character at
+    -- position `k` was not "numeric" or we are out of bounds. More importantly, when `many`
+    -- successfully produces a `[]`, it does not progress the parser head, so we have that
+    -- `n + 1 = n'`. This will lead to a contradiction because now we have `n < k` and `k < n + 1`.
+    simp only [many_eq_done_nil, exists_and_distrib_right] at h,
+    -- Extract out just the `n + 1 = n'`.
+    obtain ⟨rfl, -⟩ := h,
+    -- Form the contradictory hypothesis, and discharge the goal.
+    have : k < k := hk.trans_le (nat.succ_le_of_lt hk'),
+    exact absurd this (lt_irrefl _) },
+  { -- Case where `tl ≠ []`. But that means that `many` produced a nonempty list as a result, so
+    -- `many1` would have successfully parsed at this position too. We use this statement to
+    -- rewrite our hypothesis into something that works with the induction hypothesis, and apply it.
+    rw ←many1_eq_done_iff_many_eq_done at h,
+    apply hl h,
+    -- All that is left to prove is that our `k` is at least our new "lower bound" `n + 1`, which
+    -- we have from our original split of the `n ≤ k`, since we are now on the `n < k` case.
+    exact nat.succ_le_of_lt hk' }
+end
+
+/--
+If we know that `parser.nat` was successful, starting at position `n` and ending at position `n'`,
+then it must be the case that for the ending position `n'`, either it is beyond the end of the
+`cb : char_buffer`, or the character at that position is not "numeric", that is,  between `'0'` and
+`'9'` inclusive.
+
+This is a necessary part of proving one of the directions of `nat_eq_done`.
+-/
+lemma nat_of_done_bounded {val : ℕ} (h : nat cb n = done n' val) :
+  ∀ (hn : n' < cb.size), '0' ≤ cb.read ⟨n', hn⟩ → '9' < cb.read ⟨n', hn⟩ :=
+begin
+  -- The properties to be shown for the characters involved rely solely on the success of
+  -- `parser.digit` at the relevant positions, and not on the actual value `parser.nat` produced.
+  -- We break done the success of `parser.nat` into the `parser.digit` success and throw away
+  -- the resulting value given by `parser.nat`, and focus solely on the `list ℕ` generated by
+  -- `parser.digit.many1`.
+  -- We deal with the case of `n'` is "out-of-bounds" right away by requiring that
+  -- `∀ (hn : n' < cb.size)`. Thus we only have to prove the lemma for the cases where `n'` is still
+  -- "in-bounds".
+  simp only [nat, pure_eq_done, and.left_comm, decorate_error_eq_done, bind_eq_done,
+             exists_eq_left, exists_and_distrib_left] at h,
+  obtain ⟨xs, h, -⟩ := h,
+  -- We want to avoid having to make statements about the `cb : char_buffer` itself. Instead, we
+  -- induct on the `xs : list ℕ` that `parser.digit.many1` produced.
+  induction xs with hd tl hl generalizing n n',
+  { -- Base case: `xs` is empty. But this is a contradiction because `many1` always produces a
+    -- nonempty list, as proven by `many1_ne_done_nil`.
+    simpa using h },
+  -- Inductive case: at least one character has been parsed in, starting at position `n`.
+  -- We know that the size of `cb : char_buffer` must be at least `n + 1` because
+  -- `parser.digit.many1` is `bounded` (`n < cb.size`).
+  -- We show that either we parsed in just that one character, or we use the inductive hypothesis.
+  obtain ⟨k, hk⟩ : ∃ k, cb.size = n + k + 1 := nat.exists_eq_add_of_lt (bounded.of_done h),
+  cases tl,
+  { -- Case where `tl = []`, so we parsed in only `hd`. That must mean that `parser.digit` failed
+    -- at `n + 1`.
+    simp only [many1_eq_done, many_eq_done_nil, and.left_comm, exists_and_distrib_right,
+               exists_eq_left] at h,
+    -- We throw away the success information of what happened at position `n`, and we do not need
+    -- the "error" value that the failure produced.
+    obtain ⟨-, _, h⟩ := h,
+    -- If `parser.digit` failed at `n + 1`, then either we hit a non-numeric character, or
+    -- we are out of bounds. `digit_eq_fail` provides us with those two cases.
+    simp only [digit_eq_done, and.comm, and.left_comm, digit_eq_fail, true_and, exists_eq_left,
+               eq_self_iff_true, exists_and_distrib_left] at h,
+    obtain (⟨rfl, h⟩ | ⟨h, -⟩) := h,
+    { -- First case: we are still in bounds, but the character is not numeric. We must prove
+      -- that we are still in bounds. But we know that from our initial requirement.
+      intro hn,
+      simpa using h hn },
+    { -- Second case: we are out of bounds, and somehow the fold that `many1` relied on failed.
+      -- But we know that `parser.digit` is mono, that is, it never goes backward in position,
+      -- in neither success nor in failure. We also have that `foldr_core` respects `mono`.
+      -- But in this case, `foldr_core` is starting at position `n' + 1` but failing at
+      -- position `n'`, which is a contradiction, because otherwise we would have `n' + 1 ≤ n'`.
+      simpa using mono.of_fail h } },
+  { -- Case where `tl ≠ []`. But that means that `many` produced a nonempty list as a result, so
+    -- `many1` would have successfully parsed at this position too. We use this statement to
+    -- rewrite our hypothesis into something that works with the induction hypothesis, and apply it.
+    rw many1_eq_done at h,
+    obtain ⟨_, -, h⟩ := h,
+    rw ←many1_eq_done_iff_many_eq_done at h,
+    exact hl h }
+end
+
+/--
+The `val : ℕ` produced by a successful parse of a `cb : char_buffer` is the numerical value
+represented by the string of decimal digits (possibly padded with 0s on the left)
+starting from the parsing position `n` and ending at position `n'`, where `n < n'`. The number
+of characters parsed in is necessarily `n' - n`. Additionally, all of the characters in the `cb`
+starting at position `n` (inclusive) up to position `n'` (exclusive) are "numeric", in that they
+are between `'0'` and `'9'` inclusive. Such a `char_buffer` would produce the `ℕ` value encoded
+by its decimal characters.
+-/
+lemma nat_eq_done {val : ℕ} : nat cb n = done n' val ↔ ∃ (hn : n < n'),
+  val = (nat.of_digits 10 ((((cb.to_list.drop n).take (n' - n)).reverse.map
+          (λ c, c.to_nat - '0'.to_nat)))) ∧ (∀ (hn' : n' < cb.size),
+          ('0' ≤ cb.read ⟨n', hn'⟩ → '9' < cb.read ⟨n', hn'⟩)) ∧ ∃ (hn'' : n' ≤ cb.size),
+          (∀ k (hk : k < n'), n ≤ k →
+          '0' ≤ cb.read ⟨k, hk.trans_le hn''⟩ ∧ cb.read ⟨k, hk.trans_le hn''⟩ ≤ '9') :=
+begin
+  -- To prove this iff, we have most of the way in the forward direction, using the lemmas proven
+  -- above. First, we must use that `parser.nat` is `prog`, which means that on success, it must
+  -- move forward. We also have to prove the statement that a success means the parsed in
+  -- characters were properly "numeric". It involves first generating ane existential witness
+  -- that the parse was completely "in-bounds".
+  -- For the reverse direction, we first discharge the goals that deal with proving that our parser
+  -- succeeded because it encountered characters with the proper "numeric" properties, was
+  -- "in-bounds" and hit a nonnumeric character. The more difficult portion is proving that the
+  -- list of characters from positions `n` to `n'`, when folded over by the function defined inside
+  -- `parser.nat` gives exactly the same value as `nat.of_digits` when supplied with the same
+  -- (modulo rearrangement) list. To reach this goal, we try to remove any reliance on the
+  -- underlying `cb : char_buffer` or parsers as soon as possible, via a cased-induction.
+  refine ⟨λ h, ⟨prog.of_done h, nat_of_done h, nat_of_done_bounded h, _⟩, _⟩,
+  { -- To provide the existential witness that `n'` is within the bounds of the `cb : char_buffer`,
+    -- we rely on the fact that `parser.nat` is primarily a `parser.digit.many1`, and that `many1`,
+    -- must finish with the bounds of the `cb`, as long as the underlying parser is `step` and
+    -- `bounded`, which `digit` is. We do not prove this as a separate lemma about `parser.nat`
+    -- because it would almost always be only relevant in this larger theorem.
+    -- We clone the success hypothesis `h` so that we can supply it back later.
+    have H := h,
+    -- We unwrap the `parser.nat` success down to the `many1` success, throwing away other info.
+    rw [nat] at h,
+    simp only [decorate_error_eq_done, bind_eq_done, pure_eq_done, and.left_comm, exists_eq_left,
+               exists_and_distrib_left] at h,
+    obtain ⟨_, h, -⟩ := h,
+    -- Now we get our existential witness that `n' ≤ cb.size`.
+    replace h := many1_bounded_of_done h,
+    -- With that, we can use the lemma proved above that our characters are "numeric"
+    exact ⟨h, nat_of_done_as_digit H h⟩ },
+  -- We now prove that given the `cb : char_buffer` with characters within the `n ≤ k < n'` interval
+  -- properly "numeric" and such that their `nat.of_digits` generates the `val : ℕ`, `parser.nat`
+  -- of that `cb`, when starting at `n`, will finish at `n'` and produce the same `val`.
+  -- We first introduce the relevant hypotheses, including the fact that we have a valid interval
+  -- where `n < n'` and that characters at `n'` and beyond are no longer numeric.
+  rintro ⟨hn, hv, hb, hn', ho⟩,
+  -- We first unwrap the `parser.nat` definition to the underlying `parser.digit.many1` success
+  -- and the fold function of the digits.
+  rw nat,
+  simp only [and.left_comm, pure_eq_done, hv, decorate_error_eq_done, list.map_reverse,
+             bind_eq_done, exists_eq_left, exists_and_distrib_left],
+  -- We won't actually need the `val : ℕ` itself, since it is entirely characterized by the
+  -- underlying characters. Instead, we will induct over the `list char` of characters from
+  -- position `n` onwards, showing that if we could have provided a list at `n`, we could have
+  -- provided a valid list of characters at `n + 1` too.
+  clear hv val,
+    /- We first prove some helper lemmas about the definition of `parser.nat`. Since it is defined
+  in core, we have to work with how it is defined instead of changing its definition.
+  In its definition, the function that folds over the parsed in digits is defined internally,
+  as a lambda with anonymous destructor syntax, which leads to an unpleasant `nat._match_1` term
+  when rewriting the definition of `parser.nat` away. Since we know exactly what the function is,
+  we have a `rfl`-like lemma here to rewrite it back into a readable form.
+  -/
+  have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
+  { ext1, ext1 ⟨⟩, refl },
+  -- We induct over the characters available at position `n` and onwards. Because `cb` is used
+  -- in other expressions, we utilize the `induction H : ...` tactic to induct separately from
+  -- destructing `cb` itself.
+  induction H : (cb.to_list.drop n) with hd tl IH generalizing n,
+  { -- Base case: there are no characters at position `n` or onwards, which means that
+    -- `cb.size ≤ n`. But this is a contradiction, since we have `n < n' ≤ cb.size`.
+    rw list.drop_eq_nil_iff_le at H,
+    refine absurd ((lt_of_le_of_lt H hn).trans_le hn') _,
+    simp },
+  { -- Inductive case: we prove that if we could have parsed from `n + 1`, we could have also parsed
+    -- from `n`, if there was a valid numerical character at `n`. Most of the body
+    -- of this inductive case is generating the appropriate conditions for use of the inductive
+    -- hypothesis.
+    specialize @IH (n + 1),
+    -- We have, by the inductive case, that there is at least one character `hd` at position `n`,
+    -- with the rest at `tl`. We rearrange our inductive case to make `tl` be expressed as
+    -- list.drop (n + 1), which fits out induction hypothesis conditions better. To use the
+    -- rearranging lemma, we must prove that we are "dropping" in bounds, which we supply on-the-fly
+    simp only [←list.cons_nth_le_drop_succ
+      (show n < cb.to_list.length, by simpa using hn.trans_le hn')] at H,
+    -- We prove that parsing our `n`th character, `hd`, would have resulted in a success from
+    -- `parser.digit`, with the appropriate `ℕ` success value. We use this later to simplify the
+    -- unwrapped fold, since `hd` is our head character.
+    have hdigit : digit cb n = done (n + 1) (hd.to_nat - '0'.to_nat),
+    { -- By our necessary condition, we know that `n` is in bounds, and that the `n`th character
+      -- has the necessary "numeric" properties.
+      specialize ho n hn le_rfl,
+      -- We prove an additional result that the conversion of `hd : char` to a `ℕ` would give a
+      -- value `x ≤ 9`, since that is part of the iff statement in the `digit_eq_done` lemma.
+      have : (buffer.read cb ⟨n, hn.trans_le hn'⟩).to_nat - '0'.to_nat ≤ 9,
+      { -- We rewrite the statement to be a statement about characters instead, and split the
+        -- inequality into the case that our hypotheses prove, and that `'0' ≤ '9'`, which
+        -- is true by computation, handled by `dec_trivial`.
+        rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, tsub_le_tsub_iff_right],
+        { exact ho.right },
+        { dec_trivial } },
+        -- We rely on the simplifier, mostly powered by `digit_eq_done`, and supply all the
+        -- necessary conditions of bounds and identities about `hd`.
+        simp [digit_eq_done, this, ←H.left, buffer.nth_le_to_list, hn.trans_le hn', ho] },
+    -- We now case on whether we've moved to the end of our parse or not. We phrase this as
+    -- casing on either `n + 1 < n` or `n ≤ n + 1`. The more difficult goal comes first.
+    cases lt_or_ge (n + 1) n' with hn'' hn'',
+    { -- Case `n + 1 < n'`. We can directly supply this to our induction hypothesis.
+      -- We now have to prove, for the induction hypothesis, that the characters at positions `k`,
+      -- `n + 1 ≤ k < n'` are "numeric". We already had this for `n ≤ k < n`, so we just rearrange
+      -- the hypotheses we already have.
+      specialize IH hn'' _ H.right,
+      { intros k hk hk',
+        apply ho,
+        exact nat.le_of_succ_le hk' },
+      -- With the induction hypothesis conditions satisfier, we can extract out a list that
+      -- `parser.digit.many1` would have generated from position `n + 1`, as well as the associated
+      -- property of the list, that it folds into what `nat.of_digits` generates from the
+      -- characters in `cb : char_buffer`, now known as `hd :: tl`.
+      obtain ⟨l, hdl, hvl⟩ := IH,
+      -- Of course, the parsed in list from position `n` would be `l` prepended with the result
+      -- of parsing in `hd`, which is provided explicitly.
+      use (hd.to_nat - '0'.to_nat) :: l,
+      -- We case on `l : list ℕ` so that we can make statements about the fold on `l`
+      cases l with lhd ltl,
+      { -- As before, if `l = []` then `many1` produced a `[]` success, which is a contradiction.
+        simpa using hdl },
+      -- Case `l = lhd :: ltl`. We can rewrite the fold of the function inside `parser.nat` on
+      -- `lhd :: ltl`, which will be used to rewrite in the goal.
+      simp only [natm, list.foldr] at hvl,
+      -- We also expand the fold in the goal, using the expanded fold from our hypothesis, powered
+      -- by `many1_eq_done` to proceed in the parsing. We know exactly what the next `many` will
+      -- produce from `many1_eq_done_iff_many_eq_done.mp` of our `hdl` hypothesis. Finally,
+      -- we also use `hdigit` to express what the single `parser.digit` result would be at `n`.
+      simp only [natm, hvl, many1_eq_done, hdigit, many1_eq_done_iff_many_eq_done.mp hdl, true_and,
+                 and_true, eq_self_iff_true, list.foldr, exists_eq_left'],
+      -- Now our goal is solely about the equality of two different folding functions, one from the
+      -- function defined inside `parser.nat` and the other as `nat.of_digits`, when applied to
+      -- similar list inputs.
+      -- First, we rid ourselves of `n'` by replacing with `n + m + 1`, which allows us to
+      -- simplify the term of how many elements we are keeping using a `list.take`.
+      obtain ⟨m, rfl⟩ : ∃ m, n' = n + m + 1 := nat.exists_eq_add_of_lt hn,
+      -- The following rearrangement lemma is to simplify the `list.take (n' - n)` expression we had
+      have : n + m + 1 - n = m + 1,
+        { rw [add_assoc, tsub_eq_iff_eq_add_of_le, add_comm],
+          exact nat.le_add_right _ _ },
+      -- We also have to prove what is the `prod.snd` of the result of the fold of a `list (ℕ × ℕ)`
+      -- with the function above. We use this lemma to finish our inductive case.
+      have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (x : ℕ × ℕ),
+        (x.fst + digit * x.snd, x.snd * 10)) (0, 1) l).snd = 10 ^ l.length,
+      { intro l,
+        induction l with hd tl hl,
+        { simp },
+        { simp [hl, pow_succ, mul_comm] } },
+      -- We prove that the parsed list of digits `(lhd :: ltl) : list ℕ` must be of length `m`
+      -- which is used later when the `parser.nat` fold places `ltl.length` in the exponent.
+      have hml : ltl.length + 1 = m := by simpa using many1_length_of_done hdl,
+      -- A simplified `list.length (list.take ...)` expression refers to the minimum of the
+      -- underlying length and the amount of elements taken. We know that `m ≤ tl.length`, so
+      -- we provide this auxiliary lemma so that the simplified "take-length" can simplify further
+      have ltll : min m tl.length = m,
+      { -- On the way to proving this, we have to actually show that `m ≤ tl.length`, by showing
+        -- that since `tl` was a subsequence in `cb`, and was retrieved from `n + 1` to `n + m + 1`,
+        -- then since `n + m + 1 ≤ cb.size`, we have that `tl` must be at least `m` in length.
+        simpa [←H.right, le_tsub_iff_right (hn''.trans_le hn').le, add_comm, add_assoc,
+               add_left_comm] using hn' },
+      -- Finally, we rely on the simplifier. We already expressions of `nat.of_digits` on both
+      -- the LHS and RHS. All that is left to do is to prove that the summand on the LHS is produced
+      -- by the fold of `nat.of_digits` on the RHS of `hd :: tl`. The `nat.of_digits_append` is used
+      -- because of the append that forms from the included `list.reverse`. The lengths of the lists
+      -- are placed in the exponents with `10` as a base, and are combined using `←pow_succ 10`.
+      -- Any complicated expression about list lengths is further simplified by the auxiliary
+      -- lemmas we just proved. Finally, we assist the simplifier by rearranging terms with our
+      -- `n + m + 1 - n = m + 1` proof and `mul_comm`.
+      simp [this, hpow, nat.of_digits_append, mul_comm, ←pow_succ 10, hml, ltll] },
+    { -- Consider the case that `n' ≤ n + 1`. But then since `n < n' ≤ n + 1`, `n' = n + 1`.
+      obtain rfl : n' = n + 1 := le_antisymm hn'' (nat.succ_le_of_lt hn),
+      -- This means we have only parsed in a single character, so the resulting parsed in list
+      -- is explicitly formed from an expression we can construct from `hd`.
+      use [[hd.to_nat - '0'.to_nat]],
+      -- Our list expression simplifies nicely because it is a fold over a singleton, so we
+      -- do not have to supply any auxiliary lemmas for it, other than what we already know about
+      -- `hd` and the function defined in `parser.nat`. However, we will have to prove that our
+      -- parse ended because of a good reason: either we are out of bounds or we hit a nonnumeric
+      -- character.
+      simp only [many1_eq_done, many_eq_done_nil, digit_eq_fail, natm, and.comm, and.left_comm,
+                 hdigit, true_and, mul_one, nat.of_digits_singleton, list.take, exists_eq_left,
+                 exists_and_distrib_right, add_tsub_cancel_left, eq_self_iff_true,
+                 list.reverse_singleton, zero_add, list.foldr, list.map],
+      -- We take the route of proving that we hit a nonnumeric character, since we already have
+      -- a hypothesis that says that characters at `n'` and past it are nonnumeric. (Note, by now
+      -- we have substituted `n + 1` for `n'.
+      -- We are also asked to provide the error value that our failed parse would report. But
+      -- `digit_eq_fail` already knows what it is, so we can discharge that with an inline `rfl`.
+      refine ⟨_, or.inl ⟨rfl, _⟩⟩,
+      -- The nonnumeric condition looks almost exactly like the hypothesis we already have, so
+      -- we let the simplifier align them for us
+      simpa using hb } }
+end
+
+end nat
 
 end parser

@@ -10,6 +10,9 @@ import data.qpf.multivariate.basic
 /-!
 # Constant functors are QPFs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constant functors map every type vectors to the same target type. This
 is a useful device for constructing data types from more basic types
 that are not actually functorial. For instance `const n nat` makes
@@ -30,7 +33,7 @@ def const (A : Type*) (v : typevec.{u} n) : Type* :=
 A
 
 instance const.inhabited {A α} [inhabited A] : inhabited (const n A α) :=
-⟨ (default A : A) ⟩
+⟨ (default : A) ⟩
 
 namespace const
 open mvfunctor mvpfunctor
@@ -64,8 +67,7 @@ instance mvqpf : @mvqpf _ (const n A) (mvqpf.const.mvfunctor) :=
   abs       := λ α x, mvpfunctor.const.get x,
   repr      := λ α x, mvpfunctor.const.mk n x,
   abs_repr  := by intros; simp,
-  abs_map   := by intros; simp; refl,
-}
+  abs_map   := by intros; simp; refl, }
 
 end const
 

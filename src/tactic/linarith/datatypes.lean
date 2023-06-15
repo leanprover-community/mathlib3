@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
-import meta.rb_map
-import tactic.ring
 import tactic.linarith.lemmas
+import tactic.ring
 
 /-!
 # Datatypes for `linarith`
@@ -312,7 +311,7 @@ list comp → ℕ → tactic (rb_map ℕ ℕ)
 meta structure linarith_config : Type :=
 (discharger : tactic unit := `[ring])
 (restrict_type : option Type := none)
-(restrict_type_reflect : reflected restrict_type . tactic.apply_instance)
+(restrict_type_reflect : reflected _ restrict_type . tactic.apply_instance)
 (exfalso : bool := tt)
 (transparency : tactic.transparency := reducible)
 (split_hypotheses : bool := tt)

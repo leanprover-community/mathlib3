@@ -3,13 +3,15 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.monoidal.functor
 import category_theory.monoidal.braided
 import category_theory.monoidal.transport
 import category_theory.skeletal
 
 /-!
 # The monoid on the skeleton of a monoidal category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The skeleton of a monoidal category is a monoid.
 -/
@@ -21,7 +23,9 @@ universes v u
 
 variables {C : Type u} [category.{v} C] [monoidal_category C]
 
-/-- If `C` is monoidal and skeletal, it is a monoid. -/
+/-- If `C` is monoidal and skeletal, it is a monoid.
+See note [reducible non-instances]. -/
+@[reducible]
 def monoid_of_skeletal_monoidal (hC : skeletal C) : monoid C :=
 { mul := λ X Y, (X ⊗ Y : C),
   one := (𝟙_ C : C),
@@ -39,7 +43,7 @@ def comm_monoid_of_skeletal_braided [braided_category C] (hC : skeletal C) :
 The skeleton of a monoidal category has a monoidal structure itself, induced by the equivalence.
 -/
 noncomputable instance : monoidal_category (skeleton C) :=
-monoidal.transport (from_skeleton C).as_equivalence.symm
+monoidal.transport (skeleton_equivalence C).symm
 
 /--
 The skeleton of a monoidal category can be viewed as a monoid, where the multiplication is given by

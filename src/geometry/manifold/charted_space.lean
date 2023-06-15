@@ -8,6 +8,9 @@ import topology.local_homeomorph
 /-!
 # Charted spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A smooth manifold is a topological space `M` locally modelled on a euclidean space (or a euclidean
 half-space for manifolds with boundaries, or an infinite dimensional vector space for more general
 notions of manifolds), i.e., the manifold is covered by open subsets on which there are local
@@ -108,7 +111,7 @@ composition of local equivs with `≫`.
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topology
 open filter
 universes u
 
@@ -118,14 +121,10 @@ variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
 `local_homeomorph.trans` and `local_equiv.trans`.
 Note that, as is usual for equivs, the composition is from left to right, hence the direction of
 the arrow. -/
-localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
-localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
-
-/- `simp` looks for subsingleton instances at every call. This turns out to be very
-inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
-Disable two such instances to speed up things.
-NB: this is just a hack. TODO: fix `simp` properly. -/
-localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
+localized "infixr (name := local_homeomorph.trans)
+  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
+localized "infixr (name := local_equiv.trans)
+  ` ≫ `:100 := local_equiv.trans" in manifold
 
 open set local_homeomorph
 
@@ -211,12 +210,12 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
     { simpa only [he, refl_trans]},
     { have : (e ≫ₕ e').source ⊆ e.source := sep_subset _ _,
       rw he at this,
-      have : (e ≫ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := disjoint_iff.1 this,
+      have : (e ≫ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := eq_bot_iff.2 this,
       exact (mem_union _ _ _).2 (or.inr this) },
   end,
   symm' := λe he, begin
     cases (mem_union _ _ _).1 he with E E,
-    { finish },
+    { simp [mem_singleton_iff.mp E] },
     { right,
       simpa only [e.to_local_equiv.image_source_eq_target.symm] with mfld_simps using E},
   end,
@@ -266,10 +265,9 @@ instance : order_bot (structure_groupoid H) :=
       apply u.id_mem },
     { apply u.locality,
       assume x hx,
-      rw [hf, mem_empty_eq] at hx,
+      rw [hf, mem_empty_iff_false] at hx,
       exact hx.elim }
-  end,
-  ..structure_groupoid.partial_order }
+  end }
 
 instance (H : Type u) [topological_space H] : inhabited (structure_groupoid H) :=
 ⟨id_groupoid H⟩
@@ -362,8 +360,7 @@ pregroupoid.groupoid (continuous_pregroupoid H)
 /-- Every structure groupoid is contained in the groupoid of all local homeomorphisms -/
 instance : order_top (structure_groupoid H) :=
 { top    := continuous_groupoid H,
-  le_top := λ u f hf, by { split; exact dec_trivial },
-  ..structure_groupoid.partial_order }
+  le_top := λ u f hf, by { split; exact dec_trivial } }
 
 /-- A groupoid is closed under restriction if it contains all restrictions of its element local
 homeomorphisms to open subsets of the source. -/
@@ -382,7 +379,7 @@ def id_restr_groupoid : structure_groupoid H :=
 { members := {e | ∃ {s : set H} (h : is_open s), e ≈ local_homeomorph.of_set s h},
   trans' := begin
     rintros e e' ⟨s, hs, hse⟩ ⟨s', hs', hse'⟩,
-    refine ⟨s ∩ s', is_open_inter hs hs', _⟩,
+    refine ⟨s ∩ s', is_open.inter hs hs', _⟩,
     have := local_homeomorph.eq_on_source.trans' hse hse',
     rwa local_homeomorph.of_set_trans_of_set at this,
   end,
@@ -406,8 +403,7 @@ def id_restr_groupoid : structure_groupoid H :=
   eq_on_source' := begin
     rintros e e' ⟨s, hs, hse⟩ hee',
     exact ⟨s, hs, setoid.trans hee' hse⟩,
-  end
-}
+  end }
 
 lemma id_restr_groupoid_mem {s : set H} (hs : is_open s) :
   of_set s hs ∈ @id_restr_groupoid H _ := ⟨s, hs, by refl⟩
@@ -417,7 +413,7 @@ instance closed_under_restriction_id_restr_groupoid :
   closed_under_restriction (@id_restr_groupoid H _) :=
 ⟨ begin
     rintros e ⟨s', hs', he⟩ s hs,
-    use [s' ∩ s, is_open_inter hs' hs],
+    use [s' ∩ s, is_open.inter hs' hs],
     refine setoid.trans (local_homeomorph.eq_on_source.restr he s) _,
     exact ⟨by simp only [hs.interior_eq] with mfld_simps, by simp only with mfld_simps⟩,
   end ⟩
@@ -463,6 +459,7 @@ The model space is written as an explicit parameter as there can be several mode
 given topological space. For instance, a complex manifold (modelled over `ℂ^n`) will also be seen
 sometimes as a real manifold over `ℝ^(2n)`.
 -/
+@[ext]
 class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
 (atlas []            : set (local_homeomorph M H))
 (chart_at []         : M → local_homeomorph M H)
@@ -489,7 +486,7 @@ atlas members are just the identity -/
 by simp [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
-@[simp, mfld_simps] lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
+lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
@@ -499,6 +496,50 @@ variables (H) [topological_space H] [topological_space M] [charted_space H M]
 
 lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 (chart_at H x).map_source (mem_chart_source _ _)
+
+lemma chart_source_mem_nhds (x : M) : (chart_at H x).source ∈ 𝓝 x :=
+(chart_at H x).open_source.mem_nhds $ mem_chart_source H x
+
+lemma chart_target_mem_nhds (x : M) : (chart_at H x).target ∈ 𝓝 (chart_at H x x) :=
+(chart_at H x).open_target.mem_nhds $ mem_chart_target H x
+
+/-- `achart H x` is the chart at `x`, considered as an element of the atlas.
+Especially useful for working with `basic_smooth_vector_bundle_core` -/
+def achart (x : M) : atlas H M := ⟨chart_at H x, chart_mem_atlas H x⟩
+
+lemma achart_def (x : M) : achart H x = ⟨chart_at H x, chart_mem_atlas H x⟩ := rfl
+@[simp, mfld_simps]
+lemma coe_achart (x : M) : (achart H x : local_homeomorph M H) = chart_at H x := rfl
+@[simp, mfld_simps]
+lemma achart_val (x : M) : (achart H x).1 = chart_at H x := rfl
+
+lemma mem_achart_source (x : M) : x ∈ (achart H x).1.source :=
+mem_chart_source H x
+
+open topological_space
+
+lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
+  {s : set M} (hs : (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ)
+  (hsc : s.countable) :
+  second_countable_topology M :=
+begin
+  haveI : ∀ x : M, second_countable_topology (chart_at H x).source :=
+    λ x, (chart_at H x).second_countable_topology_source,
+  haveI := hsc.to_encodable,
+  rw bUnion_eq_Union at hs,
+  exact second_countable_topology_of_countable_cover (λ x : s, (chart_at H (x : M)).open_source) hs
+end
+
+variable (M)
+
+lemma charted_space.second_countable_of_sigma_compact [second_countable_topology H]
+  [sigma_compact_space M] :
+  second_countable_topology M :=
+begin
+  obtain ⟨s, hsc, hsU⟩ : ∃ s, set.countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
+    countable_cover_nhds_of_sigma_compact (λ x : M, chart_source_mem_nhds H x),
+  exact charted_space.second_countable_of_countable_cover H hsU hsc
+end
 
 /-- If a topological space admits an atlas with locally compact charts, then the space itself
 is locally compact. -/
@@ -510,41 +551,96 @@ begin
   { intro x,
     rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
     exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
-      (mem_nhds_sets (chart_at H x).open_target (mem_chart_target H x))).map _ },
+      (chart_target_mem_nhds H x)).map _ },
   refine locally_compact_space_of_has_basis this _,
   rintro x s ⟨h₁, h₂, h₃⟩,
   exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
 end
 
+/-- If a topological space admits an atlas with locally connected charts, then the space itself is
+locally connected. -/
+lemma charted_space.locally_connected_space [locally_connected_space H] :
+  locally_connected_space M :=
+begin
+  let E : M → local_homeomorph M H := chart_at H,
+  refine locally_connected_space_of_connected_bases
+    (λ x s, (E x).symm '' s)
+    (λ x s, (is_open s ∧ E x x ∈ s ∧ is_connected s) ∧ s ⊆ (E x).target) _ _,
+  { intros x,
+    simpa only [local_homeomorph.symm_map_nhds_eq, mem_chart_source] using
+      ((locally_connected_space.open_connected_basis (E x x)).restrict_subset
+      ((E x).open_target.mem_nhds (mem_chart_target H x))).map (E x).symm },
+  { rintros x s ⟨⟨-, -, hsconn⟩, hssubset⟩,
+    exact hsconn.is_preconnected.image _ ((E x).continuous_on_symm.mono hssubset) },
 end
 
-/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model
-`H` is a set of local charts from `M` to `H` covering the space. Every space is registered as a
-charted space over itself, using the only chart `id`, in `manifold_model_space`. You can also define
-a product of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the
-charts. Now, on `H × H'`, there are two charted space structures with model space `H × H'` itself,
-the one coming from `manifold_model_space`, and the one coming from the product of the two
-`manifold_model_space` on each component. They are equal, but not defeq (because the product of `id`
-and `id` is not defeq to `id`), which is bad as we know. This expedient of renaming `H × H'` solves
-this problem. -/
+/-- If `M` is modelled on `H'` and `H'` is itself modelled on `H`, then we can consider `M` as being
+modelled on `H`. -/
+def charted_space.comp (H : Type*) [topological_space H] (H' : Type*) [topological_space H']
+  (M : Type*) [topological_space M] [charted_space H H'] [charted_space H' M] :
+  charted_space H M :=
+{ atlas := image2 local_homeomorph.trans (atlas H' M) (atlas H H'),
+  chart_at := λ p : M, (chart_at H' p).trans (chart_at H (chart_at H' p p)),
+  mem_chart_source := λ p, by simp only with mfld_simps,
+  chart_mem_atlas :=
+    λ p, ⟨chart_at H' p, chart_at H _, chart_mem_atlas H' p, chart_mem_atlas H _, rfl⟩ }
+
+end
+
+/-- For technical reasons we introduce two type tags:
+
+* `model_prod H H'` is the same as `H × H'`;
+* `model_pi H` is the same as `Π i, H i`, where `H : ι → Type*` and `ι` is a finite type.
+
+In both cases the reason is the same, so we explain it only in the case of the product. A charted
+space `M` with model `H` is a set of local charts from `M` to `H` covering the space. Every space is
+registered as a charted space over itself, using the only chart `id`, in `manifold_model_space`. You
+can also define a product of charted space `M` and `M'` (with model space `H × H'`) by taking the
+products of the charts. Now, on `H × H'`, there are two charted space structures with model space
+`H × H'` itself, the one coming from `manifold_model_space`, and the one coming from the product of
+the two `manifold_model_space` on each component. They are equal, but not defeq (because the product
+of `id` and `id` is not defeq to `id`), which is bad as we know. This expedient of renaming `H × H'`
+solves this problem. -/
+library_note "Manifold type tags"
+
+/-- Same thing as `H × H'` We introduce it for technical reasons,
+see note [Manifold type tags]. -/
 def model_prod (H : Type*) (H' : Type*) := H × H'
+
+/-- Same thing as `Π i, H i` We introduce it for technical reasons,
+see note [Manifold type tags]. -/
+def model_pi {ι : Type*} (H : ι → Type*) := Π i, H i
 
 section
 local attribute [reducible] model_prod
 
-instance model_prod_inhabited {α β : Type*} [inhabited α] [inhabited β] :
-  inhabited (model_prod α β) :=
-⟨(default α, default β)⟩
+instance model_prod_inhabited [inhabited H] [inhabited H'] :
+  inhabited (model_prod H H') :=
+prod.inhabited
 
 instance (H : Type*) [topological_space H] (H' : Type*) [topological_space H'] :
   topological_space (model_prod H H') :=
-by apply_instance
+prod.topological_space
 
 /- Next lemma shows up often when dealing with derivatives, register it as simp. -/
 @[simp, mfld_simps] lemma model_prod_range_prod_id
   {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
-  range (λ (p : model_prod H H'), (f p.1, p.2)) = set.prod (range f) univ :=
+  range (λ (p : model_prod H H'), (f p.1, p.2)) = range f ×ˢ (univ : set H') :=
 by rw prod_range_univ_eq
+
+end
+
+section
+
+variables {ι : Type*} {Hi : ι → Type*}
+
+instance model_pi_inhabited [Π i, inhabited (Hi i)] :
+  inhabited (model_pi Hi) :=
+pi.inhabited _
+
+instance [Π i, topological_space (Hi i)] :
+  topological_space (model_pi Hi) :=
+Pi.topological_space
 
 end
 
@@ -555,25 +651,10 @@ instance prod_charted_space (H : Type*) [topological_space H]
   (H' : Type*) [topological_space H']
   (M' : Type*) [topological_space M'] [charted_space H' M'] :
   charted_space (model_prod H H') (M × M') :=
-{ atlas            :=
-    {f : (local_homeomorph (M×M') (model_prod H H')) |
-      ∃ g ∈ charted_space.atlas H M, ∃ h ∈ (charted_space.atlas H' M'),
-        f = local_homeomorph.prod g h},
-  chart_at         := λ x: (M × M'),
-    (charted_space.chart_at H x.1).prod (charted_space.chart_at H' x.2),
-  mem_chart_source :=
-  begin
-    intro x,
-    simp only with mfld_simps,
-  end,
-  chart_mem_atlas  :=
-  begin
-    intro x,
-    use (charted_space.chart_at H x.1),
-    split,
-    { apply chart_mem_atlas _, },
-    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, and_self, true_and] }
-  end }
+{ atlas            := image2 local_homeomorph.prod (atlas H M) (atlas H' M'),
+  chart_at         := λ x : M × M', (chart_at H x.1).prod (chart_at H' x.2),
+  mem_chart_source := λ x, ⟨mem_chart_source _ _, mem_chart_source _ _⟩,
+  chart_mem_atlas  := λ x, mem_image2_of_mem (chart_mem_atlas _ _) (chart_mem_atlas _ _) }
 
 section prod_charted_space
 
@@ -583,7 +664,25 @@ variables [topological_space H] [topological_space M] [charted_space H M]
 @[simp, mfld_simps] lemma prod_charted_space_chart_at :
   (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
 
+lemma charted_space_self_prod : prod_charted_space H H H' H' = charted_space_self (H × H') :=
+by { ext1, { simp [prod_charted_space, atlas] }, { ext1, simp [chart_at_self_eq], refl } }
+
 end prod_charted_space
+
+/-- The product of a finite family of charted spaces is naturally a charted space, with the
+canonical construction of the atlas of finite product maps. -/
+instance pi_charted_space {ι : Type*} [fintype ι] (H : ι → Type*) [Π i, topological_space (H i)]
+  (M : ι → Type*) [Π i, topological_space (M i)] [Π i, charted_space (H i) (M i)] :
+  charted_space (model_pi H) (Π i, M i) :=
+{ atlas := local_homeomorph.pi '' (set.pi univ $ λ i, atlas (H i) (M i)),
+  chart_at := λ f, local_homeomorph.pi $ λ i, chart_at (H i) (f i),
+  mem_chart_source := λ f i hi, mem_chart_source (H i) (f i),
+  chart_mem_atlas := λ f, mem_image_of_mem _ $ λ i hi, chart_mem_atlas (H i) (f i) }
+
+@[simp, mfld_simps] lemma pi_charted_space_chart_at {ι : Type*} [fintype ι] (H : ι → Type*)
+  [Π i, topological_space (H i)] (M : ι → Type*) [Π i, topological_space (M i)]
+  [Π i, charted_space (H i) (M i)] (f : Π i, M i) :
+  chart_at (model_pi H) f = local_homeomorph.pi (λ i, chart_at (H i) (f i)) := rfl
 
 end charted_space
 
@@ -593,7 +692,7 @@ end charted_space
 have a topological structure, where the topology would come from the charts. For this, one needs
 charts that are only local equivs, and continuity properties for their composition.
 This is formalised in `charted_space_core`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure charted_space_core (H : Type*) [topological_space H] (M : Type*) :=
 (atlas            : set (local_equiv M H))
 (chart_at         : M → local_equiv M H)
@@ -612,7 +711,7 @@ protected def to_topological_space : topological_space M :=
 topological_space.generate_from $ ⋃ (e : local_equiv M H) (he : e ∈ c.atlas)
   (s : set H) (s_open : is_open s), {e ⁻¹' s ∩ e.source}
 
-lemma open_source' (he : e ∈ c.atlas) : @is_open M c.to_topological_space e.source :=
+lemma open_source' (he : e ∈ c.atlas) : is_open[c.to_topological_space] e.source :=
 begin
   apply topological_space.generate_open.basic,
   simp only [exists_prop, mem_Union, mem_singleton_iff],
@@ -681,16 +780,11 @@ end charted_space_core
 section has_groupoid
 variables [topological_space H] [topological_space M] [charted_space H M]
 
-section
-set_option old_structure_cmd true
-
 /-- A charted space has an atlas in a groupoid `G` if the change of coordinates belong to the
 groupoid -/
 class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_space M]
   [charted_space H M] (G : structure_groupoid H) : Prop :=
 (compatible [] : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
-
-end
 
 /-- Reformulate in the `structure_groupoid` namespace the compatibility condition of charts in a
 charted space admitting a structure groupoid, to make it more easily accessible with dot
@@ -703,7 +797,7 @@ has_groupoid.compatible G he he'
 
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid M G₂ :=
-⟨ λ e e' he he', hle ((h.compatible : _) he he') ⟩
+⟨λ e e' he he', hle (h.compatible he he')⟩
 
 lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M
@@ -742,13 +836,13 @@ def structure_groupoid.maximal_atlas : set (local_homeomorph M H) :=
 variable {M}
 
 /-- The elements of the atlas belong to the maximal atlas for any structure groupoid -/
-lemma structure_groupoid.mem_maximal_atlas_of_mem_atlas [has_groupoid M G]
-  {e : local_homeomorph M H} (he : e ∈ atlas H M) : e ∈ G.maximal_atlas M :=
-λ e' he', ⟨G.compatible he he', G.compatible he' he⟩
+lemma structure_groupoid.subset_maximal_atlas [has_groupoid M G] :
+  atlas H M ⊆ G.maximal_atlas M :=
+λ e he e' he', ⟨G.compatible he he', G.compatible he' he⟩
 
 lemma structure_groupoid.chart_mem_maximal_atlas [has_groupoid M G]
   (x : M) : chart_at H x ∈ G.maximal_atlas M :=
-G.mem_maximal_atlas_of_mem_atlas (chart_mem_atlas H x)
+G.subset_maximal_atlas (chart_mem_atlas H x)
 
 variable {G}
 
@@ -785,40 +879,79 @@ variable (G)
 
 /-- In the model space, the identity is in any maximal atlas. -/
 lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
-G.mem_maximal_atlas_of_mem_atlas (by simp)
+G.subset_maximal_atlas $ by simp
+
+/-- In the model space, any element of the groupoid is in the maximal atlas. -/
+lemma structure_groupoid.mem_maximal_atlas_of_mem_groupoid {f : local_homeomorph H H} (hf : f ∈ G) :
+  f ∈ G.maximal_atlas H :=
+begin
+  rintros e (rfl : e = local_homeomorph.refl H),
+  exact ⟨G.trans (G.symm hf) G.id_mem, G.trans (G.symm G.id_mem) hf⟩,
+end
 
 end maximal_atlas
 
 section singleton
 variables {α : Type*} [topological_space α]
-variables (e : local_homeomorph α H)
+
+namespace local_homeomorph
+
+variable (e : local_homeomorph α H)
 
 /-- If a single local homeomorphism `e` from a space `α` into `H` has source covering the whole
 space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
 (This condition is equivalent to `e` being an open embedding of `α` into `H`; see
-`local_homeomorph.to_open_embedding` and `open_embedding.to_local_homeomorph`.) -/
+`open_embedding.singleton_charted_space`.) -/
 def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 { atlas := {e},
   chart_at := λ _, e,
   mem_chart_source := λ _, by simp only [h] with mfld_simps,
   chart_mem_atlas := λ _, by tauto }
 
-lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_homeomorph α H)
-  (h' : e' ∈ (singleton_charted_space e h).atlas) : e' = e := h'
+@[simp, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
+  @chart_at H _ α _ (e.singleton_charted_space h) x = e := rfl
+
+lemma singleton_charted_space_chart_at_source
+  (h : e.source = set.univ) {x : α} :
+  (@chart_at H _ α _ (e.singleton_charted_space h) x).source = set.univ := h
+
+lemma singleton_charted_space_mem_atlas_eq (h : e.source = set.univ)
+  (e' : local_homeomorph α H) (h' : e' ∈ (e.singleton_charted_space h).atlas) : e' = e := h'
 
 /-- Given a local homeomorphism `e` from a space `α` into `H`, if its source covers the whole
 space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure
 groupoid `G` which is closed under restrictions. -/
 lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
-  [closed_under_restriction G] : @has_groupoid _ _ _ _ (singleton_charted_space e h) G :=
+  [closed_under_restriction G] : @has_groupoid _ _ _ _ (e.singleton_charted_space h) G :=
 { compatible := begin
     intros e' e'' he' he'',
-    rw singleton_charted_space_one_chart e h e' he',
-    rw singleton_charted_space_one_chart e h e'' he'',
+    rw e.singleton_charted_space_mem_atlas_eq h e' he',
+    rw e.singleton_charted_space_mem_atlas_eq h e'' he'',
     refine G.eq_on_source _ e.trans_symm_self,
     have hle : id_restr_groupoid ≤ G := (closed_under_restriction_iff_id_le G).mp (by assumption),
     exact structure_groupoid.le_iff.mp hle _ (id_restr_groupoid_mem _),
   end }
+
+end local_homeomorph
+
+namespace open_embedding
+
+variable [nonempty α]
+
+/-- An open embedding of `α` into `H` induces an `H`-charted space structure on `α`.
+See `local_homeomorph.singleton_charted_space` -/
+def singleton_charted_space {f : α → H} (h : open_embedding f) :
+  charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (by simp)
+
+lemma singleton_charted_space_chart_at_eq {f : α → H} (h : open_embedding f) {x : α} :
+  ⇑(@chart_at H _ α _ (h.singleton_charted_space) x) = f := rfl
+
+lemma singleton_has_groupoid {f : α → H} (h : open_embedding f)
+  (G : structure_groupoid H) [closed_under_restriction G] :
+  @has_groupoid _ _ _ _ h.singleton_charted_space G :=
+(h.to_local_homeomorph f).singleton_has_groupoid (by simp) G
+
+end open_embedding
 
 end singleton
 
@@ -858,7 +991,7 @@ end topological_space.opens
 /-- A `G`-diffeomorphism between two charted spaces is a homeomorphism which, when read in the
 charts, belongs to `G`. We avoid the word diffeomorph as it is too related to the smooth category,
 and use structomorph instead. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure structomorph (G : structure_groupoid H) (M : Type*) (M' : Type*)
   [topological_space M] [topological_space M'] [charted_space H M] [charted_space H M']
   extends homeomorph M M' :=

@@ -9,6 +9,9 @@ import ring_theory.witt_vector.basic
 /-!
 # Teichmüller lifts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `witt_vector.teichmuller`, a monoid hom `R →* 𝕎 R`, which embeds `r : R` as the
 `0`-th component of a Witt vector whose other coefficients are `0`.
 
@@ -44,7 +47,7 @@ def teichmuller_fun (r : R) : 𝕎 R :=
 
 On ghost components, it is clear that `teichmuller_fun` is a monoid homomorphism.
 But in general the ghost map is not injective.
-We follow the same strategy as for proving that the the ring operations on `𝕎 R`
+We follow the same strategy as for proving that the ring operations on `𝕎 R`
 satisfy the ring axioms.
 
 1. We first prove it for rings `R` where `p` is invertible,
@@ -59,7 +62,7 @@ private lemma ghost_component_teichmuller_fun (r : R) (n : ℕ) :
   ghost_component n (teichmuller_fun p r) = r ^ p ^ n :=
 begin
   rw [ghost_component_apply, aeval_witt_polynomial, finset.sum_eq_single 0,
-      pow_zero, one_mul, nat.sub_zero],
+      pow_zero, one_mul, tsub_zero],
   { refl },
   { intros i hi h0,
     convert mul_zero _, convert zero_pow _,
@@ -92,7 +95,7 @@ end
 /-- The Teichmüller lift of an element of `R` to `𝕎 R`.
 The `0`-th coefficient of `teichmuller p r` is `r`, and all others are `0`.
 This is a monoid homomorphism. -/
-noncomputable def teichmuller : R →* 𝕎 R :=
+def teichmuller : R →* 𝕎 R :=
 { to_fun := teichmuller_fun p,
   map_one' :=
   begin

@@ -3,12 +3,15 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.currying
 import category_theory.limits.over
-import category_theory.monad.adjunction
+import category_theory.limits.shapes.images
+import category_theory.adjunction.reflective
 
 /-!
 # Monomorphisms over a fixed object
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 As preparation for defining `subobject X`, we set up the theory for
 `mono_over X := {f : over X // mono f.hom}`.
@@ -48,25 +51,27 @@ This isn't skeletal, so it's not a partial order.
 Later we define `subobject X` as the quotient of this by isomorphisms.
 -/
 @[derive [category]]
-def mono_over (X : C) := {f : over X // mono f.hom}
+def mono_over (X : C) := full_subcategory (λ (f : over X), mono f.hom)
 
 namespace mono_over
 
 /-- Construct a `mono_over X`. -/
 @[simps]
-def mk' {X A : C} (f : A ⟶ X) [hf : mono f] : mono_over X := { val := over.mk f, property := hf }
+def mk' {X A : C} (f : A ⟶ X) [hf : mono f] : mono_over X := { obj := over.mk f, property := hf }
 
 /-- The inclusion from monomorphisms over X to morphisms over X. -/
 def forget (X : C) : mono_over X ⥤ over X := full_subcategory_inclusion _
 
 instance : has_coe (mono_over X) C :=
-{ coe := λ Y, Y.val.left, }
+{ coe := λ Y, Y.obj.left, }
 
 @[simp]
 lemma forget_obj_left {f} : ((forget X).obj f).left = (f : C) := rfl
 
+@[simp] lemma mk'_coe' {X A : C} (f : A ⟶ X) [hf : mono f] : (mk' f : C) = A := rfl
+
 /-- Convenience notation for the underlying arrow of a monomorphism over X. -/
-abbreviation arrow (f : mono_over X) : _ ⟶ X := ((forget X).obj f).hom
+abbreviation arrow (f : mono_over X) : (f : C) ⟶ X := ((forget X).obj f).hom
 
 @[simp] lemma mk'_arrow {X A : C} (f : A ⟶ X) [hf : mono f] : (mk' f).arrow = f := rfl
 
@@ -80,26 +85,32 @@ instance mono (f : mono_over X) : mono f.arrow := f.property
 
 /-- The category of monomorphisms over X is a thin category,
 which makes defining its skeleton easy. -/
-instance is_thin {X : C} (f g : mono_over X) : subsingleton (f ⟶ g) :=
-⟨begin
-  intros h₁ h₂,
-  ext1,
-  erw [← cancel_mono g.arrow, over.w h₁, over.w h₂],
-end⟩
+instance is_thin {X : C} : quiver.is_thin (mono_over X) :=
+λ f g,
+  ⟨begin
+    intros h₁ h₂,
+    ext1,
+    erw [← cancel_mono g.arrow, over.w h₁, over.w h₂],
+  end⟩
 
 @[reassoc] lemma w {f g : mono_over X} (k : f ⟶ g) : k.left ≫ g.arrow = f.arrow := over.w _
 
 /-- Convenience constructor for a morphism in monomorphisms over `X`. -/
-abbreviation hom_mk {f g : mono_over X} (h : f.val.left ⟶ g.val.left) (w : h ≫ g.arrow = f.arrow) :
+abbreviation hom_mk {f g : mono_over X} (h : f.obj.left ⟶ g.obj.left) (w : h ≫ g.arrow = f.arrow) :
   f ⟶ g :=
 over.hom_mk h w
 
 /-- Convenience constructor for an isomorphism in monomorphisms over `X`. -/
 @[simps]
-def iso_mk {f g : mono_over X} (h : f.val.left ≅ g.val.left) (w : h.hom ≫ g.arrow = f.arrow) :
+def iso_mk {f g : mono_over X} (h : f.obj.left ≅ g.obj.left) (w : h.hom ≫ g.arrow = f.arrow) :
   f ≅ g :=
 { hom := hom_mk h.hom w,
   inv := hom_mk h.inv (by rw [h.inv_comp_eq, w]) }
+
+/-- If `f : mono_over X`, then `mk' f.arrow` is of course just `f`, but not definitionally, so we
+    package it as an isomorphism. -/
+@[simp] def mk'_arrow_iso {X : C} (f : mono_over X) : (mk' f.arrow) ≅ f :=
+iso_mk (iso.refl _) (by simp)
 
 /--
 Lift a functor between over categories to a functor between `mono_over` categories,
@@ -133,6 +144,12 @@ fully_faithful_cancel_right (mono_over.forget _) (iso.refl _)
 lemma lift_comm (F : over Y ⥤ over X)
   (h : ∀ (f : mono_over Y), mono (F.obj ((mono_over.forget Y).obj f)).hom) :
   lift F h ⋙ mono_over.forget X = mono_over.forget Y ⋙ F :=
+rfl
+
+@[simp]
+lemma lift_obj_arrow {Y : D} (F : over Y ⥤ over X)
+  (h : ∀ (f : mono_over Y), mono (F.obj ((mono_over.forget Y).obj f)).hom) (f : mono_over Y) :
+  ((lift F h).obj f).arrow = (F.obj ((forget Y).obj f)).hom :=
 rfl
 
 /--
@@ -203,7 +220,7 @@ def map_id : map (𝟙 X) ≅ 𝟭 _ :=
 lift_iso _ _ over.map_id ≪≫ lift_id
 
 @[simp] lemma map_obj_left (f : X ⟶ Y) [mono f] (g : mono_over X) :
-  (((map f).obj g) : C) = g.val.left :=
+  (((map f).obj g) : C) = g.obj.left :=
 rfl
 
 @[simp]
@@ -224,11 +241,25 @@ instance faithful_map (f : X ⟶ Y) [mono f] : faithful (map f) := {}.
 /--
 Isomorphic objects have equivalent `mono_over` categories.
 -/
-def map_iso {A B : C} (e : A ≅ B) : mono_over A ≌ mono_over B :=
+@[simps] def map_iso {A B : C} (e : A ≅ B) : mono_over A ≌ mono_over B :=
 { functor := map e.hom,
   inverse := map e.inv,
   unit_iso := ((map_comp _ _).symm ≪≫ eq_to_iso (by simp) ≪≫ map_id).symm,
   counit_iso := ((map_comp _ _).symm ≪≫ eq_to_iso (by simp) ≪≫ map_id) }
+
+section
+variables (X)
+
+/-- An equivalence of categories `e` between `C` and `D` induces an equivalence between
+    `mono_over X` and `mono_over (e.functor.obj X)` whenever `X` is an object of `C`. -/
+@[simps] def congr (e : C ≌ D) : mono_over X ≌ mono_over (e.functor.obj X) :=
+{ functor := lift (over.post e.functor) $ λ f, by { dsimp, apply_instance },
+  inverse := (lift (over.post e.inverse) $ λ f, by { dsimp, apply_instance })
+    ⋙ (map_iso (e.unit_iso.symm.app X)).functor,
+  unit_iso := nat_iso.of_components (λ Y, iso_mk (e.unit_iso.app Y) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ Y, iso_mk (e.counit_iso.app Y) (by tidy)) (by tidy) }
+
+end
 
 section
 variable [has_pullbacks C]
@@ -296,7 +327,7 @@ adjunction.mk_of_hom_equiv
     inv_fun := λ k,
     begin
       refine over.hom_mk _ _,
-      refine image.lift {I := g.val.left, m := g.arrow, e := k.left, fac' := over.w k},
+      refine image.lift {I := g.obj.left, m := g.arrow, e := k.left, fac' := over.w k},
       apply image.lift_fac,
     end,
     left_inv := λ k, subsingleton.elim _ _,
@@ -342,7 +373,7 @@ nat_iso.of_components
 begin
   intro Z,
   suffices : (forget _).obj ((«exists» f).obj Z) ≅ (forget _).obj ((map f).obj Z),
-    apply preimage_iso this,
+    apply (forget _).preimage_iso this,
   apply over.iso_mk _ _,
   apply image_mono_iso_source (Z.arrow ≫ f),
   apply image_mono_iso_source_hom_self,
@@ -360,7 +391,7 @@ end
 /-- `exists` is adjoint to `pullback` when images exist -/
 def exists_pullback_adj (f : X ⟶ Y) [has_pullbacks C] : «exists» f ⊣ pullback f :=
 adjunction.restrict_fully_faithful (forget X) (𝟭 _)
-  ((over.map_pullback_adj f).comp _ _ image_forget_adj)
+  ((over.map_pullback_adj f).comp image_forget_adj)
   (iso.refl _)
   (iso.refl _)
 

@@ -3,11 +3,14 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import algebra.hom.equiv.units.basic
 import category_theory.endomorphism
-import algebra.group_power
 
 /-!
 # Conjugate morphisms by isomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An isomorphism `α : X ≅ Y` defines
 - a monoid isomorphism `conj : End X ≃* End Y` by `α.conj f = α.inv ≫ f ≫ α.hom`;
@@ -114,8 +117,8 @@ conj_Aut_mul α g f
 @[simp] lemma conj_Aut_pow (f : Aut X) (n : ℕ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
 α.conj_Aut.to_monoid_hom.map_pow f n
 
-@[simp] lemma conj_Aut_gpow (f : Aut X) (n : ℤ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
-α.conj_Aut.to_monoid_hom.map_gpow f n
+@[simp] lemma conj_Aut_zpow (f : Aut X) (n : ℤ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
+α.conj_Aut.to_monoid_hom.map_zpow f n
 
 end iso
 

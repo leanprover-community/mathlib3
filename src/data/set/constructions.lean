@@ -3,12 +3,13 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-
-import tactic
 import data.finset.basic
 
 /-!
 # Constructions involving sets of sets.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Finite Intersections
 
@@ -26,15 +27,11 @@ set of subsets of `α` which is closed under finite intersections.
 variables {α : Type*} (S : set (set α))
 
 /-- A structure encapsulating the fact that a set of sets is closed under finite intersection. -/
-structure has_finite_inter :=
+structure has_finite_inter : Prop :=
 (univ_mem : set.univ ∈ S)
-(inter_mem {s t} : s ∈ S → t ∈ S → s ∩ t ∈ S)
+(inter_mem : ∀ ⦃s⦄, s ∈ S → ∀ ⦃t⦄, t ∈ S → s ∩ t ∈ S)
 
 namespace has_finite_inter
-
--- Satisfying the inhabited linter...
-instance : inhabited (has_finite_inter ({set.univ} : set (set α))) :=
-⟨⟨by tauto, λ _ _ h1 h2, by finish⟩⟩
 
 /-- The smallest set of sets containing `S` which is closed under finite intersections. -/
 inductive finite_inter_closure : set (set α)
@@ -42,10 +39,9 @@ inductive finite_inter_closure : set (set α)
 | univ : finite_inter_closure set.univ
 | inter {s t} : finite_inter_closure s → finite_inter_closure t → finite_inter_closure (s ∩ t)
 
-/-- Defines `has_finite_inter` for `finite_inter_closure S`. -/
-def finite_inter_closure_has_finite_inter : has_finite_inter (finite_inter_closure S) :=
+lemma finite_inter_closure_has_finite_inter : has_finite_inter (finite_inter_closure S) :=
 { univ_mem := finite_inter_closure.univ,
-  inter_mem := λ _ _, finite_inter_closure.inter }
+  inter_mem := λ _ h _, finite_inter_closure.inter h }
 
 variable {S}
 lemma finite_inter_mem (cond : has_finite_inter S) (F : finset (set α)) :
@@ -70,9 +66,11 @@ begin
   { exact or.inl cond.univ_mem },
   { rcases h1 with (h | ⟨Q, hQ, rfl⟩); rcases h2 with (i | ⟨R, hR, rfl⟩),
     { exact or.inl (cond.inter_mem h i) },
-    { exact or.inr ⟨T1 ∩ R, cond.inter_mem h hR, by finish⟩ },
-    { exact or.inr ⟨Q ∩ T2, cond.inter_mem hQ i, by finish⟩ },
-    { exact or.inr ⟨Q ∩ R, cond.inter_mem hQ hR , by tidy⟩ } }
+    { exact or.inr ⟨T1 ∩ R, cond.inter_mem h hR,
+        by simp only [ ←set.inter_assoc, set.inter_comm _ A]⟩ },
+    { exact or.inr ⟨Q ∩ T2, cond.inter_mem hQ i, by simp only [set.inter_assoc]⟩ },
+    { exact or.inr ⟨Q ∩ R, cond.inter_mem hQ hR,
+        by { ext x, split; simp { contextual := tt} }⟩ } }
 end
 
 end has_finite_inter

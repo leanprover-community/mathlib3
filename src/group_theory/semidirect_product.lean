@@ -3,16 +3,19 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add_aut
+import algebra.hom.aut
 import logic.function.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Semidirect product
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines semidirect products of groups, and the canonical maps in and out of the
 semidirect product. The semidirect product of `N` and `G` given a hom `φ` from
-`φ` from `G` to the automorphism group of `N` is the product of sets with the group
+`G` to the automorphism group of `N` is the product of sets with the group
 `⟨n₁, g₁⟩ * ⟨n₂, g₂⟩ = ⟨n₁ * φ g₁ n₂, g₁ * g₂⟩`
 
 ## Key definitions
@@ -46,27 +49,14 @@ namespace semidirect_product
 
 variables {N G} {φ : G →* mul_aut N}
 
-private def one_aux : N ⋊[φ] G := ⟨1, 1⟩
-private def mul_aux (a b : N ⋊[φ] G) : N ⋊[φ] G := ⟨a.1 * φ a.2 b.1, a.right * b.right⟩
-private def inv_aux (a : N ⋊[φ] G) : N ⋊[φ] G := let i := a.2⁻¹ in ⟨φ i a.1⁻¹, i⟩
-private lemma mul_assoc_aux (a b c : N ⋊[φ] G) :
-  mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
-by simp [mul_aux, mul_assoc, mul_equiv.map_mul]
-private lemma mul_one_aux (a : N ⋊[φ] G) : mul_aux a one_aux = a :=
-by cases a; simp [mul_aux, one_aux]
-private lemma one_mul_aux (a : N ⋊[φ] G) : mul_aux one_aux a = a :=
-by cases a; simp [mul_aux, one_aux]
-private lemma mul_left_inv_aux (a : N ⋊[φ] G) : mul_aux (inv_aux a) a = one_aux :=
-by simp only [mul_aux, inv_aux, one_aux, ← mul_equiv.map_mul, mul_left_inv]; simp
-
 instance : group (N ⋊[φ] G) :=
-{ one := one_aux,
-  inv := inv_aux,
-  mul := mul_aux,
-  mul_assoc := mul_assoc_aux,
-  one_mul := one_mul_aux,
-  mul_one := mul_one_aux,
-  mul_left_inv := mul_left_inv_aux }
+{ one := ⟨1, 1⟩,
+  mul := λ a b, ⟨a.1 * φ a.2 b.1, a.2 * b.2⟩,
+  inv := λ x, ⟨φ x.2⁻¹ x.1⁻¹, x.2⁻¹⟩,
+  mul_assoc := λ a b c, by ext; simp [mul_assoc],
+  one_mul := λ a, ext _ _ (by simp) (one_mul a.2),
+  mul_one := λ a, ext _ _ (by simp) (mul_one _),
+  mul_left_inv := λ ⟨a, b⟩, ext _ _ (show φ b⁻¹ a⁻¹ * φ b⁻¹ a = 1, by simp) (mul_left_inv b) }
 
 instance : inhabited (N ⋊[φ] G) := ⟨1⟩
 
@@ -117,7 +107,6 @@ by rw [← monoid_hom.map_inv, inl_aut, inv_inv]
 by ext; simp
 
 @[simp] lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
-
 by ext; simp
 
 /-- The canonical projection map `N ⋊[φ] G →* G`, as a group hom. -/
@@ -200,7 +189,7 @@ def map (f₁ : N →* N₁) (f₂ : G →* G₁)
   map_mul' := λ x y, begin
     replace h := monoid_hom.ext_iff.1 (h x.right) y.left,
     ext; simp * at *,
-  end  }
+  end }
 
 variables (f₁ : N →* N₁) (f₂ : G →* G₁)
   (h : ∀ g : G, f₁.comp (φ g).to_monoid_hom = (φ₁ (f₂ g)).to_monoid_hom.comp f₁)

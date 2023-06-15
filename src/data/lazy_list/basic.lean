@@ -2,8 +2,6 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Traversable instance for lazy_lists.
 -/
 import control.traversable.equiv
 import control.traversable.instances
@@ -11,6 +9,9 @@ import data.lazy_list
 
 /-!
 ## Definitions on lazy lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains various definitions and proofs on lazy lists.
 
@@ -41,8 +42,6 @@ def list_equiv_lazy_list (α : Type*) : list α ≃ lazy_list α :=
   right_inv := by { intro, induction x, refl, simp! [*],
                     ext, cases x, refl },
   left_inv := by { intro, induction x, refl, simp! [*] } }
-
-instance {α : Type u} : inhabited (lazy_list α) := ⟨nil⟩
 
 instance {α : Type u} [decidable_eq α] : decidable_eq (lazy_list α)
 | nil nil := is_true rfl

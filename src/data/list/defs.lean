@@ -3,11 +3,15 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.option.defs
 import logic.basic
 import tactic.cache
+import data.rbmap.basic
+import data.rbtree.default_lt
 /-!
 ## Definitions on lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains various definitions on lists. It does not contain
 proofs about these definitions, those are contained in other files in `data/list`
@@ -15,17 +19,16 @@ proofs about these definitions, those are contained in other files in `data/list
 
 namespace list
 
-open function nat native (rb_map mk_rb_map rb_map.of_list)
+open function nat
 universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
-
-/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
-def is_nil {α} : list α → bool
-| [] := tt
-| _  := ff
-
+variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
+
+/-- Create a list of `n` copies of `a`. Same as `function.swap list.repeat`. -/
+@[simp] def replicate : ℕ → α → list α
+| 0 _ := []
+| (succ n) a := a :: replicate n a
 
 /-- Split a list at an index.
 
@@ -71,9 +74,16 @@ it returns `none` otherwise -/
 def to_array (l : list α) : array l.length α :=
 {data := λ v, l.nth_le v.1 v.2}
 
+/-- "default" `nth` function: returns `d` instead of `none` in the case
+  that the index is out of bounds. -/
+def nthd : Π (l : list α) (n : ℕ) (d : α), α
+| []      _       d := d
+| (x::xs) 0       d := x
+| (x::xs) (n + 1) d := nthd xs n d
+
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-@[simp] def inth [h : inhabited α] (l : list α) (n : nat) : α := (nth l n).iget
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd l n default
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.
@@ -107,7 +117,7 @@ section take'
 variable [inhabited α]
 
 /-- Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
-elements `default α`. -/
+elements `default`. -/
 def take' : ∀ n, list α → list α
 | 0     l := []
 | (n+1) l := l.head :: take' n l.tail
@@ -236,23 +246,23 @@ mall id
 end
 
 /-- Auxiliary definition for `foldl_with_index`. -/
-def foldl_with_index_aux (f : ℕ → α → β → α) : ℕ → α → list β → α
+def foldl_with_index_aux {α : Sort*} {β : Type*} (f : ℕ → α → β → α) : ℕ → α → list β → α
 | _ a [] := a
 | i a (b :: l) := foldl_with_index_aux (i + 1) (f i a b) l
 
 /-- Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index. -/
-def foldl_with_index (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
+def foldl_with_index {α : Sort*} {β : Type*} (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
 foldl_with_index_aux f 0 a l
 
 /-- Auxiliary definition for `foldr_with_index`. -/
-def foldr_with_index_aux (f : ℕ → α → β → β) : ℕ → β → list α → β
+def foldr_with_index_aux {α : Type*} {β : Sort*} (f : ℕ → α → β → β) : ℕ → β → list α → β
 | _ b [] := b
 | i b (a :: l) := f i a (foldr_with_index_aux (i + 1) b l)
 
 /-- Fold a list from right to left as with `foldr`, but the combining function
 also receives each element's index. -/
-def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
+def foldr_with_index {α : Type*} {β : Sort*} (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
 foldr_with_index_aux f 0 b l
 
 /-- `find_indexes p l` is the list of indexes of elements of `l` that satisfy `p`. -/
@@ -401,6 +411,13 @@ attribute [simp] forall₂.nil
 
 end forall₂
 
+/-- `l.all₂ p` is equivalent to `∀ a ∈ l, p a`, but unfolds directly to a conjunction, i.e.
+`list.all₂ p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
+@[simp] def all₂ (p : α → Prop) : list α → Prop
+| []        := true
+| (x :: []) := p x
+| (x :: l)  := p x ∧ all₂ l
+
 /-- Auxiliary definition used to define `transpose`.
   `transpose_aux l L` takes each element of `l` and appends it to the start of
   each element of `L`.
@@ -427,6 +444,15 @@ def sections : list (list α) → list (list α)
 
 section permutations
 
+/-- An auxiliary function for defining `permutations`. `permutations_aux2 t ts r ys f` is equal to
+`(ys ++ ts, (insert_left ys t ts).map f ++ r)`, where `insert_left ys t ts` (not explicitly
+defined) is the list of lists of the form `insert_nth n t (ys ++ ts)` for `0 ≤ n < length ys`.
+
+    permutations_aux2 10 [4, 5, 6] [] [1, 2, 3] id =
+      ([1, 2, 3, 4, 5, 6],
+       [[10, 1, 2, 3, 4, 5, 6],
+        [1, 10, 2, 3, 4, 5, 6],
+        [1, 2, 10, 3, 4, 5, 6]]) -/
 def permutations_aux2 (t : α) (ts : list α) (r : list β) : list α → (list α → β) → list α × list β
 | []      f := (ts, r)
 | (y::ys) f := let (us, zs) := permutations_aux2 ys (λx : list α, f (y::x)) in
@@ -436,6 +462,8 @@ private def meas : (Σ'_:list α, list α) → ℕ × ℕ | ⟨l, i⟩ := (lengt
 
 local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
 
+/-- A recursor for pairs of lists. To have `C l₁ l₂` for all `l₁`, `l₂`, it suffices to have it for
+`l₂ = []` and to be able to pour the elements of `l₁` into `l₂`. -/
 @[elab_as_eliminator] def permutations_aux.rec {C : list α → list α → Sort v}
   (H0 : ∀ is, C [] is)
   (H1 : ∀ t ts is, C ts (t::is) → C is [] → C (t::ts) is) : ∀ l₁ l₂, C l₁ l₂
@@ -447,10 +475,12 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
     by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
   have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (nat.lt_add_of_pos_left (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
-using_well_founded {
-  dec_tac := tactic.assumption,
+using_well_founded
+{ dec_tac := tactic.assumption,
   rel_tac := λ _ _, `[exact ⟨(≺), @inv_image.wf _ _ _ meas (prod.lex_wf lt_wf lt_wf)⟩] }
 
+/-- An auxiliary function for defining `permutations`. `permutations_aux ts is` is the set of all
+permutations of `is ++ ts` that do not fix `ts`. -/
 def permutations_aux : list α → list α → list (list α) :=
 @@permutations_aux.rec (λ _ _, list (list α)) (λ is, [])
   (λ t ts is IH1 IH2, foldr (λy r, (permutations_aux2 t ts r y id).2) IH1 (is :: IH2))
@@ -462,6 +492,32 @@ def permutations_aux : list α → list α → list (list α) :=
         [2, 3, 1], [3, 1, 2], [1, 3, 2]] -/
 def permutations (l : list α) : list (list α) :=
 l :: permutations_aux l []
+
+/-- `permutations'_aux t ts` inserts `t` into every position in `ts`, including the last.
+This function is intended for use in specifications, so it is simpler than `permutations_aux2`,
+which plays roughly the same role in `permutations`.
+
+Note that `(permutations_aux2 t [] [] ts id).2` is similar to this function, but skips the last
+position:
+
+    permutations'_aux 10 [1, 2, 3] =
+      [[10, 1, 2, 3], [1, 10, 2, 3], [1, 2, 10, 3], [1, 2, 3, 10]]
+    (permutations_aux2 10 [] [] [1, 2, 3] id).2 =
+      [[10, 1, 2, 3], [1, 10, 2, 3], [1, 2, 10, 3]] -/
+@[simp] def permutations'_aux (t : α) : list α → list (list α)
+| []      := [[t]]
+| (y::ys) := (t :: y :: ys) :: (permutations'_aux ys).map (cons y)
+
+/-- List of all permutations of `l`. This version of `permutations` is less efficient but has
+simpler definitional equations. The permutations are in a different order,
+but are equal up to permutation, as shown by `list.permutations_perm_permutations'`.
+
+     permutations [1, 2, 3] =
+       [[1, 2, 3], [2, 1, 3], [2, 3, 1],
+        [1, 3, 2], [3, 1, 2], [3, 2, 1]] -/
+@[simp] def permutations' : list α → list (list α)
+| [] := [[]]
+| (t::ts) := (permutations' ts).bind $ permutations'_aux t
 
 end permutations
 
@@ -489,6 +545,9 @@ def revzip (l : list α) : list (α × α) := zip l l.reverse
      product [1, 2] [5, 6] = [(1, 5), (1, 6), (2, 5), (2, 6)] -/
 def product (l₁ : list α) (l₂ : list β) : list (α × β) :=
 l₁.bind $ λ a, l₂.map $ prod.mk a
+
+/- This notation binds more strongly than (pre)images, unions and intersections. -/
+infixr (name := list.product) ` ×ˢ `:82 := list.product
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
@@ -544,7 +603,7 @@ by induction l with hd tl ih; [exact is_true pairwise.nil,
 end pairwise
 
 /-- `pw_filter R l` is a maximal sublist of `l` which is `pairwise R`.
-  `pw_filter (≠)` is the erase duplicates function (cf. `erase_dup`), and `pw_filter (<)` finds
+  `pw_filter (≠)` is the erase duplicates function (cf. `dedup`), and `pw_filter (<)` finds
   a maximal increasing subsequence in `l`. For example,
 
      pw_filter (<) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4] -/
@@ -591,11 +650,25 @@ def nodup : list α → Prop := pairwise (≠)
 instance nodup_decidable [decidable_eq α] : ∀ l : list α, decidable (nodup l) :=
 list.decidable_pairwise
 
-/-- `erase_dup l` removes duplicates from `l` (taking only the first occurrence).
+/-- `dedup l` removes duplicates from `l` (taking only the last occurrence).
   Defined as `pw_filter (≠)`.
 
-     erase_dup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
+     dedup [1, 0, 2, 2, 1] = [0, 2, 1] -/
+def dedup [decidable_eq α] : list α → list α := pw_filter (≠)
+
+/-- Greedily create a sublist of `a :: l` such that, for every two adjacent elements `a, b`,
+`R a b` holds. Mostly used with ≠; for example, `destutter' (≠) 1 [2, 2, 1, 1] = [1, 2, 1]`,
+`destutter' (≠) 1, [2, 3, 3] = [1, 2, 3]`, `destutter' (<) 1 [2, 5, 2, 3, 4, 9] = [1, 2, 5, 9]`. -/
+def destutter' (R : α → α → Prop) [decidable_rel R] : α → list α → list α
+| a [] := [a]
+| a (h :: l) := if R a h then a :: destutter' h l else destutter' a l
+
+/-- Greedily create a sublist of `l` such that, for every two adjacent elements `a, b ∈ l`,
+`R a b` holds. Mostly used with ≠; for example, `destutter (≠) [1, 2, 2, 1, 1] = [1, 2, 1]`,
+`destutter (≠) [1, 2, 3, 3] = [1, 2, 3]`, `destutter (<) [1, 2, 5, 2, 3, 4, 9] = [1, 2, 5, 9]`. -/
+def destutter (R : α → α → Prop) [decidable_rel R] : list α → list α
+| (h :: l) := destutter' R h l
+| [] := []
 
 /-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
   It is intended mainly for proving properties of `range` and `iota`. -/
@@ -894,38 +967,100 @@ corresponding element of `as`.
 to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
 ```
 -/
-def to_rbmap : list α → rbmap ℕ α :=
+def to_rbmap {α : Type*} : list α → rbmap ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
 
-/--
-`to_rb_map as` is the map that associates each index `i` of `as` with the
-corresponding element of `as`.
+/-- Auxliary definition used to define `to_chunks`.
 
-```
-to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
-```
--/
-meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
-foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
+  `to_chunks_aux n xs i` returns `(xs.take i, (xs.drop i).to_chunks (n+1))`,
+  that is, the first `i` elements of `xs`, and the remaining elements chunked into
+  sublists of length `n+1`. -/
+def to_chunks_aux {α} (n : ℕ) : list α → ℕ → list α × list (list α)
+| [] i := ([], [])
+| (x::xs) 0 := let (l, L) := to_chunks_aux xs n in ([], (x::l)::L)
+| (x::xs) (i+1) := let (l, L) := to_chunks_aux xs i in (x::l, L)
 
 /--
 `xs.to_chunks n` splits the list into sublists of size at most `n`,
 such that `(xs.to_chunks n).join = xs`.
 
-TODO: make non-meta; currently doesn't terminate, e.g.
 ```
-#eval [0].to_chunks 0
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 10 = [[1, 2, 3, 4, 5, 6, 7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 3 = [[1, 2, 3], [4, 5, 6], [7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 2 = [[1, 2], [3, 4], [5, 6], [7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 0 = [[1, 2, 3, 4, 5, 6, 7, 8]]
 ```
 -/
-meta def to_chunks {α} (n : ℕ) : list α → list (list α)
-| [] := []
-| xs :=
-  xs.take n :: (xs.drop n).to_chunks
+def to_chunks {α} : ℕ → list α → list (list α)
+| _ [] := []
+| 0 xs := [xs]
+| (n+1) (x::xs) := let (l, L) := to_chunks_aux n xs n in (x::l)::L
 
 /--
 Asynchronous version of `list.map`.
 -/
 meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
 ((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
+
+/-!
+We add some n-ary versions of `list.zip_with` for functions with more than two arguments.
+These can also be written in terms of `list.zip` or `list.zip_with`.
+For example, `zip_with3 f xs ys zs` could also be written as
+`zip_with id (zip_with f xs ys) zs`
+or as
+`(zip xs $ zip ys zs).map $ λ ⟨x, y, z⟩, f x y z`.
+-/
+
+/-- Ternary version of `list.zip_with`. -/
+def zip_with3 (f : α → β → γ → δ) : list α → list β → list γ → list δ
+| (x::xs) (y::ys) (z::zs) := f x y z :: zip_with3 xs ys zs
+| _       _       _       := []
+
+/-- Quaternary version of `list.zip_with`. -/
+def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → list γ → list δ → list ε
+| (x::xs) (y::ys) (z::zs) (u::us) := f x y z u :: zip_with4 xs ys zs us
+| _       _       _       _       := []
+
+/-- Quinary version of `list.zip_with`. -/
+def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
+| (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
+| _       _       _       _       _       := []
+
+/--  Given a starting list `old`, a list of booleans and a replacement list `new`,
+read the items in `old` in succession and either replace them with the next element of `new` or
+not, according as to whether the corresponding boolean is `tt` or `ff`. -/
+def replace_if : list α → list bool → list α → list α
+| l  _  [] := l
+| [] _  _  := []
+| l  [] _  := l
+| (n::ns) (tf::bs) e@(c::cs) := if tf then c :: ns.replace_if bs cs else n :: ns.replace_if bs e
+
+/-- An auxiliary function for `list.map_with_prefix_suffix`. -/
+def map_with_prefix_suffix_aux {α β} (f : list α → α → list α → β) : list α → list α → list β
+| prev [] := []
+| prev (h::t) := f prev h t :: map_with_prefix_suffix_aux (prev.concat h) t
+
+/--
+`list.map_with_prefix_suffix f l` maps `f` across a list `l`.
+For each `a ∈ l` with `l = pref ++ [a] ++ suff`, `a` is mapped to `f pref a suff`.
+
+Example: if `f : list ℕ → ℕ → list ℕ → β`,
+`list.map_with_prefix_suffix f [1, 2, 3]` will produce the list
+`[f [] 1 [2, 3], f [1] 2 [3], f [1, 2] 3 []]`.
+-/
+def map_with_prefix_suffix {α β} (f : list α → α → list α → β) (l : list α) : list β :=
+map_with_prefix_suffix_aux f [] l
+
+/--
+`list.map_with_complement f l` is a variant of `list.map_with_prefix_suffix`
+that maps `f` across a list `l`.
+For each `a ∈ l` with `l = pref ++ [a] ++ suff`, `a` is mapped to `f a (pref ++ suff)`,
+i.e., the list input to `f` is `l` with `a` removed.
+
+Example: if `f : ℕ → list ℕ → β`, `list.map_with_complement f [1, 2, 3]` will produce the list
+`[f 1 [2, 3], f 2 [1, 3], f 3 [1, 2]]`.
+-/
+def map_with_complement {α β} (f : α → list α → β) : list α → list β :=
+map_with_prefix_suffix $ λ pref a suff, f a (pref ++ suff)
 
 end list

@@ -1,4 +1,4 @@
-import category_theory.functor_category -- this transitively imports
+import category_theory.functor.category -- this transitively imports
 -- category_theory.category
 -- category_theory.functor
 -- category_theory.natural_transformation

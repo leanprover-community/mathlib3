@@ -2,8 +2,15 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
 
-Supplementary theorems about the `char` type.
+/-!
+# More `char` instances
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file provides a `linear_order` instance on `char`. `char` is the type of Unicode scalar values.
 -/
 
 instance : linear_order char :=

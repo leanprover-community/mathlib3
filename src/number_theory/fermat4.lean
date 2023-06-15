@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul van Wamelen
 -/
 import number_theory.pythagorean_triples
-import ring_theory.coprime
+import ring_theory.coprime.lemmas
+import tactic.linear_combination
 
 /-!
 # Fermat's Last Theorem for the case n = 4
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 There are no non-zero integers `a`, `b` and `c` such that `a ^ 4 + b ^ 4 = c ^ 4`.
 -/
 
@@ -33,26 +37,21 @@ begin
   { intro f42,
     split, { exact mul_ne_zero hk0 f42.1 },
     split, { exact mul_ne_zero hk0 f42.2.1 },
-    { calc (k * a) ^ 4 + (k * b) ^ 4
-          = k ^ 4 * (a ^ 4 + b ^ 4) : by ring
-      ... = k ^ 4 * c ^ 2 : by rw f42.2.2
-      ... = (k ^ 2 * c) ^ 2 : by ring }},
+    { have H : a ^ 4 + b ^ 4 = c ^ 2 := f42.2.2,
+      linear_combination k ^ 4 * H } },
   { intro f42,
     split, { exact right_ne_zero_of_mul f42.1 },
     split, { exact right_ne_zero_of_mul f42.2.1 },
     apply (mul_right_inj' (pow_ne_zero 4 hk0)).mp,
-    { calc k ^ 4 * (a ^ 4 + b ^ 4)
-          = (k * a) ^ 4 + (k * b) ^ 4 : by ring
-      ... = (k ^ 2 * c) ^ 2 : by rw f42.2.2
-      ... = k ^ 4 * c ^ 2 : by ring }}
+    linear_combination f42.2.2 }
 end
 
 lemma ne_zero {a b c : ℤ} (h : fermat_42 a b c) : c ≠ 0 :=
 begin
-  apply ne_zero_pow (dec_trivial : 2 ≠ 0), apply ne_of_gt,
+  apply ne_zero_pow two_ne_zero _, apply ne_of_gt,
   rw [← h.2.2, (by ring : a ^ 4 + b ^ 4 = (a ^ 2) ^ 2 + (b ^ 2) ^ 2)],
-  exact add_pos (pow_two_pos_of_ne_zero _ (pow_ne_zero 2 h.1))
-      (pow_two_pos_of_ne_zero _ (pow_ne_zero 2 h.2.1))
+  exact add_pos (sq_pos_of_ne_zero _ (pow_ne_zero 2 h.1))
+      (sq_pos_of_ne_zero _ (pow_ne_zero 2 h.2.1))
 end
 
 /-- We say a solution to `a ^ 4 + b ^ 4 = c ^ 2` is minimal if there is no other solution with
@@ -88,15 +87,14 @@ begin
   obtain ⟨a1, rfl⟩ := (int.coe_nat_dvd_left.mpr hpa),
   obtain ⟨b1, rfl⟩ := (int.coe_nat_dvd_left.mpr hpb),
   have hpc : (p : ℤ) ^ 2 ∣ c,
-  { apply (int.pow_dvd_pow_iff (dec_trivial : 0 < 2)).mp,
-    rw ← h.1.2.2,
+  { rw [←int.pow_dvd_pow_iff zero_lt_two, ←h.1.2.2],
     apply dvd.intro (a1 ^ 4 + b1 ^ 4), ring },
   obtain ⟨c1, rfl⟩ := hpc,
   have hf : fermat_42 a1 b1 c1,
     exact (fermat_42.mul (int.coe_nat_ne_zero.mpr (nat.prime.ne_zero hp))).mpr h.1,
   apply nat.le_lt_antisymm (h.2 _ _ _ hf),
   rw [int.nat_abs_mul, lt_mul_iff_one_lt_left, int.nat_abs_pow, int.nat_abs_of_nat],
-  { exact nat.one_lt_pow _ _ (show 0 < 2, from dec_trivial) (nat.prime.one_lt hp) },
+  { exact nat.one_lt_pow _ _ zero_lt_two (nat.prime.one_lt hp) },
   { exact (nat.pos_of_ne_zero (int.nat_abs_ne_zero_of_ne_zero (ne_zero hf))) },
 end
 
@@ -111,7 +109,7 @@ begin
   rintros ⟨⟨ha, hb, heq⟩, h2⟩,
   split,
   { apply and.intro ha (and.intro hb _),
-    rw heq, exact (neg_square c).symm },
+    rw heq, exact (neg_sq c).symm },
   rwa (int.nat_abs_neg c),
 end
 
@@ -126,7 +124,7 @@ begin
       have h1 : 2 ∣ (int.gcd a0 b0 : ℤ),
       { exact int.dvd_gcd (int.dvd_of_mod_eq_zero hap) (int.dvd_of_mod_eq_zero hbp) },
         rw int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal hf) at h1, revert h1, norm_num },
-      { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ }},
+    { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ } },
   exact ⟨a0, ⟨b0, ⟨c0 , hf, hap⟩⟩⟩,
 end
 
@@ -145,18 +143,18 @@ end
 
 end fermat_42
 
-lemma int.coprime_of_sqr_sum {r s : ℤ} (h2 : is_coprime s r) :
+lemma int.coprime_of_sq_sum {r s : ℤ} (h2 : is_coprime s r) :
   is_coprime (r ^ 2 + s ^ 2) r :=
 begin
-  rw [pow_two, pow_two],
+  rw [sq, sq],
   exact (is_coprime.mul_left h2 h2).mul_add_left_left r
 end
 
-lemma int.coprime_of_sqr_sum' {r s : ℤ} (h : is_coprime r s) :
+lemma int.coprime_of_sq_sum' {r s : ℤ} (h : is_coprime r s) :
   is_coprime (r ^ 2 + s ^ 2) (r * s) :=
 begin
-  apply is_coprime.mul_right (int.coprime_of_sqr_sum (is_coprime_comm.mp h)),
-  rw add_comm, apply int.coprime_of_sqr_sum h
+  apply is_coprime.mul_right (int.coprime_of_sq_sum (is_coprime_comm.mp h)),
+  rw add_comm, apply int.coprime_of_sq_sum h
 end
 
 namespace fermat_42
@@ -170,29 +168,26 @@ begin
   -- a ^ 2 = m ^ 2 - n ^ 2, b ^ 2 = 2 * m * n and c = m ^ 2 + n ^ 2
   -- first the formula:
   have ht : pythagorean_triple (a ^ 2) (b ^ 2) c,
-  { calc ((a ^ 2) * (a ^ 2)) + ((b ^ 2) * (b ^ 2))
-        = a ^ 4 + b ^ 4 : by ring
-    ... = c ^ 2 : by rw h.1.2.2
-    ... = c * c : by rw pow_two },
+  { delta pythagorean_triple,
+    linear_combination h.1.2.2 },
   -- coprime requirement:
   have h2 : int.gcd (a ^ 2) (b ^ 2) = 1 :=
     int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal h).pow,
   -- in order to reduce the possibilities we get from the classification of pythagorean triples
   -- it helps if we know the parity of a ^ 2 (and the sign of c):
-  have ha22 : a ^ 2 % 2 = 1, { rw [pow_two, int.mul_mod, ha2], norm_num },
-  obtain ⟨m, n, ht1, ht2, ht3, ht4, ht5, ht6⟩ :=
-    pythagorean_triple.coprime_classification' ht h2 ha22 hc,
+  have ha22 : a ^ 2 % 2 = 1, { rw [sq, int.mul_mod, ha2], norm_num },
+  obtain ⟨m, n, ht1, ht2, ht3, ht4, ht5, ht6⟩ := ht.coprime_classification' h2 ha22 hc,
   -- Now a, n, m form a pythagorean triple and so we can obtain r and s such that
   -- a = r ^ 2 - s ^ 2, n = 2 * r * s and m = r ^ 2 + s ^ 2
   -- formula:
   have htt : pythagorean_triple a n m,
   { delta pythagorean_triple,
-    rw [← pow_two, ← pow_two, ← pow_two], exact (add_eq_of_eq_sub ht1) },
+    linear_combination (ht1) },
   -- a and n are coprime, because a ^ 2 = m ^ 2 - n ^ 2 and m and n are coprime.
   have h3 : int.gcd a n = 1,
   { apply int.gcd_eq_one_iff_coprime.mpr,
     apply @is_coprime.of_mul_left_left _ _ _ a,
-    rw [← pow_two, ht1, (by ring : m ^ 2 - n ^ 2 = m ^ 2 + (-n) * n)],
+    rw [← sq, ht1, (by ring : m ^ 2 - n ^ 2 = m ^ 2 + (-n) * n)],
     exact (int.gcd_eq_one_iff_coprime.mp ht4).pow_left.add_mul_right_left (-n) },
   -- m is positive because b is non-zero and b ^ 2 = 2 * m * n and we already have 0 ≤ m.
   have hb20 : b ^ 2 ≠ 0 := mt pow_eq_zero h.1.2.1,
@@ -201,65 +196,62 @@ begin
     rintro rfl,
     revert hb20,
     rw ht2, simp },
-  obtain ⟨r, s, htt1, htt2, htt3, htt4, htt5, htt6⟩ :=
-    pythagorean_triple.coprime_classification' htt h3 ha2 h4,
+  obtain ⟨r, s, htt1, htt2, htt3, htt4, htt5, htt6⟩ := htt.coprime_classification' h3 ha2 h4,
   -- Now use the fact that (b / 2) ^ 2 = m * r * s, and m, r and s are pairwise coprime to obtain
   -- i, j and k such that m = i ^ 2, r = j ^ 2 and s = k ^ 2.
   -- m and r * s are coprime because m = r ^ 2 + s ^ 2 and r and s are coprime.
   have hcp : int.gcd m (r * s) = 1,
   { rw htt3,
-    exact int.gcd_eq_one_iff_coprime.mpr (int.coprime_of_sqr_sum'
+    exact int.gcd_eq_one_iff_coprime.mpr (int.coprime_of_sq_sum'
       (int.gcd_eq_one_iff_coprime.mp htt4)) },
   -- b is even because b ^ 2 = 2 * m * n.
   have hb2 : 2 ∣ b,
-  { apply @int.prime.dvd_pow' _ 2 _ (by norm_num : nat.prime 2),
+  { apply @int.prime.dvd_pow' _ 2 _ nat.prime_two,
     rw [ht2, mul_assoc], exact dvd_mul_right 2 (m * n) },
   cases hb2 with b' hb2',
   have hs : b' ^ 2 = m * (r * s),
   { apply (mul_right_inj' (by norm_num : (4 : ℤ) ≠ 0)).mp,
-    calc 4 * b' ^ 2 = (2 * b') * (2 * b') : by ring
-                    ... = 2 * m * (2 * r * s) : by rw [← hb2', ← pow_two, ht2, htt2]
-                    ... = 4 * (m * (r * s)) : by ring },
+    linear_combination (- b - 2 * b') * hb2' + ht2 + 2 * m * htt2 },
   have hrsz : r * s ≠ 0, -- because b ^ 2 is not zero and (b / 2) ^ 2 = m * (r * s)
   { by_contradiction hrsz,
-    revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, (not_not.mp hrsz)],
+    revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, hrsz],
     simp },
   have h2b0 : b' ≠ 0,
-  { apply ne_zero_pow (dec_trivial : 2 ≠ 0),
+  { apply ne_zero_pow two_ne_zero,
     rw hs, apply mul_ne_zero, { exact ne_of_gt h4}, { exact hrsz } },
-  obtain ⟨i, hi⟩ := int.sqr_of_gcd_eq_one hcp hs.symm,
+  obtain ⟨i, hi⟩ := int.sq_of_gcd_eq_one hcp hs.symm,
   -- use m is positive to exclude m = - i ^ 2
   have hi' : ¬ m = - i ^ 2,
   { by_contradiction h1,
-    have hit : - i ^ 2 ≤ 0, apply neg_nonpos.mpr (pow_two_nonneg i),
+    have hit : - i ^ 2 ≤ 0, apply neg_nonpos.mpr (sq_nonneg i),
     rw ← h1 at hit,
     apply absurd h4 (not_lt.mpr hit) },
   replace hi : m = i ^ 2, { apply or.resolve_right hi hi' },
   rw mul_comm at hs,
   rw [int.gcd_comm] at hcp,
   -- obtain d such that r * s = d ^ 2
-  obtain ⟨d, hd⟩ := int.sqr_of_gcd_eq_one hcp hs.symm,
+  obtain ⟨d, hd⟩ := int.sq_of_gcd_eq_one hcp hs.symm,
   -- (b / 2) ^ 2 and m are positive so r * s is positive
   have hd' : ¬ r * s = - d ^ 2,
   { by_contradiction h1,
     rw h1 at hs,
     have h2 : b' ^ 2 ≤ 0,
-    { rw [hs, (by ring : - d ^ 2 * m = - (d ^ 2 * m))], apply neg_nonpos.mpr,
-      apply (zero_le_mul_right h4).mpr (pow_two_nonneg d) },
-    have h2' : 0 ≤ b' ^ 2, { apply pow_two_nonneg b' },
+    { rw [hs, (by ring : - d ^ 2 * m = - (d ^ 2 * m))],
+      exact neg_nonpos.mpr ((zero_le_mul_right h4).mpr (sq_nonneg d)) },
+    have h2' : 0 ≤ b' ^ 2, { apply sq_nonneg b' },
     exact absurd (lt_of_le_of_ne h2' (ne.symm (pow_ne_zero _ h2b0))) (not_lt.mpr h2) },
   replace hd : r * s = d ^ 2, { apply or.resolve_right hd hd' },
   -- r = +/- j ^ 2
-  obtain ⟨j, hj⟩ := int.sqr_of_gcd_eq_one htt4 hd,
+  obtain ⟨j, hj⟩ := int.sq_of_gcd_eq_one htt4 hd,
   have hj0 : j ≠ 0,
-  { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hj,
+  { intro h0, rw [h0, zero_pow zero_lt_two, neg_zero, or_self] at hj,
     apply left_ne_zero_of_mul hrsz hj },
   rw mul_comm at hd,
   rw [int.gcd_comm] at htt4,
   -- s = +/- k ^ 2
-  obtain ⟨k, hk⟩ := int.sqr_of_gcd_eq_one htt4 hd,
+  obtain ⟨k, hk⟩ := int.sq_of_gcd_eq_one htt4 hd,
   have hk0 : k ≠ 0,
-  { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hk,
+  { intro h0, rw [h0, zero_pow zero_lt_two, neg_zero, or_self] at hk,
     apply right_ne_zero_of_mul hrsz hk },
   have hj2 : r ^ 2 = j ^ 4, { cases hj with hjp hjp; { rw hjp, ring } },
   have hk2 : s ^ 2 = k ^ 4, { cases hk with hkp hkp; { rw hkp, ring } },
@@ -269,10 +261,10 @@ begin
   -- and it has a smaller c: from c = m ^ 2 + n ^ 2 we see that m is smaller than c, and i ^ 2 = m.
   have hic : int.nat_abs i < int.nat_abs c,
   { apply int.coe_nat_lt.mp, rw ← (int.eq_nat_abs_of_zero_le (le_of_lt hc)),
-    apply gt_of_gt_of_ge _ (int.abs_le_self_pow_two i),
+    apply gt_of_gt_of_ge _ (int.abs_le_self_sq i),
     rw [← hi, ht3],
-    apply gt_of_gt_of_ge _ (int.le_self_pow_two m),
-    exact lt_add_of_pos_right (m ^ 2) (pow_two_pos_of_ne_zero n hn) },
+    apply gt_of_gt_of_ge _ (int.le_self_sq m),
+    exact lt_add_of_pos_right (m ^ 2) (sq_pos_of_ne_zero n hn) },
   have hic' : int.nat_abs c ≤ int.nat_abs i,
   { apply (h.2 j k i),
     exact ⟨hj0, hk0, hh.symm⟩ },

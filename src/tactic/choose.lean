@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Mario Carneiro
 -/
 
+import logic.function.basic
 import tactic.core
 
 /-!
@@ -67,7 +68,8 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
           b ← is_proof e,
           monad.unlessb b $
             (mk_app ``nonempty.intro [e] >>= note_anon none) $> ()),
-        unfreeze_local_instances >> apply_instance,
+        reset_instance_cache,
+        apply_instance,
         instantiate_mvars m)),
       pure (some (option.guard (λ _, nonemp.is_none) ne), nonemp)
     else pure (none, none),
@@ -127,7 +129,7 @@ setup_tactic_parser
 /-- `choose a b h h' using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b ∧ Q x y a b`
 for some `P Q : X → Y → A → B → Prop` and outputs
-into context a function `a : X → Y → A`, `b : X → Y → B` and two assumptions:
+into context two functions `a : X → Y → A`, `b : X → Y → B` and two assumptions:
 `h : ∀ (x : X) (y : Y), P x y (a x y) (b x y)` and
 `h' : ∀ (x : X) (y : Y), Q x y (a x y) (b x y)`. It also works with dependent versions.
 

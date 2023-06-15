@@ -8,8 +8,6 @@ cd $DIR
 ./docker_build.sh
 docker push leanprovercommunity/lean:latest
 docker push leanprovercommunity/lean:debian
-docker push leanprovercommunity/lean:alpine
 docker push leanprovercommunity/mathlib:latest
 docker push leanprovercommunity/mathlib:debian
-docker push leanprovercommunity/mathlib:alpine
 docker push leanprovercommunity/mathlib:gitpod

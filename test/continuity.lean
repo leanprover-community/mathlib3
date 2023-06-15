@@ -1,7 +1,7 @@
 import topology.tactic
 import topology.algebra.monoid
 import topology.instances.real
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.basic
 
 example {X Y : Type*} [topological_space X] [topological_space Y]
   (f₁ f₂ : X → Y) (hf₁ : continuous f₁) (hf₂ : continuous f₂)
@@ -39,3 +39,14 @@ by guard_proof_term { continuity }
 -- ⊢ continuous complex.exp
 -- ⊢ continuous coe
 -- ⊢ continuous (λ (x : ℝ), ↑x)
+
+
+/-! Some tests of the `comp_of_eq` lemmas -/
+
+example {α β : Type*} [topological_space α] [topological_space β] {x₀ : α} (f : α → α → β)
+  (hf : continuous_at (function.uncurry f) (x₀, x₀)) :
+  continuous_at (λ x, f x x) x₀ :=
+begin
+  success_if_fail { exact hf.comp x (continuous_at_id.prod continuous_at_id) },
+  exact hf.comp_of_eq (continuous_at_id.prod continuous_at_id) rfl
+end

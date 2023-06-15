@@ -3,7 +3,6 @@ Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import logic.basic
 import data.fintype.basic
 
 /-!
@@ -145,7 +144,7 @@ instance (α enum n) : inhabited (finset_above α enum n) := ⟨finset_above.nil
 /-- This is a finset covering a nontrivial variant (with one or more constructor arguments).
 The property `P` here is `λ a, enum a = n` where `n` is the discriminant for the current
 variant. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def finset_in {α} (P : α → Prop) := {s : finset α // ∀ x ∈ s, P x}
 
 /-- To construct the finset, we use an injective map from the type `Γ`, which will be the
@@ -168,7 +167,8 @@ def finset_above.union {α} {enum : α → ℕ} (n)
   (s : finset_in (λ a, enum a = n)) (t : finset_above α enum (n+1)) : finset_above α enum n :=
 begin
   refine ⟨finset.disj_union s.1 t.1 _, _⟩,
-  { intros a hs ht,
+  { rw finset.disjoint_left,
+    intros a hs ht,
     have := t.2 _ ht, rw s.2 _ hs at this,
     exact nat.not_succ_le_self n this },
   { intros x h', rcases finset.mem_disj_union.1 h' with h' | h',
@@ -248,10 +248,9 @@ constructors), `k`, the index of the current variant, and `cs`, the list of cons
 This uses `finset_above.cons` for basic variants and `finset_above.union` for variants with
 arguments, using the auxiliary functions `mk_sigma`, `mk_sigma_elim`, `mk_sigma_elim_inj`,
 `mk_sigma_elim_eq` to close subgoals. -/
-meta def mk_finset (args : list expr) : ℕ → list name → tactic unit
+meta def mk_finset (ls : list level) (args : list expr) : ℕ → list name → tactic unit
 | k (c::cs) := do
-  e ← mk_const c,
-  let e := e.mk_app args,
+  let e := (expr.const c ls).mk_app args,
   t ← infer_type e,
   if is_pi t then do
     to_expr ``(finset_above.union %%(reflect k)) tt ff >>=
@@ -314,7 +313,7 @@ do
   applyc ``mk_fintype {new_goals := new_goals.all},
   intro1 >>= cases >>= (λ gs,
     gs.enum.mmap' $ λ ⟨i, _⟩, exact (reflect i)),
-  mk_finset args 0 cs,
+  mk_finset ls args 0 cs,
   intro1 >>= cases >>= mk_finset_total skip
 
 /--

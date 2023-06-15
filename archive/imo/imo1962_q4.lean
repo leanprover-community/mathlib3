@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Heather Macbeth
 -/
 
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.complex
 
 /-!
 # IMO 1962 Q4
@@ -17,6 +17,8 @@ in fact the simplest form of the set of solutions, and then prove it equals the 
 
 open real
 open_locale real
+namespace imo1962_q4
+
 noncomputable theory
 
 def problem_equation (x : ℝ) : Prop := cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1
@@ -63,7 +65,7 @@ Now we can solve for `x` using basic-ish trigonometry.
 
 lemma solve_cos2_half {x : ℝ} : cos x ^ 2 = 1/2 ↔ ∃ k : ℤ, x = (2 * ↑k + 1) * π / 4 :=
 begin
-  rw cos_square,
+  rw cos_sq,
   simp only [add_right_eq_self, div_eq_zero_iff],
   norm_num,
   rw cos_eq_zero_iff,
@@ -80,6 +82,10 @@ begin
   split; intro; linarith
 end
 
+end imo1962_q4
+
+open imo1962_q4
+
 /-
 The final theorem is now just gluing together our lemmas.
 -/
@@ -90,6 +96,7 @@ begin
   exact exists_or_distrib.symm
 end
 
+namespace imo1962_q4
 
 /-
 We now present a second solution.  The key to this solution is that, when the identity is
@@ -99,7 +106,7 @@ terms, `a ^ 2 * (2 * a ^ 2 - 1) * (4 * a ^ 2 - 3)`, being equal to zero.
 
 /-- Someday, when there is a Grobner basis tactic, try to automate this proof. (A little tricky --
 the ideals are not the same but their Jacobson radicals are.) -/
-lemma formula {R : Type*} [integral_domain R] [char_zero R] (a : R) :
+lemma formula {R : Type*} [comm_ring R] [is_domain R] [char_zero R] (a : R) :
   a ^ 2 + (2 * a ^ 2 - 1) ^ 2 + (4 * a ^ 3 - 3 * a) ^ 2 = 1
   ↔ (2 * a ^ 2 - 1) * (4 * a ^ 3 - 3 * a) = 0 :=
 calc a ^ 2 + (2 * a ^ 2 - 1) ^ 2 + (4 * a ^ 3 - 3 * a) ^ 2 = 1
@@ -119,6 +126,10 @@ begin
   refine exists_congr (λ k, _),
   split; intro; linarith
 end
+
+end imo1962_q4
+
+open imo1962_q4
 
 /-
 Again, the final theorem is now just gluing together our lemmas.

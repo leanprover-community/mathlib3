@@ -109,7 +109,7 @@ make_listlike_instance α
 instance : has_variable_names ℕ :=
 ⟨[`n, `m, `o]⟩
 
-instance : has_variable_names Prop :=
+instance Prop.has_variable_names : has_variable_names Prop :=
 ⟨[`P, `Q, `R]⟩
 
 instance {α} [has_variable_names α] : has_variable_names (thunk α) :=

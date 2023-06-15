@@ -3,14 +3,16 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.pi
-import data.prod
+import data.prod.basic
 import data.subtype
-import logic.unique
 import logic.function.basic
+import logic.unique
 
 /-!
 # Nontrivial types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A type is *nontrivial* if it contains at least two elements. This is useful in particular for rings
 (where it is equivalent to the fact that zero is different from one) and for vector spaces
@@ -34,7 +36,8 @@ lemma nontrivial_iff : nontrivial α ↔ ∃ (x y : α), x ≠ y :=
 lemma exists_pair_ne (α : Type*) [nontrivial α] : ∃ (x y : α), x ≠ y :=
 nontrivial.exists_pair_ne
 
-lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+-- See Note [decidable namespace]
+protected lemma decidable.exists_ne [nontrivial α] [decidable_eq α] (x : α) : ∃ y, y ≠ x :=
 begin
   rcases exists_pair_ne α with ⟨y, y', h⟩,
   by_cases hx : x = y,
@@ -42,6 +45,9 @@ begin
     exact ⟨y', h.symm⟩ },
   { exact ⟨y, ne.symm hx⟩ }
 end
+
+lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+by classical; exact decidable.exists_ne x
 
 -- `x` and `y` are explicit here, as they are often needed to guide typechecking of `h`.
 lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
@@ -51,6 +57,16 @@ lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
 lemma nontrivial_of_lt [preorder α] (x y : α) (h : x < y) : nontrivial α :=
 ⟨⟨x, y, ne_of_lt h⟩⟩
 
+lemma exists_pair_lt (α : Type*) [nontrivial α] [linear_order α] : ∃ (x y : α), x < y :=
+begin
+  rcases exists_pair_ne α with ⟨x, y, hxy⟩,
+  cases lt_or_gt_of_ne hxy;
+  exact ⟨_, _, h⟩
+end
+
+lemma nontrivial_iff_lt [linear_order α] : nontrivial α ↔ ∃ (x y : α), x < y :=
+⟨λ h, @exists_pair_lt α h _, λ ⟨x, y, h⟩, nontrivial_of_lt x y h⟩
+
 lemma nontrivial_iff_exists_ne (x : α) : nontrivial α ↔ ∃ y, y ≠ x :=
 ⟨λ h, @exists_ne α h x, λ ⟨y, hy⟩, nontrivial_of_ne _ _ hy⟩
 
@@ -58,20 +74,30 @@ lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
   nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
 by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
 
-@[priority 100] -- see Note [lower instance priority]
+instance : nontrivial Prop := ⟨⟨true, false, true_ne_false⟩⟩
+
+/--
+See Note [lower instance priority]
+
+Note that since this and `nonempty_of_inhabited` are the most "obvious" way to find a nonempty
+instance if no direct instance can be found, we give this a higher priority than the usual `100`.
+-/
+@[priority 500]
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
 let ⟨x, _⟩ := exists_pair_ne α in ⟨x⟩
+
+attribute [instance, priority 500] nonempty_of_inhabited
 
 /-- An inhabited type is either nontrivial, or has a unique element. -/
 noncomputable def nontrivial_psum_unique (α : Type*) [inhabited α] :
   psum (nontrivial α) (unique α) :=
 if h : nontrivial α then psum.inl h else psum.inr
-{ default := default α,
+{ default := default,
   uniq := λ (x : α),
   begin
-    change x = default α,
+    change x = default,
     contrapose! h,
-    use [x, default α]
+    use [x, default]
   end }
 
 lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
@@ -79,6 +105,9 @@ lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
 
 lemma not_nontrivial_iff_subsingleton : ¬(nontrivial α) ↔ subsingleton α :=
 by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
+
+lemma not_nontrivial (α) [subsingleton α] : ¬nontrivial α :=
+λ ⟨⟨x, y, h⟩⟩, h $ subsingleton.elim x y
 
 lemma not_subsingleton (α) [h : nontrivial α] : ¬subsingleton α :=
 let ⟨⟨x, y, hxy⟩⟩ := h in λ ⟨h'⟩, hxy $ h' x y
@@ -91,7 +120,7 @@ lemma false_of_nontrivial_of_subsingleton (α : Type*) [nontrivial α] [subsingl
 let ⟨x, y, h⟩ := exists_pair_ne α in h $ subsingleton.elim x y
 
 instance option.nontrivial [nonempty α] : nontrivial (option α) :=
-by { inhabit α, use [none, some (default α)] }
+by { inhabit α, use [none, some default] }
 
 /-- Pushforward a `nontrivial` instance along an injective function. -/
 protected lemma function.injective.nontrivial [nontrivial α]
@@ -137,13 +166,12 @@ by classical; exact
 (function.update_injective (λ i, classical.choice (inst i)) i').nontrivial
 
 /--
-As a convenience, provide an instance automatically if `(f (default I))` is nontrivial.
+As a convenience, provide an instance automatically if `(f default)` is nontrivial.
 
 If a different index has the non-trivial type, then use `haveI := nontrivial_at that_index`.
 -/
-instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f (default I))] :
-  nontrivial (Π i : I, f i) :=
-nontrivial_at (default I)
+instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f default)] :
+  nontrivial (Π i : I, f i) := nontrivial_at default
 
 end pi
 
@@ -156,120 +184,6 @@ protected lemma subsingleton.le [preorder α] [subsingleton α] (x y : α) : x �
 le_of_eq (subsingleton.elim x y)
 
 attribute [nontriviality] eq_iff_true_of_subsingleton subsingleton.le
-
-namespace tactic
-
-/--
-Tries to generate a `nontrivial α` instance by performing case analysis on
-`subsingleton_or_nontrivial α`,
-attempting to discharge the subsingleton branch using lemmas with `@[nontriviality]` attribute,
-including `subsingleton.le` and `eq_iff_true_of_subsingleton`.
--/
-meta def nontriviality_by_elim (α : expr) (lems : interactive.parse simp_arg_list) : tactic unit :=
-do
-  alternative ← to_expr ``(subsingleton_or_nontrivial %%α),
-  n ← get_unused_name "_inst",
-  tactic.cases alternative [n, n],
-  (solve1 $ do
-    reset_instance_cache,
-    apply_instance <|>
-      interactive.simp none none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
-      fail format!"Could not prove goal assuming `subsingleton {α}`",
-  reset_instance_cache
-
-/--
-Tries to generate a `nontrivial α` instance using `nontrivial_of_ne` or `nontrivial_of_lt`
-and local hypotheses.
--/
-meta def nontriviality_by_assumption (α : expr) : tactic unit :=
-do
-  n ← get_unused_name "_inst",
-  to_expr ``(nontrivial %%α) >>= assert n,
-  apply_instance <|> `[solve_by_elim [nontrivial_of_ne, nontrivial_of_lt]],
-  reset_instance_cache
-
-end tactic
-
-namespace tactic.interactive
-
-open tactic
-
-setup_tactic_parser
-
-/--
-Attempts to generate a `nontrivial α` hypothesis.
-
-The tactic first looks for an instance using `apply_instance`.
-
-If the goal is an (in)equality, the type `α` is inferred from the goal.
-Otherwise, the type needs to be specified in the tactic invocation, as `nontriviality α`.
-
-The `nontriviality` tactic will first look for strict inequalities amongst the hypotheses,
-and use these to derive the `nontrivial` instance directly.
-
-Otherwise, it will perform a case split on `subsingleton α ∨ nontrivial α`, and attempt to discharge
-the `subsingleton` goal using `simp [lemmas] with nontriviality`, where `[lemmas]` is a list of
-additional `simp` lemmas that can be passed to `nontriviality` using the syntax
-`nontriviality α using [lemmas]`.
-
-```
-example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
-begin
-  nontriviality, -- There is now a `nontrivial R` hypothesis available.
-  assumption,
-end
-```
-
-```
-example {R : Type} [comm_ring R] {r s : R} : r * s = s * r :=
-begin
-  nontriviality, -- There is now a `nontrivial R` hypothesis available.
-  apply mul_comm,
-end
-```
-
-```
-example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : (2 : ℕ) ∣ 4 :=
-begin
-  nontriviality R, -- there is now a `nontrivial R` hypothesis available.
-  dec_trivial
-end
-```
-
-```
-def myeq {α : Type} (a b : α) : Prop := a = b
-
-example {α : Type} (a b : α) (h : a = b) : myeq a b :=
-begin
-  success_if_fail { nontriviality α }, -- Fails
-  nontriviality α using [myeq], -- There is now a `nontrivial α` hypothesis available
-  assumption
-end
-```
--/
-meta def nontriviality (t : parse texpr?)
-  (lems : parse (tk "using" *> simp_arg_list <|> pure [])) :
-  tactic unit :=
-do
-  α ← match t with
-  | some α := to_expr α
-  | none :=
-    (do t ← mk_mvar, e ← to_expr ``(@eq %%t _ _), target >>= unify e, return t) <|>
-    (do t ← mk_mvar, e ← to_expr ``(@has_le.le %%t _ _ _), target >>= unify e, return t) <|>
-    (do t ← mk_mvar, e ← to_expr ``(@ne %%t _ _), target >>= unify e, return t) <|>
-    (do t ← mk_mvar, e ← to_expr ``(@has_lt.lt %%t _ _ _), target >>= unify e, return t) <|>
-    fail "The goal is not an (in)equality, so you'll need to specify the desired `nontrivial α`
-      instance by invoking `nontriviality α`."
-  end,
-  nontriviality_by_assumption α <|> nontriviality_by_elim α lems
-
-add_tactic_doc
-{ name                     := "nontriviality",
-  category                 := doc_category.tactic,
-  decl_names               := [`tactic.interactive.nontriviality],
-  tags                     := ["logic", "type class"] }
-
-end tactic.interactive
 
 namespace bool
 

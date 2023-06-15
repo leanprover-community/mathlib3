@@ -156,7 +156,7 @@ class TestLinterIntegration(unittest.TestCase):
 
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            for each in "scripts", "src", "archive":
+            for each in "scripts", "src", "archive", "counterexamples":
                 root.joinpath(each).mkdir()
 
             copy(SCRIPTS_DIR / "lint-style.sh", root / "scripts")

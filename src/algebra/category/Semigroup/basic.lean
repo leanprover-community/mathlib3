@@ -3,9 +3,11 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-import category_theory.concrete_category.bundled_hom
-import category_theory.concrete_category.reflects_isomorphisms
 import algebra.pempty_instances
+import algebra.hom.equiv.basic
+import category_theory.concrete_category.bundled_hom
+import category_theory.functor.reflects_isomorphisms
+import category_theory.elementwise
 
 /-!
 # Category instances for has_mul, has_add, semigroup and add_semigroup
@@ -42,14 +44,27 @@ namespace Magma
 instance bundled_hom : bundled_hom @mul_hom :=
 ⟨@mul_hom.to_fun, @mul_hom.id, @mul_hom.comp, @mul_hom.coe_inj⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Magma AddMagma
+attribute [derive [large_category, concrete_category]] Magma
+attribute [to_additive] Magma.large_category Magma.concrete_category
+
+@[to_additive] instance : has_coe_to_sort Magma Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Magma` from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [has_mul M] : Magma := bundled.of M
 
-/-- Construct a bundled `Magma` from the underlying type and typeclass. -/
+/-- Construct a bundled `AddMagma` from the underlying type and typeclass. -/
 add_decl_doc AddMagma.of
+
+/-- Typecheck a `mul_hom` as a morphism in `Magma`. -/
+@[to_additive] def of_hom {X Y : Type u} [has_mul X] [has_mul Y] (f : X →ₙ* Y) :
+  of X ⟶ of Y := f
+
+/-- Typecheck a `add_hom` as a morphism in `AddMagma`. -/
+add_decl_doc AddMagma.of_hom
+
+@[simp, to_additive] lemma of_hom_apply {X Y : Type u} [has_mul X] [has_mul Y] (f : X →ₙ* Y)
+  (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
 instance : inhabited Magma := ⟨Magma.of pempty⟩
@@ -73,7 +88,10 @@ namespace Semigroup
 @[to_additive]
 instance : bundled_hom.parent_projection semigroup.to_has_mul := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Semigroup AddSemigroup
+attribute [derive [large_category, concrete_category]] Semigroup
+attribute [to_additive] Semigroup.large_category Semigroup.concrete_category
+
+@[to_additive] instance : has_coe_to_sort Semigroup Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Semigroup` from the underlying type and typeclass. -/
 @[to_additive]
@@ -81,6 +99,16 @@ def of (M : Type u) [semigroup M] : Semigroup := bundled.of M
 
 /-- Construct a bundled `AddSemigroup` from the underlying type and typeclass. -/
 add_decl_doc AddSemigroup.of
+
+/-- Typecheck a `mul_hom` as a morphism in `Semigroup`. -/
+@[to_additive] def of_hom {X Y : Type u} [semigroup X] [semigroup Y] (f : X →ₙ* Y) :
+  of X ⟶ of Y := f
+
+/-- Typecheck a `add_hom` as a morphism in `AddSemigroup`. -/
+add_decl_doc AddSemigroup.of_hom
+
+@[simp, to_additive] lemma of_hom_apply {X Y : Type u} [semigroup X] [semigroup Y] (f : X →ₙ* Y)
+  (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
 instance : inhabited Semigroup := ⟨Semigroup.of pempty⟩
@@ -101,8 +129,8 @@ section
 variables [has_mul X] [has_mul Y]
 
 /-- Build an isomorphism in the category `Magma` from a `mul_equiv` between `has_mul`s. -/
-@[simps, to_additive add_equiv.to_AddMagma_iso "Build an isomorphism in the category `AddMagma` from
-an `add_equiv` between `has_add`s."]
+@[to_additive add_equiv.to_AddMagma_iso "Build an isomorphism in the category `AddMagma` from
+an `add_equiv` between `has_add`s.", simps]
 def mul_equiv.to_Magma_iso (e : X ≃* Y) : Magma.of X ≅ Magma.of Y :=
 { hom := e.to_mul_hom,
   inv := e.symm.to_mul_hom }
@@ -113,8 +141,8 @@ section
 variables [semigroup X] [semigroup Y]
 
 /-- Build an isomorphism in the category `Semigroup` from a `mul_equiv` between `semigroup`s. -/
-@[simps, to_additive add_equiv.to_AddSemigroup_iso "Build an isomorphism in the category
-`AddSemigroup` from an `add_equiv` between `add_semigroup`s."]
+@[to_additive add_equiv.to_AddSemigroup_iso "Build an isomorphism in the category
+`AddSemigroup` from an `add_equiv` between `add_semigroup`s.", simps]
 def mul_equiv.to_Semigroup_iso (e : X ≃* Y) : Semigroup.of X ≅ Semigroup.of Y :=
 { hom := e.to_mul_hom,
   inv := e.symm.to_mul_hom }
@@ -129,8 +157,8 @@ namespace category_theory.iso
 def Magma_iso_to_mul_equiv {X Y : Magma} (i : X ≅ Y) : X ≃* Y :=
 { to_fun := i.hom,
   inv_fun := i.inv,
-  left_inv := begin rw function.left_inverse, simp end,
-  right_inv := begin rw function.right_inverse, rw function.left_inverse, simp end,
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp,
   map_mul' := by simp }
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Semigroup`. -/
@@ -139,8 +167,8 @@ def Magma_iso_to_mul_equiv {X Y : Magma} (i : X ≅ Y) : X ≃* Y :=
 def Semigroup_iso_to_mul_equiv {X Y : Semigroup} (i : X ≅ Y) : X ≃* Y :=
 { to_fun := i.hom,
   inv_fun := i.inv,
-  left_inv := begin rw function.left_inverse, simp end,
-  right_inv := begin rw function.right_inverse, rw function.left_inverse, simp end,
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp,
   map_mul' := by simp }
 
 end category_theory.iso

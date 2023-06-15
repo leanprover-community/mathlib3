@@ -5,9 +5,13 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 
 import data.rat.order
+import data.rat.lemmas
 import data.int.sqrt
 /-!
 # Square root on rational numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the square root function on rational numbers `rat.sqrt`
 and proves several theorems about it.
@@ -19,7 +23,7 @@ namespace rat
 numerator and the square root (on natural numbers) of the denominator. -/
 @[pp_nodot] def sqrt (q : ℚ) : ℚ := rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
 
-theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = abs q :=
+theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = |q| :=
 by rw [sqrt, mul_self_num, mul_self_denom, int.sqrt_eq, nat.sqrt_eq, abs_def]
 
 theorem exists_mul_self (x : ℚ) : (∃ q, q * q = x) ↔ rat.sqrt x * rat.sqrt x = x :=

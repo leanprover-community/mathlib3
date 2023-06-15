@@ -9,6 +9,9 @@ import category_theory.full_subcategory
 /-!
 # Essential image of a functor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The essential image `ess_image` of a functor consists of the objects in the target category which
 are isomorphic to an object in the image of the object function.
 This, for instance, allows us to talk about objects belonging to a subcategory expressed as a
@@ -60,16 +63,18 @@ hY.imp (λ X, nonempty.map (λ t, h.symm.app X ≪≫ t))
 /-- Isomorphic functors have equal essential images. -/
 lemma ess_image_eq_of_nat_iso {F' : C ⥤ D} (h : F ≅ F') :
   ess_image F = ess_image F' :=
-set.ext $ λ A, ⟨ess_image.of_nat_iso h, ess_image.of_nat_iso h.symm⟩
+funext (λ _, propext ⟨ess_image.of_nat_iso h, ess_image.of_nat_iso h.symm⟩)
 
 /-- An object in the image is in the essential image. -/
 lemma obj_mem_ess_image (F : D ⥤ C) (Y : D) : F.obj Y ∈ ess_image F := ⟨Y, ⟨iso.refl _⟩⟩
 
-instance : category F.ess_image := category_theory.full_subcategory _
+/-- The essential image of a functor, interpreted of a full subcategory of the target category. -/
+@[derive category, nolint has_nonempty_instance]
+def ess_image_subcategory (F : C ⥤ D) := full_subcategory F.ess_image
 
 /-- The essential image as a subcategory has a fully faithful inclusion into the target category. -/
 @[derive [full, faithful], simps]
-def ess_image_inclusion (F : C ⥤ D) : F.ess_image ⥤ D :=
+def ess_image_inclusion (F : C ⥤ D) : F.ess_image_subcategory ⥤ D :=
 full_subcategory_inclusion _
 
 /--
@@ -77,18 +82,17 @@ Given a functor `F : C ⥤ D`, we have an (essentially surjective) functor from 
 image of `F`.
 -/
 @[simps]
-def to_ess_image (F : C ⥤ D) : C ⥤ F.ess_image :=
-{ obj := λ X, ⟨_, obj_mem_ess_image _ X⟩,
-  map := λ X Y f, (ess_image_inclusion F).preimage (F.map f) }
+def to_ess_image (F : C ⥤ D) : C ⥤ F.ess_image_subcategory :=
+full_subcategory.lift _ F (obj_mem_ess_image _)
 
 /--
 The functor `F` factorises through its essential image, where the first functor is essentially
 surjective and the second is fully faithful.
 -/
 @[simps]
-def to_ess_image_comp_essential_image_inclusion :
+def to_ess_image_comp_essential_image_inclusion (F : C ⥤ D) :
   F.to_ess_image ⋙ F.ess_image_inclusion ≅ F :=
-nat_iso.of_components (λ X, iso.refl _) (by tidy)
+full_subcategory.lift_comp_inclusion _ _ _
 
 end functor
 
@@ -96,7 +100,7 @@ end functor
 A functor `F : C ⥤ D` is essentially surjective if every object of `D` is in the essential image
 of `F`. In other words, for every `Y : D`, there is some `X : C` with `F.obj X ≅ Y`.
 
-See https://stacks.math.columbia.edu/tag/001C.
+See <https://stacks.math.columbia.edu/tag/001C>.
 -/
 class ess_surj (F : C ⥤ D) : Prop :=
 (mem_ess_image [] (Y : D) : Y ∈ F.ess_image)
@@ -114,5 +118,18 @@ def functor.obj_preimage (Y : D) : C := (ess_surj.mem_ess_image F Y).witness
     isomorphic to `Y`. -/
 def functor.obj_obj_preimage_iso (Y : D) : F.obj (F.obj_preimage Y) ≅ Y :=
 (ess_surj.mem_ess_image F Y).get_iso
+
+
+/-- The induced functor of a faithful functor is faithful -/
+instance faithful.to_ess_image (F : C ⥤ D) [faithful F] : faithful F.to_ess_image :=
+faithful.of_comp_iso F.to_ess_image_comp_essential_image_inclusion
+
+/-- The induced functor of a full functor is full -/
+instance full.to_ess_image (F : C ⥤ D) [full F] : full F.to_ess_image :=
+begin
+  haveI := full.of_iso F.to_ess_image_comp_essential_image_inclusion.symm,
+  exactI full.of_comp_faithful F.to_ess_image F.ess_image_inclusion
+end
+
 
 end category_theory

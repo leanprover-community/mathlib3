@@ -5,12 +5,16 @@ Authors: Anatole Dedecker, Alexey Soloyev, Junyan Xu
 -/
 import data.real.irrational
 import data.nat.fib
-import data.matrix.notation
+import data.nat.prime_norm_num
+import data.fin.vec_notation
 import tactic.ring_exp
 import algebra.linear_recurrence
 
 /-!
 # The golden ratio and its conjugate
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the golden ratio `φ := (1 + √5)/2` and its conjugate
 `ψ := (1 - √5)/2`, which are the two real roots of `X² - X - 1`.
@@ -21,6 +25,7 @@ Binet's formula.
 -/
 
 noncomputable theory
+open_locale polynomial
 
 /-- The golden ratio `φ := (1 + √5)/2`. -/
 @[reducible] def golden_ratio := (1 + real.sqrt 5)/2
@@ -28,8 +33,8 @@ noncomputable theory
 /-- The conjugate of the golden ratio `ψ := (1 - √5)/2`. -/
 @[reducible] def golden_conj := (1 - real.sqrt 5)/2
 
-localized "notation `φ` := golden_ratio" in real
-localized "notation `ψ` := golden_conj" in real
+localized "notation (name := golden_ratio) `φ` := golden_ratio" in real
+localized "notation (name := golden_conj) `ψ` := golden_conj" in real
 
 /-- The inverse of the golden ratio is the opposite of its conjugate. -/
 lemma inv_gold : φ⁻¹ = -ψ :=
@@ -43,7 +48,7 @@ end
 /-- The opposite of the golden ratio is the inverse of its conjugate. -/
 lemma inv_gold_conj : ψ⁻¹ = -φ :=
 begin
-  rw [inv_eq_iff, ← neg_inv, neg_eq_iff_neg_eq],
+  rw [inv_eq_iff_eq_inv, ← neg_inv, ← neg_eq_iff_eq_neg],
   exact inv_gold.symm,
 end
 
@@ -65,14 +70,14 @@ lemma one_sub_gold : 1 - ψ = φ := by linarith [gold_add_gold_conj]
 begin
   rw [golden_ratio, ←sub_eq_zero],
   ring_exp,
-  rw real.sqr_sqrt; norm_num,
+  rw real.sq_sqrt; norm_num,
 end
 
 @[simp] lemma gold_conj_sq : ψ^2 = ψ + 1 :=
 begin
   rw [golden_conj, ←sub_eq_zero],
   ring_exp,
-  rw real.sqr_sqrt; norm_num,
+  rw real.sq_sqrt; norm_num,
 end
 
 lemma gold_pos : 0 < φ :=
@@ -83,7 +88,7 @@ lemma gold_ne_zero : φ ≠ 0 := ne_of_gt gold_pos
 lemma one_lt_gold : 1 < φ :=
 begin
   refine lt_of_mul_lt_mul_left _ (le_of_lt gold_pos),
-  simp [← pow_two, gold_pos, zero_lt_one]
+  simp [← sq, gold_pos, zero_lt_one]
 end
 
 lemma gold_conj_neg : ψ < 0 := by linarith [one_sub_gold_conj, one_lt_gold]
@@ -139,10 +144,10 @@ open polynomial
 
 /-- The characteristic polynomial of `fib_rec` is `X² - (X + 1)`. -/
 lemma fib_rec_char_poly_eq {β : Type*} [comm_ring β] :
-  fib_rec.char_poly = X^2 - (X + (1 : polynomial β)) :=
+  fib_rec.char_poly = X^2 - (X + (1 : β[X])) :=
 begin
   rw [fib_rec, linear_recurrence.char_poly],
-  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', monomial_eq_smul_X]
+  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', ← smul_X_eq_monomial]
 end
 
 end poly
@@ -153,9 +158,8 @@ begin
   rw fib_rec,
   intros n,
   simp only,
-  rw [nat.fib_succ_succ, add_comm],
+  rw [nat.fib_add_two, add_comm],
   simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ'],
-  refl,
 end
 
 /-- The geometric sequence `λ n, φ^n` is a solution of `fib_rec`. -/

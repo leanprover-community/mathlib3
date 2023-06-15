@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.functor
-import category_theory.functorial
+import category_theory.functor.functorial
 
 /-!
 # Unbundled lax monoidal functors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Design considerations
 The essential problem I've encountered that requires unbundled functors is
@@ -87,6 +90,7 @@ namespace lax_monoidal_functor
 Construct a bundled `lax_monoidal_functor` from the object level function
 and `functorial` and `lax_monoidal` typeclasses.
 -/
+@[simps]
 def of (F : C → D) [I₁ : functorial.{v₁ v₂} F] [I₂ : lax_monoidal.{v₁ v₂} F] :
   lax_monoidal_functor.{v₁ v₂} C D :=
 { obj := F,
@@ -107,6 +111,5 @@ end
 -- TODO instances for composition, as required
 
 -- TODO `strong_monoidal`, as well as `lax_monoidal`
--- (... but it seems for enriched categories I'll only need unbundled lax monoidal functors at first)
 
 end category_theory

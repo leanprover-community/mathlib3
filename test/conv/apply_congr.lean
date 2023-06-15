@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen, Scott Morrison
 -/
 
-import algebra.big_operators
-import data.finsupp
+import algebra.big_operators.finsupp
 import tactic.converter.apply_congr
 import tactic.interactive
 
@@ -20,8 +19,7 @@ begin
     -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
     apply_congr,
     skip,
-    simp [h, H],
-  }
+    simp [h, H], }
 end
 
 -- Again, with some `guard` statements.
@@ -35,8 +33,7 @@ begin
     guard_target S,
     skip,
     guard_target f x,
-    simp [h, H]
-  }
+    simp [h, H] }
 end
 
 -- Verify we can `rw` as well as `simp`.

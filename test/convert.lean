@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import data.set.basic
+import data.set.image
 import tactic.interactive
 
 open set
@@ -19,3 +19,5 @@ begin
   convert preimage_empty,
   rw [←preimage_inter,this],
 end
+
+example (P : Prop) (h : P) : P := by convert h

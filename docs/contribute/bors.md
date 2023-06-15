@@ -29,10 +29,10 @@ more details.)
 
 - Using bors is very similar to the previous mergify-based workflow, except that instead of
   approving and adding the "ready-to-merge" label, maintainers just need to remove any "blocked
-  labels" ("WIP", "changes-requested", "not-ready-to-merge", "blocked-by-other-PR") and then add a
-  comment to the PR containing "`bors r+`" (or "`bors merge`") on its own line. This will add the PR
-  to the last batch in the bors queue. This can be cancelled by commenting with "`bors r-`" /
-  "`bors merge-`".
+  labels" ("not-ready-to-merge", "WIP", "blocked-by-other-PR", "merge-conflict", "awaiting-CI")
+  and then add a comment to the PR containing "`bors r+`" (or "`bors merge`") on its own line.
+  This will add the PR to the last batch in the bors queue. This can be cancelled by commenting with
+  "`bors r-`" / "`bors merge-`".
 
 - We have a Github Actions workflow which will try to label approved PRs with
   "ready-to-merge" so that we can see at a glance which open PRs are in the queue. It's not perfect,

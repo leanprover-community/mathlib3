@@ -3,10 +3,55 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.pnat.basic
 import data.array.lemmas
-import algebra.group
-import data.sigma.basic
+import data.list.join
+import data.list.range
+import data.list.nodup
+import data.pnat.defs
+
+/-!
+# Hash maps
+
+Defines a hash map data structure, representing a finite key-value map
+with a value type that may depend on the key type.  The structure
+requires a `nat`-valued hash function to associate keys to buckets.
+
+## Main definitions
+
+* `hash_map`: constructed with `mk_hash_map`.
+
+## Implementation details
+
+A hash map with key type `α` and (dependent) value type `β : α → Type*`
+consists of an array of *buckets*, which are lists containing
+key/value pairs for that bucket.  The hash function is taken modulo `n`
+to assign keys to their respective bucket.  Because of this, some care
+should be put into the hash function to ensure it evenly distributes
+keys.
+
+The bucket array is an `array`.  These have special VM support for
+in-place modification if there is only ever one reference to them.  If
+one takes special care to never keep references to old versions of a
+hash map alive after updating it, then the hash map will be modified
+in-place.  In this documentation, when we say a hash map is modified
+in-place, we are assuming the API is being used in this manner.
+
+When inserting (`hash_map.insert`), if the number of stored pairs (the
+*size*) is going to exceed the number of buckets, then a new hash map
+is first created with double the number of buckets and everything in
+the old hash map is reinserted along with the new key/value pair.
+Otherwise, the bucket array is modified in-place.  The amortized
+running time of inserting $$n$$ elements into a hash map is $$O(n)$$.
+
+When removing (`hash_map.erase`), the hash map is modified in-place.
+The implementation does not reduce the number of buckets in the hash
+map if the size gets too low.
+
+## Tags
+
+hash map
+
+-/
 
 universes u v w
 
@@ -90,7 +135,7 @@ theorem find_aux_iff {a : α} {b : β a} :
   { clear find_aux_iff, subst h,
     suffices : b' = b ↔ b' = b ∨ sigma.mk a' b ∈ t, {simpa [find_aux, eq_comm]},
     refine (or_iff_left_of_imp (λ m, _)).symm,
-    have : a' ∉ t.map sigma.fst, from list.not_mem_of_nodup_cons nd,
+    have : a' ∉ t.map sigma.fst, from nd.not_mem,
     exact this.elim (list.mem_map_of_mem sigma.fst m) },
   { have : sigma.mk a b ≠ ⟨a', b'⟩,
     { intro e, injection e with e, exact h e.symm },
@@ -148,9 +193,9 @@ theorem valid.as_list_nodup {n} {bkts : bucket_array α β n} {sz : nat} (v : va
   (bkts.as_list.map sigma.fst).nodup :=
 begin
   suffices : (bkts.to_list.map (list.map sigma.fst)).pairwise list.disjoint,
-  { simp [bucket_array.as_list, list.nodup_join, this],
-    change ∀ l s, array.mem s bkts → list.map sigma.fst s = l → l.nodup,
-    introv m e, subst e, cases m with i e, subst e,
+  { suffices : ∀ l, array.mem l bkts → (l.map sigma.fst).nodup,
+      by simpa [bucket_array.as_list, list.nodup_join, *],
+    rintros l ⟨i, rfl⟩,
     apply v.nodup },
   rw [← list.enum_map_snd bkts.to_list, list.pairwise_map, list.pairwise_map],
   have : (bkts.to_list.enum.map prod.fst).nodup := by simp [list.nodup_range],
@@ -191,10 +236,10 @@ section
   ∃ u' w', bkts.as_list = u' ++ v1 ++ w' ∧ bkts'.as_list = u' ++ v2 ++ w' :=
   begin
     unfold bucket_array.as_list,
-    have h : bidx.1 < bkts.to_list.length, {simp [bidx.2]},
-    refine ⟨(bkts.to_list.take bidx.1).join ++ u, w ++ (bkts.to_list.drop (bidx.1+1)).join, _, _⟩,
+    have h : (bidx : ℕ) < bkts.to_list.length, { simp only [bidx.is_lt, array.to_list_length] },
+    refine ⟨(bkts.to_list.take bidx).join ++ u, w ++ (bkts.to_list.drop (bidx+1)).join, _, _⟩,
     { conv { to_lhs,
-        rw [← list.take_append_drop bidx.1 bkts.to_list, list.drop_eq_nth_le_cons h],
+        rw [← list.take_append_drop bidx bkts.to_list, list.drop_eq_nth_le_cons h],
         simp [hl] }, simp },
     { conv { to_lhs,
         rw [bkts', array.write_to_list, list.update_nth_eq_take_cons_drop _ h],
@@ -213,12 +258,12 @@ section
     rcases append_of_modify u v1 v2 w hl hfl with ⟨u', w', e₁, e₂⟩,
     rw [← v.len, e₁],
     suffices : valid bkts' (u' ++ v2 ++ w').length,
-    { simpa [ge, add_comm, add_left_comm, nat.le_add_right, nat.add_sub_cancel_left] },
+    { simpa [ge, add_comm, add_left_comm, nat.le_add_right, add_tsub_cancel_left] },
     refine ⟨congr_arg _ e₂, λ i a, _, λ i, _⟩,
     { by_cases bidx = i,
       { subst i, rw [bkts', array.read_write, hfl],
         have := @valid.idx _ _ _ v bidx a,
-        simp only [hl, list.mem_append, or_imp_distrib, forall_and_distrib] at this ⊢,
+        simp only [hl, list.mem_append, or_imp_distrib] at this ⊢,
         exact ⟨⟨this.1.1, hal _⟩, this.2⟩ },
       { rw [bkts', array.read_write_of_ne _ _ h], apply v.idx } },
     { by_cases bidx = i,
@@ -502,7 +547,6 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
       lem bkts' _ u w hl hfl $ or.inl ⟨rfl, Hc⟩,
     simp [insert, @dif_neg (contains_aux a bkt) _ Hc],
     by_cases h : size' ≤ n,
-    -- TODO(Mario): Why does the by_cases assumption look different than the stated one?
     { simpa [show size' ≤ n, from h] using mi },
     { let n' : ℕ+ := ⟨n * 2, mul_pos n.2 dec_trivial⟩,
       let bkts'' : bucket_array α β n' := bkts'.foldl (mk_array _ []) (reinsert_aux hash_fn),
@@ -573,12 +617,12 @@ theorem mem_erase : Π (m : hash_map α β) (a a' b'),
       { simp [eq_comm, not_and_self_iff, and_iff_right_of_imp this] },
       simpa [hl, show bkts'.as_list = _, from hfl, and_or_distrib_left,
              and_comm, and.left_comm, or.left_comm] },
-    intros m e, subst a', revert m, apply not_or_distrib.2,
+    rintro m rfl, revert m, apply not_or_distrib.2,
     have nd' := v.as_list_nodup _,
     simp [hl, list.nodup_append] at nd', simp [nd'] },
   { suffices : ∀_:sigma.mk a' b' ∈ bucket_array.as_list bkts, a ≠ a',
     { simp [erase, @dif_neg (contains_aux a bkt) _ Hc, entries, and_iff_right_of_imp this] },
-    intros m e, subst a',
+    rintro m rfl,
     exact Hc ((v.contains_aux_iff _ _).2 (list.mem_map_of_mem sigma.fst m)) }
 end
 
@@ -629,4 +673,8 @@ group $ to_fmt "⟨" ++
 meta instance : has_to_format (hash_map α β) :=
 ⟨to_format⟩
 end format
+
+/-- `hash_map` with key type `nat` and value type that may vary. -/
+instance {β : ℕ → Type*} : inhabited (hash_map ℕ β) := ⟨mk_hash_map id⟩
+
 end hash_map

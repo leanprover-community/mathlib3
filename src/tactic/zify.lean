@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
+import data.int.cast.lemmas           -- used by clients
+import data.int.char_zero
 import tactic.norm_cast
-import data.int.basic
 
 /-!
 # A tactic to shift `ℕ` goals to `ℤ`
@@ -60,7 +61,8 @@ want to use them in the "forward", not "backward", direction.
 meta def lift_to_z (e : expr) : tactic (expr × expr) :=
 do sl ← zify_attr.get_cache,
    sl ← sl.add_simp `ge_iff_le, sl ← sl.add_simp `gt_iff_lt,
-   simplify sl [] e
+   (e', prf, _) ← simplify sl [] e,
+   return (e', prf)
 
 attribute [zify] int.coe_nat_le_coe_nat_iff int.coe_nat_lt_coe_nat_iff int.coe_nat_eq_coe_nat_iff
 

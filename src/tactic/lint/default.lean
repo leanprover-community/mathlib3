@@ -3,20 +3,24 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
+import tactic.to_additive
 import tactic.lint.frontend
+import tactic.lint.misc
 import tactic.lint.simp
 import tactic.lint.type_classes
-import tactic.lint.misc
+
+/-!
+# Default linters
+
+This file defines the list of linters that are run in mathlib CI. Not all linters are considered
+"default" and run that way. A `linter` is marked as default if it is tagged with the `linter`
+attribute.
+-/
 
 open tactic
 
-add_tactic_doc
-{ name                     := "linting commands",
-  category                 := doc_category.cmd,
-  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters],
-  tags                     := ["linting"],
-  description              :=
-"User commands to spot common mistakes in the code
+/--
+User commands to spot common mistakes in the code
 
 * `#lint`: check all declarations in the current file
 * `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
@@ -31,30 +35,46 @@ The following linters are run by default:
 4. `ge_or_gt` checks whether ≥/> is used in the declaration.
 5. `instance_priority` checks that instances that always apply have priority below default.
 6. `doc_blame` checks for missing doc strings on definitions and constants.
-7.  `has_inhabited_instance` checks whether every type has an associated `inhabited` instance.
+7.  `has_nonempty_instance` checks whether every type has an associated `inhabited`, `unique`
+    or `nonempty` instance.
 8.  `impossible_instance` checks for instances that can never fire.
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
-11. `fails_quickly` tests that type-class inference ends (relatively) quickly when applied to variables.
+11. `fails_quickly` tests that type-class inference ends (relatively) quickly when applied to
+    variables.
 12. `has_coe_variable` tests that there are no instances of type `has_coe α t` for a variable `α`.
-13. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
+13. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to
+    `nonempty`.
 14. `simp_nf` checks that the left-hand side of simp lemmas is in simp-normal form.
-15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
+15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of
+    simp lemmas.
 16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
-17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a proposition but not
-    in the statement, and could be removed using `classical`.
-18. `has_coe_to_fun` checks that every type that coerces to a function has a direct `has_coe_to_fun` instance.
+17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a
+    proposition but not in the statement, and could be removed using `classical`.
+    Theorems in the `decidable` namespace are exempt.
+18. `has_coe_to_fun` checks that every type that coerces to a function has a direct
+    `has_coe_to_fun` instance.
+19. `check_type` checks that the statement of a declaration is well-typed.
+20. `check_univs` checks that there are no bad `max u v` universe levels.
+21. `syn_taut` checks that declarations are not syntactic tautologies.
+22. `check_reducibility` checks whether non-instances with a class as type are reducible.
+23. `unprintable_interactive` checks that interactive tactics have parser documentation.
+24. `to_additive_doc` checks if additive versions of lemmas have documentation.
 
-Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
-This is not run by default.
+The following linters are not run by default:
+1. `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+2. `explicit_vars_of_iff` checks if there are explicit variables used on both sides of an iff.
 
 The command `#list_linters` prints a list of the names of all available linters.
 
 You can append a `*` to any command (e.g. `#lint_mathlib*`) to omit the slow tests (4).
 
 You can append a `-` to any command (e.g. `#lint_mathlib-`) to run a silent lint
-that suppresses the output of passing checks.
+that suppresses the output if all checks pass.
 A silent lint will fail if any test fails.
+
+You can append a `+` to any command (e.g. `#lint_mathlib+`) to run a verbose lint
+that reports the result of each linter, including  the successes.
 
 You can append a sequence of linter names to any command to run extra tests, in addition to the
 default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
@@ -68,10 +88,17 @@ or `lint only my_new_check`.
 If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
 
 Adding the attribute `@[nolint doc_blame unused_arguments]` to a declaration
-omits it from only the specified linter checks." }
+omits it from only the specified linter checks.
+-/
+add_tactic_doc
+{ name                     := "linting commands",
+  category                 := doc_category.cmd,
+  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters],
+  tags                     := ["linting"] }
 
 /-- The default linters used in mathlib CI. -/
 meta def mathlib_linters : list name := by do
 ls ← get_checks tt [] ff,
-let ls := ls.map (λ ⟨n, _⟩, `linter ++ n),
+let ls := ls.map (λ ⟨n, _⟩, `linter ++ n) ++
+  [`assert_not_exists.linter, `assert_no_instance.linter],
 exact (reflect ls)

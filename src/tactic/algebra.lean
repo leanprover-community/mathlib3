@@ -5,6 +5,14 @@ Authors: Simon Hudon
 -/
 import tactic.core
 
+/-!
+# Recording typeclass ancestors
+
+The "old" structure command currently does not record the parent typeclasses. This file defines the
+`ancestor` attribute to remedy this. This information is notably used by `to_additive` to map
+structure fields and constructors of a multiplicative structure to its additive counterpart.
+-/
+
 open lean.parser
 
 namespace tactic
@@ -20,11 +28,35 @@ private meta def reflect_name_list : has_reflect (list name) | ns :=
 private meta def parse_name_list (e : expr) : list name :=
 e.app_arg.get_app_args.map expr.const_name
 
+/-- The `ancestor` attributes is used to record the names of structures which appear in the
+extends clause of a `structure` or `class` declared with `old_structure_cmd` set to true.
+
+As an example:
+```
+set_option old_structure_cmd true
+
+structure base_one := (one : ℕ)
+
+structure base_two (α : Type*) := (two : ℕ)
+
+@[ancestor base_one base_two]
+structure bar extends base_one, base_two α
+```
+
+The list of ancestors should be in the order they appear in the `extends` clause, and should
+contain only the names of the ancestor structures, without any arguments.
+-/
 @[user_attribute]
-private meta def ancestor_attr : user_attribute unit (list name) :=
+meta def ancestor_attr : user_attribute unit (list name) :=
 { name := `ancestor,
   descr := "ancestor of old structures",
   parser := many ident }
+
+add_tactic_doc
+{ name := "ancestor",
+  category := doc_category.attr,
+  decl_names := [`tactic.ancestor_attr],
+  tags := ["transport", "environment"] }
 
 end performance
 

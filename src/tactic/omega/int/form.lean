@@ -1,8 +1,13 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
-Linear integer arithmetic formulas in pre-normalized form. -/
+/-
+Linear integer arithmetic formulas in pre-normalized form.
+-/
+
 import tactic.omega.int.preterm
 
 namespace omega
@@ -25,11 +30,11 @@ inductive preform
 | or  : preform → preform → preform
 | and : preform → preform → preform
 
-localized "notation x ` =* ` y := omega.int.preform.eq x y" in omega.int
-localized "notation x ` ≤* ` y := omega.int.preform.le x y" in omega.int
-localized "notation `¬* ` p   := omega.int.preform.not p" in omega.int
-localized "notation p ` ∨* ` q := omega.int.preform.or p q" in omega.int
-localized "notation p ` ∧* ` q := omega.int.preform.and p q" in omega.int
+localized "notation (name := preform.eq) x ` =* ` y := omega.int.preform.eq x y" in omega.int
+localized "notation (name := preform.le) x ` ≤* ` y := omega.int.preform.le x y" in omega.int
+localized "notation (name := preform.not) `¬* ` p   := omega.int.preform.not p" in omega.int
+localized "notation (name := preform.or) p ` ∨* ` q := omega.int.preform.or p q" in omega.int
+localized "notation (name := preform.and) p ` ∧* ` q := omega.int.preform.and p q" in omega.int
 
 namespace preform
 
@@ -111,7 +116,7 @@ lemma univ_close_of_valid {p : preform} :
 lemma valid_of_unsat_not {p : preform} : (¬*p).unsat → p.valid :=
 begin
   simp only [preform.sat, preform.unsat, preform.valid, preform.holds],
-  rw classical.not_exists_not, intro h, assumption
+  rw not_exists_not, intro h, assumption
 end
 
 /-- Tactic for setting up proof by induction over preforms. -/

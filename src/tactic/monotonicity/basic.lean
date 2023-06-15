@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
-import algebra.order_functions
+import order.with_bot
 
 namespace tactic.interactive
 open tactic list
@@ -19,6 +19,8 @@ inductive mono_selection : Type
 | left : mono_selection
 | right : mono_selection
 | both : mono_selection
+
+declare_trace mono.relation
 
 section compare
 
@@ -78,6 +80,9 @@ do guard (same_operator l r) <|>
 @[reducible]
 def mono_key := (with_bot name × with_bot name)
 
+meta instance mono_key.has_lt : has_lt mono_key :=
+{ lt := prod.lex (<) (<) }
+
 open nat
 
 meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
@@ -95,9 +100,14 @@ meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
 
 meta def monotonicity.check (lm_n : name) : tactic mono_key :=
 do lm ← mk_const lm_n,
-   lm_t ← infer_type lm,
-   lm_t ← expr.dsimp lm_t { fail_if_unchanged := ff } tt [] [simp_arg_type.expr ``(monotone)],
-   (xs,h) ← mk_local_pis lm_t,
+   lm_t ← infer_type lm >>= instantiate_mvars,
+   when_tracing `mono.relation trace!"[mono] Looking for relation in {lm_t}",
+   let s := simp_lemmas.mk,
+   s ← s.add_simp ``monotone,
+   s ← s.add_simp ``strict_mono,
+   lm_t ← s.dsimplify [] lm_t { fail_if_unchanged := ff },
+   when_tracing `mono.relation trace!"[mono] Looking for relation in {lm_t} (after unfolding)",
+   (xs,h) ← open_pis lm_t,
    mono_head_candidates 3 xs.reverse h
 
 meta instance : has_to_format mono_selection :=
@@ -131,7 +141,7 @@ meta def monotonicity.attr : user_attribute
        let ps := ps.filter_map prod.fst,
        pure $ (ps.zip ls).foldl
          (flip $ uncurry (λ k n m, m.insert k n))
-         (native.rb_lmap.mk mono_key _)  }
+         (native.rb_lmap.mk mono_key _) }
 , after_set := some $ λ n prio p,
   do { (none,v) ← monotonicity.attr.get_param n | pure (),
        k ← monotonicity.check n,
@@ -156,10 +166,3 @@ do ns  ← monotonicity.attr.get_cache,
                else pure ns'
 
 end tactic.interactive
-
-attribute [mono] add_le_add mul_le_mul neg_le_neg
-         mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
-         imp_imp_imp le_implies_le_of_le_of_le
-         sub_le_sub abs_le_abs
-attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
-attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul

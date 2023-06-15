@@ -3,13 +3,19 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add logic.function.basic group_theory.subgroup
+import algebra.hom.aut
+import logic.function.basic
+import group_theory.subgroup.basic
+
 /-!
 # Semidirect product
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines semidirect products of groups, and the canonical maps in and out of the
 semidirect product. The semidirect product of `N` and `G` given a hom `φ` from
-`φ` from `G` to the automorphism group of `N` is the product of sets with the group
+`G` to the automorphism group of `N` is the product of sets with the group
 `⟨n₁, g₁⟩ * ⟨n₂, g₂⟩ = ⟨n₁ * φ g₁ n₂, g₁ * g₂⟩`
 
 ## Key definitions
@@ -43,26 +49,14 @@ namespace semidirect_product
 
 variables {N G} {φ : G →* mul_aut N}
 
-private def one_aux : N ⋊[φ] G := ⟨1, 1⟩
-private def mul_aux (a b : N ⋊[φ] G) : N ⋊[φ] G := ⟨a.1 * φ a.2 b.1, a.right * b.right⟩
-private def inv_aux (a : N ⋊[φ] G) : N ⋊[φ] G := let i := a.2⁻¹ in ⟨φ i a.1⁻¹, i⟩
-private lemma mul_assoc_aux (a b c : N ⋊[φ] G) : mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
-by simp [mul_aux, mul_assoc, mul_equiv.map_mul]
-private lemma mul_one_aux (a : N ⋊[φ] G) : mul_aux a one_aux = a :=
-by cases a; simp [mul_aux, one_aux]
-private lemma one_mul_aux (a : N ⋊[φ] G) : mul_aux one_aux a = a :=
-by cases a; simp [mul_aux, one_aux]
-private lemma mul_left_inv_aux (a : N ⋊[φ] G) : mul_aux (inv_aux a) a = one_aux :=
-by simp only [mul_aux, inv_aux, one_aux, ← mul_equiv.map_mul, mul_left_inv]; simp
-
 instance : group (N ⋊[φ] G) :=
-{ one := one_aux,
-  inv := inv_aux,
-  mul := mul_aux,
-  mul_assoc := mul_assoc_aux,
-  one_mul := one_mul_aux,
-  mul_one := mul_one_aux,
-  mul_left_inv := mul_left_inv_aux }
+{ one := ⟨1, 1⟩,
+  mul := λ a b, ⟨a.1 * φ a.2 b.1, a.2 * b.2⟩,
+  inv := λ x, ⟨φ x.2⁻¹ x.1⁻¹, x.2⁻¹⟩,
+  mul_assoc := λ a b c, by ext; simp [mul_assoc],
+  one_mul := λ a, ext _ _ (by simp) (one_mul a.2),
+  mul_one := λ a, ext _ _ (by simp) (mul_one _),
+  mul_left_inv := λ ⟨a, b⟩, ext _ _ (show φ b⁻¹ a⁻¹ * φ b⁻¹ a = 1, by simp) (mul_left_inv b) }
 
 instance : inhabited (N ⋊[φ] G) := ⟨1⟩
 
@@ -106,7 +100,13 @@ inr_injective.eq_iff
 lemma inl_aut (g : G) (n : N) : (inl (φ g n) : N ⋊[φ] G) = inr g * inl n * inr g⁻¹ :=
 by ext; simp
 
-lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
+lemma inl_aut_inv (g : G) (n : N) : (inl ((φ g)⁻¹ n) : N ⋊[φ] G) = inr g⁻¹ * inl n * inr g :=
+by rw [← monoid_hom.map_inv, inl_aut, inv_inv]
+
+@[simp] lemma mk_eq_inl_mul_inr (g : G) (n : N) : (⟨n, g⟩ : N ⋊[φ] G) = inl n * inr g :=
+by ext; simp
+
+@[simp] lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
 by ext; simp
 
 /-- The canonical projection map `N ⋊[φ] G →* G`, as a group hom. -/
@@ -139,15 +139,19 @@ le_antisymm
 
 section lift
 variables (f₁ : N →* H) (f₂ : G →* H)
-  (h : ∀ n g, f₁ (φ g n) = f₂ g * f₁ n * f₂ g⁻¹)
+  (h : ∀ g, f₁.comp (φ g).to_monoid_hom = (mul_aut.conj (f₂ g)).to_monoid_hom.comp f₁)
 
 /-- Define a group hom `N ⋊[φ] G →* H`, by defining maps `N →* H` and `G →* H`  -/
 def lift (f₁ : N →* H) (f₂ : G →* H)
-  (h : ∀ n g, f₁ (φ g n) = f₂ g * f₁ n * f₂ g⁻¹) :
+  (h : ∀ g, f₁.comp (φ g).to_monoid_hom = (mul_aut.conj (f₂ g)).to_monoid_hom.comp f₁) :
   N ⋊[φ] G →* H :=
 { to_fun := λ a, f₁ a.1 * f₂ a.2,
   map_one' := by simp,
-  map_mul' := λ a b, by simp [h, _root_.mul_assoc] }
+  map_mul' := λ a b, begin
+    have := λ n g, monoid_hom.ext_iff.1 (h n) g,
+    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom] at this,
+    simp [this, mul_assoc]
+  end }
 
 @[simp] lemma lift_inl (n : N) : lift f₁ f₂ h (inl n) = f₁ n := by simp [lift]
 @[simp] lemma lift_comp_inl : (lift f₁ f₂ h).comp inl = f₁ := by ext; simp
@@ -156,13 +160,58 @@ def lift (f₁ : N →* H) (f₂ : G →* H)
 @[simp] lemma lift_comp_inr : (lift f₁ f₂ h).comp inr = f₂ := by ext; simp
 
 lemma lift_unique (F : N ⋊[φ] G →* H) :
-  F = lift (F.comp inl) (F.comp inr) (by simp [inl_aut]) :=
+  F = lift (F.comp inl) (F.comp inr) (λ _, by ext; simp [inl_aut]) :=
 begin
   ext,
   simp only [lift, monoid_hom.comp_apply, monoid_hom.coe_mk],
   rw [← F.map_mul, inl_left_mul_inr_right],
 end
 
+/-- Two maps out of the semidirect product are equal if they're equal after composition
+  with both `inl` and `inr` -/
+lemma hom_ext {f g : (N ⋊[φ] G) →* H} (hl : f.comp inl = g.comp inl)
+  (hr : f.comp inr = g.comp inr) : f = g :=
+by { rw [lift_unique f, lift_unique g], simp only * }
+
 end lift
+
+section map
+
+variables {N₁ : Type*} {G₁ : Type*} [group N₁] [group G₁] {φ₁ : G₁ →* mul_aut N₁}
+
+/-- Define a map from `N ⋊[φ] G` to `N₁ ⋊[φ₁] G₁` given maps `N →* N₁` and `G →* G₁` that
+  satisfy a commutativity condition `∀ n g, f₁ (φ g n) = φ₁ (f₂ g) (f₁ n)`.  -/
+def map (f₁ : N →* N₁) (f₂ : G →* G₁)
+  (h : ∀ g : G, f₁.comp (φ g).to_monoid_hom = (φ₁ (f₂ g)).to_monoid_hom.comp f₁) :
+  N ⋊[φ] G →* N₁ ⋊[φ₁] G₁ :=
+{ to_fun := λ x, ⟨f₁ x.1, f₂ x.2⟩,
+  map_one' := by simp,
+  map_mul' := λ x y, begin
+    replace h := monoid_hom.ext_iff.1 (h x.right) y.left,
+    ext; simp * at *,
+  end }
+
+variables (f₁ : N →* N₁) (f₂ : G →* G₁)
+  (h : ∀ g : G, f₁.comp (φ g).to_monoid_hom = (φ₁ (f₂ g)).to_monoid_hom.comp f₁)
+
+@[simp] lemma map_left (g : N ⋊[φ] G) : (map f₁ f₂ h g).left = f₁ g.left := rfl
+
+@[simp] lemma map_right (g : N ⋊[φ] G) : (map f₁ f₂ h g).right = f₂ g.right := rfl
+
+@[simp] lemma right_hom_comp_map : right_hom.comp (map f₁ f₂ h) = f₂.comp right_hom := rfl
+
+@[simp] lemma map_inl (n : N) : map f₁ f₂ h (inl n) = inl (f₁ n) :=
+by simp [map]
+
+@[simp] lemma map_comp_inl : (map f₁ f₂ h).comp inl = inl.comp f₁ :=
+by ext; simp
+
+@[simp] lemma map_inr (g : G) : map f₁ f₂ h (inr g) = inr (f₂ g) :=
+by simp [map]
+
+@[simp] lemma map_comp_inr : (map f₁ f₂ h).comp inr = inr.comp f₂ :=
+by ext; simp [map]
+
+end map
 
 end semidirect_product

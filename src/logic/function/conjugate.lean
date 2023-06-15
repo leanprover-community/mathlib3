@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import logic.function.basic
 
 /-!
 # Semiconjugate and commuting maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the following predicates:
 
@@ -21,7 +24,9 @@ namespace function
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-/-- We say that `f : α → β` semiconjugates `ga : α → α` to `gb : β → β` if `f ∘ ga = gb ∘ f`. -/
+/-- We say that `f : α → β` semiconjugates `ga : α → α` to `gb : β → β` if `f ∘ ga = gb ∘ f`.
+We use `∀ x, f (ga x) = gb (f x)` as the definition, so given `h : function.semiconj f ga gb` and
+`a : α`, we have `h a : f (ga a) = gb (f a)` and `h.comp_eq : f ∘ ga = gb ∘ f`. -/
 def semiconj (f : α → β) (ga : α → α) (gb : β → β) : Prop := ∀ x, f (ga x) = gb (f x)
 
 namespace semiconj
@@ -49,9 +54,16 @@ lemma inverses_right (h : semiconj f ga gb) (ha : right_inverse ga' ga)
   semiconj f ga' gb' :=
 λ x, by rw [← hb (f (ga' x)), ← h.eq, ha x]
 
+lemma option_map {f : α → β} {ga : α → α} {gb : β → β} (h : semiconj f ga gb) :
+  semiconj (option.map f) (option.map ga) (option.map gb)
+| none := rfl
+| (some a) := congr_arg some $ h _
+
 end semiconj
 
-/-- Two maps `f g : α → α` commute if `f ∘ g = g ∘ f`. -/
+/-- Two maps `f g : α → α` commute if `f (g x) = g (f x)` for all `x : α`.
+Given `h : function.commute f g` and `a : α`, we have `h a : f (g a) = g (f a)` and
+`h.comp_eq : f ∘ g = g ∘ f`. -/
 def commute (f g : α → α) : Prop := semiconj f g g
 
 lemma semiconj.commute {f g : α → α} (h : semiconj f g g) : commute f g := h
@@ -73,6 +85,9 @@ lemma comp_left (h : commute f g) (h' : commute f' g) : commute (f ∘ f') g :=
 lemma id_right : commute f id := semiconj.id_right
 
 lemma id_left : commute id f := semiconj.id_left
+
+lemma option_map {f g : α → α} : commute f g → commute (option.map f) (option.map g) :=
+semiconj.option_map
 
 end commute
 
@@ -97,6 +112,22 @@ lemma id_left (op : α → α → α) : semiconj₂ id op op := λ _ _, rfl
 lemma comp {f' : β → γ} {gc : γ → γ → γ} (hf' : semiconj₂ f' gb gc) (hf : semiconj₂ f ga gb) :
   semiconj₂ (f' ∘ f) ga gc :=
 λ x y, by simp only [hf'.eq, hf.eq, comp_app]
+
+lemma is_associative_right [is_associative α ga] (h : semiconj₂ f ga gb) (h_surj : surjective f) :
+  is_associative β gb :=
+⟨h_surj.forall₃.2 $ λ x₁ x₂ x₃, by simp only [← h.eq, @is_associative.assoc _ ga]⟩
+
+lemma is_associative_left [is_associative β gb] (h : semiconj₂ f ga gb) (h_inj : injective f) :
+  is_associative α ga :=
+⟨λ x₁ x₂ x₃, h_inj $ by simp only [h.eq, @is_associative.assoc _ gb]⟩
+
+lemma is_idempotent_right [is_idempotent α ga] (h : semiconj₂ f ga gb) (h_surj : surjective f) :
+  is_idempotent β gb :=
+⟨h_surj.forall.2 $ λ x, by simp only [← h.eq, @is_idempotent.idempotent _ ga]⟩
+
+lemma is_idempotent_left [is_idempotent β gb] (h : semiconj₂ f ga gb) (h_inj : injective f) :
+  is_idempotent α ga :=
+⟨λ x, h_inj $ by rw [h.eq, @is_idempotent.idempotent _ gb]⟩
 
 end semiconj₂
 

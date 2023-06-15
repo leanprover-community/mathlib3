@@ -8,6 +8,9 @@ import category_theory.concrete_category.bundled_hom
 /-!
 # Category instances for structures that use unbundled homs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic infrastructure to define concrete
 categories using unbundled homs (see `class unbundled_hom`), and
 define forgetful functors between them (see
@@ -48,7 +51,8 @@ include 𝒞'
 variables (obj : Π ⦃α⦄, c α → c' α)
   (map : ∀ ⦃α β Iα Iβ f⦄, @hom α β Iα Iβ f → hom' (obj Iα) (obj Iβ) f)
 
-/-- A custom constructor for forgetful functor between concrete categories defined using `unbundled_hom`. -/
+/-- A custom constructor for forgetful functor
+between concrete categories defined using `unbundled_hom`. -/
 def mk_has_forget₂ : has_forget₂ (bundled c) (bundled c') :=
 bundled_hom.mk_has_forget₂ obj (λ X Y f, ⟨f.val, map f.property⟩) (λ _ _ _, rfl)
 

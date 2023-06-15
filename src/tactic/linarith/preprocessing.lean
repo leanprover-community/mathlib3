@@ -3,10 +3,10 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
+import data.prod.lex
+import tactic.cancel_denoms
 import tactic.linarith.datatypes
 import tactic.zify
-import tactic.cancel_denoms
 
 /-!
 # Linarith preprocessing
@@ -98,10 +98,10 @@ and similarly if `pf` proves a negated weak inequality.
 meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
 do tp ← infer_type pf,
 match tp with
-| `(%%a < %%b) := to_expr ``(id_rhs (%%a + 1 ≤ %%b) %%pf)
-| `(%%a > %%b) := to_expr ``(id_rhs (%%b + 1 ≤ %%a) %%pf)
-| `(¬ %%a ≤ %%b) := to_expr ``(id_rhs (%%b + 1 ≤ %%a) %%pf)
-| `(¬ %%a ≥ %%b) := to_expr ``(id_rhs (%%a + 1 ≤ %%b) %%pf)
+| `(%%a < %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
+| `(%%a > %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
+| `(¬ %%a ≤ %%b) := to_expr ``(int.add_one_le_iff.mpr (le_of_not_gt %%pf))
+| `(¬ %%a ≥ %%b) := to_expr ``(int.add_one_le_iff.mpr (le_of_not_gt %%pf))
 | _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
 end
 
@@ -158,6 +158,7 @@ match tp with
 | _ := return [h]
 end }
 
+
 /--
 If `h` is an equality or inequality between natural numbers,
 `nat_to_int` lifts this inequality to the integers.
@@ -167,11 +168,15 @@ To avoid adding the same nonnegativity facts many times, it is a global preproce
 meta def nat_to_int : global_preprocessor :=
 { name := "move nats to ints",
   transform := λ l,
-do l ← l.mmap (λ h, infer_type h >>= guardb ∘ is_nat_prop >> zify_proof [] h <|> return h),
+-- we lock the tactic state here because a `simplify` call inside of
+-- `zify_proof` corrupts the tactic state when run under `io.run_tactic`.
+do l ← lock_tactic_state $ l.mmap $ λ h,
+         infer_type h >>= guardb ∘ is_nat_prop >> zify_proof [] h <|> return h,
    nonnegs ← l.mfoldl (λ (es : expr_set) h, do
      (a, b) ← infer_type h >>= get_rel_sides,
      return $ (es.insert_list (get_nat_comps a)).insert_list (get_nat_comps b)) mk_rb_set,
    (++) l <$> nonnegs.to_list.mmap mk_coe_nat_nonneg_prf }
+
 
 /-- `strengthen_strict_int h` turns a proof `h` of a strict integer inequality `t1 < t2`
 into a proof of `t1 ≤ t2 + 1`. -/
@@ -218,9 +223,10 @@ meta def cancel_denoms : preprocessor :=
 and adds them to the set `m`.
 A pair `(a, tt)` is added to `m` when `a^2` appears in `e`, and `(a, ff)` is added to `m`
 when `a*a` appears in `e`.  -/
-meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set (expr × bool))
+meta def find_squares : rb_set (expr × bool) → expr → tactic (rb_set $ expr ×ₗ bool)
 | s `(%%a ^ 2) := do s ← find_squares s a, return (s.insert (a, tt))
-| s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else e.mfoldl find_squares s
+| s e@`(%%e1 * %%e2) := if e1 = e2 then do s ← find_squares s e1, return (s.insert (e1, ff)) else
+  e.mfoldl find_squares s
 | s e := e.mfoldl find_squares s
 
 /--
@@ -237,8 +243,8 @@ meta def nlinarith_extras : global_preprocessor :=
   transform := λ ls,
 do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
    new_es ← s.mfold ([] : list expr) $ λ ⟨e, is_sq⟩ new_es,
-     (do p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
-      return $ p::new_es),
+     ((do p ← mk_app (if is_sq then ``sq_nonneg else ``mul_self_nonneg) [e],
+       return $ p::new_es) <|> return new_es),
    new_es ← make_comp_with_zero.globalize.transform new_es,
    linarith_trace "nlinarith preprocessing found squares",
    linarith_trace s,
@@ -251,17 +257,44 @@ do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
       | ineq.eq, _ := mk_app ``zero_mul_eq [a, b]
       | _, ineq.eq := mk_app ``mul_zero_eq [a, b]
       | ineq.lt, ineq.lt := mk_app ``mul_pos_of_neg_of_neg [a, b]
-      | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
-      | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b], mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.lt, ineq.le := do a ← mk_app ``le_of_lt [a],
+        mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
+      | ineq.le, ineq.lt := do b ← mk_app ``le_of_lt [b],
+        mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
       | ineq.le, ineq.le := mk_app ``mul_nonneg_of_nonpos_of_nonpos [a, b]
       end <|> return none,
    products ← make_comp_with_zero.globalize.transform products.reduce_option,
    return $ new_es ++ ls ++ products }
 
 /--
+`remove_ne_aux` case splits on any proof `h : a ≠ b` in the input, turning it into `a < b ∨ a > b`.
+This produces `2^n` branches when there are `n` such hypotheses in the input.
+-/
+meta def remove_ne_aux : list expr → tactic (list branch) :=
+λ hs,
+(do e ← hs.mfind (λ e : expr, do e ← infer_type e, guard $ e.is_ne.is_some),
+    [(_, ng1), (_, ng2)] ← to_expr ``(or.elim (lt_or_gt_of_ne %%e)) >>= apply,
+    let do_goal : expr → tactic (list branch) := λ g,
+      do set_goals [g],
+         h ← intro1,
+         ls ← remove_ne_aux $ hs.remove_all [e],
+         return $ ls.map (λ b : branch, (b.1, h::b.2)) in
+    (++) <$> do_goal ng1 <*> do_goal ng2)
+<|> do g ← get_goal, return [(g, hs)]
+
+/--
+`remove_ne` case splits on any proof `h : a ≠ b` in the input, turning it into `a < b ∨ a > b`,
+by calling `linarith.remove_ne_aux`.
+This produces `2^n` branches when there are `n` such hypotheses in the input.
+-/
+meta def remove_ne : global_branching_preprocessor :=
+{ name := "remove_ne",
+  transform := remove_ne_aux }
+
+/--
 The default list of preprocessors, in the order they should typically run.
 -/
-meta def default_preprocessors : list global_preprocessor :=
+meta def default_preprocessors : list global_branching_preprocessor :=
 [filter_comparisons, remove_negations, nat_to_int, strengthen_strict_int,
   make_comp_with_zero, cancel_denoms]
 
@@ -269,11 +302,14 @@ meta def default_preprocessors : list global_preprocessor :=
 `preprocess pps l` takes a list `l` of proofs of propositions.
 It maps each preprocessor `pp ∈ pps` over this list.
 The preprocessors are run sequentially: each recieves the output of the previous one.
-Note that a preprocessor produces a `list expr` for each input `expr`,
+Note that a preprocessor may produce multiple or no expressions from each input expression,
 so the size of the list may change.
 -/
-meta def preprocess (pps : list global_preprocessor) (l : list expr) : tactic (list expr) :=
-pps.mfoldl (λ l' pp, pp.process l') l
-
+meta def preprocess (pps : list global_branching_preprocessor) (l : list expr) :
+  tactic (list branch) :=
+do g ← get_goal,
+pps.mfoldl (λ ls pp,
+  list.join <$> (ls.mmap $ λ b, set_goals [b.1] >> pp.process b.2))
+  [(g, l)]
 
 end linarith

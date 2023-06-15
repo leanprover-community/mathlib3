@@ -118,6 +118,24 @@ begin
   guard_target (1 : ℤ) < 20, norm_num,
 end
 
+example (n : ℕ) : n % 2 = 0 ∨ n % 2 = 1 :=
+begin
+  set r := n % 2 with hr,
+  have h2 : r < 2 := nat.mod_lt _ (dec_trivial),
+  interval_cases r with hrv,
+  { left, exact hrv },
+  { right, exact hrv }
+end
+
+/- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/interval_cases.20bug -/
+example {x : ℕ} (hx2 : x < 2) (h : false) : false :=
+begin
+  have : x ≤ 1,
+  interval_cases x,
+  exact zero_le_one,  -- this solves the side-goal left by `interval_cases`, closing the `have`
+  exact h,
+end
+
 /-
 Sadly, this one doesn't work, reporting:
   `deep recursion was detected at 'expression equality test'`

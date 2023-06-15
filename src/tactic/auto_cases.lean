@@ -18,7 +18,7 @@ meta structure auto_cases_tac :=
 /-- The `auto_cases_tac` for `tactic.cases`. -/
 meta def tac_cases : auto_cases_tac := ⟨"cases", cases⟩
 
-/-- The `auto_cases_tac` for `tactic.induction⟩`. -/
+/-- The `auto_cases_tac` for `tactic.induction`. -/
 meta def tac_induction : auto_cases_tac := ⟨"induction", induction⟩
 
 /-- Find an `auto_cases_tac` which matches the given `type : expr`. -/
@@ -49,9 +49,10 @@ meta def find_tac : expr → option auto_cases_tac
 end auto_cases
 
 /-- Applies `cases` or `induction` on the local_hypothesis `hyp : expr`. -/
-meta def auto_cases_at (hyp : expr) : tactic string :=
+meta def auto_cases_at (find : expr → option auto_cases.auto_cases_tac) (hyp : expr) :
+  tactic string :=
 do t ← infer_type hyp >>= whnf,
-   match auto_cases.find_tac t with
+   match find t with
    | some atac := do
      atac.tac hyp,
      pp ← pp hyp,
@@ -61,9 +62,9 @@ do t ← infer_type hyp >>= whnf,
 
 /-- Applies `cases` or `induction` on certain hypotheses. -/
 @[hint_tactic]
-meta def auto_cases : tactic string :=
+meta def auto_cases (find := tactic.auto_cases.find_tac) : tactic string :=
 do l ← local_context,
-   results ← successes $ l.reverse.map auto_cases_at,
+   results ← successes $ l.reverse.map (auto_cases_at find),
    when (results.empty) $
      fail "`auto_cases` did not find any hypotheses to apply `cases` or `induction` to",
    return (string.intercalate ", " results)

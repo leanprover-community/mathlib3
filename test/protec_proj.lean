@@ -13,9 +13,8 @@ open tactic
 
 open foo
 
-#check bar
-#check foo.qux
-
+run_cmd resolve_name `bar
+run_cmd resolve_name `foo.qux
 run_cmd success_if_fail $ resolve_name `qux
 
 @[protect_proj] structure X : Type :=
@@ -23,7 +22,6 @@ run_cmd success_if_fail $ resolve_name `qux
 
 open X
 
-#check X.i
-#check X.n
-
+run_cmd resolve_name `X.i
+run_cmd resolve_name `X.n
 run_cmd success_if_fail $ resolve_name `n

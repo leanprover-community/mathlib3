@@ -234,6 +234,7 @@ full_subcategory.map (λ L hL, begin
                         exact hJK.symm.trans_le hL,
                       end)
 
+-- TODO generalize this to the equivalence of full categories for any `iff`.
 instance self_le_radical.cast_is_equivalence (hJK : J.radical = K.radical) :
   is_equivalence (self_le_radical.cast hJK) :=
 { inverse := self_le_radical.cast hJK.symm,

@@ -153,6 +153,27 @@ end
 end
 
 namespace finset
+variables {α : Type*} [has_one α] {s : finset α}
+
+open_locale pointwise
+
+@[simp, norm_cast, to_additive] lemma coe_eq_one : (s : set α) = 1 ↔ s = 1 := coe_eq_singleton
+
+end finset
+
+namespace subgroup
+variables {G : Type*} [group G]
+
+attribute [norm_cast] coe_eq_univ add_subgroup.coe_eq_univ
+
+open_locale pointwise
+
+@[norm_cast, to_additive] lemma coe_eq_one {H : subgroup G} : (H : set G) = 1 ↔ H = ⊥ :=
+(set_like.ext'_iff.trans (by refl)).symm
+
+end subgroup
+
+namespace finset
 variables {α : Type*} [infinite α]
 
 lemma exists_not_mem (s : finset α) : ∃ a, a ∉ s :=
@@ -673,3 +694,9 @@ variables {R : Type*} [add_group_with_one R] (p : ℕ) [char_p R p] {a b n : ℕ
 end char_p
 
 instance : unique (zmod 1) := fin.unique
+
+instance {n : ℕ} : is_add_cyclic (zmod n) := ⟨⟨1, λ x, (zmod.int_cast_surjective x).imp $ by simp⟩⟩
+
+instance {p : ℕ} [fact p.prime] : is_simple_add_group (zmod p) :=
+add_comm_group.is_simple_iff_is_add_cyclic_and_prime_card.2
+  ⟨by apply_instance, by simpa using fact.out p.prime⟩

@@ -266,6 +266,13 @@ card_dvd_card_smul_right $ t.pairwise_disjoint_smul_finset_mul_stab.subset $
 @[to_additive] lemma card_mul_stab_dvd_card (s : finset α) : s.mul_stab.card ∣ s.card :=
 by simpa only [mul_mul_stab] using s.card_mul_stab_dvd_card_mul_mul_stab s
 
+@[to_additive] lemma card_mul_stab_le_card : s.mul_stab.card ≤ s.card :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { refl },
+  { exact nat.le_of_dvd hs.card_pos s.card_mul_stab_dvd_card }
+end
+
 /-- A fintype instance for the stabilizer of a nonempty finset `s` in terms of `s.mul_stab`. -/
 @[to_additive "A fintype instance for the stabilizer of a nonempty finset `s` in terms of
 `s.add_stab`."]

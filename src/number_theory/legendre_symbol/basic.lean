@@ -8,7 +8,7 @@ import number_theory.legendre_symbol.quadratic_char.basic
 /-!
 # Legendre symbol
 
-This file contains results about quadratic residues modulo a prime number.
+This file contains results about Legendre symbols.
 
 We define the Legendre symbol $\Bigl(\frac{a}{p}\Bigr)$ as `legendre_sym p a`.
 Note the order of arguments! The advantage of this form is that then `legendre_sym p`

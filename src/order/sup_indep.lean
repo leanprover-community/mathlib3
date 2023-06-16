@@ -151,7 +151,7 @@ begin
   exact sup_indep_pair this,
 end
 
-lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.val) :=
+lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (λ a, f a) :=
 begin
   intros t ht i _ hi,
   classical,
@@ -160,6 +160,18 @@ begin
   rw mem_image at hi',
   obtain ⟨j, hj, hji⟩ := hi',
   rwa subtype.ext hji at hj,
+end
+
+@[simp] lemma sup_indep_attach : s.attach.sup_indep (λ a, f a) ↔ s.sup_indep f :=
+begin
+  refine ⟨λ h t ht i his hit, _, sup_indep.attach⟩,
+  classical,
+  convert h (filter_subset (λ i, (i : ι) ∈ t) _) (mem_attach _ ⟨i, ‹_›⟩)
+    (λ hi, hit $ by simpa using hi) using 1,
+  refine eq_of_forall_ge_iff _,
+  simp only [finset.sup_le_iff, mem_filter, mem_attach, true_and, function.comp_app, subtype.forall,
+    subtype.coe_mk],
+  exact λ a, forall_congr (λ j, ⟨λ h _, h, λ h hj, h (ht hj) hj⟩),
 end
 
 end lattice

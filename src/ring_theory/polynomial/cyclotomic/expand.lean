@@ -9,6 +9,9 @@ import ring_theory.polynomial.cyclotomic.roots
 /-!
 # Cyclotomic polynomials and `expand`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We gather results relating cyclotomic polynomials and `expand`.
 
 ## Main results

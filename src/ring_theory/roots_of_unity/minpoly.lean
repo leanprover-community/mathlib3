@@ -10,6 +10,9 @@ import field_theory.minpoly.is_integrally_closed
 /-!
 # Minimal polynomial of roots of unity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We gather several results about minimal polynomial of root of unity.
 
 ## Main results

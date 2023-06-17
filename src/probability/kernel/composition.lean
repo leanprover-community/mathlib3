@@ -9,6 +9,9 @@ import probability.kernel.measurable_integral
 /-!
 # Product and composition of kernels
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define
 * the composition-product `κ ⊗ₖ η` of two s-finite kernels `κ : kernel α β` and
   `η : kernel (α × β) γ`, a kernel from `α` to `β × γ`.

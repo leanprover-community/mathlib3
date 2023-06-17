@@ -18,6 +18,9 @@ finite field, trace
 
 namespace finite_field
 
+
+local attribute [instance] zmod.algebra
+
 /-- The trace map from a finite field to its prime field is nongedenerate. -/
 lemma trace_to_zmod_nondegenerate (F : Type*) [field F] [finite F] {a : F}
  (ha : a ≠ 0) : ∃ b : F, algebra.trace (zmod (ring_char F)) F (a * b) ≠ 0 :=

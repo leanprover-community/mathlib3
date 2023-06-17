@@ -25,150 +25,8 @@ Use the ergodic theorem to deduce the refinement of the Poincaré recurrence the
 Bergelson.
 -/
 
-attribute [measurability] measurable_one
-
-section
-open ennreal filter function measure_theory set
-open_locale ennreal
-variables {α : Type*} [measurable_space α] {μ : measure α} {s N : set α} {f : α → ℝ≥0∞} {r : ℝ≥0∞}
-
-@[simp] lemma lintegral_indicator_one (hs : measurable_set s) : ∫⁻ a, s.indicator 1 a ∂μ = μ s :=
-(lintegral_indicator_const hs _).trans $ one_mul _
-
-lemma set_lintegral_eq_top_of_measure_eq_top_pos (hf : ae_measurable f (μ.restrict s))
-  (hs : null_measurable_set s μ) (hμf : 0 < μ {x ∈ s | f x = ⊤}) :
-  ∫⁻ x in s, f x ∂μ = ⊤ :=
-lintegral_eq_top_of_measure_eq_top_pos hf $
-  by rwa [measure.restrict_apply₀' hs, set_of_inter_eq_sep]
-
---TODO: Rename `measure_theory.ae_lt_top'`
-
-lemma measure_lintegral_eq_top (hf : ae_measurable f μ) (hμf : ∫⁻ x, f x ∂μ ≠ ⊤) :
-  μ {x | f x = ⊤} = 0 :=
-of_not_not $ λ h, hμf $ lintegral_eq_top_of_measure_eq_top_pos hf $ pos_iff_ne_zero.2 h
-
-lemma measure_set_lintegral_eq_top (hf : ae_measurable f (μ.restrict s))
-  (hs : null_measurable_set s μ) (hμf : ∫⁻ x in s, f x ∂μ ≠ ⊤) : μ {x ∈ s | f x = ⊤} = 0 :=
-of_not_not $ λ h, hμf $ set_lintegral_eq_top_of_measure_eq_top_pos hf hs $ pos_iff_ne_zero.2 h
-
-/-- **First moment method**. A measurable function is smaller than its mean on a set of positive
-measure. -/
-lemma measure_le_set_lintegral_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ⊤)
-  (hf : ae_measurable f (μ.restrict s)) (hs : null_measurable_set s μ) :
-  0 < μ {x ∈ s | f x ≤ ∫⁻ a in s, f a ∂μ / μ s} :=
-begin
-  obtain h | h := eq_or_ne (∫⁻ a in s, f a ∂μ) ⊤,
-  { simpa [h, top_div_of_ne_top hμ₁, pos_iff_ne_zero] using hμ },
-  have := measure_le_set_average_pos hμ hμ₁ (integrable_to_real_of_lintegral_ne_top hf h),
-  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs],
-  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs,
-    ←measure_diff_null (measure_lintegral_eq_top hf h)] at this,
-  refine this.trans_le (measure_mono _),
-  rintro x ⟨hfx, hx⟩,
-  dsimp at hfx,
-  rwa [average_to_real hf, to_real_le_to_real hx (div_eq_top.not.2 $ λ H, H.elim
-    (λ H, hμ H.2) $ λ H, h H.1)] at hfx,
-  simp_rw [ae_iff, lt_top_iff_ne_top, not_ne_iff],
-  exact measure_lintegral_eq_top hf h,
-end
-
-/-- **First moment method**. A measurable function is greater than its mean on a set of positive
-measure. -/
-lemma measure_set_lintegral_le_pos (hμ : μ s ≠ 0) (hf : ae_measurable f (μ.restrict s))
-  (hs : null_measurable_set s μ) (hint : ∫⁻ a in s, f a ∂μ ≠ ⊤) :
-  0 < μ {x ∈ s | ∫⁻ a in s, f a ∂μ / μ s ≤ f x} :=
-begin
-  obtain hμ₁ | hμ₁ := eq_or_ne (μ s) ⊤,
-  { simp [hμ₁] },
-  have := measure_set_average_le_pos hμ hμ₁ (integrable_to_real_of_lintegral_ne_top hf hint),
-  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs],
-  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs,
-    ←measure_diff_null (measure_lintegral_eq_top hf hint)] at this,
-  refine this.trans_le (measure_mono _),
-  rintro x ⟨hfx, hx⟩,
-  dsimp at hfx,
-  rwa [integral_to_real hf, ←to_real_div, to_real_le_to_real (div_eq_top.not.2 $ λ H, H.elim
-    (λ H, hμ H.2) $ λ H, hint H.1) hx] at hfx,
-  simp_rw [ae_iff, lt_top_iff_ne_top, not_ne_iff],
-  exact measure_lintegral_eq_top hf hint,
-end
-
-/-- **First moment method**. The minimum of a measurable function is smaller than its mean. -/
-lemma exists_set_le_lintegral (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ⊤) (hf : ae_measurable f (μ.restrict s))
-  (hs : null_measurable_set s μ) :
-  ∃ x ∈ s, f x ≤ ∫⁻ a in s, f a ∂μ / μ s :=
-let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_le_set_lintegral_pos hμ hμ₁ hf hs).ne'
-  in ⟨x, hx, h⟩
-
-/-- **First moment method**. The maximum of a measurable function is greater than its mean. -/
-lemma exists_set_lintegral_le (hμ : μ s ≠ 0) (hf : ae_measurable f (μ.restrict s))
-  (hs : null_measurable_set s μ) (hint : ∫⁻ a in s, f a ∂μ ≠ ⊤) :
-  ∃ x ∈ s, ∫⁻ a in s, f a ∂μ / μ s ≤ f x :=
-let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_set_lintegral_le_pos hμ hf hs hint).ne'
-  in ⟨x, hx, h⟩
-
-/-- **First moment method**. A measurable function is greater than its mean on a set of positive
-measure. -/
-lemma measure_lintegral_le_pos (hμ : μ ≠ 0) (hf : ae_measurable f μ) (hint : ∫⁻ a, f a ∂μ ≠ ⊤) :
-  0 < μ {x | ∫⁻ a, f a ∂μ / μ univ ≤ f x} :=
-by simpa [hint] using measure_set_lintegral_le_pos (measure.measure_univ_ne_zero.2 hμ) hf.restrict
-  null_measurable_set_univ
-
-/-- **First moment method**. The maximum of a measurable function is greater than its mean. -/
-lemma exists_lintegral_le (hμ : μ ≠ 0) (hf : ae_measurable f μ) (hint : ∫⁻ a, f a ∂μ ≠ ⊤) :
-  ∃ x, ∫⁻ a, f a ∂μ / μ univ ≤ f x :=
-let ⟨x, hx⟩ := nonempty_of_measure_ne_zero (measure_lintegral_le_pos hμ hf hint).ne' in ⟨x, hx⟩
-
-/-- **First moment method**. The maximum of a measurable function is greater than its mean, while
-avoiding a null set. -/
-lemma exists_not_mem_lintegral_le (hμ : μ ≠ 0) (hf : ae_measurable f μ) (hN : μ N = 0)
-  (hint : ∫⁻ a, f a ∂μ ≠ ⊤) :
-  ∃ x ∉ N, ∫⁻ a, f a ∂μ / μ univ ≤ f x :=
-begin
-  have := measure_lintegral_le_pos hμ hf hint,
-  rw ←measure_diff_null hN at this,
-  obtain ⟨x, hx, hxN⟩ := nonempty_of_measure_ne_zero this.ne',
-  exact ⟨x, hxN, hx⟩,
-end
-
-variables [is_finite_measure μ]
-
-/-- **First moment method**. A measurable function is smaller than its mean on a set of positive
-measure. -/
-lemma measure_le_lintegral_pos (hμ : μ ≠ 0) (hf : ae_measurable f μ) :
-  0 < μ {x | f x ≤ ∫⁻ a, f a ∂μ / μ univ} :=
-by simpa using measure_le_set_lintegral_pos (measure.measure_univ_ne_zero.2 hμ) (measure_ne_top _ _)
-  hf.restrict null_measurable_set_univ
-
-/-- **First moment method**. The minimum of a measurable function is smaller than its mean. -/
-lemma exists_le_lintegral (hμ : μ ≠ 0) (hf : ae_measurable f μ) :
-  ∃ x, f x ≤ ∫⁻ a, f a ∂μ / μ univ :=
-let ⟨x, hx⟩ := nonempty_of_measure_ne_zero (measure_le_lintegral_pos hμ hf).ne' in ⟨x, hx⟩
-
-/-- **First moment method**. The minimum of a measurable function is smaller than its mean, while
-avoiding a null set. -/
-lemma exists_not_mem_le_lintegral (hμ : μ ≠ 0) (hf : ae_measurable f μ) (hN : μ N = 0) :
-  ∃ x ∉ N, f x ≤ ∫⁻ a, f a ∂μ / μ univ :=
-begin
-  have := measure_le_lintegral_pos hμ hf,
-  rw ←measure_diff_null hN at this,
-  obtain ⟨x, hx, hxN⟩ := nonempty_of_measure_ne_zero this.ne',
-  exact ⟨x, hxN, hx⟩,
-end
-
-end
-
 open filter measure_theory set
 open_locale big_operators ennreal nnreal
-
-section
-variables {α M : Type*} [measurable_space α] {μ : measure α} [has_one M] {f : α → M} {s : set α}
-
-@[to_additive]
-lemma mul_indicator_ae_eq_one : s.mul_indicator f =ᵐ[μ] 1 ↔ μ (s ∩ f.mul_support) = 0 :=
-by simpa [eventually_eq, eventually_iff, measure.ae, compl_set_of]
-
-end
 
 variables {α : Type*} [measurable_space α] {μ : measure α} [is_finite_measure μ] {s : ℕ → set α}
   {r : ℝ≥0∞}
@@ -222,8 +80,9 @@ begin
   have hμ : μ ≠ 0,
   { unfreezingI { rintro rfl },
     exact hr₀ (le_bot_iff.1 $ hr 0) },
-  obtain ⟨x, hxN, hx⟩ := exists_not_mem_lintegral_le hμ (measurable_limsup hf).ae_measurable hN₀
-    (ne_top_of_le_ne_top (measure_ne_top μ univ) _),
+  obtain ⟨x, hxN, hx⟩ := exists_not_mem_null_laverage_le hμ (measurable_limsup hf).ae_measurable
+    (ne_top_of_le_ne_top (measure_ne_top μ univ) _) hN₀,
+  rw laverage_eq at hx,
   replace hx := (ennreal.div_le_div_right ((le_limsup_of_le ⟨μ univ, eventually_map.2 _⟩ $ λ b hb,
     _).trans $ limsup_lintegral_le hf (λ n, ae_of_all μ $ hf₁ n) $
     ne_of_eq_of_ne lintegral_one is_finite_measure.measure_univ_lt_top.ne) _).trans hx,

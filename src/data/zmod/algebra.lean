@@ -39,6 +39,8 @@ def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 
 end
 
+/-- The `zmod p`-algebra structure on a ring of characteristic `p`. This is not an
+instance since it creates a diamond with `algebra.id`. -/
 def algebra (p : ℕ) [char_p R p] : algebra (zmod p) R := algebra' R p dvd_rfl
 
 end zmod

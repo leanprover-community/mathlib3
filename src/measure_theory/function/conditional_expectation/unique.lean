@@ -9,6 +9,9 @@ import measure_theory.function.conditional_expectation.ae_measurable
 /-!
 # Uniqueness of the conditional expectation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Two Lp functions `f, g` which are almost everywhere strongly measurable with respect to a σ-algebra
 `m` and verify `∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ` for all `m`-measurable sets `s` are equal
 almost everywhere. This proves the uniqueness of the conditional expectation, which is not yet

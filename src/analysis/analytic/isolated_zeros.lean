@@ -12,6 +12,9 @@ import analysis.analytic.uniqueness
 /-!
 # Principle of isolated zeros
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the fact that the zeros of a non-constant analytic function of one variable are
 isolated. It also introduces a little bit of API in the `has_fpower_series_at` namespace that is
 useful in this setup.

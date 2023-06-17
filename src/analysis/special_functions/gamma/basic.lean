@@ -10,6 +10,9 @@ import analysis.mellin_transform
 /-!
 # The Gamma function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `Γ` function (of a real or complex variable `s`). We define this by Euler's
 integral `Γ(s) = ∫ x in Ioi 0, exp (-x) * x ^ (s - 1)` in the range where this integral converges
 (i.e., for `0 < s` in the real case, and `0 < re s` in the complex case).

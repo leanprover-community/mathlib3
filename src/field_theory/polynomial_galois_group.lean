@@ -139,8 +139,7 @@ begin
     have hy := subtype.mem y,
     simp only [root_set, finset.mem_coe, multiset.mem_to_finset, key, multiset.mem_map] at hy,
     rcases hy with ⟨x, hx1, hx2⟩,
-    classical,
-    exact ⟨⟨x, multiset.mem_to_finset.mpr hx1⟩, subtype.ext hx2⟩ }
+    exact ⟨⟨x, (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr hx1⟩, subtype.ext hx2⟩ }
 end
 
 /-- The bijection between `root_set p p.splitting_field` and `root_set p E`. -/
@@ -237,14 +236,16 @@ begin
   { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,
     have key : x = algebra_map (p.splitting_field) (p * q).splitting_field
-      ((roots_equiv_roots p _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
+      ((roots_equiv_roots p _).inv_fun ⟨x,
+        (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr h⟩) :=
       subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots p _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.1 _) },
   { haveI : fact (q.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_left q p)⟩,
     have key : x = algebra_map (q.splitting_field) (p * q).splitting_field
-      ((roots_equiv_roots q _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
+      ((roots_equiv_roots q _).inv_fun ⟨x,
+        (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr h⟩) :=
       subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots q _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.2 _) },
@@ -257,12 +258,12 @@ lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : F[X]}
   (p₁ * p₂).splits (algebra_map F (q₁ * q₂).splitting_field) :=
 begin
   apply splits_mul,
-  { rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd _
-      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
-    exact splits_comp_of_splits _ _ h₁, },
-  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd _
-      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
-    exact splits_comp_of_splits _ _ h₂, },
+  { rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd (algebra_map F (q₁ * q₂).splitting_field)
+     (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₁ },
+  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd (algebra_map F (q₁ * q₂).splitting_field)
+     (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₂ },
 end
 
 /-- `p` splits in the splitting field of `p ∘ q`, for `q` non-constant. -/
@@ -304,7 +305,9 @@ end
 
 /-- `polynomial.gal.restrict` for the composition of polynomials. -/
 def restrict_comp (hq : q.nat_degree ≠ 0) : (p.comp q).gal →* p.gal :=
-@restrict F _ p _ _ _ ⟨splits_in_splitting_field_of_comp p q hq⟩
+let h : fact (splits (algebra_map F (p.comp q).splitting_field) p) :=
+    ⟨splits_in_splitting_field_of_comp p q hq⟩ in
+@restrict F _ p _ _ _ h
 
 lemma restrict_comp_surjective (hq : q.nat_degree ≠ 0) :
   function.surjective (restrict_comp p q hq) :=

@@ -344,8 +344,8 @@ begin
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],
-  exact gal_is_solvable_of_splits ⟨normal.splits (splitting_field.normal _) _⟩
-    (gal_mul_is_solvable hα hβ),
+  refine gal_is_solvable_of_splits ⟨_⟩ (gal_mul_is_solvable hα hβ),
+  exact normal.splits (splitting_field.normal _) (f ⟨γ, hγ⟩),
 end
 
 /-- An auxiliary induction lemma, which is generalized by `solvable_by_rad.is_solvable`. -/

@@ -180,6 +180,8 @@ private lemma ring_equiv_of_cardinal_eq_of_char_p (p : ℕ) [fact p.prime]
   [char_p K p] [char_p L p] (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,
+  letI : algebra (zmod p) K := zmod.algebra _ _,
+  letI : algebra (zmod p) L := zmod.algebra _ _,
   cases exists_is_transcendence_basis (zmod p)
     (show function.injective (algebra_map (zmod p) K),
       from ring_hom.injective _) with s hs,

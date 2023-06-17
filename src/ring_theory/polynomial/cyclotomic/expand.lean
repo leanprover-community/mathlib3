@@ -140,9 +140,9 @@ end
 /-- If `R` is of characteristic `p` and `p ∣ n`, then
 `cyclotomic (n * p) R = (cyclotomic n R) ^ p`. -/
 lemma cyclotomic_mul_prime_dvd_eq_pow (R : Type*) {p n : ℕ} [hp : fact (nat.prime p)] [ring R]
-  [char_p R p] (hn : p ∣ n) : cyclotomic (n * p) R = (cyclotomic n R) ^ p :=
+  [char_p R p] [algebra (zmod p) R] (hn : p ∣ n) :
+  cyclotomic (n * p) R = (cyclotomic n R) ^ p :=
 begin
-  letI : algebra (zmod p) R := zmod.algebra _ _,
   suffices : cyclotomic (n * p) (zmod p) = (cyclotomic n (zmod p)) ^ p,
   { rw [← map_cyclotomic _ (algebra_map (zmod p) R), ← map_cyclotomic _ (algebra_map (zmod p) R),
       this, polynomial.map_pow] },

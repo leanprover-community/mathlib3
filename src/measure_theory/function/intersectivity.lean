@@ -10,8 +10,9 @@ import order.upper_lower.locally_finite
 /-!
 # Bergelson's intersectivity lemma
 
-This file proves the Bergelson intersectivity lemma: In a finite measure space, a sequence of events that have
-measure at least `r` has an infinite subset whose finite intersections all have positive volume.
+This file proves the Bergelson intersectivity lemma: In a finite measure space, a sequence of events
+that have measure at least `r` has an infinite subset whose finite intersections all have positive
+volume.
 
 This is in some sort a finitary version of the second Borel-Cantelli lemma.
 

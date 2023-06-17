@@ -124,7 +124,7 @@ section char_p
 /-- If `R` is of characteristic `p` and `¬p ∣ n`, then
 `cyclotomic (n * p) R = (cyclotomic n R) ^ (p - 1)`. -/
 lemma cyclotomic_mul_prime_eq_pow_of_not_dvd (R : Type*) {p n : ℕ} [hp : fact (nat.prime p)]
-  [ring R] [char_p R p] (hn : ¬p ∣ n) [algebra (zmod p) R]: 
+  [ring R] [algebra (zmod p) R] (hn : ¬p ∣ n) [algebra (zmod p) R]:
   cyclotomic (n * p) R = (cyclotomic n R) ^ (p - 1) :=
 begin
   suffices : cyclotomic (n * p) (zmod p) = (cyclotomic n (zmod p)) ^ (p - 1),
@@ -140,7 +140,7 @@ end
 /-- If `R` is of characteristic `p` and `p ∣ n`, then
 `cyclotomic (n * p) R = (cyclotomic n R) ^ p`. -/
 lemma cyclotomic_mul_prime_dvd_eq_pow (R : Type*) {p n : ℕ} [hp : fact (nat.prime p)] [ring R]
-  [char_p R p] [algebra (zmod p) R] (hn : p ∣ n) :
+  [algebra (zmod p) R] (hn : p ∣ n) :
   cyclotomic (n * p) R = (cyclotomic n R) ^ p :=
 begin
   suffices : cyclotomic (n * p) (zmod p) = (cyclotomic n (zmod p)) ^ p,
@@ -153,7 +153,7 @@ end
 /-- If `R` is of characteristic `p` and `¬p ∣ m`, then
 `cyclotomic (p ^ k * m) R = (cyclotomic m R) ^ (p ^ k - p ^ (k - 1))`. -/
 lemma cyclotomic_mul_prime_pow_eq (R : Type*) {p m : ℕ} [fact (nat.prime p)]
-  [ring R] [char_p R p] (hm : ¬p ∣ m) :
+  [ring R] [algebra (zmod p) R] (hm : ¬p ∣ m) :
   ∀ {k}, 0 < k → cyclotomic (p ^ k * m) R = (cyclotomic m R) ^ (p ^ k - p ^ (k - 1))
 | 1 _ := by rw [pow_one, nat.sub_self, pow_zero, mul_comm,
   cyclotomic_mul_prime_eq_pow_of_not_dvd R hm]
@@ -173,6 +173,7 @@ lemma is_root_cyclotomic_prime_pow_mul_iff_of_char_p {m k p : ℕ} {R : Type*} [
   [is_domain R] [hp : fact (nat.prime p)] [hchar : char_p R p] {μ : R} [ne_zero (m : R)] :
   (polynomial.cyclotomic (p ^ k * m) R).is_root μ ↔ is_primitive_root μ m :=
 begin
+  letI : algebra (zmod p) R := zmod.algebra _ _,
   rcases k.eq_zero_or_pos with rfl | hk,
   { rw [pow_zero, one_mul, is_root_cyclotomic_iff] },
   refine ⟨λ h, _, λ h, _⟩,

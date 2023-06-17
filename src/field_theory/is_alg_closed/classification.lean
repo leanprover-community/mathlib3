@@ -204,6 +204,8 @@ begin
   apply classical.choice,
   rcases char_p.char_is_prime_or_zero K p with hp | hp,
   { haveI : fact p.prime := ⟨hp⟩,
+    letI : algebra (zmod p) K := zmod.algebra _ _,
+    letI : algebra (zmod p) L := zmod.algebra _ _,
     exact ⟨ring_equiv_of_cardinal_eq_of_char_p p hK hKL⟩ },
   { rw [hp] at *,
     resetI,

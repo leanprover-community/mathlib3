@@ -39,6 +39,6 @@ def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 
 end
 
-instance (p : ℕ) [char_p R p] : algebra (zmod p) R := algebra' R p dvd_rfl
+def algebra (p : ℕ) [char_p R p] : algebra (zmod p) R := algebra' R p dvd_rfl
 
 end zmod

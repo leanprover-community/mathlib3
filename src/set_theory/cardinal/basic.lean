@@ -1215,6 +1215,10 @@ by rw [to_nat_apply_of_lt_aleph_0 h, ← classical.some_spec (lt_aleph_0.1 h)]
 lemma cast_to_nat_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : ↑c.to_nat = (0 : cardinal) :=
 by rw [to_nat_apply_of_aleph_0_le h, nat.cast_zero]
 
+lemma to_nat_eq_iff_eq_of_lt_aleph_0 {c d : cardinal} (hc : c < ℵ₀) (hd : d < ℵ₀) :
+  c.to_nat = d.to_nat ↔ c = d :=
+by rw [←nat_cast_inj, cast_to_nat_of_lt_aleph_0 hc, cast_to_nat_of_lt_aleph_0 hd]
+
 lemma to_nat_le_iff_le_of_lt_aleph_0 {c d : cardinal} (hc : c < ℵ₀) (hd : d < ℵ₀) :
   c.to_nat ≤ d.to_nat ↔ c ≤ d :=
 by rw [←nat_cast_le, cast_to_nat_of_lt_aleph_0 hc, cast_to_nat_of_lt_aleph_0 hd]
@@ -1360,6 +1364,19 @@ to_part_enat_apply_of_aleph_0_le le_rfl
 lemma to_part_enat_surjective : surjective to_part_enat :=
 λ x, part_enat.cases_on x ⟨ℵ₀, to_part_enat_apply_of_aleph_0_le le_rfl⟩ $
   λ n, ⟨n, to_part_enat_cast n⟩
+
+lemma to_part_enat_lift (c : cardinal.{v}) : (cardinal.lift.{u v} c).to_part_enat = c.to_part_enat :=
+begin
+  cases lt_or_ge c ℵ₀ with hc hc,
+  { rw [to_part_enat_apply_of_lt_aleph_0 hc, cardinal.to_part_enat_apply_of_lt_aleph_0 _],
+    simp only [to_nat_lift],
+    rw [← lift_aleph_0, lift_lt], exact hc },
+  { rw [to_part_enat_apply_of_aleph_0_le hc, cardinal.to_part_enat_apply_of_aleph_0_le _],
+  rw [← lift_aleph_0, lift_le], exact hc }
+end
+
+lemma to_part_enat_congr {β : Type v} (e : α ≃ β) : (#α).to_part_enat = (#β).to_part_enat :=
+by rw [←to_part_enat_lift, lift_mk_eq.mpr ⟨e⟩, to_part_enat_lift]
 
 lemma mk_to_part_enat_eq_coe_card [fintype α] : (#α).to_part_enat = fintype.card α :=
 by simp

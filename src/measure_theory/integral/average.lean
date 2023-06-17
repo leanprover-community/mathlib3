@@ -38,6 +38,25 @@ Provide the first moment method for the Lebesgue integral as well. A draft is av
 integral, center mass, average value
 -/
 
+namespace ennreal
+open_locale ennreal
+variables {a b c : ℝ≥0∞}
+
+protected lemma mul_comm_div : a / b * c = a * (c / b) :=
+by simp only [div_eq_mul_inv, mul_comm, mul_assoc]
+
+protected lemma mul_div_right_comm : a * b / c = a / c * b :=
+by simp only [div_eq_mul_inv, mul_comm, mul_assoc]
+
+protected lemma div_pos (ha : a ≠ 0) (hb : b ≠ ⊤) : 0 < a / b :=
+ennreal.mul_pos ha $ ennreal.inv_ne_zero.2 hb
+
+instance : unique (add_units ℝ≥0∞) :=
+{ default := 0,
+  uniq := λ a, add_units.ext $ le_zero_iff.1 $ by { rw ←a.add_neg, exact le_self_add } }
+
+end ennreal
+
 open ennreal measure_theory measure_theory.measure metric set filter topological_space function
 open_locale topology big_operators ennreal convex
 
@@ -57,7 +76,7 @@ integral.
 -/
 
 namespace measure_theory
-section normed_add_comm_group
+section ennreal
 variables (μ) {f g : α → ℝ≥0∞}
 include m0
 
@@ -71,7 +90,8 @@ noncomputable def laverage (f : α → ℝ≥0∞) := ∫⁻ x, f x ∂((μ univ
 
 notation `⨍⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := laverage μ r
 notation `⨍⁻` binders `, ` r:(scoped:60 f, laverage volume f) := r
-notation `⨍⁻` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 := laverage (measure.restrict μ s) r
+notation `⨍⁻` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 :=
+  laverage (measure.restrict μ s) r
 notation `⨍⁻` binders ` in ` s `, ` r:(scoped:60 f, laverage (measure.restrict volume s) f) := r
 
 @[simp] lemma laverage_zero : ⨍⁻ x, (0 : ℝ≥0∞) ∂μ = 0 := by rw [laverage, lintegral_zero]
@@ -111,146 +131,80 @@ by simp only [laverage_eq, lintegral_congr_ae h]
 lemma set_laverage_congr_set_ae (h : s =ᵐ[μ] t) : ⨍⁻ x in s, f x ∂μ = ⨍⁻ x in t, f x ∂μ :=
 by simp only [set_laverage_eq, set_lintegral_congr h, measure_congr h]
 
-lemma laverage_add_measure [is_finite_measure μ] {ν : measure α} [is_finite_measure ν] {f : α → ℝ≥0∞}
-  (hμ : ae_measurable f μ) (hν : ae_measurable f ν) :
+lemma laverage_add_measure [is_finite_measure μ] {ν : measure α} [is_finite_measure ν] :
   ⨍⁻ x, f x ∂(μ + ν) =
-    (μ univ / (μ univ + ν univ)) * ⨍⁻ x, f x ∂μ + (ν univ / (μ univ + ν univ)) * ⨍⁻ x, f x ∂ν :=
-begin
-  simp only [div_eq_inv_mul, mul_smul, measure_smul_laverage, ← smul_add,
-    ← lintegral_add_measure hμ hν, ← ennreal_add (measure_ne_top μ _) (measure_ne_top ν _)],
-  rw [laverage_eq, measure.add_apply]
-end
+    μ univ / (μ univ + ν univ) * ⨍⁻ x, f x ∂μ + ν univ / (μ univ + ν univ) * ⨍⁻ x, f x ∂ν :=
+by simp only [←ennreal.mul_div_right_comm, measure_mul_laverage, ←ennreal.add_div,
+  ←lintegral_add_measure, ←measure.add_apply, ←laverage_eq]
 
-lemma laverage_pair {f : α → ℝ≥0∞} {g : α → F} (hfi : ae_measurable f μ) (hgi : integrable g μ) :
-  ⨍⁻ x, (f x, g x) ∂μ = (⨍⁻ x, f x ∂μ, ⨍⁻ x, g x ∂μ) :=
-integral_pair hfi.to_laverage hgi.to_laverage
-
-lemma measure_smul_set_laverage (f : α → ℝ≥0∞) {s : set α} (h : μ s ≠ ∞) :
-  (μ s) • ⨍⁻ x in s, f x ∂μ = ∫⁻ x in s, f x ∂μ :=
-by { haveI := fact.mk h.lt_top, rw [← measure_smul_laverage, restrict_apply_univ] }
+lemma measure_mul_set_laverage (f : α → ℝ≥0∞) {s : set α} (h : μ s ≠ ∞) :
+  μ s * ⨍⁻ x in s, f x ∂μ = ∫⁻ x in s, f x ∂μ :=
+by { haveI := fact.mk h.lt_top, rw [← measure_mul_laverage, restrict_apply_univ] }
 
 lemma laverage_union {f : α → ℝ≥0∞} {s t : set α} (hd : ae_disjoint μ s t)
-  (ht : null_measurable_set t μ) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞)
-  (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
+  (ht : null_measurable_set t μ) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞) :
   ⨍⁻ x in s ∪ t, f x ∂μ =
-    ((μ s) / ((μ s) + (μ t))) • ⨍⁻ x in s, f x ∂μ +
-      ((μ t) / ((μ s) + (μ t))) • ⨍⁻ x in t, f x ∂μ :=
+    μ s / (μ s + μ t) * ⨍⁻ x in s, f x ∂μ + μ t / (μ s + μ t) * ⨍⁻ x in t, f x ∂μ :=
 begin
   haveI := fact.mk hsμ.lt_top, haveI := fact.mk htμ.lt_top,
-  rw [restrict_union₀ hd ht, laverage_add_measure hfs hft, restrict_apply_univ, restrict_apply_univ]
+  rw [restrict_union₀ hd ht, laverage_add_measure, restrict_apply_univ, restrict_apply_univ]
 end
 
-lemma laverage_union_mem_open_segment {f : α → ℝ≥0∞} {s t : set α} (hd : ae_disjoint μ s t)
-  (ht : null_measurable_set t μ) (hs₀ : μ s ≠ 0) (ht₀ : μ t ≠ 0) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞)
-  (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
-  ⨍⁻ x in s ∪ t, f x ∂μ ∈ open_segment ℝ (⨍⁻ x in s, f x ∂μ) (⨍⁻ x in t, f x ∂μ) :=
+lemma laverage_union_mem_open_segment (hd : ae_disjoint μ s t) (ht : null_measurable_set t μ)
+  (hs₀ : μ s ≠ 0) (ht₀ : μ t ≠ 0) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞) :
+  ⨍⁻ x in s ∪ t, f x ∂μ ∈ open_segment ℝ≥0∞ (⨍⁻ x in s, f x ∂μ) (⨍⁻ x in t, f x ∂μ) :=
 begin
-  replace hs₀ : 0 < (μ s), from ennreal_pos hs₀ hsμ,
-  replace ht₀ : 0 < (μ t), from ennreal_pos ht₀ htμ,
-  refine mem_open_segment_iff_div.mpr ⟨(μ s), (μ t), hs₀, ht₀,
-    (laverage_union hd ht hsμ htμ hfs hft).symm⟩
+  refine ⟨μ s / (μ s + μ t), μ t / (μ s + μ t), ennreal.div_pos hs₀ $ add_ne_top.2 ⟨hsμ, htμ⟩,
+    ennreal.div_pos ht₀ $ add_ne_top.2 ⟨hsμ, htμ⟩, _, (laverage_union hd ht hsμ htμ).symm⟩,
+  rw [←ennreal.add_div, ennreal.div_self (add_eq_zero.not.2 $ λ h, hs₀ h.1)
+    (add_ne_top.2 ⟨hsμ, htμ⟩)],
 end
 
-lemma laverage_union_mem_segment {f : α → ℝ≥0∞} {s t : set α} (hd : ae_disjoint μ s t)
-  (ht : null_measurable_set t μ) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞)
-  (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
-  ⨍⁻ x in s ∪ t, f x ∂μ ∈ [⨍⁻ x in s, f x ∂μ -[ℝ] ⨍⁻ x in t, f x ∂μ] :=
+lemma laverage_union_mem_segment (hd : ae_disjoint μ s t) (ht : null_measurable_set t μ)
+  (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞) :
+  ⨍⁻ x in s ∪ t, f x ∂μ ∈ [⨍⁻ x in s, f x ∂μ -[ℝ≥0∞] ⨍⁻ x in t, f x ∂μ] :=
 begin
-  by_cases hse : μ s = 0,
-  { rw ← ae_eq_empty at hse,
-    rw [restrict_congr_set (hse.union eventually_eq.rfl), empty_union],
+  by_cases hs₀ : μ s = 0,
+  { rw ← ae_eq_empty at hs₀,
+    rw [restrict_congr_set (hs₀.union eventually_eq.rfl), empty_union],
     exact right_mem_segment _ _ _ },
-  { refine mem_segment_iff_div.mpr ⟨(μ s), (μ t), ennreal_nonneg,
-      ennreal_nonneg, _, (laverage_union hd ht hsμ htμ hfs hft).symm⟩,
-    calc 0 < (μ s) : ennreal_pos hse hsμ
-    ... ≤ _ : le_add_of_nonneg_right ennreal_nonneg }
+  { refine ⟨μ s / (μ s + μ t), μ t / (μ s + μ t), zero_le _, zero_le _, _,
+    (laverage_union hd ht hsμ htμ).symm⟩,
+    rw [←ennreal.add_div, ennreal.div_self (add_eq_zero.not.2 $ λ h, hs₀ h.1)
+      (add_ne_top.2 ⟨hsμ, htμ⟩)] }
 end
 
-lemma laverage_mem_open_segment_compl_self [is_finite_measure μ] {f : α → ℝ≥0∞} {s : set α}
-  (hs : null_measurable_set s μ) (hs₀ : μ s ≠ 0) (hsc₀ : μ sᶜ ≠ 0) (hfi : ae_measurable f μ) :
-  ⨍⁻ x, f x ∂μ ∈ open_segment ℝ (⨍⁻ x in s, f x ∂μ) (⨍⁻ x in sᶜ, f x ∂μ) :=
+lemma laverage_mem_open_segment_compl_self [is_finite_measure μ] (hs : null_measurable_set s μ)
+  (hs₀ : μ s ≠ 0) (hsc₀ : μ sᶜ ≠ 0) :
+  ⨍⁻ x, f x ∂μ ∈ open_segment ℝ≥0∞ (⨍⁻ x in s, f x ∂μ) (⨍⁻ x in sᶜ, f x ∂μ) :=
 by simpa only [union_compl_self, restrict_univ]
   using laverage_union_mem_open_segment ae_disjoint_compl_right hs.compl hs₀ hsc₀
-    (measure_ne_top _ _) (measure_ne_top _ _) hfi.integrable_on hfi.integrable_on
+    (measure_ne_top _ _) (measure_ne_top _ _)
 
-@[simp] lemma laverage_const [is_finite_measure μ] [h : μ.ae.ne_bot] (c : ℝ≥0∞) :
-  ⨍⁻ x, c ∂μ = c :=
-by simp only [laverage_eq, lintegral_const, measure.restrict_apply, measurable_set.univ, one_smul,
-  univ_inter, smul_smul, ← ennreal_inv, ← ennreal_mul, ennreal.inv_mul_cancel,
-  measure_ne_top μ univ, ne.def, measure_univ_eq_zero, ae_ne_bot.1 h, not_false_iff,
-  ennreal.one_to_real]
+@[simp] lemma laverage_const [is_finite_measure μ] [h : μ.ae.ne_bot] (c : ℝ≥0∞) : ⨍⁻ x, c ∂μ = c :=
+by simp only [laverage_eq, lintegral_const, measure.restrict_apply, measurable_set.univ, univ_inter,
+  div_eq_mul_inv, mul_assoc, ennreal.mul_inv_cancel, mul_one, measure_ne_top μ univ, ne.def,
+  measure_univ_ne_zero, ae_ne_bot.1 h, not_false_iff]
 
 lemma set_laverage_const {s : set α} (hs₀ : μ s ≠ 0) (hs : μ s ≠ ∞) (c : ℝ≥0∞) :
   ⨍⁻ x in s, c ∂μ = c :=
 by simp only [set_laverage_eq, lintegral_const, measure.restrict_apply, measurable_set.univ,
-  univ_inter, smul_smul, ← ennreal_inv, ← ennreal_mul,
-  ennreal.inv_mul_cancel hs₀ hs, ennreal.one_to_real, one_smul]
+  univ_inter, div_eq_mul_inv, mul_assoc, ennreal.mul_inv_cancel hs₀ hs, mul_one]
 
 @[simp] lemma lintegral_laverage (μ : measure α) [is_finite_measure μ] (f : α → ℝ≥0∞) :
   ∫⁻ x, ⨍⁻ a, f a ∂μ ∂μ = ∫⁻ x, f x ∂μ :=
 begin
   unfreezingI { obtain rfl | hμ := eq_or_ne μ 0 },
-  { simp only [integral_zero_measure] },
-  { rw [integral_const, laverage_eq,
-      smul_inv_smul₀ (to_real_ne_zero.2 ⟨measure_univ_ne_zero.2 hμ, measure_ne_top _ _⟩)] }
+  { simp },
+  { rw [lintegral_const, laverage_eq,
+      ennreal.div_mul_cancel (measure_univ_ne_zero.2 hμ) (measure_ne_top _ _)] }
 end
 
 lemma set_lintegral_set_laverage (μ : measure α) [is_finite_measure μ] (f : α → ℝ≥0∞) (s : set α) :
   ∫⁻ x in s, ⨍⁻ a in s, f a ∂μ ∂μ = ∫⁻ x in s, f x ∂μ :=
-integral_laverage _ _
+lintegral_laverage _ _
 
-lemma lintegral_sub_laverage (μ : measure α) [is_finite_measure μ] (f : α → ℝ≥0∞) :
-  ∫⁻ x, f x - ⨍⁻ a, f a ∂μ ∂μ = 0 :=
-begin
-  by_cases hf : ae_measurable f μ,
-  { rw [integral_sub hf (integrable_const _), lintegral_laverage, sub_self] },
-  refine lintegral_undef (λ h, hf _),
-  convert h.add (integrable_const _),
-  exact (sub_add_cancel _ _).symm,
-end
-
-lemma set_lintegral_sub_set_laverage (hs : μ s ≠ ∞) (f : α → ℝ≥0∞) :
-  ∫⁻ x in s, f x - ⨍⁻ a in s, f a ∂μ ∂μ = 0 :=
-by haveI haveI : fact (μ s < ∞) := ⟨lt_top_iff_ne_top.2 hs⟩; exact lintegral_sub_laverage _ _
-
-lemma lintegral_laverage_sub [is_finite_measure μ] (hf : ae_measurable f μ) :
-  ∫⁻ x, ⨍⁻ a, f a ∂μ - f x ∂μ = 0 :=
-by rw [integral_sub (integrable_const _) hf, lintegral_laverage, sub_self]
-
-lemma set_lintegral_set_laverage_sub (hs : μ s ≠ ∞) (hf : integrable_on f s μ) :
-  ∫⁻ x in s, ⨍⁻ a in s, f a ∂μ - f x ∂μ = 0 :=
-by haveI haveI : fact (μ s < ∞) := ⟨lt_top_iff_ne_top.2 hs⟩; exact lintegral_laverage_sub hf
-
-end normed_add_comm_group
-
-lemma of_real_laverage {f : α → ℝ} (hf : ae_measurable f μ) (hf₀ : 0 ≤ᵐ[μ] f) :
-  ennreal.of_real (⨍⁻ x, f x ∂μ) = (∫⁻ x, ennreal.of_real (f x) ∂μ) / μ univ :=
-begin
-  obtain rfl | hμ := eq_or_ne μ 0,
-  { simp },
-  { rw [laverage_eq, smul_eq_mul, ←to_real_inv, of_real_mul (to_real_nonneg),
-      of_real_to_real (inv_ne_top.2 $ measure_univ_ne_zero.2 hμ),
-      of_real_lintegral_eq_lintegral_of_real hf hf₀, ennreal.div_eq_inv_mul] }
-end
-
-lemma of_real_set_laverage {f : α → ℝ} (hf : integrable_on f s μ)
-  (hf₀ : 0 ≤ᵐ[μ.restrict s] f) :
-  ennreal.of_real (⨍⁻ x in s, f x ∂μ) = (∫⁻ x in s, ennreal.of_real (f x) ∂μ) / μ s :=
-by simpa using of_real_laverage hf hf₀
-
-lemma laverage_to_real {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (hf' : ∀ᵐ x ∂μ, f x ≠ ∞) :
-  ⨍⁻ x, (f x) ∂μ = (∫⁻ x, f x ∂μ / μ univ) :=
-begin
-  obtain rfl | hμ := eq_or_ne μ 0,
-  { simp },
-  { rw [laverage_eq, smul_eq_mul, to_real_div,
-      ←integral_to_real hf (hf'.mono $ λ _, lt_top_iff_ne_top.2), div_eq_inv_mul] }
-end
-
-lemma set_laverage_to_real {f : α → ℝ≥0∞} (hf : ae_measurable f (μ.restrict s))
-  (hf' : ∀ᵐ x ∂(μ.restrict s), f x ≠ ∞) :
-  ⨍⁻ x in s, (f x) ∂μ = (∫⁻ x in s, f x ∂μ / μ s) :=
-by simpa using laverage_to_real hf hf'
+end ennreal
 
 section normed_add_comm_group
 variables (μ) {f g : α → E}

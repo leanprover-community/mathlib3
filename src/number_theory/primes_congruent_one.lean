@@ -9,6 +9,9 @@ import ring_theory.polynomial.cyclotomic.eval
 /-!
 # Primes congruent to one
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove that, for any positive `k : ℕ`, there are infinitely many primes `p` such that
 `p ≡ 1 [MOD k]`.
 -/

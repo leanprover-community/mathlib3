@@ -12,6 +12,9 @@ import topology.order.basic
 /-!
 # Corollaries From Approximation Lemmas (`algebra.continued_fractions.computation.approximations`)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We show that the generalized_continued_fraction given by `generalized_continued_fraction.of` in fact

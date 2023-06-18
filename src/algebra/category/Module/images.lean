@@ -5,10 +5,12 @@ Authors: Scott Morrison
 -/
 import algebra.category.Module.abelian
 import category_theory.limits.shapes.images
-import category_theory.limits.types
 
 /-!
 # The category of R-modules has images.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Note that we don't need to register any of the constructions here as instances, because we get them
 from the fact that `Module R` is an abelian category.

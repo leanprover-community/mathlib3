@@ -3,13 +3,15 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.int.basic
-import algebra.char_zero
+import algebra.char_zero.lemmas
 import order.locally_finite
 import data.finset.locally_finite
 
 /-!
 # Finite intervals of integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves that `ℤ` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.

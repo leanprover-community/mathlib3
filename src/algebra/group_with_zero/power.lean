@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.group_power.lemmas
+import data.int.bitwise
 
 /-!
 # Powers of elements of groups with an adjoined zero element
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define integer power functions for groups with an adjoined zero element.
 This generalises the integer power function on a division ring.
@@ -164,11 +168,7 @@ end
 
 /-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
 `n : ℤ`, to `(f x)^n`. -/
-lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
-  (f : G₀ →*₀ G₀') (x : G₀) :
-  ∀ n : ℤ, f (x ^ n) = f x ^ n
-| (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
-| -[1+n] := begin
-    rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat],
-    exact ((f.map_inv _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
-  end
+@[simp] lemma map_zpow₀ {F G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
+  [monoid_with_zero_hom_class F G₀ G₀'] (f : F) (x : G₀) (n : ℤ) :
+  f (x ^ n) = f x ^ n :=
+map_zpow' f (map_inv₀ f) x n

@@ -3,6 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.pi.algebra
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
 import category_theory.isomorphism_classes
@@ -10,6 +11,9 @@ import category_theory.limits.shapes.zero_objects
 
 /-!
 # Zero morphisms and zero objects
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A category "has zero morphisms" if there is a designated "zero morphism" in each morphism space,
 and compositions of zero morphisms with anything give the zero morphism. (Notice this is extra

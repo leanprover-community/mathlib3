@@ -8,6 +8,9 @@ import category_theory.preadditive.projective_resolution
 /-!
 # Left-derived functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the left-derived functors `F.left_derived n : C ⥤ D` for any additive functor `F`
 out of a category with projective resolutions.
 

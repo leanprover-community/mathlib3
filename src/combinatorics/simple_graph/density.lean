@@ -5,9 +5,13 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.basic
 import order.partition.finpartition
+import tactic.positivity
 
 /-!
 # Edge density
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the number and density of edges of a relation/graph.
 
@@ -23,14 +27,14 @@ Between two finsets of vertices,
 open finset
 open_locale big_operators
 
-variables {ι κ α β : Type*}
+variables {𝕜 ι κ α β : Type*}
 
 /-! ### Density of a relation -/
 
 namespace rel
 section asymmetric
-variables (r : α → β → Prop) [Π a, decidable_pred (r a)] {s s₁ s₂ : finset α} {t t₁ t₂ : finset β}
-  {a : α} {b : β} {δ : ℚ}
+variables [linear_ordered_field 𝕜] (r : α → β → Prop) [Π a, decidable_pred (r a)]
+  {s s₁ s₂ : finset α} {t t₁ t₂ : finset β} {a : α} {b : β} {δ : 𝕜}
 
 /-- Finset of edges of a relation between two finsets of vertices. -/
 def interedges (s : finset α) (t : finset β) : finset (α × β) := (s ×ˢ t).filter $ λ e, r e.1 e.2
@@ -62,24 +66,26 @@ begin
   convert disjoint_filter.2 (λ x _, not_not.2),
 end
 
-section decidable_eq
-variables [decidable_eq α] [decidable_eq β]
-
 lemma interedges_disjoint_left {s s' : finset α} (hs : disjoint s s') (t : finset β) :
   disjoint (interedges r s t) (interedges r s' t) :=
 begin
-  rintro x hx,
-  rw [inf_eq_inter, mem_inter, mem_interedges_iff, mem_interedges_iff] at hx,
-  exact hs (mem_inter.2 ⟨hx.1.1, hx.2.1⟩),
+  rw finset.disjoint_left at ⊢ hs,
+  rintro x hx hy,
+  rw [mem_interedges_iff] at hx hy,
+  exact hs hx.1 hy.1,
 end
 
 lemma interedges_disjoint_right (s : finset α) {t t' : finset β} (ht : disjoint t t') :
   disjoint (interedges r s t) (interedges r s t') :=
 begin
-  rintro x hx,
-  rw [inf_eq_inter, mem_inter, mem_interedges_iff, mem_interedges_iff] at hx,
-  exact ht (mem_inter.2 ⟨hx.1.2.1, hx.2.2.1⟩),
+  rw finset.disjoint_left at ⊢ ht,
+  rintro x hx hy,
+  rw [mem_interedges_iff] at hx hy,
+  exact ht hx.2.1 hy.2.1,
 end
+
+section decidable_eq
+variables [decidable_eq α] [decidable_eq β]
 
 lemma interedges_bUnion_left (s : finset ι) (t : finset β) (f : ι → finset α) :
   interedges r (s.bUnion f) t = s.bUnion (λ a, interedges r (f a) t) :=
@@ -163,7 +169,7 @@ begin
   refine (sub_le_sub_left (mul_edge_density_le_edge_density r hs ht hs₂ ht₂) _).trans _,
   refine le_trans _ (mul_le_of_le_one_right _ (edge_density_le_one r s₂ t₂)),
   { rw [sub_mul, one_mul] },
-  refine sub_nonneg_of_le (mul_le_one _ (div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) _);
+  refine sub_nonneg_of_le (mul_le_one _ (by positivity) _);
   exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset ‹_›)) (nat.cast_nonneg _),
 end
 
@@ -185,32 +191,36 @@ end
 lemma abs_edge_density_sub_edge_density_le_two_mul_sub_sq (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁)
   (hδ₀ : 0 ≤ δ) (hδ₁ : δ < 1) (hs₂ : (1 - δ) * s₁.card ≤ s₂.card)
   (ht₂ : (1 - δ) * t₁.card ≤ t₂.card) :
-  |edge_density r s₂ t₂ - edge_density r s₁ t₁| ≤ 2*δ - δ^2 :=
+  |(edge_density r s₂ t₂ : 𝕜) - edge_density r s₁ t₁| ≤ 2*δ - δ^2 :=
 begin
   have hδ' : 0 ≤ 2 * δ - δ ^ 2,
   { rw [sub_nonneg, sq],
     exact mul_le_mul_of_nonneg_right (hδ₁.le.trans (by norm_num)) hδ₀ },
   rw ←sub_pos at hδ₁,
-  simp only [edge_density],
   obtain rfl | hs₂' := s₂.eq_empty_or_nonempty,
   { rw [finset.card_empty, nat.cast_zero] at hs₂,
-    simpa [(nonpos_of_mul_nonpos_right hs₂ hδ₁).antisymm (nat.cast_nonneg _)] using hδ' },
+    simpa [edge_density, (nonpos_of_mul_nonpos_right hs₂ hδ₁).antisymm (nat.cast_nonneg _)]
+      using hδ' },
   obtain rfl | ht₂' := t₂.eq_empty_or_nonempty,
   { rw [finset.card_empty, nat.cast_zero] at ht₂,
-    simpa [(nonpos_of_mul_nonpos_right ht₂ hδ₁).antisymm (nat.cast_nonneg _)] using hδ' },
+    simpa [edge_density, (nonpos_of_mul_nonpos_right ht₂ hδ₁).antisymm (nat.cast_nonneg _)]
+      using hδ' },
   rw [show 2 * δ - δ ^ 2 = 1 - (1 - δ) * (1 - δ), by ring],
-  refine (abs_edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂' ht₂').trans _,
-  apply sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hs₂) ((le_div_iff _).2 ht₂) hδ₁.le _),
-  { exact_mod_cast (hs₂'.mono hs).card_pos },
-  { exact_mod_cast (ht₂'.mono ht).card_pos },
-  { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) }
+  norm_cast,
+  refine (rat.cast_le.2 $
+    abs_edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂' ht₂').trans _,
+  push_cast,
+  have := hs₂'.mono hs,
+  have := ht₂'.mono ht,
+  refine sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hs₂) ((le_div_iff _).2 ht₂) hδ₁.le _) _;
+  positivity,
 end
 
 /-- If `s₂ ⊆ s₁`, `t₂ ⊆ t₁` and they take up all but a `δ`-proportion, then the difference in edge
 densities is at most `2 * δ`. -/
 lemma abs_edge_density_sub_edge_density_le_two_mul (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁) (hδ : 0 ≤ δ)
   (hscard : (1 - δ) * s₁.card ≤ s₂.card) (htcard : (1 - δ) * t₁.card ≤ t₂.card) :
-  |edge_density r s₂ t₂ - edge_density r s₁ t₁| ≤ 2 * δ :=
+  |(edge_density r s₂ t₂ : 𝕜) - edge_density r s₁ t₁| ≤ 2 * δ :=
 begin
   cases lt_or_le δ 1,
   { exact (abs_edge_density_sub_edge_density_le_two_mul_sub_sq r hs ht hδ h hscard htcard).trans
@@ -280,9 +290,6 @@ mk_mem_interedges_iff
 lemma interedges_mono : s₂ ⊆ s₁ → t₂ ⊆ t₁ → G.interedges s₂ t₂ ⊆ G.interedges s₁ t₁ :=
 interedges_mono
 
-section decidable_eq
-variables [decidable_eq α]
-
 lemma interedges_disjoint_left (hs : disjoint s₁ s₂) (t : finset α) :
   disjoint (G.interedges s₁ t) (G.interedges s₂ t) :=
 interedges_disjoint_left _ hs _
@@ -290,6 +297,9 @@ interedges_disjoint_left _ hs _
 lemma interedges_disjoint_right (s : finset α) (ht : disjoint t₁ t₂) :
   disjoint (G.interedges s t₁) (G.interedges s t₂) :=
 interedges_disjoint_right _ _ ht
+
+section decidable_eq
+variables [decidable_eq α]
 
 lemma interedges_bUnion_left (s : finset ι) (t : finset α) (f : ι → finset α) :
   G.interedges (s.bUnion f) t = s.bUnion (λ a, G.interedges (f a) t) :=
@@ -321,7 +331,7 @@ lemma edge_density_add_edge_density_compl (hs : s.nonempty) (ht : t.nonempty) (h
 begin
   rw [edge_density_def, edge_density_def, div_add_div_same, div_eq_one_iff_eq],
   { exact_mod_cast card_interedges_add_card_interedges_compl _ h },
-  { exact_mod_cast (mul_pos hs.card_pos ht.card_pos).ne' }
+  { positivity }
 end
 
 end decidable_eq
@@ -349,3 +359,19 @@ lemma edge_density_comm (s t : finset α) : G.edge_density s t = G.edge_density 
 edge_density_comm G.symm s t
 
 end simple_graph
+
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: `rel.edge_density` and `simple_graph.edge_density` are
+always nonnegative. -/
+@[positivity]
+meta def positivity_edge_density : expr → tactic strictness
+| `(rel.edge_density %%r %%s %%t) := nonnegative <$>
+                                       mk_mapp ``rel.edge_density_nonneg [none, none, r, none, s, t]
+| `(simple_graph.edge_density %%G %%s %%t) := nonnegative <$>
+                                    mk_mapp ``simple_graph.edge_density_nonneg [none, G, none, s, t]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` isn't of the form `rel.edge_density r s t` nor `simple_graph.edge_density G s t`"
+
+end tactic

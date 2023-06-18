@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.hom.ring
 import algebra.hom.units
 
 /-!
 # Unbundled monoid and group homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file is deprecated, and is no longer imported by anything in mathlib other than other
 deprecated files, and test files. You should not need to import it.

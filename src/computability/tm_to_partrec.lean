@@ -11,6 +11,9 @@ import tactic.derive_fintype
 /-!
 # Modelling partial recursive functions using Turing machines
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a simplified basis for partial recursive functions, and a `turing.TM2` model
 Turing machine for evaluating these functions. This amounts to a constructive proof that every
 `partrec` function can be evaluated by a Turing machine.
@@ -186,9 +189,9 @@ theorem exists_code.comp {m n} {f : vector ℕ n →. ℕ} {g : fin n → vector
   (hg : ∀ i, ∃ c : code, ∀ v : vector ℕ m, c.eval v.1 = pure <$> g i v) :
   ∃ c : code, ∀ v : vector ℕ m, c.eval v.1 = pure <$> (vector.m_of_fn (λ i, g i v) >>= f) :=
 begin
-  suffices : ∃ c : code, ∀ v : vector ℕ m,
+  rsuffices ⟨cg, hg⟩ : ∃ c : code, ∀ v : vector ℕ m,
     c.eval v.1 = subtype.val <$> vector.m_of_fn (λ i, g i v),
-  { obtain ⟨cf, hf⟩ := hf, obtain ⟨cg, hg⟩ := this,
+  { obtain ⟨cf, hf⟩ := hf,
     exact ⟨cf.comp cg, λ v,
       by { simp [hg, hf, map_bind, seq_bind_eq, (∘), -subtype.val_eq_coe], refl }⟩ },
   clear hf f, induction n with n IH,

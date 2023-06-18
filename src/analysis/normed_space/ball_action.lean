@@ -9,6 +9,9 @@ import analysis.normed_space.basic
 /-!
 # Multiplicative actions of/on balls and spheres
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `E` be a normed vector space over a normed field `𝕜`. In this file we define the following
 multiplicative actions.
 
@@ -31,8 +34,7 @@ instance mul_action_closed_ball_ball : mul_action (closed_ball (0 : 𝕜) 1) (ba
 
 instance has_continuous_smul_closed_ball_ball :
   has_continuous_smul (closed_ball (0 : 𝕜) 1) (ball (0 : E) r) :=
-⟨continuous_subtype_mk _ $ (continuous_subtype_val.comp continuous_fst).smul
-  (continuous_subtype_val.comp continuous_snd)⟩
+⟨(continuous_subtype_val.fst'.smul continuous_subtype_val.snd').subtype_mk _⟩
 
 instance mul_action_closed_ball_closed_ball :
   mul_action (closed_ball (0 : 𝕜) 1) (closed_ball (0 : E) r) :=
@@ -45,8 +47,7 @@ instance mul_action_closed_ball_closed_ball :
 
 instance has_continuous_smul_closed_ball_closed_ball :
   has_continuous_smul (closed_ball (0 : 𝕜) 1) (closed_ball (0 : E) r) :=
-⟨continuous_subtype_mk _ $ (continuous_subtype_val.comp continuous_fst).smul
-  (continuous_subtype_val.comp continuous_snd)⟩
+⟨(continuous_subtype_val.fst'.smul continuous_subtype_val.snd').subtype_mk _⟩
 
 end closed_ball
 
@@ -59,8 +60,7 @@ instance mul_action_sphere_ball : mul_action (sphere (0 : 𝕜) 1) (ball (0 : E)
 
 instance has_continuous_smul_sphere_ball :
   has_continuous_smul (sphere (0 : 𝕜) 1) (ball (0 : E) r) :=
-⟨continuous_subtype_mk _ $ (continuous_subtype_val.comp continuous_fst).smul
-  (continuous_subtype_val.comp continuous_snd)⟩
+⟨(continuous_subtype_val.fst'.smul continuous_subtype_val.snd').subtype_mk _⟩
 
 instance mul_action_sphere_closed_ball : mul_action (sphere (0 : 𝕜) 1) (closed_ball (0 : E) r) :=
 { smul := λ c x, inclusion sphere_subset_closed_ball c • x,
@@ -69,8 +69,7 @@ instance mul_action_sphere_closed_ball : mul_action (sphere (0 : 𝕜) 1) (close
 
 instance has_continuous_smul_sphere_closed_ball :
   has_continuous_smul (sphere (0 : 𝕜) 1) (closed_ball (0 : E) r) :=
-⟨continuous_subtype_mk _ $ (continuous_subtype_val.comp continuous_fst).smul
-  (continuous_subtype_val.comp continuous_snd)⟩
+⟨(continuous_subtype_val.fst'.smul continuous_subtype_val.snd').subtype_mk _⟩
 
 instance mul_action_sphere_sphere : mul_action (sphere (0 : 𝕜) 1) (sphere (0 : E) r) :=
 { smul := λ c x, ⟨(c : 𝕜) • x, mem_sphere_zero_iff_norm.2 $
@@ -81,8 +80,7 @@ instance mul_action_sphere_sphere : mul_action (sphere (0 : 𝕜) 1) (sphere (0 
 
 instance has_continuous_smul_sphere_sphere :
   has_continuous_smul (sphere (0 : 𝕜) 1) (sphere (0 : E) r) :=
-⟨continuous_subtype_mk _ $ (continuous_subtype_val.comp continuous_fst).smul
-  (continuous_subtype_val.comp continuous_snd)⟩
+⟨(continuous_subtype_val.fst'.smul continuous_subtype_val.snd').subtype_mk _⟩
 
 end sphere
 

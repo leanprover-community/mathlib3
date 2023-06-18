@@ -10,6 +10,9 @@ import category_theory.graded_object
 /-!
 # Homological complexes.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `homological_complex V c` with a "shape" controlled by `c : complex_shape ι`
 has chain groups `X i` (objects in `V`) indexed by `i : ι`,
 and a differential `d i j` whenever `c.rel i j`.
@@ -427,6 +430,14 @@ def iso_of_components (f : Π i, C₁.X i ≅ C₂.X i)
   (hf : ∀ i j, c.rel i j → (f i).hom ≫ C₂.d i j = C₁.d i j ≫ (f j).hom) (i : ι) :
   iso_app (iso_of_components f hf) i = f i :=
 by { ext, simp, }
+
+lemma is_iso_of_components (f : C₁ ⟶ C₂) [∀ (n : ι), is_iso (f.f n)] : is_iso f :=
+begin
+  convert is_iso.of_iso (homological_complex.hom.iso_of_components (λ n, as_iso (f.f n))
+    (by tidy)),
+  ext n,
+  refl,
+end
 
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 

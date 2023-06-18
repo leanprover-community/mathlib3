@@ -26,7 +26,11 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H'' : Type*} [topological_space H'']
 {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
-(n : with_top ℕ)
+-- declare a manifold `N` over the pair `(F, G)`.
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{G : Type*} [topological_space G] {J : model_with_corners 𝕜 F G}
+{N : Type*} [topological_space N] [charted_space G N]
+(n : ℕ∞)
 
 /-- Bundled `n` times continuously differentiable maps. -/
 @[protect_proj]
@@ -37,9 +41,9 @@ structure cont_mdiff_map :=
 /-- Bundled smooth maps. -/
 @[reducible] def smooth_map := cont_mdiff_map I I' M M' ⊤
 
-localized "notation `C^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
+localized "notation (name := cont_mdiff_map) `C^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
   cont_mdiff_map I I' M M' n" in manifold
-localized "notation `C^` n `⟮` I `, ` M `; ` k `⟯` :=
+localized "notation (name := cont_mdiff_map.self) `C^` n `⟮` I `, ` M `; ` k `⟯` :=
   cont_mdiff_map I (model_with_corners_self k k) M k n" in manifold
 
 open_locale manifold
@@ -66,23 +70,16 @@ protected lemma cont_mdiff (f : C^n⟮I, M; I', M'⟯) :
 protected lemma smooth (f : C^∞⟮I, M; I', M'⟯) :
   smooth I I' f := f.cont_mdiff_to_fun
 
-protected lemma mdifferentiable' (f : C^n⟮I, M; I', M'⟯) (hn : 1 ≤ n) :
-  mdifferentiable I I' f :=
-f.cont_mdiff.mdifferentiable hn
-
-protected lemma mdifferentiable (f : C^∞⟮I, M; I', M'⟯) :
-  mdifferentiable I I' f :=
-f.cont_mdiff.mdifferentiable le_top
-
-protected lemma mdifferentiable_at (f : C^∞⟮I, M; I', M'⟯) {x} :
-  mdifferentiable_at I I' f x :=
-f.mdifferentiable x
-
 lemma coe_inj ⦃f g : C^n⟮I, M; I', M'⟯⦄ (h : (f : M → M') = g) : f = g :=
 by cases f; cases g; cases h; refl
 
 @[ext] theorem ext (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext h
+
+instance : continuous_map_class C^n⟮I, M; I', M'⟯ M M' :=
+{ coe := (λ f, ⇑f),
+  coe_injective' := coe_inj,
+  map_continuous := λ f, f.cont_mdiff.continuous }
 
 /-- The identity as a smooth map. -/
 def id : C^n⟮I, M; I, M⟯ := ⟨id, cont_mdiff_id⟩
@@ -100,6 +97,16 @@ instance [inhabited M'] : inhabited C^n⟮I, M; I', M'⟯ :=
 
 /-- Constant map as a smooth map -/
 def const (y : M') : C^n⟮I, M; I', M'⟯ := ⟨λ x, y, cont_mdiff_const⟩
+
+/-- The first projection of a product, as a smooth map. -/
+def fst : C^n⟮I.prod I', M × M'; I, M⟯ := ⟨prod.fst, cont_mdiff_fst⟩
+
+/-- The second projection of a product, as a smooth map. -/
+def snd : C^n⟮I.prod I', M × M'; I', M'⟯ := ⟨prod.snd, cont_mdiff_snd⟩
+
+/-- Given two smooth maps `f` and `g`, this is the smooth map `x ↦ (f x, g x)`. -/
+def prod_mk (f : C^n⟮J, N; I, M⟯) (g : C^n⟮J, N; I', M'⟯) : C^n⟮J, N; I.prod I', M × M'⟯ :=
+⟨λ x, (f x, g x), f.2.prod_mk g.2⟩
 
 end cont_mdiff_map
 

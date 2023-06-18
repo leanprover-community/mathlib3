@@ -11,6 +11,9 @@ import data.polynomial.integral_normalization
 /-!
 # Algebraic elements and algebraic extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial.
 An R-algebra is algebraic over R if and only if all its elements are algebraic over R.
 The main result in this file proves transitivity of algebraicity:
@@ -98,10 +101,10 @@ lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
 by { rw ←map_nat_cast _, exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_int [nontrivial R] (n : ℤ) : is_algebraic R (n : A) :=
-by { rw ←ring_hom.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+by { rw ←_root_.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
-lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
-  [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
+lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [algebra R A] (n : ℚ) :
+  is_algebraic R (n : A) :=
 by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_of_mem_root_set {R : Type u} {A : Type v} [field R] [field A] [algebra R A]
@@ -112,7 +115,7 @@ open is_scalar_tower
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
-λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [←algebra_map_aeval, hf₂, map_zero]⟩
+λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [aeval_algebra_map_apply, hf₂, map_zero]⟩
 
 /-- This is slightly more general than `is_algebraic_algebra_map_of_is_algebraic` in that it
   allows noncommutative intermediate rings `A`. -/
@@ -130,8 +133,21 @@ lemma _root_.alg_equiv.is_algebraic_iff {B} [ring B] [algebra R B] (e : A ≃ₐ
 
 lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map S A)) :
   is_algebraic R (algebra_map S A a) ↔ is_algebraic R a :=
-⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, algebra_map_aeval])⟩,
+⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, ← aeval_algebra_map_apply])⟩,
   is_algebraic_algebra_map_of_is_algebraic⟩
+
+lemma is_algebraic_of_pow {r : A} {n : ℕ} (hn : 0 < n) (ht : is_algebraic R (r ^ n)) :
+  is_algebraic R r :=
+begin
+  obtain ⟨p, p_nonzero, hp⟩ := ht,
+  refine ⟨polynomial.expand _ n p, _, _⟩,
+  { rwa polynomial.expand_ne_zero hn },
+  { rwa polynomial.expand_aeval n p r },
+end
+
+lemma transcendental.pow {r : A} (ht : transcendental R r) {n : ℕ} (hn : 0 < n) :
+  transcendental R (r ^ n) :=
+λ ht', ht $ is_algebraic_of_pow hn ht'
 
 end zero_ne_one
 
@@ -214,11 +230,10 @@ theorem is_algebraic.alg_hom_bijective
 begin
   refine ⟨f.to_ring_hom.injective, λ b, _⟩,
   obtain ⟨p, hp, he⟩ := ha b,
-  let f' : p.root_set L → p.root_set L :=
-    set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
-  have : function.surjective f' := fintype.injective_iff_surjective.1
+  let f' : p.root_set L → p.root_set L := (root_set_maps_to' id f).restrict f _ _,
+  have : function.surjective f' := finite.injective_iff_surjective.1
     (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
-  obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
+  obtain ⟨a, ha⟩ := this ⟨b, mem_root_set.2 ⟨hp, he⟩⟩,
   exact ⟨a, subtype.ext_iff.1 ha⟩,
 end
 
@@ -287,7 +302,7 @@ lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : K[X]}
   (aeval_ne : aeval x (div_X p) ≠ 0) :
   x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
 begin
-  rw [inv_eq_iff_inv_eq, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
+  rw [inv_eq_iff_eq_inv, inv_div, eq_comm, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
   conv_lhs { rw ← div_X_mul_X_add p },
   rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C],
   exact aeval_ne
@@ -308,14 +323,11 @@ end
 lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : K[X]}
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
 begin
-  have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
-  { rw [aeval_eq, subalgebra.coe_zero, zero_sub, div_neg],
-    convert inv_eq_of_root_of_coeff_zero_ne_zero _ coeff_zero_ne,
-    { rw subalgebra.aeval_coe },
-    { simpa using aeval_eq } },
-  rw [this, div_eq_mul_inv, aeval_eq, subalgebra.coe_zero, zero_sub, ← ring_hom.map_neg,
-      ← ring_hom.map_inv],
-  exact A.mul_mem (aeval x p.div_X).2 (A.algebra_map_mem _),
+  suffices : (x⁻¹ : L) = (-p.coeff 0)⁻¹ • aeval x (div_X p),
+  { rw [this], exact A.smul_mem (aeval x _).2 _ },
+  have : aeval (x : L) p = 0, by rw [subalgebra.aeval_coe, aeval_eq, subalgebra.coe_zero],
+  rw [inv_eq_of_root_of_coeff_zero_ne_zero this coeff_zero_ne, div_eq_inv_mul,
+    algebra.smul_def, map_inv₀, map_neg, inv_neg, neg_mul, subalgebra.aeval_coe]
 end
 
 lemma subalgebra.inv_mem_of_algebraic {x : A} (hx : is_algebraic K (x : L)) : (x⁻¹ : L) ∈ A :=

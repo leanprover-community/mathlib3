@@ -43,6 +43,8 @@ which finishes the proof.
 
 open real
 
+namespace imo2021_q1
+
 lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * l) :
   n + 4 * l ≤ 2 * l * l :=
 begin
@@ -91,9 +93,8 @@ end
 lemma exists_numbers_in_interval (n : ℕ) (hn : 107 ≤ n) :
   ∃ (l : ℕ), (n + 4 * l ≤ 2 * l * l ∧ 2 * l * l + 4 * l ≤ 2 * n) :=
 begin
-  suffices : ∃ (l : ℕ), 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ) ∧ (l : ℝ) ≤ sqrt (1 + n) - 1,
-  { cases this with l t,
-    exact ⟨l, lower_bound n l t.1, upper_bound n l t.2⟩ },
+  rsuffices ⟨l, t⟩ : ∃ (l : ℕ), 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ) ∧ (l : ℝ) ≤ sqrt (1 + n) - 1,
+  { exact ⟨l, lower_bound n l t.1, upper_bound n l t.2⟩ },
   let x := sqrt (1 + n) - 1,
   refine ⟨⌊x⌋₊, _, _⟩,
   { transitivity 2 * (x - 1),
@@ -151,7 +152,11 @@ begin
     rintros d (rfl|rfl|rfl); split; linarith only [hna, hab, hbc, hcn], },
 end
 
-theorem IMO_2021_Q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Icc n (2 * n)),
+end imo2021_q1
+
+open imo2021_q1
+
+theorem imo2021_q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Icc n (2 * n)),
   (∃ (a b ∈ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) ∨
   (∃ (a b ∈ finset.Icc n (2 * n) \ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) :=
 begin

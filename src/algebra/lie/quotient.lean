@@ -10,6 +10,9 @@ import linear_algebra.isomorphisms
 /-!
 # Quotients of Lie algebras and Lie modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a Lie submodule of a Lie module, the quotient carries a natural Lie module structure. In the
 special case that the Lie module is the Lie algebra itself via the adjoint action, the submodule
 is a Lie ideal and the quotient carries a natural Lie algebra structure.
@@ -64,7 +67,7 @@ lemma is_quotient_mk (m : M) : quotient.mk' m = (mk m : M ⧸ N) := rfl
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural linear map from `L` to the endomorphisms of `M` leaving `N` invariant. -/
 def lie_submodule_invariant : L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
-linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) N.lie_mem
+linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) $ λ _ _, N.lie_mem
 
 variables (N)
 

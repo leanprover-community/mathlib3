@@ -9,6 +9,9 @@ import algebra.algebra.tower
 
 # The `restrict_scalars` type alias
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 See the documentation attached to the `restrict_scalars` definition for advice on how and when to
 use this type alias. As described there, it is often a better choice to use the `is_scalar_tower`
 typeclass instead.
@@ -148,17 +151,14 @@ add_equiv.refl M
 
 variables [comm_semiring R] [semiring S] [algebra R S] [module S M]
 
-/--
-Note that this lemma relies on the definitional equality `restrict_scalars R S M = M`,
-so usage may result in instance leakage.
-`restrict_scalars.add_equiv_map_smul` is the "hygienic" version.
--/
-lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
-  c • x = ((algebra_map R S c) • x : M) := rfl
-
 @[simp] lemma restrict_scalars.add_equiv_map_smul (c : R) (x : restrict_scalars R S M) :
   restrict_scalars.add_equiv R S M (c • x)
   = (algebra_map R S c) • restrict_scalars.add_equiv R S M x :=
+rfl
+
+lemma restrict_scalars.smul_def (c : R) (x : restrict_scalars R S M) :
+  c • x = (restrict_scalars.add_equiv R S M).symm
+    (algebra_map R S c • restrict_scalars.add_equiv R S M x) :=
 rfl
 
 lemma restrict_scalars.add_equiv_symm_map_algebra_map_smul (r : R) (x : M) :

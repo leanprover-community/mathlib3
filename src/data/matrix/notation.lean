@@ -11,6 +11,9 @@ import algebra.big_operators.fin
 /-!
 # Matrix and vector notation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file includes `simp` lemmas for applying operations in `data.matrix.basic` to values built out
 of the matrix notation `![a, b] = vec_cons a (vec_cons b vec_empty)` defined in
 `data.fin.vec_notation`.
@@ -285,7 +288,7 @@ by { ext i, refine fin.cases _ _ i; simp [vec_mul_vec] }
 
 @[simp] lemma vec_mul_vec_cons (v : m' → α) (x : α) (w : fin n → α) :
   vec_mul_vec v (vec_cons x w) = λ i, v i • vec_cons x w :=
-by { ext i j, rw [vec_mul_vec, pi.smul_apply, smul_eq_mul] }
+by { ext i j, rw [vec_mul_vec_apply, pi.smul_apply, smul_eq_mul] }
 
 end vec_mul_vec
 
@@ -301,17 +304,29 @@ by { ext i, refine fin.cases _ _ i; simp }
 
 end smul
 
-section minor
+section submatrix
 
-@[simp] lemma minor_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
-  minor A row col = ![] :=
+@[simp] lemma submatrix_empty (A : matrix m' n' α) (row : fin 0 → m') (col : o' → n') :
+  submatrix A row col = ![] :=
 empty_eq _
 
-@[simp] lemma minor_cons_row (A : matrix m' n' α) (i : m') (row : fin m → m') (col : o' → n') :
-  minor A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (minor A row col) :=
-by { ext i j, refine fin.cases _ _ i; simp [minor] }
+@[simp] lemma submatrix_cons_row (A : matrix m' n' α) (i : m') (row : fin m → m') (col : o' → n') :
+  submatrix A (vec_cons i row) col = vec_cons (λ j, A i (col j)) (submatrix A row col) :=
+by { ext i j, refine fin.cases _ _ i; simp [submatrix] }
 
-end minor
+/-- Updating a row then removing it is the same as removing it. -/
+@[simp] lemma submatrix_update_row_succ_above (A : matrix (fin m.succ) n' α)
+  (v : n' → α) (f : o' → n') (i : fin m.succ) :
+  (A.update_row i v).submatrix i.succ_above f = A.submatrix i.succ_above f :=
+ext $ λ r s, (congr_fun (update_row_ne (fin.succ_above_ne i r) : _ = A _) (f s) : _)
+
+/-- Updating a column then removing it is the same as removing it. -/
+@[simp] lemma submatrix_update_column_succ_above (A : matrix m' (fin n.succ) α)
+  (v : m' → α) (f : o' → m') (i : fin n.succ) :
+  (A.update_column i v).submatrix f i.succ_above = A.submatrix f i.succ_above :=
+ext $ λ r s, update_column_ne (fin.succ_above_ne i s)
+
+end submatrix
 
 section vec2_and_vec3
 

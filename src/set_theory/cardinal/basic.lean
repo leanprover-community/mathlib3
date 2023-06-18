@@ -1365,7 +1365,7 @@ lemma to_part_enat_surjective : surjective to_part_enat :=
 λ x, part_enat.cases_on x ⟨ℵ₀, to_part_enat_apply_of_aleph_0_le le_rfl⟩ $
   λ n, ⟨n, to_part_enat_cast n⟩
 
-lemma to_part_enat_lift (c : cardinal.{v}) : (cardinal.lift.{u v} c).to_part_enat = c.to_part_enat :=
+lemma to_part_enat_lift (c : cardinal.{v}) : (lift.{u v} c).to_part_enat = c.to_part_enat :=
 begin
   cases lt_or_ge c ℵ₀ with hc hc,
   { rw [to_part_enat_apply_of_lt_aleph_0 hc, cardinal.to_part_enat_apply_of_lt_aleph_0 _],
@@ -1386,7 +1386,8 @@ lemma mk_int : #ℤ = ℵ₀ := mk_denumerable ℤ
 lemma mk_pnat : #ℕ+ = ℵ₀ := mk_denumerable ℕ+
 
 /-- **König's theorem** -/
-theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
+theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) :
+sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
   haveI : inhabited (Π (i : ι), (g i).out),
   { refine ⟨λ i, classical.choice $ mk_ne_zero_iff.1 _⟩,
@@ -1743,3 +1744,4 @@ meta def positivity_cardinal_pow : expr → tactic strictness
 | _ := failed
 
 end tactic
+#lint

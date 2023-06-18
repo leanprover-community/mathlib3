@@ -46,10 +46,10 @@ variables {α E F : Type*} {m0 : measurable_space α}
 /-!
 ### Average value of a function w.r.t. a measure
 
-The average value of a function `f` w.r.t. a measure `μ` (notation: `⨍ x, f x ∂μ`, `⨍⁻ x, f x ∂μ`,)
-is defined as `(μ univ).to_real⁻¹ • ∫ x, f x ∂μ`, so it is equal to zero if `f` is not integrable or
-if `μ` is an infinite measure. If `μ` is a probability measure, then the average of any function is
-equal to its integral.
+The (Bochner, Lebesgue) average value of a function `f` w.r.t. a measure `μ` (notation:
+`⨍ x, f x ∂μ`, `⨍⁻ x, f x ∂μ`) is defined as the (Bochner, Lebesgue) integral divided by the total
+measure, so it is equal to zero if `f` is not integrable or if `μ` is an infinite measure. If `μ` is
+a probability measure, then the average of any function is equal to its integral.
 -/
 
 namespace measure_theory
@@ -58,8 +58,9 @@ variables (μ) {f g : α → ℝ≥0∞}
 include m0
 
 /-- Average value of an `ℝ≥0∞`-valued function `f` w.r.t. a measure `μ`, notation: `⨍⁻ x, f x ∂μ`.
-It is defined as `μ univ⁻¹ * ∫⁻ x, f x ∂μ`, so it is equal to zero if `f` is not integrable or if `μ` is an infinite
-measure. If `μ` is a probability measure, then the average of any function is equal to its integral.
+It is defined as `μ univ⁻¹ * ∫⁻ x, f x ∂μ`, so it is equal to zero if `f` is not integrable or if
+`μ` is an infinite measure. If `μ` is a probability measure, then the average of any function is
+equal to its integral.
 
 For the average on a set, use `⨍⁻ x in s, f x ∂μ` (defined as `⨍⁻ x, f x ∂(μ.restrict s)`). For
 average w.r.t. the volume, one can omit `∂volume`. -/

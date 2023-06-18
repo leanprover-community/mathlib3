@@ -871,18 +871,17 @@ get a graph with the property `p`. -/
 def delete_far (p : simple_graph V → Prop) (r : 𝕜) : Prop :=
 ∀ ⦃s⦄, s ⊆ G.edge_finset → p (G.delete_edges s) → r ≤ s.card
 
-open_locale classical
-
 variables {G}
 
 lemma delete_far_iff :
-  G.delete_far p r ↔ ∀ ⦃H⦄, H ≤ G → p H → r ≤ G.edge_finset.card - H.edge_finset.card :=
+  G.delete_far p r ↔ ∀ ⦃H : simple_graph _⦄ [decidable_rel H.adj],
+    by exactI H ≤ G → p H → r ≤ G.edge_finset.card - H.edge_finset.card :=
 begin
-  refine ⟨λ h H hHG hH, _, λ h s hs hG, _⟩,
+  refine ⟨λ h H _ hHG hH, _, λ h s hs hG, _⟩,
   { have := h (sdiff_subset G.edge_finset H.edge_finset),
     simp only [delete_edges_sdiff_eq_of_le _ hHG, edge_finset_mono hHG, card_sdiff,
       card_le_of_subset, coe_sdiff, coe_edge_finset, nat.cast_sub] at this,
-    exact this hH },
+    convert this hH },
   { simpa [card_sdiff hs, edge_finset_delete_edges, -set.to_finset_card, nat.cast_sub,
       card_le_of_subset hs] using h (G.delete_edges_le s) hG }
 end
@@ -906,8 +905,22 @@ protected def map (f : V ↪ W) (G : simple_graph V) : simple_graph W :=
 @[simp] lemma map_adj (f : V ↪ W) (G : simple_graph V) (u v : W) :
   (G.map f).adj u v ↔ ∃ (u' v' : V), G.adj u' v' ∧ f u' = u ∧ f v' = v := iff.rfl
 
+lemma map_adj_apply {G : simple_graph V} {f : V ↪ W} {a b : V} :
+  (G.map f).adj (f a) (f b) ↔ G.adj a b := by simp
+
 lemma map_monotone (f : V ↪ W) : monotone (simple_graph.map f) :=
 by { rintros G G' h _ _ ⟨u, v, ha, rfl, rfl⟩, exact ⟨_, _, h ha, rfl, rfl⟩ }
+
+@[simp] lemma map_id : G.map (function.embedding.refl _) = G :=
+ext _ _ $ relation.map_id_id _
+
+@[simp] lemma map_map (f : V ↪ W) (g : W ↪ X) : (G.map f).map g = G.map (f.trans g) :=
+ext _ _ $ relation.map_map _ _ _ _ _
+
+instance decidable_map [fintype V] [decidable_eq W] (f : V ↪ W) (G : simple_graph V)
+  [decidable_rel G.adj] :
+  decidable_rel (G.map f).adj :=
+relation.map.decidable_pred _ _ _
 
 /-- Given a function, there is a contravariant induced map on graphs by pulling back the
 adjacency relation.
@@ -916,6 +929,24 @@ This is one of the ways of creating induced graphs. See `simple_graph.induce` fo
 This is surjective when `f` is injective (see `simple_graph.comap_surjective`).-/
 @[simps] protected def comap (f : V → W) (G : simple_graph W) : simple_graph V :=
 { adj := λ u v, G.adj (f u) (f v) }
+
+@[simp] lemma comap_id {G : simple_graph V} : G.comap id = G := ext _ _ rfl
+
+@[simp] lemma comap_comap {G : simple_graph X} (f : V → W) (g : W → X) :
+  (G.comap g).comap f = G.comap (g ∘ f) := rfl
+
+instance decidable_comap (f : V → W) (G : simple_graph W) [decidable_rel G.adj] :
+  decidable_rel (simple_graph.comap f G).adj :=
+λ _ _, ‹decidable_rel G.adj› _ _
+
+lemma comap_symm (G : simple_graph V) (e : V ≃ W) :
+  G.comap e.symm.to_embedding = G.map e.to_embedding :=
+by { ext, simp only [equiv.apply_eq_iff_eq_symm_apply, comap_adj, map_adj, equiv.to_embedding_apply,
+  exists_eq_right_right, exists_eq_right] }
+
+lemma map_symm (G : simple_graph W) (e : V ≃ W) :
+  G.map e.symm.to_embedding = G.comap e.to_embedding :=
+by rw [←comap_symm, e.symm_symm]
 
 lemma comap_monotone (f : V ↪ W) : monotone (simple_graph.comap f) :=
 by { intros G G' h _ _ ha, exact h ha }
@@ -938,6 +969,21 @@ lemma map_le_iff_le_comap (f : V ↪ W) (G : simple_graph V) (G' : simple_graph 
 
 lemma map_comap_le (f : V ↪ W) (G : simple_graph W) : (G.comap f).map f ≤ G :=
 by { rw map_le_iff_le_comap, exact le_refl _ }
+
+/-- Equivalent types have equivalent simple graphs. -/
+@[simps] protected def _root_.equiv.simple_graph (e : V ≃ W) : simple_graph V ≃ simple_graph W :=
+{ to_fun := simple_graph.comap e.symm,
+  inv_fun := simple_graph.comap e,
+  left_inv := λ _, by simp,
+  right_inv := λ _, by simp }
+
+@[simp] lemma equiv.simple_graph_refl : (equiv.refl V).simple_graph = equiv.refl _ :=
+by { ext, refl }
+
+@[simp] lemma equiv.simple_graph_trans (e₁ : V ≃ W) (e₂ : W ≃ X) :
+  (e₁.trans e₂).simple_graph = e₁.simple_graph.trans e₂.simple_graph := rfl
+
+@[simp] lemma equiv.symm_simple_graph (e : V ≃ W) : e.simple_graph.symm = e.symm.simple_graph := rfl
 
 /-! ## Induced graphs -/
 

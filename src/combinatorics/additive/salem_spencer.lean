@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import algebra.hom.freiman
 import analysis.asymptotics.asymptotics
 import analysis.convex.strict_convex_space
+import data.zmod.basic
 
 /-!
 # Salem-Spencer sets and Roth numbers
@@ -40,6 +41,18 @@ the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
 
 Salem-Spencer, Roth, arithmetic progression, average, three-free
 -/
+
+namespace char_p
+variables (R : Type*) [add_group_with_one R] (p : ℕ) [char_p R p]
+
+open set
+
+lemma nat_cast_inj_on_Iio : (Iio p).inj_on (coe : ℕ → R) :=
+λ a ha b hb hab, ((char_p.nat_cast_eq_nat_cast _ _).1 hab).eq_of_lt_of_lt ha hb
+
+end char_p
+
+instance (n : ℕ) : char_p (fin n.succ) n.succ := zmod.char_p n.succ
 
 open finset function metric nat
 open_locale pointwise
@@ -461,5 +474,28 @@ is_O_with_of_le _ $ by simpa only [real.norm_coe_nat, nat.cast_le] using roth_nu
 /-- The Roth number has the trivial bound `roth_number_nat N = O(N)`. -/
 lemma roth_number_nat_is_O_id : (λ N, (roth_number_nat N : ℝ)) =O[at_top] (λ N, (N : ℝ)) :=
 roth_number_nat_is_O_with_id.is_O
+
+lemma fin.roth_number_nat_le_add_roth_number (hkn : 2 * k ≤ n) :
+  roth_number_nat k ≤ add_roth_number (Iio k : finset $ fin n.succ) :=
+begin
+  classical,
+  obtain ⟨s, hsm, hscard, hs⟩ := roth_number_nat_spec k,
+  simp only [subset_iff, mem_range] at hsm,
+  rw two_mul at hkn,
+  rw [←hscard, ←card_image_of_inj_on ((char_p.nat_cast_inj_on_Iio (fin n.succ) n.succ).mono $
+    λ x hx, nat.lt_succ_iff.2 $ (hsm hx).le.trans $ le_add_self.trans hkn)],
+  refine add_salem_spencer.le_add_roth_number _ _,
+    { rw coe_image,
+    rintro _ _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ habc,
+    norm_cast at habc,
+    refine congr_arg _ (hs ha hb hc $ char_p.nat_cast_inj_on_Iio _ n.succ _ _ habc);
+    simp only [nat.lt_succ_iff, set.mem_Iio];
+    refine (add_le_add (hsm _).le (hsm _).le).trans hkn; assumption },
+ { replace hkn := nat.lt_succ_iff.2 (le_add_self.trans hkn),
+    simp only [image_subset_iff, mem_Iio, fin.lt_iff_coe_lt_coe, fin.coe_of_nat_eq_mod],
+    rintro x hx,
+    rw [nat.mod_eq_of_lt hkn, nat.mod_eq_of_lt ((hsm hx).trans hkn)],
+    exact hsm hx }
+end
 
 end roth_number_nat

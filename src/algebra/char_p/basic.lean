@@ -132,6 +132,10 @@ begin
   exact (char_p.int_cast_eq_int_cast _ _).trans int.coe_nat_modeq_iff,
 end
 
+lemma char_p.nat_cast_inj_on_Iio [add_group_with_one R] (p : ℕ) [char_p R p] :
+  (set.Iio p).inj_on (coe : ℕ → R) :=
+λ a ha b hb hab, ((char_p.nat_cast_eq_nat_cast _ _).1 hab).eq_of_lt_of_lt ha hb
+
 theorem char_p.eq [add_monoid_with_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
   p = q :=
 nat.dvd_antisymm

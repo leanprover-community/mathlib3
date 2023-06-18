@@ -88,6 +88,8 @@ instance (n : ℕ) : char_p (zmod n) n :=
     rw [val_nat_cast, val_zero, nat.dvd_iff_mod_eq_zero],
   end }
 
+instance _root_.fin.char_p (n : ℕ) : char_p (fin n.succ) n.succ := zmod.char_p n.succ
+
 @[simp] lemma add_order_of_one (n : ℕ) : add_order_of (1 : zmod n) = n :=
 char_p.eq _ (char_p.add_order_of_one _) (zmod.char_p n)
 

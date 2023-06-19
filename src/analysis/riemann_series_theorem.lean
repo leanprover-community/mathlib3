@@ -510,17 +510,19 @@ begin
   { have : sumto a M d - M < sumto a M d - sumto a M (d - 1) := by simp [hd.left],
     rw h at this,
     rw real.norm_of_nonneg (show 0 ≤ sumto a M d - M, by simp [hd.right]),
-    have q : 0 ≤ a (rearrangement a M (d - 1)) := begin
-      have := @rearrangement_nonneg_spec' _ h₁ h₂ M (d - 1) hd.left.le,
-      sorry
-    end,
-    rw real.norm_of_nonneg (show 0 ≤ a (rearrangement a M (d - 1)), from sorry),
+    /-have q : 0 ≤ a (rearrangement a M (d - 1)) := begin
+      linarith
+      --have := @rearrangement_nonneg_spec' _ h₁ h₂ M (d - 1) hd.left.le
+    end,-/
+    rw real.norm_of_nonneg (show 0 ≤ a (rearrangement a M (d - 1)), by linarith),
     exact this.le },
   {
-    have : -(sumto a M d - M) ≤ -(sumto a M d - sumto a M (d - 1)) := by simp [hd.left],
-    rw h at this,
+    have h₃ : -(sumto a M d - M) ≤ -(sumto a M d - sumto a M (d - 1)) := by simp [hd.left],
+    rw h at h₃,
     rw real.norm_of_nonpos (show sumto a M d - M ≤ 0, by simp [hd.right.le]),
-    sorry
+    have : a (rearrangement a M (d - 1)) ≤ 0 := by linarith,
+    rw real.norm_of_nonpos this,
+    exact h₃
   }
 end
 

@@ -10,6 +10,9 @@ import field_theory.finite.basic
 /-!
 # Quadratic characters of finite fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the quadratic character on a finite field `F` and proves
 some basic statements about it.
 

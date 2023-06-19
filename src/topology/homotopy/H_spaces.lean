@@ -9,6 +9,9 @@ import topology.homotopy.path
 /-!
 # H-spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines H-spaces mainly following the approach proposed by Serre in his paper
 *Homologie singulière des espaces fibrés*. The idea beaneath `H-spaces` is that they are topological
 spaces with a binary operation `⋀ : X → X → X` that is a homotopic-theoretic weakening of an

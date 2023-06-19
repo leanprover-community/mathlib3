@@ -7,10 +7,13 @@ import analysis.inner_product_space.calculus
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.adjoint
 import analysis.calculus.lagrange_multipliers
-import linear_algebra.eigenspace
+import linear_algebra.eigenspace.basic
 
 /-!
 # The Rayleigh quotient
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The Rayleigh quotient of a self-adjoint operator `T` on an inner product space `E` is the function
 `λ x, ⟪T x, x⟫ / ‖x‖ ^ 2`.

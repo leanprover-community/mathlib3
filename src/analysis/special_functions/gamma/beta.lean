@@ -5,7 +5,8 @@ Authors: David Loeffler
 -/
 import analysis.convolution
 import analysis.special_functions.trigonometric.euler_sine_prod
-import analysis.special_functions.gamma.basic
+import analysis.special_functions.gamma.bohr_mollerup
+import analysis.analytic.isolated_zeros
 
 /-!
 # The Beta function, and further properties of the Gamma function
@@ -28,8 +29,10 @@ refined properties of the Gamma function using these relations.
 * `complex.Gamma_mul_Gamma_one_sub`: Euler's reflection formula
   `Gamma s * Gamma (1 - s) = π / sin π s`.
 * `complex.differentiable_one_div_Gamma`: the function `1 / Γ(s)` is differentiable everywhere.
+* `complex.Gamma_mul_Gamma_add_half`: Legendre's duplication formula
+  `Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * sqrt π`.
 * `real.Gamma_ne_zero`, `real.Gamma_seq_tendsto_Gamma`,
-  `real.Gamma_mul_Gamma_one_sub`: real versions of the above results.
+  `real.Gamma_mul_Gamma_one_sub`, `real.Gamma_mul_Gamma_add_half`: real versions of the above.
 -/
 
 noncomputable theory
@@ -560,3 +563,64 @@ end
 end complex
 
 end inv_gamma
+
+section doubling
+/-!
+## The doubling formula for Gamma
+
+We prove the doubling formula for arbitrary real or complex arguments, by analytic continuation from
+the positive real case. (Knowing that `Γ⁻¹` is analytic everywhere makes this much simpler, since we
+do not have to do any special-case handling for the poles of `Γ`.)
+-/
+
+namespace complex
+
+theorem Gamma_mul_Gamma_add_half (s : ℂ) :
+  Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * ↑(real.sqrt π) :=
+begin
+  suffices : (λ z, (Gamma z)⁻¹ * (Gamma (z + 1 / 2))⁻¹) =
+    (λ z, (Gamma (2 * z))⁻¹  * 2 ^ (2 * z - 1) / ↑(real.sqrt π)),
+  { convert congr_arg has_inv.inv (congr_fun this s) using 1,
+    { rw [mul_inv, inv_inv, inv_inv] },
+    { rw [div_eq_mul_inv, mul_inv, mul_inv, inv_inv, inv_inv, ←cpow_neg, neg_sub] } },
+  have h1 : analytic_on ℂ (λ z : ℂ, (Gamma z)⁻¹ * (Gamma (z + 1 / 2))⁻¹) univ,
+  { refine differentiable_on.analytic_on _ is_open_univ,
+    refine (differentiable_one_div_Gamma.mul _).differentiable_on,
+    exact differentiable_one_div_Gamma.comp (differentiable_id.add (differentiable_const _)) },
+  have h2 : analytic_on ℂ (λ z, (Gamma (2 * z))⁻¹  * 2 ^ (2 * z - 1) / ↑(real.sqrt π)) univ,
+  { refine differentiable_on.analytic_on _ is_open_univ,
+    refine (differentiable.mul _ (differentiable_const _)).differentiable_on,
+    apply differentiable.mul,
+    { exact differentiable_one_div_Gamma.comp (differentiable_id'.const_mul _) },
+    { refine λ t, differentiable_at.const_cpow _ (or.inl two_ne_zero),
+      refine differentiable_at.sub_const (differentiable_at_id.const_mul _) _ } },
+  have h3 : tendsto (coe : ℝ → ℂ) (𝓝[≠] 1) (𝓝[≠] 1),
+  { rw tendsto_nhds_within_iff, split,
+    { exact tendsto_nhds_within_of_tendsto_nhds continuous_of_real.continuous_at },
+    { exact eventually_nhds_within_iff.mpr (eventually_of_forall $ λ t ht, of_real_ne_one.mpr ht)}},
+  refine analytic_on.eq_of_frequently_eq h1 h2 (h3.frequently _),
+  refine ((eventually.filter_mono nhds_within_le_nhds) _).frequently,
+  refine (eventually_gt_nhds zero_lt_one).mp (eventually_of_forall $ λ t ht, _),
+  rw [←mul_inv, Gamma_of_real, (by push_cast : (t : ℂ) + 1 / 2 = ↑(t + 1 / 2)), Gamma_of_real,
+    ←of_real_mul, Gamma_mul_Gamma_add_half_of_pos ht, of_real_mul, of_real_mul, ←Gamma_of_real,
+    mul_inv, mul_inv, (by push_cast : 2 * (t : ℂ) = ↑(2 * t)), Gamma_of_real,
+    of_real_cpow zero_le_two, of_real_bit0, of_real_one, ←cpow_neg, of_real_sub, of_real_one,
+    neg_sub, ←div_eq_mul_inv]
+end
+
+end complex
+
+namespace real
+open complex
+
+lemma Gamma_mul_Gamma_add_half (s : ℝ) :
+  Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * sqrt π :=
+begin
+  rw [←of_real_inj],
+  simpa only [←Gamma_of_real, of_real_cpow zero_le_two, of_real_mul, of_real_add, of_real_div,
+    of_real_bit0, of_real_one, of_real_sub] using complex.Gamma_mul_Gamma_add_half ↑s
+end
+
+end real
+
+end doubling

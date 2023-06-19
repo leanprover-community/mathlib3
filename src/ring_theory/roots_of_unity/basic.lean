@@ -18,6 +18,9 @@ import tactic.zify
 /-!
 # Roots of unity and primitive roots of unity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define roots of unity in the context of an arbitrary commutative monoid,
 as a subgroup of the group of units. We also define a predicate `is_primitive_root` on commutative
 monoids, expressing that an element is a primitive root of unity.

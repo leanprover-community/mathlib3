@@ -9,6 +9,9 @@ import analysis.convex.specific_functions.deriv
 /-!
 # Complex trigonometric functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Basic facts and derivatives for the complex trigonometric functions.
 
 Several facts about the real trigonometric functions have the proofs deferred here, rather than

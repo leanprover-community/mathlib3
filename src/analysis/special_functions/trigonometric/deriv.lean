@@ -10,6 +10,9 @@ import analysis.special_functions.trigonometric.basic
 /-!
 # Differentiability of trigonometric functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main statements
 
 The differentiability of the usual trigonometric functions is proved, and their derivatives are

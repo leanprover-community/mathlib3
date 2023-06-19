@@ -6,6 +6,9 @@ Authors: Jireh Loreaux
 import analysis.normed_space.exponential
 
 /-! # The exponential map from selfadjoint to unitary
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file, we establish various propreties related to the map `λ a, exp ℂ A (I • a)` between the
 subtypes `self_adjoint A` and `unitary A`.
 

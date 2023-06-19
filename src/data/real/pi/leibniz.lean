@@ -5,7 +5,10 @@ Authors: Benjamin Davidson
 -/
 import analysis.special_functions.trigonometric.arctan_deriv
 
-/-! ### Leibniz's Series for Pi -/
+/-! ### Leibniz's Series for Pi 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 namespace real
 

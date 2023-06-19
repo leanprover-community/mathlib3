@@ -98,6 +98,14 @@ h.nonempty_fintype.some
 protected noncomputable def finite.to_finset {s : set α} (h : s.finite) : finset α :=
 @set.to_finset _ _ h.fintype
 
+theorem finite.to_finset_eq_to_finset {s : set α} [fintype s] (h : s.finite) :
+  h.to_finset = s.to_finset :=
+by { rw [finite.to_finset], congr }
+
+@[simp]
+theorem to_finite_to_finset (s : set α) [fintype s] : s.to_finite.to_finset = s.to_finset :=
+s.to_finite.to_finset_eq_to_finset
+
 theorem finite.exists_finset {s : set α} (h : s.finite) :
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s :=
 by { casesI h, exact ⟨s.to_finset, λ _, mem_to_finset⟩ }

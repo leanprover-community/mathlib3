@@ -9,6 +9,9 @@ import analysis.asymptotics.superpolynomial_decay
 /-!
 # Phragmen-Lindelöf principle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several versions of the Phragmen-Lindelöf principle, a version of the maximum
 modulus principle for an unbounded domain.
 

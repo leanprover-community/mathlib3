@@ -482,8 +482,8 @@ partial_sum (λ i, a (rearrangement a M i))
 -/
 inductive rearrangement_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : Prop
 | start : n = 0 → rearrangement_switchpoint
-| under_to_over : sumto a M (n - 1) < M ∧ M ≤ sumto a M n → rearrangement_switchpoint
-| over_to_under : M ≤ sumto a M (n - 1) ∧ sumto a M n < M → rearrangement_switchpoint
+| under_to_over : sumto a M n < M ∧ M ≤ sumto a M (n + 1) → rearrangement_switchpoint
+| over_to_under : M ≤ sumto a M n ∧ sumto a M (n + 1) < M → rearrangement_switchpoint
 
 /--
   Helper instance to make it easier to use rearrangement_switchpoint in nat.find_greatest
@@ -499,32 +499,38 @@ lemma diff_M_le_switchpoint (a : ℕ → ℝ) (M : ℝ) {d : ℕ} (hd : rearrang
   (hd₁ : d ≠ 0)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  : ‖sumto a M d - M‖ ≤ ‖a (rearrangement a M (d - 1))‖ :=
+  : ‖sumto a M (d + 1) - M‖ ≤ ‖a (rearrangement a M d)‖ :=
 begin
-  have h : sumto a M d - sumto a M (d - 1) = a (rearrangement a M (d - 1)),
+  have h : sumto a M (d + 1) - sumto a M d = a (rearrangement a M d),
   { unfold sumto,
     rw ←(nat.sub_add_cancel (nat.one_le_iff_ne_zero.mpr hd₁)),
     simp [partial_sum_next] },
   cases hd,
   { contradiction },
-  { have : sumto a M d - M < sumto a M d - sumto a M (d - 1) := by simp [hd.left],
+  { have : sumto a M (d + 1) - M < sumto a M (d + 1) - sumto a M d := by simp [hd.left],
     rw h at this,
-    rw real.norm_of_nonneg (show 0 ≤ sumto a M d - M, by simp [hd.right]),
+    rw real.norm_of_nonneg (show 0 ≤ sumto a M (d + 1) - M, by simp [hd.right]),
     /-have q : 0 ≤ a (rearrangement a M (d - 1)) := begin
       linarith
       --have := @rearrangement_nonneg_spec' _ h₁ h₂ M (d - 1) hd.left.le
     end,-/
-    rw real.norm_of_nonneg (show 0 ≤ a (rearrangement a M (d - 1)), by linarith),
+    rw real.norm_of_nonneg (show 0 ≤ a (rearrangement a M d), by linarith),
     exact this.le },
-  {
-    have h₃ : -(sumto a M d - M) ≤ -(sumto a M d - sumto a M (d - 1)) := by simp [hd.left],
+  { have h₃ : -(sumto a M (d + 1) - M) ≤ -(sumto a M (d + 1) - sumto a M d) := by simp [hd.left],
     rw h at h₃,
-    rw real.norm_of_nonpos (show sumto a M d - M ≤ 0, by simp [hd.right.le]),
-    have : a (rearrangement a M (d - 1)) ≤ 0 := by linarith,
+    rw real.norm_of_nonpos (show sumto a M (d + 1) - M ≤ 0, by simp [hd.right.le]),
+    have : a (rearrangement a M d) ≤ 0 := by linarith,
     rw real.norm_of_nonpos this,
-    exact h₃
-  }
+    exact h₃ }
 end
+
+@[reducible]
+noncomputable def nearest_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : ℕ :=
+nat.find_greatest (rearrangement_switchpoint a M) n
+
+lemma nearest_switchpoint_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
+: rearrangement_switchpoint a M (nearest_switchpoint a M n) :=
+nat.find_greatest_spec (zero_le n) (rearrangement_switchpoint.start rfl)
 
 -- TODO: Check the statement of this lemma very carefully
  /-lemma switchpoints_tendto_M (a : ℕ → ℝ) (M : ℝ) (n : ℕ)

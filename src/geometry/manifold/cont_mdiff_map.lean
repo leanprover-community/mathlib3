@@ -45,7 +45,9 @@ namespace cont_mdiff_map
 
 variables {I} {I'} {M} {M'} {n}
 
-instance : has_coe_to_fun C^n⟮I, M; I', M'⟯ (λ _, M → M') := ⟨subtype.val⟩
+instance fun_like : fun_like C^n⟮I, M; I', M'⟯ M (λ _, M') :=
+{ coe := subtype.val,
+  coe_injective' := subtype.coe_injective }
 
 protected lemma cont_mdiff (f : C^n⟮I, M; I', M'⟯) :
   cont_mdiff I I' n f := f.prop
@@ -57,7 +59,7 @@ instance : has_coe C^n⟮I, M; I', M'⟯ C(M, M') :=
 ⟨λ f, ⟨f, f.cont_mdiff.continuous⟩⟩
 
 attribute [to_additive_ignore_args 21] cont_mdiff_map
-  cont_mdiff_map.has_coe_to_fun cont_mdiff_map.continuous_map.has_coe
+  cont_mdiff_map.fun_like cont_mdiff_map.continuous_map.has_coe
 variables {f g : C^n⟮I, M; I', M'⟯}
 
 @[simp] lemma coe_fn_mk (f : M → M') (hf : cont_mdiff I I' n f) :

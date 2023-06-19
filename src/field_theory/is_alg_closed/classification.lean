@@ -158,8 +158,8 @@ variables {K L : Type} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
 
 /-- Two uncountable algebraically closed fields of characteristic zero are isomorphic
 if they have the same cardinality. -/
-@[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_of_char_zero [char_zero K] [char_zero L]
-  (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
+lemma ring_equiv_of_cardinal_eq_of_char_zero [char_zero K] [char_zero L]
+  (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
   apply classical.choice,
   cases exists_is_transcendence_basis ℤ
@@ -173,11 +173,11 @@ begin
         ← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ ht (le_of_eq mk_int), hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
-  exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩
+  exact ⟨⟨equiv_of_transcendence_basis _ _ e hs ht⟩⟩
 end
 
-private def ring_equiv_of_cardinal_eq_of_char_p (p : ℕ) [fact p.prime]
-  [char_p K p] [char_p L p] (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
+private lemma ring_equiv_of_cardinal_eq_of_char_p (p : ℕ) [fact p.prime]
+  [char_p K p] [char_p L p] (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
   apply classical.choice,
   letI : algebra (zmod p) K := zmod.algebra _ _,
@@ -195,13 +195,13 @@ begin
       (lt_aleph_0_of_finite (zmod p)).le, hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
-  exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩
+  exact ⟨⟨equiv_of_transcendence_basis _ _ e hs ht⟩⟩
 end
 
 /-- Two uncountable algebraically closed fields are isomorphic
 if they have the same cardinality and the same characteristic. -/
-@[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_of_char_eq (p : ℕ) [char_p K p] [char_p L p]
-  (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
+lemma ring_equiv_of_cardinal_eq_of_char_eq (p : ℕ) [char_p K p] [char_p L p]
+  (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
   apply classical.choice,
   rcases char_p.char_is_prime_or_zero K p with hp | hp,

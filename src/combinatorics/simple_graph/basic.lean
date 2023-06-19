@@ -917,10 +917,9 @@ ext _ _ $ relation.map_id_id _
 @[simp] lemma map_map (f : V ↪ W) (g : W ↪ X) : (G.map f).map g = G.map (f.trans g) :=
 ext _ _ $ relation.map_map _ _ _ _ _
 
-instance decidable_map [fintype V] [decidable_eq W] (f : V ↪ W) (G : simple_graph V)
-  [decidable_rel G.adj] :
+instance decidable_map (f : V ↪ W) (G : simple_graph V) [decidable_rel (relation.map G.adj f f)] :
   decidable_rel (G.map f).adj :=
-relation.map.decidable_pred _ _ _
+‹decidable_rel _›
 
 /-- Given a function, there is a contravariant induced map on graphs by pulling back the
 adjacency relation.

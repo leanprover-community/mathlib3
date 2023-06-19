@@ -41,8 +41,8 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   .. int.comm_ring,
   .. int.nontrivial }
 
-@[priority 100] -- see Note [lower instance priority]
-instance field.to_euclidean_domain {K : Type*} [field K] : euclidean_domain K :=
+ -- see Note [lower instance priority]
+def field.to_euclidean_domain {K : Type*} [field K] : euclidean_domain K :=
 { add := (+),
   mul := (*),
   one := 1,

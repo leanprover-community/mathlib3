@@ -10,6 +10,9 @@ import ring_theory.dedekind_domain.ideal
 /-!
 # Ramification index and inertia degree
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given `P : ideal S` lying over `p : ideal R` for the ring extension `f : R →+* S`
 (assuming `P` and `p` are prime or maximal where needed),
 the **ramification index** `ideal.ramification_idx f p P` is the multiplicity of `P` in `map f p`,

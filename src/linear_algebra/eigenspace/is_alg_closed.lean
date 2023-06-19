@@ -10,6 +10,9 @@ import field_theory.is_alg_closed.spectrum
 /-!
 # Eigenvectors and eigenvalues over algebraically closed fields.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * Every linear operator on a vector space over an algebraically closed field has an eigenvalue.
 * The generalized eigenvectors span the entire vector space.
 

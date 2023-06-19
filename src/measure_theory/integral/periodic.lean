@@ -5,6 +5,7 @@ Authors: Yury Kudryashov, Alex Kontorovich, Heather Macbeth
 -/
 import measure_theory.measure.lebesgue.eq_haar
 import measure_theory.measure.haar.quotient
+import measure_theory.constructions.polish
 import measure_theory.integral.interval_integral
 import topology.algebra.order.floor
 
@@ -28,12 +29,11 @@ open set function measure_theory measure_theory.measure topological_space add_su
 
 open_locale measure_theory nnreal ennreal
 
-local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
-
 noncomputable instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
-borel (add_circle a)
+quotient_add_group.measurable_space _
 
-instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
+instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) :=
+quotient_add_group.borel_space
 
 @[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
   measurable (coe : ℝ → add_circle a) :=

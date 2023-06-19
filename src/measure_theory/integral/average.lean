@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury G. Kudryashov
+Authors: Yury G. Kudryashov, Yaël Dillies
 -/
 import measure_theory.integral.set_integral
 
@@ -19,24 +19,32 @@ measure, then the average of any function is equal to its integral.
 For the average on a set, we use `⨍ x in s, f x ∂μ` (notation for `⨍ x, f x ∂(μ.restrict s)`). For
 average w.r.t. the volume, one can omit `∂volume`.
 
+We prove several version of the first moment method: An integrable function is below/above its
+average on a set of positive measure.
+
 ## Implementation notes
 
 The average is defined as an integral over `(μ univ)⁻¹ • μ` so that all theorems about Bochner
 integrals work for the average without modifications. For theorems that require integrability of a
 function, we provide a convenience lemma `measure_theory.integrable.to_average`.
 
+## TODO
+
+Provide the first moment method for the Lebesgue integral as well. A draft is available on branch
+`first_moment_lintegral`.
+
 ## Tags
 
 integral, center mass, average value
 -/
 
-open measure_theory measure_theory.measure metric set filter topological_space function
+open ennreal measure_theory measure_theory.measure metric set filter topological_space function
 open_locale topology big_operators ennreal convex
 
 variables {α E F : Type*} {m0 : measurable_space α}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
-  {μ : measure α} {s : set E}
+  {μ : measure α} {s t : set α}
 
 /-!
 ### Average value of a function w.r.t. a measure
@@ -49,8 +57,8 @@ integral.
 -/
 
 namespace measure_theory
-
-variable (μ)
+section normed_add_comm_group
+variables (μ) {f g : α → E}
 include m0
 
 /-- Average value of a function `f` w.r.t. a measure `μ`, notation: `⨍ x, f x ∂μ`. It is defined as
@@ -105,6 +113,9 @@ variable {μ}
 
 lemma average_congr {f g : α → E} (h : f =ᵐ[μ] g) : ⨍ x, f x ∂μ = ⨍ x, g x ∂μ :=
 by simp only [average_eq, integral_congr_ae h]
+
+lemma set_average_congr_set_ae (h : s =ᵐ[μ] t) : ⨍ x in s, f x ∂μ = ⨍ x in t, f x ∂μ :=
+by simp only [set_average_eq, set_integral_congr_set_ae h, measure_congr h]
 
 lemma average_add_measure [is_finite_measure μ] {ν : measure α} [is_finite_measure ν] {f : α → E}
   (hμ : integrable f μ) (hν : integrable f ν) :
@@ -182,4 +193,196 @@ by simp only [set_average_eq, integral_const, measure.restrict_apply, measurable
   univ_inter, smul_smul, ← ennreal.to_real_inv, ← ennreal.to_real_mul,
   ennreal.inv_mul_cancel hs₀ hs, ennreal.one_to_real, one_smul]
 
+@[simp] lemma integral_average (μ : measure α) [is_finite_measure μ] (f : α → E) :
+  ∫ x, ⨍ a, f a ∂μ ∂μ = ∫ x, f x ∂μ :=
+begin
+  unfreezingI { obtain rfl | hμ := eq_or_ne μ 0 },
+  { simp only [integral_zero_measure] },
+  { rw [integral_const, average_eq,
+      smul_inv_smul₀ (to_real_ne_zero.2 ⟨measure_univ_ne_zero.2 hμ, measure_ne_top _ _⟩)] }
+end
+
+lemma set_integral_set_average (μ : measure α) [is_finite_measure μ] (f : α → E) (s : set α) :
+  ∫ x in s, ⨍ a in s, f a ∂μ ∂μ = ∫ x in s, f x ∂μ :=
+integral_average _ _
+
+lemma integral_sub_average (μ : measure α) [is_finite_measure μ] (f : α → E) :
+  ∫ x, f x - ⨍ a, f a ∂μ ∂μ = 0 :=
+begin
+  by_cases hf : integrable f μ,
+  { rw [integral_sub hf (integrable_const _), integral_average, sub_self] },
+  refine integral_undef (λ h, hf _),
+  convert h.add (integrable_const _),
+  exact (sub_add_cancel _ _).symm,
+end
+
+lemma set_integral_sub_set_average (hs : μ s ≠ ∞) (f : α → E) :
+  ∫ x in s, f x - ⨍ a in s, f a ∂μ ∂μ = 0 :=
+by haveI haveI : fact (μ s < ∞) := ⟨lt_top_iff_ne_top.2 hs⟩; exact integral_sub_average _ _
+
+lemma integral_average_sub [is_finite_measure μ] (hf : integrable f μ) :
+  ∫ x, ⨍ a, f a ∂μ - f x ∂μ = 0 :=
+by rw [integral_sub (integrable_const _) hf, integral_average, sub_self]
+
+lemma set_integral_set_average_sub (hs : μ s ≠ ∞) (hf : integrable_on f s μ) :
+  ∫ x in s, ⨍ a in s, f a ∂μ - f x ∂μ = 0 :=
+by haveI haveI : fact (μ s < ∞) := ⟨lt_top_iff_ne_top.2 hs⟩; exact integral_average_sub hf
+
+end normed_add_comm_group
+
+lemma of_real_average {f : α → ℝ} (hf : integrable f μ) (hf₀ : 0 ≤ᵐ[μ] f) :
+  ennreal.of_real (⨍ x, f x ∂μ) = (∫⁻ x, ennreal.of_real (f x) ∂μ) / μ univ :=
+begin
+  obtain rfl | hμ := eq_or_ne μ 0,
+  { simp },
+  { rw [average_eq, smul_eq_mul, ←to_real_inv, of_real_mul (to_real_nonneg),
+      of_real_to_real (inv_ne_top.2 $ measure_univ_ne_zero.2 hμ),
+      of_real_integral_eq_lintegral_of_real hf hf₀, ennreal.div_eq_inv_mul] }
+end
+
+lemma of_real_set_average {f : α → ℝ} (hf : integrable_on f s μ)
+  (hf₀ : 0 ≤ᵐ[μ.restrict s] f) :
+  ennreal.of_real (⨍ x in s, f x ∂μ) = (∫⁻ x in s, ennreal.of_real (f x) ∂μ) / μ s :=
+by simpa using of_real_average hf hf₀
+
+lemma average_to_real {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (hf' : ∀ᵐ x ∂μ, f x ≠ ∞) :
+  ⨍ x, (f x).to_real ∂μ = (∫⁻ x, f x ∂μ / μ univ).to_real :=
+begin
+  obtain rfl | hμ := eq_or_ne μ 0,
+  { simp },
+  { rw [average_eq, smul_eq_mul, to_real_div,
+      ←integral_to_real hf (hf'.mono $ λ _, lt_top_iff_ne_top.2), div_eq_inv_mul] }
+end
+
+lemma set_average_to_real {f : α → ℝ≥0∞} (hf : ae_measurable f (μ.restrict s))
+  (hf' : ∀ᵐ x ∂(μ.restrict s), f x ≠ ∞) :
+  ⨍ x in s, (f x).to_real ∂μ = (∫⁻ x in s, f x ∂μ / μ s).to_real :=
+by simpa using average_to_real hf hf'
+
+/-! ### First moment method -/
+
+section first_moment
+variables {N : set α} {f : α → ℝ}
+
+/-- **First moment method**. An integrable function is smaller than its mean on a set of positive
+measure. -/
+lemma measure_le_set_average_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : integrable_on f s μ) :
+  0 < μ {x ∈ s | f x ≤ ⨍ a in s, f a ∂μ} :=
+begin
+  refine pos_iff_ne_zero.2 (λ H, _),
+  replace H : (μ.restrict s) {x | f x ≤ ⨍ a in s, f a ∂μ} = 0,
+  { rwa [restrict_apply₀, inter_comm],
+    exact ae_strongly_measurable.null_measurable_set_le hf.1 ae_strongly_measurable_const },
+  haveI : is_finite_measure (μ.restrict s) :=
+    ⟨by simpa only [measure.restrict_apply, measurable_set.univ, univ_inter] using hμ₁.lt_top⟩,
+  refine (integral_sub_average (μ.restrict s) f).not_gt _,
+  refine (set_integral_pos_iff_support_of_nonneg_ae _ _).2 _,
+  { refine eq_bot_mono (measure_mono (λ x hx, _)) H,
+    simp only [pi.zero_apply, sub_nonneg, mem_compl_iff, mem_set_of_eq, not_le] at hx,
+    exact hx.le },
+  { exact hf.sub (integrable_on_const.2 $ or.inr $ lt_top_iff_ne_top.2 hμ₁) },
+  { rwa [pos_iff_ne_zero, inter_comm, ←diff_compl, ←diff_inter_self_eq_diff, measure_diff_null],
+    refine eq_bot_mono (measure_mono _) (measure_inter_eq_zero_of_restrict H),
+    exact inter_subset_inter_left _ (λ a ha, (sub_eq_zero.1 $ of_not_not ha).le) }
+end
+
+/-- **First moment method**. An integrable function is greater than its mean on a set of positive
+measure. -/
+lemma measure_set_average_le_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : integrable_on f s μ) :
+  0 < μ {x ∈ s | ⨍ a in s, f a ∂μ ≤ f x} :=
+by simpa [integral_neg, neg_div] using measure_le_set_average_pos hμ hμ₁ hf.neg
+
+/-- **First moment method**. The minimum of an integrable function is smaller than its mean. -/
+lemma exists_le_set_average (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : integrable_on f s μ) :
+  ∃ x ∈ s, f x ≤ ⨍ a in s, f a ∂μ :=
+let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_le_set_average_pos hμ hμ₁ hf).ne'
+  in ⟨x, hx, h⟩
+
+/-- **First moment method**. The maximum of an integrable function is greater than its mean. -/
+lemma exists_set_average_le (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : integrable_on f s μ) :
+  ∃ x ∈ s, ⨍ a in s, f a ∂μ ≤ f x :=
+let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_set_average_le_pos hμ hμ₁ hf).ne'
+  in ⟨x, hx, h⟩
+
+section finite_measure
+variables [is_finite_measure μ]
+
+/-- **First moment method**. An integrable function is smaller than its mean on a set of positive
+measure. -/
+lemma measure_le_average_pos (hμ : μ ≠ 0) (hf : integrable f μ) : 0 < μ {x | f x ≤ ⨍ a, f a ∂μ} :=
+by simpa using measure_le_set_average_pos (measure.measure_univ_ne_zero.2 hμ) (measure_ne_top _ _)
+  hf.integrable_on
+
+/-- **First moment method**. An integrable function is greater than its mean on a set of positive
+measure. -/
+lemma measure_average_le_pos (hμ : μ ≠ 0) (hf : integrable f μ) : 0 < μ {x | ⨍ a, f a ∂μ ≤ f x} :=
+by simpa using measure_set_average_le_pos (measure.measure_univ_ne_zero.2 hμ) (measure_ne_top _ _)
+  hf.integrable_on
+
+/-- **First moment method**. The minimum of an integrable function is smaller than its mean. -/
+lemma exists_le_average (hμ : μ ≠ 0) (hf : integrable f μ) : ∃ x, f x ≤ ⨍ a, f a ∂μ :=
+let ⟨x, hx⟩ := nonempty_of_measure_ne_zero (measure_le_average_pos hμ hf).ne' in ⟨x, hx⟩
+
+/-- **First moment method**. The maximum of an integrable function is greater than its mean. -/
+lemma exists_average_le (hμ : μ ≠ 0) (hf : integrable f μ) : ∃ x, ⨍ a, f a ∂μ ≤ f x :=
+let ⟨x, hx⟩ := nonempty_of_measure_ne_zero (measure_average_le_pos hμ hf).ne' in ⟨x, hx⟩
+
+/-- **First moment method**. The minimum of an integrable function is smaller than its mean, while
+avoiding a null set. -/
+lemma exists_not_mem_null_le_average (hμ : μ ≠ 0) (hf : integrable f μ) (hN : μ N = 0) :
+  ∃ x ∉ N, f x ≤ ⨍ a, f a ∂μ :=
+begin
+  have := measure_le_average_pos hμ hf,
+  rw ←measure_diff_null hN at this,
+  obtain ⟨x, hx, hxN⟩ := nonempty_of_measure_ne_zero this.ne',
+  exact ⟨x, hxN, hx⟩,
+end
+
+/-- **First moment method**. The maximum of an integrable function is greater than its mean, while
+avoiding a null set. -/
+lemma exists_not_mem_null_average_le (hμ : μ ≠ 0) (hf : integrable f μ) (hN : μ N = 0) :
+  ∃ x ∉ N, ⨍ a, f a ∂μ ≤ f x :=
+by simpa [integral_neg, neg_div] using exists_not_mem_null_le_average hμ hf.neg hN
+
+end finite_measure
+
+section probability_measure
+variables [is_probability_measure μ]
+
+/-- **First moment method**. An integrable function is smaller than its integral on a set of
+positive measure. -/
+lemma measure_le_integral_pos (hf : integrable f μ) : 0 < μ {x | f x ≤ ∫ a, f a ∂μ} :=
+by simpa only [average_eq_integral]
+  using measure_le_average_pos (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. An integrable function is greater than its integral on a set of
+positive measure. -/
+lemma measure_integral_le_pos (hf : integrable f μ) : 0 < μ {x | ∫ a, f a ∂μ ≤ f x} :=
+by simpa only [average_eq_integral]
+  using measure_average_le_pos (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. The minimum of an integrable function is smaller than its integral. -/
+lemma exists_le_integral (hf : integrable f μ) : ∃ x, f x ≤ ∫ a, f a ∂μ :=
+by simpa only [average_eq_integral] using exists_le_average (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. The maximum of an integrable function is greater than its integral. -/
+lemma exists_integral_le (hf : integrable f μ) : ∃ x, ∫ a, f a ∂μ ≤ f x :=
+by simpa only [average_eq_integral] using exists_average_le (is_probability_measure.ne_zero μ) hf
+
+/-- **First moment method**. The minimum of an integrable function is smaller than its integral,
+while avoiding a null set. -/
+lemma exists_not_mem_null_le_integral (hf : integrable f μ) (hN : μ N = 0) :
+  ∃ x ∉ N, f x ≤ ∫ a, f a ∂μ :=
+by simpa only [average_eq_integral]
+  using exists_not_mem_null_le_average (is_probability_measure.ne_zero μ) hf hN
+
+/-- **First moment method**. The maximum of an integrable function is greater than its integral,
+while avoiding a null set. -/
+lemma exists_not_mem_null_integral_le (hf : integrable f μ) (hN : μ N = 0) :
+  ∃ x ∉ N, ∫ a, f a ∂μ ≤ f x :=
+by simpa only [average_eq_integral]
+  using exists_not_mem_null_average_le (is_probability_measure.ne_zero μ) hf hN
+
+end probability_measure
+end first_moment
 end measure_theory

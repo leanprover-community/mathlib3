@@ -9,6 +9,9 @@ import algebra.lie.normalizer
 /-!
 # Engel's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a proof of Engel's theorem providing necessary and sufficient conditions for Lie
 algebras and Lie modules to be nilpotent.
 

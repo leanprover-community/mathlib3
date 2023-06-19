@@ -11,6 +11,9 @@ import measure_theory.measure.haar.of_basis
 /-!
 # The Fourier transform
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We set up the Fourier transform for complex-valued functions on finite-dimensional spaces.
 
 ## Design choices

@@ -10,6 +10,9 @@ import group_theory.submonoid.membership
 
 /-! # Star order structure on ℚ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Here we put the trivial `star` operation on `ℚ` for convenience and show that it is a
 `star_ordered_ring`. In particular, this means that every element of `ℚ` is a sum of squares.
 -/

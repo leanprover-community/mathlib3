@@ -9,6 +9,9 @@ import order.category.DistLat
 /-!
 # The category of bounded distributive lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `BddDistLat`, the category of bounded distributive lattices.
 
 Note that this category is sometimes called [`DistLat`](https://ncatlab.org/nlab/show/DistLat) when

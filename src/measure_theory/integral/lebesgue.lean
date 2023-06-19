@@ -795,27 +795,24 @@ lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 mul_meas_ge_le_lintegral₀ hf.ae_measurable ε
 
-lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : ae_measurable f μ)
-  (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
+lemma lintegral_eq_top_of_measure_eq_top_ne_zero {f : α → ℝ≥0∞} (hf : ae_measurable f μ)
+  (hμf : μ {x | f x = ∞} ≠ 0) : ∫⁻ x, f x ∂μ = ∞ :=
 eq_top_iff.mpr $
-calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
+calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf]
    ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral₀ hf ∞
 
-lemma set_lintegral_eq_top_of_measure_eq_top_pos (hf : ae_measurable f (μ.restrict s))
-  (hs : null_measurable_set s μ) (hμf : 0 < μ {x ∈ s | f x = ⊤}) :
-  ∫⁻ x in s, f x ∂μ = ⊤ :=
-lintegral_eq_top_of_measure_eq_top_pos hf $
-  by rwa [measure.restrict_apply₀' hs, set_of_inter_eq_sep]
+lemma set_lintegral_eq_top_of_measure_eq_top_ne_zero (hf : ae_measurable f (μ.restrict s))
+  (hμf : μ {x ∈ s | f x = ∞} ≠ 0) : ∫⁻ x in s, f x ∂μ = ∞ :=
+lintegral_eq_top_of_measure_eq_top_ne_zero hf $
+  mt (eq_bot_mono $ by { rw ←set_of_inter_eq_sep, exact measure.le_restrict_apply _ _ }) hμf
 
---TODO: Rename `measure_theory.ae_lt_top'`
-
-lemma measure_eq_top_of_lintegral_ne_top (hf : ae_measurable f μ) (hμf : ∫⁻ x, f x ∂μ ≠ ⊤) :
-  μ {x | f x = ⊤} = 0 :=
-of_not_not $ λ h, hμf $ lintegral_eq_top_of_measure_eq_top_pos hf $ pos_iff_ne_zero.2 h
+lemma measure_eq_top_of_lintegral_ne_top (hf : ae_measurable f μ) (hμf : ∫⁻ x, f x ∂μ ≠ ∞) :
+  μ {x | f x = ∞} = 0 :=
+of_not_not $ λ h, hμf $ lintegral_eq_top_of_measure_eq_top_ne_zero hf h
 
 lemma measure_eq_top_of_set_lintegral_ne_top (hf : ae_measurable f (μ.restrict s))
-  (hs : null_measurable_set s μ) (hμf : ∫⁻ x in s, f x ∂μ ≠ ⊤) : μ {x ∈ s | f x = ⊤} = 0 :=
-of_not_not $ λ h, hμf $ set_lintegral_eq_top_of_measure_eq_top_pos hf hs $ pos_iff_ne_zero.2 h
+  (hμf : ∫⁻ x in s, f x ∂μ ≠ ∞) : μ {x ∈ s | f x = ∞} = 0 :=
+of_not_not $ λ h, hμf $ set_lintegral_eq_top_of_measure_eq_top_ne_zero hf h
 
 /-- **Markov's inequality** also known as **Chebyshev's first inequality**. -/
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : ae_measurable f μ) {ε : ℝ≥0∞}

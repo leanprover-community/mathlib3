@@ -1610,7 +1610,7 @@ set.center_subset_centralizer s
 @[to_additive] lemma centralizer_le {s t : set G} (h : s ⊆ t) : centralizer t ≤ centralizer s :=
 submonoid.centralizer_le h
 
-@[simp, to_additive] lemma centralizer_eq_top_iff_subset {s} : centralizer s = ⊤ ↔ s ≤ center G :=
+@[simp, to_additive] lemma centralizer_eq_top_iff_subset {s} : centralizer s = ⊤ ↔ s ⊆ center G :=
 set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 @[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :

@@ -55,6 +55,15 @@ def is_uniform (s t : finset α) : Prop :=
 ∀ ⦃s'⦄, s' ⊆ s → ∀ ⦃t'⦄, t' ⊆ t → (s.card : 𝕜) * ε ≤ s'.card → (t.card : 𝕜) * ε ≤ t'.card →
   |(G.edge_density s' t' : 𝕜) - (G.edge_density s t : 𝕜)| < ε
 
+instance : decidable_rel (G.is_uniform ε) :=
+begin
+  refine λ s t, @finset.decidable_forall_of_decidable_subsets _ s (λ s' _, ∀ ⦃t'⦄, t' ⊆ t →
+    (s.card : 𝕜) * ε ≤ s'.card → (t.card : 𝕜) * ε ≤ t'.card →
+    |(G.edge_density s' t' : 𝕜) - (G.edge_density s t : 𝕜)| < ε) (λ s' hs',
+    @finset.decidable_forall_of_decidable_subsets _ t _ $ λ t' ht', _),
+  apply_instance,
+end
+
 variables {G ε}
 
 lemma is_uniform.mono {ε' : 𝕜} (h : ε ≤ ε') (hε : is_uniform G ε s t) : is_uniform G ε' s t :=
@@ -69,22 +78,6 @@ variables (G)
 
 lemma is_uniform_comm : is_uniform G ε s t ↔ is_uniform G ε t s := ⟨λ h, h.symm, λ h, h.symm⟩
 
-lemma is_uniform_singleton (hε : 0 < ε) : G.is_uniform ε {a} {b} :=
-begin
-  intros s' hs' t' ht' hs ht,
-  rw [card_singleton, nat.cast_one, one_mul] at hs ht,
-  obtain rfl | rfl := finset.subset_singleton_iff.1 hs',
-  { replace hs : ε ≤ 0 := by simpa using hs,
-    exact (hε.not_le hs).elim },
-  obtain rfl | rfl := finset.subset_singleton_iff.1 ht',
-  { replace ht : ε ≤ 0 := by simpa using ht,
-    exact (hε.not_le ht).elim },
-  { rwa [sub_self, abs_zero] }
-end
-
-lemma not_is_uniform_zero : ¬ G.is_uniform (0 : 𝕜) s t :=
-λ h, (abs_nonneg _).not_lt $ h (empty_subset _) (empty_subset _) (by simp) (by simp)
-
 lemma is_uniform_one : G.is_uniform (1 : 𝕜) s t :=
 begin
   intros s' hs' t' ht' hs ht,
@@ -96,9 +89,27 @@ end
 
 variables {G}
 
+lemma is_uniform.pos (hG : G.is_uniform ε s t) : 0 < ε :=
+not_le.1 $ λ hε, (hε.trans $ abs_nonneg _).not_lt $ hG (empty_subset _) (empty_subset _)
+  (by simpa using mul_nonpos_of_nonneg_of_nonpos (nat.cast_nonneg _) hε)
+  (by simpa using mul_nonpos_of_nonneg_of_nonpos (nat.cast_nonneg _) hε)
+
+@[simp] lemma is_uniform_singleton : G.is_uniform ε {a} {b} ↔ 0 < ε :=
+begin
+  refine ⟨is_uniform.pos, λ hε s' hs' t' ht' hs ht, _⟩,
+  rw [card_singleton, nat.cast_one, one_mul] at hs ht,
+  obtain rfl | rfl := finset.subset_singleton_iff.1 hs',
+  { replace hs : ε ≤ 0 := by simpa using hs,
+    exact (hε.not_le hs).elim },
+  obtain rfl | rfl := finset.subset_singleton_iff.1 ht',
+  { replace ht : ε ≤ 0 := by simpa using ht,
+    exact (hε.not_le ht).elim },
+  { rwa [sub_self, abs_zero] }
+end
+
 lemma not_is_uniform_iff :
   ¬ G.is_uniform ε s t ↔ ∃ s', s' ⊆ s ∧ ∃ t', t' ⊆ t ∧ ↑s.card * ε ≤ s'.card ∧
-    ↑t.card * ε ≤ t'.card ∧  ε ≤ |G.edge_density s' t' - G.edge_density s t| :=
+    ↑t.card * ε ≤ t'.card ∧ ε ≤ |G.edge_density s' t' - G.edge_density s t| :=
 by { unfold is_uniform, simp only [not_forall, not_lt, exists_prop] }
 
 open_locale classical
@@ -177,14 +188,13 @@ end simple_graph
 /-! ### Uniform partitions -/
 
 variables [decidable_eq α] {A : finset α} (P : finpartition A) (G : simple_graph α)
-  [decidable_rel G.adj] {ε : 𝕜}
+  [decidable_rel G.adj] {ε δ : 𝕜}
 
 namespace finpartition
-open_locale classical
 
 /-- The pairs of parts of a partition `P` which are not `ε`-uniform in a graph `G`. Note that we
 dismiss the diagonal. We do not care whether `s` is `ε`-uniform with itself. -/
-noncomputable def non_uniforms (ε : 𝕜) : finset (finset α × finset α) :=
+def non_uniforms (ε : 𝕜) : finset (finset α × finset α) :=
 P.parts.off_diag.filter $ λ uv, ¬G.is_uniform ε uv.1 uv.2
 
 lemma mk_mem_non_uniforms_iff (u v : finset α) (ε : 𝕜) :
@@ -201,7 +211,7 @@ begin
   simp only [finpartition.mk_mem_non_uniforms_iff, finpartition.parts_bot, mem_map, not_and,
     not_not, exists_imp_distrib],
   rintro x hx rfl y hy rfl h,
-  exact G.is_uniform_singleton hε,
+  exact simple_graph.is_uniform_singleton.2 hε,
 end
 
 /-- A finpartition of a graph's vertex set is `ε`-uniform (aka `ε`-regular) iff the proportion of
@@ -249,3 +259,39 @@ lemma nonuniform_witness_mem_nonuniform_witnesses (h : ¬ G.is_uniform ε s t) (
 mem_image_of_mem _ $ mem_filter.2 ⟨ht, hst, h⟩
 
 end finpartition
+
+/-! ### Reduced graph -/
+
+namespace simple_graph
+variables [fintype α]
+
+/-- The reduction of the graph `G` along partition `P` has edges between `ε`-uniform pairs of parts
+that have edge density at least `δ`. -/
+@[simps] def reduced (ε δ : 𝕜) : simple_graph α :=
+{ adj := λ a b, G.adj a b ∧
+    ∃ U V ∈ P.parts, a ∈ U ∧ b ∈ V ∧ U ≠ V ∧ G.is_uniform ε U V ∧ δ ≤ G.edge_density U V,
+  symm := λ a b,
+  begin
+    rintro ⟨ab, U, UP, V, VP, xU, yV, UV, GUV, εUV⟩,
+    refine ⟨G.symm ab, V, VP, U, UP, yV, xU, UV.symm, GUV.symm, _⟩,
+    rwa simple_graph.edge_density_comm,
+  end,
+  loopless := λ a ⟨h, _⟩, G.loopless a h }
+
+instance [decidable_rel G.adj] : decidable_rel (G.reduced P ε δ).adj :=
+λ a b, @and.decidable _ _ _ $ @finset.decidable_dexists_finset _ _ _ $ λ U hU,
+  @finset.decidable_dexists_finset _ _ (λ V _,
+  a ∈ U ∧ b ∈ V ∧ U ≠ V ∧ G.is_uniform ε U V ∧ δ ≤ G.edge_density U V) $ λ V hV, and.decidable
+
+variables {G P}
+
+lemma reduced_le : G.reduced P ε δ ≤ G := λ x y, and.left
+
+lemma reduced_mono {ε₁ ε₂ : 𝕜} (hε : ε₁ ≤ ε₂) : G.reduced P ε₁ δ ≤ G.reduced P ε₂ δ :=
+λ a b ⟨hab, U, hU, V, hV, ha, hb, hUV, hGε, hGδ⟩, ⟨hab, U, hU, V, hV, ha, hb, hUV, hGε.mono hε, hGδ⟩
+
+lemma reduced_anti {δ₁ δ₂ : 𝕜} (hδ : δ₁ ≤ δ₂) : G.reduced P ε δ₂ ≤ G.reduced P ε δ₁ :=
+λ a b ⟨hab, U, hU, V, hV, ha, hb, hUV, hUVε, hUVδ⟩,
+  ⟨hab, U, hU, V, hV, ha, hb, hUV, hUVε, hδ.trans hUVδ⟩
+
+end simple_graph

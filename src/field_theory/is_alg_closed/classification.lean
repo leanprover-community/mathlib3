@@ -161,7 +161,6 @@ if they have the same cardinality. -/
 lemma ring_equiv_of_cardinal_eq_of_char_zero [char_zero K] [char_zero L]
   (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
-  apply classical.choice,
   cases exists_is_transcendence_basis ℤ
     (show function.injective (algebra_map ℤ K),
       from int.cast_injective) with s hs,
@@ -173,13 +172,12 @@ begin
         ← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ ht (le_of_eq mk_int), hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
-  exact ⟨⟨equiv_of_transcendence_basis _ _ e hs ht⟩⟩
+  exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩
 end
 
 private lemma ring_equiv_of_cardinal_eq_of_char_p (p : ℕ) [fact p.prime]
   [char_p K p] [char_p L p] (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
-  apply classical.choice,
   letI : algebra (zmod p) K := zmod.algebra _ _,
   letI : algebra (zmod p) L := zmod.algebra _ _,
   cases exists_is_transcendence_basis (zmod p)
@@ -195,7 +193,7 @@ begin
       (lt_aleph_0_of_finite (zmod p)).le, hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
-  exact ⟨⟨equiv_of_transcendence_basis _ _ e hs ht⟩⟩
+  exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩
 end
 
 /-- Two uncountable algebraically closed fields are isomorphic
@@ -203,17 +201,16 @@ if they have the same cardinality and the same characteristic. -/
 lemma ring_equiv_of_cardinal_eq_of_char_eq (p : ℕ) [char_p K p] [char_p L p]
   (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
-  apply classical.choice,
   rcases char_p.char_is_prime_or_zero K p with hp | hp,
   { haveI : fact p.prime := ⟨hp⟩,
     letI : algebra (zmod p) K := zmod.algebra _ _,
     letI : algebra (zmod p) L := zmod.algebra _ _,
-    exact ⟨ring_equiv_of_cardinal_eq_of_char_p p hK hKL⟩ },
+    exact ring_equiv_of_cardinal_eq_of_char_p p hK hKL },
   { rw [hp] at *,
     resetI,
     letI : char_zero K := char_p.char_p_to_char_zero K,
     letI : char_zero L := char_p.char_p_to_char_zero L,
-    exact ⟨ring_equiv_of_cardinal_eq_of_char_zero hK hKL⟩ }
+    exact ring_equiv_of_cardinal_eq_of_char_zero hK hKL }
 end
 
 end is_alg_closed

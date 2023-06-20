@@ -277,7 +277,7 @@ that have edge density at least `δ`. -/
   end,
   loopless := λ a ⟨h, _⟩, G.loopless a h }
 
-instance [decidable_rel G.adj] : decidable_rel (G.reduced P ε δ).adj :=
+instance : decidable_rel (G.reduced P ε δ).adj :=
 λ a b, @and.decidable _ _ _ $ @finset.decidable_dexists_finset _ _ _ $ λ U hU,
   @finset.decidable_dexists_finset _ _ (λ V _,
   a ∈ U ∧ b ∈ V ∧ U ≠ V ∧ G.is_uniform ε U V ∧ δ ≤ G.edge_density U V) $ λ V hV, and.decidable

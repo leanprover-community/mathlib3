@@ -577,7 +577,7 @@ begin
   { simp [continuous_within_at_univ,
       (topological_space.opens.open_embedding_of_le hUV).continuous_at_iff] },
   { apply hG.congr_iff,
-    exact (topological_space.opens.chart_at_inclusion_eventually_eq hUV).fun_comp
+    exact (topological_space.opens.chart_at_inclusion_symm_eventually_eq hUV).fun_comp
       (chart_at H' (f (set.inclusion hUV x)) ∘ f) },
 end
 

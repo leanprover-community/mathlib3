@@ -985,10 +985,11 @@ instance [closed_under_restriction G] : has_groupoid s G :=
   end }
 
 lemma chart_at_inclusion_eventually_eq {U V : opens M} (hUV : U ≤ V) {x : U} :
-  let i := set.inclusion hUV in
-  (chart_at H (i x)).symm =ᶠ[𝓝 (chart_at H (i x) (i x))] i ∘ (chart_at H x).symm :=
+  (chart_at H (set.inclusion hUV x)).symm
+  =ᶠ[𝓝 (chart_at H (set.inclusion hUV x) (set.inclusion hUV x))] set.inclusion hUV
+    ∘ (chart_at H x).symm :=
 begin
-  intro i,
+  set i := set.inclusion hUV,
   set e := chart_at H (x:M),
   haveI : nonempty U := ⟨x⟩,
   haveI : nonempty V := ⟨i x⟩,

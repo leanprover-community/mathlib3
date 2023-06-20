@@ -485,8 +485,8 @@ partial_sum (λ i, a (rearrangement a M i))
 -/
 inductive rearrangement_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : Prop
 | start : n = 0 → rearrangement_switchpoint
-| under_to_over : sumto a M n < M ∧ M ≤ sumto a M (n + 1) → rearrangement_switchpoint
-| over_to_under : M ≤ sumto a M n ∧ sumto a M (n + 1) < M → rearrangement_switchpoint
+| under_to_over : sumto a M n ≤ M ∧ M < sumto a M (n + 1) → rearrangement_switchpoint
+| over_to_under : M < sumto a M n ∧ sumto a M (n + 1) ≤ M → rearrangement_switchpoint
 
 /--
   Helper instance to make it easier to use rearrangement_switchpoint in nat.find_greatest
@@ -510,21 +510,21 @@ begin
     simp [partial_sum_next] },
   cases hd,
   { contradiction },
-  { have : sumto a M (d + 1) - M < sumto a M (d + 1) - sumto a M d := by simp [hd.left],
+  { have : sumto a M (d + 1) - M ≤ sumto a M (d + 1) - sumto a M d := by simp [hd.left],
     rw h at this,
-    rw real.norm_of_nonneg (show 0 ≤ sumto a M (d + 1) - M, by simp [hd.right]),
+    rw real.norm_of_nonneg (show 0 < sumto a M (d + 1) - M, by simp [hd.right]).le,
     /-have q : 0 ≤ a (rearrangement a M (d - 1)) := begin
       linarith
       --have := @rearrangement_nonneg_spec' _ h₁ h₂ M (d - 1) hd.left.le
     end,-/
     rw real.norm_of_nonneg (show 0 ≤ a (rearrangement a M d), by linarith),
-    exact this.le },
-  { have h₃ : -(sumto a M (d + 1) - M) ≤ -(sumto a M (d + 1) - sumto a M d) := by simp [hd.left],
+    exact this },
+  { have h₃ : -(sumto a M (d + 1) - M) < -(sumto a M (d + 1) - sumto a M d) := by simp [hd.left],
     rw h at h₃,
-    rw real.norm_of_nonpos (show sumto a M (d + 1) - M ≤ 0, by simp [hd.right.le]),
+    rw real.norm_of_nonpos (show sumto a M (d + 1) - M ≤ 0, by simp [hd.right]),
     have : a (rearrangement a M d) ≤ 0 := by linarith,
     rw real.norm_of_nonpos this,
-    exact h₃ }
+    exact h₃.le }
 end
 
 @[reducible]
@@ -628,7 +628,7 @@ begin
           unfold sumto at this,
           rw ←partial_sum_next (λ i, a (rearrangement a M i)) at this,
           --change sumto a M (n + 2) - M < 0 at this,
-          have := rearrangement_switchpoint.over_to_under ⟨hsum.le, by linarith⟩,
+          have := rearrangement_switchpoint.over_to_under ⟨hsum, by linarith⟩,
           exact absurd this h
         end,
         rw real.norm_of_nonneg (show 0 ≤ sumto a M (n + 1) - M, by linarith),
@@ -645,10 +645,12 @@ begin
           unfold sumto at this,
           rw ←partial_sum_next (λ i, a (rearrangement a M i)) at this,
           change 0 < sumto a M (n + 2) - M at this,
-          have := rearrangement_switchpoint.under_to_over ⟨show sumto a M (n + 1) < M, from sorry, by linarith⟩,
+          have := rearrangement_switchpoint.under_to_over ⟨hsum, by linarith⟩,
           exact absurd this h,
         end,
-        sorry
+        rw real.norm_of_nonpos (show sumto a M (n + 1) - M ≤ 0, by linarith),
+        rw real.norm_of_nonpos (show a (rearrangement a M (n + 1)) + sumto a M (n + 1) - M ≤ 0, by linarith),
+        linarith
       }
     }
   }

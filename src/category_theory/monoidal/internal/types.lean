@@ -10,6 +10,9 @@ import category_theory.monoidal.types.symmetric
 /-!
 # `Mon_ (Type u) ≌ Mon.{u}`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The category of internal monoid objects in `Type`
 is equivalent to the category of "native" bundled monoids.
 

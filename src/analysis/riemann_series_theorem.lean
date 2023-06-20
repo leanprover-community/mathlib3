@@ -479,6 +479,9 @@ partial_sum (λ i, a (rearrangement a M i))
 /--
   An index is a "switchpoint" when the previous parital sum in the series is on the "opposite side"
   of M. (This is not standard terminology.)
+  Remember that `sumto a M (n + 1)` means the sum of the permuted terms up to `n` rather than
+  `n + 1`. So `sumto a M (n + 1)` is on the opposite side of `sumto a M n` if and only if
+  the `n_th` term was what caused the switch, not the `(n + 1)_th` term.
 -/
 inductive rearrangement_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : Prop
 | start : n = 0 → rearrangement_switchpoint
@@ -531,6 +534,56 @@ nat.find_greatest (rearrangement_switchpoint a M) n
 lemma nearest_switchpoint_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
 : rearrangement_switchpoint a M (nearest_switchpoint a M n) :=
 nat.find_greatest_spec (zero_le n) (rearrangement_switchpoint.start rfl)
+
+lemma nearest_switchpoint_le (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : nearest_switchpoint a M n ≤ n :=
+nat.find_greatest_le n
+
+lemma abs_sumto_sub_M_decreasing_of_not_switchpoint' (a : ℕ → ℝ) (M : ℝ) (d k : ℕ)
+  (hd : nearest_switchpoint a M (d + k) ≤ d)
+  (hd₁ : nearest_switchpoint a M (d + k) ≠ 0)
+: ‖sumto a M (d + k + 1) - M‖ ≤ ‖sumto a M (d + 1) - M‖ :=
+begin
+  induction k with k ih,
+  { simp },
+  {
+    have hd' : nearest_switchpoint a M (d + k) ≤ d := sorry,
+    have hd₁' : nearest_switchpoint a M (d + k) ≠ 0 := sorry,
+    specialize ih hd' hd₁',
+    rw (show d + k.succ + 1 = (d + k + 1) + 1, by ring),
+    change ‖partial_sum _ _ - M‖ ≤ _,
+    rw partial_sum_next,
+    change ‖a (rearrangement a M (d + k + 1)) + sumto a M _ - M‖ ≤ _,
+    have hsp := nearest_switchpoint_switchpoint a M (d + k),
+    cases hsp,
+    { contradiction },
+    --by_cases hi₁ : 0 ≤ sumto a M (d + 1) - M,
+    {
+      sorry
+    },
+    {
+      sorry
+    }
+  }
+end
+
+lemma abs_sumto_sub_M_decreasing_of_not_switchpoint (a : ℕ → ℝ) (M : ℝ) (n d : ℕ)
+  (hd₁ : d ≤ n) (hd₂ : nearest_switchpoint a M n ≤ d)
+: ‖sumto a M (n + 1) - M‖ ≤ ‖sumto a M (d + 1) - M‖ :=
+begin
+  sorry
+end
+
+lemma abs_sumto_sub_M_le_val_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
+  (hd₁ : nearest_switchpoint a M n ≠ 0)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+: ‖sumto a M (n + 1) - M‖ ≤ ‖a (rearrangement a M (nearest_switchpoint a M n))‖ :=
+begin
+  have q₁ := abs_sumto_sub_M_decreasing_of_not_switchpoint a M n (nearest_switchpoint a M n)
+    (nearest_switchpoint_le a M n) le_rfl,
+  have q₂ := diff_M_le_switchpoint a M (nearest_switchpoint_switchpoint a M n) hd₁ h₁ h₂,
+  exact le_trans q₁ q₂
+end
 
 -- TODO: Check the statement of this lemma very carefully
  /-lemma switchpoints_tendto_M (a : ℕ → ℝ) (M : ℝ) (n : ℕ)

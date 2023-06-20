@@ -12,6 +12,9 @@ import topology.sheaves.stalks
 
 # Operations on sheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definition
 
 - `submonoid_presheaf` : A subpresheaf with a submonoid structure on each of the components.

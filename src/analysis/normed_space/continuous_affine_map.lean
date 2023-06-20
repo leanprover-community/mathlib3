@@ -10,6 +10,9 @@ import analysis.normed_space.operator_norm
 /-!
 # Continuous affine maps between normed spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops the theory of continuous affine maps between affine spaces modelled on normed
 spaces.
 

@@ -13,6 +13,9 @@ import topology.algebra.algebra
 /-!
 # Exponential in a Banach algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define `exp 𝕂 : 𝔸 → 𝔸`, the exponential map in a topological algebra `𝔸` over a
 field `𝕂`.
 
@@ -412,7 +415,7 @@ lemma exp_has_fpower_series_at_zero :
   has_fpower_series_at (exp 𝕂) (exp_series 𝕂 𝔸) 0 :=
 exp_has_fpower_series_on_ball.has_fpower_series_at
 
-lemma exp_continuous : continuous (exp 𝕂 : 𝔸 → 𝔸) :=
+@[continuity] lemma exp_continuous : continuous (exp 𝕂 : 𝔸 → 𝔸) :=
 begin
   rw [continuous_iff_continuous_on_univ, ← metric.eball_top_eq_univ (0 : 𝔸),
       ← exp_series_radius_eq_top 𝕂 𝔸],

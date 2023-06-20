@@ -10,6 +10,9 @@ import order.hom.basic
 /-!
 # Solvable Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Like groups, Lie algebras admit a natural concept of solvability. We define this here via the
 derived series and prove some related results. We also define the radical of a Lie algebra and
 prove that it is solvable when the Lie algebra is Noetherian.

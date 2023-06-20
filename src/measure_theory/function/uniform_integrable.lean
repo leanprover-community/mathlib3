@@ -9,6 +9,9 @@ import measure_theory.function.l1_space
 /-!
 # Uniform integrability
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definitions for uniform integrability (both in the measure theory sense
 as well as the probability theory sense). This file also contains the Vitali convergence theorem
 which estabishes a relation between uniform integrability, convergence in measure and

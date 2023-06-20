@@ -10,6 +10,9 @@ import analysis.special_functions.trigonometric.series
 /-!
 # Lemmas about `exp` on `quaternion`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results about `exp` on `quaternion ℝ`.
 
 ## Main results

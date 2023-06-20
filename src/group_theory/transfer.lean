@@ -10,6 +10,9 @@ import group_theory.sylow
 /-!
 # The Transfer Homomorphism
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we construct the transfer homomorphism.
 
 ## Main definitions

@@ -9,6 +9,9 @@ import analysis.special_functions.trigonometric.complex_deriv
 /-!
 # Derivatives of the `tan` and `arctan` functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Continuity and derivatives of the tangent and arctangent functions.
 -/
 

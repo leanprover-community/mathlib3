@@ -56,8 +56,6 @@ rather than more literally with `affine_segment`.
 -/
 library_note "IMO geometry formalization conventions"
 
-noncomputable theory
-
 open affine affine.simplex euclidean_geometry finite_dimensional
 open_locale affine euclidean_geometry real
 
@@ -67,6 +65,10 @@ variables (V : Type*) (Pt : Type*)
 variables [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space Pt]
 variables [normed_add_torsor V Pt] [hd2 : fact (finrank ℝ V = 2)]
 include hd2
+
+namespace imo2019_q2
+
+noncomputable theory
 
 /-- A configuration satisfying the conditions of the problem. We define this structure to avoid
 passing many hypotheses around as we build up information about the configuration; the final
@@ -579,6 +581,10 @@ begin
 end
 
 end imo2019q2_cfg
+
+end imo2019_q2
+
+open imo2019_q2
 
 theorem imo2019_q2 (A B C A₁ B₁ P Q P₁ Q₁ : Pt)
   (affine_independent_ABC : affine_independent ℝ ![A, B, C])

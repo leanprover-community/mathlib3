@@ -13,6 +13,9 @@ import field_theory.tower
 /-!
 # Fixed field under a group action.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This is the basis of the Fundamental Theorem of Galois Theory.
 Given a (finite) group `G` that acts on a field `F`, we define `fixed_points G F`,
 the subfield consisting of elements of `F` fixed_points by every element of `G`.

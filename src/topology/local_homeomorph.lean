@@ -1178,7 +1178,7 @@ begin
   simp only with mfld_simps,
 end
 
-lemma subtype_restr_eq_on_of_le {U V : opens α} [nonempty U] [nonempty V] (hUV : U ≤ V) :
+lemma subtype_restr_symm_eq_on_of_le {U V : opens α} [nonempty U] [nonempty V] (hUV : U ≤ V) :
   eq_on (e.subtype_restr V).symm (set.inclusion hUV ∘ (e.subtype_restr U).symm)
     (e.subtype_restr U).target :=
 begin

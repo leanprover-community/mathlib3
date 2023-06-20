@@ -3,12 +3,15 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.deriv
+import analysis.calculus.deriv.slope
 import measure_theory.covering.one_dim
 import order.monotone.extension
 
 /-!
 # Differentiability of monotone functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We show that a monotone function `f : ℝ → ℝ` is differentiable almost everywhere, in
 `monotone.ae_differentiable_at`. (We also give a version for a function monotone on a set, in

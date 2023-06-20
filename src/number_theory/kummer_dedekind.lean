@@ -10,6 +10,9 @@ import ring_theory.is_adjoin_root
 /-!
 # Kummer-Dedekind theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the monogenic version of the Kummer-Dedekind theorem on the splitting of prime
 ideals in an extension of the ring of integers. This states that if `I` is a prime ideal of
 Dedekind domain `R` and `S = R[α]` for some `α` that is integral over `R` with minimal polynomial

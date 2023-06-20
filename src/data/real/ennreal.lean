@@ -193,6 +193,12 @@ by rintro (h | h); simp [h]⟩
 lemma to_real_eq_zero_iff (x : ℝ≥0∞) : x.to_real = 0 ↔ x = 0 ∨ x = ∞ :=
 by simp [ennreal.to_real, to_nnreal_eq_zero_iff]
 
+lemma to_nnreal_ne_zero : a.to_nnreal ≠ 0 ↔ a ≠ 0 ∧ a ≠ ∞ :=
+a.to_nnreal_eq_zero_iff.not.trans not_or_distrib
+
+lemma to_real_ne_zero : a.to_real ≠ 0 ↔ a ≠ 0 ∧ a ≠ ∞ :=
+a.to_real_eq_zero_iff.not.trans not_or_distrib
+
 lemma to_nnreal_eq_one_iff (x : ℝ≥0∞) : x.to_nnreal = 1 ↔ x = 1 :=
 begin
   refine ⟨λ h, _, congr_arg _⟩,
@@ -203,6 +209,9 @@ end
 
 lemma to_real_eq_one_iff (x : ℝ≥0∞) : x.to_real = 1 ↔ x = 1 :=
 by rw [ennreal.to_real, nnreal.coe_eq_one, ennreal.to_nnreal_eq_one_iff]
+
+lemma to_nnreal_ne_one : a.to_nnreal ≠ 1 ↔ a ≠ 1 := a.to_nnreal_eq_one_iff.not
+lemma to_real_ne_one : a.to_real ≠ 1 ↔ a ≠ 1 := a.to_real_eq_one_iff.not
 
 @[simp] lemma coe_ne_top : (r : ℝ≥0∞) ≠ ∞ := with_top.coe_ne_top
 @[simp] lemma top_ne_coe : ∞ ≠ (r : ℝ≥0∞) := with_top.top_ne_coe
@@ -996,7 +1005,7 @@ instance : div_inv_monoid ℝ≥0∞ :=
 { inv := has_inv.inv,
   .. (infer_instance : monoid ℝ≥0∞) }
 
-lemma div_eq_inv_mul : a / b = b⁻¹ * a := by rw [div_eq_mul_inv, mul_comm]
+protected lemma div_eq_inv_mul : a / b = b⁻¹ * a := by rw [div_eq_mul_inv, mul_comm]
 
 @[simp] lemma inv_zero : (0 : ℝ≥0∞)⁻¹ = ∞ :=
 show Inf {b : ℝ≥0∞ | 1 ≤ 0 * b} = ∞, by simp; refl
@@ -1243,8 +1252,16 @@ begin
   simpa [left_ne_zero_of_mul_eq_one h] using h,
 end
 
-lemma mul_le_iff_le_inv {a b r : ℝ≥0∞} (hr₀ : r ≠ 0) (hr₁ : r ≠ ∞) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
+lemma mul_le_iff_le_inv {a b r : ℝ≥0∞} (hr₀ : r ≠ 0) (hr₁ : r ≠ ∞) : r * a ≤ b ↔ a ≤ r⁻¹ * b :=
 by rw [←@ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ←mul_assoc, ennreal.mul_inv_cancel hr₀ hr₁, one_mul]
+
+/-- A variant of `le_inv_smul_iff` that holds for `ennreal`. -/
+protected lemma le_inv_smul_iff {a b : ℝ≥0∞} {r : ℝ≥0} (hr₀ : r ≠ 0) : a ≤ r⁻¹ • b ↔ r • a ≤ b :=
+by simpa [hr₀, ennreal.smul_def] using (mul_le_iff_le_inv (coe_ne_zero.mpr hr₀) coe_ne_top).symm
+
+/-- A variant of `inv_smul_le_iff` that holds for `ennreal`. -/
+protected lemma inv_smul_le_iff {a b : ℝ≥0∞} {r : ℝ≥0} (hr₀ : r ≠ 0) : r⁻¹ • a ≤ b ↔ a ≤ r • b :=
+by simpa only [inv_inv] using (ennreal.le_inv_smul_iff (inv_ne_zero hr₀)).symm
 
 lemma le_of_forall_nnreal_lt {x y : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r < x → ↑r ≤ y) : x ≤ y :=
 begin

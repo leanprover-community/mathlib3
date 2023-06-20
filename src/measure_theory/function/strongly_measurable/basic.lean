@@ -12,6 +12,9 @@ import measure_theory.function.simple_func_dense
 /-!
 # Strongly measurable and finitely strongly measurable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function `f` is said to be strongly measurable if `f` is the sequential limit of simple functions.
 It is said to be finitely strongly measurable with respect to a measure `μ` if the supports
 of those simple functions have finite measure. We also provide almost everywhere versions of
@@ -442,24 +445,24 @@ continuous_smul.comp_strongly_measurable (hf.prod_mk strongly_measurable_const)
 end arithmetic
 
 section mul_action
-
-variables [topological_space β] {G : Type*} [group G] [mul_action G β]
-  [has_continuous_const_smul G β]
+variables {M G G₀ : Type*}
+variables [topological_space β]
+variables [monoid M] [mul_action M β] [has_continuous_const_smul M β]
+variables [group G] [mul_action G β] [has_continuous_const_smul G β]
+variables [group_with_zero G₀] [mul_action G₀ β] [has_continuous_const_smul G₀ β]
 
 lemma _root_.strongly_measurable_const_smul_iff {m : measurable_space α} (c : G) :
   strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
-variables {G₀ : Type*} [group_with_zero G₀] [mul_action G₀ β]
-  [has_continuous_const_smul G₀ β]
+lemma _root_.is_unit.strongly_measurable_const_smul_iff {m : measurable_space α} {c : M}
+  (hc : is_unit c) :
+  strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
+let ⟨u, hu⟩ := hc in hu ▸ strongly_measurable_const_smul_iff u
 
 lemma _root_.strongly_measurable_const_smul_iff₀ {m : measurable_space α} {c : G₀} (hc : c ≠ 0) :
   strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
-begin
-  refine ⟨λ h, _, λ h, h.const_smul c⟩,
-  convert h.const_smul' c⁻¹,
-  simp [smul_smul, inv_mul_cancel hc]
-end
+(is_unit.mk0 _ hc).strongly_measurable_const_smul_iff
 
 end mul_action
 
@@ -1664,23 +1667,22 @@ end normed_space
 
 section mul_action
 
-variables {G : Type*} [group G] [mul_action G β]
-  [has_continuous_const_smul G β]
+variables {M G G₀ : Type*}
+variables [monoid M] [mul_action M β] [has_continuous_const_smul M β]
+variables [group G] [mul_action G β] [has_continuous_const_smul G β]
+variables [group_with_zero G₀] [mul_action G₀ β] [has_continuous_const_smul G₀ β]
 
 lemma _root_.ae_strongly_measurable_const_smul_iff (c : G) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
-variables {G₀ : Type*} [group_with_zero G₀] [mul_action G₀ β]
-  [has_continuous_const_smul G₀ β]
+lemma _root_.is_unit.ae_strongly_measurable_const_smul_iff {c : M} (hc : is_unit c) :
+  ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
+let ⟨u, hu⟩ := hc in hu ▸ ae_strongly_measurable_const_smul_iff u
 
 lemma _root_.ae_strongly_measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
-begin
-  refine ⟨λ h, _, λ h, h.const_smul c⟩,
-  convert h.const_smul' c⁻¹,
-  simp [smul_smul, inv_mul_cancel hc]
-end
+(is_unit.mk0 _ hc).ae_strongly_measurable_const_smul_iff
 
 end mul_action
 

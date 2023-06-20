@@ -6,7 +6,31 @@ Authors: Heather Macbeth
 import geometry.manifold.local_invariant_properties
 import topology.sheaves.local_predicate
 
+<<<<<<< HEAD
 /-! # Generic construction of a sheaf from a `local_invariant_prop` on a manifold -/
+=======
+/-! # Generic construction of a sheaf from a `local_invariant_prop` on a manifold
+
+This file constructs the sheaf-of-types of functions `f : M → M'` (for charted spaces `M`, `M'`)
+which satisfy the lifted property `lift_prop P` associated to some locally invariant (in the sense
+of `structure_groupoid.local_invariant_prop`) property `P` on the model spaces of `M` and `M'`. For
+example, differentiability and smoothness are locally invariant properties in this sense, so this
+construction can be used to construct the sheaf of differentiable functions on a manifold and the
+sheaf of smooth functions on a manifold.
+
+The mathematical work is in associating a `Top.local_predicate` to a
+`structure_groupoid.local_invariant_prop`: that is, showing that a differential-geometric "locally
+invariant" property is preserved under restriction and gluing.
+
+## Main definitions
+
+* `structure_groupoid.local_invariant_prop.local_predicate`: the `Top.local_predicate` (in the
+  sheaf-theoretic sense) on functions from open subsets of `M` into `M'`, which states whether
+  such functions satisfy `lift_prop P`.
+* `structure_groupoid.local_invariant_prop.sheaf`: the sheaf-of-types of functions `f : M → M'`
+  which satisfy the lifted property `lift_prop P`.
+-/
+>>>>>>> origin/master
 
 open_locale manifold topology
 open set topological_space structure_groupoid structure_groupoid.local_invariant_prop opposite
@@ -27,7 +51,11 @@ instance Top.of.has_groupoid [has_groupoid M G] : has_groupoid (Top.of M) G :=
 /-- Let `P` be a `local_invariant_prop` for functions between spaces with the groupoids `G`, `G'`
 and let `M`, `M'` be charted spaces modelled on the model spaces of those groupoids.  Then there is
 an induced `local_predicate` on the functions from `M` to `M'`, given by `lift_prop P`. -/
+<<<<<<< HEAD
 def local_predicate_of_local_invariant_prop (hG : local_invariant_prop G G' P) :
+=======
+def structure_groupoid.local_invariant_prop.local_predicate (hG : local_invariant_prop G G' P) :
+>>>>>>> origin/master
   Top.local_predicate (λ (x : Top.of M), M') :=
 { pred := λ {U : opens (Top.of M)}, λ (f : U → M'), lift_prop P f,
   res := begin
@@ -52,11 +80,19 @@ def local_predicate_of_local_invariant_prop (hG : local_invariant_prop G G' P) :
 
 /-- Let `P` be a `local_invariant_prop` for functions between spaces with the groupoids `G`, `G'`
 and let `M`, `M'` be charted spaces modelled on the model spaces of those groupoids.  Then there is
+<<<<<<< HEAD
 a presheaf of types on `M` which, to each open set `U` in `M`, associates the type of bundled
 functions from `U` to `M'` satisfying the lift of `P`. -/
 def structure_groupoid.local_invariant_prop.sheaf (hG : local_invariant_prop G G' P) :
   Top.sheaf (Type u) (Top.of M) :=
 Top.subsheaf_to_Types (local_predicate_of_local_invariant_prop M M' hG)
+=======
+a sheaf of types on `M` which, to each open set `U` in `M`, associates the type of bundled
+functions from `U` to `M'` satisfying the lift of `P`. -/
+def structure_groupoid.local_invariant_prop.sheaf (hG : local_invariant_prop G G' P) :
+  Top.sheaf (Type u) (Top.of M) :=
+Top.subsheaf_to_Types (hG.local_predicate M M')
+>>>>>>> origin/master
 
 instance structure_groupoid.local_invariant_prop.sheaf_has_coe_to_fun
   (hG : local_invariant_prop G G' P) (U : (opens (Top.of M))ᵒᵖ) :

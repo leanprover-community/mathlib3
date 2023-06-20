@@ -7,6 +7,9 @@ import linear_algebra.matrix.spectrum
 import linear_algebra.quadratic_form.basic
 
 /-! # Positive Definite Matrices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines positive (semi)definite matrices and connects the notion to positive definiteness
 of quadratic forms.
 ## Main definition

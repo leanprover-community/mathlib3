@@ -72,7 +72,7 @@ def structure_groupoid.local_invariant_prop.local_predicate (hG : local_invarian
 
 /-- Let `P` be a `local_invariant_prop` for functions between spaces with the groupoids `G`, `G'`
 and let `M`, `M'` be charted spaces modelled on the model spaces of those groupoids.  Then there is
-a presheaf of types on `M` which, to each open set `U` in `M`, associates the type of bundled
+a sheaf of types on `M` which, to each open set `U` in `M`, associates the type of bundled
 functions from `U` to `M'` satisfying the lift of `P`. -/
 def structure_groupoid.local_invariant_prop.sheaf (hG : local_invariant_prop G G' P) :
   Top.sheaf (Type u) (Top.of M) :=

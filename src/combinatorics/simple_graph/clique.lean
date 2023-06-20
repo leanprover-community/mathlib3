@@ -288,7 +288,7 @@ begin
 end
 
 @[simp] lemma clique_set_map' (G : simple_graph α) (e : α ≃ β) :
-  ∀ n, (G.map (e : α ↪ β)).clique_set n = map (e : α ↪ β) '' G.clique_set n
+  ∀ n, (G.map e.to_embedding).clique_set n = map e.to_embedding '' G.clique_set n
 | 0 := by simp_rw [clique_set_zero, set.image_singleton, map_empty]
 | 1 := by { ext, simp only [e.exists_congr_left, equiv.coe_eq_to_embedding, clique_set_one,
     set.mem_range, set.mem_image, exists_exists_eq_and, map_singleton, equiv.to_embedding_apply,
@@ -333,17 +333,17 @@ variables [decidable_rel H.adj]
 @[mono] lemma clique_finset_mono (h : G ≤ H) : G.clique_finset n ⊆ H.clique_finset n :=
 monotone_filter_right _ $ λ _, is_n_clique.mono h
 
-@[simp] lemma clique_finset_map [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
-  (G : simple_graph α) [decidable_rel G.adj] (f : α ↪ β) (hn : 1 < n) :
+variables [fintype β] [decidable_eq β] (G)
+
+@[simp] lemma clique_finset_map (f : α ↪ β) (hn : 1 < n) :
   (G.map f).clique_finset n = (G.clique_finset n).map ⟨map f, finset.map_injective _⟩ :=
 coe_injective $
   by simp_rw [coe_clique_finset, clique_set_map hn, coe_map, coe_clique_finset, embedding.coe_fn_mk]
 
-@[simp] lemma clique_finset_map' [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
-  (G : simple_graph α) [decidable_rel G.adj] (e : α ≃ β) (n : ℕ) :
-  (G.map (e : α ↪ β)).clique_finset n = (G.clique_finset n).map ⟨map e, finset.map_injective _⟩ :=
-coe_injective $
-  by simp_rw [coe_clique_finset, clique_set_map', coe_map, coe_clique_finset, embedding.coe_fn_mk]
+@[simp] lemma clique_finset_map' (e : α ≃ β) (n : ℕ) :
+  (G.map e.to_embedding).clique_finset n =
+    (G.clique_finset n).map ⟨map e.to_embedding, finset.map_injective _⟩ :=
+coe_injective $ by simp_rw [coe_map, coe_clique_finset, embedding.coe_fn_mk, clique_set_map']
 
 end clique_finset
 end simple_graph

@@ -150,6 +150,12 @@ begin
   { exact converges_of_agrees_converges (λ n hn, (h n hn).symm) h₁ }
 end
 
+noncomputable def nonneg_terms (a : ℕ → ℝ) : ℕ → ℝ :=
+λ n, if 0 ≤ a n then a n else 0
+
+noncomputable def nonpos_terms (a : ℕ → ℝ) : ℕ → ℝ :=
+λ n, if 0 ≤ a n then 0 else a n
+
 lemma frequently_exists_pos_of_conditionally_converging {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
@@ -552,8 +558,7 @@ begin
     {
       have hsp : nearest_switchpoint a M (n + 1) = nearest_switchpoint a M n := begin
         change nat.find_greatest (rearrangement_switchpoint a M) (n + 1) = _,
-        rw nat.find_greatest_succ n,
-        rw if_neg h
+        exact nat.find_greatest_of_not h
       end,
       rw hsp at hn₁,
       specialize ih hn₁,
@@ -610,10 +615,33 @@ begin
   exact le_trans q₁ q₂
 end
 
+lemma frequently_exists_switchpoint (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : ∃ᶠ (n : ℕ) in at_top, rearrangement_switchpoint a M n :=
+begin
+  sorry
+end
+
+lemma exists_le_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n : ℕ)
+  : ∃ m, n ≤ nearest_switchpoint a M m :=
+begin
+  have := frequently_exists_switchpoint a M h₁ h₂,
+  rw filter.frequently_at_top at this,
+  obtain ⟨m, hm₁, hm₂⟩ := this n,
+  use m,
+  apply le_trans hm₁,
+  apply le_of_eq,
+  exact (nat.find_greatest_eq hm₂).symm
+end
+
 lemma tendsto_zero_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  : tendsto (λ n, ‖a (nearest_switchpoint a M n)‖) at_top (𝓝 0) :=
+  : tendsto (λ n, ‖a (rearrangement a M (nearest_switchpoint a M n))‖) at_top (𝓝 0) :=
 begin
   sorry
 end

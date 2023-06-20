@@ -1744,4 +1744,3 @@ meta def positivity_cardinal_pow : expr → tactic strictness
 | _ := failed
 
 end tactic
-#lint

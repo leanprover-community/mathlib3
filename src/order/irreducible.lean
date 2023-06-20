@@ -7,18 +7,27 @@ import data.finset.lattice
 import data.fintype.card
 
 /-!
-# Birkhoff's representation theorem
+# Irreducible and prime elements in an order
+
+This file defines irreducible and prime elements in an order and shows that in a well-founded
+lattice every element decomposes as a supremum of irreducible elements.
+
+An element is sup-irreducible (resp. inf-irreducible) if it isn't `⊥` and can't be written as the
+supremum of any strictly smaller elements. An element is sup-prime (resp. inf-prime) if it isn't `⊥`
+and is greater than the supremum of any two elements less than it.
+
+Primality implies irreducibility in general. The converse only holds in distributive lattices.
+Both hold for all (non-minimal) elements in a linear order.
+
+## Main declarations
+
+* `sup_irred a`: Sup-irreducibility, `a` isn't minimal and `a = b ⊔ c → a = b ∨ a = c`
+* `inf_irred a`: Inf-irreducibility, `a` isn't maximal and `a = b ⊓ c → a = b ∨ a = c`
+* `sup_prime a`: Sup-primality, `a` isn't minimal and `a ≤ b ⊔ c → a ≤ b ∨ a ≤ c`
+* `inf_irred a`: Inf-primality, `a` isn't maximal and `a ≥ b ⊓ c → a ≥ b ∨ a ≥ c`
+* `exists_sup_irred_decomposition`/`exists_inf_irred_decomposition`: Decomposition into irreducibles
+  in a well-founded semilattice.
 -/
-
-section
-variables {α : Type*} [preorder α] [finite α]
-
-@[priority 100] -- See note [lower instance priority]
-instance finite.to_well_founded_lt : well_founded_lt α := ⟨finite.preorder.well_founded_lt⟩
-@[priority 100] -- See note [lower instance priority]
-instance finite.to_well_founded_gt : well_founded_gt α := ⟨finite.preorder.well_founded_gt⟩
-
-end
 
 open finset order_dual
 
@@ -27,7 +36,7 @@ variables {ι α : Type*}
 /-! ### Irreducible and prime elements -/
 
 section semilattice_sup
-variables [semilattice_sup α] {a : α}
+variables [semilattice_sup α] {a b c : α}
 
 /-- A sup-irreducible element is a non-bottom element which isn't the supremum of anything smaller.
 -/
@@ -56,6 +65,9 @@ by { rw [sup_prime, not_and_distrib], push_neg, refl }
 protected lemma sup_prime.sup_irred : sup_prime a → sup_irred a :=
 and.imp_right $ λ h b c ha, by simpa [←ha] using h ha.ge
 
+lemma sup_prime.le_sup (ha : sup_prime a) : a ≤ b ⊔ c ↔ a ≤ b ∨ a ≤ c :=
+⟨λ h, ha.2 h, λ h, h.elim le_sup_of_le_left le_sup_of_le_right⟩
+
 variables [order_bot α] {s : finset ι} {f : ι → α}
 
 @[simp] lemma not_sup_irred_bot : ¬ sup_irred (⊥ : α) := is_min_bot.not_sup_irred
@@ -64,7 +76,7 @@ variables [order_bot α] {s : finset ι} {f : ι → α}
 lemma sup_irred.ne_bot (ha : sup_irred a) : a ≠ ⊥ := by { rintro rfl, exact not_sup_irred_bot ha }
 lemma sup_prime.ne_bot (ha : sup_prime a) : a ≠ ⊥ := by { rintro rfl, exact not_sup_prime_bot ha }
 
-lemma sup_irred.finset_sup (ha : sup_irred a) (h : s.sup f = a) : ∃ i ∈ s, f i = a :=
+lemma sup_irred.finset_sup_eq (ha : sup_irred a) (h : s.sup f = a) : ∃ i ∈ s, f i = a :=
 begin
   classical,
   induction s using finset.induction with i s hi ih,
@@ -74,14 +86,12 @@ begin
   exact (ha.2 h).imp_right ih,
 end
 
-lemma sup_prime.finset_sup (ha : sup_prime a) (h : a ≤ s.sup f) : ∃ i ∈ s, a ≤ f i :=
+lemma sup_prime.le_finset_sup (ha : sup_prime a) : a ≤ s.sup f ↔ ∃ i ∈ s, a ≤ f i :=
 begin
   classical,
   induction s using finset.induction with i s hi ih,
-  { simpa [ha.ne_bot] using h },
-  simp only [exists_prop, exists_mem_insert] at ⊢ ih,
-  rw sup_insert at h,
-  exact (ha.2 h).imp_right ih,
+  { simp [ha.ne_bot] },
+  { simp only [exists_prop, exists_mem_insert, sup_insert, ha.le_sup, ih] }
 end
 
 variables [well_founded_lt α]
@@ -108,7 +118,7 @@ end
 end semilattice_sup
 
 section semilattice_inf
-variables [semilattice_inf α] {a : α}
+variables [semilattice_inf α] {a b c : α}
 
 /-- An inf-irreducible element is a non-top element which isn't the infimum of anything bigger. -/
 def inf_irred (a : α) : Prop := ¬ is_max a ∧ ∀ ⦃b c⦄, b ⊓ c = a → b = a ∨ c = a
@@ -129,6 +139,9 @@ def inf_prime (a : α) : Prop := ¬ is_max a ∧ ∀ ⦃b c⦄, b ⊓ c ≤ a �
 protected lemma inf_prime.inf_irred : inf_prime a → inf_irred a :=
 and.imp_right $ λ h b c ha, by simpa [←ha] using h ha.le
 
+lemma inf_prime.inf_le (ha : inf_prime a) : b ⊓ c ≤ a ↔ b ≤ a ∨ c ≤ a :=
+⟨λ h, ha.2 h, λ h, h.elim inf_le_of_left_le inf_le_of_right_le⟩
+
 variables [order_top α] {s : finset ι} {f : ι → α}
 
 @[simp] lemma not_inf_irred_top : ¬ inf_irred (⊤ : α) := is_max_top.not_inf_irred
@@ -137,11 +150,11 @@ variables [order_top α] {s : finset ι} {f : ι → α}
 lemma inf_irred.ne_top (ha : inf_irred a) : a ≠ ⊤ := by { rintro rfl, exact not_inf_irred_top ha }
 lemma inf_prime.ne_top (ha : inf_prime a) : a ≠ ⊤ := by { rintro rfl, exact not_inf_prime_top ha }
 
-lemma inf_irred.finset_inf : inf_irred a → s.inf f = a → ∃ i ∈ s, f i = a :=
-@sup_irred.finset_sup _ αᵒᵈ _ _ _ _ _
+lemma inf_irred.finset_inf_eq : inf_irred a → s.inf f = a → ∃ i ∈ s, f i = a :=
+@sup_irred.finset_sup_eq _ αᵒᵈ _ _ _ _ _
 
-lemma inf_prime.finset_inf : inf_prime a → s.inf f ≤ a → ∃ i ∈ s, f i ≤ a :=
-@sup_prime.finset_sup _ αᵒᵈ _ _ _ _ _
+lemma inf_prime.finset_inf_le (ha : inf_prime a) : s.inf f ≤ a ↔ ∃ i ∈ s, f i ≤ a :=
+@sup_prime.le_finset_sup _ αᵒᵈ _ _ _ _ _ ha
 
 variables [well_founded_gt α]
 
@@ -150,6 +163,36 @@ elements. This is the order-theoretic analogue of prime factorisation. -/
 lemma exists_inf_irred_decomposition (a : α) :
   ∃ s : finset α, s.inf id = a ∧ ∀ ⦃b⦄, b ∈ s → inf_irred b :=
 @exists_sup_irred_decomposition αᵒᵈ _ _ _ _
+
+end semilattice_inf
+
+section semilattice_sup
+variables [semilattice_sup α]
+
+@[simp] lemma inf_irred_to_dual {a : α} : inf_irred (to_dual a) ↔ sup_irred a := iff.rfl
+@[simp] lemma inf_prime_to_dual {a : α} : inf_prime (to_dual a) ↔ sup_prime a := iff.rfl
+@[simp] lemma sup_irred_of_dual {a : αᵒᵈ} : sup_irred (of_dual a) ↔ inf_irred a := iff.rfl
+@[simp] lemma sup_prime_of_dual {a : αᵒᵈ} : sup_prime (of_dual a) ↔ inf_prime a := iff.rfl
+
+alias inf_irred_to_dual ↔ _ sup_irred.dual
+alias inf_prime_to_dual ↔ _ sup_prime.dual
+alias sup_irred_of_dual ↔ _ inf_irred.of_dual
+alias sup_prime_of_dual ↔ _ inf_prime.of_dual
+
+end semilattice_sup
+
+section semilattice_inf
+variables [semilattice_inf α]
+
+@[simp] lemma sup_irred_to_dual {a : α} : sup_irred (to_dual a) ↔ inf_irred a := iff.rfl
+@[simp] lemma sup_prime_to_dual {a : α} : sup_prime (to_dual a) ↔ inf_prime a := iff.rfl
+@[simp] lemma inf_irred_of_dual {a : αᵒᵈ} : inf_irred (of_dual a) ↔ sup_irred a := iff.rfl
+@[simp] lemma inf_prime_of_dual {a : αᵒᵈ} : inf_prime (of_dual a) ↔ sup_prime a := iff.rfl
+
+alias sup_irred_to_dual ↔ _ inf_irred.dual
+alias sup_prime_to_dual ↔ _ inf_prime.dual
+alias inf_irred_of_dual ↔ _ sup_irred.of_dual
+alias inf_prime_of_dual ↔ _ sup_prime.of_dual
 
 end semilattice_inf
 
@@ -174,16 +217,13 @@ end distrib_lattice
 section linear_order
 variables [linear_order α] {a : α}
 
-@[simp] protected lemma sup_prime_iff_not_is_min : sup_prime a ↔ ¬ is_min a :=
-and_iff_left $ by simp
+@[simp] lemma sup_prime_iff_not_is_min : sup_prime a ↔ ¬ is_min a := and_iff_left $ by simp
+@[simp] lemma inf_prime_iff_not_is_max : inf_prime a ↔ ¬ is_max a := and_iff_left $ by simp
 
-@[simp] protected lemma sup_irred_iff_not_is_min : sup_irred a ↔ ¬ is_min a :=
+@[simp] lemma sup_irred_iff_not_is_min : sup_irred a ↔ ¬ is_min a :=
 and_iff_left $ λ _ _, by simpa only [sup_eq_max, max_eq_iff] using or.imp and.left and.left
 
-@[simp] protected lemma inf_prime_iff_not_is_max : inf_prime a ↔ ¬ is_max a :=
-and_iff_left $ by simp
-
-@[simp] protected lemma inf_irred_iff_not_is_max : inf_irred a ↔ ¬ is_max a :=
+@[simp] lemma inf_irred_iff_not_is_max : inf_irred a ↔ ¬ is_max a :=
 and_iff_left $ λ _ _, by simpa only [inf_eq_min, min_eq_iff] using or.imp and.left and.left
 
 end linear_order

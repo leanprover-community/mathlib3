@@ -600,7 +600,7 @@ let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_le_set_laverage_pos h
 
 /-- **First moment method**. The maximum of a measurable function is greater than its mean. -/
 lemma exists_set_laverage_le (hμ : μ s ≠ 0) (hs : null_measurable_set s μ)
-  (hint : ∫⁻ a in s, f a ∂μ ≠ ⊤) : ∃ x ∈ s, ⨍⁻ a in s, f a ∂μ ≤ f x :=
+  (hint : ∫⁻ a in s, f a ∂μ ≠ ∞) : ∃ x ∈ s, ⨍⁻ a in s, f a ∂μ ≤ f x :=
 let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_set_laverage_le_pos hμ hs hint).ne'
   in ⟨x, hx, h⟩
 
@@ -617,7 +617,7 @@ let ⟨x, hx⟩ := nonempty_of_measure_ne_zero (measure_laverage_le_pos hμ hint
 
 /-- **First moment method**. The maximum of a measurable function is greater than its mean, while
 avoiding a null set. -/
-lemma exists_not_mem_null_laverage_le (hμ : μ ≠ 0) (hint : ∫⁻ (a : α), f a ∂μ ≠ ⊤) (hN : μ N = 0) :
+lemma exists_not_mem_null_laverage_le (hμ : μ ≠ 0) (hint : ∫⁻ (a : α), f a ∂μ ≠ ∞) (hN : μ N = 0) :
   ∃ x ∉ N, ⨍⁻ a, f a ∂μ ≤ f x :=
 begin
   have := measure_laverage_le_pos hμ hint,

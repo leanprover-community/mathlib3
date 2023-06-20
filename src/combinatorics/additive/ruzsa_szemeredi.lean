@@ -22,7 +22,8 @@ arithmetic progression on the original set.
 ## Main declarations
 
 * `simple_graph.ruzsa_szemeredi_number`
-* `ruzsa_szemeredi_number_nat_lower_bound`: Explicit lower bound on htThe Ruzsa-Szemerédi graph associated to a set `s`.
+* `ruzsa_szemeredi_number_nat_lower_bound`: Explicit lower bound on tThe Ruzsa-Szemerédi graph
+   associated to a set `s`.
 * `add_salem_spencer.edge_disjoint_triangles`: If `s` is Salem-Spencer, then `add_graph s` has
   edge-disjoint triangles.
 -/
@@ -228,8 +229,8 @@ begin
   rw mul_assoc,
   obtain hn | hn := le_total (n / 3 - 2 : ℝ) 0,
   { exact (mul_nonpos_of_nonpos_of_nonneg hn $ by positivity).trans (nat.cast_nonneg _) },
-  exact (mul_le_mul_of_nonneg_left behrend.roth_lower_bound hn).trans
-    (roth_number_nat_le_ruzsa_szemeredi_number_nat' _),
+  { exact (mul_le_mul_of_nonneg_left behrend.roth_lower_bound hn).trans
+      (roth_number_nat_le_ruzsa_szemeredi_number_nat' _) }
 end
 
 open asymptotics filter
@@ -249,8 +250,13 @@ begin
     positivity },
   simp_rw sq,
   refine is_O.trans _ this,
-  refine (is_O.mul _ _).mul _,
+  refine (is_O.mul _ _).mul (is_O.of_bound' (eventually_at_top.2 ⟨9, λ n hn, _⟩)),
   sorry,
   sorry,
-  sorry,
+  have : (0 : ℝ) < ↑((n - 3) / 6) := sorry,
+  have : (0 : ℝ) < n := sorry,
+  have : 0 ≤ real.log n := sorry,
+  simp only [neg_mul, norm_eq_abs, abs_exp, exp_le_exp, neg_le_neg_iff, mul_le_mul_left,
+    zero_lt_bit0, zero_lt_one, log_le_log, real.sqrt_le_sqrt_iff, real.log_le_log, cast_le, *],
+  exact (nat.div_le_self _ _).trans tsub_le_self,
 end

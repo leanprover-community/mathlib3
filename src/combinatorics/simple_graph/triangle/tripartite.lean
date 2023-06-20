@@ -29,7 +29,8 @@ This construction shows up unrelatingly twice in the theory of Roth numbers:
   edge-disjoint and there is no accidental triangle.
 * The proof of the corners theorem from the triangle removal lemma. For a subset `s` of the `n × n`
   grid, we construct a tripartite graph whose vertices are the horizontal, vertical and diagonal
-  lines in the grid. The explicit triangles are `(h, v, d)` where `h`, `v`, `d` are horizontal, vertical, diagonal lines that intersect in an element of `s`. The explicit triangles are
+  lines in the grid. The explicit triangles are `(h, v, d)` where `h`, `v`, `d` are horizontal,
+  vertical, diagonal lines that intersect in an element of `s`. The explicit triangles are
   edge-disjoint. However, there are accidental triangles (and this is what the argument wants to
   prove).
 -/

@@ -143,8 +143,8 @@ begin
     simpa [eq_comm] using h₁ },
   simp only [and_imp, exists_prop, prod.forall, mem_filter, exists_and_distrib_right,
     prod.mk.inj_iff, exists_eq_right_right, exists_eq_right, prod.exists, mem_product],
-  refine (λ x y xy hx hy t, ⟨_, _, ⟨xy, t⟩, _, _⟩); rw [←nat.add_sub_assoc, nat.add_sub_cancel_left];
-    assumption,
+  refine (λ x y xy hx hy t, ⟨_, _, ⟨xy, t⟩, _, _⟩);
+    rw [←nat.add_sub_assoc, nat.add_sub_cancel_left] assumption,
 end
 
 lemma correlate {n : ℕ} (hn : 0 < n) (s : finset (ℕ × ℕ)) (hA : s ⊆ range n ×ˢ range n) :

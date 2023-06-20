@@ -143,7 +143,7 @@ begin
   have k := reduced_edges_card_aux hε hP₁ hP₄ this,
   rw mul_assoc at k,
   replace k := lt_of_mul_lt_mul_left k zero_le_two,
-  obtain ⟨t, ht⟩ := hG.clique_finset_nonempty' (@reduced_le _ _ _ _ _ P _ _ (ε / 8) (ε / 4) _) k,
+  obtain ⟨t, ht⟩ := hG.clique_finset_nonempty' (@reduced_le _ _ _ _ _ P _ _ (ε / 8) (ε / 4)) k,
   exact triangle_removal_aux hε hP₁ hP₃ ht,
 end
 

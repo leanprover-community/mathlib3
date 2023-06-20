@@ -196,8 +196,8 @@ lemma card_le_m_add_one_of_mem_chunk_parts (hs : s ∈ (chunk hP G ε hU).parts)
 
 lemma card_bUnion_star_le_m_add_one_card_star_mul :
   (((star hP G ε hU V).bUnion id).card : ℝ) ≤ (star hP G ε hU V).card * (m + 1) :=
-by exact_mod_cast (card_bUnion_le_card_mul _ _ _ $ λ s hs,
-  card_le_m_add_one_of_mem_chunk_parts $ star_subset_chunk hs)
+(nat.cast_le.2 $ card_bUnion_le_card_mul _ _ _ $ λ s hs,
+  card_le_m_add_one_of_mem_chunk_parts $ star_subset_chunk hs).trans_eq $ by norm_cast
 
 private lemma le_sum_card_subset_chunk_parts (h𝒜 : 𝒜 ⊆ (chunk hP G ε hU).parts) (hs : s ∈ 𝒜) :
   (𝒜.card : ℝ) * s.card * (m / (m + 1)) ≤ (𝒜.sup id).card :=

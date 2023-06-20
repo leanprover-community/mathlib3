@@ -8,11 +8,14 @@ import algebra.lie.tensor_product
 import algebra.lie.character
 import algebra.lie.engel
 import algebra.lie.cartan_subalgebra
-import linear_algebra.eigenspace
+import linear_algebra.eigenspace.basic
 import ring_theory.tensor_product
 
 /-!
 # Weights and roots of Lie modules and Lie algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Just as a key tool when studying the behaviour of a linear operator is to decompose the space on
 which it acts into a sum of (generalised) eigenspaces, a key tool when studying a representation `M`

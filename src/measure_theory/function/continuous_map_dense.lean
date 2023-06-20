@@ -12,6 +12,9 @@ import measure_theory.integral.bochner
 /-!
 # Approximation in Lᵖ by continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that bounded continuous functions are dense in `Lp E p μ`, for `p < ∞`, if the
 domain `α` of the functions is a normal topological space and the measure `μ` is weakly regular.
 It also proves the same results for approximation by continuous functions with compact support

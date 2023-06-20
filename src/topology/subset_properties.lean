@@ -1050,6 +1050,8 @@ by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact is_compact_univ_pi (λ i, is_compact_univ) }⟩
 
+instance function.compact_space [compact_space β] : compact_space (ι → β) := pi.compact_space
+
 /-- **Tychonoff's theorem** formulated in terms of filters: `filter.cocompact` on an indexed product
 type `Π d, κ d` the `filter.Coprod` of filters `filter.cocompact` on `κ d`. -/
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
@@ -1093,7 +1095,7 @@ lemma locally_compact_space_of_has_basis {ι : α → Type*} {p : Π x, ι x →
   locally_compact_space α :=
 ⟨λ x t ht, let ⟨i, hp, ht⟩ := (h x).mem_iff.1 ht in ⟨s x i, (h x).mem_of_mem hp, ht, hc x i hp⟩⟩
 
-instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space α]
+instance prod.locally_compact_space (α : Type*) (β : Type*) [topological_space α]
   [topological_space β] [locally_compact_space α] [locally_compact_space β] :
   locally_compact_space (α × β) :=
 have _ := λ x : α × β, (compact_basis_nhds x.1).prod_nhds' (compact_basis_nhds x.2),
@@ -1105,7 +1107,7 @@ variables [Π i, topological_space (π i)] [∀ i, locally_compact_space (π i)]
 
 /--In general it suffices that all but finitely many of the spaces are compact,
   but that's not straightforward to state and use. -/
-instance locally_compact_space.pi_finite [finite ι] : locally_compact_space (Π i, π i) :=
+instance pi.locally_compact_space_of_finite [finite ι] : locally_compact_space (Π i, π i) :=
 ⟨λ t n hn, begin
   rw [nhds_pi, filter.mem_pi] at hn,
   obtain ⟨s, hs, n', hn', hsub⟩ := hn,
@@ -1116,7 +1118,7 @@ instance locally_compact_space.pi_finite [finite ι] : locally_compact_space (Π
 end⟩
 
 /-- For spaces that are not Hausdorff. -/
-instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compact_space (Π i, π i) :=
+instance pi.locally_compact_space [∀ i, compact_space (π i)] : locally_compact_space (Π i, π i) :=
 ⟨λ t n hn, begin
   rw [nhds_pi, filter.mem_pi] at hn,
   obtain ⟨s, hs, n', hn', hsub⟩ := hn,
@@ -1130,6 +1132,12 @@ instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compac
     { rw if_pos h, exact hc i, },
     { rw if_neg h, exact compact_space.is_compact_univ, } },
 end⟩
+
+instance function.locally_compact_space_of_finite [finite ι] [locally_compact_space β] :
+  locally_compact_space (ι → β) := pi.locally_compact_space_of_finite
+
+instance function.locally_compact_space [locally_compact_space β] [compact_space β] :
+  locally_compact_space (ι → β) := pi.locally_compact_space
 
 end pi
 

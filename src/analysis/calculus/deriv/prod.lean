@@ -9,6 +9,9 @@ import analysis.calculus.fderiv.prod
 /-!
 # Derivatives of functions taking values in product types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove lemmas about derivatives of functions `f : 𝕜 → E × F` and of functions
 `f : 𝕜 → (Π i, E i)`.
 

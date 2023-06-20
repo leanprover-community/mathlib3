@@ -11,6 +11,9 @@ import analysis.p_series
 /-!
 # Volume of the set of Liouville numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the set of Liouville numbers with exponent (irrationality measure)
 strictly greater than two is a set of Lebesuge measure zero, see
 `volume_Union_set_of_liouville_with`.

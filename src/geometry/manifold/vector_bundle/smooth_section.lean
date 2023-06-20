@@ -93,11 +93,6 @@ coe_inj
 @[ext] theorem ext (h : ∀ x, s x = t x) : s = t :=
 by cases s; cases t; congr'; exact funext h
 
--- duped with open PR #18877
-instance has_smooth_add_self : has_smooth_add 𝓘(𝕜, E) E :=
-⟨by { convert cont_diff_add.cont_mdiff, exact model_with_corners_self_prod.symm,
-  exact charted_space_self_prod }⟩
-
 instance has_add : has_add Cₛ^n⟮I; F, V⟯ :=
 begin
   refine ⟨λ s t, ⟨s + t, _⟩⟩,
@@ -173,7 +168,7 @@ end
 @[simp]
 lemma coe_neg (s : Cₛ^n⟮I; F, V⟯) : ⇑(- s : Cₛ^n⟮I; F, V⟯) = - s := rfl
 
-instance has_nsmul : has_smul ℕ  Cₛ^n⟮I; F, V⟯ :=
+instance has_nsmul : has_smul ℕ Cₛ^n⟮I; F, V⟯ :=
 ⟨nsmul_rec⟩
 
 @[simp]

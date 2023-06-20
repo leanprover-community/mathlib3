@@ -9,6 +9,9 @@ import analysis.calculus.fderiv.equiv
 /-!
 # Inverse function theorem - the easy half
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `g' (f x) = (f' x)⁻¹` provided that `f` is strictly differentiable at
 `x`, `f' x ≠ 0`, and `g` is a local left inverse of `f` that is continuous at `f x`. This is the
 easy half of the inverse function theorem: the harder half states that `g` exists.

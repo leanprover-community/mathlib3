@@ -8,6 +8,9 @@ import analysis.calculus.deriv.basic
 /-!
 # Support of the derivative of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the (topological) support of a function includes the support of its
 derivative. As a corollary, we show that the derivative of a function with compact support has
 compact support.

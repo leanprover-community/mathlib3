@@ -12,6 +12,9 @@ import measure_theory.measure.haar.normed_space
 /-!
 # Links between an integral and its "improper" version
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In its current state, mathlib only knows how to talk about definite ("proper") integrals,
 in the sense that it treats integrals over `[x, +∞)` the same as it treats integrals over
 `[y, z]`. For example, the integral over `[1, +∞)` is **not** defined to be the limit of

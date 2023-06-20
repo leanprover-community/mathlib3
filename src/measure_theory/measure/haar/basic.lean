@@ -11,6 +11,9 @@ import topology.algebra.group.compact
 /-!
 # Haar measure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the existence and uniqueness (up to scalar multiples) of Haar measure
 for a locally compact Hausdorff topological group.
 

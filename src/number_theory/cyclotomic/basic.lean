@@ -363,29 +363,29 @@ section
 
 variables {A B}
 
-lemma adjoin_roots_cyclotomic_eq_adjoin_nth_roots [decidable_eq B] [is_domain B] {ζ : B}
+lemma adjoin_roots_cyclotomic_eq_adjoin_nth_roots [is_domain B] {ζ : B}
   {n : ℕ+} (hζ : is_primitive_root ζ n) :
-  adjoin A ↑((map (algebra_map A B) (cyclotomic n A)).roots.to_finset) =
+  adjoin A ((cyclotomic n A).root_set B) =
   adjoin A {b : B | ∃ (a : ℕ+), a ∈ ({n} : set ℕ+) ∧ b ^ (a : ℕ) = 1} :=
 begin
   simp only [mem_singleton_iff, exists_eq_left, map_cyclotomic],
   refine le_antisymm (adjoin_mono (λ x hx, _)) (adjoin_le (λ x hx, _)),
-  { simp only [multiset.mem_to_finset, finset.mem_coe,
-               map_cyclotomic, mem_roots (cyclotomic_ne_zero n B)] at hx,
+  { rw [mem_root_set'] at hx,
     simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq],
     rw is_root_of_unity_iff n.pos,
-    exact ⟨n, nat.mem_divisors_self n n.ne_zero, hx⟩,
-    all_goals { apply_instance } },
+    refine ⟨n, nat.mem_divisors_self n n.ne_zero, _⟩,
+    rw [is_root.def, ←map_cyclotomic n (algebra_map A B), eval_map, ←aeval_def],
+    exact hx.2 },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
     obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.pos,
     refine set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin _) _),
-    rwa [finset.mem_coe, multiset.mem_to_finset, mem_roots $ cyclotomic_ne_zero n B],
-    exact hζ.is_root_cyclotomic n.pos }
+    rw [mem_root_set', map_cyclotomic, aeval_def, ←eval_map, map_cyclotomic, ←is_root],
+    refine ⟨cyclotomic_ne_zero n B, hζ.is_root_cyclotomic n.pos⟩ }
 end
 
-lemma adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic {n : ℕ+} [decidable_eq B] [is_domain B]
+lemma adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic {n : ℕ+} [is_domain B]
   {ζ : B} (hζ : is_primitive_root ζ n) :
-  adjoin A (((map (algebra_map A B) (cyclotomic n A)).roots.to_finset) : set B) = adjoin A ({ζ}) :=
+  adjoin A ((cyclotomic n A).root_set B) = adjoin A ({ζ}) :=
 begin
   refine le_antisymm (adjoin_le (λ x hx, _)) (adjoin_mono (λ x hx, _)),
   { suffices hx : x ^ ↑n = 1,
@@ -393,12 +393,11 @@ begin
     exact set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin $ mem_singleton ζ) _),
     rw is_root_of_unity_iff n.pos,
     refine ⟨n, nat.mem_divisors_self n n.ne_zero, _⟩,
-    rwa [finset.mem_coe, multiset.mem_to_finset,
-         map_cyclotomic, mem_roots $ cyclotomic_ne_zero n B] at hx,
-    all_goals { apply_instance } },
+    rw [mem_root_set', aeval_def, ←eval_map, map_cyclotomic, ←is_root] at hx,
+    exact hx.2 },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
-    simpa only [hx, multiset.mem_to_finset, finset.mem_coe, map_cyclotomic,
-                mem_roots (cyclotomic_ne_zero n B)] using hζ.is_root_cyclotomic n.pos }
+    simpa only [hx, mem_root_set', map_cyclotomic, aeval_def, ←eval_map, is_root]
+      using and.intro (cyclotomic_ne_zero n B) (hζ.is_root_cyclotomic n.pos) }
 end
 
 lemma adjoin_primitive_root_eq_top {n : ℕ+} [is_domain B] [h : is_cyclotomic_extension {n} A B]
@@ -468,23 +467,25 @@ variables [is_cyclotomic_extension {n} K L]
 /-- If `is_cyclotomic_extension {n} K L`, then `L` is the splitting field of `X ^ n - 1`. -/
 lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1) :=
 { splits := splits_X_pow_sub_one K L (mem_singleton n),
-  adjoin_roots :=
+  adjoin_root_set :=
   begin
     rw [← ((iff_adjoin_eq_top {n} K L).1 infer_instance).2],
     congr,
     refine set.ext (λ x, _),
     simp only [polynomial.map_pow, mem_singleton_iff, multiset.mem_to_finset, exists_eq_left,
       mem_set_of_eq, polynomial.map_X, polynomial.map_one, finset.mem_coe, polynomial.map_sub],
-    rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero L _ _ _ n.pos _), is_root.def,
-      eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
+    simp only [mem_root_set', map_sub, map_pow, aeval_one, aeval_X, sub_eq_zero, map_X,
+               and_iff_right_iff_imp, polynomial.map_sub, polynomial.map_pow, polynomial.map_one],
+    exact λ _, X_pow_sub_C_ne_zero n.pos (1 : L)
   end }
 
 /-- Any two `n`-th cyclotomic extensions are isomorphic. -/
 def alg_equiv (L' : Type*) [field L'] [algebra K L'] [is_cyclotomic_extension {n} K L'] :
   L ≃ₐ[K] L' :=
-let _ := splitting_field_X_pow_sub_one n K L in let _ := splitting_field_X_pow_sub_one n K L' in
-  by exactI (is_splitting_field.alg_equiv L (X ^ (n : ℕ) - 1)).trans
-  (is_splitting_field.alg_equiv L' (X ^ (n : ℕ) - 1)).symm
+let h₁ := splitting_field_X_pow_sub_one n K L in
+let h₂ := splitting_field_X_pow_sub_one n K L' in
+((@is_splitting_field.alg_equiv K L _ _ _ (X ^ (n : ℕ) - 1) h₁).trans
+  (@is_splitting_field.alg_equiv K L' _ _ _ (X ^ (n : ℕ) - 1) h₂).symm)
 
 localized "attribute [instance] is_cyclotomic_extension.splitting_field_X_pow_sub_one" in cyclotomic
 
@@ -501,12 +502,14 @@ localized "attribute [instance] is_cyclotomic_extension.is_galois" in cyclotomic
 /-- If `is_cyclotomic_extension {n} K L`, then `L` is the splitting field of `cyclotomic n K`. -/
 lemma splitting_field_cyclotomic : is_splitting_field K L (cyclotomic n K) :=
 { splits := splits_cyclotomic K L (mem_singleton n),
-  adjoin_roots :=
+  adjoin_root_set :=
   begin
     rw [← ((iff_adjoin_eq_top {n} K L).1 infer_instance).2],
     letI := classical.dec_eq L,
-    obtain ⟨ζ, hζ⟩ := @is_cyclotomic_extension.exists_prim_root {n} K L _ _ _ _ _ (mem_singleton n),
-    exact adjoin_roots_cyclotomic_eq_adjoin_nth_roots hζ
+    -- todo: make `exists_prim_root` take an explicit `L`
+    obtain ⟨ζ : L, hζ⟩ := is_cyclotomic_extension.exists_prim_root K (mem_singleton n),
+    exact adjoin_roots_cyclotomic_eq_adjoin_nth_roots hζ,
+    all_goals { apply_instance }
   end }
 
 localized "attribute [instance] is_cyclotomic_extension.splitting_field_cyclotomic" in cyclotomic
@@ -540,7 +543,7 @@ begin
     (splitting_field.splits _) (degree_cyclotomic_pos n K n.pos).ne',
   rw [← eval_map, ← is_root.def, map_cyclotomic, is_root_cyclotomic_iff] at hζ,
   refine ⟨forall_eq.2 ⟨ζ, hζ⟩, _⟩,
-  rw [←algebra.eq_top_iff, ←splitting_field.adjoin_roots, eq_comm],
+  rw [←algebra.eq_top_iff, ←splitting_field.adjoin_root_set, eq_comm],
   exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots hζ,
 end
 
@@ -550,7 +553,7 @@ end cyclotomic_field
 
 section is_domain
 
-variables [is_domain A] [algebra A K] [is_fraction_ring A K]
+variables [algebra A K] [is_fraction_ring A K]
 
 section cyclotomic_ring
 
@@ -563,14 +566,26 @@ splitting_field.algebra' (cyclotomic n K)
 /-- Ensure there are no diamonds when `A = ℤ`. -/
 example : algebra_int (cyclotomic_field n ℚ) = cyclotomic_field.algebra_base _ _ _ := rfl
 
+instance cyclotomic_field.algebra' {R : Type*} [comm_ring R] [algebra R K] :
+  algebra R (cyclotomic_field n K) :=
+splitting_field.algebra' (cyclotomic n K)
+
+instance {R : Type*} [comm_ring R] [algebra R K] : is_scalar_tower R K (cyclotomic_field n K) :=
+splitting_field.is_scalar_tower _
+
 instance cyclotomic_field.no_zero_smul_divisors : no_zero_smul_divisors A (cyclotomic_field n K) :=
-no_zero_smul_divisors.of_algebra_map_injective $ function.injective.comp
-(no_zero_smul_divisors.algebra_map_injective _ _) $ is_fraction_ring.injective A K
+begin
+  refine no_zero_smul_divisors.of_algebra_map_injective _,
+  rw is_scalar_tower.algebra_map_eq A K (cyclotomic_field n K),
+  exact function.injective.comp
+    (no_zero_smul_divisors.algebra_map_injective K (cyclotomic_field n K))
+    (is_fraction_ring.injective A K),
+end
 
 /-- If `A` is a domain with fraction field `K` and `n : ℕ+`, we define `cyclotomic_ring n A K` as
 the `A`-subalgebra of `cyclotomic_field n K` generated by the roots of `X ^ n - 1`. If `n`
 is nonzero in `A`, it has the instance `is_cyclotomic_extension {n} A (cyclotomic_ring n A K)`. -/
-@[derive [comm_ring, is_domain, inhabited]]
+@[derive [comm_ring, is_domain, inhabited], nolint unused_arguments]
 def cyclotomic_ring : Type w := adjoin A { b : (cyclotomic_field n K) | b ^ (n : ℕ) = 1 }
 
 namespace cyclotomic_ring
@@ -626,7 +641,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
     { exact subalgebra.mul_mem _ hy hz },
   end }
 
-instance [ne_zero ((n : ℕ) : A)] :
+instance [is_domain A] [ne_zero ((n : ℕ) : A)] :
   is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 { map_units := λ ⟨x, hx⟩, begin
     rw is_unit_iff_ne_zero,
@@ -668,7 +683,6 @@ instance [ne_zero ((n : ℕ) : A)] :
 lemma eq_adjoin_primitive_root {μ : (cyclotomic_field n K)} (h : is_primitive_root μ n) :
   cyclotomic_ring n A K = adjoin A ({μ} : set ((cyclotomic_field n K))) :=
 begin
-  letI := classical.prop_decidable,
   rw [←is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic h,
       is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots h],
   simp [cyclotomic_ring]

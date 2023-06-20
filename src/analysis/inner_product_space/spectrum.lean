@@ -6,8 +6,12 @@ Authors: Heather Macbeth
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
 import algebra.direct_sum.decomposition
+import linear_algebra.eigenspace.minpoly
 
 /-! # Spectral theory of self-adjoint operators
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file covers the spectral theory of self-adjoint operators on an inner product space.
 

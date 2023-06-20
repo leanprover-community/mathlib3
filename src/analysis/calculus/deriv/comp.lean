@@ -10,6 +10,9 @@ import analysis.calculus.fderiv.restrict_scalars
 /-!
 # One-dimensional derivatives of compositions of functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the chain rule for the following cases:
 
 * `has_deriv_at.comp` etc: `f : 𝕜' → 𝕜'` composed with `g : 𝕜 → 𝕜'`;

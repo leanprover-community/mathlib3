@@ -6,6 +6,9 @@ Authors: María Inés de Frutos-Fernández
 import ring_theory.dedekind_domain.ideal
 /-!
 # Factorization of ideals of Dedekind domains
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Every nonzero ideal `I` of a Dedekind domain `R` can be factored as a product `∏_v v^{n_v}` over the
 maximal ideals of `R`, where the exponents `n_v` are natural numbers.
 TODO: Extend the results in this file to fractional ideals of `R`.

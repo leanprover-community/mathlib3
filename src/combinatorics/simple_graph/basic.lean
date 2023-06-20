@@ -970,19 +970,20 @@ lemma map_comap_le (f : V ↪ W) (G : simple_graph W) : (G.comap f).map f ≤ G 
 by { rw map_le_iff_le_comap, exact le_refl _ }
 
 /-- Equivalent types have equivalent simple graphs. -/
-@[simps] protected def _root_.equiv.simple_graph (e : V ≃ W) : simple_graph V ≃ simple_graph W :=
+@[simps apply] protected def _root_.equiv.simple_graph (e : V ≃ W) :
+  simple_graph V ≃ simple_graph W :=
 { to_fun := simple_graph.comap e.symm,
   inv_fun := simple_graph.comap e,
   left_inv := λ _, by simp,
   right_inv := λ _, by simp }
 
-@[simp] lemma equiv.simple_graph_refl : (equiv.refl V).simple_graph = equiv.refl _ :=
+@[simp] lemma  _root_.equiv.simple_graph_refl : (equiv.refl V).simple_graph = equiv.refl _ :=
 by { ext, refl }
 
-@[simp] lemma equiv.simple_graph_trans (e₁ : V ≃ W) (e₂ : W ≃ X) :
+@[simp] lemma  _root_.equiv.simple_graph_trans (e₁ : V ≃ W) (e₂ : W ≃ X) :
   (e₁.trans e₂).simple_graph = e₁.simple_graph.trans e₂.simple_graph := rfl
 
-@[simp] lemma equiv.symm_simple_graph (e : V ≃ W) : e.simple_graph.symm = e.symm.simple_graph := rfl
+@[simp] lemma  _root_.equiv.symm_simple_graph (e : V ≃ W) : e.simple_graph.symm = e.symm.simple_graph := rfl
 
 /-! ## Induced graphs -/
 

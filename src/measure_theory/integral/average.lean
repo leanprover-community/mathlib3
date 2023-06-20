@@ -548,21 +548,24 @@ variables {N : set α} {f : α → ℝ≥0∞}
 /-- **First moment method**. A measurable function is smaller than its mean on a set of positive
 measure. -/
 lemma measure_le_set_laverage_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞)
-  (hf : ae_measurable f (μ.restrict s)) (hs : null_measurable_set s μ) :
+  (hf : ae_measurable f (μ.restrict s)) :
   0 < μ {x ∈ s | f x ≤ ⨍⁻ a in s, f a ∂μ} :=
 begin
   obtain h | h := eq_or_ne (∫⁻ a in s, f a ∂μ) ∞,
   { simpa [mul_top, hμ₁, laverage, h, top_div_of_ne_top hμ₁, pos_iff_ne_zero] using hμ },
   have := measure_le_set_average_pos hμ hμ₁ (integrable_to_real_of_lintegral_ne_top hf h),
-  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs],
-  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀' hs,
-    ←measure_diff_null (measure_eq_top_of_lintegral_ne_top hf h)] at this,
-  refine this.trans_le (measure_mono _),
-  rintro x ⟨hfx, hx⟩,
-  dsimp at hfx,
-  rwa [←to_real_laverage hf, to_real_le_to_real hx (set_laverage_lt_top h).ne] at hfx,
-  { simp_rw [ae_iff, not_ne_iff],
-    exact measure_eq_top_of_lintegral_ne_top hf h }
+  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀],
+  { rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀,
+      ←measure_diff_null (measure_eq_top_of_lintegral_ne_top hf h)] at this,
+    { refine this.trans_le (measure_mono _),
+      rintro x ⟨hfx, hx⟩,
+      dsimp at hfx,
+      rwa [←to_real_laverage hf, to_real_le_to_real hx (set_laverage_lt_top h).ne] at hfx,
+      { simp_rw [ae_iff, not_ne_iff],
+        exact measure_eq_top_of_lintegral_ne_top hf h } },
+    { exact hf.ennreal_to_real.ae_strongly_measurable.null_measurable_set_le
+        ae_strongly_measurable_const } },
+  { exact hf.ae_strongly_measurable.null_measurable_set_le ae_strongly_measurable_const }
 end
 
 /-- **First moment method**. A measurable function is greater than its mean on a set of positive

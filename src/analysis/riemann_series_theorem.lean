@@ -513,10 +513,6 @@ begin
   { have : sumto a M (d + 1) - M ≤ sumto a M (d + 1) - sumto a M d := by simp [hd.left],
     rw h at this,
     rw real.norm_of_nonneg (show 0 < sumto a M (d + 1) - M, by simp [hd.right]).le,
-    /-have q : 0 ≤ a (rearrangement a M (d - 1)) := begin
-      linarith
-      --have := @rearrangement_nonneg_spec' _ h₁ h₂ M (d - 1) hd.left.le
-    end,-/
     rw real.norm_of_nonneg (show 0 ≤ a (rearrangement a M d), by linarith),
     exact this },
   { have h₃ : -(sumto a M (d + 1) - M) < -(sumto a M (d + 1) - sumto a M d) := by simp [hd.left],
@@ -537,58 +533,6 @@ nat.find_greatest_spec (zero_le n) (rearrangement_switchpoint.start rfl)
 
 lemma nearest_switchpoint_le (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : nearest_switchpoint a M n ≤ n :=
 nat.find_greatest_le n
-
-/-
-lemma abs_sumto_sub_M_decreasing_of_not_switchpoint' (a : ℕ → ℝ) (M : ℝ) (d k : ℕ)
-  (hd₁ : rearrangement_switchpoint d)
-  (hk : d + k ≤ nearest_switchpoint a M d ≤ d)
-  (hd₁ : nearest_switchpoint a M d ≠ 0)
-: ‖sumto a M (d + k + 1) - M‖ ≤ ‖sumto a M (d + 1) - M‖ :=
-begin
-  sorry
-end
-/-
-lemma abs_sumto_sub_M_decreasing_of_not_switchpoint' (a : ℕ → ℝ) (M : ℝ) (d k : ℕ)
-  (hd : nearest_switchpoint a M d ≤ d + k)
-  (hd₁ : nearest_switchpoint a M d ≠ 0)
-: ‖sumto a M (d + k + 1) - M‖ ≤ ‖sumto a M (d + 1) - M‖ :=
-begin
-  sorry
-end
--/
-/-
-begin
-  induction k with k ih,
-  { simp },
-  {
-    have hd' : nearest_switchpoint a M (d + k) ≤ d := sorry,
-    have hd₁' : nearest_switchpoint a M (d + k) ≠ 0 := sorry,
-    specialize ih hd' hd₁',
-    rw (show d + k.succ + 1 = (d + k + 1) + 1, by ring),
-    change ‖partial_sum _ _ - M‖ ≤ _,
-    rw partial_sum_next,
-    change ‖a (rearrangement a M (d + k + 1)) + sumto a M _ - M‖ ≤ _,
-    have hsp := nearest_switchpoint_switchpoint a M (d + k),
-    cases hsp,
-    { contradiction },
-    --by_cases hi₁ : 0 ≤ sumto a M (d + 1) - M,
-    {
-      sorry
-    },
-    {
-      sorry
-    }
-  }
-end
--/
-
-lemma abs_sumto_sub_M_decreasing_of_not_switchpoint (a : ℕ → ℝ) (M : ℝ) (n d : ℕ)
-  (hd₁ : d ≤ n) (hd₂ : nearest_switchpoint a M n ≤ d)
-: ‖sumto a M (n + 1) - M‖ ≤ ‖sumto a M (d + 1) - M‖ :=
-begin
-  sorry
-end
--/
 
 lemma abs_sumto_sub_M_le_abs_sumto_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
@@ -627,7 +571,6 @@ begin
           have : a (rearrangement a M (n + 1)) + sumto a M (n + 1) - M < 0 := by linarith,
           unfold sumto at this,
           rw ←partial_sum_next (λ i, a (rearrangement a M i)) at this,
-          --change sumto a M (n + 2) - M < 0 at this,
           have := rearrangement_switchpoint.over_to_under ⟨hsum, by linarith⟩,
           exact absurd this h
         end,

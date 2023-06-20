@@ -41,7 +41,7 @@ begin
   { simp [partial_sum_next, hi, add_comm] }
 end
 
-lemma partial_sum_add {R : Type u} [add_comm_group R] (f : ℕ → R) (g : ℕ → R) (n : ℕ)
+lemma partial_sum_add {R : Type u} [add_comm_monoid R] (f : ℕ → R) (g : ℕ → R) (n : ℕ)
 : partial_sum f n + partial_sum g n = partial_sum (λ k, f k + g k) n :=
 begin
   induction n with n ih,
@@ -170,33 +170,40 @@ begin
   { exact converges_of_agrees_converges (λ n hn, (h n hn).symm) h₁ }
 end
 
-noncomputable def nonneg_terms (a : ℕ → ℝ) : ℕ → ℝ :=
+noncomputable def nonneg_terms {R : Type u} [linear_ordered_add_comm_monoid R]
+  (a : ℕ → R) : ℕ → R :=
 λ n, if 0 ≤ a n then a n else 0
 
-noncomputable def nonpos_terms (a : ℕ → ℝ) : ℕ → ℝ :=
+noncomputable def nonpos_terms {R : Type u} [linear_ordered_add_comm_monoid R]
+  (a : ℕ → R) : ℕ → R :=
 λ n, if 0 ≤ a n then 0 else a n
 
-lemma nonneg_terms_nonneg (a : ℕ → ℝ) (n : ℕ) : 0 ≤ nonneg_terms a n :=
+lemma nonneg_terms_nonneg {R : Type u} [linear_ordered_add_comm_monoid R] (a : ℕ → R) (n : ℕ)
+  : 0 ≤ nonneg_terms a n :=
 begin
   unfold nonneg_terms,
   by_cases h : 0 ≤ a n; simp [h]
 end
 
-lemma nonpos_terms_nonpos (a : ℕ → ℝ) (n : ℕ) : nonpos_terms a n ≤ 0 :=
+lemma nonpos_terms_nonpos {R : Type u} [linear_ordered_add_comm_monoid R] (a : ℕ → R) (n : ℕ)
+  : nonpos_terms a n ≤ 0 :=
 begin
   unfold nonpos_terms,
-  by_cases h : 0 ≤ a n; simp [h]; linarith
+  by_cases h : 0 ≤ a n,
+  { simp [h] },
+  { simp [h, (not_le.mp h).le] }
 end
 
-lemma nonneg_terms_add_nonpos_terms (a : ℕ → ℝ) (n : ℕ)
-  : nonneg_terms a n + nonpos_terms a n = a n :=
+lemma nonneg_terms_add_nonpos_terms {R : Type u} [linear_ordered_add_comm_monoid R]
+  (a : ℕ → R) (n : ℕ) : nonneg_terms a n + nonpos_terms a n = a n :=
 begin
   unfold nonneg_terms,
   unfold nonpos_terms,
   by_cases h : 0 ≤ a n; simp [h]
 end
 
-lemma partial_sum_nonneg_terms_add_partial_sum_nonpos_terms (a : ℕ → ℝ) (n : ℕ)
+lemma partial_sum_nonneg_terms_add_partial_sum_nonpos_terms {R : Type u}
+  [linear_ordered_add_comm_monoid R] (a : ℕ → R) (n : ℕ)
 : partial_sum (nonneg_terms a) n + partial_sum (nonpos_terms a) n = partial_sum a n :=
 begin
   rw partial_sum_add,
@@ -243,6 +250,11 @@ begin
       calc partial_sum (λ n, nonneg_terms a n) n ≤ partial_sum (λ n, nonneg_terms a n) m : ih this
                                   ... ≤ nonneg_terms a m + partial_sum (λ n, nonneg_terms a n) m : by linarith
                                   ... = partial_sum (nonneg_terms a) (m + 1) : by rw partial_sum_next } }
+end
+
+lemma antitone_partial_sum_nonpos_terms (a : ℕ → ℝ) : antitone (partial_sum (nonpos_terms a)) :=
+begin
+  sorry
 end
 
 lemma nonneg_terms_tendsto_at_top_at_top_of_conditionally_converging {a : ℕ → ℝ}

@@ -548,24 +548,22 @@ variables {N : set α} {f : α → ℝ≥0∞}
 /-- **First moment method**. A measurable function is smaller than its mean on a set of positive
 measure. -/
 lemma measure_le_set_laverage_pos (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞)
-  (hf : ae_measurable f (μ.restrict s)) :
-  0 < μ {x ∈ s | f x ≤ ⨍⁻ a in s, f a ∂μ} :=
+  (hf : ae_measurable f (μ.restrict s)) : 0 < μ {x ∈ s | f x ≤ ⨍⁻ a in s, f a ∂μ} :=
 begin
   obtain h | h := eq_or_ne (∫⁻ a in s, f a ∂μ) ∞,
   { simpa [mul_top, hμ₁, laverage, h, top_div_of_ne_top hμ₁, pos_iff_ne_zero] using hμ },
   have := measure_le_set_average_pos hμ hμ₁ (integrable_to_real_of_lintegral_ne_top hf h),
-  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀],
-  { rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀,
-      ←measure_diff_null (measure_eq_top_of_lintegral_ne_top hf h)] at this,
-    { refine this.trans_le (measure_mono _),
-      rintro x ⟨hfx, hx⟩,
-      dsimp at hfx,
-      rwa [←to_real_laverage hf, to_real_le_to_real hx (set_laverage_lt_top h).ne] at hfx,
-      { simp_rw [ae_iff, not_ne_iff],
-        exact measure_eq_top_of_lintegral_ne_top hf h } },
-    { exact hf.ennreal_to_real.ae_strongly_measurable.null_measurable_set_le
-        ae_strongly_measurable_const } },
-  { exact hf.ae_strongly_measurable.null_measurable_set_le ae_strongly_measurable_const }
+  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀
+    (hf.ae_strongly_measurable.null_measurable_set_le ae_strongly_measurable_const)],
+  rw [←set_of_inter_eq_sep, ←measure.restrict_apply₀
+    (hf.ennreal_to_real.ae_strongly_measurable.null_measurable_set_le ae_strongly_measurable_const),
+    ←measure_diff_null (measure_eq_top_of_lintegral_ne_top hf h)] at this,
+  refine this.trans_le (measure_mono _),
+  rintro x ⟨hfx, hx⟩,
+  dsimp at hfx,
+  rwa [←to_real_laverage hf, to_real_le_to_real hx (set_laverage_lt_top h).ne] at hfx,
+  { simp_rw [ae_iff, not_ne_iff],
+    exact measure_eq_top_of_lintegral_ne_top hf h }
 end
 
 /-- **First moment method**. A measurable function is greater than its mean on a set of positive
@@ -595,10 +593,9 @@ begin
 end
 
 /-- **First moment method**. The minimum of a measurable function is smaller than its mean. -/
-lemma exists_le_set_laverage (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : ae_measurable f (μ.restrict s))
-  (hs : null_measurable_set s μ) :
+lemma exists_le_set_laverage (hμ : μ s ≠ 0) (hμ₁ : μ s ≠ ∞) (hf : ae_measurable f (μ.restrict s)) :
   ∃ x ∈ s, f x ≤ ⨍⁻ a in s, f a ∂μ :=
-let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_le_set_laverage_pos hμ hμ₁ hf hs).ne'
+let ⟨x, hx, h⟩ := nonempty_of_measure_ne_zero (measure_le_set_laverage_pos hμ hμ₁ hf).ne'
   in ⟨x, hx, h⟩
 
 /-- **First moment method**. The maximum of a measurable function is greater than its mean. -/
@@ -636,8 +633,8 @@ variables [is_finite_measure μ]
 measure. -/
 lemma measure_le_laverage_pos (hμ : μ ≠ 0) (hf : ae_measurable f μ) :
   0 < μ {x | f x ≤ ⨍⁻ a, f a ∂μ} :=
-by simpa using measure_le_set_laverage_pos (measure_univ_ne_zero.2 hμ) (measure_ne_top _ _)
-  hf.restrict null_measurable_set_univ
+by simpa
+  using measure_le_set_laverage_pos (measure_univ_ne_zero.2 hμ) (measure_ne_top _ _) hf.restrict
 
 /-- **First moment method**. The minimum of a measurable function is smaller than its mean. -/
 lemma exists_le_laverage (hμ : μ ≠ 0) (hf : ae_measurable f μ) : ∃ x, f x ≤ ⨍⁻ a, f a ∂μ :=

@@ -30,11 +30,9 @@ namespace simple_graph
 
 /-- The pairs of vertices whose density is big. -/
 private noncomputable def bad_vertices (ε : ℝ) (s t : finset α) :=
-s.filter (λ x, ((t.filter (G.adj x)).card : ℝ) < (G.edge_density s t - ε) * t.card)
+s.filter $ λ x, ((t.filter $ G.adj x).card : ℝ) < (G.edge_density s t - ε) * t.card
 
-variables [decidable_eq α]
-
-lemma interedges_bad_vertices :
+lemma interedges_bad_vertices [decidable_eq α] :
   rel.interedges G.adj (bad_vertices G ε s t) t =
     (bad_vertices G ε s t).bUnion (λ x, (t.filter (G.adj x)).image (λ y, (x, y))) :=
 begin
@@ -47,6 +45,7 @@ lemma pairs_card_bad_le :
   ((rel.interedges G.adj (bad_vertices G ε s t) t).card : ℝ) ≤
     (bad_vertices G ε s t).card * t.card * (G.edge_density s t - ε) :=
 begin
+  classical,
   refine (nat.cast_le.2 $ (card_le_of_subset $ subset_of_eq G.interedges_bad_vertices).trans
     card_bUnion_le).trans _,
   simp_rw [nat.cast_sum, card_image_of_injective _ (prod.mk.inj_left _), ←nsmul_eq_mul,
@@ -78,7 +77,7 @@ begin
 end
 
 -- A subset of the triangles constructed in a weird way to make them easy to count
-lemma triangle_split_helper :
+lemma triangle_split_helper [decidable_eq α] :
   (s \ (bad_vertices G ε s t ∪ bad_vertices G ε s u)).bUnion
     (λ x, ((t.filter (G.adj x) ×ˢ u.filter (G.adj x)).filter
       (λ (yz : _ × _), G.adj yz.1 yz.2)).image (prod.mk x)) ⊆
@@ -92,7 +91,7 @@ begin
   exact ⟨hx, hy, hz, xy, xz, yz⟩,
 end
 
-lemma good_vertices_triangle_card (dst : 2 * ε ≤ G.edge_density s t)
+lemma good_vertices_triangle_card [decidable_eq α] (dst : 2 * ε ≤ G.edge_density s t)
   (dsu : 2 * ε ≤ G.edge_density s u) (dtu : 2 * ε ≤ G.edge_density t u) (utu : G.is_uniform ε t u)
   (x : α) (hx : x ∈ s \ (bad_vertices G ε s t ∪ bad_vertices G ε s u)) :
   ε^3 * t.card * u.card ≤ ((((t.filter (G.adj x)) ×ˢ (u.filter (G.adj x))).filter
@@ -129,6 +128,7 @@ lemma triangle_counting
     ((s ×ˢ t ×ˢ u).filter $ λ xyz : α × α × α,
       G.adj xyz.1 xyz.2.1 ∧ G.adj xyz.1 xyz.2.2 ∧ G.adj xyz.2.1 xyz.2.2).card :=
 begin
+  classical,
   have h₁ : ((bad_vertices G ε s t).card : ℝ) ≤ s.card * ε := G.few_bad_vertices dst hst,
   have h₂ : ((bad_vertices G ε s u).card : ℝ) ≤ s.card * ε := G.few_bad_vertices dsu uXZ,
   let X' := s \ (bad_vertices G ε s t ∪ bad_vertices G ε s u),
@@ -157,6 +157,8 @@ begin
   rintro - - - - - - _ _ _ rfl rfl _ _ _ _ _ _ _ rfl _,
   exact t rfl,
 end
+
+variables [decidable_eq α]
 
 private lemma triple_eq_triple_of_mem (hst : disjoint s t) (hsu : disjoint s u) (htu : disjoint t u)
   {x₁ x₂ y₁ y₂ z₁ z₂ : α} (h : ({x₁, y₁, z₁} : finset α) = {x₂, y₂, z₂})

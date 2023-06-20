@@ -263,7 +263,6 @@ end finpartition
 /-! ### Reduced graph -/
 
 namespace simple_graph
-variables [fintype α]
 
 /-- The reduction of the graph `G` along partition `P` has edges between `ε`-uniform pairs of parts
 that have edge density at least `δ`. -/

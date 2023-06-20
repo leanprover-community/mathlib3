@@ -600,22 +600,61 @@ begin
 end
 
 lemma abs_sumto_sub_M_le_val_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
-  (hd₁ : nearest_switchpoint a M n ≠ 0)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (hn : nearest_switchpoint a M n ≠ 0)
 : ‖sumto a M (n + 1) - M‖ ≤ ‖a (rearrangement a M (nearest_switchpoint a M n))‖ :=
 begin
-  have q₁ := abs_sumto_sub_M_le_abs_sumto_nearest_switchpoint a M n h₁ h₂ hd₁,
-  have q₂ := diff_M_le_switchpoint a M (nearest_switchpoint_switchpoint a M n) hd₁ h₁ h₂,
+  have q₁ := abs_sumto_sub_M_le_abs_sumto_nearest_switchpoint a M n h₁ h₂ hn,
+  have q₂ := diff_M_le_switchpoint a M (nearest_switchpoint_switchpoint a M n) hn h₁ h₂,
   exact le_trans q₁ q₂
 end
 
--- TODO: Check the statement of this lemma very carefully
- /-lemma switchpoints_tendto_M (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
-  : tendsto (λ i, ‖sumto A M i - a (nat.find_greatest (rearrangement_switchpoint a M) i)‖) at_top (𝓝 0) :=
+lemma tendsto_zero_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : tendsto (λ n, ‖a (nearest_switchpoint a M n)‖) at_top (𝓝 0) :=
 begin
   sorry
-end-/
+end
+
+lemma tendsto_zero_abs_sumto_sub_M (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : tendsto (λ n, ‖sumto a M (n + 1) - M‖) at_top (𝓝 0) :=
+begin
+  sorry
+end
+
+lemma tendsto_zero_sumto_sub_M (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : tendsto (λ n, sumto a M (n + 1) - M) at_top (𝓝 0) :=
+begin
+  have h := tendsto_zero_abs_sumto_sub_M a M h₁ h₂,
+  rw tendsto_def at h ⊢,
+  intros s hs,
+  let v := (λ x, -x) ⁻¹' s,
+  have hv : v ∈ (𝓝 0 : filter ℝ),
+  { apply continuous_at.preimage_mem_nhds,
+    { exact continuous_at_neg },
+    { simp [hs] } },
+  specialize h (s ∩ v) (filter.inter_mem hs hv),
+  rw filter.mem_at_top_sets at h ⊢,
+  cases h with N hN,
+  use N,
+  intros b hb,
+  specialize hN b hb,
+  rw set.mem_preimage at hN ⊢,
+  by_cases hsum : 0 ≤ sumto a M (b + 1) - M,
+  { rw real.norm_of_nonneg hsum at hN,
+    exact set.mem_of_mem_inter_left hN },
+  { push_neg at hsum,
+    rw real.norm_of_nonpos hsum.le at hN,
+    have := set.mem_of_mem_inter_right hN,
+    rw set.mem_preimage at this,
+    simpa using this }
+end
 
 lemma rearrangement_tendsto_M {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))

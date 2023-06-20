@@ -977,13 +977,14 @@ by { rw map_le_iff_le_comap, exact le_refl _ }
   left_inv := λ _, by simp,
   right_inv := λ _, by simp }
 
-@[simp] lemma  _root_.equiv.simple_graph_refl : (equiv.refl V).simple_graph = equiv.refl _ :=
+@[simp] lemma _root_.equiv.simple_graph_refl : (equiv.refl V).simple_graph = equiv.refl _ :=
 by { ext, refl }
 
-@[simp] lemma  _root_.equiv.simple_graph_trans (e₁ : V ≃ W) (e₂ : W ≃ X) :
+@[simp] lemma _root_.equiv.simple_graph_trans (e₁ : V ≃ W) (e₂ : W ≃ X) :
   (e₁.trans e₂).simple_graph = e₁.simple_graph.trans e₂.simple_graph := rfl
 
-@[simp] lemma  _root_.equiv.symm_simple_graph (e : V ≃ W) : e.simple_graph.symm = e.symm.simple_graph := rfl
+@[simp] lemma _root_.equiv.symm_simple_graph (e : V ≃ W) :
+  e.simple_graph.symm = e.symm.simple_graph := rfl
 
 /-! ## Induced graphs -/
 

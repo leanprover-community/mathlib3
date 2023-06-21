@@ -8,6 +8,9 @@ import algebra.category.Module.monoidal.symmetric
 
 /-!
 # The monoidal closed structure on `Module R`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes v w x u

@@ -10,6 +10,9 @@ import measure_theory.decomposition.radon_nikodym
 /-!
 # Conditional cumulative distribution function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given `ρ : measure (α × ℝ)`, we define the conditional cumulative distribution function
 (conditional cdf) of `ρ`. It is a function `cond_cdf ρ : α → ℝ → ℝ` such that if `ρ` is a finite
 measure, then for all `a : α` `cond_cdf ρ a` is monotone and right-continuous with limit 0 at -∞

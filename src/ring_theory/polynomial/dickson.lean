@@ -12,6 +12,9 @@ import ring_theory.ideal.local_ring
 /-!
 # Dickson polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The (generalised) Dickson polynomials are a family of polynomials indexed by `ℕ × ℕ`,
 with coefficients in a commutative ring `R` depending on an element `a∈R`. More precisely, the
 they satisfy the recursion `dickson k a (n + 2) = X * (dickson k a n + 1) - a * (dickson k a n)`

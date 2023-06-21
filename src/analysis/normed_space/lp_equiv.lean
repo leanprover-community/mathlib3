@@ -10,6 +10,9 @@ import topology.continuous_function.bounded
 /-!
 # Equivalences among $L^p$ spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we collect a variety of equivalences among various $L^p$ spaces.  In particular,
 when `α` is a `fintype`, given `E : α → Type u` and `p : ℝ≥0∞`, there is a natural linear isometric
 equivalence `lp_pi_Lpₗᵢ : lp E p ≃ₗᵢ pi_Lp p E`. In addition, when `α` is a discrete topological

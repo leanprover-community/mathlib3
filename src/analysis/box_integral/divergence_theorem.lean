@@ -13,6 +13,9 @@ import analysis.calculus.fderiv.restrict_scalars
 /-!
 # Divergence integral for Henstock-Kurzweil integral
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the Divergence Theorem for a Henstock-Kurzweil style integral. The theorem
 says the following. Let `f : ℝⁿ → Eⁿ` be a function differentiable on a closed rectangular box
 `I` with derivative `f' x : ℝⁿ →L[ℝ] Eⁿ` at `x ∈ I`. Then the divergence `λ x, ∑ k, f' x eₖ k`,

@@ -9,6 +9,9 @@ import measure_theory.measure.lebesgue.basic
 /-!
 # Box-additive functions defined by measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few simple facts about rectangular boxes, partitions, and measures:
 
 - given a box `I : box ι`, its coercion to `set (ι → ℝ)` and `I.Icc` are measurable sets;

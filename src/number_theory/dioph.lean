@@ -11,6 +11,9 @@ import number_theory.pell_matiyasevic
 /-!
 # Diophantine functions and Matiyasevic's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Hilbert's tenth problem asked whether there exists an algorithm which for a given integer polynomial
 determines whether this polynomial has integer solutions. It was answered in the negative in 1970,
 the final step being completed by Matiyasevic who showed that the power function is Diophantine.

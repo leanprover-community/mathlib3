@@ -27,7 +27,7 @@ variables (α : Type*) [fintype α] [decidable_eq α]
 open_locale big_operators nat
 open equiv fintype function finset (range sum_const) set (Iic)
 
-namespace imo_1987_q1
+namespace imo1987_q1
 
 /-- The set of pairs `(x : α, σ : perm α)` such that `σ x = x` is equivalent to the set of pairs
 `(x : α, σ : perm {x}ᶜ)`. -/
@@ -89,4 +89,4 @@ theorem main {n : ℕ} (hn : 1 ≤ n) :
   ∑ k in range (n + 1), k * p (fin n) k = n! :=
 by rw [main₀, nat.mul_factorial_pred (zero_lt_one.trans_le hn)]
 
-end imo_1987_q1
+end imo1987_q1

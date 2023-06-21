@@ -37,10 +37,22 @@ rfl
   (quotient_span_X_sub_C_alg_equiv x).symm y = algebra_map R _ y :=
 rfl
 
+/-- For a commutative ring $R$, evaluating a polynomial at an element $y \in R$ induces an
+isomorphism of $R$-algebras $R[X] / \langle x, X - y \rangle \cong R / \langle x \rangle$. -/
+noncomputable def quotient_span_C_X_sub_C_alg_equiv (x y : R) :
+  (R[X] ⧸ (ideal.span {C x, X - C y} : ideal R[X])) ≃ₐ[R] R ⧸ (ideal.span {x} : ideal R) :=
+(ideal.quotient_equiv_alg_of_eq R $ by rw [ideal.span_insert, sup_comm]).trans $
+  (double_quot.quot_quot_equiv_quot_supₐ R _ _).symm.trans $
+    (ideal.quotient_equiv_alg _ _ (quotient_span_X_sub_C_alg_equiv y) rfl).trans $
+      ideal.quotient_equiv_alg_of_eq R $
+        by { simp only [ideal.map_span, set.image_singleton], congr' 2, exact eval_C }
+
 end polynomial
 
 namespace ideal
+
 noncomputable theory
+
 open polynomial
 
 variables {R : Type*} [comm_ring R]

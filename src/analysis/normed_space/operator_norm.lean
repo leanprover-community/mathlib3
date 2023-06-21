@@ -1715,46 +1715,6 @@ begin
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
 
-variables {𝕜} {𝕜₄ : Type*} [nontrivially_normed_field 𝕜₄]
-variables {H : Type*} [normed_add_comm_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]
-variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-variables {σ₃₄ : 𝕜₃ →+* 𝕜₄} {σ₄₃ : 𝕜₄ →+* 𝕜₃}
-variables {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
-variables [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
-variables [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
-variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
-variables [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
-variables [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄]
-variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁₂]
-variables [ring_hom_isometric σ₃₄]
-
-include σ₂₁ σ₃₄ σ₁₃ σ₂₄
-
-/-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
-between the spaces of continuous (semi)linear maps. -/
-@[simps apply symm_apply]
-def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
-  (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
-{ -- given explicitly to help `simps`
-  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
-  -- given explicitly to help `simps`
-  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
-  map_add' := λ f g, by rw [add_comp, comp_add],
-  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
-  continuous_to_fun := (continuous_id.clm_comp_const _).const_clm_comp _,
-  continuous_inv_fun := (continuous_id.clm_comp_const _).const_clm_comp _,
-  .. e₁₂.arrow_congr_equiv e₄₃, }
-
-omit σ₂₁ σ₃₄ σ₁₃ σ₂₄
-
-/-- A pair of continuous linear equivalences generates an continuous linear equivalence between
-the spaces of continuous linear maps. -/
-def arrow_congr {F H : Type*} [normed_add_comm_group F] [normed_add_comm_group H]
-  [normed_space 𝕜 F] [normed_space 𝕜 G] [normed_space 𝕜 H]
-  (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) :
-  (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
-arrow_congrSL e₁ e₂
-
 end
 
 end continuous_linear_equiv

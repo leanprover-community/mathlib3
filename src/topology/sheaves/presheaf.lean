@@ -221,7 +221,7 @@ def pushforward_map {X Y : Top.{w}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α 
 
 open category_theory.limits
 section pullback
-variable [has_colimits C]
+variable [has_colimits_of_size.{w w} C]
 noncomputable theory
 
 /--
@@ -231,17 +231,17 @@ This is defined in terms of left Kan extensions, which is just a fancy way of sa
 "take the colimits over the open sets whose preimage contains U".
 -/
 @[simps]
-def pullback_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : Y.presheaf C) : X.presheaf C :=
+def pullback_obj {X Y : Top.{w}} (f : X ⟶ Y) (ℱ : Y.presheaf C) : X.presheaf C :=
 (Lan (opens.map f).op).obj ℱ
 
 /-- Pulling back along continuous maps is functorial. -/
-def pullback_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : Y.presheaf C} (α : ℱ ⟶ 𝒢) :
+def pullback_map {X Y : Top.{w}} (f : X ⟶ Y) {ℱ 𝒢 : Y.presheaf C} (α : ℱ ⟶ 𝒢) :
   pullback_obj f ℱ ⟶ pullback_obj f 𝒢 :=
 (Lan (opens.map f).op).map α
 
 /-- If `f '' U` is open, then `f⁻¹ℱ U ≅ ℱ (f '' U)`.  -/
 @[simps]
-def pullback_obj_obj_of_image_open {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : Y.presheaf C) (U : opens X)
+def pullback_obj_obj_of_image_open {X Y : Top.{w}} (f : X ⟶ Y) (ℱ : Y.presheaf C) (U : opens X)
   (H : is_open (f '' U)) : (pullback_obj f ℱ).obj (op U) ≅ ℱ.obj (op ⟨_, H⟩) :=
 begin
   let x : costructured_arrow (opens.map f).op (op U) := begin
@@ -263,7 +263,7 @@ begin
 end
 
 namespace pullback
-variables {X Y : Top.{v}} (ℱ : Y.presheaf C)
+variables {X Y : Top.{w}} (ℱ : Y.presheaf C)
 
 /-- The pullback along the identity is isomorphic to the original presheaf. -/
 def id : pullback_obj (𝟙 _) ℱ ≅ ℱ :=
@@ -366,30 +366,30 @@ by simpa [pushforward_to_of_iso, equivalence.to_adjunction]
 
 end iso
 
-variables (C) [has_colimits C]
+variables (C) [has_colimits_of_size.{w w} C]
 
 /-- Pullback a presheaf on `Y` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
 on `X`. -/
 @[simps map_app]
-def pullback {X Y : Top.{v}} (f : X ⟶ Y) : Y.presheaf C ⥤ X.presheaf C := Lan (opens.map f).op
+def pullback {X Y : Top.{w}} (f : X ⟶ Y) : Y.presheaf C ⥤ X.presheaf C := Lan (opens.map f).op
 
 @[simp] lemma pullback_obj_eq_pullback_obj {C} [category C] [has_colimits C] {X Y : Top.{w}}
   (f : X ⟶ Y) (ℱ : Y.presheaf C) : (pullback C f).obj ℱ = pullback_obj f ℱ := rfl
 
 /-- The pullback and pushforward along a continuous map are adjoint to each other. -/
 @[simps unit_app_app counit_app_app]
-def pushforward_pullback_adjunction {X Y : Top.{v}} (f : X ⟶ Y) :
+def pushforward_pullback_adjunction {X Y : Top.{w}} (f : X ⟶ Y) :
   pullback C f ⊣ pushforward C f := Lan.adjunction _ _
 
 /-- Pulling back along a homeomorphism is the same as pushing forward along its inverse. -/
-def pullback_hom_iso_pushforward_inv {X Y : Top.{v}} (H : X ≅ Y) :
+def pullback_hom_iso_pushforward_inv {X Y : Top.{w}} (H : X ≅ Y) :
   pullback C H.hom ≅ pushforward C H.inv :=
 adjunction.left_adjoint_uniq
   (pushforward_pullback_adjunction C H.hom)
   (presheaf_equiv_of_iso C H.symm).to_adjunction
 
 /-- Pulling back along the inverse of a homeomorphism is the same as pushing forward along it. -/
-def pullback_inv_iso_pushforward_hom {X Y : Top.{v}} (H : X ≅ Y) :
+def pullback_inv_iso_pushforward_hom {X Y : Top.{w}} (H : X ≅ Y) :
   pullback C H.inv ≅ pushforward C H.hom :=
 adjunction.left_adjoint_uniq
   (pushforward_pullback_adjunction C H.inv)

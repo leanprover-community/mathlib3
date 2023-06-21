@@ -3,6 +3,7 @@ import algebra.big_operators.basic
 import order.filter.at_top_bot
 import analysis.specific_limits.normed
 import topology.metric_space.cau_seq_filter
+import probability.kernel.cond_cdf
 import tactic
 
 open filter
@@ -290,9 +291,38 @@ begin
     conv at this {
       congr,
       funext,
-      rw hsum,
+      rw hsum
     },
-    use (C - (D - C)),
+    use C - (D - C),
+    exact this }
+end
+
+lemma nonpos_terms_tendsto_at_top_at_bot_of_conditionally_converging {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : tendsto (partial_sum (nonpos_terms a)) at_top at_bot :=
+begin
+  cases tendsto_of_antitone (antitone_partial_sum_nonpos_terms a) with h,
+  { exact h },
+  { exfalso,
+    apply h₂,
+    cases h with C hC,
+    cases h₁ with D hD,
+    have hsum : ∀ k, (partial_sum a k - partial_sum (nonpos_terms a) k) - partial_sum (nonpos_terms a) k
+      = partial_sum (λ i, ‖a i‖) k,
+    { intro k,
+      have : partial_sum a k - partial_sum (nonpos_terms a) k = partial_sum (nonneg_terms a) k,
+      { rw ←partial_sum_nonneg_terms_add_partial_sum_nonpos_terms a k,
+        simp },
+      rw this,
+      exact partial_sum_nonneg_terms_sub_partial_sum_nonpos_terms a k },
+    have := filter.tendsto.sub (filter.tendsto.sub hD hC) hC,
+    conv at this {
+      congr,
+      funext,
+      rw hsum
+    },
+    use D - C - C,
     exact this }
 end
 

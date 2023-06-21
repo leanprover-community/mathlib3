@@ -563,7 +563,7 @@ end
 eq_univ_of_forall $ λ f, ⟨λ x, (subsingleton.elim _ _).le, subsingleton.elim _ _⟩
 
 /-- The standard simplex in the zero-dimensional space is empty. -/
-lemma std_simplex_of_empty [is_empty ι] [ne_zero (1 : 𝕜)] : std_simplex 𝕜 ι = ∅ :=
+lemma std_simplex_of_empty [is_empty ι] [nontrivial 𝕜] : std_simplex 𝕜 ι = ∅ :=
 eq_empty_of_forall_not_mem $ by { rintro f ⟨-, hf⟩, simpa using hf }
 
 lemma std_simplex_unique [unique ι] : std_simplex 𝕜 ι = {λ _, 1} :=

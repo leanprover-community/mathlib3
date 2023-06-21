@@ -41,6 +41,8 @@ finitely supported function is lexicographic, matching the list notation.  The i
 -/
 open finsupp add_monoid_algebra
 
+namespace counterexample
+
 /--  This is a simple example showing that if `R` is a non-trivial ring and `A` is an additive
 monoid with an element `a` satisfying `n • a = a` and `(n - 1) • a ≠ a`, for some `2 ≤ n`,
 then `add_monoid_algebra R A` contains non-zero zero-divisors.  The elements are easy to write down:
@@ -230,3 +232,5 @@ begin
   { simpa [unique_add] },
   exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
 end
+
+end counterexample

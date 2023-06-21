@@ -11,6 +11,9 @@ import group_theory.group_action.fixing_subgroup
 /-!
 # Galois Extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define Galois extensions as extensions which are both separable and normal.
 
 ## Main definitions
@@ -297,11 +300,8 @@ begin
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
   rw intermediate_field.adjoin_simple_to_subalgebra_of_integral (integral F α),
   apply algebra.adjoin_mono,
-  rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
-  { dsimp only [polynomial.is_root],
-    rw [polynomial.eval_map, ←polynomial.aeval_def],
-    exact minpoly.aeval _ _ },
-  { exact polynomial.map_ne_zero (minpoly.ne_zero (integral F α)) }
+  rw [set.singleton_subset_iff, polynomial.mem_root_set],
+  exact ⟨minpoly.ne_zero (integral F α), minpoly.aeval _ _⟩
 end
 
 lemma of_fixed_field_eq_bot [finite_dimensional F E]
@@ -371,7 +371,7 @@ begin
   let s := (p.map (algebra_map F E)).roots.to_finset,
   have adjoin_root : intermediate_field.adjoin F ↑s = ⊤,
   { apply intermediate_field.to_subalgebra_injective,
-    rw [intermediate_field.top_to_subalgebra, ←top_le_iff, ←sp.adjoin_roots],
+    rw [intermediate_field.top_to_subalgebra, ←top_le_iff, ←sp.adjoin_root_set],
     apply intermediate_field.algebra_adjoin_le_adjoin, },
   let P : intermediate_field F E → Prop := λ K, fintype.card (K →ₐ[F] E) = finrank F K,
   suffices : P (intermediate_field.adjoin F ↑s),
@@ -423,6 +423,16 @@ end
 end is_galois
 
 end galois_equivalent_definitions
+
+section normal_closure
+
+variables (k K F : Type*) [field k] [field K] [field F] [algebra k K] [algebra k F]
+  [algebra K F] [is_scalar_tower k K F] [is_galois k F]
+
+instance is_galois.normal_closure : is_galois k (normal_closure k K F) :=
+{ to_is_separable := is_separable_tower_bot_of_is_separable k _ F }
+
+end normal_closure
 
 section is_alg_closure
 

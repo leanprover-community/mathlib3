@@ -11,6 +11,9 @@ import ring_theory.localization.integral
 /-!
 # Algebraically Closed Field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the typeclass for algebraically closed fields and algebraic closures,
 and prove some of their properties.
 
@@ -411,6 +414,10 @@ variables [algebra R S] [algebra R L] [is_scalar_tower R S L]
 variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
   [is_scalar_tower K J L]
 
+/-- If `J` is an algebraic extension of `K` and `L` is an algebraic closure of `J`, then it is
+  also an algebraic closure of `K`. -/
+lemma of_algebraic (hKJ : algebra.is_algebraic K J) : is_alg_closure K L :=
+⟨is_alg_closure.alg_closed J, algebra.is_algebraic_trans hKJ is_alg_closure.algebraic⟩
 
 /-- A (random) isomorphism between an algebraic closure of `R` and an algebraic closure of
   an algebraic extension of `R` -/

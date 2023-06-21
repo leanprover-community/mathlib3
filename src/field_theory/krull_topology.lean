@@ -12,6 +12,9 @@ import tactic.by_contra
 /-!
 # Krull topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the Krull topology on `L ≃ₐ[K] L` for an arbitrary field extension `L/K`. In order to do
 this, we first define a `group_filter_basis` on `L ≃ₐ[K] L`, whose sets are `E.fixing_subgroup` for
 all intermediate fields `E` with `E/K` finite dimensional.

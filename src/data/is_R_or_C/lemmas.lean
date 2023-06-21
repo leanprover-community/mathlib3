@@ -7,7 +7,10 @@ import analysis.normed_space.finite_dimension
 import field_theory.tower
 import data.is_R_or_C.basic
 
-/-! # Further lemmas about `is_R_or_C` -/
+/-! # Further lemmas about `is_R_or_C` 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 variables {K E : Type*} [is_R_or_C K]
 

@@ -10,6 +10,9 @@ import tactic.derive_fintype
 /-!
 # Circumcenter and circumradius
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some lemmas on points equidistant from a set of
 points, and defines the circumradius and circumcenter of a simplex.
 There are also some definitions for use in calculations where it is

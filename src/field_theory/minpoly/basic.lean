@@ -8,6 +8,9 @@ import ring_theory.integral_closure
 /-!
 # Minimal polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the minimal polynomial of an element `x` of an `A`-algebra `B`,
 under the assumption that x is integral over `A`, and derives some basic properties
 such as ireducibility under the assumption `B` is a domain.
@@ -17,7 +20,7 @@ such as ireducibility under the assumption `B` is a domain.
 open_locale classical polynomial
 open polynomial set function
 
-variables {A B : Type*}
+variables {A B B' : Type*}
 
 section min_poly_def
 variables (A) [comm_ring A] [ring B] [algebra A B]
@@ -40,7 +43,7 @@ end min_poly_def
 namespace minpoly
 
 section ring
-variables [comm_ring A] [ring B] [algebra A B]
+variables [comm_ring A] [ring B] [ring B'] [algebra A B] [algebra A B']
 variables {x : B}
 
 /-- A minimal polynomial is monic. -/
@@ -53,6 +56,16 @@ lemma ne_zero [nontrivial A] (hx : is_integral A x) : minpoly A x ≠ 0 :=
 
 lemma eq_zero (hx : ¬ is_integral A x) : minpoly A x = 0 :=
 dif_neg hx
+
+lemma minpoly_alg_hom (f : B →ₐ[A] B') (hf : function.injective f) (x : B) :
+  minpoly A (f x) = minpoly A x :=
+begin
+  refine dif_ctx_congr (is_integral_alg_hom_iff _ hf) (λ _, _) (λ _, rfl),
+  simp_rw [←polynomial.aeval_def, aeval_alg_hom, alg_hom.comp_apply, _root_.map_eq_zero_iff f hf],
+end
+
+@[simp] lemma minpoly_alg_equiv (f : B ≃ₐ[A] B') (x : B) : minpoly A (f x) = minpoly A x :=
+minpoly_alg_hom (f : B →ₐ[A] B') f.injective x
 
 variables (A x)
 

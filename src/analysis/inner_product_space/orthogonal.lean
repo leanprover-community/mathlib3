@@ -9,6 +9,9 @@ import analysis.inner_product_space.basic
 /-!
 # Orthogonal complements of submodules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, the `orthogonal` complement of a submodule `K` is defined, and basic API established.
 Some of the more subtle results about the orthogonal complement are delayed to
 `analysis.inner_product_space.projection`.

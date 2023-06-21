@@ -191,7 +191,7 @@ lemma measurable_of_subsingleton_codomain [subsingleton β] (f : α → β) :
   measurable f :=
 λ s hs, subsingleton.set_cases measurable_set.empty measurable_set.univ s
 
-@[to_additive]
+@[measurability, to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
 lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=
@@ -1392,7 +1392,7 @@ open_locale classical
 
 /-- If a measurable space is countably generated, it admits a measurable injection
 into the Cantor space `ℕ → bool` (equipped with the product sigma algebra). -/
-theorem measurable_injection_cantor_of_countably_generated
+theorem measurable_injection_nat_bool_of_countably_generated
 [measurable_space α] [h : countably_generated α] [measurable_singleton_class α] :
 ∃ f : α → (ℕ → bool), measurable f ∧ function.injective f :=
 begin

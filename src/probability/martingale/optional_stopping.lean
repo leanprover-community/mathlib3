@@ -8,6 +8,9 @@ import probability.martingale.basic
 
 /-! # Optional stopping theorem (fair game theorem)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The optional stopping theorem states that an adapted integrable process `f` is a submartingale if
 and only if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 stopped value of `f` at `τ` has expectation smaller than its stopped value at `π`.

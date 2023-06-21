@@ -10,6 +10,9 @@ import algebra.category.Module.epi_mono
 /-!
 # Pseudoelements in abelian categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A *pseudoelement* of an object `X` in an abelian category `C` is an equivalence class of arrows
 ending in `X`, where two arrows are considered equivalent if we can find two epimorphisms with a
 common domain making a commutative square with the two arrows. While the construction shows that

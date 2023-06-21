@@ -9,6 +9,9 @@ import analysis.special_functions.trigonometric.inverse
 /-!
 # Angles between vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines unoriented angles in real inner product spaces.
 
 ## Main definitions

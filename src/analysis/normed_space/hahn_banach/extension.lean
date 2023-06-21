@@ -6,9 +6,13 @@ Authors: Yury Kudryashov, Heather Macbeth
 import analysis.convex.cone.basic
 import analysis.normed_space.is_R_or_C
 import analysis.normed_space.extend
+import data.is_R_or_C.lemmas
 
 /-!
 # Extension Hahn-Banach theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the analytic Hahn-Banach theorem. For any continuous linear function on a
 subspace, we can extend it to a function on the entire space without changing its norm.

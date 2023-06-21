@@ -9,6 +9,9 @@ import order.filter.ultrafilter
 
 /-! # Ultraproducts and Łoś's Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * `first_order.language.ultraproduct.Structure` is the ultraproduct structure on `filter.product`.
 

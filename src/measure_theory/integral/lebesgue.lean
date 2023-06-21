@@ -10,6 +10,9 @@ import measure_theory.measure.mutually_singular
 /-!
 # Lower Lebesgue integral for `ℝ≥0∞`-valued functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the lower Lebesgue integral of an `ℝ≥0∞`-valued function.
 
 ## Notation
@@ -32,6 +35,46 @@ open_locale classical topology big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
+
+section move_this
+
+variables {α : Type*} {mα : measurable_space α} {a : α} {s : set α}
+include mα
+
+-- todo after the port: move to measure_theory/measure/measure_space
+lemma restrict_dirac' (hs : measurable_set s) [decidable (a ∈ s)] :
+  (measure.dirac a).restrict s = if a ∈ s then measure.dirac a else 0 :=
+begin
+  ext1 t ht,
+  classical,
+  simp only [measure.restrict_apply ht, measure.dirac_apply' _ (ht.inter hs), set.indicator_apply,
+    set.mem_inter_iff, pi.one_apply],
+  by_cases has : a ∈ s,
+  { simp only [has, and_true, if_true],
+    split_ifs with hat,
+    { rw measure.dirac_apply_of_mem hat, },
+    { simp only [measure.dirac_apply' _ ht, set.indicator_apply, hat, if_false], }, },
+  { simp only [has, and_false, if_false, measure.coe_zero, pi.zero_apply], },
+end
+
+-- todo after the port: move to measure_theory/measure/measure_space
+lemma restrict_dirac [measurable_singleton_class α] [decidable (a ∈ s)] :
+  (measure.dirac a).restrict s = if a ∈ s then measure.dirac a else 0 :=
+begin
+  ext1 t ht,
+  classical,
+  simp only [measure.restrict_apply ht, measure.dirac_apply _, set.indicator_apply,
+    set.mem_inter_iff, pi.one_apply],
+  by_cases has : a ∈ s,
+  { simp only [has, and_true, if_true],
+    split_ifs with hat,
+    { rw measure.dirac_apply_of_mem hat, },
+    { simp only [measure.dirac_apply' _ ht, set.indicator_apply, hat, if_false], }, },
+  { simp only [has, and_false, if_false, measure.coe_zero, pi.zero_apply], },
+end
+
+end move_this
+
 local infixr ` →ₛ `:25 := simple_func
 
 variables {α β γ δ : Type*}
@@ -40,7 +83,7 @@ section lintegral
 
 open simple_func
 
-variables {m : measurable_space α} {μ ν : measure α}
+variables {m : measurable_space α} {μ ν : measure α} {f : α → ℝ≥0∞} {s : set α}
 
 /-- The **lower Lebesgue integral** of a function `f` with respect to a measure `μ`. -/
 @[irreducible] def lintegral {m : measurable_space α} (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
@@ -715,6 +758,9 @@ begin
   exact hf (measurable_set_singleton r)
 end
 
+@[simp] lemma lintegral_indicator_one (hs : measurable_set s) : ∫⁻ a, s.indicator 1 a ∂μ = μ s :=
+(lintegral_indicator_const hs _).trans $ one_mul _
+
 /-- A version of **Markov's inequality** for two functions. It doesn't follow from the standard
 Markov's inequality because we only assume measurability of `g`, not `f`. -/
 lemma lintegral_add_mul_meas_add_le_le_lintegral {f g : α → ℝ≥0∞} (hle : f ≤ᵐ[μ] g)
@@ -749,11 +795,24 @@ lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 mul_meas_ge_le_lintegral₀ hf.ae_measurable ε
 
-lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : ae_measurable f μ)
-  (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
+lemma lintegral_eq_top_of_measure_eq_top_ne_zero {f : α → ℝ≥0∞} (hf : ae_measurable f μ)
+  (hμf : μ {x | f x = ∞} ≠ 0) : ∫⁻ x, f x ∂μ = ∞ :=
 eq_top_iff.mpr $
-calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
+calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf]
    ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral₀ hf ∞
+
+lemma set_lintegral_eq_top_of_measure_eq_top_ne_zero (hf : ae_measurable f (μ.restrict s))
+  (hμf : μ {x ∈ s | f x = ∞} ≠ 0) : ∫⁻ x in s, f x ∂μ = ∞ :=
+lintegral_eq_top_of_measure_eq_top_ne_zero hf $
+  mt (eq_bot_mono $ by { rw ←set_of_inter_eq_sep, exact measure.le_restrict_apply _ _ }) hμf
+
+lemma measure_eq_top_of_lintegral_ne_top (hf : ae_measurable f μ) (hμf : ∫⁻ x, f x ∂μ ≠ ∞) :
+  μ {x | f x = ∞} = 0 :=
+of_not_not $ λ h, hμf $ lintegral_eq_top_of_measure_eq_top_ne_zero hf h
+
+lemma measure_eq_top_of_set_lintegral_ne_top (hf : ae_measurable f (μ.restrict s))
+  (hμf : ∫⁻ x in s, f x ∂μ ≠ ∞) : μ {x ∈ s | f x = ∞} = 0 :=
+of_not_not $ λ h, hμf $ set_lintegral_eq_top_of_measure_eq_top_ne_zero hf h
 
 /-- **Markov's inequality** also known as **Chebyshev's first inequality**. -/
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : ae_measurable f μ) {ε : ℝ≥0∞}
@@ -1288,6 +1347,27 @@ lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ℝ�
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
 
+lemma set_lintegral_dirac' {a : α} {f : α → ℝ≥0∞} (hf : measurable f)
+  {s : set α} (hs : measurable_set s) [decidable (a ∈ s)] :
+  ∫⁻ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
+begin
+  rw [restrict_dirac' hs],
+  swap, { apply_instance, },
+  split_ifs,
+  { exact lintegral_dirac' _ hf, },
+  { exact lintegral_zero_measure _, },
+end
+
+lemma set_lintegral_dirac {a : α} (f : α → ℝ≥0∞)
+  (s : set α) [measurable_singleton_class α] [decidable (a ∈ s)] :
+  ∫⁻ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
+begin
+  rw [restrict_dirac],
+  split_ifs,
+  { exact lintegral_dirac _ _, },
+  { exact lintegral_zero_measure _, },
+end
+
 lemma lintegral_count' {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂count = ∑' a, f a :=
 begin
@@ -1621,36 +1701,6 @@ begin
   rw [ae_with_density_iff hf, ae_restrict_iff'],
   { refl },
   { exact hf (measurable_set_singleton 0).compl },
-end
-
-lemma ae_measurable_with_density_iff {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-  [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
-  {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
-  ae_measurable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔ ae_measurable (λ x, (f x : ℝ) • g x) μ :=
-begin
-  split,
-  { rintros ⟨g', g'meas, hg'⟩,
-    have A : measurable_set {x : α | f x ≠ 0} := (hf (measurable_set_singleton 0)).compl,
-    refine ⟨λ x, (f x : ℝ) • g' x, hf.coe_nnreal_real.smul g'meas, _⟩,
-    apply @ae_of_ae_restrict_of_ae_restrict_compl _ _ _ {x | f x ≠ 0},
-    { rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal] at hg',
-      rw ae_restrict_iff' A,
-      filter_upwards [hg'],
-      assume a ha h'a,
-      have : (f a : ℝ≥0∞) ≠ 0, by simpa only [ne.def, coe_eq_zero] using h'a,
-      rw ha this },
-    { filter_upwards [ae_restrict_mem A.compl],
-      assume x hx,
-      simp only [not_not, mem_set_of_eq, mem_compl_iff] at hx,
-      simp [hx] } },
-  { rintros ⟨g', g'meas, hg'⟩,
-    refine ⟨λ x, (f x : ℝ)⁻¹ • g' x, hf.coe_nnreal_real.inv.smul g'meas, _⟩,
-    rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal],
-    filter_upwards [hg'],
-    assume x hx h'x,
-    rw [← hx, smul_smul, _root_.inv_mul_cancel, one_smul],
-    simp only [ne.def, coe_eq_zero] at h'x,
-    simpa only [nnreal.coe_eq_zero, ne.def] using h'x }
 end
 
 lemma ae_measurable_with_density_ennreal_iff {f : α → ℝ≥0} (hf : measurable f) {g : α → ℝ≥0∞} :

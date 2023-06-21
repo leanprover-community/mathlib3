@@ -11,6 +11,9 @@ import category_theory.abelian.exact
 /-!
 # The category of left R-modules is abelian.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Additionally, two linear maps are exact in the categorical sense iff `range f = ker g`.
 -/
 

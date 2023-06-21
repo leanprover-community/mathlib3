@@ -9,6 +9,9 @@ import analysis.special_functions.log.deriv
 
 /-!
 # Bounds on specific values of the exponential
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 namespace real
 

@@ -11,6 +11,9 @@ import order.minimal
 
 # Minimal primes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide various results concerning the minimal primes above an ideal
 
 ## Main results

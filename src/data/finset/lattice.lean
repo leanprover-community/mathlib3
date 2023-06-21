@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.finset.fold
 import data.finset.option
+import data.finset.pi
 import data.finset.prod
 import data.multiset.lattice
 import order.complete_lattice
@@ -17,7 +18,7 @@ import order.hom.lattice
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
-variables {F α β γ ι : Type*}
+variables {F α β γ ι κ : Type*}
 
 namespace finset
 open multiset order_dual
@@ -226,8 +227,7 @@ lemma sup_mem
 @sup_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
 
 @[simp]
-lemma sup_eq_bot_iff (f : β → α)
-  (S : finset β) : S.sup f = ⊥ ↔ ∀ s ∈ S, f s = ⊥ :=
+protected lemma sup_eq_bot_iff (f : β → α) (S : finset β) : S.sup f = ⊥ ↔ ∀ s ∈ S, f s = ⊥ :=
 begin
   classical,
   induction S using finset.induction with a S haS hi;
@@ -377,8 +377,7 @@ lemma inf_mem
 @inf_induction _ _ _ _ _ _ (∈ s) w₁ w₂ h
 
 @[simp]
-lemma inf_eq_top_iff (f : β → α)
-  (S : finset β) : S.inf f = ⊤ ↔ ∀ s ∈ S, f s = ⊤ :=
+protected lemma inf_eq_top_iff (f : β → α) (S : finset β) : S.inf f = ⊤ ↔ ∀ s ∈ S, f s = ⊤ :=
 @finset.sup_eq_bot_iff αᵒᵈ _ _ _ _ _
 
 end inf
@@ -396,7 +395,7 @@ section distrib_lattice
 variables [distrib_lattice α]
 
 section order_bot
-variables [order_bot α] {s : finset β} {f : β → α} {a : α}
+variables [order_bot α] {s : finset ι} {t : finset κ} {f : ι → α} {g : κ → α} {a : α}
 
 lemma sup_inf_distrib_left (s : finset ι) (f : ι → α) (a : α) :
   a ⊓ s.sup f = s.sup (λ i, a ⊓ f i) :=
@@ -410,16 +409,20 @@ lemma sup_inf_distrib_right (s : finset ι) (f : ι → α) (a : α) :
   s.sup f ⊓ a = s.sup (λ i, f i ⊓ a) :=
 by { rw [_root_.inf_comm, s.sup_inf_distrib_left], simp_rw _root_.inf_comm }
 
-protected lemma disjoint_sup_right : disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
-by simp only [disjoint_iff, sup_inf_distrib_left, sup_eq_bot_iff]
+protected lemma disjoint_sup_right : disjoint a (s.sup f) ↔ ∀ ⦃i⦄, i ∈ s → disjoint a (f i) :=
+by simp only [disjoint_iff, sup_inf_distrib_left, finset.sup_eq_bot_iff]
 
-protected lemma disjoint_sup_left : disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
-by simp only [disjoint_iff, sup_inf_distrib_right, sup_eq_bot_iff]
+protected lemma disjoint_sup_left : disjoint (s.sup f) a ↔ ∀ ⦃i⦄, i ∈ s → disjoint (f i) a :=
+by simp only [disjoint_iff, sup_inf_distrib_right, finset.sup_eq_bot_iff]
+
+lemma sup_inf_sup (s : finset ι) (t : finset κ) (f : ι → α) (g : κ → α) :
+  s.sup f ⊓ t.sup g = (s ×ˢ t).sup (λ i, f i.1 ⊓ g i.2) :=
+by simp_rw [finset.sup_inf_distrib_right, finset.sup_inf_distrib_left, sup_product_left]
 
 end order_bot
 
 section order_top
-variables [order_top α]
+variables [order_top α] {f : ι → α} {g : κ → α} {s : finset ι} {t : finset κ} {a : α}
 
 lemma inf_sup_distrib_left (s : finset ι) (f : ι → α) (a : α) :
   a ⊔ s.inf f = s.inf (λ i, a ⊔ f i) :=
@@ -429,7 +432,49 @@ lemma inf_sup_distrib_right (s : finset ι) (f : ι → α) (a : α) :
   s.inf f ⊔ a = s.inf (λ i, f i ⊔ a) :=
 @sup_inf_distrib_right αᵒᵈ _ _ _ _ _ _
 
+protected lemma codisjoint_inf_right : codisjoint a (s.inf f) ↔ ∀ ⦃i⦄, i ∈ s → codisjoint a (f i) :=
+@finset.disjoint_sup_right αᵒᵈ _ _ _ _ _ _
+
+protected lemma codisjoint_inf_left : codisjoint (s.inf f) a ↔ ∀ ⦃i⦄, i ∈ s → codisjoint (f i) a :=
+@finset.disjoint_sup_left αᵒᵈ _ _ _ _ _ _
+
+lemma inf_sup_inf (s : finset ι) (t : finset κ) (f : ι → α) (g : κ → α) :
+  s.inf f ⊔ t.inf g = (s ×ˢ t).inf (λ i, f i.1 ⊔ g i.2) :=
+@sup_inf_sup αᵒᵈ _ _ _ _ _ _ _ _
+
 end order_top
+
+section bounded_order
+variables [bounded_order α] [decidable_eq ι]
+
+--TODO: Extract out the obvious isomorphism `(insert i s).pi t ≃ t i ×ˢ s.pi t` from this proof
+lemma inf_sup {κ : ι → Type*} (s : finset ι) (t : Π i, finset (κ i)) (f : Π i, κ i → α) :
+  s.inf (λ i, (t i).sup (f i)) = (s.pi t).sup (λ g, s.attach.inf $ λ i, f _ $ g _ i.prop) :=
+begin
+  induction s using finset.induction with i s hi ih,
+  { simp },
+  rw [inf_insert, ih, attach_insert, sup_inf_sup],
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [subtype.val_eq_coe, finset.sup_le_iff, mem_product, mem_pi, and_imp, prod.forall,
+    inf_insert, inf_image],
+  refine ⟨λ h g hg, h (g i $ mem_insert_self _ _) (λ j hj, g j $ mem_insert_of_mem hj)
+    (hg _ $ mem_insert_self _ _) (λ j hj, hg _ $ mem_insert_of_mem hj), λ h a g ha hg, _⟩,
+  -- TODO: This `have` must be named to prevent it being shadowed by the internal `this` in `simpa`
+  have aux : ∀ j : {x // x ∈ s}, ↑j ≠ i := λ j : s, ne_of_mem_of_not_mem j.2 hi,
+  simpa only [cast_eq, dif_pos, function.comp, subtype.coe_mk, dif_neg, aux]
+    using h (λ j hj, if hji : j = i then cast (congr_arg κ hji.symm) a
+      else g _ $ mem_of_mem_insert_of_ne hj hji) _,
+  simp_rw mem_insert,
+  rintro j (rfl | hj),
+  { simpa },
+  { simpa [ne_of_mem_of_not_mem hj hi] using hg _ _ }
+end
+
+lemma sup_inf {κ : ι → Type*} (s : finset ι) (t : Π i, finset (κ i)) (f : Π i, κ i → α) :
+  s.sup (λ i, (t i).inf (f i)) = (s.pi t).inf (λ g, s.attach.sup $ λ i, f _ $ g _ i.2) :=
+@inf_sup αᵒᵈ _ _ _ _ _ _ _ _
+
+end bounded_order
 end distrib_lattice
 
 section boolean_algebra
@@ -455,6 +500,21 @@ begin
   { rw [inf_singleton, inf_singleton] },
   { rw [inf_cons, inf_cons, h, inf_sdiff] }
 end
+
+lemma inf_himp_right (s : finset ι) (f : ι → α) (a : α) : s.inf (λ b, f b ⇨ a) = s.sup f ⇨ a :=
+@sup_sdiff_left αᵒᵈ _ _ _ _ _
+
+lemma sup_himp_right (hs : s.nonempty) (f : ι → α) (a : α) : s.sup (λ b, f b ⇨ a) = s.inf f ⇨ a :=
+@inf_sdiff_left αᵒᵈ _ _ _ hs _ _
+
+lemma sup_himp_left (hs : s.nonempty) (f : ι → α) (a : α) : s.sup (λ b, a ⇨ f b) = a ⇨ s.sup f :=
+@inf_sdiff_right αᵒᵈ _ _ _ hs _ _
+
+@[simp] protected lemma compl_sup (s : finset ι) (f : ι → α) : (s.sup f)ᶜ = s.inf (λ i, (f i)ᶜ) :=
+map_finset_sup (order_iso.compl α) _ _
+
+@[simp] protected lemma compl_inf (s : finset ι) (f : ι → α) : (s.inf f)ᶜ = s.sup (λ i, (f i)ᶜ) :=
+map_finset_inf (order_iso.compl α) _ _
 
 end boolean_algebra
 

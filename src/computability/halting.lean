@@ -8,6 +8,9 @@ import computability.partrec_code
 /-!
 # Computability theory and the halting problem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A universal partial recursive function, Rice's theorem, and the halting problem.
 
 ## References

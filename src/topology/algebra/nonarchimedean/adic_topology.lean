@@ -12,6 +12,9 @@ import topology.algebra.uniform_ring
 /-!
 # Adic topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative ring `R` and an ideal `I` in `R`, this file constructs the unique
 topology on `R` which is compatible with the ring structure and such that a set is a neighborhood
 of zero if and only if it contains a power of `I`. This topology is non-archimedean: every

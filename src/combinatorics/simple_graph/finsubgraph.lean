@@ -9,6 +9,9 @@ import combinatorics.simple_graph.subgraph
 /-!
 # Homomorphisms from finite subgraphs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the type of finite subgraphs of a `simple_graph` and proves a compactness result
 for homomorphisms to a finite codomain.
 

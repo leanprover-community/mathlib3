@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 import ring_theory.finite_type
 import ring_theory.localization.at_prime
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
 import ring_theory.localization.integer
 import ring_theory.localization.submodule
 import ring_theory.nilpotent
@@ -13,6 +13,9 @@ import ring_theory.ring_hom_properties
 
 /-!
 # Local properties of commutative rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we provide the proofs of various local properties.
 

@@ -809,6 +809,7 @@ begin
     have : ∀ c, 0 ≤ a (rearrangement a M (N + c + 1)),
     { intro c,
       exact (rearrangement_nonneg_spec h₁ h₂ (this c)).right },
+    have := frequently_exists_neg_of_conditionally_converging h₁ h₂,
     sorry
   },
   {
@@ -844,7 +845,33 @@ lemma tendsto_zero_abs_sumto_sub_M (a : ℕ → ℝ) (M : ℝ)
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
   : tendsto (λ n, ‖sumto a M (n + 1) - M‖) at_top (𝓝 0) :=
 begin
-  sorry
+  have h := tendsto_zero_nearest_switchpoint a M h₁ h₂,
+  rw tendsto_def at h ⊢,
+  intros s hs,
+  obtain ⟨l, u, hlu₁, hlu₂⟩ := mem_nhds_iff_exists_Ioo_subset.mp hs,
+  specialize h (set.Ioo l u) (Ioo_mem_nhds (set.mem_Ioo.mp hlu₁).left (set.mem_Ioo.mp hlu₁).right),
+  rw mem_at_top_sets at h ⊢,
+  cases h with N h,
+  -- `c` is an arbitrary natural number which occurs at or after the first switchpoint
+  obtain ⟨c, hc⟩  := exists_le_nearest_switchpoint a M h₁ h₂ 1,
+  use max N c,
+  intros b hb,
+  specialize h b (le_of_max_le_left hb),
+  rw set.mem_preimage at h ⊢,
+  have : 1 ≤ nearest_switchpoint a M b := begin
+    apply le_trans hc,
+    apply nat.le_find_greatest,
+    { exact le_trans (nearest_switchpoint_le a M c) (le_of_max_le_right hb) },
+    { exact nearest_switchpoint_switchpoint a M c }
+  end,
+  apply hlu₂,
+  split,
+  { have : l < 0 := (set.mem_Ioo.mp hlu₁).left,
+    apply lt_of_lt_of_le this,
+    positivity },
+  { have := abs_sumto_sub_M_le_val_nearest_switchpoint a M b h₁ h₂ (nat.one_le_iff_ne_zero.mp this),
+    apply lt_of_le_of_lt this,
+    exact (set.mem_Ioo.mp h).right }
 end
 
 lemma tendsto_zero_sumto_sub_M (a : ℕ → ℝ) (M : ℝ)

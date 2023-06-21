@@ -10,6 +10,9 @@ import probability.martingale.basic
 /-!
 # Optional sampling theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `τ` is a bounded stopping time and `σ` is another stopping time, then the value of a martingale
 `f` at the stopping time `min τ σ` is almost everywhere equal to
 `μ[stopped_value f τ | hσ.measurable_space]`.

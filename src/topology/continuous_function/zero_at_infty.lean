@@ -9,6 +9,9 @@ import topology.continuous_function.cocompact_map
 /-!
 # Continuous functions vanishing at infinity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of continuous functions vanishing at infinity. When the domain is compact
 `C(α, β) ≃ C₀(α, β)` via the identity map. When the codomain is a metric space, every continuous
 map which vanishes at infinity is a bounded continuous function. When the domain is a locally

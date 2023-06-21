@@ -138,9 +138,8 @@ local attribute [-instance] adjoin_root.has_smul
 lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] : normal F E :=
 begin
   unfreezingI { rcases eq_or_ne p 0 with rfl | hp },
-  { have := hFEp.adjoin_roots,
-    simp only [polynomial.map_zero, roots_zero, multiset.to_finset_zero, finset.coe_empty,
-      algebra.adjoin_empty] at this,
+  { have := hFEp.adjoin_root_set,
+    simp only [root_set_zero, algebra.adjoin_empty] at this,
     exact normal.of_alg_equiv (alg_equiv.of_bijective (algebra.of_id F E)
       (algebra.bijective_algebra_map_iff.2 this.symm)) },
   refine normal_iff.2 (λ x, _),
@@ -197,7 +196,7 @@ begin
   dsimp only [S],
   rw [←finset.image_to_finset, finset.coe_image],
   apply eq.trans (algebra.adjoin_res_eq_adjoin_res F E C D
-    hFEp.adjoin_roots adjoin_root.adjoin_root_eq_top),
+    hFEp.adjoin_root_set adjoin_root.adjoin_root_eq_top),
   rw [set.image_singleton, ring_hom.algebra_map_to_algebra, adjoin_root.lift_root]
 end
 

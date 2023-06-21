@@ -10,6 +10,9 @@ import analysis.normed_space.completion
 /-!
 # Uniqueness principle for analytic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that two analytic functions which coincide around a point coincide on whole connected sets,
 in `analytic_on.eq_on_of_preconnected_of_eventually_eq`.
 -/

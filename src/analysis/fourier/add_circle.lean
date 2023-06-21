@@ -17,6 +17,9 @@ import measure_theory.integral.fund_thm_calculus
 
 # Fourier analysis on the additive circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains basic results on Fourier series for functions on the additive circle
 `add_circle T = ℝ / ℤ • T`.
 

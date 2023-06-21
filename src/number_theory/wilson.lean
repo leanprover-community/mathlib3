@@ -8,6 +8,9 @@ import field_theory.finite.basic
 /-!
 # Wilson's theorem.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a proof of Wilson's theorem.
 
 The heavy lifting is mostly done by the previous `wilsons_lemma`,

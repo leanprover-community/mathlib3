@@ -106,12 +106,20 @@ by { ext ⟨x, y⟩, simp only [←and_and_distrib_left, mem_inter_iff, mem_prod
 lemma prod_inter_prod : s₁ ×ˢ t₁ ∩ s₂ ×ˢ t₂ = (s₁ ∩ s₂) ×ˢ (t₁ ∩ t₂) :=
 by { ext ⟨x, y⟩, simp [and_assoc, and.left_comm] }
 
-lemma disjoint_prod : disjoint (s₁ ×ˢ t₁) (s₂ ×ˢ t₂) ↔ disjoint s₁ s₂ ∨ disjoint t₁ t₂ :=
+@[simp] lemma disjoint_prod : disjoint (s₁ ×ˢ t₁) (s₂ ×ˢ t₂) ↔ disjoint s₁ s₂ ∨ disjoint t₁ t₂ :=
 begin
   simp_rw [disjoint_left, mem_prod, not_and_distrib, prod.forall, and_imp,
     ←@forall_or_distrib_right α, ←@forall_or_distrib_left β,
     ←@forall_or_distrib_right (_ ∈ s₁), ←@forall_or_distrib_left (_ ∈ t₁)],
 end
+
+lemma _root_.disjoint.set_prod_left (hs : disjoint s₁ s₂) (t₁ t₂ : set β) :
+  disjoint (s₁ ×ˢ t₁) (s₂ ×ˢ t₂) :=
+disjoint_left.2 $ λ ⟨a, b⟩ ⟨ha₁, hb₁⟩ ⟨ha₂, hb₂⟩, disjoint_left.1 hs ha₁ ha₂
+
+lemma _root_.disjoint.set_prod_right (ht : disjoint t₁ t₂) (s₁ s₂ : set α) :
+  disjoint (s₁ ×ˢ t₁) (s₂ ×ˢ t₂) :=
+disjoint_left.2 $ λ ⟨a, b⟩ ⟨ha₁, hb₁⟩ ⟨ha₂, hb₂⟩, disjoint_left.1 ht hb₁ hb₂
 
 lemma insert_prod : insert a s ×ˢ t = (prod.mk a '' t) ∪ s ×ˢ t :=
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
@@ -478,6 +486,20 @@ univ_pi_eq_empty_iff.2 $ h.elim $ λ x, ⟨x, rfl⟩
 
 @[simp] lemma disjoint_univ_pi : disjoint (pi univ t₁) (pi univ t₂) ↔ ∃ i, disjoint (t₁ i) (t₂ i) :=
 by simp only [disjoint_iff_inter_eq_empty, ← pi_inter_distrib, univ_pi_eq_empty_iff]
+
+lemma _root_.disjoint.set_pi (hi : i ∈ s) (ht : disjoint (t₁ i) (t₂ i)) :
+  disjoint (s.pi t₁) (s.pi t₂) :=
+disjoint_left.2 $ λ h h₁ h₂, disjoint_left.1 ht (h₁ _ hi) (h₂ _ hi)
+
+section nonempty
+variables [Π i, nonempty (α i)]
+
+lemma pi_eq_empty_iff' : s.pi t = ∅ ↔ ∃ i ∈ s, t i = ∅ := by simp [pi_eq_empty_iff]
+
+@[simp] lemma disjoint_pi : disjoint (s.pi t₁) (s.pi t₂) ↔ ∃ i ∈ s, disjoint (t₁ i) (t₂ i) :=
+by simp only [disjoint_iff_inter_eq_empty, ← pi_inter_distrib, pi_eq_empty_iff']
+
+end nonempty
 
 @[simp] lemma range_dcomp (f : Π i, α i → β i) :
   range (λ (g : Π i, α i), (λ i, f i (g i))) = pi univ (λ i, range (f i)) :=

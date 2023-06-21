@@ -12,6 +12,9 @@ import analysis.normed_space.exponential
 /-!
 # The spectrum of elements in a complete normed algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the basic theory for the resolvent and spectrum of a Banach algebra.
 
 ## Main definitions

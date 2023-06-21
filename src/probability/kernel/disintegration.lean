@@ -10,6 +10,9 @@ import probability.kernel.integral_comp_prod
 /-!
 # Disintegration of measures on product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `ρ` be a finite measure on `α × Ω`, where `Ω` is a standard Borel space. In mathlib terms, `Ω`
 verifies `[nonempty Ω] [topological_space Ω] [polish_space Ω] [measurable_space Ω] [borel_space Ω]`.
 Then there exists a kernel `ρ.cond_kernel : kernel α Ω` such that for any measurable set

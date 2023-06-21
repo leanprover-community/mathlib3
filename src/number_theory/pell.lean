@@ -12,6 +12,9 @@ import number_theory.zsqrtd.basic
 /-!
 # Pell's Equation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 *Pell's Equation* is the equation $x^2 - d y^2 = 1$, where $d$ is a positive integer
 that is not a square, and one is interested in solutions in integers $x$ and $y$.
 

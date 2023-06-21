@@ -8,6 +8,9 @@ import measure_theory.integral.peak_function
 
 /-! # Euler's infinite product for the sine function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the infinite product formula
 
 $$ \sin \pi z = \pi z \prod_{n = 1}^\infty \left(1 - \frac{z ^ 2}{n ^ 2}\right) $$

@@ -10,6 +10,9 @@ import analysis.special_functions.pow.real
 /-!
 # Conditionally complete linear ordered fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that the reals are unique, or, more formally, given a type satisfying the common
 axioms of the reals (field, conditionally complete, linearly ordered) that there is an isomorphism
 preserving these properties to the reals. This is `rat.induced_order_ring_iso`. Moreover this

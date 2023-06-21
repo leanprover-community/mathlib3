@@ -10,6 +10,9 @@ import tactic.linear_combination
 /-!
 # Collection of convex functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the following functions are convex or strictly convex:
 
 * `strict_convex_on_exp` : The exponential function is strictly convex.

@@ -7,11 +7,15 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébasti
 import analysis.special_functions.pow.continuity
 import analysis.special_functions.complex.log_deriv
 import analysis.calculus.extend_deriv
+import analysis.calculus.deriv.prod
 import analysis.special_functions.log.deriv
 import analysis.special_functions.trigonometric.deriv
 
 /-!
 # Derivatives of power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We also prove differentiability and provide derivatives for the power functions `x ^ y`.
 -/

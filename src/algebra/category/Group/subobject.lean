@@ -8,6 +8,9 @@ import algebra.category.Module.subobject
 
 /-!
 # The category of abelian groups is well-powered
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

@@ -4,12 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv_measurable
+import analysis.calculus.deriv.comp
+import analysis.calculus.deriv.add
+import analysis.calculus.deriv.slope
+import analysis.calculus.deriv.mul
 import analysis.normed_space.dual
 import measure_theory.integral.interval_integral
 import measure_theory.integral.vitali_caratheodory
 
 /-!
 # Fundamental Theorem of Calculus
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove various versions of the
 [fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus)

@@ -3,6 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
+import analysis.calculus.deriv.inv
 import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
 import analysis.inner_product_space.calculus
@@ -11,6 +12,9 @@ import measure_theory.integral.set_integral
 
 /-!
 # Infinitely smooth bump function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we construct several infinitely smooth functions with properties that an analytic
 function cannot have:

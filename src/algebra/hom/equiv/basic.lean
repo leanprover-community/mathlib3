@@ -309,10 +309,10 @@ fun_like.ext _ _ e.apply_symm_apply
 theorem self_trans_symm (e : M ≃* N) : e.trans e.symm = refl M :=
 fun_like.ext _ _ e.symm_apply_apply
 
-@[to_additive, simp] lemma coe_monoid_hom_refl {M} [mul_one_class M] :
+@[simp, to_additive] lemma coe_monoid_hom_refl {M} [mul_one_class M] :
   (refl M : M →* M) = monoid_hom.id M := rfl
 
-@[to_additive, simp] lemma coe_monoid_hom_trans {M N P}
+@[simp, to_additive] lemma coe_monoid_hom_trans {M N P}
   [mul_one_class M] [mul_one_class N] [mul_one_class P] (e₁ : M ≃* N) (e₂ : N ≃* P) :
   (e₁.trans e₂ : M →* P) = (e₂ : N →* P).comp ↑e₁ :=
 rfl

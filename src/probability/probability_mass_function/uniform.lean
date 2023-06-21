@@ -8,6 +8,9 @@ import probability.probability_mass_function.constructions
 /-!
 # Uniform Probability Mass Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a number of uniform `pmf` distributions from various inputs,
   uniformly drawing from the corresponding object.
 

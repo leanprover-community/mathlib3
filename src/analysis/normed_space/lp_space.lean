@@ -11,6 +11,9 @@ import topology.algebra.order.liminf_limsup
 /-!
 # ℓp space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file describes properties of elements `f` of a pi-type `Π i, E i` with finite "norm",
 defined for `p:ℝ≥0∞` as the size of the support of `f` if `p=0`, `(∑' a, ‖f a‖^p) ^ (1/p)` for
 `0 < p < ∞` and `⨆ a, ‖f a‖` for `p=∞`.

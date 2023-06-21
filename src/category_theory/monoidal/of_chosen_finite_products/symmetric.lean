@@ -9,6 +9,9 @@ import category_theory.monoidal.of_chosen_finite_products.basic
 /-!
 # The symmetric monoidal structure on a category with chosen finite products.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 universes v u

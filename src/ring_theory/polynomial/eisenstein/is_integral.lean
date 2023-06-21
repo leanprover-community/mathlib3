@@ -10,6 +10,9 @@ import ring_theory.polynomial.cyclotomic.expand
 
 /-!
 # Eisenstein polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file we gather more miscellaneous results about Eisenstein polynomials
 
 ## Main results

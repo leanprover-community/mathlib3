@@ -9,6 +9,9 @@ import measure_theory.integral.layercake
 /-!
 # Japanese Bracket
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we show that Japanese bracket $(1 + \|x\|^2)^{1/2}$ can be estimated from above
 and below by $1 + \|x\|$.
 The functions $(1 + \|x\|^2)^{-r/2}$ and $(1 + |x|)^{-r}$ are integrable provided that `r` is larger

@@ -14,6 +14,9 @@ import topology.algebra.module.character_space
 /-!
 # Ideals of continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a topological semiring `R` and a topological space `X` there is a Galois connection between
 `ideal C(X, R)` and `set X` given by sending each `I : ideal C(X, R)` to
 `{x : X | ∀ f ∈ I, f x = 0}ᶜ` and mapping `s : set X` to the ideal with carrier

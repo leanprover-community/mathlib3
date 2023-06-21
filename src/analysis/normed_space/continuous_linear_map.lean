@@ -194,33 +194,6 @@ Note that some of the results in this section are not about normed spaces at all
 namespace continuous_linear_map
 variables (𝕜)
 
-section topological
-variables [semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
-variables [topological_space 𝕜] [topological_space E] [has_continuous_smul 𝕜 E]
-
-/-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
-    linear map from `𝕜` to `E` by taking multiples of `x`.-/
-def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
-{ to_linear_map := linear_map.to_span_singleton 𝕜 E x,
-  cont := continuous_id.smul continuous_const }
-
-lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x := rfl
-
-lemma to_span_singleton_add [has_continuous_add E] (x y : E) :
-  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
-by { ext1, simp [to_span_singleton_apply], }
-
-lemma to_span_singleton_smul' (𝕜') [semiring 𝕜'] [module 𝕜' E] [has_continuous_const_smul 𝕜' E]
-  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
-  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
-by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
-
-lemma to_span_singleton_smul (c : 𝕜) (x : E) [smul_comm_class 𝕜 𝕜 E]  :
-  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
-to_span_singleton_smul' 𝕜 𝕜 c x
-
-end topological
-
 section seminormed
 variables [normed_division_ring 𝕜] [seminormed_add_comm_group E] [module 𝕜 E] [has_bounded_smul 𝕜 E]
 

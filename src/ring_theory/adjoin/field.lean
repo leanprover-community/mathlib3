@@ -11,6 +11,9 @@ import ring_theory.adjoin_root
 /-!
 # Adjoining elements to a field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some lemmas on the ring generating by adjoining an element to a field.
 
 ## Main statements

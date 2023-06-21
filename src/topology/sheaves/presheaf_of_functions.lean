@@ -28,7 +28,7 @@ We construct some simple examples of presheaves of functions on a topological sp
   is the presheaf of rings of continuous complex-valued functions on `X`.
 -/
 
-universes v u
+universes v u w
 
 open category_theory
 open topological_space
@@ -42,7 +42,7 @@ variables (X : Top.{v})
 The presheaf of dependently typed functions on `X`, with fibres given by a type family `T`.
 There is no requirement that the functions are continuous, here.
 -/
-def presheaf_to_Types (T : X → Type v) : X.presheaf (Type v) :=
+def presheaf_to_Types (T : X → Type w) : X.presheaf (Type (max v w)) :=
 { obj := λ U, Π x : (unop U), T x,
   map := λ U V i g, λ (x : unop V), g (i.unop x),
   map_id' := λ U, by { ext g ⟨x, hx⟩, refl },
@@ -68,7 +68,7 @@ There is no requirement that the functions are continuous, here.
 -- We don't use `@[simps]` to generate the projection lemmas here,
 -- as it turns out to be useful to have `presheaf_to_Type_map`
 -- written as an equality of functions (rather than being applied to some argument).
-def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
+def presheaf_to_Type (T : Type w) : X.presheaf (Type max v w) :=
 { obj := λ U, (unop U) → T,
   map := λ U V i g, g ∘ i.unop,
   map_id' := λ U, by { ext g ⟨x, hx⟩, refl },
@@ -86,6 +86,8 @@ rfl
 
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space
 `T`. -/
+-- TODO it may prove useful to generalize the universes here,
+-- but the definition would need to change.
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)
 

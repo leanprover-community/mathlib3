@@ -10,6 +10,9 @@ import ring_theory.dedekind_domain.ideal
 /-!
 # The ideal class group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the ideal class group `class_group R` of fractional ideals of `R`
 inside its field of fractions.
 

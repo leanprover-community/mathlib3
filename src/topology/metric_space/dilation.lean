@@ -13,6 +13,11 @@ import data.fun_like.basic
 We define dilations, i.e., maps between emetric spaces that satisfy
 `edist (f x) (f y) = r * edist x y` for some `r ∉ {0, ∞}`.
 
+The value `r = 0` is not allowed because we want dilations of (e)metric spaces to be automatically
+injective. The value `r = ∞` is not allowed because this way we can define `dilation.ratio f : ℝ≥0`,
+not `dilation.ratio f : ℝ≥0∞`. Also, we do not often need maps sending distinct points to points at
+infinite distance.
+
 ## Main defintions
 
 * `dilation.ratio f : ℝ≥0`: the value of `r` in the relation above, defaulting to 1 in the case

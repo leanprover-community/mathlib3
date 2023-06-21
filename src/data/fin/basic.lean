@@ -1373,19 +1373,17 @@ instance (n : ℕ) : has_involutive_neg (fin n) :=
   neg_neg := nat.cases_on n fin_zero_elim (λ i, neg_neg) }
 
 /-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
-instance (n : ℕ) : add_left_cancel_semigroup (fin n) :=
-{ add_left_cancel := nat.cases_on n fin_zero_elim (λ i _ _ _, add_left_cancel),
-  ..fin.add_comm_semigroup n }
-
-/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
-instance (n : ℕ) : add_right_cancel_semigroup (fin n) :=
-{ add_right_cancel := nat.cases_on n fin_zero_elim (λ i _ _ _, add_right_cancel),
-  ..fin.add_comm_semigroup n }
-
-/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
 instance (n : ℕ) : is_cancel_add (fin n) :=
 { add_left_cancel := nat.cases_on n fin_zero_elim (λ i _ _ _, add_left_cancel),
   add_right_cancel := nat.cases_on n fin_zero_elim (λ i _ _ _, add_right_cancel) }
+
+/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : add_left_cancel_semigroup (fin n) :=
+{ ..fin.add_comm_semigroup n, .. fin.is_cancel_add n }
+
+/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : add_right_cancel_semigroup (fin n) :=
+{ ..fin.add_comm_semigroup n, .. fin.is_cancel_add n }
 
 protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
 

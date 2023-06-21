@@ -918,7 +918,13 @@ instance {α} {β : α → Type*} [m : Πa, measurable_space (β a)] : measurabl
 ⨅a, (m a).map (sigma.mk a)
 
 section prop
-variables {p : α → Prop}
+variables {p : α → Prop} {s : set α}
+
+@[simp] lemma measurable_set_set_of : measurable_set {a | p a} ↔ measurable p :=
+@[simp] lemma measurable_mem : measurable (∈ s) ↔ measurable_set s := measurable_set_set_of.symm
+
+alias measurable_set_set_of ↔ _ measurable.set_of
+alias measurable_mem ↔ _ measurable_set.mem
 
 @[simp] lemma measurable_space.comap_not :
   measurable_space.comap (λ a, ¬ p a) infer_instance = measurable_space.comap p infer_instance :=

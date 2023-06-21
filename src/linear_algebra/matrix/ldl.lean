@@ -8,6 +8,9 @@ import linear_algebra.matrix.pos_def
 
 /-! # LDL decomposition
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the LDL-decomposition of matricies: Any positive definite matrix `S` can be
 decomposed as `S = LDLᴴ` where `L` is a lower-triangular matrix and `D` is a diagonal matrix.
 

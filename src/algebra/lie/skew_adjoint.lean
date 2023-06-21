@@ -9,6 +9,9 @@ import linear_algebra.matrix.bilinear_form
 /-!
 # Lie algebras of skew-adjoint endomorphisms of a bilinear form
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When a module carries a bilinear form, the Lie algebra of endomorphisms of the module contains a
 distinguished Lie subalgebra: the skew-adjoint endomorphisms. Such subalgebras are important
 because they provide a simple, explicit construction of the so-called classical Lie algebras.

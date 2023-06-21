@@ -11,6 +11,9 @@ import algebra.group.opposite
 /-!
 # Haar quotient measure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we consider properties of fundamental domains and measures for the action of a
 subgroup of a group `G` on `G` itself.
 

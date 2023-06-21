@@ -11,6 +11,9 @@ import topology.algebra.infinite_sum.module
 /-!
 # Analytic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function is analytic in one dimension around `0` if it can be written as a converging power series
 `Σ pₙ zⁿ`. This definition can be extended to any dimension (even in infinite dimension) by
 requiring that `pₙ` is a continuous `n`-multilinear map. In general, `pₙ` is not unique (in two

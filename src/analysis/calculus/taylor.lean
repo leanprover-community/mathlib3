@@ -10,6 +10,9 @@ import data.polynomial.module
 /-!
 # Taylor's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the Taylor polynomial of a real function `f : ℝ → E`,
 where `E` is a normed vector space over `ℝ` and proves Taylor's theorem,
 which states that if `f` is sufficiently smooth, then

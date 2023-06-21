@@ -174,6 +174,12 @@ lemma cont_mdiff_at_total_space (f : M → total_space E) (x₀ : M) :
   cont_mdiff_at IM 𝓘(𝕜, F) n (λ x, (trivialization_at F E (f x₀).proj (f x)).2) x₀ :=
 by { simp_rw [← cont_mdiff_within_at_univ], exact cont_mdiff_within_at_total_space f }
 
+/-- Characterization of C^n sections of a smooth vector bundle. -/
+lemma cont_mdiff_at_section (s : Π x, E x) (x₀ : B) :
+  cont_mdiff_at IB (IB.prod (𝓘(𝕜, F))) n (λ x, total_space_mk x (s x)) x₀ ↔
+  cont_mdiff_at IB 𝓘(𝕜, F) n (λ x, (trivialization_at F E x₀ (total_space_mk x (s x))).2) x₀ :=
+by { simp_rw [cont_mdiff_at_total_space, and_iff_right_iff_imp], intro x, exact cont_mdiff_at_id }
+
 variables (E)
 lemma cont_mdiff_proj : cont_mdiff (IB.prod 𝓘(𝕜, F)) IB n (π E) :=
 begin
@@ -394,7 +400,7 @@ end with_topology
 
 namespace vector_prebundle
 
-variables {F E}
+variables [∀ x, topological_space (E x)] {F E}
 
 /-- Mixin for a `vector_prebundle` stating smoothness of coordinate changes. -/
 class is_smooth (a : vector_prebundle 𝕜 F E) : Prop :=
@@ -438,7 +444,7 @@ variables (IB)
 /-- Make a `smooth_vector_bundle` from a `smooth_vector_prebundle`.  -/
 lemma smooth_vector_bundle :
   @smooth_vector_bundle _ _ F E _ _ _ _ _ _ IB _ _ _ _ _ _ _
-    a.total_space_topology a.fiber_topology a.to_fiber_bundle a.to_vector_bundle :=
+    a.total_space_topology _ a.to_fiber_bundle a.to_vector_bundle :=
 { smooth_on_coord_change := begin
     rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
     refine (a.smooth_on_smooth_coord_change he he').congr _,

@@ -12,6 +12,9 @@ import category_theory.closed.monoidal
 /-!
 # Full monoidal subcategories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a monidal category `C` and a monoidal predicate on `C`, that is a function `P : C → Prop`
 closed under `𝟙_` and `⊗`, we can put a monoidal structure on `{X : C // P X}` (the category
 structure is defined in `category_theory.full_subcategory`).

@@ -10,6 +10,9 @@ import topology.algebra.module.basic
 /-!
 # Continuous affine maps.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a type of bundled continuous affine maps.
 
 Note that the definition and basic properties established here require minimal assumptions, and do

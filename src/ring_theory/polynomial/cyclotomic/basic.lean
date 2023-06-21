@@ -6,17 +6,20 @@ Authors: Riccardo Brasca
 
 import algebra.ne_zero
 import algebra.polynomial.big_operators
-import analysis.complex.roots_of_unity
+import ring_theory.roots_of_unity.complex
 import data.polynomial.lifts
 import data.polynomial.splits
 import data.zmod.algebra
 import field_theory.ratfunc
 import field_theory.separable
 import number_theory.arithmetic_function
-import ring_theory.roots_of_unity
+import ring_theory.roots_of_unity.basic
 
 /-!
 # Cyclotomic polynomials.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For `n : ℕ` and an integral domain `R`, we define a modified version of the `n`-th cyclotomic
 polynomial with coefficients in `R`, denoted `cyclotomic' n R`, as `∏ (X - μ)`, where `μ` varies

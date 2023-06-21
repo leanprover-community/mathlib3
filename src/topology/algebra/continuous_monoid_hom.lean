@@ -10,6 +10,9 @@ import topology.continuous_function.algebra
 
 # Continuous Monoid Homs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the space of continuous homomorphisms between two topological groups.
 
 ## Main definitions

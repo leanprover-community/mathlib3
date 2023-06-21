@@ -9,6 +9,9 @@ import topology.sheaves.stalks
 /-!
 # Sheafification of `Type` valued presheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the sheafification of a `Type` valued presheaf,
 as the subsheaf of dependent functions into the stalks
 consisting of functions which are locally germs.

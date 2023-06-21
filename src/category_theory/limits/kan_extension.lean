@@ -11,6 +11,9 @@ import category_theory.structured_arrow
 
 # Kan extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the right and left Kan extensions of a functor.
 They exist under the assumption that the target category has enough limits
 resp. colimits.

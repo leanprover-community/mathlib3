@@ -16,7 +16,7 @@ map `p : Z → B` between topological spaces is a "trivial fiber bundle" in the 
 exists a homeomorphism `h : Z ≃ₜ B × F` such that `proj x = (h x).1`.  This is an abstraction which
 is occasionally convenient in showing that a map is open, a quotient map, etc.
 
-This material was formerly linked to the main definition of fibre bundles, but after a series of
+This material was formerly linked to the main definition of fiber bundles, but after a series of
 refactors, there is no longer a direct connection.
 -/
 

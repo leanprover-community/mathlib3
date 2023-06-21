@@ -11,6 +11,9 @@ import data.set.intervals.instances
 /-!
 # The unit interval, as a topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Use `open_locale unit_interval` to turn on the notation `I := set.Icc (0 : ℝ) (1 : ℝ)`.
 
 We provide basic instances, as well as a custom tactic for discharging

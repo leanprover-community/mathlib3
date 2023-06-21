@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.order.chebyshev
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 import order.partition.equipartition
 
 /-!
@@ -21,6 +21,10 @@ This entire file is internal to the proof of Szemerédi Regularity Lemma.
 * `szemeredi_regularity.initial_bound`: The size of the partition we start the induction with.
 * `szemeredi_regularity.bound`: The upper bound on the size of the partition produced by our version
   of Szemerédi's regularity lemma.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset fintype function real
@@ -41,20 +45,49 @@ lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n := zero_lt_mul_r
 
 alias step_bound_pos_iff ↔ _ step_bound_pos
 
+end szemeredi_regularity
+
+open szemeredi_regularity
+
 variables {α : Type*} [decidable_eq α] [fintype α] {P : finpartition (univ : finset α)}
   {u : finset α} {ε : ℝ}
 
 local notation `m` := (card α/step_bound P.parts.card : ℕ)
 local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
 
-lemma m_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : 0 < m :=
+namespace tactic
+open positivity
+
+private lemma eps_pos {ε : ℝ} {n : ℕ} (h : 100 ≤ 4 ^ n * ε^5) : 0 < ε :=
+pow_bit1_pos_iff.1 $ pos_of_mul_pos_right (h.trans_lt' $ by norm_num) $ by positivity
+
+private lemma m_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : 0 < m :=
 nat.div_pos ((nat.mul_le_mul_left _ $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα) $
   step_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
 
-lemma m_coe_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : (0 : ℝ) < m :=
-nat.cast_pos.2 $ m_pos hPα
+/-- Local extension for the `positivity` tactic: A few facts that are needed many times for the
+proof of Szemerédi's regularity lemma. -/
+meta def positivity_szemeredi_regularity : expr → tactic strictness
+| `(%%n / step_bound (finpartition.parts %%P).card) := do
+    p ← to_expr
+      ``((finpartition.parts %%P).card * 16^(finpartition.parts %%P).card ≤ %%n)
+      >>= find_assumption,
+    positive <$> mk_app ``m_pos [p]
+| ε := do
+    typ ← infer_type ε,
+    unify typ `(ℝ),
+    p ← to_expr ``(100 ≤ 4 ^ _ * %%ε ^ 5) >>= find_assumption,
+    positive <$> mk_app ``eps_pos [p]
 
-lemma coe_m_add_one_pos : 0 < (m : ℝ) + 1 := nat.cast_add_one_pos _
+end tactic
+
+local attribute [positivity] tactic.positivity_szemeredi_regularity
+
+namespace szemeredi_regularity
+
+lemma m_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : 0 < m := by positivity
+
+lemma coe_m_add_one_pos : 0 < (m : ℝ) + 1 := by positivity
 
 lemma one_le_m_coe [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : (1 : ℝ) ≤ m :=
 nat.one_le_cast.2 $ m_pos hPα
@@ -77,9 +110,8 @@ end
 
 lemma hundred_le_m [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)
   (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε : ε ≤ 1) : 100 ≤ m :=
-by exact_mod_cast
-  (le_div_self (by norm_num) (eps_pow_five_pos hPε) $ pow_le_one _ (eps_pos hPε).le hε).trans
-    (hundred_div_ε_pow_five_le_m hPα hPε)
+by exact_mod_cast (hundred_div_ε_pow_five_le_m hPα hPε).trans'
+  (le_div_self (by norm_num) (by positivity) $ pow_le_one _ (by positivity) hε)
 
 lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin

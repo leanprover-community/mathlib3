@@ -83,7 +83,7 @@ instance : non_unital_non_assoc_semiring (set_semiring α) :=
 
 lemma mul_def (s t : set_semiring α) : s * t = (s.down * t.down).up := rfl
 
-@[simp] lemma down_mul (s t : set_semiring α) : (s + t).down = s.down ∪ t.down := rfl
+@[simp] lemma down_mul (s t : set_semiring α) : (s * t).down = s.down * t.down := rfl
 
 @[simp] lemma _root_.set.up_mul (s t : set α) : (s * t).up = s.up * t.up := rfl
 
@@ -141,10 +141,19 @@ instance [comm_monoid α] : canonically_ordered_comm_semiring (set_semiring α) 
 with respect to the pointwise operations on sets. -/
 def image_hom [mul_one_class α] [mul_one_class β] (f : α →* β) :
   set_semiring α →+* set_semiring β :=
-{ to_fun := image f,
+{ to_fun := λ s, (image f s.down).up,
   map_zero' := image_empty _,
-  map_one' := by rw [image_one, map_one, singleton_one],
+  map_one' := by rw [down_one, image_one, map_one, singleton_one, set.up_one],
   map_add' := image_union _,
   map_mul' := λ _ _, image_mul f }
+
+lemma image_hom_def [mul_one_class α] [mul_one_class β] (f : α →* β) (s : set_semiring α) :
+  image_hom f s = (image f s.down).up := rfl
+
+@[simp] lemma down_image_hom [mul_one_class α] [mul_one_class β] (f : α →* β) (s : set_semiring α) :
+  (image_hom f s).down = f '' s.down := rfl
+
+@[simp] lemma _root_.set.up_image [mul_one_class α] [mul_one_class β] (f : α →* β) (s : set α) :
+  (f '' s).up = image_hom f s.up := rfl
 
 end set_semiring

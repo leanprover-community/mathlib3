@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tian Chen
 -/
 
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 
 /-!
 # IMO 2001 Q2
@@ -29,6 +29,8 @@ $$
 open real
 
 variables {a b c : ℝ}
+
+namespace imo2001_q2
 
 lemma denom_pos (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   0 < a ^ 4 + b ^ 4 + c ^ 4 :=
@@ -63,6 +65,10 @@ have h₂ : c ^ 4 + a ^ 4 + b ^ 4 = a ^ 4 + b ^ 4 + c ^ 4,
   by rw [add_assoc, add_comm],
 calc _ ≥ _ : add_le_add (add_le_add (bound ha hb hc) (bound hb hc ha)) (bound hc ha hb)
    ... = 1 : by rw [h₁, h₂, ← add_div, ← add_div, div_self $ ne_of_gt $ denom_pos ha hb hc]
+
+end imo2001_q2
+
+open imo2001_q2
 
 theorem imo2001_q2 (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   1 ≤ a / sqrt (a ^ 2 + 8 * b * c) +

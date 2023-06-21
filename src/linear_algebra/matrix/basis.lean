@@ -3,12 +3,14 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
-import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.reindex
 import linear_algebra.matrix.to_lin
 
 /-!
 # Bases and matrices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the map `basis.to_matrix` that sends a family of vectors to
 the matrix of their coordinates with respect to some basis.
@@ -239,7 +241,7 @@ by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 /-- A matrix whose columns form a basis `b'`, expressed w.r.t. a basis `b`, is invertible. -/
 def basis.invertible_to_matrix [decidable_eq ι] [fintype ι] (b b' : basis ι R₂ M₂) :
   invertible (b.to_matrix b') :=
-matrix.invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)
+⟨b'.to_matrix b, basis.to_matrix_mul_to_matrix_flip _ _, basis.to_matrix_mul_to_matrix_flip _ _⟩
 
 @[simp]
 lemma basis.to_matrix_reindex

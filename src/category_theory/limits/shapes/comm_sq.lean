@@ -13,6 +13,9 @@ import category_theory.limits.constructions.zero_objects
 /-!
 # Pullback and pushout squares, and bicartesian squares
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide another API for pullbacks and pushouts.
 
 `is_pullback fst snd f g` is the proposition that

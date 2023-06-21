@@ -207,7 +207,7 @@ end
 
 /-- When `F` and `F'` are finite fields and `χ : F → F'` is a nontrivial quadratic character,
 then `(χ(-1) * #F)^(#F'/2) = χ(#F')`. -/
-lemma char.card_pow_card {F : Type} [field F] [fintype F] {F' : Type} [field F'] [fintype F']
+lemma char.card_pow_card {F : Type*} [field F] [fintype F] {F' : Type*} [field F'] [fintype F']
   {χ : mul_char F F'} (hχ₁ : is_nontrivial χ) (hχ₂ : is_quadratic χ)
   (hch₁ : ring_char F' ≠ ring_char F) (hch₂ : ring_char F' ≠ 2) :
   (χ (-1) * fintype.card F) ^ (fintype.card F' / 2) = χ (fintype.card F') :=
@@ -285,16 +285,22 @@ begin
 
   -- we now show that the Gauss sum of `χ` and `ψ₈` has the relevant property
   have hg : gauss_sum χ ψ₈.char ^ 2 = χ (-1) * fintype.card (zmod 8),
-  { rw [hχ, one_mul, card, gauss_sum],
-    convert ← congr_arg (^ 2) (fin.sum_univ_eight $ λ x, (χ₈ x : FF) * τ ^ x.val),
+  { have h := congr_arg (^ 2) (fin.sum_univ_eight $ λ x, (χ₈ x : FF) * τ ^ x.1),
+    have h₁ : (λ (i : fin 8), ↑(χ₈ i) * τ ^ i.val) = λ (a : zmod 8), χ a * ψ₈.char a,
     { ext, congr, apply pow_one },
-    convert_to (0 + 1 * τ ^ 1 + 0 + (-1) * τ ^ 3 + 0 + (-1) * τ ^ 5 + 0 + 1 * τ ^ 7) ^ 2 = _,
-    { simp only [χ₈_apply, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
-        matrix.cons_vec_bit0_eq_alt0, matrix.cons_vec_bit1_eq_alt1, matrix.cons_vec_append,
-        matrix.cons_vec_alt0, matrix.cons_vec_alt1, int.cast_zero, int.cast_one, int.cast_neg,
-        zero_mul], refl },
-    convert_to 8 + (τ ^ 4 + 1) * (τ ^ 10 - 2 * τ ^ 8 - 2 * τ ^ 6 + 6 * τ ^ 4 + τ ^ 2 - 8) = _,
-    { ring }, { rw τ_spec, norm_num } },
+    have h₂ : (0 + 1 * τ ^ 1 + 0 + (-1) * τ ^ 3 + 0 + (-1) * τ ^ 5 + 0 + 1 * τ ^ 7) ^ 2 =
+      8 + (τ ^ 4 + 1) * (τ ^ 10 - 2 * τ ^ 8 - 2 * τ ^ 6 + 6 * τ ^ 4 + τ ^ 2 - 8) := by ring,
+    have h₃ : 8 + (τ ^ 4 + 1) * (τ ^ 10 - 2 * τ ^ 8 - 2 * τ ^ 6 + 6 * τ ^ 4 + τ ^ 2 - 8) =
+      ↑8 := by { rw τ_spec, norm_num },
+    have h₄ : (0 + 1 * τ ^ 1 + 0 + (-1) * τ ^ 3 + 0 + (-1) * τ ^ 5 + 0 + 1 * τ ^ 7) ^ 2 = ↑8,
+    { rw [← h₃, ← h₂] },
+    have h₅ : (λ (x : FF), x ^ 2) (↑(χ₈ 0) * τ ^ 0 + ↑(χ₈ 1) * τ ^ 1 + ↑(χ₈ 2) * τ ^ 2 +
+      ↑(χ₈ 3) * τ ^ 3 + ↑(χ₈ 4) * τ ^ 4 + ↑(χ₈ 5) * τ ^ 5 + ↑(χ₈ 6) * τ ^ 6 + ↑(χ₈ 7) * τ ^ 7) = ↑8,
+    { simp only [←h₄, χ₈_apply, matrix.cons_val_zero, algebra_map.coe_zero, zero_mul,
+        matrix.cons_val_one, matrix.head_cons, algebra_map.coe_one, matrix.cons_vec_bit0_eq_alt0,
+        matrix.cons_vec_append, matrix.cons_vec_alt0, matrix.cons_vec_bit1_eq_alt1,
+        matrix.cons_vec_alt1, int.cast_neg] },
+    simpa only [hχ, one_mul, card, gauss_sum, ← h₅, h₁] using h, },
 
   -- this allows us to apply `card_pow_char_pow` to our situation
   have h := char.card_pow_char_pow hq ψ₈.char (ring_char FF) n hu hFF hg,

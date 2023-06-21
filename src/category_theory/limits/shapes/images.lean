@@ -10,6 +10,9 @@ import category_theory.limits.shapes.strong_epi
 /-!
 # Categorical images
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the categorical image of `f` as a factorisation `f = e ≫ m` through a monomorphism `m`,
 so that `m` factors through the `m'` in any other such factorisation.
 

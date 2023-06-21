@@ -11,6 +11,9 @@ import category_theory.essentially_small
 /-!
 # The category of "structured arrows"
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For `T : C ⥤ D`, a `T`-structured arrow with source `S : D`
 is just a morphism `S ⟶ T.obj Y`, for some `Y : C`.
 

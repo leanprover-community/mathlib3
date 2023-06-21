@@ -8,6 +8,9 @@ import topology.metric_space.emetric_space
 /-!
 # Metric separated pairs of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the predicate `is_metric_separated`. We say that two sets in an (extended)
 metric space are *metric separated* if the (extended) distance between `x ∈ s` and `y ∈ t` is
 bounded from below by a positive constant.

@@ -11,6 +11,9 @@ import number_theory.padics.padic_integers
 
 # Relating `ℤ_[p]` to `zmod (p ^ n)`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we establish connections between the `p`-adic integers $\mathbb{Z}_p$
 and the integers modulo powers of `p`, $\mathbb{Z}/p^n\mathbb{Z}$.
 

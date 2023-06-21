@@ -9,6 +9,9 @@ import linear_algebra.basic
 /-!
 # Basics on bilinear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basics on bilinear maps. The most general form considered are maps that are
 semilinear in both arguments. They are of type `M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P`, where `M` and `N`
 are modules over `R` and `S` respectively, `P` is a module over both `R₂` and `S₂` with

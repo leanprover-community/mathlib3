@@ -11,6 +11,9 @@ import probability.martingale.centering
 
 # Generalized Borel-Cantelli lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Lévy's generalized Borel-Cantelli lemma which is a generalization of the
 Borel-Cantelli lemmas. With this generalization, one can easily deduce the Borel-Cantelli lemmas
 by choosing appropriate filtrations. This file also contains the one sided martingale bound which
@@ -256,7 +259,7 @@ begin
     refine neg_le.2 (hc _ _),
     simpa only [pi.neg_apply, set.mem_range, neg_inj] },
   { rw mem_lower_bounds at hc,
-    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_neg_eq, eq_comm] at hω,
+    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_eq_neg] at hω,
     refine le_neg.1 (hc _ _),
     simpa only [set.mem_range] }
 end

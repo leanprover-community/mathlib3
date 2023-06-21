@@ -9,6 +9,9 @@ import analysis.inner_product_space.pi_L2
 /-!
 # Constructing examples of manifolds over ℝ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the necessary bits to be able to define manifolds modelled over `ℝ^n`, boundaryless
 or with boundary or with corners. As a concrete example, we construct explicitly the manifold with
 boundary structure on the real interval `[x, y]`.

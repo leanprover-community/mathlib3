@@ -9,6 +9,9 @@ import data.polynomial.monic
 /-!
 # Polynomials that lift
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given semirings `R` and `S` with a morphism `f : R →+* S`, we define a subsemiring `lifts` of
 `S[X]` by the image of `ring_hom.of (map f)`.
 Then, we prove that a polynomial that lifts can always be lifted to a polynomial of the same degree

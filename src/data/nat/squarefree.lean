@@ -10,6 +10,9 @@ import ring_theory.int.basic
 
 /-!
 # Lemmas about squarefreeness of natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 A number is squarefree when it is not divisible by any squares except the squares of units.
 
 ## Main Results
@@ -513,7 +516,8 @@ end
 
 /-- Evaluates the `squarefree` predicate on naturals. -/
 @[norm_num] meta def eval_squarefree : expr → tactic (expr × expr)
-| `(squarefree (%%e : ℕ)) := do
+| `(@squarefree ℕ %%inst %%e) := do
+  is_def_eq inst `(nat.monoid),
   n ← e.to_nat,
   match n with
   | 0 := false_intro `(@not_squarefree_zero ℕ _ _)

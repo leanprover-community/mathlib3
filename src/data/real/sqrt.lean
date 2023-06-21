@@ -3,12 +3,16 @@ Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
+import algebra.star.order
 import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
 import tactic.positivity
 
 /-!
 # Square root of a real number
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -337,11 +341,12 @@ begin
 end
 
 instance : star_ordered_ring ℝ :=
-{ nonneg_iff := λ r, by
-  { refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
-    rintros ⟨s, rfl⟩,
-    exact mul_self_nonneg s },
-  ..real.ordered_add_comm_group }
+star_ordered_ring.of_nonneg_iff' (λ _ _, add_le_add_left) $ λ r,
+begin
+  refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
+  rintros ⟨s, rfl⟩,
+  exact mul_self_nonneg s
+end
 
 end real
 

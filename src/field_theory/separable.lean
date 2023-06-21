@@ -14,6 +14,9 @@ import ring_theory.power_basis
 
 # Separable polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define a polynomial to be separable if it is coprime with its derivative. We prove basic
 properties about separable polynomials here.
 

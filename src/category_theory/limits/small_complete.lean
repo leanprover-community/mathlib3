@@ -10,6 +10,9 @@ import set_theory.cardinal.basic
 /-!
 # Any small complete category is a preorder
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that any small category which has all (small) limits is a preorder: In particular, we show
 that if a small category `C` in universe `u` has products of size `u`, then for any `X Y : C`
 there is at most one morphism `X ⟶ Y`.

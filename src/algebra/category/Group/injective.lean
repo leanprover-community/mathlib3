@@ -13,6 +13,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Injective objects in the category of abelian groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that divisible groups are injective object in category of (additive) abelian
 groups.
 

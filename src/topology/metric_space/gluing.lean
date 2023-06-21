@@ -8,6 +8,9 @@ import topology.metric_space.isometry
 /-!
 # Metric space gluing
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Gluing two metric spaces along a common subset. Formally, we are given
 
 ```

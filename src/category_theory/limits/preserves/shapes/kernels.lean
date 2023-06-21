@@ -9,6 +9,9 @@ import category_theory.limits.preserves.shapes.zero
 /-!
 # Preserving (co)kernels
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructions to relate the notions of preserving (co)kernels and reflecting (co)kernels
 to concrete (co)forks.
 

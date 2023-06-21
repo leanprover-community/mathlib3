@@ -10,6 +10,9 @@ import topology.continuous_function.basic
 /-!
 # Category instance for topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the bundled category `Top` of topological spaces together with the functors `discrete`
 and `trivial` from the category of types to `Top` which equip a type with the corresponding
 discrete, resp. trivial, topology. For a proof that these functors are left, resp. right adjoint

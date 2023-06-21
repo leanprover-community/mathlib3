@@ -10,6 +10,9 @@ import category_theory.structured_arrow
 /-!
 # Properties of comma categories relating to adjunctions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that for a functor `G : D ⥤ C` the data of an initial object in each
 `structured_arrow` category on `G` is equivalent to a left adjoint to `G`, as well as the dual.
 

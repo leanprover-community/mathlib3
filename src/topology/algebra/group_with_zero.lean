@@ -128,6 +128,12 @@ lemma continuous_on.inv₀ (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0
 
 end inv₀
 
+/-- If `G₀` is a group with zero with topology such that `x ↦ x⁻¹` is continuous at all nonzero
+points. Then the coercion `Mˣ → M` is a topological embedding. -/
+theorem units.embedding_coe₀ [group_with_zero G₀] [topological_space G₀] [has_continuous_inv₀ G₀] :
+  embedding (coe : G₀ˣ → G₀) :=
+units.embedding_coe_mk $ continuous_on_inv₀.mono $ λ x, is_unit.ne_zero
+
 /-!
 ### Continuity of division
 

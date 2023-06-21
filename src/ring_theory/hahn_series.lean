@@ -13,6 +13,9 @@ import algebra.order.group.with_top
 
 /-!
 # Hahn Series
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of formal series over `Γ` with
 coefficients in `R`, whose supports are partially well-ordered. With further structure on `R` and
 `Γ`, we can add further structure on `hahn_series Γ R`, with the most studied case being when `Γ` is
@@ -393,6 +396,10 @@ lemma sub_coeff' {x y : hahn_series Γ R} :
 
 lemma sub_coeff {x y : hahn_series Γ R} {a : Γ} :
   (x - y).coeff a = x.coeff a - y.coeff a := by simp
+
+@[simp] lemma order_neg [has_zero Γ] {f : hahn_series Γ R} : (- f).order = f.order :=
+by { by_cases hf : f = 0, { simp only [hf, neg_zero] },
+    simp only [order, support_neg, neg_eq_zero] }
 
 end add_group
 

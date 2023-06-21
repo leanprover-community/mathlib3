@@ -20,8 +20,6 @@ variables {α : Type*}
 
 namespace with_top
 
-instance [nonempty α] : nontrivial (with_top α) := option.nontrivial
-
 variable [decidable_eq α]
 
 section has_mul
@@ -197,8 +195,6 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
 end with_top
 
 namespace with_bot
-
-instance [nonempty α] : nontrivial (with_bot α) := option.nontrivial
 
 variable [decidable_eq α]
 

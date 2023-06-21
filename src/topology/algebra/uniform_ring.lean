@@ -5,10 +5,13 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.basic
 import topology.algebra.group_completion
-import topology.algebra.ring
+import topology.algebra.ring.ideal
 
 /-!
 # Completion of topological rings:
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This files endows the completion of a topological ring with a ring structure.
 More precisely the instance `uniform_space.completion.ring` builds a ring structure

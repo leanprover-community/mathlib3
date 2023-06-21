@@ -9,6 +9,9 @@ import order.filter.archimedean
 /-!
 # Convergence of subadditive sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A subadditive sequence `u : ℕ → ℝ` is a sequence satisfying `u (m + n) ≤ u m + u n` for all `m, n`.
 We define this notion as `subadditive u`, and prove in `subadditive.tendsto_lim` that, if `u n / n`
 is bounded below, then it converges to a limit (that we denote by `subadditive.lim` for

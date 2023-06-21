@@ -8,7 +8,6 @@ import algebra.char_p.quotient
 import data.finsupp.fintype
 import data.int.absolute_value
 import data.int.associated
-import number_theory.ramification_inertia
 import linear_algebra.free_module.determinant
 import linear_algebra.free_module.ideal_quotient
 import ring_theory.dedekind_domain.pid
@@ -274,6 +273,10 @@ by rw [← ideal.one_eq_top, _root_.map_one]
 @[simp] lemma abs_norm_eq_one_iff {I : ideal S} : abs_norm I = 1 ↔ I = ⊤ :=
 by rw [abs_norm_apply, card_quot_eq_one_iff]
 
+lemma abs_norm_ne_zero_iff (I : ideal S) : ideal.abs_norm I ≠ 0 ↔ finite (S ⧸ I) :=
+⟨λ h,nat.finite_of_card_ne_zero h,
+  λ h, (@add_subgroup.finite_index_of_finite_quotient _ _ _ h).finite_index⟩
+
 /-- Let `e : S ≃ I` be an additive isomorphism (therefore a `ℤ`-linear equiv).
 Then an alternative way to compute the norm of `I` is given by taking the determinant of `e`.
 See `nat_abs_det_basis_change` for a more familiar formulation of this result. -/
@@ -423,6 +426,28 @@ lemma prime_of_irreducible_abs_norm_span {a : S} (ha : a ≠ 0)
 lemma abs_norm_mem (I : ideal S) : ↑I.abs_norm ∈ I :=
 by rw [abs_norm_apply, card_quot, ← ideal.quotient.eq_zero_iff_mem, map_nat_cast,
        quotient.index_eq_zero]
+
+lemma span_singleton_abs_norm_le (I : ideal S) :
+  ideal.span { (ideal.abs_norm I : S) } ≤ I :=
+by simp only [ideal.span_le, set.singleton_subset_iff, set_like.mem_coe, ideal.abs_norm_mem I]
+
+lemma finite_set_of_abs_norm_eq [char_zero S] {n : ℕ} (hn : 0 < n) :
+  { I : ideal S | ideal.abs_norm I = n }.finite :=
+begin
+  let f := λ I : ideal S, ideal.map (ideal.quotient.mk (@ideal.span S _ {n})) I,
+  refine @set.finite.of_finite_image _ _ _ f _ _,
+  { suffices : finite (S ⧸ @ideal.span S _ {n}),
+    { let g := (coe : ideal (S ⧸ @ideal.span S _ {n}) → set (S ⧸ @ideal.span S _ {n})),
+      refine @set.finite.of_finite_image _ _ _ g _ (set_like.coe_injective.inj_on _),
+      exact set.finite.subset (@set.finite_univ _ (@set.finite' _ this)) ( set.subset_univ _), },
+    rw [← abs_norm_ne_zero_iff, abs_norm_span_singleton],
+    simpa only [ne.def, int.nat_abs_eq_zero, algebra.norm_eq_zero_iff, nat.cast_eq_zero]
+      using ne_of_gt hn, },
+  { intros I hI J hJ h,
+    rw [← comap_map_mk (span_singleton_abs_norm_le I), ← hI.symm,
+      ← comap_map_mk (span_singleton_abs_norm_le J), ← hJ.symm],
+    exact congr_arg (ideal.comap (ideal.quotient.mk (@ideal.span S _ {n}))) h, },
+end
 
 end ideal
 

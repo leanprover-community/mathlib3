@@ -453,7 +453,7 @@ begin
   rw [← nnreal.rpow_le_rpow_iff one_half_pos, ← nnreal.rpow_mul,
     mul_div_cancel' (1 : ℝ) two_ne_zero, nnreal.rpow_one, nnreal.mul_rpow],
   dsimp only,
-  have := @nnnorm_inner_le_nnnorm α _ _ _
+  have := @nnnorm_inner_le_nnnorm α _ _ _ _
     ((pi_Lp.equiv 2 (λ i, α)).symm (λ j, star (A i j)))
     ((pi_Lp.equiv 2 (λ i, α)).symm (λ k, B k j)),
   simpa only [pi_Lp.equiv_symm_apply, pi_Lp.inner_apply,

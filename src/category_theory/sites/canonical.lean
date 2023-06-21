@@ -10,6 +10,9 @@ import category_theory.sites.sheaf_of_types
 /-!
 # The canonical topology on a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the finest (largest) Grothendieck topology for which a given presheaf `P` is a sheaf.
 This is well defined since if `P` is a sheaf for a topology `J`, then it is a sheaf for any
 coarser (smaller) topology. Nonetheless we define the topology explicitly by specifying its sieves:

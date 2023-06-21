@@ -8,6 +8,9 @@ import analysis.locally_convex.basic
 /-!
 # Balanced Core and Balanced Hull
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `balanced_core`: The largest balanced subset of a set `s`.

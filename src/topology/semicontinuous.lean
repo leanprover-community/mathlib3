@@ -10,6 +10,9 @@ import topology.instances.ennreal
 /-!
 # Semicontinuous maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A function `f` from a topological space `α` to an ordered space `β` is lower semicontinuous at a
 point `x` if, for any `y < f x`, for any `x'` close enough to `x`, one has `f x' > y`. In other
 words, `f` can jump up, but it can not jump down.

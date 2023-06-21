@@ -8,6 +8,9 @@ import linear_algebra.affine_space.affine_subspace
 
 /-! # Pointwise instances on `affine_subspace`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the additive action `affine_subspace.pointwise_add_action` in the
 `pointwise` locale.
 
@@ -49,7 +52,7 @@ lemma vadd_mem_pointwise_vadd_iff {v : V} {s : affine_subspace k P} {p : P} :
 vadd_mem_vadd_set_iff
 
 lemma pointwise_vadd_bot (v : V) : v +ᵥ (⊥ : affine_subspace k P) = ⊥ :=
-by { ext, simp, }
+by simp [set_like.ext'_iff]
 
 lemma pointwise_vadd_direction (v : V) (s : affine_subspace k P) :
   (v +ᵥ s).direction = s.direction :=

@@ -8,6 +8,9 @@ import dynamics.flow
 /-!
 # ω-limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a function `ϕ : τ → α → β` where `β` is a topological space, we
 define the ω-limit under `ϕ` of a set `s` in `α` with respect to
 filter `f` on `τ`: an element `y : β` is in the ω-limit of `s` if the

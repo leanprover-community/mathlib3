@@ -8,6 +8,9 @@ import algebra.homology.image_to_kernel
 /-!
 # Exact sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a category with zero morphisms, images, and equalizers we say that `f : A ⟶ B` and `g : B ⟶ C`
 are exact if `f ≫ g = 0` and the natural map `image f ⟶ kernel g` is an epimorphism.
 

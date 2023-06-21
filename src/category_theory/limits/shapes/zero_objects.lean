@@ -8,6 +8,9 @@ import category_theory.limits.shapes.terminal
 /-!
 # Zero objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category "has a zero object" if it has an object which is both initial and terminal. Having a
 zero object provides zero morphisms, as the unique morphisms factoring through the zero object;
 see `category_theory.limits.shapes.zero_morphisms`.

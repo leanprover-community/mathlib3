@@ -8,6 +8,9 @@ import category_theory.bicategory.basic
 /-!
 # Oplax functors and pseudofunctors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An oplax functor `F` between bicategories `B` and `C` consists of
 * a function between objects `F.obj : B ⟶ C`,
 * a family of functions between 1-morphisms `F.map : (a ⟶ b) → (F.obj a ⟶ F.obj b)`,

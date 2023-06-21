@@ -3,11 +3,14 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.deriv
-import linear_algebra.affine_space.slope
+import analysis.calculus.deriv.slope
+import analysis.calculus.deriv.inv
 
 /-!
 # Slope of a differentiable function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a function `f : 𝕜 → E` from a nontrivially normed field to a normed space over this field,
 `dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and as `deriv f a`

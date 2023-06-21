@@ -9,6 +9,9 @@ import combinatorics.quiver.path
 
 /-!
 # The category paths on a quiver.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 When `C` is a quiver, `paths C` is the category of paths.
 
 ## When the quiver is itself a category

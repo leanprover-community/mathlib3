@@ -9,6 +9,9 @@ import topology.locally_constant.basic
 /-!
 # Algebraic structure on locally constant functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file puts algebraic structure (`add_group`, etc)
 on the type of locally constant functions.
 

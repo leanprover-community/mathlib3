@@ -9,6 +9,9 @@ import category_theory.monoidal.functor
 /-!
 # Preadditive monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A monoidal category is `monoidal_preadditive` if it is preadditive and tensor product of morphisms
 is linear in both factors.
 -/

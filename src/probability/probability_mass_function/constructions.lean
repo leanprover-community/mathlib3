@@ -8,6 +8,9 @@ import probability.probability_mass_function.monad
 /-!
 # Specific Constructions of Probability Mass Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gives a number of different `pmf` constructions for common probability distributions.
 
 `map` and `seq` allow pushing a `pmf α` along a function `f : α → β` (or distribution of
@@ -47,13 +50,21 @@ lemma mem_support_map_iff : b ∈ (map f p).support ↔ ∃ a ∈ p.support, f a
 
 lemma bind_pure_comp : bind p (pure ∘ f) = map f p := rfl
 
-lemma map_id : map id p = p := by simp [map]
+lemma map_id : map id p = p := bind_pure _
 
-lemma map_comp (g : β → γ) : (p.map f).map g = p.map (g ∘ f) :=
-by simp [map]
+lemma map_comp (g : β → γ) : (p.map f).map g = p.map (g ∘ f) := by simp [map]
 
-lemma pure_map (a : α) : (pure a).map f = pure (f a) :=
-by simp [map]
+lemma pure_map (a : α) : (pure a).map f = pure (f a) := pure_bind _ _
+
+lemma map_bind (q : α → pmf β) (f : β → γ) :
+  (p.bind q).map f = p.bind (λ a, (q a).map f) := bind_bind _ _ _
+
+@[simp] lemma bind_map (p : pmf α) (f : α → β) (q : β → pmf γ) :
+  (p.map f).bind q = p.bind (q ∘ f) :=
+(bind_bind _ _ _).trans (congr_arg _ (funext (λ a, pure_bind _ _)))
+
+@[simp] lemma map_const : p.map (function.const α b) = pure b :=
+by simp only [map, bind_const, function.comp_const]
 
 section measure
 

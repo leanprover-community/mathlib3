@@ -159,6 +159,9 @@ calc a * b = a ↔ a * b = a * 1 : by rw mul_one
 @[simp, to_additive] lemma self_eq_mul_right : a = a * b ↔ b = 1 :=
 eq_comm.trans mul_right_eq_self
 
+@[to_additive] lemma mul_right_ne_self : a * b ≠ a ↔ b ≠ 1 := mul_right_eq_self.not
+@[to_additive] lemma self_ne_mul_right : a ≠ a * b ↔ b ≠ 1 := self_eq_mul_right.not
+
 end left_cancel_monoid
 
 section right_cancel_monoid
@@ -171,6 +174,9 @@ calc a * b = b ↔ a * b = 1 * b : by rw one_mul
 
 @[simp, to_additive] lemma self_eq_mul_left : b = a * b ↔ a = 1 :=
 eq_comm.trans mul_left_eq_self
+
+@[to_additive] lemma mul_left_ne_self : a * b ≠ b ↔ a ≠ 1 := mul_left_eq_self.not
+@[to_additive] lemma self_ne_mul_left : b ≠ a * b ↔ a ≠ 1 := self_eq_mul_left.not
 
 end right_cancel_monoid
 
@@ -191,16 +197,8 @@ inv_involutive.injective
 @[simp, to_additive] theorem inv_inj {a b : G} : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
 
 @[to_additive]
-lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
-by simp [h]
-
-@[to_additive]
-theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
-⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
-
-@[to_additive]
-theorem inv_eq_iff_inv_eq  : a⁻¹ = b ↔ b⁻¹ = a :=
-eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
+theorem inv_eq_iff_eq_inv : a⁻¹ = b ↔ a = b⁻¹ :=
+⟨λ h, h ▸ (inv_inv a).symm, λ h, h.symm ▸ inv_inv b⟩
 
 variables (G)
 
@@ -399,7 +397,7 @@ theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
 
 @[to_additive]
 theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
-by rw [mul_eq_one_iff_eq_inv, eq_inv_iff_eq_inv, eq_comm]
+by rw [mul_eq_one_iff_eq_inv, inv_eq_iff_eq_inv]
 
 @[to_additive]
 theorem eq_inv_iff_mul_eq_one : a = b⁻¹ ↔ a * b = 1 :=
@@ -452,6 +450,9 @@ by rw [div_eq_mul_inv, mul_right_inv a]
 @[simp, to_additive add_sub_cancel]
 lemma mul_div_cancel'' (a b : G) : a * b / b = a :=
 by rw [div_eq_mul_inv, mul_inv_cancel_right a b]
+
+@[simp, to_additive sub_add_cancel'']
+lemma div_mul_cancel''' (a b : G) : a / (b * a) = b⁻¹ := by rw [←inv_div, mul_div_cancel'']
 
 @[simp, to_additive]
 lemma mul_div_mul_right_eq_div (a b c : G) : (a * c) / (b * c) = a / b :=

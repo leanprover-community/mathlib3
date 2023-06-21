@@ -68,8 +68,11 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
 {G' : Type*} [topological_space G'] {J' : model_with_corners 𝕜 F' G'}
 {N' : Type*} [topological_space N'] [charted_space G' N'] [J's : smooth_manifold_with_corners J' N']
--- F'' is a normed space
-{F'' : Type*} [normed_add_comm_group F''] [normed_space 𝕜 F'']
+-- F₁, F₂, F₃, F₄ are normed spaces
+{F₁ : Type*} [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
+{F₂ : Type*} [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
+{F₃ : Type*} [normed_add_comm_group F₃] [normed_space 𝕜 F₃]
+{F₄ : Type*} [normed_add_comm_group F₄] [normed_space 𝕜 F₄]
 -- declare functions, sets, points and smoothness indices
 {e : local_homeomorph M H} {e' : local_homeomorph M' H'}
 {f f₁ : M → M'} {s s₁ t : set M} {x : M} {m n : ℕ∞}
@@ -922,6 +925,13 @@ begin
   { simp only [written_in_ext_chart_at, (∘), mem_ext_chart_source, e.left_inv, e'.left_inv] }
 end
 
+/-- See note [comp_of_eq lemmas] -/
+lemma cont_mdiff_within_at.comp_of_eq {t : set M'} {g : M' → M''} {x : M} {y : M'}
+  (hg : cont_mdiff_within_at I' I'' n g t y) (hf : cont_mdiff_within_at I I' n f s x)
+  (st : maps_to f s t) (hx : f x = y) :
+  cont_mdiff_within_at I I'' n (g ∘ f) s x :=
+by { subst hx, exact hg.comp x hf st }
+
 /-- The composition of `C^∞` functions within domains at points is `C^∞`. -/
 lemma smooth_within_at.comp {t : set M'} {g : M' → M''} (x : M)
   (hg : smooth_within_at I' I'' g t (f x))
@@ -1001,6 +1011,13 @@ lemma cont_mdiff_at.comp {g : M' → M''} (x : M)
   cont_mdiff_at I I'' n (g ∘ f) x :=
 hg.comp x hf (maps_to_univ _ _)
 
+/-- See note [comp_of_eq lemmas] -/
+lemma cont_mdiff_at.comp_of_eq {g : M' → M''} {x : M} {y : M'}
+  (hg : cont_mdiff_at I' I'' n g y) (hf : cont_mdiff_at I I' n f x) (hx : f x = y) :
+  cont_mdiff_at I I'' n (g ∘ f) x :=
+by { subst hx, exact hg.comp x hf }
+
+
 /-- The composition of `C^∞` functions at points is `C^∞`. -/
 lemma smooth_at.comp {g : M' → M''} (x : M)
   (hg : smooth_at I' I'' g (f x)) (hf : smooth_at I I' f x) :
@@ -1040,6 +1057,14 @@ begin
   refine cont_diff_within_at_id.congr_of_eventually_eq _ _,
   { exact eventually_eq_of_mem self_mem_nhds_within (λ x₂, I.right_inv) },
   simp_rw [function.comp_apply, I.left_inv, id_def]
+end
+
+lemma cont_mdiff_on_model_symm : cont_mdiff_on 𝓘(𝕜, E) I n I.symm (range I) :=
+begin
+  rw [cont_mdiff_on_iff],
+  refine ⟨I.continuous_on_symm, λ x y, _⟩,
+  simp only with mfld_simps,
+  exact cont_diff_on_id.congr (λ x', I.right_inv)
 end
 
 include Is
@@ -1088,6 +1113,22 @@ cont_mdiff_at_ext_chart_at' $ mem_chart_source H x
 lemma cont_mdiff_on_ext_chart_at :
   cont_mdiff_on I 𝓘(𝕜, E) n (ext_chart_at I x) (chart_at H x).source :=
 λ x' hx', (cont_mdiff_at_ext_chart_at' hx').cont_mdiff_within_at
+
+lemma cont_mdiff_on_extend_symm (he : e ∈ maximal_atlas I M) :
+  cont_mdiff_on 𝓘(𝕜, E) I n (e.extend I).symm (I '' e.target) :=
+begin
+  have h2 := cont_mdiff_on_symm_of_mem_maximal_atlas he,
+  refine h2.comp (cont_mdiff_on_model_symm.mono $ image_subset_range _ _) _,
+  simp_rw [image_subset_iff, local_equiv.restr_coe_symm, I.to_local_equiv_coe_symm,
+    preimage_preimage, I.left_inv, preimage_id']
+end
+
+lemma cont_mdiff_on_ext_chart_at_symm (x : M) :
+  cont_mdiff_on 𝓘(𝕜, E) I n (ext_chart_at I x).symm (ext_chart_at I x).target :=
+begin
+  convert cont_mdiff_on_extend_symm (chart_mem_maximal_atlas I x),
+  rw [ext_chart_at_target, I.image_eq]
+end
 
 omit Is
 
@@ -1202,6 +1243,28 @@ begin
   { exact hf x hx },
   { refine cont_mdiff_at.congr_of_eventually_eq _ (eventually_eq_zero_nhds.2 hx),
     exact cont_mdiff_at_const }
+end
+
+/-! ### The inclusion map from one open set to another is smooth -/
+section
+open topological_space
+
+lemma cont_mdiff_inclusion {n : ℕ∞} {U V : opens M} (h : U ≤ V) :
+  cont_mdiff I I n (set.inclusion h : U → V) :=
+begin
+  rintros ⟨x, hx : x ∈ U⟩,
+  apply (cont_diff_within_at_local_invariant_prop I I n).lift_prop_inclusion,
+  intros y,
+  dsimp [cont_diff_within_at_prop],
+  rw [set.univ_inter],
+  refine cont_diff_within_at_id.congr _ _,
+  { exact I.right_inv_on },
+  { exact congr_arg I (I.left_inv y) },
+end
+
+lemma smooth_inclusion {U V : opens M} (h : U ≤ V) : smooth I I (set.inclusion h : U → V) :=
+cont_mdiff_inclusion h
+
 end
 
 /-! ### Equivalence with the basic definition for functions between vector spaces -/
@@ -1378,6 +1441,11 @@ begin
   { simp only with mfld_simps }
 end
 
+lemma cont_mdiff_within_at.fst {f : N → M × M'} {s : set N} {x : N}
+  (hf : cont_mdiff_within_at J (I.prod I') n f s x) :
+  cont_mdiff_within_at J I n (λ x, (f x).1) s x :=
+cont_mdiff_within_at_fst.comp x hf (maps_to_image f s)
+
 lemma cont_mdiff_at_fst {p : M × N} :
   cont_mdiff_at (I.prod J) I n prod.fst p :=
 cont_mdiff_within_at_fst
@@ -1433,6 +1501,11 @@ begin
   { simp only with mfld_simps }
 end
 
+lemma cont_mdiff_within_at.snd {f : N → M × M'} {s : set N} {x : N}
+  (hf : cont_mdiff_within_at J (I.prod I') n f s x) :
+  cont_mdiff_within_at J I' n (λ x, (f x).2) s x :=
+cont_mdiff_within_at_snd.comp x hf (maps_to_image f s)
+
 lemma cont_mdiff_at_snd {p : M × N} :
   cont_mdiff_at (I.prod J) J n prod.snd p :=
 cont_mdiff_within_at_snd
@@ -1477,19 +1550,36 @@ lemma smooth.snd {f : N → M × M'} (hf : smooth J (I.prod I') f) :
   smooth J I' (λ x, (f x).2) :=
 smooth_snd.comp hf
 
-lemma smooth_iff_proj_smooth {f : M → M' × N'} :
-  (smooth I (I'.prod J') f) ↔ (smooth I I' (prod.fst ∘ f)) ∧ (smooth I J' (prod.snd ∘ f)) :=
-begin
-  split,
-  { intro h, exact ⟨smooth_fst.comp h, smooth_snd.comp h⟩ },
-  { rintro ⟨h_fst, h_snd⟩, simpa only [prod.mk.eta] using h_fst.prod_mk h_snd, }
-end
+end projections
+
+lemma cont_mdiff_within_at_prod_iff (f : M → M' × N') {s : set M} {x : M} :
+  cont_mdiff_within_at I (I'.prod J') n f s x ↔
+  cont_mdiff_within_at I I' n (prod.fst ∘ f) s x ∧
+  cont_mdiff_within_at I J' n (prod.snd ∘ f) s x :=
+by { refine ⟨λ h, ⟨h.fst, h.snd⟩, λ h, _⟩, simpa only [prod.mk.eta] using h.1.prod_mk h.2 }
+
+lemma cont_mdiff_at_prod_iff (f : M → M' × N') {x : M} :
+  cont_mdiff_at I (I'.prod J') n f x ↔
+  cont_mdiff_at I I' n (prod.fst ∘ f) x ∧ cont_mdiff_at I J' n (prod.snd ∘ f) x :=
+by simp_rw [← cont_mdiff_within_at_univ, cont_mdiff_within_at_prod_iff]
+
+lemma cont_mdiff_prod_iff (f : M → M' × N') :
+  cont_mdiff I (I'.prod J') n f ↔
+  cont_mdiff I I' n (prod.fst ∘ f) ∧ cont_mdiff I J' n (prod.snd ∘ f) :=
+⟨λ h, ⟨h.fst, h.snd⟩, λ h, by { convert h.1.prod_mk h.2, ext; refl }⟩
+
+lemma smooth_at_prod_iff (f : M → M' × N') {x : M} :
+  smooth_at I (I'.prod J') f x ↔
+  smooth_at I I' (prod.fst ∘ f) x ∧ smooth_at I J' (prod.snd ∘ f) x :=
+cont_mdiff_at_prod_iff f
+
+lemma smooth_prod_iff (f : M → M' × N') :
+  smooth I (I'.prod J') f ↔ smooth I I' (prod.fst ∘ f) ∧ smooth I J' (prod.snd ∘ f) :=
+cont_mdiff_prod_iff f
 
 lemma smooth_prod_assoc :
   smooth ((I.prod I').prod J) (I.prod (I'.prod J)) (λ x : (M × M') × N, (x.1.1, x.1.2, x.2)) :=
 smooth_fst.fst.prod_mk $ smooth_fst.snd.prod_mk smooth_snd
-
-end projections
 
 section prod_map
 
@@ -1623,30 +1713,79 @@ lemma continuous_linear_map.cont_mdiff (L : E →L[𝕜] F) :
   cont_mdiff 𝓘(𝕜, E) 𝓘(𝕜, F) n L :=
 L.cont_diff.cont_mdiff
 
--- the following proof takes very long to elaborate in pure term mode
-lemma cont_mdiff_within_at.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F} {s : set M} {x : M}
-  (hg : cont_mdiff_within_at I 𝓘(𝕜, F →L[𝕜] F'') n g s x)
-  (hf : cont_mdiff_within_at I 𝓘(𝕜, F' →L[𝕜] F) n f s x) :
-  cont_mdiff_within_at I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) s x :=
+lemma cont_mdiff_within_at.clm_comp {g : M → F₁ →L[𝕜] F₃} {f : M → F₂ →L[𝕜] F₁} {s : set M} {x : M}
+  (hg : cont_mdiff_within_at I 𝓘(𝕜, F₁ →L[𝕜] F₃) n g s x)
+  (hf : cont_mdiff_within_at I 𝓘(𝕜, F₂ →L[𝕜] F₁) n f s x) :
+  cont_mdiff_within_at I 𝓘(𝕜, F₂ →L[𝕜] F₃) n (λ x, (g x).comp (f x)) s x :=
 @cont_diff_within_at.comp_cont_mdiff_within_at _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-  (λ x : (F →L[𝕜] F'') × (F' →L[𝕜] F), x.1.comp x.2) (λ x, (g x, f x)) s _ x
+  (λ x : (F₁ →L[𝕜] F₃) × (F₂ →L[𝕜] F₁), x.1.comp x.2) (λ x, (g x, f x)) s _ x
   (by { apply cont_diff.cont_diff_at, exact cont_diff_fst.clm_comp cont_diff_snd })
   (hg.prod_mk_space hf) (by simp_rw [preimage_univ, subset_univ])
 
-lemma cont_mdiff_at.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F} {x : M}
-  (hg : cont_mdiff_at I 𝓘(𝕜, F →L[𝕜] F'') n g x) (hf : cont_mdiff_at I 𝓘(𝕜, F' →L[𝕜] F) n f x) :
-  cont_mdiff_at I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) x :=
+lemma cont_mdiff_at.clm_comp {g : M → F₁ →L[𝕜] F₃} {f : M → F₂ →L[𝕜] F₁} {x : M}
+  (hg : cont_mdiff_at I 𝓘(𝕜, F₁ →L[𝕜] F₃) n g x) (hf : cont_mdiff_at I 𝓘(𝕜, F₂ →L[𝕜] F₁) n f x) :
+  cont_mdiff_at I 𝓘(𝕜, F₂ →L[𝕜] F₃) n (λ x, (g x).comp (f x)) x :=
 (hg.cont_mdiff_within_at.clm_comp hf.cont_mdiff_within_at).cont_mdiff_at univ_mem
 
-lemma cont_mdiff_on.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F} {s : set M}
-  (hg : cont_mdiff_on I 𝓘(𝕜, F →L[𝕜] F'') n g s) (hf : cont_mdiff_on I 𝓘(𝕜, F' →L[𝕜] F) n f s) :
-  cont_mdiff_on I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) s :=
+lemma cont_mdiff_on.clm_comp {g : M → F₁ →L[𝕜] F₃} {f : M → F₂ →L[𝕜] F₁} {s : set M}
+  (hg : cont_mdiff_on I 𝓘(𝕜, F₁ →L[𝕜] F₃) n g s) (hf : cont_mdiff_on I 𝓘(𝕜, F₂ →L[𝕜] F₁) n f s) :
+  cont_mdiff_on I 𝓘(𝕜, F₂ →L[𝕜] F₃) n (λ x, (g x).comp (f x)) s :=
 λ x hx, (hg x hx).clm_comp (hf x hx)
 
-lemma cont_mdiff.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F}
-  (hg : cont_mdiff I 𝓘(𝕜, F →L[𝕜] F'') n g) (hf : cont_mdiff I 𝓘(𝕜, F' →L[𝕜] F) n f) :
-  cont_mdiff I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) :=
+lemma cont_mdiff.clm_comp {g : M → F₁ →L[𝕜] F₃} {f : M → F₂ →L[𝕜] F₁}
+  (hg : cont_mdiff I 𝓘(𝕜, F₁ →L[𝕜] F₃) n g) (hf : cont_mdiff I 𝓘(𝕜, F₂ →L[𝕜] F₁) n f) :
+  cont_mdiff I 𝓘(𝕜, F₂ →L[𝕜] F₃) n (λ x, (g x).comp (f x)) :=
 λ x, (hg x).clm_comp (hf x)
+
+lemma cont_mdiff_within_at.clm_apply {g : M → F₁ →L[𝕜] F₂} {f : M → F₁} {s : set M} {x : M}
+  (hg : cont_mdiff_within_at I 𝓘(𝕜, F₁ →L[𝕜] F₂) n g s x)
+  (hf : cont_mdiff_within_at I 𝓘(𝕜, F₁) n f s x) :
+  cont_mdiff_within_at I 𝓘(𝕜, F₂) n (λ x, g x (f x)) s x :=
+@cont_diff_within_at.comp_cont_mdiff_within_at _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+  (λ x : (F₁ →L[𝕜] F₂) × F₁, x.1 x.2) (λ x, (g x, f x)) s _ x
+  (by { apply cont_diff.cont_diff_at, exact cont_diff_fst.clm_apply cont_diff_snd })
+  (hg.prod_mk_space hf) (by simp_rw [preimage_univ, subset_univ])
+
+lemma cont_mdiff_at.clm_apply {g : M → F₁ →L[𝕜] F₂} {f : M → F₁} {x : M}
+  (hg : cont_mdiff_at I 𝓘(𝕜, F₁ →L[𝕜] F₂) n g x) (hf : cont_mdiff_at I 𝓘(𝕜, F₁) n f x) :
+  cont_mdiff_at I 𝓘(𝕜, F₂) n (λ x, g x (f x)) x :=
+(hg.cont_mdiff_within_at.clm_apply hf.cont_mdiff_within_at).cont_mdiff_at univ_mem
+
+lemma cont_mdiff_on.clm_apply {g : M → F₁ →L[𝕜] F₂} {f : M → F₁} {s : set M}
+  (hg : cont_mdiff_on I 𝓘(𝕜, F₁ →L[𝕜] F₂) n g s) (hf : cont_mdiff_on I 𝓘(𝕜, F₁) n f s) :
+  cont_mdiff_on I 𝓘(𝕜, F₂) n (λ x, g x (f x)) s :=
+λ x hx, (hg x hx).clm_apply (hf x hx)
+
+lemma cont_mdiff.clm_apply {g : M → F₁ →L[𝕜] F₂} {f : M → F₁}
+  (hg : cont_mdiff I 𝓘(𝕜, F₁ →L[𝕜] F₂) n g) (hf : cont_mdiff I 𝓘(𝕜, F₁) n f) :
+  cont_mdiff I 𝓘(𝕜, F₂) n (λ x, g x (f x)) :=
+λ x, (hg x).clm_apply (hf x)
+
+lemma cont_mdiff_within_at.clm_prod_map
+  {g : M → F₁ →L[𝕜] F₃} {f : M → F₂ →L[𝕜] F₄} {s : set M} {x : M}
+  (hg : cont_mdiff_within_at I 𝓘(𝕜, F₁ →L[𝕜] F₃) n g s x)
+  (hf : cont_mdiff_within_at I 𝓘(𝕜, F₂ →L[𝕜] F₄) n f s x) :
+  cont_mdiff_within_at I 𝓘(𝕜, F₁ × F₂ →L[𝕜] F₃ × F₄) n (λ x, (g x).prod_map (f x)) s x :=
+@cont_diff_within_at.comp_cont_mdiff_within_at _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+  (λ x : (F₁ →L[𝕜] F₃) × (F₂ →L[𝕜] F₄), x.1.prod_map x.2) (λ x, (g x, f x)) s _ x
+  (by { apply cont_diff.cont_diff_at,
+    exact (continuous_linear_map.prod_mapL 𝕜 F₁ F₃ F₂ F₄).cont_diff })
+  (hg.prod_mk_space hf) (by simp_rw [preimage_univ, subset_univ])
+
+lemma cont_mdiff_at.clm_prod_map {g : M → F₁ →L[𝕜] F₃} {f : M → F₂ →L[𝕜] F₄} {x : M}
+  (hg : cont_mdiff_at I 𝓘(𝕜, F₁ →L[𝕜] F₃) n g x) (hf : cont_mdiff_at I 𝓘(𝕜, F₂ →L[𝕜] F₄) n f x) :
+  cont_mdiff_at I 𝓘(𝕜, F₁ × F₂ →L[𝕜] F₃ × F₄) n (λ x, (g x).prod_map (f x)) x :=
+(hg.cont_mdiff_within_at.clm_prod_map hf.cont_mdiff_within_at).cont_mdiff_at univ_mem
+
+lemma cont_mdiff_on.clm_prod_map {g : M → F₁ →L[𝕜] F₃} {f : M → F₂ →L[𝕜] F₄} {s : set M}
+  (hg : cont_mdiff_on I 𝓘(𝕜, F₁ →L[𝕜] F₃) n g s) (hf : cont_mdiff_on I 𝓘(𝕜, F₂ →L[𝕜] F₄) n f s) :
+  cont_mdiff_on I 𝓘(𝕜, F₁ × F₂ →L[𝕜] F₃ × F₄) n (λ x, (g x).prod_map (f x)) s :=
+λ x hx, (hg x hx).clm_prod_map (hf x hx)
+
+lemma cont_mdiff.clm_prod_map {g : M → F₁ →L[𝕜] F₃} {f : M → F₂ →L[𝕜] F₄}
+  (hg : cont_mdiff I 𝓘(𝕜, F₁ →L[𝕜] F₃) n g) (hf : cont_mdiff I 𝓘(𝕜, F₂ →L[𝕜] F₄) n f) :
+  cont_mdiff I 𝓘(𝕜, F₁ × F₂ →L[𝕜] F₃ × F₄) n (λ x, (g x).prod_map (f x)) :=
+λ x, (hg x).clm_prod_map (hf x)
 
 /-! ### Smoothness of standard operations -/
 

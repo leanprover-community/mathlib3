@@ -428,7 +428,7 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
   { change e₁ = e₂ at ee, substI e₂, unfold sub._match_1,
     cases mn : (n₁:ℕ) - n₂; dsimp only [sub._match_2],
     { by_cases en : n₁ = n₂,
-      { simp [en], rwa [add_sub_add_cancel] },
+      { simpa [en] },
       { simp [en, -repr],
         exact (ordinal.sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
           lt_of_le_of_ne (tsub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },

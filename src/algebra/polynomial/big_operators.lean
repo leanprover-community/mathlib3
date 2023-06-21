@@ -8,6 +8,9 @@ import data.polynomial.monic
 /-!
 # Lemmas for the interaction between polynomials and `∑` and `∏`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Recall that `∑` and `∏` are notation for `finset.sum` and `finset.prod` respectively.
 
 ## Main results

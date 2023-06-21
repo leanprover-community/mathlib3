@@ -1,12 +1,31 @@
+/-
+Copyright (c) 2023 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov, Heather Macbeth
+-/
 import linear_algebra.alternating
 import topology.algebra.module.multilinear
 
 /-!
+# Continuous alternating multilinear maps
+
+In this file we define bundled continuous alternating maps and develop basic API about these
+maps, by reusing API about continuous multilinear maps and alternating maps.
+
+## Keywords
+
+multilinear map, alternating map, continuous
 -/
 
 open function matrix
 open_locale big_operators
 
+/-- A continuous alternating map is a continuous map from `ι → M` to `N` that is
+
+- multilinear : `f (update m i (c • x)) = c • f (update m i x)` and
+  `f (update m i (x + y)) = f (update m i x) + f (update m i y)`;
+- alternating `f v = 0` whenever `v` has two equal coordinates.
+-/
 structure continuous_alternating_map (R M N ι : Type*) [semiring R]
   [add_comm_monoid M] [module R M] [topological_space M]
   [add_comm_monoid N] [module R N] [topological_space N]
@@ -61,6 +80,7 @@ fun_like.ext _ _ H
 theorem ext_iff {f g : Λ^ι⟮R; M; N⟯} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 
+/-- Projection to `alternating_map`s. -/
 @[simps { simp_rhs := true }]
 def to_alternating_map : alternating_map R M N ι := { .. f }
 
@@ -184,6 +204,8 @@ def apply_add_hom (v : ι → M) : Λ^ι⟮R; M; N⟯ →+ N :=
   (m : ι → M) {s : finset α} : (∑ a in s, f a) m = ∑ a in s, f a m :=
 (apply_add_hom m).map_sum f s
 
+/-- Projection to `continuous_multilinear_map`s as a bundled `add_monoid_hom`. -/
+@[simps]
 def to_multilinear_add_hom :
   Λ^ι⟮R; M; N⟯ →+ continuous_multilinear_map R (λ _ : ι, M) N :=
 ⟨λ f, f.1, rfl, λ _ _, rfl⟩
@@ -193,15 +215,14 @@ end has_continuous_add
 /-- If `f` is a continuous alternating map, then `f.to_continuous_linear_map m i` is the continuous
 linear map obtained by fixing all coordinates but `i` equal to those of `m`, and varying the
 `i`-th coordinate. -/
+@[simps apply]
 def to_continuous_linear_map [decidable_eq ι] (m : ι → M) (i : ι) : M →L[R] N :=
 f.1.to_continuous_linear_map m i
 
 /-- The cartesian product of two continuous alternating maps, as a continuous alternating map. -/
+@[simps]
 def prod (f : Λ^ι⟮R; M; N⟯) (g : Λ^ι⟮R; M; N'⟯) : Λ^ι⟮R; M; N × N'⟯ :=
 ⟨f.1.prod g.1, (f.to_alternating_map.prod g.to_alternating_map).map_eq_zero_of_eq⟩
-
-@[simp] lemma prod_apply (f : Λ^ι⟮R; M; N⟯) (g : Λ^ι⟮R; M; N'⟯) (m : ι → M) :
-  (f.prod g) m = (f m, g m) := rfl
 
 /-- Combine a family of continuous alternating maps with the same domain and codomains `M' i` into a
 continuous alternating map taking values in the space of functions `Π i, M' i`. -/
@@ -265,8 +286,7 @@ rfl
 /-- Composing a continuous alternating map with a continuous linear map gives again a
 continuous alternating map. -/
 def _root_.continuous_linear_map.comp_continuous_alternating_map
-  (g : N →L[R] N') (f : Λ^ι⟮R; M; N⟯) :
-  Λ^ι⟮R; M; N'⟯ :=
+  (g : N →L[R] N') (f : Λ^ι⟮R; M; N⟯) : Λ^ι⟮R; M; N'⟯ :=
 { to_continuous_multilinear_map := g.comp_continuous_multilinear_map f.1,
   .. (g : N →ₗ[R] N').comp_alternating_map f.to_alternating_map }
 
@@ -275,6 +295,8 @@ def _root_.continuous_linear_map.comp_continuous_alternating_map
   ⇑(g.comp_continuous_alternating_map f) = g ∘ f :=
 rfl
 
+/-- A continuous linear equivalence of domains defines an equivalence between continuous
+alternating maps. -/
 def _root_.continuous_linear_equiv.continuous_alternating_map_comp (e : M ≃L[R] M') :
   Λ^ι⟮R; M; N⟯ ≃ Λ^ι⟮R; M'; N⟯ :=
 { to_fun := λ f, f.comp_continuous_linear_map ↑e.symm,
@@ -282,6 +304,8 @@ def _root_.continuous_linear_equiv.continuous_alternating_map_comp (e : M ≃L[R
   left_inv := λ f, by { ext, simp [(∘)] },
   right_inv := λ f, by { ext, simp [(∘)] } }
 
+/-- A continuous linear equivalence of codomains defines an equivalence between continuous
+alternating maps. -/
 def _root_.continuous_linear_equiv.comp_continuous_alternating_map (e : N ≃L[R] N') :
   Λ^ι⟮R; M; N⟯ ≃ Λ^ι⟮R; M; N'⟯ :=
 { to_fun := (e : N →L[R] N').comp_continuous_alternating_map,
@@ -294,6 +318,8 @@ def _root_.continuous_linear_equiv.comp_continuous_alternating_map (e : N ≃L[R
   ⇑(e.comp_continuous_alternating_map f) = e ∘ f :=
 rfl
 
+/-- Continuous linear equivalences between domains and codomains define an equivalence between the
+spaces of continuous alternating maps. -/
 def _root_.continuous_linear_equiv.continuous_alternating_map_congr
   (e : M ≃L[R] M') (e' : N ≃L[R] N') :
   Λ^ι⟮R; M; N⟯ ≃ Λ^ι⟮R; M'; N'⟯ :=
@@ -303,8 +329,7 @@ e.continuous_alternating_map_comp.trans e'.comp_continuous_alternating_map
 @[simps]
 def pi_equiv {ι' : Type*} {N : ι' → Type*} [Π i, add_comm_monoid (N i)]
   [Π i, topological_space (N i)] [Π i, module R (N i)] :
-  (Π i, Λ^ι⟮R; M; N i⟯) ≃
-  Λ^ι⟮R; M; Π i, N i⟯ :=
+  (Π i, Λ^ι⟮R; M; N i⟯) ≃ Λ^ι⟮R; M; Π i, N i⟯ :=
 { to_fun := pi,
   inv_fun := λ f i, (continuous_linear_map.proj i : _ →L[R] N i).comp_continuous_alternating_map f,
   left_inv := λ f, by { ext, refl },
@@ -531,6 +556,7 @@ variables {R M M' N N' ι : Type*} [comm_semiring R]
   [add_comm_monoid N'] [module R N'] [topological_space N']
   [has_continuous_add N'] [has_continuous_const_smul R N']
 
+/-- `continuous_alternating_map.comp_continuous_linear_map` as a bundled `linear_map`. -/
 @[simps] def comp_continuous_linear_mapₗ (f : M →L[R] M') :
   Λ^ι⟮R; M'; N⟯ →ₗ[R] Λ^ι⟮R; M; N⟯ :=
 { to_fun := λ g, g.comp_continuous_linear_map f,
@@ -559,6 +585,7 @@ variables {R M N ι : Type*} [semiring R]
   (f g : continuous_multilinear_map R (λ _ : ι, M) N)
 
 -- note: squeezed simps to make it compile faster
+/-- Alternatization of a continuous multilinear map. -/
 @[simps apply_to_continuous_multilinear_map { attrs := [] }]
 def alternatization :
   continuous_multilinear_map R (λ i : ι, M) N →+ Λ^ι⟮R; M; N⟯ :=

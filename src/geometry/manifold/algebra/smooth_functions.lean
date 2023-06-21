@@ -27,26 +27,6 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {N' : Type*} [topological_space N'] [charted_space H'' N']
 
-section /-! # general facts for `cont_mdiff` file -/
-
-lemma cont_mdiff_inclusion {n : ℕ∞} {U V : opens N} (h : U ≤ V) :
-  cont_mdiff I I n (set.inclusion h : U → V) :=
-begin
-  rintros ⟨x, hx : x ∈ U⟩,
-  apply (cont_diff_within_at_local_invariant_prop I I n).lift_prop_inclusion,
-  intros y,
-  dsimp [cont_diff_within_at_prop],
-  rw [set.univ_inter],
-  refine cont_diff_within_at_id.congr _ _,
-  { exact I.right_inv_on },
-  { exact congr_arg I (I.left_inv y) },
-end
-
-lemma smooth_inclusion {U V : opens N} (h : U ≤ V) : smooth I I (set.inclusion h : U → V) :=
-cont_mdiff_inclusion h
-
-end
-
 namespace smooth_map
 
 @[to_additive]

@@ -954,15 +954,15 @@ variables [monoid α] [monoid β] {x : α × β} {a : α} {b : β}
 
 @[to_additive prod.add_order_of] protected lemma prod.order_of (x : α × β) :
   order_of x = (order_of x.1).lcm (order_of x.2) :=
-eq_of_forall_dvd $ by cases x; simp [order_of_dvd_iff_pow_eq_one, nat.lcm_dvd_iff]
+minimal_period_prod_map _ _ _
 
 @[to_additive add_order_of_fst_dvd_add_order_of] lemma order_of_fst_dvd_order_of :
   order_of x.1 ∣ order_of x :=
-by { rw prod.order_of, exact nat.dvd_lcm_left _ _ }
+minimal_period_fst_dvd
 
 @[to_additive add_order_of_snd_dvd_add_order_of] lemma order_of_snd_dvd_order_of :
   order_of x.2 ∣ order_of x :=
-by { rw prod.order_of, exact nat.dvd_lcm_right _ _ }
+minimal_period_snd_dvd
 
 @[to_additive is_of_fin_add_order.fst]
 lemma is_of_fin_order.fst {x : α × β} (hx : is_of_fin_order x) : is_of_fin_order x.1 :=

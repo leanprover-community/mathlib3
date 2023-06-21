@@ -3,25 +3,16 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebra.module.localized_module
-import algebra.category.Ring.instances
-import category_theory.limits.shapes.binary_products
-import category_theory.limits.preserves.shapes.pullbacks
-import category_theory.limits.shapes.strict_initial
-import category_theory.limits.shapes.comm_sq
 import topology.category.Top.limits.pullbacks
-import topology.sheaves.functors
-import topology.sheaves.sheaf_condition.sites
-import topology.sheaves.functors
-import topology.sheafed_space.presheafed_space.has_colimits
-import topology.sheafed_space.locally_ringed_space
-
-
+import algebraic_geometry.locally_ringed_space
 
 /-!
 # Open immersions of structured spaces
 
-We say that a morphism of presheafed spaces `f : X ⟶ Y` is an open immersions if
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+We say that a morphism of presheafed spaces `f : X ⟶ Y` is an open immersion if
 the underlying map of spaces is an open embedding `f : X ⟶ U ⊆ Y`,
 and the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
 
@@ -92,13 +83,6 @@ of SheafedSpaces
 -/
 abbreviation LocallyRingedSpace.is_open_immersion {X Y : LocallyRingedSpace} (f : X ⟶ Y) : Prop :=
 SheafedSpace.is_open_immersion f.1
-
--- /--
--- A morphism of Schemes is an open immersion if it is an open immersion as a morphism
--- of LocallyRingedSpaces
--- -/
--- abbreviation is_open_immersion {X Y : Scheme} (f : X ⟶ Y) : Prop :=
--- LocallyRingedSpace.is_open_immersion f
 
 namespace PresheafedSpace.is_open_immersion
 

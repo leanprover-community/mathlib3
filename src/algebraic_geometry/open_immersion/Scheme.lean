@@ -3,58 +3,12 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebra.category.Ring.instances
+import algebraic_geometry.open_immersion.basic
 import algebraic_geometry.Scheme
-import category_theory.limits.shapes.binary_products
-import category_theory.limits.preserves.shapes.pullbacks
-import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.comm_sq
-import topology.category.Top.limits.pullbacks
-import topology.sheaves.functors
-import topology.sheafed_space.open_immersion
 
 /-!
-# Open immersions of structured spaces
-
-We say that a morphism of presheafed spaces `f : X ⟶ Y` is an open immersions if
-the underlying map of spaces is an open embedding `f : X ⟶ U ⊆ Y`,
-and the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
-
-Abbreviations are also provided for `SheafedSpace`, `LocallyRingedSpace` and `Scheme`.
-
-## Main definitions
-
-* `algebraic_geometry.PresheafedSpace.is_open_immersion`: the `Prop`-valued typeclass asserting
-  that a PresheafedSpace hom `f` is an open_immersion.
-* `algebraic_geometry.is_open_immersion`: the `Prop`-valued typeclass asserting
-  that a Scheme morphism `f` is an open_immersion.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.iso_restrict`: The source of an
-  open immersion is isomorphic to the restriction of the target onto the image.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.lift`: Any morphism whose range is
-  contained in an open immersion factors though the open immersion.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_SheafedSpace`: If `f : X ⟶ Y` is an
-  open immersion of presheafed spaces, and `Y` is a sheafed space, then `X` is also a sheafed
-  space. The morphism as morphisms of sheafed spaces is given by `to_SheafedSpace_hom`.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_LocallyRingedSpace`: If `f : X ⟶ Y` is
-  an open immersion of presheafed spaces, and `Y` is a locally ringed space, then `X` is also a
-  locally ringed space. The morphism as morphisms of locally ringed spaces is given by
-  `to_LocallyRingedSpace_hom`.
-
-## Main results
-
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.comp`: The composition of two open
-  immersions is an open immersion.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.of_iso`: An iso is an open immersion.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.to_iso`:
-  A surjective open immersion is an isomorphism.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.stalk_iso`: An open immersion induces
-  an isomorphism on stalks.
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.has_pullback_of_left`: If `f` is an open
-  immersion, then the pullback `(f, g)` exists (and the forgetful functor to `Top` preserves it).
-* `algebraic_geometry.PresheafedSpace.is_open_immersion.pullback_snd_of_left`: Open immersions
-  are stable under pullbacks.
-* `algebraic_geometry.SheafedSpace.is_open_immersion.of_stalk_iso` An (topological) open embedding
-  between two sheafed spaces is an open immersion if all the stalk maps are isomorphisms.
+# Open immersions of schemes
 
 -/
 
@@ -74,7 +28,6 @@ of LocallyRingedSpaces
 -/
 abbreviation is_open_immersion {X Y : Scheme} (f : X ⟶ Y) : Prop :=
 LocallyRingedSpace.is_open_immersion f
-
 
 namespace LocallyRingedSpace.is_open_immersion
 

@@ -276,7 +276,7 @@ begin
     iso.refl_inv, category.comp_id, Rep.monoidal_closed.linear_hom_equiv_comm_symm_hom,
     iso.trans_hom, Module.comp_def, linear_map.comp_apply, representation.Rep_of_tprod_iso_apply,
     diagonal_succ_hom_single x (1 : k), tensor_product.uncurry_apply, Rep.left_regular_hom_hom,
-    finsupp.lift_apply, Rep.ihom_obj_ρ, representation.lin_hom_apply, finsupp.sum_single_index,
+    finsupp.lift_apply, ihom_obj_ρ_def, Rep.ihom_obj_ρ_apply, finsupp.sum_single_index,
     zero_smul, one_smul, Rep.of_ρ, Rep.Action_ρ_eq_ρ, Rep.trivial_def (x 0)⁻¹,
     finsupp.llift_apply A k k],
 end

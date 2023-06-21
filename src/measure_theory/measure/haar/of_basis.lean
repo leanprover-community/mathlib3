@@ -9,6 +9,9 @@ import analysis.inner_product_space.pi_L2
 /-!
 # Additive Haar measure constructed from a basis
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a basis of a finite-dimensional real vector space, we define the corresponding Lebesgue
 measure, which gives measure `1` to the parallelepiped spanned by the basis.
 

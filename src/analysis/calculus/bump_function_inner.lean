@@ -13,6 +13,9 @@ import measure_theory.integral.set_integral
 /-!
 # Infinitely smooth bump function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we construct several infinitely smooth functions with properties that an analytic
 function cannot have:
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri, Andrew Yang
 -/
 
-import ring_theory.derivation
+import ring_theory.derivation.to_square_zero
 import ring_theory.ideal.cotangent
 import ring_theory.is_tensor_product
 

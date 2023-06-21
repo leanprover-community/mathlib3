@@ -1570,6 +1570,13 @@ namespace continuous_multilinear_map
 
 variables (𝕜 G G')
 
+-- fails to unify without `@`; TODO: try again in Lean 4
+@[simp] theorem norm_dom_dom_congr (σ : ι ≃ ι') (f : continuous_multilinear_map 𝕜 (λ _ : ι, G) G') :
+  ‖@dom_dom_congr 𝕜 ι G G' _ _ _ _ _ _ _ ι' σ f‖ = ‖f‖ :=
+by simp only [norm_def, linear_equiv.coe_mk, ← σ.prod_comp,
+  (σ.arrow_congr (equiv.refl G)).surjective.forall, dom_dom_congr_apply, equiv.arrow_congr_apply,
+  equiv.coe_refl, comp.left_id, comp_app, equiv.symm_apply_apply, id]
+
 /-- An equivalence of the index set defines a linear isometric equivalence between the spaces
 of multilinear maps. -/
 def dom_dom_congrₗᵢ (σ : ι ≃ ι') :
@@ -1577,8 +1584,7 @@ def dom_dom_congrₗᵢ (σ : ι ≃ ι') :
     continuous_multilinear_map 𝕜 (λ _ : ι', G) G' :=
   { map_add' := λ _ _, rfl,
     map_smul' := λ _ _, rfl,
-    norm_map' := λ f, by simp [norm_def, linear_equiv.coe_mk, ← σ.prod_comp,
-      (σ.arrow_congr (equiv.refl G)).surjective.forall],
+    norm_map' := norm_dom_dom_congr 𝕜 G G' σ,
     .. dom_dom_congr_equiv σ }
 variables {𝕜 G G'}
 

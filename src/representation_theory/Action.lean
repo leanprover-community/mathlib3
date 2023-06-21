@@ -23,6 +23,9 @@ import category_theory.linear.functor_category
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The prototypical example is `V = Module R`,
 where `Action (Module R) G` is the category of `R`-linear representations of `G`.
 

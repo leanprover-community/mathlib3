@@ -11,6 +11,9 @@ import tactic.apply_fun
 /-!
 # Enriched categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We set up the basic theory of `V`-enriched categories,
 for `V` an arbitrary monoidal category.
 

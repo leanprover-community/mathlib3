@@ -10,6 +10,9 @@ import topology.instances.triv_sq_zero_ext
 /-!
 # Results on `triv_sq_zero_ext R M` related to the norm
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For now, this file contains results about `exp` for this type.
 
 ## Main results

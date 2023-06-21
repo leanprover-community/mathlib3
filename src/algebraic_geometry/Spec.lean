@@ -13,6 +13,9 @@ import algebra.module.localized_module
 /-!
 # $Spec$ as a functor to locally ringed spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the functor $Spec$ from commutative rings to locally ringed spaces.
 
 ## Implementation notes

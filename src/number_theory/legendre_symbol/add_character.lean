@@ -3,8 +3,6 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import tactic.basic
-import field_theory.finite.galois_field
 import number_theory.cyclotomic.primitive_roots
 import field_theory.finite.trace
 
@@ -226,24 +224,36 @@ begin
   rwa [mul_shift_apply, mul_inv_cancel_left₀ ha],
 end
 
-/-- Structure for a primitive additive character on a finite ring `R` into a cyclotomic extension
+/-- Definition for a primitive additive character on a finite ring `R` into a cyclotomic extension
 of a field `R'`. It records which cyclotomic extension it is, the character, and the
 fact that the character is primitive. -/
+-- Using `structure` gives a timeout, see
+-- https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/mysterious.20finsupp.20related.20timeout/near/365719262 and
+-- https://leanprover.zulipchat.com/#narrow/stream/287929-mathlib4/topic/mysterious.20finsupp.20related.20timeout
+-- In Lean4, `set_option genInjectivity false in` may solve this issue.
 @[nolint has_nonempty_instance] -- can't prove that they always exist
-structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R'] :=
-(n : ℕ+)
-(char : add_char R (cyclotomic_field n R'))
-(prim : is_primitive char)
+def primitive_add_char (R : Type u) [comm_ring R] (R' : Type v) [field R'] :=
+Σ (n : ℕ+), (Σ' (char : add_char R (cyclotomic_field n R')), is_primitive char)
+
+/-- The first projection from `primitive_add_char`, giving the cyclotomic field. -/
+noncomputable! def primitive_add_char.n {R : Type u} [comm_ring R] {R' : Type v}
+  [field R'] : primitive_add_char R R' → ℕ+ := λ χ, χ.1
+
+/-- The second projection from `primitive_add_char`, giving the character. -/
+noncomputable! def primitive_add_char.char {R : Type u} [comm_ring R] {R' : Type v}
+  [field R'] : Π (χ : primitive_add_char R R'), add_char R (cyclotomic_field χ.n R') :=
+  λ χ, χ.2.1
+
+/-- The third projection from `primitive_add_char`, showing that `χ.2` is primitive. -/
+lemma primitive_add_char.prim {R : Type u} [comm_ring R] {R' : Type v}
+  [field R'] : Π (χ : primitive_add_char R R'), is_primitive χ.char :=
+  λ χ, χ.2.2
 
 /-!
 ### Additive characters on `zmod n`
 -/
 
 variables {C : Type v} [comm_ring C]
-
--- For `n : ℕ+`, automatically generate instance `fact (0 < (n : ℕ))`.
--- This is needed for the API for `zmod n` (until that gets refactored to use `ne_zero`).
-local attribute [instance] pnat.fact_pos
 
 section zmod_char_def
 
@@ -317,11 +327,8 @@ def primitive_zmod_char (n : ℕ+) (F' : Type v) [field F'] (h : (n : F') ≠ 0)
   primitive_add_char (zmod n) F' :=
 begin
   haveI : ne_zero ((n : ℕ) : F') := ⟨h⟩,
-  haveI : ne_zero ((n : ℕ) : cyclotomic_field n F') := ne_zero.of_no_zero_smul_divisors F' _ n,
-  exact
-{ n := n,
-  char := zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
-  prim := zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec n F' _) }
+  exact ⟨n, zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),
+    zmod_char_primitive_of_primitive_root n (is_cyclotomic_extension.zeta_spec n F' _)⟩
 end
 
 /-!
@@ -348,6 +355,7 @@ begin
       exact λ hf, nat.prime.ne_zero hp.1 (zero_dvd_iff.mp hf), },
   end,
   let ψ := primitive_zmod_char pp F' (ne_zero_iff.mp (ne_zero.of_not_dvd F' hp₂)),
+  letI : algebra (zmod p) F := zmod.algebra _ _,
   let ψ' := ψ.char.comp (algebra.trace (zmod p) F).to_add_monoid_hom.to_multiplicative,
   have hψ' : is_nontrivial ψ' :=
   begin
@@ -355,10 +363,7 @@ begin
     rw one_mul at ha,
     exact ⟨a, λ hf, ha $ (ψ.prim.zmod_char_eq_one_iff pp $ algebra.trace (zmod p) F a).mp hf⟩,
   end,
-  exact
-{ n := ψ.n,
-  char := ψ',
-  prim := hψ'.is_primitive },
+  exact ⟨ψ.n, ψ', hψ'.is_primitive⟩
 end
 
 /-!

@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import data.list.chain
-import category_theory.punit
 import category_theory.is_connected
 import category_theory.sigma.basic
 import category_theory.full_subcategory
 
 /-!
 # Connected components of a category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Defines a type `connected_components J` indexing the connected components of a category, and the
 full subcategories giving each connected component: `component j : Type u₁`.
@@ -135,7 +137,7 @@ instance : full (decomposed_to J) :=
 instance : faithful (decomposed_to J) :=
 { map_injective' :=
   begin
-    rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨_, _, _, f⟩ ⟨_, _, _, g⟩ e,
+    rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨f⟩ ⟨g⟩ e,
     change f = g at e,
     subst e,
   end }

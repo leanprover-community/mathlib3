@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.char_p.basic
-import algebra.group_with_zero.power
 import algebra.hom.iterate
 import algebra.ring.equiv
 
 /-!
 # The perfect closure of a field
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v

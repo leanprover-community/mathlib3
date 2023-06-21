@@ -29,6 +29,8 @@ https://www.imo-official.org/problems/IMO2013SL.pdf
 
 open_locale big_operators
 
+namespace imo2013_q5
+
 lemma le_of_all_pow_lt_succ {x y : ℝ} (hx : 1 < x) (hy : 1 < y)
   (h : ∀ n : ℕ, 0 < n → x^n - 1 < y^n) :
   x ≤ y :=
@@ -103,7 +105,7 @@ begin
       ... = ((q.num.nat_abs : ℤ) : ℝ) : congr_arg coe (int.nat_abs_of_nonneg num_pos.le).symm
       ... ≤ f q.num.nat_abs           : H4 q.num.nat_abs
                                           (int.nat_abs_pos_of_ne_zero num_pos.ne')
-      ... = f q.num : by { rw ←int.nat_abs_of_nonneg num_pos.le, norm_cast }
+      ... = f q.num : by rw [nat.cast_nat_abs, abs_of_nonneg num_pos.le]
       ... = f (q * q.denom) : by rw ←rat.mul_denom_eq_num
       ... ≤ f q * f q.denom : H1 q q.denom hq (nat.cast_pos.mpr q.pos),
   have h_f_denom_pos :=
@@ -184,7 +186,7 @@ begin
   have hxp : 0 < x := by positivity,
 
   have hNp : 0 < N,
-  { by_contra' H, rw [nat.le_zero_iff.mp H] at hN, linarith },
+  { by_contra' H, rw [le_zero_iff.mp H] at hN, linarith },
 
   have h2 := calc f x + f (a^N - x)
                         ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp (zero_lt_one.trans h_big_enough)
@@ -195,6 +197,10 @@ begin
   have heq := h1.antisymm (by exact_mod_cast h2),
   linarith [H5 x hx, H5 _ h_big_enough]
 end
+
+end imo2013_q5
+
+open imo2013_q5
 
 theorem imo2013_q5
   (f : ℚ → ℝ)

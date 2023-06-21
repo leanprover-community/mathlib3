@@ -5,10 +5,14 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Fréd�
   Heather Macbeth
 -/
 import linear_algebra.basic
+import order.compactly_generated
 import order.omega_complete_partial_order
 
 /-!
 # The span of a set of vectors, as a submodule
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 * `submodule.span s` is defined to be the smallest submodule containing the set `s`.
 
@@ -50,6 +54,9 @@ lemma span_le {p} : span R s ≤ p ↔ s ⊆ p :=
 
 lemma span_mono (h : s ⊆ t) : span R s ≤ span R t :=
 span_le.2 $ subset.trans h subset_span
+
+lemma span_monotone : monotone (span R : set M → submodule R M) :=
+λ _ _, span_mono
 
 lemma span_eq_of_le (h₁ : s ⊆ p) (h₂ : p ≤ span R s) : span R s = p :=
 le_antisymm (span_le.2 h₁) h₂
@@ -202,7 +209,7 @@ by rw [submodule.span_union, p.span_eq]
 
 /- Note that the character `∙` U+2219 used below is different from the scalar multiplication
 character `•` U+2022 and the matrix multiplication character `⬝` U+2B1D. -/
-notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
+notation R` ∙ `:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, R ∙ x :=
 by simp only [←span_Union, set.bUnion_of_singleton s]
@@ -421,6 +428,9 @@ begin
   rw [exists_comm],
   simp only [eq_comm, add_comm, exists_and_distrib_left]
 end
+
+lemma mem_span_pair {x y z : M} : z ∈ span R ({x, y} : set M) ↔ ∃ a b : R, a • x + b • y = z :=
+by simp_rw [mem_span_insert, mem_span_singleton, exists_prop, exists_exists_eq_and, eq_comm]
 
 lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
 by rw [insert_eq, span_union]
@@ -841,6 +851,15 @@ ext_on hv (set.forall_range_iff.2 h)
 
 end add_comm_monoid
 
+section no_zero_divisors
+
+variables (R M) [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+
+lemma ker_to_span_singleton {x : M} (h : x ≠ 0) : (to_span_singleton R M x).ker = ⊥ :=
+set_like.ext $ λ c, smul_eq_zero.trans $ or_iff_left_of_imp $ λ h', (h h').elim
+
+end no_zero_divisors
+
 section field
 
 variables {K V} [field K] [add_comm_group V] [module K V]
@@ -857,20 +876,6 @@ eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
              inv_mul_cancel hx, mul_one, sub_self],
       by simp only [add_sub_cancel'_right]⟩⟩)
 
-variables (K V)
-
-lemma ker_to_span_singleton {x : V} (h : x ≠ 0) : (to_span_singleton K V x).ker = ⊥ :=
-begin
-  ext c, split,
-  { intros hc, rw submodule.mem_bot, rw mem_ker at hc, by_contra hc',
-    have : x = 0,
-      calc x = c⁻¹ • (c • x) : by rw [← mul_smul, inv_mul_cancel hc', one_smul]
-      ... = c⁻¹ • ((to_span_singleton K V x) c) : rfl
-      ... = 0 : by rw [hc, smul_zero],
-    tauto },
-  { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
-end
-
 end field
 
 end linear_map
@@ -879,38 +884,35 @@ open linear_map
 
 namespace linear_equiv
 
-section field
+variables (R M) [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+  (x : M) (h : x ≠ 0)
 
-variables (K V) [field K] [add_comm_group V] [module K V]
-
-/-- Given a nonzero element `x` of a vector space `V` over a field `K`, the natural
-    map from `K` to the span of `x`, with invertibility check to consider it as an
-    isomorphism.-/
-def to_span_nonzero_singleton (x : V) (h : x ≠ 0) : K ≃ₗ[K] (K ∙ x) :=
+/-- Given a nonzero element `x` of a torsion-free module `M` over a ring `R`, the natural
+isomorphism from `R` to the span of `x` given by $r \mapsto r \cdot x$. -/
+def to_span_nonzero_singleton : R ≃ₗ[R] R ∙ x :=
 linear_equiv.trans
   (linear_equiv.of_injective
-    (linear_map.to_span_singleton K V x) (ker_eq_bot.1 $ linear_map.ker_to_span_singleton K V h))
-  (linear_equiv.of_eq (to_span_singleton K V x).range (K ∙ x)
-    (span_singleton_eq_range K V x).symm)
+    (linear_map.to_span_singleton R M x) (ker_eq_bot.1 $ ker_to_span_singleton R M h))
+    (linear_equiv.of_eq (to_span_singleton R M x).range (R ∙ x)
+      (span_singleton_eq_range R M x).symm)
 
-lemma to_span_nonzero_singleton_one (x : V) (h : x ≠ 0) :
-  linear_equiv.to_span_nonzero_singleton K V x h 1 =
-    (⟨x, submodule.mem_span_singleton_self x⟩ : K ∙ x) :=
+lemma to_span_nonzero_singleton_one :
+  linear_equiv.to_span_nonzero_singleton R M x h 1 =
+    (⟨x, submodule.mem_span_singleton_self x⟩ : R ∙ x) :=
 begin
   apply set_like.coe_eq_coe.mp,
-  have : ↑(to_span_nonzero_singleton K V x h 1) = to_span_singleton K V x 1 := rfl,
+  have : ↑(to_span_nonzero_singleton R M x h 1) = to_span_singleton R M x 1 := rfl,
   rw [this, to_span_singleton_one, submodule.coe_mk],
 end
 
-/-- Given a nonzero element `x` of a vector space `V` over a field `K`, the natural map
-    from the span of `x` to `K`.-/
-abbreviation coord (x : V) (h : x ≠ 0) : (K ∙ x) ≃ₗ[K] K :=
-(to_span_nonzero_singleton K V x h).symm
+/-- Given a nonzero element `x` of a torsion-free module `M` over a ring `R`, the natural
+isomorphism from the span of `x` to `R` given by $r \cdot x \mapsto r$. -/
+abbreviation coord : (R ∙ x) ≃ₗ[R] R := (to_span_nonzero_singleton R M x h).symm
 
-lemma coord_self (x : V) (h : x ≠ 0) :
-  (coord K V x h) (⟨x, submodule.mem_span_singleton_self x⟩ : K ∙ x) = 1 :=
-by rw [← to_span_nonzero_singleton_one K V x h, linear_equiv.symm_apply_apply]
+lemma coord_self : (coord R M x h) (⟨x, submodule.mem_span_singleton_self x⟩ : R ∙ x) = 1 :=
+by rw [← to_span_nonzero_singleton_one R M x h, linear_equiv.symm_apply_apply]
 
-end field
+lemma coord_apply_smul (y : submodule.span R ({x} : set M)) : coord R M x h y • x = y :=
+subtype.ext_iff.1 $ (to_span_nonzero_singleton R M x h).apply_symm_apply _
 
 end linear_equiv

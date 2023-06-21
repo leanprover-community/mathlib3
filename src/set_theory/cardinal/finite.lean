@@ -9,6 +9,9 @@ import set_theory.cardinal.basic
 /-!
 # Finite Cardinality Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 
 * `nat.card α` is the cardinality of `α` as a natural number.
@@ -19,6 +22,7 @@ import set_theory.cardinal.basic
 
 open cardinal
 noncomputable theory
+open_locale big_operators
 
 variables {α β : Type*}
 
@@ -33,6 +37,9 @@ lemma card_eq_fintype_card [fintype α] : nat.card α = fintype.card α := mk_to
 
 @[simp]
 lemma card_eq_zero_of_infinite [infinite α] : nat.card α = 0 := mk_to_nat_of_infinite
+
+lemma finite_of_card_ne_zero (h : nat.card α ≠ 0) : finite α :=
+not_infinite_iff_finite.mp $ h ∘ @nat.card_eq_zero_of_infinite α
 
 lemma card_congr (f : α ≃ β) : nat.card α = nat.card β :=
 cardinal.to_nat_congr f
@@ -66,6 +73,12 @@ card_of_subsingleton default
 lemma card_eq_one_iff_unique : nat.card α = 1 ↔ subsingleton α ∧ nonempty α :=
 cardinal.to_nat_eq_one_iff_unique
 
+lemma card_eq_two_iff : nat.card α = 2 ↔ ∃ x y : α, x ≠ y ∧ {x, y} = @set.univ α :=
+(to_nat_eq_iff two_ne_zero).trans $ iff.trans (by rw [nat.cast_two]) mk_eq_two_iff
+
+lemma card_eq_two_iff' (x : α) : nat.card α = 2 ↔ ∃! y, y ≠ x :=
+(to_nat_eq_iff two_ne_zero).trans $ iff.trans (by rw [nat.cast_two]) (mk_eq_two_iff' x)
+
 theorem card_of_is_empty [is_empty α] : nat.card α = 0 := by simp
 
 @[simp] lemma card_prod (α β : Type*) : nat.card (α × β) = nat.card α * nat.card β :=
@@ -76,6 +89,15 @@ card_congr equiv.ulift
 
 @[simp] lemma card_plift (α : Type*) : nat.card (plift α) = nat.card α :=
 card_congr equiv.plift
+
+lemma card_pi {β : α → Type*} [fintype α] : nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
+by simp_rw [nat.card, mk_pi, prod_eq_of_fintype, to_nat_lift, to_nat_finset_prod]
+
+lemma card_fun [finite α] : nat.card (α → β) = nat.card β ^ nat.card α :=
+begin
+  haveI := fintype.of_finite α,
+  rw [nat.card_pi, finset.prod_const, finset.card_univ, ←nat.card_eq_fintype_card],
+end
 
 @[simp] lemma card_zmod (n : ℕ) : nat.card (zmod n) = n :=
 begin

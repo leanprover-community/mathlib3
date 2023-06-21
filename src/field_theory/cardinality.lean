@@ -3,14 +3,14 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import algebra.ring.ulift
+import algebra.field.ulift
 import data.mv_polynomial.cardinal
+import data.nat.factorization.prime_pow
 import data.rat.denumerable
 import field_theory.finite.galois_field
 import logic.equiv.transfer_instance
 import ring_theory.localization.cardinality
 import set_theory.cardinal.divisibility
-import data.nat.factorization.prime_pow
 
 /-!
 # Cardinality of Fields
@@ -36,8 +36,10 @@ universe u
 /-- A finite field has prime power cardinality. -/
 lemma fintype.is_prime_pow_card_of_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
 begin
+  -- TODO: `algebra` version of `char_p.exists`, of type `Σ p, algebra (zmod p) α`
   casesI char_p.exists α with p _,
   haveI hp := fact.mk (char_p.char_is_prime α p),
+  letI : algebra (zmod p) α := zmod.algebra _ _,
   let b := is_noetherian.finset_basis (zmod p) α,
   rw [module.card_fintype b, zmod.card, is_prime_pow_pow_iff],
   { exact hp.1.is_prime_pow },
@@ -50,7 +52,7 @@ lemma fintype.nonempty_field_iff {α} [fintype α] : nonempty (field α) ↔ is_
 begin
   refine ⟨λ ⟨h⟩, by exactI fintype.is_prime_pow_card_of_field, _⟩,
   rintros ⟨p, n, hp, hn, hα⟩,
-  haveI := fact.mk (nat.prime_iff.mpr hp),
+  haveI := fact.mk hp.nat_prime,
   exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩,
 end
 

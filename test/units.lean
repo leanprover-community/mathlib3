@@ -1,4 +1,4 @@
-import algebra.ring.basic
+import algebra.ring.units
 
 /--
 Test division of units in a commutative ring.

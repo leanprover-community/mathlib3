@@ -10,6 +10,9 @@ import category_theory.limits.shapes.comm_sq
 /-!
 # The diagonal object of a morphism.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide various API and isomorphisms considering the diagonal object `Δ_{Y/X} := pullback f f`
 of a morphism `f : X ⟶ Y`.
 
@@ -58,9 +61,9 @@ begin
 end
 
 /-- The two projections `Δ_{X/Y} ⟶ X` form a kernel pair for `f : X ⟶ Y`. -/
-def diagonal_is_kernel_pair :
+lemma diagonal_is_kernel_pair :
   is_kernel_pair f (pullback.fst : diagonal_obj f ⟶ _) pullback.snd :=
-⟨pullback.condition, pullback_is_pullback _ _⟩
+is_pullback.of_has_pullback f f
 
 end diagonal
 

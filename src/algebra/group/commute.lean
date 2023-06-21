@@ -8,6 +8,9 @@ import algebra.group.semiconj
 /-!
 # Commuting pairs of elements in monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the predicate `commute a b := a * b = b * a` and provide some operations on terms `(h :
 commute a b)`. E.g., if `a`, `b`, and c are elements of a semiring, and that `hb : commute a b` and
 `hc : commute a c`.  Then `hb.pow_left 5` proves `commute (a ^ 5) b` and `(hb.pow_right 2).add_right
@@ -54,6 +57,12 @@ protected lemma symm {a b : S} (h : commute a b) : commute b a := eq.symm h
 protected theorem symm_iff {a b : S} : commute a b ↔ commute b a :=
 ⟨commute.symm, commute.symm⟩
 
+@[to_additive] instance : is_refl S commute := ⟨commute.refl⟩
+
+-- This instance is useful for `finset.noncomm_prod`
+@[to_additive] instance on_is_refl {f : G → S} : is_refl G (λ a b, commute (f a) (f b)) :=
+⟨λ _, commute.refl _⟩
+
 end has_mul
 
 section semigroup
@@ -75,6 +84,10 @@ by simp only [mul_assoc, h.eq]
 @[to_additive] protected lemma left_comm (h : commute a b) (c) :
   a * (b * c) = b * (a * c) :=
 by simp only [← mul_assoc, h.eq]
+
+@[to_additive] protected lemma mul_mul_mul_comm (hbc : commute b c) (a d : S) :
+  (a * b) * (c * d) = (a * c) * (b * d) :=
+by simp only [hbc.left_comm, mul_assoc]
 
 end semigroup
 
@@ -134,21 +147,26 @@ theorem units_of_coe : commute (u₁ : M) u₂ → commute u₁ u₂ := semiconj
 @[simp, to_additive]
 theorem units_coe_iff : commute (u₁ : M) u₂ ↔ commute u₁ u₂ := semiconj_by.units_coe_iff
 
+/-- If the product of two commuting elements is a unit, then the left multiplier is a unit. -/
+@[to_additive "If the sum of two commuting elements is an additive unit, then the left summand is an
+additive unit."]
+def _root_.units.left_of_mul (u : Mˣ) (a b : M) (hu : a * b = u) (hc : commute a b) : Mˣ :=
+{ val := a,
+  inv := b * ↑u⁻¹,
+  val_inv := by rw [← mul_assoc, hu, u.mul_inv],
+  inv_val := have commute a u, from hu ▸ (commute.refl _).mul_right hc,
+    by rw [← this.units_inv_right.right_comm, ← hc.eq, hu, u.mul_inv] }
+
+/-- If the product of two commuting elements is a unit, then the right multiplier is a unit. -/
+@[to_additive "If the sum of two commuting elements is an additive unit, then the right summand is
+an additive unit."]
+def _root_.units.right_of_mul (u : Mˣ) (a b : M) (hu : a * b = u) (hc : commute a b) : Mˣ :=
+u.left_of_mul b a (hc.eq ▸ hu) hc.symm
+
 @[to_additive] lemma is_unit_mul_iff (h : commute a b) :
   is_unit (a * b) ↔ is_unit a ∧ is_unit b :=
-begin
-  refine ⟨_, λ H, H.1.mul H.2⟩,
-  rintro ⟨u, hu⟩,
-  have : b * ↑u⁻¹ * a = 1,
-  { have : commute a u := hu.symm ▸ (commute.refl _).mul_right h,
-    rw [← this.units_inv_right.right_comm, ← h.eq, ← hu, u.mul_inv] },
-  split,
-  { refine ⟨⟨a, b * ↑u⁻¹, _, this⟩, rfl⟩,
-    rw [← mul_assoc, ← hu, u.mul_inv] },
-  { rw mul_assoc at this,
-    refine ⟨⟨b, ↑u⁻¹ * a, this, _⟩, rfl⟩,
-    rw [mul_assoc, ← hu, u.inv_mul] }
-end
+⟨λ ⟨u, hu⟩, ⟨(u.left_of_mul a b hu.symm h).is_unit, (u.right_of_mul a b hu.symm h).is_unit⟩,
+  λ H, H.1.mul H.2⟩
 
 @[simp, to_additive] lemma _root_.is_unit_mul_self_iff :
   is_unit (a * a) ↔ is_unit a :=
@@ -157,11 +175,30 @@ end
 end monoid
 
 section division_monoid
-variables [division_monoid G] {a b : G}
+variables [division_monoid G] {a b c d : G}
 
-@[to_additive] lemma inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
+@[to_additive] protected lemma inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
 @[simp, to_additive]
 lemma inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
+
+@[to_additive] protected lemma mul_inv (hab : commute a b) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
+by rw [hab.eq, mul_inv_rev]
+
+@[to_additive] protected lemma inv (hab : commute a b) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
+by rw [hab.eq, mul_inv_rev]
+
+@[to_additive] protected lemma div_mul_div_comm (hbd : commute b d) (hbc : commute b⁻¹ c) :
+  a / b * (c / d) = a * c / (b * d) :=
+by simp_rw [div_eq_mul_inv, mul_inv_rev, hbd.inv_inv.symm.eq, hbc.mul_mul_mul_comm]
+
+@[to_additive] protected lemma mul_div_mul_comm (hcd : commute c d) (hbc : commute b c⁻¹) :
+  a * b / (c * d) = a / c * (b / d) :=
+(hcd.div_mul_div_comm hbc.symm).symm
+
+@[to_additive] protected lemma div_div_div_comm (hbc : commute b c) (hbd : commute b⁻¹ d)
+  (hcd : commute c⁻¹ d) : a / b / (c / d) = a / c / (b / d) :=
+by simp_rw [div_eq_mul_inv, mul_inv_rev, inv_inv, hbd.symm.eq, hcd.symm.eq,
+  hbc.inv_inv.mul_mul_mul_comm]
 
 end division_monoid
 

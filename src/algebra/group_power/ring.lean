@@ -4,10 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.group_power.basic
+import algebra.group_with_zero.commute
 import algebra.hom.ring
+import algebra.ring.commute
+import algebra.group_with_zero.divisibility
+import algebra.ring.divisibility
+import data.nat.order.basic
 
 /-!
 # Power operations on monoids with zero, semirings, and rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides additional lemmas about the natural power operator on rings and semirings.
 Further lemmas about ordered semirings and rings can be found in `algebra.group_power.lemmas`.
@@ -71,6 +79,9 @@ by { contrapose!, rintro rfl, exact zero_pow' n hn }
 @[field_simps] theorem pow_ne_zero [no_zero_divisors M]
   {a : M} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
+
+instance ne_zero.pow [no_zero_divisors M] {x : M} [ne_zero x] {n : ℕ} :
+  ne_zero (x ^ n) := ⟨pow_ne_zero n ne_zero.out⟩
 
 theorem sq_eq_zero_iff [no_zero_divisors M] {a : M} : a ^ 2 = 0 ↔ a = 0 :=
 pow_eq_zero_iff two_pos

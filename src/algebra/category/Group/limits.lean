@@ -6,12 +6,14 @@ Authors: Scott Morrison
 import algebra.category.Mon.limits
 import algebra.category.Group.preadditive
 import category_theory.over
-import category_theory.limits.concrete_category
-import category_theory.limits.shapes.concrete_category
 import group_theory.subgroup.basic
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of (commutative) (additive) groups has all limits
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.

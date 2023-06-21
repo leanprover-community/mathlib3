@@ -3,13 +3,15 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import algebra.hom.group_instances
 import topology.algebra.uniform_group
 import topology.algebra.uniform_mul_action
 import topology.uniform_space.completion
 
 /-!
 # Completion of topological groups:
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This files endows the completion of a topological abelian group with a group structure.
 More precisely the instance `uniform_space.completion.add_group` builds an abelian group structure
@@ -148,6 +150,13 @@ instance {M} [monoid M] [distrib_mul_action M α] [has_uniform_continuous_const_
 
 lemma continuous_to_compl : continuous (to_compl : α → completion α) :=
 continuous_coe α
+
+variable (α)
+
+lemma dense_inducing_to_compl : dense_inducing (to_compl : α → completion α) :=
+dense_inducing_coe
+
+variable {α}
 
 end uniform_add_group
 

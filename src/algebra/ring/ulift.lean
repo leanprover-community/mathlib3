@@ -9,6 +9,9 @@ import algebra.ring.equiv
 /-!
 # `ulift` instances for ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for ring, semiring and related structures on `ulift` types.
 
 (Recall `ulift α` is just a "copy" of a type `α` in a higher universe.)
@@ -102,26 +105,5 @@ tactic.pi_instance_derive_field
 instance comm_ring [comm_ring α] : comm_ring (ulift α) :=
 by refine_struct { .. ulift.ring };
 tactic.pi_instance_derive_field
-
-instance [has_rat_cast α] : has_rat_cast (ulift α) :=
-⟨λ a, ulift.up (coe a)⟩
-
-@[simp] lemma rat_cast_down [has_rat_cast α] (n : ℚ) : ulift.down (n : ulift α) = n :=
-rfl
-
-instance field [field α] : field (ulift α) :=
-begin
-  have of_rat_mk : ∀ a b h1 h2, ((⟨a, b, h1, h2⟩ : ℚ) : ulift α) = ↑a * (↑b)⁻¹,
-  { intros a b h1 h2,
-    ext,
-    rw [rat_cast_down, mul_down, inv_down, nat_cast_down, int_cast_down],
-    exact field.rat_cast_mk a b h1 h2 },
-  refine_struct { zero := (0 : ulift α), inv := has_inv.inv, div := has_div.div,
-  zpow := λ n a, ulift.up (a.down ^ n), rat_cast := coe, rat_cast_mk := of_rat_mk, qsmul := (•),
-  .. @ulift.nontrivial α _, .. ulift.comm_ring }; tactic.pi_instance_derive_field,
-  -- `mul_inv_cancel` requires special attention: it leaves the goal `∀ {a}, a ≠ 0 → a * a⁻¹ = 1`.
-  cases a,
-  tauto
-end
 
 end ulift

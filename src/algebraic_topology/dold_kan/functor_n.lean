@@ -10,6 +10,9 @@ import algebraic_topology.dold_kan.p_infty
 
 # Construction of functors N for the Dold-Kan correspondence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we construct functors `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)`
@@ -55,7 +58,9 @@ def N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ) :=
     idem := P_infty_idem, },
   map := λ X Y f,
   { f := P_infty ≫ alternating_face_map_complex.map f,
-    comm := by tidy, }, }
+    comm := by { ext, simp }, },
+  map_id' := λ X, by { ext, dsimp, simp },
+  map_comp' := λ X Y Z f g, by { ext, simp } }
 
 /-- The extension of `N₁` to the Karoubi envelope of `simplicial_object C`. -/
 @[simps]

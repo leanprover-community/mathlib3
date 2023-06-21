@@ -11,6 +11,9 @@ import ring_theory.witt_vector.defs
 /-!
 # Witt vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file verifies that the ring operations on `witt_vector p R`
 satisfy the axioms of a commutative ring.
 
@@ -240,6 +243,8 @@ private def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
 (map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring _
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
   (map_fun.nsmul _) (map_fun.zsmul _) (map_fun.pow _) (map_fun.nat_cast _) (map_fun.int_cast _)
+
+attribute [reducible] comm_ring_aux₂
 
 /-- The commutative ring structure on `𝕎 R`. -/
 instance : comm_ring (𝕎 R) :=

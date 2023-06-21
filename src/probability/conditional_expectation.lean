@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.notation
-import probability.independence
+import probability.independence.basic
+import measure_theory.function.conditional_expectation.basic
 
 /-!
 
 # Probabilistic properties of the conditional expectation
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some properties about the conditional expectation which does not belong in
 the main conditional expectation file.
@@ -38,7 +42,7 @@ lemma condexp_indep_eq
   μ[f | m₂] =ᵐ[μ] λ x, μ[f] :=
 begin
   by_cases hfint : integrable f μ,
-  swap, { exact (integral_undef hfint).symm ▸ condexp_undef hfint },
+  swap, { rw [condexp_undef hfint, integral_undef hfint], refl, },
   have hfint₁ := hfint.trim hle₁ hf,
   refine (ae_eq_condexp_of_forall_set_integral_eq hle₂ hfint
     (λ s _ hs, integrable_on_const.2 (or.inr hs)) (λ s hms hs, _)

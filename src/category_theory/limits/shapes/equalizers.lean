@@ -9,6 +9,9 @@ import category_theory.limits.has_limits
 /-!
 # Equalizers and coequalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (co)equalizers as special cases of (co)limits.
 
 An equalizer is the categorical generalization of the subobject {a ∈ A | f(a) = g(a)} known
@@ -750,6 +753,13 @@ colimit.desc (parallel_pair f g) (cofork.of_π k h)
 lemma coequalizer.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) :
   coequalizer.π f g ≫ coequalizer.desc k h = k :=
 colimit.ι_desc _ _
+
+lemma coequalizer.π_colim_map_desc {X' Y' Z : C} (f' g' : X' ⟶ Y') [has_coequalizer f' g']
+  (p : X ⟶ X') (q : Y ⟶ Y') (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g')
+  (h : Y' ⟶ Z) (wh : f' ≫ h = g' ≫ h) :
+  coequalizer.π f g ≫ colim_map (parallel_pair_hom f g f' g' p q wf wg) ≫ coequalizer.desc h wh =
+  q ≫ h :=
+by rw [ι_colim_map_assoc, parallel_pair_hom_app_one, coequalizer.π_desc]
 
 /-- Any morphism `k : Y ⟶ W` satisfying `f ≫ k = g ≫ k` induces a morphism
     `l : coequalizer f g ⟶ W` satisfying `coequalizer.π ≫ g = l`. -/

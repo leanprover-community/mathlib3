@@ -9,6 +9,9 @@ import topology.sheaves.sheaf_condition.pairwise_intersections
 /-!
 # functors between categories of sheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that the pushforward of a sheaf is a sheaf, and define
 the pushforward functor from the category of C-valued sheaves
 on X to that of sheaves on Y, given a continuous map between
@@ -19,15 +22,15 @@ TODO: pullback for presheaves and sheaves
 
 noncomputable theory
 
-universes v u u₁
+universes w v u
 
 open category_theory
 open category_theory.limits
 open topological_space
 
-variables {C : Type u₁} [category.{v} C]
-variables {X Y : Top.{v}} (f : X ⟶ Y)
-variables ⦃ι : Type v⦄ {U : ι → opens Y}
+variables {C : Type u} [category.{v} C]
+variables {X Y : Top.{w}} (f : X ⟶ Y)
+variables ⦃ι : Type w⦄ {U : ι → opens Y}
 
 namespace Top
 namespace presheaf.sheaf_condition_pairwise_intersections
@@ -65,8 +68,6 @@ end presheaf.sheaf_condition_pairwise_intersections
 namespace sheaf
 
 open presheaf
-
-variables [has_products.{v} C]
 
 /--
 The pushforward of a sheaf (by a continuous map) is a sheaf.

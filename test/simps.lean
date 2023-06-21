@@ -15,7 +15,7 @@ structure equiv' (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-local infix ` ≃ `:25 := equiv'
+local infix (name := equiv') ` ≃ `:25 := equiv'
 
 /- Since `prod` and `pprod` are a special case for `@[simps]`, we define a new structure to test
   the basic functionality.-/
@@ -34,7 +34,9 @@ run_cmd do
   e.get `foo.rfl_to_fun,
   e.get `foo.rfl_inv_fun,
   success_if_fail (e.get `foo.rfl_left_inv),
-  success_if_fail (e.get `foo.rfl_right_inv)
+  success_if_fail (e.get `foo.rfl_right_inv),
+  p ← simps_aux.get_param `foo.rfl,
+  guard $ p = [`foo.rfl_to_fun, `foo.rfl_inv_fun]
 
 example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
 example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
@@ -256,7 +258,9 @@ Note: these projection names might not correspond to the projection names of the
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
-  classical.choice specify.specify5._proof_1"
+  classical.choice specify.specify5._proof_1",
+    p ← simps_aux.get_param `specify.specify4,
+    guard $ p = [`specify.specify4_snd, `specify.specify4_snd_snd]
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/
@@ -421,7 +425,7 @@ example {α β} [semigroup α] [semigroup β] (x y : α × β) : (x * y).1 = x.1
 structure Semigroup :=
   (G : Type*)
   (op : G → G → G)
-  (infix * := op)
+  (infix (name := op) ` * ` := op)
   (op_assoc : ∀ (x y z : G), (x * y) * z = x * (y * z))
 
 namespace Group
@@ -481,7 +485,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_coercion.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_coercion.equiv
 
 variables {α β γ : Sort*}
 
@@ -507,14 +511,15 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := faulty_manual_coercion.equiv
+local infix (name := equiv) ` ≃ `:25 := faulty_manual_coercion.equiv
 
 variables {α β γ : Sort*}
 
 /-- See Note [custom simps projection] -/
 noncomputable def equiv.simps.inv_fun (e : α ≃ β) : β → α := classical.choice ⟨e.inv_fun⟩
 
-run_cmd do e ← get_env, success_if_fail_with_msg (simps_get_raw_projections e `faulty_manual_coercion.equiv)
+run_cmd do e ← get_env, success_if_fail_with_msg
+  (simps_get_raw_projections e `faulty_manual_coercion.equiv)
 "Invalid custom projection:
   λ {α : Sort u_1} {β : Sort u_2} (e : α ≃ β), classical.choice _
 Expression is not definitionally equal to
@@ -530,7 +535,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_initialize.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_initialize.equiv
 
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
@@ -558,7 +563,7 @@ structure equiv (α : Sort u) (β : Sort v) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := faulty_universes.equiv
+local infix (name := equiv) ` ≃ `:25 := faulty_universes.equiv
 
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
@@ -588,7 +593,7 @@ structure equiv (α : Sort u) (β : Sort v) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_universes.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_universes.equiv
 
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
@@ -609,7 +614,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_projection_names.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_projection_names.equiv
 
 variables {α β γ : Sort*}
 
@@ -649,7 +654,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := prefix_projection_names.equiv
+local infix (name := equiv) ` ≃ `:25 := prefix_projection_names.equiv
 
 variables {α β γ : Sort*}
 
@@ -726,7 +731,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := nested_non_fully_applied.equiv
+local infix (name := equiv) ` ≃ `:25 := nested_non_fully_applied.equiv
 
 variables {α β γ : Sort*}
 

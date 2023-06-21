@@ -1,6 +1,7 @@
 import tactic.ring_exp
 import tactic.zify
 import algebra.group_with_zero.power
+import algebra.ring.pi
 import tactic.field_simp
 
 universes u
@@ -74,6 +75,13 @@ example (a b : ℚ) : (a * b) ^ 1000000 = (b * a) ^ 1000000 := by ring_exp
 
 example (n : ℕ) : 2 ^ (n + 1 + 1)  = 2 * 2 ^ (n + 1) :=
 by ring_exp_eq
+
+-- power does not have to be a syntactic match to `monoid.has_pow`
+example {α} [comm_ring α] (x : ℕ → α) : (x ^ 2 * x) = x ^ 3 := by ring_exp
+
+-- Powers in the exponent get evaluated correctly.
+example (X : ℤ) : (X^5 + 1) * (X^2^3 + X) = X^13 + X^8 + X^6 + X :=
+by ring_exp
 
 end exponentiation
 

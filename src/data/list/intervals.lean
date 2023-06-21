@@ -9,6 +9,9 @@ import data.list.range
 /-!
 # Intervals in ℕ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines intervals of naturals. `list.Ico m n` is the list of integers greater than `m`
 and strictly less than `n`.
 

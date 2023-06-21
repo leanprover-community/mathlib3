@@ -39,7 +39,7 @@ equals the number of real roots plus the number of roots not fixed by complex co
 -/
 
 noncomputable theory
-open_locale classical polynomial
+open_locale polynomial
 
 open finite_dimensional
 
@@ -63,7 +63,7 @@ alg_equiv.apply_mul_semiring_action
 begin
   refine alg_equiv.ext (λ x, (alg_hom.mem_equalizer σ.to_alg_hom τ.to_alg_hom x).mp
       ((set_like.ext_iff.mp _ x).mpr algebra.mem_top)),
-  rwa [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
+  rwa [eq_top_iff, ←splitting_field.adjoin_root_set, algebra.adjoin_le_iff],
 end
 
 /-- If `p` splits in `F` then the `p.gal` is trivial. -/
@@ -123,12 +123,7 @@ section roots_action
 see `polynomial.gal.map_roots_bijective`. -/
 def map_roots [fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
-λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
-  have key := subtype.mem x,
-  by_cases p = 0,
-  { simp only [h, root_set_zero] at key,
-    exact false.rec _ key },
-  { rw [mem_root_set h, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
+set.maps_to.restrict (is_scalar_tower.to_alg_hom F p.splitting_field E) _ _ $ root_set_maps_to _
 
 lemma map_roots_bijective [h : fact (p.splits (algebra_map F E))] :
   function.bijective (map_roots p E) :=
@@ -144,7 +139,7 @@ begin
     have hy := subtype.mem y,
     simp only [root_set, finset.mem_coe, multiset.mem_to_finset, key, multiset.mem_map] at hy,
     rcases hy with ⟨x, hx1, hx2⟩,
-    exact ⟨⟨x, multiset.mem_to_finset.mpr hx1⟩, subtype.ext hx2⟩ }
+    exact ⟨⟨x, (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr hx1⟩, subtype.ext hx2⟩ }
 end
 
 /-- The bijection between `root_set p p.splitting_field` and `root_set p E`. -/
@@ -153,15 +148,7 @@ def roots_equiv_roots [fact (p.splits (algebra_map F E))] :
 equiv.of_bijective (map_roots p E) (map_roots_bijective p E)
 
 instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
-{ smul := λ ϕ x, ⟨ϕ x, begin
-    have key := subtype.mem x,
-    --simp only [root_set, finset.mem_coe, multiset.mem_to_finset] at *,
-    by_cases p = 0,
-    { simp only [h, root_set_zero] at key,
-      exact false.rec _ key },
-    { rw mem_root_set h,
-      change aeval (ϕ.to_alg_hom x) p = 0,
-      rw [aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩,
+{ smul := λ ϕ, set.maps_to.restrict ϕ _ _ $ root_set_maps_to ϕ.to_alg_hom,
   one_smul := λ _, by { ext, refl },
   mul_smul := λ _ _ _, by { ext, refl } }
 
@@ -214,12 +201,18 @@ variables {p q}
 
 /-- `polynomial.gal.restrict`, when both fields are splitting fields of polynomials. -/
 def restrict_dvd (hpq : p ∣ q) : q.gal →* p.gal :=
+by haveI := classical.dec (q = 0); exact
 if hq : q = 0 then 1 else @restrict F _ p _ _ _
   ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩
 
+lemma restrict_dvd_def [decidable (q = 0)] (hpq : p ∣ q) :
+  restrict_dvd hpq = if hq : q = 0 then 1 else @restrict F _ p _ _ _
+  ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩ :=
+by convert rfl
+
 lemma restrict_dvd_surjective (hpq : p ∣ q) (hq : q ≠ 0) :
   function.surjective (restrict_dvd hpq) :=
-by simp only [restrict_dvd, dif_neg hq, restrict_surjective]
+by classical; simp only [restrict_dvd_def, dif_neg hq, restrict_surjective]
 
 variables (p q)
 
@@ -234,22 +227,25 @@ begin
   { haveI : unique (p * q).gal, { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
-  dsimp only [restrict_prod, restrict_dvd] at hfg,
+  classical,
+  simp only [restrict_prod, restrict_dvd_def] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
-  rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
+  rw [root_set_def, polynomial.map_mul, polynomial.roots_mul] at hx,
   cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
   { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,
     have key : x = algebra_map (p.splitting_field) (p * q).splitting_field
-      ((roots_equiv_roots p _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
+      ((roots_equiv_roots p _).inv_fun ⟨x,
+        (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr h⟩) :=
       subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots p _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.1 _) },
   { haveI : fact (q.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_left q p)⟩,
     have key : x = algebra_map (q.splitting_field) (p * q).splitting_field
-      ((roots_equiv_roots q _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
+      ((roots_equiv_roots q _).inv_fun ⟨x,
+        (@multiset.mem_to_finset _ (classical.dec_eq _) _ _).mpr h⟩) :=
       subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots q _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.2 _) },
@@ -262,12 +258,12 @@ lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : F[X]}
   (p₁ * p₂).splits (algebra_map F (q₁ * q₂).splitting_field) :=
 begin
   apply splits_mul,
-  { rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd _
-      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
-    exact splits_comp_of_splits _ _ h₁, },
-  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd _
-      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
-    exact splits_comp_of_splits _ _ h₂, },
+  { rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd (algebra_map F (q₁ * q₂).splitting_field)
+     (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₁ },
+  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd (algebra_map F (q₁ * q₂).splitting_field)
+     (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₂ },
 end
 
 /-- `p` splits in the splitting field of `p ∘ q`, for `q` non-constant. -/
@@ -309,7 +305,9 @@ end
 
 /-- `polynomial.gal.restrict` for the composition of polynomials. -/
 def restrict_comp (hq : q.nat_degree ≠ 0) : (p.comp q).gal →* p.gal :=
-@restrict F _ p _ _ _ ⟨splits_in_splitting_field_of_comp p q hq⟩
+let h : fact (splits (algebra_map F (p.comp q).splitting_field) p) :=
+    ⟨splits_in_splitting_field_of_comp p q hq⟩ in
+@restrict F _ p _ _ _ h
 
 lemma restrict_comp_surjective (hq : q.nat_degree ≠ 0) :
   function.surjective (restrict_comp p q hq) :=
@@ -362,10 +360,9 @@ lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : ℚ[X]) :
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ))).support.card :=
 begin
   by_cases hp : p = 0,
-  { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
-    refine eq.symm (nat.le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
-    simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
-    apply_instance },
+  { haveI : is_empty (p.root_set ℂ) := by { rw [hp, root_set_zero], apply_instance },
+    simp_rw [(gal_action_hom p ℂ _).support.eq_empty_of_is_empty, hp, root_set_zero,
+      set.to_finset_empty, finset.card_empty] },
   have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
   rw [←finset.card_image_of_injective _ subtype.coe_injective,
       ←finset.card_image_of_injective _ inj],
@@ -373,11 +370,11 @@ begin
   let b : finset ℂ := _,
   let c : finset ℂ := _,
   change a.card = b.card + c.card,
-  have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0 :=
-  λ z, by rw [set.mem_to_finset, mem_root_set hp],
+  have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0,
+  { intro z, rw [set.mem_to_finset, mem_root_set_of_ne hp], apply_instance },
   have hb : ∀ z : ℂ, z ∈ b ↔ aeval z p = 0 ∧ z.im = 0,
   { intro z,
-    simp_rw [finset.mem_image, exists_prop, set.mem_to_finset, mem_root_set hp],
+    simp_rw [finset.mem_image, exists_prop, set.mem_to_finset, mem_root_set_of_ne hp],
     split,
     { rintros ⟨w, hw, rfl⟩,
       exact ⟨by rw [aeval_alg_hom_apply, hw, alg_hom.map_zero], rfl⟩ },
@@ -388,22 +385,23 @@ begin
     (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
-    exact complex.eq_conj_iff_im },
+    exact complex.conj_eq_iff_im },
   have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
   { intro z,
     simp_rw [finset.mem_image, exists_prop],
     split,
     { rintros ⟨w, hw, rfl⟩,
-      exact ⟨(mem_root_set hp).mp w.2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
+      exact ⟨(mem_root_set.mp w.2).2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
     { rintros ⟨hz1, hz2⟩,
-      exact ⟨⟨z, (mem_root_set hp).mpr hz1⟩,
+      exact ⟨⟨z, mem_root_set.mpr ⟨hp, hz1⟩⟩,
         equiv.perm.mem_support.mpr (mt (hc0 _).mp hz2), rfl⟩ } },
   rw ← finset.card_disjoint_union,
   { apply congr_arg finset.card,
     simp_rw [finset.ext_iff, finset.mem_union, ha, hb, hc],
     tauto },
-  { intro z,
-    rw [finset.inf_eq_inter, finset.mem_inter, hb, hc],
+  { rw finset.disjoint_left,
+    intros z,
+    rw [hb, hc],
     tauto },
   { apply_instance },
 end
@@ -414,6 +412,7 @@ lemma gal_action_hom_bijective_of_prime_degree
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
   function.bijective (gal_action_hom p ℂ) :=
 begin
+  classical,
   have h1 : fintype.card (p.root_set ℂ) = p.nat_degree,
   { simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
     rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots],

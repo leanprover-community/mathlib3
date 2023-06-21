@@ -9,6 +9,9 @@ import order.filter.at_top_bot
 /-!
 # `at_top` filter and archimedean (semi)rings/fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that for a linear ordered archimedean semiring `R` and a function `f : α → ℕ`,
 the function `coe ∘ f : α → R` tends to `at_top` along a filter `l` if and only if so does `f`.
 We also prove that `coe : ℕ → R` tends to `at_top` along `at_top`, as well as version of these
@@ -19,40 +22,40 @@ variables {α R : Type*}
 
 open filter set
 
-@[simp] lemma nat.comap_coe_at_top [ordered_semiring R] [nontrivial R] [archimedean R] :
+@[simp] lemma nat.comap_coe_at_top [strict_ordered_semiring R] [archimedean R] :
   comap (coe : ℕ → R) at_top = at_top :=
 comap_embedding_at_top (λ _ _, nat.cast_le) exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_nat_at_top_iff [strict_ordered_semiring R] [archimedean R]
   {f : α → ℕ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_at_top [ordered_semiring R] [archimedean R] :
+lemma tendsto_coe_nat_at_top_at_top [strict_ordered_semiring R] [archimedean R] :
   tendsto (coe : ℕ → R) at_top at_top :=
 nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
 
-@[simp] lemma int.comap_coe_at_top [ordered_ring R] [nontrivial R] [archimedean R] :
+@[simp] lemma int.comap_coe_at_top [strict_ordered_ring R] [archimedean R] :
   comap (coe : ℤ → R) at_top = at_top :=
 comap_embedding_at_top (λ _ _, int.cast_le) $ λ r,
   let ⟨n, hn⟩ := exists_nat_ge r in ⟨n, by exact_mod_cast hn⟩
 
-@[simp] lemma int.comap_coe_at_bot [ordered_ring R] [nontrivial R] [archimedean R] :
+@[simp] lemma int.comap_coe_at_bot [strict_ordered_ring R] [archimedean R] :
   comap (coe : ℤ → R) at_bot = at_bot :=
 comap_embedding_at_bot (λ _ _, int.cast_le) $ λ r,
   let ⟨n, hn⟩ := exists_nat_ge (-r) in ⟨-n, by simpa [neg_le] using hn⟩
 
-lemma tendsto_coe_int_at_top_iff [ordered_ring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_int_at_top_iff [strict_ordered_ring R] [archimedean R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 by rw [← tendsto_comap_iff, int.comap_coe_at_top]
 
-lemma tendsto_coe_int_at_bot_iff [ordered_ring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_int_at_bot_iff [strict_ordered_ring R] [archimedean R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_bot ↔ tendsto f l at_bot :=
 by rw [← tendsto_comap_iff, int.comap_coe_at_bot]
 
-lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [archimedean R] :
+lemma tendsto_coe_int_at_top_at_top [strict_ordered_ring R] [archimedean R] :
   tendsto (coe : ℤ → R) at_top at_top :=
 int.cast_mono.tendsto_at_top_at_top $ λ b,
   let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, by exact_mod_cast hn⟩

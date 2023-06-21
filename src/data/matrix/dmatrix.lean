@@ -3,10 +3,14 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.group.pi
 import data.fintype.basic
 
 /-!
 # Matrices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u u' v w z
 
@@ -53,7 +57,7 @@ by { ext, simp, }
 def transpose (M : dmatrix m n α) : dmatrix n m (λ j i, α i j)
 | x y := M y x
 
-localized "postfix `ᵀ`:1500 := dmatrix.transpose" in dmatrix
+localized "postfix (name := dmatrix.transpose) `ᵀ`:1500 := dmatrix.transpose" in dmatrix
 
 /-- `dmatrix.col u` is the column matrix whose entries are given by `u`. -/
 def col {α : m → Type v} (w : Π i, α i) : dmatrix m unit (λ i j, α i)

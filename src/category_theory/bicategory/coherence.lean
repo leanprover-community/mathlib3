@@ -10,6 +10,9 @@ import category_theory.bicategory.locally_discrete
 /-!
 # The coherence theorem for bicategories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove the coherence theorem for bicategories, stated in the following form: the
 free bicategory over any quiver is locally thin.
 
@@ -68,7 +71,7 @@ def preinclusion (B : Type u) [quiver.{v+1} B] :
   prelax_functor (locally_discrete (paths B)) (free_bicategory B) :=
 { obj   := id,
   map   := λ a b, (inclusion_path a b).obj,
-  map₂  := λ a b, (inclusion_path a b).map }
+  map₂  := λ a b f g η, (inclusion_path a b).map η }
 
 @[simp]
 lemma preinclusion_obj (a : B) :
@@ -207,8 +210,8 @@ equivalence.mk ((normalize _).map_functor a b) (inclusion_path a b)
   (discrete.nat_iso (λ f, eq_to_iso (by { induction f; induction f; tidy })))
 
 /-- The coherence theorem for bicategories. -/
-instance locally_thin {a b : free_bicategory B} (f g : a ⟶ b) : subsingleton (f ⟶ g) :=
-⟨λ η θ, (normalize_equiv a b).functor.map_injective (subsingleton.elim _ _)⟩
+instance locally_thin {a b : free_bicategory B} : quiver.is_thin (a ⟶ b) :=
+λ _ _, ⟨λ η θ, (normalize_equiv a b).functor.map_injective (subsingleton.elim _ _)⟩
 
 /-- Auxiliary definition for `inclusion`. -/
 def inclusion_map_comp_aux {a b : B} : ∀ {c : B} (f : path a b) (g : path b c),

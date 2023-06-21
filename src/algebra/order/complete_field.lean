@@ -5,10 +5,13 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.hom.ring
 import algebra.order.pointwise
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 
 /-!
 # Conditionally complete linear ordered fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file shows that the reals are unique, or, more formally, given a type satisfying the common
 axioms of the reals (field, conditionally complete, linearly ordered) that there is an isomorphism
@@ -135,7 +138,7 @@ begin
   { rw [mem_set_of_eq, ←sub_lt_iff_lt_add] at hq,
     obtain ⟨q₁, hq₁q, hq₁ab⟩ := exists_rat_btwn hq,
     refine ⟨q₁, q - q₁, _, _, add_sub_cancel'_right _ _⟩; try {norm_cast}; rwa coe_mem_cut_map_iff,
-    exact_mod_cast sub_lt.mp hq₁q },
+    exact_mod_cast sub_lt_comm.mp hq₁q },
   { rintro _ ⟨_, _, ⟨qa, ha, rfl⟩, ⟨qb, hb, rfl⟩, rfl⟩,
     refine ⟨qa + qb, _, by norm_cast⟩,
     rw [mem_set_of_eq, cast_add],
@@ -316,16 +319,7 @@ section real
 variables {R S : Type*} [ordered_ring R] [linear_ordered_ring S]
 
 lemma ring_hom_monotone (hR : ∀ r : R, 0 ≤ r → ∃ s : R, s^2 = r) (f : R →+* S) : monotone f :=
-begin
-  intros a b hab,
-  apply le_of_sub_nonneg,
-  obtain ⟨s, hs⟩ := hR (b - a) (sub_nonneg.mpr hab),
-  calc
-    f b - f a = f (b - a) : (ring_hom.map_sub _ _ _).symm
-          ... = f(s^2)    : by rw ←hs
-          ... = f(s)^2    : ring_hom.map_pow _ _ _
-          ... ≥ 0         : sq_nonneg _
-end
+(monotone_iff_map_nonneg f).2 $ λ r h, by { obtain ⟨s, rfl⟩ := hR r h, rw map_pow, apply sq_nonneg }
 
 /-- There exists no nontrivial ring homomorphism `ℝ →+* ℝ`. -/
 instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=

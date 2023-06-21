@@ -10,6 +10,9 @@ import measure_theory.group.action
 /-!
 # Integration on Groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We develop properties of integrals with a group as domain.
 This file contains properties about integrability, Lebesgue integration and Bochner integration.
 -/
@@ -140,15 +143,7 @@ variables [has_measurable_inv G]
 lemma integrable.comp_div_left {f : G → F}
   [is_inv_invariant μ] [is_mul_left_invariant μ] (hf : integrable f μ) (g : G) :
   integrable (λ t, f (g / t)) μ :=
-begin
-  rw [← map_mul_right_inv_eq_self μ g⁻¹, integrable_map_measure, function.comp],
-  { simp_rw [div_inv_eq_mul, mul_inv_cancel_left], exact hf },
-  { refine ae_strongly_measurable.comp_measurable _ (measurable_id.const_div g),
-    simp_rw [map_map (measurable_id'.const_div g) (measurable_id'.const_mul g⁻¹).inv,
-      function.comp, div_inv_eq_mul, mul_inv_cancel_left, map_id'],
-    exact hf.ae_strongly_measurable },
-  { exact (measurable_id'.const_mul g⁻¹).inv.ae_measurable }
-end
+((measure_preserving_div_left μ g).integrable_comp hf.ae_strongly_measurable).mpr hf
 
 @[simp, to_additive]
 lemma integrable_comp_div_left (f : G → F)
@@ -182,7 +177,6 @@ begin
 end
 
 end smul
-
 
 section topological_group
 

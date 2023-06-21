@@ -6,12 +6,14 @@ Authors: Reid Barton, Patrick Massot, Scott Morrison
 import category_theory.adjunction.reflective
 import category_theory.concrete_category.unbundled_hom
 import category_theory.monad.limits
-import category_theory.limits.has_limits
 import topology.category.Top.basic
 import topology.uniform_space.completion
 
 /-!
 # The category of uniform spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the category of uniform spaces, show that the complete separated uniform spaces
 form a reflective subcategory, and hence possess all limits that uniform spaces do.

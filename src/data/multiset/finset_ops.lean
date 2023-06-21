@@ -8,6 +8,9 @@ import data.multiset.dedup
 /-!
 # Preparations for defining operations on `finset`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The operations here ignore multiplicities,
 and preparatory for defining the corresponding operations on `finset`.
 -/
@@ -207,3 +210,7 @@ theorem ndinter_eq_zero_iff_disjoint {s t : multiset α} : ndinter s t = 0 ↔ d
 by rw ← subset_zero; simp [subset_iff, disjoint]
 
 end multiset
+
+-- Assert that we define `finset` without the material on the set lattice.
+-- Note that we cannot put this in `data.finset.basic` because we proved relevant lemmas there.
+assert_not_exists set.sInter

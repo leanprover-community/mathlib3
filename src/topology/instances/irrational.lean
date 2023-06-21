@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import data.real.irrational
+import data.rat.encodable
 import topology.metric_space.baire
 
 /-!
 # Topology of irrational numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the following theorems:
 
@@ -28,7 +32,7 @@ irrational, residual
 -/
 
 open set filter metric
-open_locale filter topological_space
+open_locale filter topology
 
 lemma is_Gδ_irrational : is_Gδ {x | irrational x} :=
 (countable_range _).is_Gδ_compl

@@ -9,10 +9,15 @@ import analysis.inner_product_space.basic
 /-!
 # Conformal maps between inner product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In an inner product space, a map is conformal iff it preserves inner products up to a scalar factor.
 -/
 
-variables {E F : Type*} [inner_product_space ℝ E] [inner_product_space ℝ F]
+variables {E F : Type*}
+variables [normed_add_comm_group E] [normed_add_comm_group F]
+variables [inner_product_space ℝ E] [inner_product_space ℝ F]
 
 open linear_isometry continuous_linear_map
 open_locale real_inner_product_space

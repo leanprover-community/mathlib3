@@ -146,21 +146,20 @@ lemma age.joint_embedding : joint_embedding (L.age M) :=
 
 /-- The age of a countable structure is essentially countable (has countably many isomorphism
 classes). -/
-lemma age.countable_quotient (h : (univ : set M).countable) :
-  (quotient.mk '' (L.age M)).countable :=
+lemma age.countable_quotient [h : countable M] :
+  (quotient.mk '' L.age M).countable :=
 begin
-  refine eq.mp (congr rfl (set.ext _)) ((countable_set_of_finite_subset h).image
-    (λ s, ⟦⟨closure L s, infer_instance⟩⟧)),
-  rw forall_quotient_iff,
-  intro N,
-  simp only [subset_univ, and_true, mem_image, mem_set_of_eq, quotient.eq],
+  classical,
+  refine (congr_arg _ (set.ext $ forall_quotient_iff.2 $ λ N, _)).mp
+    (countable_range $ λ s : finset M, ⟦⟨closure L (s : set M), infer_instance⟩⟧),
+  simp only [mem_image, mem_range, mem_set_of_eq, quotient.eq],
   split,
-  { rintro ⟨s, hs1, hs2⟩,
-    use bundled.of ↥(closure L s),
-    exact ⟨⟨(fg_iff_Structure_fg _).1 (fg_closure hs1), ⟨subtype _⟩⟩, hs2⟩ },
+  { rintro ⟨s, hs⟩,
+    use bundled.of ↥(closure L (s : set M)),
+    exact ⟨⟨(fg_iff_Structure_fg _).1 (fg_closure s.finite_to_set), ⟨subtype _⟩⟩, hs⟩ },
   { rintro ⟨P, ⟨⟨s, hs⟩, ⟨PM⟩⟩, hP2⟩,
-    refine ⟨PM '' s, set.finite.image PM s.finite_to_set, setoid.trans _ hP2⟩,
-    rw [← embedding.coe_to_hom, closure_image PM.to_hom, hs, ← hom.range_eq_map],
+    refine ⟨s.image PM, setoid.trans _ hP2⟩,
+    rw [← embedding.coe_to_hom, finset.coe_image, closure_image PM.to_hom, hs, ← hom.range_eq_map],
     exact ⟨PM.equiv_range.symm⟩ }
 end
 
@@ -221,8 +220,8 @@ begin
   { exact (hFP _ n).some }
 end
 
-theorem exists_countable_is_age_of_iff [L.countable_functions] :
-  (∃ (M : bundled.{w} L.Structure), (univ : set M).countable ∧ L.age M = K) ↔
+theorem exists_countable_is_age_of_iff [countable (Σl, L.functions l)] :
+  (∃ (M : bundled.{w} L.Structure), countable M ∧ L.age M = K) ↔
     K.nonempty ∧
     (∀ (M N : bundled.{w} L.Structure), nonempty (M ≃[L] N) → (M ∈ K ↔ N ∈ K)) ∧
     (quotient.mk '' K).countable ∧
@@ -233,12 +232,11 @@ begin
   split,
   { rintros ⟨M, h1, h2, rfl⟩,
     resetI,
-    refine ⟨age.nonempty M, age.is_equiv_invariant L M, age.countable_quotient M h1, λ N hN, hN.1,
+    refine ⟨age.nonempty M, age.is_equiv_invariant L M, age.countable_quotient M, λ N hN, hN.1,
       age.hereditary M, age.joint_embedding M⟩, },
   { rintros ⟨Kn, eqinv, cq, hfg, hp, jep⟩,
     obtain ⟨M, hM, rfl⟩ := exists_cg_is_age_of Kn eqinv cq hfg hp jep,
-    haveI := ((Structure.cg_iff_countable).1 hM).some,
-    refine ⟨M, to_countable _, rfl⟩, }
+    exact ⟨M, Structure.cg_iff_countable.1 hM, rfl⟩ }
 end
 
 variables {K} (L) (M)
@@ -253,9 +251,9 @@ variables {L} (K)
 
 /-- A structure `M` is a Fraïssé limit for a class `K` if it is countably generated,
 ultrahomogeneous, and has age `K`. -/
-structure is_fraisse_limit [countable_functions L] : Prop :=
+@[protect_proj] structure is_fraisse_limit [countable (Σl, L.functions l)]
+  [countable M] : Prop :=
 (ultrahomogeneous : is_ultrahomogeneous L M)
-(countable : (univ : set M).countable)
 (age : L.age M = K)
 
 variables {L} {M}
@@ -279,17 +277,18 @@ begin
     set.coe_inclusion, embedding.equiv_range_apply, hgn],
 end
 
-lemma is_ultrahomogeneous.age_is_fraisse (hc : (univ : set M).countable)
+lemma is_ultrahomogeneous.age_is_fraisse [countable M]
   (h : L.is_ultrahomogeneous M) :
   is_fraisse (L.age M) :=
-⟨age.nonempty M, λ _ hN, hN.1, age.is_equiv_invariant L M, age.countable_quotient M hc,
+⟨age.nonempty M, λ _ hN, hN.1, age.is_equiv_invariant L M, age.countable_quotient M,
   age.hereditary M, age.joint_embedding M, h.amalgamation_age⟩
 
 namespace is_fraisse_limit
 
 /-- If a class has a Fraïssé limit, it must be Fraïssé. -/
-theorem is_fraisse [countable_functions L] (h : is_fraisse_limit K M) : is_fraisse K :=
-(congr rfl h.age).mp (h.ultrahomogeneous.age_is_fraisse h.countable)
+theorem is_fraisse [countable (Σl, L.functions l)] [countable M] (h : is_fraisse_limit K M) :
+  is_fraisse K :=
+(congr rfl h.age).mp h.ultrahomogeneous.age_is_fraisse
 
 end is_fraisse_limit
 

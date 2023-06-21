@@ -6,11 +6,14 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.convex.basic
 import analysis.normed_space.pointwise
 import analysis.seminorm
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import tactic.congrm
 
 /-!
 # The Minkowksi functional
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the Minkowski functional, aka gauge.
 
@@ -37,7 +40,7 @@ Minkowski functional, gauge
 -/
 
 open normed_field set
-open_locale pointwise
+open_locale pointwise topology nnreal
 
 noncomputable theory
 
@@ -102,7 +105,7 @@ begin
 end
 
 @[simp] lemma gauge_empty : gauge (∅ : set E) = 0 :=
-by { ext, simp only [gauge_def', real.Inf_empty, mem_empty_eq, pi.zero_apply, sep_false] }
+by { ext, simp only [gauge_def', real.Inf_empty, mem_empty_iff_false, pi.zero_apply, sep_false] }
 
 lemma gauge_of_subset_zero (h : s ⊆ 0) : gauge s = 0 :=
 by { obtain rfl | rfl := subset_singleton_iff_eq.1 h, exacts [gauge_empty, gauge_zero'] }
@@ -113,9 +116,14 @@ lemma gauge_nonneg (x : E) : 0 ≤ gauge s x := real.Inf_nonneg _ $ λ x hx, hx.
 lemma gauge_neg (symmetric : ∀ x ∈ s, -x ∈ s) (x : E) : gauge s (-x) = gauge s x :=
 begin
   have : ∀ x, -x ∈ s ↔ x ∈ s := λ x, ⟨λ h, by simpa using symmetric _ h, symmetric x⟩,
-  rw [gauge_def', gauge_def'],
-  simp_rw [smul_neg, this],
+  simp_rw [gauge_def', smul_neg, this]
 end
+
+lemma gauge_neg_set_neg (x : E) : gauge (-s) (-x) = gauge s x :=
+by simp_rw [gauge_def', smul_neg, neg_mem_neg]
+
+lemma gauge_neg_set_eq_gauge_neg (x : E) : gauge (-s) x = gauge s (-x) :=
+by rw [← gauge_neg_set_neg, neg_neg]
 
 lemma gauge_le_of_mem (ha : 0 ≤ a) (hx : x ∈ a • s) : gauge s x ≤ a :=
 begin
@@ -136,8 +144,7 @@ begin
     suffices : (r⁻¹ * δ) • δ⁻¹ • x ∈ s,
     { rwa [smul_smul, mul_inv_cancel_right₀ δ_pos.ne'] at this },
     rw mem_smul_set_iff_inv_smul_mem₀ δ_pos.ne' at hδ,
-    refine hs₁.smul_mem_of_zero_mem hs₀ hδ
-      ⟨mul_nonneg (inv_nonneg.2 hr'.le) δ_pos.le, _⟩,
+    refine hs₁.smul_mem_of_zero_mem hs₀ hδ ⟨by positivity, _⟩,
     rw [inv_mul_le_iff hr', mul_one],
     exact hδr.le },
   { have hε' := (lt_add_iff_pos_right a).2 (half_pos hε),
@@ -200,7 +207,7 @@ begin
   rintro b ⟨hb, x, hx', rfl⟩,
   refine not_lt.1 (λ hba, hx _),
   have ha := hb.trans hba,
-  refine ⟨(a⁻¹ * b) • x, hs₀ hx' (mul_nonneg (inv_nonneg.2 ha.le) hb.le) _, _⟩,
+  refine ⟨(a⁻¹ * b) • x, hs₀ hx' (by positivity) _, _⟩,
   { rw ←div_eq_inv_mul,
     exact div_le_one_of_le hba.le ha.le },
   { rw [←mul_smul, mul_inv_cancel_left₀ ha.ne'] }
@@ -222,7 +229,7 @@ begin
   rw [gauge_def', gauge_def', ←real.Inf_smul_of_nonneg ha],
   congr' 1,
   ext r,
-  simp_rw [set.mem_smul_set, set.mem_sep_eq],
+  simp_rw [set.mem_smul_set, set.mem_sep_iff],
   split,
   { rintro ⟨hr, hx⟩,
     simp_rw mem_Ioi at ⊢ hr,
@@ -250,7 +257,7 @@ begin
   rw [gauge_def', pi.smul_apply, gauge_def', ←real.Inf_smul_of_nonneg (inv_nonneg.2 ha)],
   congr' 1,
   ext r,
-  simp_rw [set.mem_smul_set, set.mem_sep_eq],
+  simp_rw [set.mem_smul_set, set.mem_sep_iff],
   split,
   { rintro ⟨hr, y, hy, h⟩,
     simp_rw [mem_Ioi] at ⊢ hr,
@@ -284,19 +291,17 @@ end linear_ordered_field
 section is_R_or_C
 variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 
-lemma gauge_norm_smul (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (∥r∥ • x) = gauge s (r • x) :=
+lemma gauge_norm_smul (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (‖r‖ • x) = gauge s (r • x) :=
 begin
-  rw @is_R_or_C.real_smul_eq_coe_smul 𝕜,
-  obtain rfl | hr := eq_or_ne r 0,
-  { simp only [norm_zero, is_R_or_C.of_real_zero] },
   unfold gauge,
   congr' with θ,
+  rw @is_R_or_C.real_smul_eq_coe_smul 𝕜,
   refine and_congr_right (λ hθ, (hs.smul _).mem_smul_iff _),
-  rw [is_R_or_C.norm_of_real, norm_norm],
+  rw [is_R_or_C.norm_of_real, abs_norm],
 end
 
 /-- If `s` is balanced, then the Minkowski functional is ℂ-homogeneous. -/
-lemma gauge_smul (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (r • x) = ∥r∥ * gauge s x :=
+lemma gauge_smul (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (r • x) = ‖r‖ * gauge s x :=
 by { rw [←smul_eq_mul, ←gauge_smul_of_nonneg (norm_nonneg r), gauge_norm_smul hs], apply_instance }
 
 end is_R_or_C
@@ -389,6 +394,13 @@ lemma gauge_seminorm_lt_one_of_open (hs : is_open s) {x : E} (hx : x ∈ s) :
   gauge_seminorm hs₀ hs₁ hs₂ x < 1 :=
 gauge_lt_one_of_mem_of_open hs₁ hs₂.zero_mem hs hx
 
+lemma gauge_seminorm_ball_one (hs : is_open s) :
+  (gauge_seminorm hs₀ hs₁ hs₂).ball 0 1 = s :=
+begin
+  rw seminorm.ball_zero_eq,
+  exact gauge_lt_one_eq_self_of_open hs₁ hs₂.zero_mem hs
+end
+
 end is_R_or_C
 
 /-- Any seminorm arises as the gauge of its unit ball. -/
@@ -398,21 +410,21 @@ begin
   obtain hp | hp := {r : ℝ | 0 < r ∧ x ∈ r • p.ball 0 1}.eq_empty_or_nonempty,
   { rw [gauge, hp, real.Inf_empty],
     by_contra,
-    have hpx : 0 < p x := (p.nonneg x).lt_of_ne h,
+    have hpx : 0 < p x := (map_nonneg _ _).lt_of_ne h,
     have hpx₂ : 0 < 2 * p x := mul_pos zero_lt_two hpx,
     refine hp.subset ⟨hpx₂, (2 * p x)⁻¹ • x, _, smul_inv_smul₀ hpx₂.ne' _⟩,
-    rw [p.mem_ball_zero, p.smul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpx₂), inv_mul_lt_iff hpx₂,
-      mul_one],
+    rw [p.mem_ball_zero, map_smul_eq_mul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpx₂),
+      inv_mul_lt_iff hpx₂, mul_one],
     exact lt_mul_of_one_lt_left hpx one_lt_two },
   refine is_glb.cInf_eq ⟨λ r, _, λ r hr, le_of_forall_pos_le_add $ λ ε hε, _⟩ hp,
   { rintro ⟨hr, y, hy, rfl⟩,
     rw p.mem_ball_zero at hy,
-    rw [p.smul, real.norm_eq_abs, abs_of_pos hr],
+    rw [map_smul_eq_mul, real.norm_eq_abs, abs_of_pos hr],
     exact mul_le_of_le_one_right hr.le hy.le },
-  { have hpε : 0 < p x + ε := add_pos_of_nonneg_of_pos (p.nonneg _) hε,
+  { have hpε : 0 < p x + ε := by positivity,
     refine hr ⟨hpε, (p x + ε)⁻¹ • x, _, smul_inv_smul₀ hpε.ne' _⟩,
-    rw [p.mem_ball_zero, p.smul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpε), inv_mul_lt_iff hpε,
-      mul_one],
+    rw [p.mem_ball_zero, map_smul_eq_mul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpε),
+      inv_mul_lt_iff hpε, mul_one],
     exact lt_add_of_pos_right _ hε }
 end
 
@@ -425,26 +437,10 @@ end add_comm_group
 section norm
 variables [seminormed_add_comm_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
 
-lemma gauge_unit_ball (x : E) : gauge (metric.ball (0 : E) 1) x = ∥x∥ :=
-begin
-  obtain rfl | hx := eq_or_ne x 0,
-  { rw [norm_zero, gauge_zero] },
-  refine (le_of_forall_pos_le_add $ λ ε hε, _).antisymm _,
-  { have := add_pos_of_nonneg_of_pos (norm_nonneg x) hε,
-    refine gauge_le_of_mem this.le _,
-    rw [smul_ball this.ne', smul_zero, real.norm_of_nonneg this.le, mul_one, mem_ball_zero_iff],
-    exact lt_add_of_pos_right _ hε },
-  refine le_gauge_of_not_mem balanced_ball_zero.star_convex
-    (absorbent_ball_zero zero_lt_one).absorbs (λ h, _),
-  obtain hx' | hx' := eq_or_ne (∥x∥) 0,
-  { rw hx' at h,
-    exact hx (zero_smul_set_subset _ h) },
-  { rw [mem_smul_set_iff_inv_smul_mem₀ hx', mem_ball_zero_iff, norm_smul, norm_inv, norm_norm,
-      inv_mul_cancel hx'] at h,
-    exact lt_irrefl _ h }
-end
+lemma gauge_unit_ball (x : E) : gauge (metric.ball (0 : E) 1) x = ‖x‖ :=
+by rw [← ball_norm_seminorm ℝ, seminorm.gauge_ball, coe_norm_seminorm]
 
-lemma gauge_ball (hr : 0 < r) (x : E) : gauge (metric.ball (0 : E) r) x = ∥x∥ / r :=
+lemma gauge_ball (hr : 0 < r) (x : E) : gauge (metric.ball (0 : E) r) x = ‖x‖ / r :=
 begin
   rw [←smul_unit_ball_of_pos hr, gauge_smul_left, pi.smul_apply, gauge_unit_ball, smul_eq_mul,
     abs_of_nonneg hr.le, div_eq_inv_mul],
@@ -452,12 +448,31 @@ begin
   exact λ _, id,
 end
 
-lemma mul_gauge_le_norm (hs : metric.ball (0 : E) r ⊆ s) : r * gauge s x ≤ ∥x∥ :=
+lemma mul_gauge_le_norm (hs : metric.ball (0 : E) r ⊆ s) : r * gauge s x ≤ ‖x‖ :=
 begin
   obtain hr | hr := le_or_lt r 0,
   { exact (mul_nonpos_of_nonpos_of_nonneg hr $ gauge_nonneg _).trans (norm_nonneg _) },
   rw [mul_comm, ←le_div_iff hr, ←gauge_ball hr],
   exact gauge_mono (absorbent_ball_zero hr) hs x,
+end
+
+lemma convex.lipschitz_with_gauge {r : ℝ≥0} (hc : convex ℝ s) (hr : 0 < r)
+  (hs : metric.ball (0 : E) r ⊆ s) :
+  lipschitz_with r⁻¹ (gauge s) :=
+have absorbent ℝ (metric.ball (0 : E) r) := absorbent_ball_zero hr,
+lipschitz_with.of_le_add_mul _ $ λ x y,
+  calc gauge s x = gauge s (y + (x - y)) : by simp
+  ... ≤ gauge s y + gauge s (x - y) : gauge_add_le hc (this.subset hs) _ _
+  ... ≤ gauge s y + ‖x - y‖ / r :
+    add_le_add_left ((gauge_mono this hs (x - y)).trans_eq (gauge_ball hr _)) _
+  ... = gauge s y + r⁻¹ * dist x y : by rw [dist_eq_norm, div_eq_inv_mul]
+
+lemma convex.uniform_continuous_gauge (hc : convex ℝ s) (h₀ : s ∈ 𝓝 (0 : E)) :
+  uniform_continuous (gauge s) :=
+begin
+  obtain ⟨r, hr₀, hr⟩ := metric.mem_nhds_iff.1 h₀,
+  lift r to ℝ≥0 using le_of_lt hr₀,
+  exact (hc.lipschitz_with_gauge hr₀ hr).uniform_continuous
 end
 
 end norm

@@ -5,6 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard
 -/
 
 import algebra.direct_sum.module
+import algebra.group.conj_finite
 import tactic.fin_cases
 
 /-!
@@ -17,6 +18,8 @@ do not form a decomposition into a direct sum.
 This file demonstrates why `direct_sum.is_internal_submodule_of_independent_of_supr_eq_top` must
 take `ring R` and not `semiring R`.
 -/
+
+namespace counterexample
 
 lemma units_int.one_ne_neg_one : (1 : ℤˣ) ≠ -1 := dec_trivial
 
@@ -46,7 +49,8 @@ begin
   { apply submodule.disjoint_def.2,
     intros x hx hx',
     exact le_antisymm (mem_with_sign_neg_one.mp hx') (mem_with_sign_one.mp hx), },
-  { intros x hx,
+  { rw codisjoint_iff_le_sup,
+    intros x hx,
     obtain hp | hn := (le_refl (0 : ℤ)).le_or_le x,
     exact submodule.mem_sup_left (mem_with_sign_one.mpr hp),
     exact submodule.mem_sup_right (mem_with_sign_neg_one.mpr hn), }
@@ -91,3 +95,5 @@ end
 /-- And so they do not represent an internal direct sum. -/
 lemma with_sign.not_internal : ¬direct_sum.is_internal with_sign :=
 with_sign.not_injective ∘ and.elim_left
+
+end counterexample

@@ -3,12 +3,14 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.epi_mono
 import category_theory.limits.has_limits
 import category_theory.limits.shapes.equalizers
 
 /-!
 # Wide equalizers and wide coequalizers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines wide (co)equalizers as special cases of (co)limits.
 

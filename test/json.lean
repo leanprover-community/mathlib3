@@ -1,5 +1,4 @@
 import data.json
-import data.int.basic
 
 run_cmd do
   let j := json.of_int 2,

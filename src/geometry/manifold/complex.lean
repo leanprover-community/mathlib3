@@ -5,7 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.complex.abs_max
 import analysis.locally_convex.with_seminorms
-import geometry.manifold.mfderiv
+import geometry.manifold.cont_mdiff_mfderiv
 import geometry.manifold.sheaf.smooth
 import topology.locally_constant.basic
 
@@ -125,6 +125,8 @@ variables {M : Type} [topological_space M] [compact_space M] [charted_space E M]
 
 open opposite
 
+-- sanity check: global sections of the structure sheaf of a compact complex manifold are locally
+-- constant
 example (f : (smooth_sheaf_CommRing 𝓘(ℂ, E) 𝓘(ℂ, ℂ) M ℂ).val.obj (op ⊤)) :
   is_locally_constant (id f.1 : (⊤ : topological_space.opens M) → ℂ) :=
 begin

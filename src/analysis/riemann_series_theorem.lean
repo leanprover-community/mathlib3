@@ -790,7 +790,30 @@ lemma frequently_exists_switchpoint (a : ℕ → ℝ) (M : ℝ)
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
   : ∃ᶠ (n : ℕ) in at_top, rearrangement_switchpoint a M n :=
 begin
-  sorry
+  by_contra h,
+  rw filter.not_frequently at h,
+  rw filter.eventually_at_top at h,
+  cases h with N h,
+  by_cases hN : sumto a M N ≤ M,
+  {
+    have : ∀ c, sumto a M (N + c + 1) ≤ M,
+    { intro c,
+      induction c with c ih,
+      { by_contra hc,
+        push_neg at hc,
+        exact h N le_rfl (rearrangement_switchpoint.under_to_over ⟨hN, hc⟩) },
+      { rw (show N + c.succ + 1 = N + c + 1 + 1, by ring),
+        by_contra hc,
+        push_neg at hc,
+        exact h (N + c + 1) (by linarith) (rearrangement_switchpoint.under_to_over ⟨ih, hc⟩) } },
+    have : ∀ c, 0 ≤ a (rearrangement a M (N + c + 1)),
+    { intro c,
+      exact (rearrangement_nonneg_spec h₁ h₂ (this c)).right },
+    sorry
+  },
+  {
+    sorry
+  }
 end
 
 lemma exists_le_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ)

@@ -28,6 +28,117 @@ arithmetic progression on the original set.
   edge-disjoint triangles.
 -/
 
+namespace asymptotics
+variables {α E : Type*} {l : filter α} {f g g' : α → E} [seminormed_add_comm_group E] {c : ℝ}
+
+lemma is_O_with.def (h : is_O_with c l f g) : ∀ᶠ x in l, ‖f x‖ ≤ c * ‖g x‖ := by rwa ←is_O_with
+
+lemma is_O.of_add_is_o_right (hf : f =O[l] (g + g')) (hg : g' =o[l] g) : f =O[l] g :=
+begin
+  obtain ⟨c, hc, h⟩ := hf.exists_pos,
+  refine is_O.of_bound (c * (1 + 1/2))
+    ((h.def.and $ hg.def one_half_pos).mono $ λ x hx, hx.1.trans _),
+  rw [mul_assoc, mul_le_mul_left hc, one_add_mul],
+  exact (norm_add_le _ _).trans (add_le_add_left hx.2 _),
+end
+
+end asymptotics
+
+namespace asymptotics
+variables {α E : Type*} {l : filter α} {f g g' : α → E} [normed_add_comm_group E] {c : ℝ}
+
+protected lemma is_equivalent.is_Theta (h : is_equivalent l f g) : f =Θ[l] g := ⟨h.is_O, h.is_O_symm⟩
+
+lemma is_o.is_Theta_add_left (h : g =o[l] f) : (f + g) =Θ[l] f :=
+(is_equivalent.refl.add_is_o h).is_Theta
+
+lemma is_o.is_Theta_sub_left (h : g =o[l] f) : (f - g) =Θ[l] f :=
+(is_equivalent.refl.sub_is_o h).is_Theta
+
+lemma is_o.is_O_add_right (hg : g' =o[l] g) : f =O[l] (g + g') ↔ f =O[l] g :=
+is_Theta.is_O_congr_right hg.is_Theta_add_left
+
+lemma is_o.is_O_sub_right (hg : g' =o[l] g) : f =O[l] (g - g') ↔ f =O[l] g :=
+is_Theta.is_O_congr_right hg.is_Theta_sub_left
+
+end asymptotics
+
+namespace asymptotics
+variables {α E : Type*} {l : filter α} {f g g' : α → E} [normed_field E] {c' : ℝ} {c : E}
+
+/-! ### Multiplication by a constant -/
+
+lemma is_O_with_const_div_self (c : E) (f : α → E) (l : filter α) :
+  is_O_with ‖c‖⁻¹ l (λ x, f x / c) f :=
+is_O_with_of_le' _ $ λ x, by rw [norm_div, div_eq_inv_mul]
+
+lemma is_O_const_div_self (c : E) (f : α → E) (l : filter α) : (λ x, f x / c) =O[l] f :=
+(is_O_with_const_div_self c f l).is_O
+
+lemma is_O_with.const_div_left (h : is_O_with c' l f g) (c : E) :
+  is_O_with (c' / ‖c‖) l (λ x, f x / c) g :=
+by simpa only [div_eq_inv_mul]
+  using (is_O_with_const_div_self c f l).trans h (inv_nonneg.2 $ norm_nonneg c)
+
+lemma is_O.const_div_left (h : f =O[l] g) (c : E) : (λ x, f x / c) =O[l] g :=
+let ⟨c', hc⟩ := h.is_O_with in (hc.const_div_left _).is_O
+
+lemma is_O_with_self_const_div' (u : Eˣ) (f : α → E) (l : filter α) :
+  is_O_with ‖(u : E)‖ l f (λ x, f x / u) :=
+begin
+  convert (is_O_with_const_div_self ↑u⁻¹ _ l).congr_left (λ x, _),
+  { rw [←norm_inv, ←units.coe_inv, inv_inv] },
+  { simp }
+end
+
+lemma is_O_with_self_const_div (hc : c ≠ 0) (f : α → E) (l : filter α) :
+  is_O_with ‖c‖ l f (λ x, f x / c) :=
+is_O_with_self_const_div' (units.mk0 c hc) f l
+
+lemma is_O_self_const_div (hc : c ≠ 0) (f : α → E) (l : filter α) : f =O[l] (λ x, f x / c) :=
+(is_O_with_self_const_div' (units.mk0 _ hc) f l).is_O
+
+lemma is_O_const_div_left_iff (hc : c ≠ 0) : (λ x, f x / c) =O[l] g ↔ f =O[l] g :=
+⟨(is_O_self_const_div hc f l).trans, λ h, h.const_div_left _⟩
+
+lemma is_o.const_div_left (h : f =o[l] g) (c : E) : (λ x, f x / c) =o[l] g :=
+(is_O_const_div_self c f l).trans_is_o h
+
+lemma is_o_const_div_left_iff (hc : c ≠ 0) : (λ x, f x / c) =o[l] g ↔ f =o[l] g :=
+⟨(is_O_self_const_div hc f l).trans_is_o, λ h, h.const_div_left c⟩
+
+lemma is_O_with.of_const_div_right (hc' : 0 ≤ c') (h : is_O_with c' l f (λ x, g x / c)) :
+  is_O_with (c' / ‖c‖) l f g :=
+by simpa using h.trans (is_O_with_const_div_self c g l) hc'
+
+lemma is_O.of_const_div_right (h : f =O[l] (λ x, g x / c)) : f =O[l] g :=
+let ⟨c, cnonneg, hc⟩ := h.exists_nonneg in (hc.of_const_div_right cnonneg).is_O
+
+lemma is_O_with.const_div_right' {u : Eˣ} (hc' : 0 ≤ c') (h : is_O_with c' l f g) :
+  is_O_with (c' * ‖(↑u : E)‖) l f (λ x, g x / ↑u) :=
+h.trans (is_O_with_self_const_div' _ _ _) hc'
+
+lemma is_O_with.const_div_right (hc : c ≠ 0) (hc' : 0 ≤ c') (h : is_O_with c' l f g) :
+  is_O_with (c' * ‖c‖) l f (λ x, g x / c) :=
+h.trans (is_O_with_self_const_div hc g l) hc'
+
+lemma is_O.const_div_right (hc : c ≠ 0) (h : f =O[l] g) : f =O[l] (λ x, g x / c) :=
+h.trans (is_O_self_const_div hc g l)
+
+lemma is_O_const_div_right_iff (hc : c ≠ 0) : f =O[l] (λ x, g x / c) ↔ f =O[l] g :=
+⟨λ h, h.of_const_div_right, λ h, h.const_div_right hc⟩
+
+lemma is_o.of_const_div_right (h : f =o[l] (λ x, g x / c)) : f =o[l] g :=
+h.trans_is_O (is_O_const_div_self c g l)
+
+lemma is_o.const_div_right (hc : c ≠ 0) (h : f =o[l] g) : f =o[l] (λ x, g x / c) :=
+h.trans_is_O (is_O_self_const_div hc g l)
+
+lemma is_o_const_div_right_iff (hc : c ≠ 0) : f =o[l] (λ x, g x / c) ↔ f =o[l] g :=
+⟨λ h, h.of_const_div_right, λ h, h.const_div_right hc⟩
+
+end asymptotics
+
 namespace nat
 variables {a b : ℕ}
 
@@ -250,8 +361,10 @@ begin
     positivity },
   simp_rw sq,
   refine is_O.trans _ this,
-  refine (is_O.mul _ _).mul (is_O.of_bound' (eventually_at_top.2 ⟨9, λ n hn, _⟩)),
+  refine (is_O.mul _ _).mul (is_O.of_bound' $ eventually_at_top.2 ⟨9, λ n hn, _⟩),
+  refine (is_o_const_left.2 $ or.inr _).is_O_sub_right.2 _,
   sorry,
+  refine is_O_self_const_div three_ne_zero _ _,
   sorry,
   have : (0 : ℝ) < ↑((n - 3) / 6) := sorry,
   have : (0 : ℝ) < n := sorry,

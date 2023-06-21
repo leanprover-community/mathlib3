@@ -282,6 +282,7 @@ lemma coeff_frobenius_char_p (x : 𝕎 R) (n : ℕ) :
   coeff (frobenius x) n = (x.coeff n) ^ p :=
 begin
   rw [coeff_frobenius],
+  letI : algebra (zmod p) R := zmod.algebra _ _,
   -- outline of the calculation, proofs follow below
   calc aeval (λ k, x.coeff k) (frobenius_poly p n)
       = aeval (λ k, x.coeff k)

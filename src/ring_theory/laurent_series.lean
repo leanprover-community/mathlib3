@@ -9,6 +9,9 @@ import ring_theory.localization.fraction_ring
 /-!
 # Laurent Series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * Defines `laurent_series` as an abbreviation for `hahn_series ℤ`.
 * Provides a coercion `power_series R` into `laurent_series R` given by

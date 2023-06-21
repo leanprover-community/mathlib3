@@ -12,6 +12,9 @@ import data.mv_polynomial.equiv
 /-!
 # Algebraic Independence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines algebraic independence of a family of element of an `R` algebra
 
 ## Main definitions

@@ -8,6 +8,9 @@ import analysis.box_integral.partition.basic
 /-!
 # Tagged partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A tagged (pre)partition is a (pre)partition `π` enriched with a tagged point for each box of
 ‵π`. For simplicity we require that the function `box_integral.tagged_prepartition.tag` is defined
 on all boxes `J : box ι` but use its values only on boxes of the partition. Given `π :

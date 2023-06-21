@@ -11,6 +11,9 @@ import linear_algebra.direct_sum.finsupp
 /-!
 # The tensor product of R-algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a (semi)ring and `A` an `R`-algebra.
 In this file we:
 
@@ -380,9 +383,9 @@ def include_left_ring_hom : A →+* A ⊗[R] B :=
   map_one' := rfl,
   map_mul' := by simp }
 
-variables {S : Type*} [comm_semiring S] [algebra R S] [algebra S A] [is_scalar_tower R S A]
+variables {S : Type*} [comm_semiring S] [algebra S A]
 
-instance left_algebra : algebra S (A ⊗[R] B) :=
+instance left_algebra [smul_comm_class R S A] : algebra S (A ⊗[R] B) :=
 { commutes' := λ r x,
   begin
     apply tensor_product.induction_on x,
@@ -405,10 +408,8 @@ instance left_algebra : algebra S (A ⊗[R] B) :=
 instance : algebra R (A ⊗[R] B) := infer_instance
 
 @[simp]
-lemma algebra_map_apply (r : S) :
+lemma algebra_map_apply [smul_comm_class R S A] (r : S) :
   (algebra_map S (A ⊗[R] B)) r = ((algebra_map S A) r) ⊗ₜ 1 := rfl
-
-instance : is_scalar_tower R S (A ⊗[R] B) := ⟨λ a b c, by simp⟩
 
 variables {C : Type v₃} [semiring C] [algebra R C]
 
@@ -421,6 +422,7 @@ begin
   simp [H],
 end
 
+-- TODO: with `smul_comm_class R S A` we can have this as an `S`-algebra morphism
 /-- The `R`-algebra morphism `A →ₐ[R] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
 def include_left : A →ₐ[R] A ⊗[R] B :=
 { commutes' := by simp,

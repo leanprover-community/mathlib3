@@ -8,6 +8,9 @@ import measure_theory.integral.circle_integral
 /-!
 # Circle integral transform
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the circle integral transform of a function `f` with complex domain. This is
 defined as $(2πi)^{-1}\frac{f(x)}{x-w}$ where `x` moves along a circle. We then prove some basic
 facts about these functions.

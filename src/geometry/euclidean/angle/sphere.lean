@@ -9,6 +9,9 @@ import geometry.euclidean.circumcenter
 /-!
 # Angles in circles and sphere.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves results about angles in circles and spheres.
 
 -/

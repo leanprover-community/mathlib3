@@ -14,6 +14,9 @@ import topology.instances.real
 /-!
 # The additive circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the additive circle `add_circle p` as the quotient `𝕜 ⧸ (ℤ ∙ p)` for some period `p : 𝕜`.
 
 See also `circle` and `real.angle`.  For the normed group structure on `add_circle`, see
@@ -153,6 +156,9 @@ variables [hp : fact (0 < p)]
 include hp
 
 variables (a : 𝕜) [archimedean 𝕜]
+
+instance : circular_order (add_circle p) :=
+quotient_add_group.circular_order
 
 /-- The equivalence between `add_circle p` and the half-open interval `[a, a + p)`, whose inverse
 is the natural quotient map. -/

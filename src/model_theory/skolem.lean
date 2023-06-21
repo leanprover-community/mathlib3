@@ -8,6 +8,9 @@ import model_theory.elementary_maps
 /-!
 # Skolem Functions and Downward Löwenheim–Skolem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * `first_order.language.skolem₁` is a language consisting of Skolem functions for another language.
 

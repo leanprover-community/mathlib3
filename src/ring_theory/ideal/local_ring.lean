@@ -13,6 +13,9 @@ import logic.equiv.transfer_instance
 
 # Local rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define local rings as commutative rings having a unique maximal ideal.
 
 ## Main definitions

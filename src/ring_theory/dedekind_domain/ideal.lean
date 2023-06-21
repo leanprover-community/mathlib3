@@ -15,6 +15,9 @@ import ring_theory.chain_of_divisors
 /-!
 # Dedekind domains and ideals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we show a ring is a Dedekind domain iff all fractional ideals are invertible.
 Then we prove some results on the unique factorization monoid structure of the ideals.
 

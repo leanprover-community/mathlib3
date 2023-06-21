@@ -3,8 +3,7 @@ Copyright (c) 2021 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import algebra.algebra.spectrum
-import analysis.special_functions.pow
+import field_theory.is_alg_closed.spectrum
 import analysis.complex.liouville
 import analysis.complex.polynomial
 import analysis.analytic.radius_liminf
@@ -12,6 +11,9 @@ import topology.algebra.module.character_space
 import analysis.normed_space.exponential
 /-!
 # The spectrum of elements in a complete normed algebra
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains the basic theory for the resolvent and spectrum of a Banach algebra.
 

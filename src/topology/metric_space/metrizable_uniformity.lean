@@ -8,6 +8,9 @@ import topology.metric_space.metrizable
 /-!
 # Metrizable uniform spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a uniform space with countably generated uniformity filter is
 pseudometrizable: there exists a `pseudo_metric_space` structure that generates the same uniformity.
 The proof follows [Sergey Melikhov, Metrizable uniform spaces][melikhov2011].

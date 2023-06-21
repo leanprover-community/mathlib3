@@ -10,6 +10,9 @@ import topology.homotopy.basic
 
 # Homotopy equivalences between topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define homotopy equivalences between topological spaces `X` and `Y` as a pair of
 functions `f : C(X, Y)` and `g : C(Y, X)` such that `f.comp g` and `g.comp f` are both homotopic
 to `id`.

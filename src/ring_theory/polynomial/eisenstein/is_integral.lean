@@ -3,10 +3,10 @@ Copyright (c) 2022 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
-
+import data.nat.choose.dvd
 import ring_theory.integrally_closed
 import ring_theory.norm
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.expand
 
 /-!
 # Eisenstein polynomials

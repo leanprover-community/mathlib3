@@ -10,6 +10,9 @@ import topology.instances.ennreal
 /-!
 # Normed fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define (semi)normed rings and fields. We also prove some theorems about these
 definitions.
 -/

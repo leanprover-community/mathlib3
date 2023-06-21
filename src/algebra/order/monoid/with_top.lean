@@ -11,7 +11,8 @@ import data.nat.cast.defs
 /-! # Adjoining top/bottom elements to ordered monoids.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> Any changes to this file require a corresponding PR to mathlib4.-/
+> Any changes to this file require a corresponding PR to mathlib4.
+-/
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -30,6 +31,9 @@ variables [has_one α]
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
+
+@[simp, to_additive] lemma untop_one : (1 : with_top α).untop coe_ne_top = 1 := rfl
+@[simp, to_additive] lemma untop_one' (d : α) : (1 : with_top α).untop' d = 1 := rfl
 
 @[simp, norm_cast, to_additive coe_nonneg]
 lemma one_le_coe [has_le α] {a : α} : 1 ≤ (a : with_top α) ↔ 1 ≤ a := coe_le_coe
@@ -346,6 +350,9 @@ lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 @[to_additive]
 lemma coe_eq_one [has_one α] {a : α} : (a : with_bot α) = 1 ↔ a = 1 :=
 with_top.coe_eq_one
+
+@[simp, to_additive] lemma unbot_one [has_one α] : (1 : with_bot α).unbot coe_ne_bot = 1 := rfl
+@[simp, to_additive] lemma unbot_one' [has_one α] (d : α) : (1 : with_bot α).unbot' d = 1 := rfl
 
 @[simp, norm_cast, to_additive coe_nonneg]
 lemma one_le_coe [has_one α] [has_le α] {a : α} : 1 ≤ (a : with_bot α) ↔ 1 ≤ a := coe_le_coe

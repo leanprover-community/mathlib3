@@ -8,6 +8,9 @@ import ring_theory.ideal.quotient
 /-!
 # Ideals and quotients of topological rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `ideal.closure` to be the topological closure of an ideal in a topological
 ring. We also define a `topological_space` structure on the quotient of a topological ring by an
 ideal and prove that the quotient is a topological ring.

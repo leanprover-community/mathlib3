@@ -8,6 +8,9 @@ import control.bitraversable.basic
 /-!
 # Bitraversable Lemmas
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
   * tfst - traverse on first functor argument
   * tsnd - traverse on second functor argument

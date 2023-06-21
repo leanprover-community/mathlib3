@@ -11,6 +11,9 @@ import topology.unit_interval
 /-!
 # Path connectedness
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 In the file the unit interval `[0, 1]` in `ℝ` is denoted by `I`, and `X` is a topological space.

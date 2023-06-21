@@ -11,6 +11,9 @@ import ring_theory.multiplicity
 /-!
 # Division of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main defs are `div_by_monic` and `mod_by_monic`.
 The compatibility between these is given by `mod_by_monic_add_div`.
 We also define `root_multiplicity`.
@@ -392,10 +395,25 @@ lemma mul_div_by_monic_eq_iff_is_root : (X - C a) * (p /ₘ (X - C a)) = p ↔ i
   by conv {to_rhs, rw ← mod_by_monic_add_div p (monic_X_sub_C a)};
     rw [mod_by_monic_X_sub_C_eq_C_eval, h, C_0, zero_add]⟩
 
-lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
+lemma dvd_iff_is_root : X - C a ∣ p ↔ is_root p a :=
 ⟨λ h, by rwa [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _),
     mod_by_monic_X_sub_C_eq_C_eval, ← C_0, C_inj] at h,
   λ h, ⟨(p /ₘ (X - C a)), by rw mul_div_by_monic_eq_iff_is_root.2 h⟩⟩
+
+lemma X_sub_C_dvd_sub_C_eval : X - C a ∣ p - C (p.eval a) :=
+by rw [dvd_iff_is_root, is_root, eval_sub, eval_C, sub_self]
+
+lemma mem_span_C_X_sub_C_X_sub_C_iff_eval_eval_eq_zero {b : R[X]} {P : R[X][X]} :
+  P ∈ (ideal.span {C (X - C a), X - C b} : ideal R[X][X]) ↔ (P.eval b).eval a = 0 :=
+begin
+  rw [ideal.mem_span_pair],
+  split; intro h,
+  { rcases h with ⟨_, _, rfl⟩,
+    simp only [eval_C, eval_X, eval_add, eval_sub, eval_mul, add_zero, mul_zero, sub_self] },
+  { cases dvd_iff_is_root.mpr h with p hp,
+    cases @X_sub_C_dvd_sub_C_eval _ b _ P with q hq,
+    exact ⟨C p, q, by rw [mul_comm, mul_comm q, eq_add_of_sub_eq' hq, hp, C_mul]⟩ }
+end
 
 lemma mod_by_monic_X (p : R[X]) : p %ₘ X = C (p.eval 0) :=
 by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
@@ -448,22 +466,6 @@ variable {R}
 
 lemma ker_eval_ring_hom (x : R) : (eval_ring_hom x).ker = ideal.span {X - C x} :=
 by { ext y, simpa only [ideal.mem_span_singleton, dvd_iff_is_root] }
-
-/-- For a commutative ring $R$, evaluating a polynomial at an element $x \in R$ induces an
-isomorphism of $R$-algebras $R[X] / \langle X - x \rangle \cong R$. -/
-noncomputable def quotient_span_X_sub_C_alg_equiv (x : R) :
-  (R[X] ⧸ ideal.span ({X - C x} : set R[X])) ≃ₐ[R] R :=
-(alg_equiv.restrict_scalars R $ ideal.quotient_equiv_alg_of_eq R
-  (by exact ker_eval_ring_hom x : ring_hom.ker (aeval x).to_ring_hom = _)).symm.trans $
-  ideal.quotient_ker_alg_equiv_of_right_inverse $ λ _, eval_C
-
-@[simp] lemma quotient_span_X_sub_C_alg_equiv_mk (x : R) (p : R[X]) :
-  quotient_span_X_sub_C_alg_equiv x (ideal.quotient.mk _ p) = p.eval x :=
-rfl
-
-@[simp] lemma quotient_span_X_sub_C_alg_equiv_symm_apply (x : R) (y : R) :
-  (quotient_span_X_sub_C_alg_equiv x).symm y = algebra_map R _ y :=
-rfl
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.

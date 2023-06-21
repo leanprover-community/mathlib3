@@ -9,6 +9,9 @@ import linear_algebra.quadratic_form.basic
 /-!
 # Isometries with respect to quadratic forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `quadratic_form.isometry`: `linear_equiv`s which map between two different quadratic forms

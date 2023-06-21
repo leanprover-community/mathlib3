@@ -7,9 +7,13 @@ import algebra.geom_sum
 import data.int.parity
 import data.zmod.basic
 import number_theory.padics.padic_val
+import ring_theory.ideal.quotient_operations
 
 /-!
 # Multiplicity in Number Theory
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains results in number theory relating to multiplicity.
 
@@ -44,7 +48,7 @@ end
 
 lemma dvd_geom_sum₂_iff_of_dvd_sub' {x y p : R} (h : p ∣ x - y) :
   p ∣ ∑ i in range n, x ^ i * y ^ (n - 1 - i) ↔ p ∣ n * x ^ (n - 1) :=
-by rw [geom_sum₂_comm, dvd_geom_sum₂_iff_of_dvd_sub]; simpa using (dvd_neg _ _).mpr h
+by rw [geom_sum₂_comm, dvd_geom_sum₂_iff_of_dvd_sub]; simpa using h.neg_right
 
 lemma dvd_geom_sum₂_self {x y : R} (h : ↑n ∣ x - y) : ↑n ∣ ∑ i in range n, x ^ i * y ^ (n - 1 - i):=
 (dvd_geom_sum₂_iff_of_dvd_sub h).mpr (dvd_mul_right _ _)
@@ -251,6 +255,7 @@ begin
   push_cast,
   rw [← map_int_cast (zmod.cast_hom (show 2 ∣ 4, by norm_num) (zmod 2)) x] at hx,
   set y : zmod 4 := x,
+  change zmod.cast_hom _ (zmod 2) y = _ at hx,
   -- Now we can just consider each of the 4 possible values for y
   fin_cases y using hy;
     rw hy at ⊢ hx; revert hx; dec_trivial

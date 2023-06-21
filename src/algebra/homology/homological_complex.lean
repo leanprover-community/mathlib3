@@ -10,6 +10,9 @@ import category_theory.graded_object
 /-!
 # Homological complexes.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `homological_complex V c` with a "shape" controlled by `c : complex_shape ι`
 has chain groups `X i` (objects in `V`) indexed by `i : ι`,
 and a differential `d i j` whenever `c.rel i j`.

@@ -3,8 +3,8 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import ring_theory.nilpotent
-import ring_theory.derivation
+import ring_theory.quotient_nilpotent
+import ring_theory.kaehler
 
 /-!
 

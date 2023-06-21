@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 import field_theory.separable
-import field_theory.splitting_field
 import ring_theory.integral_domain
 import tactic.apply_fun
 
 /-!
 # Finite fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains basic results about finite fields.
 Throughout most of this file, `K` denotes a finite field
@@ -101,7 +103,7 @@ begin
   have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm])
+    (λ a, by simp [@inv_eq_iff_eq_inv _ _ a])
     (by simp),
   rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
@@ -219,7 +221,6 @@ begin
     ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }
 end
 
-section is_splitting_field
 open polynomial
 
 section
@@ -267,24 +268,6 @@ begin
   { rw [derivative_sub, derivative_X, derivative_X_pow, char_p.cast_card_eq_zero K, C_0, zero_mul,
       zero_sub] },
   end
-
-instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=
-{ splits :=
-  begin
-    have h : (X^q - X : K[X]).nat_degree = q :=
-      X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
-    rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,
-      map_X, h, roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
-  end,
-  adjoin_roots :=
-  begin
-    classical,
-    transitivity algebra.adjoin F ((roots (X^q - X : K[X])).to_finset : set K),
-    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
-    { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
-  end }
-
-end is_splitting_field
 
 variables {K}
 

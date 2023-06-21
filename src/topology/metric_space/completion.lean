@@ -10,6 +10,9 @@ import topology.instances.real
 /-!
 # The completion of a metric space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Completion of uniform spaces are already defined in `topology.uniform_space.completion`. We show
 here that the uniform space completion of a metric space inherits a metric space structure,
 by extending the distance to the completion and checking that it is indeed a distance, and that

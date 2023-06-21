@@ -7,6 +7,9 @@ import algebra.continued_fractions.basic
 /-!
 # Basic Translation Lemmas Between Functions Defined for Continued Fractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 Some simple translation lemmas between the different definitions of functions defined in
@@ -14,6 +17,7 @@ Some simple translation lemmas between the different definitions of functions de
 -/
 
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 section general
 /-!

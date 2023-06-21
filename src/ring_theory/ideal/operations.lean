@@ -12,6 +12,9 @@ import ring_theory.ideal.basic
 import ring_theory.non_zero_divisors
 /-!
 # More operations on modules and ideals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v w x
 

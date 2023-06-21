@@ -117,7 +117,7 @@ instance [has_star α] [has_trivial_star α] : has_trivial_star (set α) :=
 protected lemma star_inv [group α] [star_semigroup α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
 by { ext, simp only [mem_star, mem_inv, star_inv] }
 
-protected lemma star_inv' [division_ring α] [star_ring α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
+protected lemma star_inv' [division_semiring α] [star_ring α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
 by { ext, simp only [mem_star, mem_inv, star_inv'] }
 
 end set

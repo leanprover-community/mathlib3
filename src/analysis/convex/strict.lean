@@ -9,6 +9,9 @@ import topology.algebra.order.group
 /-!
 # Strictly convex sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines strictly convex sets.
 
 A set is strictly convex if the open segment between any two distinct points lies in its interior.

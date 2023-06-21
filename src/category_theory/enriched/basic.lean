@@ -3,12 +3,16 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.types
+import category_theory.monoidal.types.symmetric
+import category_theory.monoidal.types.coyoneda
 import category_theory.monoidal.center
 import tactic.apply_fun
 
 /-!
 # Enriched categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We set up the basic theory of `V`-enriched categories,
 for `V` an arbitrary monoidal category.

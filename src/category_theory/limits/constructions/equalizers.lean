@@ -12,6 +12,9 @@ import category_theory.limits.preserves.shapes.binary_products
 /-!
 # Constructing equalizers from pullbacks and binary products.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If a category has pullbacks and binary products, then it has equalizers.
 
 TODO: generalize universe

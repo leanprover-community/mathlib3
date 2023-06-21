@@ -8,6 +8,9 @@ import ring_theory.polynomial.pochhammer
 /-!
 # Cast of factorials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows calculating factorials (including ascending and descending ones) as elements of a
 semiring.
 

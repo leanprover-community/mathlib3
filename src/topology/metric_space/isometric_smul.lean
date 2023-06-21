@@ -8,6 +8,9 @@ import topology.metric_space.isometry
 /-!
 # Group actions by isometries
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two typeclasses:
 
 - `has_isometric_smul M X` says that `M` multiplicatively acts on a (pseudo extended) metric space
@@ -63,6 +66,10 @@ variables [pseudo_emetric_space X] [group G] [mul_action G X] [has_isometric_smu
   (c : M) (x y : X) :
   edist (c • x) (c • y) = edist x y :=
 isometry_smul X c x y
+
+@[simp, to_additive] lemma ediam_smul [has_smul M X] [has_isometric_smul M X] (c : M) (s : set X) :
+  emetric.diam (c • s) = emetric.diam s :=
+(isometry_smul _ _).ediam_image s
 
 @[to_additive] lemma isometry_mul_left [has_mul M] [pseudo_emetric_space M]
   [has_isometric_smul M M] (a : M) : isometry ((*) a) :=
@@ -219,6 +226,11 @@ lemma dist_smul [pseudo_metric_space X] [has_smul M X] [has_isometric_smul M X]
 lemma nndist_smul [pseudo_metric_space X] [has_smul M X] [has_isometric_smul M X]
   (c : M) (x y : X) : nndist (c • x) (c • y) = nndist x y :=
 (isometry_smul X c).nndist_eq x y
+
+@[simp, to_additive]
+lemma diam_smul [pseudo_metric_space X] [has_smul M X] [has_isometric_smul M X]
+  (c : M) (s : set X) : metric.diam (c • s) = metric.diam s :=
+(isometry_smul _ _).diam_image s
 
 @[simp, to_additive]
 lemma dist_mul_left [pseudo_metric_space M] [has_mul M] [has_isometric_smul M M]

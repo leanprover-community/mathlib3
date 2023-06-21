@@ -10,6 +10,9 @@ import topology.algebra.ring.basic
 
 # Localization of topological rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The topological localization of a topological commutative ring `R` at a submonoid `M` is the ring
 `localization M`  endowed with the final ring topology of the natural homomorphism sending `x : R`
 to the equivalence class of `(x, 1)` in the localization of `R` at a `M`.

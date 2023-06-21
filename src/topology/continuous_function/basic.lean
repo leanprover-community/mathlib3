@@ -258,11 +258,9 @@ begin
     rw set.mem_Union,
     obtain ⟨i, hi⟩ := hS x,
     exact ⟨i, mem_of_mem_nhds hi⟩ },
-  refine ⟨set.lift_cover S (λ i, φ i) hφ H, continuous_subtype_nhds_cover hS _⟩,
-  intros i,
-  convert (φ i).continuous,
-  ext x,
-  exact set.lift_cover_coe x,
+  refine ⟨set.lift_cover S (λ i, φ i) hφ H, continuous_of_cover_nhds hS $ λ i, _⟩,
+  rw [continuous_on_iff_continuous_restrict],
+  simpa only [set.restrict, set.lift_cover_coe] using (φ i).continuous
 end
 
 variables {S φ hφ hS}

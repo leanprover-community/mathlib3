@@ -3,13 +3,15 @@ Copyright (c) 2019 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca, Paul Lezeau, Junyan Xu
 -/
-import data.polynomial.field_division
 import ring_theory.adjoin_root
 import field_theory.minpoly.field
 import ring_theory.polynomial.gauss_lemma
 
 /-!
 # Minimal polynomials over a GCD monoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file specializes the theory of minpoly to the case of an algebra over a GCD monoid.
 

@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Vitali families
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 On a metric space `X` with a measure `μ`, consider for each `x : X` a family of measurable sets with
 nonempty interiors, called `sets_at x`. This family is a Vitali family if it satisfies the following
 property: consider a (possibly non-measurable) set `s`, and for any `x` in `s` a

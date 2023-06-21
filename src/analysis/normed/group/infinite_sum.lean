@@ -10,6 +10,9 @@ import topology.instances.nnreal
 /-!
 # Infinite sums in (semi)normed groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a complete (semi)normed group,
 
 - `summable_iff_vanishing_norm`: a series `∑' i, f i` is summable if and only if for any `ε > 0`,

@@ -5,12 +5,14 @@ Authors: Scott Morrison
 -/
 import algebra.group.pi
 import category_theory.limits.shapes.biproducts
-import algebra.category.Module.limits
 import algebra.category.Module.abelian
 import algebra.homology.short_exact.abelian
 
 /-!
 # The category of `R`-modules has finite biproducts
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

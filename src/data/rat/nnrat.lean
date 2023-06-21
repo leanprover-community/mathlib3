@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.algebra.basic
 import algebra.order.nonneg.field
+import algebra.order.nonneg.floor
 
 /-!
 # Nonnegative rationals

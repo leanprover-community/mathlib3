@@ -3,12 +3,15 @@ Copyright (c) 2022 Rémy Degenne, Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 import measure_theory.function.egorov
 import measure_theory.function.lp_space
 
 /-!
 # Convergence in measure
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define convergence in measure which is one of the many notions of convergence in probability.
 A sequence of functions `f` is said to converge in measure to some function `g`

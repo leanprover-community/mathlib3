@@ -9,6 +9,9 @@ import topology.algebra.star_subalgebra
 
 /-! # Continuous functional calculus
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we construct the `continuous_functional_calculus` for a normal element `a` of a
 (unital) C⋆-algebra over `ℂ`. This is a star algebra equivalence
 `C(spectrum ℂ a, ℂ) ≃⋆ₐ[ℂ] elemental_star_algebra ℂ a` which sends the (restriction of) the
@@ -100,7 +103,7 @@ begin
     rw [←spectrum.gelfand_transform_eq (star a' * a'), continuous_map.spectrum_eq_range],
     rintro - ⟨φ, rfl⟩,
     rw [gelfand_transform_apply_apply ℂ _ (star a' * a') φ, map_mul φ, map_star φ],
-    rw [complex.eq_coe_norm_of_nonneg star_mul_self_nonneg, ←map_star, ←map_mul],
+    rw [complex.eq_coe_norm_of_nonneg (star_mul_self_nonneg _), ←map_star, ←map_mul],
     exact ⟨complex.zero_le_real.2 (norm_nonneg _),
       complex.real_le_real.2 (alg_hom.norm_apply_le_self φ (star a' * a'))⟩, }
 end

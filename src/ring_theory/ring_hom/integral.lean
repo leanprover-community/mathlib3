@@ -10,6 +10,9 @@ import ring_theory.integral_closure
 
 # The meta properties of integral ring homomorphisms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 namespace ring_hom

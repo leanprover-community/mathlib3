@@ -9,6 +9,9 @@ import measure_theory.measure.hausdorff
 /-!
 # Hausdorff dimension
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Hausdorff dimension of a set `X` in an (extended) metric space is the unique number
 `dimH s : ℝ≥0∞` such that for any `d : ℝ≥0` we have
 

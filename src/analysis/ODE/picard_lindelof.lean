@@ -9,6 +9,9 @@ import topology.metric_space.contracting
 /-!
 # Picard-Lindelöf (Cauchy-Lipschitz) Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that an ordinary differential equation $\dot x=v(t, x)$ such that $v$ is
 Lipschitz continuous in $x$ and continuous in $t$ has a local solution, see
 `exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof`.

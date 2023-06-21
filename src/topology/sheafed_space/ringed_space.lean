@@ -12,6 +12,9 @@ import topology.sheafed_space.sheafed_space
 /-!
 # Ringed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the category of ringed spaces, as an alias for `SheafedSpace CommRing`.
 
 The facts collected in this file are typically stated for locally ringed spaces, but never actually
@@ -73,7 +76,7 @@ begin
   -- Let `g x` denote the inverse of `f` in `U x`.
   choose g hg using λ x : U, is_unit.exists_right_inv (h_unit x),
   -- We claim that these local inverses glue together to a global inverse of `f`.
-  obtain ⟨gl, gl_spec, -⟩ := X.sheaf.exists_unique_gluing' V U iVU hcover g _,
+  obtain ⟨gl, gl_spec, -⟩ := Top.sheaf.exists_unique_gluing'.{(v+1) v} X.sheaf V U iVU hcover g _,
   swap,
   { intros x y,
     apply section_ext X.sheaf (V x ⊓ V y),
@@ -86,7 +89,7 @@ begin
       congr_arg (X.presheaf.germ (⟨z, hzVy⟩ : V y)) (hg y),
       ring_hom.map_one, ring_hom.map_one] },
   apply is_unit_of_mul_eq_one f gl,
-  apply X.sheaf.eq_of_locally_eq' V U iVU hcover,
+  apply Top.sheaf.eq_of_locally_eq'.{(v+1) v} X.sheaf V U iVU hcover,
   intro i,
   rw [ring_hom.map_one, ring_hom.map_mul, gl_spec],
   exact hg i,

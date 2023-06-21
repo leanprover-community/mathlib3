@@ -10,6 +10,9 @@ import data.nat.factorial.double_factorial
 /-!
 # Hermite polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `polynomial.hermite n`, the nth probabilist's Hermite polynomial.
 
 ## Main definitions

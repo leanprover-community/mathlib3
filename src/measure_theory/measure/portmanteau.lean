@@ -9,6 +9,9 @@ import measure_theory.measure.lebesgue.basic
 /-!
 # Characterizations of weak convergence of finite measures and probability measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file will provide portmanteau characterizations of the weak convergence of finite measures
 and of probability measures, i.e., the standard characterizations of convergence in distribution.
 

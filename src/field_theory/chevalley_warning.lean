@@ -9,6 +9,9 @@ import field_theory.finite.basic
 /-!
 # The Chevalley–Warning theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a proof of the Chevalley–Warning theorem.
 Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.

@@ -6,10 +6,13 @@ Authors: Andrew Yang
 import algebra.category.Ring.constructions
 import category_theory.limits.constructions.limits_of_products_and_equalizers
 import topology.sheafed_space.locally_ringed_space
-import topology.sheafed_space.open_immersion
+import algebraic_geometry.open_immersion.basic
 
 /-!
 # Colimits of LocallyRingedSpace
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the explicit coproducts and coequalizers of `LocallyRingedSpace`.
 It then follows that `LocallyRingedSpace` has all colimits, and

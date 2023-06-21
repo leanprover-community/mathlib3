@@ -6,11 +6,14 @@ Authors: Thomas Browning, Patrick Lutz
 
 import field_theory.intermediate_field
 import field_theory.separable
-import field_theory.splitting_field
+import field_theory.splitting_field.is_splitting_field
 import ring_theory.tensor_product
 
 /-!
 # Adjoining Elements to Fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we introduce the notion of adjoining elements to fields.
 This isn't quite the same as adjoining elements to rings.

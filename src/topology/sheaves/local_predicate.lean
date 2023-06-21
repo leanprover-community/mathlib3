@@ -38,12 +38,12 @@ to the types in the ambient type family.
 We give conditions sufficient to show that this map is injective and/or surjective.
 -/
 
-universe v
+universes v w
 
 noncomputable theory
 
 variables {X : Top.{v}}
-variables (T : X → Type v)
+variables (T : X → Type w)
 
 open topological_space
 open opposite
@@ -69,12 +69,12 @@ variables (X)
 Continuity is a "prelocal" predicate on functions to a fixed topological space `T`.
 -/
 @[simps]
-def continuous_prelocal (T : Top.{v}) : prelocal_predicate (λ x : X, T) :=
+def continuous_prelocal (T : Top.{w}) : prelocal_predicate (λ x : X, T) :=
 { pred := λ U f, continuous f,
   res := λ U V i f h, continuous.comp h (opens.open_embedding_of_le i.le).continuous, }
 
 /-- Satisfying the inhabited linter. -/
-instance inhabited_prelocal_predicate (T : Top.{v}) : inhabited (prelocal_predicate (λ x : X, T)) :=
+instance inhabited_prelocal_predicate (T : Top.{w}) : inhabited (prelocal_predicate (λ x : X, T)) :=
 ⟨continuous_prelocal X T⟩
 
 variables {X}
@@ -150,7 +150,7 @@ lemma prelocal_predicate.sheafify_of {T : X → Type v} {P : prelocal_predicate 
 The subpresheaf of dependent functions on `X` satisfying the "pre-local" predicate `P`.
 -/
 @[simps]
-def subpresheaf_to_Types (P : prelocal_predicate T) : presheaf (Type v) X :=
+def subpresheaf_to_Types (P : prelocal_predicate T) : presheaf (Type (max v w)) X :=
 { obj := λ U, { f : Π x : unop U, T x // P.pred f },
   map := λ U V i f, ⟨λ x, f.1 (i.unop x), P.res i.unop f.1 f.2⟩ }.
 
@@ -211,22 +211,27 @@ end subpresheaf_to_Types
 The subsheaf of the sheaf of all dependently typed functions satisfying the local predicate `P`.
 -/
 @[simps]
-def subsheaf_to_Types (P : local_predicate T) : sheaf (Type v) X :=
+def subsheaf_to_Types (P : local_predicate T) : sheaf (Type max v w) X :=
 ⟨subpresheaf_to_Types P.to_prelocal_predicate, subpresheaf_to_Types.is_sheaf P⟩
+
+-- TODO There is further universe generalization to do here,
+-- but it depends on more difficult universe generalization in `topology.sheaves.stalks`.
+-- The aim is to replace `T'` with the more general `T` below.
+variables {T' : X → Type v}
 
 /--
 There is a canonical map from the stalk to the original fiber, given by evaluating sections.
 -/
-def stalk_to_fiber (P : local_predicate T) (x : X) :
-  (subsheaf_to_Types P).presheaf.stalk x ⟶ T x :=
+def stalk_to_fiber (P : local_predicate T') (x : X) :
+  (subsheaf_to_Types P).presheaf.stalk x ⟶ T' x :=
 begin
   refine colimit.desc _
-    { X := T x, ι := { app := λ U f, _, naturality' := _ } },
+    { X := T' x, ι := { app := λ U f, _, naturality' := _ } },
   { exact f.1 ⟨x, (unop U).2⟩, },
   { tidy, }
 end
 
-@[simp] lemma stalk_to_fiber_germ (P : local_predicate T) (U : opens X) (x : U) (f) :
+@[simp] lemma stalk_to_fiber_germ (P : local_predicate T') (U : opens X) (x : U) (f) :
   stalk_to_fiber P x ((subsheaf_to_Types P).presheaf.germ x f) = f.1 x :=
 begin
   dsimp [presheaf.germ, stalk_to_fiber],
@@ -239,8 +244,8 @@ end
 The `stalk_to_fiber` map is surjective at `x` if
 every point in the fiber `T x` has an allowed section passing through it.
 -/
-lemma stalk_to_fiber_surjective (P : local_predicate T) (x : X)
-  (w : ∀ (t : T x), ∃ (U : open_nhds x) (f : Π y : U.1, T y) (h : P.pred f), f ⟨x, U.2⟩ = t) :
+lemma stalk_to_fiber_surjective (P : local_predicate T') (x : X)
+  (w : ∀ (t : T' x), ∃ (U : open_nhds x) (f : Π y : U.1, T' y) (h : P.pred f), f ⟨x, U.2⟩ = t) :
   function.surjective (stalk_to_fiber P x) :=
 λ t,
 begin
@@ -254,16 +259,16 @@ end
 The `stalk_to_fiber` map is injective at `x` if any two allowed sections which agree at `x`
 agree on some neighborhood of `x`.
 -/
-lemma stalk_to_fiber_injective (P : local_predicate T) (x : X)
-  (w : ∀ (U V : open_nhds x) (fU : Π y : U.1, T y) (hU : P.pred fU)
-    (fV : Π y : V.1, T y) (hV : P.pred fV) (e : fU ⟨x, U.2⟩ = fV ⟨x, V.2⟩),
+lemma stalk_to_fiber_injective (P : local_predicate T') (x : X)
+  (w : ∀ (U V : open_nhds x) (fU : Π y : U.1, T' y) (hU : P.pred fU)
+    (fV : Π y : V.1, T' y) (hV : P.pred fV) (e : fU ⟨x, U.2⟩ = fV ⟨x, V.2⟩),
     ∃ (W : open_nhds x) (iU : W ⟶ U) (iV : W ⟶ V), ∀ (w : W.1), fU (iU w : U.1) = fV (iV w : V.1)) :
   function.injective (stalk_to_fiber P x) :=
 λ tU tV h,
 begin
   -- We promise to provide all the ingredients of the proof later:
   let Q :
-    ∃ (W : (open_nhds x)ᵒᵖ) (s : Π w : (unop W).1, T w) (hW : P.pred s),
+    ∃ (W : (open_nhds x)ᵒᵖ) (s : Π w : (unop W).1, T' w) (hW : P.pred s),
       tU = (subsheaf_to_Types P).presheaf.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ ∧
       tV = (subsheaf_to_Types P).presheaf.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ := _,
   { choose W s hW e using Q,
@@ -282,6 +287,9 @@ begin
     exact ⟨colimit_sound iU.op (subtype.eq rfl),
            colimit_sound iV.op (subtype.eq (funext w).symm)⟩, },
 end
+
+-- TODO to continue generalizing universes here, we will need to deal with the issue noted
+-- at `presheaf_to_Top` (universe generalization for the Yoneda embedding).
 
 /--
 Some repackaging:

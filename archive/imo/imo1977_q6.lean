@@ -15,7 +15,7 @@ We first prove the problem statement for `f : ℕ → ℕ`
 then we use it to prove the statement for positive naturals.
 -/
 
-namespace imo
+namespace imo1977_q6
 
 theorem imo1977_q6_nat (f : ℕ → ℕ) (h : ∀ n, f (f n) < f (n + 1)) :
   ∀ n, f n = n :=
@@ -35,6 +35,10 @@ begin
   exact nat.eq_of_le_of_lt_succ (hf _) (hf_mono.lt_iff_lt.mp (h _))
 end
 
+end imo1977_q6
+
+open imo1977_q6
+
 theorem imo1977_q6 (f : ℕ+ → ℕ+) (h : ∀ n, f (f n) < f (n + 1)) :
   ∀ n, f n = n :=
 begin
@@ -44,5 +48,3 @@ begin
     { simp },
     { simpa using h _ } }
 end
-
-end imo

@@ -36,8 +36,10 @@ universe u
 /-- A finite field has prime power cardinality. -/
 lemma fintype.is_prime_pow_card_of_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
 begin
+  -- TODO: `algebra` version of `char_p.exists`, of type `Σ p, algebra (zmod p) α`
   casesI char_p.exists α with p _,
   haveI hp := fact.mk (char_p.char_is_prime α p),
+  letI : algebra (zmod p) α := zmod.algebra _ _,
   let b := is_noetherian.finset_basis (zmod p) α,
   rw [module.card_fintype b, zmod.card, is_prime_pow_pow_iff],
   { exact hp.1.is_prime_pow },

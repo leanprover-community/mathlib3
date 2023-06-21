@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 import topology.gluing
 import topology.sheafed_space.locally_ringed_space.has_colimits
-import topology.sheafed_space.open_immersion
+import algebraic_geometry.open_immersion.basic
 
 /-!
 # Gluing Structured spaces

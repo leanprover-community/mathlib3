@@ -10,6 +10,9 @@ import measure_theory.measure.haar.normed_space
 
 /-! # The Mellin transform
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the Mellin transform of a locally integrable function on `Ioi 0`, and show it is
 differentiable in a suitable vertical strip.
 

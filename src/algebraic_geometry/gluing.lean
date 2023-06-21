@@ -3,7 +3,7 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebraic_geometry.open_immersion
+import algebraic_geometry.open_immersion.Scheme
 import topology.sheafed_space.presheafed_space.gluing
 
 /-!

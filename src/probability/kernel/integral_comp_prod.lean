@@ -9,6 +9,9 @@ import measure_theory.integral.set_integral
 /-!
 # Bochner integral of a function against the composition-product of two kernels
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove properties of the composition-product of two kernels. If `κ` is an s-finite kernel from
 `α` to `β` and `η` is an s-finite kernel from `α × β` to `γ`, we can form their composition-product
 `κ ⊗ₖ η : kernel α (β × γ)`. We proved in `probability.kernel.lintegral_comp_prod` that it verifies

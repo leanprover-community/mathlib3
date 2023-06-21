@@ -439,7 +439,7 @@ theorem mem_sphere' : y ∈ sphere x ε ↔ dist x y = ε := by rw [dist_comm, m
 theorem ne_of_mem_sphere (h : y ∈ sphere x ε) (hε : ε ≠ 0) : y ≠ x :=
 by { contrapose! hε, symmetry, simpa [hε] using h  }
 
-theorem pos_of_mem_sphere (hy : y ∈ sphere x ε) : 0 ≤ ε :=
+theorem nonneg_of_mem_sphere (hy : y ∈ sphere x ε) : 0 ≤ ε :=
 dist_nonneg.trans_eq hy
 
 @[simp] theorem sphere_eq_empty_of_neg (hε : ε < 0) : sphere x ε = ∅ :=
@@ -465,10 +465,8 @@ by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 /-- Closed balls and spheres coincide only when the radius is non-positive -/
 @[simp] theorem closed_ball_eq_sphere_of_nonpos (hε : ε ≤ 0) : closed_ball x ε = sphere x ε :=
 begin
-  obtain rfl | hr := hε.eq_or_lt,
-  { ext,
-    exact iff.symm (le_antisymm_iff.trans $ and_iff_left dist_nonneg) },
-  { rw [closed_ball_eq_empty.mpr hr, sphere_eq_empty_of_neg hr] }
+  ext x,
+  exact (hε.trans dist_nonneg).le_iff_eq
 end
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
@@ -1832,10 +1830,10 @@ lemma nndist_pi_le_iff {f g : Πb, π b} {r : ℝ≥0} :
 by simp [nndist_pi_def]
 
 lemma nndist_pi_lt_iff {f g : Πb, π b} {r : ℝ≥0} (hr : 0 < r) :
-  nndist f g < r ↔ ∀b, nndist (f b) (g b) < r :=
+  nndist f g < r ↔ ∀ b, nndist (f b) (g b) < r :=
 by simp [nndist_pi_def, finset.sup_lt_iff (show ⊥ < r, from hr)]
 
-lemma nndist_pi_eq_iff {f g : Πb, π b} {r : ℝ≥0} (hr : 0 < r) :
+lemma nndist_pi_eq_iff {f g : Π b, π b} {r : ℝ≥0} (hr : 0 < r) :
   nndist f g = r ↔ (∃ i, nndist (f i) (g i) = r) ∧ ∀ b, nndist (f b) (g b) ≤ r :=
 begin
   rw [eq_iff_le_not_lt, nndist_pi_lt_iff hr, nndist_pi_le_iff, not_forall, and_comm],

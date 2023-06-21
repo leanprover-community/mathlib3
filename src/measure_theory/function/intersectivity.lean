@@ -49,7 +49,7 @@ begin
     refine hx.2 (mem_Union.2 ⟨u, (_ : _ < _)⟩),
     rw [indicator_of_mem hx.1, snorm_ess_sup_eq_zero_iff.2],
     simp,
-    { rwa [_root_.indicator_ae_eq_zero, function.support_one, inter_univ] } },
+    { rwa [indicator_ae_eq_zero, function.support_one, inter_univ] } },
   let f : ℕ → α → ℝ≥0∞ := λ n, (↑(n + 1) : ℝ≥0∞)⁻¹ • ∑ k in finset.range (n + 1), (s k).indicator 1,
   have hfapply : ∀ n a, f n a = (↑(n + 1))⁻¹ * ∑ k in finset.range (n + 1), (s k).indicator 1 a,
   { simp only [f, pi.coe_nat, pi.smul_apply, pi.inv_apply, finset.sum_apply, eq_self_iff_true,
@@ -84,7 +84,7 @@ begin
   have hμ : μ ≠ 0,
   { unfreezingI { rintro rfl },
     exact hr₀ (le_bot_iff.1 $ hr 0) },
-  obtain ⟨x, hxN, hx⟩ := exists_not_mem_null_laverage_le hμ (measurable_limsup hf).ae_measurable
+  obtain ⟨x, hxN, hx⟩ := exists_not_mem_null_laverage_le hμ
     (ne_top_of_le_ne_top (measure_ne_top μ univ) _) hN₀,
   rw laverage_eq at hx,
   replace hx := (ennreal.div_le_div_right ((le_limsup_of_le ⟨μ univ, eventually_map.2 _⟩ $ λ b hb,

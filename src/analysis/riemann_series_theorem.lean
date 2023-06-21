@@ -239,22 +239,32 @@ end
 
 lemma monotone_partial_sum_nonneg_terms (a : ℕ → ℝ) : monotone (partial_sum (nonneg_terms a)) :=
 begin
-  unfold monotone,
   intros n m hnm,
   induction m with m ih,
   { rw nat.eq_zero_of_le_zero hnm },
   { by_cases h : n = m.succ,
     { rw h },
-    { have : n ≤ m := nat.le_of_lt_succ (lt_of_le_of_ne hnm h),
+    { have h₁ : n ≤ m := nat.le_of_lt_succ (lt_of_le_of_ne hnm h),
       have pt_nonneg : 0 ≤ nonneg_terms a m := nonneg_terms_nonneg a m,
-      calc partial_sum (λ n, nonneg_terms a n) n ≤ partial_sum (λ n, nonneg_terms a n) m : ih this
-                                  ... ≤ nonneg_terms a m + partial_sum (λ n, nonneg_terms a n) m : by linarith
+      calc partial_sum (nonneg_terms a) n ≤ partial_sum (nonneg_terms a) m : ih h₁
+                                  ... ≤ nonneg_terms a m + partial_sum (nonneg_terms a) m : by linarith
                                   ... = partial_sum (nonneg_terms a) (m + 1) : by rw partial_sum_next } }
 end
 
 lemma antitone_partial_sum_nonpos_terms (a : ℕ → ℝ) : antitone (partial_sum (nonpos_terms a)) :=
 begin
-  sorry
+  unfold antitone,
+  intros n m hnm,
+  induction m with m ih,
+  { rw nat.eq_zero_of_le_zero hnm },
+  { by_cases h : n = m.succ,
+    { rw h },
+    { have h₁ : n ≤ m := nat.le_of_lt_succ (lt_of_le_of_ne hnm h),
+      have : nonpos_terms a m ≤ 0 := nonpos_terms_nonpos a m,
+      calc partial_sum (nonpos_terms a) (m + 1)
+            = nonpos_terms a m + partial_sum (nonpos_terms a) m : partial_sum_next _ _
+        ... ≤ partial_sum (nonpos_terms a) m : by linarith
+        ... ≤ partial_sum (nonpos_terms a) n : ih h₁ } }
 end
 
 lemma nonneg_terms_tendsto_at_top_at_top_of_conditionally_converging {a : ℕ → ℝ}

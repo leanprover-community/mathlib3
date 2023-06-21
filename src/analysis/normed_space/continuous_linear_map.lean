@@ -192,27 +192,6 @@ lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
   ‖linear_map.to_span_singleton 𝕜 E x c‖ = ‖x‖ * ‖c‖ :=
 by {rw mul_comm, exact norm_smul _ _}
 
-/-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
-    linear map from `𝕜` to `E` by taking multiples of `x`.-/
-def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
-of_homothety (linear_map.to_span_singleton 𝕜 E x) ‖x‖ (to_span_singleton_homothety 𝕜 x)
-
-lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
-by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
-
-lemma to_span_singleton_add (x y : E) :
-  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
-by { ext1, simp [to_span_singleton_apply], }
-
-lemma to_span_singleton_smul' (𝕜') [normed_field 𝕜'] [normed_space 𝕜' E]
-  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
-  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
-by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
-
-lemma to_span_singleton_smul (c : 𝕜) (x : E) :
-  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
-to_span_singleton_smul' 𝕜 𝕜 c x
-
 end continuous_linear_map
 
 section

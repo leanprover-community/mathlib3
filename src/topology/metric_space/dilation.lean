@@ -11,7 +11,7 @@ import data.fun_like.basic
 # Dilations
 
 We define dilations, i.e., maps between emetric spaces that satisfy
-`edist (f x) (f y) = r * edist x y`.
+`edist (f x) (f y) = r * edist x y` for some `r ∉ {0, ∞}`.
 
 ## Main defintions
 
@@ -35,13 +35,13 @@ needed.
 ## References
 
 - https://en.wikipedia.org/wiki/Dilation_(metric_space)
-- Marcel Berger, Geometry
+- [Marcel Berger, *Geometry*][berger1987]
 -/
 
 noncomputable theory
 
 open function set
-open_locale topological_space ennreal nnreal classical
+open_locale topology ennreal nnreal classical
 
 section defs
 
@@ -59,8 +59,6 @@ You should extend this typeclass when you extend `dilation`.
 class dilation_class (F : Type*) (α β : out_param $ Type*)
   [pseudo_emetric_space α] [pseudo_emetric_space β] extends fun_like F α (λ _, β) :=
 (edist_eq' : ∀ (f : F), ∃ r : ℝ≥0, r ≠ 0 ∧ ∀ (x y : α), edist (f x) (f y) = r * edist x y)
-
-attribute [nolint dangerous_instance] dilation_class.to_fun_like
 
 end defs
 

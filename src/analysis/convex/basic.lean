@@ -201,19 +201,22 @@ def convex_add_submonoid : add_submonoid (set E) :=
   zero_mem' := convex_zero,
   add_mem' := λ s t, convex.add }
 
+@[simp, norm_cast]
+lemma coe_convex_add_submonoid : ↑(convex_add_submonoid 𝕜 E) = {s : set E | convex 𝕜 s} := rfl
+
 variables {𝕜 E}
 
 @[simp] lemma mem_convex_add_submonoid {s : set E} :
   s ∈ convex_add_submonoid 𝕜 E ↔ convex 𝕜 s :=
 iff.rfl
 
-lemma convex_list_sum (s : list (set E)) (h : ∀ i ∈ s, convex 𝕜 i) : convex 𝕜 s.sum :=
+lemma convex_list_sum {l : list (set E)} (h : ∀ i ∈ l, convex 𝕜 i) : convex 𝕜 l.sum :=
 (convex_add_submonoid 𝕜 E).list_sum_mem h
 
-lemma convex_multiset_sum (s : multiset (set E)) (h : ∀ i ∈ s, convex 𝕜 i) : convex 𝕜 s.sum :=
+lemma convex_multiset_sum {s : multiset (set E)} (h : ∀ i ∈ s, convex 𝕜 i) : convex 𝕜 s.sum :=
 (convex_add_submonoid 𝕜 E).multiset_sum_mem _ h
 
-lemma convex_sum {ι} (s : finset ι) (t : ι → set E) (h : ∀ i ∈ s, convex 𝕜 (t i)) :
+lemma convex_sum {ι} {s : finset ι} (t : ι → set E) (h : ∀ i ∈ s, convex 𝕜 (t i)) :
   convex 𝕜 (∑ i in s, t i) :=
 (convex_add_submonoid 𝕜 E).sum_mem h
 

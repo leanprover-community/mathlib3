@@ -13,6 +13,9 @@ import field_theory.splitting_field.is_splitting_field
 /-!
 # Galois fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `p` is a prime number, and `n` a natural number,
 then `galois_field p n` is defined as the splitting field of `X^(p^n) - X` over `zmod p`.
 It is a finite field with `p ^ n` elements.

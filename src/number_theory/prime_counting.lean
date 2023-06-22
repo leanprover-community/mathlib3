@@ -13,6 +13,9 @@ import data.nat.nth
 /-!
 # The Prime Counting Function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the prime counting function: the function on natural numbers that returns
 the number of primes less than or equal to its input.
 

@@ -2670,7 +2670,7 @@ begin
   exact subset_normal_closure (set.mem_singleton _),
 end
 
-variables (G) {M : Type*} [monoid M]
+variables {M : Type*} [monoid M]
 
 lemma eq_of_left_mem_center {g h : M} (H : is_conj g h) (Hg : g ∈ set.center M) :
   g = h :=

@@ -3,9 +3,8 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
-import analysis.complex.upper_half_plane.topology
+import analysis.complex.upper_half_plane.manifold
 import number_theory.modular_forms.slash_invariant_forms
 /-!
 # Modular forms

@@ -154,7 +154,7 @@ lemma coe_dual (K : proper_cone ℝ E) : ↑(dual K) = (K : set E).inner_dual_co
   y ∈ dual K ↔ ∀ ⦃x⦄, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ :=
 by {rw [← mem_coe, coe_dual, mem_inner_dual_cone _ _], refl}
 
-/-- The preimage of a convex cone under a continuous `ℝ`-linear map is a convex cone. -/
+/-- The preimage of a proper cone under a continuous `ℝ`-linear map is a proper cone. -/
 noncomputable def comap (f : E →L[ℝ] F) (S : proper_cone ℝ F) : proper_cone ℝ E :=
 { to_convex_cone := convex_cone.comap (f : E →ₗ[ℝ] F) S,
   nonempty' := ⟨ 0,

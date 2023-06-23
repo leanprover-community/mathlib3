@@ -8,6 +8,9 @@ import measure_theory.covering.density_theorem
 /-!
 # Liminf, limsup, and uniformly locally doubling measures.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is a place to collect lemmas about liminf and limsup for subsets of a metric space
 carrying a uniformly locally doubling measure.
 

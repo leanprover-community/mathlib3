@@ -9,6 +9,9 @@ import analysis.special_functions.pow.nnreal
 /-!
 # Representation of `formal_multilinear_series.radius` as a `liminf`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the radius of convergence of a `formal_multilinear_series` is equal to
 $\liminf_{n\to\infty} \frac{1}{\sqrt[n]{‖p n‖}}$. This lemma can't go to `basic.lean` because this
 would create a circular dependency once we redefine `exp` using `formal_multilinear_series`.

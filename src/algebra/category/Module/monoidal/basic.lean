@@ -11,6 +11,9 @@ import category_theory.monoidal.linear
 /-!
 # The monoidal category structure on R-modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Mostly this uses existing machinery in `linear_algebra.tensor_product`.
 We just need to provide a few small missing pieces to build the
 `monoidal_category` instance.

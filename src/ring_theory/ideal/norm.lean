@@ -18,6 +18,9 @@ import ring_theory.localization.norm
 
 # Ideal norms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the absolute ideal norm `ideal.abs_norm (I : ideal R) : ℕ` as the cardinality of
 the quotient `R ⧸ I` (setting it to 0 if the cardinality is infinite),
 and the relative ideal norm `ideal.span_norm R (I : ideal S) : ideal S` as the ideal spanned by

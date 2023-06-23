@@ -11,6 +11,9 @@ import data.polynomial.derivative
 /-!
 # Derivatives of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that derivatives of polynomials in the analysis sense agree with their
 derivatives in the algebraic sense.
 

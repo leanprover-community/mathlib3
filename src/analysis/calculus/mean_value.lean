@@ -13,6 +13,9 @@ import topology.instances.real_vector_space
 /-!
 # The mean value inequality and equalities
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following facts:
 
 * `convex.norm_image_sub_le_of_norm_deriv_le` : if `f` is differentiable on a convex set `s`

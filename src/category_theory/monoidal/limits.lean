@@ -10,6 +10,9 @@ import category_theory.limits.has_limits
 /-!
 # `lim : (J ⥤ C) ⥤ C` is lax monoidal when `C` is a monoidal category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `C` is a monoidal category, the functorial association `F ↦ limit F` is lax monoidal,
 i.e. there are morphisms
 * `lim_lax.ε : (𝟙_ C) → limit (𝟙_ (J ⥤ C))`

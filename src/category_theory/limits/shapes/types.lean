@@ -51,13 +51,28 @@ local attribute [tidy] tactic.discrete_cases
 /-- A restatement of `types.lift_π_apply` that uses `pi.π` and `pi.lift`. -/
 @[simp]
 lemma pi_lift_π_apply
-  {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
+  {β : Type v} (f : β → Type max v u) {P : Type max v u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
+  (pi.π f b : (∏ f) → f b) (@pi.lift β _ _ f _ P s x) = s b x :=
+congr_fun (limit.lift_π (fan.mk P s) ⟨b⟩) x
+
+/-- A restatement of `types.lift_π_apply` that uses `pi.π` and `pi.lift`,
+with specialized universes. -/
+@[simp]
+lemma pi_lift_π_apply'
+  {β : Type v} (f : β → Type v) {P : Type v} (s : Π b, P ⟶ f b) (b : β) (x : P) :
   (pi.π f b : (∏ f) → f b) (@pi.lift β _ _ f _ P s x) = s b x :=
 congr_fun (limit.lift_π (fan.mk P s) ⟨b⟩) x
 
 /-- A restatement of `types.map_π_apply` that uses `pi.π` and `pi.map`. -/
 @[simp]
-lemma pi_map_π_apply {β : Type u} {f g : β → Type u} (α : Π j, f j ⟶ g j) (b : β) (x) :
+lemma pi_map_π_apply {β : Type v} {f g : β → Type max v u} (α : Π j, f j ⟶ g j) (b : β) (x) :
+  (pi.π g b : (∏ g) → g b) (pi.map α x) = α b ((pi.π f b : (∏ f) → f b) x) :=
+limit.map_π_apply _ _ _
+
+/-- A restatement of `types.map_π_apply` that uses `pi.π` and `pi.map`,
+with specialized universes. -/
+@[simp]
+lemma pi_map_π_apply' {β : Type v} {f g : β → Type v} (α : Π j, f j ⟶ g j) (b : β) (x) :
   (pi.π g b : (∏ g) → g b) (pi.map α x) = α b ((pi.π f b : (∏ f) → f b) x) :=
 limit.map_π_apply _ _ _
 

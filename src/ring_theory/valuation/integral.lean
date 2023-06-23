@@ -10,6 +10,9 @@ import ring_theory.valuation.integers
 /-!
 # Integral elements over the ring of integers of a valution
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The ring of integers is integrally closed inside the original ring.
 -/
 

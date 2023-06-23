@@ -9,6 +9,9 @@ import measure_theory.function.lp_order
 /-!
 # Integrable functions and `L¹` space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In the first part of this file, the predicate `integrable` is defined and basic properties of
 integrable functions are proved.
 
@@ -453,7 +456,7 @@ begin
   rw [integrable, and_iff_right this, has_finite_integral_const_iff]
 end
 
-lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
+@[simp] lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
 integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 
 lemma mem_ℒp.integrable_norm_rpow {f : α → β} {p : ℝ≥0∞}

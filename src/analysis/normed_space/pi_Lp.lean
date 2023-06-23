@@ -12,6 +12,7 @@ import linear_algebra.matrix.basis
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
 > Any changes to this file require a corresponding PR to mathlib4.
+
 Given finitely many metric spaces, one can put the max distance on their product, but there is also
 a whole family of natural distances, indexed by a parameter `p : ℝ≥0∞`, that also induce
 the product topology. We define them in this file. For `0 < p < ∞`, the distance on `Π i, α i`

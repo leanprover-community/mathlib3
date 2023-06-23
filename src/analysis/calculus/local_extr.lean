@@ -10,6 +10,9 @@ import topology.algebra.polynomial
 /-!
 # Local extrema of smooth functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 In a real normed space `E` we define `pos_tangent_cone_at (s : set E) (x : E)`.

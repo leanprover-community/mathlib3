@@ -15,6 +15,9 @@ import analysis.special_functions.pow.real
 /-!
 # Schwartz space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the Schwartz space. Usually, the Schwartz space is defined as the set of smooth
 functions $f : ℝ^n → ℂ$ such that there exists $C_{αβ} > 0$ with $$|x^α ∂^β f(x)| < C_{αβ}$$ for
 all $x ∈ ℝ^n$ and for all multiindices $α, β$.
@@ -58,6 +61,8 @@ Schwartz space, tempered distributions
 -/
 
 noncomputable theory
+
+open_locale big_operators nat
 
 variables {𝕜 𝕜' D E F G : Type*}
 
@@ -518,6 +523,37 @@ instance : topological_space.first_countable_topology (𝓢(E, F)) :=
 
 end topology
 
+section temperate_growth
+
+/-! ### Functions of temperate growth -/
+
+/-- A function is called of temperate growth if it is smooth and all iterated derivatives are
+polynomially bounded. -/
+def _root_.function.has_temperate_growth (f : E → F) : Prop :=
+  cont_diff ℝ ⊤ f ∧ ∀ n : ℕ, ∃ (k : ℕ) (C : ℝ), ∀ x, ‖iterated_fderiv ℝ n f x‖ ≤ C * (1 + ‖x‖)^k
+
+lemma _root_.function.has_temperate_growth.norm_iterated_fderiv_le_uniform_aux {f : E → F}
+  (hf_temperate : f.has_temperate_growth) (n : ℕ) :
+  ∃ (k : ℕ) (C : ℝ) (hC : 0 ≤ C), ∀ (N : ℕ) (hN : N ≤ n) (x : E),
+    ‖iterated_fderiv ℝ N f x‖ ≤ C * (1 + ‖x‖)^k :=
+begin
+  choose k C f using hf_temperate.2,
+  use (finset.range (n+1)).sup k,
+  let C' := max (0 : ℝ) ((finset.range (n+1)).sup' (by simp) C),
+  have hC' : 0 ≤ C' := by simp only [le_refl, finset.le_sup'_iff, true_or, le_max_iff],
+  use [C', hC'],
+  intros N hN x,
+  rw ← finset.mem_range_succ_iff at hN,
+  refine le_trans (f N x) (mul_le_mul _ _ (by positivity) hC'),
+  { simp only [finset.le_sup'_iff, le_max_iff],
+    right,
+    exact ⟨N, hN, rfl.le⟩ },
+  refine pow_le_pow (by simp only [le_add_iff_nonneg_right, norm_nonneg]) _,
+  exact finset.le_sup hN,
+end
+
+end temperate_growth
+
 section clm
 
 /-! ### Construction of continuous linear maps between Schwartz spaces -/
@@ -575,6 +611,175 @@ def mk_clm [ring_hom_isometric σ] (A : (D → E) → (F → G))
 
 end clm
 
+section eval_clm
+
+variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+
+/-- The map applying a vector to Hom-valued Schwartz function as a continuous linear map. -/
+@[protected] def eval_clm (m : E) : 𝓢(E, E →L[ℝ] F) →L[𝕜] 𝓢(E, F) :=
+mk_clm (λ f x, f x m)
+  (λ _ _ _, rfl) (λ _ _ _, rfl) (λ f, cont_diff.clm_apply f.2 cont_diff_const)
+  (begin
+    rintro ⟨k, n⟩,
+    use [{(k, n)}, ‖m‖, norm_nonneg _],
+    intros f x,
+    refine le_trans (mul_le_mul_of_nonneg_left (norm_iterated_fderiv_clm_apply_const f.2 le_top)
+      (by positivity)) _,
+    rw [← mul_assoc, ← mul_comm (‖m‖), mul_assoc],
+    refine mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+    simp only [finset.sup_singleton, schwartz_seminorm_family_apply, le_seminorm],
+  end)
+
+end eval_clm
+
+section multiplication
+
+variables [normed_add_comm_group D] [normed_space ℝ D]
+variables [normed_add_comm_group G] [normed_space ℝ G]
+
+/-- The map `f ↦ (x ↦ B (f x) (g x))` as a continuous `𝕜`-linear map on Schwartz space,
+where `B` is a continuous `𝕜`-linear map and `g` is a function of temperate growth. -/
+def bilin_left_clm (B : E →L[ℝ] F →L[ℝ] G) {g : D → F} (hg : g.has_temperate_growth) :
+  𝓢(D, E) →L[ℝ] 𝓢(D, G) :=
+  -- Todo (after port): generalize to `B : E →L[𝕜] F →L[𝕜] G` and `𝕜`-linear
+mk_clm (λ f x, B (f x) (g x))
+  (λ _ _ _, by simp only [map_add, add_left_inj, pi.add_apply, eq_self_iff_true,
+    continuous_linear_map.add_apply])
+  (λ _ _ _, by simp only [pi.smul_apply, continuous_linear_map.coe_smul',
+    continuous_linear_map.map_smul, ring_hom.id_apply])
+  (λ f, (B.is_bounded_bilinear_map.cont_diff.restrict_scalars ℝ).comp (f.smooth'.prod hg.1))
+  (begin
+    -- Porting note: rewrite this proof with `rel_congr`
+    rintro ⟨k, n⟩,
+    rcases hg.norm_iterated_fderiv_le_uniform_aux n with ⟨l, C, hC, hgrowth⟩,
+    use [finset.Iic (l+k,n), ‖B‖ * (n + 1) * n.choose (n / 2) * (C * 2^(l + k)), by positivity],
+    intros f x,
+    have hxk : 0 ≤ ‖x‖^k := by positivity,
+    have hnorm_mul :=
+    continuous_linear_map.norm_iterated_fderiv_le_of_bilinear B f.smooth' hg.1 x le_top,
+    refine le_trans (mul_le_mul_of_nonneg_left hnorm_mul hxk) _,
+    rw [← mul_assoc (‖x‖^k), mul_comm (‖x‖^k)],
+    simp_rw [mul_assoc (‖B‖)],
+    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    rw [finset.mul_sum],
+    have : ∑ (x_1 : ℕ) in finset.range (n + 1), (1 : ℝ) = n + 1 := by simp,
+    repeat { rw [mul_assoc ((n : ℝ) + 1)] },
+    rw [← this, finset.sum_mul],
+    refine finset.sum_le_sum (λ i hi, _),
+    simp only [one_mul],
+    rw [← mul_assoc, mul_comm (‖x‖^k), mul_assoc, mul_assoc, mul_assoc],
+    refine mul_le_mul _ _ (by positivity) (by positivity),
+    { norm_cast,
+      exact i.choose_le_middle n },
+    specialize hgrowth (n - i) (by simp only [tsub_le_self]) x,
+    rw [← mul_assoc],
+    refine le_trans (mul_le_mul_of_nonneg_left hgrowth (by positivity)) _,
+    rw [mul_comm _ (C * _), mul_assoc, mul_assoc C],
+    refine mul_le_mul_of_nonneg_left _ hC,
+    nth_rewrite 1 mul_comm,
+    rw [← mul_assoc],
+    rw finset.mem_range_succ_iff at hi,
+    change i ≤ (l + k, n).snd at hi,
+    refine le_trans _ (one_add_le_sup_seminorm_apply le_rfl hi f x ),
+    refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+    rw [pow_add],
+    refine mul_le_mul_of_nonneg_left _ (by positivity),
+    refine pow_le_pow_of_le_left (norm_nonneg _) _ _,
+    simp only [zero_le_one, le_add_iff_nonneg_left],
+  end)
+
+end multiplication
+
+section comp
+
+variables (𝕜)
+variables [is_R_or_C 𝕜]
+variables [normed_add_comm_group D] [normed_space ℝ D]
+variables [normed_add_comm_group G] [normed_space ℝ G]
+variables [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+variables [normed_space 𝕜 G] [smul_comm_class ℝ 𝕜 G]
+
+/-- Composition with a function on the right is a continuous linear map on Schwartz space
+provided that the function is temperate and growths polynomially near infinity. -/
+def comp_clm {g : D → E} (hg : g.has_temperate_growth)
+  (hg_upper : ∃ (k : ℕ) (C : ℝ), ∀ x, ‖x‖ ≤ C * (1 + ‖g x‖)^k ) :
+  𝓢(E, F) →L[𝕜] 𝓢(D, F) :=
+mk_clm (λ f x, (f (g x)))
+  (λ _ _ _, by simp only [add_left_inj, pi.add_apply, eq_self_iff_true])
+  (λ _ _ _, rfl)
+  (λ f, f.smooth'.comp hg.1)
+  (begin
+    rintros ⟨k, n⟩,
+    rcases hg.norm_iterated_fderiv_le_uniform_aux n with ⟨l, C, hC, hgrowth⟩,
+    rcases hg_upper with ⟨kg, Cg, hg_upper'⟩,
+    have hCg : 1 ≤ 1 + Cg :=
+    begin
+      refine le_add_of_nonneg_right _,
+      specialize hg_upper' 0,
+      rw [norm_zero] at hg_upper',
+      refine nonneg_of_mul_nonneg_left hg_upper' (by positivity),
+    end,
+    let k' := kg * (k + l * n),
+    use [finset.Iic (k',n), (1 + Cg) ^ (k + l * n) * ((C + 1) ^ n * n! * 2 ^ k'), by positivity],
+    intros f x,
+    let seminorm_f := ((finset.Iic (k',n)).sup (schwartz_seminorm_family 𝕜 _ _)) f,
+    have hg_upper'' : (1 + ‖x‖)^(k + l * n) ≤ (1 + Cg)^(k + l*n) * (1 + ‖g x‖)^k' :=
+    begin
+      rw [pow_mul, ← mul_pow],
+      refine pow_le_pow_of_le_left (by positivity) _ _,
+      rw [add_mul],
+      refine add_le_add _ (hg_upper' x),
+      nth_rewrite 0 ← one_mul (1 : ℝ),
+      refine mul_le_mul (le_refl _) (one_le_pow_of_one_le _ _) zero_le_one zero_le_one,
+      simp only [le_add_iff_nonneg_right, norm_nonneg],
+    end,
+    have hbound : ∀ i, i ≤ n → ‖iterated_fderiv ℝ i f (g x)‖ ≤
+      2 ^ k' * seminorm_f / ((1 + ‖g x‖) ^ k'):=
+    begin
+      intros i hi,
+      have hpos : 0 < (1 + ‖g x‖) ^ k' := by positivity,
+      rw le_div_iff' hpos,
+      change i ≤ (k', n).snd at hi,
+      exact one_add_le_sup_seminorm_apply le_rfl hi _ _,
+    end,
+    have hgrowth' : ∀ (N : ℕ) (hN₁ : 1 ≤ N) (hN₂ : N ≤ n),
+      ‖iterated_fderiv ℝ N g x‖ ≤ ((C + 1) * (1 + ‖x‖)^l)^N :=
+    begin
+      intros N hN₁ hN₂,
+      refine (hgrowth N hN₂ x).trans _,
+      rw [mul_pow],
+      have hN₁' := (lt_of_lt_of_le zero_lt_one hN₁).ne.symm,
+      refine mul_le_mul _ _ (by positivity) (by positivity),
+      { exact le_trans (by simp [hC]) (le_self_pow (by simp [hC]) hN₁'), },
+      { refine le_self_pow (one_le_pow_of_one_le _ l) hN₁',
+      simp only [le_add_iff_nonneg_right, norm_nonneg] },
+    end,
+    have := norm_iterated_fderiv_comp_le f.smooth' hg.1 le_top x hbound hgrowth',
+    have hxk : ‖x‖^k ≤ (1 + ‖x‖)^k :=
+    pow_le_pow_of_le_left (norm_nonneg _) (by simp only [zero_le_one, le_add_iff_nonneg_left]) _,
+    refine le_trans (mul_le_mul hxk this (by positivity) (by positivity)) _,
+    have rearrange :
+      (1 + ‖x‖) ^ k * (n! * (2 ^ k' * seminorm_f / (1 + ‖g x‖) ^ k') *
+        ((C + 1) * (1 + ‖x‖) ^ l) ^ n) =
+      ((1 + ‖x‖)^(k + l * n) / (1 + ‖g x‖) ^ k') * ((C + 1)^n * n! * 2^k' * seminorm_f) :=
+    begin
+      rw [mul_pow, pow_add, ← pow_mul],
+      ring,
+    end,
+    rw rearrange,
+    have hgxk' : 0 < (1 + ‖g x‖) ^ k' := by positivity,
+    rw ← div_le_iff hgxk' at hg_upper'',
+    have hpos : 0 ≤ (C + 1) ^ n * n! * 2 ^ k' * seminorm_f :=
+    begin
+      have : 0 ≤ seminorm_f := map_nonneg _ _,
+      positivity,
+    end,
+    refine le_trans (mul_le_mul_of_nonneg_right hg_upper'' hpos) _,
+    rw [← mul_assoc],
+  end)
+
+end comp
+
 section derivatives
 
 /-! ### Derivatives of Schwartz functions -/
@@ -607,6 +812,45 @@ mk_clm (λ f, deriv f)
     using f.le_seminorm' 𝕜 k (n + 1) x⟩)
 
 @[simp] lemma deriv_clm_apply (f : 𝓢(ℝ, F)) (x : ℝ) : deriv_clm 𝕜 f x = deriv f x := rfl
+
+/-- The partial derivative (or directional derivative) in the direction `m : E` as a
+continuous linear map on Schwartz space. -/
+def pderiv_clm (m : E) : 𝓢(E, F) →L[𝕜] 𝓢(E, F) := (eval_clm m).comp (fderiv_clm 𝕜)
+
+@[simp]
+lemma pderiv_clm_apply (m : E) (f : 𝓢(E, F)) (x : E) : pderiv_clm 𝕜 m f x = fderiv ℝ f x m := rfl
+
+/-- The iterated partial derivative (or directional derivative) as a continuous linear map on
+Schwartz space. -/
+def iterated_pderiv {n : ℕ} : (fin n → E) → 𝓢(E, F) →L[𝕜] 𝓢(E, F) :=
+nat.rec_on n
+  (λ x, continuous_linear_map.id 𝕜 _)
+  (λ n rec x, (pderiv_clm 𝕜 (x 0)).comp (rec (fin.tail x)))
+
+@[simp] lemma iterated_pderiv_zero (m : fin 0 → E) (f : 𝓢(E, F)):
+  iterated_pderiv 𝕜 m f = f := rfl
+
+@[simp] lemma iterated_pderiv_one (m : fin 1 → E) (f : 𝓢(E, F)) :
+  iterated_pderiv 𝕜 m f = pderiv_clm 𝕜 (m 0) f := rfl
+
+lemma iterated_pderiv_succ_left {n : ℕ} (m : fin (n + 1) → E) (f : 𝓢(E, F)) :
+  iterated_pderiv 𝕜 m f = pderiv_clm 𝕜 (m 0) (iterated_pderiv 𝕜 (fin.tail m) f) := rfl
+
+lemma iterated_pderiv_succ_right {n : ℕ} (m : fin (n + 1) → E) (f : 𝓢(E, F)) :
+  iterated_pderiv 𝕜 m f =
+    iterated_pderiv 𝕜 (fin.init m) (pderiv_clm 𝕜 (m (fin.last n)) f) :=
+begin
+  induction n with n IH,
+  { rw [iterated_pderiv_zero, iterated_pderiv_one],
+    refl },
+  -- The proof is `∂^{n + 2} = ∂ ∂^{n + 1} = ∂ ∂^n ∂ = ∂^{n+1} ∂`
+  have hmzero : fin.init m 0 = m 0 := by simp only [fin.init_def, fin.cast_succ_zero],
+  have hmtail : fin.tail m (fin.last n) = m (fin.last n.succ) :=
+  by simp only [fin.tail_def, fin.succ_last],
+  simp only [iterated_pderiv_succ_left, IH (fin.tail m), hmzero, hmtail, fin.tail_init_eq_init_tail]
+end
+
+-- Todo: `iterated_pderiv 𝕜 m f x = iterated_fderiv ℝ f x m`
 
 end derivatives
 

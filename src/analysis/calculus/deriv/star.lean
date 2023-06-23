@@ -9,6 +9,9 @@ import analysis.calculus.fderiv.star
 /-!
 # Star operations on derivatives
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the usual formulas (and existence assertions) for the derivative of the star
 operation. Note that these only apply when the field that the derivative is respect to has a trivial
 star operation; which as should be expected rules out `𝕜 = ℂ`.

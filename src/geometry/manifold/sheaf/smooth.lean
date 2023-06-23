@@ -294,7 +294,7 @@ def smooth_sheaf_CommRing.forget_stalk (x : Top.of M) :
   (smooth_sheaf IM I M R).presheaf.stalk x :=
 category_theory.preserves_colimit_iso _ _
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma smooth_sheaf_CommRing.forget_stalk_inv_comp_eval (x : Top.of M) :
   category_theory.category_struct.comp -- TODO: notation clash for `≫`
   (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv (smooth_sheaf_CommRing.eval IM I M R x) =
@@ -311,7 +311,7 @@ begin
   ext, refl
 end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma smooth_sheaf_CommRing.forget_stalk_hom_comp_eval (x : Top.of M) :
   category_theory.category_struct.comp -- TODO: notation clash for `≫`
   (smooth_sheaf_CommRing.forget_stalk IM I M R x).hom (smooth_sheaf.eval IM I R x) =
@@ -327,11 +327,6 @@ begin
   intro r,
   obtain ⟨y, rfl⟩ := smooth_sheaf.eval_surjective IM I R x r,
   use (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv y,
-  -- TODO: `comp_apply` didn't work...
-  change
-    (category_theory.category_struct.comp
-    (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv
-    (smooth_sheaf_CommRing.eval IM I M R x)) y = _,
   simp,
 end
 

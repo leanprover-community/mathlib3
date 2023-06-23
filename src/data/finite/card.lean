@@ -164,7 +164,7 @@ lemma card_eq_coe_nat_card (α : Type*) [finite α] : card α = nat.card α :=
 begin
   unfold part_enat.card,
   apply symm,
-  rw part_enat.coe_nat_eq_iff_eq,
+  rw cardinal.coe_nat_eq_to_part_enat_iff,
   exact finite.cast_card_eq_mk ,
 end
 

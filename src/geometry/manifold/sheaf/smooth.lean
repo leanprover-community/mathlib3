@@ -53,7 +53,6 @@ and cross-references there.
 -/
 
 noncomputable theory
-open_locale manifold
 open topological_space opposite
 
 universe u
@@ -81,16 +80,39 @@ instance smooth_sheaf.has_coe_to_fun (U : (opens (Top.of M))ᵒᵖ) :
   has_coe_to_fun ((smooth_sheaf IM I M N).val.obj U) (λ _, unop U → N) :=
 (cont_diff_within_at_local_invariant_prop IM I ⊤).sheaf_has_coe_to_fun _ _ _
 
+section
+
+open_locale manifold
+
 /-- The object of `smooth_sheaf IM I M N` for the open set `U` in `M` is
 `C^∞⟮IM, (unop U : opens M); I, N⟯`, the `(IM, I)`-smooth functions from `U` to `N`.  This is not
 just a "moral" equality but a literal and definitional equality! -/
 lemma smooth_sheaf.obj_eq (U : (opens (Top.of M))ᵒᵖ) :
   (smooth_sheaf IM I M N).val.obj U = C^∞⟮IM, (unop U : opens M); I, N⟯ := rfl
 
+end
+
 /-- Canonical map from the stalk of `smooth_sheaf IM I M N` at `x` to `N`, given by evaluating
 sections at `x`. -/
 def smooth_sheaf.eval (x : M) : (smooth_sheaf IM I M N).presheaf.stalk x → N :=
 Top.stalk_to_fiber _ x
+
+def smooth_sheaf.eval_hom (x : M) : (smooth_sheaf IM I M N).presheaf.stalk x ⟶ N :=
+Top.stalk_to_fiber _ x
+
+open category_theory
+open category_theory.limits
+
+def smooth_sheaf.eval_at (x : Top.of M) (U : open_nhds x)
+  (i : (smooth_sheaf IM I M N).val.obj (opposite.op U.obj)) : N :=
+i.1 ⟨x, U.2⟩
+
+@[simp, reassoc, elementwise]
+lemma smooth_sheaf.ι_eval_hom (x : Top.of M) (U) :
+  colimit.ι ((open_nhds.inclusion x).op ⋙ (smooth_sheaf IM I M N).val) U ≫
+  smooth_sheaf.eval_hom IM I N x =
+  smooth_sheaf.eval_at _ _ _ _ _ :=
+colimit.ι_desc _ _
 
 /-- The `eval` map is surjective at `x`. -/
 lemma smooth_sheaf.eval_surjective (x : M) : function.surjective (smooth_sheaf.eval IM I N x) :=
@@ -118,9 +140,15 @@ end type
 section lie_group
 variables [group G] [lie_group I G]
 
+section
+
+open_locale manifold
+
 @[to_additive]
 instance (U : (opens (Top.of M))ᵒᵖ) : group ((smooth_sheaf IM I M G).val.obj U) :=
 (smooth_map.group : group C^∞⟮IM, (unop U : opens M); I, G⟯)
+
+end
 
 /-- The presheaf of smooth functions from `M` to `G`, for `G` a Lie group, as a presheaf
 of groups. -/
@@ -155,9 +183,15 @@ end lie_group
 section comm_lie_group
 variables [comm_group A] [comm_group A'] [lie_group I A] [lie_group I' A']
 
+section
+
+open_locale manifold
+
 @[to_additive]
 instance (U : (opens (Top.of M))ᵒᵖ) : comm_group ((smooth_sheaf IM I M A).val.obj U) :=
 (smooth_map.comm_group : comm_group C^∞⟮IM, (unop U : opens M); I, A⟯)
+
+end
 
 /-- The presheaf of smooth functions from `M` to `A`, for `A` an abelian Lie group, as a
 presheaf of abelian groups. -/
@@ -204,8 +238,14 @@ end comm_lie_group
 section smooth_ring
 variables [ring R] [smooth_ring I R]
 
+section
+
+open_locale manifold
+
 instance (U : (opens (Top.of M))ᵒᵖ) : ring ((smooth_sheaf IM I M R).val.obj U) :=
 (smooth_map.ring : ring C^∞⟮IM, (unop U : opens M); I, R⟯)
+
+end
 
 /-- The presheaf of smooth functions from `M` to `R`, for `R` a smooth ring, as a presheaf
 of rings. -/
@@ -236,8 +276,14 @@ end smooth_ring
 section smooth_comm_ring
 variables [comm_ring R] [smooth_ring I R]
 
+section
+
+open_locale manifold
+
 instance (U : (opens (Top.of M))ᵒᵖ) : comm_ring ((smooth_sheaf IM I M R).val.obj U) :=
 (smooth_map.comm_ring : comm_ring C^∞⟮IM, (unop U : opens M); I, R⟯)
+
+end
 
 /-- The presheaf of smooth functions from `M` to `R`, for `R` a smooth commutative ring, as a
 presheaf of commutative rings. -/
@@ -263,12 +309,38 @@ def smooth_sheaf_CommRing : Top.sheaf CommRing.{u} (Top.of M) :=
     { apply_instance },
   end }
 
+-- sanity check: applying the `CommRing`-to-`Type` forgetful functor to the sheaf-of-rings of smooth
+-- functions gives the sheaf-of-types of smooth functions.
+example : (category_theory.Sheaf_compose _ (category_theory.forget CommRing)).obj
+  (smooth_sheaf_CommRing.{u} IM I M R) =
+  (smooth_sheaf IM I M R) := rfl
+
 open category_theory
 open category_theory.limits
 
--- TODO: rename
-def eval_at (x : Top.of M) (U : open_nhds x) :
-  (smooth_sheaf IM I M R).val.obj (opposite.op U.1) →+* R :=
+def smooth_sheaf_CommRing.forget_stalk (x : Top.of M) :
+  (forget _).obj ((smooth_sheaf_CommRing IM I M R).presheaf.stalk x) ≅
+  (smooth_sheaf IM I M R).presheaf.stalk x :=
+preserves_colimit_iso _ _
+
+@[simp, reassoc, elementwise]
+lemma smooth_sheaf_Commring.ι_forget_stalk_hom (x : Top.of M) (U) :
+  (forget _).map (colimit.ι ((open_nhds.inclusion x).op ⋙ _) U) ≫
+  (smooth_sheaf_CommRing.forget_stalk IM I M R x).hom =
+  colimit.ι ((open_nhds.inclusion x).op ⋙ _) U :=
+ι_preserves_colimits_iso_hom _ _ _
+
+@[simp, reassoc, elementwise]
+lemma smooth_sheaf_Commring.ι_forget_stalk_inv (x : Top.of M) (U) :
+  colimit.ι ((open_nhds.inclusion x).op ⋙ (smooth_sheaf IM I M R).val) U ≫
+  (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv =
+  (forget CommRing).map
+    (colimit.ι ((open_nhds.inclusion x).op ⋙ (smooth_sheaf_CommRing IM I M R).val) U) :=
+by rw [iso.comp_inv_eq, smooth_sheaf_Commring.ι_forget_stalk_hom]
+
+def smooth_sheaf_CommRing.eval_at (x : Top.of M) (U : open_nhds x) :
+  (smooth_sheaf_CommRing IM I M R).val.obj (opposite.op U.1) ⟶ CommRing.of R :=
+show (smooth_sheaf IM I M R).val.obj (opposite.op U.1) →+* R, from
 { to_fun := λ f, f ⟨x, U.2⟩,
   map_one' := rfl,
   map_mul' := λ _ _, rfl,
@@ -280,46 +352,37 @@ def smooth_sheaf_CommRing.eval (x : Top.of M) :
   CommRing.of R :=
 begin
   refine category_theory.limits.colimit.desc _ ⟨_, ⟨λ U, _, _⟩⟩,
-  { exact eval_at _ _ _ _ _ _ },
+  { exact smooth_sheaf_CommRing.eval_at _ _ _ _ _ _ },
   { tidy }
 end
 
--- The def above is a ring hom.
-example (x : Top.of M) :
-  (smooth_sheaf_CommRing IM I M R).presheaf.stalk x →+*
-  CommRing.of R := smooth_sheaf_CommRing.eval _ _ _ _ _
-
-def smooth_sheaf_CommRing.forget_stalk (x : Top.of M) :
-  (category_theory.forget _).obj ((smooth_sheaf_CommRing IM I M R).presheaf.stalk x) ≅
-  (smooth_sheaf IM I M R).presheaf.stalk x :=
-category_theory.preserves_colimit_iso _ _
+@[simp, reassoc, elementwise]
+lemma smooth_sheaf_CommRing.ι_eval (x : Top.of M) (U) :
+  colimit.ι ((open_nhds.inclusion x).op ⋙ _) U ≫
+  smooth_sheaf_CommRing.eval IM I M R x =
+  smooth_sheaf_CommRing.eval_at _ _ _ _ _ _ :=
+colimit.ι_desc _ _
 
 @[simp, reassoc, elementwise]
 lemma smooth_sheaf_CommRing.forget_stalk_inv_comp_eval (x : Top.of M) :
-  category_theory.category_struct.comp -- TODO: notation clash for `≫`
-  (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv (smooth_sheaf_CommRing.eval IM I M R x) =
-  smooth_sheaf.eval _ _ _ _ :=
+  (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv ≫
+    (forget _).map (smooth_sheaf_CommRing.eval IM I M R x) =
+  smooth_sheaf.eval_hom _ _ _ _ :=
 begin
   apply limits.colimit.hom_ext,
   intro U,
-  dsimp only [smooth_sheaf_CommRing.forget_stalk],
-  -- TODO: need to add some API to avoid these `erw`'s.
-  erw [limits.colimit.ι_desc],
-  erw [limits.colimit.ι_desc_assoc],
-  erw [← (forget CommRing).map_comp],
-  erw [limits.colimit.ι_desc],
-  ext, refl
+  dsimp [- forget_map_eq_coe],
+  rw [smooth_sheaf_Commring.ι_forget_stalk_inv_assoc, ← functor.map_comp,
+    smooth_sheaf_CommRing.ι_eval, smooth_sheaf.ι_eval_hom],
+  refl,
 end
 
 @[simp, reassoc, elementwise]
 lemma smooth_sheaf_CommRing.forget_stalk_hom_comp_eval (x : Top.of M) :
-  category_theory.category_struct.comp -- TODO: notation clash for `≫`
-  (smooth_sheaf_CommRing.forget_stalk IM I M R x).hom (smooth_sheaf.eval IM I R x) =
-  smooth_sheaf_CommRing.eval _ _ _ _ _ :=
-begin
-  rw ← category_theory.iso.eq_inv_comp,
-  simp,
-end
+  (smooth_sheaf_CommRing.forget_stalk IM I M R x).hom ≫
+    (smooth_sheaf.eval_hom IM I R x) =
+  (forget _).map (smooth_sheaf_CommRing.eval _ _ _ _ _) :=
+by simp [← category_theory.iso.eq_inv_comp,- forget_map_eq_coe]
 
 lemma smooth_sheaf_CommRing.eval_surjective (x) :
   function.surjective (smooth_sheaf_CommRing.eval IM I M R x) :=
@@ -327,13 +390,7 @@ begin
   intro r,
   obtain ⟨y, rfl⟩ := smooth_sheaf.eval_surjective IM I R x r,
   use (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv y,
-  simp,
+  apply smooth_sheaf_CommRing.forget_stalk_inv_comp_eval_apply,
 end
-
--- sanity check: applying the `CommRing`-to-`Type` forgetful functor to the sheaf-of-rings of smooth
--- functions gives the sheaf-of-types of smooth functions.
-example : (category_theory.Sheaf_compose _ (category_theory.forget CommRing)).obj
-  (smooth_sheaf_CommRing.{u} IM I M R) =
-  (smooth_sheaf IM I M R) := rfl
 
 end smooth_comm_ring

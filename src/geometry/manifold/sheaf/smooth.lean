@@ -36,10 +36,10 @@ just boilerplate and can be added as needed.
 The canonical "evaluation" map `smooth_sheaf.eval` from the stalk at `x:M` of the sheaf of smooth
 functions `M → N` should be upgraded in the presence of algebraic structure on `N`: a group
 homomorphism for `smooth_sheaf_Group` and `smooth_sheaf_CommGroup`, a ring homomorphism for
-`smooth_sheaf_Ring` and `smooth_sheaf_CommRing`. This is blocked by some category theory TODOs: one
-needs to identify as types the stalk at `x` of `smooth_sheaf_Group` (and similarly for the other
-algebraic categories) with the stalk at `x` of `smooth_sheaf`, which should come from the fact that
-the forgetful functor preserves filtered colimits.
+`smooth_sheaf_Ring` and `smooth_sheaf_CommRing`. Also, one wants to identify as types the stalk at
+`x` of `smooth_sheaf_Group` (and similarly for the other algebraic categories) with the stalk at
+`x` of `smooth_sheaf`.  These tasks require engaging with the colimits API in the category theory
+library, but should not be particularly hard.
 
 Currently there is a universe restriction: one can consider the sheaf of smooth functions from `M`
 to `N` only if `M` and `N` are in the same universe.  For example, since `ℂ` is in `Type`, we can

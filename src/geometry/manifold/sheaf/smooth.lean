@@ -7,7 +7,48 @@ import geometry.manifold.sheaf.basic
 import geometry.manifold.algebra.smooth_functions
 import category_theory.sites.whiskering
 
-/-! # The sheaf of smooth functions on a manifold -/
+/-! # The sheaf of smooth functions on a manifold
+
+The sheaf of `𝕜`-smooth functions from a manifold `M` to a manifold `N` can be defined as a sheaf of
+types using the construction `structure_groupoid.local_invariant_prop.sheaf` from the file
+`geometry.manifold.sheaf.basic`.  In this file we write that down (a one-liner), then do the work of
+upgrading this to a sheaf of [groups]/[abelian groups]/[rings]/[commutative rings] when `N` carries
+more algebraic structure.  For example, if `N` is `𝕜` then the sheaf of smooth functions from `M` to
+`𝕜` is a sheaf of commutative rings, the *structure sheaf* of `M`.
+
+## Main definitions
+
+* `smooth_sheaf`: The sheaf of smooth functions from `M` to `N`, as a sheaf of types
+* `smooth_sheaf.eval`: Canonical map onto `N` from the stalk of `smooth_sheaf IM I M N` at `x`,
+  given by evaluating sections at `x`
+* `smooth_sheaf_Group`, `smooth_sheaf_CommGroup`, `smooth_sheaf_Ring`, `smooth_sheaf_CommRing`: The
+  sheaf of smooth functions into a [Lie group]/[abelian Lie group]/[smooth ring]/[smooth commutative
+  ring], as a sheaf of [groups]/[abelian groups]/[rings]/[commutative rings]
+* `smooth_sheaf_CommGroup.comp_left`: For a manifold `M` and a smooth homomorphism `φ` between
+  abelian Lie groups `A`, `A'`, the 'postcomposition-by-`φ`' morphism of sheaves from
+  `smooth_sheaf_CommGroup IM I M A` to `smooth_sheaf_CommGroup IM I' M A'`
+
+## TODO
+
+There are variants of `smooth_sheaf_CommGroup.comp_left` for `Group`, `Ring`, `CommRing`; this is
+just boilerplate and can be added as needed.
+
+The canonical "evaluation" map `smooth_sheaf.eval` from the stalk at `x:M` of the sheaf of smooth
+functions `M → N` should be upgraded in the presence of algebraic structure on `N`: a group
+homomorphism for `smooth_sheaf_Group` and `smooth_sheaf_CommGroup`, a ring homomorphism for
+`smooth_sheaf_Ring` and `smooth_sheaf_CommRing`. This is blocked by some category theory TODOs: one
+needs to identify as types the stalk at `x` of `smooth_sheaf_Group` (and similarly for the other
+algebraic categories) with the stalk at `x` of `smooth_sheaf`, which should come from the fact that
+the forgetful functor preserves filtered colimits.
+
+Currently there is a universe restriction: one can consider the sheaf of smooth functions from `M`
+to `N` only if `M` and `N` are in the same universe.  For example, since `ℂ` is in `Type`, we can
+only consider the structure sheaf of complex manifolds in `Type`, which is unsatisfactory. The
+obstacle here is in the underlying category theory constructions, and there is WIP (as of June 2023)
+to fix this.  See
+https://github.com/leanprover-community/mathlib/pull/19153
+and cross-references there.
+-/
 
 noncomputable theory
 open_locale manifold

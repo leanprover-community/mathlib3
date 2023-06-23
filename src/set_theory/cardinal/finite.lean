@@ -174,18 +174,16 @@ lemma card_eq_zero_iff_empty (α : Type*) : card α = 0 ↔ is_empty α :=
 begin
   rw ← cardinal.mk_eq_zero_iff,
   conv_rhs { rw ← nat.cast_zero },
-  rw ← _root_.cardinal.to_part_enat_eq_coe_nat_iff,
-  unfold part_enat.card,
-  simp only [nat.cast_zero]
+  rw ← cardinal.to_part_enat_eq_coe_nat_iff,
+  simp only [part_enat.card, nat.cast_zero]
 end
 
 lemma card_le_one_iff_subsingleton (α : Type*) : card α ≤ 1 ↔ subsingleton α :=
 begin
   rw ← le_one_iff_subsingleton,
   conv_rhs { rw ← nat.cast_one},
-  rw ← _root_.cardinal.to_part_enat_le_coe_nat_iff,
-  unfold part_enat.card,
-  simp only [nat.cast_one]
+  rw ← cardinal.to_part_enat_le_coe_nat_iff,
+  simp only [part_enat.card, nat.cast_one]
 end
 
 lemma one_lt_card_iff_nontrivial (α : Type*) : 1 < card α ↔ nontrivial α :=
@@ -193,8 +191,7 @@ begin
   rw ← one_lt_iff_nontrivial,
   conv_rhs { rw ← nat.cast_one},
   rw ← cardinal.coe_nat_lt_coe_iff_lt,
-  unfold part_enat.card,
-  simp only [nat.cast_one]
+  simp only [part_enat.card, nat.cast_one]
 end
 
 lemma is_finite_of_card {α : Type*} {n : ℕ} (hα : part_enat.card α = n) :

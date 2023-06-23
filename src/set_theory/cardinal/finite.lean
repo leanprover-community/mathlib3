@@ -141,11 +141,13 @@ card_image_of_inj_on (set.inj_on_of_injective h s)
 
 -- Should I keep the 6 following lemmas ?
 @[simp]
-lemma _root_.cardinal.coe_nat_le_to_part_enat_iff {n : ℕ} {c : cardinal} : ↑n ≤ to_part_enat c ↔ ↑n ≤ c :=
+lemma _root_.cardinal.coe_nat_le_to_part_enat_iff {n : ℕ} {c : cardinal} :
+  ↑n ≤ to_part_enat c ↔ ↑n ≤ c :=
 by rw [← to_part_enat_cast n, to_part_enat_le_iff_le_of_le_aleph_0 (le_of_lt (nat_lt_aleph_0 n))]
 
 @[simp]
-lemma _root_.cardinal.to_part_enat_le_coe_nat_iff {c : cardinal} {n : ℕ} : to_part_enat c ≤ n ↔ c ≤ n :=
+lemma _root_.cardinal.to_part_enat_le_coe_nat_iff {c : cardinal} {n : ℕ} :
+  to_part_enat c ≤ n ↔ c ≤ n :=
 by rw [← to_part_enat_cast n,
  to_part_enat_le_iff_le_of_lt_aleph_0 (nat_lt_aleph_0 n)]
 
@@ -157,17 +159,17 @@ by rw [le_antisymm_iff, le_antisymm_iff,
 
 @[simp]
 lemma _root_.cardinal.to_part_enat_eq_coe_nat_iff {c : cardinal} {n : ℕ} :
-   to_part_enat c = n ↔ c = n:=
+  to_part_enat c = n ↔ c = n:=
 by rw [eq_comm, cardinal.coe_nat_eq_to_part_enat_iff, eq_comm]
 
 @[simp]
 lemma _root_.cardinal.coe_nat_lt_coe_iff_lt {n : ℕ} {c : cardinal} :
-   ↑n < to_part_enat c ↔ ↑n < c :=
+  ↑n < to_part_enat c ↔ ↑n < c :=
 by simp only [← not_le, cardinal.to_part_enat_le_coe_nat_iff]
 
 @[simp]
 lemma _root_.cardinal.lt_coe_nat_iff_lt {n : ℕ} {c : cardinal} :
-   to_part_enat c < n ↔ c < n :=
+  to_part_enat c < n ↔ c < n :=
 by simp only [← not_le, cardinal.coe_nat_le_to_part_enat_iff]
 
 lemma card_eq_zero_iff_empty (α : Type*) : card α = 0 ↔ is_empty α :=

@@ -139,86 +139,36 @@ lemma card_image_of_injective {α : Type*} {β : Type*}
   card (f '' s) = card s :=
 card_image_of_inj_on (set.inj_on_of_injective h s)
 
--- Move to basic
-
+-- Should I keep the 6 following lemmas ?
 @[simp]
 lemma _root_.cardinal.coe_nat_le_to_part_enat_iff {n : ℕ} {c : cardinal} : ↑n ≤ to_part_enat c ↔ ↑n ≤ c :=
 by rw [← to_part_enat_cast n, to_part_enat_le_iff_le_of_le_aleph_0 (le_of_lt (nat_lt_aleph_0 n))]
-
-/-
-@[simp]
-lemma coe_nat_le_iff_le {n : ℕ} {c : cardinal} :
-   ↑n ≤ to_part_enat c ↔ ↑n ≤ c :=
-begin
-  cases lt_or_ge c aleph_0,
-  { rw [to_part_enat_apply_of_lt_aleph_0 h, coe_le_coe, ← to_nat_cast n],
-    rw to_nat_le_iff_le_of_lt_aleph_0 (nat_lt_aleph_0 n) h,
-    simp only [to_nat_cast] },
-  { apply iff_of_true,
-    { rw to_part_enat_apply_of_aleph_0_le h,
-      exact le_top },
-    { apply le_trans (le_of_lt _) h,
-      rw lt_aleph_0,
-      use n } }
-end
--/
 
 @[simp]
 lemma _root_.cardinal.to_part_enat_le_coe_nat_iff {c : cardinal} {n : ℕ} : to_part_enat c ≤ n ↔ c ≤ n :=
 by rw [← to_part_enat_cast n,
  to_part_enat_le_iff_le_of_lt_aleph_0 (nat_lt_aleph_0 n)]
 
-/-
-lemma le_coe_nat_iff_le {c : cardinal} {n : ℕ} :
-   to_part_enat c ≤ n ↔ c ≤ n :=
-begin
-  cases lt_or_ge c aleph_0,
-  { rw [to_part_enat_apply_of_lt_aleph_0 h, coe_le_coe, ← to_nat_cast n],
-    rw to_nat_le_iff_le_of_lt_aleph_0 h (nat_lt_aleph_0 n),
-    simp only [to_nat_cast] },
-  { apply iff_of_false,
-    { rw to_part_enat_apply_of_aleph_0_le h,
-      simp only [top_le_iff, coe_ne_top, not_false_iff] },
-    { rw not_le,
-      apply lt_of_lt_of_le (nat_lt_aleph_0 n) h } }
-end
--/
+@[simp]
 lemma _root_.cardinal.coe_nat_eq_to_part_enat_iff {n : ℕ} {c : cardinal} :
   ↑n = to_part_enat c ↔ ↑n = c :=
 by rw [le_antisymm_iff, le_antisymm_iff,
   cardinal.coe_nat_le_to_part_enat_iff,  cardinal.to_part_enat_le_coe_nat_iff]
 
+@[simp]
 lemma _root_.cardinal.to_part_enat_eq_coe_nat_iff {c : cardinal} {n : ℕ} :
    to_part_enat c = n ↔ c = n:=
 by rw [eq_comm, cardinal.coe_nat_eq_to_part_enat_iff, eq_comm]
 
--- TODO
-
-lemma coe_nat_lt_coe_iff_lt {n : ℕ} {c : cardinal} :
+@[simp]
+lemma _root_.cardinal.coe_nat_lt_coe_iff_lt {n : ℕ} {c : cardinal} :
    ↑n < to_part_enat c ↔ ↑n < c :=
-begin
-  cases lt_or_ge c aleph_0,
-  { rw [to_part_enat_apply_of_lt_aleph_0 h, coe_lt_coe, ← to_nat_cast n],
-    rw to_nat_lt_iff_lt_of_lt_aleph_0 (nat_lt_aleph_0 n) h,
-    simp only [to_nat_cast] },
-  { apply iff_of_true,
-    { rw to_part_enat_apply_of_aleph_0_le h, exact coe_lt_top n },
-    { exact lt_of_lt_of_le (nat_lt_aleph_0 n) h } }
-end
+by simp only [← not_le, cardinal.to_part_enat_le_coe_nat_iff]
 
-lemma lt_coe_nat_iff_lt {n : ℕ} {c : cardinal} :
+@[simp]
+lemma _root_.cardinal.lt_coe_nat_iff_lt {n : ℕ} {c : cardinal} :
    to_part_enat c < n ↔ c < n :=
-begin
-  cases lt_or_ge c aleph_0,
-  { rw [to_part_enat_apply_of_lt_aleph_0 h, coe_lt_coe, ← to_nat_cast n],
-    rw to_nat_lt_iff_lt_of_lt_aleph_0 h (nat_lt_aleph_0 n),
-    simp only [to_nat_cast] },
-  { apply iff_of_false,
-    { rw to_part_enat_apply_of_aleph_0_le h,
-      simp },
-    { rw not_lt,
-      refine le_trans (le_of_lt (nat_lt_aleph_0 n)) h } }
-end
+by simp only [← not_le, cardinal.coe_nat_le_to_part_enat_iff]
 
 lemma card_eq_zero_iff_empty (α : Type*) : card α = 0 ↔ is_empty α :=
 begin
@@ -242,26 +192,10 @@ lemma one_lt_card_iff_nontrivial (α : Type*) : 1 < card α ↔ nontrivial α :=
 begin
   rw ← one_lt_iff_nontrivial,
   conv_rhs { rw ← nat.cast_one},
-  rw ← coe_nat_lt_coe_iff_lt,
+  rw ← cardinal.coe_nat_lt_coe_iff_lt,
   unfold part_enat.card,
   simp only [nat.cast_one]
 end
-
-/-
-lemma card_of_finite (α : Type*) [finite α] : card α = nat.card α :=
-begin
-  unfold part_enat.card,
-  apply symm,
-  rw coe_nat_eq_iff_eq,
-  exact finite.cast_card_eq_mk ,
-end
-
--- Necessary ?
-lemma card_of_fintype (α : Type*) [fintype α] : card α = fintype.card α :=
-begin
-  rw card_of_finite,
-  simp only [nat.card_eq_fintype_card],
-end -/
 
 lemma is_finite_of_card {α : Type*} {n : ℕ} (hα : part_enat.card α = n) :
   finite α :=

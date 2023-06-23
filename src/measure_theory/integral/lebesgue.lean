@@ -83,7 +83,7 @@ section lintegral
 
 open simple_func
 
-variables {m : measurable_space α} {μ ν : measure α}
+variables {m : measurable_space α} {μ ν : measure α} {f : α → ℝ≥0∞} {s : set α}
 
 /-- The **lower Lebesgue integral** of a function `f` with respect to a measure `μ`. -/
 @[irreducible] def lintegral {m : measurable_space α} (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
@@ -758,6 +758,9 @@ begin
   exact hf (measurable_set_singleton r)
 end
 
+@[simp] lemma lintegral_indicator_one (hs : measurable_set s) : ∫⁻ a, s.indicator 1 a ∂μ = μ s :=
+(lintegral_indicator_const hs _).trans $ one_mul _
+
 /-- A version of **Markov's inequality** for two functions. It doesn't follow from the standard
 Markov's inequality because we only assume measurability of `g`, not `f`. -/
 lemma lintegral_add_mul_meas_add_le_le_lintegral {f g : α → ℝ≥0∞} (hle : f ≤ᵐ[μ] g)
@@ -792,11 +795,24 @@ lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 mul_meas_ge_le_lintegral₀ hf.ae_measurable ε
 
-lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : ae_measurable f μ)
-  (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
+lemma lintegral_eq_top_of_measure_eq_top_ne_zero {f : α → ℝ≥0∞} (hf : ae_measurable f μ)
+  (hμf : μ {x | f x = ∞} ≠ 0) : ∫⁻ x, f x ∂μ = ∞ :=
 eq_top_iff.mpr $
-calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
+calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf]
    ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral₀ hf ∞
+
+lemma set_lintegral_eq_top_of_measure_eq_top_ne_zero (hf : ae_measurable f (μ.restrict s))
+  (hμf : μ {x ∈ s | f x = ∞} ≠ 0) : ∫⁻ x in s, f x ∂μ = ∞ :=
+lintegral_eq_top_of_measure_eq_top_ne_zero hf $
+  mt (eq_bot_mono $ by { rw ←set_of_inter_eq_sep, exact measure.le_restrict_apply _ _ }) hμf
+
+lemma measure_eq_top_of_lintegral_ne_top (hf : ae_measurable f μ) (hμf : ∫⁻ x, f x ∂μ ≠ ∞) :
+  μ {x | f x = ∞} = 0 :=
+of_not_not $ λ h, hμf $ lintegral_eq_top_of_measure_eq_top_ne_zero hf h
+
+lemma measure_eq_top_of_set_lintegral_ne_top (hf : ae_measurable f (μ.restrict s))
+  (hμf : ∫⁻ x in s, f x ∂μ ≠ ∞) : μ {x ∈ s | f x = ∞} = 0 :=
+of_not_not $ λ h, hμf $ set_lintegral_eq_top_of_measure_eq_top_ne_zero hf h
 
 /-- **Markov's inequality** also known as **Chebyshev's first inequality**. -/
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : ae_measurable f μ) {ε : ℝ≥0∞}

@@ -8,6 +8,9 @@ import algebra.star.subalgebra
 import tactic.noncomm_ring
 /-!
 # Spectrum of an element in an algebra
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file develops the basic theory of the spectrum of an element of an algebra.
 This theory will serve as the foundation for spectral theory in Banach algebras.
 

@@ -8,6 +8,9 @@ import category_theory.monoidal.coherence_lemmas
 
 /-!
 # `(𝟙_ C ⟶ -)` is a lax monoidal functor to `Type`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

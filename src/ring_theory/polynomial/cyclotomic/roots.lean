@@ -10,6 +10,9 @@ import ring_theory.roots_of_unity.minpoly
 /-!
 # Roots of cyclotomic polynomials.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We gather results about roots of cyclotomic polynomials. In particular we show in
 `polynomial.cyclotomic_eq_minpoly` that `cyclotomic n R` is the minimal polynomial of a primitive
 root of unity.

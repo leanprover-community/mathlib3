@@ -10,6 +10,9 @@ import analysis.complex.abs_max
 /-!
 # The open mapping theorem for holomorphic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the open mapping theorem for holomorphic functions, namely that an analytic
 function on a preconnected set of the complex plane is either constant or open. The main step is to
 show a local version of the theorem that states that if `f` is analytic at a point `z₀`, then either

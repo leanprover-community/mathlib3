@@ -11,6 +11,9 @@ import probability.independence.basic
 
 # The second Borel-Cantelli lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the second Borel-Cantelli lemma which states that, given a sequence of
 independent sets `(sₙ)` in a probability space, if `∑ n, μ sₙ = ∞`, then the limsup of `sₙ` has
 measure 1. We employ a proof using Lévy's generalized Borel-Cantelli by choosing an appropriate

@@ -13,6 +13,9 @@ import measure_theory.constructions.polish
 /-!
 # Change of variables in higher-dimensional integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `μ` be a Lebesgue measure on a finite-dimensional real vector space `E`.
 Let `f : E → E` be a function which is injective and differentiable on a measurable set `s`,
 with derivative `f'`. Then we prove that `f '' s` is measurable, and

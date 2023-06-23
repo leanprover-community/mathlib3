@@ -13,6 +13,9 @@ import field_theory.splitting_field.is_splitting_field
 /-!
 # Galois fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `p` is a prime number, and `n` a natural number,
 then `galois_field p n` is defined as the splitting field of `X^(p^n) - X` over `zmod p`.
 It is a finite field with `p ^ n` elements.
@@ -43,11 +46,11 @@ instance finite_field.has_sub.sub.polynomial.is_splitting_field (K F : Type*) [f
     rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,
       map_X, h, finite_field.roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
   end,
-  adjoin_roots :=
+  adjoin_root_set :=
   begin
     classical,
     transitivity algebra.adjoin F ((roots (X ^ (fintype.card K) - X : K[X])).to_finset : set K),
-    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
+    { simp only [root_set, polynomial.map_pow, map_X, polynomial.map_sub], },
     { rw [finite_field.roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 
@@ -154,11 +157,11 @@ end
 
 /-- A Galois field with exponent 1 is equivalent to `zmod` -/
 def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
-have h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)),
-  by rw [pow_one, zmod.card p],
-have inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
-  by { rw h, apply_instance },
-by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : (zmod p)[X])).symm
+let h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)) :=
+  by rw [pow_one, zmod.card p] in
+let inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X) :=
+  by { rw h, apply_instance } in
+(@is_splitting_field.alg_equiv _ (zmod p) _ _ _ (X ^ (p ^ 1) - X : (zmod p)[X]) inst).symm
 
 variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 
@@ -227,6 +230,8 @@ begin
     all_goals {apply_instance}, },
   rw ← hpp' at *,
   haveI := fact_iff.2 hp,
+  letI : algebra (zmod p) K := zmod.algebra _ _,
+  letI : algebra (zmod p) K' := zmod.algebra _ _,
   exact alg_equiv_of_card_eq p hKK',
 end
 

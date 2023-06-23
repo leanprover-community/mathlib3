@@ -9,6 +9,9 @@ import field_theory.is_alg_closed.basic
 /-!
 # Spectrum mapping theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops proves the spectral mapping theorem for polynomials over algebraically closed
 fields. In particular, if `a` is an element of an `𝕜`-algebra `A` where `𝕜` is a field, and
 `p : 𝕜[X]` is a polynomial, then the spectrum of `polynomial.aeval a p` contains the image of the

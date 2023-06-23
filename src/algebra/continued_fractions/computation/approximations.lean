@@ -9,6 +9,9 @@ import tactic.solve_by_elim
 /-!
 # Approximations for Continued Fraction Computations (`generalized_continued_fraction.of`)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 This file contains useful approximations for the values involved in the continued fractions

@@ -11,6 +11,9 @@ import field_theory.splitting_field.construction
 /-!
 # Algebraic Closure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we construct the algebraic closure of a field
 
 ## Main Definitions

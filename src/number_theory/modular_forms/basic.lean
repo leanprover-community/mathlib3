@@ -3,9 +3,8 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
-import analysis.complex.upper_half_plane.topology
+import analysis.complex.upper_half_plane.manifold
 import number_theory.modular_forms.slash_invariant_forms
 /-!
 # Modular forms
@@ -56,14 +55,14 @@ structure cusp_form extends slash_invariant_form Γ k :=
 add_decl_doc cusp_form.to_slash_invariant_form
 
 /--`modular_form_class F Γ k` says that `F` is a type of bundled functions that extend
-`slash_invariant_forms_class` by requiring that the functions be holomorphic and bounded
+`slash_invariant_form_class` by requiring that the functions be holomorphic and bounded
 at infinity. -/
 class modular_form_class extends slash_invariant_form_class F Γ k :=
 (holo: ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
 (bdd_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_bounded_at_im_infty (f ∣[k] A))
 
 /--`cusp_form_class F Γ k` says that `F` is a type of bundled functions that extend
-`slash_invariant_forms_class` by requiring that the functions be holomorphic and zero
+`slash_invariant_form_class` by requiring that the functions be holomorphic and zero
 at infinity. -/
 class cusp_form_class extends slash_invariant_form_class F Γ k :=
 (holo: ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))

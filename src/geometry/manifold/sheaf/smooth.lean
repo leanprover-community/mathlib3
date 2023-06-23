@@ -284,6 +284,11 @@ begin
   { tidy }
 end
 
+-- The def above is a ring hom.
+example (x : Top.of M) :
+  (smooth_sheaf_CommRing IM I M R).presheaf.stalk x →+*
+  CommRing.of R := smooth_sheaf_CommRing.eval _ _ _ _ _
+
 def smooth_sheaf_CommRing.forget_stalk (x : Top.of M) :
   (category_theory.forget _).obj ((smooth_sheaf_CommRing IM I M R).presheaf.stalk x) ≅
   (smooth_sheaf IM I M R).presheaf.stalk x :=

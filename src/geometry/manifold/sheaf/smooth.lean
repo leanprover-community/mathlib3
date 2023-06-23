@@ -6,6 +6,8 @@ Authors: Heather Macbeth
 import geometry.manifold.sheaf.basic
 import geometry.manifold.algebra.smooth_functions
 import category_theory.sites.whiskering
+import algebra.category.Ring.filtered_colimits
+import algebra.category.Ring.colimits
 
 /-! # The sheaf of smooth functions on a manifold
 
@@ -260,6 +262,73 @@ def smooth_sheaf_CommRing : Top.sheaf CommRing.{u} (Top.of M) :=
     { exact category_theory.Sheaf.cond (smooth_sheaf IM I M R) },
     { apply_instance },
   end }
+
+open category_theory
+open category_theory.limits
+
+-- TODO: rename
+def eval_at (x : Top.of M) (U : open_nhds x) :
+  (smooth_sheaf IM I M R).val.obj (opposite.op U.1) →+* R :=
+{ to_fun := λ f, f ⟨x, U.2⟩,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl,
+  map_zero' := rfl,
+  map_add' := λ_ _, rfl }
+
+def smooth_sheaf_CommRing.eval (x : Top.of M) :
+  (smooth_sheaf_CommRing IM I M R).presheaf.stalk x ⟶
+  CommRing.of R :=
+begin
+  refine category_theory.limits.colimit.desc _ ⟨_, ⟨λ U, _, _⟩⟩,
+  { exact eval_at _ _ _ _ _ _ },
+  { tidy }
+end
+
+def smooth_sheaf_CommRing.forget_stalk (x : Top.of M) :
+  (category_theory.forget _).obj ((smooth_sheaf_CommRing IM I M R).presheaf.stalk x) ≅
+  (smooth_sheaf IM I M R).presheaf.stalk x :=
+category_theory.preserves_colimit_iso _ _
+
+@[simp, reassoc]
+lemma smooth_sheaf_CommRing.forget_stalk_inv_comp_eval (x : Top.of M) :
+  category_theory.category_struct.comp -- TODO: notation clash for `≫`
+  (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv (smooth_sheaf_CommRing.eval IM I M R x) =
+  smooth_sheaf.eval _ _ _ _ :=
+begin
+  apply limits.colimit.hom_ext,
+  intro U,
+  dsimp only [smooth_sheaf_CommRing.forget_stalk],
+  -- TODO: need to add some API to avoid these `erw`'s.
+  erw [limits.colimit.ι_desc],
+  erw [limits.colimit.ι_desc_assoc],
+  erw [← (forget CommRing).map_comp],
+  erw [limits.colimit.ι_desc],
+  ext, refl
+end
+
+@[simp, reassoc]
+lemma smooth_sheaf_CommRing.forget_stalk_hom_comp_eval (x : Top.of M) :
+  category_theory.category_struct.comp -- TODO: notation clash for `≫`
+  (smooth_sheaf_CommRing.forget_stalk IM I M R x).hom (smooth_sheaf.eval IM I R x) =
+  smooth_sheaf_CommRing.eval _ _ _ _ _ :=
+begin
+  rw ← category_theory.iso.eq_inv_comp,
+  simp,
+end
+
+lemma smooth_sheaf_CommRing.eval_surjective (x) :
+  function.surjective (smooth_sheaf_CommRing.eval IM I M R x) :=
+begin
+  intro r,
+  obtain ⟨y, rfl⟩ := smooth_sheaf.eval_surjective IM I R x r,
+  use (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv y,
+  -- TODO: `comp_apply` didn't work...
+  change
+    (category_theory.category_struct.comp
+    (smooth_sheaf_CommRing.forget_stalk IM I M R x).inv
+    (smooth_sheaf_CommRing.eval IM I M R x)) y = _,
+  simp,
+end
 
 -- sanity check: applying the `CommRing`-to-`Type` forgetful functor to the sheaf-of-rings of smooth
 -- functions gives the sheaf-of-types of smooth functions.

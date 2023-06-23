@@ -120,7 +120,6 @@ lemma card_eq_coe_fintype_card [fintype α] : card α = fintype.card α := mk_to
 @[simp]
 lemma card_eq_top_of_infinite [infinite α] : card α = ⊤ := mk_to_part_enat_of_infinite
 
-
 lemma card_congr {α : Type*} {β : Type*} (f : α ≃ β) :
   part_enat.card α = part_enat.card β :=
 cardinal.to_part_enat_congr f
@@ -138,19 +137,16 @@ card_congr (equiv.set.image_of_inj_on f s h).symm
 lemma card_image_of_injective {α : Type*} {β : Type*}
   (f : α → β) (s : set α) (h : function.injective f) :
   card (f '' s) = card s :=
-card_congr (equiv.set.image_of_inj_on f s (set.inj_on_of_injective h s)).symm
+card_image_of_inj_on (set.inj_on_of_injective h s)
 
-lemma succ_le_iff {n : ℕ} {e : part_enat} : ↑n.succ ≤ e ↔ ↑n < e:=
-begin
-  rw [coe_lt_iff, coe_le_iff],
-  apply forall_congr, intro a, rw nat.succ_le_iff,
-end
+-- Move to basic
 
-/- The line
--- obtain ⟨m, hm⟩ := cardinal.lt_aleph_0.mp h,
-extract an integer m from a cardinal c such that h : c < ℵ₀
-It may appear easier to use than the rewrites I finally use … -/
+@[simp]
+lemma _root_.cardinal.coe_nat_le_to_part_enat_iff {n : ℕ} {c : cardinal} : ↑n ≤ to_part_enat c ↔ ↑n ≤ c :=
+by rw [← to_part_enat_cast n, to_part_enat_le_iff_le_of_le_aleph_0 (le_of_lt (nat_lt_aleph_0 n))]
 
+/-
+@[simp]
 lemma coe_nat_le_iff_le {n : ℕ} {c : cardinal} :
    ↑n ≤ to_part_enat c ↔ ↑n ≤ c :=
 begin
@@ -165,7 +161,14 @@ begin
       rw lt_aleph_0,
       use n } }
 end
+-/
 
+@[simp]
+lemma _root_.cardinal.to_part_enat_le_coe_nat_iff {c : cardinal} {n : ℕ} : to_part_enat c ≤ n ↔ c ≤ n :=
+by rw [← to_part_enat_cast n,
+ to_part_enat_le_iff_le_of_lt_aleph_0 (nat_lt_aleph_0 n)]
+
+/-
 lemma le_coe_nat_iff_le {c : cardinal} {n : ℕ} :
    to_part_enat c ≤ n ↔ c ≤ n :=
 begin
@@ -179,29 +182,17 @@ begin
     { rw not_le,
       apply lt_of_lt_of_le (nat_lt_aleph_0 n) h } }
 end
+-/
+lemma _root_.cardinal.coe_nat_eq_to_part_enat_iff {n : ℕ} {c : cardinal} :
+  ↑n = to_part_enat c ↔ ↑n = c :=
+by rw [le_antisymm_iff, le_antisymm_iff,
+  cardinal.coe_nat_le_to_part_enat_iff,  cardinal.to_part_enat_le_coe_nat_iff]
 
-lemma coe_nat_eq_iff_eq {n : ℕ} {c : cardinal} :
-   ↑n = to_part_enat c ↔ ↑n = c :=
-begin
-  cases lt_or_ge c aleph_0,
-  { rw [to_part_enat_apply_of_lt_aleph_0 h, coe_inj],
-    rw ← to_nat_cast n,
-    rw to_nat_eq_iff_eq_of_lt_aleph_0 (nat_lt_aleph_0 n) h,
-    simp only [to_nat_cast] },
-  { apply iff_of_false,
-    { rw to_part_enat_apply_of_aleph_0_le h,
-      exact coe_ne_top n },
-    { apply ne_of_lt,
-      apply lt_of_lt_of_le (nat_lt_aleph_0 n) h } }
-end
-
-lemma eq_coe_nat_iff_eq {c : cardinal} {n : ℕ} :
+lemma _root_.cardinal.to_part_enat_eq_coe_nat_iff {c : cardinal} {n : ℕ} :
    to_part_enat c = n ↔ c = n:=
-begin
-  split,
-  { intro h, apply symm, exact coe_nat_eq_iff_eq.mp h.symm },
-  { intro h, apply symm, exact coe_nat_eq_iff_eq.mpr h.symm }
-end
+by rw [eq_comm, cardinal.coe_nat_eq_to_part_enat_iff, eq_comm]
+
+-- TODO
 
 lemma coe_nat_lt_coe_iff_lt {n : ℕ} {c : cardinal} :
    ↑n < to_part_enat c ↔ ↑n < c :=
@@ -233,7 +224,7 @@ lemma card_eq_zero_iff_empty (α : Type*) : card α = 0 ↔ is_empty α :=
 begin
   rw ← cardinal.mk_eq_zero_iff,
   conv_rhs { rw ← nat.cast_zero },
-  rw ← eq_coe_nat_iff_eq,
+  rw ← _root_.cardinal.to_part_enat_eq_coe_nat_iff,
   unfold part_enat.card,
   simp only [nat.cast_zero]
 end
@@ -242,7 +233,7 @@ lemma card_le_one_iff_subsingleton (α : Type*) : card α ≤ 1 ↔ subsingleton
 begin
   rw ← le_one_iff_subsingleton,
   conv_rhs { rw ← nat.cast_one},
-  rw ← le_coe_nat_iff_le,
+  rw ← _root_.cardinal.to_part_enat_le_coe_nat_iff,
   unfold part_enat.card,
   simp only [nat.cast_one]
 end

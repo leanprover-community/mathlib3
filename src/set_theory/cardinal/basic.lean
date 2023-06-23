@@ -1361,6 +1361,61 @@ to_part_enat_apply_of_aleph_0_le (infinite_iff.1 h)
 @[simp] theorem aleph_0_to_part_enat : to_part_enat ℵ₀ = ⊤ :=
 to_part_enat_apply_of_aleph_0_le le_rfl
 
+lemma to_part_enat_eq_top_iff_le_aleph_0 {c : cardinal} :
+  to_part_enat c = ⊤ ↔ aleph_0 ≤ c :=
+begin
+  cases lt_or_ge c aleph_0 with hc hc,
+  simp only [to_part_enat_apply_of_lt_aleph_0 hc, part_enat.coe_ne_top, false_iff, not_le, hc],
+  simp only [to_part_enat_apply_of_aleph_0_le hc, eq_self_iff_true, true_iff],
+  exact hc,
+end
+
+lemma to_part_enat_le_iff_le_of_le_aleph_0 {c c' : cardinal} (h : c ≤ aleph_0) :
+  to_part_enat c ≤ to_part_enat c' ↔ c ≤ c' :=
+begin
+  cases lt_or_ge c aleph_0 with hc hc,
+  rw to_part_enat_apply_of_lt_aleph_0 hc,
+  cases lt_or_ge c' aleph_0 with hc' hc',
+  { rw to_part_enat_apply_of_lt_aleph_0 hc',
+    rw part_enat.coe_le_coe,
+    exact to_nat_le_iff_le_of_lt_aleph_0 hc hc', },
+  { simp only [to_part_enat_apply_of_aleph_0_le hc',
+    le_top, true_iff],
+    exact le_trans h hc', },
+  { rw to_part_enat_apply_of_aleph_0_le hc,
+    simp only [top_le_iff, to_part_enat_eq_top_iff_le_aleph_0,
+    le_antisymm h hc], },
+end
+
+lemma to_part_enat_le_iff_le_of_lt_aleph_0 {c c' : cardinal} (hc' : c' < aleph_0) :
+  to_part_enat c ≤ to_part_enat c' ↔ c ≤ c' :=
+begin
+  cases lt_or_ge c aleph_0 with hc hc,
+  { rw to_part_enat_apply_of_lt_aleph_0 hc,
+    rw to_part_enat_apply_of_lt_aleph_0 hc',
+    rw part_enat.coe_le_coe,
+    exact to_nat_le_iff_le_of_lt_aleph_0 hc hc', },
+  { rw to_part_enat_apply_of_aleph_0_le hc,
+    simp only [top_le_iff, to_part_enat_eq_top_iff_le_aleph_0],
+    rw [← not_iff_not, not_le, not_le],
+    simp only [hc', lt_of_lt_of_le hc' hc], },
+end
+
+lemma to_part_enat_mono {c c' : cardinal} (h : c ≤ c') :
+  to_part_enat c ≤ to_part_enat c' :=
+begin
+  cases lt_or_ge c aleph_0 with hc hc,
+  rw to_part_enat_apply_of_lt_aleph_0 hc,
+  cases lt_or_ge c' aleph_0 with hc' hc',
+  rw to_part_enat_apply_of_lt_aleph_0 hc',
+  simp only [part_enat.coe_le_coe],
+  exact to_nat_le_of_le_of_lt_aleph_0 hc' h,
+  rw to_part_enat_apply_of_aleph_0_le hc',
+  exact le_top,
+  rw [to_part_enat_apply_of_aleph_0_le hc,
+  to_part_enat_apply_of_aleph_0_le (le_trans hc h)],
+end
+
 lemma to_part_enat_surjective : surjective to_part_enat :=
 λ x, part_enat.cases_on x ⟨ℵ₀, to_part_enat_apply_of_aleph_0_le le_rfl⟩ $
   λ n, ⟨n, to_part_enat_cast n⟩

@@ -1401,7 +1401,8 @@ begin
     simp only [hc', lt_of_lt_of_le hc' hc], },
 end
 
-lemma to_part_enat_eq_iff_eq_of_le_aleph_0 {c c' : cardinal} (hc : c ≤ aleph_0) (hc' : c' ≤ aleph_0) :
+lemma to_part_enat_eq_iff_eq_of_le_aleph_0 {c c' : cardinal}
+  (hc : c ≤ aleph_0) (hc' : c' ≤ aleph_0) :
   to_part_enat c = to_part_enat c' ↔ c = c' := by
 rw [le_antisymm_iff, le_antisymm_iff,
   to_part_enat_le_iff_le_of_le_aleph_0 hc, to_part_enat_le_iff_le_of_le_aleph_0 hc']

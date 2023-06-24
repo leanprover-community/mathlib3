@@ -9,6 +9,9 @@ import field_theory.finite.galois_field
 /-!
 # The trace map for finite fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We state the fact that the trace map from a finite field of
 characteristic `p` to `zmod p` is nondegenerate.
 

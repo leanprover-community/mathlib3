@@ -8,6 +8,9 @@ import probability.kernel.cond_distrib
 /-!
 # Kernel associated with a conditional expectation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `condexp_kernel μ m`, a kernel from `Ω` to `Ω` such that for all integrable functions `f`,
 `μ[f | m] =ᵐ[μ] λ ω, ∫ y, f y ∂(condexp_kernel μ m ω)`.
 

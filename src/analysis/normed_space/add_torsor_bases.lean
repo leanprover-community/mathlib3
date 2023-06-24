@@ -11,6 +11,9 @@ import linear_algebra.affine_space.finite_dimensional
 /-!
 # Bases in normed affine spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results about bases in normed affine spaces.
 
 ## Main definitions:

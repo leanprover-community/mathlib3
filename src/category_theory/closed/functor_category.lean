@@ -9,6 +9,9 @@ import category_theory.monoidal.functor_category
 /-!
 # Functors from a groupoid into a monoidal closed category form a monoidal closed category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 (Using the pointwise monoidal structure on the functor category.)
 -/
 

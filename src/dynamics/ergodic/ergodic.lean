@@ -8,6 +8,9 @@ import dynamics.ergodic.measure_preserving
 /-!
 # Ergodic maps and measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `f : α → α` be measure preserving with respect to a measure `μ`. We say `f` is ergodic with
 respect to `μ` (or `μ` is ergodic with respect to `f`) if the only measurable sets `s` such that
 `f⁻¹' s = s` are either almost empty or full.

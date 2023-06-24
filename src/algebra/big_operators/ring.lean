@@ -101,7 +101,7 @@ begin
     rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bUnion h₁],
     refine sum_congr rfl (λ b _, _),
     have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
-      assume p₁ h₁ p₂ h₂ eq, pi_cons_injective ha eq,
+      assume p₁ h₁ p₂ h₂ eq, pi.cons_injective ha eq,
     rw [sum_image h₂, mul_sum],
     refine sum_congr rfl (λ g _, _),
     rw [attach_insert, prod_insert, prod_image],

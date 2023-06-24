@@ -72,7 +72,7 @@ polynomial, multivariate polynomial, multivariable polynomial
 
 noncomputable theory
 
-open_locale classical big_operators
+open_locale big_operators
 
 open set function finsupp add_monoid_algebra
 open_locale big_operators
@@ -130,10 +130,13 @@ add_monoid_algebra.is_central_scalar
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
 
--- Register with high priority to avoid timeout in `data.mv_polynomial.pderiv`
-instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :
+instance is_scalar_tower_right [comm_semiring S₁] [distrib_smul R S₁] [is_scalar_tower R S₁ S₁] :
   is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
-is_scalar_tower.right
+add_monoid_algebra.is_scalar_tower_self _
+
+instance smul_comm_class_right [comm_semiring S₁] [distrib_smul R S₁] [smul_comm_class R S₁ S₁] :
+  smul_comm_class R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
+add_monoid_algebra.smul_comm_class_self _
 
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
 instance unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
@@ -417,14 +420,14 @@ by convert rfl
 lemma support_monomial_subset : (monomial s a).support ⊆ {s} :=
 support_single_subset
 
-lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.support_add
+lemma support_add [decidable_eq σ] : (p + q).support ⊆ p.support ∪ q.support := finsupp.support_add
 
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
-by rw [X, support_monomial, if_neg]; exact one_ne_zero
+by classical; rw [X, support_monomial, if_neg]; exact one_ne_zero
 
 lemma support_X_pow [nontrivial R] (s : σ) (n : ℕ) :
   (X s ^ n : mv_polynomial σ R).support = {finsupp.single s n} :=
-by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
+by classical; rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 
@@ -432,7 +435,7 @@ lemma support_smul {S₁ : Type*} [smul_zero_class S₁ R] {a : S₁} {f : mv_po
   (a • f).support ⊆ f.support :=
 finsupp.support_smul
 
-lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :
+lemma support_sum {α : Type*} [decidable_eq σ] {s : finset α} {f : α → mv_polynomial σ R} :
   (∑ x in s, f x).support ⊆ s.bUnion (λ x, (f x).support) := finsupp.support_finset_sum
 
 end support
@@ -455,7 +458,7 @@ lemma sum_def {A} [add_comm_monoid A] {p : mv_polynomial σ R} {b : (σ →₀ �
   p.sum b = ∑ m in p.support, b m (p.coeff m) :=
 by simp [support, finsupp.sum, coeff]
 
-lemma support_mul (p q : mv_polynomial σ R) :
+lemma support_mul [decidable_eq σ] (p q : mv_polynomial σ R) :
   (p * q).support ⊆ p.support.bUnion (λ a, q.support.bUnion $ λ b, {a + b}) :=
 by convert add_monoid_algebra.support_mul p q; ext; convert iff.rfl
 
@@ -525,11 +528,12 @@ by rw [← coeff_X_pow, pow_one]
 
 @[simp] lemma coeff_X (i : σ) :
   coeff (single i 1) (X i : mv_polynomial σ R) = 1 :=
-by rw [coeff_X', if_pos rfl]
+by classical; rw [coeff_X', if_pos rfl]
 
 @[simp] lemma coeff_C_mul (m) (a : R) (p : mv_polynomial σ R) :
   coeff m (C a * p) = a * coeff m p :=
 begin
+  classical,
   rw [mul_def, sum_C],
   { simp [sum_def, coeff_sum] {contextual := tt} },
   simp
@@ -589,6 +593,7 @@ end
 lemma coeff_mul_monomial' (m) (s : σ →₀ ℕ) (r : R) (p : mv_polynomial σ R) :
   coeff m (p * monomial s r) = if s ≤ m then coeff (m - s) p * r else 0 :=
 begin
+  classical,
   obtain rfl | hr := eq_or_ne r 0,
   { simp only [monomial_zero, coeff_zero, mul_zero, if_t_t], },
   haveI : nontrivial R := nontrivial_of_ne _ _ hr,
@@ -742,9 +747,12 @@ finsupp.sum_zero_index
 section
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
-finsupp.sum_add_index
-  (by simp [f.map_zero])
-  (by simp [add_mul, f.map_add])
+begin
+  classical,
+  exact finsupp.sum_add_index
+    (by simp [f.map_zero])
+    (by simp [add_mul, f.map_add])
+end
 
 @[simp] lemma eval₂_monomial : (monomial s a).eval₂ f g = f a * s.prod (λn e, g n ^ e) :=
 finsupp.sum_single_index (by simp [f.map_zero])
@@ -761,6 +769,7 @@ by simp [eval₂_monomial, f.map_one, X, prod_single_index, pow_one]
 lemma eval₂_mul_monomial :
   ∀{s a}, (p * monomial s a).eval₂ f g = p.eval₂ f g * f a * s.prod (λn e, g n ^ e) :=
 begin
+  classical,
   apply mv_polynomial.induction_on p,
   { assume a' s a,
     simp [C_mul_monomial, eval₂_monomial, f.map_mul] },
@@ -994,6 +1003,7 @@ end
 
 lemma coeff_map (p : mv_polynomial σ R) : ∀ (m : σ →₀ ℕ), coeff m (map f p) = f (coeff m p) :=
 begin
+  classical,
   apply mv_polynomial.induction_on p; clear p,
   { intros r m, rw [map_C], simp only [coeff_C], split_ifs, {refl}, rw f.map_zero },
   { intros p q hp hq m, simp only [hp, hq, (map f).map_add, coeff_add], rw f.map_add },

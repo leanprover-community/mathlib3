@@ -10,6 +10,9 @@ import linear_algebra.tensor_algebra.basic
 /-!
 # Universal enveloping algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative ring `R` and a Lie algebra `L` over `R`, we construct the universal
 enveloping algebra of `L`, together with its universal property.
 

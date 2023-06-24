@@ -7,6 +7,9 @@ import linear_algebra.quadratic_form.isometry
 
 /-! # Quadratic form on product and pi types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `quadratic_form.prod Q₁ Q₂`: the quadratic form constructed elementwise on a product

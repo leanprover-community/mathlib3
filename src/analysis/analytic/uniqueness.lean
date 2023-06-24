@@ -10,6 +10,9 @@ import analysis.normed_space.completion
 /-!
 # Uniqueness principle for analytic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that two analytic functions which coincide around a point coincide on whole connected sets,
 in `analytic_on.eq_on_of_preconnected_of_eventually_eq`.
 -/
@@ -89,7 +92,7 @@ begin
   exact uniform_space.completion.coe_injective F this,
 end
 
-/-- The *identity principle* for analytic functions: If two analytic function coincide in a whole
+/-- The *identity principle* for analytic functions: If two analytic functions coincide in a whole
 neighborhood of a point `z₀`, then they coincide globally along a connected set.
 For a one-dimensional version assuming only that the functions coincide at some points
 arbitrarily close to `z₀`, see `eq_on_of_preconnected_of_frequently_eq`. -/
@@ -102,5 +105,15 @@ begin
   simpa [sub_eq_zero] using
     λ z hz, (hf.sub hg).eq_on_zero_of_preconnected_of_eventually_eq_zero hU h₀ hfg' hz,
 end
+
+/-- The *identity principle* for analytic functions: If two analytic functions on a normed space
+coincide in a neighborhood of a point `z₀`, then they coincide everywhere.
+For a one-dimensional version assuming only that the functions coincide at some points
+arbitrarily close to `z₀`, see `eq_of_frequently_eq`. -/
+theorem eq_of_eventually_eq {f g : E → F} [preconnected_space E]
+  (hf : analytic_on 𝕜 f univ) (hg : analytic_on 𝕜 g univ) {z₀ : E} (hfg : f =ᶠ[𝓝 z₀] g) :
+  f = g :=
+funext (λ x, eq_on_of_preconnected_of_eventually_eq hf hg is_preconnected_univ
+    (mem_univ z₀) hfg (mem_univ x))
 
 end analytic_on

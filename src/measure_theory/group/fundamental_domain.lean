@@ -9,6 +9,9 @@ import measure_theory.integral.set_integral
 /-!
 # Fundamental domain of a group action
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A set `s` is said to be a *fundamental domain* of an action of a group `G` on a measurable space `α`
 with respect to a measure `μ` if
 

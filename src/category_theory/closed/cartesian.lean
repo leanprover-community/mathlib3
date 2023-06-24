@@ -15,6 +15,9 @@ import category_theory.closed.monoidal
 /-!
 # Cartesian closed categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a category with finite products, the cartesian monoidal structure is provided by the local
 instance `monoidal_of_has_finite_products`.
 

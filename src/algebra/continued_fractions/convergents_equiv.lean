@@ -11,6 +11,9 @@ import tactic.ring
 /-!
 # Equivalence of Recursive and Direct Computations of `gcf` Convergents
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We show the equivalence of two computations of convergents (recurrence relation (`convergents`) vs.

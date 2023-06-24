@@ -4,6 +4,7 @@ import order.filter.at_top_bot
 import analysis.specific_limits.normed
 import topology.metric_space.cau_seq_filter
 import probability.kernel.cond_cdf
+import data.nat.nth
 import tactic
 
 open filter
@@ -171,13 +172,20 @@ begin
   { exact converges_of_agrees_converges (λ n hn, (h n hn).symm) h₁ }
 end
 
-noncomputable def nonneg_terms {R : Type u} [linear_ordered_add_comm_monoid R]
+def nonneg_terms {R : Type u} [linear_ordered_add_comm_monoid R]
   (a : ℕ → R) : ℕ → R :=
 λ n, if 0 ≤ a n then a n else 0
 
-noncomputable def nonpos_terms {R : Type u} [linear_ordered_add_comm_monoid R]
+def nonpos_terms {R : Type u} [linear_ordered_add_comm_monoid R]
   (a : ℕ → R) : ℕ → R :=
 λ n, if 0 ≤ a n then 0 else a n
+
+/--
+  Similar to `nonneg_terms` but the negative terms are deleted rather than replaced with `0`.
+-/
+noncomputable def nonneg_terms_d {R : Type u} [linear_ordered_add_comm_monoid R]
+  (a : ℕ → R) : ℕ → R :=
+λ n, a (nat.nth (λ k, 0 ≤ a k) n)
 
 lemma nonneg_terms_nonneg {R : Type u} [linear_ordered_add_comm_monoid R] (a : ℕ → R) (n : ℕ)
   : 0 ≤ nonneg_terms a n :=
@@ -709,6 +717,52 @@ nat.find_greatest_spec (zero_le n) (rearrangement_switchpoint.start rfl)
 
 lemma nearest_switchpoint_le (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : nearest_switchpoint a M n ≤ n :=
 nat.find_greatest_le n
+
+lemma rearrangement_succ_eq_succ_nonneg_d (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n : ℕ) (hn₁ : sumto a M (n + 1) ≤ M) (hn₂ : sumto a M (n + 1) ≤ M)
+  (k : ℕ) (hk : rearrangement a M n = nat.nth (λ j : ℕ, 0 ≤ a j) k)
+  : a (rearrangement a M (n + 1)) = nonneg_terms_d a (k + 1) :=
+begin
+  --nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
+  --  from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n)
+  rw rearrangement_nonneg h₁ h₂ hn₂,
+  --unfold rearrangement,
+  --rw if_pos (sorry : (∑ (x : fin (n + 1)), a (rearrangement a M ↑x) ≤ M)),
+  unfold nonneg_terms_d,
+  rw nat.nth_eq_Inf,
+  apply congr_arg,
+  -- Maybe this uses set notation?
+  have : (nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
+    from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) =
+      Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧
+        0 ≤ a k }) := sorry,
+  -- (nat.Inf_def (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
+  --    from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n)).symm,
+  rw this,
+  apply congr_arg,
+  ext x,
+  change x ∉ set.range (λ i : fin (n + 1), rearrangement a M ↑i) ∧ 0 ≤ a x
+     ↔ 0 ≤ a x ∧ ∀ (i : ℕ), i < k + 1 → nat.nth (λ j : ℕ, 0 ≤ a j) i < x,
+  split,
+  {
+    intro h,
+    apply and.intro h.right,
+    intros i hi,
+    sorry
+  },
+  {
+    sorry
+  }
+  --rw ←nat.Inf_def,
+  /-
+  have := nat.Inf_def (show set.nonempty {k : ℕ | k ∉ set.range
+    (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k},
+      from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
+  rw ←this,
+  -/
+end
 
 lemma abs_sumto_sub_M_le_abs_sumto_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))

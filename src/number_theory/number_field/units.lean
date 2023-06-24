@@ -6,7 +6,7 @@ Authors: Xavier Roblot
 import group_theory.torsion
 import number_theory.number_field.embeddings
 import number_theory.number_field.norm
-import ring_theory.roots_of_unity
+import ring_theory.roots_of_unity.basic
 
 /-!
 # Units of a number field

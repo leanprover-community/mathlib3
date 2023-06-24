@@ -14,6 +14,9 @@ import measure_theory.measure.haar.of_basis
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that the Lebesgue measure on the real line (constructed as a particular case of additive
 Haar measure on inner product spaces) coincides with the Stieltjes measure associated
 to the function `x ↦ x`. We deduce properties of this measure on `ℝ`, and then of the product

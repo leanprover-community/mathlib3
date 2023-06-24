@@ -9,6 +9,9 @@ import data.real.pi.wallis
 /-!
 # Stirling's formula
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Stirling's formula for the factorial.
 It states that $n!$ grows asymptotically like $\sqrt{2\pi n}(\frac{n}{e})^n$.
 

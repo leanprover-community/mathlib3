@@ -14,6 +14,9 @@ import ring_theory.ring_hom_properties
 /-!
 # Local properties of commutative rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we provide the proofs of various local properties.
 
 ## Naming Conventions

@@ -10,6 +10,9 @@ import topology.constructions
 /-!
 # Product measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define and prove properties about finite products of measures
 (and at some point, countable products of measures).
 

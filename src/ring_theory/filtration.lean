@@ -14,6 +14,9 @@ import order.hom.lattice
 
 # `I`-filtrations of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definitions and basic results around (stable) `I`-filtrations of modules.
 
 ## Main results

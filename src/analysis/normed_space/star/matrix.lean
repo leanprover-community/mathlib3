@@ -11,6 +11,9 @@ import linear_algebra.unitary_group
 /-!
 # Unitary matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file collects facts about the unitary matrices over `𝕜` (either `ℝ` or `ℂ`).
 -/
 

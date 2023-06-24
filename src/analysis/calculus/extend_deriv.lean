@@ -8,6 +8,9 @@ import analysis.calculus.mean_value
 /-!
 # Extending differentiability to the boundary
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We investigate how differentiable functions inside a set extend to differentiable functions
 on the boundary. For this, it suffices that the function and its derivative admit limits there.
 A general version of this statement is given in `has_fderiv_at_boundary_of_tendsto_fderiv`.

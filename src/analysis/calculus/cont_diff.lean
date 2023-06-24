@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import analysis.calculus.cont_diff_def
+import analysis.calculus.deriv.inverse
 import analysis.calculus.mean_value
 import analysis.normed_space.finite_dimension
 import data.nat.choose.cast
 
 /-!
 # Higher differentiability of usual operations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove that the usual operations (addition, multiplication, difference, composition, and
 so on) preserve `C^n` functions. We also expand the API around `C^n` functions.

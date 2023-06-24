@@ -8,6 +8,9 @@ import measure_theory.constructions.pi
 /-!
 # Independence of sets of sets and measure spaces (σ-algebras)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * A family of sets of sets `π : ι → set (set Ω)` is independent with respect to a measure `μ` if for
   any finite set of indices `s = {i_1, ..., i_n}`, for any sets `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`,
   `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. It will be used for families of π-systems.

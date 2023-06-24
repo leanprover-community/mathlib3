@@ -9,6 +9,9 @@ import category_theory.monoidal.functor_category
 /-!
 # Functors from a groupoid into a right/left rigid category form a right/left rigid category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 (Using the pointwise monoidal structure on the functor category.)
 -/
 

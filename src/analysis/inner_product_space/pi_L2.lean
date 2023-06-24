@@ -11,6 +11,9 @@ import linear_algebra.unitary_group
 /-!
 # `L²` inner product space structure on finite products of inner product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The `L²` norm on a finite product of inner product spaces is compatible with an inner product
 $$
 \langle x, y\rangle = \sum \langle x_i, y_i \rangle.

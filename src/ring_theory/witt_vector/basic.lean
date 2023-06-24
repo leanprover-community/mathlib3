@@ -11,6 +11,9 @@ import ring_theory.witt_vector.defs
 /-!
 # Witt vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file verifies that the ring operations on `witt_vector p R`
 satisfy the axioms of a commutative ring.
 

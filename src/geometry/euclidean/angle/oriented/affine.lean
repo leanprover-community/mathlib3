@@ -10,6 +10,9 @@ import geometry.euclidean.angle.unoriented.affine
 /-!
 # Oriented angles.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines oriented angles in Euclidean affine spaces.
 
 ## Main definitions

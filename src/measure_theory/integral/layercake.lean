@@ -9,6 +9,9 @@ import analysis.special_functions.integrals
 /-!
 # The layer cake formula / Cavalieri's principle / tail probability formula
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following layer cake formula.
 
 Consider a non-negative measurable function `f` on a sigma-finite measure space. Apply pointwise

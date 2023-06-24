@@ -10,6 +10,9 @@ import ring_theory.polynomial.gauss_lemma
 /-!
 # Minimal polynomials over a GCD monoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file specializes the theory of minpoly to the case of an algebra over a GCD monoid.
 
 ## Main results

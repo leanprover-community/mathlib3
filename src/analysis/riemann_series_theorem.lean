@@ -492,19 +492,11 @@ lemma rearrangement_def {a : ℕ → ℝ}
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (M : ℝ) (n : ℕ)
   : rearrangement a M (n + 1) =
     if partial_sum (λ k, a (rearrangement a M k)) (n + 1) ≤ M then
-      nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
-        from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n)
+      Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k}
     else
-      nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0,
-        from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) :=
+      Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0} :=
 begin
   unfold rearrangement,
-  rw nat.Inf_def (show set.nonempty {k : ℕ | k ∉ set.range
-    (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k},
-      from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
-  rw nat.Inf_def (show set.nonempty {k : ℕ | k ∉ set.range
-    (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0},
-      from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
   simp [rearrangement_fin_sum_def]
 end
 
@@ -513,10 +505,9 @@ lemma rearrangement_nonneg {a : ℕ → ℝ}
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
   (h : partial_sum (λ k, a (rearrangement a M k)) (n + 1) ≤ M)
   : rearrangement a M (n + 1) =
-    nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
-      from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) :=
+    Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k} :=
 begin
-  rw rearrangement_def,
+  rw rearrangement_def h₁ h₂,
   exact if_pos h
 end
 
@@ -525,10 +516,9 @@ lemma rearrangement_neg {a : ℕ → ℝ}
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
   (h : M < partial_sum (λ k, a (rearrangement a M k)) (n + 1))
   : rearrangement a M (n + 1) =
-    nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0,
-      from exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) :=
+    Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a k < 0} :=
 begin
-  rw rearrangement_def,
+  rw rearrangement_def h₁ h₂,
   exact if_neg (by { push_neg, exact h })
 end
 
@@ -542,9 +532,8 @@ lemma rearrangement_nonneg_spec {a : ℕ → ℝ}
   : rearrangement a M (n + 1) ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧
     0 ≤ a (rearrangement a M (n + 1)) :=
 begin
-  have := nat.find_spec (exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
   rw rearrangement_nonneg h₁ h₂ h,
-  exact this
+  exact nat.Inf_mem (exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
 end
 
 lemma rearrangement_nonneg_spec' {a : ℕ → ℝ}
@@ -566,9 +555,8 @@ lemma rearrangement_neg_spec {a : ℕ → ℝ}
   : rearrangement a M (n + 1) ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧
     a (rearrangement a M (n + 1)) < 0 :=
 begin
-  have := nat.find_spec (exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
   rw rearrangement_neg h₁ h₂ h,
-  exact this
+  exact nat.Inf_mem (exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
 end
 
 lemma rearrangement_neg_spec' {a : ℕ → ℝ}
@@ -594,30 +582,6 @@ begin
     { exact (rearrangement_nonneg_spec h₁ h₂ h).left },
     { push_neg at h,
       exact (rearrangement_neg_spec h₁ h₂ h).left } }
-end
-
-lemma rearrangement_nonneg_min' {a : ℕ → ℝ}
-  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
-  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
-  (h : partial_sum (λ k, a (rearrangement a M k)) (n + 1) ≤ M)
-  {m : ℕ} (hm : m ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a m)
-  : rearrangement a M (n + 1) ≤ m :=
-begin
-  have := nat.find_min' (exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) hm,
-  rw rearrangement_nonneg h₁ h₂ h,
-  exact this
-end
-
-lemma rearrangement_neg_min' {a : ℕ → ℝ}
-  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
-  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
-  (h : M < partial_sum (λ k, a (rearrangement a M k)) (n + 1))
-  {m : ℕ} (hm : m ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ a m < 0)
-  : rearrangement a M (n + 1) ≤ m :=
-begin
-  have := nat.find_min' (exists_neg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) hm,
-  rw rearrangement_neg h₁ h₂ h,
-  exact this
 end
 
 lemma rearrangement_injective {a : ℕ → ℝ}
@@ -733,14 +697,6 @@ begin
   unfold nonneg_terms_d,
   rw nat.nth_eq_Inf,
   apply congr_arg,
-  -- Maybe this uses set notation?
-  have : (nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
-    from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n) =
-      Inf {k : ℕ | k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧
-        0 ≤ a k }) := sorry,
-  -- (nat.Inf_def (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
-  --    from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n)).symm,
-  rw this,
   apply congr_arg,
   ext x,
   change x ∉ set.range (λ i : fin (n + 1), rearrangement a M ↑i) ∧ 0 ≤ a x

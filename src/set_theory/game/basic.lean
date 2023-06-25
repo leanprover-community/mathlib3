@@ -135,6 +135,10 @@ namespace pgame
 
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
+@[simp] lemma quot_nat_cast : ∀ n : ℕ, ⟦(n : pgame)⟧ = n
+| 0       := rfl
+| (n + 1) := by simpa [quot_nat_cast n]
+
 theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
   (hl : ∀ i, ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)

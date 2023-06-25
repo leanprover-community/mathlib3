@@ -52,7 +52,8 @@ instance : add_comm_group_with_one game :=
   zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
   add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },
   add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
-  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv } }
+  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv },
+  nat_cast := λ n, ⟦n⟧  }
 
 instance : inhabited game := ⟨0⟩
 
@@ -134,6 +135,12 @@ namespace pgame
 @[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl
 
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
+
+@[simp] theorem quot_zero : ⟦(0 : pgame)⟧ = 0 := rfl
+
+@[simp] theorem quot_one : ⟦(1 : pgame)⟧ = 1 := rfl
+
+@[simp] theorem quot_nat_cast (n : ℕ) : ⟦(n : pgame)⟧ = n := rfl
 
 theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)

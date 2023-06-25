@@ -10,6 +10,9 @@ import group_theory.is_free_group
 /-!
 # The Nielsen-Schreier theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that a subgroup of a free group is itself free.
 
 ## Main result

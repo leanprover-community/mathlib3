@@ -14,6 +14,9 @@ import group_theory.subsemigroup.centralizer
 /-!
 # Bundled non-unital subsemirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define bundled non-unital subsemirings and some standard constructions:
 `complete_lattice` structure, `subtype` and `inclusion` ring homomorphisms, non-unital subsemiring
 `map`, `comap` and range (`srange`) of a `non_unital_ring_hom` etc.

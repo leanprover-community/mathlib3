@@ -170,7 +170,7 @@ begin
   { simp only [right_inv_coeff_one] },
   simp only [right_inv, neg_inj],
   rw remove_zero_comp_of_pos _ _ (add_pos_of_nonneg_of_pos (n.zero_le) zero_lt_two),
-  congrm i.symm.to_continuous_linear_map.comp_continuous_multilinear_map (p.comp (λ k, _) _),
+  congr' 2 with k,
   by_cases hk : k < n+2; simp [hk, IH]
 end
 

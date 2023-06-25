@@ -10,6 +10,9 @@ import algebra.big_operators.nat_antidiagonal
 /-!
 # Definition of well-known power series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the following power series:
 
 * `power_series.inv_units_sub`: given `u : Rˣ`, this is the series for `1 / (u - x)`.

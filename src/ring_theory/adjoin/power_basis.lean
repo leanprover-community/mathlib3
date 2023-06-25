@@ -11,6 +11,9 @@ import linear_algebra.matrix.basis
 /-!
 # Power basis for `algebra.adjoin R {x}`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the canonical power basis on `algebra.adjoin R {x}`,
 where `x` is an integral element over `R`.
 -/

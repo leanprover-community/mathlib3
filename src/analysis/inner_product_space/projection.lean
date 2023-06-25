@@ -3,6 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
+import algebra.direct_sum.decomposition
 import analysis.convex.basic
 import analysis.inner_product_space.orthogonal
 import analysis.inner_product_space.symmetric
@@ -11,6 +12,9 @@ import data.is_R_or_C.lemmas
 
 /-!
 # The orthogonal projection
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a nonempty complete subspace `K` of an inner product space `E`, this file constructs
 `orthogonal_projection K : E →L[𝕜] K`, the orthogonal projection of `E` onto `K`.  This map
@@ -785,6 +789,23 @@ lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
   orthogonal_projection K v = 0 :=
 by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
 
+/-- The projection into `U` from an orthogonal submodule `V` is the zero map. -/
+lemma submodule.is_ortho.orthogonal_projection_comp_subtypeL {U V : submodule 𝕜 E}
+  [complete_space U] (h : U ⟂ V) :
+  orthogonal_projection U ∘L V.subtypeL = 0 :=
+continuous_linear_map.ext $ λ v,
+  orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero $ h.symm v.prop
+
+/-- The projection into `U` from `V` is the zero map if and only if `U` and `V` are orthogonal. -/
+lemma orthogonal_projection_comp_subtypeL_eq_zero_iff {U V : submodule 𝕜 E}
+  [complete_space U] :
+  orthogonal_projection U ∘L V.subtypeL = 0 ↔ U ⟂ V :=
+⟨λ h u hu v hv, begin
+  convert orthogonal_projection_inner_eq_zero v u hu using 2,
+  have : orthogonal_projection U v = 0 := fun_like.congr_fun h ⟨_, hv⟩,
+  rw [this, submodule.coe_zero, sub_zero]
+end, submodule.is_ortho.orthogonal_projection_comp_subtypeL⟩
+
 lemma orthogonal_projection_eq_linear_proj [complete_space K] (x : E) :
   orthogonal_projection K x =
     K.linear_proj_of_is_compl _ submodule.is_compl_orthogonal_of_complete_space x :=
@@ -1030,7 +1051,7 @@ lemma submodule.finrank_add_inf_finrank_orthogonal {K₁ K₂ : submodule 𝕜 E
 begin
   haveI := submodule.finite_dimensional_of_le h,
   haveI := proper_is_R_or_C 𝕜 K₁,
-  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
+  have hd := submodule.finrank_sup_add_finrank_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
       submodule.sup_orthogonal_inf_of_complete_space h] at hd,
   rw add_zero at hd,
@@ -1203,6 +1224,70 @@ begin
   exact hV.is_internal_iff_of_is_complete
     (complete_space_coe_iff_is_complete.mp infer_instance)
 end
+
+open_locale direct_sum
+
+/-- If `x` lies within an orthogonal family `v`, it can be expressed as a sum of projections. -/
+lemma orthogonal_family.sum_projection_of_mem_supr [fintype ι]
+  {V : ι → submodule 𝕜 E} [∀ i, complete_space ↥(V i)]
+  (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) (x : E) (hx : x ∈ supr V) :
+  ∑ i, (orthogonal_projection (V i) x : E) = x :=
+begin
+  refine submodule.supr_induction _ hx (λ i x hx, _) _ (λ x y hx hy, _),
+  { refine (finset.sum_eq_single_of_mem i (finset.mem_univ _) $ λ j _ hij, _).trans
+      (orthogonal_projection_eq_self_iff.mpr hx),
+    rw [orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero, submodule.coe_zero],
+    exact hV.is_ortho hij.symm hx },
+  { simp_rw [map_zero, submodule.coe_zero, finset.sum_const_zero] },
+  { simp_rw [map_add, submodule.coe_add, finset.sum_add_distrib],
+    exact congr_arg2 (+) hx hy },
+end
+
+/-- If a family of submodules is orthogonal, then the `orthogonal_projection` on a direct sum
+is just the coefficient of that direct sum. -/
+lemma orthogonal_family.projection_direct_sum_coe_add_hom [decidable_eq ι]
+  {V : ι → submodule 𝕜 E} (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ))
+  (x : ⨁ i, V i) (i : ι) [complete_space ↥(V i)] :
+    orthogonal_projection (V i) (direct_sum.coe_add_monoid_hom V x) = x i :=
+begin
+  induction x using direct_sum.induction_on with j x x y hx hy,
+  { simp },
+  { simp_rw [direct_sum.coe_add_monoid_hom_of, direct_sum.of, dfinsupp.single_add_hom_apply],
+    obtain rfl | hij := decidable.eq_or_ne i j,
+    { rw [orthogonal_projection_mem_subspace_eq_self, dfinsupp.single_eq_same] },
+    { rw [orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
+        dfinsupp.single_eq_of_ne hij.symm],
+      exact hV.is_ortho hij.symm x.prop } },
+  { simp_rw [map_add, dfinsupp.add_apply],
+    exact congr_arg2 (+) hx hy },
+end
+
+/-- If a family of submodules is orthogonal and they span the whole space, then the orthogonal
+projection provides a means to decompose the space into its submodules.
+
+The projection function is `decompose V x i = orthogonal_projection (V i) x`.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def orthogonal_family.decomposition [decidable_eq ι] [fintype ι] {V : ι → submodule 𝕜 E}
+  [∀ i, complete_space ↥(V i)]
+  (hV : orthogonal_family 𝕜 (λ i, V i) (λ i, (V i).subtypeₗᵢ)) (h : supr V = ⊤) :
+  direct_sum.decomposition V :=
+{ decompose' := λ x, dfinsupp.equiv_fun_on_fintype.symm $ λ i, orthogonal_projection (V i) x,
+  left_inv := λ x, begin
+    dsimp only,
+    letI := λ i, classical.dec_eq (V i),
+    rw [direct_sum.coe_add_monoid_hom, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply,
+      dfinsupp.sum_add_hom_apply, dfinsupp.sum_eq_sum_fintype],
+    { simp_rw [equiv.apply_symm_apply, add_submonoid_class.coe_subtype],
+      exact hV.sum_projection_of_mem_supr _ ((h.ge : _) submodule.mem_top),},
+    { intro i,
+      exact map_zero _ },
+  end,
+  right_inv := λ x, begin
+    dsimp only,
+    simp_rw [hV.projection_direct_sum_coe_add_hom, dfinsupp.equiv_fun_on_fintype_symm_coe],
+  end }
 
 end orthogonal_family
 

@@ -10,6 +10,9 @@ import data.set_like.basic
 /-!
 # Order intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (nonempty) closed intervals in an order (see `set.Icc`). This is a prototype for
 interval arithmetic.
 

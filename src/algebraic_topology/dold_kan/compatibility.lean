@@ -6,7 +6,10 @@ Authors: Joël Riou
 
 import category_theory.equivalence
 
-/-! Tools for compatibilities between Dold-Kan equivalences
+/-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+ Tools for compatibilities between Dold-Kan equivalences
 
 The purpose of this file is to introduce tools which will enable the
 construction of the Dold-Kan equivalence `simplicial_object C ≌ chain_complex C ℕ`

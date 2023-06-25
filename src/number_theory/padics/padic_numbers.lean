@@ -9,6 +9,9 @@ import analysis.normed.field.basic
 /-!
 # p-adic numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `p`-adic numbers (rationals) `ℚ_[p]` as
 the completion of `ℚ` with respect to the `p`-adic norm.
 We show that the `p`-adic norm on `ℚ` extends to `ℚ_[p]`, that `ℚ` is embedded in `ℚ_[p]`,

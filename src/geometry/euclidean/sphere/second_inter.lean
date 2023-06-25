@@ -8,6 +8,9 @@ import geometry.euclidean.sphere.basic
 /-!
 # Second intersection of a sphere and a line
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines and proves basic results about the second intersection of a sphere with a line
 through a point on that sphere.
 

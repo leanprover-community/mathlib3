@@ -9,6 +9,9 @@ import ring_theory.artinian
 /-!
 # Cardinality of localizations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we establish the cardinality of localizations. In most cases, a localization has
 cardinality equal to the base ring. If there are zero-divisors, however, this is no longer true -
 for example, `zmod 6` localized at `{2, 4}` is equal to `zmod 3`, and if you have zero in your

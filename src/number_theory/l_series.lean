@@ -11,6 +11,9 @@ import topology.algebra.infinite_sum.basic
 /-!
 # L-series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an arithmetic function, we define the corresponding L-series.
 
 ## Main Definitions

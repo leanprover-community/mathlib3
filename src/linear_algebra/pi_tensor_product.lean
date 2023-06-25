@@ -10,6 +10,9 @@ import linear_algebra.multilinear.tensor_product
 /-!
 # Tensor product of an indexed family of modules over commutative semirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the tensor product of an indexed family `s : ι → Type*` of modules over commutative
 semirings. We denote this space by `⨂[R] i, s i` and define it as `free_add_monoid (R × Π i, s i)`
 quotiented by the appropriate equivalence relation. The treatment follows very closely that of the

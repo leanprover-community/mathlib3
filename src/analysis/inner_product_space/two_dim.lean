@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.orientation
+import data.complex.orientation
 import tactic.linear_combination
 
 /-!

@@ -7,6 +7,9 @@ import analysis.normed_space.basic
 
 /-! # Constructions of continuous linear maps between (semi-)normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A fundamental fact about (semi-)linear maps between normed spaces over sensible fields is that
 continuity and boundedness are equivalent conditions.  That is, for normed spaces `E`, `F`, a
 `linear_map` `f : E →ₛₗ[σ] F` is the coercion of some `continuous_linear_map` `f' : E →SL[σ] F`, if

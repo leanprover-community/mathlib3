@@ -16,6 +16,9 @@ import linear_algebra.pi
 /-!
 # Theory of topological modules and continuous linear maps.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We use the class `has_continuous_smul` for topological (semi) modules and topological vector spaces.
 
 In this file we define continuous (semi-)linear maps, as semilinear maps between topological
@@ -951,6 +954,19 @@ lemma range_coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M�
   (f₂ : M₂ →L[R₁] M₃) :
   range (f₁.coprod f₂) = range f₁ ⊔ range f₂ :=
 linear_map.range_coprod _ _
+
+lemma comp_fst_add_comp_snd [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃]
+  (f : M₁ →L[R₁] M₃) (g : M₂ →L[R₁] M₃) :
+  f.comp (continuous_linear_map.fst R₁ M₁ M₂) +
+  g.comp (continuous_linear_map.snd R₁ M₁ M₂) =
+  f.coprod g :=
+rfl
+
+
+lemma coprod_inl_inr [has_continuous_add M₁] [has_continuous_add M'₁] :
+  (continuous_linear_map.inl R₁ M₁ M'₁).coprod (continuous_linear_map.inr R₁ M₁ M'₁) =
+  continuous_linear_map.id R₁ (M₁ × M'₁) :=
+by { apply coe_injective, apply linear_map.coprod_inl_inr }
 
 section
 

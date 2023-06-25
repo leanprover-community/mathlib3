@@ -14,6 +14,9 @@ import tactic.ring_exp
 /-!
 # The Lucas-Lehmer test for Mersenne primes.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `lucas_lehmer_residue : Π p : ℕ, zmod (2^p - 1)`, and
 prove `lucas_lehmer_residue p = 0 → prime (mersenne p)`.
 

@@ -8,7 +8,7 @@ import algebra.lie.tensor_product
 import algebra.lie.character
 import algebra.lie.engel
 import algebra.lie.cartan_subalgebra
-import linear_algebra.eigenspace
+import linear_algebra.eigenspace.basic
 import ring_theory.tensor_product
 
 /-!

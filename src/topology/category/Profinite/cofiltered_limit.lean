@@ -6,6 +6,8 @@ Authors: Adam Topaz
 import topology.category.Profinite.basic
 import topology.locally_constant.basic
 import topology.discrete_quotient
+import topology.category.Top.limits.cofiltered
+import topology.category.Top.limits.konig
 
 /-!
 # Cofiltered limits of profinite sets.

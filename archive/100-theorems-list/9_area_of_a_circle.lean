@@ -3,9 +3,10 @@ Copyright (c) 2021 James Arthur, Benjamin Davidson, Andrew Souther. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
-import measure_theory.integral.interval_integral
 import analysis.special_functions.sqrt
 import analysis.special_functions.trigonometric.inverse_deriv
+import measure_theory.integral.fund_thm_calculus
+import measure_theory.measure.lebesgue.integral
 
 /-!
 # Freek № 9: The Area of a Circle
@@ -41,6 +42,8 @@ to the n-ball.
 
 open set real measure_theory interval_integral
 open_locale real nnreal
+
+namespace theorems_100
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
   `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`.
@@ -114,3 +117,5 @@ begin
                          hcont hderiv (continuous_const.mul hf).continuous_on.interval_integrable
   ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end
+
+end theorems_100

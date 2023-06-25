@@ -14,7 +14,7 @@ import category_theory.monoidal.rigid.of_equivalence
 import category_theory.monoidal.rigid.functor_category
 import category_theory.monoidal.linear
 import category_theory.monoidal.braided
-import category_theory.monoidal.types
+import category_theory.monoidal.types.symmetric
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
 import category_theory.conj
@@ -22,6 +22,9 @@ import category_theory.linear.functor_category
 
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The prototypical example is `V = Module R`,
 where `Action (Module R) G` is the category of `R`-linear representations of `G`.

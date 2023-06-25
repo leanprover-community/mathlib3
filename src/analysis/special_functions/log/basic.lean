@@ -9,6 +9,9 @@ import data.nat.factorization.basic
 /-!
 # Real logarithm
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `real.log` to be the logarithm of a real number. As usual, we extend it from
 its domain `(0, +∞)` to a globally defined function. We choose to do it so that `log 0 = 0` and
 `log (-x) = log x`.
@@ -165,6 +168,14 @@ end
 
 lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
 strict_mono_on_log.inj_on
+
+lemma log_lt_sub_one_of_pos (hx1 : 0 < x) (hx2 : x ≠ 1) : log x < x - 1 :=
+begin
+  have h : log x ≠ 0,
+  { rw [← log_one, log_inj_on_pos.ne_iff hx1 zero_lt_one],
+    exact hx2 },
+  linarith [add_one_lt_exp_of_nonzero h, exp_log hx1],
+end
 
 lemma eq_one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
 log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)

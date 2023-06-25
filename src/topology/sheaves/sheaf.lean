@@ -10,6 +10,9 @@ import category_theory.sites.spaces
 /-!
 # Sheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define sheaves on a topological space, with values in an arbitrary category.
 
 A presheaf on a topological space `X` is a sheaf presicely when it is a sheaf under the

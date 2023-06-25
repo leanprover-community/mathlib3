@@ -53,7 +53,7 @@ type of linear trivializations is not even particularly well-behaved.
 open topological_space filter set bundle
 open_locale topology classical bundle
 
-variables {ι : Type*} {B : Type*} {F : Type*} {E : B → Type*}
+variables {ι : Type*} {B : Type*} {F : Type*} {E : B → Type}
 variables (F) [topological_space B]
 
 /-- This structure contains the information left for a local trivialization (which is implemented
@@ -176,16 +176,17 @@ A structure extending local homeomorphisms, defining a local trivialization of a
 sets of the form `proj ⁻¹' base_set` and `base_set × F`, acting trivially on the first coordinate.
 -/
 @[ext, nolint has_nonempty_instance]
-structure trivialization (E : B → Type*) :=
+structure trivialization (E : B → Type*) [topological_space (total_space E)] :=
 (to_fun     : ∀ b : B, E b → F)
 (symm       : ∀ b, F → E b)
 (base_set   : set B)
 (is_open_base_set : is_open base_set)
 (left_inv'  : ∀ {{b}} (hb : b ∈ base_set) (x : E b), symm b (to_fun b x) = x)
 (right_inv' : ∀ {{b}} (hb : b ∈ base_set) (x : F), to_fun b (symm b x) = x)
-(continuous_to_fun  : continuous_on (λ x : total_space E, (x.1, to_fun x.1 x.2)) _)
-(continuous_inv_fun : continuous_on _ target)
-
+(continuous_to_fun  :
+  continuous_on (λ x : total_space E, (x.1, to_fun x.1 x.2)) (total_space.proj ⁻¹' base_set))
+(continuous_inv_fun : continuous_on (λ x : B × F, total_space_mk x.1 (symm x.1 x.2))
+  (prod.fst ⁻¹' base_set))
 
 namespace trivialization
 

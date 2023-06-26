@@ -10,6 +10,9 @@ import data.fun_like.basic
 /-!
 # Dilations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define dilations, i.e., maps between emetric spaces that satisfy
 `edist (f x) (f y) = r * edist x y` for some `r ∉ {0, ∞}`.
 

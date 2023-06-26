@@ -8,7 +8,7 @@ import algebra.char_p.pi
 import algebra.char_p.quotient
 import algebra.char_p.subring
 import algebra.ring.pi
-import analysis.special_functions.pow
+import analysis.special_functions.pow.nnreal
 import field_theory.perfect_closure
 import ring_theory.localization.fraction_ring
 import ring_theory.subring.basic
@@ -16,6 +16,9 @@ import ring_theory.valuation.integers
 
 /-!
 # Ring Perfection and Tilt
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the perfection of a ring of characteristic p, and the tilt of a field
 given a valuation to `ℝ≥0`.

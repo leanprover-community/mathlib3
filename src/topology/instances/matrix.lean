@@ -12,6 +12,9 @@ import linear_algebra.matrix.trace
 /-!
 # Topological properties of matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is a place to collect topological results about matrices.
 
 ## Main definitions:

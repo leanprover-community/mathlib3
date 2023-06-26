@@ -11,6 +11,9 @@ import number_theory.number_field.basic
 /-!
 # Discriminant of a family of vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we define the
 *discriminant* of `b` as the determinant of the matrix whose `(i j)`-th element is the trace of
 `b i * b j`.

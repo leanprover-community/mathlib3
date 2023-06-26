@@ -8,6 +8,9 @@ import probability.probability_mass_function.basic
 /-!
 # Monad Operations for Probability Mass Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs two operations on `pmf` that give it a monad structure.
 `pure a` is the distribution where a single value `a` has probability `1`.
 `bind pa pb : pmf β` is the distribution given by sampling `a : α` from `pa : pmf α`,

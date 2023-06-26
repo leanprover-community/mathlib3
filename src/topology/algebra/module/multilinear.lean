@@ -9,6 +9,9 @@ import linear_algebra.multilinear.basic
 /-!
 # Continuous multilinear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define continuous multilinear maps as maps from `Π(i : ι), M₁ i` to `M₂` which are multilinear
 and continuous, by extending the space of multilinear maps with a continuity assumption.
 Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is an arbitrary type, and all these
@@ -214,6 +217,12 @@ lemma pi_apply {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   pi f m j = f j m :=
 rfl
 
+/-- Restrict the codomain of a continuous multilinear map to a submodule. -/
+@[simps to_multilinear_map apply_coe]
+def cod_restrict (f : continuous_multilinear_map R M₁ M₂) (p : submodule R M₂) (h : ∀ v, f v ∈ p) :
+  continuous_multilinear_map R M₁ p :=
+⟨f.1.cod_restrict p h, f.cont.subtype_mk _⟩
+
 section
 variables (R M₂)
 
@@ -272,6 +281,25 @@ def pi_equiv {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   inv_fun := λ f i, (continuous_linear_map.proj i : _ →L[R] M' i).comp_continuous_multilinear_map f,
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
+
+/-- An equivalence of the index set defines an equivalence between the spaces of continuous
+multilinear maps. This is the forward map of this equivalence. -/
+@[simps to_multilinear_map apply]
+def dom_dom_congr {ι' : Type*} (e : ι ≃ ι') (f : continuous_multilinear_map R (λ _ : ι, M₂) M₃) :
+  continuous_multilinear_map R (λ _ : ι', M₂) M₃ :=
+{ to_multilinear_map := f.dom_dom_congr e,
+  cont := f.cont.comp $ continuous_pi $ λ _, continuous_apply _ }
+
+/-- An equivalence of the index set defines an equivalence between the spaces of continuous
+multilinear maps. In case of normed spaces, this is a linear isometric equivalence, see
+`continuous.multilinear_map.dom_dom_congrₗᵢ`. -/
+@[simps]
+def dom_dom_congr_equiv {ι' : Type*} (e : ι ≃ ι') :
+  continuous_multilinear_map R (λ _ : ι, M₂) M₃ ≃ continuous_multilinear_map R (λ _ : ι', M₂) M₃ :=
+{ to_fun := dom_dom_congr e,
+  inv_fun := dom_dom_congr e.symm,
+  left_inv := λ _, ext $ λ _, by simp,
+  right_inv := λ _, ext $ λ _, by simp }
 
 /-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the

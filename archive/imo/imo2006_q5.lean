@@ -41,8 +41,10 @@ $P(t)+t-a-b$, and we're again done.
 
 open function polynomial
 
+namespace imo2006_q5
 /-- If every entry in a cyclic list of integers divides the next, then they all have the same
 absolute value. -/
+
 theorem int.nat_abs_eq_of_chain_dvd {l : cycle ℤ} {x y : ℤ} (hl : l.chain (∣))
   (hx : x ∈ l) (hy : y ∈ l) : x.nat_abs = y.nat_abs :=
 begin
@@ -197,6 +199,10 @@ begin
       { rw ←ht, apply sub_dvd_eval_sub },
       { rw ←ha, apply sub_dvd_eval_sub } } }
 end
+
+end imo2006_q5
+
+open imo2006_q5
 
 /-- The general problem follows easily from the k = 2 case. -/
 theorem imo2006_q5 {P : polynomial ℤ} (hP : 1 < P.nat_degree) {k : ℕ} (hk : 0 < k) :

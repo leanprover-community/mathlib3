@@ -12,6 +12,9 @@ import algebraic_geometry.prime_spectrum.basic
 
 # Valuation subrings of a field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Projects
 
 The order structure on `valuation_subring K`.

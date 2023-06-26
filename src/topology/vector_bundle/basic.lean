@@ -10,6 +10,9 @@ import topology.fiber_bundle.basic
 /-!
 # Vector bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define (topological) vector bundles.
 
 Let `B` be the base space, let `F` be a normed space over a normed field `R`, and let
@@ -28,6 +31,21 @@ norm topology on `F →L[R] F`.
 If these conditions are satisfied, we register the typeclass `vector_bundle R F E`.
 
 We define constructions on vector bundles like pullbacks and direct sums in other files.
+
+## Main Definitions
+
+* `trivialization.is_linear`: a class stating that a trivialization is fiberwise linear on its base
+  set.
+* `trivialization.linear_equiv_at` and `trivialization.continuous_linear_map_at` are the
+  (continuous) linear fiberwise equivalences a trivialization induces.
+* They have forward maps `trivialization.linear_map_at` / `trivialization.continuous_linear_map_at`
+  and inverses `trivialization.symmₗ` / `trivialization.symmL`. Note that these are all defined
+  everywhere, since they are extended using the zero function.
+* `trivialization.coord_changeL` is the coordinate change induced by two trivializations. It only
+  makes sense on the intersection of their base sets, but is extended outside it using the identity.
+* Given a continuous (semi)linear map between `E x` and `E' y` where `E` and `E'` are bundles over
+  possibly different base sets, `continuous_linear_map.in_coordinates` turns this into a continuous
+  (semi)linear map between the chosen fibers of those bundles.
 
 ## Implementation notes
 
@@ -715,7 +733,7 @@ end
 
 section
 variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_add_comm_group F] [normed_space R F] [topological_space B]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B] [∀ x, topological_space (E x)]
 
 open topological_space
 
@@ -742,6 +760,7 @@ structure vector_prebundle :=
   continuous_on f (e.base_set ∩ e'.base_set) ∧
   ∀ (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F),
     f b v = (e' (total_space_mk b (e.symm b v))).2)
+(total_space_mk_inducing : ∀ (b : B), inducing ((pretrivialization_at b) ∘ (total_space_mk b)))
 
 namespace vector_prebundle
 
@@ -827,21 +846,13 @@ a.to_fiber_prebundle.mem_trivialization_at_source b x
   (total_space_mk b) ⁻¹' (a.pretrivialization_at b).source = univ :=
 a.to_fiber_prebundle.total_space_mk_preimage_source b
 
-/-- Topology on the fibers `E b` induced by the map `E b → E.total_space`. -/
-def fiber_topology (b : B) : topological_space (E b) :=
-a.to_fiber_prebundle.fiber_topology b
-
-@[continuity] lemma inducing_total_space_mk (b : B) :
-  @inducing _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=
-a.to_fiber_prebundle.inducing_total_space_mk b
-
 @[continuity] lemma continuous_total_space_mk (b : B) :
-  @continuous _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=
+  @continuous _ _ _ a.total_space_topology (total_space_mk b) :=
 a.to_fiber_prebundle.continuous_total_space_mk b
 
 /-- Make a `fiber_bundle` from a `vector_prebundle`; auxiliary construction for
 `vector_prebundle.vector_bundle`. -/
-def to_fiber_bundle : @fiber_bundle B F _ _ _ a.total_space_topology a.fiber_topology :=
+def to_fiber_bundle : @fiber_bundle B F _ _ _ a.total_space_topology _ :=
 a.to_fiber_prebundle.to_fiber_bundle
 
 /-- Make a `vector_bundle` from a `vector_prebundle`.  Concretely this means
@@ -851,7 +862,7 @@ establishes that for the topology constructed on the sigma-type using
 `vector_prebundle.total_space_topology`, these "pretrivializations" are actually
 "trivializations" (i.e., homeomorphisms with respect to the constructed topology). -/
 lemma to_vector_bundle :
-  @vector_bundle R _ F E _ _ _ _ _ _ a.total_space_topology a.fiber_topology a.to_fiber_bundle :=
+  @vector_bundle R _ F E _ _ _ _ _ _ a.total_space_topology _ a.to_fiber_bundle :=
 { trivialization_linear' := begin
     rintros _ ⟨e, he, rfl⟩,
     apply linear_of_mem_pretrivialization_atlas,
@@ -868,4 +879,66 @@ lemma to_vector_bundle :
 
 end vector_prebundle
 
+namespace continuous_linear_map
+variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [nontrivially_normed_field 𝕜₂]
+variables {σ : 𝕜₁ →+* 𝕜₂}
+variables {B' : Type*} [topological_space B']
+
+variables [normed_space 𝕜₁ F] [Π x, module 𝕜₁ (E x)] [topological_space (total_space E)]
+variables {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜₂ F']
+  {E' : B' → Type*} [Π x, add_comm_monoid (E' x)] [Π x, module 𝕜₂ (E' x)]
+  [topological_space (total_space E')]
+variables [fiber_bundle F E] [vector_bundle 𝕜₁ F E]
+variables [Π x, topological_space (E' x)] [fiber_bundle F' E'] [vector_bundle 𝕜₂ F' E']
+variables (F E F' E')
+
+/-- When `ϕ` is a continuous (semi)linear map between the fibers `E x` and `E' y` of two vector
+bundles `E` and `E'`, `continuous_linear_map.in_coordinates F E F' E' x₀ x y₀ y ϕ` is a coordinate
+change of this continuous linear map w.r.t. the chart around `x₀` and the chart around `y₀`.
+
+It is defined by composing `ϕ` with appropriate coordinate changes given by the vector bundles
+`E` and `E'`.
+We use the operations `trivialization.continuous_linear_map_at` and `trivialization.symmL` in the
+definition, instead of `trivialization.continuous_linear_equiv_at`, so that
+`continuous_linear_map.in_coordinates` is defined everywhere (but see
+`continuous_linear_map.in_coordinates_eq`).
+
+This is the (second component of the) underlying function of a trivialization of the hom-bundle
+(see `hom_trivialization_at_apply`). However, note that `continuous_linear_map.in_coordinates` is
+defined even when `x` and `y` live in different base sets.
+Therefore, it is is also convenient when working with the hom-bundle between pulled back bundles.
+-/
+def in_coordinates (x₀ x : B) (y₀ y : B') (ϕ : E x →SL[σ] E' y) : F →SL[σ] F' :=
+((trivialization_at F' E' y₀).continuous_linear_map_at 𝕜₂ y).comp $ ϕ.comp $
+(trivialization_at F E x₀).symmL 𝕜₁ x
+
+variables {F F'}
+
+/-- rewrite `in_coordinates` using continuous linear equivalences. -/
+lemma in_coordinates_eq (x₀ x : B) (y₀ y : B') (ϕ : E x →SL[σ] E' y)
+  (hx : x ∈ (trivialization_at F E x₀).base_set)
+  (hy : y ∈ (trivialization_at F' E' y₀).base_set) :
+  in_coordinates F E F' E' x₀ x y₀ y ϕ =
+  ((trivialization_at F' E' y₀).continuous_linear_equiv_at 𝕜₂ y hy : E' y →L[𝕜₂] F').comp (ϕ.comp $
+  (((trivialization_at F E x₀).continuous_linear_equiv_at 𝕜₁ x hx).symm : F →L[𝕜₁] E x)) :=
+begin
+  ext,
+  simp_rw [in_coordinates, continuous_linear_map.coe_comp', continuous_linear_equiv.coe_coe,
+    trivialization.coe_continuous_linear_equiv_at_eq,
+    trivialization.symm_continuous_linear_equiv_at_eq]
+end
+
+/-- rewrite `in_coordinates` in a `vector_bundle_core`. -/
+protected lemma vector_bundle_core.in_coordinates_eq {ι ι'} (Z : vector_bundle_core 𝕜₁ B F ι)
+  (Z' : vector_bundle_core 𝕜₂ B' F' ι')
+  {x₀ x : B} {y₀ y : B'} (ϕ : F →SL[σ] F')
+  (hx : x ∈ Z.base_set (Z.index_at x₀))
+  (hy : y ∈ Z'.base_set (Z'.index_at y₀)) :
+    in_coordinates F Z.fiber F' Z'.fiber x₀ x y₀ y ϕ =
+    (Z'.coord_change (Z'.index_at y) (Z'.index_at y₀) y).comp (ϕ.comp $
+    Z.coord_change (Z.index_at x₀) (Z.index_at x) x) :=
+by simp_rw [in_coordinates, Z'.trivialization_at_continuous_linear_map_at hy,
+  Z.trivialization_at_symmL hx]
+
+end continuous_linear_map
 end

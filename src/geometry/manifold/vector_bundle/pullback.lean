@@ -8,6 +8,9 @@ import geometry.manifold.vector_bundle.basic
 
 /-! # Pullbacks of smooth vector bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines pullbacks of smooth vector bundles over a smooth manifold.
 
 ## Main definitions

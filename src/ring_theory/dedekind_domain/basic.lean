@@ -9,6 +9,9 @@ import ring_theory.polynomial.rational_root
 /-!
 # Dedekind domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the notion of a Dedekind domain (or Dedekind ring),
 as a Noetherian integrally closed commutative ring of Krull dimension at most one.
 

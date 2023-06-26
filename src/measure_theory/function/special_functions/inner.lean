@@ -5,10 +5,13 @@ Authors: Yury Kudryashov
 -/
 
 import analysis.inner_product_space.basic
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.complex
 
 /-!
 # Measurability of scalar products
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*} {𝕜 : Type*} {E : Type*}

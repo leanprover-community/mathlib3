@@ -8,6 +8,9 @@ import probability.probability_mass_function.monad
 /-!
 # Specific Constructions of Probability Mass Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gives a number of different `pmf` constructions for common probability distributions.
 
 `map` and `seq` allow pushing a `pmf α` along a function `f : α → β` (or distribution of

@@ -9,6 +9,9 @@ import order.closure
 /-!
 # Closed sieves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A natural closure operator on sieves is a closure operator on `sieve X` for each `X` which commutes
 with pullback.
 We show that a Grothendieck topology `J` induces a natural closure operator, and define what the

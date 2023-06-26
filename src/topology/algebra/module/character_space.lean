@@ -11,6 +11,9 @@ import topology.continuous_function.algebra
 /-!
 # Character space of a topological algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The character space of a topological algebra is the subset of elements of the weak dual that
 are also algebra homomorphisms. This space is used in the Gelfand transform, which gives an
 isomorphism between a commutative C⋆-algebra and continuous functions on the character space

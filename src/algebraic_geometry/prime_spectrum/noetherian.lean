@@ -6,6 +6,9 @@ Authors: Filippo A. E. Nuccio, Andrew Yang
 import algebraic_geometry.prime_spectrum.basic
 import topology.noetherian_space
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves additional properties of the prime spectrum a ring is Noetherian.
 -/
 

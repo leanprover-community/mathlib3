@@ -9,6 +9,9 @@ import ring_theory.local_properties
 
 # The meta properties of surjective ring homomorphisms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 namespace ring_hom

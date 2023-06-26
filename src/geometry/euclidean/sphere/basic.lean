@@ -9,6 +9,9 @@ import geometry.euclidean.basic
 /-!
 # Spheres
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines and proves basic results about spheres and cospherical sets of points in
 Euclidean affine spaces.
 

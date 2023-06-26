@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.roots
 import tactic.by_contra
 import topology.algebra.polynomial
 import number_theory.padics.padic_val
@@ -12,6 +12,9 @@ import analysis.complex.arg
 
 /-!
 # Evaluating cyclotomic polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file states some results about evaluating cyclotomic polynomials in various different ways.
 ## Main definitions
 * `polynomial.eval(₂)_one_cyclotomic_prime(_pow)`: `eval 1 (cyclotomic p^k R) = p`.
@@ -253,7 +256,7 @@ begin
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) (-ζ),
     { convert norm_add_lt_of_not_same_ray this;
-      simp [real.norm_of_nonneg hq.le, hζ.norm'_eq_one hn.ne', -complex.norm_eq_abs] },
+        simp [abs_of_pos hq, hζ.norm'_eq_one hn.ne', -complex.norm_eq_abs] },
     rw complex.same_ray_iff,
     push_neg,
     refine ⟨by exact_mod_cast hq.ne', neg_ne_zero.mpr $ hζ.ne_zero hn.ne', _⟩,

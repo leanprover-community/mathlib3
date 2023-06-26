@@ -3,11 +3,14 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import measure_theory.integral.interval_integral
+import measure_theory.integral.fund_thm_calculus
 import analysis.special_functions.trigonometric.arctan_deriv
 
 /-!
 # Integration of specific interval integrals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains proofs of the integrals of various specific functions. This includes:
 * Integrals of simple functions, such as `id`, `pow`, `inv`, `exp`, `log`

@@ -9,6 +9,9 @@ import geometry.manifold.local_invariant_properties
 /-!
 # Smooth functions between smooth manifolds
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `Cⁿ` functions between smooth manifolds, as functions which are `Cⁿ` in charts, and prove
 basic properties of these notions.
 

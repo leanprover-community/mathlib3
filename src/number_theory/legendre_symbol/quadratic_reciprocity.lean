@@ -9,6 +9,9 @@ import number_theory.legendre_symbol.quadratic_char.gauss_sum
 /-!
 # Quadratic reciprocity.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main results
 
 We prove the law of quadratic reciprocity, see `legendre_sym.quadratic_reciprocity` and

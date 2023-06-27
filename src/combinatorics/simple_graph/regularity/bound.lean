@@ -10,6 +10,9 @@ import order.partition.equipartition
 /-!
 # Numerical bounds for Szemerédi Regularity Lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gathers the numerical facts required by the proof of Szemerédi's regularity lemma.
 
 This entire file is internal to the proof of Szemerédi Regularity Lemma.

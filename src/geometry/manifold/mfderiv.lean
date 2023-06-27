@@ -8,6 +8,9 @@ import geometry.manifold.vector_bundle.tangent
 /-!
 # The derivative of functions between smooth manifolds
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `M` and `M'` be two smooth manifolds with corners over a field `𝕜` (with respective models with
 corners `I` on `(E, H)` and `I'` on `(E', H')`), and let `f : M → M'`. We define the
 derivative of the function at a point, within a set or along the whole space, mimicking the API

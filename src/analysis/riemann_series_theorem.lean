@@ -1018,6 +1018,36 @@ begin
   exact le_trans q₁ q₂
 end
 
+lemma rearrangement_eq_nonneg_terms_of_nonneg (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n : ℕ) (h : sumto a M n ≤ M)
+  : ∃ k, rearrangement a M n = nat.nth (λ j : ℕ, 0 ≤ a j) k :=
+begin
+  sorry
+end
+
+lemma rearrangement_agrees_nonneg_terms_d (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (N : ℕ) (h : ∀ n, N ≤ n → sumto a M n ≤ M)
+  : (∃ C : ℝ, tendsto (partial_sum (λ i, a (rearrangement a M i))) at_top (𝓝 C))
+    ↔ (∃ C : ℝ, tendsto (partial_sum (nonneg_terms_d a)) at_top (𝓝 C)) :=
+begin
+  let N' := max N 1,
+  have hN' : N' ≠ 0 := by { change max N 1 ≠ 0, positivity },
+  obtain ⟨k, hk⟩ := rearrangement_eq_nonneg_terms_of_nonneg a M h₁ h₂ N' (h N' (le_max_left N 1)),
+  have : ∀ i : ℕ, 0 ≤ i → a (rearrangement a M (i + N')) = nonneg_terms_d a (i + k),
+  { intros i _,
+    rw add_comm i N',
+    rw add_comm i k,
+    apply congr_arg,
+    refine rearrangement_add_eq_add_nonneg_d a M h₁ h₂ N' i _ hN' k hk,
+    intros j hj,
+    exact h (N' + j) (le_trans (le_max_left N 1) (nat.le_add_right N' j)) },
+  exact shift_agrees_converges 0 N' k this
+end
+
 lemma frequently_exists_switchpoint (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))

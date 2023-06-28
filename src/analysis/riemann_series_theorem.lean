@@ -728,6 +728,28 @@ begin
   refl
 end
 
+/--
+  Alternate version of `nat.nth_eq_Inf` which uses the fact that the statements
+  `∀ (k : ℕ), k < n + 1 → nat.nth p k < x` and `nat.nth p n < x` are the same since `nat.nth` is
+  monotone.
+-/
+lemma nat.nth_eq_Inf' (p : ℕ → Prop) (n : ℕ) (hf : (set_of p).infinite):
+  nat.nth p (n + 1) = Inf {x : ℕ | p x ∧ nat.nth p n < x} :=
+begin
+  rw nat.nth_eq_Inf,
+  apply congr_arg,
+  ext x,
+  change p x ∧ _ ↔ p x ∧ _,
+  split,
+  { rintro ⟨h₁, h₂⟩,
+    exact ⟨h₁, h₂ n (nat.lt_succ_self n)⟩ },
+  { rintro ⟨h₁, h₂⟩,
+    apply and.intro h₁,
+    intros k hk,
+    refine lt_of_le_of_lt _ h₂,
+    exact nat.nth_monotone hf (nat.lt_succ_iff.mp hk) }
+end
+
 lemma rearrangement_succ_eq_succ_nonneg_d (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))

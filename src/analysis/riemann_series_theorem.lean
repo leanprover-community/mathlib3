@@ -775,6 +775,14 @@ begin
     exact nat.nth_monotone hf (nat.lt_succ_iff.mp hk) }
 end
 
+lemma nat.Inf_eq_iff {m : ℕ} {p : ℕ → Prop} (h : ∃ (n : ℕ), p n) :
+  Inf {n | p n} = m ↔ p m ∧ ∀ (n : ℕ), n < m → ¬p n :=
+begin
+  have : {n | p n}.nonempty := h,
+  rw nat.Inf_def this,
+  exact nat.find_eq_iff h
+end
+
 lemma rearrangement_succ_eq_succ_nonneg_d (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
@@ -788,9 +796,11 @@ begin
     rw filter.frequently_at_top at this,
     obtain ⟨b, hb₁, hb₂⟩ := this (nat.nth (λ (n : ℕ), 0 ≤ a n) k + 1),
     exact ⟨b, hb₂, hb₁⟩ },
-  rw nat.Inf_def this,
   symmetry,
-  apply (nat.find_eq_iff sorry).mpr,
+  apply (nat.Inf_eq_iff this).mpr,
+  --rw nat.Inf_def this,
+  --symmetry,
+  --apply (nat.find_eq_iff sorry).mpr,
   set r := rearrangement a M (n + 1),
   split,
   { change 0 ≤ a r ∧ _,

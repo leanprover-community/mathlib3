@@ -869,6 +869,22 @@ begin
   }
 end
 
+lemma rearrangement_add_eq_add_nonneg_d (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n : ℕ) (d : ℕ) (hn₁ : ∀ i, i ≤ d → sumto a M (n + i) ≤ M) (hn₂ : n ≠ 0)
+  (k : ℕ) (hk : rearrangement a M n = nat.nth (λ j : ℕ, 0 ≤ a j) k)
+  : rearrangement a M (n + d) = nat.nth (λ j : ℕ, 0 ≤ a j) (k + d) :=
+begin
+  induction d with d ih,
+  { simp [hk] },
+  { change rearrangement a M (n + d + 1) = nat.nth (λ (j : ℕ), 0 ≤ a j) (k + d + 1),
+    refine rearrangement_succ_eq_succ_nonneg_d a M h₁ h₂ (n + d) (hn₁ d (nat.le_succ d))
+      (hn₁ (d + 1) le_rfl) (by positivity) (k + d) (ih _),
+    intros i hi,
+    exact hn₁ i (le_trans hi (nat.le_succ d)) }
+end
+
 lemma abs_sumto_sub_M_le_abs_sumto_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))

@@ -758,9 +758,13 @@ lemma rearrangement_preserves_order_of_terms_nonneg' (a : ℕ → ℝ) (M : ℝ)
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
   (n m : ℕ) (hnm : n ≤ m) (hn₁ : sumto a M n ≤ M) (hn₂ : sumto a M m ≤ M)
   (hn₃ : n ≠ 0)
-  : rearrangement a M n < rearrangement a M m :=
+  : rearrangement a M n ≤ rearrangement a M m :=
 begin
-  sorry
+  by_cases h : n = m,
+  { rw h },
+  { have : n < m := lt_of_le_of_ne hnm h,
+    have := rearrangement_preserves_order_of_terms_nonneg a M h₁ h₂ n m this hn₁ hn₂ hn₃,
+    exact this.le }
 end
 
 /--
@@ -845,7 +849,7 @@ begin
           have := rearrangement_preserves_order_of_terms_nonneg' a M h₁ h₂ m n (nat.lt_succ_iff.mp hy)
             hc₂ hn₁ (show y + 1 ≠ 0, by positivity),
           rw ←hk at hj_contra₂,
-          have : rearrangement a M m < j := lt_trans this hj_contra₂,
+          have : rearrangement a M m < j := lt_of_le_of_lt this hj_contra₂,
           exact ne_of_lt this
         },
         {

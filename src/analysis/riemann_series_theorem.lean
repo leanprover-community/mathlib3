@@ -753,6 +753,16 @@ begin
   refl
 end
 
+lemma rearrangement_preserves_order_of_terms_nonneg' (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n m : ℕ) (hnm : n ≤ m) (hn₁ : sumto a M n ≤ M) (hn₂ : sumto a M m ≤ M)
+  (hn₃ : n ≠ 0)
+  : rearrangement a M n < rearrangement a M m :=
+begin
+  sorry
+end
+
 /--
   Alternate version of `nat.nth_eq_Inf` which uses the fact that the statements
   `∀ (k : ℕ), k < n + 1 → nat.nth p k < x` and `nat.nth p n < x` are the same since `nat.nth` is
@@ -810,7 +820,48 @@ begin
     exact rearrangement_preserves_order_of_terms_nonneg a M h₁ h₂ n (n + 1) (nat.lt_succ_self n)
       hn₁ hn₂ hn₃ },
   {
-    sorry
+    rintros j hj ⟨hj_contra₁, hj_contra₂⟩,
+    rw ←not_le at hj,
+    apply hj,
+    clear hj,
+    have : j ∈ {k : ℕ | k ∉ set.range (λ (x : fin (n + 1)), rearrangement a M ↑x) ∧ 0 ≤ a k},
+    {
+      refine ⟨_, hj_contra₁⟩,
+      rw set.mem_range,
+      push_neg,
+      rintro ⟨y, hy⟩,
+      change rearrangement a M y ≠ j,
+      cases y,
+      {
+        rw rearrangement_zero,
+        intro h_contra,
+        rw ←h_contra at hj_contra₂,
+        exact absurd hj_contra₂ (nat.not_lt_zero _)
+      },
+      {
+        set m := y.succ,
+        by_cases hc₂ : sumto a M m ≤ M,
+        {
+          have := rearrangement_preserves_order_of_terms_nonneg' a M h₁ h₂ m n (nat.lt_succ_iff.mp hy)
+            hc₂ hn₁ (show y + 1 ≠ 0, by positivity),
+          rw ←hk at hj_contra₂,
+          have : rearrangement a M m < j := lt_trans this hj_contra₂,
+          exact ne_of_lt this
+        },
+        {
+          push_neg at hc₂,
+          -- TODO: can use `rearrangement_neg_spec` without the `'`
+          have := (rearrangement_neg_spec' h₁ h₂ hc₂ (show y + 1 ≠ 0, by positivity)).right,
+          intro h_contra,
+          rw h_contra at this,
+          rw ←not_le at this,
+          contradiction
+        }
+      }
+    },
+    change rearrangement a M (n + 1) ≤ j,
+    rw rearrangement_nonneg h₁ h₂ hn₂,
+    exact nat.Inf_le this
   }
 end
 

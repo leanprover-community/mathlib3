@@ -7,7 +7,7 @@ import algebra.punit_instances
 import linear_algebra.finsupp
 import ring_theory.ideal.over
 import ring_theory.ideal.prod
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
 import ring_theory.nilpotent
 import topology.sets.closeds
 import topology.sober

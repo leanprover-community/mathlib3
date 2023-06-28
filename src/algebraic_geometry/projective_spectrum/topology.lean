@@ -11,6 +11,9 @@ import topology.sets.opens
 /-!
 # Projective spectrum of a graded ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals that
 are prime and do not contain the irrelevant ideal.
 It is naturally endowed with a topology: the Zariski topology.

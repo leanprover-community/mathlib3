@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Jireh Loreaux
 -/
 import analysis.mean_inequalities
 import data.fintype.order
+import linear_algebra.matrix.basis
 
 /-!
 # `L^p` distance on finite products of metric spaces
@@ -623,7 +624,9 @@ linear_isometry_equiv.ext $ λ x, rfl
 
 @[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_single
   [decidable_eq ι] [decidable_eq ι'] (e : ι ≃ ι') (i : ι) (v : E) :
-  linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e (pi.single i v) = pi.single (e i) v :=
+  linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e (
+    (pi_Lp.equiv p (λ _, E)).symm $ pi.single i v) =
+      (pi_Lp.equiv p (λ _, E)).symm (pi.single (e i) v) :=
 begin
   funext x,
   simp [linear_isometry_equiv.pi_Lp_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',
@@ -648,6 +651,59 @@ end
 @[simp] lemma equiv_smul : pi_Lp.equiv p β (c • x) = c • pi_Lp.equiv p β x := rfl
 @[simp] lemma equiv_symm_smul :
   (pi_Lp.equiv p β).symm (c • x') = c • (pi_Lp.equiv p β).symm x' := rfl
+
+section single
+
+variables (p)
+variables [decidable_eq ι]
+
+@[simp]
+lemma nnnorm_equiv_symm_single (i : ι) (b : β i) :
+  ‖(pi_Lp.equiv p β).symm (pi.single i b)‖₊ = ‖b‖₊ :=
+begin
+  haveI : nonempty ι := ⟨i⟩,
+  unfreezingI { induction p using with_top.rec_top_coe },
+  { simp_rw [nnnorm_eq_csupr, equiv_symm_apply],
+    refine csupr_eq_of_forall_le_of_forall_lt_exists_gt (λ j, _) (λ n hn, ⟨i, hn.trans_eq _⟩),
+    { obtain rfl | hij := decidable.eq_or_ne i j,
+      { rw pi.single_eq_same },
+      { rw [pi.single_eq_of_ne' hij, nnnorm_zero],
+        exact zero_le _ } },
+    { rw pi.single_eq_same } },
+  { have hp0 : (p : ℝ) ≠ 0,
+    { exact_mod_cast (zero_lt_one.trans_le $ fact.out (1 ≤ (p : ℝ≥0∞))).ne' },
+    rw [nnnorm_eq_sum ennreal.coe_ne_top, ennreal.coe_to_real, fintype.sum_eq_single i,
+      equiv_symm_apply, pi.single_eq_same, ←nnreal.rpow_mul, one_div, mul_inv_cancel hp0,
+      nnreal.rpow_one],
+    intros j hij,
+    rw [equiv_symm_apply, pi.single_eq_of_ne hij, nnnorm_zero, nnreal.zero_rpow hp0] },
+end
+
+@[simp]
+lemma norm_equiv_symm_single (i : ι) (b : β i) :
+  ‖(pi_Lp.equiv p β).symm (pi.single i b)‖ = ‖b‖ :=
+congr_arg coe $ nnnorm_equiv_symm_single p β i b
+
+@[simp]
+lemma nndist_equiv_symm_single_same (i : ι) (b₁ b₂ : β i) :
+  nndist ((pi_Lp.equiv p β).symm (pi.single i b₁)) ((pi_Lp.equiv p β).symm (pi.single i b₂)) =
+    nndist b₁ b₂  :=
+by rw [nndist_eq_nnnorm, nndist_eq_nnnorm, ←equiv_symm_sub, ←pi.single_sub,
+  nnnorm_equiv_symm_single]
+
+@[simp]
+lemma dist_equiv_symm_single_same (i : ι) (b₁ b₂ : β i) :
+  dist ((pi_Lp.equiv p β).symm (pi.single i b₁)) ((pi_Lp.equiv p β).symm (pi.single i b₂)) =
+    dist b₁ b₂ :=
+congr_arg coe $ nndist_equiv_symm_single_same p β i b₁ b₂
+
+@[simp]
+lemma edist_equiv_symm_single_same (i : ι) (b₁ b₂ : β i) :
+  edist ((pi_Lp.equiv p β).symm (pi.single i b₁)) ((pi_Lp.equiv p β).symm (pi.single i b₂)) =
+    edist b₁ b₂ :=
+by simpa only [edist_nndist] using congr_arg coe (nndist_equiv_symm_single_same p β i b₁ b₂)
+
+end single
 
 /-- When `p = ∞`, this lemma does not hold without the additional assumption `nonempty ι` because
 the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
@@ -707,12 +763,19 @@ lemma norm_equiv_symm_one {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) [
 
 variables (𝕜 p)
 
-/-- `pi_Lp.equiv` as a linear map. -/
+/-- `pi_Lp.equiv` as a linear equivalence. -/
 @[simps {fully_applied := ff}]
 protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=
 { to_fun := pi_Lp.equiv _ _,
   inv_fun := (pi_Lp.equiv _ _).symm,
   ..linear_equiv.refl _ _}
+
+/-- `pi_Lp.equiv` as a continuous linear equivalence. -/
+@[simps {fully_applied := ff}]
+protected def continuous_linear_equiv : pi_Lp p β ≃L[𝕜] Π i, β i :=
+{ to_linear_equiv := pi_Lp.linear_equiv _ _ _,
+  continuous_to_fun := continuous_equiv _ _,
+  continuous_inv_fun := continuous_equiv_symm _ _ }
 
 section basis
 
@@ -729,6 +792,10 @@ by simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi
 @[simp] lemma basis_fun_repr (x : pi_Lp p (λ i : ι, 𝕜)) (i : ι) :
   (basis_fun p 𝕜 ι).repr x i = x i :=
 rfl
+
+@[simp] lemma basis_fun_equiv_fun :
+  (basis_fun p 𝕜 ι).equiv_fun = pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜) :=
+basis.equiv_fun_of_equiv_fun _
 
 lemma basis_fun_eq_pi_basis_fun :
   basis_fun p 𝕜 ι = (pi.basis_fun 𝕜 ι).map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜)).symm :=

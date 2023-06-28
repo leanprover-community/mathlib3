@@ -98,6 +98,9 @@ S.range_subset
 theorem smul_mem {x : A} (hx : x ∈ S) (r : R) : r • x ∈ S :=
 (algebra.smul_def r x).symm ▸ mul_mem (S.algebra_map_mem r) hx
 
+instance : smul_mem_class (subalgebra R A) R A :=
+{ smul_mem := λ S r x hx, smul_mem S hx r }
+
 protected theorem one_mem : (1 : A) ∈ S := one_mem S
 protected theorem mul_mem {x y : A} (hx : x ∈ S) (hy : y ∈ S) : x * y ∈ S := mul_mem hx hy
 protected theorem pow_mem {x : A} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S := pow_mem hx n

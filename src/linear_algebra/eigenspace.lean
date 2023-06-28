@@ -6,7 +6,6 @@ Authors: Alexander Bentkamp
 
 import algebra.algebra.spectrum
 import order.hom.basic
-import linear_algebra.free_module.finite.basic
 import linear_algebra.general_linear_group
 
 /-!

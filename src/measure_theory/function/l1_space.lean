@@ -350,15 +350,19 @@ hf.mono $ eventually_of_forall $ λ x,
 end pos_part
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*}
 
-lemma has_finite_integral.smul (c : 𝕜) {f : α → β} : has_finite_integral f μ →
-  has_finite_integral (c • f) μ :=
+lemma has_finite_integral.smul' [has_smul 𝕜 β] [has_nnnorm 𝕜] (c : 𝕜) {f : α → β}
+  (h : ∀ (k : 𝕜) (b : β), ‖k • b‖₊ ≤ ‖k‖₊ * ‖b‖₊) :
+  has_finite_integral f μ → has_finite_integral (c • f) μ :=
 begin
   simp only [has_finite_integral], assume hfi,
   calc
-    ∫⁻ (a : α), ‖c • f a‖₊ ∂μ = ∫⁻ (a : α), (‖c‖₊) * ‖f a‖₊ ∂μ :
-      by simp only [nnnorm_smul, ennreal.coe_mul]
+    ∫⁻ (a : α), ‖c • f a‖₊ ∂μ ≤ ∫⁻ (a : α), (‖c‖₊) * ‖f a‖₊ ∂μ : begin
+      refine lintegral_mono _,
+      intro i,
+      exact_mod_cast h c (f i),
+    end
     ... < ∞ :
     begin
       rw lintegral_const_mul',
@@ -366,7 +370,12 @@ begin
     end
 end
 
-lemma has_finite_integral_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
+lemma has_finite_integral.smul [normed_field 𝕜] [normed_space 𝕜 β] (c : 𝕜) {f : α → β} :
+  has_finite_integral f μ → has_finite_integral (c • f) μ :=
+has_finite_integral.smul' _ $ λ a b, nnnorm_smul_le a b
+
+lemma has_finite_integral_smul_iff [normed_field 𝕜] [normed_space 𝕜 β] {c : 𝕜} (hc : c ≠ 0)
+  (f : α → β) :
   has_finite_integral (c • f) μ ↔ has_finite_integral f μ :=
 begin
   split,
@@ -375,13 +384,16 @@ begin
   exact has_finite_integral.smul _
 end
 
-lemma has_finite_integral.const_mul {f : α → ℝ} (h : has_finite_integral f μ) (c : ℝ) :
+lemma has_finite_integral.const_mul [normed_ring 𝕜] {f : α → 𝕜} (h : has_finite_integral f μ)
+  (c : 𝕜) :
   has_finite_integral (λ x, c * f x) μ :=
-(has_finite_integral.smul c h : _)
+(has_finite_integral.smul' c nnnorm_mul_le h : _)
 
-lemma has_finite_integral.mul_const {f : α → ℝ} (h : has_finite_integral f μ) (c : ℝ) :
+lemma has_finite_integral.mul_const [normed_ring 𝕜] {f : α → 𝕜} (h : has_finite_integral f μ)
+  (c : 𝕜) :
   has_finite_integral (λ x, f x * c) μ :=
-by simp_rw [mul_comm, h.const_mul _]
+(has_finite_integral.smul' (mul_opposite.op c)
+  (λ a b, (nnnorm_mul_le b a.unop).trans_eq $ mul_comm _ _) h : _)
 
 end normed_space
 
@@ -963,28 +975,32 @@ end
 
 end normed_space_over_complete_field
 
-section is_R_or_C
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
+section normed_ring
+variables {𝕜 : Type*} [normed_ring 𝕜] {f : α → 𝕜}
 
 lemma integrable.const_mul {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
   integrable (λ x, c * f x) μ :=
-integrable.smul c h
+⟨h.ae_strongly_measurable.const_smul c, h.has_finite_integral.const_mul c⟩
 
 lemma integrable.const_mul' {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
   integrable ((λ (x : α), c) * f) μ :=
-integrable.smul c h
+integrable.const_mul h c
 
 lemma integrable.mul_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
   integrable (λ x, f x * c) μ :=
-by simp_rw [mul_comm, h.const_mul _]
+⟨h.ae_strongly_measurable.const_smul (mul_opposite.op c), h.has_finite_integral.mul_const c⟩
 
 lemma integrable.mul_const' {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
   integrable (f * (λ (x : α), c)) μ :=
 integrable.mul_const h c
 
-lemma integrable.div_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
-  integrable (λ x, f x / c) μ :=
-by simp_rw [div_eq_mul_inv, h.mul_const]
+lemma integrable_const_mul_iff {c : 𝕜} (hc : is_unit c) (f : α → 𝕜) :
+  integrable (λ x, c * f x) μ ↔ integrable f μ :=
+let ⟨u, hc⟩ := hc in hc ▸ ⟨λ h, by simpa using h.const_mul ↑(u⁻¹), λ h, h.const_mul _⟩
+
+lemma integrable_mul_const_iff {c : 𝕜} (hc : is_unit c) (f : α → 𝕜) :
+  integrable (λ x, f x * c) μ ↔ integrable f μ :=
+let ⟨u, hc⟩ := hc in hc ▸ ⟨λ h, by simpa using h.mul_const ↑(u⁻¹), λ h, h.mul_const _⟩
 
 lemma integrable.bdd_mul' {f g : α → 𝕜} {c : ℝ} (hg : integrable g μ)
   (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
@@ -995,6 +1011,20 @@ begin
   rw [pi.smul_apply, smul_eq_mul],
   exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
 end
+
+end normed_ring
+
+section normed_division_ring
+variables {𝕜 : Type*} [normed_division_ring 𝕜] {f : α → 𝕜}
+
+lemma integrable.div_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, f x / c) μ :=
+by simp_rw [div_eq_mul_inv, h.mul_const]
+
+end normed_division_ring
+
+section is_R_or_C
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
 
 lemma integrable.of_real {f : α → ℝ} (hf : integrable f μ) :
   integrable (λ x, (f x : 𝕜)) μ :=
@@ -1012,20 +1042,6 @@ lemma integrable.im (hf : integrable f μ) : integrable (λ x, is_R_or_C.im (f x
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 
 end is_R_or_C
-
-section inner_product
-variables {𝕜 E : Type*}
-variables [is_R_or_C 𝕜] [normed_add_comm_group E] [inner_product_space 𝕜 E] {f : α → E}
-
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-
-lemma integrable.const_inner (c : E) (hf : integrable f μ) : integrable (λ x, ⟪c, f x⟫) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner c, }
-
-lemma integrable.inner_const (hf : integrable f μ) (c : E) : integrable (λ x, ⟪f x, c⟫) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.inner_const c, }
-
-end inner_product
 
 section trim
 

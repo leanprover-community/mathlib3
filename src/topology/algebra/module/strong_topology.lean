@@ -8,6 +8,9 @@ import topology.algebra.uniform_convergence
 /-!
 # Strong topologies on the space of continuous linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the strong topologies on `E →L[𝕜] F` associated with a family
 `𝔖 : set (set E)` to be the topology of uniform convergence on the elements of `𝔖` (also called
 the topology of `𝔖`-convergence).

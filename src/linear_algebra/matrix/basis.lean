@@ -9,6 +9,9 @@ import linear_algebra.matrix.to_lin
 /-!
 # Bases and matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the map `basis.to_matrix` that sends a family of vectors to
 the matrix of their coordinates with respect to some basis.
 

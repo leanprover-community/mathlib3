@@ -8,6 +8,9 @@ import algebra.field.defs
 /-!
 # Basic Definitions/Theorems for Continued Fractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We define generalised, simple, and regular continued fractions and functions to evaluate their

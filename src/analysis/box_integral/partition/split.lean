@@ -8,6 +8,9 @@ import analysis.box_integral.partition.basic
 /-!
 # Split a box along one or more hyperplanes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 A hyperplane `{x : ι → ℝ | x i = a}` splits a rectangular box `I : box_integral.box ι` into two

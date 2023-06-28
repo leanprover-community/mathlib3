@@ -11,8 +11,9 @@ import analysis.inner_product_space.pi_L2
 
 When we define a smooth bump function on a normed space, it is useful to have a smooth distance on
 the space. Since the default distance is not guaranteed to be smooth, we define `to_euclidean` to be
-an equivalence between a finite dimensional normed space and the standard Euclidean space of the
-same dimension. Then we define `euclidean.dist x y = dist (to_euclidean x) (to_euclidean y)` and
+an equivalence between a finite dimensional topological vector space and the standard Euclidean
+space of the same dimension.
+Then we define `euclidean.dist x y = dist (to_euclidean x) (to_euclidean y)` and
 provide some definitions (`euclidean.ball`, `euclidean.closed_ball`) and simple lemmas about this
 distance. This way we hide the usage of `to_euclidean` behind an API.
 -/
@@ -20,13 +21,17 @@ distance. This way we hide the usage of `to_euclidean` behind an API.
 open_locale topology
 open set
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type*}
+[add_comm_group E] [topological_space E] [topological_add_group E] [t2_space E]
+[module ℝ E] [has_continuous_smul ℝ E] [finite_dimensional ℝ E]
+
 
 noncomputable theory
+open finite_dimensional
 
 /-- If `E` is a finite dimensional space over `ℝ`, then `to_euclidean` is a continuous `ℝ`-linear
 equivalence between `E` and the Euclidean space of the same dimension. -/
-def to_euclidean : E ≃L[ℝ] euclidean_space ℝ (fin $ finite_dimensional.finrank ℝ E) :=
+def to_euclidean : E ≃L[ℝ] euclidean_space ℝ (fin $ finrank ℝ E) :=
 continuous_linear_equiv.of_finrank_eq finrank_euclidean_space_fin.symm
 
 namespace euclidean
@@ -87,7 +92,7 @@ end
 lemma nhds_basis_closed_ball {x : E} :
   (𝓝 x).has_basis (λ r : ℝ, 0 < r) (closed_ball x) :=
 begin
-  rw [to_euclidean.to_homeomorph.nhds_eq_comap],
+  rw [to_euclidean.to_homeomorph.nhds_eq_comap x],
   exact metric.nhds_basis_closed_ball.comap _
 end
 
@@ -97,7 +102,7 @@ nhds_basis_closed_ball.mem_of_mem hr
 lemma nhds_basis_ball {x : E} :
   (𝓝 x).has_basis (λ r : ℝ, 0 < r) (ball x) :=
 begin
-  rw [to_euclidean.to_homeomorph.nhds_eq_comap],
+  rw [to_euclidean.to_homeomorph.nhds_eq_comap x],
   exact metric.nhds_basis_ball.comap _
 end
 
@@ -106,7 +111,9 @@ nhds_basis_ball.mem_of_mem hr
 
 end euclidean
 
-variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] {f g : F → E} {n : ℕ∞}
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
+  {G : Type*} [normed_add_comm_group G] [normed_space ℝ G] [finite_dimensional ℝ G]
+  {f g : F → G} {n : ℕ∞}
 
 lemma cont_diff.euclidean_dist (hf : cont_diff ℝ n f) (hg : cont_diff ℝ n g)
   (h : ∀ x, f x ≠ g x) :
@@ -114,6 +121,6 @@ lemma cont_diff.euclidean_dist (hf : cont_diff ℝ n f) (hg : cont_diff ℝ n g)
 begin
   simp only [euclidean.dist],
   apply @cont_diff.dist ℝ,
-  exacts [(@to_euclidean E _ _ _).cont_diff.comp hf,
-    (@to_euclidean E _ _ _).cont_diff.comp hg, λ x, to_euclidean.injective.ne (h x)]
+  exacts [(@to_euclidean G _ _ _ _ _ _ _).cont_diff.comp hf,
+    (@to_euclidean G _ _ _ _ _ _ _).cont_diff.comp hg, λ x, to_euclidean.injective.ne (h x)]
 end

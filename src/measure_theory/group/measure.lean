@@ -8,7 +8,7 @@ import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
 import measure_theory.group.action
-import measure_theory.constructions.prod
+import measure_theory.constructions.prod.basic
 import topology.continuous_function.cocompact_map
 
 /-!
@@ -727,29 +727,7 @@ begin
   exact ge_of_tendsto' J I,
 end
 
-/- The above instance applies in particular to show that an additive Haar measure on a nontrivial
-finite-dimensional real vector space has no atom. -/
-example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E]
-  [finite_dimensional ℝ E] [measurable_space E] [borel_space E] (μ : measure E)
-  [is_add_haar_measure μ] :
-  has_no_atoms μ := by apply_instance
-
 end
-
-variables [nontrivially_normed_field 𝕜] [topological_space G] [topological_space H]
-  [add_comm_group G] [add_comm_group H] [topological_add_group G] [topological_add_group H]
-  [module 𝕜 G] [module 𝕜 H] (μ : measure G) [is_add_haar_measure μ] [borel_space G] [borel_space H]
-  [t2_space H]
-
-instance map_continuous_linear_equiv.is_add_haar_measure (e : G ≃L[𝕜] H) :
-  is_add_haar_measure (μ.map e) :=
-e.to_add_equiv.is_add_haar_measure_map _ e.continuous e.symm.continuous
-
-variables [complete_space 𝕜] [t2_space G] [finite_dimensional 𝕜 G] [has_continuous_smul 𝕜 G]
-  [has_continuous_smul 𝕜 H]
-
-instance map_linear_equiv.is_add_haar_measure (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
-map_continuous_linear_equiv.is_add_haar_measure _ e.to_continuous_linear_equiv
 
 end measure
 end haar

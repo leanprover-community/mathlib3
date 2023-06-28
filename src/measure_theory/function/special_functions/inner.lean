@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 
 import analysis.inner_product_space.basic
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.complex
 
 /-!
 # Measurability of scalar products

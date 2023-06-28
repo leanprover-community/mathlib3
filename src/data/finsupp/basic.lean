@@ -1259,16 +1259,16 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
 `[]`. See note [implicit instance arguments].
 -/
 
-@[simp] lemma coe_smul [add_monoid M] [smul_zero_class R M]
+@[simp] lemma coe_smul [has_zero M] [smul_zero_class R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
-lemma smul_apply [add_monoid M] [smul_zero_class R M]
+lemma smul_apply [has_zero M] [smul_zero_class R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
 
-lemma _root_.is_smul_regular.finsupp [add_monoid M] [smul_zero_class R M] {k : R}
+lemma _root_.is_smul_regular.finsupp [has_zero M] [smul_zero_class R M] {k : R}
   (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=
 λ _ _ h, ext $ λ i, hk (congr_fun h i)
 
-instance [nonempty α] [add_monoid M] [smul_zero_class R M] [has_faithful_smul R M] :
+instance [nonempty α] [has_zero M] [smul_zero_class R M] [has_faithful_smul R M] :
   has_faithful_smul R (α →₀ M) :=
 { eq_of_smul_eq_smul := λ r₁ r₂ h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ m : M,
     by simpa using congr_fun (h (single a m)) a }
@@ -1306,7 +1306,7 @@ instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) 
 
 variables {α M} {R}
 
-lemma support_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {b : R} {g : α →₀ M} :
+lemma support_smul [add_monoid M] [smul_zero_class R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by { simp only [smul_apply, mem_support_iff, ne.def], exact mt (λ h, h.symm ▸ smul_zero _) }
 

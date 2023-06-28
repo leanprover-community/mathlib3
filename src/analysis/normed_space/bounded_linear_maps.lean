@@ -10,6 +10,9 @@ import analysis.asymptotics.asymptotics
 /-!
 # Bounded linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a class stating that a map between normed vector spaces is (bi)linear and
 continuous.
 Instead of asking for continuity, the definition takes the equivalent condition (because the space

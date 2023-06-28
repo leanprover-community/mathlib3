@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import linear_algebra.affine_space.slope
 
 /-!
 # Slope of a differentiable function

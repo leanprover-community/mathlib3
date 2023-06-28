@@ -12,6 +12,7 @@ import algebra.category.Module.algebra
 import algebra.category.Module.images
 import algebra.category.Module.biproducts
 import algebra.category.Module.simple
+import linear_algebra.matrix.finite_dimensional
 import data.mv_polynomial.basic
 import algebra.free_algebra
 import data.complex.module

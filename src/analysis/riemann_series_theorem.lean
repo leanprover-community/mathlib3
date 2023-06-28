@@ -372,6 +372,31 @@ begin
   exact absurd (this.mp h₁) h₂
 end
 
+/--
+  Weaker version of `frequently_exists_pos_of_conditionally_converging`
+-/
+lemma frequently_exists_nonneg_of_conditionally_converging {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : ∃ᶠ (n : ℕ) in at_top, 0 ≤ a n :=
+begin
+  have := frequently_exists_pos_of_conditionally_converging h₁ h₂,
+  rw filter.frequently_at_top at ⊢ this,
+  intro n,
+  obtain ⟨m, hm₁, hm₂⟩ := this n,
+  exact ⟨m, hm₁, hm₂.le⟩,
+end
+
+lemma nonneg_infinite_of_conditionally_converging {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : {n : ℕ | 0 ≤ a n}.infinite :=
+begin
+  rw set.infinite_iff_frequently_cofinite,
+  rw nat.cofinite_eq_at_top,
+  exact frequently_exists_nonneg_of_conditionally_converging h₁ h₂
+end
+
 lemma frequently_exists_neg_of_conditionally_converging {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
@@ -753,11 +778,30 @@ end
 lemma rearrangement_succ_eq_succ_nonneg_d (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  (n : ℕ) (hn₁ : sumto a M n ≤ M) (hn₂ : sumto a M (n + 1) ≤ M)
+  (n : ℕ) (hn₁ : sumto a M n ≤ M) (hn₂ : sumto a M (n + 1) ≤ M) (hn₃ : n ≠ 0)
   (k : ℕ) (hk : rearrangement a M n = nat.nth (λ j : ℕ, 0 ≤ a j) k)
   : rearrangement a M (n + 1) = nat.nth (λ j : ℕ, 0 ≤ a j) (k + 1) :=
 begin
-  sorry
+  rw nat.nth_eq_Inf' _ k (nonneg_infinite_of_conditionally_converging h₁ h₂),
+  have : ∃ n, n ∈ {x : ℕ | 0 ≤ a x ∧ nat.nth (λ (n : ℕ), 0 ≤ a n) k < x},
+  { have := frequently_exists_nonneg_of_conditionally_converging h₁ h₂,
+    rw filter.frequently_at_top at this,
+    obtain ⟨b, hb₁, hb₂⟩ := this (nat.nth (λ (n : ℕ), 0 ≤ a n) k + 1),
+    exact ⟨b, hb₂, hb₁⟩ },
+  rw nat.Inf_def this,
+  symmetry,
+  apply (nat.find_eq_iff sorry).mpr,
+  set r := rearrangement a M (n + 1),
+  split,
+  { change 0 ≤ a r ∧ _,
+    obtain ⟨hr₁, hr₂⟩ := rearrangement_nonneg_spec h₁ h₂ hn₂,
+    apply and.intro hr₂,
+    rw ←hk,
+    exact rearrangement_preserves_order_of_terms_nonneg a M h₁ h₂ n (n + 1) (nat.lt_succ_self n)
+      hn₁ hn₂ hn₃ },
+  {
+    sorry
+  }
 end
 
 lemma abs_sumto_sub_M_le_abs_sumto_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)

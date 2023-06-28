@@ -511,6 +511,18 @@ begin
   exact if_pos h
 end
 
+lemma rearrangement_nonneg' {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
+  (h : partial_sum (λ k, a (rearrangement a M k)) n ≤ M) (hn : n ≠ 0)
+  : rearrangement a M n =
+    Inf {k : ℕ | k ∉ set.range (λ x : fin n, rearrangement a M ↑x) ∧ 0 ≤ a k} :=
+begin
+  cases n,
+  { contradiction },
+  { exact rearrangement_nonneg h₁ h₂ h }
+end
+
 lemma rearrangement_neg {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) {M : ℝ} {n : ℕ}
@@ -682,42 +694,48 @@ nat.find_greatest_spec (zero_le n) (rearrangement_switchpoint.start rfl)
 lemma nearest_switchpoint_le (a : ℕ → ℝ) (M : ℝ) (n : ℕ) : nearest_switchpoint a M n ≤ n :=
 nat.find_greatest_le n
 
+lemma rearrangement_preserves_order_of_terms_nonneg (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n m : ℕ) (hnm : n < m) (hn₁ : sumto a M n ≤ M) (hn₂ : sumto a M m ≤ M)
+  (hn₃ : n ≠ 0)
+  : rearrangement a M n < rearrangement a M m :=
+begin
+  have hm₀ : m ≠ 0 := ne_zero_of_lt hnm,
+  have hs : set.range (λ x : fin n, rearrangement a M ↑x) ⊆ set.range (λ x : fin m, rearrangement a M ↑x),
+  { rw set.subset_def,
+    intros k hk,
+    rw set.mem_range at ⊢ hk,
+    rcases hk with ⟨⟨a, ha₁⟩, ha₂⟩,
+    use ⟨a, lt_trans ha₁ hnm⟩,
+    exact ha₂ },
+  have hm₁ : rearrangement a M m ∉ set.range (λ x : fin n, rearrangement a M ↑x),
+  { intro hmem,
+    apply (rearrangement_nonneg_spec' h₁ h₂ hn₂ hm₀).left,
+    apply hs,
+    exact hmem },
+  have hm₂ : 0 ≤ a (rearrangement a M m) := (rearrangement_nonneg_spec' h₁ h₂ hn₂ hm₀).right,
+  have : rearrangement a M m ∈ {k : ℕ | k ∉ set.range (λ (x : fin n), rearrangement a M ↑x) ∧ 0 ≤ a k},
+  { split; assumption },
+  have := nat.Inf_le this,
+  rw ←(rearrangement_nonneg' h₁ h₂ hn₁ hn₃) at this,
+  apply lt_of_le_of_ne this,
+  intro h,
+  apply (rearrangement_nonneg_spec' h₁ h₂ hn₂ hm₀).left,
+  rw ←h,
+  rw set.mem_range,
+  use ⟨n, hnm⟩,
+  refl
+end
+
 lemma rearrangement_succ_eq_succ_nonneg_d (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  (n : ℕ) (hn₁ : sumto a M (n + 1) ≤ M) (hn₂ : sumto a M (n + 1) ≤ M)
+  (n : ℕ) (hn₁ : sumto a M n ≤ M) (hn₂ : sumto a M (n + 1) ≤ M)
   (k : ℕ) (hk : rearrangement a M n = nat.nth (λ j : ℕ, 0 ≤ a j) k)
-  : a (rearrangement a M (n + 1)) = nonneg_terms_d a (k + 1) :=
+  : rearrangement a M (n + 1) = nat.nth (λ j : ℕ, 0 ≤ a j) (k + 1) :=
 begin
-  --nat.find (show ∃ k, k ∉ set.range (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k,
-  --  from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n)
-  rw rearrangement_nonneg h₁ h₂ hn₂,
-  --unfold rearrangement,
-  --rw if_pos (sorry : (∑ (x : fin (n + 1)), a (rearrangement a M ↑x) ≤ M)),
-  unfold nonneg_terms_d,
-  rw nat.nth_eq_Inf,
-  apply congr_arg,
-  apply congr_arg,
-  ext x,
-  change x ∉ set.range (λ i : fin (n + 1), rearrangement a M ↑i) ∧ 0 ≤ a x
-     ↔ 0 ≤ a x ∧ ∀ (i : ℕ), i < k + 1 → nat.nth (λ j : ℕ, 0 ≤ a j) i < x,
-  split,
-  {
-    intro h,
-    apply and.intro h.right,
-    intros i hi,
-    sorry
-  },
-  {
-    sorry
-  }
-  --rw ←nat.Inf_def,
-  /-
-  have := nat.Inf_def (show set.nonempty {k : ℕ | k ∉ set.range
-    (λ x : fin (n + 1), rearrangement a M ↑x) ∧ 0 ≤ a k},
-      from exists_nonneg_terms_not_in_range_fin_rearrangement h₁ h₂ M n),
-  rw ←this,
-  -/
+  sorry
 end
 
 lemma abs_sumto_sub_M_le_abs_sumto_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ) (n : ℕ)

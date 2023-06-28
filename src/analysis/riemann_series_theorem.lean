@@ -172,67 +172,50 @@ begin
   { exact converges_of_agrees_converges (λ n hn, (h n hn).symm) h₁ }
 end
 
-lemma tail_limit' {R : Type u} [topological_space R] (f : ℕ → R) (T : R) (h : filter.tendsto f filter.at_top (𝓝 T)) :
-  filter.tendsto (λ k, f (k + 1)) filter.at_top (𝓝 T) :=
-begin
-  rw filter.tendsto_def at h ⊢,
-  intros s hs,
-  specialize h s hs,
-  rw filter.mem_at_top_sets at h ⊢,
-  cases h with a h,
-  use a,
-  intros b hb,
-  exact h (b + 1) (nat.le_succ_of_le hb)
-end
-
-lemma tail_limit {R : Type u} [topological_space R] (f : ℕ → R) (C : R) (j : ℕ)
-  (h : filter.tendsto f filter.at_top (𝓝 C))
-  : filter.tendsto (λ k, f (j + k)) filter.at_top (𝓝 C) :=
-begin
-  induction j with j ih,
-  { simp [h] },
-  { have : (λ k : ℕ, f (j.succ + k)) = λ k, f (j + k + 1),
-    { funext k,
-      change f (j + 1 + k) = _,
-      apply congr_arg,
-      ring },
-    rw this,
-    exact tail_limit' _ C ih }
-end
-
 lemma converges_of_shift_converges {a : ℕ → ℝ} {k : ℕ}
-  (h : ∃ C, tendsto (partial_sum (λ i, a (k + i))) at_top (𝓝 C))
+  (h : ∃ C, tendsto (partial_sum (λ i, a (i + k))) at_top (𝓝 C))
   : ∃ C, tendsto (partial_sum a) at_top (𝓝 C) :=
 begin
   cases h with C hC,
   let D := partial_sum a k,
   use C + D,
-  have h₁ : (λ i, partial_sum (λ (i : ℕ), a (k + i)) i + D) = (λ i, partial_sum a (k + i)) := begin
-    ext i,
+  have h₁ : (λ i, partial_sum (λ (i : ℕ), a (i + k)) i + D) = (λ i, partial_sum a (i + k)),
+  { ext i,
     induction i with i ih,
-    { simp  },
-    { rw (show k + i.succ = k + i + 1, by ring),
+    { simp },
+    { rw (show i.succ + k = i + k + 1, by { rw nat.succ_eq_add_one, ring }),
       rw partial_sum_next,
       rw partial_sum_next,
       rw ←ih,
-      ring }
-  end,
-  /-
-  have := tail_limit (partial_sum a) _ k hC,
-  rw ←h₁ at this,
-  exact filter.tendsto.add hC tendsto_const_nhds
-  -/
-  sorry
+      ring } },
+  rw ←filter.tendsto_add_at_top_iff_nat k,
+  rw ←h₁,
+  exact filter.tendsto.add_const D hC
 end
 
 lemma shift_converges_of_converges {a : ℕ → ℝ} (k : ℕ)
   (h : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
-  : ∃ C, tendsto (partial_sum (λ i, a (k + i))) at_top (𝓝 C) :=
+  : ∃ C, tendsto (partial_sum (λ i, a (i + k))) at_top (𝓝 C) :=
 begin
-  sorry
+  cases h with C hC,
+  let D := partial_sum a k,
+  use C - D,
+  have h₁ : partial_sum (λ (i : ℕ), a (i + k)) = (λ i, partial_sum a (i + k) - D),
+  { ext i,
+    induction i with i ih,
+    { simp },
+    { rw (show i.succ + k = i + k + 1, by { rw nat.succ_eq_add_one, ring }),
+      rw partial_sum_next,
+      rw partial_sum_next,
+      rw ih,
+      ring } },
+  rw h₁,
+  apply filter.tendsto.sub_const,
+  rw filter.tendsto_add_at_top_iff_nat k,
+  exact hC
 end
 
-lemma shift_agrees_converges {a b : ℕ → ℝ} (k j l : ℕ) (h : ∀ n : ℕ, k ≤ n → a (j + n) = b (l + n))
+lemma shift_agrees_converges {a b : ℕ → ℝ} (k j l : ℕ) (h : ∀ n : ℕ, k ≤ n → a (n + j) = b (n + l))
   : (∃ C, tendsto (partial_sum a) at_top (𝓝 C)) ↔ (∃ C, tendsto (partial_sum b) at_top (𝓝 C)) :=
 begin
   wlog hw : (∃ C, tendsto (partial_sum a) at_top (𝓝 C)),

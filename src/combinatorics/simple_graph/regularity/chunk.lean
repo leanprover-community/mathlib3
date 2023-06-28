@@ -10,6 +10,9 @@ import combinatorics.simple_graph.regularity.uniform
 /-!
 # Chunk of the increment partition for Szemerédi Regularity Lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In the proof of Szemerédi Regularity Lemma, we need to partition each part of a starting partition
 to increase the energy. This file defines those partitions of parts and shows that they locally
 increase the energy.

@@ -11,6 +11,9 @@ import field_theory.is_alg_closed.spectrum
 
 /-!
 # Schur's lemma
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 We first prove the part of Schur's Lemma that holds in any preadditive category with kernels,
 that any nonzero morphism between simple objects
 is an isomorphism.

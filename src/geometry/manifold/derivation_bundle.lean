@@ -42,8 +42,8 @@ variables {𝕜 M}
 
 namespace pointed_smooth_map
 
-instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯⟨x⟩ (λ _, M → 𝕜) :=
-cont_mdiff_map.has_coe_to_fun
+instance fun_like {x : M} : fun_like C^∞⟮I, M; 𝕜⟯⟨x⟩ M (λ _, 𝕜) :=
+cont_mdiff_map.fun_like
 instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.comm_ring
 instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.algebra
 instance {x : M} : inhabited C^∞⟮I, M; 𝕜⟯⟨x⟩ := ⟨0⟩

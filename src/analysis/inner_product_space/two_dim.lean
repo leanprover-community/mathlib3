@@ -11,6 +11,9 @@ import tactic.linear_combination
 /-!
 # Oriented two-dimensional real inner product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines constructions specific to the geometry of an oriented two-dimensional real inner
 product space `E`.
 

@@ -13,6 +13,9 @@ import topology.instances.complex
 
 /-!
 # Embeddings of number fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines the embeddings of a number field into an algebraic closed field.
 
 ## Main Results

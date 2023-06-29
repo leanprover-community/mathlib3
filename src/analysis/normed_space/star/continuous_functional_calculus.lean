@@ -9,6 +9,9 @@ import topology.algebra.star_subalgebra
 
 /-! # Continuous functional calculus
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we construct the `continuous_functional_calculus` for a normal element `a` of a
 (unital) C⋆-algebra over `ℂ`. This is a star algebra equivalence
 `C(spectrum ℂ a, ℂ) ≃⋆ₐ[ℂ] elemental_star_algebra ℂ a` which sends the (restriction of) the

@@ -8,6 +8,9 @@ import linear_algebra.matrix.hermitian
 
 /-! # Spectral theory of hermitian matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the spectral theorem for matrices. The proof of the spectral theorem is based on
 the spectral theorem for linear maps (`diagonalization_basis_apply_self_apply`).
 

@@ -10,6 +10,9 @@ import analysis.normed_space.completion
 /-!
 # Liouville's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove Liouville's theorem: if `f : E → F` is complex differentiable on the whole
 space and its range is bounded, then the function is a constant. Various versions of this theorem
 are formalized in `differentiable.apply_eq_apply_of_bounded`,

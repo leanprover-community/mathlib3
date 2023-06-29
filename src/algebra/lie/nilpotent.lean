@@ -12,6 +12,9 @@ import ring_theory.nilpotent
 /-!
 # Nilpotent Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Like groups, Lie algebras admit a natural concept of nilpotency. More generally, any Lie module
 carries a natural concept of nilpotency. We define these here via the lower central series.
 

@@ -9,6 +9,9 @@ import geometry.euclidean.angle.unoriented.right_angle
 /-!
 # Oriented angles in right-angled triangles.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic geometrical results about distances and oriented angles in (possibly
 degenerate) right-angled triangles in real inner product spaces and Euclidean affine spaces.
 

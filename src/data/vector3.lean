@@ -9,6 +9,9 @@ import tactic.localized
 /-!
 # Alternate definition of `vector` in terms of `fin2`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides a locale `vector3` which overrides the `[a, b, c]` notation to create a `vector3`
 instead of a `list`.
 

@@ -113,7 +113,7 @@ def pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U :=
 
 instance (V : opens_le_cover U) :
   nonempty (structured_arrow V (pairwise_to_opens_le_cover U)) :=
-⟨{ right := single (V.index), hom := V.hom_to_index }⟩
+⟨@structured_arrow.mk _ _ _ _ _ (single (V.index)) _ (by exact V.hom_to_index)⟩
 
 /--
 The diagram consisting of the `U i` and `U i ⊓ U j` is cofinal in the diagram

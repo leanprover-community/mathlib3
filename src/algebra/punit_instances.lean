@@ -6,11 +6,15 @@ Authors: Kenny Lau
 
 import algebra.module.basic
 import algebra.gcd_monoid.basic
-import algebra.group_ring_action
+import algebra.group_ring_action.basic
 import group_theory.group_action.defs
+import order.complete_boolean_algebra
 
 /-!
 # Instances on punit
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file collects facts about algebraic structures on the one-element type, e.g. that it is a
 commutative ring.

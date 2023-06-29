@@ -16,6 +16,9 @@ Results about "big operations" over a `fintype`, and consequent
 results about cardinalities of certain types.
 
 ## Implementation note
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This content had previously been in `data.fintype.basic`, but was moved here to avoid
 requiring `algebra.big_operators` (and hence many other imports) as a
 dependency of `fintype`.

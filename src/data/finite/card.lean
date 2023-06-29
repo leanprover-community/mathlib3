@@ -9,6 +9,9 @@ import set_theory.cardinal.finite
 
 # Cardinality of finite types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The cardinality of a finite type `α` is given by `nat.card α`. This function has
 the "junk value" of `0` for infinite types, but to ensure the function has valid
 output, one just needs to know that it's possible to produce a `finite` instance

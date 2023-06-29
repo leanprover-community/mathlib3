@@ -5,9 +5,13 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.algebra.basic
 import algebra.order.nonneg.field
+import algebra.order.nonneg.floor
 
 /-!
 # Nonnegative rationals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the nonnegative rationals as a subtype of `rat` and provides its algebraic order
 structure.
@@ -67,21 +71,15 @@ open _root_.rat (to_nnrat)
 
 @[simp] lemma coe_nonneg (q : ℚ≥0) : (0 : ℚ) ≤ q := q.2
 
-instance : coe_is_ring_hom ℚ≥0 ℚ :=
-{ coe_one := rfl,
-  coe_zero := rfl,
-  coe_add := λ _ _, rfl,
-  coe_mul := λ _ _, rfl }
-
-@[simp, norm_cast] protected lemma coe_zero : ((0 : ℚ≥0) : ℚ) = 0 := rfl
-@[simp, norm_cast] protected lemma coe_one  : ((1 : ℚ≥0) : ℚ) = 1 := rfl
-@[simp, norm_cast] protected lemma coe_add (p q : ℚ≥0) : ((p + q : ℚ≥0) : ℚ) = p + q := rfl
-@[simp, norm_cast] protected lemma coe_mul (p q : ℚ≥0) : ((p * q : ℚ≥0) : ℚ) = p * q := rfl
-@[simp, norm_cast] protected lemma coe_inv (q : ℚ≥0) : ((q⁻¹ : ℚ≥0) : ℚ) = q⁻¹ := rfl
-@[simp, norm_cast] protected lemma coe_div (p q : ℚ≥0) : ((p / q : ℚ≥0) : ℚ) = p / q := rfl
-@[simp, norm_cast] protected lemma coe_bit0 (q : ℚ≥0) : ((bit0 q : ℚ≥0) : ℚ) = bit0 q := rfl
-@[simp, norm_cast] protected lemma coe_bit1 (q : ℚ≥0) : ((bit1 q : ℚ≥0) : ℚ) = bit1 q := rfl
-@[simp, norm_cast] protected lemma coe_sub (h : q ≤ p) : ((p - q : ℚ≥0) : ℚ) = p - q :=
+@[simp, norm_cast] lemma coe_zero : ((0 : ℚ≥0) : ℚ) = 0 := rfl
+@[simp, norm_cast] lemma coe_one  : ((1 : ℚ≥0) : ℚ) = 1 := rfl
+@[simp, norm_cast] lemma coe_add (p q : ℚ≥0) : ((p + q : ℚ≥0) : ℚ) = p + q := rfl
+@[simp, norm_cast] lemma coe_mul (p q : ℚ≥0) : ((p * q : ℚ≥0) : ℚ) = p * q := rfl
+@[simp, norm_cast] lemma coe_inv (q : ℚ≥0) : ((q⁻¹ : ℚ≥0) : ℚ) = q⁻¹ := rfl
+@[simp, norm_cast] lemma coe_div (p q : ℚ≥0) : ((p / q : ℚ≥0) : ℚ) = p / q := rfl
+@[simp, norm_cast] lemma coe_bit0 (q : ℚ≥0) : ((bit0 q : ℚ≥0) : ℚ) = bit0 q := rfl
+@[simp, norm_cast] lemma coe_bit1 (q : ℚ≥0) : ((bit1 q : ℚ≥0) : ℚ) = bit1 q := rfl
+@[simp, norm_cast] lemma coe_sub (h : q ≤ p) : ((p - q : ℚ≥0) : ℚ) = p - q :=
 max_eq_left $ le_sub_comm.2 $ by simp [show (q : ℚ) ≤ p, from h]
 
 @[simp] lemma coe_eq_zero : (q : ℚ) = 0 ↔ q = 0 := by norm_cast
@@ -253,7 +251,7 @@ begin
   obtain hq | hq := le_total q 0,
   { rw [to_nnrat_eq_zero.mpr hq, inv_zero, to_nnrat_eq_zero.mpr (inv_nonpos.mpr hq)] },
   { nth_rewrite 0 ←rat.coe_to_nnrat q hq,
-    rw [←coe_inv₀, to_nnrat_coe] }
+    rw [←coe_inv, to_nnrat_coe] }
 end
 
 lemma to_nnrat_div (hp : 0 ≤ p) : to_nnrat (p / q) = to_nnrat p / to_nnrat q :=
@@ -293,7 +291,7 @@ lemma ext_num_denom_iff : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
 @[simp] lemma num_div_denom (q : ℚ≥0) : (q.num : ℚ≥0) / q.denom = q :=
 begin
   ext1,
-  rw [coe_div₀, coe_nat_cast, coe_nat_cast, num, ←int.cast_coe_nat,
+  rw [coe_div, coe_nat_cast, coe_nat_cast, num, ←int.cast_coe_nat,
     int.nat_abs_of_nonneg (rat.num_nonneg_iff_zero_le.2 q.prop)],
   exact rat.num_div_denom q,
 end

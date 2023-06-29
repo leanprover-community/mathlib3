@@ -123,12 +123,7 @@ section roots_action
 see `polynomial.gal.map_roots_bijective`. -/
 def map_roots [fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
-λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
-  have key := subtype.mem x,
-  by_cases p = 0,
-  { simp only [h, root_set_zero] at key,
-    exact false.rec _ key },
-  { rw [mem_root_set h, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
+set.maps_to.restrict (is_scalar_tower.to_alg_hom F p.splitting_field E) _ _ $ root_set_maps_to _
 
 lemma map_roots_bijective [h : fact (p.splits (algebra_map F E))] :
   function.bijective (map_roots p E) :=
@@ -153,15 +148,7 @@ def roots_equiv_roots [fact (p.splits (algebra_map F E))] :
 equiv.of_bijective (map_roots p E) (map_roots_bijective p E)
 
 instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
-{ smul := λ ϕ x, ⟨ϕ x, begin
-    have key := subtype.mem x,
-    --simp only [root_set, finset.mem_coe, multiset.mem_to_finset] at *,
-    by_cases p = 0,
-    { simp only [h, root_set_zero] at key,
-      exact false.rec _ key },
-    { rw mem_root_set h,
-      change aeval (ϕ.to_alg_hom x) p = 0,
-      rw [aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩,
+{ smul := λ ϕ, set.maps_to.restrict ϕ _ _ $ root_set_maps_to ϕ.to_alg_hom,
   one_smul := λ _, by { ext, refl },
   mul_smul := λ _ _ _, by { ext, refl } }
 
@@ -362,10 +349,9 @@ lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : ℚ[X]) :
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ))).support.card :=
 begin
   by_cases hp : p = 0,
-  { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
-    refine eq.symm (le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
-    simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
-    apply_instance },
+  { haveI : is_empty (p.root_set ℂ) := by { rw [hp, root_set_zero], apply_instance },
+    simp_rw [(gal_action_hom p ℂ _).support.eq_empty_of_is_empty, hp, root_set_zero,
+      set.to_finset_empty, finset.card_empty] },
   have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
   rw [←finset.card_image_of_injective _ subtype.coe_injective,
       ←finset.card_image_of_injective _ inj],
@@ -373,11 +359,11 @@ begin
   let b : finset ℂ := _,
   let c : finset ℂ := _,
   change a.card = b.card + c.card,
-  have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0 :=
-  λ z, by rw [set.mem_to_finset, mem_root_set hp],
+  have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0,
+  { intro z, rw [set.mem_to_finset, mem_root_set_of_ne hp], apply_instance },
   have hb : ∀ z : ℂ, z ∈ b ↔ aeval z p = 0 ∧ z.im = 0,
   { intro z,
-    simp_rw [finset.mem_image, exists_prop, set.mem_to_finset, mem_root_set hp],
+    simp_rw [finset.mem_image, exists_prop, set.mem_to_finset, mem_root_set_of_ne hp],
     split,
     { rintros ⟨w, hw, rfl⟩,
       exact ⟨by rw [aeval_alg_hom_apply, hw, alg_hom.map_zero], rfl⟩ },
@@ -388,15 +374,15 @@ begin
     (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
-    exact complex.eq_conj_iff_im },
+    exact complex.conj_eq_iff_im },
   have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
   { intro z,
     simp_rw [finset.mem_image, exists_prop],
     split,
     { rintros ⟨w, hw, rfl⟩,
-      exact ⟨(mem_root_set hp).mp w.2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
+      exact ⟨(mem_root_set.mp w.2).2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
     { rintros ⟨hz1, hz2⟩,
-      exact ⟨⟨z, (mem_root_set hp).mpr hz1⟩,
+      exact ⟨⟨z, mem_root_set.mpr ⟨hp, hz1⟩⟩,
         equiv.perm.mem_support.mpr (mt (hc0 _).mp hz2), rfl⟩ } },
   rw ← finset.card_disjoint_union,
   { apply congr_arg finset.card,

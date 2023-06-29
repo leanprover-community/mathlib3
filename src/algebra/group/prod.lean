@@ -10,6 +10,9 @@ import algebra.hom.units
 /-!
 # Monoid, group etc structures on `M × N`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define one-binop (`monoid`, `group` etc) structures on `M × N`. We also prove
 trivial `simp` lemmas, and define the following operations on `monoid_hom`s:
 

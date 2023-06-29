@@ -10,6 +10,9 @@ import logic.embedding.set
 /-!
 ## Instances
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the `fintype` instance for the sum of two fintypes.
 -/
 
@@ -36,7 +39,7 @@ def fintype_of_fintype_ne (a : α) (h : fintype {b // b ≠ a}) : fintype α :=
 fintype.of_bijective (sum.elim (coe : {b // b = a} → α) (coe : {b // b ≠ a} → α)) $
   by { classical, exact (equiv.sum_compl (= a)).bijective }
 
-lemma image_subtype_ne_univ_eq_image_erase [fintype α] (k : β) (b : α → β) :
+lemma image_subtype_ne_univ_eq_image_erase [fintype α] [decidable_eq β] (k : β) (b : α → β) :
   image (λ i : {a // b a ≠ k}, b ↑i) univ = (image b univ).erase k :=
 begin
   apply subset_antisymm,
@@ -50,7 +53,7 @@ begin
     exact ⟨⟨a, ne_of_mem_erase hi⟩, mem_univ _, rfl⟩ }
 end
 
-lemma image_subtype_univ_ssubset_image_univ [fintype α] (k : β) (b : α → β)
+lemma image_subtype_univ_ssubset_image_univ [fintype α] [decidable_eq β] (k : β) (b : α → β)
   (hk : k ∈ image b univ) (p : β → Prop) [decidable_pred p] (hp : ¬ p k) :
   image (λ i : {a // p (b a)}, b ↑i) univ ⊂ image b univ :=
 begin
@@ -69,7 +72,7 @@ end
 
 /-- Any injection from a finset `s` in a fintype `α` to a finset `t` of the same cardinality as `α`
 can be extended to a bijection between `α` and `t`. -/
-lemma finset.exists_equiv_extend_of_card_eq [fintype α] {t : finset β}
+lemma finset.exists_equiv_extend_of_card_eq [fintype α] [decidable_eq β] {t : finset β}
   (hαt : fintype.card α = t.card) {s : finset α} {f : α → β} (hfst : s.image f ⊆ t)
   (hfs : set.inj_on f s) :
   ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=

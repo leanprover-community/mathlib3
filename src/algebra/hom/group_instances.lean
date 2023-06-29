@@ -10,6 +10,9 @@ import algebra.ring.basic
 /-!
 # Instances on spaces of monoid and group morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We endow the space of monoid morphisms `M →* N` with a `comm_monoid` structure when the target is
 commutative, through pointwise multiplication, and with a `comm_group` structure when the target
 is a commutative group. We also prove the same instances for additive situations.
@@ -233,7 +236,7 @@ def add_monoid_hom.mul : R →+ R →+ R :=
 lemma add_monoid_hom.mul_apply (x y : R) : add_monoid_hom.mul x y = x * y := rfl
 
 @[simp]
-protected lemma add_monoid_hom.coe_mul :
+lemma add_monoid_hom.coe_mul :
   ⇑(add_monoid_hom.mul : R →+ R →+ R) = add_monoid_hom.mul_left := rfl
 
 @[simp]

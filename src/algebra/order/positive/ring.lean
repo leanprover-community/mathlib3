@@ -9,6 +9,9 @@ import algebra.ring.inj_surj
 /-!
 # Algebraic structures on the set of positive numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define various instances (`add_semigroup`, `ordered_comm_monoid` etc) on the
 type `{x : R // 0 < x}`. In each case we try to require the weakest possible typeclass
 assumptions on `R` but possibly, there is a room for improvements.

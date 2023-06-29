@@ -5,11 +5,14 @@ Authors: Johannes Hölzl, Jens Wagemaker, Anne Baanen
 -/
 
 import algebra.associated
-import data.list.big_operators.basic
+import data.list.big_operators.lemmas
 import data.list.perm
 
 /-!
 # Products of lists of prime elements.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some theorems relating `prime` and products of `list`s.
 

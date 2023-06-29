@@ -48,7 +48,7 @@ non-Riemann filter (e.g., Henstock-Kurzweil and McShane).
 integral
 -/
 
-open_locale big_operators classical topological_space nnreal filter uniformity box_integral
+open_locale big_operators classical topology nnreal filter uniformity box_integral
 open set finset function filter metric box_integral.integration_params
 
 noncomputable theory

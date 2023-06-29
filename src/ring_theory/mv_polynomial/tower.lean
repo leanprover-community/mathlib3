@@ -10,6 +10,9 @@ import data.mv_polynomial.basic
 /-!
 # Algebra towers for multivariate polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some basic results about the algebra tower structure for the type
 `mv_polynomial σ R`.
 

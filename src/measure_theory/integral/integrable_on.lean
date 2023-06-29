@@ -21,7 +21,7 @@ at `l`.
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal measure_theory
+open_locale classical topology interval big_operators filter ennreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -114,20 +114,25 @@ lemma integrable_on.congr_set_ae (h : integrable_on f t μ) (hst : s =ᵐ[μ] t)
   integrable_on f s μ :=
 h.mono_set_ae hst.le
 
-lemma integrable_on.congr_fun' (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
+lemma integrable_on.congr_fun_ae (h : integrable_on f s μ) (hst : f =ᵐ[μ.restrict s] g) :
   integrable_on g s μ :=
 integrable.congr h hst
+
+lemma integrable_on_congr_fun_ae (hst : f =ᵐ[μ.restrict s] g) :
+  integrable_on f s μ ↔ integrable_on g s μ :=
+⟨λ h, h.congr_fun_ae hst, λ h, h.congr_fun_ae hst.symm⟩
 
 lemma integrable_on.congr_fun (h : integrable_on f s μ) (hst : eq_on f g s)
   (hs : measurable_set s) :
   integrable_on g s μ :=
-h.congr_fun' ((ae_restrict_iff' hs).2 (eventually_of_forall hst))
+h.congr_fun_ae ((ae_restrict_iff' hs).2 (eventually_of_forall hst))
+
+lemma integrable_on_congr_fun (hst : eq_on f g s) (hs : measurable_set s) :
+  integrable_on f s μ ↔ integrable_on g s μ :=
+⟨λ h, h.congr_fun hst hs, λ h, h.congr_fun hst.symm hs⟩
 
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
 h.mono_measure $ measure.restrict_le_self
-
-lemma integrable.integrable_on' (h : integrable f (μ.restrict s)) : integrable_on f s μ :=
-h
 
 lemma integrable_on.restrict (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable_on f s (μ.restrict t) :=
@@ -231,12 +236,83 @@ begin
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
 end
 
-lemma integrable_on_iff_integable_of_support_subset {f : α → E} {s : set α}
-  (h1s : support f ⊆ s) (h2s : measurable_set s) :
+/-- If a function is integrable on a set `s` and nonzero there, then the measurable hull of `s` is
+well behaved: the restriction of the measure to `to_measurable μ s` coincides with its restriction
+to `s`. -/
+lemma integrable_on.restrict_to_measurable (hf : integrable_on f s μ) (h's : ∀ x ∈ s, f x ≠ 0) :
+  μ.restrict (to_measurable μ s) = μ.restrict s :=
+begin
+  rcases exists_seq_strict_anti_tendsto (0 : ℝ) with ⟨u, u_anti, u_pos, u_lim⟩,
+  let v := λ n, to_measurable (μ.restrict s) {x | u n ≤ ‖f x‖},
+  have A : ∀ n, μ (s ∩ v n) ≠ ∞,
+  { assume n,
+    rw [inter_comm, ← measure.restrict_apply (measurable_set_to_measurable _ _),
+      measure_to_measurable],
+    exact (hf.measure_ge_lt_top (u_pos n)).ne },
+  apply measure.restrict_to_measurable_of_cover _ A,
+  assume x hx,
+  have : 0 < ‖f x‖, by simp only [h's x hx, norm_pos_iff, ne.def, not_false_iff],
+  obtain ⟨n, hn⟩ : ∃ n, u n < ‖f x‖, from ((tendsto_order.1 u_lim).2 _ this).exists,
+  refine mem_Union.2 ⟨n, _⟩,
+  exact subset_to_measurable _ _ hn.le
+end
+
+/-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
+if `t` is null-measurable. -/
+lemma integrable_on.of_ae_diff_eq_zero (hf : integrable_on f s μ)
+  (ht : null_measurable_set t μ) (h't : ∀ᵐ x ∂μ, x ∈ t \ s → f x = 0) :
+  integrable_on f t μ :=
+begin
+  let u := {x ∈ s | f x ≠ 0},
+  have hu : integrable_on f u μ := hf.mono_set (λ x hx, hx.1),
+  let v := to_measurable μ u,
+  have A : integrable_on f v μ,
+  { rw [integrable_on, hu.restrict_to_measurable],
+    { exact hu },
+    { assume x hx, exact hx.2 } },
+  have B : integrable_on f (t \ v) μ,
+  { apply integrable_on_zero.congr,
+    filter_upwards [ae_restrict_of_ae h't, ae_restrict_mem₀
+      (ht.diff (measurable_set_to_measurable μ u).null_measurable_set)] with x hxt hx,
+    by_cases h'x : x ∈ s,
+    { by_contra H,
+      exact hx.2 (subset_to_measurable μ u ⟨h'x, ne.symm H⟩) },
+    { exact (hxt ⟨hx.1, h'x⟩).symm, } },
+  apply (A.union B).mono_set _,
+  rw union_diff_self,
+  exact subset_union_right _ _
+end
+
+/-- If a function is integrable on a set `s`, and vanishes on `t \ s`, then it is integrable on `t`
+if `t` is measurable. -/
+lemma integrable_on.of_forall_diff_eq_zero (hf : integrable_on f s μ)
+  (ht : measurable_set t) (h't : ∀ x ∈ t \ s, f x = 0) :
+  integrable_on f t μ :=
+hf.of_ae_diff_eq_zero ht.null_measurable_set (eventually_of_forall h't)
+
+/-- If a function is integrable on a set `s` and vanishes almost everywhere on its complement,
+then it is integrable. -/
+lemma integrable_on.integrable_of_ae_not_mem_eq_zero (hf : integrable_on f s μ)
+  (h't : ∀ᵐ x ∂μ, x ∉ s → f x = 0) : integrable f μ :=
+begin
+  rw ← integrable_on_univ,
+  apply hf.of_ae_diff_eq_zero null_measurable_set_univ,
+  filter_upwards [h't] with x hx h'x using hx h'x.2,
+end
+
+/-- If a function is integrable on a set `s` and vanishes everywhere on its complement,
+then it is integrable. -/
+lemma integrable_on.integrable_of_forall_not_mem_eq_zero (hf : integrable_on f s μ)
+  (h't : ∀ x ∉ s, f x = 0) : integrable f μ :=
+hf.integrable_of_ae_not_mem_eq_zero (eventually_of_forall (λ x hx, h't x hx))
+
+lemma integrable_on_iff_integrable_of_support_subset (h1s : support f ⊆ s) :
   integrable_on f s μ ↔ integrable f μ :=
 begin
   refine ⟨λ h, _, λ h, h.integrable_on⟩,
-  rwa [← indicator_eq_self.2 h1s, integrable_indicator_iff h2s]
+  apply h.integrable_of_forall_not_mem_eq_zero (λ x hx, _),
+  contrapose! hx,
+  exact h1s (mem_support.2 hx),
 end
 
 lemma integrable_on_Lp_of_measure_ne_top {E} [normed_add_comm_group E]
@@ -266,6 +342,10 @@ def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volum
 ∃ s ∈ l, integrable_on f s μ
 
 variables {l l' : filter α}
+
+lemma integrable.integrable_at_filter (h : integrable f μ) (l : filter α) :
+  integrable_at_filter f l μ :=
+⟨univ, filter.univ_mem, integrable_on_univ.2 h⟩
 
 protected lemma integrable_at_filter.eventually (h : integrable_at_filter f l μ) :
   ∀ᶠ s in l.small_sets, integrable_on f s μ :=
@@ -405,6 +485,22 @@ begin
   { exact is_separable_of_separable_space _ }
 end
 
+/-- A function which is continuous on a compact set `s` is almost everywhere strongly measurable
+with respect to `μ.restrict s`. -/
+lemma continuous_on.ae_strongly_measurable_of_is_compact
+  [topological_space α] [opens_measurable_space α] [topological_space β] [pseudo_metrizable_space β]
+  {f : α → β} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : is_compact s) (h's : measurable_set s) :
+  ae_strongly_measurable f (μ.restrict s) :=
+begin
+  letI := pseudo_metrizable_space_pseudo_metric β,
+  borelize β,
+  rw ae_strongly_measurable_iff_ae_measurable_separable,
+  refine ⟨hf.ae_measurable h's, f '' s, _, _⟩,
+  { exact (hs.image_of_continuous_on hf).is_separable },
+  { exact mem_of_superset (self_mem_ae_restrict h's) (subset_preimage_image _ _) }
+end
+
 lemma continuous_on.integrable_at_nhds_within_of_is_separable
   [topological_space α] [pseudo_metrizable_space α]
   [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
@@ -426,6 +522,16 @@ begin
   haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
   exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩
     (μ.finite_at_nhds_within _ _),
+end
+
+lemma continuous.integrable_at_nhds
+  [topological_space α] [second_countable_topology_either α E]
+  [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
+  {f : α → E} (hf : continuous f) (a : α) :
+  integrable_at_filter f (𝓝 a) μ :=
+begin
+  rw ← nhds_within_univ,
+  exact hf.continuous_on.integrable_at_nhds_within measurable_set.univ (mem_univ a),
 end
 
 /-- If a function is continuous on an open set `s`, then it is strongly measurable at the filter
@@ -457,3 +563,100 @@ lemma continuous_on.strongly_measurable_at_filter_nhds_within {α β : Type*} [m
   (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
   strongly_measurable_at_filter f (𝓝[s] x) μ :=
 ⟨s, self_mem_nhds_within, hf.ae_strongly_measurable hs⟩
+
+/-! ### Lemmas about adding and removing interval boundaries
+
+The primed lemmas take explicit arguments about the measure being finite at the endpoint, while
+the unprimed ones use `[has_no_atoms μ]`.
+-/
+
+section partial_order
+
+variables [partial_order α] [measurable_singleton_class α]
+  {f : α → E} {μ : measure α} {a b : α}
+
+lemma integrable_on_Icc_iff_integrable_on_Ioc' (ha : μ {a} ≠ ∞) :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
+begin
+  by_cases hab : a ≤ b,
+  { rw [←Ioc_union_left hab, integrable_on_union, eq_true_intro
+      (integrable_on_singleton_iff.mpr $ or.inr ha.lt_top), and_true] },
+  { rw [Icc_eq_empty hab, Ioc_eq_empty],
+    contrapose! hab,
+    exact hab.le }
+end
+
+lemma integrable_on_Icc_iff_integrable_on_Ico' (hb : μ {b} ≠ ∞) :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ico a b) μ :=
+begin
+  by_cases hab : a ≤ b,
+  { rw [←Ico_union_right hab, integrable_on_union, eq_true_intro
+      (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true] },
+  { rw [Icc_eq_empty hab, Ico_eq_empty],
+    contrapose! hab,
+    exact hab.le }
+end
+
+lemma integrable_on_Ico_iff_integrable_on_Ioo' (ha : μ {a} ≠ ∞) :
+  integrable_on f (Ico a b) μ ↔ integrable_on f (Ioo a b) μ :=
+begin
+  by_cases hab : a < b,
+  { rw [←Ioo_union_left hab, integrable_on_union, eq_true_intro
+      (integrable_on_singleton_iff.mpr $ or.inr ha.lt_top), and_true] },
+  { rw [Ioo_eq_empty hab, Ico_eq_empty hab] }
+end
+
+lemma integrable_on_Ioc_iff_integrable_on_Ioo' (hb : μ {b} ≠ ∞) :
+  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+begin
+  by_cases hab : a < b,
+  { rw [←Ioo_union_right hab, integrable_on_union, eq_true_intro
+      (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true] },
+  { rw [Ioo_eq_empty hab, Ioc_eq_empty hab] }
+end
+
+lemma integrable_on_Icc_iff_integrable_on_Ioo' (ha : μ {a} ≠ ∞) (hb : μ {b} ≠ ∞) :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+by rw [integrable_on_Icc_iff_integrable_on_Ioc' ha, integrable_on_Ioc_iff_integrable_on_Ioo' hb]
+
+lemma integrable_on_Ici_iff_integrable_on_Ioi' (hb : μ {b} ≠ ∞) :
+  integrable_on f (Ici b) μ ↔ integrable_on f (Ioi b) μ :=
+by rw [←Ioi_union_left, integrable_on_union,
+  eq_true_intro (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true]
+
+lemma integrable_on_Iic_iff_integrable_on_Iio' (hb : μ {b} ≠ ∞) :
+  integrable_on f (Iic b) μ ↔ integrable_on f (Iio b) μ :=
+by rw [←Iio_union_right, integrable_on_union,
+  eq_true_intro (integrable_on_singleton_iff.mpr $ or.inr hb.lt_top), and_true]
+
+variables [has_no_atoms μ]
+
+lemma integrable_on_Icc_iff_integrable_on_Ioc :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
+integrable_on_Icc_iff_integrable_on_Ioc' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Icc_iff_integrable_on_Ico :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ico a b) μ :=
+integrable_on_Icc_iff_integrable_on_Ico' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Ico_iff_integrable_on_Ioo :
+  integrable_on f (Ico a b) μ ↔ integrable_on f (Ioo a b) μ :=
+integrable_on_Ico_iff_integrable_on_Ioo' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Ioc_iff_integrable_on_Ioo :
+  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+integrable_on_Ioc_iff_integrable_on_Ioo' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Icc_iff_integrable_on_Ioo :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable_on_Ioo]
+
+lemma integrable_on_Ici_iff_integrable_on_Ioi :
+  integrable_on f (Ici b) μ ↔ integrable_on f (Ioi b) μ :=
+integrable_on_Ici_iff_integrable_on_Ioi' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+lemma integrable_on_Iic_iff_integrable_on_Iio :
+  integrable_on f (Iic b) μ ↔ integrable_on f (Iio b) μ :=
+integrable_on_Iic_iff_integrable_on_Iio' (by { rw measure_singleton, exact ennreal.zero_ne_top })
+
+end partial_order

@@ -5,6 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard
 -/
 
 import algebra.direct_sum.module
+import algebra.group.conj_finite
 import tactic.fin_cases
 
 /-!

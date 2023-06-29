@@ -29,7 +29,7 @@ L'Hôpital's rule, L'Hopital's rule
 -/
 
 open filter set
-open_locale filter topological_space pointwise
+open_locale filter topology pointwise
 
 variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 

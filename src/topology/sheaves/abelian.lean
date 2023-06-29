@@ -11,6 +11,9 @@ import category_theory.sites.left_exact
 
 /-!
 # Category of sheaves is abelian
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Let `C, D` be categories and `J` be a grothendieck topology on `C`, when `D` is abelian and
 sheafification is possible in `C`, `Sheaf J D` is abelian as well (`Sheaf_is_abelian`).
 

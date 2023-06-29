@@ -10,6 +10,9 @@ import order.hom.basic
 
 # Preorders as categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We install a category instance on any preorder. This is not to be confused with the category _of_
 preorders, defined in `order/category/Preorder`.
 

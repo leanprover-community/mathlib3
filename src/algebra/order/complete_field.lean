@@ -5,7 +5,7 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.hom.ring
 import algebra.order.pointwise
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 
 /-!
 # Conditionally complete linear ordered fields

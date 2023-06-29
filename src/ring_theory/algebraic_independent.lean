@@ -411,12 +411,9 @@ lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_C
   hx.mv_polynomial_option_equiv_polynomial_adjoin (C r) =
     polynomial.C (algebra_map _ _ r) :=
 begin
-  -- TODO: this instance is slow to infer
-  have h : is_scalar_tower R (mv_polynomial ι R) (polynomial (mv_polynomial ι R)) :=
-    @polynomial.is_scalar_tower (mv_polynomial ι R) _ R _ _ _ _ _ _ _,
   rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_C,
-    @is_scalar_tower.algebra_map_apply _ _ _ _ _ _ _ _ _ h, ← polynomial.C_eq_algebra_map,
-    polynomial.map_C, ring_hom.coe_coe, alg_equiv.commutes]
+      is_scalar_tower.algebra_map_apply R (mv_polynomial ι R), ← polynomial.C_eq_algebra_map,
+      polynomial.map_C, ring_hom.coe_coe, alg_equiv.commutes]
 end
 
 @[simp]

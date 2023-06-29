@@ -9,6 +9,9 @@ import data.finset.prod
 /-!
 # fintype instance for the product of two fintypes.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open function

@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Module.monoidal
+import algebra.category.Module.monoidal.basic
 import algebra.category.Algebra.basic
 import category_theory.monoidal.Mon_
 
@@ -66,7 +66,7 @@ instance (A : Mon_ (Module.{u} R)) : algebra R A.X :=
     have h₂ := linear_map.congr_fun A.mul_one (a ⊗ₜ r),
     exact h₁.trans h₂.symm,
   end,
-  smul_def' := λ r a, by { convert (linear_map.congr_fun A.one_mul (r ⊗ₜ a)).symm, simp, },
+  smul_def' := λ r a, (linear_map.congr_fun A.one_mul (r ⊗ₜ a)).symm,
   ..A.one }
 
 @[simp] lemma algebra_map (A : Mon_ (Module.{u} R)) (r : R) : algebra_map R A.X r = A.one r := rfl
@@ -127,10 +127,8 @@ def inverse : Algebra.{u} R ⥤ Mon_ (Module.{u} R) :=
 { obj := inverse_obj,
   map := λ A B f,
   { hom := f.to_linear_map,
-    one_hom' :=
-      by { ext, dsimp, simp only [ring_hom.map_one, alg_hom.map_one] },
-    mul_hom' :=
-      by { ext, dsimp, simp only [linear_map.mul'_apply, ring_hom.map_mul, alg_hom.map_mul] } } }.
+    one_hom' := linear_map.ext f.commutes,
+    mul_hom' := tensor_product.ext $ linear_map.ext₂ $ map_mul f, } }
 
 end Mon_Module_equivalence_Algebra
 
@@ -146,11 +144,9 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
   unit_iso := nat_iso.of_components
     (λ A,
     { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
-               mul_hom' := by { ext, dsimp at *,
-                                simp only [linear_map.mul'_apply, Mon_.X.ring_mul] } },
+               mul_hom' := by { ext, dsimp at *, refl } },
       inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
-               mul_hom' := by { ext, dsimp at *,
-                                simp only [linear_map.mul'_apply, Mon_.X.ring_mul]} } })
+               mul_hom' := by { ext, dsimp at *, refl } } })
     (by tidy),
   counit_iso := nat_iso.of_components (λ A,
   { hom :=
@@ -158,7 +154,7 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
       map_zero' := rfl,
       map_add' := λ x y, rfl,
       map_one' := (algebra_map R A).map_one,
-      map_mul' := λ x y, linear_map.mul'_apply,
+      map_mul' := λ x y, (@linear_map.mul'_apply R _ _ _ _ _ _ x y),
       commutes' := λ r, rfl, },
     inv :=
     { to_fun := id,

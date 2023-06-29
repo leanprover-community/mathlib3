@@ -33,7 +33,7 @@ p-adic, p adic, padic, p-adic integer
 
 noncomputable theory
 
-open_locale classical topological_space
+open_locale classical topology
 
 -- We begin with some general lemmas that are used below in the computation.
 

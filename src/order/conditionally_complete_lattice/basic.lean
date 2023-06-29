@@ -11,6 +11,9 @@ import data.set.lattice
 /-!
 # Theory of conditionally complete lattices.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A conditionally complete lattice is a lattice in which every non-empty bounded subset `s`
 has a least upper bound and a greatest lower bound, denoted below by `Sup s` and `Inf s`.
 Typical examples are `ℝ`, `ℕ`, and `ℤ` with their usual orders.
@@ -54,6 +57,20 @@ noncomputable instance {α : Type*} [has_Sup α] : has_Sup (with_bot α) :=
 
 noncomputable instance {α : Type*} [preorder α] [has_Inf α] : has_Inf (with_bot α) :=
 ⟨(@with_top.has_Sup αᵒᵈ _ _).Sup⟩
+
+lemma with_top.Sup_eq [preorder α] [has_Sup α] {s : set (with_top α)} (hs : ⊤ ∉ s)
+  (hs' : bdd_above (coe ⁻¹' s : set α)) : Sup s = ↑(Sup (coe ⁻¹' s) : α) :=
+(if_neg hs).trans $ if_pos hs'
+
+lemma with_top.Inf_eq [has_Inf α] {s : set (with_top α)} (hs : ¬ s ⊆ {⊤}) :
+  Inf s = ↑(Inf (coe ⁻¹' s) : α) := if_neg hs
+
+lemma with_bot.Inf_eq [preorder α] [has_Inf α] {s : set (with_bot α)} (hs : ⊥ ∉ s)
+  (hs' : bdd_below (coe ⁻¹' s : set α)) : Inf s = ↑(Inf (coe ⁻¹' s) : α) :=
+(if_neg hs).trans $ if_pos hs'
+
+lemma with_bot.Sup_eq [has_Sup α] {s : set (with_bot α)} (hs : ¬ s ⊆ {⊥}) :
+  Sup s = ↑(Sup (coe ⁻¹' s) : α) := if_neg hs
 
 @[simp]
 theorem with_top.cInf_empty {α : Type*} [has_Inf α] : Inf (∅ : set (with_top α)) = ⊤ :=
@@ -1148,13 +1165,13 @@ section with_top_bot
 
 If `α` is a `conditionally_complete_lattice`, then we show that `with_top α` and `with_bot α`
 also inherit the structure of conditionally complete lattices. Furthermore, we show
-that `with_top (with_bot α)` naturally inherits the structure of a complete lattice. Note that
-for α a conditionally complete lattice, `Sup` and `Inf` both return junk values
-for sets which are empty or unbounded. The extension of `Sup` to `with_top α` fixes
+that `with_top (with_bot α)` and `with_bot (with_top α)` naturally inherit the structure of a
+complete lattice. Note that for `α` a conditionally complete lattice, `Sup` and `Inf` both return
+junk values for sets which are empty or unbounded. The extension of `Sup` to `with_top α` fixes
 the unboundedness problem and the extension to `with_bot α` fixes the problem with
 the empty set.
 
-This result can be used to show that the extended reals [-∞, ∞] are a complete lattice.
+This result can be used to show that the extended reals `[-∞, ∞]` are a complete linear order.
 -/
 
 open_locale classical
@@ -1214,10 +1231,27 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   ..with_top.bounded_order,
   ..with_top.lattice }
 
+
 noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
   [conditionally_complete_linear_order α] : complete_linear_order (with_top (with_bot α)) :=
 { .. with_top.with_bot.complete_lattice,
   .. with_top.linear_order }
+
+noncomputable instance with_bot.with_top.complete_lattice {α : Type*}
+  [conditionally_complete_lattice α] : complete_lattice (with_bot (with_top α)) :=
+{ le_Sup := (@with_top.with_bot.complete_lattice αᵒᵈ _).Inf_le,
+  Sup_le := (@with_top.with_bot.complete_lattice αᵒᵈ _).le_Inf,
+  Inf_le := (@with_top.with_bot.complete_lattice αᵒᵈ _).le_Sup,
+  le_Inf := (@with_top.with_bot.complete_lattice αᵒᵈ _).Sup_le,
+  ..with_bot.has_Inf,
+  ..with_bot.has_Sup,
+  ..with_bot.bounded_order,
+  ..with_bot.lattice }
+
+noncomputable instance with_bot.with_top.complete_linear_order {α : Type*}
+  [conditionally_complete_linear_order α] : complete_linear_order (with_bot (with_top α)) :=
+{ .. with_bot.with_top.complete_lattice,
+  .. with_bot.linear_order }
 
 lemma with_top.supr_coe_eq_top {ι : Sort*} {α : Type*} [conditionally_complete_linear_order_bot α]
   (f : ι → α) : (⨆ x, (f x : with_top α)) = ⊤ ↔ ¬ bdd_above (set.range f) :=

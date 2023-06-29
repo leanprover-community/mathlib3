@@ -12,6 +12,9 @@ import order.antichain
 /-!
 # Graph Coloring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines colorings of simple graphs (also known as proper
 colorings in the literature). A graph coloring is the attribution of
 "colors" to all of its vertices such that adjacent vertices have

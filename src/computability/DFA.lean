@@ -10,12 +10,18 @@ import tactic.norm_num
 
 /-!
 # Deterministic Finite Automata
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of a Deterministic Finite Automaton (DFA), a state machine which
 determines whether a string (implemented as a list over an arbitrary alphabet) is in a regular set
 in linear time.
 Note that this definition allows for Automaton with infinite states, a `fintype` instance must be
 supplied for true DFA's.
 -/
+
+open_locale computability
 
 universes u v
 
@@ -74,8 +80,7 @@ lemma eval_from_split [fintype σ] {x : list α} {s t : σ} (hlen : fintype.card
 begin
   obtain ⟨n, m, hneq, heq⟩ := fintype.exists_ne_map_eq_of_card_lt
     (λ n : fin (fintype.card σ + 1), M.eval_from s (x.take n)) (by norm_num),
-  wlog hle : (n : ℕ) ≤ m using n m,
-  have hlt : (n : ℕ) < m := (ne.le_iff_lt hneq).mp hle,
+  wlog hle : (n : ℕ) ≤ m, { exact this hlen hx _ _ hneq.symm heq.symm (le_of_not_le hle), },
   have hm : (m : ℕ) ≤ fintype.card σ := fin.is_le m,
   dsimp at heq,
 
@@ -109,9 +114,9 @@ begin
 end
 
 lemma eval_from_of_pow {x y : list α} {s : σ} (hx : M.eval_from s x = s)
-  (hy : y ∈ @language.star α {x}) : M.eval_from s y = s :=
+  (hy : y ∈ ({x} : language α)∗) : M.eval_from s y = s :=
 begin
-  rw language.mem_star at hy,
+  rw language.mem_kstar at hy,
   rcases hy with ⟨ S, rfl, hS ⟩,
   induction S with a S ih,
   { refl },
@@ -126,7 +131,7 @@ end
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
   (hlen : fintype.card σ ≤ list.length x) :
   ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card σ ∧ b ≠ [] ∧
-  {a} * language.star {b} * {c} ≤ M.accepts :=
+    {a} * {b}∗ * {c} ≤ M.accepts :=
 begin
   obtain ⟨_, a, b, c, hx, hlen, hnil, rfl, hb, hc⟩ := M.eval_from_split hlen rfl,
   use [a, b, c, hx, hlen, hnil],

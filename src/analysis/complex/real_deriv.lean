@@ -51,8 +51,9 @@ begin
   simpa using (C.comp z (B.comp z A)).has_strict_deriv_at
 end
 
-/-- If a complex function is differentiable at a real point, then the induced real function is also
-differentiable at this point, with a derivative equal to the real part of the complex derivative. -/
+/-- If a complex function `e` is differentiable at a real point, then the function `ℝ → ℝ` given by
+the real part of `e` is also differentiable at this point, with a derivative equal to the real part
+of the complex derivative. -/
 theorem has_deriv_at.real_of_complex (h : has_deriv_at e e' z) :
   has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
 begin
@@ -114,6 +115,19 @@ lemma has_deriv_within_at.complex_to_real_fderiv {f : ℂ → ℂ} {s : set ℂ}
   has_fderiv_within_at f (f' • (1 : ℂ →L[ℝ] ℂ)) s x :=
 by simpa only [complex.restrict_scalars_one_smul_right]
   using h.has_fderiv_within_at.restrict_scalars ℝ
+
+/-- If a complex function `e` is differentiable at a real point, then its restriction to `ℝ` is
+differentiable there as a function `ℝ → ℂ`, with the same derivative. -/
+lemma has_deriv_at.comp_of_real (hf : has_deriv_at e e' ↑z) : has_deriv_at (λ (y:ℝ), e ↑y) e' z :=
+by simpa only [of_real_clm_apply, of_real_one, mul_one]
+  using hf.comp z of_real_clm.has_deriv_at
+
+/-- If a function `f : ℝ → ℝ` is differentiable at a (real) point `x`, then it is also
+differentiable as a function `ℝ → ℂ`. -/
+lemma has_deriv_at.of_real_comp {f : ℝ → ℝ} {u : ℝ} (hf : has_deriv_at f u z) :
+has_deriv_at (λ (y:ℝ), ↑(f y) : ℝ → ℂ) u z :=
+by simpa only [of_real_clm_apply, of_real_one, real_smul, mul_one]
+  using of_real_clm.has_deriv_at.scomp z hf
 
 end real_deriv_of_complex
 

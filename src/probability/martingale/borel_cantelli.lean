@@ -28,7 +28,7 @@ is required to prove the generalized Borel-Cantelli.
 -/
 
 open filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
+open_locale nnreal ennreal measure_theory probability_theory big_operators topology
 
 namespace measure_theory
 
@@ -256,7 +256,7 @@ begin
     refine neg_le.2 (hc _ _),
     simpa only [pi.neg_apply, set.mem_range, neg_inj] },
   { rw mem_lower_bounds at hc,
-    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_neg_eq, eq_comm] at hω,
+    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_eq_neg] at hω,
     refine le_neg.1 (hc _ _),
     simpa only [set.mem_range] }
 end

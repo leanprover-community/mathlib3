@@ -8,6 +8,9 @@ import algebra.invertible
 
 /-!
 # Lemmas about `inv_of` in ordered (semi)rings.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*} [linear_ordered_semiring α] {a : α}

@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker, Johan Commelin
 -/
+import algebra.char_zero.infinite
 import data.polynomial.algebra_map
 import data.polynomial.degree.lemmas
 import data.polynomial.div
@@ -11,6 +12,9 @@ import algebra.polynomial.big_operators
 
 /-!
 # Theory of univariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file starts looking like the ring theory of $ R[X] $
 
@@ -162,6 +166,34 @@ begin
   exact degree_le_mul_left p h2.2,
 end
 
+lemma eq_zero_of_dvd_of_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : degree q < degree p) :
+  q = 0 :=
+begin
+  by_contradiction hc,
+  exact (lt_iff_not_ge _ _ ).mp h₂ (degree_le_of_dvd h₁ hc),
+end
+
+lemma eq_zero_of_dvd_of_nat_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : nat_degree q < nat_degree p) :
+  q = 0 :=
+begin
+  by_contradiction hc,
+  exact (lt_iff_not_ge _ _ ).mp h₂ (nat_degree_le_of_dvd h₁ hc),
+end
+
+theorem not_dvd_of_degree_lt {p q : R[X]} (h0 : q ≠ 0)
+  (hl : q.degree < p.degree) : ¬ p ∣ q :=
+begin
+  by_contra hcontra,
+  exact h0 (eq_zero_of_dvd_of_degree_lt hcontra hl),
+end
+
+theorem not_dvd_of_nat_degree_lt {p q : R[X]} (h0 : q ≠ 0)
+  (hl : q.nat_degree < p.nat_degree) : ¬ p ∣ q :=
+begin
+  by_contra hcontra,
+  exact h0 (eq_zero_of_dvd_of_nat_degree_lt hcontra hl),
+end
+
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
 lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : R[X]} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
@@ -182,8 +214,11 @@ begin
 end
 
 lemma degree_eq_zero_of_is_unit [nontrivial R] (h : is_unit p) : degree p = 0 :=
-le_antisymm (nat_degree_eq_zero_iff_degree_le_zero.mp (nat_degree_eq_zero_of_is_unit h))
+(nat_degree_eq_zero_iff_degree_le_zero.mp $ nat_degree_eq_zero_of_is_unit h).antisymm
   (zero_le_degree_iff.mpr h.ne_zero)
+
+@[simp] lemma degree_coe_units [nontrivial R] (u : R[X]ˣ) : degree (u : R[X]) = 0 :=
+degree_eq_zero_of_is_unit ⟨u, rfl⟩
 
 theorem is_unit_iff : is_unit p ↔ ∃ r : R, is_unit r ∧ C r = p :=
 ⟨λ hp, ⟨p.coeff 0, let h := eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_is_unit hp) in
@@ -227,14 +262,56 @@ variables [comm_semiring R] [no_zero_divisors R] {p q : R[X]}
 lemma irreducible_of_monic (hp : p.monic) (hp1 : p ≠ 1) :
   irreducible p ↔ ∀ f g : R[X], f.monic → g.monic → f * g = p → f = 1 ∨ g = 1 :=
 begin
-  refine ⟨λ h f g hf hg hp, (h.2 f g hp.symm).elim (or.inl ∘ hf.eq_one_of_is_unit)
-    (or.inr ∘ hg.eq_one_of_is_unit), λ h, ⟨hp1 ∘ hp.eq_one_of_is_unit, λ f g hfg,
-      (h (g * C f.leading_coeff) (f * C g.leading_coeff) _ _ _).elim
-        (or.inr ∘ is_unit_of_mul_eq_one g _) (or.inl ∘ is_unit_of_mul_eq_one f _)⟩⟩,
+  refine ⟨λ h f g hf hg hp, (h.2 f g hp.symm).imp hf.eq_one_of_is_unit hg.eq_one_of_is_unit,
+    λ h, ⟨hp1 ∘ hp.eq_one_of_is_unit, λ f g hfg, (h (g * C f.leading_coeff) (f * C g.leading_coeff)
+      _ _ _).symm.imp (is_unit_of_mul_eq_one f _) (is_unit_of_mul_eq_one g _)⟩⟩,
   { rwa [monic, leading_coeff_mul, leading_coeff_C, ←leading_coeff_mul, mul_comm, ←hfg, ←monic] },
   { rwa [monic, leading_coeff_mul, leading_coeff_C, ←leading_coeff_mul, ←hfg, ←monic] },
   { rw [mul_mul_mul_comm, ←C_mul, ←leading_coeff_mul, ←hfg, hp.leading_coeff, C_1, mul_one,
         mul_comm, ←hfg] },
+end
+
+lemma monic.irreducible_iff_nat_degree (hp : p.monic) : irreducible p ↔
+  p ≠ 1 ∧ ∀ f g : R[X], f.monic → g.monic → f * g = p → f.nat_degree = 0 ∨ g.nat_degree = 0 :=
+begin
+  by_cases hp1 : p = 1, { simp [hp1] },
+  rw [irreducible_of_monic hp hp1, and_iff_right hp1],
+  refine forall₄_congr (λ a b ha hb, _),
+  rw [ha.nat_degree_eq_zero_iff_eq_one, hb.nat_degree_eq_zero_iff_eq_one],
+end
+
+lemma monic.irreducible_iff_nat_degree' (hp : p.monic) : irreducible p ↔ p ≠ 1 ∧
+  ∀ f g : R[X], f.monic → g.monic → f * g = p → g.nat_degree ∉ Ioc 0 (p.nat_degree / 2) :=
+begin
+  simp_rw [hp.irreducible_iff_nat_degree, mem_Ioc, nat.le_div_iff_mul_le zero_lt_two, mul_two],
+  apply and_congr_right',
+  split; intros h f g hf hg he; subst he,
+  { rw [hf.nat_degree_mul hg, add_le_add_iff_right],
+    exact λ ha, (h f g hf hg rfl).elim (ha.1.trans_le ha.2).ne' ha.1.ne' },
+  { simp_rw [hf.nat_degree_mul hg, pos_iff_ne_zero] at h,
+    contrapose! h,
+    obtain hl|hl := le_total f.nat_degree g.nat_degree,
+    { exact ⟨g, f, hg, hf, mul_comm g f, h.1, add_le_add_left hl _⟩ },
+    { exact ⟨f, g, hf, hg, rfl, h.2, add_le_add_right hl _⟩ } },
+end
+
+lemma monic.not_irreducible_iff_exists_add_mul_eq_coeff (hm : p.monic) (hnd : p.nat_degree = 2) :
+  ¬ irreducible p ↔ ∃ c₁ c₂, p.coeff 0 = c₁ * c₂ ∧ p.coeff 1 = c₁ + c₂ :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  { simpa only [nat_degree_of_subsingleton] using hnd },
+  rw [hm.irreducible_iff_nat_degree', and_iff_right, hnd],
+  push_neg, split,
+  { rintros ⟨a, b, ha, hb, rfl, hdb|⟨⟨⟩⟩⟩,
+    have hda := hnd, rw [ha.nat_degree_mul hb, hdb] at hda,
+    use [a.coeff 0, b.coeff 0, mul_coeff_zero a b],
+    simpa only [next_coeff, hnd, add_right_cancel hda, hdb] using ha.next_coeff_mul hb },
+  { rintros ⟨c₁, c₂, hmul, hadd⟩,
+    refine ⟨X + C c₁, X + C c₂, monic_X_add_C _, monic_X_add_C _, _, or.inl $ nat_degree_X_add_C _⟩,
+    rw [p.as_sum_range_C_mul_X_pow, hnd, finset.sum_range_succ, finset.sum_range_succ,
+      finset.sum_range_one, ← hnd, hm.coeff_nat_degree, hnd, hmul, hadd, C_mul, C_add, C_1],
+    ring },
+  { rintro rfl, simpa only [nat_degree_one] using hnd },
 end
 
 lemma root_mul : is_root (p * q) a ↔ is_root p a ∨ is_root q a :=
@@ -249,8 +326,7 @@ section ring
 variables [ring R] [is_domain R] {p q : R[X]}
 
 instance : is_domain R[X] :=
-{ ..polynomial.no_zero_divisors,
-  ..polynomial.nontrivial, }
+no_zero_divisors.to_is_domain _
 
 end ring
 
@@ -291,10 +367,6 @@ section roots
 
 open multiset
 
-@[simp] lemma degree_coe_units (u : R[X]ˣ) :
-  degree (u : R[X]) = 0 :=
-degree_eq_zero_of_is_unit ⟨u, rfl⟩
-
 theorem prime_X_sub_C (r : R) : prime (X - C r) :=
 ⟨X_sub_C_ne_zero r, not_is_unit_X_sub_C r,
  λ _ _, by { simp_rw [dvd_iff_is_root, is_root.def, eval_mul, mul_eq_zero], exact id }⟩
@@ -322,10 +394,10 @@ theorem eq_of_monic_of_associated (hp : p.monic) (hq : q.monic) (hpq : associate
 begin
   obtain ⟨u, hu⟩ := hpq,
   unfold monic at hp hq,
-  rw eq_C_of_degree_le_zero (le_of_eq $ degree_coe_units _) at hu,
+  rw eq_C_of_degree_le_zero (degree_coe_units _).le at hu,
   rw [← hu, leading_coeff_mul, hp, one_mul, leading_coeff_C] at hq,
   rwa [hq, C_1, mul_one] at hu,
-  apply_instance,
+  all_goals { apply_instance },
 end
 
 lemma root_multiplicity_mul {p q : R[X]} {x : R} (hpq : p * q ≠ 0) :
@@ -445,14 +517,14 @@ begin
   exact (classical.some_spec (exists_multiset_roots hp)).2 a
 end
 
-@[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
-by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
+@[simp] lemma mem_roots' : a ∈ p.roots ↔ p ≠ 0 ∧ is_root p a :=
+by rw [← count_pos, count_roots p, root_multiplicity_pos']
 
-lemma ne_zero_of_mem_roots (h : a ∈ p.roots) : p ≠ 0 :=
-λ hp, by rwa [hp, roots_zero] at h
+lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a := mem_roots'.trans $ and_iff_right hp
 
-lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a :=
-(mem_roots $ ne_zero_of_mem_roots h).mp h
+lemma ne_zero_of_mem_roots (h : a ∈ p.roots) : p ≠ 0 := (mem_roots'.1 h).1
+
+lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a := (mem_roots'.1 h).2
 
 theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R} (h : Z.val ⊆ p.roots) :
   Z.card ≤ p.nat_degree :=
@@ -491,11 +563,13 @@ begin
   exact multiset.le_iff_exists_add.mpr ⟨k.roots, roots_mul h⟩
 end
 
-@[simp] lemma mem_roots_sub_C {p : R[X]} {a x : R} (hp0 : 0 < degree p) :
+lemma mem_roots_sub_C' {p : R[X]} {a x : R} :
+  x ∈ (p - C a).roots ↔ p ≠ C a ∧ p.eval x = a :=
+by rw [mem_roots', is_root.def, sub_ne_zero, eval_sub, sub_eq_zero, eval_C]
+
+lemma mem_roots_sub_C {p : R[X]} {a x : R} (hp0 : 0 < degree p) :
   x ∈ (p - C a).roots ↔ p.eval x = a :=
-(mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,
-    not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
-  (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
+mem_roots_sub_C'.trans $ and_iff_right $ λ hp, hp0.not_le $ hp.symm ▸ degree_C_le
 
 @[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = {r} :=
 begin
@@ -555,7 +629,7 @@ lemma roots_C_mul_X_pow (ha : a ≠ 0) (n : ℕ) : (C a * X ^ n).roots = n • {
 by rw [roots_C_mul _ ha, roots_X_pow]
 
 @[simp] lemma roots_monomial (ha : a ≠ 0) (n : ℕ) : (monomial n a).roots = n • {0} :=
-by rw [monomial_eq_C_mul_X, roots_C_mul_X_pow ha]
+by rw [← C_mul_X_pow_eq_monomial, roots_C_mul_X_pow ha]
 
 lemma roots_prod_X_sub_C (s : finset R) :
   (s.prod (λ a, X - C a)).roots = s.val :=
@@ -574,9 +648,9 @@ end
   (s.map (λ a, X - C a)).prod.nat_degree = s.card :=
 begin
   rw [nat_degree_multiset_prod_of_monic, multiset.map_map],
-  { convert multiset.sum_repeat 1 _,
-    { convert multiset.map_const _ 1, ext, apply nat_degree_X_sub_C }, { simp } },
-  { intros f hf, obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 hf, exact monic_X_sub_C a },
+  { simp only [(∘), nat_degree_X_sub_C, multiset.map_const, multiset.sum_replicate, smul_eq_mul,
+      mul_one] },
+  { exact multiset.forall_mem_map_iff.2 (λ a _, monic_X_sub_C a) },
 end
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
@@ -602,9 +676,9 @@ by simp only [empty_eq_zero, pow_zero, nth_roots, ← C_1, ← C_sub, roots_C]
 
 lemma card_nth_roots (n : ℕ) (a : R) :
   (nth_roots n a).card ≤ n :=
-if hn : n = 0
-then if h : (X : R[X]) ^ n - C a = 0
-  then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, card_zero]
+if hn : n = 0 then
+  if h : (X : R[X]) ^ n - C a = 0 then
+    by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, multiset.card_zero]
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
    (by { rw [hn, pow_zero, ← C_1, ← ring_hom.map_sub ],
          exact degree_C_le }))
@@ -722,28 +796,28 @@ set.finite.bUnion begin
     exact id congr_fun hxy ⟨i, nat.lt_succ_of_le hi⟩ },
 end $ λ i hi, finset.finite_to_set _
 
-theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]
-  [algebra T S] (hp : p.map (algebra_map T S) ≠ 0) (a : S) :
-  a ∈ p.root_set S ↔ (p.map (algebra_map T S)).eval a = 0 :=
-by { change a ∈ multiset.to_finset _ ↔ _, rw [mem_to_finset, mem_roots hp], refl }
+theorem mem_root_set' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S] {a : S} :
+  a ∈ p.root_set S ↔ p.map (algebra_map T S) ≠ 0 ∧ aeval a p = 0 :=
+by rw [root_set, finset.mem_coe, mem_to_finset, mem_roots', is_root.def, ← eval₂_eq_eval_map,
+  aeval_def]
 
-theorem mem_root_set_iff {p : T[X]} (hp : p ≠ 0) {S : Type*} [comm_ring S] [is_domain S]
-  [algebra T S] [no_zero_smul_divisors T S] (a : S) : a ∈ p.root_set S ↔ aeval a p = 0 :=
-begin
-  rw [mem_root_set_iff', ←eval₂_eq_eval_map],
-  { refl },
-  intro h,
-  rw ←polynomial.map_zero (algebra_map T S) at h,
-  exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
-end
+theorem mem_root_set {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
+  [no_zero_smul_divisors T S] {a : S} : a ∈ p.root_set S ↔ p ≠ 0 ∧ aeval a p = 0 :=
+by rw [mem_root_set', (map_injective _
+  (no_zero_smul_divisors.algebra_map_injective T S)).ne_iff' (polynomial.map_zero _)]
 
-lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
-  [comm_ring S'] [is_domain S'] [algebra T S'] (hp : p.map (algebra_map T S') ≠ 0)
+theorem mem_root_set_of_ne {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
+  [no_zero_smul_divisors T S] (hp : p ≠ 0) {a : S} : a ∈ p.root_set S ↔ aeval a p = 0 :=
+mem_root_set.trans $ and_iff_right hp
+
+lemma root_set_maps_to' {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S']
+  (hp : p.map (algebra_map T S') = 0 → p.map (algebra_map T S) = 0)
   (f : S →ₐ[T] S') : (p.root_set S).maps_to f (p.root_set S') :=
 λ x hx, begin
-  rw [mem_root_set_iff' hp, ← f.comp_algebra_map, ← map_map, eval_map],
-  erw [eval₂_hom, (mem_root_set_iff' (mt (λ h, _) hp) x).1 hx, _root_.map_zero],
-  rw [← f.comp_algebra_map, ← map_map, h, polynomial.map_zero],
+  rw [mem_root_set'] at hx ⊢,
+  rw [aeval_alg_hom, alg_hom.comp_apply, hx.2, _root_.map_zero],
+  exact ⟨mt hp hx.1, rfl⟩
 end
 
 lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S] {a : S}
@@ -751,8 +825,18 @@ lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T 
 λ hf, by rwa [hf, root_set_zero] at h
 
 lemma aeval_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S]
-  [no_zero_smul_divisors T S] {a : S} (hx : a ∈ p.root_set S) : aeval a p = 0 :=
-(mem_root_set_iff (ne_zero_of_mem_root_set hx) a).mp hx
+  {a : S} (hx : a ∈ p.root_set S) : aeval a p = 0 :=
+(mem_root_set'.1 hx).2
+
+lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S'] [no_zero_smul_divisors T S'] (f : S →ₐ[T] S') :
+  (p.root_set S).maps_to f (p.root_set S') :=
+begin
+  refine root_set_maps_to' (λ h₀, _) f,
+  obtain rfl : p = 0 := map_injective _
+    (no_zero_smul_divisors.algebra_map_injective T S') (by rwa [polynomial.map_zero]),
+  exact polynomial.map_zero _
+end
 
 end roots
 
@@ -856,8 +940,8 @@ end
 lemma _root_.multiset.prod_X_sub_C_dvd_iff_le_roots {p : R[X]} (hp : p ≠ 0) (s : multiset R) :
   (s.map (λ a, X - C a)).prod ∣ p ↔ s ≤ p.roots :=
 ⟨λ h, multiset.le_iff_count.2 $ λ r, begin
-  rw [count_roots, le_root_multiplicity_iff hp, ← multiset.prod_repeat,
-    ← multiset.map_repeat (λ a, X - C a), ← multiset.filter_eq],
+  rw [count_roots, le_root_multiplicity_iff hp, ← multiset.prod_replicate,
+    ← multiset.map_replicate (λ a, X - C a), ← multiset.filter_eq],
   exact (multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ s.filter_le _).trans h,
 end, λ h, (multiset.prod_dvd_prod_of_le $ multiset.map_le_map h).trans p.prod_multiset_X_sub_C_dvd⟩
 
@@ -918,7 +1002,8 @@ end
 lemma count_map_roots [is_domain A] {p : A[X]} {f : A →+* B} (hmap : map f p ≠ 0) (b : B) :
   (p.roots.map f).count b ≤ root_multiplicity b (p.map f) :=
 begin
-  rw [le_root_multiplicity_iff hmap, ← multiset.prod_repeat, ← multiset.map_repeat (λ a, X - C a)],
+  rw [le_root_multiplicity_iff hmap, ← multiset.prod_replicate,
+    ← multiset.map_replicate (λ a, X - C a)],
   rw ← multiset.filter_eq,
   refine (multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ multiset.filter_le _ _).trans _,
   convert polynomial.map_dvd _ p.prod_multiset_X_sub_C_dvd,

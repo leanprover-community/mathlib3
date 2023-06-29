@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import order.succ_pred.basic
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.metric_space.metrizable_uniformity
 
 /-!
@@ -126,6 +126,6 @@ discrete_topology_iff_order_topology_of_pred_succ.mp h
 @[priority 100]
 instance discrete_topology.metrizable_space [discrete_topology α] : metrizable_space α :=
 begin
-  rw discrete_topology.eq_bot α,
+  unfreezingI { obtain rfl := discrete_topology.eq_bot α },
   exact @uniform_space.metrizable_space α ⊥ (is_countably_generated_principal _) _,
 end

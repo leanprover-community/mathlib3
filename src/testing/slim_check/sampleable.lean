@@ -371,7 +371,7 @@ begin
   rcases i with ⟨x,⟨y,hy⟩⟩; unfold_wf;
   dsimp [rat.mk_pnat],
   mono*,
-  { rw [← int.coe_nat_le, ← int.abs_eq_nat_abs, ← int.abs_eq_nat_abs],
+  { rw [← int.coe_nat_le, int.coe_nat_abs, int.coe_nat_abs],
     apply int.abs_div_le_abs },
   { change _ - 1 ≤ y-1,
     apply tsub_le_tsub_right,

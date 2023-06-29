@@ -10,6 +10,9 @@ import data.fintype.basic
 
 # Finiteness and infiniteness of `finsupp`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some lemmas on the combination of `finsupp`, `fintype` and `infinite`.
 
 -/

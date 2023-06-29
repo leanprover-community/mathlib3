@@ -6,9 +6,13 @@ Authors: Jean Lo, Yaël Dillies, Moritz Doll
 import data.real.pointwise
 import analysis.convex.function
 import analysis.locally_convex.basic
+import analysis.normed.group.add_torsor
 
 /-!
 # Seminorms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines seminorms.
 
@@ -35,7 +39,7 @@ seminorm, locally convex, LCTVS
 set_option old_structure_cmd true
 
 open normed_field set filter
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
 variables {R R' 𝕜 𝕜₂ 𝕜₃ 𝕝 E E₂ E₃ F G ι : Type*}
 
@@ -51,7 +55,7 @@ attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
 You should extend this class when you extend `seminorm`. -/
 class seminorm_class (F : Type*) (𝕜 E : out_param $ Type*) [semi_normed_ring 𝕜] [add_group E]
-  [has_smul 𝕜 E] extends add_group_seminorm_class F E :=
+  [has_smul 𝕜 E] extends add_group_seminorm_class F E ℝ :=
 (map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ‖a‖ * f x)
 
 export seminorm_class (map_smul_eq_mul)
@@ -206,14 +210,17 @@ lemma smul_sup [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 
   r • (p ⊔ q) = r • p ⊔ r • q :=
 have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
 from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
-                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).coe_nonneg,
 ext $ λ x, real.smul_max _ _
 
 instance : partial_order (seminorm 𝕜 E) :=
   partial_order.lift _ fun_like.coe_injective
 
-lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
-lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe {p q : seminorm 𝕜 E} : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
+@[simp, norm_cast] lemma coe_lt_coe {p q : seminorm 𝕜 E} : (p : E → ℝ) < q ↔ p < q := iff.rfl
+
+lemma le_def {p q : seminorm 𝕜 E} : p ≤ q ↔ ∀ x, p x ≤ q x := iff.rfl
+lemma lt_def {p q : seminorm 𝕜 E} : p < q ↔ p ≤ q ∧ ∃ x, p x < q x := pi.lt_def
 
 instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
@@ -284,7 +291,7 @@ lemma bot_eq_zero : (⊥ : seminorm 𝕜 E) = 0 := rfl
 lemma smul_le_smul {p q : seminorm 𝕜 E} {a b : ℝ≥0} (hpq : p ≤ q) (hab : a ≤ b) :
   a • p ≤ b • q :=
 begin
-  simp_rw [le_def, pi.le_def, coe_smul],
+  simp_rw [le_def, coe_smul],
   intros x,
   simp_rw [pi.smul_apply, nnreal.smul_def, smul_eq_mul],
   exact mul_le_mul hab (hpq x) (map_nonneg p x) (nnreal.coe_nonneg b),
@@ -658,6 +665,26 @@ begin
   exact (map_add_le_add p _ _).trans (add_le_add hy₁ hy₂)
 end
 
+lemma sub_mem_ball (p : seminorm 𝕜 E) (x₁ x₂ y : E) (r : ℝ) :
+  x₁ - x₂ ∈ p.ball y r ↔ x₁ ∈ p.ball (x₂ + y) r :=
+by simp_rw [mem_ball, sub_sub]
+
+/-- The image of a ball under addition with a singleton is another ball. -/
+lemma vadd_ball (p : seminorm 𝕜 E) :
+  x +ᵥ p.ball y r = p.ball (x +ᵥ y) r :=
+begin
+  letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
+  exact metric.vadd_ball x y r,
+end
+
+/-- The image of a closed ball under addition with a singleton is another closed ball. -/
+lemma vadd_closed_ball (p : seminorm 𝕜 E) :
+  x +ᵥ p.closed_ball y r = p.closed_ball (x +ᵥ y) r :=
+begin
+  letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
+  exact metric.vadd_closed_ball x y r,
+end
+
 end has_smul
 
 section module
@@ -820,33 +847,45 @@ begin
     simp only [mem_closed_ball, mem_Inter, seminorm.supr_apply hp, csupr_le_iff this] }
 end
 
-lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
+lemma ball_norm_mul_subset {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} :
+  p.ball 0 (‖k‖ * r) ⊆ k • p.ball 0 r :=
+begin
+  rcases eq_or_ne k 0 with (rfl | hk),
+  { rw [norm_zero, zero_mul, ball_eq_emptyset  _ le_rfl],
+    exact empty_subset _ },
+  { intro x,
+    rw [set.mem_smul_set, seminorm.mem_ball_zero],
+    refine λ hx, ⟨k⁻¹ • x, _, _⟩,
+    { rwa [seminorm.mem_ball_zero, map_smul_eq_mul, norm_inv,
+      ←(mul_lt_mul_left $ norm_pos_iff.mpr hk), ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖),
+      div_self (ne_of_gt $ norm_pos_iff.mpr hk), one_mul] },
+    rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self hk, one_smul] }
+end
+
+lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : k ≠ 0) :
   k • p.ball 0 r = p.ball 0 (‖k‖ * r) :=
 begin
   ext,
-  rw [set.mem_smul_set, seminorm.mem_ball_zero],
-  split; intro h,
-  { rcases h with ⟨y, hy, h⟩,
-    rw [←h, map_smul_eq_mul],
-    rw seminorm.mem_ball_zero at hy,
-    exact (mul_lt_mul_left hk).mpr hy },
-  refine ⟨k⁻¹ • x, _, _⟩,
-  { rwa [seminorm.mem_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_lt_mul_left hk),
-      ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖), div_self (ne_of_gt hk), one_mul] },
-  rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
+  rw [mem_smul_set_iff_inv_smul_mem₀ hk, p.mem_ball_zero, p.mem_ball_zero, map_smul_eq_mul,
+    norm_inv, ← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hk), mul_comm]
+end
+
+lemma smul_closed_ball_subset {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} :
+  k • p.closed_ball 0 r ⊆ p.closed_ball 0 (‖k‖ * r) :=
+begin
+  rintros x ⟨y, hy, h⟩,
+  rw [seminorm.mem_closed_ball_zero, ←h, map_smul_eq_mul],
+  rw seminorm.mem_closed_ball_zero at hy,
+  exact mul_le_mul_of_nonneg_left hy (norm_nonneg _)
 end
 
 lemma smul_closed_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
   k • p.closed_ball 0 r = p.closed_ball 0 (‖k‖ * r) :=
 begin
-  ext,
+  refine subset_antisymm smul_closed_ball_subset _,
+  intro x,
   rw [set.mem_smul_set, seminorm.mem_closed_ball_zero],
-  split; intro h,
-  { rcases h with ⟨y, hy, h⟩,
-    rw [←h, map_smul_eq_mul],
-    rw seminorm.mem_closed_ball_zero at hy,
-    exact (mul_le_mul_left hk).mpr hy },
-  refine ⟨k⁻¹ • x, _, _⟩,
+  refine λ hx, ⟨k⁻¹ • x, _, _⟩,
   { rwa [seminorm.mem_closed_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_le_mul_left hk),
       ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖), div_self (ne_of_gt hk), one_mul] },
   rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
@@ -855,31 +894,17 @@ end
 lemma ball_zero_absorbs_ball_zero (p : seminorm 𝕜 E) {r₁ r₂ : ℝ} (hr₁ : 0 < r₁) :
   absorbs 𝕜 (p.ball 0 r₁) (p.ball 0 r₂) :=
 begin
-  by_cases hr₂ : r₂ ≤ 0,
-  { rw ball_eq_emptyset p hr₂, exact absorbs_empty },
-  rw [not_le] at hr₂,
-  rcases exists_between hr₁ with ⟨r, hr, hr'⟩,
-  refine ⟨r₂/r, div_pos hr₂ hr, _⟩,
-  simp_rw set.subset_def,
-  intros a ha x hx,
-  have ha' : 0 < ‖a‖ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
-  rw [smul_ball_zero ha', p.mem_ball_zero],
+  rcases exists_pos_lt_mul hr₁ r₂ with ⟨r, hr₀, hr⟩,
+  refine ⟨r, hr₀, λ a ha x hx, _⟩,
+  rw [smul_ball_zero (norm_pos_iff.1 $ hr₀.trans_le ha), p.mem_ball_zero],
   rw p.mem_ball_zero at hx,
-  rw div_le_iff hr at ha,
-  exact hx.trans (lt_of_le_of_lt ha ((mul_lt_mul_left ha').mpr hr')),
+  exact hx.trans (hr.trans_le $ mul_le_mul_of_nonneg_right ha hr₁.le)
 end
 
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
-begin
-  rw absorbent_iff_nonneg_lt,
-  rintro x,
-  have hxr : 0 ≤ p x / r := by positivity,
-  refine ⟨p x/r, hxr, λ a ha, _⟩,
-  have ha₀ : 0 < ‖a‖ := hxr.trans_lt ha,
-  refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
-  rwa [mem_ball_zero, map_smul_eq_mul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
-end
+absorbent_iff_forall_absorbs_singleton.2 $ λ x, (p.ball_zero_absorbs_ball_zero hr).mono_right $
+  singleton_subset_iff.2 $ p.mem_ball_zero.2 $ lt_add_one _
 
 /-- Closed seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_closed_ball_zero (hr : 0 < r) : absorbent 𝕜 (closed_ball p (0 : E) r) :=
@@ -993,7 +1018,7 @@ variables [nontrivially_normed_field 𝕜] [semi_normed_ring 𝕝] [add_comm_gro
 variables [module 𝕝 E]
 
 lemma continuous_at_zero' [topological_space E] [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E}
-  (hp : p.closed_ball 0 1 ∈ (𝓝 0 : filter E)) :
+  {r : ℝ} (hr : 0 < r) (hp : p.closed_ball 0 r ∈ (𝓝 0 : filter E)) :
   continuous_at p 0 :=
 begin
   refine metric.nhds_basis_closed_ball.tendsto_right_iff.mpr _,
@@ -1001,18 +1026,18 @@ begin
   rw map_zero,
   suffices : p.closed_ball 0 ε ∈ (𝓝 0 : filter E),
   { rwa seminorm.closed_ball_zero_eq_preimage_closed_ball at this },
-  rcases exists_norm_lt 𝕜 hε with ⟨k, hk0, hkε⟩,
+  rcases exists_norm_lt 𝕜 (div_pos hε hr) with ⟨k, hk0, hkε⟩,
   have hk0' := norm_pos_iff.mp hk0,
   have := (set_smul_mem_nhds_zero_iff hk0').mpr hp,
   refine filter.mem_of_superset this (smul_set_subset_iff.mpr $ λ x hx, _),
-  rw [mem_closed_ball_zero, map_smul_eq_mul],
-  exact mul_le_of_le_of_le_one' hkε.le (p.mem_closed_ball_zero.mp hx) (map_nonneg _ _) hε.le
+  rw [mem_closed_ball_zero, map_smul_eq_mul, ← div_mul_cancel ε hr.ne.symm],
+  exact mul_le_mul hkε.le (p.mem_closed_ball_zero.mp hx) (map_nonneg _ _) (div_nonneg hε.le hr.le)
 end
 
 lemma continuous_at_zero [topological_space E] [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E}
-  (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
+  {r : ℝ} (hr : 0 < r) (hp : p.ball 0 r ∈ (𝓝 0 : filter E)) :
   continuous_at p 0 :=
-continuous_at_zero' (filter.mem_of_superset hp $ p.ball_subset_closed_ball _ _)
+continuous_at_zero' hr (filter.mem_of_superset hp $ p.ball_subset_closed_ball _ _)
 
 protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
   {p : seminorm 𝕝 E} (hp : continuous_at p 0) :
@@ -1035,30 +1060,30 @@ begin
 end
 
 protected lemma uniform_continuous [uniform_space E] [uniform_add_group E]
-  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
-  uniform_continuous p :=
-seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero hp)
+  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} {r : ℝ} (hr : 0 < r)
+  (hp : p.ball 0 r ∈ (𝓝 0 : filter E)) : uniform_continuous p :=
+seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero hr hp)
 
 protected lemma uniform_continuous' [uniform_space E] [uniform_add_group E]
-  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} (hp : p.closed_ball 0 1 ∈ (𝓝 0 : filter E)) :
-  uniform_continuous p :=
-seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero' hp)
+  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} {r : ℝ} (hr : 0 < r)
+  (hp : p.closed_ball 0 r ∈ (𝓝 0 : filter E)) : uniform_continuous p :=
+seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero' hr hp)
 
 protected lemma continuous [topological_space E] [topological_add_group E]
-  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
-  continuous p :=
-seminorm.continuous_of_continuous_at_zero (continuous_at_zero hp)
+  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} {r : ℝ} (hr : 0 < r)
+  (hp : p.ball 0 r ∈ (𝓝 0 : filter E)) : continuous p :=
+seminorm.continuous_of_continuous_at_zero (continuous_at_zero hr hp)
 
 protected lemma continuous' [topological_space E] [topological_add_group E]
-  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} (hp : p.closed_ball 0 1 ∈ (𝓝 0 : filter E)) :
-  continuous p :=
-seminorm.continuous_of_continuous_at_zero (continuous_at_zero' hp)
+  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} {r : ℝ} (hr : 0 < r)
+  (hp : p.closed_ball 0 r ∈ (𝓝 0 : filter E)) : continuous p :=
+seminorm.continuous_of_continuous_at_zero (continuous_at_zero' hr hp)
 
 lemma continuous_of_le [topological_space E] [topological_add_group E]
   [has_continuous_const_smul 𝕜 E] {p q : seminorm 𝕜 E} (hq : continuous q) (hpq : p ≤ q) :
   continuous p :=
 begin
-  refine seminorm.continuous (filter.mem_of_superset
+  refine seminorm.continuous one_pos (filter.mem_of_superset
     (is_open.mem_nhds _ $ q.mem_ball_self zero_lt_one) (ball_antitone hpq)),
   rw ball_zero_eq,
   exact is_open_lt hq continuous_const
@@ -1083,29 +1108,39 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 If there is a scalar `c` with `‖c‖>1`, then any `x` such that `p x ≠ 0` can be
 moved by scalar multiplication to any `p`-shell of width `‖c‖`. Also recap information on the
 value of `p` on the rescaling element that shows up in applications. -/
-lemma rescale_to_shell (p : seminorm 𝕜 E) {c : 𝕜} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
-  (hx : p x ≠ 0) : ∃d:𝕜, d ≠ 0 ∧ p (d • x) < ε ∧ (ε/‖c‖ ≤ p (d • x)) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * p x) :=
+lemma rescale_to_shell_zpow (p : seminorm 𝕜 E) {c : 𝕜} (hc : 1 < ‖c‖) {ε : ℝ}
+  (εpos : 0 < ε) {x : E} (hx : p x ≠ 0) :
+  ∃ n : ℤ, c^n ≠ 0 ∧ p (c^n • x) < ε ∧ (ε / ‖c‖ ≤ p (c^n • x)) ∧ (‖c^n‖⁻¹ ≤ ε⁻¹ * ‖c‖ * p x) :=
 begin
   have xεpos : 0 < (p x)/ε := div_pos ((ne.symm hx).le_iff_lt.1 (map_nonneg p x)) εpos,
   rcases exists_mem_Ico_zpow xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ‖c‖ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
   have cnpos : 0 < ‖c^(n+1)‖ := by { rw norm_zpow, exact lt_trans xεpos hn.2 },
-  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
-  show (c ^ (n + 1))⁻¹  ≠ 0,
-    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
-  show p ((c ^ (n + 1))⁻¹ • x) < ε,
-  { rw [map_smul_eq_mul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
+  refine ⟨-(n+1), _, _, _, _⟩,
+  show c ^ (-(n + 1)) ≠ 0, from zpow_ne_zero _ (norm_pos_iff.1 cpos),
+  show p ((c ^ -(n + 1)) • x) < ε,
+  { rw [map_smul_eq_mul, zpow_neg, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm,
+        norm_zpow],
     exact (div_lt_iff εpos).1 (hn.2) },
-  show ε / ‖c‖ ≤ p ((c ^ (n + 1))⁻¹ • x),
-  { rw [div_le_iff cpos, map_smul_eq_mul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
+  show ε / ‖c‖ ≤ p (c ^ (-(n + 1)) • x),
+  { rw [zpow_neg, div_le_iff cpos, map_smul_eq_mul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
         zpow_one, mul_inv_rev, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (zpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
-  show ‖(c ^ (n + 1))⁻¹‖⁻¹ ≤ ε⁻¹ * ‖c‖ * p x,
+  show ‖(c ^ -(n + 1))‖⁻¹ ≤ ε⁻¹ * ‖c‖ * p x,
   { have : ε⁻¹ * ‖c‖ * p x = ε⁻¹ * p x * ‖c‖, by ring,
-    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+    rw [zpow_neg, norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this,
+        ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
+
+/-- Let `p` be a seminorm on a vector space over a `normed_field`.
+If there is a scalar `c` with `‖c‖>1`, then any `x` such that `p x ≠ 0` can be
+moved by scalar multiplication to any `p`-shell of width `‖c‖`. Also recap information on the
+value of `p` on the rescaling element that shows up in applications. -/
+lemma rescale_to_shell (p : seminorm 𝕜 E) {c : 𝕜} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : p x ≠ 0) : ∃d:𝕜, d ≠ 0 ∧ p (d • x) < ε ∧ (ε/‖c‖ ≤ p (d • x)) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * p x) :=
+let ⟨n, hn⟩ := p.rescale_to_shell_zpow hc εpos hx in ⟨_, hn⟩
 
 /-- Let `p` and `q` be two seminorms on a vector space over a `nontrivially_normed_field`.
 If we have `q x ≤ C * p x` on some shell of the form `{x | ε/‖c‖ ≤ p x < ε}` (where `ε > 0`
@@ -1129,6 +1164,21 @@ lemma bound_of_shell_smul
   q x ≤ (C • p) x :=
 seminorm.bound_of_shell p q ε_pos hc hf hx
 
+lemma bound_of_shell_sup (p : ι → seminorm 𝕜 E) (s : finset ι)
+  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ‖c‖)
+  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ‖c‖ ≤ p j x → q x ≤ (C • p j) x)
+  {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :
+  q x ≤ (C • s.sup p) x :=
+begin
+  rcases hx with ⟨j, hj, hjx⟩,
+  have : (s.sup p) x ≠ 0,
+    from ne_of_gt ((hjx.symm.lt_of_le $ map_nonneg _ _).trans_le (le_finset_sup_apply hj)),
+  refine (s.sup p).bound_of_shell_smul q ε_pos hc (λ y hle hlt, _) this,
+  rcases exists_apply_eq_finset_sup p ⟨j, hj⟩ y with ⟨i, hi, hiy⟩,
+  rw [smul_apply, hiy],
+  exact hf y (λ k hk, (le_finset_sup_apply hk).trans_lt hlt) i hi (hiy ▸ hle)
+end
+
 end shell
 
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
@@ -1149,7 +1199,6 @@ begin
   refine ⟨‖k‖ * M, forall_range_iff.mpr $ λ i, _⟩,
   have := (forall_range_iff.mp hM) i,
   rwa [map_smul_eq_mul, norm_inv, inv_mul_le_iff (hr.trans hk)] at this
-end
 
 end nontrivially_normed_field
 
@@ -1187,10 +1236,23 @@ by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero
 /-- If there is a scalar `c` with `‖c‖>1`, then any element with nonzero norm can be
 moved by scalar multiplication to any shell of width `‖c‖`. Also recap information on the norm of
 the rescaling element that shows up in applications. -/
+lemma rescale_to_shell_semi_normed_zpow {c : 𝕜} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : ‖x‖ ≠ 0) :
+  ∃ n : ℤ, c^n ≠ 0 ∧ ‖c^n • x‖ < ε ∧ (ε / ‖c‖ ≤ ‖c^n • x‖) ∧ (‖c^n‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
+(norm_seminorm 𝕜 E).rescale_to_shell_zpow hc εpos hx
+
+/-- If there is a scalar `c` with `‖c‖>1`, then any element with nonzero norm can be
+moved by scalar multiplication to any shell of width `‖c‖`. Also recap information on the norm of
+the rescaling element that shows up in applications. -/
 lemma rescale_to_shell_semi_normed {c : 𝕜} (hc : 1 < ‖c‖) {ε : ℝ} (εpos : 0 < ε)
   {x : E} (hx : ‖x‖ ≠ 0) :
   ∃d:𝕜, d ≠ 0 ∧ ‖d • x‖ < ε ∧ (ε/‖c‖ ≤ ‖d • x‖) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
 (norm_seminorm 𝕜 E).rescale_to_shell hc εpos hx
+
+lemma rescale_to_shell_zpow [normed_add_comm_group F] [normed_space 𝕜 F] {c : 𝕜} (hc : 1 < ‖c‖)
+  {ε : ℝ} (εpos : 0 < ε) {x : F} (hx : x ≠ 0) :
+  ∃ n : ℤ, c^n ≠ 0 ∧ ‖c^n • x‖ < ε ∧ (ε / ‖c‖ ≤ ‖c^n • x‖) ∧ (‖c^n‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
+rescale_to_shell_semi_normed_zpow hc εpos (norm_ne_zero_iff.mpr hx)
 
 /-- If there is a scalar `c` with `‖c‖>1`, then any element can be moved by scalar multiplication to
 any shell of width `‖c‖`. Also recap information on the norm of the rescaling element that shows
@@ -1198,7 +1260,7 @@ up in applications. -/
 lemma rescale_to_shell [normed_add_comm_group F] [normed_space 𝕜 F] {c : 𝕜} (hc : 1 < ‖c‖)
   {ε : ℝ} (εpos : 0 < ε) {x : F} (hx : x ≠ 0) :
   ∃d:𝕜, d ≠ 0 ∧ ‖d • x‖ < ε ∧ (ε/‖c‖ ≤ ‖d • x‖) ∧ (‖d‖⁻¹ ≤ ε⁻¹ * ‖c‖ * ‖x‖) :=
-rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
+rescale_to_shell_semi_normed hc εpos (norm_ne_zero_iff.mpr hx)
 
 end norm_seminorm
 

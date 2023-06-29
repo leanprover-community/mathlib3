@@ -3,8 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.special_functions.integrals
-import analysis.calculus.fderiv_measurable
+import analysis.special_functions.log.deriv
+import measure_theory.integral.fund_thm_calculus
 
 /-!
 # Non integrable functions
@@ -36,7 +36,7 @@ latter lemma to prove that the function `λ x, x⁻¹` is integrable on `a..b` i
 integrable function
 -/
 
-open_locale measure_theory topological_space interval nnreal ennreal
+open_locale measure_theory topology interval nnreal ennreal
 open measure_theory topological_space set filter asymptotics interval_integral
 
 variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [second_countable_topology E]
@@ -60,7 +60,7 @@ begin
   { rcases hfg.exists_nonneg with ⟨C, C₀, hC⟩,
     have h : ∀ᶠ x : ℝ × ℝ in l.prod l, ∀ y ∈ [x.1, x.2], (differentiable_at ℝ f y ∧
       ‖deriv f y‖ ≤ C * ‖g y‖) ∧ y ∈ [a, b],
-      from (tendsto_fst.interval tendsto_snd).eventually ((hd.and hC.bound).and hl).small_sets,
+      from (tendsto_fst.uIcc tendsto_snd).eventually ((hd.and hC.bound).and hl).small_sets,
     rcases mem_prod_self_iff.1 h with ⟨s, hsl, hs⟩,
     simp only [prod_subset_iff, mem_set_of_eq] at hs,
     exact ⟨C, C₀, s, hsl, λ x hx y hy z hz, (hs x hx y hy z hz).2,
@@ -74,9 +74,9 @@ begin
   specialize hsub c hc d hd, specialize hfd c hc d hd,
   replace hg : ∀ x ∈ Ι c d, ‖deriv f x‖ ≤ C * ‖g x‖, from λ z hz, hg c hc d hd z ⟨hz.1.le, hz.2⟩,
   have hg_ae : ∀ᵐ x ∂(volume.restrict (Ι c d)), ‖deriv f x‖ ≤ C * ‖g x‖,
-    from (ae_restrict_mem measurable_set_interval_oc).mono hg,
+    from (ae_restrict_mem measurable_set_uIoc).mono hg,
   have hsub' : Ι c d ⊆ Ι a b,
-    from interval_oc_subset_interval_oc_of_interval_subset_interval hsub,
+    from uIoc_subset_uIoc_of_uIcc_subset_uIcc hsub,
   have hfi : interval_integrable (deriv f) volume c d,
     from (hgi.mono_set hsub).mono_fun' (ae_strongly_measurable_deriv _ _) hg_ae,
   refine hlt.not_le (sub_le_iff_le_add'.1 _),
@@ -85,7 +85,7 @@ begin
   ... = ‖∫ x in Ι c d, deriv f x‖ : norm_integral_eq_norm_integral_Ioc _
   ... ≤ ∫ x in Ι c d, ‖deriv f x‖ : norm_integral_le_integral_norm _
   ... ≤ ∫ x in Ι c d, C * ‖g x‖ :
-    set_integral_mono_on hfi.norm.def (hgi.def.mono_set hsub') measurable_set_interval_oc hg
+    set_integral_mono_on hfi.norm.def (hgi.def.mono_set hsub') measurable_set_uIoc hg
   ... ≤ ∫ x in Ι a b, C * ‖g x‖ :
     set_integral_mono_set hgi.def (ae_of_all _ $ λ x, mul_nonneg hC₀ (norm_nonneg _))
       hsub'.eventually_le
@@ -157,9 +157,9 @@ begin
   { refine λ h, or_iff_not_imp_left.2 (λ hne hc, _),
     exact not_interval_integrable_of_sub_inv_is_O_punctured (is_O_refl _ _) hne hc h },
   { rintro (rfl|h₀),
-    exacts [interval_integrable.refl,
-      interval_integrable_inv (λ x hx, sub_ne_zero.2 $ ne_of_mem_of_not_mem hx h₀)
-        (continuous_on_id.sub continuous_on_const)] }
+    { exact interval_integrable.refl },
+    refine ((continuous_sub_right c).continuous_on.inv₀ _).interval_integrable,
+    exact λ x hx, sub_ne_zero.2 $ ne_of_mem_of_not_mem hx h₀ }
 end
 
 /-- The function `λ x, x⁻¹` is integrable on `a..b` if and only if `a = b` or `0 ∉ [a, b]`. -/

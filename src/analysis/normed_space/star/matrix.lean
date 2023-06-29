@@ -5,7 +5,7 @@ Authors: Hans Parshall
 -/
 import analysis.matrix
 import analysis.normed_space.basic
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import linear_algebra.unitary_group
 
 /-!

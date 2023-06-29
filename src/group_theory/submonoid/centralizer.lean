@@ -9,6 +9,9 @@ import group_theory.submonoid.center
 /-!
 # Centralizers of magmas and monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `submonoid.centralizer`: the centralizer of a subset of a monoid
@@ -47,9 +50,9 @@ variables {S}
 @[to_additive] lemma mem_centralizer_iff {z : M} : z ∈ centralizer S ↔ ∀ g ∈ S, g * z = z * g :=
 iff.rfl
 
-@[to_additive] instance decidable_mem_centralizer [decidable_eq M] [fintype M]
-  [decidable_pred (∈ S)] : decidable_pred (∈ centralizer S) :=
-λ _, decidable_of_iff' _ mem_centralizer_iff
+@[to_additive] instance decidable_mem_centralizer (a) [decidable $ ∀ b ∈ S, b * a = a * b] :
+  decidable (a ∈ centralizer S) :=
+decidable_of_iff' _ mem_centralizer_iff
 
 @[to_additive]
 lemma centralizer_le (h : S ⊆ T) : centralizer T ≤ centralizer S :=
@@ -64,3 +67,6 @@ set_like.ext' (set.centralizer_univ M)
 end
 
 end submonoid
+
+-- Guard against import creep
+assert_not_exists finset

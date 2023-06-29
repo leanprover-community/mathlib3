@@ -3,8 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Yury Kudryashov
 -/
+import analysis.convex.normed
 import analysis.convex.strict
-import analysis.convex.topology
 import analysis.normed.order.basic
 import analysis.normed_space.add_torsor
 import analysis.normed_space.pointwise
@@ -12,6 +12,9 @@ import analysis.normed_space.affine_isometry
 
 /-!
 # Strictly convex spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines strictly convex spaces. A normed space is strictly convex if all closed balls are
 strictly convex. This does **not** mean that the norm is strictly convex (in fact, it never is).
@@ -234,7 +237,7 @@ by simp only [mem_segment_iff_same_ray, same_ray_iff_norm_add, dist_eq_norm',
 
 lemma norm_midpoint_lt_iff (h : ‖x‖ = ‖y‖) : ‖(1/2 : ℝ) • (x + y)‖ < ‖x‖ ↔ x ≠ y :=
 by rw [norm_smul, real.norm_of_nonneg (one_div_nonneg.2 zero_le_two), ←inv_eq_one_div,
-    ←div_eq_inv_mul, div_lt_iff (@zero_lt_two ℝ _ _), mul_two, ←not_same_ray_iff_of_norm_eq h,
+    ←div_eq_inv_mul, div_lt_iff (zero_lt_two' ℝ), mul_two, ←not_same_ray_iff_of_norm_eq h,
     not_same_ray_iff_norm_add_lt, h]
 
 variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]

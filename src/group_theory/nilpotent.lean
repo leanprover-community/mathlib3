@@ -513,7 +513,7 @@ begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hH with ⟨n, hn⟩,
   use (n + 1),
-  refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
+  refine lower_central_series_succ_eq_bot (le_trans ((subgroup.map_eq_bot_iff _).mp _) hf1),
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end
 
@@ -524,7 +524,7 @@ lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] (f : G →* H)
 begin
   rw ← lower_central_series_length_eq_nilpotency_class,
   apply nat.find_min',
-  refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
+  refine lower_central_series_succ_eq_bot (le_trans ((subgroup.map_eq_bot_iff _).mp _) hf1),
   apply eq_bot_iff.mpr,
   apply (le_trans (lower_central_series.map f _)),
   simp only [lower_central_series_nilpotency_class, le_bot_iff],

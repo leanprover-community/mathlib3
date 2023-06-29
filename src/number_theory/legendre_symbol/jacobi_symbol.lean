@@ -201,6 +201,50 @@ end
 lemma mod_left' {a₁ a₂ : ℤ} {b : ℕ} (h : a₁ % b = a₂ % b) : J(a₁ | b) = J(a₂ | b) :=
 by rw [mod_left, h, ← mod_left]
 
+/-- If `p` is prime, `J(a | p) = -1` and `p` divides `x^2 - a*y^2`, then `p` must divide
+`x` and `y`. -/
+lemma prime_dvd_of_eq_neg_one {p : ℕ} [fact p.prime] {a : ℤ} (h : J(a | p) = -1)
+  {x y : ℤ} (hxy : ↑p ∣ x ^ 2 - a * y ^ 2) : ↑p ∣ x ∧ ↑p ∣ y :=
+begin
+  rw [← legendre_sym.to_jacobi_sym] at h,
+  exact legendre_sym.prime_dvd_of_eq_neg_one h hxy,
+end
+
+/-- We can pull out a product over a list in the first argument of the Jacobi symbol. -/
+lemma list_prod_left {l : list ℤ} {n : ℕ} :
+  J(l.prod | n) = (l.map (λ a, J(a | n))).prod :=
+begin
+  induction l with n l' ih,
+  { simp only [list.prod_nil, list.map_nil, one_left], },
+  { rw [list.map, list.prod_cons, list.prod_cons, mul_left, ih], }
+end
+
+/-- We can pull out a product over a list in the second argument of the Jacobi symbol. -/
+lemma list_prod_right {a : ℤ} {l : list ℕ} (hl : ∀ n ∈ l, n ≠ 0) :
+  J(a | l.prod) = (l.map (λ n, J(a | n))).prod :=
+begin
+  induction l with n l' ih,
+  { simp only [list.prod_nil, one_right, list.map_nil], },
+  { have hn := hl n (list.mem_cons_self n l'), -- `n ≠ 0`
+    have hl' := list.prod_ne_zero (λ hf, hl 0 (list.mem_cons_of_mem _ hf) rfl), -- `l'.prod ≠ 0`
+    have h := λ m hm, hl m (list.mem_cons_of_mem _ hm), -- `∀ (m : ℕ), m ∈ l' → m ≠ 0`
+    rw [list.map, list.prod_cons, list.prod_cons, mul_right' a hn hl', ih h], }
+end
+
+/-- If `J(a | n) = -1`, then `n` has a prime divisor `p` such that `J(a | p) = -1`. -/
+lemma eq_neg_one_at_prime_divisor_of_eq_neg_one {a : ℤ} {n : ℕ} (h : J(a | n) = -1) :
+  ∃ (p : ℕ) (hp : p.prime), p ∣ n ∧ J(a | p) = -1 :=
+begin
+  have hn₀ : n ≠ 0,
+  { rintro rfl,
+    rw [zero_right, eq_neg_self_iff] at h,
+    exact one_ne_zero h, },
+  have hf₀ : ∀ p ∈ n.factors, p ≠ 0 := λ p hp, (nat.pos_of_mem_factors hp).ne.symm,
+  rw [← nat.prod_factors hn₀, list_prod_right hf₀] at h,
+  obtain ⟨p, hmem, hj⟩ := list.mem_map.mp (list.neg_one_mem_of_prod_eq_neg_one h),
+  exact ⟨p, nat.prime_of_mem_factors hmem, nat.dvd_of_mem_factors hmem, hj⟩,
+end
+
 end jacobi_sym
 
 namespace zmod
@@ -225,8 +269,7 @@ by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym.eq_neg_one_iff p }
 /-- If `p` is prime and `J(a | p) = 1`, then `a` is q square mod `p`. -/
 lemma is_square_of_jacobi_sym_eq_one {a : ℤ} {p : ℕ} [fact p.prime] (h : J(a | p) = 1) :
   is_square (a : zmod p) :=
-not_not.mp $ mt nonsquare_iff_jacobi_sym_eq_neg_one.mpr $
-  λ hf, one_ne_zero $ neg_eq_self_iff.mp $ hf.symm.trans h
+not_not.mp $ by { rw [← nonsquare_iff_jacobi_sym_eq_neg_one, h], dec_trivial }
 
 end zmod
 
@@ -245,7 +288,7 @@ begin
   conv_rhs { rw [← prod_factors hb.pos.ne', cast_list_prod, χ.map_list_prod] },
   rw [jacobi_sym, list.map_map, ← list.pmap_eq_map nat.prime _ _ (λ _, prime_of_mem_factors)],
   congr' 1, apply list.pmap_congr,
-  exact λ p h pp _, hp p pp (hb.factors_ne_two h),
+  exact λ p h pp _, hp p pp (hb.ne_two_of_dvd_nat $ dvd_of_mem_factors h)
 end
 
 /-- If `b` is odd, then `J(-1 | b)` is given by `χ₄ b`. -/

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
 import data.int.basic
-import category_theory.shift
+import category_theory.shift.basic
 
 /-!
 # Triangles
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains the definition of triangles in an additive category with an additive shift.
 It also defines morphisms between these triangles.
@@ -134,5 +137,34 @@ instance triangle_category : category (triangle C) :=
 { hom   := λ A B, triangle_morphism A B,
   id    := λ A, triangle_morphism_id A,
   comp  := λ A B C f g, f.comp g }
+
+/-- a constructor for morphisms of triangles -/
+@[simps]
+def triangle.hom_mk (A B : triangle C)
+  (hom₁ : A.obj₁ ⟶ B.obj₁) (hom₂ : A.obj₂ ⟶ B.obj₂) (hom₃ : A.obj₃ ⟶ B.obj₃)
+  (comm₁ : A.mor₁ ≫ hom₂ = hom₁ ≫ B.mor₁) (comm₂ : A.mor₂ ≫ hom₃ = hom₂ ≫ B.mor₂)
+  (comm₃ : A.mor₃ ≫ hom₁⟦1⟧' = hom₃ ≫ B.mor₃) : A ⟶ B :=
+{ hom₁ := hom₁,
+  hom₂ := hom₂,
+  hom₃ := hom₃,
+  comm₁' := comm₁,
+  comm₂' := comm₂,
+  comm₃' := comm₃, }
+
+/-- a constructor for isomorphisms of triangles -/
+@[simps]
+def triangle.iso_mk (A B : triangle C)
+  (iso₁ : A.obj₁ ≅ B.obj₁) (iso₂ : A.obj₂ ≅ B.obj₂) (iso₃ : A.obj₃ ≅ B.obj₃)
+  (comm₁ : A.mor₁ ≫ iso₂.hom = iso₁.hom ≫ B.mor₁)
+  (comm₂ : A.mor₂ ≫ iso₃.hom = iso₂.hom ≫ B.mor₂)
+  (comm₃ : A.mor₃ ≫ iso₁.hom⟦1⟧' = iso₃.hom ≫ B.mor₃) : A ≅ B :=
+{ hom := triangle.hom_mk _ _ iso₁.hom iso₂.hom iso₃.hom comm₁ comm₂ comm₃,
+  inv := triangle.hom_mk _ _ iso₁.inv iso₂.inv iso₃.inv
+    (by simp only [← cancel_mono iso₂.hom, assoc, iso.inv_hom_id, comp_id,
+      comm₁, iso.inv_hom_id_assoc])
+    (by simp only [← cancel_mono iso₃.hom, assoc, iso.inv_hom_id, comp_id,
+      comm₂, iso.inv_hom_id_assoc])
+    (by simp only [← cancel_mono (iso₁.hom⟦(1 : ℤ)⟧'), assoc, ← functor.map_comp,
+      iso.inv_hom_id, category_theory.functor.map_id, comp_id, comm₃, iso.inv_hom_id_assoc]), }
 
 end category_theory.pretriangulated

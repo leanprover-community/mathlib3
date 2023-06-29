@@ -10,6 +10,9 @@ import topology.homeomorph
 /-!
 # Continuous bundled maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the type `continuous_map` of continuous bundled maps.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
@@ -221,7 +224,13 @@ def restrict (f : C(α, β)) : C(s, β) := ⟨f ∘ coe⟩
 
 @[simp] lemma coe_restrict (f : C(α, β)) : ⇑(f.restrict s) = f ∘ coe := rfl
 
-/-- The restriction of a continuous map onto the preimage of a set. -/
+@[simp] lemma restrict_apply (f : C(α, β)) (s : set α) (x : s) : f.restrict s x = f x := rfl
+
+@[simp] lemma restrict_apply_mk (f : C(α, β)) (s : set α) (x : α) (hx : x ∈ s) :
+  f.restrict s ⟨x, hx⟩ = f x :=
+rfl
+
+/-- The restriction of a continuous map to the preimage of a set. -/
 @[simps]
 def restrict_preimage (f : C(α, β)) (s : set β) : C(f ⁻¹' s, s) :=
 ⟨s.restrict_preimage f, continuous_iff_continuous_at.mpr $ λ x, f.2.continuous_at.restrict_preimage⟩
@@ -249,11 +258,9 @@ begin
     rw set.mem_Union,
     obtain ⟨i, hi⟩ := hS x,
     exact ⟨i, mem_of_mem_nhds hi⟩ },
-  refine ⟨set.lift_cover S (λ i, φ i) hφ H, continuous_subtype_nhds_cover hS _⟩,
-  intros i,
-  convert (φ i).continuous,
-  ext x,
-  exact set.lift_cover_coe x,
+  refine ⟨set.lift_cover S (λ i, φ i) hφ H, continuous_of_cover_nhds hS $ λ i, _⟩,
+  rw [continuous_on_iff_continuous_restrict],
+  simpa only [set.restrict, set.lift_cover_coe] using (φ i).continuous
 end
 
 variables {S φ hφ hS}

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 import topology.sheaves.limits
 
 /-!
@@ -52,6 +52,7 @@ namespace algebraic_geometry
 namespace PresheafedSpace
 
 local attribute [simp] eq_to_hom_map
+local attribute [tidy] tactic.auto_cases_opens
 
 @[simp]
 lemma map_id_c_app (F : J ⥤ PresheafedSpace.{v} C) (j) (U) :
@@ -359,9 +360,8 @@ begin
   fapply nat_iso.of_components,
   { intro X,
     refine ((F.obj (unop X)).presheaf.map_iso (eq_to_iso _)),
-    dsimp only [functor.op, unop_op, opens.map],
-    congr' 2,
-    rw set.preimage_preimage,
+    simp only [functor.op_obj, unop_op, op_inj_iff, opens.map_coe, set_like.ext'_iff,
+      set.preimage_preimage],
     simp_rw ← comp_app,
     congr' 2,
     exact ι_preserves_colimits_iso_inv (forget C) F (unop X) },

@@ -3,6 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
+import geometry.euclidean.angle.oriented.affine
 import geometry.euclidean.angle.unoriented.affine
 import tactic.interval_cases
 
@@ -49,7 +50,7 @@ most conveniently be developed in terms of vectors and then used to
 deduce corresponding results for Euclidean affine spaces.
 -/
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 
 /-- Law of cosines (cosine rule), vector angle form. -/
 lemma norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle
@@ -261,8 +262,8 @@ open inner_product_geometry
 
 open_locale euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- **Law of cosines** (cosine rule), angle-at-point form. -/
@@ -317,6 +318,15 @@ begin
   exact angle_add_angle_sub_add_angle_sub_eq_pi (λ he, h3 (vsub_eq_zero_iff_eq.1 he))
                                                 (λ he, h2 (vsub_eq_zero_iff_eq.1 he))
 end
+
+/-- The **sum of the angles of a triangle** (possibly degenerate, where the triangle is a line),
+oriented angles at point. -/
+lemma oangle_add_oangle_add_oangle_eq_pi
+  [module.oriented ℝ V (fin 2)] [fact (finite_dimensional.finrank ℝ V = 2)] {p1 p2 p3 : P}
+  (h21 : p2 ≠ p1) (h32 : p3 ≠ p2) (h13 : p1 ≠ p3) : ∡ p1 p2 p3 + ∡ p2 p3 p1 + ∡ p3 p1 p2 = π :=
+by simpa only [neg_vsub_eq_vsub_rev] using
+    positive_orientation.oangle_add_cyc3_neg_left
+      (vsub_ne_zero.mpr h21) (vsub_ne_zero.mpr h32) (vsub_ne_zero.mpr h13)
 
 /-- **Stewart's Theorem**. -/
 theorem dist_sq_mul_dist_add_dist_sq_mul_dist (a b c p : P) (h : ∠ b p c = π) :

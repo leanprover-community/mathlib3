@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import algebra.quadratic_discriminant
-import analysis.special_functions.trigonometric.basic
-import analysis.convex.specific_functions
+import analysis.convex.specific_functions.deriv
 
 /-!
 # Complex trigonometric functions
@@ -138,7 +137,7 @@ lemma tan_eq {z : ℂ}
   tan z = (tan z.re + tanh z.im * I) / (1 - tan z.re * tanh z.im * I) :=
 by convert tan_add_mul_I h; exact (re_add_im z).symm
 
-open_locale topological_space
+open_locale topology
 
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 continuous_on_sin.div continuous_on_cos $ λ x, id

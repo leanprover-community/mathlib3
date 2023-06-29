@@ -5,7 +5,10 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
 import analysis.box_integral.partition.additive
-import analysis.calculus.fderiv
+import analysis.calculus.fderiv.add
+import analysis.calculus.fderiv.mul
+import analysis.calculus.fderiv.equiv
+import analysis.calculus.fderiv.restrict_scalars
 
 /-!
 # Divergence integral for Henstock-Kurzweil integral
@@ -38,7 +41,7 @@ Henstock-Kurzweil integral.
 Henstock-Kurzweil integral, integral, Stokes theorem, divergence theorem
 -/
 
-open_locale classical big_operators nnreal ennreal topological_space box_integral
+open_locale classical big_operators nnreal ennreal topology box_integral
 open continuous_linear_map (lsmul) filter set finset metric
   box_integral.integration_params (GP GP_le)
 noncomputable theory

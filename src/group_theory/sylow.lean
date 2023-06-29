@@ -9,6 +9,7 @@ import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
 import group_theory.noncomm_pi_coprod
+import order.atoms.finite
 
 /-!
 # Sylow theorems
@@ -101,10 +102,10 @@ P.comap_of_ker_is_p_group ϕ (is_p_group.ker_is_p_group_of_injective hϕ) h
   ↑(P.comap_of_injective ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
 
 /-- A sylow subgroup of G is also a sylow subgroup of a subgroup of G. -/
-def subtype (h : ↑P ≤ N) : sylow p N :=
-P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
+protected def subtype (h : ↑P ≤ N) : sylow p N :=
+P.comap_of_injective N.subtype subtype.coe_injective (by rwa [subtype_range])
 
-@[simp] lemma coe_subtype (h : ↑P ≤ N) : ↑(P.subtype h) = subgroup.comap N.subtype ↑P := rfl
+@[simp] lemma coe_subtype (h : ↑P ≤ N) : ↑(P.subtype h) = subgroup_of ↑P N := rfl
 
 lemma subtype_injective {P Q : sylow p G} {hP : ↑P ≤ N} {hQ : ↑Q ≤ N}
   (h : P.subtype hP = Q.subtype hQ) : P = Q :=
@@ -127,7 +128,7 @@ exists.elim (zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (�
       (λ T, ⟨S, ⟨S, rfl⟩, S.1.mul_mem (T hg) hh⟩) (λ T, ⟨R, ⟨R, rfl⟩, R.1.mul_mem hg (T hh)⟩) },
   λ ⟨g, _, ⟨S, rfl⟩, hg⟩, by
   { refine exists_imp_exists (λ k hk, _) (hc1 S.2 ⟨g, hg⟩),
-    rwa [subtype.ext_iff, subgroup.coe_pow] at hk ⊢ },
+    rwa [subtype.ext_iff, coe_pow] at hk ⊢ },
   λ M hM g hg, ⟨M, ⟨⟨M, hM⟩, rfl⟩, hg⟩⟩) P hP) (λ Q ⟨hQ1, hQ2, hQ3⟩, ⟨⟨Q, hQ1, hQ3⟩, hQ2⟩)
 
 instance sylow.nonempty : nonempty (sylow p G) :=
@@ -375,7 +376,7 @@ begin
   exact hp.1.not_dvd_mul hP (not_dvd_card_sylow p G),
 end
 
-/-- Frattini's Argument: If `N` is a normal subgroup of `G`, and if `P` is a Sylow `p`-subgroup
+/-- **Frattini's Argument**: If `N` is a normal subgroup of `G`, and if `P` is a Sylow `p`-subgroup
   of `N`, then `N_G(P) ⊔ N = G`. -/
 lemma sylow.normalizer_sup_eq_top {p : ℕ} [fact p.prime] {N : subgroup G} [N.normal]
   [finite (sylow p N)] (P : sylow p N) : ((↑P : subgroup N).map N.subtype).normalizer ⊔ N = ⊤ :=
@@ -391,6 +392,13 @@ begin
   rw [map_map, ←(congr_arg (map N.subtype) hn), map_map],
   refl,
 end
+
+/-- **Frattini's Argument**: If `N` is a normal subgroup of `G`, and if `P` is a Sylow `p`-subgroup
+  of `N`, then `N_G(P) ⊔ N = G`. -/
+lemma sylow.normalizer_sup_eq_top' {p : ℕ} [fact p.prime] {N : subgroup G} [N.normal]
+  [finite (sylow p N)] (P : sylow p G) (hP : ↑P ≤ N) : (P : subgroup G).normalizer ⊔ N = ⊤ :=
+by rw [← sylow.normalizer_sup_eq_top (P.subtype hP), P.coe_subtype, subgroup_of_map_subtype,
+  inf_of_le_left hP]
 
 end infinite_sylow
 
@@ -452,14 +460,10 @@ end
 lemma card_normalizer_modeq_card [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
   {H : subgroup G} (hH : fintype.card H = p ^ n) :
   card (normalizer H) ≡ card G [MOD p ^ (n + 1)] :=
-have subgroup.comap ((normalizer H).subtype : normalizer H →* G) H ≃ H,
-  from set.bij_on.equiv (normalizer H).subtype
-    ⟨λ _, id, λ _ _ _ _ h, subtype.val_injective h,
-      λ x hx, ⟨⟨x, le_normalizer hx⟩, hx, rfl⟩⟩,
+have H.subgroup_of (normalizer H) ≃ H, from (subgroup_of_equiv_of_le le_normalizer).to_equiv,
 begin
   rw [card_eq_card_quotient_mul_card_subgroup H,
-      card_eq_card_quotient_mul_card_subgroup
-        (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H),
+      card_eq_card_quotient_mul_card_subgroup (H.subgroup_of (normalizer H)),
       fintype.card_congr this, hH, pow_succ],
   exact (card_quotient_normalizer_modeq_card_quotient hH).mul_right' _
 end
@@ -500,26 +504,25 @@ have hcard : card (G ⧸ H) = s * p :=
     (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
-  card (normalizer H ⧸ (subgroup.comap (normalizer H).subtype H)) % p :=
+  card (normalizer H ⧸ (H.subgroup_of H.normalizer)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
     (is_p_group.of_card hH).card_modeq_card_fixed_points _,
-have hm' : p ∣ card (normalizer H ⧸ (subgroup.comap (normalizer H).subtype H)) :=
+have hm' : p ∣ card (normalizer H ⧸ (H.subgroup_of H.normalizer)) :=
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
 let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.quotient.group _) _ _ hp hm' in
-have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
-  ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
-    λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
-⟨subgroup.map ((normalizer H).subtype) (subgroup.comap
-  (quotient_group.mk' (comap H.normalizer.subtype H)) (zpowers x)),
+have hequiv : H ≃ (H.subgroup_of H.normalizer) :=
+  (subgroup_of_equiv_of_le le_normalizer).symm.to_equiv,
+⟨subgroup.map ((normalizer H).subtype)
+  (subgroup.comap (mk' (H.subgroup_of H.normalizer)) (zpowers x)),
 begin
   show card ↥(map H.normalizer.subtype
-    (comap (mk' (comap H.normalizer.subtype H)) (subgroup.zpowers x))) = p ^ (n + 1),
-  suffices : card ↥(subtype.val '' ((subgroup.comap (mk' (comap H.normalizer.subtype H))
+    (comap (mk' (H.subgroup_of H.normalizer)) (subgroup.zpowers x))) = p ^ (n + 1),
+  suffices : card ↥(subtype.val '' ((subgroup.comap (mk' (H.subgroup_of H.normalizer))
     (zpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
   { convert this using 2 },
   rw [set.card_image_of_injective
-        (subgroup.comap (mk' (comap H.normalizer.subtype H)) (zpowers x) : set (H.normalizer))
+        (subgroup.comap (mk' (H.subgroup_of H.normalizer)) (zpowers x) : set (H.normalizer))
         subtype.val_injective,
       pow_succ', ← hH, fintype.card_congr hequiv, ← hx, order_eq_card_zpowers,
       ← fintype.card_prod],
@@ -628,15 +631,14 @@ end pointwise
 lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [finite (sylow p G)]
   (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
-by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype le_normalizer), coe_subtype,
-  map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
+by rw [← normalizer_eq_top, ← normalizer_sup_eq_top' P le_normalizer, sup_idem]
 
 @[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin
   have := normal_of_normalizer_normal (P.subtype (le_normalizer.trans le_normalizer)),
-  simp_rw [←normalizer_eq_top, coe_subtype, ←comap_subtype_normalizer_eq le_normalizer,
-    ←comap_subtype_normalizer_eq le_rfl, comap_subtype_self_eq_top] at this,
+  simp_rw [←normalizer_eq_top, coe_subtype, ← subgroup_of_normalizer_eq le_normalizer,
+    ← subgroup_of_normalizer_eq le_rfl, subgroup_of_self] at this,
   rw [←subtype_range (P : subgroup G).normalizer.normalizer, monoid_hom.range_eq_map, ←this rfl],
   exact map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))),
 end
@@ -649,13 +651,9 @@ normalizer_eq_top.mp begin
   rcases eq_top_or_exists_le_coatom ((↑P : subgroup G).normalizer) with heq | ⟨K, hK, hNK⟩,
   { exact heq },
   { haveI := hnc _ hK,
-    have hPK := le_trans le_normalizer hNK,
-    let P' := P.subtype hPK,
-    exfalso,
-    apply hK.1,
-    calc K = (↑P : subgroup G).normalizer ⊔ K : by { rw sup_eq_right.mpr, exact hNK }
-    ... = (map K.subtype (↑P' : subgroup K)).normalizer ⊔ K : by simp [map_comap_eq_self, hPK]
-    ... = ⊤ : normalizer_sup_eq_top P' },
+    have hPK : ↑P ≤ K := le_trans le_normalizer hNK,
+    refine (hK.1 _).elim,
+    rw [← sup_of_le_right hNK, P.normalizer_sup_eq_top' hPK] },
 end
 
 lemma normal_of_normalizer_condition (hnc : normalizer_condition G)

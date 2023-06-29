@@ -9,6 +9,9 @@ import order.galois_connection
 /-!
 # Relations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bundled relations. A relation between `α` and `β` is a function `α → β → Prop`.
 Relations are also known as set-valued functions, or partial multifunctions.
 
@@ -31,7 +34,7 @@ Relations are also known as set-valued functions, or partial multifunctions.
 
 variables {α β γ : Type*}
 
-/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction --/
+/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction -/
 @[derive complete_lattice, derive inhabited]
 def rel (α β : Type*) := α → β → Prop
 

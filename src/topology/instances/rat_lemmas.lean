@@ -27,7 +27,7 @@ compactification.
 -/
 
 open set metric filter topological_space
-open_locale topological_space alexandroff
+open_locale topology alexandroff
 local notation `ℚ∞` := alexandroff ℚ
 
 namespace rat
@@ -79,7 +79,8 @@ instance : totally_disconnected_space ℚ :=
 begin
   refine ⟨λ s hsu hs x hx y hy, _⟩, clear hsu,
   by_contra' H : x ≠ y,
-  wlog hlt : x < y := H.lt_or_lt using [x y, y x],
+  wlog hlt : x < y,
+  { exact this s hs y hy x hx H.symm (H.lt_or_lt.resolve_left hlt) },
   rcases exists_irrational_btwn (rat.cast_lt.2 hlt) with ⟨z, hz, hxz, hzy⟩,
   have := hs.image coe continuous_coe_real.continuous_on,
   rw [is_preconnected_iff_ord_connected] at this,

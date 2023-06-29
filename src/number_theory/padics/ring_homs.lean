@@ -290,7 +290,7 @@ end
 
 /-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are congruent mod `p^n`.
 See `appr_spec`. -/
-noncomputable def appr : ℤ_[p] → ℕ → ℕ
+@[irreducible] noncomputable def appr : ℤ_[p] → ℕ → ℕ
 | x 0     := 0
 | x (n+1) :=
 let y := x - appr x n in
@@ -381,8 +381,6 @@ begin
     rw unit_coeff_spec hc',
     exact (dvd_pow_self (p : ℤ_[p]) hc0.ne').mul_left _, },
 end
-
-attribute [irreducible] appr
 
 /-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.appr n`. -/
 def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=

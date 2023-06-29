@@ -9,6 +9,9 @@ import linear_algebra.quotient
 /-!
 # Submodule quotients and direct sums
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some results on the quotient of a module by a direct sum of submodules,
 and the direct sum of quotients of modules by submodules.
 

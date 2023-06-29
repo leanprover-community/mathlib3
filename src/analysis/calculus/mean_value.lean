@@ -5,8 +5,9 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.local_extr
 import analysis.convex.slope
-import analysis.convex.topology
-import data.complex.is_R_or_C
+import analysis.convex.normed
+import data.is_R_or_C.basic
+import topology.instances.real_vector_space
 
 /-!
 # The mean value inequality and equalities
@@ -68,7 +69,7 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
           {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 open metric set asymptotics continuous_linear_map filter
-open_locale classical topological_space nnreal
+open_locale classical topology nnreal
 
 /-! ### One-dimensional fencing inequalities -/
 
@@ -476,7 +477,7 @@ variables {𝕜 G : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_add_co
 
 namespace convex
 
-variables  {f : E → G} {C : ℝ} {s : set E} {x y : E} {f' : E → E →L[𝕜] G} {φ : E →L[𝕜] G}
+variables  {f g : E → G} {C : ℝ} {s : set E} {x y : E} {f' g' : E → E →L[𝕜] G} {φ : E →L[𝕜] G}
 
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C`, then
 the function is `C`-Lipschitz. Version with `has_fderiv_within`. -/
@@ -636,6 +637,29 @@ theorem _root_.is_const_of_fderiv_eq_zero (hf : differentiable 𝕜 f) (hf' : �
   f x = f y :=
 convex_univ.is_const_of_fderiv_within_eq_zero hf.differentiable_on
   (λ x _, by rw fderiv_within_univ; exact hf' x) trivial trivial
+
+/-- If two functions have equal Fréchet derivatives at every point of a convex set, and are equal at
+one point in that set, then they are equal on that set. -/
+theorem eq_on_of_fderiv_within_eq (hs : convex ℝ s)
+  (hf : differentiable_on 𝕜 f s) (hg : differentiable_on 𝕜 g s) (hs' : unique_diff_on 𝕜 s)
+  (hf' : ∀ x ∈ s, fderiv_within 𝕜 f s x = fderiv_within 𝕜 g s x) (hx : x ∈ s) (hfgx : f x = g x) :
+  s.eq_on f g :=
+begin
+  intros y hy,
+  suffices : f x - g x = f y - g y,
+  { rwa [hfgx, sub_self, eq_comm, sub_eq_zero] at this },
+  refine hs.is_const_of_fderiv_within_eq_zero (hf.sub hg) _ hx hy,
+  intros z hz,
+  rw [fderiv_within_sub (hs' _ hz) (hf _ hz) (hg _ hz), sub_eq_zero, hf' _ hz],
+end
+
+theorem _root_.eq_of_fderiv_eq (hf : differentiable 𝕜 f) (hg : differentiable 𝕜 g)
+  (hf' : ∀ x, fderiv 𝕜 f x = fderiv 𝕜 g x)
+  (x : E) (hfgx : f x = g x) :
+  f = g :=
+suffices set.univ.eq_on f g, from funext $ λ x, this $ mem_univ x,
+convex_univ.eq_on_of_fderiv_within_eq hf.differentiable_on hg.differentiable_on
+  unique_diff_on_univ (λ x hx, by simpa using hf' _) (mem_univ _) hfgx
 
 end convex
 

@@ -58,7 +58,7 @@ smooth bump function, partition of unity
 universes uι uE uH uM uF
 
 open function filter finite_dimensional set
-open_locale topological_space manifold classical filter big_operators
+open_locale topology manifold classical filter big_operators
 
 noncomputable theory
 

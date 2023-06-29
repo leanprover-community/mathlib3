@@ -9,6 +9,9 @@ import measure_theory.measurable_space_def
 /-!
 # Induction principles for measurable sets, related to π-systems and λ-systems.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main statements
 
 * The main theorem of this file is Dynkin's π-λ theorem, which appears
@@ -425,7 +428,7 @@ begin
   refine ⟨λ n hn, _, h_inter_eq⟩,
   simp_rw g,
   split_ifs with hn1 hn2,
-  { refine hpi n (f1 n) (hf1m n hn1) (f2 n) (hf2m n hn2) (set.ne_empty_iff_nonempty.mp (λ h, _)),
+  { refine hpi n (f1 n) (hf1m n hn1) (f2 n) (hf2m n hn2) (set.nonempty_iff_ne_empty.2 (λ h, _)),
     rw h_inter_eq at h_nonempty,
     suffices h_empty : (⋂ i ∈ p1 ∪ p2, g i) = ∅,
       from (set.not_nonempty_iff_eq_empty.mpr h_empty) h_nonempty,

@@ -9,6 +9,8 @@ import algebra.group_with_zero.defs
 /-!
 # Lifting groups with zero along injective/surjective maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open function

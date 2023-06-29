@@ -29,7 +29,7 @@ TODO: show that `π n x` is a group when `n > 0` and abelian when `n > 1`. Show 
 
 -/
 
-open_locale unit_interval topological_space
+open_locale unit_interval topology
 
 noncomputable theory
 

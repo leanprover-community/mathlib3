@@ -25,7 +25,8 @@ open metric real function
 
 namespace euclidean_geometry
 
-variables {V P : Type*} [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
+variables {V P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
   {a b c d x y z : P} {R : ℝ}
 
 include V

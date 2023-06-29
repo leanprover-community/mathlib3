@@ -8,6 +8,9 @@ import data.polynomial.degree.definitions
 
 /-!  #  Interactions between `R[X]` and `Rᵐᵒᵖ[X]`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the basic API for "pushing through" the isomorphism
 `op_ring_equiv : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X]`.  It allows going back and forth between a polynomial ring
 over a semiring and the polynomial ring over the opposite semiring. -/
@@ -65,7 +68,7 @@ op_ring_equiv_symm_monomial 1 1
 
 lemma op_ring_equiv_symm_C_mul_X_pow (r : Rᵐᵒᵖ) (n : ℕ) :
   (op_ring_equiv R).symm (C r * X ^ n : Rᵐᵒᵖ[X]) = op (C (unop r) * X ^ n) :=
-by rw [← monomial_eq_C_mul_X, op_ring_equiv_symm_monomial, monomial_eq_C_mul_X]
+by rw [C_mul_X_pow_eq_monomial, op_ring_equiv_symm_monomial, ← C_mul_X_pow_eq_monomial]
 
 /-!  Lemmas about more global properties of polynomials and opposites. -/
 @[simp] lemma coeff_op_ring_equiv (p : R[X]ᵐᵒᵖ) (n : ℕ) :

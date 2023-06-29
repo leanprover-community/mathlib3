@@ -13,10 +13,15 @@ This file defines the space of complete types over a first-order theory.
 ## Main Definitions
 * `first_order.language.Theory.complete_type`:
   `T.complete_type α` consists of complete types over the theory `T` with variables `α`.
+* `first_order.language.Theory.type_of` is the type of a given tuple.
+* `first_order.language.Theory.realized_types`: `T.realized_types M α` is the set of
+  types in `T.complete_type α` that are realized in `M` - that is, the type of some tuple in `M`.
 
 ## Main Results
 * `first_order.language.Theory.complete_type.nonempty_iff`:
   The space `T.complete_type α` is nonempty exactly when `T` is satisfiable.
+* `first_order.language.Theory.complete_type.exists_Model_is_realized_in`: Every type is realized in
+some model.
 
 ## Implementation Notes
 * Complete types are implemented as maximal consistent theories in an expanded language.
@@ -126,7 +131,7 @@ lemma nonempty_iff : nonempty (T.complete_type α) ↔
   T.is_satisfiable :=
 begin
   rw ← is_satisfiable_on_Theory_iff (Lhom_with_constants_injective L α),
-  rw [nonempty_iff_univ_nonempty, ← ne_empty_iff_nonempty, ne.def, not_iff_comm,
+  rw [nonempty_iff_univ_nonempty, nonempty_iff_ne_empty, ne.def, not_iff_comm,
     ← union_empty ((L.Lhom_with_constants α).on_Theory T), ← set_of_subset_eq_empty_iff],
   simp,
 end
@@ -150,6 +155,54 @@ begin
 end
 
 end complete_type
+
+variables {M : Type w'} [L.Structure M] [nonempty M] [M ⊨ T] (T)
+
+/-- The set of all formulas true at a tuple in a structure forms a complete type. -/
+def type_of (v : α → M) : T.complete_type α :=
+begin
+  haveI : (constants_on α).Structure M := constants_on.Structure v,
+  exact { to_Theory := L[[α]].complete_theory M,
+    subset' := model_iff_subset_complete_theory.1 ((Lhom.on_Theory_model _ T).2 infer_instance),
+    is_maximal' := complete_theory.is_maximal _ _ },
+end
+
+namespace complete_type
+
+variables {T} {v : α → M}
+
+@[simp] lemma mem_type_of {φ : L[[α]].sentence} :
+  φ ∈ T.type_of v ↔ (formula.equiv_sentence.symm φ).realize v :=
+begin
+  letI : (constants_on α).Structure M := constants_on.Structure v,
+  exact mem_complete_theory.trans (formula.realize_equiv_sentence_symm _ _ _).symm,
+end
+
+lemma formula_mem_type_of {φ : L.formula α} :
+  formula.equiv_sentence φ ∈ T.type_of v ↔ φ.realize v :=
+by simp
+
+end complete_type
+
+variable (M)
+
+/-- A complete type `p` is realized in a particular structure when there is some
+  tuple `v` whose type is `p`. -/
+@[simp] def realized_types (α : Type w) : set (T.complete_type α) :=
+set.range (T.type_of : (α → M) → T.complete_type α)
+
+theorem exists_Model_is_realized_in (p : T.complete_type α) :
+  ∃ (M : Theory.Model.{u v (max u v w)} T),
+    p ∈ T.realized_types M α :=
+begin
+  obtain ⟨M⟩ := p.is_maximal.1,
+  refine ⟨(M.subtheory_Model p.subset).reduct (L.Lhom_with_constants α), (λ a, (L.con a : M)), _⟩,
+  refine set_like.ext (λ φ, _),
+  simp only [complete_type.mem_type_of],
+  refine (formula.realize_equiv_sentence_symm_con _ _).trans (trans (trans _
+    (p.is_maximal.is_complete.realize_sentence_iff φ M)) (p.is_maximal.mem_iff_models φ).symm),
+  refl,
+end
 
 end Theory
 end language

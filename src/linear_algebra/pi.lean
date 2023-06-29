@@ -9,6 +9,9 @@ import logic.equiv.fin
 /-!
 # Pi types of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines constructors for linear maps whose domains or codomains are pi types.
 
 It contains theorems relating these to each other, as well as to `linear_map.ker`.
@@ -39,10 +42,10 @@ variables [semiring R] [add_comm_monoid M₂] [module R M₂] [add_comm_monoid M
 
 /-- `pi` construction for linear functions. From a family of linear functions it produces a linear
 function into a family of modules. -/
-def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
+def pi (f : Π i, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Π i, φ i) :=
 { to_fun := λ c i, f i c,
-  map_add' := λ c d, funext $ λ i, (f i).map_add _ _,
-  map_smul' := λ c d, funext $ λ i, (f i).map_smul _ _ }
+  map_smul' := λ c d, funext $ λ i, (f i).map_smul _ _,
+  .. pi.add_hom (λ i, (f i).to_add_hom) }
 
 @[simp] lemma pi_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i : ι) :
   pi f c i = f i c := rfl

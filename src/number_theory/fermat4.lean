@@ -9,6 +9,9 @@ import tactic.linear_combination
 
 /-!
 # Fermat's Last Theorem for the case n = 4
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 There are no non-zero integers `a`, `b` and `c` such that `a ^ 4 + b ^ 4 = c ^ 4`.
 -/
 
@@ -203,7 +206,7 @@ begin
       (int.gcd_eq_one_iff_coprime.mp htt4)) },
   -- b is even because b ^ 2 = 2 * m * n.
   have hb2 : 2 ∣ b,
-  { apply @int.prime.dvd_pow' _ 2 _ (by norm_num : nat.prime 2),
+  { apply @int.prime.dvd_pow' _ 2 _ nat.prime_two,
     rw [ht2, mul_assoc], exact dvd_mul_right 2 (m * n) },
   cases hb2 with b' hb2',
   have hs : b' ^ 2 = m * (r * s),

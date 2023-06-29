@@ -23,8 +23,8 @@ open_locale real euclidean_geometry
 
 local notation `√` := real.sqrt
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-  [normed_add_torsor V P]
+variables {V : Type*} {P : Type*}
+  [normed_add_comm_group V] [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
 
 include V
 

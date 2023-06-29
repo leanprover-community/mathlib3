@@ -40,7 +40,7 @@ i.e., it is complete and second countable. We also prove the Gromov compactness 
 -/
 
 noncomputable theory
-open_locale classical topological_space ennreal
+open_locale classical topology ennreal
 
 local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
 
@@ -67,7 +67,7 @@ private def isometry_rel : nonempty_compacts ℓ_infty_ℝ → nonempty_compacts
 
 /-- This is indeed an equivalence relation -/
 private lemma is_equivalence_isometry_rel : equivalence isometry_rel :=
-⟨λ x, ⟨isometric.refl _⟩, λ x y ⟨e⟩, ⟨e.symm⟩, λ x y z ⟨e⟩ ⟨f⟩, ⟨e.trans f⟩⟩
+⟨λ x, ⟨isometry_equiv.refl _⟩, λ x y ⟨e⟩, ⟨e.symm⟩, λ x y z ⟨e⟩ ⟨f⟩, ⟨e.trans f⟩⟩
 
 /-- setoid instance identifying two isometric nonempty compact subspaces of ℓ^∞(ℝ) -/
 instance isometry_rel.setoid : setoid (nonempty_compacts ℓ_infty_ℝ) :=
@@ -93,13 +93,13 @@ begin
   simp only [to_GH_space, quotient.eq],
   refine ⟨λ h, _, _⟩,
   { rcases setoid.symm h with ⟨e⟩,
-    have f := (Kuratowski_embedding.isometry X).isometric_on_range.trans e,
+    have f := (Kuratowski_embedding.isometry X).isometry_equiv_on_range.trans e,
     use [λ x, f x, isometry_subtype_coe.comp f.isometry],
     rw [range_comp, f.range_eq_univ, set.image_univ, subtype.range_coe],
     refl },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
-    have f := ((Kuratowski_embedding.isometry X).isometric_on_range.symm.trans
-               isomΨ.isometric_on_range).symm,
+    have f := ((Kuratowski_embedding.isometry X).isometry_equiv_on_range.symm.trans
+               isomΨ.isometry_equiv_on_range).symm,
     have E : (range Ψ ≃ᵢ nonempty_compacts.Kuratowski_embedding X) =
         (p ≃ᵢ range (Kuratowski_embedding X)),
       by { dunfold nonempty_compacts.Kuratowski_embedding, rw [rangeΨ]; refl },
@@ -127,7 +127,7 @@ end
 
 /-- Two nonempty compact spaces have the same image in `GH_space` if and only if they are
 isometric. -/
-lemma to_GH_space_eq_to_GH_space_iff_isometric {X : Type u} [metric_space X] [compact_space X]
+lemma to_GH_space_eq_to_GH_space_iff_isometry_equiv {X : Type u} [metric_space X] [compact_space X]
   [nonempty X] {Y : Type v} [metric_space Y] [compact_space Y] [nonempty Y] :
   to_GH_space X = to_GH_space Y ↔ nonempty (X ≃ᵢ Y) :=
 ⟨begin
@@ -137,15 +137,15 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {X : Type u} [metric_space X] [co
              (nonempty_compacts.Kuratowski_embedding Y))
           = ((range (Kuratowski_embedding X)) ≃ᵢ (range (Kuratowski_embedding Y))),
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
-  have f := (Kuratowski_embedding.isometry X).isometric_on_range,
-  have g := (Kuratowski_embedding.isometry Y).isometric_on_range.symm,
+  have f := (Kuratowski_embedding.isometry X).isometry_equiv_on_range,
+  have g := (Kuratowski_embedding.isometry Y).isometry_equiv_on_range.symm,
   exact ⟨f.trans $ (cast I e).trans g⟩
 end,
 begin
   rintro ⟨e⟩,
   simp only [to_GH_space, quotient.eq],
-  have f := (Kuratowski_embedding.isometry X).isometric_on_range.symm,
-  have g := (Kuratowski_embedding.isometry Y).isometric_on_range,
+  have f := (Kuratowski_embedding.isometry X).isometry_equiv_on_range.symm,
+  have g := (Kuratowski_embedding.isometry Y).isometry_equiv_on_range,
   have I : ((range (Kuratowski_embedding X)) ≃ᵢ (range (Kuratowski_embedding Y))) =
     ((nonempty_compacts.Kuratowski_embedding X) ≃ᵢ
       (nonempty_compacts.Kuratowski_embedding Y)),
@@ -408,9 +408,9 @@ instance : metric_space GH_space :=
       { exact Hausdorff_edist_ne_top_of_nonempty_of_bounded (range_nonempty _)
           (range_nonempty _) hΦ.bounded hΨ.bounded } },
     have T : ((range Ψ) ≃ᵢ y.rep) = ((range Φ) ≃ᵢ y.rep), by rw this,
-    have eΨ := cast T Ψisom.isometric_on_range.symm,
-    have e := Φisom.isometric_on_range.trans eΨ,
-    rw [← x.to_GH_space_rep, ← y.to_GH_space_rep, to_GH_space_eq_to_GH_space_iff_isometric],
+    have eΨ := cast T Ψisom.isometry_equiv_on_range.symm,
+    have e := Φisom.isometry_equiv_on_range.trans eΨ,
+    rw [← x.to_GH_space_rep, ← y.to_GH_space_rep, to_GH_space_eq_to_GH_space_iff_isometry_equiv],
     exact ⟨e⟩
   end,
   dist_triangle := λ x y z, begin
@@ -429,7 +429,6 @@ instance : metric_space GH_space :=
     let Ψ : Y → γ2 := optimal_GH_injl Y Z,
     have hΨ : isometry Ψ := isometry_optimal_GH_injl Y Z,
     let γ := glue_space hΦ hΨ,
-    letI : metric_space γ := metric.metric_space_glue_space hΦ hΨ,
     have Comm : (to_glue_l hΦ hΨ) ∘ (optimal_GH_injr X Y) =
       (to_glue_r hΦ hΨ) ∘ (optimal_GH_injl Y Z) := to_glue_commute hΦ hΨ,
     calc dist x z = dist (to_GH_space X) (to_GH_space Z) :
@@ -918,6 +917,8 @@ structure aux_gluing_struct (A : Type) [metric_space A] : Type 1 :=
 (embed  : A → space)
 (isom   : isometry embed)
 
+local attribute [instance] aux_gluing_struct.metric
+
 instance (A : Type) [metric_space A] : inhabited (aux_gluing_struct A) :=
 ⟨{ space := A,
   metric := by apply_instance,
@@ -927,17 +928,13 @@ instance (A : Type) [metric_space A] : inhabited (aux_gluing_struct A) :=
 /-- Auxiliary sequence of metric spaces, containing copies of `X 0`, ..., `X n`, where each
 `X i` is glued to `X (i+1)` in an optimal way. The space at step `n+1` is obtained from the space
 at step `n` by adding `X (n+1)`, glued in an optimal way to the `X n` already sitting there. -/
-def aux_gluing (n : ℕ) : aux_gluing_struct (X n) := nat.rec_on n
-  { space  := X 0,
-    metric := by apply_instance,
-    embed  := id,
-    isom   := λ x y, rfl }
-(λ n Y, by letI : metric_space Y.space := Y.metric; exact
+def aux_gluing (n : ℕ) : aux_gluing_struct (X n) :=
+nat.rec_on n default $ λ n Y,
   { space  := glue_space Y.isom (isometry_optimal_GH_injl (X n) (X (n+1))),
     metric := by apply_instance,
     embed  := (to_glue_r Y.isom (isometry_optimal_GH_injl (X n) (X (n+1))))
               ∘ (optimal_GH_injr (X n) (X (n+1))),
-    isom   := (to_glue_r_isometry _ _).comp (isometry_optimal_GH_injr (X n) (X (n+1))) })
+    isom   := (to_glue_r_isometry _ _).comp (isometry_optimal_GH_injr (X n) (X (n+1))) }
 
 /-- The Gromov-Hausdorff space is complete. -/
 instance : complete_space GH_space :=
@@ -949,20 +946,16 @@ begin
   let X := λ n, (u n).rep,
   -- glue them together successively in an optimal way, getting a sequence of metric spaces `Y n`
   let Y := aux_gluing X,
-  letI : ∀ n, metric_space (Y n).space := λ n, (Y n).metric,
+  -- this equality is true by definition but Lean unfolds some defs in the wrong order
   have E : ∀ n : ℕ,
-    glue_space (Y n).isom (isometry_optimal_GH_injl (X n) (X n.succ)) = (Y n.succ).space :=
-    λ n, by { simp only [Y, aux_gluing], refl },
+    glue_space (Y n).isom (isometry_optimal_GH_injl (X n) (X (n + 1))) = (Y (n + 1)).space :=
+    λ n, by { dsimp only [Y, aux_gluing], refl },
   let c := λ n, cast (E n),
-  have ic : ∀ n, isometry (c n) := λ n x y, rfl,
+  have ic : ∀ n, isometry (c n) := λ n x y, by { dsimp only [Y, aux_gluing], exact rfl },
   -- there is a canonical embedding of `Y n` in `Y (n+1)`, by construction
-  let f : Πn, (Y n).space → (Y n.succ).space :=
-    λ n, (c n) ∘ (to_glue_l (aux_gluing X n).isom (isometry_optimal_GH_injl (X n) (X n.succ))),
-  have I : ∀ n, isometry (f n),
-  { assume n,
-    apply isometry.comp,
-    { assume x y, refl },
-    { apply to_glue_l_isometry } },
+  let f : Π n, (Y n).space → (Y (n + 1)).space :=
+    λ n, c n ∘ to_glue_l (Y n).isom (isometry_optimal_GH_injl (X n) (X n.succ)),
+  have I : ∀ n, isometry (f n) := λ n, (ic n).comp (to_glue_l_isometry _ _),
   -- consider the inductive limit `Z0` of the `Y n`, and then its completion `Z`
   let Z0 := metric.inductive_limit I,
   let Z := uniform_space.completion Z0,
@@ -1016,9 +1009,9 @@ begin
   have : ∀ n, (X3 n).to_GH_space = u n,
   { assume n,
     rw [nonempty_compacts.to_GH_space, ← (u n).to_GH_space_rep,
-        to_GH_space_eq_to_GH_space_iff_isometric],
+        to_GH_space_eq_to_GH_space_iff_isometry_equiv],
     constructor,
-    convert (isom n).isometric_on_range.symm, },
+    convert (isom n).isometry_equiv_on_range.symm, },
   -- Finally, we have proved the convergence of `u n`
   exact ⟨L.to_GH_space, by simpa only [this] using M⟩
 end

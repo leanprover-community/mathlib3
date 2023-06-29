@@ -26,21 +26,11 @@ variables {A : Type*}
 
 open complex
 
-lemma is_self_adjoint.exp_i_smul_unitary {a : A} (ha : is_self_adjoint a) :
-  exp ℂ (I • a) ∈ unitary A :=
-begin
-  rw [unitary.mem_iff, star_exp],
-  simp only [star_smul, is_R_or_C.star_def, self_adjoint.mem_iff.mp ha, conj_I, neg_smul],
-  rw ←@exp_add_of_commute ℂ A _ _ _ _ _ _ ((commute.refl (I • a)).neg_left),
-  rw ←@exp_add_of_commute ℂ A _ _ _ _ _ _ ((commute.refl (I • a)).neg_right),
-  simpa only [add_right_neg, add_left_neg, and_self] using (exp_zero : exp ℂ (0 : A) = 1),
-end
-
 /-- The map from the selfadjoint real subspace to the unitary group. This map only makes sense
 over ℂ. -/
 @[simps]
 noncomputable def self_adjoint.exp_unitary (a : self_adjoint A) : unitary A :=
-⟨exp ℂ (I • a), a.prop.exp_i_smul_unitary⟩
+⟨exp ℂ (I • a), exp_mem_unitary_of_mem_skew_adjoint _ (a.prop.smul_mem_skew_adjoint conj_I)⟩
 
 open self_adjoint
 

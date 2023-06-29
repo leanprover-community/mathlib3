@@ -68,7 +68,7 @@ begin
   calc (‖c‖₊ : ℝ≥0∞) * e x = ‖c‖₊ * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
   ... ≤ ‖c‖₊ * (‖c⁻¹‖₊ * e (c • x)) : _
   ... = e (c • x) : _,
-  { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
+  { exact mul_le_mul_left' (e.map_smul_le' _ _) _ },
   { rw [← mul_assoc, nnnorm_inv, ennreal.coe_inv,
      ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simp [hc] }
 end

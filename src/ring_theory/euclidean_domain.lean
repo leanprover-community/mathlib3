@@ -11,6 +11,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Lemmas about Euclidean domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Various about Euclidean domains are proved; all of them seem to be true
 more generally for principal ideal domains, so these lemmas should
 probably be reproved in more generality and this file perhaps removed?

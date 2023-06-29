@@ -9,6 +9,9 @@ import topology.sets.opens
 /-!
 # Local homeomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homeomorphisms between open subsets of topological spaces. An element `e` of
 `local_homeomorph α β` is an extension of `local_equiv α β`, i.e., it is a pair of functions
 `e.to_fun` and `e.inv_fun`, inverse of each other on the sets `e.source` and `e.target`.
@@ -43,7 +46,7 @@ then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or
 -/
 
 open function set filter topological_space (second_countable_topology)
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]

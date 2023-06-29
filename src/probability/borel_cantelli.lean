@@ -5,7 +5,7 @@ Authors: Kexing Ying
 -/
 import probability.martingale.borel_cantelli
 import probability.conditional_expectation
-import probability.independence
+import probability.independence.basic
 
 /-!
 
@@ -22,7 +22,7 @@ filtration.
 
 -/
 
-open_locale measure_theory probability_theory ennreal big_operators topological_space
+open_locale measure_theory probability_theory ennreal big_operators topology
 
 open measure_theory probability_theory measurable_space topological_space
 
@@ -46,7 +46,7 @@ begin
   exact indep_supr_of_disjoint (λ k, (hf k).measurable.comap_le) hfi (by simpa),
 end
 
-lemma Indep_fun.condexp_natrual_ae_eq_of_lt
+lemma Indep_fun.condexp_natural_ae_eq_of_lt
   [second_countable_topology β] [complete_space β] [normed_space ℝ β]
   (hf : ∀ i, strongly_measurable (f i)) (hfi : Indep_fun (λ i, mβ) f μ) (hij : i < j) :
   μ[f j | filtration.natural f hf i] =ᵐ[μ] λ ω, μ[f j] :=
@@ -59,7 +59,7 @@ lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
   μ[(s j).indicator (λ ω, 1 : Ω → ℝ) | filtration_of_set hsm i] =ᵐ[μ] λ ω, (μ (s j)).to_real :=
 begin
   rw filtration.filtration_of_set_eq_natural hsm,
-  refine (Indep_fun.condexp_natrual_ae_eq_of_lt _ hs.Indep_fun_indicator hij).trans _,
+  refine (Indep_fun.condexp_natural_ae_eq_of_lt _ hs.Indep_fun_indicator hij).trans _,
   { simp only [integral_indicator_const _ (hsm _), algebra.id.smul_eq_mul, mul_one] },
   { apply_instance }
 end

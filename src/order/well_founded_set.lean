@@ -11,6 +11,9 @@ import tactic.tfae
 /-!
 # Well-founded sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A well-founded subset of an ordered type is one on which the relation `<` is well-founded.
 
 ## Main Definitions
@@ -251,7 +254,7 @@ lemma _root_.is_antichain.finite_of_partially_well_ordered_on (ha : is_antichain
   (hp : s.partially_well_ordered_on r) :
   s.finite :=
 begin
-  refine finite_or_infinite.resolve_right (λ hi, _),
+  refine not_infinite.1 (λ hi, _),
   obtain ⟨m, n, hmn, h⟩ := hp (λ n, hi.nat_embedding _ n) (λ n, (hi.nat_embedding _ n).2),
   exact hmn.ne ((hi.nat_embedding _).injective $ subtype.val_injective $
     ha.eq (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),

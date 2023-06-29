@@ -1,4 +1,4 @@
-from mathlibtools.file_status import PortStatus
+from mathlibtools.file_status import PortStatus, FileStatus
 from pathlib import Path
 
 import re
@@ -16,63 +16,111 @@ src_path = Path(__file__).parent.parent / 'src'
 def make_comment(fstatus):
     return textwrap.dedent(f"""\
     > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-    > https://github.com/leanprover-community/mathlib4/pull/{fstatus.mathlib4_pr}
     > Any changes to this file require a corresponding PR to mathlib4.""")
 
-def replace_range(src, pos, end_pos, new):
+def replace_range(src: str, pos: int, end_pos: int, new: str) -> str:
     return src[:pos] + new + src[end_pos:]
 
+def find_module_comment(s: str) -> Optional[re.Match]:
+    """ find a doc-comment, even if it contains nested comments """
+    start_marker = re.compile('/-!').search(s)
+    if not start_marker:
+        return None
 
-def add_port_status(fcontent, fstatus):
-    module_comment = re.search('/-!\s*(.*?)-/', fcontent, re.MULTILINE | re.DOTALL)
-    assert module_comment
+    depth = 1
+    ind = start_marker.end()
+    while depth > 0:
+        marker = re.compile(r'(/-)|(-/)').search(s, pos=ind)
+        if not marker:
+            raise ValueError('Could not find end of comment')
+        ind = marker.end()
+        if marker.group(1):
+            depth += 1
+        else:
+            depth -= 1
+
+    # Create a new match with sensible captures
+    m = re.compile('/-!(.*)-/', re.MULTILINE | re.DOTALL).fullmatch(s, start_marker.start(), marker.end())
+    assert m, s[start_marker.start():marker.end()]
+    return m
+
+
+class NoModuleDocstringError(ValueError): pass
+
+def add_port_status(fcontent: str, fstatus: FileStatus) -> str:
+    module_comment = find_module_comment(fcontent)
+    if not module_comment:
+        raise NoModuleDocstringError()
+
     module_comment_start = module_comment.start(1)
     module_comment_end = module_comment.end(1)
+    module_comment = module_comment.group(1)
 
-    comment_re = re.compile(
-        r"^((?:> )?)THIS FILE IS SYNCHRONIZED WITH MATHLIB4\."
-        r"(?:\n\1[^\n]+)*\n*",
+    # replace any markers that appear at the start of the docstring
+    module_comment = re.compile(
+        r"\A\n((?:> )?)THIS FILE IS SYNCHRONIZED WITH MATHLIB4\."
+        r"(?:\n\1[^\n]+)*\n?",
         re.MULTILINE
-    )
-    header_re = re.compile('^#[^\n]*\n?', re.MULTILINE)
+    ).sub('', module_comment)
 
-    existing_label = comment_re.search(fcontent, module_comment_start, module_comment_end)
-    existing_header = header_re.search(fcontent, module_comment_start, module_comment_end)
+    # markers which appear with two blank lines before
+    module_comment = re.compile(
+        r"\n{,2}((?:> )?)THIS FILE IS SYNCHRONIZED WITH MATHLIB4\."
+        r"(?:\n\1[^\n]+)*",
+        re.MULTILINE
+    ).sub('', module_comment)
 
-    if not existing_label:
-        rest = fcontent[existing_header.end():module_comment_end]
-        trailing_whitespace = "\n" if rest.strip() else ""
-        fcontent = replace_range(fcontent, existing_header.end(), existing_header.end(),
-            "\n" + make_comment(f_status) + trailing_whitespace)
+    # find the header
+    header_re = re.compile('(#[^\n]*)', re.MULTILINE)
+    existing_header = header_re.search(module_comment)
+    if existing_header:
+        # insert a comment below the header
+        module_comment = replace_range(module_comment, existing_header.end(1), existing_header.end(1),
+            "\n\n" + make_comment(f_status))
     else:
-        if existing_label.end() <= existing_header.start():
-            rest = fcontent[existing_header.end():module_comment_end]
-            trailing_whitespace = "\n" if rest.strip() else ""
-            fcontent = replace_range(fcontent, existing_header.end(), existing_header.end(),
-                "\n" + make_comment(f_status) + trailing_whitespace)
-            fcontent = replace_range(fcontent, existing_label.start(), existing_label.end(), "")
-        elif existing_header.end() <= existing_label.start():
-            rest = fcontent[existing_label.end():module_comment_end]
-            trailing_whitespace = "\n" if rest.strip() else ""
-            fcontent = replace_range(fcontent, existing_label.start(), existing_label.end(), "")
-            fcontent = replace_range(fcontent, existing_header.end(), existing_header.end(),
-                "\n" + make_comment(f_status) + trailing_whitespace)
-        else:
-            assert False
+        # insert the comment at the top
+        module_comment = "\n" + make_comment(f_status) + "\n" + module_comment
+
+    # and insert the new module docstring
+    fcontent = replace_range(fcontent, module_comment_start, module_comment_end, module_comment)
+
     return fcontent
 
-def fname_for(import_path):
+def fname_for(import_path: str) -> Path:
     return src_path / Path(*import_path.split('.')).with_suffix('.lean')
 
 
+missing_docstrings = []
+missing_files = []
 for iname, f_status in status.file_statuses.items():
     if f_status.ported:
         fname = fname_for(iname)
-        with open(fname) as f:
-            fcontent = f.read()
-        new_fcontent = add_port_status(fcontent, f_status)
+        try:
+            with open(fname) as f:
+                fcontent = f.read()
+        except FileNotFoundError:
+            missing_files.append((iname, fname))
+            continue
+        try:
+            new_fcontent = add_port_status(fcontent, f_status)
+        except NoModuleDocstringError:
+            missing_docstrings.append((iname, fname))
+            continue
         if new_fcontent == fcontent:
             continue
-        print(f'* `{iname}`: https://github.com/leanprover-community/mathlib4/pull/{f_status.mathlib4_pr}')
+        print(f'* `{iname}`')
         with open(fname, 'w') as f:
             f.write(new_fcontent)
+if missing_docstrings:
+    print('\n---')
+    print('The following files have no module docstring, so I have not added a message in this PR')
+    for iname, fname in missing_docstrings:
+        print(f'* [`{iname}`](https://github.com/leanprover-community/mathlib/blob/master/{fname})')
+    print('\nPlease make a PR to add a module docstring (for Lean3 and Lean4!), then I will add the freeze comment next time.')
+if missing_files:
+    print('\n---')
+    print('The following files no longer exist in Lean 3\' mathlib, so I have not added a message in this PR')
+    for iname, fname in missing_files:
+        f_status = status.file_statuses[iname]
+        print(f'* [`{iname}`](https://github.com/leanprover-community/mathlib/blob/{f_status.mathlib3_hash}/{fname})')
+    print('\nIn future we should find where they moved to, and check that the files are still in sync.')

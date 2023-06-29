@@ -218,20 +218,10 @@ lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).
 (ker_transfer_sylow_is_complement' P hP).index_eq_card ▸ not_dvd_index_sylow P $
   mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite
 
-lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
-(ker_transfer_sylow_is_complement' P hP).disjoint
-
-lemma ker_transfer_sylow_disjoint' (Q : sylow p G) : disjoint (transfer_sylow P hP).ker ↑Q :=
-begin
-  obtain ⟨g, hg⟩ := exists_smul_eq G Q P,
-  rw [disjoint_iff, ←smul_left_cancel_iff (mul_aut.conj g), smul_bot, smul_inf, smul_normal,
-    ←sylow.coe_subgroup_smul, hg, ←disjoint_iff],
-  exact ker_transfer_sylow_disjoint P hP,
-end
-
-lemma ker_transfer_sylow_disjoint'' (Q : subgroup G) (hQ : is_p_group p Q) :
+lemma ker_transfer_sylow_disjoint (Q : subgroup G) (hQ : is_p_group p Q) :
   disjoint (transfer_sylow P hP).ker Q :=
-let ⟨R, hR⟩ := hQ.exists_le_sylow in (ker_transfer_sylow_disjoint' P hP R).mono_right hR
+disjoint_iff.mpr $ card_eq_one.mp $ (hQ.to_le inf_le_right).card_eq_or_dvd.resolve_right $
+  λ h, not_dvd_card_ker_transfer_sylow P hP $ h.trans $ nat_card_dvd_of_le _ _ inf_le_left
 
 end burnside_transfer
 

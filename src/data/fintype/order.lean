@@ -9,6 +9,9 @@ import data.finset.order
 /-!
 # Order structures on finite types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides order instances on fintypes.
 
 ## Computable instances

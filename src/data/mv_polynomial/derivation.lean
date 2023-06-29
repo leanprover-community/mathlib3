@@ -110,7 +110,7 @@ def mk_derivation (f : σ → A) : derivation R (mv_polynomial σ R) A :=
   leibniz' := (leibniz_iff_X (mk_derivationₗ R f) (mk_derivationₗ_C _ 1)).2 $ λ s i,
     begin
       simp only [mk_derivationₗ_monomial, X, monomial_mul, one_smul, one_mul],
-      rw [finsupp.sum_add_index];
+      rw [finsupp.sum_add_index'];
         [skip, by simp, by { intros, simp only [nat.cast_add, (monomial _).map_add, add_smul] }],
       rw [finsupp.sum_single_index, finsupp.sum_single_index]; [skip, by simp, by simp],
       rw [tsub_self, add_tsub_cancel_right, nat.cast_one, ← C_apply, C_1, one_smul,

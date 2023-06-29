@@ -7,8 +7,8 @@ Authors: Adam Topaz
 import category_theory.monad.types
 import category_theory.monad.limits
 import category_theory.equivalence
-import topology.category.CompHaus.default
-import topology.category.Profinite.default
+import topology.category.CompHaus.basic
+import topology.category.Profinite.basic
 import data.set.constructions
 
 /-!
@@ -72,7 +72,7 @@ We also add wrappers around structures which already exist. Here are the main on
 
 universe u
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
-open_locale classical topological_space
+open_locale classical topology
 
 local notation `β` := of_type_monad ultrafilter
 

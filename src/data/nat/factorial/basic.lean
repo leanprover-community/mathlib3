@@ -9,6 +9,9 @@ import data.nat.pow
 /-!
 # Factorial and variants
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the factorial, along with the ascending and descending variants.
 
 ## Main declarations

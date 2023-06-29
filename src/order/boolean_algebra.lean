@@ -8,6 +8,9 @@ import order.heyting.basic
 /-!
 # (Generalized) Boolean algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Boolean algebra is a bounded distributive lattice with a complement operator. Boolean algebras
 generalize the (classical) logic of propositions and the lattice of subsets of a set.
 
@@ -172,6 +175,13 @@ theorem disjoint_sdiff_self_left : disjoint (y \ x) x :=
 disjoint_iff_inf_le.mpr inf_sdiff_self_left.le
 theorem disjoint_sdiff_self_right : disjoint x (y \ x) :=
 disjoint_iff_inf_le.mpr inf_sdiff_self_right.le
+
+lemma le_sdiff : x ≤ y \ z ↔ x ≤ y ∧ disjoint x z :=
+⟨λ h, ⟨h.trans sdiff_le, disjoint_sdiff_self_left.mono_left h⟩, λ h,
+  by { rw ←h.2.sdiff_eq_left, exact sdiff_le_sdiff_right h.1 }⟩
+
+@[simp] lemma sdiff_eq_left : x \ y = x ↔ disjoint x y :=
+⟨λ h, disjoint_sdiff_self_left.mono_left h.ge, disjoint.sdiff_eq_left⟩
 
 /- TODO: we could make an alternative constructor for `generalized_boolean_algebra` using
 `disjoint x (y \ x)` and `x ⊔ (y \ x) = y` as axioms. -/
@@ -375,6 +385,9 @@ by rw [sdiff_inf, sdiff_eq_bot_iff.2 inf_le_left, bot_sup_eq, inf_sdiff_assoc]
 lemma inf_sdiff_distrib_right (a b c : α) : a \ b ⊓ c = (a ⊓ c) \ (b ⊓ c) :=
 by simp_rw [@inf_comm _ _ _ c, inf_sdiff_distrib_left]
 
+lemma disjoint_sdiff_comm : disjoint (x \ z) y ↔ disjoint x (y \ z) :=
+by simp_rw [disjoint_iff, inf_sdiff_right_comm, inf_sdiff_assoc]
+
 lemma sup_eq_sdiff_sup_sdiff_sup_inf : x ⊔ y = (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) :=
 eq.symm $
   calc (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) =
@@ -558,6 +571,12 @@ by rw [←le_compl_iff_disjoint_left, compl_compl]
 
 lemma disjoint_compl_right_iff : disjoint x yᶜ ↔ x ≤ y :=
 by rw [←le_compl_iff_disjoint_right, compl_compl]
+
+lemma codisjoint_himp_self_left : codisjoint (x ⇨ y) x := @disjoint_sdiff_self_left αᵒᵈ _ _ _
+lemma codisjoint_himp_self_right : codisjoint x (x ⇨ y) := @disjoint_sdiff_self_right αᵒᵈ _ _ _
+
+lemma himp_le : x ⇨ y ≤ z ↔ y ≤ z ∧ codisjoint x z :=
+(@le_sdiff αᵒᵈ _ _ _ _).trans $ and_congr_right' codisjoint.comm
 
 end boolean_algebra
 

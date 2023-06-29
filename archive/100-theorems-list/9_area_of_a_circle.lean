@@ -3,9 +3,10 @@ Copyright (c) 2021 James Arthur, Benjamin Davidson, Andrew Souther. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
-import measure_theory.integral.interval_integral
 import analysis.special_functions.sqrt
 import analysis.special_functions.trigonometric.inverse_deriv
+import measure_theory.integral.fund_thm_calculus
+import measure_theory.measure.lebesgue.integral
 
 /-!
 # Freek № 9: The Area of a Circle

@@ -6,7 +6,7 @@ Authors: Alexander Bentkamp
 
 import algebra.algebra.spectrum
 import order.hom.basic
-import linear_algebra.free_module.finite.basic
+import linear_algebra.general_linear_group
 
 /-!
 # Eigenvectors and eigenvalues
@@ -540,7 +540,7 @@ begin
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,
-    simp only [finrank_eq_zero.1 (eq.trans finrank_top h_dim), bot_le] },
+    simp only [finrank_eq_zero.1 (eq.trans (finrank_top _ _) h_dim), bot_le] },
   -- Otherwise the vector space is nontrivial.
   { haveI : nontrivial V := finrank_pos_iff.1 (by { rw h_dim, apply nat.zero_lt_succ }),
     -- Hence, `f` has an eigenvalue `μ₀`.

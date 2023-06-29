@@ -10,6 +10,9 @@ import category_theory.adjunction.reflective
 /-!
 # Monomorphisms over a fixed object
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 As preparation for defining `subobject X`, we set up the theory for
 `mono_over X := {f : over X // mono f.hom}`.
 

@@ -6,7 +6,7 @@ Authors: Kenny Lau, Chris Hughes
 import data.finset.order
 import algebra.direct_sum.module
 import ring_theory.free_comm_ring
-import ring_theory.ideal.operations
+import ring_theory.ideal.quotient
 /-!
 # Direct limit of modules, abelian groups, rings, and fields.
 

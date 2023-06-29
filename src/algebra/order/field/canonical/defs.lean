@@ -10,6 +10,9 @@ import algebra.order.with_zero
 /-!
 # Canonically ordered semifields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 set_option old_structure_cmd true

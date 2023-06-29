@@ -9,6 +9,9 @@ import topology.continuous_on
 /-!
 # Bases of topologies. Countability axioms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological basis on a topological space `t` is a collection of sets,
 such that all open sets can be generated as unions of these sets, without the need to take
 finite intersections of them. This file introduces a framework for dealing with these collections,
@@ -46,7 +49,7 @@ More fine grained instances for `first_countable_topology`, `separable_space`, `
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 noncomputable theory
 
 namespace topological_space
@@ -71,7 +74,7 @@ begin
     obtain ⟨t₃, h₃, hs⟩ := h.exists_subset_inter _ h₁ _ h₂ x ⟨hx₁, hx₂⟩,
     exact ⟨t₃, or.inr h₃, hs⟩ },
   { rw h.eq_generate_from,
-    refine le_antisymm (le_generate_from $ λ t, _) (generate_from_mono $ subset_insert ∅ s),
+    refine le_antisymm (le_generate_from $ λ t, _) (generate_from_anti $ subset_insert ∅ s),
     rintro (rfl|ht), { convert is_open_empty }, { exact generate_open.basic t ht } },
 end
 
@@ -81,9 +84,9 @@ begin
   refine ⟨_, by rw [sUnion_diff_singleton_empty, h.sUnion_eq], _⟩,
   { rintro t₁ ⟨h₁, -⟩ t₂ ⟨h₂, -⟩ x hx,
     obtain ⟨t₃, h₃, hs⟩ := h.exists_subset_inter _ h₁ _ h₂ x hx,
-    exact ⟨t₃, ⟨h₃, ne_empty_iff_nonempty.2 ⟨x, hs.1⟩⟩, hs⟩ },
+    exact ⟨t₃, ⟨h₃, nonempty.ne_empty ⟨x, hs.1⟩⟩, hs⟩ },
   { rw h.eq_generate_from,
-    refine le_antisymm (generate_from_mono $ diff_subset s _) (le_generate_from $ λ t ht, _),
+    refine le_antisymm (generate_from_anti $ diff_subset s _) (le_generate_from $ λ t ht, _),
     obtain rfl|he := eq_or_ne t ∅, { convert is_open_empty },
     exact generate_open.basic t ⟨ht, he⟩ },
 end
@@ -93,7 +96,7 @@ subcollections of `s` form a topological basis. -/
 lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
   is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | f.finite ∧ f ⊆ s}) :=
 begin
-  refine ⟨_, _, hs.trans (le_antisymm (le_generate_from _) $ generate_from_mono $ λ t ht, _)⟩,
+  refine ⟨_, _, hs.trans (le_antisymm (le_generate_from _) $ generate_from_anti $ λ t ht, _)⟩,
   { rintro _ ⟨t₁, ⟨hft₁, ht₁b⟩, rfl⟩ _ ⟨t₂, ⟨hft₂, ht₂b⟩, rfl⟩ x h,
     exact ⟨_, ⟨_, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b⟩, sInter_union t₁ t₂⟩, h, subset.rfl⟩ },
   { rw [sUnion_image, Union₂_eq_univ_iff],
@@ -624,7 +627,7 @@ lemma is_open_of_mem_countable_basis [second_countable_topology α] {s : set α}
 
 lemma nonempty_of_mem_countable_basis [second_countable_topology α] {s : set α}
   (hs : s ∈ countable_basis α) : s.nonempty :=
-ne_empty_iff_nonempty.1 $ ne_of_mem_of_not_mem hs $ empty_nmem_countable_basis α
+nonempty_iff_ne_empty.2 $ ne_of_mem_of_not_mem hs $ empty_nmem_countable_basis α
 
 variable (α)
 

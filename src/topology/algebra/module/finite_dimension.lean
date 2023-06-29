@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Anatole Dedecker
 -/
 import analysis.locally_convex.balanced_core_hull
+import linear_algebra.free_module.finite.matrix
+import topology.algebra.module.simple
 import topology.algebra.module.determinant
 
 /-!
 # Finite dimensional topological vector spaces over complete fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Let `𝕜` be a complete nontrivially normed field, and `E` a topological vector space (TVS) over
 `𝕜` (i.e we have `[add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]`
@@ -45,29 +50,6 @@ noncomputable theory
 
 open set finite_dimensional topological_space filter
 open_locale big_operators
-
-section semiring
-
-variables {ι 𝕜 F : Type*} [finite ι] [semiring 𝕜] [topological_space 𝕜]
-  [add_comm_monoid F] [module 𝕜 F] [topological_space F]
-  [has_continuous_add F] [has_continuous_smul 𝕜 F]
-
-/-- A linear map on `ι → 𝕜` (where `ι` is finite) is continuous -/
-lemma linear_map.continuous_on_pi (f : (ι → 𝕜) →ₗ[𝕜] F) : continuous f :=
-begin
-  casesI nonempty_fintype ι,
-  classical,
-  -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
-  -- function.
-  have : (f : (ι → 𝕜) → F) =
-         (λx, ∑ i : ι, x i • (f (λ j, if i = j then 1 else 0))),
-    by { ext x, exact f.pi_apply_eq_sum_univ x },
-  rw this,
-  refine continuous_finset_sum _ (λi hi, _),
-  exact (continuous_apply i).smul continuous_const
-end
-
-end semiring
 
 section field
 
@@ -168,7 +150,7 @@ begin
     have hs : function.surjective (l.ker.liftq l (le_refl _)),
     { rw [← linear_map.range_eq_top, submodule.range_liftq],
       exact eq_top_of_finrank_eq ((finrank_self 𝕜).symm ▸ this) },
-    let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) hi hs,
+    let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) ⟨hi, hs⟩,
     have hlφ : (l : E → 𝕜) = φ ∘ l.ker.mkq,
       by ext; refl,
     -- Since the quotient map `E →ₗ[𝕜] (E ⧸ l.ker)` is continuous, the continuity of `l` will follow
@@ -347,11 +329,16 @@ begin
   { simp only [map_sub, map_add, ← comp_apply f g, hg, id_apply, sub_add_cancel] }
 end
 
+instance can_lift_continuous_linear_map : can_lift (E →ₗ[𝕜] F) (E →L[𝕜] F) coe (λ _, true) :=
+⟨λ f _, ⟨f.to_continuous_linear_map, rfl⟩⟩
+
 end linear_map
 
-namespace linear_equiv
+section
 
 variables [t2_space E] [t2_space F] [finite_dimensional 𝕜 E]
+
+namespace linear_equiv
 
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
 space. -/
@@ -383,7 +370,70 @@ by { ext x, refl }
   e.to_continuous_linear_equiv.symm.to_linear_equiv = e.symm :=
 by { ext x, refl }
 
+instance can_lift_continuous_linear_equiv :
+  can_lift (E ≃ₗ[𝕜] F) (E ≃L[𝕜] F) continuous_linear_equiv.to_linear_equiv (λ _, true) :=
+⟨λ f _, ⟨_, f.to_linear_equiv_to_continuous_linear_equiv⟩⟩
+
 end linear_equiv
+
+variable [finite_dimensional 𝕜 F]
+
+/-- Two finite-dimensional topological vector spaces over a complete normed field are continuously
+linearly equivalent if they have the same (finite) dimension. -/
+theorem finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq
+  (cond : finrank 𝕜 E = finrank 𝕜 F) : nonempty (E ≃L[𝕜] F) :=
+(nonempty_linear_equiv_of_finrank_eq cond).map linear_equiv.to_continuous_linear_equiv
+
+/-- Two finite-dimensional topological vector spaces over a complete normed field are continuously
+linearly equivalent if and only if they have the same (finite) dimension. -/
+theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_finrank_eq :
+   nonempty (E ≃L[𝕜] F) ↔ finrank 𝕜 E = finrank 𝕜 F :=
+⟨ λ ⟨h⟩, h.to_linear_equiv.finrank_eq,
+  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq h ⟩
+
+/-- A continuous linear equivalence between two finite-dimensional topological vector spaces over a
+complete normed field of the same (finite) dimension. -/
+def continuous_linear_equiv.of_finrank_eq
+  (cond : finrank 𝕜 E = finrank 𝕜 F) : E ≃L[𝕜] F :=
+(linear_equiv.of_finrank_eq E F cond).to_continuous_linear_equiv
+
+end
+
+namespace basis
+
+variables {ι : Type*} [fintype ι] [t2_space E]
+
+/-- Construct a continuous linear map given the value at a finite basis. -/
+def constrL (v : basis ι 𝕜 E) (f : ι → F) :
+  E →L[𝕜] F :=
+by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
+  exact (v.constr 𝕜 f).to_continuous_linear_map
+
+@[simp, norm_cast] lemma coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
+  (v.constrL f : E →ₗ[𝕜] F) = v.constr 𝕜 f := rfl
+
+/-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and
+functions from its basis indexing type to `𝕜`. -/
+def equiv_funL (v : basis ι 𝕜 E) : E ≃L[𝕜] (ι → 𝕜) :=
+{ continuous_to_fun := begin
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v,
+    exact v.equiv_fun.to_linear_map.continuous_of_finite_dimensional,
+  end,
+  continuous_inv_fun := begin
+    change continuous v.equiv_fun.symm.to_fun,
+    exact v.equiv_fun.symm.to_linear_map.continuous_of_finite_dimensional,
+  end,
+  ..v.equiv_fun }
+
+@[simp] lemma constrL_apply (v : basis ι 𝕜 E) (f : ι → F) (e : E) :
+  (v.constrL f) e = ∑ i, (v.equiv_fun e i) • f i :=
+v.constr_apply_fintype 𝕜 _ _
+
+@[simp] lemma constrL_basis (v : basis ι 𝕜 E) (f : ι → F) (i : ι) :
+  (v.constrL f) (v i) = f i :=
+v.constr_basis 𝕜 _ _
+
+end basis
 
 namespace continuous_linear_map
 

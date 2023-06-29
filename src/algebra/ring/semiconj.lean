@@ -9,6 +9,9 @@ import algebra.ring.defs
 /-!
 # Semirings and rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gives lemmas about semirings, rings and domains.
 This is analogous to `algebra.group.basic`,
 the difference being that the former is about `+` and `*` separately, while

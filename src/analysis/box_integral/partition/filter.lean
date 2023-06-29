@@ -162,7 +162,7 @@ integral, rectangular box, partition, filter
 -/
 
 open set function filter metric finset bool
-open_locale classical topological_space filter nnreal
+open_locale classical topology filter nnreal
 noncomputable theory
 
 namespace box_integral
@@ -333,14 +333,13 @@ lemma mem_base_set.exists_common_compl (h₁ : l.mem_base_set I c₁ r₁ π₁)
   ∃ π : prepartition I, π.Union = I \ π₁.Union ∧
     (l.bDistortion → π.distortion ≤ c₁) ∧ (l.bDistortion → π.distortion ≤ c₂) :=
 begin
-  wlog hc : c₁ ≤ c₂ := le_total c₁ c₂ using [c₁ c₂ r₁ r₂ π₁ π₂, c₂ c₁ r₂ r₁ π₂ π₁] tactic.skip,
-  { by_cases hD : (l.bDistortion : Prop),
-    { rcases h₁.4 hD with ⟨π, hπU, hπc⟩,
-      exact ⟨π, hπU, λ _, hπc, λ _, hπc.trans hc⟩ },
-    { exact ⟨π₁.to_prepartition.compl, π₁.to_prepartition.Union_compl,
-        λ h, (hD h).elim, λ h, (hD h).elim⟩ } },
-  { intros h₁ h₂ hU,
-    simpa [hU, and_comm] using this h₂ h₁ hU.symm }
+  wlog hc : c₁ ≤ c₂,
+  { simpa [hU, and_comm] using this h₂ h₁ hU.symm (le_of_not_le hc) },
+  by_cases hD : (l.bDistortion : Prop),
+  { rcases h₁.4 hD with ⟨π, hπU, hπc⟩,
+    exact ⟨π, hπU, λ _, hπc, λ _, hπc.trans hc⟩ },
+  { exact ⟨π₁.to_prepartition.compl, π₁.to_prepartition.Union_compl,
+      λ h, (hD h).elim, λ h, (hD h).elim⟩ }
 end
 
 protected lemma mem_base_set.union_compl_to_subordinate (hπ₁ : l.mem_base_set I c r₁ π₁)
@@ -419,7 +418,7 @@ has_basis_binfi_principal'
   (λ r₁ hr₁ r₂ hr₂, ⟨_, hr₁.min hr₂,
     λ _, mem_base_set.mono _ le_rfl le_rfl (λ x hx, min_le_left _ _),
     λ _, mem_base_set.mono _ le_rfl le_rfl (λ x hx, min_le_right _ _)⟩)
-  ⟨λ _, ⟨1, @zero_lt_one ℝ _ _⟩, λ _ _, rfl⟩
+  ⟨λ _, ⟨1, zero_lt_one⟩, λ _ _, rfl⟩
 
 lemma has_basis_to_filter_distortion_Union (l : integration_params) (I : box ι) (c : ℝ≥0)
   (π₀ : prepartition I) :

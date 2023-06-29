@@ -12,6 +12,9 @@ import category_theory.idempotents.functor_extension
 
 # Construction of the projection `P_infty` for the Dold-Kan correspondence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we construct the projection `P_infty : K[X] ⟶ K[X]` by passing
@@ -197,10 +200,10 @@ begin
   /- We use the three equalities h₃₂, h₄₃, h₁₄. -/
   rw [← h₃₂, ← h₄₃, h₁₄],
   simp only [karoubi_functor_category_embedding.map_app_f, karoubi.decomp_id_p_f,
-    karoubi.decomp_id_i_f, karoubi.comp],
+    karoubi.decomp_id_i_f, karoubi.comp_f],
   let π : Y₄ ⟶ Y₄ := (to_karoubi _ ⋙ karoubi_functor_category_embedding _ _).map Y.p,
   have eq := karoubi.hom_ext.mp (P_infty_f_naturality n π),
-  simp only [karoubi.comp] at eq,
+  simp only [karoubi.comp_f] at eq,
   dsimp [π] at eq,
   rw [← eq, reassoc_of (app_idem Y (op [n]))],
 end

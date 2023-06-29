@@ -5,6 +5,7 @@ Authors: Yourong Zang
 -/
 import analysis.complex.isometry
 import analysis.normed_space.conformal_linear_map
+import analysis.normed_space.finite_dimension
 
 /-!
 # Conformal maps between complex vector spaces

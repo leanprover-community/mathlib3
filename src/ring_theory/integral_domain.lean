@@ -52,6 +52,31 @@ def fintype.group_with_zero_of_cancel (M : Type*) [cancel_monoid_with_zero M] [d
   ..‹nontrivial M›,
   ..‹cancel_monoid_with_zero M› }
 
+lemma exists_eq_pow_of_mul_eq_pow_of_coprime {R : Type*} [comm_semiring R] [is_domain R]
+  [gcd_monoid R] [unique Rˣ] {a b c : R} {n : ℕ} (cp : is_coprime a b) (h : a * b = c ^ n) :
+  ∃ d : R, a = d ^ n :=
+begin
+  refine exists_eq_pow_of_mul_eq_pow (is_unit_of_dvd_one _ _) h,
+  obtain ⟨x, y, hxy⟩ := cp,
+  rw [← hxy],
+  exact dvd_add (dvd_mul_of_dvd_right (gcd_dvd_left _ _) _)
+    (dvd_mul_of_dvd_right (gcd_dvd_right _ _) _)
+end
+
+lemma finset.exists_eq_pow_of_mul_eq_pow_of_coprime {ι R : Type*} [comm_semiring R] [is_domain R]
+  [gcd_monoid R] [unique Rˣ] {n : ℕ} {c : R} {s : finset ι} {f : ι → R}
+  (h : ∀ i j ∈ s, i ≠ j → is_coprime (f i) (f j))
+  (hprod : ∏ i in s, f i = c ^ n) : ∀ i ∈ s, ∃ d : R, f i = d ^ n :=
+begin
+  classical,
+  intros i hi,
+  rw [← insert_erase hi, prod_insert (not_mem_erase i s)] at hprod,
+  refine exists_eq_pow_of_mul_eq_pow_of_coprime
+    (is_coprime.prod_right (λ j hj, h i hi j (erase_subset i s hj) (λ hij, _))) hprod,
+  rw [hij] at hj,
+  exact (s.not_mem_erase _) hj
+end
+
 end cancel_monoid_with_zero
 
 variables {R : Type*} {G : Type*}
@@ -130,6 +155,29 @@ begin
 end
 
 end
+
+section euclidean_division
+
+namespace polynomial
+
+open_locale polynomial
+
+variables (K : Type) [field K] [algebra R[X] K] [is_fraction_ring R[X] K]
+
+lemma div_eq_quo_add_rem_div (f : R[X]) {g : R[X]} (hg : g.monic) :
+  ∃ q r : R[X], r.degree < g.degree ∧ (↑f : K) / ↑g = ↑q + ↑r / ↑g :=
+begin
+  refine ⟨f /ₘ g, f %ₘ g, _, _⟩,
+  { exact degree_mod_by_monic_lt _ hg },
+  { have hg' : (↑g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
+    field_simp [hg'],
+    norm_cast,
+    rw [add_comm, mul_comm, mod_by_monic_add_div f hg] },
+end
+
+end polynomial
+
+end euclidean_division
 
 variables [fintype G]
 

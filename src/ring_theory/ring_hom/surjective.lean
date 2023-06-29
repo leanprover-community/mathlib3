@@ -35,10 +35,10 @@ end
 lemma surjective_stable_under_base_change :
   stable_under_base_change surjective :=
 begin
+  refine stable_under_base_change.mk _ surjective_respects_iso _,
   classical,
-  introv R h,
+  introv h x,
   resetI,
-  intro x,
   induction x using tensor_product.induction_on with x y x y ex ey,
   { exact ⟨0, map_zero _⟩ },
   { obtain ⟨y, rfl⟩ := h y, use y • x, dsimp,
@@ -69,10 +69,10 @@ begin
     obtain ⟨z, ⟨_, n, rfl⟩, rfl⟩ := is_localization.mk'_surjective (submonoid.powers (r : R)) y,
     erw [is_localization.map_mk', is_localization.eq] at hy,
     obtain ⟨⟨_, m, rfl⟩, hm⟩ := hy,
-    dsimp at hm,
-    simp_rw [_root_.mul_assoc, _root_.one_mul, ← map_pow, ← f.map_mul, ← pow_add, mul_comm x] at hm,
-    rw map_pow at hm,
-    refine ⟨n + m, _, hm⟩ }
+    refine ⟨m + n, _⟩,
+    dsimp at hm ⊢,
+    simp_rw [_root_.one_mul, ← _root_.mul_assoc, ← map_pow, ← f.map_mul, ← pow_add, map_pow] at hm,
+    exact ⟨_, hm⟩ }
 end
 
 end ring_hom

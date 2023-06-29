@@ -3,11 +3,14 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 import algebra.support
 
 /-!
 # Support of a function composed with a scalar action
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We show that the support of `x ↦ f (c⁻¹ • x)` is equal to `c • support f`.
 -/

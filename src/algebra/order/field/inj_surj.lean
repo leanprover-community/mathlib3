@@ -10,6 +10,9 @@ import algebra.order.ring.inj_surj
 /-!
 # Pulling back linearly ordered fields along injective maps.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open function order_dual

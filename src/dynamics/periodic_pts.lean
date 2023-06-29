@@ -13,6 +13,9 @@ import group_theory.group_action.group
 /-!
 # Periodic points
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A point `x : α` is a periodic point of `f : α → α` of period `n` if `f^[n] x = x`.
 
 ## Main definitions

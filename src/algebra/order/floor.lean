@@ -5,12 +5,16 @@ Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import data.int.lemmas
 import data.set.intervals.group
+import data.set.lattice
 import tactic.abel
 import tactic.linarith
 import tactic.positivity
 
 /-!
 # Floor and ceil
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Summary
 
@@ -321,6 +325,12 @@ by { convert ceil_add_nat ha 1, exact cast_one.symm }
 lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
+lemma ceil_add_le (a b : α) : ⌈a + b⌉₊ ≤ ⌈a⌉₊ + ⌈b⌉₊ :=
+begin
+  rw [ceil_le, nat.cast_add],
+  exact add_le_add (le_ceil _) (le_ceil _),
+end
+
 end linear_ordered_semiring
 
 section linear_ordered_ring
@@ -484,6 +494,20 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 lemma floor_add_one (a : α) : ⌊a + 1⌋ = ⌊a⌋ + 1 :=
 by { convert floor_add_int a 1, exact cast_one.symm }
 
+lemma le_floor_add (a b : α) : ⌊a⌋ + ⌊b⌋ ≤ ⌊a + b⌋ :=
+begin
+  rw [le_floor, int.cast_add],
+  exact add_le_add (floor_le _) (floor_le _),
+end
+
+lemma le_floor_add_floor (a b : α) : ⌊a + b⌋ - 1 ≤ ⌊a⌋ + ⌊b⌋ :=
+begin
+  rw [←sub_le_iff_le_add, le_floor, int.cast_sub, sub_le_comm, int.cast_sub, int.cast_one],
+  refine le_trans _ (sub_one_lt_floor _).le,
+  rw [sub_le_iff_le_add', ←add_sub_assoc, sub_le_sub_iff_right],
+  exact floor_le _,
+end
+
 @[simp] lemma floor_int_add (z : ℤ) (a : α) : ⌊↑z + a⌋ = z + ⌊a⌋ :=
 by simpa only [add_comm] using floor_add_int a z
 
@@ -551,11 +575,27 @@ by { rw fract, simp }
 @[simp] lemma fract_int_nat (n : ℕ) (a : α) : fract (↑n + a) = fract a :=
 by rw [add_comm, fract_add_nat]
 
+lemma fract_add_le (a b : α) : fract (a + b) ≤ fract a + fract b :=
+begin
+  rw [fract, fract, fract, sub_add_sub_comm, sub_le_sub_iff_left, ←int.cast_add, int.cast_le],
+  exact le_floor_add _ _,
+end
+
+lemma fract_add_fract_le (a b : α) : fract a + fract b ≤ fract (a + b) + 1 :=
+begin
+  rw [fract, fract, fract, sub_add_sub_comm, sub_add, sub_le_sub_iff_left],
+  exact_mod_cast le_floor_add_floor a b,
+end
+
 @[simp] lemma self_sub_fract (a : α) : a - fract a = ⌊a⌋ := sub_sub_cancel _ _
 
 @[simp] lemma fract_sub_self (a : α) : fract a - a = -⌊a⌋ := sub_sub_cancel_left _ _
 
 @[simp] lemma fract_nonneg (a : α) : 0 ≤ fract a := sub_nonneg.2 $ floor_le _
+
+/-- The fractional part of `a` is positive if and only if `a ≠ ⌊a⌋`. -/
+lemma fract_pos : 0 < fract a ↔ a ≠ ⌊a⌋ :=
+(fract_nonneg a).lt_iff_ne.trans $ ne_comm.trans sub_ne_zero
 
 lemma fract_lt_one (a : α) : fract a < 1 := sub_lt_comm.1 $ sub_one_lt_floor _
 
@@ -706,12 +746,12 @@ begin
   let q := ⌈↑m₀ / (n : k)⌉,
   let m₁ := (q * ↑n) -(↑m₀ : ℤ),
   have hm₁ : 0 ≤ m₁, { simpa [←@cast_le k, ←div_le_iff hn] using floor_ring.gc_ceil_coe.le_u_l _, },
-  calc fract (↑-↑m₀ / ↑n) = fract (-(m₀ : k) / n) : by rw [coe_neg, cast_coe_nat]
+  calc fract (↑-↑m₀ / ↑n) = fract (-(m₀ : k) / n) : by push_cast
                       ... = fract ((m₁ : k) / n) : _
                       ... = ↑(m₁ % (n : ℤ)) / ↑n : this hm₁
                       ... = ↑(-(↑m₀ : ℤ) % ↑n) / ↑n : _,
-  { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, ← sub_eq_add_neg,
-      coe_sub, coe_mul, cast_coe_nat, cast_coe_nat], },
+  { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, ← sub_eq_add_neg],
+    push_cast, },
   { congr' 2,
     change ((q * ↑n) -(↑m₀ : ℤ)) % ↑n = _,
     rw [sub_eq_add_neg, add_comm (q * ↑n), add_mul_mod_self], },
@@ -771,6 +811,20 @@ by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
 
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
 by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
+
+lemma ceil_add_le (a b : α) : ⌈a + b⌉ ≤ ⌈a⌉ + ⌈b⌉ :=
+begin
+  rw [ceil_le, int.cast_add],
+  exact add_le_add (le_ceil _) (le_ceil _),
+end
+
+lemma ceil_add_ceil_le (a b : α) : ⌈a⌉ + ⌈b⌉ ≤ ⌈a + b⌉ + 1 :=
+begin
+  rw [←le_sub_iff_add_le, ceil_le, int.cast_sub, int.cast_add, int.cast_one, le_sub_comm],
+  refine (ceil_lt_add_one _).le.trans _,
+  rw [le_sub_iff_add_le', ←add_assoc, add_le_add_iff_right],
+  exact le_ceil _,
+end
 
 @[simp] lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, cast_zero]
 

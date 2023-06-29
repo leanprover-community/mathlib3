@@ -9,6 +9,9 @@ import order.closure
 /-!
 # Convex hull
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the convex hull of a set `s` in a module. `convex_hull 𝕜 s` is the smallest convex
 set containing `s`. In order theory speak, this is a closure operator.
 
@@ -84,7 +87,7 @@ end
 
 @[simp] lemma convex_hull_nonempty_iff : (convex_hull 𝕜 s).nonempty ↔ s.nonempty :=
 begin
-  rw [←ne_empty_iff_nonempty, ←ne_empty_iff_nonempty, ne.def, ne.def],
+  rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, ne.def, ne.def],
   exact not_congr convex_hull_empty_iff,
 end
 

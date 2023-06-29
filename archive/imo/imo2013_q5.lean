@@ -103,7 +103,7 @@ begin
       ... = ((q.num.nat_abs : ℤ) : ℝ) : congr_arg coe (int.nat_abs_of_nonneg num_pos.le).symm
       ... ≤ f q.num.nat_abs           : H4 q.num.nat_abs
                                           (int.nat_abs_pos_of_ne_zero num_pos.ne')
-      ... = f q.num : by { rw ←int.nat_abs_of_nonneg num_pos.le, norm_cast }
+      ... = f q.num : by rw [nat.cast_nat_abs, abs_of_nonneg num_pos.le]
       ... = f (q * q.denom) : by rw ←rat.mul_denom_eq_num
       ... ≤ f q * f q.denom : H1 q q.denom hq (nat.cast_pos.mpr q.pos),
   have h_f_denom_pos :=

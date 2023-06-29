@@ -5,9 +5,12 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 -/
 import linear_algebra.span
 import order.partial_sups
-import algebra.algebra.basic
+import algebra.algebra.prod
 
 /-! ### Products of modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines constructors for linear maps whose domains or codomains are products.
 
@@ -222,6 +225,9 @@ prod_ext_iff.2 ⟨hl, hr⟩
 def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →ₗ[R] (M₃ × M₄) :=
 (f.comp (fst R M M₂)).prod (g.comp (snd R M M₂))
 
+lemma coe_prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) :
+  ⇑(f.prod_map g) = prod.map f g := rfl
+  
 @[simp] theorem prod_map_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) (x) :
   f.prod_map g x = (f x.1, g x.2) := rfl
 

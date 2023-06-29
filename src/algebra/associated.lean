@@ -6,10 +6,12 @@ Authors: Johannes Hölzl, Jens Wagemaker
 import algebra.divisibility.basic
 import algebra.group_power.lemmas
 import algebra.parity
-import order.atoms
 
 /-!
 # Associated, prime, and irreducible elements.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
@@ -890,22 +892,19 @@ instance : no_zero_divisors (associates α) :=
     have a = 0 ∨ b = 0, from mul_eq_zero.1 this,
     this.imp (assume h, h.symm ▸ rfl) (assume h, h.symm ▸ rfl))⟩
 
-lemma eq_of_mul_eq_mul_left :
-  ∀(a b c : associates α), a ≠ 0 → a * b = a * c → b = c :=
-begin
-  rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
-  rcases quotient.exact' h with ⟨u, hu⟩,
-  have hu : a * (b * ↑u) = a * c, { rwa [← mul_assoc] },
-  exact quotient.sound' ⟨u, mul_left_cancel₀ (mk_ne_zero.1 ha) hu⟩
-end
-
-lemma eq_of_mul_eq_mul_right :
-  ∀(a b c : associates α), b ≠ 0 → a * b = c * b → a = c :=
-λ a b c bne0, (mul_comm b a) ▸ (mul_comm b c) ▸ (eq_of_mul_eq_mul_left b a c bne0)
+instance : cancel_comm_monoid_with_zero (associates α) :=
+{ mul_left_cancel_of_ne_zero :=
+    begin
+      rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
+      rcases quotient.exact' h with ⟨u, hu⟩,
+      rw [mul_assoc] at hu,
+      exact quotient.sound' ⟨u, mul_left_cancel₀ (mk_ne_zero.1 ha) hu⟩
+    end,
+  .. (infer_instance : comm_monoid_with_zero (associates α)) }
 
 lemma le_of_mul_le_mul_left (a b c : associates α) (ha : a ≠ 0) :
   a * b ≤ a * c → b ≤ c
-| ⟨d, hd⟩ := ⟨d, eq_of_mul_eq_mul_left a _ _ ha $ by rwa ← mul_assoc⟩
+| ⟨d, hd⟩ := ⟨d, mul_left_cancel₀ ha $ by rwa ← mul_assoc⟩
 
 lemma one_or_eq_of_le_of_prime :
   ∀(p m : associates α), prime p → m ≤ p → (m = 1 ∨ m = p)
@@ -922,11 +921,6 @@ match h m d dvd_rfl with
   have d * m ≤ d * 1, by simpa [mul_comm] using h,
   or.inl $ bot_unique $ associates.le_of_mul_le_mul_left d m 1 ‹d ≠ 0› this
 end
-
-instance : cancel_comm_monoid_with_zero (associates α) :=
-{ mul_left_cancel_of_ne_zero := eq_of_mul_eq_mul_left,
-  mul_right_cancel_of_ne_zero := eq_of_mul_eq_mul_right,
-  .. (infer_instance : comm_monoid_with_zero (associates α)) }
 
 instance : canonically_ordered_monoid (associates α) :=
 { exists_mul_of_le := λ a b, id,
@@ -987,19 +981,6 @@ begin
   rwa [← mul_assoc, mul_one],
 end
 
-lemma associates.is_atom_iff [cancel_comm_monoid_with_zero α] {p : associates α} (h₁ : p ≠ 0) :
-  is_atom p ↔ irreducible p :=
-⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
-        λ a b h, (hp.le_iff.mp ⟨_, h⟩).cases_on
-          (λ ha, or.inl (a.is_unit_iff_eq_one.mpr ha))
-          (λ ha, or.inr (show is_unit b, by {rw ha at h, apply is_unit_of_associated_mul
-          (show associated (p * b) p, by conv_rhs {rw h}) h₁ }))⟩,
- λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one, associates.bot_eq_one] using hp.1,
-        λ b ⟨⟨a, hab⟩, hb⟩, (hp.is_unit_or_is_unit hab).cases_on
-          (λ hb, show b = ⊥, by rwa [associates.is_unit_iff_eq_one, ← associates.bot_eq_one] at hb)
-          (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; rw mul_assoc;
-            rw is_unit.mul_coe_inv ha; rw mul_one⟩) hb)⟩⟩
-
 lemma dvd_not_unit.not_associated [cancel_comm_monoid_with_zero α] {p q : α}
   (h : dvd_not_unit p q) : ¬ associated p q :=
 begin
@@ -1044,3 +1025,5 @@ begin
 end
 
 end cancel_comm_monoid_with_zero
+
+assert_not_exists multiset

@@ -68,7 +68,7 @@ with finite measure. Its value on other sets is ignored.
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators nnreal ennreal measure_theory pointwise
+open_locale classical topology big_operators nnreal ennreal measure_theory pointwise
 open set filter topological_space ennreal emetric
 
 namespace measure_theory
@@ -626,17 +626,13 @@ lemma set_to_simple_func_indicator (T : set α → F →L[ℝ] F') (hT_empty : T
     (simple_func.piecewise s hs (simple_func.const α x) (simple_func.const α 0))
   = T s x :=
 begin
-  by_cases hs_empty : s = ∅,
-  { simp only [hs_empty, hT_empty, continuous_linear_map.zero_apply, piecewise_empty, const_zero,
-    set_to_simple_func_zero_apply], },
-  by_cases hs_univ : s = univ,
-  { casesI hα : is_empty_or_nonempty α,
-    { refine absurd _ hs_empty,
-      haveI : subsingleton (set α), by { unfold set, apply_instance, },
-      exact subsingleton.elim s ∅, },
-    simp [hs_univ, set_to_simple_func], },
+  obtain rfl | hs_empty := s.eq_empty_or_nonempty,
+  { simp only [hT_empty, continuous_linear_map.zero_apply, piecewise_empty, const_zero,
+      set_to_simple_func_zero_apply], },
   simp_rw set_to_simple_func,
-  rw [← ne.def, set.ne_empty_iff_nonempty] at hs_empty,
+  obtain rfl | hs_univ := eq_or_ne s univ,
+  { haveI hα := hs_empty.to_type,
+    simp },
   rw range_indicator hs hs_empty hs_univ,
   by_cases hx0 : x = 0,
   { simp_rw hx0, simp, },
@@ -1845,6 +1841,15 @@ end
 
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
+lemma continuous_within_at_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
+  {fs : X → α → E} {x₀ : X} {bound : α → ℝ} {s : set X}
+  (hfs_meas : ∀ᶠ x in 𝓝[s] x₀, ae_strongly_measurable (fs x) μ)
+  (h_bound : ∀ᶠ x in 𝓝[s] x₀, ∀ᵐ a ∂μ, ‖fs x a‖ ≤ bound a)
+  (bound_integrable : integrable bound μ)
+  (h_cont : ∀ᵐ a ∂μ, continuous_within_at (λ x, fs x a) s x₀) :
+  continuous_within_at (λ x, set_to_fun μ T hT (fs x)) s x₀ :=
+tendsto_set_to_fun_filter_of_dominated_convergence hT bound ‹_› ‹_› ‹_› ‹_›
+
 lemma continuous_at_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
   {fs : X → α → E} {x₀ : X} {bound : α → ℝ}
   (hfs_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (fs x) μ)
@@ -1852,6 +1857,20 @@ lemma continuous_at_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, fs x a) x₀) :
   continuous_at (λ x, set_to_fun μ T hT (fs x)) x₀ :=
 tendsto_set_to_fun_filter_of_dominated_convergence hT bound ‹_› ‹_› ‹_› ‹_›
+
+lemma continuous_on_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
+  {fs : X → α → E} {bound : α → ℝ} {s : set X}
+  (hfs_meas : ∀ x ∈ s, ae_strongly_measurable (fs x) μ)
+  (h_bound : ∀ x ∈ s, ∀ᵐ a ∂μ, ‖fs x a‖ ≤ bound a)
+  (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_on (λ x, fs x a) s) :
+  continuous_on (λ x, set_to_fun μ T hT (fs x)) s :=
+begin
+  assume x hx,
+  refine continuous_within_at_set_to_fun_of_dominated hT _ _ bound_integrable _,
+  { filter_upwards [self_mem_nhds_within] with x hx using hfs_meas x hx },
+  { filter_upwards [self_mem_nhds_within] with x hx using h_bound x hx },
+  { filter_upwards [h_cont] with a ha using ha x hx }
+end
 
 lemma continuous_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
   {fs : X → α → E} {bound : α → ℝ}

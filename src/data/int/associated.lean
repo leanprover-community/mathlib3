@@ -10,6 +10,9 @@ import data.int.units
 /-!
 # Associated elements and the integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some results on equality up to units in the integers.
 
 ## Main results

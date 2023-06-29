@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import data.zmod.basic
 import group_theory.group_action.quotient
 import ring_theory.int.basic
+import ring_theory.ideal.quotient_operations
 
 /-!
 # `zmod n` and quotient groups / rings

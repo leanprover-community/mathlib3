@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.measure.complex_lebesgue
+import measure_theory.measure.lebesgue.complex
 import measure_theory.integral.divergence_theorem
 import measure_theory.integral.circle_integral
 import analysis.calculus.dslope
@@ -143,7 +143,7 @@ Cauchy-Goursat theorem, Cauchy integral formula
 -/
 
 open topological_space set measure_theory interval_integral metric filter function
-open_locale interval real nnreal ennreal topological_space big_operators
+open_locale interval real nnreal ennreal topology big_operators
 
 noncomputable theory
 
@@ -169,17 +169,20 @@ lemma integral_boundary_rect_of_has_fderiv_at_real_off_countable (f : ℂ → E)
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) =
     ∫ x : ℝ in z.re..w.re, ∫ y : ℝ in z.im..w.im, I • f' (x + y * I) 1 - f' (x + y * I) I :=
 begin
-  set e : (ℝ × ℝ) ≃L[ℝ] ℂ := equiv_real_prodₗ.symm,
+  set e : (ℝ × ℝ) ≃L[ℝ] ℂ := equiv_real_prod_clm.symm,
   have he : ∀ x y : ℝ, ↑x + ↑y * I = e (x, y), from λ x y, (mk_eq_add_mul_I x y).symm,
   have he₁ : e (1, 0) = 1 := rfl, have he₂ : e (0, 1) = I := rfl,
   simp only [he] at *,
   set F : (ℝ × ℝ) → E := f ∘ e,
   set F' : (ℝ × ℝ) → (ℝ × ℝ) →L[ℝ] E := λ p, (f' (e p)).comp (e : (ℝ × ℝ) →L[ℝ] ℂ),
   have hF' : ∀ p : ℝ × ℝ, (-(I • F' p)) (1, 0) + F' p (0, 1) = -(I • f' (e p) 1 - f' (e p) I),
-  { rintro ⟨x, y⟩, simp [F', he₁, he₂, ← sub_eq_neg_add], },
+  { rintro ⟨x, y⟩,
+    simp only [continuous_linear_map.neg_apply, continuous_linear_map.smul_apply, F',
+      continuous_linear_map.comp_apply, continuous_linear_equiv.coe_coe, he₁, he₂,
+      neg_add_eq_sub, neg_sub], },
   set R : set (ℝ × ℝ) := [z.re, w.re] ×ˢ [w.im, z.im],
   set t : set (ℝ × ℝ) := e ⁻¹' s,
-  rw [interval_swap z.im] at Hc Hi, rw [min_comm z.im, max_comm z.im] at Hd,
+  rw [uIcc_comm z.im] at Hc Hi, rw [min_comm z.im, max_comm z.im] at Hd,
   have hR : e ⁻¹' ([z.re, w.re] ×ℂ [w.im, z.im]) = R := rfl,
   have htc : continuous_on F R, from Hc.comp e.continuous_on hR.ge,
   have htd : ∀ p ∈ Ioo (min z.re w.re) (max z.re w.re) ×ˢ Ioo (min w.im z.im) (max w.im z.im) \ t,
@@ -227,7 +230,7 @@ lemma integral_boundary_rect_of_differentiable_on_real (f : ℂ → E) (z w : �
 integral_boundary_rect_of_has_fderiv_at_real_off_countable f (fderiv ℝ f) z w ∅ countable_empty
   Hd.continuous_on
   (λ x hx, Hd.has_fderiv_at $ by simpa only [← mem_interior_iff_mem_nhds,
-    interior_re_prod_im, interval, interior_Icc] using hx.1) Hi
+    interior_re_prod_im, uIcc, interior_Icc] using hx.1) Hi
 
 /-- **Cauchy-Goursat theorem** for a rectangle: the integral of a complex differentiable function
 over the boundary of a rectangle equals zero. More precisely, if `f` is continuous on a closed
@@ -502,6 +505,20 @@ lemma _root_.diff_cont_on_cl.circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ} 
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 circle_integral_sub_inv_smul_of_differentiable_on_off_countable countable_empty hw
   h.continuous_on_ball $ λ x hx, h.differentiable_at is_open_ball hx.1
+
+/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on an open disc and is
+continuous on its closure, then for any `w` in this open ball we have
+$\frac{1}{2πi}\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=f(w)$. -/
+lemma _root_.diff_cont_on_cl.two_pi_I_inv_smul_circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ}
+  {f : ℂ → E} (hf : diff_cont_on_cl ℂ f (ball c R)) (hw : w ∈ ball c R) :
+  (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - w)⁻¹ • f z = f w :=
+begin
+  have hR : 0 < R := not_le.mp (ball_eq_empty.not.mp (nonempty_of_mem hw).ne_empty),
+  refine two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
+    countable_empty hw _ _,
+  { simpa only [closure_ball c hR.ne.symm] using hf.continuous_on },
+  { simpa only [diff_empty] using λ z hz, hf.differentiable_at is_open_ball hz }
+end
 
 /-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
 `R`, then for any `w` in its interior we have $\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$. -/

@@ -3,11 +3,15 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import algebra.algebra.pi
 import ring_theory.adjoin.basic
 import data.polynomial.eval
 
 /-!
 # Theory of univariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We show that `A[X]` is an R-algebra when `A` is an R-algebra.
 We promote `eval₂` to an algebra hom in `aeval`.
@@ -119,7 +123,7 @@ lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebr
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
-  conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
+  conv_rhs { rw [←polynomial.sum_C_mul_X_pow_eq p], },
   dsimp [eval₂, sum],
   simp only [f.map_sum, f.map_mul, f.map_pow, eq_int_cast, map_int_cast],
   simp [polynomial.C_eq_algebra_map],
@@ -160,7 +164,7 @@ variables {R A}
 begin
   refine top_unique (λ p hp, _),
   set S := algebra.adjoin R ({X} : set R[X]),
-  rw [← sum_monomial_eq p], simp only [monomial_eq_smul_X, sum],
+  rw [← sum_monomial_eq p], simp only [← smul_X_eq_monomial, sum],
   exact S.sum_mem (λ n hn, S.smul_mem (S.pow_mem (algebra.subset_adjoin rfl) _) _)
 end
 
@@ -231,8 +235,11 @@ lemma aeval_algebra_map_apply_eq_algebra_map_eval (x : R) (p : R[X]) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p
 
-@[simp] lemma coe_aeval_eq_eval (r : R) :
-  (aeval r : R[X] → R) = eval r := rfl
+@[simp] lemma coe_aeval_eq_eval (r : R) : (aeval r : R[X] → R) = eval r := rfl
+
+@[simp] lemma coe_aeval_eq_eval_ring_hom (x : R) :
+  ((aeval x : R[X] →ₐ[R] R) : R[X] →+* R) = eval_ring_hom x :=
+rfl
 
 @[simp] lemma aeval_fn_apply {X : Type*} (g : R[X]) (f : X → R) (x : X) :
   ((aeval f) g) x = aeval (f x) g :=
@@ -250,6 +257,22 @@ lemma coeff_zero_eq_aeval_zero' (p : R[X]) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
 by simp [aeval_def]
 
+lemma map_aeval_eq_aeval_map {S T U : Type*} [comm_semiring S] [comm_semiring T] [semiring U]
+  [algebra R S] [algebra T U] {φ : R →+* T} {ψ : S →+* U}
+  (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) (p : R[X]) (a : S) :
+  ψ (aeval a p) = aeval (ψ a) (p.map φ) :=
+begin
+  conv_rhs {rw [aeval_def, ← eval_map]},
+  rw [map_map, h, ← map_map, eval_map, eval₂_at_apply, aeval_def, eval_map],
+end
+
+lemma aeval_eq_zero_of_dvd_aeval_eq_zero [comm_semiring S] [comm_semiring T] [algebra S T]
+  {p q : S[X]} (h₁ : p ∣ q) {a : T} (h₂ : aeval a p = 0) : aeval a q = 0 :=
+begin
+  rw [aeval_def, ← eval_map] at h₂ ⊢,
+  exact eval_eq_zero_of_dvd_of_eval_eq_zero (polynomial.map_dvd (algebra_map S T) h₁) h₂,
+end
+
 variable (R)
 
 theorem _root_.algebra.adjoin_singleton_eq_range_aeval (x : A) :
@@ -258,9 +281,9 @@ by rw [← algebra.map_top, ← adjoin_X, alg_hom.map_adjoin, set.image_singleto
 
 variable {R}
 
-section comm_semiring
+section semiring
 
-variables [comm_semiring S] {f : R →+* S}
+variables [semiring S] {f : R →+* S}
 
 lemma aeval_eq_sum_range [algebra R S] {p : R[X]} (x : S) :
   aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
@@ -283,9 +306,13 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : R[X]}
   {r : R} (hr : aeval (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
+end semiring
+
+section comm_semiring
+
 section aeval_tower
 
-variables [algebra S R] [algebra S A'] [algebra S B']
+variables [comm_semiring S] [algebra S R] [algebra S A'] [algebra S B']
 
 /-- Version of `aeval` for defining algebra homs out of `R[X]` over a smaller base ring
   than `R`. -/

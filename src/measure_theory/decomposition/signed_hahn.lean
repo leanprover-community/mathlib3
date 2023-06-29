@@ -369,7 +369,7 @@ begin
   { intro n,
     refine le_trans _ (le_of_lt (h_lt _)),
     rw [hA, ← set.diff_union_of_subset (set.subset_Union _ n),
-        of_union (disjoint.comm.1 set.disjoint_diff) _ (hmeas n)],
+        of_union set.disjoint_sdiff_left _ (hmeas n)],
     { refine add_le_of_nonpos_left _,
       have : s ≤[A] 0 := restrict_le_restrict_Union _ _ hmeas hr,
       refine nonpos_of_restrict_le_zero _ (restrict_le_zero_subset _ _ (set.diff_subset _ _) this),
@@ -397,7 +397,7 @@ begin
   { apply le_antisymm,
     { refine le_of_tendsto_of_tendsto tendsto_const_nhds hf₂ (eventually_of_forall (λ n, _)),
       rw [← (hB n).2, hA, ← set.diff_union_of_subset (set.subset_Union _ n),
-          of_union (disjoint.comm.1 set.disjoint_diff) _ (hB₁ n)],
+          of_union set.disjoint_sdiff_left _ (hB₁ n)],
       { refine add_le_of_nonpos_left _,
         have : s ≤[A] 0 :=
           restrict_le_restrict_Union _ _ hB₁ (λ m, let ⟨_, h⟩ := (hB m).1 in h),

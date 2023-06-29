@@ -15,11 +15,11 @@ import topology.algebra.star
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This sum is known as unconditionally convergent, as it sums to the same value under all possible
-permutations. For Euclidean spaces (finite dimensional Banach spaces) this is equivalent to absolute
-convergence.
+permutations.
+For Euclidean spaces (finite dimensional Banach spaces) this is equivalent to absolute convergence.
 
-Note: There are multipliable sequences which are not unconditionally convergent! The other way holds
-generally, see `has_prod.tendsto_sum_nat`.
+Note: There are multipliable sequences which are not unconditionally convergent!
+The other way holds generally, see `has_prod.tendsto_sum_nat`.
 
 ## References
 
@@ -42,26 +42,27 @@ variable [comm_monoid α]
 
 /-- Infinite sums/products on a topological monoid
 
-The `at_top` filter on `finset β` is the limit of all finite sets towards the entire type. So we sum
-up bigger and bigger sets. This sum operation is invariant under reordering. In particular,
-the function `ℕ → ℝ` sending `n` to `(-1)^n / (n+1)` does not have a
+The `at_top` filter on `finset β` is the limit of all finite sets towards the entire type.
+So we sum up bigger and bigger sets. This sum operation is invariant under reordering.
+In particular, the function `ℕ → ℝ` sending `n` to `(-1)^n / (n+1)` does not have a
 sum for this definition, but a series which is absolutely convergent will have the correct sum.
 
 This is based on Mario Carneiro's
 [infinite sum `df-tsms` in Metamath](http://us.metamath.org/mpeuni/df-tsms.html).
 
-For the definition or many statements, `α` does not need to be a topological monoid. 
+For the definition or many statements, `α` does not need to be a topological monoid.
 We only add this assumption later, for the lemmas where it is relevant.
 -/
 
 
-@[to_additive] 
-def has_prod (f : β → α) (a : α) : Prop := 
+@[to_additive]
+def has_prod (f : β → α) (a : α) : Prop :=
   tendsto (λs:finset β, ∏ b in s, f b) at_top (𝓝 a)
 
-/-- `multipliable f` means that `f` has some (infinite) product. 
+/-- `multipliable f` means that `f` has some (infinite) product.
 Use `tprod` to get the value. -/
-@[to_additive summable "multipliable f` means that `f` has some (infinite) sum. Use `tsum` to get the value."]
+@[to_additive summable "multipliable f` means that `f` has some (infinite) sum.
+Use `tsum` to get the value."]
 def multipliable (f : β → α) : Prop := ∃a, has_prod f a
 
 /-- `∏' i, f i` is the product of `f` it exists, or 1 otherwise -/
@@ -152,7 +153,7 @@ lemma multipliable_subtype_iff_mul_indicator {s : set β} :
   multipliable (f ∘ coe : s → α) ↔ multipliable (s.mul_indicator f) :=
 exists_congr (λ _, has_prod_subtype_iff_mul_indicator)
 
-@[to_additive, simp] lemma has_prod_subtype_mul_support : 
+@[to_additive, simp] lemma has_prod_subtype_mul_support :
   has_prod (f ∘ coe : mul_support f → α) a ↔ has_prod f a :=
 has_prod_subtype_iff_of_mul_support_subset $ set.subset.refl _
 
@@ -164,7 +165,7 @@ order_top.tendsto_at_top_nhds _
   has_prod (f ∘ coe : (↑s : set β) → α) (∏ b in s, f b) :=
 by { rw ← prod_attach, exact has_prod_fintype _ }
 
-@[protected, to_additive finset.summable] 
+@[protected, to_additive finset.summable]
 lemma finset.multipliable (s : finset β) (f : β → α) :
   multipliable (f ∘ coe : (↑s : set β) → α) :=
 (s.has_prod f).multipliable
@@ -175,7 +176,8 @@ lemma set.finite.multipliable {s : set β} (hs : s.finite) (f : β → α) :
 by convert hs.to_finset.multipliable f; simp only [hs.coe_to_finset]
 
 /-- If a function `f` vanishes outside of a finite set `s`, then it `has_prod` `∑ b in s, f b`. -/
-@[to_additive "If a function `f` is 1 outside of a finite set `s`, then it `has_prod` `∏ b in s, f b`"]
+@[to_additive
+"If a function `f` is 1 outside of a finite set `s`, then it `has_prod` `∏ b in s, f b`"]
 lemma has_prod_prod_of_ne_finset_one (hf : ∀b∉s, f b = 1) : has_prod f (∏ b in s, f b) :=
 (has_prod_subtype_iff_of_mul_support_subset $ mul_support_subset_iff'.2 hf).1 $ s.has_prod f
 
@@ -203,7 +205,8 @@ end
 @[to_additive]
 lemma has_prod_pi_mul_single [decidable_eq β] (b : β) (a : α) :
   has_prod (pi.mul_single b a) a :=
-show has_prod (λ x, pi.mul_single b a x) a, by simpa only [pi.mul_single_apply] using has_prod_ite_eq b a
+show has_prod (λ x, pi.mul_single b a x) a,
+  by simpa only [pi.mul_single_apply] using has_prod_ite_eq b a
 
 @[to_additive]
 lemma equiv.has_prod_iff (e : γ ≃ β) :
@@ -221,8 +224,8 @@ lemma equiv.multipliable_iff (e : γ ≃ β) :
 exists_congr $ λ a, e.has_prod_iff
 
 @[to_additive]
-lemma multipliable.prod_symm {f : β × γ → α} (hf : multipliable f) : multipliable (λ p : γ × β, f p.swap) :=
-(equiv.prod_comm γ β).multipliable_iff.2 hf
+lemma multipliable.prod_symm {f : β × γ → α} (hf : multipliable f) :
+  multipliable (λ p : γ × β, f p.swap) := (equiv.prod_comm γ β).multipliable_iff.2 hf
 
 @[to_additive]
 lemma equiv.has_prod_iff_of_mul_support {g : γ → α} (e : mul_support f ≃ mul_support g)
@@ -281,14 +284,16 @@ lemma multipliable.map_iff_of_equiv [comm_monoid γ] [topological_space γ]
   multipliable (g ∘ f) ↔ multipliable f :=
 multipliable.map_iff_of_left_inverse g (g : α ≃* γ).symm hg hg' (mul_equiv_class.left_inv g)
 
-/-- If `f : ℕ → α` has product `a`, then the partial products `∏_{i=0}^{n-1} f i` converge to `a`. -/
-@[to_additive "If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`."]
+/-- If `f : ℕ → α` has product `a`,
+  then the partial products `∏_{i=0}^{n-1} f i` converge to `a`. -/
+@[to_additive
+"If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`."]
 lemma has_prod.tendsto_sum_nat {f : ℕ → α} (h : has_prod f a) :
   tendsto (λn:ℕ, ∏ i in range n, f i) at_top (𝓝 a) :=
 h.comp tendsto_finset_range
 
 @[to_additive]
-lemma has_prod.unique {a₁ a₂ : α} [t2_space α] : 
+lemma has_prod.unique {a₁ a₂ : α} [t2_space α] :
   has_prod f a₁ → has_prod f a₂ → a₁ = a₂ :=
 tendsto_nhds_unique
 
@@ -316,8 +321,8 @@ lemma has_prod.mul (hf : has_prod f a) (hg : has_prod g b) : has_prod (λb, f b 
 by simp only [has_prod, prod_mul_distrib]; exact hf.mul hg
 
 @[to_additive summable.add]
-lemma multipliable.mul (hf : multipliable f) (hg : multipliable g) : multipliable (λb, f b * g b) :=
-(hf.has_prod.mul hg.has_prod).multipliable
+lemma multipliable.mul (hf : multipliable f) (hg : multipliable g) :
+  multipliable (λb, f b * g b) := (hf.has_prod.mul hg.has_prod).multipliable
 
 @[to_additive]
 lemma has_prod_mul {f : γ → β → α} {a : γ → α} {s : finset γ} :
@@ -325,7 +330,7 @@ lemma has_prod_mul {f : γ → β → α} {a : γ → α} {s : finset γ} :
 finset.induction_on s (by simp only [has_prod_one, prod_empty, forall_true_iff])
   (by simp only [has_prod.mul, prod_insert, mem_insert, forall_eq_or_imp,
     forall_2_true_iff, not_false_iff, forall_true_iff] {contextual := tt})
-  
+
 @[to_additive]
 lemma multipliable_prod {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, multipliable (f i)) :
   multipliable (λb, ∏ i in s, f i b) :=
@@ -421,10 +426,11 @@ begin
   exact mem_filter.2 ⟨ht hx, hbs $ mem_image_of_mem _ hx⟩
 end
 
-/-- If a series `f` on `β × γ` has product `a` and for each `b` the restriction of `f` to `{b} × γ`
-has product `g b`, then the series `g` has product `a`. -/
-@[to_additive has_sum.sum_fiberwise "If a series `f` on `β × γ` has sum `a` 
-and for each `b` the restriction of `f` to `{b} × γ` has sum `g b`, 
+/-- If a series `f` on `β × γ` has product `a`
+and for each `b` the restriction of `f` to `{b} × γ` has product `g b`,
+then the series `g` has product `a`. -/
+@[to_additive has_sum.sum_fiberwise "If a series `f` on `β × γ` has sum `a`
+and for each `b` the restriction of `f` to `{b} × γ` has sum `g b`,
 then the series `g` has sum `a`."]
 lemma has_prod.prod_fiberwise [regular_space α] {f : β × γ → α} {g : β → α} {a : α}
   (ha : has_prod f a) (hf : ∀b, has_prod (λc, f (b, c)) (g b)) :
@@ -446,7 +452,8 @@ by simpa [(hf'.has_prod.sigma hf).unique ha] using hf'.has_prod
 /-- Version of `has_prod.update` for `comm_monoid` rather than `comm_group`.
 Rather than showing that `f.update` has a specific sum in terms of `has_prod`,
 it gives a relationship between the products of `f` and `f.update` given that both exist. -/
-@[to_additive has_sum.update' "Version of `has_sum.update` for `add_comm_monoid` rather than `add_comm_group`.
+@[to_additive has_sum.update'
+"Version of `has_sum.update` for `add_comm_monoid` rather than `add_comm_group`.
 Rather than showing that `f.update` has a specific sum in terms of `has_sum`,
 it gives a relationship between the sums of `f` and `f.update` given that both exist. -/
 "]
@@ -467,7 +474,7 @@ end
 /-- Version of `has_prod_ite_div_has_prod` for `comm_monoid` rather than `comm_group`.
 Rather than showing that the `ite` expression has a specific sum in terms of `has_prod`,
 it gives a relationship between the sums of `f` and `ite (n = b) 1 (f n)` given that both exist. -/
-@[to_additive 
+@[to_additive
 "Version of `has_sum_ite_sub_has_sum` for `add_comm_monoid` rather than `add_comm_group`.
 Rather than showing that the `ite` expression has a specific sum in terms of `has_prod`,
 it gives a relationship between the sums of `f` and `ite (n = b) 0 (f n)` given that both exist."]
@@ -509,7 +516,8 @@ begin
   { simp }
 end
 
-@[simp, to_additive] lemma tprod_one [t1_space α] : ∏' b : β, (1 : α) = 1 := tprod_one' is_closed_singleton
+@[simp, to_additive] lemma tprod_one [t1_space α] : ∏' b : β, (1 : α) = 1 :=
+tprod_one' is_closed_singleton
 
 variables [t2_space α] {f g : β → α} {a a₁ a₂ : α}
 
@@ -521,7 +529,7 @@ lemma has_prod.tprod_eq (ha : has_prod f a) : ∏'b, f b = a :=
 lemma multipliable.has_prod_iff (h : multipliable f) : has_prod f a ↔ ∏'b, f b = a :=
 iff.intro has_prod.tprod_eq (assume eq, eq ▸ h.has_prod)
 
-@[simp, to_additive tsum_empty] 
+@[simp, to_additive tsum_empty]
 lemma tprod_empty [is_empty β] : ∏'b, f b = 1 := has_prod_empty.tprod_eq
 
 @[to_additive]
@@ -603,8 +611,8 @@ lemma equiv.tprod_eq (j : γ ≃ β) (f : β → α) : ∏'c, f (j c) = ∏'b, f
 tprod_eq_tprod_of_has_prod_iff_has_prod $ λ a, j.has_prod_iff
 
 @[to_additive equiv.tsum_eq_tsup_of_support]
-lemma equiv.tprod_eq_tprod_of_mul_support {f : β → α} {g : γ → α} (e : mul_support f ≃ mul_support g)
-  (he : ∀ x, g (e x) = f x) :
+lemma equiv.tprod_eq_tprod_of_mul_support {f : β → α} {g : γ → α}
+  (e : mul_support f ≃ mul_support g) (he : ∀ x, g (e x) = f x) :
   (∏' x, f x) = ∏' y, g y :=
 tprod_eq_tprod_of_has_prod_iff_has_prod $ λ _, e.has_prod_iff_of_mul_support he
 
@@ -622,7 +630,7 @@ lemma finset.tprod_subtype (s : finset β) (f : β → α) :
   ∏' x : {x // x ∈ s}, f x = ∏ x in s, f x :=
 (s.has_prod f).tprod_eq
 
-@[simp, to_additive finset.tsum_subtype'] 
+@[simp, to_additive finset.tsum_subtype']
 lemma finset.tprod_subtype' (s : finset β) (f : β → α) :
   ∏' x : (s : set β), f x = ∏ x in s, f x :=
 s.tprod_subtype f
@@ -630,7 +638,7 @@ s.tprod_subtype f
 @[to_additive tsum_subtype]
 lemma tprod_subtype (s : set β) (f : β → α) :
   ∏' x : s, f x = ∏' x, s.mul_indicator f x :=
-begin 
+begin
 exact (tprod_eq_tprod_of_has_prod_iff_has_prod $ λ _, has_prod_subtype_iff_mul_indicator),
 end
 
@@ -639,11 +647,11 @@ lemma tprod_subtype_eq_of_mul_support_subset {f : β → α} {s : set β} (hs : 
   ∏' x : s, f x = ∏' x, f x :=
 tprod_eq_tprod_of_has_prod_iff_has_prod $ λ x, has_prod_subtype_iff_of_mul_support_subset hs
 
-@[simp, to_additive tsum_univ] 
+@[simp, to_additive tsum_univ]
 lemma tprod_univ (f : β → α) : ∏' x : (set.univ : set β), f x = ∏' x, f x :=
 tprod_subtype_eq_of_mul_support_subset $ set.subset_univ _
 
-@[simp, to_additive tsum_singleton] 
+@[simp, to_additive tsum_singleton]
 lemma tprod_singleton (b : β) (f : β → α) : ∏' x : ({b} : set β), f x = f b :=
 begin
   rw [tprod_subtype, tprod_eq_mul_single b],
@@ -673,9 +681,8 @@ section has_continuous_add
 variable [has_continuous_mul α]
 
 @[to_additive tsum_add]
-lemma tprod_mul (hf : multipliable f) (hg : multipliable g) : ∏'b, (f b * g b) = (∏'b, f b) * (∏'b, g b) :=
-begin
-exact (hf.has_prod.mul hg.has_prod).tprod_eq, end
+lemma tprod_mul (hf : multipliable f) (hg : multipliable g) :
+  ∏'b, (f b * g b) = (∏'b, f b) * (∏'b, g b) := (hf.has_prod.mul hg.has_prod).tprod_eq
 
 @[to_additive tsum_sum]
 lemma tprod_prod {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, multipliable (f i)) :
@@ -684,15 +691,16 @@ lemma tprod_prod {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, multipli
 
 /-- Version of `tprod_eq_mul_tprod_ite` for `comm_monoid` rather than `comm_group`.
 Requires a different convergence assumption involving `function.update`. -/
-@[to_additive "Version of `tsum_eq_add_tsum_ite` for `add_comm_monoid` rather than `add_comm_group`.
+@[to_additive
+"Version of `tsum_eq_add_tsum_ite` for `add_comm_monoid` rather than `add_comm_group`.
 Requires a different convergence assumption involving `function.update`."]
 lemma tprod_eq_mul_tprod_ite' {f : β → α} (b : β) (hf : multipliable (f.update b 1)) :
   ∏' x, f x = f b * ∏' x, ite (x = b) 1 (f x) :=
-begin 
+begin
   have : ∏' x, f x = ∏' x, ((ite (x = b) (f x) 1) * (f.update b 1 x)),
   { apply tprod_congr, intro c, split_ifs; simp [function.update_apply, h], },
   rw this,
-  rw tprod_mul _ hf, 
+  rw tprod_mul _ hf,
   congr,
   rw tprod_eq_mul_single b, simp only [eq_self_iff_true, if_true],
   { intros c hc, rw if_neg hc, },
@@ -725,11 +733,12 @@ lemma tprod_prod' {f : β × γ → δ} (h : multipliable f) (h₁ : ∀b, multi
 (h.has_prod.prod_fiberwise (assume b, (h₁ b).has_prod)).tprod_eq.symm
 
 @[to_additive tsum_comm']
-lemma tprod_comm' {f : β → γ → δ} (h : multipliable (function.uncurry f)) (h₁ : ∀b, multipliable (f b))
-  (h₂ : ∀ c, multipliable (λ b, f b c)) :
+lemma tprod_comm' {f : β → γ → δ} (h : multipliable (function.uncurry f))
+  (h₁ : ∀b, multipliable (f b)) (h₂ : ∀ c, multipliable (λ b, f b c)) :
   ∏' c b, f b c = ∏' b c, f b c :=
 begin
-  erw [← tprod_prod' h h₁, ← tprod_prod' h.prod_symm h₂, ← (equiv.prod_comm γ β).tprod_eq (uncurry f)],
+  erw [← tprod_prod' h h₁, ← tprod_prod' h.prod_symm h₂,
+    ← (equiv.prod_comm γ β).tprod_eq (uncurry f)],
   refl
 end
 
@@ -841,7 +850,7 @@ end tprod
 
 section topological_group
 
-variables [topological_space α] 
+variables [topological_space α]
 
 @[to_additive] variables [comm_group α] [topological_group α]
 variables {f g : β → α} {a a₁ a₂ : α}
@@ -864,12 +873,12 @@ lemma multipliable_inv_iff : multipliable (λ b, (f b)⁻¹) ↔ multipliable f 
 ⟨multipliable.of_inv, multipliable.inv⟩
 
 @[to_additive has_sum.sub]
-lemma has_prod.div (hf : has_prod f a₁) (hg : has_prod g a₂) : has_prod (λb, (f b) / (g b)) (a₁ / a₂) :=
-by { simp only [div_eq_mul_inv], exact hf.mul hg.inv }
+lemma has_prod.div (hf : has_prod f a₁) (hg : has_prod g a₂) :
+  has_prod (λb, (f b) / (g b)) (a₁ / a₂) := by { simp only [div_eq_mul_inv], exact hf.mul hg.inv }
 
 @[to_additive summable.sub]
-lemma multipliable.div (hf : multipliable f) (hg : multipliable g) : multipliable (λb, (f b) / (g b)) :=
-(hf.has_prod.div hg.has_prod).multipliable
+lemma multipliable.div (hf : multipliable f) (hg : multipliable g) :
+  multipliable (λb, (f b) / (g b)) := (hf.has_prod.div hg.has_prod).multipliable
 
 @[to_additive summable.trans_sub]
 lemma multipliable.trans_div (hg : multipliable g) (hfg : multipliable (λb, (f b) / (g b))) :
@@ -959,12 +968,13 @@ lemma tprod_inv : ∏'b, (f b)⁻¹ = (∏'b, f b)⁻¹ :=
 begin
   by_cases hf : multipliable f,
   { exact hf.has_prod.inv.tprod_eq, },
-  { simp [tprod_eq_one_of_not_multipliable hf, tprod_eq_one_of_not_multipliable (mt multipliable.of_inv hf)] },
+  { simp [tprod_eq_one_of_not_multipliable hf,
+      tprod_eq_one_of_not_multipliable (mt multipliable.of_inv hf)] },
 end
 
 @[to_additive tsum_div]
-lemma tprod_sub (hf : multipliable f) (hg : multipliable g) : ∏'b, (f b / g b) = (∏'b, f b) / ∏'b, g b :=
-(hf.has_prod.div hg.has_prod).tprod_eq
+lemma tprod_sub (hf : multipliable f) (hg : multipliable g) :
+  ∏'b, (f b / g b) = (∏'b, f b) / ∏'b, g b := (hf.has_prod.div hg.has_prod).tprod_eq
 
 @[to_additive sum_add_tsum_compl]
 lemma prod_mul_tprod_compl {s : finset β} (hf : multipliable f) :
@@ -972,9 +982,9 @@ lemma prod_mul_tprod_compl {s : finset β} (hf : multipliable f) :
 ((s.has_prod f).mul_compl (s.multipliable_compl_iff.2 hf).has_prod).tprod_eq.symm
 
 /-- Let `f : β → α` be a sequence with multipliable series and let `b ∈ β` be an index.
-Lemma `tprod_eq_mul_tprod_ite` writes `∏' f n` as the product of `f b` times 
+Lemma `tprod_eq_mul_tprod_ite` writes `∏' f n` as the product of `f b` times
 the infinite produt of the remaining terms. -/
-@[to_additive tsum_eq_add_tsum_ite 
+@[to_additive tsum_eq_add_tsum_ite
 "Let `f : β → α` be a sequence with summable series and let `b ∈ β` be an index.
 Lemma `tsum_eq_add_tsum_ite` writes `Σ' f n` as the sum of `f b` plus the series of the
 remaining terms"]
@@ -1005,7 +1015,8 @@ begin
 end
 
 @[to_additive summable_nat_add_iff]
-lemma multipliable_nat_add_iff {f : ℕ → α} (k : ℕ) : multipliable (λ n, f (n + k)) ↔ multipliable f :=
+lemma multipliable_nat_add_iff {f : ℕ → α} (k : ℕ) :
+  multipliable (λ n, f (n + k)) ↔ multipliable f :=
 iff.symm $ (equiv.mul_right (∏ i in range k, f i)).surjective.multipliable_iff_of_has_prod_iff $
   λ a, (has_prod_nat_add_iff k).symm
 
@@ -1025,12 +1036,13 @@ lemma tprod_eq_zero_add [t2_space α] {f : ℕ → α} (hf : multipliable f) :
   ∏'b, f b = f 0 * ∏'b, f (b + 1) :=
 by simpa only [prod_range_one] using (prod_mul_tprod_nat_add 1 hf).symm
 
-/-- For `f : ℕ → α`, then `∏' k, f (k + i)` tends to 1. 
+/-- For `f : ℕ → α`, then `∏' k, f (k + i)` tends to 1.
 This does not require a summability assumption on `f`, as otherwise all sums are 1. -/
 @[to_additive
 "For `f : ℕ → α`, then `∑' k, f (k + i)` tends to 0. This does not require a summability
 assumption on `f`, as otherwise all sums are 0."]
-lemma tendsto_prod_nat_add [t2_space α] (f : ℕ → α) : tendsto (λ i, ∏' k, f (k + i)) at_top (𝓝 1) :=
+lemma tendsto_prod_nat_add [t2_space α] (f : ℕ → α) :
+  tendsto (λ i, ∏' k, f (k + i)) at_top (𝓝 1) :=
 begin
   by_cases hf : multipliable f,
   { have h₀ : (λ i, (∏' i, f i) / ∏ j in range i, f j) = λ i, ∏' (k : ℕ), f (k + i),
@@ -1087,7 +1099,8 @@ end
 @[to_additive summable_int_of_summable_nat]
 lemma multipliable_int_of_multipliable_nat {f : ℤ → α}
   (hp : multipliable (λ n:ℕ, f n)) (hn : multipliable (λ n:ℕ, f (-n))) : multipliable f :=
-(has_prod.nonneg_add_neg hp.has_prod $ multipliable.has_prod $ (multipliable_nat_add_iff 1).mpr hn).multipliable
+(has_prod.nonneg_add_neg hp.has_prod $ multipliable.has_prod
+  $ (multipliable_nat_add_iff 1).mpr hn).multipliable
 
 @[to_additive has_sum.sum_nat_of_sum_int]
 lemma has_prod.prod_nat_of_prod_int {α : Type*} [comm_monoid α] [topological_space α]
@@ -1135,7 +1148,7 @@ begin
         simp only [this, eq_self_iff_true, if_true] }
     end
   ... = (∏ x in u1, f x) * ∏ x in u2, f x : prod_union_inter
-  ... = (∏ b in v', f b) * ∏ b in v', f (-b) : 
+  ... = (∏ b in v', f b) * ∏ b in v', f (-b) :
     by simp only [prod_image, nat.cast_inj, imp_self, implies_true_iff, neg_inj]
   ... = ∏ b in v', (f b * f (-b)) : prod_mul_distrib.symm
 end
@@ -1146,7 +1159,7 @@ end topological_group
 
 section uniform_group
 
-@[to_additive] variables [comm_group α] 
+@[to_additive] variables [comm_group α]
 
 variables [uniform_space α]
 
@@ -1157,7 +1170,7 @@ lemma multipliable_iff_cauchy_seq_finset [complete_space α] {f : β → α} :
   multipliable f ↔ cauchy_seq (λ (s : finset β), ∏ b in s, f b) :=
 cauchy_map_iff_exists_tendsto.symm
 
-@[to_additive] variables [uniform_group α] 
+@[to_additive] variables [uniform_group α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 @[to_additive cauchy_seq_finset_iff_vanishing]
@@ -1187,8 +1200,9 @@ begin
     exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
-/-- The product over the complement of a finset tends to `1` when the finset grows to cover the whole
-space. This does not need a multipliability assumption, as otherwise all sums are zero. -/
+/-- The product over the complement of a finset tends to `1` when the finset grows
+to cover the whole space. This does not need a multipliability assumption,
+as otherwise all sums are zero. -/
 @[to_additive tendsto_tsum_compl_at_top_zero
 "The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
 space. This does not need a summability assumption, as otherwise all sums are zero"]
@@ -1227,8 +1241,8 @@ by rw [multipliable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_mul_vanishing]
 
 /- TODO: generalize to monoid with a uniform continuous subtraction operator: `(a + b) - b = a` -/
 @[to_additive summable.summable_of_eq_zero_or_self]
-lemma multipliable.multipliable_of_eq_one_or_self (hf : multipliable f) (h : ∀b, g b = 1 ∨ g b = f b) :
-  multipliable g :=
+lemma multipliable.multipliable_of_eq_one_or_self (hf : multipliable f)
+  (h : ∀b, g b = 1 ∨ g b = f b) : multipliable g :=
 multipliable_iff_mul_vanishing.2 $
   assume e he,
   let ⟨s, hs⟩ := multipliable_iff_mul_vanishing.1 hf e he in
@@ -1308,7 +1322,8 @@ tprod_comm' h h.prod_factor h.prod_symm.prod_factor
 end loc_instances
 
 @[to_additive tsum_subtype_add_tsum_subtype_compl]
-lemma tprod_subtype_mul_tprod_subtype_compl [t2_space α] {f : β → α} (hf : multipliable f) (s : set β) :
+lemma tprod_subtype_mul_tprod_subtype_compl [t2_space α] {f : β → α} (hf : multipliable f)
+  (s : set β) :
   (∏' x : s, f x) * ∏' x : sᶜ, f x = ∏' x, f x :=
 ((hf.subtype s).has_prod.mul_compl (hf.subtype {x | x ∉ s}).has_prod).unique hf.has_prod
 
@@ -1325,7 +1340,7 @@ end uniform_group
 
 section topological_group
 
-variables {G : Type*} [topological_space G] 
+variables {G : Type*} [topological_space G]
 @[to_additive] variables [comm_group G] [topological_group G]
 variables {f : α → G}
 
@@ -1352,7 +1367,8 @@ begin
 end
 
 @[to_additive summable.tendsto_at_top_zero]
-lemma multipliable.tendsto_at_top_one {f : ℕ → G} (hf : multipliable f) : tendsto f at_top (𝓝 1) :=
+lemma multipliable.tendsto_at_top_one {f : ℕ → G} (hf : multipliable f) :
+  tendsto f at_top (𝓝 1) :=
 by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_one }
 
 end topological_group
@@ -1376,7 +1392,7 @@ end const_smul
 /-! ### Product and pi types -/
 
 section prod
-@[to_additive] variables [comm_monoid α][comm_monoid γ] 
+@[to_additive] variables [comm_monoid α][comm_monoid γ]
 variables [topological_space α] [topological_space γ]
 
 @[to_additive has_sum.prod_mk]
@@ -1408,6 +1424,8 @@ lemma tprod_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf 
 end pi
 
 /-! ### Multiplicative opposite -/
+
+-- No obvious multiplicative version
 
 section mul_opposite
 open mul_opposite
@@ -1454,6 +1472,8 @@ end mul_opposite
 
 
 /-! ### Interaction with the star -/
+
+-- No obvious multiplicative version
 
 section has_continuous_star
 variables [add_comm_monoid α] [topological_space α] [star_add_monoid α] [has_continuous_star α]

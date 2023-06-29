@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import algebra.order.archimedean
--- import topology.algebra.infinite_sum.basic
-import .basic
+import topology.algebra.infinite_sum.basic
 import topology.algebra.order.field
 import topology.algebra.order.monotone_convergence
 
@@ -27,9 +26,9 @@ section preorder
 variables [preorder α] [topological_space α] [order_closed_topology α]
   [t2_space α] {f : ℕ → α} {c : α}
 
-@[to_additive] variable [comm_monoid α] 
+@[to_additive] variable [comm_monoid α]
 
-@[to_additive tsum_le_of_sum_range_le] 
+@[to_additive tsum_le_of_sum_range_le]
 lemma tprod_le_of_prod_range_le (hf : multipliable f) (h : ∀ n, ∏ i in range n, f i ≤ c) :
   ∏' n, f n ≤ c :=
 let ⟨l, hl⟩ := hf in hl.tprod_eq.symm ▸ le_of_tendsto' hl.tendsto_sum_nat h
@@ -37,7 +36,7 @@ let ⟨l, hl⟩ := hf in hl.tprod_eq.symm ▸ le_of_tendsto' hl.tendsto_sum_nat 
 end preorder
 
 section ordered_comm_monoid
-@[to_additive] variables [ordered_comm_monoid α] 
+@[to_additive] variables [ordered_comm_monoid α]
 variables [topological_space α] [order_closed_topology α] {f g : ι → α}
   {a a₁ a₂ : α}
 
@@ -83,7 +82,7 @@ end
 
 @[to_additive tsum_le_tsum_of_inj]
 lemma tprod_le_tprod_of_inj {g : κ → α} (e : ι → κ) (he : injective e)
-  (hs : ∀ c ∉ set.range e, 1 ≤ g c) (h : ∀ i, f i ≤ g (e i)) 
+  (hs : ∀ c ∉ set.range e, 1 ≤ g c) (h : ∀ i, f i ≤ g (e i))
   (hf : multipliable f) (hg : multipliable g) : tprod f ≤ tprod g :=
 has_prod_le_inj _ he hs h hf.has_prod hg.has_prod
 
@@ -117,8 +116,8 @@ lemma tprod_le_tprod (h : ∀ i, f i ≤ g i) (hf : multipliable f) (hg : multip
   ∏' i, f i ≤ ∏' i, g i :=
 has_prod_le h hf.has_prod hg.has_prod
 
-@[to_additive tsum_mono, mono] 
-lemma tprod_mono (hf : multipliable f) (hg : multipliable g) (h : f ≤ g) : 
+@[to_additive tsum_mono, mono]
+lemma tprod_mono (hf : multipliable f) (hg : multipliable g) (h : f ≤ g) :
   ∏' n, f n ≤ ∏' n, g n :=
 tprod_le_tprod h hf hg
 
@@ -136,11 +135,11 @@ begin
 end
 
 @[to_additive has_sum.nonneg]
-lemma has_prod.one_le (h : ∀ i, 1 ≤ g i) (ha : has_prod g a) : 1 ≤ a := 
+lemma has_prod.one_le (h : ∀ i, 1 ≤ g i) (ha : has_prod g a) : 1 ≤ a :=
 has_prod_le h has_prod_one ha
 
 @[to_additive has_sum.nonpos]
-lemma has_prod.le_one (h : ∀ i, g i ≤ 1) (ha : has_prod g a) : a ≤ 1 := 
+lemma has_prod.le_one (h : ∀ i, g i ≤ 1) (ha : has_prod g a) : a ≤ 1 :=
 has_prod_le h ha has_prod_one
 
 @[to_additive]
@@ -163,20 +162,22 @@ end ordered_comm_monoid
 
 section ordered_comm_group
 
+variables
 
-variables   
-  
-@[to_additive] variables [ordered_comm_group α] [topological_space α] [topological_group α]  [order_closed_topology α] 
+variables [topological_space α]
+
+@[to_additive] variables [ordered_comm_group α] [topological_group α]  [order_closed_topology α]
 
 variables {f g : ι → α} {a₁ a₂ : α} {i : ι}
 
 @[to_additive]
-lemma has_prod_lt (h : f ≤ g) (hi : f i < g i) (hf : has_prod f a₁) (hg : has_prod g a₂) : a₁ < a₂ :=
+lemma has_prod_lt (h : f ≤ g) (hi : f i < g i) (hf : has_prod f a₁) (hg : has_prod g a₂) :
+  a₁ < a₂ :=
 have update f i 1 ≤ update g i 1 := update_le_update_iff.mpr ⟨rfl.le, λ i _, h i⟩,
 have 1 / f i * a₁ ≤ 1 / g i * a₂ := has_prod_le this (hf.update i 1) (hg.update i 1),
 by simpa only [one_div, mul_inv_cancel_left] using mul_lt_mul_of_lt_of_le hi this
 
-@[to_additive, mono] 
+@[to_additive, mono]
 lemma has_prod_strict_mono (hf : has_prod f a₁) (hg : has_prod g a₂) (h : f < g) : a₁ < a₂ :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_prod_lt hle hi hf hg
 
@@ -185,13 +186,13 @@ lemma tprod_lt_tprod (h : f ≤ g) (hi : f i < g i) (hf : multipliable f) (hg : 
   ∏' n, f n < ∏' n, g n :=
 has_prod_lt h hi hf.has_prod hg.has_prod
 
-@[to_additive tsum_strict_mono, mono] 
+@[to_additive tsum_strict_mono, mono]
 lemma tprod_strict_mono (hf : multipliable f) (hg : multipliable g) (h : f < g) :
   ∏' n, f n < ∏' n, g n :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tprod_lt_tprod hle hi hf hg
 
 @[to_additive tsum_one_lt]
-lemma tprod_pos (hprod : multipliable g) (hg : ∀ i, 1 ≤ g i) (i : ι) (hi : 1 < g i) : 
+lemma tprod_pos (hprod : multipliable g) (hg : ∀ i, 1 ≤ g i) (i : ι) (hi : 1 < g i) :
   1 < ∏' i, g i :=
 by { rw ←tprod_one, exact tprod_lt_tprod hg hi multipliable_one hprod }
 
@@ -209,7 +210,7 @@ end
 end ordered_comm_group
 
 section canonically_ordered_monoid
-@[to_additive] variables [canonically_ordered_monoid α] 
+@[to_additive] variables [canonically_ordered_monoid α]
 variables [topological_space α] [order_closed_topology α] {f : ι → α} {a : α}
 
 @[to_additive]

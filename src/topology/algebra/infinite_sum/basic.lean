@@ -429,7 +429,7 @@ end
 /-- If a series `f` on `β × γ` has product `a`
 and for each `b` the restriction of `f` to `{b} × γ` has product `g b`,
 then the series `g` has product `a`. -/
-@[to_additive has_sum.sum_fiberwise "If a series `f` on `β × γ` has sum `a`
+@[to_additive has_sum.prod_fiberwise "If a series `f` on `β × γ` has sum `a`
 and for each `b` the restriction of `f` to `{b} × γ` has sum `g b`,
 then the series `g` has sum `a`."]
 lemma has_prod.prod_fiberwise [regular_space α] {f : β × γ → α} {g : β → α} {a : α}

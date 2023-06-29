@@ -1021,10 +1021,12 @@ end
 lemma rearrangement_eq_nonneg_terms_of_nonneg (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  (n : ℕ) (h : sumto a M n ≤ M)
+  (n : ℕ) (hn : n ≠ 0) (h : sumto a M n ≤ M)
   : ∃ k, rearrangement a M n = nat.nth (λ j : ℕ, 0 ≤ a j) k :=
 begin
-  sorry
+  have : 0 ≤ a (rearrangement a M n) := (rearrangement_nonneg_spec' h₁ h₂ h hn).right,
+  obtain ⟨k, _, hk⟩ := @nat.exists_lt_card_nth_eq (λ j : ℕ, 0 ≤ a j) _ this,
+  exact ⟨k, hk.symm⟩
 end
 
 lemma rearrangement_agrees_nonneg_terms_d (a : ℕ → ℝ) (M : ℝ)
@@ -1036,7 +1038,7 @@ lemma rearrangement_agrees_nonneg_terms_d (a : ℕ → ℝ) (M : ℝ)
 begin
   let N' := max N 1,
   have hN' : N' ≠ 0 := by { change max N 1 ≠ 0, positivity },
-  obtain ⟨k, hk⟩ := rearrangement_eq_nonneg_terms_of_nonneg a M h₁ h₂ N' (h N' (le_max_left N 1)),
+  obtain ⟨k, hk⟩ := rearrangement_eq_nonneg_terms_of_nonneg a M h₁ h₂ N' hN' (h N' (le_max_left N 1)),
   have : ∀ i : ℕ, 0 ≤ i → a (rearrangement a M (i + N')) = nonneg_terms_d a (i + k),
   { intros i _,
     rw add_comm i N',

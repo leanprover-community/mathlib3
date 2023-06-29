@@ -10,6 +10,9 @@ import analysis.complex.upper_half_plane.topology
 
 /-! # Jacobi's theta function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the Jacobi theta function
 
 $$\theta(\tau) = \sum_{n \in \mathbb{Z}} \exp (i \pi n ^ 2 \tau),$$

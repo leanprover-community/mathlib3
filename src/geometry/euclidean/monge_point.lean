@@ -8,6 +8,9 @@ import geometry.euclidean.circumcenter
 /-!
 # Monge point and orthocenter
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the orthocenter of a triangle, via its n-dimensional
 generalization, the Monge point of a simplex.
 

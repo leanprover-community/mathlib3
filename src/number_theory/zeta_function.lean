@@ -10,6 +10,9 @@ import number_theory.zeta_values
 /-!
 # Definition of the Riemann zeta function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions:
 
 * `riemann_zeta`: the Riemann zeta function `ζ : ℂ → ℂ`.

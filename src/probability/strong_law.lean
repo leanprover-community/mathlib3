@@ -236,7 +236,7 @@ lemma sum_prob_mem_Ioc_le
 begin
   let ρ : measure ℝ := measure.map X ℙ,
   haveI : is_probability_measure ρ := is_probability_measure_map hint.ae_measurable,
-  have A : ∑ j in range K, ∫_{j}^{N} x, 1 ∂ρ ≤ 𝔼[X] + 1, from calc
+  have A : ∑ j in range K, ∫_{j}^{N} x, (1 : ℝ) ∂ρ ≤ 𝔼[X] + 1, from calc
   ∑ j in range K, ∫_{j}^{N} x, (1 : ℝ) ∂ρ
       = ∑ j in range K, ∑ i in Ico j N, ∫_{i}^{(i+1 : ℕ)} x, (1 : ℝ) ∂ρ :
     begin

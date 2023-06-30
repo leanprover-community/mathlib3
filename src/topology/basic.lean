@@ -329,6 +329,8 @@ calc interior (⋂₀ S) = interior (⋂ s ∈ S, s) : by rw sInter_eq_bInter
 /-- The closure of `s` is the smallest closed set containing `s`. -/
 def closure (s : set α) : set α := ⋂₀ {t | is_closed t ∧ s ⊆ t}
 
+localized "notation (name := closure_of) `closure[` t `]` := @closure hole! t" in topology
+
 @[simp] lemma is_closed_closure {s : set α} : is_closed (closure s) :=
 is_closed_sInter $ assume t ⟨h₁, h₂⟩, h₁
 

@@ -232,7 +232,7 @@ lemma is_closed.mono {α} {t₁ t₂ : topological_space α} {s : set α} (hs : 
 
 
 lemma closure.mono {α} {t₁ t₂ : topological_space α} {s : set α} (h : t₁ ≤ t₂) :
-  @closure _ t₁ s ⊆ @closure _ t₂ s :=
+  closure[t₁] s ⊆ closure[t₂] s :=
 @closure_minimal _ t₁ s (@closure _ t₂ s) subset_closure (is_closed.mono is_closed_closure h)
 
 lemma is_open_implies_is_open_iff {a b : topological_space α} :

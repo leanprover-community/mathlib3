@@ -15,7 +15,7 @@ import topology.fiber_bundle.basic
 
 In this file we define (topological) vector bundles.
 
-Let `B` be the base space, let `F` be a topological vector space over a normed field `R`, and let
+Let `B` be the base space, let `F` be a normed space over a normed field `R`, and let
 `E : B → Type*` be a `fiber_bundle` with fiber `F`, in which, for each `x`, the fiber `E x` is a
 topological vector space over `R`.
 

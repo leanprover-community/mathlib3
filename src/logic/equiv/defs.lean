@@ -5,7 +5,6 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.fun_like.equiv
 import logic.unique
-import geometry.manifold.attr
 
 /-!
 # Equivalence between types

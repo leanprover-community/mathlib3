@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import order.symm_diff
 import logic.function.iterate
-import geometry.manifold.attr
 
 /-!
 # Basic properties of sets

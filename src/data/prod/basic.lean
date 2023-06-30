@@ -5,7 +5,6 @@ Authors: Johannes Hölzl
 -/
 import tactic.basic
 import logic.function.basic
-import geometry.manifold.attr
 
 /-!
 # Extra facts about `prod`

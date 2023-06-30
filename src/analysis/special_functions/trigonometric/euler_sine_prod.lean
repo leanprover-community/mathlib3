@@ -170,7 +170,7 @@ end
 /-- Relate the integral `cos x ^ n` over `[0, π/2]` to the integral of `sin x ^ n` over `[0, π]`,
 which is studied in `data.real.pi.wallis` and other places. -/
 lemma integral_cos_pow_eq (n : ℕ) :
-  (∫_{0}^{π/2} (x:ℝ), cos x ^ n) = 1 / 2 * (∫_{0}^{π} (x:ℝ), (sin x) ^ n) :=
+  (∫_{0}^{π/2} x, cos x ^ n) = 1 / 2 * (∫_{0}^{π} x, (sin x) ^ n) :=
 begin
   rw [mul_comm (1/2 : ℝ), ←div_eq_iff (one_div_ne_zero (two_ne_zero' ℝ)), ←div_mul, div_one,
     mul_two],
@@ -192,7 +192,7 @@ begin
     rw sin_add_pi_div_two },
 end
 
-lemma integral_cos_pow_pos (n : ℕ) : 0 < (∫_{0}^{π/2} (x:ℝ), cos x ^ n) :=
+lemma integral_cos_pow_pos (n : ℕ) : 0 < (∫_{0}^{π/2} x, cos x ^ n) :=
 (integral_cos_pow_eq n).symm ▸ (mul_pos one_half_pos (integral_sin_pow_pos _))
 
 /-- Finite form of Euler's sine product, with remainder term expressed as a ratio of cosine
@@ -225,18 +225,18 @@ begin
     rw this,
     change ↑π * z * A * B / ↑C =
       (↑π * z * (A * (1 - z ^ 2 / (↑n + 1) ^ 2)) *
-       ∫_{0}^{π / 2} (x : ℝ), complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)) /
+       ∫_{0}^{π / 2} x, complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)) /
     ↑((2 * ↑n + 1) / (2 * ↑n + 2) * C),
     have : ↑π * z * (A * (1 - z ^ 2 / (↑n + 1) ^ 2)) *
-      ∫_{0}^{π / 2} (x : ℝ), complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)
+      ∫_{0}^{π / 2} x, complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)
     = ↑π * z * A * ((1 - z ^ 2 / (↑n.succ) ^ 2) *
-      ∫_{0}^{π / 2} (x : ℝ), complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)),
+      ∫_{0}^{π / 2} x, complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)),
     { nth_rewrite_rhs 0 nat.succ_eq_add_one,
       rw nat.cast_add_one,
       ring },
     rw this,
     suffices : (1 - z ^ 2 / ↑(n.succ) ^ 2) *
-      ∫_{0}^{π / 2} (x : ℝ), complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ) =
+      ∫_{0}^{π / 2} x, complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ) =
       (2 * n + 1) / (2 * n + 2) * B,
     { rw [this, complex.of_real_mul, complex.of_real_div],
       have : (C:ℂ) ≠ 0 := complex.of_real_ne_zero.mpr (integral_cos_pow_pos _).ne',

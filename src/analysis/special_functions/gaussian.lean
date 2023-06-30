@@ -364,7 +364,7 @@ variables {b : ℂ}
 /-- The integral of the Gaussian function over the vertical edges of a rectangle
 with vertices at `(±T, 0)` and `(±T, c)`.  -/
 def vertical_integral (b : ℂ) (c T : ℝ) : ℂ :=
-∫_{0}^{c} (y : ℝ), I * (cexp (-b * (T + y * I) ^ 2) - cexp (-b * (T - y * I) ^ 2))
+∫_{0}^{c} y, I * (cexp (-b * (T + y * I) ^ 2) - cexp (-b * (T - y * I) ^ 2))
 
 /-- Explicit formula for the norm of the Gaussian function along the vertical
 edges. -/
@@ -459,10 +459,10 @@ lemma integral_cexp_neg_mul_sq_add_real_mul_I (hb : 0 < b.re) (c : ℝ) :
 begin
   refine tendsto_nhds_unique (interval_integral_tendsto_integral
     (integrable_cexp_neg_mul_sq_add_real_mul_I hb c) tendsto_neg_at_top_at_bot tendsto_id) _,
-  set I₁ := (λ T, ∫_{-T}^{T} (x : ℝ), cexp (-b * (x + c * I) ^ 2)) with HI₁,
-  let I₂ := λ (T : ℝ), ∫_{-T}^{T} (x : ℝ), cexp (-b * x ^ 2),
-  let I₄ := λ (T : ℝ), ∫_{0}^{c} (y : ℝ), cexp (-b * (T + y * I) ^ 2),
-  let I₅ := λ (T : ℝ), ∫_{0}^{c} (y : ℝ), cexp (-b * (-T + y * I) ^ 2),
+  set I₁ := (λ T, ∫_{-T}^{T} x, cexp (-b * (x + c * I) ^ 2)) with HI₁,
+  let I₂ := λ (T : ℝ), ∫_{-T}^{T} x, cexp (-b * x ^ 2),
+  let I₄ := λ (T : ℝ), ∫_{0}^{c} y, cexp (-b * (T + y * I) ^ 2),
+  let I₅ := λ (T : ℝ), ∫_{0}^{c} y, cexp (-b * (-T + y * I) ^ 2),
   have C : ∀ (T : ℝ), I₂ T - I₁ T + I * I₄ T - I * I₅ T = 0,
   { assume T,
     have := integral_boundary_rect_eq_zero_of_differentiable_on

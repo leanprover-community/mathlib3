@@ -300,7 +300,7 @@ variables [normed_space ℂ E] [complete_space E]
 
 /-- Definition for $\oint_{|z-c|=R} f(z)\,dz$. -/
 def circle_integral (f : ℂ → E) (c : ℂ) (R : ℝ) : E :=
-∫_{0}^{2 * π} (θ : ℝ), deriv (circle_map c R) θ • f (circle_map c R θ)
+∫_{0}^{2 * π} θ, deriv (circle_map c R) θ • f (circle_map c R θ)
 
 notation `∮` binders ` in ` `C(` c `, ` R `)` `, ` r:(scoped:60 f, circle_integral f c R) := r
 
@@ -481,7 +481,7 @@ by simp only [cauchy_power_series, continuous_multilinear_map.mk_pi_field_apply,
 
 lemma norm_cauchy_power_series_le (f : ℂ → E) (c : ℂ) (R : ℝ) (n : ℕ) :
   ‖cauchy_power_series f c R n‖ ≤
-    (2 * π)⁻¹ * (∫_{0}^{2*π} θ : ℝ, ‖f (circle_map c R θ)‖) * (|R|⁻¹) ^ n :=
+    (2 * π)⁻¹ * (∫_{0}^{2*π} θ, ‖f (circle_map c R θ)‖) * (|R|⁻¹) ^ n :=
 calc ‖cauchy_power_series f c R n‖
     = (2 * π)⁻¹ * ‖∮ z in C(c, R), (z - c)⁻¹ ^ n • (z - c)⁻¹ • f z‖ :
   by simp [cauchy_power_series, norm_smul, real.pi_pos.le]
@@ -489,9 +489,9 @@ calc ‖cauchy_power_series f c R n‖
   (circle_map c R θ - c)⁻¹ • f (circle_map c R θ)‖ :
   mul_le_mul_of_nonneg_left (interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le)
     (by simp [real.pi_pos.le])
-... = (2 * π)⁻¹ * (|R|⁻¹ ^ n * (|R| * (|R|⁻¹ * ∫_{0}^{2 * π} (x : ℝ), ‖f (circle_map c R x)‖))) :
+... = (2 * π)⁻¹ * (|R|⁻¹ ^ n * (|R| * (|R|⁻¹ * ∫_{0}^{2 * π} x, ‖f (circle_map c R x)‖))) :
   by simp [norm_smul, mul_left_comm (|R|)]
-... ≤ (2 * π)⁻¹ * (∫_{0}^{2*π} θ : ℝ, ‖f (circle_map c R θ)‖) * |R|⁻¹ ^ n :
+... ≤ (2 * π)⁻¹ * (∫_{0}^{2*π} θ, ‖f (circle_map c R θ)‖) * |R|⁻¹ ^ n :
   begin
     rcases eq_or_ne R 0 with rfl|hR,
     { cases n; simp [-mul_inv_rev, real.two_pi_pos] },
@@ -503,7 +503,7 @@ lemma le_radius_cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ≥0) :
   ↑R ≤ (cauchy_power_series f c R).radius :=
 begin
   refine (cauchy_power_series f c R).le_radius_of_bound
-    ((2 * π)⁻¹ * (∫_{0}^{2*π} θ : ℝ, ‖f (circle_map c R θ)‖)) (λ n, _),
+    ((2 * π)⁻¹ * (∫_{0}^{2*π} θ, ‖f (circle_map c R θ)‖)) (λ n, _),
   refine (mul_le_mul_of_nonneg_right (norm_cauchy_power_series_le _ _ _ _)
     (pow_nonneg R.coe_nonneg _)).trans _,
   rw [_root_.abs_of_nonneg R.coe_nonneg],

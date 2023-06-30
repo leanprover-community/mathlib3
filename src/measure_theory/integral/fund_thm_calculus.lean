@@ -630,14 +630,14 @@ by simpa only [← integral_symm] using (integral_has_strict_deriv_at_right hf.s
 /-- Fundamental theorem of calculus-1: if `f : ℝ → E` is continuous, then `u ↦ ∫_{a}^{u} x, f x`
 has derivative `f b` at `b` in the sense of strict differentiability. -/
 lemma _root_.continuous.integral_has_strict_deriv_at {f : ℝ → E} (hf : continuous f) (a b : ℝ) :
-  has_strict_deriv_at (λ u, ∫_{a}^{u} (x : ℝ), f x) (f b) b :=
+  has_strict_deriv_at (λ u, ∫_{a}^{u} x, f x) (f b) b :=
 integral_has_strict_deriv_at_right (hf.interval_integrable _ _)
  (hf.strongly_measurable_at_filter _ _) hf.continuous_at
 
 /-- Fundamental theorem of calculus-1: if `f : ℝ → E` is continuous, then the derivative
 of `u ↦ ∫_{a}^{u} x, f x` at `b` is `f b`. -/
 lemma _root_.continuous.deriv_integral (f : ℝ → E) (hf : continuous f) (a b : ℝ) :
-  deriv (λ u, ∫_{a}^{u} (x : ℝ), f x) b = f b :=
+  deriv (λ u, ∫_{a}^{u} x, f x) b = f b :=
 (hf.integral_has_strict_deriv_at a b).has_deriv_at.deriv
 
 /-!

@@ -236,7 +236,7 @@ lemma sum_prob_mem_Ioc_le
 begin
   let ρ : measure ℝ := measure.map X ℙ,
   haveI : is_probability_measure ρ := is_probability_measure_map hint.ae_measurable,
-  have A : ∑ j in range K, ∫_{j}^{N} x, (1 : ℝ) ∂ρ ≤ 𝔼[X] + 1, from calc
+  have A : ∑ j in range K, ∫_{j}^{N} x, 1 ∂ρ ≤ 𝔼[X] + 1, from calc
   ∑ j in range K, ∫_{j}^{N} x, (1 : ℝ) ∂ρ
       = ∑ j in range K, ∑ i in Ico j N, ∫_{i}^{(i+1 : ℕ)} x, (1 : ℝ) ∂ρ :
     begin
@@ -321,7 +321,7 @@ begin
       simp only [integral_const, algebra.id.smul_eq_mul, mul_one, ennreal.to_real_nonneg,
         implies_true_iff],
     end
-  ... = ennreal.of_real (∑ j in range K, ∫_{(j : ℝ)}^{N} x, (1 : ℝ) ∂ρ) :
+  ... = ennreal.of_real (∑ j in range K, ∫_{j}^{N} x, (1 : ℝ) ∂ρ) :
     begin
       congr' 1,
       refine sum_congr rfl (λ j hj, _),
@@ -420,7 +420,7 @@ begin
           end (mul_nonneg zero_le_two ((nat.cast_nonneg k).trans hx.1.le))
         ... = 2 * x : by rw one_mul }
     end
-  ... = 2 * ∫_{(0 : ℝ)}^{K} x, x ∂ρ :
+  ... = 2 * ∫_{0}^{K} x, x ∂ρ :
     begin
       rw interval_integral.sum_integral_adjacent_intervals (λ k hk, _),
       swap, { exact (continuous_const.mul continuous_id').interval_integrable _ _ },

@@ -1168,7 +1168,7 @@ integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 of the interval, then its integral over `a..b` is strictly positive. -/
 lemma interval_integral_pos_of_pos_on {f : ℝ → ℝ} {a b : ℝ}
   (hfi : interval_integrable f volume a b) (hpos : ∀ (x : ℝ), x ∈ Ioo a b → 0 < f x) (hab : a < b) :
-  0 < ∫_{a}^{b} (x : ℝ), f x :=
+  0 < ∫_{a}^{b} x, f x :=
 begin
   have hsupp : Ioo a b ⊆ support f ∩ Ioc a b :=
     λ x hx, ⟨mem_support.mpr (hpos x hx).ne', Ioo_subset_Ioc_self hx⟩,

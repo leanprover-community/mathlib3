@@ -278,7 +278,7 @@ open interval_integral
 /-! ### Integrals of simple functions -/
 
 lemma integral_cpow {r : ℂ} (h : -1 < r.re ∨ (r ≠ -1 ∧ (0 : ℝ) ∉ [a, b])) :
-  ∫_{a}^{b} (x : ℝ), (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
+  ∫_{a}^{b} x, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
   rw sub_div,
   have hr : r + 1 ≠ 0,
@@ -292,7 +292,7 @@ begin
     refine has_deriv_at_of_real_cpow (ne_of_mem_of_not_mem hx hab) _,
     contrapose! hr, rwa add_eq_zero_iff_eq_neg },
   replace h : -1 < r.re, by tauto,
-  suffices : ∀ (c : ℝ), ∫_{0}^{c} (x : ℝ), (x : ℂ) ^ r =
+  suffices : ∀ (c : ℝ), ∫_{0}^{c} x, (x : ℂ) ^ r =
     c ^ (r + 1) / (r + 1) - 0 ^ (r + 1) / (r + 1),
   { rw [←integral_add_adjacent_intervals (@interval_integrable_cpow' a 0 r h)
       (@interval_integrable_cpow' 0 b r h), integral_symm, this a, this b, complex.zero_cpow hr],
@@ -396,13 +396,13 @@ integral_inv $ not_mem_uIcc_of_lt ha hb
 lemma integral_inv_of_neg (ha : a < 0) (hb : b < 0) : ∫_{a}^{b} x, x⁻¹ = log (b / a) :=
 integral_inv $ not_mem_uIcc_of_gt ha hb
 
-lemma integral_one_div (h : (0:ℝ) ∉ [a, b]) : ∫_{a}^{b} x : ℝ, 1/x = log (b / a) :=
+lemma integral_one_div (h : (0:ℝ) ∉ [a, b]) : ∫_{a}^{b} x, 1/x = log (b / a) :=
 by simp only [one_div, integral_inv h]
 
-lemma integral_one_div_of_pos (ha : 0 < a) (hb : 0 < b) : ∫_{a}^{b} x : ℝ, 1/x = log (b / a) :=
+lemma integral_one_div_of_pos (ha : 0 < a) (hb : 0 < b) : ∫_{a}^{b} x, 1/x = log (b / a) :=
 by simp only [one_div, integral_inv_of_pos ha hb]
 
-lemma integral_one_div_of_neg (ha : a < 0) (hb : b < 0) : ∫_{a}^{b} x : ℝ, 1/x = log (b / a) :=
+lemma integral_one_div_of_neg (ha : a < 0) (hb : b < 0) : ∫_{a}^{b} x, 1/x = log (b / a) :=
 by simp only [one_div, integral_inv_of_neg ha hb]
 
 @[simp]
@@ -475,7 +475,7 @@ by simpa only [sq, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_
   continuous_on_sin.neg.interval_integrable
 
 @[simp]
-lemma integral_inv_one_add_sq : ∫_{a}^{b} x : ℝ, (1 + x^2)⁻¹ = arctan b - arctan a :=
+lemma integral_inv_one_add_sq : ∫_{a}^{b} x, (1 + x^2)⁻¹ = arctan b - arctan a :=
 begin
   simp only [← one_div],
   refine integral_deriv_eq_sub' _ _ _ (continuous_const.div _ (λ x, _)).continuous_on,
@@ -485,14 +485,14 @@ begin
   { nlinarith },
 end
 
-lemma integral_one_div_one_add_sq : ∫_{a}^{b} x : ℝ, 1 / (1 + x^2) = arctan b - arctan a :=
+lemma integral_one_div_one_add_sq : ∫_{a}^{b} x, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp only [one_div, integral_inv_one_add_sq]
 
 section rpow_cpow
 open complex
 
 lemma integral_mul_cpow_one_add_sq {t : ℂ} (ht : t ≠ -1) :
-  ∫_{a}^{b} x : ℝ, (x:ℂ) * (1 + x ^ 2) ^ t =
+  ∫_{a}^{b} x, (x:ℂ) * (1 + x ^ 2) ^ t =
   (1 + b ^ 2) ^ (t + 1) / (2 * (t + 1)) - (1 + a ^ 2) ^ (t + 1) / (2 * (t + 1)) :=
 begin
   have : t + 1 ≠ 0 := by { contrapose! ht, rwa add_eq_zero_iff_eq_neg at ht },
@@ -522,7 +522,7 @@ begin
 end
 
 lemma integral_mul_rpow_one_add_sq {t : ℝ} (ht : t ≠ -1) :
-  ∫_{a}^{b} x : ℝ, x * (1 + x ^ 2) ^ t =
+  ∫_{a}^{b} x, x * (1 + x ^ 2) ^ t =
   (1 + b ^ 2) ^ (t + 1) / (2 * (t + 1)) - (1 + a ^ 2) ^ (t + 1) / (2 * (t + 1)) :=
 begin
   have : ∀ (x s : ℝ), (((1 + x ^ 2) ^ s : ℝ) : ℂ) = (1 + (x : ℂ) ^ 2) ^ ↑s,

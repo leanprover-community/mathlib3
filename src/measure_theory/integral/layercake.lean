@@ -227,7 +227,7 @@ theorem lintegral_rpow_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite 
     = (ennreal.of_real p) * ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) * ennreal.of_real (t^(p-1)) :=
 begin
   have one_lt_p : -1 < p - 1 := by linarith,
-  have obs : ∀ (x : ℝ), (∫_{0}^{x} (t : ℝ), t^(p-1)) = x^p / p,
+  have obs : ∀ (x : ℝ), (∫_{0}^{x} t, t^(p-1)) = x^p / p,
   { intros x,
     rw integral_rpow (or.inl one_lt_p),
     simp [real.zero_rpow p_pos.ne.symm], },

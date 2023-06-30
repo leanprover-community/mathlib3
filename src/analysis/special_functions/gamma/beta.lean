@@ -52,7 +52,7 @@ notation `cexp` := complex.exp
 
 /-- The Beta function `Β (u, v)`, defined as `∫_{0}^{1} x:ℝ, x ^ (u - 1) * (1 - x) ^ (v - 1)`. -/
 noncomputable def beta_integral (u v : ℂ) : ℂ :=
-∫_{0}^{1} (x:ℝ), x ^ (u - 1) * (1 - x) ^ (v - 1)
+∫_{0}^{1} x, x ^ (u - 1) * (1 - x) ^ (v - 1)
 
 /-- Auxiliary lemma for `beta_integral_convergent`, showing convergence at the left endpoint. -/
 lemma beta_integral_convergent_left {u : ℂ} (hu : 0 < re u) (v : ℂ) :

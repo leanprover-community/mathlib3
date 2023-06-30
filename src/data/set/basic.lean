@@ -542,9 +542,8 @@ by simp only [← subset_empty_iff]; exact union_subset_iff
 
 theorem inter_def {s₁ s₂ : set α} : s₁ ∩ s₂ = {a | a ∈ s₁ ∧ a ∈ s₂} := rfl
 
-@[simp, mfld_simps] theorem mem_inter_iff (x : α) (a b : set α) :
-  x ∈ a ∩ b ↔ (x ∈ a ∧ x ∈ b) :=
-iff.rfl
+@[simp, mfld_simps]
+theorem mem_inter_iff (x : α) (a b : set α) : x ∈ a ∩ b ↔ (x ∈ a ∧ x ∈ b) := iff.rfl
 
 theorem mem_inter {x : α} {a b : set α} (ha : x ∈ a) (hb : x ∈ b) : x ∈ a ∩ b := ⟨ha, hb⟩
 

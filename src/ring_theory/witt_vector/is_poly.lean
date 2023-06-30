@@ -100,9 +100,6 @@ end
 We define it here so it is a shared import.
 -/
 
-mk_simp_attribute ghost_simps
-"Simplification rules for ghost equations"
-
 namespace tactic
 namespace interactive
 setup_tactic_parser

@@ -61,9 +61,6 @@ when_tracing `norm_cast $ do
 a ← pp a,
 trace ("[norm_cast] " ++ msg ++ a : format)
 
-mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
-to move casts toward the leaf nodes of the expression."
-
 /--
 `label` is a type used to classify `norm_cast` lemmas.
 * elim lemma:   LHS has 0 head coes and ≥ 1 internal coe

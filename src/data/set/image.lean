@@ -253,7 +253,8 @@ by { ext, simp [image, eq_comm] }
 ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
   λ h, (eq_of_mem_singleton h).symm ▸ hs.imp (λ y hy, ⟨hy, rfl⟩)⟩
 
-@[simp, mfld_simps] lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
+@[simp, mfld_simps]
+lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
 by { simp only [eq_empty_iff_forall_not_mem],
      exact ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩ }
 

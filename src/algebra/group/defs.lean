@@ -87,10 +87,6 @@ variables {G : Type*}
    to the additive one.
 -/
 
-mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
-reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
-division-free."
-
 section has_mul
 variables [has_mul G]
 

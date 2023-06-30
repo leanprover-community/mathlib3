@@ -220,7 +220,6 @@ lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   s ×ˢ t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
 
-
 lemma image_prod_mk_subset_prod {f : α → β} {g : α → γ} {s : set α} :
   (λ x, (f x, g x)) '' s ⊆ (f '' s) ×ˢ (g '' s) :=
 by { rintros _ ⟨x, hx, rfl⟩, exact mk_mem_prod (mem_image_of_mem f hx) (mem_image_of_mem g hx) }

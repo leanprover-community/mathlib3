@@ -307,7 +307,8 @@ are model spaces in models with corners. The general fact is proved in
 lemma cont_mdiff_on.cont_mdiff_on_tangent_map_within_aux
   {f : H → H'} {s : set H}
   (hf : cont_mdiff_on I I' n f s) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
-  cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s) (π E (tangent_space I) ⁻¹' s) :=
+  cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s)
+    (π E (tangent_space I) ⁻¹' s) :=
 begin
   have m_le_n : m ≤ n,
   { apply le_trans _ hmn,

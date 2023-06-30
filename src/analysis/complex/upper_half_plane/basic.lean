@@ -13,6 +13,9 @@ import tactic.linear_combination
 /-!
 # The upper half plane and its automorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `upper_half_plane` to be the upper half plane in `ℂ`.
 
 We furthermore equip it with the structure of an `GL_pos 2 ℝ` action by

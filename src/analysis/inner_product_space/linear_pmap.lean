@@ -12,6 +12,9 @@ import topology.algebra.module.basic
 
 # Partially defined linear operators on Hilbert spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We will develop the basics of the theory of unbounded operators on Hilbert spaces.
 
 ## Main definitions

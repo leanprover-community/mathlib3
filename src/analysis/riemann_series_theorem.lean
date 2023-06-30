@@ -583,6 +583,15 @@ begin
       exact h₂ k (set.mem_Ico.mpr ⟨hk.left, lt_trans hk.right (nat.lt_succ_self d)⟩) } }
 end
 
+lemma partial_sum_terms_zero (f : ℕ → ℝ) {n : ℕ} (h : ∀ d, d < n → f d = 0)
+  : partial_sum f n = 0 :=
+begin
+  rw ←partial_sum_zero f,
+  symmetry,
+  apply partial_sum_terms_between_zero f (zero_le n),
+  exact λ k hk, h k (set.mem_Ico.mp hk).right
+end
+
 lemma partial_sum_nonneg_terms_nth_eq_partial_sum_nonneg_terms_d (a : ℕ → ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
@@ -590,14 +599,35 @@ lemma partial_sum_nonneg_terms_nth_eq_partial_sum_nonneg_terms_d (a : ℕ → �
   : partial_sum (nonneg_terms a) (nat.nth (λ j, 0 ≤ a j) n) = partial_sum (nonneg_terms_d a) n :=
 begin
   induction n with n ih,
-  {
-    rw nat.nth_zero,
-    sorry
-  },
-  {
-    rw nat.nth_eq_Inf' _ _ (nonneg_infinite_of_conditionally_converging h₁ h₂),
-    sorry
-  }
+  { rw nat.nth_zero,
+    apply partial_sum_terms_zero,
+    intros d hd,
+    apply if_neg,
+    exact nat.not_mem_of_lt_Inf hd },
+  { have hinf := (nonneg_infinite_of_conditionally_converging h₁ h₂),
+    rw partial_sum_next,
+    rw ←ih,
+    unfold nonneg_terms_d,
+    have : a (nat.nth (λ (k : ℕ), 0 ≤ a k) n) = (nonneg_terms a) (nat.nth (λ (k : ℕ), 0 ≤ a k) n),
+    { exact (if_pos (nat.nth_mem_of_infinite hinf _)).symm },
+    rw this,
+    rw ←partial_sum_next,
+    symmetry,
+    apply @partial_sum_terms_between_zero _ (nat.nth _ n + 1) (nat.nth _ n.succ),
+    { rw nat.succ_le_iff,
+      rw nat.nth_lt_nth hinf,
+      exact nat.lt_succ_self n },
+    { intros k hk,
+      rw nat.nth_eq_Inf' _ _ hinf at hk,
+      rw set.mem_Ico at hk,
+      cases hk with hk₁ hk₂,
+      replace hk₂ := nat.not_mem_of_lt_Inf hk₂,
+      change ¬(_ ∧ _) at hk₂,
+      push_neg at hk₂,
+      apply if_neg,
+      intro hcontra,
+      specialize hk₂ hcontra,
+      linarith } }
 end
 
 lemma nonneg_d_terms_tendsto_at_top_at_top_of_conditionally_converging {a : ℕ → ℝ}

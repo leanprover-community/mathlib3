@@ -513,6 +513,105 @@ lemma monotone_partial_sum_nonneg_terms_d (a : ℕ → ℝ)
   : monotone (partial_sum (nonneg_terms_d a)) :=
 monotone_partial_sum_of_terms_nonneg (nonneg_terms_d_nonneg_of_conditionally_converging h₁ h₂)
 
+/--
+  Alternate version of `nat.nth_eq_Inf` which uses the fact that the statements
+  `∀ (k : ℕ), k < n + 1 → nat.nth p k < x` and `nat.nth p n < x` are the same since `nat.nth` is
+  monotone.
+-/
+lemma nat.nth_eq_Inf' (p : ℕ → Prop) (n : ℕ) (hf : (set_of p).infinite):
+  nat.nth p (n + 1) = Inf {x : ℕ | p x ∧ nat.nth p n < x} :=
+begin
+  rw nat.nth_eq_Inf,
+  apply congr_arg,
+  ext x,
+  change p x ∧ _ ↔ p x ∧ _,
+  split,
+  { rintro ⟨h₁, h₂⟩,
+    exact ⟨h₁, h₂ n (nat.lt_succ_self n)⟩ },
+  { rintro ⟨h₁, h₂⟩,
+    apply and.intro h₁,
+    intros k hk,
+    refine lt_of_le_of_lt _ h₂,
+    exact nat.nth_monotone hf (nat.lt_succ_iff.mp hk) }
+end
+
+lemma nat.Inf_eq_iff {m : ℕ} {p : ℕ → Prop} (h : ∃ (n : ℕ), p n) :
+  Inf {n | p n} = m ↔ p m ∧ ∀ (n : ℕ), n < m → ¬p n :=
+begin
+  classical,
+  have : {n | p n}.nonempty := h,
+  rw nat.Inf_def this,
+  exact nat.find_eq_iff h
+end
+
+lemma partial_sum_nonneg_terms_d_succ_of_eq_parital_sum_nonneg_terms (a : ℕ → ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n k : ℕ) (h : partial_sum (nonneg_terms_d a) n = partial_sum (nonneg_terms a) k)
+  : ∃ d, partial_sum (nonneg_terms_d a) (n + 1) = partial_sum (nonneg_terms a) (n + 1 + d) :=
+begin
+  sorry
+end
+
+lemma partial_sum_nonneg_terms_le_partial_sum_nonneg_terms_d (a : ℕ → ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n : ℕ)
+  : partial_sum (nonneg_terms a) n ≤ partial_sum (nonneg_terms_d a) n :=
+begin
+  induction n with n ih,
+  { simp },
+  {
+    sorry
+  }
+end
+
+lemma partial_sum_terms_between_zero (f : ℕ → ℝ) {n d : ℕ} (h₁ : n ≤ d)
+  (h₂ : ∀ (k : ℕ), k ∈ set.Ico n d → f k = 0)
+  : partial_sum f n = partial_sum f d :=
+begin
+  induction d with d ih,
+  { simp [nat.eq_zero_of_le_zero h₁] },
+  { by_cases hc : n = d.succ,
+    { rw hc },
+    { have h₃ : n ≤ d := nat.le_of_lt_succ (lt_of_le_of_ne h₁ hc),
+      rw partial_sum_next,
+      rw [h₂ d (set.mem_Ico.mp ⟨h₃, nat.lt_succ_self d⟩), zero_add],
+      apply ih h₃,
+      intros k hk,
+      rw set.mem_Ico at hk,
+      exact h₂ k (set.mem_Ico.mpr ⟨hk.left, lt_trans hk.right (nat.lt_succ_self d)⟩) } }
+end
+
+lemma partial_sum_nonneg_terms_nth_eq_partial_sum_nonneg_terms_d (a : ℕ → ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n : ℕ)
+  : partial_sum (nonneg_terms a) (nat.nth (λ j, 0 ≤ a j) n) = partial_sum (nonneg_terms_d a) n :=
+begin
+  induction n with n ih,
+  {
+    rw nat.nth_zero,
+    sorry
+  },
+  {
+    rw nat.nth_eq_Inf' _ _ (nonneg_infinite_of_conditionally_converging h₁ h₂),
+    sorry
+  }
+end
+
+lemma nonneg_d_terms_tendsto_at_top_at_top_of_conditionally_converging {a : ℕ → ℝ}
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : tendsto (partial_sum (nonneg_terms_d a)) at_top at_top :=
+begin
+  have ht := nonneg_terms_tendsto_at_top_at_top_of_conditionally_converging h₁ h₂,
+  rw filter.tendsto_at_top_at_top at ⊢ ht,
+  intro b,
+  obtain ⟨i, hi⟩ := ht b,
+  sorry
+end
+
 lemma exists_pos_not_in_finset_of_conditionally_converging {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C)) (s : finset ℕ)
@@ -843,36 +942,6 @@ begin
   { have : n < m := lt_of_le_of_ne hnm h,
     have := rearrangement_preserves_order_of_terms_nonneg a M h₁ h₂ n m this hn₁ hn₂ hn₃,
     exact this.le }
-end
-
-/--
-  Alternate version of `nat.nth_eq_Inf` which uses the fact that the statements
-  `∀ (k : ℕ), k < n + 1 → nat.nth p k < x` and `nat.nth p n < x` are the same since `nat.nth` is
-  monotone.
--/
-lemma nat.nth_eq_Inf' (p : ℕ → Prop) (n : ℕ) (hf : (set_of p).infinite):
-  nat.nth p (n + 1) = Inf {x : ℕ | p x ∧ nat.nth p n < x} :=
-begin
-  rw nat.nth_eq_Inf,
-  apply congr_arg,
-  ext x,
-  change p x ∧ _ ↔ p x ∧ _,
-  split,
-  { rintro ⟨h₁, h₂⟩,
-    exact ⟨h₁, h₂ n (nat.lt_succ_self n)⟩ },
-  { rintro ⟨h₁, h₂⟩,
-    apply and.intro h₁,
-    intros k hk,
-    refine lt_of_le_of_lt _ h₂,
-    exact nat.nth_monotone hf (nat.lt_succ_iff.mp hk) }
-end
-
-lemma nat.Inf_eq_iff {m : ℕ} {p : ℕ → Prop} (h : ∃ (n : ℕ), p n) :
-  Inf {n | p n} = m ↔ p m ∧ ∀ (n : ℕ), n < m → ¬p n :=
-begin
-  have : {n | p n}.nonempty := h,
-  rw nat.Inf_def this,
-  exact nat.find_eq_iff h
 end
 
 lemma rearrangement_succ_eq_succ_nonneg_d (a : ℕ → ℝ) (M : ℝ)

@@ -205,7 +205,8 @@ e.to_pretrivialization.symmₗ R b
 
 variables {R}
 
-lemma coe_symmₗ (e : trivialization F (π F E)) [e.is_linear R] (b : B) : ⇑(e.symmₗ R b) = e.symm b :=
+lemma coe_symmₗ (e : trivialization F (π F E)) [e.is_linear R] (b : B) :
+  ⇑(e.symmₗ R b) = e.symm b :=
 rfl
 
 variables (R)
@@ -239,13 +240,13 @@ lemma linear_map_at_def_of_not_mem (e : trivialization F (π F E)) [e.is_linear 
   e.linear_map_at R b = 0 :=
 dif_neg hb
 
-lemma symmₗ_linear_map_at (e : trivialization F (π F E)) [e.is_linear R] {b : B} (hb : b ∈ e.base_set)
-  (y : E b) :
+lemma symmₗ_linear_map_at (e : trivialization F (π F E)) [e.is_linear R] {b : B}
+  (hb : b ∈ e.base_set) (y : E b) :
   e.symmₗ R b (e.linear_map_at R b y) = y :=
 e.to_pretrivialization.symmₗ_linear_map_at hb y
 
-lemma linear_map_at_symmₗ (e : trivialization F (π F E)) [e.is_linear R] {b : B} (hb : b ∈ e.base_set)
-  (y : F) :
+lemma linear_map_at_symmₗ (e : trivialization F (π F E)) [e.is_linear R] {b : B}
+  (hb : b ∈ e.base_set) (y : F) :
   e.linear_map_at R b (e.symmₗ R b y) = y :=
 e.to_pretrivialization.linear_map_at_symmₗ hb y
 
@@ -322,8 +323,8 @@ by rw [e.mk_coord_changeL e' hb, e.mk_symm hb.1]
 
 /-- A version of `coord_change_apply` that fully unfolds `coord_change`. The right-hand side is
 ugly, but has good definitional properties for specifically defined trivializations. -/
-lemma coord_changeL_apply' (e e' : trivialization F (π F E)) [e.is_linear R] [e'.is_linear R] {b : B}
-  (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
+lemma coord_changeL_apply' (e e' : trivialization F (π F E)) [e.is_linear R] [e'.is_linear R]
+  {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
   coord_changeL R e e' b y = (e' (e.to_local_homeomorph.symm (b, y))).2 :=
 by rw [e.coord_changeL_apply e' hb, e.mk_symm hb.1]
 
@@ -460,8 +461,8 @@ rfl
 
 variables (R)
 
-lemma apply_eq_prod_continuous_linear_equiv_at (e : trivialization F (π F E)) [e.is_linear R] (b : B)
-  (hb : b ∈ e.base_set) (z : E b) :
+lemma apply_eq_prod_continuous_linear_equiv_at (e : trivialization F (π F E)) [e.is_linear R]
+  (b : B) (hb : b ∈ e.base_set) (z : E b) :
   e ⟨b, z⟩ = (b, e.continuous_linear_equiv_at R b hb z) :=
 begin
   ext,
@@ -478,8 +479,8 @@ by simp_rw [zero_section, e.apply_eq_prod_continuous_linear_equiv_at R x hx 0,
 
 variables {R}
 
-lemma symm_apply_eq_mk_continuous_linear_equiv_at_symm (e : trivialization F (π F E)) [e.is_linear R]
-  (b : B) (hb : b ∈ e.base_set) (z : F) :
+lemma symm_apply_eq_mk_continuous_linear_equiv_at_symm (e : trivialization F (π F E))
+  [e.is_linear R] (b : B) (hb : b ∈ e.base_set) (z : F) :
   e.to_local_homeomorph.symm ⟨b, z⟩
   = ⟨b, (e.continuous_linear_equiv_at R b hb).symm z⟩ :=
 begin

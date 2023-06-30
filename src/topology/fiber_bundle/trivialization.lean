@@ -430,7 +430,8 @@ section has_zero
 variables [∀ x, has_zero (E x)]
 
 /-- A fiberwise inverse to `e'`. The function `F → E x` that induces a local inverse
-`B × F → total_space F E` of `e'` on `e'.base_set`. It is defined to be `0` outside `e'.base_set`. -/
+`B × F → total_space F E` of `e'` on `e'.base_set`. It is defined to be `0` outside
+`e'.base_set`. -/
 protected noncomputable def symm (e : trivialization F (π F E)) (b : B) (y : F) : E b :=
 e.to_pretrivialization.symm b y
 

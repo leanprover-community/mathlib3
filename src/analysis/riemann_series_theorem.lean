@@ -544,28 +544,6 @@ begin
   exact nat.find_eq_iff h
 end
 
-lemma partial_sum_nonneg_terms_d_succ_of_eq_parital_sum_nonneg_terms (a : ℕ → ℝ)
-  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
-  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  (n k : ℕ) (h : partial_sum (nonneg_terms_d a) n = partial_sum (nonneg_terms a) k)
-  : ∃ d, partial_sum (nonneg_terms_d a) (n + 1) = partial_sum (nonneg_terms a) (n + 1 + d) :=
-begin
-  sorry
-end
-
-lemma partial_sum_nonneg_terms_le_partial_sum_nonneg_terms_d (a : ℕ → ℝ)
-  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
-  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
-  (n : ℕ)
-  : partial_sum (nonneg_terms a) n ≤ partial_sum (nonneg_terms_d a) n :=
-begin
-  induction n with n ih,
-  { simp },
-  {
-    sorry
-  }
-end
-
 lemma partial_sum_terms_between_zero (f : ℕ → ℝ) {n d : ℕ} (h₁ : n ≤ d)
   (h₂ : ∀ (k : ℕ), k ∈ set.Ico n d → f k = 0)
   : partial_sum f n = partial_sum f d :=
@@ -639,7 +617,14 @@ begin
   rw filter.tendsto_at_top_at_top at ⊢ ht,
   intro b,
   obtain ⟨i, hi⟩ := ht b,
-  sorry
+  clear ht,
+  use i,
+  intros j hj,
+  specialize hi j hj,
+  apply le_trans hi,
+  rw ←partial_sum_nonneg_terms_nth_eq_partial_sum_nonneg_terms_d a h₁ h₂,
+  apply monotone_partial_sum_nonneg_terms,
+  exact nat.le_nth (λ hs, absurd hs (nonneg_infinite_of_conditionally_converging h₁ h₂))
 end
 
 lemma exists_pos_not_in_finset_of_conditionally_converging {a : ℕ → ℝ}

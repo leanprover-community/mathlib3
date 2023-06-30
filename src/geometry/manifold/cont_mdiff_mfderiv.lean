@@ -329,8 +329,8 @@ begin
       = (range I ∩ I.symm ⁻¹' s) ×ˢ univ,
     by { ext ⟨x, v⟩, simp only with mfld_simps, },
   suffices h : cont_diff_on 𝕜 m (((λ (p : H' × E'), (I' p.fst, p.snd)) ∘
-      (equiv.sigma_equiv_prod H' E')) ∘ tangent_map_within I I' f s ∘
-      ((equiv.sigma_equiv_prod H E).symm) ∘ λ (p : E × E), (I.symm p.fst, p.snd))
+      (total_space.to_prod H' E')) ∘ tangent_map_within I I' f s ∘
+      ((total_space.to_prod H E).symm) ∘ λ (p : E × E), (I.symm p.fst, p.snd))
     ((range ⇑I ∩ ⇑(I.symm) ⁻¹' s) ×ˢ univ),
     by simpa [A] using h,
   change cont_diff_on 𝕜 m (λ (p : E × E),

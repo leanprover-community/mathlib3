@@ -11,6 +11,9 @@ import ring_theory.localization.inv_submonoid
 /-!
 # Affine schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the category of `AffineScheme`s as the essential image of `Spec`.
 We also define predicates about affine schemes and affine open sets.
 

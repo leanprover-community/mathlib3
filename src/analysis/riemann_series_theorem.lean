@@ -608,7 +608,7 @@ begin
       linarith } }
 end
 
-lemma nonneg_d_terms_tendsto_at_top_at_top_of_conditionally_converging {a : ℕ → ℝ}
+lemma nonneg_terms_d_tendsto_at_top_at_top_of_conditionally_converging {a : ℕ → ℝ}
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
   : tendsto (partial_sum (nonneg_terms_d a)) at_top at_top :=
@@ -1133,6 +1133,9 @@ begin
   exact ⟨k, hk.symm⟩
 end
 
+/--
+  Used mainly to prove the stronger theorem `rearrangement_not_tendsto_at_top_nhds_of_tail_nonneg`
+-/
 lemma rearrangement_agrees_nonneg_terms_d (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
@@ -1152,6 +1155,18 @@ begin
     intros j hj,
     exact h (N' + j) (le_trans (le_max_left N 1) (nat.le_add_right N' j)) },
   exact shift_agrees_converges 0 N' k this
+end
+
+lemma rearrangement_not_tendsto_at_top_nhds_of_tail_nonneg (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (N : ℕ) (h : ∀ n, N ≤ n → sumto a M n ≤ M)
+  : ¬∃ C : ℝ, tendsto (partial_sum (λi, a (rearrangement a M i))) at_top (𝓝 C) :=
+begin
+  rw rearrangement_agrees_nonneg_terms_d a M h₁ h₂ N h,
+  push_neg,
+  have := nonneg_terms_d_tendsto_at_top_at_top_of_conditionally_converging h₁ h₂,
+  exact not_tendsto_nhds_of_tendsto_at_top this,
 end
 
 lemma frequently_exists_switchpoint (a : ℕ → ℝ) (M : ℝ)

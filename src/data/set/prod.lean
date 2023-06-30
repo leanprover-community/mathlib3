@@ -42,9 +42,9 @@ lemma prod_eq (s : set α) (t : set β) : s ×ˢ t = prod.fst ⁻¹' s ∩ prod.
 
 lemma mem_prod_eq {p : α × β} : p ∈ s ×ˢ t = (p.1 ∈ s ∧ p.2 ∈ t) := rfl
 
-@[simp] lemma mem_prod {p : α × β} : p ∈ s ×ˢ t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
+@[simp, mfld_simps] lemma mem_prod {p : α × β} : p ∈ s ×ˢ t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
-@[simp] lemma prod_mk_mem_set_prod_eq : (a, b) ∈ s ×ˢ t = (a ∈ s ∧ b ∈ t) := rfl
+@[simp, mfld_simps] lemma prod_mk_mem_set_prod_eq : (a, b) ∈ s ×ˢ t = (a ∈ s ∧ b ∈ t) := rfl
 
 lemma mk_mem_prod (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := ⟨ha, hb⟩
 
@@ -77,7 +77,7 @@ by simp [and_assoc]
 
 @[simp] lemma empty_prod : (∅ : set α) ×ˢ t = ∅ := by { ext, exact false_and _ }
 
-@[simp] lemma univ_prod_univ : @univ α ×ˢ @univ β = univ := by { ext, exact true_and _ }
+@[simp, mfld_simps] lemma univ_prod_univ : @univ α ×ˢ @univ β = univ := by { ext, exact true_and _ }
 
 lemma univ_prod {t : set β} : (univ : set α) ×ˢ t = prod.snd ⁻¹' t := by simp [prod_eq]
 
@@ -103,6 +103,7 @@ by { ext ⟨x, y⟩, simp only [←and_and_distrib_right, mem_inter_iff, mem_pro
 lemma prod_inter : s ×ˢ (t₁ ∩ t₂) = s ×ˢ t₁ ∩ s ×ˢ t₂ :=
 by { ext ⟨x, y⟩, simp only [←and_and_distrib_left, mem_inter_iff, mem_prod] }
 
+@[mfld_simps]
 lemma prod_inter_prod : s₁ ×ˢ t₁ ∩ s₂ ×ˢ t₂ = (s₁ ∩ s₂) ×ˢ (t₁ ∩ t₂) :=
 by { ext ⟨x, y⟩, simp [and_assoc, and.left_comm] }
 
@@ -186,7 +187,7 @@ lemma prod_range_range_eq {m₁ : α → γ} {m₂ : β → δ} :
   (range m₁) ×ˢ (range m₂) = range (λ p : α × β, (m₁ p.1, m₂ p.2)) :=
 ext $ by simp [range]
 
-@[simp] lemma range_prod_map {m₁ : α → γ} {m₂ : β → δ} :
+@[simp, mfld_simps] lemma range_prod_map {m₁ : α → γ} {m₂ : β → δ} :
   range (prod.map m₁ m₂) = (range m₁) ×ˢ (range m₂) :=
 prod_range_range_eq.symm
 

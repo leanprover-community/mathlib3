@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import tactic.basic
 import logic.function.basic
+import geometry.manifold.attr
 
 /-!
 # Extra facts about `prod`
@@ -37,7 +38,9 @@ prod.exists
 
 @[simp] lemma fst_comp_mk (x : α) : prod.fst ∘ (prod.mk x : β → α × β) = function.const β x := rfl
 
-@[simp] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) : map f g (a, b) = (f a, g b) := rfl
+@[simp, mfld_simps] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) :
+  map f g (a, b) = (f a, g b) :=
+rfl
 
 lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl
 

@@ -95,7 +95,7 @@ def total_space.trivial_snd (B : Type*) (F : Type*) : total_space F (bundle.triv
 total_space.snd
 
 /-- A trivial bundle is equivalent to the product `B × F`. -/
-@[simps]
+@[simps { attrs := [`simp, `mfld_simps] }]
 def total_space.to_prod (B F : Type*) : total_space F (λ _ : B, F) ≃ B × F :=
 { to_fun := λ x, (x.1, x.2),
   inv_fun := λ x, ⟨x.1, x.2⟩,
@@ -120,11 +120,11 @@ instance {f : B' → B} {x : B'} [nonempty (E (f x))] : nonempty (f *ᵖ E x) :=
 λ z, (z.proj, total_space.mk (f z.proj) z.2)
 
 /-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
-@[simps]
+@[simps { attrs := [`simp, `mfld_simps] }]
 def pullback.lift (f : B' → B) : total_space F (f *ᵖ E) → total_space F E :=
 λ z, ⟨f z.proj, z.2⟩
 
-@[simp] lemma pullback.lift_mk (f : B' → B) (x : B') (y : E (f x)) :
+@[simp, mfld_simps] lemma pullback.lift_mk (f : B' → B) (x : B') (y : E (f x)) :
   pullback.lift f (total_space.mk' F x y) = ⟨f x, y⟩ :=
 rfl
 

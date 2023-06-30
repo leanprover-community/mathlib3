@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.fun_like.equiv
 import logic.unique
+import geometry.manifold.attr
 
 /-!
 # Equivalence between types
@@ -120,10 +121,10 @@ initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm, e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
-@[simp]
+@[simp, mfld_simps]
 lemma to_fun_as_coe (e : α ≃ β) : e.to_fun = e := rfl
 
-@[simp]
+@[simp, mfld_simps]
 lemma inv_fun_as_coe (e : α ≃ β) : e.inv_fun = e.symm := rfl
 
 protected theorem injective (e : α ≃ β) : injective e := equiv_like.injective e

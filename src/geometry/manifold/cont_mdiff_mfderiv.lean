@@ -248,7 +248,7 @@ space are model spaces in models with corners. The general fact is proved in
 lemma cont_mdiff_on.continuous_on_tangent_map_within_aux
   {f : H → H'} {s : set H}
   (hf : cont_mdiff_on I I' n f s) (hn : 1 ≤ n) (hs : unique_mdiff_on I s) :
-  continuous_on (tangent_map_within I I' f s) (π (tangent_space I) ⁻¹' s) :=
+  continuous_on (tangent_map_within I I' f s) (π E (tangent_space I) ⁻¹' s) :=
 begin
   suffices h : continuous_on (λ (p : H × E), (f p.fst,
     (fderiv_within 𝕜 (written_in_ext_chart_at I I' p.fst f) (I.symm ⁻¹' s ∩ range I)
@@ -258,7 +258,7 @@ begin
     have B := ((tangent_bundle_model_space_homeomorph H' I').symm.continuous.comp_continuous_on h)
       .comp' A,
     have : (univ ∩ ⇑(tangent_bundle_model_space_homeomorph H I) ⁻¹' (prod.fst ⁻¹' s)) =
-      π (tangent_space I) ⁻¹' s,
+      π E (tangent_space I) ⁻¹' s,
       by { ext ⟨x, v⟩, simp only with mfld_simps },
     rw this at B,
     apply B.congr,
@@ -307,7 +307,7 @@ are model spaces in models with corners. The general fact is proved in
 lemma cont_mdiff_on.cont_mdiff_on_tangent_map_within_aux
   {f : H → H'} {s : set H}
   (hf : cont_mdiff_on I I' n f s) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
-  cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s) (π (tangent_space I) ⁻¹' s) :=
+  cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s) (π E (tangent_space I) ⁻¹' s) :=
 begin
   have m_le_n : m ≤ n,
   { apply le_trans _ hmn,
@@ -324,10 +324,10 @@ begin
   rw cont_mdiff_on_iff,
   refine ⟨hf.continuous_on_tangent_map_within_aux one_le_n hs, λp q, _⟩,
   have A : range I ×ˢ univ ∩
-      ((equiv.sigma_equiv_prod H E).symm ∘ λ (p : E × E), ((I.symm) p.fst, p.snd)) ⁻¹'
-        (π (tangent_space I) ⁻¹' s)
+      ((total_space.to_prod H E).symm ∘ λ (p : E × E), ((I.symm) p.fst, p.snd)) ⁻¹'
+        (π E (tangent_space I) ⁻¹' s)
       = (range I ∩ I.symm ⁻¹' s) ×ˢ univ,
-    by { ext ⟨x, v⟩, simp only with mfld_simps },
+    by { ext ⟨x, v⟩, simp only with mfld_simps, },
   suffices h : cont_diff_on 𝕜 m (((λ (p : H' × E'), (I' p.fst, p.snd)) ∘
       (equiv.sigma_equiv_prod H' E')) ∘ tangent_map_within I I' f s ∘
       ((equiv.sigma_equiv_prod H E).symm) ∘ λ (p : E × E), (I.symm p.fst, p.snd))

@@ -1161,12 +1161,21 @@ lemma rearrangement_not_tendsto_at_top_nhds_of_tail_nonneg (a : ℕ → ℝ) (M 
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
   (N : ℕ) (h : ∀ n, N ≤ n → sumto a M n ≤ M)
-  : ¬∃ C : ℝ, tendsto (partial_sum (λi, a (rearrangement a M i))) at_top (𝓝 C) :=
+  : ¬∃ C : ℝ, tendsto (partial_sum (λ i, a (rearrangement a M i))) at_top (𝓝 C) :=
 begin
   rw rearrangement_agrees_nonneg_terms_d a M h₁ h₂ N h,
   push_neg,
   have := nonneg_terms_d_tendsto_at_top_at_top_of_conditionally_converging h₁ h₂,
   exact not_tendsto_nhds_of_tendsto_at_top this,
+end
+
+lemma rearrangement_tendsto_at_top_at_top_of_tail_nonneg (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (N : ℕ) (h : ∀ n, N ≤ n → sumto a M n ≤ M)
+  : tendsto (partial_sum (λ i, a (rearrangement a M i))) at_top at_top :=
+begin
+  sorry
 end
 
 lemma frequently_exists_switchpoint (a : ℕ → ℝ) (M : ℝ)
@@ -1179,23 +1188,30 @@ begin
   rw filter.eventually_at_top at h,
   cases h with N h,
   by_cases hN : sumto a M N ≤ M,
-  {
-    have : ∀ c, sumto a M (N + c + 1) ≤ M,
+  { have : ∀ c, sumto a M (N + 1 + c) ≤ M,
     { intro c,
       induction c with c ih,
       { by_contra hc,
         push_neg at hc,
         exact h N le_rfl (rearrangement_switchpoint.under_to_over ⟨hN, hc⟩) },
-      { rw (show N + c.succ + 1 = N + c + 1 + 1, by ring),
+      { rw (show N + 1 + c.succ = N + 1 + c + 1, by ring),
         by_contra hc,
         push_neg at hc,
-        exact h (N + c + 1) (by linarith) (rearrangement_switchpoint.under_to_over ⟨ih, hc⟩) } },
-    have : ∀ c, 0 ≤ a (rearrangement a M (N + c + 1)),
-    { intro c,
-      exact (rearrangement_nonneg_spec h₁ h₂ (this c)).right },
-    have := frequently_exists_neg_of_conditionally_converging h₁ h₂,
-    sorry
-  },
+        exact h (N + 1 + c) (by linarith) (rearrangement_switchpoint.under_to_over ⟨ih, hc⟩) } },
+    have hbound : ∀ d, N + 1 ≤ d → sumto a M d ≤ M,
+    { intros d hd,
+      specialize this (d - (N + 1)),
+      rw add_comm (N + 1) at this,
+      rw nat.sub_add_cancel hd at this,
+      exact this },
+    have := rearrangement_tendsto_at_top_at_top_of_tail_nonneg a M h₁ h₂ (N + 1) hbound,
+    rw filter.tendsto_at_top_at_top at this,
+    -- `M + 1` is an arbitrary real number greater than `M`
+    specialize this (M + 1),
+    cases this with i hi,
+    specialize hi (max i (N + 1)) (le_max_left i _),
+    specialize hbound (max i (N + 1)) (le_max_right i _),
+    linarith },
   {
     sorry
   }

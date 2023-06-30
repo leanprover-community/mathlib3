@@ -43,7 +43,7 @@ open bundle set continuous_linear_map
 variables {𝕜₁ : Type*} [nontrivially_normed_field 𝕜₁] {𝕜₂ : Type*} [nontrivially_normed_field 𝕜₂]
   (σ : 𝕜₁ →+* 𝕜₂) [iσ : ring_hom_isometric σ]
 
-variables {B : Type*} [topological_space B]
+variables {B : Type*}
 
 variables {F₁ : Type*} [normed_add_comm_group F₁] [normed_space 𝕜₁ F₁]
   (E₁ : B → Type*) [Π x, add_comm_group (E₁ x)] [Π x, module 𝕜₁ (E₁ x)]
@@ -52,6 +52,11 @@ variables {F₂ : Type*} [normed_add_comm_group F₂] [normed_space 𝕜₂ F₂
   (E₂ : B → Type*) [Π x, add_comm_group (E₂ x)] [Π x, module 𝕜₂ (E₂ x)]
   [topological_space (total_space F₂ E₂)]
 
+/-- A reducible type synonym for the bundle of continuous (semi)linear maps. For some reason, it
+helps with instance search.
+
+Porting note: after the port is done, we may want to remove this definition.
+-/
 @[reducible]
 protected def bundle.continuous_linear_map [∀ x, topological_space (E₁ x)]
   [∀ x, topological_space (E₂ x)] : Π x : B, Type* :=
@@ -65,7 +70,9 @@ instance bundle.continuous_linear_map.module [∀ x, topological_space (E₁ x)]
 λ _, infer_instance
 
 variables {E₁ E₂}
-variables (e₁ e₁' : trivialization F₁ (π F₁ E₁)) (e₂ e₂' : trivialization F₂ (π F₂ E₂))
+
+variables [topological_space B] (e₁ e₁' : trivialization F₁ (π F₁ E₁))
+  (e₂ e₂' : trivialization F₂ (π F₂ E₂))
 
 namespace pretrivialization
 

@@ -688,14 +688,8 @@ end
 @[simp, mfld_simps] lemma tangent_map_within_proj {p : tangent_bundle I M} :
   (tangent_map_within I I' f s p).proj = f p.proj := rfl
 
-@[simp, mfld_simps] lemma tangent_map_within_fst {p : tangent_bundle I M} :
-  (tangent_map_within I I' f s p).1 = f p.1 := rfl
-
 @[simp, mfld_simps] lemma tangent_map_proj {p : tangent_bundle I M} :
   (tangent_map I I' f p).proj = f p.proj := rfl
-
-@[simp, mfld_simps] lemma tangent_map_fst {p : tangent_bundle I M} :
-  (tangent_map I I' f p).1 = f p.1 := rfl
 
 omit Is I's
 

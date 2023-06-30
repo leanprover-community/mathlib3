@@ -87,7 +87,7 @@ by cases z; refl
 notation E₁ ` ×ᵇ `:100 E₂ := λ x, E₁ x × E₂ x
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
-@[reducible]
+@[reducible, nolint unused_arguments]
 def trivial (B : Type*) (F : Type*) : B → Type* := λ _, F
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/

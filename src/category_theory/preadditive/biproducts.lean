@@ -46,6 +46,13 @@ In (or between) preadditive categories,
 
 * A functor preserves a biproduct if and only if it preserves
   the corresponding product if and only if it preserves the corresponding coproduct.
+
+There are connections between this material and the special case of the category whose morphisms are
+matrices over a ring, in particular the Schur complement (see
+`linear_algebra.matrix.schur_complement`). In particular, the declarations
+`category_theory.biprod.iso_elim`, `category_theory.biprod.gaussian`
+and `matrix.invertible_of_from_blocks₁₁_invertible` are all closely related.
+
 -/
 
 open category_theory

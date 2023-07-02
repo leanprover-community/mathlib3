@@ -12,6 +12,11 @@ import linear_algebra.matrix.pos_def
 This file proves properties of 2×2 block matrices `[A B; C D]` that relate to the Schur complement
 `D - C⬝A⁻¹⬝B`.
 
+Some of the results here generalize to 2×2 matrices in a category, rather than just a ring. A few
+results in this direction can be found in the the file `cateogry_theory.preadditive.biproducts`,
+especially the declarations `category_theory.biprod.gaussian` and `category_theory.biprod.iso_elim`.
+Compare with `matrix.invertible_of_from_blocks₁₁_invertible`.
+
 ## Main results
 
  * `matrix.det_from_blocks₁₁`, `matrix.det_from_blocks₂₂`: determinant of a block matrix in terms of

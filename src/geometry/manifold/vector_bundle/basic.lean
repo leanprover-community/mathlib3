@@ -8,6 +8,9 @@ import topology.vector_bundle.constructions
 
 /-! # Smooth vector bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines smooth vector bundles over a smooth manifold.
 
 Let `E` be a topological vector bundle, with model fiber `F` and base space `B`.  We consider `E` as

@@ -13,6 +13,9 @@ import analysis.fourier.poisson_summation
 /-!
 # Gaussian integral
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove various versions of the formula for the Gaussian integral:
 * `integral_gaussian`: for real `b` we have `∫ x:ℝ, exp (-b * x^2) = sqrt (π / b)`.
 * `integral_gaussian_complex`: for complex `b` with `0 < re b` we have

@@ -178,12 +178,9 @@ end pi
 instance function.nontrivial [h : nonempty α] [nontrivial β] : nontrivial (α → β) :=
 h.elim $ λ a, pi.nontrivial_at a
 
-mk_simp_attribute nontriviality "Simp lemmas for `nontriviality` tactic"
-
+@[nontriviality]
 protected lemma subsingleton.le [preorder α] [subsingleton α] (x y : α) : x ≤ y :=
 le_of_eq (subsingleton.elim x y)
-
-attribute [nontriviality] eq_iff_true_of_subsingleton subsingleton.le
 
 namespace bool
 

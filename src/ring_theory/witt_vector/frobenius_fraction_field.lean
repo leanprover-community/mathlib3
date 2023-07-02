@@ -10,6 +10,9 @@ import ring_theory.witt_vector.discrete_valuation_ring
 /-!
 # Solving equations about the Frobenius map on the field of fractions of `𝕎 k`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The goal of this file is to prove `witt_vector.exists_frobenius_solution_fraction_ring`,
 which says that for an algebraically closed field `k` of characteristic `p` and `a, b` in the
 field of fractions of Witt vectors over `k`,

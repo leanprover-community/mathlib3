@@ -10,6 +10,9 @@ import order.order_iso_nat
 /-!
 # The `n`th Number Satisfying a Predicate
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a function for "what is the `n`th number that satisifies a given predicate `p`",
 and provides lemmas that deal with this function and its connection to `nat.count`.
 

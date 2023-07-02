@@ -8,6 +8,9 @@ import topology.sheaves.local_predicate
 
 /-! # Generic construction of a sheaf from a `local_invariant_prop` on a manifold
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs the sheaf-of-types of functions `f : M → M'` (for charted spaces `M`, `M'`)
 which satisfy the lifted property `lift_prop P` associated to some locally invariant (in the sense
 of `structure_groupoid.local_invariant_prop`) property `P` on the model spaces of `M` and `M'`. For

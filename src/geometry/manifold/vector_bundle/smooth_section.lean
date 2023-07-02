@@ -15,7 +15,7 @@ In this file we define the type `cont_mdiff_section` of `n` times continuously d
 sections of a smooth vector bundle over a manifold `M` and prove that it's a module.
 -/
 open bundle filter function
-open_locale manifold
+open_locale bundle manifold
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -34,7 +34,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 
 variables (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] -- `F` model fiber
   (n : ℕ∞)
-  (V : M → Type*) [topological_space (total_space V)] -- `V` vector bundle
+  (V : M → Type*) [topological_space (total_space F V)] -- `V` vector bundle
   [Π x, add_comm_group (V x)] [Π x, module 𝕜 (V x)]
 variables [Π x : M, topological_space (V x)]
   [fiber_bundle F V]
@@ -45,7 +45,7 @@ variables [Π x : M, topological_space (V x)]
 @[protect_proj]
 structure cont_mdiff_section :=
 (to_fun            : Π x, V x)
-(cont_mdiff_to_fun : cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space_mk x (to_fun x)))
+(cont_mdiff_to_fun : cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space.mk' F x (to_fun x)))
 
 /-- Bundled smooth sections of a vector bundle. -/
 @[reducible] def smooth_section := cont_mdiff_section I F ⊤ V
@@ -62,26 +62,26 @@ instance : has_coe_to_fun Cₛ^n⟮I; F, V⟯ (λ s, Π x, V x) := ⟨cont_mdiff
 variables {s t : Cₛ^n⟮I; F, V⟯}
 
 @[simp] lemma coe_fn_mk (s : Π x, V x)
-  (hs : cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space_mk x (s x))) :
+  (hs : cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space.mk x (s x))) :
   (mk s hs : Π x, V x) = s :=
 rfl
 
 protected lemma cont_mdiff (s : Cₛ^n⟮I; F, V⟯) :
-  cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space_mk x (s x : V x)) := s.cont_mdiff_to_fun
+  cont_mdiff I (I.prod 𝓘(𝕜, F)) n (λ x, total_space.mk' F x (s x : V x)) := s.cont_mdiff_to_fun
 
 protected lemma smooth (s : Cₛ^∞⟮I; F, V⟯) :
-  smooth I (I.prod 𝓘(𝕜, F)) (λ x, total_space_mk x (s x : V x)) := s.cont_mdiff_to_fun
+  smooth I (I.prod 𝓘(𝕜, F)) (λ x, total_space.mk' F x (s x : V x)) := s.cont_mdiff_to_fun
 
 protected lemma mdifferentiable' (s : Cₛ^n⟮I; F, V⟯) (hn : 1 ≤ n) :
-  mdifferentiable I (I.prod 𝓘(𝕜, F)) (λ x, total_space_mk x (s x : V x)) :=
+  mdifferentiable I (I.prod 𝓘(𝕜, F)) (λ x, total_space.mk' F x (s x : V x)) :=
 s.cont_mdiff.mdifferentiable hn
 
 protected lemma mdifferentiable (s : Cₛ^∞⟮I; F, V⟯) :
-  mdifferentiable I (I.prod 𝓘(𝕜, F)) (λ x, total_space_mk x (s x : V x)) :=
+  mdifferentiable I (I.prod 𝓘(𝕜, F)) (λ x, total_space.mk' F x (s x : V x)) :=
 s.cont_mdiff.mdifferentiable le_top
 
 protected lemma mdifferentiable_at (s : Cₛ^∞⟮I; F, V⟯) {x} :
-  mdifferentiable_at I (I.prod 𝓘(𝕜, F)) (λ x, total_space_mk x (s x : V x)) x :=
+  mdifferentiable_at I (I.prod 𝓘(𝕜, F)) (λ x, total_space.mk' F x (s x : V x)) x :=
 s.mdifferentiable x
 
 lemma coe_inj ⦃s t : Cₛ^n⟮I; F, V⟯⦄ (h : (s : Π x, V x) = t) : s = t :=

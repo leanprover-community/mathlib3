@@ -27,7 +27,7 @@ variables {𝕜 B B' M : Type*} (F : Type*) (E : B → Type*)
 
 variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
   [normed_add_comm_group F] [normed_space 𝕜 F]
-  [topological_space (total_space E)] [∀ x, topological_space (E x)]
+  [topological_space (total_space F E)] [∀ x, topological_space (E x)]
 
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)

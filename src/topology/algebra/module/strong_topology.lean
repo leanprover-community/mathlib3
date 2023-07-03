@@ -139,7 +139,7 @@ end
 
 lemma strong_topology.has_continuous_smul [ring_hom_surjective σ] [ring_hom_isometric σ]
   [topological_space F] [topological_add_group F] [has_continuous_smul 𝕜₂ F] (𝔖 : set (set E))
-  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) (h𝔖₃ : ∀ S ∈ 𝔖, bornology.is_vonN_bounded 𝕜₁ S) :
+  (h𝔖 : ∀ S ∈ 𝔖, bornology.is_vonN_bounded 𝕜₁ S) :
   @has_continuous_smul 𝕜₂ (E →SL[σ] F) _ _ (strong_topology σ F 𝔖) :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
@@ -147,29 +147,46 @@ begin
   letI : topological_space (E →SL[σ] F) := strong_topology σ F 𝔖,
   let φ : (E →SL[σ] F) →ₗ[𝕜₂] E →ᵤ[𝔖] F :=
     ⟨(coe_fn : (E →SL[σ] F) → E → F), λ _ _, rfl, λ _ _, rfl⟩,
-  exact uniform_on_fun.has_continuous_smul_induced_of_image_bounded 𝕜₂ E F (E →SL[σ] F)
-    h𝔖₁ h𝔖₂ φ ⟨rfl⟩ (λ u s hs, (h𝔖₃ s hs).image u)
+  exact uniform_on_fun.has_continuous_smul_induced_of_image_bounded 𝕜₂ E F (E →SL[σ] F) 𝔖
+    φ ⟨rfl⟩ (λ u s hs, (h𝔖 s hs).image u)
 end
 
 lemma strong_topology.has_basis_nhds_zero_of_basis [topological_space F] [topological_add_group F]
-  {ι : Type*} (𝔖 : set (set E)) (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) {p : ι → Prop}
+  {ι : Type*} (𝔖 : set (set E)) {𝔗 : set (set E)} (h𝔖𝔗 : uniform_on_fun.generate_same 𝔖 𝔗)
+  (h𝔗₁ : 𝔗.nonempty) (h𝔗₂ : directed_on (⊆) 𝔗) {p : ι → Prop}
   {b : ι → set F} (h : (𝓝 0 : filter F).has_basis p b) :
   (@nhds (E →SL[σ] F) (strong_topology σ F 𝔖) 0).has_basis
-    (λ Si : set E × ι, Si.1 ∈ 𝔖 ∧ p Si.2)
+    (λ Si : set E × ι, Si.1 ∈ 𝔗 ∧ p Si.2)
     (λ Si, {f : E →SL[σ] F | ∀ x ∈ Si.1, f x ∈ b Si.2}) :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
   haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
   rw nhds_induced,
-  exact (uniform_on_fun.has_basis_nhds_zero_of_basis 𝔖 h𝔖₁ h𝔖₂ h).comap coe_fn
+  exact (uniform_on_fun.has_basis_nhds_zero_of_basis 𝔖 h𝔖𝔗 h𝔗₁ h𝔗₂ h).comap coe_fn
 end
 
 lemma strong_topology.has_basis_nhds_zero [topological_space F] [topological_add_group F]
-  (𝔖 : set (set E)) (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
+  (𝔖 : set (set E)) {𝔗 : set (set E)} (h𝔖𝔗 : uniform_on_fun.generate_same 𝔖 𝔗) (h𝔗₁ : 𝔗.nonempty)
+  (h𝔗₂ : directed_on (⊆) 𝔗) :
   (@nhds (E →SL[σ] F) (strong_topology σ F 𝔖) 0).has_basis
-    (λ SV : set E × set F, SV.1 ∈ 𝔖 ∧ SV.2 ∈ (𝓝 0 : filter F))
+    (λ SV : set E × set F, SV.1 ∈ 𝔗 ∧ SV.2 ∈ (𝓝 0 : filter F))
     (λ SV, {f : E →SL[σ] F | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
-strong_topology.has_basis_nhds_zero_of_basis σ F 𝔖 h𝔖₁ h𝔖₂ (𝓝 0).basis_sets
+strong_topology.has_basis_nhds_zero_of_basis σ F 𝔖 h𝔖𝔗 h𝔗₁ h𝔗₂ (𝓝 0).basis_sets
+
+lemma strong_topology.locally_convex_space [topological_space F']
+  [topological_add_group F'] [has_continuous_const_smul ℝ F'] [locally_convex_space ℝ F']
+  (𝔖 : set (set E')) :
+  @locally_convex_space ℝ (E' →L[ℝ] F') _ _ _ (strong_topology (ring_hom.id ℝ) F' 𝔖) :=
+begin
+  letI : topological_space (E' →L[ℝ] F') := strong_topology (ring_hom.id ℝ) F' 𝔖,
+  haveI : topological_add_group (E' →L[ℝ] F') := strong_topology.topological_add_group _ _ _,
+  rcases uniform_on_fun.exists_generate_same_directed 𝔖 with ⟨𝔗, h𝔗₁, h𝔗₂, h𝔖𝔗⟩,
+  refine locally_convex_space.of_basis_zero _ _ _ _
+    (strong_topology.has_basis_nhds_zero_of_basis _ _ _ h𝔖𝔗 h𝔗₁ h𝔗₂
+      (locally_convex_space.convex_basis_zero ℝ F')) _,
+  rintros ⟨S, V⟩ ⟨hS, hVmem, hVconvex⟩ f hf g hg a b ha hb hab x hx,
+  exact hVconvex (hf x hx) (hg x hx) ha hb hab,
+end
 
 end general
 
@@ -191,10 +208,7 @@ strong_topology.topological_add_group σ F _
 instance [ring_hom_surjective σ] [ring_hom_isometric σ] [topological_space F]
   [topological_add_group F] [has_continuous_smul 𝕜₂ F] :
   has_continuous_smul 𝕜₂ (E →SL[σ] F) :=
-strong_topology.has_continuous_smul σ F {S | bornology.is_vonN_bounded 𝕜₁ S}
-  ⟨∅, bornology.is_vonN_bounded_empty 𝕜₁ E⟩
-  (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union)
-  (λ s hs, hs)
+strong_topology.has_continuous_smul σ F {S | bornology.is_vonN_bounded 𝕜₁ S} (λ s hs, hs)
 
 instance [uniform_space F] [uniform_add_group F] : uniform_space (E →SL[σ] F) :=
 strong_uniformity σ F {S | bornology.is_vonN_bounded 𝕜₁ S}
@@ -214,7 +228,7 @@ protected lemma has_basis_nhds_zero_of_basis [topological_space F]
     (λ Si : set E × ι, bornology.is_vonN_bounded 𝕜₁ Si.1 ∧ p Si.2)
     (λ Si, {f : E →SL[σ] F | ∀ x ∈ Si.1, f x ∈ b Si.2}) :=
 strong_topology.has_basis_nhds_zero_of_basis σ F
-  {S | bornology.is_vonN_bounded 𝕜₁ S} ⟨∅, bornology.is_vonN_bounded_empty 𝕜₁ E⟩
+  {S : set E | bornology.is_vonN_bounded 𝕜₁ S} rfl ⟨∅, bornology.is_vonN_bounded_empty 𝕜₁ E⟩
   (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union) h
 
 protected lemma has_basis_nhds_zero [topological_space F]
@@ -223,6 +237,11 @@ protected lemma has_basis_nhds_zero [topological_space F]
     (λ SV : set E × set F, bornology.is_vonN_bounded 𝕜₁ SV.1 ∧ SV.2 ∈ (𝓝 0 : filter F))
     (λ SV, {f : E →SL[σ] F | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
 continuous_linear_map.has_basis_nhds_zero_of_basis (𝓝 0).basis_sets
+
+instance [topological_space E'] [topological_space F'] [topological_add_group F']
+  [has_continuous_const_smul ℝ F'] [locally_convex_space ℝ F'] :
+  locally_convex_space ℝ (E' →L[ℝ] F') :=
+strong_topology.locally_convex_space _
 
 end bounded_sets
 

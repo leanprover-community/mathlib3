@@ -33,13 +33,6 @@ Like in `topology/uniform_space/uniform_convergence_topology`, we use the type a
 `uniform_fun` (denoted `α →ᵤ β`) and `uniform_on_fun` (denoted `α →ᵤ[𝔖] β`) for functions from `α`
 to `β` endowed with the structures of uniform convergence and `𝔖`-convergence.
 
-## TODO
-
-* `uniform_on_fun.has_continuous_smul_of_image_bounded` unnecessarily asks for `𝔖` to be
-  nonempty and directed. This will be easy to solve once we know that replacing `𝔖` by its
-  ***noncovering*** bornology (i.e ***not*** what `bornology` currently refers to in mathlib)
-  doesn't change the topology.
-
 ## References
 
 * [N. Bourbaki, *General Topology, Chapter X*][bourbaki1966]
@@ -51,7 +44,7 @@ uniform convergence, strong dual
 
 -/
 
-open filter
+open filter set
 open_locale topology pointwise uniform_convergence
 
 section algebraic_instances
@@ -125,27 +118,27 @@ instance : uniform_group (α →ᵤ[𝔖] G) :=
   uniform_on_fun.uniform_equiv_prod_arrow.symm.uniform_continuous⟩
 
 @[to_additive]
-protected lemma uniform_on_fun.has_basis_nhds_one_of_basis (𝔖 : set $ set α)
-  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) {p : ι → Prop}
-  {b : ι → set G} (h : (𝓝 1 : filter G).has_basis p b) :
+protected lemma uniform_on_fun.has_basis_nhds_one_of_basis (𝔖 : set $ set α) {𝔗 : set $ set α}
+  (h𝔖𝔗 : uniform_on_fun.generate_same 𝔖 𝔗) (h𝔗₁ : 𝔗.nonempty) (h𝔗₂ : directed_on (⊆) 𝔗)
+  {p : ι → Prop} {b : ι → set G} (h : (𝓝 1 : filter G).has_basis p b) :
   (𝓝 1 : filter (α →ᵤ[𝔖] G)).has_basis
-    (λ Si : set α × ι, Si.1 ∈ 𝔖 ∧ p Si.2)
+    (λ Si : set α × ι, Si.1 ∈ 𝔗 ∧ p Si.2)
     (λ Si, {f : α →ᵤ[𝔖] G | ∀ x ∈ Si.1, f x ∈ b Si.2}) :=
 begin
   have := h.comap (λ p : G × G, p.1 / p.2),
   rw ← uniformity_eq_comap_nhds_one_swapped at this,
-  convert uniform_on_fun.has_basis_nhds_of_basis α _ 𝔖 1 h𝔖₁ h𝔖₂ this,
+  convert uniform_on_fun.has_basis_nhds_of_basis α _ 𝔖 1 h𝔖𝔗 h𝔗₁ h𝔗₂ this,
   ext i f,
   simp [uniform_on_fun.gen]
 end
 
 @[to_additive]
-protected lemma uniform_on_fun.has_basis_nhds_one (𝔖 : set $ set α)
-  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
+protected lemma uniform_on_fun.has_basis_nhds_one (𝔖 : set $ set α) {𝔗 : set $ set α}
+  (h𝔖𝔗 : uniform_on_fun.generate_same 𝔖 𝔗) (h𝔗₁ : 𝔗.nonempty) (h𝔗₂ : directed_on (⊆) 𝔗) :
   (𝓝 1 : filter (α →ᵤ[𝔖] G)).has_basis
-    (λ SV : set α × set G, SV.1 ∈ 𝔖 ∧ SV.2 ∈ (𝓝 1 : filter G))
+    (λ SV : set α × set G, SV.1 ∈ 𝔗 ∧ SV.2 ∈ (𝓝 1 : filter G))
     (λ SV, {f : α →ᵤ[𝔖] G | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
-uniform_on_fun.has_basis_nhds_one_of_basis 𝔖 h𝔖₁ h𝔖₂ (basis_sets _)
+uniform_on_fun.has_basis_nhds_one_of_basis 𝔖 h𝔖𝔗 h𝔗₁ h𝔗₂ (basis_sets _)
 
 end group
 
@@ -153,7 +146,7 @@ section module
 
 variables (𝕜 α E H : Type*) {hom : Type*} [normed_field 𝕜] [add_comm_group H] [module 𝕜 H]
   [add_comm_group E] [module 𝕜 E] [topological_space H] [uniform_space E] [uniform_add_group E]
-  [has_continuous_smul 𝕜 E] {𝔖 : set $ set α} [linear_map_class hom 𝕜 H (α →ᵤ[𝔖] E)]
+  [has_continuous_smul 𝕜 E] (𝔖 : set $ set α) [linear_map_class hom 𝕜 H (α →ᵤ[𝔖] E)]
 
 /-- Let `E` be a TVS, `𝔖 : set (set α)` and `H` a submodule of `α →ᵤ[𝔖] E`. If the image of any
 `S ∈ 𝔖` by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`,
@@ -163,18 +156,25 @@ For convenience, we don't literally ask for `H : submodule (α →ᵤ[𝔖] E)`.
 result for any vector space `H` equipped with a linear inducing to `α →ᵤ[𝔖] E`, which is often
 easier to use. We also state the `submodule` version as
 `uniform_on_fun.has_continuous_smul_submodule_of_image_bounded`. -/
-lemma uniform_on_fun.has_continuous_smul_induced_of_image_bounded
-  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖)
-  (φ : hom) (hφ : inducing φ)
+lemma uniform_on_fun.has_continuous_smul_induced_of_image_bounded (φ : hom) (hφ : inducing φ)
   (h : ∀ u : H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 ((φ u : α → E) '' s)) :
   has_continuous_smul 𝕜 H :=
 begin
   haveI : topological_add_group H,
   { rw hφ.induced,
     exact topological_add_group_induced φ },
+  rcases uniform_on_fun.exists_generate_same_directed 𝔖 with ⟨𝔗, h𝔗₁, h𝔗₂, h𝔖𝔗⟩,
+  have h' : ∀ u : H, ∀ t ∈ 𝔗, bornology.is_vonN_bounded 𝕜 ((φ u : α → E) '' t),
+  { intros u t ht,
+    rcases (uniform_on_fun.generate_same_iff.mp h𝔖𝔗).2 t ht with ⟨S, hS, S_finite, hSt⟩,
+    refine bornology.is_vonN_bounded.subset (monotone_image hSt) _,
+    rw [← bornology.is_bounded_iff_is_vonN_bounded, sUnion_eq_bUnion, image_Union₂,
+        @bornology.is_bounded_bUnion _ _ (bornology.vonN_bornology 𝕜 E) _ _ S_finite],
+    simp_rw [bornology.is_bounded_iff_is_vonN_bounded],
+    exact λ s hs, h u s (hS hs) },
   have : (𝓝 0 : filter H).has_basis _ _,
   { rw [hφ.induced, nhds_induced, map_zero],
-    exact ((uniform_on_fun.has_basis_nhds_zero 𝔖 h𝔖₁ h𝔖₂).comap φ) },
+    exact ((uniform_on_fun.has_basis_nhds_zero 𝔖 h𝔖𝔗 h𝔗₁ h𝔗₂).comap φ) },
   refine has_continuous_smul.of_basis_zero this _ _ _,
   { rintros ⟨S, V⟩ ⟨hS, hV⟩,
     have : tendsto (λ kx : (𝕜 × E), kx.1 • kx.2) (𝓝 (0, 0)) (𝓝 $ (0 : 𝕜) • 0) :=
@@ -195,7 +195,7 @@ begin
     rw [smul_hom_class.map_smul],
     exact hf x hx },
   { rintros u ⟨S, V⟩ ⟨hS, hV⟩,
-    rcases h u S hS hV with ⟨r, hrpos, hr⟩,
+    rcases h' u S hS hV with ⟨r, hrpos, hr⟩,
     rw metric.eventually_nhds_iff_ball,
     refine ⟨r⁻¹, inv_pos.mpr hrpos, λ a ha x hx, _⟩,
     by_cases ha0 : a = 0,
@@ -216,16 +216,11 @@ end
 equipped with the topology of `𝔖`-convergence, is a TVS.
 
 If you have a hard time using this lemma, try the one above instead. -/
-lemma uniform_on_fun.has_continuous_smul_submodule_of_image_bounded
-  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) (H : submodule 𝕜 (α →ᵤ[𝔖] E))
+lemma uniform_on_fun.has_continuous_smul_submodule_of_image_bounded (H : submodule 𝕜 (α →ᵤ[𝔖] E))
   (h : ∀ u ∈ H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 (u '' s)) :
   @has_continuous_smul 𝕜 H _ _
   ((uniform_on_fun.topological_space α E 𝔖).induced (coe : H → α →ᵤ[𝔖] E)) :=
-begin
-  haveI : topological_add_group H := topological_add_group_induced
-    (linear_map.id.dom_restrict H : H →ₗ[𝕜] α → E),
-  exact uniform_on_fun.has_continuous_smul_induced_of_image_bounded 𝕜 α E H h𝔖₁ h𝔖₂
-    (linear_map.id.dom_restrict H : H →ₗ[𝕜] α → E) inducing_coe (λ ⟨u, hu⟩, h u hu)
-end
+uniform_on_fun.has_continuous_smul_induced_of_image_bounded 𝕜 α E H 𝔖 H.subtype inducing_coe
+  (λ ⟨u, hu⟩, h u hu)
 
 end module

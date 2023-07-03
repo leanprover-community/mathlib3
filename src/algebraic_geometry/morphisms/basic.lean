@@ -10,6 +10,9 @@ import category_theory.morphism_property
 /-!
 # Properties of morphisms between Schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the basic framework for talking about properties of morphisms between Schemes.
 
 A `morphism_property Scheme` is a predicate on morphisms between schemes, and an

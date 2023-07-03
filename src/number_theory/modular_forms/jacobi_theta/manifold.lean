@@ -9,6 +9,9 @@ import analysis.complex.upper_half_plane.manifold
 /-!
 # Manifold differentiability of the Jacobi's theta function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we reformulate differentiability of the Jacobi's theta function in terms of manifold
 differentiability.
 

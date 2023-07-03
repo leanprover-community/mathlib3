@@ -9,6 +9,9 @@ import analysis.inner_product_space.adjoint
 /-!
 # Proper cones
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define a proper cone as a nonempty, closed, convex cone. Proper cones are used in defining conic
 programs which generalize linear programs. A linear program is a conic program for the positive
 cone. We then prove Farkas' lemma for conic programs following the proof in the reference below.

@@ -11,7 +11,7 @@ open filter
 
 open_locale big_operators topology
 
-universe u
+universes u v
 /--
 `partial_sum f n` is the sum `f 0 + f 1 + f 2 + ... + f (n - 1)`. Note that this does not include
 the term `f n`.
@@ -1169,6 +1169,16 @@ begin
   exact not_tendsto_nhds_of_tendsto_at_top this,
 end
 
+lemma tendsto_of_monotone_on_mem_at_top {ι : Type u} {α : Type v} [topological_space α]
+  [semilattice_sup ι] [nonempty ι]
+  [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} {s : set ι}
+    (hs : s ∈ (filter.at_top : filter ι)) (h_mono : monotone_on f s)
+  : filter.tendsto f filter.at_top filter.at_top ∨
+      ∃ (l : α), filter.tendsto f filter.at_top (nhds l) :=
+begin
+  sorry
+end
+
 lemma rearrangement_tendsto_at_top_at_top_of_tail_nonneg (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
@@ -1217,6 +1227,12 @@ begin
   }
 end
 
+lemma infinite_set_of_switchpoint (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : set.infinite (set_of (rearrangement_switchpoint a M)) :=
+nat.frequently_at_top_iff_infinite.mp (frequently_exists_switchpoint a M h₁ h₂)
+
 lemma exists_le_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
@@ -1232,12 +1248,38 @@ begin
   exact (nat.find_greatest_eq hm₂).symm
 end
 
+lemma tendsto_zero_nth_switchpoint (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  : tendsto (λ k, ‖a (rearrangement a M (nat.nth (rearrangement_switchpoint a M) k))‖) at_top (𝓝 0) :=
+begin
+  sorry
+end
+
 lemma tendsto_zero_nearest_switchpoint (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
   : tendsto (λ n, ‖a (rearrangement a M (nearest_switchpoint a M n))‖) at_top (𝓝 0) :=
 begin
-  sorry
+  have h := tendsto_zero_nth_switchpoint a M h₁ h₂,
+  rw filter.tendsto_def at ⊢ h,
+  intros s hs,
+  specialize h s hs,
+  rw filter.mem_at_top_sets at ⊢ h,
+  cases h with k hk,
+  let N := nat.nth (rearrangement_switchpoint a M) k,
+  use N,
+  intros b hb,
+  have hinf := infinite_set_of_switchpoint a M h₁ h₂,
+  obtain ⟨n, _, hn⟩ := nat.exists_lt_card_nth_eq (nearest_switchpoint_switchpoint a M b),
+  have : k ≤ n,
+  { rw ←nat.nth_le_nth hinf,
+    rw hn,
+    apply nat.le_find_greatest hb (nat.nth_mem k (λ h, absurd h hinf)) },
+  specialize hk n this,
+  rw set.mem_preimage at hk ⊢,
+  rw hn at hk,
+  exact hk
 end
 
 lemma tendsto_zero_abs_sumto_sub_M (a : ℕ → ℝ) (M : ℝ)

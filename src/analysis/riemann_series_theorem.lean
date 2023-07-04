@@ -29,39 +29,21 @@ end
 lemma partial_sum_next {R : Type u} [add_comm_monoid R] (f : ℕ → R) (n : ℕ) :
   partial_sum f (n + 1) = f n + partial_sum f n :=
 begin
-  unfold partial_sum,
-  rw finset.range_succ,
-  apply finset.sum_insert,
-  exact finset.not_mem_range_self
+  rw add_comm (f n),
+  exact finset.sum_range_succ f n
 end
 
 lemma partial_sum_neg {R : Type u} [add_comm_group R] (f : ℕ → R) (n : ℕ) :
   partial_sum (λ m, - (f m)) n = - (partial_sum f n) :=
-begin
-  induction n with n hi,
-  { simp },
-  { simp [partial_sum_next, hi, add_comm] }
-end
+finset.sum_neg_distrib
 
 lemma partial_sum_add {R : Type u} [add_comm_monoid R] (f : ℕ → R) (g : ℕ → R) (n : ℕ)
 : partial_sum f n + partial_sum g n = partial_sum (λ k, f k + g k) n :=
-begin
-  induction n with n ih,
-  { simp },
-  { repeat { rw partial_sum_next },
-    rw ←ih,
-    abel }
-end
+finset.sum_add_distrib.symm
 
 lemma partial_sum_sub {R : Type u} [add_comm_group R] (f : ℕ → R) (g : ℕ → R) (n : ℕ)
   : partial_sum f n - partial_sum g n = partial_sum (λ k, f k - g k) n :=
-begin
-  induction n with n ih,
-  { simp },
-  { repeat { rw partial_sum_next },
-    rw ←ih,
-    abel }
-end
+finset.sum_sub_distrib.symm
 
 lemma converges_absolutely_iff_converges_of_all_terms_nonneg (a : ℕ → ℝ) (h : ∀ n, 0 ≤ a n) :
   (∃ C, tendsto (partial_sum a) at_top (𝓝 C)) ↔
@@ -306,17 +288,7 @@ end
 
 lemma monotone_partial_sum_of_terms_nonneg {f : ℕ → ℝ} (h : ∀ n, 0 ≤ f n)
   : monotone (partial_sum f) :=
-begin
-  intros n m hnm,
-  induction m with m ih,
-  { rw nat.eq_zero_of_le_zero hnm },
-  { by_cases hc : n = m.succ,
-    { rw hc },
-    { have h₁ : n ≤ m := nat.le_of_lt_succ (lt_of_le_of_ne hnm hc),
-      calc partial_sum f n ≤ partial_sum f m : ih h₁
-                       ... ≤ f m + partial_sum f m : by linarith [h m]
-                       ... = partial_sum f (m + 1) : by rw partial_sum_next } }
-end
+λ n _ h₁, finset.sum_mono_set_of_nonneg h (finset.range_mono h₁)
 
 lemma monotone_partial_sum_nonneg_terms (a : ℕ → ℝ) : monotone (partial_sum (nonneg_terms a)) :=
 monotone_partial_sum_of_terms_nonneg (nonneg_terms_nonneg a)

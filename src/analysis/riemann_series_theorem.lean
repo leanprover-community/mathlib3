@@ -1248,6 +1248,73 @@ begin
   exact (nat.find_greatest_eq hm₂).symm
 end
 
+--| under_to_over : sumto a M n ≤ M ∧ M < sumto a M (n + 1) → rearrangement_switchpoint
+--| over_to_under : M < sumto a M n ∧ sumto a M (n + 1) ≤ M → rearrangement_switchpoint
+lemma rearrangement_switchpoint_next_1 (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n : ℕ) (hn₁ : n ≠ 0)
+  (hn₂ : sumto a M (nat.nth (rearrangement_switchpoint a M) n) ≤ M
+    ∧ M < sumto a M (nat.nth (rearrangement_switchpoint a M) (n + 1)))
+  : M < sumto a M (nat.nth (rearrangement_switchpoint a M) (n + 1))
+    ∧ sumto a M (nat.nth (rearrangement_switchpoint a M) (n + 2)) ≤ M :=
+begin
+  sorry
+end
+
+lemma rearrangement_switchpoint_add_two_gt_rearrangement_switchpoint (a : ℕ → ℝ) (M : ℝ)
+  (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
+  (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
+  (n : ℕ) (hn : n ≠ 0)
+  : rearrangement a M (nat.nth (rearrangement_switchpoint a M) n) ≤
+    rearrangement a M (nat.nth (rearrangement_switchpoint a M) (n + 2)) :=
+begin
+  have hinf := infinite_set_of_switchpoint a M h₁ h₂,
+  set sn : ℕ := nat.nth (rearrangement_switchpoint a M) n,
+  let sn1 : ℕ := nat.nth (rearrangement_switchpoint a M) (n + 1),
+  set sn2 : ℕ := nat.nth (rearrangement_switchpoint a M) (n + 2),
+  have h_sn_swp : rearrangement_switchpoint a M sn := nat.nth_mem _ (λ h, absurd h hinf),
+  have h_sn1_swp : rearrangement_switchpoint a M sn1 := nat.nth_mem _ (λ h, absurd h hinf),
+  have h_sn2_swp : rearrangement_switchpoint a M sn2 := nat.nth_mem _ (λ h, absurd h hinf),
+  cases h_sn_swp with h_sn_swp,
+  { rw nat.nth_eq_zero at h_sn_swp,
+    rcases h_sn_swp with ⟨_, h⟩ | ⟨h, _⟩; contradiction },
+  {
+    cases h_sn1_swp with h_sn1_swp,
+    { rw nat.nth_eq_zero at h_sn1_swp,
+      rcases h_sn1_swp with ⟨_, h⟩ | ⟨h, _⟩; contradiction },
+    {
+      sorry
+    },
+    {
+      cases h_sn2_swp with h_sn2_swp,
+      { rw nat.nth_eq_zero at h_sn2_swp,
+        rcases h_sn2_swp with ⟨_, h⟩ | ⟨h, _⟩; contradiction },
+      {
+        apply rearrangement_preserves_order_of_terms_nonneg' a M h₁ h₂,
+        {
+          sorry
+        },
+        {
+          sorry
+        },
+        {
+          sorry
+        },
+        {
+          sorry
+        }
+      },
+      {
+        sorry
+      }
+    }
+  },
+  {
+    sorry
+  }
+end
+
 lemma tendsto_zero_nth_switchpoint (a : ℕ → ℝ) (M : ℝ)
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))

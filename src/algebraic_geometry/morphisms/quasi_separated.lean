@@ -345,7 +345,7 @@ begin
   exact e
 end
 
-lemma exists_eq_pow_mul_of_is_compact_of_is_quasi_separated (X : Scheme.{u})
+lemma exists_eq_pow_mul_of_is_compact_of_is_quasi_separated (X : Scheme)
   (U : opens X.carrier) (hU : is_compact U.1) (hU' : is_quasi_separated U.1)
   (f : X.presheaf.obj (op U)) (x : X.presheaf.obj (op $ X.basic_open f)) :
   ∃ (n : ℕ) (y : X.presheaf.obj (op U)), y |_ X.basic_open f = (f |_ X.basic_open f) ^ n * x :=
@@ -401,7 +401,7 @@ begin
       ((X.presheaf.map (hom_of_le le_sup_left).op f) ^ (finset.univ.sup n + n₂) * y₁) =
         X.presheaf.map (hom_of_le $ inf_le_right).op
           ((X.presheaf.map (hom_of_le le_sup_right).op f) ^ (finset.univ.sup n + n₁) * y₂),
-    { fapply Top.sheaf.eq_of_locally_eq'.{(u+1) u} X.sheaf (λ i : s, i.1.1),
+    { fapply X.sheaf.eq_of_locally_eq' (λ i : s, i.1.1),
       { refine λ i, hom_of_le _, erw hs, exact le_supr _ _ },
       { exact le_of_eq hs },
       { intro i,
@@ -419,7 +419,7 @@ begin
     -- By the sheaf condition, since `f ^ (n + n₂) * y₁ = f ^ (n + n₁) * y₂`, it can be glued into
     -- the desired section on `S ∪ U`.
     use (X.sheaf.obj_sup_iso_prod_eq_locus S U.1).inv ⟨⟨_ * _, _ * _⟩, this⟩,
-    refine Top.sheaf.eq_of_locally_eq₂.{(u+1) u} X.sheaf
+    refine X.sheaf.eq_of_locally_eq₂
       (hom_of_le (_ : X.basic_open (X.presheaf.map (hom_of_le le_sup_left).op f) ≤ _))
       (hom_of_le (_ : X.basic_open (X.presheaf.map (hom_of_le le_sup_right).op f) ≤ _)) _ _ _ _ _,
     { rw X.basic_open_res, exact inf_le_right },

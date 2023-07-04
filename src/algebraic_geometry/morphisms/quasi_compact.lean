@@ -298,7 +298,7 @@ end
 
 /-- If `x : Γ(X, U)` is zero on `D(f)` for some `f : Γ(X, U)`, and `U` is quasi-compact, then
 `f ^ n * x = 0` for some `n`. -/
-lemma exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_compact (X : Scheme.{u})
+lemma exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_compact (X : Scheme)
   {U : opens X.carrier} (hU : is_compact U.1) (x f : X.presheaf.obj (op U))
   (H : x |_ X.basic_open f = 0) :
   ∃ n : ℕ, f ^ n * x = 0 :=
@@ -322,7 +322,7 @@ begin
   use finset.univ.sup n,
   suffices : ∀ (i : s), X.presheaf.map (hom_of_le (h₁ i)).op (f ^ (finset.univ.sup n) * x) = 0,
   { subst e,
-    apply Top.sheaf.eq_of_locally_eq.{(u+1) u} X.sheaf (λ (i : s), (i : opens X.carrier)),
+    apply X.sheaf.eq_of_locally_eq (λ (i : s), (i : opens X.carrier)),
     intro i,
     rw map_zero,
     apply this },

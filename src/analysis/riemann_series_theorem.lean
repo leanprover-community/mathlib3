@@ -1248,7 +1248,7 @@ lemma rearrangement_switchpoint_add_two_gt_rearrangement_switchpoint (a : ℕ �
   (h₁ : ∃ C, tendsto (partial_sum a) at_top (𝓝 C))
   (h₂ : ¬∃ C, tendsto (partial_sum (λ n, ‖a n‖)) at_top (𝓝 C))
   (n : ℕ) (hn : n ≠ 0)
-  : rearrangement a M (nat.nth (rearrangement_switchpoint a M) n) ≤
+  : rearrangement a M (nat.nth (rearrangement_switchpoint a M) n) <
     rearrangement a M (nat.nth (rearrangement_switchpoint a M) (n + 2)) :=
 begin
   have hinf := infinite_set_of_switchpoint a M h₁ h₂,
@@ -1262,9 +1262,9 @@ begin
   { have q₁ := rearrangement_switchpoint_next_nonneg a M h₁ h₂ n hn h_sn_swp,
     have q₂ := rearrangement_switchpoint_next_neg a M h₁ h₂ (n + 1) (by positivity) q₁,
     change sumto a M sn2 ≤ M ∧ M < sumto a M (sn2 + 1) at q₂,
-    refine rearrangement_preserves_order_of_terms_nonneg' a M h₁ h₂ sn sn2
+    refine rearrangement_preserves_order_of_terms_nonneg a M h₁ h₂ sn sn2
       _ h_sn_swp.left q₂.left _,
-    { apply nat.nth_monotone hinf,
+    { apply nat.nth_strict_mono hinf,
       linarith },
     { intro h,
       rw nat.nth_eq_zero at h,

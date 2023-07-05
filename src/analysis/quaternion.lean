@@ -11,6 +11,9 @@ import topology.algebra.algebra
 /-!
 # Quaternions as a normed algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the following structures on the space `ℍ := ℍ[ℝ]` of quaternions:
 
 * inner product space;

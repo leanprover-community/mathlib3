@@ -380,6 +380,9 @@ begin
   apply_mod_cast nat.lt_of_succ_le, apply_mod_cast h
 end
 
+lemma coe_succ_le_iff {n : ℕ} {e : part_enat} : ↑n.succ ≤ e ↔ ↑n < e:=
+by rw [nat.succ_eq_add_one n, nat.cast_add, nat.cast_one, add_one_le_iff_lt (coe_ne_top n)]
+
 lemma lt_add_one_iff_lt {x y : part_enat} (hx : x ≠ ⊤) : x < y + 1 ↔ x ≤ y :=
 begin
   split, exact le_of_lt_add_one,
@@ -387,6 +390,9 @@ begin
   induction y using part_enat.cases_on with n, { rw [top_add], apply coe_lt_top },
   apply_mod_cast nat.lt_succ_of_le, apply_mod_cast h
 end
+
+lemma lt_coe_succ_iff_le {x : part_enat} {n : ℕ} (hx : x ≠ ⊤) : x < n.succ ↔ x ≤ n :=
+by rw [nat.succ_eq_add_one n, nat.cast_add, nat.cast_one, lt_add_one_iff_lt hx]
 
 lemma add_eq_top_iff {a b : part_enat} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
 by apply part_enat.cases_on a; apply part_enat.cases_on b;

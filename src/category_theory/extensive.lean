@@ -13,6 +13,9 @@ import category_theory.limits.functor_category
 
 # Extensive categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 - `category_theory.is_van_kampen_colimit`: A (colimit) cocone over a diagram `F : J ⥤ C` is van
   Kampen if for every cocone `c'` over the pullback of the diagram `F' : J ⥤ C'`,

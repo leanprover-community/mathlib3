@@ -9,6 +9,9 @@ import measure_theory.constructions.prod.basic
 /-!
 # Markov Kernels
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A kernel from a measurable space `α` to another measurable space `β` is a measurable map
 `α → measure β`, where the measurable space instance on `measure β` is the one defined in
 `measure_theory.measure.measurable_space`. That is, a kernel `κ` verifies that for all measurable

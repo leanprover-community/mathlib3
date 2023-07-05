@@ -10,6 +10,9 @@ import measure_theory.measure.lebesgue.eq_haar
 /-!
 # Geometry of numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some of the fundamental theorems in the geometry of numbers, as studied by
 Hermann Minkowski.
 

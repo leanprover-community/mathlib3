@@ -276,9 +276,9 @@ end
 -- The constructions and proofs here are written as uniformly as possible.
 -- This example is the blueprint for the `transport` tactic.
 
-mk_simp_attribute transport_simps "simps useful inside `transport`"
+mk_simp_attribute transport_simps' "simps useful inside `transport`"
 
-attribute [transport_simps]
+attribute [transport_simps']
   eq_rec_constant
   cast_eq
   equiv.to_fun_as_coe
@@ -291,7 +291,7 @@ begin
   refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
   { try { unfold_projs },
-    simp only with transport_simps,
+    simp only with transport_simps',
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
     solve_by_elim, },

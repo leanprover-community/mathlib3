@@ -8,6 +8,9 @@ import ring_theory.dedekind_domain.adic_valuation
 
 /-!
 # The finite adèle ring of a Dedekind domain
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 We define the ring of finite adèles of a Dedekind domain `R`.
 
 ## Main definitions

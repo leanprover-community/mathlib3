@@ -8,6 +8,9 @@ import analysis.inner_product_space.adjoint
 /-!
 # Positive operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define positive operators in a Hilbert space. We follow Bourbaki's choice
 of requiring self adjointness in the definition.
 

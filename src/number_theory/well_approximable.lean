@@ -9,6 +9,9 @@ import measure_theory.covering.liminf_limsup
 /-!
 # Well-approximable numbers and Gallagher's ergodic theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Gallagher's ergodic theorem is a result in metric number theory. It thus belongs to that branch of
 mathematics concerning arithmetic properties of real numbers which hold almost eveywhere with
 respect to the Lebesgue measure.

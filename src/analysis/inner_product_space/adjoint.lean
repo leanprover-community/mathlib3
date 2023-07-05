@@ -10,6 +10,9 @@ import analysis.inner_product_space.pi_L2
 /-!
 # Adjoint of operators on Hilbert spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an operator `A : E →L[𝕜] F`, where `E` and `F` are Hilbert spaces, its adjoint
 `adjoint A : F →L[𝕜] E` is the unique operator such that `⟪x, A y⟫ = ⟪adjoint A x, y⟫` for all
 `x` and `y`.

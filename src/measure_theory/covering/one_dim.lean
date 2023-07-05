@@ -9,6 +9,9 @@ import measure_theory.measure.lebesgue.eq_haar
 /-!
 # Covering theorems for Lebesgue measure in one dimension
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We have a general theory of covering theorems for doubling measures, developed notably
 in `density_theorems.lean`. In this file, we expand the API for this theory in one dimension,
 by showing that intervals belong to the relevant Vitali family.

@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.calculus.mean_value
+import analysis.calculus.deriv.inv
 
 /-!
 # L'Hôpital's rule for 0/0 indeterminate forms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we prove several forms of "L'Hopital's rule" for computing 0/0
 indeterminate forms. The proof of `has_deriv_at.lhopital_zero_right_on_Ioo`

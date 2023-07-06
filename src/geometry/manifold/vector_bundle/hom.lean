@@ -70,7 +70,7 @@ begin
     simp only [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
       continuous_linear_equiv.arrow_congrSL_apply, comp_apply, function.comp, compL_apply,
       flip_apply, continuous_linear_equiv.symm_symm, linear_equiv.to_fun_eq_coe,
-      continuous_linear_equiv.arrow_congrₛₗ_apply, continuous_linear_map.coe_comp'] },
+      continuous_linear_map.coe_comp'] },
 end
 
 include _i₁ _i₂

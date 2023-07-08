@@ -9,6 +9,9 @@ import linear_algebra.matrix.pos_def
 
 /-! # 2×2 block matrices and the Schur complement
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves properties of 2×2 block matrices `[A B; C D]` that relate to the Schur complement
 `D - C⬝A⁻¹⬝B`.
 

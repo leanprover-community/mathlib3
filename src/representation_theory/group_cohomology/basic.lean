@@ -10,6 +10,9 @@ import representation_theory.group_cohomology.resolution
 /-!
 # The group cohomology of a `k`-linear `G`-representation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `k` be a commutative ring and `G` a group. This file defines the group cohomology of
 `A : Rep k G` to be the cohomology of the complex
 $$0 \to \mathrm{Fun}(G^0, A) \to \mathrm{Fun}(G^1, A) \to \mathrm{Fun}(G^2, A) \to \dots$$

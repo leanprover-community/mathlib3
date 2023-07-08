@@ -9,6 +9,9 @@ import number_theory.modular_forms.slash_invariant_forms
 /-!
 # Modular forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines modular forms and proves some basic properties about them.
 
 We begin by defining modular forms and cusp forms as extension of `slash_invariant_forms` then we

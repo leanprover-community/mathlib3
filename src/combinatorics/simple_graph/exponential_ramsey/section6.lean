@@ -11,17 +11,17 @@ variables {μ p₀ : ℝ} {k l : ℕ} {ini : book_config χ} {i : ℕ}
 
 meta def my_p : tactic unit := tactic.to_expr ```((algorithm μ k l ini Ᾰ).p) >>= tactic.exact
 meta def my_p' : tactic unit := tactic.to_expr ```(λ i, (algorithm μ k l ini i).p) >>= tactic.exact
-meta def my_r : tactic unit := tactic.to_expr ```(red_steps μ k l ini) >>= tactic.exact
-meta def my_b : tactic unit := tactic.to_expr ```(big_blue_steps μ k l ini) >>= tactic.exact
-meta def my_s : tactic unit := tactic.to_expr ```(density_steps μ k l ini) >>= tactic.exact
-meta def my_d : tactic unit := tactic.to_expr ```(degree_steps μ k l ini) >>= tactic.exact
+meta def my_R : tactic unit := tactic.to_expr ```(red_steps μ k l ini) >>= tactic.exact
+meta def my_B : tactic unit := tactic.to_expr ```(big_blue_steps μ k l ini) >>= tactic.exact
+meta def my_S : tactic unit := tactic.to_expr ```(density_steps μ k l ini) >>= tactic.exact
+meta def my_D : tactic unit := tactic.to_expr ```(degree_steps μ k l ini) >>= tactic.exact
 meta def my_ε : tactic unit := tactic.to_expr ```((k : ℝ) ^ (- 1 / 4 : ℝ)) >>= tactic.exact
 
 local notation `p_` := λ Ᾰ, by my_p
-local notation `ℛ` := by my_r
-local notation `ℬ` := by my_b
-local notation `𝒮` := by my_s
-local notation `𝒟` := by my_d
+local notation `ℛ` := by my_R
+local notation `ℬ` := by my_B
+local notation `𝒮` := by my_S
+local notation `𝒟` := by my_D
 local notation `ε` := by my_ε
 
 lemma six_four_red (hi : i ∈ red_steps μ k l ini) :
@@ -210,12 +210,6 @@ end
 
 open_locale topology
 
--- lemma six_five_red_aux_delete_me :
---   ∀ᶠ ε : ℝ in 𝓝 0, ε + ε ^ 2 ≤ 1 :=
--- begin
---   have := (continuous_pow 2),
--- end
-
 lemma six_five_red_aux :
   ∀ᶠ x : ℝ in 𝓝[≥] 0, x * (1 + x) ^ 2 + 1 ≤ (1 + x) ^ 2 :=
 begin
@@ -248,13 +242,13 @@ by rw [sub_le_iff_le_add, ←nat.cast_add, nat.cast_le, ←tsub_le_iff_right]
 
 lemma six_five_red (μ p₀ : ℝ) :
   ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
-  ∀ ini : book_config χ, p₀ ≤ ini.p →
+  ∀ ini : book_config χ,
   ∀ i : ℕ, i ∈ red_steps μ k l ini →
   height k ini.p (algorithm μ k l ini i).p - 2 ≤ height k ini.p (algorithm μ k l ini (i + 1)).p :=
 begin
   filter_upwards [top_adjuster (eventually_ne_at_top 0),
     top_adjuster six_five_red_aux_glue] with
-    l hk' hk'' k hlk n χ ini hini i hi,
+    l hk' hk'' k hlk n χ ini i hi,
   set p := (algorithm μ k l ini i).p,
   set h := height k ini.p p,
   specialize hk' k hlk,
@@ -708,7 +702,7 @@ begin
   have := six_four_degree hirs.2,
   rw nat.sub_add_cancel hirs.1 at this,
   refine sub_le_sub this _,
-  have := hr k hlk n χ ini hini i hir,
+  have := hr k hlk n χ ini i hir,
   rw [height_eq_one hi', tsub_le_iff_right] at this,
   have : height k ini.p (algorithm μ k l ini i).p ≤
     height k ini.p (algorithm μ k l ini (i - 1)).p + 2,

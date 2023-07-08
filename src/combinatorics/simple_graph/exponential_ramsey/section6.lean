@@ -1005,11 +1005,6 @@ begin
   exact hl₃ k hlk n χ hχ ini hini (i - 1) ((nat.sub_le _ _).trans hi.le),
 end
 
--- cocoloco
--- potential
--- wavelength
--- underground
-
 lemma six_one_explicit (μ p₀ : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀ : 0 < p₀) :
   ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
   ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) →

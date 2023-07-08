@@ -10,6 +10,9 @@ import analysis.normed_space.operator_norm
 /-!
 # The vector bundle of continuous (semi)linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the (topological) vector bundle of continuous (semi)linear maps between two vector bundles
 over the same base.
 

@@ -11,6 +11,9 @@ import category_theory.monad.coequalizer
 /-!
 # Adjoint lifting
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gives two constructions for building left adjoints: the adjoint triangle theorem and the
 adjoint lifting theorem.
 The adjoint triangle theorem says that given a functor `U : B ⥤ C` with a left adjoint `F` such

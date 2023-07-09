@@ -40,7 +40,7 @@ Minkowski functional, gauge
 -/
 
 open normed_field set
-open_locale pointwise
+open_locale pointwise topology nnreal
 
 noncomputable theory
 
@@ -438,23 +438,7 @@ section norm
 variables [seminormed_add_comm_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
 
 lemma gauge_unit_ball (x : E) : gauge (metric.ball (0 : E) 1) x = ‖x‖ :=
-begin
-  obtain rfl | hx := eq_or_ne x 0,
-  { rw [norm_zero, gauge_zero] },
-  refine (le_of_forall_pos_le_add $ λ ε hε, _).antisymm _,
-  { have : 0 < ‖x‖ + ε := by positivity,
-    refine gauge_le_of_mem this.le _,
-    rw [smul_ball this.ne', smul_zero, real.norm_of_nonneg this.le, mul_one, mem_ball_zero_iff],
-    exact lt_add_of_pos_right _ hε },
-  refine le_gauge_of_not_mem balanced_ball_zero.star_convex
-    (absorbent_ball_zero zero_lt_one).absorbs (λ h, _),
-  obtain hx' | hx' := eq_or_ne (‖x‖) 0,
-  { rw hx' at h,
-    exact hx (zero_smul_set_subset _ h) },
-  { rw [mem_smul_set_iff_inv_smul_mem₀ hx', mem_ball_zero_iff, norm_smul, norm_inv, norm_norm,
-      inv_mul_cancel hx'] at h,
-    exact lt_irrefl _ h }
-end
+by rw [← ball_norm_seminorm ℝ, seminorm.gauge_ball, coe_norm_seminorm]
 
 lemma gauge_ball (hr : 0 < r) (x : E) : gauge (metric.ball (0 : E) r) x = ‖x‖ / r :=
 begin
@@ -470,6 +454,25 @@ begin
   { exact (mul_nonpos_of_nonpos_of_nonneg hr $ gauge_nonneg _).trans (norm_nonneg _) },
   rw [mul_comm, ←le_div_iff hr, ←gauge_ball hr],
   exact gauge_mono (absorbent_ball_zero hr) hs x,
+end
+
+lemma convex.lipschitz_with_gauge {r : ℝ≥0} (hc : convex ℝ s) (hr : 0 < r)
+  (hs : metric.ball (0 : E) r ⊆ s) :
+  lipschitz_with r⁻¹ (gauge s) :=
+have absorbent ℝ (metric.ball (0 : E) r) := absorbent_ball_zero hr,
+lipschitz_with.of_le_add_mul _ $ λ x y,
+  calc gauge s x = gauge s (y + (x - y)) : by simp
+  ... ≤ gauge s y + gauge s (x - y) : gauge_add_le hc (this.subset hs) _ _
+  ... ≤ gauge s y + ‖x - y‖ / r :
+    add_le_add_left ((gauge_mono this hs (x - y)).trans_eq (gauge_ball hr _)) _
+  ... = gauge s y + r⁻¹ * dist x y : by rw [dist_eq_norm, div_eq_inv_mul]
+
+lemma convex.uniform_continuous_gauge (hc : convex ℝ s) (h₀ : s ∈ 𝓝 (0 : E)) :
+  uniform_continuous (gauge s) :=
+begin
+  obtain ⟨r, hr₀, hr⟩ := metric.mem_nhds_iff.1 h₀,
+  lift r to ℝ≥0 using le_of_lt hr₀,
+  exact (hc.lipschitz_with_gauge hr₀ hr).uniform_continuous
 end
 
 end norm

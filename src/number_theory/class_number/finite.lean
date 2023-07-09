@@ -14,6 +14,9 @@ import ring_theory.norm
 
 /-!
 # Class numbers of global fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file, we use the notion of "admissible absolute value" to prove
 finiteness of the class group for number fields and function fields,
 and define `class_number` as the order of this group.
@@ -378,8 +381,7 @@ absolute value.
 See also `class_group.fintype_of_admissible_of_algebraic` where `L` is an
 algebraic extension of `R`, that includes some extra assumptions.
 -/
-noncomputable def fintype_of_admissible_of_finite [is_dedekind_domain R] :
-  fintype (class_group S) :=
+noncomputable def fintype_of_admissible_of_finite : fintype (class_group S) :=
 begin
   letI := classical.dec_eq L,
   letI := is_integral_closure.is_fraction_ring_of_finite_extension R K L S,

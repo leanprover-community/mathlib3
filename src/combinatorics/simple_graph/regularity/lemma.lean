@@ -8,6 +8,9 @@ import combinatorics.simple_graph.regularity.increment
 /-!
 # Szemerédi's Regularity Lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove Szemerédi's Regularity Lemma (aka SRL). This is a landmark result in
 combinatorics roughly stating that any sufficiently big graph behaves like a random graph. This is
 useful because random graphs are well-behaved in many aspects.

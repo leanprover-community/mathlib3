@@ -10,6 +10,9 @@ import category_theory.sites.compatible_sheafification
 
 # Locally surjective morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 - `is_locally_surjective` : A morphism of presheaves valued in a concrete category is locally

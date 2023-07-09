@@ -11,6 +11,9 @@ import linear_algebra.clifford_algebra.conjugation
 /-!
 # Contraction in Clifford Algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some of the results from [grinberg_clifford_2016][].
 The key result is `clifford_algebra.equiv_exterior`.
 

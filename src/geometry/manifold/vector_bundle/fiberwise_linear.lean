@@ -7,6 +7,9 @@ import geometry.manifold.cont_mdiff
 
 /-! # The groupoid of smooth, fiberwise-linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains preliminaries for the definition of a smooth vector bundle: an associated
 `structure_groupoid`, the groupoid of `smooth_fiberwise_linear` functions.
 -/

@@ -19,23 +19,6 @@ to a `monoid β`, the new multiplication is definitionally `λ x y, e (e.symm a 
 namespace tactic
 open tactic.interactive
 
-mk_simp_attribute transport_simps
-"The simpset `transport_simps` is used by the tactic `transport`
-to simplify certain expressions involving application of equivalences,
-and trivial `eq.rec` or `ep.mpr` conversions.
-It's probably best not to adjust it without understanding the algorithm used by `transport`."
-
-attribute [transport_simps]
-  eq_rec_constant
-  eq_mp_eq_cast
-  cast_eq
-  equiv.to_fun_as_coe
-  equiv.arrow_congr'_apply
-  equiv.symm_apply_apply
-  -- we use `apply_eq_iff_eq_symm_apply` rather than `apply_eq_iff_eq`,
-  -- as many axioms have a constant on the right-hand-side
-  equiv.apply_eq_iff_eq_symm_apply
-
 /--
 Given `s : S α` for some structure `S` depending on a type `α`,
 and an equivalence `e : α ≃ β`,

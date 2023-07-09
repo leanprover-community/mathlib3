@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import measure_theory.integral.interval_integral
+import analysis.calculus.deriv.zpow
 import analysis.normed_space.pointwise
 import analysis.special_functions.non_integrable
 import analysis.analytic.basic
 
 /-!
 # Integral over a circle in `ℂ`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `∮ z in C(c, R), f z` to be the integral $\oint_{|z-c|=|R|} f(z)\,dz$ and
 prove some properties of this integral. We give definition and prove most lemmas for a function

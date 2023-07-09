@@ -10,6 +10,9 @@ import linear_algebra.linear_pmap
 /-!
 # Convex cones
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a `𝕜`-module `E`, we define a convex cone as a set `s` such that `a • x + b • y ∈ s` whenever
 `x, y ∈ s` and `a, b > 0`. We prove that convex cones form a `complete_lattice`, and define their
 images (`convex_cone.map`) and preimages (`convex_cone.comap`) under linear maps.

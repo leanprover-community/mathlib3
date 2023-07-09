@@ -133,7 +133,7 @@ begin
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa, mul_comm B₀, mul_comm B₁], },
     rw idem',
     conv_rhs { congr, skip, congr, rw ←sa, },
-    convert smul_le_smul_of_nonneg (star_mul_self_nonneg : 0 ≤ star P * P) _,
+    convert smul_le_smul_of_nonneg (star_mul_self_nonneg P) _,
     { simp, },
     { apply_instance, },
     { norm_num, } },
@@ -221,11 +221,11 @@ begin
     have P2_nonneg : 0 ≤ P^2,
     { rw [sq],
       conv { congr, skip, congr, rw ←P_sa, },
-      convert (star_mul_self_nonneg : 0 ≤ star P * P), },
+      convert (star_mul_self_nonneg P), },
     have Q2_nonneg : 0 ≤ Q^2,
     { rw [sq],
       conv { congr, skip, congr, rw ←Q_sa, },
-      convert (star_mul_self_nonneg : 0 ≤ star Q * Q), },
+      convert (star_mul_self_nonneg Q), },
     convert smul_le_smul_of_nonneg (add_nonneg P2_nonneg Q2_nonneg)
       (le_of_lt (show 0 < √2⁻¹, by norm_num)), -- `norm_num` can't directly show `0 ≤ √2⁻¹`
     simp, },

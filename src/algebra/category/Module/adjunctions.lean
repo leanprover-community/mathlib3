@@ -10,6 +10,9 @@ import linear_algebra.direct_sum.finsupp
 import category_theory.linear.linear_functor
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The functor of forming finitely supported functions on a type with values in a `[ring R]`
 is the left adjoint of
 the forgetful functor from `R`-modules to types.

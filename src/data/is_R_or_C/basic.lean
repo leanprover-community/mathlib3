@@ -70,8 +70,6 @@ class is_R_or_C (K : Type*)
 
 end
 
-mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
-
 variables {K E : Type*} [is_R_or_C K]
 
 namespace is_R_or_C

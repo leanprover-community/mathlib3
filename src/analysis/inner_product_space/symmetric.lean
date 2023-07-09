@@ -10,6 +10,9 @@ import linear_algebra.sesquilinear_form
 /-!
 # Symmetric linear maps in an inner product space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines and proves basic theorems about symmetric **not necessarily bounded** operators
 on an inner product space, i.e linear maps `T : E → E` such that `∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫`.
 

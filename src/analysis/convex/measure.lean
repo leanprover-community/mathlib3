@@ -10,6 +10,9 @@ import measure_theory.measure.lebesgue.eq_haar
 /-!
 # Convex sets are null-measurable
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `E` be a finite dimensional real vector space, let `μ` be a Haar measure on `E`, let `s` be a
 convex set in `E`. Then the frontier of `s` has measure zero (see `convex.add_haar_frontier`), hence
 `s` is a `measure_theory.null_measurable_set` (see `convex.null_measurable_set`).

@@ -1049,9 +1049,14 @@ lemma mem_centralizer_iff {s : set A} {z : A} :
   z ∈ centralizer R s ↔ ∀ g ∈ s, g * z = z * g :=
 iff.rfl
 
+lemma center_le_centralizer (s) : center R A ≤ centralizer R s := s.center_subset_centralizer
+
 lemma centralizer_le (s t : set A) (h : s ⊆ t) :
   centralizer R t ≤ centralizer R s :=
 set.centralizer_subset h
+
+@[simp] lemma centralizer_eq_top_iff_subset {s : set A} : centralizer R s = ⊤ ↔ s ⊆ center R A :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 @[simp]
 lemma centralizer_univ : centralizer R set.univ = center R A :=

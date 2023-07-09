@@ -8,6 +8,9 @@ import geometry.manifold.vector_bundle.basic
 
 /-! # Tangent bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the tangent bundle as a smooth vector bundle.
 
 Let `M` be a smooth manifold with corners with model `I` on `(E, H)`. We define the tangent bundle
@@ -33,6 +36,8 @@ open bundle set smooth_manifold_with_corners local_homeomorph continuous_linear_
 open_locale manifold topology bundle
 
 noncomputable theory
+
+section general
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -131,10 +136,9 @@ variable (M)
 /-- The tangent bundle to a smooth manifold, as a Sigma type. Defined in terms of
 `bundle.total_space` to be able to put a suitable topology on it. -/
 @[nolint has_nonempty_instance, reducible] -- is empty if the base manifold is empty
-def tangent_bundle := bundle.total_space (tangent_space I : M → Type*)
+def tangent_bundle := bundle.total_space E (tangent_space I : M → Type*)
 
 local notation `TM` := tangent_bundle I M
-
 
 section tangent_bundle_instances
 
@@ -148,6 +152,7 @@ variables {M} (x : M)
 
 instance : module 𝕜 (tangent_space I x) := by delta_instance tangent_space
 instance : inhabited (tangent_space I x) := ⟨0⟩
+instance {x : M} : has_continuous_add (tangent_space I x) := by delta_instance tangent_space
 
 end
 
@@ -181,7 +186,8 @@ rfl
 
 @[simp, mfld_simps]
 lemma trivialization_at_source (x : M) :
-  (trivialization_at E (tangent_space I) x).source = π _ ⁻¹' (chart_at H x).source :=
+  (trivialization_at E (tangent_space I) x).source =
+    π E (tangent_space I) ⁻¹' (chart_at H x).source :=
 rfl
 
 @[simp, mfld_simps]
@@ -281,7 +287,7 @@ end tangent_bundle_instances
 /-- In the tangent bundle to the model space, the charts are just the canonical identification
 between a product type and a sigma type, a.k.a. `equiv.sigma_equiv_prod`. -/
 @[simp, mfld_simps] lemma tangent_bundle_model_space_chart_at (p : tangent_bundle I H) :
-  (chart_at (model_prod H E) p).to_local_equiv = (equiv.sigma_equiv_prod H E).to_local_equiv :=
+  (chart_at (model_prod H E) p).to_local_equiv = (total_space.to_prod H E).to_local_equiv :=
 begin
   ext x : 1,
   { ext, { refl },
@@ -297,12 +303,12 @@ begin
 end
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at (p : tangent_bundle I H) :
-  ⇑(chart_at (model_prod H E) p) = equiv.sigma_equiv_prod H E :=
+  ⇑(chart_at (model_prod H E) p) = total_space.to_prod H E :=
 by { unfold_coes, simp_rw [tangent_bundle_model_space_chart_at], refl }
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at_symm (p : tangent_bundle I H) :
   ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I H) =
-  (equiv.sigma_equiv_prod H E).symm :=
+  (total_space.to_prod H E).symm :=
 by { unfold_coes,
   simp_rw [local_homeomorph.symm_to_local_equiv, tangent_bundle_model_space_chart_at], refl }
 
@@ -333,16 +339,16 @@ def tangent_bundle_model_space_homeomorph : tangent_bundle I H ≃ₜ model_prod
       simp only with mfld_simps },
     simpa only with mfld_simps using this,
   end,
-  .. equiv.sigma_equiv_prod H E }
+  .. total_space.to_prod H E }
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_homeomorph_coe :
   (tangent_bundle_model_space_homeomorph H I : tangent_bundle I H → model_prod H E)
-  = equiv.sigma_equiv_prod H E :=
+  = total_space.to_prod H E :=
 rfl
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_homeomorph_coe_symm :
   ((tangent_bundle_model_space_homeomorph H I).symm : model_prod H E → tangent_bundle I H)
-  = (equiv.sigma_equiv_prod H E).symm :=
+  = (total_space.to_prod H E).symm :=
 rfl
 
 section in_tangent_coordinates
@@ -387,3 +393,15 @@ lemma in_tangent_coordinates_eq (f : N → M) (g : N → M') (ϕ : N → E →L[
 (tangent_bundle_core I M).in_coordinates_eq (tangent_bundle_core I' M') (ϕ x) hx hy
 
 end in_tangent_coordinates
+
+end general
+
+section real
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+{H : Type*} [topological_space H] {I : model_with_corners ℝ E H}
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+
+instance {x : M} : path_connected_space (tangent_space I x) := by delta_instance tangent_space
+
+end real

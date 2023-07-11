@@ -48,9 +48,9 @@ def proj_Icc (a b : α) (h : a ≤ b) (x : α) : Icc a b :=
 
 variables {a b : α} (h : a ≤ b) {x : α}
 
-@[simp, norm_cast] lemma coe_proj_Ici (a x : α) : (proj_Ici a x : α) = max a x := rfl
-@[simp, norm_cast] lemma coe_proj_Iic (b x : α) : (proj_Iic b x : α) = min b x := rfl
-@[simp, norm_cast] lemma coe_proj_Icc (a b : α) (h : a ≤ b) (x : α) :
+@[norm_cast] lemma coe_proj_Ici (a x : α) : (proj_Ici a x : α) = max a x := rfl
+@[norm_cast] lemma coe_proj_Iic (b x : α) : (proj_Iic b x : α) = min b x := rfl
+@[norm_cast] lemma coe_proj_Icc (a b : α) (h : a ≤ b) (x : α) :
   (proj_Icc a b h x : α) = max a (min b x) := rfl
 
 lemma proj_Ici_of_le (hx : x ≤ a) : proj_Ici a x = ⟨a, le_rfl⟩ := subtype.ext $ max_eq_left hx
@@ -71,14 +71,14 @@ proj_Icc_of_le_left h le_rfl
 @[simp] lemma proj_Icc_right : proj_Icc a b h b = ⟨b, right_mem_Icc.2 h⟩ :=
 proj_Icc_of_right_le h le_rfl
 
-lemma proj_Ici_eq_self : proj_Ici a x = ⟨a, le_rfl⟩ ↔ x ≤ a := by simp [subtype.ext_iff]
-lemma proj_Iic_eq_self : proj_Iic b x = ⟨b, le_rfl⟩ ↔ b ≤ x := by simp [subtype.ext_iff]
+lemma proj_Ici_eq_self : proj_Ici a x = ⟨a, le_rfl⟩ ↔ x ≤ a := by simp [proj_Ici, subtype.ext_iff]
+lemma proj_Iic_eq_self : proj_Iic b x = ⟨b, le_rfl⟩ ↔ b ≤ x := by simp [proj_Iic, subtype.ext_iff]
 
 lemma proj_Icc_eq_left (h : a < b) : proj_Icc a b h.le x = ⟨a, left_mem_Icc.mpr h.le⟩ ↔ x ≤ a :=
-by simp [subtype.ext_iff, h.not_le]
+by simp [proj_Icc, subtype.ext_iff, h.not_le]
 
 lemma proj_Icc_eq_right (h : a < b) : proj_Icc a b h.le x = ⟨b, right_mem_Icc.mpr h.le⟩ ↔ b ≤ x :=
-by simp [subtype.ext_iff, max_min_distrib_left, h.le, h.not_le]
+by simp [proj_Icc, subtype.ext_iff, max_min_distrib_left, h.le, h.not_le]
 
 lemma proj_Ici_of_mem (hx : x ∈ Ici a) : proj_Ici a x = ⟨x, hx⟩ := by simpa [proj_Ici]
 lemma proj_Iic_of_mem (hx : x ∈ Iic b) : proj_Iic b x = ⟨x, hx⟩ := by simpa [proj_Iic]

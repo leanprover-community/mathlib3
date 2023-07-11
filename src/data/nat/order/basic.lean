@@ -94,29 +94,9 @@ lemma eq_zero_of_mul_le (hb : 2 ≤ n) (h : n * m ≤ m) : m = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
 lemma zero_max : max 0 n = n := max_eq_right (zero_le _)
-@[simp] lemma min_eq_zero_iff : min m n = 0 ↔ m = 0 ∨ n = 0 :=
-begin
-  split,
-  { intro h,
-    cases le_total m n with H H,
-    { simpa [H] using or.inl h },
-    { simpa [H] using or.inr h } },
-  { rintro (rfl|rfl);
-    simp }
-end
 
-@[simp] lemma max_eq_zero_iff : max m n = 0 ↔ m = 0 ∧ n = 0 :=
-begin
-  split,
-  { intro h,
-    cases le_total m n with H H,
-    { simp only [H, max_eq_right] at h,
-      exact ⟨le_antisymm (H.trans h.le) (zero_le _), h⟩ },
-    { simp only [H, max_eq_left] at h,
-      exact ⟨h, le_antisymm (H.trans h.le) (zero_le _)⟩ } },
-  { rintro ⟨rfl, rfl⟩,
-    simp }
-end
+@[simp] lemma min_eq_zero_iff : min m n = 0 ↔ m = 0 ∨ n = 0 := min_eq_bot
+@[simp] lemma max_eq_zero_iff : max m n = 0 ↔ m = 0 ∧ n = 0 := max_eq_bot
 
 lemma add_eq_max_iff : m + n = max m n ↔ m = 0 ∨ n = 0 :=
 begin
@@ -285,6 +265,14 @@ end
 @[simp] theorem lt_mul_self_iff : ∀ {n : ℕ}, n < n * n ↔ 1 < n
 | 0 := iff_of_false (lt_irrefl _) zero_le_one.not_lt
 | (n + 1) := lt_mul_iff_one_lt_left n.succ_pos
+
+lemma add_sub_one_le_mul (hm : m ≠ 0) (hn : n ≠ 0) : m + n - 1 ≤ m * n :=
+begin
+  cases m,
+  { cases hm rfl },
+  { rw [succ_add, succ_sub_one, succ_mul],
+    exact add_le_add_right (le_mul_of_one_le_right' $ pos_iff_ne_zero.2 hn) _ }
+end
 
 /-!
 ### Recursion and induction principles

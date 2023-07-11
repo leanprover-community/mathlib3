@@ -158,6 +158,18 @@ by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }
 
 end finite
 
+namespace part_enat
+
+lemma card_eq_coe_nat_card (α : Type*) [finite α] : card α = nat.card α :=
+begin
+  unfold part_enat.card,
+  apply symm,
+  rw cardinal.coe_nat_eq_to_part_enat_iff,
+  exact finite.cast_card_eq_mk ,
+end
+
+end part_enat
+
 namespace set
 
 lemma card_union_le (s t : set α) : nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=

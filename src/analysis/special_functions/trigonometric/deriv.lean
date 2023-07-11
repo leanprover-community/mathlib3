@@ -6,10 +6,12 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import order.monotone.odd
 import analysis.special_functions.exp_deriv
 import analysis.special_functions.trigonometric.basic
-import data.set.intervals.monotone
 
 /-!
 # Differentiability of trigonometric functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main statements
 

@@ -9,6 +9,9 @@ import ring_theory.valuation.valuation_subring
 /-!
 # Ramification groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The decomposition subgroup and inertia subgroups.
 
 TODO: Define higher ramification groups in lower numbering

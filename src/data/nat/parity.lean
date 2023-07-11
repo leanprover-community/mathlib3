@@ -91,8 +91,6 @@ mod_two_add_add_odd_mod_two m odd_one
 @[simp] theorem succ_mod_two_add_mod_two (m : ℕ) : (m + 1) % 2 + m % 2 = 1 :=
 by rw [add_comm, mod_two_add_succ_mod_two]
 
-mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
-
 @[simp] theorem not_even_one : ¬ even 1 :=
 by rw even_iff; norm_num
 

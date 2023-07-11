@@ -38,7 +38,7 @@ See [Ahrens and Lumsdaine, *Displayed Categories*][ahrens2017] for
 related work.
 -/
 
-universes w v v' u
+universes w v v' u u'
 
 namespace category_theory
 
@@ -60,7 +60,7 @@ class concrete_category (C : Type u) [category.{v} C] :=
 attribute [instance] concrete_category.forget_faithful
 
 /-- The forgetful functor from a concrete category to `Type u`. -/
-@[reducible] def forget (C : Type v) [category C] [concrete_category.{u} C] : C ⥤ Type u :=
+@[reducible] def forget (C : Type u) [category.{v} C] [concrete_category.{w} C] : C ⥤ Type w :=
 concrete_category.forget C
 
 instance concrete_category.types : concrete_category (Type u) :=
@@ -75,14 +75,14 @@ You can use it on particular examples as:
 instance : has_coe_to_sort X := concrete_category.has_coe_to_sort X
 ```
 -/
-def concrete_category.has_coe_to_sort (C : Type v) [category C] [concrete_category C] :
-  has_coe_to_sort C (Type u) :=
+def concrete_category.has_coe_to_sort (C : Type u) [category.{v} C] [concrete_category.{w} C] :
+  has_coe_to_sort C (Type w) :=
 ⟨(concrete_category.forget C).obj⟩
 
 section
 local attribute [instance] concrete_category.has_coe_to_sort
 
-variables {C : Type v} [category C] [concrete_category C]
+variables {C : Type u} [category.{v} C] [concrete_category.{w} C]
 
 @[simp] lemma forget_obj_eq_coe {X : C} : (forget C).obj X = X := rfl
 
@@ -170,51 +170,54 @@ end
 `has_forget₂ C D`, where `C` and `D` are both concrete categories, provides a functor
 `forget₂ C D : C ⥤ D` and a proof that `forget₂ ⋙ (forget D) = forget C`.
 -/
-class has_forget₂ (C : Type v) (D : Type v') [category C] [concrete_category.{u} C] [category D]
-  [concrete_category.{u} D] :=
+class has_forget₂ (C : Type u) (D : Type u') [category.{v} C] [concrete_category.{w} C]
+  [category.{v'} D] [concrete_category.{w} D] :=
 (forget₂ : C ⥤ D)
 (forget_comp : forget₂ ⋙ (forget D) = forget C . obviously)
 
 /-- The forgetful functor `C ⥤ D` between concrete categories for which we have an instance
 `has_forget₂ C `. -/
-@[reducible] def forget₂ (C : Type v) (D : Type v') [category C] [concrete_category C] [category D]
-  [concrete_category D] [has_forget₂ C D] : C ⥤ D :=
+@[reducible] def forget₂ (C : Type u) (D : Type u') [category.{v} C] [concrete_category.{w} C]
+  [category.{v'} D] [concrete_category.{w} D] [has_forget₂ C D] : C ⥤ D :=
 has_forget₂.forget₂
 
-instance forget₂_faithful (C : Type v) (D : Type v') [category C] [concrete_category C] [category D]
-  [concrete_category D] [has_forget₂ C D] : faithful (forget₂ C D) :=
+instance forget₂_faithful (C : Type u) (D : Type u') [category.{v} C] [concrete_category.{w} C]
+  [category.{v'} D] [concrete_category.{w} D] [has_forget₂ C D] : faithful (forget₂ C D) :=
 has_forget₂.forget_comp.faithful_of_comp
 
-instance forget₂_preserves_monomorphisms (C : Type v) (D : Type v') [category C]
-  [concrete_category C] [category D] [concrete_category D] [has_forget₂ C D]
+instance forget₂_preserves_monomorphisms (C : Type u) (D : Type u')
+  [category.{v} C] [concrete_category.{w} C]
+  [category.{v'} D] [concrete_category.{w} D] [has_forget₂ C D]
   [(forget C).preserves_monomorphisms] : (forget₂ C D).preserves_monomorphisms :=
 have (forget₂ C D ⋙ forget D).preserves_monomorphisms,
   by { simp only [has_forget₂.forget_comp], apply_instance },
 by exactI functor.preserves_monomorphisms_of_preserves_of_reflects _ (forget D)
 
-instance forget₂_preserves_epimorphisms (C : Type v) (D : Type v') [category C]
-  [concrete_category C] [category D] [concrete_category D] [has_forget₂ C D]
+instance forget₂_preserves_epimorphisms (C : Type u) (D : Type u')
+  [category.{v} C] [concrete_category.{w} C]
+  [category.{v'} D] [concrete_category.{w} D] [has_forget₂ C D]
   [(forget C).preserves_epimorphisms] : (forget₂ C D).preserves_epimorphisms :=
 have (forget₂ C D ⋙ forget D).preserves_epimorphisms,
   by { simp only [has_forget₂.forget_comp], apply_instance },
 by exactI functor.preserves_epimorphisms_of_preserves_of_reflects _ (forget D)
 
-instance induced_category.concrete_category {C : Type v} {D : Type v'} [category D]
-  [concrete_category D] (f : C → D) :
-  concrete_category (induced_category D f) :=
+instance induced_category.concrete_category {C : Type u} {D : Type u'} [category.{v'} D]
+  [concrete_category.{w} D] (f : C → D) :
+  concrete_category.{w} (induced_category D f) :=
 { forget := induced_functor f ⋙ forget D }
 
-instance induced_category.has_forget₂ {C : Type v} {D : Type v'} [category D] [concrete_category D]
+instance induced_category.has_forget₂
+  {C : Type u} {D : Type u'} [category.{v'} D] [concrete_category.{w} D]
   (f : C → D) :
   has_forget₂ (induced_category D f) D :=
 { forget₂ := induced_functor f,
   forget_comp := rfl }
 
-instance full_subcategory.concrete_category {C : Type v} [category C] [concrete_category C]
+instance full_subcategory.concrete_category {C : Type u} [category.{v} C] [concrete_category.{w} C]
   (Z : C → Prop) : concrete_category (full_subcategory Z) :=
 { forget := full_subcategory_inclusion Z ⋙ forget C }
 
-instance full_subcategory.has_forget₂ {C : Type v} [category C] [concrete_category C]
+instance full_subcategory.has_forget₂ {C : Type u} [category.{v} C] [concrete_category.{w} C]
   (Z : C → Prop) : has_forget₂ (full_subcategory Z) C :=
 { forget₂ := full_subcategory_inclusion Z,
   forget_comp := rfl }
@@ -223,8 +226,9 @@ instance full_subcategory.has_forget₂ {C : Type v} [category C] [concrete_cate
 In order to construct a “partially forgetting” functor, we do not need to verify functor laws;
 it suffices to ensure that compositions agree with `forget₂ C D ⋙ forget D = forget C`.
 -/
-def has_forget₂.mk' {C : Type v} {D : Type v'} [category C] [concrete_category C] [category D]
-  [concrete_category D] (obj : C → D) (h_obj : ∀ X, (forget D).obj (obj X) = (forget C).obj X)
+def has_forget₂.mk' {C : Type u} {D : Type u'} [category.{v} C] [concrete_category.{w} C]
+  [category.{v'} D] [concrete_category.{w} D] (obj : C → D)
+  (h_obj : ∀ X, (forget D).obj (obj X) = (forget C).obj X)
   (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, (forget D).map (map f) == (forget C).map f) :
 has_forget₂ C D :=
@@ -233,8 +237,8 @@ has_forget₂ C D :=
 
 /-- Every forgetful functor factors through the identity functor. This is not a global instance as
     it is prone to creating type class resolution loops. -/
-def has_forget_to_Type (C : Type v) [category C] [concrete_category C] :
-  has_forget₂ C (Type u) :=
+def has_forget_to_Type (C : Type u) [category.{v} C] [concrete_category.{w} C] :
+  has_forget₂ C (Type w) :=
 { forget₂ := forget C,
   forget_comp := functor.comp_id _ }
 

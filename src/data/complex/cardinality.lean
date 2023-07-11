@@ -10,6 +10,9 @@ import data.real.cardinality
 /-!
 # The cardinality of the complex numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that the complex numbers have cardinality continuum, i.e. `#ℂ = 𝔠`.
 -/
 

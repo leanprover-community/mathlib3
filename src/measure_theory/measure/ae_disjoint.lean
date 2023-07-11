@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space_def
 /-!
 # Almost everywhere disjoint sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that sets `s` and `t` are `μ`-a.e. disjoint (see `measure_theory.ae_disjoint`) if their
 intersection has measure zero. This assumption can be used instead of `disjoint` in most theorems in
 measure theory.

@@ -9,6 +9,9 @@ import combinatorics.composition
 /-!
 # Composition of analytic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the composition of analytic functions is analytic.
 
 The argument is the following. Assume `g z = ∑' qₙ (z, ..., z)` and `f y = ∑' pₖ (y, ..., y)`. Then

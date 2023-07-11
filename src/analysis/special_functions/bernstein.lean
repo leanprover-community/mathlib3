@@ -3,7 +3,6 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.order.field.basic
 import analysis.specific_limits.basic
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
@@ -11,6 +10,9 @@ import topology.continuous_function.compact
 
 /-!
 # Bernstein approximations and Weierstrass' theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove that the Bernstein approximations
 ```

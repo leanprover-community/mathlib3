@@ -10,6 +10,9 @@ import algebraic_topology.dold_kan.normalized
 
 # The normalized Moore complex and the alternating face map complex are homotopy equivalent
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, when the category `A` is abelian, we obtain the homotopy equivalence
 `homotopy_equiv_normalized_Moore_complex_alternating_face_map_complex` between the
 normalized Moore complex and the alternating face map complex of a simplicial object in `A`.

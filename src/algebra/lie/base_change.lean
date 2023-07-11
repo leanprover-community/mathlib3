@@ -9,6 +9,9 @@ import algebra.lie.tensor_product
 /-!
 # Extension and restriction of scalars for Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lie algebras have a well-behaved theory of extension and restriction of scalars.
 
 ## Main definitions

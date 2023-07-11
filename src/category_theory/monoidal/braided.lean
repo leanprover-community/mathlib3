@@ -10,6 +10,9 @@ import category_theory.monoidal.discrete
 /-!
 # Braided and symmetric monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The basic definitions of braided monoidal categories, and symmetric monoidal categories,
 as well as braided functors.
 

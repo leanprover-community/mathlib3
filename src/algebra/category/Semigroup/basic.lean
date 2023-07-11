@@ -12,6 +12,9 @@ import category_theory.elementwise
 /-!
 # Category instances for has_mul, has_add, semigroup and add_semigroup
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the bundled categories:
 * `Magma`
 * `AddMagma`

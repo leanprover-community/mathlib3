@@ -14,6 +14,9 @@ import linear_algebra.projection
 /-!
 # Trace of a linear map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the trace of a linear map.
 
 See also `linear_algebra/matrix/trace.lean` for the trace of a matrix.

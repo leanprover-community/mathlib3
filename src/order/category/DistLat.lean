@@ -8,6 +8,9 @@ import order.category.Lat
 /-!
 # The category of distributive lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `DistLat`, the category of distributive lattices.
 
 Note that [`DistLat`](https://ncatlab.org/nlab/show/DistLat) in the literature doesn't always

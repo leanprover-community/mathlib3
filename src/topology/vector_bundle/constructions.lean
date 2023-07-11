@@ -9,6 +9,9 @@ import topology.vector_bundle.basic
 /-!
 # Standard constructions on vector bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains several standard constructions on vector bundles:
 
 * `bundle.trivial.vector_bundle 𝕜 B F`: the trivial vector bundle with scalar field `𝕜` and model
@@ -72,15 +75,15 @@ end bundle.trivial
 section
 variables (𝕜 : Type*) {B : Type*} [nontrivially_normed_field 𝕜] [topological_space B]
   (F₁ : Type*) [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
-  (E₁ : B → Type*) [topological_space (total_space E₁)]
+  (E₁ : B → Type*) [topological_space (total_space F₁ E₁)]
   (F₂ : Type*) [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
-  (E₂ : B → Type*) [topological_space (total_space E₂)]
+  (E₂ : B → Type*) [topological_space (total_space F₂ E₂)]
 
 namespace trivialization
 variables {F₁ E₁ F₂ E₂}
   [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜 (E₁ x)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜 (E₂ x)]
-  (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
+  (e₁ e₁' : trivialization F₁ (π F₁ E₁)) (e₂ e₂' : trivialization F₂ (π F₂ E₂))
 
 instance prod.is_linear [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] : (e₁.prod e₂).is_linear 𝕜 :=
 { linear := λ x ⟨h₁, h₂⟩, (((e₁.linear 𝕜 h₁).mk' _).prod_map ((e₂.linear 𝕜 h₂).mk' _)).is_linear }
@@ -143,9 +146,9 @@ instance vector_bundle.prod  [vector_bundle 𝕜 F₁ E₁] [vector_bundle 𝕜 
 
 variables {𝕜 F₁ E₁ F₂ E₂}
 
-@[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization F₁ (π E₁)}
-  {e₂ : trivialization F₂ (π E₂)} [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] {x : B} (hx₁ : x ∈ e₁.base_set)
-  (hx₂ : x ∈ e₂.base_set) :
+@[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization F₁ (π F₁ E₁)}
+  {e₂ : trivialization F₂ (π F₂ E₂)} [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] {x : B}
+  (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) :
   (e₁.prod e₂).continuous_linear_equiv_at 𝕜 x ⟨hx₁, hx₂⟩
   = (e₁.continuous_linear_equiv_at 𝕜 x hx₁).prod (e₂.continuous_linear_equiv_at 𝕜 x hx₂) :=
 begin
@@ -169,12 +172,12 @@ instance [semiring R] [∀ (x : B), add_comm_monoid (E x)] [∀ x, module R (E x
   ∀ (x : B'), module R ((f *ᵖ E) x) :=
 by delta_instance bundle.pullback
 
-variables {E F} [topological_space B'] [topological_space (total_space E)]
+variables {E F} [topological_space B'] [topological_space (total_space F E)]
   [nontrivially_normed_field 𝕜] [normed_add_comm_group F] [normed_space 𝕜 F] [topological_space B]
   [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
   {K : Type*} [continuous_map_class K B' B]
 
-instance trivialization.pullback_linear (e : trivialization F (π E)) [e.is_linear 𝕜] (f : K) :
+instance trivialization.pullback_linear (e : trivialization F (π F E)) [e.is_linear 𝕜] (f : K) :
   (@trivialization.pullback _ _ _ B' _ _ _ _ _ _ _ e f).is_linear 𝕜 :=
 { linear := λ x h, e.linear 𝕜 h }
 

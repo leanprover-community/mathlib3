@@ -12,6 +12,9 @@ import category_theory.sites.surjective
 
 # Locally surjective maps of presheaves.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `X` be a topological space, `ℱ` and `𝒢` presheaves on `X`, `T : ℱ ⟶ 𝒢` a map.
 
 In this file we formulate two notions for what it means for

@@ -8,6 +8,9 @@ import category_theory.concrete_category.bundled_hom
 /-!
 # Category instances for structures that use unbundled homs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic infrastructure to define concrete
 categories using unbundled homs (see `class unbundled_hom`), and
 define forgetful functors between them (see

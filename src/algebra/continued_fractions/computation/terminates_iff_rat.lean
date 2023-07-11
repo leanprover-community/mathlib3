@@ -9,6 +9,9 @@ import data.rat.floor
 /-!
 # Termination of Continued Fraction Computations (`gcf.of`)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 We show that the continued fraction for a value `v`, as defined in
 `algebra.continued_fractions.computation.basic`, terminates if and only if `v` corresponds to a

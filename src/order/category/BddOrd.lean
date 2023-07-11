@@ -10,6 +10,9 @@ import order.hom.bounded
 /-!
 # The category of bounded orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `BddOrd`, the category of bounded orders.
 -/
 

@@ -11,6 +11,9 @@ import field_theory.tower
 /-!
 # Intermediate fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `L / K` be a field extension, given as an instance `algebra K L`.
 This file defines the type of fields in between `K` and `L`, `intermediate_field K L`.
 An `intermediate_field K L` is a subfield of `L` which contains (the image of) `K`,
@@ -348,6 +351,11 @@ S.to_subalgebra.val
 
 lemma range_val : S.val.range = S.to_subalgebra :=
 S.to_subalgebra.range_val
+
+@[simp] lemma field_range_val : S.val.field_range = S :=
+set_like.ext' subtype.range_val
+
+instance alg_hom.inhabited : inhabited (S →ₐ[K] L) := ⟨S.val⟩
 
 lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
   [is_scalar_tower R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=

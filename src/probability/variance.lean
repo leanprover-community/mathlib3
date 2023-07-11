@@ -5,9 +5,13 @@ Authors: Sébastien Gouëzel, Kexing Ying
 -/
 import probability.notation
 import probability.integration
+import measure_theory.function.l2_space
 
 /-!
 # Variance of random variables
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the variance of a real-valued random variable as `Var[X] = 𝔼[(X - 𝔼[X])^2]` (in the
 `probability_theory` locale).

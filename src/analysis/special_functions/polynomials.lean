@@ -10,6 +10,9 @@ import data.polynomial.ring_division
 /-!
 # Limits related to polynomial and rational functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic facts about limits of polynomial and rationals functions.
 The main result is `eval_is_equivalent_at_top_eval_lead`, which states that for
 any polynomial `P` of degree `n` with leading coefficient `a`, the corresponding

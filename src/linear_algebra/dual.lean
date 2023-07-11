@@ -12,6 +12,9 @@ import linear_algebra.free_module.finite.basic
 /-!
 # Dual vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The dual space of an $R$-module $M$ is the $R$-module of $R$-linear maps $M \to R$.
 
 ## Main definitions
@@ -94,13 +97,7 @@ variables (R : Type*) (M : Type*)
 variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
-
-instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
-  add_comm_group (dual S N) := linear_map.add_comm_group
-
-instance : linear_map_class (dual R M) R M R :=
-linear_map.semilinear_map_class
+@[reducible] def dual := M →ₗ[R] R
 
 /-- The canonical pairing of a vector space and its algebraic dual. -/
 def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
@@ -335,10 +332,12 @@ section finite
 variables [_root_.finite ι]
 
 /-- A vector space is linearly equivalent to its dual space. -/
-@[simps]
 def to_dual_equiv : M ≃ₗ[R] dual R M :=
 linear_equiv.of_bijective b.to_dual
   ⟨ker_eq_bot.mp b.to_dual_ker, range_eq_top.mp b.to_dual_range⟩
+
+-- `simps` times out when generating this
+@[simp] lemma to_dual_equiv_apply (m : M) : b.to_dual_equiv m = b.to_dual m := rfl
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
 def dual_basis : basis ι R (dual R M) := b.map b.to_dual_equiv

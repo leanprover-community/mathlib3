@@ -3,7 +3,6 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.lattice
 import order.hom.bounded
 import order.symm_diff
 
@@ -215,18 +214,6 @@ instance order_iso_class.to_bounded_lattice_hom_class [lattice α] [lattice β] 
   [bounded_order β] [order_iso_class F α β] :
   bounded_lattice_hom_class F α β :=
 { ..order_iso_class.to_lattice_hom_class, ..order_iso_class.to_bounded_order_hom_class }
-
-@[simp] lemma map_finset_sup [semilattice_sup α] [order_bot α] [semilattice_sup β] [order_bot β]
-  [sup_bot_hom_class F α β] (f : F) (s : finset ι) (g : ι → α) :
-  f (s.sup g) = s.sup (f ∘ g) :=
-finset.cons_induction_on s (map_bot f) $ λ i s _ h,
-  by rw [finset.sup_cons, finset.sup_cons, map_sup, h]
-
-@[simp] lemma map_finset_inf [semilattice_inf α] [order_top α] [semilattice_inf β] [order_top β]
-  [inf_top_hom_class F α β] (f : F) (s : finset ι) (g : ι → α) :
-  f (s.inf g) = s.inf (f ∘ g) :=
-finset.cons_induction_on s (map_top f) $ λ i s _ h,
-  by rw [finset.inf_cons, finset.inf_cons, map_inf, h]
 
 section bounded_lattice
 variables [lattice α] [bounded_order α] [lattice β] [bounded_order β]
@@ -981,3 +968,185 @@ bounded lattices. -/
     (bounded_lattice_hom.dual.symm g).comp (bounded_lattice_hom.dual.symm f) := rfl
 
 end bounded_lattice_hom
+
+/-! ### `with_top`, `with_bot` -/
+
+namespace sup_hom
+variables [semilattice_sup α] [semilattice_sup β] [semilattice_sup γ]
+
+/-- Adjoins a `⊤` to the domain and codomain of a `sup_hom`. -/
+@[simps] protected def with_top (f : sup_hom α β) : sup_hom (with_top α) (with_top β) :=
+{ to_fun := option.map f,
+  map_sup' := λ a b, match a, b with
+    | ⊤, ⊤ := rfl
+    | ⊤, (b : α) := rfl
+    | (a : α), ⊤ := rfl
+    | (a : α), (b : α) := congr_arg _ (f.map_sup' _ _)
+  end }
+
+@[simp] lemma with_top_id : (sup_hom.id α).with_top = sup_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_top_comp (f : sup_hom β γ) (g : sup_hom α β) :
+  (f.comp g).with_top = f.with_top.comp g.with_top :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+/-- Adjoins a `⊥` to the domain and codomain of a `sup_hom`. -/
+@[simps] protected def with_bot (f : sup_hom α β) : sup_bot_hom (with_bot α) (with_bot β) :=
+{ to_fun := option.map f,
+  map_sup' := λ a b, match a, b with
+    | ⊥, ⊥ := rfl
+    | ⊥, (b : α) := rfl
+    | (a : α), ⊥ := rfl
+    | (a : α), (b : α) := congr_arg _ (f.map_sup' _ _)
+  end,
+  map_bot' := rfl }
+
+@[simp] lemma with_bot_id : (sup_hom.id α).with_bot = sup_bot_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_bot_comp (f : sup_hom β γ) (g : sup_hom α β) :
+  (f.comp g).with_bot = f.with_bot.comp g.with_bot :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+/-- Adjoins a `⊤` to the codomain of a `sup_hom`. -/
+@[simps] def with_top' [order_top β] (f : sup_hom α β) : sup_hom (with_top α) β :=
+{ to_fun := λ a, a.elim ⊤ f,
+  map_sup' := λ a b, match a, b with
+    | ⊤, ⊤ := top_sup_eq.symm
+    | ⊤, (b : α) := top_sup_eq.symm
+    | (a : α), ⊤ := sup_top_eq.symm
+    | (a : α), (b : α) := f.map_sup' _ _
+  end }
+
+/-- Adjoins a `⊥` to the domain of a `sup_hom`. -/
+@[simps] def with_bot' [order_bot β] (f : sup_hom α β) : sup_bot_hom (with_bot α) β :=
+{ to_fun := λ a, a.elim ⊥ f,
+  map_sup' := λ a b, match a, b with
+    | ⊥, ⊥ := bot_sup_eq.symm
+    | ⊥, (b : α) := bot_sup_eq.symm
+    | (a : α), ⊥ := sup_bot_eq.symm
+    | (a : α), (b : α) := f.map_sup' _ _
+  end,
+  map_bot' := rfl }
+
+end sup_hom
+
+namespace inf_hom
+variables [semilattice_inf α] [semilattice_inf β] [semilattice_inf γ]
+
+/-- Adjoins a `⊤` to the domain and codomain of an `inf_hom`. -/
+@[simps] protected def with_top (f : inf_hom α β) : inf_top_hom (with_top α) (with_top β) :=
+{ to_fun := option.map f,
+  map_inf' := λ a b, match a, b with
+    | ⊤, ⊤ := rfl
+    | ⊤, (b : α) := rfl
+    | (a : α), ⊤ := rfl
+    | (a : α), (b : α) := congr_arg _ (f.map_inf' _ _)
+  end,
+  map_top' := rfl }
+
+@[simp] lemma with_top_id : (inf_hom.id α).with_top = inf_top_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_top_comp (f : inf_hom β γ) (g : inf_hom α β) :
+  (f.comp g).with_top = f.with_top.comp g.with_top :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+/-- Adjoins a `⊥ to the domain and codomain of an `inf_hom`. -/
+@[simps] protected def with_bot (f : inf_hom α β) : inf_hom (with_bot α) (with_bot β) :=
+{ to_fun := option.map f,
+  map_inf' := λ a b, match a, b with
+    | ⊥, ⊥ := rfl
+    | ⊥, (b : α) := rfl
+    | (a : α), ⊥ := rfl
+    | (a : α), (b : α) := congr_arg _ (f.map_inf' _ _)
+  end }
+
+@[simp] lemma with_bot_id : (inf_hom.id α).with_bot = inf_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_bot_comp (f : inf_hom β γ) (g : inf_hom α β) :
+  (f.comp g).with_bot = f.with_bot.comp g.with_bot :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+/-- Adjoins a `⊤` to the codomain of an `inf_hom`. -/
+@[simps] def with_top' [order_top β] (f : inf_hom α β) : inf_top_hom (with_top α) β :=
+{ to_fun := λ a, a.elim ⊤ f,
+  map_inf' := λ a b, match a, b with
+    | ⊤, ⊤ := top_inf_eq.symm
+    | ⊤, (b : α)  := top_inf_eq.symm
+    | (a : α), ⊤ := inf_top_eq.symm
+    | (a : α), (b : α) := f.map_inf' _ _
+  end,
+  map_top' := rfl }
+
+/-- Adjoins a `⊥` to the codomain of an `inf_hom`. -/
+@[simps] def with_bot' [order_bot β] (f : inf_hom α β) : inf_hom (with_bot α) β :=
+{ to_fun := λ a, a.elim ⊥ f,
+  map_inf' := λ a b, match a, b with
+    | ⊥, ⊥ := bot_inf_eq.symm
+    | ⊥, (b : α) := bot_inf_eq.symm
+    | (a : α), ⊥ := inf_bot_eq.symm
+    | (a : α), (b : α) := f.map_inf' _ _
+  end }
+
+end inf_hom
+
+namespace lattice_hom
+variables [lattice α] [lattice β] [lattice γ]
+
+/-- Adjoins a `⊤` to the domain and codomain of a `lattice_hom`. -/
+@[simps] protected def with_top (f : lattice_hom α β) : lattice_hom (with_top α) (with_top β) :=
+{ to_sup_hom := f.to_sup_hom.with_top, ..f.to_inf_hom.with_top }
+
+@[simp] lemma with_top_id : (lattice_hom.id α).with_top = lattice_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_top_comp (f : lattice_hom β γ) (g : lattice_hom α β) :
+  (f.comp g).with_top = f.with_top.comp g.with_top :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+/-- Adjoins a `⊥` to the domain and codomain of a `lattice_hom`. -/
+@[simps] protected def with_bot (f : lattice_hom α β) : lattice_hom (with_bot α) (with_bot β) :=
+{ to_sup_hom := f.to_sup_hom.with_bot, ..f.to_inf_hom.with_bot }
+
+@[simp] lemma with_bot_id : (lattice_hom.id α).with_bot = lattice_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_bot_comp (f : lattice_hom β γ) (g : lattice_hom α β) :
+  (f.comp g).with_bot = f.with_bot.comp g.with_bot :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+/-- Adjoins a `⊤` and `⊥` to the domain and codomain of a `lattice_hom`. -/
+@[simps] def with_top_with_bot (f : lattice_hom α β) :
+  bounded_lattice_hom (with_top $ with_bot α) (with_top $ with_bot β) :=
+⟨f.with_bot.with_top, rfl, rfl⟩
+
+@[simp] lemma with_top_with_bot_id :
+  (lattice_hom.id α).with_top_with_bot = bounded_lattice_hom.id _ :=
+fun_like.coe_injective $ begin
+  refine (congr_arg option.map _).trans option.map_id,
+  rw with_bot_id,
+  refl,
+end
+
+@[simp] lemma with_top_with_bot_comp (f : lattice_hom β γ) (g : lattice_hom α β) :
+  (f.comp g).with_top_with_bot = f.with_top_with_bot.comp g.with_top_with_bot :=
+fun_like.coe_injective $ (congr_arg option.map $ (option.map_comp_map _ _).symm).trans
+  (option.map_comp_map _ _).symm
+
+/-- Adjoins a `⊥` to the codomain of a `lattice_hom`. -/
+@[simps] def with_top' [order_top β] (f : lattice_hom α β) : lattice_hom (with_top α) β :=
+{ ..f.to_sup_hom.with_top', ..f.to_inf_hom.with_top' }
+
+/-- Adjoins a `⊥` to the domain and codomain of a `lattice_hom`. -/
+@[simps] def with_bot' [order_bot β] (f : lattice_hom α β) : lattice_hom (with_bot α) β :=
+{ ..f.to_sup_hom.with_bot', ..f.to_inf_hom.with_bot' }
+
+/-- Adjoins a `⊤` and `⊥` to the codomain of a `lattice_hom`. -/
+@[simps] def with_top_with_bot' [bounded_order β] (f : lattice_hom α β) :
+  bounded_lattice_hom (with_top $ with_bot α) β :=
+{ to_lattice_hom := f.with_bot'.with_top', map_top' := rfl, map_bot' := rfl }
+
+end lattice_hom

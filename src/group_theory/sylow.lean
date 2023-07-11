@@ -36,7 +36,7 @@ The Sylow theorems are the following results for every finite group `G` and ever
   there exists a subgroup of `G` of order `pⁿ`.
 * `is_p_group.exists_le_sylow`: A generalization of Sylow's first theorem:
   Every `p`-subgroup is contained in a Sylow `p`-subgroup.
-* `sylow.card_eq_multiplicity`: The cardinality of a Sylow group is `p ^ n`
+* `sylow.card_eq_multiplicity`: The cardinality of a Sylow subgroup is `p ^ n`
  where `n` is the multiplicity of `p` in the group order.
 * `sylow_conjugate`: A generalization of Sylow's second theorem:
   If the number of Sylow `p`-subgroups is finite, then all Sylow `p`-subgroups are conjugate.
@@ -592,7 +592,7 @@ begin
   rwa [h, card_bot] at key,
 end
 
-/-- The cardinality of a Sylow group is `p ^ n`
+/-- The cardinality of a Sylow subgroup is `p ^ n`
  where `n` is the multiplicity of `p` in the group order. -/
 lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   card P = p ^ nat.factorization (card G) p :=
@@ -602,6 +602,21 @@ begin
   rw [heq, ←hp.out.pow_dvd_iff_dvd_ord_proj (show card G ≠ 0, from card_ne_zero), ←heq],
   exact P.1.card_subgroup_dvd_card,
 end
+
+/-- A subgroup with cardinality `p ^ n` is a Sylow subgroup
+ where `n` is the multiplicity of `p` in the group order. -/
+def of_card [fintype G] {p : ℕ} [hp : fact p.prime] (H : subgroup G) [fintype H]
+  (card_eq : card H = p ^ (card G).factorization p) : sylow p G :=
+{ to_subgroup := H,
+  is_p_group' := is_p_group.of_card card_eq,
+  is_maximal' := begin
+    obtain ⟨P, hHP⟩ := (is_p_group.of_card card_eq).exists_le_sylow,
+    exact set_like.ext' (set.eq_of_subset_of_card_le hHP
+      (P.card_eq_multiplicity.trans card_eq.symm).le).symm ▸ λ _, P.3,
+  end }
+
+@[simp, norm_cast] lemma coe_of_card [fintype G] {p : ℕ} [hp : fact p.prime] (H : subgroup G)
+  [fintype H] (card_eq : card H = p ^ (card G).factorization p) : ↑(of_card H card_eq) = H := rfl
 
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
@@ -667,8 +682,8 @@ normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing
 
 open_locale big_operators
 
-/-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
-of these sylow groups.
+/-- If all its Sylow subgroups are normal, then a finite group is isomorphic to the direct product
+of these Sylow subgroups.
 -/
 noncomputable
 def direct_product_of_normal [fintype G]
@@ -677,7 +692,7 @@ def direct_product_of_normal [fintype G]
 begin
   set ps := (fintype.card G).factorization.support,
 
-  -- “The” sylow group for p
+  -- “The” Sylow subgroup for p
   let P : Π p, sylow p G := default,
 
   have hcomm : pairwise (λ (p₁ p₂ : ps), ∀ (x y : G), x ∈ P p₁ → y ∈ P p₂ → commute x y),
@@ -689,7 +704,7 @@ begin
     apply is_p_group.disjoint_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
 
   refine mul_equiv.trans _ _,
-  -- There is only one sylow group for each p, so the inner product is trivial
+  -- There is only one Sylow subgroup for each p, so the inner product is trivial
   show (Π p : ps, Π P : sylow p G, P) ≃* (Π p : ps, P p),
   { -- here we need to help the elaborator with an explicit instantiation
     apply @mul_equiv.Pi_congr_right ps (λ p, (Π P : sylow p G, P)) (λ p, P p) _ _ ,

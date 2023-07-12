@@ -142,31 +142,23 @@ notation `Ω[`:100 S `⁄`:0 R `]`:0 := kaehler_differential R S
 
 instance : nonempty Ω[S⁄R] := ⟨0⟩
 
-instance kaehler_differential.module' {R' : Type*} [comm_ring R'] [algebra R' S] :
+instance kaehler_differential.module' {R' : Type*} [comm_ring R'] [algebra R' S]
+  [smul_comm_class R R' S] :
   module R' Ω[S⁄R] :=
-(module.comp_hom (kaehler_differential.ideal R S).cotangent (algebra_map R' S) : _)
+submodule.quotient.module' _
 
 instance : is_scalar_tower S (S ⊗[R] S) Ω[S⁄R] :=
 ideal.cotangent.is_scalar_tower _
 
 instance kaehler_differential.is_scalar_tower_of_tower {R₁ R₂ : Type*} [comm_ring R₁] [comm_ring R₂]
-  [algebra R₁ S] [algebra R₂ S] [algebra R₁ R₂] [is_scalar_tower R₁ R₂ S] :
+  [algebra R₁ S] [algebra R₂ S] [has_smul R₁ R₂]
+  [smul_comm_class R R₁ S] [smul_comm_class R R₂ S] [is_scalar_tower R₁ R₂ S] :
   is_scalar_tower R₁ R₂ Ω[S⁄R] :=
-begin
-  convert restrict_scalars.is_scalar_tower R₁ R₂ Ω[S⁄R] using 1,
-  ext x m,
-  show algebra_map R₁ S x • m = algebra_map R₂ S (algebra_map R₁ R₂ x) • m,
-  rw ← is_scalar_tower.algebra_map_apply,
-end
+submodule.quotient.is_scalar_tower _ _
 
 instance kaehler_differential.is_scalar_tower' :
   is_scalar_tower R (S ⊗[R] S) Ω[S⁄R] :=
-begin
-  convert restrict_scalars.is_scalar_tower R (S ⊗[R] S) Ω[S⁄R] using 1,
-  ext x m,
-  show algebra_map R S x • m = algebra_map R (S ⊗[R] S) x • m,
-  simp_rw [is_scalar_tower.algebra_map_apply R S (S ⊗[R] S), is_scalar_tower.algebra_map_smul]
-end
+submodule.quotient.is_scalar_tower _ _
 
 /-- The quotient map `I → Ω[S⁄R]` with `I` being the kernel of `S ⊗[R] S → S`. -/
 def kaehler_differential.from_ideal : kaehler_differential.ideal R S →ₗ[S ⊗[R] S] Ω[S⁄R] :=

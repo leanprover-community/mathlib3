@@ -8,6 +8,9 @@ import number_theory.modular_forms.slash_actions
 /-!
 # Slash invariant forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines functions that are invariant under a `slash_action` which forms the basis for
 defining `modular_form` and `cusp_form`. We prove several instances for such spaces, in particular
 that they form a module.

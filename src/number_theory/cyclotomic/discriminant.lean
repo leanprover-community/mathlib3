@@ -9,6 +9,9 @@ import ring_theory.discriminant
 
 /-!
 # Discriminant of cyclotomic fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 We compute the discriminant of a `p ^ n`-th cyclotomic extension.
 
 ## Main results

@@ -25,13 +25,13 @@ variables {𝕜 B F F₁ F₂ M M₁ M₂ : Type*}
   [nontrivially_normed_field 𝕜]
   [∀ x, add_comm_group (E x)] [∀ x, module 𝕜 (E x)]
   [normed_add_comm_group F] [normed_space 𝕜 F]
-  [topological_space (total_space E)] [∀ x, topological_space (E x)]
+  [topological_space (total_space F E)] [∀ x, topological_space (E x)]
   [∀ x, add_comm_group (E₁ x)] [∀ x, module 𝕜 (E₁ x)]
   [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
-  [topological_space (total_space E₁)] [∀ x, topological_space (E₁ x)]
+  [topological_space (total_space F₁ E₁)] [∀ x, topological_space (E₁ x)]
   [∀ x, add_comm_group (E₂ x)] [∀ x, module 𝕜 (E₂ x)]
   [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
-  [topological_space (total_space E₂)] [∀ x, topological_space (E₂ x)]
+  [topological_space (total_space F₂ E₂)] [∀ x, topological_space (E₂ x)]
   [_i₁ : ∀ x, topological_add_group (E₂ x)] [_i₂ : ∀ x, has_continuous_smul 𝕜 (E₂ x)]
 
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
@@ -43,9 +43,10 @@ variables {𝕜 B F F₁ F₂ M M₁ M₂ : Type*}
   {n : ℕ∞}
   [fiber_bundle F₁ E₁] [vector_bundle 𝕜 F₁ E₁]
   [fiber_bundle F₂ E₂] [vector_bundle 𝕜 F₂ E₂]
-  {e₁ e₁' : trivialization F₁ (π E₁)} {e₂ e₂' : trivialization F₂ (π E₂)}
+  {e₁ e₁' : trivialization F₁ (π F₁ E₁)} {e₂ e₂' : trivialization F₂ (π F₂ E₂)}
 
-local notation `LE₁E₂` := total_space (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂)
+local notation `LE₁E₂` := total_space (F₁ →L[𝕜] F₂)
+  (bundle.continuous_linear_map (ring_hom.id 𝕜) E₁ E₂)
 
 /- This proof is slow, especially the `simp only` and the elaboration of `h₂`. -/
 lemma smooth_on_continuous_linear_map_coord_change
@@ -69,7 +70,7 @@ begin
     simp only [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
       continuous_linear_equiv.arrow_congrSL_apply, comp_apply, function.comp, compL_apply,
       flip_apply, continuous_linear_equiv.symm_symm, linear_equiv.to_fun_eq_coe,
-      continuous_linear_equiv.arrow_congrₛₗ_apply, continuous_linear_map.coe_comp'] },
+      continuous_linear_map.coe_comp'] },
 end
 
 include _i₁ _i₂
@@ -110,6 +111,5 @@ instance bundle.continuous_linear_map.vector_prebundle.is_smooth :
   end }
 
 instance smooth_vector_bundle.continuous_linear_map :
-  smooth_vector_bundle (F₁ →L[𝕜] F₂) (bundle.continuous_linear_map (ring_hom.id 𝕜) F₁ E₁ F₂ E₂)
-    IB :=
+  smooth_vector_bundle (F₁ →L[𝕜] F₂) (bundle.continuous_linear_map (ring_hom.id 𝕜) E₁ E₂) IB :=
 (bundle.continuous_linear_map.vector_prebundle (ring_hom.id 𝕜) F₁ E₁ F₂ E₂).smooth_vector_bundle IB

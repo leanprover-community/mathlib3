@@ -14,6 +14,9 @@ import tactic.field_simp
 /-!
 # Valuation Rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A valuation ring is a domain such that for every pair of elements `a b`, either `a` divides
 `b` or vice-versa.
 

@@ -9,6 +9,9 @@ import group_theory.free_abelian_group
 /-!
 # Adjunctions regarding the category of (abelian) groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains construction of basic adjunctions concerning the category of groups and the
 category of abelian groups.
 

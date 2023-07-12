@@ -12,6 +12,9 @@ import topology.metric_space.kuratowski
 /-!
 # Gromov-Hausdorff distance
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the Gromov-Hausdorff distance on the space of nonempty compact metric spaces
 up to isometry.
 

@@ -9,6 +9,9 @@ import measure_theory.integral.circle_integral
 /-!
 # Integral over a torus in `ℂⁿ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the integral of a function `f : ℂⁿ → E` over a torus
 `{z : ℂⁿ | ∀ i, z i ∈ metric.sphere (c i) (R i)}`. In order to do this, we define
 `torus_map (c : ℂⁿ) (R θ : ℝⁿ)` to be the point in `ℂⁿ` given by $z_k=c_k+R_ke^{θ_ki}$,

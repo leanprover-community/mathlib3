@@ -11,6 +11,9 @@ import ring_theory.localization.integral
 /-!
 # Algebraically Closed Field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the typeclass for algebraically closed fields and algebraic closures,
 and prove some of their properties.
 

@@ -14,6 +14,9 @@ import measure_theory.integral.interval_integral
 /-!
 # Convolution of functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the convolution on two functions, i.e. `x ↦ ∫ f(t)g(x - t) ∂t`.
 In the general case, these functions can be vector-valued, and have an arbitrary (additive)
 group as domain. We use a continuous bilinear operation `L` on these function values as
@@ -1497,9 +1500,7 @@ begin
     simp only [ef, eg, comp_app, continuous_linear_equiv.apply_symm_apply, coe_comp',
       continuous_linear_equiv.prod_apply, continuous_linear_equiv.map_sub,
       continuous_linear_equiv.arrow_congr, continuous_linear_equiv.arrow_congrSL_symm_apply,
-      continuous_linear_equiv.coe_coe, comp_app, continuous_linear_equiv.apply_symm_apply,
-      linear_equiv.inv_fun_eq_symm, continuous_linear_equiv.arrow_congrₛₗ_symm_apply,
-      eq_self_iff_true] },
+      continuous_linear_equiv.coe_coe, comp_app, continuous_linear_equiv.apply_symm_apply ] },
   simp_rw [this] at A,
   exact A,
 end

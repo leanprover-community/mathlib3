@@ -10,6 +10,9 @@ import data.mv_polynomial.derivation
 /-!
 # Partial derivatives of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the notion of the formal *partial derivative* of a polynomial,
 the derivative with respect to a single variable.
 This derivative is not connected to the notion of derivative from analysis.

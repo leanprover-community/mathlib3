@@ -13,6 +13,9 @@ import topology.metric_space.basic
 /-!
 # Besicovitch covering theorems
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The topological Besicovitch covering theorem ensures that, in a nice metric space, there exists a
 number `N` such that, from any family of balls with bounded radii, one can extract `N` families,
 each made of disjoint balls, covering together all the centers of the initial family.

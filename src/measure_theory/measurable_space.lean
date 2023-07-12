@@ -191,7 +191,7 @@ lemma measurable_of_subsingleton_codomain [subsingleton β] (f : α → β) :
   measurable f :=
 λ s hs, subsingleton.set_cases measurable_set.empty measurable_set.univ s
 
-@[to_additive]
+@[measurability, to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
 lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=

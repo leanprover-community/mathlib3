@@ -8,6 +8,9 @@ import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # The Jacobi Symbol
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the Jacobi symbol and prove its main properties.
 
 ## Main definitions

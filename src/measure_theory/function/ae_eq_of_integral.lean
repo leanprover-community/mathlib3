@@ -11,6 +11,9 @@ import measure_theory.integral.set_integral
 
 /-! # From equality of integrals to equality of functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides various statements of the general form "if two functions have the same integral
 on all sets, then they are equal almost everywhere".
 The different lemmas use various hypotheses on the class of functions, on the target space or on the

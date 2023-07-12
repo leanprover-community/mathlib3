@@ -58,6 +58,9 @@ open measurable_space topological_space
 def borel (α : Type u) [topological_space α] : measurable_space α :=
 generate_from {s : set α | is_open s}
 
+theorem borel_anti : antitone (@borel α) :=
+λ _ _ h, measurable_space.generate_from_le $ λ s hs, generate_measurable.basic _ (h _ hs)
+
 lemma borel_eq_top_of_discrete [topological_space α] [discrete_topology α] :
   borel α = ⊤ :=
 top_le_iff.1 $ λ s hs, generate_measurable.basic s (is_open_discrete s)

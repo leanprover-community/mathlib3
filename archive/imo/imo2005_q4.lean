@@ -15,7 +15,7 @@ This is quite an easy problem, in which the key point is a modular arithmetic ca
 the sequence `a n` relative to an arbitrary prime.
 -/
 
-namespace imo
+namespace imo2005_q4
 
 /-- The sequence considered in the problem, `2 ^ n + 3 ^ n + 6 ^ n - 1`. -/
 def a (n : ℕ) : ℤ := 2 ^ n + 3 ^ n + 6 ^ n - 1
@@ -55,8 +55,12 @@ begin
   ... = 0 : by ring,
 end
 
+end imo2005_q4
+
+open imo2005_q4
+
 /-- Main statement:  The only positive integer coprime to all terms of the sequence `a` is `1`. -/
-example {k : ℕ} (hk : 0 < k) : (∀ n : ℕ, 1 ≤ n → is_coprime (a n) k) ↔ k = 1 :=
+theorem imo2005_q4 {k : ℕ} (hk : 0 < k) : (∀ n : ℕ, 1 ≤ n → is_coprime (a n) k) ↔ k = 1 :=
 begin
   split, rotate,
   { -- The property is clearly true for `k = 1`
@@ -95,5 +99,3 @@ begin
   -- Contradiction!
   contradiction,
 end
-
-end imo

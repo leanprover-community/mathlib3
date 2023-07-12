@@ -14,6 +14,9 @@ import analysis.special_functions.trigonometric.deriv
 /-!
 # Derivatives of power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We also prove differentiability and provide derivatives for the power functions `x ^ y`.
 -/
 

@@ -12,6 +12,9 @@ import ring_theory.is_tensor_product
 /-!
 # Properties of ring homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the basic framework for talking about properties of ring homomorphisms.
 The following meta-properties of predicates on ring homomorphisms are defined
 

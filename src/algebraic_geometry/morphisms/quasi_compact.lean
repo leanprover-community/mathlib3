@@ -10,6 +10,9 @@ import algebraic_geometry.limits
 /-!
 # Quasi-compact morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A morphism of schemes is quasi-compact if the preimages of quasi-compact open sets are
 quasi-compact.
 

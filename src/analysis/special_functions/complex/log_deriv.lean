@@ -10,6 +10,9 @@ import analysis.special_functions.exp_deriv
 /-!
 # Differentiability of the complex `log` function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 noncomputable theory

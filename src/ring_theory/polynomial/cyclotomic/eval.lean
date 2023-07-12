@@ -12,6 +12,9 @@ import analysis.complex.arg
 
 /-!
 # Evaluating cyclotomic polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file states some results about evaluating cyclotomic polynomials in various different ways.
 ## Main definitions
 * `polynomial.eval(₂)_one_cyclotomic_prime(_pow)`: `eval 1 (cyclotomic p^k R) = p`.

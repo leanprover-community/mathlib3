@@ -10,6 +10,9 @@ import geometry.euclidean.inversion
 /-!
 # Metric on the upper half-plane
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a `metric_space` structure on the `upper_half_plane`. We use hyperbolic
 (Poincaré) distance given by
 `dist z w = 2 * arsinh (dist (z : ℂ) w / (2 * real.sqrt (z.im * w.im)))` instead of the induced

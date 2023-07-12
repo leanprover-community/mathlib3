@@ -476,6 +476,9 @@ def prod_prod_prod_comm : (M × N) × (M' × N') ≃* (M × M') × (N × N') :=
   map_mul' := λ mnmn mnmn', rfl,
   ..equiv.prod_prod_prod_comm M N M' N', }
 
+@[simp, to_additive] lemma prod_prod_prod_comm_to_equiv :
+  (prod_prod_prod_comm M N M' N').to_equiv = equiv.prod_prod_prod_comm M N M' N' := rfl
+
 @[simp] lemma prod_prod_prod_comm_symm :
   (prod_prod_prod_comm M N M' N').symm = prod_prod_prod_comm M M' N N' := rfl
 

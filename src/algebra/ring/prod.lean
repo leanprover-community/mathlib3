@@ -239,8 +239,8 @@ variables (R R' S S')
 def prod_prod_prod_comm : (R × R') × (S × S') ≃+* (R × S) × (R' × S') :=
 { to_fun := λ rrss, ((rrss.1.1, rrss.2.1), (rrss.1.2, rrss.2.2)),
   inv_fun := λ rsrs, ((rsrs.1.1, rsrs.2.1), (rsrs.1.2, rsrs.2.2)),
-  ..add_equiv.prod_prod_prod_comm R R' S S',
-  ..mul_equiv.prod_prod_prod_comm R R' S S', }
+  .. add_equiv.prod_prod_prod_comm R R' S S',
+  .. mul_equiv.prod_prod_prod_comm R R' S S' }
 
 @[simp] lemma prod_prod_prod_comm_symm :
   (prod_prod_prod_comm R R' S S').symm = prod_prod_prod_comm R S R' S' := rfl
@@ -250,6 +250,9 @@ def prod_prod_prod_comm : (R × R') × (S × S') ≃+* (R × S) × (R' × S') :=
 
 @[simp] lemma prod_prod_prod_comm_to_mul_equiv :
   (prod_prod_prod_comm R R' S S').to_mul_equiv = mul_equiv.prod_prod_prod_comm R R' S S' := rfl
+
+@[simp] lemma prod_prod_prod_comm_to_equiv :
+  (prod_prod_prod_comm R R' S S').to_equiv = equiv.prod_prod_prod_comm R R' S S' := rfl
 
 end
 

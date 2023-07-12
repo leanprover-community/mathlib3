@@ -15,6 +15,9 @@ import field_theory.galois
 /-!
 # Norm for (finite) ring extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Suppose we have an `R`-algebra `S` with a finite basis. For each `s : S`,
 the determinant of the linear map given by multiplying by `s` gives information
 about the roots of the minimal polynomial of `s` over `R`.

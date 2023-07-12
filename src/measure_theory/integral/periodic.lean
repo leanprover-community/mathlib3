@@ -12,6 +12,9 @@ import topology.algebra.order.floor
 /-!
 # Integrals of periodic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the half-open interval `Ioc t (t + T)` in `ℝ` is a fundamental domain of
 the action of the subgroup `ℤ ∙ T` on `ℝ`.
 

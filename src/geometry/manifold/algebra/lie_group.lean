@@ -9,6 +9,9 @@ import geometry.manifold.algebra.monoid
 /-!
 # Lie groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Lie group is a group that is also a smooth manifold, in which the group operations of
 multiplication and inversion are smooth maps. Smoothness of the group multiplication means that
 multiplication is a smooth mapping of the product manifold `G` × `G` into `G`.

@@ -12,6 +12,9 @@ import data.set.pointwise.support
 /-!
 # Bump functions in finite-dimensional vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `E` be a finite-dimensional real normed vector space. We show that any open set `s` in `E` is
 exactly the support of a smooth function taking values in `[0, 1]`,
 in `is_open.exists_smooth_support_eq`.

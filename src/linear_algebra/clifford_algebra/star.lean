@@ -8,6 +8,9 @@ import linear_algebra.clifford_algebra.conjugation
 /-!
 # Star structure on `clifford_algebra`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the "clifford conjugation", equal to `reverse (involute x)`, and assigns it the
 `star` notation.
 

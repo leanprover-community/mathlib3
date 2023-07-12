@@ -235,11 +235,6 @@ eq_of_drop_last_eq rfl rfl
 instance subsingleton0 : subsingleton (typevec 0) :=
 ⟨ λ a b, funext $ λ a, fin2.elim0 a  ⟩
 
-run_cmd do
-  mk_simp_attr `typevec,
-  tactic.add_doc_string `simp_attr.typevec
-"simp set for the manipulation of typevec and arrow expressions"
-
 local prefix `♯`:0 := cast (by try { simp }; congr' 1; try { simp })
 
 /-- cases distinction for 0-length type vector -/

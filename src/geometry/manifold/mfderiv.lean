@@ -8,6 +8,9 @@ import geometry.manifold.vector_bundle.tangent
 /-!
 # The derivative of functions between smooth manifolds
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `M` and `M'` be two smooth manifolds with corners over a field `𝕜` (with respective models with
 corners `I` on `(E, H)` and `I'` on `(E', H')`), and let `f : M → M'`. We define the
 derivative of the function at a point, within a set or along the whole space, mimicking the API
@@ -685,14 +688,8 @@ end
 @[simp, mfld_simps] lemma tangent_map_within_proj {p : tangent_bundle I M} :
   (tangent_map_within I I' f s p).proj = f p.proj := rfl
 
-@[simp, mfld_simps] lemma tangent_map_within_fst {p : tangent_bundle I M} :
-  (tangent_map_within I I' f s p).1 = f p.1 := rfl
-
 @[simp, mfld_simps] lemma tangent_map_proj {p : tangent_bundle I M} :
   (tangent_map I I' f p).proj = f p.proj := rfl
-
-@[simp, mfld_simps] lemma tangent_map_fst {p : tangent_bundle I M} :
-  (tangent_map I I' f p).1 = f p.1 := rfl
 
 omit Is I's
 
@@ -838,8 +835,7 @@ lemma tangent_map_within_congr (h : ∀ x ∈ s, f x = f₁ x)
   (p : tangent_bundle I M) (hp : p.1 ∈ s) (hs : unique_mdiff_within_at I s p.1) :
   tangent_map_within I I' f s p = tangent_map_within I I' f₁ s p :=
 begin
-  simp only [tangent_map_within, h p.fst hp, true_and, eq_self_iff_true, heq_iff_eq,
-    sigma.mk.inj_iff],
+  simp only [tangent_map_within, h p.1 hp, true_and, eq_self_iff_true, heq_iff_eq],
   congr' 1,
   exact mfderiv_within_congr hs h (h _ hp)
 end
@@ -1341,17 +1337,17 @@ lemma mfderiv_within_fst {s : set (M × M')} {x : M × M'}
 by { rw mdifferentiable.mfderiv_within (mdifferentiable_at_fst I I') hxs, exact mfderiv_fst I I' }
 
 @[simp, mfld_simps] lemma tangent_map_prod_fst {p : tangent_bundle (I.prod I') (M × M')} :
-  tangent_map (I.prod I') I prod.fst p = total_space_mk p.proj.1 p.2.1 :=
+  tangent_map (I.prod I') I prod.fst p = ⟨p.proj.1, p.2.1⟩ :=
 by simp [tangent_map]
 
 lemma tangent_map_within_prod_fst {s : set (M × M')} {p : tangent_bundle (I.prod I') (M × M')}
   (hs : unique_mdiff_within_at (I.prod I') s p.proj) :
-  tangent_map_within (I.prod I') I prod.fst s p = total_space_mk p.proj.1 p.2.1 :=
+  tangent_map_within (I.prod I') I prod.fst s p = ⟨p.proj.1, p.2.1⟩ :=
 begin
   simp only [tangent_map_within],
-  rw mfderiv_within_fst,
-  { rcases p, refl },
-  { exact hs }
+  rw mfderiv_within_fst _ _ hs,
+  rcases p,
+  exact ⟨rfl, heq.rfl⟩
 end
 
 lemma has_mfderiv_at_snd (x : M × M') :
@@ -1397,16 +1393,16 @@ lemma mfderiv_within_snd {s : set (M × M')} {x : M × M'}
 by { rw mdifferentiable.mfderiv_within (mdifferentiable_at_snd I I') hxs, exact mfderiv_snd I I' }
 
 @[simp, mfld_simps] lemma tangent_map_prod_snd {p : tangent_bundle (I.prod I') (M × M')} :
-  tangent_map (I.prod I') I' prod.snd p = total_space_mk p.proj.2 p.2.2 :=
+  tangent_map (I.prod I') I' prod.snd p = ⟨p.proj.2, p.2.2⟩ :=
 by simp [tangent_map]
 
 lemma tangent_map_within_prod_snd {s : set (M × M')} {p : tangent_bundle (I.prod I') (M × M')}
   (hs : unique_mdiff_within_at (I.prod I') s p.proj) :
-  tangent_map_within (I.prod I') I' prod.snd s p = total_space_mk p.proj.2 p.2.2 :=
+  tangent_map_within (I.prod I') I' prod.snd s p = ⟨p.proj.2, p.2.2⟩ :=
 begin
   simp only [tangent_map_within],
   rw mfderiv_within_snd,
-  { rcases p, refl },
+  { rcases p, split; refl },
   { exact hs }
 end
 
@@ -1713,7 +1709,7 @@ mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)
 the identification between the tangent bundle of the model space and the product space. -/
 lemma tangent_map_chart {p q : tangent_bundle I M} (h : q.1 ∈ (chart_at H p.1).source) :
   tangent_map I I (chart_at H p.1) q =
-  (equiv.sigma_equiv_prod _ _).symm
+  (total_space.to_prod _ _).symm
     ((chart_at (model_prod H E) p : tangent_bundle I M → model_prod H E) q) :=
 begin
   dsimp [tangent_map],
@@ -1729,14 +1725,14 @@ lemma tangent_map_chart_symm {p : tangent_bundle I M} {q : tangent_bundle I H}
   (h : q.1 ∈ (chart_at H p.1).target) :
   tangent_map I I (chart_at H p.1).symm q =
   ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I M)
-    ((equiv.sigma_equiv_prod H E) q) :=
+    ((total_space.to_prod H E) q) :=
 begin
   dsimp only [tangent_map],
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
   simp only [continuous_linear_map.coe_coe, tangent_bundle.chart_at, h,
-    tangent_bundle_core, chart_at, sigma.mk.inj_iff] with mfld_simps,
+    tangent_bundle_core, chart_at, total_space.to_prod_apply] with mfld_simps,
 end
 
 end charts
@@ -2001,23 +1997,23 @@ end
 
 open bundle
 variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-  (Z : M → Type*) [topological_space (total_space Z)] [∀ b, topological_space (Z b)]
+  (Z : M → Type*) [topological_space (total_space F Z)] [∀ b, topological_space (Z b)]
   [∀ b, add_comm_monoid (Z b)] [∀ b, module 𝕜 (Z b)]
   [fiber_bundle F Z] [vector_bundle 𝕜 F Z] [smooth_vector_bundle F Z I]
 
 /-- In a smooth fiber bundle, the preimage under the projection of a set with
 unique differential in the basis also has unique differential. -/
 lemma unique_mdiff_on.smooth_bundle_preimage (hs : unique_mdiff_on I s) :
-  unique_mdiff_on (I.prod (𝓘(𝕜, F))) (π Z ⁻¹' s) :=
+  unique_mdiff_on (I.prod (𝓘(𝕜, F))) (π F Z ⁻¹' s) :=
 begin
   /- Using a chart (and the fact that unique differentiability is invariant under charts), we
   reduce the situation to the model space, where we can use the fact that products respect
   unique differentiability. -/
   assume p hp,
-  replace hp : p.fst ∈ s, by simpa only with mfld_simps using hp,
+  replace hp : p.1 ∈ s, by simpa only with mfld_simps using hp,
   let e₀ := chart_at H p.1,
   let e := chart_at (model_prod H F) p,
-  have h2s : ∀ x, x ∈ e.target ∩ e.symm ⁻¹' (π Z ⁻¹' s) ↔
+  have h2s : ∀ x, x ∈ e.target ∩ e.symm ⁻¹' (π F Z ⁻¹' s) ↔
     (x.1 ∈ e₀.target ∧ (e₀.symm) x.1 ∈ (trivialization_at F Z p.1).base_set) ∧ (e₀.symm) x.1 ∈ s,
   { intro x,
     have A : x ∈ e.target ↔ x.1 ∈ e₀.target ∧
@@ -2029,13 +2025,13 @@ begin
     simp only [fiber_bundle.charted_space_chart_at_symm_fst p x hx] with mfld_simps },
   -- It suffices to prove unique differentiability in a chart
   suffices h : unique_mdiff_on (I.prod (𝓘(𝕜, F)))
-    (e.target ∩ e.symm ⁻¹' (π Z ⁻¹' s)),
+    (e.target ∩ e.symm ⁻¹' (π F Z ⁻¹' s)),
   { have A : unique_mdiff_on (I.prod (𝓘(𝕜, F))) (e.symm.target ∩
-      e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (π Z ⁻¹' s))),
+      e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (π F Z ⁻¹' s))),
     { apply h.unique_mdiff_on_preimage,
       exact (mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)).symm,
       apply_instance },
-    have : p ∈ e.symm.target ∩ e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (π Z ⁻¹' s)),
+    have : p ∈ e.symm.target ∩ e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (π F Z ⁻¹' s)),
     { simp only [e, hp] with mfld_simps },
     apply (A _ this).mono,
     assume q hq,
@@ -2044,7 +2040,7 @@ begin
   assume q hq,
   simp only [unique_mdiff_within_at, model_with_corners.prod, -preimage_inter] with mfld_simps,
   have : 𝓝[(I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) ×ˢ univ] (I q.1, q.2) ≤
-    𝓝[(λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.target ∩ e.symm ⁻¹' (π Z ⁻¹' s)) ∩
+    𝓝[(λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.target ∩ e.symm ⁻¹' (π F Z ⁻¹' s)) ∩
       (range I ×ˢ univ)] (I q.1, q.2),
   { rw [nhds_within_le_iff, mem_nhds_within],
     refine ⟨(λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target, _, _, _⟩,
@@ -2073,7 +2069,7 @@ begin
 end
 
 lemma unique_mdiff_on.tangent_bundle_proj_preimage (hs : unique_mdiff_on I s):
-  unique_mdiff_on I.tangent (π (tangent_space I) ⁻¹' s) :=
+  unique_mdiff_on I.tangent (π E (tangent_space I) ⁻¹' s) :=
 hs.smooth_bundle_preimage _
 
 end unique_mdiff

@@ -8,6 +8,9 @@ import geometry.manifold.cont_mdiff_map
 
 /-!
 # Smooth monoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 A smooth monoid is a monoid that is also a smooth manifold, in which multiplication is a smooth map
 of the product manifold `G` × `G` into `G`.
 

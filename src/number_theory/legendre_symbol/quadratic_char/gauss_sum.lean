@@ -9,6 +9,9 @@ import number_theory.legendre_symbol.gauss_sum
 /-!
 # Quadratic characters of finite fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Further facts relying on Gauss sums.
 
 -/

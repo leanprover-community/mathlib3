@@ -10,6 +10,9 @@ import group_theory.perm.cycle.type
 /-!
 # Galois Groups of Polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we introduce the Galois group of a polynomial `p` over a field `F`,
 defined as the automorphism group of its splitting field. We also provide
 some results about some extension `E` above `p.splitting_field`, and some specific

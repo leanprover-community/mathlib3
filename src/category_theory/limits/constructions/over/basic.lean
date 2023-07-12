@@ -12,6 +12,9 @@ import category_theory.limits.constructions.equalizers
 /-!
 # Limits in the over category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Declare instances for limits in the over category: If `C` has finite wide pullbacks, `over B` has
 finite limits, and if `C` has arbitrary wide pullbacks then `over B` has limits.
 -/

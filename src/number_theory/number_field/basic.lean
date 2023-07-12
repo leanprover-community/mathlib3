@@ -8,6 +8,9 @@ import ring_theory.dedekind_domain.integral_closure
 
 /-!
 # Number fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines a number field and the ring of integers corresponding to it.
 
 ## Main definitions

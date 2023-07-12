@@ -11,6 +11,9 @@ import ring_theory.roots_of_unity.basic
 /-!
 # The Abel-Ruffini Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves one direction of the Abel-Ruffini theorem, namely that if an element is solvable
 by radicals, then its minimal polynomial has solvable Galois group.
 

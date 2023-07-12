@@ -10,6 +10,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Limits of monoid objects.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` has limits, so does `Mon_ C`, and the forgetful functor preserves these limits.
 
 (This could potentially replace many individual constructions for concrete categories,

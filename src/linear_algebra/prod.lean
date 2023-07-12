@@ -587,8 +587,6 @@ variables [semiring R]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
 variables {module_M : module R M} {module_M₂ : module R M₂}
 variables {module_M₃ : module R M₃} {module_M₄ : module R M₄}
-
-
 variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 
 /-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/

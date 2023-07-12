@@ -443,7 +443,7 @@ theorem nonneg_of_mem_sphere (hy : y ∈ sphere x ε) : 0 ≤ ε :=
 dist_nonneg.trans_eq hy
 
 @[simp] theorem sphere_eq_empty_of_neg (hε : ε < 0) : sphere x ε = ∅ :=
-set.eq_empty_iff_forall_not_mem.mpr $ λ y hy, (pos_of_mem_sphere hy).not_lt hε
+set.eq_empty_iff_forall_not_mem.mpr $ λ y hy, (nonneg_of_mem_sphere hy).not_lt hε
 
 theorem sphere_eq_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
   sphere x ε = ∅ :=

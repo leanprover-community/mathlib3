@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.convex.function
-import analysis.convex.mathlib
 import data.set.intervals.proj_Icc
 
 /-!
@@ -15,7 +14,7 @@ This file proves that constantly extending monotone/antitone functions preserves
 ## TODO
 
 We could deduplicate the proofs if we had a typeclass stating that `segment 𝕜 x y = [x -[𝕜] y]` as
-`𝕜ᵒᵈ` respects it if `𝕜`, while `𝕜ᵒᵈ` isn't a `linear_ordered_field` if `𝕜` is.
+`𝕜ᵒᵈ` respects it if `𝕜` does, while `𝕜ᵒᵈ` isn't a `linear_ordered_field` if `𝕜` is.
 -/
 
 open set

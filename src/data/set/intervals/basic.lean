@@ -1164,6 +1164,26 @@ begin
       le_of_lt h₂, le_of_lt h₁] },
 end
 
+section lattice
+variables [lattice β] {f : α → β}
+
+lemma _root_.monotone_on.image_Icc_subset (hf : monotone_on f (Icc a b)) :
+  f '' Icc a b ⊆ Icc (f a) (f b) :=
+image_subset_iff.2 $ λ c hc,
+  ⟨hf (left_mem_Icc.2 $ hc.1.trans hc.2) hc hc.1, hf hc (right_mem_Icc.2 $ hc.1.trans hc.2) hc.2⟩
+
+lemma _root_.antitone_on.image_Icc_subset (hf : antitone_on f (Icc a b)) :
+  f '' Icc a b ⊆ Icc (f b) (f a) :=
+image_subset_iff.2 $ λ c hc,
+  ⟨hf hc (right_mem_Icc.2 $ hc.1.trans hc.2) hc.2, hf (left_mem_Icc.2 $ hc.1.trans hc.2) hc hc.1⟩
+
+lemma _root_.monotone.image_Icc_subset (hf : monotone f) : f '' Icc a b ⊆ Icc (f a) (f b) :=
+(hf.monotone_on _).image_Icc_subset
+
+lemma _root_.antitone.image_Icc_subset (hf : antitone f) : f '' Icc a b ⊆ Icc (f b) (f a) :=
+(hf.antitone_on _).image_Icc_subset
+
+end lattice
 end linear_order
 
 section lattice

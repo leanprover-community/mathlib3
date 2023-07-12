@@ -179,13 +179,14 @@ rfl
 /-- The universal derivation into `Ω[S⁄R]`. -/
 def kaehler_differential.D : derivation R S Ω[S⁄R] :=
 { map_one_eq_zero' := begin
-    dsimp [kaehler_differential.D_linear_map_apply],
+    dsimp only [kaehler_differential.D_linear_map_apply],
     rw [ideal.to_cotangent_eq_zero, subtype.coe_mk, sub_self],
     exact zero_mem _
   end,
   leibniz' := λ a b, begin
-    dsimp [kaehler_differential.D_linear_map_apply],
-    rw [← linear_map.map_smul_of_tower, ← linear_map.map_smul_of_tower, ← map_add,
+    dsimp only [kaehler_differential.D_linear_map_apply],
+    rw [← linear_map.map_smul_of_tower ((kaehler_differential.ideal R S).to_cotangent) a,
+      ← linear_map.map_smul_of_tower ((kaehler_differential.ideal R S).to_cotangent) b, ← map_add,
       ideal.to_cotangent_eq, pow_two],
     convert submodule.mul_mem_mul (kaehler_differential.one_smul_sub_smul_one_mem_ideal R a : _)
       (kaehler_differential.one_smul_sub_smul_one_mem_ideal R b : _) using 1,
@@ -194,7 +195,7 @@ def kaehler_differential.D : derivation R S Ω[S⁄R] :=
       submodule.coe_smul_of_tower, smul_sub, tensor_product.smul_tmul', smul_eq_mul, mul_one],
     ring_nf,
   end,
-  ..(kaehler_differential.D_linear_map R S) }
+  to_linear_map := kaehler_differential.D_linear_map R S }
 
 lemma kaehler_differential.D_apply (s : S) :
   kaehler_differential.D R S s = (kaehler_differential.ideal R S).to_cotangent
@@ -362,9 +363,9 @@ into `(kaehler_differential.ideal R S).cotangent_ideal` -/
 -- `derivation R S Ω[S⁄R] ≃ₗ[R] derivation R S (kaehler_differential.ideal R S).cotangent_ideal`
 -- But lean times-out if this is given explicitly.
 noncomputable
-def kaehler_differential.End_equiv_derivation' :=
-@linear_equiv.comp_der R _ _ _ _ Ω[S⁄R] _ _ _ _ _ _ _ _ _
-  ((kaehler_differential.ideal R S).cotangent_equiv_ideal.restrict_scalars S)
+def kaehler_differential.End_equiv_derivation' :
+  derivation R S Ω[S⁄R] ≃ₗ[R] derivation R S _ :=
+linear_equiv.comp_der ((kaehler_differential.ideal R S).cotangent_equiv_ideal.restrict_scalars S)
 
 /-- (Implementation) An `equiv` version of `kaehler_differential.End_equiv_aux`.
 Used in `kaehler_differential.End_equiv`. -/
@@ -527,7 +528,7 @@ variables (A B : Type*) [comm_ring A] [comm_ring B] [algebra R A] [algebra S B] 
 variables [algebra A B] [is_scalar_tower R S B] [is_scalar_tower R A B]
 
 -- The map `(A →₀ A) →ₗ[A] (B →₀ B)`
-local notation `finsupp_map` := ((finsupp.map_range.linear_map (algebra.of_id A B).to_linear_map)
+local notation `finsupp_map` := ((finsupp.map_range.linear_map (algebra.linear_map A B))
   .comp (finsupp.lmap_domain A A (algebra_map A B)))
 
 lemma kaehler_differential.ker_total_map (h : function.surjective (algebra_map A B)) :
@@ -541,7 +542,7 @@ begin
     set.image_univ, map_sub, map_add],
   simp only [linear_map.comp_apply, finsupp.map_range.linear_map_apply, finsupp.map_range_single,
     finsupp.lmap_domain_apply, finsupp.map_domain_single, alg_hom.to_linear_map_apply,
-    algebra.of_id_apply, ← is_scalar_tower.algebra_map_apply, map_one, map_add, map_mul],
+    algebra.linear_map_apply, ← is_scalar_tower.algebra_map_apply, map_one, map_add, map_mul],
   simp_rw [sup_assoc, ← (h.prod_map h).range_comp],
   congr' 3,
   rw [sup_eq_right],
@@ -553,8 +554,6 @@ end
 end presentation
 
 section exact_sequence
-
-local attribute [irreducible] kaehler_differential
 
 /- We have the commutative diagram
 A --→ B
@@ -574,7 +573,7 @@ def derivation.comp_algebra_map [module A M] [module B M] [is_scalar_tower A B M
   leibniz' := λ a b, by simp,
   to_linear_map := d.to_linear_map.comp (is_scalar_tower.to_alg_hom R A B).to_linear_map }
 
-variables (R B)
+variables (R B) [smul_comm_class S A B]
 
 /-- The map `Ω[A⁄R] →ₗ[A] Ω[B⁄R]` given a square
 A --→ B

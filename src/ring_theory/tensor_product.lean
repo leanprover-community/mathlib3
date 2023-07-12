@@ -322,16 +322,16 @@ begin
   { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
 end
 
-lemma mul_assoc (x y z : A ⊗[R] B) : mul (mul x y) z = mul x (mul y z) :=
+protected lemma mul_assoc (x y z : A ⊗[R] B) : mul (mul x y) z = mul x (mul y z) :=
 mul_assoc' mul (by { intros, simp only [mul_apply, mul_assoc], }) x y z
 
-lemma one_mul (x : A ⊗[R] B) : mul (1 ⊗ₜ 1) x = x :=
+protected lemma one_mul (x : A ⊗[R] B) : mul (1 ⊗ₜ 1) x = x :=
 begin
   apply tensor_product.induction_on x;
   simp {contextual := tt},
 end
 
-lemma mul_one (x : A ⊗[R] B) : mul x (1 ⊗ₜ 1) = x :=
+protected lemma mul_one (x : A ⊗[R] B) : mul x (1 ⊗ₜ 1) = x :=
 begin
   apply tensor_product.induction_on x;
   simp {contextual := tt},
@@ -347,9 +347,9 @@ instance : semiring (A ⊗[R] B) :=
   add := (+),
   one := 1,
   mul := λ a b, mul a b,
-  one_mul := one_mul,
-  mul_one := mul_one,
-  mul_assoc := mul_assoc,
+  one_mul := algebra.tensor_product.one_mul,
+  mul_one := algebra.tensor_product.mul_one,
+  mul_assoc := algebra.tensor_product.mul_assoc,
   zero_mul := by simp,
   mul_zero := by simp,
   left_distrib := by simp,
@@ -421,7 +421,8 @@ instance left_algebra [smul_comm_class R S A] : algebra S (A ⊗[R] B) :=
 { commutes' := λ r x,
   begin
     dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply, include_left_ring_hom_apply],
-    rw [algebra_map_eq_smul_one, ←smul_tmul', mul_smul_comm, ←one_def, mul_one, one_mul],
+    rw [algebra_map_eq_smul_one, ←smul_tmul', ←one_def, mul_smul_comm, smul_mul_assoc, mul_one,
+      one_mul],
   end,
   smul_def' := λ r x,
   begin

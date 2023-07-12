@@ -429,7 +429,7 @@ instance left_algebra [smul_comm_class R S A] : algebra S (A ⊗[R] B) :=
     dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply, include_left_ring_hom_apply],
     rw [algebra_map_eq_smul_one, ←smul_tmul', smul_mul_assoc, ←one_def, one_mul],
   end,
-  to_ring_hom := tensor_product.include_left_ring_hom.comp (algebra_map S A),
+  .. tensor_product.include_left_ring_hom.comp (algebra_map S A),
   .. (by apply_instance : module S (A ⊗[R] B)) }.
 
 -- This is for the `undergrad.yaml` list.

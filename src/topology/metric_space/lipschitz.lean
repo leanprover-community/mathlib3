@@ -155,16 +155,16 @@ begin
 end
 
 lemma ediam_image2_le (f : α → β → γ) {K₁ K₂ : ℝ≥0}
-  (hfa : ∀ a, lipschitz_with K₁ (f a)) (hfb : ∀ b, lipschitz_with K₂ (λ a, f a b))
+  (hf₁ : ∀ b, lipschitz_with K₁ (λ a, f a b)) (hf₂ : ∀ a, lipschitz_with K₂ (f a))
   (s : set α) (t : set β) :
-  emetric.diam (set.image2 f s t) ≤ ↑K₁ * diam t + ↑K₂ * diam s :=
+  emetric.diam (set.image2 f s t) ≤ ↑K₁ * diam s + ↑K₂ * diam t :=
 begin
   apply emetric.diam_le,
   rintros _ ⟨a₁, b₁, ha₁, hb₁, rfl⟩ _  ⟨a₂, b₂, ha₂, hb₂, rfl⟩,
-  refine (edist_triangle _ (f a₁ b₂) _).trans _,
+  refine (edist_triangle _ (f a₂ b₁) _).trans _,
   exact add_le_add
-    ((hfa _).edist_le_mul_of_le (emetric.edist_le_diam_of_mem hb₁ hb₂))
-    ((hfb _).edist_le_mul_of_le (emetric.edist_le_diam_of_mem ha₁ ha₂)),
+    ((hf₁ _).edist_le_mul_of_le (emetric.edist_le_diam_of_mem ha₁ ha₂))
+    ((hf₂ _).edist_le_mul_of_le (emetric.edist_le_diam_of_mem hb₁ hb₂)),
 end
 
 lemma edist_lt_of_edist_lt_div (hf : lipschitz_with K f) {x y : α} {d : ℝ≥0∞}

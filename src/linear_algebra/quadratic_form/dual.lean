@@ -11,8 +11,13 @@ import linear_algebra.quadratic_form.prod
 
 ## Main definitions
 
+* `bilin_form.dual_prod R M`, the bilinear form on `(f, x) : module.dual R M × M` defined as
+  `f x`.
 * `quadratic_form.dual_prod R M`, the quadratic form on `(f, x) : module.dual R M × M` defined as
   `f x`.
+* `quadratic_form.to_dual_prod : M × M →ₗ[R] module.dual R M × M` a form-preserving map from
+  `(Q.prod $ -Q)` to `quadratic_form.dual_prod R M`. Note that we do not have the morphism
+  version of `quadratic_form.isometry`, so for now this is stated without full bundling.
 
 -/
 
@@ -22,8 +27,8 @@ variables {R : Type*} {M N : Type*}
 
 variables (R M)
 
+-- https://github.com/leanprover-community/mathlib/pull/19235
 section to_move
-
 
 /-- Four-way commutativity of `prod`.
 
@@ -76,7 +81,8 @@ begin
   classical,
   rw nondegenerate_iff_ker_eq_bot,
   rw linear_map.ker_eq_bot,
-  let e := (linear_equiv.prod_comm R _ _) ≪≫ₗ (module.dual_prod_dual_equiv_dual R (module.dual R M) M),
+  let e := linear_equiv.prod_comm R _ _
+    ≪≫ₗ module.dual_prod_dual_equiv_dual R (module.dual R M) M,
   let h_d := e.symm.to_linear_map.comp (dual_prod R M).to_lin,
   refine (function.injective.of_comp_iff e.symm.injective (dual_prod R M).to_lin).symm.trans _,
   rw [←linear_equiv.coe_to_linear_map, ←linear_map.coe_comp],
@@ -115,16 +121,21 @@ def dual_prod : quadratic_form R (module.dual R M × M) :=
       map_add, add_right_comm _ (q.1 q.2), add_comm (q.1 p.2) (p.1 q.2), ←add_assoc, ←add_assoc],
   end⟩ }
 
+@[simp]
+lemma _root_.bilin_form.dual_prod.to_quadratic_form :
+  (bilin_form.dual_prod R M).to_quadratic_form = 2 • dual_prod R M :=
+ext $ λ a, (two_nsmul _).symm
+
 variables {R M N}
 
-/-- Any module isomorphisms induces a quadratic isomorphism between the corresponding `dual_prod.`
--/
+/-- Any module isomorphism induces a quadratic isomorphism between the corresponding `dual_prod.` -/
+@[simps]
 def dual_prod_isometry (f : M ≃ₗ[R] N) :
   (dual_prod R M).isometry (dual_prod R N) :=
-{ to_linear_equiv :=  f.dual_map.symm.prod f,
+{ to_linear_equiv := f.dual_map.symm.prod f,
   map_app' := λ x, fun_like.congr_arg x.fst $ f.symm_apply_apply _ }
 
-/-- `quadratic_form.dual_prod` commutes with `quadratic_form.prod`. -/
+/-- `quadratic_form.dual_prod` commutes (isometrically) with `quadratic_form.prod`. -/
 @[simps]
 def dual_prod_prod_isometry :
   (dual_prod R (M × N)).isometry ((dual_prod R M).prod (dual_prod R N)) :=
@@ -140,24 +151,30 @@ section ring
 variables [comm_ring R] [add_comm_group M] [module R M]
 
 variables {R M}
--- page 84 of [*Hermitian K-Theory and Geometric Applications*][hyman1973]
--- source neglects to mention characteristic two!
+
+/-- The isometry sending `(Q.prod $ -Q)` to `(quadratic_form.dual_prod R M)`.
+
+This is `σ` from Proposition 4.8, page 84 of
+[*Hermitian K-Theory and Geometric Applications*][hyman1973]; though we swap the order of the pairs.
+-/
 @[simps]
-def foo (Q : quadratic_form R M) [invertible (2 : R)] :
-  M × M →ₗ[R] (module.dual R M × M) :=
+def to_dual_prod (Q : quadratic_form R M) [invertible (2 : R)] :
+  M × M →ₗ[R] module.dual R M × M :=
 linear_map.prod
   (Q.associated.to_lin.comp (linear_map.fst _ _ _)
     + Q.associated.to_lin.comp (linear_map.snd _ _ _))
   ((linear_map.fst _ _ _ - linear_map.snd _ _ _))
 
-lemma foo_app [invertible (2 : R)] (Q : quadratic_form R M) (x : M × M) :
-  quadratic_form.dual_prod R M (foo Q x) = (Q.prod $ -Q) x :=
+lemma to_dual_prod_isometry [invertible (2 : R)] (Q : quadratic_form R M) (x : M × M) :
+  quadratic_form.dual_prod R M (to_dual_prod Q x) = (Q.prod $ -Q) x :=
 begin
-  dsimp only [foo, associated, associated_hom],
+  dsimp only [to_dual_prod, associated, associated_hom],
   dsimp,
   simp [polar_comm _ x.1 x.2, ←sub_add, mul_sub, sub_mul, smul_sub, submonoid.smul_def,
     ←sub_eq_add_neg (Q x.1) (Q x.2)],
 end
+
+-- TODO: show that `to_dual_prod` is an equivalence
 
 end ring
 

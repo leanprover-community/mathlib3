@@ -53,7 +53,8 @@ begin
   refine ⟨hf.1.Iic_extend, λ x hx y hy a b ha hb hab, _⟩,
   dsimp [Iic_extend_apply] at ⊢ hx hy,
   refine (hf' (hf.1 hx hy ha hb hab) (hf.1.ord_connected.uIcc_subset hx hy $
-    monotone.image_uIcc_subset (λ _ _, min_le_min le_rfl) $ mem_image_of_mem _ $ convex_uIcc _ _ left_mem_uIcc right_mem_uIcc ha hb hab) _).trans (hf.2 hx hy ha hb hab),
+    monotone.image_uIcc_subset (λ _ _, min_le_min le_rfl) $ mem_image_of_mem _ $
+      convex_uIcc _ _ left_mem_uIcc right_mem_uIcc ha hb hab) _).trans (hf.2 hx hy ha hb hab),
   rw [smul_min ha z, smul_min hb z],
   refine min_add_min_le_min_add_add.trans _ ,
   rw [convex.combo_self hab, smul_eq_mul, smul_eq_mul],

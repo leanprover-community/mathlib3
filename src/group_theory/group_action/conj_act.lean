@@ -194,7 +194,7 @@ lemma orbit_rel_conj_act : (orbit_rel (conj_act G) G).rel = is_conj :=
 funext₂ $ λ g h, by rw [orbit_rel_apply, mem_orbit_conj_act]
 
 lemma stabilizer_eq_centralizer (g : G) :
-  stabilizer (conj_act G) g = (zpowers g : set G).centralizer :=
+  stabilizer (conj_act G) g = centralizer (zpowers (to_conj_act g) : set (conj_act G)) :=
 le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
   (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm)
 

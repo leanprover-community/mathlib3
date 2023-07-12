@@ -677,7 +677,7 @@ lemma antilipschitz_with.le_mul_nnnorm' {f : E → F}
   {K : ℝ≥0} (h : antilipschitz_with K f) (hf : f 1 = 1) (x) : ‖x‖₊ ≤ K * ‖f x‖₊ :=
 h.le_mul_norm' hf x
 
-@[to_additive] lemma monoid_hom_class.bound_of_antilipschitz [monoid_hom_class 𝓕 E F] (f : 𝓕)
+@[to_additive] lemma one_hom_class.bound_of_antilipschitz [one_hom_class 𝓕 E F] (f : 𝓕)
   {K : ℝ≥0} (h : antilipschitz_with K f) (x) : ‖x‖ ≤ K * ‖f x‖ :=
 h.le_mul_nnnorm' (map_one f) x
 

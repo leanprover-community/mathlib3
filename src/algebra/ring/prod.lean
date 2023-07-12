@@ -212,7 +212,9 @@ end prod_map
 end ring_hom
 
 namespace ring_equiv
-variables {R S} [non_assoc_semiring R] [non_assoc_semiring S]
+variables {R S R' S'}
+variables [non_assoc_semiring R] [non_assoc_semiring S]
+variables [non_assoc_semiring R'] [non_assoc_semiring S']
 
 /-- Swapping components as an equivalence of (semi)rings. -/
 def prod_comm : R × S ≃+* S × R :=
@@ -228,6 +230,28 @@ ring_hom.ext $ λ _, rfl
 @[simp] lemma snd_comp_coe_prod_comm :
   (ring_hom.snd S R).comp ↑(prod_comm : R × S ≃+* S × R) = ring_hom.fst R S :=
 ring_hom.ext $ λ _, rfl
+
+section
+variables (R R' S S')
+
+/-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
+@[simps apply]
+def prod_prod_prod_comm : (R × R') × (S × S') ≃+* (R × S) × (R' × S') :=
+{ to_fun := λ rrss, ((rrss.1.1, rrss.2.1), (rrss.1.2, rrss.2.2)),
+  inv_fun := λ rsrs, ((rsrs.1.1, rsrs.2.1), (rsrs.1.2, rsrs.2.2)),
+  ..add_equiv.prod_prod_prod_comm R R' S S',
+  ..mul_equiv.prod_prod_prod_comm R R' S S', }
+
+@[simp] lemma prod_prod_prod_comm_symm :
+  (prod_prod_prod_comm R R' S S').symm = prod_prod_prod_comm R S R' S' := rfl
+
+@[simp] lemma prod_prod_prod_comm_to_add_equiv :
+  (prod_prod_prod_comm R R' S S').to_add_equiv = add_equiv.prod_prod_prod_comm R R' S S' := rfl
+
+@[simp] lemma prod_prod_prod_comm_to_mul_equiv :
+  (prod_prod_prod_comm R R' S S').to_mul_equiv = mul_equiv.prod_prod_prod_comm R R' S S' := rfl
+
+end
 
 variables (R S) [subsingleton S]
 

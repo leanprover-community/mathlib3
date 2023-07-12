@@ -464,10 +464,7 @@ by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 
 /-- Closed balls and spheres coincide only when the radius is non-positive -/
 @[simp] theorem closed_ball_eq_sphere_of_nonpos (hε : ε ≤ 0) : closed_ball x ε = sphere x ε :=
-begin
-  ext x,
-  exact (hε.trans dist_nonneg).le_iff_eq
-end
+set.ext $ λ _, (hε.trans dist_nonneg).le_iff_eq
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy

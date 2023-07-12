@@ -19,6 +19,23 @@ parallellogram identity. The parallelogram identity is a way to express the inne
 - `inner_product_space.of_norm`: a normed space whose norm respects the parallellogram identity,
   can be seen as an inner product space.
 
+## Implementation notes
+
+We define `inner_`
+
+$$\langle x, y \rangle := \frac{1}{4} ‖x + y‖^2 - ‖x - y‖^2 + i ‖ix + y‖ ^ 2 - i ‖ix - y‖^2$$
+
+and use the parallelogram identity
+
+$$‖x + y‖^2 + ‖x - y‖^2 = 2 (‖x‖^2 + ‖y‖^2)$$
+
+to prove it is an inner product, i.e., that it is conjugate-symmetric (`inner_.conj_symm`) and
+linear in the first argument. `add_left` is proved by judicious application of the parallelogram
+identity followed by tedious arithmetic. `smul_left` is proved step by step, first noting that
+$\langle λ x, y \rangle = λ \langle x, y \rangle$ for $λ ∈ ℕ$, $λ = -1$, hence $λ ∈ ℤ$ and $λ ∈ ℚ$
+by arithmetic. Then by continuity and the fact that ℚ is dense in ℝ, the same is true for ℝ.
+The case of ℂ then follows by applying the result for ℝ and more arithmetic.
+
 ## TODO
 
 Move upstream to `analysis.inner_product_space.basic`.

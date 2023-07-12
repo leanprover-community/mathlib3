@@ -23,7 +23,7 @@ parallellogram identity. The parallelogram identity is a way to express the inne
 
 We define `inner_`
 
-$$\langle x, y \rangle := \frac{1}{4} ‖x + y‖^2 - ‖x - y‖^2 + i ‖ix + y‖ ^ 2 - i ‖ix - y‖^2$$
+$$\langle x, y \rangle := \frac{1}{4} (‖x + y‖^2 - ‖x - y‖^2 + i ‖ix + y‖ ^ 2 - i ‖ix - y‖^2)$$
 
 and use the parallelogram identity
 

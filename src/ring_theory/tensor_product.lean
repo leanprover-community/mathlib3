@@ -385,7 +385,10 @@ def include_left_ring_hom : A →+* A ⊗[R] B :=
 
 variables {S : Type*}
 
-instance [monoid S] [distrib_mul_action S A] [is_scalar_tower S A A] [smul_comm_class R S A] :
+-- we want `is_scalar_tower_right` to take priority since it's better for unification elsewhere
+@[priority 100]
+instance is_scalar_tower_right
+  [monoid S] [distrib_mul_action S A] [is_scalar_tower S A A] [smul_comm_class R S A] :
   is_scalar_tower S (A ⊗[R] B) (A ⊗[R] B) :=
 { smul_assoc := λ r x y, begin
     change (r • x) * y = r • (x * y),
@@ -400,7 +403,10 @@ instance [monoid S] [distrib_mul_action S A] [is_scalar_tower S A A] [smul_comm_
     { intros, simp [smul_add, mul_add, *], },
   end }
 
-instance [monoid S] [distrib_mul_action S A] [smul_comm_class S A A] [smul_comm_class R S A] :
+-- we want `algebra.to_smul_comm_class` to take priority since it's better for unification elsewhere
+@[priority 100]
+instance smul_comm_class_right
+  [monoid S] [distrib_mul_action S A] [smul_comm_class S A A] [smul_comm_class R S A] :
   smul_comm_class S (A ⊗[R] B) (A ⊗[R] B) :=
 { smul_comm := λ r x y, begin
     change r • (x * y) = x * r • y,

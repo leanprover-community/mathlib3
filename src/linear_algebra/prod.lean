@@ -567,17 +567,17 @@ variables [module R M] [module R M₂] [module R M₃] [module R M₄]
 
 /-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
 @[simps apply]
-def prod_prod_prod_comm : (M × M₂) × (M₃ × M₄) ≃ₗ[R] (M × M₃) × (M₂ × M₄) :=
+def prod_prod_prod_comm : ((M × M₂) × (M₃ × M₄)) ≃ₗ[R] (M × M₃) × (M₂ × M₄) :=
 { to_fun := λ mnmn, ((mnmn.1.1, mnmn.2.1), (mnmn.1.2, mnmn.2.2)),
   inv_fun := λ mmnn, ((mmnn.1.1, mmnn.2.1), (mmnn.1.2, mmnn.2.2)),
   map_smul' := λ c mnmn, rfl,
-  ..add_equiv.prod_prod_prod_comm M M₂ M₃ M₄, }
+  ..add_equiv.prod_prod_prod_comm M M₂ M₃ M₄ }
 
 @[simp] lemma prod_prod_prod_comm_symm :
   (prod_prod_prod_comm R M M₂ M₃ M₄).symm = prod_prod_prod_comm R M M₃ M₂ M₄ := rfl
 
 @[simp] lemma prod_prod_prod_comm_to_add_equiv :
-  (prod_prod_prod_comm R M M₂ M₃ M₄).to_add_equiv = add_equiv.prod_prod_prod_comm M M₃ M₂ M₄ := rfl
+  (prod_prod_prod_comm R M M₂ M₃ M₄).to_add_equiv = add_equiv.prod_prod_prod_comm M M₂ M₃ M₄ := rfl
 
 end
 

@@ -75,12 +75,10 @@ by rw [inf_edist_inv, inv_inv]
 @[to_additive] lemma ediam_mul_le (x y : set E) :
   emetric.diam (x * y) ≤ emetric.diam x + emetric.diam y :=
 (lipschitz_with.ediam_image2_le (*)
-    (λ _, (isometry_mul_left _).lipschitz) (λ _, (isometry_mul_right _).lipschitz) _ _).trans_eq $
-  by simp only [nnreal.coe_one, one_mul]
+    (λ _, (isometry_mul_right _).lipschitz) (λ _, (isometry_mul_left _).lipschitz) _ _).trans_eq $
+  by simp only [ennreal.coe_one, one_mul]
 
 end emetric
-
-#check isometry_mul_left.
 
 variables (ε δ s t x y)
 

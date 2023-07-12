@@ -11,6 +11,9 @@ import ring_theory.trace
 /-!
 # Integral closure of Dedekind domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows the integral closure of a Dedekind domain (in particular, the ring of integers
 of a number field) is a Dedekind domain.
 

@@ -11,6 +11,9 @@ import order.game_add
 /-!
 # Combinatorial (pre-)games.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The basic theory of combinatorial games, following Conway's book `On Numbers and Games`. We
 construct "pregames", define an ordering and arithmetic operations on them, then show that the
 operations descend to "games", defined via the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤ p`.

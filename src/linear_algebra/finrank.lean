@@ -8,6 +8,9 @@ import linear_algebra.dimension
 /-!
 # Finite dimension of vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition of the rank of a module, or dimension of a vector space, as a natural number.
 
 ## Main definitions
@@ -432,7 +435,7 @@ basis.mk (linear_independent_of_top_le_span_of_card_eq_finrank le_span card_eq) 
 basis.coe_mk _ _
 
 /-- A finset of `finrank K V` vectors forms a basis if they span the whole space. -/
-@[simps]
+@[simps repr_apply]
 noncomputable def finset_basis_of_top_le_span_of_card_eq_finrank {s : finset V}
   (le_span : ⊤ ≤ span K (s : set V)) (card_eq : s.card = finrank K V) :
   basis (s : set V) K V :=
@@ -441,7 +444,7 @@ basis_of_top_le_span_of_card_eq_finrank (coe : (s : set V) → V)
   (trans (fintype.card_coe _) card_eq)
 
 /-- A set of `finrank K V` vectors forms a basis if they span the whole space. -/
-@[simps]
+@[simps repr_apply]
 noncomputable def set_basis_of_top_le_span_of_card_eq_finrank {s : set V} [fintype s]
   (le_span : ⊤ ≤ span K s) (card_eq : s.to_finset.card = finrank K V) :
   basis s K V :=

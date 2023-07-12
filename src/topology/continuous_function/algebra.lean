@@ -18,6 +18,9 @@ import topology.uniform_space.compact_convergence
 /-!
 # Algebraic structures over continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define instances of algebraic structures over the type `continuous_map α β`
 (denoted `C(α, β)`) of **bundled** continuous maps from `α` to `β`. For example, `C(α, β)`
 is a group when `β` is a group, a ring when `β` is a ring, etc.
@@ -710,7 +713,7 @@ writing it this way avoids having to deal with casts inside the set.
 where the functions would be continuous functions vanishing at infinity.)
 -/
 def set.separates_points_strongly (s : set C(α, 𝕜)) : Prop :=
-∀ (v : α → 𝕜) (x y : α), ∃ f : s, (f x : 𝕜) = v x ∧ f y = v y
+∀ (v : α → 𝕜) (x y : α), ∃ f ∈ s, (f x : 𝕜) = v x ∧ f y = v y
 
 variables [field 𝕜] [topological_ring 𝕜]
 
@@ -727,25 +730,15 @@ lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h 
 begin
   by_cases n : x = y,
   { subst n,
-    use ((v x) • 1 : C(α, 𝕜)),
-    { apply s.smul_mem,
-      apply s.one_mem, },
-    { simp [coe_fn_coe_base'] }, },
-  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
-  replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
+    refine ⟨_, ((v x) • 1 : s).prop, mul_one _, mul_one _⟩ },
+  obtain ⟨_, ⟨f, hf, rfl⟩, hxy⟩ := h n,
+  replace hxy : f x - f y ≠ 0 := sub_ne_zero_of_ne hxy,
   let a := v x,
   let b := v y,
-  let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
-  refine ⟨⟨f', _⟩, _, _⟩,
-  { simp only [f', set_like.mem_coe, subalgebra.mem_to_submodule],
-    -- TODO should there be a tactic for this?
-    -- We could add an attribute `@[subobject_mem]`, and a tactic
-    -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``
-    solve_by_elim
-      [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
-      { max_depth := 6 }, },
-  { simp [f', coe_fn_coe_base'], },
-  { simp [f', coe_fn_coe_base', inv_mul_cancel_right₀ w], },
+  let f' : s := ((b - a) * (f x - f y)⁻¹) • (algebra_map _ _ (f x) - ⟨f, hf⟩) + algebra_map _ _ a,
+  refine ⟨f', f'.prop, _, _⟩,
+  { simp [f'], },
+  { simp [f', inv_mul_cancel_right₀ hxy], },
 end
 
 end continuous_map
@@ -753,22 +746,17 @@ end continuous_map
 instance continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
   (R : Type*) [comm_semiring R] [topological_space R] [topological_semiring R]
   [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
-begin
-  fsplit,
-  intros s₁ s₂,
-  by_cases n : nonempty α,
-  { obtain ⟨x⟩ := n,
+⟨λ s₁ s₂, begin
+  casesI is_empty_or_nonempty α,
+  { haveI : subsingleton C(α, R) := fun_like.coe_injective.subsingleton,
+    exact subsingleton.elim _ _ },
+  { inhabit α,
     ext f,
-    have h : f = algebra_map R C(α, R) (f x),
+    have h : f = algebra_map R C(α, R) (f default),
     { ext x', simp only [mul_one, algebra.id.smul_eq_mul, algebra_map_apply], congr, },
     rw h,
     simp only [subalgebra.algebra_map_mem], },
-  { ext f,
-    have h : f = 0,
-    { ext x', exact false.elim (n ⟨x'⟩), },
-    subst h,
-    simp only [subalgebra.zero_mem], },
-end
+end⟩
 
 end algebra_structure
 
@@ -790,7 +778,7 @@ instance has_smul' {α : Type*} [topological_space α]
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance module' {α : Type*} [topological_space α]
-  (R : Type*) [ring R] [topological_space R] [topological_ring R]
+  (R : Type*) [semiring R] [topological_space R] [topological_semiring R]
   (M : Type*) [topological_space M] [add_comm_monoid M] [has_continuous_add M]
   [module R M] [has_continuous_smul R M] :
   module C(α, R) C(α, M) :=

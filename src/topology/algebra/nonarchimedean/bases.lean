@@ -11,6 +11,9 @@ import algebra.module.submodule.pointwise
 /-!
 # Neighborhood bases for non-archimedean rings and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files contains special families of filter bases on rings and modules that give rise to
 non-archimedean topologies.
 

@@ -10,6 +10,9 @@ import category_theory.abelian.basic
 /-!
 ## Moore complex
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the normalized Moore complex, as a functor
 `simplicial_object C ⥤ chain_complex C ℕ`,
 for any abelian category `C`.

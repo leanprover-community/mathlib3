@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 
+import algebra.star.order
 import data.matrix.basic
 import linear_algebra.std_basis
 
@@ -79,16 +80,16 @@ variables [fintype n]
 
 /-- Note that this applies to `ℂ` via `complex.strict_ordered_comm_ring`. -/
 @[simp] lemma dot_product_star_self_eq_zero
-  [strict_ordered_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
+  [partial_order R] [non_unital_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
   dot_product (star v) v = 0 ↔ v = 0 :=
-(finset.sum_eq_zero_iff_of_nonneg $ λ i _, @star_mul_self_nonneg _ _ _ _ (v i)).trans $
+(finset.sum_eq_zero_iff_of_nonneg $ λ i _, (@star_mul_self_nonneg _ _ _ _ (v i) : _)).trans $
   by simp [function.funext_iff, mul_eq_zero]
 
 /-- Note that this applies to `ℂ` via `complex.strict_ordered_comm_ring`. -/
 @[simp] lemma dot_product_self_star_eq_zero
-  [strict_ordered_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
+  [partial_order R] [non_unital_ring R] [star_ordered_ring R] [no_zero_divisors R] {v : n → R} :
   dot_product v (star v) = 0 ↔ v = 0 :=
-(finset.sum_eq_zero_iff_of_nonneg $ λ i _, @star_mul_self_nonneg' _ _ _ _ (v i)).trans $
+(finset.sum_eq_zero_iff_of_nonneg $ λ i _, (@star_mul_self_nonneg' _ _ _ _ (v i) : _)).trans $
   by simp [function.funext_iff, mul_eq_zero]
 
 end self

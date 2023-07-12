@@ -20,6 +20,8 @@ This proves the lattice `seminorm ℝ (ℝ × ℝ)` is not distributive.
 open seminorm
 open_locale nnreal
 
+namespace counterexample
+
 namespace seminorm_not_distrib
 
 @[simps] noncomputable def p : seminorm ℝ (ℝ×ℝ) :=
@@ -68,3 +70,5 @@ begin
 end
 
 end seminorm_not_distrib
+
+end counterexample

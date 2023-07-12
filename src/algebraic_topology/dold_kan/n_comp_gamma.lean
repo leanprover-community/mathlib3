@@ -7,7 +7,10 @@ Authors: Joël Riou
 import algebraic_topology.dold_kan.gamma_comp_n
 import algebraic_topology.dold_kan.n_reflects_iso
 
-/-! The unit isomorphism of the Dold-Kan equivalence
+/-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+ The unit isomorphism of the Dold-Kan equivalence
 
 In order to construct the unit isomorphism of the Dold-Kan equivalence,
 we first construct natural transformations

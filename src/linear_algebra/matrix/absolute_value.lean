@@ -9,6 +9,9 @@ import linear_algebra.matrix.determinant
 /-!
 # Absolute values and matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some bounds on matrices involving absolute values.
 
 ## Main results

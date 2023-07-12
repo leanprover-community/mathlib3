@@ -5,10 +5,13 @@ Authors: Kyle Miller, Adam Topaz, Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.filtered
 import data.set.finite
-import topology.category.Top.limits
+import topology.category.Top.limits.konig
 
 /-!
 # Cofiltered systems
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file deals with properties of cofiltered (and inverse) systems.
 

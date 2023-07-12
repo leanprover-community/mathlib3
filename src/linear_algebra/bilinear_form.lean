@@ -6,10 +6,12 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.free_module.finite.matrix
-import linear_algebra.matrix.to_lin
 
 /-!
 # Bilinear form
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a bilinear form over a module. Basic ideas
 such as orthogonality are also introduced, as well as reflexivive,
@@ -1181,7 +1183,7 @@ lemma finrank_add_finrank_orthogonal
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ b₁,
       ← to_lin_restrict_range_dual_coannihilator_eq_orthogonal _ _,
-      finrank_map_subtype_eq],
+      submodule.finrank_map_subtype_eq],
   conv_rhs { rw [← @subspace.finrank_add_finrank_dual_coannihilator_eq K V _ _ _ _
                   (B.to_lin.dom_restrict W).range,
                  add_comm, ← add_assoc, add_comm (finrank K ↥((B.to_lin.dom_restrict W).ker)),

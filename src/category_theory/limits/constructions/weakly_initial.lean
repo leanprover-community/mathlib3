@@ -10,6 +10,9 @@ import category_theory.limits.shapes.terminal
 /-!
 # Constructions related to weakly initial objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gives constructions related to weakly initial objects, namely:
 * If a category has small products and a small weakly initial set of objects, then it has a weakly
   initial object.

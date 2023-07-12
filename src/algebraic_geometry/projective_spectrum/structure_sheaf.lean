@@ -11,6 +11,9 @@ import algebraic_geometry.locally_ringed_space
 /-!
 # The structure sheaf on `projective_spectrum 𝒜`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In `src/algebraic_geometry/topology.lean`, we have given a topology on `projective_spectrum 𝒜`; in
 this file we will construct a sheaf on `projective_spectrum 𝒜`.
 

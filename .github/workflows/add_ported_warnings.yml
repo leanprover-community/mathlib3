@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: install Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -22,7 +22,7 @@ jobs:
       # TODO: is this really faster than just calling git from python?
       - name: Get changed files
         id: changed-files
-        uses: Ana06/get-changed-files@v1.2
+        uses: Ana06/get-changed-files@v2.2.0
 
       - name: run the script
         id: script

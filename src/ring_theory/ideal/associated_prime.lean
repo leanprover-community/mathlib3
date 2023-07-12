@@ -5,13 +5,15 @@ Authors: Andrew Yang
 -/
 import linear_algebra.span
 import ring_theory.ideal.operations
-import ring_theory.finiteness
-import ring_theory.localization.ideal
-import ring_theory.ideal.minimal_prime
+import ring_theory.ideal.quotient_operations
+import ring_theory.noetherian
 
 /-!
 
 # Associated primes of a module
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide the definition and related lemmas about associated primes of modules.
 

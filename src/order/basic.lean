@@ -593,6 +593,12 @@ lemma update_le_update_iff :
   function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
 by simp [update_le_iff] {contextual := tt}
 
+@[simp] lemma update_le_update_iff' : update x i a ≤ update x i b ↔ a ≤ b :=
+by simp [update_le_update_iff]
+
+@[simp] lemma update_lt_update_iff : update x i a < update x i b ↔ a < b :=
+lt_iff_lt_of_le_iff_le' update_le_update_iff' update_le_update_iff'
+
 @[simp] lemma le_update_self_iff : x ≤ update x i a ↔ x i ≤ a := by simp [le_update_iff]
 @[simp] lemma update_le_self_iff : update x i a ≤ x ↔ a ≤ x i := by simp [update_le_iff]
 @[simp] lemma lt_update_self_iff : x < update x i a ↔ x i < a := by simp [lt_iff_le_not_le]

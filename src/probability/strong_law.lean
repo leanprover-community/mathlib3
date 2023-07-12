@@ -13,6 +13,9 @@ import analysis.asymptotics.specific_asymptotics
 /-!
 # The strong law of large numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove the strong law of large numbers, in `probability_theory.strong_law_ae`:
 If `X n` is a sequence of independent identically distributed integrable real-valued random
 variables, then `∑ i in range n, X i / n` converges almost surely to `𝔼[X 0]`.

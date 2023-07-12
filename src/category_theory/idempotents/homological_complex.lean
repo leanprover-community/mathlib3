@@ -10,6 +10,9 @@ import category_theory.idempotents.karoubi
 /-!
 # Idempotent completeness and homological complexes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains simplifications lemmas for categories
 `karoubi (homological_complex C c)` and the construction of an equivalence
 of categories `karoubi (homological_complex C c) ≌ homological_complex (karoubi C) c`.

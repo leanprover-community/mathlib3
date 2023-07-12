@@ -12,6 +12,9 @@ import ring_theory.local_properties
 /-!
 # Basic properties of schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide some basic properties of schemes
 
 ## Main definition
@@ -308,13 +311,14 @@ begin
     Y.presheaf.obj _ ≅ _).symm.CommRing_iso_to_ring_equiv.is_domain _
 end
 
-instance {R : CommRing} [H : is_domain R] : is_integral (Scheme.Spec.obj $ op R) :=
+instance {R : CommRing} [H : is_domain R] : irreducible_space (Scheme.Spec.obj $ op R).carrier :=
 begin
-  apply_with is_integral_of_is_irreducible_is_reduced { instances := ff },
-  { apply_instance },
-  { dsimp [Spec.Top_obj],
-    apply_instance },
+  convert prime_spectrum.irreducible_space,
+  assumption
 end
+
+instance {R : CommRing} [is_domain R] : is_integral (Scheme.Spec.obj $ op R) :=
+is_integral_of_is_irreducible_is_reduced _
 
 lemma affine_is_integral_iff (R : CommRing) :
   is_integral (Scheme.Spec.obj $ op R) ↔ is_domain R :=

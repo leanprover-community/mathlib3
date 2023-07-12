@@ -12,6 +12,9 @@ import topology.algebra.order.monotone_continuity
 /-!
 # Translation number of a monotone real map that commutes with `x ↦ x + 1`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `f : ℝ → ℝ` be a monotone map such that `f (x + 1) = f x + 1` for all `x`. Then the limit
 $$
   \tau(f)=\lim_{n\to\infty}{f^n(x)-x}{n}

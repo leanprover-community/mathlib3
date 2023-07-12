@@ -3,17 +3,14 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
-import algebra.direct_sum.module
-import analysis.complex.basic
-import analysis.convex.uniform
-import analysis.normed_space.completion
-import analysis.normed_space.bounded_linear_maps
 import linear_algebra.bilinear_form
-
 import analysis.inner_product_space.basic
 
 /-!
 # Orthogonal complements of submodules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, the `orthogonal` complement of a submodule `K` is defined, and basic API established.
 Some of the more subtle results about the orthogonal complement are delayed to

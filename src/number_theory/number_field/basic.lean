@@ -3,12 +3,14 @@ Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan, Anne Baanen
 -/
-
 import algebra.char_p.algebra
 import ring_theory.dedekind_domain.integral_closure
 
 /-!
 # Number fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines a number field and the ring of integers corresponding to it.
 
 ## Main definitions

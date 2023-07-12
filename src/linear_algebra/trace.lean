@@ -14,6 +14,9 @@ import linear_algebra.projection
 /-!
 # Trace of a linear map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the trace of a linear map.
 
 See also `linear_algebra/matrix/trace.lean` for the trace of a matrix.
@@ -165,7 +168,7 @@ trace_eq_contract_of_basis' (module.free.choose_basis R M)
 @[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=
 begin
   have b := module.free.choose_basis R M,
-  rw [trace_eq_matrix_trace R b, to_matrix_one, module.free.finrank_eq_card_choose_basis_index],
+  rw [trace_eq_matrix_trace R b, to_matrix_one, finrank_eq_card_choose_basis_index],
   simp,
 end
 

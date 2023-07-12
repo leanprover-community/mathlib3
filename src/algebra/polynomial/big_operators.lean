@@ -8,6 +8,9 @@ import data.polynomial.monic
 /-!
 # Lemmas for the interaction between polynomials and `∑` and `∏`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Recall that `∑` and `∏` are notation for `finset.sum` and `finset.prod` respectively.
 
 ## Main results
@@ -192,8 +195,8 @@ begin
   nontriviality R,
   apply nat_degree_multiset_prod',
   suffices : (t.map (λ f, leading_coeff f)).prod = 1, { rw this, simp },
-  convert prod_repeat (1 : R) t.card,
-  { simp only [eq_repeat, multiset.card_map, eq_self_iff_true, true_and],
+  convert prod_replicate t.card (1 : R),
+  { simp only [eq_replicate, multiset.card_map, eq_self_iff_true, true_and],
     rintros i hi,
     obtain ⟨i, hi, rfl⟩ := multiset.mem_map.mp hi,
     apply h, assumption },

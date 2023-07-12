@@ -13,6 +13,9 @@ import group_theory.coset
 /-!
 # Properties of group actions involving quotient groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves properties of group actions which use the quotient group construction, notably
 * the orbit-stabilizer theorem `card_orbit_mul_card_stabilizer_eq_card_group`
 * the class formula `card_eq_sum_card_group_div_card_stabilizer'`

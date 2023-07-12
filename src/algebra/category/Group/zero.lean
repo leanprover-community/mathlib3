@@ -9,6 +9,9 @@ import category_theory.limits.shapes.zero_objects
 /-!
 # The category of (commutative) (additive) groups has a zero object.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `AddCommGroup` also has zero morphisms. For definitional reasons, we infer this from preadditivity
 rather than from the existence of a zero object.
 -/

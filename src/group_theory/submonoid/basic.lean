@@ -11,6 +11,9 @@ import group_theory.subsemigroup.basic
 /-!
 # Submonoids: definition and `complete_lattice` structure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bundled multiplicative and additive submonoids. We also define
 a `complete_lattice` structure on `submonoid`s, define the closure of a set as the minimal submonoid
 that includes this set, and prove a few results about extending properties from a dense set (i.e.
@@ -60,13 +63,13 @@ variables [mul_one_class M] {s : set M}
 variables [add_zero_class A] {t : set A}
 
 /-- `one_mem_class S M` says `S` is a type of subsets `s ≤ M`, such that `1 ∈ s` for all `s`. -/
-class one_mem_class (S : Type*) (M : out_param $ Type*) [has_one M] [set_like S M] :=
+class one_mem_class (S M : Type*) [has_one M] [set_like S M] : Prop :=
 (one_mem : ∀ (s : S), (1 : M) ∈ s)
 
 export one_mem_class (one_mem)
 
 /-- `zero_mem_class S M` says `S` is a type of subsets `s ≤ M`, such that `0 ∈ s` for all `s`. -/
-class zero_mem_class (S : Type*) (M : out_param $ Type*) [has_zero M] [set_like S M] :=
+class zero_mem_class (S M : Type*) [has_zero M] [set_like S M] : Prop :=
 (zero_mem : ∀ (s : S), (0 : M) ∈ s)
 
 export zero_mem_class (zero_mem)
@@ -89,9 +92,8 @@ add_decl_doc submonoid.to_subsemigroup
 
 /-- `submonoid_class S M` says `S` is a type of subsets `s ≤ M` that contain `1`
 and are closed under `(*)` -/
-class submonoid_class (S : Type*) (M : out_param $ Type*) [mul_one_class M] [set_like S M]
-  extends mul_mem_class S M :=
-(one_mem : ∀ (s : S), (1 : M) ∈ s)
+class submonoid_class (S M : Type*) [mul_one_class M] [set_like S M]
+  extends mul_mem_class S M, one_mem_class S M : Prop
 
 section
 
@@ -111,16 +113,10 @@ add_decl_doc add_submonoid.to_add_subsemigroup
 
 /-- `add_submonoid_class S M` says `S` is a type of subsets `s ≤ M` that contain `0`
 and are closed under `(+)` -/
-class add_submonoid_class (S : Type*) (M : out_param $ Type*) [add_zero_class M] [set_like S M]
-  extends add_mem_class S M :=
-(zero_mem : ∀ (s : S), (0 : M) ∈ s)
+class add_submonoid_class (S M : Type*) [add_zero_class M] [set_like S M]
+  extends add_mem_class S M, zero_mem_class S M : Prop
 
 attribute [to_additive] submonoid submonoid_class
-
-@[to_additive, priority 100] -- See note [lower instance priority]
-instance submonoid_class.to_one_mem_class (S : Type*) (M : out_param $ Type*) [mul_one_class M]
-  [set_like S M] [h : submonoid_class S M] : one_mem_class S M :=
-{ ..h }
 
 @[to_additive]
 lemma pow_mem {M} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M] {S : A} {x : M}

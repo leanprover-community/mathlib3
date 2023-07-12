@@ -9,6 +9,9 @@ import algebra.module.basic
 /-!
 # Multiplication on the left/right as additive automorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `add_aut.mul_left` and `add_aut.mul_right`.
 
 See also `add_monoid_hom.mul_left`, `add_monoid_hom.mul_right`, `add_monoid.End.mul_left`, and

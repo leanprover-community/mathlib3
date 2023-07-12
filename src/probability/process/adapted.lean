@@ -9,6 +9,9 @@ import topology.instances.discrete
 /-!
 # Adapted and progressively measurable processes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines some standard definition from the theory of stochastic processes including
 filtrations and stopping times. These definitions are used to model the amount of information
 at a specific time and are the first step in formalizing stochastic processes.
@@ -33,7 +36,7 @@ adapted, progressively measurable
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 

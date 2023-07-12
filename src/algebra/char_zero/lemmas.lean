@@ -10,6 +10,9 @@ import algebra.group_power.lemmas
 /-!
 # Characteristic zero (additional theorems)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A ring `R` is called of characteristic zero if every natural number `n` is non-zero when considered
 as an element of `R`. Since this definition doesn't mention the multiplicative structure of `R`
 except for the existence of `1` in this file characteristic zero is defined for additive monoids
@@ -32,7 +35,7 @@ def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
 by { rw [←cast_pow, cast_eq_one], exact pow_eq_one_iff hn }
 
 @[simp, norm_cast]
-theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
+theorem cast_div_char_zero {k : Type*} [division_semiring k] [char_zero k] {m n : ℕ}
   (n_dvd : n ∣ m) : ((m / n : ℕ) : k) = m / n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,

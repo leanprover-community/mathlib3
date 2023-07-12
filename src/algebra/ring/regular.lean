@@ -10,7 +10,6 @@ import algebra.ring.defs
 # Lemmas about regular elements in rings.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/795
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
@@ -71,18 +70,12 @@ section is_domain
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_monoid_with_zero [semiring α] [is_domain α] :
   cancel_monoid_with_zero α :=
-{ mul_left_cancel_of_ne_zero := λ a b c ha h,
-    is_cancel_mul_zero.mul_left_cancel_of_ne_zero ha h,
-  mul_right_cancel_of_ne_zero := λ a b c ha h,
-    is_cancel_mul_zero.mul_right_cancel_of_ne_zero ha h,
-  .. semiring.to_monoid_with_zero α }
+{ .. semiring.to_monoid_with_zero α, .. ‹is_domain α› }
 
 variables [comm_semiring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
-{ mul_left_cancel_of_ne_zero := λ a b c ha H, is_domain.mul_left_cancel_of_ne_zero ha H,
-  mul_right_cancel_of_ne_zero := λ a b c hb H, is_domain.mul_right_cancel_of_ne_zero hb H,
-  .. (infer_instance : comm_semiring α) }
+{ .. ‹comm_semiring α›, .. ‹is_domain α› }
 
 end is_domain

@@ -9,6 +9,9 @@ import order.succ_pred.basic
 /-!
 # Monotonicity on intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `set.Ici` etc are monotone/antitone functions. We also prove some lemmas
 about functions monotone on intervals in `succ_order`s.
 -/
@@ -179,7 +182,7 @@ begin
   { exact ih (strict_mono_on.mono hφ (λ x hx, le_trans hx (le_succ _))) _ h }
 end
 
-lemma strict_mono_on.Iic_le_id [pred_order α] [is_pred_archimedean α] [order_top α]
+lemma strict_mono_on.Ici_le_id [pred_order α] [is_pred_archimedean α] [order_top α]
   {n : α} {φ : α → α} (hφ : strict_mono_on φ (set.Ici n)) :
   ∀ m, n ≤ m → φ m ≤ m :=
 @strict_mono_on.Iic_id_le αᵒᵈ _ _ _ _ _ _ (λ i hi j hj hij, hφ hj hi hij)
@@ -218,12 +221,12 @@ lemma strict_anti_on_Iic_of_succ_lt [succ_order α] [is_succ_archimedean α]
   strict_anti_on ψ (set.Iic n) :=
 λ i hi j hj hij, @strict_mono_on_Iic_of_lt_succ α βᵒᵈ _ _ ψ _ _ n hψ i hi j hj hij
 
-lemma strict_mono_on_Iic_of_pred_lt [pred_order α] [is_pred_archimedean α]
+lemma strict_mono_on_Ici_of_pred_lt [pred_order α] [is_pred_archimedean α]
   {n : α} (hψ : ∀ m, n < m → ψ (pred m) < ψ m) :
   strict_mono_on ψ (set.Ici n) :=
 λ i hi j hj hij, @strict_mono_on_Iic_of_lt_succ αᵒᵈ βᵒᵈ _ _ ψ _ _ n hψ j hj i hi hij
 
-lemma strict_anti_on_Iic_of_lt_pred [pred_order α] [is_pred_archimedean α]
+lemma strict_anti_on_Ici_of_lt_pred [pred_order α] [is_pred_archimedean α]
   {n : α} (hψ : ∀ m, n < m → ψ m < ψ (pred m)) :
   strict_anti_on ψ (set.Ici n) :=
 λ i hi j hj hij, @strict_anti_on_Iic_of_succ_lt αᵒᵈ βᵒᵈ _ _ ψ _ _ n hψ j hj i hi hij

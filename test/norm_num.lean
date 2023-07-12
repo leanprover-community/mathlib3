@@ -5,6 +5,7 @@ Authors: Simon Hudon, Mario Carneiro
 -/
 
 import tactic.norm_num
+import algebra.ring.pi
 
 /-!
 # Tests for `norm_num` extensions
@@ -304,6 +305,10 @@ example : (- ((- (((66 - 86) - 36) / 94) - 3) / - - (77 / (56 - - - 79))) + 87) 
 example : 2 ^ 13 - 1 = int.of_nat 8191 := by norm_num
 
 example : 1 + 1 = 2 := by success_if_fail { norm_num [this_doesnt_exist] }; refl
+
+-- `^` and `•` do not have to match `monoid.has_pow` and `add_monoid.has_smul` syntactically
+example {α} [ring α] : (2 ^ 3 : ℕ → α) = 8 := by norm_num
+example {α} [ring α] : (2 • 3 : ℕ → α) = 6 := by norm_num
 
 /-! Test the behaviour of removing one `norm_num` extension tactic. -/
 section remove_extension

@@ -11,7 +11,6 @@ import tactic.cache
 # Miscellaneous function constructions and lemmas
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/511
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
@@ -46,6 +45,9 @@ lemma const_injective [nonempty α] : injective (const α : β → α → β) :=
 ⟨λ h, const_injective h, λ h, h ▸ rfl⟩
 
 lemma id_def : @id α = λ x, x := rfl
+
+@[simp] lemma on_fun_apply (f : β → β → γ) (g : α → β) (a b : α) : on_fun f g a b = f (g a) (g b) :=
+rfl
 
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
   (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=

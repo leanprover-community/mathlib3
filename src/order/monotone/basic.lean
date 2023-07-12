@@ -11,7 +11,6 @@ import order.rel_classes
 # Monotonicity
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/591
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines (strictly) monotone/antitone functions. Contrary to standard mathematical usage,
@@ -63,7 +62,8 @@ decreasing, strictly decreasing
 open function order_dual
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type*} {r : α → α → Prop}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type*} {π : ι → Type*}
+  {r : α → α → Prop}
 
 section monotone_def
 variables [preorder α] [preorder β]
@@ -101,6 +101,21 @@ def strict_anti_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f b < f a
 
 end monotone_def
+
+section decidable
+
+variables [preorder α] [preorder β] {f : α → β} {s : set α}
+
+instance [i : decidable (∀ a b, a ≤ b → f a ≤ f b)] : decidable (monotone f) := i
+instance [i : decidable (∀ a b, a ≤ b → f b ≤ f a)] : decidable (antitone f) := i
+instance [i : decidable (∀ a b ∈ s, a ≤ b → f a ≤ f b)] : decidable (monotone_on f s) := i
+instance [i : decidable (∀ a b ∈ s, a ≤ b → f b ≤ f a)] : decidable (antitone_on f s) := i
+instance [i : decidable (∀ a b, a < b → f a < f b)] : decidable (strict_mono f) := i
+instance [i : decidable (∀ a b, a < b → f b < f a)] : decidable (strict_anti f) := i
+instance [i : decidable (∀ a b ∈ s, a < b → f a < f b)] : decidable (strict_mono_on f s) := i
+instance [i : decidable (∀ a b ∈ s, a < b → f b < f a)] : decidable (strict_anti_on f s) := i
+
+end decidable
 
 /-! ### Monotonicity on the dual order
 
@@ -900,8 +915,13 @@ lemma strict_anti.prod_map (hf : strict_anti f) (hg : strict_anti g) : strict_an
 
 end partial_order
 
+/-! ### Pi types -/
+
 namespace function
-variables [preorder α]
+variables [preorder α] [decidable_eq ι] [Π i, preorder (π i)] {f : Π i, π i} {i : ι}
+
+lemma update_mono : monotone (f.update i) := λ a b, update_le_update_iff'.2
+lemma update_strict_mono : strict_mono (f.update i) := λ a b, update_lt_update_iff.2
 
 lemma const_mono : monotone (const β : α → β → α) := λ a b h i, h
 lemma const_strict_mono [nonempty β] : strict_mono (const β : α → β → α) := λ a b, const_lt_const.2

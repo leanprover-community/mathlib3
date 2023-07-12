@@ -10,17 +10,21 @@ import number_theory.cyclotomic.basic
 import ring_theory.adjoin.power_basis
 import ring_theory.polynomial.cyclotomic.eval
 import ring_theory.norm
+import ring_theory.polynomial.cyclotomic.expand
 
 /-!
 # Primitive roots in cyclotomic fields
-If `is_cyclotomic_extension {n} A B`, we define an element `zeta n A B : B` that is (under certain
-assumptions) a primitive `n`-root of unity in `B` and we study its properties. We also prove related
-theorems under the more general assumption of just being a primitive root, for reasons described
-in the implementation details section.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+If `is_cyclotomic_extension {n} A B`, we define an element `zeta n A B : B` that is a primitive
+`n`th-root of unity in `B` and we study its properties. We also prove related theorems under the
+more general assumption of just being a primitive root, for reasons described in the implementation
+details section.
 
 ## Main definitions
 * `is_cyclotomic_extension.zeta n A B`: if `is_cyclotomic_extension {n} A B`, than `zeta n A B`
-  is an element of `B` that plays the role of a primitive `n`-th root of unity.
+  is a primitive `n`-th root of unity in `B`.
 * `is_primitive_root.power_basis`: if `K` and `L` are fields such that
   `is_cyclotomic_extension {n} K L`, then `is_primitive_root.power_basis`
   gives a K-power basis for L given a primitive root `ζ`.
@@ -35,7 +39,7 @@ in the implementation details section.
   the norm of a primitive root is `1` if `n ≠ 2`.
 * `is_primitive_root.sub_one_norm_eq_eval_cyclotomic`: if `irreducible (cyclotomic n K)`
   (in particular for `K = ℚ`), then the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for a
-  primitive root ζ. We also prove the analogous of this result for `zeta`.
+  primitive root `ζ`. We also prove the analogous of this result for `zeta`.
 * `is_primitive_root.pow_sub_one_norm_prime_pow_ne_two` : if
   `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
   then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` `p ^ (k - s + 1) ≠ 2`. See the following
@@ -47,9 +51,9 @@ in the implementation details section.
   and `primitive_roots n A` given by the choice of `ζ`.
 
 ## Implementation details
-`zeta n A B` is defined as any primitive root of unity in `B`, that exists by definition. It is not
-true in general that it is a root of `cyclotomic n B`, but this holds if `is_domain B` and
-`ne_zero (↑n : B)`.
+`zeta n A B` is defined as any primitive root of unity in `B`, - this must exist, by definition of
+`is_cyclotomic_extension`. It is not true in general that it is a root of `cyclotomic n B`,
+but this holds if `is_domain B` and `ne_zero (↑n : B)`.
 
 `zeta n A B` is defined using `exists.some`, which means we cannot control it.
 For example, in normal mathematics, we can demand that `(zeta p ℤ ℤ[ζₚ] : ℚ(ζₚ))` is equal to
@@ -308,8 +312,7 @@ begin
   simp
 end
 
-local attribute [instance] is_cyclotomic_extension.finite_dimensional
-local attribute [instance] is_cyclotomic_extension.is_galois
+open_locale cyclotomic
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
 then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `p ^ (k - s + 1) ≠ 2`. See the next lemmas
@@ -362,12 +365,12 @@ begin
       pnat.pow_coe, pnat.pow_coe, nat.totient_prime_pow hpri.out (k - s).succ_pos,
       nat.totient_prime_pow hpri.out k.succ_pos, mul_comm _ (↑p - 1), mul_assoc,
       mul_comm (↑p ^ (k.succ - 1))] at this,
-    replace this := nat.eq_of_mul_eq_mul_left (tsub_pos_iff_lt.2 (nat.prime.one_lt hpri.out)) this,
+    replace this := mul_left_cancel₀ (tsub_pos_iff_lt.2 hpri.out.one_lt).ne' this,
     have Hex : k.succ - 1 = (k - s).succ - 1 + s,
     { simp only [nat.succ_sub_succ_eq_sub, tsub_zero],
       exact (nat.sub_add_cancel hs).symm },
     rw [Hex, pow_add] at this,
-    exact nat.eq_of_mul_eq_mul_left (pow_pos hpri.out.pos _) this },
+    exact mul_left_cancel₀ (pow_ne_zero _ hpri.out.ne_zero) this },
   all_goals { apply_instance }
 end
 
@@ -442,11 +445,11 @@ begin
 end
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
-then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `1 ≤ k`. -/
-lemma pow_sub_one_norm_prime_pow_of_one_le {k s : ℕ} (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
+then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `k ≠ 0` and `s ≤ k`. -/
+lemma pow_sub_one_norm_prime_pow_of_ne_zero {k s : ℕ} (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
   [hpri : fact (p : ℕ).prime] [hcycl : is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (hs : s ≤ k)
-  (hk : 1 ≤ k) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
+  (hk : k ≠ 0) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
 begin
   by_cases htwo : p ^ (k - s + 1) = 2,
   { have hp : p = 2,
@@ -463,7 +466,7 @@ begin
     simp only [hs, hp, pnat.coe_bit0, one_coe, coe_coe, cast_bit0, cast_one,
       pow_coe] at ⊢ hζ hirr hcycl,
     haveI := hcycl,
-    obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.1 hk),
+    obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero hk,
     rw [hζ.pow_sub_one_norm_two hirr],
     rw [hk₁, pow_succ, pow_mul, neg_eq_neg_one_mul, mul_pow, neg_one_sq, one_mul, ← pow_mul,
       ← pow_succ] },

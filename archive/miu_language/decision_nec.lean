@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gihan Marasingha
 -/
 import .basic
+import data.list.count
 import data.nat.modeq
 import tactic.ring
 

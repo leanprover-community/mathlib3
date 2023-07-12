@@ -10,6 +10,9 @@ import category_theory.limits.preserves.basic
 /-!
 # The category of small categories has all small limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An object in the limit consists of a family of objects,
 which are carried to one another by the functors in the diagram.
 A morphism between two such objects is a family of morphisms between the corresponding objects,

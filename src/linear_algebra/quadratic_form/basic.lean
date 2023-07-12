@@ -12,6 +12,9 @@ import linear_algebra.matrix.symmetric
 /-!
 # Quadratic forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines quadratic forms over a `R`-module `M`.
 A quadratic form on a ring `R` is a map `Q : M → R` such that:
 * `quadratic_form.map_smul`: `Q (a • x) = a * a * Q x`
@@ -575,6 +578,10 @@ map_multiset_sum (to_quadratic_form_add_monoid_hom R M) B
 @[simp] lemma to_quadratic_form_sum {ι : Type*} (s : finset ι) (B : ι → bilin_form R M) :
   (∑ i in s, B i).to_quadratic_form = ∑ i in s, (B i).to_quadratic_form :=
 map_sum (to_quadratic_form_add_monoid_hom R M) B s
+
+@[simp] lemma to_quadratic_form_eq_zero {B : bilin_form R M} :
+  B.to_quadratic_form = 0 ↔ B.is_alt :=
+quadratic_form.ext_iff
 
 end semiring
 

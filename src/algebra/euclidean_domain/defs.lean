@@ -12,7 +12,6 @@ import algebra.ring.defs
 # Euclidean domains
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/871
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file introduces Euclidean domains and provides the extended Euclidean algorithm. To be precise,
@@ -33,10 +32,10 @@ don't satisfy the classical notion were provided independently by Hiblot and Nag
 
 ## Main statements
 
-See `algebra.euclidean_domain.basic` for most of the theorems about Eucliean domains,
+See `algebra.euclidean_domain.basic` for most of the theorems about Euclidean domains,
 including Bézout's lemma.
 
-See `algebra.euclidean_domain.instances` for that facts that `ℤ` is a Euclidean domain,
+See `algebra.euclidean_domain.instances` for the fact that `ℤ` is a Euclidean domain,
 as is any field.
 
 ## Notation

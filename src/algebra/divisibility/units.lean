@@ -11,7 +11,6 @@ import algebra.group.units
 # Lemmas about divisibility and units
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/848
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

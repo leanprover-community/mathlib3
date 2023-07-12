@@ -3,14 +3,13 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.doc_commands
+import tactic.mk_simp_attribute
 import tactic.reserved_notation
 
 /-!
 # Basic logic properties
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/484
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file is one of the earliest imports in mathlib.
@@ -64,7 +63,7 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
-@[simp] lemma eq_iff_true_of_subsingleton {α : Sort*} [subsingleton α] (x y : α) :
+@[simp, nontriviality] lemma eq_iff_true_of_subsingleton {α : Sort*} [subsingleton α] (x y : α) :
   x = y ↔ true :=
 by cc
 
@@ -91,7 +90,7 @@ theorem coe_fn_coe_trans
 
 /-- Non-dependent version of `coe_fn_coe_trans`, helps `rw` figure out the argument. -/
 theorem coe_fn_coe_trans'
-  {α β γ} {δ : out_param $ _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
+  {α β γ} {δ : _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 @[simp] theorem coe_fn_coe_base
@@ -100,7 +99,7 @@ theorem coe_fn_coe_trans'
 
 /-- Non-dependent version of `coe_fn_coe_base`, helps `rw` figure out the argument. -/
 theorem coe_fn_coe_base'
-  {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
+  {α β} {γ : _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 -- This instance should have low priority, to ensure we follow the chain
@@ -178,11 +177,11 @@ attribute [symm] ne.symm
 
 lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
 
-@[simp] lemma eq_iff_eq_cancel_left {b c : α} :
+@[simp] lemma eq_iff_eq_cancel_left {α : Sort*} {b c : α} :
   (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
 ⟨λ h, by rw [← h], λ h a, by rw h⟩
 
-@[simp] lemma eq_iff_eq_cancel_right {a b : α} :
+@[simp] lemma eq_iff_eq_cancel_right {α : Sort*} {a b : α} :
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
 ⟨λ h, by rw h, λ h a, by rw h⟩
 
@@ -275,7 +274,7 @@ theorem imp_and_distrib {α} : (α → b ∧ c) ↔ (α → b) ∧ (α → c) :=
 ⟨λ h, ⟨λ ha, (h ha).left, λ ha, (h ha).right⟩,
  λ h ha, ⟨h.left ha, h.right ha⟩⟩
 
-@[simp] theorem and_imp : (a ∧ b → c) ↔ (a → b → c) :=
+@[simp, mfld_simps] theorem and_imp : (a ∧ b → c) ↔ (a → b → c) :=
 iff.intro (λ h ha hb, h ⟨ha, hb⟩) (λ h ⟨ha, hb⟩, h ha hb)
 
 theorem iff_def : (a ↔ b) ↔ (a → b) ∧ (b → a) :=
@@ -843,7 +842,7 @@ end mem
 section equality
 variables {α : Sort*} {a b : α}
 
-@[simp] theorem heq_iff_eq : a == b ↔ a = b :=
+@[simp, mfld_simps] theorem heq_iff_eq : a == b ↔ a = b :=
 ⟨eq_of_heq, heq_of_eq⟩
 
 theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : hp == hq :=
@@ -866,12 +865,12 @@ theorem eq_equivalence : equivalence (@eq α) :=
 ⟨eq.refl, @eq.symm _, @eq.trans _⟩
 
 /-- Transport through trivial families is the identity. -/
-@[simp]
+@[simp, transport_simps]
 lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*} (y : β) (h : a = a') :
   (@eq.rec α a (λ a, β) y a' h) = y :=
 by { cases h, refl, }
 
-@[simp]
+@[simp, transport_simps]
 lemma eq_mp_eq_cast {α β : Sort*} (h : α = β) : eq.mp h = cast h := rfl
 
 @[simp]
@@ -909,9 +908,17 @@ lemma heq_of_cast_eq :
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
 ⟨heq_of_cast_eq _, λ h, by cases h; refl⟩
 
-lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h : x == y) :
-  @eq.rec α a C x b eq == y :=
-by subst eq; exact h
+lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (e : a = b) (h : x == y) :
+  @eq.rec α a C x b e == y :=
+by subst e; exact h
+
+lemma rec_heq_iff_heq {β} {C : α → Sort*} {x : C a} {y : β} {e : a = b} :
+  @eq.rec α a C x b e == y ↔ x == y :=
+by subst e
+
+lemma heq_rec_iff_heq {β} {C : α → Sort*} {x : β} {y : C a} {e : a = b} :
+  x == @eq.rec α a C y b e ↔ x == y :=
+by subst e
 
 protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) :
   (x₁ = x₂) ↔ (y₁ = y₂) :=
@@ -1089,6 +1096,7 @@ let ⟨a⟩ := ha in
   (λ hb, hb $ h $ λ x, (not_imp.1 (h' x)).1), λ ⟨x, hx⟩ h, hx (h x)⟩
 
 -- TODO: duplicate of a lemma in core
+@[mfld_simps]
 theorem forall_true_iff : (α → true) ↔ true :=
 implies_true_iff α
 
@@ -1111,7 +1119,7 @@ exists.elim h (λ x hx, ⟨x, and.left hx⟩)
   (∃! x, p x) ↔ ∃ x, p x :=
 ⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
 
-@[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
+@[simp, mfld_simps] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
 ⟨i.elim, λ hb x, hb⟩
 
 /-- For some reason simp doesn't use `forall_const` to simplify in this case. -/
@@ -1147,9 +1155,12 @@ by simp [and_comm]
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
-theorem and_forall_ne (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
-by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, classical.em,
+theorem decidable.and_forall_ne [decidable_eq α] (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
+by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, decidable.em,
   forall_const]
+
+theorem and_forall_ne (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
+decidable.and_forall_ne a
 
 -- this lemma is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=

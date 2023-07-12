@@ -9,6 +9,9 @@ import category_theory.eq_to_hom
 /-!
 # Quotient category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructs the quotient of a category by an arbitrary family of relations on its hom-sets,
 by introducing a type synonym for the objects, and identifying homs as necessary.
 

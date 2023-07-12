@@ -9,6 +9,9 @@ import group_theory.group_action.pi
 /-!
 # Pointwise actions on sets in Pi types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about pointwise actions on sets in Pi types.
 
 ## Tags

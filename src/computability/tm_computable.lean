@@ -12,6 +12,9 @@ import data.polynomial.eval
 /-!
 # Computable functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of a Turing machine with some finiteness conditions
 (bundling the definition of TM2 in turing_machine.lean), a definition of when a TM gives a certain
 output (in a certain time), and the definition of computability (in polytime or any time function)

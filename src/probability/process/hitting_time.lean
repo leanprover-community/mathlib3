@@ -8,6 +8,9 @@ import probability.process.stopping
 /-!
 # Hitting time
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a stochastic process, the hitting time provides the first time the process ``hits'' some
 subset of the state space. The hitting time is a stopping time in the case that the time index is
 discrete and the process is adapted (this is true in a far more general setting however we have
@@ -33,7 +36,7 @@ hitting times indexed by the natural numbers or the reals. By taking the bounds 
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 

@@ -9,6 +9,9 @@ import data.finsupp.order
 /-!
 # Equivalence between `multiset` and `ℕ`-valued finitely supported functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `finsupp.to_multiset` the equivalence between `α →₀ ℕ` and `multiset α`, along
 with `multiset.to_finsupp` the reverse equivalence and `finsupp.order_iso_multiset` the equivalence
 promoted to an order isomorphism.

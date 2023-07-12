@@ -10,7 +10,6 @@ import logic.lemmas
 # Paths in quivers
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/811
 > Any changes to this file require a corresponding PR to mathlib4.
 
 Given a quiver `V`, we define the type of paths from `a : V` to `b : V` as an inductive

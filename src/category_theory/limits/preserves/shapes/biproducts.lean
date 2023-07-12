@@ -9,6 +9,9 @@ import category_theory.limits.preserves.shapes.zero
 /-!
 # Preservation of biproducts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the image of a (binary) bicone under a functor that preserves zero morphisms and define
 classes `preserves_biproduct` and `preserves_binary_biproduct`. We then
 

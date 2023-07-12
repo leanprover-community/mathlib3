@@ -8,6 +8,9 @@ import order.bounds.basic
 /-!
 # Monotonicity on intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a function is (strictly) monotone (or antitone) on a linear order `α`
 provided that it is (strictly) monotone on `(-∞, a]` and on `[a, +∞)`. This is a special case
 of a more general statement where one deduces monotonicity on a union from monotonicity on each

@@ -10,6 +10,9 @@ import order.game_add
 /-!
 # Termination of a hydra game
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with the following version of the hydra game: each head of the hydra is
 labelled by an element in a type `α`, and when you cut off one head with label `a`, it
 grows back an arbitrary but finite number of heads, all labelled by elements smaller than

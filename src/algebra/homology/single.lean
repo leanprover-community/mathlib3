@@ -8,6 +8,9 @@ import algebra.homology.homology
 /-!
 # Chain complexes supported in a single degree
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `single V j c : V ⥤ homological_complex V c`,
 which constructs complexes in `V` of shape `c`, supported in degree `j`.
 

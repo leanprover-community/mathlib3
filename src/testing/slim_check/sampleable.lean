@@ -14,6 +14,9 @@ import tactic.linarith
 /-!
 # `sampleable` Class
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This class permits the creation samples of a given type
 controlling the size of those values using the `gen` monad`. It also
 helps minimize examples by creating smaller versions of given values.
@@ -371,7 +374,7 @@ begin
   rcases i with ⟨x,⟨y,hy⟩⟩; unfold_wf;
   dsimp [rat.mk_pnat],
   mono*,
-  { rw [← int.coe_nat_le, ← int.abs_eq_nat_abs, ← int.abs_eq_nat_abs],
+  { rw [← int.coe_nat_le, int.coe_nat_abs, int.coe_nat_abs],
     apply int.abs_div_le_abs },
   { change _ - 1 ≤ y-1,
     apply tsub_le_tsub_right,

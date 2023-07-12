@@ -11,6 +11,9 @@ import linear_algebra.finsupp
 /-!
 # Adjoining elements to form subalgebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops the basic theory of subalgebras of an R-algebra generated
 by a set of elements. A basic interface for `adjoin` is set up.
 

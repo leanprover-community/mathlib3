@@ -11,6 +11,9 @@ import data.set.intervals.basic
 /-!
 # Lemmas about the interaction of power operations with order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Note that some lemmas are in `algebra/group_power/lemmas.lean` as they import files which
 depend on this file.
 -/
@@ -453,6 +456,11 @@ lemma pow_abs (a : R) (n : ℕ) : |a| ^ n = |a ^ n| :=
 
 lemma abs_neg_one_pow (n : ℕ) : |(-1 : R) ^ n| = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
+
+lemma abs_pow_eq_one (a : R) {n : ℕ} (h : 0 < n) :
+  |a ^ n| = 1 ↔ |a| = 1 :=
+by { convert pow_left_inj (abs_nonneg a) zero_le_one h,
+  exacts [(pow_abs _ _).symm, (one_pow _).symm] }
 
 theorem pow_bit0_nonneg (a : R) (n : ℕ) : 0 ≤ a ^ bit0 n :=
 by { rw pow_bit0, exact mul_self_nonneg _ }

@@ -18,6 +18,8 @@ Relevant Zulip chat:
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/mul_pos
 -/
 
+namespace counterexample
+
 /--  The three element monoid. -/
 @[derive [decidable_eq]]
 inductive foo
@@ -32,7 +34,7 @@ instance inhabited : inhabited foo := ⟨zero⟩
 
 instance : has_zero foo := ⟨zero⟩
 instance : has_one foo := ⟨one⟩
-notation `ε` := eps
+local notation `ε` := eps
 
 /-- The order on `foo` is the one induced by the natural order on the image of `aux1`. -/
 def aux1 : foo → ℕ
@@ -85,3 +87,5 @@ end
 example : 0 < ε ∧ ε * ε = 0 := by boom
 
 end foo
+
+end counterexample

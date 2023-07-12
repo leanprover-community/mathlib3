@@ -30,6 +30,8 @@ prime. But it is homogeneously prime, i.e. if `(a, b), (c, d)` are two homogeneo
 homogeneous, prime
 -/
 
+namespace counterexample
+
 namespace counterexample_not_prime_but_homogeneous_prime
 
 open direct_sum
@@ -74,7 +76,7 @@ lemma grading.mul_mem : ∀ ⦃i j : two⦄ {a b : (R × R)} (ha : a ∈ grading
 
 end
 
-notation `R` := zmod 4
+local notation `R` := zmod 4
 
 /-- `R² ≅ {(a, a) | a ∈ R} ⨁ {(0, b) | b ∈ R}` by `(x, y) ↦ (x, x) + (0, y - x)`. -/
 def grading.decompose : (R × R) →+ direct_sum two (λ i, grading R i) :=
@@ -152,3 +154,5 @@ begin
 end
 
 end counterexample_not_prime_but_homogeneous_prime
+
+end counterexample

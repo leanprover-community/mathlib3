@@ -10,6 +10,9 @@ import analysis.specific_limits.basic
 /-!
 # Tangent cone
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define two predicates `unique_diff_within_at 𝕜 s x` and `unique_diff_on 𝕜 s`
 ensuring that, if a function has two derivatives, then they have to coincide. As a direct
 definition of this fact (quantifying on all target types and all functions) would depend on
@@ -33,7 +36,7 @@ properties of the tangent cone we prove here.
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 section tangent_cone
 

@@ -9,6 +9,9 @@ import topology.sets.opens
 /-!
 # Local homeomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homeomorphisms between open subsets of topological spaces. An element `e` of
 `local_homeomorph α β` is an extension of `local_equiv α β`, i.e., it is a pair of functions
 `e.to_fun` and `e.inv_fun`, inverse of each other on the sets `e.source` and `e.target`.
@@ -43,7 +46,7 @@ then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or
 -/
 
 open function set filter topological_space (second_countable_topology)
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -1143,6 +1146,17 @@ lemma subtype_restr_def : e.subtype_restr s = s.local_homeomorph_subtype_coe.tra
 @[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr s).source = coe ⁻¹' e.source :=
 by simp only [subtype_restr_def] with mfld_simps
 
+variables {s}
+
+lemma map_subtype_source {x : s} (hxe : (x:α) ∈ e.source) : e x ∈ (e.subtype_restr s).target :=
+begin
+  refine ⟨e.map_source hxe, _⟩,
+  rw [s.local_homeomorph_subtype_coe_target, mem_preimage, e.left_inv_on hxe],
+  exact x.prop
+end
+
+variables (s)
+
 /- This lemma characterizes the transition functions of an open subset in terms of the transition
 functions of the original space. -/
 lemma subtype_restr_symm_trans_subtype_restr (f f' : local_homeomorph α β) :
@@ -1162,6 +1176,26 @@ begin
   -- f has been eliminated !!!
   refine setoid.trans (trans_symm_self s.local_homeomorph_subtype_coe) _,
   simp only with mfld_simps,
+end
+
+lemma subtype_restr_symm_eq_on_of_le {U V : opens α} [nonempty U] [nonempty V] (hUV : U ≤ V) :
+  eq_on (e.subtype_restr V).symm (set.inclusion hUV ∘ (e.subtype_restr U).symm)
+    (e.subtype_restr U).target :=
+begin
+  set i := set.inclusion hUV,
+  intros y hy,
+  dsimp [local_homeomorph.subtype_restr_def] at ⊢ hy,
+  have hyV : e.symm y ∈ V.local_homeomorph_subtype_coe.target,
+  { rw opens.local_homeomorph_subtype_coe_target at ⊢ hy,
+    exact hUV hy.2 },
+  refine V.local_homeomorph_subtype_coe.inj_on _ trivial _,
+  { rw ←local_homeomorph.symm_target,
+    apply local_homeomorph.map_source,
+    rw local_homeomorph.symm_source,
+    exact hyV },
+  { rw V.local_homeomorph_subtype_coe.right_inv hyV,
+    show _ = U.local_homeomorph_subtype_coe _,
+    rw U.local_homeomorph_subtype_coe.right_inv hy.2 }
 end
 
 end local_homeomorph

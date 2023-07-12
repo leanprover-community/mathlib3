@@ -11,7 +11,6 @@ import algebra.ring.inj_surj
 # Pulling back ordered rings along injective maps.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/917
 > Any changes to this file require a corresponding PR to mathlib4.
 
 -/

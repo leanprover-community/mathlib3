@@ -9,6 +9,9 @@ import ring_theory.subring.basic
 
 /-!
 # Characteristic of subrings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v

@@ -10,6 +10,9 @@ import group_theory.subgroup.basic
 /-!
 # Semidirect product
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines semidirect products of groups, and the canonical maps in and out of the
 semidirect product. The semidirect product of `N` and `G` given a hom `φ` from
 `G` to the automorphism group of `N` is the product of sets with the group

@@ -10,6 +10,9 @@ import topology.shrinking_lemma
 /-!
 # Shrinking lemma in a proper metric space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few versions of the shrinking lemma for coverings by balls in a proper
 (pseudo) metric space.
 
@@ -20,7 +23,7 @@ shrinking lemma, metric space
 
 universes u v
 open set metric
-open_locale topological_space
+open_locale topology
 
 variables {α : Type u} {ι : Type v} [metric_space α] [proper_space α] {c : ι → α}
 variables {x : α} {r : ℝ} {s : set α}

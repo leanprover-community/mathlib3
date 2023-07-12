@@ -12,6 +12,9 @@ import tactic.pi_instances
 /-!
 # Pi instances for groups and monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for group, monoid, semigroup and related structures on Pi types.
 -/
 
@@ -19,7 +22,7 @@ universes u v w
 variables {ι α : Type*}
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
-variables (x y : Π i, f i) (i : I)
+variables (x y : Π i, f i) (i j : I)
 
 @[to_additive]
 lemma set.preimage_one {α β : Type*} [has_one β] (s : set β) [decidable ((1 : β) ∈ s)] :
@@ -312,6 +315,16 @@ This is the `mul_hom` version of `pi.single`. -/
 variables {f}
 
 @[to_additive]
+lemma pi.mul_single_sup [Π i, semilattice_sup (f i)] [Π i, has_one (f i)] (i : I) (x y : f i) :
+  pi.mul_single i (x ⊔ y) = pi.mul_single i x ⊔ pi.mul_single i y :=
+function.update_sup _ _ _ _
+
+@[to_additive]
+lemma pi.mul_single_inf [Π i, semilattice_inf (f i)] [Π i, has_one (f i)] (i : I) (x y : f i) :
+  pi.mul_single i (x ⊓ y) = pi.mul_single i x ⊓ pi.mul_single i y :=
+function.update_inf _ _ _ _
+
+@[to_additive]
 lemma pi.mul_single_mul [Π i, mul_one_class $ f i] (i : I) (x y : f i) :
   mul_single i (x * y) = mul_single i x * mul_single i y :=
 (monoid_hom.single f i).map_mul x y
@@ -329,6 +342,22 @@ lemma pi.single_div [Π i, group $ f i] (i : I) (x y : f i) :
 lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
+
+lemma pi.single_mul_left_apply [Π i, mul_zero_class $ f i] (a : f i) :
+  pi.single i (a * x i) j = pi.single i a j * x j :=
+(pi.apply_single (λ i, (* x i)) (λ i, zero_mul _) _ _ _).symm
+
+lemma pi.single_mul_right_apply [Π i, mul_zero_class $ f i] (a : f i) :
+  pi.single i (x i * a) j = x j * pi.single i a j :=
+(pi.apply_single (λ i, ((*) (x i))) (λ i, mul_zero _) _ _ _).symm
+
+lemma pi.single_mul_left [Π i, mul_zero_class $ f i] (a : f i) :
+  pi.single i (a * x i) = pi.single i a * x :=
+funext $ λ j, pi.single_mul_left_apply _ _ _ _
+
+lemma pi.single_mul_right [Π i, mul_zero_class $ f i] (a : f i) :
+  pi.single i (x i * a) = x * pi.single i a :=
+funext $ λ j, pi.single_mul_right_apply _ _ _ _
 
 /-- The injection into a pi group at different indices commutes.
 
@@ -466,3 +495,14 @@ noncomputable def function.extend_by_one.hom [mul_one_class R] : (ι → R) →*
   map_mul' := λ f g, by { simpa using function.extend_mul s f g 1 1 } }
 
 end extend
+
+namespace pi
+variables [decidable_eq I] [Π i, preorder (f i)] [Π i, has_one (f i)]
+
+@[to_additive] lemma mul_single_mono : monotone (pi.mul_single i : f i → Π i, f i) :=
+function.update_mono
+
+@[to_additive] lemma mul_single_strict_mono : strict_mono (pi.mul_single i : f i → Π i, f i) :=
+function.update_strict_mono
+
+end pi

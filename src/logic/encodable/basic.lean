@@ -13,6 +13,9 @@ import data.fin.basic
 /-!
 # Encodable types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines encodable (constructively countable) types as a typeclass.
 This is used to provide explicit encode/decode functions from and to `ℕ`, with the information that
 those functions are inverses of each other.

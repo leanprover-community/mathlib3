@@ -9,6 +9,9 @@ import category_theory.monoidal.functor
 /-!
 # Preadditive monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A monoidal category is `monoidal_preadditive` if it is preadditive and tensor product of morphisms
 is linear in both factors.
 -/
@@ -29,7 +32,7 @@ A category is `monoidal_preadditive` if tensoring is additive in both factors.
 Note we don't `extend preadditive C` here, as `abelian C` already extends it,
 and we'll need to have both typeclasses sometimes.
 -/
-class monoidal_preadditive :=
+class monoidal_preadditive : Prop :=
 (tensor_zero' : ∀ {W X Y Z : C} (f : W ⟶ X), f ⊗ (0 : Y ⟶ Z) = 0 . obviously)
 (zero_tensor' : ∀ {W X Y Z : C} (f : Y ⟶ Z), (0 : W ⟶ X) ⊗ f = 0 . obviously)
 (tensor_add' : ∀ {W X Y Z : C} (f : W ⟶ X) (g h : Y ⟶ Z), f ⊗ (g + h) = f ⊗ g + f ⊗ h . obviously)
@@ -52,7 +55,7 @@ instance tensoring_right_additive (X : C) : ((tensoring_right C).obj X).additive
 
 /-- A faithful additive monoidal functor to a monoidal preadditive category
 ensures that the domain is monoidal preadditive. -/
-def monoidal_preadditive_of_faithful {D : Type*} [category D] [preadditive D] [monoidal_category D]
+lemma monoidal_preadditive_of_faithful {D} [category D] [preadditive D] [monoidal_category D]
   (F : monoidal_functor D C) [faithful F.to_functor] [F.to_functor.additive] :
   monoidal_preadditive D :=
 { tensor_zero' := by { intros, apply F.to_functor.map_injective, simp [F.map_tensor], },

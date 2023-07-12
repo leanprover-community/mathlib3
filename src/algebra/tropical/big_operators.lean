@@ -12,6 +12,9 @@ import order.conditionally_complete_lattice.finset
 
 # Tropicalization of finitary operations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the "big-op" or notation-based finitary operations on tropicalized types.
 This allows easy conversion between sums to Infs and prods to sums. Results here are important
 for expressing that evaluation of tropical polynomials are the minimum over a finite piecewise

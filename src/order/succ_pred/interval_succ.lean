@@ -3,11 +3,14 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.set.pairwise
+import data.set.pairwise.basic
 import order.succ_pred.basic
 
 /-!
 # Intervals `Ixx (f x) (f (order.succ x))`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove
 

@@ -8,6 +8,9 @@ import analysis.convex.basic
 /-!
 # Convex and concave functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines convex and concave functions in vector spaces and proves the finite Jensen
 inequality. The integral version can be found in `analysis.convex.integral`.
 
@@ -27,7 +30,7 @@ a convex set.
 open finset linear_map set
 open_locale big_operators classical convex pointwise
 
-variables {𝕜 E F β ι : Type*}
+variables {𝕜 E F α β ι : Type*}
 
 section ordered_semiring
 variables [ordered_semiring 𝕜]
@@ -36,10 +39,10 @@ section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
 section ordered_add_comm_monoid
-variables [ordered_add_comm_monoid β]
+variables [ordered_add_comm_monoid α] [ordered_add_comm_monoid β]
 
 section has_smul
-variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 β] (s : set E) (f : E → β)
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 α] [has_smul 𝕜 β] (s : set E) (f : E → β) {g : β → α}
 
 /-- Convexity of functions -/
 def convex_on : Prop :=
@@ -101,8 +104,52 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
   strict_concave_on 𝕜 s f :=
 ⟨hs, λ x hx y hy, hf.2 (hst hx) (hst hy)⟩
 
-end has_smul
+lemma convex_on.comp (hg : convex_on 𝕜 (f '' s) g) (hf : convex_on 𝕜 s f)
+  (hg' : monotone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
+⟨hf.1, λ x hx y hy a b ha hb hab, (hg' (mem_image_of_mem f $ hf.1 hx hy ha hb hab)
+  (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab) $ hf.2 hx hy ha hb hab).trans $
+    hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab⟩
 
+lemma concave_on.comp (hg : concave_on 𝕜 (f '' s) g) (hf : concave_on 𝕜 s f)
+  (hg' : monotone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
+⟨hf.1, λ x hx y hy a b ha hb hab,
+  (hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab).trans $
+    hg' (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab)
+      (mem_image_of_mem f $ hf.1 hx hy ha hb hab) $ hf.2 hx hy ha hb hab⟩
+
+lemma convex_on.comp_concave_on (hg : convex_on 𝕜 (f '' s) g) (hf : concave_on 𝕜 s f)
+  (hg' : antitone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
+hg.dual.comp hf hg'
+
+lemma concave_on.comp_convex_on (hg : concave_on 𝕜 (f '' s) g) (hf : convex_on 𝕜 s f)
+  (hg' : antitone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
+hg.dual.comp hf hg'
+
+lemma strict_convex_on.comp (hg : strict_convex_on 𝕜 (f '' s) g) (hf : strict_convex_on 𝕜 s f)
+  (hg' : strict_mono_on g (f '' s)) (hf' : s.inj_on f) : strict_convex_on 𝕜 s (g ∘ f) :=
+⟨hf.1, λ x hx y hy hxy a b ha hb hab, (hg' (mem_image_of_mem f $ hf.1 hx hy ha.le hb.le hab)
+  (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha.le hb.le hab) $
+    hf.2 hx hy hxy ha hb hab).trans $
+  hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hxy) ha hb hab⟩
+
+lemma strict_concave_on.comp (hg : strict_concave_on 𝕜 (f '' s) g) (hf : strict_concave_on 𝕜 s f)
+  (hg' : strict_mono_on g (f '' s)) (hf' : s.inj_on f) : strict_concave_on 𝕜 s (g ∘ f) :=
+⟨hf.1, λ x hx y hy hxy a b ha hb hab,
+  (hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hxy) ha hb hab).trans $
+    hg' (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha.le hb.le hab)
+      (mem_image_of_mem f $ hf.1 hx hy ha.le hb.le hab) $ hf.2 hx hy hxy ha hb hab⟩
+
+lemma strict_convex_on.comp_strict_concave_on (hg : strict_convex_on 𝕜 (f '' s) g)
+  (hf : strict_concave_on 𝕜 s f) (hg' : strict_anti_on g (f '' s)) (hf' : s.inj_on f) :
+  strict_convex_on 𝕜 s (g ∘ f) :=
+hg.dual.comp hf hg' hf'
+
+lemma strict_concave_on.comp_strict_convex_on (hg : strict_concave_on 𝕜 (f '' s) g)
+  (hf : strict_convex_on 𝕜 s f) (hg' : strict_anti_on g (f '' s)) (hf' : s.inj_on f) :
+  strict_concave_on 𝕜 s (g ∘ f) :=
+hg.dual.comp hf hg' hf'
+
+end has_smul
 section distrib_mul_action
 variables [has_smul 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E → β}
 
@@ -298,9 +345,10 @@ lemma linear_order.convex_on_of_lt (hs : convex 𝕜 s)
     f (a • x + b • y) ≤ a • f x + b • f y) : convex_on 𝕜 s f :=
 begin
   refine convex_on_iff_pairwise_pos.2 ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
-  wlog h : x ≤ y using [x y a b, y x b a],
-  { exact le_total _ _ },
-  exact hf hx hy (h.lt_of_ne hxy) ha hb hab,
+  wlog h : x < y,
+  { rw [add_comm (a • x), add_comm (a • f x)], rw add_comm at hab,
+    refine this hs hf y hy x hx hxy.symm b a hb ha hab (hxy.lt_or_lt.resolve_left h), },
+  exact hf hx hy h ha hb hab,
 end
 
 /-- For a function on a convex set in a linearly ordered space (where the order and the algebraic
@@ -321,9 +369,10 @@ lemma linear_order.strict_convex_on_of_lt (hs : convex 𝕜 s)
     f (a • x + b • y) < a • f x + b • f y) : strict_convex_on 𝕜 s f :=
 begin
   refine ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
-  wlog h : x ≤ y using [x y a b, y x b a],
-  { exact le_total _ _ },
-  exact hf hx hy (h.lt_of_ne hxy) ha hb hab,
+  wlog h : x < y,
+  { rw [add_comm (a • x), add_comm (a • f x)], rw add_comm at hab,
+    refine this hs hf y hy x hx hxy.symm b a hb ha hab (hxy.lt_or_lt.resolve_left h), },
+  exact hf hx hy h ha hb hab,
 end
 
 /-- For a function on a convex set in a linearly ordered space (where the order and the algebraic
@@ -616,29 +665,25 @@ variables [module 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f
 
 /- The following lemmas don't require `module 𝕜 E` if you add the hypothesis `x ≠ y`. At the time of
 the writing, we decided the resulting lemmas wouldn't be useful. Feel free to reintroduce them. -/
-lemma strict_convex_on.lt_left_of_right_lt' (hf : strict_convex_on 𝕜 s f) {x y : E} (hx : x ∈ s)
+lemma convex_on.lt_left_of_right_lt' (hf : convex_on 𝕜 s f) {x y : E} (hx : x ∈ s)
   (hy : y ∈ s) {a b : 𝕜} (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1)
   (hfy : f y < f (a • x + b • y)) :
   f (a • x + b • y) < f x :=
 not_le.1 $ λ h, lt_irrefl (f (a • x + b • y)) $
   calc
     f (a • x + b • y)
-        < a • f x + b • f y : hf.2 hx hy begin
-            rintro rfl,
-            rw convex.combo_self hab at hfy,
-            exact lt_irrefl _ hfy,
-          end ha hb hab
+        ≤ a • f x + b • f y : hf.2 hx hy ha.le hb.le hab
     ... < a • f (a • x + b • y) + b • f (a • x + b • y)
         : add_lt_add_of_le_of_lt (smul_le_smul_of_nonneg h ha.le) (smul_lt_smul_of_pos hfy hb)
     ... = f (a • x + b • y) : convex.combo_self hab _
 
-lemma strict_concave_on.left_lt_of_lt_right' (hf : strict_concave_on 𝕜 s f) {x y : E} (hx : x ∈ s)
+lemma concave_on.left_lt_of_lt_right' (hf : concave_on 𝕜 s f) {x y : E} (hx : x ∈ s)
   (hy : y ∈ s) {a b : 𝕜} (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1)
   (hfy : f (a • x + b • y) < f y) :
   f x < f (a • x + b • y) :=
 hf.dual.lt_left_of_right_lt' hx hy ha hb hab hfy
 
-lemma strict_convex_on.lt_right_of_left_lt' (hf : strict_convex_on 𝕜 s f) {x y : E} {a b : 𝕜}
+lemma convex_on.lt_right_of_left_lt' (hf : convex_on 𝕜 s f) {x y : E} {a b : 𝕜}
   (hx : x ∈ s) (hy : y ∈ s) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1)
   (hfx : f x < f (a • x + b • y)) :
   f (a • x + b • y) < f y :=
@@ -647,13 +692,13 @@ begin
   exact hf.lt_left_of_right_lt' hy hx hb ha hab hfx,
 end
 
-lemma strict_concave_on.lt_right_of_left_lt' (hf : strict_concave_on 𝕜 s f) {x y : E} {a b : 𝕜}
+lemma concave_on.lt_right_of_left_lt' (hf : concave_on 𝕜 s f) {x y : E} {a b : 𝕜}
   (hx : x ∈ s) (hy : y ∈ s) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1)
   (hfx : f (a • x + b • y) < f x) :
   f y < f (a • x + b • y) :=
 hf.dual.lt_right_of_left_lt' hx hy ha hb hab hfx
 
-lemma strict_convex_on.lt_left_of_right_lt (hf : strict_convex_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
+lemma convex_on.lt_left_of_right_lt (hf : convex_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hyz : f y < f z) :
   f z < f x :=
 begin
@@ -661,12 +706,12 @@ begin
   exact hf.lt_left_of_right_lt' hx hy ha hb hab hyz,
 end
 
-lemma strict_concave_on.left_lt_of_lt_right (hf : strict_concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
+lemma concave_on.left_lt_of_lt_right (hf : concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hyz : f z < f y) :
   f x < f z :=
 hf.dual.lt_left_of_right_lt hx hy hz hyz
 
-lemma strict_convex_on.lt_right_of_left_lt (hf : strict_convex_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
+lemma convex_on.lt_right_of_left_lt (hf : convex_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hxz : f x < f z) :
   f z < f y :=
 begin
@@ -674,7 +719,7 @@ begin
   exact hf.lt_right_of_left_lt' hx hy ha hb hab hxz,
 end
 
-lemma strict_concave_on.lt_right_of_left_lt (hf : strict_concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
+lemma concave_on.lt_right_of_left_lt (hf : concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hxz : f z < f x) :
   f y < f z :=
 hf.dual.lt_right_of_left_lt hx hy hz hxz

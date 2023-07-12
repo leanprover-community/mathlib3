@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.nat.parity
+import data.list.chain
 
 /-!
 # List of booleans
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove lemmas about the number of `ff`s and `tt`s in a list of booleans. First we
 prove that the number of `ff`s plus the number of `tt` equals the length of the list. Then we prove

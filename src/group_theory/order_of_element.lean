@@ -6,11 +6,15 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 import algebra.hom.iterate
 import data.nat.modeq
 import data.set.pointwise.basic
+import data.set.intervals.infinite
 import dynamics.periodic_pts
 import group_theory.index
 
 /-!
 # Order of an element
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the order of an element of a finite group. For a finite group `G` the order of
 `x ∈ G` is the minimal `n ≥ 1` such that `x ^ n = 1`.
@@ -67,6 +71,19 @@ lemma is_of_fin_order_of_add_iff :
 lemma is_of_fin_order_iff_pow_eq_one (x : G) :
   is_of_fin_order x ↔ ∃ n, 0 < n ∧ x ^ n = 1 :=
 by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
+
+/-- See also `injective_pow_iff_not_is_of_fin_order`. -/
+@[to_additive not_is_of_fin_add_order_of_injective_nsmul "See also
+`injective_nsmul_iff_not_is_of_fin_add_order`."]
+lemma not_is_of_fin_order_of_injective_pow {x : G} (h : injective (λ (n : ℕ), x^n)) :
+  ¬ is_of_fin_order x :=
+begin
+  simp_rw [is_of_fin_order_iff_pow_eq_one, not_exists, not_and],
+  intros n hn_pos hnx,
+  rw ← pow_zero x at hnx,
+  rw h hnx at hn_pos,
+  exact irrefl 0 hn_pos,
+end
 
 /-- Elements of finite order are of finite order in submonoids.-/
 @[to_additive is_of_fin_add_order_iff_coe "Elements of finite order are of finite order in
@@ -139,6 +156,15 @@ by rwa [order_of, minimal_period, dif_neg]
   order_of x = 0 ↔ ∀ n : ℕ, 0 < n → x ^ n ≠ 1 :=
 by simp_rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one, not_exists, not_and]
 
+@[to_additive add_order_of_eq_iff] lemma order_of_eq_iff {n} (h : 0 < n) :
+  order_of x = n ↔ x ^ n = 1 ∧ ∀ m, m < n → 0 < m → x ^ m ≠ 1 :=
+begin
+  simp_rw [ne, ← is_periodic_pt_mul_iff_pow_eq_one, order_of, minimal_period],
+  split_ifs with h1,
+  { rw [find_eq_iff, exists_prop_of_true h], push_neg, refl },
+  { rw iff_false_left h.ne, rintro ⟨h', -⟩, exact h1 ⟨n, h, h'⟩ },
+end
+
 /-- A group element has finite order iff its order is positive. -/
 @[to_additive add_order_of_pos_iff
   "A group element has finite additive order iff its order is positive."]
@@ -173,6 +199,10 @@ is_periodic_pt.minimal_period_dvd ((is_periodic_pt_mul_iff_pow_eq_one _).mpr h)
 @[to_additive add_order_of_dvd_iff_nsmul_eq_zero]
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of x ∣ n ↔ x ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
+
+@[to_additive add_order_of_smul_dvd]
+lemma order_of_pow_dvd (n : ℕ) : order_of (x ^ n) ∣ order_of x :=
+by rw [order_of_dvd_iff_pow_eq_one, pow_right_comm, pow_order_of_eq_one, one_pow]
 
 @[to_additive add_order_of_map_dvd]
 lemma order_of_map_dvd {H : Type*} [monoid H] (ψ : G →* H) (x : G) :
@@ -265,22 +295,36 @@ begin
   { rw [order_of_pow'' y m (hg.imp_symm order_of_eq_zero), h.gcd_eq_one, nat.div_one] },
 end
 
+namespace commute
+
+variables {x y} (h : commute x y)
+include h
+
 @[to_additive]
-lemma commute.order_of_mul_dvd_lcm {x y : G} (h : commute x y) :
-  order_of (x * y) ∣ nat.lcm (order_of x) (order_of y) :=
+lemma order_of_mul_dvd_lcm : order_of (x * y) ∣ nat.lcm (order_of x) (order_of y) :=
 begin
   convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul_left,
   rw [order_of, comp_mul_left],
 end
 
+@[to_additive]
+lemma order_of_dvd_lcm_mul : order_of y ∣ nat.lcm (order_of x) (order_of (x * y)) :=
+begin
+  by_cases h0 : order_of x = 0,
+  { rw [h0, lcm_zero_left], apply dvd_zero },
+  conv_lhs { rw [← one_mul y, ← pow_order_of_eq_one x,
+    ← succ_pred_eq_of_pos (nat.pos_of_ne_zero h0), pow_succ', mul_assoc] },
+  exact (((commute.refl x).mul_right h).pow_left _).order_of_mul_dvd_lcm.trans
+    (lcm_dvd_iff.2 ⟨trans (order_of_pow_dvd _) (dvd_lcm_left _ _), dvd_lcm_right _ _⟩),
+end
+
 @[to_additive add_order_of_add_dvd_mul_add_order_of]
-lemma commute.order_of_mul_dvd_mul_order_of {x y : G} (h : commute x y) :
-  order_of (x * y) ∣ (order_of x) * (order_of y) :=
+lemma order_of_mul_dvd_mul_order_of : order_of (x * y) ∣ (order_of x) * (order_of y) :=
 dvd_trans h.order_of_mul_dvd_lcm (lcm_dvd_mul _ _)
 
 @[to_additive add_order_of_add_eq_mul_add_order_of_of_coprime]
-lemma commute.order_of_mul_eq_mul_order_of_of_coprime {x y : G} (h : commute x y)
-  (hco : nat.coprime (order_of x) (order_of y)) :
+lemma order_of_mul_eq_mul_order_of_of_coprime
+  (hco : (order_of x).coprime (order_of y)) :
   order_of (x * y) = (order_of x) * (order_of y) :=
 begin
   convert h.function_commute_mul_left.minimal_period_of_comp_eq_mul_of_coprime hco,
@@ -289,11 +333,34 @@ end
 
 /-- Commuting elements of finite order are closed under multiplication. -/
 @[to_additive "Commuting elements of finite additive order are closed under addition."]
-lemma commute.is_of_fin_order_mul
-  {x} (h : commute x y) (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+lemma is_of_fin_order_mul
+  (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
   is_of_fin_order (x * y) :=
 order_of_pos_iff.mp $
   pos_of_dvd_of_pos h.order_of_mul_dvd_mul_order_of $ mul_pos (order_of_pos' hx) (order_of_pos' hy)
+
+/-- If each prime factor of `order_of x` has higher multiplicity in `order_of y`, and `x` commutes
+  with `y`, then `x * y` has the same order as `y`. -/
+@[to_additive add_order_of_add_eq_right_of_forall_prime_mul_dvd "If each prime factor of
+  `add_order_of x` has higher multiplicity in `add_order_of y`, and `x` commutes with `y`,
+  then `x + y` has the same order as `y`."]
+lemma order_of_mul_eq_right_of_forall_prime_mul_dvd
+  (hy : is_of_fin_order y)
+  (hdvd : ∀ p : ℕ, p.prime → p ∣ order_of x → (p * order_of x) ∣ order_of y) :
+  order_of (x * y) = order_of y :=
+begin
+  have hoy := order_of_pos' hy,
+  have hxy := dvd_of_forall_prime_mul_dvd hdvd,
+  apply order_of_eq_of_pow_and_pow_div_prime hoy; simp only [ne, ← order_of_dvd_iff_pow_eq_one],
+  { exact trans h.order_of_mul_dvd_lcm (lcm_dvd hxy dvd_rfl) },
+  refine λ p hp hpy hd, hp.ne_one _,
+  rw [← nat.dvd_one, ← mul_dvd_mul_iff_right hoy.ne', one_mul, ← dvd_div_iff hpy],
+  refine trans (order_of_dvd_lcm_mul h) (lcm_dvd ((dvd_div_iff hpy).2 _) hd),
+  by_cases p ∣ order_of x,
+  exacts [hdvd p hp h, (hp.coprime_iff_not_dvd.2 h).mul_dvd_of_dvd_of_dvd hpy hxy],
+end
+
+end commute
 
 section p_prime
 
@@ -339,15 +406,46 @@ lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) 
   y ∈ submonoid.powers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' hx (λ i, pow_eq_mod_order_of.symm)
 
+@[to_additive]
 lemma pow_eq_one_iff_modeq : x ^ n = 1 ↔ n ≡ 0 [MOD (order_of x)] :=
 by rw [modeq_zero_iff_dvd, order_of_dvd_iff_pow_eq_one]
 
+@[to_additive]
 lemma pow_eq_pow_iff_modeq : x ^ n = x ^ m ↔ n ≡ m [MOD (order_of x)] :=
 begin
-  wlog hmn : m ≤ n,
+  wlog hmn : m ≤ n generalizing m n,
+  { rw [eq_comm, modeq.comm, this (le_of_not_le hmn)], },
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn,
   rw [← mul_one (x ^ m), pow_add, mul_left_cancel_iff, pow_eq_one_iff_modeq],
   exact ⟨λ h, nat.modeq.add_left _ h, λ h, nat.modeq.add_left_cancel' _ h⟩,
+end
+
+@[simp, to_additive injective_nsmul_iff_not_is_of_fin_add_order]
+lemma injective_pow_iff_not_is_of_fin_order {x : G} :
+  injective (λ (n : ℕ), x^n) ↔ ¬ is_of_fin_order x :=
+begin
+  refine ⟨λ h, not_is_of_fin_order_of_injective_pow h, λ h n m hnm, _⟩,
+  rwa [pow_eq_pow_iff_modeq, order_of_eq_zero_iff.mpr h, modeq_zero_iff] at hnm,
+end
+
+@[to_additive infinite_not_is_of_fin_add_order]
+lemma infinite_not_is_of_fin_order {x : G} (h : ¬ is_of_fin_order x) :
+  {y : G | ¬ is_of_fin_order y}.infinite :=
+begin
+  let s := {n | 0 < n}.image (λ (n : ℕ), x^n),
+  have hs : s ⊆ {y : G | ¬ is_of_fin_order y},
+  { rintros - ⟨n, hn : 0 < n, rfl⟩ (contra : is_of_fin_order (x^n)),
+    apply h,
+    rw is_of_fin_order_iff_pow_eq_one at contra ⊢,
+    obtain ⟨m, hm, hm'⟩ := contra,
+    exact ⟨n * m, mul_pos hn hm, by rwa pow_mul⟩, },
+  suffices : s.infinite, { exact this.mono hs, },
+  contrapose! h,
+  have : ¬ injective (λ (n : ℕ), x^n),
+  { have := set.not_inj_on_infinite_finite_image (set.Ioi_infinite 0) (set.not_infinite.mp h),
+    contrapose! this,
+    exact set.inj_on_of_injective this _, },
+  rwa [injective_pow_iff_not_is_of_fin_order, not_not] at this,
 end
 
 end cancel_monoid
@@ -477,7 +575,7 @@ variables [monoid G]
 open_locale big_operators
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : n ≠ 0) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
   = (finset.univ.filter (λ x : G, x ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
@@ -487,7 +585,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : 
   suffices : order_of x ≤ n ∧ order_of x ∣ n ↔ x ^ n = 1,
   { simpa [nat.lt_succ_iff], },
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
-    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
+    λ h, ⟨order_of_le_of_pow_eq_one hn.bot_lt h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
 end finite_monoid
@@ -500,13 +598,9 @@ variables [left_cancel_monoid G] [add_left_cancel_monoid A]
 @[to_additive]
 lemma exists_pow_eq_one [finite G] (x : G) : is_of_fin_order x :=
 begin
-  refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
-  obtain ⟨i, j, a_eq, ne⟩ : ∃(i j : ℕ), x ^ i = x ^ j ∧ i ≠ j :=
-    by simpa only [not_forall, exists_prop, injective]
-      using (not_injective_infinite_finite (λi:ℕ, x^i)),
-  wlog h'' : j ≤ i,
-  refine ⟨i - j, tsub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
-  rw [mul_one, ← pow_add, ← a_eq, add_tsub_cancel_of_le h''],
+  have : (set.univ : set G).finite := set.univ.to_finite,
+  contrapose! this,
+  exact set.infinite.mono (set.subset_univ _) (infinite_not_is_of_fin_order this),
 end
 
 @[to_additive add_order_of_le_card_univ]

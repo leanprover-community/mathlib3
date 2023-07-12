@@ -10,6 +10,9 @@ import analysis.locally_convex.with_seminorms
 /-!
 # Weak Dual in Topological Vector Spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove that the weak topology induced by a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜` is locally
 convex and we explicit give a neighborhood basis in terms of the family of seminorms `λ x, ‖B x y‖`
 for `y : F`.
@@ -39,7 +42,7 @@ weak dual, seminorm
 
 variables {𝕜 E F ι : Type*}
 
-open_locale topological_space
+open_locale topology
 
 section bilin_form
 
@@ -98,7 +101,7 @@ begin
     simp only [id.def],
     let U' := hU₁.to_finset,
     by_cases hU₃ : U.fst.nonempty,
-    { have hU₃' : U'.nonempty := hU₁.nonempty_to_finset.mpr hU₃,
+    { have hU₃' : U'.nonempty := hU₁.to_finset_nonempty.mpr hU₃,
       refine ⟨(U'.sup p).ball 0 $ U'.inf' hU₃' U.snd, p.basis_sets_mem _ $
         (finset.lt_inf'_iff _).2 $ λ y hy, hU₂ y $ (hU₁.mem_to_finset).mp hy, λ x hx y hy, _⟩,
       simp only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],

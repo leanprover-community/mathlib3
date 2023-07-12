@@ -10,6 +10,9 @@ import group_theory.perm.basic
 /-!
 # Fixed points of a self-map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * the predicate `is_fixed_pt f x := f x = x`;
@@ -84,7 +87,7 @@ h.to_left_inverse e.left_inverse_symm
 protected lemma perm_inv (h : is_fixed_pt e x) : is_fixed_pt ⇑(e⁻¹) x := h.equiv_symm
 
 protected lemma perm_pow (h : is_fixed_pt e x) (n : ℕ) : is_fixed_pt ⇑(e ^ n) x :=
-by { rw ←equiv.perm.iterate_eq_pow, exact h.iterate _ }
+by { rw equiv.perm.coe_pow, exact h.iterate _ }
 
 protected lemma perm_zpow (h : is_fixed_pt e x) : ∀ n : ℤ, is_fixed_pt ⇑(e ^ n) x
 | (int.of_nat n) := h.perm_pow _

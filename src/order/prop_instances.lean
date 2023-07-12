@@ -11,7 +11,6 @@ import order.with_bot
 # The order on `Prop`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/792
 > Any changes to this file require a corresponding PR to mathlib4.
 
 Instances on `Prop` such as `distrib_lattice`, `bounded_order`, `linear_order`.
@@ -60,6 +59,7 @@ lemma disjoint_iff [Π i, order_bot (α' i)] {f g : Π i, α' i} :
 begin
   split,
   { intros h i x hf hg,
+    classical,
     refine (update_le_iff.mp $
     -- this line doesn't work
       h (update_le_iff.mpr ⟨hf, λ _ _, _⟩) (update_le_iff.mpr ⟨hg, λ _ _, _⟩)).1,
@@ -86,5 +86,6 @@ codisjoint_iff_le_sup.trans $ forall_const _
 @[simp] lemma Prop.is_compl_iff {P Q : Prop} : is_compl P Q ↔ ¬(P ↔ Q) :=
 begin
   rw [is_compl_iff, Prop.disjoint_iff, Prop.codisjoint_iff, not_iff],
+  classical,
   tauto,
 end

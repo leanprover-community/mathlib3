@@ -9,6 +9,9 @@ import order.closure
 /-!
 # Convex hull
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the convex hull of a set `s` in a module. `convex_hull 𝕜 s` is the smallest convex
 set containing `s`. In order theory speak, this is a closure operator.
 

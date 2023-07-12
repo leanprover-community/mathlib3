@@ -14,6 +14,9 @@ import data.nat.factorization.basic
 /-!
 # Arithmetic Functions and Dirichlet Convolution
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines arithmetic functions, which are functions from `ℕ` to a specified type that map 0
 to 0. In the literature, they are often instead defined as functions from `ℕ+`. These arithmetic
 functions are endowed with a multiplication, given by Dirichlet convolution, and pointwise addition,
@@ -656,7 +659,7 @@ begin
   rcases eq_or_ne m 1 with rfl | hm',
   { simp },
   rw [one_apply_ne, one_apply_ne hm', zero_mul],
-  rw [ne.def, nat.mul_eq_one_iff, not_and_distrib],
+  rw [ne.def, mul_eq_one, not_and_distrib],
   exact or.inl hm'
 end⟩
 
@@ -732,7 +735,7 @@ end
 card_factors_eq_one_iff_prime.2 hp
 
 @[simp] lemma card_factors_apply_prime_pow {p k : ℕ} (hp : p.prime) : Ω (p ^ k) = k :=
-by rw [card_factors_apply, hp.factors_pow, list.length_repeat]
+by rw [card_factors_apply, hp.factors_pow, list.length_replicate]
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
@@ -761,7 +764,7 @@ end
 
 @[simp] lemma card_distinct_factors_apply_prime_pow {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) :
   ω (p ^ k) = 1 :=
-by rw [card_distinct_factors_apply, hp.factors_pow, list.repeat_dedup hk, list.length_singleton]
+by rw [card_distinct_factors_apply, hp.factors_pow, list.replicate_dedup hk, list.length_singleton]
 
 @[simp] lemma card_distinct_factors_apply_prime {p : ℕ} (hp : p.prime) : ω p = 1 :=
 by rw [←pow_one p, card_distinct_factors_apply_prime_pow hp one_ne_zero]

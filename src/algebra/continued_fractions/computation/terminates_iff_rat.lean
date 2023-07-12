@@ -9,6 +9,9 @@ import data.rat.floor
 /-!
 # Termination of Continued Fraction Computations (`gcf.of`)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 We show that the continued fraction for a value `v`, as defined in
 `algebra.continued_fractions.computation.basic`, terminates if and only if `v` corresponds to a
@@ -28,6 +31,7 @@ rational, continued fraction, termination
 -/
 
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 open generalized_continued_fraction (of)
 
@@ -186,8 +190,7 @@ begin
           rwa [stream_q_nth_eq] at IH,
         have : (fr : K)⁻¹ = ((fr⁻¹ : ℚ) : K), by norm_cast,
         have coe_of_fr := (coe_of_rat_eq this),
-        simp [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq, fr_ne_zero],
-        exact congr_arg some coe_of_fr } } }
+        simpa [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq, fr_ne_zero] } } }
 end
 
 lemma coe_stream_rat_eq :

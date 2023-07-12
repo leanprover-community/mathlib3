@@ -1,5 +1,6 @@
 import tactic.simp_command
 import analysis.special_functions.trigonometric.deriv
+import analysis.calculus.deriv.inv
 
 /- Turn off trace messages only if the statements are simplified to true: -/
 set_option trace.silence_simp_if_true true

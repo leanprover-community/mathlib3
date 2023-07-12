@@ -11,6 +11,9 @@ import algebra.ring.regular
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines extra structures on `cancel_comm_monoid_with_zero`s, including `is_domain`s.
 
 ## Main Definitions

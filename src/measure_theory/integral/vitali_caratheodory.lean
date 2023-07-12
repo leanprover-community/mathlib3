@@ -12,6 +12,9 @@ import topology.instances.ereal
 /-!
 # Vitali-Carathéodory theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Vitali-Carathéodory theorem asserts the following. Consider an integrable function `f : α → ℝ` on
 a space with a regular measure. Then there exists a function `g : α → ereal` such that `f x < g x`
 everywhere, `g` is lower semicontinuous, and the integral of `g` is arbitrarily close to that of
@@ -95,8 +98,7 @@ begin
   induction f using measure_theory.simple_func.induction with c s hs f₁ f₂ H h₁ h₂ generalizing ε,
   { let f := simple_func.piecewise s hs (simple_func.const α c) (simple_func.const α 0),
     by_cases h : ∫⁻ x, f x ∂μ = ⊤,
-    { refine ⟨λ x, c, λ x, _, lower_semicontinuous_const,
-             by simp only [ennreal.top_add, le_top, h]⟩,
+    { refine ⟨λ x, c, λ x, _, lower_semicontinuous_const, by simp only [_root_.top_add, le_top, h]⟩,
       simp only [simple_func.coe_const, simple_func.const_zero, simple_func.coe_zero,
         set.piecewise_eq_indicator, simple_func.coe_piecewise],
       exact set.indicator_le_self _ _ _ },
@@ -125,7 +127,7 @@ begin
           lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
           simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
           set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
-      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : ennreal.mul_le_mul le_rfl μu.le
+      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : mul_le_mul_left' μu.le _
       ... = c * μ s + ε :
         begin
           simp_rw [mul_add],
@@ -338,7 +340,7 @@ begin
           lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
           simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
           set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
-      calc (c : ℝ≥0∞) * μ s ≤ c * (μ F + ε / c) : ennreal.mul_le_mul le_rfl μF.le
+      calc (c : ℝ≥0∞) * μ s ≤ c * (μ F + ε / c) : mul_le_mul_left' μF.le _
       ... = c * μ F + ε :
         begin
           simp_rw [mul_add],

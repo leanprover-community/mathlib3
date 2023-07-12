@@ -10,6 +10,9 @@ import category_theory.monoidal.natural_transformation
 /-!
 # Monoids as discrete monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The discrete category on a monoid is a monoidal category.
 Multiplicative morphisms induced monoidal functors.
 -/

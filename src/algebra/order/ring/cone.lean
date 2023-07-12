@@ -9,7 +9,6 @@ import algebra.order.ring.defs
 # Constructing an ordered ring from a ring with a specified positive cone.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/935
 > Any changes to this file require a corresponding PR to mathlib4.
 
 -/

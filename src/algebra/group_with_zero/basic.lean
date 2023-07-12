@@ -11,7 +11,6 @@ import algebra.group.order_synonym
 # Groups with an adjoined zero element
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/669
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file describes structures that are not usually studied on their own right in mathematics,
@@ -157,6 +156,15 @@ lemma mul_left_eq_self₀ : a * b = b ↔ a = 1 ∨ b = 0 :=
 calc a * b = b ↔ a * b = 1 * b : by rw one_mul
      ...       ↔ a = 1 ∨ b = 0 : mul_eq_mul_right_iff
 
+@[simp] lemma mul_eq_left₀ (ha : a ≠ 0) : a * b = a ↔ b = 1 :=
+by rw [iff.comm, ←mul_right_inj' ha, mul_one]
+
+@[simp] lemma mul_eq_right₀ (hb : b ≠ 0) : a * b = b ↔ a = 1 :=
+by rw [iff.comm, ←mul_left_inj' hb, one_mul]
+
+@[simp] lemma left_eq_mul₀ (ha : a ≠ 0) : a = a * b ↔ b = 1 := by rw [eq_comm, mul_eq_left₀ ha]
+@[simp] lemma right_eq_mul₀ (hb : b ≠ 0) : b = a * b ↔ a = 1 := by rw [eq_comm, mul_eq_right₀ hb]
+
 /-- An element of a `cancel_monoid_with_zero` fixed by right multiplication by an element other
 than one must be zero. -/
 theorem eq_zero_of_mul_eq_self_right (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
@@ -229,6 +237,14 @@ instance group_with_zero.to_division_monoid : division_monoid G₀ :=
   inv_eq_of_mul := λ a b, inv_eq_of_mul,
   ..‹group_with_zero G₀› }
 
+@[priority 10] -- see Note [lower instance priority]
+instance group_with_zero.to_cancel_monoid_with_zero : cancel_monoid_with_zero G₀ :=
+{ mul_left_cancel_of_ne_zero := λ x y z hx h,
+    by rw [← inv_mul_cancel_left₀ hx y, h, inv_mul_cancel_left₀ hx z],
+  mul_right_cancel_of_ne_zero := λ x y z hy h,
+    by rw [← mul_inv_cancel_right₀ hy x, h, mul_inv_cancel_right₀ hy z],
+  ..‹group_with_zero G₀› }
+
 end group_with_zero
 
 section group_with_zero
@@ -287,7 +303,7 @@ lemma one_div_ne_zero {a : G₀} (h : a ≠ 0) : 1 / a ≠ 0 :=
 by simpa only [one_div] using inv_ne_zero h
 
 @[simp] lemma inv_eq_zero {a : G₀} : a⁻¹ = 0 ↔ a = 0 :=
-by rw [inv_eq_iff_inv_eq, inv_zero, eq_comm]
+by rw [inv_eq_iff_eq_inv, inv_zero]
 
 @[simp] lemma zero_eq_inv {a : G₀} : 0 = a⁻¹ ↔ 0 = a :=
 eq_comm.trans $ inv_eq_zero.trans eq_comm

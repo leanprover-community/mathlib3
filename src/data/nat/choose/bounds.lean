@@ -11,6 +11,9 @@ import data.nat.choose.basic
 /-!
 # Inequalities for binomial coefficients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves exponential bounds on binomial coefficients. We might want to add here the
 bounds `n^r/r^r ≤ n.choose r ≤ e^r n^r/r^r` in the future.
 

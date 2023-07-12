@@ -11,6 +11,9 @@ import algebra.direct_sum.algebra
 /-!
 # Internally graded rings and algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides `gsemiring` and `gcomm_semiring` instances for a collection of subobjects `A`
 when a `set_like.graded_monoid` instance is available:
 

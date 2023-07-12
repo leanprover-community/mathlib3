@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.analytic.basic
-import analysis.special_functions.pow
+import analysis.special_functions.pow.nnreal
 
 /-!
 # Representation of `formal_multilinear_series.radius` as a `liminf`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that the radius of convergence of a `formal_multilinear_series` is equal to
 $\liminf_{n\to\infty} \frac{1}{\sqrt[n]{‖p n‖}}$. This lemma can't go to `basic.lean` because this
@@ -17,7 +20,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
-open_locale topological_space classical big_operators nnreal ennreal
+open_locale topology classical big_operators nnreal ennreal
 open filter asymptotics
 
 namespace formal_multilinear_series

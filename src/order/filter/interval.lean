@@ -10,6 +10,9 @@ import order.filter.at_top_bot
 /-!
 # Convergence of intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If both `a` and `b` tend to some filter `l₁`, sometimes this implies that `Ixx a b` tends to
 `l₂.small_sets`, i.e., for any `s ∈ l₂` eventually `Ixx a b` becomes a subset of `s`.  Here and
 below `Ixx` is one of `Icc`, `Ico`, `Ioc`, and `Ioo`. We define `filter.tendsto_Ixx_class Ixx l₁ l₂`
@@ -198,25 +201,25 @@ section linear_order
 
 variables [linear_order α]
 
-instance tendsto_Icc_interval_interval {a b : α} : tendsto_Ixx_class Icc (𝓟 [a, b]) (𝓟 [a, b]) :=
+instance tendsto_Icc_uIcc_uIcc {a b : α} : tendsto_Ixx_class Icc (𝓟 [a, b]) (𝓟 [a, b]) :=
 filter.tendsto_Icc_Icc_Icc
 
-instance tendsto_Ioc_interval_interval {a b : α} : tendsto_Ixx_class Ioc (𝓟 [a, b]) (𝓟 [a, b]) :=
+instance tendsto_Ioc_uIcc_uIcc {a b : α} : tendsto_Ixx_class Ioc (𝓟 [a, b]) (𝓟 [a, b]) :=
 filter.tendsto_Ioc_Icc_Icc
 
-instance tendsto_interval_of_Icc {l : filter α} [tendsto_Ixx_class Icc l l] :
-  tendsto_Ixx_class interval l l :=
+instance tendsto_uIcc_of_Icc {l : filter α} [tendsto_Ixx_class Icc l l] :
+  tendsto_Ixx_class uIcc l l :=
 begin
   refine ⟨λ s hs, mem_map.2 $ mem_prod_self_iff.2 _⟩,
   obtain ⟨t, htl, hts⟩ : ∃ t ∈ l, ∀ p ∈ (t : set α) ×ˢ t, Icc (p : α × α).1 p.2 ∈ s,
     from mem_prod_self_iff.1 (mem_map.1 (tendsto_fst.Icc tendsto_snd hs)),
   refine ⟨t, htl, λ p hp, _⟩,
   cases le_total p.1 p.2,
-  { rw [mem_preimage, interval_of_le h], exact hts p hp },
-  { rw [mem_preimage, interval_of_ge h], exact hts ⟨p.2, p.1⟩ ⟨hp.2, hp.1⟩ }
+  { rw [mem_preimage, uIcc_of_le h], exact hts p hp },
+  { rw [mem_preimage, uIcc_of_ge h], exact hts ⟨p.2, p.1⟩ ⟨hp.2, hp.1⟩ }
 end
 
-lemma tendsto.interval {l : filter α} [tendsto_Ixx_class Icc l l] {f g : β → α} {lb : filter β}
+lemma tendsto.uIcc {l : filter α} [tendsto_Ixx_class Icc l l] {f g : β → α} {lb : filter β}
   (hf : tendsto f lb l) (hg : tendsto g lb l) :
   tendsto (λ x, [f x, g x]) lb l.small_sets :=
 tendsto_Ixx_class.tendsto_Ixx.comp $ hf.prod_mk hg

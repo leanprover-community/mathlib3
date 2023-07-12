@@ -10,6 +10,9 @@ import group_theory.submonoid.basic
 
 # (Right) Ore sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines right Ore sets on arbitrary monoids.
 
 ## References

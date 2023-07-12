@@ -8,6 +8,9 @@ import data.dfinsupp.order
 /-!
 # Equivalence between `multiset` and `ℕ`-valued finitely supported functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `dfinsupp.to_multiset` the equivalence between `Π₀ a : α, ℕ` and `multiset α`, along
 with `multiset.to_dfinsupp` the reverse equivalence.
 

@@ -10,6 +10,9 @@ import algebra.module.submodule.bilinear
 /-!
 # Tensor product of modules over commutative semirings.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs the tensor product of modules over commutative semirings. Given a semiring
 `R` and modules over it `M` and `N`, the standard construction of the tensor product is
 `tensor_product R M N`. It is also a module over `R`.

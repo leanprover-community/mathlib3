@@ -12,6 +12,9 @@ import logic.equiv.fin
 /-!
 # Constructing finite products from binary products and terminal.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If a category has binary products and a terminal object then it has finite products.
 If a functor preserves binary products and the terminal object then it preserves finite products.
 

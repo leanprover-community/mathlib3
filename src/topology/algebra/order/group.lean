@@ -9,6 +9,9 @@ import topology.algebra.group.basic
 /-!
 # Topology on a linear ordered additive commutative group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a linear ordered additive commutative group with order topology is a
 topological group. We also prove continuity of `abs : G → G` and provide convenience lemmas like
 `continuous_at.abs`.

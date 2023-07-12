@@ -9,6 +9,9 @@ import category_theory.limits.shapes.products
 /-!
 # Categories with finite (co)products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Typeclasses representing categories with (co)products over finite indexing types.
 -/
 

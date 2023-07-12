@@ -11,6 +11,9 @@ import field_theory.separable
 
 # Separable degree
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains basics about the separable degree of a polynomial.
 
 ## Main results
@@ -41,7 +44,7 @@ open_locale classical polynomial
 
 section comm_semiring
 
-variables {F : Type} [comm_semiring F] (q : ℕ)
+variables {F : Type*} [comm_semiring F] (q : ℕ)
 
 /-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that
 `g(x^(q^m)) = f(x)` for some `m : ℕ`.-/
@@ -86,7 +89,7 @@ end comm_semiring
 
 section field
 
-variables {F : Type} [field F]
+variables {F : Type*} [field F]
 variables (q : ℕ) {f : F[X]} (hf : has_separable_contraction q f)
 
 /-- Every irreducible polynomial can be contracted to a separable polynomial.

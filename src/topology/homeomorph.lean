@@ -76,6 +76,8 @@ lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α �
 @[ext] lemma ext {h h' : α ≃ₜ β} (H : ∀ x, h x = h' x) : h = h' :=
 to_equiv_injective $ equiv.ext H
 
+@[simp] lemma symm_symm (h : α ≃ₜ β) : h.symm.symm = h := ext $ λ _, rfl
+
 /-- Identity map as a homeomorphism. -/
 @[simps apply {fully_applied := ff}]
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
@@ -502,6 +504,7 @@ variables [decidable_eq ι] (i : ι)
   continuous_inv_fun := continuous_pi $ λ j, by { dsimp only [equiv.pi_split_at],
     split_ifs, subst h, exacts [continuous_fst, (continuous_apply _).comp continuous_snd] } }
 
+variable (β)
 /-- A product of copies of a topological space can be split as the binary product of one copy and
   the product of all the remaining copies. -/
 @[simps] def fun_split_at : (ι → β) ≃ₜ β × ({j // j ≠ i} → β) := pi_split_at i _

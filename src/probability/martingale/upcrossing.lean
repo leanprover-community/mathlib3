@@ -3,12 +3,16 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
+import data.set.intervals.monotone
 import probability.process.hitting_time
 import probability.martingale.basic
 
 /-!
 
 # Doob's upcrossing estimate
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a discrete real-valued submartingale $(f_n)_{n \in \mathbb{N}}$, denoting $U_N(a, b)$ the
 number of times $f_n$ crossed from below $a$ to above $b$ before time $N$, Doob's upcrossing
@@ -873,10 +877,10 @@ begin
   simp_rw [this, upcrossings, supr_le_iff],
   split; rintro ⟨k, hk⟩,
   { obtain ⟨m, hm⟩ := exists_nat_ge k,
-    refine ⟨m, λ N, ennreal.coe_nat_le_coe_nat.1 ((hk N).trans _)⟩,
+    refine ⟨m, λ N, nat.cast_le.1 ((hk N).trans _)⟩,
     rwa [← ennreal.coe_nat, ennreal.coe_le_coe] },
   { refine ⟨k, λ N, _⟩,
-    simp only [ennreal.coe_nat, ennreal.coe_nat_le_coe_nat, hk N] }
+    simp only [ennreal.coe_nat, nat.cast_le, hk N] }
 end
 
 /-- A variant of Doob's upcrossing estimate obtained by taking the supremum on both sides. -/
@@ -905,7 +909,7 @@ begin
     { exact λ n, measurable_from_top.comp_ae_measurable
         (hf.adapted.measurable_upcrossings_before  hab).ae_measurable },
     { refine eventually_of_forall (λ ω N M hNM, _),
-      rw ennreal.coe_nat_le_coe_nat,
+      rw nat.cast_le,
       exact upcrossings_before_mono hab hNM ω } },
   { rw [not_lt, ← sub_nonpos] at hab,
     rw [ennreal.of_real_of_nonpos hab, zero_mul],

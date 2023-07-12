@@ -11,6 +11,9 @@ import category_theory.concrete_category.basic
 /-!
 # Properties of morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the basic framework for talking about properties of morphisms.
 The following meta-properties are defined
 

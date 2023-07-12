@@ -34,7 +34,8 @@ instance : is_well_order ℕ∞ (<) := { }
 
 variables {m n : ℕ∞}
 
-@[simp, norm_cast] lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
+-- eligible for `dsimp`
+@[simp, nolint simp_nf, norm_cast] lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : ℕ) : ℕ∞) = 1 := rfl
 @[simp, norm_cast] lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
 @[simp, norm_cast] lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl

@@ -160,6 +160,10 @@ by { rw [modeq_iff_dvd] at *, exact (dvd_mul_left (n : ℤ) (m : ℤ)).trans h }
 For cancelling right multiplication on both sides of the `≡`, see `nat.modeq.mul_right_cancel'`. -/
 theorem of_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] := mul_comm m n ▸ of_mul_left _
 
+lemma of_div (h : a / c ≡ b / c [MOD m / c]) (ha : c ∣ a) (ha : c ∣ b) (ha : c ∣ m) :
+  a ≡ b [MOD m] :=
+by convert h.mul_left' c; rwa nat.mul_div_cancel'
+
 end modeq
 
 lemma modeq_sub (h : b ≤ a) : a ≡ b [MOD a - b] := (modeq_of_dvd $ by rw [int.coe_nat_sub h]).symm

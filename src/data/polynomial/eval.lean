@@ -9,6 +9,9 @@ import data.polynomial.induction
 /-!
 # Theory of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main defs here are `eval₂`, `eval`, and `map`.
 We give several lemmas about their interaction with each other and with module operations.
 -/
@@ -399,6 +402,8 @@ by rwa [is_root, eval, eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ hpq]
 
 lemma not_is_root_C (r a : R) (hr : r ≠ 0) : ¬ is_root (C r) a := by simpa using hr
 
+lemma eval_surjective (x : R) : function.surjective $ eval x := λ y, ⟨C y, eval_C⟩
+
 end eval
 
 section comp
@@ -778,6 +783,15 @@ lemma eval₂_comp {x : S} :
   eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
 by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
+@[simp]
+lemma iterate_comp_eval₂ (k : ℕ) (t : S) :
+  eval₂ f t (p.comp^[k] q) = ((λ x, eval₂ f x p)^[k] (eval₂ f t q)) :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [function.iterate_succ_apply', function.iterate_succ_apply', eval₂_comp, IH] }
+end
+
 end
 
 section
@@ -802,6 +816,11 @@ begin
   { intros r s hr hs, simp [add_comp, hr, hs], },
   { intros n a, simp, }
 end
+
+@[simp]
+lemma iterate_comp_eval : ∀ (k : ℕ) (t : R),
+  (p.comp^[k] q).eval t = ((λ x, p.eval x)^[k] (q.eval t)) :=
+iterate_comp_eval₂ _
 
 /-- `comp p`, regarded as a ring homomorphism from `R[X]` to itself. -/
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=

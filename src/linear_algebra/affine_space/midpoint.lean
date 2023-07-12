@@ -3,11 +3,14 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import algebra.char_p.invertible
+import algebra.invertible
 import linear_algebra.affine_space.affine_equiv
 
 /-!
 # Midpoint of a segment
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -133,7 +136,7 @@ by rw [eq_comm, midpoint_eq_right_iff]
 lemma midpoint_eq_midpoint_iff_vsub_eq_vsub {x x' y y' : P} :
   midpoint R x y = midpoint R x' y' ↔ x -ᵥ x' = y' -ᵥ y :=
 by rw [← @vsub_eq_zero_iff_eq V, midpoint_vsub_midpoint, midpoint_eq_iff, point_reflection_apply,
-  vsub_eq_sub, zero_sub, vadd_eq_add, add_zero, neg_eq_iff_neg_eq, neg_vsub_eq_vsub_rev, eq_comm]
+  vsub_eq_sub, zero_sub, vadd_eq_add, add_zero, neg_eq_iff_eq_neg, neg_vsub_eq_vsub_rev]
 
 lemma midpoint_eq_iff' {x y z : P} : midpoint R x y = z ↔ equiv.point_reflection z x = y :=
 midpoint_eq_iff
@@ -174,36 +177,6 @@ by rw [sub_eq_add_neg, ← vadd_eq_add, ← vadd_eq_add, ← midpoint_vadd_midpo
 by rw midpoint_comm; simp
 
 end
-
-lemma line_map_inv_two {R : Type*} {V P : Type*} [division_ring R] [char_zero R]
-  [add_comm_group V] [module R V] [add_torsor V P] (a b : P) :
-  line_map a b (2⁻¹:R) = midpoint R a b :=
-rfl
-
-lemma line_map_one_half {R : Type*} {V P : Type*} [division_ring R] [char_zero R]
-  [add_comm_group V] [module R V] [add_torsor V P] (a b : P) :
-  line_map a b (1/2:R) = midpoint R a b :=
-by rw [one_div, line_map_inv_two]
-
-lemma homothety_inv_of_two {R : Type*} {V P : Type*} [comm_ring R] [invertible (2:R)]
-  [add_comm_group V] [module R V] [add_torsor V P] (a b : P) :
-  homothety a (⅟2:R) b = midpoint R a b :=
-rfl
-
-lemma homothety_inv_two {k : Type*} {V P : Type*} [field k] [char_zero k]
-  [add_comm_group V] [module k V] [add_torsor V P] (a b : P) :
-  homothety a (2⁻¹:k) b = midpoint k a b :=
-rfl
-
-lemma homothety_one_half {k : Type*} {V P : Type*} [field k] [char_zero k]
-  [add_comm_group V] [module k V] [add_torsor V P] (a b : P) :
-  homothety a (1/2:k) b = midpoint k a b :=
-by rw [one_div, homothety_inv_two]
-
-@[simp] lemma pi_midpoint_apply {k ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [field k]
-  [invertible (2:k)] [Π i, add_comm_group (V i)] [Π i, module k (V i)]
-  [Π i, add_torsor (V i) (P i)] (f g : Π i, P i) (i : ι) :
-  midpoint k f g i = midpoint k (f i) (g i) := rfl
 
 namespace add_monoid_hom
 

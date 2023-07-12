@@ -17,6 +17,9 @@ import group_theory.group_action.sub_mul_action.pointwise
 /-!
 # Multiplication and division of submodules of an algebra.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An interface for multiplication and division of sub-R-modules of an R-algebra A is developed.
 
 ## Main definitions
@@ -461,12 +464,13 @@ by rw [←comap_equiv_eq_map_symm, ←comap_equiv_eq_map_symm, comap_op_pow]
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/
+@[simps]
 def span.ring_hom : set_semiring A →+* submodule R A :=
-{ to_fun := submodule.span R,
+{ to_fun := λ s, submodule.span R s.down,
   map_zero' := span_empty,
   map_one' := one_eq_span.symm,
   map_add' := span_union,
-  map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
+  map_mul' := λ s t, by rw [set_semiring.down_mul, span_mul_span, ← image_mul_prod] }
 
 section
 variables {α : Type*} [monoid α] [mul_semiring_action α A] [smul_comm_class α R A]
@@ -523,22 +527,23 @@ variables (R A)
 
 /-- R-submodules of the R-algebra A are a module over `set A`. -/
 instance module_set : module (set_semiring A) (submodule R A) :=
-{ smul := λ s P, span R s * P,
+{ smul := λ s P, span R s.down * P,
   smul_add := λ _ _ _, mul_add _ _ _,
-  add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
-  mul_smul := λ s t P, show _ = _ * (_ * _),
-    by { rw [← mul_assoc, span_mul_span, ← image_mul_prod] },
-  one_smul := λ P, show span R {(1 : A)} * P = _,
-    by { conv_lhs {erw ← span_eq P}, erw [span_mul_span, one_mul, span_eq] },
-  zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
+  add_smul := λ s t P,
+    by simp_rw [has_smul.smul, set_semiring.down_add, span_union, sup_mul, add_eq_sup],
+  mul_smul := λ s t P,
+    by simp_rw [has_smul.smul, set_semiring.down_mul, ← mul_assoc, span_mul_span],
+  one_smul := λ P,
+    by simp_rw [has_smul.smul, set_semiring.down_one, ←one_eq_span_one_set, one_mul],
+  zero_smul := λ P,
+    by simp_rw [has_smul.smul, set_semiring.down_zero, span_empty, bot_mul, bot_eq_zero],
   smul_zero := λ _, mul_bot _ }
-
 
 variables {R A}
 
-lemma smul_def {s : set_semiring A} {P : submodule R A} : s • P = span R s * P := rfl
+lemma smul_def (s : set_semiring A) (P : submodule R A) : s • P = span R s.down * P := rfl
 
-lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down ≤ t.down)
+lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down ⊆ t.down)
   (h₂ : M ≤ N) : s • M ≤ t • N :=
 mul_le_mul (span_mono h₁) h₂
 

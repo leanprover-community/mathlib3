@@ -9,6 +9,9 @@ import tactic.assert_exists
 /-!
 # Limit properties relating to the (co)yoneda embedding.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We calculate the colimit of `Y ↦ (X ⟶ Y)`, which is just `punit`.
 (This is used in characterising cofinal functors.)
 

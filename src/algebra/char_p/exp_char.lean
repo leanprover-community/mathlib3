@@ -9,6 +9,9 @@ import data.nat.prime
 /-!
 # Exponential characteristic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the exponential characteristic and establishes a few basic results relating
 it to the (ordinary characteristic).
 The definition is stated for a semiring, but the actual results are for nontrivial rings

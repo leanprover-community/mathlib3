@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
 import data.set.intervals.basic
-import data.set.pairwise
+import data.set.pairwise.basic
 import algebra.order.group.abs
 import algebra.group_power.lemmas
 

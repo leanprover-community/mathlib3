@@ -6,7 +6,10 @@ Authors: Eric Wieser
 import algebra.hom.group_action
 import ring_theory.subring.pointwise
 
-/-! # Subrings invariant under an action -/
+/-! # Subrings invariant under an action 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 section ring
 
 variables (M R : Type*) [monoid M] [ring R] [mul_semiring_action M R]

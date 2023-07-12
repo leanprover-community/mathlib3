@@ -11,6 +11,9 @@ import order.omega_complete_partial_order
 /-!
 # Lawful fixed point operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines the laws required of a `has_fix` instance, using the theory of
 omega complete partial orders (ωCPO). Proofs of the lawfulness of all `has_fix` instances in
 `control.fix` are provided.

@@ -94,6 +94,8 @@ lemma some_eq_coe (n : ℕ) : some n = n := rfl
 
 @[simp] lemma dom_coe (x : ℕ) : (x : part_enat).dom := trivial
 
+instance : can_lift part_enat ℕ coe dom := ⟨λ n hn, ⟨n.get hn, part.some_get _⟩⟩
+
 instance : has_le part_enat := ⟨λ x y, ∃ h : y.dom → x.dom, ∀ hy : y.dom, x.get (h hy) ≤ y.get hy⟩
 instance : has_top part_enat := ⟨none⟩
 instance : has_bot part_enat := ⟨0⟩
@@ -326,6 +328,15 @@ instance : canonically_ordered_add_monoid part_enat :=
   ..part_enat.order_bot,
   ..part_enat.ordered_add_comm_monoid }
 
+lemma eq_coe_sub_of_add_eq_coe {x y : part_enat} {n : ℕ} (h : x + y = n) :
+  x = ↑(n - y.get (dom_of_le_coe ((le_add_left le_rfl).trans_eq h))) :=
+begin
+  lift x to ℕ using dom_of_le_coe ((le_add_right le_rfl).trans_eq h),
+  lift y to ℕ using dom_of_le_coe ((le_add_left le_rfl).trans_eq h),
+  rw [← nat.cast_add, coe_inj] at h,
+  rw [get_coe, coe_inj, eq_tsub_of_add_eq h]
+end
+
 protected lemma add_lt_add_right {x y z : part_enat} (h : x < y) (hz : z ≠ ⊤) : x + z < y + z :=
 begin
   rcases ne_top_iff.mp (ne_top_of_lt h) with ⟨m, rfl⟩,
@@ -369,6 +380,9 @@ begin
   apply_mod_cast nat.lt_of_succ_le, apply_mod_cast h
 end
 
+lemma coe_succ_le_iff {n : ℕ} {e : part_enat} : ↑n.succ ≤ e ↔ ↑n < e:=
+by rw [nat.succ_eq_add_one n, nat.cast_add, nat.cast_one, add_one_le_iff_lt (coe_ne_top n)]
+
 lemma lt_add_one_iff_lt {x y : part_enat} (hx : x ≠ ⊤) : x < y + 1 ↔ x ≤ y :=
 begin
   split, exact le_of_lt_add_one,
@@ -376,6 +390,9 @@ begin
   induction y using part_enat.cases_on with n, { rw [top_add], apply coe_lt_top },
   apply_mod_cast nat.lt_succ_of_le, apply_mod_cast h
 end
+
+lemma lt_coe_succ_iff_le {x : part_enat} {n : ℕ} (hx : x ≠ ⊤) : x < n.succ ↔ x ≤ n :=
+by rw [nat.succ_eq_add_one n, nat.cast_add, nat.cast_one, lt_add_one_iff_lt hx]
 
 lemma add_eq_top_iff {a b : part_enat} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
 by apply part_enat.cases_on a; apply part_enat.cases_on b;

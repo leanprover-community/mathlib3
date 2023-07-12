@@ -10,6 +10,9 @@ import category_theory.limits.shapes.regular_mono
 /-!
 # Kernel pairs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines what it means for a parallel pair of morphisms `a b : R ⟶ X` to be the kernel pair
 for a morphism `f`.
 Some properties of kernel pairs are given, namely allowing one to transfer between

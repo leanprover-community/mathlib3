@@ -6,7 +6,10 @@ Authors: Jireh Loreaux
 import analysis.normed_space.star.basic
 import analysis.normed_space.operator_norm
 
-/-! # The left-regular representation is an isometry for C⋆-algebras -/
+/-! # The left-regular representation is an isometry for C⋆-algebras 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 open continuous_linear_map
 
@@ -29,7 +32,7 @@ begin
   { have ha : 0 < ‖a‖₊ := zero_le'.trans_lt hr,
     rw [←inv_inv (‖a‖₊), nnreal.lt_inv_iff_mul_lt (inv_ne_zero ha.ne')] at hr,
     obtain ⟨k, hk₁, hk₂⟩ := normed_field.exists_lt_nnnorm_lt 𝕜 (mul_lt_mul_of_pos_right hr $
-      nnreal.inv_pos.2 ha),
+      inv_pos.2 ha),
     refine ⟨_, ⟨k • star a, _, rfl⟩, _⟩,
     { simpa only [mem_closed_ball_zero_iff, norm_smul, one_mul, norm_star] using
         (nnreal.le_inv_iff_mul_le ha.ne').1 (one_mul ‖a‖₊⁻¹ ▸ hk₂.le : ‖k‖₊ ≤ ‖a‖₊⁻¹) },

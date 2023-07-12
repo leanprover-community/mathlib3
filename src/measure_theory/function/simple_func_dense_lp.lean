@@ -9,6 +9,9 @@ import measure_theory.function.simple_func_dense
 /-!
 # Density of simple functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that each `Lᵖ` Borel measurable function can be approximated in `Lᵖ` norm
 by a sequence of simple functions.
 
@@ -186,6 +189,31 @@ lemma tendsto_approx_on_range_Lp [borel_space E]
 by simpa only [Lp.tendsto_Lp_iff_tendsto_ℒp'']
   using tendsto_approx_on_range_Lp_snorm hp_ne_top fmeas hf.2
 
+/-- Any function in `ℒp` can be approximated by a simple function if `p < ∞`. -/
+lemma _root_.measure_theory.mem_ℒp.exists_simple_func_snorm_sub_lt
+  {E : Type*} [normed_add_comm_group E]
+  {f : β → E} {μ : measure β} (hf : mem_ℒp f p μ) (hp_ne_top : p ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (g : β →ₛ E), snorm (f - g) p μ < ε ∧ mem_ℒp g p μ :=
+begin
+  borelize E,
+  let f' := hf.1.mk f,
+  suffices H : ∃ (g : β →ₛ E), snorm (f' - g) p μ < ε ∧ mem_ℒp g p μ,
+  { rcases H with ⟨g, hg, g_mem⟩,
+    refine ⟨g, _, g_mem⟩,
+    convert hg using 1,
+    apply snorm_congr_ae,
+    filter_upwards [hf.1.ae_eq_mk] with x hx,
+    simpa only [pi.sub_apply, sub_left_inj] using hx },
+  have hf' : mem_ℒp f' p μ, from hf.ae_eq hf.1.ae_eq_mk,
+  have f'meas : measurable f' := hf.1.measurable_mk,
+  haveI : separable_space (range f' ∪ {0} : set E),
+    from strongly_measurable.separable_space_range_union_singleton hf.1.strongly_measurable_mk,
+  rcases ((tendsto_order.1 (tendsto_approx_on_range_Lp_snorm hp_ne_top f'meas hf'.2)).2
+    ε hε.bot_lt).exists with ⟨n, hn⟩,
+  rw [← snorm_neg, neg_sub] at hn,
+  exact ⟨_, hn, mem_ℒp_approx_on_range f'meas hf' _⟩,
+end
+
 end Lp
 
 /-! ### L1 approximation by simple functions -/
@@ -314,7 +342,7 @@ lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) 
   λ h, mem_ℒp_of_finite_measure_preimage p h⟩
 
 lemma integrable_iff {f : α →ₛ E} : integrable f μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
-mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff ennreal.zero_lt_one.ne' ennreal.coe_ne_top
+mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff one_ne_zero ennreal.coe_ne_top
 
 lemma mem_ℒp_iff_integrable {f : α →ₛ E} (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ integrable f μ :=
@@ -420,7 +448,7 @@ unnecessary.  But instead, `Lp.simple_func E p μ` is defined as an `add_subgrou
 which does not permit this (but has the advantage of working when `E` itself is a normed group,
 i.e. has no scalar action). -/
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_ring 𝕜] [module 𝕜 E] [has_bounded_smul 𝕜 E]
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_smul`. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
@@ -452,12 +480,20 @@ local attribute [instance] simple_func.module
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def normed_space [fact (1 ≤ p)] : normed_space 𝕜 (Lp.simple_func E p μ) :=
-⟨ λc f, by { rw [add_subgroup.coe_norm, add_subgroup.coe_norm, coe_smul, norm_smul] } ⟩
+protected lemma has_bounded_smul [fact (1 ≤ p)] : has_bounded_smul 𝕜 (Lp.simple_func E p μ) :=
+has_bounded_smul.of_norm_smul_le $ λ r f, (norm_smul_le r (f : Lp E p μ) : _)
+
+local attribute [instance] simple_func.has_bounded_smul
+
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
+instance as it is (as of writing) used only in the construction of the Bochner integral. -/
+protected def normed_space {𝕜} [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+  normed_space 𝕜 (Lp.simple_func E p μ) :=
+⟨norm_smul_le⟩
 
 end instances
 
-local attribute [instance] simple_func.module simple_func.normed_space
+local attribute [instance] simple_func.module simple_func.normed_space simple_func.has_bounded_smul
 
 section to_Lp
 
@@ -483,7 +519,7 @@ lemma to_Lp_sub (f g : α →ₛ E) (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ
   to_Lp (f - g) (hf.sub hg) = to_Lp f hf - to_Lp g hg :=
 by { simp only [sub_eq_add_neg, ← to_Lp_neg, ← to_Lp_add], refl }
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_ring 𝕜] [module 𝕜 E] [has_bounded_smul 𝕜 E]
 
 lemma to_Lp_smul (f : α →ₛ E) (hf : mem_ℒp f p μ) (c : 𝕜) :
   to_Lp (c • f) (hf.const_smul c) = c • to_Lp f hf := rfl
@@ -576,7 +612,7 @@ begin
   repeat { assume h, rw h, },
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_ring 𝕜] [module 𝕜 E] [has_bounded_smul 𝕜 E]
 
 lemma smul_to_simple_func (k : 𝕜) (f : Lp.simple_func E p μ) :
   to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
@@ -687,7 +723,7 @@ protected lemma dense_range (hp_ne_top : p ≠ ∞) :
   dense_range (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
 (simple_func.dense_inducing hp_ne_top).dense
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_ring 𝕜] [module 𝕜 E] [has_bounded_smul 𝕜 E]
 variables (α E 𝕜)
 
 /-- The embedding of Lp simple functions into Lp functions, as a continuous linear map. -/
@@ -849,7 +885,7 @@ lemma Lp.induction [_i : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) (P : Lp E p μ 
   ∀ f : Lp E p μ, P f :=
 begin
   refine λ f, (Lp.simple_func.dense_range hp_ne_top).induction_on f h_closed _,
-  refine Lp.simple_func.induction (lt_of_lt_of_le ennreal.zero_lt_one _i.elim).ne' hp_ne_top _ _,
+  refine Lp.simple_func.induction (lt_of_lt_of_le zero_lt_one _i.elim).ne' hp_ne_top _ _,
   { exact λ c s, h_ind c },
   { exact λ f g hf hg, h_add hf hg },
 end
@@ -880,7 +916,7 @@ begin
     { intros c s hs h,
       by_cases hc : c = 0,
       { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, ext, simp [const] },
-      have hp_pos : p ≠ 0 := (lt_of_lt_of_le ennreal.zero_lt_one _i.elim).ne',
+      have hp_pos : p ≠ 0 := (lt_of_lt_of_le zero_lt_one _i.elim).ne',
       exact h_ind c hs (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs h) },
     { intros f g hfg hf hg int_fg,
       rw [simple_func.coe_add,
@@ -893,6 +929,57 @@ begin
   have : ∀ (f : Lp E p μ), P f :=
     λ f, (Lp.simple_func.dense_range hp_ne_top).induction_on f h_closed this,
   exact λ f hf, h_ae hf.coe_fn_to_Lp (Lp.mem_ℒp _) (this (hf.to_Lp f)),
+end
+
+/-- If a set of ae strongly measurable functions is stable under addition and approximates
+characteristic functions in `ℒp`, then it is dense in `ℒp`. -/
+lemma mem_ℒp.induction_dense (hp_ne_top : p ≠ ∞) (P : (α → E) → Prop)
+  (h0P : ∀ (c : E) ⦃s : set α⦄, measurable_set s → μ s < ∞ → ∀ {ε : ℝ≥0∞}, ε ≠ 0 →
+    (∃ (g : α → E), snorm (g - s.indicator (λ x, c)) p μ ≤ ε ∧ P g))
+  (h1P : ∀ f g, P f → P g → P (f + g))
+  (h2P : ∀ f, P f → ae_strongly_measurable f μ)
+  {f : α → E} (hf : mem_ℒp f p μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+  ∃ (g : α → E), snorm (f - g) p μ ≤ ε ∧ P g :=
+begin
+  rcases eq_or_ne p 0 with rfl|hp_pos,
+  { rcases h0P (0 : E) measurable_set.empty
+      (by simp only [measure_empty, with_top.zero_lt_top]) hε with ⟨g, hg, Pg⟩,
+    exact ⟨g, by simp only [snorm_exponent_zero, zero_le'], Pg⟩ },
+  suffices H : ∀ (f' : α →ₛ E) (δ : ℝ≥0∞) (hδ : δ ≠ 0), mem_ℒp f' p μ →
+    ∃ g, snorm (f' - g) p μ ≤ δ ∧ P g,
+  { obtain ⟨η, ηpos, hη⟩ := exists_Lp_half E μ p hε,
+    rcases hf.exists_simple_func_snorm_sub_lt hp_ne_top ηpos.ne' with ⟨f', hf', f'_mem⟩,
+    rcases H f' η ηpos.ne' f'_mem with ⟨g, hg, Pg⟩,
+    refine ⟨g, _, Pg⟩,
+    convert (hη _ _ (hf.ae_strongly_measurable.sub f'.ae_strongly_measurable)
+      (f'.ae_strongly_measurable.sub (h2P g Pg)) hf'.le hg).le,
+    simp only [sub_add_sub_cancel] },
+  refine simple_func.induction _ _,
+  { intros c s hs ε εpos Hs,
+    rcases eq_or_ne c 0 with rfl|hc,
+    { rcases h0P (0 : E) measurable_set.empty
+        (by simp only [measure_empty, with_top.zero_lt_top]) εpos with ⟨g, hg, Pg⟩,
+      rw [← snorm_neg, neg_sub] at hg,
+      refine ⟨g, _, Pg⟩,
+      convert hg,
+      ext x,
+      simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_zero,
+        piecewise_eq_indicator, indicator_zero', pi.zero_apply, indicator_zero] },
+    { have : μ s < ∞,
+        from (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs Hs),
+      rcases h0P c hs this εpos with ⟨g, hg, Pg⟩,
+      rw [← snorm_neg, neg_sub] at hg,
+      exact ⟨g, hg, Pg⟩ } },
+  { intros f f' hff' hf hf' δ δpos int_ff',
+    obtain ⟨η, ηpos, hη⟩ := exists_Lp_half E μ p δpos,
+    rw [simple_func.coe_add,
+      mem_ℒp_add_of_disjoint hff' f.strongly_measurable f'.strongly_measurable] at int_ff',
+    rcases hf η ηpos.ne' int_ff'.1 with ⟨g, hg, Pg⟩,
+    rcases hf' η ηpos.ne' int_ff'.2 with ⟨g', hg', Pg'⟩,
+    refine ⟨g + g', _, h1P g g' Pg Pg'⟩,
+    convert (hη _ _ (f.ae_strongly_measurable.sub (h2P g Pg))
+          (f'.ae_strongly_measurable.sub (h2P g' Pg')) hg hg').le,
+    abel }
 end
 
 section integrable

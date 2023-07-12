@@ -10,6 +10,9 @@ import topology.metric_space.completion
 /-!
 # Completion of a normed group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the completion of a (semi)normed group is a normed group.
 
 ## Tags

@@ -17,6 +17,9 @@ import tactic.abel
 /-!
 # Algebras over commutative semirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define associative unital `algebra`s over commutative (semi)rings, algebra
 homomorphisms `alg_hom`, and algebra equivalences `alg_equiv`.
 
@@ -603,12 +606,6 @@ by rw [←algebra.commutes, ←algebra.commutes, map_algebra_map_mul]
 
 end linear_map
 
-
-@[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
-  @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
-by rw [algebra.smul_def, mul_one, eq_rat_cast]
-
-
 section nat
 
 variables {R : Type*} [semiring R]
@@ -782,6 +779,11 @@ instance is_scalar_tower.to_smul_comm_class : smul_comm_class R A M :=
 @[priority 100] -- see Note [lower instance priority]
 instance is_scalar_tower.to_smul_comm_class' : smul_comm_class A R M :=
 smul_comm_class.symm _ _ _
+
+@[priority 200] -- see Note [lower instance priority]
+instance algebra.to_smul_comm_class {R A} [comm_semiring R] [semiring A] [algebra R A] :
+  smul_comm_class R A A :=
+is_scalar_tower.to_smul_comm_class
 
 lemma smul_algebra_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
 smul_comm _ _ _

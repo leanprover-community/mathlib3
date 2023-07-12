@@ -8,6 +8,9 @@ import category_theory.bicategory.functor
 /-!
 # Oplax natural transformations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Just as there are natural transformations between functors, there are oplax natural transformations
 between oplax functors. The equality in the naturality of natural transformations is replaced by a
 specified 2-morphism `F.map f ≫ app b ⟶ app a ≫ G.map f` in the case of oplax natural

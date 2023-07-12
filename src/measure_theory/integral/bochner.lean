@@ -8,6 +8,9 @@ import measure_theory.integral.set_to_l1
 /-!
 # Bochner integral
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Bochner integral extends the definition of the Lebesgue integral to functions that map from a
 measure space into a Banach space (complete normed vector space). It is constructed here by
 extending the integral on simple functions.
@@ -138,6 +141,8 @@ Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if the font is mi
 Bochner integral, simple function, function space, Lebesgue dominated convergence theorem
 
 -/
+
+assert_not_exists differentiable
 
 noncomputable theory
 open_locale topology big_operators nnreal ennreal measure_theory
@@ -633,24 +638,28 @@ end
 
 variables {α E}
 
+@[integral_simps]
 lemma integral_add (f g : α →₁[μ] E) : integral (f + g) = integral f + integral g :=
 begin
   simp only [integral],
   exact map_add integral_clm f g
 end
 
+@[integral_simps]
 lemma integral_neg (f : α →₁[μ] E) : integral (-f) = - integral f :=
 begin
   simp only [integral],
   exact map_neg integral_clm f
 end
 
+@[integral_simps]
 lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - integral g :=
 begin
   simp only [integral],
   exact map_sub integral_clm f g
 end
 
+@[integral_simps]
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
 begin
   simp only [integral],
@@ -792,6 +801,7 @@ begin
   exact set_to_fun_finset_sum (dominated_fin_meas_additive_weighted_smul _) s hf
 end
 
+@[integral_simps]
 lemma integral_neg (f : α → E) : ∫ a, -f a ∂μ = - ∫ a, f a ∂μ :=
 begin
   simp only [integral, L1.integral],
@@ -812,6 +822,7 @@ lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
 integral_sub hf hg
 
+@[integral_simps]
 lemma integral_smul (c : 𝕜) (f : α → E) :
   ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
 begin
@@ -1402,6 +1413,38 @@ theorem integral_sum_measure {ι} {m : measurable_space α} {f : α → E} {μ :
   ∫ a, f a ∂measure.sum μ = ∑' i, ∫ a, f a ∂μ i :=
 (has_sum_integral_measure hf).tsum_eq.symm
 
+lemma integral_tsum {ι} [countable ι] {f : ι → α → E} (hf : ∀ i, ae_strongly_measurable (f i) μ)
+  (hf' : ∑' i, ∫⁻ (a : α), ‖f i a‖₊ ∂μ ≠ ∞) :
+  ∫ (a : α), (∑' i, f i a) ∂μ = ∑' i, ∫ (a : α), f i a ∂μ :=
+begin
+  have hf'' : ∀ i, ae_measurable (λ x, (‖f i x‖₊ : ℝ≥0∞)) μ, from λ i, (hf i).ennnorm,
+  have hhh : ∀ᵐ (a : α) ∂μ, summable (λ n, (‖f n a‖₊ : ℝ)),
+  { rw ← lintegral_tsum hf'' at hf',
+    refine (ae_lt_top' (ae_measurable.ennreal_tsum hf'') hf').mono _,
+    intros x hx,
+    rw ← ennreal.tsum_coe_ne_top_iff_summable_coe,
+    exact hx.ne, },
+  convert (measure_theory.has_sum_integral_of_dominated_convergence (λ i a, ‖f i a‖₊) hf _
+    hhh ⟨_, _⟩ _).tsum_eq.symm,
+  { intros n,
+    filter_upwards with x,
+    refl, },
+  { simp_rw [← coe_nnnorm, ← nnreal.coe_tsum],
+    rw ae_strongly_measurable_iff_ae_measurable,
+    apply ae_measurable.coe_nnreal_real,
+    apply ae_measurable.nnreal_tsum,
+    exact λ i, (hf i).nnnorm.ae_measurable, },
+  { dsimp [has_finite_integral],
+    have : ∫⁻ a, ∑' n, ‖f n a‖₊ ∂μ < ⊤ := by rwa [lintegral_tsum hf'', lt_top_iff_ne_top],
+    convert this using 1,
+    apply lintegral_congr_ae,
+    simp_rw [← coe_nnnorm, ← nnreal.coe_tsum, nnreal.nnnorm_eq],
+    filter_upwards [hhh] with a ha,
+    exact ennreal.coe_tsum (nnreal.summable_coe.mp ha), },
+  { filter_upwards [hhh] with x hx,
+    exact (summable_of_summable_norm hx).has_sum, },
+end
+
 @[simp] lemma integral_smul_measure (f : α → E) (c : ℝ≥0∞) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin
@@ -1499,6 +1542,27 @@ end
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
+
+lemma set_integral_dirac' {mα : measurable_space α} {f : α → E} (hf : strongly_measurable f)
+  (a : α) {s : set α} (hs : measurable_set s) [decidable (a ∈ s)] :
+  ∫ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
+begin
+  rw [restrict_dirac' hs],
+  swap, { apply_instance, },
+  split_ifs,
+  { exact integral_dirac' _ _ hf, },
+  { exact integral_zero_measure _, },
+end
+
+lemma set_integral_dirac [measurable_space α] [measurable_singleton_class α] (f : α → E)
+  (a : α) (s : set α) [decidable (a ∈ s)] :
+  ∫ x in s, f x ∂(measure.dirac a) = if a ∈ s then f a else 0 :=
+begin
+  rw [restrict_dirac],
+  split_ifs,
+  { exact integral_dirac _ _, },
+  { exact integral_zero_measure _, },
+end
 
 lemma mul_meas_ge_le_integral_of_nonneg [is_finite_measure μ] {f : α → ℝ} (hf_nonneg : 0 ≤ f)
   (hf_int : integrable f μ) (ε : ℝ) :
@@ -1605,11 +1669,6 @@ begin
 end
 
 end properties
-
-mk_simp_attribute integral_simps "Simp set for integral rules."
-
-attribute [integral_simps] integral_neg integral_smul L1.integral_add L1.integral_sub
-  L1.integral_smul L1.integral_neg
 
 section integral_trim
 

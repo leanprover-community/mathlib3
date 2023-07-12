@@ -8,6 +8,9 @@ import measure_theory.measure.ae_disjoint
 /-!
 # Null measurable sets and complete measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 ### Null measurable sets and functions

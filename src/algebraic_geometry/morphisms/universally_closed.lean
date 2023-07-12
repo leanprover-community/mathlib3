@@ -9,6 +9,9 @@ import topology.local_at_target
 /-!
 # Universally closed morphism
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A morphism of schemes `f : X ⟶ Y` is universally closed if `X ×[Y] Y' ⟶ Y'` is a closed map
 for all base change `Y' ⟶ Y`.
 

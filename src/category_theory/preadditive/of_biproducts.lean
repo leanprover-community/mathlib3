@@ -9,6 +9,9 @@ import group_theory.eckmann_hilton
 /-!
 # Constructing a semiadditive structure from binary biproducts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that any category with zero morphisms and binary biproducts is enriched over the category
 of commutative monoids.
 

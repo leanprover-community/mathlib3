@@ -7,10 +7,14 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.algebra.basic
 import ring_theory.ideal.operations
 import ring_theory.jacobson_ideal
+import logic.equiv.transfer_instance
 
 /-!
 
 # Local rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Define local rings as commutative rings having a unique maximal ideal.
 
@@ -460,3 +464,14 @@ end field
 lemma local_ring.maximal_ideal_eq_bot {R : Type*} [field R] :
   local_ring.maximal_ideal R = ⊥ :=
 local_ring.is_field_iff_maximal_ideal_eq.mp (field.to_is_field R)
+
+namespace ring_equiv
+
+@[reducible] protected lemma local_ring {A B : Type*} [comm_semiring A] [local_ring A]
+  [comm_semiring B] (e : A ≃+* B) : local_ring B :=
+begin
+  haveI := e.symm.to_equiv.nontrivial,
+  exact local_ring.of_surjective (e : A →+* B) e.surjective
+end
+
+end ring_equiv

@@ -93,6 +93,11 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
+instance to_ordered_comm_monoid : ordered_comm_monoid α :=
+{ mul_le_mul_left := λ _ _, mul_le_mul_left',
+  .. ‹canonically_ordered_comm_semiring α› }
+
+@[priority 100] -- see Note [lower instance priority]
 instance to_ordered_comm_semiring : ordered_comm_semiring α :=
 { zero_le_one := zero_le _,
   mul_le_mul_of_nonneg_left := λ a b c h _, mul_le_mul_left' h _,

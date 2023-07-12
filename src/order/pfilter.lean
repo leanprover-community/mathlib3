@@ -8,6 +8,9 @@ import order.ideal
 /-!
 # Order filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 Throughout this file, `P` is at least a preorder, but some sections

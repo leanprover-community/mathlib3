@@ -113,6 +113,13 @@ lemma filter.has_basis.mem_separation_rel {ι : Sort*} {p : ι → Prop} {s : ι
   a ∈ 𝓢 α ↔ ∀ i, p i → a ∈ s i :=
 h.forall_mem_mem
 
+theorem separation_rel_iff_specializes {a b : α} : (a, b) ∈ 𝓢 α ↔ a ⤳ b :=
+by simp only [(𝓤 α).basis_sets.mem_separation_rel, id, mem_set_of_eq,
+  (nhds_basis_uniformity (𝓤 α).basis_sets).specializes_iff]
+
+theorem separation_rel_iff_inseparable {a b : α} : (a, b) ∈ 𝓢 α ↔ inseparable a b :=
+  separation_rel_iff_specializes.trans specializes_iff_inseparable
+
 /-- A uniform space is separated if its separation relation is trivial (each point
 is related only to itself). -/
 class separated_space (α : Type u) [uniform_space α] : Prop := (out : 𝓢 α = id_rel)
@@ -361,6 +368,9 @@ instance : uniform_space (separation_quotient α) := separation_setoid.uniform_s
 instance : separated_space (separation_quotient α) := uniform_space.separated_separation
 instance [inhabited α] : inhabited (separation_quotient α) :=
 quotient.inhabited (separation_setoid α)
+
+lemma mk_eq_mk {x y : α} : (⟦x⟧ : separation_quotient α) = ⟦y⟧ ↔ inseparable x y :=
+quotient.eq'.trans separation_rel_iff_inseparable
 
 /-- Factoring functions to a separated space through the separation quotient. -/
 def lift [separated_space β] (f : α → β) : (separation_quotient α → β) :=

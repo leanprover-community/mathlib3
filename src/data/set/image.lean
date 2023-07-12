@@ -50,7 +50,7 @@ variables {f : α → β} {g : β → γ}
 
 @[simp] theorem preimage_empty : f ⁻¹' ∅ = ∅ := rfl
 
-@[simp] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
+@[simp, mfld_simps] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
 
 lemma preimage_congr {f g : α → β} {s : set β} (h : ∀ (x : α), f x = g x) : f ⁻¹' s = g ⁻¹' s :=
 by { congr' with x, apply_assumption }
@@ -58,11 +58,11 @@ by { congr' with x, apply_assumption }
 theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx
 
-@[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
+@[simp, mfld_simps] theorem preimage_univ : f ⁻¹' univ = univ := rfl
 
 theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
-@[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
+@[simp, mfld_simps] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
 
 @[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
 
@@ -80,7 +80,7 @@ rfl
 
 @[simp] lemma preimage_id_eq : preimage (id : α → α) = id := rfl
 
-theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+@[mfld_simps] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
 @[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
 
@@ -152,6 +152,7 @@ theorem mem_image_iff_bex {f : α → β} {s : set α} {y : β} :
 
 lemma image_eta (f : α → β) : f '' s = (λ x, f x) '' s := rfl
 
+@[mfld_simps]
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 ⟨_, h, rfl⟩
 
@@ -252,7 +253,8 @@ by { ext, simp [image, eq_comm] }
 ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
   λ h, (eq_of_mem_singleton h).symm ▸ hs.imp (λ y hy, ⟨hy, rfl⟩)⟩
 
-@[simp] lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
+@[simp, mfld_simps]
+lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
 by { simp only [eq_empty_iff_forall_not_mem],
      exact ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩ }
 
@@ -471,6 +473,29 @@ end
 
 end image
 
+/-! ### Lemmas about the powerset and image. -/
+
+/-- The powerset of `{a} ∪ s` is `𝒫 s` together with `{a} ∪ t` for each `t ∈ 𝒫 s`. -/
+theorem powerset_insert (s : set α) (a : α) :
+  𝒫 (insert a s) = 𝒫 s ∪ (insert a '' 𝒫 s) :=
+begin
+  ext t,
+  simp_rw [mem_union, mem_image, mem_powerset_iff],
+  split,
+  { intro h,
+    by_cases hs : a ∈ t,
+    { right,
+      refine ⟨t \ {a}, _, _⟩,
+      { rw [diff_singleton_subset_iff],
+        assumption },
+      { rw [insert_diff_singleton, insert_eq_of_mem hs] }},
+    { left,
+      exact (subset_insert_iff_of_not_mem hs).mp h}},
+  { rintros (h | ⟨s', h₁, rfl⟩),
+    { exact subset_trans h (subset_insert a s) },
+    { exact insert_subset_insert h₁ }}
+end
+
 /-! ### Lemmas about range of a function. -/
 section range
 variables {f : ι → α} {s t : set α}
@@ -483,7 +508,7 @@ def range (f : ι → α) : set α := {x | ∃y, f y = x}
 
 @[simp] theorem mem_range {x : α} : x ∈ range f ↔ ∃ y, f y = x := iff.rfl
 
-@[simp] theorem mem_range_self (i : ι) : f i ∈ range f := ⟨i, rfl⟩
+@[simp, mfld_simps] theorem mem_range_self (i : ι) : f i ∈ range f := ⟨i, rfl⟩
 
 theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
 by simp
@@ -626,7 +651,7 @@ theorem preimage_image_preimage {f : α → β} {s : set β} :
   f ⁻¹' (f '' (f ⁻¹' s)) = f ⁻¹' s :=
 by rw [image_preimage_eq_inter_range, preimage_inter_range]
 
-@[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
+@[simp, mfld_simps] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
 
 @[simp] theorem range_id' : range (λ (x : α), x) = univ := range_id
 

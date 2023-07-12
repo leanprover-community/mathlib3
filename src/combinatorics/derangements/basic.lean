@@ -11,6 +11,9 @@ import logic.equiv.option
 /-!
 # Derangements on types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `derangements α`, the set of derangements on a type `α`.
 
 We also define some equivalences involving various subtypes of `perm α` and `derangements α`:

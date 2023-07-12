@@ -10,6 +10,9 @@ import set_theory.ordinal.natural_ops
 /-!
 # Birthdays of games
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The birthday of a game is an ordinal that represents at which "step" the game was constructed. We
 define it recursively as the least ordinal larger than the birthdays of its left and right games. We
 prove the basic properties about these.

@@ -7,6 +7,9 @@ import model_theory.elementary_maps
 import category_theory.concrete_category.bundled
 /-!
 # Bundled First-Order Structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file bundles types together with their first-order structure.
 
 ## Main Definitions

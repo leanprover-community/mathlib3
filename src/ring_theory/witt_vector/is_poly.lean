@@ -11,6 +11,9 @@ import data.mv_polynomial.funext
 /-!
 # The `is_poly` predicate
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `witt_vector.is_poly` is a (type-valued) predicate on functions `f : Π R, 𝕎 R → 𝕎 R`.
 It asserts that there is a family of polynomials `φ : ℕ → mv_polynomial ℕ ℤ`,
 such that the `n`th coefficient of `f x` is equal to `φ n` evaluated on the coefficients of `x`.
@@ -96,9 +99,6 @@ end
 `ghost_simp` is used later in the development for certain simplifications.
 We define it here so it is a shared import.
 -/
-
-mk_simp_attribute ghost_simps
-"Simplification rules for ghost equations"
 
 namespace tactic
 namespace interactive

@@ -8,6 +8,9 @@ import category_theory.limits.has_limits
 
 /-!
 # Possession of filtered colimits
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes w' w v u

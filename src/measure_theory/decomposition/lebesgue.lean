@@ -12,6 +12,9 @@ import measure_theory.function.ae_eq_of_integral
 /-!
 # Lebesgue decomposition
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Lebesgue decomposition theorem. The Lebesgue decomposition theorem states that,
 given two σ-finite measures `μ` and `ν`, there exists a σ-finite measure `ξ` and a measurable
 function `f` such that `μ = ξ + fν` and `ξ` is mutually singular with respect to `ν`.
@@ -429,7 +432,7 @@ begin
     by_cases hb : 0 < νA,
     { suffices : ∀ b, 0 < b → μA ≤ b,
       { by_contra,
-        have h' := this (μA / 2) (nnreal.half_pos (zero_lt_iff.2 h)),
+        have h' := this (μA / 2) (half_pos (zero_lt_iff.2 h)),
         rw ← @not_not (μA ≤ μA / 2) at h',
         exact h' (not_le.2 (nnreal.half_lt_self h)) },
       intros c hc,

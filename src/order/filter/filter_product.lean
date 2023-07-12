@@ -9,6 +9,9 @@ import order.filter.germ
 /-!
 # Ultraproducts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `φ` is an ultrafilter, then the space of germs of functions `f : α → β` at `φ` is called
 the *ultraproduct*. In this file we prove properties of ultraproducts that rely on `φ` being an
 ultrafilter. Definitions and properties that work for any filter should go to `order.filter.germ`.

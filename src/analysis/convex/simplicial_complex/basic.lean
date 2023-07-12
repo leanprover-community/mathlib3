@@ -9,6 +9,9 @@ import linear_algebra.affine_space.independent
 /-!
 # Simplicial complexes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define simplicial complexes in `𝕜`-modules. A simplicial complex is a collection
 of simplices closed by inclusion (of vertices) and intersection (of underlying sets).
 

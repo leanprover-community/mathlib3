@@ -9,6 +9,9 @@ import ring_theory.noetherian
 /-!
 # Lie subalgebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Lie subalgebras of a Lie algebra and provides basic related definitions and
 results.
 

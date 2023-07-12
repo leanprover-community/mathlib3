@@ -223,6 +223,10 @@ attribute [mono] add_subset_add
 image2_inter_subset_left
 @[to_additive] lemma mul_inter_subset : s * (t₁ ∩ t₂) ⊆ s * t₁ ∩ (s * t₂) :=
 image2_inter_subset_right
+@[to_additive] lemma inter_mul_union_subset_union : s₁ ∩ s₂ * (t₁ ∪ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image2_inter_union_subset_union
+@[to_additive] lemma union_mul_inter_subset_union : (s₁ ∪ s₂) * (t₁ ∩ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image2_union_inter_subset_union
 
 @[to_additive] lemma Union_mul_left_image : (⋃ a ∈ s, ((*) a) '' t) = s * t := Union_image_left _
 @[to_additive] lemma Union_mul_right_image : (⋃ a ∈ t, (* a) '' s) = s * t := Union_image_right _
@@ -324,6 +328,10 @@ attribute [mono] sub_subset_sub
 image2_inter_subset_left
 @[to_additive] lemma div_inter_subset : s / (t₁ ∩ t₂) ⊆ s / t₁ ∩ (s / t₂) :=
 image2_inter_subset_right
+@[to_additive] lemma inter_div_union_subset_union : s₁ ∩ s₂ / (t₁ ∪ t₂) ⊆ (s₁ / t₁) ∪ (s₂ / t₂) :=
+image2_inter_union_subset_union
+@[to_additive] lemma union_div_inter_subset_union : (s₁ ∪ s₂) / (t₁ ∩ t₂) ⊆ (s₁ / t₁) ∪ (s₂ / t₂) :=
+image2_union_inter_subset_union
 
 @[to_additive] lemma Union_div_left_image : (⋃ a ∈ s, ((/) a) '' t) = s / t := Union_image_left _
 @[to_additive] lemma Union_div_right_image : (⋃ a ∈ t, (/ a) '' s) = s / t := Union_image_right _
@@ -389,11 +397,22 @@ protected def semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
+section comm_semigroup
+variables [comm_semigroup α] {s t : set α}
+
 /-- `set α` is a `comm_semigroup` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_comm_semigroup` under pointwise operations if `α` is."]
-protected def comm_semigroup [comm_semigroup α] : comm_semigroup (set α) :=
+protected def comm_semigroup : comm_semigroup (set α) :=
 { mul_comm := λ s t, image2_comm mul_comm
   ..set.semigroup }
+
+@[to_additive] lemma inter_mul_union_subset : (s ∩ t) * (s ∪ t) ⊆ s * t :=
+image2_inter_union_subset mul_comm
+
+@[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
+image2_union_inter_subset mul_comm
+
+end comm_semigroup
 
 section mul_one_class
 variables [mul_one_class α]
@@ -401,8 +420,8 @@ variables [mul_one_class α]
 /-- `set α` is a `mul_one_class` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_zero_class` under pointwise operations if `α` is."]
 protected def mul_one_class : mul_one_class (set α) :=
-{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
-  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
+{ mul_one := image2_right_identity mul_one,
+  one_mul := image2_left_identity one_mul,
   ..set.has_one, ..set.has_mul }
 
 localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup

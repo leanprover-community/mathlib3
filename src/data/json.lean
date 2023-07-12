@@ -8,6 +8,9 @@ import tactic.core
 /-!
 # Json serialization typeclass
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides helpers for serializing primitive types to json.
 
 `@[derive non_null_json_serializable]` will make any structure json serializable; for instance,

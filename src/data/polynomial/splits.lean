@@ -10,6 +10,9 @@ import data.polynomial.lifts
 /-!
 # Split polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A polynomial `f : K[X]` splits over a field extension `L` of `K` if it is zero or all of its
 irreducible factors over `L` have degree `1`.
 

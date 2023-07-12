@@ -11,7 +11,10 @@ import tactic.linear_combination
 /-!
 # Weierstrass equations of elliptic curves
 
-We give a working definition of an elliptic curve as a nonsingular Weierstrass curve given by a
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file defines the structure of an elliptic curve as a nonsingular Weierstrass curve given by a
 Weierstrass equation, which is mathematically accurate in many cases but also good for computation.
 
 ## Mathematical background
@@ -85,7 +88,7 @@ private meta def eval_simp : tactic unit :=
 
 private meta def C_simp : tactic unit := `[simp only [C_0, C_1, C_neg, C_add, C_sub, C_mul, C_pow]]
 
-universes u v
+universes u v w
 
 variable {R : Type u}
 
@@ -180,11 +183,12 @@ by { dsimp, ring1 }
 
 end variable_change
 
+variables (A : Type v) [comm_ring A] [algebra R A] (B : Type w) [comm_ring B] [algebra R B]
+  [algebra A B] [is_scalar_tower R A B]
+
 section base_change
 
 /-! ### Base changes -/
-
-variables (A : Type v) [comm_ring A] [algebra R A]
 
 /-- The Weierstrass curve over `R` base changed to `A`. -/
 @[simps] def base_change : weierstrass_curve A :=
@@ -212,6 +216,11 @@ by { simp only [c₆, base_change_b₂, base_change_b₄, base_change_b₆], map
 
 @[simp, nolint simp_nf] lemma base_change_Δ : (W.base_change A).Δ = algebra_map R A W.Δ :=
 by { simp only [Δ, base_change_b₂, base_change_b₄, base_change_b₆, base_change_b₈], map_simp }
+
+lemma base_change_self : W.base_change R = W := by ext; refl
+
+lemma base_change_base_change : (W.base_change A).base_change B = W.base_change B :=
+by ext; exact (is_scalar_tower.algebra_map_apply R A B _).symm
 
 end base_change
 
@@ -251,7 +260,7 @@ section polynomial
 
 open polynomial
 
-open_locale polynomial
+open_locale polynomial polynomial_polynomial
 
 /-- The polynomial $W(X, Y) := Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ associated to a
 Weierstrass curve `W` over `R`. For ease of polynomial manipulation, this is represented as a term
@@ -321,6 +330,20 @@ begin
   ring1
 end
 
+lemma equation_iff_base_change [nontrivial A] [no_zero_smul_divisors R A] (x y : R) :
+  W.equation x y ↔ (W.base_change A).equation (algebra_map R A x) (algebra_map R A y) :=
+begin
+  simp only [equation_iff],
+  refine ⟨λ h, _, λ h, _⟩,
+  { convert congr_arg (algebra_map R A) h; { map_simp, refl } },
+  { apply no_zero_smul_divisors.algebra_map_injective R A, map_simp, exact h }
+end
+
+lemma equation_iff_base_change_of_base_change [nontrivial B] [no_zero_smul_divisors A B] (x y : A) :
+  (W.base_change A).equation x y
+    ↔ (W.base_change B).equation (algebra_map A B x) (algebra_map A B y) :=
+by rw [equation_iff_base_change (W.base_change A) B, base_change_base_change]
+
 /-! ### Nonsingularity of Weierstrass curves -/
 
 /-- The partial derivative $W_X(X, Y)$ of $W(X, Y)$ with respect to $X$.
@@ -376,6 +399,21 @@ begin
   congr' 4; ring1
 end
 
+lemma nonsingular_iff_base_change [nontrivial A] [no_zero_smul_divisors R A] (x y : R) :
+  W.nonsingular x y ↔ (W.base_change A).nonsingular (algebra_map R A x) (algebra_map R A y) :=
+begin
+  rw [nonsingular_iff, nonsingular_iff, and_congr $ W.equation_iff_base_change A x y],
+  refine ⟨or.imp (not_imp_not.mpr $ λ h, _) (not_imp_not.mpr $ λ h, _),
+    or.imp (not_imp_not.mpr $ λ h, _) (not_imp_not.mpr $ λ h, _)⟩,
+  any_goals { apply no_zero_smul_divisors.algebra_map_injective R A, map_simp, exact h },
+  any_goals { convert congr_arg (algebra_map R A) h; { map_simp, refl } }
+end
+
+lemma nonsingular_iff_base_change_of_base_change [nontrivial B] [no_zero_smul_divisors A B]
+  (x y : A) : (W.base_change A).nonsingular x y
+    ↔ (W.base_change B).nonsingular (algebra_map A B x) (algebra_map A B y) :=
+by rw [nonsingular_iff_base_change (W.base_change A) B, base_change_base_change]
+
 lemma nonsingular_zero_of_Δ_ne_zero (h : W.equation 0 0) (hΔ : W.Δ ≠ 0) : W.nonsingular 0 0 :=
 by { simp only [equation_zero, nonsingular_zero] at *, contrapose! hΔ, simp [h, hΔ] }
 
@@ -405,9 +443,11 @@ abbreviation function_field : Type u := fraction_ring W.coordinate_ring
 
 namespace coordinate_ring
 
+open ideal
+
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
-(ideal.quotient.is_domain_iff_prime _).mpr $
-by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
+(quotient.is_domain_iff_prime _).mpr $
+by simpa only [span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
    using W.irreducible_polynomial
 
 instance is_domain_of_field {F : Type u} [field F] (W : weierstrass_curve F) :
@@ -431,20 +471,35 @@ adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (X_sub_C_ne_zero y) $
   by { rw [nat_degree_polynomial, nat_degree_X_sub_C], norm_num1 }
 
 /-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
-@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {X_class W x}
+@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := span {X_class W x}
 
 /-- The ideal $\langle Y - y(X) \rangle$ of $R[W]$ for some $y(X) \in R[X]$. -/
-@[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {Y_class W y}
+@[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := span {Y_class W y}
+
+/-- The ideal $\langle X - x, Y - y(X) \rangle$ of $R[W]$ for some $x \in R$ and $y(X) \in R[X]$. -/
+@[simp] noncomputable def XY_ideal (x : R) (y : R[X]) : ideal W.coordinate_ring :=
+span {X_class W x, Y_class W y}
 
 /-! ### The coordinate ring as an `R[X]`-algebra -/
 
-noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
+noncomputable instance : algebra R[X] W.coordinate_ring := quotient.algebra R[X]
 
-noncomputable instance algebra' : algebra R W.coordinate_ring := ideal.quotient.algebra R
+noncomputable instance algebra' : algebra R W.coordinate_ring := quotient.algebra R
 
-instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_tower R R[X] _
+instance : is_scalar_tower R R[X] W.coordinate_ring := quotient.is_scalar_tower R R[X] _
 
 instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
+
+/-- The $R$-algebra isomorphism from $R[W] / \langle X - x, Y - y(X) \rangle$ to $R$ obtained by
+evaluation at $y(X)$ and at $x$ provided that $W(x, y(x)) = 0$. -/
+noncomputable def quotient_XY_ideal_equiv {x : R} {y : R[X]}
+  (h : (W.polynomial.eval y).eval x = 0) : (W.coordinate_ring ⧸ XY_ideal W x y) ≃ₐ[R] R :=
+(quotient_equiv_alg_of_eq R $
+  by simpa only [XY_ideal, X_class, Y_class, ← set.image_pair, ← map_span]).trans $
+  (double_quot.quot_quot_equiv_quot_of_leₐ R $ (span_singleton_le_iff_mem _).mpr $
+    mem_span_C_X_sub_C_X_sub_C_iff_eval_eval_eq_zero.mpr h).trans $
+    ((quotient_span_C_X_sub_C_alg_equiv (X - C x) y).restrict_scalars R).trans $
+      quotient_span_X_sub_C_alg_equiv x
 
 /-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
 
@@ -498,7 +553,7 @@ variable (W)
 lemma smul_basis_mul_C (p q : R[X]) :
   (p • 1 + q • adjoin_root.mk W.polynomial Y) * adjoin_root.mk W.polynomial (C y)
     = ((p * y) • 1 + (q * y) • adjoin_root.mk W.polynomial Y) :=
-by { simp only [smul, map_mul], ring1 }
+by { simp only [smul, _root_.map_mul], ring1 }
 
 lemma smul_basis_mul_Y (p q : R[X]) :
   (p • 1 + q • adjoin_root.mk W.polynomial Y) * adjoin_root.mk W.polynomial Y
@@ -508,7 +563,7 @@ begin
   have Y_sq : adjoin_root.mk W.polynomial Y ^ 2 = adjoin_root.mk W.polynomial
     (C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - C (C W.a₁ * X + C W.a₃) * Y) :=
   adjoin_root.mk_eq_mk.mpr ⟨1, by { simp only [weierstrass_curve.polynomial], ring1 }⟩,
-  simp only [smul, add_mul, mul_assoc, ← sq, Y_sq, map_sub, map_mul],
+  simp only [smul, add_mul, mul_assoc, ← sq, Y_sq, map_sub, _root_.map_mul],
   ring1
 end
 
@@ -529,7 +584,7 @@ end
 lemma coe_norm_smul_basis (p q : R[X]) :
   ↑(algebra.norm R[X] $ p • 1 + q • adjoin_root.mk W.polynomial Y)
     = adjoin_root.mk W.polynomial
-      ((C p + C q * X) * (C p + C q * (-X - C (C W.a₁ * X + C W.a₃)))) :=
+      ((C p + C q * X) * (C p + C q * (-Y - C (C W.a₁ * X + C W.a₃)))) :=
 adjoin_root.mk_eq_mk.mpr
   ⟨C q ^ 2, by { rw [norm_smul_basis, weierstrass_curve.polynomial], C_simp, ring1 }⟩
 

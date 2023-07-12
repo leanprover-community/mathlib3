@@ -9,6 +9,9 @@ import algebra.algebra.prod
 
 /-! ### Products of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines constructors for linear maps whose domains or codomains are products.
 
 It contains theorems relating these to each other, as well as to `submodule.prod`, `submodule.map`,

@@ -11,6 +11,9 @@ import topology.sets.opens
 /-!
 # The category of open sets in a topological space.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `to_Top : opens X ⥤ Top` and
 `map (f : X ⟶ Y) : opens Y ⥤ opens X`, given by taking preimages of open sets.
 

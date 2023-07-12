@@ -11,6 +11,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Divisibility over ℕ and ℤ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file collects results for the integers and natural numbers that use abstract algebra in
 their proofs or cases of ℕ and ℤ being examples of structures in abstract algebra.
 
@@ -148,7 +151,7 @@ lemma exists_unit_of_abs (a : ℤ) : ∃ (u : ℤ) (h : is_unit u), (int.nat_abs
 begin
   cases (nat_abs_eq a) with h,
   { use [1, is_unit_one], rw [← h, one_mul], },
-  { use [-1, is_unit_one.neg], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
+  { use [-1, is_unit_one.neg], rw [← neg_eq_iff_eq_neg.mpr h],
     simp only [neg_mul, one_mul] }
 end
 
@@ -355,8 +358,8 @@ namespace int
 lemma zmultiples_nat_abs (a : ℤ) :
   add_subgroup.zmultiples (a.nat_abs : ℤ) = add_subgroup.zmultiples a :=
 le_antisymm
-  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
-  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_le_of_mem (mem_zmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_le_of_mem (mem_zmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
 
 lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
 by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }

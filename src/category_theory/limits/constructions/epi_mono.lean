@@ -10,6 +10,9 @@ import category_theory.limits.preserves.shapes.pullbacks
 /-!
 # Relating monomorphisms and epimorphisms to limits and colimits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `F` preserves (resp. reflects) pullbacks, then it preserves (resp. reflects) monomorphisms.
 
 We also provide the dual version for epimorphisms.

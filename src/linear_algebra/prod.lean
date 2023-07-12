@@ -560,14 +560,10 @@ def prod_comm (R M N : Type*) [semiring R] [add_comm_monoid M] [add_comm_monoid 
   ..add_equiv.prod_comm }
 
 section
-
+variables (R M M₂ M₃ M₄)
 variables [semiring R]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
-variables {module_M : module R M} {module_M₂ : module R M₂}
-variables {module_M₃ : module R M₃} {module_M₄ : module R M₄}
-
-section
-variables (R M M₂ M₃ M₄)
+variables [module R M] [module R M₂] [module R M₃] [module R M₄]
 
 /-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
 @[simps apply]
@@ -584,6 +580,14 @@ def prod_prod_prod_comm : (M × M₂) × (M₃ × M₄) ≃ₗ[R] (M × M₃) ×
   (prod_prod_prod_comm R M M₂ M₃ M₄).to_add_equiv = add_equiv.prod_prod_prod_comm M M₃ M₂ M₄ := rfl
 
 end
+
+section
+
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables {module_M : module R M} {module_M₂ : module R M₂}
+variables {module_M₃ : module R M₃} {module_M₄ : module R M₄}
+
 
 variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 

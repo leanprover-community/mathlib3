@@ -368,6 +368,16 @@ lemma bounded_image (hf : lipschitz_with K f) {s : set α} (hs : metric.bounded 
 metric.bounded_iff_ediam_ne_top.2 $ ne_top_of_le_ne_top
   (ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top) (hf.ediam_image_le s)
 
+lemma bounded_image2 (f : α → β → γ) {K₁ K₂ : ℝ≥0}
+  (hf₁ : ∀ b, lipschitz_with K₁ (λ a, f a b)) (hf₂ : ∀ a, lipschitz_with K₂ (f a))
+  {s : set α} {t : set β} (hs : metric.bounded s) (ht : metric.bounded t) :
+  metric.bounded (set.image2 f s t) :=
+metric.bounded_iff_ediam_ne_top.2 $ ne_top_of_le_ne_top
+  (ennreal.add_ne_top.mpr ⟨
+    ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top,
+    ennreal.mul_ne_top ennreal.coe_ne_top ht.ediam_ne_top⟩)
+  (ediam_image2_le _ hf₁ hf₂ _ _)
+
 lemma diam_image_le (hf : lipschitz_with K f) (s : set α) (hs : metric.bounded s) :
   metric.diam (f '' s) ≤ K * metric.diam s :=
 metric.diam_le_of_forall_dist_le (mul_nonneg K.coe_nonneg metric.diam_nonneg) $

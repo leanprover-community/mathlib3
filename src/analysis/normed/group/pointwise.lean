@@ -25,6 +25,7 @@ variables {E : Type*}
 section seminormed_group
 variables [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
+-- note: we can't use `lipschitz_with.bounded_image2` here without adding `[isometric_smul E E]`
 @[to_additive] lemma metric.bounded.mul (hs : bounded s) (ht : bounded t) : bounded (s * t) :=
 begin
   obtain ⟨Rs, hRs⟩ : ∃ R, ∀ x ∈ s, ‖x‖ ≤ R := hs.exists_norm_le',
@@ -34,21 +35,9 @@ begin
   exact norm_mul_le_of_le (hRs x hx) (hRt y hy),
 end
 
-@[to_additive] lemma metric.bounded.of_mul [has_isometric_smul E E] (hst : bounded (s * t)) :
+@[to_additive] lemma metric.bounded.of_mul (hst : bounded (s * t)) :
   bounded s ∨ bounded t :=
-begin
-  contrapose! hst,
-  obtain ⟨a, ha⟩ : s.nonempty := nonempty_of_unbounded hst.1,
-  have : ¬bounded({a} * t),
-  { intro h,
-    apply hst.2,
-    rw singleton_mul at h,
-    replace h := (isometry_smul E a⁻¹).lipschitz.bounded_image h,
-    simpa [set.image_image] using h },
-  intro h,
-  apply this,
-  apply h.mono (mul_subset_mul (singleton_subset_iff.mpr ha) (subset.refl _)),
-end
+antilipschitz_with.bounded_of_image2_left _ (λ x, (isometry_mul_right x).antilipschitz) hst
 
 @[to_additive] lemma metric.bounded.inv : bounded s → bounded s⁻¹ :=
 by { simp_rw [bounded_iff_forall_norm_le', ←image_inv, ball_image_iff, norm_inv'], exact id }

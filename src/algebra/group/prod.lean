@@ -469,7 +469,8 @@ section
 variables (M N M' N')
 
 /-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
-@[to_additive prod_prod_prod_comm, simps apply]
+@[to_additive prod_prod_prod_comm "Four-way commutativity of `prod`.
+The name matches `mul_mul_mul_comm`", simps apply]
 def prod_prod_prod_comm : (M × N) × (M' × N') ≃* (M × M') × (N × N') :=
 { to_fun := λ mnmn, ((mnmn.1.1, mnmn.2.1), (mnmn.1.2, mnmn.2.2)),
   inv_fun := λ mmnn, ((mmnn.1.1, mmnn.2.1), (mmnn.1.2, mmnn.2.2)),

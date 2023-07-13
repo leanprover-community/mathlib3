@@ -27,32 +27,6 @@ variables {R : Type*} {M N : Type*}
 
 variables (R M)
 
--- https://github.com/leanprover-community/mathlib/pull/19235
-section to_move
-
-/-- Four-way commutativity of `prod`.
-
-The name matches `mul_mul_mul_comm`. -/
-@[simps]
-def equiv.prod_prod_prod_comm (α β γ δ) : (α × β) × (γ × δ) ≃ (α × γ) × (β × δ) :=
-{ to_fun := λ abcd, ((abcd.1.1, abcd.2.1), (abcd.1.2, abcd.2.2)),
-  inv_fun := λ acbd, ((acbd.1.1, acbd.2.1), (acbd.1.2, acbd.2.2)),
-  left_inv := λ ⟨⟨a, b⟩, ⟨c, d⟩⟩, rfl,
-  right_inv := λ ⟨⟨a, c⟩, ⟨b, d⟩⟩, rfl, }
-
-/-- `equiv.prod_prod_prod_comm` as an isomorphism of modules. -/
-@[simps]
-def linear_equiv.prod_prod_prod_comm (α β γ δ)
-  [semiring R]
-  [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ] [add_comm_monoid δ]
-  [module R α] [module R β] [module R γ] [module R δ] :
-  ((α × β) × (γ × δ)) ≃ₗ[R] ((α × γ) × (β × δ)) :=
-{ map_add' := λ x y, rfl,
-  map_smul' := λ c x, rfl,
-  ..equiv.prod_prod_prod_comm _ _ _ _ }
-
-end to_move
-
 namespace bilin_form
 
 section semiring

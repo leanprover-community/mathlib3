@@ -761,3 +761,41 @@ begin
 end
 
 end prod_lex
+
+section sigma_lex
+variables {rι : ι → ι → Prop} {rπ : Π i, π i → π i → Prop} {f : γ → ι} {g : Π i, γ → π i}
+  {s : set γ}
+
+/-- Stronger version of `psigma.lex_wf`. Instead of requiring `rπ on g` to be well-founded, we only
+require it to be well-founded on fibers of `f`.-/
+lemma well_founded.sigma_lex_of_well_founded_on_fiber (hι : well_founded (rι on f))
+  (hπ : ∀ i, (f ⁻¹' {i}).well_founded_on (rπ i on g i)) :
+  well_founded (sigma.lex rι rπ on λ c, ⟨f c, g (f c) c⟩) :=
+begin
+  refine ((psigma.lex_wf (well_founded_on_range.2 hι) $ λ a, hπ a).on_fun).mono (λ c c' h, _),
+  exact λ c, ⟨⟨_, c, rfl⟩, c, rfl⟩,
+  obtain h' | ⟨h', h''⟩ := sigma.lex_iff.1 h,
+  { exact psigma.lex.left _ _ h' },
+  { dsimp only [inv_image, (on)] at h' ⊢,
+    convert psigma.lex.right (⟨_, c', rfl⟩ : range f) _ using 1, swap,
+    { exact ⟨c, h'⟩ },
+    { exact psigma.subtype_ext (subtype.ext h') rfl },
+    { dsimp only [subtype.coe_mk] at *,
+      revert h',
+      generalize : f c = d,
+      rintro rfl _,
+      exact h'' } }
+end
+
+lemma set.well_founded_on.sigma_lex_of_well_founded_on_fiber (hι : s.well_founded_on (rι on f))
+  (hπ : ∀ i, (s ∩ f ⁻¹' {i}).well_founded_on (rπ i on g i)) :
+  s.well_founded_on (sigma.lex rι rπ on λ c, ⟨f c, g (f c) c⟩) :=
+begin
+  show well_founded (sigma.lex rι rπ on λ (c : s), ⟨f c, g (f c) c⟩),
+  refine @well_founded.sigma_lex_of_well_founded_on_fiber _ s _ _ rπ (λ c, f c) (λ i c, g _ c) hι
+    (λ i, subrelation.wf (λ b c h, _) (hπ i).on_fun),
+  exact λ x, ⟨x, x.1.2, x.2⟩,
+  assumption,
+end
+
+end sigma_lex

@@ -693,7 +693,7 @@ lemma has_fderiv_at_filter.is_O_sub_rev (hf : has_fderiv_at_filter f f' x L) {C}
   (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
 have (λ x', x' - x) =O[L] (λ x', f' (x' - x)),
   from is_O_iff.2 ⟨C, eventually_of_forall $ λ x',
-    add_monoid_hom_class.bound_of_antilipschitz f' hf' _⟩,
+    zero_hom_class.bound_of_antilipschitz f' hf' _⟩,
 (this.trans (hf.trans_is_O this).right_is_O_add).congr (λ _, rfl) (λ _, sub_add_cancel _ _)
 
 end continuous

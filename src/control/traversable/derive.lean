@@ -50,7 +50,7 @@ meta def map_constructor (c n : name) (f α β : expr)
 do g ← target,
    (_, args') ← mmap_accuml (λ (x : list expr) (y : bool × expr),
      if y.1 then pure (x.tail,x.head)
-     else prod.mk rec_call <$> map_field n g.app_fn f α β y.2) rec_call args₁,
+     else prod.mk x <$> map_field n g.app_fn f α β y.2) rec_call args₁,
    constr ← mk_const c,
    let r := constr.mk_app (args₀ ++ args'),
    return r

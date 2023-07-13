@@ -105,7 +105,7 @@ add_monoid_hom_class.antilipschitz_of_bound _ h
 
 lemma bound_of_antilipschitz (f : E →SL[σ] F) {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
   ‖x‖ ≤ K * ‖f x‖ :=
-add_monoid_hom_class.bound_of_antilipschitz _ h x
+zero_hom_class.bound_of_antilipschitz _ h x
 
 end continuous_linear_map
 

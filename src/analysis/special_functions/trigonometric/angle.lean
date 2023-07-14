@@ -11,6 +11,9 @@ import topology.instances.sign
 /-!
 # The type of angles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `real.angle` to be the quotient group `ℝ/2πℤ` and prove a few simple lemmas
 about trigonometric functions and angles.
 -/

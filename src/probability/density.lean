@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.radon_nikodym
-import measure_theory.measure.haar_of_basis
+import measure_theory.measure.haar.of_basis
 
 /-!
 # Probability density function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the probability density function of random variables, by which we mean
 measurable functions taking values in a Borel space. In particular, a measurable function `f`
@@ -338,7 +341,7 @@ begin
       simp [hnt] },
     rw [heq, set.inter_univ] at this,
     exact hns this },
-  exact set.indicator_ae_eq_zero hu.symm,
+  exact set.indicator_ae_eq_zero.1 hu.symm,
 end
 
 lemma pdf_to_real_ae_eq {m : measurable_space Ω}

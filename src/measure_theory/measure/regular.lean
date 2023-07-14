@@ -9,6 +9,9 @@ import measure_theory.constructions.borel_space.basic
 /-!
 # Regular measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A measure is `outer_regular` if the measure of any measurable set `A` is the infimum of `μ U` over
 all open sets `U` containing `A`.
 

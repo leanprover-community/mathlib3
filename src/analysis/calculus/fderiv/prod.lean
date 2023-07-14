@@ -9,6 +9,9 @@ import analysis.calculus.fderiv.comp
 /-!
 # Derivative of the cartesian product of functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For detailed documentation of the Fréchet derivative,
 see the module docstring of `analysis/calculus/fderiv/basic.lean`.
 
@@ -94,7 +97,7 @@ lemma differentiable_at.fderiv_prod
   fderiv 𝕜 (λx:E, (f₁ x, f₂ x)) x = (fderiv 𝕜 f₁ x).prod (fderiv 𝕜 f₂ x) :=
 (hf₁.has_fderiv_at.prod hf₂.has_fderiv_at).fderiv
 
-lemma differentiable_at.fderiv_within_prod
+lemma differentiable_within_at.fderiv_within_prod
   (hf₁ : differentiable_within_at 𝕜 f₁ s x) (hf₂ : differentiable_within_at 𝕜 f₂ s x)
   (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (λx:E, (f₁ x, f₂ x)) s x =

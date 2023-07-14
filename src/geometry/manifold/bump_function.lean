@@ -9,6 +9,9 @@ import geometry.manifold.cont_mdiff
 /-!
 # Smooth bump functions on a smooth manifold
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `smooth_bump_function I c` to be a bundled smooth "bump" function centered at
 `c`. It is a structure that consists of two real numbers `0 < r < R` with small enough `R`. We
 define a coercion to function for this type, and for `f : smooth_bump_function I c`, the function

@@ -7,10 +7,13 @@ import algebra.group.ext
 import category_theory.simple
 import category_theory.linear.basic
 import category_theory.endomorphism
-import algebra.algebra.spectrum
+import field_theory.is_alg_closed.spectrum
 
 /-!
 # Schur's lemma
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 We first prove the part of Schur's Lemma that holds in any preadditive category with kernels,
 that any nonzero morphism between simple objects
 is an isomorphism.

@@ -10,6 +10,9 @@ import ring_theory.localization.inv_submonoid
 
 # The meta properties of finite-type ring homomorphisms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main result is `ring_hom.finite_is_local`.
 
 -/

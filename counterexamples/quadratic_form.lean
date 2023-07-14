@@ -19,6 +19,8 @@ variables (F : Type*) [nontrivial F] [comm_ring F] [char_p F 2]
 
 open bilin_form
 
+namespace counterexample
+
 /-- The bilinear form we will use as a counterexample, over some field `F` of characteristic two. -/
 def B : bilin_form F (F × F) :=
 bilin_form.lin_mul_lin (linear_map.fst _ _ _) (linear_map.snd _ _ _)
@@ -51,3 +53,5 @@ begin
   rw [bilin_form.to_quadratic_form_zero, bilin_form.to_quadratic_form_eq_zero],
   exact is_alt_B F,
 end
+
+end counterexample

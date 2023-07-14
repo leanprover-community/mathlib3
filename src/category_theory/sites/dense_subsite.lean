@@ -10,6 +10,9 @@ import category_theory.adjunction.fully_faithful
 /-!
 # Dense subsites
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `cover_dense` functors into sites as functors such that there exists a covering sieve
 that factors through images of the functor for each object in `D`.
 

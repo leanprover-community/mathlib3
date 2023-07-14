@@ -5,10 +5,14 @@ Authors: David Loeffler
 -/
 import analysis.convolution
 import analysis.special_functions.trigonometric.euler_sine_prod
-import analysis.special_functions.gamma.basic
+import analysis.special_functions.gamma.bohr_mollerup
+import analysis.analytic.isolated_zeros
 
 /-!
 # The Beta function, and further properties of the Gamma function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the Beta integral, relate Beta and Gamma functions, and prove some
 refined properties of the Gamma function using these relations.
@@ -27,8 +31,11 @@ refined properties of the Gamma function using these relations.
   `n ↦ n ^ s * n! / (s * (s + 1) * ... * (s + n))` is `Γ(s)`.
 * `complex.Gamma_mul_Gamma_one_sub`: Euler's reflection formula
   `Gamma s * Gamma (1 - s) = π / sin π s`.
+* `complex.differentiable_one_div_Gamma`: the function `1 / Γ(s)` is differentiable everywhere.
+* `complex.Gamma_mul_Gamma_add_half`: Legendre's duplication formula
+  `Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * sqrt π`.
 * `real.Gamma_ne_zero`, `real.Gamma_seq_tendsto_Gamma`,
-  `real.Gamma_mul_Gamma_one_sub`: real versions of the above results.
+  `real.Gamma_mul_Gamma_one_sub`, `real.Gamma_mul_Gamma_add_half`: real versions of the above.
 -/
 
 noncomputable theory
@@ -475,6 +482,14 @@ begin
   { rintro ⟨m, rfl⟩, exact Gamma_neg_nat_eq_zero m },
 end
 
+/-- A weaker, but easier-to-apply, version of `complex.Gamma_ne_zero`. -/
+lemma Gamma_ne_zero_of_re_pos {s : ℂ} (hs : 0 < re s) : Gamma s ≠ 0 :=
+begin
+  refine Gamma_ne_zero (λ m, _),
+  contrapose! hs,
+  simpa only [hs, neg_re, ←of_real_nat_cast, of_real_re, neg_nonpos] using nat.cast_nonneg _,
+end
+
 end complex
 
 namespace real
@@ -507,3 +522,108 @@ end
 end real
 
 end gamma_reflection
+
+section inv_gamma
+open_locale real
+
+namespace complex
+/-! ## The reciprocal Gamma function
+
+We show that the reciprocal Gamma function `1 / Γ(s)` is entire. These lemmas show that (in this
+case at least) mathlib's conventions for division by zero do actually give a mathematically useful
+answer! (These results are useful in the theory of zeta and L-functions.) -/
+
+/-- A reformulation of the Gamma recurrence relation which is true for `s = 0` as well. -/
+lemma one_div_Gamma_eq_self_mul_one_div_Gamma_add_one (s : ℂ) :
+  (Gamma s)⁻¹ = s * (Gamma (s + 1))⁻¹ :=
+begin
+  rcases ne_or_eq s 0 with h | rfl,
+  { rw [Gamma_add_one s h, mul_inv, mul_inv_cancel_left₀ h] },
+  { rw [zero_add, Gamma_zero, inv_zero, zero_mul] }
+end
+
+/-- The reciprocal of the Gamma function is differentiable everywhere (including the points where
+Gamma itself is not). -/
+lemma differentiable_one_div_Gamma : differentiable ℂ (λ s : ℂ, (Gamma s)⁻¹) :=
+begin
+  suffices : ∀ (n : ℕ), ∀ (s : ℂ) (hs : -s.re < n), differentiable_at ℂ (λ u : ℂ, (Gamma u)⁻¹) s,
+    from λ s, let ⟨n, h⟩ := exists_nat_gt (-s.re) in this n s h,
+  intro n,
+  induction n with m hm,
+  { intros s hs,
+    rw [nat.cast_zero, neg_lt_zero] at hs,
+    suffices : ∀ (m : ℕ), s ≠ -↑m, from (differentiable_at_Gamma _ this).inv (Gamma_ne_zero this),
+    contrapose! hs,
+    rcases hs with ⟨m, rfl⟩,
+    simpa only [neg_re, ←of_real_nat_cast, of_real_re, neg_nonpos] using nat.cast_nonneg m },
+  { intros s hs,
+    rw funext one_div_Gamma_eq_self_mul_one_div_Gamma_add_one,
+    specialize hm (s + 1) (by rwa [add_re, one_re, neg_add', sub_lt_iff_lt_add, ←nat.cast_succ]),
+    refine differentiable_at_id.mul (hm.comp s _),
+    exact differentiable_at_id.add (differentiable_at_const _) }
+end
+
+end complex
+
+end inv_gamma
+
+section doubling
+/-!
+## The doubling formula for Gamma
+
+We prove the doubling formula for arbitrary real or complex arguments, by analytic continuation from
+the positive real case. (Knowing that `Γ⁻¹` is analytic everywhere makes this much simpler, since we
+do not have to do any special-case handling for the poles of `Γ`.)
+-/
+
+namespace complex
+
+theorem Gamma_mul_Gamma_add_half (s : ℂ) :
+  Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * ↑(real.sqrt π) :=
+begin
+  suffices : (λ z, (Gamma z)⁻¹ * (Gamma (z + 1 / 2))⁻¹) =
+    (λ z, (Gamma (2 * z))⁻¹  * 2 ^ (2 * z - 1) / ↑(real.sqrt π)),
+  { convert congr_arg has_inv.inv (congr_fun this s) using 1,
+    { rw [mul_inv, inv_inv, inv_inv] },
+    { rw [div_eq_mul_inv, mul_inv, mul_inv, inv_inv, inv_inv, ←cpow_neg, neg_sub] } },
+  have h1 : analytic_on ℂ (λ z : ℂ, (Gamma z)⁻¹ * (Gamma (z + 1 / 2))⁻¹) univ,
+  { refine differentiable_on.analytic_on _ is_open_univ,
+    refine (differentiable_one_div_Gamma.mul _).differentiable_on,
+    exact differentiable_one_div_Gamma.comp (differentiable_id.add (differentiable_const _)) },
+  have h2 : analytic_on ℂ (λ z, (Gamma (2 * z))⁻¹  * 2 ^ (2 * z - 1) / ↑(real.sqrt π)) univ,
+  { refine differentiable_on.analytic_on _ is_open_univ,
+    refine (differentiable.mul _ (differentiable_const _)).differentiable_on,
+    apply differentiable.mul,
+    { exact differentiable_one_div_Gamma.comp (differentiable_id'.const_mul _) },
+    { refine λ t, differentiable_at.const_cpow _ (or.inl two_ne_zero),
+      refine differentiable_at.sub_const (differentiable_at_id.const_mul _) _ } },
+  have h3 : tendsto (coe : ℝ → ℂ) (𝓝[≠] 1) (𝓝[≠] 1),
+  { rw tendsto_nhds_within_iff, split,
+    { exact tendsto_nhds_within_of_tendsto_nhds continuous_of_real.continuous_at },
+    { exact eventually_nhds_within_iff.mpr (eventually_of_forall $ λ t ht, of_real_ne_one.mpr ht)}},
+  refine analytic_on.eq_of_frequently_eq h1 h2 (h3.frequently _),
+  refine ((eventually.filter_mono nhds_within_le_nhds) _).frequently,
+  refine (eventually_gt_nhds zero_lt_one).mp (eventually_of_forall $ λ t ht, _),
+  rw [←mul_inv, Gamma_of_real, (by push_cast : (t : ℂ) + 1 / 2 = ↑(t + 1 / 2)), Gamma_of_real,
+    ←of_real_mul, Gamma_mul_Gamma_add_half_of_pos ht, of_real_mul, of_real_mul, ←Gamma_of_real,
+    mul_inv, mul_inv, (by push_cast : 2 * (t : ℂ) = ↑(2 * t)), Gamma_of_real,
+    of_real_cpow zero_le_two, of_real_bit0, of_real_one, ←cpow_neg, of_real_sub, of_real_one,
+    neg_sub, ←div_eq_mul_inv]
+end
+
+end complex
+
+namespace real
+open complex
+
+lemma Gamma_mul_Gamma_add_half (s : ℝ) :
+  Gamma s * Gamma (s + 1 / 2) = Gamma (2 * s) * 2 ^ (1 - 2 * s) * sqrt π :=
+begin
+  rw [←of_real_inj],
+  simpa only [←Gamma_of_real, of_real_cpow zero_le_two, of_real_mul, of_real_add, of_real_div,
+    of_real_bit0, of_real_one, of_real_sub] using complex.Gamma_mul_Gamma_add_half ↑s
+end
+
+end real
+
+end doubling

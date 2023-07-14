@@ -11,6 +11,9 @@ import order.category.Semilat
 /-!
 # The category of bounded lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `BddLat`, the category of bounded lattices.
 
 In literature, this is sometimes called `Lat`, the category of lattices, because being a lattice is

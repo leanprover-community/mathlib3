@@ -11,6 +11,9 @@ import measure_theory.function.conditional_expectation.basic
 
 # Probabilistic properties of the conditional expectation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some properties about the conditional expectation which does not belong in
 the main conditional expectation file.
 

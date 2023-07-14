@@ -10,6 +10,9 @@ import linear_algebra.dual
 /-!
 # Characters of Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A character of a Lie algebra `L` over a commutative ring `R` is a morphism of Lie algebras `L → R`,
 where `R` is regarded as a Lie algebra over itself via the ring commutator. For an Abelian Lie
 algebra (e.g., a Cartan subalgebra of a semisimple Lie algebra) a character is just a linear form.

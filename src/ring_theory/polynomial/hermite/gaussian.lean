@@ -3,13 +3,17 @@ Copyright (c) 2023 Luke Mantle. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Mantle, Jake Levinson
 -/
-
 import ring_theory.polynomial.hermite.basic
+import analysis.calculus.deriv.pow
+import analysis.calculus.deriv.add
 import analysis.special_functions.exp
 import analysis.special_functions.exp_deriv
 
 /-!
 # Hermite polynomials and Gaussians
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file shows that the Hermite polynomial `hermite n` is (up to sign) the
 polynomial factor occurring in the `n`th derivative of a gaussian.

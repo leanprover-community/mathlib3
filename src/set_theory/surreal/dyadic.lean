@@ -10,6 +10,9 @@ import ring_theory.localization.basic
 
 /-!
 # Dyadic numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Dyadic numbers are obtained by localizing ℤ away from 2. They are the initial object in the category
 of rings with no 2-torsion.
 

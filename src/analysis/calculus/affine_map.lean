@@ -9,6 +9,9 @@ import analysis.calculus.cont_diff
 /-!
 # Smooth affine maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results about smoothness of affine maps.
 
 ## Main definitions:

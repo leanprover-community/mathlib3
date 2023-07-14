@@ -10,6 +10,9 @@ import number_theory.function_field
 /-!
 # Class numbers of function fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the class number of a function field as the (finite) cardinality of
 the class group of its ring of integers. It also proves some elementary results
 on the class number.

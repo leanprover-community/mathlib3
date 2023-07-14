@@ -11,6 +11,9 @@ import algebra.category.Module.biproducts
 /-!
 # Structure of finitely generated modules over a PID
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main statements
 
 * `module.equiv_direct_sum_of_is_torsion` : A finitely generated torsion module over a PID is

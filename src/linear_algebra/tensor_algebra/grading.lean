@@ -9,6 +9,9 @@ import ring_theory.graded_algebra.basic
 /-!
 # Results about the grading structure of the tensor algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main result is `tensor_algebra.graded_algebra`, which says that the tensor algebra is a
 ℕ-graded algebra.
 -/

@@ -9,6 +9,9 @@ import analysis.special_functions.trigonometric.arctan_deriv
 /-!
 # Integration of specific interval integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains proofs of the integrals of various specific functions. This includes:
 * Integrals of simple functions, such as `id`, `pow`, `inv`, `exp`, `log`
 * Integrals of some trigonometric functions, such as `sin`, `cos`, `1 / (1 + x^2)`

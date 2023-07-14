@@ -462,8 +462,8 @@ show dist x x ≤ ε, by rw dist_self; assumption
 @[simp] lemma closed_ball_eq_empty : closed_ball x ε = ∅ ↔ ε < 0 :=
 by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 
-/-- Closed balls and spheres coincide only when the radius is non-positive -/
-@[simp] theorem closed_ball_eq_sphere_of_nonpos (hε : ε ≤ 0) : closed_ball x ε = sphere x ε :=
+/-- Closed balls and spheres coincide when the radius is non-positive -/
+theorem closed_ball_eq_sphere_of_nonpos (hε : ε ≤ 0) : closed_ball x ε = sphere x ε :=
 set.ext $ λ _, (hε.trans dist_nonneg).le_iff_eq
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=

@@ -128,6 +128,15 @@ lemma is_max_chain.bot_mem [has_le α] [order_bot α] (h : is_max_chain (≤) s)
 lemma is_max_chain.top_mem [has_le α] [order_top α] (h : is_max_chain (≤) s) : ⊤ ∈ s :=
 (h.2 (h.1.insert $ λ a _ _, or.inr le_top) $ subset_insert _ _).symm ▸ mem_insert _ _
 
+lemma is_max_chain.image {r : α → α → Prop} {s : β → β → Prop} (f : r ≃r s) {c : set α}
+  (hc : is_max_chain r c) :
+  is_max_chain s (f '' c) :=
+⟨hc.is_chain.image _ _ _ $ λ _ _, f.map_rel_iff.2, λ t ht hf,
+  (f.to_equiv.eq_preimage_iff_image_eq _ _).1 begin
+    rw preimage_equiv_eq_image_symm,
+    exact hc.2 (ht.image _ _ _ $ λ _ _, f.symm.map_rel_iff.2) ((f.to_equiv.subset_image' _ _).2 hf),
+  end⟩
+
 open_locale classical
 
 /-- Given a set `s`, if there exists a chain `t` strictly including `s`, then `succ_chain s`
@@ -283,13 +292,15 @@ lemma top_mem [order_top α] (s : flag α) : (⊤ : α) ∈ s := s.max_chain.top
 lemma bot_mem [order_bot α] (s : flag α) : (⊥ : α) ∈ s := s.max_chain.bot_mem
 
 /-- Reinterpret a maximal chain as a flag. -/
-@[simps] protected def _root_.is_max_chain.flag (hc : is_max_chain (≤) c) : flag α :=
-⟨c, hc.is_chain, hc.2⟩
+protected def _root_.is_max_chain.flag (hc : is_max_chain (≤) c) : flag α := ⟨c, hc.is_chain, hc.2⟩
+
+@[simp, norm_cast] lemma _root_.is_max_chain.coe_flag (hc : is_max_chain (≤) c) : ↑hc.flag = c :=
+rfl
 
 end has_le
 
 section preorder
-variables [preorder α] {s : flag α} {a b : α}
+variables [preorder α] [preorder β] {s : flag α} {a b : α}
 
 protected lemma le_or_le (s : flag α) (ha : a ∈ s) (hb : b ∈ s) : a ≤ b ∨ b ≤ a :=
 s.chain_le.total ha hb
@@ -302,6 +313,16 @@ instance [order_top α] (s : flag α) : order_top s := subtype.order_top s.top_m
 instance [order_bot α] (s : flag α) : order_bot s := subtype.order_bot s.bot_mem
 instance [bounded_order α] (s : flag α) : bounded_order s :=
 subtype.bounded_order s.bot_mem s.top_mem
+
+/-- Flags are preserved under order isomorphisms. -/
+def map (e : α ≃o β) : flag α ≃ flag β :=
+{ to_fun := λ s, (s.max_chain.image e).flag,
+  inv_fun := λ s, (s.max_chain.image e.symm).flag,
+  left_inv := λ s, ext $ e.symm_image_image s,
+  right_inv := λ s, ext $ e.image_symm_image s }
+
+@[simp, norm_cast] lemma coe_map (e : α ≃o β) (s : flag α) : ↑(map e s) = e '' s := rfl
+@[simp] lemma symm_map (e : α ≃o β) : (map e).symm = map e.symm := rfl
 
 end preorder
 

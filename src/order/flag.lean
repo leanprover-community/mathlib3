@@ -34,12 +34,7 @@ Order isomorphisms act on flags.
 section preorder
 variables [preorder α]
 
-instance : has_smul (α ≃o α) (flag α) :=
-⟨λ e s,
-  { carrier := e • s,
-    chain' := s.chain_le.image _ _ _ e.monotone,
-    max_chain' := λ t ht hst, (smul_eq_iff_eq_inv_smul _).2 $ s.max_chain.2
-      (ht.image _ _ _ e.symm.monotone) $ set.set_smul_subset_iff.1 hst }⟩
+instance : has_smul (α ≃o α) (flag α) := ⟨λ e, map e⟩
 
 @[simp, norm_cast] lemma coe_smul (e : α ≃o α) (s : flag α) : (↑(e • s) : set α) = e • s := rfl
 

@@ -45,4 +45,6 @@ instance apply_mul_action : mul_action (r ≃r r) α :=
 
 @[simp] lemma smul_def (f : r ≃r r) (a : α) : f • a = f a := rfl
 
+instance apply_has_faithful_smul : has_faithful_smul (r ≃r r) α := ⟨rel_iso.ext⟩
+
 end rel_iso

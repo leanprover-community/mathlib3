@@ -189,7 +189,7 @@ protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ 
 section map
 variables {r : α → β → Prop} {f : α → γ} {g : β → δ} {c : γ} {d : δ}
 
-@[simp] lemma map_apply : relation.map r f g c d ↔ ∃ a b, r a b ∧ f a = c ∧ g b = d := iff.rfl
+lemma map_apply : relation.map r f g c d ↔ ∃ a b, r a b ∧ f a = c ∧ g b = d := iff.rfl
 
 @[simp] lemma map_id_id (r : α → β → Prop) : relation.map r id id = r := by simp [relation.map]
 

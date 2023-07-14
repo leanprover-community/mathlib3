@@ -154,7 +154,9 @@ variables {m n : ℕ}
 /-- `G.clique_free n` means that `G` has no `n`-cliques. -/
 def clique_free (n : ℕ) : Prop := ∀ t, ¬ G.is_n_clique n t
 
-variables {G H}
+variables {G H} {s : finset α}
+
+lemma is_n_clique.not_clique_free (hG : G.is_n_clique n s) : ¬ G.clique_free n := λ h, h _ hG
 
 lemma not_clique_free_of_top_embedding {n : ℕ}
   (f : (⊤ : simple_graph (fin n)) ↪g G) : ¬ G.clique_free n :=
@@ -267,7 +269,7 @@ set.ext $ λ s, by simp [eq_comm]
 @[simp] lemma clique_set_bot (hn : 1 < n) : (⊥ : simple_graph α).clique_set n = ∅ :=
 (clique_free_bot hn).clique_set
 
-@[simp] lemma clique_set_map (hn : 1 < n) (G : simple_graph α) (f : α ↪ β) :
+@[simp] lemma clique_set_map (hn : n ≠ 1) (G : simple_graph α) (f : α ↪ β) :
   (G.map f).clique_set n = map f '' G.clique_set n :=
 begin
   ext s,
@@ -277,7 +279,7 @@ begin
     { classical,
       rw [map_eq_image, image_preimage, filter_true_of_mem],
       rintro a ha,
-      obtain ⟨b, hb, hba⟩ := exists_mem_ne hn a,
+      obtain ⟨b, hb, hba⟩ := exists_mem_ne (hn.lt_of_le' $ finset.card_pos.2 ⟨a, ha⟩) a,
       obtain ⟨c, _, _, hc, _⟩ := hs ha hb hba.symm,
       exact ⟨c, hc⟩ },
     refine ⟨s.preimage f $ f.injective.inj_on _, ⟨_, by rw [←card_map f, hs']⟩, hs'⟩,
@@ -287,7 +289,7 @@ begin
     exact is_n_clique.map hs }
 end
 
-@[simp] lemma clique_set_map' (G : simple_graph α) (e : α ≃ β) :
+@[simp] lemma clique_set_map_equiv (G : simple_graph α) (e : α ≃ β) :
   ∀ n, (G.map e.to_embedding).clique_set n = map e.to_embedding '' G.clique_set n
 | 0 := by simp_rw [clique_set_zero, set.image_singleton, map_empty]
 | 1 := by { ext, simp only [e.exists_congr_left, equiv.coe_eq_to_embedding, clique_set_one,
@@ -335,15 +337,15 @@ monotone_filter_right _ $ λ _, is_n_clique.mono h
 
 variables [fintype β] [decidable_eq β] (G)
 
-@[simp] lemma clique_finset_map (f : α ↪ β) (hn : 1 < n) :
+@[simp] lemma clique_finset_map (f : α ↪ β) (hn : n ≠ 1) :
   (G.map f).clique_finset n = (G.clique_finset n).map ⟨map f, finset.map_injective _⟩ :=
 coe_injective $
   by simp_rw [coe_clique_finset, clique_set_map hn, coe_map, coe_clique_finset, embedding.coe_fn_mk]
 
-@[simp] lemma clique_finset_map' (e : α ≃ β) (n : ℕ) :
+@[simp] lemma clique_finset_map_equiv (e : α ≃ β) (n : ℕ) :
   (G.map e.to_embedding).clique_finset n =
     (G.clique_finset n).map ⟨map e.to_embedding, finset.map_injective _⟩ :=
-coe_injective $ by simp_rw [coe_map, coe_clique_finset, embedding.coe_fn_mk, clique_set_map']
+coe_injective $ by simp_rw [coe_map, coe_clique_finset, embedding.coe_fn_mk, clique_set_map_equiv]
 
 end clique_finset
 end simple_graph

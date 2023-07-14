@@ -25,7 +25,7 @@ variables {E : Type*}
 section seminormed_group
 variables [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
--- note: we can't use `lipschitz_with.bounded_image2` here without adding `[isometric_smul E E]`
+-- note: we can't use `lipschitz_on_with.bounded_image2` here without adding `[isometric_smul E E]`
 @[to_additive] lemma metric.bounded.mul (hs : bounded s) (ht : bounded t) : bounded (s * t) :=
 begin
   obtain ⟨Rs, hRs⟩ : ∃ R, ∀ x ∈ s, ‖x‖ ≤ R := hs.exists_norm_le',
@@ -63,9 +63,9 @@ by rw [inf_edist_inv, inv_inv]
 
 @[to_additive] lemma ediam_mul_le (x y : set E) :
   emetric.diam (x * y) ≤ emetric.diam x + emetric.diam y :=
-(lipschitz_with.ediam_image2_le (*) _ _
-    (λ _ _, (isometry_mul_right _).lipschitz)
-    (λ _ _, (isometry_mul_left _).lipschitz) _ _).trans_eq $
+(lipschitz_on_with.ediam_image2_le (*) _ _
+    (λ _ _, (isometry_mul_right _).lipschitz.lipschitz_on_with _)
+    (λ _ _, (isometry_mul_left _).lipschitz.lipschitz_on_with _)).trans_eq $
   by simp only [ennreal.coe_one, one_mul]
 
 end emetric

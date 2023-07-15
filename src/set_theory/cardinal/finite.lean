@@ -54,7 +54,7 @@ lemma card_eq_of_equiv_fin {α : Type*} {n : ℕ}
   (f : α ≃ fin n) : nat.card α = n :=
 by simpa using card_congr f
 
-lemma card_mono  {s t : set α} (ht : t.finite) (h : s ⊆ t) : nat.card s ≤ nat.card t :=
+lemma card_mono {s t : set α} (ht : t.finite) (h : s ⊆ t) : nat.card s ≤ nat.card t :=
 to_nat_le_of_le_of_lt_aleph_0 ht.lt_aleph_0 $ mk_le_mk_of_subset h
 
 /-- If the cardinality is positive, that means it is a finite type, so there is

@@ -835,7 +835,7 @@ begin
   { calc #(α →₀ β) ≤ # (finset (α × β)) : mk_le_of_injective (finsupp.graph_injective α β)
     ... = #(α × β) : mk_finset_of_infinite _
     ... = max (lift.{v} (#α)) (lift.{u} (#β)) :
-      by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simp },
+      by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simp [*] },
   { apply max_le;
     rw [←lift_id (# (α →₀ β)), ←lift_umax],
     { cases exists_ne (0 : β) with b hb,
@@ -867,7 +867,7 @@ lemma mk_finsupp_nat (α : Type u) [nonempty α] : #(α →₀ ℕ) = max (#α) 
 @[simp] lemma mk_multiset_of_nonempty (α : Type u) [nonempty α] : #(multiset α) = max (#α) ℵ₀ :=
 multiset.to_finsupp.to_equiv.cardinal_eq.trans (mk_finsupp_nat α)
 
-lemma mk_multiset_of_infinite (α : Type u) [infinite α] : #(multiset α) = #α := by simp
+lemma mk_multiset_of_infinite (α : Type u) [infinite α] : #(multiset α) = #α := by simp [*]
 
 @[simp] lemma mk_multiset_of_is_empty (α : Type u) [is_empty α] : #(multiset α) = 1 :=
 multiset.to_finsupp.to_equiv.cardinal_eq.trans (by simp)

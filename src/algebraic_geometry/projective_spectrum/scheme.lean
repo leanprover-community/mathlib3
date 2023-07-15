@@ -10,6 +10,9 @@ import ring_theory.graded_algebra.radical
 /-!
 # Proj as a scheme
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is to prove that `Proj` is a scheme.
 
 ## Notation

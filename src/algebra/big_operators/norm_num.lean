@@ -9,6 +9,9 @@ import tactic.norm_num
 
 /-! ### `norm_num` plugin for big operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This `norm_num` plugin provides support for computing sums and products of
 lists, multisets and finsets.
 

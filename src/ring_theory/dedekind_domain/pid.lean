@@ -10,6 +10,9 @@ import ring_theory.dedekind_domain.ideal
 /-!
 # Proving a Dedekind domain is a PID
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some results that we can use to show all ideals in a Dedekind domain are
 principal.
 

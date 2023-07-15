@@ -17,6 +17,8 @@ with `multiset.to_dfinsupp` the reverse equivalence.
 Note that this provides a computable alternative to `finsupp.to_multiset`.
 -/
 
+open function
+
 variables {α : Type*} {β : α → Type*}
 
 namespace dfinsupp
@@ -38,7 +40,7 @@ dfinsupp.sum_add_hom_single _ _ _
 end dfinsupp
 
 namespace multiset
-variables [decidable_eq α]
+variables [decidable_eq α] {s t : multiset α}
 
 /-- A computable version of `multiset.to_finsupp` -/
 def to_dfinsupp : multiset α →+ Π₀ a : α, ℕ :=
@@ -78,12 +80,52 @@ add_monoid_hom.to_add_equiv
 @[simp] lemma to_dfinsupp_to_multiset (s : multiset α) : s.to_dfinsupp.to_multiset = s :=
 equiv_dfinsupp.symm_apply_apply s
 
-@[simp] lemma to_dfinsupp_le_to_dfinsupp (s t : multiset α) :
-  to_dfinsupp s ≤ to_dfinsupp t ↔ s ≤ t :=
+lemma to_dfinsupp_injective : injective (to_dfinsupp : multiset α → Π₀ a, ℕ) :=
+equiv_dfinsupp.injective
+
+@[simp] lemma to_dfinsupp_inj : to_dfinsupp s = to_dfinsupp t ↔ s = t :=
+to_dfinsupp_injective.eq_iff
+
+@[simp] lemma to_dfinsupp_le_to_dfinsupp : to_dfinsupp s ≤ to_dfinsupp t ↔ s ≤ t :=
 by simp [multiset.le_iff_count, dfinsupp.le_def]
+
+@[simp] lemma to_dfinsupp_lt_to_dfinsupp : to_dfinsupp s < to_dfinsupp t ↔ s < t :=
+lt_iff_lt_of_le_iff_le' to_dfinsupp_le_to_dfinsupp to_dfinsupp_le_to_dfinsupp
+
+@[simp] lemma to_dfinsupp_inter (s t : multiset α) :
+  to_dfinsupp (s ∩ t) = s.to_dfinsupp ⊓ t.to_dfinsupp :=
+by { ext i, simp [inf_eq_min] }
+
+@[simp] lemma to_dfinsupp_union (s t : multiset α) :
+  to_dfinsupp (s ∪ t) = s.to_dfinsupp ⊔ t.to_dfinsupp :=
+by { ext i, simp [sup_eq_max] }
 
 end multiset
 
-@[simp] lemma dfinsupp.to_multiset_to_dfinsupp [decidable_eq α] (f : Π₀ a : α, ℕ) :
-  f.to_multiset.to_dfinsupp = f :=
+namespace dfinsupp
+variables [decidable_eq α] {f g : Π₀ a : α, ℕ}
+
+@[simp] lemma to_multiset_to_dfinsupp : f.to_multiset.to_dfinsupp = f :=
 multiset.equiv_dfinsupp.apply_symm_apply f
+
+lemma to_multiset_injective : injective (to_multiset : (Π₀ a, ℕ) → multiset α) :=
+multiset.equiv_dfinsupp.symm.injective
+
+@[simp] lemma to_multiset_inj : to_multiset f = to_multiset g ↔ f = g :=
+to_multiset_injective.eq_iff
+
+@[simp] lemma to_multiset_le_to_multiset : to_multiset f ≤ to_multiset g ↔ f ≤ g :=
+by simp_rw [←multiset.to_dfinsupp_le_to_dfinsupp, to_multiset_to_dfinsupp]
+
+@[simp] lemma to_multiset_lt_to_multiset : to_multiset f < to_multiset g ↔ f < g :=
+by simp_rw [←multiset.to_dfinsupp_lt_to_dfinsupp, to_multiset_to_dfinsupp]
+
+variables (f g)
+
+@[simp] lemma to_multiset_inf : to_multiset (f ⊓ g) = f.to_multiset ∩ g.to_multiset :=
+multiset.to_dfinsupp_injective $ by simp
+
+@[simp] lemma to_multiset_sup : to_multiset (f ⊔ g) = f.to_multiset ∪ g.to_multiset :=
+multiset.to_dfinsupp_injective $ by simp
+
+end dfinsupp

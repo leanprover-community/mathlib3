@@ -12,6 +12,9 @@ import algebra.category.Ring.limits
 /-!
 # Ringed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the category of ringed spaces, as an alias for `SheafedSpace CommRing`.
 
 The facts collected in this file are typically stated for locally ringed spaces, but never actually

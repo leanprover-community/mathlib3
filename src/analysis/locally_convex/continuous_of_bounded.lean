@@ -9,6 +9,9 @@ import data.is_R_or_C.basic
 /-!
 # Continuity and Von Neumann boundedness
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files proves that for `E` and `F` two topological vector spaces over `ℝ` or `ℂ`,
 if `E` is first countable, then every locally bounded linear map `E →ₛₗ[σ] F` is continuous
 (this is `linear_map.continuous_of_locally_bounded`).

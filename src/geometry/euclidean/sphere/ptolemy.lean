@@ -9,6 +9,9 @@ import geometry.euclidean.triangle
 /-!
 # Ptolemy's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Ptolemy's theorem on the lengths of the diagonals and sides of a cyclic
 quadrilateral.
 

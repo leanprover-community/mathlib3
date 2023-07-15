@@ -11,6 +11,9 @@ import category_theory.subobject.limits
 /-!
 # Subobjects in the category of `R`-modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct an explicit order isomorphism between the categorical subobjects of an `R`-module `M`
 and its submodules. This immediately implies that the category of `R`-modules is well-powered.
 

@@ -7,10 +7,13 @@ import category_theory.monoidal.rigid.basic
 import category_theory.monoidal.subcategory
 import linear_algebra.coevaluation
 import linear_algebra.free_module.finite.matrix
-import algebra.category.Module.monoidal
+import algebra.category.Module.monoidal.closed
 
 /-!
 # The category of finitely generated modules over a ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This introduces `fgModule R`, the category of finitely generated modules over a ring `R`.
 It is implemented as a full subcategory on a subtype of `Module R`.

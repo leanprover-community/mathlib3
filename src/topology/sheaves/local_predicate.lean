@@ -11,6 +11,9 @@ import topology.sheaves.sheaf_condition.unique_gluing
 /-!
 # Functions satisfying a local predicate form a sheaf.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 At this stage, in `topology/sheaves/sheaf_of_functions.lean`
 we've proved that not-necessarily-continuous functions from a topological space
 into some type (or type family) form a sheaf.

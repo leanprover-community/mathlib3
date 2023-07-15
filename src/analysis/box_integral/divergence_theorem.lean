@@ -5,10 +5,16 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
 import analysis.box_integral.partition.additive
-import analysis.calculus.fderiv
+import analysis.calculus.fderiv.add
+import analysis.calculus.fderiv.mul
+import analysis.calculus.fderiv.equiv
+import analysis.calculus.fderiv.restrict_scalars
 
 /-!
 # Divergence integral for Henstock-Kurzweil integral
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the Divergence Theorem for a Henstock-Kurzweil style integral. The theorem
 says the following. Let `f : ℝⁿ → Eⁿ` be a function differentiable on a closed rectangular box

@@ -833,6 +833,13 @@ begin
   simp only [finset.mem_univ, if_true, pi.zero_apply, one_smul, finset.sum_ite_eq', zero_smul],
 end
 
+@[simp] lemma basis.equiv_fun_of_equiv_fun (e : M ≃ₗ[R] (ι → R)) :
+  (basis.of_equiv_fun e).equiv_fun = e :=
+begin
+  ext j,
+  simp_rw [basis.equiv_fun_apply, basis.of_equiv_fun_repr_apply],
+end
+
 variables (S : Type*) [semiring S] [module S M']
 variables [smul_comm_class R S M']
 

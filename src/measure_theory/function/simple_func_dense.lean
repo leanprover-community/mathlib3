@@ -8,6 +8,9 @@ import measure_theory.function.simple_func
 /-!
 # Density of simple functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that each Borel measurable function can be approximated pointwise
 by a sequence of simple functions.
 

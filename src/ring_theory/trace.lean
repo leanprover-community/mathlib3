@@ -18,6 +18,9 @@ import ring_theory.power_basis
 /-!
 # Trace for (finite) ring extensions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Suppose we have an `R`-algebra `S` with a finite basis. For each `s : S`,
 the trace of the linear map given by multiplying by `s` gives information about
 the roots of the minimal polynomial of `s` over `R`.

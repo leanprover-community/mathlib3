@@ -13,6 +13,9 @@ import linear_algebra.adic_completion
 /-!
 # Discrete valuation rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines discrete valuation rings (DVRs) and develops a basic interface
 for them.
 

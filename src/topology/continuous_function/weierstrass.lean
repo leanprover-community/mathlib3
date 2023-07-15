@@ -9,6 +9,9 @@ import topology.algebra.algebra
 /-!
 # The Weierstrass approximation theorem for continuous functions on `[a,b]`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We've already proved the Weierstrass approximation theorem
 in the sense that we've shown that the Bernstein approximations
 to a continuous function on `[0,1]` converge uniformly.

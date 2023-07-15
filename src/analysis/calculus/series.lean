@@ -10,6 +10,9 @@ import data.nat.cast.with_top
 /-!
 # Smoothness of series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that series of functions are continuous, or differentiable, or smooth, when each individual
 function in the series is and additionally suitable uniform summable bounds are satisfied.
 

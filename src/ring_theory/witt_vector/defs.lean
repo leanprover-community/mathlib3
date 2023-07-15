@@ -9,6 +9,9 @@ import ring_theory.witt_vector.structure_polynomial
 /-!
 # Witt vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the type of `p`-typical Witt vectors and ring operations on it.
 The ring axioms are verified in `ring_theory/witt_vector/basic.lean`.
 

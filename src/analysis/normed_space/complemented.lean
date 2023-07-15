@@ -9,6 +9,9 @@ import analysis.normed_space.finite_dimension
 /-!
 # Complemented subspaces of normed vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A submodule `p` of a topological module `E` over `R` is called *complemented* if there exists
 a continuous linear projection `f : E →ₗ[R] p`, `∀ x : p, f x = x`. We prove that for
 a closed subspace of a normed space this condition is equivalent to existence of a closed

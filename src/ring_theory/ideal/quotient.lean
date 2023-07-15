@@ -176,18 +176,29 @@ end
 
 open_locale classical
 
-/-- quotient by maximal ideal is a field. def rather than instance, since users will have
-computable inverses in some applications.
+/-- The quotient by a maximal ideal is a group with zero. This is a `def` rather than `instance`,
+since users will have computable inverses in some applications.
+
 See note [reducible non-instances]. -/
 @[reducible]
-protected noncomputable def field (I : ideal R) [hI : I.is_maximal] : field (R ⧸ I) :=
+protected noncomputable def group_with_zero (I : ideal R) [hI : I.is_maximal] :
+  group_with_zero (R ⧸ I) :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),
   mul_inv_cancel := λ a (ha : a ≠ 0), show a * dite _ _ _ = _,
     by rw dif_neg ha;
     exact classical.some_spec (exists_inv ha),
   inv_zero := dif_pos rfl,
-  ..quotient.comm_ring I,
+  ..(by apply_instance : monoid_with_zero (R ⧸ I)),
   ..quotient.is_domain I }
+
+/-- The quotient by a maximal ideal is a field. This is a `def` rather than `instance`, since users
+will have computable inverses (and `qsmul`, `rat_cast`) in some applications.
+
+See note [reducible non-instances]. -/
+@[reducible]
+protected noncomputable def field (I : ideal R) [hI : I.is_maximal] : field (R ⧸ I) :=
+{ ..quotient.comm_ring I,
+  ..quotient.group_with_zero I }
 
 /-- If the quotient by an ideal is a field, then the ideal is maximal. -/
 theorem maximal_of_is_field (I : ideal R)

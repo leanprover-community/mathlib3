@@ -11,6 +11,9 @@ import ring_theory.graded_algebra.basic
 /-!
 # Internal grading of an `add_monoid_algebra`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we show that an `add_monoid_algebra` has an internal direct sum structure.
 
 ## Main results

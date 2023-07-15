@@ -228,9 +228,14 @@ def quotient_map {α : Type*} {β : Type*} [tα : topological_space α] [tβ : t
   (f : α → β) : Prop :=
 surjective f ∧ tβ = tα.coinduced f
 
-lemma quotient_map_iff {α β : Type*} [topological_space α] [topological_space β] {f : α → β} :
+lemma quotient_map_iff [topological_space α] [topological_space β] {f : α → β} :
   quotient_map f ↔ surjective f ∧ ∀ s : set β, is_open s ↔ is_open (f ⁻¹' s) :=
 and_congr iff.rfl topological_space_eq_iff
+
+lemma quotient_map_iff_closed [topological_space α] [topological_space β] {f : α → β} :
+  quotient_map f ↔ surjective f ∧ ∀ s : set β, is_closed s ↔ is_closed (f ⁻¹' s) :=
+quotient_map_iff.trans $ iff.rfl.and $ compl_surjective.forall.trans $
+  by simp only [is_open_compl_iff, preimage_compl]
 
 namespace quotient_map
 
@@ -270,7 +275,7 @@ protected lemma is_open_preimage (hf : quotient_map f) {s : set β} :
 
 protected lemma is_closed_preimage (hf : quotient_map f) {s : set β} :
   is_closed (f ⁻¹' s) ↔ is_closed s :=
-by simp only [← is_open_compl_iff, ← preimage_compl, hf.is_open_preimage]
+((quotient_map_iff_closed.1 hf).2 s).symm
 
 end quotient_map
 
@@ -426,6 +431,11 @@ end
 
 lemma closed_range {f : α → β} (hf : is_closed_map f) : is_closed (range f) :=
 @image_univ _ _ f ▸ hf _ is_closed_univ
+
+lemma to_quotient_map {f : α → β} (hcl : is_closed_map f) (hcont : continuous f)
+  (hsurj : surjective f) : quotient_map f :=
+quotient_map_iff_closed.2
+  ⟨hsurj, λ s, ⟨λ hs, hs.preimage hcont, λ hs, hsurj.image_preimage s ▸ hcl _ hs⟩⟩
 
 end is_closed_map
 

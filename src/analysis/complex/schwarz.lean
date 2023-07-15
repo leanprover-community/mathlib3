@@ -9,6 +9,9 @@ import analysis.complex.removable_singularity
 /-!
 # Schwarz lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several versions of the Schwarz lemma.
 
 * `complex.norm_deriv_le_div_of_maps_to_ball`, `complex.abs_deriv_le_div_of_maps_to_ball`: if

@@ -12,6 +12,9 @@ import analysis.p_series
 /-!
 # Critical values of the Riemann zeta function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove formulae for the critical values of `ζ(s)`, and more generally of Hurwitz
 zeta functions, in terms of Bernoulli polynomials.
 

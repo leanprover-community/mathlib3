@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.special_functions.gamma
+import analysis.special_functions.gamma.basic
 import analysis.special_functions.polar_coord
 import analysis.convex.complex
 import analysis.complex.cauchy_integral
@@ -12,6 +12,9 @@ import analysis.fourier.poisson_summation
 
 /-!
 # Gaussian integral
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove various versions of the formula for the Gaussian integral:
 * `integral_gaussian`: for real `b` we have `∫ x:ℝ, exp (-b * x^2) = sqrt (π / b)`.

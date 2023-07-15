@@ -88,6 +88,7 @@ begin
   rw measure.map_apply (measurable_equiv.measurable _) hs,
   rw [(show ⇑(euclidean_space.measurable_equiv ι) = pi_Lp.continuous_linear_equiv _ ℝ _, from rfl)],
   dsimp [measure_space_of_inner_product_space, o, basis.orientation],
+  have := basis.det_reindex (pi_Lp.basis_fun 2 ℝ ι) _ ιe,
   simp_rw basis.det_reindex,
   sorry,
   sorry,

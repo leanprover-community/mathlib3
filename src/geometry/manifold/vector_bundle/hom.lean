@@ -8,6 +8,9 @@ import topology.vector_bundle.hom
 
 /-! # Homs of smooth vector bundles over the same base space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Here we show that `bundle.continuous_linear_map` is a smooth vector bundle.
 
 Note that we only do this for bundles of linear maps, not for bundles of arbitrary semilinear maps.

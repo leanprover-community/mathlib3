@@ -116,7 +116,10 @@ begin
   haveI hα' : nontrivial α,
   { rw ← fintype.one_lt_card_iff_nontrivial, rw hα, norm_num, },
   apply mul_right_injective₀ _,
-  rw [two_mul_card_alternating_group, fintype.card_perm, hα], norm_num, norm_num,
+  rw [two_mul_card_alternating_group, fintype.card_perm, hα], norm_num,
+  apply_instance,
+  apply_instance,
+  norm_num,
 end
 
 lemma aux_dvd_lemma (r p : ℕ) (hp : p.prime) (h : r ∣ nat.factorial p )

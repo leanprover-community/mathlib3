@@ -10,6 +10,7 @@ import data.set.lattice
 import data.set.pointwise.smul
 import data.fintype.card
 import data.set.finite
+import set_theory.cardinal.finite
 
 /-! # Stuff to put somewhere in mathlib
 

@@ -3,10 +3,17 @@ Copyright (c) 2022 Antoine Chambert-Loir. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
-
 import set_theory.cardinal.finite
 import data.finite.card
 
+/-!
+
+# Finite cardinals and part_enat
+
+This file proves a few lemmas that are useful for handling finite cardinals
+via their `.to_part_enat` coercions, in particular `part_enat.card` of types.
+
+-/
 open_locale cardinal
 
 open part_enat cardinal
@@ -18,6 +25,7 @@ variable {α : Type u}
 
 namespace cardinal
 
+/-- Two finite cardinals are equal iff they are equal their to_nat are equal -/
 lemma to_nat_eq_iff_eq_of_lt_aleph_0 {c d : cardinal} (hc : c < ℵ₀) (hd : d < ℵ₀) :
   c.to_nat = d.to_nat ↔ c = d :=
 by rw [←nat_cast_inj, cast_to_nat_of_lt_aleph_0 hc, cast_to_nat_of_lt_aleph_0 hd]
@@ -49,7 +57,7 @@ card_congr equiv.ulift
 @[simp] lemma card_plift (α : Type*) : card (plift α) = card α :=
 card_congr equiv.plift
 
-lemma card_image_of_inj_on {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : set.inj_on f s) :
+lemma card_image_of_inj_on {α : Type u} {β : Type v} {f : α → β} {s : set α} (h : set.inj_on f s) :
   card (f '' s) = card s :=
 card_congr (equiv.set.image_of_inj_on f s h).symm
 
@@ -176,7 +184,7 @@ begin
   simp only [nat.cast_one]
 end
 
-lemma of_finite (α : Type*) [finite α] : card α = nat.card α :=
+lemma card_of_finite (α : Type*) [finite α] : card α = nat.card α :=
 begin
   unfold part_enat.card,
   apply symm,
@@ -184,14 +192,14 @@ begin
   exact finite.cast_card_eq_mk ,
 end
 
-lemma of_fintype (α : Type*) [fintype α] : card α = fintype.card α :=
+-- Necessary ?
+lemma card_of_fintype (α : Type*) [fintype α] : card α = fintype.card α :=
 begin
-  unfold part_enat.card,
-  rw cardinal.mk_fintype,
-  simp only [cardinal.to_part_enat_cast]
+  rw card_of_finite,
+  simp only [nat.card_eq_fintype_card],
 end
 
-def is_finite_of_card (α : Type*) {n : ℕ} (hα : part_enat.card α = n) :
+lemma is_finite_of_card {α : Type*} {n : ℕ} (hα : part_enat.card α = n) :
   finite α :=
 begin
   apply or.resolve_right (finite_or_infinite α),
@@ -201,14 +209,14 @@ begin
   exact part_enat.card_eq_top_of_infinite,
 end
 
+/- Probably unnecessary
+
 noncomputable def is_fintype_of_card (α : Type) {n : ℕ} (hα : part_enat.card α = n) :
   fintype α :=
 begin
-  cases (fintype_or_infinite α) with h h; resetI,
-  exact h,
-  rw part_enat.card_eq_top_of_infinite at hα,
-  exfalso, apply part_enat.coe_ne_top n, rw hα,
-end
+  letI := is_finite_of_card α hα,
+  exact fintype.of_finite α,
+end -/
 
 end part_enat
 

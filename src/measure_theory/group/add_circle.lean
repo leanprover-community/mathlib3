@@ -9,6 +9,9 @@ import data.zmod.quotient
 /-!
 # Measure-theoretic results about the additive circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The file is a place to collect measure-theoretic results about the additive circle.
 
 ## Main definitions:

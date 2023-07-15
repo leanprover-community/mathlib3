@@ -8,6 +8,9 @@ import topology.sheaves.sheaf_condition.sites
 /-!
 # Presheaves on punit
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Presheaves on punit satisfy sheaf condition iff its value at empty set is a terminal object.
 -/
 

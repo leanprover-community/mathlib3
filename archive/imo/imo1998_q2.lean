@@ -38,6 +38,11 @@ Rearranging gives the result.
 -/
 
 open_locale classical
+
+variables {C J : Type*} (r : C → J → Prop)
+
+namespace imo1998_q2
+
 noncomputable theory
 
 /-- An ordered pair of judges. -/
@@ -45,8 +50,6 @@ abbreviation judge_pair (J : Type*) := J × J
 
 /-- A triple consisting of contestant together with an ordered pair of judges. -/
 abbreviation agreed_triple (C J : Type*) := C × (judge_pair J)
-
-variables {C J : Type*} (r : C → J → Prop)
 
 /-- The first judge from an ordered pair of judges. -/
 abbreviation judge_pair.judge₁ : judge_pair J → J := prod.fst
@@ -193,6 +196,10 @@ end
 lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (b - 1 : ℚ) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
 by rw div_le_div_iff; norm_cast; simp [ha, hb]
+
+end imo1998_q2
+
+open imo1998_q2
 
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)

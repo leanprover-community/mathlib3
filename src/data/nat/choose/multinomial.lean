@@ -15,6 +15,9 @@ import data.finsupp.multiset
 /-!
 # Multinomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the multinomial coefficient and several small lemma's for manipulating it.
 
 ## Main declarations

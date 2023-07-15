@@ -1,5 +1,6 @@
 # this script is only intended to be run by CI
 import sys
+import os
 from pathlib import Path
 
 from mathlibtools.file_status import PortStatus, FileStatus
@@ -18,11 +19,15 @@ def fname_for(import_path: str) -> Path:
 
 if __name__ == '__main__':
     files = [Path(f) for f in sys.argv[1:]]
+    modifies_ported = False
     for iname, f_status in status.file_statuses.items():
         if f_status.ported:
             fname = fname_for(iname)
             if fname in files:
+                modifies_ported = True
                 msg = ("Changes to this file will need to be ported to mathlib 4!\n"
                     "Please consider retracting the changes to this file unless you are willing "
                     "to immediately forward-port them." )
                 print(f"::warning file={fname},line=1,col=1::{encode_msg_text_for_github(msg)}")
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        print(f'modifies_ported={modifies_ported}', file=fh)

@@ -9,6 +9,9 @@ import measure_theory.function.locally_integrable
 /-!
 # Integrals against peak functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A sequence of peak functions is a sequence of functions with average one concentrating around
 a point `x₀`. Given such a sequence `φₙ`, then `∫ φₙ g` tends to `g x₀` in many situations, with
 a whole zoo of possible assumptions on `φₙ` and `g`. This file is devoted to such results.
@@ -58,7 +61,7 @@ begin
   filter_upwards [tendsto_uniformly_on_iff.1 (hlφ u u_open x₀u) 1 zero_lt_one, hiφ]
     with i hi h'i,
   have A : integrable_on (λ x, φ i x • g x) (s \ u) μ,
-  { apply integrable.smul_of_top_right (hmg.mono (diff_subset _ _) le_rfl),
+  { refine integrable.smul_of_top_right (hmg.mono (diff_subset _ _) le_rfl) _,
     apply mem_ℒp_top_of_bound
       ((integrable_of_integral_eq_one h'i).ae_strongly_measurable.mono_set ((diff_subset _ _))) 1,
     filter_upwards [self_mem_ae_restrict (hs.diff u_open.measurable_set)] with x hx,

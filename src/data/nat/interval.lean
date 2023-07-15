@@ -65,6 +65,8 @@ lemma Icc_eq_range' : Icc a b = ⟨list.range' a (b + 1 - a), list.nodup_range' 
 lemma Ico_eq_range' : Ico a b = ⟨list.range' a (b - a), list.nodup_range' _ _⟩ := rfl
 lemma Ioc_eq_range' : Ioc a b = ⟨list.range' (a + 1) (b - a), list.nodup_range' _ _⟩ := rfl
 lemma Ioo_eq_range' : Ioo a b = ⟨list.range' (a + 1) (b - a - 1), list.nodup_range' _ _⟩ := rfl
+lemma uIcc_eq_range' :
+  uIcc a b = ⟨list.range' (min a b) (max a b + 1 - min a b), list.nodup_range' _ _⟩ := rfl
 
 lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
@@ -76,6 +78,18 @@ lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 @[simp] lemma card_Ico : (Ico a b).card = b - a := list.length_range' _ _
 @[simp] lemma card_Ioc : (Ioc a b).card = b - a := list.length_range' _ _
 @[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 := list.length_range' _ _
+
+@[simp] lemma card_uIcc : (uIcc a b).card = (b - a : ℤ).nat_abs + 1 :=
+begin
+  refine (card_Icc _ _).trans (int.coe_nat_inj _),
+  rw [sup_eq_max, inf_eq_min, int.coe_nat_sub],
+  { rw [add_comm, int.coe_nat_add, add_sub_assoc],
+    norm_cast,
+    push_cast,
+    rw [max_sub_min_eq_abs, add_comm] },
+  { exact min_le_max.trans le_self_add }
+end
+
 @[simp] lemma card_Iic : (Iic b).card = b + 1 :=
 by rw [Iic_eq_Icc, card_Icc, bot_eq_zero, tsub_zero]
 

@@ -7,9 +7,13 @@ Authors: Jakob von Raumer
 import category_theory.abelian.exact
 import category_theory.preadditive.injective
 import category_theory.preadditive.yoneda.limits
+import category_theory.preadditive.yoneda.injective
 
 /-!
 # Injective objects in abelian categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 * Objects in an abelian categories are injective if and only if the preadditive Yoneda functor
   on them preserves finite colimits.

@@ -354,11 +354,7 @@ subset_inter (image_subset_image $ inter_subset_left _ _) $
 lemma image_inter_of_inj_on [decidable_eq α] {f : α → β} (s t : finset α)
   (hf : set.inj_on f (s ∪ t)) :
   (s ∩ t).image f = s.image f ∩ t.image f :=
-(image_inter_subset _ _ _).antisymm $ λ x, begin
-  simp only [mem_inter, mem_image],
-  rintro ⟨⟨a, ha, rfl⟩, b, hb, h⟩,
-  exact ⟨a, ⟨ha, by rwa ←hf (or.inr hb) (or.inl ha) h⟩, rfl⟩,
-end
+coe_injective $ by { push_cast, exact set.image_inter_on (λ a ha b hb, hf (or.inr ha) $ or.inl hb) }
 
 lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : injective f) :
   (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
@@ -391,6 +387,14 @@ end
 @[simp] theorem image_eq_empty : s.image f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_image_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
+
+lemma image_sdiff [decidable_eq α] {f : α → β} (s t : finset α) (hf : injective f) :
+  (s \ t).image f = s.image f \ t.image f :=
+coe_injective $ by { push_cast, exact set.image_diff hf _ _ }
+
+lemma image_symm_diff [decidable_eq α] {f : α → β} (s t : finset α) (hf : injective f) :
+  (s ∆ t).image f = s.image f ∆ t.image f :=
+coe_injective $ by { push_cast, exact set.image_symm_diff hf _ _ }
 
 @[simp] lemma _root_.disjoint.of_image_finset
   {s t : finset α} {f : α → β} (h : disjoint (s.image f) (t.image f)) :

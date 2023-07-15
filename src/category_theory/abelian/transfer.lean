@@ -10,6 +10,9 @@ import category_theory.adjunction.limits
 /-!
 # Transferring "abelian-ness" across a functor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` is an additive category, `D` is an abelian category,
 we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
 `G` is left exact (that is, preserves finite limits),

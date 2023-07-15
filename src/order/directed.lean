@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import data.set.image
 import order.lattice
 import order.max
+import order.bounds.basic
 
 /-!
 # Directed indexed families and sets
@@ -22,6 +23,11 @@ directed iff each pair of elements has a shared upper bound.
 * `directed_on r s`: Predicate stating that the set `s` is `r`-directed.
 * `is_directed α r`: Prop-valued mixin stating that `α` is `r`-directed. Follows the style of the
   unbundled relation classes such as `is_total`.
+* `scott_continuous`: Predicate stating that a function between preorders preserves
+  `is_lub` on directed sets.
+
+## References
+* [Gierz et al, *A Compendium of Continuous Lattices*][GierzEtAl1980]
 -/
 
 open function
@@ -46,7 +52,7 @@ by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 
 alias directed_on_iff_directed ↔ directed_on.directed_coe _
 
-theorem directed_on_range {f : β → α} :
+theorem directed_on_range {f : ι → α} :
   directed r f ↔ directed_on r (set.range f) :=
 by simp_rw [directed, directed_on, set.forall_range_iff, set.exists_range_iff]
 
@@ -125,6 +131,10 @@ lemma directed_on_of_inf_mem [semilattice_inf α] {S : set α}
   (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊓ j ∈ S) : directed_on (≥) S :=
 λ a ha b hb, ⟨a ⊓ b, H ha hb, inf_le_left, inf_le_right⟩
 
+lemma is_total.directed [is_total α r] (f : ι → α) :
+  directed r f :=
+λ i j, or.cases_on (total_of r (f i) (f j)) (λ h, ⟨j, h, refl _⟩) (λ h, ⟨i, refl _, h⟩)
+
 /-- `is_directed α r` states that for any elements `a`, `b` there exists an element `c` such that
 `r a c` and `r b c`. -/
 class is_directed (α : Type*) (r : α → α → Prop) : Prop :=
@@ -144,7 +154,7 @@ lemma directed_on_univ_iff : directed_on r set.univ ↔ is_directed α r :=
 
 @[priority 100]  -- see Note [lower instance priority]
 instance is_total.to_is_directed [is_total α r] : is_directed α r :=
-⟨λ a b, or.cases_on (total_of r a b) (λ h, ⟨b, h, refl _⟩) (λ h, ⟨a, refl _, h⟩)⟩
+by rw ← directed_id_iff; exact is_total.directed _
 
 lemma is_directed_mono [is_directed α r] (h : ∀ ⦃a b⦄, r a b → s a b) : is_directed α s :=
 ⟨λ a b, let ⟨c, ha, hb⟩ := is_directed.directed a b in ⟨c, h ha, h hb⟩⟩
@@ -160,6 +170,37 @@ by assumption
 
 instance order_dual.is_directed_le [has_le α] [is_directed α (≥)] : is_directed αᵒᵈ (≤) :=
 by assumption
+
+section reflexive
+
+lemma directed_on.insert (h : reflexive r) (a : α) {s : set α} (hd : directed_on r s)
+  (ha : ∀ b ∈ s, ∃ c ∈ s, a ≼ c ∧ b ≼ c) : directed_on r (insert a s) :=
+begin
+  rintros x (rfl | hx) y (rfl | hy),
+  { exact ⟨y, set.mem_insert _ _, h _, h _⟩ },
+  { obtain ⟨w, hws, hwr⟩ := ha y hy,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
+  { obtain ⟨w, hws, hwr⟩ := ha x hx,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr.symm⟩ },
+  { obtain ⟨w, hws, hwr⟩ := hd x hx y hy,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
+end
+
+lemma directed_on_singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=
+λ x hx y hy, ⟨x, hx, h _, hx.symm ▸ hy.symm ▸ h _⟩
+
+lemma directed_on_pair (h : reflexive r) {a b : α} (hab : a ≼ b) :
+  directed_on r ({a, b} : set α) :=
+(directed_on_singleton h _).insert h _ $ λ c hc, ⟨c, hc, hc.symm ▸ hab, h _⟩
+
+lemma directed_on_pair' (h : reflexive r) {a b : α} (hab : a ≼ b) :
+  directed_on r ({b, a} : set α) :=
+begin
+  rw set.pair_comm,
+  apply directed_on_pair h hab,
+end
+
+end reflexive
 
 section preorder
 variables [preorder α] {a : α}
@@ -218,3 +259,42 @@ instance order_top.to_is_directed_le [has_le α] [order_top α] : is_directed α
 @[priority 100]  -- see Note [lower instance priority]
 instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (≥) :=
 ⟨λ a b, ⟨⊥, bot_le, bot_le⟩⟩
+
+section scott_continuous
+
+variables [preorder α] {a : α}
+
+/--
+A function between preorders is said to be Scott continuous if it preserves `is_lub` on directed
+sets. It can be shown that a function is Scott continuous if and only if it is continuous wrt the
+Scott topology.
+
+The dual notion
+
+```lean
+∀ ⦃d : set α⦄, d.nonempty → directed_on (≥) d → ∀ ⦃a⦄, is_glb d a → is_glb (f '' d) (f a)
+```
+
+does not appear to play a significant role in the literature, so is omitted here.
+-/
+def scott_continuous [preorder β] (f : α → β) : Prop :=
+∀ ⦃d : set α⦄, d.nonempty → directed_on (≤) d → ∀ ⦃a⦄, is_lub d a → is_lub (f '' d) (f a)
+
+protected lemma scott_continuous.monotone [preorder β] {f : α → β}
+  (h : scott_continuous f) :
+  monotone f :=
+begin
+  intros a b hab,
+  have e1 : is_lub (f '' {a, b}) (f b),
+  { apply h,
+    { exact set.insert_nonempty _ _ },
+    { exact directed_on_pair le_refl hab },
+    { rw [is_lub, upper_bounds_insert, upper_bounds_singleton,
+        set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)],
+      exact is_least_Ici } },
+  apply e1.1,
+  rw set.image_pair,
+  exact set.mem_insert _ _,
+end
+
+end scott_continuous

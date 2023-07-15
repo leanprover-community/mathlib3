@@ -3,13 +3,14 @@ Copyright (c) 2023 Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli
 -/
-import measure_theory.measure.lebesgue
-import analysis.calculus.monotone
 import data.set.function
 import analysis.bounded_variation
 import tactic.swap_var
 /-!
 # Constant speed
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the notion of constant (and unit) speed for a function `f : ℝ → E` with
 pseudo-emetric structure on `E` with respect to a set `s : set ℝ` and "speed" `l : ℝ≥0`, and shows

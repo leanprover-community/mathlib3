@@ -12,6 +12,9 @@ import field_theory.minpoly.field
 
 # Characteristic polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a finite and
 free `R`-module. The proof that `f.charpoly` is the characteristic polynomial of the matrix of `f`
 in any basis is in `linear_algebra/charpoly/to_matrix`.

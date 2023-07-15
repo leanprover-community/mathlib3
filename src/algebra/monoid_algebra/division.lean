@@ -9,6 +9,9 @@ import data.finsupp.order
 /-!
 # Division of `add_monoid_algebra` by monomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is most important for when `G = ℕ` (polynomials) or `G = σ →₀ ℕ` (multivariate
 polynomials).
 

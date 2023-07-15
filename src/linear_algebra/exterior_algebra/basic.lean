@@ -10,6 +10,9 @@ import linear_algebra.alternating
 /-!
 # Exterior Algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the exterior algebra of a module `M` over a commutative semiring `R`.
 
 ## Notation

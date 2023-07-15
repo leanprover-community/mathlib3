@@ -11,6 +11,9 @@ import category_theory.closed.cartesian
 /-!
 # Cartesian closure of Type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that `Type u₁` is cartesian closed, and `C ⥤ Type u₁` is cartesian closed for `C` a small
 category in `Type u₁`.
 Note this implies that the category of presheaves on a small category `C` is cartesian closed.

@@ -58,6 +58,20 @@ noncomputable instance {α : Type*} [has_Sup α] : has_Sup (with_bot α) :=
 noncomputable instance {α : Type*} [preorder α] [has_Inf α] : has_Inf (with_bot α) :=
 ⟨(@with_top.has_Sup αᵒᵈ _ _).Sup⟩
 
+lemma with_top.Sup_eq [preorder α] [has_Sup α] {s : set (with_top α)} (hs : ⊤ ∉ s)
+  (hs' : bdd_above (coe ⁻¹' s : set α)) : Sup s = ↑(Sup (coe ⁻¹' s) : α) :=
+(if_neg hs).trans $ if_pos hs'
+
+lemma with_top.Inf_eq [has_Inf α] {s : set (with_top α)} (hs : ¬ s ⊆ {⊤}) :
+  Inf s = ↑(Inf (coe ⁻¹' s) : α) := if_neg hs
+
+lemma with_bot.Inf_eq [preorder α] [has_Inf α] {s : set (with_bot α)} (hs : ⊥ ∉ s)
+  (hs' : bdd_below (coe ⁻¹' s : set α)) : Inf s = ↑(Inf (coe ⁻¹' s) : α) :=
+(if_neg hs).trans $ if_pos hs'
+
+lemma with_bot.Sup_eq [has_Sup α] {s : set (with_bot α)} (hs : ¬ s ⊆ {⊥}) :
+  Sup s = ↑(Sup (coe ⁻¹' s) : α) := if_neg hs
+
 @[simp]
 theorem with_top.cInf_empty {α : Type*} [has_Inf α] : Inf (∅ : set (with_top α)) = ⊤ :=
 if_pos $ set.empty_subset _

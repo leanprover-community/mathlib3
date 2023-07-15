@@ -10,6 +10,9 @@ import field_theory.subfield
 /-!
 # Completion of topological fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The goal of this file is to prove the main part of Proposition 7 of Bourbaki GT III 6.8 :
 
 The completion `hat K` of a Hausdorff topological field is a field if the image under

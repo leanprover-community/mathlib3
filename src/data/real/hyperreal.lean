@@ -8,6 +8,9 @@ import analysis.specific_limits.basic
 
 /-!
 # Construction of the hyperreal numbers as an ultraproduct of real sequences.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter filter.germ

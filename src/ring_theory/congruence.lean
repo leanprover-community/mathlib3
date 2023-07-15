@@ -247,6 +247,23 @@ function.surjective.comm_ring _ quotient.surjective_quotient_mk'
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl) (λ _, rfl)
 
+instance is_scalar_tower_right [has_add R] [mul_one_class R] [has_smul α R] [is_scalar_tower α R R]
+  (c : ring_con R) :
+  is_scalar_tower α c.quotient c.quotient :=
+{ smul_assoc := λ a, quotient.ind₂' $ by exact λ m₁ m₂,
+    congr_arg quotient.mk' $ smul_mul_assoc _ _ _ }
+
+instance smul_comm_class [has_add R] [mul_one_class R] [has_smul α R]
+  [is_scalar_tower α R R] [smul_comm_class α R R] (c : ring_con R) :
+  smul_comm_class α c.quotient c.quotient :=
+{ smul_comm := λ a, quotient.ind₂' $ by exact λ m₁ m₂,
+    congr_arg quotient.mk' $ (mul_smul_comm _ _ _).symm }
+
+instance smul_comm_class' [has_add R] [mul_one_class R] [has_smul α R]
+  [is_scalar_tower α R R] [smul_comm_class R α R] (c : ring_con R) :
+  smul_comm_class c.quotient α c.quotient :=
+by haveI := smul_comm_class.symm R α R; exact smul_comm_class.symm _ _ _
+
 instance [monoid α] [non_assoc_semiring R] [distrib_mul_action α R] [is_scalar_tower α R R]
   (c : ring_con R) :
   distrib_mul_action α c.quotient :=

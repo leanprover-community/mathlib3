@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
+import analysis.inner_product_space.basic
 import analysis.normed_space.dual
 import measure_theory.function.strongly_measurable.lp
 import measure_theory.integral.set_integral
 
 /-! # From equality of integrals to equality of functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides various statements of the general form "if two functions have the same integral
 on all sets, then they are equal almost everywhere".

@@ -9,6 +9,9 @@ import topology.quasi_separated
 /-!
 # Quasi-separated morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A morphism of schemes `f : X ⟶ Y` is quasi-separated if the diagonal morphism `X ⟶ X ×[Y] X` is
 quasi-compact.
 

@@ -14,6 +14,9 @@ import linear_algebra.dimension
 /-!
 # Isomorphism between `free_abelian_group X` and `X →₀ ℤ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we construct the canonical isomorphism between `free_abelian_group X` and `X →₀ ℤ`.
 We use this to transport the notion of `support` from `finsupp` to `free_abelian_group`.
 

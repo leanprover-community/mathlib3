@@ -16,6 +16,8 @@ theorem `not_forall_coeff_cyclotomic_neg_one_zero_one`. We prove this with the c
 
 open nat (proper_divisors) finset
 
+namespace counterexample
+
 section computation
 
 instance nat.fact_prime_five : fact (nat.prime 5) := ⟨by norm_num⟩
@@ -100,3 +102,5 @@ begin
   rw coeff_cyclotomic_105 at h,
   norm_num at h
 end
+
+end counterexample

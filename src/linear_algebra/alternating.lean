@@ -581,6 +581,12 @@ rfl
   (f + g).dom_dom_congr σ = f.dom_dom_congr σ + g.dom_dom_congr σ :=
 rfl
 
+@[simp] lemma dom_dom_congr_smul {S : Type*}
+  [monoid S] [distrib_mul_action S N] [smul_comm_class R S N](σ : ι ≃ ι') (c : S)
+  (f : alternating_map R M N ι) :
+  (c • f).dom_dom_congr σ = c • f.dom_dom_congr σ :=
+rfl
+
 /-- `alternating_map.dom_dom_congr` as an equivalence.
 
 This is declared separately because it does not work with dot notation. -/
@@ -592,6 +598,30 @@ def dom_dom_congr_equiv (σ : ι ≃ ι') :
   left_inv := λ f, by { ext, simp [function.comp] },
   right_inv := λ m, by { ext, simp [function.comp] },
   map_add' := dom_dom_congr_add σ }
+
+section dom_dom_lcongr
+variables (S : Type*) [semiring S] [module S N] [smul_comm_class R S N]
+
+/-- `alternating_map.dom_dom_congr` as a linear equivalence. -/
+@[simps apply symm_apply]
+def dom_dom_lcongr (σ : ι ≃ ι') : alternating_map R M N ι ≃ₗ[S] alternating_map R M N ι' :=
+{ to_fun := dom_dom_congr σ,
+  inv_fun := dom_dom_congr σ.symm,
+  left_inv := λ f, by { ext, simp [function.comp] },
+  right_inv := λ m, by { ext, simp [function.comp] },
+  map_add' := dom_dom_congr_add σ,
+  map_smul' := dom_dom_congr_smul σ }
+
+@[simp] lemma dom_dom_lcongr_refl :
+  (dom_dom_lcongr S (equiv.refl ι) : alternating_map R M N ι ≃ₗ[S] alternating_map R M N ι) =
+    linear_equiv.refl _ _ :=
+linear_equiv.ext dom_dom_congr_refl
+
+@[simp] lemma dom_dom_lcongr_to_add_equiv (σ : ι ≃ ι') :
+  (dom_dom_lcongr S σ : alternating_map R M N ι ≃ₗ[S] alternating_map R M N ι').to_add_equiv
+    = dom_dom_congr_equiv σ := rfl
+
+end dom_dom_lcongr
 
 /-- The results of applying `dom_dom_congr` to two maps are equal if and only if those maps are. -/
 @[simp] lemma dom_dom_congr_eq_iff (σ : ι ≃ ι') (f g : alternating_map R M N ι) :

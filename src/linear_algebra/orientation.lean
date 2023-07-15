@@ -43,7 +43,7 @@ section ordered_comm_semiring
 variables (R : Type*) [strict_ordered_comm_semiring R]
 variables (M : Type*) [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
-variables (ι : Type*)
+variables (ι ι' : Type*)
 
 /-- An orientation of a module, intended to be used when `ι` is a `fintype` with the same
 cardinality as a basis. -/
@@ -72,6 +72,27 @@ by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 
 @[simp] lemma orientation.map_symm (e : M ≃ₗ[R] N) :
   (orientation.map ι e).symm = orientation.map ι e.symm := rfl
+
+section reindex
+variables (R M) {ι ι'}
+
+/-- An equivalence between indices implies an equivalence between orientations. -/
+def orientation.reindex (e : ι ≃ ι') : orientation R M ι ≃ orientation R M ι' :=
+module.ray.map $ alternating_map.dom_dom_lcongr R e
+
+@[simp] lemma orientation.reindex_apply (e : ι ≃ ι') (v : alternating_map R M R ι)
+  (hv : v ≠ 0) :
+  orientation.reindex R M e (ray_of_ne_zero _ v hv) = ray_of_ne_zero _ (v.dom_dom_congr e)
+      (mt (v.dom_dom_congr_eq_zero_iff e).mp hv) := rfl
+
+@[simp] lemma orientation.reindex_refl :
+  (orientation.reindex R M $ equiv.refl ι) = equiv.refl _ :=
+by rw [orientation.reindex, alternating_map.dom_dom_congr_refl, module.ray.map_refl]
+
+@[simp] lemma orientation.reindex_symm (e : ι ≃ ι') :
+  (orientation.reindex R M e).symm = orientation.reindex R M e.symm := rfl
+
+end reindex
 
 /-- A module is canonically oriented with respect to an empty index type. -/
 @[priority 100] instance is_empty.oriented [nontrivial R] [is_empty ι] :

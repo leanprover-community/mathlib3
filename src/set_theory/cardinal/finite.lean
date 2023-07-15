@@ -120,4 +120,92 @@ lemma card_eq_coe_fintype_card [fintype α] : card α = fintype.card α := mk_to
 @[simp]
 lemma card_eq_top_of_infinite [infinite α] : card α = ⊤ := mk_to_part_enat_of_infinite
 
+lemma card_congr {α : Type*} {β : Type*} (f : α ≃ β) :
+  part_enat.card α = part_enat.card β :=
+cardinal.to_part_enat_congr f
+
+lemma card_ulift (α : Type*) : card (ulift α) = card α :=
+card_congr equiv.ulift
+
+@[simp] lemma card_plift (α : Type*) : card (plift α) = card α :=
+card_congr equiv.plift
+
+lemma card_image_of_inj_on {α : Type*} {β : Type*} {f : α → β} {s : set α} (h : set.inj_on f s) :
+  card (f '' s) = card s :=
+card_congr (equiv.set.image_of_inj_on f s h).symm
+
+lemma card_image_of_injective {α : Type*} {β : Type*}
+  (f : α → β) (s : set α) (h : function.injective f) :
+  card (f '' s) = card s :=
+card_image_of_inj_on (set.inj_on_of_injective h s)
+
+-- Should I keep the 6 following lemmas ?
+@[simp]
+lemma _root_.cardinal.coe_nat_le_to_part_enat_iff {n : ℕ} {c : cardinal} :
+  ↑n ≤ to_part_enat c ↔ ↑n ≤ c :=
+by rw [← to_part_enat_cast n, to_part_enat_le_iff_le_of_le_aleph_0 (le_of_lt (nat_lt_aleph_0 n))]
+
+@[simp]
+lemma _root_.cardinal.to_part_enat_le_coe_nat_iff {c : cardinal} {n : ℕ} :
+  to_part_enat c ≤ n ↔ c ≤ n :=
+by rw [← to_part_enat_cast n,
+ to_part_enat_le_iff_le_of_lt_aleph_0 (nat_lt_aleph_0 n)]
+
+@[simp]
+lemma _root_.cardinal.coe_nat_eq_to_part_enat_iff {n : ℕ} {c : cardinal} :
+  ↑n = to_part_enat c ↔ ↑n = c :=
+by rw [le_antisymm_iff, le_antisymm_iff,
+  cardinal.coe_nat_le_to_part_enat_iff,  cardinal.to_part_enat_le_coe_nat_iff]
+
+@[simp]
+lemma _root_.cardinal.to_part_enat_eq_coe_nat_iff {c : cardinal} {n : ℕ} :
+  to_part_enat c = n ↔ c = n:=
+by rw [eq_comm, cardinal.coe_nat_eq_to_part_enat_iff, eq_comm]
+
+@[simp]
+lemma _root_.cardinal.coe_nat_lt_coe_iff_lt {n : ℕ} {c : cardinal} :
+  ↑n < to_part_enat c ↔ ↑n < c :=
+by simp only [← not_le, cardinal.to_part_enat_le_coe_nat_iff]
+
+@[simp]
+lemma _root_.cardinal.lt_coe_nat_iff_lt {n : ℕ} {c : cardinal} :
+  to_part_enat c < n ↔ c < n :=
+by simp only [← not_le, cardinal.coe_nat_le_to_part_enat_iff]
+
+lemma card_eq_zero_iff_empty (α : Type*) : card α = 0 ↔ is_empty α :=
+begin
+  rw ← cardinal.mk_eq_zero_iff,
+  conv_rhs { rw ← nat.cast_zero },
+  rw ← cardinal.to_part_enat_eq_coe_nat_iff,
+  simp only [part_enat.card, nat.cast_zero]
+end
+
+lemma card_le_one_iff_subsingleton (α : Type*) : card α ≤ 1 ↔ subsingleton α :=
+begin
+  rw ← le_one_iff_subsingleton,
+  conv_rhs { rw ← nat.cast_one},
+  rw ← cardinal.to_part_enat_le_coe_nat_iff,
+  simp only [part_enat.card, nat.cast_one]
+end
+
+lemma one_lt_card_iff_nontrivial (α : Type*) : 1 < card α ↔ nontrivial α :=
+begin
+  rw ← one_lt_iff_nontrivial,
+  conv_rhs { rw ← nat.cast_one},
+  rw ← cardinal.coe_nat_lt_coe_iff_lt,
+  simp only [part_enat.card, nat.cast_one]
+end
+
+lemma is_finite_of_card {α : Type*} {n : ℕ} (hα : part_enat.card α = n) :
+  finite α :=
+begin
+  apply or.resolve_right (finite_or_infinite α),
+  intro h, resetI,
+  apply part_enat.coe_ne_top n,
+  rw ← hα,
+  exact part_enat.card_eq_top_of_infinite,
+end
+
+
+
 end part_enat

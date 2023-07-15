@@ -8,6 +8,9 @@ import data.matrix.basic
 
 /-! # Extra lemmas about invertible matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many of the `invertible` lemmas are about `*`; this restates them to be about `⬝`.
 
 For lemmas about the matrix inverse in terms of the determinant and adjugate, see `matrix.has_inv`

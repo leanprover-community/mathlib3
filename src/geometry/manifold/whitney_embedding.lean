@@ -10,6 +10,9 @@ import geometry.manifold.partition_of_unity
 /-!
 # Whitney embedding theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a version of the Whitney embedding theorem: for any compact real manifold `M`,
 for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 

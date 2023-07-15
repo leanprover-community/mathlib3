@@ -10,6 +10,9 @@ import analysis.complex.upper_half_plane.topology
 
 /-! # Jacobi's theta function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the Jacobi theta function
 
 $$\theta(\tau) = \sum_{n \in \mathbb{Z}} \exp (i \pi n ^ 2 \tau),$$
@@ -19,9 +22,8 @@ and proves the modular transformation properties `θ (τ + 2) = θ τ` and
 show that `θ` is differentiable on `ℍ`, and `θ(τ) - 1` has exponential decay as `im τ → ∞`.
 -/
 
-open complex real asymptotics
-
-open_locale real big_operators upper_half_plane manifold
+open complex real asymptotics filter
+open_locale real big_operators upper_half_plane
 
 /-- Jacobi's theta function `∑' (n : ℤ), exp (π * I * n ^ 2 * τ)`. -/
 noncomputable def jacobi_theta (z : ℂ) : ℂ := ∑' (n : ℤ), cexp (π * I * n ^ 2 * z)
@@ -151,7 +153,7 @@ end
 
 /-- The norm of `jacobi_theta τ - 1` decays exponentially as `im τ → ∞`. -/
 lemma is_O_at_im_infty_jacobi_theta_sub_one :
-  is_O (filter.comap im filter.at_top) (λ τ, jacobi_theta τ - 1) (λ τ, rexp (-π * τ.im)) :=
+  (λ τ, jacobi_theta τ - 1) =O[comap im at_top] (λ τ, rexp (-π * τ.im)) :=
 begin
   simp_rw [is_O, is_O_with, filter.eventually_comap, filter.eventually_at_top],
   refine ⟨2 / (1 - rexp (-π)), 1, λ y hy z hz, (norm_jacobi_theta_sub_one_le
@@ -180,9 +182,6 @@ begin
   obtain ⟨bd, bd_s, le_bd⟩ := exists_summable_bound_exp_mul_sq hy,
   exact differentiable_on_tsum_of_summable_norm bd_s h1 h2 (λ i w hw, le_bd (le_of_lt hw) i),
 end
-
-lemma mdifferentiable_jacobi_theta : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (jacobi_theta ∘ coe : ℍ → ℂ) :=
-λ τ, (differentiable_at_jacobi_theta τ.2).mdifferentiable_at.comp τ τ.mdifferentiable_coe
 
 lemma continuous_at_jacobi_theta {z : ℂ} (hz : 0 < im z) :
   continuous_at jacobi_theta z := (differentiable_at_jacobi_theta hz).continuous_at

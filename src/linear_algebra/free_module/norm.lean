@@ -9,6 +9,9 @@ import ring_theory.norm
 
 /-!
 # Norms on free modules over principal ideal domains
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open ideal polynomial

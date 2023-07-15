@@ -10,6 +10,9 @@ import algebraic_geometry.locally_ringed_space.has_colimits
 /-!
 # Gluing Structured spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a family of gluing data of structured spaces (presheafed spaces, sheafed spaces, or locally
 ringed spaces), we may glue them together.
 

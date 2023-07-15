@@ -11,6 +11,9 @@ import ring_theory.is_tensor_product
 /-!
 # The module of kaehler differentials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main results
 
 - `kaehler_differential`: The module of kaehler differentials. For an `R`-algebra `S`, we provide

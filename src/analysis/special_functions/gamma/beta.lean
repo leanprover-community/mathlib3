@@ -11,6 +11,9 @@ import analysis.analytic.isolated_zeros
 /-!
 # The Beta function, and further properties of the Gamma function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the Beta integral, relate Beta and Gamma functions, and prove some
 refined properties of the Gamma function using these relations.
 

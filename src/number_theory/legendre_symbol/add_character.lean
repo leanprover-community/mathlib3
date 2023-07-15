@@ -9,6 +9,9 @@ import field_theory.finite.trace
 /-!
 # Additive characters of finite rings and fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a finite commutative ring. An *additive character* of `R` with values
 in another commutative ring `R'` is simply a morphism from the additive group
 of `R` into the multiplicative monoid of `R'`.

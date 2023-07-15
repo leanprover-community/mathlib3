@@ -105,6 +105,17 @@ def prod_comm (α β : Type*) : α × β ≃ β × α :=
 @[simps] def prod_assoc (α β γ : Sort*) : (α × β) × γ ≃ α × (β × γ) :=
 ⟨λ p, (p.1.1, p.1.2, p.2), λ p, ((p.1, p.2.1), p.2.2), λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
 
+/-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
+@[simps apply]
+def prod_prod_prod_comm (α β γ δ : Type*) : (α × β) × (γ × δ) ≃ (α × γ) × (β × δ) :=
+{ to_fun := λ abcd, ((abcd.1.1, abcd.2.1), (abcd.1.2, abcd.2.2)),
+  inv_fun := λ acbd, ((acbd.1.1, acbd.2.1), (acbd.1.2, acbd.2.2)),
+  left_inv := λ ⟨⟨a, b⟩, ⟨c, d⟩⟩, rfl,
+  right_inv := λ ⟨⟨a, c⟩, ⟨b, d⟩⟩, rfl, }
+
+@[simp] lemma prod_prod_prod_comm_symm (α β γ δ : Type*) :
+  (prod_prod_prod_comm α β γ δ).symm = prod_prod_prod_comm α γ β δ := rfl
+
 /-- Functions on `α × β` are equivalent to functions `α → β → γ`. -/
 @[simps {fully_applied := ff}] def curry (α β γ : Type*) :
   (α × β → γ) ≃ (α → β → γ) :=

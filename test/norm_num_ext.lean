@@ -296,7 +296,7 @@ open_locale big_operators
 example : ([1, 2, 1, 3]).sum = 7 := by norm_num [-list.sum_cons]
 example : (([1, 2, 1, 3] : list ℚ).map (λ i, i^2)).sum = 15 := by norm_num [-list.map]
 example : (list.range 10).sum = 45 := by norm_num [-list.range_succ]
-example : (list.fin_range 10).sum = 45 := by norm_num [-list.fin_range_succ]
+example : (list.fin_range 10).sum = 45 := by norm_num [-list.fin_range_succ_eq_map]
 
 -- Multisets:
 example : (1 ::ₘ 2 ::ₘ 1 ::ₘ 3 ::ₘ {}).sum = 7 := by norm_num [-multiset.sum_cons]

@@ -14,6 +14,9 @@ import topology.uniform_space.matrix
 /-!
 # Lemmas about the matrix exponential
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we provide results about `exp` on `matrix`s over a topological or normed algebra.
 Note that generic results over all topological spaces such as `exp_zero` can be used on matrices
 without issue, so are not repeated here. The topological results specific to matrices are:

@@ -12,6 +12,9 @@ import category_theory.monad.limits
 /-!
 # Monadicity theorems
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove monadicity theorems which can establish a given functor is monadic. In particular, we
 show three versions of Beck's monadicity theorem, and the reflexive (crude) monadicity theorem:
 

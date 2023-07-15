@@ -185,7 +185,8 @@ variables {a}
 
 @[simp, to_additive finite_zmultiples] lemma finite_zpowers :
   (zpowers a : set α).finite ↔ is_of_fin_order a :=
-by rw [←order_of_pos_iff, ←nat.card_zpowers, nat.card_pos]
+by simp [←order_of_pos_iff, ←nat.card_zpowers, nat.card_pos, ←set_like.coe_sort_coe,
+  set.nonempty_of_nonempty_subtype]
 
 @[simp, to_additive infinite_zmultiples] lemma infinite_zpowers :
   (zpowers a : set α).infinite ↔ ¬ is_of_fin_order a :=

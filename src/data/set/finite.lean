@@ -69,7 +69,7 @@ lemma finite_def {s : set α} : s.finite ↔ nonempty (fintype s) := ⟨λ ⟨h�
 
 alias finite_def ↔ finite.nonempty_fintype _
 
-lemma finite_coe_iff {s : set α} : finite s ↔ s.finite :=
+@[simp] lemma finite_coe_iff {s : set α} : finite s ↔ s.finite :=
 by rw [finite_iff_nonempty_fintype, finite_def]
 
 /-- Constructor for `set.finite` using a `finite` instance. -/

@@ -288,7 +288,7 @@ lemma mk_eq_zero (α : Type u) [is_empty α] : #α = 0 :=
 @[simp] theorem lift_eq_zero {a : cardinal.{v}} : lift.{u} a = 0 ↔ a = 0 :=
 lift_injective.eq_iff' lift_zero
 
-lemma mk_eq_zero_iff {α : Type u} : #α = 0 ↔ is_empty α :=
+@[simp] lemma mk_eq_zero_iff {α : Type u} : #α = 0 ↔ is_empty α :=
 ⟨λ e, let ⟨h⟩ := quotient.exact e in h.is_empty, @mk_eq_zero α⟩
 
 theorem mk_ne_zero_iff {α : Type u} : #α ≠ 0 ↔ nonempty α :=
@@ -1193,6 +1193,8 @@ by rw [mul_comm, nat_mul_aleph_0 hn]
 
 @[simp] lemma nat_add_aleph_0 (n : ℕ) : ↑n + ℵ₀ = ℵ₀ := by rw [add_comm, aleph_0_add_nat]
 
+variables {c : cardinal}
+
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/
 def to_nat : zero_hom cardinal ℕ :=
@@ -1208,6 +1210,20 @@ dif_pos h
 
 lemma to_nat_apply_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : c.to_nat = 0 :=
 dif_neg h.not_lt
+
+@[simp] lemma to_nat_eq_zero : to_nat c = 0 ↔ c = 0 ∨ ℵ₀ ≤ c :=
+begin
+  simp only [to_nat, zero_hom.coe_mk, dite_eq_right_iff, or_iff_not_imp_right, not_le],
+  refine forall_congr (λ h, _),
+  rw [←@nat.cast_eq_zero cardinal, ←classical.some_spec (to_nat._proof_1 _ h)],
+end
+
+lemma to_nat_ne_zero : to_nat c ≠ 0 ↔ c ≠ 0 ∧ c < ℵ₀ := by simp [not_or_distrib]
+
+@[simp] lemma to_nat_pos : 0 < to_nat c ↔ c ≠ 0 ∧ c < ℵ₀ := pos_iff_ne_zero.trans to_nat_ne_zero
+
+@[simp] lemma aleph_0_le_mk_iff : aleph_0 ≤ mk α ↔ infinite α := infinite_iff.symm
+@[simp] lemma mk_lt_aleph_0_iff : mk α < aleph_0 ↔ finite α := by simp [←not_le]
 
 lemma cast_to_nat_of_lt_aleph_0 {c : cardinal} (h : c < ℵ₀) : ↑c.to_nat = c :=
 by rw [to_nat_apply_of_lt_aleph_0 h, ← classical.some_spec (lt_aleph_0.1 h)]

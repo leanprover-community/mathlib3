@@ -38,8 +38,11 @@ lemma card_eq_fintype_card [fintype α] : nat.card α = fintype.card α := mk_to
 @[simp]
 lemma card_eq_zero_of_infinite [infinite α] : nat.card α = 0 := mk_to_nat_of_infinite
 
-lemma finite_of_card_ne_zero (h : nat.card α ≠ 0) : finite α :=
-not_infinite_iff_finite.mp $ h ∘ @nat.card_eq_zero_of_infinite α
+@[simp] lemma card_eq_zero : nat.card α = 0 ↔ is_empty α ∨ infinite α := by simp [nat.card]
+lemma card_ne_zero : nat.card α ≠ 0 ↔ nonempty α ∧ finite α := by simp [not_or_distrib]
+@[simp] lemma card_pos : 0 < nat.card α ↔ nonempty α ∧ finite α := by simp [nat.card]
+
+lemma finite_of_card_ne_zero (h : nat.card α ≠ 0) : finite α := (card_ne_zero.1 h).2
 
 lemma card_congr (f : α ≃ β) : nat.card α = nat.card β :=
 cardinal.to_nat_congr f
@@ -50,6 +53,9 @@ card_congr (equiv.of_bijective f hf)
 lemma card_eq_of_equiv_fin {α : Type*} {n : ℕ}
   (f : α ≃ fin n) : nat.card α = n :=
 by simpa using card_congr f
+
+lemma card_mono  {s t : set α} (ht : t.finite) (h : s ⊆ t) : nat.card s ≤ nat.card t :=
+to_nat_le_of_le_of_lt_aleph_0 ht.lt_aleph_0 $ mk_le_mk_of_subset h
 
 /-- If the cardinality is positive, that means it is a finite type, so there is
 an equivalence between `α` and `fin (nat.card α)`. See also `finite.equiv_fin`. -/

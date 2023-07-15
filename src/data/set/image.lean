@@ -123,8 +123,9 @@ lemma nonempty_of_nonempty_preimage {s : set β} {f : α → β} (hf : (f ⁻¹'
   s.nonempty :=
 let ⟨x, hx⟩ := hf in ⟨f x, hx⟩
 
-@[simp] lemma preimage_mem_singleton_true (s : set α) : (∈ s) ⁻¹' {true} = s := by { ext, simp }
-@[simp] lemma preimage_mem_singleton_false (s : set α) : (∈ s) ⁻¹' {false} = sᶜ := by { ext, simp }
+@[simp] lemma preimage_singleton_true (p : α → Prop) : p ⁻¹' {true} = {a | p a} := by { ext, simp }
+@[simp] lemma preimage_singleton_false (p : α → Prop) : p ⁻¹' {false} = {a | ¬ p a} :=
+by { ext, simp }
 
 lemma preimage_subtype_coe_eq_compl {α : Type*} {s u v : set α} (hsuv : s ⊆ u ∪ v)
   (H : s ∩ (u ∩ v) = ∅) : (coe : s → α) ⁻¹' u = (coe ⁻¹' v)ᶜ :=

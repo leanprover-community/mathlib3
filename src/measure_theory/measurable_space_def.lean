@@ -196,7 +196,7 @@ by { cases i, exacts [h₂, h₁] }
   measurable_set (disjointed f n) :=
 disjointed_rec (λ t i ht, measurable_set.diff ht $ h _) (h n)
 
-@[simp] lemma measurable_set.const (p : Prop) : measurable_set {a : α | p} :=
+lemma measurable_set.const (p : Prop) : measurable_set {a : α | p} :=
 by { by_cases p; simp [h, measurable_set.empty]; apply measurable_set.univ }
 
 /-- Every set has a measurable superset. Declare this as local instance as needed. -/

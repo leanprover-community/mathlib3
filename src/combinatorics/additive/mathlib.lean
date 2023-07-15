@@ -31,89 +31,7 @@ class cancel_semigroup (α : Type*) extends left_cancel_semigroup α, right_canc
 attribute [to_additive] cancel_semigroup.to_left_cancel_semigroup
   cancel_semigroup.to_right_cancel_semigroup
 
-namespace nat
-variables {a b m n : ℕ}
-
-lemma add_sub_one_le_mul (ha : a ≠ 0) (hb : b ≠ 0) : a + b - 1 ≤ a * b :=
-begin
-  cases a,
-  { cases ha rfl },
-  { rw [succ_add, succ_sub_one, succ_mul],
-    exact add_le_add_right (le_mul_of_one_le_right' $ pos_iff_ne_zero.2 hb) _ }
-end
-
-end nat
-
 --TODO: Fix implicitness `subgroup.closure_eq_bot_iff`
-
-section
-variables {α β : Type*} {r r' : α → α → Prop} {f : β → α}
-
-lemma well_founded.mono (hr : well_founded r) (h : ∀ a b, r' a b → r a b) : well_founded r' :=
-subrelation.wf h hr
-
-lemma well_founded.on_fun : well_founded r → well_founded (r on f) := inv_image.wf _
-
-namespace set
-variables {s : set α}
-
-@[simp] lemma well_founded_on_univ : (univ : set α).well_founded_on r ↔ well_founded r :=
-by simp [well_founded_on_iff]
-
-lemma _root_.well_founded.well_founded_on (hr : well_founded r) : s.well_founded_on r :=
-(well_founded_on_univ.2 hr).subset $ subset_univ _
-
-lemma well_founded_on.mono' (h : ∀ a b ∈ s, r' a b → r a b) :
-  s.well_founded_on r → s.well_founded_on r' :=
-subrelation.wf $ λ a b, h _ a.2 _ b.2
-
-@[simp] lemma well_founded_on_range : (range f).well_founded_on r ↔ well_founded (r on f) :=
-begin
-  let f' : β → range f := λ c, ⟨f c, c, rfl⟩,
-  refine ⟨λ h, (inv_image.wf f' h).mono $ λ c c', id, λ h, ⟨_⟩⟩,
-  rintro ⟨_, c, rfl⟩,
-  refine acc.of_downward_closed f' _ _ _,
-  { rintro _ ⟨_, c', rfl⟩ -,
-    exact ⟨c', rfl⟩ },
-  { apply h.apply }
-end
-
-end set
-end
-
-section
-variables {α β γ : Type*} {rα : α  → α → Prop} {rβ : β → β → Prop} {f : γ → α} {g : γ → β}
-  {s : set γ}
-
-open prod
-
-lemma well_founded.prod_lex (hα : well_founded (rα on f))
-  (hβ : ∀ a, (f ⁻¹' {a}).well_founded_on (rβ on g)) :
-  well_founded (prod.lex rα rβ on λ c, (f c, g c)) :=
-begin
-  let p : γ → Σ' a : set.range f, f⁻¹' {a} := λ c, ⟨⟨_, c, rfl⟩, c, rfl⟩,
-  refine (inv_image.wf p $ psigma.lex_wf (set.well_founded_on_range.2 hα) $ λ a, hβ a).mono
-    (λ c c' h, _),
-  obtain h' | h' := prod.lex_iff.1 h,
-  { exact psigma.lex.left _ _ h' },
-  { dsimp only [inv_image, p, (on)] at h' ⊢,
-    convert psigma.lex.right (⟨_, c', rfl⟩ : set.range f) _ using 1, swap,
-    exacts [⟨c, h'.1⟩, psigma.subtype_ext (subtype.ext h'.1) rfl, h'.2] },
-end
-
-namespace set
-
-lemma well_founded_on.prod_lex (hα : s.well_founded_on (rα on f))
-  (hβ : ∀ a, (s ∩ f ⁻¹' {a}).well_founded_on (rβ on g)) :
-  s.well_founded_on (prod.lex rα rβ on λ c, (f c, g c)) :=
-begin
-  refine well_founded.prod_lex hα (λ a, subrelation.wf (λ b c h, _) (hβ a).on_fun),
-  exact λ x, ⟨x, x.1.2, x.2⟩,
-  assumption,
-end
-
-end set
-end
 
 section
 variables {ι : Sort*} {α : Type*} [conditionally_complete_linear_order_bot α] {f : ι → α} {a : α}
@@ -226,38 +144,6 @@ protected lemma nonempty.attach : s.nonempty → s.attach.nonempty := s.attach_n
 
 end finset
 
-namespace finset
-variables {α β γ : Type*} [decidable_eq γ] {f : α → β → γ} {s s₁ s₂ : finset α} {t t₁ t₂ : finset β}
-  {u : finset γ} {a : α} {b : β}
-
-open function
-
-lemma card_dvd_card_image₂_right (hf : ∀ a, injective (f a))
-  (hs : ((λ a, t.image $ f a) '' s).pairwise_disjoint id) :
-  t.card ∣ (image₂ f s t).card :=
-begin
-  classical,
-  induction s using finset.induction with a s ha ih,
-  { simp },
-  specialize ih (hs.subset $ set.image_subset _ $ coe_subset.2 $ subset_insert _ _),
-  rw image₂_insert_left,
-  by_cases h : disjoint (image (f a) t) (image₂ f s t),
-  { rw card_union_eq h,
-    exact (card_image_of_injective _ $ hf _).symm.dvd.add ih },
-  simp_rw [←bUnion_image_left, disjoint_bUnion_right, not_forall] at h,
-  obtain ⟨b, hb, h⟩ := h,
-  rwa union_eq_right_iff_subset.2,
-  exact (hs.eq (set.mem_image_of_mem _ $ mem_insert_self _ _)
-    (set.mem_image_of_mem _ $ mem_insert_of_mem hb) h).trans_subset (image_subset_image₂_right hb),
-end
-
-lemma card_dvd_card_image₂_left (hf : ∀ b, injective (λ a, f a b))
-  (ht : ((λ b, s.image $ λ a, f a b) '' t).pairwise_disjoint id) :
-  s.card ∣ (image₂ f s t).card :=
-by { rw ←image₂_swap, exact card_dvd_card_image₂_right hf ht }
-
-end finset
-
 open_locale pointwise
 
 namespace set
@@ -283,15 +169,6 @@ begin
 end
 
 end nat
-
-namespace finset
-variables {α β : Type*} [group α] [mul_action α β] [decidable_eq β] {s : finset α} {t : finset β}
-
-@[to_additive] lemma card_dvd_card_smul_right :
-  ((• t) '' (s : set α)).pairwise_disjoint id → t.card ∣ (s • t).card :=
-card_dvd_card_image₂_right mul_action.injective
-
-end finset
 
 namespace set
 variables {α : Type*} [has_mul α]
@@ -558,41 +435,6 @@ end
 
 end mul_action
 
-section prod
-variables {α β : Type*} [monoid α] [monoid β] {x : α × β} {a : α} {b : β}
-
-@[to_additive is_of_fin_add_order.mono]
-lemma is_of_fin_order.mono (ha : is_of_fin_order a) (h : order_of b ∣ order_of a) :
-  is_of_fin_order b :=
-by { rw ←order_of_pos_iff at ⊢ ha, exact nat.pos_of_dvd_of_pos h ha }
-
---TODO: `to_additive_reorder` on `prod.pow_fst`
-@[to_additive prod.add_order_of] protected lemma prod.order_of (x : α × β) :
-  order_of x = (order_of x.1).lcm (order_of x.2) :=
-eq_of_forall_dvd $ by cases x; simp [order_of_dvd_iff_pow_eq_one, nat.lcm_dvd_iff]
-
-@[to_additive add_order_of_fst_dvd_add_order_of] lemma order_of_fst_dvd_order_of :
-  order_of x.1 ∣ order_of x :=
-by { rw prod.order_of, exact nat.dvd_lcm_left _ _ }
-
-@[to_additive add_order_of_snd_dvd_add_order_of] lemma order_of_snd_dvd_order_of :
-  order_of x.2 ∣ order_of x :=
-by { rw prod.order_of, exact nat.dvd_lcm_right _ _ }
-
-@[to_additive is_of_fin_add_order.fst]
-lemma is_of_fin_order.fst {x : α × β} (hx : is_of_fin_order x) : is_of_fin_order x.1 :=
-hx.mono order_of_fst_dvd_order_of
-
-@[to_additive is_of_fin_add_order.snd]
-lemma is_of_fin_order.snd {x : α × β} (hx : is_of_fin_order x) : is_of_fin_order x.2 :=
-hx.mono order_of_snd_dvd_order_of
-
-@[to_additive is_of_fin_add_order.prod_mk]
-lemma is_of_fin_order.prod_mk : is_of_fin_order a → is_of_fin_order b → is_of_fin_order (a, b) :=
-by simpa only [←order_of_pos_iff, prod.order_of] using nat.lcm_pos
-
-end prod
-
 section monoid
 variables {α : Type*} [monoid α] {a : α}
 
@@ -646,23 +488,6 @@ open function int set subgroup submonoid
 @[to_additive] lemma range_zpow (a : α) : range (λ n : ℤ, a ^ n) = zpowers a := rfl
 
 --TODO: Turn `is_of_fin_order_iff_coe` around. Rename to `subgroup.is_of_fin_order_coe`
-
-@[to_additive] lemma zpow_eq_one_iff_modeq : a ^ n = 1 ↔ n ≡ 0 [ZMOD (order_of a)] :=
-by rw [modeq_zero_iff_dvd, order_of_dvd_iff_zpow_eq_one]
-
-@[to_additive] lemma zpow_eq_zpow_iff_modeq : a ^ m = a ^ n ↔ m ≡ n [ZMOD (order_of a)] :=
-by rw [←mul_inv_eq_one, ←zpow_sub, zpow_eq_one_iff_modeq, modeq_iff_dvd, modeq_iff_dvd, zero_sub,
-  neg_sub]
-
-@[simp, to_additive] lemma injective_zpow_iff_not_is_of_fin_order :
-  injective (λ n : ℤ, a ^ n) ↔ ¬ is_of_fin_order a :=
-begin
-  refine ⟨_, λ h n m hnm, _⟩,
-  { simp_rw is_of_fin_order_iff_pow_eq_one,
-    rintro h ⟨n, hn, ha⟩,
-    exact nat.cast_ne_zero.2 hn.ne' (h $ by simpa using ha) },
-  rwa [zpow_eq_zpow_iff_modeq, order_of_eq_zero_iff.mpr h, nat.cast_zero, modeq_zero_iff] at hnm,
-end
 
 @[simp, to_additive finite_zmultiples] lemma finite_zpowers :
   (zpowers a : set α).finite ↔ is_of_fin_order a :=

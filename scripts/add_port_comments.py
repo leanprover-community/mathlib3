@@ -12,6 +12,8 @@ import yaml
 status = PortStatus.deserialize_old()
 
 src_path = Path(__file__).parent.parent / 'src'
+archive_path = Path(__file__).parent.parent / 'archive'
+counterexamples_path = Path(__file__).parent.parent / 'counterexamples'
 
 def make_comment(fstatus):
     return textwrap.dedent(f"""\
@@ -87,6 +89,11 @@ def add_port_status(fcontent: str, fstatus: FileStatus) -> str:
     return fcontent
 
 def fname_for(import_path: str) -> Path:
+    for root in [src_path, archive_path, counterexamples_path]:
+        p = root / Path(*import_path.split('.')).with_suffix('.lean')
+        if p.exists():
+            return p
+    # used only for error messages, a best-guess
     return src_path / Path(*import_path.split('.')).with_suffix('.lean')
 
 

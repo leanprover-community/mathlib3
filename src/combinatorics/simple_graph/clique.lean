@@ -289,13 +289,15 @@ begin
     exact is_n_clique.map hs }
 end
 
-@[simp] lemma clique_set_map_equiv (G : simple_graph α) (e : α ≃ β) :
-  ∀ n, (G.map e.to_embedding).clique_set n = map e.to_embedding '' G.clique_set n
-| 0 := by simp_rw [clique_set_zero, set.image_singleton, map_empty]
-| 1 := by { ext, simp only [e.exists_congr_left, equiv.coe_eq_to_embedding, clique_set_one,
-    set.mem_range, set.mem_image, exists_exists_eq_and, map_singleton, equiv.to_embedding_apply,
-    equiv.apply_symm_apply] }
-| (n + 2) := clique_set_map (by norm_num) _ _
+@[simp] lemma clique_set_map_of_equiv (G : simple_graph α) (e : α ≃ β) (n : ℕ) :
+  (G.map e.to_embedding).clique_set n = map e.to_embedding '' G.clique_set n :=
+begin
+  obtain rfl | hn := eq_or_ne n 1,
+  { ext,
+    simp [e.exists_congr_left] },
+  { exact clique_set_map hn _ _ }
+end
+
 
 end clique_set
 
@@ -342,10 +344,10 @@ variables [fintype β] [decidable_eq β] (G)
 coe_injective $
   by simp_rw [coe_clique_finset, clique_set_map hn, coe_map, coe_clique_finset, embedding.coe_fn_mk]
 
-@[simp] lemma clique_finset_map_equiv (e : α ≃ β) (n : ℕ) :
+@[simp] lemma clique_finset_map_of_equiv (e : α ≃ β) (n : ℕ) :
   (G.map e.to_embedding).clique_finset n =
     (G.clique_finset n).map ⟨map e.to_embedding, finset.map_injective _⟩ :=
-coe_injective $ by simp_rw [coe_map, coe_clique_finset, embedding.coe_fn_mk, clique_set_map_equiv]
+coe_injective $ by push_cast; exact clique_set_map_of_equiv _ _ _
 
 end clique_finset
 end simple_graph

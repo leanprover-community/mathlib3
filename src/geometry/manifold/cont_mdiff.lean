@@ -9,6 +9,9 @@ import geometry.manifold.local_invariant_properties
 /-!
 # Smooth functions between smooth manifolds
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `Cⁿ` functions between smooth manifolds, as functions which are `Cⁿ` in charts, and prove
 basic properties of these notions.
 
@@ -1243,6 +1246,28 @@ begin
   { exact hf x hx },
   { refine cont_mdiff_at.congr_of_eventually_eq _ (eventually_eq_zero_nhds.2 hx),
     exact cont_mdiff_at_const }
+end
+
+/-! ### The inclusion map from one open set to another is smooth -/
+section
+open topological_space
+
+lemma cont_mdiff_inclusion {n : ℕ∞} {U V : opens M} (h : U ≤ V) :
+  cont_mdiff I I n (set.inclusion h : U → V) :=
+begin
+  rintros ⟨x, hx : x ∈ U⟩,
+  apply (cont_diff_within_at_local_invariant_prop I I n).lift_prop_inclusion,
+  intros y,
+  dsimp [cont_diff_within_at_prop],
+  rw [set.univ_inter],
+  refine cont_diff_within_at_id.congr _ _,
+  { exact I.right_inv_on },
+  { exact congr_arg I (I.left_inv y) },
+end
+
+lemma smooth_inclusion {U V : opens M} (h : U ≤ V) : smooth I I (set.inclusion h : U → V) :=
+cont_mdiff_inclusion h
+
 end
 
 /-! ### Equivalence with the basic definition for functions between vector spaces -/

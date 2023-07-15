@@ -9,6 +9,9 @@ import set_theory.ordinal.principal
 /-!
 # Ordinal notation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Constructive ordinal arithmetic for ordinals below `ε₀`.
 
 We define a type `onote`, with constructors `0 : onote` and `onote.oadd e n a` representing

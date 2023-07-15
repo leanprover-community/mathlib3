@@ -9,6 +9,9 @@ import tactic.abel
 /-!
 # Combinatorial games.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the quotient of pre-games by the equivalence relation
 `p ≈ q ↔ p ≤ q ∧ q ≤ p` (its `antisymmetrization`), and construct an instance `add_comm_group game`,
 as well as an instance `partial_order game`.

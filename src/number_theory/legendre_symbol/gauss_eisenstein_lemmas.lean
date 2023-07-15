@@ -8,6 +8,9 @@ import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Lemmas of Gauss and Eisenstein
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the Lemmas of Gauss and Eisenstein on the Legendre symbol.
 The main results are `zmod.gauss_lemma` and `zmod.eisenstein_lemma`.
 -/

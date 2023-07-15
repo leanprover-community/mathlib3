@@ -7,6 +7,9 @@ import measure_theory.function.conditional_expectation.condexp_L1
 
 /-! # Conditional expectation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We build the conditional expectation of an integrable function `f` with value in a Banach space
 with respect to a measure `μ` (defined on a measurable space structure `m0`) and a measurable space
 structure `m` with `hm : m ≤ m0` (a sub-sigma-algebra). This is an `m`-strongly measurable

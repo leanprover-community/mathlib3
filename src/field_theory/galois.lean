@@ -11,6 +11,9 @@ import group_theory.group_action.fixing_subgroup
 /-!
 # Galois Extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define Galois extensions as extensions which are both separable and normal.
 
 ## Main definitions

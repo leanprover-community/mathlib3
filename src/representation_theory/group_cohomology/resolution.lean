@@ -12,6 +12,9 @@ import representation_theory.Rep
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains facts about an important `k[G]`-module structure on `k[Gⁿ]`, where `k` is a
 commutative ring and `G` is a group. The module structure arises from the representation
 `G →* End(k[Gⁿ])` induced by the diagonal action of `G` on `Gⁿ.`

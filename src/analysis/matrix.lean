@@ -10,6 +10,9 @@ import analysis.inner_product_space.pi_L2
 /-!
 # Matrices as a normed space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide the following non-instances for norms on matrices:
 
 * The elementwise norm:

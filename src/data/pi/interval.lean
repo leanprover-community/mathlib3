@@ -19,14 +19,14 @@ order are locally finite and calculates the cardinality of their intervals.
 open finset fintype
 open_locale big_operators
 
-variables {ι : Type*} {α : ι → Type*}
-
+variables {ι : Type*} {α : ι → Type*} [fintype ι] [decidable_eq ι] [Π i, decidable_eq (α i)]
 
 namespace pi
+section partial_order
+variables [Π i, partial_order (α i)]
 
-section locally_finite
-variables [decidable_eq ι] [fintype ι] [Π i, decidable_eq (α i)]
-  [Π i, partial_order (α i)] [Π i, locally_finite_order (α i)]
+section locally_finite_order
+variables [Π i, locally_finite_order (α i)]
 
 instance : locally_finite_order (Π i, α i) :=
 locally_finite_order.of_Icc _
@@ -39,21 +39,18 @@ lemma Icc_eq : Icc a b = pi_finset (λ i, Icc (a i) (b i)) := rfl
 
 lemma card_Icc : (Icc a b).card = ∏ i, (Icc (a i) (b i)).card := card_pi_finset _
 
-lemma card_Ico : (Ico a b).card = (∏ i, (Icc (a i) (b i)).card) - 1 :=
+lemma card_Ico : (Ico a b).card = ∏ i, (Icc (a i) (b i)).card - 1 :=
 by rw [card_Ico_eq_card_Icc_sub_one, card_Icc]
 
-lemma card_Ioc : (Ioc a b).card = (∏ i, (Icc (a i) (b i)).card) - 1 :=
+lemma card_Ioc : (Ioc a b).card = ∏ i, (Icc (a i) (b i)).card - 1 :=
 by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc]
 
-lemma card_Ioo : (Ioo a b).card = (∏ i, (Icc (a i) (b i)).card) - 2 :=
+lemma card_Ioo : (Ioo a b).card = ∏ i, (Icc (a i) (b i)).card - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
-end locally_finite
+end locally_finite_order
 
-section bounded
-variables [decidable_eq ι] [fintype ι] [Π i, decidable_eq (α i)] [Π i, partial_order (α i)]
-
-section bot
+section locally_finite_order_bot
 variables [Π i, locally_finite_order_bot (α i)] (b : Π i, α i)
 
 instance : locally_finite_order_bot (Π i, α i) :=
@@ -63,12 +60,12 @@ locally_finite_order_top.of_Iic _
 
 lemma card_Iic : (Iic b).card = ∏ i, (Iic (b i)).card := card_pi_finset _
 
-lemma card_Iio : (Iio b).card = (∏ i, (Iic (b i)).card) - 1 :=
+lemma card_Iio : (Iio b).card = ∏ i, (Iic (b i)).card - 1 :=
 by rw [card_Iio_eq_card_Iic_sub_one, card_Iic]
 
-end bot
+end locally_finite_order_bot
 
-section top
+section locally_finite_order_top
 variables [Π i, locally_finite_order_top (α i)] (a : Π i, α i)
 
 instance : locally_finite_order_top (Π i, α i) :=
@@ -76,13 +73,19 @@ locally_finite_order_top.of_Ici _
   (λ a, pi_finset $ λ i, Ici (a i))
   (λ a x, by simp_rw [mem_pi_finset, mem_Ici, le_def])
 
-lemma card_Ici : (Ici a).card = (∏ i, (Ici (a i)).card) := card_pi_finset _
+lemma card_Ici : (Ici a).card = ∏ i, (Ici (a i)).card := card_pi_finset _
 
-lemma card_Ioi : (Ioi a).card = (∏ i, (Ici (a i)).card) - 1 :=
+lemma card_Ioi : (Ioi a).card = ∏ i, (Ici (a i)).card - 1 :=
 by rw [card_Ioi_eq_card_Ici_sub_one, card_Ici]
 
-end top
+end locally_finite_order_top
+end partial_order
 
-end bounded
+section lattice
+variables [Π i, lattice (α i)] [Π i, locally_finite_order (α i)] (a b : Π i, α i)
 
+lemma uIcc_eq : uIcc a b = pi_finset (λ i, uIcc (a i) (b i)) := rfl
+lemma card_uIcc : (uIcc a b).card = ∏ i, (uIcc (a i) (b i)).card := card_Icc _ _
+
+end lattice
 end pi

@@ -7,7 +7,10 @@ import data.complex.module
 import ring_theory.norm
 import ring_theory.trace
 
-/-! # Lemmas about `algebra.trace` and `algebra.norm` on `ℂ` -/
+/-! # Lemmas about `algebra.trace` and `algebra.norm` on `ℂ` 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 open complex
 

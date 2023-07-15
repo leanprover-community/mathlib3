@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Michael Stoll
 -/
 
-import number_theory.zsqrtd.gaussian_int
+import number_theory.zsqrtd.quadratic_reciprocity
 import tactic.linear_combination
 
 /-!
 # Sums of two squares
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Fermat's theorem on the sum of two squares. Every prime `p` congruent to 1 mod 4 is the
 sum of two squares; see `nat.prime.sq_add_sq` (which has the weaker assumption `p % 4 ≠ 3`).

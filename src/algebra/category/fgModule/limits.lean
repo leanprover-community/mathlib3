@@ -14,6 +14,9 @@ import category_theory.limits.constructions.limits_of_products_and_equalizers
 /-!
 # `forget₂ (fgModule K) (Module K)` creates all finite limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 And hence `fgModule K` has all finite limits.
 
 ## Future work

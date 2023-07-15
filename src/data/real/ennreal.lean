@@ -105,6 +105,10 @@ noncomputable instance : linear_ordered_comm_monoid_with_zero ℝ≥0∞ :=
   .. ennreal.linear_ordered_add_comm_monoid_with_top,
   .. (show comm_semiring ℝ≥0∞, from infer_instance) }
 
+instance : unique (add_units ℝ≥0∞) :=
+{ default := 0,
+  uniq := λ a, add_units.ext $ le_zero_iff.1 $ by { rw ←a.add_neg, exact le_self_add } }
+
 instance : inhabited ℝ≥0∞ := ⟨0⟩
 
 instance : has_coe ℝ≥0 ℝ≥0∞ := ⟨ option.some ⟩
@@ -1056,6 +1060,12 @@ by rw [div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel h0 hI, mul_one]
 protected lemma mul_div_cancel' (h0 : a ≠ 0) (hI : a ≠ ∞) : a * (b / a) = b :=
 by rw [mul_comm, ennreal.div_mul_cancel h0 hI]
 
+protected lemma mul_comm_div : a / b * c = a * (c / b) :=
+by simp only [div_eq_mul_inv, mul_comm, mul_assoc]
+
+protected lemma mul_div_right_comm : a * b / c = a / c * b :=
+by simp only [div_eq_mul_inv, mul_comm, mul_assoc]
+
 instance : has_involutive_inv ℝ≥0∞ :=
 { inv := has_inv.inv,
   inv_inv := λ a, by
@@ -1076,6 +1086,9 @@ mul_lt_top h1 (inv_ne_top.mpr h2)
 inv_top ▸ inv_inj
 
 protected lemma inv_ne_zero : a⁻¹ ≠ 0 ↔ a ≠ ∞ := by simp
+
+protected lemma div_pos (ha : a ≠ 0) (hb : b ≠ ∞) : 0 < a / b :=
+ennreal.mul_pos ha $ ennreal.inv_ne_zero.2 hb
 
 protected lemma mul_inv {a b : ℝ≥0∞} (ha : a ≠ 0 ∨ b ≠ ∞) (hb : a ≠ ∞ ∨ b ≠ 0) :
   (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
